@@ -10,11 +10,11 @@ from lib.claim_convergence.full_review.review import extract_findings
 from lib.claim_convergence.full_review.revise import revise
 from lib.backend.addressing import Address
 from lib.claim_convergence.predicates import unresolved_revise_comments
-from lib.backend.store import Store
+from lib.febe.protocol import Session
 
 
 def _retry_unresolved_revises(
-    store: Store, asn_num: int, claim_dir: Path,
+    session: Session, asn_num: int, claim_dir: Path,
     scope_addrs: List[Address],
 ) -> None:
     """Re-feed open revise comments to the reviser at the top of a cycle.
@@ -28,11 +28,11 @@ def _retry_unresolved_revises(
     for scope_addr in scope_addrs:
         if scope_addr is None:
             continue
-        for c in unresolved_revise_comments(store.state, scope_addr):
+        for c in unresolved_revise_comments(session, scope_addr):
             if not c.from_set:
                 continue
             finding_addr = c.from_set[0]
-            finding_rel = store.path_for_addr(finding_addr)
+            finding_rel = session.get_path_for_addr(finding_addr)
             if not finding_rel:
                 continue
             finding_full = LATTICE / finding_rel
@@ -44,7 +44,9 @@ def _retry_unresolved_revises(
                 continue
             title = findings[0][0]
             target_addr = c.to_set[0] if c.to_set else None
-            target_path = store.path_for_addr(target_addr) if target_addr else None
+            target_path = (
+                session.get_path_for_addr(target_addr) if target_addr else None
+            )
             print(f"  [RETRY] re-feeding open comment {c.addr} ({title})",
                   file=sys.stderr)
             revise(asn_num, title, finding_text, claim_dir=claim_dir,
@@ -52,7 +54,7 @@ def _retry_unresolved_revises(
 
 
 def _declined_findings_for_cone(
-    store: Store,
+    session: Session,
     cone_addrs: List[Address],
     max_rejects: int = 5,
 ) -> str:
@@ -70,7 +72,7 @@ def _declined_findings_for_cone(
     handled by the orchestrator's retry pass at cycle entry.
     """
     cone_addr_set = set(a for a in cone_addrs if a is not None)
-    rejects = store.find_links(type_="resolution.reject")
+    rejects = session.find_links(type_="resolution.reject")
 
     blocks = []
     lattice = Path(LATTICE)
@@ -88,7 +90,7 @@ def _declined_findings_for_cone(
         rationale_addr = r.to_set[1]
 
         try:
-            comment = store.state.links.get(comment_addr)
+            comment = session.get_link(comment_addr)
         except KeyError:
             continue
         if not comment.to_set:
@@ -98,14 +100,14 @@ def _declined_findings_for_cone(
         if not comment.from_set:
             continue
 
-        finding_rel = store.path_for_addr(comment.from_set[0])
+        finding_rel = session.get_path_for_addr(comment.from_set[0])
         if not finding_rel:
             continue
         finding_full = lattice / finding_rel
         finding_body = (finding_full.read_text().strip()
                         if finding_full.exists() else "(finding body missing)")
 
-        rationale_rel = store.path_for_addr(rationale_addr)
+        rationale_rel = session.get_path_for_addr(rationale_addr)
         if rationale_rel:
             rationale_full = lattice / rationale_rel
             rationale_text = (rationale_full.read_text().strip()

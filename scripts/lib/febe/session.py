@@ -69,23 +69,54 @@ class Session:
         self.default_lattice = default_lattice
         self.bebe = bebe or BEBEDispatcher()
 
+    # ── Backend access (for protocol-helper interop during Pass 2) ──
+
+    @property
+    def state(self) -> State:
+        """The underlying State.
+
+        Exposed for interop with substrate primitives that take a
+        State directly (substrate-level predicates in lib/backend/
+        predicates.py, etc.). Client-side compositions (convergence
+        predicates, etc.) take a Session and don't need this.
+        """
+        if isinstance(self.backend, Store):
+            return self.backend.state
+        if hasattr(self.backend, "state"):
+            # AgentStore delegates via __getattr__
+            return self.backend.state
+        return self.backend
+
+    @property
+    def store(self) -> Store:
+        """The underlying Store, when this Session is store-backed.
+
+        Exposed for interop with protocol-helper functions in
+        lib/backend/emit.py that take a Store argument (until Pass 2
+        moves them to their respective protocol packages and routes
+        them through Session). Raises if Session is State-backed.
+        """
+        return self._require_store("store")
+
     # ── Internals ──────────────────────────────────────────────────
 
     @property
     def _state(self) -> State:
-        """The underlying State — works for both Store and State backends."""
-        if isinstance(self.backend, Store):
-            return self.backend.state
-        return self.backend
+        """Deprecated alias for `state`. Kept for in-class call sites."""
+        return self.state
 
     def _require_store(self, op: str) -> Store:
         """Assert the backend is a Store; required for filesystem ops."""
-        if not isinstance(self.backend, Store):
-            raise NotImplementedError(
-                f"{op} requires a filesystem-backed Store; "
-                f"this Session is bound to a State (in-memory only)."
-            )
-        return self.backend
+        # AgentStore wraps Store via __getattr__ delegation. Check for
+        # Store attributes rather than strict isinstance.
+        if hasattr(self.backend, "lattice_dir") and hasattr(
+            self.backend, "path_to_addr"
+        ):
+            return self.backend
+        raise NotImplementedError(
+            f"{op} requires a filesystem-backed Store; "
+            f"this Session is bound to a State (in-memory only)."
+        )
 
     # ── Session control ────────────────────────────────────────────
 

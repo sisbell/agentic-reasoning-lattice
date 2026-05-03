@@ -43,7 +43,8 @@ from lib.claim_convergence.cone import (
     detect_dependency_cone, run_cone_review, _retry_unresolved_revises,
 )
 from lib.backend.schema import ATTRIBUTE_SUFFIXES
-from lib.agent import attributed_to, default_store
+from lib.agent import attributed_to
+from lib.febe.session import open_session
 from lib.backend.emit import emit_findings, emit_meta
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.claim_convergence.predicates import is_asn_converged
@@ -78,7 +79,8 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     final_review_path = None
     verdict = "CONVERGED"
 
-    store = default_store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* helpers (Pass 2 will migrate)
     label_index = build_cross_asn_label_index(store)
 
     asn_claim_md_paths = [
@@ -88,7 +90,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         and not md_path.name.endswith(ATTRIBUTE_SUFFIXES)
     ]
     asn_claim_addrs = [
-        store.path_to_addr.get(p) for p in asn_claim_md_paths
+        session.get_addr_for_path(p) for p in asn_claim_md_paths
     ]
     asn_claim_addrs = [a for a in asn_claim_addrs if a is not None]
 
@@ -97,14 +99,14 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
         # Retry pass: re-feed any open revise comments to the reviser
         if not dry_run:
-            _retry_unresolved_revises(store, asn_num, claim_dir, asn_claim_addrs)
+            _retry_unresolved_revises(session, asn_num, claim_dir, asn_claim_addrs)
 
         gate_result = run_validate_gate(asn_label, scope_labels=None)
         if gate_result != "clean":
             print(f"  [GATE] halted — structural violations remain "
                   f"({gate_result}); aborting full-review",
                   file=sys.stderr)
-            store.close()
+            session.close()
             return "failed"
 
         # Assemble per-claim files for whole-ASN review
@@ -190,7 +192,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             if ok:
                 any_changed = True
                 if comment_id:
-                    resolutions = store.find_links(
+                    resolutions = session.find_links(
                         to_set=[comment_id], type_="resolution",
                     )
                     if not resolutions:
@@ -214,7 +216,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
         # Natural convergence check: this cycle's reviewer filed no revises
         # AND predicate True. The cycle's review is the natural confirmation.
-        if last_cycle_revise_count == 0 and is_asn_converged(store, asn_label):
+        if last_cycle_revise_count == 0 and is_asn_converged(session, asn_label):
             print(f"\n  [FULL-REVIEW] Natural convergence at cycle {cycle}.",
                   file=sys.stderr)
             naturally_converged = True
@@ -232,7 +234,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     confirmation_revise_count = 0
     if not failed and not dry_run and max_cycles > 1 and not naturally_converged:
         print(f"\n  [CONFIRMATION REVIEW]", file=sys.stderr)
-        _retry_unresolved_revises(store, asn_num, claim_dir, asn_claim_addrs)
+        _retry_unresolved_revises(session, asn_num, claim_dir, asn_claim_addrs)
 
         gate_result = run_validate_gate(asn_label, scope_labels=None)
         if gate_result != "clean":
@@ -299,7 +301,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     else:
         converged = (
             confirmation_revise_count == 0
-            and is_asn_converged(store, asn_label)
+            and is_asn_converged(session, asn_label)
         )
 
     if final_review_path is not None and not failed:
@@ -321,7 +323,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                 f"{'' if converged else ' — not converged'}")
         step_commit_asn(asn_num, hint)
 
-    store.close()
+    session.close()
     if failed:
         return "failed"
     return "converged" if converged else "not_converged"

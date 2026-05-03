@@ -41,22 +41,24 @@ class ConvergencePredicateTests(unittest.TestCase):
     """The protocol predicate over comment.revise + resolution + retraction."""
 
     def setUp(self):
+        from lib.febe.session import Session
         self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
         self.lattice = self.state.create_doc()
         self.claim = self.state.create_doc(kind="claim", lattice=self.lattice)
         self.review = self.state.create_doc(kind="review", lattice=self.lattice)
 
     def test_empty_substrate_is_converged(self):
         # No comment.revise links → vacuously converged
-        self.assertTrue(is_converged(self.state))
-        self.assertTrue(is_doc_converged(self.state, self.claim))
+        self.assertTrue(is_converged(self.session))
+        self.assertTrue(is_doc_converged(self.session, self.claim))
 
     def test_unresolved_revise_blocks_convergence(self):
         comment = self.state.make_link(
             self.review, [self.review], [self.claim], "comment.revise",
         )
-        self.assertFalse(is_doc_converged(self.state, self.claim))
-        unresolved = unresolved_revise_comments(self.state, self.claim)
+        self.assertFalse(is_doc_converged(self.session, self.claim))
+        unresolved = unresolved_revise_comments(self.session, self.claim)
         self.assertEqual([c.addr for c in unresolved], [comment.addr])
 
     def test_resolution_satisfies_convergence(self):
@@ -67,8 +69,8 @@ class ConvergencePredicateTests(unittest.TestCase):
         self.state.make_link(
             self.claim, [self.claim], [comment.addr], "resolution.edit",
         )
-        self.assertTrue(is_doc_converged(self.state, self.claim))
-        self.assertTrue(has_resolution(self.state, comment.addr))
+        self.assertTrue(is_doc_converged(self.session, self.claim))
+        self.assertTrue(has_resolution(self.session, comment.addr))
 
     def test_retracted_revise_drops_out(self):
         comment = self.state.make_link(
@@ -78,7 +80,7 @@ class ConvergencePredicateTests(unittest.TestCase):
         self.state.make_link(
             self.claim, [self.claim], [comment.addr], "retraction",
         )
-        self.assertTrue(is_doc_converged(self.state, self.claim))
+        self.assertTrue(is_doc_converged(self.session, self.claim))
 
     def test_retracted_resolution_does_not_satisfy(self):
         comment = self.state.make_link(
@@ -91,7 +93,7 @@ class ConvergencePredicateTests(unittest.TestCase):
             self.claim, [self.claim], [resolution.addr], "retraction",
         )
         # Without the resolution, the revise is unresolved again
-        self.assertFalse(is_doc_converged(self.state, self.claim))
+        self.assertFalse(is_doc_converged(self.session, self.claim))
 
     def test_retracted_link_addrs_collects_targets(self):
         comment = self.state.make_link(

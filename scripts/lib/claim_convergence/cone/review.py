@@ -17,10 +17,10 @@ from lib.claim_convergence.full_review.review import (
 )
 from lib.claim_convergence.full_review.revise import revise
 from lib.claim_convergence.finding_classifier import apply_classifier_verdict
-from lib.agent import attributed_to, default_store
+from lib.agent import attributed_to
+from lib.febe.session import open_session
 from lib.backend.emit import emit_findings, emit_meta
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.backend.predicates import active_links
 from lib.claim_convergence.predicates import is_claim_converged
 from lib.claim_convergence.sync import sync_claim_citations
 
@@ -50,7 +50,8 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     claim_dir = CLAIM_DIR / asn_label
     review_dir = CLAIM_REVIEWS_DIR / asn_label
 
-    store = default_store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* helpers (Pass 2 will migrate)
     label_index = build_cross_asn_label_index(store)  # {label: claim_doc_addr}
     asn_labels = set(build_label_index(claim_dir).keys())
     rev_index = {addr: label for label, addr in label_index.items()}
@@ -61,7 +62,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     apex_addr = label_index.get(apex_label)
     if apex_addr is not None:
         dep_labels = transitive_same_asn_deps(
-            store.state, apex_addr, asn_labels, rev_index,
+            session.state, apex_addr, asn_labels, rev_index,
         )
 
     print(f"\n  [REGIONAL-REVIEW] {apex_label} + {len(dep_labels)} deps",
@@ -74,8 +75,8 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         from_addr = label_index.get(label)
         if from_addr is None:
             continue
-        for link in active_links(store.state, "citation.depends",
-                                 from_set=[from_addr]):
+        for link in session.active_links("citation.depends",
+                                         from_set=[from_addr]):
             for cited in link.to_set:
                 dep_label = rev_index.get(cited)
                 if (dep_label and dep_label not in asn_labels
@@ -107,11 +108,11 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         # Retry pass: re-feed any open revise comments from prior cycles
         # or invocations to the reviser.
         if not dry_run:
-            _retry_unresolved_revises(store, asn_num, claim_dir, [apex_addr])
+            _retry_unresolved_revises(session, asn_num, claim_dir, [apex_addr])
 
         # Declined-findings context: substrate-derived list of recently-
         # declined revises on the cone, with reviser rationales.
-        previous_findings = _declined_findings_for_cone(store, cone_addrs)
+        previous_findings = _declined_findings_for_cone(session, cone_addrs)
 
         from lib.shared.validate_gate import run_validate_gate
         scope = {apex_label} | set(dep_labels)
@@ -214,7 +215,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                 any_changed = True
                 if comment_id:
                     from lib.backend.addressing import Address
-                    resolutions = store.find_links(
+                    resolutions = session.find_links(
                         to_set=[Address(comment_id)], type_="resolution",
                     )
                     if not resolutions:
@@ -250,7 +251,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         # Natural convergence check.
         if (last_cycle_revise_count == 0
                 and apex_addr is not None
-                and is_claim_converged(store.state, apex_addr)):
+                and is_claim_converged(session, apex_addr)):
             print(f"\n  [REGIONAL-REVIEW] Natural convergence at cycle {cycle}.",
                   file=sys.stderr)
             naturally_converged = True
@@ -267,7 +268,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     confirmation_revise_count = 0
     if not failed and not dry_run and not naturally_converged:
         print(f"\n  [CONFIRMATION REVIEW]", file=sys.stderr)
-        _retry_unresolved_revises(store, asn_num, claim_dir, [apex_addr])
+        _retry_unresolved_revises(session, asn_num, claim_dir, [apex_addr])
 
         from lib.shared.validate_gate import run_validate_gate
         scope = {apex_label} | set(dep_labels)
@@ -347,7 +348,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         converged = (
             confirmation_revise_count == 0
             and apex_addr is not None
-            and is_claim_converged(store.state, apex_addr)
+            and is_claim_converged(session, apex_addr)
         )
 
     if final_review_path is not None and not failed:

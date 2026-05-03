@@ -10,9 +10,8 @@ from lib.shared.common import find_asn, build_label_index
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 from lib.claim_convergence.core.topological_sort import topological_levels
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.backend.predicates import active_links
 from lib.claim_convergence.predicates import is_claim_converged
-from lib.backend.store import Store
+from lib.febe.session import open_session
 
 from .review import run_cone_review
 
@@ -68,8 +67,8 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
     cones_skipped = 0
     any_not_converged = False
 
-    store = Store(LATTICE)
-    label_index = build_cross_asn_label_index(store)
+    session = open_session(LATTICE)
+    label_index = build_cross_asn_label_index(session.store)
     rev_index = {addr: label for label, addr in label_index.items()}
 
     for level_idx, level_labels in enumerate(levels):
@@ -79,8 +78,8 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
                 continue
             same_deps = [
                 rev_index[link.to_set[0]]
-                for link in active_links(
-                    store.state, "citation.depends", from_set=[from_addr],
+                for link in session.active_links(
+                    "citation.depends", from_set=[from_addr],
                 )
                 if link.to_set
                 and rev_index.get(link.to_set[0]) in asn_labels
@@ -99,7 +98,7 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
                     max_cycles=max_cycles, dry_run=dry_run, model=model)
                 if result != "converged":
                     any_not_converged = True
-            elif is_claim_converged(store.state, from_addr):
+            elif is_claim_converged(session, from_addr):
                 print(f"  [REGIONAL-SWEEP] {label}: predicate True, skipping",
                       file=sys.stderr)
                 cones_skipped += 1
@@ -111,13 +110,13 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
                 if result != "converged":
                     any_not_converged = True
 
-            # Re-load store state since run_cone_review may have appended
+            # Re-load session since run_cone_review may have appended
             # links to the JSONL while running.
-            store = Store(LATTICE)
-            from_addr = store.path_to_addr.get(
-                store.path_for_addr(from_addr) or "", from_addr,
+            session = open_session(LATTICE)
+            from_addr = session.store.path_to_addr.get(
+                session.get_path_for_addr(from_addr) or "", from_addr,
             ) if from_addr else None
-            if from_addr is not None and is_claim_converged(store.state, from_addr):
+            if from_addr is not None and is_claim_converged(session, from_addr):
                 completed.add(label)
                 write_progress(asn_label, {"completed": sorted(completed)})
 

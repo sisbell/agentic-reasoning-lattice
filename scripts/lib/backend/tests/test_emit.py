@@ -175,16 +175,18 @@ class CommentResolutionEmitTests(unittest.TestCase):
         self.review = self.store.addr_for_path("review.md")
 
     def test_review_revise_resolution_cycle(self):
+        from lib.febe.session import Session
+        session = Session(self.store)
         # Review files a revise comment
         comment = emit_comment(
             self.store, self.review, self.claim, kind="revise",
         )
         # Initially not converged
-        self.assertFalse(is_doc_converged(self.store.state, self.claim))
+        self.assertFalse(is_doc_converged(session, self.claim))
         # File a resolution closing the comment
         emit_resolution(self.store, self.claim, comment.addr, kind="edit")
         # Now converged
-        self.assertTrue(is_doc_converged(self.store.state, self.claim))
+        self.assertTrue(is_doc_converged(session, self.claim))
 
 
 class ProvenanceEmitTests(unittest.TestCase):

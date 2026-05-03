@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.claim_convergence.predicates import unresolved_revise_comments
-from lib.backend.store import Store
+from lib.febe.session import open_session
 from lib.shared.common import find_asn
 from lib.shared.paths import LATTICE
 
@@ -33,25 +33,25 @@ def main():
         sys.exit(1)
 
     note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
-    store = Store(LATTICE)
-    note_addr = store.addr_for_path(note_rel)
+    with open_session(LATTICE) as session:
+        note_addr = session.get_addr_for_path(note_rel)
 
-    for c in unresolved_revise_comments(store.state, note_addr):
-        if not c.from_set:
-            continue
-        finding_addr = c.from_set[0]
-        finding_rel = store.path_for_addr(finding_addr)
-        if not finding_rel:
-            continue
-        finding_full = LATTICE / finding_rel
-        if not finding_full.exists():
-            print(f"  [SKIP] finding doc missing: {finding_rel}",
-                  file=sys.stderr)
-            continue
-        body = finding_full.read_text().strip()
-        first_line = body.splitlines()[0] if body else ""
-        title = re.sub(r"^#+\s*", "", first_line).strip() or "(untitled)"
-        print(f"{c.addr}\t{title}")
+        for c in unresolved_revise_comments(session, note_addr):
+            if not c.from_set:
+                continue
+            finding_addr = c.from_set[0]
+            finding_rel = session.get_path_for_addr(finding_addr)
+            if not finding_rel:
+                continue
+            finding_full = LATTICE / finding_rel
+            if not finding_full.exists():
+                print(f"  [SKIP] finding doc missing: {finding_rel}",
+                      file=sys.stderr)
+                continue
+            body = finding_full.read_text().strip()
+            first_line = body.splitlines()[0] if body else ""
+            title = re.sub(r"^#+\s*", "", first_line).strip() or "(untitled)"
+            print(f"{c.addr}\t{title}")
 
 
 if __name__ == "__main__":

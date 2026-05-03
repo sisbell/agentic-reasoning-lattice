@@ -13,9 +13,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from lib.backend.predicates import active_links
 from lib.claim_convergence.predicates import unresolved_revise_comments
-from lib.backend.store import Store
+from lib.febe.session import open_session
 from lib.shared.common import find_asn
 from lib.shared.paths import LATTICE
 
@@ -31,23 +30,23 @@ def main():
         sys.exit(1)
 
     note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
-    store = Store(LATTICE)
-    note_addr = store.addr_for_path(note_rel)
+    with open_session(LATTICE) as session:
+        note_addr = session.get_addr_for_path(note_rel)
 
-    revises = active_links(store.state, "comment.revise", to_set=[note_addr])
-    open_items = unresolved_revise_comments(store.state, note_addr)
-    open_count = len(open_items)
-    total_count = len(revises)
-    resolutions_count = total_count - open_count
+        revises = session.active_links("comment.revise", to_set=[note_addr])
+        open_items = unresolved_revise_comments(session, note_addr)
+        open_count = len(open_items)
+        total_count = len(revises)
+        resolutions_count = total_count - open_count
 
-    predicate = "true" if open_count == 0 else "false"
-    print(
-        f"NOTE={asn_label} "
-        f"REVISES_TOTAL={total_count} "
-        f"REVISES_OPEN={open_count} "
-        f"RESOLUTIONS={resolutions_count} "
-        f"PREDICATE_HOLDS={predicate}"
-    )
+        predicate = "true" if open_count == 0 else "false"
+        print(
+            f"NOTE={asn_label} "
+            f"REVISES_TOTAL={total_count} "
+            f"REVISES_OPEN={open_count} "
+            f"RESOLUTIONS={resolutions_count} "
+            f"PREDICATE_HOLDS={predicate}"
+        )
 
 
 if __name__ == "__main__":
