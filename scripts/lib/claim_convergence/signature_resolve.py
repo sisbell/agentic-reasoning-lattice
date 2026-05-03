@@ -43,7 +43,7 @@ from lib.backend.store import Store, attributed_to
 from lib.backend.populate import build_cross_asn_label_index
 from lib.backend.predicates import active_links
 from lib.backend.emit import emit_attribute
-from lib.backend.notation import read_notation
+from lib.lattice.notation import read_notation
 
 
 PROMPT_TEMPLATE = prompt_path("claim-convergence/signature-resolve.md")

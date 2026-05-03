@@ -38,7 +38,7 @@ from lib.backend.store import Store
 from lib.backend.populate import build_cross_asn_label_index
 from lib.backend.predicates import current_contract_kind, active_links
 from lib.backend.schema import VALID_SUBTYPES, VALID_ATTRIBUTE_KINDS as VALID_KINDS
-from lib.backend.notation import read_notation
+from lib.lattice.notation import read_notation
 
 VALID_TYPES = VALID_SUBTYPES["contract"]
 

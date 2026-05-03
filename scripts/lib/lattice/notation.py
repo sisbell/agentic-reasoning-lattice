@@ -3,6 +3,11 @@
 The substrate has at most one `notation` classifier link; the doc it
 classifies holds a markdown bullet list of primitive symbols. This
 module reads that doc and returns the symbol set.
+
+Project convention: notation docs are markdown bullet lists of
+backtick-wrapped symbols. Not a substrate primitive — composes
+substrate queries (active_links over the `notation` classifier)
+plus the project's convention for how notation docs are structured.
 """
 
 from __future__ import annotations
@@ -10,8 +15,8 @@ from __future__ import annotations
 import re
 from typing import Set
 
-from .predicates import active_links
-from .store import Store
+from lib.backend.predicates import active_links
+from lib.backend.store import Store
 
 _BULLET_RE = re.compile(r"^- `([^`]+)`")
 
