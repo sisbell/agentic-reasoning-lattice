@@ -39,7 +39,8 @@ from lib.shared.common import (
     find_asn, build_label_index, read_file, invoke_claude,
     strip_code_fence, step_commit_asn,
 )
-from lib.backend.store import Store, attributed_to
+from lib.backend.store import Store
+from lib.agent import attributed_to
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import active_links
 from lib.backend.emit import emit_attribute

@@ -21,7 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.note_convergence.converge import run_note_convergence
-from lib.backend.store import attributed_to
+from lib.agent import attributed_to
 
 
 @attributed_to("note-review")

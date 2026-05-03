@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 
 from lib.backend.addressing import Address
-from lib.backend.agent_store import AgentStore
+from lib.agent import AgentStore
 from lib.backend.emit import emit_citation
 from lib.backend.migrate import migrate
 from lib.lattice.labels import (

@@ -28,7 +28,7 @@ from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
 from lib.backend.predicates import unresolved_revise_comments
-from lib.backend.store import default_store
+from lib.agent import default_store
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"

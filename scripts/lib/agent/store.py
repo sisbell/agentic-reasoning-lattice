@@ -20,11 +20,11 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from .addressing import Address
-from .emit import emit_agent
-from .links import Link
-from .state import TypeArg
-from .store import Store
+from lib.backend.addressing import Address
+from lib.backend.emit import emit_agent
+from lib.backend.links import Link
+from lib.backend.state import TypeArg
+from lib.backend.store import Store
 
 _ATTRIBUTION_SKIP_PARENTS = frozenset({"agent", "manages"})
 

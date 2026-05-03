@@ -35,7 +35,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import LATTICE
-from lib.backend.store import default_store
+from lib.agent import default_store
 from lib.backend.emit import emit_decision
 from lib.backend.addressing import Address
 

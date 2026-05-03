@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import claim_doc_path, LATTICE
-from lib.backend.store import default_store
+from lib.agent import default_store
 from lib.backend.emit import emit_contract
 from lib.backend.schema import VALID_SUBTYPES
 

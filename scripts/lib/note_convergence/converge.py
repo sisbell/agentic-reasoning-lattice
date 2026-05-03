@@ -27,7 +27,7 @@ from lib.note_convergence.revise import (
     collect_open_revises, log_usage, run_revise_pass,
 )
 from lib.backend.predicates import is_doc_converged
-from lib.backend.store import default_store
+from lib.agent import default_store
 
 
 def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",

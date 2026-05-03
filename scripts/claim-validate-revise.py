@@ -30,7 +30,7 @@ from lib.shared.common import invoke_claude_agent, find_asn
 from lib.shared.paths import LATTICE
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.emit import emit_retraction
-from lib.backend.store import default_store
+from lib.agent import default_store
 from lib.backend.predicates import active_links
 
 

@@ -53,7 +53,7 @@ from lib.backend.emit import (
     emit_attribute, emit_citation, emit_claim, emit_contract, emit_derivation,
 )
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.backend.store import default_store
+from lib.agent import default_store
 
 from .find_in_source import find_in_source
 

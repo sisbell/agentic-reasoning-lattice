@@ -29,7 +29,7 @@ from lib.shared.paths import (
     campaign_dir, campaign_doc_path, campaign_vocab, load_channel_meta,
 )
 from lib.backend.emit import emit_campaign
-from lib.backend.store import default_store
+from lib.agent import default_store
 
 
 def main():

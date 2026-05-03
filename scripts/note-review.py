@@ -21,7 +21,7 @@ from lib.note_convergence.steps import (
     find_asn, step_review, step_commit, has_revise_items,
 )
 from lib.shared.paths import WORKSPACE, NOTE_DIR
-from lib.backend.store import attributed_to
+from lib.agent import attributed_to
 
 
 @attributed_to("note-review")
