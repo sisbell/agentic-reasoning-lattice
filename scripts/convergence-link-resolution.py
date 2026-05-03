@@ -36,7 +36,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import LATTICE
 from lib.febe.session import open_session
-from lib.backend.emit import emit_decision
+from lib.claim_convergence.decisions import emit_decision
 from lib.backend.addressing import Address
 
 
@@ -65,7 +65,6 @@ def main():
         return 1
 
     session = open_session(LATTICE)
-    store = session.store  # for emit_* (Pass 2 will migrate)
     # Comment id is a tumbler-address string in the new substrate.
     try:
         comment_addr = Address(comment_id)
@@ -87,7 +86,7 @@ def main():
 
     try:
         link = emit_decision(
-            store, args.action, comment_addr, claim_addr, asn_label,
+            session, args.action, comment_addr, claim_addr, asn_label,
             rationale=getattr(args, "rationale", None),
         )
     except (KeyError, ValueError) as e:
