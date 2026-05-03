@@ -158,12 +158,13 @@ def load_foundation_for_note(asn_path, asn_id):
     citations — distinct from the manifest path, which would also use
     the manifest's depends declaration.
     """
-    from lib.store.populate import note_dep_asn_ids
-    from lib.store.store import default_store
+    from lib.backend.populate import note_dep_asn_ids
+    from lib.backend.store import default_store
     from lib.shared.paths import LATTICE
     note_rel = str(asn_path.resolve().relative_to(Path(LATTICE).resolve()))
-    with default_store() as store:
-        dep_ids = note_dep_asn_ids(store, note_rel)
+    with default_store(LATTICE) as store:
+        note_addr = store.path_to_addr.get(note_rel)
+        dep_ids = note_dep_asn_ids(store, note_addr) if note_addr else []
     return load_foundation_statements(asn_id, dep_ids=dep_ids)
 
 
@@ -175,10 +176,11 @@ def load_foundation_for_claim_asn(asn_id):
     the union of cross-ASN citations sourced from any claim md in this
     ASN's claim-convergence directory.
     """
-    from lib.store.populate import aggregate_asn_deps
-    from lib.store.store import default_store
+    from lib.backend.populate import aggregate_asn_deps
+    from lib.backend.store import default_store
+    from lib.shared.paths import LATTICE
     asn_label = f"ASN-{int(asn_id):04d}"
-    with default_store() as store:
+    with default_store(LATTICE) as store:
         dep_ids = aggregate_asn_deps(store, asn_label)
     return load_foundation_statements(asn_id, dep_ids=dep_ids)
 
@@ -190,10 +192,11 @@ def claim_asn_dep_ids(asn_id):
     full foundation text (e.g., load_foundation_for_labels which takes
     labels separately).
     """
-    from lib.store.populate import aggregate_asn_deps
-    from lib.store.store import default_store
+    from lib.backend.populate import aggregate_asn_deps
+    from lib.backend.store import default_store
+    from lib.shared.paths import LATTICE
     asn_label = f"ASN-{int(asn_id):04d}"
-    with default_store() as store:
+    with default_store(LATTICE) as store:
         return aggregate_asn_deps(store, asn_label)
 
 

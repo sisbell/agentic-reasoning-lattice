@@ -149,6 +149,26 @@ def all_claim_addrs(state: State) -> List[Address]:
         out.update(link.to_set)
     return sorted(out, key=lambda a: a.digits)
 
+def current_contract_kind(state: State, claim_addr: Address) -> Optional[str]:
+    """Most recent `contract.<kind>` classifier targeting the claim.
+
+    Returns the bare subtype string ("axiom", "theorem", etc.) or None.
+    Links are permanent; multiple classifiers may accumulate over time;
+    the latest in emission order is the current kind. Type-name lookup
+    via the registry's reverse map.
+    """
+    links = state.find_links(to_set=[claim_addr], type_="contract")
+    if not links:
+        return None
+    # Order in LinkStore preserves emission order; take the last
+    latest = links[-1]
+    if not latest.type_set:
+        return None
+    name = state.types.name_for(latest.type_set[0])
+    if name and "." in name:
+        return name.split(".", 1)[1]
+    return None
+
 
 def all_classified(state: State, kind: str) -> List[Address]:
     """Every doc with a classifier link of the given kind. Sorted."""

@@ -42,7 +42,7 @@ def dump_yaml(data, path):
                   allow_unicode=True, sort_keys=False, width=120)
 
 
-from lib.store.attributes import ATTRIBUTE_SUFFIXES as _ATTR_SUFFIXES
+from lib.backend.schema import ATTRIBUTE_SUFFIXES as _ATTR_SUFFIXES
 
 
 def _is_claim_md(name):
@@ -96,8 +96,8 @@ def load_claim_metadata(claim_dir, label=None):
         return content or None
 
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-    from lib.store.store import Store
-    from lib.store.queries import current_contract_kind
+    from lib.backend.store import Store
+    from lib.backend.predicates import current_contract_kind
     from lib.shared.paths import LATTICE
 
     lattice = Path(LATTICE).resolve()
@@ -113,12 +113,14 @@ def load_claim_metadata(claim_dir, label=None):
         md_rel = str(
             (claim_dir / f"{stem}.md").resolve().relative_to(lattice)
         )
-        kind = current_contract_kind(store, md_rel)
-        if kind:
-            result["type"] = kind
+        addr = store.path_to_addr.get(md_rel)
+        if addr is not None:
+            kind = current_contract_kind(store.state, addr)
+            if kind:
+                result["type"] = kind
         return result
 
-    with Store() as store:
+    with Store(LATTICE) as store:
         if label is not None:
             if not (claim_dir / f"{label}.md").exists():
                 return None
