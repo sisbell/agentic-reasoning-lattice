@@ -163,13 +163,32 @@ class Session(Protocol):
     # ── Working-copy hooks ──────────────────────────────────────────
 
     def materialize(self, addr: Address) -> str:
-        """Make a document's working-copy file presentation available.
+        """Ensure a document is available on the local filesystem.
 
-        For local-node Addresses (matching the local allocator
-        prefix) this is a no-op — the file already exists. For
-        peer-node Addresses, dispatches into BEBE to forward-read
-        from the peer and cache the result as a subrepresentation
-        in the local working copy as read-only.
+        This is the FEBE-level entry point that triggers BEBE
+        subrepresentation when the addressed doc lives on a peer
+        node. From the caller's perspective: "put this doc on disk
+        as a file so I can grep/Read it natively."
+
+        Architecturally:
+        - **Session is the public interface.** Clients reach the
+          substrate through Session methods; they never call BEBE
+          directly. BEBE is implementation tier (per
+          architecture.md).
+        - **BEBE dispatch happens inside this method.** For local-
+          node Addresses (matching the local allocator prefix) this
+          is a no-op — the file already exists in the local working
+          copy. For peer-node Addresses, the implementation
+          dispatches to lib/bebe/ to forward-read from the peer and
+          cache the result as a subrepresentation under
+          lattices/<this-node>/_subrep/<peer>/ as read-only.
+
+        Why a separate method (not folded into read_document):
+        callers (LLM tooling, prompts driving cone-sweep, etc.)
+        often want to trigger "make this doc available on disk"
+        without immediately reading its content — they intend to
+        subsequently grep/Read the file natively. read_document
+        returns bytes; materialize ensures filesystem availability.
 
         Returns the local filesystem path to the (now-available)
         document.
