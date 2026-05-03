@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, prompt_path, formal_stmts
+from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, prompt_path, claim_statements
 from lib.shared.common import find_asn
 
 GENERATE_MODEL = "claude-sonnet-4-6"
@@ -27,9 +27,9 @@ GENERATE_PROMPT = prompt_path("examples/derive-examples.md")
 REVIEW_PROMPT = prompt_path("examples/review.md")
 
 
-def find_formal_statements(asn_num):
-    """Find formal-statements.md for an ASN. Returns path or None."""
-    path = formal_stmts(asn_num)
+def find_claim_statements(asn_num):
+    """Find claim-statements.md for an ASN. Returns path or None."""
+    path = claim_statements(asn_num)
     if path.exists():
         return path
     return None
@@ -175,12 +175,12 @@ def main():
     if asn_file is None:
         print(f"[ERROR] No ASN file found for ASN-{args.asn:04d}", file=sys.stderr)
         sys.exit(1)
-    stmts_path = find_formal_statements(args.asn)
+    stmts_path = find_claim_statements(args.asn)
     spec_file = stmts_path if stmts_path else asn_file
     if stmts_path:
-        print(f"  [SPEC] Using formal-statements.md", file=sys.stderr)
+        print(f"  [SPEC] Using claim-statements.md", file=sys.stderr)
     else:
-        print(f"  [SPEC] No formal-statements.md — using raw ASN", file=sys.stderr)
+        print(f"  [SPEC] No claim-statements.md — using raw ASN", file=sys.stderr)
     label = f"ASN-{args.asn:04d}"
 
     example_dir = EXAMPLES_DIR / label

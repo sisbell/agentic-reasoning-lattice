@@ -1,4 +1,4 @@
-# ASN-0059 Formal Statements
+# ASN-0059 Claim Statements
 
 *Source: ASN-0059-insert-operation.md (revised 2026-03-20) — Extracted: 2026-03-22*
 

@@ -1,4 +1,4 @@
-# ASN-0063 Formal Statements
+# ASN-0063 Claim Statements
 
 *Source: ASN-0063-createlink-operation.md (revised 2026-03-22) — Extracted: 2026-03-22*
 

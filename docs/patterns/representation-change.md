@@ -57,7 +57,7 @@ Formal contracts → Dafny/Alloy code. The contracts specify preconditions, post
 
 ### Assembly → export
 
-Per-claim files → formal-statements.md export. The representation change goes in the opposite direction — from detailed per-claim files to trimmed summaries for downstream consumers. Content is reduced but the formal content is preserved.
+Per-claim files → claim-statements.md export. The representation change goes in the opposite direction — from detailed per-claim files to trimmed summaries for downstream consumers. Content is reduced but the formal content is preserved.
 
 ### Review/revise within a representation
 

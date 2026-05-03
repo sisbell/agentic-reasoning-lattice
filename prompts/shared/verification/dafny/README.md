@@ -9,7 +9,7 @@
 **Function:** `translate_one()`
 
 Per-claim translation. Agent converts a formal contract into verified
-Dafny code (up to 24 turns). Uses formal-statements.md as input, proof
+Dafny code (up to 24 turns). Uses claim-statements.md as input, proof
 modules from `lattices/<lattice>/verification/proofs/` as imports.
 
 The agent writes the .dfy file, runs `dafny verify`, and self-corrects

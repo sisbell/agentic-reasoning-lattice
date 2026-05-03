@@ -1,4 +1,4 @@
-# ASN-0043 Formal Statements
+# ASN-0043 Claim Statements
 
 *Source: ASN-0043-link-ontology.md (revised 2026-03-16) — Extracted: 2026-03-24*
 

@@ -1,4 +1,4 @@
-# ASN-0040 Formal Statements
+# ASN-0040 Claim Statements
 
 *Source: ASN-0040-tumbler-baptism.md (revised 2026-03-15) — Extracted: 2026-04-09*
 

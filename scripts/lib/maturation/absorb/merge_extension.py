@@ -28,7 +28,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, NOTE_DIR, MANIFESTS_DIR,
                    REVIEWS_DIR, LATTICE_PROMPTS, prompt_path,
-                   load_state, note_yaml, formal_stmts)
+                   load_state, note_yaml, claim_statements)
 from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit)
 
@@ -358,7 +358,7 @@ def step_cleanup(ext_num):
         print(f"  [REMOVED] {yaml_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
 
-    export_path = formal_stmts(ext_num)
+    export_path = claim_statements(ext_num)
     if export_path.exists():
         export_path.unlink()
         print(f"  [REMOVED] {export_path.relative_to(WORKSPACE)}",

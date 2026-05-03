@@ -3,7 +3,7 @@ Format normalization gate — review/revise cycle + mechanical assembly.
 
 Pipeline:
 1. Format review/revise (sonnet) — fix headers, status vocab, add missing entries
-2. Formal statements assembly (mechanical) — table + sections → formal-statements.md
+2. Formal statements assembly (mechanical) — table + sections → claim-statements.md
 
 Usage (standalone):
     python scripts/lib/normalize_format.py 43

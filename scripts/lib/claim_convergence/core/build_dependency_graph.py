@@ -19,7 +19,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CLAIM_DIR, formal_stmts, dep_graph
+from lib.shared.paths import WORKSPACE, CLAIM_DIR, claim_statements, dep_graph
 from lib.shared.common import find_asn, load_claim_metadata, build_label_index
 from lib.store.store import Store
 from lib.store.populate import build_cross_asn_label_index
@@ -366,7 +366,7 @@ def _build_foundation_labels(depends):
     """Build map of label → asn_num from foundation ASN exports."""
     labels = {}
     for dep_id in depends:
-        stmt_path = formal_stmts(dep_id)
+        stmt_path = claim_statements(dep_id)
         if not stmt_path.exists():
             continue
         text = stmt_path.read_text()

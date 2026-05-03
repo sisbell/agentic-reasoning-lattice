@@ -1,4 +1,4 @@
-# ASN-0065 Formal Statements
+# ASN-0065 Claim Statements
 
 *Source: ASN-0065-rearrange-operation.md (revised 2026-03-21) — Extracted: 2026-03-22*
 

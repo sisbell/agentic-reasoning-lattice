@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Discovery Export — extract formal-statements.md + deps from a discovery ASN.
+Discovery Export — extract claim-statements.md + deps from a discovery ASN.
 
 Uses LLM to parse narrative reasoning into structured formal statements,
 then generates the dependency graph (mechanical + LLM scan).
@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, formal_stmts, dep_graph
+from lib.shared.paths import WORKSPACE, claim_statements, dep_graph
 from lib.shared.common import find_asn
 from lib.note_convergence.assembly.produce_statements import export_one
 from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps, write_deps_yaml
@@ -54,7 +54,7 @@ def _generate_deps(asn_num, label):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Discovery Export — formal-statements.md + deps from discovery ASNs")
+        description="Discovery Export — claim-statements.md + deps from discovery ASNs")
     parser.add_argument("asns", nargs="+",
                         help="ASN numbers (e.g., 55 56 34) or paths")
     parser.add_argument("--model", "-m", default="sonnet",
@@ -65,7 +65,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be done without doing it")
     parser.add_argument("--deps-only", action="store_true",
-                        help="Generate dependency graph only, skip formal-statements")
+                        help="Generate dependency graph only, skip claim-statements")
     args = parser.parse_args()
 
     if args.deps_only:
@@ -98,7 +98,7 @@ def main():
         for lbl in sorted(succeeded):
             lbl_num = int(re.sub(r"[^0-9]", "", lbl))
             subprocess.run(
-                ["git", "add", str(formal_stmts(lbl_num)), str(dep_graph(lbl_num))],
+                ["git", "add", str(claim_statements(lbl_num)), str(dep_graph(lbl_num))],
                 capture_output=True, text=True, cwd=str(WORKSPACE))
         cmd = [sys.executable, str(COMMIT_SCRIPT),
                f"Export statements {labels}"]

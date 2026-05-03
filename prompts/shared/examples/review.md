@@ -16,7 +16,7 @@ Work through every example:
 
 1. **Redo the arithmetic.** For each computation, verify the result yourself. Check that the expected output follows from the operation's definition applied to the given inputs. Do not trust the example — check it.
 
-2. **Check definition application.** For each claim check, find the *Formal Contract:* in the formal statements. Does the example satisfy the preconditions? Does the result match the postconditions? Does the example apply the right clause for the right case?
+2. **Check definition application.** For each claim check, find the *Formal Contract:* in the claim statements. Does the example satisfy the preconditions? Does the result match the postconditions? Does the example apply the right clause for the right case?
 
 3. **Check notation.** The examples must use the ASN's own symbols, state variable names, and conventions. Invented notation is a defect.
 

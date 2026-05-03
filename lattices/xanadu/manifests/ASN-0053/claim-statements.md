@@ -1,4 +1,4 @@
-# ASN-0053 Formal Statements
+# ASN-0053 Claim Statements
 
 *Source: ASN-0053-span-algebra.md (revised 2026-03-19) — Extracted: 2026-03-19*
 

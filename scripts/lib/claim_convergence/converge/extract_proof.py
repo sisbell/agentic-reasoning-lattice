@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, USAGE_LOG, REVIEWS_DIR,
-                   prompt_path, formal_stmts)
+                   prompt_path, claim_statements)
 from lib.shared.common import find_asn, extract_claim_sections, step_commit_asn
 from lib.claim_convergence.core.build_dependency_graph import (find_claim_table, parse_table_row,
                               detect_columns, generate_claim_convergence_deps)
@@ -220,7 +220,7 @@ def build_repair_context(asn_num, label, deps_data, sections):
     for dep_label in follows_from:
         if dep_label not in all_labels:
             for dep_asn in depends:
-                stmt_path = formal_stmts(dep_asn)
+                stmt_path = claim_statements(dep_asn)
                 if stmt_path.exists():
                     ftext = stmt_path.read_text()
                     pattern = re.compile(

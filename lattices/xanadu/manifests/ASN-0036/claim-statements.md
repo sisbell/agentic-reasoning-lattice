@@ -1,4 +1,4 @@
-# ASN-0036 Formal Statements
+# ASN-0036 Claim Statements
 
 *Source: ASN-0036-streams.md (revised 2026-04-09) — Extracted: 2026-04-09*
 

@@ -1,4 +1,4 @@
-# ASN-0042 Formal Statements
+# ASN-0042 Claim Statements
 
 *Source: ASN-0042-tumbler-ownership.md (revised 2026-03-15) — Extracted: 2026-03-22*
 

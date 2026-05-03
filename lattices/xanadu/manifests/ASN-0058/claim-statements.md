@@ -1,4 +1,4 @@
-# ASN-0058 Formal Statements
+# ASN-0058 Claim Statements
 
 *Source: ASN-0058-permutation-model.md (revised 2026-03-22) — Extracted: 2026-03-22*
 

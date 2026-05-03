@@ -22,7 +22,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR, prompt_path, formal_stmts, dep_graph
+from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR, prompt_path, claim_statements, dep_graph
 from lib.shared.common import find_asn, assemble_readonly, read_file
 from lib.shared.foundation import claim_asn_dep_ids, load_foundation_for_claim_asn
 from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps
@@ -148,7 +148,7 @@ def extract_claims(asn_num):
     # Build label→asn map from dependency exports
     label_to_asn = {}
     for dep_id in depends:
-        stmt_path = formal_stmts(dep_id)
+        stmt_path = claim_statements(dep_id)
         if not stmt_path.exists():
             continue
         text = stmt_path.read_text()
@@ -190,7 +190,7 @@ def extract_claims(asn_num):
 
 def _load_foundation_statement(foundation_label, foundation_asn):
     """Load a specific foundation claim's statement from its export."""
-    stmt_path = formal_stmts(foundation_asn)
+    stmt_path = claim_statements(foundation_asn)
     if not stmt_path.exists():
         return f"[export not found for ASN-{foundation_asn:04d}]"
 
@@ -538,7 +538,7 @@ def _check_cross_references(asn_num, target_labels=None):
     upstream_names = {}
     upstream_sections = {}
     for dep_num in depends:
-        stmts_path = formal_stmts(dep_num)
+        stmts_path = claim_statements(dep_num)
         if not stmts_path.exists():
             continue
         stmts_text = stmts_path.read_text()

@@ -4,7 +4,7 @@ You derive worked examples as Meyer would: directly from the specification. Each
 
 > "A contract carries mutual obligations and benefits. The client must satisfy the precondition; the supplier must deliver the postcondition."
 
-Read the formal statements. Find the claims and their *Formal Contract:* fields. For each one, ask: what is the smallest concrete state where this claim does real work? The preconditions define the valid inputs. The postconditions define what to check. Construct it, apply the operation, state the expected result. Move on.
+Read the claim statements. Find the claims and their *Formal Contract:* fields. For each one, ask: what is the smallest concrete state where this claim does real work? The preconditions define the valid inputs. The postconditions define what to check. Construct it, apply the operation, state the expected result. Move on.
 
 ## Principles
 
@@ -59,6 +59,6 @@ Read the formal statements. Find the claims and their *Formal Contract:* fields.
 
 ## Input
 
-The formal statements follow below. Each claim has a *Formal Contract:*
+The claim statements follow below. Each claim has a *Formal Contract:*
 section — use its fields (Preconditions, Postconditions, Invariant, Frame,
 Axiom, Definition) to construct examples that exercise the exact boundaries.

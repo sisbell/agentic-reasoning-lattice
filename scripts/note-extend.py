@@ -17,7 +17,7 @@ from lib.maturation.manage.extend import (
     parse_registry_labels, validate, derive_names, compute_depends,
     build_prompt, strip_preamble, write_manifest,
 )
-from lib.shared.paths import WORKSPACE, NOTE_DIR, formal_stmts
+from lib.shared.paths import WORKSPACE, NOTE_DIR, claim_statements
 from lib.shared.common import read_file, find_asn, invoke_claude, log_usage, step_commit
 from lib.shared.foundation import load_foundation_for_note
 
@@ -53,7 +53,7 @@ def main():
 
     # Load foundation context
     base_label = f"ASN-{args.base:04d}"
-    base_stmt_path = formal_stmts(args.base)
+    base_stmt_path = claim_statements(args.base)
     base_statements = read_file(base_stmt_path) or "(No base export available)"
 
     # Load foundation for the base's dependencies

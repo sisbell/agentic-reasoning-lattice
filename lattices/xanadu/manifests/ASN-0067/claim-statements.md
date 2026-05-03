@@ -1,4 +1,4 @@
-# ASN-0067 Formal Statements
+# ASN-0067 Claim Statements
 
 *Source: ASN-0067-copy-operation.md (revised 2026-03-22) — Extracted: 2026-03-23*
 

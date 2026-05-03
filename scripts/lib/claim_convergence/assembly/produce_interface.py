@@ -1,5 +1,5 @@
 """
-Produce Interface — mechanically assemble formal-statements.md.
+Produce Interface — mechanically assemble claim-statements.md.
 
 Reads YAML summaries + .md formal contracts for each claim.
 No LLM calls. Requires summaries to exist — run summarize.py first.
@@ -11,13 +11,13 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, formal_stmts, note_dir
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, claim_statements, note_dir
 from lib.shared.common import find_asn, build_label_index, load_claim_metadata
 from lib.shared.foundation import _extract_formal_contract
 
 
-def assemble_formal_statements(asn_num):
-    """Mechanically assemble formal-statements.md from YAML summaries + .md contracts.
+def assemble_claim_statements(asn_num):
+    """Mechanically assemble claim-statements.md from YAML summaries + .md contracts.
 
     Reads summary from each claim's YAML and formal contract from its .md.
     Errors if any claim is missing a summary.
@@ -89,7 +89,7 @@ def assemble_formal_statements(asn_num):
     # Write
     out_dir = note_dir(asn_num)
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = formal_stmts(asn_num)
+    out_path = claim_statements(asn_num)
     out_path.write_text(output)
 
     prop_count = len(all_meta)

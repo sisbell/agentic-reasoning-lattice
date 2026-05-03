@@ -211,7 +211,7 @@ def state_yaml(asn_num):
 
     Holds last_consistency_check, last_pipeline_run, etc. — fields that
     don't go to substrate and don't belong in the inquiry doc. Sibling
-    of formal-statements.md and dependency-graph.yaml under
+    of claim-statements.md and dependency-graph.yaml under
     `manifests/ASN-NNNN/`.
     """
     return note_dir(asn_num) / "state.yaml"
@@ -222,9 +222,9 @@ def dep_graph(asn_num):
     return note_dir(asn_num) / "dependency-graph.yaml"
 
 
-def formal_stmts(asn_num):
-    """Path to ASN formal statements export."""
-    return note_dir(asn_num) / "formal-statements.md"
+def claim_statements(asn_num):
+    """Path to ASN claim-statements export."""
+    return note_dir(asn_num) / "claim-statements.md"
 
 
 def open_issues_path(asn_num):

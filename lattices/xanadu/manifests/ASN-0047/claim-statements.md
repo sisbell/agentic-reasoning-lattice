@@ -1,4 +1,4 @@
-# ASN-0047 Formal Statements
+# ASN-0047 Claim Statements
 
 *Source: ASN-0047-state-transitions.md (revised 2026-03-22) — Extracted: 2026-03-22*
 

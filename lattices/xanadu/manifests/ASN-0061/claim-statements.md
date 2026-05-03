@@ -1,4 +1,4 @@
-# ASN-0061 Formal Statements
+# ASN-0061 Claim Statements
 
 *Source: ASN-0061-delete-operation.md (revised 2026-03-21) — Extracted: 2026-03-23*
 

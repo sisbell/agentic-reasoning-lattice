@@ -1,4 +1,4 @@
-# ASN-0045 Formal Statements
+# ASN-0045 Claim Statements
 
 *Source: ASN-0045-tumbler-fields.md (revised 2026-03-17) — Extracted: 2026-03-22*
 

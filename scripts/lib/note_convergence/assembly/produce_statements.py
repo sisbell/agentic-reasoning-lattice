@@ -3,7 +3,7 @@ Produce Statements step — extract formal statements from a discovery ASN
 using LLM to parse narrative reasoning into structured statements.
 
 Step function for the orchestrator (scripts/note-assembly.py):
-- export_one: invoke Claude with produce-statements.md prompt, write formal-statements.md
+- export_one: invoke Claude with produce-statements.md prompt, write claim-statements.md
 """
 
 import json
@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, NOTE_DIR, prompt_path, formal_stmts, note_dir
+from lib.shared.paths import WORKSPACE, USAGE_LOG, NOTE_DIR, prompt_path, claim_statements, note_dir
 from lib.shared.common import find_asn, invoke_claude
 
 TEMPLATE = prompt_path("discovery/assembly/produce-statements.md")
@@ -96,7 +96,7 @@ def export_one(asn_id, model="sonnet", effort="high", dry_run=False):
     # Write output
     asn_num = int(re.sub(r"[^0-9]", "", asn_label))
     note_dir(asn_num).mkdir(parents=True, exist_ok=True)
-    out_path = formal_stmts(asn_num)
+    out_path = claim_statements(asn_num)
     out_path.write_text(text + "\n")
 
     # Log usage

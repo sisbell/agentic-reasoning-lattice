@@ -1,8 +1,9 @@
 # Statement Export
 
-You are extracting formal statements from an ASN reasoning document.
+You are extracting claim statements from an ASN reasoning document.
 The statement registry below lists every claim by label. Your job is
-to find each one in the ASN and extract just the formal statement.
+to find each one in the ASN and extract just the formal mathematical
+statement.
 
 ## ASN Content
 
@@ -23,14 +24,14 @@ subtraction). These will become function/predicate bodies in Dafny.
 
 ## Output format
 
-Start directly with `# ASN-NNNN Formal Statements`.
+Start directly with `# ASN-NNNN Claim Statements`.
 
 For each claim, use this structure:
 
 ```
 ## LABEL — DafnyName (TYPE, CONSTRUCT)
 
-[formal statement, exactly as written in the ASN]
+[claim statement, exactly as written in the ASN]
 ```
 
 For definitions, use:
@@ -60,7 +61,7 @@ to determine TYPE and CONSTRUCT (e.g., LEMMA/lemma, INV/predicate, PRE/requires)
 - Worked examples and verification exercises
 - Open questions or discussion sections
 - Design rationale and historical context
-- Cross-references to other ASNs (unless needed for a formal statement)
+- Cross-references to other ASNs (unless needed for a claim statement)
 - The "Resolved questions" section
 
 Keep it minimal. The Dafny translator needs math, not explanation.

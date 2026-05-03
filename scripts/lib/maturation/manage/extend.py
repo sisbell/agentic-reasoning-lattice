@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, LATTICE, NOTE_DIR, MANIFESTS_DIR,
                    prompt_path, load_inquiry, inquiry_doc_path,
-                   note_yaml, formal_stmts)
+                   note_yaml, claim_statements)
 from lib.shared.common import read_file, find_asn, invoke_claude, log_usage, step_commit
 from lib.shared.foundation import find_extensions
 

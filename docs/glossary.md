@@ -14,7 +14,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Apex (cone apex).** The high-dependency claim at the center of a [dependency cone](patterns/dependency-cone.md) — the one that keeps getting revised while its dependencies remain stable.
 
-**Assembly.** The stage that exports converged claims into `formal-statements.md` and `dependency-graph.yaml` for downstream consumers. Mechanical, no LLM.
+**Assembly.** The stage that exports converged claims into `claim-statements.md` and `dependency-graph.yaml` for downstream consumers. Mechanical, no LLM.
 
 **Attractor, Genesis.** A claim that becomes the default home for every fact anyone needs about a concept it introduces. Cause of [Contract Sprawl](equilibrium/contract-sprawl.md).
 

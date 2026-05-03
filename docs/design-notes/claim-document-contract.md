@@ -8,7 +8,7 @@ Scope: this contract governs the per-claim outputs produced by the [claim deriva
 - three sidecar markdown files — `<label>.label.md`, `<label>.name.md`, `<label>.description.md` — carrying the claim's substrate-managed attributes,
 - substrate links classifying the body and pointing at the sidecars and at related claims (described below).
 
-Other artifacts emitted at other stages — the foundation index, the signature aggregation, the `formal-statements.md` export — are separate representation changes with their own contracts. Don't bundle them.
+Other artifacts emitted at other stages — the foundation index, the signature aggregation, the `claim-statements.md` export — are separate representation changes with their own contracts. Don't bundle them.
 
 ## Two axes
 
@@ -91,7 +91,7 @@ Running the validator before the reviewer eliminates the reviewer's work on mech
 ## What this contract does not cover
 
 - The content of individual claims — what makes a proof correct, a description accurate, a precondition sufficient. That is review's job.
-- Artifacts other than per-claim file sets and their substrate classification. The foundation index, signature aggregation, and formal-statements export each need their own contracts written at the representation changes that produce them.
+- Artifacts other than per-claim file sets and their substrate classification. The foundation index, signature aggregation, and claim-statements export each need their own contracts written at the representation changes that produce them.
 - Aesthetic or stylistic conventions (e.g., prose length, header formatting). Not invariants — conventions.
 
 ## Related

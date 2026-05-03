@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import USAGE_LOG, CLAIM_DIR, prompt_path, formal_stmts
+from lib.shared.paths import USAGE_LOG, CLAIM_DIR, prompt_path, claim_statements
 from lib.shared.common import find_asn, invoke_claude, build_label_index, load_claim_metadata
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 
@@ -249,7 +249,7 @@ def _build_dep_context(asn_num, label):
     for dep_label in follows_from:
         if dep_label not in all_labels:
             for dep_asn in depends:
-                stmt_path = formal_stmts(dep_asn)
+                stmt_path = claim_statements(dep_asn)
                 if stmt_path.exists():
                     ftext = stmt_path.read_text()
                     pattern = re.compile(

@@ -1,4 +1,4 @@
-# ASN-0051 Formal Statements
+# ASN-0051 Claim Statements
 
 *Source: ASN-0051-link-survivability.md (revised 2026-03-23) — Extracted: 2026-03-23*
 

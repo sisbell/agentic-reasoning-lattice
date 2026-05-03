@@ -1,4 +1,4 @@
-# ASN-0034 Formal Statements
+# ASN-0034 Claim Statements
 
 *Source: ASN-0034-tumbler-algebra.md (revised 2026-03-26) — Extracted: 2026-04-17*
 
