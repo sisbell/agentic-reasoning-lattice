@@ -175,3 +175,86 @@ def _extract_target_label(body: str, label_index: dict) -> Optional[str]:
             if label in label_index:
                 return label
     return None
+
+
+# ============================================================
+#  Reconciliation predicates
+# ============================================================
+
+# Detect partial-failure states between document writes and link
+# emissions in the finding/comment pipeline. Per
+# docs/hypergraph-protocol/error-handling.md, operations are not
+# transactional; callers should run reconciliation at stage
+# boundaries to surface inconsistencies.
+
+# Comment subtypes that source from a finding doc in the
+# claim-convergence layer. Both target a claim document.
+_CLAIM_FINDING_COMMENT_KINDS = ("comment.revise", "comment.observe")
+
+
+def orphan_finding_docs(
+    session: Session,
+    findings_dir,
+) -> list:
+    """Finding files on disk with no active comment link sourcing
+    from them.
+
+    Walks `findings_dir` recursively for `*.md` files. For each,
+    checks whether any active `comment.revise` or `comment.observe`
+    link has the file's address in its from_set. Files with no
+    comment link are orphans — partial failure left a finding doc
+    but the comment that should reference it never emitted (or was
+    retracted without cleaning up the file).
+
+    Returns absolute paths, sorted.
+    """
+    from pathlib import Path
+    scope = Path(findings_dir).resolve()
+    if not scope.exists():
+        return []
+    lattice_root = session.store.lattice_dir.resolve()
+    orphans: list = []
+    for path in sorted(scope.rglob("*.md")):
+        try:
+            finding_rel = str(path.relative_to(lattice_root))
+        except ValueError:
+            continue
+        finding_addr = session.get_addr_for_path(finding_rel)
+        if finding_addr is None:
+            orphans.append(path)
+            continue
+        any_link = False
+        for kind in _CLAIM_FINDING_COMMENT_KINDS:
+            if session.active_links(kind, from_set=[finding_addr]):
+                any_link = True
+                break
+        if not any_link:
+            orphans.append(path)
+    return orphans
+
+
+def dangling_finding_links(session: Session) -> list:
+    """Active claim-layer comment links whose source finding doc
+    is missing.
+
+    Walks every active `comment.revise` and `comment.observe` link.
+    For each, checks the from_set finding address resolves to an
+    existing file. Links whose source file is missing are dangling
+    — link emission succeeded but the doc write didn't (or the doc
+    was deleted manually after the link was filed).
+
+    Returns Link records (the substrate-level artifact).
+    """
+    lattice_root = session.store.lattice_dir.resolve()
+    dangling: list = []
+    for kind in _CLAIM_FINDING_COMMENT_KINDS:
+        for link in session.active_links(kind):
+            for finding_addr in link.from_set:
+                finding_rel = session.get_path_for_addr(finding_addr)
+                if finding_rel is None:
+                    dangling.append(link)
+                    break
+                if not (lattice_root / finding_rel).exists():
+                    dangling.append(link)
+                    break
+    return dangling
