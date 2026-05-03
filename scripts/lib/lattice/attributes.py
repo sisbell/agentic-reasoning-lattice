@@ -18,28 +18,20 @@ the document write and the link emission cross different
 operational paths; bundled inside the substrate they would mask
 that. See `docs/hypergraph-protocol/error-handling.md` for the
 atomicity story (operations are not transactional; partial failure
-is recoverable via reconciliation).
+is recoverable via reconciliation — predicates in
+`lib/predicates/reconciliation.py`).
 """
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 
-from lib.backend.addressing import Address
 from lib.backend.emit import emit_attribute_link
 from lib.backend.links import Link
 from lib.febe.protocol import Session
 
 VALID_ATTRIBUTE_KINDS = {"label", "name", "description", "signature"}
-
-# Sidecar filename pattern: <stem>.<kind>.md where kind is one of the
-# four attribute kinds. Used by the reconciliation predicates to
-# identify candidate sidecar files on disk.
-_SIDECAR_RE = re.compile(
-    r"^(?P<stem>.+)\.(?P<kind>label|name|description|signature)\.md$"
-)
 
 
 def emit_attribute(
@@ -106,99 +98,3 @@ def emit_attribute(
     claim_addr = session.register_path(claim_rel)
     sidecar_addr = session.register_path(sidecar_rel)
     return emit_attribute_link(session.store, claim_addr, kind, sidecar_addr)
-
-
-# ============================================================
-#  Reconciliation predicates
-# ============================================================
-
-# These detect partial-failure states between the document write and
-# the link emission (per docs/hypergraph-protocol/error-handling.md).
-# They are detection-only — no destructive action. Callers (janitor
-# scripts, stage-end checks) decide what to do with the findings.
-
-
-def orphan_sidecars(
-    session: Session,
-    scope_dir: Union[str, Path],
-) -> List[Path]:
-    """Sidecar files on disk with no active attribute link pointing at them.
-
-    Walks `scope_dir` recursively for files matching
-    `*.{label|name|description|signature}.md`. For each, checks
-    whether an active attribute link of the matching kind has the
-    file's address in its to_set. Files with no such link are
-    orphans — partial failure left a sidecar but no substrate
-    reference.
-
-    Returns absolute paths, sorted.
-
-    Cases this catches:
-    - Document write succeeded but link emission failed (the typical
-      partial-failure case; orphan file lingers).
-    - Sidecar was written manually or by a process that didn't emit
-      the link.
-    - Link was retracted but the sidecar wasn't cleaned up (a
-      different kind of orphan; the substrate cleared but the file
-      stayed).
-    """
-    scope = Path(scope_dir).resolve()
-    if not scope.exists():
-        return []
-    lattice_root = session.store.lattice_dir.resolve()
-    orphans: List[Path] = []
-    for path in sorted(scope.rglob("*.md")):
-        m = _SIDECAR_RE.match(path.name)
-        if not m:
-            continue
-        kind = m.group("kind")
-        try:
-            sidecar_rel = str(path.relative_to(lattice_root))
-        except ValueError:
-            # Sidecar lives outside the lattice; skip
-            continue
-        sidecar_addr = session.get_addr_for_path(sidecar_rel)
-        if sidecar_addr is None:
-            # File exists but isn't in the path map at all — orphan
-            # (substrate doesn't know about it).
-            orphans.append(path)
-            continue
-        active = session.active_links(kind, to_set=[sidecar_addr])
-        if not active:
-            orphans.append(path)
-    return orphans
-
-
-def dangling_attribute_links(session: Session) -> List[Link]:
-    """Active attribute links whose target sidecar file no longer exists.
-
-    Walks every active link of the four attribute kinds (`label`,
-    `name`, `description`, `signature`). For each, checks that the
-    to_set sidecar address resolves to an existing file on disk.
-    Links whose targets are missing or unresolvable are dangling.
-
-    Returns the list of dangling Link records (the substrate-level
-    artifact, not the missing file path — the file IS missing, after
-    all).
-
-    Cases this catches:
-    - Link was emitted but document write failed (the reverse
-      partial-failure case).
-    - Sidecar was deleted manually after the link was filed; link
-      was never retracted.
-    - Path map references a file that has since been moved or
-      removed.
-    """
-    lattice_root = session.store.lattice_dir.resolve()
-    dangling: List[Link] = []
-    for kind in sorted(VALID_ATTRIBUTE_KINDS):
-        for link in session.active_links(kind):
-            for sidecar_addr in link.to_set:
-                sidecar_rel = session.get_path_for_addr(sidecar_addr)
-                if sidecar_rel is None:
-                    dangling.append(link)
-                    break
-                if not (lattice_root / sidecar_rel).exists():
-                    dangling.append(link)
-                    break
-    return dangling

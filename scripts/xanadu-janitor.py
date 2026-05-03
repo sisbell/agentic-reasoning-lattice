@@ -31,16 +31,13 @@ from lib.shared.paths import (
     CLAIM_DIR, CLAIM_FINDINGS_DIR, LATTICE, NOTE_FINDINGS_DIR,
 )
 from lib.febe.session import open_session
-from lib.lattice.attributes import (
-    dangling_attribute_links, orphan_sidecars,
-)
-from lib.claim_convergence.findings import (
-    dangling_finding_links as claim_dangling_finding_links,
-    orphan_finding_docs as claim_orphan_finding_docs,
-)
-from lib.note_convergence.findings import (
-    dangling_finding_links as note_dangling_finding_links,
-    orphan_finding_docs as note_orphan_finding_docs,
+from lib.predicates import (
+    dangling_attribute_links,
+    dangling_claim_finding_links,
+    dangling_note_finding_links,
+    orphan_claim_finding_docs,
+    orphan_note_finding_docs,
+    orphan_sidecars,
 )
 
 
@@ -64,8 +61,8 @@ def _check_claim_findings(session, quiet):
     """Run reconciliation predicates against claim-layer findings."""
     orphans = []
     if CLAIM_FINDINGS_DIR.exists():
-        orphans.extend(claim_orphan_finding_docs(session, CLAIM_FINDINGS_DIR))
-    danglers = claim_dangling_finding_links(session)
+        orphans.extend(orphan_claim_finding_docs(session, CLAIM_FINDINGS_DIR))
+    danglers = dangling_claim_finding_links(session)
     return orphans, danglers
 
 
@@ -73,8 +70,8 @@ def _check_note_findings(session, quiet):
     """Run reconciliation predicates against note-layer findings."""
     orphans = []
     if NOTE_FINDINGS_DIR.exists():
-        orphans.extend(note_orphan_finding_docs(session, NOTE_FINDINGS_DIR))
-    danglers = note_dangling_finding_links(session)
+        orphans.extend(orphan_note_finding_docs(session, NOTE_FINDINGS_DIR))
+    danglers = dangling_note_finding_links(session)
     return orphans, danglers
 
 
