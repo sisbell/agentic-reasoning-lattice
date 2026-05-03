@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import claim_doc_path, LATTICE
-from lib.backend.emit import emit_attribute
+from lib.lattice.attributes import emit_attribute
 from lib.febe.session import open_session
 
 
@@ -47,7 +47,7 @@ def main():
     store = session.store  # for emit_* (Pass 2 will migrate)
     try:
         link, created = emit_attribute(
-            store, claim_path, "name", args.to,
+            session, claim_path, "name", args.to,
         )
     except ValueError as e:
         print(f"error: {e}", file=sys.stderr)

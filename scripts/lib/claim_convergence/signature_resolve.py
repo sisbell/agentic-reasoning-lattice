@@ -42,7 +42,7 @@ from lib.shared.common import (
 from lib.febe.session import open_session
 from lib.agent import attributed_to
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.backend.emit import emit_attribute
+from lib.lattice.attributes import emit_attribute
 from lib.lattice.notation import read_notation
 
 
@@ -343,8 +343,7 @@ def run_resolve(asn_num, claim_label, model="sonnet"):
     # If sidecar would be empty after removes, write empty (the sidecar
     # file is allowed to be empty; the substrate link stays).
     session = open_session(LATTICE)
-    store = session.store  # for emit_attribute (Pass 2 will migrate)
-    emit_attribute(store, claim_md_rel, "signature", new_sidecar_text.rstrip())
+    emit_attribute(session, claim_md_rel, "signature", new_sidecar_text.rstrip())
 
     resolve_path, run_num = _persist_resolve_doc(
         asn_label, claim_label, text, model,

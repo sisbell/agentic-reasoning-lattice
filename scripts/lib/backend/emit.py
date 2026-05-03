@@ -135,48 +135,6 @@ def emit_attribute_link(
     return link, True
 
 
-def emit_attribute(
-    store: Store, claim_md_path, kind: str, value: str, lattice_root=None,
-) -> Tuple[Link, bool]:
-    """Write the sidecar with `value` (edit-in-place) and emit the
-    attribute link from claim_md to its sidecar. Mirrors the legacy
-    lib.store.attributes.emit_attribute signature.
-
-    `claim_md_path` may be lattice-relative or absolute. The sidecar
-    path is derived as `<claim_dir>/<stem>.<kind>.md`. Both docs are
-    registered in the path map (allocated fresh tumblers if new).
-    """
-    from pathlib import Path
-    valid = {"label", "name", "description", "signature"}
-    if kind not in valid:
-        raise ValueError(
-            f"invalid attribute kind {kind!r}; must be one of {sorted(valid)}"
-        )
-    root = Path(lattice_root) if lattice_root else store.lattice_dir
-    claim_md = Path(claim_md_path)
-    if not claim_md.is_absolute():
-        claim_md = (root / claim_md).resolve()
-    else:
-        claim_md = claim_md.resolve()
-    stem = claim_md.stem
-    sidecar_abs = claim_md.parent / f"{stem}.{kind}.md"
-
-    if kind == "description":
-        body = value if value.endswith("\n") else value + "\n"
-    else:
-        body = value.rstrip("\n") + "\n"
-    if not sidecar_abs.exists() or sidecar_abs.read_text() != body:
-        sidecar_abs.parent.mkdir(parents=True, exist_ok=True)
-        sidecar_abs.write_text(body)
-
-    root_resolved = root.resolve()
-    claim_rel = str(claim_md.relative_to(root_resolved))
-    sidecar_rel = str(sidecar_abs.relative_to(root_resolved))
-    claim_addr = store.register_path(claim_rel)
-    sidecar_addr = store.register_path(sidecar_rel)
-    return emit_attribute_link(store, claim_addr, kind, sidecar_addr)
-
-
 def emit_signature(
     store: Store, claim_doc: Address, sidecar: Address,
 ) -> Tuple[Link, bool]:

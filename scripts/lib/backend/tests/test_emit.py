@@ -10,7 +10,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 
 from lib.backend.addressing import Address
 from lib.backend.emit import (
-    emit_attribute,
     emit_attribute_link,
     emit_campaign,
     emit_citation,
@@ -29,6 +28,7 @@ from lib.backend.emit import (
     emit_review,
     emit_synthesis,
 )
+from lib.lattice.attributes import emit_attribute
 from lib.backend.migrate import migrate
 from lib.claim_convergence.predicates import is_doc_converged
 from lib.backend.store import Store
