@@ -53,7 +53,7 @@ from lib.backend.emit import (
     emit_attribute, emit_citation, emit_claim, emit_contract, emit_derivation,
 )
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.agent import default_store
+from lib.febe.session import open_session
 
 from .find_in_source import find_in_source
 
@@ -220,7 +220,8 @@ def transclude_asn(asn_num, dry_run=False):
         for c in claims_to_emit
     }
 
-    with default_store(LATTICE) as store:
+    with open_session(LATTICE) as session:
+        store = session.store  # for emit_* (Pass 2 will migrate)
         # lattice.labels.build_cross_asn_label_index returns
         # {label: claim_doc_addr}. local_index uses path strings; build
         # an addr-keyed merge by registering the new claim paths.

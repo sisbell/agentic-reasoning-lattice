@@ -26,7 +26,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import LATTICE, WORKSPACE, prompt_path, load_inquiry, claim_statements
 from lib.shared.common import find_asn, read_file, extract_claim_sections
-from lib.agent import default_store
+from lib.febe.session import open_session
 from lib.backend.emit import emit_citation
 from lib.lattice.labels import build_cross_asn_label_index
 
@@ -334,7 +334,8 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
         from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR
         claim_dir = CLAIM_DIR / asn_label
         if claim_dir.exists():
-            with default_store(LATTICE) as store:
+            with open_session(LATTICE) as session:
+                store = session.store  # for emit_* (Pass 2 will migrate)
                 label_index = build_cross_asn_label_index(store)
                 for label, claim_data in deps.get("claims", {}).items():
                     citing_addr = label_index.get(label)

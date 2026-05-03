@@ -39,7 +39,7 @@ from lib.consultation.evidence import assign_channels
 from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_assessment,
 )
-from lib.backend.store import Store
+from lib.febe.session import open_session
 
 
 def get_review_number(review_path):
@@ -292,7 +292,8 @@ def main():
     )
     print(f"  [ASSIGN] Saved to {cat_path}", file=sys.stderr)
 
-    store = Store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     cat_rel = str(cat_path.resolve().relative_to(LATTICE.resolve()))
     cat_addr = store.register_path(cat_rel)
     emit_consultation_assessment(store, cat_addr)
@@ -334,7 +335,8 @@ def main():
     # Classify each per-answer doc as a substrate citizen. Single-pass
     # after the parallel consultations complete so all writes are in
     # place before we open the store.
-    store = Store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     for answer_md in sorted(consult_subdir.glob("answer-*.md")):
         answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
         answer_addr = store.register_path(answer_rel)

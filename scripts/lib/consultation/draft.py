@@ -38,7 +38,7 @@ from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
 from lib.backend.emit import emit_note, emit_synthesis
-from lib.backend.store import Store
+from lib.febe.session import open_session
 
 DISCOVERY_PROMPT = LATTICE_PROMPTS / "discovery" / "instructions.md"
 
@@ -259,7 +259,8 @@ def main():
     asn_path = run_discovery(inquiry, asn_number, slug, force=args.force)
 
     if asn_path:
-        store = Store(LATTICE)
+        session = open_session(LATTICE)
+        store = session.store  # for emit_* (Pass 2 will migrate)
         asn_rel = str(Path(asn_path).resolve().relative_to(LATTICE.resolve()))
         note_addr = store.register_path(asn_rel)
         _, note_created = emit_note(store, note_addr)

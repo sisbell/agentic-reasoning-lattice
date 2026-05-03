@@ -43,7 +43,7 @@ from lib.consult import (
 from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_questions,
 )
-from lib.backend.store import Store
+from lib.febe.session import open_session
 
 
 def _channel_default_questions(channel_name, fallback=10):
@@ -444,7 +444,8 @@ def main():
     )
     print(f"  [SAVED] {questions_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    store = Store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     questions_rel = str(questions_path.resolve().relative_to(LATTICE.resolve()))
     questions_addr = store.register_path(questions_rel)
     emit_consultation_questions(store, questions_addr)
@@ -464,7 +465,8 @@ def main():
     # Classify each per-answer doc as a substrate citizen. Single-pass
     # after the parallel consultations complete so all writes are in
     # place before we open the store.
-    store = Store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     for answer_md in sorted(init_dir.glob("answer-*.md")):
         answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
         answer_addr = store.register_path(answer_rel)

@@ -114,11 +114,12 @@ def compute_depends(base_num):
     """Compute depends list: base's own deps (from substrate) + base itself."""
     import re
     from lib.backend.predicates import active_links
-    from lib.backend.store import Store
+    from lib.febe.session import open_session
     base_inq = inquiry_doc_path(base_num)
     base_rel = str(base_inq.resolve().relative_to(LATTICE.resolve()))
     deps = {base_num}
-    store = Store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     if base_rel in store.path_to_addr:
         base_addr = store.path_to_addr[base_rel]
         for link in active_links(store.state, "citation.depends",

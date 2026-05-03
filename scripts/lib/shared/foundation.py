@@ -159,10 +159,11 @@ def load_foundation_for_note(asn_path, asn_id):
     the manifest's depends declaration.
     """
     from lib.lattice.labels import note_dep_asn_ids
-    from lib.agent import default_store
+    from lib.febe.session import open_session
     from lib.shared.paths import LATTICE
     note_rel = str(asn_path.resolve().relative_to(Path(LATTICE).resolve()))
-    with default_store(LATTICE) as store:
+    with open_session(LATTICE) as session:
+        store = session.store  # for emit_* (Pass 2 will migrate)
         note_addr = store.path_to_addr.get(note_rel)
         dep_ids = note_dep_asn_ids(store, note_addr) if note_addr else []
     return load_foundation_statements(asn_id, dep_ids=dep_ids)
@@ -177,10 +178,11 @@ def load_foundation_for_claim_asn(asn_id):
     ASN's claim-convergence directory.
     """
     from lib.lattice.labels import aggregate_asn_deps
-    from lib.agent import default_store
+    from lib.febe.session import open_session
     from lib.shared.paths import LATTICE
     asn_label = f"ASN-{int(asn_id):04d}"
-    with default_store(LATTICE) as store:
+    with open_session(LATTICE) as session:
+        store = session.store  # for emit_* (Pass 2 will migrate)
         dep_ids = aggregate_asn_deps(store, asn_label)
     return load_foundation_statements(asn_id, dep_ids=dep_ids)
 
@@ -193,10 +195,11 @@ def claim_asn_dep_ids(asn_id):
     labels separately).
     """
     from lib.lattice.labels import aggregate_asn_deps
-    from lib.agent import default_store
+    from lib.febe.session import open_session
     from lib.shared.paths import LATTICE
     asn_label = f"ASN-{int(asn_id):04d}"
-    with default_store(LATTICE) as store:
+    with open_session(LATTICE) as session:
+        store = session.store  # for emit_* (Pass 2 will migrate)
         return aggregate_asn_deps(store, asn_label)
 
 

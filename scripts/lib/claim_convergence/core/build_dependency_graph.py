@@ -21,7 +21,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import LATTICE, WORKSPACE, CLAIM_DIR, claim_statements, dep_graph
 from lib.shared.common import find_asn, load_claim_metadata, build_label_index
-from lib.backend.store import Store
+from lib.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import current_contract_kind, active_links
 
@@ -462,7 +462,8 @@ def _generate_deps_core(asn_num, prose_citations=False):
         return None
 
     # Read follows_from from substrate citation links.
-    store = Store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     cross_index = build_cross_asn_label_index(store)  # {label: claim_addr}
     rev_index = {addr: label for label, addr in cross_index.items()}
 
