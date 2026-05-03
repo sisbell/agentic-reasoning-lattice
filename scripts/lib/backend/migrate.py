@@ -44,6 +44,20 @@ def _utcnow_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _to_repo_relative(path: Path) -> str:
+    """Render path relative to the repo root, falling back to whatever
+    the caller supplied if the path isn't under the repo (e.g., a
+    user-specified override outside the working tree). Avoids leaking
+    absolute paths from the migrating user's filesystem into committed
+    metadata."""
+    # migrate.py lives at scripts/lib/backend/migrate.py
+    repo_root = Path(__file__).resolve().parent.parent.parent.parent
+    try:
+        return str(Path(path).resolve().relative_to(repo_root))
+    except ValueError:
+        return str(path)
+
+
 def _link_record(link: Link, ts: str) -> dict:
     return {
         "op": "create",
@@ -169,7 +183,7 @@ def migrate(
                 "lattice_doc": str(lattice_doc),
                 "lattice_name": lattice_name,
                 "migrated_at": migration_ts,
-                "legacy_source": str(legacy_path),
+                "legacy_source": _to_repo_relative(legacy_path),
             },
             "paths": {
                 p: str(t) for p, t in sorted(path_to_tumbler.items())

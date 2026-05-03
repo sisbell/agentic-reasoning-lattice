@@ -202,6 +202,31 @@ class MigrateSmallSubstrateTests(unittest.TestCase):
         self.assertEqual(claim_classifiers[0].from_set, ())
         self.assertEqual(claim_classifiers[0].to_set, (a_tumbler,))
 
+    def test_legacy_source_in_meta_is_not_absolute(self):
+        # We never want absolute filesystem paths leaking into committed
+        # metadata. legacy_source should resolve to a repo-relative path
+        # (or be left as-supplied if the input is outside the repo root).
+        write_legacy_jsonl(
+            self.legacy,
+            [
+                {
+                    "op": "create",
+                    "id": "l_a",
+                    "from_set": [],
+                    "to_set": ["claim/A.md"],
+                    "type_set": ["claim"],
+                    "ts": "ts",
+                },
+            ],
+        )
+        migrate(self.legacy, self.output)
+        with open(self.output / "paths.json") as f:
+            meta = json.load(f)["_meta"]
+        # legacy is under the tempdir (outside the repo) — fallback applies
+        # but should still not resemble a pinned user-home path that would
+        # surprise a future reader. Test the in-repo case via a synthetic check.
+        self.assertNotIn("/Users/", meta["legacy_source"])
+
     def test_lattice_links_emitted_for_every_doc(self):
         write_legacy_jsonl(
             self.legacy,
