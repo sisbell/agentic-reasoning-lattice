@@ -21,7 +21,7 @@ from lib.agent import attributed_to
 from lib.febe.session import open_session
 from lib.claim_convergence.findings import emit_findings, emit_meta
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.claim_convergence.predicates import is_claim_converged
+from lib.predicates import is_claim_converged
 from lib.claim_convergence.sync import sync_claim_citations
 
 from .scope import assemble_cone, transitive_same_asn_deps

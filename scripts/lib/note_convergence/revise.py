@@ -27,7 +27,7 @@ from lib.shared.paths import WORKSPACE, LATTICE, VOCABULARY, REVIEWS_DIR, USAGE_
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.claim_convergence.predicates import unresolved_revise_comments
+from lib.predicates import unresolved_revise_comments
 from lib.febe.session import open_session
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"

@@ -10,7 +10,7 @@ from lib.shared.common import find_asn, build_label_index
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 from lib.claim_convergence.core.topological_sort import topological_levels
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.claim_convergence.predicates import is_claim_converged
+from lib.predicates import is_claim_converged
 from lib.febe.session import open_session
 
 from .review import run_cone_review

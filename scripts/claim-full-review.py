@@ -47,7 +47,7 @@ from lib.agent import attributed_to
 from lib.febe.session import open_session
 from lib.claim_convergence.findings import emit_findings, emit_meta
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.claim_convergence.predicates import is_asn_converged
+from lib.predicates import is_asn_converged
 
 
 @attributed_to("full-review")

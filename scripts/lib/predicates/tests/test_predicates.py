@@ -1,8 +1,7 @@
-"""Substrate-predicate tests over the tumbler-keyed link store.
+"""Predicate tests over the tumbler-keyed link store.
 
-Verifies the convergence and alignment predicates ported from the
-legacy queries.py, plus the new alignment helpers enabled by
-version-bearing addresses.
+Verifies the convergence and alignment predicates, plus the alignment
+helpers enabled by version-bearing addresses.
 """
 
 import sys
@@ -12,8 +11,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 
 from lib.backend.addressing import Address
-from lib.backend.predicates import (
-    active_links,
+from lib.backend.predicates import active_links, retracted_link_addrs
+from lib.backend.state import State
+from lib.predicates import (
     all_claim_addrs,
     all_classified,
     dependents,
@@ -22,18 +22,14 @@ from lib.backend.predicates import (
     has_description,
     has_label,
     has_name,
-    has_signature,
-    is_head_version,
-    retracted_link_addrs,
-    version_children,
-    version_head,
-)
-from lib.backend.state import State
-from lib.claim_convergence.predicates import (
     has_resolution,
+    has_signature,
     is_converged,
     is_doc_converged,
+    is_head_version,
     unresolved_revise_comments,
+    version_children,
+    version_head,
 )
 
 

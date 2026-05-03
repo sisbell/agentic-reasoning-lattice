@@ -14,13 +14,12 @@ satisfying it.
 These predicates know what specific link types *mean* in the
 convergence protocol — `comment.revise`, `resolution`, the
 revise-resolution pairing — so they're protocol code, not substrate
-primitive. They live here, alongside the rest of the claim-convergence
-package.
+primitive.
 
-Per Pass 1.5's binding discipline: these predicates take a Session
-(not a State or Store directly), and compose Session methods rather
-than reaching into substrate internals. Callers hold a Session and
-pass it through.
+Per Pass 1.5's binding discipline: predicates take a Session (not a
+State or Store directly), and compose Session methods rather than
+reaching into substrate internals. Callers hold a Session and pass it
+through.
 """
 
 from __future__ import annotations

@@ -36,7 +36,8 @@ from lib.shared.common import find_asn
 from lib.shared.paths import CLAIM_DIR, LATTICE
 from lib.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.backend.predicates import current_contract_kind, active_links
+from lib.backend.predicates import active_links
+from lib.predicates import current_contract_kind
 from lib.backend.schema import VALID_SUBTYPES, VALID_ATTRIBUTE_KINDS as VALID_KINDS
 from lib.lattice.notation import read_notation
 

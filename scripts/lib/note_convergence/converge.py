@@ -26,7 +26,7 @@ from lib.note_convergence.review import (
 from lib.note_convergence.revise import (
     collect_open_revises, log_usage, run_revise_pass,
 )
-from lib.claim_convergence.predicates import is_doc_converged
+from lib.predicates import is_doc_converged
 from lib.febe.session import open_session
 
 

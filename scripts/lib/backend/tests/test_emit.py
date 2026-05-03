@@ -30,7 +30,7 @@ from lib.backend.emit import (
 )
 from lib.lattice.attributes import emit_attribute
 from lib.backend.migrate import migrate
-from lib.claim_convergence.predicates import is_doc_converged
+from lib.predicates import is_doc_converged
 from lib.backend.store import Store
 
 

@@ -97,7 +97,7 @@ def load_claim_metadata(claim_dir, label=None):
 
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
     from lib.backend.store import Store
-    from lib.backend.predicates import current_contract_kind
+    from lib.predicates import current_contract_kind
     from lib.shared.paths import LATTICE
 
     lattice = Path(LATTICE).resolve()
