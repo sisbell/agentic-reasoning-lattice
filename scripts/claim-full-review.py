@@ -79,7 +79,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     verdict = "CONVERGED"
 
     store = default_store(LATTICE)
-    label_index = build_cross_asn_label_index(store=store)
+    label_index = build_cross_asn_label_index(store)
 
     asn_claim_md_paths = [
         str(md_path.relative_to(LATTICE))
@@ -87,13 +87,17 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         if not md_path.name.startswith("_")
         and not md_path.name.endswith(ATTRIBUTE_SUFFIXES)
     ]
+    asn_claim_addrs = [
+        store.path_to_addr.get(p) for p in asn_claim_md_paths
+    ]
+    asn_claim_addrs = [a for a in asn_claim_addrs if a is not None]
 
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
 
         # Retry pass: re-feed any open revise comments to the reviser
         if not dry_run:
-            _retry_unresolved_revises(store, asn_num, claim_dir, asn_claim_md_paths)
+            _retry_unresolved_revises(store, asn_num, claim_dir, asn_claim_addrs)
 
         gate_result = run_validate_gate(asn_label, scope_labels=None)
         if gate_result != "clean":
@@ -120,8 +124,24 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         meta_path = review_aggregate_path(asn_label, review_num, kind="claim")
 
         findings = extract_findings(findings_text)
+        # Two-pass: first emit_meta materializes the review doc + emits the
+        # `review` classifier; emit_findings derives from that review_addr;
+        # second emit_meta overwrites the review doc with the finalized
+        # summary table.
+        review_link = emit_meta(
+            store, asn_label, review_num,
+            title=f"Full Review — {asn_label} (cycle {cycle})",
+            timestamp=time.strftime("%Y-%m-%d %H:%M"),
+            scope=f"{asn_label} (full)",
+            verdict="(pending)",
+            findings_summary="(pending)",
+            emitted_findings=[],
+            elapsed_seconds=elapsed,
+            reviews_dir=CLAIM_REVIEWS_DIR,
+        )
+        review_addr = review_link.to_set[0] if review_link.to_set else None
         emitted_findings = emit_findings(
-            store, meta_path, findings,
+            store, review_addr, findings,
             asn_label, review_stem, label_index,
             findings_dir=CLAIM_FINDINGS_DIR,
         )
@@ -171,7 +191,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                 any_changed = True
                 if comment_id:
                     resolutions = store.find_links(
-                        to_set=[comment_id], type_set=["resolution"],
+                        to_set=[comment_id], type_="resolution",
                     )
                     if not resolutions:
                         print(
@@ -212,7 +232,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     confirmation_revise_count = 0
     if not failed and not dry_run and max_cycles > 1 and not naturally_converged:
         print(f"\n  [CONFIRMATION REVIEW]", file=sys.stderr)
-        _retry_unresolved_revises(store, asn_num, claim_dir, asn_claim_md_paths)
+        _retry_unresolved_revises(store, asn_num, claim_dir, asn_claim_addrs)
 
         gate_result = run_validate_gate(asn_label, scope_labels=None)
         if gate_result != "clean":
@@ -232,8 +252,24 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                 confirm_meta_path = review_aggregate_path(asn_label, review_num, kind="claim")
 
                 confirm_findings = extract_findings(confirm_findings_text)
+                # Same two-pass pattern as the cycle review.
+                confirm_review_link = emit_meta(
+                    store, asn_label, review_num,
+                    title=f"Full Review (Confirmation) — {asn_label}",
+                    timestamp=time.strftime("%Y-%m-%d %H:%M"),
+                    scope=f"{asn_label} (full)",
+                    verdict="(pending)",
+                    findings_summary="(pending)",
+                    emitted_findings=[],
+                    elapsed_seconds=confirm_elapsed,
+                    reviews_dir=CLAIM_REVIEWS_DIR,
+                )
+                confirm_review_addr = (
+                    confirm_review_link.to_set[0]
+                    if confirm_review_link.to_set else None
+                )
                 emitted_findings = emit_findings(
-                    store, confirm_meta_path, confirm_findings,
+                    store, confirm_review_addr, confirm_findings,
                     asn_label, review_stem, label_index,
                     findings_dir=CLAIM_FINDINGS_DIR,
                 )

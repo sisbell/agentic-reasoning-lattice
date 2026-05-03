@@ -461,38 +461,38 @@ def _generate_deps_core(asn_num, prose_citations=False):
               file=sys.stderr)
         return None
 
-    # Read follows_from from substrate citation links (per-claim YAML's
-    # depends field is no longer canonical).
+    # Read follows_from from substrate citation links.
     store = Store(LATTICE)
-    try:
-        cross_index = build_cross_asn_label_index(store=store)
-        rev_index = {p: l for l, p in cross_index.items()}
+    cross_index = build_cross_asn_label_index(store)  # {label: claim_addr}
+    rev_index = {addr: label for label, addr in cross_index.items()}
 
-        claims = {}
-        for label, data in metadata.items():
-            from_path = cross_index.get(label)
-            contract_kind = current_contract_kind(store, from_path)
-            prop = {"status": contract_kind or "introduced"}
-            if contract_kind:
-                prop["type"] = contract_kind
+    claims = {}
+    for label, data in metadata.items():
+        from_addr = cross_index.get(label)
+        contract_kind = (
+            current_contract_kind(store.state, from_addr)
+            if from_addr is not None else None
+        )
+        prop = {"status": contract_kind or "introduced"}
+        if contract_kind:
+            prop["type"] = contract_kind
 
-            if data.get("name"):
-                prop["name"] = data["name"]
+        if data.get("name"):
+            prop["name"] = data["name"]
 
-            if from_path:
-                follows = [
-                    rev_index[link["to_set"][0]]
-                    for link in active_links(
-                        store, "citation.depends", from_set=[from_path],
-                    )
-                    if link["to_set"] and rev_index.get(link["to_set"][0])
-                ]
-                if follows:
-                    prop["follows_from"] = follows
+        if from_addr is not None:
+            follows = []
+            for link in active_links(
+                store.state, "citation.depends", from_set=[from_addr],
+            ):
+                for cited_addr in link.to_set:
+                    label_match = rev_index.get(cited_addr)
+                    if label_match:
+                        follows.append(label_match)
+            if follows:
+                prop["follows_from"] = follows
 
-            claims[label] = prop
-    finally:
-        store.close()
+        claims[label] = prop
 
     # Read per-claim .md files for prose citation scanning
     from lib.shared.common import load_claim_sections

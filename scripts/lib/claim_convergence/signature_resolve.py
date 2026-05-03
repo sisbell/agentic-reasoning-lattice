@@ -66,28 +66,29 @@ def _transitive_dep_signatures(store, claim_md_rel, label_index, asn_label):
 
     Returns a list of (label, signature_text) tuples for upstream claims
     that have a non-empty signature sidecar."""
-    rev_index = {p: l for l, p in label_index.items()}
+    rev_index = {addr: label for label, addr in label_index.items()}
     claim_dir = CLAIM_DIR / asn_label
     asn_label_set = set(build_label_index(claim_dir).keys())
 
-    visited = {claim_md_rel}
-    queue = [claim_md_rel]
+    claim_addr = store.path_to_addr.get(claim_md_rel)
+    if claim_addr is None:
+        return []
+    visited = {claim_addr}
+    queue = [claim_addr]
     upstream = []
     while queue:
         cur = queue.pop(0)
-        for link in active_links(store, "citation.depends", from_set=[cur]):
-            if not link["to_set"]:
-                continue
-            target = link["to_set"][0]
-            if target in visited:
-                continue
-            visited.add(target)
-            label = rev_index.get(target)
-            if label and label in asn_label_set:
-                sig = _claim_signature_text(claim_dir, label)
-                if sig:
-                    upstream.append((label, sig))
-                queue.append(target)
+        for link in active_links(store.state, "citation.depends", from_set=[cur]):
+            for target in link.to_set:
+                if target in visited:
+                    continue
+                visited.add(target)
+                label = rev_index.get(target)
+                if label and label in asn_label_set:
+                    sig = _claim_signature_text(claim_dir, label)
+                    if sig:
+                        upstream.append((label, sig))
+                    queue.append(target)
     return upstream
 
 
@@ -299,14 +300,11 @@ def run_resolve(asn_num, claim_label, model="sonnet"):
     existing_signature = _claim_signature_text(claim_dir, claim_label)
 
     store = Store(LATTICE)
-    try:
-        label_index = build_cross_asn_label_index(store=store)
-        upstream_sigs = _transitive_dep_signatures(
-            store, claim_md_rel, label_index, asn_label,
-        )
-        notation_primitives = read_notation(store)
-    finally:
-        store.close()
+    label_index = build_cross_asn_label_index(store)
+    upstream_sigs = _transitive_dep_signatures(
+        store, claim_md_rel, label_index, asn_label,
+    )
+    notation_primitives = read_notation(store)
 
     prompt = _render_prompt(
         claim_md_content, notation_primitives, upstream_sigs, existing_signature,
@@ -344,10 +342,7 @@ def run_resolve(asn_num, claim_label, model="sonnet"):
     # If sidecar would be empty after removes, write empty (the sidecar
     # file is allowed to be empty; the substrate link stays).
     store = Store(LATTICE)
-    try:
-        emit_attribute(store, claim_md_rel, "signature", new_sidecar_text.rstrip())
-    finally:
-        store.close()
+    emit_attribute(store, claim_md_rel, "signature", new_sidecar_text.rstrip())
 
     resolve_path, run_num = _persist_resolve_doc(
         asn_label, claim_label, text, model,

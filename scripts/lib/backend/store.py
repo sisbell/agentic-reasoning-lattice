@@ -110,6 +110,11 @@ class Store:
     def __exit__(self, *args) -> None:
         return None
 
+    def close(self) -> None:
+        """No-op for legacy callers expecting a closeable handle.
+        The substrate is in-memory + on-disk JSONL; nothing to release."""
+        return None
+
     @property
     def lattice_doc(self) -> Address:
         return Address(self._meta["lattice_doc"])

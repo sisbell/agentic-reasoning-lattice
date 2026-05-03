@@ -335,18 +335,16 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
         claim_dir = CLAIM_DIR / asn_label
         if claim_dir.exists():
             with default_store(LATTICE) as store:
-                label_index = build_cross_asn_label_index(store=store)
+                label_index = build_cross_asn_label_index(store)
                 for label, claim_data in deps.get("claims", {}).items():
-                    md_path = label_index.get(label)
-                    if md_path is None:
+                    citing_addr = label_index.get(label)
+                    if citing_addr is None:
                         continue
                     for dep_label in claim_data.get("follows_from", []):
-                        if dep_label not in label_index:
+                        cited_addr = label_index.get(dep_label)
+                        if cited_addr is None:
                             continue
-                        try:
-                            emit_citation(store, md_path, dep_label, label_index)
-                        except KeyError:
-                            continue
+                        emit_citation(store, citing_addr, cited_addr)
 
     return deps
 

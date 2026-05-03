@@ -50,16 +50,24 @@ FORWARD_HEADER = "- *Forward References:*"
 # Substrate queries
 
 def _existing_classifications(store, claim_md_rel, label_index):
-    """Return (depends_labels, forwards_labels) sourced from substrate."""
-    rev_index = {p: l for l, p in label_index.items()}
+    """Return (depends_labels, forwards_labels) sourced from substrate.
+
+    `label_index` is {label: claim_doc_addr} (backend.populate format).
+    """
+    rev_index = {addr: label for label, addr in label_index.items()}
+    claim_addr = store.path_to_addr.get(claim_md_rel)
+    if claim_addr is None:
+        return [], []
     depends = []
     forwards = []
-    for link in active_links(store, "citation.depends", from_set=[claim_md_rel]):
-        if link["to_set"] and link["to_set"][0] in rev_index:
-            depends.append(rev_index[link["to_set"][0]])
-    for link in active_links(store, "citation.forward", from_set=[claim_md_rel]):
-        if link["to_set"] and link["to_set"][0] in rev_index:
-            forwards.append(rev_index[link["to_set"][0]])
+    for link in active_links(store.state, "citation.depends", from_set=[claim_addr]):
+        for cited in link.to_set:
+            if cited in rev_index:
+                depends.append(rev_index[cited])
+    for link in active_links(store.state, "citation.forward", from_set=[claim_addr]):
+        for cited in link.to_set:
+            if cited in rev_index:
+                forwards.append(rev_index[cited])
     return sorted(depends), sorted(forwards)
 
 
@@ -357,32 +365,52 @@ def _emit_substrate(store, claim_md_rel, classifications, retractions,
     3. `retraction` for each retraction
     4. `provenance.derivation` from the resolve doc to each emitted
        citation/retraction link
+
+    `label_index` is {label: claim_doc_addr}.
     """
+    from lib.backend.predicates import active_links
+
+    resolve_doc_addr = store.register_path(resolve_doc_rel)
+    claim_addr = store.register_path(claim_md_rel)
+
+    # Classifier on the resolve doc (citation.resolve treats the doc as
+    # the artifact of the resolve operation).
     store.make_link(
+        homedoc=resolve_doc_addr,
         from_set=[],
-        to_set=[resolve_doc_rel],
-        type_set=["citation.resolve"],
+        to_set=[resolve_doc_addr],
+        type_="citation.resolve",
     )
 
     derivation_targets = []
     for c in classifications:
-        link_id, _ = emit_citation(
-            store, claim_md_rel, c["label"], label_index,
-            direction=c["direction"],
+        cited_addr = label_index.get(c["label"])
+        if cited_addr is None:
+            continue
+        link, _ = emit_citation(
+            store, claim_addr, cited_addr, direction=c["direction"],
         )
-        derivation_targets.append(link_id)
+        derivation_targets.append(link.addr)
     for r in retractions:
-        link_id, _ = emit_retraction(
-            store, claim_md_rel, r["label"], label_index,
-            direction=r["direction"],
-        )
-        derivation_targets.append(link_id)
+        cited_addr = label_index.get(r["label"])
+        if cited_addr is None:
+            continue
+        # Find the active citation link to retract for this (claim, target,
+        # direction) — emit_retraction takes the link being nullified.
+        type_str = f"citation.{r['direction']}"
+        for cand in active_links(
+            store.state, type_str, from_set=[claim_addr], to_set=[cited_addr],
+        ):
+            retraction = emit_retraction(store, claim_addr, cand.addr)
+            derivation_targets.append(retraction.addr)
+            break  # retract one matching link per (claim, target, direction)
 
-    for link_id in derivation_targets:
+    for target_addr in derivation_targets:
         store.make_link(
-            from_set=[resolve_doc_rel],
-            to_set=[link_id],
-            type_set=["provenance.derivation"],
+            homedoc=resolve_doc_addr,
+            from_set=[resolve_doc_addr],
+            to_set=[target_addr],
+            type_="provenance.derivation",
         )
 
 
@@ -409,13 +437,10 @@ def run_classification(asn_num, claim_label, model="sonnet"):
     claim_md_content = claim_md_full.read_text()
 
     store = Store(LATTICE)
-    try:
-        label_index = build_cross_asn_label_index(store=store)
-        depends, forwards = _existing_classifications(
-            store, claim_md_rel, label_index,
-        )
-    finally:
-        store.close()
+    label_index = build_cross_asn_label_index(store)
+    depends, forwards = _existing_classifications(
+        store, claim_md_rel, label_index,
+    )
 
     claim_dir = claim_md_full.parent
     claims_root = claim_dir.parent
@@ -435,11 +460,8 @@ def run_classification(asn_num, claim_label, model="sonnet"):
         return "ok"
 
     store = Store(LATTICE)
-    try:
-        label_index = build_cross_asn_label_index(store=store)
-        _validate_labels(classifications, retractions, label_index)
-    finally:
-        store.close()
+    label_index = build_cross_asn_label_index(store)
+    _validate_labels(classifications, retractions, label_index)
 
     _apply_changes(claim_md_full, classifications, retractions)
 
@@ -449,14 +471,11 @@ def run_classification(asn_num, claim_label, model="sonnet"):
     resolve_rel = str(resolve_path.relative_to(LATTICE))
 
     store = Store(LATTICE)
-    try:
-        label_index = build_cross_asn_label_index(store=store)
-        _emit_substrate(
-            store, claim_md_rel, classifications, retractions,
-            resolve_rel, label_index,
-        )
-    finally:
-        store.close()
+    label_index = build_cross_asn_label_index(store)
+    _emit_substrate(
+        store, claim_md_rel, classifications, retractions,
+        resolve_rel, label_index,
+    )
 
     n_class = len(classifications)
     n_retr = len(retractions)
