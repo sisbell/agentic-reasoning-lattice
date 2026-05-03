@@ -165,6 +165,10 @@ class Session:
         full_type = f"{type_}.{subtype}" if subtype else type_
         validate_type(full_type)
 
+    def type_name_for(self, addr: Address) -> Optional[str]:
+        """The catalog name for a type-registry Address, or None."""
+        return self._state.types.name_for(addr)
+
     # ── Address & document creation ────────────────────────────────
 
     def register_path(self, path: str) -> Address:
@@ -211,6 +215,13 @@ class Session:
         """Look up the path registered for an Address, or None."""
         store = self._require_store("get_path_for_addr")
         return store.path_for_addr(addr)
+
+    def version_children(self, doc: Address) -> List[Address]:
+        """Immediate version-children of this doc, sorted by sibling order."""
+        return sorted(
+            (a for a, p in self._state.parent.items() if p == doc),
+            key=lambda a: a.digits,
+        )
 
     # ── Document content ───────────────────────────────────────────
 

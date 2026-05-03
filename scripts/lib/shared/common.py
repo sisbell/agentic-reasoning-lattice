@@ -97,12 +97,13 @@ def load_claim_metadata(claim_dir, label=None):
 
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
     from lib.backend.store import Store
+    from lib.febe.session import Session
     from lib.predicates import current_contract_kind
     from lib.shared.paths import LATTICE
 
     lattice = Path(LATTICE).resolve()
 
-    def _build(store, stem):
+    def _build(session, stem):
         result = {"label": stem}
         name = _read_sidecar_first_line(stem, "name")
         if name:
@@ -113,20 +114,21 @@ def load_claim_metadata(claim_dir, label=None):
         md_rel = str(
             (claim_dir / f"{stem}.md").resolve().relative_to(lattice)
         )
-        addr = store.path_to_addr.get(md_rel)
+        addr = session.get_addr_for_path(md_rel)
         if addr is not None:
-            kind = current_contract_kind(store.state, addr)
+            kind = current_contract_kind(session, addr)
             if kind:
                 result["type"] = kind
         return result
 
     with Store(LATTICE) as store:
+        session = Session(store)
         if label is not None:
             if not (claim_dir / f"{label}.md").exists():
                 return None
-            return _build(store, label)
+            return _build(session, label)
         return {
-            p.stem: _build(store, p.stem)
+            p.stem: _build(session, p.stem)
             for p in sorted(claim_dir.glob("*.md"))
             if _is_claim_md(p.name)
         }

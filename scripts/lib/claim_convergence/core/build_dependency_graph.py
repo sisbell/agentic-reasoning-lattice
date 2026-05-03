@@ -472,7 +472,7 @@ def _generate_deps_core(asn_num, prose_citations=False):
     for label, data in metadata.items():
         from_addr = cross_index.get(label)
         contract_kind = (
-            current_contract_kind(store.state, from_addr)
+            current_contract_kind(session, from_addr)
             if from_addr is not None else None
         )
         prop = {"status": contract_kind or "introduced"}

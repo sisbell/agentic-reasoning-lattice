@@ -111,6 +111,16 @@ class Session(Protocol):
         """Raise if (type_, subtype) isn't a valid catalog entry."""
         ...
 
+    def type_name_for(self, addr: Address) -> Optional[str]:
+        """The catalog name for a type-registry Address, or None.
+
+        Inverse of the implicit Address-for-name mapping inside the
+        type registry. Used by classifier predicates that need to
+        recover the subtype string ("axiom", "theorem", etc.) from a
+        link's `type_set[0]` Address.
+        """
+        ...
+
     # ── Address & document creation ─────────────────────────────────
 
     def register_path(self, path: str) -> Address:
@@ -139,6 +149,16 @@ class Session(Protocol):
 
     def get_path_for_addr(self, addr: Address) -> Optional[str]:
         """Look up the path registered for an Address, or None."""
+        ...
+
+    def version_children(self, doc: Address) -> List[Address]:
+        """Immediate version-children of this doc, sorted by sibling order.
+
+        Returns the addresses whose version-parent is `doc`. Empty if
+        `doc` is a head (no children). The version-parent map is a
+        substrate primitive separate from the link store; this method
+        is the public surface for querying it.
+        """
         ...
 
     # ── Document content ────────────────────────────────────────────

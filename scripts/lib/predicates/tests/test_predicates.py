@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.backend.addressing import Address
 from lib.backend.predicates import active_links, retracted_link_addrs
 from lib.backend.state import State
+from lib.febe.session import Session
 from lib.predicates import (
     all_claim_addrs,
     all_classified,
@@ -37,7 +38,6 @@ class ConvergencePredicateTests(unittest.TestCase):
     """The protocol predicate over comment.revise + resolution + retraction."""
 
     def setUp(self):
-        from lib.febe.session import Session
         self.state = State(account=Address("1.1.0.1"))
         self.session = Session(self.state)
         self.lattice = self.state.create_doc()
@@ -114,20 +114,21 @@ class ConvergencePredicateTests(unittest.TestCase):
 class ClassifierEnumerationTests(unittest.TestCase):
     def setUp(self):
         self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
         self.lattice = self.state.create_doc()
 
     def test_all_claim_addrs(self):
         c1 = self.state.create_doc(kind="claim", lattice=self.lattice)
         c2 = self.state.create_doc(kind="claim", lattice=self.lattice)
         self.state.create_doc(kind="note", lattice=self.lattice)
-        addrs = all_claim_addrs(self.state)
+        addrs = all_claim_addrs(self.session)
         self.assertEqual(set(addrs), {c1, c2})
 
     def test_all_classified_filters_by_kind(self):
         c = self.state.create_doc(kind="claim", lattice=self.lattice)
         n = self.state.create_doc(kind="note", lattice=self.lattice)
-        self.assertEqual(all_classified(self.state, "claim"), [c])
-        self.assertEqual(all_classified(self.state, "note"), [n])
+        self.assertEqual(all_classified(self.session, "claim"), [c])
+        self.assertEqual(all_classified(self.session, "note"), [n])
 
 
 class AlignmentPredicateTests(unittest.TestCase):
@@ -135,6 +136,7 @@ class AlignmentPredicateTests(unittest.TestCase):
 
     def setUp(self):
         self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
         self.lattice = self.state.create_doc()
         self.claim_v1 = self.state.create_doc(kind="claim", lattice=self.lattice)
         self.desc_sidecar = self.state.create_doc(lattice=self.lattice)
@@ -146,9 +148,9 @@ class AlignmentPredicateTests(unittest.TestCase):
         )
 
     def test_v1_has_description(self):
-        self.assertTrue(has_description(self.state, self.claim_v1))
+        self.assertTrue(has_description(self.session, self.claim_v1))
         self.assertEqual(
-            description_sidecar_of(self.state, self.claim_v1),
+            description_sidecar_of(self.session, self.claim_v1),
             self.desc_sidecar,
         )
 
@@ -156,22 +158,22 @@ class AlignmentPredicateTests(unittest.TestCase):
         # Claim revises — VER3 child address; the description link from v1
         # still pins to v1, so v2 is not described.
         v2 = self.state.create_version(self.claim_v1)
-        self.assertFalse(has_description(self.state, v2))
-        self.assertIsNone(description_sidecar_of(self.state, v2))
+        self.assertFalse(has_description(self.session, v2))
+        self.assertIsNone(description_sidecar_of(self.session, v2))
 
     def test_re_authoring_restores_alignment(self):
         v2 = self.state.create_version(self.claim_v1)
         self.state.make_link(v2, [v2], [self.desc_sidecar], "description")
-        self.assertTrue(has_description(self.state, v2))
+        self.assertTrue(has_description(self.session, v2))
 
     def test_retracting_description_clears_predicate(self):
-        link = active_links(
-            self.state, "description", from_set=[self.claim_v1]
+        link = self.session.active_links(
+            "description", from_set=[self.claim_v1]
         )[0]
         self.state.make_link(
             self.claim_v1, [self.claim_v1], [link.addr], "retraction",
         )
-        self.assertFalse(has_description(self.state, self.claim_v1))
+        self.assertFalse(has_description(self.session, self.claim_v1))
 
     def test_name_and_label_predicates(self):
         name_sidecar = self.state.create_doc(lattice=self.lattice)
@@ -182,36 +184,39 @@ class AlignmentPredicateTests(unittest.TestCase):
         self.state.make_link(
             self.claim_v1, [self.claim_v1], [label_sidecar], "label",
         )
-        self.assertTrue(has_name(self.state, self.claim_v1))
-        self.assertTrue(has_label(self.state, self.claim_v1))
+        self.assertTrue(has_name(self.session, self.claim_v1))
+        self.assertTrue(has_label(self.session, self.claim_v1))
 
     def test_has_signature_when_emitted(self):
         sig_sidecar = self.state.create_doc(lattice=self.lattice)
         self.state.make_link(
             self.claim_v1, [self.claim_v1], [sig_sidecar], "signature",
         )
-        self.assertTrue(has_signature(self.state, self.claim_v1))
+        self.assertTrue(has_signature(self.session, self.claim_v1))
 
 
 class VersionChainTests(unittest.TestCase):
     def setUp(self):
         self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
         self.lattice = self.state.create_doc()
         self.claim = self.state.create_doc(kind="claim", lattice=self.lattice)
 
     def test_no_versions_means_self_is_head(self):
-        self.assertTrue(is_head_version(self.state, self.claim))
-        self.assertEqual(version_head(self.state, self.claim), self.claim)
+        self.assertTrue(is_head_version(self.session, self.claim))
+        self.assertEqual(version_head(self.session, self.claim), self.claim)
 
     def test_version_chain_walks_forward(self):
         v1 = self.state.create_version(self.claim)
         v2 = self.state.create_version(self.claim)
         v3 = self.state.create_version(self.claim)
         # version_children returns sorted siblings of the canonical claim
-        self.assertEqual(version_children(self.state, self.claim), [v1, v2, v3])
-        self.assertFalse(is_head_version(self.state, self.claim))
-        self.assertEqual(version_head(self.state, self.claim), v3)
-        self.assertTrue(is_head_version(self.state, v3))
+        self.assertEqual(
+            version_children(self.session, self.claim), [v1, v2, v3],
+        )
+        self.assertFalse(is_head_version(self.session, self.claim))
+        self.assertEqual(version_head(self.session, self.claim), v3)
+        self.assertTrue(is_head_version(self.session, v3))
 
     def test_nested_versions_walk_deepest_chain(self):
         v1 = self.state.create_version(self.claim)
@@ -219,12 +224,13 @@ class VersionChainTests(unittest.TestCase):
         # head from canonical: v1's chain is now deeper than the (empty) chain
         # at the top level. version_head picks highest sibling at each level.
         # Top level has only v1, so descend into v1; v1's head is v1_v1.
-        self.assertEqual(version_head(self.state, self.claim), v1_v1)
+        self.assertEqual(version_head(self.session, self.claim), v1_v1)
 
 
 class CitationGraphTests(unittest.TestCase):
     def setUp(self):
         self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
         self.lattice = self.state.create_doc()
         self.a = self.state.create_doc(kind="claim", lattice=self.lattice)
         self.b = self.state.create_doc(kind="claim", lattice=self.lattice)
@@ -233,13 +239,15 @@ class CitationGraphTests(unittest.TestCase):
     def test_depends_recovers_outgoing_dependencies(self):
         self.state.make_link(self.a, [self.a], [self.b], "citation.depends")
         self.state.make_link(self.a, [self.a], [self.c], "citation.depends")
-        self.assertEqual(set(depends(self.state, self.a)), {self.b, self.c})
-        self.assertEqual(depends(self.state, self.b), [])
+        self.assertEqual(set(depends(self.session, self.a)), {self.b, self.c})
+        self.assertEqual(depends(self.session, self.b), [])
 
     def test_dependents_recovers_incoming(self):
         self.state.make_link(self.a, [self.a], [self.b], "citation.depends")
         self.state.make_link(self.c, [self.c], [self.b], "citation.depends")
-        self.assertEqual(set(dependents(self.state, self.b)), {self.a, self.c})
+        self.assertEqual(
+            set(dependents(self.session, self.b)), {self.a, self.c},
+        )
 
     def test_retracted_citation_drops_from_graph(self):
         link = self.state.make_link(
@@ -248,8 +256,8 @@ class CitationGraphTests(unittest.TestCase):
         self.state.make_link(
             self.a, [self.a], [link.addr], "retraction",
         )
-        self.assertEqual(depends(self.state, self.a), [])
-        self.assertEqual(dependents(self.state, self.b), [])
+        self.assertEqual(depends(self.session, self.a), [])
+        self.assertEqual(dependents(self.session, self.b), [])
 
 
 if __name__ == "__main__":

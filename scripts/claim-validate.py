@@ -183,10 +183,12 @@ def check_contract_classifier_present(pairs, store, label_index):
     """Every claim must have a contract.<kind> classifier link in the store
     with a valid subtype. This replaces the old yaml type-validity check.
     """
+    from lib.febe.session import Session
+    session = Session(store)
     findings = []
     for stem in sorted(pairs):
         md_addr = label_index.get(stem)
-        kind = current_contract_kind(store.state, md_addr) if md_addr is not None else None
+        kind = current_contract_kind(session, md_addr) if md_addr is not None else None
         if kind is None:
             findings.append({
                 "rule": "missing-contract-classifier",
