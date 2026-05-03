@@ -9,6 +9,12 @@ emitting matching substrate calls.
 Drift detection is set-comparison, not history-based — distributed-safe.
 Two processes editing different claims don't interfere because their
 substrate writes are scoped to different from-paths.
+
+Claim-convergence-specific: knows the `*Depends:*` and
+`*Forward References:*` markdown bullet conventions used by claim
+files in this project. Not a substrate primitive — composes
+substrate calls (active_links, emit_citation, emit_retraction) plus
+the claim-document format the project uses.
 """
 
 from __future__ import annotations
@@ -16,10 +22,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict, Optional
 
-from .addressing import Address
-from .emit import emit_citation, emit_retraction
-from .predicates import active_links
-from .store import Store
+from lib.backend.addressing import Address
+from lib.backend.emit import emit_citation, emit_retraction
+from lib.backend.predicates import active_links
+from lib.backend.store import Store
 
 _DEPENDS_HEADER = "- *Depends:*"
 _FORWARD_HEADER = "- *Forward References:*"

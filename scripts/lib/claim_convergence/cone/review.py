@@ -21,7 +21,7 @@ from lib.backend.store import attributed_to, default_store
 from lib.backend.emit import emit_findings, emit_meta
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import is_claim_converged, active_links
-from lib.backend.sync import sync_claim_citations
+from lib.claim_convergence.sync import sync_claim_citations
 
 from .scope import assemble_cone, transitive_same_asn_deps
 from .retry import _retry_unresolved_revises, _declined_findings_for_cone
