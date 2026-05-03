@@ -34,7 +34,7 @@ from lib.shared.common import (
     strip_code_fence, step_commit_asn,
 )
 from lib.backend.store import Store, attributed_to
-from lib.backend.populate import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import active_links
 from lib.backend.emit import emit_citation
 from lib.backend.emit import emit_retraction
@@ -52,7 +52,7 @@ FORWARD_HEADER = "- *Forward References:*"
 def _existing_classifications(store, claim_md_rel, label_index):
     """Return (depends_labels, forwards_labels) sourced from substrate.
 
-    `label_index` is {label: claim_doc_addr} (backend.populate format).
+    `label_index` is {label: claim_doc_addr} (lattice.labels format).
     """
     rev_index = {addr: label for label, addr in label_index.items()}
     claim_addr = store.path_to_addr.get(claim_md_rel)

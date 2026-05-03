@@ -9,7 +9,7 @@ from lib.shared.paths import CLAIM_DIR, LATTICE
 from lib.shared.common import find_asn, build_label_index
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 from lib.claim_convergence.core.topological_sort import topological_levels
-from lib.backend.populate import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import is_claim_converged, active_links
 from lib.backend.store import Store
 

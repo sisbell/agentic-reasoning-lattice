@@ -19,7 +19,7 @@ from lib.claim_convergence.full_review.revise import revise
 from lib.claim_convergence.finding_classifier import apply_classifier_verdict
 from lib.backend.store import attributed_to, default_store
 from lib.backend.emit import emit_findings, emit_meta
-from lib.backend.populate import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import is_claim_converged, active_links
 from lib.backend.sync import sync_claim_citations
 

@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import LATTICE, WORKSPACE, CLAIM_DIR, claim_statements, dep_graph
 from lib.shared.common import find_asn, load_claim_metadata, build_label_index
 from lib.backend.store import Store
-from lib.backend.populate import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import current_contract_kind, active_links
 
 

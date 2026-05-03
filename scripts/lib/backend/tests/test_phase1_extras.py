@@ -12,7 +12,7 @@ from lib.backend.addressing import Address
 from lib.backend.agent_store import AgentStore
 from lib.backend.emit import emit_citation
 from lib.backend.migrate import migrate
-from lib.backend.populate import (
+from lib.lattice.labels import (
     aggregate_asn_deps,
     build_cross_asn_label_index,
     build_note_label_index,

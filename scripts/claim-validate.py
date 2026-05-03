@@ -35,7 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.common import find_asn
 from lib.shared.paths import CLAIM_DIR, LATTICE
 from lib.backend.store import Store
-from lib.backend.populate import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import current_contract_kind, active_links
 from lib.backend.schema import VALID_SUBTYPES, VALID_ATTRIBUTE_KINDS as VALID_KINDS
 from lib.lattice.notation import read_notation

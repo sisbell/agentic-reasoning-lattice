@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import claim_doc_path, LATTICE
 from lib.backend.store import default_store
 from lib.backend.emit import emit_citation
-from lib.backend.populate import build_doc_label_index
+from lib.lattice.labels import build_doc_label_index
 
 
 def main():

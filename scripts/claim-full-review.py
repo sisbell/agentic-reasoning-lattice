@@ -45,7 +45,7 @@ from lib.claim_convergence.cone import (
 from lib.backend.schema import ATTRIBUTE_SUFFIXES
 from lib.backend.store import attributed_to, default_store
 from lib.backend.emit import emit_findings, emit_meta
-from lib.backend.populate import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import is_asn_converged
 
 

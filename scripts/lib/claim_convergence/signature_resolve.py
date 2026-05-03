@@ -40,7 +40,7 @@ from lib.shared.common import (
     strip_code_fence, step_commit_asn,
 )
 from lib.backend.store import Store, attributed_to
-from lib.backend.populate import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import active_links
 from lib.backend.emit import emit_attribute
 from lib.lattice.notation import read_notation

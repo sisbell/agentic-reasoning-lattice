@@ -28,7 +28,7 @@ from lib.shared.paths import LATTICE, WORKSPACE, prompt_path, load_inquiry, clai
 from lib.shared.common import find_asn, read_file, extract_claim_sections
 from lib.backend.store import default_store
 from lib.backend.emit import emit_citation
-from lib.backend.populate import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index
 
 PROMPT_TEMPLATE = prompt_path("claim-convergence/assembly/scan-dependency.md")
 

@@ -26,7 +26,7 @@ from lib.claim_convergence.cone import run_cone_sweep, run_cone_review
 from lib.shared.common import find_asn, build_label_index
 from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR, LATTICE
 from lib.backend.store import Store
-from lib.backend.populate import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import active_links
 
 

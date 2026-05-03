@@ -158,7 +158,7 @@ def load_foundation_for_note(asn_path, asn_id):
     citations — distinct from the manifest path, which would also use
     the manifest's depends declaration.
     """
-    from lib.backend.populate import note_dep_asn_ids
+    from lib.lattice.labels import note_dep_asn_ids
     from lib.backend.store import default_store
     from lib.shared.paths import LATTICE
     note_rel = str(asn_path.resolve().relative_to(Path(LATTICE).resolve()))
@@ -176,7 +176,7 @@ def load_foundation_for_claim_asn(asn_id):
     the union of cross-ASN citations sourced from any claim md in this
     ASN's claim-convergence directory.
     """
-    from lib.backend.populate import aggregate_asn_deps
+    from lib.lattice.labels import aggregate_asn_deps
     from lib.backend.store import default_store
     from lib.shared.paths import LATTICE
     asn_label = f"ASN-{int(asn_id):04d}"
@@ -192,7 +192,7 @@ def claim_asn_dep_ids(asn_id):
     full foundation text (e.g., load_foundation_for_labels which takes
     labels separately).
     """
-    from lib.backend.populate import aggregate_asn_deps
+    from lib.lattice.labels import aggregate_asn_deps
     from lib.backend.store import default_store
     from lib.shared.paths import LATTICE
     asn_label = f"ASN-{int(asn_id):04d}"

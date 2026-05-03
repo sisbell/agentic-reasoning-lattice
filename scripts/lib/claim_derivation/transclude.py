@@ -52,7 +52,7 @@ from lib.shared.common import find_asn, step_commit_asn
 from lib.backend.emit import (
     emit_attribute, emit_citation, emit_claim, emit_contract, emit_derivation,
 )
-from lib.backend.populate import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.store import default_store
 
 from .find_in_source import find_in_source
@@ -221,7 +221,7 @@ def transclude_asn(asn_num, dry_run=False):
     }
 
     with default_store(LATTICE) as store:
-        # backend.populate.build_cross_asn_label_index returns
+        # lattice.labels.build_cross_asn_label_index returns
         # {label: claim_doc_addr}. local_index uses path strings; build
         # an addr-keyed merge by registering the new claim paths.
         cross_index = build_cross_asn_label_index(store)

@@ -1,14 +1,19 @@
-"""Substrate-derived helpers: label index, ASN dep aggregation, note index.
+"""Label-index helpers and ASN-aware citation aggregation.
 
-Label and ASN concepts are project-specific (xanadu's organization of
-claims into ASN-NNNN groups). The substrate doesn't model them
-natively; they're recovered from:
+Project-level lattice conventions: the project organizes claims into
+ASN-NNNN groups, names individual claims via `label` attribute links
+to sidecar docs, and stores notes under `_docuverse/documents/note/`.
+None of these are substrate primitives — they're how this project
+structures its lattices, recovered from substrate state by:
 
 - Substrate `label` attribute links pointing at sidecar docs
 - The first line of each label sidecar's filesystem content (which
   holds the canonical label string)
 - The legacy filesystem path (recovered via `paths.json`'s
   path↔tumbler map), parsed with regex for `ASN-\\d+`
+
+This module composes substrate primitives (active_links, path_for_addr)
+with the project's lattice conventions to produce useful indexes.
 """
 
 from __future__ import annotations
@@ -17,9 +22,9 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from .addressing import Address
-from .predicates import active_links
-from .store import Store
+from lib.backend.addressing import Address
+from lib.backend.predicates import active_links
+from lib.backend.store import Store
 
 ASN_PATTERN = re.compile(r"ASN-(\d+)")
 
