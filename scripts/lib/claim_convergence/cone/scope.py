@@ -2,11 +2,14 @@
 
 import sys
 from pathlib import Path
+from typing import Dict, List, Set
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import CLAIM_DIR
 from lib.shared.common import build_label_index
-from lib.store.queries import active_links
+from lib.backend.addressing import Address
+from lib.backend.predicates import active_links
+from lib.backend.state import State
 
 
 def assemble_cone(asn_label, apex_label, dep_labels):
@@ -30,29 +33,34 @@ def assemble_cone(asn_label, apex_label, dep_labels):
     return "\n\n---\n\n".join(parts)
 
 
-def transitive_same_asn_deps(store, apex_path, asn_labels, rev_index):
-    """BFS through citation.depends from `apex_path`, returning the
+def transitive_same_asn_deps(
+    state: State,
+    apex_addr: Address,
+    asn_labels: Set[str],
+    rev_index: Dict[Address, str],
+) -> List[str]:
+    """BFS through citation.depends from `apex_addr`, returning the
     list of same-ASN labels reachable (excluding the apex itself).
 
     Walks only `citation.depends` (backward grounding); forward citations
     are deliberately not followed — the cone is the apex's grounding
     chain, not the downstream tree. Same-ASN only — cross-ASN deps are
     delivered separately via foundation_statements.
+
+    `rev_index` maps tumbler addresses → label strings.
     """
-    visited = {apex_path}
-    queue = [apex_path]
-    deps = []
+    visited = {apex_addr}
+    queue = [apex_addr]
+    deps: List[str] = []
     while queue:
         cur = queue.pop(0)
-        for link in active_links(store, "citation.depends", from_set=[cur]):
-            if not link["to_set"]:
-                continue
-            target = link["to_set"][0]
-            if target in visited:
-                continue
-            visited.add(target)
-            label = rev_index.get(target)
-            if label and label in asn_labels:
-                deps.append(label)
-                queue.append(target)
+        for link in active_links(state, "citation.depends", from_set=[cur]):
+            for target in link.to_set:
+                if target in visited:
+                    continue
+                visited.add(target)
+                label = rev_index.get(target)
+                if label and label in asn_labels:
+                    deps.append(label)
+                    queue.append(target)
     return deps

@@ -17,19 +17,18 @@ from lib.claim_convergence.full_review.review import (
 )
 from lib.claim_convergence.full_review.revise import revise
 from lib.claim_convergence.finding_classifier import apply_classifier_verdict
-from lib.store.store import attributed_to, default_store
-from lib.store.emit import emit_findings, emit_meta
-from lib.store.populate import build_cross_asn_label_index
-from lib.store.queries import is_claim_converged, active_links
+from lib.backend.store import attributed_to, default_store
+from lib.backend.emit import emit_findings, emit_meta
+from lib.backend.populate import build_cross_asn_label_index
+from lib.backend.predicates import is_claim_converged, active_links
+from lib.backend.sync import sync_claim_citations
 
 from .scope import assemble_cone, transitive_same_asn_deps
 from .retry import _retry_unresolved_revises, _declined_findings_for_cone
 
 
 # End-of-cone compress pass — disabled 2026-04-22 pending re-evaluation
-# under the Dijkstra-voice reviser. The generative reviser should not
-# produce the meta-prose accumulation that compress was built to clean up.
-# Flip to True to re-enable without touching anything else.
+# under the Dijkstra-voice reviser.
 _COMPRESS_ENABLED = False
 
 
@@ -50,19 +49,18 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     claim_dir = CLAIM_DIR / asn_label
     review_dir = CLAIM_REVIEWS_DIR / asn_label
 
-    store = default_store()
-    label_index = build_cross_asn_label_index(store=store)
+    store = default_store(LATTICE)
+    label_index = build_cross_asn_label_index(store)  # {label: claim_doc_addr}
     asn_labels = set(build_label_index(claim_dir).keys())
-    rev_index = {p: l for l, p in label_index.items()}
+    rev_index = {addr: label for label, addr in label_index.items()}
 
     # Walk the citation.depends graph transitively from the apex to get
-    # the full grounding chain for soundness review. Replaces whatever
-    # `dep_labels` the caller passed (typically direct deps) — substrate
-    # is now the source of truth.
-    apex_md_path = label_index.get(apex_label)
-    if apex_md_path:
+    # the full grounding chain for soundness review. Substrate is the
+    # source of truth for the cone shape.
+    apex_addr = label_index.get(apex_label)
+    if apex_addr is not None:
         dep_labels = transitive_same_asn_deps(
-            store, apex_md_path, asn_labels, rev_index,
+            store.state, apex_addr, asn_labels, rev_index,
         )
 
     print(f"\n  [REGIONAL-REVIEW] {apex_label} + {len(dep_labels)} deps",
@@ -72,31 +70,29 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     all_cone_labels = [apex_label] + dep_labels
     cross_asn_deps = []
     for label in all_cone_labels:
-        from_path = label_index.get(label)
-        if not from_path:
+        from_addr = label_index.get(label)
+        if from_addr is None:
             continue
-        for link in active_links(store, "citation.depends", from_set=[from_path]):
-            if not link["to_set"]:
-                continue
-            dep_label = rev_index.get(link["to_set"][0])
-            if (dep_label and dep_label not in asn_labels
-                    and dep_label not in cross_asn_deps):
-                cross_asn_deps.append(dep_label)
+        for link in active_links(store.state, "citation.depends",
+                                 from_set=[from_addr]):
+            for cited in link.to_set:
+                dep_label = rev_index.get(cited)
+                if (dep_label and dep_label not in asn_labels
+                        and dep_label not in cross_asn_deps):
+                    cross_asn_deps.append(dep_label)
 
     print(f"  Foundation: {len(cross_asn_deps)} cross-ASN deps", file=sys.stderr)
 
-    # Capture baseline SHA so the end-of-cone compress pass knows which
-    # files changed during this cone.
     from lib.shared.common import git_head_sha
     baseline_sha = git_head_sha()
 
-    # Build the cone's claim-path set once. Used to scope the declined-
+    # Build the cone's claim-addr set once. Used to scope the declined-
     # findings query that primes the reviewer's "do not re-raise" context.
-    cone_paths = [apex_md_path] if apex_md_path else []
+    cone_addrs = [apex_addr] if apex_addr is not None else []
     for d in dep_labels:
-        p = label_index.get(d)
-        if p:
-            cone_paths.append(p)
+        a = label_index.get(d)
+        if a is not None:
+            cone_addrs.append(a)
 
     start_time = time.time()
     verdict = "CONVERGED"
@@ -108,15 +104,13 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
 
         # Retry pass: re-feed any open revise comments from prior cycles
-        # or invocations to the reviser. Reviser closes via convergence-link-resolution.py.
+        # or invocations to the reviser.
         if not dry_run:
-            _retry_unresolved_revises(store, asn_num, claim_dir, [apex_md_path])
+            _retry_unresolved_revises(store, asn_num, claim_dir, [apex_addr])
 
         # Declined-findings context: substrate-derived list of recently-
-        # declined revises on the cone, with reviser rationales. Queried
-        # fresh each cycle so any newly-rejected finding from this run's
-        # earlier cycles is included.
-        previous_findings = _declined_findings_for_cone(store, cone_paths)
+        # declined revises on the cone, with reviser rationales.
+        previous_findings = _declined_findings_for_cone(store, cone_addrs)
 
         from lib.shared.validate_gate import run_validate_gate
         scope = {apex_label} | set(dep_labels)
@@ -125,13 +119,9 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             print(f"  [GATE] halted — structural violations remain in cone "
                   f"({gate_result}); aborting cone-review",
                   file=sys.stderr)
-            store.close()
             return "failed"
 
-        # Review on the complete cone in one pass. Cone-assembly walks
-        # the citation.depends graph transitively from the apex, so the
-        # full grounding chain is in scope from round 0; lazy expansion
-        # via reviewer-emitted MISSING-REFERENCES is no longer needed.
+        # Review on the complete cone in one pass.
         cone_content = assemble_cone(asn_label, apex_label, dep_labels)
         verdict, findings_text, elapsed = run_review(
             asn_num, cone_content, asn_label, previous_findings,
@@ -142,9 +132,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                   file=sys.stderr)
             break
 
-        # Persist raw reviewer output for diagnosis. emit_findings drops
-        # findings whose Foundation/ASN body fields don't yield a parseable
-        # target label; without this dump the bodies are lost.
+        # Persist raw reviewer output for diagnosis.
         raw_dir = WORKSPACE_DIR / "cone-sweep" / asn_label / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
         raw_path = raw_dir / f"{apex_label}-cycle{cycle}.txt"
@@ -156,19 +144,33 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
         findings = extract_findings(findings_text)
         apply_classifier_verdict(findings)
+        # emit_meta writes the aggregate review doc and emits the review
+        # classifier, returning the link record so we can use its homedoc
+        # (which is the review doc's address) for derivation provenance.
+        review_link = emit_meta(
+            store, asn_label, review_num,
+            title=f"Cone Review — {asn_label}/{apex_label} (cycle {cycle})",
+            timestamp=time.strftime("%Y-%m-%d %H:%M"),
+            scope=f"{apex_label} + {len(dep_labels)} deps (cone)",
+            verdict="(pending)",
+            findings_summary="(pending)",
+            emitted_findings=[],
+            elapsed_seconds=elapsed,
+            reviews_dir=CLAIM_REVIEWS_DIR,
+        )
+        review_addr = review_link.to_set[0] if review_link.to_set else None
         emitted_findings = emit_findings(
-            store, meta_path, findings,
+            store, review_addr, findings,
             asn_label, review_stem, label_index,
             findings_dir=CLAIM_FINDINGS_DIR,
         )
         emitted_by_title = {e["title"]: e for e in emitted_findings}
 
-        # Count only findings that actually emitted — skipped findings
-        # (no parseable target) won't drive revise work, so they shouldn't
-        # be counted toward the cycle's revise total.
+        # Count only findings that actually emitted.
         emitted_titles = set(emitted_by_title.keys())
         emitted_for_filter = [f for f in findings if f[0] in emitted_titles]
         revise_count = len(filter_revise(emitted_for_filter))
+        # Re-emit meta with final verdict + summary + emitted findings table.
         emit_meta(
             store, asn_label, review_num,
             title=f"Cone Review — {asn_label}/{apex_label} (cycle {cycle})",
@@ -193,31 +195,26 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                   file=sys.stderr)
             break
 
-        # Revise each REVISE-class finding. Orphans (findings whose target
-        # didn't parse) are excluded above by filtering against
-        # emitted_titles, so this loop only sees findings the substrate
-        # actually accepted. Defensive check preserved as a loud guard
-        # against future regressions.
+        # Revise each REVISE-class finding.
         any_changed = False
         for title, _cls, finding_text in revise_findings:
             emitted = emitted_by_title.get(title)
             if emitted is None:
                 print(
-                    f"  [WARN] orphan revise skipped — finding '{title[:70]}' "
-                    f"has no emitted target (target unparseable from "
-                    f"Foundation/ASN). Raw reviewer output at: {raw_path}",
+                    f"  [WARN] orphan revise skipped — finding '{title[:70]}'",
                     file=sys.stderr,
                 )
                 continue
-            comment_id = emitted["comment_id"]
+            comment_id = str(emitted["comment_id"])  # tumbler addr as string
             claim_path = emitted["claim_path"]
             ok = revise(asn_num, title, finding_text, claim_dir=claim_dir,
                         comment_id=comment_id, claim_path=claim_path)
             if ok:
                 any_changed = True
                 if comment_id:
+                    from lib.backend.addressing import Address
                     resolutions = store.find_links(
-                        to_set=[comment_id], type_set=["resolution"],
+                        to_set=[Address(comment_id)], type_="resolution",
                     )
                     if not resolutions:
                         print(
@@ -227,44 +224,37 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                             file=sys.stderr,
                         )
 
-        # Sync substrate citation links to the .md as the source of
-        # truth. The agentic reviser may have edited *Depends:* /
-        # *Forward References:* sections without emitting matching
-        # cite/retract calls; auto-correct closes the drift before the
-        # cycle commits, so substrate can't diverge from prose.
-        from lib.store.sync import sync_claim_citations
+        # Sync substrate citation links to the .md as the source of truth.
         for label in [apex_label] + dep_labels:
-            md_rel = label_index.get(label)
-            if not md_rel:
+            from_addr = label_index.get(label)
+            if from_addr is None:
                 continue
-            changes = sync_claim_citations(store, md_rel, label_index)
+            changes = sync_claim_citations(store, from_addr, label_index)
             if changes is None:
                 continue
             for direction in ("depends", "forward"):
                 for added in changes[direction]["added"]:
                     print(f"  [DRIFT-FIX] {label}: emitted citation.{direction} "
-                          f"→ {added} (in *{'Depends' if direction == 'depends' else 'Forward References'}:*)",
+                          f"→ {added}",
                           file=sys.stderr)
                 for retracted in changes[direction]["retracted"]:
                     print(f"  [DRIFT-FIX] {label}: retracted citation.{direction} "
-                          f"→ {retracted} (no longer in *{'Depends' if direction == 'depends' else 'Forward References'}:*)",
+                          f"→ {retracted}",
                           file=sys.stderr)
 
         if revise_findings or any_changed:
             step_commit_asn(asn_num,
                             f"cone-review(asn): {asn_label}/{apex_label} — cycle {cycle}")
 
-        # Natural convergence check: this cycle's reviewer filed no revises
-        # AND predicate True. The cycle's review is the natural confirmation;
-        # no +1 needed.
-        if last_cycle_revise_count == 0 and is_claim_converged(store, apex_md_path):
+        # Natural convergence check.
+        if (last_cycle_revise_count == 0
+                and apex_addr is not None
+                and is_claim_converged(store.state, apex_addr)):
             print(f"\n  [REGIONAL-REVIEW] Natural convergence at cycle {cycle}.",
                   file=sys.stderr)
             naturally_converged = True
             break
 
-        # No-progress short-circuit: revises filed but reviser couldn't fix any.
-        # Without progress, looping won't help; break and let +1 confirmation run.
         if revise_findings and not any_changed:
             print(f"  [REGIONAL-REVIEW] Revises filed but no fixes applied this cycle. "
                   f"Breaking to confirmation.", file=sys.stderr)
@@ -272,11 +262,11 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
     failed = (verdict == "ERROR")
 
-    # +1 confirmation cycle (only if we didn't naturally converge and aren't failed/dry-run)
+    # +1 confirmation cycle.
     confirmation_revise_count = 0
     if not failed and not dry_run and not naturally_converged:
         print(f"\n  [CONFIRMATION REVIEW]", file=sys.stderr)
-        _retry_unresolved_revises(store, asn_num, claim_dir, [apex_md_path])
+        _retry_unresolved_revises(store, asn_num, claim_dir, [apex_addr])
 
         from lib.shared.validate_gate import run_validate_gate
         scope = {apex_label} | set(dep_labels)
@@ -294,7 +284,6 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             if confirm_verdict == "ERROR":
                 failed = True
             else:
-                # Persist raw reviewer output for diagnosis (same as cycle path).
                 confirm_raw_dir = WORKSPACE_DIR / "cone-sweep" / asn_label / "raw"
                 confirm_raw_dir.mkdir(parents=True, exist_ok=True)
                 confirm_raw_path = confirm_raw_dir / f"{apex_label}-confirm.txt"
@@ -306,12 +295,26 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
                 confirm_findings = extract_findings(confirm_findings_text)
                 apply_classifier_verdict(confirm_findings)
+                confirm_review_link = emit_meta(
+                    store, asn_label, review_num,
+                    title=f"Cone Review (Confirmation) — {asn_label}/{apex_label}",
+                    timestamp=time.strftime("%Y-%m-%d %H:%M"),
+                    scope=f"{apex_label} + {len(dep_labels)} deps (cone)",
+                    verdict="(pending)",
+                    findings_summary="(pending)",
+                    emitted_findings=[],
+                    elapsed_seconds=confirm_elapsed,
+                    reviews_dir=CLAIM_REVIEWS_DIR,
+                )
+                confirm_review_addr = (
+                    confirm_review_link.to_set[0]
+                    if confirm_review_link.to_set else None
+                )
                 emitted_findings = emit_findings(
-                    store, confirm_meta_path, confirm_findings,
+                    store, confirm_review_addr, confirm_findings,
                     asn_label, review_stem, label_index,
                     findings_dir=CLAIM_FINDINGS_DIR,
                 )
-                # Count only emitted findings — orphans don't drive work.
                 confirm_emitted_titles = {e["title"] for e in emitted_findings}
                 confirm_emitted_for_filter = [
                     f for f in confirm_findings if f[0] in confirm_emitted_titles
@@ -338,13 +341,12 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     elif naturally_converged:
         converged = True
     elif dry_run:
-        # In dry_run we exit after first review; no convergence judgment.
         converged = (last_cycle_revise_count == 0)
     else:
-        # +1 confirmation ran; converged iff predicate True AND confirmation quiet
         converged = (
             confirmation_revise_count == 0
-            and is_claim_converged(store, apex_md_path)
+            and apex_addr is not None
+            and is_claim_converged(store.state, apex_addr)
         )
 
     if final_review_path is not None and not failed:
@@ -358,10 +360,6 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
     print(f"  [REGIONAL-REVIEW] Elapsed: {elapsed:.0f}s", file=sys.stderr)
 
-    # End-of-cone compress pass — strip accumulated meta-commentary drift
-    # introduced across the cycles. Scoped to files this cone actually
-    # changed (via baseline SHA diff). No-op if nothing changed or if
-    # dry-run is set.
     if _COMPRESS_ENABLED and not failed:
         from lib.claim_convergence.compress import compress_changed_files_since
         compress_changed_files_since(
@@ -369,18 +367,11 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             apex_label=apex_label, dry_run=dry_run,
         )
 
-    # Commit any residue that per-cycle commits didn't catch: the Result
-    # section appended to the last review file, cache updates, and
-    # OBSERVE-only cycles whose review files are never reached by the
-    # in-loop step_commit_asn (which only runs after a REVISE-driven
-    # revise succeeds). step_commit_asn no-ops if nothing is staged.
     if not failed and not dry_run:
         step_commit_asn(
             asn_num,
             f"cone-review(asn): {asn_label}/{apex_label} — final",
         )
-
-    store.close()
 
     if failed:
         return "failed"
