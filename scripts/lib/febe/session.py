@@ -95,10 +95,19 @@ class Session:
 
     # ── Lifecycle ──────────────────────────────────────────────────
 
+    def __enter__(self) -> "Session":
+        return self
+
+    def __exit__(self, *args) -> None:
+        self.close()
+
     def close(self) -> None:
         """Release any resources held by this Session."""
-        if isinstance(self.backend, Store):
-            self.backend.close()
+        backend = self.backend
+        # AgentStore delegates to Store via __getattr__; either way
+        # close() is exposed.
+        if hasattr(backend, "close"):
+            backend.close()
 
     def commit(self) -> None:
         """Append-only backend has no transaction concept; no-op."""
@@ -325,14 +334,14 @@ class Session:
         type_: str,
         subtype: Optional[str] = None,
     ) -> Link:
-        """MAKELINK (code 27): emit a new link. Always lands locally."""
+        """MAKELINK (code 27): emit a new link. Always lands locally.
+
+        Dispatches to backend.make_link directly — works for State
+        (in-memory), Store (with JSONL persistence), and AgentStore
+        (with auto-emit of manages for provenance).
+        """
         full_type = f"{type_}.{subtype}" if subtype else type_
-        if isinstance(self.backend, Store):
-            return self.backend.make_link(
-                homedoc=homedoc, from_set=from_set,
-                to_set=to_set, type_=full_type,
-            )
-        return self._state.make_link(
+        return self.backend.make_link(
             homedoc=homedoc, from_set=from_set,
             to_set=to_set, type_=full_type,
         )
@@ -378,3 +387,29 @@ class Session:
     def attributed_to(self, agent_doc: Address) -> Iterator["Session"]:
         """Context manager: scope agent attribution for a block."""
         yield self.as_agent(agent_doc)
+
+
+# ── Convenience constructor ────────────────────────────────────────
+
+
+def open_session(
+    lattice_dir: Union[str, Path],
+    *,
+    bebe: Optional[BEBEDispatcher] = None,
+) -> Session:
+    """Open a Session bound to the given lattice's filesystem-backed
+    substrate. Honors the XANADU_AGENT_DOC env var: if set, the
+    underlying Store is wrapped in AgentStore for provenance auto-
+    emission. Standalone runs (no env var) get a plain Store.
+
+    The standard caller pattern is:
+
+        with open_session(LATTICE) as session:
+            session.make_link(...)
+
+    Equivalent to `Session(default_store(lattice_dir))` but more
+    ergonomic and gives Pass 1.5 callers a single import-and-go
+    entry point.
+    """
+    from lib.agent import default_store
+    return Session(default_store(lattice_dir), bebe=bebe)
