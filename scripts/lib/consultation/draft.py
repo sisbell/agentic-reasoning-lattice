@@ -37,8 +37,8 @@ from lib.shared.paths import (
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.store.emit import emit_note, emit_synthesis
-from lib.store.store import default_store
+from lib.backend.emit import emit_note, emit_synthesis
+from lib.backend.store import Store
 
 DISCOVERY_PROMPT = LATTICE_PROMPTS / "discovery" / "instructions.md"
 
@@ -259,16 +259,20 @@ def main():
     asn_path = run_discovery(inquiry, asn_number, slug, force=args.force)
 
     if asn_path:
-        with default_store() as store:
-            _, note_created = emit_note(store, asn_path)
-            if note_created:
-                print(f"  [NOTE] classifier emitted", file=sys.stderr)
-            inq_path = inquiry_doc_path(asn_number)
-            if inq_path.exists():
-                _, syn_created = emit_synthesis(store, inq_path, asn_path)
-                if syn_created:
-                    print(f"  [SYNTHESIS] inquiry → note link emitted",
-                          file=sys.stderr)
+        store = Store(LATTICE)
+        asn_rel = str(Path(asn_path).resolve().relative_to(LATTICE.resolve()))
+        note_addr = store.register_path(asn_rel)
+        _, note_created = emit_note(store, note_addr)
+        if note_created:
+            print(f"  [NOTE] classifier emitted", file=sys.stderr)
+        inq_path = inquiry_doc_path(asn_number)
+        if inq_path.exists():
+            inq_rel = str(inq_path.resolve().relative_to(LATTICE.resolve()))
+            inq_addr = store.register_path(inq_rel)
+            _, syn_created = emit_synthesis(store, inq_addr, note_addr)
+            if syn_created:
+                print(f"  [SYNTHESIS] inquiry → note link emitted",
+                      file=sys.stderr)
         # Print the output file path to stdout (for pipeline consumption)
         print(str(asn_path))
     else:

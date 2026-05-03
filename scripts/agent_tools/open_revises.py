@@ -16,9 +16,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
-from backend.predicates import unresolved_revise_comments
-from backend.store import Store
+from lib.backend.predicates import unresolved_revise_comments
+from lib.backend.store import Store
 from lib.shared.common import find_asn
 from lib.shared.paths import LATTICE
 

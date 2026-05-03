@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, REVIEWS_DIR, NOTE_DIR, consultation_dir, find_review,
+    LATTICE, WORKSPACE, REVIEWS_DIR, NOTE_DIR, consultation_dir, find_review,
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn
@@ -36,10 +36,10 @@ from lib.consult import (
     invoke_claude, get_total_usage, dispatch_run_consultation,
 )
 from lib.consultation.evidence import assign_channels
-from lib.store.emit import (
+from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_assessment,
 )
-from lib.store.store import default_store
+from lib.backend.store import Store
 
 
 def get_review_number(review_path):
@@ -292,8 +292,10 @@ def main():
     )
     print(f"  [ASSIGN] Saved to {cat_path}", file=sys.stderr)
 
-    with default_store() as store:
-        emit_consultation_assessment(store, cat_path)
+    store = Store(LATTICE)
+    cat_rel = str(cat_path.resolve().relative_to(LATTICE.resolve()))
+    cat_addr = store.register_path(cat_rel)
+    emit_consultation_assessment(store, cat_addr)
 
     items = assign_channels.parse(response, asn_label)
     if not items:
@@ -332,9 +334,11 @@ def main():
     # Classify each per-answer doc as a substrate citizen. Single-pass
     # after the parallel consultations complete so all writes are in
     # place before we open the store.
-    with default_store() as store:
-        for answer_md in sorted(consult_subdir.glob("answer-*.md")):
-            emit_consultation_answer(store, answer_md)
+    store = Store(LATTICE)
+    for answer_md in sorted(consult_subdir.glob("answer-*.md")):
+        answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
+        answer_addr = store.register_path(answer_rel)
+        emit_consultation_answer(store, answer_addr)
 
     # Step 3: Write results
     results = build_results(asn_label, review_path, items)

@@ -104,6 +104,26 @@ class StoreLoadTests(unittest.TestCase):
         )
         self.assertEqual(len(results), 1)
 
+    def test_register_path_allocates_fresh_tumbler(self):
+        store = Store(self.lattice_dir)
+        new_addr = store.register_path("new/doc.md")
+        self.assertEqual(store.path_for_addr(new_addr), "new/doc.md")
+        # Lattice link emitted
+        from lib.backend.predicates import active_links
+        lattice_links = active_links(store.state, "lattice", from_set=[new_addr])
+        self.assertEqual(len(lattice_links), 1)
+        self.assertEqual(lattice_links[0].to_set, (store.lattice_doc,))
+        # Re-registering returns the same tumbler
+        self.assertEqual(store.register_path("new/doc.md"), new_addr)
+
+    def test_register_path_persists_to_disk(self):
+        store = Store(self.lattice_dir)
+        store.register_path("new/doc.md")
+        # Reload Store and confirm the new path is mapped
+        del store
+        store2 = Store(self.lattice_dir)
+        self.assertIn("new/doc.md", store2.path_to_addr)
+
     def test_make_link_doesnt_collide_with_existing(self):
         # The Store re-attaches doc owners after load. New links
         # in homedoc A should pick up at the next free slot, not

@@ -134,6 +134,49 @@ class Store:
     def get(self, addr: Address) -> Link:
         return self.state.links.get(addr)
 
+    # ----- registration -----
+
+    def register_path(self, path: str) -> Address:
+        """Get-or-allocate a tumbler for a filesystem path.
+
+        If the path is already in the path map, return its tumbler.
+        Otherwise allocate a fresh doc-level tumbler, persist the
+        updated map, and emit a `lattice` link recording the doc's
+        membership in this lattice.
+
+        Callers should pass lattice-relative paths.
+        """
+        if path in self.path_to_addr:
+            return self.path_to_addr[path]
+        # Allocate doc address without auto-emitting any classifier
+        addr = self.state._emit(self.state.doc_allocator)
+        self.state.parent[addr] = None
+        self.state.kind[addr] = "doc"
+        self.state.content[addr] = ""
+        self.path_to_addr[path] = addr
+        self.addr_to_path[addr] = path
+        self._persist_paths()
+        # Emit lattice membership through Store.make_link so it lands
+        # in the JSONL.
+        self.make_link(
+            homedoc=addr,
+            from_set=[addr],
+            to_set=[self.lattice_doc],
+            type_="lattice",
+        )
+        return addr
+
+    def _persist_paths(self) -> None:
+        """Write the current path map back to paths.json."""
+        out = {
+            "_meta": self._meta,
+            "paths": {
+                p: str(a) for p, a in sorted(self.path_to_addr.items())
+            },
+        }
+        with open(self.paths_path, "w") as f:
+            json.dump(out, f, indent=2, sort_keys=True)
+
     # ----- writes -----
 
     def make_link(
