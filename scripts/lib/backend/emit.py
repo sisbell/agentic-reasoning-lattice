@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from typing import List, Optional, Tuple
 
+# Re-export Optional for the helper
+
 from .addressing import Address
 from .links import Link
 from .predicates import active_links
@@ -354,6 +356,151 @@ def emit_manages(
         to_set=[operation_link],
         type_="manages",
     )
+
+
+# ============================================================
+#  Claim findings + review meta
+# ============================================================
+
+
+def emit_meta(
+    store: Store,
+    asn_label: str,
+    review_num: int,
+    *,
+    title: str,
+    timestamp: str,
+    scope: str,
+    verdict: str,
+    findings_summary: str,
+    emitted_findings: list,
+    elapsed_seconds: float,
+    reviews_dir,
+) -> Link:
+    """Write the aggregate review doc to <reviews_dir>/<asn>/review-N.md
+    and emit the `review` classifier on it.
+
+    Mirrors lib.store.emit.emit_meta. The aggregate is the reviewer's
+    full output; per-finding bodies live separately (written by
+    emit_findings).
+    """
+    from pathlib import Path
+    reviews_root = Path(reviews_dir)
+    review_stem = f"review-{review_num}"
+    asn_dir = reviews_root / asn_label
+    asn_dir.mkdir(parents=True, exist_ok=True)
+    meta_path = asn_dir / f"{review_stem}.md"
+
+    lines = [
+        f"# {title}",
+        "",
+        f"*{timestamp}*",
+        "",
+        f"**Scope:** {scope}",
+        f"**Verdict:** {verdict}",
+        f"**Findings:** {findings_summary}",
+        f"**Elapsed:** {elapsed_seconds:.0f}s",
+    ]
+    if emitted_findings:
+        lines.extend(["", "## Findings", ""])
+        for ef in emitted_findings:
+            finding_filename = Path(ef["finding_path"]).name
+            cls = ef.get("cls", "REVISE")
+            title_text = ef.get("title", "(untitled)")
+            lines.append(f"- {finding_filename} — {title_text} *({cls})*")
+    meta_path.write_text("\n".join(lines) + "\n")
+
+    meta_rel = str(meta_path.resolve().relative_to(store.lattice_dir.resolve()))
+    meta_addr = store.register_path(meta_rel)
+    link, _ = emit_review(store, meta_addr)
+    return link
+
+
+def emit_findings(
+    store: Store,
+    review_addr: Address,
+    findings: list,
+    asn_label: str,
+    review_stem: str,
+    label_index: dict,
+    findings_dir,
+):
+    """Materialize each claim-side finding as a doc and emit its substrate
+    facts. Mirrors lib.store.emit.emit_findings.
+
+    `findings` is a list of (title, cls, body). For each:
+      - resolve target claim via body's `**ASN**: <label>` (or
+        `**Foundation**:` fallback)
+      - materialize <findings_dir>/<asn>/<review_stem>/<n>.md
+      - emit `finding` classifier on the per-finding doc
+      - emit `comment.{revise|observe}` from finding doc to target claim
+      - emit `provenance.derivation` from aggregate review to finding
+
+    label_index: {label_string: claim_doc_addr}
+    """
+    from pathlib import Path
+    findings_root = Path(findings_dir)
+    out_dir = findings_root / asn_label / review_stem
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    results = []
+    for n, (title, cls, body) in enumerate(findings):
+        target_label = _extract_target_label(body, label_index)
+        if target_label is None:
+            import sys as _sys
+            print(
+                f"  [emit] skipping finding {n} '{title}' — "
+                f"no parseable target label",
+                file=_sys.stderr,
+            )
+            continue
+        claim_addr = label_index[target_label]
+
+        finding_path = out_dir / f"{n}.md"
+        finding_path.write_text(body)
+        finding_rel = str(finding_path.resolve().relative_to(
+            store.lattice_dir.resolve()
+        ))
+        finding_addr = store.register_path(finding_rel)
+
+        emit_finding(store, finding_addr)
+
+        cls_normalized = cls.upper() if cls else "REVISE"
+        if cls_normalized not in {"REVISE", "OBSERVE"}:
+            cls_normalized = "REVISE"
+        comment = emit_comment(
+            store, finding_addr, claim_addr,
+            kind=cls_normalized.lower(),
+        )
+
+        emit_derivation(store, review_addr, finding_addr)
+
+        results.append({
+            "title": title,
+            "cls": cls_normalized,
+            "comment_id": comment.addr,
+            "claim_path": store.path_for_addr(claim_addr),
+            "finding_path": finding_rel,
+        })
+
+    return results
+
+
+def _extract_target_label(body: str, label_index: dict) -> Optional[str]:
+    """Parse a finding body for an ASN/Foundation label that resolves
+    in label_index. Returns the label string or None.
+    """
+    import re
+    for header in ("ASN", "Foundation"):
+        m = re.search(
+            rf"\*\*{header}\*\*\s*[:\-]\s*([A-Za-z0-9_./\\-]+)",
+            body,
+        )
+        if m:
+            label = m.group(1).strip()
+            if label in label_index:
+                return label
+    return None
 
 
 # ============================================================

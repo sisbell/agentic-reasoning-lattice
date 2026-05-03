@@ -28,8 +28,8 @@ from lib.shared.paths import (
     LATTICE_NAME, CAMPAIGN_DIR, CHANNELS_DIR, WORKSPACE,
     campaign_dir, campaign_doc_path, campaign_vocab, load_channel_meta,
 )
-from lib.store.emit import emit_campaign
-from lib.store.store import default_store
+from lib.backend.emit import emit_campaign
+from lib.backend.store import default_store
 
 
 def main():
@@ -106,8 +106,11 @@ def main():
     body = f"# Campaign: {title}\n"
     doc_path.write_text(write_frontmatter(fm, body))
 
-    with default_store() as store:
-        emit_campaign(store, doc_path)
+    from lib.shared.paths import LATTICE
+    store = default_store(LATTICE)
+    doc_rel = str(doc_path.resolve().relative_to(LATTICE.resolve()))
+    doc_addr = store.register_path(doc_rel)
+    emit_campaign(store, doc_addr)
 
     vocab_path = campaign_vocab(args.name)
     vocab_path.write_text("")

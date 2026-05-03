@@ -35,11 +35,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import LATTICE, LATTICE_NAME
-from lib.store.emit import (
+from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_assessment,
     emit_consultation_questions,
 )
-from lib.store.store import default_store
+from lib.backend.store import default_store
 
 CONSULTATION_DIR = LATTICE / "_docuverse" / "documents" / "consultation"
 
@@ -60,20 +60,24 @@ def classify_one(store, path, dry_run):
     name = path.name
     if name == "answers.md":
         return "skipped", "noop"
+    rel = str(path.resolve().relative_to(LATTICE.resolve()))
     if name == "questions.md":
         if dry_run:
             return "questions", "would-emit"
-        _, created = emit_consultation_questions(store, path)
+        addr = store.register_path(rel)
+        _, created = emit_consultation_questions(store, addr)
         return "questions", "created" if created else "existed"
     if name == "assessment.md":
         if dry_run:
             return "assessment", "would-emit"
-        _, created = emit_consultation_assessment(store, path)
+        addr = store.register_path(rel)
+        _, created = emit_consultation_assessment(store, addr)
         return "assessment", "created" if created else "existed"
     if ANSWER_RE.match(name):
         if dry_run:
             return "answer", "would-emit"
-        _, created = emit_consultation_answer(store, path)
+        addr = store.register_path(rel)
+        _, created = emit_consultation_answer(store, addr)
         return "answer", "created" if created else "existed"
     return "unrecognized", "noop"
 
@@ -124,7 +128,7 @@ def main():
     skipped = 0
     unrecognized = []
 
-    with default_store() as store:
+    with default_store(LATTICE) as store:
         for asn_dir in asn_dirs:
             for session_dir in sorted(asn_dir.iterdir()):
                 if not session_dir.is_dir():

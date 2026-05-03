@@ -137,6 +137,34 @@ def is_converged(state: State) -> bool:
     return not unresolved_revise_comments(state)
 
 
+def is_asn_converged(store, asn_label: str) -> bool:
+    """Conjunction of `is_doc_converged` over every claim md under an ASN.
+
+    Identifies an ASN's claim docs by walking the path map for paths
+    matching `_docuverse/documents/claim/<asn_label>/*.md` and
+    excluding sidecars. Vacuously true on an ASN with no matching
+    claims — coverage is choreography's responsibility.
+
+    `store` is a backend.store.Store (not a State) — needs the path
+    map to recover ASN-scoped docs.
+    """
+    import re
+    from .schema import ATTRIBUTE_SUFFIXES
+    asn_path_pattern = re.compile(
+        rf"_docuverse/documents/claim/{re.escape(asn_label)}/[^/]+\.md$"
+    )
+    for path, addr in store.path_to_addr.items():
+        if not asn_path_pattern.search(path):
+            continue
+        if path.endswith(ATTRIBUTE_SUFFIXES):
+            continue
+        if "/_" in path:
+            continue
+        if not is_doc_converged(store.state, addr):
+            return False
+    return True
+
+
 # ============================================================
 #  classifier enumeration
 # ============================================================
