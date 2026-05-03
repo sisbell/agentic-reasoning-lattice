@@ -48,6 +48,7 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "citation.resolve": (15, 3),
     "comment.observe": (16, 1),
     "comment.revise": (16, 2),
+    "comment.out-of-scope": (16, 3),
     "resolution.edit": (17, 1),
     "resolution.reject": (17, 2),
     "retraction": (18,),

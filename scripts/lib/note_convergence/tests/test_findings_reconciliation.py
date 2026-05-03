@@ -92,6 +92,20 @@ class NoteFindingReconciliationTests(unittest.TestCase):
             [], orphan_finding_docs(self.session, self.findings_dir),
         )
 
+    def test_out_of_scope_comment_satisfies_orphan_check(self):
+        # out-of-scope comments are emittable now (catalog gained the
+        # subtype); they count as valid finding-source links.
+        finding_path = self.findings_dir / "4.md"
+        finding_path.write_text("oos finding\n")
+        finding_rel = str(finding_path.relative_to(self.lattice))
+        finding_addr = self.store.register_path(finding_rel)
+        emit_comment(
+            self.store, finding_addr, self.note_addr, kind="out-of-scope",
+        )
+        self.assertEqual(
+            [], orphan_finding_docs(self.session, self.findings_dir),
+        )
+
     def test_dangling_when_finding_deleted(self):
         finding_path = self.findings_dir / "3.md"
         finding_path.write_text("body\n")

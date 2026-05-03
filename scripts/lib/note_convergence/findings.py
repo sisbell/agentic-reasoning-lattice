@@ -93,13 +93,14 @@ def emit_note_findings(
 # transactional; callers should run reconciliation at stage
 # boundaries to surface inconsistencies.
 
-# Comment subtypes the reconciliation predicates check. Note: the
-# schema (lib.backend.schema) lists "out-of-scope" as a valid comment
-# subtype, but it isn't in the type catalog (lib.backend.types) and
-# can't actually be emitted via session.active_links lookup. We use
-# only the catalog-resolvable subtypes here. If the schema/catalog
-# mismatch is closed later, add the missing subtype to this tuple.
-_NOTE_FINDING_COMMENT_KINDS = ("comment.revise", "comment.observe")
+# Comment subtypes the reconciliation predicates check. All three
+# are catalog-resolvable; emit_note_findings maps OUT_OF_SCOPE
+# classifications to comment.out-of-scope.
+_NOTE_FINDING_COMMENT_KINDS = (
+    "comment.revise",
+    "comment.observe",
+    "comment.out-of-scope",
+)
 
 
 def orphan_finding_docs(
