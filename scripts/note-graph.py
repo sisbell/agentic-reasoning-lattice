@@ -17,11 +17,11 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from shared.paths import WORKSPACE
-from store.populate import build_note_label_index
-from store.queries import active_links
-from store.store import Store
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.shared.paths import WORKSPACE, LATTICE
+from lib.backend.populate import build_note_label_index
+from lib.backend.predicates import active_links
+from lib.backend.store import Store
 
 
 def asn_label(asn_arg):
@@ -36,17 +36,15 @@ def build_edges(store):
     notes. Cross-stage citations (note → claim) are skipped here — they
     belong to a different traversal.
     """
-    note_index = build_note_label_index(store)
-    path_to_label = {p: l for l, p in note_index.items()}
+    note_index = build_note_label_index(store)  # {label: note_addr}
+    addr_to_label = {addr: label for label, addr in note_index.items()}
 
     edges = []
-    for link in active_links(store, "citation.depends"):
-        if not link["from_set"] or not link["to_set"]:
+    for link in active_links(store.state, "citation.depends"):
+        if not link.from_set or not link.to_set:
             continue
-        src = link["from_set"][0]
-        dst = link["to_set"][0]
-        src_label = path_to_label.get(src)
-        dst_label = path_to_label.get(dst)
+        src_label = addr_to_label.get(link.from_set[0])
+        dst_label = addr_to_label.get(link.to_set[0])
         if src_label and dst_label:
             edges.append((src_label, dst_label))
     return note_index, edges
@@ -121,7 +119,7 @@ def main():
     if not args.all and not args.asn:
         parser.error("provide an ASN, or --all")
 
-    with Store() as store:
+    with Store(LATTICE) as store:
         if args.all:
             return cmd_all(store)
         return cmd_focus(asn_label(args.asn), args.depth, store)

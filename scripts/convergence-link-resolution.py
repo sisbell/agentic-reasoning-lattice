@@ -33,9 +33,11 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from store.store import default_store
-from store.decide import emit_decision
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.shared.paths import LATTICE
+from lib.backend.store import default_store
+from lib.backend.emit import emit_decision
+from lib.backend.addressing import Address
 
 
 def main():
@@ -62,32 +64,35 @@ def main():
         print("error: PROTOCOL_ASN_LABEL env var not set", file=sys.stderr)
         return 1
 
-    store = default_store()
+    store = default_store(LATTICE)
+    # Comment id is a tumbler-address string in the new substrate.
     try:
-        # Resolve the doc the resolution applies to from the comment's to_set.
-        # Callers pass a comment id, never a path.
-        comment = store.get(comment_id)
-        if comment is None:
-            print(f"error: comment {comment_id} not found in substrate",
-                  file=sys.stderr)
-            return 1
-        if not comment.get("to_set"):
-            print(f"error: comment {comment_id} has empty to_set",
-                  file=sys.stderr)
-            return 1
-        doc_path = comment["to_set"][0]
+        comment_addr = Address(comment_id)
+    except (ValueError, TypeError) as e:
+        print(f"error: invalid comment id {comment_id!r}: {e}",
+              file=sys.stderr)
+        return 1
+    try:
+        comment = store.state.links.get(comment_addr)
+    except KeyError:
+        print(f"error: comment {comment_id} not found in substrate",
+              file=sys.stderr)
+        return 1
+    if not comment.to_set:
+        print(f"error: comment {comment_id} has empty to_set",
+              file=sys.stderr)
+        return 1
+    claim_addr = comment.to_set[0]
 
-        try:
-            link_id = emit_decision(
-                store, args.action, comment_id, doc_path, asn_label,
-                rationale=getattr(args, "rationale", None),
-            )
-        except (KeyError, ValueError) as e:
-            print(f"error: {e}", file=sys.stderr)
-            return 1
-        print(link_id)
-    finally:
-        store.close()
+    try:
+        link = emit_decision(
+            store, args.action, comment_addr, claim_addr, asn_label,
+            rationale=getattr(args, "rationale", None),
+        )
+    except (KeyError, ValueError) as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
+    print(link.addr)
     return 0
 
 

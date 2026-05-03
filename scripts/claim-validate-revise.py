@@ -25,12 +25,13 @@ import sys
 import tempfile
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from shared.common import invoke_claude_agent, find_asn
-from shared.paths import LATTICE
-from store.populate import build_cross_asn_label_index
-from store.retract import emit_retraction
-from store.store import default_store
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.shared.common import invoke_claude_agent, find_asn
+from lib.shared.paths import LATTICE
+from lib.backend.populate import build_cross_asn_label_index
+from lib.backend.emit import emit_retraction
+from lib.backend.store import default_store
+from lib.backend.predicates import active_links
 
 
 VALID_ACTIONS = {"ADD", "RETRACT", "SKIP"}
@@ -184,28 +185,31 @@ def build_metadata_bundle(rule, filename, pairs, claim_dir):
     The reviser uses this to write the correct `**<Label> (<Name>).**`
     declaration form and the `- <Label> (<Name>) — gloss` Depends entries.
     """
-    sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-    from store.queries import active_links
-    from store.populate import build_cross_asn_label_index
-    from shared.paths import WORKSPACE
+    from lib.shared.paths import WORKSPACE
 
     stem = Path(filename).stem
     labels_to_include = [stem]
 
     workspace = Path(WORKSPACE).resolve()
+    lattice_root = Path(LATTICE).resolve()
 
-    with default_store() as store:
-        label_index = build_cross_asn_label_index(store=store)
+    with default_store(LATTICE) as store:
+        label_index = build_cross_asn_label_index(store)
 
         if rule in ("depends-agreement", "references-resolve"):
             md_rel = str(
-                (claim_dir / f"{stem}.md").resolve().relative_to(workspace)
+                (claim_dir / f"{stem}.md").resolve().relative_to(lattice_root)
             )
-            for link in active_links(store, "citation.depends", from_set=[md_rel]):
-                if link["to_set"]:
-                    dep_stem = Path(link["to_set"][0]).stem
-                    if dep_stem not in labels_to_include:
-                        labels_to_include.append(dep_stem)
+            md_addr = store.path_to_addr.get(md_rel)
+            if md_addr is not None:
+                for link in active_links(store.state, "citation.depends",
+                                         from_set=[md_addr]):
+                    for cited_addr in link.to_set:
+                        cited_path = store.path_for_addr(cited_addr)
+                        if cited_path:
+                            dep_stem = Path(cited_path).stem
+                            if dep_stem not in labels_to_include:
+                                labels_to_include.append(dep_stem)
         elif rule not in (
             "declaration-label-mismatch", "body-uniqueness",
             "declared-symbols-resolve",
@@ -218,16 +222,19 @@ def build_metadata_bundle(rule, filename, pairs, claim_dir):
             if label in seen:
                 continue
             seen.add(label)
-            md_path = label_index.get(label)
+            md_addr = label_index.get(label)
             name = "(no substrate name link)"
-            if md_path:
-                name_links = active_links(store, "name", from_set=[md_path])
-                if name_links and name_links[0]["to_set"]:
-                    full = workspace / name_links[0]["to_set"][0]
-                    if full.exists():
-                        first = full.read_text().strip().split("\n", 1)[0].strip()
-                        if first:
-                            name = first
+            if md_addr is not None:
+                name_links = active_links(store.state, "name", from_set=[md_addr])
+                if name_links and name_links[0].to_set:
+                    sidecar_addr = name_links[0].to_set[0]
+                    sidecar_rel = store.path_for_addr(sidecar_addr)
+                    if sidecar_rel:
+                        full = lattice_root / sidecar_rel
+                        if full.exists():
+                            first = full.read_text().strip().split("\n", 1)[0].strip()
+                            if first:
+                                name = first
             rows.append(f"- `{label}` — {name}")
 
     if not rows:
@@ -343,22 +350,35 @@ def parse_decisions(scratch_dir, valid_labels, label_index, diff_text):
 def apply_retract_decisions(store, decisions, claim_path, label_index):
     """Emit a retraction for each RETRACT decision. Returns count emitted.
 
-    On the first emit_retraction failure (citation not found — substrate
+    On any retraction failure (citation not found — substrate
     inconsistent with the validator's finding), re-raises as
     DecisionsCorruption so the caller surfaces it loudly.
     """
+    citing_addr = store.path_to_addr.get(claim_path)
+    if citing_addr is None:
+        raise DecisionsCorruption(
+            f"claim {claim_path!r} not in substrate path map"
+        )
     emitted = 0
     for d in decisions:
         if d["action"] != "RETRACT":
             continue
-        try:
-            link_id, created = emit_retraction(
-                store, claim_path, d["label"], label_index,
-            )
-        except (ValueError, KeyError) as e:
+        cited_addr = label_index.get(d["label"])
+        if cited_addr is None:
             raise DecisionsCorruption(
-                f"retracting {d['label']!r} failed: {e}"
+                f"retracting {d['label']!r} failed: unknown label"
             )
+        # Find the active citation.depends link to retract.
+        candidates = active_links(
+            store.state, "citation.depends",
+            from_set=[citing_addr], to_set=[cited_addr],
+        )
+        if not candidates:
+            raise DecisionsCorruption(
+                f"retracting {d['label']!r} failed: no active citation.depends "
+                f"from {claim_path}"
+            )
+        emit_retraction(store, citing_addr, candidates[0].addr)
         emitted += 1
         if d["rationale"]:
             print(f"    [retract] {d['label']}: {d['rationale']}", file=sys.stderr)
@@ -517,8 +537,8 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
             return declined
 
     if rule == "depends-agreement":
-        with default_store() as store:
-            label_index = build_cross_asn_label_index(store=store)
+        with default_store(LATTICE) as store:
+            label_index = build_cross_asn_label_index(store)
     else:
         label_index = None
 
@@ -616,9 +636,10 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
 
         retracted_count = 0
         if retract_decisions:
-            real_claim_path = str(real_path.resolve().relative_to(REPO_ROOT.resolve()))
+            # claim path is lattice-relative for the path map
+            real_claim_path = str(real_path.resolve().relative_to(LATTICE.resolve()))
             try:
-                with default_store() as store:
+                with default_store(LATTICE) as store:
                     retracted_count = apply_retract_decisions(
                         store, retract_decisions, real_claim_path, label_index,
                     )

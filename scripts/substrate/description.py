@@ -26,10 +26,10 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
-from shared.paths import claim_doc_path
-from store.attributes import emit_attribute
-from store.store import default_store
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.shared.paths import claim_doc_path, LATTICE
+from lib.backend.emit import emit_attribute
+from lib.backend.store import default_store
 
 
 def main():
@@ -67,20 +67,17 @@ def main():
     else:
         body = args.to
 
-    store = default_store()
+    store = default_store(LATTICE)
     try:
-        try:
-            link_id, created = emit_attribute(
-                store, claim_path, "description", body,
-            )
-        except ValueError as e:
-            print(f"error: {e}", file=sys.stderr)
-            return 1
-        print(link_id)
-        if not created:
-            print("(already exists)", file=sys.stderr)
-    finally:
-        store.close()
+        link, created = emit_attribute(
+            store, claim_path, "description", body,
+        )
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
+    print(link.addr)
+    if not created:
+        print("(already exists)", file=sys.stderr)
     return 0
 
 

@@ -160,3 +160,13 @@ def is_note_path(doc_path: str) -> bool:
         "/_docuverse/documents/note/" in doc_path
         or doc_path.startswith("_docuverse/documents/note/")
     )
+
+
+def build_doc_label_index(store: Store, doc_path: str) -> Dict[str, Address]:
+    """Pick the label index appropriate for the given doc.
+
+    Note docs cite ASN-NNNN labels; claim docs cite claim labels.
+    """
+    if is_note_path(doc_path):
+        return build_note_label_index(store)
+    return build_cross_asn_label_index(store)

@@ -27,11 +27,12 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
-from shared.paths import claim_doc_path
-from store.store import default_store
-from store.retract import emit_retraction
-from store.populate import build_doc_label_index
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.shared.paths import claim_doc_path, LATTICE
+from lib.backend.store import default_store
+from lib.backend.emit import emit_retraction
+from lib.backend.populate import build_doc_label_index
+from lib.backend.predicates import active_links
 
 
 def main():
@@ -60,22 +61,31 @@ def main():
 
     claim_path = claim_doc_path(asn_label, args.from_label)
 
-    store = default_store()
-    try:
-        try:
-            label_index = build_doc_label_index(store, claim_path)
-            link_id, created = emit_retraction(
-                store, claim_path, args.to, label_index,
-                direction=args.direction,
-            )
-        except (KeyError, ValueError) as e:
-            print(f"error: {e}", file=sys.stderr)
-            return 1
-        print(link_id)
-        if not created:
-            print("(already exists)", file=sys.stderr)
-    finally:
-        store.close()
+    store = default_store(LATTICE)
+    label_index = build_doc_label_index(store, claim_path)
+    if args.to not in label_index:
+        print(f"error: unknown label {args.to!r}", file=sys.stderr)
+        return 1
+    citing_addr = store.path_to_addr.get(claim_path)
+    if citing_addr is None:
+        print(f"error: claim {claim_path!r} not in substrate", file=sys.stderr)
+        return 1
+    cited_addr = label_index[args.to]
+    type_str = f"citation.{args.direction}"
+    candidates = active_links(
+        store.state, type_str, from_set=[citing_addr], to_set=[cited_addr],
+    )
+    if not candidates:
+        print(f"error: no active {type_str} from {args.from_label} to {args.to}",
+              file=sys.stderr)
+        return 1
+    if len(candidates) > 1:
+        print(f"error: ambiguous — {len(candidates)} active {type_str} links",
+              file=sys.stderr)
+        return 1
+    target_link = candidates[0]
+    retraction = emit_retraction(store, citing_addr, target_link.addr)
+    print(retraction.addr)
     return 0
 
 

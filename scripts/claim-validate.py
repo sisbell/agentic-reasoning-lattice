@@ -31,15 +31,14 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from shared.common import find_asn
-from shared.paths import CLAIM_DIR, LATTICE
-from store.store import Store
-from store.populate import build_cross_asn_label_index
-from store.queries import current_contract_kind, active_links
-from store.schema import VALID_SUBTYPES
-from store.attributes import VALID_KINDS
-from store.notation import read_notation
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.shared.common import find_asn
+from lib.shared.paths import CLAIM_DIR, LATTICE
+from lib.backend.store import Store
+from lib.backend.populate import build_cross_asn_label_index
+from lib.backend.predicates import current_contract_kind, active_links
+from lib.backend.schema import VALID_SUBTYPES, VALID_ATTRIBUTE_KINDS as VALID_KINDS
+from lib.backend.notation import read_notation
 
 VALID_TYPES = VALID_SUBTYPES["contract"]
 
@@ -129,8 +128,11 @@ def _build_symbol_owners(store):
     """
     owners = {}
     root = Path(LATTICE).resolve() if isinstance(LATTICE, str) else LATTICE.resolve()
-    for link in active_links(store, "signature"):
-        for sidecar_rel in link["to_set"]:
+    for link in active_links(store.state, "signature"):
+        for sidecar_addr in link.to_set:
+            sidecar_rel = store.path_for_addr(sidecar_addr)
+            if sidecar_rel is None:
+                continue
             sidecar_abs = root / sidecar_rel
             if not sidecar_abs.exists():
                 continue
@@ -182,8 +184,8 @@ def check_contract_classifier_present(pairs, store, label_index):
     """
     findings = []
     for stem in sorted(pairs):
-        md_path = label_index.get(stem)
-        kind = current_contract_kind(store, md_path) if md_path else None
+        md_addr = label_index.get(stem)
+        kind = current_contract_kind(store.state, md_addr) if md_addr is not None else None
         if kind is None:
             findings.append({
                 "rule": "missing-contract-classifier",
@@ -231,20 +233,19 @@ def _build_citation_graph(pairs, store, label_index):
     check_references_resolve, matching the pre-migration behavior on
     yaml depends entries.
     """
-    rev_index = {p: l for l, p in label_index.items()}
+    rev_index = {addr: label for label, addr in label_index.items()}
     graph = {}
     for stem in pairs:
-        from_path = label_index.get(stem)
-        if not from_path:
+        from_addr = label_index.get(stem)
+        if from_addr is None:
             graph[stem] = []
             continue
         deps = []
-        for link in active_links(store, "citation.depends", from_set=[from_path]):
-            if not link["to_set"]:
-                continue
-            dep_label = rev_index.get(link["to_set"][0])
-            if dep_label:
-                deps.append(dep_label)
+        for link in active_links(store.state, "citation.depends", from_set=[from_addr]):
+            for cited in link.to_set:
+                dep_label = rev_index.get(cited)
+                if dep_label:
+                    deps.append(dep_label)
         graph[stem] = deps
     return graph
 
@@ -496,41 +497,46 @@ def check_attribute_link_shape(pairs, store, label_index, kind):
     a separate concern — this check operates only on links that exist.
     """
     findings = []
+    expected_type_addr = store.state.types.address_for(kind)
     for stem in sorted(pairs):
-        md_path = label_index.get(stem)
-        if not md_path:
+        md_addr = label_index.get(stem)
+        if md_addr is None:
+            continue
+        md_path = store.path_for_addr(md_addr)
+        if md_path is None:
             continue
         from pathlib import PurePosixPath
-        expected_to = str(
+        expected_sidecar_path = str(
             PurePosixPath(md_path).with_suffix(f".{kind}.md")
         )
+        expected_sidecar_addr = store.path_to_addr.get(expected_sidecar_path)
 
-        for link in active_links(store, kind, from_set=[md_path]):
-            if link["type_set"] != [kind]:
+        for link in active_links(store.state, kind, from_set=[md_addr]):
+            if link.type_set != (expected_type_addr,):
                 findings.append({
                     "rule": f"{kind}-link-shape",
                     "file": f"{stem}.md",
                     "line": None,
-                    "detail": (f"link {link['id']}: type_set "
-                               f"{link['type_set']} != [{kind!r}]"),
+                    "detail": (f"link {link.addr}: type_set "
+                               f"{link.type_set} != ({expected_type_addr!r},)"),
                 })
                 continue
-            if link["from_set"] != [md_path]:
+            if link.from_set != (md_addr,):
                 findings.append({
                     "rule": f"{kind}-link-shape",
                     "file": f"{stem}.md",
                     "line": None,
-                    "detail": (f"link {link['id']}: from_set "
-                               f"{link['from_set']} != [{md_path!r}]"),
+                    "detail": (f"link {link.addr}: from_set "
+                               f"{link.from_set} != ({md_addr!r},)"),
                 })
                 continue
-            if link["to_set"] != [expected_to]:
+            if expected_sidecar_addr is not None and link.to_set != (expected_sidecar_addr,):
                 findings.append({
                     "rule": f"{kind}-link-shape",
                     "file": f"{stem}.md",
                     "line": None,
-                    "detail": (f"link {link['id']}: to_set "
-                               f"{link['to_set']} != [{expected_to!r}]"),
+                    "detail": (f"link {link.addr}: to_set "
+                               f"{link.to_set} != ({expected_sidecar_addr!r},)"),
                 })
     return findings
 
@@ -543,10 +549,10 @@ def check_attribute_coverage(pairs, store, label_index, kind):
     """
     findings = []
     for stem in sorted(pairs):
-        md_path = label_index.get(stem)
-        if not md_path:
+        md_addr = label_index.get(stem)
+        if md_addr is None:
             continue
-        links = active_links(store, kind, from_set=[md_path])
+        links = active_links(store.state, kind, from_set=[md_addr])
         if not links:
             findings.append({
                 "rule": f"{kind}-coverage",
@@ -609,33 +615,28 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
     `claim_dir` is required for substrate-attribute doc-format checks; if
     omitted those checks are skipped.
     """
-    own_store = store is None
-    if own_store:
-        store = Store()
-        label_index = build_cross_asn_label_index(store=store)
+    if store is None:
+        store = Store(LATTICE)
+        label_index = build_cross_asn_label_index(store)
     elif label_index is None:
-        label_index = build_cross_asn_label_index(store=store)
+        label_index = build_cross_asn_label_index(store)
 
-    try:
-        citation_graph = _build_citation_graph(pairs, store, label_index)
+    citation_graph = _build_citation_graph(pairs, store, label_index)
 
-        findings = []
-        findings.extend(check_contract_classifier_present(pairs, store, label_index))
-        findings.extend(check_depends_agreement(pairs, citation_graph))
-        findings.extend(check_references_resolve(pairs, citation_graph))
-        findings.extend(check_declared_symbols_resolve(pairs, citation_graph, store))
-        findings.extend(check_acyclic_dependency_graph(pairs, citation_graph))
-        findings.extend(check_declaration_and_body_uniqueness(pairs))
-        for kind in ATTRIBUTE_KINDS:
-            findings.extend(check_attribute_link_shape(pairs, store, label_index, kind))
-            if claim_dir is not None:
-                findings.extend(check_attribute_doc_format(claim_dir, kind))
-            if kind in COVERED_ATTRIBUTE_KINDS:
-                findings.extend(check_attribute_coverage(pairs, store, label_index, kind))
-        return findings
-    finally:
-        if own_store:
-            store.close()
+    findings = []
+    findings.extend(check_contract_classifier_present(pairs, store, label_index))
+    findings.extend(check_depends_agreement(pairs, citation_graph))
+    findings.extend(check_references_resolve(pairs, citation_graph))
+    findings.extend(check_declared_symbols_resolve(pairs, citation_graph, store))
+    findings.extend(check_acyclic_dependency_graph(pairs, citation_graph))
+    findings.extend(check_declaration_and_body_uniqueness(pairs))
+    for kind in ATTRIBUTE_KINDS:
+        findings.extend(check_attribute_link_shape(pairs, store, label_index, kind))
+        if claim_dir is not None:
+            findings.extend(check_attribute_doc_format(claim_dir, kind))
+        if kind in COVERED_ATTRIBUTE_KINDS:
+            findings.extend(check_attribute_coverage(pairs, store, label_index, kind))
+    return findings
 
 
 def main():

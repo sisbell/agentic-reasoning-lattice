@@ -20,11 +20,11 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from shared.paths import claim_doc_path
-from store.store import default_store
-from store.classify import emit_classifier
-from store.schema import VALID_SUBTYPES
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.shared.paths import claim_doc_path, LATTICE
+from lib.backend.store import default_store
+from lib.backend.emit import emit_contract
+from lib.backend.schema import VALID_SUBTYPES
 
 
 def main():
@@ -47,18 +47,16 @@ def main():
 
     claim_path = claim_doc_path(asn_label, args.label)
 
-    store = default_store()
+    store = default_store(LATTICE)
+    claim_addr = store.register_path(claim_path)
     try:
-        try:
-            link_id, created = emit_classifier(store, claim_path, args.kind)
-        except ValueError as e:
-            print(f"error: {e}", file=sys.stderr)
-            return 1
-        print(link_id)
-        if not created:
-            print("(already exists)", file=sys.stderr)
-    finally:
-        store.close()
+        link, created = emit_contract(store, claim_addr, args.kind)
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
+    print(link.addr)
+    if not created:
+        print("(already exists)", file=sys.stderr)
     return 0
 
 

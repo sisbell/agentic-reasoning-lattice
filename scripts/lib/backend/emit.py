@@ -377,6 +377,65 @@ def emit_resolution(
 
 
 # ============================================================
+#  Decision (accept/reject a comment finding)
+# ============================================================
+
+
+def emit_decision(
+    store: Store,
+    action: str,
+    comment_addr: Address,
+    claim_addr: Address,
+    asn_label: str,
+    rationale: Optional[str] = None,
+) -> Link:
+    """Emit the resolution link for a reviser's accept/reject decision.
+
+    Mirrors lib.store.decide.emit_decision.
+
+    action: 'accept' or 'reject'
+    comment_addr: address of the comment being closed
+    claim_addr: address of the doc the resolution applies to
+    asn_label: ASN label (for rationale doc placement on reject)
+    rationale: required when action == 'reject'
+
+    On accept: emits resolution.edit (F=[claim], G=[comment]).
+    On reject: writes rationale doc to disk, registers it in path map,
+    emits resolution.reject (F=[claim], G=[comment, rationale_doc]).
+    """
+    from pathlib import Path
+    from lib.shared.paths import RATIONALE_DIR
+
+    if action == "accept":
+        return store.make_link(
+            homedoc=claim_addr,
+            from_set=[claim_addr],
+            to_set=[comment_addr],
+            type_="resolution.edit",
+        )
+
+    if action == "reject":
+        if not rationale:
+            raise ValueError("reject requires rationale text")
+        target_dir = Path(RATIONALE_DIR) / asn_label
+        target_dir.mkdir(parents=True, exist_ok=True)
+        rationale_path = target_dir / f"{comment_addr}.md"
+        rationale_path.write_text(rationale + "\n")
+        rationale_rel = str(
+            rationale_path.resolve().relative_to(store.lattice_dir.resolve())
+        )
+        rationale_addr = store.register_path(rationale_rel)
+        return store.make_link(
+            homedoc=claim_addr,
+            from_set=[claim_addr],
+            to_set=[comment_addr, rationale_addr],
+            type_="resolution.reject",
+        )
+
+    raise ValueError(f"unknown action: {action!r}")
+
+
+# ============================================================
 #  Agent attribution
 # ============================================================
 
