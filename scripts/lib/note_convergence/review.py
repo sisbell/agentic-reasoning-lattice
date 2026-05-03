@@ -30,8 +30,8 @@ from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANI
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.store.emit import emit_note_findings, emit_review
-from lib.store.store import default_store
+from lib.backend.emit import emit_note_findings, emit_review
+from lib.backend.store import default_store
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
@@ -206,9 +206,13 @@ def commit_note_review(store, asn_path, asn_label, text):
 
     findings = extract_note_findings(text)
     review_stem = f"review-{next_num}"
-    emit_review(store, output_path)
+    output_rel = str(output_path.resolve().relative_to(store.lattice_dir.resolve()))
+    output_addr = store.register_path(output_rel)
+    asn_rel = str(asn_path.resolve().relative_to(store.lattice_dir.resolve()))
+    asn_addr = store.register_path(asn_rel)
+    emit_review(store, output_addr)
     emit_note_findings(
-        store, asn_path, output_path, findings,
+        store, asn_addr, output_addr, findings,
         asn_label=asn_label, review_stem=review_stem,
         findings_dir=NOTE_FINDINGS_DIR,
     )
@@ -343,8 +347,9 @@ def main():
         print("  No review produced", file=sys.stderr)
         sys.exit(1)
 
-    with default_store() as store:
-        output_path, findings = commit_note_review(store, asn_path, asn_label, text)
+    from lib.shared.paths import LATTICE
+    store = default_store(LATTICE)
+    output_path, findings = commit_note_review(store, asn_path, asn_label, text)
 
     if findings:
         revise_count = sum(1 for _, c, _ in findings if c == "REVISE")

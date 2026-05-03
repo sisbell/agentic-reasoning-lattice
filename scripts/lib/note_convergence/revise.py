@@ -27,8 +27,8 @@ from lib.shared.paths import WORKSPACE, LATTICE, VOCABULARY, REVIEWS_DIR, USAGE_
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.store.queries import unresolved_revise_comments
-from lib.store.store import default_store
+from lib.backend.predicates import unresolved_revise_comments
+from lib.backend.store import default_store
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"
@@ -183,17 +183,23 @@ def log_usage(asn_label, elapsed, data):
 
 
 def collect_open_revises(store, note_rel):
-    """Return list of (comment_id, title, body) for unresolved revise comments
+    """Return list of (comment_addr, title, body) for unresolved revise comments
     on the note.
 
     Reads each comment's source finding doc to get the finding text. Title
     is the first non-blank line of the body, stripped of `### ` if present.
     """
     items = []
-    for c in unresolved_revise_comments(store, note_rel):
-        if not c["from_set"]:
+    note_addr = store.path_to_addr.get(note_rel)
+    if note_addr is None:
+        return items
+    for c in unresolved_revise_comments(store.state, note_addr):
+        if not c.from_set:
             continue
-        finding_rel = c["from_set"][0]
+        finding_addr = c.from_set[0]
+        finding_rel = store.path_for_addr(finding_addr)
+        if not finding_rel:
+            continue
         finding_full = LATTICE / finding_rel
         if not finding_full.exists():
             print(f"  [SKIP] finding doc missing: {finding_rel}",
@@ -202,7 +208,7 @@ def collect_open_revises(store, note_rel):
         body = finding_full.read_text().strip()
         first_line = body.splitlines()[0] if body else ""
         title = re.sub(r"^#+\s*", "", first_line).strip() or "(untitled)"
-        items.append((c["id"], title, body))
+        items.append((c.addr, title, body))
     return items
 
 
@@ -254,8 +260,8 @@ def main():
 
     note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
 
-    with default_store() as store:
-        findings = collect_open_revises(store, note_rel)
+    store = default_store(LATTICE)
+    findings = collect_open_revises(store, note_rel)
 
     if not findings:
         print(f"  [CONVERGED] No open revise comments on {asn_label}",
@@ -287,8 +293,8 @@ def main():
         sys.exit(1)
     log_usage(asn_label, elapsed, data)
 
-    with default_store() as store:
-        remaining = collect_open_revises(store, note_rel)
+    store = default_store(LATTICE)
+    remaining = collect_open_revises(store, note_rel)
 
     closed_count = len(findings) - len(remaining)
     print(f"  [CLOSED] {closed_count}/{len(findings)} comment(s) "

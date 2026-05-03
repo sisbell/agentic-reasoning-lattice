@@ -113,18 +113,23 @@ def derive_names(base_title, base_num):
 def compute_depends(base_num):
     """Compute depends list: base's own deps (from substrate) + base itself."""
     import re
-    from lib.store.queries import active_links
-    from lib.store.store import Store
+    from lib.backend.predicates import active_links
+    from lib.backend.store import Store
     base_inq = inquiry_doc_path(base_num)
     base_rel = str(base_inq.resolve().relative_to(LATTICE.resolve()))
     deps = {base_num}
-    with Store() as store:
-        for link in active_links(store, "citation.depends", from_set=[base_rel]):
-            if not link["to_set"]:
-                continue
-            m = re.search(r"ASN-(\d+)", link["to_set"][0])
-            if m:
-                deps.add(int(m.group(1)))
+    store = Store(LATTICE)
+    if base_rel in store.path_to_addr:
+        base_addr = store.path_to_addr[base_rel]
+        for link in active_links(store.state, "citation.depends",
+                                 from_set=[base_addr]):
+            for cited_addr in link.to_set:
+                cited_path = store.path_for_addr(cited_addr)
+                if cited_path is None:
+                    continue
+                m = re.search(r"ASN-(\d+)", cited_path)
+                if m:
+                    deps.add(int(m.group(1)))
     return sorted(deps)
 
 

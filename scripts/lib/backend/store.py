@@ -1,5 +1,10 @@
 """Substrate Store — lattice-bound facade over State + JSONL persistence.
 
+Plus the agent-attribution helpers (`default_store`, `agent_context`,
+`attributed_to`) ported from `lib.store.store`. Orchestrators set
+`XANADU_AGENT_DOC` to bind a process to an agent identity; `default_store`
+returns an `AgentStore` that auto-emits `manages` for every link.
+
 The legacy `scripts/lib/store/store.py::Store` is path-keyed and
 manages a JSONL log + SQLite index. This Store is the tumbler-keyed
 equivalent: same semantic role (the substrate's IO boundary) but
@@ -22,7 +27,10 @@ This Store is intentionally simpler than the legacy:
 
 from __future__ import annotations
 
+import contextlib
+import functools
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
@@ -95,6 +103,12 @@ class Store:
         # which addresses are docs vs links, but we know docs have
         # zeros=2 and links have zeros=3.
         self._reattach_doc_owners()
+
+    def __enter__(self) -> "Store":
+        return self
+
+    def __exit__(self, *args) -> None:
+        return None
 
     @property
     def lattice_doc(self) -> Address:
@@ -276,3 +290,66 @@ class Store:
         }
         with open(self.jsonl_path, "a") as f:
             f.write(json.dumps(record, sort_keys=True) + "\n")
+
+
+# ============================================================
+#  Agent-attribution context
+# ============================================================
+
+AGENT_DOC_ENV_VAR = "XANADU_AGENT_DOC"
+
+
+def default_store(lattice_dir: str | Path):
+    """Return a Store, wrapped in AgentStore if XANADU_AGENT_DOC is set.
+
+    Mirrors lib.store.store.default_store(): orchestrators set the env
+    var so subprocess tools that emit substrate links inherit the agent
+    identity and attribute every operation back to it. Standalone runs
+    (no env var) get a plain Store.
+
+    `lattice_dir` is the lattice root (e.g., LATTICE).
+    """
+    store = Store(lattice_dir)
+    agent_doc_path = os.environ.get(AGENT_DOC_ENV_VAR)
+    if not agent_doc_path:
+        return store
+    # Translate the agent doc's filesystem path to its tumbler. The
+    # env var holds a lattice-relative path string; if not yet in the
+    # path map, register it.
+    from .agent_store import AgentStore
+    agent_addr = store.register_path(agent_doc_path)
+    return AgentStore(store, agent_addr)
+
+
+@contextlib.contextmanager
+def agent_context(agent_doc_path: str):
+    """Bind XANADU_AGENT_DOC for the duration of the block.
+
+    `agent_doc_path` is a lattice-relative filesystem path. Restores
+    any prior value on exit so nested orchestrators inherit cleanly.
+    """
+    prior = os.environ.get(AGENT_DOC_ENV_VAR)
+    os.environ[AGENT_DOC_ENV_VAR] = agent_doc_path
+    try:
+        yield
+    finally:
+        if prior is None:
+            os.environ.pop(AGENT_DOC_ENV_VAR, None)
+        else:
+            os.environ[AGENT_DOC_ENV_VAR] = prior
+
+
+def attributed_to(role: str):
+    """Decorator: wrap an orchestrator entrypoint so its body runs inside
+    `agent_context(agent_doc_path(role))`. Imports `agent_doc_path` from
+    `lib.shared.paths` lazily to avoid circular imports.
+    """
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            from lib.shared.paths import agent_doc_path
+            agent_doc = str(agent_doc_path(role))
+            with agent_context(agent_doc):
+                return fn(*args, **kwargs)
+        return wrapper
+    return decorator

@@ -26,8 +26,8 @@ from lib.note_convergence.review import (
 from lib.note_convergence.revise import (
     collect_open_revises, log_usage, run_revise_pass,
 )
-from lib.store.queries import is_doc_converged
-from lib.store.store import default_store
+from lib.backend.predicates import is_doc_converged
+from lib.backend.store import default_store
 
 
 def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
@@ -55,7 +55,7 @@ def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
 
         # RetryOpenRevises (§6.3): re-feed any unresolved comments from
         # prior cycles or invocations to the reviser before the new review.
-        with default_store() as store:
+        with default_store(LATTICE) as store:
             open_findings = collect_open_revises(store, note_rel)
         if open_findings and not dry_run:
             print(f"  [RETRY] {len(open_findings)} unresolved comment(s) "
@@ -78,7 +78,7 @@ def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
             break
 
         # EmitFindings (§6.5)
-        with default_store() as store:
+        with default_store(LATTICE) as store:
             review_path, findings = commit_note_review(
                 store, asn_path, asn_label, text,
             )
@@ -98,7 +98,7 @@ def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
 
         # Revise (§6.6)
         if revise_findings:
-            with default_store() as store:
+            with default_store(LATTICE) as store:
                 cycle_findings = collect_open_revises(store, note_rel)
             data, elapsed = run_revise_pass(
                 asn_path, asn_label, cycle_findings,
@@ -111,8 +111,8 @@ def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
         # Natural convergence: this cycle's review filed zero revises AND
         # the substrate predicate is true. The cycle's review is the
         # natural confirmation; no +1 needed.
-        with default_store() as store:
-            predicate_true = is_doc_converged(store, note_rel)
+        with default_store(LATTICE) as store:
+            predicate_true = is_doc_converged(store.state, store.path_to_addr.get(note_rel)) if note_rel in store.path_to_addr else True
         if last_cycle_revise_count == 0 and predicate_true:
             print(f"\n  [NOTE-CONVERGE] Natural convergence at cycle {cycle}",
                   file=sys.stderr)
@@ -122,7 +122,7 @@ def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
     confirmation_revise_count = 0
     if not failed and not dry_run and not naturally_converged:
         print(f"\n  ──── Confirmation review ────", file=sys.stderr)
-        with default_store() as store:
+        with default_store(LATTICE) as store:
             open_findings = collect_open_revises(store, note_rel)
         if open_findings:
             data, elapsed = run_revise_pass(
@@ -139,7 +139,7 @@ def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
             print(f"  [NOTE-CONVERGE] confirmation failed", file=sys.stderr)
             failed = True
         else:
-            with default_store() as store:
+            with default_store(LATTICE) as store:
                 review_path, findings = commit_note_review(
                     store, asn_path, asn_label, text,
                 )
@@ -161,8 +161,8 @@ def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
     elif dry_run:
         outcome = "converged" if last_cycle_revise_count == 0 else "not_converged"
     else:
-        with default_store() as store:
-            predicate_true = is_doc_converged(store, note_rel)
+        with default_store(LATTICE) as store:
+            predicate_true = is_doc_converged(store.state, store.path_to_addr.get(note_rel)) if note_rel in store.path_to_addr else True
         outcome = (
             "converged"
             if confirmation_revise_count == 0 and predicate_true
