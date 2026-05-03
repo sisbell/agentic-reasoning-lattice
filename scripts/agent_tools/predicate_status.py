@@ -13,11 +13,11 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from lib.note_convergence.revise import collect_open_revises
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+from backend.predicates import active_links, unresolved_revise_comments
+from backend.store import Store
 from lib.shared.common import find_asn
 from lib.shared.paths import LATTICE
-from lib.store.queries import active_links
-from lib.store.store import default_store
 
 
 def main():
@@ -31,12 +31,14 @@ def main():
         sys.exit(1)
 
     note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
-    with default_store() as store:
-        revises = active_links(store, "comment.revise", to_set=[note_rel])
-        open_items = collect_open_revises(store, note_rel)
-        open_count = len(open_items)
-        total_count = len(revises)
-        resolutions_count = total_count - open_count
+    store = Store(LATTICE)
+    note_addr = store.addr_for_path(note_rel)
+
+    revises = active_links(store.state, "comment.revise", to_set=[note_addr])
+    open_items = unresolved_revise_comments(store.state, note_addr)
+    open_count = len(open_items)
+    total_count = len(revises)
+    resolutions_count = total_count - open_count
 
     predicate = "true" if open_count == 0 else "false"
     print(

@@ -11,14 +11,16 @@ Usage:
 """
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from lib.note_convergence.revise import collect_open_revises
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+from backend.predicates import unresolved_revise_comments
+from backend.store import Store
 from lib.shared.common import find_asn
 from lib.shared.paths import LATTICE
-from lib.store.store import default_store
 
 
 def main():
@@ -32,11 +34,25 @@ def main():
         sys.exit(1)
 
     note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
-    with default_store() as store:
-        items = collect_open_revises(store, note_rel)
+    store = Store(LATTICE)
+    note_addr = store.addr_for_path(note_rel)
 
-    for comment_id, title, _body in items:
-        print(f"{comment_id}\t{title}")
+    for c in unresolved_revise_comments(store.state, note_addr):
+        if not c.from_set:
+            continue
+        finding_addr = c.from_set[0]
+        finding_rel = store.path_for_addr(finding_addr)
+        if not finding_rel:
+            continue
+        finding_full = LATTICE / finding_rel
+        if not finding_full.exists():
+            print(f"  [SKIP] finding doc missing: {finding_rel}",
+                  file=sys.stderr)
+            continue
+        body = finding_full.read_text().strip()
+        first_line = body.splitlines()[0] if body else ""
+        title = re.sub(r"^#+\s*", "", first_line).strip() or "(untitled)"
+        print(f"{c.addr}\t{title}")
 
 
 if __name__ == "__main__":
