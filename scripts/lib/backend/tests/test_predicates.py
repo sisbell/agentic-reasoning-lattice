@@ -22,17 +22,19 @@ from lib.backend.predicates import (
     has_description,
     has_label,
     has_name,
-    has_resolution,
     has_signature,
-    is_converged,
-    is_doc_converged,
     is_head_version,
     retracted_link_addrs,
-    unresolved_revise_comments,
     version_children,
     version_head,
 )
 from lib.backend.state import State
+from lib.claim_convergence.predicates import (
+    has_resolution,
+    is_converged,
+    is_doc_converged,
+    unresolved_revise_comments,
+)
 
 
 class ConvergencePredicateTests(unittest.TestCase):

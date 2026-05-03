@@ -30,7 +30,7 @@ from lib.backend.emit import (
     emit_synthesis,
 )
 from lib.backend.migrate import migrate
-from lib.backend.predicates import is_doc_converged
+from lib.claim_convergence.predicates import is_doc_converged
 from lib.backend.store import Store
 
 

@@ -9,7 +9,7 @@ from lib.shared.paths import LATTICE
 from lib.claim_convergence.full_review.review import extract_findings
 from lib.claim_convergence.full_review.revise import revise
 from lib.backend.addressing import Address
-from lib.backend.predicates import unresolved_revise_comments
+from lib.claim_convergence.predicates import unresolved_revise_comments
 from lib.backend.store import Store
 
 

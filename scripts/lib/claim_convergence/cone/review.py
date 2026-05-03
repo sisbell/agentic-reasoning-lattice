@@ -20,7 +20,8 @@ from lib.claim_convergence.finding_classifier import apply_classifier_verdict
 from lib.agent import attributed_to, default_store
 from lib.backend.emit import emit_findings, emit_meta
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.backend.predicates import is_claim_converged, active_links
+from lib.backend.predicates import active_links
+from lib.claim_convergence.predicates import is_claim_converged
 from lib.claim_convergence.sync import sync_claim_citations
 
 from .scope import assemble_cone, transitive_same_asn_deps
