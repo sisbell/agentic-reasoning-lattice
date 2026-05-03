@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import claim_doc_path, LATTICE
-from lib.agent import default_store
+from lib.febe.session import open_session
 from lib.backend.emit import emit_citation
 from lib.lattice.labels import build_doc_label_index
 
@@ -52,12 +52,13 @@ def main():
 
     claim_path = claim_doc_path(asn_label, args.from_label)
 
-    store = default_store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     label_index = build_doc_label_index(store, claim_path)
     if args.to not in label_index:
         print(f"error: unknown label {args.to!r}", file=sys.stderr)
         return 1
-    citing_addr = store.register_path(claim_path)
+    citing_addr = session.register_path(claim_path)
     cited_addr = label_index[args.to]
     link, created = emit_citation(
         store, citing_addr, cited_addr, direction=args.direction,

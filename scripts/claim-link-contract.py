@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import claim_doc_path, LATTICE
-from lib.agent import default_store
+from lib.febe.session import open_session
 from lib.backend.emit import emit_contract
 from lib.backend.schema import VALID_SUBTYPES
 
@@ -47,8 +47,9 @@ def main():
 
     claim_path = claim_doc_path(asn_label, args.label)
 
-    store = default_store(LATTICE)
-    claim_addr = store.register_path(claim_path)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
+    claim_addr = session.register_path(claim_path)
     try:
         link, created = emit_contract(store, claim_addr, args.kind)
     except ValueError as e:

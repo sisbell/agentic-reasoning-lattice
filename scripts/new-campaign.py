@@ -29,7 +29,7 @@ from lib.shared.paths import (
     campaign_dir, campaign_doc_path, campaign_vocab, load_channel_meta,
 )
 from lib.backend.emit import emit_campaign
-from lib.agent import default_store
+from lib.febe.session import open_session
 
 
 def main():
@@ -107,9 +107,10 @@ def main():
     doc_path.write_text(write_frontmatter(fm, body))
 
     from lib.shared.paths import LATTICE
-    store = default_store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     doc_rel = str(doc_path.resolve().relative_to(LATTICE.resolve()))
-    doc_addr = store.register_path(doc_rel)
+    doc_addr = session.register_path(doc_rel)
     emit_campaign(store, doc_addr)
 
     vocab_path = campaign_vocab(args.name)

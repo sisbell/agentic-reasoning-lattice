@@ -20,8 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, LATTICE
 from lib.lattice.labels import build_note_label_index
-from lib.backend.predicates import active_links
-from lib.backend.store import Store
+from lib.febe.session import open_session
 
 
 def asn_label(asn_arg):
@@ -29,18 +28,18 @@ def asn_label(asn_arg):
     return f"ASN-{n:04d}"
 
 
-def build_edges(store):
+def build_edges(session):
     """Return list of (from_label, to_label) edges between notes only.
 
     Filters citation links to those whose endpoints are both classified
     notes. Cross-stage citations (note → claim) are skipped here — they
     belong to a different traversal.
     """
-    note_index = build_note_label_index(store)  # {label: note_addr}
+    note_index = build_note_label_index(session.store)  # {label: note_addr}
     addr_to_label = {addr: label for label, addr in note_index.items()}
 
     edges = []
-    for link in active_links(store.state, "citation.depends"):
+    for link in session.active_links("citation.depends"):
         if not link.from_set or not link.to_set:
             continue
         src_label = addr_to_label.get(link.from_set[0])
@@ -50,9 +49,9 @@ def build_edges(store):
     return note_index, edges
 
 
-def cmd_focus(asn_label_str, depth, store):
+def cmd_focus(asn_label_str, depth, session):
     """Show ancestors and descendants of one note, up to `depth` hops."""
-    note_index, edges = build_edges(store)
+    note_index, edges = build_edges(session)
     if asn_label_str not in note_index:
         print(f"  {asn_label_str} not found in note classifier index",
               file=sys.stderr)
@@ -93,9 +92,9 @@ def _print_tree(label, adjacency, depth, indent, seen=None):
                         seen | {label})
 
 
-def cmd_all(store):
+def cmd_all(session):
     """Print every note→note citation edge."""
-    note_index, edges = build_edges(store)
+    note_index, edges = build_edges(session)
     print(f"# Note citation graph — {len(note_index)} notes, "
           f"{len(edges)} edges")
     print()
@@ -117,10 +116,10 @@ def main():
     if not args.all and not args.asn:
         parser.error("provide an ASN, or --all")
 
-    with Store(LATTICE) as store:
+    with open_session(LATTICE) as session:
         if args.all:
-            return cmd_all(store)
-        return cmd_focus(asn_label(args.asn), args.depth, store)
+            return cmd_all(session)
+        return cmd_focus(asn_label(args.asn), args.depth, session)
 
 
 if __name__ == "__main__":

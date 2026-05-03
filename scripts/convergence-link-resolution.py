@@ -35,7 +35,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import LATTICE
-from lib.agent import default_store
+from lib.febe.session import open_session
 from lib.backend.emit import emit_decision
 from lib.backend.addressing import Address
 
@@ -64,7 +64,8 @@ def main():
         print("error: PROTOCOL_ASN_LABEL env var not set", file=sys.stderr)
         return 1
 
-    store = default_store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     # Comment id is a tumbler-address string in the new substrate.
     try:
         comment_addr = Address(comment_id)
@@ -73,7 +74,7 @@ def main():
               file=sys.stderr)
         return 1
     try:
-        comment = store.state.links.get(comment_addr)
+        comment = session.get_link(comment_addr)
     except KeyError:
         print(f"error: comment {comment_id} not found in substrate",
               file=sys.stderr)

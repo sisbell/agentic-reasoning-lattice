@@ -29,7 +29,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import claim_doc_path, LATTICE
 from lib.backend.emit import emit_attribute
-from lib.agent import default_store
+from lib.febe.session import open_session
 
 
 def main():
@@ -67,7 +67,8 @@ def main():
     else:
         body = args.to
 
-    store = default_store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     try:
         link, created = emit_attribute(
             store, claim_path, "description", body,
