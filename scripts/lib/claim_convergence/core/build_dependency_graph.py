@@ -19,11 +19,11 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CLAIM_DIR, claim_statements, dep_graph
+from lib.shared.paths import LATTICE, WORKSPACE, CLAIM_DIR, claim_statements, dep_graph
 from lib.shared.common import find_asn, load_claim_metadata, build_label_index
-from lib.store.store import Store
-from lib.store.populate import build_cross_asn_label_index
-from lib.store.queries import current_contract_kind, active_links
+from lib.backend.store import Store
+from lib.backend.populate import build_cross_asn_label_index
+from lib.backend.predicates import current_contract_kind, active_links
 
 
 # ---------------------------------------------------------------------------
@@ -463,7 +463,7 @@ def _generate_deps_core(asn_num, prose_citations=False):
 
     # Read follows_from from substrate citation links (per-claim YAML's
     # depends field is no longer canonical).
-    store = Store()
+    store = Store(LATTICE)
     try:
         cross_index = build_cross_asn_label_index(store=store)
         rev_index = {p: l for l, p in cross_index.items()}

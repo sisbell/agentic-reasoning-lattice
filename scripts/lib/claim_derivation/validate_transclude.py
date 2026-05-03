@@ -25,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import CLAIM_DIR
 from lib.shared.common import find_asn
-from lib.store.attributes import ATTRIBUTE_SUFFIXES
+from lib.backend.schema import ATTRIBUTE_SUFFIXES
 
 
 def _is_claim_body(md_path):

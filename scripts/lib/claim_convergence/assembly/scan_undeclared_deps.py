@@ -24,11 +24,11 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, prompt_path, load_inquiry, claim_statements
+from lib.shared.paths import LATTICE, WORKSPACE, prompt_path, load_inquiry, claim_statements
 from lib.shared.common import find_asn, read_file, extract_claim_sections
-from lib.store.store import default_store
-from lib.store.cite import emit_citation
-from lib.store.populate import build_cross_asn_label_index
+from lib.backend.store import default_store
+from lib.backend.emit import emit_citation
+from lib.backend.populate import build_cross_asn_label_index
 
 PROMPT_TEMPLATE = prompt_path("claim-convergence/assembly/scan-dependency.md")
 
@@ -334,7 +334,7 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
         from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR
         claim_dir = CLAIM_DIR / asn_label
         if claim_dir.exists():
-            with default_store() as store:
+            with default_store(LATTICE) as store:
                 label_index = build_cross_asn_label_index(store=store)
                 for label, claim_data in deps.get("claims", {}).items():
                     md_path = label_index.get(label)

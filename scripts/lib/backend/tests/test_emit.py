@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.backend.addressing import Address
 from lib.backend.emit import (
     emit_attribute,
+    emit_attribute_link,
     emit_campaign,
     emit_citation,
     emit_claim,
@@ -107,11 +108,11 @@ class AttributeEmitTests(unittest.TestCase):
 
     def test_emit_attribute_invalid_kind(self):
         with self.assertRaises(ValueError):
-            emit_attribute(self.store, self.a, "not-real", self.sidecar)
+            emit_attribute_link(self.store, self.a, "not-real", self.sidecar)
 
     def test_label_description_signature(self):
         link_l, _ = emit_label(self.store, self.a, self.sidecar)
-        link_d, _ = emit_attribute(
+        link_d, _ = emit_attribute_link(
             self.store, self.a, "description", self.sidecar,
         )
         self.assertNotEqual(link_l.addr, link_d.addr)

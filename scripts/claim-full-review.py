@@ -42,11 +42,11 @@ from lib.shared.validate_gate import run_validate_gate
 from lib.claim_convergence.cone import (
     detect_dependency_cone, run_cone_review, _retry_unresolved_revises,
 )
-from lib.store.attributes import ATTRIBUTE_SUFFIXES
-from lib.store.store import attributed_to, default_store
-from lib.store.emit import emit_findings, emit_meta
-from lib.store.populate import build_cross_asn_label_index
-from lib.store.queries import is_asn_converged
+from lib.backend.schema import ATTRIBUTE_SUFFIXES
+from lib.backend.store import attributed_to, default_store
+from lib.backend.emit import emit_findings, emit_meta
+from lib.backend.populate import build_cross_asn_label_index
+from lib.backend.predicates import is_asn_converged
 
 
 @attributed_to("full-review")
@@ -78,7 +78,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     final_review_path = None
     verdict = "CONVERGED"
 
-    store = default_store()
+    store = default_store(LATTICE)
     label_index = build_cross_asn_label_index(store=store)
 
     asn_claim_md_paths = [

@@ -39,11 +39,11 @@ from lib.shared.common import (
     find_asn, build_label_index, read_file, invoke_claude,
     strip_code_fence, step_commit_asn,
 )
-from lib.store.store import Store, attributed_to
-from lib.store.populate import build_cross_asn_label_index
-from lib.store.queries import active_links
-from lib.store.attributes import emit_attribute
-from lib.store.notation import read_notation
+from lib.backend.store import Store, attributed_to
+from lib.backend.populate import build_cross_asn_label_index
+from lib.backend.predicates import active_links
+from lib.backend.emit import emit_attribute
+from lib.backend.notation import read_notation
 
 
 PROMPT_TEMPLATE = prompt_path("claim-convergence/signature-resolve.md")
@@ -298,7 +298,7 @@ def run_resolve(asn_num, claim_label, model="sonnet"):
     claim_md_content = claim_md_full.read_text()
     existing_signature = _claim_signature_text(claim_dir, claim_label)
 
-    store = Store()
+    store = Store(LATTICE)
     try:
         label_index = build_cross_asn_label_index(store=store)
         upstream_sigs = _transitive_dep_signatures(
@@ -343,7 +343,7 @@ def run_resolve(asn_num, claim_label, model="sonnet"):
 
     # If sidecar would be empty after removes, write empty (the sidecar
     # file is allowed to be empty; the substrate link stays).
-    store = Store()
+    store = Store(LATTICE)
     try:
         emit_attribute(store, claim_md_rel, "signature", new_sidecar_text.rstrip())
     finally:

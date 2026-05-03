@@ -24,10 +24,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.claim_convergence.cone import run_cone_sweep, run_cone_review
 from lib.shared.common import find_asn, build_label_index
-from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR
-from lib.store.store import Store
-from lib.store.populate import build_cross_asn_label_index
-from lib.store.queries import active_links
+from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR, LATTICE
+from lib.backend.store import Store
+from lib.backend.populate import build_cross_asn_label_index
+from lib.backend.predicates import active_links
 
 
 def main():
@@ -59,21 +59,18 @@ def main():
         if args.cone not in asn_labels:
             print(f"  Claim {args.cone} not found", file=sys.stderr)
             sys.exit(1)
-        store = Store()
-        try:
-            label_index = build_cross_asn_label_index(store=store)
-            apex_path = label_index.get(args.cone)
-            rev_index = {p: l for l, p in label_index.items()}
-            cites = active_links(
-                store, "citation.depends", from_set=[apex_path],
-            ) if apex_path else []
-            dep_labels = [
-                rev_index[link["to_set"][0]]
-                for link in cites
-                if link["to_set"] and rev_index.get(link["to_set"][0]) in asn_labels
-            ]
-        finally:
-            store.close()
+        store = Store(LATTICE)
+        label_index = build_cross_asn_label_index(store)
+        apex_addr = label_index.get(args.cone)
+        rev_index = {addr: lbl for lbl, addr in label_index.items()}
+        cites = active_links(
+            store.state, "citation.depends", from_set=[apex_addr],
+        ) if apex_addr else []
+        dep_labels = [
+            rev_index[link.to_set[0]]
+            for link in cites
+            if link.to_set and rev_index.get(link.to_set[0]) in asn_labels
+        ]
         result = run_cone_review(asn_num, args.cone, dep_labels,
                                       max_cycles=args.max_cycles,
                                       dry_run=args.dry_run, model=args.model)

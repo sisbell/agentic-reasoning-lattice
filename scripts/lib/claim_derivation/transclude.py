@@ -49,11 +49,11 @@ from lib.shared.paths import (
     WORKSPACE, LATTICE, CLAIM_DERIVATION_DIR, CLAIM_DIR,
 )
 from lib.shared.common import find_asn, step_commit_asn
-from lib.store.attributes import emit_attribute
-from lib.store.cite import emit_citation
-from lib.store.emit import emit_claim, emit_contract, emit_derivation
-from lib.store.populate import build_cross_asn_label_index
-from lib.store.store import default_store
+from lib.backend.emit import (
+    emit_attribute, emit_citation, emit_claim, emit_contract, emit_derivation,
+)
+from lib.backend.populate import build_cross_asn_label_index
+from lib.backend.store import default_store
 
 from .find_in_source import find_in_source
 
@@ -220,11 +220,20 @@ def transclude_asn(asn_num, dry_run=False):
         for c in claims_to_emit
     }
 
-    with default_store() as store:
-        cross_index = build_cross_asn_label_index(store=store)
-        # Local takes precedence — claims being created in this run
-        # supersede any prior substrate state for the same labels.
-        merged_index = {**cross_index, **local_index}
+    with default_store(LATTICE) as store:
+        # backend.populate.build_cross_asn_label_index returns
+        # {label: claim_doc_addr}. local_index uses path strings; build
+        # an addr-keyed merge by registering the new claim paths.
+        cross_index = build_cross_asn_label_index(store)
+        local_addr_index = {
+            label: store.register_path(rel)
+            for label, rel in local_index.items()
+        }
+        merged_index = {**cross_index, **local_addr_index}
+
+        # Translate asn_path (the source note) once for derivation.
+        asn_rel = str(asn_path.resolve().relative_to(lattice_root))
+        asn_addr = store.register_path(asn_rel)
 
         for c in claims_to_emit:
             stem = c["label"]
@@ -232,41 +241,37 @@ def transclude_asn(asn_num, dry_run=False):
             body_md.write_text(c["body_text"])
 
             # Sidecar files + content links (label, name, signature).
-            # description sidecar is summarize.py's responsibility.
             emit_attribute(store, body_md, "label", c["label"])
             emit_attribute(store, body_md, "name", c["name"] or c["label"])
 
-            # Signature sidecar — only when the claim introduces new
-            # non-logical symbols. Most claims don't; enrich returns
-            # an empty list, we skip.
             sig_md = _render_signature(c["signature"])
             if sig_md:
                 emit_attribute(store, body_md, "signature", sig_md)
 
-            # Classifier + contract links.
-            emit_claim(store, body_md)
+            # Classifier + contract — need the body's tumbler address.
+            body_rel = str(body_md.resolve().relative_to(lattice_root))
+            body_addr = store.register_path(body_rel)
+            emit_claim(store, body_addr)
             if c["type"]:
-                emit_contract(store, body_md, c["type"])
+                emit_contract(store, body_addr, c["type"])
 
             # Citation links from declared depends.
-            from_rel = str(body_md.resolve().relative_to(lattice_root))
             for dep_label in c["depends"]:
                 if dep_label not in merged_index:
                     print(f"    WARN {stem}: depends '{dep_label}' "
                           f"not in label index — citation skipped",
                           file=sys.stderr)
                     continue
-                try:
-                    emit_citation(store, from_rel, dep_label, merged_index)
-                except KeyError:
-                    pass  # already filtered above; defensive
+                emit_citation(store, body_addr, merged_index[dep_label])
 
             print(f"    {stem}.md", file=sys.stderr)
 
         # ── Phase C: provenance.derivation links per claim ───────────────
         for c in claims_to_emit:
             body_md = claims_dir / f"{c['label']}.md"
-            emit_derivation(store, asn_path, body_md)
+            body_rel = str(body_md.resolve().relative_to(lattice_root))
+            body_addr = store.register_path(body_rel)
+            emit_derivation(store, asn_addr, body_addr)
 
     # ── Phase D: structural sections → workspace ────────────────────────
     structural_count = 0

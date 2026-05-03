@@ -33,11 +33,11 @@ from lib.shared.common import (
     find_asn, build_label_index, read_file, invoke_claude,
     strip_code_fence, step_commit_asn,
 )
-from lib.store.store import Store, attributed_to
-from lib.store.populate import build_cross_asn_label_index
-from lib.store.queries import active_links
-from lib.store.cite import emit_citation
-from lib.store.retract import emit_retraction
+from lib.backend.store import Store, attributed_to
+from lib.backend.populate import build_cross_asn_label_index
+from lib.backend.predicates import active_links
+from lib.backend.emit import emit_citation
+from lib.backend.emit import emit_retraction
 
 
 PROMPT_TEMPLATE = prompt_path("claim-convergence/citation-resolve.md")
@@ -408,7 +408,7 @@ def run_classification(asn_num, claim_label, model="sonnet"):
 
     claim_md_content = claim_md_full.read_text()
 
-    store = Store()
+    store = Store(LATTICE)
     try:
         label_index = build_cross_asn_label_index(store=store)
         depends, forwards = _existing_classifications(
@@ -434,7 +434,7 @@ def run_classification(asn_num, claim_label, model="sonnet"):
         print(f"  [RESOLVE] {claim_label}: no changes", file=sys.stderr)
         return "ok"
 
-    store = Store()
+    store = Store(LATTICE)
     try:
         label_index = build_cross_asn_label_index(store=store)
         _validate_labels(classifications, retractions, label_index)
@@ -448,7 +448,7 @@ def run_classification(asn_num, claim_label, model="sonnet"):
     )
     resolve_rel = str(resolve_path.relative_to(LATTICE))
 
-    store = Store()
+    store = Store(LATTICE)
     try:
         label_index = build_cross_asn_label_index(store=store)
         _emit_substrate(
