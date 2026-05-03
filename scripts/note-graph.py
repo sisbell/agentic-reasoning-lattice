@@ -56,8 +56,6 @@ def cmd_focus(asn_label_str, depth, store):
     if asn_label_str not in note_index:
         print(f"  {asn_label_str} not found in note classifier index",
               file=sys.stderr)
-        print(f"  (run migration_tools/backfill-note-classifiers.py if missing)",
-              file=sys.stderr)
         return 1
 
     # Forward adjacency: deps (this → that)
