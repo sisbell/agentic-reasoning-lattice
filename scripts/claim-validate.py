@@ -34,7 +34,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.common import find_asn
 from lib.shared.paths import CLAIM_DIR, LATTICE
-from lib.backend.store import Store
+from lib.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import current_contract_kind, active_links
 from lib.backend.schema import VALID_SUBTYPES, VALID_ATTRIBUTE_KINDS as VALID_KINDS
@@ -616,7 +616,8 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
     omitted those checks are skipped.
     """
     if store is None:
-        store = Store(LATTICE)
+        session = open_session(LATTICE)
+        store = session.store
         label_index = build_cross_asn_label_index(store)
     elif label_index is None:
         label_index = build_cross_asn_label_index(store)

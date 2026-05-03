@@ -30,7 +30,7 @@ from lib.shared.common import invoke_claude_agent, find_asn
 from lib.shared.paths import LATTICE
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.emit import emit_retraction
-from lib.agent import default_store
+from lib.febe.session import open_session
 from lib.backend.predicates import active_links
 
 
@@ -193,7 +193,8 @@ def build_metadata_bundle(rule, filename, pairs, claim_dir):
     workspace = Path(WORKSPACE).resolve()
     lattice_root = Path(LATTICE).resolve()
 
-    with default_store(LATTICE) as store:
+    with open_session(LATTICE) as session:
+        store = session.store  # for emit_* helpers (Pass 2 will migrate)
         label_index = build_cross_asn_label_index(store)
 
         if rule in ("depends-agreement", "references-resolve"):
@@ -537,7 +538,8 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
             return declined
 
     if rule == "depends-agreement":
-        with default_store(LATTICE) as store:
+        with open_session(LATTICE) as session:
+            store = session.store  # for emit_* helpers (Pass 2 will migrate)
             label_index = build_cross_asn_label_index(store)
     else:
         label_index = None
@@ -639,7 +641,8 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
             # claim path is lattice-relative for the path map
             real_claim_path = str(real_path.resolve().relative_to(LATTICE.resolve()))
             try:
-                with default_store(LATTICE) as store:
+                with open_session(LATTICE) as session:
+                    store = session.store  # for emit_* helpers (Pass 2 will migrate)
                     retracted_count = apply_retract_decisions(
                         store, retract_decisions, real_claim_path, label_index,
                     )
