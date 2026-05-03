@@ -28,7 +28,7 @@ from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
 from lib.claim_convergence.predicates import unresolved_revise_comments
-from lib.agent import default_store
+from lib.febe.session import open_session
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"
@@ -182,7 +182,7 @@ def log_usage(asn_label, elapsed, data):
         pass
 
 
-def collect_open_revises(store, note_rel):
+def collect_open_revises(session, note_rel):
     """Return list of (comment_addr, title, body) for unresolved revise comments
     on the note.
 
@@ -190,14 +190,14 @@ def collect_open_revises(store, note_rel):
     is the first non-blank line of the body, stripped of `### ` if present.
     """
     items = []
-    note_addr = store.path_to_addr.get(note_rel)
+    note_addr = session.get_addr_for_path(note_rel)
     if note_addr is None:
         return items
-    for c in unresolved_revise_comments(store.state, note_addr):
+    for c in unresolved_revise_comments(session, note_addr):
         if not c.from_set:
             continue
         finding_addr = c.from_set[0]
-        finding_rel = store.path_for_addr(finding_addr)
+        finding_rel = session.get_path_for_addr(finding_addr)
         if not finding_rel:
             continue
         finding_full = LATTICE / finding_rel
@@ -260,8 +260,8 @@ def main():
 
     note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
 
-    store = default_store(LATTICE)
-    findings = collect_open_revises(store, note_rel)
+    session = open_session(LATTICE)
+    findings = collect_open_revises(session, note_rel)
 
     if not findings:
         print(f"  [CONVERGED] No open revise comments on {asn_label}",
@@ -293,8 +293,8 @@ def main():
         sys.exit(1)
     log_usage(asn_label, elapsed, data)
 
-    store = default_store(LATTICE)
-    remaining = collect_open_revises(store, note_rel)
+    session = open_session(LATTICE)
+    remaining = collect_open_revises(session, note_rel)
 
     closed_count = len(findings) - len(remaining)
     print(f"  [CLOSED] {closed_count}/{len(findings)} comment(s) "

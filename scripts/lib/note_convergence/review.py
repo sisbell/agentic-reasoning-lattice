@@ -31,7 +31,7 @@ from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
 from lib.backend.emit import emit_note_findings, emit_review
-from lib.agent import default_store
+from lib.febe.session import open_session
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
@@ -348,8 +348,8 @@ def main():
         sys.exit(1)
 
     from lib.shared.paths import LATTICE
-    store = default_store(LATTICE)
-    output_path, findings = commit_note_review(store, asn_path, asn_label, text)
+    session = open_session(LATTICE)
+    output_path, findings = commit_note_review(session.store, asn_path, asn_label, text)
 
     if findings:
         revise_count = sum(1 for _, c, _ in findings if c == "REVISE")
