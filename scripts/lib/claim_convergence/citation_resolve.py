@@ -33,7 +33,7 @@ from lib.shared.common import (
     find_asn, build_label_index, read_file, invoke_claude,
     strip_code_fence, step_commit_asn,
 )
-from lib.backend.store import Store
+from lib.febe.session import open_session
 from lib.agent import attributed_to
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import active_links
@@ -50,22 +50,22 @@ FORWARD_HEADER = "- *Forward References:*"
 # ---------------------------------------------------------------------------
 # Substrate queries
 
-def _existing_classifications(store, claim_md_rel, label_index):
+def _existing_classifications(session, claim_md_rel, label_index):
     """Return (depends_labels, forwards_labels) sourced from substrate.
 
     `label_index` is {label: claim_doc_addr} (lattice.labels format).
     """
     rev_index = {addr: label for label, addr in label_index.items()}
-    claim_addr = store.path_to_addr.get(claim_md_rel)
+    claim_addr = session.get_addr_for_path(claim_md_rel)
     if claim_addr is None:
         return [], []
     depends = []
     forwards = []
-    for link in active_links(store.state, "citation.depends", from_set=[claim_addr]):
+    for link in session.active_links("citation.depends", from_set=[claim_addr]):
         for cited in link.to_set:
             if cited in rev_index:
                 depends.append(rev_index[cited])
-    for link in active_links(store.state, "citation.forward", from_set=[claim_addr]):
+    for link in session.active_links("citation.forward", from_set=[claim_addr]):
         for cited in link.to_set:
             if cited in rev_index:
                 forwards.append(rev_index[cited])
@@ -437,10 +437,11 @@ def run_classification(asn_num, claim_label, model="sonnet"):
 
     claim_md_content = claim_md_full.read_text()
 
-    store = Store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     label_index = build_cross_asn_label_index(store)
     depends, forwards = _existing_classifications(
-        store, claim_md_rel, label_index,
+        session, claim_md_rel, label_index,
     )
 
     claim_dir = claim_md_full.parent
@@ -460,7 +461,8 @@ def run_classification(asn_num, claim_label, model="sonnet"):
         print(f"  [RESOLVE] {claim_label}: no changes", file=sys.stderr)
         return "ok"
 
-    store = Store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     label_index = build_cross_asn_label_index(store)
     _validate_labels(classifications, retractions, label_index)
 
@@ -471,7 +473,8 @@ def run_classification(asn_num, claim_label, model="sonnet"):
     )
     resolve_rel = str(resolve_path.relative_to(LATTICE))
 
-    store = Store(LATTICE)
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
     label_index = build_cross_asn_label_index(store)
     _emit_substrate(
         store, claim_md_rel, classifications, retractions,

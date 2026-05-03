@@ -8,8 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import CLAIM_DIR, CLAIM_REVIEWS_DIR, LATTICE
 from lib.shared.common import find_asn, build_label_index
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.backend.predicates import active_links
-from lib.backend.store import Store
+from lib.febe.session import open_session
 
 
 def detect_dependency_cone(
@@ -37,17 +36,17 @@ def detect_dependency_cone(
 
     reviews_prefix = str((CLAIM_REVIEWS_DIR / asn_label).relative_to(LATTICE))
 
-    store = Store(LATTICE)
-    cross_index = build_cross_asn_label_index(store)
+    session = open_session(LATTICE)
+    cross_index = build_cross_asn_label_index(session.store)
     addr_to_label = {addr: label for label, addr in cross_index.items()}
 
     # Reviews scoped to this ASN's review dir
     scoped_reviews = []
-    for r in store.find_links(type_="review"):
+    for r in session.find_links(type_="review"):
         if not r.to_set:
             continue
         target_addr = r.to_set[0]
-        target_path = store.path_for_addr(target_addr)
+        target_path = session.get_path_for_addr(target_addr)
         if target_path and target_path.startswith(reviews_prefix):
             scoped_reviews.append(r)
 
@@ -64,18 +63,18 @@ def detect_dependency_cone(
     recent_stems = set()
     for r in recent:
         target_addr = r.to_set[0]
-        target_path = store.path_for_addr(target_addr)
+        target_path = session.get_path_for_addr(target_addr)
         if target_path:
             stem = Path(target_path).stem
             if stem.startswith("review-"):
                 recent_stems.add(stem)
 
     revise_counts = {}
-    for link in active_links(store.state, "comment.revise"):
+    for link in session.active_links("comment.revise"):
         if not link.from_set or not link.to_set:
             continue
         src_addr = link.from_set[0]
-        src_path = store.path_for_addr(src_addr)
+        src_path = session.get_path_for_addr(src_addr)
         if src_path is None:
             continue
         src_parent = Path(src_path).parent.name
@@ -96,7 +95,7 @@ def detect_dependency_cone(
     apex_addr = cross_index.get(apex)
     if apex_addr is None:
         return None
-    cites = active_links(store.state, "citation.depends", from_set=[apex_addr])
+    cites = session.active_links("citation.depends", from_set=[apex_addr])
     dep_labels = [
         addr_to_label[link.to_set[0]]
         for link in cites

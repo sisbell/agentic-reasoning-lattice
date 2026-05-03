@@ -62,7 +62,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     apex_addr = label_index.get(apex_label)
     if apex_addr is not None:
         dep_labels = transitive_same_asn_deps(
-            session.state, apex_addr, asn_labels, rev_index,
+            session, apex_addr, asn_labels, rev_index,
         )
 
     print(f"\n  [REGIONAL-REVIEW] {apex_label} + {len(dep_labels)} deps",

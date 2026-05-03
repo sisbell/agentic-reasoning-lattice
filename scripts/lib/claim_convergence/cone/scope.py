@@ -8,8 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import CLAIM_DIR
 from lib.shared.common import build_label_index
 from lib.backend.addressing import Address
-from lib.backend.predicates import active_links
-from lib.backend.state import State
+from lib.febe.protocol import Session
 
 
 def assemble_cone(asn_label, apex_label, dep_labels):
@@ -34,7 +33,7 @@ def assemble_cone(asn_label, apex_label, dep_labels):
 
 
 def transitive_same_asn_deps(
-    state: State,
+    session: Session,
     apex_addr: Address,
     asn_labels: Set[str],
     rev_index: Dict[Address, str],
@@ -54,7 +53,7 @@ def transitive_same_asn_deps(
     deps: List[str] = []
     while queue:
         cur = queue.pop(0)
-        for link in active_links(state, "citation.depends", from_set=[cur]):
+        for link in session.active_links("citation.depends", from_set=[cur]):
             for target in link.to_set:
                 if target in visited:
                     continue
