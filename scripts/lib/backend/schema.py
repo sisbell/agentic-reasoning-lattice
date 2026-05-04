@@ -21,6 +21,9 @@ VALID_TYPES = frozenset({
     "agent", "manages",
     # Lattice membership relation (added in spec-faithful refactor)
     "lattice",
+    # View — virtual doc whose content is rendered live from substrate
+    # state (no on-disk file). Always carries a sub-kind.
+    "view",
 })
 
 VALID_SUBTYPES = {
@@ -45,10 +48,15 @@ VALID_SUBTYPES = {
                      # is_claim_confirmed and future coverage / staleness
                      # predicates.
     }),
+    "view": frozenset({
+        "claim-statements",  # per-ASN assembled view of derived claims
+                             # + their descriptions; rendered live from
+                             # substrate state.
+    }),
 }
 
 # Types that must always carry a subtype — bare parent writes are invalid.
-REQUIRES_SUBTYPE = frozenset({"citation"})
+REQUIRES_SUBTYPE = frozenset({"citation", "view"})
 
 # File suffixes for attribute sidecars (used by file-walking helpers
 # that distinguish claim body markdown from sidecars).

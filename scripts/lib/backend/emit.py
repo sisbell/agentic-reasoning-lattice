@@ -113,6 +113,22 @@ def emit_finding(store: Store, finding_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, finding_doc, "finding")
 
 
+def emit_view(
+    store: Store, view_doc: Address, kind: str,
+) -> Tuple[Link, bool]:
+    """File a `view.<kind>` classifier on a virtual doc.
+
+    Marks the doc as rendered-on-read; the kind selects which renderer
+    (registered via lib/lattice/render.py) supplies content.
+    """
+    valid = VALID_SUBTYPES["view"]
+    if kind not in valid:
+        raise ValueError(
+            f"invalid view kind {kind!r}; must be one of {sorted(valid)}"
+        )
+    return emit_classifier(store, view_doc, f"view.{kind}")
+
+
 def emit_consultation_questions(
     store: Store, doc: Address,
 ) -> Tuple[Link, bool]:
