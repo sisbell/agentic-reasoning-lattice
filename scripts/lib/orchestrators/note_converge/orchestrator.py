@@ -38,7 +38,7 @@ from lib.agents.note_revise import run_revise_pass
 from lib.backend.emit import emit_review
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
-from lib.note_convergence.findings import emit_note_findings
+from lib.lattice.findings import record_one_finding
 from lib.predicates import is_doc_converged, unresolved_revise_comments
 from lib.shared.common import find_asn, step_commit_asn
 from lib.shared.paths import (
@@ -114,11 +114,24 @@ def commit_note_review(
     output_addr = session.register_path(output_rel)
     asn_addr = session.register_path(asn_rel)
     emit_review(session.store, output_addr)
-    emit_note_findings(
-        session, asn_addr, output_addr, findings,
-        asn_label=asn_label, review_stem=review_stem,
-        findings_dir=NOTE_FINDINGS_DIR,
-    )
+
+    findings_root = NOTE_FINDINGS_DIR / asn_label / review_stem
+    for n, (_title, cls, body) in enumerate(findings):
+        finding_rel = str(
+            (findings_root / f"{n}.md").resolve().relative_to(lattice_root)
+        )
+        cls_normalized = (cls or "REVISE").upper()
+        comment_kind = (
+            "out-of-scope" if cls_normalized == "OUT_OF_SCOPE" else "revise"
+        )
+        record_one_finding(
+            session,
+            finding_path_rel=finding_rel,
+            body=body,
+            target_addr=asn_addr,
+            review_addr=output_addr,
+            comment_kind=comment_kind,
+        )
     return output_path, findings
 
 

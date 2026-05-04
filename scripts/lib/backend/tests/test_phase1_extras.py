@@ -21,7 +21,7 @@ from lib.lattice.labels import (
 )
 from lib.backend.predicates import active_links
 from lib.backend.store import Store
-from lib.claim_convergence.sync import sync_claim_citations
+from lib.orchestrators.cone_review.sync import sync_claim_citations
 
 
 def _seed_lattice_with_substrate(

@@ -201,8 +201,8 @@ def dangling_claim_finding_links(session: Session) -> list:
 # ============================================================
 
 # Comment subtypes the note-layer reconciliation predicates check.
-# emit_note_findings maps OUT_OF_SCOPE classifications to
-# comment.out-of-scope.
+# record_findings (note-convergence) maps OUT_OF_SCOPE classifications
+# to comment.out-of-scope.
 _NOTE_FINDING_COMMENT_KINDS = (
     "comment.revise",
     "comment.observe",

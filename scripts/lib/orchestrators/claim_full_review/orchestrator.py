@@ -27,7 +27,7 @@ from lib.agents.claim_revise import revise
 from lib.backend.schema import ATTRIBUTE_SUFFIXES
 from lib.orchestrators.retry import _retry_unresolved_revises
 from .cone_detect import detect_dependency_cone
-from lib.claim_convergence.findings import emit_findings, emit_meta
+from lib.claim_convergence.findings import emit_meta, record_findings
 from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.orchestrators.cone_review import run_cone_review
@@ -147,7 +147,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         review_addr = (
             review_link.to_set[0] if review_link.to_set else None
         )
-        emitted_findings = emit_findings(
+        emitted_findings = record_findings(
             session, review_addr, findings,
             asn_label, review_stem, label_index,
             findings_dir=CLAIM_FINDINGS_DIR,
@@ -301,7 +301,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                     confirm_review_link.to_set[0]
                     if confirm_review_link.to_set else None
                 )
-                emitted_findings = emit_findings(
+                emitted_findings = record_findings(
                     session, confirm_review_addr, confirm_findings,
                     asn_label, review_stem, label_index,
                     findings_dir=CLAIM_FINDINGS_DIR,

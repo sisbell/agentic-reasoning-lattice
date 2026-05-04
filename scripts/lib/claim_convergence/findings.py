@@ -1,25 +1,15 @@
-"""Claim-convergence finding helpers — review meta doc + per-finding docs.
-
-Pass 2 split these from `lib/backend/emit.py` where they bundled
-filesystem writes with substrate link emissions. Now the document
-write and the link emission are visibly separate calls.
+"""Claim-convergence finding recording — review meta doc + per-finding docs.
 
 Two helpers:
 
 - `emit_meta(session, ...)` — writes the aggregate review document
-  (<reviews_dir>/<asn>/review-N.md) and emits the `review`
-  classifier on it.
-- `emit_findings(session, ...)` — for each finding, writes a per-
-  finding document and emits the substrate facts (finding
-  classifier, comment.{revise|observe} link, provenance.derivation).
+  (<reviews_dir>/<asn>/review-N.md) and emits the `review` classifier
+  on it.
+- `record_findings(session, ...)` — for each finding, parses the
+  target claim from the body, then delegates the doc-write + substrate
+  emissions to record_one_finding.
 
-Both follow the Pass 2 pattern:
-  1. session.update_document(path, body)  — FEBE doc write
-  2. session.make_link(...) / emit_*(...) — substrate link
-
-Atomicity story: operations are not transactional; partial failure
-recoverable via reconciliation. See
-docs/hypergraph-protocol/error-handling.md.
+Atomicity story: see lib/lattice/findings.py.
 """
 
 from __future__ import annotations
@@ -29,10 +19,9 @@ from pathlib import Path
 from typing import Optional
 
 from lib.backend.addressing import Address
-from lib.backend.emit import (
-    emit_comment, emit_derivation, emit_finding, emit_review,
-)
+from lib.backend.emit import emit_review
 from lib.backend.links import Link
+from lib.lattice.findings import record_one_finding
 from lib.protocols.febe.protocol import Session
 
 
@@ -55,7 +44,7 @@ def emit_meta(
     Path: <reviews_dir>/<asn_label>/review-<N>.md.
 
     The aggregate is the reviewer's full output; per-finding bodies
-    live separately (written by emit_findings).
+    live separately (written by record_findings).
     """
     reviews_root = Path(reviews_dir)
     review_stem = f"review-{review_num}"
@@ -84,16 +73,13 @@ def emit_meta(
     lattice_root = session.store.lattice_dir.resolve()
     meta_rel = str(meta_path.resolve().relative_to(lattice_root))
 
-    # 1. Document write
     session.update_document(meta_rel, body)
-
-    # 2. Substrate link emission
     meta_addr = session.register_path(meta_rel)
     link, _ = emit_review(session.store, meta_addr)
     return link
 
 
-def emit_findings(
+def record_findings(
     session: Session,
     review_addr: Address,
     findings: list,
@@ -104,17 +90,14 @@ def emit_findings(
 ):
     """Materialize per-finding docs and emit their substrate facts.
 
-    `findings` is a list of (title, cls, body). For each:
-      1. Resolve target claim via body's `**ASN**: <label>` (or
-         `**Foundation**:` fallback).
-      2. session.update_document(<findings_dir>/<asn>/<review_stem>/<n>.md)
-      3. emit_finding classifier; emit comment.{revise|observe} link;
-         emit provenance.derivation from review to finding.
+    `findings` is a list of (title, cls, body). For each finding, parses
+    the target claim label out of the body (`**ASN**: <label>` or
+    `**Foundation**: <label>`), maps cls (REVISE | OBSERVE) to a
+    comment kind, and delegates to record_one_finding.
 
-    label_index: {label_string: claim_doc_addr}
+    label_index: {label_string: claim_doc_addr}.
     """
-    findings_root = Path(findings_dir)
-    out_dir = findings_root / asn_label / review_stem
+    out_dir = Path(findings_dir) / asn_label / review_stem
     lattice_root = session.store.lattice_dir.resolve()
 
     results = []
@@ -130,25 +113,22 @@ def emit_findings(
             continue
         claim_addr = label_index[target_label]
 
-        finding_path = out_dir / f"{n}.md"
-        finding_rel = str(finding_path.resolve().relative_to(lattice_root))
-
-        # 1. Document write
-        session.update_document(finding_rel, body)
-
-        # 2. Substrate facts
-        finding_addr = session.register_path(finding_rel)
-        emit_finding(session.store, finding_addr)
+        finding_rel = str(
+            (out_dir / f"{n}.md").resolve().relative_to(lattice_root)
+        )
 
         cls_normalized = cls.upper() if cls else "REVISE"
         if cls_normalized not in {"REVISE", "OBSERVE"}:
             cls_normalized = "REVISE"
-        comment = emit_comment(
-            session.store, finding_addr, claim_addr,
-            kind=cls_normalized.lower(),
-        )
 
-        emit_derivation(session.store, review_addr, finding_addr)
+        _, comment = record_one_finding(
+            session,
+            finding_path_rel=finding_rel,
+            body=body,
+            target_addr=claim_addr,
+            review_addr=review_addr,
+            comment_kind=cls_normalized.lower(),
+        )
 
         results.append({
             "title": title,
