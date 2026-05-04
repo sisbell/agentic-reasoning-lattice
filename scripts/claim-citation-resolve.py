@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.claim_convergence.citation_resolve import (
+from lib.orchestrators.citation_resolve import (
     run_classification, run_sweep,
 )
 
