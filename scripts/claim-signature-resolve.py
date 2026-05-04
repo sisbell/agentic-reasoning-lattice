@@ -24,7 +24,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.claim_convergence.signature_resolve import run_resolve, run_sweep
+from lib.orchestrators.signature_resolve import run_resolve, run_sweep
 
 
 def main():
