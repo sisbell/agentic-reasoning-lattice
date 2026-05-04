@@ -1,23 +1,35 @@
-"""Cone sweep — bottom-up DAG walk reviewing every qualifying cone."""
+"""Cone-sweep orchestrator — bottom-up DAG walk reviewing every qualifying cone.
+
+Walks the dependency DAG bottom-up, running focused regional reviews
+on claims with >= min_deps same-ASN dependencies. Process in
+topological order (foundations first) so each cone's dependencies are
+stable when it runs. Resumable via progress.json.
+"""
+
+from __future__ import annotations
 
 import sys
 import time
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import CLAIM_DIR, LATTICE
-from lib.shared.common import find_asn, build_label_index
-from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
+from lib.claim_convergence.core.build_dependency_graph import (
+    generate_claim_convergence_deps,
+)
 from lib.claim_convergence.core.topological_sort import topological_levels
-from lib.lattice.labels import build_cross_asn_label_index
-from lib.predicates import is_claim_converged
+from lib.claim_convergence.sweep_progress import (
+    clear_progress, read_progress, write_progress,
+)
 from lib.febe.session import open_session
+from lib.lattice.labels import build_cross_asn_label_index
+from lib.orchestrators.cone_review import run_cone_review
+from lib.predicates import is_claim_converged
+from lib.shared.common import build_label_index, find_asn
+from lib.shared.paths import CLAIM_DIR, LATTICE
 
-from .review import run_cone_review
 
-
-def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
-                   model="sonnet", all_mode=False):
+def run_cone_sweep(
+    asn_num, min_deps=4, max_cycles=8, dry_run=False,
+    model="sonnet", all_mode=False,
+):
     """Proactive cone-scope sweep — bottom-up DAG walk.
 
     For each claim with >= min_deps same-ASN dependencies, run a cone
@@ -34,7 +46,10 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
 
     claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
+        print(
+            f"  No claim-convergence directory for {asn_label}",
+            file=sys.stderr,
+        )
         return "failed"
 
     deps_data = generate_claim_convergence_deps(asn_num)
@@ -45,9 +60,6 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
     levels = topological_levels(deps_data)
     asn_labels = set(build_label_index(claim_dir).keys())
 
-    from lib.claim_convergence.sweep_progress import (
-        read_progress, write_progress, clear_progress,
-    )
     if all_mode:
         clear_progress(asn_label)
         completed = set()
@@ -55,12 +67,17 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
         saved = read_progress(asn_label)
         completed = set(saved.get("completed", [])) if saved else set()
         if completed:
-            print(f"\n  [REGIONAL-SWEEP] resuming — {len(completed)} "
-                  f"apex(es) already done in this sweep", file=sys.stderr)
+            print(
+                f"\n  [REGIONAL-SWEEP] resuming — {len(completed)} "
+                f"apex(es) already done in this sweep",
+                file=sys.stderr,
+            )
 
-    print(f"\n  [REGIONAL-SWEEP] {asn_label} — {len(asn_labels)} claims, "
-          f"min_deps={min_deps}{'  --all' if all_mode else ''}",
-          file=sys.stderr)
+    print(
+        f"\n  [REGIONAL-SWEEP] {asn_label} — {len(asn_labels)} claims, "
+        f"min_deps={min_deps}{'  --all' if all_mode else ''}",
+        file=sys.stderr,
+    )
 
     start_time = time.time()
     cones_reviewed = 0
@@ -95,39 +112,55 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
                 cones_reviewed += 1
                 result = run_cone_review(
                     asn_num, label, same_deps,
-                    max_cycles=max_cycles, dry_run=dry_run, model=model)
+                    max_cycles=max_cycles, dry_run=dry_run, model=model,
+                )
                 if result != "converged":
                     any_not_converged = True
             elif is_claim_converged(session, from_addr):
-                print(f"  [REGIONAL-SWEEP] {label}: predicate True, skipping",
-                      file=sys.stderr)
+                print(
+                    f"  [REGIONAL-SWEEP] {label}: predicate True, skipping",
+                    file=sys.stderr,
+                )
                 cones_skipped += 1
             else:
                 cones_reviewed += 1
                 result = run_cone_review(
                     asn_num, label, same_deps,
-                    max_cycles=max_cycles, dry_run=dry_run, model=model)
+                    max_cycles=max_cycles, dry_run=dry_run, model=model,
+                )
                 if result != "converged":
                     any_not_converged = True
 
             # Re-load session since run_cone_review may have appended
             # links to the JSONL while running.
             session = open_session(LATTICE)
-            from_addr = session.store.path_to_addr.get(
-                session.get_path_for_addr(from_addr) or "", from_addr,
-            ) if from_addr else None
-            if from_addr is not None and is_claim_converged(session, from_addr):
+            from_addr = (
+                session.store.path_to_addr.get(
+                    session.get_path_for_addr(from_addr) or "",
+                    from_addr,
+                ) if from_addr else None
+            )
+            if (
+                from_addr is not None
+                and is_claim_converged(session, from_addr)
+            ):
                 completed.add(label)
-                write_progress(asn_label, {"completed": sorted(completed)})
+                write_progress(
+                    asn_label, {"completed": sorted(completed)},
+                )
 
     elapsed = time.time() - start_time
     if cones_reviewed == 0 and cones_skipped == 0:
-        print(f"\n  [REGIONAL-SWEEP] No claims with >= {min_deps} same-ASN deps.",
-              file=sys.stderr)
+        print(
+            f"\n  [REGIONAL-SWEEP] No claims with >= {min_deps} "
+            f"same-ASN deps.", file=sys.stderr,
+        )
     else:
-        print(f"\n  [REGIONAL-SWEEP] {cones_reviewed} reviewed, "
-              f"{cones_skipped} skipped, in {elapsed:.0f}s",
-              file=sys.stderr)
+        print(
+            f"\n  [REGIONAL-SWEEP] {cones_reviewed} reviewed, "
+            f"{cones_skipped} skipped, in {elapsed:.0f}s",
+            file=sys.stderr,
+        )
 
     if not dry_run:
         clear_progress(asn_label)

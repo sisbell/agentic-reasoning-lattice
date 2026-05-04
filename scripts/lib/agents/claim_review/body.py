@@ -1,52 +1,73 @@
-"""
-Full Review step — whole-ASN deep structural analysis.
+"""Claim-review agent body.
 
-Reads the entire ASN + foundation and finds issues that per-claim
-pipelines can't catch: carrier-set conflation, precondition chain gaps,
-arguments that assume what they prove, missing cases.
+One LLM invocation: assemble prompt (template + ASN content +
+foundation + previous findings + depends list), call Opus, parse
+verdict. Same agent invoked from both whole-ASN reviews and
+regional cone reviews — `foundation_labels` selects narrowed
+loading vs full loading.
 
-Step functions for the orchestrator (scripts/claim-full-review.py):
-- run_review: run Opus deep review, return (verdict, text, elapsed)
-- extract_findings: parse findings into (title, cls, text) tuples
-- filter_revise: narrow findings to REVISE-class only
-- cycle_verdict, findings_summary: format meta fields for emit_meta
+Public:
+- `run_review(asn_num, asn_content, asn_label, previous_findings,
+   *, model, foundation_labels) -> (verdict, text, elapsed)`
+- `extract_findings(text)` — parse `### `-prefixed sections into
+   (title, cls, body) tuples
+- `filter_revise(findings)` — keep REVISE-class only
+- `cycle_verdict(reviewer_verdict, revise_count)` — reconcile
+   reviewer's VERDICT line with actual filed revises
+- `findings_summary(findings, revise_count)` — one-line summary
+- `parse_verdict(text)` — extract the VERDICT line
 """
+
+from __future__ import annotations
 
 import re
 import sys
-from pathlib import Path
+from typing import Optional, Tuple
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import prompt_path
-from lib.shared.common import read_file, invoke_claude
+from lib.shared.common import invoke_claude, read_file
 from lib.shared.foundation import (
     claim_asn_dep_ids, load_foundation_for_claim_asn,
     load_foundation_for_labels,
 )
+from lib.shared.paths import prompt_path
+
 
 REVIEW_TEMPLATE = prompt_path("claim-convergence/full-review/review.md")
 
-_VERDICT_RE = re.compile(r'^VERDICT:\s*(CONVERGED|OBSERVE|REVISE)\s*$', re.MULTILINE)
+_VERDICT_RE = re.compile(
+    r'^VERDICT:\s*(CONVERGED|OBSERVE|REVISE)\s*$', re.MULTILINE,
+)
 _CLASS_RE = re.compile(r'\*\*Class\*\*:\s*(REVISE|OBSERVE)', re.IGNORECASE)
+_FINDING_FIELD_RE = re.compile(
+    r'^\s*\*\*(Class|Foundation|ASN|Issue|What needs resolving)\*\*\s*:',
+    re.MULTILINE,
+)
 
 
-def parse_verdict(text):
+def parse_verdict(text: str) -> str:
     """Return 'CONVERGED' | 'OBSERVE' | 'REVISE' from the reviewer's
     mandatory VERDICT line, or 'UNKNOWN' if the line is missing."""
     m = _VERDICT_RE.search(text)
     return m.group(1) if m else "UNKNOWN"
 
 
-def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opus",
-               foundation_labels=None):
+def run_review(
+    asn_num: int,
+    asn_content: str,
+    asn_label: str,
+    previous_findings: str = "",
+    model: str = "opus",
+    foundation_labels: Optional[list] = None,
+) -> Tuple[str, Optional[str], float]:
     """Run Opus deep review. Returns (verdict, text, elapsed).
 
     verdict ∈ {'CONVERGED', 'OBSERVE', 'REVISE', 'UNKNOWN', 'ERROR'}.
     On ERROR, text is None. On UNKNOWN, the VERDICT line was missing;
     text is still returned so the caller can decide how to handle it.
 
-    If foundation_labels is provided, only loads foundation statements for
-    those specific labels (for regional review). Otherwise loads all.
+    If foundation_labels is provided, only loads foundation statements
+    for those specific labels (regional review). Otherwise loads all
+    upstream foundation (whole-ASN review).
     """
     if foundation_labels is not None:
         foundation = load_foundation_for_labels(
@@ -56,28 +77,34 @@ def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opu
     else:
         foundation = load_foundation_for_claim_asn(asn_num)
     if not foundation:
-        foundation = "(none — this is a foundation ASN; review internal consistency only)"
+        foundation = (
+            "(none — this is a foundation ASN; review internal "
+            "consistency only)"
+        )
 
     template = read_file(REVIEW_TEMPLATE)
     if not template:
-        print(f"  [ERROR] Audit template not found", file=sys.stderr)
+        print("  [ERROR] Audit template not found", file=sys.stderr)
         return "ERROR", None, 0
 
     depends = claim_asn_dep_ids(asn_num)
     depends_str = ", ".join(f"ASN-{d:04d}" for d in depends)
 
-    # Pass previous findings so reviewer doesn't repeat them
     prior = previous_findings if previous_findings else "(none)"
 
-    prompt = (template
-              .replace("{{foundation_statements}}", foundation)
-              .replace("{{asn_content}}", asn_content)
-              .replace("{{asn_label}}", asn_label)
-              .replace("{{depends}}", depends_str)
-              .replace("{{previous_findings}}", prior))
+    prompt = (
+        template
+        .replace("{{foundation_statements}}", foundation)
+        .replace("{{asn_content}}", asn_content)
+        .replace("{{asn_label}}", asn_label)
+        .replace("{{depends}}", depends_str)
+        .replace("{{previous_findings}}", prior)
+    )
 
-    print(f"  [REVIEW] Reading ASN + foundation (Opus)...",
-          end="", file=sys.stderr, flush=True)
+    print(
+        "  [REVIEW] Reading ASN + foundation (Opus)...",
+        end="", file=sys.stderr, flush=True,
+    )
 
     text, elapsed = invoke_claude(prompt, model=model, effort="high")
 
@@ -87,19 +114,15 @@ def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opu
 
     verdict = parse_verdict(text)
     finding_count = len(re.findall(r'^### ', text, re.MULTILINE))
-    print(f" verdict={verdict}, {finding_count} finding(s) ({elapsed:.0f}s)",
-          file=sys.stderr)
+    print(
+        f" verdict={verdict}, {finding_count} finding(s) ({elapsed:.0f}s)",
+        file=sys.stderr,
+    )
 
     return verdict, text, elapsed
 
 
-_FINDING_FIELD_RE = re.compile(
-    r'^\s*\*\*(Class|Foundation|ASN|Issue|What needs resolving)\*\*\s*:',
-    re.MULTILINE,
-)
-
-
-def extract_findings(text):
+def extract_findings(text: str) -> list:
     """Extract individual findings from review output.
 
     Returns list of (title, cls, finding_text) tuples where cls is
@@ -109,9 +132,7 @@ def extract_findings(text):
     contains at least one finding field (**Class**, **Foundation**,
     **ASN**, **Issue**, or **What needs resolving**). Sections without
     any of these are narrative/audit prose using `### ` as a heading;
-    they are ignored. This guards against the reviewer drifting into
-    a per-claim audit format that misuses `### ` for non-finding
-    section headers.
+    they are ignored.
     """
     findings = []
     parts = re.split(r'^### ', text, flags=re.MULTILINE)
@@ -127,13 +148,16 @@ def extract_findings(text):
     return findings
 
 
-def filter_revise(findings):
-    """Narrow findings to REVISE-class only. UNKNOWN falls through to
-    REVISE (conservative — if the reviewer didn't classify, act on it)."""
+def filter_revise(findings: list) -> list:
+    """Narrow findings to REVISE-class only.
+
+    UNKNOWN falls through to REVISE — conservative: if the reviewer
+    didn't classify, act on it.
+    """
     return [f for f in findings if f[1] in ("REVISE", "UNKNOWN")]
 
 
-def cycle_verdict(reviewer_verdict, revise_count):
+def cycle_verdict(reviewer_verdict: str, revise_count: int) -> str:
     """Reconcile reviewer's verdict line with the per-finding revise count.
 
     Reviewer may emit VERDICT: CONVERGED while still filing REVISE-class
@@ -147,7 +171,7 @@ def cycle_verdict(reviewer_verdict, revise_count):
     return reviewer_verdict
 
 
-def findings_summary(findings, revise_count):
+def findings_summary(findings: list, revise_count: int) -> str:
     """Format a one-line summary of findings counts: '1 REVISE, 2 OBSERVE'."""
     if not findings:
         return "0 findings"

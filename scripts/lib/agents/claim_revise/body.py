@@ -1,45 +1,57 @@
-"""
-Full Review reviser — applies fixes from findings.
+"""Claim-revise agent body.
 
-Takes a finding title and text, builds a prompt from the revise template,
-and runs claude -p with Edit tools to apply the fix.
+One LLM invocation per finding. Builds a prompt from the revise
+template + finding text, invokes Claude with Edit/Write/Read tools,
+runs the convergence-link-resolution.py CLI to close the comment.
+
+Public: `revise(asn_num, title, finding_text, *, claim_dir,
+comment_id, claim_path) -> bool` — returns True if changes were
+applied.
 """
+
+from __future__ import annotations
 
 import json
 import os
-import re
 import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Optional
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, prompt_path
 from lib.shared.common import find_asn, read_file
+from lib.shared.paths import USAGE_LOG, WORKSPACE, prompt_path
+
 
 REVISE_TEMPLATE = prompt_path("claim-convergence/full-review/revise.md")
 
 
-def revise(asn_num, title, finding_text, claim_dir=None,
-           comment_id=None, claim_path=None):
+def revise(
+    asn_num: int,
+    title: str,
+    finding_text: str,
+    claim_dir: Optional[Path] = None,
+    comment_id: Optional[str] = None,
+    claim_path: Optional[str] = None,
+) -> bool:
     """Apply fix for one finding. Returns True if changes made.
 
-    `comment_id` is passed through to the reviser via PROTOCOL_COMMENT_ID
-    so the agent can call `scripts/convergence-link-resolution.py` to
-    close the comment. When None, the agent can still run but won't be
-    able to invoke convergence-link-resolution.py — callers that care
-    about resolution links should pass it.
+    `comment_id` is passed through to the reviser via
+    PROTOCOL_COMMENT_ID so the agent can call
+    `scripts/convergence-link-resolution.py` to close the comment.
+    When None, the agent can still run but won't be able to invoke
+    convergence-link-resolution.py — callers that care about
+    resolution links should pass it.
 
-    `claim_path` is retained for backwards compatibility with the call
-    sites' wiring; it's no longer passed through to the reviser (the
-    reviser-side CLIs now resolve doc addresses from labels via the
-    claim path convention, never from ambient path strings).
+    `claim_path` is retained for backwards compatibility with the
+    call sites' wiring; it's no longer passed through to the reviser
+    (the reviser-side CLIs now resolve doc addresses from labels via
+    the claim path convention, never from ambient path strings).
     """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         return False
 
-    # Use claim-convergence directory if provided
     if claim_dir is None:
         from lib.shared.paths import CLAIM_CONVERGENCE_DIR
         claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
@@ -47,12 +59,12 @@ def revise(asn_num, title, finding_text, claim_dir=None,
     template = read_file(REVISE_TEMPLATE)
     rel_path = claim_dir.relative_to(WORKSPACE)
 
-    # The finding may not have a single label — use the title
-    # Point agent at the claim-convergence directory (contains per-claim files)
-    prompt = (template
+    prompt = (
+        template
         .replace("{{claim_dir}}", str(rel_path))
         .replace("{{label}}", title)
-        .replace("{{finding}}", finding_text))
+        .replace("{{finding}}", finding_text)
+    )
 
     cmd = [
         "claude", "-p",
@@ -77,7 +89,7 @@ def revise(asn_num, title, finding_text, claim_dir=None,
             cwd=str(WORKSPACE), timeout=None,
         )
     except subprocess.TimeoutExpired:
-        print(f" timeout", file=sys.stderr)
+        print(" timeout", file=sys.stderr)
         return False
 
     elapsed = time.time() - start

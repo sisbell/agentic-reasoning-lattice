@@ -6,8 +6,8 @@ from typing import List
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import LATTICE
-from lib.claim_convergence.full_review.review import extract_findings
-from lib.claim_convergence.full_review.revise import revise
+from lib.agents.claim_review import extract_findings
+from lib.agents.claim_revise import revise
 from lib.backend.addressing import Address
 from lib.predicates import unresolved_revise_comments
 from lib.febe.protocol import Session

@@ -22,7 +22,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.claim_convergence.cone import run_cone_sweep, run_cone_review
+from lib.orchestrators.cone_review import run_cone_review
+from lib.orchestrators.cone_sweep import run_cone_sweep
 from lib.shared.common import find_asn, build_label_index
 from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR, LATTICE
 from lib.febe.session import open_session
