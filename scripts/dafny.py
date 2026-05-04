@@ -32,8 +32,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, DAFNY_DIR, USAGE_LOG,
                     LATTICE_PROMPTS, prompt_path)
 from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
-from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
-from lib.claim_convergence.core.topological_sort import topological_sort_labels, topological_levels
+from lib.lattice.deps import build_deps_for_asn
+from lib.shared.topological_sort import topological_sort_labels, topological_levels
 from lib.verification.dafny.translate import (
     build_claim_list_from_asn,
     build_claim_prompt, translate_one, TEMPLATE,
@@ -175,7 +175,7 @@ def main():
 
     # --- Dependency graph ---
 
-    deps_data = generate_claim_convergence_deps(asn_number)
+    deps_data = build_deps_for_asn(asn_number)
 
     # --- Hash cache — skip unchanged ---
 

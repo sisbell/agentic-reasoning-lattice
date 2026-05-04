@@ -3,15 +3,15 @@
 
 Invoked at the end of a revise session:
 
-    python scripts/convergence-link-resolution.py accept
-    python scripts/convergence-link-resolution.py reject \\
+    python scripts/agent_tools/convergence-link-resolution.py accept
+    python scripts/agent_tools/convergence-link-resolution.py reject \\
         --rationale "<one or two sentences>"
 
 When a single revise session closes multiple findings (note convergence
 sets up env once and the agent iterates), the comment id can be passed
 per call:
 
-    python scripts/convergence-link-resolution.py accept --comment-id l_abc123
+    python scripts/agent_tools/convergence-link-resolution.py accept --comment-id l_abc123
 
 Otherwise reads context from environment variables (set by the
 orchestrator before spawning the reviser):
@@ -33,11 +33,46 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import LATTICE
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.shared.paths import LATTICE, RATIONALE_DIR
 from lib.protocols.febe.session import open_session
-from lib.claim_convergence.decisions import emit_decision
 from lib.backend.addressing import Address
+
+
+def emit_decision(session, action, comment_addr, claim_addr, asn_label,
+                  rationale=None):
+    """File the resolution link closing a revise comment.
+
+    accept → resolution.edit (F=[claim], G=[comment]).
+    reject → writes rationale to <RATIONALE_DIR>/<asn>/<comment>.md, then
+             emits resolution.reject (F=[claim], G=[comment, rationale]).
+    """
+    if action == "accept":
+        return session.make_link(
+            homedoc=claim_addr,
+            from_set=[claim_addr],
+            to_set=[comment_addr],
+            type_="resolution",
+            subtype="edit",
+        )
+
+    if action == "reject":
+        if not rationale:
+            raise ValueError("reject requires rationale text")
+        rationale_path = Path(RATIONALE_DIR) / asn_label / f"{comment_addr}.md"
+        lattice_root = session.store.lattice_dir.resolve()
+        rationale_rel = str(rationale_path.resolve().relative_to(lattice_root))
+        session.update_document(rationale_rel, rationale + "\n")
+        rationale_addr = session.register_path(rationale_rel)
+        return session.make_link(
+            homedoc=claim_addr,
+            from_set=[claim_addr],
+            to_set=[comment_addr, rationale_addr],
+            type_="resolution",
+            subtype="reject",
+        )
+
+    raise ValueError(f"unknown action: {action!r}")
 
 
 def main():

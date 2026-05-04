@@ -4,9 +4,7 @@ Produce Contract — Dijkstra rewrite + formal contracts per claim.
 Synthesizes the Formal Contract section in each claim's body markdown.
 Initial synthesis is claim derivation's responsibility (so claim
 convergence operates on already-contract-bearing claims, satisfying the
-Claim Document Contract's structural invariants from the start). Ongoing
-re-synthesis on prose-changed claims is currently driven from
-scripts/converge.py.
+Claim Document Contract's structural invariants from the start).
 
 Functions:
 - find_claims_needing_quality: scan ASN for claims needing rewrite
@@ -27,9 +25,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import USAGE_LOG, CLAIM_DIR, prompt_path, claim_statements
 from lib.shared.common import find_asn, invoke_claude, build_label_index, load_claim_metadata
-from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
+from lib.lattice.deps import build_deps_for_asn
 
-from lib.claim_convergence.assembly.validate_contracts import validate_contract
+from lib.claim_derivation.validate_contract import validate_contract
 
 QUALITY_TEMPLATE = prompt_path("claim-derivation/produce-contract.md")
 REVIEW_REWRITE_TEMPLATE = prompt_path("claim-derivation/review-rewrite.md")
@@ -155,7 +153,7 @@ def find_claims_needing_quality(asn_num, force_all=True, force_rebuild=False):
         return candidates, {}
 
     # Hash-based dirty detection
-    deps_data = generate_claim_convergence_deps(asn_num)
+    deps_data = build_deps_for_asn(asn_num)
     if deps_data is None:
         return candidates, {}
 
@@ -224,7 +222,7 @@ def _review_rewrite(pre_section, post_section, label):
 
 def _build_dep_context(asn_num, label):
     """Build dependency context for a claim — same-ASN files + foundation excerpts."""
-    deps_data = generate_claim_convergence_deps(asn_num)
+    deps_data = build_deps_for_asn(asn_num)
     if not deps_data:
         return "(none)"
 

@@ -19,37 +19,17 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, claim_statements, dep_graph
+from lib.shared.paths import WORKSPACE, claim_statements
 from lib.shared.common import find_asn
 from lib.note_convergence.produce_statements import export_one
-from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps, write_deps_yaml
 
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
 def _generate_deps(asn_num, label):
-    """Generate deps YAML: mechanical extract + LLM scan."""
-    try:
-        deps = generate_discovery_deps(asn_num)
-        if deps:
-            path = write_deps_yaml(asn_num, deps)
-            print(f"  [DEPS] mechanical: {path.relative_to(WORKSPACE)} "
-                  f"({len(deps['claims'])} claims)", file=sys.stderr)
-        else:
-            print(f"  [DEPS] WARNING: mechanical extract failed for {label}",
-                  file=sys.stderr)
-            return
-    except Exception as e:
-        print(f"  [DEPS] WARNING: mechanical extract failed for {label}: {e}",
-              file=sys.stderr)
-        return
-
-    try:
-        from lib.claim_convergence.assembly.scan_undeclared_deps import scan_asn
-        scan_asn(asn_num, model="sonnet", effort="high")
-    except Exception as e:
-        print(f"  [DEPS] WARNING: LLM dep scan failed for {label}: {e}",
-              file=sys.stderr)
+    # TODO: Deps yaml generation removed; dependencies will be sourced
+    # from substrate citation links once the migration lands.
+    pass
 
 
 def main():
@@ -98,7 +78,7 @@ def main():
         for lbl in sorted(succeeded):
             lbl_num = int(re.sub(r"[^0-9]", "", lbl))
             subprocess.run(
-                ["git", "add", str(claim_statements(lbl_num)), str(dep_graph(lbl_num))],
+                ["git", "add", str(claim_statements(lbl_num))],
                 capture_output=True, text=True, cwd=str(WORKSPACE))
         cmd = [sys.executable, str(COMMIT_SCRIPT),
                f"Export statements {labels}"]

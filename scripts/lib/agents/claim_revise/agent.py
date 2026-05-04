@@ -38,7 +38,7 @@ def revise(
 
     `comment_id` is passed through to the reviser via
     PROTOCOL_COMMENT_ID so the agent can call
-    `scripts/convergence-link-resolution.py` to close the comment.
+    `scripts/agent_tools/convergence-link-resolution.py` to close the comment.
     When None, the agent can still run but won't be able to invoke
     convergence-link-resolution.py — callers that care about
     resolution links should pass it.

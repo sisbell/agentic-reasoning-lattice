@@ -11,10 +11,8 @@ from __future__ import annotations
 import sys
 import time
 
-from lib.claim_convergence.core.build_dependency_graph import (
-    generate_claim_convergence_deps,
-)
-from lib.claim_convergence.core.topological_sort import topological_levels
+from lib.lattice.deps import build_deps_for_asn
+from lib.shared.topological_sort import topological_levels
 from .progress import (
     clear_progress, read_progress, write_progress,
 )
@@ -52,7 +50,7 @@ def run_cone_sweep(
         )
         return "failed"
 
-    deps_data = generate_claim_convergence_deps(asn_num)
+    deps_data = build_deps_for_asn(asn_num)
     if not deps_data:
         print(f"  No dependency data for {asn_label}", file=sys.stderr)
         return "failed"

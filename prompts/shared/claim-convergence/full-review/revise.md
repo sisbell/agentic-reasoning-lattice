@@ -137,7 +137,7 @@ instead "the state satisfies..."
 ## Decision output
 
 When done, run one of:
-  python scripts/convergence-link-resolution.py accept
-  python scripts/convergence-link-resolution.py reject --rationale "<one or two sentences>"
+  python scripts/agent_tools/convergence-link-resolution.py accept
+  python scripts/agent_tools/convergence-link-resolution.py reject --rationale "<one or two sentences>"
 
 REJECT only when the finding is incorrect. If you edited files, end with ACCEPT.

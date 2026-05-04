@@ -119,8 +119,8 @@ For each finding below, after you have addressed it (either by editing
 the note or by deciding the finding is incorrect), close the
 corresponding comment in the link store:
 
-  python scripts/convergence-link-resolution.py accept --comment-id <id>
-  python scripts/convergence-link-resolution.py reject --comment-id <id> --rationale "<one or two sentences>"
+  python scripts/agent_tools/convergence-link-resolution.py accept --comment-id <id>
+  python scripts/agent_tools/convergence-link-resolution.py reject --comment-id <id> --rationale "<one or two sentences>"
 
 `accept` means you applied the fix; `reject` means the finding is
 incorrect and you wrote a rationale instead. Do this once per finding."""

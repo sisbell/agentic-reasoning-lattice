@@ -217,11 +217,6 @@ def state_yaml(asn_num):
     return note_dir(asn_num) / "state.yaml"
 
 
-def dep_graph(asn_num):
-    """Path to ASN dependency graph YAML."""
-    return note_dir(asn_num) / "dependency-graph.yaml"
-
-
 def claim_statements(asn_num):
     """Path to ASN claim-statements export."""
     return note_dir(asn_num) / "claim-statements.md"
