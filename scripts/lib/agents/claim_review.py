@@ -24,7 +24,8 @@ import re
 import sys
 from typing import Optional, Tuple
 
-from lib.shared.common import invoke_claude, read_file
+from lib.shared.common import read_file
+from lib.shared.invoke_claude import invoke_claude
 from lib.shared.foundation import (
     claim_asn_dep_ids, load_foundation_for_claim_asn,
     load_foundation_for_labels,

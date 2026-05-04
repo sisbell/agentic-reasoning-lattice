@@ -18,7 +18,8 @@ from lib.maturation.absorb_merge_extension import (
     step_integrate, step_review_revise, step_export,
     step_update_source, step_cleanup,
 )
-from lib.shared.common import log_usage, step_commit
+from lib.shared.common import log_usage
+from lib.shared.git_ops import step_commit
 
 
 def main():

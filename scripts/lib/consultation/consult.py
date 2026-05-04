@@ -23,7 +23,8 @@ import threading
 import time
 from pathlib import Path
 
-from lib.shared.common import MODEL_FLAGS, log_usage
+from lib.shared.common import log_usage
+from lib.shared.invoke_claude import MODEL_FLAGS
 from lib.shared.campaign import resolve_campaign
 from lib.shared.paths import WORKSPACE, CHANNELS_DIR, load_channel_meta
 

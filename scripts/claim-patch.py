@@ -22,7 +22,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG, PATCHES_DIR, prompt_path
-from lib.shared.common import find_asn, step_commit_asn
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
 
 APPLY_TEMPLATE = prompt_path("claim-convergence/patch/apply.md")
 

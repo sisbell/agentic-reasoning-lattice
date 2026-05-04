@@ -20,7 +20,8 @@ from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.orchestrators.cone_review import run_cone_review
 from lib.predicates import is_claim_converged
-from lib.shared.common import build_label_index, find_asn
+from lib.shared.claim_files import build_label_index
+from lib.shared.common import find_asn
 from lib.shared.paths import CLAIM_DIR, LATTICE
 
 

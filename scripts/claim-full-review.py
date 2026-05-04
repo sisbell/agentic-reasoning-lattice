@@ -70,7 +70,7 @@ def main():
     if args.cone:
         _, asn_label = find_asn(str(asn_num))
         claim_dir = CLAIM_DIR / asn_label
-        from lib.shared.common import build_label_index, load_claim_metadata
+        from lib.shared.claim_files import build_label_index, load_claim_metadata
         asn_labels = set(build_label_index(claim_dir).keys())
         meta = load_claim_metadata(claim_dir, label=args.cone)
         if not meta:

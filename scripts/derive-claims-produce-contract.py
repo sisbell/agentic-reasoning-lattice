@@ -20,7 +20,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.claim_derivation.produce_contract import (
     find_claims_needing_quality, produce_contract,
 )
-from lib.shared.common import find_asn, step_commit_asn
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
 
 
 def main():

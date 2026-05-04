@@ -18,7 +18,7 @@ Add a new shape only when a second channel needs the same one.
 import sys
 from types import SimpleNamespace
 
-from lib.shared.common import read_file, concat_md_files
+from lib.shared.common import concat_md_files, read_file
 from lib.consultation.consult import (
     invoke_claude,
     parse_numbered,

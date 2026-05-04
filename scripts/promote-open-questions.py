@@ -19,7 +19,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, LATTICE_PROMPTS
-from lib.shared.common import find_asn, invoke_claude, read_file, log_usage, step_commit_asn
+from lib.shared.common import find_asn, log_usage, read_file
+from lib.shared.git_ops import step_commit_asn
+from lib.shared.invoke_claude import invoke_claude
 from lib.maturation.promotion_promote import (
     load_existing_inquiries, next_asn_number, parse_promoted,
     create_note_yaml, load_existing_promotion, save_promotion_report,

@@ -18,7 +18,9 @@ from lib.maturation.manage_extend import (
     build_prompt, strip_preamble, write_manifest,
 )
 from lib.shared.paths import WORKSPACE, NOTE_DIR, claim_statements
-from lib.shared.common import read_file, find_asn, invoke_claude, log_usage, step_commit
+from lib.shared.common import find_asn, log_usage, read_file
+from lib.shared.git_ops import step_commit
+from lib.shared.invoke_claude import invoke_claude
 from lib.shared.foundation import load_foundation_for_note
 
 

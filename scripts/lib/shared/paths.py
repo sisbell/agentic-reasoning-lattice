@@ -313,7 +313,7 @@ def load_inquiry(asn_id):
     """Load inquiry frontmatter for an ASN. Returns dict or empty dict.
     The inquiry-content fields only — operational state lives in
     state.yaml (load via `load_state`)."""
-    from lib.shared.common import read_doc_frontmatter
+    from lib.shared.frontmatter import read_doc_frontmatter
     return read_doc_frontmatter(inquiry_doc_path(asn_id))
 
 

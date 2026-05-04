@@ -40,7 +40,7 @@ def asn_campaign(inquiry_path):
     """Read an inquiry md and return its `campaign:` frontmatter value,
     or None. Inquiries can opt out of the lattice default by setting
     a campaign explicitly in their frontmatter."""
-    from lib.shared.common import read_doc_frontmatter
+    from lib.shared.frontmatter import read_doc_frontmatter
     return read_doc_frontmatter(inquiry_path).get("campaign")
 
 
@@ -83,7 +83,7 @@ def main():
 
     for cdir in campaigns:
         name = cdir.name
-        from lib.shared.common import read_doc_frontmatter
+        from lib.shared.frontmatter import read_doc_frontmatter
         cfg = read_doc_frontmatter(campaign_doc_path(name))
 
         is_default = " [default]" if name == default_campaign else ""

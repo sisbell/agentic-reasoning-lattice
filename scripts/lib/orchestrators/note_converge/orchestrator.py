@@ -40,7 +40,8 @@ from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
 from lib.lattice.findings import record_one_finding
 from lib.predicates import is_doc_converged, unresolved_revise_comments
-from lib.shared.common import find_asn, step_commit_asn
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
     LATTICE, NOTE_DIR, NOTE_FINDINGS_DIR, REVIEWS_DIR,
     USAGE_LOG, WORKSPACE, open_issues_path, sorted_reviews,

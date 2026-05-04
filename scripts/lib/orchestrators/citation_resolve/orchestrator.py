@@ -26,9 +26,9 @@ from lib.backend.emit import emit_citation, emit_retraction
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.shared.common import (
-    build_label_index, find_asn, step_commit_asn,
-)
+from lib.shared.claim_files import build_label_index
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
     CITATION_RESOLVE_DIR, CLAIM_DIR, LATTICE, claim_doc_path,
 )

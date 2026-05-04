@@ -45,7 +45,7 @@ def load_inquiries():
     """Load all inquiries from the substrate-managed inquiry dir."""
     import re
     from lib.shared.paths import INQUIRY_DIR
-    from lib.shared.common import read_doc_frontmatter
+    from lib.shared.frontmatter import read_doc_frontmatter
     inquiries = []
     if not INQUIRY_DIR.exists():
         return inquiries

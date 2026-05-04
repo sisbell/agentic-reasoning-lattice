@@ -24,10 +24,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, prompt_path
-from lib.shared.common import (
-    find_asn, build_label_index, load_claim_metadata,
-    dump_yaml, invoke_claude, step_commit_asn,
-)
+from lib.shared.claim_files import build_label_index, load_claim_metadata
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
+from lib.shared.invoke_claude import invoke_claude
+from lib.shared.yaml_io import dump_yaml
 
 SUMMARIZE_TEMPLATE = prompt_path("claim-convergence/summarize.md")
 BATCH_SIZE = 5

@@ -16,7 +16,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import LATTICE, CLAIM_DIR
-from lib.shared.common import find_asn, load_claim_metadata
+from lib.shared.claim_files import load_claim_metadata
+from lib.shared.common import find_asn
 from lib.shared.foundation import claim_asn_dep_ids
 from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index

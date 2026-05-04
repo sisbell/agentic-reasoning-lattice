@@ -6,7 +6,8 @@ from typing import Optional, Tuple, List
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import CLAIM_DIR, CLAIM_REVIEWS_DIR, LATTICE
-from lib.shared.common import find_asn, build_label_index
+from lib.shared.claim_files import build_label_index
+from lib.shared.common import find_asn
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.protocols.febe.session import open_session
 

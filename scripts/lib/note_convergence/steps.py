@@ -23,7 +23,8 @@ from lib.orchestrators.note_converge import (
     log_usage,
     process_resolved_issues,
 )
-from lib.shared.common import find_asn, read_file, stage_asn_files
+from lib.shared.common import find_asn, read_file
+from lib.shared.git_ops import stage_asn_files
 from lib.shared.paths import LATTICE, NOTE_DIR, WORKSPACE
 
 

@@ -23,7 +23,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List, NamedTuple, Optional
 
-from lib.shared.common import invoke_claude_agent
+from lib.shared.invoke_claude import invoke_claude_agent
 
 
 REPO_ROOT = Path(__file__).resolve().parents[4]

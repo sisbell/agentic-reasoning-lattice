@@ -19,7 +19,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, prompt_path
-from lib.shared.common import read_file, invoke_claude, log_usage, step_commit_asn
+from lib.shared.common import log_usage, read_file
+from lib.shared.git_ops import step_commit_asn
+from lib.shared.invoke_claude import invoke_claude
 from lib.maturation.patch_apply import (
     validate, step_apply, step_review_revise,
 )

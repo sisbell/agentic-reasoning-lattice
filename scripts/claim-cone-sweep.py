@@ -24,7 +24,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.orchestrators.cone_review import run_cone_review
 from lib.orchestrators.cone_sweep import run_cone_sweep
-from lib.shared.common import find_asn, build_label_index
+from lib.shared.claim_files import build_label_index
+from lib.shared.common import find_asn
 from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR, LATTICE
 from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index

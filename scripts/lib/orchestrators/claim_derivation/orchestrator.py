@@ -31,7 +31,8 @@ from lib.claim_derivation.transclude import transclude_asn
 from lib.claim_derivation.validate_transclude import (
     print_validation as validate_transclude,
 )
-from lib.shared.common import find_asn, step_commit_asn
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
 from lib.shared.validate_gate import run_validate_gate
 
 

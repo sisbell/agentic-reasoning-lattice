@@ -14,7 +14,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG, NOTE_DIR, prompt_path, claim_statements, note_dir
-from lib.shared.common import find_asn, invoke_claude
+from lib.shared.common import find_asn
+from lib.shared.invoke_claude import invoke_claude
 
 TEMPLATE = prompt_path("discovery/assembly/produce-statements.md")
 

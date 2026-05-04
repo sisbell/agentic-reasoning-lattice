@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.maturation.supersede import (
     validate, copy_project_model, copy_consultations, remove_source,
 )
-from lib.shared.common import step_commit
+from lib.shared.git_ops import step_commit
 
 
 def main():

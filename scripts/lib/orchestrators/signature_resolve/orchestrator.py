@@ -26,9 +26,9 @@ from lib.protocols.febe.session import open_session
 from lib.lattice.attributes import emit_attribute
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.lattice.notation import read_notation
-from lib.shared.common import (
-    build_label_index, find_asn, step_commit_asn,
-)
+from lib.shared.claim_files import build_label_index
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
     CLAIM_DIR, LATTICE, SIGNATURE_RESOLVE_DIR, claim_doc_path,
 )

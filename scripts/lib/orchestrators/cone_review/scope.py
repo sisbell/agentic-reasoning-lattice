@@ -6,7 +6,7 @@ from typing import Dict, List, Set
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import CLAIM_DIR
-from lib.shared.common import build_label_index
+from lib.shared.claim_files import build_label_index
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
 

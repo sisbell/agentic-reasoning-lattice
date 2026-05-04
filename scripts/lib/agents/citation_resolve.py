@@ -16,7 +16,8 @@ from typing import List, NamedTuple, Tuple
 
 import yaml
 
-from lib.shared.common import invoke_claude, read_file, strip_code_fence
+from lib.shared.common import read_file
+from lib.shared.invoke_claude import invoke_claude, strip_code_fence
 from lib.shared.paths import prompt_path
 
 

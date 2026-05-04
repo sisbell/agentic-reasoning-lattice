@@ -21,7 +21,10 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import CLAIM_DERIVATION_DIR, prompt_path
-from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, dump_yaml, step_commit_asn
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
+from lib.shared.invoke_claude import invoke_claude, parallel_llm_calls
+from lib.shared.yaml_io import dump_yaml
 
 
 
@@ -54,7 +57,7 @@ def _call_llm(prompt):
     if not result:
         return None
 
-    from lib.shared.common import strip_code_fence
+    from lib.shared.invoke_claude import strip_code_fence
     text = strip_code_fence(result)
 
     try:

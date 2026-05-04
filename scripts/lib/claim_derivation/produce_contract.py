@@ -24,7 +24,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import USAGE_LOG, CLAIM_DIR, prompt_path, claim_statements
-from lib.shared.common import find_asn, invoke_claude, build_label_index, load_claim_metadata
+from lib.shared.claim_files import build_label_index, load_claim_metadata
+from lib.shared.common import find_asn
+from lib.shared.invoke_claude import invoke_claude
 from lib.lattice.deps import build_deps_for_asn
 from lib.shared.foundation import _extract_formal_contract
 
@@ -235,7 +237,7 @@ def find_claims_needing_quality(asn_num, force_all=True, force_rebuild=False):
 
 def _review_rewrite(pre_section, post_section, label):
     """Review a quality rewrite for damage. Returns (ok, detail)."""
-    from lib.shared.common import invoke_claude
+    from lib.shared.invoke_claude import invoke_claude
 
     template = REVIEW_REWRITE_TEMPLATE.read_text()
     prompt = (template

@@ -32,9 +32,8 @@ from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.orchestrators.cone_review import run_cone_review
 from lib.predicates import is_asn_converged
-from lib.shared.common import (
-    assemble_readonly, find_asn, step_commit_asn,
-)
+from lib.shared.common import assemble_readonly, find_asn
+from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
     CLAIM_DIR, CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR,
     LATTICE, WORKSPACE,

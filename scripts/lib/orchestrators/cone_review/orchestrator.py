@@ -36,7 +36,9 @@ from .sync import sync_claim_citations
 from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.predicates import is_claim_converged
-from lib.shared.common import build_label_index, find_asn, step_commit_asn
+from lib.shared.claim_files import build_label_index
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
     CLAIM_DIR, CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR,
     LATTICE, WORKSPACE_DIR,
@@ -108,7 +110,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         file=sys.stderr,
     )
 
-    from lib.shared.common import git_head_sha
+    from lib.shared.git_ops import git_head_sha
     baseline_sha = git_head_sha()
 
     # Build the cone's claim-addr set once. Used to scope the declined-

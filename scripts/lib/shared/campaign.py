@@ -16,7 +16,7 @@ from pathlib import Path
 
 import yaml
 
-from lib.shared.common import read_doc_frontmatter
+from lib.shared.frontmatter import read_doc_frontmatter
 from lib.shared.paths import (
     LATTICE_CONFIG, load_inquiry, load_lattice_config,
     campaign_dir, campaign_doc_path, campaign_vocab,

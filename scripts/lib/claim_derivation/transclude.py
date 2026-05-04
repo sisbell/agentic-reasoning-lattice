@@ -48,7 +48,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, LATTICE, CLAIM_DERIVATION_DIR, CLAIM_DIR,
 )
-from lib.shared.common import find_asn, step_commit_asn
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
 from lib.backend.emit import (
     emit_citation, emit_claim, emit_contract, emit_derivation,
 )

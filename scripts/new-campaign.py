@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.common import write_frontmatter
+from lib.shared.frontmatter import write_frontmatter
 from lib.shared.paths import (
     LATTICE_NAME, CAMPAIGN_DIR, CHANNELS_DIR, WORKSPACE,
     campaign_dir, campaign_doc_path, campaign_vocab, load_channel_meta,

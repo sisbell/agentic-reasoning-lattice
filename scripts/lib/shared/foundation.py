@@ -13,7 +13,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, CLAIM_DIR, MANIFESTS_DIR
-from lib.shared.common import build_label_index, load_claim_metadata
+from lib.shared.claim_files import build_label_index, load_claim_metadata
 
 
 def find_extensions(base_id):

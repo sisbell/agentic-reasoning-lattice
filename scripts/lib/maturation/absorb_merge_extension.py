@@ -29,8 +29,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, NOTE_DIR, MANIFESTS_DIR,
                    REVIEWS_DIR, LATTICE_PROMPTS, prompt_path,
                    load_state, note_yaml, claim_statements)
-from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
-                         log_usage, step_commit)
+from lib.shared.common import find_asn, log_usage, read_file
+from lib.shared.git_ops import step_commit
+from lib.shared.invoke_claude import invoke_claude, invoke_claude_agent
 
 
 ABSORB_BASE_TEMPLATE = prompt_path("discovery/absorb/merge-extension.md")
