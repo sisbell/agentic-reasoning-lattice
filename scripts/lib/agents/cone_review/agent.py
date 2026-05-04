@@ -5,8 +5,8 @@ Fires on an apex claim that hasn't converged. Performs ONE cycle:
   2. validate-gate precondition (halts on dirty structure)
   3. assemble cone content + cross-ASN foundation
   4. run review (LLM, claim_review agent)
-  5. apply finding-override classifier (LLM)
-  6. emit review meta + per-finding docs + comment links
+  5. extract findings + apply finding-override classifier (LLM)
+  6. emit review doc + per-finding docs + coverage/comment links
   7. dispatch revise per REVISE finding (LLM, claim_revise agent)
   8. sync substrate citations to claim md
   9. step commit
@@ -19,18 +19,16 @@ lives in the runner: predicate true means quiescent.
 from __future__ import annotations
 
 import sys
-import time
 from typing import ClassVar
 
 from lib.agents.base import Agent, AgentResult
 from lib.agents.claim_finding_override import apply_classifier_verdict
 from lib.agents.claim_review import (
-    cycle_verdict, extract_findings, filter_revise,
-    findings_summary, run_review,
+    extract_findings, filter_revise, run_review,
 )
 from lib.agents.claim_revise import revise
 from lib.backend.addressing import Address
-from lib.claim_convergence.findings import emit_meta, record_findings
+from lib.claim_convergence.findings import emit_review_doc, record_findings
 from lib.lattice.context import claim_context_from_addr
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.orchestrators.retry import (
@@ -40,12 +38,13 @@ from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
-    CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR, WORKSPACE_DIR,
-    next_review_number,
+    CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR, next_review_number,
 )
 from lib.shared.validate_gate import run_validate_gate
 
-from .scope import assemble_cone, transitive_same_asn_deps
+from .scope import (
+    assemble_cone, cross_asn_deps_in_cone, transitive_same_asn_deps,
+)
 
 
 CONE_MODEL = "sonnet"
@@ -71,9 +70,9 @@ class ConeReviewAgent(Agent):
             session, ctx.addr, asn_labels, rev_index,
         )
 
-        cross_asn_deps = self._cross_asn_deps(
-            session, [ctx.label] + dep_labels, label_index, rev_index,
-            asn_labels,
+        cross_asn_deps = cross_asn_deps_in_cone(
+            session, [ctx.label] + dep_labels,
+            label_index, rev_index, asn_labels,
         )
 
         print(
@@ -116,44 +115,21 @@ class ConeReviewAgent(Agent):
         if verdict == "ERROR":
             return AgentResult(success=False, detail="review-error")
 
-        # 5. Persist raw output for diagnosis.
-        raw_dir = WORKSPACE_DIR / "cone-sweep" / ctx.asn_label / "raw"
-        raw_dir.mkdir(parents=True, exist_ok=True)
-        timestamp = int(time.time())
-        (raw_dir / f"{ctx.label}-{timestamp}.txt").write_text(findings_text)
-
-        # 6. Emit review meta + findings.
-        review_dir = CLAIM_REVIEWS_DIR / ctx.asn_label
-        review_num = next_review_number(
-            ctx.asn_label, kind="claim", reviews_dir=review_dir,
-        )
-        review_stem = f"review-{review_num}"
-        title = f"Cone Review — {ctx.asn_label}/{ctx.label}"
-        scope_str = f"{ctx.label} + {len(dep_labels)} deps (cone)"
-
+        # 5. Extract findings + apply override classifier.
         findings = extract_findings(findings_text)
         apply_classifier_verdict(findings)
 
-        # Coverage addrs for review.coverage — apex + same-ASN deps
-        # the review covered. is_claim_confirmed reads these.
-        covered_addrs = [ctx.addr] + [
-            label_index[d] for d in dep_labels if d in label_index
-        ]
-
-        review_link = emit_meta(
-            session, ctx.asn_label, review_num,
-            title=title,
-            timestamp=time.strftime("%Y-%m-%d %H:%M"),
-            scope=scope_str,
-            verdict="(pending)",
-            findings_summary="(pending)",
-            emitted_findings=[],
-            elapsed_seconds=elapsed,
-            reviews_dir=CLAIM_REVIEWS_DIR,
-            covered_addrs=covered_addrs,
+        # 6. Emit review doc + per-finding docs + coverage links.
+        review_num = next_review_number(
+            ctx.asn_label, kind="claim",
+            reviews_dir=CLAIM_REVIEWS_DIR / ctx.asn_label,
         )
-        review_addr = (
-            review_link.to_set[0] if review_link.to_set else None
+        review_stem = f"review-{review_num}"
+
+        review_addr, _ = emit_review_doc(
+            session, ctx.asn_label, review_num,
+            body=findings_text,
+            covered_addrs=cone_addrs,
         )
         emitted_findings = record_findings(
             session, review_addr, findings,
@@ -164,22 +140,6 @@ class ConeReviewAgent(Agent):
         emitted_titles = set(emitted_by_title.keys())
         emitted_for_filter = [f for f in findings if f[0] in emitted_titles]
         revise_findings = filter_revise(emitted_for_filter)
-
-        # Re-emit meta with final verdict + summary.
-        emit_meta(
-            session, ctx.asn_label, review_num,
-            title=title,
-            timestamp=time.strftime("%Y-%m-%d %H:%M"),
-            scope=scope_str,
-            verdict=cycle_verdict(verdict, len(revise_findings)),
-            findings_summary=findings_summary(
-                emitted_for_filter, len(revise_findings),
-            ),
-            emitted_findings=emitted_findings,
-            elapsed_seconds=elapsed,
-            reviews_dir=CLAIM_REVIEWS_DIR,
-            covered_addrs=covered_addrs,
-        )
 
         for title_text, cls, _ in findings:
             print(f"  [{cls}] {title_text}", file=sys.stderr)
@@ -219,27 +179,3 @@ class ConeReviewAgent(Agent):
             )
 
         return AgentResult(success=True, detail=verdict)
-
-    @staticmethod
-    def _cross_asn_deps(
-        session, all_cone_labels, label_index, rev_index, asn_labels_in_asn,
-    ):
-        """Cross-ASN deps cited by anything in the cone — for foundation
-        narrowing in the reviewer prompt."""
-        cross: list[str] = []
-        for label in all_cone_labels:
-            from_addr = label_index.get(label)
-            if from_addr is None:
-                continue
-            for link in session.active_links(
-                "citation.depends", from_set=[from_addr],
-            ):
-                for cited in link.to_set:
-                    dep_label = rev_index.get(cited)
-                    if (
-                        dep_label
-                        and dep_label not in asn_labels_in_asn
-                        and dep_label not in cross
-                    ):
-                        cross.append(dep_label)
-        return cross

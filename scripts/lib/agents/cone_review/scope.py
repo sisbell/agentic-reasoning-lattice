@@ -63,3 +63,39 @@ def transitive_same_asn_deps(
                     deps.append(label)
                     queue.append(target)
     return deps
+
+
+def cross_asn_deps_in_cone(
+    session: Session,
+    cone_labels: List[str],
+    label_index: Dict[str, Address],
+    rev_index: Dict[Address, str],
+    asn_labels: Set[str],
+) -> List[str]:
+    """Cross-ASN deps cited by anything in the cone.
+
+    Used to narrow the foundation context loaded for the reviewer
+    prompt: only deps that live outside this ASN need explicit
+    foundation loading; same-ASN deps are already in `cone_labels`.
+
+    Walks `citation.depends` from each cone member; collects every
+    dep whose label resolves outside `asn_labels` (the set of labels
+    in the apex's ASN). Preserves first-seen order; deduplicates.
+    """
+    cross: List[str] = []
+    for label in cone_labels:
+        from_addr = label_index.get(label)
+        if from_addr is None:
+            continue
+        for link in session.active_links(
+            "citation.depends", from_set=[from_addr],
+        ):
+            for cited in link.to_set:
+                dep_label = rev_index.get(cited)
+                if (
+                    dep_label
+                    and dep_label not in asn_labels
+                    and dep_label not in cross
+                ):
+                    cross.append(dep_label)
+    return cross

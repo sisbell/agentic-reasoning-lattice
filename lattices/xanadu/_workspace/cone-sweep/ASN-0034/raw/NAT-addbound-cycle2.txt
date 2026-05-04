@@ -1,9 +1,0 @@
-### NAT-addbound dependency annotation for NAT-zero underspecifies one use
-**Class**: OBSERVE
-**Foundation**: NAT-zero (NatZeroMinimum)
-**ASN**: NAT-addbound (NatAdditionDominatesOperands) — Formal Contract *Depends:* annotation for NAT-zero
-**Issue**: The annotation reads "supplies the minimality clause `(A k ∈ ℕ :: 0 < k ∨ 0 = k)`, consumed by both the right-dominance and left-dominance derivations." NAT-zero carries two axioms: the minimality clause and `0 ∈ ℕ`. The derivations consume both. Instantiating NAT-addcompat's right compatibility at `(p, n', m') := (0, m, n)` requires `0 ∈ ℕ` to validate the bound-variable instantiation; the same holds for the left-dominance instantiation at `(m', n', p) := (m, n, 0)`. The annotation enumerates one of the two uses, leaving the membership use silent. The dependency is present and the proof is sound; the annotation is incomplete.
-
----
-
-VERDICT: OBSERVE

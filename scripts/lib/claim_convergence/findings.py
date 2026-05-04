@@ -1,10 +1,10 @@
-"""Claim-convergence finding recording — review meta doc + per-finding docs.
+"""Claim-convergence finding recording — review doc + per-finding docs.
 
 Two helpers:
 
-- `emit_meta(session, ...)` — writes the aggregate review document
-  (<reviews_dir>/<asn>/review-N.md) and emits the `review` classifier
-  on it.
+- `emit_review_doc(session, ...)` — writes the LLM's review output
+  verbatim to the docuverse review path and emits the `review`
+  classifier + `review.coverage` links on it.
 - `record_findings(session, ...)` — for each finding, parses the
   target claim from the body, then delegates the doc-write + substrate
   emissions to record_one_finding.
@@ -20,78 +20,48 @@ from typing import Optional
 
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_review
-from lib.backend.links import Link
 from lib.lattice.findings import record_one_finding
 from lib.protocols.febe.protocol import Session
+from lib.shared.paths import review_aggregate_path
 
 
-def emit_meta(
+def emit_review_doc(
     session: Session,
     asn_label: str,
     review_num: int,
     *,
-    title: str,
-    timestamp: str,
-    scope: str,
-    verdict: str,
-    findings_summary: str,
-    emitted_findings: list,
-    elapsed_seconds: float,
-    reviews_dir,
+    body: str,
     covered_addrs: list[Address] | None = None,
-) -> Link:
-    """Write the aggregate review doc and emit the `review` classifier.
+) -> tuple[Address, Path]:
+    """Persist the LLM's review output as a substrate-citizen document.
 
-    Path: <reviews_dir>/<asn_label>/review-<N>.md.
-
-    The aggregate is the reviewer's full output; per-finding bodies
-    live separately (written by record_findings).
+    The body is the reviewer's full output verbatim — narrative,
+    findings, verdict. Per-finding bodies are also extracted to their
+    own docs by record_findings (so revise gets clean per-finding
+    input); this document is the audit trail.
 
     `covered_addrs`, when provided, records via `review.coverage`
-    links which docs were within this review's coverage (the
-    structural audit fact). The `is_claim_confirmed` predicate
-    consults these links to find the most recent review covering a
-    given doc; coverage / staleness predicates will use them too.
-    Omit when scope is not relevant (legacy callers).
+    links which docs were within this review's coverage. The
+    `is_claim_confirmed` predicate consults these links to find the
+    most recent review covering a given doc.
+
+    Returns `(review_addr, review_path)`.
     """
     from lib.backend.emit import emit_review_coverage
 
-    reviews_root = Path(reviews_dir)
-    review_stem = f"review-{review_num}"
-    asn_dir = reviews_root / asn_label
-    meta_path = asn_dir / f"{review_stem}.md"
-
-    lines = [
-        f"# {title}",
-        "",
-        f"*{timestamp}*",
-        "",
-        f"**Scope:** {scope}",
-        f"**Verdict:** {verdict}",
-        f"**Findings:** {findings_summary}",
-        f"**Elapsed:** {elapsed_seconds:.0f}s",
-    ]
-    if emitted_findings:
-        lines.extend(["", "## Findings", ""])
-        for ef in emitted_findings:
-            finding_filename = Path(ef["finding_path"]).name
-            cls = ef.get("cls", "REVISE")
-            title_text = ef.get("title", "(untitled)")
-            lines.append(f"- {finding_filename} — {title_text} *({cls})*")
-    body = "\n".join(lines) + "\n"
-
+    review_path = review_aggregate_path(asn_label, review_num, kind="claim")
     lattice_root = session.store.lattice_dir.resolve()
-    meta_rel = str(meta_path.resolve().relative_to(lattice_root))
+    review_rel = str(review_path.resolve().relative_to(lattice_root))
 
-    session.update_document(meta_rel, body)
-    meta_addr = session.register_path(meta_rel)
-    link, _ = emit_review(session.store, meta_addr)
+    session.update_document(review_rel, body)
+    review_addr = session.register_path(review_rel)
+    emit_review(session.store, review_addr)
 
     if covered_addrs:
         for covered in covered_addrs:
-            emit_review_coverage(session.store, meta_addr, covered)
+            emit_review_coverage(session.store, review_addr, covered)
 
-    return link
+    return review_addr, review_path
 
 
 def record_findings(

@@ -20,14 +20,13 @@ from pathlib import Path
 
 from lib.provenance import attributed_to
 from lib.agents.claim_review import (
-    cycle_verdict, extract_findings, filter_revise,
-    findings_summary, run_review,
+    extract_findings, filter_revise, run_review,
 )
 from lib.agents.claim_revise import revise
 from lib.backend.schema import ATTRIBUTE_SUFFIXES
 from lib.orchestrators.retry import _retry_unresolved_revises
 from .cone_detect import detect_dependency_cone
-from lib.claim_convergence.findings import emit_meta, record_findings
+from lib.claim_convergence.findings import emit_review_doc, record_findings
 from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.agents.cone_review import run_cone_review
@@ -37,7 +36,7 @@ from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
     CLAIM_DIR, CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR,
     LATTICE, WORKSPACE,
-    next_review_number, review_aggregate_path,
+    next_review_number,
 )
 from lib.shared.validate_gate import run_validate_gate
 
@@ -127,25 +126,12 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             asn_label, kind="claim", reviews_dir=review_dir,
         )
         review_stem = f"review-{review_num}"
-        meta_path = review_aggregate_path(
-            asn_label, review_num, kind="claim",
-        )
 
         findings = extract_findings(findings_text)
-        review_link = emit_meta(
+        review_addr, final_review_path = emit_review_doc(
             session, asn_label, review_num,
-            title=f"Full Review — {asn_label} (cycle {cycle})",
-            timestamp=time.strftime("%Y-%m-%d %H:%M"),
-            scope=f"{asn_label} (full)",
-            verdict="(pending)",
-            findings_summary="(pending)",
-            emitted_findings=[],
-            elapsed_seconds=elapsed,
-            reviews_dir=CLAIM_REVIEWS_DIR,
+            body=findings_text,
             covered_addrs=asn_claim_addrs,
-        )
-        review_addr = (
-            review_link.to_set[0] if review_link.to_set else None
         )
         emitted_findings = record_findings(
             session, review_addr, findings,
@@ -153,21 +139,6 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             findings_dir=CLAIM_FINDINGS_DIR,
         )
         emitted_by_title = {e["title"]: e for e in emitted_findings}
-
-        revise_count = len(filter_revise(findings))
-        emit_meta(
-            session, asn_label, review_num,
-            title=f"Full Review — {asn_label} (cycle {cycle})",
-            timestamp=time.strftime("%Y-%m-%d %H:%M"),
-            scope=f"{asn_label} (full)",
-            verdict=cycle_verdict(verdict, revise_count),
-            findings_summary=findings_summary(findings, revise_count),
-            emitted_findings=emitted_findings,
-            elapsed_seconds=elapsed,
-            reviews_dir=CLAIM_REVIEWS_DIR,
-            covered_addrs=asn_claim_addrs,
-        )
-        final_review_path = meta_path
 
         for title, cls, _ in findings:
             print(f"\n  ### [{cls}] {title}", file=sys.stderr)
@@ -225,8 +196,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         if cone:
             apex, deps = cone
             run_cone_review(
-                asn_num, apex, deps, max_cycles=3,
-                dry_run=dry_run, model=model,
+                asn_num, apex, deps, max_cycles=3, model=model,
             )
 
         if (
@@ -282,26 +252,12 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                     asn_label, kind="claim", reviews_dir=review_dir,
                 )
                 review_stem = f"review-{review_num}"
-                confirm_meta_path = review_aggregate_path(
-                    asn_label, review_num, kind="claim",
-                )
 
                 confirm_findings = extract_findings(confirm_findings_text)
-                confirm_review_link = emit_meta(
+                confirm_review_addr, final_review_path = emit_review_doc(
                     session, asn_label, review_num,
-                    title=f"Full Review (Confirmation) — {asn_label}",
-                    timestamp=time.strftime("%Y-%m-%d %H:%M"),
-                    scope=f"{asn_label} (full)",
-                    verdict="(pending)",
-                    findings_summary="(pending)",
-                    emitted_findings=[],
-                    elapsed_seconds=confirm_elapsed,
-                    reviews_dir=CLAIM_REVIEWS_DIR,
-            covered_addrs=asn_claim_addrs,
-                )
-                confirm_review_addr = (
-                    confirm_review_link.to_set[0]
-                    if confirm_review_link.to_set else None
+                    body=confirm_findings_text,
+                    covered_addrs=asn_claim_addrs,
                 )
                 emitted_findings = record_findings(
                     session, confirm_review_addr, confirm_findings,
@@ -311,23 +267,6 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                 confirmation_revise_count = len(
                     filter_revise(confirm_findings)
                 )
-                emit_meta(
-                    session, asn_label, review_num,
-                    title=f"Full Review (Confirmation) — {asn_label}",
-                    timestamp=time.strftime("%Y-%m-%d %H:%M"),
-                    scope=f"{asn_label} (full)",
-                    verdict=cycle_verdict(
-                        confirm_verdict, confirmation_revise_count,
-                    ),
-                    findings_summary=findings_summary(
-                        confirm_findings, confirmation_revise_count,
-                    ),
-                    emitted_findings=emitted_findings,
-                    elapsed_seconds=confirm_elapsed,
-                    reviews_dir=CLAIM_REVIEWS_DIR,
-            covered_addrs=asn_claim_addrs,
-                )
-                final_review_path = confirm_meta_path
 
     elapsed = time.time() - start_time
     if failed:
@@ -343,13 +282,17 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         )
 
     if final_review_path is not None and not failed:
-        with open(final_review_path, "a") as rf:
-            rf.write("\n## Result\n\n")
-            if converged:
-                rf.write("Converged.\n")
-            else:
-                rf.write(f"Not converged after {cycle} cycle(s).\n")
-            rf.write(f"\n*Elapsed: {elapsed:.0f}s*\n")
+        result_status = (
+            "Converged.\n" if converged
+            else f"Not converged after {cycle} cycle(s).\n"
+        )
+        tail = f"\n## Result\n\n{result_status}\n*Elapsed: {elapsed:.0f}s*\n"
+        review_rel = str(
+            final_review_path.resolve().relative_to(LATTICE.resolve())
+        )
+        session.update_document(
+            review_rel, final_review_path.read_text() + tail,
+        )
 
         print(
             f"\n  Review: {final_review_path.relative_to(WORKSPACE)}",

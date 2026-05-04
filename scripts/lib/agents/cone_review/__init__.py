@@ -32,13 +32,18 @@ __all__ = [
 
 def run_cone_review(
     asn_num, apex_label, dep_labels, *,
-    max_cycles: int = 8, dry_run: bool = False, model: str = CONE_MODEL,
+    max_cycles: int = 8, model: str = CONE_MODEL,
 ) -> str:
     """Legacy multi-cycle wrapper: drive ConeReviewAgent until confirmed
     or max_cycles hit. Returns "converged" / "not_converged" / "failed".
 
     Used by full-review's cone-fallback dispatch. Once full-review
     migrates to the trigger model, this wrapper retires.
+
+    No `dry_run`: undo via `git reset --hard HEAD~N`. Faux-dry semantics
+    leak side effects (raw output files, session re-opens, partial
+    substrate writes); the git reset path is honest about cost and
+    captures every artifact we care about.
     """
     agent = ConeReviewAgent()
     session = open_session(LATTICE)
@@ -52,13 +57,6 @@ def run_cone_review(
             file=sys.stderr,
         )
         return "failed"
-
-    if dry_run:
-        print(
-            f"  [run_cone_review] dry_run is not supported via the "
-            f"trigger-form agent; running one normal cycle.",
-            file=sys.stderr,
-        )
 
     for cycle in range(max_cycles):
         if is_claim_confirmed(session, apex_addr):
