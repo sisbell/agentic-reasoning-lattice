@@ -21,7 +21,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import LATTICE, WORKSPACE, CLAIM_DIR, claim_statements, dep_graph
 from lib.shared.common import find_asn, load_claim_metadata, build_label_index
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import active_links
 from lib.predicates import current_contract_kind

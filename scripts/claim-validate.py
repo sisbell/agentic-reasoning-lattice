@@ -34,7 +34,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.common import find_asn
 from lib.shared.paths import CLAIM_DIR, LATTICE
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import active_links
 from lib.predicates import current_contract_kind
@@ -183,7 +183,7 @@ def check_contract_classifier_present(pairs, store, label_index):
     """Every claim must have a contract.<kind> classifier link in the store
     with a valid subtype. This replaces the old yaml type-validity check.
     """
-    from lib.febe.session import Session
+    from lib.protocols.febe.session import Session
     session = Session(store)
     findings = []
     for stem in sorted(pairs):

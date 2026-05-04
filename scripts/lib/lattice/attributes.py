@@ -29,7 +29,7 @@ from typing import Tuple, Union
 
 from lib.backend.emit import emit_attribute_link
 from lib.backend.links import Link
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 VALID_ATTRIBUTE_KINDS = {"label", "name", "description", "signature"}
 

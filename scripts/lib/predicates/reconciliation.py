@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import List, Union
 
 from lib.backend.links import Link
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 from lib.lattice.attributes import VALID_ATTRIBUTE_KINDS
 
 

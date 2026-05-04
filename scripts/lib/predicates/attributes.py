@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Optional
 
 from lib.backend.addressing import Address
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 def has_description(session: Session, doc_addr: Address) -> bool:

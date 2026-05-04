@@ -23,8 +23,8 @@ from pathlib import Path
 from lib.agent import attributed_to
 from lib.agents.citation_resolve import extract_citation_classifications
 from lib.backend.emit import emit_citation, emit_retraction
-from lib.febe.protocol import Session
-from lib.febe.session import open_session
+from lib.protocols.febe.protocol import Session
+from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.shared.common import (
     build_label_index, find_asn, step_commit_asn,

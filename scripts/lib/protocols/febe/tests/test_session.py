@@ -16,8 +16,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 
 from lib.backend.addressing import Address
 from lib.backend.state import State
-from lib.febe.protocol import Session as SessionProtocol
-from lib.febe.session import Session
+from lib.protocols.febe.protocol import Session as SessionProtocol
+from lib.protocols.febe.session import Session
 
 
 class FebeSessionDocOpsTests(unittest.TestCase):

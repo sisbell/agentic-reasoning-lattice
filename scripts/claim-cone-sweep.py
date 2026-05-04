@@ -26,7 +26,7 @@ from lib.orchestrators.cone_review import run_cone_review
 from lib.orchestrators.cone_sweep import run_cone_sweep
 from lib.shared.common import find_asn, build_label_index
 from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR, LATTICE
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 
 

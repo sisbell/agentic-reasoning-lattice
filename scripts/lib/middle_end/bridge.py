@@ -29,7 +29,7 @@ from dataclasses import dataclass, field
 from typing import List, Tuple
 
 from lib.backend.addressing import Address
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 @dataclass

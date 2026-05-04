@@ -29,7 +29,7 @@ from lib.shared.paths import (
     campaign_dir, campaign_doc_path, campaign_vocab, load_channel_meta,
 )
 from lib.backend.emit import emit_campaign
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 
 
 def main():

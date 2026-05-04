@@ -39,7 +39,7 @@ from lib.consultation.evidence import assign_channels
 from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_assessment,
 )
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 
 
 def get_review_number(review_path):

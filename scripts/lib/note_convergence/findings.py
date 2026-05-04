@@ -21,7 +21,7 @@ from pathlib import Path
 
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_comment, emit_derivation, emit_finding
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 def emit_note_findings(

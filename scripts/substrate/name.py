@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import claim_doc_path, LATTICE
 from lib.lattice.attributes import emit_attribute
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 
 
 def main():

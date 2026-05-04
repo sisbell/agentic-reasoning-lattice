@@ -54,7 +54,7 @@ from lib.backend.emit import (
 )
 from lib.lattice.attributes import emit_attribute
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 
 from .find_in_source import find_in_source
 

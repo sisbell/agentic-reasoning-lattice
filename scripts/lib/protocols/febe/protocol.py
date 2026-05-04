@@ -8,7 +8,7 @@ implementation can be in-process, FEBE-wire-bound, or anything else;
 clients cannot tell which.
 
 This module defines the contract as a `typing.Protocol`. The
-in-process `lib.febe.session.Session` class implements it; future
+in-process `lib.protocols.febe.session.Session` class implements it; future
 implementations (wire-bound FEBE clients) implement it as well.
 
 ## Layering

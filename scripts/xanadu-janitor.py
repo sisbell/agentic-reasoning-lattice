@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
     CLAIM_DIR, CLAIM_FINDINGS_DIR, LATTICE, NOTE_FINDINGS_DIR,
 )
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.predicates import (
     dangling_attribute_links,
     dangling_claim_finding_links,

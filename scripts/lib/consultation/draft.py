@@ -38,7 +38,7 @@ from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
 from lib.backend.emit import emit_note, emit_synthesis
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 
 DISCOVERY_PROMPT = LATTICE_PROMPTS / "discovery" / "instructions.md"
 

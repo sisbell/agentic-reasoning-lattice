@@ -16,7 +16,7 @@ from pathlib import Path
 
 from lib.agents.note_review import run_note_review
 from lib.agents.note_revise import run_revise_pass
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.orchestrators.note_converge import (
     collect_open_revises,
     commit_note_review,

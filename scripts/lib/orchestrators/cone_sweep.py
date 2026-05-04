@@ -18,7 +18,7 @@ from lib.claim_convergence.core.topological_sort import topological_levels
 from lib.claim_convergence.sweep_progress import (
     clear_progress, read_progress, write_progress,
 )
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.orchestrators.cone_review import run_cone_review
 from lib.predicates import is_claim_converged

@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import claim_doc_path, LATTICE
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.backend.emit import emit_citation
 from lib.lattice.labels import build_doc_label_index
 

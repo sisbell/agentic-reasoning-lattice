@@ -29,7 +29,7 @@ from typing import List, Optional
 
 from lib.backend.addressing import Address
 from lib.backend.links import Link
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 def has_resolution(session: Session, comment_addr: Address) -> bool:

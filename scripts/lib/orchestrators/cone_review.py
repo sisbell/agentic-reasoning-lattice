@@ -33,7 +33,7 @@ from lib.claim_convergence.cone.scope import (
 )
 from lib.claim_convergence.findings import emit_findings, emit_meta
 from lib.claim_convergence.sync import sync_claim_citations
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.predicates import is_claim_converged
 from lib.shared.common import build_label_index, find_asn, step_commit_asn

@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
 from lib.backend.addressing import Address
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 @dataclass

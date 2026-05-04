@@ -33,7 +33,7 @@ from lib.backend.emit import (
     emit_comment, emit_derivation, emit_finding, emit_review,
 )
 from lib.backend.links import Link
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 def emit_meta(

@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import List, Set
 
 from lib.backend.addressing import Address
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 def depends(session: Session, doc_addr: Address) -> List[Address]:

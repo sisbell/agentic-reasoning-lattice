@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import List
 
 from lib.backend.addressing import Address
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 def version_children(session: Session, doc_addr: Address) -> List[Address]:

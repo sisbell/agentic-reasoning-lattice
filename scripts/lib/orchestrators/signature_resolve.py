@@ -21,8 +21,8 @@ from pathlib import Path
 
 from lib.agent import attributed_to
 from lib.agents.signature_resolve import extract_signature_changes
-from lib.febe.protocol import Session
-from lib.febe.session import open_session
+from lib.protocols.febe.protocol import Session
+from lib.protocols.febe.session import open_session
 from lib.lattice.attributes import emit_attribute
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.lattice.notation import read_notation

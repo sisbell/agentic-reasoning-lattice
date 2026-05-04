@@ -26,7 +26,7 @@ from typing import Optional
 
 from lib.backend.addressing import Address
 from lib.backend.links import Link
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 def emit_decision(

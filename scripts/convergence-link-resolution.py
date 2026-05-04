@@ -35,7 +35,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import LATTICE
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.claim_convergence.decisions import emit_decision
 from lib.backend.addressing import Address
 

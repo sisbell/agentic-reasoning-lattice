@@ -19,7 +19,7 @@ from lib.backend.emit import (
     emit_attribute_link, emit_claim, emit_comment, emit_finding, emit_note,
 )
 from lib.backend.store import Store
-from lib.febe.session import Session
+from lib.protocols.febe.session import Session
 from lib.lattice.attributes import emit_attribute
 from lib.predicates import (
     dangling_attribute_links,

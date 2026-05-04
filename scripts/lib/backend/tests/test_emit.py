@@ -175,7 +175,7 @@ class CommentResolutionEmitTests(unittest.TestCase):
         self.review = self.store.addr_for_path("review.md")
 
     def test_review_revise_resolution_cycle(self):
-        from lib.febe.session import Session
+        from lib.protocols.febe.session import Session
         session = Session(self.store)
         # Review files a revise comment
         comment = emit_comment(

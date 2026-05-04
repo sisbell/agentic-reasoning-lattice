@@ -36,8 +36,8 @@ from typing import Optional
 from lib.agents.note_review import extract_note_findings, run_note_review
 from lib.agents.note_revise import run_revise_pass
 from lib.backend.emit import emit_review
-from lib.febe.protocol import Session
-from lib.febe.session import open_session
+from lib.protocols.febe.protocol import Session
+from lib.protocols.febe.session import open_session
 from lib.note_convergence.findings import emit_note_findings
 from lib.predicates import is_doc_converged, unresolved_revise_comments
 from lib.shared.common import find_asn, step_commit_asn

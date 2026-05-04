@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, LATTICE
 from lib.lattice.labels import build_note_label_index
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 
 
 def asn_label(asn_arg):

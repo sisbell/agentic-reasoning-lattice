@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from lib.backend.addressing import Address
 from lib.backend.state import State
-from lib.febe.session import Session
+from lib.protocols.febe.session import Session
 from lib.middle_end import (
     CandidateMatch,
     LLMJudgeSimilarity,

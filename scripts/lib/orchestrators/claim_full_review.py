@@ -28,7 +28,7 @@ from lib.backend.schema import ATTRIBUTE_SUFFIXES
 from lib.claim_convergence.cone.retry import _retry_unresolved_revises
 from lib.claim_convergence.cone.select import detect_dependency_cone
 from lib.claim_convergence.findings import emit_findings, emit_meta
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.orchestrators.cone_review import run_cone_review
 from lib.predicates import is_asn_converged

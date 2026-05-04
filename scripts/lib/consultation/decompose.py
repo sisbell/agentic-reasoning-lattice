@@ -43,7 +43,7 @@ from lib.consult import (
 from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_questions,
 )
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 
 
 def _channel_default_questions(channel_name, fallback=10):

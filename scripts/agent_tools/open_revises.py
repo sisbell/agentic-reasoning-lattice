@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.predicates import unresolved_revise_comments
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
 from lib.shared.paths import LATTICE
 

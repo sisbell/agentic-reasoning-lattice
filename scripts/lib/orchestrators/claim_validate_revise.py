@@ -32,7 +32,7 @@ from lib.agents.structural_rule_fix import (
     propose_structural_fix,
 )
 from lib.backend.emit import emit_retraction
-from lib.febe.session import open_session
+from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.shared.common import find_asn
 from lib.shared.paths import LATTICE

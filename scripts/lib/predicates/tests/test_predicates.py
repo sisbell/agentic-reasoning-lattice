@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.backend.addressing import Address
 from lib.backend.predicates import active_links, retracted_link_addrs
 from lib.backend.state import State
-from lib.febe.session import Session
+from lib.protocols.febe.session import Session
 from lib.predicates import (
     all_claim_addrs,
     all_classified,

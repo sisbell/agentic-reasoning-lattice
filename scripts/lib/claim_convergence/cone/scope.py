@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import CLAIM_DIR
 from lib.shared.common import build_label_index
 from lib.backend.addressing import Address
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 def assemble_cone(asn_label, apex_label, dep_labels):

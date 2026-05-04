@@ -10,7 +10,7 @@ from lib.agents.claim_review import extract_findings
 from lib.agents.claim_revise import revise
 from lib.backend.addressing import Address
 from lib.predicates import unresolved_revise_comments
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 def _retry_unresolved_revises(

@@ -1,6 +1,6 @@
 """FEBE Session — front-end interface to the substrate backend.
 
-In-process implementation of the Session Protocol (lib.febe.protocol).
+In-process implementation of the Session Protocol (lib.protocols.febe.protocol).
 A real FEBE session would be bound to a network or pipe stream;
 this binds to a local backend (Store or State).
 
@@ -23,7 +23,7 @@ The session offers `use_lattice(addr)` to set an active lattice for
 ergonomic `create_document` calls (mirrors how a real FEBE session
 has an authenticated user context).
 
-BEBE dispatch: the Session holds a BEBEDispatcher (lib.bebe). For
+BEBE dispatch: the Session holds a BEBEDispatcher (lib.protocols.bebe). For
 peer-node Addresses, read/query operations forward through BEBE.
 For local-node Addresses, operations hit the backend directly. The
 dispatcher's stub returns "not available" defaults today — when
@@ -47,13 +47,13 @@ from lib.backend.addressing import Address
 from lib.backend.links import Link
 from lib.backend.state import State, TypeArg
 from lib.backend.store import Store
-from lib.bebe import BEBEDispatcher
+from lib.protocols.bebe import BEBEDispatcher
 
 
 class Session:
     """In-process FEBE session bound to a backend (Store or State).
 
-    Implements lib.febe.protocol.Session. Production callers pass a
+    Implements lib.protocols.febe.protocol.Session. Production callers pass a
     Store (filesystem-backed); unit tests may pass a State (in-memory
     only — filesystem-requiring methods will raise).
     """

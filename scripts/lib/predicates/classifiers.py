@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import List, Optional, Set
 
 from lib.backend.addressing import Address
-from lib.febe.protocol import Session
+from lib.protocols.febe.protocol import Session
 
 
 def all_claim_addrs(session: Session) -> List[Address]:

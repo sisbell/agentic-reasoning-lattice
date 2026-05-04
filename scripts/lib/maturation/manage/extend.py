@@ -114,7 +114,7 @@ def compute_depends(base_num):
     """Compute depends list: base's own deps (from substrate) + base itself."""
     import re
     from lib.backend.predicates import active_links
-    from lib.febe.session import open_session
+    from lib.protocols.febe.session import open_session
     base_inq = inquiry_doc_path(base_num)
     base_rel = str(base_inq.resolve().relative_to(LATTICE.resolve()))
     deps = {base_num}
