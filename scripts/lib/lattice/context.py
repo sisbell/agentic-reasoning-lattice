@@ -14,12 +14,12 @@ anchor for the derived ASN, since transclude emits
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from pathlib import Path
 
 from lib.backend.addressing import Address
-from lib.lattice.labels import build_cross_asn_label_index
+from lib.lattice.labels import ASN_PATTERN, build_cross_asn_label_index
+from lib.predicates.convergence import derived_claims
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
 from lib.shared.paths import CLAIM_DIR
@@ -111,9 +111,6 @@ class AsnContext:
     derived_claim_addrs: tuple[Address, ...]
 
 
-_ASN_LABEL_RE = re.compile(r"(ASN-(\d+))")
-
-
 def asn_context_from_note(session: Session, addr: Address) -> AsnContext:
     """Build an AsnContext from a source note's substrate Address.
 
@@ -124,25 +121,17 @@ def asn_context_from_note(session: Session, addr: Address) -> AsnContext:
     if path is None:
         raise ValueError(f"no path for address {addr}")
 
-    m = _ASN_LABEL_RE.search(path)
+    m = ASN_PATTERN.search(path)
     if m is None:
         raise ValueError(f"no ASN label in path {path}")
-    asn_label = m.group(1)
-    asn_num = int(m.group(2))
+    asn_num = int(m.group(1))
+    asn_label = f"ASN-{asn_num:04d}"
     claim_dir = CLAIM_DIR / asn_label
-
-    derived_claim_addrs = tuple(
-        target
-        for link in session.active_links(
-            "provenance.derivation", from_set=[addr],
-        )
-        for target in link.to_set
-    )
 
     return AsnContext(
         addr=addr,
         asn_label=asn_label,
         asn_num=asn_num,
         claim_dir=claim_dir,
-        derived_claim_addrs=derived_claim_addrs,
+        derived_claim_addrs=tuple(derived_claims(session, addr)),
     )

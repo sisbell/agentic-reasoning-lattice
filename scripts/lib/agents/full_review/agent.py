@@ -19,7 +19,7 @@ Structurally identical to cone-review; differences are scope-level:
   - validate-gate scope: whole ASN (vs cone subset)
   - model: opus (vs sonnet)
 
-The runner re-fires if `is_asn_converged(note_addr)` is still false
+The runner re-fires if `is_asn_confirmed(note_addr)` is still false
 after this cycle.
 """
 

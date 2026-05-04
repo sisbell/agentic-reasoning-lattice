@@ -147,8 +147,13 @@ def is_claim_confirmed(session: Session, addr: Address) -> bool:
     )
 
 
-def _derived_claims(session: Session, note_addr: Address):
-    """Yield substrate addresses of claims derived from a source note."""
+def derived_claims(session: Session, note_addr: Address):
+    """Yield substrate addresses of claims derived from a source note.
+
+    Walks `provenance.derivation` forward from the note address.
+    Emitted by transclude during claim derivation; the union of these
+    targets is the note's claim cluster.
+    """
     for link in session.active_links(
         "provenance.derivation", from_set=[note_addr],
     ):
@@ -157,17 +162,10 @@ def _derived_claims(session: Session, note_addr: Address):
 
 
 def is_asn_converged(session: Session, note_addr: Address) -> bool:
-    """Conjunction of `is_claim_converged` over every claim derived
-    from this note via `provenance.derivation`.
-
-    The "ASN" is anchored in substrate by the source note's address;
-    its derived claims are the targets of the note's outgoing
-    `provenance.derivation` links (emitted by transclude). Vacuously
-    true on a note with no derivations.
-    """
+    """Conjunction of `is_claim_converged` over every derived claim."""
     return all(
         is_doc_converged(session, derived)
-        for derived in _derived_claims(session, note_addr)
+        for derived in derived_claims(session, note_addr)
     )
 
 
@@ -181,5 +179,5 @@ def is_asn_confirmed(session: Session, note_addr: Address) -> bool:
     """
     return all(
         is_claim_confirmed(session, derived)
-        for derived in _derived_claims(session, note_addr)
+        for derived in derived_claims(session, note_addr)
     )

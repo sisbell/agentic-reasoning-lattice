@@ -36,6 +36,7 @@ from .classifiers import (
     current_contract_kind,
 )
 from .convergence import (
+    derived_claims,
     has_been_reviewed,
     has_resolution,
     is_asn_confirmed,
@@ -67,6 +68,7 @@ __all__ = [
     "dangling_note_finding_links",
     "depends",
     "dependents",
+    "derived_claims",
     "description_sidecar_of",
     "has_been_reviewed",
     "has_description",

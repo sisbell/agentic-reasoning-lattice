@@ -26,9 +26,7 @@ __all__ = [
 ]
 
 
-def run_full_review(
-    asn_num, *, max_cycles: int = 8, model: str = FULL_MODEL,
-) -> str:
+def run_full_review(asn_num, *, max_cycles: int = 8) -> str:
     """Legacy multi-cycle wrapper: drive FullReviewAgent until confirmed
     or max_cycles hit. Returns "converged" / "not_converged" / "failed".
 
