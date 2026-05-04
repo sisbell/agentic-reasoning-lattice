@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, claim_statements, dep_graph
 from lib.shared.common import find_asn
-from lib.note_convergence.assembly.produce_statements import export_one
+from lib.note_convergence.produce_statements import export_one
 from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps, write_deps_yaml
 
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"

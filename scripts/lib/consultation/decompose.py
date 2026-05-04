@@ -36,7 +36,7 @@ from lib.shared.paths import (
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
-from lib.consult import (
+from lib.consultation.consult import (
     invoke_claude, get_total_usage, reset_total_usage,
     dispatch_generate_questions, dispatch_run_consultation,
 )

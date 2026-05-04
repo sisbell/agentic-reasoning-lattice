@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.maturation.absorb.merge_extension import (
+from lib.maturation.absorb_merge_extension import (
     parse_extension_labels, validate,
     step_integrate, step_review_revise, step_export,
     step_update_source, step_cleanup,

@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
 from lib.shared.common import read_file
-from lib.consult import (
+from lib.consultation.consult import (
     invoke_claude as _invoke,
     parse_numbered,
     format_out_of_scope_block,

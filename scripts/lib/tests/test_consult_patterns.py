@@ -1,4 +1,4 @@
-"""Unit tests for the channel-shape registry in lib.consult_patterns.
+"""Unit tests for the channel-shape registry in lib.consultation.patterns.
 
 Verifies that build_plugin dispatches correctly on `meta['shape']`,
 that flat-corpus channels construct without a consult.py, and that
@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.consult_patterns import build_plugin
+from lib.consultation.patterns import build_plugin
 
 
 class BuildPluginTests(unittest.TestCase):

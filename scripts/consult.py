@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import CONSULTATIONS_DIR
 from lib.shared.campaign import resolve_campaign
-from lib.consult import load_channel_plugin, next_session_dir
+from lib.consultation.consult import load_channel_plugin, next_session_dir
 
 
 def main():

@@ -32,7 +32,7 @@ from lib.shared.paths import (
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn
-from lib.consult import (
+from lib.consultation.consult import (
     invoke_claude, get_total_usage, dispatch_run_consultation,
 )
 from lib.consultation.evidence import assign_channels

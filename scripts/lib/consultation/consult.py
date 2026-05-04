@@ -233,7 +233,7 @@ def load_channel_plugin(channel_name):
     shape = meta.get("shape")
 
     if shape != "custom":
-        from lib.consult_patterns import build_plugin
+        from lib.consultation.patterns import build_plugin
         plugin = build_plugin(meta, channel_dir)
         _plugin_cache[channel_name] = plugin
         return plugin

@@ -86,7 +86,7 @@ role_hint: theory
 description: "Maxwell's dynamical theory of gases (1867). The theory of this period."
 type: single-source
 ```
-Campaigns reference channels by bare name; the orchestrator loads `channels/<name>/consultations/consult.py` via the plugin loader at `scripts/lib/consult.py::load_channel_plugin`.
+Campaigns reference channels by bare name; the orchestrator loads `channels/<name>/consultations/consult.py` via the plugin loader at `scripts/lib/consultation/consult.py::load_channel_plugin`.
 
 ## Creating a new ASN
 

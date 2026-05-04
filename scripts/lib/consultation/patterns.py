@@ -19,7 +19,7 @@ import sys
 from types import SimpleNamespace
 
 from lib.shared.common import read_file, concat_md_files
-from lib.consult import (
+from lib.consultation.consult import (
     invoke_claude,
     parse_numbered,
     format_out_of_scope_block,
@@ -32,7 +32,7 @@ def build_plugin(meta, channel_dir):
 
     Returns an object exposing `generate_questions` and `consult`,
     matching the channel-plugin interface that
-    `lib.consult.load_channel_plugin` returns. For `shape: flat-corpus`
+    `lib.consultation.consult.load_channel_plugin` returns. For `shape: flat-corpus`
     the object is a SimpleNamespace built around the factory's two
     closures; for `shape: custom` the caller should not invoke this
     helper and instead load `consultations/consult.py` directly.
