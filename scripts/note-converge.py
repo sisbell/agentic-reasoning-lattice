@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.note_convergence.converge import run_note_convergence
+from lib.orchestrators.note_converge import run_note_convergence
 from lib.agent import attributed_to
 
 

@@ -1,53 +1,82 @@
-"""
-Discovery pipeline step wrappers — subprocess calls to review, consult, revise, commit.
+"""Note-convergence pipeline steps.
 
-Shared by the review orchestrator (scripts/note-review.py) and the
-revision loop orchestrator (lib/note_convergence/revise.py).
+Single-pass review and revise step functions used by the standalone
+CLIs (`scripts/note-review.py`, `scripts/note-revise.py`). step_review
+and step_revise dispatch directly to the agents and orchestrator
+helpers — no Python subprocess wrapping. step_consult_revision and
+step_commit still subprocess external scripts (gather_evidence.py and
+commit.py respectively) since those live outside the agent layer.
 """
 
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE
-from lib.shared.common import find_asn, stage_asn_files
+from lib.agents.note_review import run_note_review
+from lib.agents.note_revise import run_revise_pass
+from lib.febe.session import open_session
+from lib.orchestrators.note_converge import (
+    collect_open_revises,
+    commit_note_review,
+    log_usage,
+    process_resolved_issues,
+)
+from lib.shared.common import find_asn, read_file, stage_asn_files
+from lib.shared.paths import LATTICE, NOTE_DIR, WORKSPACE
 
-REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "note_convergence" / "review.py"
-CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "consultation" / "evidence" / "gather_evidence.py"
-REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "note_convergence" / "revise.py"
+
+CONSULT_REVISION_SCRIPT = (
+    WORKSPACE / "scripts" / "lib" / "consultation"
+    / "evidence" / "gather_evidence.py"
+)
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
 def step_review(asn_id):
-    """Run review.py. Returns (review_path, converged).
+    """Run a review pass directly. Returns (review_path, converged).
 
-    converged is True when the reviewer's VERDICT is CONVERGED (exit 2).
+    converged is True when the reviewer's VERDICT is CONVERGED.
     """
-    print(f"\n  === REVIEW ===", file=sys.stderr)
-    cmd = [sys.executable, str(REVIEW_SCRIPT), str(asn_id)]
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
+    print("\n  === REVIEW ===", file=sys.stderr)
+    asn_path, asn_label = find_asn(str(asn_id))
+    if asn_path is None:
+        print(
+            f"  [REVIEW] FAILED — ASN-{asn_id} not found in "
+            f"{NOTE_DIR.relative_to(WORKSPACE)}/", file=sys.stderr,
+        )
+        return None, False
+    asn_number = int(asn_label.replace("ASN-", ""))
 
-    converged = result.returncode == 2
+    print(f"  [REVIEW] {asn_label}", file=sys.stderr)
 
-    if result.returncode not in (0, 2):
-        print(f"  [REVIEW] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n"):
-                print(f"    {line}", file=sys.stderr)
+    start = time.time()
+    verdict, text, elapsed = run_note_review(asn_path, asn_label)
+    if verdict == "ERROR" or not text:
+        print("  [REVIEW] FAILED — review error", file=sys.stderr)
         return None, False
 
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
+    session = open_session(LATTICE)
+    review_path, findings = commit_note_review(
+        session, asn_path, asn_label, text,
+    )
 
-    review_path = result.stdout.strip()
-    if review_path and Path(review_path).exists():
-        return review_path, converged
-    return None, False
+    if findings:
+        revise_count = sum(1 for _, c, _ in findings if c == "REVISE")
+        oos_count = len(findings) - revise_count
+        print(
+            f"  [FINDINGS] {revise_count} REVISE, "
+            f"{oos_count} OUT_OF_SCOPE",
+            file=sys.stderr,
+        )
+
+    process_resolved_issues(asn_number, text)
+    print(f"  [VERDICT] {verdict}", file=sys.stderr)
+    log_usage(asn_label, elapsed, skill="review")
+
+    converged = verdict == "CONVERGED"
+    return str(review_path), converged
 
 
 def has_revise_items(review_path):
@@ -69,10 +98,9 @@ def has_revise_items(review_path):
 
 def step_consult_revision(asn_id, review_path):
     """Run gather_evidence.py. Returns consultation results path or None."""
-    print(f"\n  === CONSULT ===", file=sys.stderr)
+    print("\n  === CONSULT ===", file=sys.stderr)
     cmd = [sys.executable, str(CONSULT_REVISION_SCRIPT), str(asn_id)]
 
-    # Pass the review filename (e.g., "review-6") for targeting
     review_name = Path(review_path).stem
     m = re.search(r"(review-\d+)", review_name)
     if m:
@@ -82,7 +110,7 @@ def step_consult_revision(asn_id, review_path):
         cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
     )
     if result.returncode != 0:
-        print(f"  [CONSULT] FAILED", file=sys.stderr)
+        print("  [CONSULT] FAILED", file=sys.stderr)
         if result.stderr:
             for line in result.stderr.strip().split("\n")[:5]:
                 print(f"    {line}", file=sys.stderr)
@@ -99,43 +127,84 @@ def step_consult_revision(asn_id, review_path):
 
 
 def step_revise(asn_id, review_spec=None, consultation_path=None):
-    """Run review_revise.py. Returns (asn_path, converged).
+    """Run a revise pass directly. Returns (asn_path, converged).
 
-    converged is True when the ASN was not modified (exit 2).
+    converged is True when no open revise comments remained — either
+    because none existed at the start (already converged) or because
+    the agent closed all of them.
     """
-    print(f"\n  === REVISE ===", file=sys.stderr)
-    cmd = [sys.executable, str(REVISE_SCRIPT), str(asn_id)]
-    if review_spec:
-        cmd.append(review_spec)
-    if consultation_path:
-        cmd.extend(["--consultation", consultation_path])
-
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-
-    converged = result.returncode == 2
-
-    if result.returncode not in (0, 2):
-        print(f"  [REVISE] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:5]:
-                print(f"    {line}", file=sys.stderr)
+    print("\n  === REVISE ===", file=sys.stderr)
+    asn_path, asn_label = find_asn(str(asn_id))
+    if asn_path is None:
+        print(f"  [REVISE] FAILED — ASN-{asn_id} not found", file=sys.stderr)
         return None, False
 
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
+    note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
 
-    asn_path = result.stdout.strip()
-    if asn_path and Path(asn_path).exists():
-        return asn_path, converged
-    return None, False
+    session = open_session(LATTICE)
+    findings = collect_open_revises(session, note_rel)
+
+    if not findings:
+        print(
+            f"  [CONVERGED] No open revise comments on {asn_label}",
+            file=sys.stderr,
+        )
+        return str(asn_path), True
+
+    print(
+        f"  [REVISE] {asn_label} ({asn_path.name}) — "
+        f"{len(findings)} open finding(s)", file=sys.stderr,
+    )
+
+    consultation_content = None
+    if consultation_path:
+        consultation_content = read_file(consultation_path)
+        if not consultation_content:
+            print(
+                f"  Warning: consultation file not found: "
+                f"{consultation_path}",
+                file=sys.stderr,
+            )
+            consultation_content = None
+        else:
+            print(
+                f"  [CONSULTATION] {Path(consultation_path).name}",
+                file=sys.stderr,
+            )
+
+    data, elapsed = run_revise_pass(
+        asn_path, asn_label, findings,
+        consultation_content=consultation_content,
+    )
+    if data is None:
+        print("  [REVISE] Revision failed", file=sys.stderr)
+        return None, False
+    log_usage(asn_label, elapsed, skill="revise", data=data)
+
+    session = open_session(LATTICE)
+    remaining = collect_open_revises(session, note_rel)
+
+    closed_count = len(findings) - len(remaining)
+    print(
+        f"  [CLOSED] {closed_count}/{len(findings)} comment(s) "
+        f"resolved this session", file=sys.stderr,
+    )
+
+    if remaining:
+        print(
+            f"  [OPEN] {len(remaining)} comment(s) still need revision:",
+            file=sys.stderr,
+        )
+        for _, title, _ in remaining:
+            print(f"    - {title}", file=sys.stderr)
+
+    converged = not remaining
+    return str(asn_path), converged
 
 
 def step_commit(hint="", asn_id=None):
     """Run commit.py. If asn_id is provided, stage only that ASN's files."""
-    print(f"\n  === COMMIT ===", file=sys.stderr)
+    print("\n  === COMMIT ===", file=sys.stderr)
 
     if asn_id is not None:
         stage_asn_files(f"ASN-{int(asn_id):04d}")
@@ -148,7 +217,7 @@ def step_commit(hint="", asn_id=None):
         cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
     )
     if result.returncode != 0:
-        print(f"  [COMMIT] FAILED", file=sys.stderr)
+        print("  [COMMIT] FAILED", file=sys.stderr)
         if result.stderr:
             for line in result.stderr.strip().split("\n")[:3]:
                 print(f"    {line}", file=sys.stderr)

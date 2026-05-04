@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.note_convergence.review import extract_note_findings
+from lib.agents.note_review import extract_note_findings
 
 
 SAMPLE_REVIEW = """# Review of ASN-0009
