@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-"""
-Regional Sweep — proactive regional-scale review of high-dependency claims.
+"""Run the cone-review trigger across an ASN.
 
-Walks the dependency DAG bottom-up, running focused regional reviews on
-claims with >= N same-ASN dependencies. Each regional review assembles
-just the apex + its dependencies (the cone), with narrowed foundation loading.
+Three modes:
+    (default)            predicate-driven convergence loop until quiescent
+    --force [LABELS]     force-pass on all apexes, or just the named ones
+    --force-from LABEL   force-pass on LABEL and every later apex (topo order)
 
-Regional sweep alternates with full-review under the convergence
-protocol; together they cover the per-cone and whole-ASN scopes.
+Discovery:
+    --apexes             print qualifying apexes in topological order
 
 Usage:
     python scripts/claim-cone-sweep.py 36
-    python scripts/claim-cone-sweep.py 36 --min-deps 3
-    python scripts/claim-cone-sweep.py 36 --cone GlobalUniqueness
-    python scripts/claim-cone-sweep.py 36 --dry-run
+    python scripts/claim-cone-sweep.py 36 --force
+    python scripts/claim-cone-sweep.py 36 --force T7,T9
+    python scripts/claim-cone-sweep.py 36 --force-from T9
+    python scripts/claim-cone-sweep.py 36 --apexes
 """
 
 import argparse
@@ -22,66 +23,85 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.orchestrators.cone_review import run_cone_review
-from lib.orchestrators.cone_sweep import run_cone_sweep
-from lib.shared.claim_files import build_label_index
-from lib.shared.common import find_asn
-from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR, LATTICE
 from lib.protocols.febe.session import open_session
-from lib.lattice.labels import build_cross_asn_label_index
+from lib.runner import Scope, asn, run_force_pass, run_until_quiescent
+from lib.shared.paths import LATTICE
+from lib.triggers import apex_labels_in_topological_order, cone_review
+
+
+def _resolve_force_scope(asn_label: str, args) -> Scope:
+    """Build the Scope for a force-pass invocation.
+
+    --force        → all apexes (Scope with labels=None)
+    --force LABELS → exactly those labels
+    --force-from L → L and every later apex in topological order
+    """
+    if args.force_from:
+        with open_session(LATTICE) as session:
+            apexes = apex_labels_in_topological_order(session, asn_label)
+        if args.force_from not in apexes:
+            print(
+                f"  [ERROR] {args.force_from!r} is not an apex in {asn_label}.",
+                file=sys.stderr,
+            )
+            print(f"  Apexes: {', '.join(apexes) or '(none)'}",
+                  file=sys.stderr)
+            sys.exit(1)
+        idx = apexes.index(args.force_from)
+        return Scope(asn_label=asn_label, labels=frozenset(apexes[idx:]))
+
+    if args.force == "ALL":
+        return Scope(asn_label=asn_label)
+
+    labels = frozenset(s.strip() for s in args.force.split(",") if s.strip())
+    return Scope(asn_label=asn_label, labels=labels)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Regional Sweep — proactive regional-scale review of high-dependency claims")
+        description="Cone-review sweep across an ASN.",
+    )
     parser.add_argument("asn", help="ASN number (e.g., 36)")
-    parser.add_argument("--cone", metavar="LABEL",
-                        help="Run a single regional review on a specific cone apex")
-    parser.add_argument("--min-deps", type=int, default=4,
-                        help="Minimum same-ASN dependencies to qualify (default: 4)")
-    parser.add_argument("--max-cycles", type=int, default=8,
-                        help="Max convergence cycles per cone (default: 8)")
-    parser.add_argument("--model", default="sonnet",
-                        help="Model for review (default: sonnet)")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Review only, don't fix")
-    parser.add_argument("--all", action="store_true",
-                        help="Force re-review of every qualifying cone, including "
-                             "ones whose convergence predicate already holds. "
-                             "Default: skip-if-converged (cheap resume).")
+    parser.add_argument(
+        "--force", nargs="?", const="ALL", default=None,
+        help="Force-pass: bare = all apexes, with LABELS = exactly those.",
+    )
+    parser.add_argument(
+        "--force-from", metavar="LABEL",
+        help="Force-pass on LABEL and every topologically-later apex.",
+    )
+    parser.add_argument(
+        "--apexes", action="store_true",
+        help="Print qualifying apexes in topological order and exit.",
+    )
+    parser.add_argument("--max-iterations", type=int, default=100)
     args = parser.parse_args()
 
-    asn_num = int(re.sub(r"[^0-9]", "", args.asn))
+    asn_num = int(re.sub(r"\D", "", args.asn))
+    asn_label = f"ASN-{asn_num:04d}"
 
-    if args.cone:
-        _, asn_label = find_asn(str(asn_num))
-        claim_dir = CLAIM_DIR / asn_label
-        asn_labels = set(build_label_index(claim_dir).keys())
-        if args.cone not in asn_labels:
-            print(f"  Claim {args.cone} not found", file=sys.stderr)
-            sys.exit(1)
-        session = open_session(LATTICE)
-        label_index = build_cross_asn_label_index(session.store)
-        apex_addr = label_index.get(args.cone)
-        rev_index = {addr: lbl for lbl, addr in label_index.items()}
-        cites = session.active_links(
-            "citation.depends", from_set=[apex_addr],
-        ) if apex_addr else []
-        dep_labels = [
-            rev_index[link.to_set[0]]
-            for link in cites
-            if link.to_set and rev_index.get(link.to_set[0]) in asn_labels
-        ]
-        result = run_cone_review(asn_num, args.cone, dep_labels,
-                                      max_cycles=args.max_cycles,
-                                      dry_run=args.dry_run, model=args.model)
-        sys.exit(0 if result == "converged" else 1)
+    if args.apexes:
+        with open_session(LATTICE) as session:
+            for label in apex_labels_in_topological_order(session, asn_label):
+                print(label)
+        return
 
-    result = run_cone_sweep(asn_num, min_deps=args.min_deps,
-                                 max_cycles=args.max_cycles,
-                                 dry_run=args.dry_run, model=args.model,
-                                 all_mode=args.all)
-    sys.exit(0 if result == "converged" else 1)
+    if args.force is not None or args.force_from is not None:
+        scope = _resolve_force_scope(asn_label, args)
+        result = run_force_pass(triggers=[cone_review], scope=scope)
+    else:
+        result = run_until_quiescent(
+            triggers=[cone_review],
+            scope=asn(asn_num),
+            max_iterations=args.max_iterations,
+        )
+
+    print(
+        f"\n  [SWEEP] iterations={result.iterations} "
+        f"fires={len(result.fires)} errors={len(result.errors)}",
+        file=sys.stderr,
+    )
+    sys.exit(0 if not result.errors else 1)
 
 
 if __name__ == "__main__":
