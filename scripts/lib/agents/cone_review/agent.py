@@ -28,7 +28,7 @@ from lib.agents.claim_review import (
 )
 from lib.agents.claim_revise import revise
 from lib.backend.addressing import Address
-from lib.claim_convergence.findings import emit_review_doc, record_findings
+from lib.lattice.findings import emit_review_doc, record_findings
 from lib.lattice.context import claim_context_from_addr
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.orchestrators.retry import (

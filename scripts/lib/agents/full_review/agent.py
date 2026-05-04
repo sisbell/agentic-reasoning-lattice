@@ -36,7 +36,7 @@ from lib.agents.claim_review import (
 from lib.agents.claim_revise import revise
 from lib.agents.cone_review.sync import sync_claim_citations
 from lib.backend.addressing import Address
-from lib.claim_convergence.findings import emit_review_doc, record_findings
+from lib.lattice.findings import emit_review_doc, record_findings
 from lib.lattice.context import asn_context_from_note
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.orchestrators.retry import (
