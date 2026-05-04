@@ -6,12 +6,15 @@ appropriate adapter to translate its incoming `addr` into a typed
 context record, removing the boilerplate that would otherwise sit at
 the top of every concrete agent.
 
-Today: ClaimContext only. NoteContext / others can join the same
-pattern when their first agent class lands.
+ClaimContext for per-claim addresses (cone-review). AsnContext for
+source-note addresses (full-review — the note is the substrate
+anchor for the derived ASN, since transclude emits
+`provenance.derivation` from note → each claim).
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -82,4 +85,64 @@ def claim_context_from_addr(session: Session, addr: Address) -> ClaimContext:
         asn_num=asn_num,
         claim_dir=claim_dir,
         same_asn_deps=same_asn_deps,
+    )
+
+
+@dataclass(frozen=True)
+class AsnContext:
+    """Per-ASN domain context derived from a source note's Address.
+
+    The note is the substrate anchor for the derived ASN — transclude
+    emits `provenance.derivation` from the note to each claim it
+    produced. Walking those links yields the claim cluster.
+
+    addr                — source note's substrate address
+    asn_label           — e.g., "ASN-0034"
+    asn_num             — int form of the ASN
+    claim_dir           — directory holding this ASN's per-claim files
+    derived_claim_addrs — substrate addresses of claims derived from
+                          this note (`provenance.derivation` targets)
+    """
+
+    addr: Address
+    asn_label: str
+    asn_num: int
+    claim_dir: Path
+    derived_claim_addrs: tuple[Address, ...]
+
+
+_ASN_LABEL_RE = re.compile(r"(ASN-(\d+))")
+
+
+def asn_context_from_note(session: Session, addr: Address) -> AsnContext:
+    """Build an AsnContext from a source note's substrate Address.
+
+    Raises ValueError if the address has no path or no parseable
+    `ASN-NNNN` label in that path.
+    """
+    path = session.get_path_for_addr(addr)
+    if path is None:
+        raise ValueError(f"no path for address {addr}")
+
+    m = _ASN_LABEL_RE.search(path)
+    if m is None:
+        raise ValueError(f"no ASN label in path {path}")
+    asn_label = m.group(1)
+    asn_num = int(m.group(2))
+    claim_dir = CLAIM_DIR / asn_label
+
+    derived_claim_addrs = tuple(
+        target
+        for link in session.active_links(
+            "provenance.derivation", from_set=[addr],
+        )
+        for target in link.to_set
+    )
+
+    return AsnContext(
+        addr=addr,
+        asn_label=asn_label,
+        asn_num=asn_num,
+        claim_dir=claim_dir,
+        derived_claim_addrs=derived_claim_addrs,
     )

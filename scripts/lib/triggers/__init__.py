@@ -6,5 +6,10 @@ does not change the runner.
 """
 
 from .cone_review import apex_labels_in_topological_order, cone_review
+from .full_review import full_review
 
-__all__ = ["apex_labels_in_topological_order", "cone_review"]
+__all__ = [
+    "apex_labels_in_topological_order",
+    "cone_review",
+    "full_review",
+]

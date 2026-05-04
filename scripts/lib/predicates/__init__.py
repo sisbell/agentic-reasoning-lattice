@@ -38,6 +38,7 @@ from .classifiers import (
 from .convergence import (
     has_been_reviewed,
     has_resolution,
+    is_asn_confirmed,
     is_asn_converged,
     is_claim_confirmed,
     is_claim_converged,
@@ -73,6 +74,7 @@ __all__ = [
     "has_name",
     "has_resolution",
     "has_signature",
+    "is_asn_confirmed",
     "is_asn_converged",
     "is_claim_confirmed",
     "is_claim_converged",

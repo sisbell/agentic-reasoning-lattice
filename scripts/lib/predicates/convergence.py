@@ -24,7 +24,6 @@ through.
 
 from __future__ import annotations
 
-import re
 from typing import List, Optional
 
 from lib.backend.addressing import Address
@@ -148,29 +147,39 @@ def is_claim_confirmed(session: Session, addr: Address) -> bool:
     )
 
 
-def is_asn_converged(session: Session, asn_label: str) -> bool:
-    """Conjunction of `is_doc_converged` over every claim md under an ASN.
+def _derived_claims(session: Session, note_addr: Address):
+    """Yield substrate addresses of claims derived from a source note."""
+    for link in session.active_links(
+        "provenance.derivation", from_set=[note_addr],
+    ):
+        for derived in link.to_set:
+            yield derived
 
-    Identifies an ASN's claim docs by walking the active `claim`
-    classifier links and filtering by path pattern. Vacuously true on
-    an ASN with no matching claims — coverage is choreography's
-    responsibility.
+
+def is_asn_converged(session: Session, note_addr: Address) -> bool:
+    """Conjunction of `is_claim_converged` over every claim derived
+    from this note via `provenance.derivation`.
+
+    The "ASN" is anchored in substrate by the source note's address;
+    its derived claims are the targets of the note's outgoing
+    `provenance.derivation` links (emitted by transclude). Vacuously
+    true on a note with no derivations.
     """
-    asn_path_pattern = re.compile(
-        rf"_docuverse/documents/claim/{re.escape(asn_label)}/[^/]+\.md$"
+    return all(
+        is_doc_converged(session, derived)
+        for derived in _derived_claims(session, note_addr)
     )
-    from lib.backend.schema import ATTRIBUTE_SUFFIXES
-    for link in session.active_links("claim"):
-        for claim_addr in link.to_set:
-            path = session.get_path_for_addr(claim_addr)
-            if path is None:
-                continue
-            if not asn_path_pattern.search(path):
-                continue
-            if path.endswith(ATTRIBUTE_SUFFIXES):
-                continue
-            if "/_" in path:
-                continue
-            if not is_doc_converged(session, claim_addr):
-                return False
-    return True
+
+
+def is_asn_confirmed(session: Session, note_addr: Address) -> bool:
+    """Conjunction of `is_claim_confirmed` over every derived claim.
+
+    ASN-level analog of `is_claim_confirmed`: each derived claim has
+    converged AND its most recent review was clean. Used as the
+    full-review trigger's quiescence predicate — mirrors how cone-review
+    uses `is_claim_confirmed`.
+    """
+    return all(
+        is_claim_confirmed(session, derived)
+        for derived in _derived_claims(session, note_addr)
+    )
