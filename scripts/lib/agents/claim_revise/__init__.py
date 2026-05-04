@@ -7,6 +7,6 @@ whole-ASN reviews and regional cone reviews — the call site supplies
 the comment_id so the agent can close it.
 """
 
-from .body import revise
+from .agent import revise
 
 __all__ = ["revise"]

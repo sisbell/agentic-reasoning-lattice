@@ -41,7 +41,7 @@ from lib.shared.paths import LATTICE
 VALID_ACTIONS = {"ADD", "RETRACT", "SKIP"}
 MAX_REVISER_ATTEMPTS = 2
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[4]
 SCRIPTS_DIR = REPO_ROOT / "scripts"
 
 

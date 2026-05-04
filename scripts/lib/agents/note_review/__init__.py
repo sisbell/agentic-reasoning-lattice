@@ -11,6 +11,6 @@ review document, emits substrate links, and handles the resolved-
 issues sweep.
 """
 
-from .body import extract_note_findings, run_note_review
+from .agent import extract_note_findings, run_note_review
 
 __all__ = ["extract_note_findings", "run_note_review"]

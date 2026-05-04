@@ -25,10 +25,10 @@ from lib.agents.claim_review import (
     findings_summary, run_review,
 )
 from lib.agents.claim_revise import revise
-from lib.claim_convergence.cone.retry import (
+from lib.orchestrators.retry import (
     _declined_findings_for_cone, _retry_unresolved_revises,
 )
-from lib.claim_convergence.cone.scope import (
+from .scope import (
     assemble_cone, transitive_same_asn_deps,
 )
 from lib.claim_convergence.findings import emit_findings, emit_meta

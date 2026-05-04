@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from typing import List
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import LATTICE
 from lib.agents.claim_review import extract_findings
 from lib.agents.claim_revise import revise

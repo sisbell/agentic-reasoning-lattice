@@ -13,7 +13,7 @@ and invokes Claude with Read+Edit (apply mode) or Read-only (propose
 mode for `acyclic-depends`).
 """
 
-from .body import (
+from .agent import (
     StructuralRuleFixResult,
     fix_structural_rule,
     propose_structural_fix,

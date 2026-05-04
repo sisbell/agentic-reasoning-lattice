@@ -15,7 +15,7 @@ from lib.claim_convergence.core.build_dependency_graph import (
     generate_claim_convergence_deps,
 )
 from lib.claim_convergence.core.topological_sort import topological_levels
-from lib.claim_convergence.sweep_progress import (
+from .progress import (
     clear_progress, read_progress, write_progress,
 )
 from lib.protocols.febe.session import open_session

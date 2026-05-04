@@ -11,6 +11,6 @@ writes via its tools, and the substrate-mediated comment closure
 happens through convergence-link-resolution.py invoked by the agent.
 """
 
-from .body import build_prompt, run_revise_pass
+from .agent import build_prompt, run_revise_pass
 
 __all__ = ["build_prompt", "run_revise_pass"]

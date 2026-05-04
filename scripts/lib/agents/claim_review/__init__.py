@@ -12,7 +12,7 @@ no filesystem mutations beyond reading. Orchestrators
 the review document, emit findings, and apply per-finding revises.
 """
 
-from .body import (
+from .agent import (
     cycle_verdict,
     extract_findings,
     filter_revise,

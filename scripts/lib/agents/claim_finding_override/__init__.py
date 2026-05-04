@@ -10,6 +10,6 @@ Claim-layer only. The note layer's REVISE/OUT_OF_SCOPE classification
 is encoded in section headers and parsed without an override pass.
 """
 
-from .body import apply_classifier_verdict, classify_finding
+from .agent import apply_classifier_verdict, classify_finding
 
 __all__ = ["apply_classifier_verdict", "classify_finding"]

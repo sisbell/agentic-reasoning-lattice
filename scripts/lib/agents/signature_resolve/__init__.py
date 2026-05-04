@@ -9,6 +9,6 @@ substrate side effects, no filesystem writes — those happen in the
 orchestrator (`lib/orchestrators/signature_resolve.py`).
 """
 
-from .body import SignatureChanges, extract_signature_changes
+from .agent import SignatureChanges, extract_signature_changes
 
 __all__ = ["SignatureChanges", "extract_signature_changes"]
