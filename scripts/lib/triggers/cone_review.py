@@ -1,23 +1,23 @@
 """Cone-review trigger — fires on unconverged claims with enough deps.
 
-The cone-review agent runs a focused regional review on a claim and
-its same-ASN dependency chain. This trigger declares when it should
-fire:
+Wires the ConeReviewAgent (lib/agents/cone_review.py) to the
+substrate predicate `is_claim_converged` over a topologically-ordered
+apex scope.
 
   scope:     claims in the requested ASN with >= MIN_DEPS same-ASN deps,
              walked in topological order (foundations first)
   predicate: is_claim_converged
-  agent:     run_cone_review (the existing orchestrator function)
+  agent:     ConeReviewAgent
 """
 
 from __future__ import annotations
 
 from typing import Iterator
 
+from lib.agents.cone_review import ConeReviewAgent
 from lib.backend.addressing import Address
 from lib.lattice.deps import build_deps_for_asn
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.orchestrators.cone_review import run_cone_review
 from lib.predicates import is_claim_converged
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, Trigger
@@ -27,8 +27,6 @@ from lib.shared.topological_sort import topological_levels
 
 
 CONE_MIN_DEPS = 4
-CONE_MAX_CYCLES = 8
-CONE_MODEL = "sonnet"
 
 
 def apex_labels_in_topological_order(
@@ -85,40 +83,9 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
             yield addr
 
 
-def _agent(session: Session, addr: Address) -> None:
-    """Resolve apex context and dispatch the cone-review orchestrator."""
-    label_index = build_cross_asn_label_index(session.store)
-    rev_index = {a: lbl for lbl, a in label_index.items()}
-
-    apex_label = rev_index.get(addr)
-    if apex_label is None:
-        return
-
-    asn_path = session.get_path_for_addr(addr)
-    if asn_path is None:
-        return
-    asn_label_str = asn_path.split("/")[3]  # _docuverse/documents/claim/<ASN>/<label>.md
-    asn_num = int(asn_label_str[4:])
-
-    claim_dir = CLAIM_DIR / asn_label_str
-    asn_labels = set(build_label_index(claim_dir).keys())
-    same_deps = [
-        rev_index[link.to_set[0]]
-        for link in session.active_links(
-            "citation.depends", from_set=[addr],
-        )
-        if link.to_set and rev_index.get(link.to_set[0]) in asn_labels
-    ]
-
-    run_cone_review(
-        asn_num, apex_label, same_deps,
-        max_cycles=CONE_MAX_CYCLES, model=CONE_MODEL,
-    )
-
-
 cone_review = Trigger(
     name="cone-review",
     scope_query=_scope_query,
     predicate=is_claim_converged,
-    agent=_agent,
+    agent=ConeReviewAgent(),
 )

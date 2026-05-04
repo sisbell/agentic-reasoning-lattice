@@ -10,7 +10,7 @@ Triggers carry no execution logic. The runner walks them.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Iterable
+from typing import Any, Callable, Iterable
 
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
@@ -27,10 +27,13 @@ class Trigger:
     predicate:   (session, addr) → True iff the agent does NOT need to fire
                  (matches the convention of `is_*_converged` predicates:
                  True means "satisfied / done")
-    agent:       (session, addr) → side effects on substrate
+    agent:       (session, addr) → side effects on substrate. Return value
+                 is ignored by the runner today; Agent subclasses returning
+                 AgentResult slot in transparently. Future runner versions
+                 may inspect the result for telemetry.
     """
 
     name: str
     scope_query: Callable[[Session, Scope], Iterable[Address]]
     predicate: Callable[[Session, Address], bool]
-    agent: Callable[[Session, Address], None]
+    agent: Callable[[Session, Address], Any]

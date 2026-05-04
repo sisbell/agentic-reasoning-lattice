@@ -7,11 +7,11 @@ Subcommands:
     codegen  — translate test cases to Rust #[test] functions
 
 Usage:
-    python scripts/tests.py extract 34
-    python scripts/tests.py extract 34 --example 1
-    python scripts/tests.py extract 34 --max-cycles 5
-    python scripts/tests.py codegen 34
-    python scripts/tests.py codegen 34 --case 4
+    python scripts/test-cases.py extract 34
+    python scripts/test-cases.py extract 34 --example 1
+    python scripts/test-cases.py extract 34 --max-cycles 5
+    python scripts/test-cases.py codegen 34
+    python scripts/test-cases.py codegen 34 --case 4
 """
 
 import argparse

@@ -9,7 +9,7 @@ import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.runner import (
     Scope, Trigger, run_force_pass, run_until_quiescent,
 )
