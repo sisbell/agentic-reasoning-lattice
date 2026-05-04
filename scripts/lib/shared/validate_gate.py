@@ -17,6 +17,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
+from lib.orchestrators import claim_validate_revise as REVISE
+
 
 _SCRIPTS = Path(__file__).resolve().parent.parent.parent
 
@@ -29,8 +31,6 @@ def _load(name, path):
 
 
 VALIDATE = _load("claim_validate", _SCRIPTS / "claim-validate.py")
-REVISE = _load("claim_validate_revise",
-               _SCRIPTS / "claim-validate-revise.py")
 
 
 def _run_validator(asn_label):
