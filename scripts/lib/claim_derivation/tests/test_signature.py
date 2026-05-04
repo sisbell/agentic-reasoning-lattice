@@ -2,7 +2,7 @@
 
 Two units under test:
   - `_render_signature` in claim_derivation.transclude — converts
-    enrich's signature list into a markdown bullet sidecar string
+    annotate's signature list into a markdown bullet sidecar string
   - `aggregate_signature` in lib.shared.common — concatenates
     sidecars across an ASN's claims for the contract-review prompt
 """

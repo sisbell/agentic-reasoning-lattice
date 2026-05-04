@@ -27,10 +27,57 @@ from lib.shared.paths import USAGE_LOG, CLAIM_DIR, prompt_path, claim_statements
 from lib.shared.common import find_asn, invoke_claude, build_label_index, load_claim_metadata
 from lib.lattice.deps import build_deps_for_asn
 
-from lib.claim_derivation.validate_contract import validate_contract
-
 QUALITY_TEMPLATE = prompt_path("claim-derivation/produce-contract.md")
 REVIEW_REWRITE_TEMPLATE = prompt_path("claim-derivation/review-rewrite.md")
+VALIDATE_CONTRACT_TEMPLATE = prompt_path(
+    "claim-convergence/assembly/validate-contracts.md",
+)
+
+
+def _extract_formal_contract(section_text):
+    """Extract the formal contract block from a claim section."""
+    marker = "*Formal Contract:*"
+    idx = section_text.find(marker)
+    if idx == -1:
+        return None
+    return section_text[idx:].strip()
+
+
+def validate_contract(label, section, signature="", dependencies="", model="sonnet"):
+    """Validate one claim's contract against its proof section.
+
+    Returns (match: bool, detail: str).
+    """
+    contract = _extract_formal_contract(section)
+    if contract is None:
+        return True, ""
+
+    marker = "*Formal Contract:*"
+    idx = section.find(marker)
+    proof_section = section[:idx].strip() if idx != -1 else section
+
+    template = VALIDATE_CONTRACT_TEMPLATE.read_text()
+    prompt = (template
+              .replace("{{label}}", label)
+              .replace("{{proof_section}}", proof_section)
+              .replace("{{formal_contract}}", contract)
+              .replace("{{signature}}", signature or "(none)")
+              .replace("{{dependencies}}", dependencies or "(none)"))
+
+    result, _elapsed = invoke_claude(prompt, model=model, effort="high")
+
+    if result is None:
+        return True, ""
+
+    if "RESULT: MATCH" in result:
+        return True, ""
+
+    if "RESULT: MISMATCH" in result:
+        idx = result.find("RESULT: MISMATCH")
+        detail = result[idx + len("RESULT: MISMATCH"):].strip()
+        return False, detail
+
+    return True, ""
 
 
 def _log_usage(step, elapsed, asn_num, label=""):

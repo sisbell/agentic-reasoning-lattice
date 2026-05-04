@@ -28,8 +28,7 @@ from lib.shared.paths import LATTICE, NOTE_DIR, WORKSPACE
 
 
 CONSULT_REVISION_SCRIPT = (
-    WORKSPACE / "scripts" / "lib" / "consultation"
-    / "evidence" / "gather_evidence.py"
+    WORKSPACE / "scripts" / "lib" / "consultation" / "gather_evidence.py"
 )
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 

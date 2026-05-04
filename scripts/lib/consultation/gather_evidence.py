@@ -35,7 +35,7 @@ from lib.shared.common import find_asn
 from lib.consultation.consult import (
     invoke_claude, get_total_usage, dispatch_run_consultation,
 )
-from lib.consultation.evidence import assign_channels
+from lib.consultation import assign_channels
 from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_assessment,
 )

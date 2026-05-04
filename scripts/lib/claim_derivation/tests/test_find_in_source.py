@@ -1,4 +1,4 @@
-"""Unit tests for claim_derivation.find_in_source.
+"""Unit tests for claim_derivation.transclude.find_in_source.
 
 The resolver takes the source note text and an LLM-extracted body, and
 returns the matched substring of the source — or None on failure. Two
@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.claim_derivation.find_in_source import find_in_source
+from lib.claim_derivation.transclude import find_in_source
 
 
 class ExactMatchTests(unittest.TestCase):

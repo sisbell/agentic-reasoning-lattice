@@ -1,4 +1,4 @@
-"""Enrich claim YAMLs — add type, dependencies, signature.
+"""Annotate claim YAMLs — add type, dependencies, signature.
 
 Reads the section YAML files from decompose, runs three focused LLM
 passes per claim (type, deps, signature) in parallel. Updates the
@@ -8,7 +8,7 @@ The signature pass extracts the non-logical symbols (constants,
 function symbols, relation symbols) the claim introduces.
 
 Usage (standalone):
-    python scripts/lib/claim_derivation/enrich.py 36
+    python scripts/lib/claim_derivation/annotate.py 36
 """
 
 import argparse
@@ -63,20 +63,20 @@ def _call_llm(prompt):
         return None
 
 
-def _enrich_one(prop, pass_name, template_path):
-    """Run a single enrichment pass on a claim."""
+def _annotate_one(prop, pass_name, template_path):
+    """Run a single annotation pass on a claim."""
     prompt = _fill_prompt(template_path, prop)
     return _call_llm(prompt)
 
 
 def _run_pass(pass_name, template_path, claims, fields):
-    """Run one enrichment pass across all claims in parallel."""
+    """Run one annotation pass across all claims in parallel."""
     print(f"\n  Pass: {pass_name} ({len(claims)} claims)...", file=sys.stderr)
 
     def worker(item):
         yaml_path, index, prop = item
         label = str(prop.get("label", "?"))
-        result = _enrich_one(prop, pass_name, template_path)
+        result = _annotate_one(prop, pass_name, template_path)
         return label, (yaml_path, index, result)
 
     start = time.time()
@@ -114,8 +114,8 @@ def _run_pass(pass_name, template_path, claims, fields):
     return ok, fail
 
 
-def enrich_asn(asn_num):
-    """Enrich claim YAMLs with type, dependencies, signature (3 passes)."""
+def annotate_asn(asn_num):
+    """Annotate claim YAMLs with type, dependencies, signature (3 passes)."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
@@ -127,17 +127,17 @@ def enrich_asn(asn_num):
         return False
 
     claims = _load_claims(sections_dir)
-    print(f"\n  [ENRICH] {asn_label}", file=sys.stderr)
-    print(f"  {len(claims)} claims to enrich", file=sys.stderr)
+    print(f"\n  [ANNOTATE] {asn_label}", file=sys.stderr)
+    print(f"  {len(claims)} claims to annotate", file=sys.stderr)
 
     if not claims:
-        print(f"  Nothing to enrich", file=sys.stderr)
+        print(f"  Nothing to annotate", file=sys.stderr)
         return True
 
     passes = [
-        ("type",  prompt_path("claim-derivation/enrich-type.md"),  ["type"]),
-        ("deps",  prompt_path("claim-derivation/enrich-deps.md"),  ["depends", "literature_citations"]),
-        ("signature", prompt_path("claim-derivation/enrich-signature.md"),  ["signature"]),
+        ("type",  prompt_path("claim-derivation/annotate-type.md"),  ["type"]),
+        ("deps",  prompt_path("claim-derivation/annotate-deps.md"),  ["depends", "literature_citations"]),
+        ("signature", prompt_path("claim-derivation/annotate-signature.md"),  ["signature"]),
     ]
 
     total_ok = 0
@@ -152,21 +152,21 @@ def enrich_asn(asn_num):
         total_fail += fail
 
     elapsed = time.time() - start
-    print(f"\n  [ENRICH] 3 passes, {total_ok} total enrichments, {total_fail} failures, {elapsed:.0f}s",
+    print(f"\n  [ANNOTATE] 3 passes, {total_ok} total annotations, {total_fail} failures, {elapsed:.0f}s",
           file=sys.stderr)
 
-    step_commit_asn(asn_num, hint="enrich")
+    step_commit_asn(asn_num, hint="annotate")
     return True
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Enrich claim YAMLs with type, dependencies, signature")
+        description="Annotate claim YAMLs with type, dependencies, signature")
     parser.add_argument("asn", help="ASN number (e.g., 36)")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
-    ok = enrich_asn(asn_num)
+    ok = annotate_asn(asn_num)
     sys.exit(0 if ok else 1)
 
 
