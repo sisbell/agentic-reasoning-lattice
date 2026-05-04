@@ -16,7 +16,7 @@ from lib.claim_convergence.full_review.review import (
     cycle_verdict, findings_summary,
 )
 from lib.claim_convergence.full_review.revise import revise
-from lib.claim_convergence.finding_classifier import apply_classifier_verdict
+from lib.agents.claim_finding_override import apply_classifier_verdict
 from lib.agent import attributed_to
 from lib.febe.session import open_session
 from lib.claim_convergence.findings import emit_findings, emit_meta
