@@ -46,7 +46,7 @@ def _step_produce_contract(asn_num):
         asn_num, force_all=True, force_rebuild=False,
     )
     if not candidates:
-        print(f"  [PRODUCE-CONTRACT] No claims need contract synthesis",
+        print("  [PRODUCE-CONTRACT] No claims need contract synthesis",
               file=sys.stderr)
         return True
 
@@ -97,28 +97,28 @@ def run_pipeline(asn_num):
     start = time.time()
 
     if not decompose_asn(asn_num):
-        print(f"\n  [DERIVE] FAILED at decompose", file=sys.stderr)
+        print("\n  [DERIVE] FAILED at decompose", file=sys.stderr)
         return False
 
     if not annotate_asn(asn_num):
-        print(f"\n  [DERIVE] FAILED at annotate", file=sys.stderr)
+        print("\n  [DERIVE] FAILED at annotate", file=sys.stderr)
         return False
 
     if not transclude_asn(asn_num):
-        print(f"\n  [DERIVE] FAILED at transclude", file=sys.stderr)
+        print("\n  [DERIVE] FAILED at transclude", file=sys.stderr)
         return False
 
     if not validate_transclude(asn_num):
         print(
-            f"\n  [DERIVE] FAILED at validate-transclude — transclude "
-            f"produced output that is not a byte-substring of the source "
-            f"note. Halting before produce_contract.",
+            "\n  [DERIVE] FAILED at validate-transclude — transclude "
+            "produced output that is not a byte-substring of the source "
+            "note. Halting before produce_contract.",
             file=sys.stderr,
         )
         return False
 
     if not _step_produce_contract(asn_num):
-        print(f"\n  [DERIVE] FAILED at produce-contract", file=sys.stderr)
+        print("\n  [DERIVE] FAILED at produce-contract", file=sys.stderr)
         return False
 
     ok = _step_validate_gate(asn_num)

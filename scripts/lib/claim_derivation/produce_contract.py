@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import USAGE_LOG, CLAIM_DIR, prompt_path, claim_statements
 from lib.shared.common import find_asn, invoke_claude, build_label_index, load_claim_metadata
 from lib.lattice.deps import build_deps_for_asn
+from lib.shared.foundation import _extract_formal_contract
 
 QUALITY_TEMPLATE = prompt_path("claim-derivation/produce-contract.md")
 REVIEW_REWRITE_TEMPLATE = prompt_path("claim-derivation/review-rewrite.md")
@@ -34,22 +35,13 @@ VALIDATE_CONTRACT_TEMPLATE = prompt_path(
 )
 
 
-def _extract_formal_contract(section_text):
-    """Extract the formal contract block from a claim section."""
-    marker = "*Formal Contract:*"
-    idx = section_text.find(marker)
-    if idx == -1:
-        return None
-    return section_text[idx:].strip()
-
-
 def validate_contract(label, section, signature="", dependencies="", model="sonnet"):
     """Validate one claim's contract against its proof section.
 
     Returns (match: bool, detail: str).
     """
     contract = _extract_formal_contract(section)
-    if contract is None:
+    if not contract:
         return True, ""
 
     marker = "*Formal Contract:*"
