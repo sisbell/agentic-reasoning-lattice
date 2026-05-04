@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.note_convergence.steps import (
-    find_asn, step_review, step_commit, has_revise_items,
+    find_asn, step_review, step_commit,
 )
 from lib.shared.paths import WORKSPACE, NOTE_DIR
 from lib.provenance import attributed_to
@@ -43,10 +43,10 @@ def main():
     start = time.time()
 
     # Review
-    review_path, converged = step_review(args.asn)
+    review_path, converged, revise_count = step_review(args.asn)
     if review_path is None:
         print(f"  [REVIEW] Review failed, retrying once...", file=sys.stderr)
-        review_path, converged = step_review(args.asn)
+        review_path, converged, revise_count = step_review(args.asn)
         if review_path is None:
             print(f"  [REVIEW] Review failed again", file=sys.stderr)
             sys.exit(1)
@@ -61,8 +61,7 @@ def main():
         print(f"\n  [REVIEW] Done ({elapsed:.0f}s)", file=sys.stderr)
         sys.exit(2)
 
-    # Check for REVISE items
-    if has_revise_items(review_path):
+    if revise_count > 0:
         step_commit(f"Review {asn_label}", asn_id=asn_number)
         elapsed = time.time() - start
         print(f"\n  [REVIEW] Done ({elapsed:.0f}s)", file=sys.stderr)

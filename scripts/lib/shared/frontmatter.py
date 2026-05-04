@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 
-def parse_frontmatter(text):
+def _parse_frontmatter(text):
     """Parse `---\\n<yaml>\\n---\\n<body>`.
 
     Returns (frontmatter_dict, body_str). If the text doesn't start with
@@ -27,7 +27,7 @@ def parse_frontmatter(text):
 
 
 def write_frontmatter(fm, body=""):
-    """Format `---\\n<yaml>\\n---\\n<body>` text. Inverse of parse_frontmatter."""
+    """Format `---\\n<yaml>\\n---\\n<body>` text. Inverse of _parse_frontmatter."""
     fm_text = yaml.safe_dump(
         fm, default_flow_style=False, sort_keys=False, allow_unicode=True,
     )
@@ -43,5 +43,5 @@ def read_doc_frontmatter(path):
         text = Path(path).read_text()
     except FileNotFoundError:
         return {}
-    fm, _ = parse_frontmatter(text)
+    fm, _ = _parse_frontmatter(text)
     return fm

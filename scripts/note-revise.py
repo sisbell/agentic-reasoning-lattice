@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, NOTE_DIR, sorted_reviews
+from lib.shared.paths import LATTICE, NOTE_DIR, WORKSPACE, sorted_reviews
 from lib.provenance import attributed_to
 
 from lib.note_convergence.steps import (
@@ -30,8 +30,9 @@ from lib.note_convergence.steps import (
     step_consult_revision,
     step_revise,
     step_commit,
-    has_revise_items,
 )
+from lib.predicates import unresolved_revise_comments
+from lib.protocols.febe.session import open_session
 
 MECHANICAL_REVIEW_MARKERS = [
     "Based on Dafny verification",
@@ -128,17 +129,20 @@ def main():
             print(f"  [REVISE] Using review: {Path(review_path).name}",
                   file=sys.stderr)
 
-            if not has_revise_items(review_path):
-                print(f"  [REVISE] No REVISE items in latest review — nothing to do",
+            session = open_session(LATTICE)
+            note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
+            note_addr = session.get_addr_for_path(note_rel)
+            if note_addr is None or not unresolved_revise_comments(session, note_addr):
+                print(f"  [REVISE] No open revise comments — nothing to do",
                       file=sys.stderr)
                 sys.exit(0)
         else:
             # Cycles 2+: run review first
-            review_path, converged = step_review(args.asn)
+            review_path, converged, revise_count = step_review(args.asn)
             if review_path is None:
                 print(f"  [REVISE] Review failed, retrying once...",
                       file=sys.stderr)
-                review_path, converged = step_review(args.asn)
+                review_path, converged, revise_count = step_review(args.asn)
                 if review_path is None:
                     print(f"  [REVISE] Review failed again, stopping",
                           file=sys.stderr)
@@ -157,7 +161,7 @@ def main():
                             asn_id=asn_number)
                 break
 
-            if not has_revise_items(review_path):
+            if revise_count == 0:
                 print(f"  [REVISE] No REVISE items — ASN is clean",
                       file=sys.stderr)
                 step_commit(f"Review {asn_label} — no revisions needed", asn_id=asn_number)

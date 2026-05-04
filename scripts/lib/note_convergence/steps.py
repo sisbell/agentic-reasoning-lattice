@@ -35,9 +35,10 @@ COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
 def step_review(asn_id):
-    """Run a review pass directly. Returns (review_path, converged).
+    """Run a review pass directly. Returns (review_path, converged, revise_count).
 
     converged is True when the reviewer's VERDICT is CONVERGED.
+    revise_count is the number of REVISE-class findings filed this pass.
     """
     print("\n  === REVIEW ===", file=sys.stderr)
     asn_path, asn_label = find_asn(str(asn_id))
@@ -46,7 +47,7 @@ def step_review(asn_id):
             f"  [REVIEW] FAILED — ASN-{asn_id} not found in "
             f"{NOTE_DIR.relative_to(WORKSPACE)}/", file=sys.stderr,
         )
-        return None, False
+        return None, False, 0
     asn_number = int(asn_label.replace("ASN-", ""))
 
     print(f"  [REVIEW] {asn_label}", file=sys.stderr)
@@ -55,15 +56,15 @@ def step_review(asn_id):
     verdict, text, elapsed = run_note_review(asn_path, asn_label)
     if verdict == "ERROR" or not text:
         print("  [REVIEW] FAILED — review error", file=sys.stderr)
-        return None, False
+        return None, False, 0
 
     session = open_session(LATTICE)
     review_path, findings = commit_note_review(
         session, asn_path, asn_label, text,
     )
 
+    revise_count = sum(1 for _, c, _ in findings if c == "REVISE")
     if findings:
-        revise_count = sum(1 for _, c, _ in findings if c == "REVISE")
         oos_count = len(findings) - revise_count
         print(
             f"  [FINDINGS] {revise_count} REVISE, "
@@ -76,24 +77,7 @@ def step_review(asn_id):
     log_usage(asn_label, elapsed, skill="review")
 
     converged = verdict == "CONVERGED"
-    return str(review_path), converged
-
-
-def has_revise_items(review_path):
-    """Check if review has REVISE items.
-
-    Recognizes both standard review format (## REVISE) and
-    consistency check format (RESULT: n FINDINGS).
-    """
-    try:
-        content = Path(review_path).read_text()
-        if "## REVISE" in content:
-            return True
-        if "RESULT:" in content and "FINDINGS" in content:
-            return True
-        return False
-    except (FileNotFoundError, OSError):
-        return False
+    return str(review_path), converged, revise_count
 
 
 def step_consult_revision(asn_id, review_path):
