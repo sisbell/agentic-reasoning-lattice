@@ -18,7 +18,7 @@ import sys
 import time
 from pathlib import Path
 
-from lib.agent import attributed_to
+from lib.provenance import attributed_to
 from lib.agents.claim_review import (
     cycle_verdict, extract_findings, filter_revise,
     findings_summary, run_review,

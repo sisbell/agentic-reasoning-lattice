@@ -297,7 +297,7 @@ class Session(Protocol):
         """Return a Session that auto-emits `manages` for every link.
 
         The wrapped Session attributes every emission to the given
-        agent_doc. Mirrors the AgentStore wrapper semantics; the
+        agent_doc. Mirrors the AttributingStore wrapper semantics; the
         provenance protocol is captured at the binding interface so
         it inherits to any backend.
         """

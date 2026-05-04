@@ -19,7 +19,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from lib.agent import attributed_to
+from lib.provenance import attributed_to
 from lib.agents.signature_resolve import extract_signature_changes
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session

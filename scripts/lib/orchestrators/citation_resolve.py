@@ -20,7 +20,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from lib.agent import attributed_to
+from lib.provenance import attributed_to
 from lib.agents.citation_resolve import extract_citation_classifications
 from lib.backend.emit import emit_citation, emit_retraction
 from lib.protocols.febe.protocol import Session

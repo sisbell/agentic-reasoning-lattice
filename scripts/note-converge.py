@@ -21,7 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.orchestrators.note_converge import run_note_convergence
-from lib.agent import attributed_to
+from lib.provenance import attributed_to
 
 
 @attributed_to("note-review")

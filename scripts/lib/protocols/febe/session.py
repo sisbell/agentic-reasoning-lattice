@@ -83,7 +83,7 @@ class Session:
         if isinstance(self.backend, Store):
             return self.backend.state
         if hasattr(self.backend, "state"):
-            # AgentStore delegates via __getattr__
+            # AttributingStore delegates via __getattr__
             return self.backend.state
         return self.backend
 
@@ -107,7 +107,7 @@ class Session:
 
     def _require_store(self, op: str) -> Store:
         """Assert the backend is a Store; required for filesystem ops."""
-        # AgentStore wraps Store via __getattr__ delegation. Check for
+        # AttributingStore wraps Store via __getattr__ delegation. Check for
         # Store attributes rather than strict isinstance.
         if hasattr(self.backend, "lattice_dir") and hasattr(
             self.backend, "path_to_addr"
@@ -135,7 +135,7 @@ class Session:
     def close(self) -> None:
         """Release any resources held by this Session."""
         backend = self.backend
-        # AgentStore delegates to Store via __getattr__; either way
+        # AttributingStore delegates to Store via __getattr__; either way
         # close() is exposed.
         if hasattr(backend, "close"):
             backend.close()
@@ -379,7 +379,7 @@ class Session:
         """MAKELINK (code 27): emit a new link. Always lands locally.
 
         Dispatches to backend.make_link directly — works for State
-        (in-memory), Store (with JSONL persistence), and AgentStore
+        (in-memory), Store (with JSONL persistence), and AttributingStore
         (with auto-emit of manages for provenance).
         """
         full_type = f"{type_}.{subtype}" if subtype else type_
@@ -416,10 +416,9 @@ class Session:
 
     def as_agent(self, agent_doc: Address) -> "Session":
         """Return a Session that auto-emits `manages` for every link."""
-        from lib.agent.store import AgentStore
         store = self._require_store("as_agent")
-        wrapped = AgentStore(store, agent_doc)
-        # Construct a new Session whose backend is the AgentStore
+        wrapped = AttributingStore(store, agent_doc)
+        # Construct a new Session whose backend is the wrapper
         # (which delegates to Store via __getattr__).
         return Session(
             wrapped, default_lattice=self.default_lattice, bebe=self.bebe,
@@ -441,17 +440,97 @@ def open_session(
 ) -> Session:
     """Open a Session bound to the given lattice's filesystem-backed
     substrate. Honors the XANADU_AGENT_DOC env var: if set, the
-    underlying Store is wrapped in AgentStore for provenance auto-
-    emission. Standalone runs (no env var) get a plain Store.
+    underlying Store is wrapped in `AttributingStore` for provenance
+    auto-emission. Standalone runs (no env var) get a plain Store.
 
     The standard caller pattern is:
 
         with open_session(LATTICE) as session:
             session.make_link(...)
-
-    Equivalent to `Session(default_store(lattice_dir))` but more
-    ergonomic and gives Pass 1.5 callers a single import-and-go
-    entry point.
     """
-    from lib.agent import default_store
     return Session(default_store(lattice_dir), bebe=bebe)
+
+
+# ── Provenance plumbing (substrate-tier) ───────────────────────────
+
+
+_ATTRIBUTION_SKIP_PARENTS = frozenset({"agent", "manages"})
+
+
+class AttributingStore:
+    """Wraps a Store; auto-files `manages` for every emitted link.
+
+    Internal plumbing used by `Session.as_agent()` and `default_store()`
+    to add provenance attribution to substrate writes. Skips
+    self-attribution on the `agent` and `manages` parent types — without
+    that the wrapper would recurse on its own emission.
+
+    Not a public class. Callers reach this behavior through Session
+    (`session.as_agent(doc)` or `open_session(LATTICE)` with the
+    `XANADU_AGENT_DOC` env var set).
+    """
+
+    def __init__(self, store: "Store", agent_doc: Address) -> None:
+        from lib.backend.emit import emit_agent
+        self._store = store
+        self._agent_doc = agent_doc
+        emit_agent(store, agent_doc)
+
+    @property
+    def agent_doc(self) -> Address:
+        return self._agent_doc
+
+    @property
+    def state(self):
+        return self._store.state
+
+    def make_link(
+        self,
+        homedoc: Address,
+        from_set,
+        to_set,
+        type_,
+    ) -> Link:
+        link = self._store.make_link(homedoc, from_set, to_set, type_)
+        # Determine the parent of the type for the skip check. type_
+        # may be a string ("citation.depends") or an Address. In the
+        # Address case we bypass the skip since lookup is non-trivial;
+        # production callers pass strings.
+        parent = None
+        if isinstance(type_, str):
+            parent = type_.split(".", 1)[0]
+        if parent not in _ATTRIBUTION_SKIP_PARENTS:
+            self._store.make_link(
+                homedoc=self._agent_doc,
+                from_set=[self._agent_doc],
+                to_set=[link.addr],
+                type_="manages",
+            )
+        return link
+
+    def __getattr__(self, name):
+        # Delegate everything else (find_links, addr_for_path, etc.)
+        # to the wrapped store.
+        return getattr(self._store, name)
+
+
+def default_store(lattice_dir: Union[str, Path]):
+    """Return a Store, wrapped in `AttributingStore` if XANADU_AGENT_DOC
+    is set.
+
+    Orchestrators set the env var so subprocess tools that emit
+    substrate links inherit the agent identity and attribute every
+    operation back to it. Standalone runs (no env var) get a plain
+    Store.
+    """
+    import os
+    from lib.provenance import AGENT_DOC_ENV_VAR
+    store = Store(lattice_dir)
+    agent_doc_path = os.environ.get(AGENT_DOC_ENV_VAR)
+    if not agent_doc_path:
+        return store
+    # Translate the agent doc's filesystem path to its tumbler. The
+    # env var holds a lattice-relative path string; if not yet in the
+    # path map, register it.
+    agent_addr = store.register_path(agent_doc_path)
+    return AttributingStore(store, agent_addr)

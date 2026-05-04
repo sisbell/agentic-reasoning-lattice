@@ -3,7 +3,7 @@
 Plus the agent-attribution helpers (`default_store`, `agent_context`,
 `attributed_to`) ported from `lib.store.store`. Orchestrators set
 `XANADU_AGENT_DOC` to bind a process to an agent identity; `default_store`
-returns an `AgentStore` that auto-emits `manages` for every link.
+returns an `AttributingStore` that auto-emits `manages` for every link.
 
 The legacy `scripts/lib/store/store.py::Store` is path-keyed and
 manages a JSONL log + SQLite index. This Store is the tumbler-keyed

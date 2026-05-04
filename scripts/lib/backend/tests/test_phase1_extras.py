@@ -1,4 +1,4 @@
-"""Phase 1 extras: AgentStore, populate, sync."""
+"""Phase 1 extras: AttributingStore, populate, sync."""
 
 import json
 import sys
@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 
 from lib.backend.addressing import Address
-from lib.agent import AgentStore
+from lib.protocols.febe.session import AttributingStore
 from lib.backend.emit import emit_citation
 from lib.backend.migrate import migrate
 from lib.lattice.labels import (
@@ -52,7 +52,7 @@ def _seed_lattice_with_substrate(
     return lattice_dir
 
 
-class AgentStoreTests(unittest.TestCase):
+class AttributingStoreTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
@@ -73,14 +73,14 @@ class AgentStoreTests(unittest.TestCase):
         self.agent = self.store.addr_for_path("agents/cone-review.md")
 
     def test_agent_store_files_agent_classifier_on_init(self):
-        AgentStore(self.store, self.agent)
+        AttributingStore(self.store, self.agent)
         agent_classifiers = active_links(
             self.store.state, "agent", to_set=[self.agent],
         )
         self.assertEqual(len(agent_classifiers), 1)
 
     def test_make_link_auto_emits_manages(self):
-        agent_store = AgentStore(self.store, self.agent)
+        agent_store = AttributingStore(self.store, self.agent)
         a = self.store.addr_for_path("claim/A.md")
         b = self.store.addr_for_path("claim/B.md")
         before = len(self.store.find_links(type_="manages"))
@@ -94,7 +94,7 @@ class AgentStoreTests(unittest.TestCase):
         self.assertEqual(len(manages), 1)
 
     def test_manages_skipped_for_manages_and_agent(self):
-        agent_store = AgentStore(self.store, self.agent)
+        agent_store = AttributingStore(self.store, self.agent)
         a = self.store.addr_for_path("claim/A.md")
         before = len(self.store.find_links(type_="manages"))
         # Direct manages emission: shouldn't get auto-attributed (would recurse)

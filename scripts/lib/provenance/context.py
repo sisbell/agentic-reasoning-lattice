@@ -1,11 +1,7 @@
 """Agent-attribution context: env-var lifecycle + helpers.
 
-Three pieces:
+Two pieces:
 
-- `default_store(lattice_dir)` — returns a Store wrapped in AgentStore
-  if `XANADU_AGENT_DOC` is set, else a plain Store. The standard
-  way for subprocess tools to open the substrate while inheriting
-  the orchestrator's agent identity.
 - `agent_context(agent_doc_path)` — context manager that binds
   `XANADU_AGENT_DOC` for the duration of a block. Restores any prior
   value on exit.
@@ -14,7 +10,8 @@ Three pieces:
 
 The env-var convention (`XANADU_AGENT_DOC`) lets cross-process
 attribution work without explicit hand-off: parent sets, subprocess
-inherits, subprocess's `default_store` sees the env var and wraps.
+inherits, and `default_store` (in `lib/protocols/febe/session.py`)
+sees the env var and wraps the substrate accordingly.
 """
 
 from __future__ import annotations
@@ -22,35 +19,9 @@ from __future__ import annotations
 import contextlib
 import functools
 import os
-from pathlib import Path
-
-from lib.backend.store import Store
-
-from .store import AgentStore
 
 
 AGENT_DOC_ENV_VAR = "XANADU_AGENT_DOC"
-
-
-def default_store(lattice_dir: str | Path):
-    """Return a Store, wrapped in AgentStore if XANADU_AGENT_DOC is set.
-
-    Orchestrators set the env var so subprocess tools that emit
-    substrate links inherit the agent identity and attribute every
-    operation back to it. Standalone runs (no env var) get a plain
-    Store.
-
-    `lattice_dir` is the lattice root (e.g., LATTICE).
-    """
-    store = Store(lattice_dir)
-    agent_doc_path = os.environ.get(AGENT_DOC_ENV_VAR)
-    if not agent_doc_path:
-        return store
-    # Translate the agent doc's filesystem path to its tumbler. The
-    # env var holds a lattice-relative path string; if not yet in the
-    # path map, register it.
-    agent_addr = store.register_path(agent_doc_path)
-    return AgentStore(store, agent_addr)
 
 
 @contextlib.contextmanager
