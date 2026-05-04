@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.orchestrators.claim_full_review import (
     run_full_review, run_revise_from_review,
 )
-from lib.orchestrators.cone_review import run_cone_review
+from lib.agents.cone_review import run_cone_review
 from lib.shared.common import find_asn
 from lib.shared.paths import CLAIM_DIR
 

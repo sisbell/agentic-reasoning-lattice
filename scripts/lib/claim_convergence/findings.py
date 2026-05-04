@@ -38,6 +38,7 @@ def emit_meta(
     emitted_findings: list,
     elapsed_seconds: float,
     reviews_dir,
+    covered_addrs: list[Address] | None = None,
 ) -> Link:
     """Write the aggregate review doc and emit the `review` classifier.
 
@@ -45,7 +46,16 @@ def emit_meta(
 
     The aggregate is the reviewer's full output; per-finding bodies
     live separately (written by record_findings).
+
+    `covered_addrs`, when provided, records via `review.coverage`
+    links which docs were within this review's coverage (the
+    structural audit fact). The `is_claim_confirmed` predicate
+    consults these links to find the most recent review covering a
+    given doc; coverage / staleness predicates will use them too.
+    Omit when scope is not relevant (legacy callers).
     """
+    from lib.backend.emit import emit_review_coverage
+
     reviews_root = Path(reviews_dir)
     review_stem = f"review-{review_num}"
     asn_dir = reviews_root / asn_label
@@ -76,6 +86,11 @@ def emit_meta(
     session.update_document(meta_rel, body)
     meta_addr = session.register_path(meta_rel)
     link, _ = emit_review(session.store, meta_addr)
+
+    if covered_addrs:
+        for covered in covered_addrs:
+            emit_review_coverage(session.store, meta_addr, covered)
+
     return link
 
 

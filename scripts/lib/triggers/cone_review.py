@@ -18,7 +18,7 @@ from lib.agents.cone_review import ConeReviewAgent
 from lib.backend.addressing import Address
 from lib.lattice.deps import build_deps_for_asn
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.predicates import is_claim_converged
+from lib.predicates import is_claim_confirmed
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, Trigger
 from lib.shared.claim_files import build_label_index
@@ -86,6 +86,6 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
 cone_review = Trigger(
     name="cone-review",
     scope_query=_scope_query,
-    predicate=is_claim_converged,
+    predicate=is_claim_confirmed,
     agent=ConeReviewAgent(),
 )

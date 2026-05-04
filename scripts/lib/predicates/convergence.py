@@ -81,6 +81,73 @@ def is_converged(session: Session) -> bool:
     return not unresolved_revise_comments(session)
 
 
+def latest_review_for_addr(
+    session: Session, addr: Address,
+) -> Optional[Address]:
+    """Return the review_meta of the most recent review whose
+    `review.coverage` link covers `addr`, or None if none exist.
+
+    "Most recent" is the `review.coverage` link with the largest
+    tumbler address (links are allocated monotonically, so the
+    largest-addressed active link is the latest emission).
+    """
+    coverage_links = [
+        link for link in session.active_links(
+            "review.coverage", to_set=[addr],
+        )
+        if link.from_set
+    ]
+    if not coverage_links:
+        return None
+    latest = max(coverage_links, key=lambda link: link.addr.digits)
+    return latest.from_set[0]
+
+
+def has_been_reviewed(session: Session, addr: Address) -> bool:
+    """True iff some review covered `addr`. Used to distinguish
+    'never reviewed' from 'reviewed clean' in confirmation logic.
+    """
+    return latest_review_for_addr(session, addr) is not None
+
+
+def latest_review_was_clean(session: Session, addr: Address) -> bool:
+    """True iff the most recent review on `addr`'s scope filed zero
+    `comment.revise` findings (none of its derived findings own a
+    comment.revise link).
+
+    Returns False when no review has covered `addr`.
+    """
+    review_meta = latest_review_for_addr(session, addr)
+    if review_meta is None:
+        return False
+    finding_addrs = {
+        target
+        for link in session.active_links(
+            "provenance.derivation", from_set=[review_meta],
+        )
+        for target in link.to_set
+    }
+    for finding in finding_addrs:
+        if session.active_links("comment.revise", from_set=[finding]):
+            return False
+    return True
+
+
+def is_claim_confirmed(session: Session, addr: Address) -> bool:
+    """The convergence-protocol's confirmation condition: claim is
+    converged AND the most recent review on its scope was clean.
+
+    Per `docs/hypergraph-protocol/convergence.md`: a clean review IS
+    the confirmation. The orchestrator's "+1 review-only after N
+    cycles" collapses into "the next cycle that comes up clean."
+    """
+    return (
+        is_claim_converged(session, addr)
+        and has_been_reviewed(session, addr)
+        and latest_review_was_clean(session, addr)
+    )
+
+
 def is_asn_converged(session: Session, asn_label: str) -> bool:
     """Conjunction of `is_doc_converged` over every claim md under an ASN.
 

@@ -35,6 +35,7 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "agent": (6,),
     "finding": (7,),
     "review": (8,),
+    "review.coverage": (8, 1),
     "signature": (9,),
     "notation": (10,),
     "consultation.questions": (11, 1),

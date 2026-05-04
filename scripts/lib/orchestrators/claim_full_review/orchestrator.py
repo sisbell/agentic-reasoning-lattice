@@ -30,7 +30,7 @@ from .cone_detect import detect_dependency_cone
 from lib.claim_convergence.findings import emit_meta, record_findings
 from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.orchestrators.cone_review import run_cone_review
+from lib.agents.cone_review import run_cone_review
 from lib.predicates import is_asn_converged
 from lib.shared.common import assemble_readonly, find_asn
 from lib.shared.git_ops import step_commit_asn
@@ -142,6 +142,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             emitted_findings=[],
             elapsed_seconds=elapsed,
             reviews_dir=CLAIM_REVIEWS_DIR,
+            covered_addrs=asn_claim_addrs,
         )
         review_addr = (
             review_link.to_set[0] if review_link.to_set else None
@@ -164,6 +165,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             emitted_findings=emitted_findings,
             elapsed_seconds=elapsed,
             reviews_dir=CLAIM_REVIEWS_DIR,
+            covered_addrs=asn_claim_addrs,
         )
         final_review_path = meta_path
 
@@ -295,6 +297,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                     emitted_findings=[],
                     elapsed_seconds=confirm_elapsed,
                     reviews_dir=CLAIM_REVIEWS_DIR,
+            covered_addrs=asn_claim_addrs,
                 )
                 confirm_review_addr = (
                     confirm_review_link.to_set[0]
@@ -322,6 +325,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                     emitted_findings=emitted_findings,
                     elapsed_seconds=confirm_elapsed,
                     reviews_dir=CLAIM_REVIEWS_DIR,
+            covered_addrs=asn_claim_addrs,
                 )
                 final_review_path = confirm_meta_path
 

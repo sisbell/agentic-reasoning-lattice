@@ -85,6 +85,30 @@ def emit_review(store: Store, review_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, review_doc, "review")
 
 
+def emit_review_coverage(
+    store: Store, review_meta: Address, covered: Address,
+) -> Tuple[Link, bool]:
+    """Record that `covered` is within `review_meta`'s coverage.
+
+    Idempotent on (review_meta, covered). Forms the substrate join
+    between reviews and the docs they covered — read by the
+    confirmation predicate today, by coverage / staleness predicates
+    later. See docs/hypergraph-protocol/review-coverage.md.
+    """
+    existing = active_links(
+        store.state, "review.coverage",
+        from_set=[review_meta], to_set=[covered],
+    )
+    if existing:
+        return existing[0], False
+    link = store.make_link(
+        homedoc=review_meta,
+        from_set=[review_meta], to_set=[covered],
+        type_="review.coverage",
+    )
+    return link, True
+
+
 def emit_finding(store: Store, finding_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, finding_doc, "finding")
 

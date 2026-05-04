@@ -39,6 +39,12 @@ VALID_SUBTYPES = {
         "absorb",      # maturation: note A material → note B
         "reset",       # maturation: hard-reset cascade marker
     }),
+    "review": frozenset({
+        "coverage",  # review meta → covered doc; structural audit fact:
+                     # this doc was within this review's coverage. Used by
+                     # is_claim_confirmed and future coverage / staleness
+                     # predicates.
+    }),
 }
 
 # Types that must always carry a subtype — bare parent writes are invalid.

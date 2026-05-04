@@ -20,14 +20,18 @@ from lib.predicates import (
     dependents,
     depends,
     description_sidecar_of,
+    has_been_reviewed,
     has_description,
     has_label,
     has_name,
     has_resolution,
     has_signature,
+    is_claim_confirmed,
     is_converged,
     is_doc_converged,
     is_head_version,
+    latest_review_for_addr,
+    latest_review_was_clean,
     unresolved_revise_comments,
     version_children,
     version_head,
@@ -258,6 +262,106 @@ class CitationGraphTests(unittest.TestCase):
         )
         self.assertEqual(depends(self.session, self.a), [])
         self.assertEqual(dependents(self.session, self.b), [])
+
+
+class ConfirmationPredicateTests(unittest.TestCase):
+    """Confirmation predicate: is_converged AND latest review was clean.
+
+    Requires `review.coverage` links to find the latest review on a doc's
+    scope, and `provenance.derivation` walks to count revise findings.
+    """
+
+    def setUp(self):
+        self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
+        self.lattice = self.state.create_doc()
+        self.claim = self.state.create_doc(kind="claim", lattice=self.lattice)
+
+    def _make_review(self, finding_kinds=()):
+        """Create a review meta + review.coverage → claim, plus a finding
+        per `finding_kinds` entry. Each kind is "revise" or "observe";
+        emits provenance.derivation from review and comment.<kind> from
+        finding to claim. Returns the review meta address.
+        """
+        review_meta = self.state.create_doc(
+            kind="review", lattice=self.lattice,
+        )
+        self.state.make_link(
+            review_meta, [review_meta], [self.claim], "review.coverage",
+        )
+        for kind in finding_kinds:
+            finding = self.state.create_doc(
+                kind="finding", lattice=self.lattice,
+            )
+            self.state.make_link(
+                review_meta, [review_meta], [finding],
+                "provenance.derivation",
+            )
+            self.state.make_link(
+                finding, [finding], [self.claim], f"comment.{kind}",
+            )
+        return review_meta
+
+    def test_unreviewed_claim_not_confirmed(self):
+        self.assertFalse(has_been_reviewed(self.session, self.claim))
+        self.assertIsNone(
+            latest_review_for_addr(self.session, self.claim),
+        )
+        self.assertFalse(is_claim_confirmed(self.session, self.claim))
+
+    def test_clean_review_confirms_claim(self):
+        self._make_review(finding_kinds=())  # zero findings
+        self.assertTrue(has_been_reviewed(self.session, self.claim))
+        self.assertTrue(latest_review_was_clean(self.session, self.claim))
+        self.assertTrue(is_claim_confirmed(self.session, self.claim))
+
+    def test_observe_only_review_is_clean(self):
+        # comment.observe doesn't block convergence or confirmation.
+        self._make_review(finding_kinds=("observe",))
+        self.assertTrue(latest_review_was_clean(self.session, self.claim))
+        self.assertTrue(is_claim_confirmed(self.session, self.claim))
+
+    def test_review_with_unresolved_revise_does_not_confirm(self):
+        self._make_review(finding_kinds=("revise",))
+        self.assertFalse(latest_review_was_clean(self.session, self.claim))
+        self.assertFalse(is_claim_confirmed(self.session, self.claim))
+
+    def test_latest_review_supersedes_older(self):
+        # Older review had revises; newer review came up clean.
+        # The older review's revise comment is resolved before the
+        # new clean review fires, so is_converged is true again.
+        old = self._make_review(finding_kinds=("revise",))
+        # resolve the old revise so converged becomes true
+        old_revise = self.session.active_links(
+            "comment.revise", to_set=[self.claim],
+        )[0]
+        self.state.make_link(
+            self.claim, [self.claim], [old_revise.addr], "resolution.edit",
+        )
+        # now a clean review covers the claim
+        new = self._make_review(finding_kinds=())
+        self.assertEqual(
+            latest_review_for_addr(self.session, self.claim), new,
+        )
+        self.assertTrue(latest_review_was_clean(self.session, self.claim))
+        self.assertTrue(is_claim_confirmed(self.session, self.claim))
+
+    def test_clean_review_but_unresolved_revise_blocks_confirmation(self):
+        # A different un-related revise comment exists on the claim;
+        # the latest review was clean but converged is still false.
+        self._make_review(finding_kinds=())  # clean
+        # add a stray revise from something else (not derived from the
+        # latest review) — this can't happen via our agents but the
+        # predicate must compose correctly anyway.
+        other_finding = self.state.create_doc(
+            kind="finding", lattice=self.lattice,
+        )
+        self.state.make_link(
+            other_finding, [other_finding], [self.claim], "comment.revise",
+        )
+        self.assertTrue(latest_review_was_clean(self.session, self.claim))
+        self.assertFalse(is_doc_converged(self.session, self.claim))
+        self.assertFalse(is_claim_confirmed(self.session, self.claim))
 
 
 if __name__ == "__main__":
