@@ -6,6 +6,7 @@ __pycache__/
 lattices/*/usage-log.jsonl
 lattices/*/_docuverse/index.db
 lattices/*/_docuverse/_failures/
+_workspace/
 channels/nelson/resources/literary-machines/*.pdf
 channels/nelson/resources/literary-machines/raw/
 /notes/
