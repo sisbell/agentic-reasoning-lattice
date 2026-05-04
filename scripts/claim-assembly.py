@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Formalization Assembly — produce claim-statements.md + dependency graph.
+Formalization Assembly — re-emit claim-statements.md from edited claims.
 
-Mechanically assembles the export from YAML summaries + .md formal contracts.
-No LLM calls. Requires summaries — run summarize.py first.
+Reads each claim's substrate-sourced sidecars (`<stem>.name.md`,
+`<stem>.description.md`) and the formal contract from its .md body,
+then mechanically assembles the condensed ASN summary that
+downstream ASN discovery consumes as a dependency. No LLM calls.
 
 Usage:
     python scripts/claim-assembly.py 34
     python scripts/claim-assembly.py 34 36 40
-    python scripts/claim-assembly.py 34 --deps-only
-    python scripts/claim-assembly.py 34 --dry-run
 """
 
 import argparse
@@ -26,14 +26,8 @@ from lib.claim_convergence.produce_interface import assemble_claim_statements
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
-def _generate_deps(asn_num, label):
-    # TODO: Deps yaml generation removed; dependencies will be sourced
-    # from substrate citation links once the migration lands.
-    pass
-
-
 def _export_one(asn_id):
-    """Export a single ASN: assembly + deps.
+    """Re-assemble claim-statements.md for one ASN.
 
     Returns (asn_label, True) on success, (asn_id, False) on failure.
     """
@@ -44,44 +38,21 @@ def _export_one(asn_id):
 
     asn_num = int(re.sub(r"[^0-9]", "", str(asn_id)))
 
-    # Assembly (mechanical — reads YAML summaries + .md contracts)
     path = assemble_claim_statements(asn_num)
     if path is None:
         print(f"  [ERROR] Assembly failed for {asn_label}", file=sys.stderr)
         return asn_label, False
 
     print(str(path))
-
-    # Deps generation (already mechanical)
-    _generate_deps(asn_num, asn_label)
-
     return asn_label, True
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Formalization Assembly — claim-statements.md + deps")
+        description="Formalization Assembly — claim-statements.md")
     parser.add_argument("asns", nargs="+",
                         help="ASN numbers (e.g., 34 36 40) or paths")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show what would be done without doing it")
-    parser.add_argument("--deps-only", action="store_true",
-                        help="Generate dependency graph only, skip claim-statements")
     args = parser.parse_args()
-
-    if args.dry_run:
-        for asn_id in args.asns:
-            _, asn_label = find_asn(asn_id)
-            print(f"  [DRY RUN] Would export {asn_label}", file=sys.stderr)
-        return
-
-    if args.deps_only:
-        for asn_id in args.asns:
-            asn_num = int(re.sub(r"[^0-9]", "", str(asn_id)))
-            _, asn_label = find_asn(asn_id)
-            if asn_label:
-                _generate_deps(asn_num, asn_label)
-        return
 
     succeeded = []
     failed = []
@@ -93,7 +64,6 @@ def main():
         else:
             failed.append(label)
 
-    # Commit
     if succeeded:
         labels = ", ".join(sorted(succeeded))
         print(f"\n  === COMMIT ({labels}) ===", file=sys.stderr)

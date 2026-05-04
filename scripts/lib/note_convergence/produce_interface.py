@@ -1,9 +1,14 @@
 """
-Produce Statements step — extract formal statements from a discovery ASN
-using LLM to parse narrative reasoning into structured statements.
+Produce Interface — extract the ASN's claim-statements.md
+dependency artifact from a source note via LLM.
 
-Step function for the orchestrator (scripts/note-assembly.py):
-- export_one: invoke Claude with produce-statements.md prompt, write claim-statements.md
+Run during the initial pass over a note: invokes Claude with the
+produce-statements.md prompt to parse narrative reasoning into a
+structured list of formal statements. Downstream ASN discovery
+consumes claim-statements.md as a dependency. The claim-side
+counterpart (`claim_convergence/produce_interface.py`) re-assembles
+the same artifact mechanically after claim-convergence has edited
+the per-claim representation.
 """
 
 import json
@@ -49,7 +54,7 @@ def _log_usage(asn_label, elapsed):
         pass
 
 
-def export_one(asn_id, model="sonnet", effort="high", dry_run=False):
+def export_one(asn_id, model="sonnet", effort="high"):
     """Export statements for a single ASN. Returns (asn_label, True) or (asn_id, False)."""
     asn_path, asn_label = find_asn(asn_id)
     if asn_path is None:
@@ -59,16 +64,10 @@ def export_one(asn_id, model="sonnet", effort="high", dry_run=False):
 
     asn_content = asn_path.read_text()
 
-    # Build prompt
     print(f"  [EXPORT] {asn_label}", file=sys.stderr)
     prompt = _build_prompt(asn_content)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
-
-    if dry_run:
-        print(f"  [DRY RUN] Would invoke {model}",
-              file=sys.stderr)
-        return asn_label, True
 
     # Invoke Claude
     text, elapsed = invoke_claude(prompt, model=model, effort=effort)

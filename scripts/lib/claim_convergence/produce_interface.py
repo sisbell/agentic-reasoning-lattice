@@ -1,8 +1,14 @@
 """
-Produce Interface — mechanically assemble claim-statements.md.
+Produce Interface — mechanically re-assemble the ASN's
+claim-statements.md dependency artifact from the per-claim
+substrate sidecars + .md formal contracts.
 
-Reads YAML summaries + .md formal contracts for each claim.
-No LLM calls. Requires summaries to exist — run summarize.py first.
+Run after claim-convergence has edited the per-claim files: this
+re-emits the condensed ASN summary that downstream ASN discovery
+consumes as a dependency. No LLM calls. The note-side counterpart
+(`note_convergence/produce_interface.py`) produces the same artifact
+via LLM extraction during the initial pass over the source note;
+this side regenerates it from the edited claim representation.
 """
 
 import re
@@ -18,10 +24,11 @@ from lib.shared.foundation import _extract_formal_contract
 
 
 def assemble_claim_statements(asn_num):
-    """Mechanically assemble claim-statements.md from YAML summaries + .md contracts.
+    """Re-assemble claim-statements.md from substrate sidecars + .md contracts.
 
-    Reads summary from each claim's YAML and formal contract from its .md.
-    Errors if any claim is missing a summary.
+    Reads each claim's name / description sidecars (substrate-sourced)
+    and the formal contract from its .md body. Errors if any claim is
+    missing a description.
 
     Returns the output path, or None on failure.
     """
@@ -44,11 +51,11 @@ def assemble_claim_statements(asn_num):
 
     label_index = build_label_index(claim_dir)
 
-    # Check summaries exist
     missing = [l for l, m in all_meta.items() if not m.get("summary")]
     if missing:
-        print(f"  [ASSEMBLE] {len(missing)} claims missing summaries — "
-              f"run: python scripts/summarize.py {asn_num}",
+        print(f"  [ASSEMBLE] {len(missing)} claims missing description "
+              f"sidecars — populate <stem>.description.md (substrate "
+              f"description link) before re-assembling.",
               file=sys.stderr)
         for l in missing[:10]:
             print(f"    {l}", file=sys.stderr)
