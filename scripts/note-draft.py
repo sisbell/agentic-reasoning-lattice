@@ -1,294 +1,83 @@
 #!/usr/bin/env python3
-"""
-ASN pipeline — questions → consult → discover → commit.
+"""Drive an inquiry through consult → draft via the trigger runner.
 
-Orchestrates ASN production by calling step scripts:
-  1. Questions: decompose inquiry into sub-questions (preview only)
-  2. Consult: run all expert consultations (includes question generation)
-  3. Discover: synthesize consultation answers into a formal ASN
-  4. Commit: commit lattice changes
+Walks the inquiry-consult and note-draft triggers until quiescent.
+Each cycle: fire any trigger whose predicate is unsatisfied. Exits
+when consult is done AND a note has been drafted (or when the
+runner cap is hit).
 
-Specify a step to run up to and including that step:
-    python scripts/note-draft.py --inquiries 4 questions    # preview sub-questions
-    python scripts/note-draft.py --inquiries 4 consult      # questions + consultations
-    python scripts/note-draft.py --inquiries 4 discover     # consult + discover
-    python scripts/note-draft.py --inquiries 4              # full pipeline (all steps)
-    python scripts/note-draft.py                            # all inquiries, full pipeline
-
-Resume from a specific step (skip earlier steps):
-    python scripts/note-draft.py --inquiries 4 --resume discover  # skip consult
-    python scripts/note-draft.py --inquiries 4 --resume commit    # just commit
+Usage:
+    python scripts/note-draft.py 4              # one inquiry by ASN num
+    python scripts/note-draft.py --inquiries 1,2,3   # batch
+    python scripts/note-draft.py --max-iterations 8
 """
 
 import argparse
-import json
-import os
-import subprocess
+import re
 import sys
-import time
-import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, NOTE_DIR
-from lib.shared.git_ops import step_commit_asn
-
-CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "consultation" / "decompose.py"
-DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "consultation" / "draft.py"
-
-STEPS = ["questions", "consult", "discover", "commit"]
+from lib.runner import asn, run_until_quiescent
+from lib.triggers import inquiry_consult, note_draft
 
 
-def load_inquiries():
-    """Load all inquiries from the substrate-managed inquiry dir."""
-    import re
-    from lib.shared.paths import INQUIRY_DIR
-    from lib.shared.frontmatter import read_doc_frontmatter
-    inquiries = []
-    if not INQUIRY_DIR.exists():
-        return inquiries
-    for path in sorted(INQUIRY_DIR.glob("ASN-*.md")):
-        m = re.match(r"ASN-(\d+)", path.stem)
-        if not m:
-            continue
-        asn_id = int(m.group(1))
-        fm = read_doc_frontmatter(path)
-        if not fm or not fm.get("question"):
-            continue
-        inquiries.append({
-            "id": asn_id,
-            "title": fm.get("title", ""),
-            "area": "",
-            "question": fm.get("question", ""),
-            "out_of_scope": fm.get("out_of_scope", ""),
-        })
-    return inquiries
-
-
-# ─── Steps ────────────────────────────────────────────────────
-
-def step_questions(inquiry):
-    """Preview sub-questions via consult-experts.py --dry-run."""
-    print(f"  [QUESTIONS] Decomposing inquiry...")
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-
-    cmd = [sys.executable, str(CONSULT_SCRIPT),
-           "--inquiry-id", str(inquiry["id"]), "--dry-run"]
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            if line.strip():
-                print(f"    {line.strip()}")
-
-    if result.returncode != 0:
-        print(f"  [QUESTIONS] FAILED (exit {result.returncode}, {elapsed:.0f}s)")
-        return False
-
-    # stdout has the questions
-    if result.stdout.strip():
-        print(f"\n{result.stdout.strip()}\n")
-
-    print(f"  [QUESTIONS] Done ({elapsed:.0f}s)")
-    return True
-
-
-def step_consult(inquiry):
-    """Run consult-experts.py: decompose + consult. Returns True on success."""
-    print(f"  [CONSULT] Decomposing inquiry + running consultations...")
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-
-    cmd = [sys.executable, str(CONSULT_SCRIPT),
-           "--inquiry-id", str(inquiry["id"])]
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            if line.strip():
-                print(f"    {line.strip()}")
-
-    if result.returncode != 0:
-        print(f"  [CONSULT] FAILED (exit {result.returncode}, {elapsed:.0f}s)")
-        return False
-
-    output_path = result.stdout.strip()
-    if output_path and Path(output_path).exists():
-        size = Path(output_path).stat().st_size
-        print(f"  [CONSULT] Done ({elapsed:.0f}s, {size // 1024}KB)")
-        return True
-
-    print(f"  [CONSULT] No output file ({elapsed:.0f}s)")
-    return False
-
-
-def step_discover(inquiry, force=False):
-    """Run discover.py. Returns path to ASN file or None."""
-    print(f"  [DISCOVER] Running discovery...")
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-
-    cmd = [sys.executable, str(DISCOVER_SCRIPT),
-           "--inquiry-id", str(inquiry["id"])]
-    if force:
-        cmd.append("--force")
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            if line.strip():
-                print(f"    {line.strip()}")
-
-    if result.returncode != 0:
-        print(f"  [DISCOVER] FAILED (exit {result.returncode}, {elapsed:.0f}s)")
-        return None
-
-    asn_path = result.stdout.strip()
-    if asn_path and Path(asn_path).exists():
-        size = Path(asn_path).stat().st_size
-        print(f"  [DISCOVER] Done ({elapsed:.0f}s, {size // 1024}KB)")
-        return Path(asn_path)
-
-    print(f"  [DISCOVER] No ASN file ({elapsed:.0f}s)")
-    return None
-
-
-# ─── Pipeline ─────────────────────────────────────────────────
-
-def run_pipeline(inquiry, target_step, resume_from=None, force=False, dry_run=False):
-    """Run the pipeline for one inquiry from resume_from to target_step."""
-    asn_number = inquiry["id"]
-    title = inquiry["title"]
-    target_idx = STEPS.index(target_step)
-    start_idx = STEPS.index(resume_from) if resume_from else 0
-
-    run_steps = STEPS[start_idx:target_idx + 1]
-    steps_label = " → ".join(run_steps)
-    print(f"\n{'='*60}")
-    print(f"ASN-{asn_number:04d}: {title}")
-    print(f"Area: {inquiry['area']}")
-    print(f"Steps: {steps_label}")
-    print(f"{'='*60}")
-
-    if dry_run:
-        print("  [DRY RUN]")
-        return True
-
-    # Step: questions (preview only — if this is the target, stop here)
-    if "questions" in run_steps and target_step == "questions":
-        result = step_questions(inquiry)
-        print(f"\n  [NEXT] Run consultation + draft: "
-              f"python scripts/note-draft.py --inquiries {asn_number} --resume consult",
-              file=sys.stderr)
-        return result
-
-    # Step: consult (includes question generation)
-    if "consult" in run_steps:
-        success = step_consult(inquiry)
-        if not success:
-            print(f"  [FAILED] Consultation failed — stopping")
-            return False
-
-    # Step: discover
-    if "discover" in run_steps:
-        asn_path = step_discover(inquiry, force=force)
-        if asn_path is None:
-            return False
-
-    # Step: commit
-    if "commit" in run_steps:
-        step_commit_asn(asn_number, f"ASN-{asn_number:04d} {title}")
-
-    # Hint for next step
-    if target_step in ("discover", "commit"):
-        print(
-            f"\n  [NEXT] Run convergence: python scripts/note-converge.py "
-            f"{asn_number}",
-            file=sys.stderr,
-        )
-
-    return True
+def _parse_asn_nums(args):
+    if args.asn:
+        return [int(re.sub(r"\D", "", args.asn))]
+    if args.inquiries:
+        return [
+            int(re.sub(r"\D", "", x))
+            for x in args.inquiries.split(",")
+            if x.strip()
+        ]
+    return []
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ASN pipeline runner")
-    parser.add_argument("step", nargs="?", default="commit",
-                        choices=STEPS,
-                        help="Run up to this step (default: commit = all steps)")
-    parser.add_argument("--inquiries",
-                        help="Comma-separated inquiry IDs (e.g., 1,2,3)")
-    parser.add_argument("--resume", choices=STEPS,
-                        help="Resume from this step (skip earlier steps)")
-    parser.add_argument("--force", action="store_true",
-                        help="Overwrite existing ASN")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show what would run")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Drive an inquiry through consult → draft via the trigger "
+            "runner."
+        ),
+    )
+    parser.add_argument(
+        "asn", nargs="?",
+        help="ASN number (e.g., 4, 0004, ASN-0004)",
+    )
+    parser.add_argument(
+        "--inquiries",
+        help="Comma-separated ASN numbers for batch processing",
+    )
+    parser.add_argument(
+        "--max-iterations", type=int, default=100,
+        help="Safety cap on convergence passes per inquiry (default 100)",
+    )
     args = parser.parse_args()
 
-    inquiries = load_inquiries()
+    asn_nums = _parse_asn_nums(args)
+    if not asn_nums:
+        parser.error("Provide an ASN number or --inquiries")
 
-    if args.inquiries:
-        ids = set(int(x) for x in args.inquiries.split(","))
-        inquiries = [i for i in inquiries if i["id"] in ids]
-
-    NOTE_DIR.mkdir(parents=True, exist_ok=True)
-
-    target_idx = STEPS.index(args.step)
-    steps_label = " → ".join(STEPS[:target_idx + 1])
-
-    print(f"ASN Pipeline: {len(inquiries)} inquiries")
-    print(f"Steps: {steps_label}")
-
-    results = []
-    total_start = time.time()
-
-    resume_from = args.resume
-
-    for inquiry in inquiries:
-        success = run_pipeline(
-            inquiry,
-            target_step=args.step,
-            resume_from=resume_from,
-            force=args.force,
-            dry_run=args.dry_run,
+    triggers = [inquiry_consult, note_draft]
+    overall_quiescent = True
+    overall_errors: list = []
+    for asn_num in asn_nums:
+        print(f"\n=== ASN-{asn_num:04d} ===", file=sys.stderr)
+        result = run_until_quiescent(
+            triggers=triggers,
+            scope=asn(asn_num),
+            max_iterations=args.max_iterations,
         )
-        results.append({
-            "inquiry": inquiry["title"],
-            "asn": inquiry["id"],
-            "success": success,
-        })
+        print(
+            f"  iterations={result.iterations} fires={len(result.fires)} "
+            f"errors={len(result.errors)} quiescent={result.quiescent}",
+            file=sys.stderr,
+        )
+        overall_quiescent = overall_quiescent and result.quiescent
+        overall_errors.extend(result.errors)
 
-    total_elapsed = time.time() - total_start
-
-    print(f"\n{'='*60}")
-    print(f"DONE — {sum(1 for r in results if r['success'])}/{len(results)} succeeded "
-          f"({total_elapsed:.0f}s)")
-    print(f"{'='*60}")
-    for r in results:
-        status = "OK" if r["success"] else "FAILED"
-        print(f"  ASN-{r['asn']:04d} {r['inquiry']}: {status}")
+    sys.exit(0 if overall_quiescent and not overall_errors else 1)
 
 
 if __name__ == "__main__":
