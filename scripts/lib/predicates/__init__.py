@@ -36,6 +36,8 @@ from .attributes import (
 from .citations import depends, dependents
 from .consultation import (
     all_open_revises_consulted,
+    has_consultation_for_inquiry,
+    has_note_for_inquiry,
     is_finding_consulted,
 )
 from .classifiers import (
@@ -85,9 +87,11 @@ __all__ = [
     "description_is_fresh",
     "description_sidecar_of",
     "has_been_reviewed",
+    "has_consultation_for_inquiry",
     "has_description",
     "has_label",
     "has_name",
+    "has_note_for_inquiry",
     "has_resolution",
     "has_signature",
     "has_statements",
