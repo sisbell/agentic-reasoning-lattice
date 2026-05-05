@@ -1,21 +1,14 @@
 """Note-review agent — assemble prompt, invoke Claude, write review doc,
 emit substrate facts.
 
-Two entry points:
+`NoteReviewAgent` is the class-form entry point the trigger runner
+invokes. One fire = one full review pass: build prompt, invoke
+Claude, validate the response structure, write the review aggregate
+doc, emit the `review` classifier + `review.coverage` to the note
++ `comment.<kind>` per finding. Returns AgentResult.
 
-  - `NoteReviewAgent` — class form for the trigger runner. One fire =
-    full review pass: build prompt, invoke Claude, validate, write
-    review file, emit `review` classifier + `comment.<kind>` per
-    finding. Return AgentResult.
-
-  - `run_note_review` — legacy free-function form retained for the
-    note_converge orchestrator's gate loop. Returns (verdict, text,
-    elapsed) without touching the substrate; caller commits via
-    `commit_note_review` from the orchestrator. Will retire with the
-    orchestrator when the trigger runner replaces it.
-
-`extract_note_findings(text)` is a pure helper used by both paths
-plus by the orchestrator for parsing a stored review.
+`extract_note_findings(text)` is a pure helper for parsing a stored
+review's REVISE / OUT_OF_SCOPE sections.
 """
 
 from __future__ import annotations
@@ -35,7 +28,7 @@ from lib.backend.emit import emit_review, emit_review_coverage
 from lib.lattice.findings import record_one_finding
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
-from lib.shared.common import find_asn, read_file
+from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
@@ -46,51 +39,6 @@ from lib.shared.paths import (
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
-
-
-def run_note_review(
-    asn_path: Path,
-    asn_label: str,
-    *,
-    model: str = "opus",
-    effort: str = "max",
-) -> Tuple[str, str, float]:
-    """Run a single review pass on a note. Returns (verdict, text, elapsed).
-
-    Assembles the prompt (template + vocab + foundation + scope/hints),
-    invokes Claude, validates the response structure, strips preamble,
-    parses the VERDICT line. Pure with respect to the substrate — no
-    file writes, no link emission. Caller is responsible for committing
-    the review and emitting findings.
-
-    On invocation failure or malformed response, returns
-    ("ERROR", text, elapsed) with text possibly None.
-    """
-    asn_content = asn_path.read_text()
-    vocabulary = read_file(resolve_campaign(asn_label).vocabulary_path)
-    asn_number = int(asn_label.replace("ASN-", ""))
-    out_of_scope = _load_out_of_scope(asn_number)
-    foundation = load_foundation_for_note(asn_path, asn_number)
-
-    prompt = _build_prompt(
-        asn_content, vocabulary,
-        out_of_scope=out_of_scope,
-        foundation=foundation,
-    )
-    text, elapsed = _invoke_claude(prompt, model=model, effort=effort)
-    if not text:
-        return "ERROR", None, elapsed
-
-    text = _strip_preamble(text)
-    error = _validate_review(text)
-    if error:
-        import sys
-        print(f"  MALFORMED REVIEW: {error}", file=sys.stderr)
-        return "ERROR", text, elapsed
-
-    m = re.search(r"^VERDICT:\s*(\w+)", text, re.MULTILINE)
-    verdict = m.group(1).upper() if m else "REVISE"
-    return verdict, text, elapsed
 
 
 def extract_note_findings(text: str) -> List[Tuple[str, str, str]]:

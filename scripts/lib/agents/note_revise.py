@@ -1,18 +1,12 @@
 """Note-revise agent — invoke Claude with editing tools to address open
 revise findings on a note.
 
-Two entry points:
-
-  - `NoteReviseAgent` — class form for the trigger runner. One fire =
-    collect open `comment.revise` findings on the note, assemble a
-    discovery-methodology prompt, invoke Claude with Edit/Read/Bash
-    tools. The agent itself closes each comment via
-    `convergence-link-resolution.py`.
-
-  - `run_revise_pass` — legacy free-function form retained for the
-    note_converge orchestrator's gate loop. Takes pre-collected
-    findings; doesn't query the substrate. Will retire with the
-    orchestrator when the trigger runner replaces it.
+`NoteReviseAgent` is the class-form entry point the trigger runner
+invokes. One fire = collect open `comment.revise` findings on the
+note, assemble a discovery-methodology prompt with per-finding
+instructions, invoke Claude with Edit/Read/Bash tools. The Claude
+session closes each comment via `convergence-link-resolution.py`
+once it has addressed (or rejected) the finding.
 """
 
 from __future__ import annotations
@@ -43,44 +37,6 @@ PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"
 
 MODEL = "claude-opus-4-7"
-
-
-def run_revise_pass(
-    asn_path: Path,
-    asn_label: str,
-    findings: list,
-    *,
-    model: str = "opus",
-    effort: str = "max",
-    consultation_content=None,
-):
-    """Run one reviser invocation that addresses `findings`.
-
-    Sets PROTOCOL_ASN_LABEL env var. The agent closes each comment via
-    `convergence-link-resolution.py --comment-id <id>` per the prompt.
-    Returns (data, elapsed) from the underlying Claude call — caller
-    logs usage and re-queries the substrate for remaining open revises.
-    """
-    asn_num = int(re.sub(r"[^0-9]", "", asn_label))
-    vocab = read_file(resolve_campaign(asn_label).vocabulary_path)
-
-    prompt = build_prompt(
-        asn_path, findings, vocab, consultation_content,
-        asn_number=asn_num,
-    )
-    print(
-        f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
-        file=sys.stderr,
-    )
-
-    model_flag = {
-        "opus": "claude-opus-4-7",
-        "sonnet": "claude-sonnet-4-6",
-    }.get(model, model)
-
-    os.environ["PROTOCOL_ASN_LABEL"] = asn_label
-
-    return _invoke_claude(prompt, model=model_flag, effort=effort)
 
 
 def build_prompt(

@@ -31,7 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, NOTE_DIR
-from lib.note_convergence.steps import step_commit
+from lib.shared.git_ops import step_commit_asn
 
 CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "consultation" / "decompose.py"
 DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "consultation" / "draft.py"
@@ -219,15 +219,15 @@ def run_pipeline(inquiry, target_step, resume_from=None, force=False, dry_run=Fa
 
     # Step: commit
     if "commit" in run_steps:
-        step_commit(f"ASN-{asn_number:04d} {title}", asn_id=asn_number)
+        step_commit_asn(asn_number, f"ASN-{asn_number:04d} {title}")
 
     # Hint for next step
     if target_step in ("discover", "commit"):
-        print(f"\n  [NEXT] Run review: python scripts/note-review.py {asn_number}",
-              file=sys.stderr)
-        print(f"  [NEXT] Or review/revise loop: "
-              f"python scripts/note-revise.py {asn_number} --converge",
-              file=sys.stderr)
+        print(
+            f"\n  [NEXT] Run convergence: python scripts/note-converge.py "
+            f"{asn_number}",
+            file=sys.stderr,
+        )
 
     return True
 
