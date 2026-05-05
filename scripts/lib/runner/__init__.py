@@ -9,7 +9,7 @@ scope and termination policy differ.
 """
 
 from .run import RunResult, run_force_pass, run_until_quiescent
-from .scope import Scope, asn, cone
+from .scope import Scope, asn, asn_note_addr, cone
 from .trigger import Trigger
 
 __all__ = [
@@ -17,6 +17,7 @@ __all__ = [
     "Scope",
     "Trigger",
     "asn",
+    "asn_note_addr",
     "cone",
     "run_force_pass",
     "run_until_quiescent",

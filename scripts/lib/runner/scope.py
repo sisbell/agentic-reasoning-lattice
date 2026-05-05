@@ -35,3 +35,24 @@ def cone(asn_num: int, apex_label: str) -> Scope:
         asn_label=f"ASN-{int(asn_num):04d}",
         labels=frozenset([apex_label]),
     )
+
+
+def asn_note_addr(session, scope: Scope):
+    """Resolve scope.asn_label to its source-note substrate address.
+
+    Returns None if no asn_label is set, no note exists for that
+    ASN number, or the note path isn't registered in substrate.
+
+    Centralizes the boilerplate that every ASN-scoped trigger's
+    scope_query needs — parse asn_num, find_asn, get_addr_for_path.
+    """
+    if scope.asn_label is None:
+        return None
+    from lib.shared.common import find_asn
+    from lib.shared.paths import LATTICE
+    asn_num = int(scope.asn_label[4:])
+    asn_path, _ = find_asn(str(asn_num))
+    if asn_path is None:
+        return None
+    rel = str(asn_path.relative_to(LATTICE))
+    return session.get_addr_for_path(rel)

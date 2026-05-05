@@ -19,21 +19,12 @@ from lib.agents.full_review import FullReviewAgent
 from lib.backend.addressing import Address
 from lib.predicates import is_asn_confirmed
 from lib.protocols.febe.protocol import Session
-from lib.runner import Scope, Trigger
-from lib.shared.common import find_asn
-from lib.shared.paths import LATTICE
+from lib.runner import Scope, Trigger, asn_note_addr
 
 
 def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
     """Yield the source note address for the requested ASN, if any."""
-    if scope.asn_label is None:
-        return
-    asn_num = int(scope.asn_label[4:])
-    asn_path, _ = find_asn(str(asn_num))
-    if asn_path is None:
-        return
-    rel = str(asn_path.relative_to(LATTICE))
-    addr = session.get_addr_for_path(rel)
+    addr = asn_note_addr(session, scope)
     if addr is not None:
         yield addr
 

@@ -38,59 +38,53 @@ def is_head_version(session: Session, doc_addr: Address) -> bool:
     return not session.version_children(doc_addr)
 
 
-def supersession_head(session: Session, doc_addr: Address) -> Address:
-    """Walk outgoing `supersession` link chain to the head version.
+def _walk_supersession(session: Session, doc_addr: Address):
+    """Yield each node in the supersession chain starting at doc_addr.
 
-    Each step picks the highest-tumbler outgoing target. Cycle-
-    protected. Head = address with no outgoing supersession link.
-
-    This is the link-based head walk (per LM 4/52-4/53). For docs
-    whose versioning lives in the tumbler version field, use
-    `version_head` instead — the substrate currently lacks
-    version-bearing addresses, so `supersession` links carry the
-    version progression explicitly.
+    Cycle-protected. At each step picks the highest-tumbler outgoing
+    target as the next node. Per LM 4/52-4/53.
     """
     visited = {doc_addr}
     current = doc_addr
+    yield current
     while True:
         outgoing = session.active_links("supersession", from_set=[current])
         if not outgoing:
-            return current
+            return
         targets = [t for link in outgoing for t in link.to_set]
         if not targets:
-            return current
+            return
         next_addr = max(targets, key=lambda a: a.digits)
         if next_addr in visited:
-            return current
+            return
         visited.add(next_addr)
         current = next_addr
+        yield current
+
+
+def supersession_head(session: Session, doc_addr: Address) -> Address:
+    """Head version (terminal node) of doc_addr's supersession chain.
+
+    For docs whose versioning lives in the tumbler version field,
+    use `version_head` instead — the substrate currently lacks
+    version-bearing addresses, so supersession links carry the
+    version progression explicitly.
+    """
+    last = doc_addr
+    for addr in _walk_supersession(session, doc_addr):
+        last = addr
+    return last
 
 
 def supersession_chain_length(session: Session, doc_addr: Address) -> int:
-    """Number of nodes in the supersession chain rooted at doc_addr.
+    """Number of nodes in doc_addr's supersession chain.
 
-    Returns 1 if doc_addr has no outgoing supersession (it's both
-    root and head). Each register_version emission advances the
-    count by one.
+    Returns 1 if doc_addr has no outgoing supersession. Each
+    register_version emission advances the count by one.
 
-    Use this when you need to compare "how many edits / attestations
-    has X had" across docs in different allocator subspaces — direct
+    Use chain length to compare "how many edits / attestations" has
+    X had across docs in different allocator subspaces — direct
     tumbler comparison doesn't give cross-subspace allocation-time
     ordering, but chain length is purely structural counting.
     """
-    visited = {doc_addr}
-    current = doc_addr
-    length = 1
-    while True:
-        outgoing = session.active_links("supersession", from_set=[current])
-        if not outgoing:
-            return length
-        targets = [t for link in outgoing for t in link.to_set]
-        if not targets:
-            return length
-        next_addr = max(targets, key=lambda a: a.digits)
-        if next_addr in visited:
-            return length
-        visited.add(next_addr)
-        current = next_addr
-        length += 1
+    return sum(1 for _ in _walk_supersession(session, doc_addr))

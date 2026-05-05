@@ -23,6 +23,7 @@ from typing import ClassVar, Optional
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.lattice.attributes import emit_attribute
+from lib.predicates import description_sidecar_of
 from lib.protocols.febe.protocol import Session
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import prompt_path
@@ -49,10 +50,10 @@ class ClaimDescribeAgent(Agent):
 
         claim_text = full_claim.read_text()
 
-        # Existing description, if any (head of supersession chain)
-        existing_desc, sidecar_addr = self._read_existing_description(
-            session, claim_addr,
-        )
+        # Existing description, if any (the canonical sidecar address
+        # the description link points at).
+        sidecar_addr = description_sidecar_of(session, claim_addr)
+        existing_desc = self._read_sidecar_text(session, sidecar_addr)
 
         # LLM call
         prompt = (
@@ -86,24 +87,16 @@ class ClaimDescribeAgent(Agent):
 
         return AgentResult(success=True, detail="emitted")
 
-    def _read_existing_description(
-        self, session: Session, claim_addr: Address,
-    ) -> tuple[Optional[str], Optional[Address]]:
-        """Return (existing_text, sidecar_addr) for the claim's
-        description, or (None, None) if no description is registered.
-
-        sidecar_addr is the LINK's to_set[0] — the canonical sidecar
-        address that the description link points at. Walking
-        supersession from there finds the head version.
-        """
-        links = session.active_links("description", from_set=[claim_addr])
-        if not links or not links[0].to_set:
-            return None, None
-        sidecar_addr = links[0].to_set[0]
+    def _read_sidecar_text(
+        self, session: Session, sidecar_addr: Optional[Address],
+    ) -> Optional[str]:
+        """Read the sidecar's file content, or None if unresolvable."""
+        if sidecar_addr is None:
+            return None
         sidecar_path = session.get_path_for_addr(sidecar_addr)
         if sidecar_path is None:
-            return None, sidecar_addr
+            return None
         full = session.store.lattice_dir / sidecar_path
         if not full.exists():
-            return None, sidecar_addr
-        return full.read_text().strip() or None, sidecar_addr
+            return None
+        return full.read_text().strip() or None

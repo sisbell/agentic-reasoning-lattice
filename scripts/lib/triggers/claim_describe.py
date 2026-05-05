@@ -13,9 +13,7 @@ from lib.agents.claim_describe import ClaimDescribeAgent
 from lib.backend.addressing import Address
 from lib.predicates import derived_claims, description_is_fresh
 from lib.protocols.febe.protocol import Session
-from lib.runner import Scope, Trigger
-from lib.shared.common import find_asn
-from lib.shared.paths import LATTICE
+from lib.runner import Scope, Trigger, asn_note_addr
 
 
 def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
@@ -24,18 +22,17 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
     Filters out non-claim derivations (e.g., the claim-statements
     view doc) so the agent only describes actual claims.
     """
-    if scope.asn_label is None:
-        return
-    asn_num = int(scope.asn_label[4:])
-    asn_path, _ = find_asn(str(asn_num))
-    if asn_path is None:
-        return
-    rel = str(asn_path.relative_to(LATTICE))
-    note_addr = session.get_addr_for_path(rel)
+    note_addr = asn_note_addr(session, scope)
     if note_addr is None:
         return
+    # One classifier scan, then set-membership per derivation.
+    claim_addrs = {
+        link.to_set[0]
+        for link in session.active_links("claim")
+        if link.to_set
+    }
     for derived_addr in derived_claims(session, note_addr):
-        if session.active_links("claim", to_set=[derived_addr]):
+        if derived_addr in claim_addrs:
             yield derived_addr
 
 
