@@ -211,7 +211,7 @@ def claim_docs_dir(asn):
 
 def note_yaml(asn_num):
     """Legacy path to a note's metadata YAML. Pre-Phase-2 inquiry refactor.
-    Should not be referenced by new code — use inquiry_doc_path / state_yaml.
+    Should not be referenced by new code — use inquiry_doc_path.
     """
     return note_dir(asn_num) / "note.yaml"
 
@@ -219,17 +219,6 @@ def note_yaml(asn_num):
 def inquiry_doc_path(asn_num):
     """Path to a substrate-managed inquiry doc (md + frontmatter)."""
     return INQUIRY_DIR / f"ASN-{int(asn_num):04d}.md"
-
-
-def state_yaml(asn_num):
-    """Path to a per-ASN operational state file (machine-written cache).
-
-    Holds last_consistency_check, last_pipeline_run, etc. — fields that
-    don't go to substrate and don't belong in the inquiry doc. Sibling
-    of claim-statements.md and dependency-graph.yaml under
-    `manifests/ASN-NNNN/`.
-    """
-    return note_dir(asn_num) / "state.yaml"
 
 
 def claim_statements(asn_num):
@@ -337,21 +326,9 @@ def next_review_number(asn_label, *, kind, reviews_dir=None):
 
 
 def load_inquiry(asn_id):
-    """Load inquiry frontmatter for an ASN. Returns dict or empty dict.
-    The inquiry-content fields only — operational state lives in
-    state.yaml (load via `load_state`)."""
+    """Load inquiry frontmatter for an ASN. Returns dict or empty dict."""
     from lib.shared.frontmatter import read_doc_frontmatter
     return read_doc_frontmatter(inquiry_doc_path(asn_id))
-
-
-def load_state(asn_id):
-    """Load per-ASN operational state. Returns dict or empty dict."""
-    path = state_yaml(asn_id)
-    try:
-        with open(path) as f:
-            return yaml.safe_load(f) or {}
-    except FileNotFoundError:
-        return {}
 
 
 def load_lattice_config():
