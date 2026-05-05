@@ -307,6 +307,171 @@ def run_consultations(questions, consult_dir, asn_id, theory_model="opus",
     return results
 
 
+# ─── Run for one inquiry ────────────────────────────────────────
+
+
+def run_consult_for_inquiry(
+    asn_id,
+    *,
+    model: str = "opus",
+    num_theory=None,
+    num_evidence=None,
+    regenerate: bool = False,
+    dry_run: bool = False,
+):
+    """Run the initial-draft consult flow for one inquiry.
+
+    Loads the inquiry, decomposes into questions (or reuses an existing
+    questions doc if present and not regenerate), runs theory + evidence
+    consultations, persists per-Q/A answer docs, and emits substrate
+    facts: `consultation.questions` on the questions doc,
+    `consultation.answer.<role>` on each answer, and
+    `consultation.coverage` from each consultation doc → inquiry.
+
+    Returns the consult subdir path on success, None on failure.
+    """
+    inquiry = load_inquiry(asn_id)
+    if not inquiry:
+        print(
+            f"  [ERROR] No inquiry found for ASN-{asn_id:04d}",
+            file=sys.stderr,
+        )
+        return None
+
+    inquiry_text = inquiry.get("question", "")
+    inquiry_title = inquiry.get("title", f"ASN-{asn_id:04d}")
+    asn_label = f"{asn_id:04d}"
+    out_of_scope = inquiry.get("out_of_scope", "")
+    campaign = resolve_campaign(asn_id)
+
+    if num_theory is None:
+        num_theory = _channel_default_questions(campaign.theory_channel)
+    if num_evidence is None:
+        num_evidence = _channel_default_questions(campaign.evidence_channel)
+    agents = inquiry.get("agents", {})
+    if "theory" in agents:
+        num_theory = agents["theory"]
+    if "evidence" in agents:
+        num_evidence = agents["evidence"]
+
+    reset_total_usage()
+    total_start = time.time()
+
+    existing_questions_path = (
+        CONSULTATIONS_DIR / f"ASN-{asn_label}" / "consultation" / "questions.md"
+    )
+    if not dry_run and existing_questions_path.exists() and not regenerate:
+        print(
+            f"  [LOAD] Using existing questions from "
+            f"{existing_questions_path.relative_to(WORKSPACE)}",
+            file=sys.stderr,
+        )
+        questions = parse_questions(existing_questions_path.read_text())
+    else:
+        questions = decompose_inquiry(
+            inquiry_text,
+            num_theory=num_theory,
+            num_evidence=num_evidence,
+            model=model,
+            out_of_scope=out_of_scope,
+            asn_id=asn_id,
+        )
+
+    if not questions:
+        print("  [ERROR] No questions generated", file=sys.stderr)
+        return None
+
+    theory_qs = sum(1 for r, _ in questions if r == "theory")
+    evidence_qs = len(questions) - theory_qs
+    print(
+        f"  [OK] {len(questions)} questions "
+        f"({theory_qs} theory, {evidence_qs} evidence)",
+        file=sys.stderr,
+    )
+
+    for i, (role, q) in enumerate(questions, 1):
+        print(f"  {i}. [{role}] {q}", file=sys.stderr)
+
+    output_dir = CONSULTATIONS_DIR / f"ASN-{asn_label}"
+    init_dir = output_dir / "consultation"
+    init_dir.mkdir(parents=True, exist_ok=True)
+    questions_path = init_dir / "questions.md"
+    questions_text = "\n".join(
+        f"{i}. [{r}] {q}" for i, (r, q) in enumerate(questions, 1)
+    )
+    questions_path.write_text(
+        f"# Sub-Questions — {inquiry_title}\n\n"
+        f"**Inquiry:** {inquiry_text}\n\n"
+        f"{questions_text}\n"
+    )
+    print(
+        f"  [SAVED] {questions_path.relative_to(WORKSPACE)}", file=sys.stderr,
+    )
+
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
+    questions_rel = str(questions_path.resolve().relative_to(LATTICE.resolve()))
+    questions_addr = store.register_path(questions_rel)
+    emit_consultation_questions(store, questions_addr)
+    inquiry_rel = str(
+        inquiry_doc_path(asn_id).resolve().relative_to(LATTICE.resolve())
+    )
+    inquiry_addr = store.register_path(inquiry_rel)
+    emit_consultation_coverage(store, questions_addr, inquiry_addr)
+
+    if dry_run:
+        return init_dir
+
+    print(
+        f"  [CONSULT] Firing {len(questions)} consultations...",
+        file=sys.stderr,
+    )
+    consult_start = time.time()
+    results = run_consultations(questions, init_dir, asn_id)
+    consult_elapsed = time.time() - consult_start
+    print(f"  [CONSULT] All done ({consult_elapsed:.0f}s)", file=sys.stderr)
+
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
+    inquiry_addr = store.register_path(inquiry_rel)
+    for answer_md in sorted(init_dir.glob("answer-*.md")):
+        role_match = re.match(
+            r"answer-\d+-(theory|evidence)\.md", answer_md.name,
+        )
+        if role_match is None:
+            print(
+                f"  [WARN] {answer_md.name}: cannot parse role; "
+                f"skipping classifier emit",
+                file=sys.stderr,
+            )
+            continue
+        answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
+        answer_addr = store.register_path(answer_rel)
+        emit_consultation_answer(store, answer_addr, role_match.group(1))
+        emit_consultation_coverage(store, answer_addr, inquiry_addr)
+
+    total_elapsed = time.time() - total_start
+
+    print("", file=sys.stderr)
+    print(f"  {'=' * 50}", file=sys.stderr)
+    print(f"  EXPERT CONSULTATION COMPLETE", file=sys.stderr)
+    print(f"  {'=' * 50}", file=sys.stderr)
+    print(
+        f"  Questions: {len(questions)} "
+        f"({theory_qs} theory, {evidence_qs} evidence)",
+        file=sys.stderr,
+    )
+    print(f"  Decompose: {consult_start - total_start:.0f}s", file=sys.stderr)
+    print(
+        f"  Consultations: {consult_elapsed:.0f}s (parallel)", file=sys.stderr,
+    )
+    print(
+        f"  Total: {total_elapsed:.0f}s ({total_elapsed / 60:.1f}min)",
+        file=sys.stderr,
+    )
+    return init_dir
+
+
 # ─── Main ───────────────────────────────────────────────────────
 
 def main():
