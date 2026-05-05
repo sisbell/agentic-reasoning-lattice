@@ -55,6 +55,7 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "retraction": (18,),
     "provenance.derivation": (19, 1),
     "provenance.synthesis": (19, 2),
+    "provenance.clone": (19, 3),
     "manages": (20,),
     "lattice": (21,),
     "transclusion.claim-statements": (22, 1),

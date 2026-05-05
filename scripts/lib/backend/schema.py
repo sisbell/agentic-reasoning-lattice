@@ -67,6 +67,7 @@ VALID_SUBTYPES = {
         "extract",     # maturation: existing notes → new foundation
         "absorb",      # maturation: note A material → note B
         "reset",       # maturation: hard-reset cascade marker
+        "clone",       # maturation: whole-note copy (for cheap experiments)
     }),
     "review": frozenset({
         "coverage",  # review meta → covered doc; structural audit fact:

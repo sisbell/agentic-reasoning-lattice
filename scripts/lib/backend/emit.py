@@ -404,6 +404,35 @@ def emit_derivation(
     return link, True
 
 
+def emit_clone(
+    store: Store, origin_note: Address, clone_note: Address,
+) -> Tuple[Link, bool]:
+    """File a `provenance.clone` link from origin to clone.
+
+    Records that `clone_note` is a whole-note copy of `origin_note`.
+    Idempotent on (origin, clone). Used by note-clone for cheap
+    experiments that preserve the origin's expensive consultation
+    on the new ASN.
+    """
+    existing = active_links(
+        store.state,
+        "provenance.clone",
+        from_set=[origin_note],
+        to_set=[clone_note],
+    )
+    for link in existing:
+        if (link.from_set == (origin_note,)
+                and link.to_set == (clone_note,)):
+            return link, False
+    link = store.make_link(
+        homedoc=origin_note,
+        from_set=[origin_note],
+        to_set=[clone_note],
+        type_="provenance.clone",
+    )
+    return link, True
+
+
 def emit_synthesis(
     store: Store, inquiry_doc: Address, note_doc: Address,
 ) -> Tuple[Link, bool]:
