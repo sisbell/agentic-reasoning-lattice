@@ -33,7 +33,7 @@ from lib.lattice.attributes import emit_attribute
 from lib.predicates import statements_sidecar_of, supersession_head
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
-from lib.shared.paths import LATTICE, claim_statements, view_path
+from lib.shared.paths import LATTICE, MANIFESTS_DIR, view_path
 
 
 def migrate_asn(session, asn_label: str) -> dict:
@@ -43,7 +43,7 @@ def migrate_asn(session, asn_label: str) -> dict:
     if asn_path is None:
         return {"error": f"no note found for {asn_label}"}
 
-    legacy = claim_statements(asn_num)
+    legacy = MANIFESTS_DIR / asn_label / "claim-statements.md"
     if not legacy.exists():
         return {"error": f"no legacy file: {legacy}"}
 
