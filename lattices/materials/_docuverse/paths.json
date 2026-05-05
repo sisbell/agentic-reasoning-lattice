@@ -7,6 +7,7 @@
     "registry_doc": "1.1.0.1.0.1"
   },
   "paths": {
+    "_docuverse/documents/agent/note-consult.md": "1.1.0.1.0.60",
     "_docuverse/documents/campaign/dulong-petit-maxwell/campaign.md": "1.1.0.1.0.5",
     "_docuverse/documents/consultation/ASN-0001/consultation/answer-01-theory.md": "1.1.0.1.0.8",
     "_docuverse/documents/consultation/ASN-0001/consultation/answer-02-theory.md": "1.1.0.1.0.9",
@@ -30,6 +31,8 @@
     "_docuverse/documents/consultation/ASN-0001/consultation/answer-20-evidence.md": "1.1.0.1.0.27",
     "_docuverse/documents/consultation/ASN-0001/consultation/questions.md": "1.1.0.1.0.28",
     "_docuverse/documents/consultation/ASN-0002/consultation-1/assessment.md": "1.1.0.1.0.50",
+    "_docuverse/documents/consultation/ASN-0002/consultation-10/answer-01-theory.md": "1.1.0.1.0.62",
+    "_docuverse/documents/consultation/ASN-0002/consultation-10/assessment.md": "1.1.0.1.0.61",
     "_docuverse/documents/consultation/ASN-0002/consultation-2/assessment.md": "1.1.0.1.0.51",
     "_docuverse/documents/consultation/ASN-0002/consultation-3/assessment.md": "1.1.0.1.0.52",
     "_docuverse/documents/consultation/ASN-0002/consultation-4/assessment.md": "1.1.0.1.0.53",
