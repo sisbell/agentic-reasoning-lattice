@@ -36,6 +36,7 @@ from .addressing import Address
 from .links import Link
 from .persist import load_jsonl
 from .state import State, TypeArg
+from .types import CLASSIFIER_TYPES
 
 
 def _utcnow_iso() -> str:
@@ -181,6 +182,62 @@ class Store:
             type_="lattice",
         )
         return addr
+
+    def register_version(self, prev_addr: Address) -> Address:
+        """Allocate a new tumbler version of an existing doc.
+
+        Per LM 4/52-4/53: the new version supersedes the old. Same disk
+        path, different tumbler. The path mapping is rerouted so that
+        `addr_for_path` returns the head; the old version becomes
+        address-only (`addr_to_path[old]` is preserved for historical
+        lookups but path → addr always points at the head).
+
+        Emits, all persisted via store.make_link:
+          - inherited classifier on the new version (e.g., `claim`)
+          - inherited `lattice` membership links
+          - `supersession(prev_addr, new_addr)` recording the relationship
+
+        Returns the new version's address.
+        """
+        if prev_addr not in self.state._owner:
+            raise ValueError(f"unknown doc address {prev_addr}")
+
+        new_addr = self.state._allocate_child(prev_addr)
+        self.state.parent[new_addr] = prev_addr
+        kind = self.state.kind.get(prev_addr, "doc")
+        self.state.kind[new_addr] = kind
+        self.state.content[new_addr] = self.state.content.get(prev_addr, "")
+
+        # Re-emit classifier links from the previous version. Docs loaded
+        # from legacy paths have kind="doc"; the actual semantic type
+        # (claim, contract.theorem, etc.) lives in classifier links.
+        for kind_str in CLASSIFIER_TYPES:
+            for link in self.state.find_links(
+                to_set=[prev_addr], type_=kind_str,
+            ):
+                if not link.from_set and link.to_set == (prev_addr,):
+                    self.make_link(
+                        homedoc=new_addr, from_set=[], to_set=[new_addr],
+                        type_=kind_str,
+                    )
+                    break
+
+        for lattice in self.state.lattices_of(prev_addr):
+            self.make_link(
+                homedoc=new_addr, from_set=[new_addr], to_set=[lattice],
+                type_="lattice",
+            )
+
+        old_path = self.addr_to_path.get(prev_addr)
+        if old_path is not None:
+            self.path_to_addr[old_path] = new_addr
+            self.addr_to_path[new_addr] = old_path
+            self._persist_paths()
+
+        from .emit import emit_supersession
+        emit_supersession(self, prev_addr, new_addr)
+
+        return new_addr
 
     def _persist_paths(self) -> None:
         """Write the current path map back to paths.json."""

@@ -144,5 +144,67 @@ class StoreLoadTests(unittest.TestCase):
         )
 
 
+class RegisterVersionTests(unittest.TestCase):
+    """Store.register_version: tumbler-version + path reroute + supersession."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.lattice_dir = Path(self.tmp.name) / "test_lattice"
+        self.docuverse = self.lattice_dir / "_docuverse"
+        self.docuverse.mkdir(parents=True)
+        legacy = self.docuverse / "legacy_links.jsonl"
+        _seed_legacy_jsonl(legacy)
+        migrate(legacy, self.docuverse, lattice_name="test")
+
+    def test_returns_new_address_distinct_from_prev(self):
+        store = Store(self.lattice_dir)
+        v1 = store.addr_for_path("claim/A.md")
+        v2 = store.register_version(v1)
+        self.assertNotEqual(v1, v2)
+
+    def test_path_reroutes_to_head(self):
+        store = Store(self.lattice_dir)
+        v1 = store.addr_for_path("claim/A.md")
+        v2 = store.register_version(v1)
+        # Same path now resolves to the new version
+        self.assertEqual(store.addr_for_path("claim/A.md"), v2)
+        # Old addr still has its (former) path in addr_to_path for
+        # historical lookups
+        self.assertEqual(store.path_for_addr(v1), "claim/A.md")
+        self.assertEqual(store.path_for_addr(v2), "claim/A.md")
+
+    def test_emits_supersession_link(self):
+        store = Store(self.lattice_dir)
+        v1 = store.addr_for_path("claim/A.md")
+        v2 = store.register_version(v1)
+        links = store.find_links(
+            from_set=[v1], to_set=[v2], type_="supersession",
+        )
+        self.assertEqual(len(links), 1)
+
+    def test_inherits_classifier_on_new_version(self):
+        store = Store(self.lattice_dir)
+        v1 = store.addr_for_path("claim/A.md")
+        v2 = store.register_version(v1)
+        # New version has its own claim classifier link
+        classifiers = store.find_links(to_set=[v2], type_="claim")
+        self.assertEqual(len(classifiers), 1)
+
+    def test_persists_across_reload(self):
+        store = Store(self.lattice_dir)
+        v1 = store.addr_for_path("claim/A.md")
+        v2 = store.register_version(v1)
+        del store
+        store2 = Store(self.lattice_dir)
+        # Path still routes to head version after reload
+        self.assertEqual(store2.addr_for_path("claim/A.md"), v2)
+        # Supersession link survives
+        links = store2.find_links(
+            from_set=[v1], to_set=[v2], type_="supersession",
+        )
+        self.assertEqual(len(links), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

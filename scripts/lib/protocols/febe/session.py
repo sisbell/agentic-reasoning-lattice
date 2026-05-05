@@ -176,6 +176,17 @@ class Session:
         store = self._require_store("register_path")
         return store.register_path(path)
 
+    def register_version(self, prev_addr: Address) -> Address:
+        """Allocate a new tumbler version of an existing doc.
+
+        Same disk path, different tumbler — path resolution returns the
+        head version after this call. Emits the substrate facts that
+        make the new version a first-class citizen (classifier, lattice
+        membership, supersession from the previous version).
+        """
+        store = self._require_store("register_version")
+        return store.register_version(prev_addr)
+
     def create_document(
         self,
         kind: Optional[str] = None,
