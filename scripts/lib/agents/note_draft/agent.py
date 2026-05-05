@@ -18,9 +18,7 @@ truth. Placeholders supplied: {{consultation_answers}},
 from __future__ import annotations
 
 import json
-import os
 import re
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -35,8 +33,9 @@ from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
 from lib.shared.git_ops import step_commit_asn
+from lib.shared.invoke_claude import invoke_claude_agent
 from lib.shared.paths import (
-    LATTICE, LATTICE_PROMPTS, NOTE_DIR, USAGE_LOG, WORKSPACE,
+    LATTICE, LATTICE_PROMPTS, NOTE_DIR, USAGE_LOG,
     inquiry_doc_path,
     load_inquiry as load_inquiry_frontmatter,
 )
@@ -104,44 +103,6 @@ def _log_usage(skill, asn_label, inquiry_title, area, elapsed, data):
     }
     with open(USAGE_LOG, "a") as f:
         f.write(json.dumps(entry) + "\n")
-
-
-def _invoke_claude(prompt, model=None, max_turns=30,
-                   tools="Bash,Write,Read,Glob,Grep", effort="max"):
-    """Run claude -p and return parsed JSON output."""
-    use_model = model or MODEL
-    cmd = [
-        "claude", "-p",
-        "--model", use_model,
-        "--output-format", "json",
-        "--max-turns", str(max_turns),
-        "--allowedTools", tools,
-    ]
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.returncode != 0:
-        print(f"  [FAILED] exit {result.returncode} ({elapsed:.0f}s)", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:5]:
-                print(f"    {line}", file=sys.stderr)
-        return None, elapsed
-
-    try:
-        data = json.loads(result.stdout)
-        return data, elapsed
-    except (json.JSONDecodeError, KeyError):
-        print(f"  [ERROR] Could not parse JSON output ({elapsed:.0f}s)", file=sys.stderr)
-        return None, elapsed
 
 
 def _build_discovery_prompt(inquiry, asn_number, slug, answers_content,
@@ -246,12 +207,18 @@ def _run_discovery(inquiry, asn_number, slug, force=False):
     print(f"  [DISCOVERY] {len(prompt)} chars (~{len(prompt)//4} tokens)",
           file=sys.stderr)
 
-    data, elapsed = _invoke_claude(prompt)
+    response = invoke_claude_agent(
+        prompt,
+        model=MODEL,
+        tools="Bash,Write,Read,Glob,Grep",
+        max_turns=30,
+    )
+    data = response.data
     if data is None:
         return None
 
     _log_usage("discovery", f"ASN-{asn_number:04d}", inquiry["title"],
-               inquiry.get("area", ""), elapsed, data)
+               inquiry.get("area", ""), response.elapsed, data)
 
     if outfile.exists():
         print(f"  [OK] {outfile.name} ({outfile.stat().st_size} bytes)",
