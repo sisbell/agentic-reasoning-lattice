@@ -1,25 +1,24 @@
-#!/usr/bin/env python3
-"""
-Discovery — synthesize expert consultation answers into a formal note.
+"""Discovery — synthesize expert consultation answers into a formal note.
 
-Reads consultation answers from the lattice's consultations dir, loads
-the domain's discovery prompt template, substitutes placeholders, and
-calls claude -p to write the note.
+Library module. Public entry: `run_draft_for_inquiry(asn_id, …)`,
+called by `NoteDraftAgent`.
+
+Walks the substrate's consultation.coverage links from the inquiry
+to find every covering `consultation.answer.*` doc, reads each,
+loads the domain's discovery prompt template, substitutes placeholders,
+and calls claude -p to write the note. After writing, emits the
+`note` classifier on the new doc and `provenance.synthesis` from
+inquiry → note.
 
 The template (prompts/<lattice>/discovery/instructions.md, with shared
-fallback at prompts/shared/discovery/instructions.md) is the
-single source of truth for the prompt. Placeholders supplied by this
-script: {{consultation_answers}}, {{asn_number}}, {{title}}, {{question}},
-{{slug}}, {{foundation_section}}, {{vocabulary_section}}, {{out_of_scope_note}}.
+fallback at prompts/shared/discovery/instructions.md) is the single
+source of truth for the prompt. Placeholders: {{consultation_answers}},
+{{asn_number}}, {{title}}, {{question}}, {{slug}},
+{{foundation_section}}, {{vocabulary_section}}, {{out_of_scope_note}}.
 
 Output: lattices/<lattice>/_docuverse/documents/note/ASN-NNNN-title.md
-
-Usage:
-    python scripts/lib/consultation/draft.py --inquiry-id 4
-    python scripts/lib/consultation/draft.py --inquiry-id 4 --force
 """
 
-import argparse
 import json
 import os
 import subprocess
@@ -335,21 +334,3 @@ def run_draft_for_inquiry(asn_id, *, force: bool = False):
     return asn_path
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Discovery: synthesize expert answers into a formal ASN")
-    parser.add_argument("--inquiry-id", type=int, required=True,
-                        help="Inquiry ID from inquiries.yaml")
-    parser.add_argument("--force", action="store_true",
-                        help="Overwrite existing ASN")
-    args = parser.parse_args()
-
-    asn_path = run_draft_for_inquiry(args.inquiry_id, force=args.force)
-    if asn_path is None:
-        print("  [FAILED] No ASN produced", file=sys.stderr)
-        sys.exit(1)
-    print(str(asn_path))
-
-
-if __name__ == "__main__":
-    main()

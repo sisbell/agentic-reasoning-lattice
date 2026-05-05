@@ -1,32 +1,27 @@
-#!/usr/bin/env python3
-"""
-Decompose an inquiry into focused questions, then consult both channels
-(theory and evidence).
+"""Decompose an inquiry into focused questions, then consult both
+channels (theory and evidence).
+
+Library module. Public entry: `run_consult_for_inquiry(asn_id, …)`,
+called by `InquiryConsultAgent`.
 
 Generic orchestrator: decomposes via channel plugins at
-channels/<name>/consultations/consult.py, merges questions into a labeled
-list, filters for scope, dispatches (theory in parallel, evidence
-sequential — the evidence calls each run KB + source in parallel
-internally), saves per-question answers as substrate-citizen docs.
+channels/<name>/consultations/consult.py, merges questions into a
+labeled list, filters for scope, dispatches (theory in parallel,
+evidence sequential — the evidence calls each run KB + source in
+parallel internally), saves per-question answers as substrate-citizen
+docs.
 
-Each per-Q/A doc gets a `consultation.answer` classifier and a
+Each per-Q/A doc gets a `consultation.answer.<role>` classifier and a
 `consultation.coverage` link to the inquiry; downstream consumers
-(e.g., draft.py) walk the substrate to assemble runtime content
+(e.g., `draft.py`) walk the substrate to assemble runtime content
 rather than reading a pre-aggregated file.
 
-Channel-specific logic (role identity, prompt composition, source loading,
-citation formats) lives in the channel plugin. The orchestrator knows
-only role names: "theory" and "evidence", resolved to channel names via
-the ASN's campaign.
-
-Usage:
-    python scripts/lib/consultation/decompose.py --inquiry-id 4
-    python scripts/lib/consultation/decompose.py "What must INSERT preserve and establish?"
-    python scripts/lib/consultation/decompose.py --inquiry-id 4 --theory 5 --evidence 5
-    python scripts/lib/consultation/decompose.py --inquiry-id 4 --dry-run
+Channel-specific logic (role identity, prompt composition, source
+loading, citation formats) lives in the channel plugin. The
+orchestrator knows only role names: "theory" and "evidence", resolved
+to channel names via the ASN's campaign.
 """
 
-import argparse
 import re
 import sys
 import threading
@@ -472,192 +467,3 @@ def run_consult_for_inquiry(
     return init_dir
 
 
-# ─── Main ───────────────────────────────────────────────────────
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="Consult experts: decompose inquiry → run theory and evidence consultations")
-    parser.add_argument("question", nargs="?", help="The inquiry question")
-    parser.add_argument("--inquiry-id", type=int,
-                        help="Load inquiry by ID from manifest")
-    parser.add_argument("--theory", type=int, default=None,
-                        help="Number of theory questions (overrides manifest, default: 10)")
-    parser.add_argument("--evidence", type=int, default=None,
-                        help="Number of evidence questions (overrides manifest, default: 10)")
-    # Backward-compat aliases (xanadu's previous authority-named flags)
-    parser.add_argument("--nelson", type=int, default=None, dest="theory",
-                        help=argparse.SUPPRESS)
-    parser.add_argument("--gregory", type=int, default=None, dest="evidence",
-                        help=argparse.SUPPRESS)
-    parser.add_argument("--model", "-m", default="opus",
-                        choices=["sonnet", "opus"],
-                        help="Model for question generation (default: opus)")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Generate and save questions, don't run consultations")
-    parser.add_argument("--regenerate", action="store_true",
-                        help="Regenerate questions even if a saved questions file exists")
-    args = parser.parse_args()
-
-    inquiry_title = "Ad-hoc inquiry"
-    asn_label = "adhoc"
-    out_of_scope = ""
-    asn_id = None
-
-    # Resolve the campaign to find which channels we'll consult, so we
-    # can pull each channel's default_questions before applying inquiry
-    # or CLI overrides.
-    if args.inquiry_id:
-        inquiry = load_inquiry(args.inquiry_id)
-        inquiry_text = inquiry["question"]
-        inquiry_title = inquiry["title"]
-        asn_label = f"{args.inquiry_id:04d}"
-        asn_id = args.inquiry_id
-        out_of_scope = inquiry.get("out_of_scope", "")
-        campaign = resolve_campaign(args.inquiry_id)
-        num_theory = _channel_default_questions(campaign.theory_channel)
-        num_evidence = _channel_default_questions(campaign.evidence_channel)
-        agents = inquiry.get("agents", {})
-        if "theory" in agents:
-            num_theory = agents["theory"]
-        if "evidence" in agents:
-            num_evidence = agents["evidence"]
-    elif args.question:
-        inquiry_text = args.question
-        # No inquiry → no campaign → no per-channel defaults; fall back
-        # to a reasonable hardcoded count. CLI args can still override.
-        num_theory = 10
-        num_evidence = 10
-    else:
-        parser.error("Provide a question or --inquiry-id")
-
-    if args.theory is not None:
-        num_theory = args.theory
-    if args.evidence is not None:
-        num_evidence = args.evidence
-
-    reset_total_usage()
-    total_start = time.time()
-
-    existing_questions_path = (CONSULTATIONS_DIR / f"ASN-{asn_label}"
-                               / "consultation" / "questions.md")
-    if not args.dry_run and existing_questions_path.exists() and not args.regenerate:
-        print(f"  [LOAD] Using existing questions from "
-              f"{existing_questions_path.relative_to(WORKSPACE)}", file=sys.stderr)
-        existing_text = existing_questions_path.read_text()
-        questions = parse_questions(existing_text)
-    else:
-        questions = decompose_inquiry(inquiry_text,
-                                      num_theory=num_theory,
-                                      num_evidence=num_evidence,
-                                      model=args.model,
-                                      out_of_scope=out_of_scope,
-                                      asn_id=asn_id)
-
-    if not questions:
-        print("  [ERROR] No questions generated", file=sys.stderr)
-        sys.exit(1)
-
-    theory_qs = sum(1 for r, _ in questions if r == "theory")
-    evidence_qs = len(questions) - theory_qs
-    print(f"  [OK] {len(questions)} questions "
-          f"({theory_qs} theory, {evidence_qs} evidence)", file=sys.stderr)
-    print("", file=sys.stderr)
-
-    for i, (role, q) in enumerate(questions, 1):
-        print(f"  {i}. [{role}] {q}", file=sys.stderr)
-
-    print("", file=sys.stderr)
-
-    output_dir = CONSULTATIONS_DIR / f"ASN-{asn_label}"
-    init_dir = output_dir / "consultation"
-    init_dir.mkdir(parents=True, exist_ok=True)
-    questions_path = init_dir / "questions.md"
-    questions_text = "\n".join(
-        f"{i}. [{r}] {q}" for i, (r, q) in enumerate(questions, 1)
-    )
-    questions_path.write_text(
-        f"# Sub-Questions — {inquiry_title}\n\n"
-        f"**Inquiry:** {inquiry_text}\n\n"
-        f"{questions_text}\n"
-    )
-    print(f"  [SAVED] {questions_path.relative_to(WORKSPACE)}", file=sys.stderr)
-
-    session = open_session(LATTICE)
-    store = session.store  # for emit_* (Pass 2 will migrate)
-    questions_rel = str(questions_path.resolve().relative_to(LATTICE.resolve()))
-    questions_addr = store.register_path(questions_rel)
-    emit_consultation_questions(store, questions_addr)
-
-    # Record the questions doc's coverage of the inquiry. Symmetric with
-    # the assessment-side coverage on the revise path; lets a future
-    # consumer walk inquiry → consultation docs structurally.
-    inquiry_rel = str(
-        inquiry_doc_path(asn_id).resolve().relative_to(LATTICE.resolve())
-    )
-    inquiry_addr = store.register_path(inquiry_rel)
-    emit_consultation_coverage(store, questions_addr, inquiry_addr)
-
-    if args.dry_run:
-        for i, (role, q) in enumerate(questions, 1):
-            print(f"{i}. [{role}] {q}")
-        return
-
-    print(f"  [CONSULT] Firing {len(questions)} consultations...",
-          file=sys.stderr)
-    consult_start = time.time()
-    results = run_consultations(questions, init_dir, asn_id)
-    consult_elapsed = time.time() - consult_start
-    print(f"  [CONSULT] All done ({consult_elapsed:.0f}s)", file=sys.stderr)
-
-    # Classify each per-answer doc as a substrate citizen + record its
-    # coverage of the inquiry. Single-pass after the parallel
-    # consultations complete so all writes are in place before we open
-    # the store.
-    session = open_session(LATTICE)
-    store = session.store  # for emit_* (Pass 2 will migrate)
-    inquiry_rel = str(
-        inquiry_doc_path(asn_id).resolve().relative_to(LATTICE.resolve())
-    )
-    inquiry_addr = store.register_path(inquiry_rel)
-    for answer_md in sorted(init_dir.glob("answer-*.md")):
-        role_match = re.match(
-            r"answer-\d+-(theory|evidence)\.md", answer_md.name,
-        )
-        if role_match is None:
-            print(
-                f"  [WARN] {answer_md.name}: cannot parse role; "
-                f"skipping classifier emit",
-                file=sys.stderr,
-            )
-            continue
-        answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
-        answer_addr = store.register_path(answer_rel)
-        emit_consultation_answer(store, answer_addr, role_match.group(1))
-        emit_consultation_coverage(store, answer_addr, inquiry_addr)
-
-    total_elapsed = time.time() - total_start
-
-    print("", file=sys.stderr)
-    print(f"  {'=' * 50}", file=sys.stderr)
-    print(f"  EXPERT CONSULTATION COMPLETE", file=sys.stderr)
-    print(f"  {'=' * 50}", file=sys.stderr)
-    print(f"  Questions: {len(questions)} "
-          f"({theory_qs} theory, {evidence_qs} evidence)", file=sys.stderr)
-    print(f"  Decompose: {consult_start - total_start:.0f}s", file=sys.stderr)
-    print(f"  Consultations: {consult_elapsed:.0f}s (parallel)", file=sys.stderr)
-    print(f"  Total: {total_elapsed:.0f}s ({total_elapsed / 60:.1f}min)",
-          file=sys.stderr)
-
-    totals = get_total_usage()
-    if totals["calls"] > 0:
-        print(f"  Total cost: ${totals['cost_usd']:.4f} "
-              f"({totals['calls']} calls)", file=sys.stderr)
-
-    print(f"  Output: {output_path}", file=sys.stderr)
-    print(f"  Log dir: {output_dir}", file=sys.stderr)
-
-    print(str(Path(output_path).resolve()))
-
-
-if __name__ == "__main__":
-    main()

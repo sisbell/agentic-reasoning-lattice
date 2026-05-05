@@ -1,24 +1,21 @@
-#!/usr/bin/env python3
-"""
-Gather evidence for revision — assign channels to REVISE findings, consult.
+"""Gather evidence for revision — assign channels to REVISE findings, consult.
 
-Reads a review's REVISE items + the ASN, asks an LLM to decide which channels
-(theory and/or evidence) each finding needs, then runs those channel
-consultations. Produces a results file for the revise agent to consume.
+Library module. Public entry: `run_consult_for_review(asn_path,
+asn_label, review_path, …)`, called by `NoteConsultAgent`.
 
-Assignment prompt, parser, and display-name logic live in the shared
-lib module scripts/lib/note_convergence/revise/assign_channels.py — tolerant parser
-that handles both role-labeled ("Theory"/"Evidence") and channel-named
-("Nelson"/"Gregory"/"Maxwell-1867"/...) responses.
+Reads a review's REVISE items + the ASN, asks an LLM (assign-channels)
+to decide which channels (theory and/or evidence) each finding needs,
+then runs those channel consultations and emits substrate facts:
+`consultation.assessment` on the assignment doc,
+`consultation.answer.<role>` on each Q/A doc, and
+`consultation.coverage` from each consultation doc → its finding.
 
-Usage:
-    python scripts/lib/note_convergence/revise/gather_evidence.py 9              # latest review
-    python scripts/lib/note_convergence/revise/gather_evidence.py 9 review-3     # specific review
-    python scripts/lib/note_convergence/revise/gather_evidence.py 9 --dry-run    # assign only, no consultations
-    python scripts/lib/note_convergence/revise/gather_evidence.py 9 --model sonnet  # override model (default: opus)
+Assignment prompt, parser, and display-name logic live in the
+shared lib module `lib/consultation/assign_channels.py` — tolerant
+parser that handles both role-labeled ("Theory"/"Evidence") and
+channel-named ("Nelson"/"Gregory"/"Maxwell-1867"/…) responses.
 """
 
-import argparse
 import re
 import sys
 import threading
@@ -28,11 +25,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (
-    LATTICE, WORKSPACE, NOTE_DIR, NOTE_FINDINGS_DIR, REVIEWS_DIR,
-    consultation_dir, find_review,
+    LATTICE, NOTE_FINDINGS_DIR, consultation_dir,
 )
 from lib.shared.campaign import resolve_campaign
-from lib.shared.common import find_asn
 from lib.consultation.consult import (
     invoke_claude, get_total_usage, dispatch_run_consultation,
 )
@@ -364,51 +359,3 @@ def run_consult_for_review(
 # ─── CLI ─────────────────────────────────────────────────────────
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Assign channels to review findings and run the targeted consultations")
-    parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
-    parser.add_argument("review", nargs="?",
-                        help="Review identifier (e.g., review-3) — omit for latest")
-    parser.add_argument("--model", "-m", default="opus",
-                        choices=["opus", "sonnet"],
-                        help="Model for channel assignment (default: opus)")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Assign channels only, don't run consultations")
-    args = parser.parse_args()
-
-    asn_path, asn_label = find_asn(args.asn)
-    if asn_path is None:
-        print(
-            f"  No ASN found for {args.asn} in "
-            f"{NOTE_DIR.relative_to(WORKSPACE)}/",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    review_path = find_review(asn_label, args.review)
-    if review_path is None:
-        if args.review:
-            print(
-                f"  Review not found: {args.review} for {asn_label}",
-                file=sys.stderr,
-            )
-        else:
-            print(
-                f"  No reviews found for {asn_label} in "
-                f"{REVIEWS_DIR.relative_to(WORKSPACE)}/",
-                file=sys.stderr,
-            )
-        sys.exit(1)
-
-    consult_subdir = run_consult_for_review(
-        asn_path, asn_label, review_path,
-        model=args.model, dry_run=args.dry_run,
-    )
-    if consult_subdir is None:
-        sys.exit(1)
-    print(str(consult_subdir.resolve()))
-
-
-if __name__ == "__main__":
-    main()
