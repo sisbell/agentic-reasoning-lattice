@@ -250,71 +250,69 @@ def revise_finding_addrs_for_review(session, asn_label, review_num):
     return addrs
 
 
-# ─── Main ───────────────────────────────────────────────────────
+# ─── Run for one (asn, review) ───────────────────────────────────
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Assign channels to review findings and run the targeted consultations")
-    parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
-    parser.add_argument("review", nargs="?",
-                        help="Review identifier (e.g., review-3) — omit for latest")
-    parser.add_argument("--model", "-m", default="opus",
-                        choices=["opus", "sonnet"],
-                        help="Model for channel assignment (default: opus)")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Assign channels only, don't run consultations")
-    args = parser.parse_args()
 
-    # Find ASN
-    asn_path, asn_label = find_asn(args.asn)
-    if asn_path is None:
-        print(f"  No ASN found for {args.asn} in {NOTE_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
-        sys.exit(1)
+def run_consult_for_review(
+    asn_path,
+    asn_label,
+    review_path,
+    *,
+    model: str = "opus",
+    dry_run: bool = False,
+):
+    """Run the consult flow for one specific review of one ASN.
 
-    # Find review
-    review_path = find_review(asn_label, args.review)
-    if review_path is None:
-        if args.review:
-            print(f"  Review not found: {args.review} for {asn_label}",
-                  file=sys.stderr)
-        else:
-            print(f"  No reviews found for {asn_label} in {REVIEWS_DIR.relative_to(WORKSPACE)}/",
-                  file=sys.stderr)
-        sys.exit(1)
+    Returns the path to the assembled `answers.md` results doc, or None
+    if no REVISE section / channel-assignment failed. Writes:
 
+      consultation/<asn>/consultation-<N>/assessment.md
+      consultation/<asn>/consultation-<N>/answer-NN-<role>.md (per Q/A)
+      consultation/<asn>/consultation-<N>/answers.md (assembled)
+
+    Emits substrate facts:
+
+      consultation.assessment classifier on assessment.md
+      consultation.answer classifier on each answer file
+      consultation.coverage from assessment → each REVISE finding
+      consultation.coverage from each answer → its finding
+
+    Used by both the standalone CLI and `NoteConsultAgent`.
+    """
     review_content = Path(review_path).read_text()
     review_num = get_review_number(review_path)
 
-    # Extract REVISE section
     revise_section = extract_revise_section(review_content)
     if not revise_section:
-        print(f"  No REVISE section in {Path(review_path).name}", file=sys.stderr)
-        sys.exit(0)
+        print(
+            f"  No REVISE section in {Path(review_path).name}",
+            file=sys.stderr,
+        )
+        return None
 
-    # Load ASN content
     asn_content = asn_path.read_text()
 
-    print(f"  [CONSULT-REVISION] {asn_label} + {Path(review_path).name}",
-          file=sys.stderr)
+    print(
+        f"  [CONSULT-REVISION] {asn_label} + {Path(review_path).name}",
+        file=sys.stderr,
+    )
 
     total_start = time.time()
 
-    # Step 1: Assign channels to each REVISE item
     print(f"  [ASSIGN] Building prompt...", file=sys.stderr)
     prompt = assign_channels.build_prompt(asn_content, revise_section, asn_label)
     print(f"  [ASSIGN] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
 
     response, _ = invoke_claude(
-        prompt, model=args.model, effort="max",
+        prompt, model=model, effort="max",
         allow_tools=False, label="assign",
         skill="gather-evidence:assign",
     )
 
     if not response:
         print(f"  [ASSIGN] Failed", file=sys.stderr)
-        sys.exit(1)
+        return None
 
-    # Save raw assignment output
     output_dir = consultation_dir(asn_label)
     output_dir.mkdir(parents=True, exist_ok=True)
     consult_subdir = output_dir / f"consultation-{review_num}"
@@ -336,11 +334,8 @@ def main():
     items = assign_channels.parse(response, asn_label)
     if not items:
         print(f"  [ASSIGN] No items parsed from response", file=sys.stderr)
-        sys.exit(1)
+        return None
 
-    # Pair each item with its finding's substrate address. Both items
-    # and the substrate-walked REVISE finding list iterate the review's
-    # REVISE section in document order, so position-based zip aligns.
     finding_addrs = revise_finding_addrs_for_review(
         session, asn_label, review_num,
     )
@@ -357,37 +352,35 @@ def main():
 
     internal_count = sum(1 for it in items if not it["questions"])
     consult_count = len(items) - internal_count
-    print(f"  [ASSIGN] {len(items)} items: "
-          f"{internal_count} internal, {consult_count} need consultation",
-          file=sys.stderr)
+    print(
+        f"  [ASSIGN] {len(items)} items: "
+        f"{internal_count} internal, {consult_count} need consultation",
+        file=sys.stderr,
+    )
 
     for item in items:
         tag = assign_channels.category_label(item["questions"].keys(), asn_label)
-        print(f"    Issue {item['number']}: {tag} — {item['title']}",
-              file=sys.stderr)
+        print(
+            f"    Issue {item['number']}: {tag} — {item['title']}",
+            file=sys.stderr,
+        )
 
-    if args.dry_run:
+    if dry_run:
         print(f"  [DRY RUN] Skipping consultations", file=sys.stderr)
-        # Build results without answers
         results = build_results(asn_label, review_path, items)
         results_path = consult_subdir / "answers.md"
         results_path.write_text(results)
-        print(str(results_path.resolve()))
-        return
+        return results_path
 
-    # Step 2: Run consultations for items that need them
     if consult_count > 0:
         print(f"", file=sys.stderr)
-        run_targeted_consultations(items, asn_label, consult_subdir,
-                                   model=args.model)
+        run_targeted_consultations(items, asn_label, consult_subdir, model=model)
     else:
-        print(f"  [CONSULT] All items internal, no consultations needed",
-              file=sys.stderr)
+        print(
+            f"  [CONSULT] All items internal, no consultations needed",
+            file=sys.stderr,
+        )
 
-    # Classify each per-answer doc + emit its coverage link to the
-    # finding it answers. Iterating items (not the filesystem) keeps
-    # the answer↔finding pairing exact: each item carries its
-    # finding_addr from the assignment step.
     session = open_session(LATTICE)
     store = session.store  # for emit_* (Pass 2 will migrate)
     for item in items:
@@ -402,31 +395,82 @@ def main():
             if finding_addr is not None:
                 emit_consultation_coverage(store, answer_addr, finding_addr)
 
-    # Step 3: Write results
     results = build_results(asn_label, review_path, items)
     results_path = consult_subdir / "answers.md"
     results_path.write_text(results)
 
     total_elapsed = time.time() - total_start
 
-    # Summary
     print(f"", file=sys.stderr)
     print(f"  {'='*50}", file=sys.stderr)
     print(f"  REVISION CONSULTATION COMPLETE", file=sys.stderr)
     print(f"  {'='*50}", file=sys.stderr)
-    print(f"  Items: {len(items)} ({internal_count} internal, "
-          f"{consult_count} consulted)", file=sys.stderr)
-    print(f"  Total: {total_elapsed:.0f}s ({total_elapsed/60:.1f}min)",
-          file=sys.stderr)
+    print(
+        f"  Items: {len(items)} ({internal_count} internal, "
+        f"{consult_count} consulted)", file=sys.stderr,
+    )
+    print(
+        f"  Total: {total_elapsed:.0f}s ({total_elapsed/60:.1f}min)",
+        file=sys.stderr,
+    )
 
     totals = get_total_usage()
     if totals["calls"] > 0:
-        print(f"  Total cost: ${totals['cost_usd']:.4f} "
-              f"({totals['calls']} calls)", file=sys.stderr)
+        print(
+            f"  Total cost: ${totals['cost_usd']:.4f} "
+            f"({totals['calls']} calls)", file=sys.stderr,
+        )
 
     print(f"  Output: {results_path}", file=sys.stderr)
+    return results_path
 
-    # Print the output file path to stdout (for pipeline consumption)
+
+# ─── CLI ─────────────────────────────────────────────────────────
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Assign channels to review findings and run the targeted consultations")
+    parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
+    parser.add_argument("review", nargs="?",
+                        help="Review identifier (e.g., review-3) — omit for latest")
+    parser.add_argument("--model", "-m", default="opus",
+                        choices=["opus", "sonnet"],
+                        help="Model for channel assignment (default: opus)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Assign channels only, don't run consultations")
+    args = parser.parse_args()
+
+    asn_path, asn_label = find_asn(args.asn)
+    if asn_path is None:
+        print(
+            f"  No ASN found for {args.asn} in "
+            f"{NOTE_DIR.relative_to(WORKSPACE)}/",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    review_path = find_review(asn_label, args.review)
+    if review_path is None:
+        if args.review:
+            print(
+                f"  Review not found: {args.review} for {asn_label}",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                f"  No reviews found for {asn_label} in "
+                f"{REVIEWS_DIR.relative_to(WORKSPACE)}/",
+                file=sys.stderr,
+            )
+        sys.exit(1)
+
+    results_path = run_consult_for_review(
+        asn_path, asn_label, review_path,
+        model=args.model, dry_run=args.dry_run,
+    )
+    if results_path is None:
+        sys.exit(1)
     print(str(results_path.resolve()))
 
 
