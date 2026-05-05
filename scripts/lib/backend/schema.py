@@ -62,10 +62,14 @@ VALID_SUBTYPES = {
     "citation": frozenset({"depends", "forward", "resolve"}),
     "consultation": frozenset({
         "questions",
-        "answer",
+        "answer",            # legacy/parent — historical bare answers;
+                             # new emits use role-bearing subtypes
+        "answer.theory",     # answer from a theory channel
+        "answer.evidence",   # answer from an evidence channel
         "assessment",
-        "coverage",   # F=[answer or assessment], G=[finding] — records
-                      # which finding a consultation doc is about.
+        "coverage",          # F=[answer or assessment], G=[finding] —
+                             # records which finding a consultation doc
+                             # is about.
     }),
     "provenance": frozenset({
         "synthesis",   # consultation: inquiry → note

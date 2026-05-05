@@ -40,7 +40,8 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "notation": (10,),
     "consultation.questions": (11, 1),
     "consultation.assessment": (11, 2),
-    "consultation.answer": (11, 3),
+    "consultation.answer.theory": (11, 3, 1),
+    "consultation.answer.evidence": (11, 3, 2),
     "consultation.coverage": (11, 4),
     "name": (12,),
     "label": (13,),
@@ -74,6 +75,9 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
 PARENT_TYPES: Dict[str, Tuple[int, ...]] = {
     "contract": (2,),
     "consultation": (11,),
+    "consultation.answer": (11, 3),  # parent of role-bearing subtypes;
+                                     # also the address of legacy bare
+                                     # answer links
     "citation": (15,),
     "comment": (16,),
     "resolution": (17,),

@@ -27,6 +27,7 @@ Usage:
 """
 
 import argparse
+import re
 import sys
 import threading
 import time
@@ -454,9 +455,19 @@ def main():
     )
     inquiry_addr = store.register_path(inquiry_rel)
     for answer_md in sorted(init_dir.glob("answer-*.md")):
+        role_match = re.match(
+            r"answer-\d+-(theory|evidence)\.md", answer_md.name,
+        )
+        if role_match is None:
+            print(
+                f"  [WARN] {answer_md.name}: cannot parse role; "
+                f"skipping classifier emit",
+                file=sys.stderr,
+            )
+            continue
         answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
         answer_addr = store.register_path(answer_rel)
-        emit_consultation_answer(store, answer_addr)
+        emit_consultation_answer(store, answer_addr, role_match.group(1))
         emit_consultation_coverage(store, answer_addr, inquiry_addr)
 
     total_elapsed = time.time() - total_start

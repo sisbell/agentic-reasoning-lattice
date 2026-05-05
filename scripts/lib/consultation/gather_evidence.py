@@ -331,7 +331,7 @@ def run_consult_for_review(
                 continue
             answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
             answer_addr = store.register_path(answer_rel)
-            emit_consultation_answer(store, answer_addr)
+            emit_consultation_answer(store, answer_addr, role)
             if finding_addr is not None:
                 emit_consultation_coverage(store, answer_addr, finding_addr)
 

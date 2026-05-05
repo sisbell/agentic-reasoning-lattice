@@ -243,9 +243,23 @@ def emit_consultation_questions(
 
 
 def emit_consultation_answer(
-    store: Store, doc: Address,
+    store: Store, doc: Address, role: str,
 ) -> Tuple[Link, bool]:
-    return emit_classifier(store, doc, "consultation.answer")
+    """File a `consultation.answer.<role>` classifier on a Q/A answer doc.
+
+    role ∈ {theory, evidence} — closed set tied to the channel's
+    structural role. Channel name (Nelson, Gregory, Maxwell-1867…) is
+    not in substrate; it's recoverable from the campaign binding.
+    Reading via the parent type `consultation.answer` matches both
+    subtypes via L10 prefix-matching.
+    """
+    valid = {"theory", "evidence"}
+    if role not in valid:
+        raise ValueError(
+            f"invalid consultation.answer role {role!r}; "
+            f"must be one of {sorted(valid)}"
+        )
+    return emit_classifier(store, doc, f"consultation.answer.{role}")
 
 
 def emit_consultation_assessment(
