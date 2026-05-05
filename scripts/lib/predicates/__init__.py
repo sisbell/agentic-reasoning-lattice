@@ -28,7 +28,10 @@ from .attributes import (
     has_label,
     has_name,
     has_signature,
+    has_statements,
     signature_sidecar_of,
+    statements_is_fresh,
+    statements_sidecar_of,
 )
 from .citations import depends, dependents
 from .classifiers import (
@@ -81,6 +84,7 @@ __all__ = [
     "has_name",
     "has_resolution",
     "has_signature",
+    "has_statements",
     "is_asn_confirmed",
     "is_asn_converged",
     "is_claim_confirmed",
@@ -94,6 +98,8 @@ __all__ = [
     "orphan_note_finding_docs",
     "orphan_sidecars",
     "signature_sidecar_of",
+    "statements_is_fresh",
+    "statements_sidecar_of",
     "supersession_chain_length",
     "supersession_head",
     "unresolved_revise_comments",

@@ -17,6 +17,7 @@ VALID_TYPES = frozenset({
     "provenance",
     # Substrate-owned (general-purpose document primitives)
     "retraction", "label", "name", "description", "signature", "notation",
+    "statements",
     # Agent module
     "agent", "manages",
     # Lattice membership relation (added in spec-faithful refactor)
@@ -65,7 +66,9 @@ REQUIRES_SUBTYPE = frozenset({"citation", "view"})
 
 # File suffixes for attribute sidecars (used by file-walking helpers
 # that distinguish claim body markdown from sidecars).
-VALID_ATTRIBUTE_KINDS = frozenset({"label", "name", "description", "signature"})
+VALID_ATTRIBUTE_KINDS = frozenset({
+    "label", "name", "description", "signature", "statements",
+})
 ATTRIBUTE_SUFFIXES = tuple(f".{k}.md" for k in sorted(VALID_ATTRIBUTE_KINDS))
 
 

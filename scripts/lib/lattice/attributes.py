@@ -31,7 +31,9 @@ from lib.backend.emit import emit_attribute_link
 from lib.backend.links import Link
 from lib.protocols.febe.protocol import Session
 
-VALID_ATTRIBUTE_KINDS = {"label", "name", "description", "signature"}
+VALID_ATTRIBUTE_KINDS = {
+    "label", "name", "description", "signature", "statements",
+}
 
 
 def emit_attribute(
