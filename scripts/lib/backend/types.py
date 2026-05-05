@@ -58,6 +58,7 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "manages": (20,),
     "lattice": (21,),
     "view.claim-statements": (22, 1),
+    "supersession": (23,),
 }
 
 # Parent-type positions for hierarchical queries (per L10): a query at

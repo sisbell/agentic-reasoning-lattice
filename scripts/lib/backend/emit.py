@@ -113,6 +113,34 @@ def emit_finding(store: Store, finding_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, finding_doc, "finding")
 
 
+def emit_supersession(
+    store: Store, superseded: Address, succeeding: Address,
+) -> Tuple[Link, bool]:
+    """Declare that `succeeding` supersedes `superseded`.
+
+    Per LM 4/52-4/53: a supersession link records "this version
+    replaces that one." F=[superseded], G=[succeeding]. Idempotent on
+    (superseded, succeeding) — if the same edge already exists active,
+    returns it without re-emitting.
+
+    Reading: walk outgoing supersession from any address to find what
+    replaces it. The head version is the address with no outgoing
+    supersession link.
+    """
+    existing = active_links(
+        store.state, "supersession",
+        from_set=[superseded], to_set=[succeeding],
+    )
+    if existing:
+        return existing[0], False
+    link = store.make_link(
+        homedoc=superseded,
+        from_set=[superseded], to_set=[succeeding],
+        type_="supersession",
+    )
+    return link, True
+
+
 def emit_view(
     store: Store, view_doc: Address, kind: str,
 ) -> Tuple[Link, bool]:

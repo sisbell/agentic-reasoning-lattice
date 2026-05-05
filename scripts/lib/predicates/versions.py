@@ -36,3 +36,31 @@ def version_head(session: Session, doc_addr: Address) -> Address:
 
 def is_head_version(session: Session, doc_addr: Address) -> bool:
     return not session.version_children(doc_addr)
+
+
+def supersession_head(session: Session, doc_addr: Address) -> Address:
+    """Walk outgoing `supersession` link chain to the head version.
+
+    Each step picks the highest-tumbler outgoing target. Cycle-
+    protected. Head = address with no outgoing supersession link.
+
+    This is the link-based head walk (per LM 4/52-4/53). For docs
+    whose versioning lives in the tumbler version field, use
+    `version_head` instead — the substrate currently lacks
+    version-bearing addresses, so `supersession` links carry the
+    version progression explicitly.
+    """
+    visited = {doc_addr}
+    current = doc_addr
+    while True:
+        outgoing = session.active_links("supersession", from_set=[current])
+        if not outgoing:
+            return current
+        targets = [t for link in outgoing for t in link.to_set]
+        if not targets:
+            return current
+        next_addr = max(targets, key=lambda a: a.digits)
+        if next_addr in visited:
+            return current
+        visited.add(next_addr)
+        current = next_addr

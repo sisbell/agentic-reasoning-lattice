@@ -57,7 +57,9 @@ from .reconciliation import (
     orphan_note_finding_docs,
     orphan_sidecars,
 )
-from .versions import is_head_version, version_children, version_head
+from .versions import (
+    is_head_version, supersession_head, version_children, version_head,
+)
 
 __all__ = [
     "all_claim_addrs",
@@ -89,6 +91,7 @@ __all__ = [
     "orphan_note_finding_docs",
     "orphan_sidecars",
     "signature_sidecar_of",
+    "supersession_head",
     "unresolved_revise_comments",
     "version_children",
     "version_head",

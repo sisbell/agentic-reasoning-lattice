@@ -217,6 +217,27 @@ class ProvenanceEmitTests(unittest.TestCase):
         self.assertFalse(created2)
 
 
+class SupersessionEmitTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.lattice = _setup_lattice(
+            Path(self.tmp.name),
+            ["claim/V1.md", "claim/V2.md", "claim/V3.md"],
+        )
+        self.store = Store(self.lattice)
+
+    def test_emit_supersession_idempotent(self):
+        from lib.backend.emit import emit_supersession
+        v1 = self.store.addr_for_path("claim/V1.md")
+        v2 = self.store.addr_for_path("claim/V2.md")
+        link, created = emit_supersession(self.store, v1, v2)
+        self.assertTrue(created)
+        link2, created2 = emit_supersession(self.store, v1, v2)
+        self.assertFalse(created2)
+        self.assertEqual(link.addr, link2.addr)
+
+
 class AgentEmitTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

@@ -24,6 +24,11 @@ VALID_TYPES = frozenset({
     # View — virtual doc whose content is rendered live from substrate
     # state (no on-disk file). Always carries a sub-kind.
     "view",
+    # Supersession — version-replacement declaration (per LM 4/52-4/53).
+    # F=[old_version], G=[new_version]. Reading: walk outgoing supersession
+    # from any address to find what replaces it; head = no outgoing
+    # supersession link.
+    "supersession",
 })
 
 VALID_SUBTYPES = {

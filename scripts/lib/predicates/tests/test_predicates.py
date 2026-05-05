@@ -231,6 +231,49 @@ class VersionChainTests(unittest.TestCase):
         self.assertEqual(version_head(self.session, self.claim), v1_v1)
 
 
+class SupersessionChainTests(unittest.TestCase):
+    """Walk supersession links to find a doc's head version."""
+
+    def setUp(self):
+        self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
+        self.lattice = self.state.create_doc()
+        self.v1 = self.state.create_doc(kind="claim", lattice=self.lattice)
+        self.v2 = self.state.create_doc(kind="claim", lattice=self.lattice)
+        self.v3 = self.state.create_doc(kind="claim", lattice=self.lattice)
+
+    def _supersede(self, old, new):
+        return self.state.make_link(
+            new, [old], [new], "supersession",
+        )
+
+    def test_no_supersession_means_self_is_head(self):
+        from lib.predicates import supersession_head
+        self.assertEqual(supersession_head(self.session, self.v1), self.v1)
+
+    def test_single_link_resolves_to_successor(self):
+        from lib.predicates import supersession_head
+        self._supersede(self.v1, self.v2)
+        self.assertEqual(supersession_head(self.session, self.v1), self.v2)
+        self.assertEqual(supersession_head(self.session, self.v2), self.v2)
+
+    def test_chain_walks_to_deepest(self):
+        from lib.predicates import supersession_head
+        self._supersede(self.v1, self.v2)
+        self._supersede(self.v2, self.v3)
+        self.assertEqual(supersession_head(self.session, self.v1), self.v3)
+        self.assertEqual(supersession_head(self.session, self.v2), self.v3)
+
+    def test_retracted_supersession_drops_from_walk(self):
+        from lib.predicates import supersession_head
+        link = self._supersede(self.v1, self.v2)
+        self.state.make_link(
+            self.v1, [self.v1], [link.addr], "retraction",
+        )
+        # Retracted: v1's outgoing supersession is gone, head is v1.
+        self.assertEqual(supersession_head(self.session, self.v1), self.v1)
+
+
 class CitationGraphTests(unittest.TestCase):
     def setUp(self):
         self.state = State(account=Address("1.1.0.1"))
