@@ -254,11 +254,6 @@ def claim_statements(asn_num):
     return asn_path.parent / f"{asn_path.stem}.statements.md"
 
 
-def open_issues_path(asn_num):
-    """Path to ASN open issues file."""
-    return note_dir(asn_num) / "open-issues.md"
-
-
 def _review_sort_key(path):
     """Extract numeric review number for sorting. review-9 < review-13."""
     m = re.search(r"review-(\d+)\.md$", path.name)

@@ -18,8 +18,6 @@ flows (lib/note_convergence/steps.py):
   the review file, emit substrate links, return (review_path, findings)
 - `collect_open_revises(session, note_rel)` — substrate query for
   unresolved revise comments on a note
-- `process_resolved_issues(asn_number, review_text)` — sweep the
-  ## RESOLVED section out of the open-issues file
 - `log_usage(asn_label, elapsed, *, skill, data=None)` — telemetry
 - `run_note_convergence(asn_num, ...)` — the gate loop entry
 """
@@ -44,7 +42,7 @@ from lib.shared.common import find_asn
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
     LATTICE, NOTE_DIR, NOTE_FINDINGS_DIR, REVIEWS_DIR,
-    USAGE_LOG, WORKSPACE, open_issues_path, sorted_reviews,
+    USAGE_LOG, WORKSPACE, sorted_reviews,
 )
 
 
@@ -134,52 +132,6 @@ def commit_note_review(
             comment_kind=comment_kind,
         )
     return output_path, findings
-
-
-def process_resolved_issues(asn_number: int, review_text: str) -> None:
-    """Remove resolved issues from the open issues file.
-
-    Parses the ## RESOLVED section of a review. For each resolved
-    issue, removes the matching ### heading and its content from
-    the open issues file.
-    """
-    resolved_match = re.search(
-        r"^## RESOLVED\s*\n(.*?)(?=^## |\Z)",
-        review_text, re.MULTILINE | re.DOTALL,
-    )
-    if not resolved_match:
-        return
-
-    resolved_titles = re.findall(
-        r"^### (.+)$", resolved_match.group(1), re.MULTILINE,
-    )
-    if not resolved_titles:
-        return
-
-    issues_path = open_issues_path(asn_number)
-    if not issues_path.exists():
-        return
-
-    content = issues_path.read_text()
-    original = content
-
-    for title in resolved_titles:
-        pattern = rf"^### {re.escape(title)}\s*\n.*?(?=^### |\Z)"
-        content = re.sub(
-            pattern, "", content, flags=re.MULTILINE | re.DOTALL,
-        )
-        print(f"  [RESOLVED] Removed: {title}", file=sys.stderr)
-
-    content = content.strip()
-    if content != original.strip():
-        if content:
-            issues_path.write_text(content + "\n")
-        else:
-            issues_path.unlink()
-            print(
-                "  [RESOLVED] All open issues resolved — file removed",
-                file=sys.stderr,
-            )
 
 
 def log_usage(

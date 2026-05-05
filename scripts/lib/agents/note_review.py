@@ -24,9 +24,7 @@ from typing import List, Tuple
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.shared.paths import (
-    LATTICE_PROMPTS, WORKSPACE, load_inquiry, open_issues_path,
-)
+from lib.shared.paths import LATTICE_PROMPTS, WORKSPACE, load_inquiry
 
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
@@ -59,7 +57,7 @@ def run_note_review(
 
     prompt = _build_prompt(
         asn_content, vocabulary,
-        out_of_scope=out_of_scope, asn_number=asn_number,
+        out_of_scope=out_of_scope,
         foundation=foundation,
     )
     text, elapsed = _invoke_claude(prompt, model=model, effort=effort)
@@ -117,23 +115,13 @@ def _load_out_of_scope(asn_number: int) -> str:
     return load_inquiry(asn_number).get("out_of_scope", "")
 
 
-def _load_open_issues(asn_number: int) -> str:
-    """Load open issues file for an ASN. Returns content or '(none)'."""
-    path = open_issues_path(asn_number)
-    if path.exists():
-        content = path.read_text().strip()
-        if content:
-            return content
-    return "(none)"
-
-
 # ---------------------------------------------------------------------------
 # Prompt rendering
 
 
 def _build_prompt(
     asn_content: str, vocabulary: str, out_of_scope: str = "",
-    asn_number=None, foundation: str = "",
+    foundation: str = "",
 ) -> str:
     """Assemble review prompt from template + injected content.
 
@@ -151,8 +139,6 @@ def _build_prompt(
         )
         sys.exit(1)
 
-    open_issues = _load_open_issues(asn_number) if asn_number else "(none)"
-
     scope_note = (
         f"\n\n## Scope\n\nThe following topics are OUT OF SCOPE for this "
         f"ASN. Do not flag missing coverage for them. If the ASN defines "
@@ -167,8 +153,6 @@ def _build_prompt(
         "{{vocabulary}}", vocabulary
     ).replace(
         "{{foundation_statements}}", foundation
-    ).replace(
-        "{{open_issues}}", open_issues
     ) + scope_note
 
 

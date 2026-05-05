@@ -21,7 +21,6 @@ from lib.orchestrators.note_converge import (
     collect_open_revises,
     commit_note_review,
     log_usage,
-    process_resolved_issues,
 )
 from lib.shared.common import find_asn, read_file
 from lib.shared.git_ops import stage_asn_files
@@ -48,7 +47,6 @@ def step_review(asn_id):
             f"{NOTE_DIR.relative_to(WORKSPACE)}/", file=sys.stderr,
         )
         return None, False, 0
-    asn_number = int(asn_label.replace("ASN-", ""))
 
     print(f"  [REVIEW] {asn_label}", file=sys.stderr)
 
@@ -72,7 +70,6 @@ def step_review(asn_id):
             file=sys.stderr,
         )
 
-    process_resolved_issues(asn_number, text)
     print(f"  [VERDICT] {verdict}", file=sys.stderr)
     log_usage(asn_label, elapsed, skill="review")
 
