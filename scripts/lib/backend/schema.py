@@ -60,7 +60,13 @@ VALID_SUBTYPES = {
     "comment": frozenset({"revise", "observe", "out-of-scope"}),
     "resolution": frozenset({"edit", "reject"}),
     "citation": frozenset({"depends", "forward", "resolve"}),
-    "consultation": frozenset({"questions", "answer", "assessment"}),
+    "consultation": frozenset({
+        "questions",
+        "answer",
+        "assessment",
+        "coverage",   # F=[answer or assessment], G=[finding] — records
+                      # which finding a consultation doc is about.
+    }),
     "provenance": frozenset({
         "synthesis",   # consultation: inquiry → note
         "derivation",  # decomposition: note → claim, aggregate-review → finding

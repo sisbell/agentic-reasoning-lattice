@@ -254,6 +254,31 @@ def emit_consultation_assessment(
     return emit_classifier(store, doc, "consultation.assessment")
 
 
+def emit_consultation_coverage(
+    store: Store, source: Address, finding: Address,
+) -> Tuple[Link, bool]:
+    """Record that a consultation doc (assessment or answer) is about a
+    specific finding. F=[source], G=[finding]. Idempotent on
+    (source, finding). Same shape as `review.coverage`.
+
+    Lets future predicates and queries answer "is this finding covered
+    by a consultation?" and "what answers exist for this finding?"
+    via substrate, instead of relying on filename conventions.
+    """
+    existing = active_links(
+        store.state, "consultation.coverage",
+        from_set=[source], to_set=[finding],
+    )
+    if existing:
+        return existing[0], False
+    link = store.make_link(
+        homedoc=source,
+        from_set=[source], to_set=[finding],
+        type_="consultation.coverage",
+    )
+    return link, True
+
+
 # ============================================================
 #  Attribute links (F=[doc], G=[sidecar])
 # ============================================================
