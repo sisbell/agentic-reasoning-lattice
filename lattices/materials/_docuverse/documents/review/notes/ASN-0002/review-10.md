@@ -1,0 +1,21 @@
+# Review of ASN-0002
+
+## REVISE
+
+### Issue 1: Premise (iv) and P.enc_ratio_equilibration are mutually inconsistent at the formal-claim level for β_k > 1 species
+
+**ASN-0002, §"Conservation through encounters"**, premise (iv): "the inter-molecular force is conservative and central in the *centres of mass* — it passes through the line joining the two COMs, depends only on the scalar COM separation r, and derives from a scalar potential U(r) that vanishes outside the sphere of sensible action."
+
+**ASN-0002, §"Temperature as a functional..."** explicating the centres-of-force modeling: "no other coupling of the pair is posited at the encounter level."
+
+**ASN-0002, P.enc_ratio_equilibration**: "Molecule-level encounter dynamics drive the aggregate ratio (Σ m.eint)/(Σ T(m)) within each species ... toward a species-characteristic steady-state value equal to β_k − 1."
+
+**Problem**: Under the "no other coupling" qualifier, (iv) is a complete characterization of the encounter-level force. The ASN itself draws the consequence: "no individual encounter under (iv) changes the apportionment at all", since U(r) couples only to COM coordinates and leaves each m.eint separately invariant. For β_k > 1 species at any non-equilibrium initial apportionment, no sequence of encounters under (iv) can change (Σ m.eint)/(Σ T(m)). P.enc_ratio_equilibration, which postulates that change, is therefore inconsistent with (iv) when both are taken as unrestricted molecule-level postulates. The prose acknowledges the gap ("the per-encounter mechanism left unmodelled"; "the dynamical description of an encounter involving internal modes is declared beyond what [the theory] can reach"), but the formal claims as recorded do not register the scope restriction: (iv) remains stated without qualification, and P.enc_ratio_equilibration is internally case-split but does not state a regime restriction on the modeling. The reader has to reconcile the two through prose; at the claim layer they are jointly unsatisfiable for β_k > 1.
+
+**Required**: Reconcile the two postulates at the formal-claim level. Options: (a) restrict (iv) (and the centres-of-force modeling) to species with no exchangeable internal DOF, so that (iv) is complete only in the β_k = 1 sub-case and the encounter dynamics for β_k > 1 species are explicitly declared unspecified beyond what P.enc_ratio_equilibration asserts about their equilibrium outcome; (b) reword (iv) as the COM-COM component of a more general encounter force, replacing "no other coupling is posited" with "no other coupling is articulated", admitting (but leaving unmodelled) internal couplings for species with internal DOF; (c) state a regime qualifier on P.enc_ratio_equilibration restricting it to species whose dynamics include additional couplings beyond (iv). Whichever route is taken, the formal commitments must be jointly satisfiable as written.
+
+## OUT_OF_SCOPE
+
+(No additional items beyond what the ASN already flags as deferred or underdetermined.)
+
+VERDICT: REVISE
