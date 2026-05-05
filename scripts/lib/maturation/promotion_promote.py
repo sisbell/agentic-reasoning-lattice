@@ -1,54 +1,70 @@
 """
 Promotion step functions — shared by open-questions and out-of-scope orchestrators.
 
-- load_existing_inquiries: read title + question from all note.yaml files
-- next_asn_number: find next available ASN number
+- load_existing_inquiries: walk substrate inquiry classifiers, read title +
+  question from each inquiry doc's frontmatter
+- next_asn_number: walk substrate inquiry classifiers, return max ASN num + 1
 - parse_promoted: parse LLM promotion output into structured items
-- create_note_yaml: write a new ASN project manifest
-- load_existing_promotion: read previous promotion report for an ASN
-- save_promotion_report: write promotion report
+- create_inquiry_doc: write a new substrate-citizen inquiry doc + emit classifier
+- load_existing_promotion: read previous promotion report from substrate path
+- save_promotion_report: write report + emit promotion classifier + provenance edges
 """
 
 import re
 import sys
 from pathlib import Path
 
-import yaml
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, MANIFESTS_DIR, note_dir
+from lib.backend.emit import (
+    emit_derivation, emit_inquiry, emit_promotion,
+)
+from lib.shared.common import find_asn
+from lib.shared.frontmatter import read_doc_frontmatter
+from lib.shared.paths import (
+    INQUIRY_DIR, LATTICE, WORKSPACE,
+    inquiry_doc_path, promotion_doc_path,
+)
 
 
-def load_existing_inquiries():
-    """Read title + question from all note.yaml files.
+def _inquiry_addrs(session):
+    """Yield (asn_num, addr) for every active inquiry classifier."""
+    for link in session.active_links("inquiry"):
+        if not link.to_set:
+            continue
+        addr = link.to_set[0]
+        path = session.get_path_for_addr(addr)
+        if not path:
+            continue
+        m = re.search(r"ASN-(\d+)", path)
+        if m:
+            yield int(m.group(1)), addr
+
+
+def load_existing_inquiries(session):
+    """Read title + question from every active inquiry doc.
 
     Returns formatted text for injection into the promotion prompt.
     """
     entries = []
-    for yaml_path in sorted(MANIFESTS_DIR.glob("ASN-*/note.yaml")):
-        try:
-            data = yaml.safe_load(yaml_path.read_text())
-        except Exception:
-            continue
-        label = yaml_path.parent.name
-        title = data.get("title", "")
-        question = data.get("consultations", {}).get("question", "")
+    for asn_num, _ in sorted(_inquiry_addrs(session)):
+        front = read_doc_frontmatter(inquiry_doc_path(asn_num))
+        title = front.get("title", "")
+        question = front.get("question", "")
         if title:
-            entries.append(f"- {label}: {title} — {question}")
+            entries.append(
+                f"- ASN-{asn_num:04d}: {title} — {question}"
+            )
     return "\n".join(entries) if entries else "(none)"
 
 
-def next_asn_number():
-    """Find the next available ASN number."""
-    max_num = 0
-    for d in MANIFESTS_DIR.iterdir():
-        if d.is_dir():
-            m = re.match(r"ASN-(\d+)", d.name)
-            if m:
-                num = int(m.group(1))
-                if num > max_num:
-                    max_num = num
-    return max_num + 1
+def next_asn_number(session):
+    """Return the next available ASN number.
+
+    Sourced from substrate: max ASN num over active inquiry classifiers + 1.
+    Inquiry-to-ASN is 1-1 by construction; no manifests-dir scan needed.
+    """
+    nums = [n for n, _ in _inquiry_addrs(session)]
+    return max(nums, default=0) + 1
 
 
 def parse_promoted(text):
@@ -110,53 +126,79 @@ def parse_promoted(text):
     return items
 
 
-def create_note_yaml(asn_num, title, question, area, source_asn,
-                        nelson=10, gregory=10):
-    """Create a new note.yaml for a promoted ASN.
+def create_inquiry_doc(
+    session, asn_num, title, question, area, source_asn,
+    nelson=10, gregory=10,
+):
+    """Create a new substrate-citizen inquiry doc for a promoted item.
 
-    Returns the path to the created file.
+    Writes the inquiry frontmatter + body to the canonical inquiry
+    path, registers the path in substrate, and emits the `inquiry`
+    classifier. Returns the new inquiry's substrate address.
     """
-    out_dir = note_dir(asn_num)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "note.yaml"
+    path = inquiry_doc_path(asn_num)
+    path.parent.mkdir(parents=True, exist_ok=True)
 
-    content = f"""# ASN-{asn_num:04d} — {title}
-title: "{title}"
-stage: "inquiry"
-topic: "{area}"
-covers: ""
-out_of_scope: ""
-source: "promoted from ASN-{source_asn:04d}"
+    body = (
+        f"---\n"
+        f'title: "{title}"\n'
+        f'question: "{question}"\n'
+        f'covers: ""\n'
+        f'out_of_scope: ""\n'
+        f'area: "{area}"\n'
+        f"nelson: {nelson}\n"
+        f"gregory: {gregory}\n"
+        f'source: "promoted from ASN-{source_asn:04d}"\n'
+        f"---\n"
+        f"\n"
+        f"# Inquiry: {title}\n"
+    )
+    path.write_text(body)
 
-consultations:
-  question: "{question}"
-  nelson: {nelson}
-  gregory: {gregory}
-"""
-    out_path.write_text(content)
-    print(f"  [CREATED] {out_path.relative_to(WORKSPACE)}", file=sys.stderr)
-    return out_path
+    rel = str(path.relative_to(LATTICE))
+    addr = session.store.register_path(rel)
+    emit_inquiry(session.store, addr)
+
+    print(f"  [CREATED] {path.relative_to(WORKSPACE)}", file=sys.stderr)
+    return addr
 
 
 def load_existing_promotion(asn_num, kind):
-    """Load previous promotion report for an ASN.
-
-    kind: "open-questions" or "out-of-scope"
-    Returns content or empty string.
-    """
-    path = note_dir(asn_num) / f"promotion-{kind}.md"
+    """Read previous promotion report's content. Returns "" if missing."""
+    path = promotion_doc_path(asn_num, kind)
     if path.exists():
         return path.read_text().strip()
     return ""
 
 
-def save_promotion_report(asn_num, kind, text):
-    """Save promotion report to the ASN's manifests directory.
+def save_promotion_report(
+    session, asn_num, kind, text, *, source_note_addr=None,
+    promoted_inquiry_addrs=(),
+):
+    """Persist the promotion report + emit substrate audit edges.
 
-    kind: "open-questions" or "out-of-scope"
+    1. Writes the report markdown at the canonical promotion path.
+    2. Registers the path; emits `promotion.<kind>` classifier
+       (idempotent on re-run — same path, same address).
+    3. Emits `provenance.derivation` from the source ASN's note to
+       the report (idempotent).
+    4. Emits `provenance.derivation` from the report to each newly
+       minted inquiry (idempotent — re-runs that promote the same
+       item again hit the existing edge).
     """
-    out_dir = note_dir(asn_num)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"promotion-{kind}.md"
+    path = promotion_doc_path(asn_num, kind)
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text + "\n")
+
+    rel = str(path.relative_to(LATTICE))
+    report_addr = session.store.register_path(rel)
+    emit_promotion(session.store, report_addr, kind)
+
+    if source_note_addr is not None:
+        emit_derivation(session.store, source_note_addr, report_addr)
+
+    for inq_addr in promoted_inquiry_addrs:
+        emit_derivation(session.store, report_addr, inq_addr)
+
     print(f"  [WROTE] {path.relative_to(WORKSPACE)}", file=sys.stderr)
+    return report_addr

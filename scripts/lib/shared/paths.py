@@ -109,6 +109,22 @@ def transclusion_path(asn_label: str, kind: str) -> Path:
     return TRANSCLUSION_DIR / asn_label / f"{kind}.md"
 
 
+# Promotion reports (classified by `promotion.<kind>`). One doc per
+# (source ASN, kind), where kind ∈ {out-of-scope, open-questions}.
+# Holds the LLM's promote/decline verdicts plus rationale; re-runs
+# overwrite. See docs/hypergraph-protocol/promotion.md.
+PROMOTION_DIR = DOCUVERSE_DOCS_DIR / "promotion"
+
+
+def promotion_doc_path(asn_num, kind: str) -> Path:
+    """Lattice-relative path for a promotion report doc.
+
+    Stable per (source ASN, kind) — re-running the same promotion
+    overwrites the same path, keeping the substrate address constant.
+    """
+    return PROMOTION_DIR / f"ASN-{int(asn_num):04d}" / f"{kind}.md"
+
+
 # Citation-resolve operation outputs (classified by `citation.resolve`).
 # One doc per resolve run, named `<claim-label>-<run-N>.md` under the
 # claim's ASN directory.

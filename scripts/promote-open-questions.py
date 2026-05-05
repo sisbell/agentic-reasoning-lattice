@@ -18,13 +18,14 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, LATTICE_PROMPTS
+from lib.protocols.febe.session import open_session
+from lib.shared.paths import LATTICE, LATTICE_PROMPTS
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude
 from lib.maturation.promotion_promote import (
     load_existing_inquiries, next_asn_number, parse_promoted,
-    create_note_yaml, load_existing_promotion, save_promotion_report,
+    create_inquiry_doc, load_existing_promotion, save_promotion_report,
 )
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery" / "promotion"
@@ -59,64 +60,70 @@ def main():
         print(f"  Prompt template not found: {TEMPLATE}", file=sys.stderr)
         sys.exit(1)
 
-    # Load existing inquiries for dedup context
-    inquiries_text = load_existing_inquiries()
+    with open_session(LATTICE) as session:
+        # Load existing inquiries for dedup context
+        inquiries_text = load_existing_inquiries(session)
 
-    # Load existing promotion for this ASN
-    existing_promotion = load_existing_promotion(asn_num, "open-questions")
+        # Load existing promotion for this ASN
+        existing_promotion = load_existing_promotion(asn_num, "open-questions")
 
-    # Build prompt
-    prompt = (template
-              .replace("{{asn_content}}", asn_content)
-              .replace("{{inquiries}}", inquiries_text)
-              .replace("{{existing_promotion}}", existing_promotion or "(none)"))
+        # Build prompt
+        prompt = (template
+                  .replace("{{asn_content}}", asn_content)
+                  .replace("{{inquiries}}", inquiries_text)
+                  .replace("{{existing_promotion}}", existing_promotion or "(none)"))
 
-    print(f"  [PROMOTE] {asn_label} — open questions", file=sys.stderr)
-    print(f"  Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
+        print(f"  [PROMOTE] {asn_label} — open questions", file=sys.stderr)
+        print(f"  Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
 
-    if args.dry_run:
-        print(f"  [DRY RUN] Would invoke {args.model}", file=sys.stderr)
-        sys.exit(0)
+        if args.dry_run:
+            print(f"  [DRY RUN] Would invoke {args.model}", file=sys.stderr)
+            sys.exit(0)
 
-    # Invoke Claude
-    text, elapsed = invoke_claude(prompt, model=args.model, effort=args.effort)
-    log_usage("promote-open-questions", elapsed, asn=asn_num)
+        # Invoke Claude
+        text, elapsed = invoke_claude(prompt, model=args.model, effort=args.effort)
+        log_usage("promote-open-questions", elapsed, asn=asn_num)
 
-    if not text:
-        print(f"  No output from {args.model}", file=sys.stderr)
-        sys.exit(1)
+        if not text:
+            print(f"  No output from {args.model}", file=sys.stderr)
+            sys.exit(1)
 
-    # Parse promoted items
-    promoted = parse_promoted(text)
+        # Parse promoted items + create new inquiry docs
+        promoted = parse_promoted(text)
+        promoted_addrs = []
+        if promoted:
+            print(f"\n  {len(promoted)} new ASN(s) promoted:", file=sys.stderr)
+            cur_num = next_asn_number(session)
+            for item in promoted:
+                if "title" not in item or "question" not in item:
+                    print(f"  [SKIP] Incomplete item: {item}", file=sys.stderr)
+                    continue
+                area = item.get("area", "")
+                nelson = item.get("nelson", 10)
+                gregory = item.get("gregory", 10)
+                print(f"    ASN-{cur_num:04d}: {item['title']} [{area}]",
+                      file=sys.stderr)
+                addr = create_inquiry_doc(
+                    session, cur_num, item["title"], item["question"],
+                    area, asn_num, nelson=nelson, gregory=gregory,
+                )
+                promoted_addrs.append(addr)
+                cur_num += 1
+        else:
+            print(f"\n  No new ASNs promoted from {asn_label}", file=sys.stderr)
 
-    if promoted:
-        print(f"\n  {len(promoted)} new ASN(s) promoted:", file=sys.stderr)
-        cur_num = next_asn_number()
-        created = []
-        for item in promoted:
-            if "title" not in item or "question" not in item:
-                print(f"  [SKIP] Incomplete item: {item}", file=sys.stderr)
-                continue
-            area = item.get("area", "")
-            nelson = item.get("nelson", 10)
-            gregory = item.get("gregory", 10)
-            print(f"    ASN-{cur_num:04d}: {item['title']} [{area}]",
-                  file=sys.stderr)
-            create_note_yaml(cur_num, item["title"], item["question"],
-                                area, asn_num, nelson=nelson, gregory=gregory)
-            created.append(cur_num)
-            cur_num += 1
-    else:
-        print(f"\n  No new ASNs promoted from {asn_label}", file=sys.stderr)
-
-    # Save promotion report
-    save_promotion_report(asn_num, "open-questions", text)
+        # Save promotion report + emit substrate audit edges
+        source_note_addr = session.get_addr_for_path(
+            str(asn_path.relative_to(LATTICE)),
+        )
+        save_promotion_report(
+            session, asn_num, "open-questions", text,
+            source_note_addr=source_note_addr,
+            promoted_inquiry_addrs=promoted_addrs,
+        )
 
     # Commit
     step_commit_asn(asn_num, f"promote(open-questions): {asn_label}")
-
-    print(f"\n  [NEXT] Run ./run/generate-index.sh to update index",
-          file=sys.stderr)
 
 
 if __name__ == "__main__":
