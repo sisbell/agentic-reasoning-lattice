@@ -52,9 +52,6 @@ EXAMPLES_DIR = LATTICE / "implementation" / "examples"
 TEST_CASES_DIR = LATTICE / "implementation" / "test-cases"
 TRANSLATION_DIR = LATTICE / "implementation" / "translation"
 
-# Requirements (Nelson feature extraction)
-REQUIREMENTS_DIR = LATTICE / "requirements"
-
 # Operational
 USAGE_LOG = LATTICE / "usage-log.jsonl"
 
