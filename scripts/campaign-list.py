@@ -2,9 +2,10 @@
 """
 List campaigns in a lattice with their configs and ASN counts.
 
-Walks lattices/<lattice>/campaigns/, reads each campaign's config.yaml,
-walks lattices/<lattice>/manifests/*/note.yaml to count ASNs per campaign
-(including ASNs that inherit the default_campaign), and reports.
+Walks lattices/<lattice>/campaigns/, reads each campaign's frontmatter,
+and counts ASNs per campaign by reading inquiry doc frontmatter (each
+inquiry's `campaign:` field; inquiries without one inherit the
+lattice's default_campaign).
 
 Usage:
     LATTICE=materials python scripts/campaign-list.py
