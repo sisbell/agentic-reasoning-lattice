@@ -22,6 +22,7 @@ Submodule imports work too and may be preferred for clarity.
 """
 
 from .attributes import (
+    description_is_fresh,
     description_sidecar_of,
     has_description,
     has_label,
@@ -58,7 +59,8 @@ from .reconciliation import (
     orphan_sidecars,
 )
 from .versions import (
-    is_head_version, supersession_head, version_children, version_head,
+    is_head_version, supersession_chain_length, supersession_head,
+    version_children, version_head,
 )
 
 __all__ = [
@@ -71,6 +73,7 @@ __all__ = [
     "depends",
     "dependents",
     "derived_claims",
+    "description_is_fresh",
     "description_sidecar_of",
     "has_been_reviewed",
     "has_description",
@@ -91,6 +94,7 @@ __all__ = [
     "orphan_note_finding_docs",
     "orphan_sidecars",
     "signature_sidecar_of",
+    "supersession_chain_length",
     "supersession_head",
     "unresolved_revise_comments",
     "version_children",

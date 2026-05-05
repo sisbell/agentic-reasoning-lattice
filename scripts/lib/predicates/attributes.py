@@ -25,6 +25,31 @@ def has_description(session: Session, doc_addr: Address) -> bool:
     return bool(session.active_links("description", from_set=[doc_addr]))
 
 
+def description_is_fresh(session: Session, claim_addr: Address) -> bool:
+    """True iff the description's supersession chain is at least as
+    long as the claim's chain.
+
+    False when there's no description link at all (initial state).
+
+    Each `register_version` advances the relevant chain by 1; chain
+    length counts as "edit count" (claim) or "attestation count"
+    (description). Equal counts mean every claim edit has a matching
+    description attestation. Lower description count means at least
+    one edit is unattested → stale.
+
+    Pure structural counting — no cross-allocator tumbler compare.
+    """
+    from lib.predicates.versions import supersession_chain_length
+    links = session.active_links("description", from_set=[claim_addr])
+    if not links or not links[0].to_set:
+        return False
+    sidecar_addr = links[0].to_set[0]
+    return (
+        supersession_chain_length(session, sidecar_addr)
+        >= supersession_chain_length(session, claim_addr)
+    )
+
+
 def description_sidecar_of(
     session: Session, doc_addr: Address,
 ) -> Optional[Address]:
