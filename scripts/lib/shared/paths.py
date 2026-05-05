@@ -233,8 +233,25 @@ def state_yaml(asn_num):
 
 
 def claim_statements(asn_num):
-    """Path to ASN claim-statements export."""
-    return note_dir(asn_num) / "claim-statements.md"
+    """Lattice path to a note's `statements` attribute sidecar.
+
+    The sidecar holds the LLM-extracted formal statements for the
+    note. Lives next to the note doc under
+    `_docuverse/documents/note/<note-stem>.statements.md`. Substrate-
+    citizen; the note's outgoing `statements` link points at it.
+
+    Reads at this path return the LLM-extracted content (which can
+    be stale relative to current substrate state post-derivation).
+    For up-to-date "what does this ASN say?" content, walk the
+    note's `statements` link + supersession chain to the head and
+    use `read_doc` instead — the head is the view.claim-statements
+    doc post-derivation.
+    """
+    from .common import find_asn
+    asn_path, _ = find_asn(str(asn_num))
+    if asn_path is None:
+        return note_dir(asn_num) / "claim-statements.md"
+    return asn_path.parent / f"{asn_path.stem}.statements.md"
 
 
 def open_issues_path(asn_num):
