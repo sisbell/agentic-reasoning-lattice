@@ -1,12 +1,18 @@
-"""Note-revise agent body.
+"""Note-revise agent — invoke Claude with editing tools to address open
+revise findings on a note.
 
-One LLM invocation: assemble a discovery-methodology prompt with
-per-finding instructions, invoke Claude with Edit/Read/Bash/etc.
-tools, return the parsed JSON result.
+Two entry points:
 
-Public entry: `run_revise_pass(asn_path, asn_label, findings, *,
-model, effort, consultation_content) -> (data, elapsed)`. Returns
-None on invocation failure.
+  - `NoteReviseAgent` — class form for the trigger runner. One fire =
+    collect open `comment.revise` findings on the note, assemble a
+    discovery-methodology prompt, invoke Claude with Edit/Read/Bash
+    tools. The agent itself closes each comment via
+    `convergence-link-resolution.py`.
+
+  - `run_revise_pass` — legacy free-function form retained for the
+    note_converge orchestrator's gate loop. Takes pre-collected
+    findings; doesn't query the substrate. Will retire with the
+    orchestrator when the trigger runner replaces it.
 """
 
 from __future__ import annotations
@@ -18,11 +24,18 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import ClassVar, List, Tuple
 
+from lib.agents.base import Agent, AgentResult
+from lib.backend.addressing import Address
+from lib.predicates import unresolved_revise_comments
+from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.shared.paths import LATTICE, LATTICE_PROMPTS, WORKSPACE
+from lib.shared.paths import (
+    LATTICE, LATTICE_PROMPTS, USAGE_LOG, WORKSPACE,
+)
 
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
@@ -200,3 +213,137 @@ def _invoke_claude(prompt: str, *, model: str, effort: str):
     except (json.JSONDecodeError, KeyError):
         print(f"  [{elapsed:.0f}s] [parse error]", file=sys.stderr)
         return None, elapsed
+
+
+# ---------------------------------------------------------------------------
+# Trigger-runner entry: class form
+
+
+def _collect_open_revises(
+    session: Session, note_addr: Address,
+) -> List[Tuple[Address, str, str]]:
+    """Return list of (comment_addr, title, body) for unresolved revise
+    comments targeting the note. Each finding's body is read from its
+    finding doc; missing finding docs are skipped with a stderr note.
+    """
+    items: List[Tuple[Address, str, str]] = []
+    for c in unresolved_revise_comments(session, note_addr):
+        if not c.from_set:
+            continue
+        finding_addr = c.from_set[0]
+        finding_rel = session.get_path_for_addr(finding_addr)
+        if not finding_rel:
+            continue
+        finding_full = LATTICE / finding_rel
+        if not finding_full.exists():
+            print(
+                f"  [SKIP] finding doc missing: {finding_rel}",
+                file=sys.stderr,
+            )
+            continue
+        body = finding_full.read_text().strip()
+        first_line = body.splitlines()[0] if body else ""
+        title = re.sub(r"^#+\s*", "", first_line).strip() or "(untitled)"
+        items.append((c.addr, title, body))
+    return items
+
+
+def _log_revise_usage(
+    asn_label: str, elapsed: float, data: dict | None,
+) -> None:
+    """Append a revise-usage entry to the lattice usage log."""
+    entry = {
+        "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "skill": "note-revise",
+        "asn": asn_label,
+        "elapsed_s": round(elapsed, 1),
+    }
+    if data is not None:
+        usage = data.get("usage", {})
+        cost = data.get("total_cost_usd", 0)
+        inp = (
+            usage.get("input_tokens", 0)
+            + usage.get("cache_read_input_tokens", 0)
+            + usage.get("cache_creation_input_tokens", 0)
+        )
+        out = usage.get("output_tokens", 0)
+        entry.update({
+            "input_tokens": inp,
+            "output_tokens": out,
+            "num_turns": data.get("num_turns", 0),
+            "cost_usd": cost,
+        })
+    try:
+        with open(USAGE_LOG, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+    except OSError:
+        pass
+
+
+class NoteReviseAgent(Agent):
+    """One Claude-with-tools invocation that addresses every open
+    revise finding on a note.
+
+    Fires when the note has unresolved `comment.revise` links (i.e.,
+    `is_doc_converged` is False). The Claude session itself edits the
+    note md and closes each comment via `convergence-link-resolution.py`.
+    """
+
+    role: ClassVar[str] = "note-revise"
+
+    def __init__(self, *, model: str = "opus", effort: str = "max"):
+        self.model = model
+        self.effort = effort
+
+    def run(self, session: Session, note_addr: Address) -> AgentResult:
+        note_path_rel = session.get_path_for_addr(note_addr)
+        if note_path_rel is None:
+            return AgentResult(success=False, detail="no-note-path")
+
+        asn_path = session.store.lattice_dir / note_path_rel
+        if not asn_path.exists():
+            return AgentResult(success=False, detail="no-note-file")
+
+        m = re.search(r"(ASN-\d{4})", note_path_rel)
+        if m is None:
+            return AgentResult(success=False, detail="no-asn-label")
+        asn_label = m.group(1)
+        asn_number = int(asn_label[4:])
+
+        findings = _collect_open_revises(session, note_addr)
+        if not findings:
+            return AgentResult(
+                success=True, detail="no-open-revises",
+            )
+
+        vocab = read_file(resolve_campaign(asn_label).vocabulary_path)
+        prompt = build_prompt(
+            asn_path, findings, vocab,
+            consultation_content=None,
+            asn_number=asn_number,
+        )
+        print(
+            f"  [NOTE-REVISE] {asn_label} {len(findings)} finding(s) "
+            f"(prompt {len(prompt) // 1024}KB)",
+            file=sys.stderr,
+        )
+
+        model_flag = {
+            "opus": "claude-opus-4-7",
+            "sonnet": "claude-sonnet-4-6",
+        }.get(self.model, self.model)
+        os.environ["PROTOCOL_ASN_LABEL"] = asn_label
+        data, elapsed = _invoke_claude(
+            prompt, model=model_flag, effort=self.effort,
+        )
+        _log_revise_usage(asn_label, elapsed, data)
+        if data is None:
+            return AgentResult(
+                success=False, elapsed=elapsed, detail="llm-failed",
+            )
+
+        return AgentResult(
+            success=True,
+            elapsed=elapsed,
+            detail=f"addressed={len(findings)}",
+        )
