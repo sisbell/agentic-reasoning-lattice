@@ -145,7 +145,11 @@ class StoreLoadTests(unittest.TestCase):
 
 
 class RegisterVersionTests(unittest.TestCase):
-    """Store.register_version: tumbler-version + path reroute + supersession."""
+    """Store.register_version: bare-marker tumbler + supersession link.
+
+    Existing relations stay on the base; the new version is a marker
+    only (no classifier, no lattice, no path).
+    """
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -163,16 +167,14 @@ class RegisterVersionTests(unittest.TestCase):
         v2 = store.register_version(v1)
         self.assertNotEqual(v1, v2)
 
-    def test_path_reroutes_to_head(self):
+    def test_path_stays_on_base(self):
         store = Store(self.lattice_dir)
         v1 = store.addr_for_path("claim/A.md")
         v2 = store.register_version(v1)
-        # Same path now resolves to the new version
-        self.assertEqual(store.addr_for_path("claim/A.md"), v2)
-        # Old addr still has its (former) path in addr_to_path for
-        # historical lookups
-        self.assertEqual(store.path_for_addr(v1), "claim/A.md")
-        self.assertEqual(store.path_for_addr(v2), "claim/A.md")
+        # Path mapping is unchanged — base remains canonical
+        self.assertEqual(store.addr_for_path("claim/A.md"), v1)
+        # New version has no path of its own
+        self.assertIsNone(store.path_for_addr(v2))
 
     def test_emits_supersession_link(self):
         store = Store(self.lattice_dir)
@@ -183,13 +185,13 @@ class RegisterVersionTests(unittest.TestCase):
         )
         self.assertEqual(len(links), 1)
 
-    def test_inherits_classifier_on_new_version(self):
+    def test_no_classifier_on_new_version(self):
         store = Store(self.lattice_dir)
         v1 = store.addr_for_path("claim/A.md")
         v2 = store.register_version(v1)
-        # New version has its own claim classifier link
+        # The new version is a bare marker — no classifier emitted
         classifiers = store.find_links(to_set=[v2], type_="claim")
-        self.assertEqual(len(classifiers), 1)
+        self.assertEqual(len(classifiers), 0)
 
     def test_persists_across_reload(self):
         store = Store(self.lattice_dir)
@@ -197,8 +199,8 @@ class RegisterVersionTests(unittest.TestCase):
         v2 = store.register_version(v1)
         del store
         store2 = Store(self.lattice_dir)
-        # Path still routes to head version after reload
-        self.assertEqual(store2.addr_for_path("claim/A.md"), v2)
+        # Path still on base
+        self.assertEqual(store2.addr_for_path("claim/A.md"), v1)
         # Supersession link survives
         links = store2.find_links(
             from_set=[v1], to_set=[v2], type_="supersession",
