@@ -164,10 +164,15 @@ def _result_from_json(data, elapsed):
 
 
 def invoke_claude_agent(prompt, *, model="opus", effort="max",
-                        tools="Read,Write,Bash", max_turns=12, cwd=None):
+                        tools="Read,Write,Bash", max_turns=12, cwd=None,
+                        enabled_tools=None):
     """Call claude -p (agent mode). Returns Result.
 
-    max_turns=None omits the --max-turns flag (server default applies).
+    `tools` is passed via --allowedTools (bypass permission prompts).
+    `enabled_tools=None` (default) omits --tools so all built-in tools
+    are available. When set, --tools restricts the enabled surface to
+    just those tools.
+    `max_turns=None` omits the --max-turns flag (server default applies).
     """
     model_flag = MODEL_FLAGS.get(model, model)
 
@@ -178,6 +183,8 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
     ]
     if max_turns is not None:
         cmd.extend(["--max-turns", str(max_turns)])
+    if enabled_tools is not None:
+        cmd.extend(["--tools", enabled_tools])
     cmd.extend(["--allowedTools", tools])
 
     env = os.environ.copy()

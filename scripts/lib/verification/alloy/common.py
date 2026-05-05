@@ -1,7 +1,6 @@
 """Shared utilities for Alloy verification pipeline."""
 
 import json
-import os
 import re
 import shutil
 import subprocess
@@ -11,6 +10,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
+from lib.shared.invoke_claude import invoke_claude_agent
 from lib.shared.paths import WORKSPACE, ALLOY_DIR, USAGE_LOG, sanitize_filename
 from lib.shared.common import read_file
 
@@ -28,24 +28,6 @@ def invoke_claude(prompt, out_path, model="opus", effort=None,
     Default tools include Bash so the agent can self-check Alloy models.
     Returns (success, elapsed, cost).
     """
-    model_flag = {
-        "opus": "claude-opus-4-7",
-        "sonnet": "claude-sonnet-4-6",
-    }.get(model, model)
-
-    cmd = [
-        "claude", "-p",
-        "--model", model_flag,
-        "--output-format", "json",
-        "--max-turns", str(max_turns),
-        "--tools", tools,
-        "--allowedTools", tools,
-    ]
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    env["CLAUDE_CODE_EFFORT_LEVEL"] = effort or "high"
-
     if write_instruction:
         full_prompt = f"""{prompt}
 
@@ -57,41 +39,29 @@ def invoke_claude(prompt, out_path, model="opus", effort=None,
 Write the complete Alloy model to: {out_path}
 """
 
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=full_prompt, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE), timeout=None,
+    response = invoke_claude_agent(
+        full_prompt,
+        model=model,
+        effort=effort or "high",
+        tools=tools,
+        enabled_tools=tools,
+        max_turns=max_turns,
     )
-    elapsed = time.time() - start
 
-    cost = 0.0
-    if result.returncode != 0:
-        print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
-              file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:3]:
-                print(f"    {line}", file=sys.stderr)
-        return False, elapsed, cost
-
-    # Parse JSON for usage stats
-    try:
-        data = json.loads(result.stdout)
-        usage = data.get("usage", {})
-        cost = data.get("total_cost_usd", 0) or 0.0
-        inp = (usage.get("input_tokens", 0) +
-               usage.get("cache_read_input_tokens", 0) +
-               usage.get("cache_creation_input_tokens", 0))
-        out = usage.get("output_tokens", 0)
-        print(f"  [{elapsed:.0f}s] in:{inp} out:{out} ${cost:.4f}",
-              file=sys.stderr)
+    if response.ok:
+        usage = response.usage
+        print(
+            f"  [{response.elapsed:.0f}s] "
+            f"in:{usage['input_tokens']} out:{usage['output_tokens']} "
+            f"${response.cost:.4f}",
+            file=sys.stderr,
+        )
         # Log subtype on failure (e.g., error_max_turns)
-        subtype = data.get("subtype", "")
+        subtype = (response.data or {}).get("subtype", "")
         if subtype and subtype != "success":
             print(f"  [WARN] stop: {subtype}", file=sys.stderr)
-    except (json.JSONDecodeError, KeyError):
-        print(f"  [{elapsed:.0f}s]", file=sys.stderr)
 
-    return True, elapsed, cost
+    return response.ok, response.elapsed, response.cost
 
 
 def log_usage(asn_label, llm_elapsed, alloy_elapsed, has_counterexample,
