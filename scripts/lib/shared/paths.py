@@ -94,6 +94,21 @@ REVIEWS_DIR = NOTE_REVIEWS_DIR  # legacy alias, prefer NOTE_REVIEWS_DIR
 CLAIM_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "claims"
 NOTE_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "notes"
 
+# Virtual / rendered documents (classified by `view.<kind>`). The
+# substrate path is a citizen address; no on-disk file is written —
+# the registered renderer supplies content at read time.
+VIEW_DIR = DOCUVERSE_DOCS_DIR / "view"
+
+
+def view_path(asn_label: str, kind: str) -> Path:
+    """Lattice-relative path for a view doc (no file on disk).
+
+    Used as the path argument to `register_path` when emitting a
+    virtual doc; gives the doc a stable substrate address.
+    """
+    return VIEW_DIR / asn_label / f"{kind}.md"
+
+
 # Citation-resolve operation outputs (classified by `citation.resolve`).
 # One doc per resolve run, named `<claim-label>-<run-N>.md` under the
 # claim's ASN directory.
