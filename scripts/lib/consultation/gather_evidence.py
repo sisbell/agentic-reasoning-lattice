@@ -28,7 +28,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (
-    LATTICE, WORKSPACE, REVIEWS_DIR, NOTE_DIR, consultation_dir, find_review,
+    LATTICE, WORKSPACE, NOTE_DIR, NOTE_FINDINGS_DIR, REVIEWS_DIR,
+    consultation_dir, find_review,
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn
@@ -38,6 +39,7 @@ from lib.consultation.consult import (
 from lib.consultation import assign_channels
 from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_assessment,
+    emit_consultation_coverage,
 )
 from lib.protocols.febe.session import open_session
 
@@ -215,6 +217,39 @@ def build_results(asn_label, review_path, items):
     return "\n".join(parts)
 
 
+# ─── Finding-address pairing ────────────────────────────────────
+
+
+def revise_finding_addrs_for_review(session, asn_label, review_num):
+    """Return REVISE finding doc addresses for this review, in document order.
+
+    Walks `finding/notes/<asn>/review-N/` by filename (0.md, 1.md, ...)
+    and keeps only those that have an active `comment.revise` link.
+    The result aligns by position with `assign_channels.parse`'s items
+    — both filter the same review's findings to REVISE-only in the
+    same document order.
+    """
+    findings_dir = NOTE_FINDINGS_DIR / asn_label / f"review-{review_num}"
+    if not findings_dir.exists():
+        return []
+
+    def _key(p):
+        try:
+            return int(p.stem)
+        except ValueError:
+            return 9999
+
+    addrs = []
+    for path in sorted(findings_dir.glob("*.md"), key=_key):
+        rel = str(path.resolve().relative_to(LATTICE.resolve()))
+        finding_addr = session.get_addr_for_path(rel)
+        if finding_addr is None:
+            continue
+        if session.active_links("comment.revise", from_set=[finding_addr]):
+            addrs.append(finding_addr)
+    return addrs
+
+
 # ─── Main ───────────────────────────────────────────────────────
 
 def main():
@@ -303,6 +338,23 @@ def main():
         print(f"  [ASSIGN] No items parsed from response", file=sys.stderr)
         sys.exit(1)
 
+    # Pair each item with its finding's substrate address. Both items
+    # and the substrate-walked REVISE finding list iterate the review's
+    # REVISE section in document order, so position-based zip aligns.
+    finding_addrs = revise_finding_addrs_for_review(
+        session, asn_label, review_num,
+    )
+    if len(finding_addrs) != len(items):
+        print(
+            f"  [WARN] item/finding count mismatch: "
+            f"{len(items)} items, {len(finding_addrs)} REVISE findings — "
+            f"coverage links may be incomplete",
+            file=sys.stderr,
+        )
+    for item, finding_addr in zip(items, finding_addrs):
+        item["finding_addr"] = finding_addr
+        emit_consultation_coverage(store, cat_addr, finding_addr)
+
     internal_count = sum(1 for it in items if not it["questions"])
     consult_count = len(items) - internal_count
     print(f"  [ASSIGN] {len(items)} items: "
@@ -332,15 +384,23 @@ def main():
         print(f"  [CONSULT] All items internal, no consultations needed",
               file=sys.stderr)
 
-    # Classify each per-answer doc as a substrate citizen. Single-pass
-    # after the parallel consultations complete so all writes are in
-    # place before we open the store.
+    # Classify each per-answer doc + emit its coverage link to the
+    # finding it answers. Iterating items (not the filesystem) keeps
+    # the answer↔finding pairing exact: each item carries its
+    # finding_addr from the assignment step.
     session = open_session(LATTICE)
     store = session.store  # for emit_* (Pass 2 will migrate)
-    for answer_md in sorted(consult_subdir.glob("answer-*.md")):
-        answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
-        answer_addr = store.register_path(answer_rel)
-        emit_consultation_answer(store, answer_addr)
+    for item in items:
+        finding_addr = item.get("finding_addr")
+        for role in item.get("questions", {}).keys():
+            answer_md = _answer_path(consult_subdir, item["number"], role)
+            if not answer_md.exists():
+                continue
+            answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
+            answer_addr = store.register_path(answer_rel)
+            emit_consultation_answer(store, answer_addr)
+            if finding_addr is not None:
+                emit_consultation_coverage(store, answer_addr, finding_addr)
 
     # Step 3: Write results
     results = build_results(asn_label, review_path, items)
