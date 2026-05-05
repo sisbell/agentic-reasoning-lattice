@@ -61,6 +61,8 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "supersession": (23,),
     "statements": (24,),
     "retired": (25,),
+    "extends": (26,),
+    "source": (27,),
 }
 
 # Parent-type positions for hierarchical queries (per L10): a query at

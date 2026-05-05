@@ -155,6 +155,52 @@ def emit_retired(
     return emit_classifier(store, doc, "retired")
 
 
+def emit_extends(
+    store: Store, ext_note: Address, base_note: Address,
+) -> Tuple[Link, bool]:
+    """Declare that `ext_note` is an extension of `base_note`.
+
+    F=[ext_note], G=[base_note]. Idempotent on (ext, base) — re-emitting
+    returns the existing link. Reverse-walked by find-extensions queries
+    ("what extends ASN-NNNN?").
+    """
+    existing = active_links(
+        store.state, "extends",
+        from_set=[ext_note], to_set=[base_note],
+    )
+    if existing:
+        return existing[0], False
+    link = store.make_link(
+        homedoc=ext_note,
+        from_set=[ext_note], to_set=[base_note],
+        type_="extends",
+    )
+    return link, True
+
+
+def emit_source(
+    store: Store, ext_note: Address, origin_note: Address,
+) -> Tuple[Link, bool]:
+    """Declare that `ext_note` was extracted from `origin_note`.
+
+    F=[ext_note], G=[origin_note]. Idempotent on (ext, origin). For an
+    extension carved from multiple origins, emit one source link per
+    origin.
+    """
+    existing = active_links(
+        store.state, "source",
+        from_set=[ext_note], to_set=[origin_note],
+    )
+    if existing:
+        return existing[0], False
+    link = store.make_link(
+        homedoc=ext_note,
+        from_set=[ext_note], to_set=[origin_note],
+        type_="source",
+    )
+    return link, True
+
+
 def emit_transclusion(
     store: Store, transclusion_doc: Address, kind: str,
 ) -> Tuple[Link, bool]:

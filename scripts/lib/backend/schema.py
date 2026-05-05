@@ -37,6 +37,13 @@ VALID_TYPES = frozenset({
     # Presence = doc is retired (out of active lattice). Retraction
     # revives. State transitions are real substrate facts; no toggling.
     "retired",
+    # Extension lineage — directional link between two notes.
+    # extends: F=[ext_note], G=[base_note]. The new ASN extends the base
+    # (builds on top of it; base claims are foundation for ext claims).
+    # source: F=[ext_note], G=[origin_note(s)]. The new ASN's claims were
+    # extracted from the origin note(s) during a maturation operation.
+    "extends",
+    "source",
 })
 
 VALID_SUBTYPES = {
