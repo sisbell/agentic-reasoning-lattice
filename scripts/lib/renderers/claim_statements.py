@@ -23,12 +23,14 @@ from __future__ import annotations
 
 import re
 import time
+from typing import Optional
 
 from lib.backend.addressing import Address
-from lib.lattice.render import register_renderer
+from lib.lattice.render import read_doc, register_renderer
 from lib.predicates import derived_claims
 from lib.protocols.febe.protocol import Session
 from lib.shared.foundation import _extract_formal_contract
+from lib.shared.paths import view_path
 
 
 _DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -142,3 +144,23 @@ def _read_full(path):
 
 
 register_renderer("claim-statements", render_claim_statements)
+
+
+def read_claim_statements_view(
+    session: Session, asn_label: str,
+) -> Optional[str]:
+    """Render the claim-statements view for an ASN, by label.
+
+    Convenience for consumers that don't already hold the view's
+    Address. Returns the rendered markdown, or None if no view doc
+    is registered for this ASN.
+    """
+    lattice_root = session.store.lattice_dir.resolve()
+    rel = str(
+        view_path(asn_label, "claim-statements")
+        .resolve().relative_to(lattice_root)
+    )
+    addr = session.get_addr_for_path(rel)
+    if addr is None:
+        return None
+    return read_doc(session, addr)

@@ -17,11 +17,14 @@ from lib.maturation.manage_extend import (
     parse_registry_labels, validate, derive_names, compute_depends,
     build_prompt, strip_preamble, write_manifest,
 )
-from lib.shared.paths import WORKSPACE, NOTE_DIR, claim_statements
-from lib.shared.common import find_asn, log_usage, read_file
+from lib.shared.paths import WORKSPACE, LATTICE, NOTE_DIR
+from lib.shared.common import find_asn, log_usage
 from lib.shared.git_ops import step_commit
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.foundation import load_foundation_for_note
+from lib.protocols.febe.session import open_session
+import lib.renderers  # registers claim-statements renderer
+from lib.renderers.claim_statements import read_claim_statements_view
 
 
 def main():
@@ -55,8 +58,11 @@ def main():
 
     # Load foundation context
     base_label = f"ASN-{args.base:04d}"
-    base_stmt_path = claim_statements(args.base)
-    base_statements = read_file(base_stmt_path) or "(No base export available)"
+    with open_session(LATTICE) as _session:
+        base_statements = (
+            read_claim_statements_view(_session, base_label)
+            or "(No base export available)"
+        )
 
     # Load foundation for the base's dependencies
     base_path, _ = find_asn(str(args.base))

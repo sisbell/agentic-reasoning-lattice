@@ -18,8 +18,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, prompt_path, claim_statements
+from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, LATTICE, WORKSPACE_DIR, prompt_path
 from lib.shared.common import find_asn
+from lib.protocols.febe.session import open_session
+import lib.renderers  # registers claim-statements renderer
+from lib.renderers.claim_statements import read_claim_statements_view
 
 GENERATE_MODEL = "claude-sonnet-4-6"
 REVIEW_MODELS = ["claude-sonnet-4-6"]
@@ -28,11 +31,21 @@ REVIEW_PROMPT = prompt_path("examples/review.md")
 
 
 def find_claim_statements(asn_num):
-    """Find claim-statements.md for an ASN. Returns path or None."""
-    path = claim_statements(asn_num)
-    if path.exists():
-        return path
-    return None
+    """Render the ASN's claim-statements view to a workspace file.
+
+    Returns the path or None. The file is regeneratable scratch
+    under _workspace/ — content is rendered fresh from substrate
+    each call.
+    """
+    asn_label = f"ASN-{int(asn_num):04d}"
+    with open_session(LATTICE) as session:
+        content = read_claim_statements_view(session, asn_label)
+    if content is None:
+        return None
+    out = WORKSPACE_DIR / "examples" / asn_label / "claim-statements.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(content)
+    return out
 
 
 def call_claude(prompt, model=GENERATE_MODEL):
