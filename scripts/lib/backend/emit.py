@@ -183,15 +183,16 @@ def emit_consultation_assessment(
 def emit_attribute_link(
     store: Store, doc: Address, kind: str, sidecar: Address,
 ) -> Tuple[Link, bool]:
-    """File a name/label/description/signature attribute link from
-    doc to its sidecar. Pure substrate primitive: takes addresses,
-    emits the link. Idempotent on the active-attribute set.
-    Homedoc = doc (the link's source).
+    """File an attribute link from doc to its sidecar (label, name,
+    description, signature, statements). Pure substrate primitive:
+    takes addresses, emits the link. Idempotent on the active-
+    attribute set. Homedoc = doc (the link's source).
     """
-    valid = {"label", "name", "description", "signature"}
-    if kind not in valid:
+    from .schema import VALID_ATTRIBUTE_KINDS
+    if kind not in VALID_ATTRIBUTE_KINDS:
         raise ValueError(
-            f"invalid attribute kind {kind!r}; must be one of {sorted(valid)}"
+            f"invalid attribute kind {kind!r}; must be one of "
+            f"{sorted(VALID_ATTRIBUTE_KINDS)}"
         )
     existing = active_links(store.state, kind, from_set=[doc], to_set=[sidecar])
     for link in existing:

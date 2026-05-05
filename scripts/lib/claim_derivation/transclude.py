@@ -52,8 +52,10 @@ from lib.shared.paths import (
 from lib.shared.common import find_asn
 from lib.shared.git_ops import step_commit_asn
 from lib.backend.emit import (
-    emit_citation, emit_claim, emit_contract, emit_derivation, emit_view,
+    emit_citation, emit_claim, emit_contract, emit_derivation,
+    emit_supersession, emit_view,
 )
+from lib.predicates import statements_sidecar_of, supersession_head
 from lib.shared.paths import view_path
 from lib.lattice.attributes import emit_attribute
 from lib.lattice.labels import build_cross_asn_label_index
@@ -357,6 +359,17 @@ def transclude_asn(asn_num, dry_run=False):
         view_addr = store.register_path(view_rel)
         emit_view(store, view_addr, "claim-statements")
         emit_derivation(store, asn_addr, view_addr)
+
+        # ── Phase C.6: supersede the note's statements artifact ──────────
+        # If note-statements ran (LLM extraction filed a `statements`
+        # sidecar on the note), emit supersession from its current
+        # head → the view doc. Foundation reads walking the chain
+        # land at the view post-derivation. If no statements link
+        # exists yet, do nothing.
+        stmt_addr = statements_sidecar_of(session, asn_addr)
+        if stmt_addr is not None:
+            head = supersession_head(session, stmt_addr)
+            emit_supersession(store, head, view_addr)
 
     # ── Phase D: structural sections → workspace ────────────────────────
     structural_count = 0
