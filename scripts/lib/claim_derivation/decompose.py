@@ -71,13 +71,13 @@ def analyze_section(section_content):
     prompt_template = PROMPT_PATH.read_text()
     prompt = prompt_template.replace("{{section_content}}", section_content)
 
-    result, elapsed = invoke_claude(prompt, model="sonnet", effort="high")
+    response = invoke_claude(prompt, model="sonnet", effort="high")
 
-    if not result:
+    if not response.text:
         return None
 
     from lib.shared.invoke_claude import strip_code_fence
-    text = strip_code_fence(result)
+    text = strip_code_fence(response.text)
 
     if "- label:" not in text:
         return None

@@ -82,8 +82,9 @@ def main():
             sys.exit(0)
 
         # Invoke Claude
-        text, elapsed = invoke_claude(prompt, model=args.model, effort=args.effort)
-        log_usage("promote-open-questions", elapsed, asn=asn_num)
+        result = invoke_claude(prompt, model=args.model, effort=args.effort)
+        text = result.text
+        log_usage("promote-open-questions", result.elapsed, asn=asn_num)
 
         if not text:
             print(f"  No output from {args.model}", file=sys.stderr)

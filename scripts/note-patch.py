@@ -61,10 +61,9 @@ def main():
                   .replace("{{patch_content}}", patch_content)
                   .replace("{{asn_content}}", asn_content))
         print(f"  [REPORT] Analyzing impact...", file=sys.stderr)
-        text, elapsed = invoke_claude(prompt, model=args.model,
-                                      effort=args.effort)
-        if text:
-            print(f"\n{text}\n", file=sys.stderr)
+        result = invoke_claude(prompt, model=args.model, effort=args.effort)
+        if result.text:
+            print(f"\n{result.text}\n", file=sys.stderr)
         else:
             print("  [ERROR] No report produced", file=sys.stderr)
         return

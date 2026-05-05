@@ -53,12 +53,12 @@ def _fill_prompt(template_path, prop):
 
 def _call_llm(prompt):
     """Call LLM and parse YAML response. Returns dict or None."""
-    result, elapsed = invoke_claude(prompt, model="sonnet", effort="high")
-    if not result:
+    response = invoke_claude(prompt, model="sonnet", effort="high")
+    if not response.text:
         return None
 
     from lib.shared.invoke_claude import strip_code_fence
-    text = strip_code_fence(result)
+    text = strip_code_fence(response.text)
 
     try:
         return yaml.safe_load(text)

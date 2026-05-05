@@ -61,15 +61,15 @@ class ClaimDescribeAgent(Agent):
             .replace("{{claim}}", claim_text)
             .replace("{{existing}}", existing_desc or "(none)")
         )
-        text, elapsed = invoke_claude(
+        result = invoke_claude(
             prompt, model=DESCRIBE_MODEL, effort="high",
         )
-        if not text:
+        if not result.text:
             return AgentResult(success=False, detail="llm-failed")
 
-        new_desc = text.strip()
+        new_desc = result.text.strip()
         print(
-            f"  [DESCRIBE] {full_claim.stem} ({elapsed:.0f}s)",
+            f"  [DESCRIBE] {full_claim.stem} ({result.elapsed:.0f}s)",
             file=sys.stderr,
         )
 

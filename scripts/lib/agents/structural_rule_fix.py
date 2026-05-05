@@ -65,17 +65,17 @@ def fix_structural_rule(
     prompt = _render_prompt(
         rule, file_path, findings, metadata_bundle,
     )
-    data, elapsed = invoke_claude_agent(
+    response = invoke_claude_agent(
         prompt, model=model, effort=effort, tools=tools,
         max_turns=max_turns, cwd=file_path.parent,
     )
-    if data is None:
+    if response.data is None:
         return StructuralRuleFixResult(
-            transcript="", elapsed_seconds=elapsed, agent_failed=True,
+            transcript="", elapsed_seconds=response.elapsed, agent_failed=True,
         )
     return StructuralRuleFixResult(
-        transcript=data.get("result", "") or "",
-        elapsed_seconds=elapsed,
+        transcript=response.text,
+        elapsed_seconds=response.elapsed,
         agent_failed=False,
     )
 
@@ -103,13 +103,13 @@ def propose_structural_fix(
         .replace("{claim_dir}", str(claim_dir))
         .replace("{metadata_bundle}", "")
     )
-    data, elapsed = invoke_claude_agent(
+    response = invoke_claude_agent(
         prompt, model=model, effort=effort, tools=tools,
         max_turns=max_turns, cwd=claim_dir,
     )
-    if data is None:
+    if response.data is None:
         return None
-    return data.get("result", "")
+    return response.text
 
 
 # ---------------------------------------------------------------------------

@@ -151,7 +151,7 @@ def step_integrate(ext_num, base_num, ext_path, base_path, model, effort):
     print(f"  [INTEGRATE] {ext_label} claims into {base_label}",
           file=sys.stderr)
 
-    data, elapsed = invoke_claude_agent(
+    response = invoke_claude_agent(
         prompt,
         model=model,
         effort=effort,
@@ -159,11 +159,11 @@ def step_integrate(ext_num, base_num, ext_path, base_path, model, effort):
         max_turns=20,
     )
 
-    if data is None:
+    if response.data is None:
         print(f"  [ERROR] Integration failed", file=sys.stderr)
         return False
 
-    log_usage("absorb-integrate", elapsed, ext=ext_num, base=base_num)
+    log_usage("absorb-integrate", response.elapsed, ext=ext_num, base=base_num)
     print(f"  [INTEGRATED] {base_label} updated", file=sys.stderr)
     return True
 
@@ -198,22 +198,22 @@ def step_integration_review(base_num, base_path, claim_labels,
     print(f"  [REVIEW] Integration review of {base_label}...",
           file=sys.stderr)
 
-    text, elapsed = invoke_claude(
+    result = invoke_claude(
         prompt, model=model, effort=effort)
 
-    if not text:
+    if not result.text:
         print(f"  [WARN] Integration review produced no output",
               file=sys.stderr)
         return None
 
-    log_usage("absorb-review", elapsed, base=base_num)
+    log_usage("absorb-review", result.elapsed, base=base_num)
 
     # Write review to file
     review_dir = REVIEWS_DIR / base_label
     review_dir.mkdir(parents=True, exist_ok=True)
     review_num = next_review_number(base_label, kind="note")
     review_path = review_dir / f"review-{review_num}.md"
-    review_path.write_text(text + "\n")
+    review_path.write_text(result.text + "\n")
     print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}",
           file=sys.stderr)
 
@@ -253,7 +253,7 @@ def step_integration_revise(base_num, base_path, claim_labels,
     print(f"  [REVISE] Fixing integration issues in {base_label}...",
           file=sys.stderr)
 
-    data, elapsed = invoke_claude_agent(
+    response = invoke_claude_agent(
         prompt,
         model=model,
         effort=effort,
@@ -261,11 +261,11 @@ def step_integration_revise(base_num, base_path, claim_labels,
         max_turns=20,
     )
 
-    if data is None:
+    if response.data is None:
         print(f"  [WARN] Integration revise failed", file=sys.stderr)
         return False
 
-    log_usage("absorb-revise", elapsed, base=base_num)
+    log_usage("absorb-revise", response.elapsed, base=base_num)
     return True
 
 
@@ -357,7 +357,7 @@ def step_update_source(ext_num, source_num, base_num, ext_path,
     print(f"  [UPDATE] {source_label} — citing from {base_label}",
           file=sys.stderr)
 
-    data, elapsed = invoke_claude_agent(
+    response = invoke_claude_agent(
         prompt,
         model=model,
         effort=effort,
@@ -365,11 +365,11 @@ def step_update_source(ext_num, source_num, base_num, ext_path,
         max_turns=20,
     )
 
-    if data is None:
+    if response.data is None:
         print(f"  [WARN] Source update failed", file=sys.stderr)
         return False
 
-    log_usage("absorb-source", elapsed, ext=ext_num, source=source_num,
+    log_usage("absorb-source", response.elapsed, ext=ext_num, source=source_num,
               base=base_num)
     print(f"  [UPDATED] {source_label}", file=sys.stderr)
     return True

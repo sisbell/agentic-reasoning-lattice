@@ -93,14 +93,13 @@ def main():
         return
 
     # Invoke Claude
-    text, elapsed = invoke_claude(prompt, model=args.model,
-                                  effort=args.effort)
-    if not text:
+    result = invoke_claude(prompt, model=args.model, effort=args.effort)
+    if not result.text:
         print("  [ERROR] No extension ASN produced", file=sys.stderr)
         sys.exit(1)
 
     # Strip preamble
-    text = strip_preamble(text)
+    text = strip_preamble(result.text)
 
     # Write reasoning doc
     NOTE_DIR.mkdir(parents=True, exist_ok=True)
@@ -115,7 +114,7 @@ def main():
           file=sys.stderr)
 
     # Log usage
-    log_usage("extend", elapsed, source=args.source, target=args.target,
+    log_usage("extend", result.elapsed, source=args.source, target=args.target,
               base=args.base, claims=claim_labels)
 
     # Commit

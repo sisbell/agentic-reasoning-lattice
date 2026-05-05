@@ -56,7 +56,7 @@ def step_apply(asn_num, asn_path, asn_label, patch_content, model, effort):
 
     print(f"  [PATCH] Applying to {asn_label}...", file=sys.stderr)
 
-    data, elapsed = invoke_claude_agent(
+    response = invoke_claude_agent(
         prompt,
         model=model,
         effort=effort,
@@ -64,11 +64,11 @@ def step_apply(asn_num, asn_path, asn_label, patch_content, model, effort):
         max_turns=15,
     )
 
-    if data is None:
+    if response.data is None:
         print(f"  [ERROR] Patch application failed", file=sys.stderr)
         return False
 
-    log_usage("patch-apply", elapsed, asn=asn_num)
+    log_usage("patch-apply", response.elapsed, asn=asn_num)
     print(f"  [APPLIED] {asn_label}", file=sys.stderr)
     return True
 
@@ -93,20 +93,20 @@ def step_patch_review(asn_num, asn_path, asn_label, patch_content,
 
     print(f"  [REVIEW] Patch review of {asn_label}...", file=sys.stderr)
 
-    text, elapsed = invoke_claude(prompt, model=model, effort=effort)
+    result = invoke_claude(prompt, model=model, effort=effort)
 
-    if not text:
+    if not result.text:
         print(f"  [WARN] Patch review produced no output", file=sys.stderr)
         return None
 
-    log_usage("patch-review", elapsed, asn=asn_num)
+    log_usage("patch-review", result.elapsed, asn=asn_num)
 
     # Write review to file
     review_dir = REVIEWS_DIR / asn_label
     review_dir.mkdir(parents=True, exist_ok=True)
     review_num = next_review_number(asn_label, kind="note")
     review_path = review_dir / f"review-{review_num}.md"
-    review_path.write_text(text + "\n")
+    review_path.write_text(result.text + "\n")
     print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
     if "VERDICT: CONVERGED" in text:
@@ -138,7 +138,7 @@ def step_patch_revise(asn_num, asn_path, asn_label, patch_content,
     print(f"  [REVISE] Fixing patch issues in {asn_label}...",
           file=sys.stderr)
 
-    data, elapsed = invoke_claude_agent(
+    response = invoke_claude_agent(
         prompt,
         model=model,
         effort=effort,
@@ -146,11 +146,11 @@ def step_patch_revise(asn_num, asn_path, asn_label, patch_content,
         max_turns=15,
     )
 
-    if data is None:
+    if response.data is None:
         print(f"  [WARN] Patch revise failed", file=sys.stderr)
         return False
 
-    log_usage("patch-revise", elapsed, asn=asn_num)
+    log_usage("patch-revise", response.elapsed, asn=asn_num)
     return True
 
 

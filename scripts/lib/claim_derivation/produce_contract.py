@@ -58,17 +58,18 @@ def validate_contract(label, section, signature="", dependencies="", model="sonn
               .replace("{{signature}}", signature or "(none)")
               .replace("{{dependencies}}", dependencies or "(none)"))
 
-    result, _elapsed = invoke_claude(prompt, model=model, effort="high")
+    response = invoke_claude(prompt, model=model, effort="high")
+    text = response.text
 
-    if result is None:
+    if not text:
         return True, ""
 
-    if "RESULT: MATCH" in result:
+    if "RESULT: MATCH" in text:
         return True, ""
 
-    if "RESULT: MISMATCH" in result:
-        idx = result.find("RESULT: MISMATCH")
-        detail = result[idx + len("RESULT: MISMATCH"):].strip()
+    if "RESULT: MISMATCH" in text:
+        idx = text.find("RESULT: MISMATCH")
+        detail = text[idx + len("RESULT: MISMATCH"):].strip()
         return False, detail
 
     return True, ""
@@ -245,17 +246,18 @@ def _review_rewrite(pre_section, post_section, label):
               .replace("{{before}}", pre_section)
               .replace("{{after}}", post_section))
 
-    result, elapsed = invoke_claude(prompt, model="sonnet", effort="high")
+    response = invoke_claude(prompt, model="sonnet", effort="high")
+    text = response.text
 
-    if result is None:
+    if not text:
         return True, ""  # LLM failed, don't block
 
-    if "RESULT: PASS" in result:
+    if "RESULT: PASS" in text:
         return True, ""
 
-    if "RESULT: FAIL" in result:
-        idx = result.find("RESULT: FAIL")
-        detail = result[idx + len("RESULT: FAIL"):].strip()
+    if "RESULT: FAIL" in text:
+        idx = text.find("RESULT: FAIL")
+        detail = text[idx + len("RESULT: FAIL"):].strip()
         return False, detail
 
     return True, ""  # Unclear, don't block
@@ -340,8 +342,9 @@ def produce_contract(asn_num, label, section, claim_path=None, max_cycles=3):
               file=sys.stderr)
 
         # Print mode — no tools, model returns the rewritten section
-        response_text, elapsed = invoke_claude(prompt, model="opus",
-                                                effort="high")
+        response = invoke_claude(prompt, model="opus", effort="high")
+        response_text = response.text
+        elapsed = response.elapsed
         _log_usage("rewrite", elapsed, asn_num, label=label)
 
         if not response_text:

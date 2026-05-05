@@ -17,6 +17,7 @@ import subprocess
 import sys
 import threading
 import time
+from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
@@ -27,6 +28,30 @@ MODEL_FLAGS = {
     "opus": "claude-opus-4-7",
     "sonnet": "claude-sonnet-4-6",
 }
+
+
+@dataclass
+class Result:
+    """Return value of every invoke_claude variant.
+
+    Callers pick whichever fields they need:
+      text     — the model's response text (data.result for json output,
+                 raw stdout otherwise)
+      data     — parsed JSON dict, or None when --output-format is omitted
+                 or parsing failed
+      elapsed  — wall time in seconds
+      usage    — {"input_tokens", "output_tokens"} (zeros if no json)
+      cost     — total_cost_usd from the response (0.0 if no json)
+      ok       — returncode == 0 AND not data.is_error
+    """
+    text: str = ""
+    data: dict | None = None
+    elapsed: float = 0.0
+    usage: dict = field(default_factory=lambda: {
+        "input_tokens": 0, "output_tokens": 0,
+    })
+    cost: float = 0.0
+    ok: bool = False
 
 
 # ─── Process-local usage accumulator ────────────────────────────
@@ -65,7 +90,7 @@ def _accumulate_usage(input_tokens, output_tokens, cost_usd):
 
 
 def invoke_claude(prompt, *, model="opus", effort="max", tools=None):
-    """Call claude --print (single-turn, no tools by default). Returns (text, elapsed)."""
+    """Call claude --print (single-turn, no tools by default). Returns Result."""
     model_flag = MODEL_FLAGS.get(model, model)
 
     cmd = ["claude", "--print", "--model", model_flag, "--output-format", "json"]
@@ -96,7 +121,7 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None):
         if result.stdout:
             for line in result.stdout.strip().split("\n")[:5]:
                 print(f"    stdout: {line[:300]}", file=sys.stderr)
-        return "", elapsed
+        return Result(elapsed=elapsed)
 
     try:
         data = json.loads(result.stdout)
@@ -104,16 +129,32 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None):
             print(f"  FAILED (is_error in JSON, {elapsed:.0f}s)", file=sys.stderr)
             print(f"    api_error_status: {data.get('api_error_status')}", file=sys.stderr)
             print(f"    result: {str(data.get('result', ''))[:300]}", file=sys.stderr)
-            return "", elapsed
-        text = data.get("result", "")
-        return text, elapsed
+            return Result(data=data, elapsed=elapsed)
+        return _result_from_json(data, elapsed)
     except (json.JSONDecodeError, KeyError):
-        return result.stdout.strip(), elapsed
+        return Result(text=result.stdout.strip(), elapsed=elapsed, ok=True)
+
+
+def _result_from_json(data, elapsed):
+    """Build a Result from a successfully parsed JSON response."""
+    usage_data = data.get("usage", {}) or {}
+    inp = (usage_data.get("input_tokens", 0) +
+           usage_data.get("cache_read_input_tokens", 0) +
+           usage_data.get("cache_creation_input_tokens", 0))
+    out = usage_data.get("output_tokens", 0)
+    return Result(
+        text=data.get("result", ""),
+        data=data,
+        elapsed=elapsed,
+        usage={"input_tokens": inp, "output_tokens": out},
+        cost=data.get("total_cost_usd", 0) or 0.0,
+        ok=True,
+    )
 
 
 def invoke_claude_agent(prompt, *, model="opus", effort="max",
                         tools="Read,Write,Bash", max_turns=12, cwd=None):
-    """Call claude -p (agent mode). Returns (json_data, elapsed)."""
+    """Call claude -p (agent mode). Returns Result."""
     model_flag = MODEL_FLAGS.get(model, model)
 
     cmd = [
@@ -143,14 +184,14 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
         if result.stderr:
             for line in result.stderr.strip().split("\n")[:5]:
                 print(f"    {line}", file=sys.stderr)
-        return None, elapsed
+        return Result(elapsed=elapsed)
 
     try:
         data = json.loads(result.stdout)
-        return data, elapsed
+        return _result_from_json(data, elapsed)
     except (json.JSONDecodeError, KeyError):
         print(f"  [{elapsed:.0f}s] [parse error]", file=sys.stderr)
-        return None, elapsed
+        return Result(elapsed=elapsed)
 
 
 def strip_code_fence(text):

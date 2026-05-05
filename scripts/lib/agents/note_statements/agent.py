@@ -108,13 +108,13 @@ class NoteStatementsAgent(Agent):
             f"(prompt {len(prompt) // 1024}KB)",
             file=sys.stderr,
         )
-        text, elapsed = invoke_claude(
+        result = invoke_claude(
             prompt, model=STATEMENTS_MODEL, effort="high",
         )
-        if not text:
+        if not result.text:
             return AgentResult(success=False, detail="llm-failed")
 
-        body = _strip_preamble(text)
+        body = _strip_preamble(result.text)
         body = _add_source_line(body, full_note.name, asn_content)
         if not body.endswith("\n"):
             body += "\n"
@@ -130,7 +130,7 @@ class NoteStatementsAgent(Agent):
             full_sidecar = session.store.lattice_dir / sidecar_path
             full_sidecar.write_text(body)
 
-        _log_usage(asn_label, elapsed)
+        _log_usage(asn_label, result.elapsed)
         print(
             f"  [NOTE-STATEMENTS] {asn_label} done ({elapsed:.0f}s)",
             file=sys.stderr,

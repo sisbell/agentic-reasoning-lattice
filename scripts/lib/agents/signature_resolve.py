@@ -108,12 +108,12 @@ def _render_prompt(
 
 
 def _call_sonnet(prompt: str, *, model: str) -> Tuple[str, float]:
-    text, elapsed = invoke_claude(
+    result = invoke_claude(
         prompt, model=model, effort="high", tools="Read",
     )
-    if not text:
-        raise RuntimeError(f"Sonnet returned empty after {elapsed:.0f}s")
-    return text, elapsed
+    if not result.text:
+        raise RuntimeError(f"Sonnet returned empty after {result.elapsed:.0f}s")
+    return result.text, result.elapsed
 
 
 # ---------------------------------------------------------------------------

@@ -104,20 +104,20 @@ def run_review(
         end="", file=sys.stderr, flush=True,
     )
 
-    text, elapsed = invoke_claude(prompt, model=model, effort="high")
+    result = invoke_claude(prompt, model=model, effort="high")
 
-    if not text:
-        print(f"  FAILED (exit 1, {elapsed:.0f}s)", file=sys.stderr)
-        return "ERROR", None, elapsed
+    if not result.text:
+        print(f"  FAILED (exit 1, {result.elapsed:.0f}s)", file=sys.stderr)
+        return "ERROR", None, result.elapsed
 
-    verdict = parse_verdict(text)
-    finding_count = len(re.findall(r'^### ', text, re.MULTILINE))
+    verdict = parse_verdict(result.text)
+    finding_count = len(re.findall(r'^### ', result.text, re.MULTILINE))
     print(
-        f" verdict={verdict}, {finding_count} finding(s) ({elapsed:.0f}s)",
+        f" verdict={verdict}, {finding_count} finding(s) ({result.elapsed:.0f}s)",
         file=sys.stderr,
     )
 
-    return verdict, text, elapsed
+    return verdict, result.text, result.elapsed
 
 
 def extract_findings(text: str) -> list:
