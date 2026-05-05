@@ -51,3 +51,12 @@ def all_classified(session: Session, kind: str) -> List[Address]:
         if not link.from_set:
             out.update(link.to_set)
     return sorted(out, key=lambda a: a.digits)
+
+
+def is_retired(session: Session, doc_addr: Address) -> bool:
+    """True iff the doc has an active `retired` classifier link.
+
+    Lifecycle marker per the standalone-link pattern: presence means
+    out of the active lattice. Retracting the link revives the doc.
+    """
+    return bool(session.active_links("retired", to_set=[doc_addr]))

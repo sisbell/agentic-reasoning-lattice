@@ -30,6 +30,10 @@ VALID_TYPES = frozenset({
     # from any address to find what replaces it; head = no outgoing
     # supersession link.
     "supersession",
+    # Retired — lifecycle marker on a doc. Classifier-shape (F=∅, G=[doc]).
+    # Presence = doc is retired (out of active lattice). Retraction
+    # revives. State transitions are real substrate facts; no toggling.
+    "retired",
 })
 
 VALID_SUBTYPES = {

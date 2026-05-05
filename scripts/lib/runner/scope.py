@@ -41,13 +41,17 @@ def asn_note_addr(session, scope: Scope):
     """Resolve scope.asn_label to its source-note substrate address.
 
     Returns None if no asn_label is set, no note exists for that
-    ASN number, or the note path isn't registered in substrate.
+    ASN number, the note path isn't registered, or the note is
+    retired (out of active lattice). Retired ASNs are filtered out
+    of every trigger's scope.
 
     Centralizes the boilerplate that every ASN-scoped trigger's
-    scope_query needs — parse asn_num, find_asn, get_addr_for_path.
+    scope_query needs — parse asn_num, find_asn, get_addr_for_path,
+    retired filter.
     """
     if scope.asn_label is None:
         return None
+    from lib.predicates import is_retired
     from lib.shared.common import find_asn
     from lib.shared.paths import LATTICE
     asn_num = int(scope.asn_label[4:])
@@ -55,4 +59,7 @@ def asn_note_addr(session, scope: Scope):
     if asn_path is None:
         return None
     rel = str(asn_path.relative_to(LATTICE))
-    return session.get_addr_for_path(rel)
+    addr = session.get_addr_for_path(rel)
+    if addr is None or is_retired(session, addr):
+        return None
+    return addr

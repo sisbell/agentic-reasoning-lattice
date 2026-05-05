@@ -89,6 +89,15 @@ class ClassifierEmitTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             emit_contract(self.store, a, "not-a-kind")
 
+    def test_emit_retired_idempotent(self):
+        from lib.backend.emit import emit_retired
+        a = self.store.addr_for_path("claim/A.md")
+        link, created = emit_retired(self.store, a)
+        self.assertTrue(created)
+        link2, created2 = emit_retired(self.store, a)
+        self.assertFalse(created2)
+        self.assertEqual(link.addr, link2.addr)
+
 
 class AttributeEmitTests(unittest.TestCase):
     def setUp(self):

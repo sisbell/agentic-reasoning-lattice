@@ -141,6 +141,20 @@ def emit_supersession(
     return link, True
 
 
+def emit_retired(
+    store: Store, doc: Address,
+) -> Tuple[Link, bool]:
+    """Mark a doc as retired (lifecycle: out of active lattice).
+
+    Classifier-shape link (F=∅, G=[doc]). Idempotent on the active
+    set — re-emitting returns the existing link without re-emitting.
+    Reviving the doc is a `retraction` on this link (standard
+    substrate primitive); each transition is a real fact, not a
+    toggled state.
+    """
+    return emit_classifier(store, doc, "retired")
+
+
 def emit_view(
     store: Store, view_doc: Address, kind: str,
 ) -> Tuple[Link, bool]:

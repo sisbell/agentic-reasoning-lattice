@@ -38,6 +38,7 @@ from .classifiers import (
     all_claim_addrs,
     all_classified,
     current_contract_kind,
+    is_retired,
 )
 from .convergence import (
     derived_claims,
@@ -92,6 +93,7 @@ __all__ = [
     "is_converged",
     "is_doc_converged",
     "is_head_version",
+    "is_retired",
     "latest_review_for_addr",
     "latest_review_was_clean",
     "orphan_claim_finding_docs",

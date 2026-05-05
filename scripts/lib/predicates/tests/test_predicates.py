@@ -231,6 +231,38 @@ class VersionChainTests(unittest.TestCase):
         self.assertEqual(version_head(self.session, self.claim), v1_v1)
 
 
+class RetiredLifecycleTests(unittest.TestCase):
+    """Lifecycle marker via standalone `retired` link."""
+
+    def setUp(self):
+        self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
+        self.lattice = self.state.create_doc()
+        self.note = self.state.create_doc(kind="note", lattice=self.lattice)
+
+    def test_default_is_active(self):
+        from lib.predicates import is_retired
+        self.assertFalse(is_retired(self.session, self.note))
+
+    def test_retired_link_marks_retired(self):
+        from lib.predicates import is_retired
+        self.state.make_link(
+            self.note, [], [self.note], "retired",
+        )
+        self.assertTrue(is_retired(self.session, self.note))
+
+    def test_retracting_retired_revives(self):
+        from lib.predicates import is_retired
+        retired_link = self.state.make_link(
+            self.note, [], [self.note], "retired",
+        )
+        # Retracting the retired link revives — predicate goes False.
+        self.state.make_link(
+            self.note, [self.note], [retired_link.addr], "retraction",
+        )
+        self.assertFalse(is_retired(self.session, self.note))
+
+
 class SupersessionChainTests(unittest.TestCase):
     """Walk supersession links to find a doc's head version."""
 
