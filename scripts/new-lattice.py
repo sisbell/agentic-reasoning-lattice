@@ -2,10 +2,9 @@
 """
 Scaffold a new lattice directory.
 
-Creates `lattices/<name>/` with the minimal config (`config.yaml`) and
-a `manifests/` directory ready for the first ASN. Substrate directories
-(`_docuverse/`, `_workspace/`) are auto-created on first use by the
-runtime — no need to pre-create them.
+Creates `lattices/<name>/` with the minimal config (`config.yaml`).
+Substrate directories (`_docuverse/`, `_workspace/`) are auto-created
+on first use by the runtime — no need to pre-create them.
 
 Idempotent on a missing target: refuses to overwrite an existing lattice
 directory. Run once per new domain.
@@ -50,7 +49,6 @@ def main():
         sys.exit(1)
 
     lattice_dir.mkdir(parents=True)
-    (lattice_dir / "manifests").mkdir()
 
     config_path = lattice_dir / "config.yaml"
     config_path.write_text(
@@ -64,7 +62,6 @@ def main():
 
     print(f"  Created {lattice_dir.relative_to(REPO_ROOT)}/", file=sys.stderr)
     print(f"    config.yaml", file=sys.stderr)
-    print(f"    manifests/", file=sys.stderr)
     print(f"\n  Next steps:", file=sys.stderr)
     print(f"    1. Create channels under channels/ "
           f"(see docs/getting-started/03-add-channels.md)", file=sys.stderr)

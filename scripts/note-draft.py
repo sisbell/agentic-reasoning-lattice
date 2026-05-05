@@ -30,9 +30,7 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import (
-    WORKSPACE, NOTE_DIR, MANIFESTS_DIR,
-)
+from lib.shared.paths import WORKSPACE, NOTE_DIR
 from lib.note_convergence.steps import step_commit
 
 CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "consultation" / "decompose.py"
