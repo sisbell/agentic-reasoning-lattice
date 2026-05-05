@@ -15,7 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.maturation.manage_extend import (
     parse_registry_labels, validate, derive_names, compute_depends,
-    build_prompt, strip_preamble, write_manifest,
+    build_prompt, strip_preamble, emit_lineage,
 )
 from lib.shared.paths import WORKSPACE, LATTICE, NOTE_DIR
 from lib.shared.common import find_asn, log_usage
@@ -108,10 +108,11 @@ def main():
     asn_path.write_text(text + "\n")
     print(f"  [WROTE] {asn_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    # Write project model
-    yaml_path = write_manifest(args.target, ext_title, args.base,
-                               args.source, depends, claim_labels)
-    print(f"  [WROTE] {yaml_path.relative_to(WORKSPACE)}", file=sys.stderr)
+    # Record extends/source lineage in substrate
+    with open_session(LATTICE) as _session:
+        emit_lineage(_session, asn_path, base_path, source_path)
+    print(f"  [LINEAGE] extends → {base_label}, source → {source_label}",
+          file=sys.stderr)
 
     # Log usage
     log_usage("extend", elapsed, source=args.source, target=args.target,

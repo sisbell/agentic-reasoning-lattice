@@ -14,9 +14,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, LATTICE, NOTE_DIR, MANIFESTS_DIR,
+from lib.backend.emit import emit_extends, emit_source
+from lib.shared.paths import (WORKSPACE, LATTICE, NOTE_DIR,
                    prompt_path, load_inquiry, inquiry_doc_path,
-                   note_yaml, claim_statements)
+                   claim_statements)
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.git_ops import step_commit
 from lib.shared.invoke_claude import invoke_claude
@@ -77,12 +78,7 @@ def validate(source_num, target_num, base_num, claim_labels):
 
     # Target does not exist
     target_label = f"ASN-{target_num:04d}"
-    target_yaml = note_yaml(target_num)
     target_asns = list(NOTE_DIR.glob(f"{target_label}-*.md"))
-    if target_yaml.exists():
-        print(f"  [ERROR] {target_label} already exists in project model",
-              file=sys.stderr)
-        sys.exit(1)
     if target_asns:
         print(f"  [ERROR] {target_label} already exists in reasoning docs",
               file=sys.stderr)
@@ -171,27 +167,19 @@ def strip_preamble(text):
     return text
 
 
-def write_manifest(target_num, title, base_num, source_num, depends,
-                   claims):
-    """Write the project model YAML for the new extension."""
-    target_label = f"ASN-{target_num:04d}"
-    base_label = f"ASN-{base_num:04d}"
-    source_label = f"ASN-{source_num:04d}"
-    dep_list = ", ".join(str(d) for d in depends)
+def emit_lineage(session, target_path, base_path, source_path):
+    """Record extends/source lineage on the new extension note in substrate.
 
-    content = (
-        f"# {target_label} — {title}\n"
-        f'title: "{title}"\n'
-        f"extends: {base_num}\n"
-        f"source: {source_num}\n"
-        f"depends: [{dep_list}]\n"
-        f"\n"
-        f"consultations:\n"
-        f'  question: "Extension of {base_label}: '
-        f'claims {", ".join(claims)} from {source_label}."\n'
-    )
-
-    path = note_yaml(target_num)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content)
-    return path
+    Registers the new note's path if needed, then emits an `extends`
+    link to the base note and a `source` link to the source note. The
+    base and source notes are expected to already be registered (their
+    paths are existing note files).
+    """
+    target_rel = str(target_path.relative_to(LATTICE))
+    base_rel = str(base_path.relative_to(LATTICE))
+    source_rel = str(source_path.relative_to(LATTICE))
+    target_addr = session.store.register_path(target_rel)
+    base_addr = session.get_addr_for_path(base_rel)
+    source_addr = session.get_addr_for_path(source_rel)
+    emit_extends(session.store, target_addr, base_addr)
+    emit_source(session.store, target_addr, source_addr)
