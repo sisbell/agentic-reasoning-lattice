@@ -37,6 +37,7 @@ from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
+from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
     LATTICE_PROMPTS, NOTE_FINDINGS_DIR, REVIEWS_DIR, USAGE_LOG, WORKSPACE,
     load_inquiry, sorted_reviews,
@@ -381,6 +382,13 @@ class NoteReviewAgent(Agent):
             f"{revise_count} REVISE, {oos_count} OUT_OF_SCOPE "
             f"({elapsed:.0f}s)",
             file=sys.stderr,
+        )
+
+        # Commit the review aggregate + finding docs + substrate emits
+        # as a discrete pipeline event (matches cone-review pattern).
+        step_commit_asn(
+            asn_number,
+            f"note-review(asn): {asn_label} {review_path.name}",
         )
 
         return AgentResult(

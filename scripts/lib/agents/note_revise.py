@@ -33,6 +33,7 @@ from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
+from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
     LATTICE, LATTICE_PROMPTS, USAGE_LOG, WORKSPACE,
 )
@@ -341,6 +342,13 @@ class NoteReviseAgent(Agent):
             return AgentResult(
                 success=False, elapsed=elapsed, detail="llm-failed",
             )
+
+        # Commit the revise edits + resolution links emitted by the
+        # in-process Claude session as a discrete pipeline event.
+        step_commit_asn(
+            asn_number,
+            f"note-revise(asn): {asn_label} addressed={len(findings)}",
+        )
 
         return AgentResult(
             success=True,
