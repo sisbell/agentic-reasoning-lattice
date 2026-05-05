@@ -48,8 +48,10 @@ def build_prompt(
 ) -> str:
     """Build revise prompt: discovery methodology + per-finding instructions.
 
-    `findings` is a list of (comment_id, title, body) tuples — one per
-    open `comment.revise` link on the note. The agent is instructed to
+    `findings` is a list of (comment_id, finding_addr, title, body)
+    tuples — one per open `comment.revise` link on the note. The
+    finding_addr is unused here but kept on the tuple so callers can
+    walk consultation.coverage off it. The agent is instructed to
     address each in the note md and call convergence-link-resolution.py
     per finding to close the comment in the substrate.
     """
@@ -106,7 +108,7 @@ Use these answers as evidence when addressing the corresponding findings.
 {consultation_content}"""
 
     assignment += "\n\n## Findings\n"
-    for n, (comment_id, title, body) in enumerate(findings, 1):
+    for n, (comment_id, _finding_addr, title, body) in enumerate(findings, 1):
         assignment += (
             f"\n### Finding {n}: {title}\n"
             f"**Comment ID:** `{comment_id}`\n\n"
@@ -178,12 +180,16 @@ def _invoke_claude(prompt: str, *, model: str, effort: str):
 
 def _collect_open_revises(
     session: Session, note_addr: Address,
-) -> List[Tuple[Address, str, str]]:
-    """Return list of (comment_addr, title, body) for unresolved revise
-    comments targeting the note. Each finding's body is read from its
-    finding doc; missing finding docs are skipped with a stderr note.
+) -> List[Tuple[Address, Address, str, str]]:
+    """Return list of (comment_addr, finding_addr, title, body) for
+    unresolved revise comments targeting the note. Each finding's body
+    is read from its finding doc; missing finding docs are skipped with
+    a stderr note.
+
+    finding_addr is needed downstream to walk consultation.coverage
+    links in `_build_consultation_content`.
     """
-    items: List[Tuple[Address, str, str]] = []
+    items: List[Tuple[Address, Address, str, str]] = []
     for c in unresolved_revise_comments(session, note_addr):
         if not c.from_set:
             continue
@@ -201,8 +207,52 @@ def _collect_open_revises(
         body = finding_full.read_text().strip()
         first_line = body.splitlines()[0] if body else ""
         title = re.sub(r"^#+\s*", "", first_line).strip() or "(untitled)"
-        items.append((c.addr, title, body))
+        items.append((c.addr, finding_addr, title, body))
     return items
+
+
+def _build_consultation_content(
+    session: Session,
+    items: List[Tuple[Address, Address, str, str]],
+) -> str | None:
+    """Assemble per-finding consultation answers for the revise prompt.
+
+    For each open revise finding, walks `consultation.coverage` links
+    targeting it and reads each answer doc that has the
+    `consultation.answer` classifier (the assessment doc also covers
+    findings but isn't a Q/A; skipped). Returns markdown text grouped
+    by finding, or None if no answers exist.
+
+    Substrate-grounded — no filename inspection, no aggregate file.
+    """
+    parts: list[str] = []
+    for _comment_addr, finding_addr, title, _body in items:
+        coverage = session.active_links(
+            "consultation.coverage", to_set=[finding_addr],
+        )
+        if not coverage:
+            continue
+        section: list[str] = []
+        for link in coverage:
+            if not link.from_set:
+                continue
+            source_addr = link.from_set[0]
+            if not session.active_links(
+                "consultation.answer", to_set=[source_addr],
+            ):
+                continue
+            source_path_rel = session.get_path_for_addr(source_addr)
+            if not source_path_rel:
+                continue
+            source_full = LATTICE / source_path_rel
+            if not source_full.exists():
+                continue
+            section.append(source_full.read_text().strip())
+        if section:
+            parts.append(f"### Finding: {title}\n")
+            parts.extend(section)
+            parts.append("")
+    return "\n\n".join(parts).strip() or None if parts else None
 
 
 def _log_revise_usage(
@@ -274,9 +324,10 @@ class NoteReviseAgent(Agent):
             )
 
         vocab = read_file(resolve_campaign(asn_label).vocabulary_path)
+        consultation_content = _build_consultation_content(session, findings)
         prompt = build_prompt(
             asn_path, findings, vocab,
-            consultation_content=None,
+            consultation_content=consultation_content,
             asn_number=asn_number,
         )
         print(
