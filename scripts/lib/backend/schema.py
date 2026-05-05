@@ -22,9 +22,12 @@ VALID_TYPES = frozenset({
     "agent", "manages",
     # Lattice membership relation (added in spec-faithful refactor)
     "lattice",
-    # View — virtual doc whose content is rendered live from substrate
-    # state (no on-disk file). Always carries a sub-kind.
-    "view",
+    # Transclusion — runtime tag (NOT a structural classifier) marking
+    # a doc whose content is rendered by a registered Python function
+    # at read time. Native to Xanadu's protocol there; here it's a
+    # read-mechanism flag, not a substrate predicate target. Always
+    # carries a sub-kind.
+    "transclusion",
     # Supersession — version-replacement declaration (per LM 4/52-4/53).
     # F=[old_version], G=[new_version]. Reading: walk outgoing supersession
     # from any address to find what replaces it; head = no outgoing
@@ -58,7 +61,7 @@ VALID_SUBTYPES = {
                      # is_claim_confirmed and future coverage / staleness
                      # predicates.
     }),
-    "view": frozenset({
+    "transclusion": frozenset({
         "claim-statements",  # per-ASN assembled view of derived claims
                              # + their descriptions; rendered live from
                              # substrate state.
@@ -66,7 +69,7 @@ VALID_SUBTYPES = {
 }
 
 # Types that must always carry a subtype — bare parent writes are invalid.
-REQUIRES_SUBTYPE = frozenset({"citation", "view"})
+REQUIRES_SUBTYPE = frozenset({"citation", "transclusion"})
 
 # File suffixes for attribute sidecars (used by file-walking helpers
 # that distinguish claim body markdown from sidecars).

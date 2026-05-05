@@ -20,7 +20,7 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
     """Yield each claim-classified derivation of the ASN's source note.
 
     Filters out non-claim derivations (e.g., the claim-statements
-    view doc) so the agent only describes actual claims.
+    transclusion) so the agent only describes actual claims.
     """
     note_addr = asn_note_addr(session, scope)
     if note_addr is None:

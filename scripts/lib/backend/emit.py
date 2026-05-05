@@ -155,20 +155,22 @@ def emit_retired(
     return emit_classifier(store, doc, "retired")
 
 
-def emit_view(
-    store: Store, view_doc: Address, kind: str,
+def emit_transclusion(
+    store: Store, transclusion_doc: Address, kind: str,
 ) -> Tuple[Link, bool]:
-    """File a `view.<kind>` classifier on a virtual doc.
+    """File a `transclusion.<kind>` runtime tag on a doc.
 
     Marks the doc as rendered-on-read; the kind selects which renderer
-    (registered via lib/lattice/render.py) supplies content.
+    (registered via lib/lattice/render.py) supplies content. The tag
+    is a read-mechanism flag, not a structural classifier — predicates
+    and substrate walks should NOT branch on its presence.
     """
-    valid = VALID_SUBTYPES["view"]
+    valid = VALID_SUBTYPES["transclusion"]
     if kind not in valid:
         raise ValueError(
-            f"invalid view kind {kind!r}; must be one of {sorted(valid)}"
+            f"invalid transclusion kind {kind!r}; must be one of {sorted(valid)}"
         )
-    return emit_classifier(store, view_doc, f"view.{kind}")
+    return emit_classifier(store, transclusion_doc, f"transclusion.{kind}")
 
 
 def emit_consultation_questions(

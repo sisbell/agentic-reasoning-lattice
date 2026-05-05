@@ -8,9 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 
 from lib.backend.addressing import Address
 from lib.backend.state import State
-from lib.lattice.render import (
-    _RENDERERS, read_doc, register_renderer, view_kind_for,
-)
+from lib.lattice.render import _RENDERERS, read_doc, register_renderer
 from lib.protocols.febe.session import Session
 
 
@@ -27,17 +25,13 @@ class RendererRegistryTests(unittest.TestCase):
         _RENDERERS.clear()
         _RENDERERS.update(self._saved_registry)
 
-    def _emit_view_classifier(self, doc, kind):
+    def _emit_transclusion_tag(self, doc, kind):
         self.state.make_link(
             homedoc=doc, from_set=[], to_set=[doc],
-            type_=f"view.{kind}",
+            type_=f"transclusion.{kind}",
         )
 
-    def test_unregistered_kind_returns_none(self):
-        doc = self.state.create_doc()
-        self.assertIsNone(view_kind_for(self.session, doc))
-
-    def test_registered_renderer_dispatches_on_classifier(self):
+    def test_registered_renderer_dispatches_on_tag(self):
         rendered = []
 
         def fake_render(session, addr):
@@ -47,24 +41,33 @@ class RendererRegistryTests(unittest.TestCase):
         register_renderer("claim-statements", fake_render)
 
         doc = self.state.create_doc()
-        self._emit_view_classifier(doc, "claim-statements")
+        self._emit_transclusion_tag(doc, "claim-statements")
 
-        self.assertEqual(view_kind_for(self.session, doc), "claim-statements")
         self.assertEqual(read_doc(self.session, doc), "rendered content")
         self.assertEqual(rendered, [doc])
 
-    def test_doc_without_view_classifier_falls_through(self):
-        # A registered renderer exists but the doc has no classifier.
-        register_renderer("claim-statements", lambda s, a: "should not run")
+    def test_doc_without_tag_falls_through_to_file_read(self):
+        # A registered renderer exists but the doc has no tag — the
+        # renderer must NOT run. read_doc should attempt the file-read
+        # path instead.
+        called = []
+        register_renderer(
+            "claim-statements", lambda s, a: called.append(a) or "ran",
+        )
         doc = self.state.create_doc()
-        self.assertIsNone(view_kind_for(self.session, doc))
+        # The fallthrough tries to read a file via store; with a
+        # State-only session it raises NotImplementedError (no store)
+        # or KeyError (no path). Either way, NOT the renderer.
+        with self.assertRaises((KeyError, NotImplementedError)):
+            read_doc(self.session, doc)
+        self.assertEqual(called, [])
 
     def test_registry_dispatches_to_matching_kind(self):
         register_renderer("claim-statements", lambda s, a: "claim view")
-        register_renderer("other-view", lambda s, a: "other view")
+        register_renderer("other-kind", lambda s, a: "other view")
 
         doc = self.state.create_doc()
-        self._emit_view_classifier(doc, "claim-statements")
+        self._emit_transclusion_tag(doc, "claim-statements")
 
         self.assertEqual(read_doc(self.session, doc), "claim view")
 

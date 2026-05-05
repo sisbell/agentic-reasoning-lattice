@@ -94,19 +94,19 @@ REVIEWS_DIR = NOTE_REVIEWS_DIR  # legacy alias, prefer NOTE_REVIEWS_DIR
 CLAIM_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "claims"
 NOTE_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "notes"
 
-# Virtual / rendered documents (classified by `view.<kind>`). The
-# substrate path is a citizen address; no on-disk file is written —
-# the registered renderer supplies content at read time.
-VIEW_DIR = DOCUVERSE_DOCS_DIR / "view"
+# Transclusion-rendered documents (tagged by `transclusion.<kind>`).
+# The substrate path is a citizen address; no on-disk file is
+# written — the registered renderer supplies content at read time.
+TRANSCLUSION_DIR = DOCUVERSE_DOCS_DIR / "transclusion"
 
 
-def view_path(asn_label: str, kind: str) -> Path:
-    """Lattice-relative path for a view doc (no file on disk).
+def transclusion_path(asn_label: str, kind: str) -> Path:
+    """Lattice-relative path for a transclusion doc (no file on disk).
 
     Used as the path argument to `register_path` when emitting a
-    virtual doc; gives the doc a stable substrate address.
+    transclusion; gives the doc a stable substrate address.
     """
-    return VIEW_DIR / asn_label / f"{kind}.md"
+    return TRANSCLUSION_DIR / asn_label / f"{kind}.md"
 
 
 # Citation-resolve operation outputs (classified by `citation.resolve`).
@@ -244,8 +244,8 @@ def claim_statements(asn_num):
     be stale relative to current substrate state post-derivation).
     For up-to-date "what does this ASN say?" content, walk the
     note's `statements` link + supersession chain to the head and
-    use `read_doc` instead — the head is the view.claim-statements
-    doc post-derivation.
+    use `read_doc` instead — the head is the transclusion.claim-
+    statements doc post-derivation.
     """
     from .common import find_asn
     asn_path, _ = find_asn(str(asn_num))

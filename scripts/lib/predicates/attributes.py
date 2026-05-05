@@ -76,7 +76,7 @@ def has_statements(session: Session, doc_addr: Address) -> bool:
     Notes-side: produced by note-assembly's LLM extraction. The
     extracted statements doc is the foundation artifact for this note
     pre-derivation; post-derivation it's superseded by the
-    view.claim-statements view.
+    transclusion.claim-statements doc.
     """
     return bool(session.active_links("statements", from_set=[doc_addr]))
 
@@ -88,8 +88,8 @@ def statements_sidecar_of(
 
     Returns the canonical (link's to_set[0]) statements address —
     walking supersession from there finds the head version
-    (extracted_doc when only LLM extraction has run; view doc once
-    derivation has emitted supersession).
+    (extracted_doc when only LLM extraction has run; transclusion
+    doc once derivation has emitted supersession).
     """
     links = session.active_links("statements", from_set=[doc_addr])
     for link in links:

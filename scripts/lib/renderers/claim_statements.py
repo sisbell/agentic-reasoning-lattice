@@ -1,9 +1,9 @@
-"""Renderer for `view.claim-statements` virtual documents.
+"""Renderer for `transclusion.claim-statements` documents.
 
-A claim-statements view sits at a substrate address (no on-disk
-file) and represents the assembled "what does this ASN say?"
-artifact downstream discovery cites as a dependency. Reading the
-view walks the substrate live:
+A claim-statements transclusion sits at a substrate address (no
+on-disk file) and represents the assembled "what does this ASN
+say?" artifact downstream discovery cites as a dependency. Reading
+walks the substrate live:
 
 - One incoming `provenance.derivation` link from the source note
   identifies the ASN anchor.
@@ -30,14 +30,15 @@ from lib.lattice.render import read_doc, register_renderer
 from lib.predicates import derived_claims
 from lib.protocols.febe.protocol import Session
 from lib.shared.foundation import _extract_formal_contract
-from lib.shared.paths import view_path
+from lib.shared.paths import transclusion_path
 
 
 _DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
 
 def render_claim_statements(session: Session, addr: Address) -> str:
-    """Assemble the claim-statements view's content from current substrate.
+    """Assemble the claim-statements transclusion's content from
+    current substrate.
 
     Walks back to the source note via incoming `provenance.derivation`,
     then forward via `derived_claims` to enumerate the cluster.
@@ -68,14 +69,14 @@ def render_claim_statements(session: Session, addr: Address) -> str:
     return "\n".join(parts) + "\n"
 
 
-def _source_note(session: Session, view_addr: Address) -> Address:
+def _source_note(session: Session, doc_addr: Address) -> Address:
     """Find the source note via incoming provenance.derivation."""
     incoming = session.active_links(
-        "provenance.derivation", to_set=[view_addr],
+        "provenance.derivation", to_set=[doc_addr],
     )
     if not incoming:
         raise ValueError(
-            f"view {view_addr} has no incoming provenance.derivation"
+            f"doc {doc_addr} has no incoming provenance.derivation"
         )
     return incoming[0].from_set[0]
 
@@ -149,15 +150,15 @@ register_renderer("claim-statements", render_claim_statements)
 def read_claim_statements_view(
     session: Session, asn_label: str,
 ) -> Optional[str]:
-    """Render the claim-statements view for an ASN, by label.
+    """Render the claim-statements transclusion for an ASN, by label.
 
-    Convenience for consumers that don't already hold the view's
-    Address. Returns the rendered markdown, or None if no view doc
-    is registered for this ASN.
+    Convenience for consumers that don't already hold the
+    transclusion doc's Address. Returns the rendered markdown, or
+    None if no transclusion doc is registered for this ASN.
     """
     lattice_root = session.store.lattice_dir.resolve()
     rel = str(
-        view_path(asn_label, "claim-statements")
+        transclusion_path(asn_label, "claim-statements")
         .resolve().relative_to(lattice_root)
     )
     addr = session.get_addr_for_path(rel)

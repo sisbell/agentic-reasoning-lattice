@@ -57,7 +57,7 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "provenance.synthesis": (19, 2),
     "manages": (20,),
     "lattice": (21,),
-    "view.claim-statements": (22, 1),
+    "transclusion.claim-statements": (22, 1),
     "supersession": (23,),
     "statements": (24,),
     "retired": (25,),
@@ -72,7 +72,7 @@ PARENT_TYPES: Dict[str, Tuple[int, ...]] = {
     "comment": (16,),
     "resolution": (17,),
     "provenance": (19,),
-    "view": (22,),
+    "transclusion": (22,),
 }
 
 # Types whose endset shape is Classifier (F=∅, G=[doc]). When State.create_doc
@@ -96,7 +96,7 @@ CLASSIFIER_TYPES: frozenset = frozenset({
     "consultation.questions",
     "consultation.assessment",
     "consultation.answer",
-    "view.claim-statements",
+    "transclusion.claim-statements",
 })
 
 
