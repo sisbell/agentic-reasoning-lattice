@@ -14,9 +14,7 @@ review's REVISE / OUT_OF_SCOPE sections.
 from __future__ import annotations
 
 import json
-import os
 import re
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -31,6 +29,7 @@ from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
 from lib.shared.git_ops import step_commit_asn
+from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
     LATTICE_PROMPTS, NOTE_FINDINGS_DIR, REVIEWS_DIR, USAGE_LOG, WORKSPACE,
     load_inquiry, sorted_reviews,
@@ -148,61 +147,6 @@ def _validate_review(text: str):
 
 
 # ---------------------------------------------------------------------------
-# Claude invocation
-
-
-def _invoke_claude(prompt: str, *, model: str, effort: str):
-    """Call claude --print with --tools "". Returns (text, elapsed)."""
-    import sys
-    model_flag = {
-        "opus": "claude-opus-4-7",
-        "sonnet": "claude-sonnet-4-6",
-    }.get(model, model)
-
-    cmd = [
-        "claude", "--print",
-        "--model", model_flag,
-        "--tools", "",
-    ]
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    if effort:
-        env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
-    env.setdefault("CLAUDE_CODE_MAX_OUTPUT_TOKENS", "128000")
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-        timeout=None,
-    )
-    elapsed = time.time() - start
-
-    if result.returncode != 0:
-        print(
-            f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
-            file=sys.stderr,
-        )
-        if result.stderr:
-            for line in result.stderr.strip().split("\n"):
-                print(f"    stderr: {line}", file=sys.stderr)
-        if result.stdout:
-            stdout_len = len(result.stdout)
-            print(
-                f"    stdout: {stdout_len} chars partial output",
-                file=sys.stderr,
-            )
-            tail = result.stdout[-500:]
-            print(f"    stdout tail: ...{tail}", file=sys.stderr)
-        else:
-            print("    stdout: empty", file=sys.stderr)
-        return "", elapsed
-
-    print(f"  [{elapsed:.0f}s]", file=sys.stderr)
-    return result.stdout.strip(), elapsed
-
-
-# ---------------------------------------------------------------------------
 # Trigger-runner entry: class form
 
 
@@ -270,19 +214,20 @@ class NoteReviewAgent(Agent):
             out_of_scope=out_of_scope,
             foundation=foundation,
         )
-        text, elapsed = _invoke_claude(
+        response = invoke_claude(
             prompt, model=self.model, effort=self.effort,
+            tools="", output_format=None,
         )
-        if not text:
+        if not response.text:
             return AgentResult(
-                success=False, elapsed=elapsed, detail="llm-failed",
+                success=False, elapsed=response.elapsed, detail="llm-failed",
             )
-        text = _strip_preamble(text)
+        text = _strip_preamble(response.text)
         validation_error = _validate_review(text)
         if validation_error:
             print(f"  MALFORMED REVIEW: {validation_error}", file=sys.stderr)
             return AgentResult(
-                success=False, elapsed=elapsed,
+                success=False, elapsed=response.elapsed,
                 detail=f"malformed: {validation_error}",
             )
 
@@ -325,11 +270,11 @@ class NoteReviewAgent(Agent):
         )
         oos_count = len(findings) - revise_count
 
-        _log_review_usage(asn_label, elapsed)
+        _log_review_usage(asn_label, response.elapsed)
         print(
             f"  [NOTE-REVIEW] {asn_label} {review_path.name} — "
             f"{revise_count} REVISE, {oos_count} OUT_OF_SCOPE "
-            f"({elapsed:.0f}s)",
+            f"({response.elapsed:.0f}s)",
             file=sys.stderr,
         )
 
@@ -342,7 +287,7 @@ class NoteReviewAgent(Agent):
 
         return AgentResult(
             success=True,
-            elapsed=elapsed,
+            elapsed=response.elapsed,
             detail=(
                 f"review-{next_n} | revise={revise_count} oos={oos_count}"
             ),

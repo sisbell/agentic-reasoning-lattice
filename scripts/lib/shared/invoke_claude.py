@@ -89,11 +89,19 @@ def _accumulate_usage(input_tokens, output_tokens, cost_usd):
         _total_usage["calls"] += 1
 
 
-def invoke_claude(prompt, *, model="opus", effort="max", tools=None):
-    """Call claude --print (single-turn, no tools by default). Returns Result."""
+def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
+                  output_format="json"):
+    """Call claude --print (single-turn, no tools by default). Returns Result.
+
+    output_format="json" wraps the response in a JSON envelope (default).
+    output_format=None omits the flag — claude emits plain text and
+    Result.data is None.
+    """
     model_flag = MODEL_FLAGS.get(model, model)
 
-    cmd = ["claude", "--print", "--model", model_flag, "--output-format", "json"]
+    cmd = ["claude", "--print", "--model", model_flag]
+    if output_format:
+        cmd.extend(["--output-format", output_format])
     if tools is not None:
         cmd.extend(["--tools", tools])
     else:
@@ -122,6 +130,9 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None):
             for line in result.stdout.strip().split("\n")[:5]:
                 print(f"    stdout: {line[:300]}", file=sys.stderr)
         return Result(elapsed=elapsed)
+
+    if output_format != "json":
+        return Result(text=result.stdout.strip(), elapsed=elapsed, ok=True)
 
     try:
         data = json.loads(result.stdout)
