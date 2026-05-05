@@ -30,8 +30,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, CONSULTATIONS_DIR, LATTICE_PROMPTS,
-    prompt_path, load_inquiry as load_inquiry_frontmatter,
+    WORKSPACE, CONSULTATIONS_DIR, LATTICE, LATTICE_PROMPTS,
+    inquiry_doc_path, prompt_path, load_inquiry as load_inquiry_frontmatter,
     load_channel_meta,
 )
 from lib.shared.campaign import resolve_campaign
@@ -41,7 +41,8 @@ from lib.consultation.consult import (
     dispatch_generate_questions, dispatch_run_consultation,
 )
 from lib.backend.emit import (
-    emit_consultation_answer, emit_consultation_questions,
+    emit_consultation_answer, emit_consultation_coverage,
+    emit_consultation_questions,
 )
 from lib.protocols.febe.session import open_session
 
@@ -450,6 +451,15 @@ def main():
     questions_addr = store.register_path(questions_rel)
     emit_consultation_questions(store, questions_addr)
 
+    # Record the questions doc's coverage of the inquiry. Symmetric with
+    # the assessment-side coverage on the revise path; lets a future
+    # consumer walk inquiry → consultation docs structurally.
+    inquiry_rel = str(
+        inquiry_doc_path(asn_id).resolve().relative_to(LATTICE.resolve())
+    )
+    inquiry_addr = store.register_path(inquiry_rel)
+    emit_consultation_coverage(store, questions_addr, inquiry_addr)
+
     if args.dry_run:
         for i, (role, q) in enumerate(questions, 1):
             print(f"{i}. [{role}] {q}")
@@ -462,15 +472,21 @@ def main():
     consult_elapsed = time.time() - consult_start
     print(f"  [CONSULT] All done ({consult_elapsed:.0f}s)", file=sys.stderr)
 
-    # Classify each per-answer doc as a substrate citizen. Single-pass
-    # after the parallel consultations complete so all writes are in
-    # place before we open the store.
+    # Classify each per-answer doc as a substrate citizen + record its
+    # coverage of the inquiry. Single-pass after the parallel
+    # consultations complete so all writes are in place before we open
+    # the store.
     session = open_session(LATTICE)
     store = session.store  # for emit_* (Pass 2 will migrate)
+    inquiry_rel = str(
+        inquiry_doc_path(asn_id).resolve().relative_to(LATTICE.resolve())
+    )
+    inquiry_addr = store.register_path(inquiry_rel)
     for answer_md in sorted(init_dir.glob("answer-*.md")):
         answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
         answer_addr = store.register_path(answer_rel)
         emit_consultation_answer(store, answer_addr)
+        emit_consultation_coverage(store, answer_addr, inquiry_addr)
 
     combined = build_combined_output(inquiry_text, inquiry_title, questions, results)
 
