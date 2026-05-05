@@ -8,6 +8,8 @@ does not change the runner.
 from .claim_describe import claim_describe
 from .cone_review import apex_labels_in_topological_order, cone_review
 from .full_review import full_review
+from .note_review import note_review
+from .note_revise import note_revise
 from .note_statements import note_statements
 
 __all__ = [
@@ -15,5 +17,7 @@ __all__ = [
     "claim_describe",
     "cone_review",
     "full_review",
+    "note_review",
+    "note_revise",
     "note_statements",
 ]

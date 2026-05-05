@@ -1,60 +1,56 @@
 #!/usr/bin/env python3
-"""
-Note Convergence — drive a note through review/revise cycles.
+"""Note Convergence — drive a note through review/revise cycles via the
+trigger runner.
 
-Implements §6.2 of docs/protocols/note-convergence-protocol.md. Each
-cycle: RetryOpenRevises → Review → EmitFindings → Revise → check
-predicate. If a cycle files zero revises AND the substrate predicate
-holds, we converged naturally. Otherwise, after max-cycles, run a +1
-confirmation review.
+Walks the note-review and note-revise triggers until quiescent. Each
+cycle: fire any trigger whose predicate is unsatisfied. Convergence is
+when a full pass fires nothing (predicates are satisfied: no open
+revises AND the most recent review filed zero new revises).
 
 Usage:
-    python scripts/note-converge.py 9                  # default 15 cycles, opus
-    python scripts/note-converge.py 9 --max-cycles 8
-    python scripts/note-converge.py 9 --dry-run        # one review, no revise
-    python scripts/note-converge.py 9 --model sonnet
+    python scripts/note-converge.py 9                  # default 100 max passes
+    python scripts/note-converge.py 9 --max-iterations 8
 """
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.orchestrators.note_converge import run_note_convergence
-from lib.provenance import attributed_to
+from lib.runner import asn, run_until_quiescent
+from lib.triggers import note_review, note_revise
 
 
-@attributed_to("note-review")
 def main():
     parser = argparse.ArgumentParser(
-        description="Drive a note through review/revise cycles to convergence.",
+        description=(
+            "Drive a note through review/revise cycles to convergence "
+            "via the trigger runner."
+        ),
     )
     parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
-    parser.add_argument("--max-cycles", type=int, default=15,
-                        help="Maximum cycles before giving up (default 15)")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Run one review, skip revise; exit converged "
-                             "iff zero revises were filed.")
-    parser.add_argument("--model", "-m", default="opus",
-                        choices=["opus", "sonnet"],
-                        help="Model (default: opus)")
-    parser.add_argument("--effort", default="max",
-                        help="Thinking effort level (low/medium/high/max)")
+    parser.add_argument(
+        "--max-iterations", type=int, default=100,
+        help="Safety cap on convergence passes (default 100)",
+    )
     args = parser.parse_args()
 
-    outcome = run_note_convergence(
-        args.asn, max_cycles=args.max_cycles,
-        dry_run=args.dry_run, model=args.model, effort=args.effort,
+    asn_num = int(re.sub(r"\D", "", args.asn))
+
+    result = run_until_quiescent(
+        triggers=[note_review, note_revise],
+        scope=asn(asn_num),
+        max_iterations=args.max_iterations,
     )
 
-    # Exit codes mirror cone-sweep / full-review:
-    #   0  — converged
-    #   1  — not converged or failed
-    #   2  — converged + signal (kept for symmetry with note-revise.py
-    #         which uses 2 to indicate convergence; here we just use 0)
-    if outcome == "converged":
-        sys.exit(0)
-    sys.exit(1)
+    print(
+        f"\n  [NOTE-CONVERGE] iterations={result.iterations} "
+        f"fires={len(result.fires)} errors={len(result.errors)} "
+        f"quiescent={result.quiescent}",
+        file=sys.stderr,
+    )
+    sys.exit(0 if result.quiescent and not result.errors else 1)
 
 
 if __name__ == "__main__":
