@@ -25,11 +25,12 @@ Structural sections (preamble, worked example, etc. — sections of the
 source note that don't contain claims) are relocated as workspace
 artifacts under `_workspace/claim-derivation/<asn>/structural/`.
 
-Description sidecars are NOT written here — that's `summarize.py`'s
-job, which runs as a follow-up stage. The Claim Document Contract's
-description requirements (#1 file completeness, #4 description link)
-are satisfied after summarize, not at the end of transclude. This is a
-known boundary.
+Description sidecars are NOT written here — that's the
+claim-describe trigger's job (lib/triggers/claim_describe.py +
+lib/agents/claim_describe/). The Claim Document Contract's
+description requirements (#1 file completeness, #4 description
+link) are satisfied after the trigger fires on each fresh claim,
+not at the end of transclude. This is a known boundary.
 
 Usage (standalone):
     python scripts/lib/claim_derivation/transclude.py 36
