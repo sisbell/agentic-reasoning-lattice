@@ -34,6 +34,10 @@ from .attributes import (
     statements_sidecar_of,
 )
 from .citations import depends, dependents
+from .consultation import (
+    all_open_revises_consulted,
+    is_finding_consulted,
+)
 from .classifiers import (
     all_claim_addrs,
     all_classified,
@@ -70,6 +74,7 @@ from .versions import (
 __all__ = [
     "all_claim_addrs",
     "all_classified",
+    "all_open_revises_consulted",
     "current_contract_kind",
     "dangling_attribute_links",
     "dangling_claim_finding_links",
@@ -92,6 +97,7 @@ __all__ = [
     "is_claim_converged",
     "is_converged",
     "is_doc_converged",
+    "is_finding_consulted",
     "is_head_version",
     "is_retired",
     "latest_review_for_addr",
