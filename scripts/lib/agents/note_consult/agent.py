@@ -114,10 +114,10 @@ class NoteConsultAgent(Agent):
             file=sys.stderr,
         )
 
-        results_path = run_consult_for_review(
+        consult_subdir = run_consult_for_review(
             asn_path, asn_label, review_path, model=self.model,
         )
-        if results_path is None:
+        if consult_subdir is None:
             return AgentResult(success=False, detail="consult-failed")
 
         step_commit_asn(
@@ -127,5 +127,5 @@ class NoteConsultAgent(Agent):
 
         return AgentResult(
             success=True,
-            detail=f"review-{review_num} | {Path(results_path).name}",
+            detail=f"review-{review_num} | {Path(consult_subdir).name}",
         )

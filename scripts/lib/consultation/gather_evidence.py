@@ -157,66 +157,6 @@ def run_targeted_consultations(items, asn_id, consult_subdir, model="opus"):
         print(f"  [EVIDENCE] All done", file=sys.stderr)
 
 
-# ─── Write results ───────────────────────────────────────
-
-def build_results(asn_label, review_path, items):
-    """Build the consultation results markdown file."""
-    display_names = assign_channels.display_names(asn_label)
-    review_name = Path(review_path).name
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-    consulted = [it for it in items if it["questions"]]
-    internal_count = len(items) - len(consulted)
-    per_channel = ", ".join(
-        f"{sum(1 for it in items if r in it['questions'])} {name.lower()}"
-        for r, name in display_names.items()
-    )
-
-    parts = [
-        f"# Revision Consultation — {asn_label}",
-        "",
-        f"**Review:** {review_name}",
-        f"**Date:** {now}",
-        "",
-        "## Summary",
-        "",
-        f"{len(items)} REVISE items analyzed: {internal_count} internal, "
-        f"{len(consulted)} consulted ({per_channel})",
-        "",
-    ]
-
-    if not consulted:
-        parts += ["All REVISE items are internally fixable — "
-                  "no expert consultation needed.", ""]
-        return "\n".join(parts)
-
-    parts += ["## Consultation Results", ""]
-
-    for item in consulted:
-        category = assign_channels.category_label(item["questions"].keys(), asn_label)
-        parts += [
-            f"### Issue {item['number']}: {item['title']}",
-            "",
-            f"**Category:** {category}",
-            f"**Reason:** {item.get('reason', '')}",
-            "",
-        ]
-        answers = item.get("answers", {})
-        for role, question in item["questions"].items():
-            name = display_names[role]
-            answer = (answers.get(role) or "[consultation not run]").strip() or "[No answer]"
-            parts += [
-                f"**{name} question:** {question}",
-                "",
-                f"**{name}'s Answer:**",
-                "",
-                answer,
-                "",
-            ]
-
-    return "\n".join(parts)
-
-
 # ─── Finding-address pairing ────────────────────────────────────
 
 
@@ -263,12 +203,11 @@ def run_consult_for_review(
 ):
     """Run the consult flow for one specific review of one ASN.
 
-    Returns the path to the assembled `answers.md` results doc, or None
-    if no REVISE section / channel-assignment failed. Writes:
+    Returns the consult subdirectory path, or None if no REVISE
+    section / channel-assignment failed. Writes:
 
       consultation/<asn>/consultation-<N>/assessment.md
       consultation/<asn>/consultation-<N>/answer-NN-<role>.md (per Q/A)
-      consultation/<asn>/consultation-<N>/answers.md (assembled)
 
     Emits substrate facts:
 
@@ -276,6 +215,10 @@ def run_consult_for_review(
       consultation.answer classifier on each answer file
       consultation.coverage from assessment → each REVISE finding
       consultation.coverage from each answer → its finding
+
+    No aggregate results doc written — downstream consumers
+    (NoteReviseAgent, etc.) construct consultation content at runtime
+    by walking consultation.coverage links to find their answers.
 
     Used by both the standalone CLI and `NoteConsultAgent`.
     """
@@ -367,10 +310,7 @@ def run_consult_for_review(
 
     if dry_run:
         print(f"  [DRY RUN] Skipping consultations", file=sys.stderr)
-        results = build_results(asn_label, review_path, items)
-        results_path = consult_subdir / "answers.md"
-        results_path.write_text(results)
-        return results_path
+        return consult_subdir
 
     if consult_count > 0:
         print(f"", file=sys.stderr)
@@ -395,10 +335,6 @@ def run_consult_for_review(
             if finding_addr is not None:
                 emit_consultation_coverage(store, answer_addr, finding_addr)
 
-    results = build_results(asn_label, review_path, items)
-    results_path = consult_subdir / "answers.md"
-    results_path.write_text(results)
-
     total_elapsed = time.time() - total_start
 
     print(f"", file=sys.stderr)
@@ -421,8 +357,8 @@ def run_consult_for_review(
             f"({totals['calls']} calls)", file=sys.stderr,
         )
 
-    print(f"  Output: {results_path}", file=sys.stderr)
-    return results_path
+    print(f"  Output: {consult_subdir}", file=sys.stderr)
+    return consult_subdir
 
 
 # ─── CLI ─────────────────────────────────────────────────────────
@@ -465,13 +401,13 @@ def main():
             )
         sys.exit(1)
 
-    results_path = run_consult_for_review(
+    consult_subdir = run_consult_for_review(
         asn_path, asn_label, review_path,
         model=args.model, dry_run=args.dry_run,
     )
-    if results_path is None:
+    if consult_subdir is None:
         sys.exit(1)
-    print(str(results_path.resolve()))
+    print(str(consult_subdir.resolve()))
 
 
 if __name__ == "__main__":
