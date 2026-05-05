@@ -289,6 +289,52 @@ def run_discovery(inquiry, asn_number, slug, force=False):
     return None
 
 
+def run_draft_for_inquiry(asn_id, *, force: bool = False):
+    """Synthesize the consultation content into a formal ASN note.
+
+    Reads the inquiry's metadata + the consultation answers (walked
+    from substrate at runtime), invokes Claude to write the note md,
+    then emits the `note` classifier and `provenance.synthesis` from
+    inquiry → note. Returns the note path on success, None on failure.
+    """
+    inquiry = load_inquiry(asn_id)
+    if not inquiry:
+        print(
+            f"  [ERROR] No inquiry found for ASN-{asn_id:04d}",
+            file=sys.stderr,
+        )
+        return None
+
+    asn_number = inquiry.get("id", asn_id)
+    slug = slugify(inquiry["title"])
+
+    NOTE_DIR.mkdir(parents=True, exist_ok=True)
+    print(f"ASN-{asn_number:04d}: {inquiry['title']}", file=sys.stderr)
+
+    asn_path = run_discovery(inquiry, asn_number, slug, force=force)
+    if not asn_path:
+        return None
+
+    session = open_session(LATTICE)
+    store = session.store  # for emit_* (Pass 2 will migrate)
+    asn_rel = str(Path(asn_path).resolve().relative_to(LATTICE.resolve()))
+    note_addr = store.register_path(asn_rel)
+    _, note_created = emit_note(store, note_addr)
+    if note_created:
+        print(f"  [NOTE] classifier emitted", file=sys.stderr)
+    inq_path = inquiry_doc_path(asn_number)
+    if inq_path.exists():
+        inq_rel = str(inq_path.resolve().relative_to(LATTICE.resolve()))
+        inq_addr = store.register_path(inq_rel)
+        _, syn_created = emit_synthesis(store, inq_addr, note_addr)
+        if syn_created:
+            print(
+                f"  [SYNTHESIS] inquiry → note link emitted",
+                file=sys.stderr,
+            )
+    return asn_path
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Discovery: synthesize expert answers into a formal ASN")
@@ -298,37 +344,11 @@ def main():
                         help="Overwrite existing ASN")
     args = parser.parse_args()
 
-    inquiry = load_inquiry(args.inquiry_id)
-    asn_number = inquiry["id"]
-    slug = slugify(inquiry["title"])
-
-    NOTE_DIR.mkdir(parents=True, exist_ok=True)
-
-    print(f"ASN-{asn_number:04d}: {inquiry['title']}", file=sys.stderr)
-
-    asn_path = run_discovery(inquiry, asn_number, slug, force=args.force)
-
-    if asn_path:
-        session = open_session(LATTICE)
-        store = session.store  # for emit_* (Pass 2 will migrate)
-        asn_rel = str(Path(asn_path).resolve().relative_to(LATTICE.resolve()))
-        note_addr = store.register_path(asn_rel)
-        _, note_created = emit_note(store, note_addr)
-        if note_created:
-            print(f"  [NOTE] classifier emitted", file=sys.stderr)
-        inq_path = inquiry_doc_path(asn_number)
-        if inq_path.exists():
-            inq_rel = str(inq_path.resolve().relative_to(LATTICE.resolve()))
-            inq_addr = store.register_path(inq_rel)
-            _, syn_created = emit_synthesis(store, inq_addr, note_addr)
-            if syn_created:
-                print(f"  [SYNTHESIS] inquiry → note link emitted",
-                      file=sys.stderr)
-        # Print the output file path to stdout (for pipeline consumption)
-        print(str(asn_path))
-    else:
+    asn_path = run_draft_for_inquiry(args.inquiry_id, force=args.force)
+    if asn_path is None:
         print("  [FAILED] No ASN produced", file=sys.stderr)
         sys.exit(1)
+    print(str(asn_path))
 
 
 if __name__ == "__main__":
