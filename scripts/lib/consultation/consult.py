@@ -1,30 +1,27 @@
 #!/usr/bin/env python3
 """Shared consultation operation primitives.
 
-The atomic verb: consult one channel with one question. Channel plugins
-under channels/<name>/consultations/consult.py use the primitives here
-(invoke_claude, parse_numbered, format_out_of_scope_block) to build their
-own generate_questions and consult functions. Pipeline orchestrators use
-load_channel_plugin to resolve a channel name to its plugin module and
-dispatch_* to route calls through it.
+Channel plugins under channels/<name>/consultations/consult.py use
+`invoke_claude`, `parse_numbered`, and `format_out_of_scope_block` to
+build their own generate_questions and consult functions. Pipeline
+orchestrators use `load_channel_plugin` to resolve a channel name to
+its plugin module and call its methods directly.
 
-This module holds only engine-level primitives that don't vary by channel:
-Claude CLI invocation, token/cost extraction, usage-log append, session-
-dir numbering, channel-arg resolution.
+`invoke_claude` here is a thin wrapper around lib.shared.invoke_claude
+that adds consult-specific side effects (output_file write, USAGE_LOG
+append, process-local usage accumulator update).
 """
 
 import importlib.util
-import re
 import sys
 from pathlib import Path
 
 from lib.shared.common import log_usage
 from lib.shared.invoke_claude import (
-    _accumulate_usage, get_total_usage, reset_total_usage,
+    _accumulate_usage,
     invoke_claude as _shared_invoke_claude,
 )
-from lib.shared.campaign import resolve_campaign
-from lib.shared.paths import WORKSPACE, CHANNELS_DIR, load_channel_meta
+from lib.shared.paths import CHANNELS_DIR, load_channel_meta
 
 
 def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
@@ -98,56 +95,7 @@ def format_out_of_scope_block(out_of_scope):
     return f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
 
 
-def next_session_dir(parent, prefix):
-    """Create and return the next numbered session dir under `parent`.
-
-    Scans for existing `{prefix}-N/` dirs, picks max(N)+1, mkdirs the result
-    (and its parents). Used by consultation scripts to number per-call
-    transcript dirs under lattices/<L>/_docuverse/documents/consultation/. The prefix
-    is typically a channel name (xanadu) or a role name (materials).
-    """
-    parent.mkdir(parents=True, exist_ok=True)
-    pat = re.compile(rf"{re.escape(prefix)}-(\d+)$")
-    next_num = 1
-    for d in parent.glob(f"{prefix}-*/"):
-        m = pat.search(d.name)
-        if m:
-            next_num = max(next_num, int(m.group(1)) + 1)
-    consult_dir = parent / f"{prefix}-{next_num}"
-    consult_dir.mkdir(parents=True, exist_ok=True)
-    return consult_dir
-
-
-def resolve_channel_from_args(args, role):
-    """Pick the channel name from CLI args for a consultation script.
-
-    `role` is 'theory' or 'evidence'. Prefers an explicit --channel, falls
-    back to resolving via --asn's campaign. Exits via argparse error if
-    neither is provided.
-    """
-    if args.channel:
-        return args.channel
-    if args.asn:
-        return getattr(resolve_campaign(args.asn), f"{role}_channel")
-    raise SystemExit(
-        "error: provide --asn (to resolve via campaign) or --channel (explicit)")
-
-
 _plugin_cache = {}
-
-
-def dispatch_generate_questions(channel, inquiry, n, model, out_of_scope):
-    """Load the channel plugin and call its generate_questions."""
-    plugin = load_channel_plugin(channel)
-    return plugin.generate_questions(
-        inquiry, n=n, model=model, out_of_scope=out_of_scope)
-
-
-def dispatch_run_consultation(channel, question, label, model, effort, **extra):
-    """Load the channel plugin and call its consult."""
-    plugin = load_channel_plugin(channel)
-    return plugin.consult(
-        question, label=label, model=model, effort=effort, **extra)
 
 
 def load_channel_plugin(channel_name):

@@ -32,15 +32,13 @@ from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_coverage,
     emit_consultation_questions,
 )
-from lib.consultation.consult import (
-    invoke_claude, get_total_usage, reset_total_usage,
-    dispatch_generate_questions, dispatch_run_consultation,
-)
+from lib.consultation.consult import invoke_claude, load_channel_plugin
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
+from lib.shared.invoke_claude import get_total_usage, reset_total_usage
 from lib.shared.paths import (
     WORKSPACE, CONSULTATIONS_DIR, LATTICE,
     inquiry_doc_path, prompt_path,
@@ -164,10 +162,10 @@ def _decompose_inquiry(inquiry_text, num_theory=10, num_evidence=10, model="opus
     theory_channel = campaign.theory_channel
     evidence_channel = campaign.evidence_channel
 
-    theory_qs = dispatch_generate_questions(
-        theory_channel, inquiry_text, num_theory, model, out_of_scope)
-    evidence_qs = dispatch_generate_questions(
-        evidence_channel, inquiry_text, num_evidence, model, out_of_scope)
+    theory_qs = load_channel_plugin(theory_channel).generate_questions(
+        inquiry_text, n=num_theory, model=model, out_of_scope=out_of_scope)
+    evidence_qs = load_channel_plugin(evidence_channel).generate_questions(
+        inquiry_text, n=num_evidence, model=model, out_of_scope=out_of_scope)
 
     all_qs = [("theory", q) for q in theory_qs] + [("evidence", q) for q in evidence_qs]
 
@@ -274,8 +272,8 @@ def _run_consultations(questions, consult_dir, asn_id, theory_model="opus",
             role, question = questions[i]
 
             def run_t(idx=i, q=question, r=role):
-                answer = dispatch_run_consultation(
-                    theory_channel, q,
+                answer = load_channel_plugin(theory_channel).consult(
+                    q,
                     label=f"Q{idx + 1}:theory",
                     model=theory_model, effort=effort,
                 )
@@ -295,8 +293,8 @@ def _run_consultations(questions, consult_dir, asn_id, theory_model="opus",
               file=sys.stderr)
         for i in evidence_indices:
             role, question = questions[i]
-            answer = dispatch_run_consultation(
-                evidence_channel, question,
+            answer = load_channel_plugin(evidence_channel).consult(
+                question,
                 label=f"Q{i + 1}:evidence",
                 model=evidence_model, effort=effort,
             )

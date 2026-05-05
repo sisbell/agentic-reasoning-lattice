@@ -7,13 +7,32 @@ invokes its consult(). Wraps the call with transcript-dir creation and
 answer-file writing — one place, not per-channel.
 """
 import argparse
+import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import CONSULTATIONS_DIR
 from lib.shared.campaign import resolve_campaign
-from lib.consultation.consult import load_channel_plugin, next_session_dir
+from lib.consultation.consult import load_channel_plugin
+
+
+def _next_session_dir(parent, prefix):
+    """Create and return the next numbered session dir under `parent`.
+
+    Scans for existing `{prefix}-N/` dirs, picks max(N)+1, mkdirs the
+    result (and its parents). Used to number per-call transcript dirs.
+    """
+    parent.mkdir(parents=True, exist_ok=True)
+    pat = re.compile(rf"{re.escape(prefix)}-(\d+)$")
+    next_num = 1
+    for d in parent.glob(f"{prefix}-*/"):
+        m = pat.search(d.name)
+        if m:
+            next_num = max(next_num, int(m.group(1)) + 1)
+    consult_dir = parent / f"{prefix}-{next_num}"
+    consult_dir.mkdir(parents=True, exist_ok=True)
+    return consult_dir
 
 
 def main():
@@ -54,7 +73,7 @@ def main():
     plugin = load_channel_plugin(channel)
 
     prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
-    consult_dir = next_session_dir(CONSULTATIONS_DIR / prefix / "sessions", channel)
+    consult_dir = _next_session_dir(CONSULTATIONS_DIR / prefix / "sessions", channel)
     (consult_dir / "question.md").write_text(question + "\n")
     answer_file = consult_dir / "answer.md"
 

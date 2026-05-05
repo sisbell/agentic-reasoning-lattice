@@ -41,9 +41,7 @@ from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_assessment,
     emit_consultation_coverage,
 )
-from lib.consultation.consult import (
-    invoke_claude, get_total_usage, dispatch_run_consultation,
-)
+from lib.consultation.consult import invoke_claude, load_channel_plugin
 from lib.predicates import (
     is_finding_consulted, unresolved_revise_comments,
 )
@@ -52,6 +50,7 @@ from lib.protocols.febe.session import open_session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
+from lib.shared.invoke_claude import get_total_usage
 from lib.shared.paths import (
     LATTICE, NOTE_FINDINGS_DIR, REVIEWS_DIR,
     consultation_dir, load_channel_meta, prompt_path,
@@ -253,8 +252,8 @@ def _run_targeted_consultations(items, asn_id, consult_subdir, model="opus"):
 
         for idx, (item_idx, question) in enumerate(theory_work):
             def run_t(ii=item_idx, q=question, n=idx + 1):
-                answer = dispatch_run_consultation(
-                    theory_channel, q, label=f"Q{n}:theory",
+                answer = load_channel_plugin(theory_channel).consult(
+                    q, label=f"Q{n}:theory",
                     model=model, effort="max")
                 items[ii]["answers"]["theory"] = answer
                 _save_answer(consult_subdir, items[ii], "theory", answer)
@@ -270,8 +269,8 @@ def _run_targeted_consultations(items, asn_id, consult_subdir, model="opus"):
         print(f"  [EVIDENCE] Running {len(evidence_work)} consultations sequentially...",
               file=sys.stderr)
         for idx, (item_idx, question) in enumerate(evidence_work):
-            answer = dispatch_run_consultation(
-                evidence_channel, question, label=f"Q{idx + 1}:evidence",
+            answer = load_channel_plugin(evidence_channel).consult(
+                question, label=f"Q{idx + 1}:evidence",
                 model="sonnet", effort="max")
             items[item_idx]["answers"]["evidence"] = answer
             _save_answer(consult_subdir, items[item_idx], "evidence", answer)
