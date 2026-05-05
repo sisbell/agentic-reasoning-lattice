@@ -52,9 +52,6 @@ EXAMPLES_DIR = LATTICE / "implementation" / "examples"
 TEST_CASES_DIR = LATTICE / "implementation" / "test-cases"
 TRANSLATION_DIR = LATTICE / "implementation" / "translation"
 
-# Per-note manifests (metadata, statements, deps, issues)
-MANIFESTS_DIR = LATTICE / "manifests"
-
 # Requirements (Nelson feature extraction)
 REQUIREMENTS_DIR = LATTICE / "requirements"
 
@@ -200,11 +197,6 @@ def claim_doc_path(asn_label, label):
     return f"_docuverse/documents/claim/{asn_label}/{label}.md"
 
 
-def note_dir(asn_num):
-    """Per-note manifest directory."""
-    return MANIFESTS_DIR / f"ASN-{int(asn_num):04d}"
-
-
 def consultation_dir(asn):
     """Per-ASN consultation directory. Accepts int or ASN-NNNN label."""
     if isinstance(asn, str) and asn.startswith("ASN-"):
@@ -225,13 +217,6 @@ def claim_docs_dir(asn):
     return CLAIM_DIR / f"ASN-{int(asn):04d}"
 
 
-def note_yaml(asn_num):
-    """Legacy path to a note's metadata YAML. Pre-Phase-2 inquiry refactor.
-    Should not be referenced by new code — use inquiry_doc_path.
-    """
-    return note_dir(asn_num) / "note.yaml"
-
-
 def inquiry_doc_path(asn_num):
     """Path to a substrate-managed inquiry doc (md + frontmatter)."""
     return INQUIRY_DIR / f"ASN-{int(asn_num):04d}.md"
@@ -240,10 +225,10 @@ def inquiry_doc_path(asn_num):
 def claim_statements(asn_num):
     """Lattice path to a note's `statements` attribute sidecar.
 
-    The sidecar holds the LLM-extracted formal statements for the
-    note. Lives next to the note doc under
-    `_docuverse/documents/note/<note-stem>.statements.md`. Substrate-
-    citizen; the note's outgoing `statements` link points at it.
+    Lives next to the note doc under
+    `_docuverse/documents/note/<note-stem>.statements.md`.
+    Substrate-citizen; the note's outgoing `statements` link points
+    at it.
 
     Reads at this path return the LLM-extracted content (which can
     be stale relative to current substrate state post-derivation).
@@ -255,7 +240,10 @@ def claim_statements(asn_num):
     from .common import find_asn
     asn_path, _ = find_asn(str(asn_num))
     if asn_path is None:
-        return note_dir(asn_num) / "claim-statements.md"
+        raise FileNotFoundError(
+            f"no note found for ASN-{int(asn_num):04d}; cannot resolve "
+            f"statements sidecar path"
+        )
     return asn_path.parent / f"{asn_path.stem}.statements.md"
 
 
