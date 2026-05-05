@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.runner import asn, run_until_quiescent
-from lib.triggers import note_review, note_revise
+from lib.triggers import note_consult, note_review, note_revise
 
 
 def main():
@@ -39,7 +39,7 @@ def main():
     asn_num = int(re.sub(r"\D", "", args.asn))
 
     result = run_until_quiescent(
-        triggers=[note_review, note_revise],
+        triggers=[note_review, note_consult, note_revise],
         scope=asn(asn_num),
         max_iterations=args.max_iterations,
     )
