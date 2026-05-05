@@ -9,35 +9,38 @@ import re
 import sys
 from pathlib import Path
 
-import yaml
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CLAIM_DIR, MANIFESTS_DIR
+from lib.shared.paths import WORKSPACE, CLAIM_DIR, LATTICE
 from lib.shared.claim_files import build_label_index, load_claim_metadata
 
 
 def find_extensions(base_id):
     """Find all ASNs that extend a given base ASN.
 
-    Scans project model manifests for extends: <base_id> and returns
-    their ASN IDs sorted numerically.
+    Reverse-walks `extends` substrate links targeting the base note's
+    address; resolves each from-side note path to an ASN number.
+    Returns sorted list of ASN ids.
     """
-    if not MANIFESTS_DIR.exists():
+    from lib.protocols.febe.session import open_session
+    from lib.shared.common import find_asn
+    base_path, _ = find_asn(str(base_id))
+    if base_path is None:
         return []
-
+    base_rel = str(base_path.relative_to(LATTICE))
     extensions = []
-    for path in sorted(MANIFESTS_DIR.glob("ASN-*/note.yaml")):
-        try:
-            with open(path) as f:
-                m_data = yaml.safe_load(f) or {}
-        except (FileNotFoundError, yaml.YAMLError):
-            continue
-
-        if m_data.get("extends") == base_id:
-            m = re.match(r"ASN-(\d+)", path.parent.name)
+    with open_session(LATTICE) as session:
+        base_addr = session.get_addr_for_path(base_rel)
+        if base_addr is None:
+            return []
+        for link in session.active_links("extends", to_set=[base_addr]):
+            if not link.from_set:
+                continue
+            ext_path = session.get_path_for_addr(link.from_set[0])
+            if ext_path is None:
+                continue
+            m = re.search(r"ASN-(\d+)", ext_path)
             if m:
                 extensions.append(int(m.group(1)))
-
     return sorted(extensions)
 
 

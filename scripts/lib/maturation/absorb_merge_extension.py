@@ -26,9 +26,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, NOTE_DIR, MANIFESTS_DIR,
+from lib.protocols.febe.session import open_session
+from lib.shared.paths import (WORKSPACE, NOTE_DIR, LATTICE,
                    REVIEWS_DIR, LATTICE_PROMPTS, prompt_path,
-                   load_state, note_yaml, claim_statements)
+                   claim_statements)
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.git_ops import step_commit
 from lib.shared.invoke_claude import invoke_claude, invoke_claude_agent
@@ -68,32 +69,57 @@ def parse_extension_labels(ext_content):
     return labels
 
 
+def _asn_num_from_path(path):
+    m = re.search(r"ASN-(\d+)", path)
+    return int(m.group(1)) if m else None
+
+
 def validate(ext_num):
-    """Validate the extension ASN. Returns (base_num, source_num, ext_path)."""
+    """Validate the extension ASN. Returns (base_num, source_num, ext_path).
+
+    Sources extends/source from substrate links on the extension note.
+    Multiple `source` links collapse to a list (then take first when the
+    legacy callers expect a single number). No-extends ASN is a hard
+    error — extensions must declare their base.
+    """
     ext_label = f"ASN-{ext_num:04d}"
 
-    state = load_state(ext_num)
-    if not state:
-        print(f"  [ERROR] {ext_label} has no state file (extends/source)",
-              file=sys.stderr)
-        sys.exit(1)
-
-    base_num = state.get("extends")
-    if base_num is None:
-        print(f"  [ERROR] {ext_label} is not an extension ASN "
-              f"(no extends field in state.yaml)", file=sys.stderr)
-        sys.exit(1)
-
-    source_num = state.get("source")
-
-    # Extension reasoning doc exists
     ext_path, _ = find_asn(str(ext_num))
     if ext_path is None:
         print(f"  [ERROR] {ext_label} reasoning doc not found",
               file=sys.stderr)
         sys.exit(1)
 
-    # Base reasoning doc exists
+    ext_rel = str(ext_path.relative_to(LATTICE))
+    with open_session(LATTICE) as session:
+        ext_addr = session.get_addr_for_path(ext_rel)
+        if ext_addr is None:
+            print(f"  [ERROR] {ext_label} not registered in substrate",
+                  file=sys.stderr)
+            sys.exit(1)
+        ext_links = session.active_links("extends", from_set=[ext_addr])
+        if not ext_links or not ext_links[0].to_set:
+            print(f"  [ERROR] {ext_label} is not an extension ASN "
+                  f"(no extends link in substrate)", file=sys.stderr)
+            sys.exit(1)
+        base_path_rel = session.get_path_for_addr(ext_links[0].to_set[0])
+        base_num = _asn_num_from_path(base_path_rel) if base_path_rel else None
+
+        source_links = session.active_links("source", from_set=[ext_addr])
+        source_nums = [
+            _asn_num_from_path(session.get_path_for_addr(link.to_set[0]))
+            for link in source_links if link.to_set
+        ]
+        source_nums = [n for n in source_nums if n is not None]
+
+    if base_num is None:
+        print(f"  [ERROR] {ext_label} extends link target not resolvable",
+              file=sys.stderr)
+        sys.exit(1)
+
+    # Legacy callers expect a single source num (or None).
+    source_num = source_nums[0] if source_nums else None
+
     base_path, _ = find_asn(str(base_num))
     if base_path is None:
         print(f"  [ERROR] Base ASN-{int(base_num):04d} reasoning doc "
@@ -350,20 +376,14 @@ def step_update_source(ext_num, source_num, base_num, ext_path,
 
 
 def step_cleanup(ext_num):
-    """Step 5: Remove extension's project model and export file."""
-    ext_label = f"ASN-{ext_num:04d}"
+    """Step 5: Remove the extension's statements sidecar.
 
-    yaml_path = note_yaml(ext_num)
-    if yaml_path.exists():
-        yaml_path.unlink()
-        print(f"  [REMOVED] {yaml_path.relative_to(WORKSPACE)}",
-              file=sys.stderr)
-
+    The extends/source lineage stays in substrate (provenance audit).
+    The extension's reasoning doc and review dir are kept as trace
+    artifacts.
+    """
     export_path = claim_statements(ext_num)
     if export_path.exists():
         export_path.unlink()
         print(f"  [REMOVED] {export_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
-
-    # Reasoning doc kept as trace artifact
-    # Review dir kept as trace artifact
