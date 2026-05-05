@@ -3,7 +3,8 @@
 Promote Open Questions — evaluate ASN open questions for new ASN creation.
 
 Reads an ASN's open questions section, asks Claude which warrant their own
-ASN, creates note.yaml for each promoted question.
+ASN, and creates a substrate-citizen inquiry doc for each promoted
+question plus a `promotion.open-questions` audit report.
 
 Usage:
     python scripts/promote-open-questions.py 34

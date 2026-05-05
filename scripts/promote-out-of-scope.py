@@ -3,7 +3,8 @@
 Promote Out-of-Scope — evaluate review deferrals for new ASN creation.
 
 Reads OUT_OF_SCOPE items from an ASN's reviews, asks Claude which warrant
-their own ASN, creates note.yaml for each promoted item.
+their own ASN, and creates a substrate-citizen inquiry doc for each
+promoted item plus a `promotion.out-of-scope` audit report.
 
 Usage:
     python scripts/promote-out-of-scope.py 34
