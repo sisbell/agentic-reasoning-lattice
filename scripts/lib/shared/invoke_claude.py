@@ -165,16 +165,20 @@ def _result_from_json(data, elapsed):
 
 def invoke_claude_agent(prompt, *, model="opus", effort="max",
                         tools="Read,Write,Bash", max_turns=12, cwd=None):
-    """Call claude -p (agent mode). Returns Result."""
+    """Call claude -p (agent mode). Returns Result.
+
+    max_turns=None omits the --max-turns flag (server default applies).
+    """
     model_flag = MODEL_FLAGS.get(model, model)
 
     cmd = [
         "claude", "-p",
         "--model", model_flag,
         "--output-format", "json",
-        "--max-turns", str(max_turns),
-        "--allowedTools", tools,
     ]
+    if max_turns is not None:
+        cmd.extend(["--max-turns", str(max_turns)])
+    cmd.extend(["--allowedTools", tools])
 
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)

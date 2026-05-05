@@ -14,7 +14,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -28,6 +27,7 @@ from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
 from lib.shared.git_ops import step_commit_asn
+from lib.shared.invoke_claude import invoke_claude_agent
 from lib.shared.paths import (
     LATTICE, LATTICE_PROMPTS, USAGE_LOG, WORKSPACE,
 )
@@ -117,61 +117,6 @@ Use these answers as evidence when addressing the corresponding findings.
 
     parts.append(assignment)
     return "\n\n".join(parts)
-
-
-def _invoke_claude(prompt: str, *, model: str, effort: str):
-    """Run claude -p with tools. Returns (data, elapsed) — data is
-    the parsed JSON dict, or None on failure."""
-    cmd = [
-        "claude", "-p",
-        "--model", model,
-        "--output-format", "json",
-        "--allowedTools", "Edit,Bash,Write,Read,Glob,Grep",
-    ]
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.returncode != 0:
-        print(
-            f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
-            file=sys.stderr,
-        )
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:5]:
-                print(f"    {line}", file=sys.stderr)
-        return None, elapsed
-
-    try:
-        data = json.loads(result.stdout)
-        usage = data.get("usage", {})
-        cost = data.get("total_cost_usd", 0)
-        inp = (
-            usage.get("input_tokens", 0)
-            + usage.get("cache_read_input_tokens", 0)
-            + usage.get("cache_creation_input_tokens", 0)
-        )
-        out = usage.get("output_tokens", 0)
-        num_turns = data.get("num_turns", 0)
-
-        print(
-            f"  [{elapsed:.0f}s] in:{inp} out:{out} turns:{num_turns} "
-            f"${cost:.4f}",
-            file=sys.stderr,
-        )
-
-        return data, elapsed
-    except (json.JSONDecodeError, KeyError):
-        print(f"  [{elapsed:.0f}s] [parse error]", file=sys.stderr)
-        return None, elapsed
 
 
 # ---------------------------------------------------------------------------
@@ -336,18 +281,16 @@ class NoteReviseAgent(Agent):
             file=sys.stderr,
         )
 
-        model_flag = {
-            "opus": "claude-opus-4-7",
-            "sonnet": "claude-sonnet-4-6",
-        }.get(self.model, self.model)
         os.environ["PROTOCOL_ASN_LABEL"] = asn_label
-        data, elapsed = _invoke_claude(
-            prompt, model=model_flag, effort=self.effort,
+        response = invoke_claude_agent(
+            prompt, model=self.model, effort=self.effort,
+            tools="Edit,Bash,Write,Read,Glob,Grep",
+            max_turns=None,
         )
-        _log_revise_usage(asn_label, elapsed, data)
-        if data is None:
+        _log_revise_usage(asn_label, response.elapsed, response.data)
+        if response.data is None:
             return AgentResult(
-                success=False, elapsed=elapsed, detail="llm-failed",
+                success=False, elapsed=response.elapsed, detail="llm-failed",
             )
 
         # Commit the revise edits + resolution links emitted by the
@@ -359,6 +302,6 @@ class NoteReviseAgent(Agent):
 
         return AgentResult(
             success=True,
-            elapsed=elapsed,
+            elapsed=response.elapsed,
             detail=f"addressed={len(findings)}",
         )
