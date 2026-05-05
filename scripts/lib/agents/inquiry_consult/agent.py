@@ -32,7 +32,8 @@ from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_coverage,
     emit_consultation_questions,
 )
-from lib.consultation.consult import invoke_claude, load_channel_plugin
+from lib.consultation.consult import invoke_claude
+from lib.consultation.plugin import load_channel_plugin
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
 from lib.shared.campaign import resolve_campaign

@@ -1,8 +1,8 @@
-"""Unit tests for the channel-shape registry in lib.consultation.patterns.
+"""Unit tests for the channel-shape dispatcher in lib.consultation.plugin.
 
-Verifies that build_plugin dispatches correctly on `meta['shape']`,
+Verifies that build_channel_plugin dispatches correctly on `meta['shape']`,
 that flat-corpus channels construct without a consult.py, and that
-the registry rejects missing or unknown shapes with helpful messages.
+unknown or missing shapes are rejected with helpful messages.
 """
 
 import sys
@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.consultation.patterns import build_plugin
+from lib.consultation.plugin import build_channel_plugin
 
 
 class BuildPluginTests(unittest.TestCase):
@@ -40,14 +40,14 @@ class BuildPluginTests(unittest.TestCase):
         }
 
     def test_flat_corpus_returns_plugin_with_callables(self):
-        plugin = build_plugin(self._meta("flat-corpus"), self.channel_dir)
+        plugin = build_channel_plugin(self._meta("flat-corpus"), self.channel_dir)
         self.assertTrue(callable(plugin.generate_questions))
         self.assertTrue(callable(plugin.consult))
 
     def test_missing_shape_raises_with_helpful_message(self):
         meta = {"name": "demo", "role_hint": "theory", "description": "x"}
         with self.assertRaises(ValueError) as cm:
-            build_plugin(meta, self.channel_dir)
+            build_channel_plugin(meta, self.channel_dir)
         msg = str(cm.exception)
         self.assertIn("shape", msg)
         self.assertIn("demo", msg)
@@ -56,17 +56,17 @@ class BuildPluginTests(unittest.TestCase):
 
     def test_unknown_shape_raises_with_valid_options(self):
         with self.assertRaises(ValueError) as cm:
-            build_plugin(self._meta("invented-shape"), self.channel_dir)
+            build_channel_plugin(self._meta("invented-shape"), self.channel_dir)
         msg = str(cm.exception)
         self.assertIn("invented-shape", msg)
         self.assertIn("flat-corpus", msg)
 
-    def test_custom_shape_rejects_registry_call(self):
-        # `custom` is the explicit fall-through to channel-supplied
-        # consult.py — not built by the registry.
-        with self.assertRaises(ValueError) as cm:
-            build_plugin(self._meta("custom"), self.channel_dir)
-        self.assertIn("custom", str(cm.exception))
+    def test_custom_shape_without_consult_py_raises(self):
+        # `custom` shape importlib-loads the channel's consult.py; if
+        # the file is missing, surface a clear FileNotFoundError.
+        with self.assertRaises(FileNotFoundError) as cm:
+            build_channel_plugin(self._meta("custom"), self.channel_dir)
+        self.assertIn("consult.py", str(cm.exception))
 
 
 if __name__ == "__main__":

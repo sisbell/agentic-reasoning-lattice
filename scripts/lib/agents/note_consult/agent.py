@@ -41,7 +41,8 @@ from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_assessment,
     emit_consultation_coverage,
 )
-from lib.consultation.consult import invoke_claude, load_channel_plugin
+from lib.consultation.consult import invoke_claude
+from lib.consultation.plugin import load_channel_plugin
 from lib.predicates import (
     is_finding_consulted, unresolved_revise_comments,
 )

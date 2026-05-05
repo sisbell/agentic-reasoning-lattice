@@ -1,27 +1,23 @@
 #!/usr/bin/env python3
-"""Shared consultation operation primitives.
+"""Consult-specific operation primitives.
 
-Channel plugins under channels/<name>/consultations/consult.py use
-`invoke_claude`, `parse_numbered`, and `format_out_of_scope_block` to
-build their own generate_questions and consult functions. Pipeline
-orchestrators use `load_channel_plugin` to resolve a channel name to
-its plugin module and call its methods directly.
+`invoke_claude` is a thin wrapper around lib.shared.invoke_claude that
+adds consult-side effects (output_file write, USAGE_LOG append,
+process-local usage accumulator update). `parse_numbered` and
+`format_out_of_scope_block` are small helpers used by channel plugins
+and plugin.build_channel_plugin to assemble consult-style prompts and parse
+the responses.
 
-`invoke_claude` here is a thin wrapper around lib.shared.invoke_claude
-that adds consult-specific side effects (output_file write, USAGE_LOG
-append, process-local usage accumulator update).
+Plugin loading lives next door in lib.consultation.plugin.
 """
 
-import importlib.util
 import sys
-from pathlib import Path
 
 from lib.shared.common import log_usage
 from lib.shared.invoke_claude import (
     _accumulate_usage,
     invoke_claude as _shared_invoke_claude,
 )
-from lib.shared.paths import CHANNELS_DIR, load_channel_meta
 
 
 def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
@@ -95,46 +91,3 @@ def format_out_of_scope_block(out_of_scope):
     return f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
 
 
-_plugin_cache = {}
-
-
-def load_channel_plugin(channel_name):
-    """Construct or load the channel plugin, dispatching on `meta.yaml.shape`.
-
-    Returns an object exposing:
-      generate_questions(inquiry, n=10, model="opus", out_of_scope="") -> list[str]
-      consult(question, label="", model="opus", effort="max") -> str
-
-    For `shape: flat-corpus` (and any other registered shape) the plugin
-    is constructed directly from `meta.yaml` + the channel's standard
-    paths — no per-channel Python required. For `shape: custom` the
-    runtime loads `consultations/consult.py` as a module.
-
-    Cached per process so the corpus and prompt-template caches are
-    shared across calls within a decompose run.
-    """
-    if channel_name in _plugin_cache:
-        return _plugin_cache[channel_name]
-
-    channel_dir = CHANNELS_DIR / channel_name
-    meta = load_channel_meta(channel_name)
-    shape = meta.get("shape")
-
-    if shape != "custom":
-        from lib.consultation.patterns import build_plugin
-        plugin = build_plugin(meta, channel_dir)
-        _plugin_cache[channel_name] = plugin
-        return plugin
-
-    path = channel_dir / "consultations" / "consult.py"
-    if not path.exists():
-        raise FileNotFoundError(
-            f"channel {channel_name!r} declares shape: custom but "
-            f"{path} does not exist"
-        )
-    spec = importlib.util.spec_from_file_location(
-        f"channels.{channel_name}.consult", path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    _plugin_cache[channel_name] = mod
-    return mod
