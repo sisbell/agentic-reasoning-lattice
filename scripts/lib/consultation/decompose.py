@@ -7,7 +7,12 @@ Generic orchestrator: decomposes via channel plugins at
 channels/<name>/consultations/consult.py, merges questions into a labeled
 list, filters for scope, dispatches (theory in parallel, evidence
 sequential — the evidence calls each run KB + source in parallel
-internally), saves per-question answers, assembles a combined output.
+internally), saves per-question answers as substrate-citizen docs.
+
+Each per-Q/A doc gets a `consultation.answer` classifier and a
+`consultation.coverage` link to the inquiry; downstream consumers
+(e.g., draft.py) walk the substrate to assemble runtime content
+rather than reading a pre-aggregated file.
 
 Channel-specific logic (role identity, prompt composition, source loading,
 citation formats) lives in the channel plugin. The orchestrator knows
@@ -301,38 +306,6 @@ def run_consultations(questions, consult_dir, asn_id, theory_model="opus",
     return results
 
 
-# ─── Step 3: Combine ────────────────────────────────────────────
-
-def build_combined_output(inquiry_text, inquiry_title, questions, results):
-    """Build the combined consultation answers markdown."""
-    parts = []
-
-    parts.append(f"# Consultation Answers — {inquiry_title}")
-    parts.append("")
-    parts.append(f"**Inquiry:** {inquiry_text}")
-    parts.append(f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-
-    theory_count = sum(1 for r, _ in questions if r == "theory")
-    evidence_count = len(questions) - theory_count
-    parts.append(f"**Questions:** {len(questions)} "
-                 f"({theory_count} theory, {evidence_count} evidence)")
-    parts.append("")
-
-    for i, (role, question, answer) in enumerate(results, 1):
-        parts.append("---")
-        parts.append("")
-        parts.append(f"## Question {i} [{role}]")
-        parts.append("")
-        parts.append(f"> {question}")
-        parts.append("")
-        parts.append(f"### Answer ({role})")
-        parts.append("")
-        parts.append(answer.strip() if answer else "[No answer]")
-        parts.append("")
-
-    return "\n".join(parts)
-
-
 # ─── Main ───────────────────────────────────────────────────────
 
 def main():
@@ -353,8 +326,6 @@ def main():
     parser.add_argument("--model", "-m", default="opus",
                         choices=["sonnet", "opus"],
                         help="Model for question generation (default: opus)")
-    parser.add_argument("--output", "-o",
-                        help="Output file path (default: consultations/ASN-NNNN/consultation/answers.md)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Generate and save questions, don't run consultations")
     parser.add_argument("--regenerate", action="store_true",
@@ -487,12 +458,6 @@ def main():
         answer_addr = store.register_path(answer_rel)
         emit_consultation_answer(store, answer_addr)
         emit_consultation_coverage(store, answer_addr, inquiry_addr)
-
-    combined = build_combined_output(inquiry_text, inquiry_title, questions, results)
-
-    output_path = args.output or str(init_dir / "answers.md")
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-    Path(output_path).write_text(combined)
 
     total_elapsed = time.time() - total_start
 

@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, NOTE_DIR, VOCABULARY, USAGE_LOG, LATTICE_PROMPTS,
+    WORKSPACE, NOTE_DIR, VOCABULARY, USAGE_LOG, LATTICE, LATTICE_PROMPTS,
     consultation_dir, inquiry_doc_path,
     load_inquiry as load_inquiry_frontmatter,
 )
@@ -167,6 +167,48 @@ def build_discovery_prompt(inquiry, asn_number, slug, answers_content,
         .replace("{{out_of_scope_note}}", scope_note))
 
 
+def _build_consultation_content(asn_number):
+    """Walk consultation.coverage backward from the inquiry to find
+    every consultation.answer doc covering it. Read each in tumbler
+    order, concatenate. Returns (content, count).
+
+    Substrate-grounded: no filename inspection, no aggregate file.
+    Caller decides what to do when count is zero.
+    """
+    inquiry_rel = str(
+        inquiry_doc_path(asn_number).resolve().relative_to(LATTICE.resolve())
+    )
+    parts = []
+    count = 0
+    with open_session(LATTICE) as session:
+        inquiry_addr = session.get_addr_for_path(inquiry_rel)
+        if inquiry_addr is None:
+            return "", 0
+        coverage = session.active_links(
+            "consultation.coverage", to_set=[inquiry_addr],
+        )
+        # Sort by emission order (tumbler digits) so the resulting
+        # text mirrors the order consultations were saved.
+        coverage = sorted(coverage, key=lambda link: link.addr.digits)
+        for link in coverage:
+            if not link.from_set:
+                continue
+            source_addr = link.from_set[0]
+            if not session.active_links(
+                "consultation.answer", to_set=[source_addr],
+            ):
+                continue
+            source_rel = session.get_path_for_addr(source_addr)
+            if not source_rel:
+                continue
+            full = LATTICE / source_rel
+            if not full.exists():
+                continue
+            parts.append(full.read_text().strip())
+            count += 1
+    return "\n\n".join(parts), count
+
+
 def run_discovery(inquiry, asn_number, slug, force=False):
     """Run xan-discovery to write the ASN. Returns path to ASN file or None."""
     outfile = NOTE_DIR / f"ASN-{asn_number:04d}-{slug}.md"
@@ -176,18 +218,26 @@ def run_discovery(inquiry, asn_number, slug, force=False):
               file=sys.stderr)
         return outfile
 
-    # Require consultation answers
-    answers_path = consultation_dir(asn_number) / "consultation" / "answers.md"
-    if not answers_path.exists():
-        print(f"  [ERROR] No consultation answers at {answers_path.relative_to(WORKSPACE)}",
-              file=sys.stderr)
-        print(f"  Run decompose.py first: python scripts/lib/consultation/decompose.py --inquiry-id {asn_number}",
-              file=sys.stderr)
+    # Require consultation answers — pulled from substrate at runtime
+    # via consultation.coverage links rather than a pre-aggregated file.
+    answers_content, answer_count = _build_consultation_content(asn_number)
+    if answer_count == 0:
+        print(
+            f"  [ERROR] No consultation answers found in substrate for "
+            f"ASN-{asn_number:04d}",
+            file=sys.stderr,
+        )
+        print(
+            f"  Run decompose.py first: python scripts/lib/consultation/"
+            f"decompose.py --inquiry-id {asn_number}",
+            file=sys.stderr,
+        )
         return None
 
-    answers_content = answers_path.read_text()
-    print(f"  [DISCOVERY] Using answers from {answers_path.relative_to(WORKSPACE)}",
-          file=sys.stderr)
+    print(
+        f"  [DISCOVERY] {answer_count} consultation answer(s) from substrate",
+        file=sys.stderr,
+    )
 
     vocab = read_file(resolve_campaign(asn_number).vocabulary_path)
     # Foundation deps come from substrate citations on the inquiry md.
