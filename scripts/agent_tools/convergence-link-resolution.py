@@ -127,6 +127,14 @@ def main():
     except (KeyError, ValueError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
+
+    # An accept means an edit happened. Bump the claim's version
+    # marker (LM 4/52-4/53) so downstream predicates can detect that
+    # claim-derived attributes (description, etc.) are stale relative
+    # to the new revision.
+    if args.action == "accept":
+        session.register_version(claim_addr)
+
     print(link.addr)
     return 0
 
