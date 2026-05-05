@@ -1,30 +1,46 @@
-"""Note-review agent body.
+"""Note-review agent — assemble prompt, invoke Claude, write review doc,
+emit substrate facts.
 
-One LLM invocation: assemble prompt (template + ASN content + vocab +
-foundation + open issues + scope hints), call Claude with --tools "",
-validate the response structure, parse out the verdict and finding
-sections.
+Two entry points:
 
-Public entry: `run_note_review(asn_path, asn_label, *, model, effort)
--> (verdict, text, elapsed)`.
+  - `NoteReviewAgent` — class form for the trigger runner. One fire =
+    full review pass: build prompt, invoke Claude, validate, write
+    review file, emit `review` classifier + `comment.<kind>` per
+    finding. Return AgentResult.
 
-Also exports `extract_note_findings(text)` for orchestrator-side
-parsing of a stored review document into (title, cls, body) tuples.
+  - `run_note_review` — legacy free-function form retained for the
+    note_converge orchestrator's gate loop. Returns (verdict, text,
+    elapsed) without touching the substrate; caller commits via
+    `commit_note_review` from the orchestrator. Will retire with the
+    orchestrator when the trigger runner replaces it.
+
+`extract_note_findings(text)` is a pure helper used by both paths
+plus by the orchestrator for parsing a stored review.
 """
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import subprocess
+import sys
 import time
 from pathlib import Path
-from typing import List, Tuple
+from typing import ClassVar, List, Tuple
 
+from lib.agents.base import Agent, AgentResult
+from lib.backend.addressing import Address
+from lib.backend.emit import emit_review
+from lib.lattice.findings import record_one_finding
+from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
-from lib.shared.common import read_file
+from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.shared.paths import LATTICE_PROMPTS, WORKSPACE, load_inquiry
+from lib.shared.paths import (
+    LATTICE_PROMPTS, NOTE_FINDINGS_DIR, REVIEWS_DIR, USAGE_LOG, WORKSPACE,
+    load_inquiry, sorted_reviews,
+)
 
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
@@ -235,3 +251,142 @@ def _invoke_claude(prompt: str, *, model: str, effort: str):
 
     print(f"  [{elapsed:.0f}s]", file=sys.stderr)
     return result.stdout.strip(), elapsed
+
+
+# ---------------------------------------------------------------------------
+# Trigger-runner entry: class form
+
+
+def _next_review_num(asn_label: str) -> int:
+    """Next sequential review-N for this ASN. 1 if none exist yet."""
+    n = 1
+    for f in sorted_reviews(asn_label):
+        m = re.search(r"review-(\d+)\.md$", f.name)
+        if m:
+            n = max(n, int(m.group(1)) + 1)
+    return n
+
+
+def _log_review_usage(asn_label: str, elapsed: float) -> None:
+    """Append a review-usage entry to the lattice usage log."""
+    entry = {
+        "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "skill": "note-review",
+        "asn": asn_label,
+        "elapsed_s": round(elapsed, 1),
+    }
+    try:
+        with open(USAGE_LOG, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+    except OSError:
+        pass
+
+
+class NoteReviewAgent(Agent):
+    """One LLM-driven review pass over a note.
+
+    Fires on a note address that's not yet in the
+    `is_doc_converged AND latest_review_was_clean` state. One fire =
+    one review aggregate doc + one `comment.<kind>` per finding.
+    """
+
+    role: ClassVar[str] = "note-review"
+
+    def __init__(self, *, model: str = "opus", effort: str = "max"):
+        self.model = model
+        self.effort = effort
+
+    def run(self, session: Session, note_addr: Address) -> AgentResult:
+        note_path_rel = session.get_path_for_addr(note_addr)
+        if note_path_rel is None:
+            return AgentResult(success=False, detail="no-note-path")
+
+        asn_path = session.store.lattice_dir / note_path_rel
+        if not asn_path.exists():
+            return AgentResult(success=False, detail="no-note-file")
+
+        m = re.search(r"(ASN-\d{4})", note_path_rel)
+        if m is None:
+            return AgentResult(success=False, detail="no-asn-label")
+        asn_label = m.group(1)
+        asn_number = int(asn_label[4:])
+
+        # Assemble + invoke
+        asn_content = asn_path.read_text()
+        vocabulary = read_file(resolve_campaign(asn_label).vocabulary_path)
+        out_of_scope = _load_out_of_scope(asn_number)
+        foundation = load_foundation_for_note(asn_path, asn_number)
+        prompt = _build_prompt(
+            asn_content, vocabulary,
+            out_of_scope=out_of_scope,
+            foundation=foundation,
+        )
+        text, elapsed = _invoke_claude(
+            prompt, model=self.model, effort=self.effort,
+        )
+        if not text:
+            return AgentResult(
+                success=False, elapsed=elapsed, detail="llm-failed",
+            )
+        text = _strip_preamble(text)
+        validation_error = _validate_review(text)
+        if validation_error:
+            print(f"  MALFORMED REVIEW: {validation_error}", file=sys.stderr)
+            return AgentResult(
+                success=False, elapsed=elapsed,
+                detail=f"malformed: {validation_error}",
+            )
+
+        # Persist review aggregate doc + emit substrate facts
+        next_n = _next_review_num(asn_label)
+        review_dir = REVIEWS_DIR / asn_label
+        review_dir.mkdir(parents=True, exist_ok=True)
+        review_path = review_dir / f"review-{next_n}.md"
+        body = text + "\n"
+
+        review_rel = str(review_path.relative_to(session.store.lattice_dir))
+        session.update_document(review_rel, body)
+        review_addr = session.register_path(review_rel)
+        emit_review(session.store, review_addr)
+
+        findings = extract_note_findings(text)
+        findings_root = NOTE_FINDINGS_DIR / asn_label / f"review-{next_n}"
+        for n, (_title, cls, fbody) in enumerate(findings):
+            finding_rel = str(
+                (findings_root / f"{n}.md").relative_to(
+                    session.store.lattice_dir,
+                )
+            )
+            comment_kind = (
+                "out-of-scope" if (cls or "REVISE").upper() == "OUT_OF_SCOPE"
+                else "revise"
+            )
+            record_one_finding(
+                session,
+                finding_path_rel=finding_rel,
+                body=fbody,
+                target_addr=note_addr,
+                review_addr=review_addr,
+                comment_kind=comment_kind,
+            )
+
+        revise_count = sum(
+            1 for _, c, _ in findings if (c or "").upper() == "REVISE"
+        )
+        oos_count = len(findings) - revise_count
+
+        _log_review_usage(asn_label, elapsed)
+        print(
+            f"  [NOTE-REVIEW] {asn_label} {review_path.name} — "
+            f"{revise_count} REVISE, {oos_count} OUT_OF_SCOPE "
+            f"({elapsed:.0f}s)",
+            file=sys.stderr,
+        )
+
+        return AgentResult(
+            success=True,
+            elapsed=elapsed,
+            detail=(
+                f"review-{next_n} | revise={revise_count} oos={oos_count}"
+            ),
+        )
