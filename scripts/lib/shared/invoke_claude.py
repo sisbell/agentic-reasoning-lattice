@@ -90,22 +90,29 @@ def _accumulate_usage(input_tokens, output_tokens, cost_usd):
 
 
 def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
-                  output_format="json"):
+                  output_format="json", cwd=None, omit_tools=False):
     """Call claude --print (single-turn, no tools by default). Returns Result.
 
     output_format="json" wraps the response in a JSON envelope (default).
     output_format=None omits the flag — claude emits plain text and
     Result.data is None.
+
+    `tools` controls --tools (default None → --tools "", no tools
+    available). `omit_tools=True` skips the --tools flag entirely
+    (claude defaults to all tools).
+
+    `cwd` sets the subprocess cwd; None inherits from the parent.
     """
     model_flag = MODEL_FLAGS.get(model, model)
 
     cmd = ["claude", "--print", "--model", model_flag]
     if output_format:
         cmd.extend(["--output-format", output_format])
-    if tools is not None:
-        cmd.extend(["--tools", tools])
-    else:
-        cmd.extend(["--tools", ""])
+    if not omit_tools:
+        if tools is not None:
+            cmd.extend(["--tools", tools])
+        else:
+            cmd.extend(["--tools", ""])
 
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
@@ -116,7 +123,7 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
     start = time.time()
     result = subprocess.run(
         cmd, input=prompt, capture_output=True, text=True, env=env,
-        timeout=None,
+        cwd=cwd, timeout=None,
     )
     elapsed = time.time() - start
 

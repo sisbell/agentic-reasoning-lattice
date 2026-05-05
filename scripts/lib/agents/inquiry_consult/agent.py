@@ -118,16 +118,16 @@ def _filter_questions(inquiry_text, out_of_scope, questions, covers_text=""):
 
     print(f"  [FILTER] Checking {len(questions)} questions against exclusions...",
           file=sys.stderr)
-    response, _ = invoke_claude(prompt, model="opus",
-                                skill="pre-consult:filter",
-                                label="filter")
+    result = invoke_claude(prompt, model="opus",
+                           skill="pre-consult:filter",
+                           label="filter")
 
-    if not response:
+    if not result.text:
         print("  [FILTER] No response, keeping all questions", file=sys.stderr)
         return questions
 
     keep_indices = set()
-    for line in response.strip().split("\n"):
+    for line in result.text.strip().split("\n"):
         line = line.strip()
         if line.startswith("KEEP"):
             try:

@@ -73,10 +73,9 @@ def _run_kb(question, label, model, effort):
     prompt = _build_kb_prompt(question)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
           file=sys.stderr)
-    text, _ = _invoke(
+    return _invoke(
         prompt, model=model, effort=effort, allow_tools=False,
-        skill=f"consult-{CHANNEL_NAME}:kb", label="kb")
-    return text
+        skill=f"consult-{CHANNEL_NAME}:kb", label="kb").text
 
 
 def _run_code(question, label, model, effort):
@@ -84,11 +83,10 @@ def _run_code(question, label, model, effort):
     prompt = _build_code_prompt(question)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
           file=sys.stderr)
-    text, _ = _invoke(
+    return _invoke(
         prompt, model=model, effort=effort, allow_tools=True,
         cwd=str(TEST_HARNESS),
-        skill=f"consult-{CHANNEL_NAME}:code", label="code")
-    return text
+        skill=f"consult-{CHANNEL_NAME}:code", label="code").text
 
 
 def generate_questions(inquiry, n=10, model="opus", out_of_scope=""):
@@ -113,10 +111,10 @@ def generate_questions(inquiry, n=10, model="opus", out_of_scope=""):
 
     print(f"  [DECOMPOSE:{CHANNEL_NAME}] {n} questions, "
           f"{len(prompt) // 1024}KB prompt...", file=sys.stderr)
-    text, _ = _invoke(
+    response = _invoke(
         prompt, model=model,
         skill=f"pre-consult:{CHANNEL_NAME}", label=CHANNEL_NAME)
-    return parse_numbered(text, tags_to_strip=(f"[{CHANNEL_NAME}]",))
+    return parse_numbered(response.text, tags_to_strip=(f"[{CHANNEL_NAME}]",))
 
 
 def consult(question, label="", model="sonnet", effort="max",

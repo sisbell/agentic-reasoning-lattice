@@ -85,10 +85,10 @@ def generate_questions(inquiry, n=10, model="opus", out_of_scope=""):
 
     print(f"  [DECOMPOSE:{ROLE_LABEL}:{CHANNEL_NAME}] {n} questions, "
           f"{len(prompt) // 1024}KB prompt...", file=sys.stderr)
-    text, _ = _invoke(
+    response = _invoke(
         prompt, model=model,
         skill=f"pre-consult:{CHANNEL_NAME}", label=CHANNEL_NAME)
-    return parse_numbered(text, tags_to_strip=(f"[{CHANNEL_NAME}]",))
+    return parse_numbered(response.text, tags_to_strip=(f"[{CHANNEL_NAME}]",))
 
 
 def consult(question, label="", model="opus", effort="max",
@@ -96,7 +96,6 @@ def consult(question, label="", model="opus", effort="max",
     prompt = _build_answer_prompt(question, with_png=with_png)
     print(f"  [{label}] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
     skill = f"consult:{label}" if label else f"consult:{CHANNEL_NAME}"
-    text, _ = _invoke(
+    return _invoke(
         prompt, model=model, effort=effort, allow_tools=with_png,
-        skill=skill, label=label)
-    return text
+        skill=skill, label=label).text

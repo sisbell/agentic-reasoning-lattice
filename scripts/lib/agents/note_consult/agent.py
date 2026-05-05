@@ -359,13 +359,13 @@ def _run_consult_for_review(
     prompt = _build_assign_prompt(asn_content, revise_section, asn_label)
     print(f"  [ASSIGN] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
 
-    response, _ = invoke_claude(
+    result = invoke_claude(
         prompt, model=model, effort="max",
         allow_tools=False, label="assign",
         skill="gather-evidence:assign",
     )
 
-    if not response:
+    if not result.text:
         print(f"  [ASSIGN] Failed", file=sys.stderr)
         return None
 
@@ -377,7 +377,7 @@ def _run_consult_for_review(
     cat_path.write_text(
         f"# Channel Assignment — {asn_label} review-{review_num}\n\n"
         f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
-        f"{response}\n"
+        f"{result.text}\n"
     )
     print(f"  [ASSIGN] Saved to {cat_path}", file=sys.stderr)
 

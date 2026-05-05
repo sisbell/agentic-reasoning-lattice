@@ -14,17 +14,14 @@ dir numbering, channel-arg resolution.
 """
 
 import importlib.util
-import json
-import os
 import re
-import subprocess
 import sys
-import time
 from pathlib import Path
 
 from lib.shared.common import log_usage
 from lib.shared.invoke_claude import (
-    MODEL_FLAGS, _accumulate_usage, get_total_usage, reset_total_usage,
+    _accumulate_usage, get_total_usage, reset_total_usage,
+    invoke_claude as _shared_invoke_claude,
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.paths import WORKSPACE, CHANNELS_DIR, load_channel_meta
@@ -32,81 +29,48 @@ from lib.shared.paths import WORKSPACE, CHANNELS_DIR, load_channel_meta
 
 def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
                   cwd=None, output_file=None, skill="consult", label=""):
-    """Call claude --print with pre-assembled prompt via stdin.
+    """Call claude --print with consult-specific side effects.
 
-    Returns (text, usage) where usage is a dict with input_tokens,
-    output_tokens, cost_usd, elapsed_s. On failure returns ("", zeroed-usage).
+    Thin wrapper around lib.shared.invoke_claude.invoke_claude that also:
+      - writes the answer (or [FAILED]) to `output_file` if given
+      - appends a usage entry to USAGE_LOG under `skill`
+      - updates the process-local usage accumulator
 
-    Writes the answer to output_file if given; appends a usage entry to
-    USAGE_LOG under the given skill label.
+    Returns the same Result that shared.invoke_claude returns. Callers
+    typically read .text.
     """
-    model_flag = MODEL_FLAGS.get(model, model)
-
-    cmd = ["claude", "--print", "--model", model_flag, "--output-format", "json"]
-    if not allow_tools:
-        cmd.extend(["--tools", ""])
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    if effort:
-        env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-        cwd=cwd, timeout=None
+    response = _shared_invoke_claude(
+        prompt,
+        model=model,
+        effort=effort,
+        cwd=cwd,
+        omit_tools=allow_tools,
     )
-    elapsed = time.time() - start
 
     prefix = f"[{label}] " if label else ""
 
-    if result.returncode != 0:
-        print(f"  {prefix}FAILED (exit {result.returncode}, {elapsed:.0f}s)",
-              file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:3]:
-                print(f"    {line}", file=sys.stderr)
+    if not response.ok:
         if output_file:
-            output_file.write_text(f"[FAILED: exit {result.returncode}]\n")
-        return "", _zero_usage(elapsed)
+            output_file.write_text("[FAILED]\n")
+        return response
 
-    try:
-        data = json.loads(result.stdout)
-        text = data.get("result", "")
-        usage_data = data.get("usage", {})
-        cost = data.get("total_cost_usd", 0)
-        inp = (usage_data.get("input_tokens", 0) +
-               usage_data.get("cache_read_input_tokens", 0) +
-               usage_data.get("cache_creation_input_tokens", 0))
-        out = usage_data.get("output_tokens", 0)
+    inp = response.usage["input_tokens"]
+    out = response.usage["output_tokens"]
+    cost = response.cost
 
-        print(f"  {prefix}[{elapsed:.0f}s] in:{inp} out:{out} ${cost:.4f}",
-              file=sys.stderr)
+    print(
+        f"  {prefix}[{response.elapsed:.0f}s] in:{inp} out:{out} ${cost:.4f}",
+        file=sys.stderr,
+    )
 
-        if output_file:
-            output_file.write_text(text)
+    if output_file:
+        output_file.write_text(response.text)
 
-        log_usage(skill, elapsed,
-                  input_tokens=inp, output_tokens=out, cost_usd=cost)
+    log_usage(skill, response.elapsed,
+              input_tokens=inp, output_tokens=out, cost_usd=cost)
+    _accumulate_usage(inp, out, cost)
 
-        _accumulate_usage(inp, out, cost)
-
-        return text, {
-            "input_tokens": inp,
-            "output_tokens": out,
-            "cost_usd": cost,
-            "elapsed_s": elapsed,
-        }
-    except (json.JSONDecodeError, KeyError):
-        print(f"  {prefix}[{elapsed:.0f}s] [no token data]", file=sys.stderr)
-        text = result.stdout
-        if output_file:
-            output_file.write_text(text)
-        return text, _zero_usage(elapsed)
-
-
-def _zero_usage(elapsed):
-    return {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0, "elapsed_s": elapsed}
+    return response
 
 
 def parse_numbered(response, tags_to_strip=()):

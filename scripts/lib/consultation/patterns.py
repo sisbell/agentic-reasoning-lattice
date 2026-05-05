@@ -131,10 +131,10 @@ def flat_corpus(
 
         print(f"  [DECOMPOSE:{role_label}:{channel_name}] {n} questions, "
               f"{len(prompt) // 1024}KB prompt...", file=sys.stderr)
-        text, _ = invoke_claude(
+        response = invoke_claude(
             prompt, model=model,
             skill=f"pre-consult:{role_label}", label=role_label)
-        return parse_numbered(text)
+        return parse_numbered(response.text)
 
     def consult(question, label="", model="opus", effort="max"):
         template = _template(answer_prompt)
@@ -148,10 +148,9 @@ def flat_corpus(
 
         print(f"  [{label}] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
         skill = f"consult:{label}" if label else f"consult:{role_label}"
-        text, _ = invoke_claude(
+        return invoke_claude(
             prompt, model=model, effort=effort, allow_tools=False,
-            skill=skill, label=label)
-        return text
+            skill=skill, label=label).text
 
     return generate_questions, consult
 
