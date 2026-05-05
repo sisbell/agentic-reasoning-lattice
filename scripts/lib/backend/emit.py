@@ -113,6 +113,23 @@ def emit_finding(store: Store, finding_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, finding_doc, "finding")
 
 
+def emit_promotion(
+    store: Store, promotion_doc: Address, kind: str,
+) -> Tuple[Link, bool]:
+    """File a `promotion.<kind>` classifier on a report doc.
+
+    Distinguishes the input flow that produced the report:
+      out-of-scope    — items from review OUT_OF_SCOPE sections
+      open-questions  — items from the note's Open Questions section
+    """
+    valid = VALID_SUBTYPES["promotion"]
+    if kind not in valid:
+        raise ValueError(
+            f"invalid promotion kind {kind!r}; must be one of {sorted(valid)}"
+        )
+    return emit_classifier(store, promotion_doc, f"promotion.{kind}")
+
+
 def emit_supersession(
     store: Store, superseded: Address, succeeding: Address,
 ) -> Tuple[Link, bool]:

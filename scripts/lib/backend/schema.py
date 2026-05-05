@@ -44,6 +44,12 @@ VALID_TYPES = frozenset({
     # extracted from the origin note(s) during a maturation operation.
     "extends",
     "source",
+    # Promotion — classifier on a report doc that records the LLM's
+    # promote/decline decisions for a source ASN. Always carries a
+    # subtype distinguishing the input flow:
+    #   promotion.out-of-scope   — OUT_OF_SCOPE sections from reviews
+    #   promotion.open-questions — Open Questions section in the note
+    "promotion",
 })
 
 VALID_SUBTYPES = {
@@ -73,10 +79,11 @@ VALID_SUBTYPES = {
                              # + their descriptions; rendered live from
                              # substrate state.
     }),
+    "promotion": frozenset({"out-of-scope", "open-questions"}),
 }
 
 # Types that must always carry a subtype — bare parent writes are invalid.
-REQUIRES_SUBTYPE = frozenset({"citation", "transclusion"})
+REQUIRES_SUBTYPE = frozenset({"citation", "transclusion", "promotion"})
 
 # File suffixes for attribute sidecars (used by file-walking helpers
 # that distinguish claim body markdown from sidecars).
