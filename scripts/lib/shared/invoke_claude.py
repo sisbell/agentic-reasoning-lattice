@@ -4,12 +4,18 @@ Wraps `claude --print` and `claude -p` subprocess calls with consistent
 env-var setup (max output tokens, effort level, dropping CLAUDECODE),
 JSON parsing, and timing. `parallel_llm_calls` runs many `invoke_*`
 calls concurrently with progress logging.
+
+Also exposes a process-local usage accumulator that callers can read
+between invocations (`get_total_usage`, `reset_total_usage`). Modules
+that have their own invoke_claude wrappers can update this accumulator
+to keep the process-wide totals correct.
 """
 
 import json
 import os
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -21,6 +27,41 @@ MODEL_FLAGS = {
     "opus": "claude-opus-4-7",
     "sonnet": "claude-sonnet-4-6",
 }
+
+
+# ─── Process-local usage accumulator ────────────────────────────
+
+
+# Updated by invoke_claude wrappers that opt in to tracking. Readers
+# (orchestrator-level summaries) can snapshot this dict at any point
+# to print a cross-call total. Thread-safe via _usage_lock.
+_total_usage = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "calls": 0}
+_usage_lock = threading.Lock()
+
+
+def reset_total_usage():
+    """Zero the process-local usage accumulator."""
+    with _usage_lock:
+        _total_usage["input_tokens"] = 0
+        _total_usage["output_tokens"] = 0
+        _total_usage["cost_usd"] = 0.0
+        _total_usage["calls"] = 0
+
+
+def get_total_usage():
+    """Snapshot the current process-local usage totals."""
+    with _usage_lock:
+        return dict(_total_usage)
+
+
+def _accumulate_usage(input_tokens, output_tokens, cost_usd):
+    """Update the process-local accumulator. Used by invoke_claude
+    wrappers in this module + the consult-side wrapper."""
+    with _usage_lock:
+        _total_usage["input_tokens"] += input_tokens
+        _total_usage["output_tokens"] += output_tokens
+        _total_usage["cost_usd"] += cost_usd
+        _total_usage["calls"] += 1
 
 
 def invoke_claude(prompt, *, model="opus", effort="max", tools=None):

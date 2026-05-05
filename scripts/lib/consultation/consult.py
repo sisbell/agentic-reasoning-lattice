@@ -19,36 +19,15 @@ import os
 import re
 import subprocess
 import sys
-import threading
 import time
 from pathlib import Path
 
 from lib.shared.common import log_usage
-from lib.shared.invoke_claude import MODEL_FLAGS
+from lib.shared.invoke_claude import (
+    MODEL_FLAGS, _accumulate_usage, get_total_usage, reset_total_usage,
+)
 from lib.shared.campaign import resolve_campaign
 from lib.shared.paths import WORKSPACE, CHANNELS_DIR, load_channel_meta
-
-
-# Process-local usage accumulator. Every invoke_claude call updates it
-# under _usage_lock. Readers (e.g. the full-discovery orchestrator) can
-# read the dict at any point to print a cross-call total.
-_total_usage = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "calls": 0}
-_usage_lock = threading.Lock()
-
-
-def reset_total_usage():
-    """Zero the process-local usage accumulator."""
-    with _usage_lock:
-        _total_usage["input_tokens"] = 0
-        _total_usage["output_tokens"] = 0
-        _total_usage["cost_usd"] = 0.0
-        _total_usage["calls"] = 0
-
-
-def get_total_usage():
-    """Snapshot the current process-local usage totals."""
-    with _usage_lock:
-        return dict(_total_usage)
 
 
 def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
@@ -110,11 +89,7 @@ def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
         log_usage(skill, elapsed,
                   input_tokens=inp, output_tokens=out, cost_usd=cost)
 
-        with _usage_lock:
-            _total_usage["input_tokens"] += inp
-            _total_usage["output_tokens"] += out
-            _total_usage["cost_usd"] += cost
-            _total_usage["calls"] += 1
+        _accumulate_usage(inp, out, cost)
 
         return text, {
             "input_tokens": inp,
