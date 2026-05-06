@@ -22,21 +22,16 @@ import sys
 from typing import ClassVar
 
 from lib.agents.base import Agent, AgentResult
-from lib.agents.producers.claim_finding_override import apply_classifier_verdict
-from lib.agents.producers.claim_review import (
-    extract_findings, filter_revise, run_review,
-)
+from lib.agents.producers.claim_review import run_review
 from lib.backend.addressing import Address
-from lib.lattice.findings import emit_review_doc, record_findings
+from lib.lattice.findings import emit_review_doc
 from lib.lattice.context import claim_context_from_addr
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.orchestrators.retry import _declined_findings_for_cone
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
 from lib.shared.git_ops import step_commit_asn
-from lib.shared.paths import (
-    CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR, next_review_number,
-)
+from lib.shared.paths import CLAIM_REVIEWS_DIR, next_review_number
 from lib.shared.validate_gate import run_validate_gate
 
 from .scope import (
@@ -107,36 +102,22 @@ class ConeReviewAgent(Agent):
         if verdict == "ERROR":
             return AgentResult(success=False, detail="review-error")
 
-        # 4. Extract findings + apply override classifier.
-        findings = extract_findings(findings_text)
-        apply_classifier_verdict(findings)
-
-        # 5. Emit review doc + per-finding docs + coverage links.
+        # 4. Emit review doc + coverage links. The per-finding
+        # decomposition (extract → override → record_findings) is the
+        # claim-findings producer's job; the runner fires it on the
+        # review_addr emitted here.
         review_num = next_review_number(
             ctx.asn_label, kind="claim",
             reviews_dir=CLAIM_REVIEWS_DIR / ctx.asn_label,
         )
-        review_stem = f"review-{review_num}"
 
         review_addr, _ = emit_review_doc(
             session, ctx.asn_label, review_num,
             body=findings_text,
             covered_addrs=cone_addrs,
         )
-        emitted_findings = record_findings(
-            session, review_addr, findings,
-            ctx.asn_label, review_stem, label_index,
-            findings_dir=CLAIM_FINDINGS_DIR,
-        )
-        revise_findings = filter_revise(findings)
 
-        for title_text, cls, _ in findings:
-            print(f"  [{cls}] {title_text}", file=sys.stderr)
-
-        # 6. Sync substrate citations against md as source of truth.
-        # Open `comment.revise` links emitted above are closed by the
-        # claim-revise refiner walked by the runner; no per-finding
-        # dispatch happens here.
+        # 5. Sync substrate citations against md as source of truth.
         from .sync import sync_claim_citations
         for label in [ctx.label] + dep_labels:
             from_addr = label_index.get(label)
@@ -144,11 +125,10 @@ class ConeReviewAgent(Agent):
                 continue
             sync_claim_citations(session.store, from_addr, label_index)
 
-        # 7. Commit the review-doc + per-finding emission as a cycle event.
-        if revise_findings:
-            step_commit_asn(
-                ctx.asn_num,
-                f"cone-review(asn): {ctx.asn_label}/{ctx.label}",
-            )
+        # 6. Commit the review-doc emission as a cycle event.
+        step_commit_asn(
+            ctx.asn_num,
+            f"cone-review(asn): {ctx.asn_label}/{ctx.label} review-{review_num}",
+        )
 
         return AgentResult(success=True, detail=verdict)

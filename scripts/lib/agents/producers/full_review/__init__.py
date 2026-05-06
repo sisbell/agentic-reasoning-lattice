@@ -32,10 +32,10 @@ def run_full_review(asn_num, *, max_cycles: int = 8) -> str:
     ASN's review coverage is current.
     """
     from lib.runner import asn, run_until_quiescent
-    from lib.triggers import claim_revise, full_review
+    from lib.triggers import claim_findings, claim_revise, full_review
 
     result = run_until_quiescent(
-        triggers=[full_review, claim_revise],
+        triggers=[full_review, claim_findings, claim_revise],
         scope=asn(asn_num),
         max_iterations=max_cycles,
     )

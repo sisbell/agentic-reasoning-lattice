@@ -47,14 +47,14 @@ def run_cone_review(
     backwards compatibility with callers.
     """
     from lib.runner import Scope, run_force_pass
-    from lib.triggers import claim_revise, cone_review
+    from lib.triggers import claim_findings, claim_revise, cone_review
 
     scope = Scope(
         asn_label=f"ASN-{asn_num:04d}",
         labels=frozenset({apex_label}),
     )
     result = run_force_pass(
-        triggers=[cone_review, claim_revise], scope=scope,
+        triggers=[cone_review, claim_findings, claim_revise], scope=scope,
     )
     if result.errors:
         return "failed"
