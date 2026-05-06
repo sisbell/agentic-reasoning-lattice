@@ -3,7 +3,7 @@
 Per-claim Dafny contract review.
 
 Compares each generated .dfy file against its formal contract from
-per-claim files in lattices/xanadu/claim-convergence/. Flags mismatches for
+per-claim files in lattices/xanadu/_docuverse/documents/claim/. Flags mismatches for
 author review.
 
 Output: per-claim review files in lattices/xanadu/verification/dafny/ASN-NNNN/reviews/
@@ -86,7 +86,7 @@ def validate_batch(asn_num, dfy_dir, dry_run=False):
     # Read contract sections from per-claim files
     claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim directory for {asn_label}", file=sys.stderr)
         return None
 
     dfy_files = sorted(dfy_dir.glob("*.dfy"))

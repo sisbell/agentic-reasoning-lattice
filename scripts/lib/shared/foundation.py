@@ -178,7 +178,7 @@ def load_foundation_for_claim_asn(asn_id):
 
     Parallels `load_foundation_for_note`. The claim-side aggregation is
     the union of cross-ASN citations sourced from any claim md in this
-    ASN's claim-convergence directory.
+    ASN's docuverse claim directory.
     """
     from lib.lattice.labels import aggregate_asn_deps
     from lib.protocols.febe.session import open_session

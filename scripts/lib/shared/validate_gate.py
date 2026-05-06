@@ -18,6 +18,7 @@ import sys
 from pathlib import Path
 
 from lib.orchestrators import claim_validate_revise as REVISE
+from lib.shared.paths import CLAIM_DIR
 
 
 _SCRIPTS = Path(__file__).resolve().parent.parent.parent
@@ -34,7 +35,7 @@ VALIDATE = _load("claim_validate", _SCRIPTS / "claim-validate.py")
 
 
 def _run_validator(asn_label):
-    claim_dir = VALIDATE.claim_convergence_dir(asn_label)
+    claim_dir = CLAIM_DIR / asn_label
     pairs = VALIDATE.load_pairs(claim_dir)
     return VALIDATE.run_all_checks(pairs, claim_dir=claim_dir)
 

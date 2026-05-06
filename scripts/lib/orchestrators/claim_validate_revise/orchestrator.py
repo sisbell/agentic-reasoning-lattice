@@ -35,7 +35,7 @@ from lib.backend.emit import emit_retraction
 from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.shared.common import find_asn
-from lib.shared.paths import LATTICE
+from lib.shared.paths import CLAIM_DIR, LATTICE
 
 
 VALID_ACTIONS = {"ADD", "RETRACT", "SKIP"}
@@ -76,7 +76,7 @@ PASSES = [
 
 
 def run_validator(asn_label):
-    claim_dir = VALIDATOR.claim_convergence_dir(asn_label)
+    claim_dir = CLAIM_DIR / asn_label
     pairs = VALIDATOR.load_pairs(claim_dir)
     return VALIDATOR.run_all_checks(pairs, claim_dir=claim_dir)
 
@@ -668,9 +668,9 @@ def run_passes(asn_label, *, scope_labels=None, rules=None, mode="apply",
     if to_pass is None:
         to_pass = len(PASSES)
 
-    claim_dir = VALIDATOR.claim_convergence_dir(asn_label)
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
-        raise FileNotFoundError(f"No claim-convergence directory: {claim_dir}")
+        raise FileNotFoundError(f"No claim directory: {claim_dir}")
 
     rule_filter = set(rules) if rules is not None else None
     scope = set(scope_labels) if scope_labels is not None else None

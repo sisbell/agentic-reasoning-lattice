@@ -1,8 +1,8 @@
-"""claim-validate — structural invariants on claim-convergence-stage claim files.
+"""claim-validate — structural invariants on per-ASN claim files.
 
 Runs mechanical checks from the Claim Document Contract
 (docs/design-notes/claim-document-contract.md) against
-lattices/<lattice>/claim-convergence/ASN-NNNN/.
+lattices/<lattice>/_docuverse/documents/claim/ASN-NNNN/.
 
 The filename stem is the claim's label. Substrate links (claim,
 contract.<kind>, citation, label, name, description) carry the rest of
@@ -143,10 +143,6 @@ def _build_symbol_owners(store):
                 if m:
                     owners.setdefault(m.group(1), set()).add(owner_label)
     return owners
-
-
-def claim_convergence_dir(asn_label):
-    return CLAIM_DIR / asn_label
 
 
 def line_of_offset(text, offset):
@@ -645,7 +641,7 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Validate claim-convergence-stage claim files against "
+        description="Validate per-ASN claim files against "
                     "the Claim Document Contract.")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     args = parser.parse_args()
@@ -656,9 +652,9 @@ def main():
         print(f"ASN-{asn_num:04d} not found", file=sys.stderr)
         return 2
 
-    claim_dir = claim_convergence_dir(asn_label)
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
-        print(f"No claim-convergence directory: {claim_dir}", file=sys.stderr)
+        print(f"No claim directory: {claim_dir}", file=sys.stderr)
         return 2
 
     pairs = load_pairs(claim_dir)
