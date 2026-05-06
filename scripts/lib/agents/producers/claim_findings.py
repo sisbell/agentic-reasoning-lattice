@@ -1,0 +1,81 @@
+"""Claim-findings agent — decompose a review doc into per-finding substrate.
+
+Fires once per review doc that hasn't been decomposed yet (no
+`decomposed` classifier). One fire = read the review prose, extract
+each `### `-prefixed finding section, run the classifier-override
+sub-routine to correct any reviewer mis-classification, then emit
+the per-finding substrate (finding docs + `comment.<kind>` links +
+`provenance.derivation` from review → finding) and the `decomposed`
+marker on the review doc.
+
+The marker is what closes the predicate. Even when the review's
+verdict is CONVERGED with zero findings, the marker still fires so
+the producer doesn't re-walk the review forever.
+
+This agent owns the second stage of the review → findings → revise
+chain. The first stage (review producer — cone_review / full_review)
+runs the LLM and emits the review doc; the third stage
+(claim_revise refiner) closes the per-finding comments. Override
+moves here as a sub-routine because override is part of the
+classification step that decides what `comment.<kind>` to emit on
+each finding — it shapes the decomposer's substrate write, not the
+reviewer's prose.
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from typing import ClassVar
+
+from lib.agents.base import Agent, AgentResult
+from lib.agents.producers.claim_finding_override import apply_classifier_verdict
+from lib.agents.producers.claim_review import extract_findings
+from lib.backend.addressing import Address
+from lib.backend.emit import emit_decomposed
+from lib.lattice.findings import record_findings
+from lib.lattice.labels import build_cross_asn_label_index
+from lib.protocols.febe.protocol import Session
+from lib.shared.paths import CLAIM_FINDINGS_DIR
+
+
+class ClaimFindingsAgent(Agent):
+    """Decompose a review doc into per-finding substrate."""
+
+    role: ClassVar[str] = "claim-findings"
+
+    def run(self, session: Session, review_addr: Address) -> AgentResult:
+        review_path = session.get_path_for_addr(review_addr)
+        if review_path is None:
+            return AgentResult(success=False, detail="no-review-path")
+
+        full_review = session.store.lattice_dir / review_path
+        if not full_review.exists():
+            return AgentResult(success=False, detail="no-review-file")
+
+        m = re.search(r"(ASN-\d{4})/review-(\d+)\.md$", review_path)
+        if m is None:
+            return AgentResult(success=False, detail="unparseable-review-path")
+        asn_label = m.group(1)
+        review_stem = f"review-{m.group(2)}"
+
+        body = full_review.read_text()
+        findings = extract_findings(body)
+        apply_classifier_verdict(findings)
+
+        label_index = build_cross_asn_label_index(session.store)
+        emitted = record_findings(
+            session, review_addr, findings,
+            asn_label, review_stem, label_index,
+            findings_dir=CLAIM_FINDINGS_DIR,
+        )
+        emit_decomposed(session.store, review_addr)
+
+        print(
+            f"  [CLAIM-FINDINGS] {asn_label} {review_stem} "
+            f"emitted={len(emitted)}/{len(findings)}",
+            file=sys.stderr,
+        )
+        return AgentResult(
+            success=True, detail=f"emitted={len(emitted)}",
+        )
