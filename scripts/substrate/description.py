@@ -29,6 +29,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import claim_doc_path, LATTICE
 from lib.lattice.attributes import emit_attribute
+from lib.predicates.attributes import description_sidecar_of
 from lib.protocols.febe.session import open_session
 
 
@@ -68,17 +69,42 @@ def main():
         body = args.to
 
     session = open_session(LATTICE)
-    store = session.store  # for emit_* (Pass 2 will migrate)
-    try:
-        link, created = emit_attribute(
-            session, claim_path, "description", body,
+    claim_addr = session.get_addr_for_path(claim_path)
+
+    # First-time: emit_attribute creates the link + sidecar.
+    # Subsequent: register_version advances the description chain;
+    # write the new content to the sidecar file.
+    #
+    # The chain advance is required: description_is_fresh compares
+    # sidecar chain length to claim chain length. emit_attribute
+    # alone does not advance the chain (relaxed-model: chains
+    # advance only where a predicate consumes them, and the caller
+    # is responsible for opting in). Without the register_version
+    # branch, the predicate stays False after any claim edit and
+    # the runner re-fires until max_iterations.
+    sidecar_addr = (
+        description_sidecar_of(session, claim_addr)
+        if claim_addr is not None else None
+    )
+    if sidecar_addr is None:
+        try:
+            link, _ = emit_attribute(
+                session, claim_path, "description", body,
+            )
+        except ValueError as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        print(link.addr)
+    else:
+        session.register_version(sidecar_addr)
+        sidecar_path = session.get_path_for_addr(sidecar_addr)
+        full_sidecar = session.store.lattice_dir / sidecar_path
+        full_sidecar.write_text(body if body.endswith("\n") else body + "\n")
+        existing = session.active_links(
+            "description", from_set=[claim_addr], to_set=[sidecar_addr],
         )
-    except ValueError as e:
-        print(f"error: {e}", file=sys.stderr)
-        return 1
-    print(link.addr)
-    if not created:
-        print("(already exists)", file=sys.stderr)
+        print(existing[0].addr if existing else sidecar_addr)
+        print("(advanced)", file=sys.stderr)
     return 0
 
 
