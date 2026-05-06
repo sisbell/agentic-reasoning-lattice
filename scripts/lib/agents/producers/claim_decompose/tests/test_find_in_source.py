@@ -14,7 +14,7 @@ import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[5]))
 from lib.agents.producers.claim_decompose.helpers import find_in_source
 
 
