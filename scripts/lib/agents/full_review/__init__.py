@@ -28,7 +28,7 @@ __all__ = [
 
 def run_full_review(asn_num, *, max_cycles: int = 8) -> str:
     """Legacy multi-cycle wrapper: drive FullReviewAgent until confirmed
-    or max_cycles hit. Returns "converged" / "not_converged" / "failed".
+    or max_cycles hit. Returns "quiescent" / "not_quiescent" / "failed".
 
     Used by the manual CLI entry point. Mirrors run_cone_review's
     structure: each cycle re-opens the session so the agent's
@@ -54,7 +54,7 @@ def run_full_review(asn_num, *, max_cycles: int = 8) -> str:
 
     for _ in range(max_cycles):
         if is_asn_confirmed(session, note_addr):
-            return "converged"
+            return "quiescent"
         result = agent(session, note_addr)
         if not result.success and result.detail.startswith("gate-failed"):
             return "failed"
@@ -68,5 +68,5 @@ def run_full_review(asn_num, *, max_cycles: int = 8) -> str:
         )
 
     if is_asn_confirmed(session, note_addr):
-        return "converged"
-    return "not_converged"
+        return "quiescent"
+    return "not_quiescent"

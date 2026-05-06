@@ -16,7 +16,7 @@ single sweep. Across passes, a pair re-fires whenever its predicate is
 false (this is what makes downstream invalidation work).
 
 Known limitation — cascade invalidation: substrate-local predicates
-(`is_claim_converged`, `unresolved_revise_comments`) read only the
+(`is_claim_quiescent`, `unresolved_revise_comments`) read only the
 target's own state. They do not catch invalidation from upstream
 revisions. Until cascade-aware predicates exist, callers mitigate via
 `run_force_pass` on a user-named subset.

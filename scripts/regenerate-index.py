@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.predicates import is_retired
 from lib.predicates.citations import depends as note_depends
-from lib.predicates.convergence import derived_claims
+from lib.predicates.quiescence import derived_claims
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
 from lib.shared.paths import (

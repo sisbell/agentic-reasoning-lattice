@@ -1,12 +1,12 @@
 """Cone-review trigger — fires on unconverged claims with enough deps.
 
 Wires the ConeReviewAgent (lib/agents/cone_review.py) to the
-substrate predicate `is_claim_converged` over a topologically-ordered
+substrate predicate `is_claim_quiescent` over a topologically-ordered
 apex scope.
 
   scope:     claims in the requested ASN with >= MIN_DEPS same-ASN deps,
              walked in topological order (foundations first)
-  predicate: is_claim_converged
+  predicate: is_claim_quiescent
   agent:     ConeReviewAgent
 """
 

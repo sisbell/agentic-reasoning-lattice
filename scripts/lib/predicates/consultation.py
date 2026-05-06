@@ -18,7 +18,7 @@ from __future__ import annotations
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
 
-from .convergence import unresolved_revise_comments
+from .quiescence import unresolved_revise_comments
 
 
 def is_finding_consulted(session: Session, finding_addr: Address) -> bool:
@@ -37,7 +37,7 @@ def all_open_revises_consulted(
 
     Vacuously true when the note has no open revises — no findings
     means no findings-without-coverage. The runner predicate paired
-    with this should also check `is_doc_converged` if it cares about
+    with this should also check `is_doc_quiescent` if it cares about
     distinguishing "nothing to do" from "all consulted, ready to revise."
     """
     for c in unresolved_revise_comments(session, note_addr):

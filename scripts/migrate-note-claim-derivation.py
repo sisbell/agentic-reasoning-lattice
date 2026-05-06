@@ -6,7 +6,7 @@ each claim it produces. Existing ASNs predate that emission, so the
 substrate has no note-rooted derivations — only review→finding and
 citation-resolve→claim derivations.
 
-The new Address-keyed `is_asn_converged` walks note→claim derivations
+The new Address-keyed `is_asn_quiescent` walks note→claim derivations
 forward to find an ASN's claim cluster. Without these links, the
 predicate trivially returns True on every existing note.
 

@@ -35,7 +35,7 @@ def run_cone_review(
     max_cycles: int = 8, model: str = CONE_MODEL,
 ) -> str:
     """Legacy multi-cycle wrapper: drive ConeReviewAgent until confirmed
-    or max_cycles hit. Returns "converged" / "not_converged" / "failed".
+    or max_cycles hit. Returns "quiescent" / "not_quiescent" / "failed".
 
     Used by full-review's cone-fallback dispatch. Once full-review
     migrates to the trigger model, this wrapper retires.
@@ -60,7 +60,7 @@ def run_cone_review(
 
     for cycle in range(max_cycles):
         if is_claim_confirmed(session, apex_addr):
-            return "converged"
+            return "quiescent"
         result = agent(session, apex_addr)
         if not result.success and result.detail.startswith("gate-failed"):
             return "failed"
@@ -74,5 +74,5 @@ def run_cone_review(
         )
 
     if is_claim_confirmed(session, apex_addr):
-        return "converged"
-    return "not_converged"
+        return "quiescent"
+    return "not_quiescent"

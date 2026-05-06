@@ -3,7 +3,7 @@
 Generate worked examples from an ASN with review/revise loop.
 
 Generates an initial set of verification scenarios, then iterates
-review (correctness + coverage gaps) and revise cycles until converged.
+review (correctness + coverage gaps) and revise cycles until quiescent.
 
 Usage:
     python scripts/examples.py 34

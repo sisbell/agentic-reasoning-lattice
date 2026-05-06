@@ -1,6 +1,6 @@
 """Cone-review agent — one cycle per fire.
 
-Fires on an apex claim that hasn't converged. Performs ONE cycle:
+Fires on an apex claim that hasn't reached quiescence. Performs ONE cycle:
   1. retry unresolved revises from prior runs
   2. validate-gate precondition (halts on dirty structure)
   3. assemble cone content + cross-ASN foundation
@@ -11,7 +11,7 @@ Fires on an apex claim that hasn't converged. Performs ONE cycle:
   8. sync substrate citations to claim md
   9. step commit
 
-The runner re-fires if `is_claim_converged(addr)` is still false after
+The runner re-fires if `is_claim_quiescent(addr)` is still false after
 this cycle. The cycle loop that used to live in run_cone_review now
 lives in the runner: predicate true means quiescent.
 """

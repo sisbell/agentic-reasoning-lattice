@@ -237,7 +237,7 @@ class NoteReviseAgent(Agent):
     revise finding on a note.
 
     Fires when the note has unresolved `comment.revise` links (i.e.,
-    `is_doc_converged` is False). The Claude session itself edits the
+    `is_doc_quiescent` is False). The Claude session itself edits the
     note md and closes each comment via `convergence-link-resolution.py`.
     """
 

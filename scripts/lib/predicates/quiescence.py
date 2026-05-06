@@ -1,4 +1,4 @@
-"""Convergence-protocol predicates over the substrate.
+"""Quiescence predicates implementing the convergence protocol.
 
 The convergence protocol's load-bearing definition (per
 `docs/protocols/claim-convergence-protocol.md`):
@@ -62,16 +62,16 @@ def unresolved_revise_comments(
     return [c for c in revises if not has_resolution(session, c.addr)]
 
 
-def is_doc_converged(session: Session, doc_addr: Address) -> bool:
+def is_doc_quiescent(session: Session, doc_addr: Address) -> bool:
     """The protocol predicate, restricted to one document."""
     return not unresolved_revise_comments(session, doc_addr)
 
 
 # Doc-neutral alias matching the legacy queries.py pattern.
-is_claim_converged = is_doc_converged
+is_claim_quiescent = is_doc_quiescent
 
 
-def is_converged(session: Session) -> bool:
+def is_quiescent(session: Session) -> bool:
     """The protocol predicate at lattice scope.
 
     Vacuously true on an empty graph — coverage (have reviews actually
@@ -134,14 +134,14 @@ def latest_review_was_clean(session: Session, addr: Address) -> bool:
 
 def is_claim_confirmed(session: Session, addr: Address) -> bool:
     """The convergence-protocol's confirmation condition: claim is
-    converged AND the most recent review on its scope was clean.
+    quiescent AND the most recent review on its scope was clean.
 
     Per `docs/hypergraph-protocol/convergence.md`: a clean review IS
     the confirmation. The orchestrator's "+1 review-only after N
     cycles" collapses into "the next cycle that comes up clean."
     """
     return (
-        is_claim_converged(session, addr)
+        is_claim_quiescent(session, addr)
         and has_been_reviewed(session, addr)
         and latest_review_was_clean(session, addr)
     )
@@ -161,10 +161,10 @@ def derived_claims(session: Session, note_addr: Address):
             yield derived
 
 
-def is_asn_converged(session: Session, note_addr: Address) -> bool:
-    """Conjunction of `is_claim_converged` over every derived claim."""
+def is_asn_quiescent(session: Session, note_addr: Address) -> bool:
+    """Conjunction of `is_claim_quiescent` over every derived claim."""
     return all(
-        is_doc_converged(session, derived)
+        is_doc_quiescent(session, derived)
         for derived in derived_claims(session, note_addr)
     )
 
@@ -173,7 +173,7 @@ def is_asn_confirmed(session: Session, note_addr: Address) -> bool:
     """Conjunction of `is_claim_confirmed` over every derived claim.
 
     ASN-level analog of `is_claim_confirmed`: each derived claim has
-    converged AND its most recent review was clean. Used as the
+    quiescent AND its most recent review was clean. Used as the
     full-review trigger's quiescence predicate — mirrors how cone-review
     uses `is_claim_confirmed`.
     """

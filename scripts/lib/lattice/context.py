@@ -19,7 +19,7 @@ from pathlib import Path
 
 from lib.backend.addressing import Address
 from lib.lattice.labels import ASN_PATTERN, build_cross_asn_label_index
-from lib.predicates.convergence import derived_claims
+from lib.predicates.quiescence import derived_claims
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
 from lib.shared.paths import CLAIM_DIR

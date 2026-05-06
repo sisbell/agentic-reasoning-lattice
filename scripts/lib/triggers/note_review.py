@@ -2,7 +2,7 @@
 
   scope:     each active non-retired note in scope (one ASN under
              CLI mode, every active note under daemon mode)
-  predicate: is_doc_converged AND latest_review_was_clean — don't fire
+  predicate: is_doc_quiescent AND latest_review_was_clean — don't fire
              if there are no open revises and the most recent review
              came up clean. Initial state (no review yet) has
              latest_review_was_clean=False, so the predicate is False
@@ -17,7 +17,7 @@ from typing import Iterator
 from lib.agents.note_review import NoteReviewAgent
 from lib.backend.addressing import Address
 from lib.predicates import (
-    has_been_reviewed, is_doc_converged, is_retired,
+    has_been_reviewed, is_doc_quiescent, is_retired,
     latest_review_was_clean,
 )
 from lib.protocols.febe.protocol import Session
@@ -49,7 +49,7 @@ def _predicate(session: Session, addr: Address) -> bool:
     the most recent review filed zero new revises.
     """
     return (
-        is_doc_converged(session, addr)
+        is_doc_quiescent(session, addr)
         and has_been_reviewed(session, addr)
         and latest_review_was_clean(session, addr)
     )

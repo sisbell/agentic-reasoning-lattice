@@ -114,7 +114,7 @@ def statements_is_fresh(session: Session, note_addr: Address) -> bool:
     matching statements version. Lower means at least one note
     version is unattested → fire.
     """
-    from lib.predicates.convergence import is_claim_confirmed
+    from lib.predicates.quiescence import is_claim_confirmed
     from lib.predicates.versions import supersession_chain_length
 
     if not is_claim_confirmed(session, note_addr):

@@ -30,7 +30,7 @@ from lib.backend.emit import (
 )
 from lib.lattice.attributes import emit_attribute
 from lib.backend.migrate import migrate
-from lib.predicates import is_doc_converged
+from lib.predicates import is_doc_quiescent
 from lib.backend.store import Store
 
 
@@ -190,12 +190,12 @@ class CommentResolutionEmitTests(unittest.TestCase):
         comment = emit_comment(
             self.store, self.review, self.claim, kind="revise",
         )
-        # Initially not converged
-        self.assertFalse(is_doc_converged(session, self.claim))
+        # Initially not quiescent
+        self.assertFalse(is_doc_quiescent(session, self.claim))
         # File a resolution closing the comment
         emit_resolution(self.store, self.claim, comment.addr, kind="edit")
-        # Now converged
-        self.assertTrue(is_doc_converged(session, self.claim))
+        # Now quiescent
+        self.assertTrue(is_doc_quiescent(session, self.claim))
 
 
 class ProvenanceEmitTests(unittest.TestCase):

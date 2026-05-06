@@ -62,10 +62,10 @@ def main():
             asn_num, args.cone, dep_labels,
             max_cycles=args.max_cycles,
         )
-        sys.exit(0 if result == "converged" else 1)
+        sys.exit(0 if result == "quiescent" else 1)
 
     result = run_full_review(asn_num, max_cycles=args.max_cycles)
-    sys.exit(0 if result == "converged" else 1)
+    sys.exit(0 if result == "quiescent" else 1)
 
 
 if __name__ == "__main__":

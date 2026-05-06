@@ -1,6 +1,6 @@
 """Predicate tests over the tumbler-keyed link store.
 
-Verifies the convergence and alignment predicates, plus the alignment
+Verifies the quiescence and alignment predicates, plus the alignment
 helpers enabled by version-bearing addresses.
 """
 
@@ -27,8 +27,8 @@ from lib.predicates import (
     has_resolution,
     has_signature,
     is_claim_confirmed,
-    is_converged,
-    is_doc_converged,
+    is_quiescent,
+    is_doc_quiescent,
     is_head_version,
     latest_review_for_addr,
     latest_review_was_clean,
@@ -48,20 +48,20 @@ class ConvergencePredicateTests(unittest.TestCase):
         self.claim = self.state.create_doc(kind="claim", lattice=self.lattice)
         self.review = self.state.create_doc(kind="review", lattice=self.lattice)
 
-    def test_empty_substrate_is_converged(self):
-        # No comment.revise links → vacuously converged
-        self.assertTrue(is_converged(self.session))
-        self.assertTrue(is_doc_converged(self.session, self.claim))
+    def test_empty_substrate_is_quiescent(self):
+        # No comment.revise links → vacuously quiescent
+        self.assertTrue(is_quiescent(self.session))
+        self.assertTrue(is_doc_quiescent(self.session, self.claim))
 
-    def test_unresolved_revise_blocks_convergence(self):
+    def test_unresolved_revise_blocks_quiescence(self):
         comment = self.state.make_link(
             self.review, [self.review], [self.claim], "comment.revise",
         )
-        self.assertFalse(is_doc_converged(self.session, self.claim))
+        self.assertFalse(is_doc_quiescent(self.session, self.claim))
         unresolved = unresolved_revise_comments(self.session, self.claim)
         self.assertEqual([c.addr for c in unresolved], [comment.addr])
 
-    def test_resolution_satisfies_convergence(self):
+    def test_resolution_satisfies_quiescence(self):
         comment = self.state.make_link(
             self.review, [self.review], [self.claim], "comment.revise",
         )
@@ -69,7 +69,7 @@ class ConvergencePredicateTests(unittest.TestCase):
         self.state.make_link(
             self.claim, [self.claim], [comment.addr], "resolution.edit",
         )
-        self.assertTrue(is_doc_converged(self.session, self.claim))
+        self.assertTrue(is_doc_quiescent(self.session, self.claim))
         self.assertTrue(has_resolution(self.session, comment.addr))
 
     def test_retracted_revise_drops_out(self):
@@ -80,7 +80,7 @@ class ConvergencePredicateTests(unittest.TestCase):
         self.state.make_link(
             self.claim, [self.claim], [comment.addr], "retraction",
         )
-        self.assertTrue(is_doc_converged(self.session, self.claim))
+        self.assertTrue(is_doc_quiescent(self.session, self.claim))
 
     def test_retracted_resolution_does_not_satisfy(self):
         comment = self.state.make_link(
@@ -93,7 +93,7 @@ class ConvergencePredicateTests(unittest.TestCase):
             self.claim, [self.claim], [resolution.addr], "retraction",
         )
         # Without the resolution, the revise is unresolved again
-        self.assertFalse(is_doc_converged(self.session, self.claim))
+        self.assertFalse(is_doc_quiescent(self.session, self.claim))
 
     def test_retracted_link_addrs_collects_targets(self):
         comment = self.state.make_link(
@@ -340,7 +340,7 @@ class CitationGraphTests(unittest.TestCase):
 
 
 class ConfirmationPredicateTests(unittest.TestCase):
-    """Confirmation predicate: is_converged AND latest review was clean.
+    """Confirmation predicate: is_quiescent AND latest review was clean.
 
     Requires `review.coverage` links to find the latest review on a doc's
     scope, and `provenance.derivation` walks to count revise findings.
@@ -391,7 +391,7 @@ class ConfirmationPredicateTests(unittest.TestCase):
         self.assertTrue(is_claim_confirmed(self.session, self.claim))
 
     def test_observe_only_review_is_clean(self):
-        # comment.observe doesn't block convergence or confirmation.
+        # comment.observe doesn't block quiescence or confirmation.
         self._make_review(finding_kinds=("observe",))
         self.assertTrue(latest_review_was_clean(self.session, self.claim))
         self.assertTrue(is_claim_confirmed(self.session, self.claim))
@@ -404,9 +404,9 @@ class ConfirmationPredicateTests(unittest.TestCase):
     def test_latest_review_supersedes_older(self):
         # Older review had revises; newer review came up clean.
         # The older review's revise comment is resolved before the
-        # new clean review fires, so is_converged is true again.
+        # new clean review fires, so is_quiescent is true again.
         old = self._make_review(finding_kinds=("revise",))
-        # resolve the old revise so converged becomes true
+        # resolve the old revise so quiescent becomes true
         old_revise = self.session.active_links(
             "comment.revise", to_set=[self.claim],
         )[0]
@@ -423,7 +423,7 @@ class ConfirmationPredicateTests(unittest.TestCase):
 
     def test_clean_review_but_unresolved_revise_blocks_confirmation(self):
         # A different un-related revise comment exists on the claim;
-        # the latest review was clean but converged is still false.
+        # the latest review was clean but quiescent is still false.
         self._make_review(finding_kinds=())  # clean
         # add a stray revise from something else (not derived from the
         # latest review) — this can't happen via our agents but the
@@ -435,7 +435,7 @@ class ConfirmationPredicateTests(unittest.TestCase):
             other_finding, [other_finding], [self.claim], "comment.revise",
         )
         self.assertTrue(latest_review_was_clean(self.session, self.claim))
-        self.assertFalse(is_doc_converged(self.session, self.claim))
+        self.assertFalse(is_doc_quiescent(self.session, self.claim))
         self.assertFalse(is_claim_confirmed(self.session, self.claim))
 
 

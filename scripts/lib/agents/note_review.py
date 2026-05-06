@@ -179,7 +179,7 @@ class NoteReviewAgent(Agent):
     """One LLM-driven review pass over a note.
 
     Fires on a note address that's not yet in the
-    `is_doc_converged AND latest_review_was_clean` state. One fire =
+    `is_doc_quiescent AND latest_review_was_clean` state. One fire =
     one review aggregate doc + one `comment.<kind>` per finding.
     """
 

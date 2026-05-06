@@ -123,7 +123,7 @@ The protocol's §6.2 cycle is:
 Recommended halt conditions:
 
 - PREDICATE_HOLDS=true AND the most recent review filed zero REVISE
-  findings — converged.
+  findings — quiescent.
 - Predicate fails to advance for several cycles — file a diagnostic
   in the workspace and halt.
 - Tool failure — halt and report.
