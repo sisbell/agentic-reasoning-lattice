@@ -392,7 +392,7 @@ class ConfirmationPredicateTests(unittest.TestCase):
         finding to claim. Returns the review meta address.
         """
         review_meta = self.state.create_doc(
-            kind="review", lattice=self.lattice,
+            kind="review.content", lattice=self.lattice,
         )
         self.state.make_link(
             review_meta, [review_meta], [self.claim], "review.coverage",

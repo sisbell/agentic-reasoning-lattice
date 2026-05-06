@@ -213,12 +213,22 @@ def is_quiescent(session: Session) -> bool:
 def latest_review_for_addr(
     session: Session, addr: Address,
 ) -> Optional[Address]:
-    """Return the review_meta of the most recent review whose
+    """Return the review_meta of the most recent *content* review whose
     `review.coverage` link covers `addr`, or None if none exist.
 
+    Filters to `review.content`-classified review docs only —
+    structural audits (review.structural) emit `review.coverage` links
+    too but represent a different kind of analysis. Confirmation
+    semantics are content-review-specific: this function is the
+    foundation for has_been_reviewed and latest_review_was_clean,
+    both of which are about LLM-content critique, not validator
+    structural checks. For audit freshness see
+    `latest_structural_audit_for_claim`.
+
     "Most recent" is the `review.coverage` link with the largest
-    tumbler address (links are allocated monotonically, so the
-    largest-addressed active link is the latest emission).
+    tumbler address among the content-review-classified sources
+    (links are allocated monotonically, so the largest-addressed
+    active link is the latest emission).
     """
     coverage_links = [
         link for link in session.active_links(
@@ -228,7 +238,15 @@ def latest_review_for_addr(
     ]
     if not coverage_links:
         return None
-    latest = max(coverage_links, key=lambda link: link.addr.digits)
+    content = [
+        link for link in coverage_links
+        if session.active_links(
+            "review.content", to_set=[link.from_set[0]],
+        )
+    ]
+    if not content:
+        return None
+    latest = max(content, key=lambda link: link.addr.digits)
     return latest.from_set[0]
 
 
