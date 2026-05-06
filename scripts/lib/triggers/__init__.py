@@ -8,6 +8,7 @@ does not change the runner.
 from .claim_citation_resolve import claim_citation_resolve
 from .claim_contract import claim_contract
 from .claim_describe import claim_describe
+from .claim_formal_contract import claim_formal_contract
 from .claim_findings import claim_findings
 from .claim_revise import claim_revise
 from .claim_signature_resolve import claim_signature_resolve
@@ -27,6 +28,7 @@ __all__ = [
     "claim_citation_resolve",
     "claim_contract",
     "claim_describe",
+    "claim_formal_contract",
     "claim_findings",
     "claim_revise",
     "claim_signature_resolve",

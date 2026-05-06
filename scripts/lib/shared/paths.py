@@ -141,6 +141,12 @@ SIGNATURE_RESOLVE_DIR = DOCUVERSE_DOCS_DIR / "signature-resolve" / "claims"
 # audit-trail companion.
 CLAIM_CONTRACT_DIR = DOCUVERSE_DOCS_DIR / "claim-contract" / "claims"
 
+# Claim formal-contract synthesis outputs (produce-contract lift). One
+# doc per fire, named `<claim-label>-<run-N>.md`. The fire edits the
+# claim md to add the `*Formal Contract:*` section; this dir is the
+# audit-trail companion.
+FORMAL_CONTRACT_DIR = DOCUVERSE_DOCS_DIR / "claim-formal-contract" / "claims"
+
 # Claim convergence workspace — caches and intermediate prose artifacts
 # the convergence pipeline writes (per-ASN _contract-cache.json,
 # _summary-cache.json, etc.). Workspace-shaped: regeneratable, not

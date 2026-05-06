@@ -55,6 +55,60 @@ def has_contract_kind(session: Session, claim_addr: Address) -> bool:
     return current_contract_kind(session, claim_addr) is not None
 
 
+# Kinds that don't get a Formal Contract section in the claim body —
+# definitions assign meaning, axioms are foundational postulates,
+# design-requirements are system constraints with informal justification.
+# The remaining kinds (theorem, lemma, corollary) DO need a Formal
+# Contract section synthesized from the proof.
+_KINDS_WITHOUT_FORMAL_CONTRACT = frozenset({
+    "definition", "axiom", "design-requirement",
+})
+
+
+def has_formal_contract_in_md(
+    session: Session, claim_addr: Address,
+) -> bool:
+    """True iff the claim md body contains a `*Formal Contract:*` section.
+
+    Reads the file directly. Returns False if the path can't be resolved
+    or the file is missing.
+    """
+    rel = session.get_path_for_addr(claim_addr)
+    if rel is None:
+        return False
+    full = session.store.lattice_dir / rel
+    if not full.exists():
+        return False
+    return "*Formal Contract:*" in full.read_text()
+
+
+def claim_formal_contract_is_fresh(
+    session: Session, claim_addr: Address,
+) -> bool:
+    """Skip-predicate for the claim-formal-contract producer.
+
+    True (skip) iff:
+    - The claim's contract kind is not yet classified (wait for
+      claim_contract producer), OR
+    - The kind doesn't need a Formal Contract section (definition /
+      axiom / design-requirement), OR
+    - The claim md already has a Formal Contract section.
+
+    False (fire) iff the claim is theorem/lemma/corollary AND the
+    body still lacks the section.
+
+    Existence-only — once synthesized, doesn't re-fire on subsequent
+    body edits. Drift is caught by the structural validator (scout +
+    refiner pair) if and when it surfaces.
+    """
+    kind = current_contract_kind(session, claim_addr)
+    if kind is None:
+        return True  # wait for claim_contract producer
+    if kind in _KINDS_WITHOUT_FORMAL_CONTRACT:
+        return True
+    return has_formal_contract_in_md(session, claim_addr)
+
+
 def all_classified(session: Session, kind: str) -> List[Address]:
     """Every doc with a classifier link of the given kind. Sorted."""
     out: Set[Address] = set()

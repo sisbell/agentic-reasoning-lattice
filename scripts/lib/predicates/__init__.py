@@ -46,8 +46,10 @@ from .consultation import (
 from .classifiers import (
     all_claim_addrs,
     all_classified,
+    claim_formal_contract_is_fresh,
     current_contract_kind,
     has_contract_kind,
+    has_formal_contract_in_md,
     is_review_decomposed,
     is_retired,
 )
@@ -85,8 +87,10 @@ __all__ = [
     "all_claim_addrs",
     "all_classified",
     "all_open_revises_consulted",
+    "claim_formal_contract_is_fresh",
     "current_contract_kind",
     "has_contract_kind",
+    "has_formal_contract_in_md",
     "dangling_attribute_links",
     "dangling_claim_finding_links",
     "dangling_note_finding_links",
