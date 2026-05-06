@@ -1,4 +1,10 @@
-"""Retry helpers — re-feed open revises and surface declined findings."""
+"""Helpers for surfacing declined-finding context to review producers.
+
+`_retry_unresolved_revises` was retired when the claim-revise refiner
+was lifted to predicate-fired Agent class (`lib/triggers/claim_revise.py`).
+The runner now closes leftover open `comment.revise` links naturally;
+no re-feed at cycle entry is needed.
+"""
 
 import sys
 from pathlib import Path
@@ -6,51 +12,8 @@ from typing import List
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import LATTICE
-from lib.agents.producers.claim_review import extract_findings
-from lib.agents.refiners.claim_revise import revise
 from lib.backend.addressing import Address
-from lib.predicates import unresolved_revise_comments
 from lib.protocols.febe.protocol import Session
-
-
-def _retry_unresolved_revises(
-    session: Session, asn_num: int, claim_dir: Path,
-    scope_addrs: List[Address],
-) -> None:
-    """Re-feed open revise comments to the reviser at the top of a cycle.
-
-    For each unresolved comment.revise targeting a scope doc, fetch its
-    finding text from the comment's source (the finding document under
-    `_docuverse/findings/...`) and call `revise()` again. The reviser closes
-    via `resolution.py accept` (with edit) or
-    `resolution.py reject` (with rationale).
-    """
-    for scope_addr in scope_addrs:
-        if scope_addr is None:
-            continue
-        for c in unresolved_revise_comments(session, scope_addr):
-            if not c.from_set:
-                continue
-            finding_addr = c.from_set[0]
-            finding_rel = session.get_path_for_addr(finding_addr)
-            if not finding_rel:
-                continue
-            finding_full = LATTICE / finding_rel
-            if not finding_full.exists():
-                continue
-            finding_text = finding_full.read_text()
-            findings = extract_findings(finding_text)
-            if not findings:
-                continue
-            title = findings[0][0]
-            target_addr = c.to_set[0] if c.to_set else None
-            target_path = (
-                session.get_path_for_addr(target_addr) if target_addr else None
-            )
-            print(f"  [RETRY] re-feeding open comment {c.addr} ({title})",
-                  file=sys.stderr)
-            revise(asn_num, title, finding_text, claim_dir=claim_dir,
-                   comment_id=str(c.addr), claim_path=target_path)
 
 
 def _declined_findings_for_cone(

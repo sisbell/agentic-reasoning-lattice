@@ -6,6 +6,7 @@ does not change the runner.
 """
 
 from .claim_describe import claim_describe
+from .claim_revise import claim_revise
 from .cone_review import apex_labels_in_topological_order, cone_review
 from .full_review import full_review
 from .inquiry_consult import inquiry_consult
@@ -18,6 +19,7 @@ from .note_statements import note_statements
 __all__ = [
     "apex_labels_in_topological_order",
     "claim_describe",
+    "claim_revise",
     "cone_review",
     "full_review",
     "inquiry_consult",

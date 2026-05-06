@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.protocols.febe.session import open_session
 from lib.runner import Scope, asn, run_force_pass, run_until_quiescent
 from lib.shared.paths import LATTICE
-from lib.triggers import apex_labels_in_topological_order, cone_review
+from lib.triggers import apex_labels_in_topological_order, claim_revise, cone_review
 
 
 def _resolve_force_scope(asn_label: str, args) -> Scope:
@@ -88,10 +88,12 @@ def main():
 
     if args.force is not None or args.force_from is not None:
         scope = _resolve_force_scope(asn_label, args)
-        result = run_force_pass(triggers=[cone_review], scope=scope)
+        result = run_force_pass(
+            triggers=[cone_review, claim_revise], scope=scope,
+        )
     else:
         result = run_until_quiescent(
-            triggers=[cone_review],
+            triggers=[cone_review, claim_revise],
             scope=asn(asn_num),
             max_iterations=args.max_iterations,
         )

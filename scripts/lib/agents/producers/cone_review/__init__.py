@@ -3,18 +3,15 @@
 Public surface:
 - ConeReviewAgent — Agent class fired by the cone-review trigger.
   One cycle per fire; the runner handles the multi-cycle refinement.
-- run_cone_review — legacy multi-cycle wrapper. Kept while
-  full-review (which has not migrated to triggers yet) still calls
-  it. New code should use the trigger / agent directly.
+- run_cone_review — legacy multi-cycle wrapper. Now a thin adapter
+  over the runner: drives `cone_review` and `claim_revise` triggers
+  until quiescence. Kept for the manual CLI entry point
+  (`scripts/claim-full-review.py --cone <label>`).
 """
 
 from __future__ import annotations
 
 import sys
-
-from lib.protocols.febe.session import open_session
-from lib.predicates import is_claim_confirmed
-from lib.shared.paths import LATTICE
 
 from .agent import CONE_MODEL, ConeReviewAgent
 from .scope import assemble_cone, transitive_same_asn_deps
@@ -34,45 +31,31 @@ def run_cone_review(
     asn_num, apex_label, dep_labels, *,
     max_cycles: int = 8, model: str = CONE_MODEL,
 ) -> str:
-    """Legacy multi-cycle wrapper: drive ConeReviewAgent until confirmed
-    or max_cycles hit. Returns "quiescent" / "not_quiescent" / "failed".
+    """Legacy multi-cycle wrapper: drive cone_review + claim_revise
+    triggers until quiescence. Returns "quiescent" / "not_quiescent" /
+    "failed".
 
-    Used by full-review's cone-fallback dispatch. Once full-review
-    migrates to the trigger model, this wrapper retires.
+    Wraps the runner-driven path — the previous internal cycle loop
+    inside this wrapper retired when claim_revise was lifted to a
+    predicate-fired Agent class. The runner walks both triggers until
+    every comment.revise on the apex is closed and the apex's review
+    coverage is current.
 
-    No `dry_run`: undo via `git reset --hard HEAD~N`. Faux-dry semantics
-    leak side effects (raw output files, session re-opens, partial
-    substrate writes); the git reset path is honest about cost and
-    captures every artifact we care about.
+    `apex_label` and `dep_labels` are not used in the new shape; the
+    runner derives the cone from substrate (transitive deps walked
+    inside ConeReviewAgent.run()). Kept in the signature for
+    backwards compatibility with callers.
     """
-    agent = ConeReviewAgent()
-    session = open_session(LATTICE)
+    from lib.runner import Scope, run_force_pass
+    from lib.triggers import claim_revise, cone_review
 
-    from lib.lattice.labels import build_cross_asn_label_index
-    label_index = build_cross_asn_label_index(session.store)
-    apex_addr = label_index.get(apex_label)
-    if apex_addr is None:
-        print(
-            f"  [run_cone_review] no addr for {apex_label}",
-            file=sys.stderr,
-        )
+    scope = Scope(
+        asn_label=f"ASN-{asn_num:04d}",
+        labels=frozenset({apex_label}),
+    )
+    result = run_force_pass(
+        triggers=[cone_review, claim_revise], scope=scope,
+    )
+    if result.errors:
         return "failed"
-
-    for cycle in range(max_cycles):
-        if is_claim_confirmed(session, apex_addr):
-            return "quiescent"
-        result = agent(session, apex_addr)
-        if not result.success and result.detail.startswith("gate-failed"):
-            return "failed"
-        # Re-open session: the agent's substrate writes are now visible.
-        session = open_session(LATTICE)
-        apex_addr = (
-            session.store.path_to_addr.get(
-                session.get_path_for_addr(apex_addr) or "",
-                apex_addr,
-            )
-        )
-
-    if is_claim_confirmed(session, apex_addr):
-        return "quiescent"
-    return "not_quiescent"
+    return "quiescent" if result.quiescent else "not_quiescent"
