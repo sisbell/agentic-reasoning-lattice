@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.runner import Scope, run_until_quiescent
-from lib.triggers import claim_structural_fix
+from lib.triggers import claim_structural_audit, claim_structural_fix
 
 
 def main() -> int:
@@ -56,7 +56,7 @@ def main() -> int:
     scope = Scope(asn_label=asn_label, labels=labels)
 
     result = run_until_quiescent(
-        triggers=[claim_structural_fix],
+        triggers=[claim_structural_audit, claim_structural_fix],
         scope=scope,
         max_iterations=args.max_iterations,
     )

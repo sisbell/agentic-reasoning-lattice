@@ -74,7 +74,7 @@ def run_validate_gate(asn_label, scope_labels=None, max_iterations=3):
     """
     # Lazy import to avoid the circular path validate_gate → triggers
     # → cone_review trigger → cone_review agent → validate_gate.
-    from lib.triggers import claim_structural_fix
+    from lib.triggers import claim_structural_audit, claim_structural_fix
 
     asn_num = int(asn_label[4:])
     labels = (
@@ -88,7 +88,7 @@ def run_validate_gate(asn_label, scope_labels=None, max_iterations=3):
         file=sys.stderr,
     )
     result = run_until_quiescent(
-        triggers=[claim_structural_fix],
+        triggers=[claim_structural_audit, claim_structural_fix],
         scope=scope,
         max_iterations=max_iterations,
     )
