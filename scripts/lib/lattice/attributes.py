@@ -32,7 +32,7 @@ from lib.backend.links import Link
 from lib.protocols.febe.protocol import Session
 
 VALID_ATTRIBUTE_KINDS = {
-    "label", "name", "description", "signature", "statements",
+    "label", "name", "description", "signature", "statements", "references",
 }
 
 

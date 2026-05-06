@@ -5,6 +5,7 @@ walks them. Adding a trigger means writing a new module here; it
 does not change the runner.
 """
 
+from .claim_citation_resolve import claim_citation_resolve
 from .claim_describe import claim_describe
 from .claim_findings import claim_findings
 from .claim_revise import claim_revise
@@ -22,6 +23,7 @@ from .note_statements import note_statements
 
 __all__ = [
     "apex_labels_in_topological_order",
+    "claim_citation_resolve",
     "claim_describe",
     "claim_findings",
     "claim_revise",

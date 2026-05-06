@@ -1,15 +1,24 @@
-"""Citation-resolve orchestrator — per-claim and full-ASN sweep.
+"""Claim citation-resolve agent — producer for per-claim references sidecars.
 
-Mechanical loop that gathers existing classifications from substrate,
-dispatches the citation-resolve agent
-(`lib/agents/producers/citation_resolve.py`), then applies its output: edits the
-claim's `.md` Depends/Forward sections, persists the resolve doc, and
-emits substrate links (citation.depends/forward, retraction,
-citation.resolve, provenance.derivation).
+Fires per-claim with a stale (or absent) references sidecar. One fire =
+read the claim's prose, dispatch the LLM helper to type each label
+reference (depends vs forward), apply changes to the claim md
+(insert/remove bullets in the *Depends:* / *Forward References:*
+sections), emit substrate links (citation.depends/forward,
+retraction, citation.resolve, provenance.derivation), attest the
+references sidecar via attest_attribute (advances the supersession
+chain so references_is_fresh flips True), persist the resolve-doc
+audit trail, commit per fire.
 
-Two entry points:
-- `run_classification(asn_num, claim_label)` — one claim
-- `run_sweep(asn_num)` — every claim in the ASN
+This is the lifted form of the previous citation_resolve orchestrator.
+The substrate queries (existing classifications), claim-md editing,
+and emission steps all live inside this agent.
+
+Caste: producer. Working surface: claim md prose + cross-ASN label
+index. Identity grant: references sidecar (created or chain-advanced
+via attest_attribute), plus per-fire citation.depends/forward and
+retraction links. Predicate-fired by the runner on stale claims
+(references_is_fresh False).
 """
 
 from __future__ import annotations
@@ -19,27 +28,26 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import ClassVar
 
-from lib.provenance import attributed_to
-from lib.agents.producers.citation_resolve import extract_citation_classifications
+from lib.agents.base import Agent, AgentResult
+from lib.backend.addressing import Address
 from lib.backend.emit import emit_citation, emit_retraction
-from lib.protocols.febe.protocol import Session
-from lib.protocols.febe.session import open_session
+from lib.lattice.attributes import attest_attribute
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.shared.claim_files import build_label_index
-from lib.shared.common import find_asn
+from lib.protocols.febe.protocol import Session
 from lib.shared.git_ops import step_commit_asn
-from lib.shared.paths import (
-    CITATION_RESOLVE_DIR, CLAIM_DIR, LATTICE, claim_doc_path,
-)
+from lib.shared.paths import CITATION_RESOLVE_DIR, LATTICE
+
+from .helpers import extract_citation_classifications
 
 
+CITATION_MODEL = "sonnet"
 DEPENDS_HEADER = "- *Depends:*"
 FORWARD_HEADER = "- *Forward References:*"
 
 
-# ---------------------------------------------------------------------------
-# Substrate queries
+# ─── Substrate queries ──────────────────────────────────────────────
 
 
 def _existing_classifications(
@@ -77,8 +85,7 @@ def _validate_labels(classifications, retractions, label_index):
             raise ValueError(f"unknown label in retraction: {r['label']!r}")
 
 
-# ---------------------------------------------------------------------------
-# .md section editing
+# ─── Claim md section editing ───────────────────────────────────────
 
 
 def _find_section(lines, header):
@@ -203,11 +210,10 @@ def _apply_changes(claim_md_path, classifications, retractions):
     claim_md_path.write_text("\n".join(lines))
 
 
-# ---------------------------------------------------------------------------
-# Resolve-doc persistence
+# ─── Resolve-doc persistence (audit trail) ──────────────────────────
 
 
-def _next_resolve_run(asn_label, claim_label):
+def _next_run_num(asn_label, claim_label):
     asn_dir = CITATION_RESOLVE_DIR / asn_label
     if not asn_dir.exists():
         return 1
@@ -222,7 +228,7 @@ def _next_resolve_run(asn_label, claim_label):
 
 def _persist_resolve_doc(asn_label, claim_label, sonnet_output, model):
     """Write the resolve doc with a small header + raw Sonnet output."""
-    run_num = _next_resolve_run(asn_label, claim_label)
+    run_num = _next_run_num(asn_label, claim_label)
     asn_dir = CITATION_RESOLVE_DIR / asn_label
     asn_dir.mkdir(parents=True, exist_ok=True)
     path = asn_dir / f"{claim_label}-{run_num}.md"
@@ -245,11 +251,10 @@ def _persist_resolve_doc(asn_label, claim_label, sonnet_output, model):
     return path, run_num
 
 
-# ---------------------------------------------------------------------------
-# Substrate emission
+# ─── Substrate emission ─────────────────────────────────────────────
 
 
-def _emit_substrate(
+def _emit_citation_substrate(
     session: Session,
     claim_md_rel: str,
     classifications: list,
@@ -306,108 +311,165 @@ def _emit_substrate(
         )
 
 
-# ---------------------------------------------------------------------------
-# Entrypoints
+# ─── References sidecar rendering ───────────────────────────────────
 
 
-@attributed_to("citation-resolve")
-def run_classification(asn_num, claim_label, model="sonnet"):
-    """Run citation-resolve on one claim. Returns "ok" or "failed"."""
-    _, asn_label = find_asn(str(asn_num))
-    if asn_label is None:
-        print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
-        return "failed"
+def _render_references_sidecar(
+    session: Session, claim_md_rel: str, label_index: dict,
+) -> str:
+    """Render the post-fire references sidecar from current substrate.
 
-    os.environ.setdefault("PROTOCOL_ASN_LABEL", asn_label)
+    Reads active citation.depends + citation.forward from the claim and
+    emits a labels-only markdown view:
 
-    claim_md_rel = claim_doc_path(asn_label, claim_label)
-    claim_md_full = LATTICE / claim_md_rel
-    if not claim_md_full.exists():
-        print(
-            f"  {claim_label}.md not found at {claim_md_full}",
-            file=sys.stderr,
-        )
-        return "failed"
+        *Depends:*
+          - T0
+          - NAT-carrier
 
-    claim_md_content = claim_md_full.read_text()
+        *Forward References:*
+          - T2
 
-    session = open_session(LATTICE)
-    label_index = build_cross_asn_label_index(session.store)
+    The sidecar is the LLM's authoritative classification — labels
+    only, no explanatory prose (those live in the claim md's bullet
+    sections). Empty sections are omitted.
+    """
     depends, forwards = _existing_classifications(
         session, claim_md_rel, label_index,
     )
+    parts = []
+    if depends:
+        parts.append("*Depends:*")
+        for label in depends:
+            parts.append(f"  - {label}")
+    if forwards:
+        if parts:
+            parts.append("")
+        parts.append("*Forward References:*")
+        for label in forwards:
+            parts.append(f"  - {label}")
+    return "\n".join(parts) + "\n" if parts else ""
 
-    claim_dir = claim_md_full.parent
-    claims_root = claim_dir.parent
 
-    print(
-        f"  [RESOLVE] {asn_label}/{claim_label} ({model})...",
-        end="", file=sys.stderr, flush=True,
-    )
-    result = extract_citation_classifications(
-        claim_md_content, claim_dir, claims_root, depends, forwards,
-        model=model,
-    )
-    print(f" ({result.elapsed_seconds:.0f}s)", file=sys.stderr)
+# ─── Agent class ────────────────────────────────────────────────────
 
-    if not result.classifications and not result.retractions:
+
+class ClaimCitationResolveAgent(Agent):
+    """One claim's citation-classification per fire.
+
+    Reads the claim md, dispatches the LLM helper to type each label
+    reference (depends vs forward), applies the resulting changes to
+    the claim md (insert/remove bullets in *Depends:* / *Forward
+    References:*), emits substrate links (citation.depends/forward,
+    retraction, citation.resolve, provenance.derivation), attests the
+    references sidecar via attest_attribute (which advances the
+    supersession chain so references_is_fresh flips True), persists
+    the resolve-doc audit trail, commits per fire.
+    """
+
+    role: ClassVar[str] = "claim-citation-resolve"
+
+    def __init__(self, *, model: str = CITATION_MODEL):
+        self.model = model
+
+    def run(self, session: Session, claim_addr: Address) -> AgentResult:
+        claim_rel = session.get_path_for_addr(claim_addr)
+        if claim_rel is None:
+            return AgentResult(success=False, detail="no-claim-path")
+
+        m = re.search(r"(ASN-(\d{4}))/([^/]+)\.md$", claim_rel)
+        if m is None:
+            return AgentResult(success=False, detail="unparseable-claim-path")
+        asn_label = m.group(1)
+        asn_num = int(m.group(2))
+        claim_label = m.group(3)
+
+        os.environ.setdefault("PROTOCOL_ASN_LABEL", asn_label)
+
+        claim_md_full = LATTICE / claim_rel
+        if not claim_md_full.exists():
+            return AgentResult(success=False, detail="no-claim-file")
+
+        claim_md_content = claim_md_full.read_text()
+
+        label_index = build_cross_asn_label_index(session.store)
+        depends, forwards = _existing_classifications(
+            session, claim_rel, label_index,
+        )
+
+        claim_dir = claim_md_full.parent
+        claims_root = claim_dir.parent
+
         print(
-            f"  [RESOLVE] {claim_label}: no changes",
+            f"  [CITATION-RESOLVE] {asn_label}/{claim_label} ({self.model})...",
+            end="", file=sys.stderr, flush=True,
+        )
+        result = extract_citation_classifications(
+            claim_md_content, claim_dir, claims_root, depends, forwards,
+            model=self.model,
+        )
+        print(f" ({result.elapsed_seconds:.0f}s)", file=sys.stderr)
+
+        # Apply delta (claim md edits + substrate emissions). On no-op
+        # delta these are skipped, but the attestation and audit trail
+        # below still fire.
+        if result.classifications or result.retractions:
+            _validate_labels(
+                result.classifications, result.retractions, label_index,
+            )
+            _apply_changes(
+                claim_md_full, result.classifications, result.retractions,
+            )
+
+        # Persist the resolve doc as audit trail (never discard LLM
+        # output). Same on no-op as on changes — the LLM ran, its
+        # output has audit value.
+        resolve_path, run_num = _persist_resolve_doc(
+            asn_label, claim_label, result.raw_text, self.model,
+        )
+        resolve_rel = str(resolve_path.relative_to(LATTICE))
+
+        if result.classifications or result.retractions:
+            _emit_citation_substrate(
+                session, claim_rel,
+                result.classifications, result.retractions,
+                resolve_rel, label_index,
+            )
+
+        # attest_attribute is the create-or-advance helper: first call
+        # creates the link + sidecar at chain length 1; subsequent
+        # calls advance the references sidecar's supersession chain
+        # via register_version. references_is_fresh reads the chain
+        # to detect staleness. We attest unconditionally — even on
+        # zero LLM delta, the agent ran and confirmed the existing
+        # classification is correct at this revision; that is itself
+        # the attestation.
+        sidecar_text = _render_references_sidecar(
+            session, claim_rel, label_index,
+        )
+        attest_attribute(
+            session, claim_rel, "references", sidecar_text.rstrip(),
+        )
+
+        n_class = len(result.classifications)
+        n_retr = len(result.retractions)
+        if n_class == 0 and n_retr == 0:
+            summary = "re-attested, no changes"
+        else:
+            summary = f"{n_class} classifications, {n_retr} retractions"
+        print(
+            f"  [CITATION-RESOLVE] {claim_label}: {summary}, run {run_num}",
             file=sys.stderr,
         )
-        return "ok"
 
-    _validate_labels(result.classifications, result.retractions, label_index)
-    _apply_changes(claim_md_full, result.classifications, result.retractions)
+        step_commit_asn(
+            asn_num,
+            hint=(
+                f"citation-resolve(asn): {asn_label}/{claim_label} — "
+                f"{summary}"
+            ),
+        )
 
-    resolve_path, run_num = _persist_resolve_doc(
-        asn_label, claim_label, result.raw_text, model,
-    )
-    resolve_rel = str(resolve_path.relative_to(LATTICE))
-
-    _emit_substrate(
-        session, claim_md_rel, result.classifications, result.retractions,
-        resolve_rel, label_index,
-    )
-
-    n_class = len(result.classifications)
-    n_retr = len(result.retractions)
-    print(
-        f"  [RESOLVE] {claim_label}: {n_class} classifications, "
-        f"{n_retr} retractions, run {run_num}",
-        file=sys.stderr,
-    )
-
-    step_commit_asn(
-        asn_num,
-        hint=(
-            f"citation-resolve(asn): ASN-{asn_num:04d}/{claim_label} — "
-            f"{n_class} classifications, {n_retr} retractions"
-        ),
-    )
-    return "ok"
-
-
-@attributed_to("citation-resolve")
-def run_sweep(asn_num, model="sonnet"):
-    """Iterate every claim in the ASN; run citation-resolve on each."""
-    _, asn_label = find_asn(str(asn_num))
-    if asn_label is None:
-        print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
-        return "failed"
-
-    claim_dir = CLAIM_DIR / asn_label
-    if not claim_dir.exists():
-        print(f"  {claim_dir} not found", file=sys.stderr)
-        return "failed"
-
-    labels = sorted(build_label_index(claim_dir).keys())
-    print(
-        f"\n  [RESOLVE-SWEEP] {asn_label} — {len(labels)} claims",
-        file=sys.stderr,
-    )
-
-    for label in labels:
-        run_classification(asn_num, label, model=model)
-
-    return "ok"
+        return AgentResult(
+            success=True,
+            detail=f"classifications={n_class} retractions={n_retr}",
+        )

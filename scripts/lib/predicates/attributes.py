@@ -162,6 +162,48 @@ def signature_sidecar_of(
     return None
 
 
+def references_sidecar_of(
+    session: Session, doc_addr: Address,
+) -> Optional[Address]:
+    links = session.active_links("references", from_set=[doc_addr])
+    for link in links:
+        if link.to_set:
+            return link.to_set[0]
+    return None
+
+
+def references_is_fresh(session: Session, claim_addr: Address) -> bool:
+    """True iff the references sidecar's chain is at least as long as
+    the claim's chain.
+
+    Mirrors `signature_is_fresh` and `description_is_fresh` exactly:
+    each claim md edit advances the claim chain (refiner-driven via
+    `register_version` on accept); each citation_resolve fire
+    advances the references sidecar chain via `attest_attribute`.
+    Equal counts mean every claim edit has a matching reference-
+    classification attestation.
+
+    The references sidecar holds the LLM's verdict on which label
+    references in the claim's prose are depends-direction vs
+    forward-direction. Distinct from `citation.depends` /
+    `citation.forward` substrate links (those are the atomic
+    typed-edge facts; the sidecar is the per-claim attestation
+    artifact whose chain encodes attestation count).
+
+    False when there's no references link at all (initial state) —
+    citation_resolve should fire to create it.
+    """
+    from lib.predicates.versions import supersession_chain_length
+    links = session.active_links("references", from_set=[claim_addr])
+    if not links or not links[0].to_set:
+        return False
+    sidecar_addr = links[0].to_set[0]
+    return (
+        supersession_chain_length(session, sidecar_addr)
+        >= supersession_chain_length(session, claim_addr)
+    )
+
+
 def has_name(session: Session, doc_addr: Address) -> bool:
     return bool(session.active_links("name", from_set=[doc_addr]))
 

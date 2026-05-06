@@ -71,6 +71,7 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "source": (27,),
     "promotion.out-of-scope": (28, 1),
     "promotion.open-questions": (28, 2),
+    "references": (29,),
 }
 
 # Parent-type positions for hierarchical queries (per L10): a query at
