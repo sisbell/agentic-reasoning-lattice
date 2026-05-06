@@ -202,9 +202,7 @@ class ClaimDecomposeAgent(Agent):
         )
 
         # Per-claim: resolve body against source note + emit identity to
-        # substrate. The body-resolution helpers + load helpers stay in
-        # lib/claim_derivation/transclude.py until transclude is fully
-        # retired (annotate-derived emissions still live there).
+        # substrate.
         emitted, failed = self._emit_substrate(
             session, note_addr, asn_label, sections_dir, asn_text,
         )
@@ -247,9 +245,7 @@ class ClaimDecomposeAgent(Agent):
 
         Returns (emitted_count, failed_list).
         """
-        from lib.claim_derivation.transclude import (
-            _clean_label, _load_claims, find_in_source,
-        )
+        from .helpers import clean_label, find_in_source, load_claims_from_yamls
 
         store = session.store
         lattice_root = store.lattice_dir.resolve()
@@ -260,7 +256,7 @@ class ClaimDecomposeAgent(Agent):
         failed: list[tuple[str, str, str]] = []
         emitted = 0
 
-        for yaml_basename, prop in _load_claims(sections_dir):
+        for yaml_basename, prop in load_claims_from_yamls(sections_dir):
             raw_label = prop.get("label", "")
             if not raw_label:
                 print(
@@ -268,7 +264,7 @@ class ClaimDecomposeAgent(Agent):
                     file=sys.stderr,
                 )
                 continue
-            label, label_was_cleaned = _clean_label(raw_label)
+            label, label_was_cleaned = clean_label(raw_label)
             if label_was_cleaned:
                 print(
                     f"    FIX label: {raw_label!r} → {label!r}",

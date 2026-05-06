@@ -1,10 +1,13 @@
-"""Unit tests for claim_derivation.transclude.find_in_source.
+"""Unit tests for the find_in_source body resolver.
 
 The resolver takes the source note text and an LLM-extracted body, and
 returns the matched substring of the source — or None on failure. Two
 match strategies, in order: exact byte-substring, then
 whitespace-normalized. Strict by design — fuzzy matching is silent
 acceptance of unexplained drift.
+
+Lives in claim_decompose now (was previously in
+lib/claim_derivation/transclude.py before that phase was retired).
 """
 
 import sys
@@ -12,7 +15,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.claim_derivation.transclude import find_in_source
+from lib.agents.producers.claim_decompose.helpers import find_in_source
 
 
 class ExactMatchTests(unittest.TestCase):

@@ -1,43 +1,75 @@
-"""Claim derivation orchestrator — six-phase sequential pipeline.
+"""Claim derivation orchestrator — manual decompose, then runner-driven.
 
-Runs the full claim-derivation flow on an ASN:
-    1. decompose      — mechanical ## split + per-section LLM analysis
-    2. annotate       — 3 per-claim LLM passes (type, deps, signature)
-    3. transclude     — project source-note regions as per-claim docs;
-                        emit substrate links (claim, contract.<kind>,
-                        citation, label, name, provenance.derivation)
-    3.5. validate-transclude — quick byte-substring check; the
-         content-preservation invariant is transition-checkable here
-         only, before produce_contract intentionally diverges bodies
-    4. produce-contract — synthesize Formal Contract sections
-    5. validate-gate    — comprehensive validator + bounded structural-
-                          only fix recipes; same gate claim convergence
-                          runs before each review cycle
+After the annotate/transclude phases were lifted into predicate-fired
+producers, the derivation arc collapses to:
 
-Each phase commits its output via the lib functions it dispatches to.
-Halts on the first failed phase. Returns True iff the final state is
-clean (Claim Document Contract holds).
+    1. decompose      — operator-gated producer (manual fire). Writes
+                        claim mds + emits identity (claim, label, name,
+                        derivation, transclusion.claim-statements).
+    2. runner walk    — predicate-fired producers fire on stale state
+                        post-decompose: claim_contract, claim_describe,
+                        claim_signature_resolve, claim_citation_resolve.
+                        Each emits its own substrate fact.
+    3. produce-contract — synthesizes Formal Contract sections per claim
+                        (still imperative; lift queued).
+    4. validate-gate  — runner-driven scout + refiner pair
+                        (claim_structural_audit + claim_structural_revise);
+                        runs until structurally clean or quiescent with
+                        violations.
+
+Each phase commits its output. Halts on the first failed phase.
+Returns True iff the final state is clean (Claim Document Contract
+holds).
 """
 
 import sys
 import time
 
 from lib.claim_derivation.decompose import decompose_asn
-from lib.claim_derivation.annotate import annotate_asn
 from lib.claim_derivation.produce_contract import (
     find_claims_needing_quality, produce_contract,
 )
-from lib.claim_derivation.transclude import transclude_asn
-from lib.claim_derivation.validate_transclude import (
-    print_validation as validate_transclude,
-)
+from lib.runner import Scope, run_until_quiescent
 from lib.shared.common import find_asn
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.validate_gate import run_validate_gate
+from lib.triggers import (
+    claim_citation_resolve, claim_contract, claim_describe,
+    claim_signature_resolve,
+)
+
+
+def _step_post_decompose_producers(asn_num):
+    """Phase 2 — runner walk over the post-decompose producers.
+
+    After decompose grants per-claim identity, four predicate-fired
+    producers fire on stale state and bring the substrate to
+    quiescence on description / signature / citations / contract:
+    """
+    asn_label = f"ASN-{asn_num:04d}"
+    scope = Scope(asn_label=asn_label)
+
+    result = run_until_quiescent(
+        triggers=[
+            claim_contract,
+            claim_signature_resolve,
+            claim_citation_resolve,
+            claim_describe,
+        ],
+        scope=scope,
+        max_iterations=20,
+    )
+    print(
+        f"\n  [POST-DECOMPOSE] iterations={result.iterations} "
+        f"fires={len(result.fires)} errors={len(result.errors)} "
+        f"quiescent={result.quiescent}",
+        file=sys.stderr,
+    )
+    return result.quiescent and not result.errors
 
 
 def _step_produce_contract(asn_num):
-    """Phase 4 — synthesize Formal Contract for every claim that lacks
+    """Phase 3 — synthesize Formal Contract for every claim that lacks
     one (or whose prose has changed since last run).
 
     Calls produce_contract per claim. Logs failures but continues; the
@@ -75,7 +107,7 @@ def _step_produce_contract(asn_num):
 
 
 def _step_validate_gate(asn_num):
-    """Phase 5 — bounded validate-revise gate.
+    """Phase 4 — bounded validate-revise gate.
 
     Runs the comprehensive validator. If actionable findings surface,
     dispatches structural-only fix recipes (validate-revise) and
@@ -101,19 +133,9 @@ def run_pipeline(asn_num):
         print("\n  [DERIVE] FAILED at decompose", file=sys.stderr)
         return False
 
-    if not annotate_asn(asn_num):
-        print("\n  [DERIVE] FAILED at annotate", file=sys.stderr)
-        return False
-
-    if not transclude_asn(asn_num):
-        print("\n  [DERIVE] FAILED at transclude", file=sys.stderr)
-        return False
-
-    if not validate_transclude(asn_num):
+    if not _step_post_decompose_producers(asn_num):
         print(
-            "\n  [DERIVE] FAILED at validate-transclude — transclude "
-            "produced output that is not a byte-substring of the source "
-            "note. Halting before produce_contract.",
+            "\n  [DERIVE] FAILED at post-decompose runner walk",
             file=sys.stderr,
         )
         return False
