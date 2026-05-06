@@ -8,9 +8,10 @@
 
 Per-claim granularity. Predicate is the standard chain-length
 comparison shared with description_is_fresh / statements_is_fresh:
-each claim md edit advances the claim chain; emit_attribute advances
-the sidecar chain; equal lengths mean "every edit attested." Lower
-sidecar count means at least one edit is unattested → fire.
+each claim md edit advances the claim chain; attest_attribute
+advances the sidecar chain on each fire; equal lengths mean "every
+edit attested." Lower sidecar count means at least one edit is
+unattested → fire.
 """
 
 from __future__ import annotations

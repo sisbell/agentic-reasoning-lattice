@@ -100,3 +100,71 @@ def emit_attribute(
     claim_addr = session.register_path(claim_rel)
     sidecar_addr = session.register_path(sidecar_rel)
     return emit_attribute_link(session.store, claim_addr, kind, sidecar_addr)
+
+
+def attest_attribute(
+    session: Session,
+    claim_md_path: Union[str, Path],
+    kind: str,
+    value: str,
+    lattice_root: Union[str, Path, None] = None,
+) -> Tuple[Link, bool]:
+    """Attest an attribute against the doc's current revision state.
+
+    Single create-or-advance path:
+    - First-time: creates link + sidecar at supersession chain
+      length 1 (delegates to emit_attribute).
+    - Subsequent: advances the sidecar's chain by 1 via
+      register_version, then writes the new content (file write
+      skipped if byte-identical).
+
+    Use this for every producer fire / CLI invocation that records
+    an attestation. The chain advance encodes "I checked at this
+    revision" — meaningful even when the new content is identical
+    to the old (no-op LLM output still counts as an attestation
+    that the existing sidecar is correct as-of-now).
+
+    For attribute kinds with a freshness predicate
+    (description/signature/statements), the chain advance is
+    REQUIRED — predicates compare chain lengths to detect staleness,
+    and skipping the advance leaves them stuck in False, causing
+    the runner to re-fire until max_iterations.
+
+    For attribute kinds without a freshness predicate (label/name),
+    the chain still advances harmlessly. This is the relaxed-model's
+    "advance where it doesn't hurt" stance: cost is one supersession
+    link per call; benefit is one fewer discipline at the call site.
+    Future predicates over those kinds get the chain machinery for
+    free.
+
+    Returns (link, created) where created is True iff the link was
+    freshly emitted (i.e., first-time call); False on subsequent.
+    """
+    # Resolve claim_addr to detect first vs subsequent. We reuse
+    # emit_attribute's path-resolution logic by computing it once
+    # here, so the lookup is in sync with the delegate.
+    if kind not in VALID_ATTRIBUTE_KINDS:
+        raise ValueError(
+            f"invalid attribute kind {kind!r}; must be one of "
+            f"{sorted(VALID_ATTRIBUTE_KINDS)}"
+        )
+
+    root = Path(lattice_root) if lattice_root else session.store.lattice_dir
+    claim_md = Path(claim_md_path)
+    if not claim_md.is_absolute():
+        claim_md = (root / claim_md).resolve()
+    else:
+        claim_md = claim_md.resolve()
+    claim_rel = str(claim_md.relative_to(root.resolve()))
+
+    claim_addr = session.get_addr_for_path(claim_rel)
+    if claim_addr is not None:
+        existing = session.active_links(kind, from_set=[claim_addr])
+        for link in existing:
+            if link.to_set:
+                # Subsequent: advance the sidecar's chain before the
+                # delegate does its file write + link lookup.
+                session.register_version(link.to_set[0])
+                break
+
+    return emit_attribute(session, claim_md_path, kind, value, lattice_root)

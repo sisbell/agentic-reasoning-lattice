@@ -3,17 +3,18 @@
 Fires per-claim with a stale (or absent) signature sidecar. One fire =
 gather context (existing sidecar, transitive dep signatures, notation
 primitives), dispatch the LLM helper to produce introduces/removes,
-emit the new sidecar via emit_attribute (which advances the sidecar's
-version chain), persist the resolve-doc audit trail, commit.
+attest the new sidecar via attest_attribute (create-or-advance: first
+call creates the link, subsequent advances the supersession chain),
+persist the resolve-doc audit trail, commit.
 
 This is the lifted form of the previous signature_resolve orchestrator.
 The substrate queries (transitive dep walking, sidecar reads) and
-emission steps (emit_attribute, resolve-doc persistence) all live
+emission steps (attest_attribute, resolve-doc persistence) all live
 inside this agent.
 
 Caste: producer. Working surface: claim md content + upstream
 signature sidecars. Identity grant: signature sidecar (created or
-version-advanced via emit_attribute). Predicate-fired by the runner
+chain-advanced via attest_attribute). Predicate-fired by the runner
 on stale claims.
 """
 
@@ -28,10 +29,9 @@ from typing import ClassVar
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.lattice.attributes import emit_attribute
+from lib.lattice.attributes import attest_attribute
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.lattice.notation import read_notation
-from lib.predicates.attributes import signature_sidecar_of
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
 from lib.shared.git_ops import step_commit_asn
@@ -168,9 +168,10 @@ class ClaimSignatureResolveAgent(Agent):
 
     Reads existing signature sidecar + transitive dep signatures +
     notation primitives, dispatches the LLM helper to produce
-    introduces/removes, emits the new sidecar via emit_attribute (which
-    advances the sidecar's version chain so signature_is_fresh flips
-    True), persists the resolve-doc audit trail, commits per fire.
+    introduces/removes, attests the new sidecar via attest_attribute
+    (which advances the sidecar's supersession chain so
+    signature_is_fresh flips True), persists the resolve-doc audit
+    trail, commits per fire.
     """
 
     role: ClassVar[str] = "claim-signature-resolve"
@@ -216,13 +217,13 @@ class ClaimSignatureResolveAgent(Agent):
         )
         print(f" ({result.elapsed_seconds:.0f}s)", file=sys.stderr)
 
-        if not result.introduces and not result.removes:
-            print(
-                f"  [SIG-RESOLVE] {claim_label}: no changes",
-                file=sys.stderr,
-            )
-            return AgentResult(success=True, detail="no-changes")
-
+        # Compute the new sidecar text from existing + LLM delta.
+        # On no-op (zero introduces, zero removes), this equals the
+        # existing sidecar content — but we still attest, because
+        # the LLM ran and confirmed the existing sidecar is correct
+        # at this revision. Skipping the attestation would leave
+        # signature_is_fresh False and re-fire the runner until
+        # max_iterations.
         existing = _existing_sidecar_bullets(claim_dir, claim_label)
         bullets_by_symbol = dict(existing)
         for entry in result.removes:
@@ -233,38 +234,33 @@ class ClaimSignatureResolveAgent(Agent):
         new_pairs = [(s, bullets_by_symbol[s]) for s in bullets_by_symbol]
         new_sidecar_text = _render_sidecar(new_pairs)
 
-        # First-time: emit_attribute creates the link + sidecar.
-        # Subsequent: register_version advances the signature chain;
-        # write the new content to the sidecar file.
-        #
-        # The chain advance is required: signature_is_fresh compares
-        # sidecar chain length to claim chain length. emit_attribute
-        # alone does not advance the chain (relaxed-model: chains
-        # advance only where a predicate consumes them, and the
-        # caller is responsible for opting in). Without the
-        # register_version branch, the predicate stays False after
-        # any claim edit and the runner re-fires until max_iterations.
-        sidecar_addr = signature_sidecar_of(session, claim_addr)
-        if sidecar_addr is None:
-            emit_attribute(
-                session, claim_rel, "signature", new_sidecar_text.rstrip(),
-            )
-        else:
-            session.register_version(sidecar_addr)
-            sidecar_path = session.get_path_for_addr(sidecar_addr)
-            full_sidecar = session.store.lattice_dir / sidecar_path
-            body = new_sidecar_text.rstrip() + "\n"
-            full_sidecar.write_text(body)
+        # attest_attribute is the create-or-advance helper: first
+        # call creates the link + sidecar at chain length 1;
+        # subsequent calls advance the sidecar's supersession chain
+        # via register_version. signature_is_fresh reads the chain
+        # to detect staleness. We attest unconditionally — even on
+        # zero LLM delta, the agent ran and confirmed the existing
+        # sidecar is correct at this revision; that is itself the
+        # attestation.
+        attest_attribute(
+            session, claim_rel, "signature", new_sidecar_text.rstrip(),
+        )
 
+        # Persist the resolve doc as audit trail (never discard LLM
+        # output). Same on no-op as on changes — the LLM still ran,
+        # its output still has audit value.
         _, run_num = _persist_resolve_doc(
             asn_label, claim_label, result.raw_text, self.model,
         )
 
         n_intro = len(result.introduces)
         n_rem = len(result.removes)
+        if n_intro == 0 and n_rem == 0:
+            summary = "re-attested, no changes"
+        else:
+            summary = f"{n_intro} introduced, {n_rem} removed"
         print(
-            f"  [SIG-RESOLVE] {claim_label}: {n_intro} introduced, "
-            f"{n_rem} removed, run {run_num}",
+            f"  [SIG-RESOLVE] {claim_label}: {summary}, run {run_num}",
             file=sys.stderr,
         )
 
@@ -272,7 +268,7 @@ class ClaimSignatureResolveAgent(Agent):
             asn_num,
             hint=(
                 f"signature-resolve(asn): {asn_label}/{claim_label} — "
-                f"{n_intro} introduced, {n_rem} removed"
+                f"{summary}"
             ),
         )
 

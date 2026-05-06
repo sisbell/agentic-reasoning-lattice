@@ -27,7 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import claim_doc_path, LATTICE
-from lib.lattice.attributes import emit_attribute
+from lib.lattice.attributes import attest_attribute
 from lib.protocols.febe.session import open_session
 
 
@@ -47,9 +47,8 @@ def main():
     claim_path = claim_doc_path(asn_label, args.label)
 
     session = open_session(LATTICE)
-    store = session.store  # for emit_* (Pass 2 will migrate)
     try:
-        link, created = emit_attribute(
+        link, created = attest_attribute(
             session, claim_path, "label", args.label,
         )
     except ValueError as e:
@@ -57,7 +56,7 @@ def main():
         return 1
     print(link.addr)
     if not created:
-        print("(already exists)", file=sys.stderr)
+        print("(advanced)", file=sys.stderr)
     return 0
 
 

@@ -6,7 +6,7 @@ For each claim, Sonnet identifies which symbols the claim introduces
 (distinct from symbols borrowed from upstream deps and notation
 primitives). The lifted ClaimSignatureResolveAgent (producer) writes
 the `<label>.signature.md` sidecar and emits the `signature` substrate
-link via emit_attribute. Predicate-fired by the runner on stale
+link via attest_attribute. Predicate-fired by the runner on stale
 sidecars (signature_is_fresh False).
 
 Without populated signatures, the existing `declared-symbols-resolve`

@@ -10,10 +10,10 @@ fire:
   2. LLM produces a structured formal-statements list (per
      produce-statements.md prompt). Existing extracted text is also
      supplied so the LLM can return it verbatim if still accurate.
-  3. Persist as the note's `statements` attribute sidecar:
-     - First time: emit_attribute creates the link + sidecar.
-     - Subsequent: register_version on the sidecar advances the
-       statements chain; the sidecar file is overwritten in place.
+  3. Persist as the note's `statements` attribute sidecar via
+     attest_attribute (create-or-advance helper). First call creates
+     the link + sidecar at chain length 1; subsequent calls advance
+     the sidecar's supersession chain via register_version.
 
 The new sidecar version's chain is now equal to the note's chain
 length, so the predicate flips True until the next confirmed cycle.
@@ -29,7 +29,7 @@ from typing import ClassVar, Optional
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.lattice.attributes import emit_attribute
+from lib.lattice.attributes import attest_attribute
 from lib.predicates import statements_sidecar_of
 from lib.protocols.febe.protocol import Session
 from lib.shared.invoke_claude import invoke_claude
@@ -119,24 +119,12 @@ class NoteStatementsAgent(Agent):
         if not body.endswith("\n"):
             body += "\n"
 
-        # First-time: emit_attribute creates the link + sidecar.
-        # Subsequent: register_version advances the statements chain;
-        # write the new content to the sidecar file.
-        #
-        # The chain advance is required: statements_is_fresh compares
-        # sidecar chain length to note chain length. emit_attribute
-        # alone does not advance the chain (relaxed-model: chains
-        # advance only where a predicate consumes them, and the caller
-        # is responsible for opting in). Without the register_version
-        # branch, the predicate stays False after any note edit and
-        # the runner re-fires until max_iterations.
-        if sidecar_addr is None:
-            emit_attribute(session, note_path, "statements", body)
-        else:
-            session.register_version(sidecar_addr)
-            sidecar_path = session.get_path_for_addr(sidecar_addr)
-            full_sidecar = session.store.lattice_dir / sidecar_path
-            full_sidecar.write_text(body)
+        # attest_attribute is the create-or-advance helper: first
+        # call creates the link + sidecar at chain length 1;
+        # subsequent calls advance the sidecar's supersession chain
+        # via register_version. statements_is_fresh reads the chain
+        # to detect staleness.
+        attest_attribute(session, note_path, "statements", body)
 
         _log_usage(asn_label, result.elapsed)
         print(

@@ -1,21 +1,19 @@
-"""Tests for attribute-emission patterns vs freshness predicates.
+"""Tests for attest_attribute and freshness predicates.
 
 Three sidecar kinds (description, signature, statements) have
-chain-comparison freshness predicates: predicate is True iff
-sidecar's supersession chain is at least as long as the claim/note's.
+chain-comparison freshness predicates: True iff sidecar's
+supersession chain is at least as long as the claim/note's.
 
-The relaxed-model rule: chains advance only where a predicate
-consumes them, and the caller is responsible for opting in.
-emit_attribute does NOT advance the chain on subsequent calls — it
-just writes the file and emits/looks-up the link. Callers whose
-attribute kind has a freshness predicate must therefore branch:
-first-time → emit_attribute; subsequent → register_version + write.
+attest_attribute is the create-or-advance helper that all sidecar
+emissions go through. First-time creates link + sidecar at chain
+length 1; subsequent advances the chain by 1 via register_version
+and writes the new content. The chain advance encodes "I checked
+at this revision," which is meaningful even when the new content
+matches the old (no-op LLM output still counts as an attestation).
 
-This test guards the pattern at the substrate level. If a future
-caller skips register_version on subsequent emissions, the agent's
-predicate will stay False forever and the runner will re-fire the
-trigger until max_iterations. That's the bug shape this regression
-test catches at the primitive level.
+These tests guard the create-or-advance contract. Skip the advance
+and the freshness predicate stays False after any source edit; the
+runner re-fires until max_iterations.
 """
 
 import json
@@ -28,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from lib.backend.store import Store
 from lib.protocols.febe.session import Session
-from lib.lattice.attributes import emit_attribute
+from lib.lattice.attributes import attest_attribute
 from lib.predicates.attributes import (
     signature_is_fresh, signature_sidecar_of,
 )
@@ -51,23 +49,8 @@ def _setup_lattice(tmp):
     return tmp
 
 
-class AttributeChainAdvanceTest(unittest.TestCase):
-    """Verify the create-or-advance dance keeps chain-based predicates
-    convergent.
-
-    The agent pattern (used by claim_describe, note_statements,
-    signature_resolve, substrate/description.py CLI):
-
-        sidecar_addr = <kind>_sidecar_of(session, claim_addr)
-        if sidecar_addr is None:
-            emit_attribute(session, claim_path, kind, body)
-        else:
-            session.register_version(sidecar_addr)
-            <write the new body to the sidecar's path>
-
-    Without the register_version branch, signature_is_fresh stays
-    False after any claim edit because the sidecar's chain stays at 1.
-    """
+class AttestAttributeTest(unittest.TestCase):
+    """Verify attest_attribute's create-or-advance contract."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -87,20 +70,11 @@ class AttributeChainAdvanceTest(unittest.TestCase):
             str(self.claim_md.relative_to(self.lattice))
         )
 
-    def _emit_or_advance_signature(self, body):
-        """Mirror the agent's emission pattern."""
-        claim_addr = self._claim_addr()
-        sidecar_addr = signature_sidecar_of(self.session, claim_addr)
-        if sidecar_addr is None:
-            emit_attribute(self.session, self.claim_md, "signature", body)
-        else:
-            self.session.register_version(sidecar_addr)
-            sidecar_path = self.session.get_path_for_addr(sidecar_addr)
-            full = self.session.store.lattice_dir / sidecar_path
-            full.write_text(body.rstrip() + "\n")
-
-    def test_first_emit_creates_at_chain_one(self):
-        self._emit_or_advance_signature("- `nat`: ℕ")
+    def test_first_emit_creates_link_at_chain_one(self):
+        link, created = attest_attribute(
+            self.session, self.claim_md, "signature", "- `nat`: ℕ",
+        )
+        self.assertTrue(created, "first call freshly emits the link")
         sidecar_addr = signature_sidecar_of(self.session, self._claim_addr())
         self.assertEqual(
             supersession_chain_length(self.session, sidecar_addr), 1,
@@ -108,7 +82,7 @@ class AttributeChainAdvanceTest(unittest.TestCase):
         self.assertTrue(signature_is_fresh(self.session, self._claim_addr()))
 
     def test_claim_edit_invalidates_predicate(self):
-        self._emit_or_advance_signature("- `nat`: ℕ")
+        attest_attribute(self.session, self.claim_md, "signature", "- `nat`: ℕ")
         self.session.register_version(self._claim_addr())
         self.assertFalse(
             signature_is_fresh(self.session, self._claim_addr()),
@@ -117,15 +91,19 @@ class AttributeChainAdvanceTest(unittest.TestCase):
 
     def test_subsequent_emit_advances_chain_and_restores_freshness(self):
         # First fire.
-        self._emit_or_advance_signature("- `nat`: ℕ")
+        attest_attribute(self.session, self.claim_md, "signature", "- `nat`: ℕ")
         sidecar_addr = signature_sidecar_of(self.session, self._claim_addr())
 
         # Claim is edited (refiner accept): claim chain → 2.
         self.session.register_version(self._claim_addr())
         self.assertFalse(signature_is_fresh(self.session, self._claim_addr()))
 
-        # Subsequent fire: agent uses the register_version path.
-        self._emit_or_advance_signature("- `nat`: ℕ\n- `succ`: ℕ→ℕ")
+        # Subsequent fire: attest_attribute advances the sidecar chain.
+        link, created = attest_attribute(
+            self.session, self.claim_md, "signature",
+            "- `nat`: ℕ\n- `succ`: ℕ→ℕ",
+        )
+        self.assertFalse(created, "subsequent call returns existing link")
 
         self.assertEqual(
             supersession_chain_length(self.session, sidecar_addr), 2,
@@ -139,6 +117,26 @@ class AttributeChainAdvanceTest(unittest.TestCase):
         # Side-effect: file content is updated.
         sidecar_file = self.claim_dir / "T0.signature.md"
         self.assertIn("succ", sidecar_file.read_text())
+
+    def test_subsequent_emit_with_unchanged_content_still_advances(self):
+        """Even when the LLM produces no delta, the chain ticks.
+
+        The chain encodes "I checked at this revision," not "content
+        changed." A no-op fire is still an attestation.
+        """
+        attest_attribute(self.session, self.claim_md, "signature", "- `nat`: ℕ")
+        sidecar_addr = signature_sidecar_of(self.session, self._claim_addr())
+
+        self.session.register_version(self._claim_addr())
+
+        # Re-attest with identical content (no delta from LLM).
+        attest_attribute(self.session, self.claim_md, "signature", "- `nat`: ℕ")
+
+        self.assertEqual(
+            supersession_chain_length(self.session, sidecar_addr), 2,
+            "chain advanced even though sidecar content unchanged",
+        )
+        self.assertTrue(signature_is_fresh(self.session, self._claim_addr()))
 
 
 if __name__ == "__main__":

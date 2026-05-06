@@ -22,7 +22,7 @@ from typing import ClassVar, Optional
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.lattice.attributes import emit_attribute
+from lib.lattice.attributes import attest_attribute
 from lib.predicates import description_sidecar_of
 from lib.protocols.febe.protocol import Session
 from lib.shared.invoke_claude import invoke_claude
@@ -73,25 +73,12 @@ class ClaimDescribeAgent(Agent):
             file=sys.stderr,
         )
 
-        # First-time: emit_attribute creates the link + sidecar.
-        # Subsequent: register_version advances the description chain;
-        # write the new content to the sidecar file.
-        #
-        # The chain advance is required: description_is_fresh compares
-        # sidecar chain length to claim chain length. emit_attribute
-        # alone does not advance the chain (relaxed-model: chains
-        # advance only where a predicate consumes them, and the caller
-        # is responsible for opting in). Without the register_version
-        # branch, the predicate stays False after any claim edit and
-        # the runner re-fires until max_iterations.
-        if sidecar_addr is None:
-            emit_attribute(session, claim_path, "description", new_desc)
-        else:
-            session.register_version(sidecar_addr)
-            sidecar_path = session.get_path_for_addr(sidecar_addr)
-            full_sidecar = session.store.lattice_dir / sidecar_path
-            body = new_desc if new_desc.endswith("\n") else new_desc + "\n"
-            full_sidecar.write_text(body)
+        # attest_attribute is the create-or-advance helper: first
+        # call creates the link + sidecar at chain length 1;
+        # subsequent calls advance the sidecar's supersession chain
+        # via register_version. description_is_fresh reads the
+        # chain to detect staleness.
+        attest_attribute(session, claim_path, "description", new_desc)
 
         return AgentResult(success=True, detail="emitted")
 
