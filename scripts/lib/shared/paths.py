@@ -135,6 +135,12 @@ CITATION_RESOLVE_DIR = DOCUVERSE_DOCS_DIR / "citation-resolve" / "claims"
 # one doc per resolve run, named `<claim-label>-<run-N>.md`.
 SIGNATURE_RESOLVE_DIR = DOCUVERSE_DOCS_DIR / "signature-resolve" / "claims"
 
+# Claim-contract operation outputs (annotate-type lift). One doc per
+# fire, named `<claim-label>-<run-N>.md`. The fire emits the
+# `contract.<kind>` classifier on the claim doc; this dir is the
+# audit-trail companion.
+CLAIM_CONTRACT_DIR = DOCUVERSE_DOCS_DIR / "claim-contract" / "claims"
+
 # Claim convergence workspace — caches and intermediate prose artifacts
 # the convergence pipeline writes (per-ASN _contract-cache.json,
 # _summary-cache.json, etc.). Workspace-shaped: regeneratable, not

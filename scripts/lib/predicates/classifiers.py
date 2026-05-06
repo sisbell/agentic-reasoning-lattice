@@ -43,6 +43,18 @@ def current_contract_kind(
     return None
 
 
+def has_contract_kind(session: Session, claim_addr: Address) -> bool:
+    """True iff the claim has any `contract.<kind>` classifier.
+
+    Used as the skip-predicate for the claim-contract producer:
+    fires when False (no classifier yet); skips when True (already
+    classified). Once-and-done — the agent does NOT re-fire on
+    subsequent claim edits (contract kind is structural metadata,
+    rarely changes after initial classification).
+    """
+    return current_contract_kind(session, claim_addr) is not None
+
+
 def all_classified(session: Session, kind: str) -> List[Address]:
     """Every doc with a classifier link of the given kind. Sorted."""
     out: Set[Address] = set()

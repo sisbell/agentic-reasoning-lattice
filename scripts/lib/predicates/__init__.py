@@ -47,6 +47,7 @@ from .classifiers import (
     all_claim_addrs,
     all_classified,
     current_contract_kind,
+    has_contract_kind,
     is_review_decomposed,
     is_retired,
 )
@@ -85,6 +86,7 @@ __all__ = [
     "all_classified",
     "all_open_revises_consulted",
     "current_contract_kind",
+    "has_contract_kind",
     "dangling_attribute_links",
     "dangling_claim_finding_links",
     "dangling_note_finding_links",
