@@ -22,8 +22,8 @@ def _retry_unresolved_revises(
     For each unresolved comment.revise targeting a scope doc, fetch its
     finding text from the comment's source (the finding document under
     `_docuverse/findings/...`) and call `revise()` again. The reviser closes
-    via `convergence-link-resolution.py accept` (with edit) or
-    `convergence-link-resolution.py reject` (with rationale).
+    via `resolution.py accept` (with edit) or
+    `resolution.py reject` (with rationale).
     """
     for scope_addr in scope_addrs:
         if scope_addr is None:

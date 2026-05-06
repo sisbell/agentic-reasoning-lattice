@@ -92,7 +92,7 @@ instead "the state satisfies..."
    in the substrate (append-only) but is no longer the current kind.
 
 5. **Adding dependencies.** When you add a dependency, run:
-       python scripts/convergence-link-cite.py --from <claim-label> --to <dep-label>
+       python scripts/agent_tools/citation.py --from <claim-label> --to <dep-label>
    Justify the new dependency in prose.
 
    **Removing dependencies.** When you remove a dependency from a claim's
@@ -137,7 +137,7 @@ instead "the state satisfies..."
 ## Decision output
 
 When done, run one of:
-  python scripts/agent_tools/convergence-link-resolution.py accept
-  python scripts/agent_tools/convergence-link-resolution.py reject --rationale "<one or two sentences>"
+  python scripts/agent_tools/resolution.py accept
+  python scripts/agent_tools/resolution.py reject --rationale "<one or two sentences>"
 
 REJECT only when the finding is incorrect. If you edited files, end with ACCEPT.

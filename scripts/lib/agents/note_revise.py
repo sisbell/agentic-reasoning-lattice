@@ -5,7 +5,7 @@ revise findings on a note.
 invokes. One fire = collect open `comment.revise` findings on the
 note, assemble a discovery-methodology prompt with per-finding
 instructions, invoke Claude with Edit/Read/Bash tools. The Claude
-session closes each comment via `convergence-link-resolution.py`
+session closes each comment via `resolution.py`
 once it has addressed (or rejected) the finding.
 """
 
@@ -52,7 +52,7 @@ def build_prompt(
     tuples — one per open `comment.revise` link on the note. The
     finding_addr is unused here but kept on the tuple so callers can
     walk consultation.coverage off it. The agent is instructed to
-    address each in the note md and call convergence-link-resolution.py
+    address each in the note md and call resolution.py
     per finding to close the comment in the substrate.
     """
     skill_body = read_file(DISCOVERY_PROMPT)
@@ -91,8 +91,8 @@ For each finding below, after you have addressed it (either by editing
 the note or by deciding the finding is incorrect), close the
 corresponding comment in the link store:
 
-  python scripts/agent_tools/convergence-link-resolution.py accept --comment-id <id>
-  python scripts/agent_tools/convergence-link-resolution.py reject --comment-id <id> --rationale "<one or two sentences>"
+  python scripts/agent_tools/resolution.py accept --comment-id <id>
+  python scripts/agent_tools/resolution.py reject --comment-id <id> --rationale "<one or two sentences>"
 
 `accept` means you applied the fix; `reject` means the finding is
 incorrect and you wrote a rationale instead. Do this once per finding."""
@@ -238,7 +238,7 @@ class NoteReviseAgent(Agent):
 
     Fires when the note has unresolved `comment.revise` links (i.e.,
     `is_doc_quiescent` is False). The Claude session itself edits the
-    note md and closes each comment via `convergence-link-resolution.py`.
+    note md and closes each comment via `resolution.py`.
     """
 
     role: ClassVar[str] = "note-revise"

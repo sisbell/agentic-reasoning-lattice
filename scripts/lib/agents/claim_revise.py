@@ -2,7 +2,7 @@
 
 One LLM invocation per finding. Builds a prompt from the revise
 template + finding text, invokes Claude with Edit/Write/Read tools,
-runs the convergence-link-resolution.py CLI to close the comment.
+runs the resolution.py CLI to close the comment.
 
 Public: `revise(asn_num, title, finding_text, *, claim_dir,
 comment_id, claim_path) -> bool` — returns True if changes were
@@ -38,9 +38,9 @@ def revise(
 
     `comment_id` is passed through to the reviser via
     PROTOCOL_COMMENT_ID so the agent can call
-    `scripts/agent_tools/convergence-link-resolution.py` to close the comment.
+    `scripts/agent_tools/resolution.py` to close the comment.
     When None, the agent can still run but won't be able to invoke
-    convergence-link-resolution.py — callers that care about
+    resolution.py — callers that care about
     resolution links should pass it.
 
     `claim_path` is retained for backwards compatibility with the

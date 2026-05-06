@@ -28,7 +28,7 @@ Up to 8 cycles per invocation by default. The +1 confirmation runs if the work l
 ## Tools
 
 - Reviewer: Read (assembled context).
-- Reviser: Read, Edit, Bash (`scripts/convergence-link-cite.py`, `scripts/substrate/retract.py`, `scripts/claim-link-contract.py`, `scripts/substrate/name.py`, `scripts/substrate/label.py`).
+- Reviser: Read, Edit, Bash (`scripts/agent_tools/citation.py`, `scripts/substrate/retract.py`, `scripts/claim-link-contract.py`, `scripts/substrate/name.py`, `scripts/substrate/label.py`).
 
 ## Convergence
 

@@ -31,13 +31,13 @@ For each finding of the form `uses '<symbol>' but does not depend on its owner '
 
 1. Add the citation by running:
 
-       python scripts/convergence-link-cite.py --from <claim-label> --to <owner>
+       python scripts/agent_tools/citation.py --from <claim-label> --to <owner>
 
    Where `<claim-label>` is the label of the file shown under "File to
    fix" above (the filename stem, e.g., `T0` for `T0.md`), and
    `<owner>` is the owner label from the finding (e.g., `NAT-closure`).
 
-2. If multiple findings cite the same owner, run convergence-link-cite.py
+2. If multiple findings cite the same owner, run citation.py
    once for that owner — it is idempotent.
 
 The citation is filed in the substrate. The companion markdown is left
@@ -51,4 +51,4 @@ alone in this pass.
 
 ## Tools
 
-Read, Bash. Use Bash only to invoke `scripts/convergence-link-cite.py`.
+Read, Bash. Use Bash only to invoke `scripts/agent_tools/citation.py`.

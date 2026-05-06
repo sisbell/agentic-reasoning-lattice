@@ -3,7 +3,7 @@
 
 Invoked when the reviser adds a dependency:
 
-    python scripts/convergence-link-cite.py --from <label> --to <label>
+    python scripts/agent_tools/citation.py --from <label> --to <label>
 
 Both arguments are claim labels — never paths. The script resolves the
 from-label to its canonical doc address via the claim path convention
@@ -20,7 +20,7 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import claim_doc_path, LATTICE
 from lib.protocols.febe.session import open_session
 from lib.backend.emit import emit_citation
