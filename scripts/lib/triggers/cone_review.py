@@ -18,7 +18,7 @@ from lib.agents.producers.cone_review import ConeReviewAgent
 from lib.backend.addressing import Address
 from lib.lattice.deps import build_deps_for_asn
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.predicates import is_claim_confirmed
+from lib.predicates import is_claim_confirmed, is_claim_quiescent
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, Trigger
 from lib.shared.claim_files import build_label_index
@@ -83,9 +83,24 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
             yield addr
 
 
+def _predicate(session: Session, addr: Address) -> bool:
+    """True (skip) iff already confirmed, or open revises are pending.
+
+    Holds the reviewer at quiescence — the cone doesn't re-review
+    while revises are still closing. Open revises are the runner's
+    job (claim_revise refiner); cone-review fires only after they
+    close, on a state that's stable but not yet covered by a fresh
+    review.
+    """
+    return (
+        is_claim_confirmed(session, addr)
+        or not is_claim_quiescent(session, addr)
+    )
+
+
 cone_review = Trigger(
     name="cone-review",
     scope_query=_scope_query,
-    predicate=is_claim_confirmed,
+    predicate=_predicate,
     agent=ConeReviewAgent(),
 )
