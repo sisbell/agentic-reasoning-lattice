@@ -88,6 +88,13 @@ REVIEWS_DIR = NOTE_REVIEWS_DIR  # legacy alias, prefer NOTE_REVIEWS_DIR
 CLAIM_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "claims"
 NOTE_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "notes"
 
+# Structural-audit aggregate docs (classified by `review.structural`).
+# Same parent type as content reviews (review.content) but separate
+# storage namespace for filesystem clarity. Per-finding violation docs
+# co-locate under CLAIM_FINDINGS_DIR using a `audit-N` token in place
+# of `review-N`.
+CLAIM_AUDITS_DIR = DOCUVERSE_DOCS_DIR / "audit" / "claims"
+
 # Transclusion-rendered documents (tagged by `transclusion.<kind>`).
 # The substrate path is a citizen address; no on-disk file is
 # written — the registered renderer supplies content at read time.
@@ -164,6 +171,31 @@ def agent_doc_path(role):
     use this to get the canonical form.
     """
     return str((AGENT_DIR / f"{role}.md").relative_to(LATTICE))
+
+
+def audit_doc_path(asn_label, claim_label, audit_num):
+    """Path to an audit aggregate doc emitted by ClaimStructuralAuditAgent.
+
+    Stored under `_docuverse/documents/audit/claims/<asn>/<claim>-<n>.md`.
+    Per-claim numbering: each claim has its own audit history, numbered
+    independently. The audit doc carries `review.structural` classifier
+    and `review.coverage` link to the claim it covered.
+    """
+    return CLAIM_AUDITS_DIR / asn_label / f"{claim_label}-{audit_num}.md"
+
+
+def next_audit_number(asn_label, claim_label):
+    """Find the next audit number for this claim. Walks existing audit
+    docs under <asn>/<claim>-*.md."""
+    audit_subdir = CLAIM_AUDITS_DIR / asn_label
+    if not audit_subdir.exists():
+        return 1
+    nums = []
+    for p in audit_subdir.glob(f"{claim_label}-*.md"):
+        m = re.search(rf"{re.escape(claim_label)}-(\d+)\.md$", p.name)
+        if m:
+            nums.append(int(m.group(1)))
+    return max(nums, default=0) + 1
 
 
 def review_aggregate_path(asn_label, review_num, *, kind):
