@@ -1,27 +1,23 @@
-"""Structural-rule-fix agent body.
+"""LLM-call helper for the structural-rule-fix refiner.
 
-Two entry points:
+Single entry point:
 
 - `fix_structural_rule(rule, file_path, findings, metadata_bundle, *, tools)`:
   apply mode. Invokes Claude with Edit tools on `file_path` (a
-  scratch copy the orchestrator owns). Claude edits the file in
-  place; the agent returns transcript + timing. The orchestrator is
-  responsible for the scratch/diff/apply dance.
+  scratch copy the Agent owns). Claude edits the file in place; the
+  helper returns transcript + timing. The Agent class
+  (`ClaimStructuralFixAgent`) handles the scratch/diff/apply dance
+  around this call.
 
-- `propose_structural_fix(rule, findings, claim_dir, *, tools)`:
-  propose mode. Invokes Claude with Read-only tools; returns a
-  proposal document. Used for rules where automatic fixes aren't
-  safe (acyclic-depends).
-
-Both take a pre-built `metadata_bundle` from the orchestrator (the
-substrate queries that produce it live in the orchestrator, not in
-the agent — the agent just renders the bundle into its prompt).
+The `metadata_bundle` is built by the Agent class from substrate
+(label · name pairs for the claim and its dependencies); this helper
+just renders it into the prompt template.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, NamedTuple, Optional
+from typing import List, NamedTuple
 
 from lib.shared.invoke_claude import invoke_claude_agent
 
@@ -78,38 +74,6 @@ def fix_structural_rule(
         elapsed_seconds=response.elapsed,
         agent_failed=False,
     )
-
-
-def propose_structural_fix(
-    rule: str,
-    findings: list,
-    claim_dir: Path,
-    *,
-    tools: str = "Read",
-    model: str = "opus",
-    effort: str = "max",
-    max_turns: int = 10,
-) -> Optional[str]:
-    """Propose mode: invoke Claude Read-only; return a proposal document.
-
-    Used for rules where automatic fixes aren't safe — the agent
-    suggests, the operator decides. Returns the agent's text output
-    (the proposal), or None on invocation failure.
-    """
-    template = _read_template(rule)
-    prompt = (
-        template
-        .replace("{findings_list}", _format_findings(findings))
-        .replace("{claim_dir}", str(claim_dir))
-        .replace("{metadata_bundle}", "")
-    )
-    response = invoke_claude_agent(
-        prompt, model=model, effort=effort, tools=tools,
-        max_turns=max_turns, cwd=claim_dir,
-    )
-    if response.data is None:
-        return None
-    return response.text
 
 
 # ---------------------------------------------------------------------------

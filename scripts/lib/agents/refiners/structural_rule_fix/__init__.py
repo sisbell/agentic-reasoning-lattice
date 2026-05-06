@@ -3,22 +3,14 @@
 Public surface:
 - ClaimStructuralFixAgent — Agent class fired by the claim-structural-fix
   trigger. One fire = one claim's structural quiescence work.
-- fix_structural_rule, propose_structural_fix — LLM-call helpers used
-  by the agent. propose_structural_fix is legacy (orchestrator-only;
-  retired alongside acyclic-depends); kept while the orchestrator
-  still imports it. Will retire when the orchestrator is deleted.
+- fix_structural_rule — LLM-call helper used by the agent.
 """
 
 from .agent import ClaimStructuralFixAgent
-from .helpers import (
-    StructuralRuleFixResult,
-    fix_structural_rule,
-    propose_structural_fix,
-)
+from .helpers import StructuralRuleFixResult, fix_structural_rule
 
 __all__ = [
     "ClaimStructuralFixAgent",
     "StructuralRuleFixResult",
     "fix_structural_rule",
-    "propose_structural_fix",
 ]
