@@ -625,7 +625,7 @@ def _run_pass(
 # ─── Agent class ────────────────────────────────────────────────────
 
 
-class ClaimStructuralFixAgent(Agent):
+class ClaimStructuralReviseAgent(Agent):
     """One claim's structural quiescence work per fire.
 
     Reads unresolved comment.violation findings from substrate (emitted
@@ -641,7 +641,7 @@ class ClaimStructuralFixAgent(Agent):
     is the detector. The refiner is pure closure.
     """
 
-    role: ClassVar[str] = "claim-structural-fix"
+    role: ClassVar[str] = "claim-structural-revise"
 
     def run(self, session: Session, claim_addr: Address) -> AgentResult:
         claim_rel = session.get_path_for_addr(claim_addr)
@@ -688,7 +688,7 @@ class ClaimStructuralFixAgent(Agent):
         # if every per-rule commit already landed.
         step_commit_asn(
             asn_num,
-            f"claim-structural-fix(asn): {asn_label}/{claim_label}",
+            f"claim-structural-revise(asn): {asn_label}/{claim_label}",
         )
 
         return AgentResult(

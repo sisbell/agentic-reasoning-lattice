@@ -1,7 +1,7 @@
 """claim-validate-revise — apply mechanical fixes driven by validator findings.
 
 Paired with claim-validate.py: that script finds structural-invariant
-violations; this one drives the lifted ClaimStructuralFixAgent (refiner)
+violations; this one drives the lifted ClaimStructuralReviseAgent (refiner)
 via the runner. Each agent fire walks the apply-mode passes per claim:
 body-uniqueness, declaration-label-mismatch, declared-symbols-resolve,
 depends-agreement, references-resolve. Acyclic-depends propose mode
@@ -28,13 +28,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.runner import Scope, run_until_quiescent
-from lib.triggers import claim_structural_audit, claim_structural_fix
+from lib.triggers import claim_structural_audit, claim_structural_revise
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Drive the claim-structural-fix refiner over an ASN's claims."
+            "Drive the claim-structural-revise refiner over an ASN's claims."
         ),
     )
     parser.add_argument("asn", help="ASN number (e.g., 34)")
@@ -56,7 +56,7 @@ def main() -> int:
     scope = Scope(asn_label=asn_label, labels=labels)
 
     result = run_until_quiescent(
-        triggers=[claim_structural_audit, claim_structural_fix],
+        triggers=[claim_structural_audit, claim_structural_revise],
         scope=scope,
         max_iterations=args.max_iterations,
     )

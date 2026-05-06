@@ -1,7 +1,7 @@
 """Validate-revise gate for review producers.
 
 Runs the structural validator at the top of each review/revise cycle
-and dispatches the lifted ClaimStructuralFixAgent (via runner) to
+and dispatches the lifted ClaimStructuralReviseAgent (via runner) to
 clear violations before the LLM reviewer reads state. Implements the
 Validation Principle operationally: no LLM review cycle operates on
 state that has not been mechanically verified.
@@ -62,7 +62,7 @@ def _cycle_findings(findings, scope_labels):
 def run_validate_gate(asn_label, scope_labels=None, max_iterations=3):
     """Run the structural-fix trigger over scope until clean.
 
-    The runner walks ClaimStructuralFixAgent over claims in scope;
+    The runner walks ClaimStructuralReviseAgent over claims in scope;
     each fire runs the validator on that claim and applies fixes pass
     by pass. The gate is satisfied when the runner reaches quiescence.
 
@@ -74,7 +74,7 @@ def run_validate_gate(asn_label, scope_labels=None, max_iterations=3):
     """
     # Lazy import to avoid the circular path validate_gate → triggers
     # → cone_review trigger → cone_review agent → validate_gate.
-    from lib.triggers import claim_structural_audit, claim_structural_fix
+    from lib.triggers import claim_structural_audit, claim_structural_revise
 
     asn_num = int(asn_label[4:])
     labels = (
@@ -88,7 +88,7 @@ def run_validate_gate(asn_label, scope_labels=None, max_iterations=3):
         file=sys.stderr,
     )
     result = run_until_quiescent(
-        triggers=[claim_structural_audit, claim_structural_fix],
+        triggers=[claim_structural_audit, claim_structural_revise],
         scope=scope,
         max_iterations=max_iterations,
     )

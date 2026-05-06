@@ -57,7 +57,7 @@ None — the validator runs in-process (no LLM, no Bash). Pure static analysis d
 
 ## Convergence
 
-This agent is a scout. Its complement is the `ClaimStructuralFixAgent` refiner, which reads `comment.violation` from substrate and closes via `resolution.<kind>`. Cycle:
+This agent is a scout. Its complement is the `ClaimStructuralReviseAgent` refiner, which reads `comment.violation` from substrate and closes via `resolution.<kind>`. Cycle:
 
 ```
 1. Audit fires → emits audit doc + per-violation findings + comment.violation

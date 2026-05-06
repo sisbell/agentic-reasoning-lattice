@@ -9,7 +9,7 @@ from .claim_describe import claim_describe
 from .claim_findings import claim_findings
 from .claim_revise import claim_revise
 from .claim_structural_audit import claim_structural_audit
-from .claim_structural_fix import claim_structural_fix
+from .claim_structural_revise import claim_structural_revise
 from .cone_review import apex_labels_in_topological_order, cone_review
 from .full_review import full_review
 from .inquiry_consult import inquiry_consult
@@ -25,7 +25,7 @@ __all__ = [
     "claim_findings",
     "claim_revise",
     "claim_structural_audit",
-    "claim_structural_fix",
+    "claim_structural_revise",
     "cone_review",
     "full_review",
     "inquiry_consult",

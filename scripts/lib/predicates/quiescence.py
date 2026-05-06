@@ -153,10 +153,10 @@ def is_claim_structurally_clean(
 
     Substrate-driven (post-validator-lift): the claim_structural_audit
     scout emits comment.violation links per validator finding; the
-    claim_structural_fix refiner closes them via resolution.<kind>.
+    claim_structural_revise refiner closes them via resolution.<kind>.
     "Structurally clean" = every comment.violation has a resolution.
 
-    Used as the skip predicate for the claim-structural-fix trigger.
+    Used as the skip predicate for the claim-structural-revise trigger.
     Refiner fires when False (open violations); skips when True (clean).
     """
     for link in session.active_links(

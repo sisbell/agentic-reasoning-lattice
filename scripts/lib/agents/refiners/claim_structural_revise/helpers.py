@@ -1,4 +1,4 @@
-"""LLM-call helper for the structural-rule-fix refiner.
+"""LLM-call helper for the structural-revise refiner.
 
 Single entry point:
 
@@ -6,7 +6,7 @@ Single entry point:
   apply mode. Invokes Claude with Edit tools on `file_path` (a
   scratch copy the Agent owns). Claude edits the file in place; the
   helper returns transcript + timing. The Agent class
-  (`ClaimStructuralFixAgent`) handles the scratch/diff/apply dance
+  (`ClaimStructuralReviseAgent`) handles the scratch/diff/apply dance
   around this call.
 
 The `metadata_bundle` is built by the Agent class from substrate
