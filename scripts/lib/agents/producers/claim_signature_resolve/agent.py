@@ -31,6 +31,7 @@ from lib.backend.addressing import Address
 from lib.lattice.attributes import emit_attribute
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.lattice.notation import read_notation
+from lib.predicates.attributes import signature_sidecar_of
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
 from lib.shared.git_ops import step_commit_asn
@@ -232,9 +233,28 @@ class ClaimSignatureResolveAgent(Agent):
         new_pairs = [(s, bullets_by_symbol[s]) for s in bullets_by_symbol]
         new_sidecar_text = _render_sidecar(new_pairs)
 
-        emit_attribute(
-            session, claim_rel, "signature", new_sidecar_text.rstrip(),
-        )
+        # First-time: emit_attribute creates the link + sidecar.
+        # Subsequent: register_version advances the signature chain;
+        # write the new content to the sidecar file.
+        #
+        # The chain advance is required: signature_is_fresh compares
+        # sidecar chain length to claim chain length. emit_attribute
+        # alone does not advance the chain (relaxed-model: chains
+        # advance only where a predicate consumes them, and the
+        # caller is responsible for opting in). Without the
+        # register_version branch, the predicate stays False after
+        # any claim edit and the runner re-fires until max_iterations.
+        sidecar_addr = signature_sidecar_of(session, claim_addr)
+        if sidecar_addr is None:
+            emit_attribute(
+                session, claim_rel, "signature", new_sidecar_text.rstrip(),
+            )
+        else:
+            session.register_version(sidecar_addr)
+            sidecar_path = session.get_path_for_addr(sidecar_addr)
+            full_sidecar = session.store.lattice_dir / sidecar_path
+            body = new_sidecar_text.rstrip() + "\n"
+            full_sidecar.write_text(body)
 
         _, run_num = _persist_resolve_doc(
             asn_label, claim_label, result.raw_text, self.model,
