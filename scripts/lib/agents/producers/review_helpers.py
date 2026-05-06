@@ -1,21 +1,22 @@
-"""Claim-review agent body + prompt-shaping helpers.
+"""Shared helpers for the review producers (cone_review, full_review)
+and the downstream claim_findings producer.
 
-One LLM invocation: assemble prompt (template + ASN content +
-foundation + previous findings + depends list), call Opus, parse
-verdict. Same agent invoked from both whole-ASN reviews and
-regional cone reviews — `foundation_labels` selects narrowed
-loading vs full loading.
+This module hosts no Agent class — it is the helper surface that the
+review producers compose. Three concerns live here:
 
-Public:
-- `run_review(asn_num, asn_content, asn_label, previous_findings,
-   *, model, foundation_labels) -> (verdict, text, elapsed)`
-- `extract_findings(text)` — parse `### `-prefixed sections into
-   (title, cls, body) tuples
-- `parse_verdict(text)` — extract the VERDICT line
-- `previously_declined_findings(session, cone_addrs, max_rejects)` —
-   substrate-walking helper that surfaces previously-rejected
-   findings + reviser rationale as prompt context, so the next
-   reviewer doesn't re-raise them
+- LLM invocation: `run_review` assembles the review prompt
+  (template + ASN content + foundation + previous findings +
+  depends list), calls the model, and returns (verdict, text,
+  elapsed). Same call shape for whole-ASN reviews and regional
+  cone reviews; `foundation_labels` selects narrowed loading vs
+  full loading.
+- Output parsing: `parse_verdict` extracts the VERDICT line;
+  `extract_findings` splits `### `-prefixed sections into
+  (title, cls, body) tuples (used by claim_findings).
+- Prompt context: `previously_declined_findings` walks
+  `resolution.reject` substrate links and surfaces previously-
+  rejected findings + the reviser's rationale, so the next
+  reviewer doesn't re-raise them.
 """
 
 from __future__ import annotations

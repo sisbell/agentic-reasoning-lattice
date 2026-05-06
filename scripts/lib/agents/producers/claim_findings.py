@@ -33,7 +33,7 @@ from typing import ClassVar
 
 from lib.agents.base import Agent, AgentResult
 from lib.agents.producers.claim_finding_override import apply_classifier_verdict
-from lib.agents.producers.claim_review import extract_findings
+from lib.agents.producers.review_helpers import extract_findings
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_empty_derivation
 from lib.lattice.findings import record_findings

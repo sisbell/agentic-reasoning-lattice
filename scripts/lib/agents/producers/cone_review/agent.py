@@ -22,7 +22,7 @@ import sys
 from typing import ClassVar
 
 from lib.agents.base import Agent, AgentResult
-from lib.agents.producers.claim_review import (
+from lib.agents.producers.review_helpers import (
     previously_declined_findings, run_review,
 )
 from lib.backend.addressing import Address
