@@ -1,23 +1,28 @@
-"""Validate-revise gate for V-cycle drivers.
+"""Validate-revise gate for review producers.
 
-Runs the validator at the top of each review/revise cycle and invokes
-validate-revise to clear structural violations before the LLM reviewer
-reads state. Implements the Validation Principle operationally: no LLM
-review cycle operates on state that has not been mechanically verified.
+Runs the structural validator at the top of each review/revise cycle
+and dispatches the lifted ClaimStructuralFixAgent (via runner) to
+clear violations before the LLM reviewer reads state. Implements the
+Validation Principle operationally: no LLM review cycle operates on
+state that has not been mechanically verified.
 
 Filter semantics per driver (set by passing scope_labels):
-  - full-review:   scope_labels=None (whole ASN)
+  - full-review:   scope_labels=None (whole ASN — all derived claims)
   - regional:      scope_labels={apex} | deps
 
-Cycle findings (acyclic-depends) are propose-only; the gate logs them as
-warnings but does not try to fix them, and does not block the driver.
+Cycle findings (acyclic-depends) are propose-only; the gate logs them
+as warnings but does not try to fix them, and does not block the
+driver. Propose mode itself was retired in the structural-rule-fix
+lift; surfacing cycle warnings here is purely informational.
 """
+
+from __future__ import annotations
 
 import importlib.util
 import sys
 from pathlib import Path
 
-from lib.orchestrators import claim_validate_revise as REVISE
+from lib.runner import Scope, run_until_quiescent
 from lib.shared.paths import CLAIM_DIR
 
 
@@ -40,84 +45,77 @@ def _run_validator(asn_label):
     return VALIDATE.run_all_checks(pairs, claim_dir=claim_dir)
 
 
-def _actionable(findings, declined):
-    """Subset of findings that the reviser should act on: non-cycle,
-    not-yet-declined by reviser judgment.
-
-    Declined keys are (stem, rule) — yaml/md variants of the same claim
-    share a stem, so a decline on either side suppresses the other.
-    """
+def _cycle_findings(findings, scope_labels):
+    """Cycle findings (acyclic-depends) within scope, for reporting."""
+    if scope_labels is None:
+        return [f for f in findings if f["rule"] == "acyclic-depends"]
     out = []
     for f in findings:
-        if f["rule"] == "acyclic-depends":
+        if f["rule"] != "acyclic-depends":
             continue
-        filename = f.get("file")
-        if filename and (Path(filename).stem, f["rule"]) in declined:
-            continue
-        out.append(f)
+        detail = f.get("detail", "")
+        if any(lbl in detail for lbl in scope_labels):
+            out.append(f)
     return out
 
 
 def run_validate_gate(asn_label, scope_labels=None, max_iterations=3):
-    """Run validator + validate-revise until clean or iterations exhausted.
+    """Run the structural-fix trigger over scope until clean.
 
-    The gate tracks (filename, rule) pairs where the reviser produced no
-    change — those are treated as declined-by-design and not re-attempted.
-    A declined pair still surfaces in validator output; the gate just stops
-    acting on it.
+    The runner walks ClaimStructuralFixAgent over claims in scope;
+    each fire runs the validator on that claim and applies fixes pass
+    by pass. The gate is satisfied when the runner reaches quiescence.
 
     Returns:
-      "clean"  — no actionable findings in scope (cycles/declines may remain)
-      "dirty"  — actionable findings remain after max_iterations or halted
-      "failed" — reviser raised an exception
+      "clean"  — runner reached quiescence; cycle findings (if any)
+                 are logged but not blocking
+      "dirty"  — runner exhausted max_iterations with findings remaining
+      "failed" — runner reported errors on one or more fires
     """
-    scope = set(scope_labels) if scope_labels is not None else None
-    declined = set()
-    prev_actionable = None
+    # Lazy import to avoid the circular path validate_gate → triggers
+    # → cone_review trigger → cone_review agent → validate_gate.
+    from lib.triggers import claim_structural_fix
 
-    for iteration in range(1, max_iterations + 1):
-        findings = _run_validator(asn_label)
-        relevant = REVISE.filter_findings_by_scope(findings, scope)
-        cycle_findings = [f for f in relevant if f["rule"] == "acyclic-depends"]
-        actionable = _actionable(relevant, declined)
+    asn_num = int(asn_label[4:])
+    labels = (
+        frozenset(scope_labels) if scope_labels is not None else None
+    )
+    scope = Scope(asn_label=asn_label, labels=labels)
 
-        if not actionable:
-            if declined:
-                print(f"  [GATE] {len(declined)} (file, rule) pair(s) "
-                      f"declined by reviser; treating as terminal",
-                      file=sys.stderr)
-            if cycle_findings:
-                print(f"  [GATE] {len(cycle_findings)} cycle finding(s) "
-                      f"in scope (propose-only; not blocking):",
-                      file=sys.stderr)
-                for f in cycle_findings:
-                    print(f"    {f['detail']}", file=sys.stderr)
-            return "clean"
+    print(
+        f"  [GATE] validate-revise on {asn_label}"
+        + (f" scope={sorted(scope_labels)}" if scope_labels else ""),
+        file=sys.stderr,
+    )
+    result = run_until_quiescent(
+        triggers=[claim_structural_fix],
+        scope=scope,
+        max_iterations=max_iterations,
+    )
 
-        if prev_actionable is not None and len(actionable) >= prev_actionable:
-            print(f"  [GATE] no progress ({prev_actionable} → "
-                  f"{len(actionable)} actionable); halting",
-                  file=sys.stderr)
-            return "dirty"
-        prev_actionable = len(actionable)
-
-        print(f"  [GATE iter {iteration}] {len(actionable)} actionable "
-              f"finding(s) in scope; invoking validate-revise",
-              file=sys.stderr)
-
-        try:
-            _before, _after, declined = REVISE.run_passes(
-                asn_label,
-                scope_labels=scope,
-                mode="apply",
-                commit=True,
-                skip_pairs=declined,
+    if result.errors:
+        for trigger_name, addr, err in result.errors[:3]:
+            print(
+                f"  [GATE] {trigger_name} on {addr} failed: {err}",
+                file=sys.stderr,
             )
-        except Exception as e:
-            print(f"  [GATE] reviser raised: {e}", file=sys.stderr)
-            return "failed"
+        return "failed"
 
-    print(f"  [GATE] max iterations ({max_iterations}) reached; "
-          f"halting with remaining findings",
-          file=sys.stderr)
-    return "dirty"
+    cycles = _cycle_findings(_run_validator(asn_label), scope_labels)
+    if cycles:
+        print(
+            f"  [GATE] {len(cycles)} cycle finding(s) in scope "
+            f"(propose-only; not blocking):",
+            file=sys.stderr,
+        )
+        for f in cycles:
+            print(f"    {f['detail']}", file=sys.stderr)
+
+    if not result.quiescent:
+        print(
+            f"  [GATE] max iterations ({max_iterations}) reached; "
+            f"halting with remaining findings",
+            file=sys.stderr,
+        )
+        return "dirty"
+    return "clean"
