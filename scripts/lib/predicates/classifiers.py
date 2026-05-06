@@ -60,3 +60,15 @@ def is_retired(session: Session, doc_addr: Address) -> bool:
     out of the active lattice. Retracting the link revives the doc.
     """
     return bool(session.active_links("retired", to_set=[doc_addr]))
+
+
+def is_decomposed(session: Session, review_addr: Address) -> bool:
+    """True iff the review doc has an active `decomposed` classifier link.
+
+    Lifecycle marker emitted by the claim_findings producer when
+    finding extraction completes. Presence = the producer ran on this
+    review (whether or not findings were emitted). The producer's
+    trigger predicate uses this as the skip signal so a CONVERGED
+    review with zero findings doesn't re-fire forever.
+    """
+    return bool(session.active_links("decomposed", to_set=[review_addr]))

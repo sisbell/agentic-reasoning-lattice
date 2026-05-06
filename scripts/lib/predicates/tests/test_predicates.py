@@ -263,6 +263,39 @@ class RetiredLifecycleTests(unittest.TestCase):
         self.assertFalse(is_retired(self.session, self.note))
 
 
+class IsDecomposedTests(unittest.TestCase):
+    """Lifecycle marker on a review doc via the `decomposed` link."""
+
+    def setUp(self):
+        self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
+        self.lattice = self.state.create_doc()
+        self.review = self.state.create_doc(
+            kind="review", lattice=self.lattice,
+        )
+
+    def test_default_is_not_decomposed(self):
+        from lib.predicates import is_decomposed
+        self.assertFalse(is_decomposed(self.session, self.review))
+
+    def test_decomposed_link_marks_decomposed(self):
+        from lib.predicates import is_decomposed
+        self.state.make_link(
+            self.review, [], [self.review], "decomposed",
+        )
+        self.assertTrue(is_decomposed(self.session, self.review))
+
+    def test_retracting_decomposed_unmarks(self):
+        from lib.predicates import is_decomposed
+        link = self.state.make_link(
+            self.review, [], [self.review], "decomposed",
+        )
+        self.state.make_link(
+            self.review, [self.review], [link.addr], "retraction",
+        )
+        self.assertFalse(is_decomposed(self.session, self.review))
+
+
 class SupersessionChainTests(unittest.TestCase):
     """Walk supersession links to find a doc's head version."""
 

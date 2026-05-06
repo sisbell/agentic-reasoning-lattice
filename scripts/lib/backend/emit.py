@@ -172,6 +172,20 @@ def emit_retired(
     return emit_classifier(store, doc, "retired")
 
 
+def emit_decomposed(
+    store: Store, review_doc: Address,
+) -> Tuple[Link, bool]:
+    """Mark a review doc as decomposed (its findings have been emitted).
+
+    Classifier-shape link (F=∅, G=[review_doc]). Emitted by the
+    claim_findings producer when finding extraction completes — even
+    if zero findings were emitted (CONVERGED verdict). The marker is
+    what lets the producer's predicate skip already-decomposed reviews.
+    Idempotent on the active set.
+    """
+    return emit_classifier(store, review_doc, "decomposed")
+
+
 def emit_extends(
     store: Store, ext_note: Address, base_note: Address,
 ) -> Tuple[Link, bool]:

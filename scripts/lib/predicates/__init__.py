@@ -44,6 +44,7 @@ from .classifiers import (
     all_claim_addrs,
     all_classified,
     current_contract_kind,
+    is_decomposed,
     is_retired,
 )
 from .quiescence import (
@@ -99,6 +100,7 @@ __all__ = [
     "is_asn_quiescent",
     "is_claim_confirmed",
     "is_claim_quiescent",
+    "is_decomposed",
     "is_quiescent",
     "is_doc_quiescent",
     "is_finding_consulted",
