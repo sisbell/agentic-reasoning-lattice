@@ -71,6 +71,61 @@ def is_doc_quiescent(session: Session, doc_addr: Address) -> bool:
 is_claim_quiescent = is_doc_quiescent
 
 
+def is_claim_structurally_clean(
+    session: Session, claim_addr: Address,
+) -> bool:
+    """True iff the structural validator finds no actionable violations
+    on the claim's directory that target this claim.
+
+    Runs the validator (no LLM, just static analysis) and filters
+    findings to those whose `file` stem matches the claim label.
+    Used as the skip predicate for the claim-structural-fix trigger.
+
+    Cycle findings (acyclic-depends; propose-only and retired) are
+    excluded — they don't make the claim "dirty" under the lifted
+    fix-mode contract.
+
+    Defined here rather than in classifiers.py because the predicate
+    runs the validator (an external module) rather than reading
+    substrate. Keep close to other claim-state predicates so callers
+    looking for "claim X clean?" find both quiescence and structural.
+    """
+    import importlib.util
+    import re as _re
+    from pathlib import Path
+    from lib.shared.paths import CLAIM_DIR, WORKSPACE
+
+    claim_rel = session.get_path_for_addr(claim_addr)
+    if claim_rel is None:
+        return True
+    m = _re.search(r"(ASN-\d{4})/([^/]+)\.md$", claim_rel)
+    if m is None:
+        return True
+    asn_label = m.group(1)
+    claim_label = m.group(2)
+    claim_dir = CLAIM_DIR / asn_label
+    if not claim_dir.exists():
+        return True
+
+    spec = importlib.util.spec_from_file_location(
+        "claim_validate", WORKSPACE / "scripts" / "claim-validate.py",
+    )
+    validator = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(validator)
+    pairs = validator.load_pairs(claim_dir)
+    findings = validator.run_all_checks(pairs, claim_dir=claim_dir)
+
+    for f in findings:
+        if f["rule"] == "acyclic-depends":
+            continue
+        filename = f.get("file")
+        if filename and Path(filename).stem == claim_label:
+            return False
+        if not filename and claim_label in f.get("detail", ""):
+            return False
+    return True
+
+
 def is_quiescent(session: Session) -> bool:
     """The protocol predicate at lattice scope.
 
