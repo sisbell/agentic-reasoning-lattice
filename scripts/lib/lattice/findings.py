@@ -30,7 +30,7 @@ from typing import Optional, Tuple
 from lib.backend.addressing import Address
 from lib.backend.emit import (
     emit_comment, emit_derivation, emit_finding,
-    emit_review, emit_review_coverage,
+    emit_review, emit_review_content, emit_review_coverage,
 )
 from lib.backend.links import Link
 from lib.protocols.febe.protocol import Session
@@ -66,6 +66,7 @@ def emit_review_doc(
     session.update_document(review_rel, body)
     review_addr = session.register_path(review_rel)
     emit_review(session.store, review_addr)
+    emit_review_content(session.store, review_addr)
 
     if covered_addrs:
         for covered in covered_addrs:
