@@ -11,7 +11,6 @@ Public:
    *, model, foundation_labels) -> (verdict, text, elapsed)`
 - `extract_findings(text)` — parse `### `-prefixed sections into
    (title, cls, body) tuples
-- `filter_revise(findings)` — keep REVISE-class only
 - `parse_verdict(text)` — extract the VERDICT line
 """
 
@@ -146,10 +145,3 @@ def extract_findings(text: str) -> list:
     return findings
 
 
-def filter_revise(findings: list) -> list:
-    """Narrow findings to REVISE-class only.
-
-    UNKNOWN falls through to REVISE — conservative: if the reviewer
-    didn't classify, act on it.
-    """
-    return [f for f in findings if f[1] in ("REVISE", "UNKNOWN")]
