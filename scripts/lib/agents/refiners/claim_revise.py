@@ -1,26 +1,37 @@
-"""Claim-revise agent body.
+"""Claim-revise agent — close a single open comment.revise on a claim.
 
-One LLM invocation per finding. Builds a prompt from the revise
-template + finding text, invokes Claude with Edit/Write/Read tools,
-runs the resolution.py CLI to close the comment.
+Two layers in this file:
 
-Public: `revise(asn_num, title, finding_text, *, claim_dir,
-comment_id, claim_path) -> bool` — returns True if changes were
-applied.
+- `revise(asn_num, title, finding_text, *, claim_dir, comment_id,
+   claim_path) -> bool` — the per-finding LLM worker. Builds a prompt
+   from the revise template + finding text, invokes Claude with
+   Edit/Write/Read tools, runs the resolution.py CLI to close the
+   comment. Returns True if changes were applied.
+
+- `ClaimReviseAgent` — substrate-aware shell. Fires once per
+   unresolved comment.revise link, walks the comment to its finding
+   and target claim, populates `revise()` args from substrate, and
+   returns `AgentResult`. The runner picks each comment off via the
+   claim-revise trigger (predicate: has_resolution skips resolved
+   comments). One agent fire = one finding closed.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Optional
+from typing import ClassVar, Optional
 
+from lib.agents.base import Agent, AgentResult
+from lib.backend.addressing import Address
+from lib.protocols.febe.protocol import Session
 from lib.shared.common import find_asn, read_file
-from lib.shared.paths import USAGE_LOG, WORKSPACE, prompt_path
+from lib.shared.paths import LATTICE, USAGE_LOG, WORKSPACE, prompt_path
 
 
 REVISE_TEMPLATE = prompt_path("claim-refinement/full-review/revise.md")
@@ -122,3 +133,63 @@ def revise(
         pass
 
     return True
+
+
+# ---------------------------------------------------------------------------
+# Trigger-runner entry: class form
+
+
+class ClaimReviseAgent(Agent):
+    """One Claude-with-tools invocation that closes a single open
+    `comment.revise` on a claim.
+
+    Fires per unresolved comment.revise link. Walks the comment to
+    find the finding doc (from_set) and the target claim (to_set),
+    reads the finding body, populates `revise()` args from substrate,
+    and dispatches the per-finding worker.
+    """
+
+    role: ClassVar[str] = "claim-revise"
+
+    def run(self, session: Session, comment_addr: Address) -> AgentResult:
+        try:
+            comment = session.get_link(comment_addr)
+        except KeyError:
+            return AgentResult(success=False, detail="no-comment-link")
+
+        if not comment.from_set or not comment.to_set:
+            return AgentResult(success=False, detail="malformed-comment")
+
+        finding_addr = comment.from_set[0]
+        claim_addr = comment.to_set[0]
+
+        finding_rel = session.get_path_for_addr(finding_addr)
+        if finding_rel is None:
+            return AgentResult(success=False, detail="no-finding-path")
+        finding_full = LATTICE / finding_rel
+        if not finding_full.exists():
+            return AgentResult(success=False, detail="no-finding-file")
+        finding_body = finding_full.read_text().strip()
+        first_line = finding_body.splitlines()[0] if finding_body else ""
+        title = re.sub(r"^#+\s*", "", first_line).strip() or "(untitled)"
+
+        claim_rel = session.get_path_for_addr(claim_addr)
+        if claim_rel is None:
+            return AgentResult(success=False, detail="no-claim-path")
+        m = re.search(r"(ASN-(\d{4}))", claim_rel)
+        if m is None:
+            return AgentResult(success=False, detail="no-asn-in-claim-path")
+        asn_num = int(m.group(2))
+
+        ok = revise(
+            asn_num, title, finding_body,
+            comment_id=str(comment_addr),
+            claim_path=claim_rel,
+        )
+        if not ok:
+            return AgentResult(
+                success=False, detail=f"revise-failed comment={comment_addr}",
+            )
+        return AgentResult(
+            success=True, detail=f"closed comment={comment_addr}",
+        )
