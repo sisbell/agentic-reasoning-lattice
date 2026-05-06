@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from lib.agents.refiners.structural_rule_fix import ClaimStructuralFixAgent
+from lib.agents.refiners.claim_structural_fix import ClaimStructuralFixAgent
 from lib.backend.addressing import Address
 from lib.predicates import (
     derived_claims, is_claim_structurally_clean,
