@@ -51,12 +51,7 @@ from lib.shared.paths import (
 )
 from lib.shared.common import find_asn
 from lib.shared.git_ops import step_commit_asn
-from lib.backend.emit import (
-    emit_citation, emit_claim, emit_contract, emit_derivation,
-    emit_supersession, emit_transclusion,
-)
-from lib.predicates import statements_sidecar_of, supersession_head
-from lib.shared.paths import transclusion_path
+from lib.backend.emit import emit_citation, emit_contract
 from lib.lattice.attributes import attest_attribute
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.protocols.febe.session import open_session
@@ -314,20 +309,19 @@ def transclude_asn(asn_num, dry_run=False):
         for c in claims_to_emit:
             stem = c["label"]
             body_md = claims_dir / f"{stem}.md"
-            body_md.write_text(c["body_text"])
 
-            # Sidecar files + content links (label, name, signature).
-            attest_attribute(session, body_md, "label", c["label"])
-            attest_attribute(session, body_md, "name", c["name"] or c["label"])
+            # Identity emissions (claim md write, claim classifier, label,
+            # name, provenance.derivation, transclusion.claim-statements,
+            # statements supersession) moved to ClaimDecomposeAgent. Here
+            # we only emit annotate-derived facts: signature sidecar,
+            # contract.<kind>, citations.
 
             sig_md = _render_signature(c["signature"])
             if sig_md:
                 attest_attribute(session, body_md, "signature", sig_md)
 
-            # Classifier + contract — need the body's tumbler address.
             body_rel = str(body_md.resolve().relative_to(lattice_root))
             body_addr = store.register_path(body_rel)
-            emit_claim(store, body_addr)
             if c["type"]:
                 emit_contract(store, body_addr, c["type"])
 
@@ -341,36 +335,6 @@ def transclude_asn(asn_num, dry_run=False):
                 emit_citation(store, body_addr, merged_index[dep_label])
 
             print(f"    {stem}.md", file=sys.stderr)
-
-        # ── Phase C: provenance.derivation links per claim ───────────────
-        for c in claims_to_emit:
-            body_md = claims_dir / f"{c['label']}.md"
-            body_rel = str(body_md.resolve().relative_to(lattice_root))
-            body_addr = store.register_path(body_rel)
-            emit_derivation(store, asn_addr, body_addr)
-
-        # ── Phase C.5: claim-statements transclusion ─────────────────────
-        # Substrate citizen, no on-disk file. Content rendered live
-        # by lib/renderers/claim_statements.py at read time, dispatched
-        # via the `transclusion.claim-statements` runtime tag.
-        transclusion_rel = str(
-            transclusion_path(asn_label, "claim-statements")
-            .resolve().relative_to(lattice_root)
-        )
-        transclusion_addr = store.register_path(transclusion_rel)
-        emit_transclusion(store, transclusion_addr, "claim-statements")
-        emit_derivation(store, asn_addr, transclusion_addr)
-
-        # ── Phase C.6: supersede the note's statements artifact ──────────
-        # If note-statements ran (LLM extraction filed a `statements`
-        # sidecar on the note), emit supersession from its current
-        # head → the transclusion doc. Foundation reads walking the
-        # chain land at the transclusion post-derivation. If no
-        # statements link exists yet, do nothing.
-        stmt_addr = statements_sidecar_of(session, asn_addr)
-        if stmt_addr is not None:
-            head = supersession_head(session, stmt_addr)
-            emit_supersession(store, head, transclusion_addr)
 
     # ── Phase D: structural sections → workspace ────────────────────────
     structural_count = 0

@@ -1,9 +1,10 @@
 """Decompose ASN — operator-gated entry point to claim derivation.
 
 Thin wrapper: resolves an ASN number to its note address and dispatches
-to lib/agents/workers/claim_decompose.py::ClaimDecomposeAgent. The agent owns
-the actual work (mechanical split, parallel LLM analysis, workspace
-writes, commit).
+to lib/agents/producers/claim_decompose/agent.py::ClaimDecomposeAgent.
+The agent owns the actual work (mechanical split, parallel LLM
+analysis, body resolution, claim md write, identity emissions to
+substrate, commit).
 
 Usage (standalone):
     python scripts/lib/claim_derivation/decompose.py 36
@@ -15,7 +16,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.agents.workers.claim_decompose import ClaimDecomposeAgent
+from lib.agents.producers.claim_decompose import ClaimDecomposeAgent
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
 from lib.shared.paths import LATTICE
