@@ -29,12 +29,11 @@ from lib.shared.foundation import load_foundation_for_note
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude_agent
 from lib.shared.paths import (
-    LATTICE, LATTICE_PROMPTS, USAGE_LOG, WORKSPACE,
+    LATTICE, USAGE_LOG, WORKSPACE, prompt_path,
 )
 
 
-PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
-DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"
+DISCOVERY_PROMPT = prompt_path("discovery/instructions.md")
 
 MODEL = "claude-opus-4-7"
 

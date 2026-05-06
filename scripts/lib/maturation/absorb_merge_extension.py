@@ -28,7 +28,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.protocols.febe.session import open_session
 from lib.shared.paths import (WORKSPACE, NOTE_DIR, LATTICE,
-                   REVIEWS_DIR, LATTICE_PROMPTS, prompt_path,
+                   REVIEWS_DIR, prompt_path,
                    claim_statements)
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.git_ops import step_commit

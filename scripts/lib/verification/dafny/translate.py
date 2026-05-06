@@ -17,14 +17,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, PROOFS_DIR, USAGE_LOG,
-                    LATTICE_PROMPTS)
+                    prompt_path)
 from lib.shared.claim_files import build_label_index, load_claim_metadata
 from lib.shared.common import assemble_readonly, find_asn
 from lib.verification.dafny.common import read_file
 
-PROMPTS_DIR = LATTICE_PROMPTS / "verification" / "dafny"
-TEMPLATE = PROMPTS_DIR / "translate-claim.md"
-DAFNY_REFERENCE = PROMPTS_DIR / "dafny-reference.dfy"
+TEMPLATE = prompt_path("verification/dafny/translate-claim.md")
+DAFNY_REFERENCE = prompt_path("verification/dafny/dafny-reference.dfy")
 
 
 def build_claim_list_from_asn(asn_num):

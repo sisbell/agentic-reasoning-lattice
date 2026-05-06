@@ -31,13 +31,12 @@ from lib.shared.foundation import load_foundation_for_note
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
-    LATTICE_PROMPTS, NOTE_FINDINGS_DIR, REVIEWS_DIR, USAGE_LOG, WORKSPACE,
-    load_inquiry, sorted_reviews,
+    NOTE_FINDINGS_DIR, REVIEWS_DIR, USAGE_LOG, WORKSPACE,
+    load_inquiry, prompt_path, sorted_reviews,
 )
 
 
-PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
-REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
+REVIEW_TEMPLATE = prompt_path("discovery/review.md")
 
 
 def extract_note_findings(text: str) -> List[Tuple[str, str, str]]:

@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.protocols.febe.session import open_session
-from lib.shared.paths import LATTICE, REVIEWS_DIR, LATTICE_PROMPTS
+from lib.shared.paths import LATTICE, REVIEWS_DIR, prompt_path
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude
@@ -29,8 +29,7 @@ from lib.maturation.promotion_promote import (
     create_inquiry_doc, load_existing_promotion, save_promotion_report,
 )
 
-PROMPTS_DIR = LATTICE_PROMPTS / "discovery" / "promotion"
-TEMPLATE = PROMPTS_DIR / "promote-out-of-scope.md"
+TEMPLATE = prompt_path("discovery/promotion/promote-out-of-scope.md")
 
 
 def _collect_out_of_scope(asn_label):

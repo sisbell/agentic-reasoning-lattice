@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, DAFNY_DIR, USAGE_LOG,
-                    LATTICE_PROMPTS, prompt_path)
+                    prompt_path)
 from lib.shared.claim_files import build_label_index
 from lib.shared.common import find_asn
 from lib.shared.invoke_claude import parallel_llm_calls
