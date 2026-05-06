@@ -22,12 +22,13 @@ import sys
 from typing import ClassVar
 
 from lib.agents.base import Agent, AgentResult
-from lib.agents.producers.claim_review import run_review
+from lib.agents.producers.claim_review import (
+    previously_declined_findings, run_review,
+)
 from lib.backend.addressing import Address
 from lib.lattice.findings import emit_review_doc
 from lib.lattice.context import claim_context_from_addr
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.orchestrators.retry import _declined_findings_for_cone
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
 from lib.shared.git_ops import step_commit_asn
@@ -91,7 +92,7 @@ class ConeReviewAgent(Agent):
         cone_addrs = [ctx.addr] + [
             label_index[d] for d in dep_labels if d in label_index
         ]
-        previous_findings = _declined_findings_for_cone(session, cone_addrs)
+        previous_findings = previously_declined_findings(session, cone_addrs)
 
         # 3. Assemble + review.
         cone_content = assemble_cone(ctx.asn_label, ctx.label, dep_labels)

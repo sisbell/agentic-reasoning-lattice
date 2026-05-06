@@ -29,13 +29,14 @@ import sys
 from typing import ClassVar
 
 from lib.agents.base import Agent, AgentResult
-from lib.agents.producers.claim_review import run_review
+from lib.agents.producers.claim_review import (
+    previously_declined_findings, run_review,
+)
 from lib.agents.producers.cone_review.sync import sync_claim_citations
 from lib.backend.addressing import Address
 from lib.lattice.findings import emit_review_doc
 from lib.lattice.context import asn_context_from_note
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.orchestrators.retry import _declined_findings_for_cone
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import assemble_readonly
 from lib.shared.git_ops import step_commit_asn
@@ -75,7 +76,7 @@ class FullReviewAgent(Agent):
             )
 
         # 2. Declined-findings context (suppress re-raise of OBSERVE).
-        previous_findings = _declined_findings_for_cone(session, derived_addrs)
+        previous_findings = previously_declined_findings(session, derived_addrs)
 
         # 3. Assemble + review (full upstream foundation, no narrowing).
         asn_content = assemble_readonly(ctx.asn_label)
