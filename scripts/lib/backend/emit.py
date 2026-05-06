@@ -85,6 +85,30 @@ def emit_review(store: Store, review_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, review_doc, "review")
 
 
+def emit_review_content(
+    store: Store, review_doc: Address,
+) -> Tuple[Link, bool]:
+    """Classify a review doc as content review (LLM-authored critique).
+
+    Distinguished from review.structural so predicates can filter by
+    the kind of analysis the review captures. Producers (claim_review,
+    full_review, cone_review) emit this on the review docs they author.
+    """
+    return emit_classifier(store, review_doc, "review.content")
+
+
+def emit_review_structural(
+    store: Store, audit_doc: Address,
+) -> Tuple[Link, bool]:
+    """Classify an audit doc as structural review (validator outcomes).
+
+    Same review.coverage shape as review.content, different working
+    surface — the audit body carries validator-rule outcomes rather
+    than LLM prose. Emitted by the structural-audit scout.
+    """
+    return emit_classifier(store, audit_doc, "review.structural")
+
+
 def emit_review_coverage(
     store: Store, review_meta: Address, covered: Address,
 ) -> Tuple[Link, bool]:

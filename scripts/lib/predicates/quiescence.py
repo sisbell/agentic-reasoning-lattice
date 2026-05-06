@@ -71,6 +71,81 @@ def is_doc_quiescent(session: Session, doc_addr: Address) -> bool:
 is_claim_quiescent = is_doc_quiescent
 
 
+def latest_structural_audit_for_claim(
+    session: Session, claim_addr: Address,
+) -> Optional[Address]:
+    """Return the audit_addr of the most recent `review.structural`-classified
+    audit doc covering `claim_addr`, or None if no audit has covered it.
+
+    "Most recent" is the `review.coverage` link with the largest tumbler
+    address whose from_set is a review.structural-classified doc.
+    """
+    coverage_links = [
+        link for link in session.active_links(
+            "review.coverage", to_set=[claim_addr],
+        )
+        if link.from_set
+    ]
+    if not coverage_links:
+        return None
+    structural = [
+        link for link in coverage_links
+        if session.active_links(
+            "review.structural", to_set=[link.from_set[0]],
+        )
+    ]
+    if not structural:
+        return None
+    latest = max(structural, key=lambda link: link.addr.digits)
+    return latest.from_set[0]
+
+
+def is_claim_audit_fresh(
+    session: Session, claim_addr: Address,
+) -> bool:
+    """Skip predicate for the claim-structural-audit scout.
+
+    Mirrors `is_claim_confirmed`'s closure-style freshness: the audit
+    is fresh iff the latest structural audit covering this claim was
+    clean (zero `comment.violation` findings derived from it) OR its
+    findings are still in flight (some unresolved → refiner is still
+    working). The scout re-fires only when the latest audit's
+    findings have all closed and the post-fix state needs re-audit.
+
+    Returns True (skip) iff:
+      - The latest structural audit covering this claim found zero
+        violations (clean), OR
+      - The latest audit's violations include at least one unresolved
+        comment.violation (refiner is still closing them).
+
+    Returns False (fire scout) iff:
+      - No structural audit has covered this claim yet, OR
+      - The latest audit's violations have all been resolved
+        (need to re-audit on post-fix state).
+    """
+    latest_audit = latest_structural_audit_for_claim(session, claim_addr)
+    if latest_audit is None:
+        return False
+
+    finding_addrs = {
+        target
+        for link in session.active_links(
+            "provenance.derivation", from_set=[latest_audit],
+        )
+        for target in link.to_set
+    }
+    if not finding_addrs:
+        return True  # Clean audit — quiescence
+
+    for finding in finding_addrs:
+        for violation in session.active_links(
+            "comment.violation", from_set=[finding],
+        ):
+            if not has_resolution(session, violation.addr):
+                return True  # Refiner still working
+    return False  # All resolved → re-audit
+
+
 def is_claim_structurally_clean(
     session: Session, claim_addr: Address,
 ) -> bool:

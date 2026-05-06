@@ -66,7 +66,7 @@ VALID_SUBTYPES = {
         "axiom", "definition", "theorem", "corollary", "lemma",
         "consequence", "design-requirement",
     }),
-    "comment": frozenset({"revise", "observe", "out-of-scope"}),
+    "comment": frozenset({"revise", "observe", "out-of-scope", "violation"}),
     "resolution": frozenset({"edit", "reject"}),
     "citation": frozenset({"depends", "forward", "resolve"}),
     "consultation": frozenset({
@@ -93,6 +93,13 @@ VALID_SUBTYPES = {
                      # this doc was within this review's coverage. Used by
                      # is_claim_confirmed and future coverage / staleness
                      # predicates.
+        "content",   # classifier on a review doc whose body is LLM-authored
+                     # content critique (claim_review producer's output).
+                     # Distinguished from review.structural so predicates can
+                     # filter by what kind of analysis the review captures.
+        "structural", # classifier on an audit doc emitted by the structural
+                     # audit scout: validator outcomes per rule, no LLM prose.
+                     # Same review.coverage shape, different working surface.
     }),
     "transclusion": frozenset({
         "claim-statements",  # per-ASN assembled view of derived claims
