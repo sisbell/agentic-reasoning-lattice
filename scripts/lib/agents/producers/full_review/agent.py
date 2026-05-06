@@ -29,7 +29,7 @@ import sys
 from typing import ClassVar
 
 from lib.agents.base import Agent, AgentResult
-from lib.agents.refiners.claim_finding_override import apply_classifier_verdict
+from lib.agents.producers.claim_finding_override import apply_classifier_verdict
 from lib.agents.producers.claim_review import (
     extract_findings, filter_revise, run_review,
 )
