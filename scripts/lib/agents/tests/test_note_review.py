@@ -1,4 +1,4 @@
-"""Unit tests for note-convergence review parsing."""
+"""Unit tests for note-refinement review parsing."""
 
 import sys
 import unittest

@@ -2,7 +2,7 @@
 
 Public surface:
 - ConeReviewAgent — Agent class fired by the cone-review trigger.
-  One cycle per fire; the runner handles the multi-cycle convergence.
+  One cycle per fire; the runner handles the multi-cycle refinement.
 - run_cone_review — legacy multi-cycle wrapper. Kept while
   full-review (which has not migrated to triggers yet) still calls
   it. New code should use the trigger / agent directly.

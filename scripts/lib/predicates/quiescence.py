@@ -51,7 +51,7 @@ def unresolved_revise_comments(
     satisfy the predicate. If `doc_addr` is given, scopes to comments
     targeting that doc; otherwise spans the whole substrate.
 
-    This is the load-bearing predicate for the convergence model —
+    This is the load-bearing predicate for the quiescence model —
     every "is the lattice done?" question reduces to this set being
     empty over the appropriate scope.
     """

@@ -103,7 +103,7 @@ def statements_is_fresh(session: Session, note_addr: Address) -> bool:
     confirmed state, OR the note is not yet confirmed (still in
     revise cycles — wait until N+1 settles).
 
-    Confirmation gate: don't fire mid-convergence; statements are
+    Confirmation gate: don't fire mid-refinement; statements are
     re-extracted only at "settled" boundaries (no open revises +
     latest review came back clean). For a note that absorbs many
     cycles, this collapses to one extraction per N+1 lifecycle, not

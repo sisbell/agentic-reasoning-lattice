@@ -51,7 +51,7 @@ def main():
     )
     parser.add_argument(
         "--max-iterations", type=int, default=100,
-        help="Safety cap on convergence passes per inquiry (default 100)",
+        help="Safety cap on refinement passes per inquiry (default 100)",
     )
     args = parser.parse_args()
 

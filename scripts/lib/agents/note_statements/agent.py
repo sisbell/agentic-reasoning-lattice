@@ -1,7 +1,7 @@
 """Note-statements agent — one LLM call per fire to extract a note's
 formal-statements artifact.
 
-Fires when the note is `is_claim_confirmed` (per the N+1 convergence
+Fires when the note is `is_claim_confirmed` (per the N+1 refinement
 pattern: no open revises AND latest review came up clean) AND the
 statements supersession chain is shorter than the note's. On each
 fire:

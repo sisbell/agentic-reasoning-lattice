@@ -5,7 +5,7 @@ formal-statements sidecar is stale relative to its confirmed state.
   predicate: statements_is_fresh
   agent:     NoteStatementsAgent
 
-Fires at the +1 boundary of the N+1 convergence pattern: only when
+Fires at the +1 boundary of the N+1 refinement pattern: only when
 the note has no open revises AND the latest review was clean. During
 active revise cycles the predicate stays True (quiescent) — we don't
 re-extract on every accept, only when the note has settled.

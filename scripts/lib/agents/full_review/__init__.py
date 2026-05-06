@@ -2,7 +2,7 @@
 
 Public surface:
 - FullReviewAgent — Agent class fired by the full-review trigger.
-  One cycle per fire; the runner handles convergence re-firing.
+  One cycle per fire; the runner handles refinement re-firing.
 - run_full_review — legacy multi-cycle wrapper. Used by the
   `claim-full-review.py` CLI for direct invocation.
 """

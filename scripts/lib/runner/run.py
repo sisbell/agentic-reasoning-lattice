@@ -2,7 +2,7 @@
 
 Two functions:
 
-  run_until_quiescent — convergence loop. Fire only where predicate is
+  run_until_quiescent — refinement loop. Fire only where predicate is
     false. Re-evaluate after each fire so cascades propagate. Stop
     when a full pass fires nothing.
 

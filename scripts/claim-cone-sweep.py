@@ -2,7 +2,7 @@
 """Run the cone-review trigger across an ASN.
 
 Three modes:
-    (default)            predicate-driven convergence loop until quiescent
+    (default)            predicate-driven refinement loop until quiescent
     --force [LABELS]     force-pass on all apexes, or just the named ones
     --force-from LABEL   force-pass on LABEL and every later apex (topo order)
 

@@ -25,7 +25,7 @@ class Trigger:
     name:        identifier for logs + provenance attribution
     scope_query: (session, scope) → addresses to consider this pass
     predicate:   (session, addr) → True iff the agent does NOT need to fire
-                 (matches the convention of `is_*_converged` predicates:
+                 (matches the convention of `is_*_quiescent` predicates:
                  True means "satisfied / done")
     agent:       (session, addr) → side effects on substrate. Return value
                  is ignored by the runner today; Agent subclasses returning

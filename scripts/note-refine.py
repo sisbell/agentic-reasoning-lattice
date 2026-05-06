@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Note Convergence — drive a note through review/revise cycles via the
+"""Note Refinement — drive a note through review/revise cycles via the
 trigger runner.
 
 Walks the note-review and note-revise triggers until quiescent. Each
-cycle: fire any trigger whose predicate is unsatisfied. Convergence is
+cycle: fire any trigger whose predicate is unsatisfied. Quiescence is
 when a full pass fires nothing (predicates are satisfied: no open
 revises AND the most recent review filed zero new revises).
 
 Usage:
-    python scripts/note-converge.py 9                  # default 100 max passes
-    python scripts/note-converge.py 9 --max-iterations 8
+    python scripts/note-refine.py 9                  # default 100 max passes
+    python scripts/note-refine.py 9 --max-iterations 8
 """
 
 import argparse
@@ -25,14 +25,14 @@ from lib.triggers import note_consult, note_review, note_revise
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "Drive a note through review/revise cycles to convergence "
+            "Drive a note through review/revise cycles to quiescence "
             "via the trigger runner."
         ),
     )
     parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
     parser.add_argument(
         "--max-iterations", type=int, default=100,
-        help="Safety cap on convergence passes (default 100)",
+        help="Safety cap on refinement passes (default 100)",
     )
     args = parser.parse_args()
 
@@ -45,7 +45,7 @@ def main():
     )
 
     print(
-        f"\n  [NOTE-CONVERGE] iterations={result.iterations} "
+        f"\n  [NOTE-REFINE] iterations={result.iterations} "
         f"fires={len(result.fires)} errors={len(result.errors)} "
         f"quiescent={result.quiescent}",
         file=sys.stderr,

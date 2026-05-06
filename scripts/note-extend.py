@@ -127,7 +127,7 @@ def main():
     print(f"\n  [NEXT] Review: python scripts/note-review.py {args.target}",
           file=sys.stderr)
     print(f"  [NEXT] Or review/revise loop: "
-          f"python scripts/note-revise.py {args.target} --converge",
+          f"python scripts/note-revise.py {args.target} --refine",
           file=sys.stderr)
     print(f"  [NEXT] Then export: python scripts/normalize.py {args.target}",
           file=sys.stderr)

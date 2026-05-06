@@ -9,8 +9,8 @@ Distinguishes from:
 - `lib/backend/` — the substrate (addresses, links, persistence,
   type catalog). Xanadu in Nelson's sense.
 - `lib/febe/` — FEBE wire-protocol binding to the substrate.
-- `lib/<protocol>/` — protocol-specific composition (claim_convergence,
-  note_convergence, etc.).
+- `lib/<protocol>/` — protocol-specific composition (claim_refinement,
+  note_refinement, etc.).
 
 Code lives here when it composes substrate primitives but encodes
 *how this project organizes lattices* — recognized formats, naming

@@ -72,7 +72,7 @@ NOTE_DIR = DOCUVERSE_DOCS_DIR / "note"
 CLAIM_DIR = DOCUVERSE_DOCS_DIR / "claim"
 
 # Loop work products. Sibling to _docuverse/. Holds artifacts produced
-# by the convergence/decomposition loops that aren't themselves
+# by the refinement/derivation loops that aren't themselves
 # substrate-classified documents (scratch caches, intermediate state).
 WORKSPACE_DIR = LATTICE / "_workspace"
 

@@ -127,7 +127,7 @@ def dangling_attribute_links(session: Session) -> List[Link]:
 # ============================================================
 
 # Comment subtypes that source from a finding doc in the
-# claim-convergence layer. Both target a claim document.
+# claim-refinement layer. Both target a claim document.
 _CLAIM_FINDING_COMMENT_KINDS = ("comment.revise", "comment.observe")
 
 
@@ -201,7 +201,7 @@ def dangling_claim_finding_links(session: Session) -> list:
 # ============================================================
 
 # Comment subtypes the note-layer reconciliation predicates check.
-# record_findings (note-convergence) maps OUT_OF_SCOPE classifications
+# record_findings (note-refinement) maps OUT_OF_SCOPE classifications
 # to comment.out-of-scope.
 _NOTE_FINDING_COMMENT_KINDS = (
     "comment.revise",

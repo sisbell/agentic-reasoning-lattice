@@ -7,7 +7,7 @@ Two atoms over `State.find_links` that the centralized predicate layer
 - `retracted_link_addrs` — set of link addresses nullified by a retraction
 
 Composite predicates (alignment, version, citation graph, classifier
-enumeration, convergence) live under `lib/predicates/` grouped by the
+enumeration, quiescence) live under `lib/predicates/` grouped by the
 question they answer. Keep this module small.
 """
 

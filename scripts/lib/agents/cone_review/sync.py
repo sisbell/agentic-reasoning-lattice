@@ -10,7 +10,7 @@ Drift detection is set-comparison, not history-based — distributed-safe.
 Two processes editing different claims don't interfere because their
 substrate writes are scoped to different from-paths.
 
-Claim-convergence-specific: knows the `*Depends:*` and
+Claim-refinement-specific: knows the `*Depends:*` and
 `*Forward References:*` markdown bullet conventions used by claim
 files in this project. Not a substrate primitive — composes
 substrate calls (active_links, emit_citation, emit_retraction) plus

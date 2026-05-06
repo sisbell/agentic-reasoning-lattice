@@ -1,4 +1,4 @@
-"""Cone-review trigger — fires on unconverged claims with enough deps.
+"""Cone-review trigger — fires on non-quiescent claims with enough deps.
 
 Wires the ConeReviewAgent (lib/agents/cone_review.py) to the
 substrate predicate `is_claim_quiescent` over a topologically-ordered

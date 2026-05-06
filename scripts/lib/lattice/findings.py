@@ -13,7 +13,7 @@ Three helpers:
 - `record_one_finding(session, ...)` — the per-finding atom: write
   the doc, emit the `finding` classifier, emit a `comment.<kind>`
   link to the target, emit `provenance.derivation` from the parent
-  review. Used by both note-convergence and claim-convergence;
+  review. Used by both note-refinement and claim-refinement;
   targets and comment-kind sets differ but the shape is identical.
 
 Atomicity story: operations are not transactional; partial failure

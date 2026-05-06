@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the system prompt for the note-convergence driver agent.
+"""Build the system prompt for the note-refinement driver agent.
 
 The agent's prompt is three layers:
   1. Role  — what the agent is responsible for
@@ -7,13 +7,13 @@ The agent's prompt is three layers:
   3. Tool surface — the five Bash-invocable tools the agent uses
 
 Output: writes the assembled prompt to
-`lattices/<lattice>/_workspace/agent-runs/note-converge-<asn>-<ts>.prompt`,
+`lattices/<lattice>/_workspace/agent-runs/note-refine-<asn>-<ts>.prompt`,
 prints the path, and prints the suggested `claude` invocation.
 
 The user runs the tool — this script does not invoke claude itself.
 
 Usage:
-    python3 scripts/agent-note-converge.py <asn>
+    python3 scripts/agent-note-refine.py <asn>
 """
 
 import argparse
@@ -43,14 +43,14 @@ SPEC_DOCS = [
      REPO / "docs" / "modules" / "agent-module.md"),
 ]
 
-ROLE = """You are the agent driving one note to convergence under the Note
+ROLE = """You are the agent driving one note to quiescence under the Note
 Convergence Protocol.
 
 Your job:
 - Follow the protocol's algorithm (see Protocol section below).
 - Preserve its safety properties (file only the link types the protocol
   defines; respect retraction semantics; honor finding classification).
-- Pursue its liveness properties — drive the substrate's convergence
+- Pursue its liveness properties — drive the substrate's quiescence
   predicate to true.
 - Halt when the predicate holds AND a confirmation review files zero
   new revises.
@@ -74,7 +74,7 @@ Substrate query. Prints one line:
     NOTE=<label> REVISES_TOTAL=<n> REVISES_OPEN=<n> RESOLUTIONS=<n> PREDICATE_HOLDS=<true|false>
 
 `PREDICATE_HOLDS=true` ⇔ every active `comment.revise` on the note has
-a matching active `resolution`. This is the protocol's convergence
+a matching active `resolution`. This is the protocol's quiescence
 predicate at the substrate level.
 
 ### `python3 scripts/agent_tools/open_revises.py <asn>`
@@ -118,7 +118,7 @@ The protocol's §6.2 cycle is:
 4. Revise — if the latest review filed REVISE findings, run_revise.
 5. Commit — commit after each cycle's substrate writes.
 6. Check predicate; if holds and the latest review was zero-revise,
-   indicate convergence and halt.
+   indicate quiescence and halt.
 
 Recommended halt conditions:
 
@@ -162,12 +162,12 @@ def main():
         "# Tool surface\n\n" + TOOL_SURFACE,
     ])
 
-    user_message = f"Drive {asn_label} to convergence."
+    user_message = f"Drive {asn_label} to quiescence."
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     runs_dir = LATTICE / "_workspace" / "agent-runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
-    base = runs_dir / f"note-converge-{asn_label}-{timestamp}"
+    base = runs_dir / f"note-refine-{asn_label}-{timestamp}"
     system_path = base.with_suffix(".system.txt")
     user_path = base.with_suffix(".user.txt")
     system_path.write_text(system_prompt)

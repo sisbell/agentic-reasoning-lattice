@@ -1,6 +1,6 @@
 """Full-review agent — one cycle per fire over a derived ASN.
 
-Fires on a source note that has unconverged derived claims. Performs
+Fires on a source note that has non-quiescent derived claims. Performs
 ONE cycle:
   1. retry unresolved revises across the ASN's claim cluster
   2. validate-gate precondition (full ASN; halts on dirty structure)

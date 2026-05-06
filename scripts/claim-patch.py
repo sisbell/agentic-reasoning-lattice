@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Claim Patch — apply targeted fixes to ASNs in claim convergence.
+Claim Patch — apply targeted fixes to ASNs in claim refinement.
 
 Reads a patch instruction from the lattice's discovery/patches/ASN-NNNN/ directory,
-applies the fix, and commits. The claim-convergence pipeline runs afterward
+applies the fix, and commits. The claim-refinement pipeline runs afterward
 to verify correctness.
 
 Usage:
@@ -105,7 +105,7 @@ def step_apply(asn_num, asn_path, asn_label, patch_content, model, effort):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Apply a targeted patch to an ASN in claim convergence")
+        description="Apply a targeted patch to an ASN in claim refinement")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--patch", required=True,
                         help="Patch filename (in the lattice's discovery/patches/ASN-NNNN/ directory)")
@@ -136,7 +136,7 @@ def main():
     step_commit_asn(asn_num,
                     hint=f"patch(asn): {asn_label} apply {patch_path.name}")
 
-    print(f"\n  [NEXT] Run claim convergence pipeline to verify:",
+    print(f"\n  [NEXT] Run claim refinement pipeline to verify:",
           file=sys.stderr)
     print(f"  ./run/converge.sh --from dependency-review {asn_num}",
           file=sys.stderr)
