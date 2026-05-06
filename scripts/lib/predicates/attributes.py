@@ -70,6 +70,29 @@ def has_signature(session: Session, doc_addr: Address) -> bool:
     return bool(session.active_links("signature", from_set=[doc_addr]))
 
 
+def signature_is_fresh(session: Session, claim_addr: Address) -> bool:
+    """True iff the signature sidecar's chain is at least as long as
+    the claim's chain.
+
+    Mirrors `description_is_fresh` exactly — same pattern: chain-length
+    comparison between attribute sidecar and parent doc, where each
+    `register_version` advances the relevant chain by 1. Equal counts
+    mean every claim edit has a matching signature attestation.
+
+    False when there's no signature link at all (initial state) — the
+    signature-resolve scout/producer should fire to create it.
+    """
+    from lib.predicates.versions import supersession_chain_length
+    links = session.active_links("signature", from_set=[claim_addr])
+    if not links or not links[0].to_set:
+        return False
+    sidecar_addr = links[0].to_set[0]
+    return (
+        supersession_chain_length(session, sidecar_addr)
+        >= supersession_chain_length(session, claim_addr)
+    )
+
+
 def has_statements(session: Session, doc_addr: Address) -> bool:
     """True iff the doc is the F of an active `statements` attribute link.
 
