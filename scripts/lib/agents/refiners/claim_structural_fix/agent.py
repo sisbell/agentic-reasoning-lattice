@@ -1,23 +1,29 @@
-"""Claim structural-rule-fix agent — refiner for validator findings.
+"""Claim structural-fix agent — refiner for substrate-resident violations.
 
-Fires per-claim. One fire = run validator on the claim's directory,
-walk the apply-mode passes in sequence, fix per-rule per-file via
-the `fix_structural_rule` helper, apply diffs, emit retractions for
-depends-agreement RETRACT decisions, commit per-fire. Each fire
-brings one claim toward structural quiescence; the runner re-fires
-until every claim in scope is clean.
+Fires per-claim with unresolved `comment.violation` links. One fire =
+read the open violations from substrate, walk the apply-mode passes
+in rule order, fix per-rule per-file via the `fix_structural_rule`
+helper, apply diffs, emit `resolution.<kind>` per closed comment,
+emit retractions for depends-agreement RETRACT decisions, commit
+per-fire. Each fire brings one claim toward structural quiescence;
+the runner re-fires while unresolved violations remain.
 
-This is the lifted form of the previous validate-revise orchestrator.
+The validator no longer runs inside the refiner — that's the audit
+scout's job (lib/agents/scouts/claim_structural_audit/). The refiner
+reads substrate findings the scout emitted (via comment.violation
+links + per-finding doc bodies), groups them by rule and by file,
+dispatches the existing per-rule fix helpers, and closes each
+comment via resolution.
+
 The multi-pass loop, scratch-dir / diff / apply machinery,
 __decisions.json sidecar validation, and retraction emission all
 live inside this agent. Acyclic-depends propose mode was retired
-during the lift.
+when the validator-driven version was lifted.
 """
 
 from __future__ import annotations
 
 import difflib
-import importlib.util
 import json
 import re
 import shutil
@@ -25,12 +31,13 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, List, Optional
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.backend.emit import emit_retraction
+from lib.backend.emit import emit_resolution, emit_retraction
 from lib.lattice.labels import build_cross_asn_label_index
+from lib.predicates import has_resolution
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
 from lib.shared.git_ops import step_commit_asn
@@ -41,9 +48,6 @@ from .helpers import fix_structural_rule
 
 VALID_ACTIONS = {"ADD", "RETRACT", "SKIP"}
 MAX_REVISER_ATTEMPTS = 2
-
-REPO_ROOT = Path(__file__).resolve().parents[5]
-SCRIPTS_DIR = REPO_ROOT / "scripts"
 
 
 class DecisionsCorruption(Exception):
@@ -64,46 +68,70 @@ PASSES = [
 ]
 
 
-# ─── Validator integration ──────────────────────────────────────────
+# ─── Substrate-driven finding reads ─────────────────────────────────
 
 
-def _load_validator():
-    spec = importlib.util.spec_from_file_location(
-        "claim_validate", SCRIPTS_DIR / "claim-validate.py",
-    )
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
+_RULE_HEADER_RE = re.compile(r"^# Structural Violation:\s*(.+)$", re.MULTILINE)
+_FILE_FIELD_RE = re.compile(r"^\*\*File:\*\*\s*(.+)$", re.MULTILINE)
+_LINE_FIELD_RE = re.compile(r"^\*\*Line:\*\*\s*(\d+)$", re.MULTILINE)
+_DETAIL_BLOCK_RE = re.compile(r"##\s*Detail\s*\n+(.+?)(?=\n##|\Z)", re.DOTALL)
 
 
-VALIDATOR = _load_validator()
+def _parse_violation_body(body: str) -> Optional[dict]:
+    """Parse a per-violation finding doc body into a finding dict.
 
-
-def run_validator(asn_label: str) -> list:
-    claim_dir = CLAIM_DIR / asn_label
-    pairs = VALIDATOR.load_pairs(claim_dir)
-    return VALIDATOR.run_all_checks(pairs, claim_dir=claim_dir)
-
-
-def _actionable_findings_for_claim(findings: list, claim_label: str) -> list:
-    """Findings the agent should act on for this one claim.
-
-    Excludes acyclic-depends (retired propose mode); restricts to
-    findings whose file stem matches the claim label, and cycle-style
-    findings (file=None) that mention the claim in their detail.
+    Mirrors the format the audit scout emits in
+    lib/agents/scouts/claim_structural_audit/agent.py:_render_violation_body.
+    Returns None if the body doesn't match the expected shape.
     """
-    relevant = []
-    for f in findings:
-        if f["rule"] == "acyclic-depends":
+    rule_m = _RULE_HEADER_RE.search(body)
+    if rule_m is None:
+        return None
+    rule = rule_m.group(1).strip()
+    file_m = _FILE_FIELD_RE.search(body)
+    file = file_m.group(1).strip() if file_m else None
+    if file == "(unknown)":
+        file = None
+    line_m = _LINE_FIELD_RE.search(body)
+    line = int(line_m.group(1)) if line_m else None
+    detail_m = _DETAIL_BLOCK_RE.search(body)
+    detail = detail_m.group(1).strip() if detail_m else ""
+    return {"rule": rule, "file": file, "line": line, "detail": detail}
+
+
+def _read_substrate_violations(
+    session: Session, claim_addr: Address,
+) -> List[dict]:
+    """Walk active unresolved comment.violation links targeting the claim,
+    parse each finding doc body, and return a list of finding dicts.
+
+    Each dict has keys: rule, file, line, detail, comment_addr,
+    finding_addr. The comment_addr is what `resolution.<kind>` will
+    target on closure.
+    """
+    out: List[dict] = []
+    for link in session.active_links(
+        "comment.violation", to_set=[claim_addr],
+    ):
+        if not link.from_set:
             continue
-        filename = f.get("file")
-        if filename:
-            if Path(filename).stem == claim_label:
-                relevant.append(f)
-        else:
-            if claim_label in f.get("detail", ""):
-                relevant.append(f)
-    return relevant
+        if has_resolution(session, link.addr):
+            continue
+        finding_addr = link.from_set[0]
+        finding_rel = session.get_path_for_addr(finding_addr)
+        if finding_rel is None:
+            continue
+        finding_full = LATTICE / finding_rel
+        if not finding_full.exists():
+            continue
+        body = finding_full.read_text()
+        parsed = _parse_violation_body(body)
+        if parsed is None:
+            continue
+        parsed["comment_addr"] = link.addr
+        parsed["finding_addr"] = finding_addr
+        out.append(parsed)
+    return out
 
 
 # ─── File / git helpers ─────────────────────────────────────────────
@@ -397,10 +425,46 @@ def _process_file_scratch(rule, tools, claim_dir, filename, findings):
 # ─── Per-pass loop ──────────────────────────────────────────────────
 
 
-def _run_pass(pass_spec, asn_label, claim_dir, findings,
-              skip_pairs):
-    """Run one rule pass on the claim. Returns the set of (filename, rule)
-    declines accumulated by the agent producing no change."""
+def _emit_resolutions_for_findings(
+    session: Session, claim_addr: Address, findings: list, *, kind: str,
+) -> int:
+    """Emit `resolution.<kind>` per comment.violation in `findings`.
+
+    `kind` is "edit" (fix applied) or "reject" (declined / not actionable).
+    by_doc is the claim itself; no rationale doc is created — the closure
+    fact is captured by the resolution link's tumbler addr + by_doc.
+    Returns count of resolutions emitted.
+    """
+    n = 0
+    for f in findings:
+        comment_addr = f.get("comment_addr")
+        if comment_addr is None:
+            continue
+        if has_resolution(session, comment_addr):
+            continue
+        emit_resolution(
+            session.store, claim_addr, comment_addr, kind=kind,
+        )
+        n += 1
+    return n
+
+
+def _run_pass(
+    session, pass_spec, asn_label, claim_dir, claim_addr, findings,
+    skip_pairs,
+):
+    """Run one rule pass on the claim.
+
+    `findings` is the list of finding dicts (substrate-sourced) carrying
+    comment_addr per finding. After per-(file, rule) processing, emits
+    `resolution.edit` per comment whose group's fix landed, or
+    `resolution.reject` per comment whose group declined.
+
+    Returns the set of (filename, rule) declines for in-fire skip
+    tracking. Decline state across fires is captured by the
+    resolution.reject links emitted here — the runner sees those
+    comments as resolved and the predicate skips them on next fire.
+    """
     rule = pass_spec["rule"]
     tools = pass_spec["tools"]
     declined = set()
@@ -412,7 +476,7 @@ def _run_pass(pass_spec, asn_label, claim_dir, findings,
     groups = {k: v for k, v in groups.items() if k not in skipped_set}
 
     for fn in sorted(skipped_set):
-        print(f"    {fn}: skipped (declined earlier)")
+        print(f"    {fn}: skipped (declined earlier in fire)")
 
     if not groups:
         return declined
@@ -432,8 +496,7 @@ def _run_pass(pass_spec, asn_label, claim_dir, findings,
         return declined
 
     if rule == "depends-agreement":
-        with open_session(LATTICE) as session:
-            label_index = build_cross_asn_label_index(session.store)
+        label_index = build_cross_asn_label_index(session.store)
     else:
         label_index = None
 
@@ -509,6 +572,10 @@ def _run_pass(pass_spec, asn_label, claim_dir, findings,
             else:
                 print(" → declined (no change)")
             declined.add((Path(filename).stem, rule))
+            n_rej = _emit_resolutions_for_findings(
+                session, claim_addr, file_findings, kind="reject",
+            )
+            print(f"    resolution.reject × {n_rej}")
             shutil.rmtree(scratch_path.parent, ignore_errors=True)
             continue
 
@@ -522,11 +589,10 @@ def _run_pass(pass_spec, asn_label, claim_dir, findings,
                 real_path.resolve().relative_to(LATTICE.resolve())
             )
             try:
-                with open_session(LATTICE) as session:
-                    retracted_count = _apply_retract_decisions(
-                        session, retract_decisions, real_claim_path,
-                        label_index,
-                    )
+                retracted_count = _apply_retract_decisions(
+                    session, retract_decisions, real_claim_path,
+                    label_index,
+                )
             except DecisionsCorruption as e:
                 print(
                     f" → ERROR (depends-agreement): {filename}: {e}",
@@ -543,10 +609,13 @@ def _run_pass(pass_spec, asn_label, claim_dir, findings,
             status = "committed" if committed else "commit failed"
         else:
             status = "applied (no md change)"
-        suffix = (
-            f" + {retracted_count} retracted" if retracted_count else ""
+        n_edit = _emit_resolutions_for_findings(
+            session, claim_addr, file_findings, kind="edit",
         )
-        print(f" → {status}{suffix}")
+        suffix_parts = [f"resolution.edit × {n_edit}"]
+        if retracted_count:
+            suffix_parts.append(f"{retracted_count} retracted")
+        print(f" → {status} ({'; '.join(suffix_parts)})")
 
         shutil.rmtree(scratch_path.parent, ignore_errors=True)
 
@@ -559,11 +628,17 @@ def _run_pass(pass_spec, asn_label, claim_dir, findings,
 class ClaimStructuralFixAgent(Agent):
     """One claim's structural quiescence work per fire.
 
-    Runs the validator, walks the apply-mode passes in order, dispatches
-    fix_structural_rule per (rule, file), applies diffs, emits retractions
-    for depends-agreement RETRACT decisions, commits per-file. Returns
-    AgentResult after all passes complete. The runner re-fires until
-    is_claim_structurally_clean(claim_addr) flips True.
+    Reads unresolved comment.violation findings from substrate (emitted
+    by the structural-audit scout), walks the apply-mode passes in
+    rule order, dispatches fix_structural_rule per (rule, file),
+    applies diffs, emits resolution.<kind> per closed comment, emits
+    retractions for depends-agreement RETRACT decisions, commits
+    per-file. Each fire processes the substrate snapshot read at fire
+    start; if rule-N fixes invalidate rule-(N+1) findings, the audit
+    re-fires next runner pass and emits fresh substrate.
+
+    No validator runs inside this agent — the structural-audit scout
+    is the detector. The refiner is pure closure.
     """
 
     role: ClassVar[str] = "claim-structural-fix"
@@ -584,8 +659,7 @@ class ClaimStructuralFixAgent(Agent):
         if not claim_dir.exists():
             return AgentResult(success=False, detail="no-claim-dir")
 
-        findings = run_validator(asn_label)
-        relevant = _actionable_findings_for_claim(findings, claim_label)
+        relevant = _read_substrate_violations(session, claim_addr)
         if not relevant:
             return AgentResult(
                 success=True, detail="already-clean",
@@ -593,25 +667,25 @@ class ClaimStructuralFixAgent(Agent):
 
         print(
             f"\n  [STRUCTURAL-FIX] {asn_label}/{claim_label} "
-            f"{len(relevant)} actionable finding(s)",
+            f"{len(relevant)} unresolved violation(s)",
             file=sys.stderr,
         )
 
         declined: set = set()
         for p in PASSES:
-            pass_findings = run_validator(asn_label)
-            pass_relevant = _actionable_findings_for_claim(
-                pass_findings, claim_label,
-            )
+            pass_relevant = [f for f in relevant if f["rule"] == p["rule"]]
+            if not pass_relevant:
+                continue
             pass_declined = _run_pass(
-                p, asn_label, claim_dir, pass_relevant, skip_pairs=declined,
+                session, p, asn_label, claim_dir, claim_addr,
+                pass_relevant, skip_pairs=declined,
             )
             if pass_declined:
                 declined |= pass_declined
 
-        # Final commit hook for any uncommitted residue (per-rule edits
-        # commit individually via _commit_file; this is the agent-fire
-        # boundary marker).
+        # Final commit hook — per-rule edits commit individually via
+        # _commit_file; this is the agent-fire boundary marker. No-op
+        # if every per-rule commit already landed.
         step_commit_asn(
             asn_num,
             f"claim-structural-fix(asn): {asn_label}/{claim_label}",
@@ -619,5 +693,5 @@ class ClaimStructuralFixAgent(Agent):
 
         return AgentResult(
             success=True,
-            detail=f"declined={len(declined)}",
+            detail=f"processed={len(relevant)} declined-this-fire={len(declined)}",
         )
