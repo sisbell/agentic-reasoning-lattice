@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from lib.agents.note_draft import NoteDraftAgent
+from lib.agents.producers.note_draft import NoteDraftAgent
 from lib.backend.addressing import Address
 from lib.predicates import (
     has_consultation_for_inquiry, has_note_for_inquiry,

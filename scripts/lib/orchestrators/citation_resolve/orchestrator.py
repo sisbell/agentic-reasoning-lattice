@@ -2,7 +2,7 @@
 
 Mechanical loop that gathers existing classifications from substrate,
 dispatches the citation-resolve agent
-(`lib/agents/citation_resolve/`), then applies its output: edits the
+(`lib/agents/producers/citation_resolve.py`), then applies its output: edits the
 claim's `.md` Depends/Forward sections, persists the resolve doc, and
 emits substrate links (citation.depends/forward, retraction,
 citation.resolve, provenance.derivation).
@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from lib.provenance import attributed_to
-from lib.agents.citation_resolve import extract_citation_classifications
+from lib.agents.producers.citation_resolve import extract_citation_classifications
 from lib.backend.emit import emit_citation, emit_retraction
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session

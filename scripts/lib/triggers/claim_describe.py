@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from lib.agents.claim_describe import ClaimDescribeAgent
+from lib.agents.producers.claim_describe import ClaimDescribeAgent
 from lib.backend.addressing import Address
 from lib.predicates import derived_claims, description_is_fresh
 from lib.protocols.febe.protocol import Session

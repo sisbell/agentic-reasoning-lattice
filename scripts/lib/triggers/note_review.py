@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from lib.agents.note_review import NoteReviewAgent
+from lib.agents.producers.note_review import NoteReviewAgent
 from lib.backend.addressing import Address
 from lib.predicates import (
     has_been_reviewed, is_doc_quiescent, is_retired,

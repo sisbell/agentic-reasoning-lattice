@@ -3,7 +3,7 @@
 Paired with the structural validator (`scripts/claim-validate.py`).
 The validator finds violations of structural invariants; this
 orchestrator dispatches the structural-rule-fix agent
-(`lib/agents/structural_rule_fix/`) per rule, gathers metadata from
+(`lib/agents/refiners/structural_rule_fix.py`) per rule, gathers metadata from
 substrate, manages scratch directories, validates the agent's
 __decisions.json sidecar (depends-agreement only), applies retractions,
 and loops validate→revise→re-validate until clean or declined.
@@ -27,7 +27,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from lib.agents.structural_rule_fix import (
+from lib.agents.refiners.structural_rule_fix import (
     fix_structural_rule,
     propose_structural_fix,
 )

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from lib.agents.note_statements import NoteStatementsAgent
+from lib.agents.producers.note_statements import NoteStatementsAgent
 from lib.backend.addressing import Address
 from lib.predicates import statements_is_fresh
 from lib.protocols.febe.protocol import Session

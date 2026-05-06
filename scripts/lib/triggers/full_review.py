@@ -1,6 +1,6 @@
 """Full-review trigger — fires on the source note of an unconfirmed ASN.
 
-Wires the FullReviewAgent (lib/agents/full_review/) to the substrate
+Wires the FullReviewAgent (lib/agents/producers/full_review/) to the substrate
 predicate `is_asn_confirmed`. The note's address is the substrate
 anchor for the derived ASN: transclude emits `provenance.derivation`
 from note → each derived claim, and the agent walks those links to
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from lib.agents.full_review import FullReviewAgent
+from lib.agents.producers.full_review import FullReviewAgent
 from lib.backend.addressing import Address
 from lib.predicates import is_asn_confirmed
 from lib.protocols.febe.protocol import Session

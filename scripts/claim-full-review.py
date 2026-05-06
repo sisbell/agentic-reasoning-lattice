@@ -25,8 +25,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.agents.cone_review import run_cone_review
-from lib.agents.full_review import run_full_review
+from lib.agents.producers.cone_review import run_cone_review
+from lib.agents.producers.full_review import run_full_review
 from lib.shared.common import find_asn
 from lib.shared.paths import CLAIM_DIR
 

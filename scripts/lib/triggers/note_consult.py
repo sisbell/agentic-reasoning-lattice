@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from lib.agents.note_consult import NoteConsultAgent
+from lib.agents.producers.note_consult import NoteConsultAgent
 from lib.backend.addressing import Address
 from lib.predicates import all_open_revises_consulted, is_retired
 from lib.protocols.febe.protocol import Session

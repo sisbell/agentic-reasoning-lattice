@@ -2,7 +2,7 @@
 
 Mechanical loop that gathers context (upstream signatures, notation
 primitives, existing sidecar), dispatches the signature-resolve agent
-(`lib/agents/signature_resolve/`), and applies its output to the
+(`lib/agents/producers/signature_resolve.py`), and applies its output to the
 substrate (sidecar update + signature link emission + resolve-doc
 persistence + commit).
 
@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from lib.provenance import attributed_to
-from lib.agents.signature_resolve import extract_signature_changes
+from lib.agents.producers.signature_resolve import extract_signature_changes
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
 from lib.lattice.attributes import emit_attribute

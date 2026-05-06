@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from lib.agents.inquiry_consult import InquiryConsultAgent
+from lib.agents.producers.inquiry_consult import InquiryConsultAgent
 from lib.backend.addressing import Address
 from lib.predicates import has_consultation_for_inquiry
 from lib.protocols.febe.protocol import Session

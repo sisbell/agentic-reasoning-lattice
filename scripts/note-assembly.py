@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.agents.note_statements import NoteStatementsAgent
+from lib.agents.producers.note_statements import NoteStatementsAgent
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
 from lib.shared.paths import LATTICE, WORKSPACE, claim_statements

@@ -1,6 +1,6 @@
 """Cone-review trigger — fires on non-quiescent claims with enough deps.
 
-Wires the ConeReviewAgent (lib/agents/cone_review.py) to the
+Wires the ConeReviewAgent (lib/agents/producers/cone_review/) to the
 substrate predicate `is_claim_quiescent` over a topologically-ordered
 apex scope.
 
@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from lib.agents.cone_review import ConeReviewAgent
+from lib.agents.producers.cone_review import ConeReviewAgent
 from lib.backend.addressing import Address
 from lib.lattice.deps import build_deps_for_asn
 from lib.lattice.labels import build_cross_asn_label_index
