@@ -22,10 +22,10 @@ from __future__ import annotations
 
 import re
 import sys
-from pathlib import Path
 from typing import List, Optional, Tuple
 
 from lib.backend.addressing import Address
+from lib.lattice.render import read_doc
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import read_file
 from lib.shared.invoke_claude import invoke_claude
@@ -33,7 +33,7 @@ from lib.shared.foundation import (
     claim_asn_dep_ids, load_foundation_for_claim_asn,
     load_foundation_for_labels,
 )
-from lib.shared.paths import LATTICE, prompt_path
+from lib.shared.paths import prompt_path
 
 
 REVIEW_TEMPLATE = prompt_path("claim-refinement/full-review/review.md")
@@ -174,7 +174,6 @@ def previously_declined_findings(
     rejects = session.find_links(type_="resolution.reject")
 
     blocks = []
-    lattice = Path(LATTICE)
     # Newest-first: LinkStore preserves emission order, so reverse it
     for r in reversed(rejects):
         if len(blocks) >= max_rejects:
@@ -199,19 +198,14 @@ def previously_declined_findings(
         if not comment.from_set:
             continue
 
-        finding_rel = session.get_path_for_addr(comment.from_set[0])
-        if not finding_rel:
+        try:
+            finding_body = read_doc(session, comment.from_set[0]).strip()
+        except (KeyError, FileNotFoundError):
             continue
-        finding_full = lattice / finding_rel
-        finding_body = (finding_full.read_text().strip()
-                        if finding_full.exists() else "(finding body missing)")
 
-        rationale_rel = session.get_path_for_addr(rationale_addr)
-        if rationale_rel:
-            rationale_full = lattice / rationale_rel
-            rationale_text = (rationale_full.read_text().strip()
-                              if rationale_full.exists() else "(rationale missing)")
-        else:
+        try:
+            rationale_text = read_doc(session, rationale_addr).strip()
+        except (KeyError, FileNotFoundError):
             rationale_text = "(rationale missing)"
 
         blocks.append(

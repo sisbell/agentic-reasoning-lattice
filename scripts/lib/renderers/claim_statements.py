@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import re
 import time
+from pathlib import Path
 from typing import Optional
 
 from lib.backend.addressing import Address
@@ -48,16 +49,17 @@ def render_claim_statements(session: Session, addr: Address) -> str:
     if note_path is None:
         return ""
 
-    lattice_root = session.store.lattice_dir
-    note_full = lattice_root / note_path
-    note_text = note_full.read_text() if note_full.exists() else ""
+    try:
+        note_text = read_doc(session, note_addr)
+    except FileNotFoundError:
+        note_text = ""
 
     asn_label = _asn_label_from_path(note_path)
     asn_date = _extract_source_date(note_text)
 
     parts = [
         f"# {asn_label} Formal Statements\n",
-        f"*Source: {note_full.name} (revised {asn_date}) — "
+        f"*Source: {Path(note_path).name} (revised {asn_date}) — "
         f"Extracted: {time.strftime('%Y-%m-%d')}*\n",
     ]
 

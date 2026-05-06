@@ -22,6 +22,7 @@ from typing import ClassVar, List, Tuple
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.predicates import unresolved_revise_comments
+from lib.lattice.render import read_doc
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
@@ -29,7 +30,7 @@ from lib.shared.foundation import load_foundation_for_note
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude_agent
 from lib.shared.paths import (
-    LATTICE, USAGE_LOG, WORKSPACE, prompt_path,
+    USAGE_LOG, WORKSPACE, prompt_path,
 )
 
 
@@ -141,14 +142,14 @@ def _collect_open_revises(
         finding_rel = session.get_path_for_addr(finding_addr)
         if not finding_rel:
             continue
-        finding_full = LATTICE / finding_rel
-        if not finding_full.exists():
+        try:
+            body = read_doc(session, finding_addr).strip()
+        except FileNotFoundError:
             print(
                 f"  [SKIP] finding doc missing: {finding_rel}",
                 file=sys.stderr,
             )
             continue
-        body = finding_full.read_text().strip()
         first_line = body.splitlines()[0] if body else ""
         title = re.sub(r"^#+\s*", "", first_line).strip() or "(untitled)"
         items.append((c.addr, finding_addr, title, body))
@@ -185,13 +186,10 @@ def _build_consultation_content(
                 "consultation.answer", to_set=[source_addr],
             ):
                 continue
-            source_path_rel = session.get_path_for_addr(source_addr)
-            if not source_path_rel:
+            try:
+                section.append(read_doc(session, source_addr).strip())
+            except (KeyError, FileNotFoundError):
                 continue
-            source_full = LATTICE / source_path_rel
-            if not source_full.exists():
-                continue
-            section.append(source_full.read_text().strip())
         if section:
             parts.append(f"### Finding: {title}\n")
             parts.extend(section)
