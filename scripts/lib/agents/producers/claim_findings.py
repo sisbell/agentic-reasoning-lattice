@@ -36,6 +36,7 @@ from lib.backend.emit import emit_decomposed
 from lib.lattice.findings import record_findings
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.protocols.febe.protocol import Session
+from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import CLAIM_FINDINGS_DIR
 
 
@@ -53,11 +54,12 @@ class ClaimFindingsAgent(Agent):
         if not full_review.exists():
             return AgentResult(success=False, detail="no-review-file")
 
-        m = re.search(r"(ASN-\d{4})/review-(\d+)\.md$", review_path)
+        m = re.search(r"(ASN-(\d{4}))/review-(\d+)\.md$", review_path)
         if m is None:
             return AgentResult(success=False, detail="unparseable-review-path")
         asn_label = m.group(1)
-        review_stem = f"review-{m.group(2)}"
+        asn_num = int(m.group(2))
+        review_stem = f"review-{m.group(3)}"
 
         body = full_review.read_text()
         findings = extract_findings(body)
@@ -75,6 +77,10 @@ class ClaimFindingsAgent(Agent):
             f"  [CLAIM-FINDINGS] {asn_label} {review_stem} "
             f"emitted={len(emitted)}/{len(findings)}",
             file=sys.stderr,
+        )
+        step_commit_asn(
+            asn_num,
+            f"claim-findings(asn): {asn_label} {review_stem} emitted={len(emitted)}",
         )
         return AgentResult(
             success=True, detail=f"emitted={len(emitted)}",

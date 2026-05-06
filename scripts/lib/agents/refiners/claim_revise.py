@@ -31,6 +31,7 @@ from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import find_asn, read_file
+from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import LATTICE, USAGE_LOG, WORKSPACE, prompt_path
 
 
@@ -190,6 +191,10 @@ class ClaimReviseAgent(Agent):
             return AgentResult(
                 success=False, detail=f"revise-failed comment={comment_addr}",
             )
+        step_commit_asn(
+            asn_num,
+            f"claim-revise(asn): ASN-{asn_num:04d} comment={comment_addr}",
+        )
         return AgentResult(
             success=True, detail=f"closed comment={comment_addr}",
         )
