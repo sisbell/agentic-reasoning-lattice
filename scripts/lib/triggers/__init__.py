@@ -8,6 +8,7 @@ does not change the runner.
 from .claim_describe import claim_describe
 from .claim_findings import claim_findings
 from .claim_revise import claim_revise
+from .claim_signature_resolve import claim_signature_resolve
 from .claim_structural_audit import claim_structural_audit
 from .claim_structural_revise import claim_structural_revise
 from .cone_review import apex_labels_in_topological_order, cone_review
@@ -24,6 +25,7 @@ __all__ = [
     "claim_describe",
     "claim_findings",
     "claim_revise",
+    "claim_signature_resolve",
     "claim_structural_audit",
     "claim_structural_revise",
     "cone_review",
