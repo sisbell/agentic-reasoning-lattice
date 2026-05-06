@@ -21,7 +21,7 @@ from lib.shared.invoke_claude import invoke_claude, strip_code_fence
 from lib.shared.paths import prompt_path
 
 
-PROMPT_TEMPLATE = prompt_path("claim-convergence/citation-resolve.md")
+PROMPT_TEMPLATE = prompt_path("claim-refinement/citation-resolve.md")
 
 
 class CitationClassifications(NamedTuple):

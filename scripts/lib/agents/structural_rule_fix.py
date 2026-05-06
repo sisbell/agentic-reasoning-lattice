@@ -28,7 +28,7 @@ from lib.shared.invoke_claude import invoke_claude_agent
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 PROMPT_DIR = (
-    REPO_ROOT / "prompts" / "shared" / "claim-convergence" / "validate-revise"
+    REPO_ROOT / "prompts" / "shared" / "claim-refinement" / "validate-revise"
 )
 
 

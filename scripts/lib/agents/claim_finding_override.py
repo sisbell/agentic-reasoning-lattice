@@ -29,7 +29,7 @@ from lib.shared.paths import prompt_path
 
 
 CLASSIFY_TEMPLATE = prompt_path(
-    "claim-convergence/full-review/classify-finding.md"
+    "claim-refinement/full-review/classify-finding.md"
 )
 
 _VALID_CLASSES = {"REVISE", "OBSERVE"}

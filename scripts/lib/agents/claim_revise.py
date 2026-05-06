@@ -23,7 +23,7 @@ from lib.shared.common import find_asn, read_file
 from lib.shared.paths import USAGE_LOG, WORKSPACE, prompt_path
 
 
-REVISE_TEMPLATE = prompt_path("claim-convergence/full-review/revise.md")
+REVISE_TEMPLATE = prompt_path("claim-refinement/full-review/revise.md")
 
 
 def revise(

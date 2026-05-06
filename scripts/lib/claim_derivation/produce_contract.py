@@ -33,7 +33,7 @@ from lib.shared.foundation import _extract_formal_contract
 QUALITY_TEMPLATE = prompt_path("claim-derivation/produce-contract.md")
 REVIEW_REWRITE_TEMPLATE = prompt_path("claim-derivation/review-rewrite.md")
 VALIDATE_CONTRACT_TEMPLATE = prompt_path(
-    "claim-convergence/assembly/validate-contracts.md",
+    "claim-refinement/assembly/validate-contracts.md",
 )
 
 

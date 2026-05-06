@@ -25,7 +25,7 @@ from lib.shared.paths import WORKSPACE, USAGE_LOG, PATCHES_DIR, prompt_path
 from lib.shared.common import find_asn
 from lib.shared.git_ops import step_commit_asn
 
-APPLY_TEMPLATE = prompt_path("claim-convergence/patch/apply.md")
+APPLY_TEMPLATE = prompt_path("claim-refinement/patch/apply.md")
 
 
 def validate(asn_num, patch_name):
