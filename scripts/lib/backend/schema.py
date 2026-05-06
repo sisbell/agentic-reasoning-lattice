@@ -37,15 +37,6 @@ VALID_TYPES = frozenset({
     # Presence = doc is retired (out of active lattice). Retraction
     # revives. State transitions are real substrate facts; no toggling.
     "retired",
-    # Decomposed — lifecycle marker on a review doc. Classifier-shape
-    # (F=∅, G=[review_doc]). Presence = the review's findings have been
-    # extracted into per-finding substrate (finding docs +
-    # comment.<kind> links). Used by the claim_findings producer's
-    # trigger predicate to avoid re-decomposing a review. Distinct from
-    # provenance.derivation links, which exist only when ≥1 finding
-    # was emitted; the marker covers the zero-findings case (verdict
-    # CONVERGED) too.
-    "decomposed",
     # Extension lineage — directional link between two notes.
     # extends: F=[ext_note], G=[base_note]. The new ASN extends the base
     # (builds on top of it; base claims are foundation for ext claims).

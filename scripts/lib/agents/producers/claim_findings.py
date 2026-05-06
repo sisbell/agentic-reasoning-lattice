@@ -1,16 +1,19 @@
 """Claim-findings agent — decompose a review doc into per-finding substrate.
 
 Fires once per review doc that hasn't been decomposed yet (no
-`decomposed` classifier). One fire = read the review prose, extract
-each `### `-prefixed finding section, run the classifier-override
-sub-routine to correct any reviewer mis-classification, then emit
-the per-finding substrate (finding docs + `comment.<kind>` links +
-`provenance.derivation` from review → finding) and the `decomposed`
-marker on the review doc.
+outbound `provenance.derivation` from the review). One fire = read
+the review prose, extract each `### `-prefixed finding section, run
+the classifier-override sub-routine to correct any reviewer
+mis-classification, then emit the per-finding substrate (finding
+docs + `comment.<kind>` links + `provenance.derivation` from review
+→ finding).
 
-The marker is what closes the predicate. Even when the review's
-verdict is CONVERGED with zero findings, the marker still fires so
-the producer doesn't re-walk the review forever.
+For zero-findings cases (CONVERGED verdict, all findings filtered
+out as unparseable), the agent emits a single empty-set derivation
+(F=[review], G=∅) anchoring "decompose ran, produced no derivatives."
+The predicate `is_review_decomposed` reads any outbound
+`provenance.derivation`; this empty-G shape covers the zero-findings
+disambiguation without a verb-flag classifier.
 
 This agent owns the second stage of the review → findings → revise
 chain. The first stage (review producer — cone_review / full_review)
@@ -32,7 +35,7 @@ from lib.agents.base import Agent, AgentResult
 from lib.agents.producers.claim_finding_override import apply_classifier_verdict
 from lib.agents.producers.claim_review import extract_findings
 from lib.backend.addressing import Address
-from lib.backend.emit import emit_decomposed
+from lib.backend.emit import emit_empty_derivation
 from lib.lattice.findings import record_findings
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.protocols.febe.protocol import Session
@@ -71,7 +74,13 @@ class ClaimFindingsAgent(Agent):
             asn_label, review_stem, label_index,
             findings_dir=CLAIM_FINDINGS_DIR,
         )
-        emit_decomposed(session.store, review_addr)
+        # Zero-findings case: emit one empty-set derivation
+        # (F=[review], G=∅) to anchor "decompose ran, produced no
+        # derivatives." Predicate `is_review_decomposed` checks for any
+        # outbound provenance.derivation; this covers the
+        # zero-findings disambiguation without a verb-flag classifier.
+        if not emitted:
+            emit_empty_derivation(session.store, review_addr)
 
         print(
             f"  [CLAIM-FINDINGS] {asn_label} {review_stem} "

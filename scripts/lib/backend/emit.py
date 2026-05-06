@@ -196,20 +196,6 @@ def emit_retired(
     return emit_classifier(store, doc, "retired")
 
 
-def emit_decomposed(
-    store: Store, review_doc: Address,
-) -> Tuple[Link, bool]:
-    """Mark a review doc as decomposed (its findings have been emitted).
-
-    Classifier-shape link (F=∅, G=[review_doc]). Emitted by the
-    claim_findings producer when finding extraction completes — even
-    if zero findings were emitted (CONVERGED verdict). The marker is
-    what lets the producer's predicate skip already-decomposed reviews.
-    Idempotent on the active set.
-    """
-    return emit_classifier(store, review_doc, "decomposed")
-
-
 def emit_extends(
     store: Store, ext_note: Address, base_note: Address,
 ) -> Tuple[Link, bool]:
@@ -476,6 +462,39 @@ def emit_derivation(
         homedoc=source_doc,
         from_set=[source_doc],
         to_set=[derived_doc],
+        type_="provenance.derivation",
+    )
+    return link, True
+
+
+def emit_empty_derivation(
+    store: Store, source_doc: Address,
+) -> Tuple[Link, bool]:
+    """File a `provenance.derivation` link from source to the empty set.
+
+    Structural meaning: "this source was decomposed/derived-from, and
+    produced no derivatives." Used by the claim_findings producer
+    when a review is decomposed into zero per-finding substrate
+    (CONVERGED-verdict reviews); anchors the "decompose ran" fact in
+    substrate without a verb-flag classifier. Predicate
+    `is_review_decomposed` reads any outbound `provenance.derivation`
+    from a review, so this empty-G shape is the zero-findings
+    counterpart to the non-zero F=[source], G=[derived] shape.
+
+    Idempotent on (source, ∅) — re-emit returns the existing link.
+    """
+    existing = active_links(
+        store.state,
+        "provenance.derivation",
+        from_set=[source_doc],
+    )
+    for link in existing:
+        if link.from_set == (source_doc,) and not link.to_set:
+            return link, False
+    link = store.make_link(
+        homedoc=source_doc,
+        from_set=[source_doc],
+        to_set=[],
         type_="provenance.derivation",
     )
     return link, True

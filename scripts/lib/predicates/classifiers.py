@@ -62,13 +62,20 @@ def is_retired(session: Session, doc_addr: Address) -> bool:
     return bool(session.active_links("retired", to_set=[doc_addr]))
 
 
-def is_decomposed(session: Session, review_addr: Address) -> bool:
-    """True iff the review doc has an active `decomposed` classifier link.
+def is_review_decomposed(session: Session, review_addr: Address) -> bool:
+    """True iff the review has been decomposed into per-finding substrate.
 
-    Lifecycle marker emitted by the claim_findings producer when
-    finding extraction completes. Presence = the producer ran on this
-    review (whether or not findings were emitted). The producer's
-    trigger predicate uses this as the skip signal so a CONVERGED
-    review with zero findings doesn't re-fire forever.
+    Substrate-driven: the claim_findings producer emits at least one
+    `provenance.derivation` link from review_addr per fire. Non-zero
+    findings → derivation(s) to per-finding doc(s). Zero findings →
+    one derivation with G=∅ (the review derived nothing). Either
+    shape, the predicate sees an outbound derivation and reports the
+    review as decomposed.
+
+    No verb-flag classifier. The empty-derivation pattern (F=[review],
+    G=∅) is the structural fact "decompose ran, produced no
+    derivatives" — semantically honest where a self-link wasn't.
     """
-    return bool(session.active_links("decomposed", to_set=[review_addr]))
+    return bool(session.active_links(
+        "provenance.derivation", from_set=[review_addr],
+    ))

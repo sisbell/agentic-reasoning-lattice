@@ -98,16 +98,6 @@ class ClassifierEmitTests(unittest.TestCase):
         self.assertFalse(created2)
         self.assertEqual(link.addr, link2.addr)
 
-    def test_emit_decomposed_idempotent(self):
-        from lib.backend.emit import emit_decomposed
-        a = self.store.addr_for_path("claim/A.md")
-        link, created = emit_decomposed(self.store, a)
-        self.assertTrue(created)
-        link2, created2 = emit_decomposed(self.store, a)
-        self.assertFalse(created2)
-        self.assertEqual(link.addr, link2.addr)
-
-
 class AttributeEmitTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

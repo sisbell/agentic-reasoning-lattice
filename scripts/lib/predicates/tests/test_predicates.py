@@ -263,37 +263,42 @@ class RetiredLifecycleTests(unittest.TestCase):
         self.assertFalse(is_retired(self.session, self.note))
 
 
-class IsDecomposedTests(unittest.TestCase):
-    """Lifecycle marker on a review doc via the `decomposed` link."""
+class IsReviewDecomposedTests(unittest.TestCase):
+    """Decompose-state via outbound `provenance.derivation` from review.
+
+    Either non-empty derivation (review → finding) or empty derivation
+    (review → ∅) marks the review as decomposed. No verb-flag classifier.
+    """
 
     def setUp(self):
         self.state = State(account=Address("1.1.0.1"))
         self.session = Session(self.state)
         self.lattice = self.state.create_doc()
         self.review = self.state.create_doc(
-            kind="review", lattice=self.lattice,
+            kind="review.content", lattice=self.lattice,
         )
 
     def test_default_is_not_decomposed(self):
-        from lib.predicates import is_decomposed
-        self.assertFalse(is_decomposed(self.session, self.review))
+        from lib.predicates import is_review_decomposed
+        self.assertFalse(is_review_decomposed(self.session, self.review))
 
-    def test_decomposed_link_marks_decomposed(self):
-        from lib.predicates import is_decomposed
-        self.state.make_link(
-            self.review, [], [self.review], "decomposed",
-        )
-        self.assertTrue(is_decomposed(self.session, self.review))
-
-    def test_retracting_decomposed_unmarks(self):
-        from lib.predicates import is_decomposed
-        link = self.state.make_link(
-            self.review, [], [self.review], "decomposed",
+    def test_derivation_to_finding_marks_decomposed(self):
+        from lib.predicates import is_review_decomposed
+        finding = self.state.create_doc(
+            kind="finding", lattice=self.lattice,
         )
         self.state.make_link(
-            self.review, [self.review], [link.addr], "retraction",
+            self.review, [self.review], [finding], "provenance.derivation",
         )
-        self.assertFalse(is_decomposed(self.session, self.review))
+        self.assertTrue(is_review_decomposed(self.session, self.review))
+
+    def test_empty_derivation_marks_decomposed(self):
+        from lib.predicates import is_review_decomposed
+        # Zero-findings case: F=[review], G=∅
+        self.state.make_link(
+            self.review, [self.review], [], "provenance.derivation",
+        )
+        self.assertTrue(is_review_decomposed(self.session, self.review))
 
 
 class SupersessionChainTests(unittest.TestCase):

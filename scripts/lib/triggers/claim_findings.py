@@ -4,15 +4,17 @@ not yet been decomposed into per-finding substrate.
   scope:     each `review` classifier targeting a review doc in
              the requested ASN (CLI mode), or every active review
              (daemon mode)
-  predicate: is_decomposed (skip if the review already carries a
-             `decomposed` marker)
+  predicate: is_review_decomposed (skip if the review has any outbound
+             `provenance.derivation` link — review→finding for the
+             non-zero-findings case, or review→∅ for the zero-findings
+             case)
   agent:     ClaimFindingsAgent
 
 The agent reads the review prose, extracts findings, applies the
 classifier-override sub-routine, emits the per-finding substrate
-(finding docs + comment.<kind> links + provenance.derivation),
-and stamps the review with the `decomposed` marker. After fire,
-the predicate flips True and the runner stops walking this review.
+(finding docs + comment.<kind> links + provenance.derivation), or
+a single empty-set derivation when zero findings are emitted. After
+fire, the predicate flips True and the runner stops walking this review.
 """
 
 from __future__ import annotations
@@ -22,7 +24,7 @@ from typing import Iterator
 
 from lib.agents.producers.claim_findings import ClaimFindingsAgent
 from lib.backend.addressing import Address
-from lib.predicates import is_decomposed
+from lib.predicates import is_review_decomposed
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, Trigger
 
@@ -57,6 +59,6 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
 claim_findings = Trigger(
     name="claim-findings",
     scope_query=_scope_query,
-    predicate=is_decomposed,
+    predicate=is_review_decomposed,
     agent=ClaimFindingsAgent(),
 )
