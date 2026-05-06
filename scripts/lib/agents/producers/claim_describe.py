@@ -73,9 +73,17 @@ class ClaimDescribeAgent(Agent):
             file=sys.stderr,
         )
 
-        # Emit. First-time: emit_attribute creates the link + sidecar.
+        # First-time: emit_attribute creates the link + sidecar.
         # Subsequent: register_version advances the description chain;
         # write the new content to the sidecar file.
+        #
+        # The chain advance is required: description_is_fresh compares
+        # sidecar chain length to claim chain length. emit_attribute
+        # alone does not advance the chain (relaxed-model: chains
+        # advance only where a predicate consumes them, and the caller
+        # is responsible for opting in). Without the register_version
+        # branch, the predicate stays False after any claim edit and
+        # the runner re-fires until max_iterations.
         if sidecar_addr is None:
             emit_attribute(session, claim_path, "description", new_desc)
         else:
