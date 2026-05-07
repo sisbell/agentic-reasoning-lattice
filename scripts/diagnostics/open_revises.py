@@ -7,7 +7,7 @@ Output (one line per open revise, tab-separated):
 If no open revises, prints nothing and exits 0.
 
 Usage:
-    python3 scripts/agent_tools/open_revises.py <asn>
+    python3 scripts/diagnostics/open_revises.py <asn>
 """
 
 import argparse

@@ -5,7 +5,7 @@ Output (single line, machine-readable):
     NOTE=<asn-label> REVISES_TOTAL=<n> REVISES_OPEN=<n> RESOLUTIONS=<n> PREDICATE_HOLDS=<true|false>
 
 Usage:
-    python3 scripts/agent_tools/predicate_status.py <asn>
+    python3 scripts/diagnostics/predicate_status.py <asn>
 """
 
 import argparse
