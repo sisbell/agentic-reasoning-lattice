@@ -97,6 +97,15 @@ def emit_extract(store: Store, extract_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, extract_doc, "extract")
 
 
+def emit_absorb(store: Store, absorb_doc: Address) -> Tuple[Link, bool]:
+    """Classifier on an absorb spec doc — the operator's scout-output for
+    a note-absorb operation, promoted from workspace into substrate by
+    NoteAbsorbAgent on each fire. Carries the operator's intent
+    (which extension to absorb) plus rationale prose justifying merge
+    readiness."""
+    return emit_classifier(store, absorb_doc, "absorb")
+
+
 def emit_campaign(store: Store, campaign_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, campaign_doc, "campaign")
 
@@ -576,6 +585,37 @@ def emit_provenance_extract(
         from_set=[extract_doc],
         to_set=[new_note],
         type_="provenance.extract",
+    )
+    return link, True
+
+
+def emit_provenance_absorb(
+    store: Store, absorb_doc: Address, base_note: Address,
+) -> Tuple[Link, bool]:
+    """File a `provenance.absorb` link from the absorb spec doc to the
+    base note it merged content into. Records the audit fact: this
+    absorb operation (described by spec_doc) integrated extension
+    material into this base.
+
+    Idempotent on (spec_doc, base_note). Pairs with the `absorb`
+    classifier on the spec doc; together they close the audit trail
+    of operator intent → integration outcome.
+    """
+    existing = active_links(
+        store.state,
+        "provenance.absorb",
+        from_set=[absorb_doc],
+        to_set=[base_note],
+    )
+    for link in existing:
+        if (link.from_set == (absorb_doc,)
+                and link.to_set == (base_note,)):
+            return link, False
+    link = store.make_link(
+        homedoc=absorb_doc,
+        from_set=[absorb_doc],
+        to_set=[base_note],
+        type_="provenance.absorb",
     )
     return link, True
 

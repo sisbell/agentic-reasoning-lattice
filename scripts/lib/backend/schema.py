@@ -25,6 +25,13 @@ VALID_TYPES = frozenset({
     # F=∅, G=[spec_doc] classifier shape; pairs with provenance.extract
     # audit edge from spec doc to the new note it produced.
     "extract",
+    # Absorb spec — operator's scout-output for note-absorb operation.
+    # Carries the operator's intent (which extension to absorb) plus
+    # rationale prose justifying readiness to merge back. Promoted
+    # from workspace into substrate by NoteAbsorbAgent on each fire.
+    # F=∅, G=[spec_doc] classifier shape; pairs with provenance.absorb
+    # audit edge from spec doc to the base it merged content into.
+    "absorb",
     # Agent module
     "agent", "manages",
     # Lattice membership relation (added in spec-faithful refactor)

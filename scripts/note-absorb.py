@@ -1,88 +1,104 @@
 #!/usr/bin/env python3
-"""
-Absorb an extension ASN back into its base and update the source.
+"""Note-absorb CLI — operator dispatcher for NoteAbsorbAgent.
+
+The operator:
+  1. Drops a spec md into `_workspace/absorbs/<filename>.md`.
+     Frontmatter declares which extension to absorb; body holds the
+     rationale prose.
+  2. Runs `python scripts/note-absorb.py --spec <filename>`.
+
+Example spec doc:
+
+    ---
+    absorb: 57
+    ---
+
+    # Why this extension is ready to merge back
+
+    [Operator's scout-reasoning prose: convergence evidence,
+     integration readiness, etc.]
+
+The agent promotes the spec to substrate (`_docuverse/documents/absorb/`),
+integrates the extension's claims into base, files a one-shot
+integration review (emitting findings as substrate), updates source
+citations, retires the extension, and emits provenance.absorb.
 
 Usage:
-    python scripts/note-absorb.py 57
-    python scripts/note-absorb.py 57 --dry-run
+    python scripts/note-absorb.py --spec absorb-asn57.md
+    python scripts/note-absorb.py --spec absorb-asn57.md --dry-run
 """
 
 import argparse
 import sys
-
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.maturation.absorb_merge_extension import (
-    parse_extension_labels, validate,
-    step_integrate, step_review_revise, step_export,
-    step_update_source, step_cleanup,
-)
-from lib.shared.common import log_usage
-from lib.shared.git_ops import step_commit
+from lib.agents.refiners.note_absorb import NoteAbsorbAgent
+from lib.protocols.febe.session import open_session
+from lib.shared.paths import ABSORB_INBOX, LATTICE
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Absorb an extension ASN back into its base")
-    parser.add_argument("asn", type=int,
-                        help="Extension ASN number to absorb")
-    parser.add_argument("--model", "-m", default="opus",
-                        choices=["opus", "sonnet"])
-    parser.add_argument("--effort", default="max",
-                        help="Thinking effort level")
-    parser.add_argument("--max-cycles", type=int, default=5,
-                        help="Max review/revise cycles for integration "
-                             "(default: 5)")
+        description="Absorb an extension ASN's claims back into its base.",
+    )
+    parser.add_argument(
+        "--spec", required=True,
+        help=(
+            "Spec filename in _workspace/absorbs/. "
+            "Operator drops the spec md there before running."
+        ),
+    )
+    parser.add_argument(
+        "--model", "-m", default="opus", choices=["opus", "sonnet"],
+    )
+    parser.add_argument(
+        "--effort", default="max", help="Thinking effort level",
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    ext_label = f"ASN-{args.asn:04d}"
-
-    # Validate
-    base_num, source_num, ext_path, base_path = validate(args.asn)
-    base_label = f"ASN-{int(base_num):04d}"
-
-    print(f"  [ABSORB] {ext_label} → {base_label}", file=sys.stderr)
-    if source_num:
-        print(f"  [SOURCE] ASN-{int(source_num):04d} — run rebase.py "
-              f"{source_num} after absorb to update citations",
-              file=sys.stderr)
+    spec_path = ABSORB_INBOX / args.spec
+    if not spec_path.exists():
+        print(
+            f"  [ERROR] Spec not found in workspace: {spec_path}",
+            file=sys.stderr,
+        )
+        print(
+            f"  Drop the spec md at {spec_path} and re-run.",
+            file=sys.stderr,
+        )
+        return 1
 
     if args.dry_run:
-        print(f"  [DRY RUN] Steps: integrate → review/revise → "
-              f"export → cleanup", file=sys.stderr)
-        return
+        print(
+            f"  [DRY RUN] Steps: promote → integrate → "
+            f"one-shot review (emits findings) → re-export → "
+            f"update source citations → retire extension",
+            file=sys.stderr,
+        )
+        print(f"  Spec: {spec_path}", file=sys.stderr)
+        print(f"  Content:\n{spec_path.read_text()}", file=sys.stderr)
+        return 0
 
-    # Step 1: Integrate extension into base reasoning doc
-    ok = step_integrate(args.asn, base_num, ext_path, base_path,
-                        args.model, args.effort)
-    if not ok:
-        print(f"  [ABORT] Integration failed", file=sys.stderr)
-        sys.exit(1)
+    print(f"  [ABSORB] {args.spec}", file=sys.stderr)
 
-    step_commit(f"absorb(asn): integrate {ext_label} into {base_label}")
+    with open_session(LATTICE) as session:
+        agent = NoteAbsorbAgent(model=args.model, effort=args.effort)
+        # Operator-gated refiner: addr is unused by the agent but
+        # required by the Agent dispatch surface. Pass the lattice
+        # root as a stand-in.
+        lattice_addr = session.store.account
+        result = agent(session, lattice_addr, spec_filename=args.spec)
 
-    # Step 2: Review/revise the integration
-    ext_content = ext_path.read_text()
-    claim_labels = parse_extension_labels(ext_content)
-    step_review_revise(base_num, base_path, claim_labels,
-                       args.max_cycles, args.model, args.effort)
-
-    # Step 3: Re-export the base
-    step_export(base_num)
-
-    # Step 4: Clean up extension artifacts
-    step_cleanup(args.asn)
-    step_commit(f"absorb(asn): cleanup {ext_label}")
-
-    log_usage("absorb", 0, ext=args.asn, base=base_num)
-    print(f"\n  [DONE] {ext_label} absorbed into {base_label}",
-          file=sys.stderr)
-    if source_num:
-        print(f"  [NEXT] Run: ./run/run-discovery.sh {source_num}",
-              file=sys.stderr)
+    print(f"\n  [DONE] {result.detail}", file=sys.stderr)
+    print(
+        f"  [NEXT] Drive convergence on integration findings:\n"
+        f"         python scripts/note-refine.py <base-asn>",
+        file=sys.stderr,
+    )
+    return 0 if result.success else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
