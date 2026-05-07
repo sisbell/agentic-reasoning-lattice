@@ -125,13 +125,6 @@ def all_classified(session: Session, kind: str) -> List[Address]:
 
 
 is_retired = is_classifier("retired")
-is_retired.__doc__ = (
-    "True iff the doc has an active `retired` classifier link.\n"
-    "\n"
-    "Lifecycle marker per the standalone-link pattern: presence "
-    "means out of the active lattice. Retracting the link revives "
-    "the doc."
-)
 
 
 def is_review_decomposed(session: Session, review_addr: Address) -> bool:

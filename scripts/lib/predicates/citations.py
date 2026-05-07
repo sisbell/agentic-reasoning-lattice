@@ -13,12 +13,4 @@ from .factory import citation_incoming, citation_outgoing
 
 
 depends = citation_outgoing("depends")
-depends.__doc__ = (
-    "Docs this doc depends on (active `citation.depends` from doc)."
-)
-
 dependents = citation_incoming("depends")
-dependents.__name__ = "dependents"
-dependents.__doc__ = (
-    "Docs that depend on this doc (active `citation.depends` to doc)."
-)
