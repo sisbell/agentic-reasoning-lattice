@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
-"""
-Claim Patch — apply targeted fixes to ASNs in claim refinement.
+"""Claim Patch — apply a targeted fix to an ASN's claim files, emit
+findings as substrate, hand off to standard claim convergence.
 
-Reads a patch instruction from the lattice's discovery/patches/ASN-NNNN/ directory,
-applies the fix, and commits. The claim-refinement pipeline runs afterward
-to verify correctness.
+Reads a patch md from `_workspace/patches/<ASN-NNNN>/<filename>`
+(operator input drop), promotes it to a substrate-citizen `patch` doc
+under `_docuverse/documents/patch/<ASN-NNNN>/<filename>`, applies the
+fix to claim files, runs a one-shot patch-scoped review that emits
+findings as proper substrate, commits.
+
+The agent stops there. `claim_findings` decomposes the review on the
+next runner pass; `claim_revise` picks up the open `comment.revise`
+findings. Operator drives convergence via the claim-refinement runner
+walk (e.g., `python scripts/claim-full-review.py <asn>`).
 
 Usage:
     python scripts/claim-patch.py 34 --patch patch-ta5.md
@@ -12,135 +19,86 @@ Usage:
 """
 
 import argparse
-import json
-import os
 import re
-import subprocess
 import sys
-import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, PATCHES_DIR, prompt_path
+from lib.agents.producers.claim_patch import ClaimPatchAgent
+from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
-from lib.shared.git_ops import step_commit_asn
-
-APPLY_TEMPLATE = prompt_path("claim-refinement/patch/apply.md")
+from lib.shared.paths import LATTICE, PATCH_INBOX
 
 
-def validate(asn_num, patch_name):
-    """Validate ASN and patch file exist."""
-    asn_path, asn_label = find_asn(str(asn_num))
-    if asn_path is None:
-        print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
-        sys.exit(1)
-
-    patch_dir = PATCHES_DIR / f"ASN-{asn_num:04d}"
-    patch_path = patch_dir / patch_name
-    if not patch_path.exists():
-        print(f"  [ERROR] Patch not found: {patch_path.relative_to(WORKSPACE)}",
-              file=sys.stderr)
-        sys.exit(1)
-
-    return asn_path, asn_label, patch_path
-
-
-def step_apply(asn_num, asn_path, asn_label, patch_content, model, effort):
-    """Apply patch to ASN."""
-    template = APPLY_TEMPLATE.read_text()
-    prompt = (template
-              .replace("{{patch_content}}", patch_content)
-              .replace("{{asn_path}}", str(asn_path.relative_to(WORKSPACE))))
-
-    cmd = [
-        "claude", "-p",
-        "--model", {"opus": "claude-opus-4-7", "sonnet": "claude-sonnet-4-6"}[model],
-        "--output-format", "json",
-        "--allowedTools", "Edit,Read,Glob,Grep",
-    ]
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
-
-    print(f"  [APPLY] Applying to {asn_label}...",
-          end="", file=sys.stderr, flush=True)
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.returncode != 0:
-        print(f" FAILED ({elapsed:.0f}s)", file=sys.stderr)
-        return False
-
-    cost = 0
-    try:
-        data = json.loads(result.stdout)
-        cost = data.get("total_cost_usd", 0)
-    except (json.JSONDecodeError, KeyError):
-        pass
-
-    print(f" done ({elapsed:.0f}s, ${cost:.2f})", file=sys.stderr)
-
-    # Log usage
-    try:
-        entry = {
-            "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "claim-patch",
-            "asn": asn_label,
-            "elapsed_s": round(elapsed, 1),
-            "cost_usd": cost,
-        }
-        with open(USAGE_LOG, "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except OSError:
-        pass
-
-    return True
-
-
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Apply a targeted patch to an ASN in claim refinement")
+        description="Apply a targeted patch to an ASN's claim files.",
+    )
     parser.add_argument("asn", help="ASN number (e.g., 34)")
-    parser.add_argument("--patch", required=True,
-                        help="Patch filename (in the lattice's discovery/patches/ASN-NNNN/ directory)")
-    parser.add_argument("--model", "-m", default="opus",
-                        choices=["opus", "sonnet"])
-    parser.add_argument("--effort", default="max",
-                        help="Thinking effort level")
+    parser.add_argument(
+        "--patch", required=True,
+        help=(
+            "Patch filename in _workspace/patches/ASN-NNNN/. "
+            "Operator drops the patch md there before running."
+        ),
+    )
+    parser.add_argument(
+        "--model", "-m", default="opus", choices=["opus", "sonnet"],
+    )
+    parser.add_argument(
+        "--effort", default="max", help="Thinking effort level",
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
-    asn_path, asn_label, patch_path = validate(asn_num, args.patch)
-    patch_content = patch_path.read_text()
+    asn_path, asn_label = find_asn(str(asn_num))
+    if asn_path is None:
+        print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
+        return 1
 
-    print(f"\n  [PATCH] {asn_label} \u2190 {patch_path.name}", file=sys.stderr)
+    patch_path = PATCH_INBOX / asn_label / args.patch
+    if not patch_path.exists():
+        print(
+            f"  [ERROR] Patch not found in workspace: {patch_path}",
+            file=sys.stderr,
+        )
+        print(
+            f"  Drop the patch md at {patch_path} and re-run.",
+            file=sys.stderr,
+        )
+        return 1
 
     if args.dry_run:
-        print(f"\n  [DRY RUN] Would apply:", file=sys.stderr)
-        print(f"\n{patch_content}", file=sys.stderr)
-        return
+        print(
+            f"  [DRY RUN] Steps: promote → apply → patch-scoped "
+            f"review (emits findings) → done",
+            file=sys.stderr,
+        )
+        print(f"  Patch: {patch_path}", file=sys.stderr)
+        print(f"  Content:\n{patch_path.read_text()}", file=sys.stderr)
+        return 0
 
-    ok = step_apply(asn_num, asn_path, asn_label, patch_content,
-                    args.model, args.effort)
-    if not ok:
-        print(f"  [ABORT] Patch application failed", file=sys.stderr)
-        sys.exit(1)
+    print(f"  [PATCH] {asn_label} ← {args.patch}", file=sys.stderr)
 
-    step_commit_asn(asn_num,
-                    hint=f"patch(asn): {asn_label} apply {patch_path.name}")
+    with open_session(LATTICE) as session:
+        note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
+        note_addr = session.get_addr_for_path(note_rel)
+        if note_addr is None:
+            note_addr = session.register_path(note_rel)
 
-    print(f"\n  [NEXT] Run claim refinement pipeline to verify:",
-          file=sys.stderr)
-    print(f"  ./run/converge.sh --from dependency-review {asn_num}",
-          file=sys.stderr)
+        agent = ClaimPatchAgent(model=args.model, effort=args.effort)
+        result = agent(session, note_addr, patch_filename=args.patch)
+
+    print(f"\n  [DONE] {result.detail}", file=sys.stderr)
+    print(
+        f"  [NEXT] Drive convergence on the findings the patch "
+        f"reviewer filed:\n"
+        f"         python scripts/claim-full-review.py {asn_num}",
+        file=sys.stderr,
+    )
+    return 0 if result.success else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

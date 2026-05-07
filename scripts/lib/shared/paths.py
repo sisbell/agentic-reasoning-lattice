@@ -34,9 +34,6 @@ def prompt_path(subpath):
 
 # Discovery stage
 CONSULTATIONS_DIR = LATTICE / "_docuverse" / "documents" / "consultation"
-# DEPRECATED — old patch input location. claim-patch.py still reads here.
-# note-patch flow uses PATCH_INBOX (workspace) + PATCH_DIR (substrate) instead.
-PATCHES_DIR = LATTICE / "discovery" / "patches"
 
 # Per-lattice files
 VOCABULARY = LATTICE / "vocabulary.md"
