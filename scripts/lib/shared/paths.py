@@ -34,6 +34,8 @@ def prompt_path(subpath):
 
 # Discovery stage
 CONSULTATIONS_DIR = LATTICE / "_docuverse" / "documents" / "consultation"
+# DEPRECATED — old patch input location. claim-patch.py still reads here.
+# note-patch flow uses PATCH_INBOX (workspace) + PATCH_DIR (substrate) instead.
 PATCHES_DIR = LATTICE / "discovery" / "patches"
 
 # Per-lattice files
@@ -70,11 +72,16 @@ CAMPAIGN_DIR = DOCUVERSE_DOCS_DIR / "campaign"
 INQUIRY_DIR = DOCUVERSE_DOCS_DIR / "inquiry"
 NOTE_DIR = DOCUVERSE_DOCS_DIR / "note"
 CLAIM_DIR = DOCUVERSE_DOCS_DIR / "claim"
+# Substrate-citizen patches. Operator drops a patch md into PATCH_INBOX
+# (workspace, gitignored); NotePatchAgent promotes it to PATCH_DIR (a
+# substrate citizen, committed) on fire.
+PATCH_DIR = DOCUVERSE_DOCS_DIR / "patch"
 
 # Loop work products. Sibling to _docuverse/. Holds artifacts produced
 # by the refinement/derivation loops that aren't themselves
 # substrate-classified documents (scratch caches, intermediate state).
 WORKSPACE_DIR = LATTICE / "_workspace"
+PATCH_INBOX = WORKSPACE_DIR / "patches"
 
 # Aggregate review docs (classified by `review`). Split by inquiry-target
 # kind so review numbering and substrate queries are scoped per kind.

@@ -17,7 +17,7 @@ VALID_TYPES = frozenset({
     "provenance",
     # Substrate-owned (general-purpose document primitives)
     "retraction", "label", "name", "description", "signature", "notation",
-    "statements", "references",
+    "statements", "references", "patch",
     # Agent module
     "agent", "manages",
     # Lattice membership relation (added in spec-faithful refactor)
