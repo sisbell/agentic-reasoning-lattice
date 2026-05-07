@@ -42,7 +42,6 @@ def revise(
     asn_num: int,
     title: str,
     finding_text: str,
-    claim_dir: Optional[Path] = None,
     comment_id: Optional[str] = None,
     claim_path: Optional[str] = None,
 ) -> bool:
@@ -64,9 +63,8 @@ def revise(
     if asn_path is None:
         return False
 
-    if claim_dir is None:
-        from lib.shared.paths import CLAIM_CONVERGENCE_DIR
-        claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    from lib.shared.paths import CLAIM_DIR
+    claim_dir = CLAIM_DIR / asn_label
 
     template = read_file(REVISE_TEMPLATE)
     rel_path = claim_dir.relative_to(WORKSPACE)

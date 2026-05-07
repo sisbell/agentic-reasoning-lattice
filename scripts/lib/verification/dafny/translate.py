@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, PROOFS_DIR, USAGE_LOG,
+from lib.shared.paths import (WORKSPACE, CLAIM_DIR, PROOFS_DIR, USAGE_LOG,
                     prompt_path)
 from lib.shared.claim_files import build_label_index, load_claim_metadata
 from lib.shared.common import assemble_readonly, find_asn

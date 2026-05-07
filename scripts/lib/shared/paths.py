@@ -147,17 +147,6 @@ CLAIM_CONTRACT_DIR = DOCUVERSE_DOCS_DIR / "claim-contract" / "claims"
 # audit-trail companion.
 FORMAL_CONTRACT_DIR = DOCUVERSE_DOCS_DIR / "claim-formal-contract" / "claims"
 
-# Claim convergence workspace — caches and intermediate prose artifacts
-# the convergence pipeline writes (per-ASN _contract-cache.json,
-# _summary-cache.json, etc.). Workspace-shaped: regeneratable, not
-# substrate citizens.
-CLAIM_CONVERGENCE_DIR = WORKSPACE_DIR / "claim-convergence"
-
-# Claim derivation audit trail (per-section content + LLM analyses).
-# Derivation's intermediate state lives here; the per-claim outputs
-# go to the docuverse (CLAIM_DIR) directly in D2.
-CLAIM_DERIVATION_DIR = WORKSPACE_DIR / "claim-derivation"
-
 
 def _findings_dir_for_kind(kind):
     if kind == "claim":

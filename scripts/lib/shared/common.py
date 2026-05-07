@@ -17,9 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.backend.schema import ATTRIBUTE_SUFFIXES as _ATTR_SUFFIXES
-from lib.shared.paths import (
-    NOTE_DIR, USAGE_LOG, CLAIM_CONVERGENCE_DIR, CLAIM_DIR,
-)
+from lib.shared.paths import NOTE_DIR, USAGE_LOG, CLAIM_DIR
 
 
 def read_file(path):
@@ -78,26 +76,26 @@ def log_usage(skill, elapsed, **extra):
 
 
 def assemble_readonly(asn_label):
-    """Concatenate the source-note structural sections + per-claim files
-    for read-only whole-ASN consumption.
+    """Concatenate source-note prose + per-claim files for read-only
+    whole-ASN consumption.
 
-    Returns assembled text (structural sections first, then claim bodies).
-    Used by cross-cutting scripts that need the whole-ASN view.
+    Returns the source note's md (preamble, claims-introduced section,
+    worked example, and any other prose) followed by each derived
+    claim's body. Used by cross-cutting scripts (full review, Dafny
+    translation) that need the whole-ASN view.
+
+    Earlier versions read structural-section files from a workspace
+    dir populated by the deleted transclude phase. After the
+    orchestrator-elimination arc, the source note md is the only
+    canonical source for that prose.
     """
-    from lib.shared.paths import CLAIM_DERIVATION_DIR
-
-    cc_dir = CLAIM_CONVERGENCE_DIR / asn_label
-    structural_dir = CLAIM_DERIVATION_DIR / asn_label / "structural"
+    asn_num = int(asn_label.replace("ASN-", "").lstrip("0") or "0")
+    note_path, _ = find_asn(str(asn_num))
     docs_dir = CLAIM_DIR / asn_label
 
     parts = []
-
-    if structural_dir.exists():
-        for f in sorted(structural_dir.glob("*.md")):
-            parts.append(f.read_text().strip())
-    elif cc_dir.exists():
-        for f in sorted(cc_dir.glob("_*.md")):
-            parts.append(f.read_text().strip())
+    if note_path is not None and note_path.exists():
+        parts.append(note_path.read_text().strip())
 
     if docs_dir.exists():
         for f in sorted(docs_dir.glob("*.md")):

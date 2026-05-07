@@ -16,10 +16,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, NOTE_DIR,
     CLAIM_REVIEWS_DIR, NOTE_REVIEWS_DIR,
-    CLAIM_CONVERGENCE_DIR, CLAIM_DIR,
+    CLAIM_DIR,
     CONSULTATIONS_DIR, EXAMPLES_DIR,
     CLAIM_FINDINGS_DIR, NOTE_FINDINGS_DIR,
     CITATION_RESOLVE_DIR, SIGNATURE_RESOLVE_DIR,
+    CLAIM_CONTRACT_DIR, FORMAL_CONTRACT_DIR,
     RATIONALE_DIR, DOCUVERSE_LOG,
 )
 
@@ -43,7 +44,6 @@ def stage_asn_files(label):
         NOTE_DIR / f"{label}-*",
         CLAIM_REVIEWS_DIR / label,
         NOTE_REVIEWS_DIR / label,
-        CLAIM_CONVERGENCE_DIR / label,
         CLAIM_DIR / label,
         CONSULTATIONS_DIR / label,
         EXAMPLES_DIR / label,
@@ -51,6 +51,8 @@ def stage_asn_files(label):
         NOTE_FINDINGS_DIR / label,
         CITATION_RESOLVE_DIR / label,
         SIGNATURE_RESOLVE_DIR / label,
+        CLAIM_CONTRACT_DIR / label,
+        FORMAL_CONTRACT_DIR / label,
         RATIONALE_DIR / label,
         DOCUVERSE_LOG,
     ]
