@@ -5,18 +5,15 @@ claim's body + label + name, dispatch Sonnet, parse the YAML response,
 validate the kind against the contract.<kind> vocabulary, return a
 structured result.
 
-Public entry: `extract_contract_kind(...)`. Everything else is
-private.
+Public entry: `extract_contract_kind(...)`.
 """
 
 from __future__ import annotations
 
-from typing import NamedTuple, Tuple
-
-import yaml
+from typing import NamedTuple
 
 from lib.shared.common import read_file
-from lib.shared.invoke_claude import invoke_claude, strip_code_fence
+from lib.shared.llm_response import invoke_text, parse_yaml_dict
 from lib.shared.paths import prompt_path
 
 
@@ -59,32 +56,20 @@ def extract_contract_kind(
         .replace("{{name}}", name)
     )
 
-    result = invoke_claude(prompt, model=model, effort="high")
-    if not result.text:
-        raise RuntimeError(
-            f"contract-classify: LLM returned empty after "
-            f"{result.elapsed:.0f}s",
-        )
+    raw_text, elapsed = invoke_text(prompt, model=model)
+    parsed = parse_yaml_dict(raw_text)
 
-    text = strip_code_fence(result.text)
-    try:
-        parsed = yaml.safe_load(text)
-    except yaml.YAMLError as e:
-        raise ValueError(f"YAML parse error: {e}\n--- raw ---\n{text}")
-
-    if not isinstance(parsed, dict) or "type" not in parsed:
+    if "type" not in parsed:
         raise ValueError(
-            f"contract-classify response missing 'type' field:\n{text}"
+            f"contract-classify response missing 'type' field:\n{raw_text}"
         )
     kind = str(parsed["type"]).strip()
     if kind not in VALID_KINDS:
         raise ValueError(
             f"invalid contract kind {kind!r}; must be one of "
-            f"{sorted(VALID_KINDS)}\n--- raw ---\n{text}"
+            f"{sorted(VALID_KINDS)}\n--- raw ---\n{raw_text}"
         )
 
     return ContractClassification(
-        kind=kind,
-        raw_text=result.text,
-        elapsed_seconds=result.elapsed,
+        kind=kind, raw_text=raw_text, elapsed_seconds=elapsed,
     )

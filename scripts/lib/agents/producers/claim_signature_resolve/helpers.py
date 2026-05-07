@@ -1,12 +1,7 @@
-"""Signature-resolve agent body.
+"""LLM helper for claim-signature-resolve: extract per-claim signature
+introductions and removals.
 
-One LLM invocation: render prompt, call Sonnet, parse the
-INTRODUCES/REMOVES YAML response. Returns a `SignatureChanges`
-record with the parsed edit lists, the raw text (for the
-orchestrator's resolve-doc persistence), and timing.
-
-Public entry: `extract_signature_changes(...)`. Everything else is
-private agent-internal helpers.
+Public entry: `extract_signature_changes(...)`.
 """
 
 from __future__ import annotations
@@ -14,10 +9,8 @@ from __future__ import annotations
 import re
 from typing import List, NamedTuple, Tuple
 
-import yaml
-
 from lib.shared.common import read_file
-from lib.shared.invoke_claude import invoke_claude, strip_code_fence
+from lib.shared.llm_response import invoke_text, parse_two_sections
 from lib.shared.paths import prompt_path
 
 
@@ -25,7 +18,6 @@ PROMPT_TEMPLATE = prompt_path("claim-refinement/signature-resolve.md")
 
 
 class SignatureChanges(NamedTuple):
-    """Structured agent output."""
     introduces: list
     removes: list
     raw_text: str
@@ -40,31 +32,31 @@ def extract_signature_changes(
     *,
     model: str = "sonnet",
 ) -> SignatureChanges:
-    """Run Sonnet against the signature-resolve prompt; return parsed changes.
+    """Run Sonnet against the signature-resolve prompt; return parsed
+    INTRODUCES / REMOVES.
 
     `upstream_signatures` is `[(label, signature_text), ...]` for each
     upstream claim with a populated signature sidecar.
 
-    Raises on malformed LLM output (missing INTRODUCES/REMOVES headers,
-    YAML parse errors, malformed entries) — no graceful degradation;
-    the orchestrator decides how to surface a failure.
+    Raises on malformed LLM output (missing headers, YAML parse errors,
+    malformed entries) — no graceful degradation.
     """
     prompt = _render_prompt(
         claim_md_content, notation_primitives, upstream_signatures,
         existing_signature,
     )
-    raw_text, elapsed = _call_sonnet(prompt, model=model)
-    introduces, removes = _parse_response(raw_text)
+    raw_text, elapsed = invoke_text(prompt, model=model, tools="Read")
+    introduces, removes = parse_two_sections(
+        raw_text, "INTRODUCES", "REMOVES",
+    )
+    _validate_introduces(introduces)
+    _validate_removes(removes)
     return SignatureChanges(
         introduces=introduces,
         removes=removes,
         raw_text=raw_text,
         elapsed_seconds=elapsed,
     )
-
-
-# ---------------------------------------------------------------------------
-# Prompt rendering
 
 
 def _format_upstream_sigs(upstream: List[Tuple[str, str]]) -> str:
@@ -103,70 +95,8 @@ def _render_prompt(
     )
 
 
-# ---------------------------------------------------------------------------
-# Sonnet invocation
-
-
-def _call_sonnet(prompt: str, *, model: str) -> Tuple[str, float]:
-    result = invoke_claude(
-        prompt, model=model, effort="high", tools="Read",
-    )
-    if not result.text:
-        raise RuntimeError(f"Sonnet returned empty after {result.elapsed:.0f}s")
-    return result.text, result.elapsed
-
-
-# ---------------------------------------------------------------------------
-# Response parsing
-
-
-def _parse_response(text: str) -> Tuple[list, list]:
-    """Parse Sonnet's INTRODUCES / REMOVES YAML output.
-
-    Returns (introduces, removes) — lists of dicts. Each INTRODUCES
-    entry gains a `symbol` field parsed from its bullet. Fails loudly
-    on malformed output.
-    """
-    text = text.strip()
-    intro_idx = text.find("INTRODUCES:")
-    rem_idx = text.find("REMOVES:")
-    if intro_idx < 0:
-        raise ValueError(f"missing INTRODUCES: header:\n{text}")
-    if rem_idx < 0:
-        raise ValueError(f"missing REMOVES: header:\n{text}")
-    if rem_idx < intro_idx:
-        raise ValueError("REMOVES appears before INTRODUCES")
-
-    intro_yaml = strip_code_fence(
-        text[intro_idx + len("INTRODUCES:"):rem_idx].strip()
-    )
-    rem_yaml = strip_code_fence(
-        text[rem_idx + len("REMOVES:"):].strip()
-    )
-
-    try:
-        introduces = yaml.safe_load(intro_yaml) or []
-        removes = yaml.safe_load(rem_yaml) or []
-    except yaml.YAMLError as e:
-        raise ValueError(
-            f"YAML parse error: {e}\n"
-            f"--- INTRODUCES ---\n{intro_yaml}\n"
-            f"--- REMOVES ---\n{rem_yaml}"
-        )
-
-    if not isinstance(introduces, list):
-        raise ValueError(
-            f"INTRODUCES must be a list, got "
-            f"{type(introduces).__name__}: {introduces!r}\n"
-            f"--- raw block ---\n{intro_yaml}"
-        )
-    if not isinstance(removes, list):
-        raise ValueError(
-            f"REMOVES must be a list, got "
-            f"{type(removes).__name__}: {removes!r}\n"
-            f"--- raw block ---\n{rem_yaml}"
-        )
-
+def _validate_introduces(introduces: list) -> None:
+    """Per-entry validation; mutates entries to add a parsed `symbol`."""
     for entry in introduces:
         if not isinstance(entry, dict):
             raise ValueError(f"INTRODUCES entry not a dict: {entry}")
@@ -184,11 +114,11 @@ def _parse_response(text: str) -> Tuple[list, list]:
             )
         entry["symbol"] = m.group(1)
 
+
+def _validate_removes(removes: list) -> None:
     for entry in removes:
         if not isinstance(entry, dict):
             raise ValueError(f"REMOVES entry not a dict: {entry}")
         for field in ("symbol", "reason"):
             if field not in entry:
                 raise ValueError(f"REMOVES entry missing {field!r}: {entry}")
-
-    return introduces, removes
