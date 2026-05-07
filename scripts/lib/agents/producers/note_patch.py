@@ -14,7 +14,7 @@ running daemon).
 
 Caste: producer. Identity grants per fire:
 
-  - `patch` classifier on the patch doc (workspace → substrate
+  - `patch.note` classifier on the patch doc (workspace → substrate
     promotion)
   - `provenance.derivation(F=[patch], G=[note])` audit edge
   - `review` classifier on the patch-scoped review doc
@@ -27,7 +27,7 @@ Caste: producer. Identity grants per fire:
 
 Operator workflow:
 
-  1. Drop a patch md into `_workspace/patches/<ASN-NNNN>/<filename>.md`
+  1. Drop a patch md into `_workspace/patches/note/<ASN-NNNN>/<filename>.md`
      (gitignored input drop).
   2. Run `python scripts/note-patch.py <asn> --patch <filename>`.
   3. Run `python scripts/note-refine.py <asn>` (or wait for the
@@ -53,7 +53,7 @@ from lib.agents.base import Agent, AgentResult
 from lib.agents.producers.note_review import extract_note_findings
 from lib.backend.addressing import Address
 from lib.backend.emit import (
-    emit_derivation, emit_patch, emit_review, emit_review_coverage,
+    emit_derivation, emit_patch_note, emit_review, emit_review_coverage,
 )
 from lib.lattice.findings import record_one_finding
 from lib.protocols.febe.protocol import Session
@@ -63,7 +63,8 @@ from lib.shared.foundation import load_foundation_for_note
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude, invoke_claude_agent
 from lib.shared.paths import (
-    LATTICE, NOTE_FINDINGS_DIR, NOTE_REVIEWS_DIR, PATCH_DIR, PATCH_INBOX,
+    LATTICE, NOTE_FINDINGS_DIR, NOTE_REVIEWS_DIR,
+    PATCH_INBOX_NOTE, PATCH_NOTE_DIR,
     WORKSPACE, next_review_number, prompt_path,
 )
 
@@ -89,7 +90,7 @@ def _promote_patch_to_substrate(
     patch → note. Returns (substrate_path, patch_addr), or None if the
     workspace patch is missing.
     """
-    workspace_path = PATCH_INBOX / asn_label / patch_filename
+    workspace_path = PATCH_INBOX_NOTE / asn_label / patch_filename
     if not workspace_path.exists():
         print(
             f"  [ERROR] Patch not found in workspace: "
@@ -98,7 +99,7 @@ def _promote_patch_to_substrate(
         )
         return None
 
-    substrate_dir = PATCH_DIR / asn_label
+    substrate_dir = PATCH_NOTE_DIR / asn_label
     substrate_dir.mkdir(parents=True, exist_ok=True)
     substrate_path = substrate_dir / patch_filename
     shutil.copy2(workspace_path, substrate_path)
@@ -108,7 +109,7 @@ def _promote_patch_to_substrate(
     )
     patch_addr = session.store.register_path(substrate_rel)
 
-    emit_patch(session.store, patch_addr)
+    emit_patch_note(session.store, patch_addr)
     emit_derivation(session.store, patch_addr, note_addr)
 
     print(

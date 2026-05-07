@@ -15,7 +15,7 @@ fires (open `comment.revise` findings) → addresses them.
 
 Caste: producer. Identity grants per fire:
 
-  - `patch` classifier on the substrate patch doc
+  - `patch.claim` classifier on the substrate patch doc
   - `provenance.derivation(F=[patch], G=[note])` audit edge
   - `review.content` classifier on the patch-scoped review doc
   - `review.coverage(review → each derived claim)` — same shape as
@@ -25,7 +25,7 @@ Caste: producer. Identity grants per fire:
 
 Operator workflow:
 
-  1. Drop a patch md into `_workspace/patches/<ASN-NNNN>/<filename>.md`.
+  1. Drop a patch md into `_workspace/patches/claim/<ASN-NNNN>/<filename>.md`.
   2. Run `python scripts/claim-patch.py <asn> --patch <filename>`.
   3. The runner walks afterward (claim refinement runner walk via
      `python scripts/claim-full-review.py <asn>` or daemon) and
@@ -49,7 +49,7 @@ from typing import ClassVar
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.backend.emit import emit_derivation, emit_patch
+from lib.backend.emit import emit_derivation, emit_patch_claim
 from lib.lattice.findings import emit_review_doc
 from lib.predicates import derived_claims
 from lib.protocols.febe.protocol import Session
@@ -59,8 +59,9 @@ from lib.shared.foundation import load_foundation_for_note
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude, invoke_claude_agent
 from lib.shared.paths import (
-    CLAIM_REVIEWS_DIR, LATTICE, PATCH_DIR, PATCH_INBOX, WORKSPACE,
-    next_review_number, prompt_path,
+    CLAIM_REVIEWS_DIR, LATTICE,
+    PATCH_CLAIM_DIR, PATCH_INBOX_CLAIM,
+    WORKSPACE, next_review_number, prompt_path,
 )
 
 
@@ -85,7 +86,7 @@ def _promote_patch_to_substrate(
     patch → note. Returns (substrate_path, patch_addr), or None if the
     workspace patch is missing.
     """
-    workspace_path = PATCH_INBOX / asn_label / patch_filename
+    workspace_path = PATCH_INBOX_CLAIM / asn_label / patch_filename
     if not workspace_path.exists():
         print(
             f"  [ERROR] Patch not found in workspace: "
@@ -94,7 +95,7 @@ def _promote_patch_to_substrate(
         )
         return None
 
-    substrate_dir = PATCH_DIR / asn_label
+    substrate_dir = PATCH_CLAIM_DIR / asn_label
     substrate_dir.mkdir(parents=True, exist_ok=True)
     substrate_path = substrate_dir / patch_filename
     shutil.copy2(workspace_path, substrate_path)
@@ -104,7 +105,7 @@ def _promote_patch_to_substrate(
     )
     patch_addr = session.store.register_path(substrate_rel)
 
-    emit_patch(session.store, patch_addr)
+    emit_patch_claim(session.store, patch_addr)
     emit_derivation(session.store, patch_addr, note_addr)
 
     print(

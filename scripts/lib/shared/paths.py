@@ -69,16 +69,23 @@ CAMPAIGN_DIR = DOCUVERSE_DOCS_DIR / "campaign"
 INQUIRY_DIR = DOCUVERSE_DOCS_DIR / "inquiry"
 NOTE_DIR = DOCUVERSE_DOCS_DIR / "note"
 CLAIM_DIR = DOCUVERSE_DOCS_DIR / "claim"
-# Substrate-citizen patches. Operator drops a patch md into PATCH_INBOX
-# (workspace, gitignored); NotePatchAgent promotes it to PATCH_DIR (a
-# substrate citizen, committed) on fire.
-PATCH_DIR = DOCUVERSE_DOCS_DIR / "patch"
+# Substrate-citizen patches. Split by target kind (note/claim) so that:
+#   - the operator's directory choice declares intent (note vs claim)
+#   - filenames don't collide between a note-targeted and claim-targeted
+#     patch with the same stem
+#   - substrate dirs are homogeneous in classifier subtype
+# Operator drops a patch md into PATCH_INBOX_{NOTE,CLAIM} (workspace,
+# gitignored); the matching agent promotes it to PATCH_{NOTE,CLAIM}_DIR
+# (substrate citizen, committed) on fire.
+PATCH_NOTE_DIR = DOCUVERSE_DOCS_DIR / "patch" / "note"
+PATCH_CLAIM_DIR = DOCUVERSE_DOCS_DIR / "patch" / "claim"
 
 # Loop work products. Sibling to _docuverse/. Holds artifacts produced
 # by the refinement/derivation loops that aren't themselves
 # substrate-classified documents (scratch caches, intermediate state).
 WORKSPACE_DIR = LATTICE / "_workspace"
-PATCH_INBOX = WORKSPACE_DIR / "patches"
+PATCH_INBOX_NOTE = WORKSPACE_DIR / "patches" / "note"
+PATCH_INBOX_CLAIM = WORKSPACE_DIR / "patches" / "claim"
 
 # Aggregate review docs (classified by `review`). Split by inquiry-target
 # kind so review numbering and substrate queries are scoped per kind.

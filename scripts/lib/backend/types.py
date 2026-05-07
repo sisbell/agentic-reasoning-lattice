@@ -72,7 +72,8 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "promotion.out-of-scope": (28, 1),
     "promotion.open-questions": (28, 2),
     "references": (29,),
-    "patch": (30,),
+    "patch.note": (30, 1),
+    "patch.claim": (30, 2),
 }
 
 # Parent-type positions for hierarchical queries (per L10): a query at
@@ -89,6 +90,7 @@ PARENT_TYPES: Dict[str, Tuple[int, ...]] = {
     "provenance": (19,),
     "transclusion": (22,),
     "promotion": (28,),
+    "patch": (30,),
 }
 
 # Types whose endset shape is Classifier (F=∅, G=[doc]). When State.create_doc
@@ -117,7 +119,8 @@ CLASSIFIER_TYPES: frozenset = frozenset({
     "transclusion.claim-statements",
     "promotion.out-of-scope",
     "promotion.open-questions",
-    "patch",
+    "patch.note",
+    "patch.claim",
 })
 
 

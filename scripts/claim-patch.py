@@ -2,11 +2,11 @@
 """Claim Patch — apply a targeted fix to an ASN's claim files, emit
 findings as substrate, hand off to standard claim convergence.
 
-Reads a patch md from `_workspace/patches/<ASN-NNNN>/<filename>`
-(operator input drop), promotes it to a substrate-citizen `patch` doc
-under `_docuverse/documents/patch/<ASN-NNNN>/<filename>`, applies the
-fix to claim files, runs a one-shot patch-scoped review that emits
-findings as proper substrate, commits.
+Reads a patch md from `_workspace/patches/claim/<ASN-NNNN>/<filename>`
+(operator input drop), promotes it to a substrate-citizen `patch.claim`
+doc under `_docuverse/documents/patch/claim/<ASN-NNNN>/<filename>`,
+applies the fix to claim files, runs a one-shot patch-scoped review
+that emits findings as proper substrate, commits.
 
 The agent stops there. `claim_findings` decomposes the review on the
 next runner pass; `claim_revise` picks up the open `comment.revise`
@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.agents.producers.claim_patch import ClaimPatchAgent
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
-from lib.shared.paths import LATTICE, PATCH_INBOX
+from lib.shared.paths import LATTICE, PATCH_INBOX_CLAIM
 
 
 def main() -> int:
@@ -38,7 +38,7 @@ def main() -> int:
     parser.add_argument(
         "--patch", required=True,
         help=(
-            "Patch filename in _workspace/patches/ASN-NNNN/. "
+            "Patch filename in _workspace/patches/claim/ASN-NNNN/. "
             "Operator drops the patch md there before running."
         ),
     )
@@ -57,7 +57,7 @@ def main() -> int:
         print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
         return 1
 
-    patch_path = PATCH_INBOX / asn_label / args.patch
+    patch_path = PATCH_INBOX_CLAIM / asn_label / args.patch
     if not patch_path.exists():
         print(
             f"  [ERROR] Patch not found in workspace: {patch_path}",

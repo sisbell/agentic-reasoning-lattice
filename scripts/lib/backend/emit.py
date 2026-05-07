@@ -77,10 +77,16 @@ def emit_inquiry(store: Store, inquiry_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, inquiry_doc, "inquiry")
 
 
-def emit_patch(store: Store, patch_doc: Address) -> Tuple[Link, bool]:
-    """Classifier on a patch doc — promoted from workspace into substrate
-    by NotePatchAgent on each fire."""
-    return emit_classifier(store, patch_doc, "patch")
+def emit_patch_note(store: Store, patch_doc: Address) -> Tuple[Link, bool]:
+    """Classifier on a note-targeted patch doc — promoted from workspace
+    into substrate by NotePatchAgent on each fire."""
+    return emit_classifier(store, patch_doc, "patch.note")
+
+
+def emit_patch_claim(store: Store, patch_doc: Address) -> Tuple[Link, bool]:
+    """Classifier on a claim-targeted patch doc — promoted from workspace
+    into substrate by ClaimPatchAgent on each fire."""
+    return emit_classifier(store, patch_doc, "patch.claim")
 
 
 def emit_campaign(store: Store, campaign_doc: Address) -> Tuple[Link, bool]:

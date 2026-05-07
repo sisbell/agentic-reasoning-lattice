@@ -2,13 +2,13 @@
 """Note Patch — apply a targeted patch to an ASN, emit findings as
 substrate, hand off to standard runner walk for convergence.
 
-Reads a patch md from `_workspace/patches/<ASN-NNNN>/<filename>` (operator
-input drop), promotes it to a substrate-citizen `patch` doc under
-`_docuverse/documents/patch/<ASN-NNNN>/<filename>`, applies the fix,
-runs a one-shot patch-scoped review that emits findings as proper
-substrate, re-exports, commits.
+Reads a patch md from `_workspace/patches/note/<ASN-NNNN>/<filename>`
+(operator input drop), promotes it to a substrate-citizen `patch.note`
+doc under `_docuverse/documents/patch/note/<ASN-NNNN>/<filename>`,
+applies the fix, runs a one-shot patch-scoped review that emits findings
+as proper substrate, re-exports, commits.
 
-The agent emits a `patch` classifier on the substrate doc + a
+The agent emits a `patch.note` classifier on the substrate doc + a
 `provenance.derivation(F=[patch], G=[note])` audit edge. The
 patch-scoped review's findings sit in substrate as open
 `comment.revise` links waiting for `note_revise` to fire on the next
@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.agents.producers.note_patch import NotePatchAgent
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
-from lib.shared.paths import LATTICE, PATCH_INBOX
+from lib.shared.paths import LATTICE, PATCH_INBOX_NOTE
 
 
 def main() -> int:
@@ -38,7 +38,7 @@ def main() -> int:
     parser.add_argument(
         "--patch", required=True,
         help=(
-            "Patch filename in _workspace/patches/ASN-NNNN/. "
+            "Patch filename in _workspace/patches/note/ASN-NNNN/. "
             "Operator drops the patch md there before running."
         ),
     )
@@ -56,7 +56,7 @@ def main() -> int:
         print(f"  [ERROR] ASN-{args.asn:04d} not found", file=sys.stderr)
         return 1
 
-    patch_path = PATCH_INBOX / asn_label / args.patch
+    patch_path = PATCH_INBOX_NOTE / asn_label / args.patch
     if not patch_path.exists():
         print(
             f"  [ERROR] Patch not found in workspace: "

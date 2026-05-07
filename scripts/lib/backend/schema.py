@@ -98,10 +98,14 @@ VALID_SUBTYPES = {
                              # substrate state.
     }),
     "promotion": frozenset({"out-of-scope", "open-questions"}),
+    "patch": frozenset({
+        "note",   # patch targeting an ASN note (note-patch agent)
+        "claim",  # patch targeting an ASN's claim files (claim-patch agent)
+    }),
 }
 
 # Types that must always carry a subtype — bare parent writes are invalid.
-REQUIRES_SUBTYPE = frozenset({"citation", "transclusion", "promotion"})
+REQUIRES_SUBTYPE = frozenset({"citation", "transclusion", "promotion", "patch"})
 
 # File suffixes for attribute sidecars (used by file-walking helpers
 # that distinguish claim body markdown from sidecars).
