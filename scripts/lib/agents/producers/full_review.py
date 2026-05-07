@@ -32,7 +32,7 @@ from lib.agents.base import Agent, AgentResult
 from lib.agents.producers.review_helpers import (
     previously_declined_findings, run_review,
 )
-from lib.agents.producers.cone_review.sync import sync_claim_citations
+from lib.agents.producers.cone_review import sync_claim_citations
 from lib.backend.addressing import Address
 from lib.lattice.findings import emit_review_doc
 from lib.lattice.context import asn_context_from_note
