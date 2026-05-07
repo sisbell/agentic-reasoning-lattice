@@ -37,7 +37,7 @@ from lib.shared.foundation import (
 from lib.shared.paths import prompt_path
 
 
-REVIEW_TEMPLATE = prompt_path("claim-refinement/full-review/review.md")
+REVIEW_TEMPLATE = prompt_path("agents/producers/review_helpers.md")
 
 _VERDICT_RE = re.compile(
     r'^VERDICT:\s*(CONVERGED|OBSERVE|REVISE)\s*$', re.MULTILINE,

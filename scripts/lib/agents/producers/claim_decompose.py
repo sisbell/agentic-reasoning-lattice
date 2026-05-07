@@ -168,7 +168,7 @@ def analyze_section(section_content: str) -> str | None:
     from lib.shared.invoke_claude import invoke_claude, strip_code_fence
     from lib.shared.paths import prompt_path
 
-    prompt_template = prompt_path("claim-derivation/decompose.md").read_text()
+    prompt_template = prompt_path("agents/producers/claim_decompose.md").read_text()
     prompt = prompt_template.replace("{{section_content}}", section_content)
 
     response = invoke_claude(prompt, model="sonnet", effort="high")

@@ -34,7 +34,7 @@ from lib.shared.paths import (
 )
 
 
-DISCOVERY_PROMPT = prompt_path("discovery/instructions.md")
+METHODOLOGY_PROMPT = prompt_path("agents/_shared/methodology.md")
 
 MODEL = "claude-opus-4-7"
 
@@ -55,11 +55,11 @@ def build_prompt(
     address each in the note md and call resolution.py
     per finding to close the comment in the substrate.
     """
-    skill_body = read_file(DISCOVERY_PROMPT)
+    skill_body = read_file(METHODOLOGY_PROMPT)
     if not skill_body:
         print(
             f"  Discovery prompt not found at "
-            f"{DISCOVERY_PROMPT.relative_to(WORKSPACE)}",
+            f"{METHODOLOGY_PROMPT.relative_to(WORKSPACE)}",
             file=sys.stderr,
         )
         sys.exit(1)

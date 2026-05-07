@@ -7,12 +7,13 @@ discovery prompt with consultation content walked from substrate at
 runtime, invoke Claude, write the note md, emit the `note`
 classifier + `provenance.synthesis` link.
 
-The discovery prompt template
-(prompts/<lattice>/discovery/instructions.md, with shared fallback at
-prompts/shared/discovery/instructions.md) is the single source of
-truth. Placeholders supplied: {{consultation_answers}},
-{{asn_number}}, {{title}}, {{question}}, {{slug}},
-{{foundation_section}}, {{vocabulary_section}}, {{out_of_scope_note}}.
+The methodology prompt template
+(prompts/<lattice>/agents/_shared/methodology.md) is the single source
+of truth — shared between note_draft (initial write) and note_revise
+(per-finding refinement). Placeholders supplied here:
+{{consultation_answers}}, {{asn_number}}, {{title}}, {{question}},
+{{slug}}, {{foundation_section}}, {{vocabulary_section}},
+{{out_of_scope_note}}.
 """
 
 from __future__ import annotations
@@ -42,7 +43,7 @@ from lib.shared.paths import (
 )
 
 
-DISCOVERY_PROMPT = prompt_path("discovery/instructions.md")
+METHODOLOGY_PROMPT = prompt_path("agents/_shared/methodology.md")
 
 MODEL = "claude-opus-4-7"
 
@@ -109,7 +110,7 @@ def _log_usage(skill, asn_label, inquiry_title, area, elapsed, data):
 def _build_discovery_prompt(inquiry, asn_number, slug, answers_content,
                             foundation, vocab, scope_note):
     """Build the discovery prompt by substituting placeholders in the template."""
-    template = _load_prompt(DISCOVERY_PROMPT)
+    template = _load_prompt(METHODOLOGY_PROMPT)
     if template is None:
         return None
     vocab_section = f"\n\n## Shared Vocabulary\n\n{vocab}" if vocab else ""

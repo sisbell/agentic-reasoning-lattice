@@ -36,7 +36,7 @@ from lib.shared.paths import (
 )
 
 
-REVIEW_TEMPLATE = prompt_path("discovery/review.md")
+REVIEW_TEMPLATE = prompt_path("agents/producers/note_review.md")
 
 
 def extract_note_findings(text: str) -> List[Tuple[str, str, str]]:

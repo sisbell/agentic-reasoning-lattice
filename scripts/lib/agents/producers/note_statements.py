@@ -37,7 +37,7 @@ from lib.shared.paths import USAGE_LOG, prompt_path
 
 
 STATEMENTS_MODEL = "sonnet"
-STATEMENTS_TEMPLATE = prompt_path("discovery/assembly/produce-statements.md")
+STATEMENTS_TEMPLATE = prompt_path("agents/producers/note_statements.md")
 
 
 def _strip_preamble(text: str) -> str:

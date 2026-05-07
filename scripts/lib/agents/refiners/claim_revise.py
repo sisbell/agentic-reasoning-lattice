@@ -35,7 +35,7 @@ from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import LATTICE, USAGE_LOG, WORKSPACE, prompt_path
 
 
-REVISE_TEMPLATE = prompt_path("claim-refinement/full-review/revise.md")
+REVISE_TEMPLATE = prompt_path("agents/refiners/claim_revise.md")
 
 
 def revise(

@@ -30,7 +30,7 @@ from lib.shared.paths import prompt_path
 
 
 DESCRIBE_MODEL = "sonnet"
-DESCRIBE_TEMPLATE = prompt_path("claim-describe/describe.md")
+DESCRIBE_TEMPLATE = prompt_path("agents/producers/claim_describe.md")
 
 
 class ClaimDescribeAgent(Agent):

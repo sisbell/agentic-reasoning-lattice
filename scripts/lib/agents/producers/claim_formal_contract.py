@@ -41,10 +41,14 @@ SYNTHESIS_MODEL = "opus"
 MAX_CYCLES = 3
 KINDS_REQUIRING_CONTRACT = frozenset({"theorem", "lemma", "corollary"})
 
-SYNTHESIS_TEMPLATE = prompt_path("claim-derivation/produce-contract.md")
-REVIEW_REWRITE_TEMPLATE = prompt_path("claim-derivation/review-rewrite.md")
+SYNTHESIS_TEMPLATE = prompt_path(
+    "agents/producers/claim_formal_contract/produce-contract.md",
+)
+REVIEW_REWRITE_TEMPLATE = prompt_path(
+    "agents/producers/claim_formal_contract/review-rewrite.md",
+)
 VALIDATE_CONTRACT_TEMPLATE = prompt_path(
-    "claim-refinement/assembly/validate-contracts.md",
+    "agents/producers/claim_formal_contract/validate-contracts.md",
 )
 
 

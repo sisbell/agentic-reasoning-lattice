@@ -93,7 +93,7 @@ def _load_inquiry_record(inquiry_id):
 
 def _filter_questions(inquiry_text, out_of_scope, questions, covers_text=""):
     """Filter questions for scope. Returns filtered list of (role, question) tuples."""
-    template = read_file(prompt_path("discovery/consultation/filter-questions.md"))
+    template = read_file(prompt_path("agents/producers/inquiry_consult.md"))
     if not template:
         print("  [WARN] filter-questions.md not found, skipping filter",
               file=sys.stderr)

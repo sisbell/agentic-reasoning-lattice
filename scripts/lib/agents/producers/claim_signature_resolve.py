@@ -38,7 +38,7 @@ from lib.shared.paths import (
 
 
 SIGNATURE_MODEL = "sonnet"
-PROMPT_TEMPLATE = prompt_path("claim-refinement/signature-resolve.md")
+PROMPT_TEMPLATE = prompt_path("agents/producers/claim_signature_resolve.md")
 
 
 # ─── LLM helper ─────────────────────────────────────────────────────

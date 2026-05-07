@@ -42,7 +42,7 @@ from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import LATTICE, prompt_path
 
 
-PROMOTE_TEMPLATE = prompt_path("discovery/promotion/promote-open-questions.md")
+PROMOTE_TEMPLATE = prompt_path("agents/producers/note_promote_open_questions.md")
 
 
 class NotePromoteOpenQuestionsAgent(Agent):

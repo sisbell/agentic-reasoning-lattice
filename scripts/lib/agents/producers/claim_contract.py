@@ -35,7 +35,7 @@ from lib.shared.paths import CLAIM_CONTRACT_DIR, LATTICE, prompt_path
 
 
 CONTRACT_MODEL = "sonnet"
-PROMPT_TEMPLATE = prompt_path("claim-derivation/annotate-type.md")
+PROMPT_TEMPLATE = prompt_path("agents/producers/claim_contract.md")
 
 # Mirrors the contract.<kind> vocabulary registered in lib/backend/types.py.
 # "consequence" appears in the prompt's YAML tail but not in the type

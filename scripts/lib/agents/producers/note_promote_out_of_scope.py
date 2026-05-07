@@ -42,7 +42,7 @@ from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import LATTICE, REVIEWS_DIR, prompt_path
 
 
-PROMOTE_TEMPLATE = prompt_path("discovery/promotion/promote-out-of-scope.md")
+PROMOTE_TEMPLATE = prompt_path("agents/producers/note_promote_out_of_scope.md")
 
 
 def _collect_out_of_scope(asn_label: str) -> str:

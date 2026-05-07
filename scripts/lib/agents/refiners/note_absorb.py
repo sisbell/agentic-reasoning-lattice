@@ -88,9 +88,13 @@ from lib.shared.paths import (
 ABSORB_MODEL = "opus"
 ABSORB_EFFORT = "max"
 
-INTEGRATE_TEMPLATE = prompt_path("discovery/absorb/merge-extension.md")
-REVIEW_TEMPLATE = prompt_path("discovery/absorb/review.md")
-SOURCE_UPDATE_TEMPLATE = prompt_path("discovery/absorb/update-citations-in-source.md")
+INTEGRATE_TEMPLATE = prompt_path(
+    "agents/refiners/note_absorb/merge-extension.md",
+)
+REVIEW_TEMPLATE = prompt_path("agents/refiners/note_absorb/review.md")
+SOURCE_UPDATE_TEMPLATE = prompt_path(
+    "agents/refiners/note_absorb/update-citations-in-source.md",
+)
 
 
 # ─── Spec promotion (workspace → substrate) ────────────────────────

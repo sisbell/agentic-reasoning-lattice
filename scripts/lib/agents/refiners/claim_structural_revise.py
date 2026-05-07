@@ -41,7 +41,7 @@ from lib.predicates import has_resolution
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
 from lib.shared.git_ops import step_commit_asn
-from lib.shared.paths import CLAIM_DIR, LATTICE
+from lib.shared.paths import CLAIM_DIR, LATTICE, prompt_path
 from lib.shared.invoke_claude import invoke_claude_agent
 
 
@@ -51,10 +51,10 @@ from lib.shared.invoke_claude import invoke_claude_agent
 # ─── LLM helper for per-rule fix ────────────────────────────────────
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-PROMPT_DIR = (
-    REPO_ROOT / "prompts" / "shared" / "claim-refinement" / "validate-revise"
-)
+# Per-rule prompt templates resolve through prompt_path() so lattice
+# overrides (prompts/<lattice>/agents/refiners/claim_structural_revise/)
+# can shadow the shared defaults. The bare-rule subpath convention is
+# `agents/refiners/claim_structural_revise/<rule>.md`.
 
 
 class StructuralRuleFixResult(NamedTuple):
@@ -110,7 +110,9 @@ def fix_structural_rule(
 
 
 def _read_template(rule: str) -> str:
-    template_path = PROMPT_DIR / f"{rule}.md"
+    template_path = prompt_path(
+        f"agents/refiners/claim_structural_revise/{rule}.md",
+    )
     if not template_path.exists():
         raise FileNotFoundError(f"missing prompt template: {template_path}")
     return template_path.read_text()

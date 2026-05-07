@@ -68,8 +68,8 @@ from lib.shared.paths import (
 PATCH_MODEL = "opus"
 PATCH_EFFORT = "max"
 
-APPLY_TEMPLATE = prompt_path("claim-refinement/patch/apply.md")
-REVIEW_TEMPLATE = prompt_path("claim-refinement/patch/review.md")
+APPLY_TEMPLATE = prompt_path("agents/producers/claim_patch/apply.md")
+REVIEW_TEMPLATE = prompt_path("agents/producers/claim_patch/review.md")
 
 
 # ─── Patch promotion (workspace → substrate) ────────────────────────

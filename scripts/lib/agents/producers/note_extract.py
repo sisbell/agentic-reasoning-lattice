@@ -80,7 +80,7 @@ from lib.shared.paths import (
 EXTRACT_MODEL = "opus"
 EXTRACT_EFFORT = "max"
 
-EXTRACT_TEMPLATE = prompt_path("discovery/extract/extract.md")
+EXTRACT_TEMPLATE = prompt_path("agents/producers/note_extract.md")
 
 
 # ─── Spec parsing ──────────────────────────────────────────────────

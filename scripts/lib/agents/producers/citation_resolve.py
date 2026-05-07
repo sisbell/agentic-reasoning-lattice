@@ -40,7 +40,7 @@ from lib.shared.paths import CITATION_RESOLVE_DIR, LATTICE, prompt_path
 CITATION_MODEL = "sonnet"
 DEPENDS_HEADER = "- *Depends:*"
 FORWARD_HEADER = "- *Forward References:*"
-PROMPT_TEMPLATE = prompt_path("claim-refinement/citation-resolve.md")
+PROMPT_TEMPLATE = prompt_path("agents/producers/citation_resolve.md")
 
 
 # ─── LLM helper ─────────────────────────────────────────────────────

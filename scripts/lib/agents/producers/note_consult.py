@@ -61,7 +61,7 @@ from lib.shared.paths import (
 # ─── Channel assignment ────────────────────────────────────────
 
 
-_ASSIGN_PROMPT_TEMPLATE = prompt_path("discovery/revise/assign-channels.md")
+_ASSIGN_PROMPT_TEMPLATE = prompt_path("agents/producers/note_consult.md")
 
 # Always-recognized role labels, regardless of channels bound.
 _ROLE_LABELS = {"Theory": "theory", "Evidence": "evidence"}
