@@ -1,54 +1,33 @@
 #!/usr/bin/env python3
-"""Note Patch — apply a targeted patch to an ASN with scoped review/revise.
+"""Note Patch — apply a targeted patch to an ASN, emit findings as
+substrate, hand off to standard runner walk for convergence.
 
 Reads a patch md from `_workspace/patches/<ASN-NNNN>/<filename>` (operator
 input drop), promotes it to a substrate-citizen `patch` doc under
-`_docuverse/documents/patch/<ASN-NNNN>/<filename>`, applies the fix, drives
-patch-scoped review/revise to convergence, re-exports the note, commits.
+`_docuverse/documents/patch/<ASN-NNNN>/<filename>`, applies the fix,
+runs a one-shot patch-scoped review that emits findings as proper
+substrate, re-exports, commits.
 
 The agent emits a `patch` classifier on the substrate doc + a
-`provenance.derivation(F=[patch], G=[note])` audit edge. The note md is
-edited; its supersession chain advances via `register_version`.
+`provenance.derivation(F=[patch], G=[note])` audit edge. The
+patch-scoped review's findings sit in substrate as open
+`comment.revise` links waiting for `note_revise` to fire on the next
+runner walk.
 
 Usage:
     python scripts/note-patch.py 63 --patch patch-1.md
     python scripts/note-patch.py 63 --patch patch-1.md --dry-run
-    python scripts/note-patch.py 63 --patch patch-1.md --report
 """
 
 import argparse
-import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.agents.producers.note_patch import NotePatchAgent
 from lib.protocols.febe.session import open_session
-from lib.shared.common import find_asn, read_file
-from lib.shared.invoke_claude import invoke_claude
-from lib.shared.paths import LATTICE, PATCH_INBOX, prompt_path
-
-
-def _print_report(asn_num, asn_path, patch_path, *, model, effort):
-    """--report: show impact analysis without applying."""
-    template = read_file(prompt_path("discovery/patch/report.md"))
-    if not template:
-        print("  [ERROR] Patch report prompt not found", file=sys.stderr)
-        return 1
-    asn_content = asn_path.read_text()
-    patch_content = patch_path.read_text()
-    prompt = (
-        template
-        .replace("{{patch_content}}", patch_content)
-        .replace("{{asn_content}}", asn_content)
-    )
-    print(f"  [REPORT] Analyzing impact...", file=sys.stderr)
-    result = invoke_claude(prompt, model=model, effort=effort)
-    if result.text:
-        print(f"\n{result.text}\n", file=sys.stderr)
-        return 0
-    print("  [ERROR] No report produced", file=sys.stderr)
-    return 1
+from lib.shared.common import find_asn
+from lib.shared.paths import LATTICE, PATCH_INBOX
 
 
 def main() -> int:
@@ -68,10 +47,6 @@ def main() -> int:
     )
     parser.add_argument(
         "--effort", default="max", help="Thinking effort level",
-    )
-    parser.add_argument(
-        "--report", action="store_true",
-        help="Show impact report without applying",
     )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -94,16 +69,10 @@ def main() -> int:
         )
         return 1
 
-    if args.report:
-        return _print_report(
-            args.asn, asn_path, patch_path,
-            model=args.model, effort=args.effort,
-        )
-
     if args.dry_run:
         print(
             f"  [DRY RUN] Steps: promote → apply → patch-scoped "
-            f"review/revise → re-export",
+            f"review (emits findings) → re-export",
             file=sys.stderr,
         )
         print(f"  Patch: {patch_path}", file=sys.stderr)
