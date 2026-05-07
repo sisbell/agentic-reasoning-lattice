@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
-# Copy expert consultations from one ASN to another.
+# Copy expert consultation files from one ASN's directory to another's.
+#
+# Filesystem-only operation: copies the consultation directory tree
+# from source ASN to target ASN under the substrate's consultation
+# document tree. Does NOT emit substrate links — for full substrate-
+# aware ASN cloning (note + inquiry + consultations + lineage links),
+# use scripts/note-clone.py with a clone spec doc.
 #
 # Usage:
-#   ./run/copy-experts.sh 28 29    # copy ASN-0028 experts to ASN-0029
+#   ./run/copy-experts.sh 28 29                  # default lattice (xanadu)
+#   LATTICE=materials ./run/copy-experts.sh 28 29
 set -euo pipefail
 
 if [ $# -lt 2 ]; then
@@ -10,12 +17,12 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-# Normalize ASN numbers to 4-digit labels
+LATTICE="${LATTICE:-xanadu}"
 src=$(printf "ASN-%04d" "$1")
 tgt=$(printf "ASN-%04d" "$2")
 
-src_dir="lattices/xanadu/discovery/consultations/$src"
-tgt_dir="lattices/xanadu/discovery/consultations/$tgt"
+src_dir="lattices/$LATTICE/_docuverse/documents/consultation/$src"
+tgt_dir="lattices/$LATTICE/_docuverse/documents/consultation/$tgt"
 
 if [ ! -d "$src_dir" ]; then
     echo "Error: $src_dir does not exist" >&2
