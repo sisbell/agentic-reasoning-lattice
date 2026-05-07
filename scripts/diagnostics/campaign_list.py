@@ -8,7 +8,7 @@ inquiry's `campaign:` field; inquiries without one inherit the
 lattice's default_campaign).
 
 Usage:
-    LATTICE=materials python scripts/campaign-list.py
+    LATTICE=materials python scripts/diagnostics/campaign_list.py
 """
 
 import re
@@ -17,7 +17,7 @@ from pathlib import Path
 
 import yaml
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import (
     LATTICE_NAME, CAMPAIGN_DIR, INQUIRY_DIR,
     load_lattice_config, campaign_doc_path, campaign_vocab,

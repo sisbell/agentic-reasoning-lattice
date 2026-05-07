@@ -2,14 +2,14 @@
 """Dump the note citation graph from the substrate.
 
 Usage:
-    python3 scripts/note-graph.py 9          # focus on ASN-0009
-    python3 scripts/note-graph.py 9 --depth 2  # only 2 hops
-    python3 scripts/note-graph.py --all       # full DAG dump
+    python3 scripts/diagnostics/note_graph.py 9          # focus on ASN-0009
+    python3 scripts/diagnostics/note_graph.py 9 --depth 2  # only 2 hops
+    python3 scripts/diagnostics/note_graph.py --all       # full DAG dump
 
 The substrate's `citation` links between notes form the dependency
 graph. This tool reads those links and renders them in human-readable
 form for inspection. Read-only — to modify the graph, run
-citation.py / substrate/retract.py.
+agent_tools/citation.py / agent_tools/retract.py.
 """
 
 import argparse
@@ -17,7 +17,7 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import WORKSPACE, LATTICE
 from lib.lattice.labels import build_note_label_index
 from lib.protocols.febe.session import open_session
