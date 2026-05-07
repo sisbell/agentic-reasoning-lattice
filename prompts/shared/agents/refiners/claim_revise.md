@@ -84,7 +84,7 @@ instead "the state satisfies..."
    `*Axiom:*` or `*Definition:*` field, or reframing a derived result
    as a posit — re-classify the claim by running:
 
-       python scripts/claim-link-contract.py --label <claim-label> --kind <new>
+       python scripts/agent_tools/contract.py --label <claim-label> --kind <new>
 
    `<new>` is one of `axiom`, `definition`, `theorem`, `lemma`,
    `corollary`, `consequence`, `design-requirement` — match the new
@@ -120,7 +120,7 @@ instead "the state satisfies..."
 
        python scripts/agent_tools/label.py --label <label>
        python scripts/agent_tools/name.py --label <label> --to <name>
-       python scripts/claim-link-contract.py --label <label> --kind <kind>
+       python scripts/agent_tools/contract.py --label <label> --kind <kind>
 
    `agent_tools/label.py` writes `<stem>.label.md` (whose first line is the label
    string, equal to the filename stem) and files the substrate `label`

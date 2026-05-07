@@ -4,7 +4,7 @@
 Invoked when the reviser creates a new claim or reclassifies an
 existing one's contract structure:
 
-    python scripts/claim-link-contract.py --label <label> --kind axiom
+    python scripts/agent_tools/contract.py --label <label> --kind axiom
 
 The label identifies the claim; the script resolves it to the
 canonical doc address via the claim path convention
@@ -20,7 +20,7 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import claim_doc_path, LATTICE
 from lib.protocols.febe.session import open_session
 from lib.backend.emit import emit_contract
