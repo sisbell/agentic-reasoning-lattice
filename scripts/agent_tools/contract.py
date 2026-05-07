@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import claim_doc_path, LATTICE
 from lib.protocols.febe.session import open_session
 from lib.backend.emit import emit_contract
-from lib.backend.schema import VALID_SUBTYPES
+from lib.backend.shapes import subtypes_of
 
 
 def main():
@@ -35,7 +35,7 @@ def main():
     )
     parser.add_argument(
         "--kind", required=True,
-        choices=sorted(VALID_SUBTYPES["contract"]),
+        choices=sorted(subtypes_of("contract")),
         help="Contract kind classifier for the claim.",
     )
     args = parser.parse_args()

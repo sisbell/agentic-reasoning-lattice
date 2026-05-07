@@ -38,10 +38,11 @@ from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.backend.predicates import active_links
 from lib.predicates import current_contract_kind
-from lib.backend.schema import VALID_SUBTYPES, VALID_ATTRIBUTE_KINDS as VALID_KINDS
+from lib.backend.schema import VALID_ATTRIBUTE_KINDS as VALID_KINDS
+from lib.backend.shapes import subtypes_of
 from lib.lattice.notation import read_notation
 
-VALID_TYPES = VALID_SUBTYPES["contract"]
+VALID_TYPES = subtypes_of("contract")
 
 
 DECLARATION_RE = re.compile(

@@ -176,14 +176,75 @@ SHAPES: Dict[str, LinkShape] = {
 def shape_for(type_: str) -> LinkShape:
     """Return the shape for a concrete link type.
 
-    Raises KeyError if the type is not registered. Subtyped names
-    must be registered as concrete entries (e.g., `citation.depends`,
-    not bare `citation`).
+    Raises ValueError if the type is not registered. For known
+    queryable parents that need a subtype (e.g., bare `citation`
+    when only `citation.depends` etc. are emittable), the error
+    message lists the valid subtypes.
     """
-    try:
+    if type_ in SHAPES:
         return SHAPES[type_]
-    except KeyError:
-        raise KeyError(
-            f"unknown link type: {type_!r} "
-            f"(register in lib/backend/shapes.py)"
+
+    from .types import PARENT_TYPES
+    if type_ in PARENT_TYPES and subtypes_of(type_):
+        valid = sorted(subtypes_of(type_))
+        raise ValueError(
+            f"type {type_!r} requires a subtype "
+            f"(one of: {', '.join(f'{type_}.{s}' for s in valid)})"
         )
+
+    if "." in type_:
+        parent, sub = type_.split(".", 1)
+        if parent in SHAPES or parent in PARENT_TYPES:
+            raise ValueError(
+                f"unknown subtype {sub!r} for parent {parent!r}"
+            )
+
+    raise ValueError(
+        f"unknown link type: {type_!r} "
+        f"(register in lib/backend/shapes.py)"
+    )
+
+
+# ─── Type-set queries derived from SHAPES + PARENT_TYPES ───────────
+
+
+def subtypes_of(parent: str) -> frozenset:
+    """Subtype suffixes for a parent type.
+
+    Returns the set of suffix strings such that `parent.<suffix>` is a
+    registered concrete type. Empty if `parent` has no subtyped
+    concretes (a bare-only parent like `note` returns an empty set).
+    """
+    prefix = f"{parent}."
+    return frozenset(
+        type_[len(prefix):]
+        for type_ in SHAPES
+        if type_.startswith(prefix)
+    )
+
+
+def validate_type(type_: str) -> None:
+    """Raise ValueError if `type_` is not a known type.
+
+    Accepts:
+      - concrete types registered in SHAPES (e.g., `claim`,
+        `citation.depends`, `consultation.answer.theory`)
+      - queryable parents in PARENT_TYPES (e.g., `citation`,
+        `consultation.answer`) — usable in queries via L10
+        prefix-matching even though they're not directly emittable
+    """
+    if type_ in SHAPES:
+        return
+
+    from .types import PARENT_TYPES
+    if type_ in PARENT_TYPES:
+        return  # queryable parent
+
+    if "." in type_:
+        parent, sub = type_.split(".", 1)
+        if parent in SHAPES or parent in PARENT_TYPES:
+            raise ValueError(
+                f"unknown subtype {sub!r} for parent {parent!r}"
+            )
+
+    raise ValueError(f"unknown type: {type_!r}")

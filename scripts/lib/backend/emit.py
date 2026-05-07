@@ -23,8 +23,7 @@ from typing import List, Optional, Tuple
 from .addressing import Address
 from .links import Link
 from .predicates import active_links
-from .schema import REQUIRES_SUBTYPE, VALID_SUBTYPES, validate_type
-from .shapes import LinkShape, shape_for
+from .shapes import LinkShape, shape_for, subtypes_of, validate_type
 from .store import Store
 
 
@@ -145,7 +144,7 @@ def emit_contract(
     store: Store, claim_doc: Address, kind: str,
 ) -> Tuple[Link, bool]:
     """File contract.<kind> classifier on a claim doc."""
-    valid = VALID_SUBTYPES["contract"]
+    valid = subtypes_of("contract")
     if kind not in valid:
         raise ValueError(
             f"invalid contract kind {kind!r}; must be one of {sorted(valid)}"
@@ -260,7 +259,7 @@ def emit_promotion(
       out-of-scope    — items from review OUT_OF_SCOPE sections
       open-questions  — items from the note's Open Questions section
     """
-    valid = VALID_SUBTYPES["promotion"]
+    valid = subtypes_of("promotion")
     if kind not in valid:
         raise ValueError(
             f"invalid promotion kind {kind!r}; must be one of {sorted(valid)}"
@@ -334,7 +333,7 @@ def emit_transclusion(
     is a read-mechanism flag, not a structural classifier — predicates
     and substrate walks should NOT branch on its presence.
     """
-    valid = VALID_SUBTYPES["transclusion"]
+    valid = subtypes_of("transclusion")
     if kind not in valid:
         raise ValueError(
             f"invalid transclusion kind {kind!r}; must be one of {sorted(valid)}"
@@ -457,7 +456,7 @@ def emit_citation(
     link, since the caller is expressing the citation is currently
     wanted).
     """
-    valid = VALID_SUBTYPES["citation"]
+    valid = subtypes_of("citation")
     if direction not in valid:
         raise ValueError(
             f"invalid citation direction {direction!r}; "
@@ -613,7 +612,7 @@ def emit_comment(
     independent facts). The shape's idempotent=False ensures the
     generic emit() always writes a fresh link.
     """
-    valid = VALID_SUBTYPES["comment"]
+    valid = subtypes_of("comment")
     if kind not in valid:
         raise ValueError(
             f"invalid comment kind {kind!r}; must be one of {sorted(valid)}"
@@ -637,7 +636,7 @@ def emit_resolution(
     F=[by_doc], G=[comment_link_addr]. Self-referential (G targets a
     link). NOT idempotent — each closure is its own fact.
     """
-    valid = VALID_SUBTYPES["resolution"]
+    valid = subtypes_of("resolution")
     if kind not in valid:
         raise ValueError(
             f"invalid resolution kind {kind!r}; must be one of {sorted(valid)}"
