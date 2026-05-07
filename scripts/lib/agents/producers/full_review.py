@@ -110,27 +110,3 @@ class FullReviewAgent(Agent):
         )
 
         return AgentResult(success=True, detail=verdict)
-
-
-def run_full_review(asn_num, *, max_cycles: int = 8) -> str:
-    """Legacy multi-cycle wrapper: drive full_review + claim_revise
-    triggers until quiescence. Returns "quiescent" / "not_quiescent" /
-    "failed".
-
-    Wraps the runner-driven path — the previous internal cycle loop
-    inside this wrapper retired when claim_revise was lifted to a
-    predicate-fired Agent class. The runner walks both triggers until
-    every comment.revise on the ASN's claims is closed and the
-    ASN's review coverage is current.
-    """
-    from lib.runner import asn, run_until_quiescent
-    from lib.triggers import claim_findings, claim_revise, full_review
-
-    result = run_until_quiescent(
-        triggers=[full_review, claim_findings, claim_revise],
-        scope=asn(asn_num),
-        max_iterations=max_cycles,
-    )
-    if result.errors:
-        return "failed"
-    return "quiescent" if result.quiescent else "not_quiescent"

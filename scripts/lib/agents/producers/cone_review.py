@@ -362,38 +362,3 @@ class ConeReviewAgent(Agent):
         return AgentResult(success=True, detail=verdict)
 
 
-# ─── Legacy multi-cycle wrapper (used by claim-full-review.py CLI) ──
-
-
-def run_cone_review(
-    asn_num, apex_label, dep_labels, *,
-    max_cycles: int = 8, model: str = CONE_MODEL,
-) -> str:
-    """Legacy multi-cycle wrapper: drive cone_review + claim_revise
-    triggers until quiescence. Returns "quiescent" / "not_quiescent" /
-    "failed".
-
-    Wraps the runner-driven path — the previous internal cycle loop
-    inside this wrapper retired when claim_revise was lifted to a
-    predicate-fired Agent class. The runner walks both triggers until
-    every comment.revise on the apex is closed and the apex's review
-    coverage is current.
-
-    `dep_labels` is not used in the new shape; the runner derives the
-    cone from substrate (transitive deps walked inside
-    ConeReviewAgent.run()). Kept in the signature for backwards
-    compatibility with callers.
-    """
-    from lib.runner import Scope, run_force_pass
-    from lib.triggers import claim_findings, claim_revise, cone_review
-
-    scope = Scope(
-        asn_label=f"ASN-{asn_num:04d}",
-        labels=frozenset({apex_label}),
-    )
-    result = run_force_pass(
-        triggers=[cone_review, claim_findings, claim_revise], scope=scope,
-    )
-    if result.errors:
-        return "failed"
-    return "quiescent" if result.quiescent else "not_quiescent"
