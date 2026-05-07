@@ -13,25 +13,15 @@ re-extract on every accept, only when the note has settled.
 
 from __future__ import annotations
 
-from typing import Iterator
-
 from lib.agents.producers.note_statements import NoteStatementsAgent
-from lib.backend.addressing import Address
 from lib.predicates import statements_is_fresh
-from lib.protocols.febe.protocol import Session
-from lib.runner import Scope, Trigger, asn_note_addr
-
-
-def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
-    """Yield the source note address for the requested ASN, if any."""
-    addr = asn_note_addr(session, scope)
-    if addr is not None:
-        yield addr
+from lib.runner import Trigger
+from lib.triggers.scope import per_asn_note
 
 
 note_statements = Trigger(
     name="note-statements",
-    scope_query=_scope_query,
+    scope_query=per_asn_note,
     predicate=statements_is_fresh,
     agent=NoteStatementsAgent(),
 )

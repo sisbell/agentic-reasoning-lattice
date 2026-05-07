@@ -3,8 +3,7 @@ claim in the requested ASN.
 
   scope:     each open `comment.revise` link targeting a claim that
              is derived from the requested ASN's source note (CLI),
-             or every active comment.revise targeting any claim
-             (daemon)
+             or every active comment.revise (daemon)
   predicate: has_resolution (skip if a resolution.* link already
              targets the comment)
   agent:     ClaimReviseAgent
@@ -21,9 +20,10 @@ from typing import Iterator
 
 from lib.agents.refiners.claim_revise import ClaimReviseAgent
 from lib.backend.addressing import Address
-from lib.predicates import derived_claims, has_resolution
+from lib.predicates import has_resolution
 from lib.protocols.febe.protocol import Session
-from lib.runner import Scope, Trigger, asn_note_addr
+from lib.runner import Scope, Trigger
+from lib.triggers.scope import _claim_set_for_scope
 
 
 def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
@@ -32,28 +32,17 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
     CLI mode: comments whose target is a claim derived from the
     ASN's source note. Daemon mode: every active comment.revise.
     """
-    if scope.asn_label is not None:
-        note_addr = asn_note_addr(session, scope)
-        if note_addr is None:
-            return
-        claim_addrs = {
-            link.to_set[0]
-            for link in session.active_links("claim")
-            if link.to_set
-        }
-        scope_claims = {
-            d for d in derived_claims(session, note_addr)
-            if d in claim_addrs
-        }
+    if scope.asn_label is None:
         for link in session.active_links("comment.revise"):
-            if not link.to_set:
-                continue
-            if link.to_set[0] not in scope_claims:
-                continue
             yield link.addr
         return
 
+    scope_claims = _claim_set_for_scope(session, scope)
     for link in session.active_links("comment.revise"):
+        if not link.to_set:
+            continue
+        if link.to_set[0] not in scope_claims:
+            continue
         yield link.addr
 
 

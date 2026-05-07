@@ -10,38 +10,19 @@ but no note synthesized yet.
 
 from __future__ import annotations
 
-from typing import Iterator
-
 from lib.agents.producers.note_draft import NoteDraftAgent
 from lib.backend.addressing import Address
 from lib.predicates import (
     has_consultation_for_inquiry, has_note_for_inquiry,
 )
 from lib.protocols.febe.protocol import Session
-from lib.runner import Scope, Trigger
-from lib.shared.paths import LATTICE, inquiry_doc_path
-
-
-def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
-    """Yield inquiry doc addresses to consider this pass."""
-    if scope.asn_label is not None:
-        asn_num = int(scope.asn_label[4:])
-        path = inquiry_doc_path(asn_num)
-        if not path.exists():
-            return
-        rel = str(path.resolve().relative_to(LATTICE.resolve()))
-        addr = session.get_addr_for_path(rel)
-        if addr is not None:
-            yield addr
-        return
-    for link in session.active_links("inquiry"):
-        if link.to_set:
-            yield link.to_set[0]
+from lib.runner import Trigger
+from lib.triggers.scope import per_inquiry_of_asn
 
 
 def _predicate(session: Session, addr: Address) -> bool:
-    """True iff draft has nothing to do — either consult hasn't run
-    yet (wait for inquiry-consult) or the note already exists."""
+    """True (skip) iff draft has nothing to do — either consult hasn't
+    run yet (wait for inquiry-consult) or the note already exists."""
     return (
         not has_consultation_for_inquiry(session, addr)
         or has_note_for_inquiry(session, addr)
@@ -50,7 +31,7 @@ def _predicate(session: Session, addr: Address) -> bool:
 
 note_draft = Trigger(
     name="note-draft",
-    scope_query=_scope_query,
+    scope_query=per_inquiry_of_asn,
     predicate=_predicate,
     agent=NoteDraftAgent(),
 )
