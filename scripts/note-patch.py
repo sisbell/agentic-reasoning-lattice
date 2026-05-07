@@ -70,10 +70,6 @@ def main() -> int:
         "--effort", default="max", help="Thinking effort level",
     )
     parser.add_argument(
-        "--max-cycles", type=int, default=10,
-        help="Max review/revise cycles (default: 10)",
-    )
-    parser.add_argument(
         "--report", action="store_true",
         help="Show impact report without applying",
     )
@@ -122,17 +118,14 @@ def main() -> int:
         if note_addr is None:
             note_addr = session.register_path(note_rel)
 
-        agent = NotePatchAgent(
-            model=args.model,
-            effort=args.effort,
-            max_cycles=args.max_cycles,
-        )
+        agent = NotePatchAgent(model=args.model, effort=args.effort)
         result = agent(session, note_addr, patch_filename=args.patch)
 
     print(f"\n  [DONE] {result.detail}", file=sys.stderr)
     print(
-        f"  [NEXT] Optional full review: "
-        f"python scripts/note-refine.py {args.asn}",
+        f"  [NEXT] Drive convergence on the findings the patch "
+        f"reviewer filed:\n"
+        f"         python scripts/note-refine.py {args.asn}",
         file=sys.stderr,
     )
     return 0 if result.success else 1
