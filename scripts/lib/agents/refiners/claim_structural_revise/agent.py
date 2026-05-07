@@ -434,6 +434,14 @@ def _emit_resolutions_for_findings(
     by_doc is the claim itself; no rationale doc is created — the closure
     fact is captured by the resolution link's tumbler addr + by_doc.
     Returns count of resolutions emitted.
+
+    On `kind="edit"` with at least one resolution emitted, advance the
+    claim's supersession chain via `register_version`. Mirrors the
+    behavior of the LLM-driven refiner path (claim_revise → resolution.py
+    on accept). Without this, downstream sidecar predicates
+    (description_is_fresh, signature_is_fresh, references_is_fresh)
+    would stay True after a structural-edit accept and the producers
+    would fail to re-attest against the new prose.
     """
     n = 0
     for f in findings:
@@ -446,6 +454,8 @@ def _emit_resolutions_for_findings(
             session.store, claim_addr, comment_addr, kind=kind,
         )
         n += 1
+    if kind == "edit" and n > 0:
+        session.register_version(claim_addr)
     return n
 
 
