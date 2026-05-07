@@ -80,12 +80,19 @@ CLAIM_DIR = DOCUVERSE_DOCS_DIR / "claim"
 PATCH_NOTE_DIR = DOCUVERSE_DOCS_DIR / "patch" / "note"
 PATCH_CLAIM_DIR = DOCUVERSE_DOCS_DIR / "patch" / "claim"
 
+# Substrate-citizen extract spec docs. Operator drops the spec md into
+# EXTRACT_INBOX (workspace, gitignored); NoteExtractAgent promotes it to
+# EXTRACT_DIR on fire. The spec doc carries the operator's scout-output:
+# extract_from / create_note / absorb_into / claims plus rationale prose.
+EXTRACT_DIR = DOCUVERSE_DOCS_DIR / "extract"
+
 # Loop work products. Sibling to _docuverse/. Holds artifacts produced
 # by the refinement/derivation loops that aren't themselves
 # substrate-classified documents (scratch caches, intermediate state).
 WORKSPACE_DIR = LATTICE / "_workspace"
 PATCH_INBOX_NOTE = WORKSPACE_DIR / "patches" / "note"
 PATCH_INBOX_CLAIM = WORKSPACE_DIR / "patches" / "claim"
+EXTRACT_INBOX = WORKSPACE_DIR / "extracts"
 
 # Aggregate review docs (classified by `review`). Split by inquiry-target
 # kind so review numbering and substrate queries are scoped per kind.

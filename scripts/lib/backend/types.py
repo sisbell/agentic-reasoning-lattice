@@ -74,6 +74,7 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "references": (29,),
     "patch.note": (30, 1),
     "patch.claim": (30, 2),
+    "extract": (31,),
 }
 
 # Parent-type positions for hierarchical queries (per L10): a query at
@@ -121,6 +122,7 @@ CLASSIFIER_TYPES: frozenset = frozenset({
     "promotion.open-questions",
     "patch.note",
     "patch.claim",
+    "extract",
 })
 
 

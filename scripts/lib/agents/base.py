@@ -50,14 +50,31 @@ class Agent(ABC):
 
     role: ClassVar[str]
 
-    def __call__(self, session: Session, addr: Address) -> AgentResult:
+    def __call__(
+        self, session: Session, addr: Address, **kwargs,
+    ) -> AgentResult:
+        """Open attribution context, run, return result.
+
+        Forwards keyword arguments to `run`. Composite and operator-gated
+        producers commonly take per-fire context (filenames, spec
+        addresses, configuration) via kwargs that the predicate-fired
+        path wouldn't supply — the base class is permissive about this
+        so subclasses can extend `run`'s signature without overriding
+        `__call__`.
+        """
         with agent_context(str(agent_doc_path(self.role))):
             start = time.time()
-            result = self.run(session, addr)
+            result = self.run(session, addr, **kwargs)
             if result.elapsed == 0.0:
                 result.elapsed = time.time() - start
             return result
 
     @abstractmethod
-    def run(self, session: Session, addr: Address) -> AgentResult:
-        """Do the work. Return an AgentResult."""
+    def run(self, session: Session, addr: Address, **kwargs) -> AgentResult:
+        """Do the work. Return an AgentResult.
+
+        Subclasses may extend the signature with additional keyword
+        arguments (e.g. `spec_filename` for operator-gated extract,
+        `patch_filename` for note-patch). Predicate-fired agents
+        ignore the kwargs hatch and accept only `(session, addr)`.
+        """

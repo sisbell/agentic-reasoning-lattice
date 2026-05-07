@@ -18,6 +18,13 @@ VALID_TYPES = frozenset({
     # Substrate-owned (general-purpose document primitives)
     "retraction", "label", "name", "description", "signature", "notation",
     "statements", "references", "patch",
+    # Extract spec — operator's scout-output for note-extract operation.
+    # Carries the operator's intent (extract_from / create_note /
+    # absorb_into / claims) plus rationale prose. Promoted from
+    # workspace into substrate by NoteExtractAgent on each fire.
+    # F=∅, G=[spec_doc] classifier shape; pairs with provenance.extract
+    # audit edge from spec doc to the new note it produced.
+    "extract",
     # Agent module
     "agent", "manages",
     # Lattice membership relation (added in spec-faithful refactor)

@@ -45,3 +45,16 @@ def read_doc_frontmatter(path):
         return {}
     fm, _ = _parse_frontmatter(text)
     return fm
+
+
+def read_doc_with_frontmatter(path):
+    """Read both frontmatter dict and body from a markdown doc.
+
+    Returns (frontmatter_dict, body_str). Returns ({}, "") on missing
+    file. If the file lacks frontmatter, returns ({}, full_text).
+    """
+    try:
+        text = Path(path).read_text()
+    except FileNotFoundError:
+        return {}, ""
+    return _parse_frontmatter(text)

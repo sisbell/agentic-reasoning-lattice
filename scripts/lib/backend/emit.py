@@ -89,6 +89,14 @@ def emit_patch_claim(store: Store, patch_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, patch_doc, "patch.claim")
 
 
+def emit_extract(store: Store, extract_doc: Address) -> Tuple[Link, bool]:
+    """Classifier on an extract spec doc — the operator's scout-output for
+    a note-extract operation, promoted from workspace into substrate by
+    NoteExtractAgent on each fire. Carries the extract_from /
+    create_note / absorb_into / claims intent plus rationale prose."""
+    return emit_classifier(store, extract_doc, "extract")
+
+
 def emit_campaign(store: Store, campaign_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, campaign_doc, "campaign")
 
@@ -537,6 +545,37 @@ def emit_clone(
         from_set=[origin_note],
         to_set=[clone_note],
         type_="provenance.clone",
+    )
+    return link, True
+
+
+def emit_provenance_extract(
+    store: Store, extract_doc: Address, new_note: Address,
+) -> Tuple[Link, bool]:
+    """File a `provenance.extract` link from the extract spec doc to the
+    new note it produced. Records the audit fact: this extract operation
+    (described by spec_doc) produced this new note.
+
+    Idempotent on (spec_doc, new_note). Pairs with the `extract`
+    classifier on the spec doc; together they make the operator's
+    scout-output and the producer's identity grant a closed audit
+    trail.
+    """
+    existing = active_links(
+        store.state,
+        "provenance.extract",
+        from_set=[extract_doc],
+        to_set=[new_note],
+    )
+    for link in existing:
+        if (link.from_set == (extract_doc,)
+                and link.to_set == (new_note,)):
+            return link, False
+    link = store.make_link(
+        homedoc=extract_doc,
+        from_set=[extract_doc],
+        to_set=[new_note],
+        type_="provenance.extract",
     )
     return link, True
 
