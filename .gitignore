@@ -3,6 +3,7 @@
 __pycache__/
 .env
 .claude/
+.idea/
 lattices/*/usage-log.jsonl
 lattices/*/_docuverse/index.db
 lattices/*/_docuverse/_failures/
