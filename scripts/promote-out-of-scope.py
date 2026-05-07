@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""
-Promote Out-of-Scope — evaluate review deferrals for new ASN creation.
+"""Promote Out-of-Scope CLI — thin dispatcher for
+NotePromoteOutOfScopeAgent.
 
-Reads OUT_OF_SCOPE items from an ASN's reviews, asks Claude which warrant
-their own ASN, and creates a substrate-citizen inquiry doc for each
-promoted item plus a `promotion.out-of-scope` audit report.
+Reads OUT_OF_SCOPE items from a source ASN's reviews, asks the LLM
+which warrant their own ASN, creates substrate-citizen inquiry docs
+per promoted item plus a `promotion.out-of-scope` audit report.
 
 Usage:
     python scripts/promote-out-of-scope.py 34
@@ -14,145 +14,63 @@ Usage:
 
 import argparse
 import re
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.protocols.febe.session import open_session
-from lib.shared.paths import LATTICE, REVIEWS_DIR, prompt_path
-from lib.shared.common import find_asn, log_usage, read_file
-from lib.shared.git_ops import step_commit_asn
-from lib.shared.invoke_claude import invoke_claude
-from lib.maturation.promotion_promote import (
-    load_existing_inquiries, next_asn_number, parse_promoted,
-    create_inquiry_doc, load_existing_promotion, save_promotion_report,
+from lib.agents.producers.note_promote_out_of_scope import (
+    NotePromoteOutOfScopeAgent,
 )
-
-TEMPLATE = prompt_path("discovery/promotion/promote-out-of-scope.md")
-
-
-def _collect_out_of_scope(asn_label):
-    """Collect OUT_OF_SCOPE sections from all reviews for an ASN.
-
-    Returns formatted text with source labels.
-    """
-    review_dir = REVIEWS_DIR / asn_label
-    if not review_dir.exists():
-        return ""
-
-    parts = []
-    for review_path in sorted(review_dir.glob("review-*.md")):
-        text = review_path.read_text()
-        # Find OUT_OF_SCOPE section
-        m = re.search(r'## OUT_OF_SCOPE\b(.*?)(?=\n## |\Z)',
-                      text, re.DOTALL)
-        if m:
-            section = m.group(1).strip()
-            if section:
-                parts.append(f"### From {review_path.name}\n\n{section}")
-
-    return "\n\n---\n\n".join(parts) if parts else "(none)"
+from lib.protocols.febe.session import open_session
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
+from lib.shared.paths import LATTICE
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Promote review out-of-scope items into new ASNs")
-    parser.add_argument("asn", help="ASN number (e.g., 34)")
-    parser.add_argument("--model", "-m", default="opus",
-                        choices=["opus", "sonnet"],
-                        help="Model (default: opus)")
-    parser.add_argument("--effort", default="max",
-                        help="Thinking effort level")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show promotion report without creating files")
+        description="Promote review out-of-scope items into new inquiry ASNs.",
+    )
+    parser.add_argument("asn", help="Source ASN number")
+    parser.add_argument(
+        "--model", "-m", default="opus", choices=["opus", "sonnet"],
+    )
+    parser.add_argument(
+        "--effort", default="max", help="Thinking effort level",
+    )
+    parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
-        sys.exit(1)
+        return 1
 
-    # Load template
-    template = read_file(TEMPLATE)
-    if not template:
-        print(f"  Prompt template not found: {TEMPLATE}", file=sys.stderr)
-        sys.exit(1)
-
-    # Collect out-of-scope items from reviews
-    defer_items = _collect_out_of_scope(asn_label)
-    if defer_items == "(none)":
-        print(f"  No OUT_OF_SCOPE items found in reviews for {asn_label}",
-              file=sys.stderr)
-        sys.exit(0)
+    if args.dry_run:
+        print(
+            f"  [DRY RUN] Would promote out-of-scope items from {asn_label} "
+            f"using {args.model}",
+            file=sys.stderr,
+        )
+        return 0
 
     with open_session(LATTICE) as session:
-        # Load existing inquiries for dedup context
-        inquiries_text = load_existing_inquiries(session)
+        note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
+        note_addr = session.get_addr_for_path(note_rel)
+        if note_addr is None:
+            note_addr = session.register_path(note_rel)
 
-        # Load existing promotion for this ASN
-        existing_promotion = load_existing_promotion(asn_num, "out-of-scope")
-
-        # Build prompt
-        prompt = (template
-                  .replace("{{defer_items}}", defer_items)
-                  .replace("{{inquiries}}", inquiries_text)
-                  .replace("{{existing_promotion}}", existing_promotion or "(none)"))
-
-        print(f"  [PROMOTE] {asn_label} — out-of-scope", file=sys.stderr)
-        print(f"  Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
-
-        if args.dry_run:
-            print(f"  [DRY RUN] Would invoke {args.model}", file=sys.stderr)
-            sys.exit(0)
-
-        # Invoke Claude
-        result = invoke_claude(prompt, model=args.model, effort=args.effort)
-        text = result.text
-        log_usage("promote-out-of-scope", result.elapsed, asn=asn_num)
-
-        if not text:
-            print(f"  No output from {args.model}", file=sys.stderr)
-            sys.exit(1)
-
-        # Parse promoted items + create new inquiry docs
-        promoted = parse_promoted(text)
-        promoted_addrs = []
-        if promoted:
-            print(f"\n  {len(promoted)} new ASN(s) promoted:", file=sys.stderr)
-            cur_num = next_asn_number(session)
-            for item in promoted:
-                if "title" not in item or "question" not in item:
-                    print(f"  [SKIP] Incomplete item: {item}", file=sys.stderr)
-                    continue
-                area = item.get("area", "")
-                nelson = item.get("nelson", 10)
-                gregory = item.get("gregory", 10)
-                print(f"    ASN-{cur_num:04d}: {item['title']} [{area}]",
-                      file=sys.stderr)
-                addr = create_inquiry_doc(
-                    session, cur_num, item["title"], item["question"],
-                    area, asn_num, nelson=nelson, gregory=gregory,
-                )
-                promoted_addrs.append(addr)
-                cur_num += 1
-        else:
-            print(f"\n  No new ASNs promoted from {asn_label}", file=sys.stderr)
-
-        # Save promotion report + emit substrate audit edges
-        source_note_addr = session.get_addr_for_path(
-            str(asn_path.relative_to(LATTICE)),
+        agent = NotePromoteOutOfScopeAgent(
+            model=args.model, effort=args.effort,
         )
-        save_promotion_report(
-            session, asn_num, "out-of-scope", text,
-            source_note_addr=source_note_addr,
-            promoted_inquiry_addrs=promoted_addrs,
-        )
+        result = agent(session, note_addr)
 
-    # Commit
     step_commit_asn(asn_num, f"promote(out-of-scope): {asn_label}")
+
+    print(f"\n  [DONE] {result.detail}", file=sys.stderr)
+    return 0 if result.success else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

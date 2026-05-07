@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""
-Promote Open Questions — evaluate ASN open questions for new ASN creation.
+"""Promote Open Questions CLI — thin dispatcher for
+NotePromoteOpenQuestionsAgent.
 
-Reads an ASN's open questions section, asks Claude which warrant their own
-ASN, and creates a substrate-citizen inquiry doc for each promoted
-question plus a `promotion.open-questions` audit report.
+Reads an ASN's Open Questions section, asks the LLM which warrant
+their own ASN, creates substrate-citizen inquiry docs per promoted
+item plus a `promotion.open-questions` audit report.
 
 Usage:
     python scripts/promote-open-questions.py 34
@@ -14,118 +14,63 @@ Usage:
 
 import argparse
 import re
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.protocols.febe.session import open_session
-from lib.shared.paths import LATTICE, prompt_path
-from lib.shared.common import find_asn, log_usage, read_file
-from lib.shared.git_ops import step_commit_asn
-from lib.shared.invoke_claude import invoke_claude
-from lib.maturation.promotion_promote import (
-    load_existing_inquiries, next_asn_number, parse_promoted,
-    create_inquiry_doc, load_existing_promotion, save_promotion_report,
+from lib.agents.producers.note_promote_open_questions import (
+    NotePromoteOpenQuestionsAgent,
 )
+from lib.protocols.febe.session import open_session
+from lib.shared.common import find_asn
+from lib.shared.git_ops import step_commit_asn
+from lib.shared.paths import LATTICE
 
-TEMPLATE = prompt_path("discovery/promotion/promote-open-questions.md")
 
-
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Promote ASN open questions into new ASNs")
-    parser.add_argument("asn", help="ASN number (e.g., 34)")
-    parser.add_argument("--model", "-m", default="opus",
-                        choices=["opus", "sonnet"],
-                        help="Model (default: opus)")
-    parser.add_argument("--effort", default="max",
-                        help="Thinking effort level")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show promotion report without creating files")
+        description="Promote ASN open questions into new inquiry ASNs.",
+    )
+    parser.add_argument("asn", help="Source ASN number")
+    parser.add_argument(
+        "--model", "-m", default="opus", choices=["opus", "sonnet"],
+    )
+    parser.add_argument(
+        "--effort", default="max", help="Thinking effort level",
+    )
+    parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
-        sys.exit(1)
+        return 1
 
-    # Read ASN content
-    asn_content = asn_path.read_text()
-
-    # Load template
-    template = read_file(TEMPLATE)
-    if not template:
-        print(f"  Prompt template not found: {TEMPLATE}", file=sys.stderr)
-        sys.exit(1)
+    if args.dry_run:
+        print(
+            f"  [DRY RUN] Would promote open questions from {asn_label} "
+            f"using {args.model}",
+            file=sys.stderr,
+        )
+        return 0
 
     with open_session(LATTICE) as session:
-        # Load existing inquiries for dedup context
-        inquiries_text = load_existing_inquiries(session)
+        note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
+        note_addr = session.get_addr_for_path(note_rel)
+        if note_addr is None:
+            note_addr = session.register_path(note_rel)
 
-        # Load existing promotion for this ASN
-        existing_promotion = load_existing_promotion(asn_num, "open-questions")
-
-        # Build prompt
-        prompt = (template
-                  .replace("{{asn_content}}", asn_content)
-                  .replace("{{inquiries}}", inquiries_text)
-                  .replace("{{existing_promotion}}", existing_promotion or "(none)"))
-
-        print(f"  [PROMOTE] {asn_label} — open questions", file=sys.stderr)
-        print(f"  Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
-
-        if args.dry_run:
-            print(f"  [DRY RUN] Would invoke {args.model}", file=sys.stderr)
-            sys.exit(0)
-
-        # Invoke Claude
-        result = invoke_claude(prompt, model=args.model, effort=args.effort)
-        text = result.text
-        log_usage("promote-open-questions", result.elapsed, asn=asn_num)
-
-        if not text:
-            print(f"  No output from {args.model}", file=sys.stderr)
-            sys.exit(1)
-
-        # Parse promoted items + create new inquiry docs
-        promoted = parse_promoted(text)
-        promoted_addrs = []
-        if promoted:
-            print(f"\n  {len(promoted)} new ASN(s) promoted:", file=sys.stderr)
-            cur_num = next_asn_number(session)
-            for item in promoted:
-                if "title" not in item or "question" not in item:
-                    print(f"  [SKIP] Incomplete item: {item}", file=sys.stderr)
-                    continue
-                area = item.get("area", "")
-                nelson = item.get("nelson", 10)
-                gregory = item.get("gregory", 10)
-                print(f"    ASN-{cur_num:04d}: {item['title']} [{area}]",
-                      file=sys.stderr)
-                addr = create_inquiry_doc(
-                    session, cur_num, item["title"], item["question"],
-                    area, asn_num, nelson=nelson, gregory=gregory,
-                )
-                promoted_addrs.append(addr)
-                cur_num += 1
-        else:
-            print(f"\n  No new ASNs promoted from {asn_label}", file=sys.stderr)
-
-        # Save promotion report + emit substrate audit edges
-        source_note_addr = session.get_addr_for_path(
-            str(asn_path.relative_to(LATTICE)),
+        agent = NotePromoteOpenQuestionsAgent(
+            model=args.model, effort=args.effort,
         )
-        save_promotion_report(
-            session, asn_num, "open-questions", text,
-            source_note_addr=source_note_addr,
-            promoted_inquiry_addrs=promoted_addrs,
-        )
+        result = agent(session, note_addr)
 
-    # Commit
     step_commit_asn(asn_num, f"promote(open-questions): {asn_label}")
+
+    print(f"\n  [DONE] {result.detail}", file=sys.stderr)
+    return 0 if result.success else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

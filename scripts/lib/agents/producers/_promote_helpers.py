@@ -1,32 +1,32 @@
-"""
-Promotion step functions — shared by open-questions and out-of-scope orchestrators.
+"""Shared helpers for the two promote producers.
 
-- load_existing_inquiries: walk substrate inquiry classifiers, read title +
-  question from each inquiry doc's frontmatter
-- next_asn_number: walk substrate inquiry classifiers, return max ASN num + 1
-- parse_promoted: parse LLM promotion output into structured items
-- create_inquiry_doc: write a new substrate-citizen inquiry doc + emit classifier
-- load_existing_promotion: read previous promotion report from substrate path
-- save_promotion_report: write report + emit promotion classifier + provenance edges
+`note_promote_open_questions` and `note_promote_out_of_scope` differ
+in input source (note body vs review files) and prompt template, but
+share the substrate-side machinery: walking active inquiries for
+dedup context, allocating new ASN numbers, parsing the LLM's
+verdicts, creating inquiry docs, persisting the report with audit
+edges.
+
+These helpers exist to keep both agents lean. They don't carry any
+caste-specific logic — pure scaffolding around the substrate writes.
 """
+
+from __future__ import annotations
 
 import re
 import sys
-from pathlib import Path
+from typing import Iterable, List, Tuple
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.backend.emit import (
-    emit_derivation, emit_inquiry, emit_promotion,
-)
-from lib.shared.common import find_asn
+from lib.backend.addressing import Address
+from lib.backend.emit import emit_derivation, emit_inquiry, emit_promotion
+from lib.protocols.febe.protocol import Session
 from lib.shared.frontmatter import read_doc_frontmatter
 from lib.shared.paths import (
-    INQUIRY_DIR, LATTICE, WORKSPACE,
-    inquiry_doc_path, promotion_doc_path,
+    LATTICE, WORKSPACE, inquiry_doc_path, promotion_doc_path,
 )
 
 
-def _inquiry_addrs(session):
+def _inquiry_addrs(session: Session) -> Iterable[Tuple[int, Address]]:
     """Yield (asn_num, addr) for every active inquiry classifier."""
     for link in session.active_links("inquiry"):
         if not link.to_set:
@@ -40,10 +40,11 @@ def _inquiry_addrs(session):
             yield int(m.group(1)), addr
 
 
-def load_existing_inquiries(session):
+def load_existing_inquiries(session: Session) -> str:
     """Read title + question from every active inquiry doc.
 
     Returns formatted text for injection into the promotion prompt.
+    Used by both promote agents to give the LLM dedup context.
     """
     entries = []
     for asn_num, _ in sorted(_inquiry_addrs(session)):
@@ -51,26 +52,24 @@ def load_existing_inquiries(session):
         title = front.get("title", "")
         question = front.get("question", "")
         if title:
-            entries.append(
-                f"- ASN-{asn_num:04d}: {title} — {question}"
-            )
+            entries.append(f"- ASN-{asn_num:04d}: {title} — {question}")
     return "\n".join(entries) if entries else "(none)"
 
 
-def next_asn_number(session):
-    """Return the next available ASN number.
+def next_asn_number(session: Session) -> int:
+    """Return the next available ASN number (max + 1 over active inquiries).
 
-    Sourced from substrate: max ASN num over active inquiry classifiers + 1.
-    Inquiry-to-ASN is 1-1 by construction; no manifests-dir scan needed.
+    Inquiry-to-ASN is 1-1 by construction; no manifests-dir scan.
     """
     nums = [n for n, _ in _inquiry_addrs(session)]
     return max(nums, default=0) + 1
 
 
-def parse_promoted(text):
+def parse_promoted(text: str) -> List[dict]:
     """Parse LLM promotion output into list of promoted items.
 
     Each item is a dict with keys: title, question, area, nelson, gregory.
+    Both promote agents use the same output schema.
     """
     items = []
     in_promoted = False
@@ -92,7 +91,6 @@ def parse_promoted(text):
         if not in_promoted:
             continue
 
-        # New promoted question
         if stripped.startswith("- **"):
             if current:
                 items.append(current)
@@ -102,7 +100,6 @@ def parse_promoted(text):
         if current is None:
             continue
 
-        # Parse metadata lines
         if stripped.startswith("- Title:"):
             current["title"] = stripped[len("- Title:"):].strip()
         elif stripped.startswith("- Question:"):
@@ -122,23 +119,21 @@ def parse_promoted(text):
 
     if current:
         items.append(current)
-
     return items
 
 
 def create_inquiry_doc(
-    session, asn_num, title, question, area, source_asn,
-    nelson=10, gregory=10,
-):
-    """Create a new substrate-citizen inquiry doc for a promoted item.
+    session: Session, asn_num: int, title: str, question: str,
+    area: str, source_asn: int,
+    nelson: int = 10, gregory: int = 10,
+) -> Address:
+    """Create a substrate-citizen inquiry doc for a promoted item.
 
-    Writes the inquiry frontmatter + body to the canonical inquiry
-    path, registers the path in substrate, and emits the `inquiry`
-    classifier. Returns the new inquiry's substrate address.
+    Writes inquiry frontmatter + body, registers the path, emits the
+    `inquiry` classifier. Returns the new inquiry's address.
     """
     path = inquiry_doc_path(asn_num)
     path.parent.mkdir(parents=True, exist_ok=True)
-
     body = (
         f"---\n"
         f'title: "{title}"\n'
@@ -154,16 +149,14 @@ def create_inquiry_doc(
         f"# Inquiry: {title}\n"
     )
     path.write_text(body)
-
     rel = str(path.relative_to(LATTICE))
     addr = session.store.register_path(rel)
     emit_inquiry(session.store, addr)
-
     print(f"  [CREATED] {path.relative_to(WORKSPACE)}", file=sys.stderr)
     return addr
 
 
-def load_existing_promotion(asn_num, kind):
+def load_existing_promotion(asn_num: int, kind: str) -> str:
     """Read previous promotion report's content. Returns "" if missing."""
     path = promotion_doc_path(asn_num, kind)
     if path.exists():
@@ -172,19 +165,16 @@ def load_existing_promotion(asn_num, kind):
 
 
 def save_promotion_report(
-    session, asn_num, kind, text, *, source_note_addr=None,
-    promoted_inquiry_addrs=(),
-):
-    """Persist the promotion report + emit substrate audit edges.
+    session: Session, asn_num: int, kind: str, text: str,
+    *, source_note_addr: Address | None = None,
+    promoted_inquiry_addrs: Iterable[Address] = (),
+) -> Address:
+    """Persist the report + emit substrate audit edges.
 
-    1. Writes the report markdown at the canonical promotion path.
-    2. Registers the path; emits `promotion.<kind>` classifier
-       (idempotent on re-run — same path, same address).
-    3. Emits `provenance.derivation` from the source ASN's note to
-       the report (idempotent).
-    4. Emits `provenance.derivation` from the report to each newly
-       minted inquiry (idempotent — re-runs that promote the same
-       item again hit the existing edge).
+    1. Writes the report at the canonical promotion path.
+    2. Registers; emits `promotion.<kind>` classifier (idempotent on re-run).
+    3. Emits `provenance.derivation(source_note → report)`.
+    4. Emits `provenance.derivation(report → each new inquiry)`.
     """
     path = promotion_doc_path(asn_num, kind)
     path.parent.mkdir(parents=True, exist_ok=True)
