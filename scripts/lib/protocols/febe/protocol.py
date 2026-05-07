@@ -25,8 +25,8 @@ middle-end terms mapped onto modern N-tier):
 - **Provenance scope** — as_agent, attributed_to. Domain-neutral
   attribution wrapper.
 - **Middleware** — search_content, probe_remote, analyze_bridge,
-  etc. (deferred; add to this Protocol when `lib/middle_end/`
-  begins.)
+  etc. (deferred; add to this Protocol when `lib/scout_services/`
+  graduates from stubs.)
 
 ## BEBE dispatch
 

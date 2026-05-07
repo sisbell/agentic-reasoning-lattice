@@ -10,8 +10,14 @@ Caste-defining axes:
 - Create-side (grant new substrate identity — finding docs)
 - Working surface: structural form / graph patterns, not content prose
 
-The agent-castes doc earmarks `lib/middle_end/` as the architectural
-home for the caste; this directory is the practical home for scout
-Agent classes that participate in the runner. Future scouts:
-reconciliation predicates, claim-s-components, duplicate-detection.
+Helpers consumed by scouts (similarity scoring, bridge analysis,
+future s-components / reconciliation primitives) live in
+`lib/scout_services/`. The scouts themselves — predicate-fired Agent
+classes that the runner walks — live here.
+
+Current scouts:
+- `claim_structural_audit` — runs the structural validator per claim
+- `bridge_probe` — discovers cross-lattice bridges via similarity probes
+
+Future: reconciliation, s-components, duplicate-detection.
 """

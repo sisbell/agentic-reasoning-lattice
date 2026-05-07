@@ -1,9 +1,10 @@
-"""Stub-level tests for lib/middle_end/.
+"""Stub-level tests for lib/scout_services/ + the BridgeProbeAgent scout.
 
-These verify the architectural skeleton — package imports clean,
-Protocol is satisfied by the stub implementation, stubs return
-expected default-shaped values. Real behavior tests arrive when
-actual implementations land.
+These verify the architectural skeleton — packages import clean,
+SimilarityService Protocol is satisfied by LLMJudgeSimilarity, stubs
+return expected default-shaped values, the BridgeProbeAgent class
+shape is correct. Real behavior tests arrive when actual
+implementations land.
 """
 
 import sys
@@ -12,25 +13,26 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
+from lib.agents.scouts.bridge_probe import (
+    BridgeProbeAgent,
+    ProbeResult,
+    confirm_connection,
+    mark_saturated,
+    probe_remote,
+)
 from lib.backend.addressing import Address
 from lib.backend.state import State
 from lib.protocols.febe.session import Session
-from lib.middle_end import (
+from lib.scout_services import (
     CandidateMatch,
     LLMJudgeSimilarity,
     SimilarityScore,
     SimilarityService,
 )
-from lib.middle_end.bridge import (
+from lib.scout_services.bridge import (
     BridgeReport,
     analyze_bridge,
     suggest_probe_targets,
-)
-from lib.middle_end.probe import (
-    ProbeResult,
-    confirm_connection,
-    mark_saturated,
-    probe_remote,
 )
 
 
@@ -61,8 +63,8 @@ class SimilarityProtocolTests(unittest.TestCase):
         self.assertEqual("claude-sonnet-4-6", judge.model)
 
 
-class ProbeStubTests(unittest.TestCase):
-    """Probe primitives are stubbed but return correct-shaped values."""
+class BridgeProbeStubTests(unittest.TestCase):
+    """Bridge-probe scout primitives are stubbed but correctly shaped."""
 
     def setUp(self):
         backend = State(account=Address("1.1.0.1"))
@@ -88,6 +90,32 @@ class ProbeStubTests(unittest.TestCase):
     def test_mark_saturated_raises_not_implemented(self):
         with self.assertRaises(NotImplementedError):
             mark_saturated(self.session, Address("1.1.0.1.0.1.5"))
+
+
+class BridgeProbeAgentTests(unittest.TestCase):
+    """BridgeProbeAgent class shape is correct; run() raises stub error."""
+
+    def test_role_is_set(self):
+        self.assertEqual("bridge-probe", BridgeProbeAgent.role)
+
+    def test_default_similarity_is_llm_judge(self):
+        agent = BridgeProbeAgent()
+        self.assertIsInstance(agent.similarity, LLMJudgeSimilarity)
+
+    def test_similarity_is_injectable(self):
+        custom = LLMJudgeSimilarity(model="claude-sonnet-4-6")
+        agent = BridgeProbeAgent(similarity=custom)
+        self.assertIs(custom, agent.similarity)
+
+    def test_run_raises_not_implemented(self):
+        backend = State(account=Address("1.1.0.1"))
+        session = Session(backend)
+        agent = BridgeProbeAgent()
+        with self.assertRaises(NotImplementedError):
+            agent.run(
+                session, Address("1.1.0.1.0.1.2"),
+                remote_lattice="materials",
+            )
 
 
 class BridgeStubTests(unittest.TestCase):
@@ -126,7 +154,6 @@ class DataclassesTests(unittest.TestCase):
         self.assertEqual("materials", m.remote_lattice)
 
     def test_bridge_report_default_gap_regions(self):
-        from typing import Tuple
         r = BridgeReport(
             bridge_id=Address("1.1.0.1.0.1.5"),
             endpoints=(Address("1.1.0.1.0.1.2"),
