@@ -3,6 +3,9 @@
 Walk classifier link types and surface the docs they classify.
 Includes the `contract.<kind>` reverse lookup for contract-kind
 introspection.
+
+Single-kind presence predicates are generated via
+`lib/predicates/factory.py`'s `is_classifier(kind)` template.
 """
 
 from __future__ import annotations
@@ -11,6 +14,8 @@ from typing import List, Optional, Set
 
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
+
+from .factory import is_classifier
 
 
 def all_claim_addrs(session: Session) -> List[Address]:
@@ -119,13 +124,14 @@ def all_classified(session: Session, kind: str) -> List[Address]:
     return sorted(out, key=lambda a: a.digits)
 
 
-def is_retired(session: Session, doc_addr: Address) -> bool:
-    """True iff the doc has an active `retired` classifier link.
-
-    Lifecycle marker per the standalone-link pattern: presence means
-    out of the active lattice. Retracting the link revives the doc.
-    """
-    return bool(session.active_links("retired", to_set=[doc_addr]))
+is_retired = is_classifier("retired")
+is_retired.__doc__ = (
+    "True iff the doc has an active `retired` classifier link.\n"
+    "\n"
+    "Lifecycle marker per the standalone-link pattern: presence "
+    "means out of the active lattice. Retracting the link revives "
+    "the doc."
+)
 
 
 def is_review_decomposed(session: Session, review_addr: Address) -> bool:
