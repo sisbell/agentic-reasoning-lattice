@@ -24,7 +24,100 @@ from .addressing import Address
 from .links import Link
 from .predicates import active_links
 from .schema import REQUIRES_SUBTYPE, VALID_SUBTYPES, validate_type
+from .shapes import LinkShape, shape_for
 from .store import Store
+
+
+# ============================================================
+#  Generic typed emit primitive
+# ============================================================
+#
+# `emit()` reads the link's shape from the registry, validates F/G
+# cardinality, runs the active-set existence check (when the shape is
+# idempotent), and writes the link. The semantic helpers below
+# (emit_claim, emit_citation, emit_review_coverage, etc.) are thin
+# wrappers that supply the type and bind F/G into named arguments.
+
+
+def _validate_cardinality(shape: LinkShape, from_set, to_set) -> None:
+    def check(name, expected, actual):
+        if expected == "empty" and actual:
+            raise ValueError(
+                f"{name} must be empty for this shape; got {actual!r}"
+            )
+        if expected == "one" and len(actual) != 1:
+            raise ValueError(
+                f"{name} must have exactly one address for this shape; "
+                f"got {len(actual)}"
+            )
+        if expected == "one_or_empty" and len(actual) > 1:
+            raise ValueError(
+                f"{name} must be empty or exactly one address; "
+                f"got {len(actual)}"
+            )
+
+    check("from_set", shape.f_cardinality, from_set)
+    check("to_set", shape.g_cardinality, to_set)
+
+
+def _default_homedoc(
+    shape: LinkShape, from_set, to_set,
+) -> Address:
+    """Pick the canonical homedoc for a shape.
+
+    Convention: classifier-shape links (F=∅) home in G[0]; everything
+    else homes in F[0]. Callers can override by passing homedoc
+    explicitly.
+    """
+    if shape.f_cardinality == "empty":
+        return to_set[0]
+    return from_set[0]
+
+
+def emit(
+    store: Store,
+    type_: str,
+    *,
+    from_set: Optional[List[Address]] = None,
+    to_set: Optional[List[Address]] = None,
+    homedoc: Optional[Address] = None,
+) -> Tuple[Link, bool]:
+    """Typed substrate emit — shape-validated, idempotent by shape.
+
+    Reads the link's shape from the registry (lib/backend/shapes.py),
+    validates F/G cardinality, runs the active-set existence check
+    when the shape is idempotent, and writes the link. Returns
+    (link, created) — `created` is False if an active equivalent
+    already existed (idempotent shapes only).
+    """
+    validate_type(type_)
+    shape = shape_for(type_)
+
+    f = list(from_set or ())
+    g = list(to_set or ())
+    _validate_cardinality(shape, f, g)
+
+    if homedoc is None:
+        homedoc = _default_homedoc(shape, f, g)
+
+    if shape.idempotent:
+        existing = active_links(
+            store.state, type_,
+            from_set=f or None,
+            to_set=g or None,
+        )
+        for link in existing:
+            if (tuple(link.from_set) == tuple(f)
+                    and tuple(link.to_set) == tuple(g)):
+                return link, False
+
+    link = store.make_link(
+        homedoc=homedoc,
+        from_set=f,
+        to_set=g,
+        type_=type_,
+    )
+    return link, True
 
 
 # ============================================================
@@ -39,18 +132,9 @@ def emit_classifier(
 
     Idempotent on the active-classifier set — if a classifier of the
     same kind already targets doc, returns its (link, False) without
-    re-emitting. The classifier link is homed in doc per spec
-    convention (F=∅, so homedoc = G[0]).
+    re-emitting.
     """
-    validate_type(kind)
-    existing = active_links(store.state, kind, to_set=[doc])
-    for link in existing:
-        if not link.from_set and link.to_set == (doc,):
-            return link, False
-    link = store.make_link(
-        homedoc=doc, from_set=[], to_set=[doc], type_=kind,
-    )
-    return link, True
+    return emit(store, kind, to_set=[doc])
 
 
 def emit_claim(store: Store, claim_doc: Address) -> Tuple[Link, bool]:
@@ -157,18 +241,10 @@ def emit_review_coverage(
     confirmation predicate today, by coverage / staleness predicates
     later. See docs/hypergraph-protocol/review-coverage.md.
     """
-    existing = active_links(
-        store.state, "review.coverage",
+    return emit(
+        store, "review.coverage",
         from_set=[review_meta], to_set=[covered],
     )
-    if existing:
-        return existing[0], False
-    link = store.make_link(
-        homedoc=review_meta,
-        from_set=[review_meta], to_set=[covered],
-        type_="review.coverage",
-    )
-    return link, True
 
 
 def emit_finding(store: Store, finding_doc: Address) -> Tuple[Link, bool]:
@@ -199,25 +275,16 @@ def emit_supersession(
 
     Per LM 4/52-4/53: a supersession link records "this version
     replaces that one." F=[superseded], G=[succeeding]. Idempotent on
-    (superseded, succeeding) — if the same edge already exists active,
-    returns it without re-emitting.
+    (superseded, succeeding).
 
     Reading: walk outgoing supersession from any address to find what
     replaces it. The head version is the address with no outgoing
     supersession link.
     """
-    existing = active_links(
-        store.state, "supersession",
+    return emit(
+        store, "supersession",
         from_set=[superseded], to_set=[succeeding],
     )
-    if existing:
-        return existing[0], False
-    link = store.make_link(
-        homedoc=superseded,
-        from_set=[superseded], to_set=[succeeding],
-        type_="supersession",
-    )
-    return link, True
 
 
 def emit_retired(
@@ -239,22 +306,10 @@ def emit_extends(
 ) -> Tuple[Link, bool]:
     """Declare that `ext_note` is an extension of `base_note`.
 
-    F=[ext_note], G=[base_note]. Idempotent on (ext, base) — re-emitting
-    returns the existing link. Reverse-walked by find-extensions queries
-    ("what extends ASN-NNNN?").
+    F=[ext_note], G=[base_note]. Idempotent on (ext, base). Reverse-
+    walked by find-extensions queries ("what extends ASN-NNNN?").
     """
-    existing = active_links(
-        store.state, "extends",
-        from_set=[ext_note], to_set=[base_note],
-    )
-    if existing:
-        return existing[0], False
-    link = store.make_link(
-        homedoc=ext_note,
-        from_set=[ext_note], to_set=[base_note],
-        type_="extends",
-    )
-    return link, True
+    return emit(store, "extends", from_set=[ext_note], to_set=[base_note])
 
 
 def emit_source(
@@ -266,18 +321,7 @@ def emit_source(
     extension carved from multiple origins, emit one source link per
     origin.
     """
-    existing = active_links(
-        store.state, "source",
-        from_set=[ext_note], to_set=[origin_note],
-    )
-    if existing:
-        return existing[0], False
-    link = store.make_link(
-        homedoc=ext_note,
-        from_set=[ext_note], to_set=[origin_note],
-        type_="source",
-    )
-    return link, True
+    return emit(store, "source", from_set=[ext_note], to_set=[origin_note])
 
 
 def emit_transclusion(
@@ -341,18 +385,10 @@ def emit_consultation_coverage(
     by a consultation?" and "what answers exist for this finding?"
     via substrate, instead of relying on filename conventions.
     """
-    existing = active_links(
-        store.state, "consultation.coverage",
+    return emit(
+        store, "consultation.coverage",
         from_set=[source], to_set=[finding],
     )
-    if existing:
-        return existing[0], False
-    link = store.make_link(
-        homedoc=source,
-        from_set=[source], to_set=[finding],
-        type_="consultation.coverage",
-    )
-    return link, True
 
 
 # ============================================================
@@ -366,7 +402,7 @@ def emit_attribute_link(
     """File an attribute link from doc to its sidecar (label, name,
     description, signature, statements). Pure substrate primitive:
     takes addresses, emits the link. Idempotent on the active-
-    attribute set. Homedoc = doc (the link's source).
+    attribute set.
     """
     from .schema import VALID_ATTRIBUTE_KINDS
     if kind not in VALID_ATTRIBUTE_KINDS:
@@ -374,14 +410,7 @@ def emit_attribute_link(
             f"invalid attribute kind {kind!r}; must be one of "
             f"{sorted(VALID_ATTRIBUTE_KINDS)}"
         )
-    existing = active_links(store.state, kind, from_set=[doc], to_set=[sidecar])
-    for link in existing:
-        if link.from_set == (doc,) and link.to_set == (sidecar,):
-            return link, False
-    link = store.make_link(
-        homedoc=doc, from_set=[doc], to_set=[sidecar], type_=kind,
-    )
-    return link, True
+    return emit(store, kind, from_set=[doc], to_set=[sidecar])
 
 
 def emit_signature(
@@ -434,20 +463,10 @@ def emit_citation(
             f"invalid citation direction {direction!r}; "
             f"must be one of {sorted(valid)}"
         )
-    type_str = f"citation.{direction}"
-    existing = active_links(
-        store.state, type_str, from_set=[citing], to_set=[cited],
+    return emit(
+        store, f"citation.{direction}",
+        from_set=[citing], to_set=[cited],
     )
-    for link in existing:
-        if link.from_set == (citing,) and link.to_set == (cited,):
-            return link, False
-    link = store.make_link(
-        homedoc=citing,
-        from_set=[citing],
-        to_set=[cited],
-        type_=type_str,
-    )
-    return link, True
 
 
 # ============================================================
@@ -462,16 +481,14 @@ def emit_retraction(
 ) -> Link:
     """File a retraction link nullifying target_link.
 
-    Convention (matches legacy substrate): F=[by_doc], G=[target_link],
-    homedoc=by_doc. The catalog's stated F=∅ shape will be reconciled
-    later; this emits in the form the substrate has.
+    F=[by_doc], G=[target_link]. NOT idempotent — each retraction is
+    its own fact (the shape's idempotent=False).
     """
-    return store.make_link(
-        homedoc=by_doc,
-        from_set=[by_doc],
-        to_set=[target_link],
-        type_="retraction",
+    link, _ = emit(
+        store, "retraction",
+        from_set=[by_doc], to_set=[target_link],
     )
+    return link
 
 
 # ============================================================
@@ -486,23 +503,10 @@ def emit_derivation(
 
     Idempotent on (source, derived).
     """
-    existing = active_links(
-        store.state,
-        "provenance.derivation",
-        from_set=[source_doc],
-        to_set=[derived_doc],
+    return emit(
+        store, "provenance.derivation",
+        from_set=[source_doc], to_set=[derived_doc],
     )
-    for link in existing:
-        if (link.from_set == (source_doc,)
-                and link.to_set == (derived_doc,)):
-            return link, False
-    link = store.make_link(
-        homedoc=source_doc,
-        from_set=[source_doc],
-        to_set=[derived_doc],
-        type_="provenance.derivation",
-    )
-    return link, True
 
 
 def emit_empty_derivation(
@@ -521,21 +525,10 @@ def emit_empty_derivation(
 
     Idempotent on (source, ∅) — re-emit returns the existing link.
     """
-    existing = active_links(
-        store.state,
-        "provenance.derivation",
-        from_set=[source_doc],
+    return emit(
+        store, "provenance.derivation",
+        from_set=[source_doc], to_set=[],
     )
-    for link in existing:
-        if link.from_set == (source_doc,) and not link.to_set:
-            return link, False
-    link = store.make_link(
-        homedoc=source_doc,
-        from_set=[source_doc],
-        to_set=[],
-        type_="provenance.derivation",
-    )
-    return link, True
 
 
 def emit_provenance_clone(
@@ -551,23 +544,10 @@ def emit_provenance_clone(
     Distinct from `emit_clone`, which is the spec-doc classifier
     helper.
     """
-    existing = active_links(
-        store.state,
-        "provenance.clone",
-        from_set=[origin_note],
-        to_set=[clone_note],
+    return emit(
+        store, "provenance.clone",
+        from_set=[origin_note], to_set=[clone_note],
     )
-    for link in existing:
-        if (link.from_set == (origin_note,)
-                and link.to_set == (clone_note,)):
-            return link, False
-    link = store.make_link(
-        homedoc=origin_note,
-        from_set=[origin_note],
-        to_set=[clone_note],
-        type_="provenance.clone",
-    )
-    return link, True
 
 
 def emit_provenance_extract(
@@ -582,23 +562,10 @@ def emit_provenance_extract(
     scout-output and the producer's identity grant a closed audit
     trail.
     """
-    existing = active_links(
-        store.state,
-        "provenance.extract",
-        from_set=[extract_doc],
-        to_set=[new_note],
+    return emit(
+        store, "provenance.extract",
+        from_set=[extract_doc], to_set=[new_note],
     )
-    for link in existing:
-        if (link.from_set == (extract_doc,)
-                and link.to_set == (new_note,)):
-            return link, False
-    link = store.make_link(
-        homedoc=extract_doc,
-        from_set=[extract_doc],
-        to_set=[new_note],
-        type_="provenance.extract",
-    )
-    return link, True
 
 
 def emit_provenance_absorb(
@@ -613,45 +580,19 @@ def emit_provenance_absorb(
     classifier on the spec doc; together they close the audit trail
     of operator intent → integration outcome.
     """
-    existing = active_links(
-        store.state,
-        "provenance.absorb",
-        from_set=[absorb_doc],
-        to_set=[base_note],
+    return emit(
+        store, "provenance.absorb",
+        from_set=[absorb_doc], to_set=[base_note],
     )
-    for link in existing:
-        if (link.from_set == (absorb_doc,)
-                and link.to_set == (base_note,)):
-            return link, False
-    link = store.make_link(
-        homedoc=absorb_doc,
-        from_set=[absorb_doc],
-        to_set=[base_note],
-        type_="provenance.absorb",
-    )
-    return link, True
 
 
 def emit_synthesis(
     store: Store, inquiry_doc: Address, note_doc: Address,
 ) -> Tuple[Link, bool]:
-    existing = active_links(
-        store.state,
-        "provenance.synthesis",
-        from_set=[inquiry_doc],
-        to_set=[note_doc],
+    return emit(
+        store, "provenance.synthesis",
+        from_set=[inquiry_doc], to_set=[note_doc],
     )
-    for link in existing:
-        if (link.from_set == (inquiry_doc,)
-                and link.to_set == (note_doc,)):
-            return link, False
-    link = store.make_link(
-        homedoc=inquiry_doc,
-        from_set=[inquiry_doc],
-        to_set=[note_doc],
-        type_="provenance.synthesis",
-    )
-    return link, True
 
 
 # ============================================================
@@ -669,19 +610,19 @@ def emit_comment(
     """File a comment.<kind> link from review doc to target.
 
     Comments are not idempotent (each review cycle's comments are
-    independent facts).
+    independent facts). The shape's idempotent=False ensures the
+    generic emit() always writes a fresh link.
     """
     valid = VALID_SUBTYPES["comment"]
     if kind not in valid:
         raise ValueError(
             f"invalid comment kind {kind!r}; must be one of {sorted(valid)}"
         )
-    return store.make_link(
-        homedoc=review_doc,
-        from_set=[review_doc],
-        to_set=[target_doc],
-        type_=f"comment.{kind}",
+    link, _ = emit(
+        store, f"comment.{kind}",
+        from_set=[review_doc], to_set=[target_doc],
     )
+    return link
 
 
 def emit_resolution(
@@ -693,21 +634,19 @@ def emit_resolution(
 ) -> Link:
     """File a resolution.<kind> link closing a comment.
 
-    Substrate convention (matches legacy + migrated data): F=[by_doc]
-    (the doc that was revised, or the rationale doc on rejection),
-    G=[comment_addr]. homedoc=by_doc.
+    F=[by_doc], G=[comment_link_addr]. Self-referential (G targets a
+    link). NOT idempotent — each closure is its own fact.
     """
     valid = VALID_SUBTYPES["resolution"]
     if kind not in valid:
         raise ValueError(
             f"invalid resolution kind {kind!r}; must be one of {sorted(valid)}"
         )
-    return store.make_link(
-        homedoc=by_doc,
-        from_set=[by_doc],
-        to_set=[comment],
-        type_=f"resolution.{kind}",
+    link, _ = emit(
+        store, f"resolution.{kind}",
+        from_set=[by_doc], to_set=[comment],
     )
+    return link
 
 
 # ============================================================
@@ -733,14 +672,15 @@ def emit_manages(
     """File a `manages` attribution link from agent to operation_link.
 
     Manages links are NOT idempotent — each operation gets its own
-    fresh manages emission marking who's responsible for it.
+    fresh manages emission marking who's responsible for it. The
+    shape's idempotent=False ensures the generic emit() always
+    writes a fresh link.
     """
-    return store.make_link(
-        homedoc=agent_doc,
-        from_set=[agent_doc],
-        to_set=[operation_link],
-        type_="manages",
+    link, _ = emit(
+        store, "manages",
+        from_set=[agent_doc], to_set=[operation_link],
     )
+    return link
 
 
 
