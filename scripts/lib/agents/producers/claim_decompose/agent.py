@@ -38,9 +38,7 @@ from lib.lattice.attributes import attest_attribute
 from lib.protocols.febe.protocol import Session
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import parallel_llm_calls
-from lib.shared.paths import (
-    CLAIM_DERIVATION_DIR, CLAIM_DIR, WORKSPACE, transclusion_path,
-)
+from lib.shared.paths import CLAIM_DIR, WORKSPACE, transclusion_path
 
 
 # Sections that are structural — no LLM analysis needed.
@@ -137,8 +135,6 @@ class ClaimDecomposeAgent(Agent):
         asn_label = m.group(1)
         asn_number = int(asn_label[4:])
 
-        sections_dir = CLAIM_DERIVATION_DIR / asn_label / "sections"
-        sections_dir.mkdir(parents=True, exist_ok=True)
         asn_text = asn_path.read_text()
 
         print(f"\n  [DECOMPOSE] {asn_label}", file=sys.stderr)
@@ -155,19 +151,16 @@ class ClaimDecomposeAgent(Agent):
         for i, (header, content) in enumerate(sections):
             slug = "preamble" if header == "PREAMBLE" else _slugify(header)
             filename = f"{i:02d}-{slug}"
-            (sections_dir / f"{filename}.md").write_text(
-                content.strip() + "\n",
-            )
             lines = len(content.strip().split("\n"))
             if _is_structural(header):
                 print(
-                    f"    {filename}.md  ({lines} lines) [structural, skip]",
+                    f"    {filename}  ({lines} lines) [structural, skip]",
                     file=sys.stderr,
                 )
                 skipped += 1
             else:
                 print(
-                    f"    {filename}.md  ({lines} lines)",
+                    f"    {filename}  ({lines} lines)",
                     file=sys.stderr,
                 )
                 items.append((i, header, content.strip()))
