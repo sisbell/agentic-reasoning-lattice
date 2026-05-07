@@ -169,3 +169,77 @@ def citation_incoming(
         f"Docs that cite `doc` via `citation.{direction}` (active set)."
     )
     return lookup
+
+
+# ─── Coverage / latest-source predicates ───────────────────────────
+
+
+def latest_via_coverage(
+    coverage_type: str,
+    source_classifier: str,
+) -> Callable[[Session, Address], Optional[Address]]:
+    """Generate `latest_<X>_for_addr(addr)` — the most recent source of
+    a `coverage_type` link to `addr`, restricted to sources carrying
+    a `source_classifier`.
+
+    "Most recent" is the link with the largest tumbler address among
+    qualifying coverage links (links allocate monotonically, so the
+    largest-addressed active link is the latest emission).
+    """
+    def lookup(session: Session, addr: Address) -> Optional[Address]:
+        coverage_links = [
+            link for link in session.active_links(
+                coverage_type, to_set=[addr],
+            )
+            if link.from_set
+        ]
+        filtered = [
+            link for link in coverage_links
+            if session.active_links(
+                source_classifier, to_set=[link.from_set[0]],
+            )
+        ]
+        if not filtered:
+            return None
+        latest = max(filtered, key=lambda link: link.addr.digits)
+        return latest.from_set[0]
+
+    lookup.__name__ = (
+        f"latest_{source_classifier.replace('.', '_')}_for_addr"
+    )
+    lookup.__doc__ = (
+        f"Most recent `{source_classifier}`-classified source whose "
+        f"`{coverage_type}` link targets addr, or None."
+    )
+    return lookup
+
+
+# ─── Resolution predicates ─────────────────────────────────────────
+
+
+def all_resolved(
+    comment_kind: str,
+) -> Callable[[Session, Address], bool]:
+    """Generate `all_<comment_kind>_resolved(addr)` — True iff every
+    active `comment_kind` link targeting `addr` has an active
+    `resolution` link.
+
+    The protocol predicate template: a target is "resolved for kind"
+    when every comment of that kind targeting it has been closed.
+    `is_doc_quiescent` is `all_resolved("comment.revise")`;
+    `is_claim_structurally_clean` is `all_resolved("comment.violation")`.
+    """
+    def predicate(session: Session, addr: Address) -> bool:
+        for link in session.active_links(comment_kind, to_set=[addr]):
+            if not session.active_links("resolution", to_set=[link.addr]):
+                return False
+        return True
+
+    predicate.__name__ = (
+        f"all_{comment_kind.replace('.', '_')}_resolved"
+    )
+    predicate.__doc__ = (
+        f"True iff every active `{comment_kind}` targeting addr has "
+        f"an active `resolution`."
+    )
+    return predicate

@@ -30,6 +30,8 @@ from lib.backend.addressing import Address
 from lib.backend.links import Link
 from lib.protocols.febe.protocol import Session
 
+from .factory import all_resolved, latest_via_coverage
+
 
 def has_resolution(session: Session, comment_addr: Address) -> bool:
     """True iff at least one active `resolution` link targets this comment.
@@ -62,42 +64,13 @@ def unresolved_revise_comments(
     return [c for c in revises if not has_resolution(session, c.addr)]
 
 
-def is_doc_quiescent(session: Session, doc_addr: Address) -> bool:
-    """The protocol predicate, restricted to one document."""
-    return not unresolved_revise_comments(session, doc_addr)
-
-
+is_doc_quiescent = all_resolved("comment.revise")
 # Doc-neutral alias matching the legacy queries.py pattern.
 is_claim_quiescent = is_doc_quiescent
 
-
-def latest_structural_audit_for_claim(
-    session: Session, claim_addr: Address,
-) -> Optional[Address]:
-    """Return the audit_addr of the most recent `review.structural`-classified
-    audit doc covering `claim_addr`, or None if no audit has covered it.
-
-    "Most recent" is the `review.coverage` link with the largest tumbler
-    address whose from_set is a review.structural-classified doc.
-    """
-    coverage_links = [
-        link for link in session.active_links(
-            "review.coverage", to_set=[claim_addr],
-        )
-        if link.from_set
-    ]
-    if not coverage_links:
-        return None
-    structural = [
-        link for link in coverage_links
-        if session.active_links(
-            "review.structural", to_set=[link.from_set[0]],
-        )
-    ]
-    if not structural:
-        return None
-    latest = max(structural, key=lambda link: link.addr.digits)
-    return latest.from_set[0]
+latest_structural_audit_for_claim = latest_via_coverage(
+    "review.coverage", "review.structural",
+)
 
 
 def is_claim_audit_fresh(
@@ -146,25 +119,7 @@ def is_claim_audit_fresh(
     return False  # All resolved → re-audit
 
 
-def is_claim_structurally_clean(
-    session: Session, claim_addr: Address,
-) -> bool:
-    """True iff no unresolved `comment.violation` links target this claim.
-
-    Substrate-driven (post-validator-lift): the claim_structural_audit
-    scout emits comment.violation links per validator finding; the
-    claim_structural_revise refiner closes them via resolution.<kind>.
-    "Structurally clean" = every comment.violation has a resolution.
-
-    Used as the skip predicate for the claim-structural-revise trigger.
-    Refiner fires when False (open violations); skips when True (clean).
-    """
-    for link in session.active_links(
-        "comment.violation", to_set=[claim_addr],
-    ):
-        if not has_resolution(session, link.addr):
-            return False
-    return True
+is_claim_structurally_clean = all_resolved("comment.violation")
 
 
 def is_quiescent(session: Session) -> bool:
@@ -176,44 +131,9 @@ def is_quiescent(session: Session) -> bool:
     return not unresolved_revise_comments(session)
 
 
-def latest_review_for_addr(
-    session: Session, addr: Address,
-) -> Optional[Address]:
-    """Return the review_meta of the most recent *content* review whose
-    `review.coverage` link covers `addr`, or None if none exist.
-
-    Filters to `review.content`-classified review docs only —
-    structural audits (review.structural) emit `review.coverage` links
-    too but represent a different kind of analysis. Confirmation
-    semantics are content-review-specific: this function is the
-    foundation for has_been_reviewed and latest_review_was_clean,
-    both of which are about LLM-content critique, not validator
-    structural checks. For audit freshness see
-    `latest_structural_audit_for_claim`.
-
-    "Most recent" is the `review.coverage` link with the largest
-    tumbler address among the content-review-classified sources
-    (links are allocated monotonically, so the largest-addressed
-    active link is the latest emission).
-    """
-    coverage_links = [
-        link for link in session.active_links(
-            "review.coverage", to_set=[addr],
-        )
-        if link.from_set
-    ]
-    if not coverage_links:
-        return None
-    content = [
-        link for link in coverage_links
-        if session.active_links(
-            "review.content", to_set=[link.from_set[0]],
-        )
-    ]
-    if not content:
-        return None
-    latest = max(content, key=lambda link: link.addr.digits)
-    return latest.from_set[0]
+latest_review_for_addr = latest_via_coverage(
+    "review.coverage", "review.content",
+)
 
 
 def has_been_reviewed(session: Session, addr: Address) -> bool:
