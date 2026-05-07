@@ -27,7 +27,6 @@ from __future__ import annotations
 import re
 import sys
 import time
-from pathlib import Path
 from typing import ClassVar
 
 from lib.agents.base import Agent, AgentResult
@@ -101,17 +100,12 @@ def analyze_section(section_content: str) -> str | None:
     return text
 
 
-def _make_worker(sections_dir: Path):
-    def _worker(item):
-        idx, header, content = item
-        slug = _slugify(header)
-        label = f"{idx:02d}-{slug}"
-        yaml_text = analyze_section(content)
-        if yaml_text:
-            (sections_dir / f"{label}.yaml").write_text(yaml_text + "\n")
-        return label, yaml_text
-
-    return _worker
+def _worker(item):
+    idx, header, content = item
+    slug = _slugify(header)
+    label = f"{idx:02d}-{slug}"
+    yaml_text = analyze_section(content)
+    return label, yaml_text
 
 
 class ClaimDecomposeAgent(Agent):
@@ -184,8 +178,7 @@ class ClaimDecomposeAgent(Agent):
             file=sys.stderr,
         )
         start = time.time()
-        results = parallel_llm_calls(items, _make_worker(sections_dir),
-                                     max_workers=5)
+        results = parallel_llm_calls(items, _worker, max_workers=5)
         elapsed = time.time() - start
 
         total_props = 0
@@ -202,9 +195,10 @@ class ClaimDecomposeAgent(Agent):
         )
 
         # Per-claim: resolve body against source note + emit identity to
-        # substrate.
+        # substrate. Claims come from the parallel-LLM results
+        # (in-memory yaml strings); no disk round-trip through workspace.
         emitted, failed = self._emit_substrate(
-            session, note_addr, asn_label, sections_dir, asn_text,
+            session, note_addr, asn_label, results, asn_text,
         )
 
         if failed:
@@ -238,14 +232,20 @@ class ClaimDecomposeAgent(Agent):
         session: Session,
         note_addr: Address,
         asn_label: str,
-        sections_dir: Path,
+        results: list,
         source_note_text: str,
     ):
         """Resolve bodies + emit per-claim identity + ASN-level transclusion.
 
+        `results` is the list of (section_label, yaml_text) tuples
+        returned by the parallel LLM workers. Yaml strings are parsed
+        in memory; no workspace round-trip.
+
         Returns (emitted_count, failed_list).
         """
-        from .helpers import clean_label, find_in_source, load_claims_from_yamls
+        import yaml
+
+        from .helpers import clean_label, find_in_source
 
         store = session.store
         lattice_root = store.lattice_dir.resolve()
@@ -256,47 +256,64 @@ class ClaimDecomposeAgent(Agent):
         failed: list[tuple[str, str, str]] = []
         emitted = 0
 
-        for yaml_basename, prop in load_claims_from_yamls(sections_dir):
-            raw_label = prop.get("label", "")
-            if not raw_label:
+        for section_label, yaml_text in results:
+            if not yaml_text:
+                continue
+            try:
+                data = yaml.safe_load(yaml_text)
+            except yaml.YAMLError as e:
                 print(
-                    f"    WARNING: claim without label in {yaml_basename}",
+                    f"    WARNING: yaml parse error for section "
+                    f"{section_label!r}: {e}",
                     file=sys.stderr,
                 )
                 continue
-            label, label_was_cleaned = clean_label(raw_label)
-            if label_was_cleaned:
-                print(
-                    f"    FIX label: {raw_label!r} → {label!r}",
-                    file=sys.stderr,
-                )
-            if label in seen_labels:
-                print(
-                    f"    WARNING: duplicate label {label!r} in {yaml_basename}",
-                    file=sys.stderr,
-                )
+            if not data:
                 continue
-            seen_labels.add(label)
+            for prop in data.get("claims") or []:
+                raw_label = prop.get("label", "")
+                if not raw_label:
+                    print(
+                        f"    WARNING: claim without label in "
+                        f"section {section_label!r}",
+                        file=sys.stderr,
+                    )
+                    continue
+                label, label_was_cleaned = clean_label(raw_label)
+                if label_was_cleaned:
+                    print(
+                        f"    FIX label: {raw_label!r} → {label!r}",
+                        file=sys.stderr,
+                    )
+                if label in seen_labels:
+                    print(
+                        f"    WARNING: duplicate label {label!r} "
+                        f"(section {section_label!r})",
+                        file=sys.stderr,
+                    )
+                    continue
+                seen_labels.add(label)
 
-            llm_body = (prop.get("body") or "").strip()
-            resolved = find_in_source(source_note_text, llm_body)
-            if resolved is None:
-                failed.append((label, yaml_basename, llm_body[:120]))
-                continue
+                llm_body = (prop.get("body") or "").strip()
+                resolved = find_in_source(source_note_text, llm_body)
+                if resolved is None:
+                    failed.append((label, section_label, llm_body[:120]))
+                    continue
 
-            body_md = claims_dir / f"{label}.md"
-            body_md.write_text(resolved.rstrip() + "\n")
+                body_md = claims_dir / f"{label}.md"
+                body_md.write_text(resolved.rstrip() + "\n")
 
-            body_rel = str(body_md.resolve().relative_to(lattice_root))
-            body_addr = store.register_path(body_rel)
-            emit_claim(store, body_addr)
-            attest_attribute(session, body_md, "label", label)
-            attest_attribute(
-                session, body_md, "name", (prop.get("name") or label).strip(),
-            )
-            emit_derivation(store, note_addr, body_addr)
+                body_rel = str(body_md.resolve().relative_to(lattice_root))
+                body_addr = store.register_path(body_rel)
+                emit_claim(store, body_addr)
+                attest_attribute(session, body_md, "label", label)
+                attest_attribute(
+                    session, body_md, "name",
+                    (prop.get("name") or label).strip(),
+                )
+                emit_derivation(store, note_addr, body_addr)
 
-            emitted += 1
+                emitted += 1
 
         # ASN-level transclusion view + supersession of statements sidecar.
         if emitted > 0:

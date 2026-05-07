@@ -11,8 +11,6 @@ Public:
   normalized match. Returns the source's actual bytes (so we write
   a verbatim substring), or None on failure. Strict by design — no
   fuzzy matching.
-- `load_claims_from_yamls(sections_dir)` — read every section yaml
-  and return [(yaml_basename, claim_dict), ...] preserving order.
 - `clean_label(raw_label)` — strip trailing dots, replace spaces
   with dashes; returns (cleaned, was_changed).
 """
@@ -20,10 +18,7 @@ Public:
 from __future__ import annotations
 
 import re
-from pathlib import Path
 from typing import List, Tuple
-
-import yaml
 
 
 _WHITESPACE_RE = re.compile(r"\s+")
@@ -104,19 +99,3 @@ def clean_label(raw_label: str) -> Tuple[str, bool]:
     cleaned label and a bool indicating whether anything changed."""
     cleaned = raw_label.rstrip(".").replace(" ", "-")
     return cleaned, cleaned != raw_label
-
-
-def load_claims_from_yamls(sections_dir: Path) -> List[Tuple[str, dict]]:
-    """Read every section yaml under `sections_dir`. Returns a list of
-    (yaml_basename, claim_dict) tuples, preserving section ordering.
-
-    Empty yamls and yamls without a `claims` list are skipped."""
-    out = []
-    for yaml_path in sorted(sections_dir.glob("*.yaml")):
-        with open(yaml_path) as f:
-            data = yaml.safe_load(f)
-        if not data:
-            continue
-        for prop in data.get("claims") or []:
-            out.append((yaml_path.name, prop))
-    return out
