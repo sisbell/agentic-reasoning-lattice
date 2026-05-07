@@ -1,5 +1,5 @@
-"""Claim formal-contract agent — synthesize the Formal Contract section
-of a claim's md body.
+"""Claim formal-contract producer — synthesize the Formal Contract
+section in a claim's md body.
 
 Fires per claim where the contract.<kind> is set AND the kind requires
 a Formal Contract (theorem / lemma / corollary) AND the claim md does
@@ -9,15 +9,10 @@ transient failure), review the rewrite for damage, write the new
 section to disk, advance the claim's supersession chain, persist the
 resolve-doc audit trail, commit.
 
-This is the lifted form of the previous produce_contract phase.
-Earlier the orchestrator iterated over `find_claims_needing_quality`
-and called `produce_contract` per claim; now the runner walks per-
-claim via the predicate.
-
-Caste: producer. The Formal Contract section IS the producer's
-output (lives in the claim md body, not a separate sidecar). The
-agent edits the body and advances the claim's chain so downstream
-sidecar predicates flip False and re-attest.
+Caste: producer. The Formal Contract section IS the producer's output
+(lives in the claim md body, not a separate sidecar). The agent edits
+the body and advances the claim's chain so downstream sidecar
+predicates flip False and re-attest.
 """
 
 from __future__ import annotations
@@ -25,25 +20,179 @@ from __future__ import annotations
 import re
 import sys
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, Tuple
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
+from lib.lattice.deps import build_deps_for_asn
 from lib.predicates import current_contract_kind
 from lib.protocols.febe.protocol import Session
+from lib.shared.claim_files import build_label_index
+from lib.shared.common import find_asn
+from lib.shared.foundation import _extract_formal_contract
 from lib.shared.git_ops import step_commit_asn
-from lib.shared.paths import LATTICE, FORMAL_CONTRACT_DIR
-
-from .helpers import (
-    build_dep_context, has_formal_contract, review_rewrite,
-    synthesize_contract, validate_contract,
+from lib.shared.invoke_claude import invoke_claude
+from lib.shared.paths import (
+    CLAIM_DIR, FORMAL_CONTRACT_DIR, LATTICE, claim_statements, prompt_path,
 )
 
 
 SYNTHESIS_MODEL = "opus"
 MAX_CYCLES = 3
 KINDS_REQUIRING_CONTRACT = frozenset({"theorem", "lemma", "corollary"})
+
+SYNTHESIS_TEMPLATE = prompt_path("claim-derivation/produce-contract.md")
+REVIEW_REWRITE_TEMPLATE = prompt_path("claim-derivation/review-rewrite.md")
+VALIDATE_CONTRACT_TEMPLATE = prompt_path(
+    "claim-refinement/assembly/validate-contracts.md",
+)
+
+
+# ─── LLM helpers ────────────────────────────────────────────────────
+
+
+def has_formal_contract(section_text: str) -> bool:
+    """True iff the claim body has a Formal Contract section."""
+    return "*Formal Contract:*" in section_text
+
+
+def synthesize_contract(
+    label: str, section: str, dep_text: str, *, model: str = "opus",
+) -> Tuple[str | None, float]:
+    """Run the produce-contract prompt; return (rewritten_section, elapsed).
+
+    rewritten_section is None on transient LLM failure (empty response).
+    """
+    template = SYNTHESIS_TEMPLATE.read_text()
+    prompt = (
+        template
+        .replace("{{label}}", label)
+        .replace("{{section}}", section)
+        .replace("{{dependency_sections}}", dep_text)
+    )
+    response = invoke_claude(prompt, model=model, effort="high")
+    if not response.text:
+        return None, response.elapsed
+    return response.text.strip(), response.elapsed
+
+
+def review_rewrite(
+    label: str, before: str, after: str, *, model: str = "sonnet",
+) -> Tuple[bool, str]:
+    """Review a rewrite for damage. Returns (ok, detail).
+
+    On unclear/empty LLM output, defaults to ok=True (don't block).
+    """
+    template = REVIEW_REWRITE_TEMPLATE.read_text()
+    prompt = (
+        template
+        .replace("{{label}}", label)
+        .replace("{{before}}", before)
+        .replace("{{after}}", after)
+    )
+    response = invoke_claude(prompt, model=model, effort="high")
+    text = response.text or ""
+    if "RESULT: PASS" in text:
+        return True, ""
+    if "RESULT: FAIL" in text:
+        idx = text.find("RESULT: FAIL")
+        return False, text[idx + len("RESULT: FAIL"):].strip()
+    return True, ""
+
+
+def validate_contract(
+    label: str,
+    section: str,
+    signature: str = "",
+    dependencies: str = "",
+    *,
+    model: str = "sonnet",
+) -> Tuple[bool, str]:
+    """Validate a claim's Formal Contract against its proof section.
+
+    Returns (match, detail). match=True iff contract matches; on no
+    contract or empty LLM output, returns (True, "").
+    """
+    contract = _extract_formal_contract(section)
+    if not contract:
+        return True, ""
+
+    marker = "*Formal Contract:*"
+    idx = section.find(marker)
+    proof_section = section[:idx].strip() if idx != -1 else section
+
+    template = VALIDATE_CONTRACT_TEMPLATE.read_text()
+    prompt = (
+        template
+        .replace("{{label}}", label)
+        .replace("{{proof_section}}", proof_section)
+        .replace("{{formal_contract}}", contract)
+        .replace("{{signature}}", signature or "(none)")
+        .replace("{{dependencies}}", dependencies or "(none)")
+    )
+    response = invoke_claude(prompt, model=model, effort="high")
+    text = response.text or ""
+    if "RESULT: MATCH" in text:
+        return True, ""
+    if "RESULT: MISMATCH" in text:
+        idx = text.find("RESULT: MISMATCH")
+        return False, text[idx + len("RESULT: MISMATCH"):].strip()
+    return True, ""
+
+
+def build_dep_context(asn_num: int, label: str) -> str:
+    """Assemble dependency context for the synthesis prompt.
+
+    Returns markdown text with same-ASN dependency bodies + cross-ASN
+    foundation excerpts (from claim-statements transclusion files).
+    Returns "(none)" when no deps resolve.
+    """
+    deps_data = build_deps_for_asn(asn_num)
+    if not deps_data:
+        return "(none)"
+
+    claim_data = deps_data.get("claims", {}).get(label, {})
+    follows_from = claim_data.get("follows_from", [])
+    all_labels = set(deps_data.get("claims", {}).keys())
+
+    _, asn_label = find_asn(str(asn_num))
+    claim_dir = CLAIM_DIR / asn_label
+    label_index = build_label_index(claim_dir)
+
+    dep_parts = []
+    for dep_label in follows_from:
+        if dep_label in all_labels:
+            dep_stem = label_index.get(
+                dep_label,
+                dep_label.replace("(", "").replace(")", ""),
+            )
+            dep_file = claim_dir / f"{dep_stem}.md"
+            if dep_file.exists():
+                dep_parts.append(
+                    f"### {dep_label}\n\n{dep_file.read_text().strip()}"
+                )
+
+    depends = deps_data.get("depends", [])
+    for dep_label in follows_from:
+        if dep_label not in all_labels:
+            for dep_asn in depends:
+                stmt_path = claim_statements(dep_asn)
+                if stmt_path.exists():
+                    ftext = stmt_path.read_text()
+                    pattern = re.compile(
+                        r'^## ' + re.escape(dep_label) + r'\s*—.*?\n'
+                        r'(.*?)(?=^## |\Z)',
+                        re.MULTILINE | re.DOTALL,
+                    )
+                    m = pattern.search(ftext)
+                    if m:
+                        dep_parts.append(
+                            f"### {dep_label} (ASN-{dep_asn:04d})\n\n"
+                            f"{m.group(0).strip()}"
+                        )
+                        break
+
+    return "\n\n".join(dep_parts) if dep_parts else "(none)"
 
 
 # ─── Resolve-doc persistence (audit trail) ──────────────────────────
@@ -118,7 +267,9 @@ class ClaimFormalContractAgent(Agent):
 
     role: ClassVar[str] = "claim-formal-contract"
 
-    def __init__(self, *, model: str = SYNTHESIS_MODEL, max_cycles: int = MAX_CYCLES):
+    def __init__(
+        self, *, model: str = SYNTHESIS_MODEL, max_cycles: int = MAX_CYCLES,
+    ):
         self.model = model
         self.max_cycles = max_cycles
 
@@ -196,7 +347,8 @@ class ClaimFormalContractAgent(Agent):
                     file=sys.stderr,
                 )
                 return AgentResult(
-                    success=False, detail=f"review-rejected:{review_detail[:120]}",
+                    success=False,
+                    detail=f"review-rejected:{review_detail[:120]}",
                 )
 
             claim_md_full.write_text(new_section + "\n")
@@ -219,13 +371,13 @@ class ClaimFormalContractAgent(Agent):
                 file=sys.stderr,
             )
             return AgentResult(
-                success=False, detail=f"failed-after-{self.max_cycles}-cycles",
+                success=False,
+                detail=f"failed-after-{self.max_cycles}-cycles",
             )
 
         # Advance the claim's supersession chain — body changed, so
-        # downstream sidecar predicates (description_is_fresh,
-        # signature_is_fresh, references_is_fresh) flip False and the
-        # corresponding producers re-attest on the next runner pass.
+        # downstream sidecar predicates flip False and the corresponding
+        # producers re-attest on the next runner pass.
         session.register_version(claim_addr)
 
         # Validate the new contract against the proof. Informational —
@@ -248,6 +400,4 @@ class ClaimFormalContractAgent(Agent):
             ),
         )
 
-        return AgentResult(
-            success=True, detail=f"emitted match={match}",
-        )
+        return AgentResult(success=True, detail=f"emitted match={match}")

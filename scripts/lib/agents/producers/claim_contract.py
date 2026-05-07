@@ -1,20 +1,19 @@
-"""Claim-contract agent — classify a claim's contract kind once.
+"""Claim-contract producer — classify a claim's contract kind once.
 
 Fires per claim missing a `contract.<kind>` classifier. One fire =
-read claim md + label/name sidecars, dispatch the LLM helper to
-classify the contract kind (axiom / definition / design-requirement /
-lemma / theorem / corollary), emit the contract.<kind> link, persist
-the resolve-doc audit trail, commit.
+read claim md + label/name sidecars, dispatch the annotate-type
+prompt, validate the kind against the contract.<kind> vocabulary,
+emit the classifier link, persist the resolve-doc audit trail,
+commit.
 
-This is the lifted form of the previous annotate-type pass (which
-wrote a yaml.type field that transclude later read and turned into a
+Lifted from the previous annotate-type pass (which wrote a
+yaml.type field that transclude later read and turned into a
 contract.<kind> emission). Predicate-fired by the runner; emits
 substrate directly.
 
-Caste: producer. Working surface: claim md prose + label/name
-sidecars. Identity grant: the contract.<kind> classifier on the
-claim doc — once classified, the agent does not re-fire (predicate
-is a one-shot existence check, not a chain comparison).
+Caste: producer. Identity grant: the contract.<kind> classifier on
+the claim doc — once classified, the agent does not re-fire
+(predicate is a one-shot existence check, not a chain comparison).
 """
 
 from __future__ import annotations
@@ -23,22 +22,75 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, NamedTuple
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_contract
 from lib.protocols.febe.protocol import Session
+from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
-from lib.shared.paths import CLAIM_CONTRACT_DIR, LATTICE
-
-from .helpers import extract_contract_kind
+from lib.shared.llm_response import invoke_text, parse_yaml_dict
+from lib.shared.paths import CLAIM_CONTRACT_DIR, LATTICE, prompt_path
 
 
 CONTRACT_MODEL = "sonnet"
+PROMPT_TEMPLATE = prompt_path("claim-derivation/annotate-type.md")
+
+# Mirrors the contract.<kind> vocabulary registered in lib/backend/types.py.
+# "consequence" appears in the prompt's YAML tail but not in the type
+# registry; the validator below rejects it (LLM must pick one of the
+# six structurally-valid kinds).
+VALID_KINDS = frozenset({
+    "axiom", "definition", "design-requirement",
+    "lemma", "theorem", "corollary",
+})
 
 
-# ─── Sidecar helpers ────────────────────────────────────────────────
+class ContractClassification(NamedTuple):
+    """Structured LLM output."""
+    kind: str          # one of VALID_KINDS
+    raw_text: str      # full LLM output for audit trail
+    elapsed_seconds: float
+
+
+def extract_contract_kind(
+    claim_md_content: str,
+    label: str,
+    name: str,
+    *,
+    model: str = "sonnet",
+) -> ContractClassification:
+    """Run Sonnet against the annotate-type prompt; return parsed kind.
+
+    Raises on malformed LLM output (missing `type` field, invalid
+    kind) — no graceful degradation.
+    """
+    template = read_file(PROMPT_TEMPLATE)
+    prompt = (
+        template
+        .replace("{{body}}", claim_md_content)
+        .replace("{{label}}", label)
+        .replace("{{name}}", name)
+    )
+
+    raw_text, elapsed = invoke_text(prompt, model=model)
+    parsed = parse_yaml_dict(raw_text)
+
+    if "type" not in parsed:
+        raise ValueError(
+            f"contract-classify response missing 'type' field:\n{raw_text}"
+        )
+    kind = str(parsed["type"]).strip()
+    if kind not in VALID_KINDS:
+        raise ValueError(
+            f"invalid contract kind {kind!r}; must be one of "
+            f"{sorted(VALID_KINDS)}\n--- raw ---\n{raw_text}"
+        )
+
+    return ContractClassification(
+        kind=kind, raw_text=raw_text, elapsed_seconds=elapsed,
+    )
 
 
 def _read_sidecar_text(claim_md_full: Path, kind: str) -> str:
@@ -47,9 +99,6 @@ def _read_sidecar_text(claim_md_full: Path, kind: str) -> str:
     if not sidecar.exists():
         return ""
     return sidecar.read_text().strip()
-
-
-# ─── Resolve-doc persistence (audit trail) ──────────────────────────
 
 
 def _next_run_num(asn_label: str, claim_label: str) -> int:
@@ -91,15 +140,8 @@ def _persist_resolve_doc(
     return path, run_num
 
 
-# ─── Agent class ────────────────────────────────────────────────────
-
-
 class ClaimContractAgent(Agent):
     """One claim's contract classification per fire.
-
-    Reads claim md + label/name sidecars, dispatches the LLM helper,
-    emits the contract.<kind> classifier, persists the resolve-doc
-    audit trail, commits per fire.
 
     Producer caste, predicate-fired (skip if claim already has a
     contract.<kind> classifier).
@@ -160,6 +202,4 @@ class ClaimContractAgent(Agent):
             ),
         )
 
-        return AgentResult(
-            success=True, detail=f"kind={result.kind}",
-        )
+        return AgentResult(success=True, detail=f"kind={result.kind}")

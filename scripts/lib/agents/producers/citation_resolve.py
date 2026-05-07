@@ -1,24 +1,19 @@
-"""Claim citation-resolve agent — producer for per-claim references sidecars.
+"""Claim citation-resolve producer — per-claim references sidecars +
+typed citation links.
 
 Fires per-claim with a stale (or absent) references sidecar. One fire =
-read the claim's prose, dispatch the LLM helper to type each label
-reference (depends vs forward), apply changes to the claim md
-(insert/remove bullets in the *Depends:* / *Forward References:*
-sections), emit substrate links (citation.depends/forward,
-retraction, citation.resolve, provenance.derivation), attest the
-references sidecar via attest_attribute (advances the supersession
-chain so references_is_fresh flips True), persist the resolve-doc
-audit trail, commit per fire.
+read the claim's prose, dispatch the LLM to type each label reference
+(depends vs forward), apply changes to the claim md (insert/remove
+bullets in *Depends:* / *Forward References:* sections), emit
+substrate links (citation.depends/forward, retraction,
+citation.resolve, provenance.derivation), attest the references
+sidecar via attest_attribute (advances the supersession chain so
+references_is_fresh flips True), persist the resolve-doc audit
+trail, commit.
 
-This is the lifted form of the previous citation_resolve orchestrator.
-The substrate queries (existing classifications), claim-md editing,
-and emission steps all live inside this agent.
-
-Caste: producer. Working surface: claim md prose + cross-ASN label
-index. Identity grant: references sidecar (created or chain-advanced
-via attest_attribute), plus per-fire citation.depends/forward and
-retraction links. Predicate-fired by the runner on stale claims
-(references_is_fresh False).
+Caste: producer. Identity grant: references sidecar (created or
+chain-advanced via attest_attribute), plus per-fire
+citation.depends/forward and retraction links.
 """
 
 from __future__ import annotations
@@ -28,7 +23,7 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, List, NamedTuple
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
@@ -36,15 +31,106 @@ from lib.backend.emit import emit_citation, emit_retraction
 from lib.lattice.attributes import attest_attribute
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.protocols.febe.protocol import Session
+from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
-from lib.shared.paths import CITATION_RESOLVE_DIR, LATTICE
-
-from .helpers import extract_citation_classifications
+from lib.shared.llm_response import invoke_text, parse_two_sections
+from lib.shared.paths import CITATION_RESOLVE_DIR, LATTICE, prompt_path
 
 
 CITATION_MODEL = "sonnet"
 DEPENDS_HEADER = "- *Depends:*"
 FORWARD_HEADER = "- *Forward References:*"
+PROMPT_TEMPLATE = prompt_path("claim-refinement/citation-resolve.md")
+
+
+# ─── LLM helper ─────────────────────────────────────────────────────
+
+
+class CitationClassifications(NamedTuple):
+    classifications: list  # [{label, direction: depends|forward, bullet}, ...]
+    retractions: list      # [{label, direction: depends|forward}, ...]
+    raw_text: str
+    elapsed_seconds: float
+
+
+def extract_citation_classifications(
+    claim_md_content: str,
+    claim_dir: Path,
+    claims_root: Path,
+    existing_depends: List[str],
+    existing_forwards: List[str],
+    *,
+    model: str = "sonnet",
+) -> CitationClassifications:
+    """Run Sonnet against the citation-resolve prompt; return parsed
+    CLASSIFICATIONS / RETRACTIONS.
+
+    Raises on malformed LLM output (missing headers, YAML parse errors,
+    malformed entries, invalid direction values) — no graceful
+    degradation.
+    """
+    prompt = _render_prompt(
+        claim_md_content, claim_dir, claims_root,
+        existing_depends, existing_forwards,
+    )
+    raw_text, elapsed = invoke_text(prompt, model=model, tools="Read")
+    classifications, retractions = parse_two_sections(
+        raw_text, "CLASSIFICATIONS", "RETRACTIONS",
+    )
+    _validate_classifications(classifications)
+    _validate_retractions(retractions)
+    return CitationClassifications(
+        classifications=classifications,
+        retractions=retractions,
+        raw_text=raw_text,
+        elapsed_seconds=elapsed,
+    )
+
+
+def _format_label_list(labels: List[str]) -> str:
+    if not labels:
+        return "(none)"
+    return "\n".join(f"- {label}" for label in labels)
+
+
+def _render_prompt(
+    claim_md_content: str,
+    claim_dir: Path,
+    claims_root: Path,
+    depends: List[str],
+    forwards: List[str],
+) -> str:
+    template = read_file(PROMPT_TEMPLATE)
+    return (
+        template
+        .replace("{{claim_md_content}}", claim_md_content)
+        .replace("{{claim_dir}}", str(claim_dir))
+        .replace("{{claims_root}}", str(claims_root))
+        .replace("{{existing_depends}}", _format_label_list(depends))
+        .replace("{{existing_forwards}}", _format_label_list(forwards))
+    )
+
+
+def _validate_classifications(classifications: list) -> None:
+    for c in classifications:
+        if not isinstance(c, dict):
+            raise ValueError(f"classification entry not a dict: {c}")
+        for field in ("label", "direction", "bullet"):
+            if field not in c:
+                raise ValueError(f"classification missing {field!r}: {c}")
+        if c["direction"] not in ("depends", "forward"):
+            raise ValueError(f"invalid direction in classification: {c}")
+
+
+def _validate_retractions(retractions: list) -> None:
+    for r in retractions:
+        if not isinstance(r, dict):
+            raise ValueError(f"retraction entry not a dict: {r}")
+        for field in ("label", "direction"):
+            if field not in r:
+                raise ValueError(f"retraction missing {field!r}: {r}")
+        if r["direction"] not in ("depends", "forward"):
+            raise ValueError(f"invalid direction in retraction: {r}")
 
 
 # ─── Substrate queries ──────────────────────────────────────────────
@@ -126,11 +212,10 @@ def _existing_section_labels(lines, header):
 
 
 def _apply_changes(claim_md_path, classifications, retractions):
-    """Apply classifications (insert bullets) and retractions (remove bullets).
-
-    Retractions first (so a reclassify works: retract old direction,
-    insert new). Bullet inserts dedup against labels already in the
-    target section.
+    """Apply classifications (insert bullets) and retractions (remove
+    bullets). Retractions first (so a reclassify works: retract old
+    direction, insert new). Bullet inserts dedup against labels
+    already in the target section.
     """
     lines = claim_md_path.read_text().split("\n")
 
@@ -320,18 +405,10 @@ def _render_references_sidecar(
     """Render the post-fire references sidecar from current substrate.
 
     Reads active citation.depends + citation.forward from the claim and
-    emits a labels-only markdown view:
-
-        *Depends:*
-          - T0
-          - NAT-carrier
-
-        *Forward References:*
-          - T2
-
-    The sidecar is the LLM's authoritative classification — labels
-    only, no explanatory prose (those live in the claim md's bullet
-    sections). Empty sections are omitted.
+    emits a labels-only markdown view. The sidecar is the LLM's
+    authoritative classification — labels only, no explanatory prose
+    (those live in the claim md's bullet sections). Empty sections
+    omitted.
     """
     depends, forwards = _existing_classifications(
         session, claim_md_rel, label_index,
@@ -356,14 +433,11 @@ def _render_references_sidecar(
 class ClaimCitationResolveAgent(Agent):
     """One claim's citation-classification per fire.
 
-    Reads the claim md, dispatches the LLM helper to type each label
-    reference (depends vs forward), applies the resulting changes to
-    the claim md (insert/remove bullets in *Depends:* / *Forward
-    References:*), emits substrate links (citation.depends/forward,
-    retraction, citation.resolve, provenance.derivation), attests the
-    references sidecar via attest_attribute (which advances the
-    supersession chain so references_is_fresh flips True), persists
-    the resolve-doc audit trail, commits per fire.
+    Reads the claim md, dispatches the LLM to type each label
+    reference, applies the resulting changes to the claim md
+    (insert/remove bullets in *Depends:* / *Forward References:*),
+    emits substrate links, attests the references sidecar via
+    attest_attribute, persists the resolve-doc audit trail, commits.
     """
 
     role: ClassVar[str] = "claim-citation-resolve"
@@ -421,8 +495,7 @@ class ClaimCitationResolveAgent(Agent):
             )
 
         # Persist the resolve doc as audit trail (never discard LLM
-        # output). Same on no-op as on changes — the LLM ran, its
-        # output has audit value.
+        # output). Same on no-op as on changes.
         resolve_path, run_num = _persist_resolve_doc(
             asn_label, claim_label, result.raw_text, self.model,
         )
@@ -435,14 +508,10 @@ class ClaimCitationResolveAgent(Agent):
                 resolve_rel, label_index,
             )
 
-        # attest_attribute is the create-or-advance helper: first call
-        # creates the link + sidecar at chain length 1; subsequent
-        # calls advance the references sidecar's supersession chain
-        # via register_version. references_is_fresh reads the chain
-        # to detect staleness. We attest unconditionally — even on
-        # zero LLM delta, the agent ran and confirmed the existing
-        # classification is correct at this revision; that is itself
-        # the attestation.
+        # attest_attribute is the create-or-advance helper; it advances
+        # the references sidecar's supersession chain so
+        # references_is_fresh reads True. Unconditional — even on
+        # zero LLM delta, the agent ran and the attestation matters.
         sidecar_text = _render_references_sidecar(
             session, claim_rel, label_index,
         )

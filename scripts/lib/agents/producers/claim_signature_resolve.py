@@ -1,16 +1,11 @@
-"""Claim signature-resolve agent — producer for per-claim signature sidecars.
+"""Claim signature-resolve producer — per-claim signature sidecars.
 
 Fires per-claim with a stale (or absent) signature sidecar. One fire =
 gather context (existing sidecar, transitive dep signatures, notation
-primitives), dispatch the LLM helper to produce introduces/removes,
-attest the new sidecar via attest_attribute (create-or-advance: first
-call creates the link, subsequent advances the supersession chain),
+primitives), dispatch the LLM to produce introduces/removes, attest
+the new sidecar via attest_attribute (create-or-advance: first call
+creates the link, subsequent advances the supersession chain),
 persist the resolve-doc audit trail, commit.
-
-This is the lifted form of the previous signature_resolve orchestrator.
-The substrate queries (transitive dep walking, sidecar reads) and
-emission steps (attest_attribute, resolve-doc persistence) all live
-inside this agent.
 
 Caste: producer. Working surface: claim md content + upstream
 signature sidecars. Identity grant: signature sidecar (created or
@@ -25,7 +20,7 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, List, NamedTuple, Tuple
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
@@ -34,15 +29,126 @@ from lib.lattice.labels import build_cross_asn_label_index
 from lib.lattice.notation import read_notation
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
+from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
+from lib.shared.llm_response import invoke_text, parse_two_sections
 from lib.shared.paths import (
-    CLAIM_DIR, LATTICE, SIGNATURE_RESOLVE_DIR, claim_doc_path,
+    CLAIM_DIR, LATTICE, SIGNATURE_RESOLVE_DIR, prompt_path,
 )
-
-from .helpers import extract_signature_changes
 
 
 SIGNATURE_MODEL = "sonnet"
+PROMPT_TEMPLATE = prompt_path("claim-refinement/signature-resolve.md")
+
+
+# ─── LLM helper ─────────────────────────────────────────────────────
+
+
+class SignatureChanges(NamedTuple):
+    introduces: list
+    removes: list
+    raw_text: str
+    elapsed_seconds: float
+
+
+def extract_signature_changes(
+    claim_md_content: str,
+    notation_primitives: list,
+    upstream_signatures: List[Tuple[str, str]],
+    existing_signature: str,
+    *,
+    model: str = "sonnet",
+) -> SignatureChanges:
+    """Run Sonnet against the signature-resolve prompt; return parsed
+    INTRODUCES / REMOVES.
+
+    `upstream_signatures` is `[(label, signature_text), ...]` for each
+    upstream claim with a populated signature sidecar.
+
+    Raises on malformed LLM output (missing headers, YAML parse errors,
+    malformed entries) — no graceful degradation.
+    """
+    prompt = _render_prompt(
+        claim_md_content, notation_primitives, upstream_signatures,
+        existing_signature,
+    )
+    raw_text, elapsed = invoke_text(prompt, model=model, tools="Read")
+    introduces, removes = parse_two_sections(
+        raw_text, "INTRODUCES", "REMOVES",
+    )
+    _validate_introduces(introduces)
+    _validate_removes(removes)
+    return SignatureChanges(
+        introduces=introduces,
+        removes=removes,
+        raw_text=raw_text,
+        elapsed_seconds=elapsed,
+    )
+
+
+def _format_upstream_sigs(upstream: List[Tuple[str, str]]) -> str:
+    if not upstream:
+        return (
+            "(none — this is a foundation claim or has no upstream signatures)"
+        )
+    return "\n\n".join(f"### {label}\n{sig}" for label, sig in upstream)
+
+
+def _format_notation_primitives(primitives: list) -> str:
+    if not primitives:
+        return "(none registered)"
+    return "\n".join(f"- `{p}`" for p in primitives)
+
+
+def _render_prompt(
+    claim_md_content: str,
+    notation_primitives: list,
+    upstream_sigs: List[Tuple[str, str]],
+    existing_signature: str,
+) -> str:
+    template = read_file(PROMPT_TEMPLATE)
+    return (
+        template
+        .replace("{{claim_md_content}}", claim_md_content)
+        .replace(
+            "{{notation_primitives}}",
+            _format_notation_primitives(notation_primitives),
+        )
+        .replace(
+            "{{upstream_signatures}}",
+            _format_upstream_sigs(upstream_sigs),
+        )
+        .replace("{{existing_signature}}", existing_signature or "(none)")
+    )
+
+
+def _validate_introduces(introduces: list) -> None:
+    """Per-entry validation; mutates entries to add a parsed `symbol`."""
+    for entry in introduces:
+        if not isinstance(entry, dict):
+            raise ValueError(f"INTRODUCES entry not a dict: {entry}")
+        if "bullet" not in entry:
+            raise ValueError(f"INTRODUCES entry missing 'bullet': {entry}")
+        bullet = entry["bullet"]
+        if not isinstance(bullet, str) or not bullet.startswith("- `"):
+            raise ValueError(
+                f"INTRODUCES bullet must start with '- `<symbol>`': {entry}"
+            )
+        m = re.match(r"^- `([^`]+)`", bullet)
+        if not m:
+            raise ValueError(
+                f"INTRODUCES bullet has no parseable symbol: {bullet!r}"
+            )
+        entry["symbol"] = m.group(1)
+
+
+def _validate_removes(removes: list) -> None:
+    for entry in removes:
+        if not isinstance(entry, dict):
+            raise ValueError(f"REMOVES entry not a dict: {entry}")
+        for field in ("symbol", "reason"):
+            if field not in entry:
+                raise ValueError(f"REMOVES entry missing {field!r}: {entry}")
 
 
 # ─── Substrate / sidecar helpers ────────────────────────────────────
@@ -167,11 +273,10 @@ class ClaimSignatureResolveAgent(Agent):
     """One claim's signature resolution per fire.
 
     Reads existing signature sidecar + transitive dep signatures +
-    notation primitives, dispatches the LLM helper to produce
-    introduces/removes, attests the new sidecar via attest_attribute
-    (which advances the sidecar's supersession chain so
-    signature_is_fresh flips True), persists the resolve-doc audit
-    trail, commits per fire.
+    notation primitives, dispatches the LLM, attests the new sidecar
+    via attest_attribute (which advances the sidecar's supersession
+    chain so signature_is_fresh flips True), persists the resolve-doc
+    audit trail, commits per fire.
     """
 
     role: ClassVar[str] = "claim-signature-resolve"
@@ -217,13 +322,10 @@ class ClaimSignatureResolveAgent(Agent):
         )
         print(f" ({result.elapsed_seconds:.0f}s)", file=sys.stderr)
 
-        # Compute the new sidecar text from existing + LLM delta.
-        # On no-op (zero introduces, zero removes), this equals the
-        # existing sidecar content — but we still attest, because
-        # the LLM ran and confirmed the existing sidecar is correct
-        # at this revision. Skipping the attestation would leave
-        # signature_is_fresh False and re-fire the runner until
-        # max_iterations.
+        # Compute the new sidecar text from existing + LLM delta. On
+        # no-op (zero introduces, zero removes), this equals the
+        # existing — but we still attest, because the LLM ran and
+        # confirmed the sidecar is correct at this revision.
         existing = _existing_sidecar_bullets(claim_dir, claim_label)
         bullets_by_symbol = dict(existing)
         for entry in result.removes:
@@ -234,21 +336,14 @@ class ClaimSignatureResolveAgent(Agent):
         new_pairs = [(s, bullets_by_symbol[s]) for s in bullets_by_symbol]
         new_sidecar_text = _render_sidecar(new_pairs)
 
-        # attest_attribute is the create-or-advance helper: first
-        # call creates the link + sidecar at chain length 1;
-        # subsequent calls advance the sidecar's supersession chain
-        # via register_version. signature_is_fresh reads the chain
-        # to detect staleness. We attest unconditionally — even on
-        # zero LLM delta, the agent ran and confirmed the existing
-        # sidecar is correct at this revision; that is itself the
-        # attestation.
+        # attest_attribute is the create-or-advance helper; it advances
+        # the sidecar's supersession chain so signature_is_fresh reads
+        # True. Unconditional — even on zero LLM delta, the agent ran
+        # and the attestation matters.
         attest_attribute(
             session, claim_rel, "signature", new_sidecar_text.rstrip(),
         )
 
-        # Persist the resolve doc as audit trail (never discard LLM
-        # output). Same on no-op as on changes — the LLM still ran,
-        # its output still has audit value.
         _, run_num = _persist_resolve_doc(
             asn_label, claim_label, result.raw_text, self.model,
         )
