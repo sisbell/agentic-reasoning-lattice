@@ -98,7 +98,7 @@ instead "the state satisfies..."
    **Removing dependencies.** When you remove a dependency from a claim's
    md `*Depends:*` section because the proof no longer uses it, retract
    the substrate citation:
-       python scripts/substrate/retract.py --from <claim-label> --to <dep-label>
+       python scripts/agent_tools/retract.py --from <claim-label> --to <dep-label>
    This files a `retraction` link pointing at the now-stale citation. The
    citation remains in the substrate (append-only) but no longer counts
    toward the dependency graph. Use this whenever you delete a Depends
@@ -118,13 +118,13 @@ instead "the state satisfies..."
    After writing the file, emit the new claim's substrate attribute
    links and classifier by running:
 
-       python scripts/substrate/label.py --label <label>
-       python scripts/substrate/name.py --label <label> --to <name>
+       python scripts/agent_tools/label.py --label <label>
+       python scripts/agent_tools/name.py --label <label> --to <name>
        python scripts/claim-link-contract.py --label <label> --kind <kind>
 
-   `substrate/label.py` writes `<stem>.label.md` (whose first line is the label
+   `agent_tools/label.py` writes `<stem>.label.md` (whose first line is the label
    string, equal to the filename stem) and files the substrate `label`
-   link. `substrate/name.py` does the same for the canonical `name` and the
+   link. `agent_tools/name.py` does the same for the canonical `name` and the
    substrate `name` link.
 
    `<kind>` is one of `axiom`, `definition`, `theorem`, `lemma`,

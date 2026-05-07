@@ -4,7 +4,7 @@
 Invoked when the reviser removes a dependency from a claim's md
 *Depends:* section because the proof no longer uses it:
 
-    python scripts/substrate/retract.py --from <label> --to <label>
+    python scripts/agent_tools/retract.py --from <label> --to <label>
 
 Both arguments are claim labels. The from-label is the claim whose
 Depends entry is being removed; the script resolves it to its

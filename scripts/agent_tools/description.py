@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Reviser-callable CLI to set a claim's prose description.
 
-    python scripts/substrate/description.py --label T0 \\
+    python scripts/agent_tools/description.py --label T0 \\
         --to "Defines the carrier set ℕ for tumbler addresses."
 
 For multi-line descriptions, use --from-file to read the body from a
 file (or `-` for stdin):
 
-    python scripts/substrate/description.py --label T0 --from-file desc.md
-    cat desc.md | python scripts/substrate/description.py --label T0 \\
+    python scripts/agent_tools/description.py --label T0 --from-file desc.md
+    cat desc.md | python scripts/agent_tools/description.py --label T0 \\
         --from-file -
 
 The label identifies the claim; the script resolves it to the

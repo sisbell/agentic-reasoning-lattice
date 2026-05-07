@@ -2,8 +2,8 @@
 """Reviser-callable CLI to mark an ASN's source note as retired,
 or revive it.
 
-    python scripts/substrate/retire.py --asn 47
-    python scripts/substrate/retire.py --asn 47 --revive
+    python scripts/agent_tools/retire.py --asn 47
+    python scripts/agent_tools/retire.py --asn 47 --revive
 
 Retired ASNs are filtered out of every trigger's scope (per
 `lib/runner/scope.py::asn_note_addr`) — the runner won't fire any

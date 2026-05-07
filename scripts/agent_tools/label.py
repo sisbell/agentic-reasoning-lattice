@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reviser-callable CLI to set a claim's label.
 
-    python scripts/substrate/label.py --label T0
+    python scripts/agent_tools/label.py --label T0
 
 The argument is both the operand (which claim) and the value (the
 label string). Per substrate-module §4, a claim's label sidecar's

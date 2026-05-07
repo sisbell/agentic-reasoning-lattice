@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reviser-callable CLI to set a claim's canonical name.
 
-    python scripts/substrate/name.py --label T0 --to CarrierSetDefinition
+    python scripts/agent_tools/name.py --label T0 --to CarrierSetDefinition
 
 The label identifies the claim; the script resolves it to the
 canonical doc address via the claim path convention
