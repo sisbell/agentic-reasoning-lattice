@@ -92,6 +92,12 @@ EXTRACT_DIR = DOCUVERSE_DOCS_DIR / "extract"
 # which extension to absorb plus rationale prose justifying readiness.
 ABSORB_DIR = DOCUVERSE_DOCS_DIR / "absorb"
 
+# Substrate-citizen clone spec docs. Operator drops the spec md into
+# CLONE_INBOX (workspace, gitignored); NoteCloneAgent promotes it to
+# CLONE_DIR on fire. The spec doc carries the operator's scout-output:
+# clone_from / create_note plus rationale prose for the clone.
+CLONE_DIR = DOCUVERSE_DOCS_DIR / "clone"
+
 # Loop work products. Sibling to _docuverse/. Holds artifacts produced
 # by the refinement/derivation loops that aren't themselves
 # substrate-classified documents (scratch caches, intermediate state).
@@ -100,6 +106,7 @@ PATCH_INBOX_NOTE = WORKSPACE_DIR / "patches" / "note"
 PATCH_INBOX_CLAIM = WORKSPACE_DIR / "patches" / "claim"
 EXTRACT_INBOX = WORKSPACE_DIR / "extracts"
 ABSORB_INBOX = WORKSPACE_DIR / "absorbs"
+CLONE_INBOX = WORKSPACE_DIR / "clones"
 
 # Aggregate review docs (classified by `review`). Split by inquiry-target
 # kind so review numbering and substrate queries are scoped per kind.

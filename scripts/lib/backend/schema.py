@@ -32,6 +32,13 @@ VALID_TYPES = frozenset({
     # F=∅, G=[spec_doc] classifier shape; pairs with provenance.absorb
     # audit edge from spec doc to the base it merged content into.
     "absorb",
+    # Clone spec — operator's scout-output for note-clone operation.
+    # Carries the operator's intent (clone_from / create_note) plus
+    # rationale prose justifying the clone (e.g., what experiment).
+    # Promoted from workspace into substrate by NoteCloneAgent on
+    # each fire. F=∅, G=[spec_doc] classifier shape. Lineage between
+    # origin and clone is carried separately by provenance.clone.
+    "clone",
     # Agent module
     "agent", "manages",
     # Lattice membership relation (added in spec-faithful refactor)

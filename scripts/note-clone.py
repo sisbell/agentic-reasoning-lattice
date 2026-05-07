@@ -1,15 +1,30 @@
 #!/usr/bin/env python3
-"""
-Clone an ASN under a new ASN number.
+"""Note-clone CLI — operator dispatcher for NoteCloneAgent.
 
-Used when an existing ASN already has expensive consultation work
-attached and you want to tweak it without disturbing the original.
-The source remains unchanged; the clone is fully independent
-afterward, with a `provenance.clone` audit edge from origin → clone.
+The operator:
+  1. Drops a spec md into `_workspace/clones/<filename>.md`.
+     Frontmatter declares clone_from / create_note; body holds the
+     rationale prose for the clone.
+  2. Runs `python scripts/note-clone.py --spec <filename>`.
+
+Example spec doc:
+
+    ---
+    clone_from: 48
+    create_note: 59
+    ---
+
+    # Why I'm cloning ASN-48
+
+    [Operator's rationale: what experiment, what hypothesis, etc.]
+
+The agent promotes the spec to substrate (`_docuverse/documents/clone/`),
+copies origin's note / inquiry / consultations under the clone's ASN
+identity, mirrors citation.depends, and emits provenance.clone.
 
 Usage:
-    python scripts/note-clone.py --source 48 --target 59
-    python scripts/note-clone.py -s 48 -t 59 --dry-run
+    python scripts/note-clone.py --spec clone-asn48-experiment.md
+    python scripts/note-clone.py --spec clone-asn48-experiment.md --dry-run
 """
 
 import argparse
@@ -17,65 +32,60 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.maturation.clone import (
-    validate, copy_note_md, copy_inquiry_doc, copy_consultations,
-    emit_substrate_facts,
-)
+from lib.agents.producers.note_clone import NoteCloneAgent
 from lib.protocols.febe.session import open_session
-from lib.shared.git_ops import step_commit
-from lib.shared.paths import LATTICE
+from lib.shared.paths import CLONE_INBOX, LATTICE
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Clone an ASN under a new ASN number.")
-    parser.add_argument("-s", "--source", type=int, required=True,
-                        help="Source ASN number to clone")
-    parser.add_argument("-t", "--target", type=int, required=True,
-                        help="New ASN number for the clone")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show what would happen without doing it")
+        description="Clone an ASN under a new ASN number.",
+    )
+    parser.add_argument(
+        "--spec", required=True,
+        help=(
+            "Spec filename in _workspace/clones/. "
+            "Operator drops the spec md there before running."
+        ),
+    )
+    parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    source_label, target_label = validate(args.source, args.target)
-
-    print(f"  [CLONE] {source_label} → {target_label}", file=sys.stderr)
+    spec_path = CLONE_INBOX / args.spec
+    if not spec_path.exists():
+        print(
+            f"  [ERROR] Spec not found in workspace: {spec_path}",
+            file=sys.stderr,
+        )
+        print(
+            f"  Drop the spec md at {spec_path} and re-run.",
+            file=sys.stderr,
+        )
+        return 1
 
     if args.dry_run:
-        print(f"  [DRY RUN] Would copy note md, inquiry doc, "
-              f"consultations, citations + emit provenance.clone",
-              file=sys.stderr)
-        return
+        print(
+            f"  [DRY RUN] Steps: promote → validate → "
+            f"copy note/inquiry/consultations → emit lineage",
+            file=sys.stderr,
+        )
+        print(f"  Spec: {spec_path}", file=sys.stderr)
+        print(f"  Content:\n{spec_path.read_text()}", file=sys.stderr)
+        return 0
 
-    target_note = copy_note_md(
-        args.source, args.target, source_label, target_label,
-    )
-    target_inquiry = copy_inquiry_doc(
-        args.source, args.target, source_label, target_label,
-    )
-    copy_consultations(source_label, target_label)
-
-    from lib.shared.common import find_asn
-    source_note, _ = find_asn(str(args.source))
-    from lib.shared.paths import inquiry_doc_path
-    source_inquiry = inquiry_doc_path(args.source)
-    if not source_inquiry.exists():
-        source_inquiry = None
-        target_inquiry = None
+    print(f"  [CLONE] {args.spec}", file=sys.stderr)
 
     with open_session(LATTICE) as session:
-        emit_substrate_facts(
-            session,
-            source_note_path=source_note,
-            target_note_path=target_note,
-            source_inquiry_path=source_inquiry,
-            target_inquiry_path=target_inquiry,
-        )
-    print(f"  [LINEAGE] provenance.clone {source_label} → {target_label}",
-          file=sys.stderr)
+        agent = NoteCloneAgent()
+        # Operator-gated pure producer: addr is unused by the agent
+        # but required by the Agent dispatch surface. Pass the
+        # lattice root as a stand-in.
+        lattice_addr = session.store.account
+        result = agent(session, lattice_addr, spec_filename=args.spec)
 
-    step_commit(f"clone(asn): {source_label} → {target_label}")
+    print(f"\n  [DONE] {result.detail}", file=sys.stderr)
+    return 0 if result.success else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

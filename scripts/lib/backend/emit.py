@@ -106,6 +106,15 @@ def emit_absorb(store: Store, absorb_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, absorb_doc, "absorb")
 
 
+def emit_clone(store: Store, clone_doc: Address) -> Tuple[Link, bool]:
+    """Classifier on a clone spec doc — the operator's scout-output for
+    a note-clone operation, promoted from workspace into substrate by
+    NoteCloneAgent on each fire. Carries the operator's intent
+    (clone_from / create_note) plus rationale prose. Distinct from
+    `provenance.clone`, which carries the origin → clone lineage."""
+    return emit_classifier(store, clone_doc, "clone")
+
+
 def emit_campaign(store: Store, campaign_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, campaign_doc, "campaign")
 
@@ -529,7 +538,7 @@ def emit_empty_derivation(
     return link, True
 
 
-def emit_clone(
+def emit_provenance_clone(
     store: Store, origin_note: Address, clone_note: Address,
 ) -> Tuple[Link, bool]:
     """File a `provenance.clone` link from origin to clone.
@@ -538,6 +547,9 @@ def emit_clone(
     Idempotent on (origin, clone). Used by note-clone for cheap
     experiments that preserve the origin's expensive consultation
     on the new ASN.
+
+    Distinct from `emit_clone`, which is the spec-doc classifier
+    helper.
     """
     existing = active_links(
         store.state,
