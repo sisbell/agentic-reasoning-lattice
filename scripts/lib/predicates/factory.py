@@ -217,6 +217,21 @@ def latest_via_coverage(
 # ─── Resolution predicates ─────────────────────────────────────────
 
 
+def _walk_unresolved(session, comment_kind, addr):
+    """Yield active `comment_kind` links targeting `addr` (or any
+    target when `addr is None`) that lack an active `resolution`.
+
+    Shared by `all_resolved` (early-exit boolean) and
+    `unresolved_comments_of_kind` (full-list lookup).
+    """
+    for link in session.active_links(
+        comment_kind,
+        to_set=[addr] if addr is not None else None,
+    ):
+        if not session.active_links("resolution", to_set=[link.addr]):
+            yield link
+
+
 def all_resolved(
     comment_kind: str,
 ) -> Callable[[Session, Address], bool]:
@@ -228,12 +243,15 @@ def all_resolved(
     when every comment of that kind targeting it has been closed.
     `is_doc_quiescent` is `all_resolved("comment.revise")`;
     `is_claim_structurally_clean` is `all_resolved("comment.violation")`.
+
+    Early-exits on the first unresolved comment via the shared
+    `_walk_unresolved` generator.
     """
     def predicate(session: Session, addr: Address) -> bool:
-        for link in session.active_links(comment_kind, to_set=[addr]):
-            if not session.active_links("resolution", to_set=[link.addr]):
-                return False
-        return True
+        return (
+            next(_walk_unresolved(session, comment_kind, addr), None)
+            is None
+        )
 
     predicate.__name__ = (
         f"all_{comment_kind.replace('.', '_')}_resolved"
@@ -243,3 +261,28 @@ def all_resolved(
         f"an active `resolution`."
     )
     return predicate
+
+
+def unresolved_comments_of_kind(
+    comment_kind: str,
+) -> Callable:
+    """Generate `unresolved_<comment_kind>_comments(addr=None)` — list
+    of active `comment_kind` links lacking an active `resolution`.
+
+    With `addr=None`, returns unresolved comments across the whole
+    substrate (used for lattice-scope quiescence checks). Exhausts
+    the shared `_walk_unresolved` generator; pair with `all_resolved`
+    for early-exit boolean checks.
+    """
+    def lookup(session: Session, addr: Optional[Address] = None):
+        return list(_walk_unresolved(session, comment_kind, addr))
+
+    lookup.__name__ = (
+        f"unresolved_{comment_kind.replace('.', '_')}_comments"
+    )
+    lookup.__doc__ = (
+        f"List of active `{comment_kind}` links targeting addr (or "
+        f"the whole substrate if addr is None) that lack an active "
+        f"`resolution`."
+    )
+    return lookup

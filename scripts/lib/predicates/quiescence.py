@@ -24,13 +24,14 @@ through.
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Optional
 
 from lib.backend.addressing import Address
-from lib.backend.links import Link
 from lib.protocols.febe.protocol import Session
 
-from .factory import all_resolved, latest_via_coverage
+from .factory import (
+    all_resolved, latest_via_coverage, unresolved_comments_of_kind,
+)
 
 
 def has_resolution(session: Session, comment_addr: Address) -> bool:
@@ -42,28 +43,7 @@ def has_resolution(session: Session, comment_addr: Address) -> bool:
     return bool(session.active_links("resolution", to_set=[comment_addr]))
 
 
-def unresolved_revise_comments(
-    session: Session,
-    doc_addr: Optional[Address] = None,
-) -> List[Link]:
-    """Every active `comment.revise` link without an active resolution.
-
-    Retracted revises are excluded (the retraction nullifies the
-    complaint). A resolution that has itself been retracted does not
-    satisfy the predicate. If `doc_addr` is given, scopes to comments
-    targeting that doc; otherwise spans the whole substrate.
-
-    This is the load-bearing predicate for the quiescence model —
-    every "is the lattice done?" question reduces to this set being
-    empty over the appropriate scope.
-    """
-    revises = session.active_links(
-        "comment.revise",
-        to_set=[doc_addr] if doc_addr is not None else None,
-    )
-    return [c for c in revises if not has_resolution(session, c.addr)]
-
-
+unresolved_revise_comments = unresolved_comments_of_kind("comment.revise")
 is_doc_quiescent = all_resolved("comment.revise")
 # Doc-neutral alias matching the legacy queries.py pattern.
 is_claim_quiescent = is_doc_quiescent
