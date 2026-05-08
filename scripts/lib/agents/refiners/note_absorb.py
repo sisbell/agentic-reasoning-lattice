@@ -516,6 +516,12 @@ class NoteAbsorbAgent(Agent):
         )
         if not ok:
             return AgentResult(success=False, detail="integrate-failed")
+        # Base note's body was edited; advance its supersession chain
+        # so cascade-fresh detects the absorb.
+        base_rel_for_version = str(base_path.relative_to(LATTICE))
+        base_addr_for_version = session.get_addr_for_path(base_rel_for_version)
+        if base_addr_for_version is not None:
+            session.register_version(base_addr_for_version)
         log_usage("absorb-integrate", 0, ext=ext_num, base=base_num)
         step_commit_asn(
             base_num,

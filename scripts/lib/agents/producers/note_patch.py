@@ -321,6 +321,9 @@ class NotePatchAgent(Agent):
         )
         if not ok:
             return AgentResult(success=False, detail="apply-failed")
+        # Body was edited; advance the note's supersession chain so
+        # downstream cascade-fresh predicates detect the edit.
+        session.register_version(note_addr)
         log_usage("patch-apply", 0, asn=asn_num)
         step_commit_asn(asn_num, f"patch(asn): {asn_label} apply {patch_filename}")
 

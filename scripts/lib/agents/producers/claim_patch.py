@@ -238,6 +238,13 @@ class ClaimPatchAgent(Agent):
         )
         if not ok:
             return AgentResult(success=False, detail="apply-failed")
+        # The patch may have edited any subset of derived claims;
+        # advance the supersession chain on each so cascade-fresh
+        # detects the edit on whichever claims were actually touched.
+        # Conservative: includes claims that weren't edited (their
+        # downstream just re-fires once and finds nothing).
+        for derived in derived_claims(session, note_addr):
+            session.register_version(derived)
         log_usage("claim-patch-apply", 0, asn=asn_num)
         step_commit_asn(asn_num, f"patch(asn): {asn_label} apply {patch_filename}")
 

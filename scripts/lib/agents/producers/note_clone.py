@@ -232,22 +232,30 @@ def _emit_substrate(
         emit_inquiry(session.store, clone_inquiry_addr)
 
         if origin_inquiry_addr is not None:
+            from lib.predicates.versions import version_head
             for link in session.active_links(
                 "citation.depends", from_set=[origin_inquiry_addr],
             ):
                 for cited in link.to_set:
+                    # Re-resolve to current head (origin's citation may
+                    # have targeted an older version of the upstream).
                     emit_citation(
-                        session.store, clone_inquiry_addr, cited,
+                        session.store, clone_inquiry_addr,
+                        version_head(session, cited),
                         direction="depends",
                     )
 
     if origin_note_addr is not None:
+        from lib.predicates.versions import version_head
         for link in session.active_links(
             "citation.depends", from_set=[origin_note_addr],
         ):
             for cited in link.to_set:
+                # Re-resolve to current head (origin's citation may
+                # have targeted an older version of the upstream).
                 emit_citation(
-                    session.store, clone_note_addr, cited,
+                    session.store, clone_note_addr,
+                    version_head(session, cited),
                     direction="depends",
                 )
 

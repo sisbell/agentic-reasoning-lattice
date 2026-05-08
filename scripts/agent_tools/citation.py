@@ -58,10 +58,16 @@ def main():
     if args.to not in label_index:
         print(f"error: unknown label {args.to!r}", file=sys.stderr)
         return 1
+    from lib.predicates.versions import version_head
+
     citing_addr = session.register_path(claim_path)
     cited_addr = label_index[args.to]
+    # Citations target version_head so cascade-fresh detects upstream
+    # edits (is_head_version flips False post-register_version).
+    citing_head = version_head(session, citing_addr)
+    cited_head = version_head(session, cited_addr)
     link, created = emit_citation(
-        store, citing_addr, cited_addr, direction=args.direction,
+        store, citing_head, cited_head, direction=args.direction,
     )
     print(link.addr)
     if not created:
