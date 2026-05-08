@@ -1,14 +1,15 @@
 """Tests for cascade-aware predicates.
 
 Synthetic substrate covering both predicates and the cone-review
-trigger predicate's combined behavior. Each test builds the minimal
-link graph it needs via State + Session, exercises the predicate, and
-asserts the True/False outcome.
+trigger predicate's combined behavior. The cascade-fresh predicate
+uses version chains: a claim's citations target the upstream's
+head version at emit time; if upstream is later edited (creating a
+new version via register_version), the cited address is no longer
+the head, and cascade-fresh returns False.
 
-The state-difference under test is the relative tumbler-address
-ordering of (claim's latest review.coverage) vs (upstream activity
-tuples). Per R0 monotonicity, links allocate addresses in emit order;
-the predicates compare digits to decide "newer than anchor."
+The gate (is_upstream_settled_one_hop) uses pure existence queries
+(no version primitives) — distribution-friendly via direct
+predicate composition.
 """
 
 import sys
@@ -28,16 +29,18 @@ from lib.predicates import (
 )
 
 
-def _make_review_chain(state, claim_addr, lattice_addr):
-    """Emit a review.content classifier + review.coverage targeting
-    the claim. Returns (review_doc_addr, coverage_link)."""
+def _emit_clean_review(state, addr, lattice_addr):
+    """Emit a review.content classifier + review.coverage targeting addr.
+    Used to satisfy is_claim_confirmed (which needs latest_review_was_clean).
+    Returns the review doc addr.
+    """
     review_doc = state.create_doc(
         kind="review.content", lattice=lattice_addr,
     )
-    coverage = state.make_link(
-        review_doc, [review_doc], [claim_addr], "review.coverage",
+    state.make_link(
+        review_doc, [review_doc], [addr], "review.coverage",
     )
-    return review_doc, coverage
+    return review_doc
 
 
 class UpstreamSettledTests(unittest.TestCase):
@@ -71,7 +74,6 @@ class UpstreamSettledTests(unittest.TestCase):
         )
 
     def test_unresolved_revise_on_upstream_blocks(self):
-        # claim cites upstream; upstream has open comment.revise
         self.state.make_link(
             self.claim, [self.claim], [self.upstream], "citation.depends",
         )
@@ -86,7 +88,6 @@ class UpstreamSettledTests(unittest.TestCase):
         )
 
     def test_resolved_revise_on_upstream_passes(self):
-        # claim cites upstream; upstream's comment was resolved
         self.state.make_link(
             self.claim, [self.claim], [self.upstream], "citation.depends",
         )
@@ -105,15 +106,14 @@ class UpstreamSettledTests(unittest.TestCase):
         )
 
     def test_unresolved_violation_on_upstream_blocks(self):
-        # comment.violation also gates (structural cleanness check)
         self.state.make_link(
             self.claim, [self.claim], [self.upstream], "citation.depends",
         )
-        audit_finding = self.state.create_doc(
+        finding = self.state.create_doc(
             kind="finding", lattice=self.lattice,
         )
         self.state.make_link(
-            audit_finding, [audit_finding], [self.upstream],
+            finding, [finding], [self.upstream],
             "comment.violation",
         )
         self.assertFalse(
@@ -121,7 +121,6 @@ class UpstreamSettledTests(unittest.TestCase):
         )
 
     def test_two_upstream_one_dirty_blocks(self):
-        # Two direct upstream; only one has open comment → still blocks
         upstream_b = self.state.create_doc(
             kind="claim", lattice=self.lattice,
         )
@@ -141,10 +140,13 @@ class UpstreamSettledTests(unittest.TestCase):
 
 
 class CascadeFreshTests(unittest.TestCase):
-    """The staleness detector: did upstream advance after this claim's
-    last review?"""
+    """The staleness detector: did upstream's version chain advance
+    past where this claim's citations point?"""
 
     def setUp(self):
+        # state.create_version sets the parent map (which is_head_version
+        # / version_children read), so we don't need a Store-backed
+        # session for these tests — Session(state) suffices.
         self.state = State(account=Address("1.1.0.1"))
         self.session = Session(self.state)
         self.lattice = self.state.create_doc()
@@ -155,102 +157,92 @@ class CascadeFreshTests(unittest.TestCase):
             kind="claim", lattice=self.lattice,
         )
 
-    def test_never_reviewed_is_not_fresh(self):
-        # No review.coverage on claim → no anchor → not fresh
-        self.assertFalse(
-            is_cascade_fresh_one_hop(self.session, self.claim)
-        )
-
-    def test_reviewed_with_no_upstream_activity_is_fresh(self):
-        # Claim cites upstream, claim has been reviewed, nothing has
-        # happened on upstream since
-        self.state.make_link(
-            self.claim, [self.claim], [self.upstream], "citation.depends",
-        )
-        _make_review_chain(self.state, self.claim, self.lattice)
+    def test_no_upstream_is_vacuously_fresh(self):
+        # Foundation claim with no citation upstream → trivially True
         self.assertTrue(
             is_cascade_fresh_one_hop(self.session, self.claim)
         )
 
-    def test_upstream_advanced_after_review_is_stale(self):
-        # claim reviewed, then upstream gets a comment.revise → stale
+    def test_unedited_upstream_is_fresh(self):
+        # Claim cites upstream; upstream has not been edited
+        # (no version-children); is_head_version(upstream) = True
         self.state.make_link(
-            self.claim, [self.claim], [self.upstream], "citation.depends",
+            self.claim, [self.claim], [self.upstream],
+            "citation.depends",
         )
-        _make_review_chain(self.state, self.claim, self.lattice)
-        # Emit comment.revise AFTER the review (later tumbler addr).
-        upstream_review = self.state.create_doc(
-            kind="review.content", lattice=self.lattice,
-        )
-        self.state.make_link(
-            upstream_review, [upstream_review], [self.upstream],
-            "comment.revise",
-        )
-        self.assertFalse(
-            is_cascade_fresh_one_hop(self.session, self.claim)
-        )
-
-    def test_resolution_after_review_is_stale(self):
-        # Even a resolution.edit on upstream counts as upstream advance
-        # (substantive revision happened).
-        self.state.make_link(
-            self.claim, [self.claim], [self.upstream], "citation.depends",
-        )
-        # Pre-existing comment on upstream (before claim's review)
-        upstream_review = self.state.create_doc(
-            kind="review.content", lattice=self.lattice,
-        )
-        comment = self.state.make_link(
-            upstream_review, [upstream_review], [self.upstream],
-            "comment.revise",
-        )
-        # Now claim is reviewed (anchor set)
-        _make_review_chain(self.state, self.claim, self.lattice)
-        # Then upstream's comment is resolved (later than claim's review)
-        self.state.make_link(
-            self.upstream, [self.upstream], [comment.addr],
-            "resolution.edit",
-        )
-        self.assertFalse(
-            is_cascade_fresh_one_hop(self.session, self.claim)
-        )
-
-    def test_upstream_activity_before_review_is_fresh(self):
-        # Upstream activity that happened BEFORE the latest review
-        # doesn't count as cascade-stale — the review already saw it.
-        self.state.make_link(
-            self.claim, [self.claim], [self.upstream], "citation.depends",
-        )
-        upstream_review = self.state.create_doc(
-            kind="review.content", lattice=self.lattice,
-        )
-        self.state.make_link(
-            upstream_review, [upstream_review], [self.upstream],
-            "comment.revise",
-        )
-        # claim's review happens AFTER upstream's activity
-        _make_review_chain(self.state, self.claim, self.lattice)
         self.assertTrue(
             is_cascade_fresh_one_hop(self.session, self.claim)
         )
 
-    def test_two_reviews_uses_latest_anchor(self):
-        # Two reviews on claim; second is the anchor. Activity before
-        # the second review is fine; activity after is stale.
+    def test_edited_upstream_is_stale(self):
+        # Claim cites upstream-identity; upstream is edited via
+        # register_version; the cited address is no longer head
         self.state.make_link(
-            self.claim, [self.claim], [self.upstream], "citation.depends",
+            self.claim, [self.claim], [self.upstream],
+            "citation.depends",
         )
-        _make_review_chain(self.state, self.claim, self.lattice)
-        upstream_review = self.state.create_doc(
-            kind="review.content", lattice=self.lattice,
+        # Upstream is edited — register_version creates a child
+        self.state.create_version(self.upstream)
+        # Now upstream-identity has version-children; not head
+        self.assertFalse(
+            is_cascade_fresh_one_hop(self.session, self.claim)
+        )
+
+    def test_re_review_at_new_head_is_fresh(self):
+        # Realistic re-review flow:
+        # 1. claim cites upstream-identity originally
+        # 2. upstream is edited (create_version)
+        # 3. claim is edited via re-review (create_version on claim)
+        # 4. New citation emitted from claim's head to upstream's head
+        # 5. Predicate walks depends(version_head(claim)) — only the
+        #    new citation; old citations from claim-identity are not
+        #    queried.
+        self.state.make_link(
+            self.claim, [self.claim], [self.upstream],
+            "citation.depends",
+        )
+        # Upstream is edited
+        upstream_v1 = self.state.create_version(self.upstream)
+        # Claim is also re-reviewed (create_version advances chain)
+        claim_v1 = self.state.create_version(self.claim)
+        # Re-review's sync emits new citation from claim's head to
+        # upstream's head
+        self.state.make_link(
+            claim_v1, [claim_v1], [upstream_v1],
+            "citation.depends",
+        )
+        # Predicate reads from claim_v1; sees citation to upstream_v1;
+        # is_head_version(upstream_v1) = True; fresh.
+        self.assertTrue(
+            is_cascade_fresh_one_hop(self.session, self.claim)
+        )
+
+    def test_two_upstream_one_edited_is_stale(self):
+        upstream_b = self.state.create_doc(
+            kind="claim", lattice=self.lattice,
         )
         self.state.make_link(
-            upstream_review, [upstream_review], [self.upstream],
-            "comment.revise",
+            self.claim, [self.claim], [self.upstream, upstream_b],
+            "citation.depends",
         )
-        # Second review on claim — this is the new anchor
-        _make_review_chain(self.state, self.claim, self.lattice)
-        # No upstream activity after the second review → fresh
+        # Edit only upstream_b
+        self.state.create_version(upstream_b)
+        # Predicate detects upstream_b is no longer head
+        self.assertFalse(
+            is_cascade_fresh_one_hop(self.session, self.claim)
+        )
+
+    def test_claim_edit_alone_does_not_make_stale(self):
+        # If claim itself versions but no upstream changes, claim is
+        # still fresh. (After claim's register_version, its head is
+        # the new version; that head has no citations yet, so the
+        # predicate is vacuously True.)
+        self.state.make_link(
+            self.claim, [self.claim], [self.upstream],
+            "citation.depends",
+        )
+        self.state.create_version(self.claim)
+        # Claim's new head has no outgoing citations → vacuously fresh
         self.assertTrue(
             is_cascade_fresh_one_hop(self.session, self.claim)
         )
@@ -258,8 +250,7 @@ class CascadeFreshTests(unittest.TestCase):
 
 class TriggerPredicateTests(unittest.TestCase):
     """Combined behavior of cone-review's predicate after the cascade
-    additions. Imported indirectly via the triggers module to verify
-    the wire-up."""
+    additions."""
 
     def setUp(self):
         self.state = State(account=Address("1.1.0.1"))
@@ -274,7 +265,6 @@ class TriggerPredicateTests(unittest.TestCase):
 
     def _predicate(self, addr):
         # Inline replica of triggers/cone_review.py::_predicate
-        # (avoiding the module's CLI-only imports).
         if not is_upstream_settled_one_hop(self.session, addr):
             return True
         if (
@@ -306,50 +296,33 @@ class TriggerPredicateTests(unittest.TestCase):
         )
         self.assertFalse(self._predicate(self.claim))
 
-    def test_fires_when_confirmed_but_cascade_stale(self):
-        # Claim was reviewed clean (confirmed), but upstream advanced
-        # after — cone-review should re-fire to catch the cascade.
+    def test_fires_when_confirmed_but_upstream_edited(self):
+        # Claim was reviewed clean (confirmed), but upstream was edited
+        # after — cone-review should re-fire to catch the cascade
         self.state.make_link(
             self.claim, [self.claim], [self.upstream], "citation.depends",
         )
-        review_doc, _ = _make_review_chain(
-            self.state, self.claim, self.lattice,
-        )
-        # Clean review (no comment.revise from this review)
-        # Upstream activity AFTER claim's review → cascade-stale
-        upstream_review = self.state.create_doc(
-            kind="review.content", lattice=self.lattice,
-        )
-        comment = self.state.make_link(
-            upstream_review, [upstream_review], [self.upstream],
-            "comment.revise",
-        )
-        # Resolve upstream's comment so upstream is settled (gate clear)
-        self.state.make_link(
-            self.upstream, [self.upstream], [comment.addr],
-            "resolution.edit",
-        )
-        # Sanity: gate is open
+        _emit_clean_review(self.state, self.claim, self.lattice)
+        # Upstream is edited
+        self.state.create_version(self.upstream)
+        # Sanity checks
         self.assertTrue(
             is_upstream_settled_one_hop(self.session, self.claim)
         )
-        # But cascade-stale (upstream's tuples are after claim's anchor)
         self.assertFalse(
             is_cascade_fresh_one_hop(self.session, self.claim)
         )
-        # is_claim_confirmed requires `latest_review_was_clean` AND
-        # is_claim_quiescent. With no comment.revise on this claim and
-        # one clean review, both hold. So the predicate falls past the
-        # confirmed check (because cascade-fresh is False) and fires.
+        # Predicate returns False (fire) because confirmed-and-fresh
+        # is not satisfied (cascade-fresh is False)
         self.assertFalse(self._predicate(self.claim))
 
     def test_skips_when_confirmed_and_fresh(self):
-        # Claim reviewed clean, upstream stable, no cascade activity
+        # Claim reviewed clean, upstream stable (no edits)
         self.state.make_link(
             self.claim, [self.claim], [self.upstream], "citation.depends",
         )
-        _make_review_chain(self.state, self.claim, self.lattice)
-        # Sanity checks
+        _emit_clean_review(self.state, self.claim, self.lattice)
+        # Sanity
         self.assertTrue(
             is_upstream_settled_one_hop(self.session, self.claim)
         )
@@ -357,6 +330,7 @@ class TriggerPredicateTests(unittest.TestCase):
             is_cascade_fresh_one_hop(self.session, self.claim)
         )
         self.assertTrue(is_claim_confirmed(self.session, self.claim))
+        # Skip
         self.assertTrue(self._predicate(self.claim))
 
     def test_skips_when_open_revise_on_claim(self):
@@ -370,13 +344,13 @@ class TriggerPredicateTests(unittest.TestCase):
         self.state.make_link(
             review, [review], [self.claim], "comment.revise",
         )
-        # Upstream is settled (no comments on upstream)
+        # Upstream is settled
         self.assertTrue(
             is_upstream_settled_one_hop(self.session, self.claim)
         )
         # Claim is not quiescent (open revise)
         self.assertFalse(is_claim_quiescent(self.session, self.claim))
-        # Predicate skips
+        # Predicate skips (will let refiner close first)
         self.assertTrue(self._predicate(self.claim))
 
 

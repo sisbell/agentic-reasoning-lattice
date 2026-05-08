@@ -234,17 +234,22 @@ class SyncCitationsTests(unittest.TestCase):
         self.store = Store(self.lattice)
 
     def test_sync_adds_md_only_and_retracts_substrate_only(self):
+        from lib.protocols.febe.session import Session
         label_index = build_cross_asn_label_index(self.store)
         a = self.store.addr_for_path("claim/A.md")
-        changes = sync_claim_citations(self.store, a, label_index)
+        session = Session(self.store)
+        changes = sync_claim_citations(session, a, label_index)
         self.assertIn("Bar", changes["depends"]["added"])
         self.assertIn("Foo", changes["depends"]["retracted"])
 
-        # Verify substrate state
+        # Verify substrate state — citations are now emitted from
+        # version_head(a) (which equals a-identity since no edit
+        # happened in this test). Targets are the upstream labels'
+        # version_heads (also identity in this test).
         active_deps = active_links(
             self.store.state, "citation.depends", from_set=[a],
         )
-        # Should only have Bar now
+        # Should only have Bar now (Foo was retracted)
         bar_addr = self.store.addr_for_path("claim/Bar.md")
         live_targets = {tgt for link in active_deps for tgt in link.to_set}
         self.assertEqual(live_targets, {bar_addr})

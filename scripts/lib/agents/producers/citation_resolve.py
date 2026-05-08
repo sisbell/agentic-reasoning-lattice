@@ -339,6 +339,14 @@ def _persist_resolve_doc(asn_label, claim_label, sonnet_output, model):
 # ─── Substrate emission ─────────────────────────────────────────────
 
 
+def _walk_to_base(state, addr: Address) -> Address:
+    """Walk version-parent chain to the base identity (root)."""
+    cur = addr
+    while state.parent.get(cur) is not None:
+        cur = state.parent[cur]
+    return cur
+
+
 def _emit_citation_substrate(
     session: Session,
     claim_md_rel: str,
@@ -355,9 +363,12 @@ def _emit_citation_substrate(
     3. retraction for each retraction
     4. provenance.derivation from the resolve doc to each emitted link
     """
+    from lib.predicates.versions import version_head
+
     store = session.store
     resolve_doc_addr = store.register_path(resolve_doc_rel)
     claim_addr = store.register_path(claim_md_rel)
+    claim_head = version_head(session, claim_addr)
 
     store.make_link(
         homedoc=resolve_doc_addr,
@@ -371,8 +382,9 @@ def _emit_citation_substrate(
         cited_addr = label_index.get(c["label"])
         if cited_addr is None:
             continue
+        cited_head = version_head(session, cited_addr)
         link, _ = emit_citation(
-            store, claim_addr, cited_addr, direction=c["direction"],
+            store, claim_head, cited_head, direction=c["direction"],
         )
         derivation_targets.append(link.addr)
     for r in retractions:
@@ -380,10 +392,17 @@ def _emit_citation_substrate(
         if cited_addr is None:
             continue
         type_str = f"citation.{r['direction']}"
+        # Citations may target version-head addresses (not identity);
+        # walk each candidate's to_set back to base before matching.
         for cand in session.active_links(
-            type_str, from_set=[claim_addr], to_set=[cited_addr],
+            type_str, from_set=[claim_head],
         ):
-            retraction = emit_retraction(store, claim_addr, cand.addr)
+            if not any(
+                _walk_to_base(store.state, t) == cited_addr
+                for t in cand.to_set
+            ):
+                continue
+            retraction = emit_retraction(store, claim_head, cand.addr)
             derivation_targets.append(retraction.addr)
             break  # retract one matching link per (claim, target, direction)
 

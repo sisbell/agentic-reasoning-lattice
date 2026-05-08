@@ -41,6 +41,7 @@ from lib.backend.store import Store
 from lib.lattice.context import claim_context_from_addr
 from lib.lattice.findings import emit_review_doc
 from lib.lattice.labels import build_cross_asn_label_index
+from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
 from lib.shared.git_ops import step_commit_asn
@@ -166,23 +167,36 @@ def _md_labels_in_section(md_text: str, header: str) -> set[str]:
 
 
 def _substrate_labels(
-    store: Store,
-    claim_addr: Address,
+    session: Session,
+    from_addr: Address,
     type_str: str,
     rev_index: Dict[Address, str],
 ) -> set[str]:
     """Labels currently active in substrate as `type_str` citations
-    from claim_addr."""
+    from `from_addr`. The cited target may be a version_head address;
+    walk its parent chain back to the base identity for rev_index
+    lookup.
+    """
     out: set[str] = set()
-    for link in active_links(store.state, type_str, from_set=[claim_addr]):
+    state = session.state
+    for link in active_links(state, type_str, from_set=[from_addr]):
         for cited in link.to_set:
-            if cited in rev_index:
-                out.add(rev_index[cited])
+            base = _base_identity(state, cited)
+            if base in rev_index:
+                out.add(rev_index[base])
     return out
 
 
+def _base_identity(state, addr: Address) -> Address:
+    """Walk version-parent chain to the base identity (root of chain)."""
+    cur = addr
+    while state.parent.get(cur) is not None:
+        cur = state.parent[cur]
+    return cur
+
+
 def sync_claim_citations(
-    store: Store,
+    session: Session,
     claim_addr: Address,
     label_index: Dict[str, Address],
 ) -> Optional[dict]:
@@ -190,9 +204,17 @@ def sync_claim_citations(
     agreement with the claim md's `*Depends:*` / `*Forward References:*`
     sections.
 
+    Citations are emitted from `version_head(claim_addr)` (the claim's
+    current head version) targeting `version_head(target)` (each
+    upstream's current head). After register_version on the claim, new
+    citations land on the new version; old citations on the prior
+    version stay in substrate as history but aren't queried for
+    cascade-fresh purposes (the predicate reads from version_head).
+
     For each direction:
-    - Labels in .md but not in active substrate → emit citation
-    - Labels in active substrate but not in .md → emit retraction
+    - Labels in .md but not in active substrate-from-head → emit
+      citation from claim's head to target's head
+    - Labels in active substrate-from-head but not in .md → retract
 
     Labels in .md that don't resolve in `label_index` are skipped.
     Returns a changes dict, or None if the .md file isn't on disk.
@@ -201,6 +223,7 @@ def sync_claim_citations(
     without emitting matching substrate calls. Drift detection is
     set-comparison, not history-based — distributed-safe.
     """
+    store = session.store
     claim_path = store.path_for_addr(claim_addr)
     if claim_path is None:
         return None
@@ -208,6 +231,7 @@ def sync_claim_citations(
     if not full_path.exists():
         return None
 
+    claim_head = version_head(session, claim_addr)
     rev_index: Dict[Address, str] = {
         addr: lbl for lbl, addr in label_index.items()
     }
@@ -216,10 +240,10 @@ def sync_claim_citations(
     md_depends = _md_labels_in_section(md_text, _DEPENDS_HEADER)
     md_forwards = _md_labels_in_section(md_text, _FORWARD_HEADER)
     sub_depends = _substrate_labels(
-        store, claim_addr, "citation.depends", rev_index,
+        session, claim_head, "citation.depends", rev_index,
     )
     sub_forwards = _substrate_labels(
-        store, claim_addr, "citation.forward", rev_index,
+        session, claim_head, "citation.forward", rev_index,
     )
 
     changes = {
@@ -230,27 +254,35 @@ def sync_claim_citations(
     for label in sorted(md_depends - sub_depends):
         if label not in label_index:
             continue
+        target_head = version_head(session, label_index[label])
         emit_citation(
-            store, claim_addr, label_index[label], direction="depends",
+            store, claim_head, target_head, direction="depends",
         )
         changes["depends"]["added"].append(label)
 
     for label in sorted(sub_depends - md_depends):
         if label not in label_index:
             continue
+        # Retract any active citation from claim_head whose to_set
+        # base-identity matches this label.
         for link in active_links(
-            store.state, "citation.depends",
-            from_set=[claim_addr], to_set=[label_index[label]],
+            store.state, "citation.depends", from_set=[claim_head],
         ):
-            emit_retraction(store, claim_addr, link.addr)
-            changes["depends"]["retracted"].append(label)
+            for cited in link.to_set:
+                if _base_identity(store.state, cited) == label_index[label]:
+                    emit_retraction(store, claim_head, link.addr)
+                    changes["depends"]["retracted"].append(label)
+                    break
+            else:
+                continue
             break
 
     for label in sorted(md_forwards - sub_forwards):
         if label not in label_index:
             continue
+        target_head = version_head(session, label_index[label])
         emit_citation(
-            store, claim_addr, label_index[label], direction="forward",
+            store, claim_head, target_head, direction="forward",
         )
         changes["forward"]["added"].append(label)
 
@@ -258,11 +290,15 @@ def sync_claim_citations(
         if label not in label_index:
             continue
         for link in active_links(
-            store.state, "citation.forward",
-            from_set=[claim_addr], to_set=[label_index[label]],
+            store.state, "citation.forward", from_set=[claim_head],
         ):
-            emit_retraction(store, claim_addr, link.addr)
-            changes["forward"]["retracted"].append(label)
+            for cited in link.to_set:
+                if _base_identity(store.state, cited) == label_index[label]:
+                    emit_retraction(store, claim_head, link.addr)
+                    changes["forward"]["retracted"].append(label)
+                    break
+            else:
+                continue
             break
 
     return changes
@@ -351,7 +387,7 @@ class ConeReviewAgent(Agent):
             from_addr = label_index.get(label)
             if from_addr is None:
                 continue
-            sync_claim_citations(session.store, from_addr, label_index)
+            sync_claim_citations(session, from_addr, label_index)
 
         # 6. Commit the review-doc emission as a cycle event.
         step_commit_asn(

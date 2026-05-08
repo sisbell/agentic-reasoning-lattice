@@ -1,63 +1,50 @@
-"""Cascade-aware predicates — the chaining model's first instance.
+"""Cascade-aware predicates for the cone-review trigger.
 
-Two predicates that together let a content-review trigger respect
-upstream activity:
+Two predicates compose into the cone-review's `_predicate` to make
+cone-review respect upstream activity:
 
     is_upstream_settled_one_hop(session, claim_addr)
         — the *gate*. True iff every direct citation upstream of
         `claim_addr` is locally settled (no unresolved comment.revise,
         no unresolved comment.violation). Prevents the trigger from
         firing while any direct upstream is mid-update — the layered-
-        convergence guarantee.
+        convergence guarantee. Distribution-friendly: pure existence
+        queries via depends + is_claim_quiescent +
+        is_claim_structurally_clean.
 
     is_cascade_fresh_one_hop(session, claim_addr)
-        — the *staleness detector*. True iff no direct citation
-        upstream has activity newer than this claim's latest content
-        review. Detects "claim was previously reviewed clean, but
-        upstream has since advanced" — what makes the runner re-fire
+        — the *staleness detector*. True iff every direct citation
+        upstream of `claim_addr`'s head version is itself a head
+        version. Detects "claim was previously reviewed clean, but
+        upstream has since been edited" — what makes the runner re-fire
         on cascade-stale claims even after they were once confirmed.
 
-Both compose existing predicates (`depends`, `is_claim_quiescent`,
-`is_claim_structurally_clean`) plus emit-order comparison via
-LinkStore position. No new substrate state, no new tuple kinds.
+Both compose existing substrate primitives. No new substrate state, no
+new tuple kinds, no emit-order comparison — the version chain itself
+carries the cascade signal.
 
-Note on emit-order: tumbler addresses are allocated *per homedoc*
-(per ASN-0043 link addressing), so digit-by-digit comparison across
-links from different homedocs doesn't reflect global emit-order.
-Global emit-order is the LinkStore's iteration order — the append-
-only log (R3 monotonicity) is the canonical record of "what came
-after what." We build a position map once per evaluation and use it
-for comparison.
+The mechanism:
+- Body edits call `register_version(claim_addr)` (already in place at
+  `resolution.py`, `claim_structural_revise.py`, `claim_formal_contract.py`).
+- `register_version` allocates a tumbler-child of the doc and emits a
+  supersession link.
+- `is_head_version(addr)` is True iff the doc has no version-children.
+- After upstream u is edited, `is_head_version(u-identity) = False`.
+- A claim's citation pointing at u-identity (no longer head) marks the
+  claim as cascade-stale.
+- After the claim re-reviews (advancing its own chain), it emits new
+  citations from its head version targeting upstream's current head.
+- Predicate reads the head version's citations; all targets head → fresh.
 """
 
 from __future__ import annotations
-
-from typing import Optional
 
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
 
 from .citations import depends
 from .quiescence import is_claim_quiescent, is_claim_structurally_clean
-
-
-# Direct-target tuple kinds: tuples whose `to_set` contains the
-# upstream itself. Their existence with addr > anchor means upstream
-# is in flight or its state moved.
-DIRECT_KINDS_FOR_CONTENT = (
-    "comment.revise",
-    "comment.violation",
-    "retraction",
-)
-
-# Two-hop tuple kinds: tuples that target a *comment* on the upstream,
-# not the upstream directly. A resolution with addr > anchor implies
-# upstream's body was edited as part of closing the comment, so the
-# upstream's reasoning content shifted post-anchor.
-TWO_HOP_KINDS_FOR_CONTENT = (
-    "resolution.edit",
-    "resolution.reject",
-)
+from .versions import is_head_version, version_head
 
 
 def is_upstream_settled_one_hop(
@@ -84,84 +71,30 @@ def is_upstream_settled_one_hop(
     return True
 
 
-def _emit_position_map(session: Session) -> dict:
-    """Build a (link addr → linkstore position) map for the session.
-
-    LinkStore iteration order is global emit-order (R3 append-only).
-    Tumbler addresses are per-homedoc, so this is the canonical way
-    to compare "did A get emitted before B" across homedocs. Built
-    once per predicate call; O(N) walk.
-    """
-    return {
-        link.addr: i for i, link in enumerate(session.state.links)
-    }
-
-
-def _latest_review_coverage_addr(
-    session: Session, claim_addr: Address, positions: dict,
-) -> Optional[Address]:
-    """Return the address of the latest-emitted `review.coverage` link
-    covering `claim_addr` whose source carries a `review.content`
-    classifier. None if no such coverage exists.
-
-    "Latest" is measured by linkstore position — the canonical emit
-    order — not by digit comparison (which doesn't work across
-    homedocs).
-    """
-    coverage_links = [
-        link for link in session.active_links(
-            "review.coverage", to_set=[claim_addr],
-        )
-        if link.from_set
-        and session.active_links(
-            "review.content", to_set=[link.from_set[0]],
-        )
-    ]
-    if not coverage_links:
-        return None
-    return max(
-        coverage_links, key=lambda link: positions[link.addr],
-    ).addr
-
-
 def is_cascade_fresh_one_hop(
     session: Session, claim_addr: Address,
 ) -> bool:
-    """True iff no direct citation upstream of `claim_addr` has tuples
-    emitted after the anchor (claim's latest review.coverage).
+    """True iff every direct citation upstream of `claim_addr`'s head
+    version is itself a head version.
 
-    Returns False if `claim_addr` has never been content-reviewed
-    (no anchor → not fresh, definitely needs a first review).
+    Reads citations from `version_head(claim_addr)` — the latest
+    version of the claim. After `register_version` advances the claim's
+    chain, the head version's outgoing citations are the post-edit ones
+    (emitted by the next sync_claim_citations after re-review).
 
-    Composes only existing substrate primitives. Does not introduce
-    any cached or per-agent state — each evaluation is a pure read of
-    current substrate state. Emit-order via LinkStore position.
+    For each cited address: `is_head_version` returns False iff that
+    address has version-children, i.e., upstream has been edited since
+    the citation was emitted. Any non-head target → cascade-stale.
+
+    Vacuously fresh when the head version has no outgoing citations
+    (e.g., a freshly created version-marker that hasn't yet been
+    re-reviewed). The trigger predicate composition handles that path
+    via `is_claim_confirmed` — a claim with no recent clean review is
+    not confirmed, so the cascade-fresh skip branch is bypassed and
+    cone-review fires regardless.
     """
-    positions = _emit_position_map(session)
-    anchor = _latest_review_coverage_addr(session, claim_addr, positions)
-    if anchor is None:
-        return False  # never reviewed → not fresh
-
-    anchor_pos = positions[anchor]
-    for upstream in depends(session, claim_addr):
-        # Direct-target check: tuples whose to_set contains upstream.
-        for kind in DIRECT_KINDS_FOR_CONTENT:
-            for link in session.active_links(kind, to_set=[upstream]):
-                if positions[link.addr] > anchor_pos:
-                    return False
-        # Two-hop check: resolutions targeting comments on upstream.
-        # Resolution.edit's to_set is the comment, not the upstream;
-        # but its existence post-anchor implies upstream's body was
-        # edited as part of the close.
-        comments_on_upstream = (
-            session.active_links("comment.revise", to_set=[upstream])
-            + session.active_links("comment.violation", to_set=[upstream])
-        )
-        for comment in comments_on_upstream:
-            for kind in TWO_HOP_KINDS_FOR_CONTENT:
-                for resolution in session.active_links(
-                    kind, to_set=[comment.addr],
-                ):
-                    if positions[resolution.addr] > anchor_pos:
-                        return False
+    head = version_head(session, claim_addr)
+    for upstream in depends(session, head):
+        if not is_head_version(session, upstream):
+            return False
     return True
