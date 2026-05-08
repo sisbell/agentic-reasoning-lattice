@@ -1,107 +1,109 @@
-# Agentic Protocols
+# Protocol Stack
 
-The system is a stack of protocols sharing a [substrate](../glossary.md#s) (a persistent, append-only graph of documents and typed links). Following the modular formalism of Cachin (*Reliable and Secure Distributed Programming*) — but for LLM-agent coordination rather than distributed nodes.
+This directory specifies the architectural protocol stack for the system. It uses *protocol* in Cachin's sense — a legal succession of messages between processes, with well-defined participants, transitions, and termination. The stack distinguishes the protocols themselves (which describe legal successions) from the foundation those protocols compose against (the medium, the message language, the process model, the scheduling discipline).
 
-A protocol defines what must hold (the convergence predicate, the output contract, the safety and liveness properties). [Choreography](../glossary.md#c) defines how to make it hold (scope strategy, review order, context assembly, concurrency policy). The protocol IS the predicate or contract; everything else is choreography.
+## The layer distinction
 
-## Protocol shapes
+The protocol stack divides into three architectural layers, with each subdirectory mapping cleanly onto a distributed-systems concept:
 
-Protocols in this system come in two shapes:
+| Subdirectory | What it is | Cachin terminology |
+|---|---|---|
+| `substrate/` | Medium + message format + execution model | Communication primitive + system model + message language |
+| `agents/` | Process specifications (the actors that emit messages) | Processes / participants |
+| `maturation/` | Maturation Stigmergic Protocols (legal successions composing primitives) | Protocol |
 
-- **Convergence-shaped** — iterative; terminates when a graph predicate holds. Note Convergence, Claim Convergence. Safety/liveness include indication soundness for the predicate.
-- **Production-shaped** — one-shot, with coordination structure between participants. Consultation. Safety properties are output contracts plus the channel-level invariants (vocabulary firewall, channel independence) that govern the participants while they run.
+Under this division, **only `maturation/` contains protocols in Cachin's strict sense.** Substrate and agents are the foundation those protocols compose against. They are protocol *infrastructure* — necessary to define what messages exist, what processes can send them, and what guarantees hold — but not protocols themselves.
 
-The companion [Modules](../modules/README.md) — Substrate, Agent, Claim Derivation — also follow Cachin's modular formalism but specify transformation rather than ongoing interaction. They provide what protocols compose with.
+The protocols in `maturation/` are **Maturation Stigmergic Protocols** — content transforms through progressive stages (identity grant, verification, formalization, refinement) toward stable form, terminating at scope quiescence at a designated tier. Coordination is substrate-mediated: agents read substrate state and emit; no direct message passing.
 
-## Stage composition
+## A finer Cachin mapping
 
-Content matures through four stages, each with its own protocol or protocols:
+Within each layer, the substrate spec further decomposes into the standard distributed-systems primitives:
+
+| Cachin primitive | Where it lives in the stack |
+|---|---|
+| System model (what processes exist, what guarantees hold) | `agents/` (AG0–AG7) |
+| Communication primitive (the message-emission operation) | Emit, defined in `substrate/types.md` |
+| Medium / state (where messages persist) | Σ, the substrate state space (R0–R7) |
+| Message format / well-formedness | Shapes (Sh-conf + Sh0–Sh5 in `substrate/shapes.md`) |
+| Message invariants | Predicates (PC0–PC6); trigger predicates `T_A` (pre-send) and emission contracts `Post_A` (post-send invariants) |
+| Termination condition | Quiescence (Q0–Q10 in `substrate/quiescence.md`) |
+| Scheduling discipline | Runner (Run0–Run5 in `substrate/runner.md`) |
+
+This finer split exposes that the substrate itself contains a *primitive protocol* — the Emit protocol that governs valid state transitions of Σ. Maturation protocols compose on top of this primitive protocol.
+
+## Stigmergic Protocol primitives
+
+A Maturation Stigmergic Protocol is rarely monolithic. It is more accurately a *composition* of Stigmergic Protocol primitives, each of which is itself a Cachin-sense protocol with its own safety, liveness, and termination properties:
+
+- **Correction Stigmergic Protocol** — agent A emits `comment.<kind>` on a target; agent B reads the open comment as its trigger condition; B emits `resolution.<kind>` to close. Terminates when the comment has a resolution. The K subtype discriminates use cases (`comment.revise` for content correction; `comment.violation` for structural correction); the protocol mechanism is identical. This is the architectural correction loop — two unreliable decisions checking each other through substrate (AG5).
+- **Marker Stigmergic Protocol** — agent A emits a non-comment classifier or status tuple; agent B reads the marker as its initiation condition. Unidirectional; no closure expected of A. Used for stage-transition handoffs and cycle-control gating.
+- **Self-Review Stigmergic Protocol** — a single (typically operator-gated) fire emits primary work *plus* a scoped self-review of that work. The self-review's `comment.<kind>` emissions seed downstream Correction Stigmergic Protocol cycles. Compound emission seeding deferred refinement.
+- **Cycle Stigmergic Protocol** — agent A fires once per cycle on a target; runner re-fires until the target's quiescence predicate flips ⊤. Convergence pattern; termination via Q5/Q6 + Run2 at the per-target scope.
+
+Each primitive has its own safety property, liveness property (under runner fairness), and termination condition — all defined against the substrate spec. Maturation Stigmergic Protocols compose them into end-to-end content-transformation arcs.
+
+Caste-doc references to protocol composition use the family-level term ("Stigmergic Protocol composition") rather than naming a specific specialization. Castes are protocol-family-agnostic — a producer is a producer because of its substrate-emission pattern, not because of which protocol family it participates in. Specific protocol-family membership is documented at the protocol layer (in `maturation/` for Maturation Stigmergic Protocols, in any future sibling directories for other Stigmergic Protocol families).
+
+## Substrate as message bus
+
+The protocols in this stack are *stigmergic* (Grassé 1959) — coordination is substrate-mediated rather than via direct message passing. The substrate is the message bus, with four properties:
+
+- *Durable* — every message persists (R3 monotonicity).
+- *Queryable* — predicates over substrate state are first-class (PC0–PC6).
+- *Monotonic at the L_K level* — no message is ever deleted, only superseded by retraction (which is itself an emission).
+- *Public* — every process reads the same substrate state (AG5 PublicPrivateAsymmetry).
+
+**Protocol hierarchy in this stack:**
 
 ```
-─── discovery stage ──────────                ─── claim derivation → claim convergence ─        ── verification ──
- Consultation ──→ Note Convergence  ──→  Claim Derivation ──→ Claim Convergence      ──→  (Verification, TBD)
- (production)     (convergence)          (module)               (convergence)
-                                                                                                                
-       │                  │                       │                       │
-       │ produces a note  │ refines that          │ decomposes the        │ refines per-claim
-       │                  │ note in place         │ note into claim files │ contracts
-       │                  │                       │                       │
-       │                  │ specialize            │                       │ specialize
-       │                  ▼                       │                       ▼
-       │      ┌───────────────────────────────────────────────────────────────────┐
-       │      │                  Convergence Protocol                             │   shared module
-       │      │       predicate + comment/resolution link types + S1-S6, L1-L4    │
-       │      └───────────────────────────────────────────────────────────────────┘
-       │                                       │
-       │                                       ▼ relies on
-       ▼                              ┌─────────────────┐
-   (substrate)                        │    Substrate    │   permanence (SUB1)
-                                      │  (link graph)   │   query soundness (SUB2)
-                                      └─────────────────┘   count consistency (SUB3)
+Stigmergic Protocols
+├── Primitives:
+│   ├── Correction Stigmergic Protocol  (comment → resolution closure)
+│   ├── Marker Stigmergic Protocol      (classifier-based one-way handoff)
+│   ├── Self-Review Stigmergic Protocol (compound modify+review fire)
+│   └── Cycle Stigmergic Protocol       (runner-driven convergence)
+└── Compositions:
+    └── Maturation Stigmergic Protocol  (content-transformation through stages)
+        └── Note-to-Claim Maturation Stigmergic Protocol
 ```
 
-Above the stages sits the meta-protocol:
+## How to read the stack
 
-```
-                           ┌──────────────────────────────────────────┐
-                           │           Maturation Protocol            │
-                           │  composes the stage protocols, manages   │
-                           │  transitions, executes lattice operations│
-                           │  (extract, absorb, scope promotion);     │
-                           │  reaches quiescence rather than converge │
-                           └──────────────────────────────────────────┘
-```
+For new readers, the recommended order is:
 
-The layering enforces what is actually shared vs. what is scale-specific. Both convergence protocols use the same predicate, comment/resolution machinery, and safety guarantees — written once in the convergence module. Each specialization adds what its scale needs: note convergence adds OUT_OF_SCOPE routing for lattice signals; claim convergence adds structural validation, the algorithm, and correctness arguments. The production protocols sit upstream of (consultation) or between (claim derivation) the convergence protocols — they don't specialize the convergence module because they don't have a predicate.
+1. `substrate/types.md` — the medium and Emit operation
+2. `substrate/shapes.md` — the message format
+3. `substrate/predicate-composition.md` — the predicate language for message invariants
+4. `substrate/agents.md` — the process model
+5. `substrate/quiescence.md` — the termination condition
+6. `substrate/runner.md` — the scheduling discipline
+7. `agents/README.md` — the agent registry overview, caste taxonomy, and stigmergic vs sequential hand-off framing
+8. `agents/{producers,refiners,scouts}.md` — per-agent specifications
+9. `maturation/note-to-claim.md` — the Note-to-Claim Maturation Stigmergic Protocol, the first end-to-end protocol in this stack
 
-## The protocols
+The substrate spec is forward-only — each document depends on previous ones, with explicit pipeline references. The agent caste docs depend on the substrate spec. Maturation protocols compose against both.
 
-Listed by stage order. The shape of each is one-line:
+## What is not a protocol
 
-### Discovery stage
+Three categories of artifact that look protocol-shaped but are not protocols in Cachin's sense:
 
-- **[Consultation Protocol](consultation-protocol.md)** — *production*; one-shot, terminates on output production. Produces an initial note from a campaign-bound inquiry. Two channels (theory and evidence) consult under enforced vocabulary separation; a synthesizer integrates their outputs. The output enters note convergence. Safety properties: vocabulary firewall, channel independence, channel discipline, channel asymmetry, synthesis integrity, provenance recording.
+- *The substrate spec.* It defines the system model, communication primitive, message format, and termination condition. It is the foundation protocols compose against, not a protocol itself. (The Emit protocol *is* a primitive protocol, but it is a substrate-level mechanism, not a system-level one.)
+- *The agent registry.* Each agent specification is a process specification — what messages a process can send, under what initiation conditions, satisfying what post-send invariants. Processes are participants in protocols, not protocols themselves.
+- *The runner.* It is a scheduling discipline — how processes are dispatched. It enforces the fairness assumption that maturation protocols rely on for termination, but it is not itself a protocol.
 
-- **[Note Convergence Protocol](note-convergence-protocol.md)** — *convergence*; iterative, terminates when the predicate holds. Drives notes to stability through review/revise cycles. Specializes the convergence protocol with `note` classifier, `citation` link type (note→note), and `comment.out-of-scope` as the off-ramp. OUT_OF_SCOPE findings do not block the predicate; they signal the maturation protocol that the lattice needs structural work.
+A useful test: *does this artifact specify a legal succession of agent fires that terminates in quiescence at a designated tier?* If yes, it is a protocol. If it specifies what processes can do, what messages are well-formed, or how processes are dispatched, it is protocol infrastructure.
 
-### Claim derivation boundary
+## Open questions for the protocol layer
 
-The [Claim Derivation Module](../modules/claim-derivation-module.md) sits between note convergence and claim convergence. It's a transformation, not a protocol — see [Modules](../modules/README.md).
+Two architectural concerns for future protocol work:
 
-- **[Claim Convergence Protocol](claim-convergence-protocol.md)** — *convergence*; iterative, terminates when the predicate holds. Drives claims to formal precision. Specializes the convergence protocol with `claim` classifier, `contract.<kind>` link types, `citation` (claim→claim), and structural validation. Includes the iterative algorithm and its correctness arguments.
+- **Protocol composition.** Multiple maturation protocols can run concurrently. Note-to-claim and (future) cross-lattice synthesis interact through shared substrate state. The composition rules — safety properties under interleaving, fairness across concurrent protocols, termination of compositions — are partially captured by Q9's scope monotonicity and the cross-tier interference open question, but a formal protocol-composition treatment is pending.
+- **Operator as protocol participant.** Per `agents/README.md`'s discussion of stigmergic-with-operator-as-producer: in the limit, all coordination is stigmergic, with the operator playing producer-role for content-authoring hand-offs. This makes the operator a *participant* in protocols rather than an external invoker. The formal treatment of operator-as-process (AG0 identity, AG3 provenance, latency relative to runner) is pending.
 
-### Foundation
+## Cross-references
 
-- **[Convergence Protocol](convergence-protocol.md)** — the document-type-neutral foundation. Defines the convergence predicate (every active `comment.revise` has a matching active `resolution`), the three core link types (`review`, `comment`, `resolution`), and the safety/liveness properties any review/revise process must satisfy. No algorithm — algorithm is choreography.
-
-### Meta
-
-- **[Maturation Protocol](maturation-protocol.md)** — the meta-protocol that composes the stage protocols. Manages stage transitions, executes lattice operations (extract, absorb, scope promotion), and reaches [quiescence](../glossary.md#q) — the absence of pending work — rather than convergence. Owns the cascade behavior on hard reset.
-
-## Reading order
-
-For someone new, reading bottom-up tracks the actual dependency:
-
-1. **Modules first.** Read [Substrate Module](../modules/substrate-module.md) (the link graph every protocol uses) and [Agent Module](../modules/agent-module.md) (the identity layer extending it). Both are short and define vocabulary the protocols build on. See [Modules](../modules/README.md) for the overview.
-2. **[Convergence Protocol](convergence-protocol.md)** — the shared foundation. Once this is clear, both convergence-shaped specializations are straightforward.
-3. **[Note Convergence Protocol](note-convergence-protocol.md)** or **[Claim Convergence Protocol](claim-convergence-protocol.md)** — pick whichever scale matches your interest. They're independent specializations of the foundation.
-4. **[Consultation Protocol](consultation-protocol.md)** — the production-shaped protocol upstream of note convergence. The [Claim Derivation Module](../modules/claim-derivation-module.md) is the transformation between note and claim convergence — read it alongside the convergence protocols it bridges.
-5. **[Maturation Protocol](maturation-protocol.md)** — composition over the stage protocols. Easier to read after the stage protocols are familiar.
-
-For someone already familiar with the system's behavior, top-down works too: maturation explains how the stages compose; stage protocols explain how each stage drives toward its predicate or contract; the convergence module factors out what the convergence-shaped protocols share.
-
-## What the protocols don't specify
-
-Protocols define correctness conditions on the link graph (or output artifact, for production-shaped protocols). They deliberately don't specify:
-
-- **Coverage** — whether reviews have actually happened. The convergence predicate is trivially satisfied by zero reviews. Coverage is a choreography obligation.
-- **Algorithm** (for the convergence module only) — how to drive the predicate true. The shared convergence module defines the predicate without prescribing how to make it hold; each specialization (note convergence, claim convergence) adds its own algorithm, and each production protocol describes its phases.
-- **Termination** (for convergence-shaped protocols) — convergence is not guaranteed. New revise comments can be filed indefinitely; rejected findings can be re-filed. Termination depends on choreography decisions and the finiteness of correctness issues.
-- **Idempotence** (for production-shaped protocols) — re-running on the same input produces a different output. LLM stochasticity in the channels (consultation) or in the per-claim passes (claim derivation) is real. Resume support exists; idempotence does not.
-- **Ordering** — review order, comment-resolution order, scope assembly order, phase concurrency. Any ordering that satisfies the properties is valid.
-
-These are choreography concerns. They live in the algorithm sections, runbooks, and operational guides — not in the protocol specifications.
-
-## References
-
-- C. Cachin, R. Guerraoui, L. Rodrigues. *Reliable and Secure Distributed Programming*. Springer, 2nd edition, 2011. The protocols here adopt Cachin's modular formalism (interface specifications with declared safety/liveness properties; modules built by composition; explicit upper/lower interfaces).
+- `substrate/` — the primitive protocol layer.
+- `agents/` — the process specifications.
+- `maturation/` — the protocols proper.
+- (External) Cachin, Guerraoui, Rodrigues. *Introduction to Reliable and Secure Distributed Programming.* Springer, 2nd edition, 2011. The system-model / processes / protocol decomposition this stack adopts.
