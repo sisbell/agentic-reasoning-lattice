@@ -43,7 +43,7 @@ The validation principle governs the first class. The second class is the review
 
 ## Enforcement
 
-The principle is enforced operationally through the [validate-before-review](../patterns/validate-before-review.md) pattern: a mechanical validation pass runs before each review cycle, catches and fixes structural violations, and hands the reviewer structurally sound state. The reviewer never sees structural noise. The validation cycle and the review cycle are separate passes with separate tools, separate prompts, and separate concerns.
+The principle is enforced operationally through the [validate-before-review](../design-notes/validate-before-review.md) pattern: a mechanical validation pass runs before each review cycle, catches and fixes structural violations, and hands the reviewer structurally sound state. The reviewer never sees structural noise. The validation cycle and the review cycle are separate passes with separate tools, separate prompts, and separate concerns.
 
 ## Empirical basis
 
@@ -55,6 +55,6 @@ The T1 cone on the same ASN — whose state happened to satisfy the structural i
 
 - [Coupling Principle](coupling.md) — the parallel principle for content health within files.
 - [Voice Principle](voice.md) — the parallel principle for LLM output quality. Validation uses enumeration (structural invariants are a closed set). Voice uses positive structure (prose quality is an open set). The two principles use different mechanisms because they govern different kinds of constraint.
-- [Validate-Before-Review](../patterns/validate-before-review.md) — the operational pattern that enforces this principle.
+- [Validate-Before-Review](../design-notes/validate-before-review.md) — the operational pattern that enforces this principle.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when a representation has no contract to validate against.
 - [Claim Document Contract](../design-notes/claim-document-contract.md) — the first instance of a structural contract.

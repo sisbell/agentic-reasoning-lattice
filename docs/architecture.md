@@ -142,7 +142,7 @@ These stages are not separate protocols. They are successive tiers within the sa
 
 "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science) — a downstream layer that operates on quiescent claim contracts produced by the protocol.
 
-Before each review cycle within claim refinement, a structural validation pass runs: the mechanical validator checks the [Claim Document Contract](design-notes/claim-document-contract.md), and per-invariant fix recipes resolve any violations. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.
+Before each review cycle within claim refinement, a structural validation pass runs: the mechanical validator checks the [Claim Document Contract](design-notes/claim-document-contract.md), and per-invariant fix recipes resolve any violations. This is the [validate-before-review](design-notes/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.
 
 Three principles form the quality boundary for the review cycle: [Coupling](principles/coupling.md) (content balance within files), [Validation](principles/validation.md) (structural integrity across files), [Voice](principles/voice.md) (output quality through positive style structure). See the [principles README](principles/README.md).
 

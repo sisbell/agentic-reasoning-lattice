@@ -26,7 +26,7 @@ This is the meet operation at the note scale — a single node at the note-level
 
 Claim derivation is the transition most vulnerable to [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md). The unit of encapsulation changes shape — one file becomes many — and every invariant that makes the per-claim form meaningful comes into existence at this moment. If the transition doesn't enforce them, downstream review operates on malformed state, and the claim refinement protocol spends its cycles on structural violations that no agent can name.
 
-The [Claim Document Contract](design-notes/claim-document-contract.md) specifies what well-formed output looks like. A post-decomposition validation pass checks the contract mechanically. This same validator runs again before each claim refinement review cycle — the [validate-before-review](patterns/validate-before-review.md) pattern — ensuring that structural soundness is maintained through the review/revise cycles that follow.
+The [Claim Document Contract](design-notes/claim-document-contract.md) specifies what well-formed output looks like. A post-decomposition validation pass checks the contract mechanically. This same validator runs again before each claim refinement review cycle — the [validate-before-review](design-notes/validate-before-review.md) pattern — ensuring that structural soundness is maintained through the review/revise cycles that follow.
 
 ## Decomposition as progressive refinement
 
@@ -77,5 +77,5 @@ These are not bugs. They're the natural result of writing to understand rather t
 - [Discovery](discovery.md) — the previous stage: producing the notes that enter decomposition.
 - [Representation Change](patterns/representation-change.md) — claim derivation is the canonical instance.
 - [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md) — the failure mode the structural contract addresses.
-- [Validate Before Review](patterns/validate-before-review.md) — structural validation reused downstream by claim refinement.
+- [Validate Before Review](design-notes/validate-before-review.md) — structural validation reused downstream by claim refinement.
 - [The Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.

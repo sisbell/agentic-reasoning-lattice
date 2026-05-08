@@ -97,7 +97,7 @@ Running the validator before the reviewer eliminates the reviewer's work on mech
 ## Related
 
 - [The Validation Principle](../principles/validation.md) — the design commitment this contract serves. The principle requires every representation to have a structural contract; this contract is the first instance.
-- [Validate Before Review](../patterns/validate-before-review.md) — the operational pattern that consumes this contract. Its validator runs the contract's structural invariants; its per-invariant revise recipes address the violations it finds.
+- [Validate Before Review — Design](validate-before-review.md) — the operational discipline that consumes this contract. Its validator runs the contract's structural invariants; its per-invariant revise recipes address the violations it finds.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode this contract addresses. The T4 sweep's non-convergence was a concrete instance: sixteen cycles spent on symptoms of structural violations because no contract specified what well-formed per-claim output meant.
 - [Representation Change](../patterns/representation-change.md) — the pattern this contract's existence is a consequence of. Every representation change introduces new structural rules; this contract is the first such rule set written down.
 - [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the protocol whose output this contract governs.

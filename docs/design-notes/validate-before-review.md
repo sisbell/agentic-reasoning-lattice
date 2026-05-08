@@ -1,6 +1,6 @@
 # Validate Before Review — Design
 
-*Design note. The design decisions behind the [validate-before-review](../patterns/validate-before-review.md) pattern.*
+*Design note. The design decisions behind running a mechanical structural-invariant validator before every review cycle.*
 
 ## Invariants
 
@@ -24,9 +24,9 @@ A single "fix structural issues" prompt would face the same add-bias problem as 
 
 Per-invariant recipes also make the contract auditable. Each recipe corresponds to one contract rule. When a new invariant is added to the contract, it gets one new recipe. When an invariant is retired, its recipe is removed. The mapping is one-to-one.
 
-## Why validate at every scale, not just once
+## Why validate before every review, not just once
 
-The [maturation protocol](../protocols/maturation/note-to-claim.md) operates at three scales (local, regional, full). Each scale's revise pass can break invariants — a regional-revise that inlines one claim's body into another's file to reconcile notation violates uniqueness; a full-revise that renames a file without cascading references violates filename-label-match and reference-resolution at once. Invariants are not established once and preserved automatically. Every mutation can break them. Running the validator before each scale's review cycle catches what the previous scale's revisions introduced.
+The [maturation protocol](../protocols/maturation/note-to-claim.md) alternates review cycles at different scopes. Each cycle's revise pass can break invariants — a reviser that inlines one claim's body into another's file to reconcile notation violates uniqueness; a reviser that renames a file without cascading references violates filename-label-match and reference-resolution at once. Invariants are not established once and preserved automatically. Every mutation can break them. Running the validator before each review cycle catches what the previous cycle's revisions introduced.
 
 The cost is acceptable. Mechanical validation is fast compared to LLM review. The alternative — validating once at the start and trusting that revise passes preserve invariants — requires every revise prompt to encode structural awareness, which is the conflation the two-pass design exists to avoid.
 
@@ -42,7 +42,6 @@ A fix may legitimately break an invariant mid-step — delete a duplicate body, 
 
 ## Related
 
-- [Validate Before Review](../patterns/validate-before-review.md) — the pattern these decisions serve.
-- [The Validation Principle](../principles/validation.md) — the commitment behind the pattern.
+- [The Validation Principle](../principles/validation.md) — the commitment these decisions serve.
 - [Claim Document Contract](claim-document-contract.md) — the structural contract the validator checks against. The contract's rules drive the validator's checklist and the per-invariant recipe set.
 - [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the review machinery this precedes at each scope.

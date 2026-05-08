@@ -338,7 +338,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 ## V
 
-**Validate-before-review.** The pattern of running a mechanical structural-invariant check (validator + per-invariant fix recipes) before each review cycle, so the LLM reviewer sees structurally sound state and spends its cycles on semantic issues. See [Validate Before Review](patterns/validate-before-review.md) and [design note](design-notes/validate-before-review.md).
+**Validate-before-review.** The discipline of running a mechanical structural-invariant check (validator + per-invariant fix recipes) before each review cycle, so the LLM reviewer sees structurally sound state and spends its cycles on semantic issues. See [Validate Before Review — Design](design-notes/validate-before-review.md).
 
 **Validation Principle.** Design commitment that every representation the system operates on must have a structural contract, and no LLM review cycle operates on state that has not been mechanically verified against that contract. Uses enumeration because structural invariants are a closed, mechanically checkable set. Sibling to the [Coupling Principle](principles/coupling.md) and [Voice Principle](principles/voice.md). See [The Validation Principle](principles/validation.md).
 
