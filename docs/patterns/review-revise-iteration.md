@@ -40,7 +40,7 @@ The findings progress through predictable stages:
 4. **Mathematical precision** — unstated domain assumptions, claims asserted when derivable, proofs claiming specific scope when argument is general.
 5. **Structural organization** — phantom dependencies, redundant claims, edge-case insights.
 
-This progression was observed independently in ASN-0034 discovery (reviews 14–31), ASN-0036 discovery (reviews 1–26), and ASN-0036 claim convergence regional reviews. The same stages, same order, across different notes and different protocol stages. The convergence protocol deliberately does not prescribe finding order — this ordering is an empirical regularity, not a protocol property.
+This progression was observed independently in ASN-0034 discovery (reviews 14–31), ASN-0036 discovery (reviews 1–26), and ASN-0036 claim refinement regional reviews. The same stages, same order, across different notes and different protocol stages. The convergence protocol deliberately does not prescribe finding order — this ordering is an empirical regularity, not a protocol property.
 
 ## When it converges
 
@@ -56,7 +56,7 @@ This progression was observed independently in ASN-0034 discovery (reviews 14–
 - The work is tightly coupled — fixing one part shifts another (see [dependency cone](dependency-cone.md))
 - The reviser rejects findings that the reviewer re-files — reject cycling
 
-Detecting stalls is a choreography and monitoring concern, not a protocol property. See [Claim Convergence](../claim-convergence.md) for detection strategies.
+Detecting stalls is a choreography and monitoring concern, not a protocol property. See [Claim Refinement](../claim-refinement.md) for detection strategies.
 
 ## Finding classification
 
@@ -73,7 +73,7 @@ At discovery scale, the classification is REVISE / OUT_OF_SCOPE rather than REVI
 
 The pattern applies wherever an LLM reviews and revises content iteratively. The [maturation protocol](../protocols/maturation/note-to-claim.md) is the general specification. Domain-specific protocols extend it:
 
-**[Claim convergence](../protocols/maturation/note-to-claim.md).** The convergence protocol applied to per-claim files in the lattice. Adds structural validation (validate-before-review), lattice structure (`claim`, `contract`, `citation` links), scope strategies (adaptive and comprehensive as choreography), and the Dijkstra voice for both reviewer and reviser.
+**[Claim refinement](../protocols/maturation/note-to-claim.md).** The convergence protocol applied to per-claim files in the lattice. Adds structural validation (validate-before-review), lattice structure (`claim`, `contract`, `citation` links), scope strategies (adaptive and comprehensive as choreography), and the Dijkstra voice for both reviewer and reviser.
 
 **[Discovery review](../protocols/maturation/note-to-claim.md).** The convergence protocol applied to notes. Adds OUT_OF_SCOPE as the off-ramp (instead of OBSERVE). No structural validation — notes have no claim document contract. Convergence signals readiness for [claim derivation](../claim-derivation.md).
 

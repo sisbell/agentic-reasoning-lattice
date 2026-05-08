@@ -11,14 +11,14 @@ When narrowing overshoots — when the pieces are too coupled to converge indepe
 - **Broad scope can't harden.** Discovery produces a note with 29 claims. Reviewing the whole note at once can't make each claim precise — there's too much to hold in focus.
 - **Narrow scope enables convergence.** One claim at a time, dependencies fixed. The piece is small enough to fully check. Changes don't cascade to neighbors. This is [review/revise iteration](review-revise-iteration.md) — and it works for most claims.
 - **Over-narrowing hides coupling.** Some claims can't be verified in isolation. S8 depends on 7 other claims — checking S8 alone misses the seams between them. This is the [dependency cone](dependency-cone.md).
-- **The right width is discovered, not prescribed.** You don't know the coupling in advance. You narrow, hit a wall, widen to the cluster, check again. The scope strategies that claim convergence settled on (cone-scoped and comprehensive) weren't planned — they're where the system found equilibrium.
+- **The right width is discovered, not prescribed.** You don't know the coupling in advance. You narrow, hit a wall, widen to the cluster, check again. The scope strategies that claim refinement settled on (cone-scoped and comprehensive) weren't planned — they're where the system found equilibrium.
 
 ## Structure
 
 ```
 broad (discovery)
   │
-  narrow ──→ per-claim (claim convergence)
+  narrow ──→ per-claim (claim refinement)
   │            │
   │            stalls on coupling
   │            │
@@ -29,7 +29,7 @@ broad (discovery)
   └── verify the whole ←──┘
 ```
 
-The narrowing is progressive. Discovery works at full-note scope. Claim derivation breaks it into claims. Claim convergence reviews each claim. When claim-level review stalls on a [dependency cone](dependency-cone.md), cone-scoped review widens to the cluster. [Verify the whole](verify-the-whole.md) checks that the hardened pieces cohere.
+The narrowing is progressive. Discovery works at full-note scope. Claim derivation breaks it into claims. Claim refinement reviews each claim. When claim-level review stalls on a [dependency cone](dependency-cone.md), cone-scoped review widens to the cluster. [Verify the whole](verify-the-whole.md) checks that the hardened pieces cohere.
 
 ## Leads to
 
@@ -41,11 +41,11 @@ The narrowing is progressive. Discovery works at full-note scope. Claim derivati
 
 ### Claim derivation
 
-Discovery produces a 15-page note. Claim derivation narrows: decompose into sections, enrich each section with type/dependencies/vocabulary, transclude into per-claim file pairs. Each claim is now a self-contained unit that claim convergence can work on independently.
+Discovery produces a 15-page note. Claim derivation narrows: decompose into sections, enrich each section with type/dependencies/vocabulary, transclude into per-claim file pairs. Each claim is now a self-contained unit that claim refinement can work on independently.
 
-### Claim convergence
+### Claim refinement
 
-Claim convergence narrows further: review one claim at a time. The reviewer checks the proof, the contract, the dependencies. Each review cycle operates within the claim's scope, with dependencies as fixed context.
+Claim refinement narrows further: review one claim at a time. The reviewer checks the proof, the contract, the dependencies. Each review cycle operates within the claim's scope, with dependencies as fixed context.
 
 When review converged 31 of 32 claims but kept cycling on S8, the narrowing had overshot. S8's 7 dependencies created coupling that claim-scope review couldn't resolve. Widening to the S8 cone (apex + dependencies) gave the reviewer enough context to see the constraint system. The scope matched the coupling.
 

@@ -62,7 +62,7 @@ Both cases offered the structural fix in writing. Both took the textual fix. Bot
 
 ## Surface expansion blinds review
 
-A second-order observation from the April 2026 claim-convergence rerun of ASN-0034/TumblerAdd, after the compress pass and coupling-prompt updates.
+A second-order observation from the April 2026 claim-refinement rerun of ASN-0034/TumblerAdd, after the compress pass and coupling-prompt updates.
 
 Three cycles of the rerun produced three findings: a missing NAT-discrete contrapositive citation in T1 Case 1, an unstitched `≥` abbreviation in TumblerAdd's dominance conclusion, and an ambiguous NAT-cancel summand-absorption form. All three were genuine coupling gaps. All three were present throughout the pre-compress review history. **None had been found in the earlier cycles.**
 

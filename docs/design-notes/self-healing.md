@@ -18,7 +18,7 @@ Criterion 1 is load-bearing for a specific reason: see [Observation-layer limita
 
 **Review convergence.** The convergence predicate — every `comment.revise` has a `resolution` — drives loop termination. Any participant can evaluate it at any time from the link graph. *Automated.*
 
-**Non-converging cones.** A cone hitting max_cycles without the predicate becoming true. Already visible in output. Could be surfaced as a first-class alert and cross-referenced with sprawl signals on the apex claim. Non-convergence detection — oscillation, reject cycling, classification bias — is a choreography and monitoring concern. See [Claim Convergence](../claim-convergence.md) for detection strategies. *Detectable, not yet surfaced.*
+**Non-converging cones.** A cone hitting max_cycles without the predicate becoming true. Already visible in output. Could be surfaced as a first-class alert and cross-referenced with sprawl signals on the apex claim. Non-convergence detection — oscillation, reject cycling, classification bias — is a choreography and monitoring concern. See [Claim Refinement](../claim-refinement.md) for detection strategies. *Detectable, not yet surfaced.*
 
 **Oscillation detection.** When a file region is modified in opposite directions across consecutive cycles (add in cycle N, remove in cycle N+1), the cone is stuck — not failing to converge but actively oscillating. Sharper signal than cycle-count stationarity. Detectable from diff-level analysis across cycles. *Speculative.*
 
@@ -66,7 +66,7 @@ Two observation-layer forces are documented:
 
 In a 28-commit sweep audit, a commit classified as middling "accretion/churn" based on stats (`+81 −4`) and message ("4 issues, 3 resolved") turned out to contain the single most architecturally damaging change in the set — inlining a claim body into a file where that body was already canonical elsewhere. The message accurately described the write. It was silent about the [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) symptom the write created.
 
-**[Production Drive](production-drive.md).** The LLM reviewer's tendency to generate findings and push them toward action. The off-ramp categories (OBSERVE in claim convergence, OUT_OF_SCOPE in note convergence) channel this drive safely. But if the off-ramp is miscalibrated — too attractive, absorbing legitimate REVISE items — the system sees concerns filed but not acted on. The reviewer detected the issue; the classification prevented action. This is a form of detection that fails to produce correction, compromising self-healing through the classification layer rather than through the observation layer.
+**[Production Drive](production-drive.md).** The LLM reviewer's tendency to generate findings and push them toward action. The off-ramp categories (OBSERVE in claim refinement, OUT_OF_SCOPE in note convergence) channel this drive safely. But if the off-ramp is miscalibrated — too attractive, absorbing legitimate REVISE items — the system sees concerns filed but not acted on. The reviewer detected the issue; the classification prevented action. This is a form of detection that fails to produce correction, compromising self-healing through the classification layer rather than through the observation layer.
 
 This is why criterion 1 (mechanical signal) is load-bearing. Mechanical detection — file sizes, cross-reference validity, cycle counts, dependency-graph acyclicity, the convergence predicate itself — is not subject to self-report laundering or production-drive miscalibration. LLM-level evaluation is. The viable self-healing targets are those where a mechanical signal fires first and LLM analysis is invoked only after detection, not as the detection mechanism itself.
 
@@ -81,4 +81,4 @@ For the operational discipline that addresses self-report laundering in evaluati
 - [The Coupling Principle](../principles/coupling.md) — the coupling feedback loop is itself a self-healing mechanism operating through prompt calibration
 - [Production Drive](production-drive.md) — the LLM behavioral force that compromises self-healing through classification miscalibration
 - [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the predicate is itself a mechanical self-healing signal: evaluable by any participant at any time
-- [Claim Convergence](../claim-convergence.md) — non-convergence detection strategies (oscillation, reject cycling, classification bias)
+- [Claim Refinement](../claim-refinement.md) — non-convergence detection strategies (oscillation, reject cycling, classification bias)

@@ -1,6 +1,6 @@
 # Science Domain: Approach
 
-*Design note. Discovery stage first-run landed on a materials lattice (April 2026); downstream stages (claim convergence, Judger match-eval) still to run. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and its supporting machinery (claim convergence protocol, lattice) applies to scientific discovery. Core framing: the system produces hypotheses, not discoveries. Verification happens downstream.*
+*Design note. Discovery stage first-run landed on a materials lattice (April 2026); downstream stages (claim refinement, Judger match-eval) still to run. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and its supporting machinery (claim refinement protocol, lattice) applies to scientific discovery. Core framing: the system produces hypotheses, not discoveries. Verification happens downstream.*
 
 ## Core claim
 
@@ -24,7 +24,7 @@ What discovery demonstrated:
 - **Channel asymmetry on the modality axis:** theory channel carried vocabulary (vis viva, β, elastic encounter) and voice constraints; evidence channel carried the whole 1819 corpus. The configuration ran as predicted, but the corpus contained no unnamed anomaly — the coinage-at-anomalies prediction of the pattern was not exercised. What did emerge was scope-softening: the synthesis relabeled the corpus's "equal-atomic-heat-capacity law" as "atomic-heat regularity," refusing to inherit the strength of the historical name.
 
 What remains untested:
-- Whether the claim convergence protocol converges hypothesis cones on materials notes.
+- Whether the claim refinement protocol converges hypothesis cones on materials notes.
 - Whether the Judger match-eval correctly identifies rediscovery vs novel candidate.
 - Whether scope promotion behaves as it does on the software domain.
 - Whether the channel-asymmetry pattern's coinage-at-anomalies prediction holds on materials. The Dulong–Petit corpus names its own central observation ("law of Dulong and Petit"), so no unnamed anomaly forced coinage in this run. A corpus with observations that existing vocabulary cannot absorb would be needed to test the prediction.
@@ -80,7 +80,7 @@ A cone can articulation-converge without match-converging. Those land in the nov
 
 ## Domain specifics for science
 
-The underlying machinery (two-channel discovery via the [maturation protocol](../protocols/maturation/note-to-claim.md), note convergence, claim derivation, claim convergence, cone structure, scope promotion, lattice) is shared with the [software domain](../software/README.md). What's specific to science:
+The underlying machinery (two-channel discovery via the [maturation protocol](../protocols/maturation/note-to-claim.md), note convergence, claim derivation, claim refinement, cone structure, scope promotion, lattice) is shared with the [software domain](../software/README.md). What's specific to science:
 
 - **Verifier at each scope:** reproducibility-precision ("could another lab test this?") rather than proof-soundness.
 - **Evidence channel:** query interface over measurements / simulation tools rather than code reading. Agent answers specific mechanical questions with cited values, not whole-source dumps.

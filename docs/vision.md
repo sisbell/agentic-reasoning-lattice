@@ -17,7 +17,7 @@ Together they provide:
 - Live dependencies — when a foundation claim is updated, consumers see the update through transclusion
 - No conflicts — versioned snapshots mean agents never interfere with each other's work
 - Growth without coordination — new claims link into the lattice without central planning
-- Focused reasoning — links and transclusion let agents narrow to any cluster of claims directly, without assembling files or breaking documents apart. Claim derivation and claim convergence are no longer separate stages — they are reasoning at different scopes on the same linked structure
+- Focused reasoning — links and transclusion let agents narrow to any cluster of claims directly, without assembling files or breaking documents apart. Claim derivation and claim refinement are no longer separate stages — they are reasoning at different scopes on the same linked structure
 
 ## The protocol as discovery engine
 

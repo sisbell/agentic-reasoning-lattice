@@ -2,7 +2,7 @@
 
 A human poses a question. The system decomposes it into channel-appropriate sub-questions, launches a structured multi-agent discovery process, and grows a lattice of verified knowledge. The lattice accumulates every finding, revision, and proof as permanent, addressable, dependency-tracked nodes. The methodology is one rhythm applied at every scale: narrow scope, refine through iteration, verify coherence.
 
-The system runs the [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md) over a [substrate](protocols/substrate/README.md). The protocol composes stigmergic primitives — agents read substrate state and emit; the runner walks them until each scope tier reaches quiescence. Each stage reaches its quiescence target before the next builds on it. The substrate holds shared state; agents are the only operations that emit.
+The system runs the [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md) — one specialization within the broader Stigmergic Protocol family — over a [substrate](protocols/substrate/README.md). The protocol composes Stigmergic Protocol primitives (Correction, Marker, Self-Review, Cycle) — agents read substrate state and emit; the runner walks them until each scope tier reaches quiescence. Each stage reaches its quiescence target before the next builds on it. The substrate holds shared state; agents are the only operations that emit.
 
 The unit of work is the note (identifier prefix `ASN-NNNN`) — a document covering one topic. Notes form a dependency lattice: each declares what it depends on and what it covers, building on verified foundations. At any point, some notes may be in discovery, others in claim refinement, others in verification. The dependency order determines which must stabilize first.
 
@@ -18,7 +18,7 @@ Discovery is how new knowledge enters the lattice. The [two-channel architecture
 
 The two channels receive different context at question-generation time. Theory generators see a vocabulary list — the stable conceptual terms of the theoretical framework. Evidence generators see the corpus itself — the specific measurements, code, or artifacts they will be asked about. This asymmetry matches the representational difference between the channels: theory space is conceptual and listable, evidence space is specific and must be seen to be questioned precisely.
 
-The [maturation protocol](protocols/maturation/note-to-claim.md) drives the synthesized note toward stability through review/revise cycles. Findings are classified as `comment.revise` (must fix) or `comment.out-of-scope` (valid concern, belongs elsewhere). Out-of-scope findings become candidates for new inquiries through [scope promotion](patterns/scope-promotion.md) — the system discovers the questions it should be asking, not just answers to questions posed.
+The [Maturation Protocol](protocols/maturation/note-to-claim.md) drives the synthesized note toward stability through review/revise cycles. Findings are classified as `comment.revise` (must fix) or `comment.out-of-scope` (valid concern, belongs elsewhere). Out-of-scope findings become candidates for new inquiries through [scope promotion](patterns/scope-promotion.md) — the system discovers the questions it should be asking, not just answers to questions posed.
 
 ## [Claim Derivation](claim-derivation.md)
 
@@ -44,7 +44,7 @@ The three principles were not designed as a system. Voice was present from the b
 
 ## Claim Refinement
 
-The [maturation protocol](protocols/maturation/note-to-claim.md) drives claims toward formal precision. Per-claim quiescence is defined by the per-comment closure predicate: every `comment.revise` targeting a claim has a matching `resolution`. ASN-level quiescence (the protocol's terminal state) is reached when every claim under a source note is locally quiescent. The protocol defines when each tier of quiescence is reached. How to get there — which scope strategy, what review order, how to assemble context — is choreography.
+The [Maturation Protocol](protocols/maturation/note-to-claim.md) drives claims toward formal precision. Per-claim quiescence is defined by the per-comment closure predicate: every `comment.revise` targeting a claim has a matching `resolution`. ASN-level quiescence (the protocol's terminal state) is reached when every claim under a source note is locally quiescent. The protocol defines when each tier of quiescence is reached. How to get there — which scope strategy, what review order, how to assemble context — is choreography.
 
 Before each review cycle, a structural validation pass runs: the mechanical validator checks the representation's structural contract, and per-invariant fix recipes resolve any violations. The reviewer then sees structurally sound state and can focus on semantic issues — derivation gaps, regime mismatches, smuggled postulates, missing consequences. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md).
 
@@ -60,7 +60,7 @@ The protocol uses two scope strategies as choreography: adaptive scope (context 
 
 Each verified lattice node is a testable prediction: preconditions, postconditions, invariants, formal contract. When a prediction fails against data, the reasoning trail traces the failure back to the specific claim and evidence channel that diverged. This traceability is not instrumented after the fact — it is structural. Every dependency is explicit and permanent. Every finding has a source.
 
-The oracle is the mechanism that makes the lattice systematically improvable. Every failure points to exactly where the reasoning needs revision. The maturation protocol re-verifies the affected node — the verification failure enters as a `comment.revise` — and corrections propagate upward through dependents. The lattice self-heals because the oracle identifies not just that something failed, but where and why.
+The oracle is the mechanism that makes the lattice systematically improvable. Every failure points to exactly where the reasoning needs revision. The Maturation Protocol re-verifies the affected node — the verification failure enters as a `comment.revise` — and corrections propagate upward through dependents. The lattice self-heals because the oracle identifies not just that something failed, but where and why.
 
 ## Self-Healing
 
@@ -72,7 +72,7 @@ This is a property of the lattice structure, not a feature bolted on. Permanent 
 
 The patterns govern how the system operates. They were discovered through operation — each observed before it was named. The primary pattern is [narrow → refine → verify](patterns/narrow-refine-verify.md), the scientific method operationalized for agents. The remaining patterns describe what happens in practice: when review stalls ([dependency cone](patterns/dependency-cone.md)), how questions decompose ([scoped inquiry](patterns/scoped-inquiry.md)), how domain and formal language connect ([vocabulary bridge](patterns/vocabulary-bridge.md)), how the lattice grows ([scope promotion](patterns/scope-promotion.md), [extract/absorb](patterns/extract-absorb.md)), how structural validation precedes semantic review ([validate before review](patterns/validate-before-review.md)).
 
-The patterns compose — every process in the system, at every scale, follows the same narrow → refine → verify rhythm. Discovery narrows questions to channels. Claim derivation narrows documents to claims. Claim convergence narrows review to the scope that matches the issue. The pattern language systematically reduces wasted agent computation by routing each problem to the scope that can resolve it.
+The patterns compose — every process in the system, at every scale, follows the same narrow → refine → verify rhythm. Discovery narrows questions to channels. Claim derivation narrows documents to claims. Claim refinement narrows review to the scope that matches the issue. The pattern language systematically reduces wasted agent computation by routing each problem to the scope that can resolve it.
 
 See [Pattern Language for Agentic Reasoning Systems](patterns/README.md) for the full catalog.
 
@@ -93,7 +93,7 @@ Every review cycle, finding, and revision is a permanent artifact in the lattice
 
 **Proofs** are the reasoning that justifies those claims. The proofs can have gaps, and the claims can still be true. A correct contract with a flawed proof is better than no contract at all.
 
-**Claim refinement** (the per-claim stages of the maturation protocol) checks that contracts are precise, internally consistent, and faithful to the derivation. It operates on text and can be wrong, but the per-comment closure predicate ensures that every concern raised has been addressed — by edit or by reasoned rejection.
+**Claim refinement** (the per-claim stages of the Maturation Protocol) checks that contracts are precise, internally consistent, and faithful to the derivation. It operates on text and can be wrong, but the per-comment closure predicate ensures that every concern raised has been addressed — by edit or by reasoned rejection.
 
 **Mechanical verification** (Dafny, Alloy) proves logical consistency. But it cannot tell you whether a postcondition describes what the system *should* do (that is a design question), whether the axioms are the right axioms (those are posited from evidence), or whether the formalized specification matches reality (that requires testing).
 

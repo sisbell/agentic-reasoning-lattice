@@ -1,6 +1,6 @@
 # Software Reverse-Engineering: Approach
 
-*Design note. Grounded — demonstrated on the Xanadu hypertext system. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and supporting machinery (claim convergence protocol, lattice) apply to legacy software reverse-engineering. Core framing: the system produces formal specifications, not new implementations.*
+*Design note. Grounded — demonstrated on the Xanadu hypertext system. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and supporting machinery (claim refinement protocol, lattice) apply to legacy software reverse-engineering. Core framing: the system produces formal specifications, not new implementations.*
 
 ## Core claim
 
@@ -75,7 +75,7 @@ See [Legacy Software Discovery](../patterns/two-data-authorities-legacy-software
 
 ## What transfers to other domains
 
-The machinery (two-channel discovery via the [maturation protocol](../protocols/maturation/note-to-claim.md), [note convergence](../protocols/maturation/note-to-claim.md), [claim derivation](../protocols/maturation/note-to-claim.md), [claim convergence](../protocols/maturation/note-to-claim.md), cone structure, scope promotion, lattice) is domain-general. What changes across domains is the verifier at each scope. The [science domain approach](../science/README.md) describes the parallel framing for scientific discovery, where the verifier becomes experimental reproducibility rather than Dafny proof.
+The machinery (two-channel discovery via the [maturation protocol](../protocols/maturation/note-to-claim.md), [note convergence](../protocols/maturation/note-to-claim.md), [claim derivation](../protocols/maturation/note-to-claim.md), [claim refinement](../protocols/maturation/note-to-claim.md), cone structure, scope promotion, lattice) is domain-general. What changes across domains is the verifier at each scope. The [science domain approach](../science/README.md) describes the parallel framing for scientific discovery, where the verifier becomes experimental reproducibility rather than Dafny proof.
 
 ## Related
 

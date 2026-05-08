@@ -5,11 +5,11 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 ## Core reference
 
 - [Vision](vision.md) — hypothesis space navigation, semantic communication substrate, building the engine
-- [Methodology](methodology.md) — inquiry decomposition, two-channel discovery, claim derivation, claim convergence
+- [Methodology](methodology.md) — inquiry decomposition, two-channel discovery, claim derivation, claim refinement
 - [Two-Channel Architecture](two-channel-architecture.md) — independent theory and evidence channels, vocabulary firewall, channel asymmetry, synthesis. The mechanism that produces new knowledge for the lattice.
 - [Discovery](discovery.md) — finding formal structure through structured consultation
 - [Claim Derivation](claim-derivation.md) — meet operation: document → atomic claims
-- [Claim Convergence](claim-convergence.md) — precision as a discovery tool
+- [Claim Refinement](claim-refinement.md) — precision as a discovery tool
 - [Architecture](architecture.md) — structural hierarchy (domain / lattice / campaign / inquiry / note / claim) and the lattice lifecycle
 - [Principles](principles/README.md) — three disciplines that keep the review cycle focused on its real job: [Coupling](principles/coupling.md) (prose and formal content authored as a pair), [Validation](principles/validation.md) (structural contract as a precondition for review), and [Voice](principles/voice.md) (positive style structure constrains LLM output by construction). Coupling and validation monitor and check; voice prevents problems from being generated. All three are needed.
 - [Glossary](glossary.md) — system-specific terms and their definitions

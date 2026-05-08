@@ -2,7 +2,7 @@
 
 A claim's narrative prose — the derivation, preamble, or argumentative commentary around the Formal Contract — keeps growing across review cycles. The math stays sound; the prose accumulates meta-commentary that does not advance the reasoning.
 
-Prose is legitimately where reasoning lives at the claim convergence stage. What grows under Prose Sprawl is *non-reasoning prose* — citation tracking, exhaustiveness claims, bundling justifications, and design-decision asides that belong in no layer of the claim.
+Prose is legitimately where reasoning lives at the claim refinement stage. What grows under Prose Sprawl is *non-reasoning prose* — citation tracking, exhaustiveness claims, bundling justifications, and design-decision asides that belong in no layer of the claim.
 
 ## Forces
 
@@ -81,7 +81,7 @@ These are recognition aids, not a stripping checklist. The discipline that preve
 ## Related
 
 - [The Voice Principle](../principles/voice.md) — the discipline that contains add-bias. Positive voice structure constrains the reviser to load-bearing prose by construction, replacing enumerated prohibition lists that proved unstable.
-- [The Coupling Principle](../principles/coupling.md) — prose sprawl is a coupling violation: the prose:formal ratio drifts above the 70/30 target. The coupling principle's signal table and feedback loop show how this detection drives claim-convergence prompt calibration.
+- [The Coupling Principle](../principles/coupling.md) — prose sprawl is a coupling violation: the prose:formal ratio drifts above the 70/30 target. The coupling principle's signal table and feedback loop show how this detection drives claim-refinement prompt calibration.
 - [Contract Sprawl](contract-sprawl.md) — shares forces. Contract Sprawl concentrates in structural sections; Prose Sprawl concentrates in narrative.
 - [Index Sprawl](index-sprawl.md) — enumerative prose is a specific surface form of Prose Sprawl.
 - [Surface Expansion](surface-expansion.md) — the shared mechanism across Contract/Prose/Index Sprawl. Prose Sprawl is the narrative-surface manifestation; monitoring and the general discipline live at the Surface Expansion level.

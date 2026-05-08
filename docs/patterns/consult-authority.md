@@ -36,7 +36,7 @@ The consultation is not a separate stage. It happens inside the revise phase, tr
 
 ## When it doesn't apply
 
-- In claim convergence, agents work from the note itself. The "authority" is the proof and the foundation statements — already in context. There is no external source to consult.
+- In claim refinement, agents work from the note itself. The "authority" is the proof and the foundation statements — already in context. There is no external source to consult.
 - When the source has been exhausted — every relevant passage has been incorporated into the note. Further consultation returns nothing new.
 
 ## Leads to

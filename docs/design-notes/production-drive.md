@@ -14,7 +14,7 @@ This is the same force that produces add-bias at the revision layer. The reviser
 
 Classification categories that permit production without triggering action are the design response to the production drive.
 
-**OBSERVE** (claim convergence review). The reviewer produces its observation — satisfying the drive — without triggering a revise cycle. Without OBSERVE, every observation the reviewer generates becomes REVISE. The reviewer can't say "I noticed this, it's not worth acting on." Every tightening opportunity, every stylistic preference, every minor quantifier imprecision triggers a revision whose fix adds surface that becomes the next cycle's review target. The result is [Surface Expansion](../equilibrium/surface-expansion.md) driven not by the reviser's bias but by the reviewer's inability to observe without acting.
+**OBSERVE** (claim refinement review). The reviewer produces its observation — satisfying the drive — without triggering a revise cycle. Without OBSERVE, every observation the reviewer generates becomes REVISE. The reviewer can't say "I noticed this, it's not worth acting on." Every tightening opportunity, every stylistic preference, every minor quantifier imprecision triggers a revision whose fix adds surface that becomes the next cycle's review target. The result is [Surface Expansion](../equilibrium/surface-expansion.md) driven not by the reviser's bias but by the reviewer's inability to observe without acting.
 
 **OUT_OF_SCOPE** (discovery review). The reviewer engages with interesting material it encounters — satisfying the drive — without committing the note to covering it. Without OUT_OF_SCOPE, the reviewer's engagement with adjacent topics becomes in-scope derivation. The note expands to cover material that belongs in a future inquiry. OUT_OF_SCOPE channels the engagement into [scope promotion](../patterns/scope-promotion.md) — the finding becomes a candidate for a new inquiry rather than an obligation on the current note.
 
@@ -22,7 +22,7 @@ Both off-ramps have the same structure: they let the LLM produce (satisfying the
 
 ## What goes wrong without off-ramps
 
-The system operated without OBSERVE during early claim convergence. Every reviewer finding was binary — CLEAN or FOUND. Every FOUND triggered a revise. The result: tightening findings (loose phrasing, minor style, alternative framings) generated revisions whose fixes added prose, whose prose generated new findings, whose findings generated new revisions. The surface expanded monotonically. Cones ran eight cycles without converging. The reviewer was doing its job (noticing real imperfections) and the system was punishing it (every observation forced action).
+The system operated without OBSERVE during early claim refinement. Every reviewer finding was binary — CLEAN or FOUND. Every FOUND triggered a revise. The result: tightening findings (loose phrasing, minor style, alternative framings) generated revisions whose fixes added prose, whose prose generated new findings, whose findings generated new revisions. The surface expanded monotonically. Cones ran eight cycles without converging. The reviewer was doing its job (noticing real imperfections) and the system was punishing it (every observation forced action).
 
 Adding OBSERVE gave the reviewer a way to notice without forcing action. The convergence criterion changed from "zero findings" (unreachable — prose is never perfect under infinite scrutiny) to "zero REVISE findings" (reachable — correctness issues are exhaustible). The off-ramp made convergence possible.
 

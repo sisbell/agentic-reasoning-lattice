@@ -83,7 +83,7 @@ The lattice is one structure that matures from coarse-grained to fine-grained as
 
 **Decompose.** Decomposes the note's claims into individual per-claim files. The claims already exist in the note's prose; claim derivation gives each one its own file. This is a [representation change](patterns/representation-change.md) that introduces structural invariants specified in the [Claim Document Contract](design-notes/claim-document-contract.md) — one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. The claims are not yet referenceable by other notes. The note's internal structure is taking shape; its external surface hasn't changed.
 
-**Promote.** Makes the note's claim set available to claim-convergence-stage consumers. From this point, any note in claim convergence can reference individual claims in this note via `follows_from`. This is the gate that enables downstream convergence.
+**Promote.** Makes the note's claim set available to claim-refinement-stage consumers. From this point, any note in claim refinement can reference individual claims in this note via `follows_from`. This is the gate that enables downstream convergence.
 
 **Assemble.** Packages the converged claims back into the note form. From this point, discovery-stage consumers see the updated note. This is the gate that refreshes the note-level surface.
 
@@ -93,7 +93,7 @@ Which granularity a consuming note sees depends on the consumer's stage:
 
 **Consumer in discovery** (e.g., ASN-0040 depends on ASN-0034): sees ASN-0034 as an assembled note. Claim-level changes inside ASN-0034 are invisible until assemble is called. The note boundary is an opaque interface.
 
-**Consumer in claim convergence** (e.g., ASN-0036 depends on ASN-0034): sees ASN-0034's promoted claim set directly. Claims in ASN-0036 reference specific claims in ASN-0034 by label. The note boundary is transparent.
+**Consumer in claim refinement** (e.g., ASN-0036 depends on ASN-0034): sees ASN-0034's promoted claim set directly. Claims in ASN-0036 reference specific claims in ASN-0034 by label. The note boundary is transparent.
 
 ### Ripple behavior
 
@@ -107,7 +107,7 @@ Nothing ripples automatically. Both transitions are explicit operations.
 
 ### Convergence order
 
-A note's dependencies must be promoted before the note itself can converge against them — you cannot write `follows_from` edges into claims that don't exist yet. The lattice matures bottom-up through the dependency graph: foundations promote first, then the notes that depend on them enter claim convergence.
+A note's dependencies must be promoted before the note itself can converge against them — you cannot write `follows_from` edges into claims that don't exist yet. The lattice matures bottom-up through the dependency graph: foundations promote first, then the notes that depend on them enter claim refinement.
 
 ### Two levels of dependency
 
@@ -115,13 +115,13 @@ Both are real and operational, serving different stages:
 
 **Note-level** (`depends: [ASN-NNNN]` in YAML): declared during discovery. Coarse-grained. Tells the system which notes relate to which and determines what gets loaded as foundation context.
 
-**Claim-level** (`follows_from: [<claim-ref>]` per claim): declared during claim convergence. Fine-grained. These are the edges that get formally verified and constitute the authoritative dependency structure. In protocol terms, these are `citation` links in the substrate.
+**Claim-level** (`follows_from: [<claim-ref>]` per claim): declared during claim refinement. Fine-grained. These are the edges that get formally verified and constitute the authoritative dependency structure. In protocol terms, these are `citation` links in the substrate.
 
 ### The terminal state
 
 When every note's claims have converged, every dependency is claim-to-claim. Note groupings persist as provenance metadata ("these 34 claims originated in ASN-0034") but carry no dependency weight. The terminal lattice is a pure claim graph.
 
-Notes do not retire at a single moment. They retire gradually as their discovery-stage consumers enter claim convergence. The last note boundary dissolves when the last consumer converges.
+Notes do not retire at a single moment. They retire gradually as their discovery-stage consumers enter claim refinement. The last note boundary dissolves when the last consumer converges.
 
 ---
 
@@ -129,7 +129,7 @@ Notes do not retire at a single moment. They retire gradually as their discovery
 
 The system is a set of protocols sharing a substrate. The [maturation protocol](protocols/maturation/note-to-claim.md) governs transitions between stage protocols. Each stage protocol has a convergence criterion. Content doesn't flow through stages — it sits in the substrate and the governing protocol changes when transition conditions are met.
 
-**Discovery → Claim Derivation → Claim Convergence → Verification.**
+**Discovery → Claim Derivation → Claim Refinement → Verification.**
 
 Each stage operates on the same content in a progressively more precise representation. Five protocols are formally specified:
 
@@ -140,7 +140,7 @@ Each stage operates on the same content in a progressively more precise represen
 
 Both convergence protocols specialize the [maturation protocol](protocols/maturation/note-to-claim.md) — a document-type-neutral module providing the shared predicate, link types, and properties. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
 
-Before each review cycle within claim convergence, a structural validation pass runs: the mechanical validator checks the [Claim Document Contract](design-notes/claim-document-contract.md), and per-invariant fix recipes resolve any violations. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.
+Before each review cycle within claim refinement, a structural validation pass runs: the mechanical validator checks the [Claim Document Contract](design-notes/claim-document-contract.md), and per-invariant fix recipes resolve any violations. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.
 
 Three principles form the quality boundary for the review cycle: [Coupling](principles/coupling.md) (content balance within files), [Validation](principles/validation.md) (structural integrity across files), [Voice](principles/voice.md) (output quality through positive style structure). See the [principles README](principles/README.md).
 

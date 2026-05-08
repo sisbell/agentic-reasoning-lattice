@@ -28,7 +28,7 @@ The system is demonstrated on the Xanadu hypertext system — deriving formal cl
 
 ## Applying to science
 
-The architecture is deployment-general. The machinery — two-channel discovery, claim derivation, claim convergence, verification — operates on abstract inputs with domain-specific verifiers. The Xanadu case uses Dafny as the verifier for proof soundness; a scientific deployment would use experimental reproducibility.
+The architecture is deployment-general. The machinery — two-channel discovery, claim derivation, claim refinement, verification — operates on abstract inputs with domain-specific verifiers. The Xanadu case uses Dafny as the verifier for proof soundness; a scientific deployment would use experimental reproducibility.
 
 In a science deployment, the system produces hypotheses, not discoveries. Verification happens externally — in a lab, through replication, or by matching against known answers for rediscovery tests. The AI's job ends at articulating claims precisely enough to be tested; reality confirms or refutes them.
 
@@ -66,12 +66,12 @@ Compositions of Stigmergic Protocol primitives that drive content from one archi
 ## Documentation
 
 - [Vision](docs/vision.md) — hypothesis space navigation, semantic communication substrate, Lamarckian evolution, building the engine
-- [Methodology](docs/methodology.md) — inquiry decomposition, two-channel discovery, claim convergence, pattern language
+- [Methodology](docs/methodology.md) — inquiry decomposition, two-channel discovery, claim refinement, pattern language
 - [Principles](docs/principles/README.md) — three disciplines that keep the review cycle on its real job: [Coupling](docs/principles/coupling.md) (prose and formal content authored as a pair), [Validation](docs/principles/validation.md) (structural contract as a precondition for review), and [Voice](docs/principles/voice.md) (positive style structure constrains LLM output by construction). Why the system can make new discoveries rather than stalling or drifting.
 - [Two-Channel Architecture](docs/two-channel-architecture.md) — independent theory and evidence channels, vocabulary firewall, channel asymmetry, synthesis. The mechanism that produces new knowledge for the lattice.
 - [Discovery](docs/discovery.md) — finding formal structure through structured consultation
 - [Claim Derivation](docs/claim-derivation.md) — meet operation: document → atomic claims
-- [Claim Convergence](docs/claim-convergence.md) — precision as a discovery tool, reasoning that improves itself
+- [Claim Refinement](docs/claim-refinement.md) — precision as a discovery tool, reasoning that improves itself
 - [Pattern Language](docs/patterns/README.md) — operationally discovered patterns for agentic reasoning systems
 - [Glossary](docs/glossary.md) — system-specific terms and their definitions
 
@@ -94,7 +94,7 @@ channels/             — channel plugins per domain (theory and evidence
 prompts/              — protocol prompts organized by lattice
                         (shared, xanadu, materials)
 scripts/              — protocol automation (consultation, note convergence,
-                        claim derivation, claim convergence, verification,
+                        claim derivation, claim refinement, verification,
                         validation)
 run/                  — shell entry points for common protocol invocations
 docs/                 — methodology, patterns, principles, protocols,

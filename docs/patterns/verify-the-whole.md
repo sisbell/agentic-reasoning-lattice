@@ -45,7 +45,7 @@ The synthesis agent reads all authority responses and assembles a note. Before i
 
 **What it catches**: theory says "immutable content store" but evidence shows "editing commands modify content." The contradiction becomes a finding — S0 (content immutability) is about existing content, not about the content store as a whole. New content can be added; existing content cannot be changed. The whole-verification caught an apparent contradiction that neither authority would flag in isolation.
 
-### In claim convergence
+### In claim refinement
 
 Comprehensive-scope review reads the entire assembled note and checks that the hardened claims cohere. Each claim was reviewed and revised at narrower scope. Comprehensive-scope review verifies at note scope.
 
@@ -65,7 +65,7 @@ When a shared concept is extracted into a foundation layer, every consuming docu
 
 ### Between notes
 
-When claim convergence on one note discovers something that affects another (a scope promotion finding), the lattice as a whole needs verification. Does the new node cohere with its neighbors? Do the dependency declarations match? This is verify-the-whole at lattice scope — the broadest verification in the system.
+When claim refinement on one note discovers something that affects another (a scope promotion finding), the lattice as a whole needs verification. Does the new node cohere with its neighbors? Do the dependency declarations match? This is verify-the-whole at lattice scope — the broadest verification in the system.
 
 ## Pair with scope narrowing
 
@@ -80,4 +80,4 @@ Narrowing without verification produces pieces that don't fit. Verification with
 
 ## Origin
 
-Verify the whole was present before scope narrowing was named. Comprehensive-scope review existed from the first claim convergence runs — it was always clear that per-claim review couldn't catch everything. The pattern was recognized when the same structure appeared at every scale: synthesis in discovery (verify the consultation), comprehensive-scope review in claim convergence (verify the note), cone-scoped review (verify the cluster). The same check, at different widths, for the same reason — narrowing creates seams, verification finds them.
+Verify the whole was present before scope narrowing was named. Comprehensive-scope review existed from the first claim refinement runs — it was always clear that per-claim review couldn't catch everything. The pattern was recognized when the same structure appeared at every scale: synthesis in discovery (verify the consultation), comprehensive-scope review in claim refinement (verify the note), cone-scoped review (verify the cluster). The same check, at different widths, for the same reason — narrowing creates seams, verification finds them.

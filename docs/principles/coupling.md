@@ -53,7 +53,7 @@ The [maturation protocol](../protocols/maturation/note-to-claim.md) governs revi
 
 ### Claim files — 70/30
 
-A claim file is the working artifact during claim convergence: an individual claim with its contract, proof, and dependencies. Formal contracts carry axioms, preconditions, postconditions, and Depends entries. Prose carries the derivation and proof — the reasoning that *consumes* the contract.
+A claim file is the working artifact during claim refinement: an individual claim with its contract, proof, and dependencies. Formal contracts carry axioms, preconditions, postconditions, and Depends entries. Prose carries the derivation and proof — the reasoning that *consumes* the contract.
 
 The ratio settles at **~70% prose / 30% formal** because contracts are compact statements and proofs are discursive arguments over them. Neither can disappear without losing something essential — the contract is what's claimed; the proof is why it holds.
 
@@ -62,7 +62,7 @@ The ratio settles at **~70% prose / 30% formal** because contracts are compact s
 
 **Divergence signals Sprawl.** Too much formal (essay content invading contract or Depends slots) is [Contract Sprawl](../equilibrium/contract-sprawl.md). Too much prose (meta-commentary accreting around stable proofs) is [Prose Sprawl](../equilibrium/prose-sprawl.md). Either is [Surface Expansion](../equilibrium/surface-expansion.md) against the 70/30 target — a decoupling where one half grows without the other. The [Voice Principle](voice.md) is the discipline that contains add-bias at this stage — positive style structure constrains the reviser to load-bearing prose by construction, and the REVISE/OBSERVE classification prevents tightening findings from reaching the reviser at all.
 
-Note that the asymmetry described above applies differently during claim convergence than during discovery. In claim convergence, the generative work is already done — the claims exist, and the task is to prove them. The prose:formal balance here is about proof quality, not about generative capacity. Both directions of divergence are genuine failures, and neither is silent in the way that premature formalization is during discovery.
+Note that the asymmetry described above applies differently during claim refinement than during discovery. In claim refinement, the generative work is already done — the claims exist, and the task is to prove them. The prose:formal balance here is about proof quality, not about generative capacity. Both directions of divergence are genuine failures, and neither is silent in the way that premature formalization is during discovery.
 
 ## The signal: delta from target
 
@@ -75,7 +75,7 @@ A monitor tracks the delta from target for each active claim file.
 | Claim file | 70/30 | significantly above 70% prose | Prose Sprawl (loud failure) |
 | Claim file | 70/30 | significantly below 70% prose | Contract Sprawl (silent failure) |
 
-The delta is a single number; its sign is a diagnosis. Precise tolerance bands are not yet established — current observations (one compress pass) suggest ±2–5 points, but this should be recalibrated as more notes complete claim convergence. This monitoring binds to the [maturation protocol](../protocols/maturation/note-to-claim.md), which operates on claim files at whatever scope the choreography selects.
+The delta is a single number; its sign is a diagnosis. Precise tolerance bands are not yet established — current observations (one compress pass) suggest ±2–5 points, but this should be recalibrated as more notes complete claim refinement. This monitoring binds to the [maturation protocol](../protocols/maturation/note-to-claim.md), which operates on claim files at whatever scope the choreography selects.
 
 The notes 90/10 ratio is an empirical observation from discovery — it shows that coupling exists across both artifacts. The [maturation protocol](../protocols/maturation/note-to-claim.md) governs review/revise on notes; the 90/10 ratio is a quality target within that protocol's operation.
 
@@ -85,7 +85,7 @@ The notes 90/10 ratio is an empirical observation from discovery — it shows th
 
 **Claim files (ASN-0034 compress pass, April 2026).** 80 claim files compressed from 190,940 → 49,843 words (73.9% reduction). Pre-compress aggregate: 43% prose / 57% formal — inflated by Contract Sprawl (essay content inside contract and Depends slots). Post-compress aggregate: 66% prose / 34% formal — close to the 70/30 target. The post-compress state matches what clean claim files look like: lean contracts plus derivation prose, coupled.
 
-**The silent failure in practice.** The 190,940-word pre-compress state of ASN-0034 was itself a product of the asymmetric failure. Review cycles pushed formal content (contracts, dependency declarations, exhaustiveness claims) into claim files without corresponding growth in derivation prose. The formal share grew to 57% — well past the 70/30 target — and the files stopped generating new reasoning content. The compress pass that removed 73.9% of the content restored the ratio and, observably, restored the generative capacity of the claim convergence process.
+**The silent failure in practice.** The 190,940-word pre-compress state of ASN-0034 was itself a product of the asymmetric failure. Review cycles pushed formal content (contracts, dependency declarations, exhaustiveness claims) into claim files without corresponding growth in derivation prose. The formal share grew to 57% — well past the 70/30 target — and the files stopped generating new reasoning content. The compress pass that removed 73.9% of the content restored the ratio and, observably, restored the generative capacity of the claim refinement process.
 
 ## Domain variance
 
@@ -100,7 +100,7 @@ What doesn't vary is the *coupling principle*: prose and formal content are auth
 ## Related
 
 - [Validation Principle](validation.md) — the sibling principle for structural health across files. Coupling monitors within-file ratio; Validation checks across-file invariants mechanically before review.
-- [Voice Principle](voice.md) — the sibling principle for LLM output quality. Coupling defines what healthy content looks like (the ratio). Voice defines what well-formed output looks like (the style structure). During claim convergence, Voice is the mechanism that keeps the ratio near target — positive style discipline constrains the reviser to load-bearing prose, preventing the add-bias that drives ratio drift.
+- [Voice Principle](voice.md) — the sibling principle for LLM output quality. Coupling defines what healthy content looks like (the ratio). Voice defines what well-formed output looks like (the style structure). During claim refinement, Voice is the mechanism that keeps the ratio near target — positive style discipline constrains the reviser to load-bearing prose, preventing the add-bias that drives ratio drift.
 - [Surface Expansion](../equilibrium/surface-expansion.md) — the failure mode this principle's signals detect. Surface expansion is a decoupling event.
 - [Contract Sprawl](../equilibrium/contract-sprawl.md), [Prose Sprawl](../equilibrium/prose-sprawl.md), [Index Sprawl](../equilibrium/index-sprawl.md) — specific decoupling manifestations in claim files.
 - [Architecture — Lattice Lifecycle](../architecture.md) — the three transitions (decompose, promote, assemble) define the artifact boundaries this principle operates within.

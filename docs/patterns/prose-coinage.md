@@ -13,7 +13,7 @@ Each coinage is a hypothesis — a structural claim about the domain proposing t
 - **Two channels produce outputs with incompatible or incomplete vocabularies.** The theory channel uses one set of words; the evidence channel uses another. Neither fully captures the reconciled concept synthesis is trying to express.
 - **Borrowed terms are imprecise.** Using an existing word that almost-but-not-quite fits propagates the mismatch into every subsequent claim that builds on it.
 - **Unnamed concepts can't be cited.** Without a word, the concept cannot be referenced from another claim, another note, or another proof step. It stays buried in the prose of one paragraph.
-- **Naming commits.** Once coined, the word propagates through review cycles, into downstream notes, into claim convergence. A poor choice is expensive to revert.
+- **Naming commits.** Once coined, the word propagates through review cycles, into downstream notes, into claim refinement. A poor choice is expensive to revert.
 
 ## Structure
 
@@ -47,11 +47,11 @@ Prose coinage happens in two distinct modes:
 
 **Synthesis coinage.** The stage where two-channel outputs get reconciled into a single note. Coining happens in bulk here — most of a note's prose coinages appear in the first draft from synthesis.
 
-**Review-driven coinage.** When a reviewer surfaces a concept the current text is discussing in ad-hoc prose without a shared name, revise coins one. This happens in both discovery review cycles AND claim convergence review cycles.
+**Review-driven coinage.** When a reviewer surfaces a concept the current text is discussing in ad-hoc prose without a shared name, revise coins one. This happens in both discovery review cycles AND claim refinement review cycles.
 
 Discovery-stage review-driven coinage in ASN-0036 produced `subspace` in review cycle 1. Claim-convergence-stage review-driven coinage produced terms like `execution trace`, `initial empty state` (AX-1), `allocation-mediated entry` (AX-2), `hierarchical allocation discipline` (S7d), `element subspace projection` (E₁) — none of which existed in the first draft. Each was coined during cone-scoped review when the reviewer pressed on a concept the current text hadn't named.
 
-Most coinage happens in synthesis; the remainder is review-driven and occurs across both discovery and claim convergence.
+Most coinage happens in synthesis; the remainder is review-driven and occurs across both discovery and claim refinement.
 
 ## Leads to
 
@@ -65,7 +65,7 @@ Most coinage happens in synthesis; the remainder is review-driven and occurs acr
 
 ## Origin
 
-Observed in every note that went through synthesis, and in review cycles at both discovery and claim convergence stages.
+Observed in every note that went through synthesis, and in review cycles at both discovery and claim refinement stages.
 
 **Synthesis coinage.** ASN-0034's first draft (commit `efb2cf66`, March 2026) already contained coined words including `divergence`, `action point`, `displacement`, `inc`, `zeros`, `sig`, `shift`, `zero tumbler`. Each was a new prose word at the moment of synthesis — neither Nelson's design documents nor Gregory's C source code used them in that form. They were coined to reconcile the two channels' outputs into a single note.
 

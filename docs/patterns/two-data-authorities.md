@@ -39,7 +39,7 @@ The constraint is a vocabulary firewall — each channel is prohibited from usin
 
 [Lattice](lattice.md) — the synthesis output becomes a note in the lattice. The two-authority process produces the raw material that the lattice organizes.
 
-[Review/revise iteration](review-revise-iteration.md) — the quality of discovery output determines how much work claim convergence must do. Clean two-authority discovery → fewer gaps → faster review/revise convergence.
+[Review/revise iteration](review-revise-iteration.md) — the quality of discovery output determines how much work claim refinement must do. Clean two-authority discovery → fewer gaps → faster review/revise convergence.
 
 ## Served by
 
