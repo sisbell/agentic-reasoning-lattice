@@ -28,8 +28,11 @@ from lib.runner import Scope, asn, run_force_pass, run_until_quiescent
 from lib.shared.paths import LATTICE
 from lib.triggers import (
     apex_labels_in_topological_order,
+    claim_describe_refresh,
     claim_findings,
     claim_revise,
+    claim_signature_refresh,
+    claims_statements_refresh,
     cone_review,
 )
 
@@ -94,11 +97,20 @@ def main():
     if args.force is not None or args.force_from is not None:
         scope = _resolve_force_scope(asn_label, args)
         result = run_force_pass(
-            triggers=[cone_review, claim_findings, claim_revise], scope=scope,
+            triggers=[
+                cone_review, claim_findings, claim_revise,
+                claim_describe_refresh, claim_signature_refresh,
+                claims_statements_refresh,
+            ],
+            scope=scope,
         )
     else:
         result = run_until_quiescent(
-            triggers=[cone_review, claim_findings, claim_revise],
+            triggers=[
+                cone_review, claim_findings, claim_revise,
+                claim_describe_refresh, claim_signature_refresh,
+                claims_statements_refresh,
+            ],
             scope=asn(asn_num),
             max_iterations=args.max_iterations,
         )

@@ -37,8 +37,12 @@ from .attributes import (
     statements_sidecar_of,
 )
 from .cascade import (
+    claims_statements_for_note,
+    description_is_fresh_after_asn_confirmation,
     is_cascade_fresh_one_hop,
+    is_claims_statements_fresh,
     is_upstream_settled_one_hop,
+    signature_is_fresh_after_asn_confirmation,
 )
 from .citations import depends, dependents
 from .consultation import (
@@ -92,6 +96,8 @@ __all__ = [
     "all_classified",
     "all_open_revises_consulted",
     "claim_formal_contract_is_fresh",
+    "claims_statements_for_note",
+    "description_is_fresh_after_asn_confirmation",
     "current_contract_kind",
     "has_contract_kind",
     "has_formal_contract_in_md",
@@ -119,6 +125,7 @@ __all__ = [
     "is_claim_confirmed",
     "is_claim_quiescent",
     "is_claim_structurally_clean",
+    "is_claims_statements_fresh",
     "is_review_decomposed",
     "is_quiescent",
     "is_doc_quiescent",
@@ -135,6 +142,7 @@ __all__ = [
     "references_is_fresh",
     "references_sidecar_of",
     "signature_is_fresh",
+    "signature_is_fresh_after_asn_confirmation",
     "signature_sidecar_of",
     "statements_is_fresh",
     "statements_sidecar_of",

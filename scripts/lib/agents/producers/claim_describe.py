@@ -22,7 +22,7 @@ from typing import ClassVar, Optional
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.lattice.attributes import attest_attribute
+from lib.lattice.attributes import attest_against_claim_head
 from lib.predicates import description_sidecar_of
 from lib.protocols.febe.protocol import Session
 from lib.shared.invoke_claude import invoke_claude
@@ -73,12 +73,15 @@ class ClaimDescribeAgent(Agent):
             file=sys.stderr,
         )
 
-        # attest_attribute is the create-or-advance helper: first
-        # call creates the link + sidecar at chain length 1;
-        # subsequent calls advance the sidecar's supersession chain
-        # via register_version. description_is_fresh reads the
-        # chain to detect staleness.
-        attest_attribute(session, claim_path, "description", new_desc)
+        # Attest + emit freshness-anchor citation from the new sidecar
+        # version to the claim's head. Each fire advances the sidecar
+        # chain by 1 (one real attestation). The citation records
+        # "this attestation was made against this claim version" so
+        # the predicate detects staleness when the claim revises past
+        # the cited version, without artificial chain bumping.
+        attest_against_claim_head(
+            session, claim_path, "description", new_desc, claim_addr,
+        )
 
         return AgentResult(success=True, detail="emitted")
 

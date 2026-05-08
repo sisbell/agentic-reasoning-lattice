@@ -341,6 +341,21 @@ def emit_transclusion(
     return emit_classifier(store, transclusion_doc, f"transclusion.{kind}")
 
 
+def emit_claims_statements(
+    store: Store, doc: Address,
+) -> Tuple[Link, bool]:
+    """File `claims.statements` classifier — the substrate identity of an
+    ASN-level statements aggregate.
+
+    Distinct from `transclusion.<kind>` (render-mode tag): the
+    classifier announces what the doc IS (statements assembled from
+    claims), independent of how its content is materialized. Cascade
+    consumers cite via this identity; the version chain on the
+    underlying address advances when the aggregate's content changes.
+    """
+    return emit_classifier(store, doc, "claims.statements")
+
+
 def emit_consultation_questions(
     store: Store, doc: Address,
 ) -> Tuple[Link, bool]:

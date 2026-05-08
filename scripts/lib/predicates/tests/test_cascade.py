@@ -22,10 +22,14 @@ from lib.backend.addressing import Address
 from lib.backend.state import State
 from lib.protocols.febe.session import Session
 from lib.predicates import (
+    claims_statements_for_note,
+    description_is_fresh_after_asn_confirmation,
     is_cascade_fresh_one_hop,
     is_claim_confirmed,
     is_claim_quiescent,
+    is_claims_statements_fresh,
     is_upstream_settled_one_hop,
+    signature_is_fresh_after_asn_confirmation,
 )
 
 
@@ -352,6 +356,264 @@ class TriggerPredicateTests(unittest.TestCase):
         self.assertFalse(is_claim_quiescent(self.session, self.claim))
         # Predicate skips (will let refiner close first)
         self.assertTrue(self._predicate(self.claim))
+
+
+def _advance_chain(state, addr):
+    """Simulate Store.register_version on State-only tests: walk to chain
+    head, allocate a child, emit supersession from head to it.
+
+    Mirrors `Store.register_version`'s walk-to-head-then-allocate
+    behavior — the chain stays linear, so `supersession_chain_length`
+    grows monotonically with each call.
+    """
+    head = addr
+    while True:
+        children = sorted(
+            (a for a, p in state.parent.items() if p == head),
+            key=lambda a: a.digits,
+        )
+        if not children:
+            break
+        head = children[-1]
+    new_addr = state.create_version(head)
+    state.make_link(head, [head], [new_addr], "supersession")
+    return new_addr
+
+
+class ClaimsStatementsForNoteTests(unittest.TestCase):
+    """Resolve the aggregate doc derived from a note via classifier walk."""
+
+    def setUp(self):
+        self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
+        self.lattice = self.state.create_doc()
+        self.note = self.state.create_doc(kind="note", lattice=self.lattice)
+
+    def test_no_aggregate_returns_none(self):
+        self.assertIsNone(claims_statements_for_note(self.session, self.note))
+
+    def test_finds_aggregate_via_derivation(self):
+        agg = self.state.create_doc(
+            kind="claims.statements", lattice=self.lattice,
+        )
+        self.state.make_link(
+            self.note, [self.note], [agg], "provenance.derivation",
+        )
+        self.assertEqual(
+            claims_statements_for_note(self.session, self.note), agg,
+        )
+
+    def test_skips_non_aggregate_derivations(self):
+        # Note derives several docs; only the one with claims.statements
+        # classifier is the aggregate.
+        plain_claim = self.state.create_doc(
+            kind="claim", lattice=self.lattice,
+        )
+        self.state.make_link(
+            self.note, [self.note], [plain_claim], "provenance.derivation",
+        )
+        agg = self.state.create_doc(
+            kind="claims.statements", lattice=self.lattice,
+        )
+        self.state.make_link(
+            self.note, [self.note], [agg], "provenance.derivation",
+        )
+        self.assertEqual(
+            claims_statements_for_note(self.session, self.note), agg,
+        )
+
+
+class ClaimsStatementsFreshTests(unittest.TestCase):
+    """Aggregate freshness gates on is_asn_confirmed and chain trailing."""
+
+    def setUp(self):
+        self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
+        self.lattice = self.state.create_doc()
+        self.note = self.state.create_doc(kind="note", lattice=self.lattice)
+        self.c1 = self.state.create_doc(kind="claim", lattice=self.lattice)
+        self.c2 = self.state.create_doc(kind="claim", lattice=self.lattice)
+        self.state.make_link(
+            self.note, [self.note], [self.c1], "provenance.derivation",
+        )
+        self.state.make_link(
+            self.note, [self.note], [self.c2], "provenance.derivation",
+        )
+        self.agg = self.state.create_doc(
+            kind="claims.statements", lattice=self.lattice,
+        )
+        self.state.make_link(
+            self.note, [self.note], [self.agg], "provenance.derivation",
+        )
+
+    def _confirm_all_claims(self):
+        """Make is_asn_confirmed True by emitting a clean review on each
+        derived claim. Aggregate (kind=claims.statements) does not have
+        a `claim` classifier so is_asn_confirmed iterates only c1, c2."""
+        _emit_clean_review(self.state, self.c1, self.lattice)
+        _emit_clean_review(self.state, self.c2, self.lattice)
+
+    def test_unconfirmed_asn_is_vacuously_fresh(self):
+        # Gate closed — predicate returns True regardless of chain state
+        _advance_chain(self.state, self.c1)
+        self.assertTrue(
+            is_claims_statements_fresh(self.session, self.note),
+        )
+
+    def test_no_aggregate_with_confirmed_claims_fires_to_create(self):
+        # Confirmed claims AND no aggregate → predicate returns False
+        # (fire). The agent's first fire creates the aggregate. This is
+        # the discovery → claim transition case.
+        bare_note = self.state.create_doc(kind="note", lattice=self.lattice)
+        bare_c = self.state.create_doc(kind="claim", lattice=self.lattice)
+        self.state.make_link(
+            bare_note, [bare_note], [bare_c], "provenance.derivation",
+        )
+        _emit_clean_review(self.state, bare_c, self.lattice)
+        self.assertFalse(
+            is_claims_statements_fresh(self.session, bare_note),
+        )
+
+    def test_no_claims_is_vacuously_fresh(self):
+        # Note with no claim-classified derivations → True (no
+        # aggregate to maintain)
+        bare_note = self.state.create_doc(kind="note", lattice=self.lattice)
+        self.assertTrue(
+            is_claims_statements_fresh(self.session, bare_note),
+        )
+
+    def test_confirmed_with_matching_chain_is_fresh(self):
+        # All claim chains length 1, aggregate chain length 1
+        self._confirm_all_claims()
+        self.assertTrue(
+            is_claims_statements_fresh(self.session, self.note),
+        )
+
+    def test_confirmed_with_advanced_claim_is_stale(self):
+        # c1 chain = 2, aggregate chain = 1 → stale
+        self._confirm_all_claims()
+        _advance_chain(self.state, self.c1)
+        self.assertFalse(
+            is_claims_statements_fresh(self.session, self.note),
+        )
+
+    def test_one_advance_catches_up(self):
+        # After register_version on aggregate, predicate flips True
+        self._confirm_all_claims()
+        _advance_chain(self.state, self.c1)
+        self.assertFalse(
+            is_claims_statements_fresh(self.session, self.note),
+        )
+        _advance_chain(self.state, self.agg)
+        self.assertTrue(
+            is_claims_statements_fresh(self.session, self.note),
+        )
+
+    def test_aggregate_must_match_max_claim_chain(self):
+        # c1 chain = 3, c2 chain = 1, aggregate chain = 2 → stale (still
+        # below max). One more advance catches up.
+        self._confirm_all_claims()
+        _advance_chain(self.state, self.c1)
+        _advance_chain(self.state, self.c1)
+        _advance_chain(self.state, self.agg)
+        self.assertFalse(
+            is_claims_statements_fresh(self.session, self.note),
+        )
+        _advance_chain(self.state, self.agg)
+        self.assertTrue(
+            is_claims_statements_fresh(self.session, self.note),
+        )
+
+
+class SidecarAgainstClaimHeadTests(unittest.TestCase):
+    """description_is_fresh_after_asn_confirmation +
+    signature_is_fresh_after_asn_confirmation walk a citation from
+    sidecar head → claim head; predicate flips False when the claim
+    revises past the cited version.
+    """
+
+    def setUp(self):
+        self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
+        self.lattice = self.state.create_doc()
+        self.note = self.state.create_doc(kind="note", lattice=self.lattice)
+        self.claim = self.state.create_doc(kind="claim", lattice=self.lattice)
+        self.state.make_link(
+            self.note, [self.note], [self.claim], "provenance.derivation",
+        )
+
+    def _confirm_claim(self):
+        _emit_clean_review(self.state, self.claim, self.lattice)
+
+    def _attach_sidecar(self, kind, cite_target=None):
+        """Create a sidecar via attribute link, optionally cite a claim
+        version (the freshness anchor)."""
+        sidecar = self.state.create_doc(lattice=self.lattice)
+        self.state.make_link(
+            self.claim, [self.claim], [sidecar], kind,
+        )
+        if cite_target is not None:
+            self.state.make_link(
+                sidecar, [sidecar], [cite_target], "citation.depends",
+            )
+        return sidecar
+
+    def test_unconfirmed_asn_skips_description(self):
+        # ASN not confirmed → predicate True (skip), regardless of
+        # sidecar state
+        self.assertTrue(
+            description_is_fresh_after_asn_confirmation(
+                self.session, self.claim,
+            ),
+        )
+
+    def test_no_sidecar_fires_to_create(self):
+        # Confirmed AND no sidecar yet → predicate False (fire)
+        self._confirm_claim()
+        self.assertFalse(
+            description_is_fresh_after_asn_confirmation(
+                self.session, self.claim,
+            ),
+        )
+
+    def test_sidecar_cites_current_head_is_fresh(self):
+        # Sidecar's citation targets claim head → predicate True (skip)
+        self._confirm_claim()
+        self._attach_sidecar("description", cite_target=self.claim)
+        self.assertTrue(
+            description_is_fresh_after_asn_confirmation(
+                self.session, self.claim,
+            ),
+        )
+
+    def test_claim_revised_past_cited_version_is_stale(self):
+        # Sidecar cites claim_v0; claim revises (v1); cited address is
+        # no longer head → predicate False (fire)
+        self._confirm_claim()
+        self._attach_sidecar("description", cite_target=self.claim)
+        self.state.create_version(self.claim)
+        self.assertFalse(
+            description_is_fresh_after_asn_confirmation(
+                self.session, self.claim,
+            ),
+        )
+
+    def test_signature_uses_same_shape(self):
+        # Same predicate logic for signature, keyed on the signature
+        # attribute link
+        self._confirm_claim()
+        self._attach_sidecar("signature", cite_target=self.claim)
+        self.assertTrue(
+            signature_is_fresh_after_asn_confirmation(
+                self.session, self.claim,
+            ),
+        )
+        self.state.create_version(self.claim)
+        self.assertFalse(
+            signature_is_fresh_after_asn_confirmation(
+                self.session, self.claim,
+            ),
+        )
 
 
 if __name__ == "__main__":

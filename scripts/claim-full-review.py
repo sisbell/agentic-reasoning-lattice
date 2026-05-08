@@ -23,17 +23,28 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.cli.runner_walk import run_trigger_cli
-from lib.triggers import claim_findings, claim_revise, full_review
+from lib.triggers import (
+    claim_describe_refresh,
+    claim_findings,
+    claim_revise,
+    claim_signature_refresh,
+    claims_statements_refresh,
+    full_review,
+)
 
 
 if __name__ == "__main__":
     sys.exit(run_trigger_cli(
         name="full-review",
-        triggers=[full_review, claim_findings, claim_revise],
+        triggers=[
+            full_review, claim_findings, claim_revise,
+            claim_describe_refresh, claim_signature_refresh,
+            claims_statements_refresh,
+        ],
         default_max_iterations=8,
         support_claim_filter=False,
         description=(
-            "Drive [full_review, claim_findings, claim_revise] over an "
-            "ASN to quiescence."
+            "Drive full-review convergence to quiescence, then refresh "
+            "stale descriptions and advance the claims.statements assembly."
         ),
     ))

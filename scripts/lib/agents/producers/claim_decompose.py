@@ -31,14 +31,12 @@ from typing import ClassVar
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.backend.emit import (
-    emit_claim, emit_derivation, emit_supersession, emit_transclusion,
-)
+from lib.backend.emit import emit_claim, emit_derivation
 from lib.lattice.attributes import attest_attribute
 from lib.protocols.febe.protocol import Session
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import parallel_llm_calls
-from lib.shared.paths import CLAIM_DIR, WORKSPACE, transclusion_path
+from lib.shared.paths import CLAIM_DIR, WORKSPACE
 
 
 # Sections that are structural — no LLM analysis needed.
@@ -388,20 +386,5 @@ class ClaimDecomposeAgent(Agent):
                 emit_derivation(store, note_addr, body_addr)
 
                 emitted += 1
-
-        # ASN-level transclusion view + supersession of statements sidecar.
-        if emitted > 0:
-            transclusion_rel = str(
-                transclusion_path(asn_label, "claim-statements").resolve()
-                .relative_to(lattice_root)
-            )
-            transclusion_addr = store.register_path(transclusion_rel)
-            emit_transclusion(store, transclusion_addr, "claim-statements")
-            emit_derivation(store, note_addr, transclusion_addr)
-
-            for link in session.active_links("statements", from_set=[note_addr]):
-                if link.to_set:
-                    emit_supersession(store, link.to_set[0], transclusion_addr)
-                    break
 
         return emitted, failed

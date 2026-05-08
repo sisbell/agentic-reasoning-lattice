@@ -113,6 +113,7 @@ SHAPES: Dict[str, LinkShape] = {
     "consultation.answer.theory": CLASSIFIER,
     "consultation.answer.evidence": CLASSIFIER,
     "transclusion.claim-statements": CLASSIFIER,
+    "claims.statements": CLASSIFIER,
     "promotion.out-of-scope": CLASSIFIER,
     "promotion.open-questions": CLASSIFIER,
     "patch.note": CLASSIFIER,

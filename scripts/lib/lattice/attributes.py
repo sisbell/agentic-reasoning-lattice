@@ -27,7 +27,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Tuple, Union
 
-from lib.backend.emit import emit_attribute_link
+from lib.backend.emit import emit_attribute_link, emit_citation
 from lib.backend.links import Link
 from lib.protocols.febe.protocol import Session
 
@@ -168,3 +168,41 @@ def attest_attribute(
                 break
 
     return emit_attribute(session, claim_md_path, kind, value, lattice_root)
+
+
+def attest_against_claim_head(
+    session: Session,
+    claim_md_path: Union[str, Path],
+    kind: str,
+    value: str,
+    claim_addr,
+    lattice_root: Union[str, Path, None] = None,
+) -> Tuple[Link, bool]:
+    """`attest_attribute` + emit a freshness-anchor citation.
+
+    After the sidecar attestation lands (chain advanced by 1, content
+    written), emit `citation.depends` from the sidecar's new head
+    version to `version_head(claim_addr)`. The citation records
+    "this attestation was made against this claim version."
+
+    The corresponding freshness predicate walks the citation: if the
+    cited claim address is still `is_head_version`, the sidecar is
+    fresh. Once the claim advances (next revise), the cited address
+    is no longer head → stale → exactly one re-fire per cycle.
+
+    The chain advance stays at +1 per fire (one real attestation).
+    No artificial chain bumps; the citation carries the cross-version
+    anchor, not the chain length.
+    """
+    from lib.predicates.versions import version_head
+
+    link, created = attest_attribute(
+        session, claim_md_path, kind, value, lattice_root,
+    )
+    sidecar_addr = link.to_set[0]
+    sidecar_head = version_head(session, sidecar_addr)
+    claim_head = version_head(session, claim_addr)
+    emit_citation(
+        session.store, sidecar_head, claim_head, direction="depends",
+    )
+    return link, created

@@ -1,22 +1,25 @@
-"""Renderer for `transclusion.claim-statements` documents.
+"""Mechanical assembly of `claims.statements` content.
 
-A claim-statements transclusion sits at a substrate address (no
-on-disk file) and represents the assembled "what does this ASN
-say?" artifact downstream discovery cites as a dependency. Reading
-walks the substrate live:
+`render_claim_statements(session, addr)` walks substrate to produce
+the assembled markdown — one per-claim block (name, description,
+Formal Contract section). `ClaimsStatementsRefreshAgent` calls it
+on each fire (create or advance) and writes the result to disk;
+the substrate version chain on the doc address carries the cascade
+signal.
 
+The function used to be wired through the transclusion renderer
+registry (live-render-on-read). That dispatch was retired in favor
+of writing real content to disk: aggregates are now versioned docs
+with concrete files, not synthetic substrate addresses backed by
+a registry-driven renderer.
+
+Walk:
 - One incoming `provenance.derivation` link from the source note
   identifies the ASN anchor.
 - Outgoing `provenance.derivation` links from the note enumerate
   the derived claims (in derivation order).
-- For each claim, the renderer reads the body's `*Formal Contract:*`
-  section + the name/description sidecars to assemble per-claim
-  blocks.
-
-The output mirrors the format the legacy `assemble_claim_statements`
-function produced from yaml summaries, but reads from substrate-sourced
-sidecars (`<stem>.name.md`, `<stem>.description.md`) and is computed
-fresh on every call rather than cached to disk.
+- For each claim: body's `*Formal Contract:*` section + name /
+  description sidecars assemble the per-claim block.
 """
 
 from __future__ import annotations
@@ -27,7 +30,7 @@ from pathlib import Path
 from typing import Optional
 
 from lib.backend.addressing import Address
-from lib.lattice.render import read_doc, register_renderer
+from lib.lattice.render import read_doc
 from lib.predicates import derived_claims
 from lib.protocols.febe.protocol import Session
 from lib.shared.foundation import _extract_formal_contract
@@ -144,9 +147,6 @@ def _read_full(path):
         return None
     content = path.read_text().strip()
     return content or None
-
-
-register_renderer("claim-statements", render_claim_statements)
 
 
 def read_claim_statements_view(

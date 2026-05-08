@@ -7,6 +7,9 @@ does not change the runner.
 
 from .claim_citation_resolve import claim_citation_resolve
 from .claim_contract import claim_contract
+from .claim_describe_refresh import claim_describe_refresh
+from .claim_signature_refresh import claim_signature_refresh
+from .claims_statements_refresh import claims_statements_refresh
 from .claim_describe import claim_describe
 from .claim_formal_contract import claim_formal_contract
 from .claim_findings import claim_findings
@@ -27,6 +30,9 @@ __all__ = [
     "apex_labels_in_topological_order",
     "claim_citation_resolve",
     "claim_contract",
+    "claim_describe_refresh",
+    "claim_signature_refresh",
+    "claims_statements_refresh",
     "claim_describe",
     "claim_formal_contract",
     "claim_findings",

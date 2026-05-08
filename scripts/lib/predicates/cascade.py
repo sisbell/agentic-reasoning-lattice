@@ -39,12 +39,18 @@ The mechanism:
 
 from __future__ import annotations
 
+from typing import Optional
+
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
 
+from .attributes import description_sidecar_of, signature_sidecar_of
 from .citations import depends
-from .quiescence import is_claim_quiescent, is_claim_structurally_clean
-from .versions import is_head_version, version_head
+from .quiescence import (
+    derived_claims, is_asn_confirmed, is_claim_confirmed, is_claim_quiescent,
+    is_claim_structurally_clean,
+)
+from .versions import is_head_version, supersession_chain_length, version_head
 
 
 def is_upstream_settled_one_hop(
@@ -98,3 +104,151 @@ def is_cascade_fresh_one_hop(
         if not is_head_version(session, upstream):
             return False
     return True
+
+
+def description_is_fresh_after_asn_confirmation(
+    session: Session, claim_addr: Address,
+) -> bool:
+    """Gate `claim_describe` to fire only after the whole ASN settles
+    AND the claim has revised past the sidecar's last attestation.
+
+    Each `attest_against_claim_head` fire emits a `citation.depends`
+    from the new sidecar version to `version_head(claim)` at attest
+    time. The predicate reads that citation: if the cited claim
+    address is still head, the sidecar covers the current claim;
+    if not, the claim has been revised past it.
+
+    True (skip) when:
+      - The claim's source note isn't `is_asn_confirmed` yet.
+      - Sidecar exists AND its head version cites the claim's
+        current head version.
+
+    False (fire) when ASN is confirmed AND either:
+      - No sidecar yet (initial attestation needed).
+      - Sidecar's head version cites a non-head claim version
+        (claim revised past last attestation).
+
+    No chain-length comparison; chain advances by 1 per real
+    attestation.
+    """
+    return _sidecar_against_claim_head_fresh(
+        session, claim_addr, description_sidecar_of,
+    )
+
+
+def signature_is_fresh_after_asn_confirmation(
+    session: Session, claim_addr: Address,
+) -> bool:
+    """Gate `claim_signature_resolve` to fire post-ASN-confirmation,
+    once per claim that has revised past the signature sidecar's
+    last attestation.
+
+    Same shape as `description_is_fresh_after_asn_confirmation`:
+    each fire emits a `citation.depends` from the new signature
+    sidecar version to `version_head(claim)`; predicate flips False
+    when the cited claim version is no longer head.
+    """
+    return _sidecar_against_claim_head_fresh(
+        session, claim_addr, signature_sidecar_of,
+    )
+
+
+def _sidecar_against_claim_head_fresh(
+    session: Session, claim_addr: Address, sidecar_lookup,
+) -> bool:
+    note_addr = _source_note_for_claim(session, claim_addr)
+    if note_addr is None:
+        return True
+    if not is_asn_confirmed(session, note_addr):
+        return True
+    sidecar = sidecar_lookup(session, claim_addr)
+    if sidecar is None:
+        return False
+    sidecar_head = version_head(session, sidecar)
+    claim_head = version_head(session, claim_addr)
+    citations = session.active_links(
+        "citation.depends", from_set=[sidecar_head],
+    )
+    for link in citations:
+        if claim_head in link.to_set:
+            return True
+    return False
+
+
+def _source_note_for_claim(
+    session: Session, claim_addr: Address,
+) -> Optional[Address]:
+    """Reverse-walk `provenance.derivation` to find the source note."""
+    incoming = session.active_links(
+        "provenance.derivation", to_set=[claim_addr],
+    )
+    if not incoming:
+        return None
+    return incoming[0].from_set[0]
+
+
+def claims_statements_for_note(
+    session: Session, note_addr: Address,
+) -> Optional[Address]:
+    """Resolve the `claims.statements` aggregate doc derived from a note.
+
+    Walks `note → provenance.derivation → target` and returns the
+    target carrying the `claims.statements` classifier. None if no
+    such aggregate has been emitted yet (decompose hasn't run, or the
+    note has no derived claims).
+    """
+    for link in session.active_links(
+        "provenance.derivation", from_set=[note_addr],
+    ):
+        for target in link.to_set:
+            if session.active_links("claims.statements", to_set=[target]):
+                return target
+    return None
+
+
+def is_claims_statements_fresh(
+    session: Session, note_addr: Address,
+) -> bool:
+    """True iff the note's `claims.statements` aggregate is up to date
+    with its derived claims, gated on every claim being confirmed.
+
+    Drives the two-mode `ClaimsStatementsRefreshAgent`:
+
+      Quiescent (returns True) when:
+        - No claim-classified derivations exist (degenerate ASN).
+        - Any derived claim is not confirmed (gate closed — defer
+          aggregate work until the cluster has settled).
+        - Aggregate exists AND its chain length ≥ max chain length
+          across derived claims (caught up).
+
+      Stale (returns False) when every claim is confirmed AND either:
+        - No aggregate exists yet → fire creates it (the discovery
+          → claim transition).
+        - Aggregate exists but its chain trails at least one claim's
+          chain → fire advances it via `register_version`.
+
+    The gate iterates claim-classified derivations only; the aggregate
+    is itself a derivation target of the note but is never reviewed,
+    so a raw `is_asn_confirmed` walk would never return True once the
+    aggregate has been emitted.
+    """
+    classified_claims = {
+        link.to_set[0]
+        for link in session.active_links("claim")
+        if link.to_set
+    }
+    claims = [
+        d for d in derived_claims(session, note_addr)
+        if d in classified_claims
+    ]
+    if not claims:
+        return True
+    if not all(is_claim_confirmed(session, c) for c in claims):
+        return True
+    doc = claims_statements_for_note(session, note_addr)
+    if doc is None:
+        return False
+    max_claim_chain = max(
+        supersession_chain_length(session, c) for c in claims
+    )
+    return supersession_chain_length(session, doc) >= max_claim_chain
