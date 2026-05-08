@@ -12,6 +12,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Adaptive scope.** A claim refinement scope strategy where context grows on demand — the reviewer requests missing references, the scope assembler expands the cone, the review re-runs. Catches within-cone issues efficiently without preloading the whole foundation. Counterpart to [comprehensive scope](#c). A choreography decision, not a protocol-level construct. See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
 
+**Agent registry.** The finite static set `R` of agents the [runner](#r) schedules. Part of the substrate's static spec — registered alongside the type catalog and shape registry. Each agent is a tuple `(name, signature, trigger T_A, scope D_A, action act_A, provenance binding)`. Two populations: runner-walked (predicate-fired by the runner) and operator-gated (invoked by filesystem-mediated signals). See [Agents](protocols/substrate/agents.md) and the [agent caste docs](protocols/agents/).
+
 **Apex (cone apex).** The high-dependency claim at the center of a [dependency cone](patterns/dependency-cone.md) — the one that keeps getting revised while its dependencies remain stable.
 
 **Assembly.** The stage that exports converged claims into `claim-statements.md` and `dependency-graph.yaml` for downstream consumers. Mechanical, no LLM.
@@ -33,6 +35,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 ## C
 
 **Campaign.** Binds a theory channel and an evidence channel to a target and a bridge vocabulary. The operational unit of coordinated investigation. The channel pairing is immutable per campaign — any channel change means a new campaign with a new vocabulary. Ends when its question is answered (verified attachment) or abandoned (negative result). Scope promotion during review spawns additional inquiries within the same campaign; genuinely new questions spawn new campaigns. See [Architecture](architecture.md).
+
+**Caste.** The structural role an agent plays in the substrate-emission pattern. Three castes exist in the registry: [producer](#p) (grants new identity), [refiner](#r) (closes findings), [scout](#s) (detects and reports). Caste classification follows *primary substrate effect* — an agent that does multiple things in one fire is classified by what it primarily changes about substrate state. See [agent registry README](protocols/agents/README.md).
 
 **Channel.** A self-contained plugin holding source content, consultation code, consultation prompts, and metadata. Channels are named identities in a flat top-level namespace (`channels/`). Each channel exposes a two-function interface: `generate_questions` (decompose an inquiry into channel-appropriate sub-questions) and `consult` (answer a single question from the channel's corpus). Internal implementation is the channel's business. Campaigns reference channels by name. See [Architecture](architecture.md).
 
@@ -76,7 +80,11 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Corollary.** A claim classified as an immediate consequence of another.
 
+**Correction Stigmergic Protocol.** A primitive of the [Stigmergic Protocol](#s) family. Pattern: a scout files a `comment.revise` link on a target document; a refiner observes the comment and emits a `resolution` link plus the corresponding edit; the runner reschedules until every comment is closed. Termination condition: every `comment.revise` on the target has a matching `resolution`. The [convergence predicate](#c) is the per-comment closure form of Correction. Composes with [Cycle](#c) to drive iterative improvement. See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
+
 **Coupling Principle.** Design commitment that prose and formal content are authored as a pair at an artifact-specific ratio (90/10 for notes, 70/30 for claim files). Divergence from the ratio signals decoupling — one surface growing without the other. Prose is the generative substrate; formal notation precipitates from it. Too much prose fails loudly (hand-waving). Too much formal fails silently (discovery stops). One of three principles forming the quality boundary for review. See [The Coupling Principle](principles/coupling.md).
+
+**Cycle Stigmergic Protocol.** A primitive of the [Stigmergic Protocol](#s) family. Pattern: a primary fact (review record, audit, contract) triggers a secondary fact (revise, fix); the secondary fact's emission invalidates the primary's freshness, retriggering the primary; the loop runs until [quiescence](#q). Composes [Correction](#c) or [Self-Review](#s) with a freshness predicate to drive iteration. The [maturation protocol](#m) uses Cycle to drive note maturation and claim refinement to scope quiescence. See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
 
 ## D
 
@@ -176,6 +184,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Markdown body (`.md`).** The file that holds a claim's content: narrative, proof, formal contract.
 
+**Marker Stigmergic Protocol.** A primitive of the [Stigmergic Protocol](#s) family. Pattern: an operator or agent emits a marker tuple (e.g., `note.confirmed`, `claim.derived`, `note.frozen`) declaring a transition has occurred; downstream agents observe markers as preconditions in their triggers. Markers are the substrate's gating mechanism — they sequence stages without out-of-band coordination. Distinct from [Correction](#c) (which closes findings) and [Self-Review](#s) (which audits). See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
+
 **Maturation Stigmergic Protocol.** The protocol family this stack defines: a substrate-mediated stigmergic protocol composing primitives (Correction, Marker, Self-Review, Cycle) into an end-to-end maturation arc. The first instance is the [Note-to-Claim Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md), which drives content from question to verified knowledge through inquiry consultation, note maturation, claim derivation, per-claim formalization, and per-claim review. Terminates at [scope quiescence](#s) at a designated tier (typically per-ASN). Hosts the lattice operations (extract, absorb, scope promotion) as operator-gated agents within the registry. See the [protocol stack overview](protocols/README.md) and the [maturation protocol doc](protocols/maturation/note-to-claim.md).
 
 **Meet.** Lattice operation. A concept shared by two nodes is extracted into a new foundation layer below both. [Extract/absorb](patterns/extract-absorb.md) executes a meet.
@@ -214,6 +224,10 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Pattern language.** The patterns that govern how agents produce verified knowledge. See [patterns README](patterns/README.md).
 
+**Per-comment closure predicate.** The substrate predicate evaluated for each `comment.revise` link: does a `resolution` link target this comment? Counts the comment as closed when true. The conjunction over all `comment.revise` links targeting a document is the [convergence predicate](#c) at that document. The same predicate is the termination condition of the [Correction Stigmergic Protocol](#c) primitive. See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
+
+**Producer.** The agent caste that grants new substrate identity — emits new addresses, classifier links, or sidecar documents that didn't exist before. Examples: `note_draft` (synthesizes a note from an inquiry), `claim_decompose` (derives per-claim documents from a confirmed note), `claim_contract` (assigns `contract.<kind>` to a claim), `claim_describe` (emits the description sidecar). Producers are typically operator-gated within the [maturation protocol](#m) — the operator decides when to advance a stage by firing the producer. See [Producers](protocols/agents/producers.md).
+
 **Production drive.** The LLM behavioral force that drives generation of output regardless of whether new output is warranted. Manifests as findings on already-clean material, prose growth without reasoning growth, contract sprawl, and other [Surface Expansion](equilibrium/surface-expansion.md) symptoms. Channeled productively by the OBSERVE off-ramp (claim refinement) and the OUT_OF_SCOPE off-ramp (note maturation) — engagement gets a place to go that doesn't trigger destructive revision. See [Production Drive](design-notes/production-drive.md).
 
 **Prose coinage.** The atomic event of coining a new prose word for a concept no existing vocabulary captures precisely (e.g., "action point," "divergence," "subspace"). Occurs in two modes: [synthesis coinage](#s) and [review coinage](#r). Precedes [prose compression](patterns/prose-compression.md). See [Prose Coinage pattern](patterns/prose-coinage.md).
@@ -231,6 +245,8 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 ## R
 
 **Rebase.** Re-verifying downstream claims after a foundation changes. Happens automatically via review/revise cycles because changed dependencies invalidate dependents' metadata.
+
+**Refiner.** The agent caste that closes findings — observes a `comment.revise` and emits a `resolution` link plus the document edit that addresses the finding. Examples: `claim_revise`, `note_revise`, `claim_structural_revise`. Refiners are runner-walked: their triggers fire on observed `comment.revise` links matching their scope. See [Refiners](protocols/agents/refiners.md).
 
 **Representation change.** Progressive transformation of content through different forms (narrative → structured → formal → mechanical) without changing the underlying claim. Each change introduces structural rules at the new form. See [Representation Change pattern](patterns/representation-change.md).
 
@@ -250,6 +266,8 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Reviser.** The agent that reads a finding and modifies the content to address it. Writes in the Dijkstra voice. Always paired with a reviewer.
 
+**Runner.** The scheduling discipline that walks the [agent registry](#a) over substrate state. Reads each agent's trigger predicate, fires the agent when the predicate is true at its scope, observes the emitted tuples, repeats until [quiescence](#q) (every trigger evaluates false). Runner schedule is unspecified — fairness is the only requirement (no agent is starved indefinitely). The runner is part of the substrate's static spec; agents and shapes are the only knobs for protocol authors. See [Runner](protocols/substrate/runner.md).
+
 ## S
 
 **Scale.** Scope of a review cycle. Two scopes in current claim refinement: [adaptive scope](#a) (cone — apex plus dependencies, expanded on demand) and [comprehensive scope](#c) (whole note plus full foundation). The legacy three-scale model (local/regional/full) was consolidated to two during V-cycle work; local was retired. See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
@@ -260,15 +278,29 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Scope promotion.** Elevating out-of-scope boundary observations into their own first-class investigations. How the lattice grows outward. See [Scope Promotion pattern](patterns/scope-promotion.md).
 
+**Scope quiescence.** [Quiescence](#q) parameterized by scope. Per-claim quiescence: every `comment.revise` on the claim has a matching `resolution`, every audit is fresh, all sidecars are fresh. Per-ASN quiescence: every claim under the source note is locally quiescent. Per-lattice quiescence: every ASN in the lattice is quiescent. Q7–Q10 in the substrate spec define scope-parameterized quiescence formally. The [maturation protocol](#m) terminates at a designated scope tier (typically per-ASN). See [Quiescence](protocols/substrate/quiescence.md).
+
 **Scoped inquiry.** Decomposing a question along authority boundaries, with each channel investigating what it can evaluate. See [Scoped Inquiry pattern](patterns/scoped-inquiry.md).
+
+**Scout.** The agent caste that detects and reports — observes substrate state and emits findings (typically `comment.revise`, `comment.observe`, `comment.out-of-scope`, or audit/review links) without modifying primary content. Examples: `claim_review`, `note_review`, `claim_structural_audit`. Scouts produce the inputs that [refiners](#r) consume. Runner-walked: triggers fire on staleness or coverage signals against substrate state. See [Scouts](protocols/agents/scouts.md).
 
 **Self-healing rebase.** When a foundation claim changes, dependents automatically re-verify through the same narrow → refine → verify cycles that built them.
 
 **Self-Report Laundering.** A failure mode of [self-healing](design-notes/self-healing.md#observation-layer-limitation): an evaluator reads the summaries an LLM process produced about itself (commit messages, stats, finding counts) rather than the artifacts it produced (diffs, code, outputs). The generator's own voice gets re-surfaced to the evaluator as if it were independent evidence. Addressed by the [Audit by Content](design-notes/audit-by-content.md) design rule.
 
+**Self-Review Stigmergic Protocol.** A primitive of the [Stigmergic Protocol](#s) family. Pattern: an agent emits a fact and, in the same fire, emits a self-review (audit) tuple recording the fact's freshness; downstream consumers read the audit; staleness retriggers regeneration. Distinct from [Correction](#c) in that Self-Review audits one's own output rather than another's; common for content-derived attributes (label, name, description sidecars staying in sync with the body). See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
+
+**Sequential hand-off.** One of two hand-off mechanisms between agents. The downstream agent does not fire on substrate state — an operator-gated trigger (filesystem signal, manual invocation) advances the work. Used at maturation stage transitions where the next stage's preconditions can't be expressed cleanly as a substrate predicate. Contrasts with [stigmergic hand-off](#s). See [agent registry README](protocols/agents/README.md).
+
 **Signal.** A mechanical indicator that a disequilibrium pattern is occurring (e.g., a claim's contract growing across cycles signals [Contract Sprawl](equilibrium/contract-sprawl.md)).
 
 **Sprawl.** See Contract Sprawl, Prose Sprawl, Index Sprawl.
+
+**Stigmergic hand-off.** One of two hand-off mechanisms between agents. The downstream agent's trigger predicate observes substrate facts the upstream agent emitted; firing happens when the runner walks the registry and finds the predicate true. No direct call, no shared state outside the substrate. The dominant hand-off type within the maturation protocol. Contrasts with [sequential hand-off](#s). See [agent registry README](protocols/agents/README.md).
+
+**Stigmergic Protocol.** A protocol family in which agents coordinate by reading and writing a shared substrate, with no direct message passing. Agents observe substrate state, fire when triggers are true, emit tuples; the substrate is the entire communication medium. Cachin's distinction maps as: system model = AG0–AG7 + Run0–Run5; communication primitive = Emit/Observe/Nullify (R0–R7); message format = typed relations under shape constraints (Sh-conf + Sh0–Sh5); termination = [quiescence](#q) (Q0–Q10). The [maturation protocol](#m) is one specialization. Primitives composed within the family: [Correction](#c), [Marker](#m), [Self-Review](#s), [Cycle](#c). See [Protocol Stack overview](protocols/README.md).
+
+**Stigmergy.** Coordination via traces left in a shared environment. Term coined by Pierre-Paul Grassé (1959) in observing how termites coordinate nest construction without direct communication — each modification of the substrate becomes a stimulus for other agents' actions. The substrate-mediated communication model the [Stigmergic Protocol](#s) family adopts. See [Protocol Stack overview](protocols/README.md).
 
 **Structural finding.** A review finding whose root cause is structural rather than semantic — duplicated declarations, dangling references, metadata disagreement, dependency-graph cycles. Symptom of an [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md).
 
