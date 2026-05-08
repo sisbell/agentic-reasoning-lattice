@@ -85,4 +85,4 @@ These are recognition aids, not a stripping checklist. The discipline that preve
 - [Contract Sprawl](contract-sprawl.md) — shares forces. Contract Sprawl concentrates in structural sections; Prose Sprawl concentrates in narrative.
 - [Index Sprawl](index-sprawl.md) — enumerative prose is a specific surface form of Prose Sprawl.
 - [Surface Expansion](surface-expansion.md) — the shared mechanism across Contract/Prose/Index Sprawl. Prose Sprawl is the narrative-surface manifestation; monitoring and the general discipline live at the Surface Expansion level.
-- [Claim Convergence Protocol](../protocols/maturation/note-to-claim.md) — prose bloat is detected at comprehensive scope when cycle findings reference prose introduced by the previous cycle's revisions. The REVISE/OBSERVE classification operates within the protocol's review prompts.
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — prose bloat is detected at comprehensive scope when cycle findings reference prose introduced by the previous cycle's revisions. The REVISE/OBSERVE classification operates within the protocol's review prompts.

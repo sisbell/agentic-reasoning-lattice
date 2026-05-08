@@ -51,7 +51,7 @@ When review converged 31 of 32 claims but kept cycling on S8, the narrowing had 
 
 ### Discovery
 
-Even discovery uses scope narrowing. The [consultation protocol](../protocols/maturation/note-to-claim.md) narrows the question along channel boundaries — theory gets theory questions, evidence gets evidence questions. Each channel works within its narrowed scope. The synthesis step verifies the whole.
+Even discovery uses scope narrowing. The [maturation protocol](../protocols/maturation/note-to-claim.md) narrows the question along channel boundaries — theory gets theory questions, evidence gets evidence questions. Each channel works within its narrowed scope. The synthesis step verifies the whole.
 
 ## Origin
 

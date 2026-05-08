@@ -1,6 +1,6 @@
 # Guide: Claim Derivation
 
-Claim derivation is a one-shot module that transforms a converged note into per-claim files conforming to the [Claim Document Contract](../design-notes/claim-document-contract.md). It sits between [note convergence](../protocols/maturation/note-to-claim.md) and [claim convergence](../protocols/maturation/note-to-claim.md). For the formal specification see the [Claim Derivation Module](../protocols/maturation/note-to-claim.md); for execution steps see the [runbook](../runbooks/claim-derivation.md).
+Claim derivation is a one-shot module that transforms a converged note into per-claim files conforming to the [Claim Document Contract](../design-notes/claim-document-contract.md). It sits between [note convergence](../protocols/maturation/note-to-claim.md) and [claim convergence](../protocols/maturation/note-to-claim.md). For the formal specification see the [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md); for execution steps see the [runbook](../runbooks/claim-derivation.md).
 
 ## Phases
 
@@ -70,7 +70,7 @@ Re-invoking the module on a note whose derivation has already produced a claim s
 
 ## See also
 
-- [Claim Derivation Module](../protocols/maturation/note-to-claim.md) — formal specification with safety/liveness properties, algorithm, and correctness arguments.
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — formal specification with safety/liveness properties, algorithm, and correctness arguments.
 - [Claim Document Contract](../design-notes/claim-document-contract.md) — the structural contract this module's output must satisfy.
 - [Claim Derivation runbook](../runbooks/claim-derivation.md) — step-by-step execution.
 - [Claim Derivation](../claim-derivation.md) — narrative description of the derivation stage.

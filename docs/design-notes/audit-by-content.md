@@ -35,5 +35,5 @@ The decision has two enforcement sites.
 ## Related
 
 - [Self-Report Laundering](self-healing.md#observation-layer-limitation) — the failure mode this decision addresses.
-- [Claim Convergence Protocol](../protocols/maturation/note-to-claim.md) — the review machinery that this rule governs at every scale (local-review, regional-sweep, full-review).
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the review machinery that this rule governs at every scale (local-review, regional-sweep, full-review).
 - [Consult Authority](../patterns/consult-authority.md) — the analogous grounding discipline during refinement rather than evaluation. Both commit the agent to reading primary content rather than derivative summary.

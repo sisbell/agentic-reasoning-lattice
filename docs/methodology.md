@@ -14,11 +14,11 @@ Campaign architecture is what makes framework comparison possible. Two campaigns
 
 ## [Discovery](discovery.md)
 
-Discovery is how new knowledge enters the lattice. The [two-channel architecture](two-channel-architecture.md) decomposes a question into independent investigations — one consulting established theory, one analyzing raw evidence — separated by a vocabulary firewall that forces hypothesis space exploration rather than retrieval. The [consultation protocol](protocols/maturation/note-to-claim.md) governs this process with explicit safety properties: the vocabulary firewall is structural (C1), channels are independent (C2), and synthesis doesn't fabricate (C6). A synthesis agent integrates both channels into a structured note with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
+Discovery is how new knowledge enters the lattice. The [two-channel architecture](two-channel-architecture.md) decomposes a question into independent investigations — one consulting established theory, one analyzing raw evidence — separated by a vocabulary firewall that forces hypothesis space exploration rather than retrieval. The [maturation protocol](protocols/maturation/note-to-claim.md) governs this process with explicit safety properties: the vocabulary firewall is structural (C1), channels are independent (C2), and synthesis doesn't fabricate (C6). A synthesis agent integrates both channels into a structured note with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
 The two channels receive different context at question-generation time. Theory generators see a vocabulary list — the stable conceptual terms of the theoretical framework. Evidence generators see the corpus itself — the specific measurements, code, or artifacts they will be asked about. This asymmetry matches the representational difference between the channels: theory space is conceptual and listable, evidence space is specific and must be seen to be questioned precisely.
 
-The [note convergence protocol](protocols/maturation/note-to-claim.md) drives the synthesized note toward stability through review/revise cycles. Findings are classified as `comment.revise` (must fix) or `comment.out-of-scope` (valid concern, belongs elsewhere). Out-of-scope findings become candidates for new inquiries through [scope promotion](patterns/scope-promotion.md) — the system discovers the questions it should be asking, not just answers to questions posed.
+The [maturation protocol](protocols/maturation/note-to-claim.md) drives the synthesized note toward stability through review/revise cycles. Findings are classified as `comment.revise` (must fix) or `comment.out-of-scope` (valid concern, belongs elsewhere). Out-of-scope findings become candidates for new inquiries through [scope promotion](patterns/scope-promotion.md) — the system discovers the questions it should be asking, not just answers to questions posed.
 
 ## [Claim Derivation](claim-derivation.md)
 
@@ -44,7 +44,7 @@ The three principles were not designed as a system. Voice was present from the b
 
 ## [Claim Convergence](claim-convergence.md)
 
-The [claim convergence protocol](protocols/maturation/note-to-claim.md) drives claims toward formal precision. Convergence is defined by a predicate on the link graph: every `comment.revise` targeting a claim has a matching `resolution`. The protocol defines when convergence is reached. How to get there — which scope strategy, what review order, how to assemble context — is choreography.
+The [maturation protocol](protocols/maturation/note-to-claim.md) drives claims toward formal precision. Convergence is defined by a predicate on the link graph: every `comment.revise` targeting a claim has a matching `resolution`. The protocol defines when convergence is reached. How to get there — which scope strategy, what review order, how to assemble context — is choreography.
 
 Before each review cycle, a structural validation pass runs: the mechanical validator checks the representation's structural contract, and per-invariant fix recipes resolve any violations. The reviewer then sees structurally sound state and can focus on semantic issues — derivation gaps, regime mismatches, smuggled postulates, missing consequences. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md).
 

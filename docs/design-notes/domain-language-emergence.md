@@ -48,5 +48,5 @@ Observed on the Xanadu demonstration. Examples of each layer:
 - [Prose Coinage](../patterns/prose-coinage.md) — the atomic event; contains the 70/30 finding and the `subspace` case study
 - [Prose Compression](../patterns/prose-compression.md) — what happens to coined prose names when formal manipulation demands symbols
 - [Channel Asymmetry](../patterns/channel-asymmetry.md) — pattern; why shape-mismatch between channels forces coinage
-- [Note Convergence Protocol](../protocols/maturation/note-to-claim.md) — the review/revise cycles that drive the second narrowing stage
-- [Claim Convergence Protocol](../protocols/maturation/note-to-claim.md) — the review/revise cycles that drive the third narrowing stage
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the review/revise cycles that drive the second narrowing stage
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the review/revise cycles that drive the third narrowing stage

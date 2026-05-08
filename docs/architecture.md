@@ -133,12 +133,12 @@ The system is a set of protocols sharing a substrate. The [maturation protocol](
 
 Each stage operates on the same content in a progressively more precise representation. Five protocols are formally specified:
 
-- The [consultation protocol](protocols/maturation/note-to-claim.md) produces the initial note from a campaign-bound inquiry. Two channels consulted under enforced vocabulary separation; output synthesized into a note. One-shot.
-- The [note convergence protocol](protocols/maturation/note-to-claim.md) drives notes toward stability during discovery. Findings classified as `comment.revise` or `comment.out-of-scope`. OUT_OF_SCOPE signals feed lattice operations in the maturation protocol.
-- The [claim derivation module](protocols/maturation/note-to-claim.md) decomposes a converged note into per-claim file pairs satisfying the [Claim Document Contract](design-notes/claim-document-contract.md). One-shot.
-- The [claim convergence protocol](protocols/maturation/note-to-claim.md) drives claims toward formal precision after claim derivation. Findings classified as `comment.revise` or `comment.observe`. OBSERVE is the off-ramp for the [production drive](design-notes/production-drive.md).
+- The [maturation protocol](protocols/maturation/note-to-claim.md) produces the initial note from a campaign-bound inquiry. Two channels consulted under enforced vocabulary separation; output synthesized into a note. One-shot.
+- The [maturation protocol](protocols/maturation/note-to-claim.md) drives notes toward stability during discovery. Findings classified as `comment.revise` or `comment.out-of-scope`. OUT_OF_SCOPE signals feed lattice operations in the maturation protocol.
+- The [maturation protocol](protocols/maturation/note-to-claim.md) decomposes a converged note into per-claim file pairs satisfying the [Claim Document Contract](design-notes/claim-document-contract.md). One-shot.
+- The [maturation protocol](protocols/maturation/note-to-claim.md) drives claims toward formal precision after claim derivation. Findings classified as `comment.revise` or `comment.observe`. OBSERVE is the off-ramp for the [production drive](design-notes/production-drive.md).
 
-Both convergence protocols specialize the [convergence protocol](protocols/maturation/note-to-claim.md) — a document-type-neutral module providing the shared predicate, link types, and properties. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
+Both convergence protocols specialize the [maturation protocol](protocols/maturation/note-to-claim.md) — a document-type-neutral module providing the shared predicate, link types, and properties. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
 
 Before each review cycle within claim convergence, a structural validation pass runs: the mechanical validator checks the [Claim Document Contract](design-notes/claim-document-contract.md), and per-invariant fix recipes resolve any violations. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.
 

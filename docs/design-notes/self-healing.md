@@ -48,7 +48,7 @@ Criterion 1 is load-bearing for a specific reason: see [Observation-layer limita
 
 ### Stage transitions
 
-**Vocabulary convergence (discovery → claim derivation readiness).** When a note's review/revise cycles stop introducing new coinages or new upstream terms, the note has finished its invention work. Signal: zero new italicized prose terms or coined operators across the last N cycles. The [maturation protocol](../protocols/maturation/note-to-claim.md) uses this as part of the discovery → claim derivation transition condition alongside the [note convergence protocol](../protocols/maturation/note-to-claim.md)'s predicate. *Operational as a transition signal.*
+**Vocabulary convergence (discovery → claim derivation readiness).** When a note's review/revise cycles stop introducing new coinages or new upstream terms, the note has finished its invention work. Signal: zero new italicized prose terms or coined operators across the last N cycles. The [maturation protocol](../protocols/maturation/note-to-claim.md) uses this as part of the discovery → claim derivation transition condition alongside the [maturation protocol](../protocols/maturation/note-to-claim.md)'s predicate. *Operational as a transition signal.*
 
 **Proof correctness drift after foundation changes.** A downstream proof might remain technically valid after a foundation changes but no longer cite the most precise axiom. No mechanism currently evaluates this. *Speculative.*
 
@@ -80,5 +80,5 @@ For the operational discipline that addresses self-report laundering in evaluati
 - [Audit by Content](audit-by-content.md) — the evaluation discipline that addresses self-report laundering
 - [The Coupling Principle](../principles/coupling.md) — the coupling feedback loop is itself a self-healing mechanism operating through prompt calibration
 - [Production Drive](production-drive.md) — the LLM behavioral force that compromises self-healing through classification miscalibration
-- [Convergence Protocol](../protocols/maturation/note-to-claim.md) — the predicate is itself a mechanical self-healing signal: evaluable by any participant at any time
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the predicate is itself a mechanical self-healing signal: evaluable by any participant at any time
 - [Claim Convergence](../claim-convergence.md) — non-convergence detection strategies (oscillation, reject cycling, classification bias)

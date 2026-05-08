@@ -41,9 +41,9 @@ Voice reduces volume. The discrimination test routes what remains. Together they
 ## Related
 
 - [The Voice Principle](../principles/voice.md) — voice discipline reduces the volume of findings the production drive generates. The off-ramp handles what remains after voice has done its work.
-- [Convergence Protocol](../protocols/maturation/note-to-claim.md) — the off-ramp categories (OBSERVE, OUT_OF_SCOPE) are specializations of the convergence protocol's `comment` subtypes. Only `comment.revise` participates in the convergence predicate.
-- [Note Convergence Protocol](../protocols/maturation/note-to-claim.md) — uses OUT_OF_SCOPE as the off-ramp. Channels the production drive into lattice growth through scope promotion.
-- [Claim Convergence Protocol](../protocols/maturation/note-to-claim.md) — uses OBSERVE as the off-ramp. Channels the production drive into audit trail without blocking convergence.
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the off-ramp categories (OBSERVE, OUT_OF_SCOPE) are specializations of the convergence protocol's `comment` subtypes. Only `comment.revise` participates in the convergence predicate.
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — uses OUT_OF_SCOPE as the off-ramp. Channels the production drive into lattice growth through scope promotion.
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — uses OBSERVE as the off-ramp. Channels the production drive into audit trail without blocking convergence.
 - [Surface Expansion](../equilibrium/surface-expansion.md) — the failure mode when there is no off-ramp. Every observation triggers action; action adds surface; surface generates observations. The off-ramp breaks the loop.
 - [Prose Sprawl](../equilibrium/prose-sprawl.md) — add-bias is the revision-layer manifestation of the same production drive. Voice discipline addresses add-bias at revision; the off-ramp addresses the production drive at classification.
 - [Scope Promotion](../patterns/scope-promotion.md) — OUT_OF_SCOPE is an off-ramp that produces real lattice growth. The production drive's engagement with adjacent material, channeled through scope promotion, becomes new inquiries.
