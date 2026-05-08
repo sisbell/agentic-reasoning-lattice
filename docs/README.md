@@ -58,10 +58,3 @@ Compositions of Stigmergic Protocol primitives terminating at scope quiescence a
 - [Software](software/README.md) — grounded domain: reverse-engineering legacy software systems. Demonstrated on the Xanadu hypertext system.
 - [Science](science/README.md) — applying the architecture to scientific discovery. Discovery stage landed on a materials lattice (Maxwell 1867 + Dulong–Petit 1819); downstream stages still to run.
 
-## Guides and runbooks
-
-- [Discovery guide](guides/discovery.md) — note manifest schema, campaign binding, channel artifacts
-- [Claim derivation guide](guides/claim-derivation.md) — phases, output structure (body markdown + sidecars)
-- [Claim convergence guide](guides/claim-convergence.md) — review steps, caching, dependency management, convergence
-- [Claim derivation runbook](runbooks/claim-derivation.md) — step-by-step execution
-- [Claim convergence runbook](runbooks/claim-convergence.md) — step-by-step execution

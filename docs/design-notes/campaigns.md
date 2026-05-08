@@ -88,4 +88,3 @@ The extraction is better informed by two concrete ASNs than by any pre-planned s
 ## Related
 
 - [Channel asymmetry](../patterns/channel-asymmetry.md) — the pattern the channels realize.
-- [Discovery guide](../guides/discovery.md) — practical manifest schema and campaign-binding reference.

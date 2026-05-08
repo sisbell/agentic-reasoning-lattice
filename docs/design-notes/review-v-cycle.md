@@ -1,6 +1,6 @@
 # Review V-Cycle
 
-*Design note. See [Claim Convergence Guide](../guides/claim-convergence.md) for the practical operational reference.*
+*Design note.*
 
 ## Overview
 

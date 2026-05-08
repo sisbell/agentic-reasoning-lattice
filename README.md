@@ -80,16 +80,6 @@ Compositions of Stigmergic Protocol primitives that drive content from one archi
 - [Software](docs/software/README.md) — grounded domain on legacy software reverse-engineering (Xanadu)
 - [Science](docs/science/README.md) — domain for scientific discovery (discovery stage landed on a materials lattice; downstream stages still to run)
 
-### Guides
-
-- [Claim derivation guide](docs/guides/claim-derivation.md) — stages, output structure
-- [Claim convergence guide](docs/guides/claim-convergence.md) — review steps, caching, dependency management, convergence
-
-### Runbooks
-
-- [Claim derivation runbook](docs/runbooks/claim-derivation.md) — step-by-step execution
-- [Claim convergence runbook](docs/runbooks/claim-convergence.md) — step-by-step execution
-
 ## Structure
 
 ```
