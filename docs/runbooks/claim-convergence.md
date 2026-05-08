@@ -145,4 +145,4 @@ truth and is git-versioned alongside the lattice.
 
 ---
 
-See the [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) for the predicate contract and stage-1 architecture.
+See the [Claim Convergence Protocol](../protocols/maturation/note-to-claim.md) for the predicate contract and stage-1 architecture.

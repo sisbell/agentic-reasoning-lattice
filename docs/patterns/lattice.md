@@ -38,7 +38,7 @@ The lattice is produced by three patterns operating together:
 
 **[Two data authorities](two-data-authorities.md)** — independent channels produce raw findings about the domain. Theory and evidence reason separately, synthesis integrates. The output is a note with claims mapped to their sources. (Note-level.)
 
-**[Review/revise iteration](review-revise-iteration.md)** — refines each unit to internal coherence. Find issues, fix them, re-check. The unit converges to a state where its claims are consistent and its dependencies are explicit. (Both granularities — notes during discovery via the [note convergence protocol](../protocols/note-convergence-protocol.md), claims during claim convergence via the [claim convergence protocol](../protocols/claim-convergence-protocol.md).)
+**[Review/revise iteration](review-revise-iteration.md)** — refines each unit to internal coherence. Find issues, fix them, re-check. The unit converges to a state where its claims are consistent and its dependencies are explicit. (Both granularities — notes during discovery via the [note convergence protocol](../protocols/maturation/note-to-claim.md), claims during claim convergence via the [claim convergence protocol](../protocols/maturation/note-to-claim.md).)
 
 **[Extract/absorb](extract-absorb.md)** — finds shared concepts, factors them into new foundation layers. Units that contained the shared concept absorb the extracted version and declare a dependency on it. Duplication is eliminated; the lattice gains a new layer. (Both granularities.)
 
@@ -76,7 +76,7 @@ Every growth event is one of these two operations. Discovery connects outward (c
 
 When a foundation is updated, dependents re-run review/revise to verify they still hold against the new version. This is a **rebase** — not a separate process, but [review/revise iteration](review-revise-iteration.md) + [verify the whole](verify-the-whole.md) triggered by dependency change rather than by internal findings. The lattice structure propagates the trigger: updated foundation → dependents re-verify. This is a self-healing property — damage at any layer (a gap found, an axiom tightened, a definition extracted) propagates upward through dependencies, and each layer re-verifies and adapts through the same rhythm that built it.
 
-Rebase operates at both granularities. At the note level: an updated foundation note triggers re-verification of dependent notes. At the claim level: an updated foundation claim triggers re-verification of dependent claims within the same note (through the cone mechanism) or across notes (through the rebase). In protocol terms, the [maturation protocol](../protocols/maturation-protocol.md)'s foundation-change feedback path handles this — the convergence predicates detect staleness naturally through new `comment.revise` links filed on affected dependents.
+Rebase operates at both granularities. At the note level: an updated foundation note triggers re-verification of dependent notes. At the claim level: an updated foundation claim triggers re-verification of dependent claims within the same note (through the cone mechanism) or across notes (through the rebase). In protocol terms, the [maturation protocol](../protocols/maturation/note-to-claim.md)'s foundation-change feedback path handles this — the convergence predicates detect staleness naturally through new `comment.revise` links filed on affected dependents.
 
 ## Leads to
 

@@ -75,6 +75,6 @@ Each pattern, once tested, transfers to the target implementation without redesi
 
 ## Related
 
-- [Substrate Module](../modules/substrate-module.md) — the specification this design note explains the trajectory for.
+- [Substrate Module](../protocols/substrate/README.md) — the specification this design note explains the trajectory for.
 - [Vision](../vision.md) — the broader architectural trajectory of the system.
 - [Architecture](../architecture.md) — the six-level hierarchy and lattice structure.

@@ -12,7 +12,7 @@ The software already exists — the designer wrote documentation, the implemente
 
 ### Verifier-relative convergence
 
-Convergence is always relative to a downstream verifier. For software reverse-engineering, the [claim convergence protocol](../protocols/claim-convergence-protocol.md) drives claims toward precision at whatever scope the choreography selects:
+Convergence is always relative to a downstream verifier. For software reverse-engineering, the [claim convergence protocol](../protocols/maturation/note-to-claim.md) drives claims toward precision at whatever scope the choreography selects:
 
 | Scope | Verifier concern |
 |---|---|
@@ -75,14 +75,14 @@ See [Legacy Software Discovery](../patterns/two-data-authorities-legacy-software
 
 ## What transfers to other domains
 
-The machinery (two-channel discovery via the [consultation protocol](../protocols/consultation-protocol.md), [note convergence](../protocols/note-convergence-protocol.md), [claim derivation](../modules/claim-derivation-module.md), [claim convergence](../protocols/claim-convergence-protocol.md), cone structure, scope promotion, lattice) is domain-general. What changes across domains is the verifier at each scope. The [science domain approach](../science/README.md) describes the parallel framing for scientific discovery, where the verifier becomes experimental reproducibility rather than Dafny proof.
+The machinery (two-channel discovery via the [consultation protocol](../protocols/maturation/note-to-claim.md), [note convergence](../protocols/maturation/note-to-claim.md), [claim derivation](../protocols/maturation/note-to-claim.md), [claim convergence](../protocols/maturation/note-to-claim.md), cone structure, scope promotion, lattice) is domain-general. What changes across domains is the verifier at each scope. The [science domain approach](../science/README.md) describes the parallel framing for scientific discovery, where the verifier becomes experimental reproducibility rather than Dafny proof.
 
 ## Related
 
 - [Two Data Authorities](../patterns/two-data-authorities.md) — parent pattern
 - [Legacy Software Discovery](../patterns/two-data-authorities-legacy-software.md) — grounded pattern with empirical findings
 - [Channel Asymmetry](../patterns/channel-asymmetry.md) — why shape-mismatch between channels forces coinage
-- [Consultation Protocol](../protocols/consultation-protocol.md) — the two-channel consultation with vocabulary firewall and synthesis integrity
-- [Note Convergence Protocol](../protocols/note-convergence-protocol.md) — drives notes to stability during discovery
-- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — drives claims to formal precision; cone-scoped and comprehensive review as choreography
+- [Consultation Protocol](../protocols/maturation/note-to-claim.md) — the two-channel consultation with vocabulary firewall and synthesis integrity
+- [Note Convergence Protocol](../protocols/maturation/note-to-claim.md) — drives notes to stability during discovery
+- [Claim Convergence Protocol](../protocols/maturation/note-to-claim.md) — drives claims to formal precision; cone-scoped and comprehensive review as choreography
 - [Science Approach](../science/README.md) — parallel framing for scientific domains

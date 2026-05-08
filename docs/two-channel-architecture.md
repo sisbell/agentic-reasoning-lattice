@@ -1,6 +1,6 @@
 # Two-Channel Architecture
 
-The mechanism that produces new knowledge for the lattice. Two independent agent channels investigate a question under enforced vocabulary separation. A synthesis agent integrates their outputs into a structured note. The note enters the [note convergence protocol](protocols/note-convergence-protocol.md) for review/revise cycles. The channel architecture governs how the initial note is generated, not how it matures.
+The mechanism that produces new knowledge for the lattice. Two independent agent channels investigate a question under enforced vocabulary separation. A synthesis agent integrates their outputs into a structured note. The note enters the [note convergence protocol](protocols/maturation/note-to-claim.md) for review/revise cycles. The channel architecture governs how the initial note is generated, not how it matures.
 
 ## The two channels
 
@@ -54,6 +54,6 @@ This architecture was developed to formalize the Xanadu hypertext system — pai
 ## Related
 
 - [Discovery](discovery.md) — the stage that uses the two-channel architecture to produce notes for the lattice.
-- [Note Convergence Protocol](protocols/note-convergence-protocol.md) — the protocol that drives the synthesized note toward stability after channels produce it.
+- [Note Convergence Protocol](protocols/maturation/note-to-claim.md) — the protocol that drives the synthesized note toward stability after channels produce it.
 - [Architecture](architecture.md) — channel plugins, bridge vocabulary, and campaign bindings in the system's structural reference.
 - [The Voice Principle](principles/voice.md) — the Dijkstra voice governs the synthesized note from its first draft. Channel outputs are raw material; the synthesis writes in voice.

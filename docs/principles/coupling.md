@@ -49,7 +49,7 @@ The ratio settles at **~90% prose / 10% formal** because each formal anchor need
 
 **Decoupling is the warning.** Prose growing without formal is hand-waving. Formal growing without prose is unmotivated formalization — and, per the asymmetry above, the more dangerous failure because it kills the generative process silently.
 
-The [note convergence protocol](../protocols/note-convergence-protocol.md) governs review/revise cycles on notes during discovery. The 90/10 ratio is a quality boundary within that protocol — monitored but not enforced by the convergence predicate itself.
+The [note convergence protocol](../protocols/maturation/note-to-claim.md) governs review/revise cycles on notes during discovery. The 90/10 ratio is a quality boundary within that protocol — monitored but not enforced by the convergence predicate itself.
 
 ### Claim files — 70/30
 
@@ -75,9 +75,9 @@ A monitor tracks the delta from target for each active claim file.
 | Claim file | 70/30 | significantly above 70% prose | Prose Sprawl (loud failure) |
 | Claim file | 70/30 | significantly below 70% prose | Contract Sprawl (silent failure) |
 
-The delta is a single number; its sign is a diagnosis. Precise tolerance bands are not yet established — current observations (one compress pass) suggest ±2–5 points, but this should be recalibrated as more notes complete claim convergence. This monitoring binds to the [claim convergence protocol](../protocols/claim-convergence-protocol.md), which operates on claim files at whatever scope the choreography selects.
+The delta is a single number; its sign is a diagnosis. Precise tolerance bands are not yet established — current observations (one compress pass) suggest ±2–5 points, but this should be recalibrated as more notes complete claim convergence. This monitoring binds to the [claim convergence protocol](../protocols/maturation/note-to-claim.md), which operates on claim files at whatever scope the choreography selects.
 
-The notes 90/10 ratio is an empirical observation from discovery — it shows that coupling exists across both artifacts. The [note convergence protocol](../protocols/note-convergence-protocol.md) governs review/revise on notes; the 90/10 ratio is a quality target within that protocol's operation.
+The notes 90/10 ratio is an empirical observation from discovery — it shows that coupling exists across both artifacts. The [note convergence protocol](../protocols/maturation/note-to-claim.md) governs review/revise on notes; the 90/10 ratio is a quality target within that protocol's operation.
 
 ## Empirical basis
 
@@ -105,6 +105,6 @@ What doesn't vary is the *coupling principle*: prose and formal content are auth
 - [Contract Sprawl](../equilibrium/contract-sprawl.md), [Prose Sprawl](../equilibrium/prose-sprawl.md), [Index Sprawl](../equilibrium/index-sprawl.md) — specific decoupling manifestations in claim files.
 - [Architecture — Lattice Lifecycle](../architecture.md) — the three transitions (decompose, promote, assemble) define the artifact boundaries this principle operates within.
 - [Narrow → Refine → Verify](../patterns/narrow-refine-verify.md) — the cycle that operates within each artifact's active period.
-- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the protocol whose review cycles this principle's signals monitor.
-- [Note Convergence Protocol](../protocols/note-convergence-protocol.md) — the protocol governing note-level review where the 90/10 ratio applies.
+- [Claim Convergence Protocol](../protocols/maturation/note-to-claim.md) — the protocol whose review cycles this principle's signals monitor.
+- [Note Convergence Protocol](../protocols/maturation/note-to-claim.md) — the protocol governing note-level review where the 90/10 ratio applies.
 - [Accretion](../patterns/accretion.md) — the healthy growth discipline that keeps prose and formal coupled.

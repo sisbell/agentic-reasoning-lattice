@@ -4,7 +4,7 @@
 
 An agent reviews a body of work against criteria, produces findings, and a second agent revises the work to address each finding. The revised work is reviewed again. The cycle repeats until every concern raised has been addressed — by edit or by reasoned rejection.
 
-This pattern is formally specified as the [convergence protocol](../protocols/convergence-protocol.md). The pattern describes the observed behavior. The protocol specifies the properties that must hold: every `comment.revise` has a `resolution`, resolved comments stay resolved, no work is lost between invocations.
+This pattern is formally specified as the [convergence protocol](../protocols/maturation/note-to-claim.md). The pattern describes the observed behavior. The protocol specifies the properties that must hold: every `comment.revise` has a `resolution`, resolved comments stay resolved, no work is lost between invocations.
 
 ## Forces
 
@@ -71,11 +71,11 @@ At discovery scale, the classification is REVISE / OUT_OF_SCOPE rather than REVI
 
 ## Applications
 
-The pattern applies wherever an LLM reviews and revises content iteratively. The [convergence protocol](../protocols/convergence-protocol.md) is the general specification. Domain-specific protocols extend it:
+The pattern applies wherever an LLM reviews and revises content iteratively. The [convergence protocol](../protocols/maturation/note-to-claim.md) is the general specification. Domain-specific protocols extend it:
 
-**[Claim convergence](../protocols/claim-convergence-protocol.md).** The convergence protocol applied to per-claim files in the lattice. Adds structural validation (validate-before-review), lattice structure (`claim`, `contract`, `citation` links), scope strategies (adaptive and comprehensive as choreography), and the Dijkstra voice for both reviewer and reviser.
+**[Claim convergence](../protocols/maturation/note-to-claim.md).** The convergence protocol applied to per-claim files in the lattice. Adds structural validation (validate-before-review), lattice structure (`claim`, `contract`, `citation` links), scope strategies (adaptive and comprehensive as choreography), and the Dijkstra voice for both reviewer and reviser.
 
-**[Discovery review](../protocols/note-convergence-protocol.md).** The convergence protocol applied to notes. Adds OUT_OF_SCOPE as the off-ramp (instead of OBSERVE). No structural validation — notes have no claim document contract. Convergence signals readiness for [claim derivation](../claim-derivation.md).
+**[Discovery review](../protocols/maturation/note-to-claim.md).** The convergence protocol applied to notes. Adds OUT_OF_SCOPE as the off-ramp (instead of OBSERVE). No structural validation — notes have no claim document contract. Convergence signals readiness for [claim derivation](../claim-derivation.md).
 
 ## Origin
 
@@ -83,9 +83,9 @@ The review/revise cycle was the first pattern to emerge. Initial attempts used s
 
 ## Related
 
-- [Convergence Protocol](../protocols/convergence-protocol.md) — the formal specification of this pattern. The predicate, link types, safety and liveness properties.
-- [Note Convergence Protocol](../protocols/note-convergence-protocol.md) — the convergence protocol applied to notes, with OUT_OF_SCOPE routing and lattice growth signals.
-- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the convergence protocol applied to claims, with lattice structure and a specific algorithm.
+- [Convergence Protocol](../protocols/maturation/note-to-claim.md) — the formal specification of this pattern. The predicate, link types, safety and liveness properties.
+- [Note Convergence Protocol](../protocols/maturation/note-to-claim.md) — the convergence protocol applied to notes, with OUT_OF_SCOPE routing and lattice growth signals.
+- [Claim Convergence Protocol](../protocols/maturation/note-to-claim.md) — the convergence protocol applied to claims, with lattice structure and a specific algorithm.
 - [Dependency Cone](dependency-cone.md) — when tightly coupled documents stall single-document review, the cone is reviewed as a unit.
 - [Validate Before Review](validate-before-review.md) — structural validation before each review cycle clears noise from the reviewer's path.
 - [Reverse-Course Oscillation](../equilibrium/reverse-course-oscillation.md) — a failure mode of the review/revise cycle where findings alternate without converging.

@@ -11,7 +11,7 @@ Review operates at two scales:
 - **Cone scale** — cone-sweep. A tightly coupled group of claims reviewed together (the [dependency cone](../patterns/dependency-cone.md): apex + its direct dependencies, with lazy expansion when the reviewer needs more context).
 - **Full scale** — full-review. The entire note reviewed at once with eager 1-hop foundation context.
 
-The [claim convergence protocol](../protocols/claim-convergence-protocol.md) defines convergence as a predicate on the link graph: every `comment.revise` targeting a claim has a matching `resolution`. Cone sweep and full-review alternate until both produce zero outstanding revise comments.
+The [claim convergence protocol](../protocols/maturation/note-to-claim.md) defines convergence as a predicate on the link graph: every `comment.revise` targeting a claim has a matching `resolution`. Cone sweep and full-review alternate until both produce zero outstanding revise comments.
 
 ## Stages
 
@@ -118,4 +118,4 @@ When tightly coupled claims stall narrow-scope review, a [dependency cone](../pa
 
 The two scales compose: cone scale handles tightly coupled clusters with lazy expansion; full scale handles cross-cone issues with eager foundation loading. The outer loop alternates cone sweep and full-review until both find nothing to revise.
 
-See the [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) for the formal predicate and the algorithm in pseudocode.
+See the [Claim Convergence Protocol](../protocols/maturation/note-to-claim.md) for the formal predicate and the algorithm in pseudocode.

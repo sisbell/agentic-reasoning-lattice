@@ -61,4 +61,4 @@ Surfaced during ASN-0034 cone-review work on T4 (HierarchicalParsing). The revie
 
 - [Audit by Content](../design-notes/audit-by-content.md) — the rationale text is where the teaching signal lives. This pattern depends on rationales being read in full, not just counted.
 - [Consult Authority](consult-authority.md) — both patterns ground LLM judgment in something other than the LLM's own prior output. Consult Authority reaches outward to source material; Failure-Side Priming reaches backward to recorded rejections.
-- [Convergence Protocol](../protocols/convergence-protocol.md) — defines the comment/resolution/rejection machinery whose rejection state this pattern reads.
+- [Convergence Protocol](../protocols/maturation/note-to-claim.md) — defines the comment/resolution/rejection machinery whose rejection state this pattern reads.

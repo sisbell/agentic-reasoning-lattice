@@ -1,6 +1,6 @@
 # Discovery
 
-Discovery is how new knowledge enters the lattice. A human poses a question. The [two-channel architecture](two-channel-architecture.md) decomposes it into independent investigations — one consulting established theory, one analyzing raw evidence — and synthesizes a structured note. The [note convergence protocol](protocols/note-convergence-protocol.md) drives that note to stability through review/revise cycles. The [maturation protocol](protocols/maturation-protocol.md) handles the lattice operations that discovery's findings trigger.
+Discovery is how new knowledge enters the lattice. A human poses a question. The [two-channel architecture](two-channel-architecture.md) decomposes it into independent investigations — one consulting established theory, one analyzing raw evidence — and synthesizes a structured note. The [note convergence protocol](protocols/maturation/note-to-claim.md) drives that note to stability through review/revise cycles. The [maturation protocol](protocols/maturation/note-to-claim.md) handles the lattice operations that discovery's findings trigger.
 
 Three mechanisms, one stage. Channels generate. Convergence refines. Maturation reshapes.
 
@@ -18,7 +18,7 @@ The synthesized note is written in the Dijkstra voice from its first draft — t
 
 ## Converging the note
 
-The [note convergence protocol](protocols/note-convergence-protocol.md) drives the synthesized note toward stability. The reviewer reads as Dijkstra — with respect for the effort and no tolerance for hand-waving. Each derivation must walk its cases. Each postulate must be honestly labeled. Each regime condition must be stated where it is load-bearing.
+The [note convergence protocol](protocols/maturation/note-to-claim.md) drives the synthesized note toward stability. The reviewer reads as Dijkstra — with respect for the effort and no tolerance for hand-waving. Each derivation must walk its cases. Each postulate must be honestly labeled. Each regime condition must be stated where it is load-bearing.
 
 Findings are classified as `comment.revise` or `comment.out-of-scope`:
 
@@ -35,7 +35,7 @@ The first note from a campaign is usually too broad. That's expected. Agents ide
 
 As discovery proceeds on separate notes, patterns emerge. Two notes independently derive the same claim — both need the same comparison operation, both define the same foundational concept. This duplication signal is itself a discovery. Two independently drafted notes converging on the same commitments means those commitments have an independent existence that neither note should own.
 
-Three lattice operations — executed by the [maturation protocol](protocols/maturation-protocol.md) — reshape the lattice during discovery:
+Three lattice operations — executed by the [maturation protocol](protocols/maturation/note-to-claim.md) — reshape the lattice during discovery:
 
 **Extract** — shared concepts move into a new foundation note below both consumers. The extracted foundation contains exactly the commitments both needed and nothing else.
 
@@ -53,16 +53,16 @@ A note is ready to enter claim derivation when:
 
 **No other note in discovery owns claims that belong here.** Before entering claim derivation, scan the other notes still in discovery. If any independently derived claims that naturally belong in this note, absorb them first.
 
-Waiting for foundation dependencies to converge their claims before claim derivation reduces rework — but the [maturation protocol](protocols/maturation-protocol.md) does not enforce this as a gate. A note can enter claim derivation against non-converged foundations. The protocol handles the rework through its normal feedback path.
+Waiting for foundation dependencies to converge their claims before claim derivation reduces rework — but the [maturation protocol](protocols/maturation/note-to-claim.md) does not enforce this as a gate. A note can enter claim derivation against non-converged foundations. The protocol handles the rework through its normal feedback path.
 
 The note is frozen at handoff — it becomes the record of discovery, not a living document.
 
 ## Related
 
 - [Two-Channel Architecture](two-channel-architecture.md) — how the initial note is generated through independent channel consultation and synthesis.
-- [Consultation Protocol](protocols/consultation-protocol.md) — the formal protocol governing channel consultation and synthesis.
-- [Note Convergence Protocol](protocols/note-convergence-protocol.md) — the protocol governing review/revise cycles on notes.
-- [Maturation Protocol](protocols/maturation-protocol.md) — the meta-protocol that handles lattice operations and transition conditions.
+- [Consultation Protocol](protocols/maturation/note-to-claim.md) — the formal protocol governing channel consultation and synthesis.
+- [Note Convergence Protocol](protocols/maturation/note-to-claim.md) — the protocol governing review/revise cycles on notes.
+- [Maturation Protocol](protocols/maturation/note-to-claim.md) — the meta-protocol that handles lattice operations and transition conditions.
 - [Claim Derivation](claim-derivation.md) — the next stage: decomposing the note into per-claim files.
 - [The Voice Principle](principles/voice.md) — the Dijkstra voice present from discovery's first prompt.
 - [Scope Promotion](patterns/scope-promotion.md) — how out-of-scope findings become new inquiries.

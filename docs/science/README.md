@@ -40,7 +40,7 @@ Convergence is always relative to a downstream verifier. Different domains have 
 | Cone (adaptive) | hypothesis articulation (testable) |
 | Comprehensive | framework coherence |
 
-At each scope, the [claim convergence protocol](../protocols/claim-convergence-protocol.md) iterates until the convergence predicate holds — every `comment.revise` has a `resolution`. Science cones stabilize when hypotheses are articulated precisely enough to test. The [software domain](../software/README.md) uses the same protocol with a different verifier (proof soundness via Dafny). Scope strategies (adaptive/cone-scoped, comprehensive) are choreography decisions within the protocol, not protocol-level constructs.
+At each scope, the [claim convergence protocol](../protocols/maturation/note-to-claim.md) iterates until the convergence predicate holds — every `comment.revise` has a `resolution`. Science cones stabilize when hypotheses are articulated precisely enough to test. The [software domain](../software/README.md) uses the same protocol with a different verifier (proof soundness via Dafny). Scope strategies (adaptive/cone-scoped, comprehensive) are choreography decisions within the protocol, not protocol-level constructs.
 
 ### Cone as hypothesis cluster
 
@@ -80,7 +80,7 @@ A cone can articulation-converge without match-converging. Those land in the nov
 
 ## Domain specifics for science
 
-The underlying machinery (two-channel discovery via the [consultation protocol](../protocols/consultation-protocol.md), note convergence, claim derivation, claim convergence, cone structure, scope promotion, lattice) is shared with the [software domain](../software/README.md). What's specific to science:
+The underlying machinery (two-channel discovery via the [consultation protocol](../protocols/maturation/note-to-claim.md), note convergence, claim derivation, claim convergence, cone structure, scope promotion, lattice) is shared with the [software domain](../software/README.md). What's specific to science:
 
 - **Verifier at each scope:** reproducibility-precision ("could another lab test this?") rather than proof-soundness.
 - **Evidence channel:** query interface over measurements / simulation tools rather than code reading. Agent answers specific mechanical questions with cited values, not whole-source dumps.
@@ -94,7 +94,7 @@ The underlying machinery (two-channel discovery via the [consultation protocol](
 - [Channel Asymmetry](../patterns/channel-asymmetry.md) — pattern; why shape-mismatch between channels forces coinage
 - [Channel Asymmetry in New-Science Domains](channel-asymmetry-new-science.md) — how channel asymmetry applies in scientific domains (modality / numerical-observation axis)
 - [Two Data Authorities](../patterns/two-data-authorities.md) — parent pattern
-- [Consultation Protocol](../protocols/consultation-protocol.md) — the two-channel consultation with vocabulary firewall and synthesis integrity
-- [Note Convergence Protocol](../protocols/note-convergence-protocol.md) — drives notes to stability during discovery
-- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — drives claims to formal precision; cone-scoped and comprehensive review as choreography
+- [Consultation Protocol](../protocols/maturation/note-to-claim.md) — the two-channel consultation with vocabulary firewall and synthesis integrity
+- [Note Convergence Protocol](../protocols/maturation/note-to-claim.md) — drives notes to stability during discovery
+- [Claim Convergence Protocol](../protocols/maturation/note-to-claim.md) — drives claims to formal precision; cone-scoped and comprehensive review as choreography
 - [Dependency Cone](../patterns/dependency-cone.md) — tight-coupling signal; relevant for non-converging hypothesis clusters

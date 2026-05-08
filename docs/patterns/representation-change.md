@@ -49,7 +49,7 @@ Together they produce what claim convergence needs: small, structured, independe
 
 ### Discovery → claim derivation
 
-Narrative prose → per-claim YAML/MD pairs. The largest representation gap in the system. Handled by progressive decomposition: mechanical section split → per-section claim identification → per-claim classification and enrichment → disassembly into file pairs → validation. See the [claim derivation module](../modules/claim-derivation-module.md) for the formal specification.
+Narrative prose → per-claim YAML/MD pairs. The largest representation gap in the system. Handled by progressive decomposition: mechanical section split → per-section claim identification → per-claim classification and enrichment → disassembly into file pairs → validation. See the [claim derivation module](../protocols/maturation/note-to-claim.md) for the formal specification.
 
 ### Claim convergence → verification
 
@@ -61,7 +61,7 @@ Per-claim files → claim-statements.md export. The representation change goes i
 
 ### Review/revise within a representation
 
-Each [review/revise iteration](review-revise-iteration.md) cycle operates within a single representation. The [convergence protocol](../protocols/convergence-protocol.md) drives review/revise on a stable representation — changes happen within the representation, not between representations. Note convergence refines notes. Claim convergence refines per-claim files. The representation is stable during convergence.
+Each [review/revise iteration](review-revise-iteration.md) cycle operates within a single representation. The [convergence protocol](../protocols/maturation/note-to-claim.md) drives review/revise on a stable representation — changes happen within the representation, not between representations. Note convergence refines notes. Claim convergence refines per-claim files. The representation is stable during convergence.
 
 ## Relationship to other patterns
 

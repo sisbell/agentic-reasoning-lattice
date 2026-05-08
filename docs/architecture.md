@@ -75,7 +75,7 @@ Channels and prompts live outside lattices to prevent agent browsing — an agen
 
 ## The lattice lifecycle
 
-The lattice is one structure that matures from coarse-grained to fine-grained as its notes progress through the [maturation protocol](protocols/maturation-protocol.md). Three explicit operations gate that maturation.
+The lattice is one structure that matures from coarse-grained to fine-grained as its notes progress through the [maturation protocol](protocols/maturation/note-to-claim.md). Three explicit operations gate that maturation.
 
 ![Lattice lifecycle transitions](./diagrams/lattice-lifecycle-transitions.svg)
 
@@ -127,18 +127,18 @@ Notes do not retire at a single moment. They retire gradually as their discovery
 
 ## The protocol architecture
 
-The system is a set of protocols sharing a substrate. The [maturation protocol](protocols/maturation-protocol.md) governs transitions between stage protocols. Each stage protocol has a convergence criterion. Content doesn't flow through stages — it sits in the substrate and the governing protocol changes when transition conditions are met.
+The system is a set of protocols sharing a substrate. The [maturation protocol](protocols/maturation/note-to-claim.md) governs transitions between stage protocols. Each stage protocol has a convergence criterion. Content doesn't flow through stages — it sits in the substrate and the governing protocol changes when transition conditions are met.
 
 **Discovery → Claim Derivation → Claim Convergence → Verification.**
 
 Each stage operates on the same content in a progressively more precise representation. Five protocols are formally specified:
 
-- The [consultation protocol](protocols/consultation-protocol.md) produces the initial note from a campaign-bound inquiry. Two channels consulted under enforced vocabulary separation; output synthesized into a note. One-shot.
-- The [note convergence protocol](protocols/note-convergence-protocol.md) drives notes toward stability during discovery. Findings classified as `comment.revise` or `comment.out-of-scope`. OUT_OF_SCOPE signals feed lattice operations in the maturation protocol.
-- The [claim derivation module](modules/claim-derivation-module.md) decomposes a converged note into per-claim file pairs satisfying the [Claim Document Contract](design-notes/claim-document-contract.md). One-shot.
-- The [claim convergence protocol](protocols/claim-convergence-protocol.md) drives claims toward formal precision after claim derivation. Findings classified as `comment.revise` or `comment.observe`. OBSERVE is the off-ramp for the [production drive](design-notes/production-drive.md).
+- The [consultation protocol](protocols/maturation/note-to-claim.md) produces the initial note from a campaign-bound inquiry. Two channels consulted under enforced vocabulary separation; output synthesized into a note. One-shot.
+- The [note convergence protocol](protocols/maturation/note-to-claim.md) drives notes toward stability during discovery. Findings classified as `comment.revise` or `comment.out-of-scope`. OUT_OF_SCOPE signals feed lattice operations in the maturation protocol.
+- The [claim derivation module](protocols/maturation/note-to-claim.md) decomposes a converged note into per-claim file pairs satisfying the [Claim Document Contract](design-notes/claim-document-contract.md). One-shot.
+- The [claim convergence protocol](protocols/maturation/note-to-claim.md) drives claims toward formal precision after claim derivation. Findings classified as `comment.revise` or `comment.observe`. OBSERVE is the off-ramp for the [production drive](design-notes/production-drive.md).
 
-Both convergence protocols specialize the [convergence protocol](protocols/convergence-protocol.md) — a document-type-neutral module providing the shared predicate, link types, and properties. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
+Both convergence protocols specialize the [convergence protocol](protocols/maturation/note-to-claim.md) — a document-type-neutral module providing the shared predicate, link types, and properties. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
 
 Before each review cycle within claim convergence, a structural validation pass runs: the mechanical validator checks the [Claim Document Contract](design-notes/claim-document-contract.md), and per-invariant fix recipes resolve any violations. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.
 

@@ -6,7 +6,7 @@
 
 A note from discovery contains the right claims, but they're embedded in narrative prose — definitions interleaved with proofs, motivating examples alongside formal statements, architectural commentary woven through derivations. The note is produced by synthesis — the join of theory and evidence channel outputs from an inquiry. That narrative is how humans reason. But you cannot formalize narrative. You can only formalize the formal claims within it.
 
-At some point, the narrative and the formal content must be separated. The formal claims need to stand on their own — each with a clear statement, explicit dependencies, and a classification that tells the [claim convergence protocol](protocols/claim-convergence-protocol.md) how to treat it. The narrative stays as context for human reviewers. This separation is what claim derivation produces.
+At some point, the narrative and the formal content must be separated. The formal claims need to stand on their own — each with a clear statement, explicit dependencies, and a classification that tells the [claim convergence protocol](protocols/maturation/note-to-claim.md) how to treat it. The narrative stays as context for human reviewers. This separation is what claim derivation produces.
 
 ## What claim derivation produces
 
@@ -30,7 +30,7 @@ The [Claim Document Contract](design-notes/claim-document-contract.md) specifies
 
 ## Decomposition as progressive refinement
 
-The [claim derivation module](modules/claim-derivation-module.md) works in layers, each adding detail the previous layer could not see.
+The [claim derivation module](protocols/maturation/note-to-claim.md) works in layers, each adding detail the previous layer could not see.
 
 First, a mechanical split on section headers. No judgment — just string splitting. This produces sections of manageable size, each isolable. The split is mechanical because section boundaries are reliable markdown structure — burning an LLM call on what string splitting already solves would add cost and non-determinism for zero gain.
 
@@ -71,7 +71,7 @@ These are not bugs. They're the natural result of writing to understand rather t
 
 ## Related
 
-- [Claim Derivation Module](modules/claim-derivation-module.md) — the formal protocol specification with safety/liveness properties, algorithm, and correctness arguments.
+- [Claim Derivation Module](protocols/maturation/note-to-claim.md) — the formal protocol specification with safety/liveness properties, algorithm, and correctness arguments.
 - [Claim Document Contract](design-notes/claim-document-contract.md) — the structural contract the output must satisfy.
 - [Claim Convergence](claim-convergence.md) — the next stage: driving claims to formal precision.
 - [Discovery](discovery.md) — the previous stage: producing the notes that enter decomposition.

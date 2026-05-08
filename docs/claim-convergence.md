@@ -26,7 +26,7 @@ From the materials domain: ASN-0002's review cycle caught a genuine physics insi
 
 ## The quality boundary
 
-Three principles govern whether the [claim convergence protocol](protocols/claim-convergence-protocol.md) converges or spirals. See the [principles README](principles/README.md) for the full account.
+Three principles govern whether the [claim convergence protocol](protocols/maturation/note-to-claim.md) converges or spirals. See the [principles README](principles/README.md) for the full account.
 
 **[Coupling](principles/coupling.md)** monitors content balance. Per-claim files hold at roughly 70/30 prose-to-formal. Divergence signals sprawl — prose growing without corresponding formal content, or formal contracts absorbing essay content.
 
