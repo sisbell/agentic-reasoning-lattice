@@ -71,6 +71,10 @@ Each [review/revise iteration](review-revise-iteration.md) cycle operates within
 
 [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when a representation change is performed without specifying what well-formed output means at the new representation. Each arrow in the structure above carries implicit validity rules; the failure occurs when those rules stay implicit. The [Claim Document Contract](../design-notes/claim-document-contract.md) is the first instance of making those rules explicit.
 
+## Realized in
+
+The [**Marker Stigmergic Protocol**](../protocols/README.md#stigmergic-protocol-primitives) primitive. Each stage transition emits a marker tuple (e.g., `note.confirmed`, `claim.derived`) declaring the new representation has come into existence; downstream agents observe markers as preconditions in their triggers. The structural invariants the new representation introduces are specified separately as a transition contract — for the note→per-claim transition, in the [Claim Document Contract](../design-notes/claim-document-contract.md). The Marker primitive sequences the stages; the contract specifies what well-formed output at the new stage looks like.
+
 ## Origin
 
 Present from the start — the system has always been discovery → claim derivation → claim refinement → verification, each stage producing a different representation of the same content. The pattern was implicit in the protocol architecture. It became explicit when claim derivation was redesigned from a single-pass LLM rewrite to progressive decomposition — the recognition that representation change must happen in small, verifiable steps, not in one large jump.

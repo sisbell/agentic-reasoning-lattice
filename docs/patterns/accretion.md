@@ -38,6 +38,10 @@ The reviser reads the structure and follows it. Structure determines behavior.
 
 [Lattice](lattice.md) — Accretion is how the lattice grows inward (new foundational facts) and outward (new derived facts). [Scope Promotion](scope-promotion.md) is accretion applied to boundary observations; [Extract/Absorb](extract-absorb.md) is accretion applied to shared concepts pulled from existing claims.
 
+## Realized in
+
+The substrate's append-only structure: R3 (the log `L_K` is monotonic) and R6 (the active subset `A_K = L_K \ {tuples targeted by L_R}` excludes retracted tuples). Mutating an existing claim emits a retraction plus a fresh tuple — R3 keeps the prior version in `L_K`, R6 hides it from active queries. "Structure determines behavior" is the runtime consequence: agents reason against `A_K`; the full log is the lattice's history. See [Typed Relations](../protocols/substrate/types.md).
+
 ## Origin
 
 Observed as the resolution to Contract Sprawl. During ASN-0034's regional sweep, T0 accumulated ℕ axioms (well-ordering, discreteness, ordering, additive identity) as different proofs discovered they needed them. Each addition invalidated prior citations. The fix was structural: split T0's accumulated clauses into independent claims.

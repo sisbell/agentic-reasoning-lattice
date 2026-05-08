@@ -63,6 +63,10 @@ Without consultation: reviewer says "S8 uses TumblerAdd." Reviser accepts this a
 
 With consultation: reviewer says "S8 uses TumblerAdd." Reviser checks the foundation — TumblerAdd doesn't exist, but OrdinalShift provides the same operation. Revision cites OrdinalShift. The issue is resolved in one cycle because the reviser consulted the authority.
 
+## Realized in
+
+No substrate-spec hook — agent-action discipline. The `act_A` body of producers and refiners may consult external authority (channel corpora, primary source material) before emit; AG4 (in [agents.md](../protocols/substrate/agents.md)) keeps `act_A` private, so the consultation is invisible to the substrate. The discipline lives in agent prompts, not in the substrate spec or emission contracts.
+
 ## Origin
 
 Present from the first discovery runs on the Xanadu formalization. The two-authority architecture separated theory and evidence channels, but during review/revise the agents would sometimes produce findings that contradicted the source material. Adding the ability for the reviser to consult the original sources during revision — selectively, when uncertain — eliminated a class of drift errors where agents refined each other's mistakes rather than the source material.

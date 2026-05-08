@@ -38,6 +38,10 @@ The compression step happens when the concept has stabilized enough to warrant c
 
 [Accretion](accretion.md) — new symbols are added; existing symbols are not reassigned. The accretion discipline applies at the notation layer too.
 
+## Realized in
+
+No substrate-spec hook — claim-refinement-stage emergent behavior in `claim_revise` ([Refiner](../protocols/agents/refiners.md)) and the operator-driven extraction during cone-scoped review. Compression is observable in artifacts (Formal Contract symbol introductions, signature sidecars, derived claim files) but not specified by any agent's emission contract.
+
 ## Origin
 
 Observed in both discovery and claim refinement stages. The trigger in both cases is review pressure finding prose that should be a symbol; the specific mechanism differs by stage.

@@ -65,6 +65,10 @@ Every note above ASN-0034 that mentions "document" or "element" depends on these
 
 [Scope promotion](scope-promotion.md) — the cone creating D-DOC in ASN-0036 is a scope promotion signal: the definition belongs in the bridge layer (ASN-0045), not in the consuming note.
 
+## Realized in
+
+No substrate-spec hook — campaign-level configuration. The bridge vocabulary is curated at campaign creation and lives in the campaign's substrate-citizen document; reviewers consume it as static context. The runner's predicate-evaluation surface does not interrogate the bridge; the bridge informs how reviewers and revisers interpret claims, not which agents fire.
+
 ## Origin
 
 Discovered when the ASN-0036 regional sweep, running against the updated ASN-0034 foundation, created D-DOC to complete S7's proof. The definition matched ASN-0045's discovery output exactly — the formalization independently rediscovered what discovery had already found. ASN-0045's role as a vocabulary bridge between algebra and structure became clear: it wasn't corollaries, it was the translation layer that every higher note needs.

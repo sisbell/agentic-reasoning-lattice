@@ -61,6 +61,10 @@ The sub-questions are designed, not generated. Each one extracts a specific piec
 
 **Synthesis**: produces ASN-0036 (Strand Model) with 29 claims — each traced to theory, evidence, or both. The arrangement functionality invariant (S2) came from theory. The V-position well-formedness constraint (S8a) came from evidence. The two-stream separation (S9) emerged from the disagreement between what theory requires (immutability) and what the implementation provides (which editing commands exist).
 
+## Realized in
+
+No substrate-spec hook — channel-internal discipline. Each channel's `generate_questions` interface decomposes an inquiry into channel-appropriate sub-questions; the scoping rules live in the channel plugin (`channels/<name>/`), invisible to the runner and the substrate.
+
 ## Origin
 
 Discovered during the first discovery runs. Initial attempts asked each authority a single broad question about the topic. The responses were shallow and overlapping — both channels said similar things at a surface level. Restructuring the inquiry into targeted sub-questions scoped to each authority's evidence base transformed the quality of findings. The disagreements became specific and actionable rather than vague and interpretive.

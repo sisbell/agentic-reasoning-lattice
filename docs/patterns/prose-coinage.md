@@ -63,6 +63,10 @@ Most coinage happens in synthesis; the remainder is review-driven and occurs acr
 
 [Vocabulary bridge](vocabulary-bridge.md) — a coined word may become a bridging term used across multiple notes, connecting domain language from one foundation layer to structural language in another.
 
+## Realized in
+
+No substrate-spec hook — synthesis-stage and review-stage emergent behavior. Coinage occurs inside `note_draft` ([Producer](../protocols/agents/producers.md)) and `note_revise` / `claim_revise` ([Refiner](../protocols/agents/refiners.md)). It is observable in artifacts — the note's italicized prose terms — but not specified by any agent's emission contract; substrate sees only the resulting body text.
+
 ## Origin
 
 Observed in every note that went through synthesis, and in review cycles at both discovery and claim refinement stages.

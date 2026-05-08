@@ -4,7 +4,7 @@
 
 An agent reviews a body of work against criteria, produces findings, and a second agent revises the work to address each finding. The revised work is reviewed again. The cycle repeats until every concern raised has been addressed — by edit or by reasoned rejection.
 
-This pattern is formally specified as the [maturation protocol](../protocols/maturation/note-to-claim.md). The pattern describes the observed behavior. The protocol specifies the properties that must hold: every `comment.revise` has a `resolution`, resolved comments stay resolved, no work is lost between invocations.
+This pattern is formally specified as the [Correction Stigmergic Protocol](../protocols/README.md#stigmergic-protocol-primitives) primitive — one of four sub-protocols composing the [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md). The pattern describes the observed behavior. The primitive specifies the properties that must hold: every `comment.revise` has a `resolution`, resolved comments stay resolved, no work is lost between invocations.
 
 ## Forces
 
@@ -71,11 +71,15 @@ At discovery scale, the classification is REVISE / OUT_OF_SCOPE rather than REVI
 
 ## Applications
 
-The pattern applies wherever an LLM reviews and revises content iteratively. The [maturation protocol](../protocols/maturation/note-to-claim.md) is the general specification. Domain-specific protocols extend it:
+The pattern applies wherever an LLM reviews and revises content iteratively. The [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) is the general specification. Two stages within it instantiate the pattern at different scopes:
 
-**[Claim refinement](../protocols/maturation/note-to-claim.md).** The convergence protocol applied to per-claim files in the lattice. Adds structural validation (validate-before-review), lattice structure (`claim`, `contract`, `citation` links), scope strategies (adaptive and comprehensive as choreography), and the Dijkstra voice for both reviewer and reviser.
+**[Claim refinement](../claim-refinement.md).** Correction applied to per-claim files in the lattice. Adds structural validation (validate-before-review), lattice structure (`claim`, `contract`, `citation` links), scope strategies (adaptive and comprehensive as choreography), and the Dijkstra voice for both reviewer and reviser.
 
-**[Discovery review](../protocols/maturation/note-to-claim.md).** The convergence protocol applied to notes. Adds OUT_OF_SCOPE as the off-ramp (instead of OBSERVE). No structural validation — notes have no claim document contract. Convergence signals readiness for [claim derivation](../claim-derivation.md).
+**[Discovery](../discovery.md) (note maturation).** Correction applied to notes. Uses OUT_OF_SCOPE as the off-ramp instead of OBSERVE. No structural validation — notes have no claim document contract. Convergence signals readiness for [claim derivation](../claim-derivation.md).
+
+## Realized in
+
+The [**Correction Stigmergic Protocol**](../protocols/README.md#stigmergic-protocol-primitives) primitive — one of four sub-protocols composing the [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md). Mechanism: a scout emits `comment.<kind>` on a target; a refiner observes the open comment as its trigger and emits `resolution.<kind>` to close. Termination is the per-comment closure form: every `comment.<kind>` has a matching `resolution.<kind>` — the convergence predicate. The maturation protocol composes Correction with [**Cycle**](../protocols/README.md#stigmergic-protocol-primitives) (freshness retrigger) at both note and claim stages.
 
 ## Origin
 
@@ -83,10 +87,9 @@ The review/revise cycle was the first pattern to emerge. Initial attempts used s
 
 ## Related
 
-- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the formal specification of this pattern. The predicate, link types, safety and liveness properties.
-- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the convergence protocol applied to notes, with OUT_OF_SCOPE routing and lattice growth signals.
-- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the convergence protocol applied to claims, with lattice structure and a specific algorithm.
+- [Correction Stigmergic Protocol](../protocols/README.md#stigmergic-protocol-primitives) — the substrate-level primitive this pattern realizes. Predicate, link types, safety and liveness properties.
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — composes Correction with Cycle across note and claim stages; the protocol where this pattern appears at multiple scopes.
 - [Dependency Cone](dependency-cone.md) — when tightly coupled documents stall single-document review, the cone is reviewed as a unit.
-- [Validate Before Review](validate-before-review.md) — structural validation before each review cycle clears noise from the reviewer's path.
+- [Validate Before Review](../design-notes/validate-before-review.md) — structural validation before each review cycle clears noise from the reviewer's path.
 - [Reverse-Course Oscillation](../equilibrium/reverse-course-oscillation.md) — a failure mode of the review/revise cycle where findings alternate without converging.
 - [Production Drive](../design-notes/production-drive.md) — the LLM behavioral force that OBSERVE and OUT_OF_SCOPE channel safely.

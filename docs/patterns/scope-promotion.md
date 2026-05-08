@@ -69,6 +69,10 @@ The integration issues found during discovery runs — T10a conformance, S7c ana
 
 Each note's `_open-questions.md` file captures boundary observations from discovery and formalization. These are the raw material for scope promotion — findings that the current investigation acknowledged but didn't pursue. The lattice grows when these are promoted to their own investigations.
 
+## Realized in
+
+The `comment.out-of-scope` Comment-shape subtype, plus the `note_promote_open_questions` and `note_promote_out_of_scope` [Producer](../protocols/agents/producers.md) agents (operator-gated). A scout files a `comment.out-of-scope` link — which does not participate in the convergence predicate — to record the boundary observation. The operator decides which observations become inquiries; the promote agent emits a fresh `inquiry` Classifier on a new document, attaching the question to the lattice as a first-class node. See [agent registry README](../protocols/agents/README.md).
+
 ## Origin
 
 Observed from the first discovery runs. note reviews consistently produced findings marked as out of scope — topics related to the note but beyond its boundaries. Initially these were captured in open-questions files and forgotten. The pattern was recognized when the same out-of-scope item appeared in multiple note reviews — a signal that the lattice had a real gap that no single note would fill. Promoting these items to their own investigations became the primary mechanism for lattice growth.

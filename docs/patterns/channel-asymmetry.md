@@ -49,6 +49,10 @@ The prompts don't cause the asymmetry. The synthesis instructions and generated 
 
 **A concrete example of edge-case surfacing.** Nelson's design prose asserts that "an arithmetic could be developed" — gestural, no signature, no edge cases. Gregory's `strongsub` has specific sign-case behavior (returns the minuend unchanged when exponents differ in a particular direction). Synthesis had to name the abstract operation (`⊖`) and specify its precondition in a way the implementation's behavior actually satisfies — which surfaced `a ≥ w` as a first-class feature of the abstract operator.
 
+## Realized in
+
+No substrate-spec hook — agent-internal discipline. Two-channel synthesis happens inside `note_draft` ([Producer](../protocols/agents/producers.md)) at the discovery stage; channel implementations and vocabulary firewall enforcement live below the agent boundary, in `channels/<name>/`. The substrate sees only the resulting note emission; the asymmetry is invisible in `Σ`.
+
 ## Related
 
 - [Two Data Authorities](two-data-authorities.md) — Channel Asymmetry serves this pattern by specifying how the two channels should relate
