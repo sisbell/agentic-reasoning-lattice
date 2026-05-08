@@ -14,23 +14,34 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 - [Principles](principles/README.md) — three disciplines that keep the review cycle focused on its real job: [Coupling](principles/coupling.md) (prose and formal content authored as a pair), [Validation](principles/validation.md) (structural contract as a precondition for review), and [Voice](principles/voice.md) (positive style structure constrains LLM output by construction). Coupling and validation monitor and check; voice prevents problems from being generated. All three are needed.
 - [Glossary](glossary.md) — system-specific terms and their definitions
 
-## Agentic Protocols and Modules
+## Protocol stack
 
-The system is built from two kinds of specifications, both written in the modular formalism of Cachin (*Reliable and Secure Distributed Programming*) but adapted for LLM-agent coordination rather than distributed nodes. **Protocols** govern ongoing interaction between participants — convergence-shaped ones iterate until a graph predicate holds; consultation has coordination structure between participants under a vocabulary firewall. **Modules** provide transformations or services that protocols compose with. See [protocols overview](protocols/README.md) and [modules overview](modules/README.md) for layering and reading order.
+The system runs on a substrate-mediated *stigmergic* protocol stack — agents read substrate state and emit, with no direct message passing. See [Protocol Stack overview](protocols/README.md) for the taxonomy, the Cachin-mapping (system model / communication primitive / message format / termination / scheduling discipline → where each lives), and reading order. Three architectural layers:
 
-### Protocols
+### Substrate spec — [overview](protocols/substrate/README.md)
 
-- [Consultation Protocol](protocols/consultation-protocol.md) — *production*. Produces an initial note from a campaign-bound inquiry. Two channels (theory and evidence) consult under enforced vocabulary separation; a synthesizer integrates their outputs.
-- [Note Convergence Protocol](protocols/note-convergence-protocol.md) — *convergence*. Drives notes to stability during discovery. Specializes the convergence protocol for notes; `comment.out-of-scope` is the off-ramp that feeds lattice operations.
-- [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) — *convergence*. Drives claims to formal precision after claim derivation. Specializes the convergence protocol for claims; adds structural validation, the algorithm, and correctness arguments.
-- [Convergence Protocol](protocols/convergence-protocol.md) — the document-type-neutral foundation. Convergence predicate, comment/resolution link types, safety/liveness properties shared by both convergence-shaped specializations.
-- [Maturation Protocol](protocols/maturation-protocol.md) — the meta-protocol governing transitions between stage protocols and executing lattice operations (extract, absorb, scope promotion). Reaches quiescence rather than convergence.
+The medium, message format, and execution model on which all protocols compose:
 
-### Modules
+- [Typed Relations on Address Sets](protocols/substrate/types.md) — typed-relation primitive, three operations, R0–R7
+- [Relation Shapes](protocols/substrate/shapes.md) — shape restrictions, Sh-conf + Sh0–Sh5
+- [Predicate Composition](protocols/substrate/predicate-composition.md) — predicate language `PL`, PC0–PC6
+- [Agents](protocols/substrate/agents.md) — agent semantics, AG0–AG7
+- [Quiescence](protocols/substrate/quiescence.md) — termination condition, Q0–Q10
+- [Runner](protocols/substrate/runner.md) — scheduling discipline, Run0–Run5
 
-- [Substrate Module](modules/substrate-module.md) — persistent, append-only link graph every protocol reads from and writes to. Defines retraction as a substrate operation (link-to-link nullification) and the `ActiveLinks` query that subtracts retracted links from results. Properties: SUB1 permanence, SUB2 query soundness, SUB3 count consistency, SUB4–SUB5 retraction nullify-and-shadow, SUB6 retraction idempotence.
-- [Agent Module](modules/agent-module.md) — agent identity and operation attribution above the substrate. Defines `agent` (classifies a doc as an agent — its address is the agent's identity) and `manages` (declares an agent is currently responsible for an operation).
-- [Claim Derivation Module](modules/claim-derivation-module.md) — transforms a converged note into per-claim files conforming to the Claim Document Contract. The boundary between note convergence and claim convergence; a representation change.
+### Agent registry — [overview](protocols/agents/README.md)
+
+The 26 agents in `scripts/lib/agents/` documented by *caste*. Two hand-off mechanisms (stigmergic, sequential) and the Stigmergic Protocol primitives (Correction, Marker, Self-Review, Cycle):
+
+- [Producers](protocols/agents/producers.md) — agents that grant new substrate identity
+- [Refiners](protocols/agents/refiners.md) — agents that close findings
+- [Scouts](protocols/agents/scouts.md) — agents that detect and report
+
+### Maturation Stigmergic Protocols
+
+Compositions of Stigmergic Protocol primitives terminating at scope quiescence at a designated tier:
+
+- [Note-to-Claim Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md) — first instance; inquiry → confirmed-note → quiescent-claim arc
 
 ## How the system works, fails, and is disciplined
 

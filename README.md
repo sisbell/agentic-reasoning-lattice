@@ -20,7 +20,7 @@ Agents grow the lattice by creating permanent links and reasoning trails — the
 
 A human-posed question is decomposed into channel-appropriate sub-questions. Two independent agent channels — one consulting established theory, one analyzing raw evidence — are separated by a vocabulary firewall that forces hypothesis space exploration. The theory channel cannot use evidence-specific terms. The evidence channel cannot retrieve known solutions from theoretical vocabulary. A synthesis agent integrates both into a structured reasoning document with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
-Each synthesized document is driven to stability by the [note convergence protocol](docs/protocols/note-convergence-protocol.md), then decomposed into atomic claims by the [claim derivation module](docs/modules/claim-derivation-module.md) (a meet operation), then driven toward formal precision by the [claim convergence protocol](docs/protocols/claim-convergence-protocol.md). Convergence is a predicate on the link graph: every active `comment.revise` has a matching active `resolution`. Both protocols specialize the document-type-neutral [convergence protocol](docs/protocols/convergence-protocol.md). The protocol defines when convergence is reached; how to get there — scope strategy, review order, context assembly — is choreography. Mechanical verification (Dafny proofs, Alloy bounded model checking) confirms logical consistency. Every verified node is a testable prediction — the oracle traces failures back to the specific claim and evidence channel that diverged.
+Each synthesized document matures through the [Note-to-Claim Maturation Stigmergic Protocol](docs/protocols/maturation/note-to-claim.md): note review/revise cycles drive it to confirmed stability, claim decomposition produces atomic claims, per-claim formalization and review drive each claim toward quiescence. Termination is scope quiescence at the per-ASN tier — every comment closed, every review clean, every sidecar fresh. Mechanical verification (Dafny proofs, Alloy bounded model checking) confirms logical consistency. Every verified node is a testable prediction — the oracle traces failures back to the specific claim and evidence channel that diverged.
 
 Out-of-scope findings flagged during review become [new inquiries](docs/patterns/scope-promotion.md), attaching to the lattice as new nodes. The system discovers the questions it should be asking, not just answers to questions posed.
 
@@ -34,25 +34,34 @@ In a science deployment, the system produces hypotheses, not discoveries. Verifi
 
 See [Science Approach](docs/science/README.md) for the convergence framing, cone-as-hypothesis-cluster structure, and the Judger evaluation model.
 
-## Agentic Protocols and Modules
+## Protocol stack
 
-The system is built from two kinds of specifications, both written in the modular formalism of Cachin (*Reliable and Secure Distributed Programming*) but adapted for LLM-agent coordination rather than distributed nodes. **Protocols** govern ongoing interaction — convergence-shaped protocols iterate until a graph predicate holds; consultation has coordination structure between participants under a vocabulary firewall. **Modules** provide transformations or services that protocols compose with — they have a precondition, a transformation or service, and a postcondition. Both share the specification surface; they differ in whether the underlying shape is interaction or transformation.
+The system runs on a substrate-mediated *stigmergic* protocol stack — agents read substrate state and emit, with no direct message passing. See [Protocol Stack overview](docs/protocols/README.md) for the taxonomy, the Cachin-mapping (system model / communication primitive / message format / termination / scheduling discipline → where each lives), and reading order. Three architectural layers:
 
-See [protocols overview](docs/protocols/README.md) and [modules overview](docs/modules/README.md) for layering and reading order.
+### Substrate spec — [overview](docs/protocols/substrate/README.md)
 
-### Protocols
+The medium, message format, and execution model on which all protocols compose:
 
-- [Consultation Protocol](docs/protocols/consultation-protocol.md) — *production*. Produces an initial note from a campaign-bound inquiry. Two channels (theory and evidence) consult under enforced vocabulary separation; a synthesizer integrates their outputs.
-- [Note Convergence Protocol](docs/protocols/note-convergence-protocol.md) — *convergence*. Drives notes to stability during discovery. Specializes the convergence protocol for notes; `comment.out-of-scope` is the off-ramp that feeds lattice operations.
-- [Claim Convergence Protocol](docs/protocols/claim-convergence-protocol.md) — *convergence*. Drives claims to formal precision after claim derivation. Specializes the convergence protocol for claims; adds structural validation, the algorithm, and correctness arguments.
-- [Convergence Protocol](docs/protocols/convergence-protocol.md) — the document-type-neutral foundation. Convergence predicate, comment/resolution link types, safety/liveness properties shared by both convergence-shaped specializations.
-- [Maturation Protocol](docs/protocols/maturation-protocol.md) — the meta-protocol governing transitions between stage protocols and executing lattice operations (extract, absorb, scope promotion). Reaches quiescence rather than convergence.
+- [Typed Relations on Address Sets](docs/protocols/substrate/types.md) — typed-relation primitive, three operations (Emit, Observe, Nullify), R0–R7
+- [Relation Shapes](docs/protocols/substrate/shapes.md) — shape restrictions, Sh-conf + Sh0–Sh5
+- [Predicate Composition](docs/protocols/substrate/predicate-composition.md) — predicate language `PL`, PC0–PC6
+- [Agents](docs/protocols/substrate/agents.md) — agent semantics, AG0–AG7
+- [Quiescence](docs/protocols/substrate/quiescence.md) — termination condition, Q0–Q10 (including scope-parameterized)
+- [Runner](docs/protocols/substrate/runner.md) — scheduling discipline, Run0–Run5
 
-### Modules
+### Agent registry — [overview](docs/protocols/agents/README.md)
 
-- [Substrate Module](docs/modules/substrate-module.md) — persistent, append-only link graph every protocol reads from and writes to. Defines retraction as a substrate operation (link-to-link nullification) and the `ActiveLinks` query that subtracts retracted links from results. Properties: SUB1 permanence, SUB2 query soundness, SUB3 count consistency, SUB4–SUB5 retraction nullify-and-shadow, SUB6 retraction idempotence.
-- [Agent Module](docs/modules/agent-module.md) — agent identity and operation attribution above the substrate. Defines `agent` (classifies a doc as an agent — its address is the agent's identity) and `manages` (declares an agent is currently responsible for an operation). Lets convergence protocols attribute their work to specific agents without protocol identity leaking into the substrate's type system.
-- [Claim Derivation Module](docs/modules/claim-derivation-module.md) — transforms a converged note into per-claim files conforming to the Claim Document Contract. The boundary between note convergence and claim convergence; a representation change.
+The 26 agents in `scripts/lib/agents/` documented by *caste*. Two hand-off mechanisms (stigmergic, sequential) and the Stigmergic Protocol primitives (Correction, Marker, Self-Review, Cycle) that recur across cross-caste patterns:
+
+- [Producers](docs/protocols/agents/producers.md) — agents that grant new substrate identity
+- [Refiners](docs/protocols/agents/refiners.md) — agents that close findings
+- [Scouts](docs/protocols/agents/scouts.md) — agents that detect and report
+
+### Maturation Stigmergic Protocols
+
+Compositions of Stigmergic Protocol primitives that drive content from one architectural state to another, terminating at scope quiescence at a designated tier:
+
+- [Note-to-Claim Maturation Stigmergic Protocol](docs/protocols/maturation/note-to-claim.md) — first instance; traces the inquiry → confirmed-note → quiescent-claim arc
 
 ## Documentation
 
