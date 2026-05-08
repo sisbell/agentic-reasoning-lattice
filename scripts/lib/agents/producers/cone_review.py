@@ -91,20 +91,36 @@ def transitive_same_asn_deps(
     grounding chain, not the downstream tree. Same-ASN only —
     cross-ASN deps are delivered separately via foundation_statements.
     """
-    visited = {apex_addr}
-    queue = [apex_addr]
+    state = session.state
+
+    def _base(addr: Address) -> Address:
+        cur = addr
+        while state.parent.get(cur) is not None:
+            cur = state.parent[cur]
+        return cur
+
+    # Citations are emitted from version_head and target version_head.
+    # Walk from each visited claim's head; resolve cited targets back
+    # to base for rev_index lookup.
+    apex_base = _base(apex_addr)
+    visited = {apex_base}
+    queue = [apex_base]
     deps: List[str] = []
     while queue:
         cur = queue.pop(0)
-        for link in session.active_links("citation.depends", from_set=[cur]):
+        cur_head = version_head(session, cur)
+        for link in session.active_links(
+            "citation.depends", from_set=[cur_head],
+        ):
             for target in link.to_set:
-                if target in visited:
+                target_base = _base(target)
+                if target_base in visited:
                     continue
-                visited.add(target)
-                label = rev_index.get(target)
+                visited.add(target_base)
+                label = rev_index.get(target_base)
                 if label and label in asn_labels:
                     deps.append(label)
-                    queue.append(target)
+                    queue.append(target_base)
     return deps
 
 
@@ -121,16 +137,27 @@ def cross_asn_deps_in_cone(
     prompt: only deps that live outside this ASN need explicit
     foundation loading; same-ASN deps are already in `cone_labels`.
     """
+    state = session.state
+
+    def _base(addr: Address) -> Address:
+        cur = addr
+        while state.parent.get(cur) is not None:
+            cur = state.parent[cur]
+        return cur
+
     cross: List[str] = []
     for label in cone_labels:
         from_addr = label_index.get(label)
         if from_addr is None:
             continue
+        # Walk from claim's head; resolve cited targets back to base
+        # for rev_index lookup.
         for link in session.active_links(
-            "citation.depends", from_set=[from_addr],
+            "citation.depends",
+            from_set=[version_head(session, from_addr)],
         ):
             for cited in link.to_set:
-                dep_label = rev_index.get(cited)
+                dep_label = rev_index.get(_base(cited))
                 if (
                     dep_label
                     and dep_label not in asn_labels

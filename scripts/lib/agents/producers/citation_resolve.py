@@ -140,24 +140,39 @@ def _existing_classifications(
     session: Session, claim_md_rel: str, label_index: dict,
 ):
     """Return (depends_labels, forwards_labels) sourced from substrate."""
+    from lib.predicates.versions import version_head
+
     rev_index = {addr: label for label, addr in label_index.items()}
     claim_addr = session.get_addr_for_path(claim_md_rel)
     if claim_addr is None:
         return [], []
+    state = session.state
+
+    def _base(addr):
+        cur = addr
+        while state.parent.get(cur) is not None:
+            cur = state.parent[cur]
+        return cur
+
+    # Walk from claim's head; resolve each cited target to base for
+    # rev_index lookup.
+    claim_head = version_head(session, claim_addr)
     depends = []
     forwards = []
     for link in session.active_links(
-        "citation.depends", from_set=[claim_addr],
+        "citation.depends", from_set=[claim_head],
     ):
         for cited in link.to_set:
-            if cited in rev_index:
-                depends.append(rev_index[cited])
+            base = _base(cited)
+            if base in rev_index:
+                depends.append(rev_index[base])
     for link in session.active_links(
-        "citation.forward", from_set=[claim_addr],
+        "citation.forward", from_set=[claim_head],
     ):
         for cited in link.to_set:
-            if cited in rev_index:
-                forwards.append(rev_index[cited])
+            base = _base(cited)
+            if base in rev_index:
+                forwards.append(rev_index[base])
     return sorted(depends), sorted(forwards)
 
 

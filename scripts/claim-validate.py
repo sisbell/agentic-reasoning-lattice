@@ -233,17 +233,34 @@ def _build_citation_graph(pairs, store, label_index):
     check_references_resolve, matching the pre-migration behavior on
     yaml depends entries.
     """
+    from lib.predicates.versions import version_head
+    from lib.protocols.febe.session import Session
+
     rev_index = {addr: label for label, addr in label_index.items()}
+    state = store.state
+
+    def _base(addr):
+        cur = addr
+        while state.parent.get(cur) is not None:
+            cur = state.parent[cur]
+        return cur
+
+    session = Session(store)
     graph = {}
     for stem in pairs:
         from_addr = label_index.get(stem)
         if from_addr is None:
             graph[stem] = []
             continue
+        # Walk from claim's head; resolve cited target back to base
+        # for label lookup.
+        from_head = version_head(session, from_addr)
         deps = []
-        for link in active_links(store.state, "citation.depends", from_set=[from_addr]):
+        for link in active_links(
+            state, "citation.depends", from_set=[from_head],
+        ):
             for cited in link.to_set:
-                dep_label = rev_index.get(cited)
+                dep_label = rev_index.get(_base(cited))
                 if dep_label:
                     deps.append(dep_label)
         graph[stem] = deps

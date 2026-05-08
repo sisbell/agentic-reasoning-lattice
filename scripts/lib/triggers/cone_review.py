@@ -24,6 +24,7 @@ from lib.predicates import (
     is_claim_quiescent,
     is_upstream_settled_one_hop,
 )
+from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, Trigger
 from lib.shared.claim_files import build_label_index
@@ -55,6 +56,13 @@ def apex_labels_in_topological_order(
 
     label_index = build_cross_asn_label_index(session.store)
     rev_index = {addr: label for label, addr in label_index.items()}
+    state = session.state
+
+    def _base(addr: Address) -> Address:
+        cur = addr
+        while state.parent.get(cur) is not None:
+            cur = state.parent[cur]
+        return cur
 
     apexes: list[str] = []
     for level_labels in topological_levels(deps_data):
@@ -62,14 +70,21 @@ def apex_labels_in_topological_order(
             apex_addr = label_index.get(label)
             if apex_addr is None:
                 continue
-            same_deps = [
-                rev_index[link.to_set[0]]
-                for link in session.active_links(
-                    "citation.depends", from_set=[apex_addr],
-                )
-                if link.to_set
-                and rev_index.get(link.to_set[0]) in asn_labels_in_asn
-            ]
+            # Citations are emitted from version_head; walk to head
+            # before querying so post-edit citations are visible.
+            apex_head = version_head(session, apex_addr)
+            same_deps = []
+            for link in session.active_links(
+                "citation.depends", from_set=[apex_head],
+            ):
+                if not link.to_set:
+                    continue
+                # Cited target may be a version address; walk to base
+                # for label lookup.
+                base = _base(link.to_set[0])
+                dep_label = rev_index.get(base)
+                if dep_label in asn_labels_in_asn:
+                    same_deps.append(dep_label)
             if len(same_deps) >= CONE_MIN_DEPS:
                 apexes.append(label)
     return apexes

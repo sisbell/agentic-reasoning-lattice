@@ -310,16 +310,25 @@ def _build_metadata_bundle(rule, filename, claim_dir):
         label_index = build_cross_asn_label_index(session.store)
 
         if rule in ("depends-agreement", "references-resolve"):
+            from lib.predicates.versions import version_head
             md_rel = str(
                 (claim_dir / f"{stem}.md").resolve().relative_to(lattice_root)
             )
             md_addr = session.get_addr_for_path(md_rel)
             if md_addr is not None:
+                state = session.state
+                # Walk from claim's head (post-edit citations are
+                # there); cited targets may be version addresses, so
+                # walk back to base for path lookup.
+                md_head = version_head(session, md_addr)
                 for link in session.active_links(
-                    "citation.depends", from_set=[md_addr],
+                    "citation.depends", from_set=[md_head],
                 ):
                     for cited_addr in link.to_set:
-                        cited_path = session.get_path_for_addr(cited_addr)
+                        base = cited_addr
+                        while state.parent.get(base) is not None:
+                            base = state.parent[base]
+                        cited_path = session.get_path_for_addr(base)
                         if cited_path:
                             dep_stem = Path(cited_path).stem
                             if dep_stem not in labels_to_include:
@@ -430,11 +439,22 @@ def _parse_decisions(scratch_dir, valid_labels, label_index, diff_text):
 
 def _apply_retract_decisions(session, decisions, claim_path, label_index):
     """Emit a retraction for each RETRACT decision. Returns count emitted."""
+    from lib.predicates.versions import version_head
+
     citing_addr = session.get_addr_for_path(claim_path)
     if citing_addr is None:
         raise DecisionsCorruption(
             f"claim {claim_path!r} not in substrate path map"
         )
+    state = session.state
+
+    def _base(addr):
+        cur = addr
+        while state.parent.get(cur) is not None:
+            cur = state.parent[cur]
+        return cur
+
+    citing_head = version_head(session, citing_addr)
     emitted = 0
     for d in decisions:
         if d["action"] != "RETRACT":
@@ -444,16 +464,20 @@ def _apply_retract_decisions(session, decisions, claim_path, label_index):
             raise DecisionsCorruption(
                 f"retracting {d['label']!r} failed: unknown label"
             )
-        candidates = session.active_links(
-            "citation.depends",
-            from_set=[citing_addr], to_set=[cited_addr],
-        )
+        # Walk all citations from claim's head; match by cited base
+        # identity (cited target may be a version address).
+        candidates = []
+        for link in session.active_links(
+            "citation.depends", from_set=[citing_head],
+        ):
+            if any(_base(t) == cited_addr for t in link.to_set):
+                candidates.append(link)
         if not candidates:
             raise DecisionsCorruption(
                 f"retracting {d['label']!r} failed: no active "
                 f"citation.depends from {claim_path}"
             )
-        emit_retraction(session.store, citing_addr, candidates[0].addr)
+        emit_retraction(session.store, citing_head, candidates[0].addr)
         emitted += 1
         if d["rationale"]:
             print(

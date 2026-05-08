@@ -178,25 +178,42 @@ def _transitive_dep_signatures(
     claim_dir = CLAIM_DIR / asn_label
     asn_label_set = set(build_label_index(claim_dir).keys())
 
+    from lib.predicates.versions import version_head
+
     claim_addr = session.get_addr_for_path(claim_md_rel)
     if claim_addr is None:
         return []
+    state = session.state
+
+    def _base(addr):
+        cur = addr
+        while state.parent.get(cur) is not None:
+            cur = state.parent[cur]
+        return cur
+
+    # Citations are emitted from version_head and target version_head.
+    # BFS at base-identity granularity; query each step from the
+    # current head; resolve cited targets back to base.
     visited = {claim_addr}
     queue = [claim_addr]
     upstream = []
     while queue:
         cur = queue.pop(0)
-        for link in session.active_links("citation.depends", from_set=[cur]):
+        cur_head = version_head(session, cur)
+        for link in session.active_links(
+            "citation.depends", from_set=[cur_head],
+        ):
             for target in link.to_set:
-                if target in visited:
+                target_base = _base(target)
+                if target_base in visited:
                     continue
-                visited.add(target)
-                label = rev_index.get(target)
+                visited.add(target_base)
+                label = rev_index.get(target_base)
                 if label and label in asn_label_set:
                     sig = _claim_signature_text(claim_dir, label)
                     if sig:
                         upstream.append((label, sig))
-                    queue.append(target)
+                    queue.append(target_base)
     return upstream
 
 
