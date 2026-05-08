@@ -14,7 +14,7 @@ Summaries and artifacts are produced by the same machinery. The summary surface 
 
 The decision has two enforcement sites.
 
-**Prompts.** Evaluator prompts — the full-review prompt, the regional-sweep reviewer, any agent invoked in an audit role — instruct the agent to read artifacts and quote specific content when classifying. The prompt names Self-Report Laundering as a specific failure mode to avoid.
+**Prompts.** Evaluator prompts — the full-review prompt, the cone-review reviewer, any agent invoked in an audit role — instruct the agent to read artifacts and quote specific content when classifying. The prompt names Self-Report Laundering as a specific failure mode to avoid.
 
 **Context.** Evaluator agents are given the artifact as input, not metadata about it. A pipeline that hands an agent only commit messages and `--stat` output has a configuration gap. The diff text itself is what goes into the context window. Finding texts, revised content, and the structural state being evaluated are passed in directly, not summarized before arrival.
 
@@ -35,5 +35,5 @@ The decision has two enforcement sites.
 ## Related
 
 - [Self-Report Laundering](self-healing.md#observation-layer-limitation) — the failure mode this decision addresses.
-- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the review machinery that this rule governs at every scale (local-review, regional-sweep, full-review).
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the review machinery this rule governs at every scope (cone-review, full-review).
 - [Consult Authority](../patterns/consult-authority.md) — the analogous grounding discipline during refinement rather than evaluation. Both commit the agent to reading primary content rather than derivative summary.

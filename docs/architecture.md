@@ -127,7 +127,7 @@ Notes do not retire at a single moment. They retire gradually as their discovery
 
 ## The protocol architecture
 
-The system runs the [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md) — one specialization within the broader Stigmergic Protocol family — over a [substrate](protocols/substrate/README.md). The protocol composes Stigmergic Protocol primitives (Correction, Marker, Self-Review, Cycle) across four stages, each driving content toward a scope-tier quiescence target before the next builds on it.
+The system runs the [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md) over a [substrate](protocols/substrate/README.md). The protocol composes Stigmergic Protocol primitives (Correction, Marker, Self-Review, Cycle) across four stages, each driving content toward a scope-tier quiescence target before the next builds on it.
 
 **Discovery → Claim Derivation → Claim Refinement → Verification.**
 
@@ -135,7 +135,7 @@ Each stage operates on the same content in a progressively more precise represen
 
 - **Note synthesis** (Discovery) — produces the initial note from a campaign-bound inquiry. Two channels consulted under enforced vocabulary separation; output synthesized into a note. One-shot, sequential.
 - **Note maturation** (Discovery) — drives the note toward `is_doc_quiescent` via review/revise cycles. Findings classified as `comment.revise` or `comment.out-of-scope`. OUT_OF_SCOPE signals feed lattice operations in the protocol.
-- **Claim derivation** — decomposes a confirmed note into per-claim file pairs satisfying the [Claim Document Contract](design-notes/claim-document-contract.md). Sequential bridge; one-shot.
+- **Claim derivation** — decomposes a confirmed note into per-claim file groups (body markdown plus required sidecars) satisfying the [Claim Document Contract](design-notes/claim-document-contract.md). Sequential bridge; one-shot.
 - **Claim refinement** — drives claims toward per-claim quiescence via per-claim review/revise cycles. Findings classified as `comment.revise` or `comment.observe`. OBSERVE is the off-ramp for the [production drive](design-notes/production-drive.md).
 
 These stages are not separate protocols. They are successive tiers within the same protocol composition, with quiescence at each tier escalating monotonically (per-document → per-ASN → per-lattice). What were previously called "convergence protocols" are the note-maturation and claim-refinement stages — both review/revise cycles, differing only in their target representation (note vs claim).

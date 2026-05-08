@@ -45,4 +45,4 @@ A fix may legitimately break an invariant mid-step — delete a duplicate body, 
 - [Validate Before Review](../patterns/validate-before-review.md) — the pattern these decisions serve.
 - [The Validation Principle](../principles/validation.md) — the commitment behind the pattern.
 - [Claim Document Contract](claim-document-contract.md) — the structural contract the validator checks against. The contract's rules drive the validator's checklist and the per-invariant recipe set.
-- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the review machinery this runs before at each scale.
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the review machinery this precedes at each scope.

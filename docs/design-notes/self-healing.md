@@ -42,13 +42,13 @@ Criterion 1 is load-bearing for a specific reason: see [Observation-layer limita
 
 **Cross-note foundation drift.** When an upstream note changes, every downstream consumer carries citation drift until a rebase pass. A cross-note validator could detect "downstream cites label that no longer exists upstream" or "downstream's understanding of upstream is stale." The [maturation protocol](../protocols/maturation/note-to-claim.md)'s foundation-change feedback path handles this through the convergence predicate — new `comment.revise` links filed on affected dependents. *Detectable; partially handled by protocol.*
 
-**Cross-note vocabulary collision.** Two notes using the same symbol for different things, discoverable by comparing vocabulary YAML across notes. *Speculative — mechanical signal exists but not scanned.*
+**Cross-note vocabulary collision.** Two notes using the same symbol for different things, discoverable by comparing signature sidecars across notes. *Speculative — mechanical signal exists but not scanned.*
 
-**Summary staleness.** A claim's summary YAML field may describe old content if the claim has been revised. Content hashes exist for cache but no consumer-facing staleness signal. *Detectable.*
+**Description staleness.** A claim's description sidecar may describe old content if the claim has been revised. Content hashes exist for cache but no consumer-facing staleness signal. *Detectable.*
 
 ### Stage transitions
 
-**Vocabulary convergence (discovery → claim derivation readiness).** When a note's review/revise cycles stop introducing new coinages or new upstream terms, the note has finished its invention work. Signal: zero new italicized prose terms or coined operators across the last N cycles. The [maturation protocol](../protocols/maturation/note-to-claim.md) uses this as part of the discovery → claim derivation transition condition alongside the [maturation protocol](../protocols/maturation/note-to-claim.md)'s predicate. *Operational as a transition signal.*
+**Vocabulary convergence (discovery → claim derivation readiness).** When a note's review/revise cycles stop introducing new coinages or new upstream terms, the note has finished its invention work. Signal: zero new italicized prose terms or coined operators across the last N cycles. The [maturation protocol](../protocols/maturation/note-to-claim.md) uses this as part of the discovery → claim derivation transition condition alongside the convergence predicate. *Operational as a transition signal.*
 
 **Proof correctness drift after foundation changes.** A downstream proof might remain technically valid after a foundation changes but no longer cite the most precise axiom. No mechanism currently evaluates this. *Speculative.*
 

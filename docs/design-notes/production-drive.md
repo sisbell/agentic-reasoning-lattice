@@ -41,10 +41,8 @@ Voice reduces volume. The discrimination test routes what remains. Together they
 ## Related
 
 - [The Voice Principle](../principles/voice.md) — voice discipline reduces the volume of findings the production drive generates. The off-ramp handles what remains after voice has done its work.
-- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the off-ramp categories (OBSERVE, OUT_OF_SCOPE) are specializations of the convergence protocol's `comment` subtypes. Only `comment.revise` participates in the convergence predicate.
-- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — uses OUT_OF_SCOPE as the off-ramp. Channels the production drive into lattice growth through scope promotion.
-- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — uses OBSERVE as the off-ramp. Channels the production drive into audit trail without blocking convergence.
+- [Maturation Stigmergic Protocol](../protocols/maturation/note-to-claim.md) — the off-ramp categories (OBSERVE, OUT_OF_SCOPE) are specializations of the protocol's `comment` subtypes. Only `comment.revise` participates in the convergence predicate; OBSERVE channels the production drive into the audit trail without blocking convergence, and OUT_OF_SCOPE channels it into lattice growth via scope promotion.
 - [Surface Expansion](../equilibrium/surface-expansion.md) — the failure mode when there is no off-ramp. Every observation triggers action; action adds surface; surface generates observations. The off-ramp breaks the loop.
 - [Prose Sprawl](../equilibrium/prose-sprawl.md) — add-bias is the revision-layer manifestation of the same production drive. Voice discipline addresses add-bias at revision; the off-ramp addresses the production drive at classification.
 - [Scope Promotion](../patterns/scope-promotion.md) — OUT_OF_SCOPE is an off-ramp that produces real lattice growth. The production drive's engagement with adjacent material, channeled through scope promotion, becomes new inquiries.
-- [Self-Healing Areas](../design-notes/self-healing.md) — off-ramp calibration is an observation-layer concern. An over-attractive off-ramp is a form of detection failure: the system sees the issue but doesn't act.
+- [Self-Healing Areas](self-healing.md) — off-ramp calibration is an observation-layer concern. An over-attractive off-ramp is a form of detection failure: the system sees the issue but doesn't act.

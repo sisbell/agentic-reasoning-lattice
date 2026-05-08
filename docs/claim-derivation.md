@@ -10,13 +10,13 @@ At some point, the narrative and the formal content must be separated. The forma
 
 ## What claim derivation produces
 
-A monolithic note becomes a set of per-claim file pairs. Each claim gets two files: a YAML file carrying metadata (label, name, type, dependencies, vocabulary) and a markdown file carrying the body (statement, justification, proof).
+A monolithic note becomes a set of per-claim file groups. Each claim gets a body markdown file `<label>.md` carrying statement, justification, and proof, plus three required sidecar markdown files — `<label>.label.md`, `<label>.name.md`, `<label>.description.md` — carrying substrate-managed attributes. Claims that introduce non-logical symbols add an optional `<label>.signature.md` sidecar. Substrate links classify the body (`claim`, `contract.<kind>`), point at each sidecar (`label`, `name`, `description`, `signature`), and record dependencies (`citation`).
 
-This is a [representation change](patterns/representation-change.md) — the content stays the same but the form changes from narrative to structured per-claim files. The change introduces structural invariants that only become meaningful at this boundary: one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. These invariants are specified in the [Claim Document Contract](design-notes/claim-document-contract.md).
+This is a [representation change](patterns/representation-change.md) — the content stays the same but the form changes from narrative to structured per-claim files. The change introduces structural invariants that only become meaningful at this boundary: one body per file, filename matches label, references resolve, sidecar content agrees with the body, no dependency cycles. These invariants are specified in the [Claim Document Contract](design-notes/claim-document-contract.md).
 
-The metadata makes the formal structure explicit: what this claim is, what it depends on, what notation it introduces. The body preserves the interleaved narrative and formal content because claim refinement's reviewers need the narrative to understand the proof. Full separation comes later, at verification, when only the formal contracts enter mechanical checking.
+Substrate classifiers and sidecars together make the formal structure explicit: what this claim is (`contract.<kind>`), what it depends on (`citation`), what notation it introduces (the signature sidecar). The body preserves the interleaved narrative and formal content because claim refinement's reviewers need the narrative to understand the proof. Full separation comes later, at verification, when only the formal contracts enter mechanical checking.
 
-The metadata at decomposition time is deliberately incomplete. Type classifications are best-effort, dependencies are extracted from prose but may be imprecise, vocabulary attribution has minor errors. Claim refinement tightens all of it. But structural invariants must hold from the start — the semantic content can be imprecise while the structural form must be valid. This is the distinction the [Validation Principle](principles/validation.md) draws: structural integrity is a precondition for meaningful review, not a thing review checks.
+The substrate state at decomposition time is deliberately incomplete. Type classifications are best-effort, dependencies are extracted from prose but may be imprecise, signature attribution has minor errors. Claim refinement tightens all of it. But structural invariants must hold from the start — the semantic content can be imprecise while the structural form must be valid. This is the distinction the [Validation Principle](principles/validation.md) draws: structural integrity is a precondition for meaningful review, not a thing review checks.
 
 This is the meet operation at the note scale — a single node at the note-level becomes many nodes at the claim-level, each with explicit dependencies. Claim derivation is where the two granularities of the lattice diverge.
 
@@ -36,9 +36,9 @@ First, a mechanical split on section headers. No judgment — just string splitt
 
 Then, per-section analysis identifies the claims within each section. Each section is read with full context to make structural decisions: this bold header is a case split inside a proof, not a new claim. These two definitions share a preamble but are logically independent. This "axiom" has a proof — it's really a design requirement whose consequences are derived.
 
-Then, per-claim classification and dependency extraction. Each claim is analyzed independently through three focused LLM passes — type classification, dependency extraction, and vocabulary extraction. Three passes rather than one comprehensive prompt because focused prompts produce more reliable output, and parallel execution reduces wall-clock cost.
+Then, per-claim classification and dependency extraction. Each claim is analyzed independently through focused LLM passes — type classification (`contract.<kind>`), dependency extraction (`citation` links), and signature extraction (the `<label>.signature.md` sidecar plus the substrate `signature` link). Focused prompts produce more reliable output than one comprehensive prompt, and parallel execution reduces wall-clock cost.
 
-Each layer refines what the previous produced. The section split doesn't know about claims. The claim identification doesn't know about types. The classification doesn't know about vocabulary. Progressive refinement, not a single pass.
+Each layer refines what the previous produced. The section split doesn't know about claims. The claim identification doesn't know about types. The classification doesn't know about signatures. Progressive refinement, not a single pass.
 
 ## Claim types across domains
 
