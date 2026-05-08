@@ -182,33 +182,54 @@ class Store:
         )
         return addr
 
-    def register_version(self, prev_addr: Address) -> Address:
-        """Allocate a new tumbler version marker for an existing doc.
+    def register_version(self, addr: Address) -> Address:
+        """Advance the supersession chain for `addr`'s doc by one.
 
-        Per LM 4/52-4/53. Emits a `supersession(prev_addr, new_addr)`
-        link recording that an edit happened. The new address is a
-        bare marker — no classifier, no lattice membership, no path
-        mapping. Existing relations (descriptions, citations,
-        attributes, comments) all continue to point at prev_addr;
-        readers walk the supersession chain when they need to know
-        whether the base has been edited.
+        Per LM 4/52-4/53. Walks `addr`'s parent-map descendants to find
+        the current chain head, then allocates a tumbler-child of the
+        head and emits a `supersession(head, new_addr)` link.
 
-        Mirror of how Xanadu inherits links via supersession rather
-        than copying them. The new version exists only to mark the
-        progression — the real substrate facts stay on the base.
+        The new address is a bare marker — no classifier, no lattice
+        membership, no path mapping. Existing relations (descriptions,
+        citations, attributes, comments) all continue to point at the
+        prior addresses; readers walk the supersession chain when they
+        need to know whether the base has been edited.
+
+        Resolving to head before allocating produces a linear chain:
+        identity → v1 → v2 → v3 → … . `supersession_chain_length`
+        grows monotonically with each call (load-bearing for sidecar
+        freshness predicates that compare chain lengths). Callers may
+        pass any address along the chain (identity, current head, or a
+        stale version reference); the chain always extends from the
+        current head.
 
         Returns the new version's address.
         """
-        if prev_addr not in self.state._owner:
-            raise ValueError(f"unknown doc address {prev_addr}")
+        if addr not in self.state._owner:
+            raise ValueError(f"unknown doc address {addr}")
 
-        new_addr = self.state._allocate_child(prev_addr)
-        self.state.parent[new_addr] = prev_addr
-        self.state.kind[new_addr] = self.state.kind.get(prev_addr, "doc")
+        # Walk to current chain head — deepest descendant via the
+        # parent map. If the chain is already linear (each node has
+        # at most one child), this picks the leaf; if a fan-out
+        # exists from earlier versions, picks the highest-tumbler
+        # child at each step (matching version_head's algorithm).
+        head = addr
+        while True:
+            children = sorted(
+                (a for a, p in self.state.parent.items() if p == head),
+                key=lambda a: a.digits,
+            )
+            if not children:
+                break
+            head = children[-1]
+
+        new_addr = self.state._allocate_child(head)
+        self.state.parent[new_addr] = head
+        self.state.kind[new_addr] = self.state.kind.get(head, "doc")
         self.state.content[new_addr] = ""
 
         from .emit import emit_supersession
-        emit_supersession(self, prev_addr, new_addr)
+        emit_supersession(self, head, new_addr)
 
         return new_addr
 
