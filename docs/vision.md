@@ -1,6 +1,6 @@
 # Vision
 
-The lattice is claims connected by links, shared through transclusion, and versioned for concurrent access. Three Xanadu protocol primitives make this possible:
+The lattice is claims connected by links, shared through transclusion, and versioned for concurrent access. Three Xanadu substrate primitives make this possible:
 
 **Links** — every dependency between claims is a bidirectional link. The lattice IS the link structure.
 
@@ -27,7 +27,7 @@ The lattice is not a knowledge store — it is an active hypothesis discovery en
 
 The mechanism: a human-posed inquiry is decomposed into channel-appropriate sub-questions. Independent channels explore hypothesis space and evidence space separately, enforced by the vocabulary firewall. The synthesis agent joins their outputs into a new lattice node. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
-Out-of-scope findings flagged during review become candidates for [new inquiries](patterns/scope-promotion.md). Each new inquiry decomposes, explores, and synthesizes — attaching to the lattice as a new node with links to what spawned it. The lattice discovers the questions it should be asking, not just answers to questions posed. The protocol substrate — permanent addresses, bidirectional links, transclusion — makes every hypothesis immediately addressable and buildable-upon by every other agent in the collective.
+Out-of-scope findings flagged during review become candidates for [new inquiries](patterns/scope-promotion.md). Each new inquiry decomposes, explores, and synthesizes — attaching to the lattice as a new node with links to what spawned it. The lattice discovers the questions it should be asking, not just answers to questions posed. The substrate — permanent addresses, bidirectional links, transclusion — makes every hypothesis immediately addressable and buildable-upon by every other agent in the collective.
 
 This is what current agentic platforms cannot do. They find molecules. The lattice finds the periodic table.
 
@@ -51,19 +51,19 @@ The versioned lattice is the fine-tuning curriculum. Every campaign's reasoning 
 
 This is Lamarckian evolution: acquired reasoning is directly transmissible. An agent that discovers a new principle through structured disagreement encodes that principle as a verified lattice node. Subsequent agents build on it through transclusion — the discovery propagates through the collective without retraining from scratch.
 
-The claim convergence protocol governs how evolution happens: the convergence predicate — every comment.revise has a resolution — must hold before claims become foundations for dependent work. The maturation protocol sequences the stages: discovery stabilizes before claim derivation, claim derivation satisfies the structural contract before convergence begins, convergence reaches its predicate before verification runs. Evolution is gradual and controlled — not simultaneous multi-objective optimization, but structured incremental improvement where each layer is stable before the next builds on it.
+The [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md) — one specialization within the broader Stigmergic Protocol family — governs how evolution happens: each scope tier — per-document, per-ASN, per-lattice — reaches quiescence before the next builds on it. Notes mature through review/revise cycles before they decompose into claims; claims formalize and reach per-claim quiescence before the ASN reaches lattice quiescence. The system stabilizes layer-by-layer through stigmergic agent activity: producers emit findings, refiners close them, scouts surface structural issues, and the runner walks the trigger graph until every agent's public predicate evaluates false against the current substrate state. Evolution is gradual and controlled — not simultaneous multi-objective optimization, but structured incremental improvement where each layer is stable before the next builds on it.
 
-Phase II agents don't just use the lattice. They grow it, read it, and evolve through it. The protocol substrate is both the communication medium and the evolutionary record.
+Phase II agents don't just use the lattice. They grow it, read it, and evolve through it. The substrate is both the communication medium and the evolutionary record.
 
 ## Building the engine
 
-What exists today is the local implementation: agents running structured protocols on a single machine, producing a verified dependency lattice through discovery, claim derivation, claim convergence, and verification. The Xanadu protocol substrate — currently implemented as files, git commits, and YAML dependencies — will be rebuilt as a live linked structure.
+What exists today is the local implementation: agents running the [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md) on a single machine, producing a verified dependency lattice through inquiry consultation, note maturation, claim derivation, per-claim formalization, and verification. The substrate's semantics — permanent addresses, append-only typed relations, a self-referential link graph — are filesystem-backed today; they will be rebuilt as Xanadu's live linked structure.
 
 When the substrate is live:
-- Every claim has a permanent address, not a file path
-- Every dependency is a bidirectional link, not a YAML field
-- Every version is a permanent snapshot, not a git commit
-- Claim derivation and claim convergence are reasoning at different scopes on the same linked structure, not separate protocol stages
+- Every claim's address resolves through the linked structure, not through a filesystem path
+- Every dependency is traversed in real time, not scanned from filesystem-stored tuples
+- Every version is a Xanadu permanent snapshot, not filesystem state under monotonic discipline
+- Reasoning at any scope transcludes the linked structure directly, not by assembling content from files
 
 The engine scales what works locally into something that works distributedly. Distributed agents trace reasoning trails through permanent links, share verified principles through transclusion, and work concurrently through versioned snapshots — without coordination, without copying, without conflict.
 

@@ -2,9 +2,9 @@
 
 A human poses a question. The system decomposes it into channel-appropriate sub-questions, launches a structured multi-agent discovery process, and grows a lattice of verified knowledge. The lattice accumulates every finding, revision, and proof as permanent, addressable, dependency-tracked nodes. The methodology is one rhythm applied at every scale: narrow scope, refine through iteration, verify coherence.
 
-The system is a set of protocols sharing a substrate. The [maturation protocol](protocols/maturation/note-to-claim.md) governs transitions between them. Each protocol has a convergence predicate. Agents drive work within a protocol. The substrate holds shared state across all of them.
+The system runs the [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md) over a [substrate](protocols/substrate/README.md). The protocol composes stigmergic primitives — agents read substrate state and emit; the runner walks them until each scope tier reaches quiescence. Each stage reaches its quiescence target before the next builds on it. The substrate holds shared state; agents are the only operations that emit.
 
-The unit of work is the note (identifier prefix `ASN-NNNN`) — a document covering one topic. Notes form a dependency lattice: each declares what it depends on and what it covers, building on verified foundations. At any point, some notes may be in discovery, others in claim convergence, others in verification. The dependency order determines which must stabilize first.
+The unit of work is the note (identifier prefix `ASN-NNNN`) — a document covering one topic. Notes form a dependency lattice: each declares what it depends on and what it covers, building on verified foundations. At any point, some notes may be in discovery, others in claim refinement, others in verification. The dependency order determines which must stabilize first.
 
 ## Campaigns
 
@@ -14,7 +14,7 @@ Campaign architecture is what makes framework comparison possible. Two campaigns
 
 ## [Discovery](discovery.md)
 
-Discovery is how new knowledge enters the lattice. The [two-channel architecture](two-channel-architecture.md) decomposes a question into independent investigations — one consulting established theory, one analyzing raw evidence — separated by a vocabulary firewall that forces hypothesis space exploration rather than retrieval. The [maturation protocol](protocols/maturation/note-to-claim.md) governs this process with explicit safety properties: the vocabulary firewall is structural (C1), channels are independent (C2), and synthesis doesn't fabricate (C6). A synthesis agent integrates both channels into a structured note with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
+Discovery is how new knowledge enters the lattice. The [two-channel architecture](two-channel-architecture.md) decomposes a question into independent investigations — one consulting established theory, one analyzing raw evidence — separated by a vocabulary firewall that forces hypothesis space exploration rather than retrieval. The architecture's safety properties are structural: the vocabulary firewall, channel independence, and synthesis integrity are enforced through the channel design. A synthesis agent integrates both channels into a structured note with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
 The two channels receive different context at question-generation time. Theory generators see a vocabulary list — the stable conceptual terms of the theoretical framework. Evidence generators see the corpus itself — the specific measurements, code, or artifacts they will be asked about. This asymmetry matches the representational difference between the channels: theory space is conceptual and listable, evidence space is specific and must be seen to be questioned precisely.
 
@@ -26,7 +26,7 @@ Claim derivation is the meet operation on the lattice: a note-level node becomes
 
 This decomposition is a [representation change](patterns/representation-change.md) — the content stays the same but the form changes from narrative to structured per-claim files. The representation change introduces structural invariants that must hold for the per-claim form to mean anything: one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. These invariants are specified in the [Claim Document Contract](design-notes/claim-document-contract.md).
 
-This decomposition is what makes claim convergence possible. Claims can be reviewed independently, grouped into clusters, or reviewed as a complete set. Without claim derivation, the claim convergence protocol has nothing to operate on.
+This decomposition is what makes claim refinement possible. Claims can be reviewed independently, grouped into clusters, or reviewed as a complete set. Without claim derivation, claim refinement has nothing to operate on.
 
 ## The Three Principles
 
@@ -40,11 +40,11 @@ Three design commitments form the quality boundary for the review cycle. Togethe
 
 **[Voice](principles/voice.md)** — LLM output is constrained by defining what well-formed output looks like (the Dijkstra voice), not by enumerating what it must avoid. Positive style structure leaves no slot for non-reasoning prose. Enumerated prohibition lists leave gaps the agent drifts through. Without voice, the reviser's add-bias produces prose sprawl that the other two principles detect but cannot prevent.
 
-The three principles were not designed as a system. Voice was present from the beginning — the discovery prompts used Dijkstra voice from their first draft and it worked. When claim convergence began with a different voice and prescriptive rules, every failure mode appeared. Coupling and validation were articulated to manage the symptoms. Voice was rediscovered when the original discovery prompts were restored and the symptoms resolved. The three principles are complementary: coupling monitors content health, validation enforces structural health, voice shapes output quality. See the [principles README](principles/README.md) for the full account.
+The three principles were not designed as a system. Voice was present from the beginning — the discovery prompts used Dijkstra voice from their first draft and it worked. When claim refinement began with a different voice and prescriptive rules, every failure mode appeared. Coupling and validation were articulated to manage the symptoms. Voice was rediscovered when the original discovery prompts were restored and the symptoms resolved. The three principles are complementary: coupling monitors content health, validation enforces structural health, voice shapes output quality. See the [principles README](principles/README.md) for the full account.
 
-## [Claim Convergence](claim-convergence.md)
+## Claim Refinement
 
-The [maturation protocol](protocols/maturation/note-to-claim.md) drives claims toward formal precision. Convergence is defined by a predicate on the link graph: every `comment.revise` targeting a claim has a matching `resolution`. The protocol defines when convergence is reached. How to get there — which scope strategy, what review order, how to assemble context — is choreography.
+The [maturation protocol](protocols/maturation/note-to-claim.md) drives claims toward formal precision. Per-claim quiescence is defined by the per-comment closure predicate: every `comment.revise` targeting a claim has a matching `resolution`. ASN-level quiescence (the protocol's terminal state) is reached when every claim under a source note is locally quiescent. The protocol defines when each tier of quiescence is reached. How to get there — which scope strategy, what review order, how to assemble context — is choreography.
 
 Before each review cycle, a structural validation pass runs: the mechanical validator checks the representation's structural contract, and per-invariant fix recipes resolve any violations. The reviewer then sees structurally sound state and can focus on semantic issues — derivation gaps, regime mismatches, smuggled postulates, missing consequences. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md).
 
@@ -54,13 +54,13 @@ The reviser can close a comment in two ways: `resolution.edit` (the claim was ch
 
 The protocol uses two scope strategies as choreography: adaptive scope (context grows on demand as the reviewer requests missing references) and comprehensive scope (all claims loaded before review begins). Adaptive scope catches within-cone issues efficiently. Comprehensive scope catches cross-cone issues where nothing in a claim's dependency chain connects it to a relevant provider. The choreography alternates them; the protocol doesn't prescribe which runs first.
 
-**Mechanical verification** (Dafny proofs, Alloy bounded model checking) is a validation layer downstream of claim convergence. It confirms that converged contracts are logically consistent and faithfully encoded. But claim convergence catches what mechanical verification cannot — a theorem (GlobalUniqueness) passed Dafny, Alloy, and 30+ review cycles. Review at wider scope found a counterexample in 8 cycles. Claim convergence discovers; mechanical verification validates.
+**Mechanical verification** (Dafny proofs, Alloy bounded model checking) is a validation layer downstream of claim refinement. It confirms that quiescent contracts are logically consistent and faithfully encoded. But claim refinement catches what mechanical verification cannot — a theorem (GlobalUniqueness) passed Dafny, Alloy, and 30+ review cycles. Review at wider scope found a counterexample in 8 cycles. Claim refinement discovers; mechanical verification validates.
 
 ## The Oracle
 
 Each verified lattice node is a testable prediction: preconditions, postconditions, invariants, formal contract. When a prediction fails against data, the reasoning trail traces the failure back to the specific claim and evidence channel that diverged. This traceability is not instrumented after the fact — it is structural. Every dependency is explicit and permanent. Every finding has a source.
 
-The oracle is the mechanism that makes the lattice systematically improvable. Every failure points to exactly where the reasoning needs revision. The claim convergence protocol re-verifies the affected node — the verification failure enters as a `comment.revise` — and corrections propagate upward through dependents. The lattice self-heals because the oracle identifies not just that something failed, but where and why.
+The oracle is the mechanism that makes the lattice systematically improvable. Every failure points to exactly where the reasoning needs revision. The maturation protocol re-verifies the affected node — the verification failure enters as a `comment.revise` — and corrections propagate upward through dependents. The lattice self-heals because the oracle identifies not just that something failed, but where and why.
 
 ## Self-Healing
 
@@ -93,13 +93,13 @@ Every review cycle, finding, and revision is a permanent artifact in the lattice
 
 **Proofs** are the reasoning that justifies those claims. The proofs can have gaps, and the claims can still be true. A correct contract with a flawed proof is better than no contract at all.
 
-**The claim convergence protocol** checks that contracts are precise, internally consistent, and faithful to the derivation. It operates on text and can be wrong, but the convergence predicate ensures that every concern raised has been addressed — by edit or by reasoned rejection.
+**Claim refinement** (the per-claim stages of the maturation protocol) checks that contracts are precise, internally consistent, and faithful to the derivation. It operates on text and can be wrong, but the per-comment closure predicate ensures that every concern raised has been addressed — by edit or by reasoned rejection.
 
 **Mechanical verification** (Dafny, Alloy) proves logical consistency. But it cannot tell you whether a postcondition describes what the system *should* do (that is a design question), whether the axioms are the right axioms (those are posited from evidence), or whether the formalized specification matches reality (that requires testing).
 
 **Golden tests** close the final gap — running verified contracts against the real system checks whether the specification matches reality.
 
-The chain of trust: human judgment establishes intent, the claim convergence protocol makes it precise, mechanical verification makes it consistent, testing makes it real.
+The chain of trust: human judgment establishes intent, claim refinement makes it precise, mechanical verification makes it consistent, testing makes it real.
 
 ## Origin
 
