@@ -49,7 +49,7 @@ Prose coinage happens in two distinct modes:
 
 **Review-driven coinage.** When a reviewer surfaces a concept the current text is discussing in ad-hoc prose without a shared name, revise coins one. This happens in both discovery review cycles AND claim refinement review cycles.
 
-Discovery-stage review-driven coinage in ASN-0036 produced `subspace` in review cycle 1. Claim-convergence-stage review-driven coinage produced terms like `execution trace`, `initial empty state` (AX-1), `allocation-mediated entry` (AX-2), `hierarchical allocation discipline` (S7d), `element subspace projection` (E₁) — none of which existed in the first draft. Each was coined during cone-scoped review when the reviewer pressed on a concept the current text hadn't named.
+Discovery-stage review-driven coinage in ASN-0036 produced `subspace` in review cycle 1. Claim-refinement-stage review-driven coinage produced terms like `execution trace`, `initial empty state` (AX-1), `allocation-mediated entry` (AX-2), `hierarchical allocation discipline` (S7d), `element subspace projection` (E₁) — none of which existed in the first draft. Each was coined during cone-scoped review when the reviewer pressed on a concept the current text hadn't named.
 
 Most coinage happens in synthesis; the remainder is review-driven and occurs across both discovery and claim refinement.
 
@@ -71,7 +71,7 @@ Observed in every note that went through synthesis, and in review cycles at both
 
 **Discovery-stage review coinage.** ASN-0036's most-cited invented concept, `subspace`, was coined during review/revise cycle 1 (commit `639de0a6`, March 2026) — the reviewer pressed on S8's correspondence-run partition claim, and the reviser coined `subspace(v) = v₁` along with the S8-depth axiom to name the part of a V-position that stays constant within a run.
 
-**Claim-convergence-stage review coinage.** During ASN-0036's cone-scoped review work (April 2026), several new prose concepts were coined that didn't exist in the discovery document:
+**Claim-refinement-stage review coinage.** During ASN-0036's cone-scoped review work (April 2026), several new prose concepts were coined that didn't exist in the discovery document:
 - `execution trace` — coined during S5 cone cycle 1 to restructure S5's proof from model-theoretic to operational
 - `initial empty state` (AX-1) — coined to name the starting point of execution traces
 - `allocation-mediated entry` (AX-2) — coined to constrain how content enters `dom(C)`

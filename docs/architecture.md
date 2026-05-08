@@ -37,7 +37,7 @@ Campaigns build a lattice by spawning inquiries. Each inquiry produces one note.
 
 **Note.** A numbered, bounded, self-contained reasoning document in the Dijkstra EWD tradition. The `ASN-NNNN` identifier prefix is a legacy label retained for stable addressing; prose uses "note."
 
-**Claim.** An assertion that can be verified, contested, or refuted. Domain-neutral across software, materials science, mathematics, and engineering. YAML type values (axiom, theorem, lemma, corollary) classify claims by logical role and are already domain-neutral.
+**Claim.** An assertion that can be verified, contested, or refuted. Domain-neutral across software, materials science, mathematics, and engineering. The `contract.<kind>` Classifier link in the substrate (axiom, theorem, lemma, corollary, definition, design-requirement, consequence) classifies claims by logical role and is already domain-neutral.
 
 **Channel.** A self-contained plugin holding source content, consultation code, consultation prompts, and metadata. Channels are named identities in a flat top-level namespace. Campaigns reference them by name. Each channel exposes a two-function interface: `generate_questions` (decompose an inquiry into channel-appropriate sub-questions) and `consult` (answer a single question from the channel's corpus). Internal implementation is the channel's business — flat-corpus single invocation, multi-section template assembly, KB-plus-code parallel with tool access, whatever fits.
 
@@ -49,6 +49,7 @@ Campaigns build a lattice by spawning inquiries. Each inquiry produces one note.
 
 ```
 scripts/              # protocol engine (domain-neutral)
+run/                  # shell entry points for common protocol invocations
 channels/             # channel plugins (flat namespace, cross-lattice)
 prompts/
 ├── shared/           # shared protocol prompts
@@ -56,18 +57,17 @@ prompts/
 └── materials/        # lattice-specific overrides
 lattices/
 ├── xanadu/
-│   ├── config.yaml   # domain config: default campaign, verifier, firewall
-│   ├── _docuverse/       # substrate: links + documents (claims, notes, reviews, findings, …)
-│   ├── _workspace/       # caches and intermediate non-substrate artifacts
-│   ├── campaigns/        # campaign configs + bridge vocabularies
-│   ├── discovery/        # patches and other discovery-stage artifacts
-│   └── verification/
+│   ├── config.yaml       # domain config: default campaign, verifier, firewall
+│   ├── _docuverse/       # substrate: documents (notes, claims, inquiries, campaigns, reviews, findings, …) + typed-relation tuples + indices
+│   ├── _archive/         # historical artifacts retired from active state (legacy discovery patches, blueprinting, …)
+│   ├── implementation/   # verification-target artifacts (Dafny, examples, test cases, translations)
+│   └── verification/     # verifier output
 └── materials/
     └── ...           # same structure
 docs/
 ```
 
-Four top-level directories, each with one job. `scripts/` is engine code. `channels/` is source-material plugins. `prompts/` is prompt templates outside agent browse paths. `lattices/` is pure accumulated state — campaigns, notes, claim files, their review history, and the substrate that holds protocol state. No prompts, no channels, no code inside the lattice.
+`scripts/` is engine code. `run/` is shell entry points. `channels/` is source-material plugins. `prompts/` is prompt templates outside agent browse paths. `lattices/` is pure accumulated state — substrate documents and tuples, verification artifacts, retired material. No prompts, no channels, no code inside the lattice.
 
 Channels and prompts live outside lattices to prevent agent browsing — an agent working in `lattices/xanadu/` cannot find its own review prompt or another channel's source material.
 
@@ -75,7 +75,7 @@ Channels and prompts live outside lattices to prevent agent browsing — an agen
 
 ## The lattice lifecycle
 
-The lattice is one structure that matures from coarse-grained to fine-grained as its notes progress through the [maturation protocol](protocols/maturation/note-to-claim.md). Three explicit operations gate that maturation.
+The lattice is one structure that matures from coarse-grained to fine-grained as its notes progress through the [Maturation Protocol](protocols/maturation/note-to-claim.md). Three explicit operations gate that maturation.
 
 ![Lattice lifecycle transitions](./diagrams/lattice-lifecycle-transitions.svg)
 
@@ -99,7 +99,7 @@ Which granularity a consuming note sees depends on the consumer's stage:
 
 Changes to a dependency's claims ripple differently depending on the consumer's stage:
 
-**Claim-convergence-stage consumers** see changes after the dependency's decomposition is promoted. Ripple at claim granularity, gated by promote.
+**Claim-refinement-stage consumers** see changes after the dependency's decomposition is promoted. Ripple at claim granularity, gated by promote.
 
 **Discovery-stage consumers** see changes after the dependency is reassembled into note form. Ripple at note granularity, gated by assemble.
 
@@ -113,9 +113,9 @@ A note's dependencies must be promoted before the note itself can converge again
 
 Both are real and operational, serving different stages:
 
-**Note-level** (`depends: [ASN-NNNN]` in YAML): declared during discovery. Coarse-grained. Tells the system which notes relate to which and determines what gets loaded as foundation context.
+**Note-level** (substrate `citation` links at note→note granularity): declared during note maturation. Coarse-grained. Tells the system which notes relate to which and determines what gets loaded as foundation context.
 
-**Claim-level** (`follows_from: [<claim-ref>]` per claim): declared during claim refinement. Fine-grained. These are the edges that get formally verified and constitute the authoritative dependency structure. In protocol terms, these are `citation` links in the substrate.
+**Claim-level** (substrate `citation.depends` and `citation.forward` tuples at claim→claim granularity): declared during claim refinement. Fine-grained. These are the edges that get formally verified and constitute the authoritative dependency structure.
 
 ### The terminal state
 
@@ -127,18 +127,20 @@ Notes do not retire at a single moment. They retire gradually as their discovery
 
 ## The protocol architecture
 
-The system is a set of protocols sharing a substrate. The [maturation protocol](protocols/maturation/note-to-claim.md) governs transitions between stage protocols. Each stage protocol has a convergence criterion. Content doesn't flow through stages — it sits in the substrate and the governing protocol changes when transition conditions are met.
+The system runs the [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md) — one specialization within the broader Stigmergic Protocol family — over a [substrate](protocols/substrate/README.md). The protocol composes Stigmergic Protocol primitives (Correction, Marker, Self-Review, Cycle) across four stages, each driving content toward a scope-tier quiescence target before the next builds on it.
 
 **Discovery → Claim Derivation → Claim Refinement → Verification.**
 
-Each stage operates on the same content in a progressively more precise representation. Five protocols are formally specified:
+Each stage operates on the same content in a progressively more precise representation. The four protocol stages plus external verification:
 
-- The [maturation protocol](protocols/maturation/note-to-claim.md) produces the initial note from a campaign-bound inquiry. Two channels consulted under enforced vocabulary separation; output synthesized into a note. One-shot.
-- The [maturation protocol](protocols/maturation/note-to-claim.md) drives notes toward stability during discovery. Findings classified as `comment.revise` or `comment.out-of-scope`. OUT_OF_SCOPE signals feed lattice operations in the maturation protocol.
-- The [maturation protocol](protocols/maturation/note-to-claim.md) decomposes a converged note into per-claim file pairs satisfying the [Claim Document Contract](design-notes/claim-document-contract.md). One-shot.
-- The [maturation protocol](protocols/maturation/note-to-claim.md) drives claims toward formal precision after claim derivation. Findings classified as `comment.revise` or `comment.observe`. OBSERVE is the off-ramp for the [production drive](design-notes/production-drive.md).
+- **Note synthesis** (Discovery) — produces the initial note from a campaign-bound inquiry. Two channels consulted under enforced vocabulary separation; output synthesized into a note. One-shot, sequential.
+- **Note maturation** (Discovery) — drives the note toward `is_doc_quiescent` via review/revise cycles. Findings classified as `comment.revise` or `comment.out-of-scope`. OUT_OF_SCOPE signals feed lattice operations in the protocol.
+- **Claim derivation** — decomposes a confirmed note into per-claim file pairs satisfying the [Claim Document Contract](design-notes/claim-document-contract.md). Sequential bridge; one-shot.
+- **Claim refinement** — drives claims toward per-claim quiescence via per-claim review/revise cycles. Findings classified as `comment.revise` or `comment.observe`. OBSERVE is the off-ramp for the [production drive](design-notes/production-drive.md).
 
-Both convergence protocols specialize the [maturation protocol](protocols/maturation/note-to-claim.md) — a document-type-neutral module providing the shared predicate, link types, and properties. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
+These stages are not separate protocols. They are successive tiers within the same protocol composition, with quiescence at each tier escalating monotonically (per-document → per-ASN → per-lattice). What were previously called "convergence protocols" are the note-maturation and claim-refinement stages — both review/revise cycles, differing only in their target representation (note vs claim).
+
+"Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science) — a downstream layer that operates on quiescent claim contracts produced by the protocol.
 
 Before each review cycle within claim refinement, a structural validation pass runs: the mechanical validator checks the [Claim Document Contract](design-notes/claim-document-contract.md), and per-invariant fix recipes resolve any violations. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.
 
