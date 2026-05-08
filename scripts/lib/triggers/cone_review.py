@@ -18,7 +18,12 @@ from lib.agents.producers.cone_review import ConeReviewAgent
 from lib.backend.addressing import Address
 from lib.lattice.deps import build_deps_for_asn
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.predicates import is_claim_confirmed, is_claim_quiescent
+from lib.predicates import (
+    is_cascade_fresh_one_hop,
+    is_claim_confirmed,
+    is_claim_quiescent,
+    is_upstream_settled_one_hop,
+)
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, Trigger
 from lib.shared.claim_files import build_label_index
@@ -84,18 +89,28 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
 
 
 def _predicate(session: Session, addr: Address) -> bool:
-    """True (skip) iff already confirmed, or open revises are pending.
+    """True (skip) iff cone-review should not fire on this claim.
 
-    Holds the reviewer at quiescence — the cone doesn't re-review
-    while revises are still closing. Open revises are the runner's
-    job (claim_revise refiner); cone-review fires only after they
-    close, on a state that's stable but not yet covered by a fresh
-    review.
+    Three skip conditions:
+      1. Upstream is mid-update — `is_upstream_settled_one_hop` is
+         False. Wait for direct citation upstream to be locally
+         settled before reviewing this claim. Implements the chaining
+         model's layered-convergence gate.
+      2. Claim is confirmed AND cascade-fresh — already done; nothing
+         has advanced upstream since the last review.
+      3. Open revises pending on this claim — let the refiner close
+         them before re-reviewing.
     """
-    return (
+    if not is_upstream_settled_one_hop(session, addr):
+        return True
+    if (
         is_claim_confirmed(session, addr)
-        or not is_claim_quiescent(session, addr)
-    )
+        and is_cascade_fresh_one_hop(session, addr)
+    ):
+        return True
+    if not is_claim_quiescent(session, addr):
+        return True
+    return False
 
 
 cone_review = Trigger(

@@ -36,6 +36,10 @@ from .attributes import (
     statements_is_fresh,
     statements_sidecar_of,
 )
+from .cascade import (
+    is_cascade_fresh_one_hop,
+    is_upstream_settled_one_hop,
+)
 from .citations import depends, dependents
 from .consultation import (
     all_open_revises_consulted,
@@ -110,6 +114,7 @@ __all__ = [
     "has_statements",
     "is_asn_confirmed",
     "is_asn_quiescent",
+    "is_cascade_fresh_one_hop",
     "is_claim_audit_fresh",
     "is_claim_confirmed",
     "is_claim_quiescent",
@@ -120,6 +125,7 @@ __all__ = [
     "is_finding_consulted",
     "is_head_version",
     "is_retired",
+    "is_upstream_settled_one_hop",
     "latest_review_for_addr",
     "latest_review_was_clean",
     "latest_structural_audit_for_claim",
