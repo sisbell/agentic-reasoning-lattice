@@ -84,7 +84,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Definition.** A claim classified as introducing named concepts or operations.
 
-**Depends (YAML).** The structured dependency list in a claim's YAML file. The authoritative metadata for dependencies.
+**Depends.** A claim's dependencies on foundation claims, reified as `citation.depends` substrate tuples. Authored prose-side in the references sidecar (`<stem>.references.md`); the [`citation_resolve`](protocols/agents/producers.md) agent emits the substrate tuples and keeps them in sync as proofs evolve. The forward direction is `citation.forward`. At note granularity, the same shape: substrate `citation` tuples between notes.
 
 **Description (link type).** A substrate-owned link associating a document with a sibling `<stem>.description.md` carrying its prose summary. Multi-line markdown content. The substrate's three document-attribute types (`label`, `name`, `description`) share a structure: typed link from the document to a sibling attribute doc, edited in place when the value changes, link survives content updates. Stage-1 mutability: the doc is overwritten on edit; document-level history will be Xanadu's job at the cut. Retraction is reserved for wrong-link cases, not value updates. See [Substrate Module §4](protocols/substrate/README.md).
 
@@ -94,7 +94,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Domain.** The logical configuration of a lattice — which verifier, which channels, which vocabulary firewall. Expressed in `lattices/<L>/config.yaml`, not as a separate directory. Two configurations that differ in any binding are different domains. The domain is what you swap to move the engine from one subject area to another. See [Architecture](architecture.md).
 
-**Drift, Citation.** The state where citations (YAML depends + inline prose) no longer match the dependencies a proof actually uses. See [Citation Drift](equilibrium/citation-drift.md).
+**Drift, Citation.** The state where citations (substrate `citation.depends` tuples + inline prose) no longer match the dependencies a proof actually uses. See [Citation Drift](equilibrium/citation-drift.md).
 
 **Driver (Citation Drift).** The cause class that produces drift.
 - **Internal driver** — active work inside the same note produces drift within that note. Continuous.
@@ -162,7 +162,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Label (link type).** A substrate-owned link associating a document with a sibling `<stem>.label.md` carrying its short address (the [label](#l) string). One-line file. The substrate-native home for what is currently the filename-stem convention (filenames will not exist in Xanadu). Edit-in-place mutability: renaming a label edits the doc; the link survives. Retraction is reserved for wrong-link cases. See [Substrate Module §4](protocols/substrate/README.md).
 
-**Lattice.** The coverage target that campaigns build toward: an accumulated verified dependency graph for one subject-area focus. The lattice operates at two granularities simultaneously: during discovery, notes declare note-level dependencies (`depends:`); during claim refinement, claims declare claim-level dependencies (`follows_from:`). Which granularity a consuming note sees depends on the consumer's stage. Notes retire gradually as their consumers enter claim refinement; the terminal lattice is all claim-to-claim edges with note groupings as provenance metadata. See [Architecture](architecture.md).
+**Lattice.** The coverage target that campaigns build toward: an accumulated verified dependency graph for one subject-area focus. The lattice operates at two granularities simultaneously: during note maturation, notes declare note-level dependencies via substrate `citation` tuples (note→note); during claim refinement, claims declare claim-level dependencies via `citation.depends` / `citation.forward` tuples (claim→claim). Which granularity a consuming note sees depends on the consumer's stage. Notes retire gradually as their consumers enter claim refinement; the terminal lattice is all claim-to-claim edges with note groupings as provenance metadata. See [Architecture](architecture.md).
 
 **Lattice operation.** Collective term for the three structural operations the [maturation protocol](#m) executes on lattice signals: **extract** (claims move down, into a new foundation below consumers), **absorb** (claims move toward natural home, into an existing note), **scope promotion** (questions move out, opening a new inquiry). Distinct from convergence — operations reshape the lattice; convergence stabilizes content within fixed structure. Triggered by signals from note maturation (duplicate derivations, `comment.out-of-scope` findings). See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
 
@@ -180,7 +180,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Meet.** Lattice operation. A concept shared by two nodes is extracted into a new foundation layer below both. [Extract/absorb](patterns/extract-absorb.md) executes a meet.
 
-**Metadata.** What the YAML file holds — label, name, type, summary, depends, vocabulary. Describes the claim; does not constitute its reasoning.
+**Metadata.** Per-document attributes carried by sidecar documents (label, name, description, signature, references, statements) and Classifier links (e.g., `contract.<kind>`) in the substrate. Each sidecar is a substrate-citizen document linked to its parent via an Attribute-shape relation. Describes the claim or note; does not constitute its reasoning.
 
 **Modeling.** The stage translating formal contracts into mechanically verifiable code (Dafny, Alloy). Follows claim refinement. Part of the verification protocol's input phase. See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
 
@@ -274,9 +274,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Substrate.** The persistent, append-only graph of documents and typed links between them. Provides the operational foundation every protocol builds on: link permanence (SUB1 — no link is ever removed), query soundness (SUB2), count consistency (SUB3), retraction nullify-not-remove (SUB4), shadow semantics (SUB5 — retracting a retraction does not restore the original), retraction idempotence (SUB6). Operations: `MakeLink`, `FindLinks` (returns all matching including retracted), `FindNumLinks`, `Retract` (files a `retraction` link targeting another link's id), `ActiveLinks` (returns matches with retracted links subtracted). Defines `retraction` as the only substrate-level link type; all other link types are protocol-defined. Implementation is filesystem-backed (`_docuverse/links.jsonl` plus a SQLite index). Protocols are stated in terms of link existence and type, not storage mechanism — substrate is replaceable as long as its properties hold. See [Substrate spec](protocols/substrate/README.md).
 
-**Summary.** 1-3 sentence YAML field describing what a claim claims. Produced by the summarize step. Used by downstream foundation loading.
-
-**Summarize.** The step that regenerates the `summary` YAML field using batched LLM calls. Prerequisite to assembly.
+**Summary.** *Retired.* The 1–3-sentence claim summary previously stored as a YAML field. Replaced by the [description sidecar](#d) (`<stem>.description.md`) and the description Attribute-shape substrate link, maintained by the `claim_describe` agent.
 
 **Surface Expansion.** Across successive review cycles, a claim's textual surface grows monotonically without corresponding growth in reasoning content. The shared mechanism underneath [Contract Sprawl](equilibrium/contract-sprawl.md), [Prose Sprawl](equilibrium/prose-sprawl.md), and [Index Sprawl](equilibrium/index-sprawl.md). Contained by the [Voice Principle](principles/voice.md) (constrains what the reviser writes) and finding classification (constrains what reaches the reviser). See [Surface Expansion](equilibrium/surface-expansion.md).
 
@@ -298,7 +296,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Two-channel architecture.** The mechanism that produces new knowledge for the lattice. Two independent agent channels (theory and evidence) investigate a question under enforced vocabulary separation. A synthesis agent integrates their outputs into a structured note. The note then enters [note maturation](#n) for review/revise cycles. The architecture governs how the initial note is generated, not how it matures. See [Two-Channel Architecture](two-channel-architecture.md).
 
-**Type.** YAML classification of a claim: axiom, definition, design requirement, lemma, theorem, corollary.
+**Type.** A claim's structural classification — `axiom`, `definition`, `design-requirement`, `lemma`, `theorem`, `corollary`, `consequence`. Reified as a `contract.<kind>` Classifier link in the substrate. Set by the [`claim_contract`](protocols/agents/producers.md) agent.
 
 ## U
 
@@ -316,7 +314,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Verify the whole.** Stepping back to original scope after narrowing, to check that the refined pieces cohere. See [Verify the Whole pattern](patterns/verify-the-whole.md).
 
-**Vocabulary (YAML field).** Per-claim dictionary of symbols and their meanings. Shared across the note through aggregation.
+**Vocabulary (claim).** Per-claim formal-symbol dictionary (introduces / removes declarations). Lives in the signature sidecar (`<stem>.signature.md`) and is reified to substrate via the signature Attribute-shape link. Maintained by the [`claim_signature_resolve`](protocols/agents/producers.md) agent.
 
 **Vocabulary bridge.** See Bridge vocabulary.
 
@@ -326,4 +324,4 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 ## Y
 
-**YAML (`.yaml`).** The per-claim metadata file. Holds label, name, type, summary, depends, vocabulary. The authoritative source for all metadata.
+**YAML.** *Retired.* Earlier versions of the system stored per-claim metadata (label, name, type, summary, depends, vocabulary) in sibling `.yaml` files. The substrate migration replaced this with attribute-sidecar documents and Classifier links — see [Metadata](#m). Operator-side artifacts (lattice config, spec drops in `_workspace/`) still use YAML frontmatter; per-claim metadata files do not.
