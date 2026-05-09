@@ -30,7 +30,10 @@ from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_citation, emit_retraction
 from lib.lattice.attributes import attest_against_doc_head
-from lib.lattice.labels import build_cross_asn_label_index
+from lib.lattice.labels import (
+    build_cross_asn_label_index,
+    parse_claim_doc_path,
+)
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
@@ -486,12 +489,10 @@ class ClaimCitationResolveAgent(Agent):
         if claim_rel is None:
             return AgentResult(success=False, detail="no-claim-path")
 
-        m = re.search(r"(ASN-(\d{4}))/([^/]+)\.md$", claim_rel)
-        if m is None:
+        parsed = parse_claim_doc_path(claim_rel)
+        if parsed is None:
             return AgentResult(success=False, detail="unparseable-claim-path")
-        asn_label = m.group(1)
-        asn_num = int(m.group(2))
-        claim_label = m.group(3)
+        asn_label, claim_label, asn_num = parsed
 
         os.environ.setdefault("PROTOCOL_ASN_LABEL", asn_label)
 

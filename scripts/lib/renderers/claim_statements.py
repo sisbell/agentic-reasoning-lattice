@@ -30,6 +30,8 @@ from pathlib import Path
 from typing import Optional
 
 from lib.backend.addressing import Address
+from lib.lattice.config import lattice_config
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.lattice.render import read_doc
 from lib.predicates import derived_claims
 from lib.protocols.febe.protocol import Session
@@ -87,9 +89,11 @@ def _source_note(session: Session, doc_addr: Address) -> Address:
 
 
 def _asn_label_from_path(path: str) -> str:
-    """Extract `ASN-NNNN` from a doc path."""
-    m = re.search(r"(ASN-\d{4})", path)
-    return m.group(1) if m else "ASN-????"
+    """Extract `<prefix>-NNNN` from a doc path."""
+    digits = extract_label_digits(path)
+    if digits:
+        return format_label(int(digits))
+    return f"{lattice_config().label_prefix}-????"
 
 
 def _extract_source_date(note_text: str) -> str:

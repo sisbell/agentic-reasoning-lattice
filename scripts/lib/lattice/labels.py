@@ -68,6 +68,28 @@ def extract_label_digits(
     return m.group(1) if m else None
 
 
+@functools.lru_cache(maxsize=8)
+def _compiled_doc_path_pattern(prefix: str) -> re.Pattern[str]:
+    return re.compile(
+        rf"({re.escape(prefix)}-(\d+))/([^/]+)\.md$"
+    )
+
+
+def parse_claim_doc_path(
+    path: str, prefix: Optional[str] = None,
+) -> Optional[tuple[str, str, int]]:
+    """Parse `<...>/<prefix>-<digits>/<basename>.md`.
+
+    Returns (asn_label, basename, asn_num) on match, else None. Used
+    across producers/refiners that derive ASN context from a doc's
+    lattice-relative path.
+    """
+    m = _compiled_doc_path_pattern(prefix or _active_prefix()).search(path)
+    if m is None:
+        return None
+    return m.group(1), m.group(3), int(m.group(2))
+
+
 def _read_first_line(path: Path) -> Optional[str]:
     """Read the first non-empty line of a file, or None if missing."""
     if not path.exists():

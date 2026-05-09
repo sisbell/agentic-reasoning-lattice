@@ -30,6 +30,7 @@ from typing import ClassVar, Optional
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.common import find_asn, read_file
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import LATTICE, USAGE_LOG, WORKSPACE, prompt_path
@@ -175,10 +176,10 @@ class ClaimReviseAgent(Agent):
         claim_rel = session.get_path_for_addr(claim_addr)
         if claim_rel is None:
             return AgentResult(success=False, detail="no-claim-path")
-        m = re.search(r"(ASN-(\d{4}))", claim_rel)
-        if m is None:
+        digits = extract_label_digits(claim_rel)
+        if digits is None:
             return AgentResult(success=False, detail="no-asn-in-claim-path")
-        asn_num = int(m.group(2))
+        asn_num = int(digits)
 
         ok = revise(
             asn_num, title, finding_body,
@@ -191,7 +192,7 @@ class ClaimReviseAgent(Agent):
             )
         step_commit_asn(
             asn_num,
-            f"claim-revise(asn): ASN-{asn_num:04d} comment={comment_addr}",
+            f"claim-revise(asn): {format_label(asn_num)} comment={comment_addr}",
         )
         return AgentResult(
             success=True, detail=f"closed comment={comment_addr}",

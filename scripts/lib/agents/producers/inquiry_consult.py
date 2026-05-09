@@ -36,6 +36,7 @@ from lib.consultation.consult import invoke_claude
 from lib.consultation.plugin import load_channel_plugin
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
@@ -71,7 +72,7 @@ def _load_inquiry_record(inquiry_id):
     """
     fm = load_inquiry_frontmatter(inquiry_id)
     if not fm:
-        print(f"  [ERROR] Inquiry doc not found for ASN-{inquiry_id:04d}",
+        print(f"  [ERROR] Inquiry doc not found for {format_label(inquiry_id)}",
               file=sys.stderr)
         return None
     agents = {}
@@ -327,8 +328,8 @@ def _run_consult_for_inquiry(
         return None
 
     inquiry_text = inquiry.get("question", "")
-    inquiry_title = inquiry.get("title", f"ASN-{asn_id:04d}")
-    asn_label = f"{asn_id:04d}"
+    inquiry_title = inquiry.get("title", format_label(asn_id))
+    asn_label = format_label(asn_id)
     out_of_scope = inquiry.get("out_of_scope", "")
     campaign = resolve_campaign(asn_id)
 
@@ -346,7 +347,7 @@ def _run_consult_for_inquiry(
     total_start = time.time()
 
     existing_questions_path = (
-        CONSULTATIONS_DIR / f"ASN-{asn_label}" / "consultation" / "questions.md"
+        CONSULTATIONS_DIR / asn_label / "consultation" / "questions.md"
     )
     if existing_questions_path.exists() and not regenerate:
         print(
@@ -380,7 +381,7 @@ def _run_consult_for_inquiry(
     for i, (role, q) in enumerate(questions, 1):
         print(f"  {i}. [{role}] {q}", file=sys.stderr)
 
-    output_dir = CONSULTATIONS_DIR / f"ASN-{asn_label}"
+    output_dir = CONSULTATIONS_DIR / asn_label
     init_dir = output_dir / "consultation"
     init_dir.mkdir(parents=True, exist_ok=True)
     questions_path = init_dir / "questions.md"
@@ -473,11 +474,11 @@ class InquiryConsultAgent(Agent):
         if inquiry_path_rel is None:
             return AgentResult(success=False, detail="no-inquiry-path")
 
-        m = re.search(r"ASN-(\d{4})", inquiry_path_rel)
-        if m is None:
+        digits = extract_label_digits(inquiry_path_rel)
+        if digits is None:
             return AgentResult(success=False, detail="no-asn-label")
-        asn_num = int(m.group(1))
-        asn_label = f"ASN-{asn_num:04d}"
+        asn_num = int(digits)
+        asn_label = format_label(asn_num)
 
         print(f"  [INQUIRY-CONSULT] {asn_label}", file=sys.stderr)
 

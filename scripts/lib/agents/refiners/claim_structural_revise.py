@@ -36,7 +36,10 @@ from typing import ClassVar, List, NamedTuple, Optional
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_resolution, emit_retraction
-from lib.lattice.labels import build_cross_asn_label_index
+from lib.lattice.labels import (
+    build_cross_asn_label_index,
+    parse_claim_doc_path,
+)
 from lib.predicates import has_resolution
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
@@ -775,12 +778,10 @@ class ClaimStructuralReviseAgent(Agent):
         if claim_rel is None:
             return AgentResult(success=False, detail="no-claim-path")
 
-        m = re.search(r"(ASN-(\d{4}))/([^/]+)\.md$", claim_rel)
-        if m is None:
+        parsed = parse_claim_doc_path(claim_rel)
+        if parsed is None:
             return AgentResult(success=False, detail="unparseable-claim-path")
-        asn_label = m.group(1)
-        asn_num = int(m.group(2))
-        claim_label = m.group(3)
+        asn_label, claim_label, asn_num = parsed
 
         claim_dir = CLAIM_DIR / asn_label
         if not claim_dir.exists():

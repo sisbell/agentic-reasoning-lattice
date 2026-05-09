@@ -25,6 +25,7 @@ from typing import ClassVar, Tuple
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.lattice.deps import build_deps_for_asn
+from lib.lattice.labels import format_label, parse_claim_doc_path
 from lib.predicates import current_contract_kind
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
@@ -191,7 +192,7 @@ def build_dep_context(asn_num: int, label: str) -> str:
                     m = pattern.search(ftext)
                     if m:
                         dep_parts.append(
-                            f"### {dep_label} (ASN-{dep_asn:04d})\n\n"
+                            f"### {dep_label} ({format_label(dep_asn)})\n\n"
                             f"{m.group(0).strip()}"
                         )
                         break
@@ -282,12 +283,10 @@ class ClaimFormalContractAgent(Agent):
         if claim_rel is None:
             return AgentResult(success=False, detail="no-claim-path")
 
-        m = re.search(r"(ASN-(\d{4}))/([^/]+)\.md$", claim_rel)
-        if m is None:
+        parsed = parse_claim_doc_path(claim_rel)
+        if parsed is None:
             return AgentResult(success=False, detail="unparseable-claim-path")
-        asn_label = m.group(1)
-        asn_num = int(m.group(2))
-        claim_label = m.group(3)
+        asn_label, claim_label, asn_num = parsed
 
         claim_md_full = LATTICE / claim_rel
         if not claim_md_full.exists():

@@ -52,6 +52,7 @@ from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_derivation, emit_patch_claim
 from lib.lattice.findings import emit_review_doc
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.predicates import derived_claims
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
@@ -212,11 +213,11 @@ class ClaimPatchAgent(Agent):
         if note_rel is None:
             return AgentResult(success=False, detail="no-note-path")
 
-        m = re.search(r"(ASN-(\d{4}))", note_rel)
-        if m is None:
+        digits = extract_label_digits(note_rel)
+        if digits is None:
             return AgentResult(success=False, detail="unparseable-note-path")
-        asn_label = m.group(1)
-        asn_num = int(m.group(2))
+        asn_num = int(digits)
+        asn_label = format_label(asn_num)
         asn_path, _ = find_asn(str(asn_num))
         if asn_path is None:
             return AgentResult(success=False, detail="find_asn-failed")

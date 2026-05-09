@@ -33,6 +33,7 @@ from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_claim, emit_derivation
 from lib.lattice.attributes import attest_attribute
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.protocols.febe.protocol import Session
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import parallel_llm_calls
@@ -210,11 +211,11 @@ class ClaimDecomposeAgent(Agent):
         if not asn_path.exists():
             return AgentResult(success=False, detail="no-note-file")
 
-        m = re.search(r"(ASN-\d{4})", note_path_rel)
-        if m is None:
+        digits = extract_label_digits(note_path_rel)
+        if digits is None:
             return AgentResult(success=False, detail="no-asn-label")
-        asn_label = m.group(1)
-        asn_number = int(asn_label[4:])
+        asn_number = int(digits)
+        asn_label = format_label(asn_number)
 
         asn_text = asn_path.read_text()
 

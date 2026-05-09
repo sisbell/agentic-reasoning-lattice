@@ -39,6 +39,7 @@ from lib.backend.emit import (
     emit_review_coverage, emit_review_structural,
 )
 from lib.protocols.febe.protocol import Session
+from lib.lattice.labels import parse_claim_doc_path
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
     CLAIM_AUDITS_DIR, CLAIM_DIR, CLAIM_FINDINGS_DIR, LATTICE,
@@ -162,12 +163,10 @@ class ClaimStructuralAuditAgent(Agent):
         if claim_rel is None:
             return AgentResult(success=False, detail="no-claim-path")
 
-        m = re.search(r"(ASN-(\d{4}))/([^/]+)\.md$", claim_rel)
-        if m is None:
+        parsed = parse_claim_doc_path(claim_rel)
+        if parsed is None:
             return AgentResult(success=False, detail="unparseable-claim-path")
-        asn_label = m.group(1)
-        asn_num = int(m.group(2))
-        claim_label = m.group(3)
+        asn_label, claim_label, asn_num = parsed
 
         # Run validator + filter to this claim.
         all_findings = _run_validator(asn_label)

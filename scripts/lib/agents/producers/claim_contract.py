@@ -31,6 +31,7 @@ from lib.protocols.febe.protocol import Session
 from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.llm_response import invoke_text, parse_yaml_dict
+from lib.lattice.labels import parse_claim_doc_path
 from lib.shared.paths import CLAIM_CONTRACT_DIR, LATTICE, prompt_path
 
 
@@ -157,12 +158,10 @@ class ClaimContractAgent(Agent):
         if claim_rel is None:
             return AgentResult(success=False, detail="no-claim-path")
 
-        m = re.search(r"(ASN-(\d{4}))/([^/]+)\.md$", claim_rel)
-        if m is None:
+        parsed = parse_claim_doc_path(claim_rel)
+        if parsed is None:
             return AgentResult(success=False, detail="unparseable-claim-path")
-        asn_label = m.group(1)
-        asn_num = int(m.group(2))
-        claim_label = m.group(3)
+        asn_label, claim_label, asn_num = parsed
 
         claim_md_full = LATTICE / claim_rel
         if not claim_md_full.exists():

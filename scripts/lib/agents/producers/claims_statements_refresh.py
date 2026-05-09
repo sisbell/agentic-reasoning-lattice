@@ -52,6 +52,7 @@ from lib.predicates import claims_statements_for_note, derived_claims
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.renderers.claim_statements import render_claim_statements
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.paths import transclusion_path
 
 
@@ -154,5 +155,5 @@ def _note_statements_sidecar(
 
 
 def _asn_label_from_path(path: str) -> str:
-    m = re.search(r"(ASN-\d{4})", path or "")
-    return m.group(1) if m else "ASN-????"
+    digits = extract_label_digits(path or "")
+    return format_label(int(digits)) if digits else format_label(0).replace("0000", "????")
