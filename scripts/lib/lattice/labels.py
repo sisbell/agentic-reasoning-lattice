@@ -1,23 +1,29 @@
-"""Label-index helpers and ASN-aware citation aggregation.
+"""Label-index helpers and lattice-prefix-aware citation aggregation.
 
 Project-level lattice conventions: the project organizes claims into
-ASN-NNNN groups, names individual claims via `label` attribute links
-to sidecar docs, and stores notes under `_docuverse/documents/note/`.
-None of these are substrate primitives — they're how this project
-structures its lattices, recovered from substrate state by:
+labeled groups (xanadu uses `ASN-NNNN`, materials would use `MAT-NNNN`,
+etc.), names individual claims via `label` attribute links to sidecar
+docs, and stores notes under `_docuverse/documents/note/`. None of
+these are substrate primitives — they're how this project structures
+its lattices, recovered from substrate state by:
 
 - Substrate `label` attribute links pointing at sidecar docs
 - The first line of each label sidecar's filesystem content (which
   holds the canonical label string)
 - The legacy filesystem path (recovered via `paths.json`'s
-  path↔tumbler map), parsed with regex for `ASN-\\d+`
+  path↔tumbler map), parsed with a `<prefix>-<digits>` regex driven
+  by the active lattice's `label_prefix` config field
 
 This module composes substrate primitives (active_links, path_for_addr)
-with the project's lattice conventions to produce useful indexes.
+with the project's lattice conventions to produce useful indexes. The
+`label_pattern`, `format_label`, and `extract_label_digits` helpers are
+the lattice-aware extension points; pass an explicit `prefix` to
+override the active lattice's setting.
 """
 
 from __future__ import annotations
 
+import functools
 import re
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -26,7 +32,40 @@ from lib.backend.addressing import Address
 from lib.backend.predicates import active_links
 from lib.backend.store import Store
 
-ASN_PATTERN = re.compile(r"ASN-(\d+)")
+
+def _active_prefix() -> str:
+    """The active lattice's label_prefix (lazy import to avoid cycles)."""
+    from lib.lattice.config import lattice_config
+    return lattice_config().label_prefix
+
+
+@functools.lru_cache(maxsize=8)
+def _compiled_pattern(prefix: str) -> re.Pattern[str]:
+    return re.compile(rf"{re.escape(prefix)}-(\d+)")
+
+
+def label_pattern(prefix: Optional[str] = None) -> re.Pattern[str]:
+    """Compiled regex matching `<prefix>-<digits>`.
+
+    Without `prefix`, uses the active lattice's `label_prefix` config.
+    Cached per prefix string.
+    """
+    return _compiled_pattern(prefix or _active_prefix())
+
+
+def format_label(
+    num: int, prefix: Optional[str] = None, width: int = 4,
+) -> str:
+    """Format a numeric id as `<prefix>-<zero-padded-digits>`."""
+    return f"{prefix or _active_prefix()}-{int(num):0{width}d}"
+
+
+def extract_label_digits(
+    text: str, prefix: Optional[str] = None,
+) -> Optional[str]:
+    """First `<prefix>-<digits>` match in text → the digits group, or None."""
+    m = label_pattern(prefix).search(text)
+    return m.group(1) if m else None
 
 
 def _read_first_line(path: Path) -> Optional[str]:
@@ -69,14 +108,16 @@ def build_cross_asn_label_index(store: Store) -> Dict[str, Address]:
 
 
 def build_note_label_index(store: Store) -> Dict[str, Address]:
-    """Return {ASN-NNNN: note_doc_addr} for every note-classified doc.
+    """Return {<prefix>-NNNN: note_doc_addr} for every note-classified doc.
 
-    Notes use their ASN label (e.g. "ASN-0009") as the citation target
-    — there is no separate label primitive at note scale. We extract
-    the ASN id from each note's filesystem path (recovered via paths
-    map).
+    Notes use their lattice label (e.g. "ASN-0009") as the citation
+    target — there is no separate label primitive at note scale. We
+    extract the numeric id from each note's filesystem path (recovered
+    via paths map).
     """
     out: Dict[str, Address] = {}
+    pattern = label_pattern()
+    prefix = _active_prefix()
     for link in active_links(store.state, "note"):
         if not link.to_set:
             continue
@@ -84,9 +125,9 @@ def build_note_label_index(store: Store) -> Dict[str, Address]:
         note_path = store.path_for_addr(note_addr)
         if note_path is None:
             continue
-        m = ASN_PATTERN.search(Path(note_path).name)
+        m = pattern.search(Path(note_path).name)
         if m:
-            out[f"ASN-{m.group(1)}"] = note_addr
+            out[f"{prefix}-{m.group(1)}"] = note_addr
     return out
 
 
@@ -102,6 +143,7 @@ def aggregate_asn_deps(
     """
     asn_pattern = re.compile(rf"/{re.escape(asn_label)}/")
     deps_set: set[int] = set()
+    pattern = label_pattern()
 
     # Find every doc whose path is under this ASN's directory
     own_addrs: set[Address] = set()
@@ -117,12 +159,12 @@ def aggregate_asn_deps(
                 cited_path = store.path_for_addr(cited)
                 if cited_path is None:
                     continue
-                m = ASN_PATTERN.search(cited_path)
+                m = pattern.search(cited_path)
                 if not m:
                     continue
                 cited_asn = m.group(1).lstrip("0") or "0"
                 # Skip self-references (within-ASN citations)
-                if f"ASN-{m.group(1)}" == asn_label:
+                if format_label(int(cited_asn)) == asn_label:
                     continue
                 deps_set.add(int(cited_asn))
     return sorted(deps_set)
@@ -134,10 +176,11 @@ def note_dep_asn_ids(store: Store, note_addr: Address) -> List[int]:
     Returns sorted list of int ASN ids. Self-references included or not
     is irrelevant since note depends are inter-note.
     """
+    pattern = label_pattern()
     note_path = store.path_for_addr(note_addr)
     own_asn = None
     if note_path:
-        m = ASN_PATTERN.search(note_path)
+        m = pattern.search(note_path)
         if m:
             own_asn = m.group(1)
 
@@ -149,7 +192,7 @@ def note_dep_asn_ids(store: Store, note_addr: Address) -> List[int]:
             cited_path = store.path_for_addr(cited)
             if cited_path is None:
                 continue
-            m = ASN_PATTERN.search(cited_path)
+            m = pattern.search(cited_path)
             if not m:
                 continue
             asn_digits = m.group(1)
@@ -170,7 +213,7 @@ def is_note_path(doc_path: str) -> bool:
 def build_doc_label_index(store: Store, doc_path: str) -> Dict[str, Address]:
     """Pick the label index appropriate for the given doc.
 
-    Note docs cite ASN-NNNN labels; claim docs cite claim labels.
+    Note docs cite labeled-note targets; claim docs cite claim labels.
     """
     if is_note_path(doc_path):
         return build_note_label_index(store)

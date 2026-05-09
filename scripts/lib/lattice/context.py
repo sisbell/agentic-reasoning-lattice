@@ -18,7 +18,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from lib.backend.addressing import Address
-from lib.lattice.labels import ASN_PATTERN, build_cross_asn_label_index
+from lib.lattice.labels import (
+    build_cross_asn_label_index,
+    extract_label_digits,
+    format_label,
+    label_pattern,
+)
 from lib.predicates.quiescence import derived_claims
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
@@ -121,11 +126,11 @@ def asn_context_from_note(session: Session, addr: Address) -> AsnContext:
     if path is None:
         raise ValueError(f"no path for address {addr}")
 
-    m = ASN_PATTERN.search(path)
-    if m is None:
-        raise ValueError(f"no ASN label in path {path}")
-    asn_num = int(m.group(1))
-    asn_label = f"ASN-{asn_num:04d}"
+    digits = extract_label_digits(path)
+    if digits is None:
+        raise ValueError(f"no lattice label in path {path}")
+    asn_num = int(digits)
+    asn_label = format_label(asn_num)
     claim_dir = CLAIM_DIR / asn_label
 
     return AsnContext(
