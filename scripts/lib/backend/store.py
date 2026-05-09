@@ -38,6 +38,17 @@ from .persist import load_jsonl
 from .state import State, TypeArg
 
 
+def _utcnow_unix() -> int:
+    """Current UTC time as Unix epoch seconds (int).
+
+    Replaces the prior ISO-string format. Numeric storage is more
+    compact and faster to compare; ts is scoped to agentic concerns
+    per `feedback_ts_scoped_to_agentic.md`.
+    """
+    import time
+    return int(time.time())
+
+
 def _utcnow_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -253,8 +264,9 @@ class Store:
         to_set: Iterable[Address],
         type_: TypeArg,
     ) -> Link:
-        link = self.state.make_link(homedoc, from_set, to_set, type_)
-        self._append_record(link, ts=_utcnow_iso())
+        ts = _utcnow_unix()
+        link = self.state.make_link(homedoc, from_set, to_set, type_, ts=ts)
+        self._append_record(link, ts=ts)
         return link
 
     # ----- internals -----
@@ -332,7 +344,7 @@ class Store:
                 )
             self.state._owner[link.addr] = link_alloc
 
-    def _append_record(self, link: Link, ts: str) -> None:
+    def _append_record(self, link: Link, ts: int) -> None:
         record = {
             "op": "create",
             "id": str(link.addr),

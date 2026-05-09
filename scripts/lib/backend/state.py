@@ -183,6 +183,8 @@ class State:
         from_set: Iterable[Address],
         to_set: Iterable[Address],
         type_: TypeArg,
+        *,
+        ts: Optional[int] = None,
     ) -> Link:
         if homedoc not in self._owner:
             raise ValueError(f"unknown homedoc {homedoc}")
@@ -193,7 +195,10 @@ class State:
         self._owner[link_addr] = link_alloc
         self.parent[link_addr] = None
         type_addrs = self._resolve_types(type_)
-        return self.links.emit(link_addr, from_set, to_set, type_addrs)
+        if ts is None:
+            import time
+            ts = int(time.time())
+        return self.links.emit(link_addr, from_set, to_set, type_addrs, ts=ts)
 
     def make_link_version(
         self,
@@ -201,6 +206,8 @@ class State:
         from_set: Optional[Iterable[Address]] = None,
         to_set: Optional[Iterable[Address]] = None,
         type_: Optional[TypeArg] = None,
+        *,
+        ts: Optional[int] = None,
     ) -> Link:
         if link_addr not in self._owner:
             raise ValueError(f"unknown link address {link_addr}")
@@ -214,7 +221,10 @@ class State:
             if type_ is not None
             else original.type_set
         )
-        return self.links.emit(new_addr, new_from, new_to, new_type)
+        if ts is None:
+            import time
+            ts = int(time.time())
+        return self.links.emit(new_addr, new_from, new_to, new_type, ts=ts)
 
     # ----- queries -----
 

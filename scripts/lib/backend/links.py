@@ -35,10 +35,23 @@ def _is_prefix_or_equal(query: Address, candidate: Address) -> bool:
 
 @dataclass(frozen=True)
 class Link:
+    """One MAKELINK emission.
+
+    `ts` is Unix-epoch seconds (int) marking emission time. Scoped
+    to agentic concerns (stuck-detection, in-flight observability,
+    leases) per `feedback_ts_scoped_to_agentic.md` — substrate-side
+    structural reasoning uses tumbler-address sequence, not ts.
+
+    ts defaults to None for in-memory test fixtures that don't model
+    persistence; production paths always populate it (Store sets ts
+    on every emission; load_jsonl parses ts from the persisted record).
+    """
+
     addr: Address
     from_set: Tuple[Address, ...]
     to_set: Tuple[Address, ...]
     type_set: Tuple[Address, ...]
+    ts: Optional[int] = None
 
     @property
     def homedoc(self) -> Address:
@@ -71,12 +84,14 @@ class LinkStore:
         from_set: Iterable[Address],
         to_set: Iterable[Address],
         type_set: Iterable[Address],
+        ts: Optional[int] = None,
     ) -> Link:
         link = Link(
             addr=addr,
             from_set=tuple(from_set),
             to_set=tuple(to_set),
             type_set=tuple(type_set),
+            ts=ts,
         )
         self._links.append(link)
         return link

@@ -697,6 +697,53 @@ def emit_manages(
     return link
 
 
+# ============================================================
+#  Coordination (repellent pheromone / advisory lock)
+# ============================================================
+
+
+def emit_holding(
+    store: Store, agent_doc: Address, resource: Address,
+) -> Link:
+    """File a `holding` link from `agent_doc` to `resource`.
+
+    Repellent-pheromone semantic: agent declares "I am currently
+    working on this resource, stay out." Other agents check via
+    `is_held` (or extended quiescence predicates) and yield.
+
+    Closed by retraction at fire end. NOT idempotent — each fire is
+    a distinct hold; the shape's idempotent=False ensures the generic
+    emit() writes a fresh link every call.
+
+    See docs/design-notes/stigmergic-coordination.md.
+    """
+    link, _ = emit(
+        store, "holding",
+        from_set=[agent_doc], to_set=[resource],
+    )
+    return link
+
+
+def emit_agent_scope(
+    store: Store, agent_doc: Address, scope_type: str,
+) -> Tuple[Link, bool]:
+    """Classify an agent doc with its hold-scope declaration.
+
+    `scope_type` is one of `"note"`, `"claim"`, `"inquiry"`. The
+    classifier subtype (`agent.scope.<type>`) is filed on the agent
+    doc; the agent base class reads this at fire time to decide what
+    resource to hold.
+
+    Idempotent — re-classifying with the same scope is a no-op.
+    """
+    if scope_type not in {"note", "claim", "inquiry"}:
+        raise ValueError(
+            f"unknown scope_type {scope_type!r}; "
+            f"must be one of 'note', 'claim', 'inquiry'"
+        )
+    return emit_classifier(store, agent_doc, f"agent.scope.{scope_type}")
+
+
 
 # ============================================================
 #  Notation (lattice-wide singleton)

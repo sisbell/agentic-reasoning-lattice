@@ -23,7 +23,9 @@ from lib.predicates import (
     is_cascade_fresh_one_hop,
     is_claim_confirmed,
     is_claim_quiescent,
+    is_held,
     is_upstream_settled_one_hop,
+    resolve_to_scope,
 )
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
@@ -139,23 +141,30 @@ def _has_been_cone_reviewed(
 def _predicate(session: Session, addr: Address) -> bool:
     """True (skip) iff cone-review should not fire on this claim.
 
-    Five skip conditions:
+    Six skip conditions:
       1. Claim has no Formal Contract section yet — wait for
          `claim_formal_contract` to land before reviewing. Without
          a Formal Contract there's nothing substantive to review.
-      2. Upstream is mid-update — `is_upstream_settled_one_hop` is
+      2. Parent ASN's note is currently held by another agent (the
+         repellent-pheromone mutex). cone-review and full-review are
+         in conflict at the note-scope; one fires at a time. Wait for
+         the holder to retract before firing.
+      3. Upstream is mid-update — `is_upstream_settled_one_hop` is
          False. Wait for direct citation upstream to be locally
          settled before reviewing this claim. Implements the chaining
          model's layered-convergence gate.
-      3. Claim is confirmed AND cascade-fresh AND has already had a
+      4. Claim is confirmed AND cascade-fresh AND has already had a
          cone-attributed review — no further cone review needed
          until upstream advances or confirmation breaks. The
          agent-attributed check distinguishes "covered by full
          review only" from "had its own cone review."
-      4. Open revises pending on this claim — let the refiner close
+      5. Open revises pending on this claim — let the refiner close
          them before re-reviewing.
     """
     if not has_formal_contract(session, addr):
+        return True
+    note_addr = resolve_to_scope(session, addr, "note")
+    if note_addr is not None and is_held(session, note_addr):
         return True
     if not is_upstream_settled_one_hop(session, addr):
         return True

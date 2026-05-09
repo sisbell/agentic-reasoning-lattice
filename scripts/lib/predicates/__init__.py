@@ -36,6 +36,9 @@ from .attributes import (
     statements_is_fresh,
     statements_sidecar_of,
 )
+from .agents import (
+    agent_scope_for, is_held, resolve_to_scope, stale_holdings,
+)
 from .cascade import (
     claims_statements_for_note,
     description_is_fresh_after_asn_confirmation,
@@ -118,9 +121,13 @@ __all__ = [
     "has_resolution",
     "has_signature",
     "has_statements",
+    "agent_scope_for",
     "is_asn_confirmed",
     "is_asn_quiescent",
     "is_cascade_fresh_one_hop",
+    "is_held",
+    "resolve_to_scope",
+    "stale_holdings",
     "is_claim_audit_fresh",
     "is_claim_confirmed",
     "is_claim_quiescent",

@@ -68,6 +68,23 @@ def run_until_quiescent(
       back to false (cascade case).
     - Quiescent iff a full pass fires nothing.
     - max_iterations is a safety net.
+
+    INVARIANT — single-fire-at-a-time dispatch is load-bearing.
+    The `holding` mutex (per docs/design-notes/stigmergic-coordination.md)
+    relies on this dispatch to provide atomicity for predicate-check +
+    holding-emit. Within a single fire, the agent emits its holding
+    link inside `__call__` before doing any LLM work; subsequent
+    triggers' predicates evaluate AFTER the agent's run + retraction
+    have completed (or, if mid-fire, see the agent's holding via
+    session reload). The runner's serial dispatch is what keeps this
+    sequence atomic.
+
+    PARALLELIZING THIS LOOP requires resolving the v2 atomicity
+    question first: either compose `holding` emit with an in-process
+    lock (`threading.Lock` / `asyncio.Lock` around predicate-check +
+    emit), or accept that two agents may fire concurrently against
+    the same resource. Don't change the dispatch model without
+    addressing the mutex implications.
     """
     fires: list[tuple[str, str]] = []
     errors: list[tuple[str, str, str]] = []

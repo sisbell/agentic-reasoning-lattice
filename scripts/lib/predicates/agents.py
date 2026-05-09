@@ -1,0 +1,192 @@
+"""Agent-coordination predicates: holding and scope resolution.
+
+Implements the substrate-side mechanisms for the repellent-pheromone
+coordination pattern (per docs/design-notes/stigmergic-coordination.md):
+
+- `is_held(resource)` — substrate-pure check for active `holding`
+  links targeting a resource. Used by trigger predicates to yield
+  when another agent is currently active on the same resource.
+- `agent_scope_for(agent_doc)` — read the `agent.scope.<type>`
+  classifier on an agent doc to discover its declared hold scope.
+- `resolve_to_scope(addr, scope_type)` — walk substrate to map an
+  arbitrary address (apex claim, comment, etc.) to a resource of
+  the requested scope type. Returns None if unresolvable; callers
+  treat None as a hard error (no silent fall-through to fire-without-
+  hold).
+- `stale_holdings(max_age_seconds)` — operator-facing observability:
+  return holdings whose emit-time `ts` is older than the threshold.
+  Uses the per-link `ts` field (Unix int seconds) per
+  `feedback_ts_scoped_to_agentic.md` — `ts` is scoped to agentic
+  concerns; this is one of those concerns.
+
+Convention: predicate code reads `active_links` (open holdings only).
+Closed holdings are completion data; predicate-layer code does not
+read them.
+"""
+
+from __future__ import annotations
+
+import time
+from typing import List, Optional
+
+from lib.backend.addressing import Address
+from lib.protocols.febe.protocol import Session
+
+
+_VALID_SCOPE_TYPES = frozenset({"note", "claim", "inquiry"})
+
+
+def is_held(session: Session, resource_addr: Address) -> bool:
+    """True iff any agent has an active `holding` against this resource."""
+    return bool(
+        session.active_links("holding", to_set=[resource_addr])
+    )
+
+
+def agent_scope_for(
+    session: Session, agent_doc: Address,
+) -> Optional[str]:
+    """Read the `agent.scope.<type>` classifier on an agent doc.
+
+    Returns the scope-type suffix (`"note"`, `"claim"`, `"inquiry"`)
+    or None if no scope classifier is present. Multiple classifiers
+    on one agent doc would return the first found in registry order
+    (an agent should declare at most one scope).
+    """
+    for scope_type in _VALID_SCOPE_TYPES:
+        if session.active_links(
+            f"agent.scope.{scope_type}", to_set=[agent_doc],
+        ):
+            return scope_type
+    return None
+
+
+def resolve_to_scope(
+    session: Session, addr: Address, scope_type: str,
+) -> Optional[Address]:
+    """Walk substrate to map `addr` to a resource of `scope_type`.
+
+    Dispatch:
+      scope_type="note"    + addr is note    → addr
+                           + addr is claim   → walk provenance.derivation reverse to source note
+                           + addr is comment → walk to comment's targeted claim, then to source note
+      scope_type="claim"   + addr is claim   → addr
+                           + addr is comment → comment's targeted claim
+      scope_type="inquiry" + addr is inquiry → addr
+
+    Returns None if the addr cannot be resolved to the requested
+    scope. Callers (agent base class) treat None as a hard error.
+    """
+    if scope_type == "note":
+        return _addr_to_note(session, addr)
+    if scope_type == "claim":
+        return _addr_to_claim(session, addr)
+    if scope_type == "inquiry":
+        return _addr_to_inquiry(session, addr)
+    return None
+
+
+def stale_holdings(
+    session: Session, max_age_seconds: int,
+) -> List:
+    """Return active `holding` links open longer than `max_age_seconds`.
+
+    Operator-facing observability for stuck-fire detection. Reads
+    per-link `ts` (Unix int seconds) directly. Links without `ts`
+    (in-memory test fixtures) are skipped.
+
+    Returned entries are full Link objects so callers can inspect
+    `from_set` (which agent), `to_set` (which resource), and `ts`
+    (when emitted).
+    """
+    threshold = int(time.time()) - max_age_seconds
+    out = []
+    for link in session.active_links("holding"):
+        if link.ts is not None and link.ts < threshold:
+            out.append(link)
+    return out
+
+
+# ─── Helpers ───────────────────────────────────────────────────────
+
+
+def _addr_to_note(session: Session, addr: Address) -> Optional[Address]:
+    """Resolve `addr` to its containing note address, or None."""
+    if _is_classified_as(session, addr, "note"):
+        return addr
+    if _is_classified_as(session, addr, "claim"):
+        # Walk provenance.derivation reverse: claim ← derivation ← note
+        for link in session.active_links(
+            "provenance.derivation", to_set=[addr],
+        ):
+            if link.from_set:
+                source = link.from_set[0]
+                if _is_classified_as(session, source, "note"):
+                    return source
+        return None
+    if _is_comment(session, addr):
+        # Comment → targeted doc → (if claim) → note
+        target = _comment_target(session, addr)
+        if target is None:
+            return None
+        return _addr_to_note(session, target)
+    return None
+
+
+def _addr_to_claim(session: Session, addr: Address) -> Optional[Address]:
+    """Resolve `addr` to its associated claim address, or None."""
+    if _is_classified_as(session, addr, "claim"):
+        return addr
+    if _is_comment(session, addr):
+        target = _comment_target(session, addr)
+        if target is None:
+            return None
+        if _is_classified_as(session, target, "claim"):
+            return target
+    return None
+
+
+def _addr_to_inquiry(session: Session, addr: Address) -> Optional[Address]:
+    """Resolve `addr` to its associated inquiry address, or None."""
+    if _is_classified_as(session, addr, "inquiry"):
+        return addr
+    return None
+
+
+def _is_classified_as(
+    session: Session, addr: Address, kind: str,
+) -> bool:
+    """True iff `addr` carries an active classifier of the given kind."""
+    return bool(session.active_links(kind, to_set=[addr]))
+
+
+def _is_comment(session: Session, addr: Address) -> bool:
+    """True iff the addr is a comment.* link addr (not a doc).
+
+    Detection: try to fetch the link; comments have type prefix
+    `comment`. Falls back to False if the addr isn't a link or fetch
+    fails.
+    """
+    try:
+        link = session.get_link(addr)
+    except (KeyError, AttributeError):
+        return False
+    type_name = getattr(link, "type_", None) or ""
+    return type_name.startswith("comment")
+
+
+def _comment_target(
+    session: Session, comment_addr: Address,
+) -> Optional[Address]:
+    """Return the comment's first target (single-target invariant for
+    comments — one comment is about one doc). None if unresolvable.
+    """
+    try:
+        link = session.get_link(comment_addr)
+    except (KeyError, AttributeError):
+        return None
+    if not link.to_set:
+        return None
+    return link.to_set[0]
+
+

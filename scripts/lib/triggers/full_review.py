@@ -28,7 +28,7 @@ from lib.agents.producers.full_review import FullReviewAgent
 from lib.backend.addressing import Address
 from lib.predicates import (
     derived_claims, has_formal_contract,
-    is_asn_confirmed, is_asn_quiescent,
+    is_asn_confirmed, is_asn_quiescent, is_held,
 )
 from lib.protocols.febe.protocol import Session
 from lib.runner import Trigger
@@ -36,11 +36,14 @@ from lib.triggers.scope import per_asn_note
 
 
 def _predicate(session: Session, addr: Address) -> bool:
-    """True (skip) iff already confirmed, revises pending, or any
-    derived claim is missing its Formal Contract section."""
+    """True (skip) iff already confirmed, revises pending, the note is
+    held by another agent (mutex with cone-review), or any derived
+    claim is missing its Formal Contract section."""
     if is_asn_confirmed(session, addr):
         return True
     if not is_asn_quiescent(session, addr):
+        return True
+    if is_held(session, addr):
         return True
     classified_claims = {
         link.to_set[0]

@@ -84,6 +84,13 @@ SOURCE = LinkShape("one", "one")
 # idempotent: each operation gets its own fresh manages emission.
 MANAGES = LinkShape("one", "one", g_targets="link", idempotent=False)
 
+# Holding — F=[agent_doc], G=[resource_addr]. The repellent-pheromone
+# coordination signal: agent declares "I am currently working on this
+# resource, stay out." Closed by retraction at fire end. NOT
+# idempotent: each fire is a distinct hold; predicate semantics depend
+# on per-fire emission identity. See docs/design-notes/stigmergic-coordination.md.
+HOLDING = LinkShape("one", "one", g_targets="doc", idempotent=False)
+
 
 # ─── Concrete-type → shape mapping ─────────────────────────────────
 # Every type declared in lib/backend/types.py CANONICAL_POSITIONS
@@ -114,6 +121,9 @@ SHAPES: Dict[str, LinkShape] = {
     "consultation.answer.evidence": CLASSIFIER,
     "transclusion.claim-statements": CLASSIFIER,
     "claims.statements": CLASSIFIER,
+    "agent.scope.note": CLASSIFIER,
+    "agent.scope.claim": CLASSIFIER,
+    "agent.scope.inquiry": CLASSIFIER,
     "promotion.out-of-scope": CLASSIFIER,
     "promotion.open-questions": CLASSIFIER,
     "patch.note": CLASSIFIER,
@@ -165,6 +175,9 @@ SHAPES: Dict[str, LinkShape] = {
     # ── Self-ref non-idempotent ──
     "retraction": RETRACTION,
     "manages": MANAGES,
+
+    # ── Coordination (repellent pheromone / advisory lock) ──
+    "holding": HOLDING,
 
     # ── Membership ──
     "lattice": CLASSIFIER,  # F=∅, G=[doc] for lattice membership
