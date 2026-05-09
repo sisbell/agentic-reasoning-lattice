@@ -104,10 +104,42 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
             yield addr
 
 
+def _has_been_cone_reviewed(
+    session: Session, claim_addr: Address,
+) -> bool:
+    """True iff some `review.coverage` link targeting `claim_addr`
+    was emitted by the cone-review agent.
+
+    Walks the `manages` graph: every substrate write the cone-review
+    agent emits is auto-tagged with `manages(cone-review-agent → link)`
+    via `AttributingStore`. The query reads that record — find every
+    review.coverage covering the claim, check if any has a `manages`
+    edge from the cone-review agent doc.
+
+    Distinguishes "this apex has had its own focused cone review" from
+    "this apex was touched by a whole-ASN full review" — both emit
+    `review.coverage` to the claim, but only the cone-review-attributed
+    one means the apex has received its focused per-cone treatment.
+    """
+    cone_agent = session.get_addr_for_path(
+        "_docuverse/documents/agent/cone-review.md",
+    )
+    if cone_agent is None:
+        return False
+    for cov in session.active_links(
+        "review.coverage", to_set=[claim_addr],
+    ):
+        if session.active_links(
+            "manages", from_set=[cone_agent], to_set=[cov.addr],
+        ):
+            return True
+    return False
+
+
 def _predicate(session: Session, addr: Address) -> bool:
     """True (skip) iff cone-review should not fire on this claim.
 
-    Four skip conditions:
+    Five skip conditions:
       1. Claim has no Formal Contract section yet — wait for
          `claim_formal_contract` to land before reviewing. Without
          a Formal Contract there's nothing substantive to review.
@@ -115,8 +147,11 @@ def _predicate(session: Session, addr: Address) -> bool:
          False. Wait for direct citation upstream to be locally
          settled before reviewing this claim. Implements the chaining
          model's layered-convergence gate.
-      3. Claim is confirmed AND cascade-fresh — already done; nothing
-         has advanced upstream since the last review.
+      3. Claim is confirmed AND cascade-fresh AND has already had a
+         cone-attributed review — no further cone review needed
+         until upstream advances or confirmation breaks. The
+         agent-attributed check distinguishes "covered by full
+         review only" from "had its own cone review."
       4. Open revises pending on this claim — let the refiner close
          them before re-reviewing.
     """
@@ -127,6 +162,7 @@ def _predicate(session: Session, addr: Address) -> bool:
     if (
         is_claim_confirmed(session, addr)
         and is_cascade_fresh_one_hop(session, addr)
+        and _has_been_cone_reviewed(session, addr)
     ):
         return True
     if not is_claim_quiescent(session, addr):
