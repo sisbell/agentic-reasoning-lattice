@@ -19,4 +19,5 @@ claim_describe = Trigger(
     scope_query=per_claim_of_asn,
     predicate=description_is_fresh,
     agent=ClaimDescribeAgent(),
+    supports_claim_filter=True,
 )

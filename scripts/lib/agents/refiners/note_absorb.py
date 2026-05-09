@@ -48,9 +48,10 @@ Operator workflow:
      ```
 
   2. Run `python scripts/note-absorb.py --spec <filename>`.
-  3. Run `python scripts/note-refine.py <base-asn>` (or wait for
-     daemon) to drive convergence on any integration findings the
-     review filed.
+  3. Drive convergence on integration findings via the relevant
+     triggers — `note_review`, `note_consult`, `note_revise` — each
+     invoked through `scripts/run-trigger.py NAME <base-asn>` (or
+     wait for daemon).
 """
 
 from __future__ import annotations

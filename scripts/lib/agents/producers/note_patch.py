@@ -8,9 +8,10 @@ citizens, re-export, commit.
 The agent does NOT drive convergence itself. The patch-scoped review
 emits open `comment.revise` findings as substrate; the standard
 `note_revise` trigger picks them up the next time the runner walks.
-Operator drives convergence afterward via `python
-scripts/note-refine.py <asn>` (or it happens automatically under a
-running daemon).
+Operator drives convergence afterward via `scripts/run-trigger.py`
+on the relevant note triggers (`note_review`, `note_consult`,
+`note_revise`); under a running daemon convergence happens
+automatically.
 
 Caste: producer. Identity grants per fire:
 
@@ -30,9 +31,9 @@ Operator workflow:
   1. Drop a patch md into `_workspace/patches/note/<ASN-NNNN>/<filename>.md`
      (gitignored input drop).
   2. Run `python scripts/note-patch.py <asn> --patch <filename>`.
-  3. Run `python scripts/note-refine.py <asn>` (or wait for the
-     daemon) to drive note-side convergence on the findings the
-     patch reviewer filed.
+  3. Drive note-side convergence on the patch reviewer's findings
+     by invoking `note_review`, `note_consult`, `note_revise` via
+     `scripts/run-trigger.py NAME <asn>` (or wait for the daemon).
 
 Why one-shot review (no inner loop): the patch-scoped reviewer's
 job is to focus the LLM on the change and surface narrow findings.

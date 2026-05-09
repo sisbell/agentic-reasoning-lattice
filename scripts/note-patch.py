@@ -39,7 +39,9 @@ if __name__ == "__main__":
             "re-export"
         ),
         next_hint_template=(
-            "Drive convergence on the findings the patch reviewer filed:\n"
-            "         python scripts/note-refine.py {asn}"
+            "Drive convergence on the findings the patch reviewer filed\n"
+            "         via per-trigger CLIs: note_review, note_consult,\n"
+            "         note_revise — each `python scripts/run-trigger.py "
+            "NAME {asn}`."
         ),
     ))

@@ -23,4 +23,5 @@ claim_structural_revise = Trigger(
     scope_query=per_claim_of_asn,
     predicate=is_claim_structurally_clean,
     agent=ClaimStructuralReviseAgent(),
+    supports_claim_filter=True,
 )

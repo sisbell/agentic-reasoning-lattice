@@ -23,4 +23,5 @@ claim_formal_contract = Trigger(
     scope_query=per_claim_of_asn,
     predicate=claim_formal_contract_is_fresh,
     agent=ClaimFormalContractAgent(),
+    supports_claim_filter=True,
 )

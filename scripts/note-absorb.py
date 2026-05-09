@@ -48,7 +48,9 @@ if __name__ == "__main__":
             "re-export → update source citations → retire extension"
         ),
         next_hint=(
-            "Drive convergence on integration findings:\n"
-            "         python scripts/note-refine.py <base-asn>"
+            "Drive convergence on integration findings via per-trigger\n"
+            "         CLIs: note_review, note_consult, note_revise —\n"
+            "         each `python scripts/run-trigger.py NAME "
+            "<base-asn>`."
         ),
     ))

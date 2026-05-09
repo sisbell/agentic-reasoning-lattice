@@ -20,8 +20,8 @@ Helpers inlined:
     citation.depends/forward into agreement with the claim md's
     *Depends:* / *Forward References:* sections (safety net after
     agentic edits that didn't emit substrate calls)
-  - run_cone_review legacy multi-cycle wrapper (used by
-    scripts/claim-full-review.py)
+  - run_cone_review legacy multi-cycle wrapper (operator-invoked
+    via `scripts/run-trigger.py full_review <asn>`)
 """
 
 from __future__ import annotations

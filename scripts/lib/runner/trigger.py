@@ -31,9 +31,17 @@ class Trigger:
                  is ignored by the runner today; Agent subclasses returning
                  AgentResult slot in transparently. Future runner versions
                  may inspect the result for telemetry.
+    supports_claim_filter:
+                 True iff this trigger's `scope_query` honors
+                 `scope.labels` (per-claim narrowing). Per-trigger CLIs
+                 read this to decide whether `--claim LABEL` is a valid
+                 flag for this trigger. False for note-scope, inquiry-
+                 scope, and triggers whose scope_query yields non-claim
+                 addresses (review docs, comments).
     """
 
     name: str
     scope_query: Callable[[Session, Scope], Iterable[Address]]
     predicate: Callable[[Session, Address], bool]
     agent: Callable[[Session, Address], Any]
+    supports_claim_filter: bool = False

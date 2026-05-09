@@ -22,4 +22,5 @@ claim_structural_audit = Trigger(
     scope_query=per_claim_of_asn,
     predicate=is_claim_audit_fresh,
     agent=ClaimStructuralAuditAgent(),
+    supports_claim_filter=True,
 )

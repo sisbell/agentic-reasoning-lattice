@@ -27,9 +27,10 @@ Operator workflow:
 
   1. Drop a patch md into `_workspace/patches/claim/<ASN-NNNN>/<filename>.md`.
   2. Run `python scripts/claim-patch.py <asn> --patch <filename>`.
-  3. The runner walks afterward (claim refinement runner walk via
-     `python scripts/claim-full-review.py <asn>` or daemon) and
-     drives convergence on the findings the patch reviewer filed.
+  3. The runner walks afterward (operator invokes `full_review`,
+     `claim_findings`, `claim_revise` via `scripts/run-trigger.py
+     NAME <asn>`, or a daemon picks it up) and drives convergence
+     on the findings the patch reviewer filed.
 
 The patch-scoped review uses
 `prompts/shared/claim-refinement/patch/review.md` (REVISE-only,

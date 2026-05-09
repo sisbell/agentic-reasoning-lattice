@@ -33,8 +33,10 @@ from lib.shared.paths import LATTICE, inquiry_doc_path
 def _claim_set_for_scope(session: Session, scope: Scope) -> Set[Address]:
     """Return the set of claim-classified addresses in scope.
 
-    CLI mode: claim-classified derivations of the ASN's source note.
-    Daemon mode: every claim-classified address.
+    CLI mode: claim-classified derivations of the ASN's source note,
+    optionally narrowed to `scope.labels` if the scope carries any.
+    Daemon mode: every claim-classified address (labels ignored;
+    daemon scopes are not label-filtered).
 
     Used by `per_claim_of_asn` directly and by triggers that need
     the in-scope claim set as a filter (e.g., claim_revise scoping
@@ -51,10 +53,20 @@ def _claim_set_for_scope(session: Session, scope: Scope) -> Set[Address]:
     note_addr = asn_note_addr(session, scope)
     if note_addr is None:
         return set()
-    return {
+    in_asn = {
         d for d in derived_claims(session, note_addr)
         if d in classified_claims
     }
+    if scope.labels is None:
+        return in_asn
+
+    from lib.lattice.labels import build_cross_asn_label_index
+    label_index = build_cross_asn_label_index(session.store)
+    wanted = {
+        addr for label, addr in label_index.items()
+        if label in scope.labels
+    }
+    return in_asn & wanted
 
 
 def per_claim_of_asn(

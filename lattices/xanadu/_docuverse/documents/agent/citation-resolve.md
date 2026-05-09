@@ -26,8 +26,8 @@ If Sonnet returns no classifications and no retractions, the call is a no-op —
 
 ## Trigger
 
-- Sweep: `python scripts/claim-citation-resolve.py <asn>` — every claim in the ASN.
-- Single claim: `python scripts/claim-citation-resolve.py <asn> --claim <label>`.
+- Sweep: `python scripts/run-trigger.py claim_citation_resolve <asn>` — every claim in the ASN.
+- Single claim: `python scripts/run-trigger.py claim_citation_resolve <asn> --claim <label>`.
 
 ## Inputs
 

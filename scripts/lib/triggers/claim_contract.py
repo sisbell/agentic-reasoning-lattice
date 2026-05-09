@@ -20,4 +20,5 @@ claim_contract = Trigger(
     scope_query=per_claim_of_asn,
     predicate=has_contract_kind,
     agent=ClaimContractAgent(),
+    supports_claim_filter=True,
 )

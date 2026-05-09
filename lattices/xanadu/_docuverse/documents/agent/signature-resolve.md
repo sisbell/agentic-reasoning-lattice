@@ -26,8 +26,8 @@ If Sonnet returns no introductions and no removals, the call is a no-op — no s
 
 ## Trigger
 
-- Sweep: `python scripts/claim-signature-resolve.py <asn>` — every claim in the ASN.
-- Single claim: `python scripts/claim-signature-resolve.py <asn> --claim <label>`.
+- Sweep: `python scripts/run-trigger.py claim_signature_resolve <asn>` — every claim in the ASN.
+- Single claim: `python scripts/run-trigger.py claim_signature_resolve <asn> --claim <label>`.
 
 Initial bulk populate is a sweep run on the ASN (cost ~$5–10 per ASN, ~30 min). Ongoing maintenance: rerun on individual claims after their prose changes substantially. Cone-review's safety-net catches gaps the resolver missed (currently expensive — populating signatures lets the cheaper validator do this work mechanically).
 

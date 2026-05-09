@@ -19,4 +19,5 @@ claim_citation_resolve = Trigger(
     scope_query=per_claim_of_asn,
     predicate=references_is_fresh,
     agent=ClaimCitationResolveAgent(),
+    supports_claim_filter=True,
 )

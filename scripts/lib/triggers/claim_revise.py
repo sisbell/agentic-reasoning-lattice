@@ -51,4 +51,5 @@ claim_revise = Trigger(
     scope_query=_scope_query,
     predicate=has_resolution,
     agent=ClaimReviseAgent(),
+    supports_claim_filter=True,
 )

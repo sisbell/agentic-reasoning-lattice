@@ -133,4 +133,5 @@ cone_review = Trigger(
     scope_query=_scope_query,
     predicate=_predicate,
     agent=ConeReviewAgent(),
+    supports_claim_filter=True,
 )

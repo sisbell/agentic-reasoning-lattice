@@ -153,7 +153,7 @@ def run_patch_cli(
       dry_run_steps: One-line phase summary printed in --dry-run mode.
       next_hint_template: Optional [NEXT] hint format string with one
         `{asn}` placeholder, e.g.
-        "Drive convergence: python scripts/note-refine.py {asn}".
+        "Drive convergence: python scripts/run-trigger.py note_review {asn}".
     """
     parser = argparse.ArgumentParser(prog=name, description=description)
     parser.add_argument("asn", type=int, help="ASN number to patch")

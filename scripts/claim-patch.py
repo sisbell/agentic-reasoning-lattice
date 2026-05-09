@@ -10,8 +10,8 @@ that emits findings as proper substrate, commits.
 
 The agent stops there. `claim_findings` decomposes the review on the
 next runner pass; `claim_revise` picks up the open `comment.revise`
-findings. Operator drives convergence via the claim-refinement runner
-walk (e.g., `python scripts/claim-full-review.py <asn>`).
+findings. Operator drives convergence by invoking the relevant
+triggers via `scripts/run-trigger.py NAME <asn>`.
 
 Usage:
     python scripts/claim-patch.py 34 --patch patch-ta5.md
@@ -37,7 +37,9 @@ if __name__ == "__main__":
             "promote → apply → patch-scoped review (emits findings) → done"
         ),
         next_hint_template=(
-            "Drive convergence on the findings the patch reviewer filed:\n"
-            "         python scripts/claim-full-review.py {asn}"
+            "Drive convergence on the findings the patch reviewer filed\n"
+            "         via per-trigger CLIs: full_review, claim_findings,\n"
+            "         claim_revise — each `python scripts/run-trigger.py "
+            "NAME {asn}`."
         ),
     ))

@@ -29,4 +29,5 @@ claim_signature_resolve = Trigger(
     scope_query=per_claim_of_asn,
     predicate=signature_is_fresh,
     agent=ClaimSignatureResolveAgent(),
+    supports_claim_filter=True,
 )
