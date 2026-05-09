@@ -39,20 +39,22 @@ def concat_md_files(directory):
 
 
 def find_asn(asn_id, asns_dir=None):
-    """Find ASN by number. Accepts 9, 09, 0009, ASN-0009, or full path.
+    """Find a labeled note by number. Accepts 9, 09, 0009, `<prefix>-0009`,
+    or a full path.
 
     Returns (path, label).
     """
+    from lib.lattice.labels import format_label, label_pattern
     if isinstance(asn_id, (str, Path)):
         path = Path(asn_id)
         if path.exists():
-            label = re.match(r"(ASN-\d+)", path.stem)
-            return path, label.group(1) if label else path.stem
+            m = label_pattern().match(path.stem)
+            return path, m.group(0) if m else path.stem
 
     num = re.sub(r"[^0-9]", "", str(asn_id))
     if not num:
         return None, None
-    label = f"ASN-{int(num):04d}"
+    label = format_label(int(num))
     d = asns_dir or NOTE_DIR
     matches = sorted(d.glob(f"{label}-*.md"))
     if matches:
@@ -89,7 +91,9 @@ def assemble_readonly(asn_label):
     orchestrator-elimination arc, the source note md is the only
     canonical source for that prose.
     """
-    asn_num = int(asn_label.replace("ASN-", "").lstrip("0") or "0")
+    from lib.lattice.labels import extract_label_digits
+    digits = extract_label_digits(asn_label)
+    asn_num = int(digits) if digits else 0
     note_path, _ = find_asn(str(asn_num))
     docs_dir = CLAIM_DIR / asn_label
 

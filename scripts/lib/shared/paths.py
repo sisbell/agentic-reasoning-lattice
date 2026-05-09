@@ -155,7 +155,8 @@ def promotion_doc_path(asn_num, kind: str) -> Path:
     Stable per (source ASN, kind) — re-running the same promotion
     overwrites the same path, keeping the substrate address constant.
     """
-    return PROMOTION_DIR / f"ASN-{int(asn_num):04d}" / f"{kind}.md"
+    from lib.lattice.labels import format_label
+    return PROMOTION_DIR / format_label(asn_num) / f"{kind}.md"
 
 
 # Citation-resolve operation outputs (classified by `citation.resolve`).
@@ -260,28 +261,31 @@ def claim_doc_path(asn_label, label):
 
 
 def consultation_dir(asn):
-    """Per-ASN consultation directory. Accepts int or ASN-NNNN label."""
-    if isinstance(asn, str) and asn.startswith("ASN-"):
+    """Per-ASN consultation directory. Accepts int or `<prefix>-NNNN` label."""
+    from lib.lattice.labels import format_label, label_pattern
+    if isinstance(asn, str) and label_pattern().fullmatch(asn):
         return CONSULTATIONS_DIR / asn
-    return CONSULTATIONS_DIR / f"ASN-{int(asn):04d}"
+    return CONSULTATIONS_DIR / format_label(asn)
 
 
 def claim_docs_dir(asn):
     """Per-ASN claim files directory under the substrate document store.
 
-    Accepts int or ASN-NNNN label. Holds the per-claim body markdown plus
-    `<stem>.{label,name,description}.md` sidecars. Reviews, caches, and
+    Accepts int or `<prefix>-NNNN` label. Holds the per-claim body markdown
+    plus `<stem>.{label,name,description}.md` sidecars. Reviews, caches, and
     structural section files stay alongside under
     `claim-convergence/<asn>/` (work products, not substrate-managed).
     """
-    if isinstance(asn, str) and asn.startswith("ASN-"):
+    from lib.lattice.labels import format_label, label_pattern
+    if isinstance(asn, str) and label_pattern().fullmatch(asn):
         return CLAIM_DIR / asn
-    return CLAIM_DIR / f"ASN-{int(asn):04d}"
+    return CLAIM_DIR / format_label(asn)
 
 
 def inquiry_doc_path(asn_num):
     """Path to a substrate-managed inquiry doc (md + frontmatter)."""
-    return INQUIRY_DIR / f"ASN-{int(asn_num):04d}.md"
+    from lib.lattice.labels import format_label
+    return INQUIRY_DIR / f"{format_label(asn_num)}.md"
 
 
 def claim_statements(asn_num):
@@ -300,10 +304,11 @@ def claim_statements(asn_num):
     statements doc post-derivation.
     """
     from .common import find_asn
+    from lib.lattice.labels import format_label
     asn_path, _ = find_asn(str(asn_num))
     if asn_path is None:
         raise FileNotFoundError(
-            f"no note found for ASN-{int(asn_num):04d}; cannot resolve "
+            f"no note found for {format_label(asn_num)}; cannot resolve "
             f"statements sidecar path"
         )
     return asn_path.parent / f"{asn_path.stem}.statements.md"
