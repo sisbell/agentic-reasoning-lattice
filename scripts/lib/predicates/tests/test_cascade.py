@@ -252,6 +252,144 @@ class CascadeFreshTests(unittest.TestCase):
         )
 
 
+class CascadeFreshAssemblyTests(unittest.TestCase):
+    """Discovery cascade: when a cited note has been decomposed
+    (`claims.statements` aggregate exists, reached via
+    `note → statements → supersession`), the cascade signal flows
+    through the aggregate's chain rather than the note's. Claim-level
+    edits propagate via `ClaimsStatementsRefreshAgent` advancing the
+    aggregate; the note's own chain stays static.
+    """
+
+    def setUp(self):
+        self.state = State(account=Address("1.1.0.1"))
+        self.session = Session(self.state)
+        self.lattice = self.state.create_doc()
+        self.note_a = self.state.create_doc(
+            kind="note", lattice=self.lattice,
+        )
+        self.note_b = self.state.create_doc(
+            kind="note", lattice=self.lattice,
+        )
+
+    def _decompose(self, note_addr):
+        """Synthesize the post-decompose substrate shape: a
+        `note.statements` sidecar with `statements` link from the
+        note, plus a `claims.statements` aggregate reached by
+        supersession from the sidecar.
+        Returns the aggregate address.
+        """
+        sidecar = self.state.create_doc(
+            kind="note.statements", lattice=self.lattice,
+        )
+        self.state.make_link(
+            note_addr, [note_addr], [sidecar], "statements",
+        )
+        aggregate = self.state.create_doc(
+            kind="claims.statements", lattice=self.lattice,
+        )
+        self.state.make_link(
+            sidecar, [sidecar], [aggregate], "supersession",
+        )
+        return aggregate
+
+    def test_cite_to_undecomposed_note_uses_note_chain(self):
+        # No statements sidecar; predicate falls through to the note's
+        # own chain (existing behavior).
+        self.state.make_link(
+            self.note_b, [self.note_b], [self.note_a],
+            "citation.depends",
+        )
+        self.assertTrue(
+            is_cascade_fresh_one_hop(self.session, self.note_b)
+        )
+        self.state.create_version(self.note_a)
+        self.assertFalse(
+            is_cascade_fresh_one_hop(self.session, self.note_b)
+        )
+
+    def test_cite_to_decomposed_note_uses_aggregate_chain(self):
+        # Post-decompose: aggregate carries the cascade signal.
+        aggregate = self._decompose(self.note_a)
+        self.state.make_link(
+            self.note_b, [self.note_b], [self.note_a],
+            "citation.depends",
+        )
+        # Initial state: aggregate has no children → fresh
+        self.assertTrue(
+            is_cascade_fresh_one_hop(self.session, self.note_b)
+        )
+        # Aggregate advances (claim edits + ClaimsStatementsRefreshAgent
+        # firing) → stale
+        self.state.create_version(aggregate)
+        self.assertFalse(
+            is_cascade_fresh_one_hop(self.session, self.note_b)
+        )
+
+    def test_note_edit_post_decompose_does_not_propagate(self):
+        # When the note has been decomposed, edits to the note itself
+        # do not flow as cascade — the aggregate is the canonical
+        # content artifact for downstream consumers. (Compare with
+        # test_cite_to_undecomposed_note_uses_note_chain, where the
+        # absence of an aggregate causes note-edits to propagate.)
+        self._decompose(self.note_a)
+        self.state.make_link(
+            self.note_b, [self.note_b], [self.note_a],
+            "citation.depends",
+        )
+        # Edit the note (advances note's chain, not aggregate's)
+        self.state.create_version(self.note_a)
+        # Aggregate is still head → fresh
+        self.assertTrue(
+            is_cascade_fresh_one_hop(self.session, self.note_b)
+        )
+
+    def test_sidecar_without_supersession_falls_back_to_note(self):
+        # `statements` sidecar exists but no supersession to an
+        # aggregate (e.g., note.statements has been emitted but
+        # decompose hasn't run). Fall through to checking the note.
+        sidecar = self.state.create_doc(
+            kind="note.statements", lattice=self.lattice,
+        )
+        self.state.make_link(
+            self.note_a, [self.note_a], [sidecar], "statements",
+        )
+        self.state.make_link(
+            self.note_b, [self.note_b], [self.note_a],
+            "citation.depends",
+        )
+        self.assertTrue(
+            is_cascade_fresh_one_hop(self.session, self.note_b)
+        )
+        self.state.create_version(self.note_a)
+        self.assertFalse(
+            is_cascade_fresh_one_hop(self.session, self.note_b)
+        )
+
+    def test_two_upstream_one_with_decomposed_aggregate(self):
+        # Mixed cite: one upstream is a claim (uses claim chain),
+        # other is a decomposed note (uses aggregate chain). Either
+        # going stale flips the predicate.
+        upstream_claim = self.state.create_doc(
+            kind="claim", lattice=self.lattice,
+        )
+        aggregate = self._decompose(self.note_a)
+        self.state.make_link(
+            self.note_b, [self.note_b],
+            [upstream_claim, self.note_a],
+            "citation.depends",
+        )
+        # Both fresh
+        self.assertTrue(
+            is_cascade_fresh_one_hop(self.session, self.note_b)
+        )
+        # Aggregate advances → stale
+        self.state.create_version(aggregate)
+        self.assertFalse(
+            is_cascade_fresh_one_hop(self.session, self.note_b)
+        )
+
+
 class TriggerPredicateTests(unittest.TestCase):
     """Combined behavior of cone-review's predicate after the cascade
     additions."""

@@ -44,13 +44,18 @@ from typing import Optional
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
 
-from .attributes import description_sidecar_of, signature_sidecar_of
+from .attributes import (
+    description_sidecar_of, signature_sidecar_of, statements_sidecar_of,
+)
 from .citations import depends
 from .quiescence import (
     derived_claims, is_asn_confirmed, is_claim_confirmed, is_claim_quiescent,
     is_claim_structurally_clean,
 )
-from .versions import is_head_version, supersession_chain_length, version_head
+from .versions import (
+    is_head_version, supersession_chain_length, supersession_head,
+    version_head,
+)
 
 
 def is_upstream_settled_one_hop(
@@ -98,12 +103,46 @@ def is_cascade_fresh_one_hop(
     via `is_claim_confirmed` — a claim with no recent clean review is
     not confirmed, so the cascade-fresh skip branch is bypassed and
     cone-review fires regardless.
+
+    For citations whose target is a note that has been decomposed,
+    the freshness check runs against the `claims.statements` aggregate
+    reached via `note → statements → supersession`, not the note's own
+    chain — claim-level edits advance the aggregate (via
+    `ClaimsStatementsRefreshAgent`) while the note's chain stays
+    static. See `_assembly_artifact_or_self`.
     """
     head = version_head(session, claim_addr)
     for upstream in depends(session, head):
-        if not is_head_version(session, upstream):
+        target = _assembly_artifact_or_self(session, upstream)
+        if not is_head_version(session, target):
             return False
     return True
+
+
+def _assembly_artifact_or_self(
+    session: Session, addr: Address,
+) -> Address:
+    """Redirect cascade-freshness to the assembly artifact when one
+    exists.
+
+    For a note whose `statements` sidecar has been superseded by a
+    `claims.statements` aggregate (the post-decompose state), the
+    cascade signal lives on the aggregate's version chain. Walk
+    `note → statements → supersession_head` and return the aggregate.
+
+    Falls through to `addr` itself when:
+      - `addr` has no `statements` sidecar (claims, foundation notes,
+        un-decomposed notes).
+      - The sidecar exists but has no outgoing supersession (decompose
+        hasn't run yet).
+    """
+    sidecar = statements_sidecar_of(session, addr)
+    if sidecar is None:
+        return addr
+    aggregate = supersession_head(session, sidecar)
+    if aggregate == sidecar:
+        return addr
+    return aggregate
 
 
 def description_is_fresh_after_asn_confirmation(
