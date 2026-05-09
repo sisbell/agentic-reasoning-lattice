@@ -561,8 +561,41 @@ class ClaimsStatementsForNoteTests(unittest.TestCase):
         )
 
 
+def _emit_anchor(state, agg_head, claim_head):
+    """Emit `citation.depends` from aggregate's head to claim's head —
+    the 1:N freshness anchor for `is_claims_statements_fresh`.
+
+    Mirrors what `ClaimsStatementsRefreshAgent._emit_anchors` does
+    in production: one anchor per derived claim, from current
+    aggregate head to current claim head.
+    """
+    state.make_link(
+        agg_head, [agg_head], [claim_head], "citation.depends",
+    )
+
+
+def _walk_to_head(state, addr):
+    """Walk forward in the version-children parent map to the deepest
+    descendant. Mirrors version_head."""
+    head = addr
+    while True:
+        children = sorted(
+            (a for a, p in state.parent.items() if p == head),
+            key=lambda a: a.digits,
+        )
+        if not children:
+            return head
+        head = children[-1]
+
+
 class ClaimsStatementsFreshTests(unittest.TestCase):
-    """Aggregate freshness gates on is_asn_confirmed and chain trailing."""
+    """Aggregate freshness via the 1:N citation-anchor pattern.
+
+    The predicate walks `citation.depends` from `version_head(agg)`
+    and checks whether `version_head(claim)` is cited for every
+    derived claim. Chain length is irrelevant; what matters is
+    address identity at the cited-vs-current-head comparison.
+    """
 
     def setUp(self):
         self.state = State(account=Address("1.1.0.1"))
@@ -591,8 +624,15 @@ class ClaimsStatementsFreshTests(unittest.TestCase):
         _emit_clean_review(self.state, self.c1, self.lattice)
         _emit_clean_review(self.state, self.c2, self.lattice)
 
+    def _emit_all_anchors(self):
+        """Emit anchors from aggregate's current head to each claim's
+        current head — what the agent does on each fire."""
+        agg_head = _walk_to_head(self.state, self.agg)
+        for claim in (self.c1, self.c2):
+            _emit_anchor(self.state, agg_head, _walk_to_head(self.state, claim))
+
     def test_unconfirmed_asn_is_vacuously_fresh(self):
-        # Gate closed — predicate returns True regardless of chain state
+        # Gate closed — predicate returns True regardless of anchor state
         _advance_chain(self.state, self.c1)
         self.assertTrue(
             is_claims_statements_fresh(self.session, self.note),
@@ -620,45 +660,55 @@ class ClaimsStatementsFreshTests(unittest.TestCase):
             is_claims_statements_fresh(self.session, bare_note),
         )
 
-    def test_confirmed_with_matching_chain_is_fresh(self):
-        # All claim chains length 1, aggregate chain length 1
+    def test_confirmed_with_anchors_to_all_heads_is_fresh(self):
+        # Aggregate emits anchors to every derived claim's current head
+        # → predicate True.
         self._confirm_all_claims()
+        self._emit_all_anchors()
         self.assertTrue(
             is_claims_statements_fresh(self.session, self.note),
         )
 
-    def test_confirmed_with_advanced_claim_is_stale(self):
-        # c1 chain = 2, aggregate chain = 1 → stale
+    def test_aggregate_without_anchors_is_stale(self):
+        # Aggregate exists but has emitted no anchors yet → predicate
+        # False (every claim's head is uncited).
         self._confirm_all_claims()
+        self.assertFalse(
+            is_claims_statements_fresh(self.session, self.note),
+        )
+
+    def test_advanced_claim_invalidates_anchor(self):
+        # All anchors emitted; one claim advances; its old anchor now
+        # points at non-head → predicate False.
+        self._confirm_all_claims()
+        self._emit_all_anchors()
         _advance_chain(self.state, self.c1)
         self.assertFalse(
             is_claims_statements_fresh(self.session, self.note),
         )
 
-    def test_one_advance_catches_up(self):
-        # After register_version on aggregate, predicate flips True
+    def test_re_anchor_after_claim_advance_restores_freshness(self):
+        # After a claim advances, re-firing the agent advances the
+        # aggregate AND emits new anchors from the new aggregate head
+        # to the new claim heads → predicate True.
         self._confirm_all_claims()
+        self._emit_all_anchors()
         _advance_chain(self.state, self.c1)
         self.assertFalse(
             is_claims_statements_fresh(self.session, self.note),
         )
         _advance_chain(self.state, self.agg)
+        self._emit_all_anchors()
         self.assertTrue(
             is_claims_statements_fresh(self.session, self.note),
         )
 
-    def test_aggregate_must_match_max_claim_chain(self):
-        # c1 chain = 3, c2 chain = 1, aggregate chain = 2 → stale (still
-        # below max). One more advance catches up.
+    def test_partial_anchors_is_stale(self):
+        # Aggregate cites c1's head but not c2's head → stale.
         self._confirm_all_claims()
-        _advance_chain(self.state, self.c1)
-        _advance_chain(self.state, self.c1)
-        _advance_chain(self.state, self.agg)
+        agg_head = _walk_to_head(self.state, self.agg)
+        _emit_anchor(self.state, agg_head, _walk_to_head(self.state, self.c1))
         self.assertFalse(
-            is_claims_statements_fresh(self.session, self.note),
-        )
-        _advance_chain(self.state, self.agg)
-        self.assertTrue(
             is_claims_statements_fresh(self.session, self.note),
         )
 

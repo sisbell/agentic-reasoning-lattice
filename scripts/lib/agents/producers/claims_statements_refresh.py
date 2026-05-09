@@ -8,15 +8,19 @@ Two-mode behavior driven by predicate state:
   identity classifier, emit `note → provenance.derivation →
   aggregate`, retire the `note.statements` sidecar (its supersession
   chain has reached the point where the aggregate takes over), emit
-  `supersession(note.statements → aggregate)`, and write the
-  mechanically-assembled content to disk.
+  `supersession(note.statements → aggregate)`, write the
+  mechanically-assembled content to disk, and emit
+  `citation.depends` from the new aggregate to each derived claim's
+  current head (the freshness anchors).
 
-  Subsequent fires (aggregate exists, chain trails max claim chain) —
-  *advance*. Re-assemble the content from current per-claim files
-  + sidecars, write the new content to disk, then `register_version`
-  to tick the substrate chain. The disk file always reflects the
-  latest assembly; the substrate chain advance flips `is_head_version`
-  False on the prior head for downstream cites (cascade signal).
+  Subsequent fires (aggregate exists, at least one claim has
+  advanced past its anchor) — *advance*. Re-assemble the content
+  from current per-claim files + sidecars, write the new content to
+  disk, `register_version` to tick the substrate chain, then re-
+  emit `citation.depends` from the new aggregate version to each
+  derived claim's current head. The disk file always reflects the
+  latest assembly; the chain advance + new anchors carry the
+  cascade signal for downstream cites.
 
 Assembly is mechanical (no LLM): walks `provenance.derivation` from
 the note to enumerate derived claims, reads each claim's body
@@ -24,11 +28,12 @@ the note to enumerate derived claims, reads each claim's body
 and produces the consolidated markdown block via
 `render_claim_statements`.
 
-The two-mode shape matches the user's "version the assembly" framing:
-the assembly artifact is born once at the discovery → claim transition
-(first claim-quiescence) as a real on-disk file, and on each
-subsequent claim-quiescence wave the file is regenerated and the
-substrate chain ticks once.
+The 1:N variant of the citation-anchor freshness pattern. Each
+fire emits N `citation.depends` links — one per derived claim —
+from the new aggregate version to `version_head(claim)`. The
+predicate `is_claims_statements_fresh` walks those anchors;
+freshness is address-identity (every cited claim is still head),
+not chain-length comparison.
 """
 
 from __future__ import annotations
@@ -40,10 +45,11 @@ from typing import ClassVar, Optional
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.backend.emit import (
-    emit_claims_statements, emit_derivation, emit_retired,
-    emit_supersession,
+    emit_citation, emit_claims_statements, emit_derivation,
+    emit_retired, emit_supersession,
 )
-from lib.predicates import claims_statements_for_note
+from lib.predicates import claims_statements_for_note, derived_claims
+from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.renderers.claim_statements import render_claim_statements
 from lib.shared.paths import transclusion_path
@@ -59,6 +65,7 @@ class ClaimsStatementsRefreshAgent(Agent):
         if doc is None:
             doc = self._create(session, note_addr)
             self._write_content(session, doc)
+            self._emit_anchors(session, doc, note_addr)
             print(
                 f"  [CLAIMS-STATEMENTS-REFRESH] created {doc}",
                 file=sys.stderr,
@@ -67,6 +74,7 @@ class ClaimsStatementsRefreshAgent(Agent):
 
         self._write_content(session, doc)
         new_addr = session.register_version(doc)
+        self._emit_anchors(session, doc, note_addr)
         print(
             f"  [CLAIMS-STATEMENTS-REFRESH] advanced {doc} -> {new_addr}",
             file=sys.stderr,
@@ -107,6 +115,32 @@ class ClaimsStatementsRefreshAgent(Agent):
         full.parent.mkdir(parents=True, exist_ok=True)
         content = render_claim_statements(session, addr)
         full.write_text(content)
+
+    def _emit_anchors(
+        self, session: Session, doc_addr: Address, note_addr: Address,
+    ) -> None:
+        """Emit one `citation.depends` per derived claim from the
+        aggregate's current head version to `version_head(claim)`.
+
+        These are the freshness anchors that
+        `is_claims_statements_fresh` walks. Iterates only claim-
+        classified derivations (skips the aggregate doc itself,
+        which is also a derivation target of the note).
+        """
+        store = session.store
+        classified_claims = {
+            link.to_set[0]
+            for link in session.active_links("claim")
+            if link.to_set
+        }
+        aggregate_head = version_head(session, doc_addr)
+        for claim in derived_claims(session, note_addr):
+            if claim not in classified_claims:
+                continue
+            emit_citation(
+                store, aggregate_head, version_head(session, claim),
+                direction="depends",
+            )
 
 
 def _note_statements_sidecar(

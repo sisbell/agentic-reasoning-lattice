@@ -53,8 +53,7 @@ from .quiescence import (
     is_claim_structurally_clean,
 )
 from .versions import (
-    is_head_version, supersession_chain_length, supersession_head,
-    version_head,
+    is_head_version, supersession_head, version_head,
 )
 
 
@@ -257,14 +256,22 @@ def is_claims_statements_fresh(
         - No claim-classified derivations exist (degenerate ASN).
         - Any derived claim is not confirmed (gate closed — defer
           aggregate work until the cluster has settled).
-        - Aggregate exists AND its chain length ≥ max chain length
-          across derived claims (caught up).
+        - Aggregate exists AND its head version emits a
+          `citation.depends` to every derived claim's current head
+          (caught up).
 
       Stale (returns False) when every claim is confirmed AND either:
         - No aggregate exists yet → fire creates it (the discovery
           → claim transition).
-        - Aggregate exists but its chain trails at least one claim's
-          chain → fire advances it via `register_version`.
+        - Aggregate exists but at least one derived claim's current
+          head isn't cited by the aggregate's head → fire re-renders
+          + register_version + re-emits citation anchors.
+
+    The 1:N variant of the citation-anchor pattern. Each fire of
+    `ClaimsStatementsRefreshAgent` emits N `citation.depends` links
+    from the new aggregate version to `version_head(claim)` for each
+    derived claim — the freshness anchors. Address-identity, not
+    chain-length.
 
     The gate iterates claim-classified derivations only; the aggregate
     is itself a derivation target of the note but is never reviewed,
@@ -287,7 +294,14 @@ def is_claims_statements_fresh(
     doc = claims_statements_for_note(session, note_addr)
     if doc is None:
         return False
-    max_claim_chain = max(
-        supersession_chain_length(session, c) for c in claims
-    )
-    return supersession_chain_length(session, doc) >= max_claim_chain
+
+    aggregate_head = version_head(session, doc)
+    cited = set()
+    for link in session.active_links(
+        "citation.depends", from_set=[aggregate_head],
+    ):
+        cited.update(link.to_set)
+    for claim in claims:
+        if version_head(session, claim) not in cited:
+            return False
+    return True
