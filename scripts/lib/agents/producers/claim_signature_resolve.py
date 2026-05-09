@@ -24,7 +24,7 @@ from typing import ClassVar, List, NamedTuple, Tuple
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.lattice.attributes import attest_against_claim_head
+from lib.lattice.attributes import attest_against_doc_head
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.lattice.notation import read_notation
 from lib.protocols.febe.protocol import Session
@@ -353,14 +353,15 @@ class ClaimSignatureResolveAgent(Agent):
         new_pairs = [(s, bullets_by_symbol[s]) for s in bullets_by_symbol]
         new_sidecar_text = _render_sidecar(new_pairs)
 
-        # Attest + emit freshness-anchor citation from the new sidecar
-        # version to the claim's head. Unconditional — even on zero
-        # LLM delta, the agent ran and the attestation matters; the
-        # citation update records the new claim version this
-        # attestation covers.
-        attest_against_claim_head(
+        # Attest + emit freshness-anchor citation. content_changed is
+        # the LLM verdict — empty introduces AND empty removes means
+        # the sidecar's content is unchanged this fire (re-anchor only,
+        # no chain advance). Any non-empty list means real edit.
+        content_changed = bool(result.introduces) or bool(result.removes)
+        attest_against_doc_head(
             session, claim_rel, "signature",
             new_sidecar_text.rstrip(), claim_addr,
+            content_changed=content_changed,
         )
 
         _, run_num = _persist_resolve_doc(

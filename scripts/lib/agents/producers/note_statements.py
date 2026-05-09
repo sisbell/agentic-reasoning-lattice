@@ -3,20 +3,20 @@ formal-statements artifact.
 
 Fires when the note is `is_claim_confirmed` (per the N+1 refinement
 pattern: no open revises AND latest review came up clean) AND the
-statements supersession chain is shorter than the note's. On each
-fire:
+statements sidecar's freshness anchor doesn't point at the note's
+current head. On each fire:
 
   1. Read the source note's md content.
   2. LLM produces a structured formal-statements list (per
      produce-statements.md prompt). Existing extracted text is also
      supplied so the LLM can return it verbatim if still accurate.
   3. Persist as the note's `statements` attribute sidecar via
-     attest_attribute (create-or-advance helper). First call creates
-     the link + sidecar at chain length 1; subsequent calls advance
-     the sidecar's supersession chain via register_version.
+     attest_against_doc_head: chain advance + emit citation.depends
+     from new sidecar version to version_head(note). The predicate
+     walks that anchor.
 
-The new sidecar version's chain is now equal to the note's chain
-length, so the predicate flips True until the next confirmed cycle.
+The new sidecar version's anchor cites the note's current head, so
+the predicate flips True until the next note advance.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ from typing import ClassVar, Optional
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.lattice.attributes import attest_attribute
+from lib.lattice.attributes import attest_against_doc_head
 from lib.predicates import statements_sidecar_of
 from lib.protocols.febe.protocol import Session
 from lib.shared.invoke_claude import invoke_claude
@@ -119,12 +119,18 @@ class NoteStatementsAgent(Agent):
         if not body.endswith("\n"):
             body += "\n"
 
-        # attest_attribute is the create-or-advance helper: first
-        # call creates the link + sidecar at chain length 1;
-        # subsequent calls advance the sidecar's supersession chain
-        # via register_version. statements_is_fresh reads the chain
-        # to detect staleness.
-        attest_attribute(session, note_path, "statements", body)
+        # attest_against_doc_head: chain advance + freshness anchor.
+        # content_changed comes from byte-comparison (LLM returns text
+        # without an explicit no-change verdict). True on first
+        # emission and on real edits; False only when the LLM produced
+        # byte-identical output.
+        content_changed = (
+            existing_text is None or body.strip() != existing_text
+        )
+        attest_against_doc_head(
+            session, note_path, "statements", body, note_addr,
+            content_changed=content_changed,
+        )
 
         _log_usage(asn_label, result.elapsed)
         print(

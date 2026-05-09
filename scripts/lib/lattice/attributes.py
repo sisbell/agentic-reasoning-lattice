@@ -109,100 +109,92 @@ def attest_attribute(
     value: str,
     lattice_root: Union[str, Path, None] = None,
 ) -> Tuple[Link, bool]:
-    """Attest an attribute against the doc's current revision state.
+    """Pure emission primitive: write sidecar file + emit attribute
+    link. No chain advance.
 
-    Single create-or-advance path:
-    - First-time: creates link + sidecar at supersession chain
-      length 1 (delegates to emit_attribute).
-    - Subsequent: advances the sidecar's chain by 1 via
-      register_version, then writes the new content (file write
-      skipped if byte-identical).
+    Idempotent. The file write is skip-if-identical (no I/O on a
+    no-op re-write); the link emission is idempotent on the active
+    link set.
 
-    Use this for every producer fire / CLI invocation that records
-    an attestation. The chain advance encodes "I checked at this
-    revision" — meaningful even when the new content is identical
-    to the old (no-op LLM output still counts as an attestation
-    that the existing sidecar is correct as-of-now).
+    Chain advancement is the caller's responsibility — call
+    `register_version` explicitly on the sidecar address before
+    `attest_attribute` when the call represents a real content edit.
+    For most producers this is handled by `attest_against_doc_head`,
+    which takes an explicit `content_changed` flag and advances the
+    chain only when the producer signals a real edit.
 
-    For attribute kinds with a freshness predicate
-    (description/signature/statements), the chain advance is
-    REQUIRED — predicates compare chain lengths to detect staleness,
-    and skipping the advance leaves them stuck in False, causing
-    the runner to re-fire until max_iterations.
-
-    For attribute kinds without a freshness predicate (label/name),
-    the chain still advances harmlessly. This is the relaxed-model's
-    "advance where it doesn't hurt" stance: cost is one supersession
-    link per call; benefit is one fewer discipline at the call site.
-    Future predicates over those kinds get the chain machinery for
-    free.
+    Use this directly only when:
+      - The attribute kind has no freshness predicate (`label`,
+        `name`) AND the caller doesn't need chain-advance semantics.
+      - First-emission cases, where the `emit_attribute_link` call
+        creates the chain at length 1.
 
     Returns (link, created) where created is True iff the link was
-    freshly emitted (i.e., first-time call); False on subsequent.
+    freshly emitted (first-time call); False on subsequent.
     """
-    # Resolve claim_addr to detect first vs subsequent. We reuse
-    # emit_attribute's path-resolution logic by computing it once
-    # here, so the lookup is in sync with the delegate.
-    if kind not in VALID_ATTRIBUTE_KINDS:
-        raise ValueError(
-            f"invalid attribute kind {kind!r}; must be one of "
-            f"{sorted(VALID_ATTRIBUTE_KINDS)}"
-        )
-
-    root = Path(lattice_root) if lattice_root else session.store.lattice_dir
-    claim_md = Path(claim_md_path)
-    if not claim_md.is_absolute():
-        claim_md = (root / claim_md).resolve()
-    else:
-        claim_md = claim_md.resolve()
-    claim_rel = str(claim_md.relative_to(root.resolve()))
-
-    claim_addr = session.get_addr_for_path(claim_rel)
-    if claim_addr is not None:
-        existing = session.active_links(kind, from_set=[claim_addr])
-        for link in existing:
-            if link.to_set:
-                # Subsequent: advance the sidecar's chain before the
-                # delegate does its file write + link lookup.
-                session.register_version(link.to_set[0])
-                break
-
     return emit_attribute(session, claim_md_path, kind, value, lattice_root)
 
 
-def attest_against_claim_head(
+def attest_against_doc_head(
     session: Session,
-    claim_md_path: Union[str, Path],
+    doc_md_path: Union[str, Path],
     kind: str,
     value: str,
-    claim_addr,
+    doc_addr,
+    *,
+    content_changed: bool,
     lattice_root: Union[str, Path, None] = None,
 ) -> Tuple[Link, bool]:
-    """`attest_attribute` + emit a freshness-anchor citation.
+    """Attest a sidecar with a freshness-anchor citation, conditionally
+    advancing the chain.
 
-    After the sidecar attestation lands (chain advanced by 1, content
-    written), emit `citation.depends` from the sidecar's new head
-    version to `version_head(claim_addr)`. The citation records
-    "this attestation was made against this claim version."
+    The producer signals via `content_changed` whether this fire
+    represents a real edit:
 
-    The corresponding freshness predicate walks the citation: if the
-    cited claim address is still `is_head_version`, the sidecar is
-    fresh. Once the claim advances (next revise), the cited address
-    is no longer head → stale → exactly one re-fire per cycle.
+    - `content_changed=True` AND a sidecar already exists: advance
+      the existing sidecar's chain via `register_version` BEFORE the
+      file write. The new chain head is the new content version.
+    - `content_changed=False`: no chain advance. The sidecar's
+      current head stays in place; the file write is idempotent
+      (skip-if-identical at the FEBE layer).
+    - First emission (no existing sidecar): no chain advance — the
+      creation IS the first version; `content_changed` is ignored.
 
-    The chain advance stays at +1 per fire (one real attestation).
-    No artificial chain bumps; the citation carries the cross-version
-    anchor, not the chain length.
+    In all three cases, after the attestation lands, emit
+    `citation.depends` from the sidecar's current head version to
+    `version_head(doc_addr)`. This is the freshness anchor; the
+    `*_is_fresh` predicate walks it. On a no-op re-attestation
+    against a doc that's advanced, the anchor re-points at the new
+    doc head from the existing sidecar version.
+
+    The chain represents content versions, not attestation events.
+    The producer alone knows whether its fire produced a real edit
+    (via LLM verdict, byte-compare, or domain knowledge); this
+    primitive accepts that signal.
+
+    Works for any doc kind (claim, note).
     """
     from lib.predicates.versions import version_head
 
+    # Look up existing sidecar BEFORE attest_attribute to detect
+    # subsequent vs first-emission. The lookup needs the doc_addr to
+    # be registered already.
+    existing_sidecar = None
+    for link in session.active_links(kind, from_set=[doc_addr]):
+        if link.to_set:
+            existing_sidecar = link.to_set[0]
+            break
+
+    if existing_sidecar is not None and content_changed:
+        session.register_version(existing_sidecar)
+
     link, created = attest_attribute(
-        session, claim_md_path, kind, value, lattice_root,
+        session, doc_md_path, kind, value, lattice_root,
     )
     sidecar_addr = link.to_set[0]
     sidecar_head = version_head(session, sidecar_addr)
-    claim_head = version_head(session, claim_addr)
+    doc_head = version_head(session, doc_addr)
     emit_citation(
-        session.store, sidecar_head, claim_head, direction="depends",
+        session.store, sidecar_head, doc_head, direction="depends",
     )
     return link, created

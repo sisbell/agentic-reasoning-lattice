@@ -151,7 +151,7 @@ def description_is_fresh_after_asn_confirmation(
     """Gate `claim_describe` to fire only after the whole ASN settles
     AND the claim has revised past the sidecar's last attestation.
 
-    Each `attest_against_claim_head` fire emits a `citation.depends`
+    Each `attest_against_doc_head` fire emits a `citation.depends`
     from the new sidecar version to `version_head(claim)` at attest
     time. The predicate reads that citation: if the cited claim
     address is still head, the sidecar covers the current claim;
@@ -170,7 +170,7 @@ def description_is_fresh_after_asn_confirmation(
     No chain-length comparison; chain advances by 1 per real
     attestation.
     """
-    return _sidecar_against_claim_head_fresh(
+    return _sidecar_against_doc_head_fresh(
         session, claim_addr, description_sidecar_of,
     )
 
@@ -187,12 +187,12 @@ def signature_is_fresh_after_asn_confirmation(
     sidecar version to `version_head(claim)`; predicate flips False
     when the cited claim version is no longer head.
     """
-    return _sidecar_against_claim_head_fresh(
+    return _sidecar_against_doc_head_fresh(
         session, claim_addr, signature_sidecar_of,
     )
 
 
-def _sidecar_against_claim_head_fresh(
+def _sidecar_against_doc_head_fresh(
     session: Session, claim_addr: Address, sidecar_lookup,
 ) -> bool:
     note_addr = _source_note_for_claim(session, claim_addr)

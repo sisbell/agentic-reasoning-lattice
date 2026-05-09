@@ -22,7 +22,7 @@ from typing import ClassVar, Optional
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.lattice.attributes import attest_against_claim_head
+from lib.lattice.attributes import attest_against_doc_head
 from lib.predicates import description_sidecar_of
 from lib.protocols.febe.protocol import Session
 from lib.shared.invoke_claude import invoke_claude
@@ -73,14 +73,18 @@ class ClaimDescribeAgent(Agent):
             file=sys.stderr,
         )
 
-        # Attest + emit freshness-anchor citation from the new sidecar
-        # version to the claim's head. Each fire advances the sidecar
-        # chain by 1 (one real attestation). The citation records
-        # "this attestation was made against this claim version" so
-        # the predicate detects staleness when the claim revises past
-        # the cited version, without artificial chain bumping.
-        attest_against_claim_head(
+        # Attest + emit freshness-anchor citation. The LLM returns text
+        # without an explicit "no change" verdict, so we determine
+        # content_changed by comparing the new description to the
+        # existing one (both stripped). True on first emission (no
+        # existing) and on every real edit; False only when the LLM
+        # produced byte-identical output.
+        content_changed = (
+            existing_desc is None or new_desc != existing_desc
+        )
+        attest_against_doc_head(
             session, claim_path, "description", new_desc, claim_addr,
+            content_changed=content_changed,
         )
 
         return AgentResult(success=True, detail="emitted")

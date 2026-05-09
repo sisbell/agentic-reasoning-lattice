@@ -1,19 +1,25 @@
-"""Tests for attest_attribute and freshness predicates.
+"""Tests for attest_against_doc_head and freshness predicates.
 
 Three sidecar kinds (description, signature, statements) have
-chain-comparison freshness predicates: True iff sidecar's
-supersession chain is at least as long as the claim/note's.
+citation-anchor freshness predicates: True iff the sidecar's head
+version emits a `citation.depends` to `version_head(doc)`.
 
-attest_attribute is the create-or-advance helper that all sidecar
-emissions go through. First-time creates link + sidecar at chain
-length 1; subsequent advances the chain by 1 via register_version
-and writes the new content. The chain advance encodes "I checked
-at this revision," which is meaningful even when the new content
-matches the old (no-op LLM output still counts as an attestation).
+`attest_against_doc_head` takes an explicit `content_changed` flag.
+The producer signals from its own knowledge (LLM verdict, byte
+compare, etc.) whether this fire produced a real edit:
 
-These tests guard the create-or-advance contract. Skip the advance
-and the freshness predicate stays False after any source edit; the
-runner re-fires until max_iterations.
+  - content_changed=True  → register_version on existing sidecar +
+                            attest + anchor citation
+  - content_changed=False → no chain advance + attest (idempotent
+                            file write) + anchor citation
+
+The freshness predicate walks the citation anchor. The chain tracks
+real edits; attestation events are the citation re-emission.
+
+These tests guard the contract: predicate True after a fire (chain
+advance or not); predicate False after the doc advances; predicate
+True after re-firing against the new head; chain advances only when
+content_changed is True.
 """
 
 import json
@@ -26,7 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from lib.backend.store import Store
 from lib.protocols.febe.session import Session
-from lib.lattice.attributes import attest_attribute
+from lib.lattice.attributes import attest_against_doc_head
 from lib.predicates.attributes import (
     signature_is_fresh, signature_sidecar_of,
 )
@@ -49,8 +55,10 @@ def _setup_lattice(tmp):
     return tmp
 
 
-class AttestAttributeTest(unittest.TestCase):
-    """Verify attest_attribute's create-or-advance contract."""
+class AttestAgainstDocHeadTest(unittest.TestCase):
+    """Verify attest_against_doc_head's contract: chain advance plus
+    freshness-anchor citation, predicate flipping address-identity-
+    wise."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -64,44 +72,65 @@ class AttestAttributeTest(unittest.TestCase):
         self.claim_dir.mkdir(parents=True)
         self.claim_md = self.claim_dir / "T0.md"
         self.claim_md.write_text("# T0\n\nFormal Contract: ...\n")
+        # Register the claim md so claim_addr is available before
+        # any attest call. attest_against_doc_head needs claim_addr
+        # at call-time to emit the freshness anchor.
+        self.session.register_path(
+            str(self.claim_md.relative_to(self.lattice))
+        )
 
     def _claim_addr(self):
         return self.session.get_addr_for_path(
             str(self.claim_md.relative_to(self.lattice))
         )
 
-    def test_first_emit_creates_link_at_chain_one(self):
-        link, created = attest_attribute(
+    def test_first_emit_creates_link_with_anchor(self):
+        link, created = attest_against_doc_head(
             self.session, self.claim_md, "signature", "- `nat`: ℕ",
+            self._claim_addr(),
+            content_changed=True,
         )
         self.assertTrue(created, "first call freshly emits the link")
         sidecar_addr = signature_sidecar_of(self.session, self._claim_addr())
         self.assertEqual(
             supersession_chain_length(self.session, sidecar_addr), 1,
+            "first emission creates chain at length 1; "
+            "content_changed=True does not advance further on first emit",
         )
         self.assertTrue(signature_is_fresh(self.session, self._claim_addr()))
 
     def test_claim_edit_invalidates_predicate(self):
-        attest_attribute(self.session, self.claim_md, "signature", "- `nat`: ℕ")
+        attest_against_doc_head(
+            self.session, self.claim_md, "signature", "- `nat`: ℕ",
+            self._claim_addr(),
+            content_changed=True,
+        )
         self.session.register_version(self._claim_addr())
         self.assertFalse(
             signature_is_fresh(self.session, self._claim_addr()),
-            "stale: claim edited, sidecar not yet re-attested",
+            "stale: claim advanced, sidecar's anchor cites old head",
         )
 
-    def test_subsequent_emit_advances_chain_and_restores_freshness(self):
-        # First fire.
-        attest_attribute(self.session, self.claim_md, "signature", "- `nat`: ℕ")
+    def test_subsequent_with_content_changed_advances_chain(self):
+        # First fire — anchor cites claim's identity (which is head).
+        attest_against_doc_head(
+            self.session, self.claim_md, "signature", "- `nat`: ℕ",
+            self._claim_addr(),
+            content_changed=True,
+        )
         sidecar_addr = signature_sidecar_of(self.session, self._claim_addr())
 
-        # Claim is edited (refiner accept): claim chain → 2.
+        # Claim advances; old anchor now points at non-head.
         self.session.register_version(self._claim_addr())
         self.assertFalse(signature_is_fresh(self.session, self._claim_addr()))
 
-        # Subsequent fire: attest_attribute advances the sidecar chain.
-        link, created = attest_attribute(
+        # Subsequent fire with content_changed=True: chain advance +
+        # new anchor citing new head.
+        link, created = attest_against_doc_head(
             self.session, self.claim_md, "signature",
             "- `nat`: ℕ\n- `succ`: ℕ→ℕ",
+            self._claim_addr(),
+            content_changed=True,
         )
         self.assertFalse(created, "subsequent call returns existing link")
 
@@ -111,31 +140,48 @@ class AttestAttributeTest(unittest.TestCase):
         )
         self.assertTrue(
             signature_is_fresh(self.session, self._claim_addr()),
-            "predicate True after subsequent fire — no re-fire loop",
+            "predicate True after re-anchored fire",
         )
 
         # Side-effect: file content is updated.
         sidecar_file = self.claim_dir / "T0.signature.md"
         self.assertIn("succ", sidecar_file.read_text())
 
-    def test_subsequent_emit_with_unchanged_content_still_advances(self):
-        """Even when the LLM produces no delta, the chain ticks.
+    def test_subsequent_with_content_unchanged_re_anchors_only(self):
+        """Re-attesting with content_changed=False emits a new
+        anchor citation but does NOT advance the sidecar chain.
 
-        The chain encodes "I checked at this revision," not "content
-        changed." A no-op fire is still an attestation.
+        The producer signals via the flag whether its fire produced
+        a real edit. False means no edit — the existing sidecar
+        version stays head, the freshness anchor re-emits to point
+        at the doc's new head, and the predicate flips True without
+        chain churn.
         """
-        attest_attribute(self.session, self.claim_md, "signature", "- `nat`: ℕ")
+        attest_against_doc_head(
+            self.session, self.claim_md, "signature", "- `nat`: ℕ",
+            self._claim_addr(),
+            content_changed=True,
+        )
         sidecar_addr = signature_sidecar_of(self.session, self._claim_addr())
 
+        # Doc advances; the sidecar's anchor now points at non-head.
         self.session.register_version(self._claim_addr())
+        self.assertFalse(signature_is_fresh(self.session, self._claim_addr()))
 
-        # Re-attest with identical content (no delta from LLM).
-        attest_attribute(self.session, self.claim_md, "signature", "- `nat`: ℕ")
-
-        self.assertEqual(
-            supersession_chain_length(self.session, sidecar_addr), 2,
-            "chain advanced even though sidecar content unchanged",
+        # Re-attest with content_changed=False (LLM verdict said no edit).
+        attest_against_doc_head(
+            self.session, self.claim_md, "signature", "- `nat`: ℕ",
+            self._claim_addr(),
+            content_changed=False,
         )
+
+        # Chain unchanged — producer signaled no real edit.
+        self.assertEqual(
+            supersession_chain_length(self.session, sidecar_addr), 1,
+            "chain stays at 1 — content_changed=False, no edit",
+        )
+        # Predicate True — a new citation anchor was emitted from the
+        # existing sidecar version to the doc's new head version.
         self.assertTrue(signature_is_fresh(self.session, self._claim_addr()))
 
 

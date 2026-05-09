@@ -7,12 +7,13 @@ read the claim's prose, dispatch the LLM to type each label reference
 bullets in *Depends:* / *Forward References:* sections), emit
 substrate links (citation.depends/forward, retraction,
 citation.resolve, provenance.derivation), attest the references
-sidecar via attest_attribute (advances the supersession chain so
-references_is_fresh flips True), persist the resolve-doc audit
-trail, commit.
+sidecar via attest_against_doc_head (chain advance + freshness-
+anchor citation from sidecar head to claim head, which is what
+references_is_fresh reads), persist the resolve-doc audit trail,
+commit.
 
 Caste: producer. Identity grant: references sidecar (created or
-chain-advanced via attest_attribute), plus per-fire
+chain-advanced via attest_against_doc_head), plus per-fire
 citation.depends/forward and retraction links.
 """
 
@@ -28,7 +29,7 @@ from typing import ClassVar, List, NamedTuple
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_citation, emit_retraction
-from lib.lattice.attributes import attest_attribute
+from lib.lattice.attributes import attest_against_doc_head
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import read_file
@@ -471,7 +472,8 @@ class ClaimCitationResolveAgent(Agent):
     reference, applies the resulting changes to the claim md
     (insert/remove bullets in *Depends:* / *Forward References:*),
     emits substrate links, attests the references sidecar via
-    attest_attribute, persists the resolve-doc audit trail, commits.
+    attest_against_doc_head, persists the resolve-doc audit trail,
+    commits.
     """
 
     role: ClassVar[str] = "claim-citation-resolve"
@@ -542,15 +544,22 @@ class ClaimCitationResolveAgent(Agent):
                 resolve_rel, label_index,
             )
 
-        # attest_attribute is the create-or-advance helper; it advances
-        # the references sidecar's supersession chain so
-        # references_is_fresh reads True. Unconditional — even on
-        # zero LLM delta, the agent ran and the attestation matters.
+        # attest_against_doc_head emits the freshness anchor citation
+        # (sidecar's head → claim's head) alongside the attestation.
+        # content_changed reflects the LLM verdict: empty
+        # classifications AND empty retractions means the references
+        # sidecar's content is unchanged this fire (re-anchor only,
+        # no chain advance). Any non-empty list means real edit.
         sidecar_text = _render_references_sidecar(
             session, claim_rel, label_index,
         )
-        attest_attribute(
+        content_changed = (
+            bool(result.classifications) or bool(result.retractions)
+        )
+        attest_against_doc_head(
             session, claim_rel, "references", sidecar_text.rstrip(),
+            claim_addr,
+            content_changed=content_changed,
         )
 
         n_class = len(result.classifications)

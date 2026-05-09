@@ -87,11 +87,19 @@ def attribute_is_fresh(
     *,
     confirmation_gate: bool = False,
 ) -> Callable[[Session, Address], bool]:
-    """Generate `<kind>_is_fresh(doc)` chain-comparison predicate.
+    """Generate `<kind>_is_fresh(doc)` citation-anchor predicate.
 
-    True iff the `kind` sidecar's supersession chain is at least as
-    long as `doc`'s chain. False when no sidecar exists (initial
-    state) — the corresponding producer should fire to create it.
+    True iff the `kind` sidecar's head version carries a
+    `citation.depends` to `version_head(doc)` — i.e., the sidecar
+    has been attested against the doc's current head. False when no
+    sidecar exists (initial state) or when the anchor points at a
+    stale doc address — the corresponding producer should fire to
+    re-attest via `attest_against_doc_head`.
+
+    The signal is address-identity, not chain-length. Each real
+    attestation is exactly one fire; spurious chain ticks on the
+    doc don't trigger re-fire because the anchor still points at
+    `version_head(doc)` if no semantic edit advanced the chain.
 
     `confirmation_gate=True` adds a precondition: if the doc is not
     yet confirmed (still in revise cycles), report fresh and skip
@@ -106,19 +114,23 @@ def attribute_is_fresh(
             if not is_claim_confirmed(session, doc_addr):
                 return True
 
-        from lib.predicates.versions import supersession_chain_length
+        from lib.predicates.versions import version_head
         sidecar_addr = sidecar_lookup(session, doc_addr)
         if sidecar_addr is None:
             return False
-        return (
-            supersession_chain_length(session, sidecar_addr)
-            >= supersession_chain_length(session, doc_addr)
-        )
+        sidecar_head = version_head(session, sidecar_addr)
+        doc_head = version_head(session, doc_addr)
+        for link in session.active_links(
+            "citation.depends", from_set=[sidecar_head],
+        ):
+            if doc_head in link.to_set:
+                return True
+        return False
 
     predicate.__name__ = f"{kind}_is_fresh"
     gate = " (with confirmation gate)" if confirmation_gate else ""
     predicate.__doc__ = (
-        f"True iff `{kind}` sidecar's chain ≥ doc's chain{gate}."
+        f"True iff `{kind}` sidecar's head cites doc's head{gate}."
     )
     return predicate
 
