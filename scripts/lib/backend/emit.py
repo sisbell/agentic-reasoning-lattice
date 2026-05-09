@@ -744,6 +744,26 @@ def emit_agent_scope(
     return emit_classifier(store, agent_doc, f"agent.scope.{scope_type}")
 
 
+def emit_agent_caste(
+    store: Store, agent_doc: Address, caste: str,
+) -> Tuple[Link, bool]:
+    """Classify an agent doc with its caste declaration.
+
+    `caste` is one of `"producer"`, `"refiner"`, `"scout"`, or
+    `"worker"`. The classifier subtype (`agent.caste.<value>`) is
+    filed on the agent doc; predicates and tooling that filter agents
+    by caste read this from substrate.
+
+    Idempotent — re-classifying with the same caste is a no-op.
+    """
+    if caste not in {"producer", "refiner", "scout", "worker"}:
+        raise ValueError(
+            f"unknown caste {caste!r}; "
+            f"must be one of 'producer', 'refiner', 'scout', 'worker'"
+        )
+    return emit_classifier(store, agent_doc, f"agent.caste.{caste}")
+
+
 
 # ============================================================
 #  Notation (lattice-wide singleton)

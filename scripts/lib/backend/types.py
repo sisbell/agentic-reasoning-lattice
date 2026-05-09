@@ -82,6 +82,10 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "agent.scope.note": (6, 1, 1),
     "agent.scope.claim": (6, 1, 2),
     "agent.scope.inquiry": (6, 1, 3),
+    "agent.caste.producer": (6, 2, 1),
+    "agent.caste.refiner": (6, 2, 2),
+    "agent.caste.scout": (6, 2, 3),
+    "agent.caste.worker": (6, 2, 4),
 }
 
 # Parent-type positions for hierarchical queries (per L10): a query at
@@ -101,6 +105,7 @@ PARENT_TYPES: Dict[str, Tuple[int, ...]] = {
     "patch": (30,),
     "claims": (34,),
     "agent.scope": (6, 1),
+    "agent.caste": (6, 2),
 }
 
 # Types whose endset shape is Classifier (F=∅, G=[doc]). When State.create_doc
@@ -138,6 +143,10 @@ CLASSIFIER_TYPES: frozenset = frozenset({
     "agent.scope.note",
     "agent.scope.claim",
     "agent.scope.inquiry",
+    "agent.caste.producer",
+    "agent.caste.refiner",
+    "agent.caste.scout",
+    "agent.caste.worker",
 })
 
 
