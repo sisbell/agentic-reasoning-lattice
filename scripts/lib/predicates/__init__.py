@@ -57,7 +57,7 @@ from .classifiers import (
     claim_formal_contract_is_fresh,
     current_contract_kind,
     has_contract_kind,
-    has_formal_contract_in_md,
+    has_formal_contract,
     is_review_decomposed,
     is_retired,
 )
@@ -100,7 +100,7 @@ __all__ = [
     "description_is_fresh_after_asn_confirmation",
     "current_contract_kind",
     "has_contract_kind",
-    "has_formal_contract_in_md",
+    "has_formal_contract",
     "dangling_attribute_links",
     "dangling_claim_finding_links",
     "dangling_note_finding_links",

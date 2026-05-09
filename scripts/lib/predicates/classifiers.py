@@ -70,10 +70,11 @@ _KINDS_WITHOUT_FORMAL_CONTRACT = frozenset({
 })
 
 
-def has_formal_contract_in_md(
+def has_formal_contract(
     session: Session, claim_addr: Address,
 ) -> bool:
-    """True iff the claim md body contains a `*Formal Contract:*` section.
+    """True iff the claim's doc body contains a `*Formal Contract:*`
+    section.
 
     Reads the file directly. Returns False if the path can't be resolved
     or the file is missing.
@@ -111,7 +112,7 @@ def claim_formal_contract_is_fresh(
         return True  # wait for claim_contract producer
     if kind in _KINDS_WITHOUT_FORMAL_CONTRACT:
         return True
-    return has_formal_contract_in_md(session, claim_addr)
+    return has_formal_contract(session, claim_addr)
 
 
 def all_classified(session: Session, kind: str) -> List[Address]:

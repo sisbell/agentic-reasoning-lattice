@@ -19,6 +19,7 @@ from lib.backend.addressing import Address
 from lib.lattice.deps import build_deps_for_asn
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.predicates import (
+    has_formal_contract,
     is_cascade_fresh_one_hop,
     is_claim_confirmed,
     is_claim_quiescent,
@@ -106,16 +107,21 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
 def _predicate(session: Session, addr: Address) -> bool:
     """True (skip) iff cone-review should not fire on this claim.
 
-    Three skip conditions:
-      1. Upstream is mid-update — `is_upstream_settled_one_hop` is
+    Four skip conditions:
+      1. Claim has no Formal Contract section yet — wait for
+         `claim_formal_contract` to land before reviewing. Without
+         a Formal Contract there's nothing substantive to review.
+      2. Upstream is mid-update — `is_upstream_settled_one_hop` is
          False. Wait for direct citation upstream to be locally
          settled before reviewing this claim. Implements the chaining
          model's layered-convergence gate.
-      2. Claim is confirmed AND cascade-fresh — already done; nothing
+      3. Claim is confirmed AND cascade-fresh — already done; nothing
          has advanced upstream since the last review.
-      3. Open revises pending on this claim — let the refiner close
+      4. Open revises pending on this claim — let the refiner close
          them before re-reviewing.
     """
+    if not has_formal_contract(session, addr):
+        return True
     if not is_upstream_settled_one_hop(session, addr):
         return True
     if (
