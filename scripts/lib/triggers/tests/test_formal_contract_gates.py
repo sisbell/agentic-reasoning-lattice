@@ -22,6 +22,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from lib.backend.store import Store
 from lib.protocols.febe.session import Session
+from lib.triggers.claim_structural_audit import (
+    _predicate as structural_audit_predicate,
+)
 from lib.triggers.cone_review import _predicate as cone_review_predicate
 from lib.triggers.full_review import _predicate as full_review_predicate
 
@@ -162,6 +165,50 @@ class FullReviewFormalContractGate(unittest.TestCase):
         returns True vacuously (`all` over empty), predicate skips
         before reaching the FC gate."""
         self.assertTrue(full_review_predicate(self.session, self.note_addr))
+
+
+class StructuralAuditFormalContractGate(unittest.TestCase):
+    """claim_structural_audit must skip a claim without a Formal
+    Contract — running the validator on an empty FC produces a
+    false-clean audit (zero violations from nothing-to-check)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.lattice = _setup_lattice(Path(self.tmp.name)).resolve()
+        self.store = Store(self.lattice)
+        self.session = Session(self.store)
+        self.claim_dir = (
+            self.lattice / "_docuverse" / "documents" / "claim" / "ASN-0099"
+        )
+        self.claim_dir.mkdir(parents=True)
+
+    def _register_claim(self, name: str, body: str) -> "Address":
+        from lib.backend.emit import emit_claim
+        path = self.claim_dir / f"{name}.md"
+        path.write_text(body)
+        rel = str(path.relative_to(self.lattice))
+        addr = self.session.register_path(rel)
+        emit_claim(self.store, addr)
+        return addr
+
+    def test_skips_when_no_formal_contract_section(self):
+        """Claim body without `*Formal Contract:*` → predicate True
+        (skip). Don't run the validator on a contract-less claim."""
+        addr = self._register_claim(
+            "T0", "# T0\n\nSome prose, no Formal Contract.\n",
+        )
+        self.assertTrue(structural_audit_predicate(self.session, addr))
+
+    def test_fires_when_formal_contract_present_and_no_audit_yet(self):
+        """Claim has FC, no audit history → predicate False (fire).
+        is_claim_audit_fresh returns False on never-audited claims;
+        the FC gate doesn't suppress that."""
+        addr = self._register_claim(
+            "T0",
+            "# T0\n\n*Formal Contract:*\n- *Postconditions:* x\n",
+        )
+        self.assertFalse(structural_audit_predicate(self.session, addr))
 
 
 if __name__ == "__main__":
