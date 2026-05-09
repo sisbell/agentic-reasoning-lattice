@@ -47,6 +47,7 @@ from lib.backend.addressing import Address
 from lib.backend.links import Link
 from lib.backend.state import State, TypeArg
 from lib.backend.store import Store
+from lib.lattice.config import LatticeConfig, load_lattice_config
 from lib.protocols.bebe import BEBEDispatcher
 
 
@@ -64,10 +65,12 @@ class Session:
         default_lattice: Optional[Address] = None,
         *,
         bebe: Optional[BEBEDispatcher] = None,
+        config: Optional[LatticeConfig] = None,
     ) -> None:
         self.backend = backend
         self.default_lattice = default_lattice
         self.bebe = bebe or BEBEDispatcher()
+        self.config = config or LatticeConfig()
 
     # ── Backend access (for protocol-helper interop during Pass 2) ──
 
@@ -433,6 +436,7 @@ class Session:
         # (which delegates to Store via __getattr__).
         return Session(
             wrapped, default_lattice=self.default_lattice, bebe=self.bebe,
+            config=self.config,
         )
 
     @contextlib.contextmanager
@@ -454,12 +458,17 @@ def open_session(
     underlying Store is wrapped in `AttributingStore` for provenance
     auto-emission. Standalone runs (no env var) get a plain Store.
 
+    Loads the lattice's config.yaml once into `session.config` so
+    callers that already hold a session can reach lattice-level
+    settings (label_prefix, default_campaign) without a second import.
+
     The standard caller pattern is:
 
         with open_session(LATTICE) as session:
             session.make_link(...)
     """
-    return Session(default_store(lattice_dir), bebe=bebe)
+    config = load_lattice_config(Path(lattice_dir) / "config.yaml")
+    return Session(default_store(lattice_dir), bebe=bebe, config=config)
 
 
 # ── Provenance plumbing (substrate-tier) ───────────────────────────
