@@ -37,6 +37,7 @@ from lib.agents.producers._promote_helpers import (
 )
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import LATTICE, REVIEWS_DIR, prompt_path
@@ -80,10 +81,10 @@ class NotePromoteOutOfScopeAgent(Agent):
         if note_rel is None:
             return AgentResult(success=False, detail="no-note-path")
 
-        m = re.search(r"ASN-(\d{4})", note_rel)
-        if m is None:
+        digits = extract_label_digits(note_rel)
+        if digits is None:
             return AgentResult(success=False, detail="unparseable-note-path")
-        asn_num = int(m.group(1))
+        asn_num = int(digits)
         asn_path, asn_label = find_asn(str(asn_num))
         if asn_path is None:
             return AgentResult(success=False, detail="find_asn-failed")
@@ -131,7 +132,7 @@ class NotePromoteOutOfScopeAgent(Agent):
                     continue
                 area = item.get("area", "")
                 print(
-                    f"    ASN-{cur_num:04d}: {item['title']} [{area}]",
+                    f"    {format_label(cur_num)}: {item['title']} [{area}]",
                     file=sys.stderr,
                 )
                 addr = create_inquiry_doc(

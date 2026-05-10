@@ -30,6 +30,12 @@ from typing import ClassVar, Optional
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.lattice.attributes import attest_against_doc_head
+from lib.lattice.config import lattice_config
+from lib.lattice.labels import (
+    extract_label_digits,
+    format_label,
+    label_pattern,
+)
 from lib.predicates import statements_sidecar_of
 from lib.protocols.febe.protocol import Session
 from lib.shared.invoke_claude import invoke_claude
@@ -42,7 +48,7 @@ STATEMENTS_TEMPLATE = prompt_path("agents/producers/note_statements.md")
 
 def _strip_preamble(text: str) -> str:
     """Strip any preamble before the statements header line."""
-    marker = re.search(r"^# ASN-\d+", text, re.MULTILINE)
+    marker = re.search(rf"^# {label_pattern().pattern}", text, re.MULTILINE)
     if marker:
         return text[marker.start():]
     return text
@@ -163,5 +169,7 @@ class NoteStatementsAgent(Agent):
         return full.read_text().strip() or None
 
     def _asn_label_from_path(self, path: str) -> str:
-        m = re.search(r"(ASN-\d{4})", path)
-        return m.group(1) if m else "ASN-????"
+        digits = extract_label_digits(path)
+        if digits:
+            return format_label(int(digits))
+        return f"{lattice_config().label_prefix}-????"

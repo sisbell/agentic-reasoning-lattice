@@ -22,6 +22,11 @@ from typing import ClassVar, List, Tuple
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.predicates import unresolved_revise_comments
+from lib.lattice.labels import (
+    extract_label_digits,
+    format_label,
+    label_pattern,
+)
 from lib.lattice.render import read_doc
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
@@ -74,7 +79,7 @@ def build_prompt(
         parts.append(foundation)
 
     rel_path = asn_path.relative_to(WORKSPACE)
-    asn_label = re.match(r"(ASN-\d+)", asn_path.stem).group(1)
+    asn_label = label_pattern().match(asn_path.stem).group(0)
 
     assignment = f"""## Your Assignment: REVISE {asn_label}
 
@@ -253,11 +258,11 @@ class NoteReviseAgent(Agent):
         if not asn_path.exists():
             return AgentResult(success=False, detail="no-note-file")
 
-        m = re.search(r"(ASN-\d{4})", note_path_rel)
-        if m is None:
+        digits = extract_label_digits(note_path_rel)
+        if digits is None:
             return AgentResult(success=False, detail="no-asn-label")
-        asn_label = m.group(1)
-        asn_number = int(asn_label[4:])
+        asn_number = int(digits)
+        asn_label = format_label(asn_number)
 
         findings = _collect_open_revises(session, note_addr)
         if not findings:

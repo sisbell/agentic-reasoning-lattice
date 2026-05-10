@@ -48,6 +48,7 @@ from lib.predicates import (
 )
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
@@ -504,10 +505,10 @@ def _latest_uncovered_review(session: Session, note_addr: Address):
         return None
 
     note_path = session.get_path_for_addr(note_addr)
-    m = re.search(r"(ASN-\d{4})", note_path or "")
-    if m is None:
+    digits = extract_label_digits(note_path or "")
+    if digits is None:
         return None
-    asn_label = m.group(1)
+    asn_label = format_label(int(digits))
     review_path = REVIEWS_DIR / asn_label / f"review-{best_num}.md"
     if not review_path.exists():
         return None
@@ -535,11 +536,11 @@ class NoteConsultAgent(Agent):
         if not asn_path.exists():
             return AgentResult(success=False, detail="no-note-file")
 
-        m = re.search(r"(ASN-\d{4})", note_path_rel)
-        if m is None:
+        digits = extract_label_digits(note_path_rel)
+        if digits is None:
             return AgentResult(success=False, detail="no-asn-label")
-        asn_label = m.group(1)
-        asn_number = int(asn_label[4:])
+        asn_number = int(digits)
+        asn_label = format_label(asn_number)
 
         target = _latest_uncovered_review(session, note_addr)
         if target is None:

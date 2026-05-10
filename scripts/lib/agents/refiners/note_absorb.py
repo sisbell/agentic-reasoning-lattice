@@ -73,6 +73,7 @@ from lib.backend.emit import (
     emit_review, emit_review_coverage,
 )
 from lib.lattice.findings import record_one_finding
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, log_usage, read_file
@@ -139,8 +140,8 @@ def _promote_spec_to_substrate(
 def _asn_num_from_path(path: str | None) -> int | None:
     if path is None:
         return None
-    m = re.search(r"ASN-(\d+)", path)
-    return int(m.group(1)) if m else None
+    digits = extract_label_digits(path)
+    return int(digits) if digits else None
 
 
 def _resolve_lineage(
@@ -150,7 +151,7 @@ def _resolve_lineage(
     resolve base + (optional) source. Returns
     (ext_addr, base_num, source_num, ext_path, base_path) or None
     on error."""
-    ext_label = f"ASN-{ext_num:04d}"
+    ext_label = format_label(ext_num)
     ext_path, _ = find_asn(str(ext_num))
     if ext_path is None:
         print(
@@ -195,7 +196,7 @@ def _resolve_lineage(
     base_path, _ = find_asn(str(base_num))
     if base_path is None:
         print(
-            f"  [ERROR] base ASN-{base_num:04d} note file not found",
+            f"  [ERROR] base {format_label(base_num)} note file not found",
             file=sys.stderr,
         )
         return None
@@ -381,7 +382,7 @@ def _update_source_citations(
     *, model: str, effort: str,
 ) -> bool:
     """Rewrite the source ASN's now-extracted claims as citations to base."""
-    source_label = f"ASN-{source_num:04d}"
+    source_label = format_label(source_num)
     source_path, _ = find_asn(str(source_num))
     if source_path is None:
         print(
@@ -505,8 +506,8 @@ class NoteAbsorbAgent(Agent):
         if lineage is None:
             return AgentResult(success=False, detail="lineage-resolution-failed")
         ext_addr, base_num, source_num, ext_path, base_path = lineage
-        ext_label = f"ASN-{ext_num:04d}"
-        base_label = f"ASN-{base_num:04d}"
+        ext_label = format_label(ext_num)
+        base_label = format_label(base_num)
 
         os.environ.setdefault("PROTOCOL_ASN_LABEL", base_label)
 

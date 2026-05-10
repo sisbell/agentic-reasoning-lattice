@@ -23,7 +23,13 @@ from typing import ClassVar, List, Tuple
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_review, emit_review_coverage
+from lib.lattice.config import lattice_config
 from lib.lattice.findings import record_one_finding
+from lib.lattice.labels import (
+    extract_label_digits,
+    format_label,
+    label_pattern,
+)
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
@@ -125,7 +131,7 @@ def _build_prompt(
 
 def _strip_preamble(text: str) -> str:
     """Strip any tool-use preamble before the review header."""
-    marker = re.search(r"^# Review of ASN-\d+", text, re.MULTILINE)
+    marker = re.search(rf"^# Review of {label_pattern().pattern}", text, re.MULTILINE)
     if marker:
         return text[marker.start():]
     return text
@@ -133,8 +139,8 @@ def _strip_preamble(text: str) -> str:
 
 def _validate_review(text: str):
     """Check that review text has required structure. Returns error message or None."""
-    if not re.search(r"^# Review of ASN-\d+", text, re.MULTILINE):
-        return "missing '# Review of ASN-NNNN' header"
+    if not re.search(rf"^# Review of {label_pattern().pattern}", text, re.MULTILINE):
+        return f"missing '# Review of {lattice_config().label_prefix}-NNNN' header"
     if not re.search(r"^VERDICT:\s*\w+", text, re.MULTILINE):
         return "missing VERDICT line"
     if not (
@@ -197,11 +203,11 @@ class NoteReviewAgent(Agent):
         if not asn_path.exists():
             return AgentResult(success=False, detail="no-note-file")
 
-        m = re.search(r"(ASN-\d{4})", note_path_rel)
-        if m is None:
+        digits = extract_label_digits(note_path_rel)
+        if digits is None:
             return AgentResult(success=False, detail="no-asn-label")
-        asn_label = m.group(1)
-        asn_number = int(asn_label[4:])
+        asn_number = int(digits)
+        asn_label = format_label(asn_number)
 
         # Assemble + invoke
         asn_content = asn_path.read_text()

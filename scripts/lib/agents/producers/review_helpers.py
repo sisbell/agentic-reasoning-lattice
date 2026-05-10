@@ -26,6 +26,7 @@ import sys
 from typing import List, Optional, Tuple
 
 from lib.backend.addressing import Address
+from lib.lattice.labels import format_label
 from lib.lattice.render import read_doc
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import read_file
@@ -93,7 +94,7 @@ def run_review(
         return "ERROR", None, 0
 
     depends = claim_asn_dep_ids(asn_num)
-    depends_str = ", ".join(f"ASN-{d:04d}" for d in depends)
+    depends_str = ", ".join(format_label(d) for d in depends)
 
     prior = previous_findings if previous_findings else "(none)"
 

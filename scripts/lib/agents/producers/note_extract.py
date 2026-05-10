@@ -63,6 +63,7 @@ from lib.backend.emit import (
     emit_source,
 )
 from lib.protocols.febe.protocol import Session
+from lib.lattice.labels import format_label, label_pattern
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.foundation import (
@@ -166,7 +167,7 @@ def _validate_spec(
     origin_path, _ = find_asn(str(extract_from))
     if origin_path is None:
         print(
-            f"  [ERROR] extract_from ASN-{extract_from:04d} not found",
+            f"  [ERROR] extract_from {format_label(extract_from)} not found",
             file=sys.stderr,
         )
         return None
@@ -174,12 +175,12 @@ def _validate_spec(
     absorb_inquiry = load_inquiry(absorb_into)
     if not absorb_inquiry:
         print(
-            f"  [ERROR] absorb_into ASN-{absorb_into:04d} has no inquiry doc",
+            f"  [ERROR] absorb_into {format_label(absorb_into)} has no inquiry doc",
             file=sys.stderr,
         )
         return None
 
-    new_label = f"ASN-{create_note:04d}"
+    new_label = format_label(create_note)
     existing = list(NOTE_DIR.glob(f"{new_label}-*.md"))
     if existing:
         print(
@@ -254,7 +255,7 @@ def _build_prompt(
 
 
 def _strip_preamble(text: str) -> str:
-    marker = re.search(r"^# ASN-\d+", text, re.MULTILINE)
+    marker = re.search(rf"^# {label_pattern().pattern}", text, re.MULTILINE)
     return text[marker.start():] if marker else text
 
 
@@ -352,9 +353,9 @@ class NoteExtractAgent(Agent):
         absorb_title = absorb_inquiry.get("title", "")
         new_slug, new_title = _derive_names(absorb_title, absorb_into)
 
-        new_label = f"ASN-{create_note:04d}"
-        absorb_into_label = f"ASN-{absorb_into:04d}"
-        origin_label = f"ASN-{extract_from:04d}"
+        new_label = format_label(create_note)
+        absorb_into_label = format_label(absorb_into)
+        origin_label = format_label(extract_from)
 
         os.environ.setdefault("PROTOCOL_ASN_LABEL", new_label)
 

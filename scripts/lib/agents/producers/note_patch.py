@@ -57,6 +57,7 @@ from lib.backend.emit import (
     emit_derivation, emit_patch_note, emit_review, emit_review_coverage,
 )
 from lib.lattice.findings import record_one_finding
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, log_usage, read_file
@@ -294,12 +295,11 @@ class NotePatchAgent(Agent):
         if not asn_path_full.exists():
             return AgentResult(success=False, detail="no-note-file")
 
-        import re
-        m = re.search(r"(ASN-(\d{4}))", note_rel)
-        if m is None:
+        digits = extract_label_digits(note_rel)
+        if digits is None:
             return AgentResult(success=False, detail="unparseable-note-path")
-        asn_label = m.group(1)
-        asn_num = int(m.group(2))
+        asn_num = int(digits)
+        asn_label = format_label(asn_num)
         asn_path, _ = find_asn(str(asn_num))
         if asn_path is None:
             return AgentResult(success=False, detail="find_asn-failed")

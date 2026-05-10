@@ -57,6 +57,7 @@ from lib.backend.emit import (
     emit_provenance_clone,
 )
 from lib.protocols.febe.protocol import Session
+from lib.lattice.labels import format_label
 from lib.shared.common import find_asn
 from lib.shared.frontmatter import read_doc_with_frontmatter
 from lib.shared.git_ops import step_commit
@@ -107,8 +108,8 @@ def _validate(
 ) -> Tuple[Path, str, str] | None:
     """Confirm origin exists, target doesn't. Returns
     (origin_path, origin_label, clone_label) or None."""
-    origin_label = f"ASN-{clone_from:04d}"
-    clone_label = f"ASN-{create_note:04d}"
+    origin_label = format_label(clone_from)
+    clone_label = format_label(create_note)
 
     origin_path, _ = find_asn(str(clone_from))
     if origin_path is None:

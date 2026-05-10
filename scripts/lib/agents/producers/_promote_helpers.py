@@ -20,6 +20,7 @@ from typing import Iterable, List, Tuple
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_derivation, emit_inquiry, emit_promotion
 from lib.protocols.febe.protocol import Session
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.frontmatter import read_doc_frontmatter
 from lib.shared.paths import (
     LATTICE, WORKSPACE, inquiry_doc_path, promotion_doc_path,
@@ -35,9 +36,9 @@ def _inquiry_addrs(session: Session) -> Iterable[Tuple[int, Address]]:
         path = session.get_path_for_addr(addr)
         if not path:
             continue
-        m = re.search(r"ASN-(\d+)", path)
-        if m:
-            yield int(m.group(1)), addr
+        digits = extract_label_digits(path)
+        if digits:
+            yield int(digits), addr
 
 
 def load_existing_inquiries(session: Session) -> str:
@@ -52,7 +53,7 @@ def load_existing_inquiries(session: Session) -> str:
         title = front.get("title", "")
         question = front.get("question", "")
         if title:
-            entries.append(f"- ASN-{asn_num:04d}: {title} — {question}")
+            entries.append(f"- {format_label(asn_num)}: {title} — {question}")
     return "\n".join(entries) if entries else "(none)"
 
 
@@ -143,7 +144,7 @@ def create_inquiry_doc(
         f'area: "{area}"\n'
         f"nelson: {nelson}\n"
         f"gregory: {gregory}\n"
-        f'source: "promoted from ASN-{source_asn:04d}"\n'
+        f'source: "promoted from {format_label(source_asn)}"\n'
         f"---\n"
         f"\n"
         f"# Inquiry: {title}\n"

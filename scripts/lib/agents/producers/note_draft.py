@@ -30,6 +30,7 @@ from lib.backend.addressing import Address
 from lib.backend.emit import emit_note, emit_synthesis
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
@@ -117,7 +118,7 @@ def _build_discovery_prompt(inquiry, asn_number, slug, answers_content,
     foundation_section = f"\n\n{foundation}" if foundation else ""
     return (template
         .replace("{{consultation_answers}}", answers_content)
-        .replace("{{asn_number}}", f"ASN-{asn_number:04d}")
+        .replace("{{asn_number}}", format_label(asn_number))
         .replace("{{title}}", inquiry["title"])
         .replace("{{question}}", inquiry["question"])
         .replace("{{slug}}", slug)
@@ -168,7 +169,7 @@ def _build_consultation_content(asn_number):
 
 def _run_discovery(inquiry, asn_number, slug, force=False):
     """Invoke the discovery LLM and write the ASN file. Returns path or None."""
-    outfile = NOTE_DIR / f"ASN-{asn_number:04d}-{slug}.md"
+    outfile = NOTE_DIR / f"{format_label(asn_number)}-{slug}.md"
 
     if outfile.exists() and not force:
         print(f"  [SKIP] {outfile.name} already exists (use force=True to overwrite)",
@@ -179,7 +180,7 @@ def _run_discovery(inquiry, asn_number, slug, force=False):
     if answer_count == 0:
         print(
             f"  [ERROR] No consultation answers found in substrate for "
-            f"ASN-{asn_number:04d} — run inquiry-consult first",
+            f"{format_label(asn_number)} — run inquiry-consult first",
             file=sys.stderr,
         )
         return None
@@ -219,7 +220,7 @@ def _run_discovery(inquiry, asn_number, slug, force=False):
     if data is None:
         return None
 
-    _log_usage("discovery", f"ASN-{asn_number:04d}", inquiry["title"],
+    _log_usage("discovery", format_label(asn_number), inquiry["title"],
                inquiry.get("area", ""), response.elapsed, data)
 
     if outfile.exists():
@@ -227,7 +228,7 @@ def _run_discovery(inquiry, asn_number, slug, force=False):
               file=sys.stderr)
         return outfile
 
-    written = list(NOTE_DIR.glob(f"ASN-{asn_number:04d}-*.md"))
+    written = list(NOTE_DIR.glob(f"{format_label(asn_number)}-*.md"))
     if written:
         actual = written[0]
         print(
@@ -240,7 +241,7 @@ def _run_discovery(inquiry, asn_number, slug, force=False):
     print(f"  [WARN] ASN file not found — saving raw response", file=sys.stderr)
     response = data.get("result", "")
     if response:
-        fallback = NOTE_DIR / f"ASN-{asn_number:04d}-{slug}-response.md"
+        fallback = NOTE_DIR / f"{format_label(asn_number)}-{slug}-response.md"
         fallback.write_text(response)
         return fallback
 
@@ -257,7 +258,7 @@ def _run_draft_for_inquiry(asn_id, *, force: bool = False):
     """
     inquiry = _load_inquiry_record(asn_id)
     if not inquiry:
-        print(f"  [ERROR] No inquiry found for ASN-{asn_id:04d}",
+        print(f"  [ERROR] No inquiry found for {format_label(asn_id)}",
               file=sys.stderr)
         return None
 
@@ -265,7 +266,7 @@ def _run_draft_for_inquiry(asn_id, *, force: bool = False):
     slug = _slugify(inquiry["title"])
 
     NOTE_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"ASN-{asn_number:04d}: {inquiry['title']}", file=sys.stderr)
+    print(f"{format_label(asn_number)}: {inquiry['title']}", file=sys.stderr)
 
     asn_path = _run_discovery(inquiry, asn_number, slug, force=force)
     if not asn_path:
@@ -302,11 +303,11 @@ class NoteDraftAgent(Agent):
         if inquiry_path_rel is None:
             return AgentResult(success=False, detail="no-inquiry-path")
 
-        m = re.search(r"ASN-(\d{4})", inquiry_path_rel)
-        if m is None:
+        digits = extract_label_digits(inquiry_path_rel)
+        if digits is None:
             return AgentResult(success=False, detail="no-asn-label")
-        asn_num = int(m.group(1))
-        asn_label = f"ASN-{asn_num:04d}"
+        asn_num = int(digits)
+        asn_label = format_label(asn_num)
 
         print(f"  [NOTE-DRAFT] {asn_label}", file=sys.stderr)
 
