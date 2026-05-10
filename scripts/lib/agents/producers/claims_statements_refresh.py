@@ -6,12 +6,14 @@ Two-mode behavior driven by predicate state:
   First fire (claims confirmed, no aggregate yet) — *create*. Mint a
   substrate address for the aggregate, file the `claims.statements`
   identity classifier, emit `note → provenance.derivation →
-  aggregate`, retire the `note.statements` sidecar (its supersession
-  chain has reached the point where the aggregate takes over), emit
-  `supersession(note.statements → aggregate)`, write the
-  mechanically-assembled content to disk, and emit
-  `citation.depends` from the new aggregate to each derived claim's
-  current head (the freshness anchors).
+  aggregate`, emit `supersession(note.statements → aggregate)` (so
+  readers walking from the sidecar address land on the live
+  aggregate), write the mechanically-assembled content to disk, and
+  emit `citation.depends` from the new aggregate to each derived
+  claim's current head (the freshness anchors). The sidecar is NOT
+  retired — `retired` is the runner's note-skip signal and belongs
+  on note docs, not on sidecars; the supersession bridge alone is
+  enough to steer readers.
 
   Subsequent fires (aggregate exists, at least one claim has
   advanced past its anchor) — *advance*. Re-assemble the content
@@ -46,7 +48,7 @@ from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.backend.emit import (
     emit_citation, emit_claims_statements, emit_derivation,
-    emit_retired, emit_supersession,
+    emit_supersession,
 )
 from lib.predicates import claims_statements_for_note, derived_claims
 from lib.predicates.versions import version_head
@@ -84,7 +86,8 @@ class ClaimsStatementsRefreshAgent(Agent):
 
     def _create(self, session: Session, note_addr: Address) -> Address:
         """Mint the aggregate address, file the identity classifier,
-        retire note.statements, and emit the supersession bridge.
+        and emit the supersession bridge from the note's statements
+        sidecar.
         """
         store = session.store
         lattice_root = store.lattice_dir.resolve()
@@ -103,7 +106,6 @@ class ClaimsStatementsRefreshAgent(Agent):
         sidecar = _note_statements_sidecar(session, note_addr)
         if sidecar is not None:
             emit_supersession(store, sidecar, addr)
-            emit_retired(store, sidecar)
 
         return addr
 
