@@ -32,6 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.doctor import Severity, run_checks
+from lib.doctor import aggregate_anchor_coverage as anchor_coverage_check
 from lib.doctor import claim_statements_bridge as bridge_check
 from lib.doctor import holdings as holdings_check
 from lib.doctor import version_graph as version_graph_check
@@ -52,6 +53,11 @@ def _build_registry(stale_threshold: int):
             bridge_check.check_claim_statements_bridge,
             bridge_check.CHECK_NAME,
             bridge_check.CHECK_DESCRIPTION,
+        ),
+        (
+            anchor_coverage_check.check_aggregate_anchor_coverage,
+            anchor_coverage_check.CHECK_NAME,
+            anchor_coverage_check.CHECK_DESCRIPTION,
         ),
         (
             lambda s: holdings_check.check_stale_holdings(s, stale_threshold),
