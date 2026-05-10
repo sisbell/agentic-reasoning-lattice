@@ -165,19 +165,16 @@ NOTE_FINDINGS_DIR = DOCUVERSE_AUTHOR_DIR / "finding" / "notes"
 # of `review-N`.
 CLAIM_AUDITS_DIR = DOCUVERSE_AUTHOR_DIR / "audit" / "claims"
 
-# Transclusion-rendered documents (tagged by `transclusion.<kind>`).
-# The substrate path is a citizen address; no on-disk file is
-# written — the registered renderer supplies content at read time.
-TRANSCLUSION_DIR = DOCUVERSE_AUTHOR_DIR / "transclusion"
+def claim_statements_aggregate_path(asn_label: str) -> Path:
+    """Lattice-relative path for an ASN's `claims.statements` aggregate doc.
 
-
-def transclusion_path(asn_label: str, kind: str) -> Path:
-    """Lattice-relative path for a transclusion doc (no file on disk).
-
-    Used as the path argument to `register_path` when emitting a
-    transclusion; gives the doc a stable substrate address.
+    Lives next to the per-claim files under `claim/<asn>/_statements.md`.
+    Leading underscore distinguishes the aggregate from per-claim files
+    (`T2.md`, `TumblerSub.md`, etc.) that share the directory. The doc
+    is generated (not live-rendered) and is a substrate citizen with its
+    own supersession chain.
     """
-    return TRANSCLUSION_DIR / asn_label / f"{kind}.md"
+    return CLAIM_DIR / asn_label / "_statements.md"
 
 
 # Promotion reports (classified by `promotion.<kind>`). One doc per

@@ -36,7 +36,7 @@ from lib.lattice.render import read_doc
 from lib.predicates import derived_claims
 from lib.protocols.febe.protocol import Session
 from lib.shared.foundation import _extract_formal_contract
-from lib.shared.paths import transclusion_path
+from lib.shared.paths import claim_statements_aggregate_path
 
 
 _DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -164,7 +164,7 @@ def read_claim_statements_view(
     """
     lattice_root = session.store.lattice_dir.resolve()
     rel = str(
-        transclusion_path(asn_label, "claim-statements")
+        claim_statements_aggregate_path(asn_label)
         .resolve().relative_to(lattice_root)
     )
     addr = session.get_addr_for_path(rel)

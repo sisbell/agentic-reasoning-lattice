@@ -53,7 +53,7 @@ from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.renderers.claim_statements import render_claim_statements
 from lib.lattice.labels import extract_label_digits, format_label
-from lib.shared.paths import transclusion_path
+from lib.shared.paths import claim_statements_aggregate_path
 
 
 class ClaimsStatementsRefreshAgent(Agent):
@@ -92,7 +92,7 @@ class ClaimsStatementsRefreshAgent(Agent):
         asn_label = _asn_label_from_path(note_path)
 
         rel = str(
-            transclusion_path(asn_label, "claim-statements")
+            claim_statements_aggregate_path(asn_label)
             .resolve().relative_to(lattice_root)
         )
         addr = store.register_path(rel)
