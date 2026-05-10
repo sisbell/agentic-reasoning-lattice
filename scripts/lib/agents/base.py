@@ -25,7 +25,7 @@ import contextlib
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar, List, Optional
 
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_holding, emit_retraction
@@ -87,20 +87,40 @@ class Agent(ABC):
                     result.elapsed = time.time() - start
                 return result
 
+    def resolve_holds(
+        self, session: Session, addr: Address, scope_type: str,
+    ) -> List[Address]:
+        """Return every address the agent must hold during this fire.
+
+        Default: a single resource resolved from `addr` to the agent's
+        declared scope via `resolve_to_scope`. Subclasses override
+        when the agent's work touches multiple resources (e.g., a
+        full-ASN reviewer that reads every claim and must hold each
+        for honest mutex against per-claim agents).
+
+        Returning `[]` is treated as "could not resolve a hold" and
+        causes `_hold_context` to raise — agents declaring a scope
+        must hold *something*, otherwise they're firing under a
+        broken mutex contract.
+        """
+        target = resolve_to_scope(session, addr, scope_type)
+        return [target] if target is not None else []
+
     @contextlib.contextmanager
     def _hold_context(
         self, session: Session, addr: Address,
     ):
-        """Acquire a `holding` on the agent's declared scope; retract
-        on exit.
+        """Acquire `holding` links on every address `resolve_holds`
+        returns; retract them on exit.
 
         Reads the `agent.scope.<type>` classifier on the agent's doc;
-        if present, resolves `addr` to the corresponding scope-level
-        resource and emits a `holding` link. If absent, the agent runs
-        without coordination (backward compatible).
+        if present, calls `resolve_holds` to enumerate the resources
+        the fire needs to lock, emits a `holding` link for each, and
+        retracts on exit (LIFO). If absent, the agent runs without
+        coordination (backward compatible).
 
-        If a scope is declared but `addr` cannot be resolved to that
-        scope, raises `RuntimeError` — running without a hold would
+        If a scope is declared but `resolve_holds` returns an empty
+        list, raises `RuntimeError` — running without a hold would
         defeat the mutex guarantee. Failure is loud, not silent.
 
         If `session` is None (test harness, deliberate opt-out), skips
@@ -119,19 +139,24 @@ class Agent(ABC):
             yield
             return
 
-        hold_addr = resolve_to_scope(session, addr, scope_type)
-        if hold_addr is None:
+        hold_addrs = self.resolve_holds(session, addr, scope_type)
+        if not hold_addrs:
             raise RuntimeError(
                 f"agent {self.role!r}: addr {addr} could not be resolved "
                 f"to declared scope {scope_type!r}; "
                 f"agent cannot fire without a hold target"
             )
 
-        link = emit_holding(session.store, agent_doc, hold_addr)
+        links: List = []
         try:
+            for hold_addr in hold_addrs:
+                links.append(
+                    emit_holding(session.store, agent_doc, hold_addr)
+                )
             yield
         finally:
-            emit_retraction(session.store, agent_doc, link.addr)
+            for link in reversed(links):
+                emit_retraction(session.store, agent_doc, link.addr)
 
     def _agent_doc_addr(
         self, session: Session,
