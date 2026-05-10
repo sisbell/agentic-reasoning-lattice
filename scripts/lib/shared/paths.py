@@ -63,8 +63,10 @@ USAGE_LOG = LATTICE / "usage-log.jsonl"
 
 # The docuverse — Nelson's term for the universe of typed, linked
 # documents. The substrate (links.jsonl + index.db) plus all
-# substrate-classified documents live here.
-DOCUVERSE_DIR = LATTICE / "_docuverse"
+# substrate-classified documents live here. Single unified instance
+# at repo root; lattices co-reside via the (node, user) author
+# partition under documents/.
+DOCUVERSE_DIR = WORKSPACE / "_docuverse"
 DOCUVERSE_LOG = DOCUVERSE_DIR / "links.jsonl"
 DOCUVERSE_INDEX = DOCUVERSE_DIR / "index.db"
 # Substrate-classified documents live under _docuverse/documents/.
@@ -213,13 +215,15 @@ def _reviews_dir_for_kind(kind):
 
 
 def agent_doc_path(role):
-    """Lattice-relative path to an agent doc by role name.
+    """Docuverse-relative path to an agent doc by role name.
 
-    The substrate identifies an agent by its doc address (lattice-relative
-    string), so callers wiring up `XANADU_AGENT_DOC` or invoking `emit_agent`
-    use this to get the canonical form.
+    The substrate identifies an agent by its doc address — a path
+    relative to WORKSPACE (the docuverse's root parent), so callers
+    wiring up `XANADU_AGENT_DOC` or invoking `emit_agent` use this to
+    get the canonical form. Includes the active lattice's
+    (node, user) prefix.
     """
-    return str((AGENT_DIR / f"{role}.md").relative_to(LATTICE))
+    return str((AGENT_DIR / f"{role}.md").relative_to(WORKSPACE))
 
 
 def audit_doc_path(asn_label, claim_label, audit_num):

@@ -69,6 +69,13 @@ class Store:
     ) -> None:
         self.lattice_dir = Path(lattice_dir)
         self.docuverse = self.lattice_dir / "_docuverse"
+        # Unified-docuverse migration: the substrate now lives at repo
+        # root rather than under each lattice. If no _docuverse/ is
+        # found at lattice_dir, walk up to WORKSPACE root.
+        if not self.docuverse.exists():
+            from lib.shared.paths import WORKSPACE
+            self.lattice_dir = WORKSPACE
+            self.docuverse = WORKSPACE / "_docuverse"
         self.jsonl_path = self.docuverse / "links.jsonl"
         self.paths_path = self.docuverse / "paths.json"
 
