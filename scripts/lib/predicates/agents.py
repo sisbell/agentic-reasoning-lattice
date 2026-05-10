@@ -147,6 +147,13 @@ def _addr_to_claim(session: Session, addr: Address) -> Optional[Address]:
             return None
         if _is_classified_as(session, target, "claim"):
             return target
+        return None
+    # Review doc: walk outgoing `review.coverage` to the claim it covers.
+    for link in session.active_links("review.coverage", from_set=[addr]):
+        if link.to_set:
+            target = link.to_set[0]
+            if _is_classified_as(session, target, "claim"):
+                return target
     return None
 
 
@@ -192,19 +199,43 @@ def _is_classified_as(
     return bool(session.active_links(kind, to_set=[addr]))
 
 
+_TYPE_REGISTRY_CACHE: dict = {}
+
+
+def _type_registry_for(session: Session):
+    """Return a cached TypeRegistry rooted at the substrate's registry
+    doc. Module-level cache keyed on registry-doc address; TypeRegistry
+    construction iterates ~50 CANONICAL_POSITIONS entries — cheap but
+    not free when called per resolve."""
+    key = str(session.store.registry_doc)
+    registry = _TYPE_REGISTRY_CACHE.get(key)
+    if registry is None:
+        from lib.backend.types import TypeRegistry
+        registry = TypeRegistry(session.store.registry_doc)
+        _TYPE_REGISTRY_CACHE[key] = registry
+    return registry
+
+
 def _is_comment(session: Session, addr: Address) -> bool:
     """True iff the addr is a comment.* link addr (not a doc).
 
-    Detection: try to fetch the link; comments have type prefix
-    `comment`. Falls back to False if the addr isn't a link or fetch
-    fails.
+    Detection: fetch the link and decode its `type_set` against the
+    type registry; comments have type names starting with `comment`.
+    `Link.type_` (the string-name attribute) is None for substrate-
+    loaded links — only `type_set` (tuple of type addresses) is
+    populated by the JSONL loader, so decoding is required.
+    Falls back to False if the addr isn't a link or fetch fails.
     """
     try:
         link = session.get_link(addr)
     except (KeyError, AttributeError):
         return False
-    type_name = getattr(link, "type_", None) or ""
-    return type_name.startswith("comment")
+    registry = _type_registry_for(session)
+    for type_addr in link.type_set:
+        name = registry.name_for(type_addr)
+        if name and name.startswith("comment"):
+            return True
+    return False
 
 
 def _comment_target(
