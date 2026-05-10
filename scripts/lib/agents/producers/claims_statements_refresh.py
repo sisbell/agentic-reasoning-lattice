@@ -51,6 +51,9 @@ from lib.backend.emit import (
     emit_supersession,
 )
 from lib.predicates import claims_statements_for_note, derived_claims
+from lib.predicates.cascade import (
+    cited_targets_in_chain, content_sources_for_claim,
+)
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.renderers.claim_statements import render_claim_statements
@@ -122,13 +125,16 @@ class ClaimsStatementsRefreshAgent(Agent):
     def _emit_anchors(
         self, session: Session, doc_addr: Address, note_addr: Address,
     ) -> None:
-        """Emit one `citation.depends` per derived claim from the
-        aggregate's current head version to `version_head(claim)`.
+        """Emit `citation.depends` from the aggregate's current head to
+        each content source whose `version_head` isn't already cited
+        anywhere in the aggregate's supersession chain.
 
-        These are the freshness anchors that
-        `is_claims_statements_fresh` walks. Iterates only claim-
-        classified derivations (skips the aggregate doc itself,
-        which is also a derivation target of the note).
+        Sources per claim come from `content_sources_for_claim` (claim
+        doc + name sidecar + description sidecar today). Per-fire
+        emissions are incremental — anchors from prior versions stay
+        valid (append-only substrate), so unchanged sources don't
+        get re-anchored. Only newly-advanced sources (or sources
+        that have never been cited) produce fresh anchors.
         """
         store = session.store
         classified_claims = {
@@ -137,13 +143,18 @@ class ClaimsStatementsRefreshAgent(Agent):
             if link.to_set
         }
         aggregate_head = version_head(session, doc_addr)
+        cited = cited_targets_in_chain(session, doc_addr)
         for claim in derived_claims(session, note_addr):
             if claim not in classified_claims:
                 continue
-            emit_citation(
-                store, aggregate_head, version_head(session, claim),
-                direction="depends",
-            )
+            for source in content_sources_for_claim(session, claim):
+                target = version_head(session, source)
+                if target in cited:
+                    continue
+                emit_citation(
+                    store, aggregate_head, target, direction="depends",
+                )
+                cited.add(target)
 
 
 def _note_statements_sidecar(

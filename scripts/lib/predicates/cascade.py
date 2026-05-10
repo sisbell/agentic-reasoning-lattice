@@ -39,7 +39,7 @@ The mechanism:
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional, Set
 
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
@@ -53,7 +53,7 @@ from .quiescence import (
     is_claim_structurally_clean,
 )
 from .versions import (
-    is_head_version, supersession_head, version_head,
+    _walk_supersession, is_head_version, supersession_head, version_head,
 )
 
 
@@ -225,6 +225,58 @@ def _source_note_for_claim(
     return incoming[0].from_set[0]
 
 
+def content_sources_for_claim(
+    session: Session, claim_addr: Address,
+) -> List[Address]:
+    """Base addresses of every doc whose content the claims.statements
+    aggregate reads when rendering this claim.
+
+    Currently: the claim doc itself, its name sidecar, its description
+    sidecar. The aggregate's `_emit_anchors` emits one
+    `citation.depends` per source (each resolved to its `version_head`
+    at emit time); the freshness predicate confirms every source's
+    `version_head` is in the aggregate's chain-wide cited set.
+
+    Adding a new content source (e.g., signature, references) means
+    extending this single enumeration — both the agent and the
+    predicate consult it.
+    """
+    sources: List[Address] = [claim_addr]
+    for link in session.active_links("name", from_set=[claim_addr]):
+        if link.to_set:
+            sources.append(link.to_set[0])
+            break
+    for link in session.active_links(
+        "description", from_set=[claim_addr],
+    ):
+        if link.to_set:
+            sources.append(link.to_set[0])
+            break
+    return sources
+
+
+def cited_targets_in_chain(
+    session: Session, doc_addr: Address,
+    *, citation_type: str = "citation.depends",
+) -> Set[Address]:
+    """Union of every `citation_type` target emitted from any version
+    of `doc_addr`'s supersession chain.
+
+    Walking the whole chain (not just `version_head`) honors append-only
+    substrate semantics: anchors emitted at earlier versions remain
+    valid and accumulate the doc's dependency manifest. Lets per-fire
+    emissions stay incremental — only new sources need anchors at the
+    new head; existing sources stay cited through their old anchors.
+    """
+    cited: Set[Address] = set()
+    for version in _walk_supersession(session, doc_addr):
+        for link in session.active_links(
+            citation_type, from_set=[version],
+        ):
+            cited.update(link.to_set)
+    return cited
+
+
 def claims_statements_for_note(
     session: Session, note_addr: Address,
 ) -> Optional[Address]:
@@ -263,15 +315,17 @@ def is_claims_statements_fresh(
       Stale (returns False) when every claim is confirmed AND either:
         - No aggregate exists yet → fire creates it (the discovery
           → claim transition).
-        - Aggregate exists but at least one derived claim's current
-          head isn't cited by the aggregate's head → fire re-renders
-          + register_version + re-emits citation anchors.
+        - Aggregate exists but at least one content source's current
+          version_head isn't cited anywhere in the aggregate's chain
+          → fire re-renders + register_version + emits anchors for
+          the missing sources.
 
-    The 1:N variant of the citation-anchor pattern. Each fire of
-    `ClaimsStatementsRefreshAgent` emits N `citation.depends` links
-    from the new aggregate version to `version_head(claim)` for each
-    derived claim — the freshness anchors. Address-identity, not
-    chain-length.
+    The 1:N variant of the citation-anchor pattern, generalized over
+    every content source the aggregate reads per claim (claim doc,
+    name sidecar, description sidecar — see content_sources_for_claim).
+    Cited set is collected by walking the aggregate's full supersession
+    chain (cited_targets_in_chain) so anchors emitted at any prior
+    version still count. Address-identity, not chain-length.
 
     The gate iterates claim-classified derivations only; the aggregate
     is itself a derivation target of the note but is never reviewed,
@@ -295,13 +349,9 @@ def is_claims_statements_fresh(
     if doc is None:
         return False
 
-    aggregate_head = version_head(session, doc)
-    cited = set()
-    for link in session.active_links(
-        "citation.depends", from_set=[aggregate_head],
-    ):
-        cited.update(link.to_set)
+    cited = cited_targets_in_chain(session, doc)
     for claim in claims:
-        if version_head(session, claim) not in cited:
-            return False
+        for source in content_sources_for_claim(session, claim):
+            if version_head(session, source) not in cited:
+                return False
     return True
