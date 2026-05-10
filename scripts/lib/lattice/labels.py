@@ -225,10 +225,19 @@ def note_dep_asn_ids(store: Store, note_addr: Address) -> List[int]:
 
 
 def is_note_path(doc_path: str) -> bool:
-    """True iff doc_path is under any lattice's substrate-managed note dir."""
+    """True iff doc_path is under any author's substrate-managed note dir.
+
+    With path partitioning by (node, user), note dirs live at
+    `_docuverse/documents/<node>/<user>/note/` rather than directly
+    under `documents/`. The check uses the `/note/` segment under the
+    author subtree.
+    """
     return (
-        "/_docuverse/documents/note/" in doc_path
-        or doc_path.startswith("_docuverse/documents/note/")
+        "/_docuverse/documents/" in doc_path
+        and "/note/" in doc_path.split("/_docuverse/documents/", 1)[1]
+    ) or (
+        doc_path.startswith("_docuverse/documents/")
+        and "/note/" in doc_path[len("_docuverse/documents/"):]
     )
 
 

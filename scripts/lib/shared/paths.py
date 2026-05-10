@@ -14,6 +14,16 @@ LATTICE_NAME = os.environ.get("LATTICE", "xanadu")
 LATTICE = WORKSPACE / "lattices" / LATTICE_NAME
 CHANNELS_DIR = WORKSPACE / "channels"
 
+# Per-lattice (node, user) tumbler prefix — partitions document paths
+# in the substrate so two lattices' content doesn't collide on disk.
+# Hardcoded today; will move into lattice-doc frontmatter when lattice
+# docs become the substrate config source.
+_NODE_USER_PREFIX = {
+    "xanadu": ("1.1", "1"),
+    "materials": ("1.2", "1"),
+}
+LATTICE_NODE, LATTICE_USER = _NODE_USER_PREFIX.get(LATTICE_NAME, ("1.1", "1"))
+
 # Pipeline-stage prompts tier — shared defaults plus per-lattice overrides.
 # Resolver prefers lattice-specific overrides.
 SHARED_PROMPTS = WORKSPACE / "prompts" / "shared"
@@ -31,9 +41,6 @@ def prompt_path(subpath):
     if lattice.exists():
         return lattice
     return SHARED_PROMPTS / subpath
-
-# Discovery stage
-CONSULTATIONS_DIR = LATTICE / "_docuverse" / "documents" / "consultation"
 
 # Per-lattice files
 VOCABULARY = LATTICE / "vocabulary.md"
@@ -63,12 +70,20 @@ DOCUVERSE_INDEX = DOCUVERSE_DIR / "index.db"
 # Substrate-classified documents live under _docuverse/documents/.
 # Structural state (links.jsonl, index.db) sits alongside as a sibling.
 DOCUVERSE_DOCS_DIR = DOCUVERSE_DIR / "documents"
-RATIONALE_DIR = DOCUVERSE_DOCS_DIR / "rationale"
-AGENT_DIR = DOCUVERSE_DOCS_DIR / "agent"
-CAMPAIGN_DIR = DOCUVERSE_DOCS_DIR / "campaign"
-INQUIRY_DIR = DOCUVERSE_DOCS_DIR / "inquiry"
-NOTE_DIR = DOCUVERSE_DOCS_DIR / "note"
-CLAIM_DIR = DOCUVERSE_DOCS_DIR / "claim"
+# Author-scoped subtree: each (node, user) owns their own document tree.
+# Document type directories (agent/, claim/, note/, ...) live inside the
+# author's subtree. Two lattices co-residing in one docuverse don't
+# collide on filenames because they're under different (node, user)
+# prefixes.
+DOCUVERSE_AUTHOR_DIR = DOCUVERSE_DOCS_DIR / LATTICE_NODE / LATTICE_USER
+RATIONALE_DIR = DOCUVERSE_AUTHOR_DIR / "rationale"
+AGENT_DIR = DOCUVERSE_AUTHOR_DIR / "agent"
+CAMPAIGN_DIR = DOCUVERSE_AUTHOR_DIR / "campaign"
+INQUIRY_DIR = DOCUVERSE_AUTHOR_DIR / "inquiry"
+NOTE_DIR = DOCUVERSE_AUTHOR_DIR / "note"
+CLAIM_DIR = DOCUVERSE_AUTHOR_DIR / "claim"
+# Discovery-stage consultation directory.
+CONSULTATIONS_DIR = DOCUVERSE_AUTHOR_DIR / "consultation"
 # Substrate-citizen patches. Split by target kind (note/claim) so that:
 #   - the operator's directory choice declares intent (note vs claim)
 #   - filenames don't collide between a note-targeted and claim-targeted
@@ -77,26 +92,26 @@ CLAIM_DIR = DOCUVERSE_DOCS_DIR / "claim"
 # Operator drops a patch md into PATCH_INBOX_{NOTE,CLAIM} (workspace,
 # gitignored); the matching agent promotes it to PATCH_{NOTE,CLAIM}_DIR
 # (substrate citizen, committed) on fire.
-PATCH_NOTE_DIR = DOCUVERSE_DOCS_DIR / "patch" / "note"
-PATCH_CLAIM_DIR = DOCUVERSE_DOCS_DIR / "patch" / "claim"
+PATCH_NOTE_DIR = DOCUVERSE_AUTHOR_DIR / "patch" / "note"
+PATCH_CLAIM_DIR = DOCUVERSE_AUTHOR_DIR / "patch" / "claim"
 
 # Substrate-citizen extract spec docs. Operator drops the spec md into
 # EXTRACT_INBOX (workspace, gitignored); NoteExtractAgent promotes it to
 # EXTRACT_DIR on fire. The spec doc carries the operator's scout-output:
 # extract_from / create_note / absorb_into / claims plus rationale prose.
-EXTRACT_DIR = DOCUVERSE_DOCS_DIR / "extract"
+EXTRACT_DIR = DOCUVERSE_AUTHOR_DIR / "extract"
 
 # Substrate-citizen absorb spec docs. Operator drops the spec md into
 # ABSORB_INBOX (workspace, gitignored); NoteAbsorbAgent promotes it to
 # ABSORB_DIR on fire. The spec doc carries the operator's scout-output:
 # which extension to absorb plus rationale prose justifying readiness.
-ABSORB_DIR = DOCUVERSE_DOCS_DIR / "absorb"
+ABSORB_DIR = DOCUVERSE_AUTHOR_DIR / "absorb"
 
 # Substrate-citizen clone spec docs. Operator drops the spec md into
 # CLONE_INBOX (workspace, gitignored); NoteCloneAgent promotes it to
 # CLONE_DIR on fire. The spec doc carries the operator's scout-output:
 # clone_from / create_note plus rationale prose for the clone.
-CLONE_DIR = DOCUVERSE_DOCS_DIR / "clone"
+CLONE_DIR = DOCUVERSE_AUTHOR_DIR / "clone"
 
 # Loop work products. Sibling to _docuverse/. Holds artifacts produced
 # by the refinement/derivation loops that aren't themselves
@@ -110,27 +125,27 @@ CLONE_INBOX = WORKSPACE_DIR / "clones"
 
 # Aggregate review docs (classified by `review`). Split by inquiry-target
 # kind so review numbering and substrate queries are scoped per kind.
-CLAIM_REVIEWS_DIR = DOCUVERSE_DOCS_DIR / "review" / "claims"
-NOTE_REVIEWS_DIR = DOCUVERSE_DOCS_DIR / "review" / "notes"
+CLAIM_REVIEWS_DIR = DOCUVERSE_AUTHOR_DIR / "review" / "claims"
+NOTE_REVIEWS_DIR = DOCUVERSE_AUTHOR_DIR / "review" / "notes"
 REVIEWS_DIR = NOTE_REVIEWS_DIR  # legacy alias, prefer NOTE_REVIEWS_DIR
 
 # Per-finding decomposition outputs (classified by `finding`, related to
 # their target by `comment.<kind>`). Each per-review subdirectory pairs
 # with the matching aggregate doc by the shared `review-N` token.
-CLAIM_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "claims"
-NOTE_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "notes"
+CLAIM_FINDINGS_DIR = DOCUVERSE_AUTHOR_DIR / "finding" / "claims"
+NOTE_FINDINGS_DIR = DOCUVERSE_AUTHOR_DIR / "finding" / "notes"
 
 # Structural-audit aggregate docs (classified by `review.structural`).
 # Same parent type as content reviews (review.content) but separate
 # storage namespace for filesystem clarity. Per-finding violation docs
 # co-locate under CLAIM_FINDINGS_DIR using a `audit-N` token in place
 # of `review-N`.
-CLAIM_AUDITS_DIR = DOCUVERSE_DOCS_DIR / "audit" / "claims"
+CLAIM_AUDITS_DIR = DOCUVERSE_AUTHOR_DIR / "audit" / "claims"
 
 # Transclusion-rendered documents (tagged by `transclusion.<kind>`).
 # The substrate path is a citizen address; no on-disk file is
 # written — the registered renderer supplies content at read time.
-TRANSCLUSION_DIR = DOCUVERSE_DOCS_DIR / "transclusion"
+TRANSCLUSION_DIR = DOCUVERSE_AUTHOR_DIR / "transclusion"
 
 
 def transclusion_path(asn_label: str, kind: str) -> Path:
@@ -146,7 +161,7 @@ def transclusion_path(asn_label: str, kind: str) -> Path:
 # (source ASN, kind), where kind ∈ {out-of-scope, open-questions}.
 # Holds the LLM's promote/decline verdicts plus rationale; re-runs
 # overwrite. See docs/hypergraph-protocol/promotion.md.
-PROMOTION_DIR = DOCUVERSE_DOCS_DIR / "promotion"
+PROMOTION_DIR = DOCUVERSE_AUTHOR_DIR / "promotion"
 
 
 def promotion_doc_path(asn_num, kind: str) -> Path:
@@ -162,23 +177,23 @@ def promotion_doc_path(asn_num, kind: str) -> Path:
 # Citation-resolve operation outputs (classified by `citation.resolve`).
 # One doc per resolve run, named `<claim-label>-<run-N>.md` under the
 # claim's ASN directory.
-CITATION_RESOLVE_DIR = DOCUVERSE_DOCS_DIR / "citation-resolve" / "claims"
+CITATION_RESOLVE_DIR = DOCUVERSE_AUTHOR_DIR / "citation-resolve" / "claims"
 
 # Signature-resolve operation outputs. Same shape as CITATION_RESOLVE_DIR:
 # one doc per resolve run, named `<claim-label>-<run-N>.md`.
-SIGNATURE_RESOLVE_DIR = DOCUVERSE_DOCS_DIR / "signature-resolve" / "claims"
+SIGNATURE_RESOLVE_DIR = DOCUVERSE_AUTHOR_DIR / "signature-resolve" / "claims"
 
 # Claim-contract operation outputs (annotate-type lift). One doc per
 # fire, named `<claim-label>-<run-N>.md`. The fire emits the
 # `contract.<kind>` classifier on the claim doc; this dir is the
 # audit-trail companion.
-CLAIM_CONTRACT_DIR = DOCUVERSE_DOCS_DIR / "claim-contract" / "claims"
+CLAIM_CONTRACT_DIR = DOCUVERSE_AUTHOR_DIR / "claim-contract" / "claims"
 
 # Claim formal-contract synthesis outputs (produce-contract lift). One
 # doc per fire, named `<claim-label>-<run-N>.md`. The fire edits the
 # claim md to add the `*Formal Contract:*` section; this dir is the
 # audit-trail companion.
-FORMAL_CONTRACT_DIR = DOCUVERSE_DOCS_DIR / "claim-formal-contract" / "claims"
+FORMAL_CONTRACT_DIR = DOCUVERSE_AUTHOR_DIR / "claim-formal-contract" / "claims"
 
 
 def _findings_dir_for_kind(kind):
@@ -245,11 +260,11 @@ def claim_doc_path(asn_label, label):
     """Lattice-relative path to a claim's body markdown by (ASN, label).
 
     Returns the canonical convention path
-    `_docuverse/documents/claim/<asn_label>/<label>.md` as a string.
-    Pure construction — does not check whether the file exists. Suitable
-    for both already-existing claims (the path is always conventional)
-    and freshly-created ones the LLM has just written under the same
-    convention.
+    `_docuverse/documents/<node>/<user>/claim/<asn_label>/<label>.md` as
+    a string. Pure construction — does not check whether the file exists.
+    Suitable for both already-existing claims (the path is always
+    conventional) and freshly-created ones the LLM has just written
+    under the same convention.
 
     Used by the link-emit CLIs (cite, retract, classify, label, name,
     description) to translate their --label argument into the substrate
@@ -257,7 +272,10 @@ def claim_doc_path(asn_label, label):
     than path strings; the path convention is the local-reference's
     way of mapping label-as-identity to a filesystem address.
     """
-    return f"_docuverse/documents/claim/{asn_label}/{label}.md"
+    return (
+        f"_docuverse/documents/{LATTICE_NODE}/{LATTICE_USER}/"
+        f"claim/{asn_label}/{label}.md"
+    )
 
 
 def consultation_dir(asn):

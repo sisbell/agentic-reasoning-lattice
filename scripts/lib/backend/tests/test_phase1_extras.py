@@ -173,8 +173,8 @@ class PopulateTests(unittest.TestCase):
         self.assertEqual(deps, [36])
 
     def test_is_note_path(self):
-        self.assertTrue(is_note_path("_docuverse/documents/note/ASN-0034.md"))
-        self.assertFalse(is_note_path("_docuverse/documents/claim/ASN-0034/T0.md"))
+        self.assertTrue(is_note_path("_docuverse/documents/1.1/1/note/ASN-0034.md"))
+        self.assertFalse(is_note_path("_docuverse/documents/1.1/1/claim/ASN-0034/T0.md"))
 
 
 class SyncCitationsTests(unittest.TestCase):

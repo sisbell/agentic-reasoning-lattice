@@ -60,7 +60,7 @@ class AgentContractTests(unittest.TestCase):
         # During run() the env var was bound
         self.assertEqual(
             agent.captured_env,
-            "_docuverse/documents/agent/noop.md",
+            "_docuverse/documents/1.1/1/agent/noop.md",
         )
         # After call returns it's cleaned up
         self.assertIsNone(os.environ.get(AGENT_DOC_ENV_VAR))

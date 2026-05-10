@@ -55,6 +55,7 @@ from lib.backend.emit import (
     emit_agent, emit_agent_caste, emit_agent_scope,
 )
 from lib.protocols.febe.session import open_session
+from lib.shared.paths import LATTICE_NODE, LATTICE_USER
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -118,7 +119,7 @@ def _bootstrap_one(
 
     Returns a status string for logging.
     """
-    rel = f"_docuverse/documents/agent/{spec.role}.md"
+    rel = f"_docuverse/documents/{LATTICE_NODE}/{LATTICE_USER}/agent/{spec.role}.md"
     abs_path = lattice_root / rel
 
     # Filesystem state: write or update the file.
