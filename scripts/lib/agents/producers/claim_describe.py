@@ -68,27 +68,61 @@ class ClaimDescribeAgent(Agent):
         if not result.text:
             return AgentResult(success=False, detail="llm-failed")
 
-        new_desc = result.text.strip()
-        print(
-            f"  [DESCRIBE] {full_claim.stem} ({result.elapsed:.0f}s)",
-            file=sys.stderr,
+        verdict, body = self._parse_verdict(result.text)
+
+        if verdict == "UNCHANGED":
+            if existing_desc is None:
+                return AgentResult(
+                    success=False,
+                    detail="malformed: UNCHANGED with no existing description",
+                )
+            attest_against_doc_head(
+                session, claim_path, "description", existing_desc,
+                claim_addr, content_changed=False,
+            )
+            print(
+                f"  [DESCRIBE] {full_claim.stem} unchanged "
+                f"({result.elapsed:.0f}s)",
+                file=sys.stderr,
+            )
+            return AgentResult(success=True, detail="unchanged")
+
+        if verdict == "REVISED":
+            if not body:
+                return AgentResult(
+                    success=False, detail="malformed: REVISED with empty body",
+                )
+            attest_against_doc_head(
+                session, claim_path, "description", body, claim_addr,
+                content_changed=True,
+            )
+            print(
+                f"  [DESCRIBE] {full_claim.stem} revised "
+                f"({result.elapsed:.0f}s)",
+                file=sys.stderr,
+            )
+            return AgentResult(success=True, detail="revised")
+
+        return AgentResult(
+            success=False, detail=f"malformed-verdict: {verdict!r}",
         )
 
-        # Attest + emit freshness-anchor citation. The LLM returns text
-        # without an explicit "no change" verdict, so we determine
-        # content_changed by comparing the new description to the
-        # existing one (both stripped). True on first emission (no
-        # existing) and on every real edit; False only when the LLM
-        # produced byte-identical output.
-        content_changed = (
-            existing_desc is None or new_desc != existing_desc
-        )
-        attest_against_doc_head(
-            session, claim_path, "description", new_desc, claim_addr,
-            content_changed=content_changed,
-        )
+    @staticmethod
+    def _parse_verdict(text: str) -> tuple[str, str]:
+        """Split the LLM response into (verdict, body).
 
-        return AgentResult(success=True, detail="emitted")
+        Verdict is the first non-empty line, uppercased and stripped.
+        Body is everything after that line, with surrounding whitespace
+        stripped. Empty body for UNCHANGED is expected; empty body for
+        REVISED is a malformed response.
+        """
+        stripped = text.strip()
+        if not stripped:
+            return "", ""
+        parts = stripped.split("\n", 1)
+        verdict = parts[0].strip().upper()
+        body = parts[1].strip() if len(parts) > 1 else ""
+        return verdict, body
 
     def _read_sidecar_text(
         self, session: Session, sidecar_addr: Optional[Address],

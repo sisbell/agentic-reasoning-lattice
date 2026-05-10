@@ -12,11 +12,6 @@ min(#a, #b) component pairs."
 
 Bad description: "See T1 for details." / "This follows from the definition."
 
-If an existing description is provided, evaluate whether it still
-accurately describes the current claim. If yes, return it verbatim.
-If the claim has changed in a way that the existing description no
-longer captures, return a new description.
-
 ## Claim
 
 {{claim}}
@@ -27,6 +22,17 @@ longer captures, return a new description.
 
 ## Output
 
-The 1-3 sentence description, plain text only. No preamble, no
-formatting (no headers, no bullets, no code blocks). Just the
-description body.
+Two-line response. The first line is the verdict, all caps:
+
+- `UNCHANGED` — the existing description still accurately captures
+  the current claim. Use only when there is an existing description
+  above (i.e., `{{existing}}` is not `(none)`). Output the single
+  line `UNCHANGED` and nothing else.
+
+- `REVISED` — there is no existing description, or the existing one
+  must be replaced. Line 1 is `REVISED`. Line 2 onward is the new
+  1-3 sentence description, plain text only (no headers, no bullets,
+  no code blocks, no formatting).
+
+No preamble. No meta-commentary. No restating of the verdict.
+The first character of your response is `U` or `R`.
