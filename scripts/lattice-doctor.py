@@ -35,6 +35,7 @@ from lib.doctor import Severity, run_checks
 from lib.doctor import aggregate_anchor_coverage as anchor_coverage_check
 from lib.doctor import claim_statements_bridge as bridge_check
 from lib.doctor import holdings as holdings_check
+from lib.doctor import trigger_agent_scope as trigger_scope_check
 from lib.doctor import version_graph as version_graph_check
 from lib.protocols.febe.session import open_session
 from lib.shared.paths import LATTICE
@@ -58,6 +59,11 @@ def _build_registry(stale_threshold: int):
             anchor_coverage_check.check_aggregate_anchor_coverage,
             anchor_coverage_check.CHECK_NAME,
             anchor_coverage_check.CHECK_DESCRIPTION,
+        ),
+        (
+            trigger_scope_check.check_trigger_agent_scope_alignment,
+            trigger_scope_check.CHECK_NAME,
+            trigger_scope_check.CHECK_DESCRIPTION,
         ),
         (
             lambda s: holdings_check.check_stale_holdings(s, stale_threshold),
