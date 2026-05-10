@@ -26,7 +26,7 @@ Structurally identical to cone-review; differences are scope-level:
 from __future__ import annotations
 
 import sys
-from typing import ClassVar
+from typing import ClassVar, List
 
 from lib.agents.base import Agent, AgentResult
 from lib.agents.producers.review_helpers import (
@@ -37,6 +37,7 @@ from lib.backend.addressing import Address
 from lib.lattice.findings import emit_review_doc
 from lib.lattice.context import asn_context_from_note
 from lib.lattice.labels import build_cross_asn_label_index
+from lib.predicates import derived_claims, resolve_to_scope
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import assemble_readonly
 from lib.shared.git_ops import step_commit_asn
@@ -48,12 +49,37 @@ FULL_MODEL = "opus"
 
 
 class FullReviewAgent(Agent):
-    """One cycle of whole-ASN deep review on a source note."""
+    """One cycle of whole-ASN deep review.
+
+    The trigger feeds the agent one canonical claim of the ASN; the
+    agent multi-holds every classified claim of the ASN and walks
+    back to the note for its actual work.
+    """
 
     role: ClassVar[str] = "full-review"
 
+    def resolve_holds(
+        self, session: Session, addr: Address, scope_type: str,
+    ) -> List[Address]:
+        """Hold every classified claim of the ASN. Mutex against
+        cone-review (which holds its apex) and per-claim refiners."""
+        note = resolve_to_scope(session, addr, "note")
+        if note is None:
+            return []
+        classified = {
+            link.to_set[0]
+            for link in session.active_links("claim")
+            if link.to_set
+        }
+        return [c for c in derived_claims(session, note) if c in classified]
+
     def run(self, session: Session, addr: Address) -> AgentResult:
-        ctx = asn_context_from_note(session, addr)
+        note_addr = resolve_to_scope(session, addr, "note")
+        if note_addr is None:
+            return AgentResult(
+                success=False, detail="no-note-for-canonical-claim",
+            )
+        ctx = asn_context_from_note(session, note_addr)
         derived_addrs = list(ctx.derived_claim_addrs)
 
         label_index = build_cross_asn_label_index(session.store)

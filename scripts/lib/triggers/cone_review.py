@@ -25,7 +25,6 @@ from lib.predicates import (
     is_claim_quiescent,
     is_held,
     is_upstream_settled_one_hop,
-    resolve_to_scope,
 )
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
@@ -141,14 +140,15 @@ def _has_been_cone_reviewed(
 def _predicate(session: Session, addr: Address) -> bool:
     """True (skip) iff cone-review should not fire on this claim.
 
-    Six skip conditions:
+    Five skip conditions:
       1. Claim has no Formal Contract section yet — wait for
          `claim_formal_contract` to land before reviewing. Without
          a Formal Contract there's nothing substantive to review.
-      2. Parent ASN's note is currently held by another agent (the
-         repellent-pheromone mutex). cone-review and full-review are
-         in conflict at the note-scope; one fires at a time. Wait for
-         the holder to retract before firing.
+      2. The apex claim is currently held by another agent (the
+         repellent-pheromone mutex at claim granularity). Full-review
+         multi-holds every claim of the ASN; if it's running, the
+         apex is among them and we skip. This is the cone-vs-full
+         exclusion.
       3. Upstream is mid-update — `is_upstream_settled_one_hop` is
          False. Wait for direct citation upstream to be locally
          settled before reviewing this claim. Implements the chaining
@@ -163,8 +163,7 @@ def _predicate(session: Session, addr: Address) -> bool:
     """
     if not has_formal_contract(session, addr):
         return True
-    note_addr = resolve_to_scope(session, addr, "note")
-    if note_addr is not None and is_held(session, note_addr):
+    if is_held(session, addr):
         return True
     if not is_upstream_settled_one_hop(session, addr):
         return True

@@ -140,9 +140,23 @@ def per_asn_note(
     """Yield the source note address for the requested ASN.
 
     CLI-only: returns nothing in daemon mode (no asn_label). Used
-    by triggers whose semantics require a specific ASN (note_statements,
-    full_review).
+    by triggers whose semantics require a specific ASN (note_statements).
     """
     addr = asn_note_addr(session, scope)
     if addr is not None:
         yield addr
+
+
+def asn_first_claim(
+    session: Session, scope: Scope,
+) -> Iterator[Address]:
+    """Yield the lowest-tumbler classified claim of the ASN's note.
+
+    Single-claim scope query for agents that operate ASN-wide but
+    must hold at claim granularity. The agent's `resolve_holds`
+    typically expands this canonical claim into the full ASN claim
+    set (e.g., FullReviewAgent multi-holds every derived claim).
+    """
+    claims = _claim_set_for_scope(session, scope)
+    if claims:
+        yield min(claims, key=lambda a: a.digits)
