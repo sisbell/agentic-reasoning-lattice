@@ -1,58 +1,56 @@
 #!/usr/bin/env python3
-"""Lattice-bootstrap protocol — provision agent docs onto a lattice.
+"""Lattice-bootstrap CLI — provision the canonical agent corpus into a
+lattice.
 
-Reads the canonical agent specifications under `lattice-bootstrap/agents/`
-(at repo root) and ensures each lattice carries:
+Thin wrapper around `LatticeBootstrapAgent` (lib/agents/producers/
+lattice_bootstrap.py). The agent provisions one canonical spec per
+fire; this CLI walks fires-until-quiescent for the requested lattice.
 
-  - The agent doc file at `_docuverse/documents/agent/<role>.md`.
-    Content is the canonical body; if the lattice's existing copy
-    differs, register_version is called on the doc address (version
-    chain advances) and the new content is written to disk.
-  - The path registered in `paths.json`.
-  - The `agent` classifier (idempotent — no-op if present).
-  - The `agent.caste.<value>` classifier from frontmatter (idempotent).
-  - The `agent.scope.<value>` classifier from frontmatter (idempotent;
-    skipped if frontmatter has no `scope:`).
-  - A `lattice` membership link (idempotent).
-
-Each canonical agent doc carries YAML frontmatter:
+Reads canonical specs from `lattice-bootstrap/agents/` (at repo
+root). Each canonical doc carries YAML frontmatter:
 
     ---
     caste: producer | refiner | scout | worker
-    scope: note | claim | inquiry      # optional
+    scope: note | claim | inquiry | lattice    # optional
     ---
 
     # Operator-facing prose body...
 
-Replaces the prior `setup-agent-scopes.py`, which only handled the
-scope classifier on cone-review and full-review. This script is the
-canonical entry point for new-lattice setup AND for re-syncing
-existing lattices when canonical docs change.
+For each canonical spec, the agent ensures the lattice carries:
 
-Idempotent: re-running on a lattice with up-to-date content is a
-no-op. The script logs each agent's per-lattice status (added,
-already-current, content-updated).
+  - The agent doc body at
+    `_docuverse/documents/<node>/<user>/agent/<role>.md`.
+    On content drift from a previously-provisioned doc, advances the
+    version chain.
+  - The path registered in `paths.json`.
+  - The `agent` classifier (idempotent).
+  - `agent.caste.<value>` (idempotent).
+  - `agent.scope.<value>` (idempotent; skipped if frontmatter has no
+    `scope:`).
+
+Idempotent: re-running on a fully-bootstrapped lattice is a no-op
+(or a content sync if canonical specs have advanced).
 
 Usage:
     python scripts/lattice-bootstrap.py
-    python scripts/lattice-bootstrap.py --lattice lattices/materials
+    python scripts/lattice-bootstrap.py --lattice materials
     python scripts/lattice-bootstrap.py --dry-run
 """
 
 from __future__ import annotations
 
 import argparse
-import re
 import sys
-from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from lib.backend.emit import (
-    emit_agent, emit_agent_caste, emit_agent_scope,
+from lib.agents.producers.lattice_bootstrap import (
+    LatticeBootstrapAgent,
+    first_missing_spec,
+    is_lattice_bootstrapped,
+    read_canonical_specs,
 )
 from lib.protocols.febe.session import open_session
 from lib.shared.paths import LATTICE_NODE, LATTICE_USER
@@ -63,125 +61,21 @@ BOOTSTRAP_DIR = REPO_ROOT / "lattice-bootstrap"
 BOOTSTRAP_AGENTS = BOOTSTRAP_DIR / "agents"
 
 
-@dataclass
-class AgentSpec:
-    role: str           # e.g., "cone-review"
-    caste: str          # producer / refiner / scout / worker
-    scope: Optional[str]  # note / claim / inquiry, or None
-    body: str           # markdown body without frontmatter
-
-
-def _parse_frontmatter(text: str) -> Tuple[dict, str]:
-    """Return (frontmatter_dict, body_after_frontmatter)."""
-    match = re.match(
-        r"^---\s*\n(.*?\n)---\s*\n(.*)$", text, re.DOTALL,
+def _lattice_doc_addr(session, node: str, user: str, lattice_name: str):
+    """Return the lattice doc's substrate address, or None if missing."""
+    rel = (
+        f"_docuverse/documents/{node}/{user}/lattice/{lattice_name}.md"
     )
-    if not match:
-        return {}, text
-    fm_block = match.group(1)
-    body = match.group(2)
-    fm: dict = {}
-    for line in fm_block.splitlines():
-        line = line.strip()
-        if not line or ":" not in line:
-            continue
-        key, value = line.split(":", 1)
-        fm[key.strip()] = value.strip()
-    return fm, body
-
-
-def _read_specs() -> List[AgentSpec]:
-    """Load every canonical agent doc from BOOTSTRAP_AGENTS."""
-    specs: List[AgentSpec] = []
-    for path in sorted(BOOTSTRAP_AGENTS.glob("*.md")):
-        text = path.read_text()
-        fm, body = _parse_frontmatter(text)
-        caste = fm.get("caste")
-        if caste is None:
-            print(
-                f"  [BOOTSTRAP] {path.name}: missing 'caste:' in "
-                f"frontmatter; skipping",
-                file=sys.stderr,
-            )
-            continue
-        scope = fm.get("scope") or None
-        role = path.stem
-        specs.append(AgentSpec(
-            role=role, caste=caste, scope=scope, body=text,
-        ))
-    return specs
-
-
-def _bootstrap_one(
-    session, lattice_root: Path, spec: AgentSpec, *, dry_run: bool,
-) -> str:
-    """Apply one agent's bootstrap to the target lattice.
-
-    Returns a status string for logging.
-    """
-    rel = f"_docuverse/documents/{LATTICE_NODE}/{LATTICE_USER}/agent/{spec.role}.md"
-    # Substrate lives at repo root in the unified-docuverse layout;
-    # `lattice_root` is the lattice's non-substrate content dir.
-    abs_path = REPO_ROOT / rel
-
-    # Filesystem state: write or update the file.
-    fs_status = "unchanged"
-    if not abs_path.exists():
-        fs_status = "created"
-        if not dry_run:
-            abs_path.parent.mkdir(parents=True, exist_ok=True)
-            abs_path.write_text(spec.body)
-    else:
-        existing = abs_path.read_text()
-        if existing != spec.body:
-            fs_status = "updated"
-            if not dry_run:
-                abs_path.write_text(spec.body)
-
-    if dry_run:
-        return f"{spec.role}: dry-run (fs would be {fs_status})"
-
-    # Substrate state: register path + emit classifiers.
-    addr = session.get_addr_for_path(rel)
-    if addr is None:
-        addr = session.register_path(rel)
-        path_status = "registered"
-    else:
-        path_status = "already-registered"
-
-    # Version-chain advance on real content change (post-creation).
-    if fs_status == "updated":
-        session.register_version(addr)
-
-    # agent classifier (idempotent).
-    _, agent_created = emit_agent(session.store, addr)
-    # agent.caste.<value>
-    _, caste_created = emit_agent_caste(
-        session.store, addr, spec.caste,
-    )
-    # agent.scope.<value> (optional)
-    scope_emitted = False
-    if spec.scope is not None:
-        _, scope_emitted = emit_agent_scope(
-            session.store, addr, spec.scope,
-        )
-
-    parts = [f"fs={fs_status}", f"path={path_status}"]
-    if agent_created:
-        parts.append("agent+")
-    if caste_created:
-        parts.append(f"caste.{spec.caste}+")
-    if spec.scope is not None and scope_emitted:
-        parts.append(f"scope.{spec.scope}+")
-    return f"{spec.role}: {', '.join(parts)}"
+    return session.get_addr_for_path(rel)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="lattice-bootstrap",
         description=(
-            "Provision agent docs + classifiers onto a lattice from "
-            "the canonical lattice-bootstrap/agents/ source."
+            "Provision the canonical agent corpus into a lattice via "
+            "LatticeBootstrapAgent (one canonical spec per fire; "
+            "walks fires-until-quiescent)."
         ),
     )
     parser.add_argument(
@@ -208,10 +102,10 @@ def main() -> int:
         )
         return 1
 
-    specs = _read_specs()
+    specs = read_canonical_specs(BOOTSTRAP_AGENTS)
     if not specs:
         print(
-            f"  [BOOTSTRAP] no agent specs in {BOOTSTRAP_AGENTS}",
+            f"  [BOOTSTRAP] no canonical specs in {BOOTSTRAP_AGENTS}",
             file=sys.stderr,
         )
         return 1
@@ -226,21 +120,75 @@ def main() -> int:
     )
 
     if args.dry_run:
+        # Dry-run doesn't open a session. Report which specs would be
+        # provisioned by inspecting filesystem only (skips substrate-
+        # idempotency checks; reports paths missing/present on disk).
         for spec in specs:
-            status = _bootstrap_one(
-                session=None, lattice_root=lattice_root, spec=spec,
-                dry_run=True,
+            rel = (
+                f"_docuverse/documents/{LATTICE_NODE}/{LATTICE_USER}/"
+                f"agent/{spec.role}.md"
             )
-            print(f"  [BOOTSTRAP] {status}", file=sys.stderr)
+            abs_path = REPO_ROOT / rel
+            if not abs_path.exists():
+                fs_status = "would be created"
+            else:
+                existing = abs_path.read_text()
+                fs_status = (
+                    "would be updated"
+                    if existing != spec.body else "unchanged"
+                )
+            print(
+                f"  [BOOTSTRAP] {spec.role}: dry-run ({fs_status})",
+                file=sys.stderr,
+            )
         return 0
 
+    agent = LatticeBootstrapAgent(
+        corpus_dir=BOOTSTRAP_AGENTS,
+        repo_root=REPO_ROOT,
+        node_user=(LATTICE_NODE, LATTICE_USER),
+    )
+
     with open_session(lattice_root) as session:
-        for spec in specs:
-            status = _bootstrap_one(
-                session=session, lattice_root=lattice_root, spec=spec,
-                dry_run=False,
+        lattice_addr = _lattice_doc_addr(
+            session, LATTICE_NODE, LATTICE_USER, args.lattice,
+        )
+        if lattice_addr is None:
+            print(
+                f"  [BOOTSTRAP] lattice doc not registered for "
+                f"{args.lattice}; bootstrapping anyway",
+                file=sys.stderr,
             )
-            print(f"  [BOOTSTRAP] {status}", file=sys.stderr)
+
+        # Walk fires until predicate is satisfied (no missing specs).
+        max_fires = len(specs) + 1  # +1 safety
+        fires = 0
+        while not is_lattice_bootstrapped(
+            session, agent.specs, LATTICE_NODE, LATTICE_USER,
+        ):
+            if fires >= max_fires:
+                print(
+                    f"  [BOOTSTRAP] runaway: {fires} fires without "
+                    f"reaching quiescence",
+                    file=sys.stderr,
+                )
+                return 1
+            result = agent(session=session, addr=lattice_addr)
+            print(f"  [BOOTSTRAP] {result.detail}", file=sys.stderr)
+            if not result.success:
+                return 1
+            fires += 1
+
+        if fires == 0:
+            print(
+                f"  [BOOTSTRAP] already bootstrapped (no missing specs)",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                f"  [BOOTSTRAP] done — {fires} fire(s) to quiescence",
+                file=sys.stderr,
+            )
 
     return 0
 
