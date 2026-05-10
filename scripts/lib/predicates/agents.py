@@ -33,7 +33,7 @@ from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
 
 
-_VALID_SCOPE_TYPES = frozenset({"note", "claim", "inquiry"})
+_VALID_SCOPE_TYPES = frozenset({"note", "claim", "inquiry", "lattice"})
 
 
 def is_held(session: Session, resource_addr: Address) -> bool:
@@ -73,6 +73,8 @@ def resolve_to_scope(
       scope_type="claim"   + addr is claim   → addr
                            + addr is comment → comment's targeted claim
       scope_type="inquiry" + addr is inquiry → addr
+      scope_type="lattice" + addr has outgoing `lattice` link → that link's target
+                           + addr is itself a lattice doc → addr
 
     Returns None if the addr cannot be resolved to the requested
     scope. Callers (agent base class) treat None as a hard error.
@@ -83,6 +85,8 @@ def resolve_to_scope(
         return _addr_to_claim(session, addr)
     if scope_type == "inquiry":
         return _addr_to_inquiry(session, addr)
+    if scope_type == "lattice":
+        return _addr_to_lattice(session, addr)
     return None
 
 
@@ -149,6 +153,34 @@ def _addr_to_claim(session: Session, addr: Address) -> Optional[Address]:
 def _addr_to_inquiry(session: Session, addr: Address) -> Optional[Address]:
     """Resolve `addr` to its associated inquiry address, or None."""
     if _is_classified_as(session, addr, "inquiry"):
+        return addr
+    return None
+
+
+def _addr_to_lattice(session: Session, addr: Address) -> Optional[Address]:
+    """Resolve `addr` to its containing lattice doc, or None.
+
+    Resolution order:
+      1. If `addr` has an outgoing `lattice` membership link, return
+         that link's target — every doc registered under the active
+         lattice gets such a link, so this is the common path.
+      2. Else if `addr` is itself a lattice doc (target of `lattice`
+         membership links from other docs, but no outgoing `lattice`
+         link of its own), return `addr`.
+      3. Else None.
+
+    Lattice docs aren't carrying a separate `lattice` classifier today
+    (the `lattice` link type is membership-only). Detection-by-being-
+    target is the practical signal until/unless a classifier is added.
+    """
+    # Outgoing membership: addr → lattice doc
+    out = session.active_links("lattice", from_set=[addr])
+    if out and out[0].to_set:
+        return out[0].to_set[0]
+    # Incoming membership: addr is the target of others → addr is itself
+    # a lattice doc
+    incoming = session.active_links("lattice", to_set=[addr])
+    if incoming:
         return addr
     return None
 

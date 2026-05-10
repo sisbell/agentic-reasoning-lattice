@@ -156,6 +156,35 @@ class ResolveToScopeTests(unittest.TestCase):
             resolve_to_scope(self.session, random_addr, "note"),
         )
 
+    def test_lattice_scope_from_member_doc(self):
+        # register_path auto-emits a `lattice` link from the new doc
+        # to the test lattice's lattice_doc. resolve_to_scope("lattice")
+        # walks that link to the lattice doc.
+        lattice_doc = self.store.lattice_doc
+        self.assertEqual(
+            resolve_to_scope(self.session, self.note, "lattice"),
+            lattice_doc,
+        )
+
+    def test_lattice_scope_from_lattice_doc_returns_self(self):
+        # The lattice doc itself has no outgoing `lattice` link, but is
+        # the target of incoming ones from registered docs. Detection-
+        # by-being-target → return addr.
+        lattice_doc = self.store.lattice_doc
+        self.assertEqual(
+            resolve_to_scope(self.session, lattice_doc, "lattice"),
+            lattice_doc,
+        )
+
+    def test_lattice_scope_from_unrelated_addr_returns_none(self):
+        # Allocate a fresh address that has no `lattice` link on either
+        # side (not registered, not target of membership).
+        from lib.backend.addressing import Address
+        bare = Address("1.1.0.1.0.99999")
+        self.assertIsNone(
+            resolve_to_scope(self.session, bare, "lattice"),
+        )
+
 
 class StaleHoldingsTests(unittest.TestCase):
     def setUp(self):
