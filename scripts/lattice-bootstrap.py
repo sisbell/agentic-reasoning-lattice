@@ -120,7 +120,9 @@ def _bootstrap_one(
     Returns a status string for logging.
     """
     rel = f"_docuverse/documents/{LATTICE_NODE}/{LATTICE_USER}/agent/{spec.role}.md"
-    abs_path = lattice_root / rel
+    # Substrate lives at repo root in the unified-docuverse layout;
+    # `lattice_root` is the lattice's non-substrate content dir.
+    abs_path = REPO_ROOT / rel
 
     # Filesystem state: write or update the file.
     fs_status = "unchanged"
