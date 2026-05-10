@@ -42,7 +42,7 @@ from __future__ import annotations
 
 import re
 import sys
-from typing import ClassVar, Optional
+from typing import ClassVar, List, Optional
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
@@ -50,7 +50,9 @@ from lib.backend.emit import (
     emit_citation, emit_claims_statements, emit_derivation,
     emit_supersession,
 )
-from lib.predicates import claims_statements_for_note, derived_claims
+from lib.predicates import (
+    claims_statements_for_note, derived_claims, resolve_to_scope,
+)
 from lib.predicates.cascade import (
     cited_targets_in_chain, content_sources_for_claim,
 )
@@ -62,11 +64,38 @@ from lib.shared.paths import claim_statements_aggregate_path
 
 
 class ClaimsStatementsRefreshAgent(Agent):
-    """Create-or-advance the claims.statements aggregate."""
+    """Create-or-advance the claims.statements aggregate.
+
+    The trigger feeds the agent one canonical claim of the ASN; the
+    agent multi-holds every classified claim of the ASN (honest mutex
+    against cone-review, per-claim refiners, etc.) and walks back to
+    the note for the assembly work.
+    """
 
     role: ClassVar[str] = "claims-statements-refresh"
 
-    def run(self, session: Session, note_addr: Address) -> AgentResult:
+    def resolve_holds(
+        self, session: Session, addr: Address, scope_type: str,
+    ) -> List[Address]:
+        """Hold every classified claim of the ASN. Mutex against
+        cone-review (apex hold) and per-claim refiners that edit the
+        claim files the aggregate is rendering from."""
+        note = resolve_to_scope(session, addr, "note")
+        if note is None:
+            return []
+        classified = {
+            link.to_set[0]
+            for link in session.active_links("claim")
+            if link.to_set
+        }
+        return [c for c in derived_claims(session, note) if c in classified]
+
+    def run(self, session: Session, addr: Address) -> AgentResult:
+        note_addr = resolve_to_scope(session, addr, "note")
+        if note_addr is None:
+            return AgentResult(
+                success=False, detail="no-note-for-canonical-claim",
+            )
         doc = claims_statements_for_note(session, note_addr)
         if doc is None:
             doc = self._create(session, note_addr)
