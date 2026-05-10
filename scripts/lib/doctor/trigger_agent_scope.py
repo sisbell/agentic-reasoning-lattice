@@ -57,24 +57,33 @@ def _sample_asn_label(session: Session) -> Optional[str]:
     return None
 
 
-def _sample_address(
+_MAX_SAMPLES = 20
+
+
+def _sample_addresses(
     session: Session, trigger: Trigger, asn_label: Optional[str],
-) -> Optional[Address]:
-    """Take the first address the trigger's scope_query yields.
+) -> list:
+    """Take up to `_MAX_SAMPLES` addresses the trigger's scope_query
+    yields.
 
     Tries daemon mode first (Scope()); if empty, retries CLI mode
-    with a known ASN label. Returns None when neither mode produces
-    an address (trigger has no in-scope docs to sample).
+    with a known ASN label. Returns an empty list when neither mode
+    produces any addresses.
     """
     for scope in (Scope(), Scope(asn_label=asn_label) if asn_label else None):
         if scope is None:
             continue
         try:
+            samples = []
             for addr in trigger.scope_query(session, scope):
-                return addr
+                samples.append(addr)
+                if len(samples) >= _MAX_SAMPLES:
+                    break
+            if samples:
+                return samples
         except Exception:
             continue
-    return None
+    return []
 
 
 def check_trigger_agent_scope_alignment(
@@ -118,18 +127,39 @@ def check_trigger_agent_scope_alignment(
             )
             continue
 
-        sample = _sample_address(session, trigger, asn_label)
-        if sample is None:
+        samples = _sample_addresses(session, trigger, asn_label)
+        if not samples:
             continue
 
-        resolved = resolve_to_scope(session, sample, declared)
-        if resolved is None:
+        failures = [
+            addr for addr in samples
+            if resolve_to_scope(session, addr, declared) is None
+        ]
+        if not failures:
+            continue
+
+        if len(failures) == len(samples):
+            # Every sample fails — architectural mismatch; runner can't
+            # fire on any in-scope address.
             yield Issue(
                 severity=Severity.ERROR,
                 check=CHECK_NAME,
                 message=(
-                    f"trigger={trigger.name}  yields {sample} but agent "
-                    f"declared scope={declared!r}; resolve_to_scope "
-                    f"returned None"
+                    f"trigger={trigger.name}  all {len(samples)} sample(s) "
+                    f"failed resolution to scope={declared!r}; "
+                    f"first: {failures[0]}"
+                ),
+            )
+        else:
+            # Some succeed, some fail — data gap (e.g., review without
+            # `review.coverage` link). Honest fires work; some addrs
+            # would explode.
+            yield Issue(
+                severity=Severity.WARNING,
+                check=CHECK_NAME,
+                message=(
+                    f"trigger={trigger.name}  {len(failures)}/{len(samples)} "
+                    f"sample(s) failed resolution to scope={declared!r}; "
+                    f"data gap on: {failures[0]}"
                 ),
             )
