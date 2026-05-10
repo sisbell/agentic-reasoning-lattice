@@ -542,10 +542,18 @@ def default_store(lattice_dir: Union[str, Path]):
     substrate links inherit the agent identity and attribute every
     operation back to it. Standalone runs (no env var) get a plain
     Store.
+
+    Resolves the active author account from the active lattice
+    (LATTICE_NODE / LATTICE_USER in lib.shared.paths) so allocations
+    land in the right tumbler subspace even when the unified
+    docuverse hosts multiple lattices.
     """
     import os
+    from lib.backend.addressing import Address
     from lib.provenance import AGENT_DOC_ENV_VAR
-    store = Store(lattice_dir)
+    from lib.shared.paths import LATTICE_NODE, LATTICE_USER
+    account = Address(f"{LATTICE_NODE}.0.{LATTICE_USER}")
+    store = Store(lattice_dir, account=account)
     agent_doc_path = os.environ.get(AGENT_DOC_ENV_VAR)
     if not agent_doc_path:
         return store

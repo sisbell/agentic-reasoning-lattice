@@ -303,9 +303,23 @@ class Store:
         every link address (zeros=3) under its homedoc's link allocator.
         Without this, make_link can't allocate fresh links and create_doc
         would re-use already-taken positions.
+
+        High-water mark for the doc-allocator cursor is computed only
+        over addresses in the **active account's** subspace. With
+        multiple authors co-residing in one substrate, considering all
+        addresses would advance the cursor past the OTHER author's
+        max — which would cause new allocations to land in the wrong
+        author's tumbler space.
         """
         from .allocator import Allocator
         from .state import link_subspace_base
+
+        active_base_len = len(self.state.doc_allocator.base.digits)
+        # Account user-prefix: doc_allocator.base is inc(account, 2) =
+        # account.digits + (0, 1). Strip the trailing (0, 1) to get the
+        # account user-address. The user-prefix that account-owned doc
+        # addresses begin with is account.digits + (0,).
+        account_prefix = self.state.doc_allocator.base.digits[:-1]
 
         max_doc_position = 0
         for link in self.state.links:
@@ -314,13 +328,13 @@ class Store:
                     if a.zeros() == 2:
                         # Doc address — register under doc_allocator
                         self.state._owner.setdefault(a, self.state.doc_allocator)
-                        # Track high-water mark of doc-allocator position
-                        # (last element of the doc-field).
-                        # The doc address has form <user>.0.<doc_field>;
-                        # the last digit of doc_field is the sibling position
-                        # for a top-level doc. For deeper versions we'd
-                        # need a different rule — defer for now.
-                        if len(a.digits) == len(self.state.doc_allocator.base.digits):
+                        # Track high-water mark only for docs in the
+                        # active account's subspace (same prefix +
+                        # length).
+                        if (
+                            len(a.digits) == active_base_len
+                            and a.digits[:-1] == account_prefix
+                        ):
                             max_doc_position = max(max_doc_position, a.digits[-1])
 
         # Advance doc_allocator's cursor past all known docs so future
