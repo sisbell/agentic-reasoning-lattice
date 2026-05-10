@@ -1,4 +1,1 @@
-Defines component-wise tumbler subtraction `a ⊖ w`, producing a result whose nonzero components begin at the first
-zero-padded divergence point and whose length is `L` — the longer of `#a` and `#w`, named by NAT-order trichotomy on
-`(#a, #w)` (sub-case (α): `#a = #w`, `L = #a`; (β): `#a < #w`, `L = #w`; (γ): `#w < #a`, `L = #a`) rather than by a
-primitive binary-maximum operator on ℕ, reproducing ZPD's analogous length-pair dispatch for the same operand pair.
+Defines component-wise tumbler subtraction `a ⊖ w` (requiring `a ≥ w`): the result zeroes out all components before the first zero-padded divergence point `k = zpd(a, w)`, subtracts at position `k`, and copies `a`'s padded components thereafter, with length `L` set to the longer operand by NAT-order trichotomy. When `a` and `w` are zero-padded-equal, the result is the zero tumbler of length `L`. The action point of the result equals `zpd(a, w)` whenever it is defined, and the result belongs to the tumbler carrier set `T`.
