@@ -18,6 +18,8 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.lattice.config import lattice_config as cfg
+from lib.lattice.labels import label_pattern
 from lib.shared.paths import (
     LATTICE_NAME, CAMPAIGN_DIR, INQUIRY_DIR,
     load_lattice_config, campaign_doc_path, campaign_vocab,
@@ -46,8 +48,8 @@ def asn_campaign(inquiry_path):
 
 
 def _asn_label_from_dir(d):
-    m = re.match(r"(ASN-\d+)", d.name)
-    return m.group(1) if m else None
+    m = label_pattern().match(d.name)
+    return m.group(0) if m else None
 
 
 def main():
@@ -70,11 +72,11 @@ def main():
     # Build ASN-to-campaign mapping from inquiry mds
     asn_by_campaign = {c.name: [] for c in campaigns}
     if INQUIRY_DIR.exists():
-        for path in sorted(INQUIRY_DIR.glob("ASN-*.md")):
-            m = re.match(r"(ASN-\d+)", path.stem)
+        for path in sorted(INQUIRY_DIR.glob(f"{cfg().label_prefix}-*.md")):
+            m = label_pattern().match(path.stem)
             if m is None:
                 continue
-            label = m.group(1)
+            label = m.group(0)
             bound = asn_campaign(path) or default_campaign
             if bound and bound in asn_by_campaign:
                 asn_by_campaign[bound].append(label)

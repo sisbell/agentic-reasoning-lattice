@@ -31,7 +31,7 @@ from lib.shared.common import find_asn
 from lib.backend.store import Store
 from lib.backend.predicates import active_links
 from lib.predicates import is_doc_quiescent
-from lib.lattice.labels import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index, format_label
 
 
 def build_cone_hypergraph(store, asn_label, label_index):
@@ -159,7 +159,7 @@ def main():
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     _, asn_label = find_asn(str(asn_num))
     if asn_label is None:
-        print(f"ASN-{asn_num:04d} not found", file=sys.stderr)
+        print(f"{format_label(asn_num)} not found", file=sys.stderr)
         sys.exit(1)
 
     store = Store()

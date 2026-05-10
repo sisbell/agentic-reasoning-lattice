@@ -19,13 +19,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import WORKSPACE, LATTICE
-from lib.lattice.labels import build_note_label_index
+from lib.lattice.labels import build_note_label_index, format_label
 from lib.protocols.febe.session import open_session
 
 
 def asn_label(asn_arg):
     n = int(re.sub(r"[^0-9]", "", str(asn_arg)))
-    return f"ASN-{n:04d}"
+    return format_label(n)
 
 
 def build_edges(session):

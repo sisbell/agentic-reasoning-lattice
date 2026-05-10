@@ -28,6 +28,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.lattice.config import lattice_config
+from lib.lattice.labels import format_label
 from lib.shared.paths import LATTICE, WORKSPACE_DIR
 
 
@@ -42,7 +44,7 @@ SECTION_RE = re.compile(r"^##\s")
 def find_note_path(asn_num):
     """Find the discovery note file for an ASN number."""
     note_dir = LATTICE / "_docuverse" / "documents" / "note"
-    pattern = f"ASN-{asn_num:04d}-*.md"
+    pattern = f"{format_label(asn_num)}-*.md"
     matches = list(note_dir.glob(pattern))
     if not matches:
         return None
@@ -174,10 +176,10 @@ def main():
     for n in asn_nums:
         path = find_note_path(n)
         if path is None:
-            print(f"  Note for ASN-{n:04d} not found", file=sys.stderr)
+            print(f"  Note for {format_label(n)} not found", file=sys.stderr)
             sys.exit(1)
         note_paths.append((n, path))
-    asn_specs = [f"ASN-{n:04d}" for n, _ in note_paths]
+    asn_specs = [format_label(n) for n, _ in note_paths]
 
     print("Loading embedding model (nomic-embed-text-v1.5)...", file=sys.stderr)
     from transformers import AutoTokenizer, AutoModel
@@ -226,7 +228,7 @@ def main():
     report = render_report(asn_specs, chunks_by_note, similarities)
     out_dir = WORKSPACE_DIR / "duplicate-detection"
     out_dir.mkdir(parents=True, exist_ok=True)
-    asn_tag = "+".join(s.replace("ASN-", "") for s in asn_specs)
+    asn_tag = "+".join(s.replace(f"{lattice_config().label_prefix}-", "") for s in asn_specs)
     out_path = out_dir / f"operations-{asn_tag}.md"
     out_path.write_text(report)
     print(f"Report: {out_path.relative_to(LATTICE.parent.parent)}",

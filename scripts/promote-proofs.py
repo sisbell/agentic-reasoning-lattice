@@ -18,6 +18,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.lattice.labels import format_label
 from lib.shared.paths import WORKSPACE, DAFNY_DIR, PROOFS_STAGING_DIR as PROOFS_DIR
 
 
@@ -30,7 +31,7 @@ def main():
     args = parser.parse_args()
 
     asn_number = int(re.sub(r"[^0-9]", "", str(args.asn)))
-    asn_label = f"ASN-{asn_number:04d}"
+    asn_label = format_label(asn_number)
 
     src_dir = DAFNY_DIR / asn_label
     if not src_dir.exists():

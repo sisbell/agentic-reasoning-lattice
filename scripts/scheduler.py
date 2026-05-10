@@ -55,11 +55,12 @@ def _registry_triggers() -> list[Trigger]:
 
 
 def _parse_asn(raw: str) -> str:
-    """Normalize an ASN spec (`34`, `0034`, `ASN-0034`) to `ASN-NNNN`."""
+    """Normalize an ASN spec (`34`, `0034`, `<prefix>-0034`) to `<prefix>-NNNN`."""
+    from lib.lattice.labels import format_label
     digits = re.sub(r"\D", "", raw)
     if not digits:
         raise SystemExit(f"invalid ASN: {raw!r}")
-    return f"ASN-{int(digits):04d}"
+    return format_label(int(digits))
 
 
 def main() -> int:

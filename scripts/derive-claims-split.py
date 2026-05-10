@@ -22,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.agents.producers.claim_decompose import ClaimDecomposeAgent
+from lib.lattice.labels import format_label
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
 from lib.shared.paths import LATTICE
@@ -37,7 +38,7 @@ def main() -> int:
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     asn_path, _ = find_asn(str(asn_num))
     if asn_path is None:
-        print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
+        print(f"  {format_label(asn_num)} not found", file=sys.stderr)
         return 1
 
     with open_session(LATTICE) as session:

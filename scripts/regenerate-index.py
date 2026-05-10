@@ -18,6 +18,12 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.lattice.config import lattice_config
+from lib.lattice.labels import (
+    extract_label_digits,
+    format_label,
+    label_pattern,
+)
 from lib.predicates import is_retired
 from lib.predicates.citations import depends as note_depends
 from lib.predicates.quiescence import derived_claims
@@ -52,19 +58,19 @@ def _depends_label(session, addr) -> str:
         path = session.get_path_for_addr(dep)
         if not path:
             continue
-        m = re.search(r"ASN-(\d{4})", path)
-        if m:
-            nums.append(int(m.group(1)))
+        digits = extract_label_digits(path)
+        if digits:
+            nums.append(int(digits))
     nums = sorted(set(nums))
     return ",".join(str(n) for n in nums) if nums else "—"
 
 
 def _row_for_inquiry(session, inquiry_path):
-    m = re.match(r"ASN-(\d{4})", inquiry_path.stem)
+    m = label_pattern().match(inquiry_path.stem)
     if not m:
         return None
     asn_num = int(m.group(1))
-    asn_label = f"ASN-{asn_num:04d}"
+    asn_label = format_label(asn_num)
     title = load_inquiry(asn_num).get("title", "—")
 
     inquiry_addr = session.get_addr_for_path(
@@ -95,7 +101,7 @@ def _row_for_inquiry(session, inquiry_path):
 def main():
     session = open_session(LATTICE)
     rows = []
-    for inquiry_path in sorted(INQUIRY_DIR.glob("ASN-*.md")):
+    for inquiry_path in sorted(INQUIRY_DIR.glob(f"{lattice_config().label_prefix}-*.md")):
         row = _row_for_inquiry(session, inquiry_path)
         if row is not None:
             rows.append(row)

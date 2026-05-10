@@ -35,7 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.common import find_asn
 from lib.shared.paths import CLAIM_DIR, LATTICE
 from lib.protocols.febe.session import open_session
-from lib.lattice.labels import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index, format_label
 from lib.backend.predicates import active_links
 from lib.predicates import current_contract_kind
 from lib.backend.schema import VALID_ATTRIBUTE_KINDS as VALID_KINDS
@@ -667,7 +667,7 @@ def main():
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     _, asn_label = find_asn(str(asn_num))
     if asn_label is None:
-        print(f"ASN-{asn_num:04d} not found", file=sys.stderr)
+        print(f"{format_label(asn_num)} not found", file=sys.stderr)
         return 2
 
     claim_dir = CLAIM_DIR / asn_label

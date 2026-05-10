@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.lattice.labels import format_label
 from lib.shared.paths import CONSULTATIONS_DIR
 from lib.shared.campaign import resolve_campaign
 from lib.consultation.plugin import load_channel_plugin
@@ -72,7 +73,7 @@ def main():
 
     plugin = load_channel_plugin(channel)
 
-    prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
+    prefix = format_label(args.asn) if args.asn else "adhoc"
     consult_dir = _next_session_dir(CONSULTATIONS_DIR / prefix / "sessions", channel)
     (consult_dir / "question.md").write_text(question + "\n")
     answer_file = consult_dir / "answer.md"

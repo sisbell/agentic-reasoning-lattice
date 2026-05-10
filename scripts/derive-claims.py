@@ -30,6 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.agents.producers.claim_decompose import ClaimDecomposeAgent
+from lib.lattice.labels import format_label
 from lib.protocols.febe.session import open_session
 from lib.runner import Scope, run_until_quiescent
 from lib.shared.common import find_asn
@@ -45,7 +46,7 @@ def _phase_decompose(asn_num: int) -> bool:
     """Phase 1 — operator-gated decompose fire."""
     asn_path, _ = find_asn(str(asn_num))
     if asn_path is None:
-        print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
+        print(f"  {format_label(asn_num)} not found", file=sys.stderr)
         return False
 
     with open_session(LATTICE) as session:
@@ -59,7 +60,7 @@ def _phase_decompose(asn_num: int) -> bool:
 
 def _phase_post_decompose(asn_num: int) -> bool:
     """Phase 2 — runner walk over post-decompose producers."""
-    asn_label = f"ASN-{asn_num:04d}"
+    asn_label = format_label(asn_num)
     scope = Scope(asn_label=asn_label)
 
     result = run_until_quiescent(

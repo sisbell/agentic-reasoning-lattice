@@ -22,6 +22,7 @@ from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, LATTICE, WORKSPACE_DIR, pr
 from lib.shared.common import find_asn
 from lib.protocols.febe.session import open_session
 import lib.renderers  # registers claim-statements renderer
+from lib.lattice.labels import format_label
 from lib.renderers.claim_statements import read_claim_statements_view
 
 GENERATE_MODEL = "claude-sonnet-4-6"
@@ -37,7 +38,7 @@ def find_claim_statements(asn_num):
     under _workspace/ — content is rendered fresh from substrate
     each call.
     """
-    asn_label = f"ASN-{int(asn_num):04d}"
+    asn_label = format_label(asn_num)
     with open_session(LATTICE) as session:
         content = read_claim_statements_view(session, asn_label)
     if content is None:
@@ -194,7 +195,7 @@ def main():
         print(f"  [SPEC] Using claim-statements.md", file=sys.stderr)
     else:
         print(f"  [SPEC] No claim-statements.md — using raw ASN", file=sys.stderr)
-    label = f"ASN-{args.asn:04d}"
+    label = format_label(args.asn)
 
     example_dir = EXAMPLES_DIR / label
     example_dir.mkdir(parents=True, exist_ok=True)

@@ -18,6 +18,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.lattice.labels import format_label
 from lib.agents.producers.note_promote_out_of_scope import (
     NotePromoteOutOfScopeAgent,
 )
@@ -44,7 +45,7 @@ def main() -> int:
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
-        print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
+        print(f"  {format_label(asn_num)} not found", file=sys.stderr)
         return 1
 
     if args.dry_run:

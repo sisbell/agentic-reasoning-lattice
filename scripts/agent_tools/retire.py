@@ -23,6 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.backend.emit import emit_retired, emit_retraction
+from lib.lattice.labels import format_label
 from lib.predicates import is_retired
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
@@ -43,7 +44,7 @@ def main():
 
     asn_path, asn_label = find_asn(str(args.asn))
     if asn_path is None:
-        print(f"error: no note found for ASN-{args.asn:04d}",
+        print(f"error: no note found for {format_label(args.asn)}",
               file=sys.stderr)
         return 1
 

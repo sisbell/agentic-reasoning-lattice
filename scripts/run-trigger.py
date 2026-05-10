@@ -45,6 +45,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib import triggers as triggers_module
+from lib.lattice.labels import format_label
 from lib.runner import Scope, Trigger, run_force_pass, run_until_quiescent
 
 
@@ -110,7 +111,7 @@ def main() -> int:
         parser.error("--force requires --claim (no bare ASN-wide force)")
 
     asn_num = int(re.sub(r"\D", "", args.asn))
-    asn_label = f"ASN-{asn_num:04d}"
+    asn_label = format_label(asn_num)
     labels = frozenset({args.claim}) if args.claim else None
     scope = Scope(asn_label=asn_label, labels=labels)
 
