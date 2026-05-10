@@ -81,6 +81,7 @@ For new readers, the recommended order is:
 7. `agents/README.md` — the agent registry overview, caste taxonomy, and stigmergic vs sequential hand-off framing
 8. `agents/{producers,refiners,scouts}.md` — per-agent specifications
 9. `maturation/note-to-claim.md` — the Note-to-Claim Maturation Stigmergic Protocol, the first end-to-end protocol in this stack
+10. `maturation/lattice-genesis.md` — the Lattice-Genesis Maturation Stigmergic Protocol, which *precedes* Note-to-Claim: drives content from a scout signal through lattice creation to the point where the first note enters Note-to-Claim's Stage 1
 
 The substrate spec is forward-only — each document depends on previous ones, with explicit pipeline references. The agent caste docs depend on the substrate spec. Maturation protocols compose against both.
 
