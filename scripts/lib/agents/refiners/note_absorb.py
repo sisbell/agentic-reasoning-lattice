@@ -123,13 +123,13 @@ def _promote_spec_to_substrate(
     substrate_path = ABSORB_DIR / spec_filename
     shutil.copy2(workspace_path, substrate_path)
 
-    substrate_rel = str(substrate_path.resolve().relative_to(LATTICE.resolve()))
+    substrate_rel = str(substrate_path.resolve().relative_to(WORKSPACE.resolve()))
     spec_addr = session.store.register_path(substrate_rel)
     emit_absorb(session.store, spec_addr)
 
     print(
         f"  [PROMOTE] {workspace_path.relative_to(WORKSPACE)} → "
-        f"{substrate_path.relative_to(LATTICE)}",
+        f"{substrate_path.relative_to(WORKSPACE)}",
         file=sys.stderr,
     )
     return substrate_path, spec_addr
@@ -160,7 +160,7 @@ def _resolve_lineage(
         )
         return None
 
-    ext_rel = str(ext_path.relative_to(LATTICE))
+    ext_rel = str(ext_path.relative_to(WORKSPACE))
     ext_addr = session.get_addr_for_path(ext_rel)
     if ext_addr is None:
         print(
@@ -521,7 +521,7 @@ class NoteAbsorbAgent(Agent):
             return AgentResult(success=False, detail="integrate-failed")
         # Base note's body was edited; advance its supersession chain
         # so cascade-fresh detects the absorb.
-        base_rel_for_version = str(base_path.relative_to(LATTICE))
+        base_rel_for_version = str(base_path.relative_to(WORKSPACE))
         base_addr_for_version = session.get_addr_for_path(base_rel_for_version)
         if base_addr_for_version is not None:
             session.register_version(base_addr_for_version)
@@ -541,7 +541,7 @@ class NoteAbsorbAgent(Agent):
         n_findings = 0
         review_addr = None
         if review_text is not None:
-            base_rel = str(base_path.relative_to(LATTICE))
+            base_rel = str(base_path.relative_to(WORKSPACE))
             base_addr = session.get_addr_for_path(base_rel)
             review_addr, n_findings = _emit_review_with_findings(
                 session, base_label, base_addr, spec_addr, review_text,
@@ -559,7 +559,7 @@ class NoteAbsorbAgent(Agent):
 
         # 8. Retire extension + emit provenance.absorb
         _retire_extension(session, ext_addr, ext_num, ext_label)
-        base_rel = str(base_path.relative_to(LATTICE))
+        base_rel = str(base_path.relative_to(WORKSPACE))
         base_addr = session.get_addr_for_path(base_rel)
         emit_provenance_absorb(session.store, spec_addr, base_addr)
 

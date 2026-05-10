@@ -88,13 +88,13 @@ def _promote_spec_to_substrate(
     substrate_path = CLONE_DIR / spec_filename
     shutil.copy2(workspace_path, substrate_path)
 
-    substrate_rel = str(substrate_path.resolve().relative_to(LATTICE.resolve()))
+    substrate_rel = str(substrate_path.resolve().relative_to(WORKSPACE.resolve()))
     spec_addr = session.store.register_path(substrate_rel)
     emit_clone(session.store, spec_addr)
 
     print(
         f"  [PROMOTE] {workspace_path.relative_to(WORKSPACE)} → "
-        f"{substrate_path.relative_to(LATTICE)}",
+        f"{substrate_path.relative_to(WORKSPACE)}",
         file=sys.stderr,
     )
     return substrate_path, spec_addr
@@ -214,8 +214,8 @@ def _emit_substrate(
     """Register clone docs, emit classifiers, mirror citation.depends,
     record provenance.clone lineage. Returns (clone_note_addr,
     clone_inquiry_addr | None)."""
-    origin_note_rel = str(origin_note_path.relative_to(LATTICE))
-    clone_note_rel = str(clone_note_path.relative_to(LATTICE))
+    origin_note_rel = str(origin_note_path.relative_to(WORKSPACE))
+    clone_note_rel = str(clone_note_path.relative_to(WORKSPACE))
 
     origin_note_addr = session.get_addr_for_path(origin_note_rel)
     clone_note_addr = session.store.register_path(clone_note_rel)
@@ -225,10 +225,10 @@ def _emit_substrate(
     clone_inquiry_addr = None
     if origin_inquiry_path is not None and clone_inquiry_path is not None:
         origin_inquiry_addr = session.get_addr_for_path(
-            str(origin_inquiry_path.relative_to(LATTICE)),
+            str(origin_inquiry_path.relative_to(WORKSPACE)),
         )
         clone_inquiry_addr = session.store.register_path(
-            str(clone_inquiry_path.relative_to(LATTICE)),
+            str(clone_inquiry_path.relative_to(WORKSPACE)),
         )
         emit_inquiry(session.store, clone_inquiry_addr)
 

@@ -27,7 +27,7 @@ from lib.backend.addressing import Address
 from lib.predicates import derived_claims, is_retired
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, asn_note_addr
-from lib.shared.paths import LATTICE, inquiry_doc_path
+from lib.shared.paths import WORKSPACE, inquiry_doc_path
 
 
 def _claim_set_for_scope(session: Session, scope: Scope) -> Set[Address]:
@@ -124,7 +124,7 @@ def per_inquiry_of_asn(
         path = inquiry_doc_path(asn_num)
         if not path.exists():
             return
-        rel = str(path.resolve().relative_to(LATTICE.resolve()))
+        rel = str(path.resolve().relative_to(WORKSPACE.resolve()))
         addr = session.get_addr_for_path(rel)
         if addr is not None:
             yield addr

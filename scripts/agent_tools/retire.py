@@ -27,7 +27,7 @@ from lib.lattice.labels import format_label
 from lib.predicates import is_retired
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
-from lib.shared.paths import LATTICE
+from lib.shared.paths import LATTICE, WORKSPACE
 
 
 def main():
@@ -49,7 +49,7 @@ def main():
         return 1
 
     session = open_session(LATTICE)
-    note_rel = str(asn_path.relative_to(LATTICE))
+    note_rel = str(asn_path.relative_to(WORKSPACE))
     note_addr = session.get_addr_for_path(note_rel)
     if note_addr is None:
         print(f"error: note not registered in substrate: {note_rel}",

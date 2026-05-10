@@ -37,7 +37,7 @@ def _run_one(session, agent, asn_id):
     if asn_path is None:
         print(f"  No ASN found for {asn_id}", file=sys.stderr)
         return asn_id, False
-    note_rel = str(asn_path.relative_to(LATTICE))
+    note_rel = str(asn_path.relative_to(WORKSPACE))
     note_addr = session.get_addr_for_path(note_rel)
     if note_addr is None:
         print(f"  Note not registered in substrate: {note_rel}",

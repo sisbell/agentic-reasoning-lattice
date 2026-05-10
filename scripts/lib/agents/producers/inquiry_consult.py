@@ -399,11 +399,11 @@ def _run_consult_for_inquiry(
 
     session = open_session(LATTICE)
     store = session.store
-    questions_rel = str(questions_path.resolve().relative_to(LATTICE.resolve()))
+    questions_rel = str(questions_path.resolve().relative_to(WORKSPACE.resolve()))
     questions_addr = store.register_path(questions_rel)
     emit_consultation_questions(store, questions_addr)
     inquiry_rel = str(
-        inquiry_doc_path(asn_id).resolve().relative_to(LATTICE.resolve())
+        inquiry_doc_path(asn_id).resolve().relative_to(WORKSPACE.resolve())
     )
     inquiry_addr = store.register_path(inquiry_rel)
     emit_consultation_coverage(store, questions_addr, inquiry_addr)
@@ -431,7 +431,7 @@ def _run_consult_for_inquiry(
                 file=sys.stderr,
             )
             continue
-        answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
+        answer_rel = str(answer_md.resolve().relative_to(WORKSPACE.resolve()))
         answer_addr = store.register_path(answer_rel)
         emit_consultation_answer(store, answer_addr, role_match.group(1))
         emit_consultation_coverage(store, answer_addr, inquiry_addr)

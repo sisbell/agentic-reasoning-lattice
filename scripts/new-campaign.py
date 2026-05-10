@@ -109,7 +109,7 @@ def main():
     from lib.shared.paths import LATTICE
     session = open_session(LATTICE)
     store = session.store  # for emit_* (Pass 2 will migrate)
-    doc_rel = str(doc_path.resolve().relative_to(LATTICE.resolve()))
+    doc_rel = str(doc_path.resolve().relative_to(WORKSPACE.resolve()))
     doc_addr = session.register_path(doc_rel)
     emit_campaign(store, doc_addr)
 

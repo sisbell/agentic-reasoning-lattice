@@ -37,7 +37,7 @@ from lib.shared.foundation import load_foundation_for_note
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude_agent
 from lib.shared.paths import (
-    LATTICE, NOTE_DIR, USAGE_LOG,
+    LATTICE, NOTE_DIR, USAGE_LOG, WORKSPACE,
     inquiry_doc_path,
     load_inquiry as load_inquiry_frontmatter,
     prompt_path,
@@ -134,7 +134,7 @@ def _build_consultation_content(asn_number):
     filename inspection.
     """
     inquiry_rel = str(
-        inquiry_doc_path(asn_number).resolve().relative_to(LATTICE.resolve())
+        inquiry_doc_path(asn_number).resolve().relative_to(WORKSPACE.resolve())
     )
     parts = []
     count = 0
@@ -274,14 +274,14 @@ def _run_draft_for_inquiry(asn_id, *, force: bool = False):
 
     session = open_session(LATTICE)
     store = session.store
-    asn_rel = str(Path(asn_path).resolve().relative_to(LATTICE.resolve()))
+    asn_rel = str(Path(asn_path).resolve().relative_to(WORKSPACE.resolve()))
     note_addr = store.register_path(asn_rel)
     _, note_created = emit_note(store, note_addr)
     if note_created:
         print(f"  [NOTE] classifier emitted", file=sys.stderr)
     inq_path = inquiry_doc_path(asn_number)
     if inq_path.exists():
-        inq_rel = str(inq_path.resolve().relative_to(LATTICE.resolve()))
+        inq_rel = str(inq_path.resolve().relative_to(WORKSPACE.resolve()))
         inq_addr = store.register_path(inq_rel)
         _, syn_created = emit_synthesis(store, inq_addr, note_addr)
         if syn_created:

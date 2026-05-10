@@ -25,7 +25,7 @@ from lib.agents.producers.note_promote_out_of_scope import (
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
 from lib.shared.git_ops import step_commit_asn
-from lib.shared.paths import LATTICE
+from lib.shared.paths import LATTICE, WORKSPACE
 
 
 def main() -> int:
@@ -57,7 +57,7 @@ def main() -> int:
         return 0
 
     with open_session(LATTICE) as session:
-        note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
+        note_rel = str(asn_path.resolve().relative_to(WORKSPACE.resolve()))
         note_addr = session.get_addr_for_path(note_rel)
         if note_addr is None:
             note_addr = session.register_path(note_rel)

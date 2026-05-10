@@ -42,7 +42,7 @@ from lib.protocols.febe.protocol import Session
 from lib.lattice.labels import parse_claim_doc_path
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
-    CLAIM_AUDITS_DIR, CLAIM_DIR, CLAIM_FINDINGS_DIR, LATTICE,
+    CLAIM_AUDITS_DIR, CLAIM_DIR, CLAIM_FINDINGS_DIR, WORKSPACE,
     audit_doc_path, next_audit_number,
 )
 
@@ -190,7 +190,7 @@ class ClaimStructuralAuditAgent(Agent):
             asn_label, claim_label, rule_outcomes, audit_num,
         )
         audit_rel = str(
-            audit_path.resolve().relative_to(LATTICE.resolve())
+            audit_path.resolve().relative_to(WORKSPACE.resolve())
         )
         session.update_document(audit_rel, audit_body)
         audit_addr = session.register_path(audit_rel)
@@ -206,7 +206,7 @@ class ClaimStructuralAuditAgent(Agent):
                 asn_label, claim_label, f,
             )
             finding_rel = str(
-                finding_path.resolve().relative_to(LATTICE.resolve())
+                finding_path.resolve().relative_to(WORKSPACE.resolve())
             )
             session.update_document(finding_rel, finding_body)
             finding_addr = session.register_path(finding_rel)

@@ -27,7 +27,7 @@ def find_extensions(base_id):
     base_path, _ = find_asn(str(base_id))
     if base_path is None:
         return []
-    base_rel = str(base_path.relative_to(LATTICE))
+    base_rel = str(base_path.relative_to(WORKSPACE))
     extensions = []
     with open_session(LATTICE) as session:
         base_addr = session.get_addr_for_path(base_rel)
@@ -164,8 +164,8 @@ def load_foundation_for_note(asn_path, asn_id):
     """
     from lib.lattice.labels import note_dep_asn_ids
     from lib.protocols.febe.session import open_session
-    from lib.shared.paths import LATTICE
-    note_rel = str(asn_path.resolve().relative_to(Path(LATTICE).resolve()))
+    from lib.shared.paths import LATTICE, WORKSPACE
+    note_rel = str(asn_path.resolve().relative_to(Path(WORKSPACE).resolve()))
     with open_session(LATTICE) as session:
         store = session.store  # for emit_* (Pass 2 will migrate)
         note_addr = store.path_to_addr.get(note_rel)

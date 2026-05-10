@@ -30,7 +30,8 @@ from lib.predicates.quiescence import derived_claims
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
 from lib.shared.paths import (
-    INQUIRY_DIR, LATTICE, WORKSPACE_DIR, inquiry_doc_path, load_inquiry,
+    INQUIRY_DIR, LATTICE, WORKSPACE, WORKSPACE_DIR,
+    inquiry_doc_path, load_inquiry,
 )
 
 
@@ -74,14 +75,14 @@ def _row_for_inquiry(session, inquiry_path):
     title = load_inquiry(asn_num).get("title", "—")
 
     inquiry_addr = session.get_addr_for_path(
-        str(inquiry_doc_path(asn_num).relative_to(LATTICE)),
+        str(inquiry_doc_path(asn_num).relative_to(WORKSPACE)),
     )
 
     asn_path, _ = find_asn(str(asn_num))
     note_addr = None
     if asn_path is not None:
         note_addr = session.get_addr_for_path(
-            str(asn_path.relative_to(LATTICE)),
+            str(asn_path.relative_to(WORKSPACE)),
         )
         if note_addr is not None and is_retired(session, note_addr):
             return None

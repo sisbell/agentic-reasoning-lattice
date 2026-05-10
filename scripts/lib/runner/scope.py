@@ -56,7 +56,7 @@ def asn_note_addr(session, scope: Scope):
     from lib.lattice.labels import extract_label_digits
     from lib.predicates import is_retired
     from lib.shared.common import find_asn
-    from lib.shared.paths import LATTICE
+    from lib.shared.paths import WORKSPACE
     digits = extract_label_digits(scope.asn_label)
     if digits is None:
         return None
@@ -64,7 +64,7 @@ def asn_note_addr(session, scope: Scope):
     asn_path, _ = find_asn(str(asn_num))
     if asn_path is None:
         return None
-    rel = str(asn_path.relative_to(LATTICE))
+    rel = str(asn_path.relative_to(WORKSPACE))
     addr = session.get_addr_for_path(rel)
     if addr is None or is_retired(session, addr):
         return None

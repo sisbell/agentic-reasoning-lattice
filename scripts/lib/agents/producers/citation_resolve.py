@@ -38,7 +38,7 @@ from lib.protocols.febe.protocol import Session
 from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.llm_response import invoke_text, parse_two_sections
-from lib.shared.paths import CITATION_RESOLVE_DIR, LATTICE, prompt_path
+from lib.shared.paths import CITATION_RESOLVE_DIR, WORKSPACE, prompt_path
 from lib.shared.prompts import read_prompt
 
 
@@ -497,7 +497,7 @@ class ClaimCitationResolveAgent(Agent):
 
         os.environ.setdefault("PROTOCOL_ASN_LABEL", asn_label)
 
-        claim_md_full = LATTICE / claim_rel
+        claim_md_full = WORKSPACE / claim_rel
         if not claim_md_full.exists():
             return AgentResult(success=False, detail="no-claim-file")
 
@@ -537,7 +537,7 @@ class ClaimCitationResolveAgent(Agent):
         resolve_path, run_num = _persist_resolve_doc(
             asn_label, claim_label, result.raw_text, self.model,
         )
-        resolve_rel = str(resolve_path.relative_to(LATTICE))
+        resolve_rel = str(resolve_path.relative_to(WORKSPACE))
 
         if result.classifications or result.retractions:
             _emit_citation_substrate(

@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.predicates import unresolved_revise_comments
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
-from lib.shared.paths import LATTICE
+from lib.shared.paths import LATTICE, WORKSPACE
 
 
 def main():
@@ -29,7 +29,7 @@ def main():
         print(f"ERROR: ASN not found: {args.asn}", file=sys.stderr)
         sys.exit(1)
 
-    note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
+    note_rel = str(asn_path.resolve().relative_to(WORKSPACE.resolve()))
     with open_session(LATTICE) as session:
         note_addr = session.get_addr_for_path(note_rel)
 

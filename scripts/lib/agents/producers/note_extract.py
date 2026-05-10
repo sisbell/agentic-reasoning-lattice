@@ -137,13 +137,13 @@ def _promote_spec_to_substrate(
     substrate_path = EXTRACT_DIR / spec_filename
     shutil.copy2(workspace_path, substrate_path)
 
-    substrate_rel = str(substrate_path.resolve().relative_to(LATTICE.resolve()))
+    substrate_rel = str(substrate_path.resolve().relative_to(WORKSPACE.resolve()))
     spec_addr = session.store.register_path(substrate_rel)
     emit_extract(session.store, spec_addr)
 
     print(
         f"  [PROMOTE] {workspace_path.relative_to(WORKSPACE)} → "
-        f"{substrate_path.relative_to(LATTICE)}",
+        f"{substrate_path.relative_to(WORKSPACE)}",
         file=sys.stderr,
     )
     return substrate_path, spec_addr
@@ -269,9 +269,9 @@ def _emit_lineage(
 ) -> Address:
     """Register the new note's path, emit classifier + lineage links +
     provenance edge. Returns the new note's substrate address."""
-    new_rel = str(new_path.relative_to(LATTICE))
-    absorb_into_rel = str(absorb_into_path.relative_to(LATTICE))
-    origin_rel = str(origin_path.relative_to(LATTICE))
+    new_rel = str(new_path.relative_to(WORKSPACE))
+    absorb_into_rel = str(absorb_into_path.relative_to(WORKSPACE))
+    origin_rel = str(origin_path.relative_to(WORKSPACE))
 
     new_addr = session.store.register_path(new_rel)
     absorb_into_addr = session.get_addr_for_path(absorb_into_rel)

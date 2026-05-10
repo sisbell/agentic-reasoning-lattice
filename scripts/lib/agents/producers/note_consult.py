@@ -55,7 +55,7 @@ from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import get_total_usage
 from lib.shared.paths import (
-    LATTICE, NOTE_FINDINGS_DIR, REVIEWS_DIR,
+    LATTICE, NOTE_FINDINGS_DIR, REVIEWS_DIR, WORKSPACE,
     consultation_dir, load_channel_meta, prompt_path,
 )
 
@@ -303,7 +303,7 @@ def _revise_finding_addrs_for_review(session, asn_label, review_num):
 
     addrs = []
     for path in sorted(findings_dir.glob("*.md"), key=_key):
-        rel = str(path.resolve().relative_to(LATTICE.resolve()))
+        rel = str(path.resolve().relative_to(WORKSPACE.resolve()))
         finding_addr = session.get_addr_for_path(rel)
         if finding_addr is None:
             continue
@@ -385,7 +385,7 @@ def _run_consult_for_review(
 
     session = open_session(LATTICE)
     store = session.store
-    cat_rel = str(cat_path.resolve().relative_to(LATTICE.resolve()))
+    cat_rel = str(cat_path.resolve().relative_to(WORKSPACE.resolve()))
     cat_addr = store.register_path(cat_rel)
     emit_consultation_assessment(store, cat_addr)
 
@@ -440,7 +440,7 @@ def _run_consult_for_review(
             answer_md = _answer_path(consult_subdir, item["number"], role)
             if not answer_md.exists():
                 continue
-            answer_rel = str(answer_md.resolve().relative_to(LATTICE.resolve()))
+            answer_rel = str(answer_md.resolve().relative_to(WORKSPACE.resolve()))
             answer_addr = store.register_path(answer_rel)
             emit_consultation_answer(store, answer_addr, role)
             if finding_addr is not None:

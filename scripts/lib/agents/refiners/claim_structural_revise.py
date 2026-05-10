@@ -44,7 +44,7 @@ from lib.predicates import has_resolution
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
 from lib.shared.git_ops import step_commit_asn
-from lib.shared.paths import CLAIM_DIR, LATTICE, prompt_path
+from lib.shared.paths import CLAIM_DIR, LATTICE, WORKSPACE, prompt_path
 from lib.shared.invoke_claude import invoke_claude_agent
 
 
@@ -217,7 +217,7 @@ def _read_substrate_violations(
         finding_rel = session.get_path_for_addr(finding_addr)
         if finding_rel is None:
             continue
-        finding_full = LATTICE / finding_rel
+        finding_full = WORKSPACE / finding_rel
         if not finding_full.exists():
             continue
         body = finding_full.read_text()
@@ -307,7 +307,7 @@ def _build_metadata_bundle(rule, filename, claim_dir):
     """
     stem = Path(filename).stem
     labels_to_include = [stem]
-    lattice_root = Path(LATTICE).resolve()
+    lattice_root = Path(WORKSPACE).resolve()
 
     with open_session(LATTICE) as session:
         label_index = build_cross_asn_label_index(session.store)
@@ -716,7 +716,7 @@ def _run_pass(
         retracted_count = 0
         if retract_decisions:
             real_claim_path = str(
-                real_path.resolve().relative_to(LATTICE.resolve())
+                real_path.resolve().relative_to(WORKSPACE.resolve())
             )
             try:
                 retracted_count = _apply_retract_decisions(

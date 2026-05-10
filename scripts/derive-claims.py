@@ -34,7 +34,7 @@ from lib.lattice.labels import format_label
 from lib.protocols.febe.session import open_session
 from lib.runner import Scope, run_until_quiescent
 from lib.shared.common import find_asn
-from lib.shared.paths import LATTICE
+from lib.shared.paths import LATTICE, WORKSPACE
 from lib.shared.validate_gate import run_validate_gate
 from lib.triggers import (
     claim_citation_resolve, claim_contract, claim_describe,
@@ -50,7 +50,7 @@ def _phase_decompose(asn_num: int) -> bool:
         return False
 
     with open_session(LATTICE) as session:
-        note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
+        note_rel = str(asn_path.resolve().relative_to(WORKSPACE.resolve()))
         note_addr = session.get_addr_for_path(note_rel)
         if note_addr is None:
             note_addr = session.register_path(note_rel)

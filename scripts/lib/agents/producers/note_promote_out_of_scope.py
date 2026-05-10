@@ -40,7 +40,7 @@ from lib.protocols.febe.protocol import Session
 from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.invoke_claude import invoke_claude
-from lib.shared.paths import LATTICE, REVIEWS_DIR, prompt_path
+from lib.shared.paths import WORKSPACE, REVIEWS_DIR, prompt_path
 from lib.shared.prompts import read_prompt
 
 
@@ -148,7 +148,7 @@ class NotePromoteOutOfScopeAgent(Agent):
             print(f"\n  No new ASNs promoted from {asn_label}", file=sys.stderr)
 
         source_note_addr = session.get_addr_for_path(
-            str(asn_path.relative_to(LATTICE)),
+            str(asn_path.relative_to(WORKSPACE)),
         )
         save_promotion_report(
             session, asn_num, "out-of-scope", result.text,

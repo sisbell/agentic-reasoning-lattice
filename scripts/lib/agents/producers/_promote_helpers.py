@@ -150,7 +150,7 @@ def create_inquiry_doc(
         f"# Inquiry: {title}\n"
     )
     path.write_text(body)
-    rel = str(path.relative_to(LATTICE))
+    rel = str(path.relative_to(WORKSPACE))
     addr = session.store.register_path(rel)
     emit_inquiry(session.store, addr)
     print(f"  [CREATED] {path.relative_to(WORKSPACE)}", file=sys.stderr)
@@ -181,7 +181,7 @@ def save_promotion_report(
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text + "\n")
 
-    rel = str(path.relative_to(LATTICE))
+    rel = str(path.relative_to(WORKSPACE))
     report_addr = session.store.register_path(rel)
     emit_promotion(session.store, report_addr, kind)
 

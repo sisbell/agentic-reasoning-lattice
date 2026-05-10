@@ -108,7 +108,7 @@ def _promote_patch_to_substrate(
     shutil.copy2(workspace_path, substrate_path)
 
     substrate_rel = str(
-        substrate_path.resolve().relative_to(LATTICE.resolve())
+        substrate_path.resolve().relative_to(WORKSPACE.resolve())
     )
     patch_addr = session.store.register_path(substrate_rel)
 
@@ -117,7 +117,7 @@ def _promote_patch_to_substrate(
 
     print(
         f"  [PROMOTE] {workspace_path.relative_to(WORKSPACE)} → "
-        f"{substrate_path.relative_to(LATTICE)}",
+        f"{substrate_path.relative_to(WORKSPACE)}",
         file=sys.stderr,
     )
     return substrate_path, patch_addr

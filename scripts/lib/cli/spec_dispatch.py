@@ -201,7 +201,7 @@ def run_patch_cli(
     print(f"  [{name.upper()}] {asn_label} ← {args.patch}", file=sys.stderr)
 
     with open_session(LATTICE) as session:
-        note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
+        note_rel = str(asn_path.resolve().relative_to(WORKSPACE.resolve()))
         note_addr = session.get_addr_for_path(note_rel)
         if note_addr is None:
             note_addr = session.register_path(note_rel)
