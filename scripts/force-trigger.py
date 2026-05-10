@@ -75,6 +75,10 @@ def main() -> int:
         "note",
         help="Note number (e.g., 34, 0034, ASN-0034)",
     )
+    parser.add_argument(
+        "--no-commit", action="store_true",
+        help="Skip the per-fire auto-commit (default: commit after each fire).",
+    )
     args = parser.parse_args()
 
     trigger = _resolve_trigger(args.trigger)
@@ -82,7 +86,9 @@ def main() -> int:
     note_label = format_label(note_num)
     scope = Scope(asn_label=note_label, labels=None)
 
-    result = run_force_pass(triggers=[trigger], scope=scope)
+    result = run_force_pass(
+        triggers=[trigger], scope=scope, auto_commit=not args.no_commit,
+    )
 
     print(
         f"\n  [{trigger.name}] note={note_label} "

@@ -83,6 +83,10 @@ def main() -> int:
         "--max-inner", type=int, default=100,
         help="Cap on per-ASN runner passes (default 100)",
     )
+    parser.add_argument(
+        "--no-commit", action="store_true",
+        help="Skip the per-fire auto-commit (default: commit after each fire).",
+    )
     args = parser.parse_args()
 
     asn_labels = [_parse_asn(a) for a in args.asns]
@@ -112,6 +116,7 @@ def main() -> int:
                 triggers=triggers,
                 scope=scope,
                 max_iterations=args.max_inner,
+                auto_commit=not args.no_commit,
             )
             elapsed = time.time() - inner_start
             print(

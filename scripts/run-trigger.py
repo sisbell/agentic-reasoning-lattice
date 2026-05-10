@@ -98,6 +98,10 @@ def main() -> int:
         "--max-iterations", type=int, default=100,
         help="Max runner passes (default 100)",
     )
+    parser.add_argument(
+        "--no-commit", action="store_true",
+        help="Skip the per-fire auto-commit (default: commit after each fire).",
+    )
     args = parser.parse_args()
 
     trigger = _resolve_trigger(args.trigger)
@@ -115,12 +119,16 @@ def main() -> int:
     labels = frozenset({args.claim}) if args.claim else None
     scope = Scope(asn_label=asn_label, labels=labels)
 
+    auto_commit = not args.no_commit
     if args.force:
-        result = run_force_pass(triggers=[trigger], scope=scope)
+        result = run_force_pass(
+            triggers=[trigger], scope=scope, auto_commit=auto_commit,
+        )
     else:
         result = run_until_quiescent(
             triggers=[trigger], scope=scope,
             max_iterations=args.max_iterations,
+            auto_commit=auto_commit,
         )
 
     print(

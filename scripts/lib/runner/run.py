@@ -33,6 +33,7 @@ from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
 from lib.shared.paths import LATTICE
 
+from ._commit import commit_after_fire
 from .scope import Scope
 from .trigger import Trigger
 
@@ -58,6 +59,7 @@ def run_until_quiescent(
     *,
     session_factory: SessionFactory = _default_session_factory,
     max_iterations: int = 100,
+    auto_commit: bool = True,
 ) -> RunResult:
     """Convergence loop. Returns RunResult.
 
@@ -116,6 +118,8 @@ def run_until_quiescent(
                     f"({time.time() - start:.0f}s)",
                     file=sys.stderr,
                 )
+                if auto_commit:
+                    commit_after_fire(trigger.name, str(addr))
                 session = session_factory()
         if not fired_this_pass:
             return RunResult(
@@ -133,6 +137,7 @@ def run_force_pass(
     scope: Scope,
     *,
     session_factory: SessionFactory = _default_session_factory,
+    auto_commit: bool = True,
 ) -> RunResult:
     """Single pass; fire every (trigger, addr) in scope, ignoring predicate.
 
@@ -165,6 +170,8 @@ def run_force_pass(
                 f"({time.time() - start:.0f}s)",
                 file=sys.stderr,
             )
+            if auto_commit:
+                commit_after_fire(trigger.name, str(addr))
             session = session_factory()
     return RunResult(
         quiescent=False, iterations=1, fires=fires, errors=errors,
