@@ -20,7 +20,7 @@ from lib.shared.claim_files import load_claim_metadata
 from lib.shared.common import find_asn
 from lib.shared.foundation import claim_asn_dep_ids
 from lib.protocols.febe.session import open_session
-from lib.lattice.labels import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index, format_label
 from lib.backend.predicates import active_links
 from lib.predicates import current_contract_kind
 
@@ -32,7 +32,7 @@ def build_deps_for_asn(asn_num):
     """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
-        print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
+        print(f"  [ERROR] {format_label(asn_num)} not found", file=sys.stderr)
         return None
 
     claim_dir = CLAIM_DIR / asn_label

@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.paths import WORKSPACE, CLAIM_DIR, LATTICE
 from lib.shared.claim_files import build_label_index, load_claim_metadata
 
@@ -38,9 +39,9 @@ def find_extensions(base_id):
             ext_path = session.get_path_for_addr(link.from_set[0])
             if ext_path is None:
                 continue
-            m = re.search(r"ASN-(\d+)", ext_path)
-            if m:
-                extensions.append(int(m.group(1)))
+            digits = extract_label_digits(ext_path)
+            if digits:
+                extensions.append(int(digits))
     return sorted(extensions)
 
 
@@ -58,7 +59,7 @@ def _load_claim_statement(dep_asn_num, label):
 
     Returns formatted section text or None if not found.
     """
-    asn_label = f"ASN-{int(dep_asn_num):04d}"
+    asn_label = format_label(dep_asn_num)
     claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
         return None
@@ -123,7 +124,7 @@ def load_foundation_statements(asn_id, dep_ids=None):
 
     sections = []
     for dep_id in all_dep_ids:
-        asn_label = f"ASN-{int(dep_id):04d}"
+        asn_label = format_label(dep_id)
         claim_dir = CLAIM_DIR / asn_label
         if not claim_dir.exists():
             print(f"  [ERROR] No claim doc dir for {asn_label}",
@@ -183,7 +184,7 @@ def load_foundation_for_claim_asn(asn_id):
     from lib.lattice.labels import aggregate_asn_deps
     from lib.protocols.febe.session import open_session
     from lib.shared.paths import LATTICE
-    asn_label = f"ASN-{int(asn_id):04d}"
+    asn_label = format_label(asn_id)
     with open_session(LATTICE) as session:
         store = session.store  # for emit_* (Pass 2 will migrate)
         dep_ids = aggregate_asn_deps(store, asn_label)
@@ -200,7 +201,7 @@ def claim_asn_dep_ids(asn_id):
     from lib.lattice.labels import aggregate_asn_deps
     from lib.protocols.febe.session import open_session
     from lib.shared.paths import LATTICE
-    asn_label = f"ASN-{int(asn_id):04d}"
+    asn_label = format_label(asn_id)
     with open_session(LATTICE) as session:
         store = session.store  # for emit_* (Pass 2 will migrate)
         return aggregate_asn_deps(store, asn_label)

@@ -26,13 +26,15 @@ class Scope:
 
 def asn(num: int) -> Scope:
     """Convenience: scope to one ASN by number."""
-    return Scope(asn_label=f"ASN-{int(num):04d}")
+    from lib.lattice.labels import format_label
+    return Scope(asn_label=format_label(num))
 
 
 def cone(asn_num: int, apex_label: str) -> Scope:
     """Convenience: scope to one apex within an ASN."""
+    from lib.lattice.labels import format_label
     return Scope(
-        asn_label=f"ASN-{int(asn_num):04d}",
+        asn_label=format_label(asn_num),
         labels=frozenset([apex_label]),
     )
 
@@ -51,10 +53,14 @@ def asn_note_addr(session, scope: Scope):
     """
     if scope.asn_label is None:
         return None
+    from lib.lattice.labels import extract_label_digits
     from lib.predicates import is_retired
     from lib.shared.common import find_asn
     from lib.shared.paths import LATTICE
-    asn_num = int(scope.asn_label[4:])
+    digits = extract_label_digits(scope.asn_label)
+    if digits is None:
+        return None
+    asn_num = int(digits)
     asn_path, _ = find_asn(str(asn_num))
     if asn_path is None:
         return None

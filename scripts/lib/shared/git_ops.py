@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.lattice.labels import format_label
 from lib.shared.paths import (
     WORKSPACE, NOTE_DIR,
     CLAIM_REVIEWS_DIR, NOTE_REVIEWS_DIR,
@@ -87,7 +88,7 @@ def step_commit_asn(asn_id, hint="", *, max_attempts=3, backoff_seconds=(5, 15))
     of git until a later commit picks up the staged-but-uncommitted
     files. Retry is the cheap defense against that drift.
     """
-    label = f"ASN-{int(asn_id):04d}"
+    label = format_label(asn_id)
     if not stage_asn_files(label):
         print(f"  [COMMIT] No changes for {label}", file=sys.stderr)
         return False

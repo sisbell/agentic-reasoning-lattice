@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Optional, Type
 
 from lib.agents.base import Agent
+from lib.lattice.labels import format_label
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
 from lib.shared.paths import LATTICE, WORKSPACE
@@ -176,7 +177,7 @@ def run_patch_cli(
 
     asn_path, asn_label = find_asn(str(args.asn))
     if asn_path is None:
-        print(f"  [ERROR] ASN-{args.asn:04d} not found", file=sys.stderr)
+        print(f"  [ERROR] {format_label(args.asn)} not found", file=sys.stderr)
         return 1
 
     patch_path = inbox_root / asn_label / args.patch

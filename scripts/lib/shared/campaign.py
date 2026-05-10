@@ -16,6 +16,7 @@ from pathlib import Path
 
 import yaml
 
+from lib.lattice.labels import format_label
 from lib.shared.frontmatter import read_doc_frontmatter
 from lib.shared.paths import (
     LATTICE_CONFIG, load_inquiry, load_lattice_config,
@@ -36,14 +37,17 @@ class CampaignContext:
     vocabulary_path: Path
 
 
-_ASN_ID_RE = re.compile(r"^(?:ASN-)?0*(\d+)$")
+def _asn_id_pattern():
+    from lib.lattice.config import lattice_config
+    prefix = lattice_config().label_prefix
+    return re.compile(rf"^(?:{re.escape(prefix)}-)?0*(\d+)$")
 
 
 def _asn_int(asn_id):
-    """Coerce 2, '2', '0002', 'ASN-0002' to int 2. Rejects anything else."""
+    """Coerce 2, '2', '0002', '<prefix>-0002' to int 2. Rejects anything else."""
     if isinstance(asn_id, int):
         return asn_id
-    m = _ASN_ID_RE.match(str(asn_id).strip())
+    m = _asn_id_pattern().match(str(asn_id).strip())
     if not m:
         raise ConfigError(f"Cannot parse ASN id: {asn_id!r}")
     return int(m.group(1))
@@ -60,7 +64,7 @@ def _resolve_cached(asn_num):
     name = inquiry_fm.get("campaign") or load_lattice_config().get("default_campaign")
     if not name:
         raise ConfigError(
-            f"No campaign bound for ASN-{asn_num:04d}. "
+            f"No campaign bound for {format_label(asn_num)}. "
             f"Set `campaign:` in the inquiry frontmatter or `default_campaign:` in "
             f"{LATTICE_CONFIG}."
         )
