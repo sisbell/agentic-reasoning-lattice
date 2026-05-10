@@ -36,6 +36,7 @@ from lib.shared.foundation import (
     load_foundation_for_labels,
 )
 from lib.shared.paths import prompt_path
+from lib.shared.prompts import read_prompt
 
 
 REVIEW_TEMPLATE = prompt_path("agents/producers/review_helpers.md")
@@ -88,7 +89,7 @@ def run_review(
             "consistency only)"
         )
 
-    template = read_file(REVIEW_TEMPLATE)
+    template = read_prompt(REVIEW_TEMPLATE)
     if not template:
         print("  [ERROR] Audit template not found", file=sys.stderr)
         return "ERROR", None, 0

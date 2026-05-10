@@ -34,6 +34,7 @@ from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.common import find_asn, read_file
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import LATTICE, USAGE_LOG, WORKSPACE, prompt_path
+from lib.shared.prompts import read_prompt
 
 
 REVISE_TEMPLATE = prompt_path("agents/refiners/claim_revise.md")
@@ -67,7 +68,7 @@ def revise(
     from lib.shared.paths import CLAIM_DIR
     claim_dir = CLAIM_DIR / asn_label
 
-    template = read_file(REVISE_TEMPLATE)
+    template = read_prompt(REVISE_TEMPLATE)
     rel_path = claim_dir.relative_to(WORKSPACE)
 
     prompt = (

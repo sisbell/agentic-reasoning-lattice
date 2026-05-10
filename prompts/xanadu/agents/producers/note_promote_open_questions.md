@@ -93,7 +93,7 @@ Write a markdown promotion report. The script parses this, so follow the format 
 ```
 # Promotion: Open Questions
 
-**Source:** ASN-NNNN
+**Source:** {{label_prefix}}-NNNN
 
 ## Promoted
 
@@ -116,7 +116,7 @@ Write a markdown promotion report. The script parses this, so follow the format 
 ```
 # Promotion: Open Questions
 
-**Source:** ASN-NNNN
+**Source:** {{label_prefix}}-NNNN
 
 ## Declined
 

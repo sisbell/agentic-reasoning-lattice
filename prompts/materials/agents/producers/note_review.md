@@ -101,12 +101,12 @@ foundation already defines, flag it as REVISE.
 ## Output Format
 
 ```markdown
-# Review of ASN-NNNN
+# Review of {{label_prefix}}-NNNN
 
 ## REVISE
 
 ### Issue 1: [specific claim]
-**ASN-NNNN, [section]**: "[quoted claim]"
+**{{label_prefix}}-NNNN, [section]**: "[quoted claim]"
 **Problem**: [what's wrong or missing]
 **Required**: [what would fix it]
 

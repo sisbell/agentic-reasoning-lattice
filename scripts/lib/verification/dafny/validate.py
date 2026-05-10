@@ -26,13 +26,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, CLAIM_DIR, DAFNY_DIR, USAGE_LOG, prompt_path)
 from lib.shared.claim_files import build_label_index
 from lib.shared.common import find_asn
+from lib.shared.prompts import read_prompt
 
 PROMPT_TEMPLATE = prompt_path("verification/dafny/validate-contract.md")
 
 
 def validate(dafny_source, formal_contract, label):
     """Review a single claim. Returns (result, reason, elapsed)."""
-    template = PROMPT_TEMPLATE.read_text()
+    template = read_prompt(PROMPT_TEMPLATE)
     prompt = (template
               .replace("{{dafny_source}}", dafny_source)
               .replace("{{formal_contract}}", formal_contract))

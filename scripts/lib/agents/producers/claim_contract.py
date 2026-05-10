@@ -33,6 +33,7 @@ from lib.shared.git_ops import step_commit_asn
 from lib.shared.llm_response import invoke_text, parse_yaml_dict
 from lib.lattice.labels import parse_claim_doc_path
 from lib.shared.paths import CLAIM_CONTRACT_DIR, LATTICE, prompt_path
+from lib.shared.prompts import read_prompt
 
 
 CONTRACT_MODEL = "sonnet"
@@ -67,7 +68,7 @@ def extract_contract_kind(
     Raises on malformed LLM output (missing `type` field, invalid
     kind) — no graceful degradation.
     """
-    template = read_file(PROMPT_TEMPLATE)
+    template = read_prompt(PROMPT_TEMPLATE)
     prompt = (
         template
         .replace("{{body}}", claim_md_content)

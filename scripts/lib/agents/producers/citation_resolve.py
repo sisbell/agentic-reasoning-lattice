@@ -39,6 +39,7 @@ from lib.shared.common import read_file
 from lib.shared.git_ops import step_commit_asn
 from lib.shared.llm_response import invoke_text, parse_two_sections
 from lib.shared.paths import CITATION_RESOLVE_DIR, LATTICE, prompt_path
+from lib.shared.prompts import read_prompt
 
 
 CITATION_MODEL = "sonnet"
@@ -104,7 +105,7 @@ def _render_prompt(
     depends: List[str],
     forwards: List[str],
 ) -> str:
-    template = read_file(PROMPT_TEMPLATE)
+    template = read_prompt(PROMPT_TEMPLATE)
     return (
         template
         .replace("{{claim_md_content}}", claim_md_content)

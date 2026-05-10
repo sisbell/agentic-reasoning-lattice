@@ -41,6 +41,7 @@ from lib.backend.emit import (
     emit_consultation_answer, emit_consultation_assessment,
     emit_consultation_coverage,
 )
+from lib.shared.prompts import read_prompt
 from lib.consultation.consult import invoke_claude
 from lib.consultation.plugin import load_channel_plugin
 from lib.predicates import (
@@ -104,7 +105,7 @@ def _category_label(roles, asn_id):
 def _build_assign_prompt(asn_content, revise_section, asn_id):
     """Build the channel-assignment prompt by reading each bound channel's
     description from meta.yaml and substituting into the prompt template."""
-    template = read_file(_ASSIGN_PROMPT_TEMPLATE)
+    template = read_prompt(_ASSIGN_PROMPT_TEMPLATE)
     if not template:
         raise FileNotFoundError(
             f"prompt template not found: {_ASSIGN_PROMPT_TEMPLATE}",

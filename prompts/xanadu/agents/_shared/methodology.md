@@ -36,7 +36,7 @@ Each ASN is a complete, standalone argument. A reader should be able to understa
 
 Your topic is provided as input. Write one ASN exploring that topic.
 
-Write to `lattices/xanadu/discovery/notes/ASN-NNNN-title.md` where NNNN is the assigned number.
+Write to `lattices/xanadu/discovery/notes/{{label_prefix}}-NNNN-title.md` where NNNN is the assigned number.
 
 ---
 
@@ -95,7 +95,7 @@ Implementation observations are valuable evidence — they ground your abstract 
 
 Each ASN covers **one concept or problem** comprehensively. Prefer depth over breadth.
 
-Start with `# ASN-NNNN: Title` followed by a date line: `*YYYY-MM-DD*`. Then write continuous prose with embedded formalism that:
+Start with `# {{label_prefix}}-NNNN: Title` followed by a date line: `*YYYY-MM-DD*`. Then write continuous prose with embedded formalism that:
 - States what you're trying to understand (the problem)
 - Develops the reasoning
 - States what follows (consequences)
@@ -151,7 +151,7 @@ Describe **state**, not execution. Never "the program then goes to..." — inste
 
 **No big blocks of notation without reasoning. Be consistent.**
 
-**Use relative paths** (e.g., `lattices/xanadu/discovery/notes/ASN-0001-*.md`) when referencing files, never absolute paths.
+**Use relative paths** (e.g., `lattices/xanadu/discovery/notes/{{label_prefix}}-0001-*.md`) when referencing files, never absolute paths.
 
 ---
 

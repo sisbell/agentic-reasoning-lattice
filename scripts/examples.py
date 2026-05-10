@@ -24,6 +24,7 @@ from lib.protocols.febe.session import open_session
 import lib.renderers  # registers claim-statements renderer
 from lib.lattice.labels import format_label
 from lib.renderers.claim_statements import read_claim_statements_view
+from lib.shared.prompts import read_prompt
 
 GENERATE_MODEL = "claude-sonnet-4-6"
 REVIEW_MODELS = ["claude-sonnet-4-6"]
@@ -85,7 +86,7 @@ def generate(asn_file, examples_file, review_file=None):
     else:
         print(f"  [GENERATE] Creating worked examples...")
 
-    template = GENERATE_PROMPT.read_text()
+    template = read_prompt(GENERATE_PROMPT)
     asn_text = asn_file.read_text()
 
     parts = [template]
@@ -136,7 +137,7 @@ def review(asn_file, examples_file, review_file, cycle=1):
     model_name = model.split("-")[1]  # "opus" or "sonnet"
     print(f"  [REVIEW/{model_name}] Checking worked examples...")
 
-    template = REVIEW_PROMPT.read_text()
+    template = read_prompt(REVIEW_PROMPT)
     asn_text = asn_file.read_text()
     examples_text = examples_file.read_text()
 

@@ -24,7 +24,7 @@ subtraction). These will become function/predicate bodies in Dafny.
 
 ## Output format
 
-Start directly with `# ASN-NNNN Claim Statements`.
+Start directly with `# {{label_prefix}}-NNNN Claim Statements`.
 
 For each claim, use this structure:
 

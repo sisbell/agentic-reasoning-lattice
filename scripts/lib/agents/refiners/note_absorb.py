@@ -72,6 +72,7 @@ from lib.backend.emit import (
     emit_absorb, emit_derivation, emit_provenance_absorb, emit_retired,
     emit_review, emit_review_coverage,
 )
+from lib.shared.prompts import read_prompt
 from lib.lattice.findings import record_one_finding
 from lib.lattice.labels import extract_label_digits, format_label
 from lib.protocols.febe.protocol import Session
@@ -242,7 +243,7 @@ def _integrate(
     *, model: str, effort: str,
 ) -> bool:
     """Step 1: LLM integrates extension's claims into base's reasoning doc."""
-    template = read_file(INTEGRATE_TEMPLATE)
+    template = read_prompt(INTEGRATE_TEMPLATE)
     if not template:
         print("  [ERROR] Integrate prompt template not found", file=sys.stderr)
         return False
@@ -279,7 +280,7 @@ def _integration_review(
     """Step 2: One-shot review of integrated content. Returns review
     text or None on LLM failure. The review's output is emitted as
     proper substrate findings; convergence is the runner's job."""
-    template = read_file(REVIEW_TEMPLATE)
+    template = read_prompt(REVIEW_TEMPLATE)
     if not template:
         print(
             "  [ERROR] Integration review prompt not found",
@@ -400,7 +401,7 @@ def _update_source_citations(
         )
         return False
 
-    template = read_file(SOURCE_UPDATE_TEMPLATE)
+    template = read_prompt(SOURCE_UPDATE_TEMPLATE)
     if not template:
         print(
             "  [ERROR] Source-update prompt template not found",

@@ -42,12 +42,12 @@ Commit changes to the lattice with meaningful, descriptive commit messages.
    - Other verifier types as the lattice uses them
 
    Examples:
-   - `discovery(asn): ASN-0004 Content Insertion`
-   - `review(asn): ASN-0004 review 1 — 3 REVISE, 2 OUT_OF_SCOPE`
-   - `revise(asn): ASN-0004 address review 1 — POST5 proof, empty doc boundary`
-   - `alloy(asn): ASN-0004 — D1-D4 pass scope 5+7, F1/A0 skipped`
-   - `dafny(asn): ASN-0004 — formalize POST1-POST5, F0-F3`
-   - `fix(asn): ASN-0004 correct D2 proof — missing d2≠doc precondition`
+   - `discovery(asn): {{label_prefix}}-0004 Content Insertion`
+   - `review(asn): {{label_prefix}}-0004 review 1 — 3 REVISE, 2 OUT_OF_SCOPE`
+   - `revise(asn): {{label_prefix}}-0004 address review 1 — POST5 proof, empty doc boundary`
+   - `alloy(asn): {{label_prefix}}-0004 — D1-D4 pass scope 5+7, F1/A0 skipped`
+   - `dafny(asn): {{label_prefix}}-0004 — formalize POST1-POST5, F0-F3`
+   - `fix(asn): {{label_prefix}}-0004 correct D2 proof — missing d2≠doc precondition`
 
 4. **Commit only files within scope:**
    ```bash
@@ -62,7 +62,7 @@ Commit changes to the lattice with meaningful, descriptive commit messages.
 ## Guidelines
 
 - Be specific: "Fix D2 to require d2≠doc" not "Fix proof"
-- Mention ASN numbers: "ASN-0004" not "the insertion ASN"
+- Mention ASN numbers: "{{label_prefix}}-0004" not "the insertion ASN"
 - Name the claims affected: "POST5, F0" not "some claims"
 - If review-driven, note it: "Address review 1 issue 3: missing boundary case"
 - Keep first line under 72 characters

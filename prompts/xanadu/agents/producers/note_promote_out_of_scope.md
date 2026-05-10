@@ -88,12 +88,12 @@ Write a markdown promotion report. The script parses this, so follow the format 
 ```
 # Promotion: Out-of-Scope Issues
 
-**Source:** ASN-NNNN
+**Source:** {{label_prefix}}-NNNN
 
 ## Promoted
 
 - **Topic title from the review**
-  Source: ASN-NNNN review N (and any other reviews that defer the same topic)
+  Source: {{label_prefix}}-NNNN review N (and any other reviews that defer the same topic)
   Rationale: One sentence explaining why it qualifies
   - Title: Short Title (2-5 words)
   - Question: Abstract inquiry question, 1-2 sentences max
@@ -104,7 +104,7 @@ Write a markdown promotion report. The script parses this, so follow the format 
 ## Declined
 
 - **Topic title from the review**
-  Source: ASN-NNNN review N
+  Source: {{label_prefix}}-NNNN review N
   Rationale: One sentence citing which rejection criterion applies (must be one of: "implementation mechanism", "inconsequential", or "word-for-word duplicate of Inquiry N")
 ```
 
@@ -113,12 +113,12 @@ Write a markdown promotion report. The script parses this, so follow the format 
 ```
 # Promotion: Out-of-Scope Issues
 
-**Source:** ASN-NNNN
+**Source:** {{label_prefix}}-NNNN
 
 ## Declined
 
 - **Topic title from the review**
-  Source: ASN-NNNN review N
+  Source: {{label_prefix}}-NNNN review N
   Rationale: One sentence explaining why it doesn't qualify
 ```
 

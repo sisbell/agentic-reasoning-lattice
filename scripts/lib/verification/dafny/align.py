@@ -27,6 +27,7 @@ from lib.shared.claim_files import build_label_index
 from lib.verification.dafny.common import read_file, log_usage
 from lib.verification.dafny.verify import verify
 from lib.verification.dafny.validate import validate
+from lib.shared.prompts import read_prompt
 
 ALIGN_TEMPLATE = prompt_path("verification/dafny/align-with-contract.md")
 
@@ -53,7 +54,7 @@ def align(dfy_path, errors, formal_contract, model="opus",
     env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
 
     dfy_source = read_file(dfy_path)
-    align_template = read_file(ALIGN_TEMPLATE)
+    align_template = read_prompt(ALIGN_TEMPLATE)
     prompt = (align_template
         .replace("{{dfy_path}}", str(dfy_path))
         .replace("{{dfy_source}}", dfy_source)

@@ -26,6 +26,7 @@ from typing import List, Tuple
 
 from lib.shared.common import read_file
 from lib.shared.paths import prompt_path
+from lib.shared.prompts import read_prompt
 
 
 CLASSIFY_TEMPLATE = prompt_path(
@@ -45,7 +46,7 @@ def classify_finding(
     verdict (template missing, timeout, parse failure); the caller
     should treat it as no-signal, not as a silent OBSERVE.
     """
-    template = read_file(CLASSIFY_TEMPLATE)
+    template = read_prompt(CLASSIFY_TEMPLATE)
     if not template:
         return "UNKNOWN", "classifier template missing", 0.0
 

@@ -23,7 +23,7 @@ Read the claim statements. Find the claims and their *Formal Contract:* fields. 
 ## Output Format
 
 ```markdown
-# Worked Examples — ASN-NNNN Title
+# Worked Examples — {{label_prefix}}-NNNN Title
 
 ## Example 1: [descriptive name]
 

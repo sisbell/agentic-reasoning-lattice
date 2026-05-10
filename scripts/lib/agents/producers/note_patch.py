@@ -56,6 +56,7 @@ from lib.backend.addressing import Address
 from lib.backend.emit import (
     emit_derivation, emit_patch_note, emit_review, emit_review_coverage,
 )
+from lib.shared.prompts import read_prompt
 from lib.lattice.findings import record_one_finding
 from lib.lattice.labels import extract_label_digits, format_label
 from lib.protocols.febe.protocol import Session
@@ -130,7 +131,7 @@ def _apply_patch(
     *, model: str, effort: str,
 ) -> bool:
     """Apply patch to the ASN note via LLM with Edit tools."""
-    template = read_file(APPLY_TEMPLATE)
+    template = read_prompt(APPLY_TEMPLATE)
     if not template:
         print("  [ERROR] Apply prompt template not found", file=sys.stderr)
         return False
@@ -162,7 +163,7 @@ def _patch_scoped_review(
     vocabulary = read_file(resolve_campaign(asn_num).vocabulary_path)
     foundation = load_foundation_for_note(asn_path, asn_num)
 
-    template = read_file(REVIEW_TEMPLATE)
+    template = read_prompt(REVIEW_TEMPLATE)
     if not template:
         print("  [ERROR] Review prompt template not found", file=sys.stderr)
         return None

@@ -7,6 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import prompt_path
+from lib.shared.prompts import read_prompt
 
 from .common import invoke_claude, read_file, ALLOY_JAR_DEFAULT
 from .check import check, classify_alloy_error
@@ -20,7 +21,7 @@ def align(als_path, errors, formal_contract, syntax_ref="",
     """Run align-with-contract agent on an Alloy model."""
     alloy_jar = os.environ.get("ALLOY_JAR", ALLOY_JAR_DEFAULT)
     alloy_code = read_file(als_path)
-    template = read_file(ALIGN_TEMPLATE)
+    template = read_prompt(ALIGN_TEMPLATE)
 
     prompt = (template
         .replace("{{als_path}}", str(als_path))

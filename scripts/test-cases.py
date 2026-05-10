@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, TEST_CASES_DIR, TRANSLATION_DIR, prompt_path
+from lib.shared.prompts import read_prompt
 
 ORACLE_DIR = TRANSLATION_DIR / "xanadu-oracle-rust"
 TESTS_DIR = ORACLE_DIR / "tests"
@@ -108,7 +109,7 @@ def call_claude(prompt, model=EXTRACT_MODEL):
 
 def extract_test_cases(example_text, review_text=None):
     """Extract or revise test cases from a single example."""
-    template = EXTRACT_PROMPT.read_text()
+    template = read_prompt(EXTRACT_PROMPT)
 
     parts = [template]
 
@@ -139,7 +140,7 @@ make targeted fixes, additions, and removals.
 
 def review_test_cases(example_text, test_cases_text):
     """Review extracted test cases. Returns (review_text, verdict, elapsed)."""
-    template = REVIEW_PROMPT.read_text()
+    template = read_prompt(REVIEW_PROMPT)
 
     prompt = f"""{template}
 
@@ -319,7 +320,7 @@ def extract_oracle_api(oracle_src):
 
 def codegen_case(case_num, case_text, oracle_api, harness_src):
     """Generate Rust test code from a single test case file."""
-    template = CODEGEN_PROMPT.read_text()
+    template = read_prompt(CODEGEN_PROMPT)
 
     prompt = template.replace("{{ORACLE_API}}", oracle_api)
     prompt = prompt.replace("{{HARNESS}}", harness_src)

@@ -36,6 +36,7 @@ from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
     CLAIM_DIR, FORMAL_CONTRACT_DIR, LATTICE, claim_statements, prompt_path,
 )
+from lib.shared.prompts import read_prompt
 
 
 SYNTHESIS_MODEL = "opus"
@@ -68,7 +69,7 @@ def synthesize_contract(
 
     rewritten_section is None on transient LLM failure (empty response).
     """
-    template = SYNTHESIS_TEMPLATE.read_text()
+    template = read_prompt(SYNTHESIS_TEMPLATE)
     prompt = (
         template
         .replace("{{label}}", label)
@@ -88,7 +89,7 @@ def review_rewrite(
 
     On unclear/empty LLM output, defaults to ok=True (don't block).
     """
-    template = REVIEW_REWRITE_TEMPLATE.read_text()
+    template = read_prompt(REVIEW_REWRITE_TEMPLATE)
     prompt = (
         template
         .replace("{{label}}", label)
@@ -126,7 +127,7 @@ def validate_contract(
     idx = section.find(marker)
     proof_section = section[:idx].strip() if idx != -1 else section
 
-    template = VALIDATE_CONTRACT_TEMPLATE.read_text()
+    template = read_prompt(VALIDATE_CONTRACT_TEMPLATE)
     prompt = (
         template
         .replace("{{label}}", label)

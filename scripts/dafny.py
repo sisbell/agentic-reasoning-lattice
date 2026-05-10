@@ -43,13 +43,14 @@ from lib.verification.dafny.translate import (
 from lib.verification.dafny.verify import verify
 from lib.verification.dafny.align import align_validate_cycle
 from lib.verification.dafny.common import read_file, run_commit, log_usage
+from lib.shared.prompts import read_prompt
 
 REVIEW_PROMPT = prompt_path("verification/dafny/review-failure.md")
 
 
 def _review_failure(claim_text, dfy_path, verification_errors):
     """Classify a verification failure as spec issue vs proof artifact."""
-    template = read_file(REVIEW_PROMPT)
+    template = read_prompt(REVIEW_PROMPT)
     if not template:
         return verification_errors
     dfy_source = read_file(dfy_path)

@@ -27,6 +27,7 @@ from lib.lattice.labels import (
     format_label,
     label_pattern,
 )
+from lib.shared.prompts import read_prompt
 from lib.lattice.render import read_doc
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
@@ -60,7 +61,7 @@ def build_prompt(
     address each in the note md and call resolution.py
     per finding to close the comment in the substrate.
     """
-    skill_body = read_file(METHODOLOGY_PROMPT)
+    skill_body = read_prompt(METHODOLOGY_PROMPT)
     if not skill_body:
         print(
             f"  Discovery prompt not found at "

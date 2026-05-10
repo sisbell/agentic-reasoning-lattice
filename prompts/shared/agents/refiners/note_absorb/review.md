@@ -69,12 +69,12 @@ existing document.
 ## Output Format
 
 ```markdown
-# Integration Review of ASN-NNNN
+# Integration Review of {{label_prefix}}-NNNN
 
 ## REVISE
 
 ### Issue 1: [specific claim]
-**ASN-NNNN, [section]**: "[quoted claim]"
+**{{label_prefix}}-NNNN, [section]**: "[quoted claim]"
 **Problem**: [what's wrong or missing]
 **Required**: [what would fix it]
 

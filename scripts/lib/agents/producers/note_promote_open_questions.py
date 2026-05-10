@@ -41,6 +41,7 @@ from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import LATTICE, prompt_path
+from lib.shared.prompts import read_prompt
 
 
 PROMOTE_TEMPLATE = prompt_path("agents/producers/note_promote_open_questions.md")
@@ -68,7 +69,7 @@ class NotePromoteOpenQuestionsAgent(Agent):
         if asn_path is None:
             return AgentResult(success=False, detail="find_asn-failed")
 
-        template = read_file(PROMOTE_TEMPLATE)
+        template = read_prompt(PROMOTE_TEMPLATE)
         if not template:
             return AgentResult(success=False, detail="prompt-template-missing")
 

@@ -29,6 +29,7 @@ from lib.lattice.labels import (
     build_cross_asn_label_index,
     parse_claim_doc_path,
 )
+from lib.shared.prompts import read_prompt
 from lib.lattice.notation import read_notation
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
@@ -109,7 +110,7 @@ def _render_prompt(
     upstream_sigs: List[Tuple[str, str]],
     existing_signature: str,
 ) -> str:
-    template = read_file(PROMPT_TEMPLATE)
+    template = read_prompt(PROMPT_TEMPLATE)
     return (
         template
         .replace("{{claim_md_content}}", claim_md_content)

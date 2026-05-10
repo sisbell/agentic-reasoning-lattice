@@ -27,6 +27,7 @@ from lib.predicates import description_sidecar_of
 from lib.protocols.febe.protocol import Session
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import prompt_path
+from lib.shared.prompts import read_prompt
 
 
 DESCRIBE_MODEL = "sonnet"
@@ -57,7 +58,7 @@ class ClaimDescribeAgent(Agent):
 
         # LLM call
         prompt = (
-            DESCRIBE_TEMPLATE.read_text()
+            read_prompt(DESCRIBE_TEMPLATE)
             .replace("{{claim}}", claim_text)
             .replace("{{existing}}", existing_desc or "(none)")
         )

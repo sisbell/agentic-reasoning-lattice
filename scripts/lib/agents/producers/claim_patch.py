@@ -65,6 +65,7 @@ from lib.shared.paths import (
     PATCH_CLAIM_DIR, PATCH_INBOX_CLAIM,
     WORKSPACE, next_review_number, prompt_path,
 )
+from lib.shared.prompts import read_prompt
 
 
 PATCH_MODEL = "opus"
@@ -126,7 +127,7 @@ def _apply_patch(
     *, model: str, effort: str,
 ) -> bool:
     """Apply patch to claim files via LLM with Edit tools."""
-    template = read_file(APPLY_TEMPLATE)
+    template = read_prompt(APPLY_TEMPLATE)
     if not template:
         print("  [ERROR] Apply prompt template not found", file=sys.stderr)
         return False
@@ -158,7 +159,7 @@ def _patch_scoped_review(
     vocabulary = read_file(resolve_campaign(asn_num).vocabulary_path)
     foundation = load_foundation_for_note(asn_path, asn_num)
 
-    template = read_file(REVIEW_TEMPLATE)
+    template = read_prompt(REVIEW_TEMPLATE)
     if not template:
         print("  [ERROR] Review prompt template not found", file=sys.stderr)
         return None

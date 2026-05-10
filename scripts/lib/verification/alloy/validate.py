@@ -10,6 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import prompt_path
+from lib.shared.prompts import read_prompt
 
 CONTRACT_REVIEW_TEMPLATE = prompt_path("verification/alloy/validate-contract.md")
 
@@ -19,7 +20,7 @@ def validate(alloy_source, formal_contract, label):
 
     Returns (result, reason, elapsed) where result is 'clean' or 'flag'.
     """
-    template = CONTRACT_REVIEW_TEMPLATE.read_text()
+    template = read_prompt(CONTRACT_REVIEW_TEMPLATE)
     prompt = (template
               .replace("{{alloy_source}}", alloy_source)
               .replace("{{formal_contract}}", formal_contract))

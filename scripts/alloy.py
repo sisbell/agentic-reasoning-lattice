@@ -38,6 +38,7 @@ from lib.verification.alloy.translate import (
     build_claim_prompt, generate_one,
     SYNTAX_REF,
 )
+from lib.shared.prompts import read_prompt
 from lib.verification.alloy.align import align_validate_cycle
 from lib.verification.alloy.common import (
     read_file, invoke_claude, log_usage, step_commit,
@@ -49,7 +50,7 @@ REVIEW_PROMPT = prompt_path("verification/alloy/review-counterexample.md")
 
 def _review_counterexample(claim_text, als_path, checker_output):
     """Classify a counterexample as spec issue vs modeling artifact."""
-    template = read_file(REVIEW_PROMPT)
+    template = read_prompt(REVIEW_PROMPT)
     if not template:
         return checker_output
     als_source = read_file(als_path)

@@ -20,6 +20,7 @@ from lib.shared.common import find_asn
 from lib.verification.alloy.check import check, classify_alloy_error, parse_alloy_results
 from lib.verification.alloy.common import (read_file, invoke_claude, log_usage,
     ALLOY_JAR_DEFAULT)
+from lib.shared.prompts import read_prompt
 
 CLAIM_TEMPLATE = prompt_path("verification/alloy/translate-claim.md")
 SYNTAX_REF = prompt_path("verification/alloy/syntax-reference.md")
@@ -97,7 +98,7 @@ def parse_extract(text):
 
 def build_claim_prompt(definitions, prop, syntax_ref="", dep_context=""):
     """Assemble prompt for a single claim from per-claim template."""
-    template = read_file(CLAIM_TEMPLATE)
+    template = read_prompt(CLAIM_TEMPLATE)
     if not template:
         print(f"  Prompt template not found at {CLAIM_TEMPLATE.relative_to(WORKSPACE)}",
               file=sys.stderr)

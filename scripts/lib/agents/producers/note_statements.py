@@ -40,6 +40,7 @@ from lib.predicates import statements_sidecar_of
 from lib.protocols.febe.protocol import Session
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import USAGE_LOG, prompt_path
+from lib.shared.prompts import read_prompt
 
 
 STATEMENTS_MODEL = "sonnet"
@@ -150,7 +151,7 @@ class NoteStatementsAgent(Agent):
     ) -> str:
         """Render the produce-statements prompt with optional existing-
         extraction context."""
-        template = STATEMENTS_TEMPLATE.read_text()
+        template = read_prompt(STATEMENTS_TEMPLATE)
         return template.replace("{{asn_content}}", asn_content)
 
     def _read_sidecar_text(

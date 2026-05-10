@@ -62,6 +62,7 @@ from lib.backend.emit import (
     emit_extends, emit_extract, emit_note, emit_provenance_extract,
     emit_source,
 )
+from lib.shared.prompts import read_prompt
 from lib.protocols.febe.protocol import Session
 from lib.lattice.labels import format_label, label_pattern
 from lib.shared.campaign import resolve_campaign
@@ -233,7 +234,7 @@ def _build_prompt(
     absorb_into_label: str, absorb_into_title: str,
     origin_label: str, rationale: str,
 ) -> str | None:
-    template = read_file(EXTRACT_TEMPLATE)
+    template = read_prompt(EXTRACT_TEMPLATE)
     if not template:
         print("  [ERROR] Extract prompt template not found", file=sys.stderr)
         return None
