@@ -61,7 +61,8 @@ The 26 agents in `scripts/lib/agents/` documented by *caste*. Two hand-off mecha
 
 Compositions of Stigmergic Protocol primitives that drive content from one architectural state to another, terminating at scope quiescence at a designated tier:
 
-- [Note-to-Claim Maturation Stigmergic Protocol](docs/protocols/maturation/note-to-claim.md) — first instance; traces the inquiry → confirmed-note → quiescent-claim arc
+- [Lattice-Genesis Maturation Stigmergic Protocol](docs/protocols/maturation/lattice-genesis.md) — precedes Note-to-Claim; drives content from a scout signal through lattice creation to first-note (L0–L3 tiers)
+- [Note-to-Claim Maturation Stigmergic Protocol](docs/protocols/maturation/note-to-claim.md) — traces the inquiry → confirmed-note → quiescent-claim arc
 
 ## Documentation
 
