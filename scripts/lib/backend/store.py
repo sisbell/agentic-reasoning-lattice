@@ -298,11 +298,15 @@ class Store:
         return Address("1.1.0.1")
 
     def _reattach_doc_owners(self) -> None:
-        """After load_jsonl, the State's _owner map is empty. Re-register
-        every doc address (zeros=2) under the global doc allocator and
-        every link address (zeros=3) under its homedoc's link allocator.
-        Without this, make_link can't allocate fresh links and create_doc
-        would re-use already-taken positions.
+        """After load_jsonl, the State's _owner and parent maps are empty.
+        Re-register every doc address (zeros=2) under the global doc
+        allocator, every link address (zeros=3) under its homedoc's link
+        allocator, and every supersession-link target as a child of its
+        from-side parent. Without this, make_link can't allocate fresh
+        links, create_doc would re-use already-taken positions, and
+        `version_head` would return the base address for any doc
+        versioned in a prior session (the supersession chain in
+        `links.jsonl` survived but the in-memory parent map didn't).
 
         High-water mark for the doc-allocator cursor is computed only
         over addresses in the **active account's** subspace. With
@@ -312,6 +316,7 @@ class Store:
         author's tumbler space.
         """
         from .allocator import Allocator
+        from .predicates import active_links as _active_links
         from .state import link_subspace_base
 
         active_base_len = len(self.state.doc_allocator.base.digits)
@@ -364,6 +369,22 @@ class Store:
                     link_alloc._cursor.digits[:-1] + (current_pos + 1,)
                 )
             self.state._owner[link.addr] = link_alloc
+
+        # Reconstruct the version-parent map from active supersession
+        # links. Each supersession(from=parent, to=child) records one
+        # parent edge; ignore retracted ones. Without this, version_head
+        # walks an empty/incomplete parent map after reload and returns
+        # the base address for any doc versioned in a prior session.
+        for link in _active_links(self.state, "supersession"):
+            if not link.from_set or not link.to_set:
+                continue
+            parent_addr = link.from_set[0]
+            child_addr = link.to_set[0]
+            self.state.parent[child_addr] = parent_addr
+            self.state.kind.setdefault(
+                child_addr, self.state.kind.get(parent_addr, "doc"),
+            )
+            self.state.content.setdefault(child_addr, "")
 
     def _append_record(self, link: Link, ts: int) -> None:
         record = {
