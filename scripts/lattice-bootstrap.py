@@ -183,9 +183,12 @@ def main() -> int:
         ),
     )
     parser.add_argument(
-        "--lattice", type=Path,
-        help="Lattice directory to bootstrap (default: the canonical "
-             "xanadu lattice).",
+        "--lattice", default="xanadu",
+        help="Active lattice name (default: xanadu).",
+    )
+    parser.add_argument(
+        "--lattice-dir", type=Path,
+        help="Override the lattice directory (default: lattices/<name>).",
     )
     parser.add_argument(
         "--dry-run", action="store_true",
@@ -193,7 +196,9 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    lattice_root = (args.lattice or (REPO_ROOT / "lattices" / "xanadu")).resolve()
+    lattice_root = (
+        args.lattice_dir or (REPO_ROOT / "lattices" / args.lattice)
+    ).resolve()
     if not lattice_root.exists():
         print(
             f"  [BOOTSTRAP] lattice not found at {lattice_root}",

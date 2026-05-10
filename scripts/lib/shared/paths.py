@@ -8,9 +8,30 @@ import yaml
 
 WORKSPACE = Path(__file__).resolve().parent.parent.parent.parent
 
-# Lattice identity — parameterized via LATTICE env var, defaults to "xanadu".
-# A second lattice (e.g. materials) switches every lattice-scoped path at once.
-LATTICE_NAME = os.environ.get("LATTICE", "xanadu")
+# Lattice identity — resolved from (in priority order):
+#   1. `--lattice <name>` (or `--lattice=<name>`) in sys.argv
+#   2. `LATTICE` env var
+#   3. default "xanadu"
+# Centralized here so every CLI inherits --lattice support automatically.
+# CLIs can still register `--lattice` with argparse for --help visibility,
+# but the resolution above runs at module-load time and binds LATTICE_NAME
+# before any path constants are computed.
+
+
+def _resolve_lattice_name() -> str:
+    import sys
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == "--lattice" and i + 1 < len(args):
+            return args[i + 1]
+        if args[i].startswith("--lattice="):
+            return args[i].split("=", 1)[1]
+        i += 1
+    return os.environ.get("LATTICE", "xanadu")
+
+
+LATTICE_NAME = _resolve_lattice_name()
 LATTICE = WORKSPACE / "lattices" / LATTICE_NAME
 CHANNELS_DIR = WORKSPACE / "channels"
 
