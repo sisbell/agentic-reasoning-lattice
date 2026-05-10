@@ -32,6 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.doctor import Severity, run_checks
+from lib.doctor import claim_statements_bridge as bridge_check
 from lib.doctor import holdings as holdings_check
 from lib.doctor import version_graph as version_graph_check
 from lib.protocols.febe.session import open_session
@@ -46,6 +47,11 @@ def _build_registry(stale_threshold: int):
             version_graph_check.check_version_graph,
             version_graph_check.CHECK_NAME,
             version_graph_check.CHECK_DESCRIPTION,
+        ),
+        (
+            bridge_check.check_claim_statements_bridge,
+            bridge_check.CHECK_NAME,
+            bridge_check.CHECK_DESCRIPTION,
         ),
         (
             lambda s: holdings_check.check_stale_holdings(s, stale_threshold),
