@@ -124,6 +124,7 @@ SHAPES: Dict[str, LinkShape] = {
     "agent.scope.note": CLASSIFIER,
     "agent.scope.claim": CLASSIFIER,
     "agent.scope.inquiry": CLASSIFIER,
+    "agent.scope.lattice": CLASSIFIER,
     "agent.caste.producer": CLASSIFIER,
     "agent.caste.refiner": CLASSIFIER,
     "agent.caste.scout": CLASSIFIER,

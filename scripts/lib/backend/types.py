@@ -82,6 +82,7 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "agent.scope.note": (6, 1, 1),
     "agent.scope.claim": (6, 1, 2),
     "agent.scope.inquiry": (6, 1, 3),
+    "agent.scope.lattice": (6, 1, 4),
     "agent.caste.producer": (6, 2, 1),
     "agent.caste.refiner": (6, 2, 2),
     "agent.caste.scout": (6, 2, 3),

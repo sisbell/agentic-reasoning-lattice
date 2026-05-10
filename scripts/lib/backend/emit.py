@@ -729,17 +729,17 @@ def emit_agent_scope(
 ) -> Tuple[Link, bool]:
     """Classify an agent doc with its hold-scope declaration.
 
-    `scope_type` is one of `"note"`, `"claim"`, `"inquiry"`. The
-    classifier subtype (`agent.scope.<type>`) is filed on the agent
-    doc; the agent base class reads this at fire time to decide what
-    resource to hold.
+    `scope_type` is one of `"note"`, `"claim"`, `"inquiry"`,
+    `"lattice"`. The classifier subtype (`agent.scope.<type>`) is filed
+    on the agent doc; the agent base class reads this at fire time to
+    decide what resource to hold.
 
     Idempotent — re-classifying with the same scope is a no-op.
     """
-    if scope_type not in {"note", "claim", "inquiry"}:
+    if scope_type not in {"note", "claim", "inquiry", "lattice"}:
         raise ValueError(
             f"unknown scope_type {scope_type!r}; "
-            f"must be one of 'note', 'claim', 'inquiry'"
+            f"must be one of 'note', 'claim', 'inquiry', 'lattice'"
         )
     return emit_classifier(store, agent_doc, f"agent.scope.{scope_type}")
 
