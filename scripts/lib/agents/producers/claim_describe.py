@@ -1,18 +1,20 @@
-"""Claim-describe agent — one LLM call per fire to refresh a description.
+"""Claim-describe agent — one LLM call per fire to write a description.
 
 Fires when the claim's supersession chain has advanced past the
-description's chain (i.e., an edit happened, the description hasn't
-been re-attested for the new revision). On each fire:
+description's chain (i.e., an edit happened and the description
+hasn't been re-attested for the new revision). On each fire:
 
   1. Read the claim's md content + any existing description.
-  2. LLM produces a 1-3 sentence description (may return existing
-     verbatim if still accurate).
+  2. LLM produces a 1-3 sentence description (no "no change" verdict
+     — the prompt is unconditional, the model always writes one).
   3. Emit a new description-sidecar version via register_version,
      advancing the description's supersession chain. The sidecar's
      file content is overwritten with the LLM's output.
 
-The new sidecar version's tumbler is later than the claim's latest
-edit marker, so the predicate flips True until the next claim edit.
+The predicate (not the agent) is the "should we update?" gate. If
+the predicate says fire, the description is rewritten; on `--force`,
+the description is regenerated regardless. The agent itself doesn't
+second-guess the trigger.
 """
 
 from __future__ import annotations
@@ -68,61 +70,19 @@ class ClaimDescribeAgent(Agent):
         if not result.text:
             return AgentResult(success=False, detail="llm-failed")
 
-        verdict, body = self._parse_verdict(result.text)
+        new_desc = result.text.strip()
+        if not new_desc:
+            return AgentResult(success=False, detail="empty-description")
 
-        if verdict == "UNCHANGED":
-            if existing_desc is None:
-                return AgentResult(
-                    success=False,
-                    detail="malformed: UNCHANGED with no existing description",
-                )
-            attest_against_doc_head(
-                session, claim_path, "description", existing_desc,
-                claim_addr, content_changed=False,
-            )
-            print(
-                f"  [DESCRIBE] {full_claim.stem} unchanged "
-                f"({result.elapsed:.0f}s)",
-                file=sys.stderr,
-            )
-            return AgentResult(success=True, detail="unchanged")
-
-        if verdict == "REVISED":
-            if not body:
-                return AgentResult(
-                    success=False, detail="malformed: REVISED with empty body",
-                )
-            attest_against_doc_head(
-                session, claim_path, "description", body, claim_addr,
-                content_changed=True,
-            )
-            print(
-                f"  [DESCRIBE] {full_claim.stem} revised "
-                f"({result.elapsed:.0f}s)",
-                file=sys.stderr,
-            )
-            return AgentResult(success=True, detail="revised")
-
-        return AgentResult(
-            success=False, detail=f"malformed-verdict: {verdict!r}",
+        attest_against_doc_head(
+            session, claim_path, "description", new_desc, claim_addr,
+            content_changed=True,
         )
-
-    @staticmethod
-    def _parse_verdict(text: str) -> tuple[str, str]:
-        """Split the LLM response into (verdict, body).
-
-        Verdict is the first non-empty line, uppercased and stripped.
-        Body is everything after that line, with surrounding whitespace
-        stripped. Empty body for UNCHANGED is expected; empty body for
-        REVISED is a malformed response.
-        """
-        stripped = text.strip()
-        if not stripped:
-            return "", ""
-        parts = stripped.split("\n", 1)
-        verdict = parts[0].strip().upper()
-        body = parts[1].strip() if len(parts) > 1 else ""
-        return verdict, body
+        print(
+            f"  [DESCRIBE] {full_claim.stem} ({result.elapsed:.0f}s)",
+            file=sys.stderr,
+        )
+        return AgentResult(success=True, detail="emitted")
 
     def _read_sidecar_text(
         self, session: Session, sidecar_addr: Optional[Address],

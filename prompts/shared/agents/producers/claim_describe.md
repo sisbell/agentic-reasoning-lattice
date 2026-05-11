@@ -29,23 +29,17 @@ Bad description: "See T1 for details." / "This follows from the definition."
 
 {{claim}}
 
-## Existing description
+## Existing description (for reference; may be empty)
 
 {{existing}}
 
 ## Output
 
-Two-line response. The first line is the verdict, all caps:
+The new 1-3 sentence description, plain text only. No preamble, no
+formatting (no headers, no bullets, no code blocks), no
+meta-commentary. Just the description body.
 
-- `UNCHANGED` — the existing description still accurately captures
-  the current claim. Use only when there is an existing description
-  above (i.e., `{{existing}}` is not `(none)`). Output the single
-  line `UNCHANGED` and nothing else.
-
-- `REVISED` — there is no existing description, or the existing one
-  must be replaced. Line 1 is `REVISED`. Line 2 onward is the new
-  1-3 sentence description, plain text only (no headers, no bullets,
-  no code blocks, no formatting).
-
-No preamble. No meta-commentary. No restating of the verdict.
-The first character of your response is `U` or `R`.
+The agent will always write what you produce; there is no "no
+change" verdict. Decide whether the existing description is worth
+keeping (sometimes the right move) and emit it back, or write a
+better one.
