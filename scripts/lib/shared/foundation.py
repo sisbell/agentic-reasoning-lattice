@@ -157,20 +157,64 @@ def load_foundation_for_note(asn_path, asn_id):
     """Load foundation statements for a note, sourcing dep ASN ids from
     substrate citations on the note md.
 
-    Wraps the substrate query so callers don't repeat the boilerplate.
-    Falls back to an empty list (no foundation) if the note has no
-    citations — distinct from the manifest path, which would also use
-    the manifest's depends declaration.
+    For each dep ASN: walk `note → statements → supersession_head`
+    and read the resulting doc. When the dep has been derived, the
+    chain head is the claims.statements aggregate; when it hasn't,
+    the chain head is the original operator-drafted statements
+    sidecar. The substrate's supersession chain routes between the
+    two without the loader needing to distinguish.
+
+    Falls back to an empty string when the note has no citations.
     """
     from lib.lattice.labels import note_dep_asn_ids
+    from lib.lattice.render import read_doc
+    from lib.predicates import statements_sidecar_of, supersession_head
     from lib.protocols.febe.session import open_session
+    from lib.shared.common import find_asn
     from lib.shared.paths import LATTICE, WORKSPACE
     note_rel = str(asn_path.resolve().relative_to(Path(WORKSPACE).resolve()))
     with open_session(LATTICE) as session:
-        store = session.store  # for emit_* (Pass 2 will migrate)
+        store = session.store
         note_addr = store.path_to_addr.get(note_rel)
-        dep_ids = note_dep_asn_ids(store, note_addr) if note_addr else []
-    return load_foundation_statements(asn_id, dep_ids=dep_ids)
+        if note_addr is None:
+            return ""
+        dep_ids = note_dep_asn_ids(store, note_addr)
+
+        sections = []
+        for dep_id in dep_ids:
+            dep_path, _ = find_asn(str(dep_id))
+            if dep_path is None:
+                continue
+            dep_rel = str(
+                dep_path.resolve().relative_to(
+                    Path(WORKSPACE).resolve(),
+                ),
+            )
+            dep_note_addr = store.path_to_addr.get(dep_rel)
+            if dep_note_addr is None:
+                continue
+            sidecar = statements_sidecar_of(session, dep_note_addr)
+            if sidecar is None:
+                continue
+            head = supersession_head(session, sidecar)
+            # Walk back through version-parents until we find an
+            # address with a registered path — that's the identity's
+            # base. Stop here even if a cross-doc supersession edge
+            # would carry us further (e.g., aggregate → sidecar
+            # bridge); we want the head identity's base, not the
+            # superseded identity's.
+            parent_map = store.state.parent
+            base = head
+            while base not in store.addr_to_path:
+                parent = parent_map.get(base)
+                if parent is None:
+                    break
+                base = parent
+            try:
+                sections.append(read_doc(session, base))
+            except (FileNotFoundError, KeyError):
+                continue
+    return "\n\n".join(sections)
 
 
 def load_foundation_for_claim_asn(asn_id):
