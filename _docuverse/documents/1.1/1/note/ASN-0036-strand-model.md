@@ -246,7 +246,7 @@ This is a design requirement, not a convention. Nelson's baptism principle estab
 
 *Formal Contract (S7a):*
 - *Axiom (design requirement):* For every `a ∈ dom(Σ.C)`, the document-level prefix `N(a).0.U(a).0.D(a)` is the tumbler of the document whose owner performed the allocation that placed `a` into `dom(C)`.
-- *Depends:* T4 (HierarchicalParsing, ASN-0034) — defines the prefix structure; T4c (PrefixHierarchy, ASN-0034) — defines projections `N`, `U`, `D`; T10a (AllocatorDiscipline, ASN-0034) — establishes the baptism principle.
+- *Depends:* T4 (HierarchicalParsing, ASN-0034) — defines the prefix structure; T4b (UniqueParse, ASN-0034) — defines projections `N`, `U`, `D`; T10a (AllocatorDiscipline, ASN-0034) — establishes the baptism principle.
 
 We must also restrict S7's domain. The projection `D(a)` is well-defined only when `zeros(a) ≥ 2` (per T4's field correspondence: `zeros = 0` is node-only, `zeros = 1` is node+user, `zeros ≥ 2` has a document field). Since Istream addresses designate content elements within documents, we require:
 
@@ -310,7 +310,7 @@ Gregory's implementation reveals two mechanisms for origin lookup. The I-address
 **Permanence.** By S0 (content immutability), once `a ∈ dom(Σ.C)`, then `a ∈ dom(Σ'.C)` for all successor states `Σ'` — the address persists. Since `a` is a tumbler — a fixed sequence of components, not a mutable reference — and `origin(a)` is computed from the components of `a` alone via T4's deterministic field decomposition, `origin(a)` yields the same result in every state in which `a` exists. By S4 (origin-based identity), distinct allocation events produce distinct addresses, so the address `a` itself is never reassigned or reused. The attribution cannot be severed because it is not a separate datum attached to the content — it is a structural property of the address itself. To retrieve content at `a`, a system must know `a`; to know `a` is to know `origin(a)`. ∎
 
 *Formal Contract:*
-- *Preconditions:* `a ∈ dom(Σ.C)` in a system conforming to S7a (document-scoped allocation), S7b (element-level I-addresses), S7d (document allocation discipline), T4 (HierarchicalParsing, ASN-0034), and T10a (allocator discipline, ASN-0034).
+- *Preconditions:* `a ∈ dom(Σ.C)` in a system conforming to S7a (document-scoped allocation), S7b (element-level I-addresses), S7d (document allocation discipline), T4 (HierarchicalParsing, ASN-0034), T4b (UniqueParse, ASN-0034) — supplies the projections `N(a)`, `U(a)`, `D(a)`, `E(a)` from which `origin(a)` is computed, and T10a (allocator discipline, ASN-0034).
 - *Postconditions:* (a) `origin(a)` is well-defined and is a document-level tumbler with `zeros(origin(a)) = 2`. (b) `origin(a)` is the tumbler of the document that allocated `a`. (c) For `a₁, a₂` allocated under distinct documents, `origin(a₁) ≠ origin(a₂)`. (d) `origin(a)` is invariant across all states in which `a ∈ dom(Σ.C)`.
 - *Frame:* The content values `Σ.C(a)` and arrangement functions `Σ.M(d)` play no role — attribution is a property of the addressing scheme alone.
 
@@ -354,7 +354,7 @@ The conjunct `(A i : 1 ≤ i ≤ #v : vᵢ > 0)` — every component of `v` is s
 
 *Formal Contract:*
 - *Axiom:* V-positions are element-field tumblers of depth at least 2 — paralleling S7c for I-address element fields.
-- *Preconditions:* T4 (HierarchicalParsing, ASN-0034) — every non-separator component is strictly positive, every present field has at least one component; T0 — components are natural numbers; S7b — addresses in `dom(Σ.C)` are element-level tumblers with `zeros(a) = 3`.
+- *Preconditions:* T4 (HierarchicalParsing, ASN-0034) — every non-separator component is strictly positive, every present field has at least one component; T0 — components are natural numbers. (Note: S7c's `#E(a) ≥ 2` for I-address element fields is the architectural parallel that motivates `#v ≥ 2` for V-positions, but S8a is an independent axiomatic commitment about V-positions, not derived from S7b or S7c.)
 - *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`.
 
 **S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth:
@@ -832,7 +832,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness, T3 (ASN-0034) |
 | S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | consistent with S0, S1, S2, S3 |
 | S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | from S0 |
-| S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | design; uses Prefix, T4, T4c (ASN-0034) |
+| S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | design; uses T4, T4b, T10a (ASN-0034) |
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | design; uses T4 (ASN-0034) |
 | S7c | Element-field depth: `(A a ∈ dom(C) :: #E(a) ≥ 2)` — subspace identifier and content ordinal occupy distinct components | design; uses S7b, T4, T4b, TA7a (ASN-0034) |
 | S7d | Document allocation discipline: every document is addressed by a document-level tumbler (`zeros = 2`) allocated via T10a under the owning user's prefix; distinct documents arise from distinct allocation events | design; uses T10a, T4 (ASN-0034) |
@@ -841,16 +841,16 @@ This has a formal consequence: document equality is not decidable by content com
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
 | S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — element-field tumblers of depth ≥ 2 with componentwise positive entries | axiom (V-positions are element-field tumblers of depth ≥ 2, paralleling S7c); structural properties from T4, T0 (ASN-0034) |
 | S8-depth | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design; uses OrdinalShift, TumblerAdd (ASN-0034) |
-| S8 | Span decomposition: `dom(M(d))` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for `0 ≤ k < nⱼ` | theorem from S8-fin, S2, S8a, S8-depth, T1, T3, T5, T10, TumblerAdd, OrdinalShift, OrdinalDisplacement, TS4 (ASN-0034) |
+| S8 | Span decomposition: `dom(M(d))` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for `0 ≤ k < nⱼ` | theorem from S2, S3, S7b, S7c, S8-fin, S8a, S8-depth, T1, T3, T5, T10, TumblerAdd, OrdinalShift, OrdinalDisplacement, TS4 (ASN-0034) |
 | ord(v) | Ordinal extraction: ord(v) = [v₂, ..., vₘ]; when v satisfies S8a, ord(v) ∈ S | introduced |
 | vpos(S, o) | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; inverse of ord for any o ∈ T; satisfies S8a when S ≥ 1 and all oᵢ > 0 | introduced |
 | w_ord | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for displacement w with w₁ = 0 | introduced |
 | OrdAddHom | (a) ord(v ⊕ w) = ord(v) ⊕ w_ord; (b) subspace(v ⊕ w) = subspace(v); (c) v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord) | lemma from ord, w_ord, TumblerAdd, TA0 (ASN-0034) |
 | OrdAddS8a | v ⊕ w satisfies S8a ⟺ all tail components of w after the action point are positive; equivalently ord(v ⊕ w) ∈ S ⟺ v ⊕ w satisfies S8a | lemma from OrdAddHom, S8a, TumblerAdd (ASN-0034) |
 | OrdShiftHom | ord(shift(v, n)) = shift(ord(v), n); shift(v, n) unconditionally satisfies S8a when v does | corollary from OrdAddHom, OrdAddS8a, OrdinalShift, OrdinalDisplacement (ASN-0034) |
-| D-CTG | V-position contiguity (bound to text subspace `S = 1`): V_1(d) forms a contiguous ordinal range with no gaps — design constraint on well-formed document states; link subspace `S = 2` is exempt (sparse with tombstones) | design (text subspace); uses T0(a), T1, T3 (ASN-0034) |
+| D-CTG | V-position contiguity (bound to text subspace `S = 1`): V_1(d) forms a contiguous ordinal range with no gaps — design constraint on well-formed document states; link subspace `S = 2` is exempt (sparse with tombstones) | design (text subspace); uses S8a, S8-depth, T1 (ASN-0034) |
 | D-MIN | V-position minimum (bound to text subspace `S = 1`): non-empty V_1(d) has minimum [1, 1, ..., 1] with every component equal to 1 — design constraint | design requirement (text subspace) |
-| D-CTG-depth | Shared prefix reduction (bound to text subspace `S = 1`, applies wherever D-CTG holds): at depth m ≥ 3, all positions in V_1(d) share components 2 through m − 1, so contiguity reduces to the last component | corollary of D-CTG, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
+| D-CTG-depth | Shared prefix reduction (bound to text subspace `S = 1`, applies wherever D-CTG holds): at depth m ≥ 3, all positions in V_1(d) share components 2 through m − 1, so contiguity reduces to the last component | corollary of D-CTG, S8a, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
 | D-SEQ | Sequential positions (bound to text subspace `S = 1`): non-empty V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | from D-CTG, D-CTG-depth, D-MIN, S8a, S8-fin, S8-depth, T1 (ASN-0034) |
 | ValidInsertionPosition | Ternary predicate `ValidInsertionPosition(d, v, m)` (bound to text subspace `S = 1`): if V_1(d) ≠ ∅: m = common depth of V_1(d) (state-determined), and v = min(V_1(d)) or v = shift(min(V_1(d)), j) with 1 ≤ j ≤ N; if V_1(d) = ∅: m ≥ 2 is an operational input, and v = [1, 1, ..., 1] of depth m | introduced |
 | S9 | Two-stream separation: arrangement changes cannot alter stored content | theorem from S0 |
