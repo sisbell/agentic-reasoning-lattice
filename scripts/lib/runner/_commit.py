@@ -26,7 +26,7 @@ from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import WORKSPACE
 
 
-_MAX_DIFF_CHARS = 4000
+_MAX_DIFF_CHARS = 30000
 _LINKS_JSONL = "_docuverse/links.jsonl"
 
 
@@ -122,30 +122,65 @@ def _stage_dirty() -> None:
 
 
 def _draft_message(trigger_name: str, addr: str) -> str:
-    """Ask Sonnet for a one-line commit message describing the staged diff."""
+    """Ask Sonnet for a descriptive commit message based on the staged
+    diff. Multi-line: subject + body. Reads the actual change rather
+    than relying only on trigger name."""
     stat = _git("diff", "--cached", "--stat").stdout
-    diff = _git("diff", "--cached").stdout[:_MAX_DIFF_CHARS]
+    raw_diff = _git("diff", "--cached").stdout
+    truncated = len(raw_diff) > _MAX_DIFF_CHARS
+    diff = raw_diff[:_MAX_DIFF_CHARS]
+    if truncated:
+        diff += f"\n\n[... diff truncated at {_MAX_DIFF_CHARS} chars; "
+        diff += f"full diff was {len(raw_diff)} chars]"
+
     prompt = (
-        f"Generate a one-line git commit message describing the change "
-        f"made by an agent fire.\n\n"
+        f"Write a git commit message describing this agent fire's "
+        f"effect on the substrate.\n\n"
         f"Trigger: {trigger_name}\n"
-        f"Target address: {addr}\n\n"
-        f"Files changed (--stat):\n{stat}\n\n"
-        f"Diff (truncated to {_MAX_DIFF_CHARS} chars):\n{diff}\n\n"
-        f"Output format: `<type>(<scope>): <short description>` — single "
-        f"line, no preamble, no trailing period, max 72 chars. The type is "
-        f"one of `cascade`, `revise`, `fix`, `refresh`. The scope should "
-        f"identify the affected note + claim where possible "
-        f"(e.g., `asn-34/T2`).\n\n"
-        f"Output only the message line, nothing else."
+        f"Fire target: {addr}\n\n"
+        f"Files changed (--stat):\n{stat}\n"
+        f"Staged diff:\n{diff}\n\n"
+        f"Format:\n"
+        f"  <type>(<scope>): <subject line, ≤72 chars>\n"
+        f"\n"
+        f"  <body — 1-3 short paragraphs describing what changed and why,\n"
+        f"  drawn from the diff itself rather than the trigger name. Skip\n"
+        f"  the body for trivial cascade emissions (single anchor refresh,\n"
+        f"  pure mutex pairs).>\n\n"
+        f"Type vocabulary:\n"
+        f"  - cascade   — downstream artifact refreshed in response to an\n"
+        f"                upstream change (description, signature,\n"
+        f"                aggregate, freshness anchor, etc.).\n"
+        f"  - revise    — agent edited a claim or note body to address\n"
+        f"                review findings.\n"
+        f"  - refresh   — sidecar or aggregate rebuilt without semantic\n"
+        f"                change.\n"
+        f"  - audit     — structural review emitted findings.\n"
+        f"  - review    — content review (full/cone) emitted findings.\n"
+        f"  - fix       — corrected a substrate error.\n"
+        f"  - decompose — note → per-claim derivation.\n"
+        f"  - patch     — operator-driven patch applied.\n\n"
+        f"Scope vocabulary:\n"
+        f"  - `asn-NN/<claim-label>` when the change targets one claim\n"
+        f"    (e.g., `asn-34/T10a.8`).\n"
+        f"  - `asn-NN` when ASN-wide (e.g., `asn-36`).\n"
+        f"  - `<doc-type>/asn-NN` for cross-cutting docs\n"
+        f"    (e.g., `aggregate/asn-34`, `review/asn-36`).\n\n"
+        f"Constraints:\n"
+        f"  - Read the diff. Describe what actually changed, not what the\n"
+        f"    trigger is named.\n"
+        f"  - First line ≤72 chars, no trailing period.\n"
+        f"  - Plain text only — no preamble, no markdown fences, no\n"
+        f"    meta-commentary about the message itself.\n"
+        f"  - Output only the message, nothing else."
     )
     result = invoke_claude(
-        prompt, model="sonnet", effort="low", output_format=None,
+        prompt, model="sonnet", effort="high", output_format=None,
     )
-    text = (result.text or "").strip().splitlines()
+    text = (result.text or "").strip()
     if not text:
         return f"{trigger_name}: fired on {addr}"
-    return text[0].strip()
+    return text
 
 
 def commit_after_fire(trigger_name: str, addr: str) -> None:
