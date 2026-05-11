@@ -1,1 +1,1 @@
-Two successive shifts compose into a single shift: applying shift by n₁ and then by n₂ is identical to a single shift by n₁ + n₂. Shift preserves tumbler length throughout.
+Proves that two consecutive shifts compose into a single shift: shift(shift(v, n₁), n₂) equals shift(v, n₁ + n₂) for any tumbler v and positive natural numbers n₁, n₂. Tumbler length is invariant under shift at every step.
