@@ -11,6 +11,7 @@ that have their own invoke_claude wrappers can update this accumulator
 to keep the process-wide totals correct.
 """
 
+import itertools
 import json
 import os
 import subprocess
@@ -89,6 +90,36 @@ def _accumulate_usage(input_tokens, output_tokens, cost_usd):
         _total_usage["calls"] += 1
 
 
+# ─── Account rotation ───────────────────────────────────────────
+
+
+_rotation_lock = threading.Lock()
+_rotation_cycle = None
+
+
+def _next_config_dir():
+    """Return the next CLAUDE_CONFIG_DIR for round-robin rotation, or
+    None to inherit the parent shell's CLAUDE_CONFIG_DIR.
+
+    Reads `CLAUDE_CONFIG_DIRS` (comma-separated config-dir list) on
+    first call and rotates through it on subsequent calls. Distributes
+    LLM calls across multiple Claude accounts to spread quota load.
+    Unset CLAUDE_CONFIG_DIRS leaves the existing single-account
+    behaviour untouched.
+    """
+    global _rotation_cycle
+    dirs_env = os.environ.get("CLAUDE_CONFIG_DIRS", "").strip()
+    if not dirs_env:
+        return None
+    dirs = [os.path.expanduser(d.strip()) for d in dirs_env.split(",") if d.strip()]
+    if not dirs:
+        return None
+    with _rotation_lock:
+        if _rotation_cycle is None:
+            _rotation_cycle = itertools.cycle(dirs)
+        return next(_rotation_cycle)
+
+
 def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
                   output_format="json", cwd=None, omit_tools=False):
     """Call claude --print (single-turn, no tools by default). Returns Result.
@@ -117,6 +148,9 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
     env.setdefault("CLAUDE_CODE_MAX_OUTPUT_TOKENS", "128000")
+    config_dir = _next_config_dir()
+    if config_dir is not None:
+        env["CLAUDE_CONFIG_DIR"] = config_dir
     if effort:
         env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
 
@@ -197,6 +231,9 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
     env.setdefault("CLAUDE_CODE_MAX_OUTPUT_TOKENS", "128000")
+    config_dir = _next_config_dir()
+    if config_dir is not None:
+        env["CLAUDE_CONFIG_DIR"] = config_dir
     if effort:
         env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
 
