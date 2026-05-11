@@ -49,6 +49,37 @@ def _transclusion_kind(session: Session, addr: Address) -> Optional[str]:
     return None
 
 
+def _resolve_version_to_base_path(
+    session: Session, addr: Address,
+) -> Optional[str]:
+    """Walk intra-doc version-parents from a version address until we
+    find one with a registered path; return that path.
+
+    Intra-doc means the parent is a tumbler-prefix of the child (the
+    usual `<base>.<n>.<n>...` version naming). A cross-doc
+    supersession bridge (parent is a sibling identity, not a prefix)
+    breaks the walk — we never cross into a superseded identity.
+
+    Returns None if no intra-doc ancestor has a registered path. Used
+    only as a fallback inside `read_doc` for the current substrate's
+    "single file per identity, shared by all versions" storage
+    convention.
+    """
+    parent_map = session.store.state.parent
+    cur = addr
+    while True:
+        parent = parent_map.get(cur)
+        if parent is None:
+            return None
+        # Intra-doc only: parent must be a strict tumbler-prefix.
+        if parent.digits != cur.digits[:len(parent.digits)]:
+            return None
+        cur = parent
+        path = session.get_path_for_addr(cur)
+        if path is not None:
+            return path
+
+
 def read_doc(session: Session, addr: Address) -> str:
     """Read a substrate doc's content.
 
@@ -56,14 +87,35 @@ def read_doc(session: Session, addr: Address) -> str:
     renderer, invoke the renderer. Otherwise read the file at the
     doc's registered path.
 
-    Raises `KeyError` if the address has no registered path and is
-    not transclusion-rendered.
+    When the address has no direct path registration (a version
+    address — versions are substrate identity markers without their
+    own path entry today), walk intra-doc version-parents to find
+    the identity's base and read from there. The intra-doc walk
+    uses the tumbler-prefix test to distinguish version-parent
+    edges (parent is a strict prefix of child) from cross-doc
+    supersession bridges (sibling identities); only the former are
+    followed so we resolve to the head identity's base, never a
+    superseded identity's.
+
+    NOTE: the version-to-base fallback encodes today's storage
+    convention (per-doc-identity file at the base's path; versions
+    share that storage). A future Xanadu substrate with per-version
+    content addressing would drop the fallback and resolve version
+    addresses directly. This is the one place that knows about that
+    convention — callers express substrate-pure intent and let
+    `read_doc` handle the resolution.
+
+    Raises `KeyError` if neither the address nor any intra-doc
+    parent has a registered path, and the doc isn't
+    transclusion-rendered.
     """
     kind = _transclusion_kind(session, addr)
     if kind is not None:
         return _RENDERERS[kind](session, addr)
 
     path = session.get_path_for_addr(addr)
+    if path is None:
+        path = _resolve_version_to_base_path(session, addr)
     if path is None:
         raise KeyError(f"no path for address {addr}")
     full = session.store.lattice_dir / path

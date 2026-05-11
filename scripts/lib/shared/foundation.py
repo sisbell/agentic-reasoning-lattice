@@ -196,22 +196,13 @@ def load_foundation_for_note(asn_path, asn_id):
             sidecar = statements_sidecar_of(session, dep_note_addr)
             if sidecar is None:
                 continue
+            # Substrate walk: supersession_head crosses the
+            # sidecar → aggregate bridge (if derived) and walks the
+            # aggregate's version chain to the latest version.
+            # read_doc owns the address-to-content resolution.
             head = supersession_head(session, sidecar)
-            # Walk back through version-parents until we find an
-            # address with a registered path — that's the identity's
-            # base. Stop here even if a cross-doc supersession edge
-            # would carry us further (e.g., aggregate → sidecar
-            # bridge); we want the head identity's base, not the
-            # superseded identity's.
-            parent_map = store.state.parent
-            base = head
-            while base not in store.addr_to_path:
-                parent = parent_map.get(base)
-                if parent is None:
-                    break
-                base = parent
             try:
-                sections.append(read_doc(session, base))
+                sections.append(read_doc(session, head))
             except (FileNotFoundError, KeyError):
                 continue
     return "\n\n".join(sections)
