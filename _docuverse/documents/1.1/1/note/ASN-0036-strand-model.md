@@ -359,6 +359,19 @@ The conjunct `(A i : 1 ≤ i ≤ #v : vᵢ > 0)` — every component of `v` is s
 - *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`.
 - *Depends:* T0 (ASN-0034) — supplies the ℕ-valued component carrier on which `vᵢ ∈ ℕ` for every component; T4 (HierarchicalParsing, ASN-0034) — fixes the field-structural premises (non-separator components are strictly positive, each present field has at least one component); NAT-zero (NatZeroMinimum, ASN-0034) — discharges the positivity step: from `vᵢ ∈ ℕ` and `vᵢ ≠ 0` (the latter delivered by `zeros(v) = 0`), NAT-zero concludes `vᵢ > 0`, yielding `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
 
+**subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
+
+`subspace(v) = v₁`
+
+extracting the subspace identifier as the first component. This is the definitional shorthand introduced in prose under S7c (line where `subspace_I(a) = E(a)₁` is named) and used throughout S8a, S8-depth, the correspondence-run development of S8, the contiguity properties D-CTG/D-MIN/D-CTG-depth/D-SEQ, and the homomorphism lemmas OrdAddHom and OrdShiftHom. We promote it to a Formal Contract here so that downstream uses can cite a single definitional source.
+
+*Formal Contract:*
+- *Signature:* `subspace : T → ℕ` — projects the first component of a tumbler.
+- *Preconditions:* `v ∈ T`, `#v ≥ 1` (so that `v₁` is well-defined as the first component of a non-empty tumbler).
+- *Definition:* `subspace(v) = v₁`.
+- *Postconditions:* (a) `subspace(v) ∈ ℕ` — the projected component inherits T0's ℕ-valued carrier (ASN-0034). (b) When `v` satisfies S8a, `subspace(v) ≥ 1` — S8a's componentwise positivity conjunct `(A i : 1 ≤ i ≤ #v : vᵢ > 0)` at `i = 1` delivers `v₁ ≥ 1`. (c) *Subspace preservation under shift:* for `#v = m ≥ 2` and `n ≥ 1`, `subspace(shift(v, n)) = subspace(v)` — established by OrdShiftHom (b) below, whose proof reduces to TumblerAdd's prefix rule copying component 1 unchanged because `δ(n, m)` has action point `m ≥ 2`.
+- *Depends:* T0 (ASN-0034) — ℕ-valued component carrier underwriting postcondition (a); S8a — componentwise positivity at `i = 1` underwriting postcondition (b); OrdShiftHom (corollary below) — supplies postcondition (c). The function itself depends only on `#v ≥ 1`; the S8a- and OrdShiftHom-dependent postconditions are conditional refinements that strengthen the conclusion in the contexts where their premises hold.
+
 **S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth:
 
 `(A d, v₁, v₂ : v₁ ∈ dom(Σ.M(d)) ∧ v₂ ∈ dom(Σ.M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)`
@@ -668,7 +681,7 @@ where the tuple has length m, the common V-position depth in the text subspace (
 
 **Step 2: minimum k.** By D-MIN, min(V_1(d)) = [1, 1, …, 1] of length m. In the representation [1, 1, …, 1, k], the minimum has k = 1 at the last component. Since the minimum is in V_1(d), the set of k-values attained by positions in V_1(d) includes 1.
 
-**Step 3: contiguity of k-values.** Let k₁ < k₂ be two values attained by positions v₁ = [1, 1, …, 1, k₁] and v₂ = [1, 1, …, 1, k₂] in V_1(d). Both have subspace 1 and depth m. By T1(i) (TumblerOrdering, ASN-0034), v₁ < v₂ since they agree on components 1 through m − 1 and differ first at component m where k₁ < k₂. For any integer k with k₁ < k < k₂, the tuple w = [1, 1, …, 1, k] satisfies subspace(w) = 1, #w = m, and v₁ < w < v₂ (again by T1(i), since w agrees with both on components 1 through m − 1 and k₁ < k < k₂ at component m). Moreover w satisfies S8a: every component is strictly positive — the leading m − 1 components are all 1, and the last component k satisfies k > k₁ ≥ 1 — so zeros(w) = 0; and #w = m ≥ 2 inherits the depth bound S8a places on v₁. By D-CTG (VContiguity), w ∈ V_1(d). Therefore every integer between any two attained k-values is itself attained — the k-values form a contiguous range.
+**Step 3: contiguity of k-values.** Let k₁ < k₂ be two values attained by positions v₁ = [1, 1, …, 1, k₁] and v₂ = [1, 1, …, 1, k₂] in V_1(d). Both have subspace 1 and depth m. By T1(i) (TumblerOrdering, ASN-0034), v₁ < v₂ since they agree on components 1 through m − 1 and differ first at component m where k₁ < k₂. For any k ∈ ℕ with k₁ < k < k₂, the tuple w = [1, 1, …, 1, k] satisfies subspace(w) = 1, #w = m, and v₁ < w < v₂ (again by T1(i), since w agrees with both on components 1 through m − 1 and k₁ < k < k₂ at component m). Moreover w satisfies S8a: every component is strictly positive — the leading m − 1 components are all 1, and the last component k satisfies k > k₁ ≥ 1 — so zeros(w) = 0; and #w = m ≥ 2 inherits the depth bound S8a places on v₁. By D-CTG (VContiguity), w ∈ V_1(d). Therefore every k ∈ ℕ between any two attained k-values is itself attained — the k-values form a contiguous range.
 
 **Step 4: finiteness.** By S8-fin (Finite arrangement), dom(M(d)) is finite, so V_1(d) ⊆ dom(M(d)) is finite. The k-values form a finite contiguous range.
 
