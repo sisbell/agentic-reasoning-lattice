@@ -1,9 +1,1 @@
-Addition on ℕ is associative: `(m + n) + p = m + (n + p)` for every `m, n, p ∈ ℕ`.
-Registered as one of the nine NAT-* axioms inside T0's enumeration (declared
-exhaustive); this file states the formal content downstream proofs cite. Membership
-in the enumeration is decided by demonstrated downstream consumption — associativity
-enters via GlobalUniqueness Case 5's length-collision argument (which regroups
-`#p₁ + (1 + 1)` as `(#p₁ + 1) + 1` in the `(k'₁, k'₂) = (2, 1)` extraction);
-commutativity is held out because no proof in this ASN reorders two summands, and
-its omission is what forces NAT-addcompat and NAT-cancel to state their
-left/right clauses independently rather than deriving one from the other.
+Posits that addition on ℕ is associative: `(m + n) + p = m + (n + p)` for all `m, n, p ∈ ℕ`. This axiom allows sums of three or more naturals to be regrouped freely, a property downstream proofs invoke whenever a length or count expression needs its parentheses rearranged without changing its value.
