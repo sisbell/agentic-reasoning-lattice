@@ -295,7 +295,7 @@ From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by in
 
 By B6, the parent p satisfies T4 (condition (i)), d ∈ {1, 2} (condition (ii)), and zeros(p) + (d − 1) ≤ 3 (condition (iii)). By the definition of next (NextAddress), a = next(B, p, d) branches on whether children(B, p, d) is empty. Two cases arise.
 
-*Case 1: children(B, p, d) = ∅.* Then a = inc(p, d) by the definition of next. TA5a (IncrementPreservesT4, ASN-0034) states that for any t satisfying T4, inc(t, k) satisfies T4 iff `k = 0`, or `k = 1 ∧ zeros(t) ≤ 3`, or `k = 2 ∧ zeros(t) ≤ 2`. Instantiating with t = p and k = d, B6(i) provides T4-validity of p, B6(ii) restricts d to {1, 2}, and B6(iii) — `zeros(p) + (d − 1) ≤ 3` — specializes to `zeros(p) ≤ 3` when d = 1 and `zeros(p) ≤ 2` when d = 2, matching TA5a's case-based bound in each case. The applicable TA5a case is therefore satisfied, and a = inc(p, d) satisfies T4.
+*Case 1: children(B, p, d) = ∅.* Then a = inc(p, d) by the definition of next. TA5a (IncrementPreservesT4, ASN-0034) states that for any t satisfying T4, inc(t, k) satisfies T4 iff `k ∈ {0, 1}`, or `k = 2 ∧ zeros(t) ≤ 2`. Instantiating with t = p and k = d, B6(i) provides T4-validity of p and B6(ii) restricts d to {1, 2}. For d = 1, TA5a's `k ∈ {0, 1}` branch applies directly with no further obligation on zeros(p). For d = 2, TA5a's `k = 2 ∧ zeros(t) ≤ 2` branch requires zeros(p) ≤ 2, which B6(iii) — `zeros(p) + (d − 1) ≤ 3` specialized to d = 2 — supplies. The applicable TA5a case is therefore satisfied, and a = inc(p, d) satisfies T4. (B6(iii)'s uniform form `zeros(p) + (d − 1) ≤ 3` is ASN-0040's own bridging restatement, collapsing TA5a's two d-cases into a single bound under T4-validity of p; it is not itself part of TA5a's case structure.)
 
 *Case 2: children(B, p, d) ≠ ∅.* The set children(B, p, d) = B ∩ S(p, d) is a non-empty finite subset of T (finite because B is finite by B_fin). Let t = max(children(B, p, d)) — which exists because T1 is a total order on every non-empty finite set. By definition of children, t ∈ children(B, p, d) ⊆ B. By the inductive hypothesis (B10 for the current state), t satisfies T4. The definition of next gives a = inc(t, 0). TA5a's `k = 0` case states that inc(t, 0) satisfies T4 for any T4-valid t with no further constraint: no zeros are added (TA5(c) modifies only position sig(t), advancing a positive value by one), no adjacent zeros are introduced, and the tumbler neither begins nor ends in zero after the increment. Therefore a = inc(t, 0) satisfies T4.
 
@@ -482,7 +482,7 @@ At most three level crossings can occur in a valid address chain: node → user,
 
 **(⟸) Sufficiency.** Assume (i) p satisfies T4, (ii) d ∈ {1, 2}, and (iii) zeros(p) + (d − 1) ≤ 3. We show every element of S(p, d) satisfies T4.
 
-For the first child c₁ = inc(p, d): TA5a (IncrementPreservesT4, ASN-0034) states that for any t satisfying T4, inc(t, k) satisfies T4 iff `k = 0`, or `k = 1 ∧ zeros(t) ≤ 3`, or `k = 2 ∧ zeros(t) ≤ 2`. With t = p and k = d, conditions (i) and (ii) make p T4-valid and put d ∈ {1, 2}; condition (iii), `zeros(p) + (d − 1) ≤ 3`, rewrites case-by-case to TA5a's bounds — for d = 1 it reads `zeros(p) ≤ 3`, and for d = 2 it reads `zeros(p) ≤ 2`. The TA5a case applicable at the chosen d is therefore satisfied, so c₁ satisfies T4. (The uniform form `zeros(p) + (d − 1) ≤ 3` is a restatement of TA5a's case-based bound on d ∈ {1, 2}, not an additional axiom.)
+For the first child c₁ = inc(p, d): TA5a (IncrementPreservesT4, ASN-0034) states that for any t satisfying T4, inc(t, k) satisfies T4 iff `k ∈ {0, 1}`, or `k = 2 ∧ zeros(t) ≤ 2`. With t = p and k = d, conditions (i) and (ii) make p T4-valid and put d ∈ {1, 2}. For d = 1, TA5a's `k ∈ {0, 1}` branch applies directly with no further obligation on zeros(p). For d = 2, TA5a's `k = 2 ∧ zeros(t) ≤ 2` branch requires zeros(p) ≤ 2, which is exactly condition (iii) specialized to d = 2. The TA5a case applicable at the chosen d is therefore satisfied, so c₁ satisfies T4. (Condition (iii)'s uniform form `zeros(p) + (d − 1) ≤ 3` is ASN-0040's own bridging restatement: it collapses TA5a's two d-cases into a single bound that, combined with T4-validity of p, is equivalent to TA5a's case-based bound on d ∈ {1, 2}, but the uniform form is not itself part of TA5a.)
 
 For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states that inc(t, 0) satisfies T4 for any T4-valid t with no further constraint — sibling increment modifies only position sig(t), advancing a positive value by one (TA5(c)), so no zeros are added and no new adjacencies are introduced. Since c₁ satisfies T4, and each sibling increment preserves T4, by induction every cₙ satisfies T4.
 
@@ -536,7 +536,7 @@ At position #p + 1, every element of S(p, 2) has value 0 and every element of S(
 The three cases are exhaustive: for any two streams, the element lengths are either different (Case 1), equal with non-nesting prefixes (Case 2), or equal with nesting prefixes (Case 3). In every case a ≠ b, so S(p, d) ∩ S(p', d') = ∅. ∎
 
 *Formal Contract:*
-- *Preconditions:* (p, d) ≠ (p', d') with p, p' satisfying T4 and d, d' satisfying B6.
+- *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
 - *Postconditions:* `S(p, d) ∩ S(p', d') = ∅`.
 
 
@@ -651,7 +651,7 @@ After M − m steps, hwm(B_{M−m}, p, d) = m + (M − m) = M. Setting B' = B_{M
 | Bop | baptize(p, d): PRE B6; STRUCT B4 (invariant of Op, not per-call); POST Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}; FRAME only Σ.B | from B0, B1, B4, B6, B7, B0a, B10, TA5, TA5a |
 | S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from TA5(a), T1 |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
-| B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | derivable from B0a; retained as a primitive label for proof legibility (cited by B1, B10) |
+| B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | primitive label (B0a-derivation is given as commentary preceding the B0 statement, not as a labelled corollary; cited by B1, B10) |
 | B0a | Op partitions into baptismal operations (the `baptize(p, d)` for B6-valid (p, d), each acting on Σ.B as in Bop) and Σ.B-frame operations (every other op satisfies `op(Σ).B = Σ.B`) — registry grows only through baptism | design requirement |
 | B₀ conf. | B₀ is finite, `children(B₀, p, d)` is a contiguous prefix for all (p, d), and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | design requirement |
 | B_fin | `(A Σ reachable : Σ.B is finite)` — registry finiteness | from B₀ conf., B0a |
