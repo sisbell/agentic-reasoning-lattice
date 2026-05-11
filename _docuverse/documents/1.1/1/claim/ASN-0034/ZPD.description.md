@@ -1,9 +1,1 @@
-Defines the zero-padded divergence `zpd(a, w)` as the first position at which two tumblers disagree after both are
-extended to a common length `L` by appending zeros, where `L` — the longer of `#a` and `#w` — is selected by NAT-order
-trichotomy on `(#a, #w)` (sub-case (α): `#a = #w`, `L = #a`, no padding; (β): `#a < #w`, `L = #w`, `a` padded; (γ):
-`#w < #a`, `L = #a`, `w` padded) rather than by a primitive binary-maximum operator on ℕ. The function is partial: it
-is undefined when the padded sequences agree everywhere, which occurs when one operand is a prefix of the other with
-all trailing components zero — a case where Divergence fires but zpd does not. When defined, zpd is symmetric and
-equals the ordinary divergence index whenever the disagreement falls at a shared position `k` with `k ≤ #a ∧ k ≤ #w`
-(the conjunction replacing `k ≤ min(#a, #w)`); in the prefix sub-cases (β) and (γ) the Divergence boundary is `#a + 1`
-or `#w + 1` respectively (replacing `min(#a, #w) + 1`).
+Defines `zpd(a, w)` as the first position where two tumblers disagree after both are zero-padded to a common length, making any tumbler and its trailing-zero extensions indistinguishable — so `[3, 0]` and `[3]` are zero-padded-equal and `zpd` is undefined for them. The function is partial — undefined precisely when the padded sequences agree everywhere — and when defined is symmetric; it equals ordinary Divergence at shared-position disagreements, and in the prefix sub-cases is defined only when the longer operand carries a nonzero component beyond the shorter's end, with `zpd(a, w) ≥ divergence(a, w)` in those cases.
