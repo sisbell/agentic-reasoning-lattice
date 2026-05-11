@@ -4,7 +4,7 @@
 
 ## ActionPoint — ActionPoint
 
-Defines the action point of a positive tumbler as the index of its first nonzero component. Because the tumbler is positive, at least one nonzero component exists, so the minimum is always well-defined and falls within the tumbler's length.
+Defines the action point of a positive tumbler as the index of its leftmost nonzero component: the minimum of the set of nonzero-component positions. The minimum exists because positivity guarantees a nonempty index set, and well-ordering of ℕ guarantees a unique least element; the postconditions confirm the action point lies within bounds, all earlier components are zero, and the component at the action point is at least 1.
 
 *Formal Contract:*
 - *Preconditions:* w ∈ T, Pos(w)
@@ -24,7 +24,7 @@ Defines the action point of a positive tumbler as the index of its first nonzero
 
 ## AllocatedSet — AllocatedSet
 
-Defines the concrete set of allocated addresses at any reachable system state as the union of finite prefixes drawn from each activated allocator's theoretical domain. Establishes that allocation-relevant properties proved over T10a's abstract per-allocator chains transfer without modification to the realized finite prefixes seen in any actual execution state.
+Defines `allocated(s)` as the union of realized per-allocator domains across all activated allocators in state s, grounding the abstract per-allocator chains of T10a in a concrete state-indexed structure. Establishes that activation is a projection of state rather than a reconstruction from transition history, making `allocated(s)` path-independent and well-defined on any state without appeal to how it was reached. Proves that realized domains are initial segments of T10a's abstract chains, so ordering and same-allocator properties from T9 and T10a transfer directly to any pair of addresses co-realized in an actual execution state.
 
 *Formal Contract:*
 - *Definitions:*
@@ -60,7 +60,7 @@ Defines the concrete set of allocated addresses at any reachable system state as
 
 ## D0 — DisplacementWellDefined
 
-Establishes that when a < b and the divergence point does not exceed a's length, the displacement b ⊖ a is a well-defined positive tumbler whose action point equals the divergence index. The round-trip a ⊕ (b ⊖ a) recovers b exactly when a is no longer than b; if a is strictly longer than b, the round-trip is guaranteed to fail.
+Proves that under the conditions a < b and divergence(a, b) ≤ #a, the displacement w = b ⊖ a is a well-defined positive tumbler whose action point equals the divergence index of a and b. The round-trip a ⊕ (b ⊖ a) lands back at b exactly when a is no longer than b; when a is strictly longer, the differing lengths guarantee the round-trip misses b.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, a < b, divergence(a, b) ≤ #a
@@ -86,7 +86,7 @@ Establishes that when a < b and the divergence point does not exceed a's length,
 
 ## D1 — DisplacementRoundTrip
 
-Proves the displacement round-trip identity: when a < b, the divergence point does not exceed a's length, and a is no longer than b, then a ⊕ (b ⊖ a) = b exactly. This is the affirmative half of D0's conditional — the length constraint #a ≤ #b is the precise condition that closes the round-trip.
+Proves that displacement is reversible when a < b, divergence(a, b) ≤ #a, and #a ≤ #b: adding back the displacement b ⊖ a to a recovers b exactly. The length constraint #a ≤ #b is both necessary and sufficient to close the round-trip — it rules out the sub-cases where TumblerSub's length dispatch would prevent reconstruction.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, a < b, divergence(a, b) ≤ #a, #a ≤ #b
@@ -109,7 +109,7 @@ Proves the displacement round-trip identity: when a < b, the divergence point do
 
 ## D2 — DisplacementUnique
 
-Proves that the displacement carrying a to b is unique: any positive tumbler w satisfying a ⊕ w = b must equal the canonical displacement b ⊖ a. The argument applies left cancellation after D1 supplies a second witness, so no two distinct displacements can produce the same target from the same source.
+Proves that the displacement carrying a to b is unique: any positive tumbler w with actionPoint(w) ≤ #a satisfying a ⊕ w = b must equal the canonical displacement b ⊖ a. The proof constructs b ⊖ a as a second witness, verifies both sides meet the TA0 well-definedness preconditions, then applies left cancellation to force equality.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, divergence(a, b) ≤ #a, #a ≤ #b, Pos(w), actionPoint(w) ≤ #a, a ⊕ w = b
@@ -135,12 +135,7 @@ Proves that the displacement carrying a to b is unique: any positive tumbler w s
 
 ## Divergence — Divergence
 
-Given two distinct tumblers `a ≠ b`, `divergence(a, b)` returns the exact index where they first differ — either
-the position of the first mismatched component (bounded by `k ≤ #a ∧ k ≤ #b` rather than by a primitive binary
-minimum), or one past the shorter tumbler's length (`#a + 1` in sub-case (ii-a) with `#a < #b`, else `#b + 1` in
-sub-case (ii-b) with `#b < #a`) when all shared components agree but lengths differ; the sub-case is selected by
-NAT-order trichotomy. The function is symmetric and always defined for distinct tumblers (exhaustiveness guaranteed
-by T3: if neither case applied, the tumblers would be equal).
+Defines the point at which two distinct tumblers first cease to agree: either the index of the first mismatched component at a shared position, or one past the shorter tumbler's last component when all shared components agree but lengths differ. The function is total and symmetric — exactly one case applies for any a ≠ b, guaranteed by T3.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, a ≠ b
@@ -157,7 +152,7 @@ by T3: if neither case applied, the tumblers would be equal).
 
 ## GlobalUniqueness — GlobalUniqueness
 
-No two distinct allocation events — whether from the same allocator, sibling allocators, or allocators at different hierarchy depths — ever produce the same address. The proof proceeds by strong induction on allocator tree depth, with five cases ruling out every possible collision scenario. As a consequence, each address belongs to exactly one allocator's domain.
+Proves that no two distinct allocation events anywhere in the system ever produce the same address, regardless of whether the events occur within the same allocator, between siblings, or across hierarchy levels. As a consequence, each address belongs to exactly one allocator's domain, giving every address a well-defined owning allocator.
 
 *Formal Contract:*
 - *Preconditions:* `a, b ∈ T` produced by distinct allocation events — root initialization or `inc(t, k)` — within a system conforming to T10a. Each address has a producing allocator assigned by the event taxonomy: root base to root; `inc(t, 0)` output to the executing allocator; `inc(t, k')` with `k' > 0` output to the newly created child. The domain prefix of a non-root allocator `A` spawned by `c₀ = inc(t, k')` is `t`; every `a ∈ dom(A)` satisfies `t ≼ a`.
@@ -189,15 +184,7 @@ No two distinct allocation events — whether from the same allocator, sibling a
 
 ## NAT-addassoc — NatAdditionAssociative
 
-Addition on ℕ is associative: `(m + n) + p = m + (n + p)` for every `m, n, p ∈ ℕ`.
-Registered as one of the nine NAT-* axioms inside T0's enumeration (declared
-exhaustive); this file states the formal content downstream proofs cite. Membership
-in the enumeration is decided by demonstrated downstream consumption — associativity
-enters via GlobalUniqueness Case 5's length-collision argument (which regroups
-`#p₁ + (1 + 1)` as `(#p₁ + 1) + 1` in the `(k'₁, k'₂) = (2, 1)` extraction);
-commutativity is held out because no proof in this ASN reorders two summands, and
-its omission is what forces NAT-addcompat and NAT-cancel to state their
-left/right clauses independently rather than deriving one from the other.
+Posits that addition on ℕ is associative: `(m + n) + p = m + (n + p)` for all `m, n, p ∈ ℕ`. This axiom allows sums of three or more naturals to be regrouped freely, a property downstream proofs invoke whenever a length or count expression needs its parentheses rearranged without changing its value.
 
 *Formal Contract:*
 - *Axiom:* `(A m, n, p ∈ ℕ :: (m + n) + p = m + (n + p))` (associativity of addition on ℕ).
@@ -209,16 +196,7 @@ left/right clauses independently rather than deriving one from the other.
 
 ## NAT-addbound — NatAdditionDominatesOperands
 
-For every `m, n ∈ ℕ`, the sum `m + n` is bounded below by each of its
-operands: `m + n ≥ n` (right dominance) and `m + n ≥ m` (left dominance).
-Both sides are stated independently because commutativity of addition
-is not enumerated — without `m + n = n + m`, neither form is derivable
-from the other. Right dominance follows from NAT-zero (which gives
-`0 ≤ m`), NAT-addcompat's right order compatibility (which lifts
-`0 ≤ m` to `0 + n ≤ m + n`), and NAT-closure's left additive identity
-(which rewrites `0 + n` to `n`). Left dominance follows by the parallel
-route through NAT-zero's `0 ≤ n`, NAT-addcompat's left order
-compatibility, and NAT-closure's right additive identity.
+Proves that addition dominates both its operands: for every m, n ∈ ℕ, the sum m + n is at least as large as either m or n individually. Both directions are proved separately because addition's commutativity is not assumed — without m + n = n + m, neither dominance inequality is derivable from the other.
 
 *Formal Contract:*
 - *Consequence:* `(A m, n ∈ ℕ :: m + n ≥ n)` (the sum dominates its right operand) — derived from NAT-zero, NAT-addcompat (right order compatibility), NAT-closure (left additive identity), and NAT-order as shown in the preceding *Right dominance* prose.
@@ -234,20 +212,7 @@ compatibility, and NAT-closure's right additive identity.
 
 ## NAT-addcompat — NatAdditionOrderAndSuccessor
 
-Addition on ℕ is non-strictly monotone with respect to order on either side:
-if `p ≤ n` then `m + p ≤ m + n` (left) and `p + m ≤ n + m` (right) for all
-`m`. Both forms are stated as axiom clauses so proofs that add a fixed
-summand on either side need not tacitly assume commutativity — GlobalUniqueness
-Case 5's sub-case `k'₁ < k'₂` uses both placements, left to lift `k'₁ ≤ k'₂` to
-`#p₁ + k'₁ ≤ #p₁ + k'₂` and right to lift `#p₁ ≤ #p₂` to
-`#p₁ + k'₂ ≤ #p₂ + k'₂`. The clauses deliver only non-strict `≤`; promoting
-`#p₁ < #p₂` to the strict `#p₁ + k'₂ < #p₂ + k'₂` requires combining NAT-addcompat
-with NAT-cancel (to rule out the equality `#p₁ + k'₂ = #p₂ + k'₂`) and NAT-order
-(to weaken `<` to `≤` and to re-strengthen `≤` with non-equality back to
-`<`). Additionally, every natural number is strictly less than its
-successor: `n < n + 1`. The axiom body cites the non-strict `≤` defined in
-NAT-order and the addition/`1`-constants supplied by NAT-closure, so both
-foundations appear in the Depends slot.
+Posits that addition on ℕ is monotone on both sides — if `p ≤ n` then `m + p ≤ m + n` (left) and `p + m ≤ n + m` (right) — and that every natural number is strictly less than its successor `n + 1`. Both compatibility directions are stated as independent axiom clauses because commutativity has not yet been declared at this stratum, so neither direction is derivable from the other. The successor inequality `n < n + 1` strengthens the weaker constant bound `0 < n + 1` from NAT-closure into the schematic claim that `+1` strictly advances every element of ℕ.
 
 *Formal Contract:*
 - *Axiom:* `(A m, n, p ∈ ℕ : p ≤ n : m + p ≤ m + n)` (left order compatibility); `(A m, n, p ∈ ℕ : p ≤ n : p + m ≤ n + m)` (right order compatibility); `(A n ∈ ℕ :: n < n + 1)` (strict successor inequality).
@@ -260,19 +225,7 @@ foundations appear in the Depends slot.
 
 ## NAT-cancel — NatAdditionCancellation
 
-Addition on ℕ is cancellative on either side: `m + n = m + p ⟹ n = p`
-(left cancellation) and `n + m = p + m ⟹ n = p` (right cancellation), for
-every `m, n, p ∈ ℕ`, stated as independent axiom clauses because the
-NAT-* axioms of this ASN do not include commutativity of addition on ℕ,
-so neither is derivable from the other. Summand absorption
-`m + n = m ⟹ n = 0` is recorded as a consequence rather than an axiom:
-from `m + n = m` and NAT-closure's right identity `m + 0 = m`, the
-rewrite `m + n = m + 0` together with left cancellation at `p := 0`
-yields `n = 0`; the mirror form `n + m = m ⟹ n = 0` is the parallel
-consequence via right cancellation and NAT-closure's left identity
-`0 + m = m`. Cancellation is stated axiomatically alongside the other
-NAT-* facts so downstream proofs can cite it directly without appealing
-to an implicit "standard properties of ℕ" clause.
+Posits that addition on ℕ is cancellative on both sides — a shared addend can be dropped from either side of an equation — as independent left and right axioms. Summand absorption, that a sum equals one of its summands only when the other is zero, follows as a named consequence via NAT-closure's additive identity.
 
 *Formal Contract:*
 - *Axiom:* `(A m, n, p ∈ ℕ : m + n = m + p : n = p)` (left cancellation); `(A m, n, p ∈ ℕ : n + m = p + m : n = p)` (right cancellation).
@@ -286,17 +239,7 @@ to an implicit "standard properties of ℕ" clause.
 
 ## NAT-card — NatFiniteSetCardinality
 
-The cardinality operator |·| is postulated as a primitive total function on subsets
-of every initial segment {j ∈ ℕ : 1 ≤ j ≤ n} ⊆ ℕ (n ∈ ℕ), with codomain ℕ. For such S,
-|S| ∈ ℕ is the unique k for which there exists a strictly increasing function
-f : {j ∈ ℕ : 1 ≤ j ≤ k} → ℕ with image S (at k = 0 the domain is empty, f is the
-empty function, vacuously strictly increasing with image ∅, forcing S = ∅ and
-|∅| = 0 without recourse to a convention on empty lists), and |S| ≤ n.
-NAT-order's strict-total-order discipline keeps the "strictly increasing function"
-predicate well-formed. NAT-card is the foundation
-citation for every claim that invokes |·| — in particular the definition
-zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}| in T4 and its downstream consumers T4a,
-T4b, T4c.
+Posits the cardinality operator |·| as a primitive that assigns to every subset S of an initial segment {j ∈ ℕ : 1 ≤ j ≤ n} the unique natural number k for which a strictly increasing enumeration f : {j ∈ ℕ : 1 ≤ j ≤ k} → ℕ exists with image exactly S, and guarantees |S| ≤ n. The k = 0 case is self-contained: the empty domain forces S = ∅ and |∅| = 0 without any convention on empty lists.
 
 *Formal Contract:*
 - *Axiom:* `(A n ∈ ℕ, S : S ⊆ {j ∈ ℕ : 1 ≤ j ≤ n} :: |S|` is the unique `k ∈ ℕ` such that `(E f :: f : {j ∈ ℕ : 1 ≤ j ≤ k} → ℕ ∧ (A i, j : 1 ≤ i < j ≤ k : f.i < f.j) ∧ S = {f.j : 1 ≤ j ≤ k}))` — strictly-increasing-function characterisation, existence-and-uniqueness of `k` carried by "the unique"; `(A n ∈ ℕ, S : S ⊆ {j ∈ ℕ : 1 ≤ j ≤ n} :: |S| ≤ n)` — upper bound.
@@ -310,15 +253,7 @@ T4b, T4c.
 
 ## NAT-closure — NatArithmeticClosureAndIdentity
 
-Posits the binary operation `+ : ℕ × ℕ → ℕ` directly on ℕ, asserts
-`1 ∈ ℕ`, fixes `0` as a two-sided additive identity: left
-(`0 + n = n`) and right (`n + 0 = n`), and asserts the
-successor-positivity clause `(A n ∈ ℕ :: 0 < n + 1)` — the
-Peano no-predecessor-of-zero condition for the addition-based
-successor. The distinctness `0 < 1` of the two named constants
-follows as a consequence — the successor-positivity instance at
-`n := 0` together with the left-identity rewrite `0 + 1 = 1`. Closure
-of ℕ under addition is carried by the signature's codomain commitment.
+Posits the arithmetic foundation: addition closes ℕ as a total binary operation, `0` acts as a two-sided identity, and the successor-positivity clause `0 < n + 1` uniformly rules out any natural number whose successor wraps to zero — the Peano no-predecessor-of-zero condition. The constant `1` is named, and its strict separation from `0` is an immediate consequence of successor positivity at `n := 0`.
 
 *Formal Contract:*
 - *Axiom:* `+ : ℕ × ℕ → ℕ` (`+` is a binary operation on ℕ); `1 ∈ ℕ` (one is a natural number); `(A n ∈ ℕ :: 0 + n = n)` (left additive identity); `(A n ∈ ℕ :: n + 0 = n)` (right additive identity); `(A n ∈ ℕ :: 0 < n + 1)` (successor positivity — the addition-based successor is never `0`).
@@ -332,14 +267,7 @@ of ℕ under addition is carried by the signature's codomain commitment.
 
 ## NAT-discrete — NatDiscreteness
 
-No natural number lies strictly between `n` and `n + 1`. The axiom form is
-`m < n ⟹ m + 1 ≤ n`; the familiar no-interval reformulation
-`m ≤ n < m + 1 ⟹ n = m` is recorded as a Consequence rather than a second axiom,
-because it is derivable from the axiom body via NAT-order's `≤`-definition,
-exactly-one trichotomy, and irreflexivity. The
-axiom cites the non-strict `≤` (defined in NAT-order by `m ≤ n ⟺ m < n ∨ m = n`)
-and the successor term `m + 1` (grounded by NAT-closure's `1 ∈ ℕ` and
-addition-closure), so both appear in the Depends slot.
+Posits the discreteness of ℕ: no natural number lies strictly between any integer and its successor, captured by the axiom `m < n ⟹ m + 1 ≤ n`. The equivalent no-interval form `m ≤ n < m + 1 ⟹ n = m` is a derived consequence, not a second axiom, following from the axiom together with NAT-order's `≤`-definition, trichotomy, and irreflexivity.
 
 *Formal Contract:*
 - *Axiom:* `(A m, n ∈ ℕ :: m < n ⟹ m + 1 ≤ n)` (discreteness).
@@ -353,17 +281,7 @@ addition-closure), so both appear in the Depends slot.
 
 ## NAT-order — NatStrictTotalOrder
 
-The natural numbers are strictly totally ordered by `<`: no number precedes itself (irreflexivity), the order is
-transitive, and any two naturals are related by at least one of `<`, `=`, `>` (at-least-one trichotomy). The
-three axiom clauses together with indiscernibility of `=` export two Consequences. First, *exactly-one
-trichotomy*: for any two naturals, exactly one of less-than, equality, or greater-than holds. The implicational
-form `m < n ⟹ m ≠ n` is the mutual-exclusion conjunct `¬(m < n ∧ m = n)` rewritten by the classical
-equivalence `¬(A ∧ B) ⟺ (A ⟹ ¬B)` — a derivable restatement of that conjunct, not a separately
-exported Consequence; consumers needing the implicational form cite the exactly-one trichotomy bullet. Second,
-`≤`-*transitivity*: `m ≤ n ∧ n ≤ p ⟹ m ≤ p`, derived by four-way case analysis on the defining disjunction
-`x ≤ y ⟺ x < y ∨ x = y` against `<`-transitivity and indiscernibility of `=`. The non-strict companion `≤`
-is defined from `<` directly, and the reverse companions `≥` and `>` are defined as the converses of `≤` and
-`<`; all three defined relations inherit the strict-total-order guarantees through their unfoldings.
+Posits `<` as a strict total order on ℕ — irreflexive, transitive, and satisfying at-least-one trichotomy — and defines the companion relations `≤`, `≥`, and `>` from it. The three axiom clauses jointly export two consequences: exactly-one trichotomy (for any two naturals, exactly one of `m < n`, `m = n`, `n < m` holds) and transitivity of `≤`.
 
 *Formal Contract:*
 - *Axiom:* `< ⊆ ℕ × ℕ` (`<` is a binary relation on ℕ); `(A n ∈ ℕ :: ¬(n < n))` (irreflexivity); `(A m, n, p ∈ ℕ : m < n ∧ n < p : m < p)` (transitivity); `(A m, n ∈ ℕ :: m < n ∨ m = n ∨ n < m)` (at-least-one trichotomy).
@@ -377,23 +295,7 @@ is defined from `<` directly, and the reverse companions `≥` and `>` are defin
 
 ## NAT-sub — NatPartialSubtraction
 
-Subtraction on ℕ is a partial binary operation defined when the minuend is at least
-the subtrahend. The difference `m − n` is the unique natural number satisfying
-`(m − n) + n = m` (equivalently `n + (m − n) = m`); right telescoping
-`(m + n) − n = m` and left telescoping `(n + m) − n = m` are bundled as additional
-axiom clauses — both sides stated independently because commutativity of addition
-is not enumerated, so neither telescoping form is derivable from the other.
-Strict monotonicity `m ≥ p ∧ n ≥ p ∧ m < n ⟹ m − p < n − p` is exported as a
-Consequence rather than an axiom clause, since it derives from the right-inverse
-together with NAT-addcompat's right order compatibility and NAT-order's
-at-least-one trichotomy with irreflexivity; retaining it as an axiom would
-launder the derivation through a non-minimal clause. Strict positivity
-`m > n ⟹ m − n ≥ 1` is likewise exported as a Consequence, since lifting
-`m − n ≠ 0` to `m − n ≥ 1` leans on NAT-discrete's discreteness of ℕ — a
-structural commitment beyond subtraction-structure alone. The per-step citation
-convention covers every subtraction step that TumblerSub, TA2, TA3, TA3-strict,
-TA4, TA7a, ReverseInverse, D0, D1, and D2 invoke at a divergence point or
-round-trip.
+Posits subtraction as a partial binary operation on ℕ, defined when the minuend is at least the subtrahend, with the difference characterized as the unique natural number satisfying `(m − n) + n = m`. Both telescoping identities `(m + n) − n = m` and `(n + m) − n = m` are axiomatized independently because commutativity of addition is not assumed. Strict monotonicity (`m < n` is preserved under equal subtraction of a lower bound) and strict positivity (`m > n` implies `m − n ≥ 1`) are exported as derived consequences.
 
 *Formal Contract:*
 - *Axiom:* `− : {(m, n) ∈ ℕ × ℕ : m ≥ n} → ℕ` (signature: `−` is a partial binary operation on ℕ, single-valued on its domain of definition); `(A m, n ∈ ℕ : m ≥ n : m − n ∈ ℕ)` (conditional closure); `(A m, n ∈ ℕ : m ≥ n : (m − n) + n = m)` (right-inverse characterisation); `(A m, n ∈ ℕ : m ≥ n : n + (m − n) = m)` (left-inverse characterisation); `(A m, n ∈ ℕ :: (m + n) − n = m)` (right telescoping); `(A m, n ∈ ℕ :: (n + m) − n = m)` (left telescoping).
@@ -412,7 +314,7 @@ round-trip.
 
 ## NAT-wellorder — NatWellOrdering
 
-Every nonempty subset of ℕ contains a least element under `<`. This well-ordering principle is what grounds induction and termination arguments over natural numbers.
+Posits that every nonempty subset of ℕ has a least element under ≤ — the well-ordering principle that grounds induction and termination arguments over the naturals.
 
 *Formal Contract:*
 - *Axiom:* `(A S : S ⊆ ℕ ∧ S ≠ ∅ : (E m ∈ S :: (A n ∈ S :: m ≤ n)))` (least-element principle).
@@ -424,16 +326,7 @@ Every nonempty subset of ℕ contains a least element under `<`. This well-order
 
 ## NAT-zero — NatZeroMinimum
 
-Fixes 0 as the minimum of ℕ via the pair `0 ∈ ℕ` and `(A n ∈ ℕ :: 0 < n ∨ 0 = n)`,
-together with the exported *Consequence:* `(A n ∈ ℕ :: ¬(n < 0))`. The consequence
-bullet is not delivered by the axiom body alone; it is lifted from the disjunction
-under the hypothesis `n < 0` by NAT-order's transitivity `m < n ∧ n < p ⟹ m < p`
-(reducing the `0 < n` branch to `0 < 0`) and indiscernibility of `=` (rewriting
-`n < 0` under `0 = n` to the same `0 < 0`), both contradicting NAT-order's
-irreflexivity `¬(n < n)`; NAT-order is declared in Depends. Supplies `0 ∈ ℕ` for
-zero-padded components and literal-zero sites across the ASN, and the disjunction
-`0 < n ∨ 0 = n` — combined with `n ≠ 0` to rule out the equality case — to
-instantiate NAT-discrete at `m = 0` and derive the inference `n ≠ 0 ⟹ n ≥ 1`.
+Posits that 0 is the minimum of ℕ: every natural number is either strictly above zero or equal to it, and consequently no natural number falls below zero. The minimum reading is not a direct axiom statement but a derived consequence, obtained by combining the disjunction with NAT-order's irreflexivity and transitivity to rule out any n satisfying n < 0.
 
 *Formal Contract:*
 - *Axiom:* `0 ∈ ℕ` (zero is a natural number); `(A n ∈ ℕ :: 0 < n ∨ 0 = n)` (every natural number is strictly above or equal to zero).
@@ -446,7 +339,7 @@ instantiate NAT-discrete at `m = 0` and derive the inference `n ≠ 0 ⟹ n ≥ 
 
 ## NoDeallocation — NoDeallocation
 
-Every state transition in the system is required to leave the allocated address set at least as large as it found it — no operation may remove a previously allocated address. This formalizes the permanence guarantee: once a tumbler is allocated, it remains allocated for all time.
+Posits, as a design axiom, that no operation in the system's complete transition vocabulary may shrink the allocated address set — every state transition must leave that set at least as large as it found it. This enforces Nelson's permanence guarantee: once a tumbler address is allocated, it remains allocated through every subsequent state the system can reach.
 
 *Formal Contract:*
 - *Axiom:* `(A op ∈ Σ, s ∈ 𝒮 :: op(s) defined ⟹ allocated(s) ⊆ allocated(op(s)))`, where Σ is the system's complete (closed) transition vocabulary of partial functions on 𝒮 and 𝒮 is the state space of the allocation system. Frame assumption: Σ is closed.
@@ -457,7 +350,7 @@ Every state transition in the system is required to leave the allocated address 
 
 ## OrdinalDisplacement — OrdinalDisplacement
 
-δ(n, m) is the canonical "pure depth-m shift" tumbler — a sequence of length m that is zero everywhere except at the last position, which holds n ≥ 1. It acts at depth m and serves as the unit displacement that later shift operations are built from.
+Defines the canonical "pure depth-m shift" tumbler: a length-m sequence that is zero at every position except the last, which holds n ≥ 1. Proves that δ(n, m) is a valid tumbler whose unique nonzero component places its action point exactly at depth m.
 
 *Formal Contract:*
 - *Preconditions:* n ∈ ℕ, m ∈ ℕ, n ≥ 1, m ≥ 1
@@ -476,7 +369,7 @@ Every state transition in the system is required to leave the allocated address 
 
 ## OrdinalShift — OrdinalShift
 
-Shifting a tumbler v by n increments only its last component by n, leaving all earlier components unchanged, and is computed as tumbler addition v ⊕ δ(n, #v). The result has the same length and same prefix as v, with the final component strictly increased.
+Proves that shifting a tumbler v by n is exactly tumbler addition v ⊕ δ(n, #v), where the displacement vector δ concentrates the increment at the final position. The result preserves length and all earlier components, advancing only the last component by n and leaving it positive.
 
 *Formal Contract:*
 - *Preconditions:* v ∈ T, n ∈ ℕ, n ≥ 1
@@ -499,7 +392,7 @@ Shifting a tumbler v by n increments only its last component by n, leaving all e
 
 ## PartitionMonotonicity — PartitionMonotonicity
 
-Within any prefix-delimited partition of the address space, all allocated addresses are totally ordered by T1 consistently with per-allocator allocation order. For sibling sub-partitions with non-nesting prefixes p₁ < p₂, every address extending p₁ precedes every address extending p₂ — the prefix hierarchy imposes a global cross-allocator ordering on top of each allocator's local order.
+Within any prefix-delimited partition, all allocated addresses are totally ordered by T1 consistently with each allocator's local allocation order. For sibling sub-partitions with non-nesting prefixes p₁ < p₂, every address extending p₁ precedes every address extending p₂, so the prefix hierarchy extends each allocator's local order into a global cross-allocator ordering. When both param-1 and param-2 children are spawned from a prefix p, the param-2 child's entire address range precedes the param-1 child's, because the field-separator zero placed at position #p+1 sorts below any positive component under T1.
 
 *Formal Contract:*
 - *Preconditions:* A system conforming to T10a (allocator discipline); a partition with prefix `p ∈ T`; up to two child-spawning events from `p`, via `inc(p, k')` with `k' ∈ {1, 2}` as permitted by T10a, each establishing a child prefix whose sibling stream is produced by repeated `inc(·, 0)`.
@@ -522,7 +415,7 @@ Within any prefix-delimited partition of the address space, all allocated addres
 
 ## Prefix — PrefixRelation
 
-Defines the prefix relation p ≼ q: p's length does not exceed q's and every component of p matches the corresponding component of q. A proper prefix p ≺ q additionally requires p ≠ q, which forces #p < #q strictly — equal-length agreement would make the tumblers identical by T3. The non-prefix notation p ⋠ q abbreviates ¬(p ≼ q). Two derived postconditions are exported: proper-prefix length (p ≺ q ⟹ #p < #q) and reflexivity (∀t ∈ T :: t ≼ t), the latter discharged by NAT-order's ≤-at-equal-arguments step together with equality reflexivity at each index.
+Defines the prefix relation p ≼ q: p is a prefix of q when p is no longer than q and every component of p matches the corresponding component of q. A proper prefix p ≺ q additionally requires p ≠ q, which forces strict length inequality — equal-length component agreement would make the tumblers identical by canonical representation. The non-prefix notation p ⋠ q abbreviates ¬(p ≼ q), and reflexivity (every tumbler is a prefix of itself) follows immediately from the definition.
 
 *Formal Contract:*
 - *Definition:* `p ≼ q` iff `#p ≤ #q ∧ (∀i : 1 ≤ i ≤ #p : qᵢ = pᵢ)`. Proper prefix: `p ≺ q` iff `p ≼ q ∧ p ≠ q`. Non-prefix: `p ⋠ q` iff `¬(p ≼ q)`.
@@ -537,7 +430,7 @@ Defines the prefix relation p ≼ q: p's length does not exceed q's and every co
 
 ## PrefixOrderingExtension — PrefixOrderingExtension
 
-If p₁ < p₂ and neither is a prefix of the other, then every tumbler extending p₁ precedes every tumbler extending p₂ under T1. The divergence position witnessing p₁ < p₂ carries through to all extensions, so the relative order of the two prefix subtrees is fully determined by the prefixes alone.
+Proves that lexicographic order between two non-nesting tumblers extends uniformly to their entire subtrees: if p₁ < p₂ and neither is a prefix of the other, then every tumbler extending p₁ precedes every tumbler extending p₂. The divergence position witnessing p₁ < p₂ propagates intact to all extensions, so the relative order of the two subtrees is fully settled at the prefix level.
 
 *Formal Contract:*
 - *Preconditions:* `p₁, p₂ ∈ T` with `p₁ < p₂` and `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`; `a, b ∈ T` with `p₁ ≼ a` and `p₂ ≼ b`.
@@ -550,7 +443,7 @@ If p₁ < p₂ and neither is a prefix of the other, then every tumbler extendin
 
 ## ReverseInverse — ReverseInverse
 
-Under the conditions that a and w share the same length k, a ≥ w, w is positive, and a has all-zero components before w's action point, subtracting w from a and then adding w back recovers a exactly. This establishes that tumbler subtraction and addition are mutually inverse within this constrained setting.
+Proves that tumbler subtraction followed by addition is the identity: when a and w have the same length k, w is positive, and all components of a before w's action point are zero, then (a ⊖ w) ⊕ w = a. The proof works by contradiction via TA3-strict — any deviation from equality produces an order cycle that collapses to irreflexivity.
 
 *Formal Contract:*
 - *Preconditions:* `a ∈ T`, `w ∈ T`, `a ≥ w`, `Pos(w)`, `k = #a`, `#w = k`, `(A i : 1 ≤ i < k : aᵢ = 0)`, where `k` is the action point of `w`
@@ -577,7 +470,7 @@ Under the conditions that a and w share the same length k, a ≥ w, w is positiv
 
 ## Span — Span
 
-A span is the address-set determined by a pair (start address, length), containing every tumbler from the start up to but not including the result of displacing by the length. The two validity conditions — the length must be positive and its action point must not exceed the depth of the start — are precisely what guarantee the upper bound is a legal tumbler, so any pair satisfying them yields a well-defined span.
+Defines the span as the set of all tumblers lying in the half-open interval from a start address s up to s ⊕ ℓ, where ℓ is a positive tumbler whose action point does not exceed the depth of s. These two conditions are exactly what guarantee s ⊕ ℓ is a well-formed tumbler, making the bounding endpoint — and therefore the span itself — well-defined.
 
 *Formal Contract:*
 - *Preconditions:* `s ∈ T`, `ℓ ∈ T`, `Pos(ℓ)`, `actionPoint(ℓ) ≤ #s`
@@ -594,7 +487,7 @@ A span is the address-set determined by a pair (start address, length), containi
 
 ## T0(a) — UnboundedComponentValues
 
-For every tumbler and every component position within it, no natural number bounds the values that can appear at that position — there always exists a tumbler of the same depth whose component at that position exceeds any given bound. This establishes that address space within any subtree is inexhaustible, and no finite quota limits allocation beneath any node.
+Proves that tumbler address space is inexhaustible at every component position: for any tumbler, any component index, and any bound M, there exists a same-depth tumbler agreeing at all other positions whose value at that index exceeds M. No finite quota can cap allocation beneath any node.
 
 *Formal Contract:*
 - *Postcondition:* For every tumbler `t ∈ T` and every component position `i` with `1 ≤ i ≤ #t`, and for every bound `M ∈ ℕ`, there exists `t' ∈ T` with `#t' = #t` that agrees with `t` at all positions except `i`, where `t'.dᵢ > M`.
@@ -607,7 +500,7 @@ For every tumbler and every component position within it, no natural number boun
 
 ## T0(b) — UnboundedLength
 
-There is no maximum tumbler length — for every natural number n, a tumbler of at least n components exists in T. Together with T0(a), this makes the address space infinite in two independent dimensions: unlimited siblings at any level, and unlimited nesting depth.
+Proves that tumbler length is unbounded: for every natural number n, a concrete witness tumbler of exactly n components exists in T, establishing that nesting depth grows without limit. Together with T0(a)'s guarantee of unlimited siblings, this makes the address space infinite in two independent dimensions — a property Nelson called "finite but unlimited," meaning finitely many addresses exist at any moment but no ceiling constrains how many can be created.
 
 *Formal Contract:*
 - *Postcondition:* For every `n ∈ ℕ` with `n ≥ 1`, there exists `t ∈ T` with `#t ≥ n`.
@@ -628,25 +521,7 @@ Gregory's implementation uses a fixed 16-digit mantissa of 32-bit unsigned integ
 
 ## T0 — CarrierSetDefinition
 
-Posits the carrier set T as the set of finite sequences of natural numbers, and
-introduces the length operator (#) and component projection (aᵢ) as primitives. Commits
-that for each a ∈ T the component projection's index domain is `{j ∈ ℕ : 1 ≤ j ≤ #a}`,
-so bounded quantifiers of the form `1 ≤ i ≤ #a` are well-formed over ℕ. Formalizes
-nonemptiness as `(A a ∈ T :: 1 ≤ #a)`, drawing `1 ∈ ℕ` from NAT-closure and the
-non-strict relation `≤` from NAT-order; without this clause the case
-`#a = 0` would leave the index range empty and collapse Pos/Zero predicates to mutual
-vacuity on the same tumbler. Posits a comprehension/constructor clause asserting that
-every length `p ≥ 1` paired with a component map `r : {j ∈ ℕ : 1 ≤ j ≤ p} → ℕ` is
-realised by some `t ∈ T` with `#t = p` and `tᵢ = r(i)`; this is the converse of the
-projection clauses and is what discharges membership claims for tumblers constructed
-component-wise (e.g., `a ⊕ w ∈ T` in TumblerAdd, and any downstream operator that
-builds a tumbler from a length and a component recipe). Commits extensional equality
-for T — elements with equal length and pointwise-equal components are identical —
-making length-and-component agreement a sufficient condition for tumbler equality
-rather than a separately postulated or separately derived property; together with
-comprehension, extensionality also guarantees uniqueness of the constructed tumbler.
-This is an axiom, not a derivation — it establishes the raw material from which every
-other property in the system is built.
+Defines the carrier set T as every nonempty finite sequence of natural numbers, with a length operator and positional component projection that together fully characterize each element. Extensionality makes length-and-components the complete identity of a tumbler — no hidden structure exists beyond them — and comprehension ensures every such sequence is represented in T, licensing the construction of new tumblers from an explicit length and component map.
 
 *Formal Contract:*
 - *Axiom:* `T` is a set (the carrier of tumblers); `#· : T → ℕ` (length operator on T); `(A a ∈ T :: 1 ≤ #a)` (nonemptiness — each tumbler has at least one component); `(A a ∈ T :: i ↦ aᵢ : {j ∈ ℕ : 1 ≤ j ≤ #a} → ℕ)` (component projection signature — for each tumbler `a ∈ T`, the projection `i ↦ aᵢ` is a total, single-valued function from the index domain `{j ∈ ℕ : 1 ≤ j ≤ #a}` into ℕ; in particular `aᵢ ∈ ℕ` at each `i` in the index domain); `(A p ∈ ℕ : p ≥ 1 : (A r : {j ∈ ℕ : 1 ≤ j ≤ p} → ℕ :: (E t ∈ T :: #t = p ∧ (A i ∈ ℕ : 1 ≤ i ≤ p : tᵢ = r(i)))))` (comprehension — every nonempty finite sequence of naturals, presented as a length `p ≥ 1` and a component map `r` from the index domain `{j ∈ ℕ : 1 ≤ j ≤ p}` into ℕ, is represented in T by some `t` with `#t = p` and `tᵢ = r(i)`); `(A a, b ∈ T : #a = #b ∧ (A i ∈ ℕ : 1 ≤ i ≤ #a : aᵢ = bᵢ) : a = b)` (extensionality — tumblers with equal length and pointwise-equal components are identical).
@@ -659,7 +534,7 @@ other property in the system is built.
 
 ## T1 — LexicographicOrder
 
-Defines a strict total order on T by lexicographic comparison: two tumblers are compared component-by-component left to right, with the first disagreement deciding the outcome, and a shorter tumbler preceding any proper extension of itself. The order is irreflexive, satisfies trichotomy, and is transitive — making any two tumblers comparable and giving the "tumbler line" its linear structure on which spans, link endsets, and content reference all depend.
+Proves that lexicographic comparison — stepping through components left to right and treating any tumbler as less than its proper extensions — is a strict total order on T: any two tumblers are comparable, no tumbler precedes itself, and precedence is transitive. This linear structure is what makes the tumbler line well-defined and underpins spans, link endsets, and content addressing.
 
 *Formal Contract:*
 - *Definition:* `a < b` iff `∃ k ∈ ℕ` with `1 ≤ k` and `(A i ∈ ℕ : 1 ≤ i < k : aᵢ = bᵢ)` and either (i) `k ≤ #a ∧ k ≤ #b ∧ aₖ < bₖ`, or (ii) `k = #a+1 ≤ #b`.
@@ -680,7 +555,7 @@ Defines a strict total order on T by lexicographic comparison: two tumblers are 
 
 ## T10 — PartitionIndependence
 
-If two tumblers p₁ and p₂ are incomparable — neither is a prefix of the other — then every address beneath p₁ is distinct from every address beneath p₂, with no communication or central registry required. This is the formal basis for coordination-free allocation: the prefix hierarchy partitions address space so that independent owners of disjoint subtrees can baptize new addresses simultaneously without any risk of collision.
+Proves that two tumblers drawn from disjoint ownership domains — prefixes neither of which extends the other — are guaranteed distinct, with no central registry or communication required. This is the formal foundation for coordination-free allocation: independent owners can baptize addresses beneath their respective prefixes simultaneously, and the prefix hierarchy itself prevents any collision.
 
 *Formal Contract:*
 - *Preconditions:* `p₁, p₂ ∈ T` with `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`; `a, b ∈ T` with `p₁ ≼ a` and `p₂ ≼ b`.
@@ -700,7 +575,7 @@ Nelson: "Whoever owns a specific node, account, document or version may in turn 
 
 ## T10a-N — AllocatorDisciplineNecessity
 
-T10a's restriction of the sibling stream to inc(·, 0) is not merely sufficient but necessary. Relaxing it to admit inc(·, k) with any k > 0 produces a co-sibling pair where the first output is a strict prefix of the second, directly falsifying T10a.2 (NonNestingSiblingPrefixes); since the construction is parametric in k, every relaxation witnesses a failing pair.
+Proves that the k = 0 restriction in T10a is tight: admitting inc(·, k) with any k > 0 into the sibling stream forces a co-sibling pair where the first output is a strict prefix of the second, directly falsifying T10a.2 (NonNestingSiblingPrefixes). Since the counterexample is parametric in k, every such relaxation witnesses a failing pair.
 
 *Formal Contract:*
 - *Preconditions:* T10a's sibling restriction is relaxed to permit `inc(·, k)` with any `k ≥ 0` in the sibling stream. `t₀ ∈ T`; `k > 0`; the allocator emits `t₁ = inc(t₀, 0)` and `t₂ = inc(t₁, k)` as co-sibling outputs.
@@ -721,7 +596,7 @@ T10a's restriction of the sibling stream to inc(·, 0) is not merely sufficient 
 
 ## T10a.1 — UniformSiblingLength
 
-All siblings produced by a single allocator share the same tumbler length as the base address. Because sibling production uses only inc(·, 0), which preserves length by TA5, the entire sibling stream is length-uniform.
+Proves that every sibling in the stream generated by a single allocator has the same tumbler length as the base address. Because sibling production applies only inc(·, 0), and that operation preserves length, uniformity propagates across the entire sequence by induction.
 
 *Formal Contract:*
 - *Precondition:* Allocator with base address `t₀`, producing siblings by `inc(·, 0)`.
@@ -734,7 +609,7 @@ All siblings produced by a single allocator share the same tumbler length as the
 
 ## T10a.2 — NonNestingSiblingPrefixes
 
-Distinct outputs of a single allocator are prefix-incomparable — neither sibling is a prefix of the other. Because T10a.1 guarantees all siblings share the same length, a prefix relation between distinct siblings would require unequal lengths, yielding a contradiction; the result supplies the within-allocator non-nesting condition that T10 requires.
+Proves that distinct siblings from the same allocator are prefix-incomparable: neither tumbler is a prefix of the other. The proof is immediate — shared length (T10a.1) means a prefix relation would force full positional agreement, collapsing the two tumblers into one by T3, contradicting distinctness.
 
 *Formal Contract:*
 - *Precondition:* `tᵢ`, `tⱼ` are distinct siblings from the same allocator (`tᵢ ≠ tⱼ` as tumblers).
@@ -749,7 +624,7 @@ Distinct outputs of a single allocator are prefix-incomparable — neither sibli
 
 ## T10a.3 — LengthSeparation
 
-Child allocator outputs are strictly longer than any output of their parent allocator, with length increasing additively at each spawning step. Along any lineage the cumulative length offset equals the sum of the spawning increments, so outputs at different nesting depths always differ in length and therefore never coincide (by T3).
+Proves that every output of a child allocator is strictly longer than every output of its parent, with the length gap equal to the sum of the spawning increments along the lineage. Because length is strictly monotone with nesting depth, outputs at different depths always differ in length and therefore never collide, by T3. For an ancestor at depth d_A and a descendant at depth d_B, the exact length difference is the sum of the intermediate spawning parameters, which is at least d_B minus d_A.
 
 *Formal Contract:*
 - *Precondition:* Parent allocator with sibling length `γ`; `t` is a parent sibling (`#t = γ` by T10a.1); child spawned via `inc(t, k')` with `k' ∈ {1, 2}`.
@@ -771,7 +646,7 @@ Child allocator outputs are strictly longer than any output of their parent allo
 
 ## T10a.4 — T4PreservationUnderDiscipline
 
-Every address produced anywhere in an allocator tree conforming to T10a satisfies T4 (HierarchicalParsing). The root base address satisfies T4 by the initialization constraint, and TA5a (IncrementPreservesT4) propagates the invariant through every inc(·, 0) and inc(·, k') step, so T4 compliance holds at all depths by induction.
+Proves that every address produced anywhere in an allocator tree conforming to T10a satisfies T4 (HierarchicalParsing). The proof requires a strengthened inductive hypothesis — that every address in an allocator's domain is T4-valid, not merely its base — because spawning can occur at any element of the parent's domain, so the child's base inherits T4-validity from that arbitrary spawning point via TA5a, not from the parent's base alone.
 
 *Formal Contract:*
 - *Preconditions:* Allocator tree conforming to T10a; root base address satisfies T4.
@@ -786,7 +661,7 @@ Every address produced anywhere in an allocator tree conforming to T10a satisfie
 
 ## T10a.5 — CrossAllocatorIncomparability
 
-Any two allocators that are not in an ancestor-descendant relationship produce mutually prefix-incomparable outputs — no output of one can be a prefix of any output of the other. The argument traces to the lowest common ancestor: the two spawning paths diverge at sibling outputs of that ancestor, and length separation (T10a.3) together with T4-based component analysis (TA5-SigValid) shows the divergence is irreconcilable. This alone delivers T10's non-nesting precondition at the domain prefixes of every non-ancestor-descendant allocator pair, disjoint from T10a.2's within-allocator guarantee.
+Proves that any two allocators not in an ancestor-descendant relationship produce mutually prefix-incomparable outputs — no output of one can be a prefix of any output of the other. The proof locates the lowest common ancestor, traces the two spawning paths to the point of divergence, and shows that divergence creates an irreconcilable positional disagreement that excludes prefix ordering in both directions. This supplies T10's non-nesting precondition at the domain prefixes of every non-ancestor-descendant allocator pair.
 
 *Formal Contract:*
 - *Precondition:* Allocators X and Y conforming to T10a, not in an ancestor-descendant relationship.
@@ -817,7 +692,7 @@ Any two allocators that are not in an ancestor-descendant relationship produce m
 
 ## T10a.6 — DomainDisjointness
 
-Any two distinct allocators have disjoint domains — no tumbler address can belong to more than one allocator's output stream. The proof splits into two cases: ancestor–descendant pairs are separated by strict length differences, while non-ancestor–descendant pairs are separated by prefix-incomparability combined with Prefix's reflexivity postcondition. As a corollary, whenever two addresses share an allocator, that allocator is uniquely determined by the pair.
+Proves that any two distinct allocators have disjoint domains — no tumbler address can belong to more than one allocator. Ancestor–descendant pairs are separated by strict depth-length inequality; non-lineage pairs by prefix-incomparability plus reflexivity. As a corollary, whenever two addresses share an allocator, that witnessing allocator is unique.
 
 *Formal Contract:*
 - *Precondition:* `X` and `Y` are distinct allocators conforming to T10a.
@@ -835,7 +710,7 @@ Any two distinct allocators have disjoint domains — no tumbler address can bel
 
 ## T10a.7 — EnumerationInjectivity
 
-Within a single allocator, the sequential enumeration of its domain is injective — distinct indices always produce distinct addresses. Because each step strictly increases under the tumbler order, the full enumeration is strictly monotone, making the index of any address a single-valued function of that address. Together with T10a.6, this makes the enumeration indices of any same-allocator pair uniquely determined, which is required for T9's allocated_before predicate to be well-defined.
+Proves that the sequential enumeration of an allocator's domain is strictly monotone under the tumbler order: m < n implies tₘ < tₙ, so distinct indices always produce distinct addresses. This uniquely determines the position of any address within the sequence, making the enumeration index a well-defined function on the allocator's domain.
 
 *Formal Contract:*
 - *Precondition:* Allocator A conforming to T10a, with domain `dom(A) = {tₙ : n ≥ 0}` where `t₀` is the base address and `tₙ₊₁ = inc(tₙ, 0)`.
@@ -854,7 +729,7 @@ Within a single allocator, the sequential enumeration of its domain is injective
 
 ## T10a.8 — UniformSiblingZeroCount
 
-All siblings produced by a single allocator share the same zero count as the base address: each increment step modifies only the terminal component, and both the pre- and post-increment values at that position are strictly positive, so no component enters or leaves the zero set. The induction relies on T4's non-zero terminal constraint, the ℕ carrier axioms (NAT-zero, NAT-discrete, NAT-addcompat), and TA5's single-position update with length preservation.
+Proves that every sibling address produced by an allocator has the same zero count as its base address, because each increment step touches only the terminal component and that component is strictly positive both before and after the increment, leaving the zero-index set unchanged across all generations.
 
 *Formal Contract:*
 - *Precondition:* Allocator with base address `t₀`, producing siblings by `inc(·, 0)`, conforming to T10a.
@@ -876,7 +751,7 @@ All siblings produced by a single allocator share the same zero count as the bas
 
 ## T10a — AllocatorDiscipline
 
-Allocators must produce sibling addresses exclusively by shallow increment inc(·,0), and may spawn child allocators only via a single deep increment with k'∈{1,2} subject to TA5a's zero-count bound zeros(t) ≤ 2 at k'=2 (k'=1 preserves T4 unconditionally on T4-valid t). This discipline ensures all outputs have controlled prefix relationships, prevents length collisions within and across allocators, and preserves the T4 structural invariant throughout the entire allocator tree by induction.
+Establishes that confining sibling production to inc(·,0) and child-spawning to a single inc(·,k') with k'∈{1,2} — subject to a zero-count bound at k'=2 — is both necessary and sufficient to make every pair of addresses drawn from non-ancestor-descendant allocator domains prefix-incomparable, all sibling streams injective and internally prefix-free, and every conforming allocator output T4-valid. The restriction to k'∈{1,2} for spawning is exactly what T4 preservation demands, the shallow-increment requirement for siblings is exactly what within-allocator prefix-freedom demands, and together they deliver globally disjoint address streams across the entire allocator tree without any cross-allocator coordination.
 
 *Formal Contract:*
 - *Definitions:*
@@ -917,10 +792,7 @@ Allocators must produce sibling addresses exclusively by shallow increment inc(�
 
 ## T12 — SpanWellDefinedness
 
-For any (s, ℓ) satisfying the preconditions of Definition (Span), the set span(s, ℓ) has three
-theorem-level properties: the endpoint s⊕ℓ exists in T (TA0), the set is non-empty because s is
-always a member (TA-strict), and the set is order-convex under T1 — any tumbler lying between
-two members is itself a member.
+Proves that every well-formed span is a legitimate address-set: its upper bound exists in the tumbler space, it is never vacuous (the start address is always a member), and it is order-convex — any tumbler falling between two members of the span is itself a member.
 
 *Formal Contract:*
 - *Preconditions:* `(s, ℓ)` satisfies the preconditions of Definition (Span) — equivalently, `s ∈ T`, `ℓ ∈ T`, `Pos(ℓ)`, and `actionPoint(ℓ) ≤ #s`.
@@ -938,9 +810,7 @@ two members is itself a member.
 
 ## T2 — IntrinsicComparison
 
-The tumbler order from T1 is computable from the two tumblers alone, consulting no external state — only their component
-sequences and lengths. The comparison terminates after examining a number of component pairs bounded by both #a and #b,
-making it both intrinsic and bounded.
+Proves that the tumbler order defined in T1 is a pure function of the two tumblers — no external index, tree, or registry participates. The comparison halts after examining at most min(#a, #b) component pairs, bounding its work by the shorter input.
 
 *Formal Contract:*
 - *Preconditions:* `a, b ∈ T` — two well-formed tumblers (finite sequences over ℕ with `#a ≥ 1` and `#b ≥ 1`, per T0).
@@ -959,7 +829,7 @@ making it both intrinsic and bounded.
 
 ## T3 — CanonicalRepresentation
 
-Tumbler equality is exactly component-wise sequence equality — two tumblers are equal if and only if they have the same length and identical values at every position. No normalization, quotient, or external identification is imposed; the raw component sequences must be literally identical.
+Proves that tumbler equality is exactly sequence equality: two tumblers are equal if and only if they have the same length and identical components at every position. No normalization, quotient, or external identification is imposed — the raw sequences must match literally.
 
 *Formal Contract:*
 - *Postcondition:* Tumbler equality is sequence equality: `a = b ⟺ #a = #b ∧ (A i ∈ ℕ : 1 ≤ i ≤ #a : aᵢ = bᵢ)`.
@@ -970,31 +840,7 @@ Tumbler equality is exactly component-wise sequence equality — two tumblers ar
 
 ## T4 — HierarchicalParsing
 
-Valid address tumblers encode a four-level containment hierarchy (node, user, document,
-element). T4 is purely definitional: its Definition slot fixes the
-*zero-count* `zeros(t)`, names a position `i` a *field separator* iff `tᵢ = 0`, names the
-*field segments* of `t` as the maximal contiguous sub-sequences of field-component positions
-delimited by the separators, and defines the *T4-valid* predicate as the conjunction
-`zeros(t) ≤ 3 ∧ no two zeros adjacent ∧ t₁ ≠ 0 ∧ t_{#t} ≠ 0` (the last three collectively
-the *field-segment constraint*). T4 does not assert which `t ∈ T` satisfy the predicate,
-nor how many field segments arise for a given `t` — downstream consumers (T4a's
-segment-non-emptiness equivalence, T4b's projection domains, T4c's level subdomain) carry
-T4-validity as an explicit precondition and derive the segment structure from it. T4a proves the field-segment constraint equivalent to every
-field segment of `t` being non-empty under the bound `zeros(t) ≤ 3`. NAT-closure grounds the numerals `2 := 1 + 1` and `3 := 2 + 1`
-in ℕ so that `zeros(t) ≤ 3` compares two ℕ-elements. NAT-card axiomatizes the cardinality
-operator `|·|` on subsets of every initial segment `{1, …, n} ⊆ ℕ` with codomain ℕ,
-grounding the definition `zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}|` so that `zeros(t) ∈ ℕ`;
-T4's body — where both `|·|` and T0's tumbler-length `#·` are in use — carries the
-disambiguation that `|·|` acts on sets while `#·` acts on sequences. As a Consequence,
-`(A t ∈ T : zeros(t) ≤ 3 : zeros(t) ∈ {0, 1, 2, 3})` —
-universally quantified by the bound alone, since the field-segment constraint of full
-T4-validity plays no role in the derivation (which uses only the bound, NAT-zero's
-`0 ≤ zeros(t)`, NAT-order's trichotomy, NAT-discrete, and NAT-closure's left additive
-identity). Every T4-valid tumbler discharges the hypothesis a fortiori via the first
-conjunct of T4-valid, so the four-case split `zeros(t) ∈ {0, 1, 2, 3}` collectively covers
-every T4-valid tumbler; downstream consumers with hypothesis `zeros(t) ≤ 3` only (T4a
-directly; T4b transitively) cite the Consequence at their use-site without a meta-argument
-about which derivation steps are needed.
+Defines the conditions under which a tumbler encodes a valid four-level address hierarchy: zero-valued components serve as field separators between the node, user, document, and element fields, and T4-validity requires at most three such separators, none adjacent and none at either end. As a proved Consequence, the bound zeros(t) ≤ 3 is exhaustive — every such tumbler has a zero count of exactly 0, 1, 2, or 3, covering all four specificity levels.
 
 *Formal Contract:*
 - *Definition:*
@@ -1020,25 +866,7 @@ about which derivation steps are needed.
 
 ## T4a — SyntacticEquivalence
 
-The three positional conditions from T4 (no adjacent zeros, nonzero first and last
-components) are logically equivalent to the condition that every field segment of
-the tumbler is non-empty. This records the bridge between T4's positional form and
-the semantic reading that every present field contributes at least one component.
-NAT-closure grounds the numerals `2 := 1 + 1` and `3 := 2 + 1` in ℕ, and the sums
-`s_i + 1`, `s_i + 2`, `#t + 1` appearing in the proof's sentinel and inequality
-manipulations. NAT-sub's right-telescoping `(m + n) − n = m`, at `m = #t, n = 1`,
-reduces the last-segment upper bound `s_{k+1} − 1 = (#t + 1) − 1` to `#t`, so the
-last segment is the ℕ-interval `[s_k + 1, #t]` and its non-emptiness is the `+1`
-form `s_k + 1 ≤ #t` — the form NAT-discrete outputs directly from
-`s_k < #t ⟹ s_k + 1 ≤ #t`, avoiding a subtractive detour. T4a cites T0's
-Axiom's nonemptiness clause `(A a ∈ T :: 1 ≤ #a)` at `a := t` directly for
-`#t ≥ 1`, underwriting the `k = 0` branches. NAT-card's enumeration characterisation of `|·|` identifies the length
-`k` of the strictly increasing enumeration `s₁ < s₂ < … < s_k` of the zero-index
-subset with `zeros(t)`. T4's Exhaustion Consequence — universally quantified by the bound alone as
-`(A t ∈ T : zeros(t) ≤ 3 : zeros(t) ∈ {0, 1, 2, 3})`, with hypothesis matching
-T4a's precondition pointwise — instantiates at the local `t` to pin
-`k ∈ {0, 1, 2, 3}` in the setup's enumeration directly, closing the citation
-chain for the four-case presentation that follows.
+Proves that T4's three positional conditions — no adjacent zeros, nonzero first component, nonzero last component — hold if and only if every field segment of the tumbler is non-empty. The equivalence bridges T4's syntactic, position-by-position form and the semantic reading that each delimited field contributes at least one component, with the biconditional established by exhaustive two-case analysis on whether any zeros are present.
 
 *Formal Contract:*
 - *Consequence:* The three positional conditions (i) `(A i : 1 ≤ i < #t : ¬(tᵢ = 0 ∧ tᵢ₊₁ = 0))`, (ii) `t₁ ≠ 0`, (iii) `t_{#t} ≠ 0` hold if and only if every field segment of `t` is non-empty (SyntacticEquivalence) — derived from T4's field-segment clauses, T0's non-degeneracy of `t ∈ T`, NAT-order's strict total order (specifically `<`-transitivity), `≤`-definition, and `≤`-transitivity Consequence, NAT-discrete's strict-to-`+1` promotion and no-interval Consequence, NAT-addcompat's strict successor inequality `n < n + 1`, NAT-addassoc's regrouping `(m + n) + p = m + (n + p)`, NAT-zero's first Axiom clause `0 ∈ ℕ`, NAT-closure's numerals and closure under addition, NAT-sub's right-telescoping clause, and NAT-card's enumeration characterisation of `|·|`, as shown in the preceding Forward and Reverse derivations; recorded as a Consequence rather than an Axiom because the biconditional is proved from T4's axioms and the foundation dependencies, not posited.
@@ -1059,48 +887,7 @@ chain for the four-case presentation that follows.
 
 ## T4b — UniqueParse
 
-Four partial functions N, U, D, E : T ⇀ T extract the node, user, document, and
-element sub-sequences of a T4-valid tumbler and are well-defined and uniquely
-determined by t. Each projection's image lies in the subset of T whose every
-component is in ℕ⁺ — a nonempty finite sequence over ℕ (by T0)
-with every component strictly positive by NAT-zero (the disjunction
-0 < n ∨ 0 = n at n := tᵢ excludes the equality branch via the
-non-separator distinction tᵢ ≠ 0).
-Field absence is encoded by partiality of the corresponding projection — X is
-absent in t iff t ∉ dom(X) — so no external absence marker is required. The
-four domains are fixed by zeros(t): dom(N) is the T4-valid subset of T (N is
-never absent); dom(U) restricts dom(N) to zeros(t) ≥ 1; dom(D) to zeros(t) ≥ 2;
-dom(E) to zeros(t) = 3. Presence pattern, made exhaustive over dom(N) by T4's
-Exhaustion Consequence (A t ∈ T : zeros(t) ≤ 3 : zeros(t) ∈ {0, 1, 2, 3}) —
-universally quantified by the bound alone, instantiated at every T4-valid t
-(zeros(t) ≤ 3 by the first conjunct of T4-valid) — for each k ∈ ℕ with
-0 ≤ k ≤ 3 at which zeros(t) = k: k = 0 → only N defined;
-k = 1 → N, U defined; k = 2 → N, U, D defined; k = 3 → all four defined.
-The four cases collectively cover every T4-valid t, so the four projections are
-well-defined on their stated domains.
-The component-access notation t.X₁ := (X(t))₁ is grounded in T0's subscript:
-ℕ⁺ ⊆ ℕ embeds every nonempty all-ℕ⁺-component sequence into T, so T0's projection
-applies to X(t) whenever X is defined at t. Hence t.X₁ is defined iff X is
-defined at t — in particular t.E₁ requires zeros(t) = 3. T4a's reverse direction
-supplies, from T4's field-segment constraint, the conclusion that every field
-segment is non-empty; T4b locally re-expresses this as the segment-length
-inequalities (s₁ ≥ 2, s_k + 1 ≤ #t, s_{j+1} ≥ s_j + 2) that discharge
-non-emptiness of every listed sub-sequence, consuming the native forms T4a's
-Reverse direction outputs without a subtractive rewrite (the last-segment
-inequality is kept in NAT-discrete's native +1 form rather than converted to
-s_k ≤ #t − 1). NAT-closure grounds the numeral 2 := 1 + 1 in ℕ and the sums
-s_i + 1, s_i + 2 appearing in the case construction; T4b cites T0's
-Axiom's nonemptiness clause (A a ∈ T :: 1 ≤ #a) at a := t directly for
-#t ≥ 1, for the k = 0 branch where the sole segment equals t itself, and NAT-sub's conditional-closure clause at s_i ≥ 1 (T0's index domain)
-gives s_i − 1 in ℕ for the sub-sequence upper indices. NAT-card's enumeration
-characterisation of |·|
-identifies the length k of the strictly increasing enumeration s₁ < s₂ < … < s_k
-of the zero-index subset with zeros(t), so k = zeros(t) in the case analysis
-on k. Well-definedness follows because T4's role-assignment makes zeros exactly
-the field separators and T0 identifies each tᵢ as a function of t, so the scan
-result is determined by t. Outside the T4-valid subdomain (zeros(t) ≥ 4, or
-zeros(t) ≤ 3 with a violated field-segment constraint) none of the projections
-is assigned a value; consumers must discharge T4-validity as a precondition.
+Proves that every T4-valid tumbler admits a unique decomposition into at most four named fields — node, user, document, and element — by carving at its zero-valued separator positions, with field absence encoded as partiality of the corresponding projection rather than a sentinel value. The domain of each projection N, U, D, E is fixed by zeros(t): N is always defined on the T4-valid subdomain; U, D, E require zeros(t) ≥ 1, ≥ 2, = 3 respectively, exhausting all cases by T4's bound zeros(t) ≤ 3, and each defined projection returns a nonempty sequence over ℕ⁺.
 
 *Formal Contract:*
 - *Definition:* The four partial functions `N, U, D, E : T ⇀ T` are characterised as follows. `dom(N)` is the T4-valid subset of `T`; `dom(U) = {t ∈ dom(N) : zeros(t) ≥ 1}`; `dom(D) = {t ∈ dom(N) : zeros(t) ≥ 2}`; `dom(E) = {t ∈ dom(N) : zeros(t) = 3}`. Let `s₁ < s₂ < ... < s_k` enumerate the zero positions of `t`, with `k = zeros(t)` bounded by `0 ≤ k ≤ 3` (T4 supplies `zeros(t) ≤ 3`; NAT-zero supplies `0 ≤ zeros(t)`). T4's Exhaustion Consequence gives `zeros(t) ∈ {0, 1, 2, 3}` at the T4-valid `t` here, so the four cases `k ∈ {0, 1, 2, 3}` collectively cover `dom(N)`; the values are fixed per-`k` — for each `k ∈ ℕ` with `0 ≤ k ≤ 3` at which `zeros(t) = k`: for `k = 0`, `N(t) = (t₁, ..., t_{#t})`; for `k = 1`, `N(t) = (t₁, ..., t_{s₁ - 1})` and `U(t) = (t_{s₁ + 1}, ..., t_{#t})`; for `k = 2`, `N(t) = (t₁, ..., t_{s₁ - 1})`, `U(t) = (t_{s₁ + 1}, ..., t_{s₂ - 1})`, `D(t) = (t_{s₂ + 1}, ..., t_{#t})`; for `k = 3`, `N(t) = (t₁, ..., t_{s₁ - 1})`, `U(t) = (t_{s₁ + 1}, ..., t_{s₂ - 1})`, `D(t) = (t_{s₂ + 1}, ..., t_{s₃ - 1})`, `E(t) = (t_{s₃ + 1}, ..., t_{#t})`. Outside the stated domains, the respective projections are not assigned values.
@@ -1120,38 +907,7 @@ is assigned a value; consumers must discharge T4-validity as a precondition.
 
 ## T4c — LevelDetermination
 
-On the T4-valid subset of T (tumblers satisfying zeros(t) ≤ 3, no two zeros adjacent,
-t₁ ≠ 0, t_{#t} ≠ 0), T4c defines the four hierarchical level labels — node address,
-user address, document address, element address — by zero count: zeros(t) = 0 ↔
-node address, zeros(t) = 1 ↔ user address, zeros(t) = 2 ↔ document address,
-zeros(t) = 3 ↔ element address. The biconditionals are definitional — they assign
-labels to zero-count values rather than bridging two independently characterised
-notions. NAT-card axiomatizes the cardinality operator |·| on subsets of every
-initial segment {1, …, n} ⊆ ℕ with codomain ℕ, grounding zeros(t) ∈ ℕ for the
-definition zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}| (the zero-index subset lies in
-{1, …, #t}). Exhaustion on the T4-valid subdomain is supplied directly by T4's
-Exhaustion Consequence zeros(t) ∈ {0, 1, 2, 3}, which T4c cites rather than
-re-derives — every T4-valid tumbler receives a label. The four labels are
-pairwise distinct because the zero counts 0, 1, 2, 3 are pairwise distinct in
-ℕ — NAT-addcompat's strict successor inequality n < n + 1 (at n = 0, 1, 2)
-supplies 0 < 1, 1 < 2, 2 < 3, NAT-order transitivity chains these to
-0 < 1 < 2 < 3, and NAT-order's exactly-one trichotomy Consequence conjunct
-¬(m < n ∧ m = n) — equivalently m < n ⟹ m ≠ n — excludes equality within the
-chain directly from the strict inequalities — and zeros(t) is single-valued.
-NAT-zero's first Axiom clause 0 ∈ ℕ licenses the n = 0 instantiation of
-NAT-addcompat's n < n + 1 to obtain the base link 0 < 1, and grounds the
-literal 0 used in the label-defining biconditional zeros(t) = 0 ↔ t is a
-node address. NAT-closure posits 1 ∈ ℕ and closes ℕ under addition, grounding
-the numerals 2 := 1 + 1 ∈ ℕ and 3 := 2 + 1 ∈ ℕ used in injectivity's chain
-0 < 1 < 2 < 3.
-T4c does not claim realisation — existence of a T4-valid tumbler at each zero
-count is not asserted, so T4c stands as a pure definition on whatever T4-valid
-tumblers exist. The claim is universally quantified over the T4-valid subdomain
-and assigns no level outside it. No dependency on T4b is required because the
-labels are defined by T4c directly in terms of zero count, not in terms of
-T4b's fields(t) decomposition; a downstream reading that characterises levels
-by the presence or absence of particular field segments would require T4b and
-is not the content of T4c.
+Defines four hierarchical address levels for T4-valid tumblers by zero count: a tumbler is a node address, user address, document address, or element address according as it contains zero, one, two, or three zeros. The definition is well-formed: every T4-valid tumbler falls into exactly one of the four cases, so the label assignment is total and unambiguous on the T4-valid subdomain.
 
 *Formal Contract:*
 - *Preconditions:* `t` satisfies the T4 constraints (`zeros(t) ≤ 3`, no two zeros adjacent, `t₁ ≠ 0`, `t_{#t} ≠ 0`).
@@ -1170,7 +926,7 @@ is not the content of T4c.
 
 ## T5 — ContiguousSubtrees
 
-If two tumblers a and c share a common prefix p, then every tumbler b between them in the lexicographic order also shares that prefix. This means every prefix-defined subtree occupies a contiguous interval on the tumbler line — no address from an unrelated subtree can appear between two addresses in the same subtree.
+Proves that every prefix-defined subtree occupies a contiguous interval on the tumbler line: if two tumblers share a common prefix, no tumbler from an unrelated subtree can appear between them in the lexicographic order. This is the formal warrant for Nelson's observation that a span's interior is implicit in its endpoints — containment in the tree corresponds exactly to contiguity on the line.
 
 *Formal Contract:*
 - *Preconditions:* `a, b, c ∈ T`; `p` is a tumbler prefix with `#p ≥ 1`; `p ≼ a`; `p ≼ c`; `a ≤ b ≤ c` under T1.
@@ -1195,11 +951,7 @@ Because the hierarchy is projected onto a flat line (T1), containment in the tre
 
 ## T6 — DecidableContainment
 
-Containment queries (same server? same account? same document? one address a prefix of
-another?) can be decided by extracting and comparing the relevant field sequences from the
-two tumbler representations alone, with no external index or registry. The decidability is
-a corollary of the T4-family (T4, T4a, T4b) rather than of T4 alone; it is stated
-separately because it is load-bearing for decentralized operation.
+Proves that containment at any level of the tumbler hierarchy — same node, same account, same document, or one document address a prefix of another — is decidable from the two addresses alone, with no external index, registry, or system state consulted. Field absence on either or both sides always returns no, making each decision self-contained and suitable for decentralized operation.
 
 *Formal Contract:*
 - *Preconditions:* `a, b ∈ T` are T4-valid (i.e., `a, b ∈ dom(N)` in the sense of T4b).
@@ -1232,17 +984,7 @@ Gregory's `tumblercmp` (total order) and `tumbleraccounteq` (prefix match with z
 
 ## T7 — FirstElementFieldDistinction
 
-For two T4-valid element-level addresses (tumblers satisfying the T4 constraints with exactly
-three zero delimiters), differing in the first element-field component forces the tumblers
-themselves to be distinct — a Leibniz-level claim discharged through T3 (canonical
-representation) restricted to T4-valid element-level addresses. T4-validity is required so that
-T4b licenses the component-access notation `a.E₁`, `b.E₁` used in the statement; without it the
-predicate is ill-formed. T7 does not itself establish region-level disjointness of the
-Nelson-convention subspaces `{1, 2}` — the stronger claim that the set of T4-valid element-level
-tumblers with `E₁ = 1` (text) is a typed region disjoint from the set with `E₁ = 2` (links),
-treating the subspace identifier as a distinguished typed concept, is relocated to a downstream
-property in a later ASN. T7 supplies the structural prerequisite on which that relocation rests:
-arithmetic that changes the first element-field component cannot leave the tumbler unchanged.
+Proves that within the element space of a document, two T4-valid element-level tumblers with different first element-field components are necessarily distinct tumblers. The first element-field component identifies the subspace — 1 for text, 2 for links — so this result guarantees that changing the subspace identifier changes the tumbler, a structural prerequisite for the downstream claim that the text and link subspaces are disjoint regions.
 
 *Formal Contract:*
 - *Preconditions:* `a, b ∈ T` satisfy the T4 constraints — at most three zero-valued components, no two zeros adjacent, `a₁ ≠ 0`, `a_{#a} ≠ 0` (and likewise for `b`) — and have `zeros(a) = zeros(b) = 3`.
@@ -1269,7 +1011,7 @@ The ordering T1 places all text addresses (subspace 1) before all link addresses
 
 ## T8 — AllocationPermanence
 
-The set of allocated addresses grows monotonically across every state transition: once an address enters the allocated set it is never removed. This follows directly from the absence of any removal operation in the transition vocabulary, so the guarantee covers all present and future operations.
+Proves that tumbler address allocation is permanent: once an address enters the allocated set it remains there through every subsequent state transition. The guarantee holds globally across all admissible transition sequences because no operation in the system vocabulary removes an allocated address.
 
 *Formal Contract:*
 - *Invariant:* For every state transition s → s', `allocated(s) ⊆ allocated(s')`.
@@ -1282,10 +1024,7 @@ The set of allocated addresses grows monotonically across every state transition
 
 ## T9 — ForwardAllocation
 
-When two addresses are produced by the same allocator and one is allocated before the other, the earlier-allocated
-address is strictly smaller under the tumbler total order. Domain disjointness (T10a.6) fixes the witnessing allocator
-uniquely from the pair; enumeration injectivity (T10a.7), in its strict-order form `i < j ⟹ tᵢ < tⱼ`, delivers the
-strict inequality in one step — replacing a prior induction on the index gap.
+Proves that sequential allocation is order-preserving: any two addresses from the same allocator's stream appear in the tumbler order in the same sequence they were allocated. The proof is one step — domain disjointness (T10a.6) fixes the allocator uniquely, and the strict-order form of enumeration injectivity (T10a.7) directly delivers the inequality without induction.
 
 *Formal Contract:*
 - *Definitions:*
@@ -1302,7 +1041,7 @@ strict inequality in one step — replacing a prior induction on the index gap.
 
 ## TA-LC — LeftCancellation
 
-TumblerAdd is left-cancellative: if a ⊕ x = a ⊕ y with both additions well-defined, then x = y. Differing action points between x and y lead to immediate contradiction via TumblerAdd's prefix-copy rule; once a shared action point is established, component-wise equality at every position and equal lengths force x = y by canonical representation.
+Proves that TumblerAdd is left-cancellative: if a ⊕ x = a ⊕ y with both additions well-defined, then x = y. The proof turns on TumblerAdd's region structure — differing action points between x and y immediately contradict the prefix-copy rule, and once a common action point is established, each region's rule forces component-wise and length agreement, leaving T3 to conclude x = y.
 
 *Formal Contract:*
 - *Preconditions:* a, x, y ∈ T; Pos(x); Pos(y); actionPoint(x) ≤ #a; actionPoint(y) ≤ #a; a ⊕ x = a ⊕ y
@@ -1320,7 +1059,7 @@ TumblerAdd is left-cancellative: if a ⊕ x = a ⊕ y with both additions well-d
 
 ## TA-MTO — ManyToOne
 
-Two tumblers a and b yield the same result under displacement w if and only if they agree on every component from position 1 through w's action point. This is TumblerAdd's many-to-one property made precise: components of the starting position beyond the action point are overwritten by the displacement's tail and cannot influence or be recovered from the result.
+Proves that two tumblers a and b produce identical results under displacement w if and only if they agree on every component from position 1 through w's action point. Components beyond the action point are unconditionally overwritten by w's tail, so the starting position is neither preserved nor recoverable there — making the prefix the exact information that determines the output.
 
 *Formal Contract:*
 - *Preconditions:* w ∈ T, Pos(w), a ∈ T, b ∈ T, #a ≥ actionPoint(w), #b ≥ actionPoint(w)
@@ -1337,19 +1076,7 @@ Two tumblers a and b yield the same result under displacement w if and only if t
 
 ## TA-Pos — PositiveTumbler
 
-Defines positivity for tumblers via two predicate symbols: `Pos(t)` (positive) iff at least one component is
-nonzero, and `Zero(t)` (zero tumbler) iff every component is zero. The `Pos` matrix is written as the
-classical negation `¬(tᵢ = 0)` rather than `tᵢ ≠ 0`, so no inequality symbol beyond `=` is required on ℕ.
-Commits one clause beyond the defining ones: the complementarity `(A t ∈ T :: Pos(t) ⟺ ¬Zero(t))`,
-which follows from the defining clauses by the DeMorgan duality of bounded quantifiers and holds whether
-or not the index range is empty. The partition-content consequence — that T0's `(A a ∈ T :: 1 ≤ #a)`
-forces the index range `1 ≤ i ≤ #t` to be nonempty for every `t ∈ T`, so `Pos(t)` exhibits a nonzero
-component and `Zero(t)` makes every component equal to `0` — is a derived consequence stated in prose
-rather than a separate contract clause, since it restates T0's nonemptiness axiom applied to the Pos/Zero
-quantifier ranges. Additionally introduces the set-form `Z = {t ∈ T : Zero(t)}`, consumed by TA7a's
-subspace-closure postcondition `o ⊖ w ∈ S ∪ Z` where the union with `S` requires set-valued notation.
-The ordering consequence — every positive tumbler is strictly greater under T1 than every zero tumbler of
-any length — is established separately by a downstream ordering theorem that consumes ActionPoint.
+Defines the bipartition of T into positive tumblers, which have at least one nonzero component, and zero tumblers, which have every component equal to zero, with the two predicates provably complementary by DeMorgan duality so every tumbler belongs to exactly one class. Because every tumbler has at least one component, neither predicate is vacuously satisfied: Pos(t) always witnesses a concrete nonzero entry and Zero(t) forces every entry to zero. The set Z of all zero tumblers is introduced as set-valued notation for downstream claims.
 
 *Formal Contract:*
 - *Definition:* `(A t ∈ T :: Pos(t) ⟺ (E i ∈ ℕ : 1 ≤ i ≤ #t : ¬(tᵢ = 0)))`; `(A t ∈ T :: Zero(t) ⟺ (A i ∈ ℕ : 1 ≤ i ≤ #t : tᵢ = 0))`; **Z** = {t ∈ T : Zero(t)}.
@@ -1365,10 +1092,7 @@ any length — is established separately by a downstream ordering theorem that c
 
 ## TA-PosDom — PositiveDominatesZero
 
-Every positive tumbler is strictly greater under T1 than every zero tumbler of any length. Established by
-constructing the first nonzero index `k` of the positive tumbler inline via NAT-wellorder on the set of nonzero
-positions, then performing a case analysis on whether the zero tumbler's length reaches `k`: when it does, T1
-case (i) separates them at `k`; when it does not, T1 case (ii) separates them by the prefix rule.
+Proves that every positive tumbler strictly exceeds every zero tumbler under lexicographic order, regardless of length. The proof extracts the first nonzero index k of the positive tumbler via well-ordering, then splits on whether the zero tumbler is long enough to reach k: if so, T1 case (i) separates them at position k; if not, T1 case (ii) separates them by the prefix rule.
 
 *Formal Contract:*
 - *Preconditions:* `t ∈ T`, `Pos(t)`; `z ∈ T`, `Zero(z)`.
@@ -1387,7 +1111,7 @@ case (i) separates them at `k`; when it does not, T1 case (ii) separates them by
 
 ## TA-RC — RightCancellationFailure
 
-TumblerAdd is not right-cancellative: distinct tumblers a ≠ b can satisfy a ⊕ w = b ⊕ w for the same positive displacement w. The mechanism is tail replacement — any two starting positions that agree up to the action point but differ beyond it are mapped to the same result, so the starting position cannot be recovered from the result alone.
+Proves that TumblerAdd is not right-cancellative: distinct tumblers a ≠ b can satisfy a ⊕ w = b ⊕ w for the same positive displacement w. The tail-copy rule overwrites all components of the start tumbler beyond the action point, erasing any difference that lies there — so the start cannot be recovered from the result alone.
 
 *Formal Contract:*
 - *Depends:*
@@ -1403,7 +1127,7 @@ TumblerAdd is not right-cancellative: distinct tumblers a ≠ b can satisfy a �
 
 ## TA-assoc — AdditionAssociative
 
-Tumbler addition is associative: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) whenever action points are properly ordered (k_b ≤ #a and k_c ≤ #b). The result length always equals the length of the rightmost operand, and the effective action point of a composed displacement b ⊕ c equals k_b when k_b ≤ k_c and equals k_c when k_c ≤ k_b (NAT-order trichotomy).
+Proves that tumbler addition is associative — (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) — under the preconditions that each displacement's action point fits within the preceding operand's length. The proof also establishes that b ⊕ c is itself a valid positive tumbler whose action point equals min(k_b, k_c), confirming that composed displacements remain well-formed and domain-compatible with the outer addition.
 
 *Formal Contract:*
 - *Preconditions:* `a, b, c ∈ T`, `Pos(b)`, `Pos(c)`, `k_b ≤ #a`, `k_c ≤ #b` (where `k_b = actionPoint(b)`, `k_c = actionPoint(c)`).
@@ -1436,17 +1160,7 @@ Tumbler addition is associative: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) whenever acti
 
 ## TA-dom — DisplacementDominance
 
-A named corollary exporting TumblerAdd's dominance-guarantee postcondition a ⊕ w ≥ w as a single labelled fact for
-downstream use. Under the preconditions a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a, TA-dom restates TumblerAdd's
-fourth postcondition unchanged, so the per-step NAT-* sourcing (NAT-zero, NAT-order, NAT-addcompat, NAT-closure,
-NAT-cancel, NAT-wellorder) for the case-split discharge of r ≥ w — the divergence sub-case routing through T1
-case (i) at the least index j with aⱼ > 0, and the equality sub-case routing through T3 at the inner aₖ = 0
-branch via NAT-closure's additive identity — lives inside TumblerAdd and is transitively sourced here. The chief
-downstream consumer is TA4 (ReverseCancellation), whose Step 2 cites the dominance fact to discharge TumblerSub's
-r ≥ w precondition. Dominance is carried by TumblerAdd's construction itself (the tail-copy rule forcing
-rᵢ = wᵢ above the action point, and the action-point and prefix-copy regions together either matching or
-exceeding w's components below and at k), so TA-dom is a theorem derived from TumblerAdd — not an independent
-axiom excluding a below-displacement model.
+A named corollary exporting TumblerAdd's dominance-guarantee postcondition `a ⊕ w ≥ w` as a single labelled fact for downstream use. Under the preconditions `a, w ∈ T`, `Pos(w)`, `actionPoint(w) ≤ #a`, it restates TumblerAdd's fourth postcondition unchanged; the chief downstream consumer is TA4 (ReverseCancellation), which cites this fact to discharge TumblerSub's `r ≥ w` precondition.
 
 *Formal Contract:*
 - *Preconditions:* `a ∈ T`, `w ∈ T`, `Pos(w)`, `k ≤ #a` where `k` is the action point of `w`
@@ -1463,13 +1177,7 @@ axiom excluding a below-displacement model.
 
 ## TA-strict — StrictIncrease
 
-A named corollary exporting TumblerAdd's ordering-guarantee postcondition a ⊕ w > a as a single labelled fact for
-downstream use. Under the preconditions a ∈ T, Pos(w), actionPoint(w) ≤ #a, TA-strict restates TumblerAdd's third
-postcondition unchanged, so the per-step NAT-* sourcing (NAT-addcompat, NAT-order, NAT-zero, NAT-closure) for the
-rₖ > aₖ step lives inside TumblerAdd and is transitively sourced here. The chief downstream consumer is T12 span
-well-definedness, whose non-emptiness branch cites TA-strict to establish s ∈ span(s, ℓ). Non-degeneracy of tumbler
-addition is carried by TumblerAdd's definition itself (ActionPoint's wₖ ≥ 1 and the advance clause rₖ = aₖ + wₖ),
-so TA-strict is a theorem derived from TumblerAdd — not an independent axiom excluding a no-op model.
+A named corollary exporting TumblerAdd's ordering guarantee as a single labelled fact: under the preconditions a ∈ T, Pos(w), and actionPoint(w) ≤ #a, the result a ⊕ w strictly exceeds a. Its sole purpose is to give downstream users — chiefly T12 span well-definedness — a clean citation point for this postcondition without importing TumblerAdd's full contract.
 
 *Formal Contract:*
 - *Preconditions:* `a ∈ T`, `w ∈ T`, `Pos(w)`, `actionPoint(w) ≤ #a`
@@ -1488,15 +1196,7 @@ so TA-strict is a theorem derived from TumblerAdd — not an independent axiom e
 
 ## TA0 — WellDefinedAddition
 
-A named corollary exporting TumblerAdd's first two postconditions a ⊕ w ∈ T and #(a ⊕ w) = #w as a single labelled
-well-definedness fact for downstream use. Under the preconditions a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a, TA0
-restates these two postconditions unchanged, so the per-step axioms TumblerAdd cites (T0 for the membership reassembly,
-NAT-closure for closure of ℕ under addition at the action point, NAT-sub for the result-length-identity collapse, and
-T0's length axiom for #w ≥ 1) live inside TumblerAdd and are transitively sourced here. The chief downstream consumers
-are TA1, TA1-strict, TA-LC, TA-RC, TA-MTO, TA-assoc, TA4, TA7a, OrdinalShift, D0, D1, D2, Span, T12, and TS3 — every
-property that needs "a ⊕ w is a tumbler of length #w" without the ordering or dominance guarantees and would otherwise
-cherry-pick from TumblerAdd's four-postcondition list. The motivation for the precondition actionPoint(w) ≤ #a
-belongs to TumblerAdd's construction; TA0's content is the labelled handle, not the construction-side argument.
+A named corollary exporting TumblerAdd's first two postconditions as a single labelled well-definedness fact: given a, w ∈ T with Pos(w) and actionPoint(w) ≤ #a, the result a ⊕ w is a tumbler of length exactly #w. Downstream proofs that need membership and length-preservation without TumblerAdd's full postcondition list cite TA0 directly.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a
@@ -1512,7 +1212,7 @@ belongs to TumblerAdd's construction; TA0's content is the labelled handle, not 
 
 ## TA1-strict — StrictOrderPreservation
 
-When the action point of the displacement lands at or after the divergence point of two strictly ordered positions, addition preserves strict order — the original ordering relationship survives intact. If the action point falls before the divergence, the two results collapse to equality; order degrades but never reverses.
+Proves that tumbler addition preserves strict order whenever the action point of the displacement falls at or beyond the divergence point of the two operands. When the action point precedes divergence, both operands receive identical treatment and collapse to equality — the order degrades but never reverses.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, Pos(w), actionPoint(w) ≤ #a, actionPoint(w) ≤ #b, actionPoint(w) ≥ divergence(a, b)
@@ -1534,7 +1234,7 @@ When the action point of the displacement lands at or after the divergence point
 
 ## TA1 — OrderPreservationUnderAddition
 
-Adding the same positive displacement to two ordered positions preserves their relative order weakly: a < b implies a ⊕ w ≤ b ⊕ w. This holds universally — regardless of where the action point falls relative to the divergence — so no ordering relationship can be reversed by a common advancement.
+Proves that advancing two ordered tumblers by the same positive displacement never reverses their order: if a < b, then a ⊕ w ≤ b ⊕ w, regardless of where the action point falls relative to the position where a and b first diverge. When the action point lands before the divergence point, strict order is preserved; when it lands at or after, both tumblers advance identically and become equal.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, Pos(w), actionPoint(w) ≤ #a, actionPoint(w) ≤ #b
@@ -1557,9 +1257,7 @@ Strict order preservation holds under a tighter condition. We first need a preci
 
 ## TA2 — WellDefinedSubtraction
 
-Tumbler subtraction a ⊖ w is well-defined whenever a ≥ w, producing a valid tumbler whose length is L — the longer of
-`#a` and `#w`, named by NAT-order trichotomy on `(#a, #w)` per TumblerSub's Definition rather than by a primitive
-binary-maximum operator on ℕ. The result lies in T and correctly represents the displacement needed to reach a from w.
+Proves that tumbler subtraction a ⊖ w yields a well-formed tumbler in T whenever a ≥ w, with length equal to the longer of #a and #w. The result correctly encodes the displacement from w to a, whether the operands share a common length, one is a prefix of the other, or they diverge at some interior component.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, w ∈ T, a ≥ w
@@ -1578,7 +1276,7 @@ binary-maximum operator on ℕ. The result lies in T and correctly represents th
 
 ## TA3-strict — OrderPreservationUnderSubtractionStrict
 
-Subtracting a common lower bound from two equal-length ordered positions preserves strict order: if a < b and both dominate w with equal lengths, then a ⊖ w < b ⊖ w. The equal-length precondition is load-bearing — without it the piecewise subtraction could shift the divergence point in a way that collapses or reverses the ordering.
+Proves that tumbler subtraction preserves strict order when both operands share a common length: if a < b, both dominate w, and #a = #b, then a ⊖ w < b ⊖ w. The equal-length condition is load-bearing — it eliminates the length-mismatch case of lexicographic order and ensures the zero-padding divergence points for (a, w) and (b, w) fall within the native component domains, so the subtraction cannot shift or collapse the ordering witness.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, a ≥ w, b ≥ w, #a = #b
@@ -1599,7 +1297,7 @@ Subtracting a common lower bound from two equal-length ordered positions preserv
 
 ## TA3 — OrderPreservationUnderSubtractionWeak
 
-Tumbler subtraction preserves weak order: if a < b and both addresses are at least as large as the subtrahend w, then subtracting w from a yields a result no greater than subtracting w from b. The guarantee is weak (≤ rather than strict <) because equal results are possible when a and b diverge only below the subtraction point.
+Proves that tumbler subtraction is weakly order-preserving: given a < b with both a and b at least as large as the subtrahend w, the inequality a ⊖ w ≤ b ⊖ w holds. The bound is weak rather than strict because when a and b first diverge at a position below the subtraction cutoff, both remainders record identical components up to that point, potentially yielding equal results.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, a ≥ w, b ≥ w
@@ -1622,7 +1320,7 @@ Tumbler subtraction preserves weak order: if a < b and both addresses are at lea
 
 ## TA4 — PartialInverse
 
-Tumbler addition and subtraction are partial inverses only under tight structural conditions: (a ⊕ w) ⊖ w = a holds exactly when the action point of w coincides with the last position of a and all components of a before that position are zero. The restriction is necessary because addition discards the trailing structure of its first argument below the action point, making recovery impossible in the general case.
+Proves that tumbler addition has a partial inverse: (a ⊕ w) ⊖ w = a holds when w's action point coincides with the length of a and every component of a before that point is zero. These conditions are both necessary and sufficient — addition silently overwrites a's tail beyond the action point, and any nonzero prefix entry in a would shift where TumblerSub detects the first divergence, defeating recovery.
 
 *Formal Contract:*
 - *Preconditions:* `a ∈ T`, `w ∈ T`, `Pos(w)`, `k = #a`, `#w = k`, `(A i : 1 ≤ i < k : aᵢ = 0)`, where `k` is the action point of `w`
@@ -1648,7 +1346,7 @@ Tumbler addition and subtraction are partial inverses only under tight structura
 
 ## TA5-SIG — LastSignificantPosition
 
-Defines sig(t) as the index of the rightmost nonzero component of tumbler t; for an all-zero tumbler, sig(t) = #t by convention. The result always satisfies 1 ≤ sig(t) ≤ #t, giving a well-defined handle on where a tumbler's significant content ends.
+Defines sig(t) as the position of the rightmost nonzero component of tumbler t, with the convention sig(t) = #t when all components are zero. The definition requires deriving a maximum from the well-ordering principle, which supplies only least elements — so the proof works by finding the least upper bound of the nonzero-index set and showing it must itself be a nonzero index. The result always satisfies 1 ≤ sig(t) ≤ #t.
 
 *Formal Contract:*
 - *Preconditions:* `t ∈ T` (any tumbler with `#t ≥ 1`).
@@ -1668,7 +1366,7 @@ Defines sig(t) as the index of the rightmost nonzero component of tumbler t; for
 
 ## TA5-SigValid — SigOnValidAddresses
 
-For any valid address satisfying T4, the signature function sig(t) equals the length of the tumbler — that is, the last component is always the rightmost nonzero position. This follows directly from T4's field-segment constraint, which forbids a zero final component.
+Proves that for any valid tumbler address, the signature equals the address length: sig(t) = #t. This holds because T4 guarantees the final component is nonzero, making it the rightmost nonzero position and thus the maximum in the set that defines sig.
 
 *Formal Contract:*
 - *Preconditions:* `t` satisfies T4.
@@ -1684,7 +1382,7 @@ For any valid address satisfying T4, the signature function sig(t) equals the le
 
 ## TA5 — HierarchicalIncrement
 
-The increment operation inc(t, k) produces a new address strictly greater than t under lexicographic order: k = 0 advances the rightmost nonzero component to yield the next peer at the same depth, while k > 0 appends k new components to yield a child address at depth k below t. For valid addresses, inc(t, 0) produces the next sibling; inc(t, k) for k > 0 produces a descendant, with t's zero-extension subtree lying strictly between t and the result.
+Proves that inc(t, k) produces a new tumbler strictly greater than t: with k = 0 it advances the rightmost nonzero component to yield the next peer at the same hierarchical depth, and with k > 0 it extends t by k positions to yield a descendant at depth k below t. For valid addresses, inc(t, 0) produces the next sibling; for k > 0, the zero-extension subtree of t lies strictly between t and the result, but this gap is harmless for allocation.
 
 *Formal Contract:*
 - *Preconditions:* `t ∈ T`, `k ≥ 0`.
@@ -1720,7 +1418,7 @@ The conditions under which `inc` preserves T4 are established in TA5a: `inc(t, k
 
 ## TA5a — IncrementPreservesT4
 
-The increment operation inc(t, k) produces a valid address (satisfying T4) if and only if k ∈ {0, 1}, or k = 2 with at most two existing zero components; for k ≥ 3 the result always violates T4 because the appended separator zeros create an adjacent-zero or empty-field violation. The k = 1 branch carries no extra zero-count side condition beyond T4-validity of t, since inc(·, 1) is zero-separator-neutral. This gives the precise depth limit for child allocation from any given valid address.
+Proves that inc(t, k) preserves T4 if and only if k ∈ {0, 1}, or k = 2 with at most two existing zero components; the two failure regions are structurally distinct — k ≥ 3 always introduces adjacent separator zeros that violate the no-adjacent-zeros clause, while k = 2 on a three-zero address pushes the zero count to four, violating the cardinality bound.
 
 *Formal Contract:*
 - *Precondition:* `t` satisfies T4; `k ≥ 0`.
@@ -1743,9 +1441,7 @@ The increment operation inc(t, k) produces a valid address (satisfying T4) if an
 
 ## TA6 — ZeroTumblers
 
-No tumbler with `Zero(t)` is a valid address — every zero tumbler is excluded by the boundary rule T4 enforces on
-first components. The companion ordering fact (every zero tumbler is strictly below every positive tumbler under T1)
-is stated and proved once at TA-PosDom; this claim cites TA-Pos only to fix the `Zero` predicate's meaning.
+Proves that zero tumblers, though members of the carrier set T, are never valid addresses — the leading-zero prohibition in T4 immediately disqualifies any tumbler whose first component is zero. They serve as sentinels: uninitialized markers, unbounded span endpoints, and ordering lower bounds below every positive tumbler.
 
 *Formal Contract:*
 - *Depends:*
@@ -1762,10 +1458,7 @@ Zero tumblers thus exist in `T` but lie outside the address-valid subset; paired
 
 ## TA7a.1 — SubspaceLengthResidue
 
-Characterises the length-overflow residue of `⊖`: when `#w > #o` under the
-other preconditions of TA7a's subtraction conjunct, the result lies in
-`T \ S` because zero-padding of the minuend places `r_{#w} = 0`, violating
-the universal positivity clause of **S**.
+Proves that subtraction escapes the subspace S when the subtrahend is strictly longer than the minuend: zero-padding the minuend forces a zero into position #w of the result, violating S's universal positivity clause, so o ⊖ w lands in T \ S rather than S.
 
 *Formal Contract:*
 - *Preconditions:* `o ∈ S`, `w ∈ T`, `Pos(w)`, `o ≥ w`, `#w > #o`.
@@ -1786,10 +1479,7 @@ the universal positivity clause of **S**.
 
 ## TA7a.2 — SubspaceDivergenceResidue
 
-Characterises the interior-divergence residue of `⊖`: when the action point
-of `w` is 1 and `o₁ = w₁` with `o ≠ w`, the first padded disagreement lies
-at some `d > 1`, and TumblerSub's pre-divergence-zero clause forces
-`r₁ = 0`, placing the result in `T \ S`.
+Proves that when `o` and `w` share their first component but diverge later, the residue `o ⊖ w` escapes the subspace `S`: the first padded disagreement falls at some position `d > 1`, forcing a leading zero in the result and thereby violating `S`'s universal positivity requirement. The postcondition `r₁ = 0` is the concrete witness that the residue lands in `T \ S`.
 
 *Formal Contract:*
 - *Preconditions:* `o ∈ S`, `w ∈ T`, `Pos(w)`, `o ≥ w`, `#w ≤ #o`, `actionPoint(w) = 1`, `o₁ = w₁`, `o ≠ w`.
@@ -1810,9 +1500,7 @@ at some `d > 1`, and TumblerSub's pre-divergence-zero clause forces
 
 ## TA7a.3 — SubspaceZeroResidue
 
-Characterises the self-subtraction residue: for `o ∈ S`, the no-divergence
-branch of TumblerSub produces `o ⊖ o = [0, ..., 0]`, the zero tumbler of
-length `#o`, placing it in **Z**.
+Proves that subtracting a tumbler from itself always yields the zero tumbler: for any `o ∈ S`, the no-divergence branch of TumblerSub produces `o ⊖ o = [0, ..., 0]` of length `#o`, satisfying the Zero predicate and placing the result in Z. The zero tumbler is not a valid address and acts as the fixed point of self-subtraction, marking zero displacement.
 
 *Formal Contract:*
 - *Preconditions:* `o ∈ S`.
@@ -1833,13 +1521,7 @@ length `#o`, placing it in **Z**.
 
 ## TA7a — SubspaceClosure
 
-Defines the subspace **S** as the set of tumblers with all positive
-components and establishes strict S-closure for ⊕ and ⊖ under tight
-preconditions. For ⊕: `o ∈ S ∧ Pos(w) ∧ k ≤ #o ∧ (tail-positivity of w)`
-gives `o ⊕ w ∈ S`. For ⊖: `o ∈ S ∧ Pos(w) ∧ o ≥ w ∧ #w ≤ #o ∧ o₁ > w₁`
-gives `o ⊖ w ∈ S`. The T-only residues — length overflow, interior
-divergence, self-subtraction to **Z** — are relocated to sub-claims
-TA7a.1, TA7a.2, TA7a.3 on the complementary precondition fragments.
+Proves that element-local addition and subtraction are closed within S, the set of tumblers with all strictly positive components: under preconditions calibrated to block the three structural escape routes (length overflow, leading-zero result, and full cancellation to Z), both o ⊕ w and o ⊖ w remain in S. The complementary cases — where exactly one blocking condition is relaxed — are delegated to sub-claims TA7a.1–TA7a.3.
 
 *Formal Contract:*
 - *Preconditions:* For `⊕`: `o ∈ S`, `w ∈ T`, `Pos(w)`, `actionPoint(w) ≤ #o`, `(A i : actionPoint(w) ≤ i ≤ #w : wᵢ > 0)`. For `⊖`: `o ∈ S`, `w ∈ T`, `Pos(w)`, `o ≥ w`, `actionPoint(w) ≤ #o`, `#w ≤ #o`, `o₁ > w₁`.
@@ -1870,7 +1552,7 @@ TA7a.1, TA7a.2, TA7a.3 on the complementary precondition fragments.
 
 ## TS1 — ShiftOrderPreservation
 
-Shift is order-preserving on equal-length tumblers: if v₁ < v₂ and both have length m, shifting both by the same positive amount n yields shift(v₁, n) < shift(v₂, n). The relative ordering of same-length tumblers is invariant under shift.
+Proves that shifting preserves strict order between same-length tumblers: given v₁ < v₂ with #v₁ = #v₂, applying shift by any n ≥ 1 yields shift(v₁, n) < shift(v₂, n). The key insight is that the displacement δ(n, m) acts at position m — exactly at or beyond where v₁ and v₂ diverge — so the addition cannot disturb their relative order.
 
 *Formal Contract:*
 - *Preconditions:* v₁ ∈ T, v₂ ∈ T, n ∈ ℕ, n ≥ 1, #v₁ = #v₂, v₁ < v₂
@@ -1892,7 +1574,7 @@ Shift is order-preserving on equal-length tumblers: if v₁ < v₂ and both have
 
 ## TS2 — ShiftInjectivity
 
-Shift is injective over same-length tumblers: if shifting v₁ and v₂ by the same positive amount n yields identical results, then v₁ and v₂ must have been equal. This rules out any collisions introduced by the shift operation.
+Proves that shift is injective over same-length tumblers: if shifting v₁ and v₂ by the same positive n yields identical results, then v₁ = v₂. The argument reduces equality of shifted tumblers to component-wise agreement via the ManyToOne lemma, then closes by canonical representation.
 
 *Formal Contract:*
 - *Preconditions:* v₁ ∈ T, v₂ ∈ T, n ∈ ℕ, n ≥ 1, #v₁ = #v₂
@@ -1910,7 +1592,7 @@ Shift is injective over same-length tumblers: if shifting v₁ and v₂ by the s
 
 ## TS3 — ShiftComposition
 
-Two successive shifts compose into a single shift: applying shift by n₁ and then by n₂ is identical to a single shift by n₁ + n₂. Shift preserves tumbler length throughout.
+Proves that two consecutive shifts compose into a single shift: shift(shift(v, n₁), n₂) equals shift(v, n₁ + n₂) for any tumbler v and positive natural numbers n₁, n₂. Tumbler length is invariant under shift at every step.
 
 *Formal Contract:*
 - *Preconditions:* v ∈ T, n₁ ∈ ℕ, n₂ ∈ ℕ, n₁ ≥ 1, n₂ ≥ 1, #v = m
@@ -1934,7 +1616,7 @@ Two successive shifts compose into a single shift: applying shift by n₁ and th
 
 ## TS4 — ShiftStrictIncrease
 
-Shifting a tumbler by any positive amount strictly increases it — the shifted result is always greater than the original under the lexicographic order. This makes shift a strict advance with no fixed points.
+Proves that shifting a tumbler by any positive step count strictly increases it under lexicographic order, with no fixed points. The proof routes through OrdinalShift to expand shift as a concatenation, then applies TA-strict using OrdinalDisplacement's guarantees that the displacement term is positive and acts within the tumbler's length.
 
 *Formal Contract:*
 - *Preconditions:* v ∈ T, n ∈ ℕ, n ≥ 1, #v = m
@@ -1951,7 +1633,7 @@ Shifting a tumbler by any positive amount strictly increases it — the shifted 
 
 ## TS5 — ShiftAmountMonotonicity
 
-Larger shift amounts produce strictly larger results on the same tumbler: if n₂ > n₁ ≥ 1, then shift(v, n₂) > shift(v, n₁). The output of shift is strictly monotone in the shift amount.
+Proves that the shift operation is strictly monotone in its shift amount: for any tumbler v and amounts n₂ > n₁ ≥ 1, shift(v, n₁) < shift(v, n₂). The proof chains ShiftComposition and ShiftStrictIncrease to reduce the two-amount comparison to a single-step increase.
 
 *Formal Contract:*
 - *Preconditions:* v ∈ T, n₁ ∈ ℕ, n₂ ∈ ℕ, n₁ ≥ 1, n₂ > n₁, #v = m
@@ -1969,7 +1651,7 @@ Larger shift amounts produce strictly larger results on the same tumbler: if n�
 
 ## TumblerAdd — TumblerAdd
 
-Defines tumbler addition (⊕) as a hierarchical position-advance operation: below the action point components are copied from the base address, at the action point the components are summed, and above the action point components are taken from the displacement. The result always strictly exceeds the base address and is at least as large as the displacement itself.
+Defines tumbler addition (⊕) as a position-advance operation: given a start address and a displacement, the result copies the start's prefix up to the action point, advances the action-point component by addition, and takes the displacement's suffix as the new trailing structure, discarding the start's original sub-structure below that level. The result always strictly exceeds the start address and is at least as large as the displacement.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a
@@ -1995,7 +1677,7 @@ Defines tumbler addition (⊕) as a hierarchical position-advance operation: bel
 
 ## TumblerSub — TumblerSub
 
-Defines component-wise tumbler subtraction `a ⊖ w` (requiring `a ≥ w`): the result zeroes out all components before the first zero-padded divergence point `k = zpd(a, w)`, subtracts at position `k`, and copies `a`'s padded components thereafter, with length `L` set to the longer operand by NAT-order trichotomy. When `a` and `w` are zero-padded-equal, the result is the zero tumbler of length `L`. The action point of the result equals `zpd(a, w)` whenever it is defined, and the result belongs to the tumbler carrier set `T`.
+Proves that tumbler subtraction a ⊖ w (requiring a ≥ w) yields a tumbler in T whose action point equals the zero-padded divergence index zpd(a, w): all components before that index are zero, position k carries the non-negative difference âₖ − ŵₖ, and subsequent positions copy a's padded components, with length L equal to the longer operand by NAT-order trichotomy. When a and w are zero-padded-equal, the result is the zero tumbler of length L and the positive-tumbler condition fails.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, w ∈ T, a ≥ w (T1).
@@ -2019,15 +1701,7 @@ Defines component-wise tumbler subtraction `a ⊖ w` (requiring `a ≥ w`): the 
 
 ## ZPD — ZeroPaddedDivergence
 
-Defines the zero-padded divergence `zpd(a, w)` as the first position at which two tumblers disagree after both are
-extended to a common length `L` by appending zeros, where `L` — the longer of `#a` and `#w` — is selected by NAT-order
-trichotomy on `(#a, #w)` (sub-case (α): `#a = #w`, `L = #a`, no padding; (β): `#a < #w`, `L = #w`, `a` padded; (γ):
-`#w < #a`, `L = #a`, `w` padded) rather than by a primitive binary-maximum operator on ℕ. The function is partial: it
-is undefined when the padded sequences agree everywhere, which occurs when one operand is a prefix of the other with
-all trailing components zero — a case where Divergence fires but zpd does not. When defined, zpd is symmetric and
-equals the ordinary divergence index whenever the disagreement falls at a shared position `k` with `k ≤ #a ∧ k ≤ #w`
-(the conjunction replacing `k ≤ min(#a, #w)`); in the prefix sub-cases (β) and (γ) the Divergence boundary is `#a + 1`
-or `#w + 1` respectively (replacing `min(#a, #w) + 1`).
+Defines `zpd(a, w)` as the first position where two tumblers disagree after both are zero-padded to a common length, making any tumbler and its trailing-zero extensions indistinguishable — so `[3, 0]` and `[3]` are zero-padded-equal and `zpd` is undefined for them. The function is partial — undefined precisely when the padded sequences agree everywhere — and when defined is symmetric; it equals ordinary Divergence at shared-position disagreements, and in the prefix sub-cases is defined only when the longer operand carries a nonzero component beyond the shorter's end, with `zpd(a, w) ≥ divergence(a, w)` in those cases.
 
 *Formal Contract:*
 - *Domain:* a ∈ T, w ∈ T
