@@ -1,4 +1,1 @@
-Characterises the length-overflow residue of `⊖`: when `#w > #o` under the
-other preconditions of TA7a's subtraction conjunct, the result lies in
-`T \ S` because zero-padding of the minuend places `r_{#w} = 0`, violating
-the universal positivity clause of **S**.
+Proves that subtraction escapes the subspace S when the subtrahend is strictly longer than the minuend: zero-padding the minuend forces a zero into position #w of the result, violating S's universal positivity clause, so o ⊖ w lands in T \ S rather than S.
