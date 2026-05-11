@@ -191,10 +191,10 @@ In both cases, next(B, p, d) produces an element of T. The definition is total o
 
   PRE: B6(p, d) — depth validity (defined below); [parent prerequisite deferred to Open Questions]
   POST: Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}
-  FRAME: only Σ.B is modified; all other state components are unchanged
+  FRAME: Σ.B is modified as specified by POST. This ASN makes no commitment about whether or how other components Σ carries — including those introduced by future ASNs (content storage, link structures, arrangement) and those of ASN-0034 (Act, nₛ) — are modified across the same transition; their specification is left to the ASNs that introduce them.
   STRUCTURAL (on Op): B4 — each `baptize(p, d) ∈ Op` is a single atomic edge of the transition graph (defined below). B4 is an invariant of the operation vocabulary, not a caller-checked precondition: it is satisfied by construction of Op, not discharged per call.
 
-The frame condition is essential: baptism alters the registry and nothing else. Content storage, link structures, arrangement — all are untouched. The structural assumption B4 — that each baptize(p, d) is a single edge in the transition relation — makes next(Σ.B, p, d) evaluable against the precondition state Σ of the same transition that produces Σ'; no other transition mediates between the evaluation of next and the registry update. Because B4 governs how Op is built rather than what a caller passes in, it is listed as a structural assumption on Op rather than as part of Bop's PRE.
+The frame condition's scope is essential. With respect to Σ.B, baptism is precise: `Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}` and nothing more. Other state components — content storage, link structures, arrangement, and the allocator-side state of ASN-0034 — are not subjects of this ASN's specification; Bop makes no commitment about whether they are modified across the same transition. In particular, when ASN-0034's allocator-side state (Act, nₛ) co-evolves with Σ.B under Bridge1, the equation `Σ' = baptize(p, d)(Σ)` gives the full successor state: the registry-side action is fixed here, and the allocator-side action is specified by the activation-discipline ASN. The two specifications partition the witnessing operation `baptize(p, d) ∈ Op` by state component — they do not compete for the same component. The structural assumption B4 — that each baptize(p, d) is a single edge in the transition relation — makes next(Σ.B, p, d) evaluable against the precondition state Σ of the same transition that produces Σ'; no other transition mediates between the evaluation of next and the registry update. Because B4 governs how Op is built rather than what a caller passes in, it is listed as a structural assumption on Op rather than as part of Bop's PRE.
 
 *Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined, produces a fresh address, and preserves the system invariants B0, B1, and B10.
 
@@ -212,7 +212,7 @@ The frame condition is essential: baptism alters the registry and nothing else. 
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1; B6(p, d) holds. (B1, B10, and B_fin are *state invariants*, not per-call obligations: they are established at genesis by B₀ conf. and preserved inductively by the proofs in §B1, §B10, and §B_fin, so they hold in every reachable state at which baptize(p, d) can be invoked. They are appealed to in the well-definedness and preservation arguments below but are not discharged by the caller.)
 - *Structural assumptions on Op:* B4 (Atomic Baptism) — each `baptize(p, d) ∈ Op` is a single atomic edge of the transition graph; this is an invariant of the operation vocabulary, not a caller-checked precondition.
 - *Postconditions:* Σ'.B = Σ.B ∪ {next(Σ.B, p, d)} with next(Σ.B, p, d) ∉ Σ.B; Σ'.B satisfies B0, B1, B10, and B_fin.
-- *Frame:* Only Σ.B is modified; all other state components are unchanged.
+- *Frame:* Σ.B is modified as specified by the postcondition above. This ASN makes no commitment about whether or how other components Σ carries (content storage, link structures, arrangement, and ASN-0034's Act and nₛ) are modified across the same transition; their specification is left to the ASNs that introduce them. The full successor state Σ' = baptize(p, d)(Σ) is thereby compatible with Bridge1's joint update of Σ.B and ASN-0034's allocator-side state across one baptismal transition.
 
 
 ## The contiguous prefix property
@@ -688,7 +688,7 @@ After M − m steps, hwm(B_{M−m}, p, d) = m + (M − m) = M. Setting B' = B_{M
 | S(p,d) | Sibling stream: c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0) | from TA5(b), TA5(c), TA5(d) |
 | hwm(B,p,d) | High water mark: #children(B, p, d) — sufficient allocation statistic | from B1, S0 |
 | next(B,p,d) | Next address: if children = ∅ then inc(p, d) else inc(max(children), 0) | from TA5(c), TA5(d), T1 |
-| Bop | baptize(p, d): PRE B6; STRUCT B4 (invariant of Op, not per-call); POST Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}; FRAME only Σ.B | from B0, B1, B4, B6, B7, B0a, B10, TA5, TA5a |
+| Bop | baptize(p, d): PRE B6; STRUCT B4 (invariant of Op, not per-call); POST Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}; FRAME constrains Σ.B only, silent on other components (incl. ASN-0034's Act, nₛ) | from B0, B1, B4, B6, B7, B0a, B10, TA5, TA5a |
 | S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from TA5(a), T1 |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
 | B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | primitive label (B0a-derivation is given as commentary preceding the B0 statement, not as a labelled corollary; cited by B1, B10) |
