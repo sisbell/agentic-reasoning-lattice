@@ -1,8 +1,1 @@
-No natural number lies strictly between `n` and `n + 1`. The axiom form is
-`m < n ⟹ m + 1 ≤ n`; the familiar no-interval reformulation
-`m ≤ n < m + 1 ⟹ n = m` is recorded as a Consequence rather than a second axiom,
-because it is derivable from the axiom body via NAT-order's `≤`-definition,
-exactly-one trichotomy, and irreflexivity. The
-axiom cites the non-strict `≤` (defined in NAT-order by `m ≤ n ⟺ m < n ∨ m = n`)
-and the successor term `m + 1` (grounded by NAT-closure's `1 ∈ ℕ` and
-addition-closure), so both appear in the Depends slot.
+Posits the discreteness of ℕ: no natural number lies strictly between any integer and its successor, captured by the axiom `m < n ⟹ m + 1 ≤ n`. The equivalent no-interval form `m ≤ n < m + 1 ⟹ n = m` is a derived consequence, not a second axiom, following from the axiom together with NAT-order's `≤`-definition, trichotomy, and irreflexivity.
