@@ -1,1 +1,1 @@
-Larger shift amounts produce strictly larger results on the same tumbler: if n₂ > n₁ ≥ 1, then shift(v, n₂) > shift(v, n₁). The output of shift is strictly monotone in the shift amount.
+Proves that the shift operation is strictly monotone in its shift amount: for any tumbler v and amounts n₂ > n₁ ≥ 1, shift(v, n₁) < shift(v, n₂). The proof chains ShiftComposition and ShiftStrictIncrease to reduce the two-amount comparison to a single-step increase.
