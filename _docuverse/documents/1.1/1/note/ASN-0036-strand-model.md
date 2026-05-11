@@ -197,7 +197,7 @@ The within-document sharing multiplicity is `|{v : v ∈ dom(M'_N(d)) ∧ M'_N(d
 *Formal Contract:*
 - *Preconditions:* `N ∈ ℕ` arbitrary.
 - *Postconditions:* There exists a state `Σ` satisfying S0 (content immutability), S1 (store monotonicity), S2 (arrangement functionality), and S3 (referential integrity) such that for some `a ∈ dom(Σ.C)`, `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N`. The construction works both across documents (multiplicity `N + 1` over `N + 1` documents) and within a single document (multiplicity `N + 1` at `N + 1` distinct V-positions).
-- *Frame:* S0–S3 are the only invariants checked. The constructions are minimal — single I-address, trivial arrangements — to isolate the consistency claim from other architectural properties.
+- *Frame:* S0–S3 are the invariants S5's claim depends on, and the only invariants the proof verifies for the unboundedness conclusion. The constructions are minimal — single I-address, depth-2 V-positions in subspace 1 — but happen to satisfy more than S0–S3 alone: the body notes S8a satisfaction explicitly, and the V-position patterns ([1, 1] across N + 1 documents in the cross-document case; [1, 1], [1, 2], …, [1, N + 1] within one document in the within-document case) also satisfy D-MIN, D-CTG, and D-SEQ. This is an unforced strengthening rather than a hidden assumption: the witnesses are well-formed strand states that incidentally exhibit unbounded sharing.
 - *Depends:* S0 (content immutability) — preserved vacuously by the single-state construction; S1 (store monotonicity) — preserved vacuously; S2 (arrangement functionality) — required to establish that the constructed `M(d)` is a well-defined function (pairwise-distinct keys map to single images); S3 (referential integrity) — established by construction since `ran(M(d)) = {a} ⊆ dom(C)`; T3 (CanonicalRepresentation, ASN-0034) — used in the cross-document construction to establish distinctness of document tumblers `dⱼ` from distinct component sequences (the V-positions are identical `[1, 1]` across all documents); and in the within-document construction to establish distinctness of V-positions `[1, k]` for `k = 1, …, N + 1` from distinct last components (a single document is used); T0 (ASN-0034) — supplies the ℕ-valued component carrier from which the distinct enumerations are drawn.
 
 
@@ -286,7 +286,7 @@ This is a design requirement parallel to S7a. Nelson's baptism principle covers 
 - *Postconditions:* By GlobalUniqueness (ASN-0034), distinct documents have distinct document-level tumblers — the cross-document uniqueness premise for S7's identification argument.
 - *Depends:* T10a (AllocatorDiscipline, ASN-0034) — allocation events; T4 (HierarchicalParsing, ASN-0034) — field correspondence at `zeros = 2`; GlobalUniqueness (ASN-0034) — uniqueness across allocation events.
 
-With S7a, S7b, and S7d established, we can state structural attribution. (S7c, stated here for architectural completeness, is load-bearing for S8's correspondence run definition for I-address shifts below — specifically the well-definedness argument that the action point of `δ(k, #a)` falls strictly after the subspace identifier — not for S7 itself.)
+With S7a, S7b, and S7d established, we can state structural attribution. (S7c, stated here for architectural completeness, is load-bearing for S8's correspondence run definition in the non-singleton case (nⱼ ≥ 2). For `k ≥ 1` — the shifts that actually occur in runs of length 2 or more — S7c supplies the subspace-preservation clause: the action point of `δ(k, #a)` is `#a`, which falls strictly after the position of `subspace_I(a)` precisely because `#E(a) ≥ 2`, so `shift(a, k)` preserves `subspace_I(a)` by TumblerAdd's prefix rule. For singleton runs (nⱼ = 1) only `k = 0` occurs and `shift(a, 0) = a` is the identity, so S7c is not invoked. S7c is not load-bearing for S7 itself.)
 
 **S7 (Structural attribution).** For every `a ∈ dom(Σ.C)`, define the *origin* as the document-level prefix obtained by truncating the element field:
 
@@ -580,7 +580,7 @@ We construct infinitely many intermediates. For any natural number n > (v₁)ⱼ
 
 - wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
 - wⱼ₊₁ = n,
-- wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist; since j ≤ m − 1, at least the m-th component exists at position j + 1 or beyond).
+- wᵢ = 1 for j + 2 ≤ i ≤ m (an empty range when j = m − 1, in which case wⱼ₊₁ = w_m is already the last component; otherwise this clause fills components j + 2 through m).
 
 Then w has depth m (it has m components by construction), and subspace(w) = w₁ = (v₁)₁ = 1 (since j ≥ 2, the first component is copied from v₁). We verify v₁ < w < v₂:
 
@@ -784,7 +784,7 @@ The arrangement `M(d₁)` maps V-positions (in subspace 1, text) to these I-addr
 | `1.4` | `1.0.1.0.1.0.1.4` |
 | `1.5` | `1.0.1.0.1.0.1.5` |
 
-*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Check S8*: the arrangement decomposes into a single correspondence run `(1.1, 1.0.1.0.1.0.1.1, 5)`. Verify: `M(d₁)(1.1 + k) = 1.0.1.0.1.0.1.1 + k` for `k = 0, 1, 2, 3, 4`. One run — the five characters were typed sequentially, receiving consecutive I-addresses by T10a (allocator discipline). *Check D-SEQ*: V₁(d₁) = {[1, k] : 1 ≤ k ≤ 5}, satisfying D-SEQ with n = 5. D-CTG holds (no gaps in the ordinal range 1..5) and D-MIN holds (min = [1, 1]).
+*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Check S8*: the arrangement decomposes into a single correspondence run `(1.1, 1.0.1.0.1.0.1.1, 5)`. Verify: `M(d₁)(shift(1.1, k)) = shift(1.0.1.0.1.0.1.1, k)` for `k = 0, 1, 2, 3, 4`. One run — the five characters were typed sequentially, receiving consecutive I-addresses by T10a (allocator discipline). *Check D-SEQ*: V₁(d₁) = {[1, k] : 1 ≤ k ≤ 5}, satisfying D-SEQ with n = 5. D-CTG holds (no gaps in the ordinal range 1..5) and D-MIN holds (min = [1, 1]).
 
 **After creating d₂ with transclusion + append** — state Σ₂. The transclusion of "llo" from `d₁` shares the original I-addresses. The append of "ws" allocates two new I-addresses under `d₂`'s prefix:
 
