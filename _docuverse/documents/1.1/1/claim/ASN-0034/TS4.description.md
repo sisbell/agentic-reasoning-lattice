@@ -1,1 +1,1 @@
-Shifting a tumbler by any positive amount strictly increases it — the shifted result is always greater than the original under the lexicographic order. This makes shift a strict advance with no fixed points.
+Proves that shifting a tumbler by any positive step count strictly increases it under lexicographic order, with no fixed points. The proof routes through OrdinalShift to expand shift as a concatenation, then applies TA-strict using OrdinalDisplacement's guarantees that the displacement term is positive and acts within the tumbler's length.
