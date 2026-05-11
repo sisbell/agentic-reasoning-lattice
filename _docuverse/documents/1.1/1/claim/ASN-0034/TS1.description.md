@@ -1,1 +1,1 @@
-Shift is order-preserving on equal-length tumblers: if v₁ < v₂ and both have length m, shifting both by the same positive amount n yields shift(v₁, n) < shift(v₂, n). The relative ordering of same-length tumblers is invariant under shift.
+Proves that shifting preserves strict order between same-length tumblers: given v₁ < v₂ with #v₁ = #v₂, applying shift by any n ≥ 1 yields shift(v₁, n) < shift(v₂, n). The key insight is that the displacement δ(n, m) acts at position m — exactly at or beyond where v₁ and v₂ diverge — so the addition cannot disturb their relative order.
