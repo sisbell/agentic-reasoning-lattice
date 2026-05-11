@@ -1,10 +1,1 @@
-Fixes 0 as the minimum of ℕ via the pair `0 ∈ ℕ` and `(A n ∈ ℕ :: 0 < n ∨ 0 = n)`,
-together with the exported *Consequence:* `(A n ∈ ℕ :: ¬(n < 0))`. The consequence
-bullet is not delivered by the axiom body alone; it is lifted from the disjunction
-under the hypothesis `n < 0` by NAT-order's transitivity `m < n ∧ n < p ⟹ m < p`
-(reducing the `0 < n` branch to `0 < 0`) and indiscernibility of `=` (rewriting
-`n < 0` under `0 = n` to the same `0 < 0`), both contradicting NAT-order's
-irreflexivity `¬(n < n)`; NAT-order is declared in Depends. Supplies `0 ∈ ℕ` for
-zero-padded components and literal-zero sites across the ASN, and the disjunction
-`0 < n ∨ 0 = n` — combined with `n ≠ 0` to rule out the equality case — to
-instantiate NAT-discrete at `m = 0` and derive the inference `n ≠ 0 ⟹ n ≥ 1`.
+Posits that 0 is the minimum of ℕ: every natural number is either strictly above zero or equal to it, and consequently no natural number falls below zero. The minimum reading is not a direct axiom statement but a derived consequence, obtained by combining the disjunction with NAT-order's irreflexivity and transitivity to rule out any n satisfying n < 0.
