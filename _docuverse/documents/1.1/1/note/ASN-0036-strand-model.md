@@ -396,19 +396,21 @@ Each run represents a contiguous block of content that entered the arrangement a
 
 **Coverage.** Each `v ∈ dom(M(d))` lies in its own singleton's interval: `v ≤ v < shift(v, 1)`, where the right inequality holds because `shift(v, 1) > v` by TS4 (ShiftStrictIncrease, ASN-0034). So every V-position falls in at least one run.
 
-**Uniqueness within a subspace.** Let `v, w ∈ dom(M(d))` be distinct V-positions with `v₁ = w₁ = S`. By S8-depth, `#v = #w = m` for some common depth `m`. We show `w ∉ [v, shift(v, 1))`.
+**Uniqueness within a subspace.** Let `v, w ∈ dom(M(d))` be distinct V-positions with `v₁ = w₁ = S`. By S8-depth, `#v = #w = m` for some common depth `m`. We show `w ∉ [v, shift(v, 1))` via a clean lemma that abstracts away from the specific pair `(v, w)`.
 
-By S8a, `zeros(v) = 0`, so every component of `v` is nonzero. By definition, `shift(v, 1) = v ⊕ δ(1, m)`, where `δ(1, m)` is the unit displacement of depth `m` with action point at position `m` (OrdinalShift, ASN-0034). By TumblerAdd's length postcondition, `#shift(v, 1) = m`. By TumblerAdd's three-region component formula, components before the action point are copied from `v`: `shift(v, 1)ᵢ = vᵢ` for all `i < m`; at the action point, `shift(v, 1)_m = v_m + 1` (NAT addition on the last component; no carry, since `δ(1, m)` is zero beyond position `m`).
+*Setup for the lemma.* By S8a, `zeros(v) = 0`, so every component of `v` is nonzero. By definition, `shift(v, 1) = v ⊕ δ(1, m)`, where `δ(1, m)` is the unit displacement of depth `m` with action point at position `m` (OrdinalShift, ASN-0034). By TumblerAdd's length postcondition, `#shift(v, 1) = m`. By TumblerAdd's three-region component formula, components before the action point are copied from `v`: `shift(v, 1)ᵢ = vᵢ` for all `i < m`; at the action point, `shift(v, 1)_m = v_m + 1` (NAT addition on the last component; no carry, since `δ(1, m)` is zero beyond position `m`).
 
 By S8a, every V-position has depth `#v ≥ 2`, so `m ≥ 2`. (The depth-1 case `m = 1` is excluded by S8a: at `m = 1`, the only depth-1 tumbler with first component `S` is `[S]` itself by T3, so within-subspace uniqueness would hold vacuously — but S8a forbids depth 1 from occurring at all.)
 
-Suppose for contradiction that `t ≠ v` satisfies `#t = m` and `v ≤ t < shift(v, 1)`. Since `#t = #v = m`, the sequences diverge at some first position `j ≤ m`. For the case of interest `t = w`, shared subspace `w₁ = v₁ = S` gives `t₁ = v₁`, forcing `j ≥ 2`; at `m = 2` this further forces `j = m = 2`, leaving only the *j = m* case below. The two-case argument that follows treats `j` generically for any `2 ≤ j ≤ m`.
+**Within-subspace incompatibility lemma.** Let `v` be as above (a V-position with `v₁ = S`, `#v = m ≥ 2`, satisfying S8a). For any tumbler `t` with `t₁ = S`, `#t = m`, and `t ≠ v`: `t ∉ [v, shift(v, 1))`.
+
+*Proof of lemma.* Suppose for contradiction that `t ∈ [v, shift(v, 1))`, i.e. `v ≤ t < shift(v, 1)`. Since `#t = #v = m`, the sequences diverge at some first position `j ≤ m`. The shared first component `t₁ = v₁ = S` forces `j ≥ 2`. At `m = 2` this further forces `j = m = 2`, leaving only Case j = m below; for `m ≥ 3`, both branches `2 ≤ j < m` and `j = m` are possible. Both branches yield contradictions.
 
 *Case j < m.* Then `tᵢ = vᵢ` for `i < j` and `tⱼ > vⱼ` (from `v ≤ t` by T1(i), since `j ≤ m = min(m, m)`). Since `shift(v, 1)ⱼ = vⱼ` (as `j < m`), and `tᵢ = vᵢ = shift(v, 1)ᵢ` for `i < j`, the first divergence between `t` and `shift(v, 1)` is at position `j` with `tⱼ > shift(v, 1)ⱼ`, giving `t > shift(v, 1)` by T1(i) — contradicting `t < shift(v, 1)`.
 
-*Case j = m.* Then `tᵢ = vᵢ` for `i < m`. Since `shift(v, 1)ᵢ = vᵢ` for `i < m` by TumblerAdd's prefix rule (the action point of `δ(1, m)` is `m`, so all components at positions `i < m` are copied from `v` unchanged), we get `tᵢ = shift(v, 1)ᵢ` for `i < m`, so the first divergence between `t` and `shift(v, 1)` is at position `m`. Since `tᵢ = vᵢ` for `i < m` and `t ≠ v` (with `#t = #v = m`), the divergence at `j = m` between `t` and `v` is also real: `t_m ≠ v_m`. Combined with `v ≤ t`, this gives `v < t`, and T1(i) applied to `v < t` with first divergence at `m` yields strict `t_m > v_m`, i.e., `t_m ≥ v_m + 1` (NAT). From `t < shift(v, 1)` with first divergence at `m`: `t_m < shift(v, 1)_m = v_m + 1` (NAT) by T1(i). But `t_m ≥ v_m + 1` and `t_m < v_m + 1` are incompatible — contradiction.
+*Case j = m.* Then `tᵢ = vᵢ` for `i < m`. Since `shift(v, 1)ᵢ = vᵢ` for `i < m` by TumblerAdd's prefix rule (the action point of `δ(1, m)` is `m`, so all components at positions `i < m` are copied from `v` unchanged), we get `tᵢ = shift(v, 1)ᵢ` for `i < m`, so the first divergence between `t` and `shift(v, 1)` is at position `m`. Since `tᵢ = vᵢ` for `i < m` and `t ≠ v` (with `#t = #v = m`), the divergence at `j = m` between `t` and `v` is also real: `t_m ≠ v_m`. Combined with `v ≤ t`, this gives `v < t`, and T1(i) applied to `v < t` with first divergence at `m` yields strict `t_m > v_m`, i.e., `t_m ≥ v_m + 1` (NAT). From `t < shift(v, 1)` with first divergence at `m`: `t_m < shift(v, 1)_m = v_m + 1` (NAT) by T1(i). But `t_m ≥ v_m + 1` and `t_m < v_m + 1` are incompatible — contradiction. ∎ *(lemma)*
 
-Both cases yield contradictions. Since all V-positions in subspace `S` have depth `m` (S8-depth), no distinct V-position in the same subspace falls in `v`'s singleton interval.
+*Application to w.* The hypotheses `w₁ = v₁ = S`, `#w = m` (S8-depth), and `w ≠ v` are exactly the lemma's antecedents, so `w ∉ [v, shift(v, 1))`. Since all V-positions in subspace `S` share depth `m` (S8-depth) and the lemma applies to every such position distinct from `v`, no distinct V-position in the same subspace falls in `v`'s singleton interval.
 
 *Remark.* S8-depth is essential. Without it, `dom(M(d))` could contain `s.3` (depth 2) and `s.3.1` (depth 3). By T1(ii), `s.3 < s.3.1` (prefix extension), and by T1(i) at position 2, `s.3.1 < s.4`. The position `s.3.1` would fall in the singleton interval of both `s.3` and `s.3.1` — violating unique partition.
 
@@ -476,7 +478,7 @@ of length m − 1. The condition `w₁ = 0` is structurally necessary: it ensure
 
 The definitions above decompose V-positions into subspace context and ordinal operand. We now establish that the decomposition is structure-preserving: tumbler addition commutes with extraction. This is the property that makes the definitions more than naming conventions — it connects V-position arithmetic to TA7a's closure guarantees on S.
 
-**OrdAddHom** — *OrdinalAdditionHomomorphism* (LEMMA). For a V-position `v` with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, `Pos(w)` (TA-Pos, ASN-0034), and `actionPoint(w) ≤ m`:
+**OrdAddHom** — *OrdinalAdditionHomomorphism* (LEMMA). For a V-position `v` with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, and `Pos(w)` (TA-Pos, ASN-0034):
 
 `ord(v ⊕ w) = ord(v) ⊕ w_ord`
 
@@ -505,9 +507,9 @@ So `ord(v) ⊕ w_ord = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`. T
 *Instance (b).* Let `v = [1, 3, 5]`, `w = [0, 4, 0]` (action point 2). Then `v ⊕ w = [1, 7, 0]` and `ord([1, 7, 0]) = [7, 0]`. On the right, `ord(v) = [3, 5]` and `w_ord = [4, 0]`, giving `[3, 5] ⊕ [4, 0] = [7, 0]`. Both sides agree. Note that `[7, 0] ∉ S` — the zero in the tail component after the action point places the result outside TA7a's domain S, illustrating the S-membership boundary.
 
 *Formal Contract:*
-- *Preconditions:* `v ∈ T`, `#v = m ≥ 2`; `w ∈ T`, `Pos(w)` (TA-Pos, ASN-0034), `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
+- *Preconditions:* `v ∈ T`, `#v = m ≥ 2`; `w ∈ T`, `Pos(w)` (TA-Pos, ASN-0034), `#w = m`, `w₁ = 0`. (The bound `actionPoint(w) ≤ m` is not stated separately: ActionPoint's contract in ASN-0034 already gives `1 ≤ actionPoint(w) ≤ #w`, and `#w = m` then forces `actionPoint(w) ≤ m`.)
 - *Postconditions:* (a) `ord(v ⊕ w) = ord(v) ⊕ w_ord`. (b) `subspace(v ⊕ w) = subspace(v)`. (c) `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)`. (Derivations of (b) and (c) are given in the proof body above.)
-- *Depends:* ord, w_ord, vpos (definitions above); TumblerAdd (PositionAdvance, ASN-0034) — the three-region component formula; TA0 (length preservation, ASN-0034) — for part (c).
+- *Depends:* ord, w_ord, vpos (definitions above); TumblerAdd (PositionAdvance, ASN-0034) — the three-region component formula; TA0 (length preservation, ASN-0034) — for part (c); ActionPoint (ASN-0034) — for the implicit `actionPoint(w) ≤ m` bound.
 - *Frame:* Both sides are computed from `v` and `w` alone — no state is consulted.
 
 **OrdAddS8a** — *AdditionPreservesS8a* (LEMMA). For a V-position `v` satisfying S8a with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, `Pos(w)` (TA-Pos, ASN-0034), and `actionPoint(w) ≤ m`: `v ⊕ w` satisfies S8a if and only if all components of `w_ord` after its action point are positive.
@@ -627,7 +629,7 @@ where the tuple has length m, the common V-position depth in the text subspace (
 
 **Step 4: finiteness.** By S8-fin (Finite arrangement), dom(M(d)) is finite, so V_1(d) ⊆ dom(M(d)) is finite. The k-values form a finite contiguous range.
 
-**Assembly.** The k-values form a finite contiguous range of positive integers (Step 3, Step 4) beginning at 1 (Step 2). Therefore there exists n ≥ 1 such that the k-values are exactly {1, 2, …, n}. By Step 1, V_1(d) = {[1, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
+**Assembly.** The k-values form a finite contiguous set of positive integers (Step 3, Step 4) that contains 1 (Step 2). Let n = max(k-values); this maximum is well-defined since the set is finite and non-empty (1 ∈ k-values). Then n ≥ 1. By Step 3 applied between 1 and n, every integer with 1 ≤ k ≤ n is attained, so {1, …, n} ⊆ k-values. By definition of n as the maximum, k-values ⊆ {1, …, n}. Hence the k-values are exactly {1, 2, …, n}. By Step 1, V_1(d) = {[1, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
 
 *Formal Contract:*
 - *Preconditions:* V_1(d) non-empty; common V-position depth m (S8-depth), with `m ≥ 2` inherited from S8a.
@@ -670,11 +672,17 @@ We work with the arrangement M(d) and the contiguity constraint D-CTG from above
 
 When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as v₀, v₁, ..., v_{N−1} where v₀ is the minimum (D-MIN) and v_{j+1} = shift(v_j, 1) for 0 ≤ j < N − 1 (D-SEQ).
 
-**Definition (ValidInsertionPosition).** A V-position v is a *valid insertion position* in the text subspace of document d satisfying D-CTG when one of two cases holds:
+**Definition (ValidInsertionPosition).** The predicate is *ternary*: `ValidInsertionPosition(d, v, m)`, where d is a document, v is a V-position, and m is a depth value. The role of m differs by case:
 
-- *Non-empty subspace.* V_1(d) ≠ ∅ with |V_1(d)| = N. Write m for the common V-position depth in the text subspace (S8-depth); m ≥ 2, since the first position placed is established by the empty case, which requires m ≥ 2, and S8-depth preserves depth thereafter. Then either v = min(V_1(d)) (the j = 0 case) or v = shift(min(V_1(d)), j) for some j with 1 ≤ j ≤ N. In both cases, #v = m.
+- *Non-empty case (m determined by state).* When V_1(d) ≠ ∅, m must equal the common V-position depth of V_1(d) fixed by S8-depth; any other value of m makes the predicate false. So in the non-empty case the third argument is functionally redundant — it is determined by d — and the predicate may be written as the binary `ValidInsertionPosition(d, v)` with m read from state.
 
-- *Empty subspace.* V_1(d) = ∅. Then v = [1, 1, ..., 1] of depth m ≥ 2, establishing the text subspace's V-position depth at m. The lower bound m ≥ 2 is necessary: at m = 1, v = [1] and shift([1], 1) = [1] ⊕ δ(1, 1) = [1] ⊕ [1]; the action point of [1] is k = 1, so TumblerAdd gives r₁ = 1 + 1 = 2, producing [2] — a position in subspace 2, not 1. For m ≥ 2, δ(n, m) has action point m, and since m > 1, TumblerAdd copies component 1 unchanged — OrdinalShift preserves the subspace identifier. This is the canonical minimum position required by D-MIN. **The specific value of m beyond the bound m ≥ 2 is not fixed by the strand model.** The strand-level constraint is the lower bound only — Nelson explicitly leaves "subdivision by further digits" open as "a distinct possibility" for which "several possible uses have been discussed" (LM 4/31). Which value of m the empty case commits to is an *allocation convention* fixed by the operation that places the first position; basic INSERT typically commits to m = 2, but the architecture does not require this. Once any position is placed, S8-depth fixes the depth at the chosen m for all subsequent positions in the text subspace.
+- *Empty case (m an operational input).* When V_1(d) = ∅, no V-position constrains the depth, so m is an operational parameter chosen by the placing operation, subject only to m ≥ 2. The predicate is genuinely ternary in this case: distinct values of m identify distinct valid positions.
+
+A triple `(d, v, m)` satisfies `ValidInsertionPosition(d, v, m)` in the text subspace of document d satisfying D-CTG when one of two cases holds:
+
+- *Non-empty subspace.* V_1(d) ≠ ∅ with |V_1(d)| = N, and m equals the common V-position depth of V_1(d) (S8-depth); m ≥ 2 by S8a. Then either v = min(V_1(d)) (the j = 0 case) or v = shift(min(V_1(d)), j) for some j with 1 ≤ j ≤ N. In both cases, #v = m.
+
+- *Empty subspace.* V_1(d) = ∅. Then m ≥ 2 is chosen by the caller, and v = [1, 1, ..., 1] of depth m, establishing the text subspace's V-position depth at m. The lower bound m ≥ 2 is necessary: at m = 1, v = [1] and shift([1], 1) = [1] ⊕ δ(1, 1) = [1] ⊕ [1]; the action point of [1] is k = 1, so TumblerAdd gives r₁ = 1 + 1 = 2, producing [2] — a position in subspace 2, not 1. For m ≥ 2, δ(n, m) has action point m, and since m > 1, TumblerAdd copies component 1 unchanged — OrdinalShift preserves the subspace identifier. This is the canonical minimum position required by D-MIN. **The specific value of m beyond the bound m ≥ 2 is not fixed by the strand model.** The strand-level constraint is the lower bound only — Nelson explicitly leaves "subdivision by further digits" open as "a distinct possibility" for which "several possible uses have been discussed" (LM 4/31). Which value of m the empty case commits to is an *allocation convention* fixed by the operation that places the first position; basic INSERT typically commits to m = 2, but the architecture does not require this. Once any position is placed, S8-depth fixes the depth at the chosen m for all subsequent positions in the text subspace.
 
 In both cases, v₁ = 1 is the text subspace identifier.
 
@@ -691,10 +699,11 @@ We verify the structural claims. By D-MIN, min(V_1(d)) = [1, 1, ..., 1] of depth
 *S8a consistency.* Every valid position [1, 1, ..., 1 + j] has all components strictly positive (subspace identifier is 1, intermediate components are 1, last component is 1 + j ≥ 1), so `zeros(v) = 0` and `(A i : 1 ≤ i ≤ #v : vᵢ > 0)` — satisfying S8a.
 
 *Formal Contract:*
-- *Preconditions:* Document `d` with text-subspace V-positions `V_1(d) ⊆ dom(M(d))`; D-CTG holds on V_1(d); when V_1(d) ≠ ∅, common depth `m = m_1 ≥ 2` (S8-depth, S8a).
-- *Definition:* A V-position `v` is a *valid insertion position* iff one of: (*non-empty case*) V_1(d) ≠ ∅ with N = |V_1(d)|, and `v = shift(min(V_1(d)), j)` for some `j ∈ {0, 1, ..., N}` (with `shift(·, 0) = identity`); (*empty case*) V_1(d) = ∅ and `v = [1, 1, ..., 1]` of depth m ≥ 2.
-- *Postconditions:* (a) `subspace(v) = 1` and `#v = m` (depth and subspace match the text-subspace fixed depth). (b) `v` satisfies S8a: zeros(v) = 0 and all components positive. (c) In the non-empty case, exactly N + 1 valid positions exist; in the empty case, exactly one valid position exists per choice of depth m ≥ 2. (d) For the non-empty case, the explicit form is `v = [1, 1, ..., 1 + j]` with last component `1 + j` and all preceding components equal to 1.
-- *Frame:* The specific value of m in the empty case is set by the operation that places the first position — *not* by the strand model, which fixes only m ≥ 2. Once placed, S8-depth fixes m for all subsequent positions.
+- *Signature:* `ValidInsertionPosition(d, v, m)` — a ternary predicate on document `d`, V-position `v`, and depth value `m`. In the non-empty case, `m` is functionally determined by `d` (it must equal the common depth of `V_1(d)`); in the empty case, `m` is an operational input with `m ≥ 2`.
+- *Preconditions:* Document `d` with text-subspace V-positions `V_1(d) ⊆ dom(M(d))`; D-CTG holds on V_1(d); `m ∈ ℕ` with `m ≥ 2`. (For the non-empty case, the contract additionally requires `m` to equal the common depth fixed by S8-depth, otherwise the predicate is false.)
+- *Definition:* `ValidInsertionPosition(d, v, m)` holds iff one of: (*non-empty case*) V_1(d) ≠ ∅ with N = |V_1(d)|, `m` equals the common depth of V_1(d), and `v = shift(min(V_1(d)), j)` for some `j ∈ {0, 1, ..., N}` (with `shift(·, 0) = identity`); (*empty case*) V_1(d) = ∅ and `v = [1, 1, ..., 1]` of depth `m`.
+- *Postconditions:* (a) `subspace(v) = 1` and `#v = m`. (b) `v` satisfies S8a: zeros(v) = 0 and all components positive. (c) For fixed `d` and `m`: in the non-empty case, exactly N + 1 values of `v` satisfy the predicate; in the empty case, exactly one value of `v` satisfies the predicate. (d) For the non-empty case, the explicit form is `v = [1, 1, ..., 1 + j]` with last component `1 + j` and all preceding components equal to 1.
+- *Frame:* The specific value of `m` in the empty case is set by the operation that places the first position — *not* by the strand model, which fixes only `m ≥ 2`. Once placed, S8-depth fixes `m` for all subsequent positions, at which point `m` is determined by state and the predicate's third argument becomes redundant.
 - *Depends:* D-MIN, D-CTG, D-CTG-depth, D-SEQ; S8a, S8-fin, S8-depth; OrdinalShift, TumblerAdd, T3 (ASN-0034).
 
 ### Valid insertion position examples
@@ -843,7 +852,7 @@ This has a formal consequence: document equality is not decidable by content com
 | D-MIN | V-position minimum (bound to text subspace `S = 1`): non-empty V_1(d) has minimum [1, 1, ..., 1] with every component equal to 1 — design constraint | design requirement (text subspace) |
 | D-CTG-depth | Shared prefix reduction (bound to text subspace `S = 1`, applies wherever D-CTG holds): at depth m ≥ 3, all positions in V_1(d) share components 2 through m − 1, so contiguity reduces to the last component | corollary of D-CTG, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
 | D-SEQ | Sequential positions (bound to text subspace `S = 1`): non-empty V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | from D-CTG, D-CTG-depth, D-MIN, S8a, S8-fin, S8-depth, T1 (ASN-0034) |
-| ValidInsertionPosition | (bound to text subspace `S = 1`): if V_1(d) ≠ ∅: v = min(V_1(d)) or v = shift(min(V_1(d)), j) with 1 ≤ j ≤ N, common depth m ≥ 2; if V_1(d) = ∅: v = [1, 1, ..., 1] of depth m ≥ 2 | introduced |
+| ValidInsertionPosition | Ternary predicate `ValidInsertionPosition(d, v, m)` (bound to text subspace `S = 1`): if V_1(d) ≠ ∅: m = common depth of V_1(d) (state-determined), and v = min(V_1(d)) or v = shift(min(V_1(d)), j) with 1 ≤ j ≤ N; if V_1(d) = ∅: m ≥ 2 is an operational input, and v = [1, 1, ..., 1] of depth m | introduced |
 | S9 | Two-stream separation: arrangement changes cannot alter stored content | theorem from S0 |
 
 
