@@ -34,7 +34,6 @@ from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude_agent
 from lib.shared.paths import (
     LATTICE, NOTE_DIR, USAGE_LOG, WORKSPACE,
@@ -314,8 +313,6 @@ class NoteDraftAgent(Agent):
         note_path = _run_draft_for_inquiry(asn_num)
         if note_path is None:
             return AgentResult(success=False, detail="draft-failed")
-
-        step_commit_asn(asn_num, f"note-draft(asn): {asn_label}")
 
         return AgentResult(
             success=True,

@@ -31,7 +31,6 @@ from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
 from lib.shared.common import find_asn
 from lib.shared.foundation import _extract_formal_contract
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
     CLAIM_DIR, FORMAL_CONTRACT_DIR, LATTICE, claim_statements, prompt_path,
@@ -394,14 +393,6 @@ class ClaimFormalContractAgent(Agent):
         _, run_num = _persist_resolve_doc(
             asn_label, claim_label, cycles_used, final_response,
             review_detail, match, validation_detail, self.model,
-        )
-
-        step_commit_asn(
-            asn_num,
-            hint=(
-                f"claim-formal-contract(asn): {asn_label}/{claim_label} — "
-                f"{'MATCH' if match else 'MISMATCH'}, run {run_num}"
-            ),
         )
 
         return AgentResult(success=True, detail=f"emitted match={match}")

@@ -36,7 +36,6 @@ from lib.lattice.labels import (
 )
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import read_file
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.llm_response import invoke_text, parse_two_sections
 from lib.shared.paths import CITATION_RESOLVE_DIR, WORKSPACE, prompt_path
 from lib.shared.prompts import read_prompt
@@ -573,14 +572,6 @@ class ClaimCitationResolveAgent(Agent):
         print(
             f"  [CITATION-RESOLVE] {claim_label}: {summary}, run {run_num}",
             file=sys.stderr,
-        )
-
-        step_commit_asn(
-            asn_num,
-            hint=(
-                f"citation-resolve(asn): {asn_label}/{claim_label} — "
-                f"{summary}"
-            ),
         )
 
         return AgentResult(

@@ -58,7 +58,6 @@ from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import assemble_readonly, find_asn, log_usage, read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude, invoke_claude_agent
 from lib.shared.paths import (
     CLAIM_REVIEWS_DIR, LATTICE,
@@ -249,7 +248,6 @@ class ClaimPatchAgent(Agent):
         for derived in derived_claims(session, note_addr):
             session.register_version(derived)
         log_usage("claim-patch-apply", 0, asn=asn_num)
-        step_commit_asn(asn_num, f"patch(asn): {asn_label} apply {patch_filename}")
 
         # 4. Patch-scoped review
         review_text = _patch_scoped_review(
@@ -274,10 +272,6 @@ class ClaimPatchAgent(Agent):
 
         # 6. Final commit
         log_usage("claim-patch-complete", 0, asn=asn_num)
-        step_commit_asn(
-            asn_num,
-            f"patch(asn): {asn_label} review-{review_num} {patch_filename}",
-        )
 
         print(
             f"  [REVIEW] Emitted review-{review_num} covering "

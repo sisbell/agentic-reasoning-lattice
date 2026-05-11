@@ -34,7 +34,6 @@ from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
     NOTE_FINDINGS_DIR, REVIEWS_DIR, USAGE_LOG, WORKSPACE,
@@ -285,10 +284,6 @@ class NoteReviewAgent(Agent):
 
         # Commit the review aggregate + finding docs + substrate emits
         # as a discrete pipeline event (matches cone-review pattern).
-        step_commit_asn(
-            asn_number,
-            f"note-review(asn): {asn_label} {review_path.name}",
-        )
 
         return AgentResult(
             success=True,

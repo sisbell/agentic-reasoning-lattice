@@ -42,7 +42,6 @@ from lib.lattice.labels import (
     parse_claim_doc_path,
 )
 from lib.protocols.febe.protocol import Session
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import CLAIM_FINDINGS_DIR
 
 
@@ -91,10 +90,6 @@ class ClaimFindingsAgent(Agent):
             f"  [CLAIM-FINDINGS] {asn_label} {review_stem} "
             f"emitted={len(emitted)}/{len(findings)}",
             file=sys.stderr,
-        )
-        step_commit_asn(
-            asn_num,
-            f"claim-findings(asn): {asn_label} {review_stem} emitted={len(emitted)}",
         )
         return AgentResult(
             success=True, detail=f"emitted={len(emitted)}",

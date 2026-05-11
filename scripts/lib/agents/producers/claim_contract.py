@@ -29,7 +29,6 @@ from lib.backend.addressing import Address
 from lib.backend.emit import emit_contract
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import read_file
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.llm_response import invoke_text, parse_yaml_dict
 from lib.lattice.labels import parse_claim_doc_path
 from lib.shared.paths import CLAIM_CONTRACT_DIR, LATTICE, prompt_path
@@ -192,14 +191,6 @@ class ClaimContractAgent(Agent):
 
         _, run_num = _persist_resolve_doc(
             asn_label, claim_label, result.raw_text, self.model,
-        )
-
-        step_commit_asn(
-            asn_num,
-            hint=(
-                f"claim-contract(asn): {asn_label}/{claim_label} — "
-                f"{result.kind}, run {run_num}"
-            ),
         )
 
         return AgentResult(success=True, detail=f"kind={result.kind}")

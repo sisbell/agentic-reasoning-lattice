@@ -52,7 +52,6 @@ from lib.protocols.febe.session import open_session
 from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import get_total_usage
 from lib.shared.paths import (
     LATTICE, NOTE_FINDINGS_DIR, REVIEWS_DIR, WORKSPACE,
@@ -560,11 +559,6 @@ class NoteConsultAgent(Agent):
         )
         if consult_subdir is None:
             return AgentResult(success=False, detail="consult-failed")
-
-        step_commit_asn(
-            asn_number,
-            f"note-consult(asn): {asn_label} review-{review_num}",
-        )
 
         return AgentResult(
             success=True,

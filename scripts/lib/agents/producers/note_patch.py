@@ -63,7 +63,6 @@ from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude, invoke_claude_agent
 from lib.shared.paths import (
     LATTICE, NOTE_FINDINGS_DIR, NOTE_REVIEWS_DIR,
@@ -327,7 +326,6 @@ class NotePatchAgent(Agent):
         # downstream cascade-fresh predicates detect the edit.
         session.register_version(note_addr)
         log_usage("patch-apply", 0, asn=asn_num)
-        step_commit_asn(asn_num, f"patch(asn): {asn_label} apply {patch_filename}")
 
         # 4. One-shot patch-scoped review (emits review + findings as
         #    first-class substrate so note_revise picks them up).
@@ -347,11 +345,6 @@ class NotePatchAgent(Agent):
 
         # 6. Final commit
         log_usage("patch-complete", 0, asn=asn_num)
-        step_commit_asn(
-            asn_num,
-            f"patch(asn): {asn_label} complete {patch_filename} "
-            f"({n_findings} findings)",
-        )
 
         return AgentResult(
             success=True,

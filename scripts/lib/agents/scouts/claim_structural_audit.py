@@ -40,7 +40,6 @@ from lib.backend.emit import (
 )
 from lib.protocols.febe.protocol import Session
 from lib.lattice.labels import parse_claim_doc_path
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import (
     CLAIM_AUDITS_DIR, CLAIM_DIR, CLAIM_FINDINGS_DIR, WORKSPACE,
     audit_doc_path, next_audit_number,
@@ -220,12 +219,6 @@ class ClaimStructuralAuditAgent(Agent):
             f"  [STRUCTURAL-AUDIT] {asn_label}/{claim_label} "
             f"audit-{audit_num} violations={len(relevant)}",
             file=sys.stderr,
-        )
-
-        step_commit_asn(
-            asn_num,
-            f"claim-structural-audit(asn): {asn_label}/{claim_label} "
-            f"audit-{audit_num} violations={len(relevant)}",
         )
 
         return AgentResult(

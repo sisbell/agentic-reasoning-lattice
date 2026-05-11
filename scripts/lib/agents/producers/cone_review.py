@@ -44,7 +44,6 @@ from lib.lattice.labels import build_cross_asn_label_index
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import CLAIM_DIR, CLAIM_REVIEWS_DIR, next_review_number
 from lib.shared.validate_gate import run_validate_gate
 
@@ -417,10 +416,6 @@ class ConeReviewAgent(Agent):
             sync_claim_citations(session, from_addr, label_index)
 
         # 6. Commit the review-doc emission as a cycle event.
-        step_commit_asn(
-            ctx.asn_num,
-            f"cone-review(asn): {ctx.asn_label}/{ctx.label} review-{review_num}",
-        )
 
         return AgentResult(success=True, detail=verdict)
 

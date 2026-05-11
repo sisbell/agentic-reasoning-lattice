@@ -80,7 +80,6 @@ from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.foundation import load_foundation_for_note
 from lib.shared.frontmatter import read_doc_with_frontmatter
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude, invoke_claude_agent
 from lib.shared.paths import (
     ABSORB_DIR, ABSORB_INBOX, LATTICE, NOTE_FINDINGS_DIR, NOTE_REVIEWS_DIR,
@@ -526,10 +525,6 @@ class NoteAbsorbAgent(Agent):
         if base_addr_for_version is not None:
             session.register_version(base_addr_for_version)
         log_usage("absorb-integrate", 0, ext=ext_num, base=base_num)
-        step_commit_asn(
-            base_num,
-            f"absorb(asn): integrate {ext_label} into {base_label}",
-        )
 
         # 5. One-shot integration review (emits findings as substrate)
         ext_content = ext_path.read_text()
@@ -565,11 +560,6 @@ class NoteAbsorbAgent(Agent):
 
         # 9. Final commit
         log_usage("absorb-complete", 0, ext=ext_num, base=base_num)
-        step_commit_asn(
-            base_num,
-            f"absorb(asn): {ext_label} absorbed into {base_label} "
-            f"({n_findings} integration findings)",
-        )
 
         return AgentResult(
             success=True,

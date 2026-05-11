@@ -33,7 +33,6 @@ from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import invoke_claude_agent
 from lib.shared.paths import (
     USAGE_LOG, WORKSPACE, prompt_path,
@@ -298,10 +297,6 @@ class NoteReviseAgent(Agent):
 
         # Commit the revise edits + resolution links emitted by the
         # in-process Claude session as a discrete pipeline event.
-        step_commit_asn(
-            asn_number,
-            f"note-revise(asn): {asn_label} addressed={len(findings)}",
-        )
 
         return AgentResult(
             success=True,

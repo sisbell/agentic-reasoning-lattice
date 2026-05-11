@@ -34,7 +34,6 @@ from lib.lattice.notation import read_notation
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
 from lib.shared.common import read_file
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.llm_response import invoke_text, parse_two_sections
 from lib.shared.paths import (
     CLAIM_DIR, LATTICE, SIGNATURE_RESOLVE_DIR, prompt_path,
@@ -379,14 +378,6 @@ class ClaimSignatureResolveAgent(Agent):
         print(
             f"  [SIG-RESOLVE] {claim_label}: {summary}, run {run_num}",
             file=sys.stderr,
-        )
-
-        step_commit_asn(
-            asn_num,
-            hint=(
-                f"signature-resolve(asn): {asn_label}/{claim_label} — "
-                f"{summary}"
-            ),
         )
 
         return AgentResult(

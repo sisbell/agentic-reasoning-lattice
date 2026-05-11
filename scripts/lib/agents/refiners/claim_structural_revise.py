@@ -43,7 +43,6 @@ from lib.lattice.labels import (
 from lib.predicates import has_resolution
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.paths import CLAIM_DIR, LATTICE, WORKSPACE, prompt_path
 from lib.shared.invoke_claude import invoke_claude_agent
 
@@ -814,10 +813,6 @@ class ClaimStructuralReviseAgent(Agent):
         # Final commit hook — per-rule edits commit individually via
         # _commit_file; this is the agent-fire boundary marker. No-op
         # if every per-rule commit already landed.
-        step_commit_asn(
-            asn_num,
-            f"claim-structural-revise(asn): {asn_label}/{claim_label}",
-        )
 
         return AgentResult(
             success=True,

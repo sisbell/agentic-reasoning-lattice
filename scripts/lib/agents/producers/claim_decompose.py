@@ -35,7 +35,6 @@ from lib.backend.emit import emit_claim, emit_derivation
 from lib.lattice.attributes import attest_attribute
 from lib.lattice.labels import extract_label_digits, format_label
 from lib.protocols.febe.protocol import Session
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import parallel_llm_calls
 from lib.shared.paths import CLAIM_DIR, WORKSPACE
 
@@ -293,7 +292,6 @@ class ClaimDecomposeAgent(Agent):
             file=sys.stderr,
         )
 
-        step_commit_asn(asn_number, hint="decompose")
         return AgentResult(
             success=not failed,
             detail=(

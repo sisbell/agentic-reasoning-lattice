@@ -39,7 +39,6 @@ from lib.protocols.febe.session import open_session
 from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
-from lib.shared.git_ops import step_commit_asn
 from lib.shared.invoke_claude import get_total_usage, reset_total_usage
 from lib.shared.paths import (
     WORKSPACE, CONSULTATIONS_DIR, LATTICE,
@@ -485,8 +484,6 @@ class InquiryConsultAgent(Agent):
         consult_dir = _run_consult_for_inquiry(asn_num, model=self.model)
         if consult_dir is None:
             return AgentResult(success=False, detail="consult-failed")
-
-        step_commit_asn(asn_num, f"inquiry-consult(asn): {asn_label}")
 
         return AgentResult(
             success=True,
