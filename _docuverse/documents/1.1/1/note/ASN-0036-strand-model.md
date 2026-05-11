@@ -338,6 +338,12 @@ A V-position represents the element field of a full document-scoped address — 
 
 *Remark.* The shared vocabulary identifies a second subspace for links (v₁ = 2, per T4 and LM 4/30). Link-subspace V-positions satisfy the same `zeros(v) = 0`, `#v ≥ 2`, and componentwise positivity constraints as text-subspace positions — both are element-field tumblers of depth ≥ 2 with strictly positive components. The subspace identifier (1 for text, 2 for links) is the first component of the element field; the `0` in tumbler notation (e.g., `N.0.U.0.D.0.2.1`) is a field separator, not a subspace identifier. S8a holds uniformly across both subspaces, but the contiguity properties D-CTG, D-MIN, D-CTG-depth, and D-SEQ developed below are required only for the text subspace `S = 1`; the link subspace's sparse, append-only-with-tombstones semantics are deferred to a future ASN.
 
+*Remark (subspace alignment deferred).* A natural-seeming companion invariant to S8a is *subspace alignment* — the requirement that each V-position resolve to an I-address in the matching subspace:
+
+`(A d, v : v ∈ dom(Σ.M(d)) :: subspace(v) = subspace_I(Σ.M(d)(v)))`
+
+The strand model deliberately does not impose this constraint. Nelson treats alignment between V-position subspace and I-address subspace as a property to be established by specific editing operations rather than a state-level invariant on arrangements: his architectural prose discusses subspace-respecting allocations only in the context of INSERT, COPY, and REARRANGE behaviour, never as a well-formedness condition on `M(d)` itself. Gregory's implementation confirms the same choice — the well-formedness predicate `acceptablevsa` returns true unconditionally, performing no subspace check, and subspace agreement is verified only as a post-hoc rendering filter (`doshowrelationof2versions`) when content is displayed, not as a structural constraint on the arrangement state. We therefore treat subspace alignment as an *operations-layer preservation obligation*: each editing operation (INSERT, DELETE, COPY, REARRANGE) must establish that its produced V↔I mappings respect subspace agreement, but the strand model does not assert alignment as a universal property of every well-formed arrangement. The strand-level commitments — S8a for V-position structure, S7c for I-address structure — bound the two sides independently; bridging their subspace identifiers is an operation-level guarantee, not a strand-level invariant.
+
 *Proof.* S8a is a design requirement: V-positions are element-field tumblers of depth at least 2, paralleling S7c for I-address element fields. T4 (HierarchicalParsing, ASN-0034) constrains the structure of every field, and S7c-analog reasoning fixes the depth lower bound. We show each conjunct follows from this structural commitment.
 
 A full element-level I-address has the form `N.0.U.0.D.0.E` where `N`, `U`, `D`, `E` are the node, user, document, and element fields respectively, separated by zero-valued components (the projections supplied by T4b, ASN-0034). The arrangement `M(d)` maps V-positions to such I-addresses (S3, S7b). A V-position `v` is structurally an element-field tumbler — the same shape as `E(a)` extracted from a document-scoped address. As an isolated field, `v` contains no field separators: the zeros in the full address are inter-field boundaries, not intra-field components. Therefore `zeros(v) = 0`.
@@ -388,7 +394,7 @@ Each run represents a contiguous block of content that entered the arrangement a
 
 *Non-canonicality.* This is the *trivial decomposition*: every arrangement admits it, since singletons satisfy (a) and (b) by construction. S8 asserts existence of *some* finite decomposition, not minimum cardinality — coarser decompositions exist whenever consecutive `(vⱼ, aⱼ)` pairs admit the index-arithmetic identity `M(d)(shift(v, k)) = shift(a, k)` for `k > 0`, but their occurrence and preservation are determined by operations-layer behavior (whether allocations are consecutive, whether operations coalesce adjacent runs). The architectural discussion of `#runs(d)` below addresses typical operational regimes; the invariant itself does not commit to a canonical run count.
 
-**Coverage.** Each `v ∈ dom(M(d))` lies in its own singleton's interval: `v ≤ v < shift(v, 1)`, where the right inequality holds because `shift(v, 1) = v ⊕ δ(1, m) > v` by TumblerAdd's strictness postcondition (`a ⊕ w > a` whenever `w > 0`, applied to `w = δ(1, m)`). So every V-position falls in at least one run.
+**Coverage.** Each `v ∈ dom(M(d))` lies in its own singleton's interval: `v ≤ v < shift(v, 1)`, where the right inequality holds because `shift(v, 1) > v` by TS4 (ShiftStrictIncrease, ASN-0034). So every V-position falls in at least one run.
 
 **Uniqueness within a subspace.** Let `v, w ∈ dom(M(d))` be distinct V-positions with `v₁ = w₁ = S`. By S8-depth, `#v = #w = m` for some common depth `m`. We show `w ∉ [v, shift(v, 1))`.
 
@@ -410,9 +416,9 @@ Both cases yield contradictions. Since all V-positions in subspace `S` have dept
 
 (The depth-1 case `m = 1` is excluded by S8a — V-positions of depth 1 do not occur. Were they permitted, each subspace would contain at most one depth-1 V-position `[S]`, with cross-subspace uniqueness following from T1(i): tumblers extending `[S₁]` cannot equal tumblers extending the distinct prefix `[S₂]`.)
 
-For `m ≥ 2` (the only case under S8a), the successor `shift(v, 1)` also extends `[S₁]`: since `sig(v) = m ≥ 2`, TA5(b) gives `shift(v, 1)ᵢ = vᵢ` for all `i < sig(v)`, so in particular `shift(v, 1)₁ = v₁ = S₁`.
+For `m ≥ 2` (the only case under S8a), the successor `shift(v, 1)` also extends `[S₁]`: by OrdinalShift (ASN-0034), `shift(v, 1) = v ⊕ δ(1, m)`, and since `δ(1, m)` has action point `m`, TumblerAdd's prefix rule (ASN-0034) copies every component at positions `i < m` from `v` unchanged. Since `m ≥ 2`, this includes position 1, giving `shift(v, 1)₁ = v₁ = S₁`.
 
-Since `[S₁] ≼ v` and `[S₁] ≼ shift(v, 1)` and `v ≤ shift(v, 1)` by TA5(a), T5 (ContiguousSubtrees, ASN-0034) gives: for any `t` with `v ≤ t ≤ shift(v, 1)`, `[S₁] ≼ t`. Every element of `[v, shift(v, 1))` therefore extends `[S₁]`. By T10 (ASN-0034), since `[S₁]` and `[S₂]` are non-nesting prefixes, any tumbler extending `[S₁]` is distinct from any tumbler extending `[S₂]`. In particular, `w` (which extends `[S₂]`) cannot belong to `[v, shift(v, 1))`.
+Since `[S₁] ≼ v` and `[S₁] ≼ shift(v, 1)` and `v ≤ shift(v, 1)` by TS4 (ShiftStrictIncrease, ASN-0034), T5 (ContiguousSubtrees, ASN-0034) gives: for any `t` with `v ≤ t ≤ shift(v, 1)`, `[S₁] ≼ t`. Every element of `[v, shift(v, 1))` therefore extends `[S₁]`. By T10 (ASN-0034), since `[S₁]` and `[S₂]` are non-nesting prefixes, any tumbler extending `[S₁]` is distinct from any tumbler extending `[S₂]`. In particular, `w` (which extends `[S₂]`) cannot belong to `[v, shift(v, 1))`.
 
 **Conclusion.** The singleton runs cover every V-position in `dom(M(d))` (coverage) and no V-position falls in two distinct singleton intervals (uniqueness within and across subspaces). The singletons partition `dom(M(d))`. Since `dom(M(d))` is finite (S8-fin), the decomposition is finite, establishing both conjuncts (a) and (b). ∎
 
@@ -438,7 +444,7 @@ S8a establishes V-positions as element-field tumblers whose first component is t
 *Formal Contract:*
 - *Preconditions:* `v ∈ T`, `#v ≥ 2`.
 - *Definition:* `ord(v) = [v₂, ..., vₘ]` where `m = #v`.
-- *Postconditions:* `ord(v) ∈ T` (length `m - 1 ≥ 1`, satisfying T0). `#ord(v) = #v - 1`. When `v` satisfies S8a (`zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0`), `ord(v) ∈ S` — every component of `[v₂, ..., vₘ]` is positive since every component of `v` is positive by S8a.
+- *Postconditions:* `ord(v) ∈ T` (length `m - 1 ≥ 1`, satisfying T0). `#ord(v) = #v - 1`. When `v` satisfies S8a, `ord(v) ∈ S` — every component of `[v₂, ..., vₘ]` is positive since every component of `v` is positive by S8a's componentwise positivity conjunct `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
 - *Depends:* T0 (ℕ-valued carrier, ASN-0034); TA7a (ordinal-only formulation, ASN-0034) — defines the codomain S; S8a (V-position well-formedness) — for the S-membership postcondition.
 - *Frame:* Pure function on the component sequence of `v` — no state is read or modified.
 
@@ -451,7 +457,7 @@ with #vpos(S, o) = k + 1. These are inverses: ord(vpos(S, o)) = o and vpos(subsp
 *Formal Contract:*
 - *Preconditions:* `S ∈ ℕ`, `o ∈ T`, `#o ≥ 1`.
 - *Definition:* `vpos(S, o) = [S, o₁, ..., oₖ]` where `k = #o`.
-- *Postconditions:* `vpos(S, o) ∈ T`, `#vpos(S, o) = #o + 1`, `vpos(S, o)₁ = S`. (a) `ord(vpos(S, o)) = o` — since `vpos(S, o) = [S, o₁, ..., oₖ]`, stripping the first component recovers `[o₁, ..., oₖ] = o`. (b) For any `v ∈ T` with `#v ≥ 2`: `vpos(subspace(v), ord(v)) = v` — since `subspace(v) = v₁` and `ord(v) = [v₂, ..., vₘ]`, reconstruction gives `[v₁, v₂, ..., vₘ] = v`. Both inverse properties are pure sequence identities that hold unconditionally on T. When `S ≥ 1` and `(A i : 1 ≤ i ≤ #o : oᵢ > 0)`, the result satisfies S8a: `zeros(vpos(S, o)) = 0` (S ≥ 1 and each oᵢ > 0, so no component is zero) and `vpos(S, o) > 0`.
+- *Postconditions:* `vpos(S, o) ∈ T`, `#vpos(S, o) = #o + 1`, `vpos(S, o)₁ = S`. (a) `ord(vpos(S, o)) = o` — since `vpos(S, o) = [S, o₁, ..., oₖ]`, stripping the first component recovers `[o₁, ..., oₖ] = o`. (b) For any `v ∈ T` with `#v ≥ 2`: `vpos(subspace(v), ord(v)) = v` — since `subspace(v) = v₁` and `ord(v) = [v₂, ..., vₘ]`, reconstruction gives `[v₁, v₂, ..., vₘ] = v`. Both inverse properties are pure sequence identities that hold unconditionally on T. When `S ≥ 1` and `(A i : 1 ≤ i ≤ #o : oᵢ > 0)`, the result satisfies S8a: `zeros(vpos(S, o)) = 0` (no component is zero — `S ≥ 1` covers component 1 and each `oᵢ > 0` covers components 2 through `k + 1`), `#vpos(S, o) = k + 1 ≥ 2` (since `k = #o ≥ 1`), and `(A i : 1 ≤ i ≤ #vpos(S, o) : vpos(S, o)ᵢ > 0)` (componentwise positivity, by the same component-by-component argument).
 - *Depends:* T0 (ℕ-valued carrier, ASN-0034); ord (definition above) — for the inverse property (a); S8a — for the satisfies-S8a postcondition.
 - *Frame:* Pure function on `S` and the component sequence of `o` — no state is read or modified.
 
@@ -464,13 +470,13 @@ of length m − 1. The condition `w₁ = 0` is structurally necessary: it ensure
 *Formal Contract:*
 - *Preconditions:* `w ∈ T`, `#w ≥ 2`, `w₁ = 0`.
 - *Definition:* `w_ord = [w₂, ..., wₘ]` where `m = #w`.
-- *Postconditions:* `w_ord ∈ T` (length `m - 1 ≥ 1`, satisfying T0). `#w_ord = #w - 1`. When `w > 0`, `w_ord > 0` — since `w₁ = 0`, positivity of `w` requires some `wᵢ > 0` with `i ≥ 2`, which appears in `w_ord`. When `w > 0`: `actionPoint(w_ord) = actionPoint(w) - 1`.
+- *Postconditions:* `w_ord ∈ T` (length `m - 1 ≥ 1`, satisfying T0). `#w_ord = #w - 1`. When `Pos(w)` (TA-Pos, ASN-0034), `Pos(w_ord)` — since `w₁ = 0`, the witness `wᵢ ≠ 0` required by `Pos(w)` must have `i ≥ 2`, and this component appears in `w_ord`. When `Pos(w)`: `actionPoint(w_ord) = actionPoint(w) - 1`.
 - *Depends:* T0 (ℕ-valued carrier, ASN-0034); TumblerAdd (ASN-0034) — for the `actionPoint` relationship.
 - *Frame:* Pure function on the component sequence of `w` — no state is read or modified.
 
 The definitions above decompose V-positions into subspace context and ordinal operand. We now establish that the decomposition is structure-preserving: tumbler addition commutes with extraction. This is the property that makes the definitions more than naming conventions — it connects V-position arithmetic to TA7a's closure guarantees on S.
 
-**OrdAddHom** — *OrdinalAdditionHomomorphism* (LEMMA). For a V-position `v` with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, `w > 0`, and `actionPoint(w) ≤ m`:
+**OrdAddHom** — *OrdinalAdditionHomomorphism* (LEMMA). For a V-position `v` with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, `Pos(w)` (TA-Pos, ASN-0034), and `actionPoint(w) ≤ m`:
 
 `ord(v ⊕ w) = ord(v) ⊕ w_ord`
 
@@ -499,12 +505,12 @@ So `ord(v) ⊕ w_ord = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`. T
 *Instance (b).* Let `v = [1, 3, 5]`, `w = [0, 4, 0]` (action point 2). Then `v ⊕ w = [1, 7, 0]` and `ord([1, 7, 0]) = [7, 0]`. On the right, `ord(v) = [3, 5]` and `w_ord = [4, 0]`, giving `[3, 5] ⊕ [4, 0] = [7, 0]`. Both sides agree. Note that `[7, 0] ∉ S` — the zero in the tail component after the action point places the result outside TA7a's domain S, illustrating the S-membership boundary.
 
 *Formal Contract:*
-- *Preconditions:* `v ∈ T`, `#v = m ≥ 2`; `w ∈ T`, `w > 0`, `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
+- *Preconditions:* `v ∈ T`, `#v = m ≥ 2`; `w ∈ T`, `Pos(w)` (TA-Pos, ASN-0034), `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
 - *Postconditions:* (a) `ord(v ⊕ w) = ord(v) ⊕ w_ord`. (b) `subspace(v ⊕ w) = subspace(v)`. (c) `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)`. (Derivations of (b) and (c) are given in the proof body above.)
 - *Depends:* ord, w_ord, vpos (definitions above); TumblerAdd (PositionAdvance, ASN-0034) — the three-region component formula; TA0 (length preservation, ASN-0034) — for part (c).
 - *Frame:* Both sides are computed from `v` and `w` alone — no state is consulted.
 
-**OrdAddS8a** — *AdditionPreservesS8a* (LEMMA). For a V-position `v` satisfying S8a with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, `w > 0`, and `actionPoint(w) ≤ m`: `v ⊕ w` satisfies S8a if and only if all components of `w_ord` after its action point are positive.
+**OrdAddS8a** — *AdditionPreservesS8a* (LEMMA). For a V-position `v` satisfying S8a with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, `Pos(w)` (TA-Pos, ASN-0034), and `actionPoint(w) ≤ m`: `v ⊕ w` satisfies S8a if and only if all components of `w_ord` after its action point are positive.
 
 *Proof.* Let `r = v ⊕ w` with `k = actionPoint(w) ≥ 2`. By TumblerAdd, the components of `r` partition into three regions:
 
@@ -513,14 +519,14 @@ So `ord(v) ⊕ w_ord = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`. T
 - At `i = k`: `rₖ = vₖ + wₖ ≥ 1 + 1 = 2` (since `vₖ ≥ 1` by S8a and `wₖ ≥ 1` as the action-point component).
 - For `k < i ≤ m`: `rᵢ = wᵢ` (copied from the displacement).
 
-Components `r₁` through `rₖ` are unconditionally positive. S8a requires `zeros(r) = 0` and `r > 0`, which reduces to: every component is positive. The only components that can fail are `r_{k+1}, ..., r_m = w_{k+1}, ..., w_m` — exactly the tail components of `w`, which are the tail components of `w_ord` (since `(w_ord)_j = w_{j+1}` and the action point of `w_ord` is `k - 1`). Therefore:
+Components `r₁` through `rₖ` are unconditionally positive. S8a requires `zeros(r) = 0` and `(A i : 1 ≤ i ≤ #r : rᵢ > 0)`, which reduces to: every component is positive. The only components that can fail are `r_{k+1}, ..., r_m = w_{k+1}, ..., w_m` — exactly the tail components of `w`, which are the tail components of `w_ord` (since `(w_ord)_j = w_{j+1}` and the action point of `w_ord` is `k - 1`). Therefore:
 
 `v ⊕ w satisfies S8a ⟺ (A i : k < i ≤ m : wᵢ > 0) ⟺ all tail components of w_ord are positive`
 
 By OrdAddHom, `ord(v ⊕ w) = ord(v) ⊕ w_ord`, so equivalently `ord(v ⊕ w) ∈ S` under the same condition — the ordinal-domain S-membership and the V-position S8a property are two views of the same constraint on the displacement's tail. Instance (b) above confirms the boundary: `w_ord = [4, 0]` has a zero after the action point, and `v ⊕ w = [1, 7, 0]` fails S8a. ∎
 
 *Formal Contract:*
-- *Preconditions:* `v ∈ T` satisfying S8a, `#v = m ≥ 2`; `w ∈ T`, `w > 0`, `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
+- *Preconditions:* `v ∈ T` satisfying S8a, `#v = m ≥ 2`; `w ∈ T`, `Pos(w)` (TA-Pos, ASN-0034), `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
 - *Postconditions:* `v ⊕ w satisfies S8a ⟺ (A i : actionPoint(w) < i ≤ m : wᵢ > 0)`. Equivalently, `ord(v ⊕ w) ∈ S ⟺ v ⊕ w satisfies S8a`.
 - *Depends:* OrdAddHom (lemma above); TumblerAdd (PositionAdvance, ASN-0034) — three-region component formula; S8a (V-position well-formedness).
 
@@ -682,7 +688,7 @@ We verify the structural claims. By D-MIN, min(V_1(d)) = [1, 1, ..., 1] of depth
 
 *Subspace identity.* Since δ(j, m) has action point m ≥ 2, TumblerAdd copies component 1 unchanged: shift(min, j)₁ = min₁ = 1 for all j ≥ 1. For j = 0, v₁ = min₁ = 1 directly.
 
-*S8a consistency.* Every valid position [1, 1, ..., 1 + j] has all components strictly positive (subspace identifier is 1, intermediate components are 1, last component is 1 + j ≥ 1), so zeros(v) = 0 and v > 0 — satisfying S8a.
+*S8a consistency.* Every valid position [1, 1, ..., 1 + j] has all components strictly positive (subspace identifier is 1, intermediate components are 1, last component is 1 + j ≥ 1), so `zeros(v) = 0` and `(A i : 1 ≤ i ≤ #v : vᵢ > 0)` — satisfying S8a.
 
 *Formal Contract:*
 - *Preconditions:* Document `d` with text-subspace V-positions `V_1(d) ⊆ dom(M(d))`; D-CTG holds on V_1(d); when V_1(d) ≠ ∅, common depth `m = m_1 ≥ 2` (S8-depth, S8a).
@@ -862,6 +868,8 @@ What invariants must the displacement mechanism satisfy so that insertion at a V
 The strand model fixes only the lower bound m ≥ 2 for V-position depth in an empty subspace; the specific value is a one-time allocation convention chosen by the first-placing operation, not a strand-level commitment. What operation-layer constraints determine the canonical choice of m (e.g., m = 2 for basic INSERT/DELETE versus deeper subdivisions Nelson contemplated)? What downstream capabilities — nested hierarchies, link subdivision, future extensibility — does each depth choice unlock or foreclose?
 
 What must an operation guarantee about existing V-to-I mappings when it inserts at a position that coincides with an occupied V-position?
+
+Subspace alignment is deferred to the operations layer (see the Remark following S8a). Which editing operations must preserve `subspace(v) = subspace_I(M(d)(v))` for every V-position they produce, and under what allocation conventions is this preservation automatic versus requiring explicit operation-level enforcement?
 
 Under what conditions on w does the subtraction homomorphism ord(v ⊖ w) = ord(v) ⊖ w_ord hold, given TA7a's conditional S-membership results for subtraction?
 
