@@ -1,3 +1,1 @@
-Characterises the self-subtraction residue: for `o ∈ S`, the no-divergence
-branch of TumblerSub produces `o ⊖ o = [0, ..., 0]`, the zero tumbler of
-length `#o`, placing it in **Z**.
+Proves that subtracting a tumbler from itself always yields the zero tumbler: for any `o ∈ S`, the no-divergence branch of TumblerSub produces `o ⊖ o = [0, ..., 0]` of length `#o`, satisfying the Zero predicate and placing the result in Z. The zero tumbler is not a valid address and acts as the fixed point of self-subtraction, marking zero displacement.
