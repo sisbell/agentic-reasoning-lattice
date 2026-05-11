@@ -68,7 +68,21 @@ def render_claim_statements(session: Session, addr: Address) -> str:
         f"Extracted: {time.strftime('%Y-%m-%d')}*\n",
     ]
 
+    # The note's outgoing `provenance.derivation` includes the
+    # aggregate itself (emitted by `ClaimsStatementsRefreshAgent._create`).
+    # Filter to docs carrying the bare `claim` classifier so we don't
+    # try to render the aggregate as a claim — without this filter,
+    # `_render_claim_block` would read the aggregate's own .md (which
+    # holds the previous render) and embed it inside the new render,
+    # compounding the file on every fire.
+    classified_claims = {
+        link.to_set[0]
+        for link in session.active_links("claim")
+        if link.to_set
+    }
     for claim_addr in derived_claims(session, note_addr):
+        if claim_addr not in classified_claims:
+            continue
         block = _render_claim_block(session, claim_addr)
         if block:
             parts.append(block)
