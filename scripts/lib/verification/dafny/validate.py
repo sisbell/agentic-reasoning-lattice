@@ -3,7 +3,7 @@
 Per-claim Dafny contract review.
 
 Compares each generated .dfy file against its formal contract from
-per-claim files in lattices/xanadu/_docuverse/documents/claim/. Flags mismatches for
+per-claim files in _docuverse/documents/<node>/<user>/claim/. Flags mismatches for
 author review.
 
 Output: per-claim review files in lattices/xanadu/verification/dafny/ASN-NNNN/reviews/

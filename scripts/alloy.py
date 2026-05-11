@@ -2,7 +2,7 @@
 """
 Alloy — generate Alloy models per ASN claim with bounded checking.
 
-Reads per-claim files from lattices/xanadu/_docuverse/documents/claim/, generates one .als
+Reads per-claim files from _docuverse/documents/<node>/<user>/claim/, generates one .als
 per claim using an agentic Claude session (with Bash access to run Alloy
 and self-fix syntax errors), validates contracts, writes per-claim reviews.
 

@@ -27,7 +27,7 @@ DAFNY_REFERENCE = prompt_path("verification/dafny/dafny-reference.dfy")
 
 
 def build_claim_list_from_asn(asn_num):
-    """Build claim list from per-claim files in lattices/xanadu/_docuverse/documents/claim/.
+    """Build claim list from per-claim files in _docuverse/documents/<node>/<user>/claim/.
 
     Reads per-claim YAML for metadata, .md files for contract type detection.
 
