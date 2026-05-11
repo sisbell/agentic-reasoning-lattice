@@ -402,7 +402,7 @@ Each run represents a contiguous block of content that entered the arrangement a
 
 **Uniqueness within a subspace.** Let `v, w ∈ dom(M(d))` be distinct V-positions with `v₁ = w₁ = S`. By S8-depth, `#v = #w = m` for some common depth `m`. We show `w ∉ [v, shift(v, 1))` via a clean lemma that abstracts away from the specific pair `(v, w)`.
 
-*Setup for the lemma.* By S8a, `zeros(v) = 0`, so every component of `v` is nonzero. By definition, `shift(v, 1) = v ⊕ δ(1, m)`, where `δ(1, m)` is the unit displacement of depth `m` with action point at position `m` (OrdinalShift, ASN-0034). By TumblerAdd's length postcondition, `#shift(v, 1) = m`. By TumblerAdd's three-region component formula, components before the action point are copied from `v`: `shift(v, 1)ᵢ = vᵢ` for all `i < m`; at the action point, `shift(v, 1)_m = v_m + 1` (NAT addition on the last component; no carry, since `δ(1, m)` is zero beyond position `m`).
+*Setup for the lemma.* By S8a, `zeros(v) = 0`, so every component of `v` is nonzero. By definition, `shift(v, 1) = v ⊕ δ(1, m)`, where `δ(1, m)` is the unit displacement of depth `m` with action point at position `m` (OrdinalShift, ASN-0034). By TumblerAdd's length postcondition, `#shift(v, 1) = m`. By TumblerAdd's three-region component formula, components before the action point are copied from `v`: `shift(v, 1)ᵢ = vᵢ` for all `i < m`; at the action point, `shift(v, 1)_m = v_m + 1` (NAT addition on the last component; no carry, since tumbler addition is component-wise and the addition at position `m` does not propagate to other positions of the result).
 
 By S8a, every V-position has depth `#v ≥ 2`, so `m ≥ 2`. (The depth-1 case `m = 1` is excluded by S8a: at `m = 1`, the only depth-1 tumbler with first component `S` is `[S]` itself by T3, so within-subspace uniqueness would hold vacuously — but S8a forbids depth 1 from occurring at all.)
 
@@ -501,6 +501,8 @@ For the right-hand side, `w_ord = [w₂, ..., wₘ]` has `actionPoint(w_ord) = k
 - At `j = k-1`: `(ord(v) ⊕ w_ord)_{k-1} = ord(v)_{k-1} + (w_ord)_{k-1} = vₖ + wₖ`.
 - For `k-1 < j ≤ m-1`: `(ord(v) ⊕ w_ord)ⱼ = (w_ord)ⱼ = w_{j+1}`.
 
+The boundary regimes of `k` collapse one or both copy regions to the empty range: at `k = 2`, the first range `1 ≤ j < k-1` reduces to `1 ≤ j < 1` and is empty (no prefix copy); at `k = m`, the third range `k-1 < j ≤ m-1` reduces to `m-1 < j ≤ m-1` and is empty (no tail copy). The two-sided enumeration above is vacuously correct in either boundary case — the non-empty regions still match component by component, and the empty range contributes nothing on either side.
+
 So `ord(v) ⊕ w_ord = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`. The two sequences are identical component by component, establishing `ord(v ⊕ w) = ord(v) ⊕ w_ord`.
 
 *Part (b) — subspace preservation.* Since `k ≥ 2`, the copy-from-start region `1 ≤ i < k` includes position `i = 1`, giving `r₁ = v₁`. By definition `subspace(r) = r₁` and `subspace(v) = v₁`, so `subspace(v ⊕ w) = r₁ = v₁ = subspace(v)`.
@@ -526,6 +528,8 @@ So `ord(v) ⊕ w_ord = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`. T
 - At `i = k`: `rₖ = vₖ + wₖ ≥ 1 + 1 = 2` (since `vₖ ≥ 1` by S8a and `wₖ ≥ 1` as the action-point component).
 - For `k < i ≤ m`: `rᵢ = wᵢ` (copied from the displacement).
 
+The boundary regimes of `k` collapse one or both side regions to the empty range: at `k = 2`, the middle range `2 ≤ i < k` reduces to `2 ≤ i < 2` and is empty (no interior prefix-copy components beyond `r₁`); at `k = m`, the trailing range `k < i ≤ m` reduces to `m < i ≤ m` and is empty (no tail components past the action point). The case analysis remains correct under these collapses — empty ranges contribute nothing, and the unconditionally positive components stay unconditionally positive.
+
 Components `r₁` through `rₖ` are unconditionally positive. S8a requires `zeros(r) = 0` and `(A i : 1 ≤ i ≤ #r : rᵢ > 0)`, which reduces to: every component is positive. The only components that can fail are `r_{k+1}, ..., r_m = w_{k+1}, ..., w_m` — exactly the tail components of `w`, which are the tail components of `w_ord` (since `(w_ord)_j = w_{j+1}` and the action point of `w_ord` is `k - 1`). Therefore:
 
 `v ⊕ w satisfies S8a ⟺ (A i : k < i ≤ m : wᵢ > 0) ⟺ all tail components of w_ord are positive`
@@ -541,11 +545,11 @@ By OrdAddHom, `ord(v ⊕ w) = ord(v) ⊕ w_ord`, so equivalently `ord(v ⊕ w) �
 
 `ord(shift(v, n)) = shift(ord(v), n)`
 
-Since `shift(v, n) = v ⊕ δ(n, m)` and `δ(n, m) = [0, ..., 0, n]` has `δ(n, m)₁ = 0`, OrdAddHom applies. The ordinal projection `(δ(n, m))_ord = [0, ..., 0, n]` of length `m - 1` is `δ(n, m-1)`. So `ord(v ⊕ δ(n, m)) = ord(v) ⊕ δ(n, m-1) = shift(ord(v), n)`. ∎
+Since `shift(v, n) = v ⊕ δ(n, m)` and `δ(n, m) = [0, ..., 0, n]` has `δ(n, m)₁ = 0` (well-defined since `#δ(n, m) = m ≥ 2`), OrdAddHom applies. Its part (a) gives the ordinal identity: the ordinal projection `(δ(n, m))_ord = [0, ..., 0, n]` of length `m - 1` is `δ(n, m-1)`, so `ord(v ⊕ δ(n, m)) = ord(v) ⊕ δ(n, m-1) = shift(ord(v), n)`. Its part (b), instantiated at `w = δ(n, m)`, gives `subspace(v ⊕ δ(n, m)) = subspace(v)`, i.e. `subspace(shift(v, n)) = subspace(v)` — the shift operation preserves the subspace identifier. ∎
 
 *Formal Contract:*
 - *Preconditions:* `v ∈ T`, `#v = m ≥ 2`, `n ≥ 1`.
-- *Postconditions:* (a) `ord(shift(v, n)) = shift(ord(v), n)`. (b) When `v` satisfies S8a, `shift(v, n)` satisfies S8a unconditionally — since `δ(n, m) = [0, ..., 0, n]` has action point `m` with no tail components beyond, the OrdAddS8a condition is vacuously satisfied.
+- *Postconditions:* (a) `ord(shift(v, n)) = shift(ord(v), n)`. (b) `subspace(shift(v, n)) = subspace(v)` — derived from OrdAddHom (b) at `w = δ(n, m)`, whose `w₁ = 0` holds because `#δ(n, m) = m ≥ 2`. (c) When `v` satisfies S8a, `shift(v, n)` satisfies S8a unconditionally — since `δ(n, m) = [0, ..., 0, n]` has action point `m` with no tail components beyond, the OrdAddS8a condition is vacuously satisfied.
 - *Depends:* OrdAddHom (lemma above), OrdAddS8a (lemma above), OrdinalShift (ASN-0034), OrdinalDisplacement (ASN-0034).
 
 
