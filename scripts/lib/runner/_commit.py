@@ -38,7 +38,18 @@ def _git(*args: str) -> subprocess.CompletedProcess:
 
 
 def _is_dirty() -> bool:
-    return bool(_git("status", "--porcelain").stdout.strip())
+    """True iff `_docuverse/` has any pending changes.
+
+    Scoped strictly to substrate citizens — the auto-commit is for
+    fire emissions, not for unrelated working-tree state (code
+    edits, prompts, scripts in flight). Operator-side changes
+    outside `_docuverse/` are the operator's to commit, never the
+    runner's.
+    """
+    return bool(
+        _git("status", "--porcelain", "--", "_docuverse/")
+        .stdout.strip()
+    )
 
 
 _NOISE_TYPES_CACHE: set[str] | None = None
@@ -108,16 +119,14 @@ def _is_noise_only_delta() -> bool:
 
 
 def _stage_dirty() -> None:
-    """Stage tracked modifications + untracked _docuverse/ files.
+    """Stage every modified + untracked file under `_docuverse/`.
 
-    Avoid `-A`: keeps user-side scratch under workspaces from being
-    folded into runner commits. Substrate writes land under
-    `_docuverse/`; per-claim sidecar additions get caught by the
-    explicit add of the docuverse subtree.
+    Strictly scoped to substrate citizens. No `git add -u` (which
+    would sweep tracked changes anywhere in the repo). Anything
+    outside `_docuverse/` is the operator's responsibility — auto-
+    commit must not silently fold unrelated edits into a fire's
+    commit.
     """
-    _git("add", "-u")
-    # Pick up new substrate files (sidecars, audit docs, etc.) created
-    # by this fire.
     _git("add", "_docuverse/")
 
 
