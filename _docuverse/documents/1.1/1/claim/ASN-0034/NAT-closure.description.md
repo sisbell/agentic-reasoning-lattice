@@ -1,9 +1,1 @@
-Posits the binary operation `+ : ℕ × ℕ → ℕ` directly on ℕ, asserts
-`1 ∈ ℕ`, fixes `0` as a two-sided additive identity: left
-(`0 + n = n`) and right (`n + 0 = n`), and asserts the
-successor-positivity clause `(A n ∈ ℕ :: 0 < n + 1)` — the
-Peano no-predecessor-of-zero condition for the addition-based
-successor. The distinctness `0 < 1` of the two named constants
-follows as a consequence — the successor-positivity instance at
-`n := 0` together with the left-identity rewrite `0 + 1 = 1`. Closure
-of ℕ under addition is carried by the signature's codomain commitment.
+Posits the arithmetic foundation: addition closes ℕ as a total binary operation, `0` acts as a two-sided identity, and the successor-positivity clause `0 < n + 1` uniformly rules out any natural number whose successor wraps to zero — the Peano no-predecessor-of-zero condition. The constant `1` is named, and its strict separation from `0` is an immediate consequence of successor positivity at `n := 0`.
