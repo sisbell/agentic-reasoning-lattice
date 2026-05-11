@@ -23,14 +23,29 @@ from lib.triggers.scope import per_active_note
 
 
 def _predicate(session: Session, addr: Address) -> bool:
-    """True iff review is satisfied — predicate matches the +1
-    confirmation pattern. Don't fire if no open revises remain AND
-    the most recent review filed zero new revises.
+    """True (skip) iff there's nothing for review to do *now*.
+
+    Two skip conditions:
+
+      - Open revises pending. The previous review's findings haven't
+        been resolved yet — note_revise is the trigger that should
+        run, not another review on the same unrevised text. Without
+        this clause, note_review would re-fire each runner pass
+        while revises pile up, producing redundant findings on the
+        same prose.
+      - Latest review was clean (and any review has happened). The
+        confirmation +1 pattern: a clean review on the current state
+        ends the review→revise cycle.
+
+    Fire iff doc is quiescent AND latest review was not clean (or no
+    review yet exists).
     """
     return (
-        is_doc_quiescent(session, addr)
-        and has_been_reviewed(session, addr)
-        and latest_review_was_clean(session, addr)
+        not is_doc_quiescent(session, addr)
+        or (
+            has_been_reviewed(session, addr)
+            and latest_review_was_clean(session, addr)
+        )
     )
 
 
