@@ -141,7 +141,7 @@ class NoteStatementsAgent(Agent):
 
         _log_usage(asn_label, result.elapsed)
         print(
-            f"  [NOTE-STATEMENTS] {asn_label} done ({elapsed:.0f}s)",
+            f"  [NOTE-STATEMENTS] {asn_label} done ({result.elapsed:.0f}s)",
             file=sys.stderr,
         )
         return AgentResult(success=True, detail="emitted")

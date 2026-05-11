@@ -27,7 +27,7 @@ from __future__ import annotations
 import re
 import sys
 import time
-from typing import ClassVar
+from typing import ClassVar, List, Tuple
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address

@@ -411,7 +411,7 @@ class NoteExtractAgent(Agent):
         print(f"  [WROTE] {new_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
         # 9. Emit substrate lineage
-        new_addr = _emit_lineage(
+        _emit_lineage(
             session,
             spec_addr=spec_addr,
             new_path=new_path,

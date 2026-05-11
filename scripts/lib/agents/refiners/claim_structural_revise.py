@@ -244,11 +244,11 @@ def _commit_file(path: Path, message: str) -> bool:
     try:
         subprocess.run(
             ["git", "add", "--", str(path)],
-            cwd=REPO_ROOT, check=True, capture_output=True,
+            cwd=WORKSPACE, check=True, capture_output=True,
         )
         subprocess.run(
             ["git", "commit", "-m", message],
-            cwd=REPO_ROOT, check=True, capture_output=True,
+            cwd=WORKSPACE, check=True, capture_output=True,
         )
         return True
     except subprocess.CalledProcessError as e:
@@ -262,7 +262,7 @@ def _git_clean_check(files: list) -> list:
     for path in files:
         result = subprocess.run(
             ["git", "diff", "--quiet", "HEAD", "--", str(path)],
-            cwd=REPO_ROOT,
+            cwd=WORKSPACE,
         )
         if result.returncode != 0:
             dirty.append(str(path))
