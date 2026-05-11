@@ -161,7 +161,7 @@ We observe that the state `Σ = (C, M)` makes the sharing relation computable: g
 **Cross-document construction.** Fix `N ∈ ℕ`. Define state `Σ_N = (C_N, M_N)` by:
 
 - `C_N = {a ↦ w}` for a single I-address `a` and arbitrary value `w ∈ Val`.
-- `N + 1` documents `d₁, …, d_{N+1}`, with `M_N(dᵢ) = {vᵢ ↦ a}` for pairwise distinct V-positions `vᵢ`.
+- `N + 1` documents `d₁, …, d_{N+1}`, with `M_N(dᵢ) = {vᵢ ↦ a}` for an arbitrary V-position `vᵢ` in each document — the `vᵢ` need not be pairwise distinct across documents, since sharing multiplicity counts `(d, v)` pairs and the documents `dᵢ` are pairwise distinct by hypothesis. (Within-document distinctness does not arise here, as each `M_N(dᵢ)` has a singleton domain.)
 
 We verify each invariant. S0 (content immutability) and S1 (store monotonicity) quantify over state transitions `Σ → Σ'`; we consider `Σ_N` as a single state with no transition, so both hold vacuously. S2 (arrangement functionality): each `M_N(dᵢ)` contains a single entry `{vᵢ ↦ a}` — the domain has one element, so uniqueness of the image is immediate; `M_N(dᵢ)` is a function. S3 (referential integrity): the sole I-address referenced by any arrangement is `a`, and `a ∈ dom(C_N)` by construction.
 
@@ -331,13 +331,15 @@ Each run represents a contiguous block of content that entered the arrangement a
 
 **Existence.** By S8-fin, `dom(M(d))` is finite. By S2 (ArrangementFunctionality), `M(d)` is a function, so each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`. For each such `v`, form the singleton run `(v, a, 1)`. Conjunct (b) requires `M(d)(v + k) = a + k` for all `k` with `0 ≤ k < 1` — the only such `k` is `0`, giving `M(d)(v) = a`, which holds by construction. Since `dom(M(d))` is finite, the collection of singletons is finite.
 
+*Non-canonicality.* This is the *trivial decomposition*: every arrangement admits it, since singletons satisfy (a) and (b) by construction. S8 asserts existence of *some* finite decomposition, not minimum cardinality — coarser decompositions exist whenever consecutive `(vⱼ, aⱼ)` pairs admit the index-arithmetic identity `M(d)(v + k) = a + k` for `k > 0`, but their occurrence and preservation are determined by operations-layer behavior (whether allocations are consecutive, whether operations coalesce adjacent runs). The architectural discussion of `#runs(d)` below addresses typical operational regimes; the invariant itself does not commit to a canonical run count.
+
 **Coverage.** Each `v ∈ dom(M(d))` lies in its own singleton's interval: `v ≤ v < v + 1`, where the right inequality holds because `v + 1 = inc(v, 0) > v` by TA5(a). So every V-position falls in at least one run.
 
 **Uniqueness within a subspace.** Let `v, w ∈ dom(M(d))` be distinct V-positions with `v₁ = w₁ = S`. By S8-depth, `#v = #w = m` for some common depth `m`. We show `w ∉ [v, v + 1)`.
 
 By S8a, `zeros(v) = 0`, so every component of `v` is nonzero and `sig(v) = max({i : 1 ≤ i ≤ m ∧ vᵢ ≠ 0}) = m`. By TA5(c), `v + 1 = inc(v, 0)` satisfies `#(v + 1) = m` and differs from `v` only at position `m`, with `(v + 1)_m = v_m + 1`. In particular, `(v + 1)ᵢ = vᵢ` for all `i < m`.
 
-Suppose for contradiction that `t ≠ v` satisfies `#t = m` and `v ≤ t < v + 1`. Since `#t = #v = m`, the sequences diverge at some first position `j ≤ m`.
+Suppose for contradiction that `t ≠ v` satisfies `#t = m` and `v ≤ t < v + 1`. Since `#t = #v = m`, the sequences diverge at some first position `j ≤ m`. For the case of interest `t = w`, shared subspace `w₁ = v₁ = S` gives `t₁ = v₁`, forcing `j ≥ 2`; at `m = 2` this further forces `j = m = 2`, leaving only the *j = m* case below. The two-case argument that follows treats `j` generically for any `1 ≤ j ≤ m`.
 
 *Case j < m.* Then `tᵢ = vᵢ` for `i < j` and `tⱼ > vⱼ` (from `v ≤ t` by T1(i), since `j ≤ m = min(m, m)`). Since `(v + 1)ⱼ = vⱼ` (as `j < m`), and `tᵢ = vᵢ = (v + 1)ᵢ` for `i < j`, the first divergence between `t` and `v + 1` is at position `j` with `tⱼ > (v + 1)ⱼ`, giving `t > v + 1` by T1(i) — contradicting `t < v + 1`.
 
@@ -420,7 +422,7 @@ The definitions above decompose V-positions into subspace context and ordinal op
 - At `i = k`: `rₖ = vₖ + wₖ` (single-component advance).
 - For `k < i ≤ m`: `rᵢ = wᵢ` (copy from displacement).
 
-So `ord(v ⊕ w) = [r₂, ..., rₘ] = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`.
+*Part (a) — ordinal homomorphism.* So `ord(v ⊕ w) = [r₂, ..., rₘ] = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`.
 
 For the right-hand side, `w_ord = [w₂, ..., wₘ]` has `actionPoint(w_ord) = k - 1`, since `(w_ord)ⱼ = w_{j+1}` and the first nonzero `w_{j+1}` occurs at `j + 1 = k`, i.e. `j = k - 1`. The application is well-defined: `actionPoint(w_ord) = k − 1 ≤ m − 1 = #ord(v)`, since `k ≤ m` by precondition. By TumblerAdd for `ord(v) ⊕ w_ord`:
 
@@ -428,9 +430,11 @@ For the right-hand side, `w_ord = [w₂, ..., wₘ]` has `actionPoint(w_ord) = k
 - At `j = k-1`: `(ord(v) ⊕ w_ord)_{k-1} = ord(v)_{k-1} + (w_ord)_{k-1} = vₖ + wₖ`.
 - For `k-1 < j ≤ m-1`: `(ord(v) ⊕ w_ord)ⱼ = (w_ord)ⱼ = w_{j+1}`.
 
-So `ord(v) ⊕ w_ord = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`.
+So `ord(v) ⊕ w_ord = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`. The two sequences are identical component by component, establishing `ord(v ⊕ w) = ord(v) ⊕ w_ord`.
 
-The two sequences are identical component by component. ∎
+*Part (b) — subspace preservation.* Since `k ≥ 2`, the copy-from-start region `1 ≤ i < k` includes position `i = 1`, giving `r₁ = v₁`. By definition `subspace(r) = r₁` and `subspace(v) = v₁`, so `subspace(v ⊕ w) = r₁ = v₁ = subspace(v)`.
+
+*Part (c) — full decomposition.* By TA0 (ASN-0034), `#r = #w = m ≥ 2`, so the generalized inverse property of vpos (vpos contract (b)) applies to `r`: `vpos(subspace(r), ord(r)) = r`. Substituting `subspace(r) = subspace(v)` from part (b) and `ord(r) = ord(v) ⊕ w_ord` from part (a) gives `r = vpos(subspace(v), ord(v) ⊕ w_ord)`, i.e. `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)`. Note that `ord(v) ⊕ w_ord` need not lie in S — the definition and inverse properties of vpos are pure sequence operations holding for any `o ∈ T`. ∎
 
 *Instance (a).* Let `v = [1, 3, 5]`, `w = [0, 0, 2]` (action point 3). Then `v ⊕ w = [1, 3, 7]` and `ord([1, 3, 7]) = [3, 7]`. On the right, `ord(v) = [3, 5]` and `w_ord = [0, 2]`, giving `[3, 5] ⊕ [0, 2] = [3, 7]`. Both sides agree.
 
@@ -438,7 +442,7 @@ The two sequences are identical component by component. ∎
 
 *Formal Contract:*
 - *Preconditions:* `v ∈ T`, `#v = m ≥ 2`; `w ∈ T`, `w > 0`, `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
-- *Postconditions:* (a) `ord(v ⊕ w) = ord(v) ⊕ w_ord`. (b) `subspace(v ⊕ w) = subspace(v)` — since `k ≥ 2`, TumblerAdd copies `r₁ = v₁` from the start, preserving the subspace identifier. (c) Full decomposition: `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)` — let `r = v ⊕ w`; by TA0 `#r = #w = m ≥ 2`, so the generalized inverse (vpos contract (b)) applies to `r`: `vpos(subspace(r), ord(r)) = r`; substituting `subspace(r) = subspace(v)` from (b) and `ord(r) = ord(v) ⊕ w_ord` from (a) yields the result. Note that `ord(v) ⊕ w_ord` need not lie in S — the definition and inverse properties of vpos are pure sequence operations that hold for any `o ∈ T`.
+- *Postconditions:* (a) `ord(v ⊕ w) = ord(v) ⊕ w_ord`. (b) `subspace(v ⊕ w) = subspace(v)`. (c) `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)`. (Derivations of (b) and (c) are given in the proof body above.)
 - *Frame:* Both sides are computed from `v` and `w` alone — no state is consulted.
 
 **OrdAddS8a** — *AdditionPreservesS8a* (LEMMA). For a V-position `v` satisfying S8a with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, `w > 0`, and `actionPoint(w) ≤ m`: `v ⊕ w` satisfies S8a if and only if all components of `w_ord` after its action point are positive.
