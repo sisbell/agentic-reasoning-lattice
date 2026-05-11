@@ -1,1 +1,1 @@
-Shifting a tumbler v by n increments only its last component by n, leaving all earlier components unchanged, and is computed as tumbler addition v ⊕ δ(n, #v). The result has the same length and same prefix as v, with the final component strictly increased.
+Proves that shifting a tumbler v by n is exactly tumbler addition v ⊕ δ(n, #v), where the displacement vector δ concentrates the increment at the final position. The result preserves length and all earlier components, advancing only the last component by n and leaving it positive.
