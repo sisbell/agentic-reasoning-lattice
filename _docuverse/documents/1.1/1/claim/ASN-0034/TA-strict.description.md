@@ -1,7 +1,1 @@
-A named corollary exporting TumblerAdd's ordering-guarantee postcondition a ⊕ w > a as a single labelled fact for
-downstream use. Under the preconditions a ∈ T, Pos(w), actionPoint(w) ≤ #a, TA-strict restates TumblerAdd's third
-postcondition unchanged, so the per-step NAT-* sourcing (NAT-addcompat, NAT-order, NAT-zero, NAT-closure) for the
-rₖ > aₖ step lives inside TumblerAdd and is transitively sourced here. The chief downstream consumer is T12 span
-well-definedness, whose non-emptiness branch cites TA-strict to establish s ∈ span(s, ℓ). Non-degeneracy of tumbler
-addition is carried by TumblerAdd's definition itself (ActionPoint's wₖ ≥ 1 and the advance clause rₖ = aₖ + wₖ),
-so TA-strict is a theorem derived from TumblerAdd — not an independent axiom excluding a no-op model.
+A named corollary exporting TumblerAdd's ordering guarantee as a single labelled fact: under the preconditions a ∈ T, Pos(w), and actionPoint(w) ≤ #a, the result a ⊕ w strictly exceeds a. Its sole purpose is to give downstream users — chiefly T12 span well-definedness — a clean citation point for this postcondition without importing TumblerAdd's full contract.
