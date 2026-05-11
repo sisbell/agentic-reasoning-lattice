@@ -1,14 +1,1 @@
-Addition on ℕ is non-strictly monotone with respect to order on either side:
-if `p ≤ n` then `m + p ≤ m + n` (left) and `p + m ≤ n + m` (right) for all
-`m`. Both forms are stated as axiom clauses so proofs that add a fixed
-summand on either side need not tacitly assume commutativity — GlobalUniqueness
-Case 5's sub-case `k'₁ < k'₂` uses both placements, left to lift `k'₁ ≤ k'₂` to
-`#p₁ + k'₁ ≤ #p₁ + k'₂` and right to lift `#p₁ ≤ #p₂` to
-`#p₁ + k'₂ ≤ #p₂ + k'₂`. The clauses deliver only non-strict `≤`; promoting
-`#p₁ < #p₂` to the strict `#p₁ + k'₂ < #p₂ + k'₂` requires combining NAT-addcompat
-with NAT-cancel (to rule out the equality `#p₁ + k'₂ = #p₂ + k'₂`) and NAT-order
-(to weaken `<` to `≤` and to re-strengthen `≤` with non-equality back to
-`<`). Additionally, every natural number is strictly less than its
-successor: `n < n + 1`. The axiom body cites the non-strict `≤` defined in
-NAT-order and the addition/`1`-constants supplied by NAT-closure, so both
-foundations appear in the Depends slot.
+Posits that addition on ℕ is monotone on both sides — if `p ≤ n` then `m + p ≤ m + n` (left) and `p + m ≤ n + m` (right) — and that every natural number is strictly less than its successor `n + 1`. Both compatibility directions are stated as independent axiom clauses because commutativity has not yet been declared at this stratum, so neither direction is derivable from the other. The successor inequality `n < n + 1` strengthens the weaker constant bound `0 < n + 1` from NAT-closure into the schematic claim that `+1` strictly advances every element of ℕ.
