@@ -33,6 +33,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.doctor import Severity, run_checks
 from lib.doctor import aggregate_anchor_coverage as anchor_coverage_check
+from lib.doctor import citation_targets as citation_targets_check
 from lib.doctor import claim_statements_bridge as bridge_check
 from lib.doctor import holdings as holdings_check
 from lib.doctor import review_coverage as review_coverage_check
@@ -60,6 +61,11 @@ def _build_registry(stale_threshold: int):
             anchor_coverage_check.check_aggregate_anchor_coverage,
             anchor_coverage_check.CHECK_NAME,
             anchor_coverage_check.CHECK_DESCRIPTION,
+        ),
+        (
+            citation_targets_check.check_citation_targets_exist,
+            citation_targets_check.CHECK_NAME,
+            citation_targets_check.CHECK_DESCRIPTION,
         ),
         (
             review_coverage_check.check_review_coverage,
