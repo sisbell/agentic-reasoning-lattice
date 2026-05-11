@@ -5,6 +5,19 @@ The description should be self-contained — a reader should understand
 the claim's role and guarantees without needing to parse formal
 notation or read the proof.
 
+Guidance:
+
+- Let the opening verb signal claim type: "Defines" / "Posits" for
+  definitions and axioms; "Proves" / "Establishes" for theorems;
+  "A named corollary exporting..." for claims that relabel another
+  claim's postcondition without adding mathematical content.
+- Keep dependency citations, proof-step references, and historical
+  or implementation commentary out of the description — the formal
+  contract and surrounding prose carry those.
+- Length should track what the claim says, not the amount of design
+  rationale around it. A load-bearing negative result may warrant
+  more words than a routine closure axiom.
+
 Good description: "In words: tumbler comparison requires only the two
 addresses themselves — no external index, allocator state, or global
 registry participates in the decision. The comparison examines at most
