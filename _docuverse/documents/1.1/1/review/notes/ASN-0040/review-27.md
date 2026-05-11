@@ -1,0 +1,19 @@
+# Review of ASN-0040
+
+## REVISE
+
+### Issue 1: Bop's FRAME is incompatible with Bridge1's whole-state equality
+
+**ASN-0040, Bop *Frame* clause and Bridge1**:
+
+Bop states: "FRAME: only Σ.B is modified; all other state components are unchanged."
+
+Bridge1 (forward requirement on activation discipline) demands: "`Σ' = baptize(p, d)(Σ) ∧ a = next(Σ.B, p, d)`" for every transition with `a ∈ domₛ'(A) ∖ domₛ(A)`.
+
+**Problem**: ASN-0034's T2 child-spawn transition modifies `Act(s)` (adds the new allocator A) and `nₛ` (sets `nₛ'(A) = 0`). Bridge1 demands that every such T2 transition equal `baptize(p, d)(Σ)` — which forces `baptize(p, d)` to modify `Act`/`nₛ` alongside `Σ.B`. But Bop's frame asserts these other components are unchanged. The Bridge1 commentary states this dependency explicitly: "allocator extensions, by Bridge1, are baptismal operations that add the same element to both sets" — but an ASN-0034 allocator extension by definition modifies `Act` and `nₛ`, which Bop's frame forbids. The two cannot simultaneously hold in any system implementing both ASNs.
+
+The "State space and transitions" preamble notes "the present ASN... makes no commitment about what other components Σ carries", which would qualify the frame appropriately — but Bop's FRAME text is unqualified ("all other state components are unchanged"), and is consumed by the inductive argument as if it were absolute.
+
+**Required**: Reconcile by one of: (a) qualifying Bop's frame to "Σ.B is modified as specified; this ASN makes no commitment about whether or how other components managed by future ASNs are modified across the same transition"; (b) replacing Bridge1's `Σ' = baptize(p, d)(Σ)` with the weaker `Σ'.B = (baptize(p, d)(Σ)).B = Σ.B ∪ {next(Σ.B, p, d)}` (sufficient for the inductive argument that `allocated(Σ) ⊆ Σ.B`); or (c) partitioning Op into a baptismal class disjoint from a separate allocator-activation class, and rewriting Bridge1 as a 1–1 correspondence between the two operation classes rather than functional equality.
+
+VERDICT: REVISE
