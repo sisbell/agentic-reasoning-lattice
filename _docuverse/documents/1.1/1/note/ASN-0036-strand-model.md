@@ -240,7 +240,13 @@ This is a design requirement: content resides at the element level — the fines
 
 where `E(a)` is the element-field projection supplied by T4b (UniqueParse, ASN-0034). This is a design requirement ensuring that the subspace identifier `E(a)₁` and the content ordinal `[E(a)₂, ..., E(a)_δ]` occupy distinct components. Without it, `δ = 1` is formally permitted by T4 and S7b — `inc(document_address, 2)` under T10a produces an element-level address with a single-component element field `[E(a)₁]`. At `δ = 1`, the subspace identifier IS the content ordinal: ordinal shifts change the subspace, and TA7a's ordinal-only formulation cannot be applied (removing the subspace identifier leaves an empty sequence, not a valid tumbler). At `δ ≥ 2`, the subspace identifier is structural context outside the ordinal, and shifts act only within the subspace. Gregory's evidence confirms `δ = 2` as the standard allocation pattern: the element field is `[S, x]` where `S` is the subspace identifier and `x` is the content ordinal.
 
-With S7a and S7b established, we can state structural attribution. (S7c, stated here for architectural completeness, is load-bearing for S8-depth's ordinal shift analysis below, not for S7 itself.)
+S7's uniqueness argument additionally requires that document tumblers themselves be products of the same allocation discipline that governs I-addresses. We make this commitment explicit:
+
+**S7d (Document allocation discipline).** Every document is addressed by a document-level tumbler (`zeros = 2`) allocated via T10a's allocator discipline (ASN-0034) under the owning user's prefix. Distinct documents arise from distinct allocation events.
+
+This is a design requirement parallel to S7a. Nelson's baptism principle covers it directly: the user-level allocator baptises documents under the user's prefix in the same way each document's allocator baptises elements under the document's prefix. Without S7d, "documents" could in principle share document-level tumblers, and the cross-document uniqueness step in S7's proof would have no premise on which to instantiate GlobalUniqueness (ASN-0034) — S7a alone speaks only of how I-addresses sit beneath their owning document's prefix, not of how the document tumblers themselves are produced.
+
+With S7a, S7b, and S7d established, we can state structural attribution. (S7c, stated here for architectural completeness, is load-bearing for S8's correspondence run definition for I-address shifts below — specifically the well-definedness argument that the action point of `δ(k, #a)` falls strictly after the subspace identifier — not for S7 itself.)
 
 **S7 (Structural attribution).** For every `a ∈ dom(Σ.C)`, define the *origin* as the document-level prefix obtained by truncating the element field:
 
@@ -248,7 +254,7 @@ With S7a and S7b established, we can state structural attribution. (S7c, stated 
 
 This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system. Since document creation is an allocation event within a system conforming to T10a, GlobalUniqueness (ASN-0034) directly guarantees that distinct documents have distinct tumblers, and therefore distinct document-level prefixes. It is not metadata that can be stripped or forged — it IS the address. To retrieve the content, the system must know its I-address; to know its I-address is to know its origin.
 
-S7 follows from S7a (document-scoped allocation ensures the document-level prefix identifies the allocating document), S7b (element-level restriction ensures all three identifying fields are present), T4 (HierarchicalParsing, ASN-0034), and GlobalUniqueness (ASN-0034) (distinct document creations produce distinct prefixes). Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
+S7 follows from S7a (document-scoped allocation ensures the document-level prefix identifies the allocating document), S7b (element-level restriction ensures all three identifying fields are present), S7d (document tumblers are themselves products of T10a allocation events, supplying the precondition for GlobalUniqueness), T4 (HierarchicalParsing, ASN-0034), and GlobalUniqueness (ASN-0034) (distinct document allocation events produce distinct document tumblers). Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
 
 We note a subtlety. S7 identifies the document that ALLOCATED the I-address — the document where the content was first created. This is distinct from the document where the content currently appears. When content is transcluded from document B into document A, the reader viewing A sees the content, but S7 traces it to B. The distinction between "where I am reading" (Vstream context, document A) and "where this came from" (Istream structure, document B) is precisely the two-stream separation made visible.
 
@@ -260,12 +266,12 @@ Gregory's implementation reveals two mechanisms for origin lookup. The I-address
 
 **Identification.** By S7a (document-scoped allocation), every I-address is allocated under the tumbler prefix of the document that created it. The document-level prefix of `a` — precisely `origin(a)`, the tumbler `N.0.U.0.D` obtained by truncating the element field — identifies the document whose owner performed the allocation that placed `a` into `dom(C)`. This is not a lookup or annotation: the address structurally encodes its provenance. S7a ensures that `origin(a)` IS the allocating document's tumbler.
 
-**Uniqueness across documents.** Document tumblers are themselves products of the tumbler allocation scheme: a document is created by allocating a document-level address under the owning user's prefix. For documents `d₁ ≠ d₂` created by distinct allocation events, GlobalUniqueness (ASN-0034) guarantees their document-level tumblers are distinct. By T3 (CanonicalRepresentation, ASN-0034), this distinctness is decidable by component-wise comparison. Therefore, for any `a₁, a₂ ∈ dom(Σ.C)` allocated under distinct documents: `origin(a₁) ≠ origin(a₂)`. The origin function discriminates allocating documents without ambiguity.
+**Uniqueness across documents.** By S7d (document allocation discipline), every document tumbler is itself the product of an allocation event under T10a's discipline: a document is created by allocating a document-level address under the owning user's prefix, and distinct documents arise from distinct allocation events. For documents `d₁ ≠ d₂`, S7d supplies the required premise — distinct allocation events — and GlobalUniqueness (ASN-0034) then guarantees that the resulting document-level tumblers are distinct. By T3 (CanonicalRepresentation, ASN-0034), this distinctness is decidable by component-wise comparison. Therefore, for any `a₁, a₂ ∈ dom(Σ.C)` allocated under distinct documents: `origin(a₁) ≠ origin(a₂)`. The origin function discriminates allocating documents without ambiguity.
 
 **Permanence.** By S0 (content immutability), once `a ∈ dom(Σ.C)`, then `a ∈ dom(Σ'.C)` for all successor states `Σ'` — the address persists. Since `a` is a tumbler — a fixed sequence of components, not a mutable reference — and `origin(a)` is computed from the components of `a` alone via T4's deterministic field decomposition, `origin(a)` yields the same result in every state in which `a` exists. By S4 (origin-based identity), distinct allocation events produce distinct addresses, so the address `a` itself is never reassigned or reused. The attribution cannot be severed because it is not a separate datum attached to the content — it is a structural property of the address itself. To retrieve content at `a`, a system must know `a`; to know `a` is to know `origin(a)`. ∎
 
 *Formal Contract:*
-- *Preconditions:* `a ∈ dom(Σ.C)` in a system conforming to S7a (document-scoped allocation), S7b (element-level I-addresses), T4 (HierarchicalParsing, ASN-0034), and T10a (allocator discipline, ASN-0034).
+- *Preconditions:* `a ∈ dom(Σ.C)` in a system conforming to S7a (document-scoped allocation), S7b (element-level I-addresses), S7d (document allocation discipline), T4 (HierarchicalParsing, ASN-0034), and T10a (allocator discipline, ASN-0034).
 - *Postconditions:* (a) `origin(a)` is well-defined and is a document-level tumbler with `zeros(origin(a)) = 2`. (b) `origin(a)` is the tumbler of the document that allocated `a`. (c) For `a₁, a₂` allocated under distinct documents, `origin(a₁) ≠ origin(a₂)`. (d) `origin(a)` is invariant across all states in which `a ∈ dom(Σ.C)`.
 - *Frame:* The content values `Σ.C(a)` and arrangement functions `Σ.M(d)` play no role — attribution is a property of the addressing scheme alone.
 
@@ -345,7 +351,7 @@ Suppose for contradiction that `t ≠ v` satisfies `#t = m` and `v ≤ t < shift
 
 *Case j < m.* Then `tᵢ = vᵢ` for `i < j` and `tⱼ > vⱼ` (from `v ≤ t` by T1(i), since `j ≤ m = min(m, m)`). Since `shift(v, 1)ⱼ = vⱼ` (as `j < m`), and `tᵢ = vᵢ = shift(v, 1)ᵢ` for `i < j`, the first divergence between `t` and `shift(v, 1)` is at position `j` with `tⱼ > shift(v, 1)ⱼ`, giving `t > shift(v, 1)` by T1(i) — contradicting `t < shift(v, 1)`.
 
-*Case j = m.* Then `tᵢ = vᵢ` for `i < m`, so `tᵢ = shift(v, 1)ᵢ` for `i < m` as well. Since `tᵢ = vᵢ` for `i < m` and `t ≠ v` (with `#t = #v = m`), the divergence at `j = m` is real: `t_m ≠ v_m`. Combined with `v ≤ t`, this gives `v < t`, and T1(i) applied to `v < t` with first divergence at `m` yields strict `t_m > v_m`, i.e., `t_m ≥ v_m + 1` (NAT). From `t < shift(v, 1)` with first divergence at `m`: `t_m < shift(v, 1)_m = v_m + 1` (NAT) by T1(i). But `t_m ≥ v_m + 1` and `t_m < v_m + 1` are incompatible — contradiction.
+*Case j = m.* Then `tᵢ = vᵢ` for `i < m`. Since `shift(v, 1)ᵢ = vᵢ` for `i < m` by TumblerAdd's prefix rule (the action point of `δ(1, m)` is `m`, so all components at positions `i < m` are copied from `v` unchanged), we get `tᵢ = shift(v, 1)ᵢ` for `i < m`, so the first divergence between `t` and `shift(v, 1)` is at position `m`. Since `tᵢ = vᵢ` for `i < m` and `t ≠ v` (with `#t = #v = m`), the divergence at `j = m` between `t` and `v` is also real: `t_m ≠ v_m`. Combined with `v ≤ t`, this gives `v < t`, and T1(i) applied to `v < t` with first divergence at `m` yields strict `t_m > v_m`, i.e., `t_m ≥ v_m + 1` (NAT). From `t < shift(v, 1)` with first divergence at `m`: `t_m < shift(v, 1)_m = v_m + 1` (NAT) by T1(i). But `t_m ≥ v_m + 1` and `t_m < v_m + 1` are incompatible — contradiction.
 
 Both cases yield contradictions. Since all V-positions in subspace `S` have depth `m` (S8-depth), no distinct V-position in the same subspace falls in `v`'s singleton interval.
 
@@ -479,36 +485,36 @@ Since `shift(v, n) = v ⊕ δ(n, m)` and `δ(n, m) = [0, ..., 0, n]` has `δ(n, 
 
 Nelson states that the Vstream is always a "dense, contiguous sequence" — after removal, "the v-stream addresses of any following characters in the document are [decreased] by the length of the [deleted] text" [LM 4/66]. The Vstream has no concept of empty positions: "if you have 100 bytes, you have addresses 1 through 100." This statement is specific to the text subspace (S = 1), where Nelson's "addresses 1 through 100" describes character positions. The link subspace (S = 2) has different structural semantics — link addresses are sparse and append-only, with deleted links marked by tombstones rather than ordinal renumbering. We formalize the text-subspace contiguity properties below as constraints on V-position sets within the text subspace; link-subspace contiguity semantics are deferred to a future ASN.
 
-Write `S = subspace(v) = v₁` for the subspace identifier (the first component of the element-field V-position), and `V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}` for the set of V-positions in subspace S of document d. All V-positions in a given subspace share the same tumbler depth (S8-depth). The properties D-CTG, D-MIN, D-CTG-depth, and D-SEQ below are required to hold only for the text subspace `S = 1`; they are not claimed to hold for the link subspace `S = 2` or any other subspace. We retain the parametric `V_S(d)` notation in the statements and proofs that follow because the underlying reasoning is parametric in S — should D-CTG be extended to another subspace in future work, the corollary proofs apply unchanged — but the architectural design constraint imposed by this ASN is restricted to `S = 1`.
+Write `S = subspace(v) = v₁` for the subspace identifier (the first component of the element-field V-position), and `V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}` for the set of V-positions in subspace S of document d. The specialization to the text subspace is `V_1(d) = {v ∈ dom(M(d)) : subspace(v) = 1}`. All V-positions in a given subspace share the same tumbler depth (S8-depth). The properties D-CTG, D-MIN, D-CTG-depth, and D-SEQ below bind `S = 1` directly in their formal statements — the architectural design constraint imposed by this ASN applies only to the text subspace; they are not claimed to hold for the link subspace `S = 2` or any other subspace. The underlying reasoning is parametric in S — should the constraints be extended to another subspace in future work, the proofs would apply with the obvious substitution `1 ↦ S` — but the formal contracts here are written for `S = 1`.
 
-**D-CTG (VContiguity).** *Required only for `S = 1`.* For each document d, V_S(d) is either empty or occupies every intermediate position between its extremes:
+**D-CTG (VContiguity).** For each document d, V_1(d) (the text subspace) is either empty or occupies every intermediate position between its extremes:
 
-`(A d, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))`
+`(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ u < v < q : v ∈ V_1(d)))`
 
 In words: within the text subspace, V-positions form a contiguous ordinal range with no gaps. If positions [1, 3] and [1, 7] are occupied, then every position [1, k] with 3 < k < 7 must also be occupied. The link subspace `S = 2` is not subject to this constraint — link addresses are sparse and append-only, with deletions marked by tombstones rather than ordinal renumbering, so V_2(d) need not be contiguous.
 
-For the text subspace at depth m = 2, this is a finite condition: the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_1(d) occupies a single unbroken block of ordinals.
+For the text subspace at depth m = 2, this is a finite condition: the intermediates between [1, a] and [1, b] are the finitely many [1, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_1(d) occupies a single unbroken block of ordinals.
 
-At depth m ≥ 3, D-CTG combined with S8-fin forces a stronger restriction: all positions in V_S(d) (with S the text subspace) must share components 2 through m − 1.
+At depth m ≥ 3, D-CTG combined with S8-fin forces a stronger restriction: all positions in V_1(d) must share components 2 through m − 1.
 
-*Proof.* Suppose for contradiction that V_S(d) contains two positions v₁ < v₂ (both depth m by S8-depth) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (since v₁ < v₂ by T1(i)). For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
+*Proof.* Suppose for contradiction that V_1(d) contains two positions v₁ < v₂ (both depth m by S8-depth) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (since v₁ < v₂ by T1(i)). For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
 
 - wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
 - wⱼ₊₁ = n,
 - wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist).
 
-Then w has subspace S (since w₁ = (v₁)₁ = S) and depth m. We verify v₁ < w < v₂:
+Then w has subspace 1 (since w₁ = (v₁)₁ = 1) and depth m. We verify v₁ < w < v₂:
 
 - **w > v₁**: w agrees with v₁ on components 1 through j. At component j + 1, n > (v₁)ⱼ₊₁. By T1(i), w > v₁.
 - **w < v₂**: w agrees with v₂ on components 1 through j − 1 (since v₁ and v₂ agree there). At component j, wⱼ = (v₁)ⱼ < (v₂)ⱼ. By T1(i), w < v₂.
 
-By D-CTG, every such w belongs to V_S(d). By T0(a), unboundedly many values of n exist; distinct values of n produce tumblers that differ at component j + 1, hence are distinct by T3 (CanonicalRepresentation, ASN-0034) — yielding infinitely many distinct positions in V_S(d), contradicting S8-fin. ∎
+By D-CTG, every such w belongs to V_1(d). By T0(a), unboundedly many values of n exist; distinct values of n produce tumblers that differ at component j + 1, hence are distinct by T3 (CanonicalRepresentation, ASN-0034) — yielding infinitely many distinct positions in V_1(d), contradicting S8-fin. ∎
 
-This applies uniformly to all depths m ≥ 3 and all divergence points j ∈ {2, …, m − 1}. At depth m = 3, the only possible pre-last divergence is j = 2. For illustration: suppose V_S(d) contained [S, 1, 5] and [S, 2, 1]. Setting j = 2, for any n > 5, w = [S, 1, n] satisfies [S, 1, 5] < [S, 1, n] < [S, 2, 1], so D-CTG forces [S, 1, 6], [S, 1, 7], ... into V_S(d) — infinitely many, contradicting S8-fin. At depth m = 4, divergence could occur at j = 2 or j = 3; the same construction applies in each case.
+This applies uniformly to all depths m ≥ 3 and all divergence points j ∈ {2, …, m − 1}. At depth m = 3, the only possible pre-last divergence is j = 2. For illustration: suppose V_1(d) contained [1, 1, 5] and [1, 2, 1]. Setting j = 2, for any n > 5, w = [1, 1, n] satisfies [1, 1, 5] < [1, 1, n] < [1, 2, 1], so D-CTG forces [1, 1, 6], [1, 1, 7], ... into V_1(d) — infinitely many, contradicting S8-fin. At depth m = 4, divergence could occur at j = 2 or j = 3; the same construction applies in each case.
 
-**D-CTG-depth (SharedPrefixReduction).** *Applies wherever D-CTG holds — required for `S = 1`.* For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
+**D-CTG-depth (SharedPrefixReduction).** For depth m ≥ 3, all positions in a non-empty V_1(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
-*Proof.* Let V_S(d) be non-empty with common depth m ≥ 3 (S8-depth). Suppose for contradiction that V_S(d) contains two positions v₁ and v₂ with v₁ < v₂ (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (the inequality follows from v₁ < v₂ by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
+*Proof.* Let V_1(d) be non-empty with common depth m ≥ 3 (S8-depth). Suppose for contradiction that V_1(d) contains two positions v₁ and v₂ with v₁ < v₂ (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (the inequality follows from v₁ < v₂ by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
 
 We construct infinitely many intermediates. For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
 
@@ -516,58 +522,58 @@ We construct infinitely many intermediates. For any natural number n > (v₁)ⱼ
 - wⱼ₊₁ = n,
 - wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist; since j ≤ m − 1, at least the m-th component exists at position j + 1 or beyond).
 
-Then w has depth m (it has m components by construction), and subspace(w) = w₁ = (v₁)₁ = S (since j ≥ 2, the first component is copied from v₁). We verify v₁ < w < v₂:
+Then w has depth m (it has m components by construction), and subspace(w) = w₁ = (v₁)₁ = 1 (since j ≥ 2, the first component is copied from v₁). We verify v₁ < w < v₂:
 
 - **w > v₁**: w agrees with v₁ on components 1 through j. At component j + 1, wⱼ₊₁ = n > (v₁)ⱼ₊₁. Since j + 1 ≤ m = min(m, m), by T1(i), w > v₁.
 - **w < v₂**: w agrees with v₂ on components 1 through j − 1 (since v₁ and v₂ agree on these components by the definition of j). At component j, wⱼ = (v₁)ⱼ < (v₂)ⱼ. Since j ≤ m − 1 ≤ min(m, m), by T1(i), w < v₂.
 
-Since v₁ < w < v₂, subspace(w) = S, and #w = m = #v₁, D-CTG requires w ∈ V_S(d). By T0(a) (UnboundedComponentValues, ASN-0034), unboundedly many values of n > (v₁)ⱼ₊₁ exist. Distinct values of n yield distinct tumblers w (they differ at component j + 1, so by T3, CanonicalRepresentation, ASN-0034, they are unequal). This produces infinitely many distinct positions in V_S(d), contradicting S8-fin (dom(M(d)) is finite).
+Since v₁ < w < v₂, subspace(w) = 1, and #w = m = #v₁, D-CTG requires w ∈ V_1(d). By T0(a) (UnboundedComponentValues, ASN-0034), unboundedly many values of n > (v₁)ⱼ₊₁ exist. Distinct values of n yield distinct tumblers w (they differ at component j + 1, so by T3, CanonicalRepresentation, ASN-0034, they are unequal). This produces infinitely many distinct positions in V_1(d), contradicting S8-fin (dom(M(d)) is finite).
 
-Therefore no two positions in V_S(d) can disagree at any component j with 2 ≤ j ≤ m − 1. All positions share components 2 through m − 1, and contiguity reduces to contiguity of the last component (component m) alone. ∎
+Therefore no two positions in V_1(d) can disagree at any component j with 2 ≤ j ≤ m − 1. All positions share components 2 through m − 1, and contiguity reduces to contiguity of the last component (component m) alone. ∎
 
 *Formal Contract:*
-- *Preconditions:* V_S(d) non-empty; common depth m ≥ 3 (S8-depth).
-- *Postconditions:* `(A v₁, v₂ ∈ V_S(d), j : 2 ≤ j ≤ m − 1 : (v₁)ⱼ = (v₂)ⱼ)`. Contiguity of V_S(d) reduces to contiguity of the m-th (last) component.
+- *Preconditions:* V_1(d) non-empty; common depth m ≥ 3 (S8-depth).
+- *Postconditions:* `(A v₁, v₂ ∈ V_1(d), j : 2 ≤ j ≤ m − 1 : (v₁)ⱼ = (v₂)ⱼ)`. Contiguity of V_1(d) reduces to contiguity of the m-th (last) component.
 
 Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
 
-**D-MIN (VMinimumPosition).** *Required only for `S = 1`.* For each document d with V_S(d) non-empty:
+**D-MIN (VMinimumPosition).** For each document d with V_1(d) non-empty:
 
-`min(V_S(d)) = [S, 1, ..., 1]`
+`min(V_1(d)) = [1, 1, ..., 1]`
 
-where the tuple has length m (the common depth of V-positions in subspace S per S8-depth), and every component after the first is 1. The link subspace `S = 2` is not subject to this constraint; the minimum link position in a document need not be `[2, 1, ..., 1]`, and gaps below the minimum (e.g., after tombstoning the original first link) are admissible.
+where the tuple has length m (the common depth of V-positions in the text subspace per S8-depth), and every component is 1. The link subspace `S = 2` is not subject to this constraint; the minimum link position in a document need not be `[2, 1, ..., 1]`, and gaps below the minimum (e.g., after tombstoning the original first link) are admissible.
 
-At depth 2 this gives min(V_S(d)) = [S, 1]. Combined with D-CTG and S8-fin, a document with n elements in subspace S occupies V-positions [S, 1] through [S, n] — matching Nelson's "addresses 1 through 100."
+At depth 2 this gives min(V_1(d)) = [1, 1]. Combined with D-CTG and S8-fin, a document with n text elements occupies V-positions [1, 1] through [1, n] — matching Nelson's "addresses 1 through 100."
 
-We now derive the general form. By D-CTG-depth (when m ≥ 3) or trivially (when m = 2, there is only one post-subspace component), all positions in V_S(d) share components 2 through m − 1. By D-MIN, min(V_S(d)) = [S, 1, …, 1], so those shared components have value 1. Every position is therefore [S, 1, …, 1, k] for varying k. D-CTG restricted to the last component forbids gaps among the k values; D-MIN gives the minimum k = 1; S8-fin bounds the maximum at some finite n. Thus:
+We now derive the general form. By D-CTG-depth (when m ≥ 3) or trivially (when m = 2, there is only one post-subspace component), all positions in V_1(d) share components 2 through m − 1. By D-MIN, min(V_1(d)) = [1, 1, …, 1], so those shared components have value 1. Every position is therefore [1, 1, …, 1, k] for varying k. D-CTG restricted to the last component forbids gaps among the k values; D-MIN gives the minimum k = 1; S8-fin bounds the maximum at some finite n. Thus:
 
-**D-SEQ (SequentialPositions).** *Applies wherever D-CTG and D-MIN hold — required for `S = 1`.* For each document d, if V_S(d) is non-empty, then there exists n ≥ 1 such that:
+**D-SEQ (SequentialPositions).** For each document d, if V_1(d) is non-empty, then there exists n ≥ 1 such that:
 
-`V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n}`
+`V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n}`
 
-where the tuple has length m, the common V-position depth in subspace S (S8-depth). By S8a, every V-position has depth `≥ 2`, so `m ≥ 2`; the derivation below relies on this lower bound. At depth 2 this gives V_S(d) = {[S, k] : 1 ≤ k ≤ n}, matching Nelson's "addresses 1 through n."
+where the tuple has length m, the common V-position depth in the text subspace (S8-depth). By S8a, every V-position has depth `≥ 2`, so `m ≥ 2`; the derivation below relies on this lower bound. At depth 2 this gives V_1(d) = {[1, k] : 1 ≤ k ≤ n}, matching Nelson's "addresses 1 through n."
 
-*Proof.* Let V_S(d) be non-empty and let m be the common depth of all V-positions in subspace S (S8-depth guarantees a common depth exists). By S8a, every V-position has `#v ≥ 2`, so `m ≥ 2`.
+*Proof.* Let V_1(d) be non-empty and let m be the common depth of all V-positions in the text subspace (S8-depth guarantees a common depth exists). By S8a, every V-position has `#v ≥ 2`, so `m ≥ 2`.
 
-**Step 1: shared prefix.** We show that every position in V_S(d) has the form [S, 1, …, 1, k] — that is, components 2 through m − 1 are all equal to 1, with only the last component varying.
+**Step 1: shared prefix.** We show that every position in V_1(d) has the form [1, 1, …, 1, k] — that is, components 2 through m − 1 are all equal to 1, with only the last component varying.
 
-*Case m = 2.* Every position has exactly two components: the subspace identifier S at component 1, and a single ordinal at component 2. There are no intermediate components (components 2 through m − 1 is the empty range 2 through 1), so the shared-prefix condition holds vacuously. Every position is [S, k] for some k, which is [S, 1, …, 1, k] with zero intervening 1s.
+*Case m = 2.* Every position has exactly two components: the subspace identifier 1 at component 1, and a single ordinal at component 2. There are no intermediate components (components 2 through m − 1 is the empty range 2 through 1), so the shared-prefix condition holds vacuously. Every position is [1, k] for some k, which is [1, 1, …, 1, k] with zero intervening 1s.
 
-*Case m ≥ 3.* By D-CTG-depth (SharedPrefixReduction), all positions in V_S(d) share components 2 through m − 1. By D-MIN (VMinimumPosition), the minimum element of V_S(d) is [S, 1, …, 1] — a tuple of length m with every post-subspace component equal to 1. Since the minimum shares components 2 through m − 1 with every other position, and those components of the minimum are all 1, every position in V_S(d) has components 2 through m − 1 equal to 1. Every position is therefore [S, 1, …, 1, k] for some value k at the m-th component.
+*Case m ≥ 3.* By D-CTG-depth (SharedPrefixReduction), all positions in V_1(d) share components 2 through m − 1. By D-MIN (VMinimumPosition), the minimum element of V_1(d) is [1, 1, …, 1] — a tuple of length m with every component equal to 1. Since the minimum shares components 2 through m − 1 with every other position, and those components of the minimum are all 1, every position in V_1(d) has components 2 through m − 1 equal to 1. Every position is therefore [1, 1, …, 1, k] for some value k at the m-th component.
 
-**Step 2: minimum k.** By D-MIN, min(V_S(d)) = [S, 1, …, 1] of length m. In the representation [S, 1, …, 1, k], the minimum has k = 1 at the last component. Since the minimum is in V_S(d), the set of k-values attained by positions in V_S(d) includes 1.
+**Step 2: minimum k.** By D-MIN, min(V_1(d)) = [1, 1, …, 1] of length m. In the representation [1, 1, …, 1, k], the minimum has k = 1 at the last component. Since the minimum is in V_1(d), the set of k-values attained by positions in V_1(d) includes 1.
 
-**Step 3: contiguity of k-values.** Let k₁ < k₂ be two values attained by positions v₁ = [S, 1, …, 1, k₁] and v₂ = [S, 1, …, 1, k₂] in V_S(d). Both have subspace S and depth m. By T1(i) (TumblerOrdering, ASN-0034), v₁ < v₂ since they agree on components 1 through m − 1 and differ first at component m where k₁ < k₂. For any integer k with k₁ < k < k₂, the tuple w = [S, 1, …, 1, k] satisfies subspace(w) = S, #w = m, and v₁ < w < v₂ (again by T1(i), since w agrees with both on components 1 through m − 1 and k₁ < k < k₂ at component m). By D-CTG (VContiguity), w ∈ V_S(d). Therefore every integer between any two attained k-values is itself attained — the k-values form a contiguous range.
+**Step 3: contiguity of k-values.** Let k₁ < k₂ be two values attained by positions v₁ = [1, 1, …, 1, k₁] and v₂ = [1, 1, …, 1, k₂] in V_1(d). Both have subspace 1 and depth m. By T1(i) (TumblerOrdering, ASN-0034), v₁ < v₂ since they agree on components 1 through m − 1 and differ first at component m where k₁ < k₂. For any integer k with k₁ < k < k₂, the tuple w = [1, 1, …, 1, k] satisfies subspace(w) = 1, #w = m, and v₁ < w < v₂ (again by T1(i), since w agrees with both on components 1 through m − 1 and k₁ < k < k₂ at component m). By D-CTG (VContiguity), w ∈ V_1(d). Therefore every integer between any two attained k-values is itself attained — the k-values form a contiguous range.
 
-**Step 4: finiteness.** By S8-fin (Finite arrangement), dom(M(d)) is finite, so V_S(d) ⊆ dom(M(d)) is finite. The k-values form a finite contiguous range.
+**Step 4: finiteness.** By S8-fin (Finite arrangement), dom(M(d)) is finite, so V_1(d) ⊆ dom(M(d)) is finite. The k-values form a finite contiguous range.
 
-**Assembly.** The k-values form a finite contiguous range of positive integers (Step 3, Step 4) beginning at 1 (Step 2). Therefore there exists n ≥ 1 such that the k-values are exactly {1, 2, …, n}. By Step 1, V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
+**Assembly.** The k-values form a finite contiguous range of positive integers (Step 3, Step 4) beginning at 1 (Step 2). Therefore there exists n ≥ 1 such that the k-values are exactly {1, 2, …, n}. By Step 1, V_1(d) = {[1, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
 
 *Formal Contract:*
-- *Preconditions:* V_S(d) non-empty; common V-position depth m (S8-depth), with `m ≥ 2` inherited from S8a.
-- *Postconditions:* `(E n : n ≥ 1 : V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n})` where each tuple has length m.
+- *Preconditions:* V_1(d) non-empty; common V-position depth m (S8-depth), with `m ≥ 2` inherited from S8a.
+- *Postconditions:* `(E n : n ≥ 1 : V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n})` where each tuple has length m.
 
-D-CTG is a design constraint on well-formed document states. It constrains which arrangement modifications constitute well-formed editing operations. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_S(d) = ∅ for every subspace S. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_S(d) non-empty). Observe that not all arrangement modifications preserve D-CTG: removing a single interior V-position from dom(M(d)) leaves the positions on either side no longer contiguous. D-CTG is therefore preserved only by those modifications that constitute well-formed editing operations — operations that restore contiguity after structural changes (e.g., by shifting subsequent positions).
+D-CTG is a design constraint on well-formed document states. It constrains which arrangement modifications constitute well-formed editing operations. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_1(d) = ∅. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_1(d) non-empty). Observe that not all arrangement modifications preserve D-CTG: removing a single interior V-position from dom(M(d)) leaves the positions on either side no longer contiguous. D-CTG is therefore preserved only by those modifications that constitute well-formed editing operations — operations that restore contiguity after structural changes (e.g., by shifting subsequent positions).
 
 Whether DELETE, INSERT, COPY, and REARRANGE preserve D-CTG is a verification obligation for each operation's ASN.
 
@@ -600,29 +606,29 @@ Then V₁(d') = {[1,1,1], [1,1,2], [1,1,3]}.
 
 ## Valid insertion position
 
-We work with the arrangement M(d) and the contiguity constraint D-CTG from above. Write V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S} for the V-positions in subspace S of document d.
+We work with the arrangement M(d) and the contiguity constraint D-CTG from above, restricted to the text subspace `S = 1`. Write V_1(d) = {v ∈ dom(M(d)) : subspace(v) = 1} for the text-subspace V-positions of document d.
 
-When V_S(d) is contiguous with |V_S(d)| = N positions, we write its elements as v₀, v₁, ..., v_{N−1} where v₀ is the minimum (D-MIN) and v_{j+1} = shift(v_j, 1) for 0 ≤ j < N − 1 (D-SEQ).
+When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as v₀, v₁, ..., v_{N−1} where v₀ is the minimum (D-MIN) and v_{j+1} = shift(v_j, 1) for 0 ≤ j < N − 1 (D-SEQ).
 
-**Definition (ValidInsertionPosition).** A V-position v is a *valid insertion position* in subspace S of document d satisfying D-CTG when one of two cases holds:
+**Definition (ValidInsertionPosition).** A V-position v is a *valid insertion position* in the text subspace of document d satisfying D-CTG when one of two cases holds:
 
-- *Non-empty subspace.* V_S(d) ≠ ∅ with |V_S(d)| = N. Write m for the common V-position depth in subspace S (S8-depth); m ≥ 2, since the first position placed in any subspace is established by the empty case, which requires m ≥ 2, and S8-depth preserves depth thereafter. Then either v = min(V_S(d)) (the j = 0 case) or v = shift(min(V_S(d)), j) for some j with 1 ≤ j ≤ N. In both cases, #v = m.
+- *Non-empty subspace.* V_1(d) ≠ ∅ with |V_1(d)| = N. Write m for the common V-position depth in the text subspace (S8-depth); m ≥ 2, since the first position placed is established by the empty case, which requires m ≥ 2, and S8-depth preserves depth thereafter. Then either v = min(V_1(d)) (the j = 0 case) or v = shift(min(V_1(d)), j) for some j with 1 ≤ j ≤ N. In both cases, #v = m.
 
-- *Empty subspace.* V_S(d) = ∅. Then v = [S, 1, ..., 1] of depth m ≥ 2, establishing the subspace's V-position depth at m. The lower bound m ≥ 2 is necessary: at m = 1, v = [S] and shift([S], 1) = [S] ⊕ δ(1, 1) = [S] ⊕ [1]; the action point of [1] is k = 1, so TumblerAdd gives r₁ = S + 1, producing [S + 1] — a position in subspace S + 1, not S. For m ≥ 2, δ(n, m) has action point m, and since m > 1, TumblerAdd copies component 1 unchanged — OrdinalShift preserves the subspace identifier. This is the canonical minimum position required by D-MIN. The choice of m is a one-time structural commitment: once any position is placed, S8-depth fixes the depth for all subsequent positions in the subspace.
+- *Empty subspace.* V_1(d) = ∅. Then v = [1, 1, ..., 1] of depth m ≥ 2, establishing the text subspace's V-position depth at m. The lower bound m ≥ 2 is necessary: at m = 1, v = [1] and shift([1], 1) = [1] ⊕ δ(1, 1) = [1] ⊕ [1]; the action point of [1] is k = 1, so TumblerAdd gives r₁ = 1 + 1 = 2, producing [2] — a position in subspace 2, not 1. For m ≥ 2, δ(n, m) has action point m, and since m > 1, TumblerAdd copies component 1 unchanged — OrdinalShift preserves the subspace identifier. This is the canonical minimum position required by D-MIN. The choice of m is a one-time structural commitment: once any position is placed, S8-depth fixes the depth for all subsequent positions in the text subspace.
 
-In both cases, S = v₁ is the subspace identifier.
+In both cases, v₁ = 1 is the text subspace identifier.
 
-In the non-empty case, there are exactly N + 1 valid insertion positions: the N positions coinciding with existing V-positions v₀ through v_{N−1}, plus the append position shift(min(V_S(d)), N). In the empty case, there is one valid position per choice of depth m — but since m is chosen once and then held fixed by S8-depth, exactly one position is valid for any given depth.
+In the non-empty case, there are exactly N + 1 valid insertion positions: the N positions coinciding with existing V-positions v₀ through v_{N−1}, plus the append position shift(min(V_1(d)), N). In the empty case, there is one valid position per choice of depth m — but since m is chosen once and then held fixed by S8-depth, exactly one position is valid for any given depth.
 
-We verify the structural claims. By D-MIN, min(V_S(d)) = [S, 1, ..., 1] of depth m. By OrdinalShift and TumblerAdd, shift([S, 1, ..., 1], j) = [S, 1, ..., 1] ⊕ δ(j, m); since δ(j, m) has action point m and m ≥ 2, TumblerAdd copies components 1 through m − 1 unchanged and sets the last component to 1 + j. The explicit form is shift(min(V_S(d)), j) = [S, 1, ..., 1 + j].
+We verify the structural claims. By D-MIN, min(V_1(d)) = [1, 1, ..., 1] of depth m. By OrdinalShift and TumblerAdd, shift([1, 1, ..., 1], j) = [1, 1, ..., 1] ⊕ δ(j, m); since δ(j, m) has action point m and m ≥ 2, TumblerAdd copies components 1 through m − 1 unchanged and sets the last component to 1 + j. The explicit form is shift(min(V_1(d)), j) = [1, 1, ..., 1 + j].
 
-*Distinctness.* The N + 1 positions have last components 1 (for j = 0, where v = min(V_S(d))), 2, 3, ..., N + 1 (for j = 1, ..., N). These are pairwise distinct natural numbers, so by T3 (CanonicalRepresentation, ASN-0034) the N + 1 tumblers are pairwise distinct.
+*Distinctness.* The N + 1 positions have last components 1 (for j = 0, where v = min(V_1(d))), 2, 3, ..., N + 1 (for j = 1, ..., N). These are pairwise distinct natural numbers, so by T3 (CanonicalRepresentation, ASN-0034) the N + 1 tumblers are pairwise distinct.
 
-*Depth preservation.* For j ≥ 1, #shift(v, j) = #v = m by the result-length identity of OrdinalShift (ASN-0034). For j = 0, #v = #min(V_S(d)) = m by D-MIN. In the empty case, #v = m by construction. All valid positions have the common V-position depth required by S8-depth.
+*Depth preservation.* For j ≥ 1, #shift(v, j) = #v = m by the result-length identity of OrdinalShift (ASN-0034). For j = 0, #v = #min(V_1(d)) = m by D-MIN. In the empty case, #v = m by construction. All valid positions have the common V-position depth required by S8-depth.
 
-*Subspace identity.* Since δ(j, m) has action point m ≥ 2, TumblerAdd copies component 1 unchanged: shift(min, j)₁ = min₁ = S for all j ≥ 1. For j = 0, v₁ = min₁ = S directly.
+*Subspace identity.* Since δ(j, m) has action point m ≥ 2, TumblerAdd copies component 1 unchanged: shift(min, j)₁ = min₁ = 1 for all j ≥ 1. For j = 0, v₁ = min₁ = 1 directly.
 
-*S8a consistency.* For text-subspace positions (S ≥ 1), every valid position [S, 1, ..., 1 + j] has all components strictly positive (S ≥ 1, intermediate components are 1, last component is 1 + j ≥ 1), so zeros(v) = 0 and v > 0 — satisfying S8a.
+*S8a consistency.* Every valid position [1, 1, ..., 1 + j] has all components strictly positive (subspace identifier is 1, intermediate components are 1, last component is 1 + j ≥ 1), so zeros(v) = 0 and v > 0 — satisfying S8a.
 
 ### Valid insertion position examples
 
@@ -740,14 +746,15 @@ This has a formal consequence: document equality is not decidable by content com
 | S0 | Content immutability: `a ∈ dom(C) ⟹ a ∈ dom(C') ∧ C'(a) = C(a)` for all transitions | design requirement |
 | S1 | Store monotonicity: `dom(C) ⊆ dom(C')` for all transitions | from S0 |
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | axiom |
-| S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | design; uses NoDeallocation (ASN-0034) |
+| S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | design; uses S1 |
 | S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness, T3 (ASN-0034) |
 | S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | consistent with S0, S1, S2, S3 |
 | S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | from S0 |
 | S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | design; uses Prefix, T4, T4c (ASN-0034) |
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | design; uses T4 (ASN-0034) |
 | S7c | Element-field depth: `(A a ∈ dom(C) :: #E(a) ≥ 2)` — subspace identifier and content ordinal occupy distinct components | design; uses S7b, T4, T4b, TA7a (ASN-0034) |
-| S7 | Structural attribution: `origin(a) = N(a).0.U(a).0.D(a)` — full document prefix | from S7a, S7b, S0, S4, T4, T4b, T3, GlobalUniqueness (ASN-0034) |
+| S7d | Document allocation discipline: every document is addressed by a document-level tumbler (`zeros = 2`) allocated via T10a under the owning user's prefix; distinct documents arise from distinct allocation events | design; uses T10a, T4 (ASN-0034) |
+| S7 | Structural attribution: `origin(a) = N(a).0.U(a).0.D(a)` — full document prefix | from S7a, S7b, S7d, S0, S4, T4, T4b, T3, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
 | S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — element-field tumblers of depth ≥ 2 with componentwise positive entries | axiom (V-positions are element-field tumblers of depth ≥ 2, paralleling S7c); structural properties from T4, T0 (ASN-0034) |
 | S8-depth | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design; uses OrdinalShift, TumblerAdd (ASN-0034) |
@@ -758,11 +765,11 @@ This has a formal consequence: document equality is not decidable by content com
 | OrdAddHom | (a) ord(v ⊕ w) = ord(v) ⊕ w_ord; (b) subspace(v ⊕ w) = subspace(v); (c) v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord) | lemma from ord, w_ord, TumblerAdd, TA0 (ASN-0034) |
 | OrdAddS8a | v ⊕ w satisfies S8a ⟺ all tail components of w after the action point are positive; equivalently ord(v ⊕ w) ∈ S ⟺ v ⊕ w satisfies S8a | lemma from OrdAddHom, S8a, TumblerAdd (ASN-0034) |
 | OrdShiftHom | ord(shift(v, n)) = shift(ord(v), n); shift(v, n) unconditionally satisfies S8a when v does | corollary from OrdAddHom, OrdAddS8a, OrdinalShift, OrdinalDisplacement (ASN-0034) |
-| D-CTG | V-position contiguity (text subspace `S = 1` only): V_1(d) forms a contiguous ordinal range with no gaps — design constraint on well-formed document states; link subspace `S = 2` is exempt (sparse with tombstones) | design (text subspace); uses T0(a), T1, T3 (ASN-0034) |
-| D-MIN | V-position minimum (text subspace `S = 1` only): minimum V-position in non-empty V_1(d) has all post-subspace components equal to 1 — design constraint | design requirement (text subspace) |
-| D-CTG-depth | Shared prefix reduction (wherever D-CTG holds): at depth m ≥ 3, contiguity reduces to the last component (all positions share components 2 through m − 1) | corollary of D-CTG, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
-| D-SEQ | Sequential positions (text subspace `S = 1` only): non-empty V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | from D-CTG, D-CTG-depth, D-MIN, S8a, S8-fin, S8-depth, T1 (ASN-0034) |
-| ValidInsertionPosition | if V_S(d) ≠ ∅: v = min(V_S(d)) or v = shift(min(V_S(d)), j) with 1 ≤ j ≤ N, common depth m ≥ 2; if V_S(d) = ∅: v = [S, 1, ..., 1] of depth m ≥ 2 | introduced |
+| D-CTG | V-position contiguity (bound to text subspace `S = 1`): V_1(d) forms a contiguous ordinal range with no gaps — design constraint on well-formed document states; link subspace `S = 2` is exempt (sparse with tombstones) | design (text subspace); uses T0(a), T1, T3 (ASN-0034) |
+| D-MIN | V-position minimum (bound to text subspace `S = 1`): non-empty V_1(d) has minimum [1, 1, ..., 1] with every component equal to 1 — design constraint | design requirement (text subspace) |
+| D-CTG-depth | Shared prefix reduction (bound to text subspace `S = 1`, applies wherever D-CTG holds): at depth m ≥ 3, all positions in V_1(d) share components 2 through m − 1, so contiguity reduces to the last component | corollary of D-CTG, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
+| D-SEQ | Sequential positions (bound to text subspace `S = 1`): non-empty V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | from D-CTG, D-CTG-depth, D-MIN, S8a, S8-fin, S8-depth, T1 (ASN-0034) |
+| ValidInsertionPosition | (bound to text subspace `S = 1`): if V_1(d) ≠ ∅: v = min(V_1(d)) or v = shift(min(V_1(d)), j) with 1 ≤ j ≤ N, common depth m ≥ 2; if V_1(d) = ∅: v = [1, 1, ..., 1] of depth m ≥ 2 | introduced |
 | S9 | Two-stream separation: arrangement changes cannot alter stored content | theorem from S0 |
 
 
