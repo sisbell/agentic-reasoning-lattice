@@ -1,3 +1,1 @@
-Tumbler subtraction a ⊖ w is well-defined whenever a ≥ w, producing a valid tumbler whose length is L — the longer of
-`#a` and `#w`, named by NAT-order trichotomy on `(#a, #w)` per TumblerSub's Definition rather than by a primitive
-binary-maximum operator on ℕ. The result lies in T and correctly represents the displacement needed to reach a from w.
+Proves that tumbler subtraction a ⊖ w yields a well-formed tumbler in T whenever a ≥ w, with length equal to the longer of #a and #w. The result correctly encodes the displacement from w to a, whether the operands share a common length, one is a prefix of the other, or they diverge at some interior component.
