@@ -47,10 +47,15 @@ from lib.shared.paths import (
 # Subdirectories of the author tree whose ASN-keyed subdirectories
 # hold derivation byproducts. The note's own dir (`note/`) and
 # inquiry (`inquiry/`) are NOT included — those are discovery inputs.
+# `review/notes` and `finding/notes` cover note-level review (from
+# `note_review`); the `/claims` variants cover claim-level reviews
+# (`cone_review`, `full_review`, `claim_patch`).
 _DERIVATION_SUBDIRS = (
     "claim",
     "review/claims",
+    "review/notes",
     "finding/claims",
+    "finding/notes",
     "audit/claims",
     "citation-resolve/claims",
     "signature-resolve/claims",
