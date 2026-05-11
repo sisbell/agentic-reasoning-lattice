@@ -1,4 +1,1 @@
-Every positive tumbler is strictly greater under T1 than every zero tumbler of any length. Established by
-constructing the first nonzero index `k` of the positive tumbler inline via NAT-wellorder on the set of nonzero
-positions, then performing a case analysis on whether the zero tumbler's length reaches `k`: when it does, T1
-case (i) separates them at `k`; when it does not, T1 case (ii) separates them by the prefix rule.
+Proves that every positive tumbler strictly exceeds every zero tumbler under lexicographic order, regardless of length. The proof extracts the first nonzero index k of the positive tumbler via well-ordering, then splits on whether the zero tumbler is long enough to reach k: if so, T1 case (i) separates them at position k; if not, T1 case (ii) separates them by the prefix rule.
