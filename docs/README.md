@@ -47,11 +47,11 @@ Compositions of Stigmergic Protocol primitives terminating at scope quiescence a
 
 - [Patterns](patterns/README.md) — observed structural regularities. The primary cycle (Narrow → Refine → Verify), patterns that adjust or feed it, patterns that seed hypothesis space, and the structure that accumulates output.
 - [Principles](principles/README.md) — design commitments the system enforces. Coupling (prose:formal ratio as health signal), Validation (structural contract as review precondition), and Voice (positive style structure constraining LLM output) live here.
-- [Equilibrium (failure modes)](equilibrium/README.md) — specific ways the system fails to converge. Gravitational (continuous pressure requiring permanent discipline), transitional (acts at representation boundaries, fixable once per boundary), and oscillatory (acts at sites of undecidability, fixable by establishing an arbitrating criterion).
+- [Equilibrium (failure modes)](equilibrium/README.md) — specific ways the system fails to reach quiescence. Gravitational (continuous pressure requiring permanent discipline), transitional (acts at representation boundaries, fixable once per boundary), and oscillatory (acts at sites of undecidability, fixable by establishing an arbitrating criterion).
 
 ## Design notes
 
-- [Design notes](design-notes/README.md) — architectural choices and aggregate observations that aren't patterns. Domain Language Emergence, Self-Healing, Production Drive.
+- [Design notes](design-notes/README.md) — architectural choices and aggregate observations that aren't patterns. Domain Language Emergence, Self-Healing, Production Drive, Stochastic Quiescence.
 
 ## Domain-specific
 

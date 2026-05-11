@@ -38,7 +38,7 @@ The lattice is produced by three patterns operating together:
 
 **[Two data authorities](two-data-authorities.md)** — independent channels produce raw findings about the domain. Theory and evidence reason separately, synthesis integrates. The output is a note with claims mapped to their sources. (Note-level.)
 
-**[Review/revise iteration](review-revise-iteration.md)** — refines each unit to internal coherence. Find issues, fix them, re-check. The unit converges to a state where its claims are consistent and its dependencies are explicit. (Both granularities — notes during discovery via the [maturation protocol](../protocols/maturation/note-to-claim.md), claims during claim refinement via the [maturation protocol](../protocols/maturation/note-to-claim.md).)
+**[Review/revise iteration](review-revise-iteration.md)** — refines each unit to internal coherence. Find issues, fix them, re-check. The unit reaches a quiescent state where its claims are consistent and its dependencies are explicit. (Both granularities — notes during discovery via the [maturation protocol](../protocols/maturation/note-to-claim.md), claims during claim refinement via the [maturation protocol](../protocols/maturation/note-to-claim.md).)
 
 **[Extract/absorb](extract-absorb.md)** — finds shared concepts, factors them into new foundation layers. Units that contained the shared concept absorb the extracted version and declare a dependency on it. Duplication is eliminated; the lattice gains a new layer. (Both granularities.)
 

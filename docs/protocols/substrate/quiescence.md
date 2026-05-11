@@ -6,9 +6,9 @@
 
 The pipeline in full:
 
-> R0–R7 (typed relations + operations) → Sh0–Sh5 (shape restrictions, slot accessors, templates) → PC0–PC6 (composed predicates) → AG0–AG7 (agents) → **Q0–Q6** (quiescence) → runner (next document)
+> R0–R7 (typed relations + operations) → Sh0–Sh5 (shape restrictions, slot accessors, templates) → PC0–PC6 (composed predicates) → AG0–AG7 (agents) → **Q0–Q10** (quiescence) → runner (next document)
 
-Forward-chaining systems generally cannot prove unconditional termination — the field's solutions (stratification, fairness, well-foundedness) all amount to conditions under which termination holds. We continue the chain's discipline of distinguishing what the substrate guarantees from what the registry contracts. The treatment is three layers:
+Forward-chaining systems generally cannot prove unconditional termination — the field's solutions (stratification, fairness, well-foundedness) all amount to conditions under which termination holds. We continue the chain's discipline of distinguishing what the substrate guarantees from what the registry contracts. The treatment is four layers:
 
 - **Layer 1 — Recognizability (Q0, Q1).** Quiescence is decidable from any state by any observer; once reached, it is stable. Unconditional.
 - **Layer 2 — Progress-Discipline (Q2, Q3, Q4).** Each agent contractually flips its own trigger false on each non-no-op fire. Per-agent, locally checkable, AG4-respecting.
@@ -74,7 +74,7 @@ That is: every fire that finds A's trigger true on `args` produces a state in wh
 
 *Consequences.*
 
-(a) *AG4 is preserved.* Progress-discipline does not require the registry to expose `act_A`'s body. Non-deterministic actions (e.g., LLM-driven agents) are admissible — what matters is that *whatever* emissions they produce flip the trigger.
+(a) *AG4 is preserved.* Progress-discipline does not require the registry to expose `act_A`'s body. Non-deterministic actions (e.g., LLM-driven agents) are admissible — what matters is that *whatever* emissions they produce flip the trigger. Stochastic-body agents may require operational bounded-W defense at the runner layer; see [`docs/design-notes/stochastic-quiescence.md`](../../design-notes/stochastic-quiescence.md).
 
 (b) *The contract is on the emission set, not the algorithm.* An agent satisfies progress-discipline by virtue of a property of its outputs. Different implementations sharing the property are equivalent under this contract.
 
@@ -350,7 +350,7 @@ The boundary is: quiescence.md commits to what is recognizable (Q0/Q1), what is 
 
 - *Bounded W decidability.* The bounded-W condition is a registry-level analysis problem with sufficient conditions but no general decision procedure. Whether bounded W is decidable in general (over the fragment of registries expressible in this spec) is open. For specific registry classes (acyclic, stratified, finite-domain) decidability is straightforward; for general registries it likely reduces to a Datalog-style termination problem.
 
-- *Probabilistic progress-discipline.* For LLM-driven agents, deterministic Q4 may be operationally unrealistic — the agent may flip its trigger reliably *most* of the time. What does the substrate do when an agent satisfies progress-discipline with probability `p < 1`? Possibilities: log violations and continue; halt; retry; redesign the trigger to capture the probabilistic case. The formal status of probabilistic progress-discipline ("flips trigger with probability ≥ p") is open and likely intersects with runner-level violation responses.
+- *Probabilistic progress-discipline.* For LLM-driven agents, the deterministic form of progress-discipline (per the Definition of ProgressDisciplined) may be operationally unrealistic — the agent may flip its trigger reliably *most* of the time. What does the substrate do when an agent satisfies progress-discipline with probability `p < 1`? Possibilities: log violations and continue; halt; retry; redesign the trigger to capture the probabilistic case. The operational response to this case is developed in [`docs/design-notes/stochastic-quiescence.md`](../../design-notes/stochastic-quiescence.md): the substrate spec stays deterministic; the runner's policy gains an N-consecutive-clean stopping rule that fits the spec's existing authorization for operational bounded-W defense.
 
 - *Cross-tier interference.* Q9 (ScopeMonotonicity) shows that outer-scope quiescence implies inner-scope quiescence, but the reverse fails. In a Stigmergic Protocol that targets per-document quiescence followed by lattice quiescence, an outer-scope agent firing during an inner-scope quiescent window can flip the inner scope back out of quiescence (Q8 consequence). What discipline (registry-design, scheduling, or registry partitioning) prevents protocols from oscillating across tier boundaries — and whether such oscillation is even pathological versus necessary — is open. Likely intersects with the protocol layer of the stack.
 

@@ -142,13 +142,13 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Gravitational failure.** An [equilibrium](equilibrium/) pattern whose force acts continuously across review cycles. Requires permanent discipline — prompt framing, coupling monitoring, voice structure — not a one-time fix. Contrasts with [transitional failure](#t) and [oscillatory failure](#o). Contract Sprawl, Prose Sprawl, Surface Expansion, Index Sprawl, Citation Drift are gravitational.
 
-**Ground state.** The state of genuine convergence — both [adaptive-scope](#a) (cone) and [comprehensive-scope](#c) review agree there are no remaining issues, and the [convergence predicate](#c) holds. Distinguished from "stopped" (no finding at one scope but the other can still expose issues). See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
+**Ground state.** The state of genuine quiescence — both [adaptive-scope](#a) (cone) and [comprehensive-scope](#c) review agree there are no remaining issues, and the [convergence predicate](#c) holds. Distinguished from "stopped" (no finding at one scope but the other can still expose issues). See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
 
 ## H
 
 **Hard reset.** A defined operation in the [maturation protocol](#m) for the case where a foundation turns out to be wrong, not merely incomplete. The note re-enters discovery; its freeze is revoked; all dependents that entered claim refinement against its claims must also reset. A `provenance.reset` link records the cascade. Expensive and destructive — used when the alternative (leaving dependents on a known-bad foundation) is worse. See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
 
-**Hypothesis cluster.** A [cone](patterns/dependency-cone.md) in a science domain: apex (hypothesis statement) plus its supporting dependencies (axioms, definitions, data citations, coined concepts). Convergence of a hypothesis cluster under [adaptive scope](#a) = hypothesis ready for its scope.
+**Hypothesis cluster.** A [cone](patterns/dependency-cone.md) in a science domain: apex (hypothesis statement) plus its supporting dependencies (axioms, definitions, data citations, coined concepts). Quiescence of a hypothesis cluster under [adaptive scope](#a) = hypothesis ready for its scope.
 
 **Hypothesis space.** The space of candidate principles and concepts that could organize a domain. Explored by the theory channel. Complement to [evidence space](#e). New [prose coinage](patterns/prose-coinage.md) is a form of hypothesis generation.
 
@@ -260,7 +260,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Review (link type / document classifier).** A substrate `review` classifier marks a document as a review record. Comment links from that review attach the findings it produced. Each review cycle produces one review document; comment links accumulate across cycles. See [Maturation Stigmergic Protocol](protocols/maturation/note-to-claim.md).
 
-**Review/revise iteration.** Repeating cycles of review (finding issues), revision (fixing them), and re-review until convergence. See [Review/Revise Iteration pattern](patterns/review-revise-iteration.md).
+**Review/revise iteration.** Repeating cycles of review (finding issues), revision (fixing them), and re-review until quiescence. See [Review/Revise Iteration pattern](patterns/review-revise-iteration.md).
 
 **Reviewer.** The agent that reads content and produces findings. Classifies each finding by whether it requires action. Does not modify.
 
@@ -301,6 +301,8 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 **Stigmergic Protocol.** A protocol family in which agents coordinate by reading and writing a shared substrate, with no direct message passing. Agents observe substrate state, fire when triggers are true, emit tuples; the substrate is the entire communication medium. Cachin's distinction maps as: system model = AG0–AG7 + Run0–Run5; communication primitive = Emit/Observe/Nullify (R0–R7); message format = typed relations under shape constraints (Sh-conf + Sh0–Sh5); termination = [quiescence](#q) (Q0–Q10). The [maturation protocol](#m) is one specialization. Primitives composed within the family: [Correction](#c), [Marker](#m), [Self-Review](#s), [Cycle](#c). See [Protocol Stack overview](protocols/README.md).
 
 **Stigmergy.** Coordination via traces left in a shared environment. Term coined by Pierre-Paul Grassé (1959) in observing how termites coordinate nest construction without direct communication — each modification of the substrate becomes a stimulus for other agents' actions. The substrate-mediated communication model the [Stigmergic Protocol](#s) family adopts. See [Protocol Stack overview](protocols/README.md).
+
+**Stochastic quiescence.** The state in which the substrate is structurally [quiescent](#q) (every `comment.revise` has a `resolution`, no holdings active) but a re-fired stochastic reviewer has p > 0 of emitting a new `comment.revise` on the same content. A property of stochastic LLM agents running on a deterministic substrate, not a pathology. The operational response is an N-consecutive-clean stopping rule at the trigger gate, calibrated empirically (n=2 for note-scope, n=1 for per-property claim-scope); the substrate spec stays deterministic. Distinguished from [Surface Expansion](equilibrium/surface-expansion.md) (Sprawl) and [Reverse-Course Oscillation](equilibrium/reverse-course-oscillation.md), which are pathologies. See [Stochastic Quiescence](design-notes/stochastic-quiescence.md).
 
 **Structural finding.** A review finding whose root cause is structural rather than semantic — duplicated declarations, dangling references, metadata disagreement, dependency-graph cycles. Symptom of an [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md).
 

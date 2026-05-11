@@ -19,10 +19,10 @@ This pattern is formally specified as the [Correction Stigmergic Protocol](../pr
 ```
 review → findings → revise → review → findings → ...
          │                             │
-         └── if none: converged ───────┘
+         └── if none: quiescent ───────┘
 ```
 
-The reviewer reads and produces findings. The reviser reads findings and edits (or rejects). The convergence predicate — every `comment.revise` has a `resolution` — determines when the cycle is done. Neither the reviewer's verdict nor the cycle count decides convergence; the state of the link graph does.
+The reviewer reads and produces findings. The reviser reads findings and edits (or rejects). The convergence predicate — every `comment.revise` has a `resolution` — determines when the cycle is done. Neither the reviewer's verdict nor the cycle count decides quiescence; the state of the link graph does.
 
 ## Why it needs multiple cycles
 
@@ -40,14 +40,16 @@ The findings progress through predictable stages:
 4. **Mathematical precision** — unstated domain assumptions, claims asserted when derivable, proofs claiming specific scope when argument is general.
 5. **Structural organization** — phantom dependencies, redundant claims, edge-case insights.
 
-This progression was observed independently in ASN-0034 discovery (reviews 14–31), ASN-0036 discovery (reviews 1–26), and ASN-0036 claim refinement regional reviews. The same stages, same order, across different notes and different protocol stages. The convergence protocol deliberately does not prescribe finding order — this ordering is an empirical regularity, not a protocol property.
+This progression was observed independently in ASN-0034 discovery (reviews 14–31), ASN-0036 discovery (reviews 1–26), and ASN-0036 claim refinement regional reviews. The same stages, same order, across different notes and different protocol stages. The Correction Stigmergic Protocol deliberately does not prescribe finding order — this ordering is an empirical regularity, not a protocol property.
 
-## When it converges
+Excavation eventually bottoms out — every layer has been cleared and the reviewer has no remaining defects to flag. The bottom is structural (the document's actual defect-free state); detecting it is statistical (the reviewer's draw distribution may surface speculative findings even on a bottomed-out document). See [Stochastic Quiescence](../design-notes/stochastic-quiescence.md) for why detection requires N consecutive clean draws rather than one.
+
+## When it quiesces
 
 - Each finding is addressed in one revision — by edit or by rejection
 - Revisions don't create new issues outside their scope
 - The reviewer is consistent — it doesn't flag something it previously accepted
-- All layers have been excavated — the reviewer files zero new `comment.revise` links
+- All layers have been excavated — the reviewer files zero new `comment.revise` links. For stochastic reviewers, this condition must hold across N consecutive draws on the same content (calibrated empirically; `n = 2` for note-scope, `n = 1` for per-property claim-scope). See [Stochastic Quiescence](../design-notes/stochastic-quiescence.md).
 
 ## When it stalls
 
@@ -75,7 +77,7 @@ The pattern applies wherever an LLM reviews and revises content iteratively. The
 
 **[Claim refinement](../claim-refinement.md).** Correction applied to per-claim files in the lattice. Adds structural validation (validate-before-review), lattice structure (`claim`, `contract`, `citation` links), scope strategies (adaptive and comprehensive as choreography), and the Dijkstra voice for both reviewer and reviser.
 
-**[Discovery](../discovery.md) (note maturation).** Correction applied to notes. Uses OUT_OF_SCOPE as the off-ramp instead of OBSERVE. No structural validation — notes have no claim document contract. Convergence signals readiness for [claim derivation](../claim-derivation.md).
+**[Discovery](../discovery.md) (note maturation).** Correction applied to notes. Uses OUT_OF_SCOPE as the off-ramp instead of OBSERVE. No structural validation — notes have no claim document contract. Quiescence signals readiness for [claim derivation](../claim-derivation.md).
 
 ## Realized in
 
