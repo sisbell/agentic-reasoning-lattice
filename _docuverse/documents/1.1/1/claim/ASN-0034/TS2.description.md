@@ -1,1 +1,1 @@
-Shift is injective over same-length tumblers: if shifting v₁ and v₂ by the same positive amount n yields identical results, then v₁ and v₂ must have been equal. This rules out any collisions introduced by the shift operation.
+Proves that shift is injective over same-length tumblers: if shifting v₁ and v₂ by the same positive n yields identical results, then v₁ = v₂. The argument reduces equality of shifted tumblers to component-wise agreement via the ManyToOne lemma, then closes by canonical representation.
