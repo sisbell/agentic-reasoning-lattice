@@ -134,6 +134,8 @@ The runner's only recourse for detecting bounded-W *symptoms* at runtime is oper
 
 (d) *The architectural commitment surfaces.* Progress-discipline is detectable in `PL` (Run3); bounded W is not. The runner inherits both detection responsibilities but must implement them through different mechanisms — the first through predicate evaluation, the second through bookkeeping. This asymmetry is structural, not an implementation oversight.
 
+(e) *Stochastic-body agents are a registry-recognized bounded-W pressure.* When `act_A` samples from a distribution (LLM-driven reviewers, model-based scouts), each re-fire is an independent draw and the cumulative trigger set grows even on already-quiescent state. The runner's countermeasure is registered as an operational stopping rule rather than a substrate change — see *Stochastic-agent stopping rules* in *Operational Concerns* below.
+
 
 ## Run5 — Violation-Response Policy
 
@@ -224,6 +226,14 @@ This section gathers operational considerations that fall under the runner's res
 - *Per-cycle evaluation.* Evaluate `quiescent[Σ_{k+1}]` at the end of each round-robin cycle. Lower cost; small detection lag.
 
 Per-cycle is the default (and is what Run2's proof relies on). The only correctness consequence of detection lag is that the runner may execute a few no-op fires after quiescence is reached but before detection. By Q1 (QuiescenceIsAbsorbing), these no-op fires preserve Σ, so correctness is unaffected; only efficiency is.
+
+**Stochastic-agent stopping rules.** Run4 establishes that bounded-W violations are detected operationally rather than in `PL`. The simplest detection is per-pair fire count; richer heuristics calibrate against the empirical behavior of stochastic agent bodies.
+
+When an agent's `act_A` is stochastic — e.g., an LLM-driven reviewer — its progress-discipline holds with probability `p < 1` on a given fire, and re-fires can produce different emissions on the same Σ. The substrate sees this as bounded-W pressure: cumulative trigger sets grow under repeated draws even on documents the reviewer has already passed CONVERGED on at least once. The operational countermeasure is to gate re-fires against multi-draw evidence rather than single-draw evidence.
+
+Specific rule — *N-consecutive-clean*. The trigger gates off only after the latest N reviews on the target have all come back without `comment.revise` findings. With N fixed at trigger-registration time, the predicate `last_n_reviews_were_clean(addr, n)` lies in `PL` by PC1's bounded-quantification form — N comparisons over the review chain. The operational threshold N is the runner's policy choice; the predicate itself is `PL`-side. This is the preventive analog of Run5's `RetryWithBudget`: rather than retrying after a violation, the gate raises the bar for declaring termination, absorbing the sampler's tail draws without letting them count.
+
+Calibration is empirical. Per [`docs/design-notes/stochastic-quiescence.md`](../../design-notes/stochastic-quiescence.md): `n = 2` for note-scope (large review surface, deep dependency cone where speculative findings have purchase); `n = 1` for per-property claim-scope (small review surface, fewer seams for the reviewer to surface polish work on). Single-CONVERGED proved unstable on ASN-36 note-reviews 79, 90, 93, 94 — each reopened on the next draw. Two-consecutive-CONVERGED reopened at 93+94→95 but with low-value findings ("expand auxiliary lemma"), indicating diminishing returns past the second consecutive clean draw. The design note carries the evidence and the architectural framing; this section records the rule the runner implements.
 
 **Concurrent fires.** AG7 (FireIsAtomicForSubstratePurposes) admits serial scheduling. If the runner relaxes serialization to allow concurrent fires, it must specify a reconciliation rule — what happens when two concurrent fires emit overlapping tuples, when one's emission flips another's trigger mid-fire, when provenance attribution races.
 

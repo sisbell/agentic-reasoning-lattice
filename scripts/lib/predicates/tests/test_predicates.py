@@ -31,6 +31,7 @@ from lib.predicates import (
     is_doc_quiescent,
     is_head_version,
     latest_review_for_addr,
+    last_n_reviews_were_clean,
     latest_review_was_clean,
     unresolved_revise_comments,
     version_children,
@@ -475,6 +476,71 @@ class ConfirmationPredicateTests(unittest.TestCase):
         self.assertTrue(latest_review_was_clean(self.session, self.claim))
         self.assertFalse(is_doc_quiescent(self.session, self.claim))
         self.assertFalse(is_claim_confirmed(self.session, self.claim))
+
+    # ── last_n_reviews_were_clean ────────────────────────────────
+
+    def test_last_n_zero_is_vacuously_true(self):
+        # Degenerate case: zero draws required.
+        self.assertTrue(
+            last_n_reviews_were_clean(self.session, self.claim, n=0),
+        )
+
+    def test_last_n_with_no_reviews_is_false(self):
+        self.assertFalse(
+            last_n_reviews_were_clean(self.session, self.claim, n=1),
+        )
+        self.assertFalse(
+            last_n_reviews_were_clean(self.session, self.claim, n=2),
+        )
+
+    def test_last_n_one_matches_latest_review_was_clean(self):
+        self._make_review(finding_kinds=())  # clean
+        self.assertTrue(
+            last_n_reviews_were_clean(self.session, self.claim, n=1),
+        )
+        self.assertEqual(
+            latest_review_was_clean(self.session, self.claim),
+            last_n_reviews_were_clean(self.session, self.claim, n=1),
+        )
+
+    def test_last_n_two_with_only_one_review_is_false(self):
+        self._make_review(finding_kinds=())  # clean
+        self.assertFalse(
+            last_n_reviews_were_clean(self.session, self.claim, n=2),
+        )
+
+    def test_last_n_two_consecutive_clean_returns_true(self):
+        self._make_review(finding_kinds=())  # clean
+        self._make_review(finding_kinds=())  # clean
+        self.assertTrue(
+            last_n_reviews_were_clean(self.session, self.claim, n=2),
+        )
+
+    def test_last_n_two_with_revise_in_window_is_false(self):
+        # Older review had revise; newer review clean. Window of 2
+        # includes the revise → False.
+        self._make_review(finding_kinds=("revise",))
+        self._make_review(finding_kinds=())
+        self.assertTrue(
+            last_n_reviews_were_clean(self.session, self.claim, n=1),
+        )
+        self.assertFalse(
+            last_n_reviews_were_clean(self.session, self.claim, n=2),
+        )
+
+    def test_last_n_walks_from_most_recent(self):
+        # Three reviews: oldest had revise, then two clean. n=2 over
+        # the most-recent-2 returns True; n=3 includes the revise and
+        # returns False.
+        self._make_review(finding_kinds=("revise",))
+        self._make_review(finding_kinds=())
+        self._make_review(finding_kinds=())
+        self.assertTrue(
+            last_n_reviews_were_clean(self.session, self.claim, n=2),
+        )
+        self.assertFalse(
+            last_n_reviews_were_clean(self.session, self.claim, n=3),
+        )
 
 
 if __name__ == "__main__":

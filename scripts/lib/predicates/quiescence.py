@@ -146,6 +146,51 @@ def latest_review_was_clean(session: Session, addr: Address) -> bool:
     return True
 
 
+def last_n_reviews_were_clean(
+    session: Session, addr: Address, n: int,
+) -> bool:
+    """True iff the most recent N reviews on `addr`'s scope all filed
+    zero `comment.revise` findings.
+
+    Generalizes `latest_review_was_clean` (n=1 case). Used by triggers
+    that gate on multi-draw evidence for stochastic reviewers — single
+    CONVERGED is statistically unstable, two-consecutive is the empirical
+    note-scope gate. See `docs/design-notes/stochastic-quiescence.md`.
+
+    Returns False when fewer than N reviews have covered `addr`.
+    n <= 0 is vacuously True.
+    """
+    if n <= 0:
+        return True
+    coverage_links = [
+        link for link in session.active_links(
+            "review.coverage", to_set=[addr],
+        )
+        if link.from_set
+        and session.active_links(
+            "review.content", to_set=[link.from_set[0]],
+        )
+    ]
+    if len(coverage_links) < n:
+        return False
+    coverage_links.sort(key=lambda link: link.addr.digits)
+    for cov_link in coverage_links[-n:]:
+        review_addr = cov_link.from_set[0]
+        finding_addrs = {
+            target
+            for link in session.active_links(
+                "provenance.derivation", from_set=[review_addr],
+            )
+            for target in link.to_set
+        }
+        for finding in finding_addrs:
+            if session.active_links(
+                "comment.revise", from_set=[finding],
+            ):
+                return False
+    return True
+
+
 def is_claim_confirmed(session: Session, addr: Address) -> bool:
     """The convergence-protocol's confirmation condition: claim is
     quiescent AND the most recent review on its scope was clean.

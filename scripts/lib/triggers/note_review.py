@@ -3,10 +3,11 @@
   scope:     each active non-retired note (CLI: one ASN's note;
              daemon: every active note)
   predicate: is_doc_quiescent AND has_been_reviewed AND
-             latest_review_was_clean — don't fire if there are no
-             open revises and the most recent review came up clean.
-             Initial state (no review yet) has has_been_reviewed=False,
-             so the predicate is False and review fires once.
+             last_n_reviews_were_clean(n=2) — don't fire if there
+             are no open revises and the most recent TWO reviews
+             came up clean. Initial state (no review yet) has
+             has_been_reviewed=False, so the predicate is False and
+             review fires once.
   agent:     NoteReviewAgent
 """
 
@@ -15,11 +16,14 @@ from __future__ import annotations
 from lib.agents.producers.note_review import NoteReviewAgent
 from lib.backend.addressing import Address
 from lib.predicates import (
-    has_been_reviewed, is_doc_quiescent, latest_review_was_clean,
+    has_been_reviewed, is_doc_quiescent, last_n_reviews_were_clean,
 )
 from lib.protocols.febe.protocol import Session
 from lib.runner import Trigger
 from lib.triggers.scope import per_active_note
+
+
+NOTE_REVIEW_CONVERGENCE_DEPTH = 2
 
 
 def _predicate(session: Session, addr: Address) -> bool:
@@ -33,18 +37,22 @@ def _predicate(session: Session, addr: Address) -> bool:
         this clause, note_review would re-fire each runner pass
         while revises pile up, producing redundant findings on the
         same prose.
-      - Latest review was clean (and any review has happened). The
-        confirmation +1 pattern: a clean review on the current state
-        ends the review→revise cycle.
+      - The last N reviews were all clean (and any review has
+        happened). Per `docs/design-notes/stochastic-quiescence.md`,
+        single CONVERGED is a statistically unstable gate for a
+        stochastic LLM reviewer — the empirical note-scope threshold
+        is two consecutive CONVERGED draws.
 
-    Fire iff doc is quiescent AND latest review was not clean (or no
-    review yet exists).
+    Fire iff doc is quiescent AND fewer than N consecutive reviews
+    came up clean (or no review yet exists).
     """
     return (
         not is_doc_quiescent(session, addr)
         or (
             has_been_reviewed(session, addr)
-            and latest_review_was_clean(session, addr)
+            and last_n_reviews_were_clean(
+                session, addr, n=NOTE_REVIEW_CONVERGENCE_DEPTH,
+            )
         )
     )
 
