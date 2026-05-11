@@ -6,7 +6,7 @@ the claim's role and guarantees without needing to parse formal
 notation or read the proof.
 
 Guidance:
-
+- Lead with the upshot — what the claim means or delivers — not with an enumeration of its parts. The synthesis sentence is usually the most valuable one and should come first, not last.
 - Let the opening verb signal claim type: "Defines" / "Posits" for
   definitions and axioms; "Proves" / "Establishes" for theorems;
   "A named corollary exporting..." for claims that relabel another
