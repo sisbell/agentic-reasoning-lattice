@@ -37,6 +37,7 @@ from lib.doctor import citation_targets as citation_targets_check
 from lib.doctor import claim_statements_bridge as bridge_check
 from lib.doctor import holdings as holdings_check
 from lib.doctor import review_coverage as review_coverage_check
+from lib.doctor import stuck_revises as stuck_revises_check
 from lib.doctor import trigger_agent_scope as trigger_scope_check
 from lib.doctor import version_graph as version_graph_check
 from lib.protocols.febe.session import open_session
@@ -81,6 +82,11 @@ def _build_registry(stale_threshold: int):
             lambda s: holdings_check.check_stale_holdings(s, stale_threshold),
             holdings_check.CHECK_NAME,
             holdings_check.CHECK_DESCRIPTION,
+        ),
+        (
+            lambda s: stuck_revises_check.check_stuck_revises(s, stale_threshold),
+            stuck_revises_check.CHECK_NAME,
+            stuck_revises_check.CHECK_DESCRIPTION,
         ),
     ]
 
