@@ -54,14 +54,14 @@ The set-membership constraint `Σ.B ⊆ T` is not a free design stipulation: it 
 
   - *Case 1: children(B, p, d) = ∅.* Then a = inc(p, d). By B6(i), p satisfies T4 and hence p ∈ T. By B6(ii), d ∈ {1, 2} so d ≥ 1. TA5's first postcondition (the unlabeled `t' ∈ T`, ASN-0034) gives `inc(p, d) ∈ T` for any p ∈ T and d ≥ 1. Therefore a ∈ T.
 
-  - *Case 2: children(B, p, d) ≠ ∅.* Then a = inc(cₘ, 0) where cₘ = max(children(B, p, d)). The maximum exists because B is finite (B_fin) and children(B, p, d) ⊆ B is a non-empty finite subset of T totally ordered by T1. By the inductive hypothesis, cₘ ∈ B ⊆ T. The final component of cₘ is positive — c₁ = inc(p, d) has value 1 at position #p + d (TA5(d)), and each sibling increment advances that position by 1 (TA5(c)) — so TA5(c)'s positivity precondition is met. TA5(c) gives `inc(cₘ, 0) ∈ T`. Therefore a ∈ T.
+  - *Case 2: children(B, p, d) ≠ ∅.* Then a = inc(cₘ, 0) where cₘ = max(children(B, p, d)). The maximum exists because B is finite (B_fin) and children(B, p, d) ⊆ B is a non-empty finite subset of T totally ordered by T1. By the inductive hypothesis, cₘ ∈ B ⊆ T. TA5's first (unlabeled) postcondition (ASN-0034) gives `inc(cₘ, 0) ∈ T` for any cₘ ∈ T. Therefore a ∈ T.
 
 In both cases a ∈ T, so B' = B ∪ {a} ⊆ T. B_type holds at B' under baptismal transitions, and by the frame argument above it holds at B' under Σ.B-frame transitions. By induction on the transition sequence, B_type holds in every reachable state. ∎
 
 *Formal Contract:*
 - *Invariant:* `(A Σ : Σ reachable from Σ_init : Σ.B ⊆ T)`.
 - *Base:* B₀ conf. — every seed element satisfies T4 and hence inhabits T.
-- *Preservation:* B0a partitions Op; Σ.B-frame transitions leave Σ.B unchanged; baptismal transitions add `next(Σ.B, p, d)`, which inhabits T by TA5's first postcondition `t' ∈ T` — applied to the inc(p, d) form covered by TA5(d) on the empty-namespace branch (with B6(i) supplying p ∈ T and B6(ii) supplying d ≥ 1) and to the inc(cₘ, 0) form covered by TA5(c) on the non-empty branch (with the inductive hypothesis and B_fin supplying a T-valued positive-ordinal cₘ).
+- *Preservation:* B0a partitions Op; Σ.B-frame transitions leave Σ.B unchanged; baptismal transitions add `next(Σ.B, p, d)`, which inhabits T by TA5's first postcondition `t' ∈ T` — applied to the inc(p, d) form covered by TA5(d) on the empty-namespace branch (with B6(i) supplying p ∈ T and B6(ii) supplying d ≥ 1) and to the inc(cₘ, 0) form covered by TA5(c) on the non-empty branch (with the inductive hypothesis and B_fin supplying a T-valued cₘ).
 
 B_type is the typing skeleton on which B10 builds: B_type says baptized addresses are *well-formed* tumblers (in T), and B10 sharpens this to say they additionally satisfy *T4* — the field-separator constraint. The two invariants are independent in principle (T is the carrier of the algebra; T4 is a structural predicate over T), but in practice every reachable registry satisfies both, established by parallel inductions citing the same base case (B₀ conf.) and the same case analysis on B0a's partition.
 
@@ -200,7 +200,7 @@ The case split is exhaustive: children(B, p, d) = B ∩ S(p, d) is a set, so it 
 
 *Case 1: children(B, p, d) = ∅.* The definition yields next(B, p, d) = inc(p, d). By TA5(d) (ASN-0034), inc(p, d) is well-defined for any p ∈ T and d ≥ 1, producing a tumbler of length #p + d whose first #p components are preserved from p, whose next d − 1 positions are zero-valued field separators, and whose final position has value 1. The result is an element of T — specifically, c₁ of the sibling stream S(p, d).
 
-*Case 2: children(B, p, d) ≠ ∅.* The definition yields next(B, p, d) = inc(max(children(B, p, d)), 0). We must show that max(children(B, p, d)) exists and that the subsequent increment is well-defined. The set children(B, p, d) is a non-empty finite subset of T (finite because B is finite, non-empty by hypothesis). The lexicographic order T1 is a strict total order on T, so every non-empty finite subset has a unique maximum. Let t = max(children(B, p, d)). By TA5(c), inc(t, 0) is well-defined for any t ∈ T: it preserves the length of t and advances the value at position sig(t) by 1, producing an element of T.
+*Case 2: children(B, p, d) ≠ ∅.* The definition yields next(B, p, d) = inc(max(children(B, p, d)), 0). We must show that max(children(B, p, d)) exists and that the subsequent increment is well-defined. The set children(B, p, d) is a non-empty finite subset of T (finite because B is finite, non-empty by hypothesis). The lexicographic order T1 is a strict total order on T, so every non-empty finite subset has a unique maximum. Let t = max(children(B, p, d)). TA5's first (unlabeled) postcondition (ASN-0034) gives `inc(t, 0) ∈ T` for any t ∈ T; TA5(c) further specifies the form — length preserved, value at position sig(t) advanced by 1.
 
 In both cases, next(B, p, d) produces an element of T. The definition is total on its domain {(B, p, d) : B ⊆ T finite, p ∈ T, d ≥ 1}. ∎
 
@@ -221,7 +221,7 @@ The frame condition's scope is essential. With respect to Σ.B, baptism is preci
 
 *Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined, produces a fresh address, and preserves the system invariants B0, B1, B10, and B_fin. The four obligations are mutually recursive: well-definedness appeals to B1 to identify max(children(Σ.B, p, d)) as cₘ and to B_fin to ground its existence; B1's preservation in turn appeals to Bop's postcondition; B10's preservation likewise appeals to Bop's choice of next; and B_fin's preservation appeals to the singleton-extension form of that postcondition. We present the per-step arguments here as components of one joint induction over Σ_init →* Σ, whose hypothesis carries B1, B10, B_fin (and B_type via B10) at the precondition state Σ of every transition. The dedicated §B1, §B10, §B_fin, §B_type proofs below carry the respective single-step preservation arguments under the same hypothesis, with B0a's transition partition serving as the common discriminator. No step argument appeals to its own conclusion at the current state — each is conditional on the joint hypothesis at Σ, which the induction establishes state-by-state via B0a — so the cross-references between the Bop correctness proof and the §B1/§B10/§B_fin proofs are jointly inductive rather than circular.
 
-**Well-definedness.** The postcondition invokes next(Σ.B, p, d), which branches on whether children(Σ.B, p, d) is empty. If empty, the result is inc(p, d) — well-defined for any p ∈ T and d ≥ 1 by TA5's first postcondition (the unlabeled `t' ∈ T`). If non-empty, the result is inc(max(children(Σ.B, p, d)), 0). By the joint inductive hypothesis at Σ, B1 gives children(Σ.B, p, d) = {c₁, ..., cₘ} for some m ≥ 1, a contiguous prefix, and B_fin gives this set finite; max therefore exists and equals cₘ. The sibling increment inc(cₘ, 0) is well-defined by TA5(c), since cₘ has a positive last component: for c₁ = inc(p, d), position #p + d holds value 1 (TA5(d)), and each subsequent sibling increment advances this position by 1 (TA5(c)), preserving positivity. In both branches, next produces an element of T.
+**Well-definedness.** The postcondition invokes next(Σ.B, p, d), which branches on whether children(Σ.B, p, d) is empty. If empty, the result is inc(p, d) — well-defined for any p ∈ T and d ≥ 1 by TA5's first postcondition (the unlabeled `t' ∈ T`). If non-empty, the result is inc(max(children(Σ.B, p, d)), 0). By the joint inductive hypothesis at Σ, B1 gives children(Σ.B, p, d) = {c₁, ..., cₘ} for some m ≥ 1, a contiguous prefix, and B_fin gives this set finite; max therefore exists and equals cₘ. The joint hypothesis also gives B10 (registry-wide T4 validity), so cₘ ∈ Σ.B ⊆ T; TA5's first (unlabeled) postcondition then gives `inc(cₘ, 0) ∈ T`. In both branches, next produces an element of T.
 
 **Freshness.** Let a = next(Σ.B, p, d) = c_{m+1} where m = hwm(Σ.B, p, d). We show a ∉ Σ.B. By construction, a = c_{m+1} ∈ S(p, d). Since children(Σ.B, p, d) = Σ.B ∩ S(p, d) by definition, if a ∈ Σ.B then a ∈ children(Σ.B, p, d). By B1, children(Σ.B, p, d) = {c₁, ..., cₘ}. By S0 (StreamOrdering), distinct stream indices produce distinct elements: since m + 1 > i for all 1 ≤ i ≤ m, we have c_{m+1} ≠ cᵢ for each such i. Therefore a ∉ {c₁, ..., cₘ} = children(Σ.B, p, d), contradicting the supposition. We conclude a ∉ Σ.B. B4 guarantees that next(Σ.B, p, d) is evaluated against the precondition state Σ of the same transition that produces Σ', so the value of children(Σ.B, p, d) used here is exactly the value used in the postcondition of the same edge.
 
@@ -609,6 +609,14 @@ B5: zeros([1, 0, 1, 0, 1]) = 2 = 1 + (2 − 1). B6: d = 2 and zeros([1, 0, 1]) +
 
 State: B₃ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1]}.
 
+**Step 4: sub-document under first document.** Namespace ([1, 0, 1, 0, 1], 1) — document [1, 0, 1, 0, 1], depth 1 (intra-level descent to sub-document, exercising d = 1).
+
+  next(B₃, [1, 0, 1, 0, 1], 1) = inc([1, 0, 1, 0, 1], 1) = [1, 0, 1, 0, 1, 1]
+
+TA5(d) with k = d − 1 = 0 intermediate zeros: no zero separator is inserted; the value 1 is appended at position #p + d = 6. B5: zeros([1, 0, 1, 0, 1, 1]) = 2 = zeros([1, 0, 1, 0, 1]) + (1 − 1) — d = 1 contributes no new zeros, so the parent's zero count is preserved. B6: p = [1, 0, 1, 0, 1] satisfies T4 (last component 1 is positive), d = 1 ∈ {1, 2}, and B6(iii) at d = 1 reduces to zeros(p) ≤ 3, which holds since zeros([1, 0, 1, 0, 1]) = 2 ≤ 3. B1: children(B₄, [1, 0, 1, 0, 1], 1) = {[1, 0, 1, 0, 1, 1]}, a contiguous prefix of length 1, witnessing prefix extension under a fresh namespace at d = 1.
+
+State: B₄ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1]}.
+
 Nelson's "Items 2.1, 2.2, 2.3, 2.4" is exactly this mechanism — successive baptisms under parent 2 at depth 1, yielding the sibling stream 2.1, 2.2, 2.3, 2.4 by repeated application of inc(·, 0). The sequence is determined, contiguous, and the ordinals carry no semantics beyond order.
 
 **B7 Case 2 verified.** The steps above exercise only Case 1 of B7 (different stream lengths). We now trace Case 2 — non-nesting prefixes with equal element lengths. From state B₂ above, the parents [1, 0, 1] and [1, 0, 2] are both length 3, distinct, and neither is a prefix of the other (they disagree at position 3). Consider S([1, 0, 1], 1) and S([1, 0, 2], 1). Both streams have element length 4: #[1, 0, 1] + 1 = #[1, 0, 2] + 1 = 4. The prefixes are non-nesting — neither [1, 0, 1] ≼ [1, 0, 2] nor [1, 0, 2] ≼ [1, 0, 1] — so this is Case 2 with p = [1, 0, 1], d = 1, p' = [1, 0, 2], d' = 1.
@@ -619,33 +627,33 @@ At position 3 of each stream: c₁ = inc([1, 0, 1], 1) = [1, 0, 1, 1] and c'₁ 
 
 At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 2 is 0, the zero separator produced by TA5(d) with d − 1 = 1 intermediate zero. inc([1, 1], 1) = [1, 1, 1] — the value at position 2 is p'₂ = 1 > 0 (by T4, valid addresses do not end in zero, so the last component of [1, 1] is positive). Sibling increments inc(·, 0) modify only the last component (TA5(c)), so position 2 is invariant across both streams: always 0 in S([1], 2), always 1 in S([1, 1], 1). The streams disagree at a fixed position and are therefore disjoint.
 
-**B9 unbounded extent exhibited.** The trace so far stops at B₃ with hwm(B₃, [1], 2) = 2 — two children of [1] at depth 2 (the addresses [1, 0, 1] and [1, 0, 2] baptized in Steps 1 and 2). B9 (Unbounded Extent) asserts that for any target M ∈ ℕ, a finite sequence of further baptisms in this namespace reaches hwm ≥ M. We exhibit the construction concretely for M = 5: three additional baptisms suffice (since hwm currently equals 2). Each step is a single Bop transition on namespace ([1], 2); we record next(B, [1], 2), the postcondition state, the resulting children set, and the contiguous-prefix verification.
+**B9 unbounded extent exhibited.** The trace so far stops at B₄ with hwm(B₄, [1], 2) = 2 — two children of [1] at depth 2 (the addresses [1, 0, 1] and [1, 0, 2] baptized in Steps 1 and 2; Step 4's d = 1 baptism contributed to a different namespace and left hwm at ([1], 2) unchanged). B9 (Unbounded Extent) asserts that for any target M ∈ ℕ, a finite sequence of further baptisms in this namespace reaches hwm ≥ M. We exhibit the construction concretely for M = 5: three additional baptisms suffice (since hwm currently equals 2). Each step is a single Bop transition on namespace ([1], 2); we record next(B, [1], 2), the postcondition state, the resulting children set, and the contiguous-prefix verification.
 
-  **Step 4: third user.** Same namespace ([1], 2).
+  **Step 5: third user.** Same namespace ([1], 2).
 
-  next(B₃, [1], 2) = inc(max{[1, 0, 1], [1, 0, 2]}, 0) = inc([1, 0, 2], 0) = [1, 0, 3]
+  next(B₄, [1], 2) = inc(max{[1, 0, 1], [1, 0, 2]}, 0) = inc([1, 0, 2], 0) = [1, 0, 3]
 
   TA5(c): sibling increment preserves length, advances position sig([1, 0, 2]) = 3, so the ordinal goes from 2 to 3. By B2, this is c_{hwm+1} = c₃. B6 holds as in Step 2 ((p, d) = ([1], 2) is unchanged). B5a: zeros([1, 0, 3]) = 1 = zeros([1, 0, 2]) — sibling preserves zeros. B1: children = {[1, 0, 1], [1, 0, 2], [1, 0, 3]} = {c₁, c₂, c₃}, contiguous prefix of length 3.
 
-  State: B₄ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 3]}. hwm(B₄, [1], 2) = 3.
+  State: B₅ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1], [1, 0, 3]}. hwm(B₅, [1], 2) = 3.
 
-  **Step 5: fourth user.** Same namespace ([1], 2).
+  **Step 6: fourth user.** Same namespace ([1], 2).
 
-  next(B₄, [1], 2) = inc([1, 0, 3], 0) = [1, 0, 4]
+  next(B₅, [1], 2) = inc([1, 0, 3], 0) = [1, 0, 4]
 
   By B2, c_{hwm+1} = c₄. B1: children = {c₁, c₂, c₃, c₄}, contiguous prefix of length 4.
 
-  State: B₅ = B₄ ∪ {[1, 0, 4]}. hwm(B₅, [1], 2) = 4.
+  State: B₆ = B₅ ∪ {[1, 0, 4]}. hwm(B₆, [1], 2) = 4.
 
-  **Step 6: fifth user.** Same namespace ([1], 2).
+  **Step 7: fifth user.** Same namespace ([1], 2).
 
-  next(B₅, [1], 2) = inc([1, 0, 4], 0) = [1, 0, 5]
+  next(B₆, [1], 2) = inc([1, 0, 4], 0) = [1, 0, 5]
 
   By B2, c_{hwm+1} = c₅. B1: children = {c₁, c₂, c₃, c₄, c₅}, contiguous prefix of length 5.
 
-  State: B₆ = B₅ ∪ {[1, 0, 5]}. hwm(B₆, [1], 2) = 5 = M.
+  State: B₇ = B₆ ∪ {[1, 0, 5]}. hwm(B₇, [1], 2) = 5 = M.
 
-The target hwm = 5 is reached in exactly three baptisms from B₃, witnessing B9 for the pair ((p, d), M) = (([1], 2), 5). The construction depends on no upper bound at position 3 of the stream: TA5(c) advances the ordinal value from 2 to 3 to 4 to 5 without consulting any ceiling, and the same step can be repeated indefinitely to grow the namespace through every natural number — the unbounded-component axiom T0(a). For any target M' > 5, an additional M' − 5 baptisms in ([1], 2) extend B₆ to a registry with hwm = M' along the same pattern. The trace exhibits the *bounded growth* construction of B9's proof: each individual baptism is a single Bop transition with the +1 increment that B1 preserves, and the finite sequence of such transitions reaches any prescribed M. Crucially, contiguity is maintained at every step — children(B_k, [1], 2) = {c₁, ..., c_{k−1}} for k ∈ {3, 4, 5, 6} above — so the trace simultaneously witnesses B9 (unboundedness) and B1 (contiguity) under iteration. The trace also illustrates that the unbounded-extent claim is structural, not an existence claim about distant or hypothetical states: each successor state Bₖ is reached by an explicit, single-step transition from the previous, and the registry remains finite at every step (B_fin), so unbounded extent does not require an infinite registry — only that no finite ceiling is imposed.
+The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9 for the pair ((p, d), M) = (([1], 2), 5). The construction depends on no upper bound at position 3 of the stream: TA5(c) advances the ordinal value from 2 to 3 to 4 to 5 without consulting any ceiling, and the same step can be repeated indefinitely to grow the namespace through every natural number — the unbounded-component axiom T0(a). For any target M' > 5, an additional M' − 5 baptisms in ([1], 2) extend B₇ to a registry with hwm = M' along the same pattern. The trace exhibits the *bounded growth* construction of B9's proof: each individual baptism is a single Bop transition with the +1 increment that B1 preserves, and the finite sequence of such transitions reaches any prescribed M. Crucially, contiguity is maintained at every step — children(B₄, [1], 2) = {c₁, c₂}, children(B₅, [1], 2) = {c₁, c₂, c₃}, children(B₆, [1], 2) = {c₁, ..., c₄}, and children(B₇, [1], 2) = {c₁, ..., c₅} — so the trace simultaneously witnesses B9 (unboundedness) and B1 (contiguity) under iteration. The trace also illustrates that the unbounded-extent claim is structural, not an existence claim about distant or hypothetical states: each successor state Bₖ is reached by an explicit, single-step transition from the previous, and the registry remains finite at every step (B_fin), so unbounded extent does not require an infinite registry — only that no finite ceiling is imposed.
 
 
 ## Global uniqueness
