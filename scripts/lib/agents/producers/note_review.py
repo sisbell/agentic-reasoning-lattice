@@ -22,7 +22,7 @@ from typing import ClassVar, List, Tuple
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.backend.emit import emit_review, emit_review_coverage
+from lib.backend.emit import emit_review_content, emit_review_coverage
 from lib.lattice.config import lattice_config
 from lib.lattice.findings import record_one_finding
 from lib.lattice.labels import (
@@ -245,7 +245,7 @@ class NoteReviewAgent(Agent):
         review_rel = str(review_path.relative_to(session.store.lattice_dir))
         session.update_document(review_rel, body)
         review_addr = session.register_path(review_rel)
-        emit_review(session.store, review_addr)
+        emit_review_content(session.store, review_addr)
         emit_review_coverage(session.store, review_addr, note_addr)
 
         findings = extract_note_findings(text)
