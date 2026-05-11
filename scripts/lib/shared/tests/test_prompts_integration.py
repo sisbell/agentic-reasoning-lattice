@@ -1,35 +1,30 @@
 """Integration tests for prompt rendering across lattices.
 
-Confirms that loading a real prompt file applies the active lattice's
-label_prefix substitution. Uses load_lattice_config(path) directly so
-the test isn't sensitive to the LATTICE env var or the cached
-lattice_config() module-level singleton.
+Confirms that label_prefix substitution applies to a real prompt
+file. Uses `config_from_dict` to build LatticeConfig instances
+directly so the test doesn't touch the cached `lattice_config()`
+singleton or the substrate's active lattice doc.
 """
 
 from __future__ import annotations
 
-import textwrap
 from pathlib import Path
 
 import pytest
 
-from lib.lattice.config import load_lattice_config
+from lib.lattice.config import config_from_dict
 from lib.shared.prompts import _PREFIX_TOKEN, render_prompt
 
 
-def test_xanadu_lattice_renders_asn_prefix(tmp_path: Path) -> None:
-    cfg_path = tmp_path / "config.yaml"
-    cfg_path.write_text("label_prefix: ASN\n")
-    cfg = load_lattice_config(cfg_path)
+def test_xanadu_lattice_renders_asn_prefix() -> None:
+    cfg = config_from_dict({"label_prefix": "ASN"})
     text = f"# Review of {_PREFIX_TOKEN}-NNNN"
     rendered = text.replace(_PREFIX_TOKEN, cfg.label_prefix)
     assert rendered == "# Review of ASN-NNNN"
 
 
-def test_materials_lattice_renders_mat_prefix(tmp_path: Path) -> None:
-    cfg_path = tmp_path / "config.yaml"
-    cfg_path.write_text("label_prefix: MAT\n")
-    cfg = load_lattice_config(cfg_path)
+def test_materials_lattice_renders_mat_prefix() -> None:
+    cfg = config_from_dict({"label_prefix": "MAT"})
     text = f"# Review of {_PREFIX_TOKEN}-NNNN"
     rendered = text.replace(_PREFIX_TOKEN, cfg.label_prefix)
     assert rendered == "# Review of MAT-NNNN"

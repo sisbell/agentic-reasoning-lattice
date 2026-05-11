@@ -65,7 +65,6 @@ def prompt_path(subpath):
 
 # Per-lattice files
 VOCABULARY = LATTICE / "vocabulary.md"
-LATTICE_CONFIG = LATTICE / "config.yaml"
 
 # Verification stage
 ALLOY_DIR = LATTICE / "verification" / "alloy"
@@ -440,15 +439,6 @@ def load_inquiry(asn_id):
     """Load inquiry frontmatter for an ASN. Returns dict or empty dict."""
     from lib.shared.frontmatter import read_doc_frontmatter
     return read_doc_frontmatter(inquiry_doc_path(asn_id))
-
-
-def load_lattice_config():
-    """Load the lattice-level config.yaml. Returns dict or empty dict."""
-    try:
-        with open(LATTICE_CONFIG) as f:
-            return yaml.safe_load(f) or {}
-    except FileNotFoundError:
-        return {}
 
 
 def campaign_dir(name):

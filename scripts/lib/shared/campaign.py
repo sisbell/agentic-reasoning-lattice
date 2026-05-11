@@ -18,8 +18,9 @@ import yaml
 
 from lib.lattice.labels import format_label
 from lib.shared.frontmatter import read_doc_frontmatter
+from lib.lattice.config import lattice_config
 from lib.shared.paths import (
-    LATTICE_CONFIG, load_inquiry, load_lattice_config,
+    load_inquiry,
     campaign_dir, campaign_doc_path, campaign_vocab,
 )
 
@@ -61,12 +62,13 @@ def resolve_campaign(asn_id):
 @functools.lru_cache(maxsize=None)
 def _resolve_cached(asn_num):
     inquiry_fm = load_inquiry(asn_num)
-    name = inquiry_fm.get("campaign") or load_lattice_config().get("default_campaign")
+    name = inquiry_fm.get("campaign") or lattice_config().default_campaign
     if not name:
         raise ConfigError(
             f"No campaign bound for {format_label(asn_num)}. "
-            f"Set `campaign:` in the inquiry frontmatter or `default_campaign:` in "
-            f"{LATTICE_CONFIG}."
+            f"Set `campaign:` in the inquiry frontmatter or "
+            f"`default_campaign:` in the active lattice's substrate "
+            f"doc frontmatter."
         )
 
     doc_path = campaign_doc_path(name)

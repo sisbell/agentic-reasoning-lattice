@@ -22,7 +22,7 @@ from lib.lattice.config import lattice_config as cfg
 from lib.lattice.labels import label_pattern
 from lib.shared.paths import (
     LATTICE_NAME, CAMPAIGN_DIR, INQUIRY_DIR,
-    load_lattice_config, campaign_doc_path, campaign_vocab,
+    campaign_doc_path, campaign_vocab,
 )
 
 
@@ -53,8 +53,7 @@ def _asn_label_from_dir(d):
 
 
 def main():
-    lattice_config = load_lattice_config()
-    default_campaign = lattice_config.get("default_campaign")
+    default_campaign = cfg().default_campaign
 
     if not CAMPAIGN_DIR.exists():
         print(f"No campaigns directory at {CAMPAIGN_DIR}", file=sys.stderr)

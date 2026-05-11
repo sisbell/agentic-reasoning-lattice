@@ -47,7 +47,7 @@ from lib.backend.addressing import Address
 from lib.backend.links import Link
 from lib.backend.state import State, TypeArg
 from lib.backend.store import Store
-from lib.lattice.config import LatticeConfig, load_lattice_config
+from lib.lattice.config import LatticeConfig, lattice_config
 from lib.protocols.bebe import BEBEDispatcher
 
 
@@ -467,8 +467,9 @@ def open_session(
         with open_session(LATTICE) as session:
             session.make_link(...)
     """
-    config = load_lattice_config(Path(lattice_dir) / "config.yaml")
-    return Session(default_store(lattice_dir), bebe=bebe, config=config)
+    return Session(
+        default_store(lattice_dir), bebe=bebe, config=lattice_config(),
+    )
 
 
 # ── Provenance plumbing (substrate-tier) ───────────────────────────

@@ -9,15 +9,20 @@ lattice's substrate doc frontmatter — `_docuverse/documents/<node>/
     default_campaign: xanadu-protocol
     ---
 
-This module reads that frontmatter once per process. Falls back to
-`lattices/<name>/config.yaml` (legacy location) if no lattice doc is
-on disk.
-
 A separate concern from the substrate session: many code paths build
 labels, paths, and prompts without holding a Session. Those use the
 module-level `lattice_config()` accessor. Sessions opened via
 `open_session()` carry the same config on `session.config` so
 session-aware code can reach it without a second module import.
+
+Three primitives:
+
+  config_from_dict(raw)        — structural dict → LatticeConfig.
+                                 Pure mapping; useful for tests.
+  config_from_doc(doc_path)    — read lattice doc frontmatter at the
+                                 given path; raise if missing.
+  lattice_config()             — accessor for the active lattice;
+                                 cached per process.
 """
 
 from __future__ import annotations
@@ -26,8 +31,6 @@ import functools
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-
-import yaml
 
 
 DEFAULT_LABEL_PREFIX = "ASN"
@@ -39,73 +42,52 @@ class LatticeConfig:
     default_campaign: Optional[str] = None
 
 
-def _config_from_dict(raw: dict) -> LatticeConfig:
+def config_from_dict(raw: dict) -> LatticeConfig:
+    """Map a raw frontmatter dict to a LatticeConfig."""
     return LatticeConfig(
         label_prefix=raw.get("label_prefix", DEFAULT_LABEL_PREFIX),
         default_campaign=raw.get("default_campaign"),
     )
 
 
-def load_lattice_config(path: Path) -> LatticeConfig:
-    """Read a lattice config from disk into a LatticeConfig.
+def config_from_doc(lattice_doc_path: Path) -> LatticeConfig:
+    """Load a LatticeConfig from a specific lattice doc's frontmatter.
 
-    Two sources, in order:
-      1. The lattice doc at `_docuverse/documents/<node>/<user>/
-         lattice/<name>.md` — prefers frontmatter when present.
-      2. Legacy `lattices/<name>/config.yaml` — fallback for sites
-         that haven't migrated to the substrate-doc shape yet.
-
-    `path` is the legacy yaml path; the lattice-doc path is derived
-    from it. Missing file → defaults. Missing fields → field defaults.
+    Raises `FileNotFoundError` if the doc doesn't exist. No fallback
+    — a missing lattice doc is a configuration error, not a
+    "default-to-empty" state.
     """
-    # 1. Try lattice doc frontmatter first.
-    lattice_doc = _lattice_doc_path_for(path)
-    if lattice_doc is not None and lattice_doc.exists():
-        from lib.shared.frontmatter import read_doc_frontmatter
-        return _config_from_dict(read_doc_frontmatter(lattice_doc))
-
-    # 2. Legacy yaml fallback.
-    try:
-        raw = yaml.safe_load(path.read_text()) or {}
-    except FileNotFoundError:
-        raw = {}
-    return _config_from_dict(raw)
+    if not lattice_doc_path.exists():
+        raise FileNotFoundError(
+            f"Lattice doc not found at {lattice_doc_path}. "
+            f"Required for lattice config (label_prefix, "
+            f"default_campaign)."
+        )
+    from lib.shared.frontmatter import read_doc_frontmatter
+    return config_from_dict(read_doc_frontmatter(lattice_doc_path))
 
 
-def _lattice_doc_path_for(yaml_path: Path) -> Optional[Path]:
-    """Derive the lattice-doc path from the legacy yaml path.
-
-    yaml lives at `lattices/<name>/config.yaml`. Lattice doc lives at
-    `_docuverse/documents/<node>/<user>/lattice/<name>.md`. Use the
-    yaml's parent directory name as `<name>` and consult paths.py for
-    `<node>/<user>`.
-    """
-    try:
-        lattice_name = yaml_path.parent.name
-    except (AttributeError, ValueError):
-        return None
-    # Lazy-import to avoid cycle with paths.py at module-load time.
-    from lib.shared.paths import WORKSPACE, _NODE_USER_PREFIX
-    nu = _NODE_USER_PREFIX.get(lattice_name)
-    if nu is None:
-        return None
-    node, user = nu
+def _active_lattice_doc_path() -> Path:
+    """Build the path to the active lattice's substrate doc."""
+    from lib.shared.paths import (
+        DOCUVERSE_DIR, LATTICE_NAME, LATTICE_NODE, LATTICE_USER,
+    )
     return (
-        WORKSPACE / "_docuverse" / "documents" / node / user
-        / "lattice" / f"{lattice_name}.md"
+        DOCUVERSE_DIR / "documents" / LATTICE_NODE / LATTICE_USER
+        / "lattice" / f"{LATTICE_NAME}.md"
     )
 
 
 @functools.lru_cache(maxsize=None)
-def _cached_for(path: Path) -> LatticeConfig:
-    return load_lattice_config(path)
+def _cached_for(lattice_doc_path: Path) -> LatticeConfig:
+    return config_from_doc(lattice_doc_path)
 
 
 def lattice_config() -> LatticeConfig:
     """The active lattice's config, loaded once per process.
 
-    Resolves the active lattice via lib.shared.paths.LATTICE_CONFIG, which
-    is itself driven by the LATTICE env var. Cached per-process.
+    Resolves via lib.shared.paths.LATTICE_NAME / LATTICE_NODE /
+    LATTICE_USER (which are themselves driven by the --lattice CLI
+    arg or LATTICE env var). Cached per-process.
     """
-    from lib.shared.paths import LATTICE_CONFIG
-    return _cached_for(LATTICE_CONFIG)
+    return _cached_for(_active_lattice_doc_path())
