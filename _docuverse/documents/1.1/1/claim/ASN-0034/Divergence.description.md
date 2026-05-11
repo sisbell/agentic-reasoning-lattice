@@ -1,6 +1,1 @@
-Given two distinct tumblers `a ≠ b`, `divergence(a, b)` returns the exact index where they first differ — either
-the position of the first mismatched component (bounded by `k ≤ #a ∧ k ≤ #b` rather than by a primitive binary
-minimum), or one past the shorter tumbler's length (`#a + 1` in sub-case (ii-a) with `#a < #b`, else `#b + 1` in
-sub-case (ii-b) with `#b < #a`) when all shared components agree but lengths differ; the sub-case is selected by
-NAT-order trichotomy. The function is symmetric and always defined for distinct tumblers (exhaustiveness guaranteed
-by T3: if neither case applied, the tumblers would be equal).
+Defines the point at which two distinct tumblers first cease to agree: either the index of the first mismatched component at a shared position, or one past the shorter tumbler's last component when all shared components agree but lengths differ. The function is total and symmetric — exactly one case applies for any a ≠ b, guaranteed by T3.
