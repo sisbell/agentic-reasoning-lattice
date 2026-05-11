@@ -388,7 +388,7 @@ def _run_consult_for_review(
     cat_addr = store.register_path(cat_rel)
     emit_consultation_assessment(store, cat_addr)
 
-    items = _parse_assignment(response, asn_label)
+    items = _parse_assignment(result.text, asn_label)
     if not items:
         print(f"  [ASSIGN] No items parsed from response", file=sys.stderr)
         return None
