@@ -1,4 +1,1 @@
-Characterises the interior-divergence residue of `⊖`: when the action point
-of `w` is 1 and `o₁ = w₁` with `o ≠ w`, the first padded disagreement lies
-at some `d > 1`, and TumblerSub's pre-divergence-zero clause forces
-`r₁ = 0`, placing the result in `T \ S`.
+Proves that when `o` and `w` share their first component but diverge later, the residue `o ⊖ w` escapes the subspace `S`: the first padded disagreement falls at some position `d > 1`, forcing a leading zero in the result and thereby violating `S`'s universal positivity requirement. The postcondition `r₁ = 0` is the concrete witness that the residue lands in `T \ S`.
