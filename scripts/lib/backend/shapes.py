@@ -137,6 +137,8 @@ SHAPES: Dict[str, LinkShape] = {
     "absorb": CLASSIFIER,
     "clone": CLASSIFIER,
     "retired": CLASSIFIER,
+    "motifs": CLASSIFIER,
+    "motif": CLASSIFIER,
 
     # ── Attributes ──
     "name": ATTRIBUTE,
@@ -145,6 +147,7 @@ SHAPES: Dict[str, LinkShape] = {
     "signature": ATTRIBUTE,
     "statements": ATTRIBUTE,
     "references": ATTRIBUTE,
+    "motif.attribution": ATTRIBUTE,
 
     # ── Citations ──
     "citation.depends": CITATION,

@@ -104,6 +104,8 @@ CAMPAIGN_DIR = DOCUVERSE_AUTHOR_DIR / "campaign"
 INQUIRY_DIR = DOCUVERSE_AUTHOR_DIR / "inquiry"
 NOTE_DIR = DOCUVERSE_AUTHOR_DIR / "note"
 CLAIM_DIR = DOCUVERSE_AUTHOR_DIR / "claim"
+MOTIFS_DIR = DOCUVERSE_AUTHOR_DIR / "motifs"  # scout snapshot docs
+MOTIF_DIR = DOCUVERSE_AUTHOR_DIR / "motif"    # materialized motif docs + sidecars
 # Discovery-stage consultation directory.
 CONSULTATIONS_DIR = DOCUVERSE_AUTHOR_DIR / "consultation"
 # Substrate-citizen patches. Split by target kind (note/claim) so that:

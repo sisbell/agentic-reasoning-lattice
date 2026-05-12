@@ -21,5 +21,6 @@ from .shapes import validate_type  # noqa: F401
 # that distinguish claim body markdown from sidecars).
 VALID_ATTRIBUTE_KINDS = frozenset({
     "label", "name", "description", "signature", "statements", "references",
+    "motif.attribution",
 })
 ATTRIBUTE_SUFFIXES = tuple(f".{k}.md" for k in sorted(VALID_ATTRIBUTE_KINDS))
