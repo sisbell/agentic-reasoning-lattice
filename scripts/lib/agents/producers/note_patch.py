@@ -291,7 +291,7 @@ class NotePatchAgent(Agent):
         if note_rel is None:
             return AgentResult(success=False, detail="no-note-path")
 
-        asn_path_full = LATTICE / note_rel
+        asn_path_full = WORKSPACE / note_rel
         if not asn_path_full.exists():
             return AgentResult(success=False, detail="no-note-file")
 
