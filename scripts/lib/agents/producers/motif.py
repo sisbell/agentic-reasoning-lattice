@@ -35,6 +35,7 @@ from lib.backend.emit import (
     emit_empty_derivation,
 )
 from lib.lattice.labels import format_label, note_dep_asn_ids
+from lib.predicates import statements_sidecar_of, supersession_head
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import find_asn, read_file
@@ -356,18 +357,16 @@ class MotifAgent(Agent):
         emit_classifier(session.store, motif_addr, "motif")
         emit_derivation(session.store, motifs_addr, motif_addr)
 
-        # citation.depends per cited claim
-        for asn_label, claims in (chosen.get("cited_claims") or {}).items():
-            for claim_label in (claims if isinstance(claims, list) else [claims]):
-                claim_addr = self._resolve_claim(
-                    session, asn_label, str(claim_label),
+        # One citation.depends per cited note, pointing at the note's
+        # statements sidecar's supersession head. The chain head is the
+        # claims.statements aggregate when the note's been through claim
+        # derivation, otherwise the operator-drafted statements sidecar.
+        for asn_label in (chosen.get("cited_claims") or {}):
+            head = self._resolve_statements_head(session, asn_label)
+            if head is not None:
+                emit_citation(
+                    session.store, motif_addr, head, direction="depends",
                 )
-                if claim_addr is not None:
-                    emit_citation(
-                        session.store, motif_addr,
-                        version_head(session, claim_addr),
-                        direction="depends",
-                    )
 
         return motif_addr
 
@@ -401,15 +400,15 @@ class MotifAgent(Agent):
             direction="depends",
         )
 
-        # Structural fact: sidecar → base ASN head, omitted for STANDALONE
+        # Structural fact: sidecar → base note's statements head, omitted
+        # for STANDALONE. Same `note → statements → supersession_head`
+        # resolution the motif uses for its cited-claim anchors.
         base_label = (attrib_data.get("base") or "").strip()
         if base_label and base_label != "STANDALONE":
-            base_addr = self._resolve_asn(session, base_label)
-            if base_addr is not None:
+            head = self._resolve_statements_head(session, base_label)
+            if head is not None:
                 emit_citation(
-                    session.store, sidecar_addr,
-                    version_head(session, base_addr),
-                    direction="depends",
+                    session.store, sidecar_addr, head, direction="depends",
                 )
 
         return sidecar_addr
@@ -429,24 +428,22 @@ class MotifAgent(Agent):
         rel = str(path.resolve().relative_to(Path(WORKSPACE).resolve()))
         return session.store.path_to_addr.get(rel)
 
-    def _resolve_claim(
-        self, session: Session, asn_label: str, claim_label: str,
+    def _resolve_statements_head(
+        self, session: Session, asn_label: str,
     ) -> Optional[Address]:
-        """Resolve `(ASN-NNNN, claim_label)` to a substrate address.
+        """Resolve `ASN-NNNN` to the supersession head of its note's
+        statements sidecar.
 
-        Blueprinted ASNs: per-claim md exists; return its address.
-        Operation notes (un-blueprinted): claim only exists in prose;
-        fall back to the note's address (the closest substrate-
-        addressable target).
+        Walks `note → statements → supersession_head`. The chain head
+        is the `claims.statements` aggregate when the note's been
+        through claim derivation, otherwise the operator-drafted
+        statements sidecar. This is the canonical target for citation
+        anchors against a note's claim content.
         """
-        from lib.shared.paths import CLAIM_DIR
-        m = re.search(r"ASN-(\d+)", asn_label)
-        if not m:
+        note_addr = self._resolve_asn(session, asn_label)
+        if note_addr is None:
             return None
-        asn_dir = CLAIM_DIR / format_label(int(m.group(1)))
-        claim_path = asn_dir / f"{claim_label}.md"
-        if claim_path.exists():
-            rel = str(claim_path.relative_to(WORKSPACE))
-            return session.store.path_to_addr.get(rel)
-        # Fallback: the note itself
-        return self._resolve_asn(session, asn_label)
+        sidecar = statements_sidecar_of(session, note_addr)
+        if sidecar is None:
+            return None
+        return supersession_head(session, sidecar)
