@@ -271,7 +271,7 @@ A consequence of L8 and L9 together: new link types can be defined by choosing a
 
 `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`
 
-*Inclusion* (`{t : x ≼ t} ⊆ coverage`): let `c` extend `x`, so `x ≼ c`. By T1(ii), `c ≥ x`. Since `c` agrees with `x` at all positions `1` through `#x`, we have `c_{#x} = x_{#x} < x_{#x} + 1 = shift(x, 1)_{#x}` (strict successor by NatDiscreteness (NAT-discrete, ASN-0034)), giving `c < shift(x, 1)` by T1(i). Therefore `c ∈ [x, shift(x, 1))`.
+*Inclusion* (`{t : x ≼ t} ⊆ coverage`): let `c` extend `x`, so `x ≼ c`. By T1(ii), `c ≥ x`. Since `c` agrees with `x` at all positions `1` through `#x`, we have `c_{#x} = x_{#x} < x_{#x} + 1 = shift(x, 1)_{#x}` (strict successor by NatAdditionOrderAndSuccessor (NAT-addcompat, ASN-0034)), giving `c < shift(x, 1)` by T1(i). Therefore `c ∈ [x, shift(x, 1))`.
 
 *Exclusion* (`coverage ⊆ {t : x ≼ t}`): we show that every `t ∈ [x, shift(x, 1))` with `t ≠ x` must extend `x`, by case analysis on depth. Throughout, when we name the first divergence position between `t` and `x` we invoke Divergence (ASN-0034) — the least-position projection defined on tumbler pairs that disagree somewhere within their shared range.
 
