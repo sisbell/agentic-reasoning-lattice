@@ -24,16 +24,18 @@ Flags:
                        valid for triggers whose `supports_claim_filter`
                        is True (cone_review, claim_describe, etc.).
     --force          — Force-pass: fire every (trigger, addr) in scope
-                       regardless of predicate. Requires --claim
-                       (operator override only meaningful at narrow
-                       scope; bare ASN-wide --force is the easy way to
-                       thrash the LLM).
+                       regardless of predicate. For claim-scope triggers
+                       this requires --claim (bare ASN-wide --force at
+                       claim-scope is the easy way to thrash the LLM).
+                       Note-scope triggers (note_statements, etc.) yield
+                       a single address — bare --force is allowed there.
     --max-iterations N — Cap on runner passes (default 100).
 
 Examples:
     python scripts/run-trigger.py cone_review 36
     python scripts/run-trigger.py claim_describe 36 --claim T7
     python scripts/run-trigger.py cone_review 36 --claim T7 --force
+    python scripts/run-trigger.py note_statements 43 --force
 """
 
 from __future__ import annotations
@@ -92,7 +94,10 @@ def main() -> int:
     )
     parser.add_argument(
         "--force", action="store_true",
-        help="Force-pass: fire ignoring predicate. Requires --claim.",
+        help=(
+            "Force-pass: fire ignoring predicate. Requires --claim for "
+            "claim-scope triggers (bare ASN-wide force can thrash)."
+        ),
     )
     parser.add_argument(
         "--max-iterations", type=int, default=100,
@@ -111,8 +116,11 @@ def main() -> int:
             f"trigger {trigger.name!r} does not support --claim "
             f"(its scope_query does not honor scope.labels)"
         )
-    if args.force and not args.claim:
-        parser.error("--force requires --claim (no bare ASN-wide force)")
+    if args.force and not args.claim and trigger.supports_claim_filter:
+        parser.error(
+            f"--force requires --claim for {trigger.name!r} "
+            f"(claim-scope trigger; bare ASN-wide force can thrash)"
+        )
 
     asn_num = int(re.sub(r"\D", "", args.asn))
     asn_label = format_label(asn_num)
