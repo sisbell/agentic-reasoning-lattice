@@ -78,7 +78,7 @@ The properties that follow — intersection, merge, split, normalization — req
 
   level_compat(t₁, t₂)  ≡  #t₁ = #t₂
 
-A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s: since the action point k satisfies 1 ≤ k ≤ #s = #ℓ, we have #(s ⊕ ℓ) = max(k − 1, 0) + (#ℓ − k + 1) = #ℓ = #s. The start, width, and reach all share the same tumbler length. A level-uniform span automatically satisfies D0 for the (start(σ), reach(σ)) pair: by TA-strict, start(σ) < reach(σ); and since #start(σ) = #reach(σ), neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start(σ).
+A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity from TA0 (#(s ⊕ ℓ) = #ℓ), already established above. The start, width, and reach all share the same tumbler length. A level-uniform span automatically satisfies D0 for the (start(σ), reach(σ)) pair: by TA-strict, start(σ) < reach(σ); and since #start(σ) = #reach(σ), neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start(σ).
 
 The constraint is not merely technical — it reflects the tree structure of the tumbler space. A tumbler [1, 3, 0, 5] has four components spanning two hierarchical levels (separated by zero). A span with start [1, 3] and width [0, 2] operates at depth 2 — it varies position 2 while position 1 is fixed. An interior point at a deeper level, such as [1, 3, 0, 1], diverges from [1, 3] at position 3 (after zero-padding), exceeding #[1, 3] = 2. No valid displacement exists. A span defined at one depth can only interact with points at that same depth.
 
@@ -191,27 +191,20 @@ The composition property below depends on left cancellation of TumblerAdd: if a 
 
   (s ⊕ d) ⊕ d' = reach(σ) = s ⊕ ℓ
 
-To apply TA-assoc (ASN-0034), both compositions must be well-defined. The left side (s ⊕ d) ⊕ d' is well-defined: s ⊕ d is established (T12 on λ), and d' > 0 with action point k_{d'} ≤ #d' = #s = #(s ⊕ d) (level-uniformity). For the right side s ⊕ (d ⊕ d'), three conditions need verification:
+We discharge TA-assoc's preconditions (Pos(d), Pos(d'), k_d ≤ #s, k_{d'} ≤ #d, ASN-0034):
 
-(a) *d ⊕ d' is positive, and its action point is m = min(k_d, k_{d'}).* Let k_d and k_{d'} be the action points of d and d'. The addition d ⊕ d' is governed by d', whose action point k_{d'} partitions the index range: for i < k_{d'}, (d ⊕ d')_i = d_i (copy from d); for i = k_{d'}, (d ⊕ d')_{k_{d'}} = d_{k_{d'}} + d'_{k_{d'}}; for i > k_{d'}, (d ⊕ d')_i = d'_i (replace by d''s tail). The action-point definition (ActionPoint, ASN-0034) gives d_i = 0 for i < k_d and d_{k_d} ≥ 1, and similarly d'_i = 0 for i < k_{d'} and d'_{k_{d'}} ≥ 1.
+- *Pos(d)*: T12 on λ gives d > 0.
+- *Pos(d')*: T12 on ρ gives d' > 0.
+- *k_d ≤ #s*: T12 on λ bounds the action point of d by #s.
+- *k_{d'} ≤ #d*: T12 on ρ gives k_{d'} ≤ #p = #s, and level-uniformity of λ gives #d = #s, so k_{d'} ≤ #d.
 
-  *Case k_d < k_{d'}*, so m = k_d. For i < m = k_d, we have i < k_{d'} (copy region) so (d ⊕ d')_i = d_i = 0 by ActionPoint on d. At i = m = k_d, again i < k_{d'} so (d ⊕ d')_{k_d} = d_{k_d} ≥ 1 by ActionPoint on d.
-
-  *Case k_d = k_{d'}*, so m = k_d = k_{d'}. For i < m, we have i < k_{d'} (copy region) so (d ⊕ d')_i = d_i = 0 by ActionPoint on d. At i = m = k_{d'}, (d ⊕ d')_{k_d} = d_{k_d} + d'_{k_d}; by NAT-addbound (right dominance, m + n ≥ n, ASN-0034) and ActionPoint on d' giving d'_{k_d} ≥ 1, we have d_{k_d} + d'_{k_d} ≥ d'_{k_d} ≥ 1.
-
-  *Case k_d > k_{d'}*, so m = k_{d'}. For i < m = k_{d'}, we have i < k_{d'} (copy region) and i < k_d, so (d ⊕ d')_i = d_i = 0 by ActionPoint on d. At i = m = k_{d'}, since k_{d'} < k_d we have d_{k_{d'}} = 0 by ActionPoint on d, so (d ⊕ d')_{k_{d'}} = d_{k_{d'}} + d'_{k_{d'}} = d'_{k_{d'}} ≥ 1 by ActionPoint on d'.
-
-In every case, (d ⊕ d')_i = 0 for i < m and (d ⊕ d')_m ≥ 1. By the ActionPoint definition (zeros below, nonzero at the action point), the action point of d ⊕ d' is exactly m = min(k_d, k_{d'}), and d ⊕ d' > 0.
-
-(b) *The action point of d ⊕ d' is at most #s.* From (a), the action point is min(k_d, k_{d'}) ≤ k_d ≤ #s (the latter from T12 applied to λ).
-
-(c) *The action point of d' falls within #d.* Since #d = #d' = #s (level-uniformity), k_{d'} ≤ #d' = #d.
-
-Both compositions are well-defined, so associativity gives:
+TA-assoc applies, yielding (i) associativity (s ⊕ d) ⊕ d' = s ⊕ (d ⊕ d') with both sides well-defined; (ii) Pos(d ⊕ d'); (iii) actionPoint(d ⊕ d') = min(k_d, k_{d'}). From the chain,
 
   s ⊕ (d ⊕ d') = s ⊕ ℓ
 
-By left-cancellation, d ⊕ d' = ℓ.  ∎
+To apply TA-LC (ASN-0034), both compositions must be well-defined: s ⊕ (d ⊕ d') by TA-assoc, and s ⊕ ℓ since it equals reach(σ) (TA0 on σ). TA-LC gives:
+
+  d ⊕ d' = ℓ.  ∎
 
 **S4a** (*SplitMergeInverse*). For a level-uniform span σ = (s, ℓ) and an interior point p with level_compat(s, p), splitting σ at p (S4) and merging the two parts (S3) recovers σ exactly.
 
@@ -299,11 +292,15 @@ Result: Σ̂ = ⟨([1, 3], [0, 6]), ([1, 10], [0, 3])⟩. N1: [1, 3] < [1, 10]. 
 
 *Proof.* Let Σ̂₁ = ⟨α₁, ..., αₘ⟩ and Σ̂₂ = ⟨β₁, ..., βₙ⟩, both normalized, with ⟦Σ̂₁⟧ = ⟦Σ̂₂⟧ = S. Suppose Σ̂₁ ≠ Σ̂₂. Let i be the smallest index where αᵢ ≠ βᵢ (if one sequence is shorter, take i past the shorter one's end). For j < i, αⱼ = βⱼ.
 
-*Case 1:* start(αᵢ) < start(βᵢ) (or βᵢ does not exist). Then start(αᵢ) ∈ S since start(αᵢ) ∈ ⟦αᵢ⟧. But start(αᵢ) ∉ ⟦βⱼ⟧ for any j. For j < i: αⱼ = βⱼ by minimality of i, so reach(βⱼ) = reach(αⱼ). N2 on Σ̂₁ gives reach(αⱼ) < start(αⱼ₊₁), and repeated N1 on Σ̂₁ gives start(αⱼ₊₁) ≤ start(αᵢ) (with equality when j+1 = i, strict otherwise); chaining, reach(βⱼ) < start(αᵢ), so start(αᵢ) ∉ ⟦βⱼ⟧. For j ≥ i (only possible when βᵢ exists): N1 on Σ̂₂ gives start(βⱼ) ≥ start(βᵢ), and the case hypothesis gives start(βᵢ) > start(αᵢ); so start(βⱼ) > start(αᵢ), and start(αᵢ) ∉ ⟦βⱼ⟧. So start(αᵢ) ∉ ⟦Σ̂₂⟧ = S. Contradiction.
+*Case 1a:* Both αᵢ and βᵢ exist, with start(αᵢ) < start(βᵢ). Then start(αᵢ) ∈ S since start(αᵢ) ∈ ⟦αᵢ⟧. But start(αᵢ) ∉ ⟦βⱼ⟧ for any j. For j < i: αⱼ = βⱼ by minimality of i, so reach(βⱼ) = reach(αⱼ). N2 on Σ̂₁ gives reach(αⱼ) < start(αⱼ₊₁), and repeated N1 on Σ̂₁ gives start(αⱼ₊₁) ≤ start(αᵢ) (with equality when j+1 = i, strict otherwise); chaining, reach(βⱼ) < start(αᵢ), so start(αᵢ) ∉ ⟦βⱼ⟧. For j ≥ i: N1 on Σ̂₂ gives start(βⱼ) ≥ start(βᵢ), and the case hypothesis gives start(βᵢ) > start(αᵢ); so start(βⱼ) > start(αᵢ), and start(αᵢ) ∉ ⟦βⱼ⟧. So start(αᵢ) ∉ ⟦Σ̂₂⟧ = S. Contradiction.
+
+*Case 1b:* αᵢ exists, βᵢ does not exist (i.e., n < i ≤ m, so Σ̂₂ is the shorter sequence with n = i − 1). Then start(αᵢ) ∈ S since start(αᵢ) ∈ ⟦αᵢ⟧. The range j ≥ i is vacuous (no such βⱼ exists). For j < i: αⱼ = βⱼ by minimality of i, so reach(βⱼ) = reach(αⱼ); N2 on Σ̂₁ gives reach(αⱼ) < start(αⱼ₊₁), and repeated N1 on Σ̂₁ gives start(αⱼ₊₁) ≤ start(αᵢ); chaining, reach(βⱼ) < start(αᵢ), so start(αᵢ) ∉ ⟦βⱼ⟧. Since all βⱼ are exhausted by j < i, start(αᵢ) ∉ ⟦Σ̂₂⟧ = S. Contradiction.
 
 *Case 2:* start(αᵢ) = start(βᵢ) but reach(αᵢ) ≠ reach(βᵢ), say reach(αᵢ) < reach(βᵢ). Set p = reach(αᵢ). Then p ∈ ⟦βᵢ⟧ since start(βᵢ) = start(αᵢ) < reach(αᵢ) = p < reach(βᵢ), so p ∈ S. But p ∉ ⟦αᵢ⟧ since p = reach(αᵢ) is the exclusive upper bound. For j < i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) > reach(αⱼ) by N2 (reach(αⱼ) < start(αⱼ₊₁)), repeated application of N1 (start(αⱼ₊₁) < ... < start(αᵢ)), and non-emptiness (start(αᵢ) < reach(αᵢ)). For j > i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) < start(αᵢ₊₁) ≤ start(αⱼ) by N2 and N1. So p ∉ ⟦Σ̂₁⟧, but p ∈ S. Contradiction.
 
-*Case 3:* start(αᵢ) > start(βᵢ). Symmetric to Case 1.
+*Case 3a:* Both αᵢ and βᵢ exist, with start(αᵢ) > start(βᵢ). Symmetric to Case 1a, exchanging the roles of Σ̂₁ and Σ̂₂: start(βᵢ) ∈ S since start(βᵢ) ∈ ⟦βᵢ⟧. For j < i: βⱼ = αⱼ by minimality of i, so reach(αⱼ) = reach(βⱼ); N2 on Σ̂₂ and repeated N1 give reach(αⱼ) = reach(βⱼ) < start(βᵢ), so start(βᵢ) ∉ ⟦αⱼ⟧. For j ≥ i: N1 on Σ̂₁ gives start(αⱼ) ≥ start(αᵢ), and the case hypothesis gives start(αᵢ) > start(βᵢ); so start(βᵢ) ∉ ⟦αⱼ⟧. So start(βᵢ) ∉ ⟦Σ̂₁⟧ = S. Contradiction.
+
+*Case 3b:* βᵢ exists, αᵢ does not exist (i.e., m < i ≤ n, so Σ̂₁ is the shorter sequence with m = i − 1). Symmetric to Case 1b: start(βᵢ) ∈ S since start(βᵢ) ∈ ⟦βᵢ⟧. The range j ≥ i is vacuous (no such αⱼ exists). For j < i: βⱼ = αⱼ, so reach(αⱼ) = reach(βⱼ); N2 on Σ̂₂ and repeated N1 give reach(αⱼ) = reach(βⱼ) < start(βᵢ), so start(βᵢ) ∉ ⟦αⱼ⟧. Since all αⱼ are exhausted by j < i, start(βᵢ) ∉ ⟦Σ̂₁⟧ = S. Contradiction.
 
 All cases yield contradiction, so Σ̂₁ = Σ̂₂.  ∎
 
