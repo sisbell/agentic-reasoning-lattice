@@ -295,8 +295,10 @@ class NoteReviseAgent(Agent):
                 success=False, elapsed=response.elapsed, detail="llm-failed",
             )
 
-        # Commit the revise edits + resolution links emitted by the
-        # in-process Claude session as a discrete pipeline event.
+        # Body was edited; advance the note's supersession chain so
+        # downstream cascade-fresh predicates (statements, cascades)
+        # detect the edit. Mirrors note_patch.py.
+        session.register_version(note_addr)
 
         return AgentResult(
             success=True,
