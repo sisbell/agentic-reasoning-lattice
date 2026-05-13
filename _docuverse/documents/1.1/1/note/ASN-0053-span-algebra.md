@@ -78,7 +78,7 @@ The properties that follow — intersection, merge, split, normalization — req
 
   level_compat(t₁, t₂)  ≡  #t₁ = #t₂
 
-A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s: since the action point k satisfies 1 ≤ k ≤ #s = #ℓ, we have #(s ⊕ ℓ) = max(k − 1, 0) + (#ℓ − k + 1) = #ℓ = #s. The start, width, and reach all share the same tumbler length. Level-uniform spans automatically satisfy D0 for all endpoint pairs: since #start = #reach, neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start.
+A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s: since the action point k satisfies 1 ≤ k ≤ #s = #ℓ, we have #(s ⊕ ℓ) = max(k − 1, 0) + (#ℓ − k + 1) = #ℓ = #s. The start, width, and reach all share the same tumbler length. A level-uniform span automatically satisfies D0 for the (start(σ), reach(σ)) pair: by TA-strict, start(σ) < reach(σ); and since #start(σ) = #reach(σ), neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start(σ).
 
 The constraint is not merely technical — it reflects the tree structure of the tumbler space. A tumbler [1, 3, 0, 5] has four components spanning two hierarchical levels (separated by zero). A span with start [1, 3] and width [0, 2] operates at depth 2 — it varies position 2 while position 1 is fixed. An interior point at a deeper level, such as [1, 3, 0, 1], diverges from [1, 3] at position 3 (after zero-padding), exceeding #[1, 3] = 2. No valid displacement exists. A span defined at one depth can only interact with points at that same depth.
 
@@ -153,7 +153,7 @@ Nelson grounds this in the normalization guarantee: "A spanset may be presented 
 
 Splitting is the reverse of merging: given a span σ and a point interior to it, decompose σ into two adjacent parts that together reconstitute the original.
 
-**Definition** (*Interior point*). A position p is *interior* to span σ when start(σ) < p < reach(σ). By S0, every interior point is in ⟦σ⟧.
+**Definition** (*Interior point*). A position p is *interior* to span σ when start(σ) < p < reach(σ). By the definition of ⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}, every interior point is in ⟦σ⟧.
 
 **S4** (*SplitPartition*). For a level-uniform span σ = (s, ℓ) and an interior point p with level_compat(s, p), the displacements d = p ⊖ s and d' = reach(σ) ⊖ p are well-defined with #d = #s = #d' (all tumblers at the same length). The left span λ = (s, d) and right span ρ = (p, d') satisfy:
 
@@ -193,7 +193,15 @@ The composition property below depends on left cancellation of TumblerAdd: if a 
 
 To apply TA-assoc (ASN-0034), both compositions must be well-defined. The left side (s ⊕ d) ⊕ d' is well-defined: s ⊕ d is established (T12 on λ), and d' > 0 with action point k_{d'} ≤ #d' = #s = #(s ⊕ d) (level-uniformity). For the right side s ⊕ (d ⊕ d'), three conditions need verification:
 
-(a) *d ⊕ d' is positive.* Let k_d and k_{d'} be the action points of d and d'. If k_d < k_{d'}, position k_d is in the "copy from start" range, so (d ⊕ d')_{k_d} = d_{k_d} > 0. If k_d = k_{d'}, (d ⊕ d')_{k_d} = d_{k_d} + d'_{k_d} > 0. If k_d > k_{d'}, then d_{k_{d'}} = 0 (since k_{d'} < k_d), so (d ⊕ d')_{k_{d'}} = d_{k_{d'}} + d'_{k_{d'}} = d'_{k_{d'}} > 0. In every case d ⊕ d' is positive.
+(a) *d ⊕ d' is positive, and its action point is m = min(k_d, k_{d'}).* Let k_d and k_{d'} be the action points of d and d'. The addition d ⊕ d' is governed by d', whose action point k_{d'} partitions the index range: for i < k_{d'}, (d ⊕ d')_i = d_i (copy from d); for i = k_{d'}, (d ⊕ d')_{k_{d'}} = d_{k_{d'}} + d'_{k_{d'}}; for i > k_{d'}, (d ⊕ d')_i = d'_i (replace by d''s tail). The action-point definition (ActionPoint, ASN-0034) gives d_i = 0 for i < k_d and d_{k_d} ≥ 1, and similarly d'_i = 0 for i < k_{d'} and d'_{k_{d'}} ≥ 1.
+
+  *Case k_d < k_{d'}*, so m = k_d. For i < m = k_d, we have i < k_{d'} (copy region) so (d ⊕ d')_i = d_i = 0 by ActionPoint on d. At i = m = k_d, again i < k_{d'} so (d ⊕ d')_{k_d} = d_{k_d} ≥ 1 by ActionPoint on d.
+
+  *Case k_d = k_{d'}*, so m = k_d = k_{d'}. For i < m, we have i < k_{d'} (copy region) so (d ⊕ d')_i = d_i = 0 by ActionPoint on d. At i = m = k_{d'}, (d ⊕ d')_{k_d} = d_{k_d} + d'_{k_d}; by NAT-addbound (right dominance, m + n ≥ n, ASN-0034) and ActionPoint on d' giving d'_{k_d} ≥ 1, we have d_{k_d} + d'_{k_d} ≥ d'_{k_d} ≥ 1.
+
+  *Case k_d > k_{d'}*, so m = k_{d'}. For i < m = k_{d'}, we have i < k_{d'} (copy region) and i < k_d, so (d ⊕ d')_i = d_i = 0 by ActionPoint on d. At i = m = k_{d'}, since k_{d'} < k_d we have d_{k_{d'}} = 0 by ActionPoint on d, so (d ⊕ d')_{k_{d'}} = d_{k_{d'}} + d'_{k_{d'}} = d'_{k_{d'}} ≥ 1 by ActionPoint on d'.
+
+In every case, (d ⊕ d')_i = 0 for i < m and (d ⊕ d')_m ≥ 1. By the ActionPoint definition (zeros below, nonzero at the action point), the action point of d ⊕ d' is exactly m = min(k_d, k_{d'}), and d ⊕ d' > 0.
 
 (b) *The action point of d ⊕ d' is at most #s.* From (a), the action point is min(k_d, k_{d'}) ≤ k_d ≤ #s (the latter from T12 applied to λ).
 
@@ -245,6 +253,8 @@ A span-set is *normalized* when its components are sorted, non-overlapping, and 
   (N2) *Separated.* `(A i : 1 ≤ i < n : reach(σᵢ) < start(σᵢ₊₁))`
 
 Condition N2 uses strict inequality. If reach(σᵢ) = start(σᵢ₊₁), the spans are adjacent and could be merged — so the form is not yet minimal. If reach(σᵢ) > start(σᵢ₊₁), the spans overlap and must be merged. The normalized form is the irreducible representation: every span is as large as it can be, and no two spans can be combined.
+
+**Definition** (*Mutually level-compatible*). A span-set Σ = ⟨σ₁, ..., σₙ⟩ is *mutually level-compatible* when level_compat(start(σᵢ), start(σⱼ)) holds for all 1 ≤ i, j ≤ n. By S6, this is equivalent to: there exists a single length L with #start(σᵢ) = L for every i. When each component σᵢ is also level-uniform, all four boundary tumblers of every span — start(σᵢ), width(σᵢ), reach(σᵢ) — share the common length L, so any pair of endpoints drawn from any pair of spans satisfies D0 (by the argument given in S6).
 
 **S8** (*NormalizationExistence*). Every span-set Σ whose component spans are level-uniform and mutually level-compatible has a normalized equivalent Σ̂ with Σ̂ ≡ Σ.
 
@@ -384,6 +394,8 @@ The denotation ⟦γ⟧ = {t : start(α) ≤ t < start(β)} = ⟦α⟧ \ ⟦β�
 Define γ' = (reach(β), reach(α) ⊖ reach(β)). We verify D1 preconditions for the pair (reach(β), reach(α)): reach(β) < reach(α) is given; level-uniformity of α gives #reach(α) = #start(α), level-uniformity of β gives #reach(β) = #start(β), and level_compat(start(α), start(β)) gives #start(α) = #start(β), so #reach(β) = #reach(α) — neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #reach(β). The width reach(α) ⊖ reach(β) has a positive component at position k, so it is positive with action point k ≤ #reach(β) = #start(γ') — T12 is satisfied. By D1, reach(γ') = reach(β) ⊕ (reach(α) ⊖ reach(β)) = reach(α). The span is level-uniform: #width(γ') = max(#reach(α), #reach(β)) = #reach(β) = #start(γ').
 
 The denotation ⟦γ'⟧ = {t : reach(β) ≤ t < reach(α)} = ⟦α⟧ \ ⟦β⟧. The result is exactly 1 span.  ∎
+
+*Worked example for Case 2.* Let β = ([1, 3], [0, 7]) and α = ([1, 6], [0, 8]). Then reach(β) = [1, 3] ⊕ [0, 7] = [1, 10] and reach(α) = [1, 6] ⊕ [0, 8] = [1, 14]. Verify Case 2 ordering: start(β) = [1, 3] < start(α) = [1, 6] < reach(β) = [1, 10] < reach(α) = [1, 14]. Element-chase: for t ∈ ⟦α⟧, i.e., [1, 6] ≤ t < [1, 14], split on whether t < reach(β) = [1, 10]. If t < [1, 10], then [1, 3] = start(β) < [1, 6] ≤ t < [1, 10] = reach(β), so t ∈ ⟦β⟧. If t ≥ [1, 10], then t ≥ reach(β), so t ∉ ⟦β⟧. Hence ⟦α⟧ \ ⟦β⟧ = {t : [1, 10] ≤ t < [1, 14]}. Construct γ' = (reach(β), reach(α) ⊖ reach(β)) = ([1, 10], [1, 14] ⊖ [1, 10]) = ([1, 10], [0, 4]) — divergence at position 2, width component 14 − 10 = 4. Verify reach(γ') = [1, 10] ⊕ [0, 4] = [1, 14] = reach(α). Verify denotation: ⟦γ'⟧ = {t : [1, 10] ≤ t < [1, 14]} = ⟦α⟧ \ ⟦β⟧. The result is exactly 1 span, as the lemma asserts.
 
 
 ## Unified difference bound
