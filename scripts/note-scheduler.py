@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """Note-scheduler — meta-runner for the note review/consult/revise cycle.
 
-Walks `note_review`, `note_consult`, `note_revise` against each
-requested ASN's source note, repeating until no ASN in the set fires
-anything in a complete outer pass. Narrower sibling of `scheduler.py`,
-which walks the full registry.
+Walks `note_review`, `note_consult`, `note_revise`, and `note_statements`
+against each requested ASN's source note, repeating until no ASN in the
+set fires anything in a complete outer pass. Narrower sibling of
+`scheduler.py`, which walks the full registry.
+
+`note_statements` carries a `confirmation_gate=True` predicate — it
+stays quiescent during active revise cycles and fires only at the N+1
+boundary (no open revises + latest review CONVERGED). The scheduler
+runs it alongside the cycle so the statements sidecar refreshes
+automatically once the cycle settles.
 
 Same outer fixed-point semantics: cross-ASN cascade is handled by the
 outer loop. Predicates handle ordering within the inner pass.
@@ -27,11 +33,20 @@ from lib import triggers as triggers_module
 from lib.runner import Scope, Trigger, run_until_quiescent
 
 
-NOTE_CYCLE_TRIGGER_NAMES = ("note_review", "note_consult", "note_revise")
+NOTE_CYCLE_TRIGGER_NAMES = (
+    "note_review", "note_consult", "note_revise", "note_statements",
+)
 
 
 def _note_cycle_triggers() -> list[Trigger]:
-    """Resolve the three note-cycle triggers from the registry."""
+    """Resolve the note-cycle triggers from the registry.
+
+    note_statements has a `confirmation_gate=True` predicate: it stays
+    quiescent during active revise cycles and fires once the cycle
+    settles (no open revises + latest review CONVERGED). Including it
+    in the same outer loop lets the scheduler walk past the N+1
+    boundary without operator intervention.
+    """
     found = []
     for name in NOTE_CYCLE_TRIGGER_NAMES:
         trig = getattr(triggers_module, name, None)
