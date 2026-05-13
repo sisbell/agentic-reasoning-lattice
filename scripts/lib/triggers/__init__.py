@@ -25,6 +25,7 @@ from .note_draft import note_draft
 from .note_review import note_review
 from .note_revise import note_revise
 from .note_statements import note_statements
+from .patch_apply import patch_apply
 
 __all__ = [
     "apex_labels_in_topological_order",
@@ -48,4 +49,5 @@ __all__ = [
     "note_review",
     "note_revise",
     "note_statements",
+    "patch_apply",
 ]
