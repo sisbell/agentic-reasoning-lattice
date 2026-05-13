@@ -212,7 +212,7 @@ To apply TA-LC (ASN-0034), both compositions must be well-defined: s ⊕ (d ⊕ 
 
 Gregory confirms the implementation achieves this by computing the second width as a remainder rather than independently: "The split is exact precisely because the code aborts rather than proceeding when the arithmetic would be approximate" (Q15). The level-uniformity constraint is "load-bearing" — it ensures the arithmetic is exact rather than approximate.
 
-**S3b** (*MergeSplitInverse*). For adjacent level-uniform spans α and β with level_compat(start(α), start(β)), merging α and β (S3) and splitting the result at the shared boundary (S4) recovers α and β exactly.
+**S3b** (*MergeSplitInverse*). For adjacent level-uniform spans α and β with level_compat(start(α), start(β)), merging α and β (S3) and splitting the result at the shared boundary (S4) recovers the unordered pair {α, β} exactly: the split yields a left part λ and a right part ρ with {λ, ρ} = {α, β}. The assignment of α and β to the left/right positions is determined by the adjacency direction: in Case A (reach(α) = start(β)), λ = α and ρ = β; in Case B (reach(β) = start(α)), λ = β and ρ = α.
 
 *Proof.* Adjacency means reach(α) = start(β) or reach(β) = start(α). We handle each disjunct.
 
@@ -220,7 +220,7 @@ Gregory confirms the implementation achieves this by computing the second width 
 
 Splitting γ at p yields λ = (start(α), p ⊖ start(α)) and ρ = (p, reach(γ) ⊖ p). For λ: p ⊖ start(α) = reach(α) ⊖ start(α) = width(α) by D2 (α is level-uniform). So λ = (start(α), width(α)) = α. For ρ: reach(γ) ⊖ p = reach(β) ⊖ start(β) = width(β) by D2 (β is level-uniform). So ρ = (start(β), width(β)) = β.
 
-*Case B: reach(β) = start(α).* By S3a (merge commutativity) the merge of α and β equals the merge of β and α, which is the Case A configuration with the roles of α and β exchanged. Applying Case A to the pair ⟨β, α⟩, splitting the merged span at the shared boundary start(α) recovers β as the left part and α as the right part. Relabeling, the original spans α and β are recovered exactly.  ∎
+*Case B: reach(β) = start(α).* By S3a (merge commutativity) the merge of α and β equals the merge of β and α, which is the Case A configuration with the roles of α and β exchanged. Applying Case A to the pair ⟨β, α⟩, splitting the merged span at the shared boundary start(α) yields left part λ = β and right part ρ = α. The unordered pair {λ, ρ} = {β, α} = {α, β} is recovered exactly; the left-right assignment is reversed relative to Case A.  ∎
 
 Together with S4a, this establishes that split and merge are exact inverses in both directions: split followed by merge recovers the original span (S4a), and merge followed by split at the original boundary recovers the original pair (S3b). The two operations form a bijection between single spans with a marked interior point and pairs of adjacent spans.
 
@@ -233,9 +233,9 @@ A *span-set* is a finite sequence of spans Σ = ⟨σ₁, σ₂, ..., σₙ⟩. 
 
 Two span-sets are *equivalent* when they denote the same set of positions: Σ₁ ≡ Σ₂ ⟺ ⟦Σ₁⟧ = ⟦Σ₂⟧. The empty span-set ⟨⟩ denotes ∅. The singleton span-set ⟨σ⟩ denotes ⟦σ⟧. For span-sets Σ₁ = ⟨α₁, ..., αₘ⟩ and Σ₂ = ⟨β₁, ..., βₙ⟩, the *union* Σ₁ ∪ Σ₂ is the concatenated sequence ⟨α₁, ..., αₘ, β₁, ..., βₙ⟩; by the denotation definition, ⟦Σ₁ ∪ Σ₂⟧ = ⟦Σ₁⟧ ∪ ⟦Σ₂⟧.
 
-**S7** (*FiniteRepresentability*). Every finite set of positions P ⊂ T admits a span-set Σ with ⟦Σ⟧ ⊇ P.
+**S7** (*FiniteRepresentability*). Every finite set of positions P ⊂ T admits a span-set Σ with |Σ| ≤ |P| and ⟦Σ⟧ ⊇ P.
 
-*Proof.* For any tumbler t, define ℓ = [0, ..., 0, 1] with #ℓ = #t (all components zero except the last, which is 1). Then ℓ > 0 (the last component is nonzero) and the action point k = #t ≤ #t, so (t, ℓ) satisfies T12. By TA-strict, t ⊕ ℓ > t, so t ∈ [t, t ⊕ ℓ) = ⟦(t, ℓ)⟧ — the span covers t. Taking one such span per position in P gives Σ with ⟦Σ⟧ ⊇ P.
+*Proof.* For any tumbler t, define ℓ = [0, ..., 0, 1] with #ℓ = #t (all components zero except the last, which is 1). Then ℓ > 0 (the last component is nonzero) and the action point k = #t ≤ #t, so (t, ℓ) satisfies T12. By TA-strict, t ⊕ ℓ > t, so t ∈ [t, t ⊕ ℓ) = ⟦(t, ℓ)⟧ — the span covers t. Taking one such span per position in P gives Σ with |Σ| = |P| ≤ |P| and ⟦Σ⟧ ⊇ P.
 
 Nelson confirms: "a tumbler-span may range in possible size from one byte to the whole docuverse" (LM 4/24, Q4).
 
@@ -357,7 +357,7 @@ The result is a span-set of 0, 1, or 2 components:
   (b) One boundary coincides: difference is one span.
   (c) Neither coincides: difference is two spans.
 
-The bound of two is tight and inherent in removing a contiguous sub-range from a contiguous range on a linear order.  ∎
+The bound of two is tight in case (c). When neither boundary coincides, start(α) < start(β) and reach(β) < reach(α), so reach(λ) = start(β) and start(ρ) = reach(β), giving reach(λ) < start(ρ) (since β is non-empty by S2, start(β) < reach(β)). Suppose for contradiction that a single span γ satisfies ⟦γ⟧ = ⟦λ⟧ ∪ ⟦ρ⟧. Pick any t ∈ ⟦β⟧, non-empty by S2. Then start(α) ∈ ⟦λ⟧ ⊆ ⟦γ⟧ and reach(β) ∈ ⟦ρ⟧ ⊆ ⟦γ⟧, and start(α) < start(β) ≤ t < reach(β) places t between two members of ⟦γ⟧. By S0 (convexity), t ∈ ⟦γ⟧ = ⟦λ⟧ ∪ ⟦ρ⟧. But t ∉ ⟦λ⟧ (since t ≥ start(β) = reach(λ)) and t ∉ ⟦ρ⟧ (since t < reach(β) = start(ρ)) — contradiction. Therefore no single span can represent the result, and two is the minimum.  ∎
 
 A concrete instance: let α = ([1, 3], [0, 8]) and β = ([1, 5], [0, 4]). Then reach(α) = [1, 11] and reach(β) = [1, 9]. Containment holds: [1, 3] ≤ [1, 5] and [1, 9] ≤ [1, 11]. The left difference span is λ = ([1, 3], [1, 5] ⊖ [1, 3]) = ([1, 3], [0, 2]); reach(λ) = [1, 3] ⊕ [0, 2] = [1, 5] = start(β). The right difference span is ρ = ([1, 9], [1, 11] ⊖ [1, 9]) = ([1, 9], [0, 2]); reach(ρ) = [1, 9] ⊕ [0, 2] = [1, 11] = reach(α). Verify: ⟦α⟧ = {t : [1, 3] ≤ t < [1, 11]} = ⟦λ⟧ ∪ ⟦β⟧ ∪ ⟦ρ⟧, so ⟦α⟧ \ ⟦β⟧ = ⟦λ⟧ ∪ ⟦ρ⟧ = {t : [1, 3] ≤ t < [1, 5]} ∪ {t : [1, 9] ≤ t < [1, 11]}.
 
@@ -388,11 +388,13 @@ Nelson confirms the bound and the mechanism: "Removing a contained span from a c
 
 *Proof.* SC case (iii) has two sub-cases. We first handle start(α) < start(β) < reach(α) < reach(β), then start(β) < start(α) < reach(β) < reach(α).
 
-**Case 1:** start(α) < start(β) < reach(α) < reach(β). The positions in ⟦α⟧ but not in ⟦β⟧ are those in α that precede the start of β:
+**Case 1:** start(α) < start(β) < reach(α) < reach(β). We derive the difference by element-chasing.
 
-  ⟦α⟧ \ ⟦β⟧ = {t : start(α) ≤ t < start(β)}
+(⊆) For t ∈ ⟦α⟧ (i.e., start(α) ≤ t < reach(α)) with t ∉ ⟦β⟧: if t ≥ start(β), then start(β) ≤ t < reach(α) < reach(β), so t ∈ ⟦β⟧ — contradiction. Hence t < start(β), so t ∈ {t : start(α) ≤ t < start(β)}.
 
-This is non-empty (start(α) < start(β) and start(α) ∈ ⟦α⟧ \ ⟦β⟧) and forms a single contiguous interval. We construct the span explicitly.
+(⊇) For t with start(α) ≤ t < start(β): t ∈ ⟦α⟧ since start(α) ≤ t < start(β) < reach(α). And t ∉ ⟦β⟧ since t < start(β). So t ∈ ⟦α⟧ \ ⟦β⟧.
+
+Therefore ⟦α⟧ \ ⟦β⟧ = {t : start(α) ≤ t < start(β)}. This is non-empty (start(α) < start(β) and start(α) ∈ ⟦α⟧ \ ⟦β⟧) and forms a single contiguous interval. We construct the span explicitly.
 
 Define γ = (start(α), start(β) ⊖ start(α)). Since start(α) < start(β) and #start(α) = #start(β) (level-compatibility), the divergence k is of type (i) with k ≤ #start(α). The width start(β) ⊖ start(α) has a positive component at position k, so it is positive with action point k ≤ #start(α) — T12 is satisfied. By D1 (DisplacementRoundTrip, ASN-0034), reach(γ) = start(α) ⊕ (start(β) ⊖ start(α)) = start(β). The span is level-uniform: #width(γ) = max(#start(β), #start(α)) = #start(α) = #start(γ).
 
@@ -458,8 +460,8 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 | TA-LC | a ⊕ x = a ⊕ y ⟹ x = y (LeftCancellation, ASN-0034) | cited |
 | S5 | The widths of two split parts compose under ⊕ to the original width | introduced |
 | S4a | Split-merge inverse: splitting σ at a level-compatible interior point and merging recovers σ exactly | introduced |
-| S3b | Merge-split inverse: merging adjacent level-uniform spans and splitting at the original boundary recovers both spans exactly | introduced |
-| S7 | Every finite set of positions admits a covering span-set | introduced |
+| S3b | Merge-split inverse: merging adjacent level-uniform spans and splitting at the original boundary recovers the unordered pair {α, β} exactly | introduced |
+| S7 | Every finite set of positions P admits a covering span-set Σ with |Σ| ≤ |P| | introduced |
 | S8 | Every level-compatible span-set has a normalized equivalent: sorted, non-overlapping, non-adjacent | introduced |
 | S9 | The normalized form of a span-set is unique | introduced |
 | S10 | For level-uniform, mutually level-compatible span-sets, union (as normalization) is commutative and associative | introduced |
