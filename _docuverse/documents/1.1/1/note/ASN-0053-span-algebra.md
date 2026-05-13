@@ -23,13 +23,13 @@ From TumblerAdd, a ⊕ w acts at the action point k of w: it copies a₁..aₖ�
 
   wᵢ = 0  for i < k,    wₖ = bₖ − aₖ,    wᵢ = bᵢ  for i > k
 
-where k = divergence(a, b). This is exactly the formula for b ⊖ a from ASN-0034's TumblerSubtract. We write w = b ⊖ a and call it the *displacement from a to b*. The displacement is well-defined when a < b and divergence(a, b) ≤ #a (D0, ASN-0034).
+where k = divergence(a, b). This is exactly the formula for b ⊖ a from ASN-0034's TumblerSub. We write w = b ⊖ a and call it the *displacement from a to b*. The displacement is well-defined when a < b and divergence(a, b) ≤ #a (D0, ASN-0034).
 
-D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). It does not guarantee round-trip faithfulness — the identity a ⊕ (b ⊖ a) = b additionally requires #a ≤ #b (D1, ASN-0034). When #a > #b, TumblerSubtract produces a displacement of length max(#a, #b) = #a, and the round-trip a ⊕ (b ⊖ a) yields a tumbler of length #a; since #a > #b, this result cannot equal b (by T3). When #a < #b and a is a proper prefix of b, the divergence is k = #a + 1 > #a, violating D0 — no valid displacement exists. Since every span operation below uses level-uniform spans with #start = #reach, the equal-length case is all we need. We formalize the sufficient condition as level compatibility in S6.
+D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). It does not guarantee round-trip faithfulness — the identity a ⊕ (b ⊖ a) = b additionally requires #a ≤ #b (D1, ASN-0034). When #a > #b, TumblerSub produces a displacement of length max(#a, #b) = #a, and the round-trip a ⊕ (b ⊖ a) yields a tumbler of length #a; since #a > #b, this result cannot equal b (by T3). When #a < #b and a is a proper prefix of b, the divergence is k = #a + 1 > #a, violating D0 — no valid displacement exists. Since every span operation below uses level-uniform spans with #start = #reach, the equal-length case is all we need. We formalize the sufficient condition as level compatibility in S6.
 
 When a is a proper prefix of b (divergence type (ii) from ASN-0034), the divergence is #a + 1, exceeding #a, and no valid displacement exists.
 
-For a level-uniform span σ = (s, ℓ) with #s = #ℓ, the reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), for a level-uniform span σ, reach(σ) ⊖ start(σ) = width(σ) (D2, ASN-0034).
+For a level-uniform span σ = (s, ℓ) with #s = #ℓ, the reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), D2 (DisplacementUnique, ASN-0034) gives reach(σ) ⊖ start(σ) = ℓ = width(σ), provided its preconditions hold for (a, b, w) = (s, reach(σ), ℓ). We discharge them: s < reach(σ) by TA-strict on T12; ℓ > 0 and its action point k ≤ #s by T12; s ⊕ ℓ = reach(σ) by definition of reach (so TA0's preconditions hold, giving #(s ⊕ ℓ) = #ℓ = #s); the divergence between s and reach(σ) is of type (i) with k ≤ #s, since s < reach(σ) and #s = #reach(σ) excludes the prefix case, satisfying D0; #s ≤ #reach(σ) since both equal #s. Every D2 precondition is met, so reach(σ) ⊖ start(σ) = width(σ).
 
 The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. Of the three quantities — start, width, reach — two of the three pairings determine the third: start and width determine reach (by definition of ⊕); start and reach determine width (by D2). But width and reach do not determine start. The many-to-one property of TumblerAdd (noted in ASN-0034) means distinct starts can produce the same reach under the same width: when the action point k falls before the last component of s, positions k+1..#s are replaced by the width's tail and are unrecoverable from the reach. For instance, s₁ = [1, 3, 5] and s₂ = [1, 3, 7] with width [0, 2, 4] (action point k = 2) both yield reach [1, 5, 4]. Same width, same reach, different starts — and different denotations.
 
@@ -37,7 +37,7 @@ The displacement round-trip is guaranteed by the foundation: for tumblers a, b �
 
 When a = b, no displacement is needed; the degenerate case is handled separately since b ⊖ a produces the zero tumbler and a ⊕ (b ⊖ a) is not well-formed (TA0 requires w > 0). D0 ensures the displacement is well-defined; D1 ensures the round-trip is faithful for a < b. Every proof below that constructs a span γ = (s, r ⊖ s) and asserts ⟦γ⟧ = {t : s ≤ t < r} depends on D1: the span's reach is s ⊕ (r ⊖ s) = r.
 
-When #start > #width, the round-trip fails: the reach has length #width (shorter than start), so TumblerSubtract zero-pads reach to length #start, producing a result of length #start ≠ #width. For instance, σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2].
+When #start > #width, the round-trip fails: the reach has length #width (shorter than start), so TumblerSub zero-pads reach to length #start, producing a result of length #start ≠ #width. For instance, σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2].
 
 
 ## Convexity
@@ -67,7 +67,7 @@ This follows solely from T1 being a total order. Every position between two memb
 
 Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cases (iii), (iv), and (v) are the *overlapping* cases — ⟦α⟧ ∩ ⟦β⟧ ≠ ∅.
 
-*Exhaustiveness.* Assume without loss of generality that start(α) ≤ start(β) (the symmetric cases are covered by the "or symmetrically" clauses). Compare reach(α) with start(β): if reach(α) < start(β), case (i); if reach(α) = start(β), case (ii); if reach(α) > start(β), the spans share positions. In the sharing case, compare start(α) with start(β): if start(α) < start(β), compare reach(α) with reach(β) — reach(α) < reach(β) gives case (iii), reach(α) ≥ reach(β) gives case (iv). If start(α) = start(β), compare reaches — reach(α) = reach(β) gives case (v), otherwise case (iv). Every ordering of the four boundary points {start(α), reach(α), start(β), reach(β)}, subject to start < reach for each span, falls into exactly one case. No sixth case exists.
+*Exhaustiveness.* The SC definition is symmetric in α and β: each case clause is either symmetric (cases (i), (ii), (v) phrase both directions as a disjunction) or carries an explicit "or symmetrically" rider (cases (iii), (iv)). Swapping α and β maps each case to itself, so the classification is invariant under that swap. We may therefore assume without loss of generality that start(α) ≤ start(β); the configurations with start(α) > start(β) yield the same case (with α, β exchanged) under the symmetric clauses. Compare reach(α) with start(β): if reach(α) < start(β), case (i); if reach(α) = start(β), case (ii); if reach(α) > start(β), the spans share positions. In the sharing case, compare start(α) with start(β): if start(α) < start(β), compare reach(α) with reach(β) — reach(α) < reach(β) gives case (iii), reach(α) ≥ reach(β) gives case (iv). If start(α) = start(β), compare reaches — reach(α) = reach(β) gives case (v), otherwise case (iv). Every ordering of the four boundary points {start(α), reach(α), start(β), reach(β)}, subject to start < reach for each span, falls into exactly one case. No sixth case exists.
 
 
 ## The level constraint
@@ -212,11 +212,15 @@ To apply TA-LC (ASN-0034), both compositions must be well-defined: s ⊕ (d ⊕ 
 
 Gregory confirms the implementation achieves this by computing the second width as a remainder rather than independently: "The split is exact precisely because the code aborts rather than proceeding when the arithmetic would be approximate" (Q15). The level-uniformity constraint is "load-bearing" — it ensures the arithmetic is exact rather than approximate.
 
-**S3b** (*MergeSplitInverse*). For adjacent level-uniform spans α and β with reach(α) = start(β) and level_compat(start(α), start(β)), merging α and β (S3) and splitting the result at start(β) (S4) recovers α and β exactly.
+**S3b** (*MergeSplitInverse*). For adjacent level-uniform spans α and β with level_compat(start(α), start(β)), merging α and β (S3) and splitting the result at the shared boundary (S4) recovers α and β exactly.
 
-*Proof.* The merge produces γ = (start(α), r ⊖ start(α)) where r = max(reach(α), reach(β)) = reach(β), since reach(α) = start(β) < reach(β) (β is non-empty). So γ = (start(α), reach(β) ⊖ start(α)) with reach(γ) = reach(β). The point p = start(β) is interior to γ: start(α) < start(β) (since α is non-empty, start(α) < reach(α) = start(β)) and start(β) < reach(β) = reach(γ) (since β is non-empty). Level compatibility holds by assumption.
+*Proof.* Adjacency means reach(α) = start(β) or reach(β) = start(α). We handle each disjunct.
 
-Splitting γ at p yields λ = (start(α), p ⊖ start(α)) and ρ = (p, reach(γ) ⊖ p). For λ: p ⊖ start(α) = reach(α) ⊖ start(α) = width(α) by D2 (α is level-uniform). So λ = (start(α), width(α)) = α. For ρ: reach(γ) ⊖ p = reach(β) ⊖ start(β) = width(β) by D2 (β is level-uniform). So ρ = (start(β), width(β)) = β.  ∎
+*Case A: reach(α) = start(β).* The merge produces γ = (start(α), r ⊖ start(α)) where r = max(reach(α), reach(β)) = reach(β), since reach(α) = start(β) < reach(β) (β is non-empty). So γ = (start(α), reach(β) ⊖ start(α)) with reach(γ) = reach(β). The shared boundary p = start(β) is interior to γ: start(α) < start(β) (since α is non-empty, start(α) < reach(α) = start(β)) and start(β) < reach(β) = reach(γ) (since β is non-empty). Level compatibility holds by assumption.
+
+Splitting γ at p yields λ = (start(α), p ⊖ start(α)) and ρ = (p, reach(γ) ⊖ p). For λ: p ⊖ start(α) = reach(α) ⊖ start(α) = width(α) by D2 (α is level-uniform). So λ = (start(α), width(α)) = α. For ρ: reach(γ) ⊖ p = reach(β) ⊖ start(β) = width(β) by D2 (β is level-uniform). So ρ = (start(β), width(β)) = β.
+
+*Case B: reach(β) = start(α).* By S3a (merge commutativity) the merge of α and β equals the merge of β and α, which is the Case A configuration with the roles of α and β exchanged. Applying Case A to the pair ⟨β, α⟩, splitting the merged span at the shared boundary start(α) recovers β as the left part and α as the right part. Relabeling, the original spans α and β are recovered exactly.  ∎
 
 Together with S4a, this establishes that split and merge are exact inverses in both directions: split followed by merge recovers the original span (S4a), and merge followed by split at the original boundary recovers the original pair (S3b). The two operations form a bijection between single spans with a marked interior point and pairs of adjacent spans.
 
@@ -296,7 +300,11 @@ Result: Σ̂ = ⟨([1, 3], [0, 6]), ([1, 10], [0, 3])⟩. N1: [1, 3] < [1, 10]. 
 
 *Case 1b:* αᵢ exists, βᵢ does not exist (i.e., n < i ≤ m, so Σ̂₂ is the shorter sequence with n = i − 1). Then start(αᵢ) ∈ S since start(αᵢ) ∈ ⟦αᵢ⟧. The range j ≥ i is vacuous (no such βⱼ exists). For j < i: αⱼ = βⱼ by minimality of i, so reach(βⱼ) = reach(αⱼ); N2 on Σ̂₁ gives reach(αⱼ) < start(αⱼ₊₁), and repeated N1 on Σ̂₁ gives start(αⱼ₊₁) ≤ start(αᵢ); chaining, reach(βⱼ) < start(αᵢ), so start(αᵢ) ∉ ⟦βⱼ⟧. Since all βⱼ are exhausted by j < i, start(αᵢ) ∉ ⟦Σ̂₂⟧ = S. Contradiction.
 
-*Case 2:* start(αᵢ) = start(βᵢ) but reach(αᵢ) ≠ reach(βᵢ), say reach(αᵢ) < reach(βᵢ). Set p = reach(αᵢ). Then p ∈ ⟦βᵢ⟧ since start(βᵢ) = start(αᵢ) < reach(αᵢ) = p < reach(βᵢ), so p ∈ S. But p ∉ ⟦αᵢ⟧ since p = reach(αᵢ) is the exclusive upper bound. For j < i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) > reach(αⱼ) by N2 (reach(αⱼ) < start(αⱼ₊₁)), repeated application of N1 (start(αⱼ₊₁) < ... < start(αᵢ)), and non-emptiness (start(αᵢ) < reach(αᵢ)). For j > i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) < start(αᵢ₊₁) ≤ start(αⱼ) by N2 and N1. So p ∉ ⟦Σ̂₁⟧, but p ∈ S. Contradiction.
+*Case 2:* start(αᵢ) = start(βᵢ) but reach(αᵢ) ≠ reach(βᵢ). Since the inequality is strict in exactly one direction, two sub-cases arise.
+
+*Case 2a:* reach(αᵢ) < reach(βᵢ). Set p = reach(αᵢ). Then p ∈ ⟦βᵢ⟧ since start(βᵢ) = start(αᵢ) < reach(αᵢ) = p < reach(βᵢ), so p ∈ S. But p ∉ ⟦αᵢ⟧ since p = reach(αᵢ) is the exclusive upper bound. For j < i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) > reach(αⱼ) by N2 (reach(αⱼ) < start(αⱼ₊₁)), repeated application of N1 (start(αⱼ₊₁) < ... < start(αᵢ)), and non-emptiness (start(αᵢ) < reach(αᵢ)). For j > i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) < start(αᵢ₊₁) ≤ start(αⱼ) by N2 and N1. So p ∉ ⟦Σ̂₁⟧, but p ∈ S. Contradiction.
+
+*Case 2b:* reach(αᵢ) > reach(βᵢ). Symmetric to Case 2a, exchanging the roles of Σ̂₁ and Σ̂₂. Set p = reach(βᵢ). Then p ∈ ⟦αᵢ⟧ since start(αᵢ) = start(βᵢ) < reach(βᵢ) = p < reach(αᵢ), so p ∈ S. But p ∉ ⟦βᵢ⟧ since p = reach(βᵢ) is the exclusive upper bound. For j < i, p ∉ ⟦βⱼ⟧ since p = reach(βᵢ) > reach(βⱼ) by N2 on Σ̂₂, repeated N1, and non-emptiness. For j > i, p ∉ ⟦βⱼ⟧ since p = reach(βᵢ) < start(βᵢ₊₁) ≤ start(βⱼ) by N2 and N1 on Σ̂₂. So p ∉ ⟦Σ̂₂⟧, but p ∈ S. Contradiction.
 
 *Case 3a:* Both αᵢ and βᵢ exist, with start(αᵢ) > start(βᵢ). Symmetric to Case 1a, exchanging the roles of Σ̂₁ and Σ̂₂: start(βᵢ) ∈ S since start(βᵢ) ∈ ⟦βᵢ⟧. For j < i: βⱼ = αⱼ by minimality of i, so reach(αⱼ) = reach(βⱼ); N2 on Σ̂₂ and repeated N1 give reach(αⱼ) = reach(βⱼ) < start(βᵢ), so start(βᵢ) ∉ ⟦αⱼ⟧. For j ≥ i: N1 on Σ̂₁ gives start(αⱼ) ≥ start(αᵢ), and the case hypothesis gives start(αᵢ) > start(βᵢ); so start(βᵢ) ∉ ⟦αⱼ⟧. So start(βᵢ) ∉ ⟦Σ̂₁⟧ = S. Contradiction.
 
@@ -328,7 +336,13 @@ When one span contains another, the remainder is always bounded:
 
 **S11** (*DifferenceBound*). For level-uniform spans α and β with level_compat(start(α), start(β)) and ⟦β⟧ ⊆ ⟦α⟧, the set difference ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most two spans.
 
-*Proof.* Containment means start(α) ≤ start(β) and reach(β) ≤ reach(α). The difference decomposes into two intervals:
+*Proof.* Containment means start(α) ≤ start(β) and reach(β) ≤ reach(α). We derive the decomposition by element-chasing. Let t ∈ ⟦α⟧, i.e., start(α) ≤ t < reach(α). The total order T1 splits this range into three sub-ranges relative to β's endpoints:
+
+  (L) start(α) ≤ t < start(β)
+  (M) start(β) ≤ t < reach(β)
+  (R) reach(β) ≤ t < reach(α)
+
+These three sub-ranges are exhaustive and pairwise disjoint by T1's totality: compare t with start(β) — if t < start(β) then (L); else t ≥ start(β), and compare t with reach(β) — if t < reach(β) then (M), else t ≥ reach(β) combined with t < reach(α) gives (R). In sub-range (M), t ∈ ⟦β⟧ by definition of ⟦β⟧. In sub-ranges (L) and (R), t ∉ ⟦β⟧: for (L), t < start(β) is below β's start; for (R), t ≥ reach(β) is at or above β's exclusive upper bound. Therefore ⟦α⟧ \ ⟦β⟧ = (L) ∪ (R):
 
   Left:   {t : start(α) ≤ t < start(β)}      (empty when start(α) = start(β))
   Right:  {t : reach(β) ≤ t < reach(α)}       (empty when reach(β) = reach(α))
