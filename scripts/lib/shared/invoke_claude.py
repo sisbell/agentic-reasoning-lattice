@@ -97,6 +97,7 @@ _rotation_lock = threading.Lock()
 _rotation_cycle = None
 _ACCOUNT_STATE_PATH = WORKSPACE / "_workspace" / "account-state.json"
 _QUOTA_COOLDOWN_SECONDS = 7200  # 2h
+_SUBPROCESS_TIMEOUT_SECONDS = 3600  # 60min hard cap per LLM call
 
 
 def _configured_dirs():
@@ -265,10 +266,21 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
             env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
 
         start = time.time()
-        result = subprocess.run(
-            cmd, input=prompt, capture_output=True, text=True, env=env,
-            cwd=cwd, timeout=None,
-        )
+        try:
+            result = subprocess.run(
+                cmd, input=prompt, capture_output=True, text=True, env=env,
+                cwd=cwd, timeout=_SUBPROCESS_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            elapsed = time.time() - start
+            print(
+                f"  TIMEOUT (killed after {elapsed:.0f}s; "
+                f"cap = {_SUBPROCESS_TIMEOUT_SECONDS}s)",
+                file=sys.stderr,
+            )
+            if has_rotation and attempt < max_attempts - 1:
+                continue  # retry on next account
+            return Result(elapsed=elapsed)
         elapsed = time.time() - start
         last_elapsed = elapsed
 
@@ -373,10 +385,22 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
             env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
 
         start = time.time()
-        result = subprocess.run(
-            cmd, input=prompt, capture_output=True, text=True, env=env,
-            cwd=str(cwd or WORKSPACE), timeout=None,
-        )
+        try:
+            result = subprocess.run(
+                cmd, input=prompt, capture_output=True, text=True, env=env,
+                cwd=str(cwd or WORKSPACE),
+                timeout=_SUBPROCESS_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            elapsed = time.time() - start
+            print(
+                f"  TIMEOUT (killed after {elapsed:.0f}s; "
+                f"cap = {_SUBPROCESS_TIMEOUT_SECONDS}s)",
+                file=sys.stderr,
+            )
+            if has_rotation and attempt < max_attempts - 1:
+                continue  # retry on next account
+            return Result(elapsed=elapsed)
         elapsed = time.time() - start
         last_elapsed = elapsed
 

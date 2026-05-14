@@ -17,9 +17,32 @@ set -u
 
 cd "$(dirname "$0")/.."
 
+# Background pusher — runs every 30s while the scheduler is alive so
+# each auto-commit (one per fire, ~5min cadence) is visible on the
+# remote within 30s. Killed before each outer pull/pass and respawned.
+start_pusher() {
+    (
+        while true; do
+            sleep 30
+            git push 2>/dev/null || true
+        done
+    ) &
+    PUSHER_PID=$!
+}
+stop_pusher() {
+    if [[ -n "${PUSHER_PID:-}" ]]; then
+        kill "$PUSHER_PID" 2>/dev/null || true
+        wait "$PUSHER_PID" 2>/dev/null || true
+    fi
+}
+trap stop_pusher EXIT
+
 while true; do
+    stop_pusher
     git pull --rebase --autostash 2>&1 | grep -v '^$' || true
+    start_pusher
     python scripts/note-scheduler.py --dag
+    stop_pusher
     git push 2>&1 | grep -v '^$' || true
     echo "  [LOOP] sleeping 30s before next pass..."
     sleep 30
