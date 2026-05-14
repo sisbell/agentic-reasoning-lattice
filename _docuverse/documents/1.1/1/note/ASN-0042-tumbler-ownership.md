@@ -320,7 +320,7 @@ In both cases, every address in `Σ'.B` is covered by a principal in `Π_{Σ'}`.
 
 We resolve nesting by specificity. Before stating exclusivity we name the principal that wins the contest:
 
-**ω(a) (EffectiveOwner).** The *effective owner* of an allocated address `a` at a reachable state `Σ` is the principal in `Π_Σ` with the longest matching prefix. Formally, `ω_Σ : Σ.B → Π_Σ` is the partial function defined by:
+**ω_Σ(a) (EffectiveOwner).** The *effective owner* of an allocated address `a` at a reachable state `Σ` is the principal in `Π_Σ` with the longest matching prefix. Formally, `ω_Σ : Σ.B → Π_Σ` is the partial function defined by:
 
   `ω_Σ(a) = π  ≡  π ∈ Π_Σ  ∧  pfx(π) ≼ a  ∧  (A π' ∈ Π_Σ : π' ≠ π ∧ pfx(π') ≼ a : #pfx(π) > #pfx(π'))`
 
@@ -899,8 +899,8 @@ The design philosophy is clear: minimize the authorization model to the point wh
 |-------|-----------|--------|
 | O0 | Ownership of `a` by `π` is decidable from `pfx(π)` and `a` alone, without mutable state | from O1, Prefix, T3 (verification target of O1's definition) |
 | O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment | definition |
-| O1a | `(A π ∈ Π : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | axiom |
-| O1b | `pfx` is injective — distinct principals have distinct prefixes | axiom |
+| O1a | `(A π ∈ Π : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | axiom (`pfx` signature constraint, distinct from the seven transition-discipline axioms — see *State Axioms* intro) |
+| O1b | `pfx` is injective — distinct principals have distinct prefixes | axiom (`pfx` signature constraint, distinct from the seven transition-discipline axioms — see *State Axioms* intro) |
 | O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | from O4, O1b, Prefix, T3, Covering-chain lemma |
 | Covering-chain lemma (PrefixesOfCommonAddressAreComparable) | `(A x, p, q ∈ T : p ≼ x ∧ q ≼ x ⟹ p ≼ q ∨ q ≼ p)` — any two tumbler prefixes of a common address are `≼`-comparable; cited by O2 (Step 2), O7(a), OwnershipDomainPermanence (Step 3), NestingByDelegation, DelegatorAllocatesPrefix, O10 (non-coverage) | from Prefix, T3 |
 | SelfOwnershipAtPrefix | `(A Σ reachable, π ∈ Π_Σ : ω_Σ(pfx(π)) = π)` — every principal effectively owns its own prefix | from O1b, O2, PrefixBaptismCoupling |
