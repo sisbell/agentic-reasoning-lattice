@@ -51,9 +51,12 @@ signature_is_fresh   = attribute_is_fresh("signature")
 references_is_fresh  = attribute_is_fresh("references")
 
 # Statements fires only at "settled" boundaries (no open revises +
-# latest review came back clean) — for a note that absorbs many
-# cycles, this collapses to one extraction per N+1 lifecycle, not
-# one per accept.
+# last 2 consecutive reviews came back clean — matches the n=2
+# stochastic-quiescence floor used by note_review). For a note that
+# absorbs many cycles, this collapses to one extraction per N+1
+# lifecycle. Without n=2 here, the optimistic 1-clean gate causes
+# premature extraction that gets invalidated by the next revise
+# cycle.
 statements_is_fresh = attribute_is_fresh(
-    "statements", confirmation_gate=True,
+    "statements", confirmation_gate=True, confirmation_n=2,
 )

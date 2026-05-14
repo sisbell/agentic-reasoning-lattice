@@ -86,6 +86,7 @@ def attribute_is_fresh(
     kind: str,
     *,
     confirmation_gate: bool = False,
+    confirmation_n: int = 1,
 ) -> Callable[[Session, Address], bool]:
     """Generate `<kind>_is_fresh(doc)` citation-anchor predicate.
 
@@ -105,13 +106,18 @@ def attribute_is_fresh(
     yet confirmed (still in revise cycles), report fresh and skip
     re-fire. Used by `statements_is_fresh` to avoid extracting
     statements mid-refinement.
+
+    `confirmation_n` (default 1) is the stochastic-quiescence depth
+    used by the gate — the number of consecutive clean reviews
+    required to count as confirmed. Notes use 2; claims use 1.
+    Only meaningful when `confirmation_gate=True`.
     """
     sidecar_lookup = attribute_sidecar(kind)
 
     def predicate(session: Session, doc_addr: Address) -> bool:
         if confirmation_gate:
-            from lib.predicates.quiescence import is_claim_confirmed
-            if not is_claim_confirmed(session, doc_addr):
+            from lib.predicates.quiescence import is_confirmed_n
+            if not is_confirmed_n(session, doc_addr, n=confirmation_n):
                 return True
 
         from lib.predicates.versions import version_head

@@ -191,19 +191,35 @@ def last_n_reviews_were_clean(
     return True
 
 
-def is_claim_confirmed(session: Session, addr: Address) -> bool:
-    """The convergence-protocol's confirmation condition: claim is
-    quiescent AND the most recent review on its scope was clean.
+def is_confirmed_n(session: Session, addr: Address, n: int) -> bool:
+    """Generalized confirmation: quiescent AND the most recent N
+    reviews on its scope were all clean. Convergence-protocol gate
+    with operator-tunable stochastic-quiescence depth.
 
-    Per `docs/hypergraph-protocol/convergence.md`: a clean review IS
-    the confirmation. The orchestrator's "+1 review-only after N
-    cycles" collapses into "the next cycle that comes up clean."
+    n=1 = "most recent review clean" (claim default).
+    n=2 = "last two consecutive reviews clean" (note default; see
+    stochastic-quiescence.md).
     """
     return (
         is_claim_quiescent(session, addr)
         and has_been_reviewed(session, addr)
-        and latest_review_was_clean(session, addr)
+        and last_n_reviews_were_clean(session, addr, n=n)
     )
+
+
+def is_claim_confirmed(session: Session, addr: Address) -> bool:
+    """Claim-side confirmation (n=1). The convergence-protocol's
+    confirmation condition for claims: quiescent AND the most recent
+    review on its scope was clean.
+
+    Per `docs/hypergraph-protocol/convergence.md`: a clean review IS
+    the confirmation. The orchestrator's "+1 review-only after N
+    cycles" collapses into "the next cycle that comes up clean."
+
+    Note-side gates that want the 2-consecutive stochastic floor use
+    `is_confirmed_n(..., n=2)` directly.
+    """
+    return is_confirmed_n(session, addr, n=1)
 
 
 def derived_claims(session: Session, note_addr: Address):
