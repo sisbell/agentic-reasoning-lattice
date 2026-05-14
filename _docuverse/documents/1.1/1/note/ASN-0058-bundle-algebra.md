@@ -40,7 +40,7 @@ The first property is the structural keystone on which the entire algebra rests.
 
 `|V(β)| = |I(β)| = n`
 
-Both projections have equal cardinality, both equal to the block's width. By TumblerAdd (ASN-0034), `v + j = [v₁, ..., v_m + j]` and `v + k = [v₁, ..., v_m + k]`; when `j ≠ k`, these differ at component `m`, so `v + j ≠ v + k` by T3 (CanonicalRepresentation, ASN-0034). Strict ordering follows from T1 at the last component: `v + j < v + k` for all `0 ≤ j < k < n`. The `n` values in `V(β)` are therefore distinct and `|V(β)| = n`. Likewise for `I(β)`.
+Both projections have equal cardinality, both equal to the block's width. For all `j, k` with `0 ≤ j < k < n`: if `j = 0`, then `v + j = v` and `v + k > v` by TS4 (ShiftStrictIncrease, ASN-0034) — applicable since `k ≥ 1`; if `j ≥ 1`, then `v + j < v + k` by TS5 (ShiftAmountMonotonicity, ASN-0034) — applicable since `1 ≤ j < k`. Either way, `v + j < v + k`, so the `n` values `v + 0, v + 1, ..., v + (n − 1)` are pairwise distinct and `|V(β)| = n`. Likewise for `I(β)`.
 
 This is not a convenience of representation. The Vstream is an *arrangement* of Istream content — each V-position references exactly one I-byte, and each reference is to exactly one byte. There is no compression, expansion, or transformation between the spaces. The mapping is positional and unit-ratio.
 
@@ -54,7 +54,9 @@ Gregory's implementation confirms the structural enforcement. Each POOM bottom c
 
 The `j`-th V-position maps to the `j`-th I-address, and both orderings agree.
 
-Nelson's justification is structural:
+*Proof.* If `j = 0`, then `v + j = v` and `v + k > v` by TS4 (ShiftStrictIncrease, ASN-0034), applicable since `k ≥ 1`; hence `v + j < v + k`. If `j ≥ 1`, then `v + j < v + k` by TS5 (ShiftAmountMonotonicity, ASN-0034), applicable since `1 ≤ j < k`. The argument for `a + j < a + k` is identical with `a` in place of `v`. ∎
+
+Nelson's motivation is structural:
 
 > "The first point of a span may designate a server, an account, a document or an element; so may the last point. There is no choice as to what lies between; this is implicit in the choice of first and last point." [LM 4/25]
 
@@ -76,9 +78,9 @@ For `c, j ≥ 1`, this is TS3 (ShiftComposition, ASN-0034): `shift(shift(v, c), 
 
 A document's full arrangement is a collection of mapping blocks that together describe `M(d)`.
 
-**Definition (Block Decomposition).** A *block decomposition* of the text-subspace arrangement of document `d` is a finite set `B = {β₁, ..., βₘ}` of mapping blocks satisfying:
+**Definition (Block Decomposition).** A *block decomposition* of the arrangement of document `d` is a finite set `B = {β₁, ..., βₘ}` of mapping blocks satisfying:
 
-(B1) *Coverage.* Every text-subspace V-position in `dom(M(d))` appears in exactly one block:
+(B1) *Coverage.* Every V-position in `dom(M(d))` appears in exactly one block:
 
 `(A v ∈ dom(M(d)) : v₁ ≥ 1 : (E! j : 1 ≤ j ≤ m : v ∈ V(βⱼ)))`
 
@@ -90,11 +92,11 @@ A document's full arrangement is a collection of mapping blocks that together de
 
 `(A j : 1 ≤ j ≤ m : (A k : 0 ≤ k < nⱼ : M(d)(vⱼ + k) = aⱼ + k))`
 
-B1 and B2 together assert that the V-extents partition the text-subspace portion of `dom(M(d))`. B3 asserts that the mapping within each block agrees with the global arrangement. The empty arrangement `M(d) = ∅` has `B = ∅` as its unique decomposition.
+B1 and B2 together assert that the V-extents partition `dom(M(d))`. B3 asserts that the mapping within each block agrees with the global arrangement. The empty arrangement `M(d) = ∅` has `B = ∅` as its unique decomposition. The `v₁ ≥ 1` guard in B1 is the universal S8a precondition (every V-position has a positive first component); it imposes no subspace restriction.
 
-**M2 (DecompositionExistence).** Every arrangement `M(d)` admits a block decomposition of its text subspace.
+**M2 (DecompositionExistence).** Every arrangement `M(d)` admits a block decomposition.
 
-This is S8 (SpanDecomposition, ASN-0036) restated in our vocabulary — both are explicitly scoped to text-subspace V-positions (`v₁ ≥ 1`). The question that S8 leaves open is: given that at least one decomposition exists, how many are there, and what relates them?
+This is S8 (SpanDecomposition, ASN-0036) restated in our vocabulary — both range over every V-position in `dom(M(d))`, regardless of subspace. The question that S8 leaves open is: given that at least one decomposition exists, how many are there, and what relates them?
 
 Nelson tells us:
 
@@ -181,7 +183,7 @@ When both conditions hold, the merged block is:
 
 (We write `⊞` for block merge to distinguish it from tumbler addition `⊕` of ASN-0034.)
 
-Both conditions are necessary. V-adjacency alone is insufficient: if the I-extents are not contiguous, the merged block `(v₁, a₁, n₁ + n₂)` would predict `M(d)(v₁ + n₁) = a₁ + n₁`, but the arrangement maps that position to `a₂ ≠ a₁ + n₁`, violating B3. I-adjacency alone is insufficient: if the V-extents are not adjacent, there is no contiguous V-range for the merged block to cover.
+Both conditions are necessary. V-adjacency alone is insufficient: if the I-extents are not contiguous, the merged block `(v₁, a₁, n₁ + n₂)` would predict `M(d)(v₁ + n₁) = a₁ + n₁`, but the arrangement maps that position to `a₂ ≠ a₁ + n₁`, violating B3. I-adjacency alone is insufficient: if `v₂ > v₁ + n₁` (the V-extents leave a gap), the merged block claims a mapping at `v₁ + n₁ ∉ V(β₁) ∪ V(β₂)`, so either (a) `v₁ + n₁ ∉ dom(M(d))`, violating B3 for the merged block (which asserts the position is in its domain); or (b) some other block `β'' ∈ B` covers `v₁ + n₁`, in which case `V(β₁ ⊞ β₂) ∩ V(β'') ⊇ {v₁ + n₁}`, violating B2 between the merged block and `β''`. (The case `v₂ < v₁ + n₁` (overlap) cannot occur when `β₁, β₂ ∈ B`: it would force `v₂ ∈ V(β₁) ∩ V(β₂)`, violating B2 of the original decomposition.)
 
 *Verification.* `⟦β₁ ⊞ β₂⟧ = {(v₁ + k, a₁ + k) : 0 ≤ k < n₁ + n₂}`. For `k < n₁`, this gives `⟦β₁⟧`. For `k ≥ n₁`, set `j = k − n₁`: then `v₁ + k = (v₁ + n₁) + j = v₂ + j` and similarly `a₁ + k = a₂ + j` (by M-aux), giving `⟦β₂⟧`. So `⟦β₁ ⊞ β₂⟧ = ⟦β₁⟧ ∪ ⟦β₂⟧`. ∎
 
@@ -248,7 +250,7 @@ The maximal runs partition `dom(f)`: every `v ∈ dom(f)` belongs to at least on
 
 We show: a decomposition `B` is maximally merged iff it equals the set of maximal runs of `f`.
 
-(⟹) Let `B` be maximally merged. Take `β = (v, a, n) ∈ B` and suppose `β` is not a maximal run — say condition 3 fails: `v + n ∈ dom(f)` and `f(v + n) = a + n`. Some block `β' ∈ B` covers `v + n`. We claim `β'` starts at `v + n`. If `β'` starts at `v' < v + n`, then `V(β') = {v' + k : 0 ≤ k < n'}` is a contiguous set containing `v + n` and starting before it; since `v + n − 1 ∈ V(β)`, we would have `v + n − 1 ∈ V(β')` when `v' ≤ v + n − 1`, contradicting B2 (disjointness). So `v' > v + n − 1`. Since all text-subspace V-positions in `dom(M(d))` share the same depth (S8-depth, ASN-0036), no V-position falls between `v + (n − 1)` and `v + n`, forcing `v' = v + n`. Then `β' = (v + n, a', n')` with `a' + 0 = f(v + n) = a + n`, so `a' = a + n`. Now `β` and `β'` are V-adjacent (`v + n = v + n`) and I-adjacent (`a + n = a + n`) — contradicting `B` being maximally merged.
+(⟹) Let `B` be maximally merged. Take `β = (v, a, n) ∈ B` and suppose `β` is not a maximal run — say condition 3 fails: `v + n ∈ dom(f)` and `f(v + n) = a + n`. Some block `β' ∈ B` covers `v + n`. We claim `β'` starts at `v + n`. If `β'` starts at `v' < v + n`, then `V(β') = {v' + k : 0 ≤ k < n'}` is a contiguous set containing `v + n` and starting before it; since `v + n − 1 ∈ V(β)`, we would have `v + n − 1 ∈ V(β')` when `v' ≤ v + n − 1`, contradicting B2 (disjointness). So `v' > v + n − 1`. Any V-position `t` with `v + (n − 1) < t < v + n` must satisfy `t₁ = v₁` (by T1 at position 1, since `t₁ < v₁` would give `t < v ≤ v + (n − 1)` and `t₁ > v₁` would give `t > v + n`); hence `t ∈ V_{v₁}(d)` and, by S8-depth (ASN-0036) applied to subspace `v₁`, `t` has depth `m`. But the only depth-`m` tumblers with first `m − 1` components matching `v`'s are `[v₁, ..., v_{m−1}, j]` for natural `j`, and no integer falls strictly between `v_m + n − 1` and `v_m + n`. Therefore no such `t` exists, forcing `v' = v + n`. Then `β' = (v + n, a', n')` with `a' + 0 = f(v + n) = a + n`, so `a' = a + n`. Now `β` and `β'` are V-adjacent (`v + n = v + n`) and I-adjacent (`a + n = a + n`) — contradicting `B` being maximally merged.
 
 Now suppose condition 2 fails: there exists `v'` with `v' + 1 = v`, `v' ∈ dom(f)`, and `f(v') + 1 = a`. Some block `β'' = (v'', a'', n'') ∈ B` covers `v'`. Since `v' + 1 = v ∈ V(β)`, if `v ∈ V(β'')` then `v ∈ V(β'') ∩ V(β)`, contradicting B2. So `v'` is the last position of `β''`: `v' = v'' + (n'' − 1)`. By M-aux, `v'' + n'' = v' + 1 = v` (V-adjacent). And `a'' + n'' = (a'' + (n'' − 1)) + 1 = f(v') + 1 = a` (I-adjacent, since `f(v') = a'' + (n'' − 1)` by B3). So `β''` and `β` satisfy the merge condition — contradicting `B` being maximally merged. Hence every block in `B` is a maximal run. Since the maximal runs partition `dom(f)` and `B` covers `dom(f)` (by B1) with disjoint blocks (by B2), `B` is exactly the set of maximal runs.
 
@@ -370,11 +372,11 @@ To resolve a content reference, we extract the I-address runs corresponding to t
 
 **Definition (Resolution).** Given content reference (d_s, σ) with σ = (u, ℓ), let f = M(d_s)|⟦σ⟧ be the restriction of M(d_s) to positions in ⟦σ⟧.
 
-**C1a (RestrictionDecomposition).** M11 and M12 hold for any finite partial function f : T ⇀ T satisfying S2, S8-fin, and S8-depth. In particular, the restriction f = M(d_s)|⟦σ⟧ admits a unique maximally merged block decomposition.
+**C1a (RestrictionDecomposition).** M11 and M12 hold for any finite partial function f : T ⇀ T satisfying (i) functionality, (ii) finite domain, and (iii) common depth across its domain. In particular, the restriction f = M(d_s)|⟦σ⟧ satisfies these three conditions and admits a unique maximally merged block decomposition.
 
-*Verification that f satisfies the conditions.* (i) S2 (functionality): f is a restriction of M(d_s), which is functional by S2; a restriction of a function is a function. (ii) S8-fin (finite domain): dom(f) ⊆ dom(M(d_s)), which is finite by S8-fin; a subset of a finite set is finite. (iii) S8-depth (fixed depth): by C0a, every position in dom(f) has first component u₁, so dom(f) ⊆ V_{u₁}(d_s); by S8-depth, all positions in V_{u₁}(d_s) share the common depth m.
+*Verification that f satisfies the three conditions.* (i) *Functionality:* f is a restriction of M(d_s), which is functional by S2 (ASN-0036); a restriction of a function is a function. (ii) *Finite domain:* dom(f) ⊆ dom(M(d_s)), which is finite by S8-fin (ASN-0036); a subset of a finite set is finite. (iii) *Common depth on dom(f):* the property M11 and M12 actually use is that every position in dom(f) shares a single depth — not that f satisfies S8-depth as a standalone axiom on a self-contained arrangement. By C0a, every position in dom(f) has first component u₁, so dom(f) ⊆ V_{u₁}(d_s); by S8-depth (ASN-0036) applied to d_s in subspace u₁, all positions in V_{u₁}(d_s) share a common depth m. The inclusion transfers the common depth to dom(f): every position in dom(f) has depth m.
 
-*Extension of M11/M12.* M11 (CanonicalExistence) constructs a maximally merged decomposition by iterating: while any two blocks satisfy the merge condition (M7), merge them. The initial singleton-block decomposition — one block (v, f(v), 1) per v ∈ dom(f) — satisfies B1, B2, and B3: B1 (coverage) holds because every v ∈ dom(f) has its own singleton block; B2 (disjointness) holds because singleton V-extents are pairwise disjoint; B3 (consistency) holds directly from S2 (f is a function, so each singleton block's I-address is uniquely determined). Termination follows from S8-fin since the block count is at most |dom(f)|. Each merge step preserves all three conditions by M7f (MergeFrame): M7f establishes that replacing β₁ and β₂ with β₁ ⊞ β₂ yields an equivalent decomposition, preserving B1 and B2 via V(β₁ ⊞ β₂) = V(β₁) ∪ V(β₂) (no V-position is gained or lost, and all blocks in B \ {β₁, β₂} are unchanged). For B3 specifically: if β₁ = (v₁, a₁, n₁) and β₂ = (v₂, a₂, n₂) each satisfy B3 and M7 holds (v₂ = v₁ + n₁, a₂ = a₁ + n₁), then β₁ ⊞ β₂ = (v₁, a₁, n₁ + n₂) satisfies B3 by case split — for 0 ≤ i < n₁, f(v₁ + i) = a₁ + i by B3 for β₁; for n₁ ≤ i < n₁ + n₂, f(v₁ + i) = f(v₂ + (i − n₁)) = a₂ + (i − n₁) = (a₁ + n₁) + (i − n₁) = a₁ + i, using B3 for β₂ and M-aux. M12 (CanonicalUniqueness) identifies the maximally merged decomposition with the set of maximal runs of f, using only pointwise evaluation of f — independent of whether f is a full arrangement or a restriction. Both proofs require no property of M(d) beyond S2, S8-fin, and S8-depth; they apply to f verbatim. ∎
+*Extension of M11/M12.* M11 (CanonicalExistence) constructs a maximally merged decomposition by iterating: while any two blocks satisfy the merge condition (M7), merge them. The initial singleton-block decomposition — one block (v, f(v), 1) per v ∈ dom(f) — satisfies B1, B2, and B3: B1 (coverage) holds because every v ∈ dom(f) has its own singleton block; B2 (disjointness) holds because singleton V-extents are pairwise disjoint; B3 (consistency) holds directly from S2 (f is a function, so each singleton block's I-address is uniquely determined). Termination follows from S8-fin since the block count is at most |dom(f)|. Each merge step preserves all three conditions by M7f (MergeFrame): M7f establishes that replacing β₁ and β₂ with β₁ ⊞ β₂ yields an equivalent decomposition, preserving B1 and B2 via V(β₁ ⊞ β₂) = V(β₁) ∪ V(β₂) (no V-position is gained or lost, and all blocks in B \ {β₁, β₂} are unchanged). For B3 specifically: if β₁ = (v₁, a₁, n₁) and β₂ = (v₂, a₂, n₂) each satisfy B3 and M7 holds (v₂ = v₁ + n₁, a₂ = a₁ + n₁), then β₁ ⊞ β₂ = (v₁, a₁, n₁ + n₂) satisfies B3 by case split — for 0 ≤ i < n₁, f(v₁ + i) = a₁ + i by B3 for β₁; for n₁ ≤ i < n₁ + n₂, f(v₁ + i) = f(v₂ + (i − n₁)) = a₂ + (i − n₁) = (a₁ + n₁) + (i − n₁) = a₁ + i, using B3 for β₂ and M-aux. M12 (CanonicalUniqueness) identifies the maximally merged decomposition with the set of maximal runs of f, using only pointwise evaluation of f — independent of whether f is a full arrangement or a restriction. Both proofs require only the three conditions verified above — functionality, finite domain, and common depth across the domain; they apply to f verbatim. ∎
 
 The decomposition yields ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-address sequence* is:
 
@@ -439,7 +441,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | M0 | WidthCoupling: `\|V(β)\| = \|I(β)\| = n` for mapping block `β = (v, a, n)` | introduced |
 | M1 | OrderPreservation: within a block, the `k`-th V-position maps to the `k`-th I-address; both orderings agree | introduced |
 | M-aux | OrdinalIncrementAssociativity: `(v + c) + j = v + (c + j)` — from TS3 (ShiftComposition, ASN-0034) extended with `v + 0 = v` | introduced |
-| M2 | DecompositionExistence: every text-subspace arrangement admits a block decomposition | introduced |
+| M2 | DecompositionExistence: every arrangement `M(d)` admits a block decomposition (covering every V-position in `dom(M(d))`, all subspaces) | introduced |
 | M3 | RepresentationInvariance: equivalent decompositions determine the same arrangement function | introduced |
 | M4 | SplitDefinition: split at interior `c` produces `β_L = (v, a, c)` and `β_R = (v+c, a+c, n−c)` | introduced |
 | M5 | SplitPartition: `⟦β_L⟧ ∪ ⟦β_R⟧ = ⟦β⟧` and `⟦β_L⟧ ∩ ⟦β_R⟧ = ∅` | introduced |
@@ -456,7 +458,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | M14 | IndependentOccurrences: blocks sharing I-extent at distinct V-positions are independent and unmergeable | introduced |
 | M15 | MappingIndependence: each document's block decomposition is independent of every other document's | introduced |
 | M16 | CrossOriginMergeImpossibility: blocks whose I-addresses originate from different documents cannot satisfy I-adjacency | introduced |
-| B1 | Coverage: blocks in a decomposition partition the text-subspace V-positions of `dom(M(d))` | introduced |
+| B1 | Coverage: blocks in a decomposition partition `dom(M(d))` (every V-position in every subspace) | introduced |
 | B2 | Disjointness: no two blocks share a V-position | introduced |
 | B3 | Consistency: each block correctly describes `M(d)` | introduced |
 | ContentReference | (d_s, σ) with d_s ∈ D, V_{u₁}(d_s) ≠ ∅, m ≥ 2; σ level-uniform with #u = #ℓ = m; depth-m V-positions in span range ⊆ dom(M(d_s)) | introduced |
@@ -464,7 +466,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | C0a | PrefixConfinement: every t ∈ ⟦σ⟧ satisfies tⱼ = uⱼ for all 1 ≤ j < m when m ≥ 2 (subspace confinement t₁ = u₁ is the j = 1 case) | introduced |
 | ContentReferenceSequence | ordered list ⟨r₁, ..., rₚ⟩ with p ≥ 1 | introduced |
 | resolve(d_s, σ) | Resolution: maximally merged I-address runs from `M(d_s)\|⟦σ⟧`, V-ordered | introduced |
-| C1a | RestrictionDecomposition: M11/M12 hold for any finite partial function f : T ⇀ T satisfying S2, S8-fin, S8-depth; in particular `M(d_s)\|⟦σ⟧` | introduced |
+| C1a | RestrictionDecomposition: M11/M12 hold for any finite partial function f : T ⇀ T that is functional, has finite domain, and has common depth on its domain; in particular `M(d_s)\|⟦σ⟧` inherits these from S2, S8-fin, and S8-depth via C0a | introduced |
 | C1 | ResolutionIntegrity: every resolved I-address is in dom(C) | introduced |
 | C2 | ResolutionWidthPreservation: total resolved width equals ordinal displacement — w(resolve(d_s, σ)) = ℓₘ | introduced |
 
