@@ -73,32 +73,49 @@ def _parse_asn(raw: str) -> str:
 
 
 def _active_notes_topo_sorted() -> list[str]:
-    """Discover every active note (body file present) and return its
-    ASN label list in topological order — foundations before their
-    dependents per substrate `citation.depends` edges.
+    """Discover every active note (body file present, not substrate-retired)
+    and return its ASN label list in topological order — foundations before
+    their dependents per substrate `citation.depends` edges.
 
-    Notes with no edges land at the end (stable order). Notes whose
-    dependency target isn't itself active are treated as having no
-    dep on it.
+    "Active" = body file on disk AND the note's substrate address does not
+    carry the `retired` classifier. Notes with no edges land at the end
+    (stable order). Notes whose dependency target isn't itself active are
+    treated as having no dep on it.
     """
     from glob import glob
     from lib.protocols.febe.session import open_session
     from lib.shared.paths import LATTICE
     from lib.backend.predicates import active_links
+    from lib.predicates import is_retired
 
-    active: set[str] = set()
+    discovered: set[str] = set()
     asn_pat = re.compile(r"(ASN-\d{4})")
     for f in glob("_docuverse/documents/**/note/ASN-*.md", recursive=True):
         if ".statements.md" in f or ".motif." in f:
             continue
         m = asn_pat.search(f)
         if m:
-            active.add(m.group(1))
+            discovered.add(m.group(1))
 
-    # Collect note→note edges via substrate citation.depends
-    edges: dict[str, set[str]] = {a: set() for a in active}
+    # Filter out substrate-retired notes; collect edges via citation.depends
     with open_session(LATTICE) as session:
         state = session.store
+        # Resolve each ASN to its note address and check retirement
+        active: set[str] = set()
+        for asn in discovered:
+            note_addr = None
+            for path, addr in state.path_to_addr.items():
+                if f"/note/{asn}-" in path and not path.endswith(".statements.md"):
+                    note_addr = addr
+                    break
+            if note_addr is None:
+                # No registered substrate path; treat as active (legacy file)
+                active.add(asn)
+                continue
+            if not is_retired(session, note_addr):
+                active.add(asn)
+
+        edges: dict[str, set[str]] = {a: set() for a in active}
         for link in active_links(state, "citation.depends"):
             from_asns: set[str] = set()
             to_asns: set[str] = set()
