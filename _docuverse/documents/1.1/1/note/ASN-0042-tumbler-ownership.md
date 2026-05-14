@@ -109,6 +109,16 @@ Each principal's prefix determines a set of addresses — their *domain*:
 
 **Definition (OwnershipDomain).** For principal `π ∈ Π`, define `dom(π) = {a ∈ T : pfx(π) ≼ a}`.
 
+Before developing ownership domains' nesting structure, we extract a structural fact about the prefix relation `≼` that the subsequent proofs invoke repeatedly. The fact is a direct consequence of Prefix (PrefixRelation) of ASN-0034 and is independent of T5 (ContiguousSubtrees), but its repeated use across O2 (Step 2), O7(a), AccountLevelPermanence (Step 3), NestingByDelegation, and AccountLevelPermanence★ warrants stating it once as a named lemma:
+
+**Covering-chain lemma (PrefixesOfCommonAddressAreComparable).** Any two tumbler prefixes of a common address are `≼`-comparable:
+
+  `(A x, p, q ∈ T : p ≼ x ∧ q ≼ x ⟹ p ≼ q ∨ q ≼ p)`
+
+*Proof.* By Prefix (PrefixRelation), `p ≼ x` expands to `#x ≥ #p ∧ (A i : 1 ≤ i ≤ #p : pᵢ = xᵢ)`, and `q ≼ x` expands to `#x ≥ #q ∧ (A i : 1 ≤ i ≤ #q : qᵢ = xᵢ)`. Both `p` and `q` agree with `x` on their respective leading components. Without loss of generality let `#p ≤ #q`. For each `i` with `1 ≤ i ≤ #p`, both equalities apply: `pᵢ = xᵢ = qᵢ`. Hence `pᵢ = qᵢ` for `1 ≤ i ≤ #p`, and `#p ≤ #q`, so `p ≼ q` by the Prefix definition. By T3 (CanonicalRepresentation), the component equalities are well-defined; no further appeal to T5 is required. ∎
+
+The lemma admits an immediate specialization: when `p = pfx(π₁)`, `q = pfx(π₂)`, and `x = a` for some `a ∈ Σ.B`, any two principals covering `a` have nested prefixes. The same specialization with `x = pfx(π')` (a principal's prefix in place of an address) supports the most-specific covering arguments in O7(a) and AccountLevelPermanence (Step 3).
+
 By T5 (ContiguousSubtrees), every ownership domain is a contiguous interval under the lexicographic order T1. This is a mathematical consequence of prefix containment and the tree-to-line mapping, not a policy choice. If `a, c ∈ dom(π)` and `a ≤ b ≤ c`, then `b ∈ dom(π)`. No address can escape from the interior of someone's domain.
 
 Domains nest whenever prefixes nest:
@@ -126,7 +136,7 @@ The ownership model rests on five axioms about state evolution that the subseque
 
 *Notation.* Throughout this ASN, `Σ.B` denotes the baptismal registry (`Σ.B ⊆ T`) introduced in ASN-0040 — the set of tumblers that have been brought into existence by the baptism procedure. We say "allocated address" and "address in `Σ.B`" interchangeably; from the ownership model's perspective, every address requiring an effective owner is one that the system has baptized. We adopt the foundation's notation rather than introducing a separate `Σ.B` symbol.
 
-*Reachability convention.* All states `Σ` discussed in this ASN are assumed to be *reachable from the bootstrap state* `Σ₀` — that is, there exists a finite sequence `Σ₀ → Σ_1 → ... → Σ` of state transitions producing `Σ`. This convention is load-bearing for the proofs below: the iterated application of O12 (PrincipalPersistence) requires a finite-length transition sequence from `Σ₀` to `Σ` to conclude `Π₀ ⊆ Π_Σ`, which in turn underpins the bootstrap-exclusion arguments in O3, O8, and AccountLevelPermanence. Where a property's formal contract requires reachability for its derivation, the precondition is restated explicitly; a property whose derivation does not invoke iterated O12 (e.g., O2, defined directly from the principal set in a given state) holds without the reachability hypothesis.
+*Reachability convention.* All states `Σ` discussed in this ASN are assumed to be *reachable from the bootstrap state* `Σ₀` — that is, there exists a finite sequence `Σ₀ → Σ_1 → ... → Σ` of state transitions producing `Σ`. This convention is load-bearing for the proofs below: the iterated application of O12 (PrincipalPersistence) requires a finite-length transition sequence from `Σ₀` to `Σ` to conclude `Π₀ ⊆ Π_Σ`, which in turn underpins the bootstrap-exclusion arguments in O3, O8, and AccountLevelPermanence. The reachability hypothesis also underpins the induction in O4 (DomainCoverage), and through O4, propagates to O2 (which invokes O4 for non-emptiness of the covering set). Each property's formal contract restates the reachability precondition explicitly whenever the proof relies on it; properties whose derivations are entirely state-local (e.g., the AccountField, AccountPrefix, and PrefixDetermination definitions, which constrain a single tumbler or principal without quantifying over transitions) need no reachability hypothesis.
 
 **O12 (PrincipalPersistence).** Once a principal joins Π, no operation removes it:
 
@@ -197,9 +207,10 @@ We derive this by induction on the transition sequence `Σ₀ → Σ_1 → ... �
 - *Non-nesting:* The first disjunct holds. ✓
 - *`pfx(π') ≺ pfx(π₁)`:* Forbidden by condition (vi) of the delegation predicate (Section 7), which requires `¬(E π'' ∈ Π_{Σ_n} : pfx(π') ≺ pfx(π''))`. Since `π₁ ∈ Π_{Σ_n}` witnesses such a `π''`, this case is impossible.
 - *`pfx(π') = pfx(π₁)`:* Forbidden by O1b. O1b is preserved across transitions: by O15 the only new principal is `π'`, and condition (i) requires `pfx(π_d) ≺ pfx(π')` (strict), so `pfx(π') ≠ pfx(π_d)`; combined with O1b at `Σ_n` (which rules out duplication among `Π_{Σ_n}` and in particular between `π_d` and any other existing principal), `pfx(π') = pfx(π₁)` would force `π_d = π₁` (impossible, since `pfx(π_d) ≺ pfx(π')` strict) or violate O1b at `Σ_{n+1}`. This case is impossible.
-- *`pfx(π₁) ≺ pfx(π')`:* We must establish `delegated_{Σ_{n+1}}*(π₁, π')`. By condition (ii) the delegator `π_d` is the most-specific principal in `Π_{Σ_n}` covering `pfx(π')`, so `pfx(π_d) ≼ pfx(π')`. Since `pfx(π₁) ≺ pfx(π')`, we have `pfx(π₁)` covers `pfx(π')`; by the most-specific property of `π_d` and the covering-chain structure (any two prefixes covering a common prefix are themselves comparable — a direct consequence of the Prefix (PrefixRelation) definition of ASN-0034: if `p₁ ≼ x` and `p₂ ≼ x` then each consists of the leading `#pᵢ` components of `x`, so the shorter is itself a prefix of the longer), `pfx(π₁) ≼ pfx(π_d)`. Two sub-cases:
-   * If `π₁ = π_d`: the delegation step `delegated_{Σ_n}(π_d, π')` itself is the chain. ✓
-   * If `pfx(π₁) ≺ pfx(π_d)` (strict): apply the IH to the pair `(π₁, π_d) ∈ Π_{Σ_n} × Π_{Σ_n}`. Since `pfx(π₁) ≺ pfx(π_d)`, the IH yields `delegated_{Σ_n}*(π₁, π_d)`. Concatenating with the current step gives `delegated_{Σ_{n+1}}*(π₁, π')`. ✓ (The case `pfx(π₁) = pfx(π_d)` reduces to `π₁ = π_d` by O1b at `Σ_n`.)
+- *`pfx(π₁) ≺ pfx(π')`:* We must establish `delegated_{Σ_{n+1}}*(π₁, π')`. By condition (ii), the delegator `π_d` is the most-specific principal in `Π_{Σ_n}` covering `pfx(π')`, so `pfx(π_d) ≼ pfx(π')`. From the hypothesis `pfx(π₁) ≺ pfx(π')`, `π₁` also covers `pfx(π')`. Both `pfx(π_d)` and `pfx(π₁)` are prefixes of the common tumbler `pfx(π')`, so by the covering-chain lemma (Ownership Domains section) they are `≼`-comparable. Three sub-cases exhaust the comparison:
+   * *`pfx(π_d) ≺ pfx(π₁)` (strict).* This case is impossible. The strict extension gives `#pfx(π₁) > #pfx(π_d)`, and `π₁ ∈ Π_{Σ_n}` covers `pfx(π')`, contradicting condition (ii) — which requires `#pfx(π'') ≤ #pfx(π_d)` for every `π'' ∈ Π_{Σ_n}` covering `pfx(π')`. Eliminated by the most-specific clause.
+   * *`pfx(π_d) = pfx(π₁)`.* By O1b at `Σ_n`, equal prefixes force `π_d = π₁`. The delegation step `delegated_{Σ_n}(π_d, π')` is itself the chain `delegated_{Σ_{n+1}}*(π₁, π')`. ✓
+   * *`pfx(π₁) ≺ pfx(π_d)` (strict).* Apply the IH to the pair `(π₁, π_d) ∈ Π_{Σ_n} × Π_{Σ_n}` (distinct by the strict prefix relation, so the IH's hypothesis `π₁ ≠ π_d` is met). Since `pfx(π₁) ≺ pfx(π_d)`, the IH's first disjunct (non-nesting) is excluded; its third disjunct (`pfx(π_d) ≺ pfx(π₁)`) contradicts our strict ordering; so the second disjunct applies, yielding `delegated_{Σ_n}*(π₁, π_d)`. Concatenating with the current step `delegated_{Σ_n}(π_d, π')` produces `delegated_{Σ_{n+1}}*(π₁, π')`. ✓
 
 In every sub-case, one of the three disjuncts holds for `(π₁, π')`. By symmetry, the same holds for `(π', π₂)` when `π₁ = π'`. Induction completes the derivation. ∎
 
@@ -235,7 +246,11 @@ This axiom is load-bearing: `acct(a)` and `N(a)` depend on T4b (UniqueParse) of 
 
   `(A Σ, Σ', π' : Σ → Σ' ∧ π' ∈ Π_{Σ'} ∖ Π_Σ ⟹ pfx(π') ∈ Σ'.B)`
 
-This is the structural coupling between the principal registry and the baptismal registry: a principal cannot enter `Π` without an allocated prefix. The act of delegation by `π` to a sub-account at slot `k` materially baptizes `pfx(π).0.k` and binds the new principal to it; the registries are two views of the same act, not independent ledgers that happen to agree. The base case is supplied by O14's second clause: every initial principal's prefix is covered by some address in `Σ₀.B`, and the standard bootstrap reading takes `pfx(π) ∈ Σ₀.B` for every `π ∈ Π₀` (the prefix is itself the allocated address that anchors the principal). For the inductive step, when `Σ → Σ'` introduces `π' ∈ Π_{Σ'} ∖ Π_Σ`, the same transition records `pfx(π') ∈ Σ'.B`; this is the abstract counterpart to Gregory's implementation invariant that delegated account slots reside in the granfilade tree, where `findpreviousisagr` scans the entire subtree under the parent's prefix without distinguishing delegated from non-delegated entries because the granfilade *is* the global baptismal registry and the principal registry's prefixes occupy it. The O10 fork analysis cites O18 to ensure that every Form B (=length) sub-delegate's prefix `pfx(π).0.U^{(i)}_1` lies in `Σ.B`, which is what bounds the pre-claimed slot set `S'` below the high-water mark `hwm_0` and makes the unilateral trajectory unconditional.
+This is the structural coupling between the principal registry and the baptismal registry: a principal cannot enter `Π` without an allocated prefix. The act of delegation by `π` to a sub-account at slot `k` materially baptizes `pfx(π).0.k` and binds the new principal to it; the registries are two views of the same act, not independent ledgers that happen to agree. The base case is posited directly as a bootstrap clause companion to O14:
+
+  `(A π ∈ Π₀ : pfx(π) ∈ Σ₀.B)`
+
+— every initial principal's prefix is itself an initially allocated address that anchors the principal. This is independent of O14's second clause, which runs in the opposite direction (`(A a ∈ Σ₀.B : (E π ∈ Π₀ : pfx(π) ≼ a))` — every initially allocated address is covered by some initial principal, which does not imply that each principal's own prefix is among those addresses). We posit the bootstrap reading as a separate baseline alongside O14. For the inductive step, when `Σ → Σ'` introduces `π' ∈ Π_{Σ'} ∖ Π_Σ`, the same transition records `pfx(π') ∈ Σ'.B`; this is the abstract counterpart to Gregory's implementation invariant that delegated account slots reside in the granfilade tree, where `findpreviousisagr` scans the entire subtree under the parent's prefix without distinguishing delegated from non-delegated entries because the granfilade *is* the global baptismal registry and the principal registry's prefixes occupy it. The O10 fork analysis cites O18 to ensure that every Form B (=length) sub-delegate's prefix `pfx(π).0.U^{(i)}_1` lies in `Σ.B`, which is what bounds the pre-claimed slot set `S'` below the high-water mark `hwm_0` and makes the unilateral trajectory unconditional.
 
 
 ## The Exclusivity Invariant
@@ -248,11 +263,11 @@ For non-nesting prefixes, T10 (PartitionIndependence) gives disjointness immedia
 
 We first state a coverage requirement — every allocated address falls within some principal's domain:
 
-**O4 (DomainCoverage).** For every allocated address, at least one principal's prefix contains it:
+**O4 (DomainCoverage).** For every allocated address in any reachable state, at least one principal's prefix contains it:
 
-  `(A a ∈ Σ.B : (E π ∈ Π : pfx(π) ≼ a))`
+  `(A Σ : Σ reachable from Σ₀ : (A a ∈ Σ.B : (E π ∈ Π_Σ : pfx(π) ≼ a)))`
 
-We prove that in every reachable state `Σ`, every allocated address is covered by at least one principal's prefix. The proof is by induction on the length of the transition sequence leading to `Σ`.
+The reachability quantifier is essential: the proof is by induction on the length of the transition sequence leading to `Σ`, and the induction operates along the witnessing path. We prove that in every reachable state `Σ`, every allocated address is covered by at least one principal's prefix.
 
 *Base case.* In the initial state `Σ₀`, the claim is `(A a ∈ Σ₀.B : (E π ∈ Π₀ : pfx(π) ≼ a))`. This is the second clause of O14 (BootstrapPrincipal), which asserts exactly that the initial principals cover all initially allocated addresses. The base case holds.
 
@@ -265,8 +280,8 @@ We prove that in every reachable state `Σ`, every allocated address is covered 
 In both cases, every address in `Σ'.B` is covered by a principal in `Π_{Σ'}`. By induction on the transition sequence, the coverage invariant holds in every reachable state. ∎
 
 *Formal Contract:*
-- *Preconditions:* `a ∈ Σ.B`.
-- *Postconditions:* `(E π ∈ Π : pfx(π) ≼ a)`.
+- *Preconditions:* `Σ` reachable from `Σ₀`, `a ∈ Σ.B`. The reachability premise is load-bearing: the induction over the transition sequence `Σ₀ → ... → Σ` requires a finite witnessing path, and the inductive step's appeal to O12 (PrincipalPersistence) and O13 (PrefixImmutability) operates along that path. Without reachability, no base case anchors the coverage claim.
+- *Postconditions:* `(E π ∈ Π_Σ : pfx(π) ≼ a)`.
 - *Invariant:* Coverage holds in every reachable state — no allocated address is orphaned from the principal hierarchy.
 
 We resolve nesting by specificity. Before stating exclusivity we name the principal that wins the contest:
@@ -295,8 +310,8 @@ We conclude: for every `a ∈ Σ.B`, there exists exactly one `π ∈ Π` with `
 
 *Formal Contract:*
 - *Definition:* `ω(a) = π ≡ pfx(π) ≼ a ∧ (A π' ∈ Π : π' ≠ π ∧ pfx(π') ≼ a ⟹ #pfx(π) > #pfx(π'))`.
-- *Preconditions:* `a ∈ Σ.B`.
-- *Postconditions:* `(E! π ∈ Π : ω(a) = π)` — exactly one principal satisfies the defining equivalence.
+- *Preconditions:* `Σ` reachable from `Σ₀`, `a ∈ Σ.B`. Reachability is inherited from O4 (DomainCoverage), which Step 1 of the proof invokes for non-emptiness of the covering set `C(a)`. Steps 2–4 (chain ordering, finiteness, uniqueness) are state-local and do not introduce additional reachability obligations beyond O4's.
+- *Postconditions:* `(E! π ∈ Π_Σ : ω(a) = π)` — exactly one principal satisfies the defining equivalence.
 - *Invariant:* `ω` is a total well-defined function on `Σ.B` in every reachable state.
 
 The exclusivity of ownership is load-bearing. If two parties owned the same address, the system could not determine who is entitled to subdivide the space beneath it (O5 below), who originated the content (O6 below), or whose delegation created the address. Every downstream property depends on O2.
@@ -844,7 +859,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | from Delegation, O2, O5, O15 |
 | O8 | `Σ reachable ∧ delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.B ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | from Delegation, O2, O12, O13, T8 |
 | O9 | `(A π ∈ Π, a ∈ Σ.B : owns(π, a) ⟹ N(pfx(π)) ≼ N(a))` — ownership bounded by node field | from O1, O1a, T4, Prefix |
-| O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | from O1a, O6, FiniteRegistry, T0a, TA5(d) |
+| O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | from O1a, O6, O18, FiniteRegistry, T0a, TA5(c), TA5(d), ASN-0040 `next`, ASN-0040 `hwm` |
 | O11 | Principal identity is axiomatic to the ownership model — authentication is external | axiom |
 | O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | design requirement |
 | O13 | `pfx_{Σ'}(π) = pfx_Σ(π)` for all transitions — prefix immutability | design requirement |
