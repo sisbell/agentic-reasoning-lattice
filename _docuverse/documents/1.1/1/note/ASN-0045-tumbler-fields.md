@@ -22,7 +22,7 @@ For any tumbler t, T4-valid(t) (T4, ASN-0034) means t parses as a well-formed ad
 
 **Element** — `Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3`.
 
-Each predicate has type `T → Bool` on the tumbler carrier T (T0, ASN-0034). The definitions are total: for any t : T, T4-valid(t) is decidable (T4, ASN-0034) and zeros(t) is a natural number (NAT, ASN-0034), so each conjunction evaluates without precondition.
+Each predicate is a one-place proposition on the tumbler carrier T (T0, ASN-0034). The definitions are total: for any t : T, T4-valid(t) is a well-formed proposition (T4, ASN-0034) and zeros(t) is a natural number (T4 + NAT-card, ASN-0034), so each conjunction is a well-formed proposition without precondition.
 
 ## Well-Definedness
 
@@ -32,7 +32,7 @@ T4c carries two postconditions on the T4-valid subdomain: *Exhaustion* (zeros(t)
 
 *At-least-one.* By T4c's Exhaustion, zeros(t) ∈ {0, 1, 2, 3}, so at least one of the four equalities zeros(t) = k holds, hence at least one of the four predicates holds at t.
 
-*At-most-one.* By T4c's Pairwise extensional disjointness, the four cases `zeros(t) = k` for distinct k cannot both hold (equality on ℕ is functional via NAT, ASN-0034). So no two of Node(t), Account(t), Document(t), Element(t) hold simultaneously.
+*At-most-one.* By T4c's Pairwise extensional disjointness, the four cases `zeros(t) = k` for distinct k cannot both hold. So no two of Node(t), Account(t), Document(t), Element(t) hold simultaneously.
 
 Combining the two yields the Partition postcondition:
 
@@ -58,7 +58,7 @@ The quantifier ranges over the full carrier T; the antecedent T4-valid(t) restri
 | [7, 0, 0, 3] | adjacent zeros | T4-valid fails; each predicate's left conjunct is false |
 | [0, 7] | leading zero | T4-valid fails; each predicate's left conjunct is false |
 | [7, 0] | trailing zero | T4-valid fails; each predicate's left conjunct is false |
-| [1, 0, 1, 0, 1, 0, 1, 0, 1] | zeros(t) = 4 > 3 | even if parseable, no k ∈ {0,1,2,3} matches; T4 forbids this |
+| [1, 0, 1, 0, 1, 0, 1, 0, 1] | zeros(t) = 4 > 3 violates T4(i) | T4-valid fails; each predicate's left conjunct is false |
 
 The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing: dropping it would force at-least-one to fail on every T4-invalid tumbler.
 
@@ -69,15 +69,15 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 - *Preconditions.* None (predicate is total on T).
 - *Definition.* The two-place conjunction above.
 - *Depends.* T0 (carrier), T4 (T4-valid), T4c (zeros range), NAT-zero (the constant 0).
-- *Postcondition.* `(A t : T : Node(t) ⟹ T4-valid(t) ∧ zeros(t) = 0)`.
+- *Postcondition.* `(A t : T :: Node(t) ⟺ T4-valid(t) ∧ zeros(t) = 0)`.
 
 **Account** (`Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1`)
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4, T4c, NAT-closure (the constant 1 = succ(0)).
+- *Depends.* T0, T4, T4c, NAT-closure (the constant 1).
 - *Postconditions.*
-  - `(A t : T : Account(t) ⟹ T4-valid(t) ∧ zeros(t) = 1)`.
+  - `(A t : T :: Account(t) ⟺ T4-valid(t) ∧ zeros(t) = 1)`.
   - *Rename equivalence:* `(A t : T : T4-valid(t) :: Account(t) ⟺ t is a user address per T4c)`. ASN-0045's *account* and T4c's *user address* denote the same predicate on the T4-valid subdomain.
 
 **Document** (`Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2`)
@@ -85,21 +85,21 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
 - *Depends.* T0, T4, T4c, NAT-closure (the constant 2).
-- *Postcondition.* `(A t : T : Document(t) ⟹ T4-valid(t) ∧ zeros(t) = 2)`.
+- *Postcondition.* `(A t : T :: Document(t) ⟺ T4-valid(t) ∧ zeros(t) = 2)`.
 
 **Element** (`Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3`)
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
 - *Depends.* T0, T4, T4c, NAT-closure (the constant 3).
-- *Postcondition.* `(A t : T : Element(t) ⟹ T4-valid(t) ∧ zeros(t) = 3)`.
+- *Postcondition.* `(A t : T :: Element(t) ⟺ T4-valid(t) ∧ zeros(t) = 3)`.
 
 **Partition**
 
 - *Preconditions.* None.
 - *Definition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))`, where `exactly-one-of(P₁, P₂, P₃, P₄) ≡ (P₁ ∨ P₂ ∨ P₃ ∨ P₄) ∧ (A i, j : 1 ≤ i < j ≤ 4 :: ¬(Pᵢ ∧ Pⱼ))`.
-- *Depends.* Node, Account, Document, Element (definitions above), T4c (Exhaustion + Pairwise extensional disjointness), NAT-card (cases on natural-number equality).
-- *Postcondition.* Same as Definition; carried as a corollary of T4c.
+- *Depends.* Node, Account, Document, Element (definitions above), T4c (Exhaustion + Pairwise extensional disjointness).
+- *Postcondition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` — derived by combining T4c's *Exhaustion* (zeros(t) ∈ {0, 1, 2, 3}) for the at-least-one direction with T4c's *Pairwise extensional disjointness* for the at-most-one direction, per the *Well-Definedness* derivation above.
 
 ## Summary
 
