@@ -9,7 +9,7 @@ each note to report state. Useful for confirming what the next pass
 of the scheduler will do without actually running it.
 
 Usage:
-    python scripts/dag-status.py
+    python scripts/diagnostics/dag_status.py
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ import sys
 from glob import glob
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import triggers as triggers_module
 from lib.backend.predicates import active_links
