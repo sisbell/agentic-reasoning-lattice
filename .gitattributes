@@ -1,0 +1,4 @@
+# Auto-concatenate concurrent appends to the substrate log. Both
+# halves of a merge are kept — safe because links.jsonl is an
+# append-only event log with unique per-record ids.
+_docuverse/links.jsonl merge=union
