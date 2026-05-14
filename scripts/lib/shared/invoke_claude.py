@@ -99,6 +99,26 @@ _ACCOUNT_STATE_PATH = WORKSPACE / "_workspace" / "account-state.json"
 _QUOTA_COOLDOWN_SECONDS = 7200  # 2h
 _SUBPROCESS_TIMEOUT_SECONDS = 3600  # 60min hard cap per LLM call
 
+# Per-process cumulative cost per config_dir. The load-balanced
+# rotation reads this to pick the less-burdened account on each call.
+# Starts empty; fresh process tie-breaks on dir order until enough
+# calls have accumulated to differentiate. Reset on process restart.
+_per_account_cost: dict = {}
+
+
+def _record_call_cost(config_dir: str, cost_usd: float) -> None:
+    """Accumulate cost against the config_dir that handled the call.
+
+    Threadsafe via `_rotation_lock` (same lock that protects rotation
+    state — load-balancing reads happen under the same lock).
+    """
+    if not config_dir or not cost_usd:
+        return
+    with _rotation_lock:
+        _per_account_cost[config_dir] = (
+            _per_account_cost.get(config_dir, 0.0) + cost_usd
+        )
+
 
 def _configured_dirs():
     """Parse CLAUDE_CONFIG_DIRS into a list of expanded paths, or [] if unset."""
@@ -187,21 +207,28 @@ def _wait_for_account_unpause(check_interval=300):
 
 
 def _next_config_dir():
-    """Return the next available CLAUDE_CONFIG_DIR (round-robin among
-    non-paused accounts), or None to inherit the parent shell's
-    CLAUDE_CONFIG_DIR.
+    """Return the available CLAUDE_CONFIG_DIR with the lowest
+    cumulative cost so far this process, or None to inherit the
+    parent shell's CLAUDE_CONFIG_DIR.
 
-    Reads `CLAUDE_CONFIG_DIRS` (comma-separated config-dir list) on
-    first call and rotates through it on subsequent calls. Distributes
-    LLM calls across multiple Claude accounts to spread quota load.
-    Unset CLAUDE_CONFIG_DIRS leaves the existing single-account
-    behaviour untouched.
+    Load-balanced rotation: each call routes to whichever configured
+    account has accumulated less spend during this process. Replaces
+    the prior round-robin (which produced systematic skew when
+    certain expensive call types aligned to the same parity slot —
+    e.g., note-revise consistently landing on the same account when
+    interleaved with cheap commit-msg calls).
+
+    Fresh-process tie-break: when all accounts are at $0, returns the
+    first listed dir; subsequent calls naturally diverge as costs
+    accumulate.
 
     Skips accounts paused by `_pause_account` (quota-exhausted).
     Returns None if all configured accounts are currently paused;
     callers should `_wait_for_account_unpause()` and retry.
+
+    Unset CLAUDE_CONFIG_DIRS leaves the existing single-account
+    behaviour untouched.
     """
-    global _rotation_cycle
     dirs = _configured_dirs()
     if not dirs:
         return None
@@ -211,22 +238,17 @@ def _next_config_dir():
     if not available:
         return None
     with _rotation_lock:
-        if _rotation_cycle is None:
-            _rotation_cycle = itertools.cycle(dirs)
-        # Advance up to 2 full cycles looking for an available account.
-        for _ in range(len(dirs) * 2):
-            candidate = next(_rotation_cycle)
-            if candidate in available:
-                print(
-                    f"  [ROTATE] config_dir={os.path.basename(candidate)}",
-                    file=sys.stderr,
-                )
-                return candidate
+        # Pick the least-burdened of the available accounts. Cost dict
+        # may be empty (fresh process) — .get(d, 0.0) tie-breaks on
+        # the first listed dir via the stable min() iteration order.
+        picked = min(available, key=lambda d: _per_account_cost.get(d, 0.0))
+    cost_so_far = _per_account_cost.get(picked, 0.0)
     print(
-        f"  [ROTATE] config_dir={os.path.basename(available[0])} (fallback)",
+        f"  [ROTATE] config_dir={os.path.basename(picked)} "
+        f"(cumulative ${cost_so_far:.2f})",
         file=sys.stderr,
     )
-    return available[0]
+    return picked
 
 
 def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
@@ -323,7 +345,9 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
             print(f"    api_error_status: {data.get('api_error_status')}", file=sys.stderr)
             print(f"    result: {str(data.get('result', ''))[:300]}", file=sys.stderr)
             return Result(data=data, elapsed=elapsed)
-        return _result_from_json(data, elapsed)
+        result_obj = _result_from_json(data, elapsed)
+        _record_call_cost(config_dir, result_obj.cost)
+        return result_obj
 
     print(f"  FAILED (quota exhausted on all accounts after {max_attempts} attempts)",
           file=sys.stderr)
@@ -433,7 +457,9 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
                 continue
             return Result(data=data, elapsed=elapsed)
 
-        return _result_from_json(data, elapsed)
+        result_obj = _result_from_json(data, elapsed)
+        _record_call_cost(config_dir, result_obj.cost)
+        return result_obj
 
     print(f"  FAILED (quota exhausted on all accounts after {max_attempts} attempts)",
           file=sys.stderr)
