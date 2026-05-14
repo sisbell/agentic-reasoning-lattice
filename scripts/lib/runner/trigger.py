@@ -9,8 +9,8 @@ Triggers carry no execution logic. The runner walks them.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Callable, Iterable
+from dataclasses import dataclass, field
+from typing import Any, Callable, Iterable, List, Optional
 
 from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
@@ -38,6 +38,19 @@ class Trigger:
                  flag for this trigger. False for note-scope, inquiry-
                  scope, and triggers whose scope_query yields non-claim
                  addresses (review docs, comments).
+    commit_paths:
+                 Optional declaration of the directories/files this
+                 trigger's fire owns. The auto-commit machinery stages
+                 only these paths instead of sweeping all of _docuverse/,
+                 enabling clean per-fire commits under parallel runners.
+                 Signature: (session, addr) → list of path strings (each
+                 either a file or a directory, relative to repo root).
+                 Substrate metadata (`_docuverse/links.jsonl` +
+                 `_docuverse/paths.json`) is always added by the commit
+                 machinery; this list declares ONLY the content paths
+                 specific to this fire.
+                 None means "sweep all of _docuverse/" (legacy fallback,
+                 dirty under parallel runners but always correct).
     """
 
     name: str
@@ -45,3 +58,4 @@ class Trigger:
     predicate: Callable[[Session, Address], bool]
     agent: Callable[[Session, Address], Any]
     supports_claim_filter: bool = False
+    commit_paths: Optional[Callable[[Session, Address], List[str]]] = None
