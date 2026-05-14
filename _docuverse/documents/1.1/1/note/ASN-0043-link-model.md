@@ -91,7 +91,9 @@ This parallels S7c (ElementFieldDepth, ASN-0036) for content. The degeneracy at 
 
 Conformance includes a chain-origin clause: the producer chain emanates from the link's own document-level prefix, not from an arbitrary T10a-reachable predecessor that merely shares that prefix. Writing `h(a) = N(a).0.U(a).0.D(a)` for the document-level prefix of `a` (well-defined by T10a.4 and L1, per L1a; this is the formula the next section names `home(a)`):
 
-`(A a ∈ dom(Σ.L) :: (E n ≥ 1, t₀, t₁, ..., tₙ :: t₀ = h(a) ∧ tₙ = a ∧ (A i : 1 ≤ i ≤ n : tᵢ = inc(tᵢ₋₁, kᵢ) ∧ the step at i is T10a-admissible at tᵢ₋₁) ∧ k₁ ∈ {1, 2} ∧ (A i : 1 ≤ i ≤ n : #tᵢ > #h(a))))`
+`(A a ∈ dom(Σ.L) :: (E n ≥ 1, t₀, t₁, ..., tₙ, k₁, ..., kₙ :: t₀ = h(a) ∧ tₙ = a ∧ (A i : 1 ≤ i ≤ n : tᵢ = inc(tᵢ₋₁, kᵢ) ∧ kᵢ ∈ {0, 1, 2} ∧ (kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2)) ∧ k₁ ∈ {1, 2} ∧ (A i : 1 ≤ i ≤ n : #tᵢ > #h(a))))`
+
+The existential binds the spawning parameters `k₁, ..., kₙ` alongside the intermediate tumblers `t₀, ..., tₙ`: the chain identifies both the path and the specific T10a steps that traverse it. Each step is locally T10a-admissible: `kᵢ ∈ {0, 1, 2}` (the allowed T10a step types — `0` for sibling advance, `1` or `2` for child-spawn), and TA5a's side condition (ASN-0034) is discharged whenever `kᵢ = 2` by the explicit `zeros(tᵢ₋₁) ≤ 2` clause; for `kᵢ ∈ {0, 1}` TA5a is unconditional. Per-(t, k') uniqueness across distinct allocator events anywhere in the system is the GlobalUniqueness (ASN-0034) consequence of T10a-conformance, applied at the level of (input, k') pairs — it is a cross-chain global property of the allocator landscape, not a within-chain local constraint, so it does not appear inside the existential here.
 
 The seed `t₀` is `h(a)` itself — not an arbitrary tumbler that contains `h(a)` as a prefix; the first step is a child-spawn that lifts depth from `#h(a)` to `#h(a) + 1` (extending into the element field); every subsequent intermediate state has length strictly greater than `#h(a)`. This is the formal premise that licenses the chain-prefix-preservation argument under Home and Ownership below — combined with TA5(b) (input/output agree on positions `1..#t` whenever `k' ≥ 1`) and TA5(c) (sibling advance via `inc(·, 0)` preserves all positions but the rightmost), each step preserves positions `1..#h(a)` of its input, so by induction `a` itself agrees with `h(a)` on those positions.
 
@@ -283,7 +285,8 @@ We verify that `Σ'` is conforming:
 - *L14 (DualPrimitive).* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`. Disjointness holds since `a` is in subspace `s_L` and `dom(Σ'.C) ⊆ s_C`.
 - *L-fin (LinkStoreFiniteness).* `dom(Σ'.L) = dom(Σ.L) ∪ {a}`; since `dom(Σ.L)` is finite by L-fin on `Σ`, `dom(Σ'.L)` is finite.
 - *ASN-0036 invariants.* Content store is unchanged (`Σ'.C = Σ.C`); the arrangement store is unchanged (`Σ'.M = Σ.M`). We verify each:
-  - *S0 (ContentImmutability), S1, S2.* `Σ'.C = Σ.C` discharges all content-store invariants verbatim.
+  - *S0 (ContentImmutability), S1 (StoreMonotonicity).* `Σ'.C = Σ.C` discharges both content-store invariants verbatim.
+  - *S2 (ArrangementFunctionality).* `Σ'.M = Σ.M`, so every entry-by-entry functional condition on the arrangement family carries over from `Σ`. (S2 is an arrangement-store invariant, preserved by `Σ'.M = Σ.M` rather than by content-store equality.)
   - *S3 (ReferentialIntegrity).* Arrangement entries unchanged; S3 carries over from `Σ`.
   - *S7a (DocumentScopedAllocation).* Content addresses unchanged from `Σ`; S7a carries over.
   - *S7b (ElementLevelIAddresses).* Content addresses unchanged; S7b carries over.
@@ -326,7 +329,7 @@ A single span query rooted at `p` matches all and only subtypes of `p`. The excl
 
 `(A p₁, p₂ ∈ T :: p₁ ≼ p₂ ⟹ subtypes(p₂) ⊆ subtypes(p₁))`
 
-Let `c ∈ subtypes(p₂)`, so `p₂ ≼ c`; combined with `p₁ ≼ p₂`, transitivity of `≼` (PrefixRelation, ASN-0034) gives `p₁ ≼ c`, i.e., `c ∈ subtypes(p₁)`. A query rooted at a shallower type address therefore subsumes the matches of any query rooted at one of its descendants — the subtype intervals nest in the same direction as the prefix order they encode.
+Let `c ∈ subtypes(p₂)`, so `p₂ ≼ c`. We derive `p₁ ≼ c` inline from PrefixRelation's definition (ASN-0034): `p₁ ≼ p₂` means `#p₁ ≤ #p₂` and `(A j : 1 ≤ j ≤ #p₁ : p₂_j = p₁_j)`; `p₂ ≼ c` means `#p₂ ≤ #c` and `(A j : 1 ≤ j ≤ #p₂ : c_j = p₂_j)`. By transitivity of `≤` on naturals (NAT-order, ASN-0034), `#p₁ ≤ #c`. For positions `1 ≤ j ≤ #p₁`: since `#p₁ ≤ #p₂`, the range `1..#p₁` is contained in `1..#p₂`, so `c_j = p₂_j` (from the second agreement), and `p₂_j = p₁_j` (from the first), giving `c_j = p₁_j`. By PrefixRelation, `p₁ ≼ c`, i.e., `c ∈ subtypes(p₁)`. A query rooted at a shallower type address therefore subsumes the matches of any query rooted at one of its descendants — the subtype intervals nest in the same direction as the prefix order they encode.
 
 Gregory documents this in the bootstrap document's type registry: `MARGIN` at address `1.0.2.6.2` is hierarchically nested under `FOOTNOTE` at `1.0.2.6`. A query for all footnote-family links, expressed as a span query rooted at `1.0.2.6`, matches both types because `1.0.2.6.2` lies within `[1.0.2.6, 1.0.2.7)`. The subtyping mechanism is the tumbler ordering itself — no separate hierarchy data structure is needed.
 
@@ -390,6 +393,14 @@ Note what L12 does not address. Whether a link remains *discoverable* through in
 `[dom(Σ.L) ⊆ dom(Σ'.L)]`
 
 for every state transition `Σ → Σ'`. This is the direct corollary of L12, paralleling S1 (StoreMonotonicity) for the content store.
+
+**L12b — HomeDocumentPersistence.** The home documents of all existing links remain allocated across every state transition:
+
+`(A Σ, Σ' : Σ → Σ' :: {home(a) : a ∈ dom(Σ.L)} ⊆ dom(Σ'.M))`
+
+*Derivation.* Let `a ∈ dom(Σ.L)`. By L12a, `a ∈ dom(Σ'.L)`. Applying L1a (LinkScopedAllocation) to `Σ'`: `home(a) ∈ dom(Σ'.M)`. The inclusion `{home(a) : a ∈ dom(Σ.L)} ⊆ dom(Σ'.M)` follows by set-builder closure over `dom(Σ.L) ⊆ dom(Σ'.L)`.
+
+L12b is the joint consequence of L1a (applied at every reachable state) and L12 (which forces persistence of `dom(Σ.L)` across transitions): once a link exists, its home document cannot be removed from the arrangement store without violating L1a at the post-transition state. This is the link-side dual of S7a's persistence guarantee for content-bearing documents — the content store's L1a-analog at `Σ'`, lifted across L12a's monotonicity to constrain the arrangement store's evolution.
 
 
 ## Reflexive Addressing
@@ -619,6 +630,7 @@ The final state is `Σ_3` with `Σ_3.L = Σ_2.L ∪ {a₃ ↦ (F₃, G₃, Θ₃
 | L11b | LEMMA | NonInjectivity — every conforming state with a link can be extended to a non-injective conforming state | introduced |
 | L12 | INV | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
 | L12a | LEMMA | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
+| L12b | LEMMA | HomeDocumentPersistence — `{home(a) : a ∈ dom(Σ.L)} ⊆ dom(Σ'.M)` for every state transition; joint consequence of L1a (at `Σ'`) and L12a | introduced |
 | L13 | LEMMA | ReflexiveAddressing — link addresses are valid endset span targets; canonical span coverage by PrefixSpanCoverage | introduced |
 | L14 | INV | DualPrimitive — stored entities partition into content (`dom(Σ.C)`) and links (`dom(Σ.L)`) with no third category | introduced |
 | L14a | INV | NonTranscludability — `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∉ dom(Σ.L))`; independent of S3 formulation | introduced |
