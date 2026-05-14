@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from lib.backend.addressing import Address
@@ -29,12 +30,44 @@ from lib.shared.paths import WORKSPACE
 _MAX_DIFF_CHARS = 30000
 _LINKS_JSONL = "_docuverse/links.jsonl"
 
+# Retry config for git operations that race on `.git/index.lock` (common
+# under parallel runners). Total budget is the sum of (initial_delay *
+# 2**i) over the retry count, plus the cost of each git invocation.
+_GIT_LOCK_RETRY_COUNT = 6
+_GIT_LOCK_RETRY_INITIAL_DELAY = 0.25
+
 
 def _git(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["git", *args],
         capture_output=True, text=True, cwd=str(WORKSPACE),
     )
+
+
+def _git_with_lock_retry(*args: str) -> subprocess.CompletedProcess:
+    """Run a git command, retrying on `.git/index.lock` contention.
+
+    Multiple parallel runner processes can race on git's index lock
+    when their fires finish simultaneously. The losing process gets:
+        fatal: Unable to create '.git/index.lock': File exists
+    Retry with exponential backoff (capped at the configured count)
+    so transient contention doesn't drop a fire's commit.
+
+    Returns the final CompletedProcess (success, non-lock error, or
+    final attempt after retries exhausted).
+    """
+    delay = _GIT_LOCK_RETRY_INITIAL_DELAY
+    for attempt in range(_GIT_LOCK_RETRY_COUNT):
+        result = _git(*args)
+        if result.returncode == 0:
+            return result
+        stderr_lower = (result.stderr or "").lower()
+        if "index.lock" not in stderr_lower and "another git process" not in stderr_lower:
+            return result  # non-lock error; let caller see it
+        if attempt < _GIT_LOCK_RETRY_COUNT - 1:
+            time.sleep(delay)
+            delay *= 2
+    return result
 
 
 def _is_dirty() -> bool:
@@ -131,16 +164,19 @@ def _stage_dirty(paths=None) -> None:
     behavior; dirty under parallel runners). When the trigger declares
     `commit_paths`, the runner passes the per-fire content paths plus
     substrate metadata, and only those land in the commit.
+
+    Uses `_git_with_lock_retry` so concurrent runners don't lose
+    their stage on `.git/index.lock` contention.
     """
     if paths is None:
-        _git("add", "_docuverse/")
+        _git_with_lock_retry("add", "_docuverse/")
         return
     for p in paths:
         # Skip non-existent paths silently — a fire may not produce
         # every declared path on every invocation.
         from pathlib import Path
         if Path(p).exists():
-            _git("add", p)
+            _git_with_lock_retry("add", p)
 
 
 def _draft_message(trigger_name: str, addr: str) -> str:
@@ -242,7 +278,7 @@ def commit_after_fire(
             # paths we deliberately don't auto-add).
             return
         msg = _draft_message(trigger_name, addr)
-        commit = _git("commit", "-m", msg)
+        commit = _git_with_lock_retry("commit", "-m", msg)
         if commit.returncode != 0:
             print(
                 f"  [AUTO-COMMIT] commit failed: {commit.stderr.strip()[:200]}",
