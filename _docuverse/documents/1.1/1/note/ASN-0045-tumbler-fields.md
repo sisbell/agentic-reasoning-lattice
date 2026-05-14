@@ -32,7 +32,7 @@ T4c carries two postconditions on the T4-valid subdomain: *Exhaustion* (zeros(t)
 
 *At-least-one.* By T4c's Exhaustion, zeros(t) ∈ {0, 1, 2, 3}, so at least one of the four equalities zeros(t) = k holds, hence at least one of the four predicates holds at t.
 
-*At-most-one.* By T4c's Pairwise extensional disjointness, the four cases `zeros(t) = k` for distinct k cannot both hold. So no two of Node(t), Account(t), Document(t), Element(t) hold simultaneously.
+*At-most-one.* T4c's *Definition* slot supplies the biconditional `(zeros(t) = k ↔ Lₖ(t))` at T4-valid t for each k ∈ {0, 1, 2, 3}, where L₀, L₁, L₂, L₃ name the label predicates *node address*, *user address*, *document address*, *element address*. Combined with the *Binding* step, this gives `Pₖ(t) ⟺ Lₖ(t)` at T4-valid t, where P₀, P₁, P₂, P₃ are Node, Account, Document, Element. By T4c's *Pairwise extensional disjointness*, for distinct i, j ∈ {0, 1, 2, 3} the conjunction `Lᵢ(t) ∧ Lⱼ(t)` fails. Chaining biconditionals, `Pᵢ(t) ∧ Pⱼ(t) ⟹ Lᵢ(t) ∧ Lⱼ(t)` — contradiction. So no two of Node(t), Account(t), Document(t), Element(t) hold simultaneously.
 
 Combining the two yields the Partition postcondition:
 
@@ -78,20 +78,20 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 - *Depends.* T0, T4, T4c, NAT-closure (the constant 1).
 - *Postconditions.*
   - `(A t : T :: Account(t) ⟺ T4-valid(t) ∧ zeros(t) = 1)`.
-  - *Rename equivalence:* `(A t : T : T4-valid(t) :: Account(t) ⟺ t is a user address per T4c)`. ASN-0045's *account* and T4c's *user address* denote the same predicate on the T4-valid subdomain.
+  - *Rename equivalence:* `(A t : T : T4-valid(t) :: Account(t) ⟺ t is a user address per T4c)` — derived: fix t : T with T4-valid(t); the definition `Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1` collapses under the T4-valid antecedent to the biconditional `Account(t) ⟺ zeros(t) = 1`; T4c's *Definition* slot instantiated at t supplies `zeros(t) = 1 ⟺ t is a user address`; chaining the two biconditionals yields `Account(t) ⟺ t is a user address`. ASN-0045's *account* and T4c's *user address* denote the same predicate on the T4-valid subdomain.
 
 **Document** (`Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2`)
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4, T4c, NAT-closure (the constant 2).
+- *Depends.* T0, T4 (T4-valid; *Numerals* clause defining `2 := 1 + 1`), T4c, NAT-closure (`1 ∈ ℕ` and addition closure grounding T4's numeral definition in ℕ).
 - *Postcondition.* `(A t : T :: Document(t) ⟺ T4-valid(t) ∧ zeros(t) = 2)`.
 
 **Element** (`Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3`)
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4, T4c, NAT-closure (the constant 3).
+- *Depends.* T0, T4 (T4-valid; *Numerals* clause defining `3 := 2 + 1`), T4c, NAT-closure (`1 ∈ ℕ` and addition closure grounding T4's numeral definitions in ℕ).
 - *Postcondition.* `(A t : T :: Element(t) ⟺ T4-valid(t) ∧ zeros(t) = 3)`.
 
 **Partition**
