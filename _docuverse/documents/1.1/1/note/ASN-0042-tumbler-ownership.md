@@ -59,7 +59,7 @@ O1 is a definition: we define the ownership predicate `owns(π, a)` to be identi
 
 *Formal Contract:*
 - *Definition:* `owns(π, a) ≡ pfx(π) ≼ a`, where `≼` is the prefix relation defined by Prefix (PrefixRelation).
-- *Preconditions:* `π ∈ Π`, `a ∈ T`, `T4(pfx(π))`, `T4(a)`.
+- *Preconditions:* `π ∈ Π`, `a ∈ T`, `T4(pfx(π))`.
 - *Postconditions:* `owns(π, a)` is a total, decidable predicate on `Π × T`.
 
 
@@ -495,7 +495,7 @@ We check that O14's bootstrap clauses are satisfied: `Π₀ ≠ ∅`; each `pfx`
 - **O6**: `acct(a₄) = [1, 0, 2, 3]` and `pfx(ω(a₄)) = [1, 0, 2]`. The containment `pfx(ω(a₄)) ≼ acct(a₄)` holds but equality does not — the account field extends beyond the owner's prefix because `[1, 0, 2, 3]` has not been delegated. The provenance invariant holds: any address with `acct = [1, 0, 2, 3]` has effective owner `π_A`. ✓
 - **O5**: Only `π_A` may allocate within this sub-account — the most-specific covering principal. ✓
 
-If `π_A` subsequently delegates `[1, 0, 2, 3]` to `π_B`, then `ω(a₄)` refines to `π_B` and `pfx(π_B) = acct(a₄) = [1, 0, 2, 3]` — provenance sharpens to equality.
+O18 (DelegationBaptizes) makes the namespace baptism a permanent commitment: since `[1, 0, 2, 3] ∈ Σ.B`, no future delegation can use it as `pfx(π_B)` — delegated prefixes must be drawn from `Σ'.B ∖ Σ.B`. Namespace baptism and principal baptism are mutually exclusive futures for the same prefix, so provenance under `acct = [1, 0, 2, 3]` remains `π_A` forever; to delegate equivalent authority `π_A` must baptize a fresh sub-account (e.g., `[1, 0, 2, 4]`) as `pfx(π_B)`, and `a₄` continues to resolve to `π_A` because `[1, 0, 2, 3] ⋠ [1, 0, 2, 4]`.
 
 **Account-level permanence.** By condition (ii) of the delegation relation, only `π_A` (the most-specific covering principal for any prefix extending `[1, 0, 2]` in `Π_{Σ_1}`) can delegate sub-accounts extending `[1, 0, 2]`. The node operator `π_N` cannot introduce such a principal — `π_N`'s effective ownership of addresses under `[1, 0, 2]` was superseded when `π_A` was delegated. Addresses `a₁` and `a₂` will remain under `ω = π_A` unless `π_A` itself delegates a sub-account covering them. If `π_A` were to delegate sub-account `[1, 0, 2, 3]` to `π_B`, addresses extending `[1, 0, 2, 3, ...]` would have `ω = π_B` — but addresses `a₁ = [1, 0, 2, 0, ...]` and `a₂ = [1, 0, 2, 0, ...]` are not in `dom(π_B)` (the fourth component `0 ≠ 3`), so they remain under `π_A`. Nelson's "forevermore": sovereignty against external interference.
 
