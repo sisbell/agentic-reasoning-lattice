@@ -18,6 +18,12 @@ outer loop. Predicates handle ordering within the inner pass.
 Usage:
     python scripts/note-scheduler.py 40
     python scripts/note-scheduler.py 34 36 40 --max-outer 6
+    python scripts/note-scheduler.py --dag    # all active notes, topo-sorted
+
+`--dag` mode auto-discovers every active note (one whose body file
+exists under `_docuverse/.../note/`), queries substrate for
+note-to-note `citation.depends` edges, and walks the topological
+order so foundations process before their dependents.
 """
 
 from __future__ import annotations
@@ -66,6 +72,72 @@ def _parse_asn(raw: str) -> str:
     return format_label(int(digits))
 
 
+def _active_notes_topo_sorted() -> list[str]:
+    """Discover every active note (body file present) and return its
+    ASN label list in topological order — foundations before their
+    dependents per substrate `citation.depends` edges.
+
+    Notes with no edges land at the end (stable order). Notes whose
+    dependency target isn't itself active are treated as having no
+    dep on it.
+    """
+    from glob import glob
+    from lib.protocols.febe.session import open_session
+    from lib.shared.paths import LATTICE
+    from lib.backend.predicates import active_links
+
+    active: set[str] = set()
+    asn_pat = re.compile(r"(ASN-\d{4})")
+    for f in glob("_docuverse/documents/**/note/ASN-*.md", recursive=True):
+        if ".statements.md" in f or ".motif." in f:
+            continue
+        m = asn_pat.search(f)
+        if m:
+            active.add(m.group(1))
+
+    # Collect note→note edges via substrate citation.depends
+    edges: dict[str, set[str]] = {a: set() for a in active}
+    with open_session(LATTICE) as session:
+        state = session.store
+        for link in active_links(state, "citation.depends"):
+            from_asns: set[str] = set()
+            to_asns: set[str] = set()
+            for a in link.from_set:
+                p = state.path_for_addr(a)
+                if p:
+                    m = asn_pat.search(p)
+                    if m:
+                        from_asns.add(m.group(1))
+            for a in link.to_set:
+                p = state.path_for_addr(a)
+                if p:
+                    m = asn_pat.search(p)
+                    if m:
+                        to_asns.add(m.group(1))
+            for f in from_asns & active:
+                for t in to_asns & active:
+                    if f != t:
+                        edges[f].add(t)
+
+    # Kahn's algorithm — pop nodes with no remaining out-deps
+    sorted_list: list[str] = []
+    remaining = {a: set(edges[a]) for a in active}
+    while remaining:
+        # find nodes with no unresolved deps
+        ready = sorted(a for a, deps in remaining.items() if not deps)
+        if not ready:
+            # cycle (shouldn't happen with citation.depends); break by
+            # taking everything left in lexical order
+            ready = sorted(remaining.keys())
+        for a in ready:
+            sorted_list.append(a)
+            remaining.pop(a)
+        # remove resolved nodes from others' dep sets
+        for a in remaining:
+            remaining[a] -= set(ready)
+    return sorted_list
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="note-scheduler",
@@ -75,8 +147,16 @@ def main() -> int:
         ),
     )
     parser.add_argument(
-        "asns", nargs="+", metavar="ASN",
-        help="One or more ASN numbers (e.g., 34 36 40)",
+        "asns", nargs="*", metavar="ASN",
+        help="One or more ASN numbers (e.g., 34 36 40). Omit with --dag.",
+    )
+    parser.add_argument(
+        "--dag", action="store_true",
+        help=(
+            "Auto-discover every active note (body file present) and "
+            "process in topological order from substrate "
+            "citation.depends edges. Ignores positional ASN args."
+        ),
     )
     parser.add_argument(
         "--max-outer", type=int, default=20,
@@ -92,7 +172,16 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    asn_labels = [_parse_asn(a) for a in args.asns]
+    if args.dag:
+        asn_labels = _active_notes_topo_sorted()
+        if not asn_labels:
+            print("  [NOTE-SCHED] --dag: no active notes found",
+                  file=sys.stderr)
+            return 0
+    else:
+        if not args.asns:
+            parser.error("ASN(s) required, or use --dag")
+        asn_labels = [_parse_asn(a) for a in args.asns]
     triggers = _note_cycle_triggers()
 
     print(
