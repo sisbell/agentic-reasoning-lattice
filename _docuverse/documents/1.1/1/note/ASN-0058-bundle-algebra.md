@@ -93,7 +93,7 @@ M0 and M1 together characterize the mapping block: it is a *width-preserving mon
 
 *Proof of (b).* At `k = 0`, `a + 0 = a` by OrdinalShiftBase. For `k ≥ 1`, the precondition `a ∈ dom(C)` discharges ShiftPreservation's hypotheses (ASN-0036), and ShiftPreservation (iv) gives `subspace_I(shift(a, k)) = subspace_I(a)`. ∎
 
-The two clauses act in concert: a single mapping block (with `#v ≥ 2`) is confined to one V-subspace and (when its I-start resides in `dom(C)`) one I-subspace. When `β` participates in a decomposition of `M(d)`, B3 (Consistency) and S3 (ReferentialIntegrity, ASN-0036) place `a ∈ dom(C)`, so clause (b) applies unconditionally to decomposition members; clause (a) further requires `#v ≥ 2`, which holds for every V-position in `dom(M(d))` since S7b/S7c (ASN-0036) place those positions in element subspaces of depth ≥ 2.
+The two clauses act in concert: a single mapping block (with `#v ≥ 2`) is confined to one V-subspace and (when its I-start resides in `dom(C)`) one I-subspace. When `β` participates in a decomposition of `M(d)`, B3 (Consistency) and S3 (ReferentialIntegrity, ASN-0036) place `a ∈ dom(C)`, so clause (b) applies unconditionally to decomposition members; clause (a) further requires `#v ≥ 2`, which holds for every V-position in `dom(M(d))` by S8a (VPositionWellFormedness, ASN-0036).
 
 ## The Arrangement as a Set of Blocks
 
