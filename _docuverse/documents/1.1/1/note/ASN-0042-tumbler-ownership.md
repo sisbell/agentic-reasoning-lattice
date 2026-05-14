@@ -76,7 +76,7 @@ Sub-account allocation — creating documents, versions, elements — does not i
 
 **acct(a) (AccountField).**
 
-Define `acct(a)` for any valid tumbler `a`: when `zeros(a) = 0` (node-level), `acct(a) = a`; when `zeros(a) ≥ 1`, `acct(a)` is the tumbler whose components are `N(a)` followed by `[0]` followed by `U(a)` — using the foundation's field extraction functions (T6) — having `zeros(acct(a)) = 1`.
+Define `acct(a)` for any valid tumbler `a`: when `zeros(a) = 0` (node-level), `acct(a) = a`; when `zeros(a) ≥ 1`, `acct(a)` is the tumbler whose components are `N(a)` followed by `[0]` followed by `U(a)` — using the foundation's field projections defined by T4(b) (UniqueParse), and decidable by T6 (DecidableContainment) — having `zeros(acct(a)) = 1`. We adopt the local abbreviation `fields(a) ≡ (N(a), U(a), D(a), E(a))` for the tuple of T4(b)'s four partial projections (each component undefined when the corresponding field is absent), used as informal shorthand throughout this ASN whenever convenient.
 
 Gregory confirms the account-level boundary with unusual force. His `tumbleraccounteq` walks the mantissa of both tumblers in lockstep. For each non-zero component in the account tumbler, the document's component must match. For each zero, the counter advances. When the counter reaches two — the second zero — the function returns true unconditionally. Everything beyond the second zero is ignored. The implementation has no mechanism for finer-grained discrimination: `isthisusersdocument` (in all three build targets — `be.c`, `socketbe.c`, `xumain.c`) delegates directly to `tumbleraccounteq` with no intervening check. There is no per-document, per-version, or per-element authorization predicate anywhere in the codebase. The BERT system tracks per-document open/close state, but its authorization fallback is `isthisusersdocument` — account-level.
 
@@ -317,7 +317,7 @@ To see why the new principal's prefix must be *strictly* longer: if `#pfx(π') �
 
 We conclude: `ω_{Σ'}(a) ≠ ω_Σ(a)` implies `(E π' ∈ Π_{Σ'} ∖ Π_Σ : pfx(π') ≼ a ∧ #pfx(π') > #pfx(ω_Σ(a)))`. ∎
 
-*Corollary (monotonic refinement).* Since any new effective owner must have a strictly longer prefix than the one it displaces, `#pfx(ω_{Σ'}(a)) ≥ #pfx(ω_Σ(a))` in all transitions. Once a principal `π` becomes the effective owner through longest-match, only a *more specific* delegation can supersede it.
+*Corollary (monotonic refinement).* `#pfx(ω_{Σ'}(a)) ≥ #pfx(ω_Σ(a))` in all transitions. We split on whether the effective owner changes. *Case `ω_{Σ'}(a) = ω_Σ(a)`:* the same principal owns `a` in both states, and by O13 (PrefixImmutability) its prefix is unchanged, so `#pfx(ω_{Σ'}(a)) = #pfx(ω_Σ(a))`. *Case `ω_{Σ'}(a) ≠ ω_Σ(a)`:* by the proof body just established, the new effective owner has a strictly longer prefix, so `#pfx(ω_{Σ'}(a)) > #pfx(ω_Σ(a))`. Both cases yield `#pfx(ω_{Σ'}(a)) ≥ #pfx(ω_Σ(a))`. Once a principal `π` becomes the effective owner through longest-match, only a *more specific* delegation can supersede it.
 
 *Formal Contract:*
 - *Preconditions:* `a ∈ Σ.B`, `Σ → Σ'`, `ω_{Σ'}(a) ≠ ω_Σ(a)`.
@@ -502,7 +502,7 @@ Of the rights that ownership confers, one is essential to the ownership model it
 
 **O5 (SubdivisionAuthority).** Only the principal with the longest matching prefix may allocate new addresses within its domain:
 
-  `(A Σ, Σ', a, π : Σ → Σ' ∧ a ∈ Σ'.B ∖ Σ.B ∧ allocated_by_{Σ'}(π, a)  ⟹  pfx(π) ≼ a  ∧  (A π' ∈ Π_Σ : pfx(π') ≼ a ⟹ #pfx(π') ≤ #pfx(π)))`
+  `(A Σ, Σ', a, π : Σ → Σ' ∧ π ∈ Π_Σ ∧ a ∈ Σ'.B ∖ Σ.B ∧ allocated_by_{Σ'}(π, a)  ⟹  pfx(π) ≼ a  ∧  (A π' ∈ Π_Σ : pfx(π') ≼ a ⟹ #pfx(π') ≤ #pfx(π)))`
 
 This formulation avoids applying `ω` to the prefix itself (which may not yet be in `Σ.B`); instead it directly constrains the allocator to be the most-specific covering principal. Once `a` enters `Σ.B`, O2 gives `ω(a) = π` — the allocator becomes the effective owner of its own allocation.
 
@@ -559,7 +559,9 @@ We prove each postcondition under the hypothesis that `delegated_Σ(π, π')` ho
 
 Let `a ∈ dom(π') ∩ Σ'.B` be arbitrary. By the definition of domain, `pfx(π') ≼ a`, so `π'` covers `a`. We must show that `π'` achieves the strictly longest matching prefix among all principals in `Π_{Σ'}`.
 
-By O15 (PrincipalClosure), at most one new principal enters `Π` per transition, and `π'` is that principal by condition (iii). Therefore `Π_{Σ'} = Π_Σ ∪ {π'}`. Let `π'' ∈ Π_Σ` with `pfx(π'') ≼ a` be an arbitrary pre-existing covering principal. Since both `pfx(π'')` and `pfx(π')` are prefixes of `a`, they are comparable under `≼` — by the covering chain argument established in O2 (OwnershipExclusivity), any two prefixes of the same address are linearly ordered by the prefix relation. Three cases exhaust the comparison.
+By O15 (PrincipalClosure), at most one new principal enters `Π` per transition, and `π'` is that principal by condition (iii). Therefore `Π_{Σ'} = Π_Σ ∪ {π'}`. Let `π'' ∈ Π_Σ` with `pfx(π'') ≼ a` be an arbitrary pre-existing covering principal.
+
+*Covering-chain lemma (cited).* O2 (OwnershipExclusivity)'s proof — which derives from T5 (ContiguousSubtrees) — establishes that any two tumbler prefixes of the same address are linearly ordered by `≼`: given `p ≼ a` and `q ≼ a`, either `p ≼ q` or `q ≼ p`. (Both `p` and `q` agree with `a` on their leading components; whichever is shorter is a prefix of the other.) Applying this lemma to `pfx(π'')` and `pfx(π')` (both prefixes of `a`), they are `≼`-comparable. Three cases exhaust the comparison.
 
 *Case `pfx(π') ≺ pfx(π'')`* — then `π'' ∈ Π_Σ` has a prefix strictly extending `pfx(π')`, contradicting condition (vi) of the delegation relation: `¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))`.
 
@@ -678,7 +680,17 @@ We must establish that such an `a'` exists in every reachable state — that `π
 
 When `zeros(pfx(π)) = 1` (account-level principal): `π`'s prefix has the form `N.0.U`, spanning node and user fields. By O1a, every sub-delegate `π_i` of `π` also satisfies `zeros(pfx(π_i)) ≤ 1`. Since `pfx(π) ≺ pfx(π_i)`, the sub-delegate's prefix strictly extends `π`'s user field — it remains within the node-and-user-field region. Now consider document-level addresses within `dom(π)`: any address `a' = N.0.U.0.D.0.E` has `zeros(a') = 3`, and `pfx(π) ≼ a'`. For a sub-delegate `π_i` to cover `a'`, we would need `pfx(π_i) ≼ a'` with `zeros(pfx(π_i)) ≤ 1`. But `pfx(π_i)` is a proper extension of `pfx(π) = N.0.U` with at most one zero — it has the form `N.0.U.U'...` where all `U'...` are positive. The next component of `a'` after `U` is `0` (the user-document separator). The prefix relation requires `pfx(π_i)`'s next component to equal `0`, but that would give `zeros(pfx(π_i)) ≥ 2`, violating O1a. Hence no sub-delegate can cover any document-level address in `dom(π)`. Such addresses are always producible: from `pfx(π) = N.0.U`, apply `inc(pfx(π), 2)` to reach document level (appending `.0.1`, giving `N.0.U.0.1` with `zeros = 2`), then `inc(·, 2)` again to reach element level (appending `.0.1`, giving `N.0.U.0.1.0.1` with `zeros = 3`). By TA5(d), each `inc(·, k)` with `k > 0` extends the tumbler by `k` positions and produces a result strictly greater than its input.
 
-When `zeros(pfx(π)) = 0` (node-level principal): `π`'s prefix is entirely within the node field. Sub-delegates `π_i` with `pfx(π) ≺ pfx(π_i)` and `zeros(pfx(π_i)) = 0` extend the node field. Sub-delegates with `zeros(pfx(π_i)) = 1` have entered the user field. In either case, the set of sub-delegates is finite: it is a subset of `Π_Σ`, and by FiniteRegistry (derived from O14 + O15 above), `|Π_Σ| < ∞`. By T0a (UnboundedComponents), component values are unbounded. Collect the user-field components of all existing sub-delegate prefixes that have entered the user field (`zeros(pfx(π_i)) = 1`). If no such sub-delegates exist, choose any `u ≥ 1` — the condition is vacuously satisfied. Otherwise, choose `u` exceeding the maximum user-field component among all such prefixes — such a value exists because a finite set of natural numbers has a maximum (the collected components are drawn from finitely many sub-delegate prefixes, each contributing one user-field-position component), and T0a guarantees a tumbler with that component value exists. Then the address `a' = pfx(π).0.u.0.1.0.1` satisfies `pfx(π) ≼ a'`, and no sub-delegate's prefix is a prefix of `a'` (the fresh `u` avoids all existing sub-delegate prefixes). Hence `ω(a') = π`.
+When `zeros(pfx(π)) = 0` (node-level principal): `π`'s prefix is entirely within the node field. By O1a, every sub-delegate `π_i` of `π` (i.e., every `π_i ∈ Π_Σ` with `pfx(π) ≺ pfx(π_i)`) satisfies `zeros(pfx(π_i)) ≤ 1`. We construct the candidate address `a' = pfx(π).0.u.0.1.0.1` for a value `u ≥ 1` chosen below, and analyze sub-delegates by the form of their prefix immediately after `pfx(π)`.
+
+  - *Form A (`pfx(π).x.…`):* the component of `pfx(π_i)` at position `#pfx(π) + 1` is strictly positive — either because `pfx(π_i)` extends the node field (`zeros(pfx(π_i)) = 0`) or because the prefix proceeds further within the node field before reaching its single zero separator (`zeros(pfx(π_i)) = 1` with the separator strictly later). For any such Form A sub-delegate, the prefix relation `pfx(π_i) ≼ a'` would require `a'_{#pfx(π) + 1} = pfx(π_i)_{#pfx(π) + 1}`, but `a'_{#pfx(π) + 1} = 0` and `pfx(π_i)_{#pfx(π) + 1} > 0`. Hence Form A sub-delegates do not cover `a'`, regardless of `u`.
+
+  - *Form B (`pfx(π).0.Y`):* the component of `pfx(π_i)` at position `#pfx(π) + 1` is `0` — the user-field separator falls immediately after `pfx(π)`. By T4 and O1a (`zeros(pfx(π_i)) ≤ 1`), `pfx(π_i)` then continues with strictly positive user-field components, and its first user-field component sits at position `#pfx(π) + 2`. Denote this component `U^{(i)}_1 = pfx(π_i)_{#pfx(π) + 2}`. The prefix relation `pfx(π_i) ≼ a'` forces `u = U^{(i)}_1`. Hence Form B sub-delegate `π_i` covers `a'` iff `u = U^{(i)}_1`.
+
+The set of sub-delegates is finite: it is a subset of `Π_Σ`, and by FiniteRegistry (derived from O14 + O15 above), `|Π_Σ| < ∞`. Collect `S = { U^{(i)}_1 : π_i \text{ is a Form B sub-delegate} }` — the first user-field component immediately after the user-field separator at position `#pfx(π) + 1`, drawn from each Form B prefix. `S` is a finite set of strictly positive naturals.
+
+By T0a (UnboundedComponents), component values are unbounded, so `ℕ_{>0} ∖ S` is non-empty (`S` finite, `ℕ_{>0}` infinite). Choose any `u ∈ ℕ_{>0} ∖ S`; if `S = ∅`, choose any `u ≥ 1`. The earlier convention "exceeding the maximum of `S`" is *sufficient* but not *necessary* — any non-collision value works, including values smaller than `max(S)` provided they are not themselves elements of `S`.
+
+With `u` so chosen: `pfx(π) ≼ a'` (the first `#pfx(π)` components of `a'` reproduce `pfx(π)`), no Form A sub-delegate covers `a'` (failing at position `#pfx(π) + 1`), and no Form B sub-delegate covers `a'` (since `u ∉ S`, so `u ≠ U^{(i)}_1` for every Form B `π_i`, failing at position `#pfx(π) + 2`). Hence `π` itself is the longest matching prefix in `Π_Σ` for `a'`, and `ω(a') = π`.
 
 In both cases, `π` can always produce an address it effectively owns. The fork operation's postcondition `ω(a') = π` is satisfiable in every reachable state. ∎
 
