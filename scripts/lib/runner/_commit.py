@@ -118,16 +118,29 @@ def _is_noise_only_delta() -> bool:
     return True
 
 
-def _stage_dirty() -> None:
-    """Stage every modified + untracked file under `_docuverse/`.
+def _stage_dirty(paths=None) -> None:
+    """Stage every modified + untracked file under the given path(s).
 
     Strictly scoped to substrate citizens. No `git add -u` (which
     would sweep tracked changes anywhere in the repo). Anything
-    outside `_docuverse/` is the operator's responsibility — auto-
-    commit must not silently fold unrelated edits into a fire's
+    outside the explicit paths is the operator's responsibility —
+    auto-commit must not silently fold unrelated edits into a fire's
     commit.
+
+    `paths=None` (default) sweeps all of `_docuverse/` (legacy
+    behavior; dirty under parallel runners). When the trigger declares
+    `commit_paths`, the runner passes the per-fire content paths plus
+    substrate metadata, and only those land in the commit.
     """
-    _git("add", "_docuverse/")
+    if paths is None:
+        _git("add", "_docuverse/")
+        return
+    for p in paths:
+        # Skip non-existent paths silently — a fire may not produce
+        # every declared path on every invocation.
+        from pathlib import Path
+        if Path(p).exists():
+            _git("add", p)
 
 
 def _draft_message(trigger_name: str, addr: str) -> str:
@@ -192,8 +205,19 @@ def _draft_message(trigger_name: str, addr: str) -> str:
     return text
 
 
-def commit_after_fire(trigger_name: str, addr: str) -> None:
+def commit_after_fire(
+    trigger_name: str,
+    addr: str,
+    commit_paths=None,
+) -> None:
     """Stage + commit any working-tree changes from one agent fire.
+
+    `commit_paths` (optional list of repo-relative paths) restricts
+    staging to those paths plus substrate metadata. None means
+    sweep-all (legacy fallback). Substrate metadata
+    (`_docuverse/links.jsonl` + `_docuverse/paths.json`) is always
+    included when `commit_paths` is non-None — those are append-
+    only / snapshot files that need to commit alongside content.
 
     No-op when the tree is clean. Errors from git or the LLM call are
     swallowed with a stderr note; the runner continues. Stale dirt is
@@ -204,7 +228,15 @@ def commit_after_fire(trigger_name: str, addr: str) -> None:
             return
         if _is_noise_only_delta():
             return
-        _stage_dirty()
+        if commit_paths is not None:
+            # Always include substrate metadata alongside per-fire content.
+            staging_paths = list(commit_paths) + [
+                "_docuverse/links.jsonl",
+                "_docuverse/paths.json",
+            ]
+            _stage_dirty(staging_paths)
+        else:
+            _stage_dirty()
         if not _git("diff", "--cached", "--name-only").stdout.strip():
             # Nothing actually got staged (e.g., changes were under
             # paths we deliberately don't auto-add).

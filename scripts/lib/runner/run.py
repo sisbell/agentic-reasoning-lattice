@@ -119,7 +119,19 @@ def run_until_quiescent(
                     file=sys.stderr,
                 )
                 if auto_commit:
-                    commit_after_fire(trigger.name, str(addr))
+                    paths = None
+                    if trigger.commit_paths is not None:
+                        try:
+                            paths = trigger.commit_paths(session, addr)
+                        except Exception as exc:
+                            print(
+                                f"  [AUTO-COMMIT] commit_paths failed on "
+                                f"{trigger.name}/{addr}: {exc!r} — "
+                                f"falling back to sweep-all",
+                                file=sys.stderr,
+                            )
+                            paths = None
+                    commit_after_fire(trigger.name, str(addr), paths)
                 session = session_factory()
         if not fired_this_pass:
             return RunResult(
@@ -171,7 +183,19 @@ def run_force_pass(
                 file=sys.stderr,
             )
             if auto_commit:
-                commit_after_fire(trigger.name, str(addr))
+                paths = None
+                if trigger.commit_paths is not None:
+                    try:
+                        paths = trigger.commit_paths(session, addr)
+                    except Exception as exc:
+                        print(
+                            f"  [AUTO-COMMIT] commit_paths failed on "
+                            f"{trigger.name}/{addr}: {exc!r} — "
+                            f"falling back to sweep-all",
+                            file=sys.stderr,
+                        )
+                        paths = None
+                commit_after_fire(trigger.name, str(addr), paths)
             session = session_factory()
     return RunResult(
         quiescent=False, iterations=1, fires=fires, errors=errors,
