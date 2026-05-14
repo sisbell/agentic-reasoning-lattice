@@ -28,7 +28,8 @@ The mapping `pfx` is a primitive of the ownership model — it is posited, not d
 *Formal Contract:*
 - *Axiom:* `pfx : Π → T` is a total mapping assigning each principal its ownership prefix.
 - *Preconditions:* `π ∈ Π`.
-- *Postconditions:* (a) `pfx(π) ∈ T`. (b) `T4(pfx(π))` — the prefix is a valid tumbler satisfying FieldSeparatorConstraint. (c) Injectivity: stated separately as O1b. (d) Account-level boundary: stated separately as O1a.
+- *Postconditions:* (a) `pfx(π) ∈ T`. (b) `T4(pfx(π))` — the prefix is a valid tumbler satisfying FieldSeparatorConstraint.
+- *Related properties (stated separately):* injectivity is O1b; the account-level boundary (`zeros(pfx(π)) ≤ 1`) is O1a. These constrain `pfx` globally but are postconditions of those properties, not of the present axiom.
 
 **O1b (PrefixInjectivity).** `(A π₁, π₂ ∈ Π : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`
 
@@ -44,18 +45,18 @@ The decision procedure is prefix containment:
 
   `owns(π, a)  ≡  pfx(π) ≼ a`
 
-where `p ≼ a` denotes that `p` is a prefix of `a` in the sense of T5 — the components of `p` match the leading components of `a`.
+where `p ≼ a` denotes that `p` is a prefix of `a` in the sense of Prefix (PrefixRelation) — the components of `p` match the leading components of `a`. T5 (ContiguousSubtrees) is the structural property of the address space that `≼` partitions the space into contiguous subtrees; the relation itself is supplied by Prefix.
 
 O1 is a definition: we define the ownership predicate `owns(π, a)` to be identical with prefix containment `pfx(π) ≼ a`. We verify that the definition is well-formed and that it satisfies the decidability requirement O0.
 
-*Well-formedness.* The prefix relation `≼` is defined by T5: `p ≼ a ⟺ #a ≥ #p ∧ (A i : 1 ≤ i ≤ #p : pᵢ = aᵢ)`. For `owns(π, a)` to be well-defined, two conditions must hold. First, `pfx(π)` must be a valid tumbler — this holds by the definition of `pfx`, which requires every principal's prefix to satisfy T4 (FieldSeparatorConstraint). Second, the component-wise comparison must be determinate — by T3 (CanonicalRepresentation), each component `pᵢ` and `aᵢ` is a uniquely determined natural number, so equality at each position is decidable.
+*Well-formedness.* The prefix relation `≼` is defined by Prefix (PrefixRelation): `p ≼ a ⟺ #a ≥ #p ∧ (A i : 1 ≤ i ≤ #p : pᵢ = aᵢ)`. For `owns(π, a)` to be well-defined, two conditions must hold. First, `pfx(π)` must be a valid tumbler — this holds by the definition of `pfx`, which requires every principal's prefix to satisfy T4 (FieldSeparatorConstraint). Second, the component-wise comparison must be determinate — by T3 (CanonicalRepresentation), each component `pᵢ` and `aᵢ` is a uniquely determined natural number, so equality at each position is decidable.
 
 *Decidability.* The prefix check `pfx(π) ≼ a` requires one length comparison `#a ≥ #pfx(π)` followed by at most `#pfx(π)` component comparisons, each a comparison of natural numbers. The entire computation uses `pfx(π)` and `a` alone, consulting no mutable system state. This satisfies the design requirement O0 (StructuralOwnership): ownership is decidable from the prefix and the address without external state.
 
 *Design justification.* Nelson states that "numbers are owned by individuals or companies, and subnumbers under them are bestowed on other individuals and companies" (LM 4/17) — ownership is legible from the address itself. Gregory's `tumbleraccounteq` confirms the decision procedure: it walks the mantissa arrays of two tumblers in lockstep, comparing components. The definition `owns(π, a) ≡ pfx(π) ≼ a` formalizes this structural containment exactly. ∎
 
 *Formal Contract:*
-- *Definition:* `owns(π, a) ≡ pfx(π) ≼ a`, where `≼` is the prefix relation of T5.
+- *Definition:* `owns(π, a) ≡ pfx(π) ≼ a`, where `≼` is the prefix relation defined by Prefix (PrefixRelation).
 - *Preconditions:* `π ∈ Π`, `a ∈ T`, `T4(pfx(π))`, `T4(a)`.
 - *Postconditions:* `owns(π, a)` is a total, decidable predicate on `Π × T`.
 
@@ -229,38 +230,19 @@ In both cases, every address in `Σ'.B` is covered by a principal in `Π_{Σ'}`.
 - *Postconditions:* `(E π ∈ Π : pfx(π) ≼ a)`.
 - *Invariant:* Coverage holds in every reachable state — no allocated address is orphaned from the principal hierarchy.
 
-We resolve nesting by specificity:
+We resolve nesting by specificity. Before stating exclusivity we name the principal that wins the contest:
 
-**O2 (OwnershipExclusivity).** For every allocated address `a`, there exists exactly one principal that effectively owns `a`:
-
-  `(A a ∈ Σ.B : (E! π ∈ Π : ω(a) = π))`
-
-We prove that for every allocated address `a`, there exists exactly one principal satisfying `ω(a) = π`, where `ω(a)` denotes the principal with the longest matching prefix: `ω(a) = π ≡ pfx(π) ≼ a ∧ (A π' ∈ Π : π' ≠ π ∧ pfx(π') ≼ a ⟹ #pfx(π) > #pfx(π'))`. The proof decomposes into existence and uniqueness.
-
-*Existence.* Let `C(a) = {π ∈ Π : pfx(π) ≼ a}` denote the set of principals whose prefix covers `a`. By O4 (DomainCoverage), `C(a) ≠ ∅` for every `a ∈ Σ.B` — every allocated address falls within at least one principal's domain. We must show that `C(a)` admits a unique longest-prefix element.
-
-The prefixes of principals in `C(a)` are totally ordered by the prefix relation. Let `p₁ = pfx(π₁)` and `p₂ = pfx(π₂)` for arbitrary `π₁, π₂ ∈ C(a)`, and suppose without loss of generality that `#p₁ ≤ #p₂`. Since `p₁ ≼ a`, we have `(p₁)ᵢ = aᵢ` for all `i ≤ #p₁`. Since `p₂ ≼ a`, we have `(p₂)ᵢ = aᵢ` for all `i ≤ #p₂`. For each `i ≤ #p₁`, both equalities hold, yielding `(p₁)ᵢ = aᵢ = (p₂)ᵢ`. Since `p₁` agrees with `p₂` on all `#p₁` components and `#p₁ ≤ #p₂`, we have `p₁ ≼ p₂`. Therefore any two prefixes in `{pfx(π) : π ∈ C(a)}` are comparable under `≼` — the covering set is a chain.
-
-The set `C(a)` is finite: each covering prefix `p ≼ a` is uniquely determined by its length — it equals `[a₁, …, a_{#p}]` — and there are at most `#a` possible lengths, so `|C(a)| ≤ #a`.
-
-A non-empty finite totally ordered set has a maximum. Therefore there exists a unique maximal length `ℓ* = max{#pfx(π) : π ∈ C(a)}`, and exactly one prefix of that length covers `a` (since the covering prefix of length `ℓ*` is determined: it must be `[a₁, …, a_{ℓ*}]`). Hence there exists a principal `π* ∈ C(a)` with `#pfx(π*) = ℓ*` satisfying the definition of `ω(a)`.
-
-*Uniqueness.* Suppose for contradiction that two distinct principals `π₁ ≠ π₂` both satisfy `ω(a) = π₁` and `ω(a) = π₂`. Then both achieve the longest matching prefix: `#pfx(π₁) = #pfx(π₂) = ℓ*`. Since both prefixes cover `a` and share the same length, `pfx(π₁) = [a₁, …, a_{ℓ*}] = pfx(π₂)`. By O1b (PrefixInjectivity), `pfx(π₁) = pfx(π₂)` implies `π₁ = π₂`, contradicting the assumption of distinctness. Therefore `ω(a)` is unique.
-
-We conclude: for every `a ∈ Σ.B`, there exists exactly one `π ∈ Π` with `ω(a) = π`. ∎
-
-*Formal Contract:*
-- *Preconditions:* `a ∈ Σ.B`.
-- *Postconditions:* `(E! π ∈ Π : ω(a) = π)`.
-- *Invariant:* Exclusivity holds in every reachable state — `ω` is a total function on `Σ.B`.
-
-**ω(a) (EffectiveOwner).**
-
-where `ω(a)` — the *effective owner* — is the principal with the longest matching prefix:
+**ω(a) (EffectiveOwner).** The *effective owner* of an allocated address `a` is the principal with the longest matching prefix:
 
   `ω(a) = π  ≡  pfx(π) ≼ a  ∧  (A π' ∈ Π : π' ≠ π ∧ pfx(π') ≼ a : #pfx(π) > #pfx(π'))`
 
-We prove that `ω` is a well-defined total function on `Σ.B` — that is, for every allocated address `a`, there exists exactly one principal `π` satisfying the defining equivalence. The argument decomposes into four steps: non-emptiness of the covering set, total ordering of covering prefixes, finiteness, and uniqueness of the witnessing principal.
+This is a partial definition until we show that the right-hand side picks out exactly one principal in every reachable state. That is the content of O2.
+
+**O2 (OwnershipExclusivity).** For every allocated address `a`, there exists exactly one principal that effectively owns `a` — equivalently, `ω : Σ.B → Π` is a total well-defined function:
+
+  `(A a ∈ Σ.B : (E! π ∈ Π : ω(a) = π))`
+
+We prove that for every `a ∈ Σ.B` exactly one principal `π` satisfies the defining equivalence of `ω(a)`. The argument decomposes into four steps: non-emptiness of the covering set, total ordering of covering prefixes, finiteness, and uniqueness of the witnessing principal.
 
 *Step 1: Non-emptiness.* Let `a ∈ Σ.B` and define `C(a) = {π ∈ Π : pfx(π) ≼ a}`, the set of principals whose prefix covers `a`. By O4 (DomainCoverage), every allocated address falls within at least one principal's domain, so `C(a) ≠ ∅`.
 
@@ -270,13 +252,13 @@ We prove that `ω` is a well-defined total function on `Σ.B` — that is, for e
 
 *Step 4: Existence and uniqueness of the maximum.* A non-empty finite chain has a unique maximum. Therefore there exists a unique maximal length `ℓ* = max{#pfx(π) : π ∈ C(a)}`, and by Step 3 the covering prefix of length `ℓ*` is uniquely determined as `[a₁, …, a_{ℓ*}]`. It remains to show that exactly one principal holds this prefix. Suppose `π₁, π₂ ∈ C(a)` both satisfy `#pfx(π₁) = #pfx(π₂) = ℓ*`. By Step 3, `pfx(π₁) = [a₁, …, a_{ℓ*}] = pfx(π₂)`. By O1b (PrefixInjectivity), equal prefixes imply `π₁ = π₂`. Hence there is exactly one principal `π* ∈ C(a)` achieving the maximal prefix length, and `π*` satisfies the defining equivalence: `pfx(π*) ≼ a` and for every `π' ≠ π*` with `pfx(π') ≼ a`, `#pfx(π*) > #pfx(π')`.
 
-We conclude: for every `a ∈ Σ.B`, there exists exactly one `π ∈ Π` with `ω(a) = π`. The function `ω : Σ.B → Π` is total and well-defined in every reachable state. ∎
+We conclude: for every `a ∈ Σ.B`, there exists exactly one `π ∈ Π` with `ω(a) = π`. Equivalently, `ω : Σ.B → Π` is a total well-defined function in every reachable state. ∎
 
 *Formal Contract:*
 - *Definition:* `ω(a) = π ≡ pfx(π) ≼ a ∧ (A π' ∈ Π : π' ≠ π ∧ pfx(π') ≼ a ⟹ #pfx(π) > #pfx(π'))`.
 - *Preconditions:* `a ∈ Σ.B`.
 - *Postconditions:* `(E! π ∈ Π : ω(a) = π)` — exactly one principal satisfies the defining equivalence.
-- *Invariant:* `ω` is a total function on `Σ.B` in every reachable state.
+- *Invariant:* `ω` is a total well-defined function on `Σ.B` in every reachable state.
 
 The exclusivity of ownership is load-bearing. If two parties owned the same address, the system could not determine who is entitled to subdivide the space beneath it (O5 below), who originated the content (O6 below), or whose delegation created the address. Every downstream property depends on O2.
 
@@ -315,7 +297,9 @@ Now suppose `ω_{Σ'}(a) ≠ ω_Σ(a)`. Since `ω_Σ(a)` is still present in `Π
 
 To see why the new principal's prefix must be *strictly* longer: if `#pfx(π') ≤ #pfx(ω_Σ(a))`, then `ω_Σ(a)` would still be the longest (or tied-longest) match. But ties cannot occur — by O1b (PrefixInjectivity), distinct principals have distinct prefixes, and two distinct prefixes of the same length that both cover `a` would agree on all their components (each matching the corresponding component of `a`) and hence be equal, contradicting distinctness. So a new covering principal can only displace `ω_Σ(a)` by being strictly longer.
 
-We conclude: `ω_{Σ'}(a) ≠ ω_Σ(a)` implies `(E π' ∈ Π_{Σ'} ∖ Π_Σ : pfx(π') ≼ a ∧ #pfx(π') > #pfx(ω_Σ(a)))`. ∎
+By O15 (PrincipalClosure), `π' ∈ Π_{Σ'} ∖ Π_Σ` arrived through bootstrap or through delegation. Iterated O12 (PrincipalPersistence) gives `Π₀ ⊆ Π_Σ`; combined with `π' ∉ Π_Σ`, the bootstrap case is excluded. Hence `π'` was delegated by some `π_d ∈ Π_Σ` — every change to `ω(a)` is attributable to a delegation act in the transition `Σ → Σ'`.
+
+We conclude: `ω_{Σ'}(a) ≠ ω_Σ(a)` implies `(E π' ∈ Π_{Σ'} ∖ Π_Σ : pfx(π') ≼ a ∧ #pfx(π') > #pfx(ω_Σ(a)))`, and that `π'` arrived via delegation rather than bootstrap. ∎
 
 *Corollary (monotonic refinement).* `#pfx(ω_{Σ'}(a)) ≥ #pfx(ω_Σ(a))` in all transitions. We split on whether the effective owner changes. *Case `ω_{Σ'}(a) = ω_Σ(a)`:* the same principal owns `a` in both states, and by O13 (PrefixImmutability) its prefix is unchanged, so `#pfx(ω_{Σ'}(a)) = #pfx(ω_Σ(a))`. *Case `ω_{Σ'}(a) ≠ ω_Σ(a)`:* by the proof body just established, the new effective owner has a strictly longer prefix, so `#pfx(ω_{Σ'}(a)) > #pfx(ω_Σ(a))`. Both cases yield `#pfx(ω_{Σ'}(a)) ≥ #pfx(ω_Σ(a))`. Once a principal `π` becomes the effective owner through longest-match, only a *more specific* delegation can supersede it.
 
@@ -352,7 +336,7 @@ We prove this by induction on the path length `n`. *Base case `n = 1`:* The hypo
 
 *Inductive step.* Assume the corollary holds for sequences of length `n`; consider a sequence of length `n + 1`: `Σ → Σ_1 → ... → Σ_n → Σ_{n+1}`. By the induction hypothesis applied to the prefix `Σ →⁺ Σ_n`, the chain conclusion holds for every transition with index `0 ≤ i < n` along that prefix. It remains to handle the final transition `Σ_n → Σ_{n+1}`. The single-transition AccountLevelPermanence applies provided `a ∈ dom(π) ∩ Σ_n.B` — we discharge this premise from the original hypotheses. The persistence of `a` follows from T8 (AllocationPermanence): `a ∈ Σ.B ⊆ Σ_n.B` since allocation is monotone. The persistence of `π ∈ Π_{Σ_n}` follows from iterated O12: `Π_Σ ⊆ Π_{Σ_1} ⊆ ... ⊆ Π_{Σ_n}`, so `π ∈ Π_{Σ_n}`. The persistence of `a ∈ dom(π)` is structural — `dom(π) = {a : pfx(π) ≼ a}` depends only on `pfx(π)` and `a`, both of which are immutable (O13, T8). With premises discharged, the single-transition statement yields the required `π_d^{(n)}` with `pfx(π) ≼ pfx(π_d^{(n)})` whenever `ω_{Σ_{n+1}}(a) ≠ ω_{Σ_n}(a)`. Combined with the inductive conclusion for the earlier transitions, the chain conclusion holds for all `0 ≤ i ≤ n`. ∎
 
-The corollary's content: every delegator that participates in a chain of changes to `ω(a)` within `dom(π)` has a prefix extending `pfx(π)`. No delegator outside `dom(π)` can induce a change. Tracing the delegator chain backward by O15: `π_d^{(i)} ∈ Π_{Σ_i}` either entered through bootstrap (`π_d^{(i)} ∈ Π₀`) or was itself the delegate of some earlier `π_d^{(j)}` with `j < i`. By pairwise non-nesting of `Π₀` (O14's sixth clause): no bootstrap principal's prefix is a prefix of another's; since `pfx(π) ≼ pfx(π_d^{(i)})` holds and bootstrap principals are pairwise non-nesting, the bootstrap ancestor of `π_d^{(i)}` must be `π` itself (if `π ∈ Π₀`) or, by induction on the bootstrap distance, a bootstrap ancestor of `π` (if `π` arrived through delegation). The chain of delegators inducing changes within `dom(π)` is therefore rooted at `π` — Nelson's "forevermore" in its multi-step form.
+The corollary's content: every delegator that participates in a chain of changes to `ω(a)` within `dom(π)` has a prefix extending `pfx(π)`. No delegator outside `dom(π)` can induce a change. We can sharpen this for the immediate delegator of any one transition. Suppose `π_d^{(i)}` arrived through delegation; then by condition (i) of the `delegated` relation applied at the transition that introduced `π_d^{(i)}`, its parent's prefix is a strict prefix of `pfx(π_d^{(i)})`. Iterating this — each delegator in the chain must itself satisfy `pfx(π) ≼ pfx(·)` if it participates in a `dom(π)`-internal change — gives a sequence of prefixes all extending `pfx(π)`. Walking the sequence backward terminates at the first delegator whose parent does *not* extend `pfx(π)`; by the argument above (each subsequent delegator extends `pfx(π)`), the only way for the chain to start consistently is for `π` itself to be the first delegator (when `π ∈ Π₀` or when `π` was delegated by a non-`dom(π)` principal — which it always is, since `π`'s own delegator is by condition (i) external to `dom(π)`). Hence the first delegator in any chain of `dom(π)`-internal changes is `π` — Nelson's "forevermore" in its multi-step form: the chain of delegators inducing changes inside `dom(π)` always begins with `π`'s own act.
 
 Nelson confirms: "User 3 controls allocation of children directly under 3. User 3.2 controls everything under 3.2. User 3 cannot modify User 3.2's documents" (consultation, LM 4/20, 4/29, 2/29). The parent controls baptism; the child controls content. Changes to `ω` within `dom(π)` arise only from `π`'s own delegation choices, or recursively from sub-delegates' choices within their own sub-domains. This is Nelson's "forevermore": not that `ω` is static within `dom(π)`, but that no external act can alter it. The addresses `π` has not sub-delegated remain permanently under `π`'s effective ownership.
 
@@ -403,6 +387,8 @@ We check that O14's bootstrap clauses are satisfied: `Π₀ ≠ ∅`; each `pfx`
 
 - **O5**: `pfx(π_A) = [1, 0, 2] ≼ a₂` and `π_A` has the longest matching prefix — the allocator is the most-specific covering principal. ✓
 - **O6**: `acct(a₂) = [1, 0, 2] = pfx(π_A)` — the account field directly names the effective owner (equality case). ✓
+
+**Self-ownership at the prefix.** Suppose now that the principal's prefix itself is an allocated address — for instance, `[1, 0, 2] ∈ Σ.B`, perhaps allocated as `π_A`'s account-root index entry by `π_A` immediately upon delegation. We check `ω` at the boundary `a₆ = pfx(π_A) = [1, 0, 2]`. The covering set is `C(a₆) = {π ∈ Π_{Σ} : pfx(π) ≼ [1, 0, 2]}`. Candidates: `π_N` (prefix `[1]`, `[1] ≼ [1, 0, 2]` since the first component matches and `#[1] ≤ #[1, 0, 2]`), `π_M` (prefix `[2]`, fails: `2 ≠ 1`), `π_A` (prefix `[1, 0, 2]`, `[1, 0, 2] ≼ [1, 0, 2]` reflexively — every component matches and lengths are equal). So `C(a₆) = {π_N, π_A}` with prefix lengths `1` and `3`. The longest match is `π_A`, hence `ω(a₆) = π_A`. The principal owns its own prefix. The general fact: whenever `pfx(π) ∈ Σ.B`, we have `ω(pfx(π)) = π` — the address that names the namespace root is owned by the principal that holds the namespace. The argument is structural: `pfx(π) ≼ pfx(π)` reflexively, so `π ∈ C(pfx(π))`; any other covering principal `π''` has `pfx(π'') ≼ pfx(π)` with `pfx(π'') ≠ pfx(π)` (by O1b, since `π'' ≠ π`), forcing `#pfx(π'') < #pfx(π)`, so `π` achieves the strict longest match. The boundary case verifies as expected.
 
 **Sub-account namespace.** Now suppose `π_A` creates sub-account position `[1, 0, 2, 3]` as an organizational namespace — not delegated to a new principal. `Π` remains `{π_N, π_A}`. Address `a₄ = [1, 0, 2, 3, 0, 1, 0, 1]` is a document element under this sub-account. We verify:
 
@@ -569,7 +555,7 @@ Let `a ∈ dom(π') ∩ Σ'.B` be arbitrary. By the definition of domain, `pfx(�
 
 By O15 (PrincipalClosure), at most one new principal enters `Π` per transition, and `π'` is that principal by condition (iii). Therefore `Π_{Σ'} = Π_Σ ∪ {π'}`. Let `π'' ∈ Π_Σ` with `pfx(π'') ≼ a` be an arbitrary pre-existing covering principal.
 
-*Covering-chain lemma (cited).* O2 (OwnershipExclusivity)'s proof — which derives from T5 (ContiguousSubtrees) — establishes that any two tumbler prefixes of the same address are linearly ordered by `≼`: given `p ≼ a` and `q ≼ a`, either `p ≼ q` or `q ≼ p`. (Both `p` and `q` agree with `a` on their leading components; whichever is shorter is a prefix of the other.) Applying this lemma to `pfx(π'')` and `pfx(π')` (both prefixes of `a`), they are `≼`-comparable. Three cases exhaust the comparison.
+*Covering-chain lemma (cited).* O2 (OwnershipExclusivity)'s proof — which uses the Prefix (PrefixRelation) definition together with T5 (ContiguousSubtrees) — establishes that any two tumbler prefixes of the same address are linearly ordered by `≼`: given `p ≼ a` and `q ≼ a`, either `p ≼ q` or `q ≼ p`. (Both `p` and `q` agree with `a` on their leading components; whichever is shorter is a prefix of the other.) Applying this lemma to `pfx(π'')` and `pfx(π')` (both prefixes of `a`), they are `≼`-comparable. Three cases exhaust the comparison.
 
 *Case `pfx(π') ≺ pfx(π'')`* — then `π'' ∈ Π_Σ` has a prefix strictly extending `pfx(π')`, contradicting condition (vi) of the delegation relation: `¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))`.
 
@@ -700,12 +686,12 @@ By T0a (UnboundedComponents), component values are unbounded, so `ℕ_{>0} ∖ S
 
 With `u` so chosen: `pfx(π) ≼ a'` (the first `#pfx(π)` components of `a'` reproduce `pfx(π)`), no Form A sub-delegate covers `a'` (failing at position `#pfx(π) + 1`), and no Form B sub-delegate covers `a'` (since `u ∉ S`, so `u ≠ U^{(i)}_1` for every Form B `π_i`, failing at position `#pfx(π) + 2`). Hence `π` itself is the longest matching prefix in `Π_Σ` for `a'`, and `ω(a') = π`.
 
-In both cases, `π` can always produce an address it effectively owns. The fork operation's postcondition `ω(a') = π` is satisfiable in every reachable state. ∎
+In both cases, `π` can always produce an address it effectively owns. We make the baptism trajectory explicit, since the constructed `a'` extends `pfx(π)` by several components and a single baptism step extends a tumbler by one component. Let `b₀ = pfx(π)` and let `b₀ ⊏ b₁ ⊏ ... ⊏ b_k = a'` be the strictly-increasing chain of prefixes from `pfx(π)` to `a'` in which each `b_{j+1}` extends `b_j` by a single component (so `k` equals `#a' - #pfx(π)`, which is `6` for the `zeros(pfx(π)) = 0` construction and `4` for the `zeros(pfx(π)) = 1` construction). At each step `Σ_j → Σ_{j+1}` the intermediate target `b_{j+1}` lies within `dom(π)` (since `pfx(π) = b₀ ≼ b_{j+1}`) and is not covered by any sub-delegate of `π`: by the same arguments used above to show that no sub-delegate covers `a'` (the Form-A/Form-B analysis for the node-level case, the `zeros ≥ 2` user/document boundary for the account-level case), no sub-delegate covers any extension of `pfx(π)` along this chain, because each `b_{j+1}` either preserves a node-field component that no Form-A sub-delegate matches at the relevant position, or contains a zero separator at a position that violates O1a for any sub-delegate prefix terminating there. Hence at each step `π` is the most-specific covering principal for `b_{j+1}` in `Π_{Σ_j}`, and by O5 (SubdivisionAuthority) `π` has authority to baptize `b_{j+1}`. The chain composes into a multi-step transition `Σ →⁺ Σ_k` with `a' = b_k ∈ Σ_k.B`. The fork operation's postcondition `ω(a') = π` is satisfiable in every reachable state via this multi-step trajectory. ∎
 
 *Formal Contract:*
 - *Preconditions:* `π ∈ Π_Σ`, `a ∈ Σ.B`, `ω(a) ≠ π`.
-- *Postconditions:* `(E Σ', a' : Σ → Σ' ∧ a' ∈ dom(π) ∩ Σ'.B ∧ ω_{Σ'}(a') = π ∧ a ∈ Σ'.B)` — there exists a successor state `Σ'` and a new address `a' ∈ dom(π)` baptized in the transition `Σ → Σ'` such that `a'` is effectively owned by `π` in `Σ'`, and the original address `a` remains allocated and unmodified in `Σ'`. The body's construction (the `u`-selection argument for `zeros(pfx(π)) = 0` and the immediate document-level construction for `zeros(pfx(π)) = 1`) exhibits an `a'` in `dom(π)` not covered by any sub-delegate, so `π` is the most-specific covering principal for `a'` in `Π_Σ`; O5 (SubdivisionAuthority) supplies `π`'s right to baptize `a'`, and the resulting transition produces the witnessing `Σ'`.
-- *Invariant:* In every reachable state, every principal can produce an address it effectively owns — the fork postcondition is universally satisfiable.
+- *Postconditions:* `(E Σ', a' : Σ →⁺ Σ' ∧ a' ∈ dom(π) ∩ Σ'.B ∧ ω_{Σ'}(a') = π ∧ a ∈ Σ'.B)` — there exists a reachable successor state `Σ'` (reached through a finite sequence of baptism steps from `Σ`) and a new address `a' ∈ dom(π)` such that `a'` is effectively owned by `π` in `Σ'`, and the original address `a` remains allocated and unmodified throughout the sequence. The body's construction (the `u`-selection argument for `zeros(pfx(π)) = 0` and the immediate document-level construction for `zeros(pfx(π)) = 1`) exhibits a chain `b₀ = pfx(π) ⊏ b₁ ⊏ ... ⊏ b_k = a'` along which each step's target lies in `dom(π)` and is not covered by any sub-delegate; O5 (SubdivisionAuthority) supplies `π`'s right to baptize each `b_{j+1}` in turn, yielding the witnessing trajectory `Σ →⁺ Σ'`.
+- *Invariant:* In every reachable state, every principal can produce an address it effectively owns — the fork postcondition is universally satisfiable up to a finite sequence of baptisms.
 
 O10 transforms the ownership boundary from a wall into a fork point. The only "permission" concept the system needs is prefix containment. Everything else — collaboration, annotation, criticism, derivation — is handled by creating new owned addresses and establishing relationships between them. The conventional permission hierarchy (users, groups, roles, ACLs) is replaced by a single structural predicate and an unbounded supply of fresh addresses.
 
@@ -751,7 +737,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | Label | Statement | Status |
 |-------|-----------|--------|
 | O0 | Ownership of `a` by `π` is decidable from `pfx(π)` and `a` alone, without mutable state | design requirement |
-| O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment | from T4, T5 |
+| O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment | definition |
 | O1a | `(A π ∈ Π : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | design requirement |
 | O1b | `pfx` is injective — distinct principals have distinct prefixes | design requirement |
 | O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | from O4, O1b |
