@@ -13,11 +13,13 @@ from __future__ import annotations
 
 from lib.agents.producers.inquiry_consult import InquiryConsultAgent
 from lib.backend.addressing import Address
+from lib.lattice.labels import label_pattern
 from lib.predicates import (
     has_consultation_for_inquiry, has_note_for_inquiry,
 )
 from lib.protocols.febe.protocol import Session
 from lib.runner import Trigger
+from lib.shared.paths import CONSULTATIONS_DIR, WORKSPACE
 from lib.triggers.scope import per_inquiry_of_asn
 
 
@@ -34,9 +36,21 @@ def _predicate(session: Session, addr: Address) -> bool:
     )
 
 
+def _commit_paths(session: Session, inquiry_addr: Address) -> list[str]:
+    """Consultation subtree for the inquiry's ASN."""
+    path = session.get_path_for_addr(inquiry_addr)
+    if not path:
+        return []
+    m = label_pattern().search(path)
+    if not m:
+        return []
+    return [str((CONSULTATIONS_DIR / m.group(0)).relative_to(WORKSPACE))]
+
+
 inquiry_consult = Trigger(
     name="inquiry-consult",
     scope_query=per_inquiry_of_asn,
     predicate=_predicate,
     agent=InquiryConsultAgent(),
+    commit_paths=_commit_paths,
 )
