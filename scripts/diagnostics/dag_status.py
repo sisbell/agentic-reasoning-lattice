@@ -10,10 +10,12 @@ of the scheduler will do without actually running it.
 
 Usage:
     python scripts/diagnostics/dag_status.py
+    python scripts/diagnostics/dag_status.py --workers 4   # show partition preview
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from glob import glob
@@ -120,8 +122,45 @@ def _note_addr_for(session, asn: str):
     return None
 
 
+def _print_partitions(order: list[str], states: dict[str, str], n_workers: int) -> None:
+    """Show how the topo-sorted ASN list would split across N workers
+    using a round-robin partition. Round-robin spreads workload across
+    workers regardless of pending/quiescent imbalance — the foundation
+    is in worker 0, layer-1 spread across workers, etc.
+
+    Per-partition: list ASNs in topo order with state summary.
+    """
+    if n_workers <= 0:
+        return
+    print()
+    print(f"  Partition preview ({n_workers} workers, round-robin):")
+    print()
+    for w in range(n_workers):
+        partition = [order[i] for i in range(w, len(order), n_workers)]
+        if not partition:
+            continue
+        pending = sum(1 for a in partition if states.get(a) == "pending")
+        quiescent = sum(1 for a in partition if states.get(a) == "quiescent")
+        asn_str = ", ".join(a.replace("ASN-", "") for a in partition)
+        print(f"    worker {w}: {len(partition)} ASNs "
+              f"({pending} pending, {quiescent} quiescent)")
+        print(f"      {asn_str}")
+        print()
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="DAG status diagnostic — walk order, state, partition preview.",
+    )
+    parser.add_argument(
+        "--workers", type=int, default=0,
+        help="Show how the topo-sorted ASN list would split across N workers "
+             "(round-robin). 0 (default) skips partition preview.",
+    )
+    args = parser.parse_args()
+
     triggers = _note_triggers()
+    states: dict[str, str] = {}
     with open_session(LATTICE) as session:
         order, deps_map = _topo_sorted(session)
         print(f"{'#':<4}{'ASN':<10}{'deps':<32}{'state':<14}  next-trigger(s)")
@@ -151,10 +190,15 @@ def main() -> int:
                     state_label = "pending"
                     next_trigger = ", ".join(fires)
 
+            states[asn] = state_label
             print(f"{i:<4}{asn:<10}{dep_str:<32}{state_label:<14}  {next_trigger}")
 
     print()
     print(f"  {len(order)} active notes in DAG walk order.")
+
+    if args.workers > 0:
+        _print_partitions(order, states, args.workers)
+
     return 0
 
 
