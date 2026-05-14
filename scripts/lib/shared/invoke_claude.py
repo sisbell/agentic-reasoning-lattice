@@ -217,7 +217,15 @@ def _next_config_dir():
         for _ in range(len(dirs) * 2):
             candidate = next(_rotation_cycle)
             if candidate in available:
+                print(
+                    f"  [ROTATE] config_dir={os.path.basename(candidate)}",
+                    file=sys.stderr,
+                )
                 return candidate
+    print(
+        f"  [ROTATE] config_dir={os.path.basename(available[0])} (fallback)",
+        file=sys.stderr,
+    )
     return available[0]
 
 
