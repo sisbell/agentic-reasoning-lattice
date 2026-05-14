@@ -27,7 +27,10 @@ This Store is intentionally simpler than the legacy:
 
 from __future__ import annotations
 
+import fcntl
 import json
+import os
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
@@ -36,6 +39,30 @@ from .addressing import Address
 from .links import Link
 from .persist import load_jsonl
 from .state import State, TypeArg
+
+
+_REGISTER_PATH_LOCK_FILE = ".register_path.lock"
+
+
+@contextmanager
+def _register_path_lock(docuverse_dir: Path):
+    """Cross-process file lock for register_path's allocate-and-persist
+    sequence. Prevents two processes on the same machine from allocating
+    the same address while concurrently writing paths.json.
+
+    Blocks until the lock is acquired. The lock file lives in the
+    docuverse dir (the same dir that contains paths.json + links.jsonl)
+    so the lock is scoped to the substrate it protects.
+    """
+    docuverse_dir.mkdir(parents=True, exist_ok=True)
+    lock_path = docuverse_dir / _REGISTER_PATH_LOCK_FILE
+    fd = os.open(str(lock_path), os.O_RDWR | os.O_CREAT, 0o644)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
 
 
 def _utcnow_unix() -> int:
@@ -179,26 +206,94 @@ class Store:
         membership in this lattice.
 
         Callers should pass lattice-relative paths.
+
+        Cross-process safety: the allocate-and-persist sequence runs
+        under a file lock (`.register_path.lock` in the docuverse
+        dir). Before allocating, re-reads paths.json from disk to
+        pick up any allocations another process committed while this
+        process was waiting. Prevents two concurrent runners from
+        allocating the same address.
         """
         if path in self.path_to_addr:
             return self.path_to_addr[path]
-        # Allocate doc address without auto-emitting any classifier
-        addr = self.state._emit(self.state.doc_allocator)
-        self.state.parent[addr] = None
-        self.state.kind[addr] = "doc"
-        self.state.content[addr] = ""
-        self.path_to_addr[path] = addr
-        self.addr_to_path[addr] = path
-        self._persist_paths()
-        # Emit lattice membership through Store.make_link so it lands
-        # in the JSONL.
-        self.make_link(
-            homedoc=addr,
-            from_set=[addr],
-            to_set=[self.lattice_doc],
-            type_="lattice",
-        )
-        return addr
+        with _register_path_lock(self.docuverse):
+            # Another process may have allocated this path or other
+            # paths while we were waiting for the lock. Refresh.
+            self._refresh_path_map_from_disk()
+            if path in self.path_to_addr:
+                return self.path_to_addr[path]
+            # Allocate doc address without auto-emitting any classifier
+            addr = self.state._emit(self.state.doc_allocator)
+            self.state.parent[addr] = None
+            self.state.kind[addr] = "doc"
+            self.state.content[addr] = ""
+            self.path_to_addr[path] = addr
+            self.addr_to_path[addr] = path
+            self._persist_paths()
+            # Emit lattice membership through Store.make_link so it lands
+            # in the JSONL.
+            self.make_link(
+                homedoc=addr,
+                from_set=[addr],
+                to_set=[self.lattice_doc],
+                type_="lattice",
+            )
+            return addr
+
+    def _refresh_path_map_from_disk(self) -> None:
+        """Re-read paths.json and absorb any new path→addr mappings.
+
+        Called inside `register_path`'s lock to pick up other
+        processes' allocations. Advances the doc_allocator's cursor
+        past any new addresses we discover under the active account's
+        subspace, so the next allocation doesn't collide.
+
+        Existing in-memory mappings are preserved (we only ADD;
+        nothing is removed). New addresses get a minimal owner
+        registration so subsequent operations (make_link, etc.) can
+        find them.
+        """
+        try:
+            with open(self.paths_path) as f:
+                paths_data = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            return
+        on_disk = paths_data.get("paths") or {}
+        active_base_len = len(self.state.doc_allocator.base.digits)
+        account_prefix = self.state.doc_allocator.base.digits[:-1]
+        max_position = self.state.doc_allocator._cursor.digits[-1] if hasattr(
+            self.state.doc_allocator, "_cursor"
+        ) and self.state.doc_allocator._cursor is not None else 0
+        for p, addr_str in on_disk.items():
+            if p in self.path_to_addr:
+                continue
+            addr = Address(addr_str)
+            self.path_to_addr[p] = addr
+            self.addr_to_path[addr] = p
+            self.state._owner.setdefault(addr, self.state.doc_allocator)
+            self.state.parent.setdefault(addr, None)
+            self.state.kind.setdefault(addr, "doc")
+            self.state.content.setdefault(addr, "")
+            # Track high-water mark for the allocator's cursor in the
+            # active account's subspace.
+            if (
+                len(addr.digits) == active_base_len
+                and addr.digits[:-1] == account_prefix
+            ):
+                max_position = max(max_position, addr.digits[-1])
+        # Advance cursor past the new high-water mark
+        if max_position > 0:
+            target = Address(
+                self.state.doc_allocator.base.digits[:-1]
+                + (max_position + 1,)
+            )
+            try:
+                cur_cursor = self.state.doc_allocator._cursor
+                cur_pos = cur_cursor.digits[-1] if cur_cursor else 0
+                if max_position >= cur_pos:
+                    self.state.doc_allocator._cursor = target
+            except (AttributeError, IndexError):
+                pass
 
     def register_version(self, addr: Address) -> Address:
         """Advance the supersession chain for `addr`'s doc by one.
