@@ -178,10 +178,14 @@ def _predicate(session: Session, addr: Address) -> bool:
     return False
 
 
+from lib.triggers._commit_paths import per_asn_claim_review_paths
+
+
 cone_review = Trigger(
     name="cone-review",
     scope_query=_scope_query,
     predicate=_predicate,
     agent=ConeReviewAgent(),
     supports_claim_filter=True,
+    commit_paths=per_asn_claim_review_paths,
 )

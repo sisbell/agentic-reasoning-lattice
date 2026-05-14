@@ -56,9 +56,13 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
         yield review_addr
 
 
+from lib.triggers._commit_paths import per_review_finding_paths
+
+
 claim_findings = Trigger(
     name="claim-findings",
     scope_query=_scope_query,
     predicate=is_review_decomposed,
     agent=ClaimFindingsAgent(),
+    commit_paths=per_review_finding_paths,
 )

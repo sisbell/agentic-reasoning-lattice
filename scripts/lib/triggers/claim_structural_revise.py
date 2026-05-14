@@ -15,6 +15,7 @@ from lib.agents.refiners.claim_structural_revise import (
 )
 from lib.predicates import is_claim_structurally_clean
 from lib.runner import Trigger
+from lib.triggers._commit_paths import per_claim_commit_paths
 from lib.triggers.scope import per_claim_of_asn
 
 
@@ -24,4 +25,5 @@ claim_structural_revise = Trigger(
     predicate=is_claim_structurally_clean,
     agent=ClaimStructuralReviseAgent(),
     supports_claim_filter=True,
+    commit_paths=per_claim_commit_paths,
 )

@@ -68,9 +68,13 @@ def _predicate(session: Session, addr: Address) -> bool:
     return False
 
 
+from lib.triggers._commit_paths import per_asn_claim_review_paths
+
+
 full_review = Trigger(
     name="full-review",
     scope_query=asn_first_claim,
     predicate=_predicate,
     agent=FullReviewAgent(),
+    commit_paths=per_asn_claim_review_paths,
 )

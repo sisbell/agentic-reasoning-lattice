@@ -23,6 +23,7 @@ from lib.backend.addressing import Address
 from lib.predicates import has_resolution
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, Trigger
+from lib.triggers._commit_paths import per_claim_commit_paths
 from lib.triggers.scope import _claim_set_for_scope
 
 
@@ -46,10 +47,26 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
         yield link.addr
 
 
+def _commit_paths(session: Session, comment_addr: Address) -> list[str]:
+    """Resolve the comment's target claim and return that claim's
+    file family. The revise fire edits the claim doc; the commit
+    captures the claim + its sidecars.
+    """
+    try:
+        comment = session.get_link(comment_addr)
+    except KeyError:
+        return []
+    if not comment.to_set:
+        return []
+    claim_addr = comment.to_set[0]
+    return per_claim_commit_paths(session, claim_addr)
+
+
 claim_revise = Trigger(
     name="claim-revise",
     scope_query=_scope_query,
     predicate=has_resolution,
     agent=ClaimReviseAgent(),
     supports_claim_filter=True,
+    commit_paths=_commit_paths,
 )

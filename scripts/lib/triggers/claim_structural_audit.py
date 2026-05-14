@@ -24,6 +24,7 @@ from lib.backend.addressing import Address
 from lib.predicates import has_formal_contract, is_claim_audit_fresh
 from lib.protocols.febe.protocol import Session
 from lib.runner import Trigger
+from lib.triggers._commit_paths import per_asn_claim_review_paths
 from lib.triggers.scope import per_claim_of_asn
 
 
@@ -44,4 +45,5 @@ claim_structural_audit = Trigger(
     predicate=_predicate,
     agent=ClaimStructuralAuditAgent(),
     supports_claim_filter=True,
+    commit_paths=per_asn_claim_review_paths,
 )

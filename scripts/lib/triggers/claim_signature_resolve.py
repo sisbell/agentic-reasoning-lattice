@@ -21,6 +21,7 @@ from lib.agents.producers.claim_signature_resolve import (
 )
 from lib.predicates import signature_is_fresh
 from lib.runner import Trigger
+from lib.triggers._commit_paths import per_claim_commit_paths
 from lib.triggers.scope import per_claim_of_asn
 
 
@@ -30,4 +31,5 @@ claim_signature_resolve = Trigger(
     predicate=signature_is_fresh,
     agent=ClaimSignatureResolveAgent(),
     supports_claim_filter=True,
+    commit_paths=per_claim_commit_paths,
 )
