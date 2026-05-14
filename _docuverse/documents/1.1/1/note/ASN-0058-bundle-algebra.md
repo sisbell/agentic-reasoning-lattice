@@ -26,7 +26,14 @@ It denotes the set of position-address pairs:
 
 `⟦β⟧ = {(v + k, a + k) : 0 ≤ k < n}`
 
-where `v + k` is shorthand for `shift(v, k)` (OrdinalShift, ASN-0034) extended to `k = 0` as the identity, and likewise `a + k` for `shift(a, k)` — both denoting ordinal displacement at the tumbler's own depth. The *V-extent* is `V(β) = {v + k : 0 ≤ k < n}`; the *I-extent* is `I(β) = {a + k : 0 ≤ k < n}`.
+where `v + k` and `a + k` denote ordinal displacement at the tumbler's own depth (made precise by the convention below). The *V-extent* is `V(β) = {v + k : 0 ≤ k < n}`; the *I-extent* is `I(β) = {a + k : 0 ≤ k < n}`.
+
+**Convention (OrdinalShiftBase).** Throughout this ASN, for any tumbler `t` and natural number `k ≥ 0`:
+
+- For `k ≥ 1`, `t + k` denotes `shift(t, k)` — the OrdinalShift of ASN-0034 at the tumbler's own depth.
+- For `k = 0`, `t + 0 = t` by definition — the identity of ordinal shift.
+
+The `k = 0` case is the base of every correspondence run: when `β = (v, a, n)` is in a decomposition of `M(d)`, B3 (Consistency) at `k = 0` reduces to `M(d)(v) = a` — no displacement, no arithmetic. This convention is in force in every claim, every definition, and every proof below; M-aux establishes its associativity `(v + c) + j = v + (c + j)` for all `c, j ≥ 0`.
 
 This is the correspondence run of ASN-0036 S8, elevated to a first-class algebraic object. We now establish its properties.
 
@@ -66,13 +73,27 @@ M0 and M1 together characterize the mapping block: it is a *width-preserving mon
 
 **Remark (Span Algebra Connection).** A mapping block `β = (v, a, n)` induces two spans in the sense of ASN-0053: a V-span over `V(β)` and an I-span over `I(β)`. The block's split (M4 below) corresponds to simultaneous application of S4 (SplitPartition, ASN-0053) to both spans at corresponding positions. The merge (M7 below) corresponds to S3 (MergeEquivalence, ASN-0053) applied to both span pairs, subject to both being adjacent. Width coupling (M0) ensures that the two span operations remain synchronized — the cut point in V-space determines the cut point in I-space.
 
-**M-aux (OrdinalIncrementAssociativity).** For any tumbler `v` and natural numbers `c, j`:
+**M-aux (OrdinalIncrementAssociativity).** For any tumbler `v` and natural numbers `c, j ≥ 0`:
 
 `(v + c) + j = v + (c + j)`
 
-*Convention.* We define `v + 0 = v` — the identity of ordinal shift. At `k = 0` this is the base case of the correspondence run: `M(d)(v) = a`, no displacement, no arithmetic (cf. S8, ASN-0036).
+*Proof.* For `c, j ≥ 1`, this is TS3 (ShiftComposition, ASN-0034): `shift(shift(v, c), j) = shift(v, c + j)`. The cases `c = 0` or `j = 0` follow from the OrdinalShiftBase convention introduced above: when `c = 0`, both sides equal `v + j`; when `j = 0`, both sides equal `v + c`. ∎
 
-For `c, j ≥ 1`, this is TS3 (ShiftComposition, ASN-0034): `shift(shift(v, c), j) = shift(v, c + j)`. The cases `c = 0` or `j = 0` follow from the convention. ∎
+**M-sub (SubspaceConfinement).** For a mapping block `β = (v, a, n)`:
+
+(a) Every V-position of `β` shares the V-subspace of `v`:
+
+`(A k : 0 ≤ k < n : subspace(v + k) = subspace(v))`
+
+(b) When `a ∈ dom(C)`, every I-address of `β` shares the I-subspace of `a`:
+
+`(A k : 0 ≤ k < n : subspace_I(a + k) = subspace_I(a))`
+
+*Proof of (a).* At `k = 0`, `v + 0 = v` by OrdinalShiftBase, so `subspace(v + 0) = subspace(v)` trivially. For `k ≥ 1`, OrdShiftHom (ASN-0036) gives `subspace(shift(v, k)) = subspace(v)`. ∎
+
+*Proof of (b).* At `k = 0`, `a + 0 = a` by OrdinalShiftBase. For `k ≥ 1`, the precondition `a ∈ dom(C)` discharges ShiftPreservation's hypotheses (ASN-0036), and ShiftPreservation (iv) gives `subspace_I(shift(a, k)) = subspace_I(a)`. ∎
+
+The two clauses act in concert: a single mapping block is confined to one V-subspace and (when its I-start resides in `dom(C)`) one I-subspace. When `β` participates in a decomposition of `M(d)`, B3 (Consistency) and S3 (ReferentialIntegrity, ASN-0036) place `a ∈ dom(C)`, so clause (b) applies unconditionally to decomposition members.
 
 ## The Arrangement as a Set of Blocks
 
@@ -183,7 +204,7 @@ When both conditions hold, the merged block is:
 
 (We write `⊞` for block merge to distinguish it from tumbler addition `⊕` of ASN-0034.)
 
-Both conditions are necessary. V-adjacency alone is insufficient: if the I-extents are not contiguous, the merged block `(v₁, a₁, n₁ + n₂)` would predict `M(d)(v₁ + n₁) = a₁ + n₁`, but the arrangement maps that position to `a₂ ≠ a₁ + n₁`, violating B3. I-adjacency alone is insufficient: if `v₂ > v₁ + n₁` (the V-extents leave a gap), the merged block claims a mapping at `v₁ + n₁ ∉ V(β₁) ∪ V(β₂)`, so either (a) `v₁ + n₁ ∉ dom(M(d))`, violating B3 for the merged block (which asserts the position is in its domain); or (b) some other block `β'' ∈ B` covers `v₁ + n₁`, in which case `V(β₁ ⊞ β₂) ∩ V(β'') ⊇ {v₁ + n₁}`, violating B2 between the merged block and `β''`. The case `v₂ < v₁ + n₁` (overlap) cannot occur when `β₁, β₂ ∈ B`. By OrdShiftHom (ASN-0036), `subspace(v₁ + n₁) = subspace(v₁)`. Let `m = #v₁`; by S8-depth (ASN-0036) applied to `subspace(v₁)`, every V-position in that subspace has depth `m`, and TumblerAdd's prefix-copy clause (ASN-0034) gives `(v₁ + n₁)_j = (v₁)_j` for all `j < m`. We show first that `subspace(v₂) = subspace(v₁)` — i.e., `(v₂)_1 = (v₁)_1`. Component 1 of any tumbler is defined, so this comparison is well-posed regardless of `#v₂`. Suppose `(v₂)_1 ≠ (v₁)_1`. Since `v₁ ≤ v₂`, T1(i) (ASN-0034) gives `(v₂)_1 > (v₁)_1`. With `m ≥ 2` (V-positions in `M(d)` lie in the element subspace), the action point of `δ(n₁, m)` is at index `m > 1`, so TumblerAdd preserves component 1: `(v₁ + n₁)_1 = (v₁)_1 < (v₂)_1`. Tumblers diverging at index 1 with `(v₂)_1 > (v₁ + n₁)_1` give `v₂ > v₁ + n₁` by T1(i), contradicting `v₂ < v₁ + n₁`. Hence `(v₂)_1 = (v₁)_1`, so `subspace(v₂) = subspace(v₁)`; by S8-depth applied to that subspace, `#v₂ = m`. Now `(v₂)_j` is defined for all `1 ≤ j < m`, so the set `J = {j : 1 ≤ j < m ∧ (v₂)_j ≠ (v₁)_j}` is well-posed. Suppose `J` is non-empty, and let `j₀ = min(J)`. Then `(v₂)_i = (v₁)_i = (v₁ + n₁)_i` for all `i < j₀`. Since `v₁ ≤ v₂`, T1(i) gives `(v₂)_{j₀} > (v₁)_{j₀}`. Since `(v₁ + n₁)_{j₀} = (v₁)_{j₀} < (v₂)_{j₀}` and they agree below `j₀`, T1(i) gives `v₁ + n₁ < v₂`, contradicting `v₂ < v₁ + n₁`. Hence `J = ∅`, so `(v₂)_j = (v₁)_j` for all `1 ≤ j < m`. T1 now reduces the comparison `v₁ ≤ v₂ < v₁ + n₁` to component `m`: `(v₁)_m ≤ (v₂)_m < (v₁)_m + n₁`. So `v₂ = v₁ + k` for `k = (v₂)_m − (v₁)_m` with `0 ≤ k < n₁`. The case `k = 0` would give `v₂ = v₁ + 0 = v₁` (by the `v + 0 = v` convention of M-aux), contradicting the standing assumption `v₁ < v₂`; hence `k ∈ [1, n₁)`. With `k ≥ 1`, `v₂ = v₁ + k ∈ V(β₁)` lies strictly inside `β₁`'s V-extent. Combined with `v₂ ∈ V(β₂)`, this gives `v₂ ∈ V(β₁) ∩ V(β₂)`, violating B2 of the original decomposition.
+Both conditions are necessary. V-adjacency alone is insufficient: if the I-extents are not contiguous, the merged block `(v₁, a₁, n₁ + n₂)` would predict `M(d)(v₁ + n₁) = a₁ + n₁`, but the arrangement maps that position to `a₂ ≠ a₁ + n₁`, violating B3. I-adjacency alone is insufficient: if `v₂ > v₁ + n₁` (the V-extents leave a gap), the merged block claims a mapping at `v₁ + n₁ ∉ V(β₁) ∪ V(β₂)`, so either (a) `v₁ + n₁ ∉ dom(M(d))`, violating B3 for the merged block (which asserts the position is in its domain); or (b) some other block `β'' ∈ B` covers `v₁ + n₁`, in which case `V(β₁ ⊞ β₂) ∩ V(β'') ⊇ {v₁ + n₁}`, violating B2 between the merged block and `β''`. The case `v₂ < v₁ + n₁` (overlap) cannot occur when `β₁, β₂ ∈ B`. By OrdShiftHom (ASN-0036), `subspace(v₁ + n₁) = subspace(v₁)`. Let `m = #v₁`; by S8-depth (ASN-0036) applied to `subspace(v₁)`, every V-position in that subspace has depth `m`, and TumblerAdd's prefix-copy clause (ASN-0034) gives `(v₁ + n₁)_j = (v₁)_j` for all `j < m`. We show first that `subspace(v₂) = subspace(v₁)` — i.e., `(v₂)_1 = (v₁)_1`. Component 1 of any tumbler is defined, so this comparison is well-posed regardless of `#v₂`. Suppose `(v₂)_1 ≠ (v₁)_1`. Since `v₁ ≤ v₂`, T1(i) (ASN-0034) gives `(v₂)_1 > (v₁)_1`. With `m ≥ 2` (V-positions in `M(d)` lie in the element subspace), the action point of `δ(n₁, m)` is at index `m > 1`, so TumblerAdd preserves component 1: `(v₁ + n₁)_1 = (v₁)_1 < (v₂)_1`. Tumblers diverging at index 1 with `(v₂)_1 > (v₁ + n₁)_1` give `v₂ > v₁ + n₁` by T1(i), contradicting `v₂ < v₁ + n₁`. Hence `(v₂)_1 = (v₁)_1`, so `subspace(v₂) = subspace(v₁)`; by S8-depth applied to that subspace, `#v₂ = m`. Now `(v₂)_j` is defined for all `1 ≤ j < m`, so the set `J = {j : 1 ≤ j < m ∧ (v₂)_j ≠ (v₁)_j}` is well-posed. Suppose `J` is non-empty, and let `j₀ = min(J)`. Then `(v₂)_i = (v₁)_i = (v₁ + n₁)_i` for all `i < j₀`. Since `v₁ ≤ v₂`, T1(i) gives `(v₂)_{j₀} > (v₁)_{j₀}`. Since `(v₁ + n₁)_{j₀} = (v₁)_{j₀} < (v₂)_{j₀}` and they agree below `j₀`, T1(i) gives `v₁ + n₁ < v₂`, contradicting `v₂ < v₁ + n₁`. Hence `J = ∅`, so `(v₂)_j = (v₁)_j` for all `1 ≤ j < m`. T1 now reduces the comparison `v₁ ≤ v₂ < v₁ + n₁` to component `m`: `(v₁)_m ≤ (v₂)_m < (v₁)_m + n₁`. So `v₂ = v₁ + k` for `k = (v₂)_m − (v₁)_m` with `0 ≤ k < n₁`. The case `k = 0` would give `v₂ = v₁ + 0 = v₁` (by the OrdinalShiftBase convention), contradicting the standing assumption `v₁ < v₂`; hence `k ∈ [1, n₁)`. With `k ≥ 1`, `v₂ = v₁ + k ∈ V(β₁)` lies strictly inside `β₁`'s V-extent. Combined with `v₂ ∈ V(β₂)`, this gives `v₂ ∈ V(β₁) ∩ V(β₂)`, violating B2 of the original decomposition.
 
 *Verification.* `⟦β₁ ⊞ β₂⟧ = {(v₁ + k, a₁ + k) : 0 ≤ k < n₁ + n₂}`. For `k < n₁`, this gives `⟦β₁⟧`. For `k ≥ n₁`, set `j = k − n₁`: then `v₁ + k = (v₁ + n₁) + j = v₂ + j` and similarly `a₁ + k = a₂ + j` (by M-aux), giving `⟦β₂⟧`. So `⟦β₁ ⊞ β₂⟧ = ⟦β₁⟧ ∪ ⟦β₂⟧`. ∎
 
@@ -343,7 +364,13 @@ The merge condition (M7) interacts naturally with the tumbler address structure.
 
 `(A β₁, β₂ : a₁, a₂ ∈ dom(C) ∧ origin(a₁) ≠ origin(a₂) : ¬(a₂ = a₁ + n₁))`
 
-*Proof.* The ordinal shift `a₁ + n₁ = a₁ ⊕ δ(n₁, #a₁)` has action point `#a₁`. By TumblerAdd (ASN-0034), `rᵢ = (a₁)ᵢ` for all `i < #a₁` — every component before the action point is copied unchanged — and `r_{#a₁} = (a₁)_{#a₁} + n₁`, with `#(a₁ + n₁) = #a₁`. We first verify that `a₁ + n₁` is T4-valid, so that `origin(·)` (defined via the T4b projections N, U, D) applies. The block-width axiom (M0) gives `n₁ ≥ 1`, and T4(iv) of `a₁` gives `(a₁)_{#a₁} ≥ 1`; hence `(a₁ + n₁)_{#a₁} = (a₁)_{#a₁} + n₁ ≥ 2`. No component changes between zero and nonzero (only the action component changes, and it stays nonzero), so all four T4 conjuncts inherit from `a₁`: (i) `zeros(a₁ + n₁) = zeros(a₁) ≤ 3`; (ii) no adjacent zeros; (iii) `(a₁ + n₁)_1 = (a₁)_1 ≠ 0` (with `#a₁ ≥ 2` from S7b/S7c below, so index 1 lies strictly below the action point); (iv) `(a₁ + n₁)_{#a₁} ≥ 2 ≠ 0`. Now we locate the document prefix. For element-level I-addresses, S7b (ASN-0036) gives `zeros(a₁) = 3`, structurally decomposing `a₁` into a document prefix `N.0.U.0.D` followed by the separator zero and the element field `E(a₁)`, with `#a₁ = #(N.0.U.0.D) + 1 + #E(a₁)` (the `+1` accounts for the separator zero between `D` and `E`). S7c (ASN-0036) gives `#E(a₁) ≥ 2`, so `#(N.0.U.0.D) = #a₁ − #E(a₁) − 1 ≤ #a₁ − 3 < #a₁` — every index of the document prefix lies strictly below the action point and is preserved by TumblerAdd. Therefore `origin(a₁ + n₁) = origin(a₁)`. If `origin(a₂) ≠ origin(a₁)`, then `origin(a₂) ≠ origin(a₁ + n₁)`. Since `origin` is a function on tumblers, equal tumblers have equal origins; by contrapositive, different origins imply different tumblers: `a₂ ≠ a₁ + n₁`. ∎
+*Proof.* We first secure T4-validity of `a₁` and `a₂`, which the rest of the argument relies on. Since `a₁, a₂ ∈ dom(C)`, both are outputs of conforming allocators — S7d (DocumentAllocationDiscipline, ASN-0036) places the document tumblers under T10a, and S7b (ElementLevelIAddresses, ASN-0036) gives `zeros(a₁) = zeros(a₂) = 3`, so each I-address sits within an element-level allocator's domain. T10a.4 (T4PreservationUnderDiscipline, ASN-0034) then gives that every output of a conforming allocator satisfies T4. Hence T4(i)–(iv) apply directly to `a₁` and `a₂`.
+
+Next we locate the document prefix and bound `#a₁`. By S7b, `zeros(a₁) = 3`, structurally decomposing `a₁` into a document prefix `N.0.U.0.D` followed by the separator zero and the element field `E(a₁)`, with `#a₁ = #(N.0.U.0.D) + 1 + #E(a₁)` (the `+1` accounts for the separator zero between `D` and `E`). S7c (ElementFieldDepth, ASN-0036) gives `#E(a₁) ≥ 2`, so `#(N.0.U.0.D) = #a₁ − #E(a₁) − 1 ≤ #a₁ − 3` — every index of the document prefix lies strictly below the action point `#a₁`. Each of `N`, `U`, `D` contributes at least one component, so `#(N.0.U.0.D) ≥ 5` (three nonzero fields, two separator zeros between them); combined with the element field's `#E(a₁) ≥ 2` and one separator, this yields `#a₁ ≥ 5 + 1 + 2 = 8`, well above the `#a₁ ≥ 2` minimum used below.
+
+The ordinal shift `a₁ + n₁ = a₁ ⊕ δ(n₁, #a₁)` has action point `#a₁`. By TumblerAdd (ASN-0034), `rᵢ = (a₁)ᵢ` for all `i < #a₁` — every component before the action point is copied unchanged — and `r_{#a₁} = (a₁)_{#a₁} + n₁`, with `#(a₁ + n₁) = #a₁`. The block-width axiom (M0) gives `n₁ ≥ 1`, and T4(iv) of `a₁` gives `(a₁)_{#a₁} ≥ 1`; hence `(a₁ + n₁)_{#a₁} = (a₁)_{#a₁} + n₁ ≥ 2`. Only the action component changes, and it stays nonzero, so all four T4 conjuncts inherit from `a₁` to `a₁ + n₁`: (i) `zeros(a₁ + n₁) = zeros(a₁) = 3 ≤ 3`; (ii) no adjacent zeros (TumblerAdd alters no zero-positions when the action component remains nonzero); (iii) `(a₁ + n₁)_1 = (a₁)_1 ≠ 0` — since `#a₁ ≥ 8 ≥ 2` from the bound just established, index 1 lies strictly below the action point and is preserved; (iv) `(a₁ + n₁)_{#a₁} ≥ 2 ≠ 0`.
+
+The document prefix is preserved by the shift: every index of `N.0.U.0.D` lies in `[1, #a₁ − #E(a₁) − 1]`, strictly below the action point `#a₁`, and TumblerAdd copies those positions unchanged. Therefore `origin(a₁ + n₁) = origin(a₁)`. If `origin(a₂) ≠ origin(a₁)`, then `origin(a₂) ≠ origin(a₁ + n₁)`. Since `origin` is a function on tumblers, equal tumblers have equal origins; by contrapositive, different origins imply different tumblers: `a₂ ≠ a₁ + n₁`. ∎
 
 This is not an additional constraint imposed on the merge — it is a consequence of I-adjacency and the invariance of document origin under ordinal increment. Gregory's implementation includes an explicit `homedoc` guard as the first check in `isanextensionnd` — a cheap discriminant that avoids full I-address comparison. At the abstract level, the guard is redundant: the contrapositive of origin equality already prevents cross-origin I-adjacency. But its presence in the implementation reflects the abstract property and provides an efficient short-circuit.
 
@@ -388,7 +415,13 @@ The decomposition yields ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-addr
 
 where βⱼ = (vⱼ, aⱼ, nⱼ). The V-coordinates are discarded; only I-starts and widths are carried forward.
 
-The ordering of runs within each resolution preserves the source document's V-ordering: if V-position p precedes V-position q in the source, the I-address at p precedes the I-address at q in the resolved sequence. This follows from the definition of resolve, which specifies the blocks ordered by V-start. The ordering is well-defined because V-extents are disjoint (B2), so the V-starts induce a total order on the blocks.
+**C0b (ResolutionSequenceOrder).** The runs in `resolve(d_s, σ) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩` are listed in strictly increasing order of the V-start of their underlying blocks:
+
+`(A i, j : 1 ≤ i < j ≤ k : vᵢ < vⱼ)`
+
+This is an ordering of the *list positions* in the resolved sequence by the V-starts of the blocks they came from. It is not a claim that the I-address values `a₁, ..., aₖ` themselves are increasing — they need not be (e.g., the worked example below resolves to `⟨(a+1, 2), (b, 2)⟩` where the relation between `a+1` and `b` is unconstrained).
+
+*Derivation.* By C1a, `M(d_s)|⟦σ⟧` admits a unique maximally merged decomposition (call it `{β₁, ..., βₖ}`). By B2 (Disjointness), the V-extents of the blocks are pairwise disjoint, so the V-starts `v₁, ..., vₖ` are pairwise distinct. T1 (LexicographicOrder, ASN-0034) is a total order on tumblers, so the V-starts admit a unique linear arrangement; the notation `⟨β₁, ..., βₖ⟩ ordered by V-start` fixes this linear arrangement, and `resolve(d_s, σ)` inherits it. The list-position index `i` therefore tracks the V-start order: `i < j` iff `vᵢ < vⱼ`. ∎
 
 For a content reference sequence R = ⟨r₁, ..., rₚ⟩, the *composite resolution* concatenates:
 
@@ -444,7 +477,9 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 |-------|-----------|--------|
 | M0 | WidthCoupling: `\|V(β)\| = \|I(β)\| = n` for mapping block `β = (v, a, n)` | introduced |
 | M1 | OrderPreservation: within a block, the `k`-th V-position maps to the `k`-th I-address; both orderings agree | introduced |
-| M-aux | OrdinalIncrementAssociativity: `(v + c) + j = v + (c + j)` — from TS3 (ShiftComposition, ASN-0034) extended with `v + 0 = v` | introduced |
+| OrdinalShiftBase | `t + k` denotes `shift(t, k)` for `k ≥ 1`, extended by `t + 0 = t` (identity) — convention in force throughout | introduced |
+| M-aux | OrdinalIncrementAssociativity: `(v + c) + j = v + (c + j)` for `c, j ≥ 0` — from TS3 (ShiftComposition, ASN-0034) plus OrdinalShiftBase | introduced |
+| M-sub | SubspaceConfinement: for `β = (v, a, n)`, every V-position shares `subspace(v)`; every I-address shares `subspace_I(a)` when `a ∈ dom(C)` | introduced |
 | M2 | DecompositionExistence: every arrangement `M(d)` admits a block decomposition (covering every V-position in `dom(M(d))`, all subspaces) | introduced |
 | M3 | RepresentationInvariance: equivalent decompositions determine the same arrangement function | introduced |
 | M4 | SplitDefinition: split at interior `c` produces `β_L = (v, a, c)` and `β_R = (v+c, a+c, n−c)` | introduced |
@@ -468,6 +503,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | ContentReference | (d_s, σ) with d_s ∈ D, V_{u₁}(d_s) ≠ ∅, m ≥ 2; σ level-uniform with #u = #ℓ = m; depth-m V-positions in span range ⊆ dom(M(d_s)) | introduced |
 | C0 | OrdinalDisplacementNecessity: well-formed content references have ordinal displacements — action point of ℓ equals m | introduced |
 | C0a | PrefixConfinement: every t ∈ ⟦σ⟧ satisfies tⱼ = uⱼ for all 1 ≤ j < m when m ≥ 2 (subspace confinement t₁ = u₁ is the j = 1 case) | introduced |
+| C0b | ResolutionSequenceOrder: list-position index i < j in resolve(d_s, σ) iff the underlying blocks satisfy vᵢ < vⱼ; claim is about list positions, not I-address values | introduced |
 | ContentReferenceSequence | ordered list ⟨r₁, ..., rₚ⟩ with p ≥ 1 | introduced |
 | resolve(d_s, σ) | Resolution: maximally merged I-address runs from `M(d_s)\|⟦σ⟧`, V-ordered | introduced |
 | C1a | RestrictionDecomposition: M11/M12 hold for any finite partial function f : T ⇀ T that is functional, has finite domain, and has common depth on its domain; in particular `M(d_s)\|⟦σ⟧` inherits these from S2, S8-fin, and S8-depth via C0a | introduced |
