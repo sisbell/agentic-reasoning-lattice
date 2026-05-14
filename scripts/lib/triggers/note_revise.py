@@ -30,9 +30,22 @@ def _predicate(session: Session, addr: Address) -> bool:
     )
 
 
+def _commit_paths(session: Session, note_addr: Address) -> list[str]:
+    """The note body file this fire owns.
+
+    note_revise edits the note body in place. The reviser may also
+    invoke resolution.py via tools, which appends to substrate metadata
+    (links.jsonl) — that's handled by the commit machinery's always-
+    included substrate-metadata paths.
+    """
+    path = session.get_path_for_addr(note_addr)
+    return [path] if path else []
+
+
 note_revise = Trigger(
     name="note-revise",
     scope_query=per_active_note,
     predicate=_predicate,
     agent=NoteReviseAgent(),
+    commit_paths=_commit_paths,
 )
