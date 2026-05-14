@@ -13,13 +13,17 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from lib.agents.producers.note_review import NoteReviewAgent
 from lib.backend.addressing import Address
+from lib.lattice.labels import format_label, label_pattern
 from lib.predicates import (
     has_been_reviewed, is_doc_quiescent, last_n_reviews_were_clean,
 )
 from lib.protocols.febe.protocol import Session
 from lib.runner import Trigger
+from lib.shared.paths import NOTE_FINDINGS_DIR, NOTE_REVIEWS_DIR, WORKSPACE
 from lib.triggers.scope import per_active_note
 
 
@@ -57,9 +61,34 @@ def _predicate(session: Session, addr: Address) -> bool:
     )
 
 
+def _asn_label_for_note(session: Session, note_addr: Address) -> str | None:
+    """Extract ASN label from a note's registered path. None if unresolvable."""
+    path = session.get_path_for_addr(note_addr)
+    if not path:
+        return None
+    m = label_pattern().search(path)
+    return m.group(0) if m else None
+
+
+def _commit_paths(session: Session, note_addr: Address) -> list[str]:
+    """The review + finding directories this fire owns for the target note.
+
+    note_review emits one review-N.md and zero or more finding docs under
+    review-N/, both keyed by the target ASN.
+    """
+    asn_label = _asn_label_for_note(session, note_addr)
+    if asn_label is None:
+        return []
+    return [
+        str((NOTE_REVIEWS_DIR / asn_label).relative_to(WORKSPACE)),
+        str((NOTE_FINDINGS_DIR / asn_label).relative_to(WORKSPACE)),
+    ]
+
+
 note_review = Trigger(
     name="note-review",
     scope_query=per_active_note,
     predicate=_predicate,
     agent=NoteReviewAgent(),
+    commit_paths=_commit_paths,
 )
