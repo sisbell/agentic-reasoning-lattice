@@ -2,49 +2,111 @@
 
 *2026-03-17*
 
-The tumbler hierarchy (T4, ASN-0034) parses every T4-valid address into four field levels separated by zero components. T4c (LevelDetermination, ASN-0034) already pins those levels to zero-count: zeros(t) ∈ {0, 1, 2, 3} corresponds to node, user, document, element. ASN-0045 names those levels as predicates over E for downstream use, with one rename (user → account) recorded below.
+The tumbler hierarchy (T4, ASN-0034) parses every T4-valid address into four field levels separated by zero components. T4c (LevelDetermination, ASN-0034) already pins those levels to zero-count: zeros(t) ∈ {0, 1, 2, 3} corresponds to node, user, document, element. ASN-0045 names those levels as predicates over T for downstream use, with one rename (user → account) recorded below.
 
 ## Naming Convention
 
-T4c labels the level with zeros(t) = 1 as a *user*. ASN-0045 adopts *account* as the canonical name and treats T4c's *user* as an alias. Nelson uses both terms in Literary Machines — "user" for the field-name slot, "account" for the addressable allocation (LM 4/29). The udanax-green implementation settles on "account" in its structural and addressing code (`tumbleraccounteq`, `ACCOUNT` constant). The other three labels (node, document, element) are taken verbatim from T4c.
+T4c labels the level with zeros(t) = 1 as a *user address*. ASN-0045 adopts *account* as the canonical predicate name and treats T4c's *user* as an alias for the same address class. Nelson uses both terms in Literary Machines — "user" for the field-name slot, "account" for the addressable allocation (LM 4/29). The udanax-green implementation settles on "account" in its structural and addressing code (`tumbleraccounteq`, `ACCOUNT` constant). The other three labels (node, document, element) are taken verbatim from T4c.
+
+The rename applies only to the address-class label. T4b's projection symbol `U : T ⇀ T` (the user-component projection on a parsed tumbler) is unchanged by ASN-0045; downstream uses of `U` and `t.Uᵢ` continue without rebinding.
 
 ## Hierarchy Level Definitions
 
-For any tumbler t, T4-valid(t) (T4, ASN-0034) means t parses as a well-formed address. Given T4-valid(t), T4c assigns t to exactly one level by zeros(t):
+For any tumbler t, T4-valid(t) (T4, ASN-0034) means t parses as a well-formed address. Given T4-valid(t), T4c assigns t to exactly one level by zeros(t). We name the four corresponding predicates by definitional equivalence:
 
-**E.node** — A *node* is a tumbler t with T4-valid(t) ∧ zeros(t) = 0.
+**Node** — `Node(t) ≡ T4-valid(t) ∧ zeros(t) = 0`.
 
-**E.account** — An *account* is a tumbler t with T4-valid(t) ∧ zeros(t) = 1.
+**Account** — `Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1`.
 
-**E.document** — A *document* is a tumbler t with T4-valid(t) ∧ zeros(t) = 2.
+**Document** — `Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2`.
 
-**E.element** — An *element* is a tumbler t with T4-valid(t) ∧ zeros(t) = 3.
+**Element** — `Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3`.
+
+Each predicate has type `T → Bool` on the tumbler carrier T (T0, ASN-0034). The definitions are total: for any t : T, T4-valid(t) is decidable (T4, ASN-0034) and zeros(t) is a natural number (NAT, ASN-0034), so each conjunction evaluates without precondition.
 
 ## Well-Definedness
 
-T4c carries two postconditions on the T4-valid subdomain: *exhaustion* (zeros(t) ∈ {0, 1, 2, 3}) and *pairwise disjointness* of the four level predicates. Together they make the labeling a partition:
+T4c carries two postconditions on the T4-valid subdomain: *Exhaustion* (zeros(t) ∈ {0, 1, 2, 3}) and *Pairwise extensional disjointness* of the four level cases. We derive Partition as a corollary in three steps.
 
-**E.partition** — For every t with T4-valid(t), exactly one of Node(t), Account(t), Document(t), Element(t) holds.
+*Binding.* Fix t : T with T4-valid(t). By the definitions above, each of Node(t), Account(t), Document(t), Element(t) reduces to `zeros(t) = k` for k ∈ {0, 1, 2, 3} respectively.
 
-E.partition is a corollary of T4c; ASN-0045 records it as the postcondition the four naming predicates inherit.
+*At-least-one.* By T4c's Exhaustion, zeros(t) ∈ {0, 1, 2, 3}, so at least one of the four equalities zeros(t) = k holds, hence at least one of the four predicates holds at t.
+
+*At-most-one.* By T4c's Pairwise extensional disjointness, the four cases `zeros(t) = k` for distinct k cannot both hold (equality on ℕ is functional via NAT, ASN-0034). So no two of Node(t), Account(t), Document(t), Element(t) hold simultaneously.
+
+Combining the two yields the Partition postcondition:
+
+**Partition** — `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))`.
+
+The quantifier ranges over the full carrier T; the antecedent T4-valid(t) restricts the assertion to parseable tumblers. Partition makes no claim about T4-invalid t.
 
 ## Examples
 
+*Positive cases (T4-valid).* Each row classifies under exactly one predicate.
+
 | Tumbler | zeros(t) | Level |
 |---------|----------|-------|
-| [7] | 0 | node |
-| [7, 0, 3] | 1 | account |
-| [7, 0, 3, 0, 5] | 2 | document |
-| [7, 0, 3, 0, 5, 0, 1] | 3 | element |
+| [7] | 0 | Node |
+| [7, 0, 3] | 1 | Account |
+| [7, 0, 3, 0, 5] | 2 | Document |
+| [7, 0, 3, 0, 5, 0, 1] | 3 | Element |
 
-Each row is a T4-valid tumbler; the level follows directly from T4c by counting zero components.
+*Counter-examples (T4-invalid).* For each, ¬T4-valid(t) holds, so all four predicates evaluate to false and Partition makes no claim.
+
+| Tumbler | T4 clause violated | Why all four predicates are false |
+|---------|--------------------|-----------------------------------|
+| [7, 0, 0, 3] | adjacent zeros | T4-valid fails; each predicate's left conjunct is false |
+| [0, 7] | leading zero | T4-valid fails; each predicate's left conjunct is false |
+| [7, 0] | trailing zero | T4-valid fails; each predicate's left conjunct is false |
+| [1, 0, 1, 0, 1, 0, 1, 0, 1] | zeros(t) = 4 > 3 | even if parseable, no k ∈ {0,1,2,3} matches; T4 forbids this |
+
+The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing: dropping it would force at-least-one to fail on every T4-invalid tumbler.
 
 ## Properties Introduced
 
+**Node** (`Node(t) ≡ T4-valid(t) ∧ zeros(t) = 0`)
+
+- *Preconditions.* None (predicate is total on T).
+- *Definition.* The two-place conjunction above.
+- *Depends.* T0 (carrier), T4 (T4-valid), T4c (zeros range), NAT-zero (the constant 0).
+- *Postcondition.* `(A t : T : Node(t) ⟹ T4-valid(t) ∧ zeros(t) = 0)`.
+
+**Account** (`Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1`)
+
+- *Preconditions.* None.
+- *Definition.* The two-place conjunction above.
+- *Depends.* T0, T4, T4c, NAT-closure (the constant 1 = succ(0)).
+- *Postconditions.*
+  - `(A t : T : Account(t) ⟹ T4-valid(t) ∧ zeros(t) = 1)`.
+  - *Rename equivalence:* `(A t : T : T4-valid(t) :: Account(t) ⟺ t is a user address per T4c)`. ASN-0045's *account* and T4c's *user address* denote the same predicate on the T4-valid subdomain.
+
+**Document** (`Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2`)
+
+- *Preconditions.* None.
+- *Definition.* The two-place conjunction above.
+- *Depends.* T0, T4, T4c, NAT-closure (the constant 2).
+- *Postcondition.* `(A t : T : Document(t) ⟹ T4-valid(t) ∧ zeros(t) = 2)`.
+
+**Element** (`Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3`)
+
+- *Preconditions.* None.
+- *Definition.* The two-place conjunction above.
+- *Depends.* T0, T4, T4c, NAT-closure (the constant 3).
+- *Postcondition.* `(A t : T : Element(t) ⟹ T4-valid(t) ∧ zeros(t) = 3)`.
+
+**Partition**
+
+- *Preconditions.* None.
+- *Definition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))`, where `exactly-one-of(P₁, P₂, P₃, P₄) ≡ (P₁ ∨ P₂ ∨ P₃ ∨ P₄) ∧ (A i, j : 1 ≤ i < j ≤ 4 :: ¬(Pᵢ ∧ Pⱼ))`.
+- *Depends.* Node, Account, Document, Element (definitions above), T4c (Exhaustion + Pairwise extensional disjointness), NAT-card (cases on natural-number equality).
+- *Postcondition.* Same as Definition; carried as a corollary of T4c.
+
+## Summary
+
 | Label | Statement | Status |
 |-------|-----------|--------|
-| E.node | Node: T4-valid(t) ∧ zeros(t) = 0 | derived from T4c |
-| E.account | Account: T4-valid(t) ∧ zeros(t) = 1 | derived from T4c (aliasing T4c's *user*) |
-| E.document | Document: T4-valid(t) ∧ zeros(t) = 2 | derived from T4c |
-| E.element | Element: T4-valid(t) ∧ zeros(t) = 3 | derived from T4c |
-| E.partition | For all t with T4-valid(t), exactly one of Node(t), Account(t), Document(t), Element(t) holds | derived from T4c (exhaustion + pairwise disjointness) |
+| Node | `Node(t) ≡ T4-valid(t) ∧ zeros(t) = 0` | derived from T4c |
+| Account | `Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1` | derived from T4c; on T4-valid t, equivalent to T4c's *user address* |
+| Document | `Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2` | derived from T4c |
+| Element | `Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3` | derived from T4c |
+| Partition | `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` | derived from T4c (Exhaustion + Pairwise extensional disjointness) |
