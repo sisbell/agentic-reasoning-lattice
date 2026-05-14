@@ -1,0 +1,17 @@
+# Review of ASN-0058
+
+## REVISE
+
+### Issue 1: M16's length formula has an off-by-one error
+
+**ASN-0058, M16 (CrossOriginMergeImpossibility)**: "structurally decomposing a₁ into a document prefix N.0.U.0.D followed by the element field E(a₁) with #a₁ = #(N.0.U.0.D) + #E(a₁). S7c (ASN-0036) gives #E(a₁) ≥ 2, so #(N.0.U.0.D) = #a₁ − #E(a₁) ≤ #a₁ − 2 < #a₁"
+
+**Problem**: The equation #a₁ = #(N.0.U.0.D) + #E(a₁) is off by one — it omits the third separator zero between D and E. Per S7 (ASN-0036), origin(a) = N(a).0.U(a).0.D(a) is a tumbler of length #N + #U + #D + 2 (with embedded separators at positions s₁, s₂, ending at D's last component). The full address has structure a₁ = [N, 0, U, 0, D, 0, E] with #a₁ = #N + #U + #D + #E + 3 = #(origin) + 1 + #E. So #(N.0.U.0.D) = #a₁ − #E(a₁) − 1, not #a₁ − #E(a₁). The conclusion (origin preserved by TumblerAdd at action point #a₁) holds either reading — both give #(prefix) < #a₁ — but the bookkeeping is inconsistent with S7's definition.
+
+**Required**: Either correct the equation to "#a₁ = #(N.0.U.0.D) + 1 + #E(a₁)" (separator accounted for explicitly), or change the notation to "N.0.U.0.D.0" so the prefix includes the trailing separator and the stated equation reads correctly. The bound that follows — currently #a₁ − 2 — becomes #a₁ − 3 under the corrected reading.
+
+## OUT_OF_SCOPE
+
+None — the ASN respects the stated scope boundaries (no operation effects, no link semantics, no versioning, etc.).
+
+VERDICT: REVISE
