@@ -187,7 +187,30 @@ def main() -> int:
         "--no-commit", action="store_true",
         help="Skip the per-fire auto-commit (default: commit after each fire).",
     )
+    parser.add_argument(
+        "--partition", metavar="I/N", default=None,
+        help=(
+            "Process only the round-robin partition I out of N total. "
+            "Requires --dag. Example: --partition 0/2 takes ASNs at "
+            "topo positions 0, 2, 4, ...; --partition 1/2 takes 1, 3, 5, ...."
+        ),
+    )
     args = parser.parse_args()
+
+    partition_index = None
+    partition_total = None
+    if args.partition is not None:
+        try:
+            partition_index, partition_total = [
+                int(x) for x in args.partition.split("/", 1)
+            ]
+        except (ValueError, IndexError):
+            parser.error(f"invalid --partition value {args.partition!r}; "
+                         f"expected I/N (e.g., 0/2)")
+        if partition_total < 1:
+            parser.error("--partition N must be >= 1")
+        if not (0 <= partition_index < partition_total):
+            parser.error(f"--partition I must be in [0, {partition_total - 1}]")
 
     if args.dag:
         asn_labels = _active_notes_topo_sorted()
@@ -195,7 +218,21 @@ def main() -> int:
             print("  [NOTE-SCHED] --dag: no active notes found",
                   file=sys.stderr)
             return 0
+        if partition_index is not None:
+            asn_labels = [
+                asn_labels[i] for i in range(len(asn_labels))
+                if i % partition_total == partition_index
+            ]
+            if not asn_labels:
+                print(
+                    f"  [NOTE-SCHED] --partition {partition_index}/{partition_total}: "
+                    f"empty partition",
+                    file=sys.stderr,
+                )
+                return 0
     else:
+        if partition_index is not None:
+            parser.error("--partition requires --dag")
         if not args.asns:
             parser.error("ASN(s) required, or use --dag")
         asn_labels = [_parse_asn(a) for a in args.asns]
