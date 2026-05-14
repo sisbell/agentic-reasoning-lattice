@@ -47,7 +47,7 @@ The first property is the structural keystone on which the entire algebra rests.
 
 `|V(β)| = |I(β)| = n`
 
-Both projections have equal cardinality, both equal to the block's width. For all `j, k` with `0 ≤ j < k < n`: if `j = 0`, then `v + j = v` and `v + k > v` by TS4 (ShiftStrictIncrease, ASN-0034) — applicable since `k ≥ 1`; if `j ≥ 1`, then `v + j < v + k` by TS5 (ShiftAmountMonotonicity, ASN-0034) — applicable since `1 ≤ j < k`. Either way, `v + j < v + k`, so the `n` values `v + 0, v + 1, ..., v + (n − 1)` are pairwise distinct and `|V(β)| = n`. Likewise for `I(β)`.
+Both projections have equal cardinality, both equal to the block's width. At `n = 1`, `V(β) = {v + 0} = {v}` and `I(β) = {a + 0} = {a}` are singletons by OrdinalShiftBase, so `|V(β)| = |I(β)| = 1 = n` directly; the monotonicity argument below handles `n ≥ 2`. For all `j, k` with `0 ≤ j < k < n`: if `j = 0`, then `v + j = v` and `v + k > v` by TS4 (ShiftStrictIncrease, ASN-0034) — applicable since `k ≥ 1`; if `j ≥ 1`, then `v + j < v + k` by TS5 (ShiftAmountMonotonicity, ASN-0034) — applicable since `1 ≤ j < k`. Either way, `v + j < v + k`, so the `n` values `v + 0, v + 1, ..., v + (n − 1)` are pairwise distinct and `|V(β)| = n`. Likewise for `I(β)`.
 
 This is not a convenience of representation. The Vstream is an *arrangement* of Istream content — each V-position references exactly one I-byte, and each reference is to exactly one byte. There is no compression, expansion, or transformation between the spaces. The mapping is positional and unit-ratio.
 
@@ -81,7 +81,7 @@ M0 and M1 together characterize the mapping block: it is a *width-preserving mon
 
 **M-sub (SubspaceConfinement).** For a mapping block `β = (v, a, n)`:
 
-(a) Every V-position of `β` shares the V-subspace of `v`:
+(a) When `#v ≥ 2`, every V-position of `β` shares the V-subspace of `v`:
 
 `(A k : 0 ≤ k < n : subspace(v + k) = subspace(v))`
 
@@ -89,11 +89,11 @@ M0 and M1 together characterize the mapping block: it is a *width-preserving mon
 
 `(A k : 0 ≤ k < n : subspace_I(a + k) = subspace_I(a))`
 
-*Proof of (a).* At `k = 0`, `v + 0 = v` by OrdinalShiftBase, so `subspace(v + 0) = subspace(v)` trivially. For `k ≥ 1`, OrdShiftHom (ASN-0036) gives `subspace(shift(v, k)) = subspace(v)`. ∎
+*Proof of (a).* At `k = 0`, `v + 0 = v` by OrdinalShiftBase, so `subspace(v + 0) = subspace(v)` trivially. For `k ≥ 1`, the precondition `#v ≥ 2` discharges OrdShiftHom's depth hypothesis (ASN-0036), so OrdShiftHom gives `subspace(shift(v, k)) = subspace(v)`. The precondition is sharp: at `#v = 1`, `shift(v, k) = v ⊕ δ(k, 1)` advances component 1 itself, so `subspace(v + k) = (v)_1 + k ≠ (v)_1 = subspace(v)` for `k ≥ 1`. ∎
 
 *Proof of (b).* At `k = 0`, `a + 0 = a` by OrdinalShiftBase. For `k ≥ 1`, the precondition `a ∈ dom(C)` discharges ShiftPreservation's hypotheses (ASN-0036), and ShiftPreservation (iv) gives `subspace_I(shift(a, k)) = subspace_I(a)`. ∎
 
-The two clauses act in concert: a single mapping block is confined to one V-subspace and (when its I-start resides in `dom(C)`) one I-subspace. When `β` participates in a decomposition of `M(d)`, B3 (Consistency) and S3 (ReferentialIntegrity, ASN-0036) place `a ∈ dom(C)`, so clause (b) applies unconditionally to decomposition members.
+The two clauses act in concert: a single mapping block (with `#v ≥ 2`) is confined to one V-subspace and (when its I-start resides in `dom(C)`) one I-subspace. When `β` participates in a decomposition of `M(d)`, B3 (Consistency) and S3 (ReferentialIntegrity, ASN-0036) place `a ∈ dom(C)`, so clause (b) applies unconditionally to decomposition members; clause (a) further requires `#v ≥ 2`, which holds for every V-position in `dom(M(d))` since S7b/S7c (ASN-0036) place those positions in element subspaces of depth ≥ 2.
 
 ## The Arrangement as a Set of Blocks
 
@@ -115,9 +115,9 @@ A document's full arrangement is a collection of mapping blocks that together de
 
 B1 and B2 together assert that the V-extents partition `dom(M(d))`. B3 asserts that the mapping within each block agrees with the global arrangement. The empty arrangement `M(d) = ∅` has `B = ∅` as its unique decomposition. The `v₁ ≥ 1` guard in B1 is the universal S8a precondition (every V-position has a positive first component); it imposes no subspace restriction.
 
-**M2 (DecompositionExistence).** Every arrangement `M(d)` admits a block decomposition.
+**M2 (DecompositionExistence).** Under the standing preconditions S8-fin, S2, S3, S8a, S8-depth, S7b, and S7c (ASN-0036), every arrangement `M(d)` admits a block decomposition.
 
-This is S8 (SpanDecomposition, ASN-0036) restated in our vocabulary — both range over every V-position in `dom(M(d))`, regardless of subspace. The question that S8 leaves open is: given that at least one decomposition exists, how many are there, and what relates them?
+This is S8 (SpanDecomposition, ASN-0036) restated in our vocabulary — both range over every V-position in `dom(M(d))`, regardless of subspace, and M2 inherits S8's preconditions verbatim. Downstream claims that lean on M2 (notably C1a and C2) carry the same dependency. The question that S8 leaves open is: given that at least one decomposition exists, how many are there, and what relates them?
 
 Nelson tells us:
 
@@ -194,7 +194,7 @@ We formalize both conditions.
 
 **Definition (I-Adjacent).** Blocks `β₁` and `β₂` (with `v₁ < v₂`) are *I-adjacent* when `a₂ = a₁ + n₁` — the I-extent of `β₂` immediately follows that of `β₁`.
 
-**M7 (MergeCondition).** Two blocks `β₁ = (v₁, a₁, n₁)` and `β₂ = (v₂, a₂, n₂)` with `v₁ < v₂` may be merged into a single block if and only if they are both V-adjacent and I-adjacent:
+**M7 (MergeCondition).** Let `B` be a decomposition of `M(d)`, and let `β₁ = (v₁, a₁, n₁)` and `β₂ = (v₂, a₂, n₂)` be blocks in `B` with `v₁ < v₂`. They may be merged into a single block compatible with `M(d)` if and only if they are both V-adjacent and I-adjacent:
 
 `v₂ = v₁ + n₁  ∧  a₂ = a₁ + n₁`
 
@@ -403,11 +403,11 @@ To resolve a content reference, we extract the I-address runs corresponding to t
 
 **Definition (Resolution).** Given content reference (d_s, σ) with σ = (u, ℓ), let f = M(d_s)|⟦σ⟧ be the restriction of M(d_s) to positions in ⟦σ⟧.
 
-**C1a (RestrictionDecomposition).** M11 and M12 hold for any finite partial function f : T ⇀ T satisfying (i) functionality, (ii) finite domain, and (iii) common depth across its domain. In particular, the restriction f = M(d_s)|⟦σ⟧ satisfies these three conditions and admits a unique maximally merged block decomposition.
+**C1a (RestrictionDecomposition).** M11 and M12 hold for any finite partial function f : T ⇀ T satisfying (i) functionality, (ii) finite domain, and (iii) common depth m ≥ 2 across its domain. In particular, the restriction f = M(d_s)|⟦σ⟧ satisfies these three conditions and admits a unique maximally merged block decomposition.
 
-*Verification that f satisfies the three conditions.* (i) *Functionality:* f is a restriction of M(d_s), which is functional by S2 (ASN-0036); a restriction of a function is a function. (ii) *Finite domain:* dom(f) ⊆ dom(M(d_s)), which is finite by S8-fin (ASN-0036); a subset of a finite set is finite. (iii) *Common depth on dom(f):* the property M11 and M12 actually use is that every position in dom(f) shares a single depth — not that f satisfies S8-depth as a standalone axiom on a self-contained arrangement. By C0a, every position in dom(f) has first component u₁, so dom(f) ⊆ V_{u₁}(d_s); by S8-depth (ASN-0036) applied to d_s in subspace u₁, all positions in V_{u₁}(d_s) share a common depth m. The inclusion transfers the common depth to dom(f): every position in dom(f) has depth m.
+*Verification that f satisfies the three conditions.* (i) *Functionality:* f is a restriction of M(d_s), which is functional by S2 (ASN-0036); a restriction of a function is a function. (ii) *Finite domain:* dom(f) ⊆ dom(M(d_s)), which is finite by S8-fin (ASN-0036); a subset of a finite set is finite. (iii) *Common depth m ≥ 2 on dom(f):* the property M11 and M12 actually use is that every position in dom(f) shares a single depth m ≥ 2 — not that f satisfies S8-depth as a standalone axiom on a self-contained arrangement. By C0a, every position in dom(f) has first component u₁, so dom(f) ⊆ V_{u₁}(d_s); by S8-depth (ASN-0036) applied to d_s in subspace u₁, all positions in V_{u₁}(d_s) share a common depth m. The inclusion transfers the common depth to dom(f): every position in dom(f) has depth m. The bound m ≥ 2 holds by the content reference well-formedness precondition (iv); under this bound, M-sub clause (a) and OrdShiftHom (ASN-0036) — both of which require depth ≥ 2 — apply to every position in dom(f).
 
-*Extension of M11/M12.* M11 (CanonicalExistence) constructs a maximally merged decomposition by iterating: while any two blocks satisfy the merge condition (M7), merge them. The initial singleton-block decomposition — one block (v, f(v), 1) per v ∈ dom(f) — satisfies B1, B2, and B3: B1 (coverage) holds because every v ∈ dom(f) has its own singleton block; B2 (disjointness) holds because singleton V-extents are pairwise disjoint; B3 (consistency) holds directly from S2 (f is a function, so each singleton block's I-address is uniquely determined). Termination follows from S8-fin since the block count is at most |dom(f)|. Each merge step preserves all three conditions by M7f (MergeFrame): M7f establishes that replacing β₁ and β₂ with β₁ ⊞ β₂ yields an equivalent decomposition, preserving B1 and B2 via V(β₁ ⊞ β₂) = V(β₁) ∪ V(β₂) (no V-position is gained or lost, and all blocks in B \ {β₁, β₂} are unchanged). For B3 specifically: if β₁ = (v₁, a₁, n₁) and β₂ = (v₂, a₂, n₂) each satisfy B3 and M7 holds (v₂ = v₁ + n₁, a₂ = a₁ + n₁), then β₁ ⊞ β₂ = (v₁, a₁, n₁ + n₂) satisfies B3 by case split — for 0 ≤ i < n₁, f(v₁ + i) = a₁ + i by B3 for β₁; for n₁ ≤ i < n₁ + n₂, f(v₁ + i) = f(v₂ + (i − n₁)) = a₂ + (i − n₁) = (a₁ + n₁) + (i − n₁) = a₁ + i, using B3 for β₂ and M-aux. M12 (CanonicalUniqueness) identifies the maximally merged decomposition with the set of maximal runs of f, using only pointwise evaluation of f — independent of whether f is a full arrangement or a restriction. Both proofs require only the three conditions verified above — functionality, finite domain, and common depth across the domain; they apply to f verbatim. ∎
+*Extension of M11/M12.* M11 (CanonicalExistence) constructs a maximally merged decomposition by iterating: while any two blocks satisfy the merge condition (M7), merge them. The initial singleton-block decomposition — one block (v, f(v), 1) per v ∈ dom(f) — satisfies B1, B2, and B3: B1 (coverage) holds because every v ∈ dom(f) has its own singleton block; B2 (disjointness) holds because singleton V-extents are pairwise disjoint; B3 (consistency) holds directly from S2 (f is a function, so each singleton block's I-address is uniquely determined). Termination follows from S8-fin since the block count is at most |dom(f)|. Each merge step preserves all three conditions by M7f (MergeFrame): M7f establishes that replacing β₁ and β₂ with β₁ ⊞ β₂ yields an equivalent decomposition, preserving B1 and B2 via V(β₁ ⊞ β₂) = V(β₁) ∪ V(β₂) (no V-position is gained or lost, and all blocks in B \ {β₁, β₂} are unchanged). For B3 specifically: if β₁ = (v₁, a₁, n₁) and β₂ = (v₂, a₂, n₂) each satisfy B3 and M7 holds (v₂ = v₁ + n₁, a₂ = a₁ + n₁), then β₁ ⊞ β₂ = (v₁, a₁, n₁ + n₂) satisfies B3 by case split — for 0 ≤ i < n₁, f(v₁ + i) = a₁ + i by B3 for β₁; for n₁ ≤ i < n₁ + n₂, f(v₁ + i) = f(v₂ + (i − n₁)) = a₂ + (i − n₁) = (a₁ + n₁) + (i − n₁) = a₁ + i, using B3 for β₂ and M-aux. M12 (CanonicalUniqueness) identifies the maximally merged decomposition with the set of maximal runs of f, using only pointwise evaluation of f — independent of whether f is a full arrangement or a restriction. Both proofs require only the three conditions verified above — functionality, finite domain, and common depth m ≥ 2 across the domain; they apply to f verbatim. ∎
 
 The decomposition yields ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-address sequence* is:
 
@@ -415,7 +415,7 @@ The decomposition yields ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-addr
 
 where βⱼ = (vⱼ, aⱼ, nⱼ). The V-coordinates are discarded; only I-starts and widths are carried forward.
 
-**C0b (ResolutionSequenceOrder).** The runs in `resolve(d_s, σ) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩` are listed in strictly increasing order of the V-start of their underlying blocks:
+**C1b (ResolutionSequenceOrder).** The runs in `resolve(d_s, σ) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩` are listed in strictly increasing order of the V-start of their underlying blocks:
 
 `(A i, j : 1 ≤ i < j ≤ k : vᵢ < vⱼ)`
 
@@ -480,7 +480,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | OrdinalShiftBase | `t + k` denotes `shift(t, k)` for `k ≥ 1`, extended by `t + 0 = t` (identity) — convention in force throughout | introduced |
 | M-aux | OrdinalIncrementAssociativity: `(v + c) + j = v + (c + j)` for `c, j ≥ 0` — from TS3 (ShiftComposition, ASN-0034) plus OrdinalShiftBase | introduced |
 | M-sub | SubspaceConfinement: for `β = (v, a, n)`, every V-position shares `subspace(v)`; every I-address shares `subspace_I(a)` when `a ∈ dom(C)` | introduced |
-| M2 | DecompositionExistence: every arrangement `M(d)` admits a block decomposition (covering every V-position in `dom(M(d))`, all subspaces) | introduced |
+| M2 | DecompositionExistence: under S8's preconditions (S8-fin, S2, S3, S8a, S8-depth, S7b, S7c — ASN-0036), every arrangement `M(d)` admits a block decomposition covering every V-position in `dom(M(d))`, all subspaces | introduced |
 | M3 | RepresentationInvariance: equivalent decompositions determine the same arrangement function | introduced |
 | M4 | SplitDefinition: split at interior `c` produces `β_L = (v, a, c)` and `β_R = (v+c, a+c, n−c)` | introduced |
 | M5 | SplitPartition: `⟦β_L⟧ ∪ ⟦β_R⟧ = ⟦β⟧` and `⟦β_L⟧ ∩ ⟦β_R⟧ = ∅` | introduced |
@@ -503,10 +503,10 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | ContentReference | (d_s, σ) with d_s ∈ D, V_{u₁}(d_s) ≠ ∅, m ≥ 2; σ level-uniform with #u = #ℓ = m; depth-m V-positions in span range ⊆ dom(M(d_s)) | introduced |
 | C0 | OrdinalDisplacementNecessity: well-formed content references have ordinal displacements — action point of ℓ equals m | introduced |
 | C0a | PrefixConfinement: every t ∈ ⟦σ⟧ satisfies tⱼ = uⱼ for all 1 ≤ j < m when m ≥ 2 (subspace confinement t₁ = u₁ is the j = 1 case) | introduced |
-| C0b | ResolutionSequenceOrder: list-position index i < j in resolve(d_s, σ) iff the underlying blocks satisfy vᵢ < vⱼ; claim is about list positions, not I-address values | introduced |
 | ContentReferenceSequence | ordered list ⟨r₁, ..., rₚ⟩ with p ≥ 1 | introduced |
 | resolve(d_s, σ) | Resolution: maximally merged I-address runs from `M(d_s)\|⟦σ⟧`, V-ordered | introduced |
-| C1a | RestrictionDecomposition: M11/M12 hold for any finite partial function f : T ⇀ T that is functional, has finite domain, and has common depth on its domain; in particular `M(d_s)\|⟦σ⟧` inherits these from S2, S8-fin, and S8-depth via C0a | introduced |
+| C1a | RestrictionDecomposition: M11/M12 hold for any finite partial function f : T ⇀ T that is functional, has finite domain, and has common depth m ≥ 2 on its domain; in particular `M(d_s)\|⟦σ⟧` inherits these from S2, S8-fin, and S8-depth (with m ≥ 2 from the content reference precondition) via C0a | introduced |
+| C1b | ResolutionSequenceOrder: list-position index i < j in resolve(d_s, σ) iff the underlying blocks satisfy vᵢ < vⱼ; claim is about list positions, not I-address values | introduced |
 | C1 | ResolutionIntegrity: every resolved I-address is in dom(C) | introduced |
 | C2 | ResolutionWidthPreservation: total resolved width equals ordinal displacement — w(resolve(d_s, σ)) = ℓₘ | introduced |
 
