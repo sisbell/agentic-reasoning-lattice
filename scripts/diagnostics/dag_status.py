@@ -122,6 +122,25 @@ def _note_addr_for(session, asn: str):
     return None
 
 
+def _note_title_for(asn: str) -> str:
+    """Read the first H1 from the ASN's note file on disk. Strips the
+    `ASN-NNNN:` prefix when present. Empty string if file missing.
+    """
+    matches = glob(f"_docuverse/documents/**/note/{asn}-*.md", recursive=True)
+    matches = [m for m in matches if ".statements.md" not in m and ".motif." not in m]
+    if not matches:
+        return ""
+    try:
+        with open(matches[0]) as f:
+            first_line = f.readline().strip()
+    except OSError:
+        return ""
+    # Strip leading "# " and any "ASN-NNNN:" prefix
+    title = re.sub(r"^#+\s*", "", first_line)
+    title = re.sub(r"^ASN-\d{4}\s*[:\-]\s*", "", title)
+    return title
+
+
 def _print_partitions(order: list[str], states: dict[str, str], n_workers: int) -> None:
     """Show how the topo-sorted ASN list would split across N workers
     using a round-robin partition. Round-robin spreads workload across
@@ -163,10 +182,14 @@ def main() -> int:
     states: dict[str, str] = {}
     with open_session(LATTICE) as session:
         order, deps_map = _topo_sorted(session)
-        print(f"{'#':<4}{'ASN':<10}{'deps':<32}{'state':<14}  next-trigger(s)")
-        print("─" * 95)
+        print(f"{'#':<4}{'ASN':<10}{'title':<32}{'deps':<32}{'state':<12}  next-trigger(s)")
+        print("─" * 130)
         for i, asn in enumerate(order, 1):
             note_addr = _note_addr_for(session, asn)
+            title = _note_title_for(asn)
+            # Truncate long titles to keep the table aligned
+            if len(title) > 30:
+                title = title[:29] + "…"
             dep_str = ",".join(d.replace("ASN-", "") for d in sorted(deps_map.get(asn, set()))) or "(none)"
 
             if note_addr is None:
@@ -191,7 +214,7 @@ def main() -> int:
                     next_trigger = ", ".join(fires)
 
             states[asn] = state_label
-            print(f"{i:<4}{asn:<10}{dep_str:<32}{state_label:<14}  {next_trigger}")
+            print(f"{i:<4}{asn:<10}{title:<32}{dep_str:<32}{state_label:<12}  {next_trigger}")
 
     print()
     print(f"  {len(order)} active notes in DAG walk order.")
