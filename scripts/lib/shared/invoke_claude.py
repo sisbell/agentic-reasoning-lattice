@@ -161,6 +161,34 @@ def _pause_account(config_dir, cooldown=_QUOTA_COOLDOWN_SECONDS):
     )
 
 
+def _is_overloaded_error(data):
+    """True iff the JSON response indicates Anthropic API overload.
+
+    Status 529 with `overloaded_error` type. Transient global capacity
+    issue, NOT account-specific — switching accounts doesn't help;
+    waiting does.
+    """
+    if not isinstance(data, dict) or not data.get("is_error"):
+        return False
+    if data.get("api_error_status") == 529:
+        return True
+    msg = (data.get("result") or "").lower()
+    return "overloaded" in msg
+
+
+def _is_overloaded_signal(text):
+    """True iff raw subprocess output contains an overload signature.
+
+    Used when claude -p exits non-zero and prefixes the error to stdout
+    rather than returning a structured JSON envelope (e.g.,
+    `API Error: 529 {"type":"error","error":{"type":"overloaded_error"...`).
+    """
+    if not text:
+        return False
+    text_lower = text.lower()
+    return ("overloaded" in text_lower) or ("529" in text_lower)
+
+
 def _is_quota_error(data):
     """True iff the JSON response looks like an account-quota error.
 
@@ -315,6 +343,16 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
         last_elapsed = elapsed
 
         if result.returncode != 0:
+            combined = (result.stderr or "") + " " + (result.stdout or "")
+            if _is_overloaded_signal(combined) and attempt < max_attempts - 1:
+                delay = min(60 * (2 ** attempt), 600)
+                print(
+                    f"  [OVERLOADED] API capacity (exit {result.returncode}); "
+                    f"sleeping {delay}s before retry",
+                    file=sys.stderr,
+                )
+                time.sleep(delay)
+                continue
             print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
                   file=sys.stderr)
             if result.stderr:
@@ -332,6 +370,18 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
             data = json.loads(result.stdout)
         except (json.JSONDecodeError, KeyError):
             return Result(text=result.stdout.strip(), elapsed=elapsed, ok=True)
+
+        if _is_overloaded_error(data):
+            if attempt < max_attempts - 1:
+                delay = min(60 * (2 ** attempt), 600)
+                print(
+                    f"  [OVERLOADED] API capacity (JSON); "
+                    f"sleeping {delay}s before retry",
+                    file=sys.stderr,
+                )
+                time.sleep(delay)
+                continue
+            return Result(data=data, elapsed=elapsed)
 
         if _is_quota_error(data):
             if config_dir:
@@ -437,6 +487,16 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
         last_elapsed = elapsed
 
         if result.returncode != 0:
+            combined = (result.stderr or "") + " " + (result.stdout or "")
+            if _is_overloaded_signal(combined) and attempt < max_attempts - 1:
+                delay = min(60 * (2 ** attempt), 600)
+                print(
+                    f"  [OVERLOADED] API capacity (exit {result.returncode}); "
+                    f"sleeping {delay}s before retry",
+                    file=sys.stderr,
+                )
+                time.sleep(delay)
+                continue
             print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
                   file=sys.stderr)
             if result.stderr:
@@ -449,6 +509,18 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
         except (json.JSONDecodeError, KeyError):
             print(f"  [{elapsed:.0f}s] [parse error]", file=sys.stderr)
             return Result(elapsed=elapsed)
+
+        if _is_overloaded_error(data):
+            if attempt < max_attempts - 1:
+                delay = min(60 * (2 ** attempt), 600)
+                print(
+                    f"  [OVERLOADED] API capacity (JSON); "
+                    f"sleeping {delay}s before retry",
+                    file=sys.stderr,
+                )
+                time.sleep(delay)
+                continue
+            return Result(data=data, elapsed=elapsed)
 
         if _is_quota_error(data):
             if config_dir:
