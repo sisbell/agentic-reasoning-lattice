@@ -1,4 +1,4 @@
-# ASN-0058: Bundle Algebra
+# ASN-0058: Mapping Block Algebra
 
 *2026-03-20, revised 2026-03-22*
 
@@ -402,7 +402,7 @@ For `k ≥ 1`, we secure T4-validity of `a` and locate the document prefix stric
 
 By S7b (ElementLevelIAddresses, ASN-0036), `zeros(a) = 3`, structurally decomposing `a` into a document prefix `N.0.U.0.D` followed by the separator zero and the element field `E(a)`, with `#a = #(N.0.U.0.D) + 1 + #E(a)` (the `+1` accounts for the separator zero between `D` and `E`). S7c (ElementFieldDepth, ASN-0036) gives `#E(a) ≥ 2`, so `#(N.0.U.0.D) = #a − #E(a) − 1 ≤ #a − 3` — every index of the document prefix lies strictly below the action point `#a`. Each of `N`, `U`, `D` contributes at least one component, so `#(N.0.U.0.D) ≥ 5` (three nonzero fields, two separator zeros between them); combined with the element field's `#E(a) ≥ 2` and one separator, this yields `#a ≥ 5 + 1 + 2 = 8`.
 
-The shift `a + k = a ⊕ δ(k, #a)` has action point `#a`. By TumblerAdd (ASN-0034), every component at indices `i < #a` is copied unchanged from `a` to `a + k`, including the entire document prefix `N.0.U.0.D`. Therefore `origin(a + k) = origin(a)`. ∎
+The shift `a + k = a ⊕ δ(k, #a)` has action point `#a`. To invoke `origin(a + k)` we must first establish that `a + k` lies in `origin`'s domain — S7 requires T4-validity (so T4b's `N`, `U`, `D` projections are defined) and `zeros = 3` (so the document prefix has the form S7b describes). ShiftPreservation (ASN-0036), applied with `a ∈ dom(C)` and `k ≥ 1` (both in force), discharges both: clause (ii) gives that `a + k` is T4-valid, and clause (i) gives `zeros(a + k) = 3`. By TumblerAdd (ASN-0034), every component at indices `i < #a` is copied unchanged from `a` to `a + k`, including the entire document prefix `N.0.U.0.D`. Therefore `origin(a + k) = N.0.U.0.D = origin(a)`. ∎
 
 This is the load-bearing fact that M16 and M6(d) both turn on: ordinal increment never crosses an origin boundary, because the document prefix lies strictly below the action point.
 
