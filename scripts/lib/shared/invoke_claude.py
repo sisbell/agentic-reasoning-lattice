@@ -189,6 +189,23 @@ def _is_overloaded_signal(text):
     return ("overloaded" in text_lower) or ("529" in text_lower)
 
 
+def _is_quota_signal(text):
+    """True iff raw subprocess output contains an account-quota signature.
+
+    Fallback for when claude -p exits non-zero without emitting a parseable
+    JSON envelope (e.g., output_format != "json", or truncated output).
+    Mirrors `_is_overloaded_signal` for quota errors.
+    """
+    if not text:
+        return False
+    text_lower = text.lower()
+    return any(
+        s in text_lower for s in
+        ("rate limit", "quota", "weekly", "5-hour", "5 hour",
+         "hit your limit", "429")
+    )
+
+
 def _is_quota_error(data):
     """True iff the JSON response looks like an account-quota error.
 
@@ -342,6 +359,50 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
         elapsed = time.time() - start
         last_elapsed = elapsed
 
+        # claude -p emits structured JSON envelopes (api_error_status,
+        # is_error) with exit=1 for quota/overload responses. Parse the
+        # envelope before treating non-zero exit as fatal — the JSON is
+        # the source of truth when --output-format json was requested.
+        data = None
+        if output_format == "json":
+            try:
+                data = json.loads(result.stdout)
+            except (json.JSONDecodeError, ValueError):
+                data = None
+
+        if data is not None:
+            if _is_overloaded_error(data):
+                if attempt < max_attempts - 1:
+                    delay = min(60 * (2 ** attempt), 600)
+                    print(
+                        f"  [OVERLOADED] API capacity (JSON); "
+                        f"sleeping {delay}s before retry",
+                        file=sys.stderr,
+                    )
+                    time.sleep(delay)
+                    continue
+                return Result(data=data, elapsed=elapsed)
+
+            if _is_quota_error(data):
+                if config_dir:
+                    _pause_account(config_dir)
+                if has_rotation and attempt < max_attempts - 1:
+                    continue
+                return Result(data=data, elapsed=elapsed)
+
+            if data.get("is_error"):
+                print(f"  FAILED (is_error in JSON, {elapsed:.0f}s)", file=sys.stderr)
+                print(f"    api_error_status: {data.get('api_error_status')}", file=sys.stderr)
+                print(f"    result: {str(data.get('result', ''))[:300]}", file=sys.stderr)
+                return Result(data=data, elapsed=elapsed)
+
+            result_obj = _result_from_json(data, elapsed)
+            _record_call_cost(config_dir, result_obj.cost)
+            return result_obj
+
+        # No parseable JSON envelope. Fall back to exit-code + text-signal
+        # handling (covers truly-broken subprocesses, non-JSON output_format,
+        # and edge cases where claude emits plain text on failure).
         if result.returncode != 0:
             combined = (result.stderr or "") + " " + (result.stdout or "")
             if _is_overloaded_signal(combined) and attempt < max_attempts - 1:
@@ -353,6 +414,12 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
                 )
                 time.sleep(delay)
                 continue
+            if _is_quota_signal(combined):
+                if config_dir:
+                    _pause_account(config_dir)
+                if has_rotation and attempt < max_attempts - 1:
+                    continue
+                return Result(elapsed=elapsed)
             print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
                   file=sys.stderr)
             if result.stderr:
@@ -363,41 +430,8 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
                     print(f"    stdout: {line[:300]}", file=sys.stderr)
             return Result(elapsed=elapsed)
 
-        if output_format != "json":
-            return Result(text=result.stdout.strip(), elapsed=elapsed, ok=True)
-
-        try:
-            data = json.loads(result.stdout)
-        except (json.JSONDecodeError, KeyError):
-            return Result(text=result.stdout.strip(), elapsed=elapsed, ok=True)
-
-        if _is_overloaded_error(data):
-            if attempt < max_attempts - 1:
-                delay = min(60 * (2 ** attempt), 600)
-                print(
-                    f"  [OVERLOADED] API capacity (JSON); "
-                    f"sleeping {delay}s before retry",
-                    file=sys.stderr,
-                )
-                time.sleep(delay)
-                continue
-            return Result(data=data, elapsed=elapsed)
-
-        if _is_quota_error(data):
-            if config_dir:
-                _pause_account(config_dir)
-            if has_rotation and attempt < max_attempts - 1:
-                continue
-            return Result(data=data, elapsed=elapsed)
-
-        if data.get("is_error"):
-            print(f"  FAILED (is_error in JSON, {elapsed:.0f}s)", file=sys.stderr)
-            print(f"    api_error_status: {data.get('api_error_status')}", file=sys.stderr)
-            print(f"    result: {str(data.get('result', ''))[:300]}", file=sys.stderr)
-            return Result(data=data, elapsed=elapsed)
-        result_obj = _result_from_json(data, elapsed)
-        _record_call_cost(config_dir, result_obj.cost)
-        return result_obj
+        # exit==0 + non-JSON output (output_format != "json").
+        return Result(text=result.stdout.strip(), elapsed=elapsed, ok=True)
 
     print(f"  FAILED (quota exhausted on all accounts after {max_attempts} attempts)",
           file=sys.stderr)
@@ -486,6 +520,42 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
         elapsed = time.time() - start
         last_elapsed = elapsed
 
+        # claude -p emits structured JSON envelopes (api_error_status,
+        # is_error) with exit=1 for quota/overload responses. Parse the
+        # envelope before treating non-zero exit as fatal — the JSON is
+        # the source of truth.
+        data = None
+        try:
+            data = json.loads(result.stdout)
+        except (json.JSONDecodeError, ValueError):
+            data = None
+
+        if data is not None:
+            if _is_overloaded_error(data):
+                if attempt < max_attempts - 1:
+                    delay = min(60 * (2 ** attempt), 600)
+                    print(
+                        f"  [OVERLOADED] API capacity (JSON); "
+                        f"sleeping {delay}s before retry",
+                        file=sys.stderr,
+                    )
+                    time.sleep(delay)
+                    continue
+                return Result(data=data, elapsed=elapsed)
+
+            if _is_quota_error(data):
+                if config_dir:
+                    _pause_account(config_dir)
+                if has_rotation and attempt < max_attempts - 1:
+                    continue
+                return Result(data=data, elapsed=elapsed)
+
+            result_obj = _result_from_json(data, elapsed)
+            _record_call_cost(config_dir, result_obj.cost)
+            return result_obj
+
+        # No parseable JSON envelope. Fall back to exit-code + text-signal
+        # handling.
         if result.returncode != 0:
             combined = (result.stderr or "") + " " + (result.stdout or "")
             if _is_overloaded_signal(combined) and attempt < max_attempts - 1:
@@ -497,6 +567,12 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
                 )
                 time.sleep(delay)
                 continue
+            if _is_quota_signal(combined):
+                if config_dir:
+                    _pause_account(config_dir)
+                if has_rotation and attempt < max_attempts - 1:
+                    continue
+                return Result(elapsed=elapsed)
             print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
                   file=sys.stderr)
             if result.stderr:
@@ -504,34 +580,9 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
                     print(f"    {line}", file=sys.stderr)
             return Result(elapsed=elapsed)
 
-        try:
-            data = json.loads(result.stdout)
-        except (json.JSONDecodeError, KeyError):
-            print(f"  [{elapsed:.0f}s] [parse error]", file=sys.stderr)
-            return Result(elapsed=elapsed)
-
-        if _is_overloaded_error(data):
-            if attempt < max_attempts - 1:
-                delay = min(60 * (2 ** attempt), 600)
-                print(
-                    f"  [OVERLOADED] API capacity (JSON); "
-                    f"sleeping {delay}s before retry",
-                    file=sys.stderr,
-                )
-                time.sleep(delay)
-                continue
-            return Result(data=data, elapsed=elapsed)
-
-        if _is_quota_error(data):
-            if config_dir:
-                _pause_account(config_dir)
-            if has_rotation and attempt < max_attempts - 1:
-                continue
-            return Result(data=data, elapsed=elapsed)
-
-        result_obj = _result_from_json(data, elapsed)
-        _record_call_cost(config_dir, result_obj.cost)
-        return result_obj
+        # exit==0 but stdout wasn't JSON — agent mode always expects JSON.
+        print(f"  [{elapsed:.0f}s] [parse error]", file=sys.stderr)
+        return Result(elapsed=elapsed)
 
     print(f"  FAILED (quota exhausted on all accounts after {max_attempts} attempts)",
           file=sys.stderr)
