@@ -335,14 +335,6 @@ At depth `#p > 2`, constraints (i), (ii), and (iv) interact obstructively. Const
 
 The insertion proof of I3, by contrast, never invokes TA4: it relies only on TumblerAdd's prefix-copy behavior, which copies any prefix positions (zero or nonzero) unchanged, with no structural precondition on the prefix. The two proofs use different arithmetic primitives with different preconditions, and the asymmetry is in those primitives. Deeper-depth contraction would require either a strengthened TA4 (admitting non-zero prefixes when the action point matches #a, which is not the lemma proved in ASN-0034) or a separate derivation of the partial-inverse identity from first principles using TumblerAdd and TumblerSub directly — substantive new analysis whose proof obligations are not discharged here.
 
-*Historical notes.* The mathematical necessity above stands independently of the following observations about Xanadu's design and implementation, which are recorded for context only and do not bear on the proof.
-
-- *Design intent.* In Literary Machines, DELETEVSPAN is defined on byte-stream spans — sequences of bytes in a document's virtual byte stream (LM 4/11, 4/66). The "vspan" prefix on the operation name binds DELETE to the byte subspace, which corresponds to depth-2 ordinal V-positions in this formalism. Companion operations — INSERT shifting byte positions (LM 4/66), REARRANGE on regions of text (LM 4/67) — all operate at byte granularity within a single subspace. Hierarchical or cross-subspace contraction is not part of the FEBE operation set.
-
-- *Implementation reality.* In udanax-green, V-space addresses are hardcoded to two depths: depth-1 for text content (`mantissa[1] == 0`, `is1story(width)`) and depth-2 `N.1` for link endpoints (`setlinkvsas` at do2.c:169–183 always produces depth-2 tumblers). The two-blade knife mechanism (`findaddressofsecondcutforinsert`) computes the second blade as `(N+1).1` — a depth-2 address — regardless of insertion-point complexity, and `retrievevspansetpm` strips the second story unconditionally (correct only for depth 2). No code path constructs or contracts V-addresses at depth > 2; the `beheadtumbler` operation is applied only to depth-2 inputs and has no iteration mechanism for deeper addresses.
-
-These historical notes establish that the depth-2 restriction has been the operational scope of the contraction operation in Xanadu since Literary Machines. They do not contribute to the necessity argument — even if the design and implementation had targeted deeper ordinals, the TA4 obstruction would force the same depth-2 scope on the proof until a separate derivation is available.
-
 A contraction takes a document d and a contraction span (p, w) within the text subspace (S = 1, by the subspace scoping axiom) specifying the contiguous range of V-positions to remove. Let r = p ⊕ w denote the right cut point — the exclusive upper bound of the contraction.
 
 **Contraction formal contract.**
