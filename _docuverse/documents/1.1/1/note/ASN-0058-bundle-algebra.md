@@ -124,7 +124,7 @@ B1 and B2 together assert that the V-extents partition `dom(M(d))`. B3 asserts t
 - *Prefix agreement* — `(y)_j = (x)_j` for all `1 ≤ j < m`;
 - *Component-`m` reduction* — `y = x + k` where `k = (y)_m − (x)_m` and `0 ≤ k < n`.
 
-The lemma uses only S8a, S8-depth (ASN-0036), TumblerAdd, T1, and OrdinalShiftBase (ASN-0034); no block-decomposition fact (B1, B2, B3, M0, ...) is invoked, so M-int is available wherever its premises hold.
+The lemma uses S8a, S8-depth (ASN-0036), TumblerAdd, T1, T3, and OrdinalShiftBase (ASN-0034); no block-decomposition fact (B1, B2, B3, M0, ...) is invoked, so M-int is available wherever its premises hold. T3 (CanonicalRepresentation) is what licenses the final "hence `y = x + k`" step in the Component-`m` reduction below: two depth-`m` tumblers agreeing componentwise are equal.
 
 *Proof.* By S8a (ASN-0036), `#x ≥ 2`; let `m = #x`. With `n ≥ 1` and `m ≥ 2`, the action point of `δ(n, m)` is at index `m`, so TumblerAdd (ASN-0034) gives `(x + n)_i = (x)_i` for all `i < m` and `(x + n)_m = (x)_m + n`.
 
@@ -199,7 +199,7 @@ What does each piece preserve? Nelson states the principle directly: "splitting 
 
 (c) *I-address fidelity.* For every pair `(v + k, a + k)` in `⟦β⟧`, the same pair appears in exactly one of `⟦β_L⟧` or `⟦β_R⟧`. No I-address is altered, dropped, or duplicated. This is M5 restated.
 
-(d) *Origin traceability.* When `β` belongs to a decomposition of `M(d)`, B3 (Consistency) gives `a = M(d)(v)` and S3 (ReferentialIntegrity, ASN-0036) gives `a ∈ dom(C)`. M16a (OriginInvarianceUnderShift, below) then gives `origin(a + k) = origin(a)` for every `0 ≤ k < n` — the document prefix lies strictly below the action point of every ordinal shift, so I-addresses cannot cross origin boundaries under shift. Since the split alters no I-address, each piece independently identifies the home document of its content.
+(d) *Origin traceability.* When `β` belongs to a decomposition of `M(d)`, B3 (Consistency) gives `M(d)(v + k) = a + k` for every `0 ≤ k < n`, and S3 (ReferentialIntegrity, ASN-0036) gives `a + k ∈ dom(C)` for the same range — discharging M16a's precondition for each `k`. M16a (OriginInvarianceUnderShift, below) then gives `origin(a + k) = origin(a)` for every `0 ≤ k < n` — the document prefix lies strictly below the action point of every ordinal shift, so I-addresses cannot cross origin boundaries under shift. Since the split alters no I-address, each piece independently identifies the home document of its content.
 
 (e) *Structural independence.* Each piece is a self-contained mapping block whose well-formedness depends only on its own `(v, a, n)` triple — not on external state, not on the existence of the other piece.
 
@@ -318,7 +318,15 @@ The proof factors into two sub-lemmas: M12a (maximal runs partition `dom(f)`) an
 
 *Equal widths.* By NAT-order trichotomy on `(n₁, n₂)`, exactly one of `n₁ < n₂`, `n₁ = n₂`, or `n₂ < n₁` holds. Suppose `n₁ < n₂`. Then `v₁ + n₁ ∈ V(R₂)` (at offset `n₁ < n₂` from `v₂ = v₁`), so `v₁ + n₁ ∈ dom(f)` and `f(v₁ + n₁) = a₂ + n₁ = a₁ + n₁` by condition 1 of `R₂`. But condition 3 of `R₁` requires `v₁ + n₁ ∉ dom(f) ∨ f(v₁ + n₁) ≠ a₁ + n₁` — contradiction. The symmetric case `n₂ < n₁` contradicts condition 3 of `R₂` by the same argument (with `R₁` supplying the right-witness). The surviving case is `n₁ = n₂`, giving `(v₁, a₁, n₁) = (v₂, a₂, n₂)`. ∎
 
-*Partition corollary.* Every `v ∈ dom(f)` belongs to at least one maximal run (start with the trivial run `(v, f(v), 1)` and extend in both directions until conditions 2 and 3 hold; termination by finiteness of `dom(f)`); by M12a, to at most one. So the set of maximal runs partitions `dom(f)` and is uniquely determined by `f`.
+*Partition corollary.* Every `v ∈ dom(f)` belongs to at least one maximal run. Start with the trivial run `R₀ = (v, f(v), 1)`, which satisfies condition 1: at `k = 0`, `f(v + 0) = f(v) = a + 0` (using OrdinalShiftBase). Extend in two phases.
+
+*Right-extension phase.* Given a run `R = (v_R, a_R, n)` satisfying condition 1, test condition 3: is `v_R + n ∉ dom(f)` or `f(v_R + n) ≠ a_R + n`? If yes, stop (condition 3 now holds for `R`). Otherwise — `v_R + n ∈ dom(f)` and `f(v_R + n) = a_R + n` — replace `R` by `R' = (v_R, a_R, n + 1)`. Condition 1 is preserved: it held at `0 ≤ k < n` in `R`, and the new index `k = n` is exactly what the test verified. `V(R') = V(R) ∪ {v_R + n} ⊋ V(R)`.
+
+*Left-extension phase.* Given a run `R = (v_R, a_R, n)` satisfying conditions 1 and 3, test condition 2: does some `v' ∈ dom(f)` satisfy `v' + 1 = v_R` and `f(v') + 1 = a_R`? If no such `v'` exists, stop (condition 2 holds for `R`). Otherwise replace `R` by `R' = (v', f(v'), n + 1)` — note this uses TumblerAdd only (we never decrement). Condition 1 is preserved: at `k = 0`, `f(v') = a_{R'}` directly; for `1 ≤ k < n + 1`, M-aux gives `v' + k = (v' + 1) + (k − 1) = v_R + (k − 1)`, and `R`'s condition 1 at index `k − 1` gives `f(v_R + (k − 1)) = a_R + (k − 1) = (f(v') + 1) + (k − 1) = a_{R'} + k`. Condition 3 is preserved: by M-aux, `v' + (n + 1) = (v' + 1) + n = v_R + n`, and `a_{R'} + (n + 1) = f(v') + (n + 1) = (f(v') + 1) + n = a_R + n`, so the boundary test on `R'` matches the (already-verified) boundary test on `R`. `V(R')` adds `v'`, which is distinct from every `v_R + k` (`k ≥ 0`) by T1(i) strict ordering: `v' < v' + 1 = v_R ≤ v_R + k`.
+
+*Termination.* By S8-fin (ASN-0036), `dom(M(d))` is finite, hence `dom(f) ⊆ dom(M(d))` is finite. Each extension step strictly enlarges `V(R) ⊆ dom(f)` by one element, so each phase terminates after at most `|dom(f)|` steps. The resulting run `R*` satisfies conditions 1, 2, and 3 — a maximal run with `v ∈ V(R₀) ⊆ V(R*)`.
+
+By M12a, `v` belongs to at most one maximal run. So the set of maximal runs partitions `dom(f)` and is uniquely determined by `f`.
 
 **M12b (NoExtensionInMaximallyMerged).** Let `B` be a maximally merged decomposition of `M(d)`. Every block `β = (v, a, n) ∈ B` satisfies conditions 2 and 3 of being a maximal run of `f = M(d)`: it cannot be left-extended or right-extended in `f`.
 
@@ -415,17 +423,17 @@ If deletion — the most destructive arrangement operation — cannot affect oth
 
 The merge condition (M7) interacts naturally with the tumbler address structure. We first establish a lemma about origin invariance under ordinal shift; the cross-origin merge impossibility then follows as a corollary.
 
-**M16a (OriginInvarianceUnderShift).** For any `a ∈ dom(C)` and any `k ≥ 0`:
+**M16a (OriginInvarianceUnderShift).** For any `a ∈ dom(C)` and any `k ≥ 0` with `a + k ∈ dom(C)`:
 
 `origin(a + k) = origin(a)`
 
+The precondition `a + k ∈ dom(C)` is what places `a + k` in `origin`'s domain — S7 (ASN-0036) defines `origin` on `dom(C)` exactly. Use sites discharge it from local hypotheses (M16: `a + n₁ = a₂ ∈ dom(C)` from the M16 statement; M6(d): `a + k ∈ I(β) ⊆ dom(C)` by B3 + S3).
+
 *Proof.* At `k = 0`, `a + 0 = a` by OrdinalShiftBase, so the equality is immediate.
 
-For `k ≥ 1`, we secure T4-validity of `a` and locate the document prefix strictly below `#a`. S7b (ElementLevelIAddresses, ASN-0036) supplies the T4b projections `N(a)`, `U(a)`, `D(a)` for every `a ∈ dom(C)` — its postcondition references these projections to specify the document prefix `N.0.U.0.D`. Since T4b (UniqueParse, ASN-0034) is defined exactly on the T4-valid subset of T, the existence of these projections on `a` witnesses `a`'s membership in T4b's domain, giving T4-validity directly. Hence T4(i)–(iv) apply to `a` with no detour through the T10a allocator-tree closure.
+For `k ≥ 1`: S7b (ElementLevelIAddresses, ASN-0036) applied to `a ∈ dom(C)` gives `zeros(a) = 3`, structurally decomposing `a` into a document prefix `N(a).0.U(a).0.D(a)` followed by the separator zero and the element field `E(a)`, with `#a = #(N(a).0.U(a).0.D(a)) + 1 + #E(a)` (the `+1` accounts for the separator zero between `D` and `E`). S7c (ElementFieldDepth, ASN-0036) gives `#E(a) ≥ 2`, so `#(N(a).0.U(a).0.D(a)) = #a − #E(a) − 1 ≤ #a − 3` — every index of the document prefix lies strictly below the action point `#a`. Each of `N`, `U`, `D` contributes at least one component, so `#(N(a).0.U(a).0.D(a)) ≥ 5` (three nonzero fields, two separator zeros between them); combined with the element field's `#E(a) ≥ 2` and one separator, this yields `#a ≥ 5 + 1 + 2 = 8`.
 
-By S7b (ElementLevelIAddresses, ASN-0036), `zeros(a) = 3`, structurally decomposing `a` into a document prefix `N.0.U.0.D` followed by the separator zero and the element field `E(a)`, with `#a = #(N.0.U.0.D) + 1 + #E(a)` (the `+1` accounts for the separator zero between `D` and `E`). S7c (ElementFieldDepth, ASN-0036) gives `#E(a) ≥ 2`, so `#(N.0.U.0.D) = #a − #E(a) − 1 ≤ #a − 3` — every index of the document prefix lies strictly below the action point `#a`. Each of `N`, `U`, `D` contributes at least one component, so `#(N.0.U.0.D) ≥ 5` (three nonzero fields, two separator zeros between them); combined with the element field's `#E(a) ≥ 2` and one separator, this yields `#a ≥ 5 + 1 + 2 = 8`.
-
-The shift `a + k = a ⊕ δ(k, #a)` has action point `#a`. To invoke `origin(a + k)` we must first establish that `a + k` lies in `origin`'s domain — S7 requires T4-validity (so T4b's `N`, `U`, `D` projections are defined) and `zeros = 3` (so the document prefix has the form S7b describes). ShiftPreservation (ASN-0036), applied with `a ∈ dom(C)` and `k ≥ 1` (both in force), discharges both: clause (ii) gives that `a + k` is T4-valid, and clause (i) gives `zeros(a + k) = 3`. By TumblerAdd (ASN-0034), every component at indices `i < #a` is copied unchanged from `a` to `a + k`, including the entire document prefix `N.0.U.0.D`. Therefore `origin(a + k) = N.0.U.0.D = origin(a)`. ∎
+The shift `a + k = a ⊕ δ(k, #a)` has action point `#a`. By TumblerAdd (ASN-0034), every component at indices `i < #a` is copied unchanged from `a` to `a + k`, including the entire document prefix and its two separator zeros. S7b applied to `a + k ∈ dom(C)` (the precondition) gives the analogous structural decomposition `a + k = N(a+k).0.U(a+k).0.D(a+k).0.E(a+k)` with `zeros(a + k) = 3`. The document prefix is identified structurally as the segment up to and including the third separator zero; since this segment lies entirely at indices `< #a` (by the bound above on `a`'s prefix length, mirrored by S7b on `a + k`) and TumblerAdd preserves all such components, the prefix of `a + k` agrees componentwise with the prefix of `a`. By T3 (CanonicalRepresentation, ASN-0034), componentwise agreement of equal-depth tumblers gives equality: `N(a+k).0.U(a+k).0.D(a+k) = N(a).0.U(a).0.D(a)`. Therefore `origin(a + k) = origin(a)`. ∎
 
 This is the load-bearing fact that M16 and M6(d) both turn on: ordinal increment never crosses an origin boundary, because the document prefix lies strictly below the action point.
 
@@ -433,7 +441,7 @@ This is the load-bearing fact that M16 and M6(d) both turn on: ordinal increment
 
 `(A β₁, β₂ : a₁, a₂ ∈ dom(C) ∧ origin(a₁) ≠ origin(a₂) : ¬(a₂ = a₁ + n₁))`
 
-*Proof.* M0 (WidthCoupling) gives `n₁ ≥ 1`. By M16a applied to `a₁` with `k = n₁`, `origin(a₁ + n₁) = origin(a₁)`. Since `origin` is a function on tumblers, equal tumblers have equal origins; by contrapositive, different origins imply different tumblers. Given `origin(a₂) ≠ origin(a₁) = origin(a₁ + n₁)`, we conclude `a₂ ≠ a₁ + n₁`. ∎
+*Proof.* M0 (WidthCoupling) gives `n₁ ≥ 1`. Suppose for contradiction `a₂ = a₁ + n₁`. Then `a₁ + n₁ = a₂ ∈ dom(C)` (by hypothesis on `β₂`), discharging M16a's precondition. M16a applied to `a₁` with `k = n₁` gives `origin(a₁ + n₁) = origin(a₁)`, hence `origin(a₂) = origin(a₁)` — contradicting the hypothesis `origin(a₁) ≠ origin(a₂)`. So `a₂ ≠ a₁ + n₁`. ∎
 
 The cross-origin merge impossibility above is not an additional constraint imposed on the merge — it is a consequence of I-adjacency and the invariance of document origin under ordinal increment. Gregory's implementation includes an explicit `homedoc` guard as the first check in `isanextensionnd` — a cheap discriminant that avoids full I-address comparison. At the abstract level, the guard is redundant: the contrapositive of origin equality already prevents cross-origin I-adjacency. But its presence in the implementation reflects the abstract property and provides an efficient short-circuit.
 
@@ -570,7 +578,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | M14 | IndependentOccurrences: blocks sharing I-extent at distinct V-positions are independent and unmergeable | introduced |
 | M15 | MappingIndependence: each document's block decomposition is independent of every other document's | introduced |
 | M16 | CrossOriginMergeImpossibility: blocks whose I-addresses originate from different documents cannot satisfy I-adjacency | introduced |
-| M16a | OriginInvarianceUnderShift: for `a ∈ dom(C)` and `k ≥ 0`, `origin(a + k) = origin(a)` — ordinal increment never crosses the document prefix | introduced |
+| M16a | OriginInvarianceUnderShift: for `a ∈ dom(C)` and `k ≥ 0` with `a + k ∈ dom(C)`, `origin(a + k) = origin(a)` — ordinal increment never crosses the document prefix | introduced |
 | B1 | Coverage: blocks in a decomposition partition `dom(M(d))` (every V-position in every subspace) | introduced |
 | B2 | Disjointness: no two blocks share a V-position | introduced |
 | B3 | Consistency: each block correctly describes `M(d)` | introduced |
