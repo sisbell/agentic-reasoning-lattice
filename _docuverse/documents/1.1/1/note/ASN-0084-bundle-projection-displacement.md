@@ -270,9 +270,9 @@ The swap postcondition preserves dom(M(d)) (R-SWP), preserves C (R-FRAME-S(c)), 
 We observe the structural relationship between the two forms: the 4-cut postcondition formulas (R-S1, R-S2, R-S3) reduce to the 3-cut formulas (R-P1, R-P2) when w_μ is set to zero in the expressions — R-S2 vanishes, and R-S3 becomes R-P2. However, the preconditions prevent this degenerate case from arising: CS2 requires c₁ < c₂, so w_μ ≥ 1. The two forms are distinct primitives. The 3-cut pivot transposes two *adjacent* regions; the 4-cut swap transposes two regions separated by at least one middle position.
 
 
-## Weakest-Precondition Computation
+## Sufficient Precondition
 
-**R-WP — RearrangeWeakestPrecondition (LEMMA).** *Label convention.* In R-WP and its proof, *S8a* (without parenthesized clause) denotes ASN-0036's S8a (VPositionWellFormedness); *S8(a)* and *S8(b)* (with parenthesized clauses) denote clauses (a) and (b) of ASN-0036's S8 (SpanDecomposition). Let Q be the post-condition
+**R-WP — RearrangeSufficientPrecondition (LEMMA).** *Label convention.* The label R-WP is retained as a stable identifier. The lemma establishes sufficiency only (one direction, ⇐): the conjunction below is sufficient for the post-state predicate, not necessarily equivalent to the weakest precondition. In R-WP and its proof, *S8a* (without parenthesized clause) denotes ASN-0036's S8a (VPositionWellFormedness); *S8(a)* and *S8(b)* (with parenthesized clauses) denote clauses (a) and (b) of ASN-0036's S8 (SpanDecomposition). Let Q be the post-condition
 
 > *M'(d) satisfies every ASN-0036 invariant carried by an arrangement transition — S0, S1, S2, S3, S4, S5, S7a, S7b, S7c, S7d, S9, D-CTG, D-CTG-depth, D-MIN, D-SEQ, S8a (VPositionWellFormedness), S8-fin, S8-depth, and S8 (SpanDecomposition) with its clauses S8(a) (uniqueness of containing run) and S8(b) (consistency under M'(d)) — with the constructive witness B' = R-BLK(B) discharging the S8 existence clause: a correspondence-run partition of dom(M'(d)) under M'(d) obtained from the pre-state partition B of dom(M(d)) via Phases 1–3 on the V_S(d) portion (the runs in dom(M(d)) \ V_S(d), preserved pointwise by R-FRAME-P(a)/R-FRAME-S(a), carry over unchanged into B').*
 
@@ -299,11 +299,11 @@ i.e., R-PRE on the cut sequence C, the full ASN-0036 invariant suite on the pre-
 *S8(a), S8(b) via B' = R-BLK(B).* R-BLK constructs B' from B via Phases 1–3 under R-PRE; we verify both S8 clauses (a) and (b) on the construction. The verification handles V-positions in V_S(d) (the subspace REARRANGE acts on) and V-positions in subspaces other than S separately.
 
 - *S8(a) (uniqueness of containing run).* *Subspace-S case.* π is a bijection on V_S(d) (R-PPERM/R-SPERM restricted to V_S(d)). Phase 1 produces a partition of V_S(d) (each split preserves coverage and disjointness, by Split's V-extent decomposition); Phase 2 attaches a region label to each run without altering V-extents; Phase 3 applies π to V-starts only, preserving widths. The image of a partition of V_S(d) under a bijection is again a partition of V_S(d) (disjointness from injectivity; coverage from surjectivity), so the V-extents of the reassembled runs are pairwise disjoint and cover V_S(d). Hence for each v ∈ V_S(d), exactly one such run contains v. *Non-S-subspace case.* Runs in B whose V-extent lies in some subspace S' ≠ S are carried verbatim into B' by R-BLK (Phase 1 performs no split — CS3 places every cut in subspace S, so no cut position falls inside a non-S run's V-extent; Phases 2–3 leave such runs untouched, since R-FRAME-P(a)/R-FRAME-S(a) fixes M'(d) = M(d) on positions of subspace S' ≠ S, and the run's defining S8(b) consistency is preserved verbatim). The pre-state S8(a) on these runs (by hypothesis B is a correspondence-run partition of dom(M(d)) ⊇ V_{S'}(d)) carries over to the post-state. Combining both cases, the V-extents of B' partition dom(M'(d)) = dom(M(d)), discharging the E! quantification of S8(a) on M'(d).
-- *S8(b) (consistency under M'(d)).* *Subspace-S case.* For each reassembled run (π(v_j), a_j, n_j) ∈ B' arising from a subspace-S pre-run and 0 ≤ k < n_j: M'(d)(π(v_j) + k) = M'(d)(π(v_j + k)) (by R-COMM, valid because v_j and v_j + k lie in the same region after Phase 1) = M(d)(v_j + k) (by the defining property of π, given by R-PPERM or R-SPERM) = a_j + k (by S8(b) of the original run (v_j, a_j, n_j), supplied by B). Each equality discharges its precondition from R-PRE or from the pre-state S8 hypothesis. *Non-S-subspace case.* For each carried-over run (v_j, a_j, n_j) ∈ B' with V-extent in subspace S' ≠ S and 0 ≤ k < n_j: M'(d)(v_j + k) = M(d)(v_j + k) (by R-FRAME-P(a) or R-FRAME-S(a), since v_j + k has subspace S' ≠ S by the corollary "subspace preservation across a correspondence run" of ASN-0036, applied to the original run) = a_j + k (by S8(b) of the original run, supplied by B).
+- *S8(b) (consistency under M'(d)).* *Subspace-S case.* For each reassembled run (π(v_j), a_j, n_j) ∈ B' arising from a subspace-S pre-run and 0 ≤ k < n_j: M'(d)(π(v_j) + k) = M'(d)(π(v_j + k)) (by R-COMM, valid because v_j and v_j + k lie in the same region after Phase 1) = M(d)(v_j + k) (by the defining property of π, given by R-PPERM or R-SPERM) = a_j + k (by S8(b) of the original run (v_j, a_j, n_j), supplied by B). Each equality discharges its precondition from R-PRE or from the pre-state S8 hypothesis. *Non-S-subspace case.* For each carried-over run (v_j, a_j, n_j) ∈ B' with V-extent in subspace S' ≠ S and 0 ≤ k < n_j: M'(d)(v_j + k) = M(d)(v_j + k) (by R-FRAME-P(a) or R-FRAME-S(a), since v_j + k has subspace S' ≠ S by OrdShiftHom (b) of ASN-0036 — which gives subspace(shift(v_j, k)) = subspace(v_j) = S' for k ≥ 1, with the identity convention covering k = 0) = a_j + k (by S8(b) of the original run, supplied by B).
 
 This completes the discharge of Q under the stated precondition. ∎
 
-*Remark.* The wp computation makes explicit that R-BLK is the constructive witness for S8 on the post-state; R-PRE supplies cut-coverage (so Phase 1 is well-defined) and non-empty regions (so Phases 2–3 do not degenerate); pre-state S8 supplies the initial partition B that Phases 1 and 3 transform; pre-state ASN-0036 invariants supply the foundation S0–S3, S7, D-CTG, D-MIN, S8-fin, S8-depth that the post-state inherits via the transport arguments above. Stronger post-conditions still — e.g., that B' is the *canonical* (maximal) partition of M'(d) — are not derivable from R-PRE alone; the closing remark of R-BLK identifies this gap as the source of post-rearrangement merges.
+*Remark.* The sufficiency derivation makes explicit that R-BLK is the constructive witness for S8 on the post-state; R-PRE supplies cut-coverage (so Phase 1 is well-defined) and non-empty regions (so Phases 2–3 do not degenerate); pre-state S8 supplies the initial partition B that Phases 1 and 3 transform; pre-state ASN-0036 invariants supply the foundation S0–S3, S7, D-CTG, D-MIN, S8-fin, S8-depth that the post-state inherits via the transport arguments above. Necessity — that R-PRE etc. is *required* for Q to hold under REARRANGE_C — is not claimed here; computing the weakest precondition would demand a converse argument exhibiting failure of Q whenever any conjunct is dropped, and is beyond the scope of this ASN. Stronger post-conditions still — e.g., that B' is the *canonical* (maximal) partition of M'(d) — are not derivable from R-PRE alone; the closing remark of R-BLK identifies this gap as the source of post-rearrangement merges.
 
 
 ## Displacement Analysis
@@ -450,7 +450,7 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 
 **R-BLK — RunDecompositionTransformation (LEMMA).** Let B = {b₁, ..., bₘ} be a run partition of M(d) (per S8) — including runs whose V-extents lie in V_S(d) and runs whose V-extents lie in subspaces other than S. Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a run partition B' obtained by:
 
-*Scope note on non-S runs.* By CS3, every cut position cᵢ has subspace(cᵢ) = S, so cᵢ ∉ V(b) for any run b = (v_b, a_b, n_b) with V-extent in some subspace S' ≠ S. The V-position subspace preservation across the run — subspace_V(v) = subspace_V(v_b) = S' for every v ∈ V(b) — is supplied by OrdShiftHom (b) of ASN-0036, which gives subspace(shift(v_b, k)) = subspace(v_b) = S' for every 1 ≤ k < n_b (the identity convention covers k = 0); the run's pre-state S8(b) is a V-position-indexed consistency condition that holds because OrdShiftHom (b) keeps every v_b + k inside the same subspace as v_b. S' ≠ S then separates V(b) from the cut positions. Consequently Phase 1 performs no split on any non-S run, Phase 2 classifies each such run into a dedicated non-S region, and Phase 3 carries it through unchanged. We give the explicit clauses in each Phase below.
+*Scope note on non-S runs.* By CS3, every cut position cᵢ has subspace(cᵢ) = S, so cᵢ ∉ V(b) for any run b = (v_b, a_b, n_b) with V-extent in some subspace S' ≠ S. The V-position subspace preservation across the run — subspace(v) = subspace(v_b) = S' for every v ∈ V(b) — is supplied by OrdShiftHom (b) of ASN-0036, which gives subspace(shift(v_b, k)) = subspace(v_b) = S' for every 1 ≤ k < n_b (the identity convention covers k = 0); the run's pre-state S8(b) is a V-position-indexed consistency condition that holds because OrdShiftHom (b) keeps every v_b + k inside the same subspace as v_b. S' ≠ S then separates V(b) from the cut positions. Consequently Phase 1 performs no split on any non-S run, Phase 2 classifies each such run into a dedicated non-S region, and Phase 3 carries it through unchanged. We give the explicit clauses in each Phase below.
 
 *Phase 1: Split.* Process cut positions in index order (c₀, c₁, ..., c_{n−1}), maintaining the partition as it is progressively refined. For each cut position cᵢ, classify by whether cᵢ falls within some run's V-extent:
 
@@ -614,6 +614,91 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 **Canonical partition:** {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 3)}. The rearrangement brought B, C (formerly at [1,2]–[1,3]) adjacent to H (at [1,8]), and since B + 2 = H, they merge into a single run of width 3. Meanwhile A, formerly part of a width-3 run with B and C, is now isolated.
 
 
+## Worked Example: 4-Cut Swap with Equal Region Widths (w_α = w_β)
+
+The two preceding examples leave the μ-displacement sub-case w_α = w_β untraced. We trace a 4-cut swap with w_α = w_β to verify the Δ_μ = 0 branch — μ is fixed pointwise by π, even though the surrounding α and β regions exchange places. Let document d have subspace S = 1 with V_S(d) = {[1,1], ..., [1,7]}, and let the arrangement be:
+
+```
+M(d)([1,1]) = 3.0.1.0.1.0.1.1    (I-address A)
+M(d)([1,2]) = 3.0.1.0.1.0.1.2    (I-address B)
+M(d)([1,3]) = 3.0.1.0.1.0.1.3    (I-address C)
+M(d)([1,4]) = 7.0.1.0.1.0.1.1    (I-address D)
+M(d)([1,5]) = 5.0.2.0.1.0.1.1    (I-address E)
+M(d)([1,6]) = 5.0.2.0.1.0.1.2    (I-address F)
+M(d)([1,7]) = 9.0.1.0.1.0.1.1    (I-address G)
+```
+
+Content A–C originates from document 3.0.1.0.1; D from 7.0.1.0.1; E–F from 5.0.2.0.1; G from 9.0.1.0.1. The canonical run partition has four runs: b₁ = ([1,1], A, 3), b₂ = ([1,4], D, 1), b₃ = ([1,5], E, 2), b₄ = ([1,7], G, 1).
+
+We apply a 4-cut swap with C = ([1,2], [1,4], [1,5], [1,7]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5], c₃ = [1,7]. The affected range is [c₀, c₃) = {[1,2], ..., [1,6]}. Region α = {[1,2], [1,3]} (w_α = 2), middle μ = {[1,4]} (w_μ = 1), region β = {[1,5], [1,6]} (w_β = 2). Since w_α = w_β = 2, the μ-branch displacement w_β − w_α vanishes and the Δ_μ = 0 sub-case applies.
+
+**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 4; CS2: [1,2] < [1,4] < [1,5] < [1,7]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,7)) are in V_S(d). (v) w_α = 2 ≥ 1, w_β = 2 ≥ 1. ✓
+
+**Applying the postconditions.** We compute M'(d) position by position:
+
+R-EXT: M'(d)([1,1]) = M(d)([1,1]) = A. M'(d)([1,7]) = M(d)([1,7]) = G.
+
+R-S1 (j = 0): M'(d)(c₀ + 0) = M'(d)([1,2]) = M(d)(c₂ + 0) = M(d)([1,5]) = E.
+
+R-S1 (j = 1): M'(d)(c₀ + 1) = M'(d)([1,3]) = M(d)(c₂ + 1) = M(d)([1,6]) = F.
+
+R-S2 (j = 0): M'(d)(c₀ + w_β + 0) = M'(d)([1,4]) = M(d)(c₁ + 0) = M(d)([1,4]) = D.
+
+R-S3 (j = 0): M'(d)(c₀ + w_β + w_μ + 0) = M'(d)([1,5]) = M(d)(c₀ + 0) = M(d)([1,2]) = B.
+
+R-S3 (j = 1): M'(d)(c₀ + w_β + w_μ + 1) = M'(d)([1,6]) = M(d)(c₀ + 1) = M(d)([1,3]) = C.
+
+**Result:**
+
+```
+M'(d)([1,1]) = A     (exterior, unchanged)
+M'(d)([1,2]) = E     (from β via R-S1)
+M'(d)([1,3]) = F     (from β via R-S1)
+M'(d)([1,4]) = D     (from μ via R-S2 — *fixed in place* by Δ_μ = 0)
+M'(d)([1,5]) = B     (from α via R-S3)
+M'(d)([1,6]) = C     (from α via R-S3)
+M'(d)([1,7]) = G     (exterior, unchanged)
+```
+
+The R-S2 clause exhibits the structural property of the w_α = w_β branch: M'(d)([1,4]) = M(d)([1,4]) = D, because the destination ord c₀ + w_β = 4 coincides with the source ord c₁ = 4 when w_β = w_α. R-S2 is *not* vacuous — it still asserts the equation M'(d)([1,4]) = M(d)([1,4]) — but it discharges to a fixed-point identity at every offset j < w_μ. The three swap clauses tile [c₀, c₃) = [[1,2], [1,7)) exactly: R-S1 covers ordinals 2–3 (w_β = 2 positions), R-S2 covers ordinal 4 (w_μ = 1 position), R-S3 covers ordinals 5–6 (w_α = 2 positions). Total: 2 + 1 + 2 = 5 = |[c₀, c₃)|. ✓
+
+**R-SPERM verification.** The permutation π:
+
+- π([1,1]) = [1,1] (exterior).
+- π([1,2]) = c₀ + w_β + w_μ + 0 = [1,5] (α: j = 0). Check: M'(d)([1,5]) = B = M(d)([1,2]) ✓.
+- π([1,3]) = c₀ + w_β + w_μ + 1 = [1,6] (α: j = 1). Check: M'(d)([1,6]) = C = M(d)([1,3]) ✓.
+- π([1,4]) = c₀ + w_β + 0 = [1,4] (μ: j = 0). Check: M'(d)([1,4]) = D = M(d)([1,4]) ✓.
+- π([1,5]) = c₀ + 0 = [1,2] (β: j = 0). Check: M'(d)([1,2]) = E = M(d)([1,5]) ✓.
+- π([1,6]) = c₀ + 1 = [1,3] (β: j = 1). Check: M'(d)([1,3]) = F = M(d)([1,6]) ✓.
+- π([1,7]) = [1,7] (exterior).
+
+Note π([1,4]) = [1,4]: μ is the single position fixed by π via the μ-branch (as distinct from the exterior, which is fixed via R-FRAME-S(a)). The rearrangement is still a genuine swap — α and β positions move — but the middle region holds in place pointwise.
+
+**R-RI verification.** ran(M'(d)) = {A, B, C, D, E, F, G} = ran(M(d)). Since ran(M(d)) ⊆ dom(C) by S3 of the pre-state and C' = C, ran(M'(d)) ⊆ dom(C'). ✓
+
+**Displacement verification.** Reading Δ as a signed magnitude: Δ([1,2]) = +(5 − 2) = +3 = +(w_β + w_μ) ✓. Δ([1,3]) = +(6 − 3) = +3 ✓. Δ([1,4]) = 0 — the μ-branch with w_β = w_α ✓. Δ([1,5]) = −(5 − 2) = −3 = −(w_α + w_μ) ✓. Δ([1,6]) = −(6 − 3) = −3 ✓. The middle-region displacement vanishes, confirming the structural symmetry of the Δ_μ = 0 sub-case.
+
+**Run decomposition via R-BLK.** *Phase 1 (Split):* c₀ = [1,2] is interior to b₁ = ([1,1], A, 3) at offset 1. Split: ([1,1], A, 1) and ([1,2], B, 2). The remaining cuts c₁ = [1,4], c₂ = [1,5], c₃ = [1,7] coincide with run boundaries (c₁ = b₂'s start, c₂ = b₃'s start, c₃ = b₄'s start), so no further splits. Post-split partition: {([1,1], A, 1), ([1,2], B, 2), ([1,4], D, 1), ([1,5], E, 2), ([1,7], G, 1)}.
+
+*Phase 2 (Classify):* ([1,1], A, 1) → exterior left. ([1,2], B, 2) → α. ([1,4], D, 1) → μ. ([1,5], E, 2) → β. ([1,7], G, 1) → exterior right.
+
+*Phase 3 (Reassemble):* Apply region displacements (α: Δ = +3, μ: Δ = 0, β: Δ = −3, exteriors: Δ = 0):
+
+- ([1,1], A, 1) → ([1,1], A, 1) (exterior)
+- ([1,2], B, 2) → ([1,5], B, 2) (α, V-start shifted +3)
+- ([1,4], D, 1) → ([1,4], D, 1) (μ, V-start unchanged — Δ = 0)
+- ([1,5], E, 2) → ([1,2], E, 2) (β, V-start shifted −3)
+- ([1,7], G, 1) → ([1,7], G, 1) (exterior)
+
+Sorted by V-start: {([1,1], A, 1), ([1,2], E, 2), ([1,4], D, 1), ([1,5], B, 2), ([1,7], G, 1)}. The μ-run ([1,4], D, 1) carries through Phase 3 untouched because its assigned displacement is zero; the α- and β-runs exchange positions across this fixed centre.
+
+*S8(b) verification on reassembled runs:* ([1,2], E, 2): M'(d)([1,2]) = E, M'(d)([1,3]) = F = E + 1 ✓. ([1,5], B, 2): M'(d)([1,5]) = B, M'(d)([1,6]) = C = B + 1 ✓. The width-1 runs ([1,1], A, 1), ([1,4], D, 1), ([1,7], G, 1) satisfy S8(b) trivially at the lone offset k = 0.
+
+*Merge check:* No V-adjacent, I-adjacent pair: ([1,1], A, 1) and ([1,2], E, 2) differ in origin (3.0.1.0.1 vs 5.0.2.0.1); ([1,2], E, 2) and ([1,4], D, 1) differ in origin (5.0.2.0.1 vs 7.0.1.0.1); ([1,4], D, 1) and ([1,5], B, 2) differ in origin (7.0.1.0.1 vs 3.0.1.0.1); ([1,5], B, 2) and ([1,7], G, 1) differ in origin (3.0.1.0.1 vs 9.0.1.0.1).
+
+**Canonical partition:** {([1,1], A, 1), ([1,2], E, 2), ([1,4], D, 1), ([1,5], B, 2), ([1,7], G, 1)}. The rearrangement exchanges the α- and β-runs across a fixed μ-run; the canonical partition is reached without further merges because each region's I-address origin differs from its neighbours'. The example confirms the Δ_μ = 0 sub-case: the μ-run is structurally invariant under R-BLK's Phase 3 reassembly when w_α = w_β.
+
+
 ## Properties Introduced
 
 | Label | Type | Statement | Status |
@@ -638,7 +723,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 | R-RI | LEMMA | Rearrangement preserves S3 (referential integrity): ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
 | R-COMM | LEMMA | π(v + k) = π(v) + k when v and v + k lie in the same region: cut-point permutation commutes with ordinal shift | introduced |
 | R-BLK | LEMMA | Run partition transforms by split-at-cuts then displace-per-region, preserving S8(a)/(b) under M'(d) | introduced |
-| R-WP | LEMMA | wp(REARRANGE_C, ASN-0036 invariants on M'(d) ∧ B' = R-BLK(B) is the constructive S8 witness) ⇐ R-PRE(C) ∧ pre-state ASN-0036 invariants ∧ pre-state partition B | introduced |
+| R-WP | LEMMA | R-PRE(C) ∧ pre-state ASN-0036 invariants ∧ pre-state run partition B is sufficient for REARRANGE_C to establish ASN-0036 invariants on M'(d) with B' = R-BLK(B) as the constructive S8 witness (sufficiency only; necessity not claimed) | introduced |
 
 
 ## Open Questions
