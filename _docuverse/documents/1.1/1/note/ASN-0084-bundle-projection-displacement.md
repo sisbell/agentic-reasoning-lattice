@@ -11,7 +11,7 @@ We work with the content store C : T ⇀ Val (Σ.C, ASN-0036) and the arrangemen
 
 For a V-position v with subspace(v) = v₁ and #v = m, the *ordinal* is ord(v) = [v₂, ..., vₘ] — the tumbler obtained by stripping the subspace identifier (per OrdinalExtraction, ASN-0036).
 
-We restrict to the text subspace (subspace identifier 1) throughout this ASN. By the subspace declarations of ASN-0036, the text subspace has depth m_1 = 2, so by S8-depth, every V-position v ∈ V_1(d) satisfies #v = 2 (ordinal depth 1). The operations defined here apply only to the text subspace; outside this scope (link subspace, or any other subspace at any depth), neither the rearrangement postconditions nor the supporting lemmas of this ASN are claimed to apply. The text-subspace restriction is deliberate: REARRANGE acts on the text region of a document and is not defined as a cross-subspace operation. CS3 and CS4 below jointly enforce this scope: CS3 requires subspace(cᵢ) = 1 for all cuts, and CS4 requires #cᵢ = 2. For parametric uniformity with ASN-0036's V_S(d), [S, k] notation, we use S = 1 throughout and read every appearance of S in this ASN as the text-subspace identifier 1. By D-SEQ (ASN-0036), which characterizes V_1(d) as a sequential range without gaps, V_S(d) = V_1(d) = {[S, k] : 1 ≤ k ≤ N} for some N ≥ 0, and each ord(v) is a singleton tumbler [k] with k ∈ ℕ⁺.
+We restrict to the text subspace (subspace identifier 1) throughout this ASN. ASN-0036's S8-depth establishes only the lower bound m_s ≥ 2 on each subspace's depth, and ValidFirstInsertionPosition (ASN-0036) leaves the per-subspace depth m_s operator-chosen at initialization (constrained only by m_s ≥ 2). This ASN imposes the additional scope restriction that the text subspace has been initialized at the *minimum* permitted depth m_1 = 2; documents with m_1 > 2 are outside the scope of this ASN. Under this depth-2 restriction, S8-depth gives that every V-position v ∈ V_1(d) satisfies #v = 2 (ordinal depth 1). The operations defined here apply only to the text subspace; outside this scope (link subspace, or any other subspace at any depth), neither the rearrangement postconditions nor the supporting lemmas of this ASN are claimed to apply. The text-subspace restriction is deliberate: REARRANGE acts on the text region of a document and is not defined as a cross-subspace operation. CS3 and CS4 below jointly enforce this scope: CS3 requires subspace(cᵢ) = 1 for all cuts, and CS4 requires #cᵢ = 2. For parametric uniformity with ASN-0036's V_S(d), [S, k] notation, we use S = 1 throughout and read every appearance of S in this ASN as the text-subspace identifier 1. By D-SEQ (ASN-0036), which characterizes V_1(d) as a sequential range without gaps, V_S(d) = V_1(d) = {[S, k] : 1 ≤ k ≤ N} for some N ≥ 0, and each ord(v) is a singleton tumbler [k] with k ∈ ℕ⁺.
 
 **Identification of singleton tumblers with natural numbers.** At depth 2, we identify the singleton tumbler [k] with the natural number k throughout the displacement and width arithmetic. The identification is licensed as follows. The set of singleton tumblers {[k] : k ∈ ℕ⁺} is in bijection with ℕ⁺ by the map [k] ↔ k (a singleton tumbler is determined by its single component). Under this bijection: T1's strict ordering on tumblers (ASN-0034) restricted to singletons coincides with the standard `<` on ℕ⁺ (lexicographic order on a single component reduces to comparison of that component); for j ≥ 1, OrdinalShift (ASN-0034) gives `shift([k], j) = [k + j]`, corresponding to NAT-add: `k + j ∈ ℕ⁺`; the case j = 0 is covered by the identity convention introduced below (`shift([k], 0) := [k]`), which extends OrdinalShift's domain from ℕ⁺ to ℕ. NAT-sub `m − n` (partial, m ≥ n) corresponds to the unique j ∈ ℕ with [n] ≤ [m] and `shift-or-identity([n], j) = [m]` — that is, OrdinalShift gives j ≥ 1 when m > n, and the identity convention gives j = 0 when m = n. The width of an interval |[c, c')| = ord(c') − ord(c) (computed via NAT-sub, which is total here because c < c' under T1, hence ord(c) < ord(c'), hence ord(c') ≥ ord(c)) yields a natural number. We use this identification implicitly: expressions like `ord(c₀) + j`, `ord(c₁) = ord(c₀) + w_α`, and `w_β = ord(c₂) − ord(c₁)` are read as natural-number arithmetic over the identified domain.
 
@@ -272,21 +272,36 @@ We observe the structural relationship between the two forms: the 4-cut postcond
 
 ## Weakest-Precondition Computation
 
-**R-WP — RearrangeWeakestPrecondition (LEMMA).** Let Q be the post-condition "M'(d) admits a correspondence-run partition" — equivalently, S8(a) and S8(b) hold for M'(d) on V_S(d). Then
+**R-WP — RearrangeWeakestPrecondition (LEMMA).** Let Q be the post-condition
 
-`wp(REARRANGE_C, Q) ⇐ R-PRE(C) ∧ (M(d) admits a correspondence-run partition)`
+> *M'(d) satisfies every ASN-0036 invariant carried by an arrangement transition — S0, S1, S2, S3, S7a, S7b, S7c, D-CTG, D-MIN, S8a, S8b, S8-fin, S8-depth — with the constructive witness B' = R-BLK(B) discharging the S8 existence clause (a correspondence-run partition of V_S(d) under M'(d) obtained from the pre-state partition B via Phases 1–3).*
 
-i.e., the conjunction of R-PRE on the cut sequence C and S8 of the pre-state suffices to guarantee Q on the post-state.
+Then
 
-*Proof.* We compute wp by exhibiting the post-state partition explicitly via R-BLK and verifying both clauses of S8 for it. Let B = {b₁, ..., bₘ} be a correspondence-run partition of M(d) on V_S(d), whose existence is given by the second conjunct of the precondition. Under R-PRE, R-BLK constructs a partition B' of V_S(d) under M'(d) by Phases 1–3 (Split → Classify → Reassemble). We discharge Q by verifying its two clauses on B'.
+`wp(REARRANGE_C, Q) ⇐ R-PRE(C) ∧ ASN-0036-invariants(Σ, d) ∧ (B is a correspondence-run partition of V_S(d) under M(d))`
 
-*S8(b) for B'.* For each reassembled run (π(v_j), a_j, n_j) ∈ B' and 0 ≤ k < n_j: M'(d)(π(v_j) + k) = M'(d)(π(v_j + k)) (by R-COMM, valid because v_j and v_j + k lie in the same region after Phase 1) = M(d)(v_j + k) (by the defining property of π, given by R-PPERM or R-SPERM) = a_j + k (by S8(b) of the original run (v_j, a_j, n_j), supplied by B). Each equality discharges its precondition from R-PRE or from the pre-state S8 hypothesis.
+i.e., R-PRE on the cut sequence C, the full ASN-0036 invariant suite on the pre-state, and a designated pre-state partition B together suffice to establish the invariant suite on the post-state with B' as the constructive partition witness.
 
-*S8(a) for B'.* π is a bijection on V_S(d) (R-PPERM/R-SPERM restricted to V_S(d)). Phase 1 produces a partition of V_S(d) (each split preserves coverage and disjointness, by Split's V-extent decomposition); Phase 2 attaches a region label to each run without altering V-extents; Phase 3 applies π to V-starts only, preserving widths. The image of a partition of V_S(d) under a bijection is again a partition of V_S(d) (disjointness from injectivity; coverage from surjectivity), so the V-extents of B' are pairwise disjoint and cover V_S(d). Hence for each v ∈ V_S(d), exactly one run in B' contains v — the E! quantification of S8(a).
+*Q is non-trivial.* Singleton-run partitions establish S8 existence on any finite arrangement (each (v, M'(d)(v), 1) satisfies S8(b) trivially at the lone offset k = 0), so "M'(d) admits *some* correspondence-run partition" alone is satisfied by *any* M'(d) and discriminates no rearrangements. Q strengthens this in two directions: (i) it requires the partition witness to be the *specific* output of R-BLK applied to B — a partition whose V-extents and I-starts are determined by Phases 1–3 from the pre-state partition, not an arbitrary post-hoc partition; and (ii) it requires the full ASN-0036 invariant conjunction on M'(d), which constrains the rearrangement globally (S2 functionality, S3 referential integrity, the dom-only invariants D-CTG/D-MIN/S8-fin/S8-depth) rather than through S8 existence alone.
 
-We conclude Q holds in the post-state, so the implication wp(REARRANGE_C, Q) ⇐ R-PRE(C) ∧ S8(M(d)) is established. ∎
+*Proof.* We discharge Q clause-by-clause, leaning on the prior derivations.
 
-*Remark.* The wp computation makes explicit that R-BLK is the existence witness; R-PRE supplies cut-coverage (so Phase 1 is well-defined) and non-empty regions (so Phases 2–3 do not degenerate); pre-state S8 supplies the initial partition that Phases 1 and 3 transform. Stronger post-conditions (e.g., that B' is the *canonical* — i.e., maximal — partition of M'(d)) are not derivable from R-PRE alone; the closing remark of R-BLK identifies this gap as the source of post-rearrangement merges.
+*S0, S1, S7a, S7b, S7c (content store invariants).* C' = C from the rearrangement definition transports each invariant verbatim: each is stated on C alone and is independent of M.
+
+*S2 (arrangement functionality).* Each u ∈ dom(M'(d)) has u = π(v) for exactly one v by bijectivity of π (R-PPERM or R-SPERM), so M'(d)(u) = M(d)(v) is uniquely determined.
+
+*S3 (referential integrity).* R-RI gives ran(M'(d)) ⊆ dom(C').
+
+*D-CTG, D-MIN, S8-fin, S8-depth.* Each is a property of dom(M(d)) (V-positions, their counts, their subspace and depth), and dom(M'(d)) = dom(M(d)) from the rearrangement definition, so each carries over verbatim.
+
+*S8a, S8b via B' = R-BLK(B).* R-BLK constructs B' from B via Phases 1–3 under R-PRE; we verify both S8 clauses on the construction.
+
+- *S8a (uniqueness of containing run).* π is a bijection on V_S(d) (R-PPERM/R-SPERM restricted to V_S(d)). Phase 1 produces a partition of V_S(d) (each split preserves coverage and disjointness, by Split's V-extent decomposition); Phase 2 attaches a region label to each run without altering V-extents; Phase 3 applies π to V-starts only, preserving widths. The image of a partition of V_S(d) under a bijection is again a partition of V_S(d) (disjointness from injectivity; coverage from surjectivity), so the V-extents of B' are pairwise disjoint and cover V_S(d). Hence for each v ∈ V_S(d), exactly one run in B' contains v — the E! quantification of S8a.
+- *S8b (consistency under M'(d)).* For each reassembled run (π(v_j), a_j, n_j) ∈ B' and 0 ≤ k < n_j: M'(d)(π(v_j) + k) = M'(d)(π(v_j + k)) (by R-COMM, valid because v_j and v_j + k lie in the same region after Phase 1) = M(d)(v_j + k) (by the defining property of π, given by R-PPERM or R-SPERM) = a_j + k (by S8(b) of the original run (v_j, a_j, n_j), supplied by B). Each equality discharges its precondition from R-PRE or from the pre-state S8 hypothesis.
+
+This completes the discharge of Q under the stated precondition. ∎
+
+*Remark.* The wp computation makes explicit that R-BLK is the constructive witness for S8 on the post-state; R-PRE supplies cut-coverage (so Phase 1 is well-defined) and non-empty regions (so Phases 2–3 do not degenerate); pre-state S8 supplies the initial partition B that Phases 1 and 3 transform; pre-state ASN-0036 invariants supply the foundation S0–S3, S7, D-CTG, D-MIN, S8-fin, S8-depth that the post-state inherits via the transport arguments above. Stronger post-conditions still — e.g., that B' is the *canonical* (maximal) partition of M'(d) — are not derivable from R-PRE alone; the closing remark of R-BLK identifies this gap as the source of post-rearrangement merges.
 
 
 ## Displacement Analysis
@@ -614,7 +629,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 | R-RI | LEMMA | Rearrangement preserves S3 (referential integrity): ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
 | R-COMM | LEMMA | π(v + k) = π(v) + k when v and v + k lie in the same region: cut-point permutation commutes with ordinal shift | introduced |
 | R-BLK | LEMMA | Run partition transforms by split-at-cuts then displace-per-region, preserving S8(a)/(b) under M'(d) | introduced |
-| R-WP | LEMMA | wp(REARRANGE_C, "M'(d) admits a correspondence-run partition") ⇐ R-PRE(C) ∧ S8 of M(d) | introduced |
+| R-WP | LEMMA | wp(REARRANGE_C, ASN-0036 invariants on M'(d) ∧ B' = R-BLK(B) is the constructive S8 witness) ⇐ R-PRE(C) ∧ pre-state ASN-0036 invariants ∧ pre-state partition B | introduced |
 
 
 ## Open Questions
