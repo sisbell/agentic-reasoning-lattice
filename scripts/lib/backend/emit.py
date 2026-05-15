@@ -198,6 +198,16 @@ def emit_clone(store: Store, clone_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, clone_doc, "clone")
 
 
+def emit_import(store: Store, import_doc: Address) -> Tuple[Link, bool]:
+    """Classifier on an import spec doc — the operator's scout-output for
+    a note-import operation, promoted from workspace into substrate by
+    NoteImportAgent on each fire. Carries the operator's intent
+    (source_doc / create_note / title / depends) plus rationale prose.
+    Distinct from `provenance.import`, which carries the spec → new-note
+    audit edge."""
+    return emit_classifier(store, import_doc, "import")
+
+
 def emit_campaign(store: Store, campaign_doc: Address) -> Tuple[Link, bool]:
     return emit_classifier(store, campaign_doc, "campaign")
 
@@ -579,6 +589,27 @@ def emit_provenance_extract(
     return emit(
         store, "provenance.extract",
         from_set=[extract_doc], to_set=[new_note],
+    )
+
+
+def emit_provenance_import(
+    store: Store, import_doc: Address, new_note: Address,
+) -> Tuple[Link, bool]:
+    """File a `provenance.import` link from the import spec doc to the
+    new note it produced. Records the audit fact: this import operation
+    (described by spec_doc) lifted an external doc into the note set
+    as this new note.
+
+    The source doc itself stays in place outside the docuverse and is
+    NOT registered in substrate — its path is recorded only in the
+    spec doc's frontmatter `source_doc:` field.
+
+    Idempotent on (spec_doc, new_note). Pairs with the `import`
+    classifier on the spec doc.
+    """
+    return emit(
+        store, "provenance.import",
+        from_set=[import_doc], to_set=[new_note],
     )
 
 
