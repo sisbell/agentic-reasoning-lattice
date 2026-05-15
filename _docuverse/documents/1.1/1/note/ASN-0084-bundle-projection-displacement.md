@@ -31,7 +31,7 @@ We derive that the I-address range is invariant and that multiplicities are pres
 
 *Proof.* By the I-address range invariance shown above, ran(M'(d)) = ran(M(d)). By S3 of the pre-state, ran(M(d)) ⊆ dom(C). By C' = C, dom(C) = dom(C'). Chaining: ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C'). ∎
 
-**Invariant preservation.** The following ASN-0036 invariants depend only on `dom(M(d))` and are preserved because `dom(M'(d)) = dom(M(d))`: D-CTG, D-MIN, S8-fin, S8a, S8-depth. S2 (arrangement functionality) holds because each u ∈ dom(M'(d)) has u = π(v) for exactly one v (bijectivity), so M'(d)(u) = M(d)(v) is uniquely determined. S3 (referential integrity) is precisely the postcondition of R-RI above — ran(M'(d)) ⊆ dom(C') — so R-RI is the S3-preservation step of this invariant audit. C' = C (the rearrangement definition) carries over S0, S1, S7a, S7b, S7c — every invariant constraining the content store and its domain — by identity. Every ASN-0036 invariant is therefore maintained by an arrangement rearrangement.
+**Invariant preservation.** Throughout this paragraph, the label *S8a* without parenthesized clause refers to ASN-0036's S8a (VPositionWellFormedness); the label *S8(a)* with parenthesized clause refers to clause (a) of ASN-0036's S8 (SpanDecomposition). The following ASN-0036 invariants depend only on `dom(M(d))` and are preserved because `dom(M'(d)) = dom(M(d))`: D-CTG, D-CTG-depth (vacuous under the depth-2 scope of this ASN), D-MIN, D-SEQ, S8-fin, S8a, S8-depth. S2 (arrangement functionality) holds because each u ∈ dom(M'(d)) has u = π(v) for exactly one v (bijectivity), so M'(d)(u) = M(d)(v) is uniquely determined. S3 (referential integrity) is precisely the postcondition of R-RI above — ran(M'(d)) ⊆ dom(C') — so R-RI is the S3-preservation step of this invariant audit. C' = C (the rearrangement definition) carries over every invariant about Σ.C and its domain by identity: S0 (content immutability), S1 (store monotonicity), S4 (origin-based identity), S7a (document-scoped allocation), S7b (element-level I-addresses), S7c (element-field depth), and S7d (document allocation discipline) are each stated on Σ.C alone, and S9 (two-stream separation) — "no modification to Σ.M(d) can alter Σ.C" — is satisfied by the rearrangement because the only mutation is to Σ.M(d) and Σ.C is unchanged. S5 (unrestricted sharing) is a permission rather than an obligation; the multiset-of-I-addresses preservation derived above — each I-address has identical multiplicity in M(d) and M'(d) by bijectivity of π — preserves any pre-existing sharing pattern. Every ASN-0036 invariant is therefore maintained by an arrangement rearrangement.
 
 Any bijection qualifies; a rearrangement determined by cut points is one where the regions to exchange are identified by a tuple of cut positions. The properties in this ASN characterize this specific class of permutations.
 
@@ -272,9 +272,9 @@ We observe the structural relationship between the two forms: the 4-cut postcond
 
 ## Weakest-Precondition Computation
 
-**R-WP — RearrangeWeakestPrecondition (LEMMA).** Let Q be the post-condition
+**R-WP — RearrangeWeakestPrecondition (LEMMA).** *Label convention.* In R-WP and its proof, *S8a* (without parenthesized clause) denotes ASN-0036's S8a (VPositionWellFormedness); *S8(a)* and *S8(b)* (with parenthesized clauses) denote clauses (a) and (b) of ASN-0036's S8 (SpanDecomposition). Let Q be the post-condition
 
-> *M'(d) satisfies every ASN-0036 invariant carried by an arrangement transition — S0, S1, S2, S3, S7a, S7b, S7c, D-CTG, D-MIN, S8a, S8b, S8-fin, S8-depth — with the constructive witness B' = R-BLK(B) discharging the S8 existence clause (a correspondence-run partition of V_S(d) under M'(d) obtained from the pre-state partition B via Phases 1–3).*
+> *M'(d) satisfies every ASN-0036 invariant carried by an arrangement transition — S0, S1, S2, S3, S4, S5, S7a, S7b, S7c, S7d, S9, D-CTG, D-CTG-depth, D-MIN, D-SEQ, S8a (VPositionWellFormedness), S8-fin, S8-depth, and S8 (SpanDecomposition) with its clauses S8(a) (uniqueness of containing run) and S8(b) (consistency under M'(d)) — with the constructive witness B' = R-BLK(B) discharging the S8 existence clause (a correspondence-run partition of V_S(d) under M'(d) obtained from the pre-state partition B via Phases 1–3).*
 
 Then
 
@@ -282,22 +282,24 @@ Then
 
 i.e., R-PRE on the cut sequence C, the full ASN-0036 invariant suite on the pre-state, and a designated pre-state partition B together suffice to establish the invariant suite on the post-state with B' as the constructive partition witness.
 
-*Q is non-trivial.* Singleton-run partitions establish S8 existence on any finite arrangement (each (v, M'(d)(v), 1) satisfies S8(b) trivially at the lone offset k = 0), so "M'(d) admits *some* correspondence-run partition" alone is satisfied by *any* M'(d) and discriminates no rearrangements. Q strengthens this in two directions: (i) it requires the partition witness to be the *specific* output of R-BLK applied to B — a partition whose V-extents and I-starts are determined by Phases 1–3 from the pre-state partition, not an arbitrary post-hoc partition; and (ii) it requires the full ASN-0036 invariant conjunction on M'(d), which constrains the rearrangement globally (S2 functionality, S3 referential integrity, the dom-only invariants D-CTG/D-MIN/S8-fin/S8-depth) rather than through S8 existence alone.
+*Q is non-trivial.* Singleton-run partitions establish S8 existence on any finite arrangement (each (v, M'(d)(v), 1) satisfies S8(b) trivially at the lone offset k = 0), so "M'(d) admits *some* correspondence-run partition" alone is satisfied by *any* M'(d) and discriminates no rearrangements. Q strengthens this in two directions: (i) it requires the partition witness to be the *specific* output of R-BLK applied to B — a partition whose V-extents and I-starts are determined by Phases 1–3 from the pre-state partition, not an arbitrary post-hoc partition; and (ii) it requires the full ASN-0036 invariant conjunction on M'(d), which constrains the rearrangement globally (S2 functionality, S3 referential integrity, the dom-only invariants D-CTG/D-CTG-depth/D-MIN/D-SEQ/S8a/S8-fin/S8-depth, the content-store invariants S0/S1/S4/S5/S7a/S7b/S7c/S7d/S9) rather than through S8 existence alone.
 
 *Proof.* We discharge Q clause-by-clause, leaning on the prior derivations.
 
-*S0, S1, S7a, S7b, S7c (content store invariants).* C' = C from the rearrangement definition transports each invariant verbatim: each is stated on C alone and is independent of M.
+*S0, S1, S4, S7a, S7b, S7c, S7d, S9 (content store invariants).* C' = C from the rearrangement definition transports each invariant verbatim: each is stated on Σ.C alone and is independent of M (S9 is preserved because the only mutation is to Σ.M(d), leaving Σ.C unchanged).
 
 *S2 (arrangement functionality).* Each u ∈ dom(M'(d)) has u = π(v) for exactly one v by bijectivity of π (R-PPERM or R-SPERM), so M'(d)(u) = M(d)(v) is uniquely determined.
 
 *S3 (referential integrity).* R-RI gives ran(M'(d)) ⊆ dom(C').
 
-*D-CTG, D-MIN, S8-fin, S8-depth.* Each is a property of dom(M(d)) (V-positions, their counts, their subspace and depth), and dom(M'(d)) = dom(M(d)) from the rearrangement definition, so each carries over verbatim.
+*S5 (unrestricted sharing).* The multiset-of-I-addresses preservation derived in the *Invariant preservation* paragraph above (each I-address has identical multiplicity in M(d) and M'(d) by bijectivity of π) preserves any pre-existing sharing pattern, and S5 imposes no positive constraint to violate.
 
-*S8a, S8b via B' = R-BLK(B).* R-BLK constructs B' from B via Phases 1–3 under R-PRE; we verify both S8 clauses on the construction.
+*D-CTG, D-CTG-depth, D-MIN, D-SEQ, S8a (VPositionWellFormedness), S8-fin, S8-depth.* Each is a property of dom(M(d)) (V-positions, their counts, their subspace and depth, their ordinal arrangement), and dom(M'(d)) = dom(M(d)) from the rearrangement definition, so each carries over verbatim. D-CTG-depth is vacuous under this ASN's m_1 = 2 scope (text subspace at minimum depth).
 
-- *S8a (uniqueness of containing run).* π is a bijection on V_S(d) (R-PPERM/R-SPERM restricted to V_S(d)). Phase 1 produces a partition of V_S(d) (each split preserves coverage and disjointness, by Split's V-extent decomposition); Phase 2 attaches a region label to each run without altering V-extents; Phase 3 applies π to V-starts only, preserving widths. The image of a partition of V_S(d) under a bijection is again a partition of V_S(d) (disjointness from injectivity; coverage from surjectivity), so the V-extents of B' are pairwise disjoint and cover V_S(d). Hence for each v ∈ V_S(d), exactly one run in B' contains v — the E! quantification of S8a.
-- *S8b (consistency under M'(d)).* For each reassembled run (π(v_j), a_j, n_j) ∈ B' and 0 ≤ k < n_j: M'(d)(π(v_j) + k) = M'(d)(π(v_j + k)) (by R-COMM, valid because v_j and v_j + k lie in the same region after Phase 1) = M(d)(v_j + k) (by the defining property of π, given by R-PPERM or R-SPERM) = a_j + k (by S8(b) of the original run (v_j, a_j, n_j), supplied by B). Each equality discharges its precondition from R-PRE or from the pre-state S8 hypothesis.
+*S8(a), S8(b) via B' = R-BLK(B).* R-BLK constructs B' from B via Phases 1–3 under R-PRE; we verify both S8 clauses (a) and (b) on the construction. The verification handles V-positions in V_S(d) (the subspace REARRANGE acts on) and V-positions in subspaces other than S separately.
+
+- *S8(a) (uniqueness of containing run).* *Subspace-S case.* π is a bijection on V_S(d) (R-PPERM/R-SPERM restricted to V_S(d)). Phase 1 produces a partition of V_S(d) (each split preserves coverage and disjointness, by Split's V-extent decomposition); Phase 2 attaches a region label to each run without altering V-extents; Phase 3 applies π to V-starts only, preserving widths. The image of a partition of V_S(d) under a bijection is again a partition of V_S(d) (disjointness from injectivity; coverage from surjectivity), so the V-extents of the reassembled runs are pairwise disjoint and cover V_S(d). Hence for each v ∈ V_S(d), exactly one such run contains v. *Non-S-subspace case.* Runs in B whose V-extent lies in some subspace S' ≠ S are carried verbatim into B' by R-BLK (Phase 1 performs no split — CS3 places every cut in subspace S, so no cut position falls inside a non-S run's V-extent; Phases 2–3 leave such runs untouched, since R-FRAME-P(a)/R-FRAME-S(a) fixes M'(d) = M(d) on positions of subspace S' ≠ S, and the run's defining S8(b) consistency is preserved verbatim). The pre-state S8(a) on these runs (by hypothesis B is a correspondence-run partition of dom(M(d)) ⊇ V_{S'}(d)) carries over to the post-state. Combining both cases, the V-extents of B' partition dom(M'(d)) = dom(M(d)), discharging the E! quantification of S8(a) on M'(d).
+- *S8(b) (consistency under M'(d)).* *Subspace-S case.* For each reassembled run (π(v_j), a_j, n_j) ∈ B' arising from a subspace-S pre-run and 0 ≤ k < n_j: M'(d)(π(v_j) + k) = M'(d)(π(v_j + k)) (by R-COMM, valid because v_j and v_j + k lie in the same region after Phase 1) = M(d)(v_j + k) (by the defining property of π, given by R-PPERM or R-SPERM) = a_j + k (by S8(b) of the original run (v_j, a_j, n_j), supplied by B). Each equality discharges its precondition from R-PRE or from the pre-state S8 hypothesis. *Non-S-subspace case.* For each carried-over run (v_j, a_j, n_j) ∈ B' with V-extent in subspace S' ≠ S and 0 ≤ k < n_j: M'(d)(v_j + k) = M(d)(v_j + k) (by R-FRAME-P(a) or R-FRAME-S(a), since v_j + k has subspace S' ≠ S by the corollary "subspace preservation across a correspondence run" of ASN-0036, applied to the original run) = a_j + k (by S8(b) of the original run, supplied by B).
 
 This completes the discharge of Q under the stated precondition. ∎
 
@@ -316,7 +318,7 @@ The permutations R-PPERM and R-SPERM can be characterized by ordinal displacemen
 Δ(v) = (−, ord(v) − ord(π(v)))              if ord(π(v)) < ord(v)
 ```
 
-All three cases use NAT-sub on its defined domain: the (+) case requires ord(π(v)) ≥ ord(v); the (−) case requires ord(v) ≥ ord(π(v)); the (0, 0) case sidesteps subtraction. We write `+n` for `(+, n)`, `−n` for `(−, n)`, and `0` for `(0, 0)` when no ambiguity arises, and lift the natural ordering on ℕ to the signed-magnitude carrier as `−m < 0 < +n`. We say Δ(v₁) = Δ(v₂) when their signs and magnitudes are componentwise equal. We do *not* define addition or multiplication on the signed-magnitude carrier in this ASN; the lemmas that consume Δ (R-DISP, R-PPERM, R-SPERM, R-BLK) compare Δ-values only by equality, never by summation.
+All three cases use NAT-sub on its defined domain: the (+) case requires ord(π(v)) ≥ ord(v); the (−) case requires ord(v) ≥ ord(π(v)); the (0, 0) case sidesteps subtraction. We write `+n` for `(+, n)`, `−n` for `(−, n)`, and `0` for `(0, 0)` when no ambiguity arises. We say Δ(v₁) = Δ(v₂) when their signs and magnitudes are componentwise equal. We do *not* define addition, multiplication, or an ordering on the signed-magnitude carrier in this ASN; the lemmas that consume Δ (R-DISP, R-PPERM, R-SPERM, R-BLK) compare Δ-values only by equality, never by summation or comparison.
 
 On the exterior, π(v) = v, so Δ(v) = 0.
 
@@ -343,15 +345,17 @@ The μ case splits on the comparison of w_β and w_α (both ∈ ℕ⁺): when w_
 
 The displacement formulation makes it clear that every position in the affected range shifts by a value determined solely by the region widths — the displacement does not depend on the position's location within its region. All positions in α shift by the same amount; all positions in β shift by the same amount. We state this formally:
 
-**R-DISP — DisplacementUniformity (LEMMA).** Let C be a cut sequence satisfying R-PRE, and let π be the permutation from R-PPERM (3-cut) or R-SPERM (4-cut). For all v₁, v₂ in the same region (exterior, α, μ, or β):
+**R-DISP — DisplacementUniformity (LEMMA).** Let C be a cut sequence satisfying R-PRE, and let π be the permutation from R-PPERM (3-cut) or R-SPERM (4-cut). For all v₁, v₂ in the same region — where the regions partition dom(M(d)) into the non-S domain {v ∈ dom(M(d)) : subspace(v) ≠ S}, the subspace-S exterior {v ∈ V_S(d) : v < c₀ or v ≥ c_{n−1}}, α, β, and (for 4-cut) μ:
 
 `Δ(v₁) = Δ(v₂)`
 
-with the common value given by: for 3-cut, Δ = +w_β on α, Δ = −w_α on β, Δ = 0 on exterior; for 4-cut, Δ = +(w_β + w_μ) on α, Δ = −(w_α + w_μ) on β, Δ = 0 on exterior, and on μ the three sub-cases are Δ = +(w_β − w_α) when w_β > w_α, Δ = −(w_α − w_β) when w_β < w_α, and Δ = 0 when w_β = w_α.
+with the common value given by: Δ = 0 on the non-S domain (π is the identity off V_S(d) by R-PPERM/R-SPERM); for 3-cut, Δ = +w_β on α, Δ = −w_α on β, Δ = 0 on the subspace-S exterior; for 4-cut, Δ = +(w_β + w_μ) on α, Δ = −(w_α + w_μ) on β, Δ = 0 on the subspace-S exterior, and on μ the three sub-cases are Δ = +(w_β − w_α) when w_β > w_α, Δ = −(w_α − w_β) when w_β < w_α, and Δ = 0 when w_β = w_α.
 
 *Proof.* The result follows from the explicit R-PPERM and R-SPERM formulas, in which the offset j within a region cancels. We show each region; each case identifies the sign of ord(π(v)) − ord(v) before applying NAT-sub on its defined domain.
 
-*Exterior (both forms):* π(v) = v, so ord(π(v)) = ord(v), and Δ(v) = 0 by the (0, 0) branch.
+*Non-S domain (both forms):* For v ∈ dom(M(d)) with subspace(v) ≠ S, R-PPERM/R-SPERM gives π(v) = v (the first branch of each piecewise definition fires on the subspace(v) ≠ S case via R-FRAME-P(a)/R-FRAME-S(a)'s exclusion of non-S positions from the rearrangement), so ord(π(v)) = ord(v) and Δ(v) = 0 by the (0, 0) branch.
+
+*Subspace-S exterior (both forms):* π(v) = v, so ord(π(v)) = ord(v), and Δ(v) = 0 by the (0, 0) branch.
 
 *3-cut α:* For v = c₀ + j with 0 ≤ j < w_α: π(v) = c₀ + w_β + j, so ord(π(v)) = ord(c₀) + w_β + j and ord(v) = ord(c₀) + j. Since w_β ≥ 1, ord(π(v)) > ord(v); the (+) branch applies, giving Δ(v) = +((ord(c₀) + w_β + j) − (ord(c₀) + j)) = +w_β.
 
@@ -422,27 +426,31 @@ By (b), the partition into maximal runs is unique, so every termination state is
 
 *(d) Maximal runs admit no merge.* Two maximal runs cannot be simultaneously V-adjacent and I-adjacent: if b₁ = (v₁, a₁, n₁) and b₂ = (v₂, a₂, n₂) satisfy v₂ = v₁ + n₁ and a₂ = a₁ + n₁, then (v₁, a₁, n₁ + n₂) is a valid run (by Merge) whose V-extent strictly contains V(b₁), contradicting b₁'s maximality. This is precisely the condition checked in (c) — at termination, no such pair exists, confirming that the exhaustive merge reaches the maximal-run partition.
 
-**R-COMM — PermutationShiftCommutativity (LEMMA).** Let π be a cut-point permutation (R-PPERM or R-SPERM) for a cut sequence C satisfying R-PRE. For any V-position v and offset k ≥ 0 such that v and v + k lie in the same region (exterior, α, μ, or β):
+**R-COMM — PermutationShiftCommutativity (LEMMA).** Let π be a cut-point permutation (R-PPERM or R-SPERM) for a cut sequence C satisfying R-PRE. For any V-position v ∈ dom(M(d)) and offset k ≥ 0 such that v + k ∈ dom(M(d)) and v, v + k lie in the same region — where the regions are the non-S subspace ({v ∈ dom(M(d)) : subspace(v) ≠ S}), the subspace-S exterior, α, μ, or β:
 
 `π(v + k) = π(v) + k`
 
 In words: the cut-point permutation commutes with ordinal shift within each region. Every position in a region receives the same ordinal displacement, so shifting within the region before or after applying π yields the same result.
 
-*Proof.* We verify each region case using the explicit R-PPERM and R-SPERM formulas, with associativity of natural-number addition at the ordinal level as the sole algebraic tool.
+*Proof.* We verify each region case using the explicit R-PPERM and R-SPERM formulas, with associativity of natural-number addition at the ordinal level as the sole algebraic tool. In each subspace-S case, the same-region hypothesis bounds the shifted offset j' + k inside the region's width, justifying application of the corresponding R-PPERM or R-SPERM branch.
 
-*Exterior (both forms):* π(v + k) = v + k = π(v) + k, since π is the identity on the exterior.
+*Non-S subspace (both forms):* For v with subspace(v) ≠ S, the same-region hypothesis places v + k in the non-S subspace as well — by OrdShiftHom (b) of ASN-0036, subspace(v + k) = subspace(v) ≠ S, so v + k automatically inherits the non-S region. R-PPERM/R-SPERM's non-S branch yields π(v) = v and π(v + k) = v + k (both via R-FRAME-P(a)/R-FRAME-S(a)), so π(v + k) = v + k = π(v) + k.
 
-*3-cut α:* v = c₀ + j' for some 0 ≤ j' < w_α. Then v + k = c₀ + (j' + k), and by R-PPERM: π(v + k) = c₀ + w_β + (j' + k). Also π(v) + k = (c₀ + w_β + j') + k = c₀ + w_β + (j' + k) by associativity.
+*Subspace-S exterior (both forms):* π(v + k) = v + k = π(v) + k, since π is the identity on the exterior.
 
-*3-cut β:* v = c₁ + j' for some 0 ≤ j' < w_β. Then v + k = c₁ + (j' + k), and by R-PPERM: π(v + k) = c₀ + (j' + k). Also π(v) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity.
+*3-cut α:* v = c₀ + j' for some 0 ≤ j' < w_α. The same-region hypothesis "v + k ∈ α" places v + k = c₀ + (j' + k) with 0 ≤ j' + k < w_α (because α is defined as {c₀ + i : 0 ≤ i < w_α}, and the bijection between α's positions and offsets in [0, w_α) is supplied by the singleton-tumbler identification of V-positions with their ordinals). This bound discharges R-PPERM's α-branch precondition, yielding π(v + k) = c₀ + w_β + (j' + k). Also π(v) + k = (c₀ + w_β + j') + k = c₀ + w_β + (j' + k) by associativity (Extended Associativity, recorded in the OrdinalShift consumers list).
 
-*4-cut α:* v = c₀ + j' for some 0 ≤ j' < w_α. Then v + k = c₀ + (j' + k), and by R-SPERM: π(v + k) = c₀ + w_β + w_μ + (j' + k). Also π(v) + k = (c₀ + w_β + w_μ + j') + k = c₀ + w_β + w_μ + (j' + k) by associativity.
+*3-cut β:* v = c₁ + j' for some 0 ≤ j' < w_β. The same-region hypothesis "v + k ∈ β" gives 0 ≤ j' + k < w_β, discharging R-PPERM's β-branch precondition. Then v + k = c₁ + (j' + k), and by R-PPERM: π(v + k) = c₀ + (j' + k). Also π(v) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity.
 
-*4-cut μ:* v = c₁ + j' for some 0 ≤ j' < w_μ. Then v + k = c₁ + (j' + k), and by R-SPERM: π(v + k) = c₀ + w_β + (j' + k). Also π(v) + k = (c₀ + w_β + j') + k = c₀ + w_β + (j' + k) by associativity.
+*4-cut α:* v = c₀ + j' for some 0 ≤ j' < w_α. The same-region hypothesis "v + k ∈ α" gives 0 ≤ j' + k < w_α, discharging R-SPERM's α-branch precondition. Then v + k = c₀ + (j' + k), and by R-SPERM: π(v + k) = c₀ + w_β + w_μ + (j' + k). Also π(v) + k = (c₀ + w_β + w_μ + j') + k = c₀ + w_β + w_μ + (j' + k) by associativity.
 
-*4-cut β:* v = c₂ + j' for some 0 ≤ j' < w_β. Then v + k = c₂ + (j' + k), and by R-SPERM: π(v + k) = c₀ + (j' + k). Also π(v) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity. ∎
+*4-cut μ:* v = c₁ + j' for some 0 ≤ j' < w_μ. The same-region hypothesis "v + k ∈ μ" gives 0 ≤ j' + k < w_μ, discharging R-SPERM's μ-branch precondition. Then v + k = c₁ + (j' + k), and by R-SPERM: π(v + k) = c₀ + w_β + (j' + k). Also π(v) + k = (c₀ + w_β + j') + k = c₀ + w_β + (j' + k) by associativity.
 
-**R-BLK — RunDecompositionTransformation (LEMMA).** Let B = {b₁, ..., bₘ} be a run partition of M(d) (per S8). Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a run partition B' obtained by:
+*4-cut β:* v = c₂ + j' for some 0 ≤ j' < w_β. The same-region hypothesis "v + k ∈ β" gives 0 ≤ j' + k < w_β, discharging R-SPERM's β-branch precondition. Then v + k = c₂ + (j' + k), and by R-SPERM: π(v + k) = c₀ + (j' + k). Also π(v) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity. ∎
+
+**R-BLK — RunDecompositionTransformation (LEMMA).** Let B = {b₁, ..., bₘ} be a run partition of M(d) (per S8) — including runs whose V-extents lie in V_S(d) and runs whose V-extents lie in subspaces other than S. Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a run partition B' obtained by:
+
+*Scope note on non-S runs.* By CS3, every cut position cᵢ has subspace(cᵢ) = S, so cᵢ ∉ V(b) for any run b with V-extent in some subspace S' ≠ S (the "subspace and field-structure preservation across a correspondence run" corollary of ASN-0036's S8 gives subspace_V(v) = subspace_V(v_b) = S' for every v ∈ V(b), and S' ≠ S separates these from the cut positions). Consequently Phase 1 performs no split on any non-S run, Phase 2 classifies each such run into a dedicated non-S region, and Phase 3 carries it through unchanged. We give the explicit clauses in each Phase below.
 
 *Phase 1: Split.* Process cut positions in index order (c₀, c₁, ..., c_{n−1}), maintaining the partition as it is progressively refined. For each cut position cᵢ, classify by whether cᵢ falls within some run's V-extent:
 
@@ -454,10 +462,11 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 
 When a later cut falls in a run already split by an earlier (strictly smaller) cut, it necessarily falls in the right-hand piece. To see this, suppose at step i, cut cᵢ was interior to a run bₖ = (vₖ, aₖ, nₖ) at offset c = ord(cᵢ) − ord(vₖ), producing a left piece (vₖ, aₖ, c) with V-extent [ord(vₖ), ord(vₖ) + c) and a right piece starting at vₖ + c with ord(vₖ + c) = ord(vₖ) + c = ord(cᵢ). At step j > i, cut c_j satisfies ord(c_j) > ord(cᵢ) by CS2. Chaining: ord(c_j) > ord(cᵢ) = ord(vₖ) + c, so ord(c_j) ≥ ord(vₖ) + c, placing c_j outside the left piece's V-extent. If c_j lies in the original V(bₖ) at all (i.e., ord(c_j) < ord(vₖ) + nₖ), it must therefore lie in the right piece's V-extent [ord(vₖ) + c, ord(vₖ) + nₖ). The process is well-defined because S8(a)/(b) are maintained after each split (uniqueness of containing run carries over from the partition property, consistency by the Split lemma). After all cuts are processed, no run straddles any cut position c_i for 0 ≤ i ≤ n − 1 (equivalently, no c_i is strictly interior to the V-extent of any run in the resulting partition).
 
-*Phase 2: Classify.* Each run in the post-split partition lies entirely within one region (exterior left, α, μ if 4-cut, β, or exterior right), because no run crosses a cut boundary. When c_{n−1} > max(V_S(d)), the exterior-right region is empty and no run is classified there; the classification by Phase 1 of the remaining cuts covers all runs.
+*Phase 2: Classify.* Each run in the post-split partition lies entirely within one region — non-S (V-extent in some subspace S' ≠ S), exterior left, α, μ if 4-cut, β, or exterior right — because no run crosses a cut boundary (subspace-S runs are split at S-subspace cuts, and non-S runs are entirely contained in their subspace by the corollary cited in the Scope note). When c_{n−1} > max(V_S(d)), the exterior-right region is empty and no run is classified there; the non-S region is empty when dom(M(d)) ⊆ V_S(d), and either condition may hold independently. The classification by Phase 1 of the remaining cuts together with the subspace separation of non-S runs covers all runs.
 
 *Phase 3: Reassemble.* Apply the permutation to each run's V-start:
 
+- Non-S runs: unchanged (π is the identity on positions with subspace ≠ S by R-PPERM/R-SPERM's non-S branch, which inherits from R-FRAME-P(a)/R-FRAME-S(a)).
 - Exterior runs: unchanged.
 - α runs: (vₖ, aₖ, nₖ) becomes (π(vₖ), aₖ, nₖ) — the V-start shifts by the α displacement, the I-start and width are preserved.
 - β runs: V-start shifts by the β displacement.
@@ -465,11 +474,11 @@ When a later cut falls in a run already split by an earlier (strictly smaller) c
 
 The I-start and width of each run are preserved because the rearrangement modifies no I-addresses and the displacement is uniform within each region (R-DISP).
 
-*Contiguity of reassembled runs.* Within each region, π applies a uniform ordinal displacement. After Phase 1, every run lies entirely in a single region, so for each run (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region and receive the same displacement. By R-COMM (π(vⱼ + k) = π(vⱼ) + k), consecutive V-positions in the original run map to consecutive V-positions, so each reassembled run (π(vⱼ), aⱼ, nⱼ) occupies a contiguous V-position range and is therefore a valid run.
+*Contiguity of reassembled runs.* Within each region, π applies a uniform ordinal displacement. After Phase 1, every run lies entirely in a single region, so for each run (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region: for subspace-S runs this is by Phase 1's split-at-cuts construction; for non-S runs this is by the "subspace and field-structure preservation across a correspondence run" corollary of ASN-0036's S8 (subspace(vⱼ + k) = subspace(vⱼ) ≠ S for all 0 ≤ k < nⱼ). By R-COMM applied with the same-region precondition discharged (π(vⱼ + k) = π(vⱼ) + k), consecutive V-positions in the original run map to consecutive V-positions, so each reassembled run (π(vⱼ), aⱼ, nⱼ) occupies a contiguous V-position range and is therefore a valid run. For non-S runs π is the identity, so the reassembled run is identical to the original — contiguity is immediate.
 
-The resulting runs satisfy S8(b) (consistency under M'(d)): for each reassembled run (π(vⱼ), aⱼ, nⱼ) and 0 ≤ k < nⱼ: M'(d)(π(vⱼ) + k) = M'(d)(π(vⱼ + k)) = M(d)(vⱼ + k) = aⱼ + k. The second equality uses the permutation definition M'(d)(π(v)) = M(d)(v); the first uses R-COMM.
+The resulting runs satisfy S8(b) (consistency under M'(d)). *Subspace-S runs:* for each reassembled run (π(vⱼ), aⱼ, nⱼ) and 0 ≤ k < nⱼ: M'(d)(π(vⱼ) + k) = M'(d)(π(vⱼ + k)) = M(d)(vⱼ + k) = aⱼ + k. The second equality uses the permutation defining property M'(d)(π(v)) = M(d)(v); the first uses R-COMM. *Non-S runs:* the run (vⱼ, aⱼ, nⱼ) passes through unchanged, and for 0 ≤ k < nⱼ: M'(d)(vⱼ + k) = M(d)(vⱼ + k) = aⱼ + k. The first equality uses R-FRAME-P(a)/R-FRAME-S(a) at vⱼ + k (whose subspace is ≠ S by the corollary cited above); the second is the original S8(b).
 
-Uniqueness of the containing run (S8(a)) for M'(d): π is a bijection on dom(M(d)) = dom(M'(d)), so the V-extents of the reassembled runs are pairwise disjoint (from the disjointness of the pre-reassembly partition and injectivity of π) and cover dom(M'(d)) (from coverage and surjectivity of π); together these yield the E! quantification of S8(a).
+Uniqueness of the containing run (S8(a)) for M'(d): π is a bijection on dom(M(d)) = dom(M'(d)), and π restricts to the identity on the non-S part of dom(M(d)) and to a bijection on V_S(d) (R-PPERM/R-SPERM). The V-extents of the reassembled subspace-S runs are pairwise disjoint and cover V_S(d) (from the partition property of the pre-reassembly subspace-S partition and bijectivity of π|_{V_S(d)}); the V-extents of the carried-over non-S runs are pairwise disjoint and cover dom(M(d)) \ V_S(d) (inherited from the pre-state partition). Pairwise disjointness across the two groups holds because subspace-S and non-S V-extents lie in distinct subspaces (T10 of ASN-0034: non-nesting prefixes generate disjoint subtrees). Together these yield the E! quantification of S8(a) on dom(M'(d)).
 
 The partition B' is valid but not necessarily maximal: B' may contain V-adjacent, I-adjacent pairs of runs that satisfy the merge condition. The maximal partition of M'(d) is recovered by applying the exhaustive-merge process to B' — which terminates and produces a unique maximal partition by the canonical-decomposition argument (steps (a)–(d) above), applied with M'(d) in place of M(d). This ASN does not characterize *which* pre-state run pairs produce post-state mergeability; doing so would require a separate analysis tying region assignment under R-BLK Phase 2 to I-address arithmetic from the pre-state, beyond R-BLK's scope. The 4-cut worked example below exhibits a concrete instance (B and H merging into a width-3 run).
 
