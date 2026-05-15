@@ -136,6 +136,7 @@ SHAPES: Dict[str, LinkShape] = {
     "extract": CLASSIFIER,
     "absorb": CLASSIFIER,
     "clone": CLASSIFIER,
+    "import": CLASSIFIER,
     "retired": CLASSIFIER,
     "motifs": CLASSIFIER,
     "motif": CLASSIFIER,
@@ -174,6 +175,7 @@ SHAPES: Dict[str, LinkShape] = {
     "provenance.clone": PROVENANCE,
     "provenance.extract": PROVENANCE,
     "provenance.absorb": PROVENANCE,
+    "provenance.import": PROVENANCE,
 
     # ── Versioning + lineage ──
     "supersession": SUPERSESSION,

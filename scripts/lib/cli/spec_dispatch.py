@@ -116,9 +116,9 @@ def run_spec_cli(
         agent = agent_cls(**kwargs)
         # Operator-gated agents take target context from the spec
         # doc; the addr argument is unused but required by the
-        # Agent dispatch surface — pass the lattice account as a
+        # Agent dispatch surface — pass the lattice doc as a
         # stand-in.
-        lattice_addr = session.store.account
+        lattice_addr = session.store.lattice_doc
         result = agent(session, lattice_addr, spec_filename=args.spec)
 
     print(f"\n  [DONE] {result.detail}", file=sys.stderr)
