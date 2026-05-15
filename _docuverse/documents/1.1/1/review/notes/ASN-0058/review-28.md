@@ -1,0 +1,22 @@
+# Review of ASN-0058
+
+## REVISE
+
+### Issue 1: M2's translation from S8 hand-waves the structural argument
+**ASN-0058, M2 (DecompositionExistence)**: "S8(a) is the unique-existential `(A v ∈ dom(M(d)) :: (E! j :: v ∈ V(βⱼ)))`: its *existence* half — every V-position lies in *some* block's V-extent — is B1 (Coverage)... S8(a)'s range coincides with `⋃ⱼ V(βⱼ)` exactly when restricted to dom(M(d))..."
+
+**Problem**: S8 in ASN-0036 states its conjunct (a) in interval form `(E! j :: vⱼ ≤ v < shift(vⱼ, nⱼ))`, whereas M2 uses V-extent form `(E! j :: v ∈ V(βⱼ))` where `V(βⱼ) = {vⱼ + k : 0 ≤ k < nⱼ}`. These are not interchangeable without a structural translation. The non-trivial direction — "for v ∈ dom(M(d)), `vⱼ ≤ v < shift(vⱼ, nⱼ)` ⟹ `v ∈ V(βⱼ)`" — requires:
+  (i) subspace(v) = subspace(vⱼ) (from T1 + TumblerAdd prefix-copy, given action point of `δ(nⱼ, m)` is m ≥ 2);
+  (ii) #v = #vⱼ = m (from S8-depth on the common subspace);
+  (iii) v's first m−1 components agree with vⱼ's (T1 + prefix-copy);
+  (iv) v = vⱼ + k for k = v_m − (vⱼ)_m ∈ [0, nⱼ).
+
+The proof asserts the equivalence as a "restating in our vocabulary, with explicit conjunct correspondence" but only argues set-level equality of quantifier ranges ("V-positions are precisely depth-m tumblers in occupied subspaces"), not the membership-level equivalence that B1 actually needs. The "✓"-style assertion that S8(a) **is** the V-extent form is exactly the hand-wave the rubric warns against. B1 is load-bearing throughout the rest of the ASN.
+
+**Required**: Inline the four-step structural derivation in M2's proof. The skeleton is essentially the same one later deployed in M7-cov claims (1)–(4) and M12a's "Equal starts" argument; it can be discharged here from S8a + S8-depth + TumblerAdd + T1 without circular dependence on B2.
+
+## OUT_OF_SCOPE
+
+None. The "Open Questions" section explicitly enumerates future directions (block-boundary discontinuity structure, lattice of decompositions, depth-relationship constraints, multi-source resolution ordering), and the listed scope statement bounds the ASN cleanly.
+
+VERDICT: REVISE
