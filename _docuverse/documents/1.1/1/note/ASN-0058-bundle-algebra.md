@@ -134,7 +134,13 @@ The lemma uses S8a, S8-depth (ASN-0036), TumblerAdd, T1, T3, and OrdinalShiftBas
 
 *Prefix agreement.* By depth equality, `(y)_j` is defined for all `1 ≤ j ≤ m`, so the set `J = {j : 1 ≤ j < m ∧ (y)_j ≠ (x)_j}` is well-posed. Suppose `J ≠ ∅` and let `j₀ = min(J)`. The disagreement at `j₀` excludes `x = y` (equality forces componentwise agreement), so `x ≤ y` strengthens to `x < y`. By minimality of `j₀` in `J`, `(y)_i = (x)_i` for all `1 ≤ i < j₀` — any divergence index in that range would itself lie in `J`, contradicting `j₀ = min(J)`. We pin T1's witness to `j₀`: depth equality `#x = #y = m` excludes T1 (ASN-0034) case (ii) (`x` a proper prefix of `y` would require `#x < #y`), so case (i) applies, supplying a least divergence index `j'`; the agreement `(y)_i = (x)_i` for `i < j₀` combined with `(y)_{j₀} ≠ (x)_{j₀}` pins `j' = j₀`, and T1(i) yields `(y)_{j₀} > (x)_{j₀}`. Prefix-copy (since `j₀ < m`) gives `(x + n)_i = (x)_i` for `i ≤ j₀`, hence `(y)_i = (x + n)_i` for `i < j₀` and `(y)_{j₀} > (x + n)_{j₀}`. Tumblers agreeing below `j₀` with `(y)_{j₀} > (x + n)_{j₀}` give `y > x + n` by T1(i), contradicting `y < x + n`. Hence `J = ∅`.
 
-*Component-`m` reduction.* By depth and prefix agreement, `y` and `x` agree on components 1..m−1 and share depth `m`; the comparison `x ≤ y < x + n` reduces to component `m`: `(x)_m ≤ (y)_m < (x)_m + n`. Set `k = (y)_m − (x)_m`; then `0 ≤ k < n`. We split on `k` because TumblerAdd is defined for ordinal displacements `δ(k, m)` only when `k ≥ 1`; the boundary case `k = 0` is governed by OrdinalShiftBase instead.
+*Component-`m` reduction.* By depth and prefix agreement, `y` and `x` agree on components 1..m−1 and share depth `m`. We derive `(x)_m ≤ (y)_m < (x)_m + n` from the two inequalities of the premise by explicit T1 (ASN-0034) appeals.
+
+*Lower bound from `x ≤ y`:* Case-split on `x = y` vs `x < y`. If `x = y`, then `(y)_m = (x)_m` directly (equal tumblers agree componentwise), so `(x)_m ≤ (y)_m` trivially. Otherwise `x ≤ y` strengthens to `x < y`. T1 (ASN-0034) case (ii) — `x` a proper prefix of `y` — is excluded by depth equality `#x = #y = m` (a proper prefix would require `#x < #y`), so T1 case (i) applies, supplying a least divergence index `j'` with `(y)_{j'} > (x)_{j'}` and `(y)_i = (x)_i` for `i < j'`. Prefix agreement (just established) gives `(y)_i = (x)_i` for all `1 ≤ i < m`, so `j' ≥ m`; depth `m` confines defined components to `[1, m]`, forcing `j' ≤ m`. Hence `j' = m`, and T1(i) yields `(x)_m < (y)_m`. In both subcases, `(x)_m ≤ (y)_m`.
+
+*Upper bound from `y < x + n`:* TumblerAdd (ASN-0034) at action point `m` ≤ `#x = m` produces a tumbler of length `#x = m`, so `#(x + n) = m`; combined with `#y = m`, T1 case (ii) is excluded by equal depth, and T1 case (i) supplies a least divergence index `j''` with `(y)_{j''} < (x + n)_{j''}` and `(y)_i = (x + n)_i` for `i < j''`. We pin `j''` via transitively-established prefix agreement: prefix agreement gives `(y)_i = (x)_i` for `i < m`, and TumblerAdd's prefix-copy clause (action point `m`) gives `(x + n)_i = (x)_i` for `i < m`; chaining the two, `(y)_i = (x + n)_i` for all `i < m`, hence `j'' ≥ m`. Equal depth `m` forces `j'' ≤ m`; hence `j'' = m`. TumblerAdd's action-point clause gives `(x + n)_m = (x)_m + n`, and T1(i) at `j'' = m` yields `(y)_m < (x + n)_m = (x)_m + n`.
+
+Combining the two derivations: `(x)_m ≤ (y)_m < (x)_m + n`. Set `k = (y)_m − (x)_m`; then `0 ≤ k < n`. We split on `k` because TumblerAdd is defined for ordinal displacements `δ(k, m)` only when `k ≥ 1`; the boundary case `k = 0` is governed by OrdinalShiftBase instead.
 
 *Case `k = 0`.* Then `(y)_m = (x)_m`, so `y` and `x` agree on all components 1..m (prefix agreement gives 1..m−1, the `k = 0` assignment gives component `m`) and share depth `m`. T3 (CanonicalRepresentation, ASN-0034) — componentwise agreement of equal-depth tumblers gives equality — yields `y = x`. By OrdinalShiftBase, `x + 0 = x`, hence `y = x = x + 0 = x + k`.
 
@@ -334,7 +340,11 @@ The proof factors into two sub-lemmas: M12a (maximal runs partition `dom(f)`) an
 
 *Proof.* Suppose `v ∈ V(R₁) ∩ V(R₂)` with `v₁ ≤ v₂` WLOG. Then `v = v₁ + k` for some `0 ≤ k < n₁` and `v = v₂ + k'` for some `0 ≤ k' < n₂`. Since `v₁, v₂ ∈ dom(f) ⊆ dom(M(d))` (both are starts of correspondence runs), S8a (VPositionWellFormedness, ASN-0036) gives `#v₁ ≥ 2` and `#v₂ ≥ 2`.
 
-*Equal starts.* We show `v₁ = v₂`. If already `v₁ = v₂`, set `k₂ = 0` and skip ahead. Otherwise `v₁ < v₂`, and since `v₂ ≤ v = v₁ + k` with `k < n₁`, we have `v₁ < v₂ < v₁ + n₁`. M-int (TumblerIntervalCharacterization) applied with `x = v₁`, `y = v₂`, `n = n₁` (premises: `v₁, v₂ ∈ dom(M(d))` since both are V-starts of correspondence runs in `dom(f) ⊆ dom(M(d))`; `v₁ ≤ v₂ < v₁ + n₁` from above; `n₁ ≥ 1` by M0) gives `v₂ = v₁ + k₂` for `k₂ = (v₂)_m − (v₁)_m` with `0 ≤ k₂ < n₁`, with `v₁` and `v₂` sharing subspace of common depth `m`. The strict `v₁ < v₂` rules out `k₂ = 0` (which would give `v₂ = v₁`), so `1 ≤ k₂ ≤ k < n₁`. Both runs map `v₂` through `f` — condition 1 of `R₁` gives `f(v₂) = f(v₁ + k₂) = a₁ + k₂`, and condition 1 of `R₂` gives `f(v₂) = a₂` — so `a₂ = a₁ + k₂`. Now set `v' = v₁ + (k₂ − 1) ∈ V(R₁) ⊆ dom(f)`. By M-aux, `v' + 1 = v₁ + k₂ = v₂` and `f(v') + 1 = (a₁ + (k₂ − 1)) + 1 = a₁ + k₂ = a₂`. So `R₂` can be extended left, contradicting condition 2 of `R₂`. Hence `v₁ = v₂` (and `k₂ = 0` gives `a₂ = a₁`).
+*Equal starts.* We show `(v₁, a₁) = (v₂, a₂)` by case-splitting on the start positions.
+
+*Case `v₁ = v₂`:* Set `k₂ = 0`. Condition 1 of `R₁` at offset 0 gives `f(v₁) = f(v₁ + 0) = a₁ + 0 = a₁` (using OrdinalShiftBase), and similarly condition 1 of `R₂` gives `f(v₂) = a₂`. Functionality of `f = M(d)` (S2, ArrangementFunctionality, ASN-0036) applied at `v₁ = v₂` yields `a₁ = f(v₁) = f(v₂) = a₂`. So this case delivers both `v₁ = v₂` and `a₁ = a₂` directly, ready for Equal widths below.
+
+*Case `v₁ < v₂`:* Since `v₂ ≤ v = v₁ + k` with `k < n₁`, we have `v₁ < v₂ < v₁ + n₁`. M-int (TumblerIntervalCharacterization) applied with `x = v₁`, `y = v₂`, `n = n₁` (premises: `v₁, v₂ ∈ dom(M(d))` since both are V-starts of correspondence runs in `dom(f) ⊆ dom(M(d))`; `v₁ ≤ v₂ < v₁ + n₁` from above; `n₁ ≥ 1` by M0) gives `v₂ = v₁ + k₂` for `k₂ = (v₂)_m − (v₁)_m` with `0 ≤ k₂ < n₁`, with `v₁` and `v₂` sharing subspace of common depth `m`. The strict `v₁ < v₂` rules out `k₂ = 0` (which would give `v₂ = v₁`), so `1 ≤ k₂ ≤ k < n₁`. Both runs map `v₂` through `f` — condition 1 of `R₁` gives `f(v₂) = f(v₁ + k₂) = a₁ + k₂`, and condition 1 of `R₂` gives `f(v₂) = a₂` — so `a₂ = a₁ + k₂`. Now set `v' = v₁ + (k₂ − 1) ∈ V(R₁) ⊆ dom(f)`. By M-aux, `v' + 1 = v₁ + k₂ = v₂` and `f(v') + 1 = (a₁ + (k₂ − 1)) + 1 = a₁ + k₂ = a₂`. So `R₂` can be extended left, contradicting condition 2 of `R₂`. The contradiction excludes this case, leaving only `v₁ = v₂` (with `a₁ = a₂` from the surviving case).
 
 *Equal widths.* By NAT-order trichotomy on `(n₁, n₂)`, exactly one of `n₁ < n₂`, `n₁ = n₂`, or `n₂ < n₁` holds. Suppose `n₁ < n₂`. Then `v₁ + n₁ ∈ V(R₂)` (at offset `n₁ < n₂` from `v₂ = v₁`), so `v₁ + n₁ ∈ dom(f)` and `f(v₁ + n₁) = a₂ + n₁ = a₁ + n₁` by condition 1 of `R₂`. But condition 3 of `R₁` requires `v₁ + n₁ ∉ dom(f) ∨ f(v₁ + n₁) ≠ a₁ + n₁` — contradiction. The symmetric case `n₂ < n₁` contradicts condition 3 of `R₂` by the same argument (with `R₁` supplying the right-witness). The surviving case is `n₁ = n₂`, giving `(v₁, a₁, n₁) = (v₂, a₂, n₂)`. ∎
 
@@ -364,7 +374,7 @@ Since the maximal runs are uniquely determined by `f` and every maximally merged
 
 Nelson observes: "The representation with the fewest I-spans is the most compact." [LM 4/37] The maximally merged decomposition is this most compact representation — uniquely determined by the arrangement `M(d)`, independent of any choice of representation or any history of how the arrangement was constructed.
 
-### A Worked Example
+### A Worked Example (Canonical Decomposition)
 
 Consider a document `d` with eight text-subspace V-positions, `[1, k]` for `k = 1, ..., 8`, arranged as follows (tumblers shown are element-field ordinals; the full document prefix `N.0.U.0.D.0.` is elided):
 
@@ -566,7 +576,7 @@ For a content reference sequence R, the total width is w(resolve(R)).
 
 Combining: |dom(f)| = |D_m| = |E| = ℓₘ via set equality at each step. By B1 (coverage) and B2 (disjointness), the V-extents of the blocks partition dom(f). By M0 (width coupling), |V(βⱼ)| = nⱼ for each block. Therefore (+ j : 1 ≤ j ≤ k : nⱼ) = |dom(f)| = ℓₘ. ∎
 
-### A Worked Example
+### A Worked Example (Content Reference Resolution)
 
 We verify the definitions against a concrete scenario. Let document d have depth-2 V-positions in subspace 1 (m = 2) with canonical decomposition:
 
