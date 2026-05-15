@@ -93,7 +93,7 @@ M0 and M1 together characterize the mapping block: it is a *width-preserving mon
 
 *Proof of (a).* At `k = 0`, `v + 0 = v` by OrdinalShiftBase, so `subspace(v + 0) = subspace(v)` trivially. For `k ≥ 1`, the precondition `#v ≥ 2` discharges OrdShiftHom's depth hypothesis (ASN-0036), so OrdShiftHom gives `subspace(shift(v, k)) = subspace(v)`. The precondition is sharp: at `#v = 1`, `shift(v, k) = v ⊕ δ(k, 1)` advances component 1 itself, so `subspace(v + k) = (v)_1 + k ≠ (v)_1 = subspace(v)` for `k ≥ 1`. ∎
 
-*Proof of (b).* At `k = 0`, `a + 0 = a` by OrdinalShiftBase. For `k ≥ 1`, the precondition `a ∈ dom(C)` discharges ShiftPreservation's hypotheses (ASN-0036), and ShiftPreservation (iv) gives `subspace_I(shift(a, k)) = subspace_I(a)`. ∎
+*Proof of (b).* At `k = 0`, `a + 0 = a` by OrdinalShiftBase. For `k ≥ 1`, the precondition `a ∈ dom(C)` discharges ShiftPreservation's hypotheses (ASN-0036), and ShiftPreservation (iv) gives `subspace_I(shift(a, k)) = subspace_I(a)`. No analogous sharpness note arises on the I-side: S7b's `zeros(a) = 3` and S7c's `#E(a) ≥ 2` together imply `#a ≥ 8` whenever `a ∈ dom(C)` (the document prefix `N.0.U.0.D` contributes at least five components, the separator zero one, and the element field at least two), so the depth pathology that would call for a separate precondition is structurally precluded. ∎
 
 The two clauses act in concert: a single mapping block (with `#v ≥ 2`) is confined to one V-subspace and (when its I-start resides in `dom(C)`) one I-subspace. When `β` participates in a decomposition of `M(d)`, B3 (Consistency) and S3 (ReferentialIntegrity, ASN-0036) place `a ∈ dom(C)`, so clause (b) applies unconditionally to decomposition members; clause (a) further requires `#v ≥ 2`, which holds for every V-position in `dom(M(d))` by S8a (VPositionWellFormedness, ASN-0036).
 
@@ -117,6 +117,25 @@ A document's full arrangement is a collection of mapping blocks that together de
 
 B1 and B2 together assert that the V-extents partition `dom(M(d))`. B3 asserts that the mapping within each block agrees with the global arrangement. The empty arrangement `M(d) = ∅` has `B = ∅` as its unique decomposition. B1's quantifier ranges over every V-position in `dom(M(d))`, regardless of subspace; the apparent guard `v₁ ≥ 1` that one might expect is redundant — S8a (VPositionWellFormedness, ASN-0036) gives `v₁ ≥ 1` for every `v ∈ dom(M(d))` unconditionally, so no V-position is excluded.
 
+**M-int (TumblerIntervalCharacterization).** Let `x, y ∈ dom(M(d))` and `n ≥ 1`. If `x ≤ y < x + n`, then writing `m = #x`:
+
+- *Subspace agreement* — `subspace(y) = subspace(x)` (equivalently `(y)_1 = (x)_1`);
+- *Depth equality* — `#y = m`;
+- *Prefix agreement* — `(y)_j = (x)_j` for all `1 ≤ j < m`;
+- *Component-`m` reduction* — `y = x + k` where `k = (y)_m − (x)_m` and `0 ≤ k < n`.
+
+The lemma uses only S8a, S8-depth (ASN-0036), TumblerAdd, T1, and OrdinalShiftBase (ASN-0034); no block-decomposition fact (B1, B2, B3, M0, ...) is invoked, so M-int is available wherever its premises hold.
+
+*Proof.* By S8a (ASN-0036), `#x ≥ 2`; let `m = #x`. With `n ≥ 1` and `m ≥ 2`, the action point of `δ(n, m)` is at index `m`, so TumblerAdd (ASN-0034) gives `(x + n)_i = (x)_i` for all `i < m` and `(x + n)_m = (x)_m + n`.
+
+*Subspace agreement.* Component 1 is defined for any tumbler, so the comparison `(y)_1` vs `(x)_1` is well-posed regardless of `#y`. Suppose `(y)_1 ≠ (x)_1`. Since `x ≤ y`, T1(i) (ASN-0034) gives `(y)_1 > (x)_1`; with `m ≥ 2`, prefix-copy gives `(x + n)_1 = (x)_1 < (y)_1`. Tumblers diverging at index 1 with `(y)_1 > (x + n)_1` give `y > x + n` by T1(i), contradicting `y < x + n`.
+
+*Depth equality.* By subspace agreement, `subspace(y) = subspace(x)`; S8-depth (ASN-0036) applied to that common subspace gives `#y = #x = m`.
+
+*Prefix agreement.* By depth equality, `(y)_j` is defined for all `1 ≤ j ≤ m`, so the set `J = {j : 1 ≤ j < m ∧ (y)_j ≠ (x)_j}` is well-posed. Suppose `J ≠ ∅` and let `j₀ = min(J)`. Then `(y)_i = (x)_i = (x + n)_i` for all `i < j₀` (prefix-copy at the second equality, since `j₀ < m`). Since `x ≤ y`, T1(i) gives `(y)_{j₀} > (x)_{j₀} = (x + n)_{j₀}` (prefix-copy again). Tumblers agreeing below `j₀` with `(y)_{j₀} > (x + n)_{j₀}` give `y > x + n` by T1(i), contradicting `y < x + n`. Hence `J = ∅`.
+
+*Component-`m` reduction.* By depth and prefix agreement, `y` and `x` agree on components 1..m−1 and share depth `m`; the comparison `x ≤ y < x + n` reduces to component `m`: `(x)_m ≤ (y)_m < (x)_m + n`. Set `k = (y)_m − (x)_m`; then `0 ≤ k < n`. The tumbler `x + k`, computed via TumblerAdd at action point `m`, agrees with `y` on components 1..m−1 (by prefix agreement) and on component `m` (by definition of `k`), and shares depth `m`. Hence `y = x + k`. ∎
+
 **M2 (DecompositionExistence).** Under the standing preconditions S8-fin, S2, S3, S8a, S8-depth, S7b, and S7c (ASN-0036), every arrangement `M(d)` admits a block decomposition.
 
 This is S8 (SpanDecomposition, ASN-0036) restated in our vocabulary. S8 produces a finite family of runs `{(vⱼ, aⱼ, nⱼ)}`; reading each triple as a mapping block `βⱼ = (vⱼ, aⱼ, nⱼ)`, we must show that S8's two conjuncts deliver B1, B2, B3.
@@ -127,17 +146,9 @@ This is S8 (SpanDecomposition, ASN-0036) restated in our vocabulary. S8 produces
 
 The forward inclusion `V(βⱼ) ⊆ [vⱼ, shift(vⱼ, nⱼ))` is direct. At `k = 0`, `vⱼ + 0 = vⱼ` by OrdinalShiftBase. For `1 ≤ k < nⱼ`, set `m = #vⱼ`; with `m ≥ 2` (by S8a) the action point of `δ(k, m)` is at index `m`, so by TumblerAdd's prefix-copy clause `vⱼ + k` agrees with `vⱼ` on components 1..m−1 and has `(vⱼ + k)_m = (vⱼ)_m + k`. T1(i) (ASN-0034) gives `vⱼ < vⱼ + k < shift(vⱼ, nⱼ)`. Membership in `dom(M(d))` follows from S8(b).
 
-The reverse inclusion `[vⱼ, shift(vⱼ, nⱼ)) ∩ dom(M(d)) ⊆ V(βⱼ)` requires a four-step structural argument. Suppose `v ∈ dom(M(d))` satisfies `vⱼ ≤ v < shift(vⱼ, nⱼ)`. S8a (VPositionWellFormedness, ASN-0036) gives `#vⱼ ≥ 2` and `#v ≥ 2`. Let `m = #vⱼ`; with `nⱼ ≥ 1` (correspondence-run width) and `m ≥ 2`, the action point of `δ(nⱼ, m)` is at index `m`, so TumblerAdd (ASN-0034) gives `(shift(vⱼ, nⱼ))_i = (vⱼ)_i` for all `i < m` and `(shift(vⱼ, nⱼ))_m = (vⱼ)_m + nⱼ`.
+The reverse inclusion `[vⱼ, shift(vⱼ, nⱼ)) ∩ dom(M(d)) ⊆ V(βⱼ)` follows from M-int (TumblerIntervalCharacterization). Suppose `v ∈ dom(M(d))` satisfies `vⱼ ≤ v < shift(vⱼ, nⱼ)`; S8(b) places `vⱼ ∈ dom(M(d))` (`M(d)(vⱼ) = aⱼ`). Reading `shift(vⱼ, nⱼ)` as `vⱼ + nⱼ` (OrdinalShift convention, ASN-0034), the premises of M-int hold with `x = vⱼ`, `y = v`, `n = nⱼ`: `vⱼ, v ∈ dom(M(d))`, `vⱼ ≤ v < vⱼ + nⱼ`, and `nⱼ ≥ 1` from S8's correspondence-run width. M-int yields `v = vⱼ + k` for some `0 ≤ k < nⱼ`, hence `v ∈ V(βⱼ)`.
 
-(i) *Subspace agreement* — `(v)_1 = (vⱼ)_1`. Component 1 is defined for any tumbler, so the comparison is well-posed regardless of `#v`. Suppose `(v)_1 ≠ (vⱼ)_1`. Since `vⱼ ≤ v`, T1(i) gives `(v)_1 > (vⱼ)_1 = (shift(vⱼ, nⱼ))_1` (the latter by prefix-copy, since `1 < m`). Tumblers diverging at index 1 with `(v)_1 > (shift(vⱼ, nⱼ))_1` give `v > shift(vⱼ, nⱼ)` by T1(i), contradicting `v < shift(vⱼ, nⱼ)`.
-
-(ii) *Depth equality* — `#v = m`. By (i), `subspace(v) = subspace(vⱼ)`. S8-depth (ASN-0036) applied to that common subspace gives `#v = #vⱼ = m`.
-
-(iii) *Prefix agreement* — `(v)_j = (vⱼ)_j` for all `1 ≤ j < m`. By (ii), `(v)_j` is defined for all `1 ≤ j ≤ m`, so the set `J = {j : 1 ≤ j < m ∧ (v)_j ≠ (vⱼ)_j}` is well-posed. Suppose `J ≠ ∅` and let `j₀ = min(J)`. Then `(v)_i = (vⱼ)_i = (shift(vⱼ, nⱼ))_i` for all `i < j₀` (prefix-copy at the second equality, since `j₀ < m`). Since `vⱼ ≤ v`, T1(i) gives `(v)_{j₀} > (vⱼ)_{j₀} = (shift(vⱼ, nⱼ))_{j₀}` (prefix-copy again, since `j₀ < m`). Tumblers agreeing below `j₀` with `(v)_{j₀} > (shift(vⱼ, nⱼ))_{j₀}` give `v > shift(vⱼ, nⱼ)` by T1(i), contradicting `v < shift(vⱼ, nⱼ)`. Hence `J = ∅`.
-
-(iv) *Component-m reduction* — `v = vⱼ + k` for some `0 ≤ k < nⱼ`. By (ii) and (iii), `v` and `vⱼ` agree on components 1..m−1 and share depth `m`; the comparison `vⱼ ≤ v < shift(vⱼ, nⱼ)` reduces to component `m`: `(vⱼ)_m ≤ (v)_m < (vⱼ)_m + nⱼ`. Set `k = (v)_m − (vⱼ)_m`; then `0 ≤ k < nⱼ`. The tumbler `vⱼ + k`, computed via TumblerAdd at action point `m`, agrees with `v` on components 1..m−1 (by (iii)) and on component `m` (by definition of `k`), and shares depth `m`. Hence `v = vⱼ + k ∈ V(βⱼ)`.
-
-The four-step derivation invokes only S8a, S8-depth, TumblerAdd, T1, and OrdinalShiftBase — B2 (Disjointness) is *not* used, so the V-extent translation is not circular with what it is about to deliver. The same four-claim skeleton recurs in M7-cov claims (1)–(4) and M12a's "Equal starts" argument with corresponding adaptations.
+The reverse inclusion uses only M-int's premises — neither B1 nor B2 is invoked — so the V-extent translation is not circular with what it is about to deliver.
 
 With the V-extent translation in hand, S8(a) reads `(A v ∈ dom(M(d)) :: (E! j :: v ∈ V(βⱼ)))`: its *existence* half — every V-position lies in *some* block's V-extent — is B1 (Coverage), and its *uniqueness* half — no V-position lies in two blocks' V-extents — is B2 (Disjointness). M2 inherits S8's preconditions verbatim; downstream claims that lean on M2 (notably C1a and C2) carry the same dependency. The empty arrangement `M(d) = ∅` admits `B = ∅` (S8 produces zero runs; B1, B2, B3 are vacuously satisfied). The question that S8 leaves open is: given that at least one decomposition exists, how many are there, and what relates them?
 
@@ -236,15 +247,7 @@ Both conditions are necessary, and a fourth case — V-overlap — is impossible
 
 **M7-cov (NonOverlap).** Let `B` be a decomposition of `M(d)` and let `β₁ = (v₁, a₁, n₁)` and `β₂ = (v₂, a₂, n₂)` be distinct blocks in `B` with `v₁ < v₂`. Then `v₂ ≥ v₁ + n₁`.
 
-*Proof.* Since `β₁, β₂ ∈ B` and B is a decomposition of `M(d)`, B3 places `v₁, v₂ ∈ dom(M(d))`; S8a (VPositionWellFormedness, ASN-0036) gives `#v₁ ≥ 2` and `#v₂ ≥ 2`. Let `m = #v₁` (so `m ≥ 2`); `n₁ ≥ 1` by M0, so the depth and positive-shift preconditions of OrdShiftHom (ASN-0036) are discharged. By OrdShiftHom and TumblerAdd's prefix-copy clause (ASN-0034), `subspace(v₁ + n₁) = subspace(v₁)` and `(v₁ + n₁)_j = (v₁)_j` for all `j < m`. We argue by contradiction: suppose `v₂ < v₁ + n₁` and derive `v₂ ∈ V(β₁) ∩ V(β₂)`, contradicting B2. Four claims discharge the argument.
-
-(1) *Subspace agreement* — `(v₂)_1 = (v₁)_1`. Component 1 is defined for any tumbler, so the comparison is well-posed regardless of `#v₂`. Suppose `(v₂)_1 ≠ (v₁)_1`. Since `v₁ ≤ v₂`, T1(i) (ASN-0034) gives `(v₂)_1 > (v₁)_1`. With `m ≥ 2`, the action point of `δ(n₁, m)` is at index `m > 1`, so TumblerAdd preserves component 1: `(v₁ + n₁)_1 = (v₁)_1 < (v₂)_1`. Tumblers diverging at index 1 with `(v₂)_1 > (v₁ + n₁)_1` give `v₂ > v₁ + n₁` by T1(i), contradicting `v₂ < v₁ + n₁`.
-
-(2) *Depth equality* — `#v₂ = m`. By (1), `subspace(v₂) = subspace(v₁)`; by S8-depth (ASN-0036) applied to that common subspace, `#v₂ = m`.
-
-(3) *Prefix agreement* — `(v₂)_j = (v₁)_j` for all `1 ≤ j < m`. By (2), `(v₂)_j` is defined for all `1 ≤ j ≤ m`, so the set `J = {j : 1 ≤ j < m ∧ (v₂)_j ≠ (v₁)_j}` is well-posed. Suppose `J ≠ ∅` and let `j₀ = min(J)`. Then `(v₂)_i = (v₁)_i = (v₁ + n₁)_i` for all `i < j₀`. Since `v₁ ≤ v₂`, T1(i) gives `(v₂)_{j₀} > (v₁)_{j₀}`. Since `(v₁ + n₁)_{j₀} = (v₁)_{j₀} < (v₂)_{j₀}` and they agree below `j₀`, T1(i) gives `v₁ + n₁ < v₂`, contradicting `v₂ < v₁ + n₁`. Hence `J = ∅`.
-
-(4) *Component-`m` reduction* — `v₂ = v₁ + k` for some `1 ≤ k < n₁`, hence `v₂ ∈ V(β₁)`. By (3) and T1, the comparison `v₁ ≤ v₂ < v₁ + n₁` reduces to component `m`: `(v₁)_m ≤ (v₂)_m < (v₁)_m + n₁`. Set `k = (v₂)_m − (v₁)_m`; then `v₂ = v₁ + k` with `0 ≤ k < n₁`. The case `k = 0` would give `v₂ = v₁ + 0 = v₁` (by OrdinalShiftBase), contradicting `v₁ < v₂`; hence `k ∈ [1, n₁)`, so `v₂ ∈ V(β₁)`. Combined with `v₂ ∈ V(β₂)`, this gives `v₂ ∈ V(β₁) ∩ V(β₂)`, violating B2 of the original decomposition. ∎
+*Proof.* Since `β₁, β₂ ∈ B` and B is a decomposition of `M(d)`, B3 places `v₁, v₂ ∈ dom(M(d))`. We argue by contradiction: suppose `v₂ < v₁ + n₁`. Then `v₁ ≤ v₂ < v₁ + n₁` (the left inequality is the lemma's hypothesis `v₁ < v₂`), and `n₁ ≥ 1` by M0. M-int (TumblerIntervalCharacterization) applied with `x = v₁`, `y = v₂`, `n = n₁` yields `v₂ = v₁ + k` for `k = (v₂)_m − (v₁)_m` with `0 ≤ k < n₁`. The case `k = 0` would give `v₂ = v₁ + 0 = v₁` (by OrdinalShiftBase), contradicting `v₁ < v₂`; hence `k ∈ [1, n₁)`, so `v₂ ∈ V(β₁)`. Combined with `v₂ ∈ V(β₂)`, this gives `v₂ ∈ V(β₁) ∩ V(β₂)`, violating B2 of the original decomposition. ∎
 
 *Verification of the merge identity.* `⟦β₁ ⊞ β₂⟧ = {(v₁ + k, a₁ + k) : 0 ≤ k < n₁ + n₂}`. For `k < n₁`, this gives `⟦β₁⟧`. For `k ≥ n₁`, set `j = k − n₁`: then `v₁ + k = (v₁ + n₁) + j = v₂ + j` and similarly `a₁ + k = a₂ + j` (by M-aux), giving `⟦β₂⟧`. So `⟦β₁ ⊞ β₂⟧ = ⟦β₁⟧ ∪ ⟦β₂⟧`. ∎
 
@@ -305,15 +308,15 @@ Define a *maximal run* of `f = M(d)` as a triple `(v, a, n)` such that:
 
 (Condition 2 uses only TumblerAdd, avoiding TumblerSub which is not well-defined for ordinal decrement at arbitrary tumbler depth. Leftward extension terminates because `dom(f)` is finite — the run cannot be extended beyond the leftmost position in `dom(f)`.)
 
-The proof factors into two sub-lemmas: M12a (maximal runs partition `dom(f)`) and M12b (every block of a maximally merged decomposition is a maximal run). Both lean on the same structural skeleton developed in M7-cov.
+The proof factors into two sub-lemmas: M12a (maximal runs partition `dom(f)`) and M12b (every block of a maximally merged decomposition is a maximal run). M12a's "Equal starts" leans on M-int (TumblerIntervalCharacterization) for the structural reduction; M12b uses TumblerAdd's prefix-copy and unit-shift inversion directly.
 
 **M12a (RunDisjointness).** Maximal runs of `f` pairwise have disjoint V-extents: if `R₁ = (v₁, a₁, n₁)` and `R₂ = (v₂, a₂, n₂)` are maximal runs of `f` with `V(R₁) ∩ V(R₂) ≠ ∅`, then `(v₁, a₁, n₁) = (v₂, a₂, n₂)`.
 
 *Proof.* Suppose `v ∈ V(R₁) ∩ V(R₂)` with `v₁ ≤ v₂` WLOG. Then `v = v₁ + k` for some `0 ≤ k < n₁` and `v = v₂ + k'` for some `0 ≤ k' < n₂`. Since `v₁, v₂ ∈ dom(f) ⊆ dom(M(d))` (both are starts of correspondence runs), S8a (VPositionWellFormedness, ASN-0036) gives `#v₁ ≥ 2` and `#v₂ ≥ 2`.
 
-*Equal starts.* We show `v₁ = v₂`. If already `v₁ = v₂`, set `k₂ = 0` and skip ahead. Otherwise `v₁ < v₂`, and since `v₂ ≤ v = v₁ + k` with `k < n₁`, we have `v₁ < v₂ < v₁ + n₁`. The four-claim structural skeleton from M7-cov — (1) subspace agreement, (2) depth equality (S8-depth on the common subspace), (3) prefix agreement (TumblerAdd's prefix-copy clause), (4) component-`m` reduction — applies verbatim from `v₁, v₂ ∈ dom(M(d))` (the only premise needed for the skeleton; B2 is not invoked here, only the structural reduction). It gives `v₂ = v₁ + k₂` for `k₂ = (v₂)_m − (v₁)_m` with `1 ≤ k₂ ≤ k < n₁`, with `v₁` and `v₂` sharing subspace of common depth `m`. Both runs map `v₂` through `f` — condition 1 of `R₁` gives `f(v₂) = f(v₁ + k₂) = a₁ + k₂`, and condition 1 of `R₂` gives `f(v₂) = a₂` — so `a₂ = a₁ + k₂`. Now set `v' = v₁ + (k₂ − 1) ∈ V(R₁) ⊆ dom(f)`. By M-aux, `v' + 1 = v₁ + k₂ = v₂` and `f(v') + 1 = (a₁ + (k₂ − 1)) + 1 = a₁ + k₂ = a₂`. So `R₂` can be extended left, contradicting condition 2 of `R₂`. Hence `v₁ = v₂` (and `k₂ = 0` gives `a₂ = a₁`).
+*Equal starts.* We show `v₁ = v₂`. If already `v₁ = v₂`, set `k₂ = 0` and skip ahead. Otherwise `v₁ < v₂`, and since `v₂ ≤ v = v₁ + k` with `k < n₁`, we have `v₁ < v₂ < v₁ + n₁`. M-int (TumblerIntervalCharacterization) applied with `x = v₁`, `y = v₂`, `n = n₁` (premises: `v₁, v₂ ∈ dom(M(d))` since both are V-starts of correspondence runs in `dom(f) ⊆ dom(M(d))`; `v₁ ≤ v₂ < v₁ + n₁` from above; `n₁ ≥ 1` by M0) gives `v₂ = v₁ + k₂` for `k₂ = (v₂)_m − (v₁)_m` with `0 ≤ k₂ < n₁`, with `v₁` and `v₂` sharing subspace of common depth `m`. The strict `v₁ < v₂` rules out `k₂ = 0` (which would give `v₂ = v₁`), so `1 ≤ k₂ ≤ k < n₁`. Both runs map `v₂` through `f` — condition 1 of `R₁` gives `f(v₂) = f(v₁ + k₂) = a₁ + k₂`, and condition 1 of `R₂` gives `f(v₂) = a₂` — so `a₂ = a₁ + k₂`. Now set `v' = v₁ + (k₂ − 1) ∈ V(R₁) ⊆ dom(f)`. By M-aux, `v' + 1 = v₁ + k₂ = v₂` and `f(v') + 1 = (a₁ + (k₂ − 1)) + 1 = a₁ + k₂ = a₂`. So `R₂` can be extended left, contradicting condition 2 of `R₂`. Hence `v₁ = v₂` (and `k₂ = 0` gives `a₂ = a₁`).
 
-*Equal widths.* Suppose WLOG `n₁ < n₂`. Then `v₁ + n₁ ∈ V(R₂)` (at offset `n₁ < n₂` from `v₂ = v₁`), so `v₁ + n₁ ∈ dom(f)` and `f(v₁ + n₁) = a₂ + n₁ = a₁ + n₁` by condition 1 of `R₂`. But condition 3 of `R₁` requires `v₁ + n₁ ∉ dom(f) ∨ f(v₁ + n₁) ≠ a₁ + n₁` — contradiction. The symmetric case `n₂ < n₁` contradicts condition 3 of `R₂` by the same argument (with `R₁` supplying the right-witness). Hence `n₁ = n₂`. ∎
+*Equal widths.* By NAT-order trichotomy on `(n₁, n₂)`, exactly one of `n₁ < n₂`, `n₁ = n₂`, or `n₂ < n₁` holds. Suppose `n₁ < n₂`. Then `v₁ + n₁ ∈ V(R₂)` (at offset `n₁ < n₂` from `v₂ = v₁`), so `v₁ + n₁ ∈ dom(f)` and `f(v₁ + n₁) = a₂ + n₁ = a₁ + n₁` by condition 1 of `R₂`. But condition 3 of `R₁` requires `v₁ + n₁ ∉ dom(f) ∨ f(v₁ + n₁) ≠ a₁ + n₁` — contradiction. The symmetric case `n₂ < n₁` contradicts condition 3 of `R₂` by the same argument (with `R₁` supplying the right-witness). The surviving case is `n₁ = n₂`, giving `(v₁, a₁, n₁) = (v₂, a₂, n₂)`. ∎
 
 *Partition corollary.* Every `v ∈ dom(f)` belongs to at least one maximal run (start with the trivial run `(v, f(v), 1)` and extend in both directions until conditions 2 and 3 hold; termination by finiteness of `dom(f)`); by M12a, to at most one. So the set of maximal runs partitions `dom(f)` and is uniquely determined by `f`.
 
@@ -418,7 +421,7 @@ The merge condition (M7) interacts naturally with the tumbler address structure.
 
 *Proof.* At `k = 0`, `a + 0 = a` by OrdinalShiftBase, so the equality is immediate.
 
-For `k ≥ 1`, we secure T4-validity of `a` and locate the document prefix strictly below `#a`. Since `a ∈ dom(C)`, S7d (DocumentAllocationDiscipline, ASN-0036) gives that the document-level allocator producing `a`'s document tumbler is T10a-conforming. T10a (ASN-0034) is closed under its allocator-tree: its recursive clause asserts that an allocator's outputs may themselves seed descendant allocators via further `inc(·, k')` operations, and T10a requires every such descendant to be itself a conforming allocator (this transitive closure is what makes T10a's discipline reach all the way down the allocator hierarchy, not just the top-level seed). Therefore the element-level allocator whose output is `a` — a descendant of the document-level allocator within the T10a allocator tree — is itself T10a-conforming. T10a.4 (T4PreservationUnderDiscipline, ASN-0034) then gives that every output of a conforming allocator satisfies T4. Hence T4(i)–(iv) apply directly to `a`.
+For `k ≥ 1`, we secure T4-validity of `a` and locate the document prefix strictly below `#a`. S7b (ElementLevelIAddresses, ASN-0036) supplies the T4b projections `N(a)`, `U(a)`, `D(a)` for every `a ∈ dom(C)` — its postcondition references these projections to specify the document prefix `N.0.U.0.D`. Since T4b (UniqueParse, ASN-0034) is defined exactly on the T4-valid subset of T, the existence of these projections on `a` witnesses `a`'s membership in T4b's domain, giving T4-validity directly. Hence T4(i)–(iv) apply to `a` with no detour through the T10a allocator-tree closure.
 
 By S7b (ElementLevelIAddresses, ASN-0036), `zeros(a) = 3`, structurally decomposing `a` into a document prefix `N.0.U.0.D` followed by the separator zero and the element field `E(a)`, with `#a = #(N.0.U.0.D) + 1 + #E(a)` (the `+1` accounts for the separator zero between `D` and `E`). S7c (ElementFieldDepth, ASN-0036) gives `#E(a) ≥ 2`, so `#(N.0.U.0.D) = #a − #E(a) − 1 ≤ #a − 3` — every index of the document prefix lies strictly below the action point `#a`. Each of `N`, `U`, `D` contributes at least one component, so `#(N.0.U.0.D) ≥ 5` (three nonzero fields, two separator zeros between them); combined with the element field's `#E(a) ≥ 2` and one separator, this yields `#a ≥ 5 + 1 + 2 = 8`.
 
@@ -546,6 +549,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | OrdinalShiftBase | `t + k` denotes `shift(t, k)` for `k ≥ 1`, extended by `t + 0 = t` (identity) — convention in force throughout | introduced |
 | M-aux | OrdinalIncrementAssociativity: `(v + c) + j = v + (c + j)` for `c, j ≥ 0` — from TS3 (ShiftComposition, ASN-0034) plus OrdinalShiftBase | introduced |
 | M-sub | SubspaceConfinement: for `β = (v, a, n)`, every V-position shares `subspace(v)`; every I-address shares `subspace_I(a)` when `a ∈ dom(C)` | introduced |
+| M-int | TumblerIntervalCharacterization: for `x, y ∈ dom(M(d))` and `n ≥ 1`, `x ≤ y < x + n` entails `subspace(y) = subspace(x)`, `#y = #x = m`, prefix agreement to depth `m − 1`, and `y = x + k` for `k = (y)_m − (x)_m` with `0 ≤ k < n` | introduced |
 | M2 | DecompositionExistence: under S8's preconditions (S8-fin, S2, S3, S8a, S8-depth, S7b, S7c — ASN-0036), every arrangement `M(d)` admits a block decomposition covering every V-position in `dom(M(d))`, all subspaces | introduced |
 | M3 | RepresentationInvariance: equivalent decompositions determine the same arrangement function | introduced |
 | M4 | SplitDefinition: split at interior `c` produces `β_L = (v, a, c)` and `β_R = (v+c, a+c, n−c)` | introduced |
@@ -554,7 +558,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | M6f | SplitFrame: the arrangement `M(d)` is unchanged; only the decomposition changes | introduced |
 | M7 | MergeCondition: merge requires V-adjacency (`v₂ = v₁ + n₁`) AND I-adjacency (`a₂ = a₁ + n₁`); result is `(v₁, a₁, n₁ + n₂)` | introduced |
 | M7f | MergeFrame: the arrangement `M(d)` is unchanged; only the decomposition changes | introduced |
-| M7-cov | NonOverlap: distinct blocks in any decomposition of `M(d)` cannot V-overlap — for `β₁, β₂ ∈ B` with `v₁ < v₂`, `v₂ ≥ v₁ + n₁`; proof factors through four structural claims (subspace agreement, depth equality, prefix agreement, component-`m` reduction) | introduced |
+| M7-cov | NonOverlap: distinct blocks in any decomposition of `M(d)` cannot V-overlap — for `β₁, β₂ ∈ B` with `v₁ < v₂`, `v₂ ≥ v₁ + n₁`; proof reduces to M-int (TumblerIntervalCharacterization) plus the strict-`v₁ < v₂` exclusion of `k = 0` | introduced |
 | M8 | MergeInformationLoss: the internal boundary is irrecoverably lost; merged block is indistinguishable from one never split | introduced |
 | M9 | SplitMergeInverse: splitting then merging recovers the original block | introduced |
 | M10 | MergeSplitInverse: merging then splitting at the boundary recovers both original blocks | introduced |
