@@ -1,0 +1,22 @@
+# Review of ASN-0058
+
+## REVISE
+
+### Issue 1: T10a.4 mis-cited as ASN-0036 in M16a
+**ASN-0058, M16a proof, opening of the "k ≥ 1" paragraph**: "T10a.4 (T4PreservationUnderDiscipline, ASN-0036) applied to S7d's allocation discipline gives T4-validity of every a ∈ dom(C)"
+**Problem**: T10a.4 (T4PreservationUnderDiscipline) is defined in ASN-0034, not ASN-0036. The same proof correctly attributes S7b and S7c to ASN-0036, so the ASN-0036 tag on T10a.4 reads as a citation, not as a contextual reference. The second invocation in the same paragraph ("T10a.4 applied to a + k ∈ dom(C)") leaves the citation bare and inherits the erroneous attribution.
+**Required**: Change the parenthetical to "T10a.4 (T4PreservationUnderDiscipline, ASN-0034)".
+
+The rest of the ASN holds up under close reading. Key proofs I traced carefully:
+- M-int (the load-bearing structural lemma) handles `#t < m` and `#t ≥ m` separately and uses T1(i) correctly at component 1, j₀ < m, and j₀ = m.
+- M2's V-extent translation is non-circular: the reverse inclusion uses M-int, not B1/B2, and M-int's premises (`vⱼ, v ∈ dom(M(d))`, `vⱼ ≤ v < vⱼ + nⱼ`) are independently discharged.
+- M7-cov correctly excludes `k = 0` via strict `v₁ < v₂`, leaving `k ∈ [1, n₁)` and the B2 contradiction.
+- M12a's right- and left-extension phases preserve conditions 1 and 3, terminate by S8-fin, and the partition corollary follows.
+- M12b's β'' ≠ β step uses TS4/TS5 injectivity correctly; the unit-shift inversion at depth m is valid via TumblerAdd's prefix-copy plus component-m advance, not RIGHT cancellation.
+- M16a's structural argument is sound: `z₃ ≤ #a − 2 < #a` places the third separator strictly below the action point, and (a+k)_{#a} = a_{#a} + k ≥ 2 ≠ 0 pins (a+k)'s three zeros at the same positions as a's.
+- C0's family `wⱼ` correctly contradicts S8-fin when k < m.
+- C0a handles `#t < m` and `#t ≥ m` cases separately; case (a) reaches contradiction independent of (b).
+- C1a's "carry-over" argument is slightly compressed (M-int internally needs both S8a → condition (iii) and S8-depth → condition (iii), not just the latter) but the substitution is well-defined.
+- Worked examples at M12 and C2 verify against the stated conditions.
+
+VERDICT: REVISE
