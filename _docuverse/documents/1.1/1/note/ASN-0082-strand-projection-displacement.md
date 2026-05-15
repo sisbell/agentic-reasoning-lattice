@@ -91,6 +91,8 @@ The I-address is unchanged — only the V-position moves. This is Nelson's centr
 
 **I3-fin** — *PostInsertionFiniteness* (LEMMA, derived). `dom(M'(d))` is finite — S8-fin (FiniteArrangement, ASN-0036) holds for the post-state. By I3-CS and I3-CX, every position in dom(M'(d)) either belongs to dom(M(d)) directly (left-region or cross-subspace) or is shift(v, n) for some v ∈ dom(M(d)) with subspace(v) = S and v ≥ p. The shifted-image set is at most as large as the source set by injectivity (TS2, ASN-0034). Both contributing sets are subsets or injective images of dom(M(d)), which is finite by S8-fin on the pre-state; their union is therefore finite. ∎
 
+**I3-S7** — *PostInsertionAllocationInvariants* (LEMMA, derived). The post-state satisfies S7a (DocumentScopedAllocation), S7b (ElementLevelIAddresses), and S7c (ElementFieldDepth). By I3-C, `dom(C') = dom(C)` and per-address values are unchanged. S7a, S7b, and S7c are predicates over `dom(C)`; since this set is unchanged and the pre-state satisfies all three, the post-state satisfies them identically. ∎
+
 **Arrangement invariants not preserved.** The shift preserves typing invariants (S8-depth, S8a, S3) but does *not* preserve the contiguity invariants of ASN-0036. The gap created by the shift — n vacated positions between the left region and the shifted region — violates D-CTG (VContiguity): the post-state V_S(d) is not contiguous, as the worked example confirms ({[1,1], [1,2], [1,5], [1,6], [1,7]} has a gap between [1,2] and [1,5]). D-SEQ (SequentialPositions) is likewise violated, since V_S(d) is no longer {[S, 1, ..., 1, k] : 1 ≤ k ≤ n} for any n. When p = min(V_S(d)), the shift vacates the minimum position, additionally violating D-MIN (VMinimumPosition). These violations are inherent to the shift's purpose: it opens a gap for new content. The INSERT ASN must re-establish D-CTG, D-MIN, and D-SEQ by filling the gap positions, alongside re-deriving S8-depth and S8a for the complete post-state.
 
 **Weakest-precondition analysis (I3-VP backwards through the shift).** We illustrate the wp method on one of the preservation lemmas — I3-VP, which asserts S8a for the post-state — to expose the constraints that the assignment statement `M'(d)(shift(v, n)) := M(d)(v)` imposes on the pre-state when we require S8a to hold of the assigned position `shift(v, n)`. The wp computation propagates the post-state predicate backwards through the assignment to yield the pre-state obligation. Reading these obligations against the I3 contract makes explicit which preconditions the contract supplies and which it does not need to state because they are entailed by foundation invariants.
@@ -241,7 +243,11 @@ We frequently need to separate a V-position into its subspace identifier and its
 
 `v₁ < v₂ ⟺ ord(v₁) < ord(v₂)`
 
-*Derivation from T1.* Since (v₁)₁ = (v₂)₁ = S, the lexicographic comparison (T1, ASN-0034) finds agreement at position 1. The divergence therefore occurs at some position k ≥ 2, and the ordering is determined entirely by positions 2 through m — which are exactly the components of ord(v₁) and ord(v₂). Since #v₁ = #v₂ implies #ord(v₁) = #ord(v₂), the comparison of the ordinals under T1 examines the same positions with the same values, giving an identical outcome. The biconditional follows: the forward direction strips the shared prefix; the reverse direction (equivalently, the corresponding property of vpos) restores it. ∎
+*Derivation from T1.* The structure shared by v and ord is: (v₁)₁ = (v₂)₁ = S agrees at v's position 1, and ord(vᵢ)_j = (vᵢ)_{j+1} for 1 ≤ j ≤ m − 1 by the definition of ord — an index shift of +1 from ord-coordinates to v-coordinates. Both ordinals have length m − 1 since #v₁ = #v₂ = m.
+
+For (⟹): if v₁ < v₂, T1 (ASN-0034) places the leftmost divergence at some v-position k. Position 1 agrees by hypothesis, so k ≥ 2, with (v₁)ₖ < (v₂)ₖ and (v₁)_j = (v₂)_j for 2 ≤ j < k. Translating through ord: ord(v₁) and ord(v₂) agree at ord-positions 1..k − 2 (carrying values (v₁)₂..(v₁)_{k − 1} = (v₂)₂..(v₂)_{k − 1}) and diverge at ord-position k − 1, where ord(v₁)_{k − 1} = (v₁)ₖ < (v₂)ₖ = ord(v₂)_{k − 1}. T1 on the length-(m − 1) ordinals delivers ord(v₁) < ord(v₂).
+
+For (⟸): the argument is symmetric. If ord(v₁) < ord(v₂), T1 places the divergence at some ord-position j ≥ 1 with ord(v₁)_j < ord(v₂)_j, which corresponds to v-position j + 1 ≥ 2 with (v₁)_{j + 1} < (v₂)_{j + 1}. Position 1 of v already agrees, so this is the leftmost divergence in v, and T1 on v gives v₁ < v₂. ∎
 
 **OrdAddHom** — *OrdinalAdditionHomomorphism* (cited, ASN-0036). For a V-position p with `#p = m ≥ 2` and a displacement w with `w₁ = 0`, `#w = m`, and `Pos(w)`:
 
@@ -404,21 +410,35 @@ In both cases r ∈ R and r = min(R) (since r ≤ v for all v ∈ R by definitio
 
 The boundary is tight. At depth 2 with contiguous allocation (D-CTG), L contains exactly the positions with ordinals below ord(p), and Q₃ begins at ordinal ord(p) (D-SEP). The ordinals ord(p) − 1 and ord(p) are consecutive natural numbers; no ordinal falls between them. D-DOM confirms that the post-state domain in subspace S is exactly L ∪ Q₃. ∎
 
-**Invariant preservation.** The postconditions and frame conditions above characterize the post-state arrangement. We now verify that the post-state satisfies the system invariants established in ASN-0036.
+**Invariant preservation.** The postconditions and frame conditions above characterize the post-state arrangement. We now verify that the post-state satisfies the system invariants established in ASN-0036. The lemmas are ordered so that each cites only earlier ones: typing invariants (S8-depth-post, S8a-post) first, then the contiguity triple (D-CTG-post, D-MIN-post, D-SEQ-post), then finiteness (S8-fin-post), then functionality (S2-post), referential integrity (S3-post), and allocation invariants (S7-post).
 
-**S2-post** — *ArrangementFunctionality* (LEMMA, introduced). The post-state M'(d) is a function.
+**S8-depth-post** — *FixedDepthPreservation* (LEMMA, introduced). The post-state satisfies S8-depth: all V-positions within subspace S share the same depth.
 
-*Proof.* By D-DOM, dom(M'(d)) within subspace S is L ∪ Q₃. By D-DP(a), L ∩ Q₃ = ∅. For v ∈ L, M'(d)(v) is uniquely determined by D-L. For v ∈ Q₃, v = σ(u) for a unique u ∈ R (D-BJ, injectivity), and M'(d)(v) = M(d)(u) is uniquely determined by D-SHIFT and S2 on the pre-state. Since the two regions are disjoint and each assigns a unique value, M'(d) is a function within subspace S. By D-CS, positions in other subspaces retain their pre-state mappings, functional by S2 on the pre-state. By D-CD, other documents are unchanged, and S2 holds by the pre-state invariant. ∎
+*Proof.* Positions in L retain depth 2 (unchanged by D-L). Positions in Q₃ have depth 2: for v ∈ R, σ(v) = vpos(S, [vₘ − c]) = [S, vₘ − c], which has depth 2. By D-CS, other subspaces are unchanged and retain their pre-state depths. By D-CD, other documents are unchanged. ∎
 
-**S3-post** — *ReferentialIntegrity* (LEMMA, introduced). The post-state satisfies `ran(M'(d)) ⊆ dom(Σ'.C)`.
+**S8a-post** — *WellFormednessPreservation* (LEMMA, introduced). The post-state satisfies S8a: all V-positions are zero-free, of depth at least 2, and componentwise positive.
 
-*Proof.* Every I-address in ran(M'(d)) was an I-address in ran(M(d)): positions in L map to the same I-addresses as before (D-L), and positions in Q₃ map to I-addresses from R (D-SHIFT). By S3 on the pre-state, ran(M(d)) ⊆ dom(Σ.C). By D-I (content store frame), dom(Σ.C) ⊆ dom(Σ'.C). Hence the subspace-S contribution to ran(M'(d)) is contained in dom(Σ'.C). By D-CS, other subspaces of d retain their pre-state mappings, so their I-addresses are in ran(M(d)) ⊆ dom(Σ.C) ⊆ dom(Σ'.C). By D-CD, other documents are unchanged, so ran(M'(d')) = ran(M(d')) ⊆ dom(Σ'.C) by S3 on the pre-state. ∎
+*Proof.* Positions in L satisfy S8a by the pre-state invariant and D-L (unchanged). Positions in Q₃: σ(v) = [S, vₘ − c] with S ≥ 1 (subspace identifier, S8a's componentwise positivity on v) and vₘ − c ≥ p₂ ≥ 1 (since vₘ ≥ p₂ + c for v ∈ R, and p₂ ≥ 1 by S8a on p). Both components are strictly positive, so zeros(σ(v)) = 0, #σ(v) = 2, and σ(v) is componentwise positive — full S8a. By D-CS, other subspaces are unchanged. By D-CD, other documents are unchanged. ∎
 
 **D-CTG-post** — *VContiguityPreservation* (LEMMA, introduced). At S = 1 (subspace scoping axiom): the post-state V_1(d) is contiguous. For non-text subspaces, no D-CTG obligation is asserted (the foundation's D-CTG is text-subspace only); D-CS preserves V_S(d) (S ≠ 1) verbatim.
 
-*Proof.* By D-SEQ (ASN-0036, text subspace), the pre-state V_1(d) = {[1, k] : 1 ≤ k ≤ N}. L consists of positions with ordinals strictly less than ord(p) — by D-SEQ on the pre-state, L = {[1, k] : 1 ≤ k < p₂}, which is contiguous. Q₃ is the order-preserving image of R under σ (D-BJ). By D-SEQ on the pre-state, R = {[1, k] : p₂ + c ≤ k ≤ N} is contiguous, and σ shifts each ordinal by −c, giving Q₃ = {[1, k − c] : p₂ + c ≤ k ≤ N} = {[1, k] : p₂ ≤ k ≤ N − c}. This is contiguous.
+*Proof.* By D-SEQ (ASN-0036, text subspace), the pre-state V_1(d) = {[1, k] : 1 ≤ k ≤ N}. From the definition of L and D-SEQ on the pre-state,
 
-Three cases arise at the boundary. When L ≠ ∅ and R ≠ ∅: L's maximum ordinal is p₂ − 1 and Q₃'s minimum ordinal is p₂ (D-SEP(b)), which are adjacent, so L ∪ Q₃ is contiguous. When L = ∅ and R ≠ ∅: Q₃ alone is contiguous. When R = ∅: Q₃ = ∅, so L ∪ Q₃ = L, which is contiguous (or empty when L = ∅ as well, which is vacuously contiguous). Non-text subspaces: D-CS preserves V_S(d) (S ≠ 1) verbatim; the foundation imposes no D-CTG obligation there. By D-CD, other documents are unchanged. ∎
+`L = {[1, k] : 1 ≤ k < p₂}`.
+
+By D-BJ, Q₃ is the order-preserving image of R under σ; applying σ([1, k]) = [1, k − c] to D-SEQ's R = {[1, k] : p₂ + c ≤ k ≤ N} gives
+
+`Q₃ = {[1, k − c] : p₂ + c ≤ k ≤ N} = {[1, k] : p₂ ≤ k ≤ N − c}`.
+
+The two index ranges are disjoint (k < p₂ in L, k ≥ p₂ in Q₃), and the natural numbers p₂ − 1 (the maximum of L's index range) and p₂ (the minimum of Q₃'s) are consecutive — no integer lies strictly between them — so
+
+`L ∪ Q₃ = {[1, k] : 1 ≤ k < p₂} ∪ {[1, k] : p₂ ≤ k ≤ N − c} = {[1, k] : 1 ≤ k ≤ N − c}`.
+
+The closed form covers all boundary configurations. When L = ∅: D-MIN (ASN-0036) gives min V_1(d) = [1, 1], so L = ∅ forces p = min V_1(d) = [1, 1] and p₂ = 1, vacating the L range and reducing the union to Q₃ = {[1, k] : 1 ≤ k ≤ N − c}. When R = ∅: no k ∈ [1, N] satisfies k ≥ p₂ + c, i.e., N < p₂ + c; combined with the containment precondition p₂ + c − 1 ≤ N this forces N = p₂ + c − 1, so N − c = p₂ − 1 and the union reduces to L = {[1, k] : 1 ≤ k ≤ p₂ − 1} = {[1, k] : 1 ≤ k ≤ N − c}. When both are empty, N − c = 0 and the set is empty.
+
+We verify D-CTG's quantifier directly against V_1(d') = L ∪ Q₃ = {[1, k] : 1 ≤ k ≤ N − c}. Take u, q ∈ V_1(d') with u < q (both of depth 2 by S8-depth-post and subspace identifier 1 by S8a-post applied to V_1(d')), and any V-position v with subspace(v) = 1, #v = 2, and u < v < q. Write u = [1, kᵤ], q = [1, k_q], v = [1, k_v]. From u < v < q at depth 2 with shared subspace identifier 1, T1 reduces to the natural-number chain kᵤ < k_v < k_q. Membership of u and q in {[1, k] : 1 ≤ k ≤ N − c} gives 1 ≤ kᵤ and k_q ≤ N − c, so transitivity yields 1 ≤ k_v ≤ N − c, hence v = [1, k_v] ∈ V_1(d'). The interior point lies in V_1(d'), satisfying D-CTG.
+
+Non-text subspaces: D-CS preserves V_S(d) (S ≠ 1) verbatim; the foundation imposes no D-CTG obligation there. By D-CD, other documents are unchanged. ∎
 
 **D-MIN-post** — *VMinimumPreservation* (LEMMA, introduced). At S = 1 (subspace scoping axiom): when the post-state V_1(d) is non-empty, min(V_1(d)) = [1, 1]. When the post-state V_1(d) is empty, D-MIN holds vacuously. For non-text subspaces V_S(d) with S ≠ 1, no D-MIN obligation is asserted — the foundation's D-MIN is text-subspace only (ASN-0036), so cross-subspace preservation under D-CS suffices (any pre-state property of V_S(d), S ≠ 1, is preserved verbatim since D-CS fixes those positions and their mappings).
 
@@ -430,24 +450,24 @@ Three cases arise at the boundary. When L ≠ ∅ and R ≠ ∅: L's maximum ord
 
 1. *Contiguity.* By D-CTG-post, V_1(d') = L ∪ Q₃ is contiguous.
 2. *Minimum.* By D-MIN-post, when non-empty, min(V_1(d')) = [1, 1].
-3. *Uniform depth.* By S8-depth-post (below), all V-positions in V_1(d') have depth 2.
-4. *Componentwise positivity (S8a).* By S8a-post (below), every position in V_1(d') is zero-free, of depth ≥ 2, and componentwise positive — in particular, the position-2 component of every element is ≥ 1.
+3. *Uniform depth.* By S8-depth-post, all V-positions in V_1(d') have depth 2.
+4. *Componentwise positivity (S8a).* By S8a-post, every position in V_1(d') is zero-free, of depth ≥ 2, and componentwise positive — in particular, the position-2 component of every element is ≥ 1.
 
-These four conditions reproduce the four preconditions cited in ASN-0036's D-SEQ derivation (Step 1 used S8a's componentwise positivity to validate the constructed intermediate w; Step 3 used contiguity (D-CTG) for the k-value range; Step 2 used D-MIN; and the depth uniformity threads throughout). Replaying the derivation locally at depth m = 2: L ∪ Q₃ is a contiguous set of depth-2 positions in subspace 1 with minimum [1, 1] and all components positive. Every position has the form [1, k] for some k ≥ 1 (Step 1: at m = 2 the shared-prefix component range is empty, vacuous). The k-values include 1 (Step 2, from D-MIN-post). The k-values form a contiguous range (Step 3, from D-CTG-post on L ∪ Q₃). The set is finite by S8-fin-post. Setting n = max(k-values), we get V_1(d') = {[1, k] : 1 ≤ k ≤ n}. It remains to identify n. The pre-state has N positions; the contraction removes c positions (the set X with |X| = c), so |L ∪ Q₃| = N − c. Hence n = N − c, and V_1(d') = {[1, k] : 1 ≤ k ≤ N − c}. When V_1(d') is empty (N − c = 0, i.e., the entire text subspace was contracted), D-SEQ holds vacuously.
+These four conditions reproduce the four preconditions cited in ASN-0036's D-SEQ derivation (Step 1 used S8a's componentwise positivity to validate the constructed intermediate w; Step 3 used contiguity (D-CTG) for the k-value range; Step 2 used D-MIN; and the depth uniformity threads throughout). Replaying the derivation locally at depth m = 2: L ∪ Q₃ is a contiguous set of depth-2 positions in subspace 1 with minimum [1, 1] and all components positive. Every position has the form [1, k] for some k ≥ 1 (Step 1: at m = 2 the shared-prefix component range is empty, vacuous). The k-values include 1 (Step 2, from D-MIN-post). The k-values form a contiguous range (Step 3, from D-CTG-post on L ∪ Q₃). The set is finite by S8-fin-post (proved below; D-SEQ-post does not depend on the value of n delivered by S8-fin-post, only on finiteness, so the forward citation is non-circular). Setting n = max(k-values), we get V_1(d') = {[1, k] : 1 ≤ k ≤ n}. It remains to identify n. The pre-state has N positions; the contraction removes c positions (the set X with |X| = c), so |L ∪ Q₃| = N − c. Hence n = N − c, and V_1(d') = {[1, k] : 1 ≤ k ≤ N − c}. When V_1(d') is empty (N − c = 0, i.e., the entire text subspace was contracted), D-SEQ holds vacuously.
 
 Non-text subspaces: D-CS preserves V_S(d) (S ≠ 1) verbatim; the foundation imposes no D-SEQ obligation there. By D-CD, other documents are unchanged. ∎
-
-**S8-depth-post** — *FixedDepthPreservation* (LEMMA, introduced). The post-state satisfies S8-depth: all V-positions within subspace S share the same depth.
-
-*Proof.* Positions in L retain depth 2 (unchanged by D-L). Positions in Q₃ have depth 2: for v ∈ R, σ(v) = vpos(S, [vₘ − c]) = [S, vₘ − c], which has depth 2. By D-CS, other subspaces are unchanged and retain their pre-state depths. By D-CD, other documents are unchanged. ∎
-
-**S8a-post** — *WellFormednessPreservation* (LEMMA, introduced). The post-state satisfies S8a: all V-positions are zero-free, of depth at least 2, and componentwise positive.
-
-*Proof.* Positions in L satisfy S8a by the pre-state invariant and D-L (unchanged). Positions in Q₃: σ(v) = [S, vₘ − c] with S ≥ 1 (subspace identifier, S8a's componentwise positivity on v) and vₘ − c ≥ p₂ ≥ 1 (since vₘ ≥ p₂ + c for v ∈ R, and p₂ ≥ 1 by S8a on p). Both components are strictly positive, so zeros(σ(v)) = 0, #σ(v) = 2, and σ(v) is componentwise positive — full S8a. By D-CS, other subspaces are unchanged. By D-CD, other documents are unchanged. ∎
 
 **S8-fin-post** — *FiniteArrangementPreservation* (LEMMA, introduced). The post-state satisfies S8-fin: `dom(M'(d))` is finite.
 
 *Proof.* By D-DOM, the subspace-S positions in dom(M'(d)) are L ∪ Q₃. L ⊆ V_S(d) and Q₃ = σ(R) with R ⊆ V_S(d), so |L ∪ Q₃| ≤ |V_S(d)|, which is finite by S8-fin on the pre-state. By D-CS, other subspaces of d retain their pre-state domains (finite by S8-fin). By D-CD, other documents are unchanged. ∎
+
+**S2-post** — *ArrangementFunctionality* (LEMMA, introduced). The post-state M'(d) is a function.
+
+*Proof.* By D-DOM, dom(M'(d)) within subspace S is L ∪ Q₃. By D-DP(a), L ∩ Q₃ = ∅. For v ∈ L, M'(d)(v) is uniquely determined by D-L. For v ∈ Q₃, v = σ(u) for a unique u ∈ R (D-BJ, injectivity), and M'(d)(v) = M(d)(u) is uniquely determined by D-SHIFT and S2 on the pre-state. Since the two regions are disjoint and each assigns a unique value, M'(d) is a function within subspace S. By D-CS, positions in other subspaces retain their pre-state mappings, functional by S2 on the pre-state. By D-CD, other documents are unchanged, and S2 holds by the pre-state invariant. ∎
+
+**S3-post** — *ReferentialIntegrity* (LEMMA, introduced). The post-state satisfies `ran(M'(d)) ⊆ dom(Σ'.C)`.
+
+*Proof.* Every I-address in ran(M'(d)) was an I-address in ran(M(d)): positions in L map to the same I-addresses as before (D-L), and positions in Q₃ map to I-addresses from R (D-SHIFT). By S3 on the pre-state, ran(M(d)) ⊆ dom(Σ.C). By D-I (content store frame), dom(Σ.C) ⊆ dom(Σ'.C). Hence the subspace-S contribution to ran(M'(d)) is contained in dom(Σ'.C). By D-CS, other subspaces of d retain their pre-state mappings, so their I-addresses are in ran(M(d)) ⊆ dom(Σ.C) ⊆ dom(Σ'.C). By D-CD, other documents are unchanged, so ran(M'(d')) = ran(M(d')) ⊆ dom(Σ'.C) by S3 on the pre-state. ∎
 
 **S7-post** — *AllocationInvariantsPreservation* (LEMMA, introduced). The post-state satisfies S7a (DocumentScopedAllocation), S7b (ElementLevelIAddresses), and S7c (ElementFieldDepth).
 
@@ -626,6 +646,7 @@ The example exercises D-CS concretely: the link subspace V_2(d) — sparse with 
 | I3-S3 | lemma | (A v : v ∈ dom(M'(d)) : M'(d)(v) ∈ dom(C')) — referential integrity preserved post-insertion | derived |
 | I3-S2 | lemma | M'(d) is a function — S2 preserved post-insertion; pairwise disjointness of assignment regions ensures no double-assignment | derived |
 | I3-fin | lemma | dom(M'(d)) is finite — S8-fin preserved post-insertion; domain closure (I3-CS, I3-CX) and injectivity (TS2) bound M'(d) by pre-state | derived |
+| I3-S7 | lemma | S7a, S7b, S7c preserved post-insertion — trivially by I3-C (dom(C') = dom(C) and per-address values unchanged) | derived |
 | I3-S | lemma | For level-uniform σ = (s, ℓ) with s ≥ p and actionPoint(ℓ) = m: reach((shift(s, n), ℓ)) = shift(reach(σ), n) and width preserved | introduced |
 | OrdinalDisplacement | definition | δ(n, m) = [0, ..., 0, n] of length m, action point m | cited (ASN-0034) |
 | OrdinalShift | definition | shift(v, n) = v ⊕ δ(n, #v) | cited (ASN-0034) |
@@ -669,14 +690,14 @@ The example exercises D-CS concretely: the link subspace V_2(d) — sparse with 
 | D-BJ | lemma | σ : R → Q₃ is an order-preserving bijection: (a) v₁ < v₂ ⟹ σ(v₁) < σ(v₂), (b) v₁ ≠ v₂ ⟹ σ(v₁) ≠ σ(v₂), (c) Q₃ = {σ(v) : v ∈ R} | introduced |
 | D-SEP | lemma | ord(r) ⊖ w_ord = ord(p); when R ≠ ∅, min Q₃ ordinal = ord(p) | introduced |
 | D-DP | lemma | L ∩ Q₃ = ∅ and no residual gap at contraction boundary | introduced |
-| S2-post | lemma | Post-state M'(d) is a function | introduced |
-| S3-post | lemma | Post-state ran(M'(d)) ⊆ dom(Σ'.C) | introduced |
+| S8-depth-post | lemma | Post-state V-positions in subspace S share depth 2 | introduced |
+| S8a-post | lemma | Post-state V-positions are zero-free, of depth at least 2, and componentwise positive | introduced |
 | D-CTG-post | lemma | At S = 1: post-state V_1(d) is contiguous; non-text subspaces preserved verbatim by D-CS | introduced |
 | D-MIN-post | lemma | At S = 1: post-state min V_1(d) = [1, 1] when non-empty; vacuous when empty; non-text subspaces preserved verbatim by D-CS | introduced |
 | D-SEQ-post | lemma | At S = 1: when post-state V_1(d) non-empty, V_1(d) = {[1, k] : 1 ≤ k ≤ N − c}; non-text subspaces preserved verbatim by D-CS | introduced |
-| S8-depth-post | lemma | Post-state V-positions in subspace S share depth 2 | introduced |
-| S8a-post | lemma | Post-state V-positions are zero-free, of depth at least 2, and componentwise positive | introduced |
 | S8-fin-post | lemma | Post-state dom(M'(d)) is finite | introduced |
+| S2-post | lemma | Post-state M'(d) is a function | introduced |
+| S3-post | lemma | Post-state ran(M'(d)) ⊆ dom(Σ'.C) | introduced |
 | S7-post | lemma | Post-state satisfies S7a, S7b, S7c — trivially by D-I (Σ'.C = Σ.C) | introduced |
 
 
