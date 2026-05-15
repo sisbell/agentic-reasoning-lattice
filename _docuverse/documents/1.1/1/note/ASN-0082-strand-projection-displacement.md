@@ -2,7 +2,7 @@
 
 *2026-04-09*
 
-This ASN extends ASN-0053 (Span Algebra) with the post-insertion shift property: the guarantee that ordinal shift applied uniformly to arrangement positions at or beyond an insertion point preserves mapping values while relocating V-positions forward by a fixed displacement. The ordinal shift — defined by OrdinalShift and OrdinalDisplacement (ASN-0034) — is a fundamental operation on the tumbler line whose interaction with arrangement mappings determines how contiguous regions of mapped positions are repositioned without altering the content they reference. The property belongs in the span algebra domain because it characterizes how the displacement arithmetic underlying span endpoints (reach(σ) = start(σ) ⊕ width(σ)) behaves when applied as a uniform translation to a region of a partial function over the tumbler line.
+This ASN extends ASN-0053 (Span Algebra) with two complementary shift properties governing the arrangement transformations that underlie INSERT and DELETE. The *post-insertion shift* (I3 and its preservation lemmas) guarantees that ordinal shift applied uniformly to arrangement positions at or beyond an insertion point preserves mapping values while relocating V-positions forward by a fixed displacement. The *post-contraction shift* (D-SHIFT, the gap-closure lemmas D-BJ, D-SEP, D-DP, and the post-state preservation lemmas S2-post, S3-post, D-CTG-post, D-MIN-post, D-SEQ-post, S8-depth-post, S8a-post, S8-fin-post, S7-post) is the dual: it characterizes the inverse displacement that closes the gap left by removing a contiguous range of positions, preserving the I-address mappings of the right region while shifting their V-positions backward and re-establishing the foundation's contiguity invariants. The ordinal shift and its inverse — defined via OrdinalShift, OrdinalDisplacement, and TumblerSub (ASN-0034) — are fundamental operations on the tumbler line whose interaction with arrangement mappings determines how contiguous regions of mapped positions are repositioned without altering the content they reference. Both properties belong in the span algebra domain because they characterize how the displacement arithmetic underlying span endpoints (reach(σ) = start(σ) ⊕ width(σ)) behaves when applied as a uniform translation to a region of a partial function over the tumbler line.
 
 
 ## Foundation Invariants
@@ -115,7 +115,29 @@ The wp surfaces *what the assignment requires* from the pre-state, and against t
 
 *Why componentwise positivity of v on positions 1..m−1 specifically?* The wp obligation isolates this — not the full S8a — as what the shift requires of v's prefix. Position 1 (subspace identifier) needs `v₁ ≥ 1` so that `subspace(shift(v, n)) = v₁ = S ≥ 1`. Positions 2..m−1 (intermediate ordinal components, vacuous when `m = 2`) need `vᵢ ≥ 1` so the prefix copy yields a zero-free image. The shift does not need to know anything about `vₘ` for positions 1..m−1 since position m is advanced by `+n ≥ 1`, but does need `n ≥ 1` (already a precondition) to advance the action point's value to a positive natural even from `vₘ = 0`. The wp makes the dependency structure visible.
 
-This wp-style derivation generalizes. For each post-state lemma — I3-VD (depth uniformity), I3-S3 (referential integrity), I3-S2 (functionality), I3-fin (finiteness) — the wp of its postcondition through the assignment statements `M'(d)(shift(v, n)) := M(d)(v)` (for v in the shifted region), `M'(d)(v) := M(d)(v)` (for v in the left and cross-subspace regions), and `M'(d)(v) := ⊥` (for v vacated by I3-V) yields obligations against the pre-state. The depth-compatibility precondition, the `n ≥ 1` precondition, and the `#p ≥ 2` scoping axiom on I3 are precisely the wp-derived constraints that emerge from this analysis. The reader can verify the remaining cases by the same recipe — we present only I3-VP here as the worked example.
+**Weakest-precondition analysis (I3-S2 backwards through the assignment regions).** I3-VP is a single-position obligation; the wp derivation above never crosses region boundaries. I3-S2 (functionality of M'(d)) is structurally different: its post-state predicate `(A v₁, v₂ ∈ dom(M'(d)) : v₁ = v₂ ⟹ M'(d)(v₁) = M'(d)(v₂))` quantifies over pairs that may straddle the four assignment regions (shifted, left, cross-subspace, vacated). The wp of this conjunction through the simultaneous assignment statements yields a pairwise no-conflict obligation against the pre-state, and it is here that subspace preservation and TS2's injectivity enter as wp-discharged hypotheses rather than free-floating facts. We work the case to expose those entry points.
+
+Functionality holds iff for every pair of positions `v₁, v₂ ∈ dom(M'(d))`, `v₁ = v₂` implies `M'(d)(v₁) = M'(d)(v₂)`. Equivalently, no position in dom(M'(d)) receives two distinct values. The four assignment statements that populate M'(d) are:
+
+- *(shift):* `M'(d)(shift(u, n)) := M(d)(u)` for u ∈ dom(M(d)) with subspace(u) = S and u ≥ p (I3).
+- *(left):* `M'(d)(u) := M(d)(u)` for u ∈ dom(M(d)) with subspace(u) = S and u < p (I3-L).
+- *(cross):* `M'(d)(u) := M(d)(u)` for u ∈ dom(M(d)) with subspace(u) ≠ S (I3-X).
+- *(vacate):* `M'(d)(u) := ⊥` for u ∈ dom(M(d)) ∧ subspace(u) = S ∧ u ≥ p ∧ u ∉ {shift(u', n) : ...} (I3-V).
+
+The wp of "no double assignment" backwards through the simultaneous assignment is the conjunction of *six* pairwise-disjointness obligations (the (vacate) statement removes positions from dom(M'(d)) and so cannot collide with another assignment within dom(M'(d)); collisions between (vacate) and a positive assignment are addressed below as the (shift) ∩ (vacate) overlap, where (shift) wins by construction):
+
+1. *(shift) ∩ (shift):* `(A u₁, u₂ : both in shifted source : shift(u₁, n) = shift(u₂, n) ⟹ M(d)(u₁) = M(d)(u₂))`. The hypothesis simplifies via the contrapositive to `u₁ ≠ u₂ ⟹ shift(u₁, n) ≠ shift(u₂, n)` — exactly TS2 (ShiftInjectivity, ASN-0034). The wp surfaces TS2 as the precise obligation: without injectivity of shift, two distinct pre-state positions could map to the same post-state V-position with conflicting I-addresses.
+2. *(shift) ∩ (left):* `(A u₁ in shifted source, u₂ in left source : shift(u₁, n) = u₂ ⟹ M(d)(u₁) = M(d)(u₂))`. The hypothesis is impossible: u₁ ≥ p forces shift(u₁, n) > u₁ ≥ p (TS4), but u₂ < p, so shift(u₁, n) > p > u₂ — strict inequality, never equality. The wp reduces to `False ⟹ ...`, vacuously true. The wp pinpoints why TS4 (ShiftStrictlyAdvances, ASN-0034) is doing essential work: without `shift(u, n) > u`, an in-place shift (n = 0) could land a shifted image inside the left region.
+3. *(shift) ∩ (cross):* `(A u₁ in shifted source, u₂ in cross source : shift(u₁, n) = u₂ ⟹ M(d)(u₁) = M(d)(u₂))`. The hypothesis is impossible by subspace preservation: subspace(shift(u₁, n)) = u₁₁ = S (TumblerAdd's prefix-copy when m ≥ 2), while subspace(u₂) ≠ S — different position-1 components, so no equality is possible. The wp surfaces the `m ≥ 2` precondition as the entry point: at m = 1, shift would change the subspace identifier and a shifted text-subspace image could collide with a link-subspace position.
+4. *(left) ∩ (left):* `(A u₁, u₂ in left source : u₁ = u₂ ⟹ M(d)(u₁) = M(d)(u₂))` — trivial, since `u₁ = u₂` directly forces `M(d)(u₁) = M(d)(u₂)` (S2 on the pre-state, M(d) is a function).
+5. *(left) ∩ (cross):* impossible — subspace(u₁) = S ≠ subspace(u₂) makes u₁ = u₂ unsatisfiable. The wp reduces to `False ⟹ ...`.
+6. *(cross) ∩ (cross):* `(A u₁, u₂ in cross source : u₁ = u₂ ⟹ M(d)(u₁) = M(d)(u₂))` — trivial by S2 on the pre-state.
+
+Each non-trivial obligation discharges via a foundation invariant or precondition: TS2 (ShiftInjectivity, ASN-0034) for (1); TS4 (ShiftStrictlyAdvances, ASN-0034) combined with the I3 preconditions `n ≥ 1` and the quantifier ranges `u₁ ≥ p, u₂ < p` for (2); subspace preservation derived from the I3 precondition `#p ≥ 2` for (3); pre-state S2 for (4) and (6); subspace-identifier disjointness for (5).
+
+This is the same recipe as I3-VP (substitute the post-state predicate, push it backwards through the assignments, read each conjunct as a discharged obligation), but the *content* of the obligations is different: I3-VP's wp surfaces componentwise positivity of v's prefix; I3-S2's wp surfaces injectivity, advancement, and subspace preservation. The two together cover the structural roles of the four foundation properties (S8a, TS2, TS4, prefix-copy at m ≥ 2) that the contract promises.
+
+The remaining post-state lemmas — I3-VD (depth uniformity), I3-S3 (referential integrity), I3-fin (finiteness) — admit wp derivations of the same form and discharge against TumblerAdd's result-length identity (for I3-VD), pre-state S3 plus I3-C (for I3-S3), and TS2 plus pre-state S8-fin (for I3-fin); we have not worked them in detail because the obligations they surface are subsumed by those already exposed for I3-VP and I3-S2.
 
 **Gap and vacated regions.** I3-V explicitly vacates original positions at or beyond p that are not the destination of any shifted content, completing the shift semantics: content departs from its original position as it arrives at the shifted one. The vacated set includes original positions within the gap [p, shift(p, n)) — which would otherwise be unaddressed — as well as, in sparse arrangements, original positions beyond the gap whose shift pre-images are absent from dom(M(d)). After accounting for all eight clauses, the positions in [p, shift(p, n)) remain the only region not assigned a value by any postcondition — and I3-CS explicitly excludes them from dom(M'(d)), since they are neither left-region positions nor shifted images: p is not < p (so I3-L excludes it), and no shifted image lands in the gap — two cases establish this: (1) when v = p, shift(p, n) equals the exclusive upper bound of [p, shift(p, n)) and so is not in the gap; (2) when v > p with #v = #p = m, TS1 (ShiftOrderPreservation, ASN-0034) gives shift(v, n) > shift(p, n), placing the image strictly past the gap's upper bound. These n gap positions are where newly inserted content will be placed; the content-placement postcondition is an operation-level concern deferred to a future INSERT ASN. That ASN will extend the closed domain established by I3-CS — adding the gap positions to dom(M'(d)) — and must re-derive S8-depth, S8a, D-CTG, D-MIN, and D-SEQ for the complete post-state.
 
@@ -213,7 +235,7 @@ We frequently need to separate a V-position into its subspace identifier and its
 
 **VPositionReconstruction** — *vpos(S, o)* (cited, ASN-0036). For subspace identifier `S ≥ 1` and ordinal `o = [o₁, ..., oₖ]` with `#o ≥ 1`, `vpos(S, o) = [S, o₁, ..., oₖ]`. These are inverses: `ord(vpos(S, o)) = o` and `vpos(subspace(v), ord(v)) = v`.
 
-**OrdinalDisplacementProjection** — *w_ord* (cited, ASN-0036). For a displacement w with `w₁ = 0` and `#w = m ≥ 2`, `w_ord = [w₂, ..., wₘ]` — the tumbler of length m − 1 obtained by stripping the (zero) first component. When `w > 0` (TA-Pos), `w_ord > 0` and `actionPoint(w_ord) = actionPoint(w) − 1`. At the restricted depth m = 2 (see D-SHIFT below), w = [0, c] for positive integer c, and w_ord = [c] with [c] > 0.
+**OrdinalDisplacementProjection** — *w_ord* (cited, ASN-0036). For a displacement w with `w₁ = 0` and `#w = m ≥ 2`, `w_ord = [w₂, ..., wₘ]` — the tumbler of length m − 1 obtained by stripping the (zero) first component. When `Pos(w)` (TA-Pos, ASN-0034), `Pos(w_ord)` and `actionPoint(w_ord) = actionPoint(w) − 1`. At the restricted depth m = 2 (see D-SHIFT below), w = [0, c] for positive integer c, and w_ord = [c] with `Pos([c])`.
 
 **Lemma — OrdinalOrderEquivalence** (LEMMA, derived). For V-positions v₁, v₂ with subspace(v₁) = subspace(v₂) = S and #v₁ = #v₂ = m ≥ 2:
 
@@ -256,7 +278,7 @@ A contraction takes a document d and a contraction span (p, w) within the text s
 
 - `S = 1` (subspace scoping axiom) — contraction is defined only on the text subspace; the foundation's D-CTG, D-MIN, D-SEQ supply the contiguity preconditions only for V_1(d).
 - `p ∈ V_1(d)` — p is a current V-position in the text subspace of document d.
-- `w > 0` — the contraction width is positive.
+- `Pos(w)` (TA-Pos, ASN-0034) — the contraction width is positive.
 - `#w = #p` — the displacement has the same depth as p.
 - `w₁ = 0` — the displacement preserves the subspace identifier under addition.
 - `#p = 2` (depth scoping axiom) — V-positions have depth 2, restricting to single-component ordinals.
@@ -276,7 +298,7 @@ By trichotomy of the total order (T1, ASN-0034), every v ∈ V_S(d) falls in exa
 
 **D-SHIFT** — *RightShift* (POST, postcondition). Every position in the right region survives with its I-address mapping intact, but its V-position shifts left by w_ord. Define the shift function: for v ∈ R, let σ(v) = vpos(S, ord(v) ⊖ w_ord) — TumblerSub applied to the ordinal component, then reconstructed as a V-position.
 
-*Preconditions:* As stated in the contraction formal contract: p ∈ V_S(d), #p = 2, w > 0, #w = #p, w₁ = 0, containment satisfied. r = p ⊕ w; R = {v ∈ V_S(d) : v ≥ r}; M'(d) is the post-contraction arrangement.
+*Preconditions:* As stated in the contraction formal contract: p ∈ V_S(d), #p = 2, Pos(w), #w = #p, w₁ = 0, containment satisfied. r = p ⊕ w; R = {v ∈ V_S(d) : v ≥ r}; M'(d) is the post-contraction arrangement.
 
 *Postconditions:*
 
@@ -332,7 +354,7 @@ That is, `dom(Σ'.C) = dom(Σ.C)` and `(A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`
 
 *Proof of (a).* All ordinals in R share the same depth (S8-depth), giving #ord(v₁) = #ord(v₂). For any v₁ < v₂ in R, we have ord(v₁) < ord(v₂) (by OrdinalOrderEquivalence — both share subspace S = 1 and depth m = 2).
 
-We derive `ord(v) ≥ w_ord` step by step for every v ∈ R. At depth #p = 2 we have ord(p) = [p₂], w_ord = [c] with c = w₂ ≥ 1 (since w > 0 and w₁ = 0 imply w₂ ≥ 1), and ord(r) = ord(p ⊕ w) = ord(p) ⊕ w_ord = [p₂ + c] by OrdAddHom(a). For any v ∈ R, v ≥ r (definition of R), so by OrdinalOrderEquivalence ord(v) ≥ ord(r) = [p₂ + c]. The ordinal comparison `[v₂] ≥ [p₂ + c]` at depth 1 is the natural-number comparison `v₂ ≥ p₂ + c` (by T1 at depth 1, which reduces to component-wise comparison). From p₂ ≥ 1 (S8a's componentwise positivity applied to p ∈ V_1(d) at position 2), we get `p₂ + c ≥ 1 + c > c` (NAT-addcompat, ASN-0034). Combining with `v₂ ≥ p₂ + c`, transitivity of ≥ on ℕ gives `v₂ ≥ c`. The depth-1 ordinal comparison `[v₂] ≥ [c]` is exactly this natural-number inequality, so `ord(v) = [v₂] ≥ [c] = w_ord`. ∎(derivation of `ord(v) ≥ w_ord`)
+We derive `ord(v) ≥ w_ord` step by step for every v ∈ R. At depth #p = 2 we have ord(p) = [p₂], w_ord = [c] with c = w₂ ≥ 1 (since Pos(w) and w₁ = 0 imply w₂ ≥ 1), and ord(r) = ord(p ⊕ w) = ord(p) ⊕ w_ord = [p₂ + c] by OrdAddHom(a). For any v ∈ R, v ≥ r (definition of R), so by OrdinalOrderEquivalence ord(v) ≥ ord(r) = [p₂ + c]. The ordinal comparison `[v₂] ≥ [p₂ + c]` at depth 1 is the natural-number comparison `v₂ ≥ p₂ + c` (by T1 at depth 1, which reduces to component-wise comparison). From p₂ ≥ 1 (S8a's componentwise positivity applied to p ∈ V_1(d) at position 2), we get `p₂ + c ≥ 1 + c > c` (NAT-addcompat, ASN-0034). Combining with `v₂ ≥ p₂ + c`, transitivity of ≥ on ℕ gives `v₂ ≥ c`. The depth-1 ordinal comparison `[v₂] ≥ [c]` is exactly this natural-number inequality, so `ord(v) = [v₂] ≥ [c] = w_ord`. ∎(derivation of `ord(v) ≥ w_ord`)
 
 By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b ⟹ a ⊖ w < b ⊖ w — with a = ord(v₁), b = ord(v₂), w = w_ord, and both `ord(v₁) ≥ w_ord` and `ord(v₂) ≥ w_ord` established by the derivation above, we conclude ord(v₁) ⊖ w_ord < ord(v₂) ⊖ w_ord. Now σ(v₁) and σ(v₂) share subspace S = 1 and depth m = 2, and ord(σ(v₁)) = ord(v₁) ⊖ w_ord < ord(v₂) ⊖ w_ord = ord(σ(v₂)); by the reverse direction of OrdinalOrderEquivalence, σ(v₁) < σ(v₂). ∎
 
@@ -351,9 +373,23 @@ By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥
 
 *Proof of (a).* Since r = p ⊕ w, OrdAddHom (a) gives ord(r) = ord(p) ⊕ w_ord. The claim ord(r) ⊖ w_ord = ord(p) thus reduces to (ord(p) ⊕ w_ord) ⊖ w_ord = ord(p). At our restricted depth #p = 2: ord(p) = [p₂] and w_ord = [c] for positive integer c. Then ord(p) ⊕ w_ord = [p₂ + c] by TumblerAdd. And [p₂ + c] ⊖ [c]: the two sequences have equal length 1, divergence at position 1 where (p₂ + c) > c, giving r₁ = (p₂ + c) − c = p₂. Result: [p₂] = ord(p). ✓
 
-This applies TA4 (PartialInverse, ASN-0034): (a ⊕ w) ⊖ w = a when w > 0, the action point k = #a, #w = k, and (A i : 1 ≤ i < k : aᵢ = 0). Here a = ord(p) and w = w_ord. The positivity w_ord > 0 holds by the OrdinalDisplacementProjection postcondition (w > 0 and w₁ = 0 imply w_ord > 0). For depth-1 ordinals (k = 1), the zero-prefix condition is vacuously satisfied.
+This applies TA4 (PartialInverse, ASN-0034): (a ⊕ w) ⊖ w = a when Pos(w), the action point k = #a, #w = k, and (A i : 1 ≤ i < k : aᵢ = 0). Here a = ord(p) and w = w_ord. The positivity Pos(w_ord) holds by the OrdinalDisplacementProjection postcondition (Pos(w) and w₁ = 0 imply Pos(w_ord)). For depth-1 ordinals (k = 1), the zero-prefix condition is vacuously satisfied.
 
-*Proof of (b).* Suppose R ≠ ∅, so there exists v ∈ V_S(d) with v ≥ r. Either v = r, so r ∈ V_S(d) directly, or v > r, in which case the last element of X (with ordinal ord(p) + c − 1) is in V_S(d), and v ∈ V_S(d) with v > r > last element of X, so D-CTG gives r ∈ V_S(d). In both cases r ∈ R and r = min(R) (since r ≤ v for all v ∈ R by definition). By D-BJ, σ is order-preserving, so σ(r) = min(Q₃). By part (a), ord(σ(r)) = ord(p). ∎
+*Proof of (b).* Suppose R ≠ ∅, so there exists v ∈ V_S(d) with v ≥ r. Two cases on the comparison of v with r.
+
+*Case 1: v = r.* Then r = v ∈ V_S(d) directly.
+
+*Case 2: v > r.* We establish r ∈ V_S(d) via D-CTG, using the last element of X as the lower bracket.
+
+First, X is non-empty. Trivially p ≥ p, and p < r since r = p ⊕ w with Pos(w): by TumblerAdd, r differs from p only at position m where rₘ = pₘ + wₘ, and Pos(w) with w₁ = 0 forces wₘ ≥ 1 (the action point of w is at position m), so rₘ > pₘ, giving r > p (T1, divergence at position m). Hence p ∈ X, and X is non-empty.
+
+Second, X has the explicit form `X = {[1, k] : p₂ ≤ k < p₂ + c}`, with c = w₂ ≥ 1. By D-SEQ on the pre-state V_1(d) (text subspace, ASN-0036), V_1(d) = {[1, k] : 1 ≤ k ≤ N}. The defining condition `p ≤ v < r` at depth 2 is, via OrdinalOrderEquivalence and T1 at depth 1, the natural-number condition `p₂ ≤ v₂ < p₂ + c` (since ord(r) = ord(p) ⊕ w_ord = [p₂ + c]). Intersecting with V_1(d) yields X = {[1, k] : p₂ ≤ k < p₂ + c, 1 ≤ k ≤ N}. The containment precondition `p₂ + w₂ − 1 ≤ N` ensures that all c values from p₂ through p₂ + c − 1 lie within [1, N], so X = {[1, k] : p₂ ≤ k < p₂ + c}.
+
+Third, X has a last element under T1. Since c ≥ 1, the natural-number range [p₂, p₂ + c) is non-empty with maximum p₂ + c − 1, so the last element of X is [1, p₂ + c − 1]. We have [1, p₂ + c − 1] < r = [1, p₂ + c] by T1 at position 2 (p₂ + c − 1 < p₂ + c).
+
+Fourth, applying D-CTG (text subspace, ASN-0036): with u = [1, p₂ + c − 1] ∈ V_1(d) and q = v ∈ V_1(d), where u < r < v (the first inequality just shown, the second by Case 2), D-CTG quantifies over all V-positions strictly between u and q with the same depth, demanding their membership in V_1(d). Since #r = 2 = #u and u < r < v = q with subspace(r) = 1, D-CTG gives r ∈ V_1(d) = V_S(d).
+
+In both cases r ∈ R and r = min(R) (since r ≤ v for all v ∈ R by definition). By D-BJ, σ is order-preserving, so σ(r) = min(Q₃). By part (a), ord(σ(r)) = ord(p). ∎
 
 **D-DP** — *DensePartition* (LEMMA, lemma). The post-state arrangement in subspace S is exactly the union of the preserved left region and the shifted right region, with no overlap and no gap at the contraction boundary.
 
@@ -380,7 +416,7 @@ The boundary is tight. At depth 2 with contiguous allocation (D-CTG), L contains
 
 **D-CTG-post** — *VContiguityPreservation* (LEMMA, introduced). At S = 1 (subspace scoping axiom): the post-state V_1(d) is contiguous. For non-text subspaces, no D-CTG obligation is asserted (the foundation's D-CTG is text-subspace only); D-CS preserves V_S(d) (S ≠ 1) verbatim.
 
-*Proof.* By D-SEQ (ASN-0036, text subspace), the pre-state V_1(d) = {[1, k] : 1 ≤ k ≤ N}. L consists of positions with ordinals strictly less than ord(p) — by D-CTG on the pre-state, L = {[1, k] : 1 ≤ k < p₂}, which is contiguous. Q₃ is the order-preserving image of R under σ (D-BJ). R = {[1, k] : p₂ + c ≤ k ≤ N} is contiguous, and σ shifts each ordinal by −c, giving Q₃ = {[1, k − c] : p₂ + c ≤ k ≤ N} = {[1, k] : p₂ ≤ k ≤ N − c}. This is contiguous.
+*Proof.* By D-SEQ (ASN-0036, text subspace), the pre-state V_1(d) = {[1, k] : 1 ≤ k ≤ N}. L consists of positions with ordinals strictly less than ord(p) — by D-SEQ on the pre-state, L = {[1, k] : 1 ≤ k < p₂}, which is contiguous. Q₃ is the order-preserving image of R under σ (D-BJ). By D-SEQ on the pre-state, R = {[1, k] : p₂ + c ≤ k ≤ N} is contiguous, and σ shifts each ordinal by −c, giving Q₃ = {[1, k − c] : p₂ + c ≤ k ≤ N} = {[1, k] : p₂ ≤ k ≤ N − c}. This is contiguous.
 
 Three cases arise at the boundary. When L ≠ ∅ and R ≠ ∅: L's maximum ordinal is p₂ − 1 and Q₃'s minimum ordinal is p₂ (D-SEP(b)), which are adjacent, so L ∪ Q₃ is contiguous. When L = ∅ and R ≠ ∅: Q₃ alone is contiguous. When R = ∅: Q₃ = ∅, so L ∪ Q₃ = L, which is contiguous (or empty when L = ∅ as well, which is vacuously contiguous). Non-text subspaces: D-CS preserves V_S(d) (S ≠ 1) verbatim; the foundation imposes no D-CTG obligation there. By D-CD, other documents are unchanged. ∎
 
@@ -515,6 +551,56 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 - *S2-post:* No subspace-1 positions exist. ✓
 - *S3-post:* No subspace-1 I-addresses to check. ✓
 
+**Cross-subspace preservation: text contraction leaves link subspace untouched.** Consider document d with both text and link subspaces populated. The text subspace S = 1 has five contiguous positions; the link subspace S = 2 has two sparse positions (allowed by the foundation's frame note on D-CTG for V_2 — link positions may carry tombstones and need not be contiguous). All positions have depth 2.
+
+M(d) = {[1,1] → i₁, [1,2] → i₂, [1,3] → i₃, [1,4] → i₄, [1,5] → i₅,  [2,5] → ℓ₁, [2,9] → ℓ₂}
+
+Contract at p = [1,2] with w = [0,2]. Parameters: S = 1 (subspace scoping axiom), c = w₂ = 2, r = p ⊕ w = [1,4], #p = 2 (depth scoping axiom), Pos(w), w₁ = 0, containment p₂ + w₂ − 1 = 3 ≤ 5 = N. ✓
+
+The contraction is defined only on the text subspace (subspace scoping axiom). The link subspace V_2(d) = {[2,5], [2,9]} is exempt from D-CTG, D-MIN, D-SEQ — it lies outside the contraction's quantifier ranges (D-SHIFT's R, D-L's L) since those are subsets of V_S(d) with S = 1. D-CS asserts both per-subspace domain equality and mapping equality across non-S subspaces.
+
+**Three-region partition (text subspace only).** L = {[1,1]}, X = {[1,2], [1,3]}, R = {[1,4], [1,5]}.
+
+**Shift computation.** w_ord = [2]. For each v ∈ R:
+
+- σ([1,4]) = vpos(1, [4] ⊖ [2]) = vpos(1, [2]) = [1,2]
+- σ([1,5]) = vpos(1, [5] ⊖ [2]) = vpos(1, [3]) = [1,3]
+
+Q₃ = {[1,2], [1,3]}.
+
+**Post-state.** M'(d) = {[1,1] → i₁, [1,2] → i₄, [1,3] → i₅,  [2,5] → ℓ₁, [2,9] → ℓ₂}
+
+| V (before) | I (before) | V (after) | I (after) | Region |
+|---|---|---|---|---|
+| [1,1] | i₁ | [1,1] | i₁ | left (D-L) |
+| [1,2] | i₂ | — (vacated) | — | contracted (X) |
+| [1,3] | i₃ | — (vacated) | — | contracted (X) |
+| [1,4] | i₄ | [1,2] | i₄ | shifted (D-SHIFT) |
+| [1,5] | i₅ | [1,3] | i₅ | shifted (D-SHIFT) |
+| [2,5] | ℓ₁ | [2,5] | ℓ₁ | cross-subspace (D-CS) |
+| [2,9] | ℓ₂ | [2,9] | ℓ₂ | cross-subspace (D-CS) |
+
+**Verification:**
+
+- *D-L:* M'(d)([1,1]) = i₁ = M(d)([1,1]). ✓
+- *D-SHIFT:* M'(d)([1,2]) = i₄ = M(d)([1,4]); M'(d)([1,3]) = i₅ = M(d)([1,5]). ✓
+- *D-DOM:* {v ∈ dom(M'(d)) : subspace(v) = 1} = {[1,1], [1,2], [1,3]} = L ∪ Q₃. ✓
+- *D-CS:* {v ∈ dom(M'(d)) : subspace(v) = 2} = {[2,5], [2,9]} = {v ∈ dom(M(d)) : subspace(v) = 2}; per-position mapping equality M'(d)([2,5]) = ℓ₁ = M(d)([2,5]) and M'(d)([2,9]) = ℓ₂ = M(d)([2,9]). The sparse link subspace is preserved verbatim — the tombstone gap at [2,6], [2,7], [2,8] remains. ✓
+- *D-I:* dom(Σ'.C) = dom(Σ.C) and per-address values unchanged. The contraction modifies only M(d); no I-addresses are allocated or deallocated, and no link payloads are touched. ✓
+- *D-BJ:* [1,4] < [1,5] and σ([1,4]) = [1,2] < [1,3] = σ([1,5]). ✓
+- *D-SEP(a):* ord(r) ⊖ w_ord = [4] ⊖ [2] = [2] = ord(p). ✓
+- *D-SEP(b):* min Q₃ = [1,2], ord([1,2]) = [2] = ord(p). ✓
+- *D-DP:* L ∩ Q₃ = ∅; min Q₃ ordinal = [2] = ord(p); all L ordinals < ord(p). ✓
+- *D-CTG-post:* V_1(d') = {[1,1], [1,2], [1,3]} = {[1,k] : 1 ≤ k ≤ 3}, contiguous. Non-text V_2(d') = {[2,5], [2,9]} preserved verbatim by D-CS — the foundation imposes no D-CTG obligation on V_2. ✓
+- *D-MIN-post:* min V_1(d') = [1,1] = [S, 1]. Non-text V_2(d') preserved by D-CS — the foundation imposes no D-MIN obligation on V_2 ([2,5] is not [2,1] but D-MIN does not apply). ✓
+- *D-SEQ-post:* V_1(d') = {[1,k] : 1 ≤ k ≤ N − c} = {[1,k] : 1 ≤ k ≤ 3}. Non-text V_2(d') preserved by D-CS — the foundation imposes no D-SEQ obligation on V_2 (the sparse {[2,5], [2,9]} is not of the form {[2,k] : 1 ≤ k ≤ n} but D-SEQ does not apply). ✓
+- *S2-post:* Five distinct V-positions in dom(M'(d)), each assigned a unique I-address. ✓
+- *S3-post:* {i₁, i₄, i₅, ℓ₁, ℓ₂} ⊆ ran(M(d)) ⊆ dom(Σ.C) (S3) = dom(Σ'.C) (D-I). ✓
+- *S8-depth-post:* All seven post-state V-positions have depth 2 — text positions by D-L and shift's depth preservation, link positions by D-CS retaining pre-state depths. ✓
+- *S8a-post:* All post-state V-positions are zero-free, depth 2, componentwise positive. ✓
+
+The example exercises D-CS concretely: the link subspace V_2(d) — sparse with a tombstone gap, exempt from D-CTG/D-MIN/D-SEQ by the foundation — is unaffected by a text-subspace contraction. The text-subspace shift's `⊖ w_ord` displacement acts only on positions with subspace identifier equal to S = 1; link-subspace positions, having subspace identifier 2 ≠ 1, lie outside the quantifier ranges of D-SHIFT and D-L, and D-CS pins both their position set and their I-address mappings to the pre-state (D-DOM closes dom(M'(d)) within subspace S to L ∪ Q₃, while D-CS handles non-S subspaces). The contrast with the post-text-contraction text subspace V_1(d') = {[1,1], [1,2], [1,3]} (now contiguous and reindexed) versus the post-contraction link subspace V_2(d') = {[2,5], [2,9]} (still sparse, still tombstone-bearing) makes the per-subspace mutation discipline visible: one subspace shifts to close gaps, the other carries gaps as durable structure. ∎
+
 
 ## Statement Registry
 
@@ -569,7 +655,7 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 | w_ord | definition | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0; preconditions #w ≥ 2, w₁ = 0 | cited (ASN-0036) |
 | OrdinalOrderEquivalence | lemma | v₁ < v₂ ⟺ ord(v₁) < ord(v₂) when subspace(v₁) = subspace(v₂) ∧ #v₁ = #v₂ | introduced (derived from T1) |
 | OrdAddHom | lemma | (a) ord(p ⊕ w) = ord(p) ⊕ w_ord; (b) subspace(p ⊕ w) = subspace(p); (c) p ⊕ w = vpos(subspace(p), ord(p) ⊕ w_ord). Preconditions: #p = m ≥ 2, w₁ = 0, #w = m, Pos(w) | cited (ASN-0036) |
-| Contraction | operation | Remove span (p, w) from the text subspace of document d (S = 1 scoping axiom); preconditions: S = 1, p ∈ V_1(d), w > 0, #w = #p, w₁ = 0, #p = 2, containment (p₂ + w₂ − 1 ≤ N); postconditions: D-SHIFT, D-DOM; frame: D-L, D-CS, D-CD, D-I | introduced |
+| Contraction | operation | Remove span (p, w) from the text subspace of document d (S = 1 scoping axiom); preconditions: S = 1, p ∈ V_1(d), Pos(w), #w = #p, w₁ = 0, #p = 2, containment (p₂ + w₂ − 1 ≤ N); postconditions: D-SHIFT, D-DOM; frame: D-L, D-CS, D-CD, D-I | introduced |
 | ThreeRegions | definition | L = {v ∈ V_S(d) : v < p}, X = {v ∈ V_S(d) : p ≤ v < r}, R = {v ∈ V_S(d) : v ≥ r}; partition of V_S(d) | introduced |
 | Q₃ | definition | Q₃ = {σ(v) : v ∈ R} — the set of shifted right-region positions in the post-state | introduced |
 | D-SHIFT | postcondition | (A v ∈ R : M'(d)(σ(v)) = M(d)(v)) where σ(v) = vpos(S, ord(v) ⊖ w_ord) | introduced |
