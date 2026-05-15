@@ -65,7 +65,9 @@ def cmd_focus(asn_label_str, depth, session):
         fwd.setdefault(src, set()).add(dst)
         rev.setdefault(dst, set()).add(src)
 
-    print(f"\n{asn_label_str} — {Path(note_index[asn_label_str]).name}")
+    note_path = session.store.path_for_addr(note_index[asn_label_str])
+    name = Path(note_path).name if note_path else "(no path)"
+    print(f"\n{asn_label_str} — {name}")
     print()
     print("Depends on (ancestors):")
     _print_tree(asn_label_str, fwd, depth, indent=2)
