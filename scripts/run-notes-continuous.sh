@@ -18,10 +18,28 @@
 #   export CLAUDE_CONFIG_DIRS=~/.claude-acct-A,~/.claude-acct-B
 #   bash scripts/run-notes-continuous.sh              # single worker
 #   bash scripts/run-notes-continuous.sh --workers 4  # 4 parallel partitions
+#
+# Runtime config — _workspace/runner.env (optional)
+#
+# To adjust WORKERS or CLAUDE_CONFIG_DIRS without restarting the
+# runner, create or edit `_workspace/runner.env`. The file is sourced
+# at the top of each outer cycle; changes take effect on the next
+# worker spawn (cycle boundary, not mid-scheduler).
+#
+# Example contents:
+#
+#   WORKERS=4
+#   CLAUDE_CONFIG_DIRS=~/.claude-acct-A,~/.claude-acct-B,~/.claude-acct-C
+#
+# When the file is absent, the runner uses the CLI args and the
+# parent shell's env. Invalid values (non-positive WORKERS, source
+# errors) keep the previous values and log a warning.
 
 set -u
 
 cd "$(dirname "$0")/.."
+
+CONFIG_FILE="_workspace/runner.env"
 
 WORKERS=1
 while [[ $# -gt 0 ]]; do
@@ -46,7 +64,34 @@ if ! [[ "$WORKERS" =~ ^[0-9]+$ ]] || [ "$WORKERS" -lt 1 ]; then
     exit 2
 fi
 
-echo "  [run-notes-continuous] WORKERS=$WORKERS CLAUDE_CONFIG_DIRS=${CLAUDE_CONFIG_DIRS:-(unset)}" >&2
+# Load runtime config from `$CONFIG_FILE` if present. Sourced at the
+# top of each outer cycle so operators can edit WORKERS /
+# CLAUDE_CONFIG_DIRS mid-run; changes take effect on the next spawn.
+# Invalid values keep previous values.
+_load_runtime_config() {
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        return 0
+    fi
+    local prev_workers="$WORKERS"
+    local prev_dirs="${CLAUDE_CONFIG_DIRS:-}"
+    # shellcheck disable=SC1090
+    if ! source "$CONFIG_FILE" 2>/dev/null; then
+        echo "  [runner.env] source failed; keeping WORKERS=$prev_workers, CLAUDE_CONFIG_DIRS=$prev_dirs" >&2
+        WORKERS="$prev_workers"
+        export CLAUDE_CONFIG_DIRS="$prev_dirs"
+        return 0
+    fi
+    if ! [[ "$WORKERS" =~ ^[0-9]+$ ]] || [ "$WORKERS" -lt 1 ]; then
+        echo "  [runner.env] WORKERS=$WORKERS invalid; reverting to $prev_workers" >&2
+        WORKERS="$prev_workers"
+    fi
+    export CLAUDE_CONFIG_DIRS
+}
+
+echo "  [run-notes-continuous] startup: WORKERS=$WORKERS CLAUDE_CONFIG_DIRS=${CLAUDE_CONFIG_DIRS:-(unset)}" >&2
+if [[ -f "$CONFIG_FILE" ]]; then
+    echo "  [run-notes-continuous] runtime config at $CONFIG_FILE will be sourced each cycle" >&2
+fi
 
 # Background pusher (one, shared) — pushes any commit landed in the
 # working tree every 30s so the remote stays close to laptop's state.
@@ -78,6 +123,8 @@ trap cleanup EXIT INT TERM
 while true; do
     stop_pusher
     git pull --rebase --autostash 2>&1 | grep -v '^$' || true
+    _load_runtime_config
+    echo "  [run-notes-continuous] cycle: WORKERS=$WORKERS CLAUDE_CONFIG_DIRS=${CLAUDE_CONFIG_DIRS:-(unset)}" >&2
     start_pusher
 
     # Spawn workers in parallel. Each runs to outer-fixed-point
