@@ -126,7 +126,7 @@ Functionality holds iff for every pair of positions `v₁, v₂ ∈ dom(M'(d))`,
 
 The wp of "no double assignment" backwards through the simultaneous assignment is the conjunction of *six* pairwise-disjointness obligations (the (vacate) statement removes positions from dom(M'(d)) and so cannot collide with another assignment within dom(M'(d)); collisions between (vacate) and a positive assignment are addressed below as the (shift) ∩ (vacate) overlap, where (shift) wins by construction):
 
-1. *(shift) ∩ (shift):* `(A u₁, u₂ : both in shifted source : shift(u₁, n) = shift(u₂, n) ⟹ M(d)(u₁) = M(d)(u₂))`. The hypothesis simplifies via the contrapositive to `u₁ ≠ u₂ ⟹ shift(u₁, n) ≠ shift(u₂, n)` — exactly TS2 (ShiftInjectivity, ASN-0034). The wp surfaces TS2 as the precise obligation: without injectivity of shift, two distinct pre-state positions could map to the same post-state V-position with conflicting I-addresses.
+1. *(shift) ∩ (shift):* `(A u₁, u₂ : both in shifted source : shift(u₁, n) = shift(u₂, n) ⟹ M(d)(u₁) = M(d)(u₂))`. Discharged by TS2 (ShiftInjectivity, ASN-0034): from `shift(u₁, n) = shift(u₂, n)`, TS2 gives `u₁ = u₂`, hence `M(d)(u₁) = M(d)(u₂)` by reflexivity of equality. The wp surfaces TS2 as the precise obligation: without injectivity of shift, two distinct pre-state positions could map to the same post-state V-position with conflicting I-addresses.
 2. *(shift) ∩ (left):* `(A u₁ in shifted source, u₂ in left source : shift(u₁, n) = u₂ ⟹ M(d)(u₁) = M(d)(u₂))`. The hypothesis is impossible: u₁ ≥ p forces shift(u₁, n) > u₁ ≥ p (TS4), but u₂ < p, so shift(u₁, n) > p > u₂ — strict inequality, never equality. The wp reduces to `False ⟹ ...`, vacuously true. The wp pinpoints why TS4 (ShiftStrictlyAdvances, ASN-0034) is doing essential work: without `shift(u, n) > u`, an in-place shift (n = 0) could land a shifted image inside the left region.
 3. *(shift) ∩ (cross):* `(A u₁ in shifted source, u₂ in cross source : shift(u₁, n) = u₂ ⟹ M(d)(u₁) = M(d)(u₂))`. The hypothesis is impossible by subspace preservation: subspace(shift(u₁, n)) = u₁₁ = S (TumblerAdd's prefix-copy when m ≥ 2), while subspace(u₂) ≠ S — different position-1 components, so no equality is possible. The wp surfaces the `m ≥ 2` precondition as the entry point: at m = 1, shift would change the subspace identifier and a shifted text-subspace image could collide with a link-subspace position.
 4. *(left) ∩ (left):* `(A u₁, u₂ in left source : u₁ = u₂ ⟹ M(d)(u₁) = M(d)(u₂))` — trivial, since `u₁ = u₂` directly forces `M(d)(u₁) = M(d)(u₂)` (S2 on the pre-state, M(d) is a function).
@@ -400,7 +400,7 @@ In both cases r ∈ R and r = min(R) (since r ≤ v for all v ∈ R by definitio
 - (a) No overlap: `L ∩ Q₃ = ∅`
 - (b) Boundary adjacency: when R ≠ ∅, `min({ord(u) : u ∈ Q₃}) = ord(p)`, and `(A v ∈ L : ord(v) < ord(p))`
 
-*Proof.* Every v ∈ L satisfies v < p, hence ord(v) < ord(p) (by OrdinalOrderEquivalence — both share subspace S and depth m). By D-SEP(b), when R ≠ ∅ the minimum ordinal in Q₃ is ord(p), and by D-BJ every other element of Q₃ has ordinal strictly greater than ord(p). So every element of L has ordinal strictly less than ord(p) and every element of Q₃ has ordinal ≥ ord(p), giving L ∩ Q₃ = ∅.
+*Proof.* *Case R = ∅:* Q₃ = ∅ by definition, so L ∩ Q₃ = ∅ trivially. *Case R ≠ ∅:* Every v ∈ L satisfies v < p, hence ord(v) < ord(p) (by OrdinalOrderEquivalence — both share subspace S and depth m). By D-SEP(b), when R ≠ ∅ the minimum ordinal in Q₃ is ord(p), and by D-BJ every other element of Q₃ has ordinal strictly greater than ord(p). So every element of L has ordinal strictly less than ord(p) and every element of Q₃ has ordinal ≥ ord(p), giving L ∩ Q₃ = ∅.
 
 The boundary is tight. At depth 2 with contiguous allocation (D-CTG), L contains exactly the positions with ordinals below ord(p), and Q₃ begins at ordinal ord(p) (D-SEP). The ordinals ord(p) − 1 and ord(p) are consecutive natural numbers; no ordinal falls between them. D-DOM confirms that the post-state domain in subspace S is exactly L ∪ Q₃. ∎
 
@@ -524,6 +524,7 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 - *D-L:* M'(d)([1,k]) = iₖ = M(d)([1,k]) for k ∈ {1,2,3}. ✓
 - *D-SHIFT:* R = ∅, vacuously satisfied. ✓
 - *D-DOM:* {v ∈ dom(M'(d)) : subspace(v) = 1} = {[1,1], [1,2], [1,3]} = L ∪ ∅ = L. ✓
+- *D-DP:* L ∩ Q₃ = ∅ (Q₃ = ∅ since R = ∅). ✓
 - *D-CTG-post:* {[1,1], [1,2], [1,3]} = {[1,k] : 1 ≤ k ≤ 3}, contiguous. ✓
 - *D-MIN-post:* min L = [1,1] = [S, 1]. ✓
 - *S8-depth-post:* All positions have depth 2 (unchanged from pre-state). ✓
@@ -544,6 +545,7 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 - *D-L:* L = ∅, vacuously satisfied. ✓
 - *D-SHIFT:* R = ∅, vacuously satisfied. ✓
 - *D-DOM:* {v ∈ dom(M'(d)) : subspace(v) = 1} = ∅ = ∅ ∪ ∅ = L ∪ Q₃. ✓
+- *D-DP:* L ∩ Q₃ = ∅ (Q₃ = ∅ since R = ∅). ✓
 - *D-CTG-post:* V_S(d') = ∅, vacuously contiguous. ✓
 - *D-MIN-post:* V_S(d') = ∅, D-MIN holds vacuously. ✓
 - *S8-depth-post:* V_S(d') = ∅, S8-depth holds vacuously. ✓
