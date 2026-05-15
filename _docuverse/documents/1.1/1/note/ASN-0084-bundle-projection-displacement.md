@@ -1,17 +1,19 @@
-# ASN-0084: Bundle Projection Displacement
+# ASN-0084: Cut-Point Rearrangements
 
 *2026-04-10*
 
-This ASN extends ASN-0053 (Span Algebra) with properties characterizing the permutation structure of cut-point transposition and its effect on block decompositions. When a contiguous range of V-positions is partitioned by cut points and two regions exchange places, the resulting bijection has a uniform displacement structure determined by region widths alone. The block decomposition — the finite partition into correspondence runs (S8, ASN-0036) — transforms by splitting at cuts, classifying into regions, and reassembling with per-region displacements. These properties extend span algebra by characterizing how contiguous intervals interact under the permutation class that cut-point transposition defines.
+This ASN layers a class of arrangement rearrangements over the Strand Model (ASN-0036). The arrangement function M(d) is mutated by transposing regions of V-positions delimited by cut points: three cuts define two adjacent regions that exchange places (the *pivot*); four cuts define two outer regions exchanging across a fixed middle (the *swap*). The induced bijection π : dom(M(d)) → dom(M(d)) has a uniform displacement structure on each region, determined by region widths alone. The correspondence-run decomposition guaranteed by S8 (ASN-0036) transforms by splitting at cuts, classifying each run into a region, and reassembling with the per-region displacement. The proofs draw directly on ASN-0036 (Strand Model — correspondence runs, contiguity, sequential positions) and ASN-0034 (Tumbler Algebra — ordinal shift, shift composition); no property from ASN-0053 (Span Algebra) is invoked.
 
 
 ## State and Vocabulary
 
 We work with the content store C : T ⇀ Val (Σ.C, ASN-0036) and the arrangement function M(d) : T ⇀ T for each document d (Σ.M(d), ASN-0036). The arrangement M(d) is the mutable layer; C is immutable (S0, ASN-0036).
 
-For a V-position v with subspace(v) = v₁ and #v = m, the *ordinal* is ord(v) = [v₂, ..., vₘ] — the tumbler obtained by stripping the subspace identifier.
+For a V-position v with subspace(v) = v₁ and #v = m, the *ordinal* is ord(v) = [v₂, ..., vₘ] — the tumbler obtained by stripping the subspace identifier (per OrdinalExtraction, ASN-0036).
 
-We restrict to depth-2 V-positions (#v = 2, ordinal depth 1) throughout this ASN. At depth 2, D-SEQ (ASN-0036) gives V_S(d) = {[S, k] : 1 ≤ k ≤ n}, and ordinals are single natural numbers. This restriction simplifies the presentation; generalization to deeper ordinals is structurally identical by D-CTG-depth (ASN-0036), which reduces contiguity at any depth m ≥ 3 to contiguity of the last component alone.
+We restrict to depth-2 V-positions (#v = 2, ordinal depth 1) throughout this ASN. The depth-2 restriction is a strict scope boundary; we make no claim about deeper depths in this ASN. At depth 2, D-SEQ (ASN-0036) gives V_S(d) = {[S, k] : 1 ≤ k ≤ N} for some N ≥ 0, and each ord(v) is a singleton tumbler [k] with k ∈ ℕ⁺.
+
+**Identification of singleton tumblers with natural numbers.** At depth 2, we identify the singleton tumbler [k] with the natural number k throughout the displacement and width arithmetic. The identification is licensed as follows. The set of singleton tumblers {[k] : k ∈ ℕ⁺} is in bijection with ℕ⁺ by the map [k] ↔ k (a singleton tumbler is determined by its single component). Under this bijection: T1's strict ordering on tumblers (ASN-0034) restricted to singletons coincides with the standard `<` on ℕ⁺ (lexicographic order on a single component reduces to comparison of that component); OrdinalShift on a singleton tumbler, `shift([k], j) = [k + j]` for j ∈ ℕ (ASN-0034), corresponds to NAT-add: `k + j ∈ ℕ⁺`; and NAT-sub `m − n` (partial, m ≥ n) corresponds to the unique j with shift([n], j) = [m] when [n] ≤ [m]. The width of an interval |[c, c')| = ord(c') − ord(c) (computed via NAT-sub, which is total here because c < c' under T1, hence ord(c) < ord(c'), hence ord(c') ≥ ord(c)) yields a natural number. We use this identification implicitly: expressions like `ord(c₀) + j`, `ord(c₁) = ord(c₀) + w_α`, and `w_β = ord(c₂) − ord(c₁)` are read as natural-number arithmetic over the identified domain.
 
 We recall D-CTG (VContiguity, ASN-0036): within each subspace, V-positions form a contiguous ordinal range with no gaps.
 
@@ -84,9 +86,9 @@ The following precondition and postcondition clauses define the rearrangement op
 
 (v) Both transposed regions are non-empty: w_α ≥ 1 and w_β ≥ 1.
 
-(vi) **Subspace confinement**: all cuts and all resulting positions remain within subspace S. At depth 2, this is satisfied automatically when all cut ordinals are positive — the rearrangement permutes ordinals within a contiguous range, and no ordinal leaves the range [ord(c₀), ord(c_{n−1})).
-
 Clause (iv) ensures that the affected range is covered: no gap exists within [c₀, c_{n−1}). Combined with D-CTG, this says the entire inter-cut range consists of valid V-positions in V_S(d). Clause (v) excludes degenerate cases where one region is empty.
+
+**Consequences of R-PRE.** *Subspace confinement.* All cuts lie in subspace S by CS3, and every V-position in the affected range [c₀, c_{n−1}) ∩ V_S(d) has subspace S by membership in V_S(d). The rearrangement constructions in this ASN (PivotPostcondition, SwapPostcondition) only assign new I-addresses to V-positions in V_S(d) and leave all other positions fixed (R-FRAME-P, R-FRAME-S), so no position outside subspace S is ever produced. This is a derived consequence of CS3, CS4, and S8a (positivity of ordinals, ASN-0036), not a separate verification obligation.
 
 
 ### 3-Cut Pivot Postcondition
@@ -245,9 +247,19 @@ We observe the structural relationship between the two forms: the 4-cut postcond
 
 ## Displacement Analysis
 
-The permutations R-PPERM and R-SPERM can be characterized by ordinal displacements — how far each position moves within its subspace. These displacements illuminate the structure and connect to the block decomposition transformation.
+The permutations R-PPERM and R-SPERM can be characterized by ordinal displacements — how far each position moves within its subspace. These displacements illuminate the structure and connect to the correspondence-run decomposition transformation.
 
-**Definition — PermutationDisplacement.** For a position v ∈ dom(M(d)), define Δ(v) = ord(π(v)) − ord(v) (an integer, possibly negative). On the exterior, π(v) = v, so Δ(v) = 0.
+**Definition — PermutationDisplacement.** For a position v ∈ dom(M(d)), define Δ(v) as a signed magnitude `(σ, n) ∈ {+, −, 0} × ℕ` capturing the ordinal shift induced by π. The carrier is a pair to avoid relying on a signed integer type that the foundation does not provide; NAT-sub (ASN-0034) suffices once direction is recorded by σ. The cases are:
+
+```
+Δ(v) = (0, 0)                               if π(v) = v       (no displacement)
+Δ(v) = (+, ord(π(v)) − ord(v))              if ord(π(v)) > ord(v)
+Δ(v) = (−, ord(v) − ord(π(v)))              if ord(π(v)) < ord(v)
+```
+
+All three cases use NAT-sub on its defined domain: the (+) case requires ord(π(v)) ≥ ord(v); the (−) case requires ord(v) ≥ ord(π(v)); the (0, 0) case sidesteps subtraction. We write `+n` for `(+, n)`, `−n` for `(−, n)`, and `0` for `(0, 0)` when no ambiguity arises, and lift the natural ordering on ℕ to the signed-magnitude carrier as `−m < 0 < +n`. We say Δ(v₁) = Δ(v₂) when their signs and magnitudes are componentwise equal. Sums `+m + (−n)` and the total-displacement zero identity are interpreted under this carrier — see the closing paragraph of this section.
+
+On the exterior, π(v) = v, so Δ(v) = 0.
 
 For the 3-cut pivot, from R-PPERM:
 
@@ -261,14 +273,16 @@ For the 4-cut swap, from R-SPERM:
 
 ```
 Δ(v) = +(w_β + w_μ)        if v ∈ α   (shifts forward past middle and β)
-Δ(v) = +(w_β − w_α)        if v ∈ μ   (adjusts by width difference)
+Δ(v) = sign(w_β − w_α) · |w_β − w_α|   if v ∈ μ   (depends on width comparison; see below)
 Δ(v) = −(w_α + w_μ)        if v ∈ β   (shifts backward past middle and α)
 Δ(v) = 0                   otherwise
 ```
 
-We observe a symmetry in the 3-cut case: the forward displacement of α equals the width of β, and vice versa. The displacements sum to zero over the affected range: w_α · w_β + w_β · (−w_α) = 0. This is a necessary consequence of π being a bijection on a contiguous range — positions merely exchange, so the total displacement is zero.
+The μ case splits on the comparison of w_β and w_α (both ∈ ℕ⁺): when w_β > w_α, Δ(v) = +(w_β − w_α); when w_β < w_α, Δ(v) = −(w_α − w_β); when w_β = w_α, Δ(v) = 0. Each branch invokes NAT-sub on its defined domain.
 
-In the 4-cut case, the symmetry is more subtle. The forward displacement of α is w_β + w_μ, while the backward displacement of β is w_α + w_μ. These are equal only when w_α = w_β. The middle compensates: w_μ · (w_β − w_α) absorbs the imbalance. The total displacement over the affected range is w_α · (w_β + w_μ) + w_μ · (w_β − w_α) + w_β · (−(w_α + w_μ)) = w_α · w_β + w_α · w_μ + w_μ · w_β − w_μ · w_α − w_β · w_α − w_β · w_μ = 0.
+We observe a symmetry in the 3-cut case: the forward displacement of α equals the width of β, and vice versa. Counting positions and signed magnitudes: w_α positions shift by +w_β, w_β positions shift by −w_α. The forward total `w_α · w_β` equals the backward total `w_β · w_α`, so the signed totals cancel — a necessary consequence of π being a bijection on a contiguous range.
+
+In the 4-cut case, the symmetry is more subtle. The forward displacement of α is w_β + w_μ, while the backward displacement of β is w_α + w_μ. These are equal only when w_α = w_β. The middle absorbs the imbalance: w_μ middle positions shift by `|w_β − w_α|` in the direction of the wider region. Counting signed totals: forward total = w_α · (w_β + w_μ) + (μ-forward when w_β > w_α: w_μ · (w_β − w_α), else 0); backward total = w_β · (w_α + w_μ) + (μ-backward when w_β < w_α: w_μ · (w_α − w_β), else 0). In the case w_β > w_α, forward = w_α w_β + w_α w_μ + w_μ w_β − w_μ w_α = w_α w_β + w_μ w_β = w_β (w_α + w_μ) = backward. By symmetry of the case split, the totals match in the case w_β < w_α as well. When w_β = w_α, the μ displacement is 0 and the totals are w_α(w_β + w_μ) = w_α · w_β + w_α · w_μ on each side. In every case, forward and backward totals are equal.
 
 The displacement formulation makes it clear that every position in the affected range shifts by a value determined solely by the region widths — the displacement does not depend on the position's location within its region. All positions in α shift by the same amount; all positions in β shift by the same amount. We state this formally:
 
@@ -276,58 +290,50 @@ The displacement formulation makes it clear that every position in the affected 
 
 `Δ(v₁) = Δ(v₂)`
 
-with the common value given by: for 3-cut, Δ = +w_β on α, Δ = −w_α on β, Δ = 0 on exterior; for 4-cut, Δ = +(w_β + w_μ) on α, Δ = +(w_β − w_α) on μ, Δ = −(w_α + w_μ) on β, Δ = 0 on exterior.
+with the common value given by: for 3-cut, Δ = +w_β on α, Δ = −w_α on β, Δ = 0 on exterior; for 4-cut, Δ = +(w_β + w_μ) on α, Δ on μ depends on the comparison of w_β and w_α (the three sub-cases above), Δ = −(w_α + w_μ) on β, Δ = 0 on exterior.
 
-*Proof.* The result follows from the explicit R-PPERM and R-SPERM formulas, in which the offset j within a region cancels. We show each region.
+*Proof.* The result follows from the explicit R-PPERM and R-SPERM formulas, in which the offset j within a region cancels. We show each region; each case identifies the sign of ord(π(v)) − ord(v) before applying NAT-sub on its defined domain.
 
-*Exterior (both forms):* π(v) = v, so Δ(v) = ord(v) − ord(v) = 0.
+*Exterior (both forms):* π(v) = v, so ord(π(v)) = ord(v), and Δ(v) = 0 by the (0, 0) branch.
 
-*3-cut α:* For v = c₀ + j: Δ(v) = ord(c₀ + w_β + j) − ord(c₀ + j) = (ord(c₀) + w_β + j) − (ord(c₀) + j) = w_β.
+*3-cut α:* For v = c₀ + j with 0 ≤ j < w_α: π(v) = c₀ + w_β + j, so ord(π(v)) = ord(c₀) + w_β + j and ord(v) = ord(c₀) + j. Since w_β ≥ 1, ord(π(v)) > ord(v); the (+) branch applies, giving Δ(v) = +((ord(c₀) + w_β + j) − (ord(c₀) + j)) = +w_β.
 
-*3-cut β:* For v = c₁ + j: Δ(v) = ord(c₀ + j) − ord(c₁ + j) = (ord(c₀) + j) − (ord(c₁) + j) = ord(c₀) − ord(c₁) = −w_α.
+*3-cut β:* For v = c₁ + j with 0 ≤ j < w_β: π(v) = c₀ + j, so ord(π(v)) = ord(c₀) + j and ord(v) = ord(c₁) + j = ord(c₀) + w_α + j. Since w_α ≥ 1, ord(v) > ord(π(v)); the (−) branch applies, giving Δ(v) = −((ord(c₀) + w_α + j) − (ord(c₀) + j)) = −w_α.
 
-*4-cut α:* For v = c₀ + j: Δ(v) = ord(c₀ + w_β + w_μ + j) − ord(c₀ + j) = (ord(c₀) + w_β + w_μ + j) − (ord(c₀) + j) = w_β + w_μ.
+*4-cut α:* For v = c₀ + j with 0 ≤ j < w_α: π(v) = c₀ + w_β + w_μ + j, so ord(π(v)) = ord(c₀) + w_β + w_μ + j and ord(v) = ord(c₀) + j. Since w_β + w_μ ≥ 2, ord(π(v)) > ord(v); the (+) branch applies, giving Δ(v) = +(w_β + w_μ).
 
-*4-cut μ:* For v = c₁ + j: Δ(v) = ord(c₀ + w_β + j) − ord(c₁ + j) = (ord(c₀) + w_β + j) − (ord(c₁) + j) = ord(c₀) + w_β − ord(c₁). Since ord(c₁) = ord(c₀) + w_α: Δ = w_β − w_α.
+*4-cut μ:* For v = c₁ + j with 0 ≤ j < w_μ: π(v) = c₀ + w_β + j, so ord(π(v)) = ord(c₀) + w_β + j and ord(v) = ord(c₁) + j = ord(c₀) + w_α + j. The comparison of ord(π(v)) and ord(v) reduces to the comparison of w_β and w_α. When w_β > w_α: (+) branch, Δ(v) = +(w_β − w_α). When w_β < w_α: (−) branch, Δ(v) = −(w_α − w_β). When w_β = w_α: ord(π(v)) = ord(v), Δ(v) = 0. In all three sub-cases, j cancels.
 
-*4-cut β:* For v = c₂ + j: Δ(v) = ord(c₀ + j) − ord(c₂ + j) = (ord(c₀) + j) − (ord(c₂) + j) = ord(c₀) − ord(c₂). Since ord(c₂) = ord(c₀) + w_α + w_μ: Δ = −(w_α + w_μ).
+*4-cut β:* For v = c₂ + j with 0 ≤ j < w_β: π(v) = c₀ + j, so ord(π(v)) = ord(c₀) + j and ord(v) = ord(c₂) + j = ord(c₀) + w_α + w_μ + j. Since w_α + w_μ ≥ 2, ord(v) > ord(π(v)); the (−) branch applies, giving Δ(v) = −(w_α + w_μ).
 
 In every case, j cancels and the common value depends only on region widths. ∎
 
 
-## Block Decomposition Transformation
+## Correspondence-Run Decomposition Transformation
 
-We recall from S8 (FiniteSpanDecomposition, ASN-0036) that the arrangement M(d) admits a finite decomposition into correspondence runs. We use the following vocabulary for this section:
+We recall from S8 (SpanDecomposition, ASN-0036) that for every v ∈ dom(M(d)) there exists a unique correspondence run (v_s, a_s, n) with v ∈ {v_s + k : 0 ≤ k < n} and M(d)(v_s + k) = a_s + k for all 0 ≤ k < n. Equivalently, S8 yields a finite partition of dom(M(d)) into correspondence runs. We layer three new operations (Split, Merge, and a canonical decomposition) over the foundation's runs. Throughout this section, when we say *run* we mean a correspondence run (v, a, n) with n ≥ 1, and write V(v, a, n) = {v + k : 0 ≤ k < n} for its V-extent; the labels S8(a) and S8(b) refer respectively to the uniqueness-of-containing-run clause and the consistency clause M(d)(v + k) = a + k that the foundation already exports.
 
-**Block.** A *block* is a correspondence run (v, a, n) with n ≥ 1, meaning M(d)(v + k) = a + k for all 0 ≤ k < n. The *V-extent* of a block (v, a, n) is V(v, a, n) = {v + k : 0 ≤ k < n}. A *block decomposition* of M(d) is a finite set B = {b₁, ..., bₘ} of blocks satisfying:
+**Split.** Given a run b = (v, a, n) under some arrangement A and an interior offset c with 1 ≤ c < n, the *split* at c produces two runs: (v, a, c) and (v + c, a + c, n − c). Their V-extents (ordinal ranges [ord(v), ord(v) + c) and [ord(v) + c, ord(v) + n)) are disjoint and partition b's V-extent.
 
-(B1) *Coverage:* every v ∈ dom(M(d)) belongs to exactly one block's V-extent.
+Both pieces inherit S8(b) (consistency under A). For the first piece (v, a, c), we need A(v + k) = a + k for 0 ≤ k < c; this holds by restricting the original S8(b) to the subrange k < c < n. For the second piece (v + c, a + c, n − c), we need A((v + c) + k) = (a + c) + k for 0 ≤ k < n − c. When k ≥ 1, associativity (TS3) gives (v + c) + k = v + (c + k); when k = 0, (v + c) + 0 = v + c by the identity convention. In both cases, c + k < n, so the original S8(b) yields A(v + (c + k)) = a + (c + k). The same associativity/identity argument gives (a + c) + k = a + (c + k), completing the derivation: A((v + c) + k) = a + (c + k) = (a + c) + k. The proof is arrangement-parametric: it uses only S8(b) of the original run and TS3, with no property specific to a particular arrangement.
 
-(B2) *Disjointness:* the V-extents of distinct blocks are pairwise disjoint.
+**Merge.** Two runs (v₁, a₁, n₁) and (v₂, a₂, n₂) under arrangement A are *mergeable* when v₂ = v₁ + n₁ (V-adjacent) and a₂ = a₁ + n₁ (I-adjacent). The merged run is (v₁, a₁, n₁ + n₂). We verify S8(b) for the merged run — that A(v₁ + k) = a₁ + k for 0 ≤ k < n₁ + n₂ — by two cases. For 0 ≤ k < n₁: this is S8(b) of the first run directly. For n₁ ≤ k < n₁ + n₂: write k = n₁ + k' with 0 ≤ k' < n₂. When k' ≥ 1, TS3 gives v₁ + k = v₁ + (n₁ + k') = (v₁ + n₁) + k' = v₂ + k'; when k' = 0, v₁ + n₁ = v₂ by the adjacency condition. By S8(b) of the second run, A(v₂ + k') = a₂ + k'. The same associativity/identity argument gives a₁ + k = a₁ + (n₁ + k') = (a₁ + n₁) + k' = a₂ + k', so A(v₁ + k) = a₂ + k' = a₁ + k. As with Split, this proof is arrangement-parametric: it depends only on S8(b) of the two constituents and TS3. In particular, when R-BLK applies Merge to the post-rearrangement arrangement M'(d), the verification holds because the reassembled runs already satisfy S8(b) for M'(d) (established in Phase 3).
 
-(B3) *Consistency:* for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ: M(d)(vⱼ + k) = aⱼ + k.
+**Canonical decomposition.** The *canonical run decomposition* of M(d) is the unique partition of dom(M(d)) into *maximal* runs — runs that cannot be extended by merging with a V-adjacent, I-adjacent neighbor. Although S8 already guarantees existence and uniqueness of the containing run for each position, we re-derive the global uniqueness here in terms of maximality, which is the form used by R-BLK. We establish uniqueness through four steps.
 
-**Split.** Given a block b = (v, a, n) and an interior offset c with 1 ≤ c < n, the *split* at c produces two blocks: (v, a, c) and (v + c, a + c, n − c). The two blocks are V-disjoint (ordinal ranges [ord(v), ord(v) + c) and [ord(v) + c, ord(v) + n)), and their V-extents partition b's V-extent.
+*(a) The maximal run containing any v ∈ dom(M(d)) is uniquely determined.* Fix v. Define the *forward extent* f(v) = max{k ≥ 0 : (A j : 0 ≤ j ≤ k : v + j ∈ dom(M(d)) ∧ M(d)(v + j) = M(d)(v) + j)}. This maximum exists because dom(M(d)) is finite (S8-fin). Define the *backward extent* r(v) = max{k ≥ 0 : [S, ord(v) − k] ∈ V_S(d) ∧ (A i : 0 ≤ i ≤ k : M(d)([S, ord(v) − k + i]) = shift(M(d)([S, ord(v) − k]), i))}, where the identity convention covers i = 0 and OrdinalShift applies for i ≥ 1. The membership requirement [S, ord(v) − k] ∈ V_S(d) demands ord(v) − k ≥ 1 (since V-positions have positive ordinals by S8a) and is checked at the tentative start; for each intermediate offset i with 0 ≤ i ≤ k, the position [S, ord(v) − k + i] lies in V_S(d) automatically. To see this, note v ∈ V_S(d) gives ord(v) ∈ {1, ..., N} where V_S(d) = {[S, j] : 1 ≤ j ≤ N} by D-SEQ (ASN-0036), and [S, ord(v) − k] ∈ V_S(d) gives ord(v) − k ≥ 1; the intermediate ordinals ord(v) − k + i lie in [ord(v) − k, ord(v)] ⊆ [1, N], so [S, ord(v) − k + i] ∈ V_S(d). The inner consistency conjunct in r(v) is therefore well-formed at every offset. This formulation checks S8(b) forward from the tentative run start [S, ord(v) − k], avoiding subtraction on I-addresses. Both f(v) and r(v) are determined by M(d) and v alone — M(d) is a function (S2), so for each candidate position the correspondence either holds or does not, with no ambiguity. Writing v_s = [S, ord(v) − r(v)] for the start position, the maximal run containing v is (v_s, M(d)(v_s), r(v) + 1 + f(v)), and it is uniquely determined by the values of r(v) and f(v).
 
-Both pieces satisfy B3. For the first piece (v, a, c), we need A(v + k) = a + k for 0 ≤ k < c; this holds by restricting the original B3 to the subrange k < c < n. For the second piece (v + c, a + c, n − c), we need A((v + c) + k) = (a + c) + k for 0 ≤ k < n − c. When k ≥ 1, associativity (TS3) gives (v + c) + k = v + (c + k); when k = 0, (v + c) + 0 = v + c by the identity convention. In both cases, c + k < n, so the original B3 yields A(v + (c + k)) = a + (c + k). The same associativity/identity argument gives (a + c) + k = a + (c + k), completing the derivation: A((v + c) + k) = a + (c + k) = (a + c) + k. This proof is arrangement-parametric: it uses only B3 of the original block and TS3 (shift composition), with no property specific to M(d). The same reasoning applies to any arrangement A under which the block (v, a, n) satisfies B3.
+*(b) Two maximal runs sharing a V-position are identical.* Let b₁ = (v₁, a₁, n₁) and b₂ = (v₂, a₂, n₂) be maximal runs with some w ∈ V(b₁) ∩ V(b₂). Since w ∈ V(b₁), we have w = v₁ + k₁ and M(d)(w) = a₁ + k₁ for some 0 ≤ k₁ < n₁; similarly w = v₂ + k₂ and M(d)(w) = a₂ + k₂. We show b₁ = b₂ by establishing v₁ = v₂, a₁ = a₂, and n₁ = n₂ — each by contradiction with maximality, using only forward-defined operations.
 
-**Merge.** Two blocks (v₁, a₁, n₁) and (v₂, a₂, n₂) are *mergeable* when v₂ = v₁ + n₁ (V-adjacent) and a₂ = a₁ + n₁ (I-adjacent). The merged block is (v₁, a₁, n₁ + n₂). We verify B3 for the merged block — that A(v₁ + k) = a₁ + k for 0 ≤ k < n₁ + n₂ — by two cases. For 0 ≤ k < n₁: this is B3 of the first block directly. For n₁ ≤ k < n₁ + n₂: write k = n₁ + k' with 0 ≤ k' < n₂. When k' ≥ 1, TS3 gives v₁ + k = v₁ + (n₁ + k') = (v₁ + n₁) + k' = v₂ + k'; when k' = 0, v₁ + n₁ = v₂ by the adjacency condition. By B3 of the second block, A(v₂ + k') = a₂ + k'. The same associativity/identity argument gives a₁ + k = a₁ + (n₁ + k') = (a₁ + n₁) + k' = a₂ + k', so A(v₁ + k) = a₂ + k' = a₁ + k. As with Split, this proof is arrangement-parametric: it depends only on B3 of the two constituent blocks and TS3, with no property specific to M(d). In particular, when R-BLK applies Merge to the post-rearrangement arrangement M'(d), the B3 verification holds because the reassembled blocks already satisfy B3 for M'(d) (established in Phase 3).
-
-**Canonical block decomposition.** The *canonical block decomposition* of M(d) is the unique decomposition into *maximal* blocks — blocks that cannot be extended by merging with a V-adjacent, I-adjacent neighbor. We establish uniqueness through four steps.
-
-*(a) The maximal block containing any v ∈ dom(M(d)) is uniquely determined.* Fix v. Define the *forward extent* f(v) = max{k ≥ 0 : (A j : 0 ≤ j ≤ k : v + j ∈ dom(M(d)) ∧ M(d)(v + j) = M(d)(v) + j)}. This maximum exists because dom(M(d)) is finite (S8-fin). Define the *backward extent* r(v) = max{k ≥ 0 : [S, ord(v) − k] ∈ V_S(d) ∧ (A i : 0 ≤ i ≤ k : M(d)([S, ord(v) − k + i]) = shift(M(d)([S, ord(v) − k]), i))}, where the identity convention covers i = 0 and OrdinalShift applies for i ≥ 1. The condition ord(v) − k ≥ 1 is implicit in the membership requirement [S, ord(v) − k] ∈ V_S(d), since V-positions have positive ordinals by S8a. This formulation checks B3 forward from the tentative block start [S, ord(v) − k], avoiding subtraction on I-addresses. Both f(v) and r(v) are determined by M(d) and v alone — M(d) is a function (S2), so for each candidate position the correspondence either holds or does not, with no ambiguity. Writing v_s = [S, ord(v) − r(v)] for the start position, the maximal block containing v is (v_s, M(d)(v_s), r(v) + 1 + f(v)), and it is uniquely determined by the values of r(v) and f(v).
-
-*(b) Two maximal blocks sharing a V-position are identical.* Let b₁ = (v₁, a₁, n₁) and b₂ = (v₂, a₂, n₂) be maximal blocks with some w ∈ V(b₁) ∩ V(b₂). Since w ∈ V(b₁), we have w = v₁ + k₁ and M(d)(w) = a₁ + k₁ for some 0 ≤ k₁ < n₁; similarly w = v₂ + k₂ and M(d)(w) = a₂ + k₂. We show b₁ = b₂ by establishing v₁ = v₂, a₁ = a₂, and n₁ = n₂ — each by contradiction with maximality, using only forward-defined operations.
-
-*v₁ = v₂:* Suppose v₂ < v₁ (the case v₁ < v₂ is symmetric). Then k₂ ≥ 1 (since ord(v₂) < ord(v₁) ≤ ord(w) = ord(v₂) + k₂). Let p = ord(v₁) − ord(v₂) ≥ 1. The position [S, ord(v₁) − 1] lies in V(b₂): ord(v₂) ≤ ord(v₁) − 1 < ord(v₂) + n₂. By B3 of b₂ at offsets p − 1 and p: M(d)([S, ord(v₁) − 1]) = a₂ + (p − 1) and M(d)(v₁) = a₂ + p = a₁. Now shift(a₂ + (p − 1), 1) = a₂ + p by TS3 (when p ≥ 2) or the identity convention (when p = 1), so shift(M(d)([S, ord(v₁) − 1]), 1) = a₁ = M(d)(v₁). This shows b₁ can be extended backward while maintaining B3, contradicting maximality. Therefore v₁ = v₂.
+*v₁ = v₂:* Suppose v₂ < v₁ (the case v₁ < v₂ is symmetric). Then k₂ ≥ 1 (since ord(v₂) < ord(v₁) ≤ ord(w) = ord(v₂) + k₂). Let p = ord(v₁) − ord(v₂) ≥ 1. The position [S, ord(v₁) − 1] lies in V(b₂): ord(v₂) ≤ ord(v₁) − 1 < ord(v₂) + n₂. By S8(b) of b₂ at offsets p − 1 and p: M(d)([S, ord(v₁) − 1]) = a₂ + (p − 1) and M(d)(v₁) = a₂ + p = a₁. Now shift(a₂ + (p − 1), 1) = a₂ + p by TS3 (when p ≥ 2) or the identity convention (when p = 1), so shift(M(d)([S, ord(v₁) − 1]), 1) = a₁ = M(d)(v₁). This shows b₁ can be extended backward while maintaining S8(b), contradicting maximality. Therefore v₁ = v₂.
 
 *a₁ = a₂:* With v₁ = v₂, w = v₁ + k₁ = v₁ + k₂ gives k₁ = k₂ (by TS5: if k₁ ≠ k₂ with both ≥ 1, then shift(v₁, k₁) ≠ shift(v₁, k₂), contradicting equality; when one is 0, TS4 forces the other to be 0). Hence a₁ + k₁ = M(d)(w) = a₂ + k₁. When k₁ = 0: a₁ = a₂ directly. When k₁ ≥ 1: shift(a₁, k₁) = shift(a₂, k₁) with #a₁ = #a₂ (from equal result lengths), so TS2 gives a₁ = a₂.
 
-*n₁ = n₂:* Suppose n₂ > n₁. Then v₁ + n₁ ∈ V(b₂) (since n₁ < n₂ and v₁ = v₂), and B3 of b₂ gives M(d)(v₁ + n₁) = a₂ + n₁ = a₁ + n₁. This extends b₁ forward at offset n₁, contradicting maximality. By symmetry, n₁ > n₂ is excluded. Therefore n₁ = n₂, and b₁ = b₂.
+*n₁ = n₂:* Suppose n₂ > n₁. Then v₁ + n₁ ∈ V(b₂) (since n₁ < n₂ and v₁ = v₂), and S8(b) of b₂ gives M(d)(v₁ + n₁) = a₂ + n₁ = a₁ + n₁. This extends b₁ forward at offset n₁, contradicting maximality. By symmetry, n₁ > n₂ is excluded. Therefore n₁ = n₂, and b₁ = b₂.
 
-*(c) Merge-order independence.* Start from any valid block decomposition B satisfying B1–B3. The exhaustive merge process repeatedly finds a mergeable pair and merges them, reducing the block count by one. Termination: dom(M(d)) is finite (S8-fin), so the initial block count is finite, and each merge strictly reduces it, so the process terminates. At termination, no mergeable pair remains — every block is maximal, since a non-maximal block would have a V-adjacent, I-adjacent neighbor forming a mergeable pair. By (b), the decomposition into maximal blocks is unique, so every termination state is the same decomposition regardless of merge order.
+*(c) Merge-order independence.* Start from any partition of dom(M(d)) into runs (existence guaranteed by S8). The exhaustive merge process repeatedly finds a mergeable pair and merges them, reducing the run count by one. Termination: dom(M(d)) is finite (S8-fin), so the initial run count is finite, and each merge strictly reduces it, so the process terminates. At termination, no mergeable pair remains — every run is maximal, since a non-maximal run would have a V-adjacent, I-adjacent neighbor forming a mergeable pair. By (b), the partition into maximal runs is unique, so every termination state is the same partition regardless of merge order.
 
-*(d) Maximal blocks admit no merge.* Two maximal blocks cannot be simultaneously V-adjacent and I-adjacent: if b₁ = (v₁, a₁, n₁) and b₂ = (v₂, a₂, n₂) satisfy v₂ = v₁ + n₁ and a₂ = a₁ + n₁, then (v₁, a₁, n₁ + n₂) is a valid block (by Merge) whose V-extent strictly contains V(b₁), contradicting b₁'s maximality. This is precisely the condition checked in (c) — at termination, no such pair exists, confirming that the exhaustive merge reaches the maximal-block decomposition.
+*(d) Maximal runs admit no merge.* Two maximal runs cannot be simultaneously V-adjacent and I-adjacent: if b₁ = (v₁, a₁, n₁) and b₂ = (v₂, a₂, n₂) satisfy v₂ = v₁ + n₁ and a₂ = a₁ + n₁, then (v₁, a₁, n₁ + n₂) is a valid run (by Merge) whose V-extent strictly contains V(b₁), contradicting b₁'s maximality. This is precisely the condition checked in (c) — at termination, no such pair exists, confirming that the exhaustive merge reaches the maximal-run partition.
 
 **R-COMM — PermutationShiftCommutativity (LEMMA).** Let π be a cut-point permutation (R-PPERM or R-SPERM) for a cut sequence C satisfying R-PRE. For any V-position v and offset k ≥ 0 such that v and v + k lie in the same region (exterior, α, μ, or β):
 
@@ -349,28 +355,34 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 
 *4-cut β:* v = c₂ + j' for some 0 ≤ j' < w_β. Then v + k = c₂ + (j' + k), and by R-SPERM: π(v + k) = c₀ + (j' + k). Also π(v) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity. ∎
 
-**R-BLK — BlockDecompositionTransformation (LEMMA).** Let B = {b₁, ..., bₘ} be a block decomposition of M(d) satisfying B1–B3. Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a block decomposition B' obtained by:
+**R-BLK — RunDecompositionTransformation (LEMMA).** Let B = {b₁, ..., bₘ} be a run partition of M(d) (per S8). Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a run partition B' obtained by:
 
-*Phase 1: Split.* Process cut positions in index order (c₀, c₁, ..., c_{n−1}), maintaining the decomposition as it is progressively refined. For each cut position cᵢ, if cᵢ falls in the interior of some block bₖ = (vₖ, aₖ, nₖ) in the current decomposition — meaning cᵢ ∈ V(bₖ) and cᵢ ≠ vₖ — split bₖ at the offset c = ord(cᵢ) − ord(vₖ), producing (vₖ, aₖ, c) and (vₖ + c, aₖ + c, nₖ − c). The split preserves B1–B3: the two new blocks partition the V-extent of the original. Each cut position either coincides with a boundary in the current decomposition or falls interior to some block. When a later cut falls in a block already split by an earlier (strictly smaller) cut, it necessarily falls in the right-hand piece — CS2's strict ordering (c₀ < c₁ < ... < c_{n−1}) guarantees this. The process is well-defined because B1–B3 are maintained after each split. After all splits, no block straddles any cut position.
+*Phase 1: Split.* Process cut positions in index order (c₀, c₁, ..., c_{n−1}), maintaining the partition as it is progressively refined. For each cut position cᵢ, classify by whether cᵢ falls within some run's V-extent:
 
-*Phase 2: Classify.* Each block in the post-split decomposition lies entirely within one region (exterior left, α, μ if 4-cut, β, or exterior right), because no block crosses a cut boundary.
+- *Interior of a run:* if cᵢ ∈ V(bₖ) for some bₖ = (vₖ, aₖ, nₖ) with cᵢ ≠ vₖ, split bₖ at the offset c = ord(cᵢ) − ord(vₖ), producing (vₖ, aₖ, c) and (vₖ + c, aₖ + c, nₖ − c). The two new runs partition the V-extent of the original.
+- *Boundary of a run:* if cᵢ ∈ V(bₖ) and cᵢ = vₖ, no split is needed — the cut already coincides with a run boundary.
+- *Outside ⋃_k V(bₖ):* no split is performed. This occurs only for the last cut c_{n−1} when c_{n−1} > max(V_S(d)) (CS2 forces c₀ < ... < c_{n−1}, and R-PRE(iv) guarantees every position in [c₀, c_{n−1}) ∩ V_S(d) lies in some run, so only c_{n−1}, which serves as an exclusive upper bound, may exceed every V-position in V_S(d)). In this case, c_{n−1} ∉ dom(M(d)), so the right-exterior region {v ∈ V_S(d) : v ≥ c_{n−1}} is empty, and no run can possibly straddle c_{n−1}.
 
-*Phase 3: Reassemble.* Apply the permutation to each block's V-start:
+When a later cut falls in a run already split by an earlier (strictly smaller) cut, it necessarily falls in the right-hand piece — CS2's strict ordering guarantees this. The process is well-defined because S8(a)/(b) are maintained after each split (uniqueness of containing run carries over from the partition property, consistency by the Split lemma). After all cuts are processed, no run straddles any cut position in [c₀, c_{n−1}].
 
-- Exterior blocks: unchanged.
-- α blocks: (vₖ, aₖ, nₖ) becomes (π(vₖ), aₖ, nₖ) — the V-start shifts by the α displacement, the I-start and width are preserved.
-- β blocks: similarly, V-start shifts by the β displacement.
-- μ blocks (4-cut only): V-start shifts by the μ displacement.
+*Phase 2: Classify.* Each run in the post-split partition lies entirely within one region (exterior left, α, μ if 4-cut, β, or exterior right), because no run crosses a cut boundary. When c_{n−1} > max(V_S(d)), the exterior-right region is empty and no run is classified there; the classification by Phase 1 of the remaining cuts covers all runs.
 
-The I-start and width of each block are preserved because the rearrangement modifies no I-addresses and the displacement is uniform within each region (all positions in a region shift by the same amount).
+*Phase 3: Reassemble.* Apply the permutation to each run's V-start:
 
-*Contiguity of reassembled blocks.* Within each region, π applies a uniform ordinal displacement. After Phase 1, every block lies entirely in a single region, so for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region and receive the same displacement. By R-COMM (π(vⱼ + k) = π(vⱼ) + k), consecutive V-positions in the original block map to consecutive V-positions, so each reassembled block (π(vⱼ), aⱼ, nⱼ) occupies a contiguous V-position range and is therefore a valid block.
+- Exterior runs: unchanged.
+- α runs: (vₖ, aₖ, nₖ) becomes (π(vₖ), aₖ, nₖ) — the V-start shifts by the α displacement, the I-start and width are preserved.
+- β runs: V-start shifts by the β displacement.
+- μ runs (4-cut only): V-start shifts by the μ displacement (which is +(w_β − w_α), −(w_α − w_β), or 0 per the three sub-cases of Δ on μ; in all sub-cases the displacement is uniform across the region).
 
-The resulting blocks satisfy B3 (Consistency): for each reassembled block (π(vⱼ), aⱼ, nⱼ) and 0 ≤ k < nⱼ: M'(d)(π(vⱼ) + k) = M'(d)(π(vⱼ + k)) = M(d)(vⱼ + k) = aⱼ + k. The second equality uses the permutation definition M'(d)(π(v)) = M(d)(v); the first uses R-COMM.
+The I-start and width of each run are preserved because the rearrangement modifies no I-addresses and the displacement is uniform within each region (R-DISP).
 
-Coverage (B1) and disjointness (B2): π is a bijection on dom(M(d)), so the V-extents of the reassembled blocks are pairwise disjoint (from B2 of the pre-reassembly decomposition and injectivity of π) and cover dom(M'(d)) = dom(M(d)) (from B1 and surjectivity of π).
+*Contiguity of reassembled runs.* Within each region, π applies a uniform ordinal displacement. After Phase 1, every run lies entirely in a single region, so for each run (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region and receive the same displacement. By R-COMM (π(vⱼ + k) = π(vⱼ) + k), consecutive V-positions in the original run map to consecutive V-positions, so each reassembled run (π(vⱼ), aⱼ, nⱼ) occupies a contiguous V-position range and is therefore a valid run.
 
-The decomposition B' is valid but not necessarily maximally merged. After rearrangement, blocks that were in different regions may become V-adjacent and I-adjacent, satisfying the merge condition. The maximally merged decomposition may therefore have fewer blocks than B'.
+The resulting runs satisfy S8(b) (consistency under M'(d)): for each reassembled run (π(vⱼ), aⱼ, nⱼ) and 0 ≤ k < nⱼ: M'(d)(π(vⱼ) + k) = M'(d)(π(vⱼ + k)) = M(d)(vⱼ + k) = aⱼ + k. The second equality uses the permutation definition M'(d)(π(v)) = M(d)(v); the first uses R-COMM.
+
+Uniqueness of the containing run (S8(a)) for M'(d): π is a bijection on dom(M(d)) = dom(M'(d)), so the V-extents of the reassembled runs are pairwise disjoint (from the disjointness of the pre-reassembly partition and injectivity of π) and cover dom(M'(d)) (from coverage and surjectivity of π); together these yield the E! quantification of S8(a).
+
+The partition B' is valid but not necessarily maximal. After rearrangement, runs that were in different regions may become V-adjacent and I-adjacent, satisfying the merge condition. The canonical (maximal) run partition of M'(d) may therefore have fewer runs than B'.
 
 
 ## Worked Example: 3-Cut Pivot on a 5-Position Document
@@ -385,11 +397,11 @@ M(d)([1,4]) = 5.0.2.0.1.0.1.1    (I-address D)
 M(d)([1,5]) = 5.0.2.0.1.0.1.2    (I-address E)
 ```
 
-Content A–C originates from document 3.0.1.0.1 (origin 3.0.1.0.1); D–E from document 5.0.2.0.1 (origin 5.0.2.0.1). The canonical decomposition has two blocks: b₁ = ([1,1], 3.0.1.0.1.0.1.1, 3) and b₂ = ([1,4], 5.0.2.0.1.0.1.1, 2).
+Content A–C originates from document 3.0.1.0.1 (origin 3.0.1.0.1); D–E from document 5.0.2.0.1 (origin 5.0.2.0.1). The canonical run partition has two runs: b₁ = ([1,1], 3.0.1.0.1.0.1.1, 3) and b₂ = ([1,4], 5.0.2.0.1.0.1.1, 2).
 
 We apply a 3-cut pivot with C = ([1,2], [1,4], [1,5]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5]. The affected range is [c₀, c₂) = {[1,2], [1,3], [1,4]}. Region α = {[1,2], [1,3]} (w_α = 2), region β = {[1,4]} (w_β = 1).
 
-**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 3; CS2: [1,2] < [1,4] < [1,5]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,5]) are in V_S(d). (v) w_α = 2 ≥ 1, w_β = 1 ≥ 1. (vi) All ordinals positive. ✓
+**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 3; CS2: [1,2] < [1,4] < [1,5]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,5)) are in V_S(d). (v) w_α = 2 ≥ 1, w_β = 1 ≥ 1. ✓
 
 **Applying the postconditions.** We compute M'(d) position by position:
 
@@ -413,7 +425,7 @@ M'(d)([1,5]) = E     (exterior, unchanged)
 
 **R-PPERM verification.** The permutation π: π([1,1]) = [1,1] (exterior), π([1,2]) = [1,3] (α: c₀ + 0 → c₀ + w_β + 0 = [1,3]), π([1,3]) = [1,4] (α: c₀ + 1 → c₀ + w_β + 1 = [1,4]), π([1,4]) = [1,2] (β: c₁ + 0 → c₀ + 0 = [1,2]), π([1,5]) = [1,5] (exterior). We check: M'(d)(π([1,2])) = M'(d)([1,3]) = B = M(d)([1,2]) ✓. M'(d)(π([1,4])) = M'(d)([1,2]) = D = M(d)([1,4]) ✓.
 
-**Block decomposition after rearrangement.** The new canonical decomposition has four blocks: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1). Block ([1,3], B, 2) is valid because B = 3.0.1.0.1.0.1.2 and C = 3.0.1.0.1.0.1.3 = B + 1. Block ([1,5], E, 1) is exterior, unchanged by R-EXT. Note that D = 5.0.2.0.1.0.1.1 cannot merge with A = 3.0.1.0.1.0.1.1 (different origins — origin(D) = 5.0.2.0.1 ≠ 3.0.1.0.1 = origin(A), so I-adjacency fails) nor with B = 3.0.1.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). Block ([1,3], B, 2) cannot merge with ([1,5], E, 1): C + 1 = 3.0.1.0.1.0.1.4 ≠ E = 5.0.2.0.1.0.1.2 (different origins). The cut at [1,2] (c₀, interior to b₁ at offset 1) split the original block b₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element block for D between them.
+**Run partition after rearrangement.** The new canonical partition has four runs: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1). Run ([1,3], B, 2) is valid because B = 3.0.1.0.1.0.1.2 and C = 3.0.1.0.1.0.1.3 = B + 1. Run ([1,5], E, 1) is exterior, unchanged by R-EXT. D = 5.0.2.0.1.0.1.1 cannot merge with A = 3.0.1.0.1.0.1.1 (different origins — origin(D) = 5.0.2.0.1 ≠ 3.0.1.0.1 = origin(A), so I-adjacency fails) nor with B = 3.0.1.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). Run ([1,3], B, 2) cannot merge with ([1,5], E, 1): C + 1 = 3.0.1.0.1.0.1.4 ≠ E = 5.0.2.0.1.0.1.2 (different origins). The cut at [1,2] (c₀, interior to b₁ at offset 1) split the original run b₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element run for D between them.
 
 
 ## Worked Example: 4-Cut Swap on an 8-Position Document
@@ -431,11 +443,11 @@ M(d)([1,7]) = 5.0.2.0.1.0.1.3    (I-address G)
 M(d)([1,8]) = 3.0.1.0.1.0.1.4    (I-address H)
 ```
 
-Content A–C originates from document 3.0.1.0.1; D from document 7.0.1.0.1; E–G from document 5.0.2.0.1; H from document 3.0.1.0.1. The canonical decomposition has four blocks: b₁ = ([1,1], A, 3), b₂ = ([1,4], D, 1), b₃ = ([1,5], E, 3), b₄ = ([1,8], H, 1).
+Content A–C originates from document 3.0.1.0.1; D from document 7.0.1.0.1; E–G from document 5.0.2.0.1; H from document 3.0.1.0.1. The canonical run partition has four runs: b₁ = ([1,1], A, 3), b₂ = ([1,4], D, 1), b₃ = ([1,5], E, 3), b₄ = ([1,8], H, 1).
 
 We apply a 4-cut swap with C = ([1,2], [1,4], [1,5], [1,8]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5], c₃ = [1,8]. The affected range is [c₀, c₃) = {[1,2], ..., [1,7]}. Region α = {[1,2], [1,3]} (w_α = 2), middle μ = {[1,4]} (w_μ = 1), region β = {[1,5], [1,6], [1,7]} (w_β = 3). Since w_α = 2 ≠ w_β = 3, the middle displacement w_β − w_α = 1 is nonzero.
 
-**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 4; CS2: [1,2] < [1,4] < [1,5] < [1,8]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,8]) are in V_S(d). (v) w_α = 2 ≥ 1, w_β = 3 ≥ 1. (vi) All ordinals positive. ✓
+**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 4; CS2: [1,2] < [1,4] < [1,5] < [1,8]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,8)) are in V_S(d). (v) w_α = 2 ≥ 1, w_β = 3 ≥ 1. ✓
 
 **Applying the postconditions.** We compute M'(d) position by position:
 
@@ -479,9 +491,9 @@ The three swap clauses tile [c₀, c₃) = [[1,2], [1,8]) exactly: R-S1 covers o
 - π([1,7]) = c₀ + 2 = [1,4] (β: j = 2). Check: M'(d)([1,4]) = G = M(d)([1,7]) ✓.
 - π([1,8]) = [1,8] (exterior).
 
-**Displacement verification.** Δ([1,2]) = 6 − 2 = +4 = w_β + w_μ ✓. Δ([1,3]) = 7 − 3 = +4 ✓. Δ([1,4]) = 5 − 4 = +1 = w_β − w_α ✓. Δ([1,5]) = 2 − 5 = −3 = −(w_α + w_μ) ✓. Δ([1,6]) = 3 − 6 = −3 ✓. Δ([1,7]) = 4 − 7 = −3 ✓. The middle-region displacement is +1, confirming the asymmetric structure when w_α ≠ w_β.
+**Displacement verification.** Reading Δ as a signed magnitude: Δ([1,2]) = +(6 − 2) = +4 = +(w_β + w_μ) ✓. Δ([1,3]) = +(7 − 3) = +4 ✓. Δ([1,4]) = +(5 − 4) = +1 = +(w_β − w_α), the μ-branch with w_β > w_α ✓. Δ([1,5]) = −(5 − 2) = −3 = −(w_α + w_μ) ✓. Δ([1,6]) = −(6 − 3) = −3 ✓. Δ([1,7]) = −(7 − 4) = −3 ✓. The middle-region displacement is +1, confirming the asymmetric structure when w_α ≠ w_β.
 
-**Block decomposition via R-BLK.** *Phase 1 (Split):* c₀ = [1,2] is interior to b₁ = ([1,1], A, 3) at offset 1. Split: ([1,1], A, 1) and ([1,2], B, 2). The remaining cuts c₁ = [1,4], c₂ = [1,5], c₃ = [1,8] coincide with block starts, so no further splits. Post-split decomposition: {([1,1], A, 1), ([1,2], B, 2), ([1,4], D, 1), ([1,5], E, 3), ([1,8], H, 1)}.
+**Run decomposition via R-BLK.** *Phase 1 (Split):* c₀ = [1,2] is interior to b₁ = ([1,1], A, 3) at offset 1. Split: ([1,1], A, 1) and ([1,2], B, 2). The remaining cuts c₁ = [1,4], c₂ = [1,5], c₃ = [1,8] coincide with run boundaries (c₁ = b₂'s start, c₂ = b₃'s start, c₃ = b₄'s start), so no further splits. Post-split partition: {([1,1], A, 1), ([1,2], B, 2), ([1,4], D, 1), ([1,5], E, 3), ([1,8], H, 1)}.
 
 *Phase 2 (Classify):* ([1,1], A, 1) → exterior left. ([1,2], B, 2) → α. ([1,4], D, 1) → μ. ([1,5], E, 3) → β. ([1,8], H, 1) → exterior right.
 
@@ -493,11 +505,11 @@ The three swap clauses tile [c₀, c₃) = [[1,2], [1,8]) exactly: R-S1 covers o
 - ([1,5], E, 3) → ([1,2], E, 3) (β, Δ = −3)
 - ([1,8], H, 1) → ([1,8], H, 1) (exterior, Δ = 0)
 
-Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), ([1,8], H, 1)}. Checking B3: for block ([1,2], E, 3), M'(d)([1,2]) = E, M'(d)([1,3]) = F = E + 1, M'(d)([1,4]) = G = E + 2 ✓.
+Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), ([1,8], H, 1)}. Checking S8(b): for run ([1,2], E, 3), M'(d)([1,2]) = E, M'(d)([1,3]) = F = E + 1, M'(d)([1,4]) = G = E + 2 ✓.
 
 *Merge check:* ([1,6], B, 2) and ([1,8], H, 1) are V-adjacent (6 + 2 = 8) and I-adjacent (B + 2 = 3.0.1.0.1.0.1.4 = H). Merge: ([1,6], B, 3). No other pair satisfies both conditions — ([1,1], A, 1) and ([1,2], E, 3) differ in origin; ([1,2], E, 3) and ([1,5], D, 1) differ in origin; ([1,5], D, 1) and ([1,6], B, 2) differ in origin.
 
-**Canonical decomposition:** {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 3)}. The rearrangement brought B, C (formerly at [1,2]–[1,3]) adjacent to H (at [1,8]), and since B + 2 = H, they merge into a single block of width 3. Meanwhile A, formerly part of a width-3 block with B and C, is now isolated.
+**Canonical partition:** {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 3)}. The rearrangement brought B, C (formerly at [1,2]–[1,3]) adjacent to H (at [1,8]), and since B + 2 = H, they merge into a single run of width 3. Meanwhile A, formerly part of a width-3 run with B and C, is now isolated.
 
 
 ## Properties Introduced
@@ -510,13 +522,11 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 | PivotPostcondition | DEF | 3-cut rearrangement: β content placed at c₀, then α content, exterior unchanged (R-EXT, R-P1, R-P2) | introduced |
 | SwapPostcondition | DEF | 4-cut rearrangement: β at c₀, then μ, then α, exterior unchanged (R-EXT, R-S1, R-S2, R-S3) | introduced |
 | ArrangementRearrangement | DEF | State transition with dom(M'(d)) = dom(M(d)), C' = C, M'(d') = M(d') for d' ≠ d, and bijection π with M'(d)(π(v)) = M(d)(v) | introduced |
-| PermutationDisplacement | DEF | Δ(v) = ord(π(v)) − ord(v) for all v ∈ dom(M(d)); Δ = 0 on exterior | introduced |
+| PermutationDisplacement | DEF | Signed magnitude Δ(v) ∈ {+, −, 0} × ℕ recording the ordinal shift from v to π(v); each branch uses NAT-sub on its defined domain | introduced |
 | R-DISP | LEMMA | For all v₁, v₂ in the same region, Δ(v₁) = Δ(v₂); common value determined by region widths alone | introduced |
-| Block | DEF | Correspondence run (v, a, n) with M(d)(v + k) = a + k for 0 ≤ k < n | introduced |
-| BlockDecomposition | DEF | Finite set of blocks satisfying B1 (coverage), B2 (disjointness), B3 (consistency) | introduced |
-| Split | DEF | Block (v, a, n) at interior offset c yields (v, a, c) and (v + c, a + c, n − c) | introduced |
-| Merge | DEF | V-adjacent and I-adjacent blocks (v₁, a₁, n₁), (v₂, a₂, n₂) combine to (v₁, a₁, n₁ + n₂) | introduced |
-| CanonicalBlockDecomposition | DEF | Unique decomposition into maximal blocks — no two V-adjacent, I-adjacent blocks remain unmerged; uniqueness from S2 | introduced |
+| Split | DEF | Correspondence run (v, a, n) at interior offset c yields (v, a, c) and (v + c, a + c, n − c) | introduced |
+| Merge | DEF | V-adjacent and I-adjacent correspondence runs (v₁, a₁, n₁), (v₂, a₂, n₂) combine to (v₁, a₁, n₁ + n₂) | introduced |
+| CanonicalRunDecomposition | DEF | Unique partition of dom(M(d)) into maximal correspondence runs — no two V-adjacent, I-adjacent runs remain unmerged | introduced |
 | R-PIV | LEMMA | Pivot postcondition is a total function on dom(M(d)) | supporting |
 | R-SWP | LEMMA | Swap postcondition is a total function on dom(M(d)) | supporting |
 | R-PPERM | LEMMA | Bijection π for 3-cut pivot: α shifts forward by w_β, β shifts backward by w_α | introduced |
@@ -525,7 +535,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 | R-FRAME-S | FRAME | Swap: other subspaces, other documents, and content store are preserved | introduced |
 | R-RI | LEMMA | Rearrangement preserves S3 (referential integrity): ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
 | R-COMM | LEMMA | π(v + k) = π(v) + k when v and v + k lie in the same region: cut-point permutation commutes with ordinal shift | introduced |
-| R-BLK | LEMMA | Block decomposition transforms by split-at-cuts then displace-per-region, preserving B1–B3 | introduced |
+| R-BLK | LEMMA | Run partition transforms by split-at-cuts then displace-per-region, preserving S8(a)/(b) under M'(d) | introduced |
 
 
 ## Open Questions
@@ -534,6 +544,6 @@ Does the 4-cut swap definition generalize to k-cut rearrangements for k > 4, and
 
 What must a well-formed editing sequence guarantee about the composition of multiple rearrangements — is the composition of two rearrangements always expressible as a single rearrangement, or can sequences of rearrangements produce arrangements unreachable by any single operation?
 
-Under what conditions can a rearrangement cause the number of mapping blocks in the canonical decomposition to increase, and is there an upper bound on the increase relative to the number of cut points?
+Under what conditions can a rearrangement cause the number of correspondence runs in the canonical partition to increase, and is there an upper bound on the increase relative to the number of cut points?
 
-What constraints, if any, must cut points satisfy relative to the mapping block boundaries of the canonical decomposition, or are arbitrary cut positions within the V-span always valid?
+What constraints, if any, must cut points satisfy relative to the run boundaries of the canonical partition, or are arbitrary cut positions within the V-span always valid?
