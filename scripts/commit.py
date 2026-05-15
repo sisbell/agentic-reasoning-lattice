@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Commit lattice changes with descriptive messages.
+Commit substrate changes with descriptive messages.
 
-Checks for changes in lattices/xanadu/, invokes claude -p with the commit prompt
-template so it can read diffs and generate a meaningful commit message.
+Checks for changes in _docuverse/ (substrate root, post-unified-docuverse
+migration), invokes claude -p with the commit prompt template so it can
+read diffs and generate a meaningful commit message.
 
 Prints the commit hash to stdout.
 
@@ -20,7 +21,9 @@ import sys
 import time
 from pathlib import Path
 
-from lib.shared.paths import WORKSPACE, USAGE_LOG, LATTICE, PROOFS_DIR, prompt_path
+from lib.shared.paths import (
+    WORKSPACE, USAGE_LOG, DOCUVERSE_DIR, PROOFS_DIR, prompt_path,
+)
 from lib.shared.common import read_file
 
 COMMIT_PROMPT = prompt_path("helpers/commit.md")
@@ -37,8 +40,10 @@ def main():
         args.remove("--proofs-only")
     hint = " ".join(args)
 
-    # Check for changes in the appropriate directory
-    scope_dir = PROOFS_DIR if proofs_mode else LATTICE
+    # Check for changes in the appropriate directory. Default scope is
+    # _docuverse/ (the substrate root) since the unified-docuverse
+    # migration; proofs mode keeps PROOFS_DIR as before.
+    scope_dir = PROOFS_DIR if proofs_mode else DOCUVERSE_DIR
     check_path = str(scope_dir.relative_to(WORKSPACE)) + "/"
     result = subprocess.run(
         ["git", "status", "--porcelain", check_path],
@@ -55,7 +60,12 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
-    lattice_dir = str(LATTICE.relative_to(WORKSPACE))
+    # `{{lattice_dir}}` is the placeholder used by the non-proofs commit
+    # prompt to scope diffs and the path-spec restrict on `git commit --`.
+    # Post-migration, the actual scope is `_docuverse/`; the placeholder
+    # name is retained for backwards compatibility with prompt templates
+    # not yet updated.
+    lattice_dir = str(scope_dir.relative_to(WORKSPACE))
     proofs_dir = str(PROOFS_DIR.relative_to(WORKSPACE))
     skill_body = (skill_body
                   .replace("{{lattice_dir}}", lattice_dir)
