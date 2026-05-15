@@ -41,7 +41,7 @@ Notation: at depth 2, V-positions have the form [S, p]. We write `c₀ + j` for 
 
 - **Extended Associativity** — `(c + j) + k = c + (j + k)` for all j, k ∈ ℕ. The j ≥ 1 and k ≥ 1 case is TS3 (ShiftComposition, ASN-0034): `shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂)`. The mixed cases reduce to identity: when j = 0, `(c + 0) + k = c + k = c + (0 + k)`; when k = 0, `(c + j) + 0 = c + j = c + (j + 0)`; when j = k = 0, `c = c`. We refer to this combined identity below as *Extended Associativity*, and every "by associativity" invocation in this ASN cites it.
 - **TS2 (ShiftInjectivity)** — for n ≥ 1, shift(v₁, n) = shift(v₂, n) with equal lengths implies v₁ = v₂. Extends to n = 0 trivially: shift(v_i, 0) = v_i by identity, so the equation reduces to v₁ = v₂.
-- **TS5 (AmountMonotonicity)** — for n₁, n₂ ≥ 1 with n₁ ≠ n₂, shift(v, n₁) ≠ shift(v, n₂). Extends to mixed cases (one amount 0, the other ≥ 1) via TS4 (StrictIncrease, ASN-0034): shift(v, 0) = v and shift(v, n) > v for n ≥ 1 under T1's strict ordering, so the two values differ. The n₁ = n₂ = 0 case is excluded by the n₁ ≠ n₂ hypothesis.
+- **TS5 (ShiftAmountMonotonicity)** — for n₁, n₂ ≥ 1 with n₁ ≠ n₂, shift(v, n₁) ≠ shift(v, n₂). Extends to mixed cases (one amount 0, the other ≥ 1) via TS4 (StrictIncrease, ASN-0034): shift(v, 0) = v and shift(v, n) > v for n ≥ 1 under T1's strict ordering, so the two values differ. The n₁ = n₂ = 0 case is excluded by the n₁ ≠ n₂ hypothesis.
 - **OrdShiftHom (b) — subspace preservation** — for n ≥ 1, `subspace(shift(v, n)) = subspace(v)` (ASN-0036). Extends to n = 0 trivially: shift(v, 0) = v by identity, so subspace equality is immediate.
 
 **TS4 (StrictIncrease)** does *not* extend: `shift(v, n) > v` requires n ≥ 1, since at n = 0 we have shift(v, 0) = v, violating the strict inequality under T1's irreflexivity. Wherever this ASN invokes TS4, the offset is constrained to n ≥ 1 at the point of use.
@@ -105,7 +105,7 @@ The following precondition and postcondition clauses define the rearrangement op
 
 `(A v : subspace(v) = S ∧ #v = 2 ∧ c₀ ≤ v < c_{n−1} : v ∈ V_S(d))`
 
-(v) Both transposed regions are non-empty: w_α ≥ 1 and w_β ≥ 1.
+(v) Both transposed regions are non-empty: w_α ≥ 1 and w_β ≥ 1. *Derivation note.* Clause (v) restates a derived consequence: CS2 (strict cut ordering) gives ord(c_{i+1}) > ord(c_i), so under the singleton-tumbler identification with ℕ⁺ each width ord(c_{i+1}) − ord(c_i) is a positive natural; combined with CS3, CS4, and R-PRE(iv) (placing the inter-cut positions in V_S(d)), this yields w_α ≥ 1 and w_β ≥ 1 (and w_μ ≥ 1 for n = 4, derived as a separate consequence below). Clause (v) is retained as an explicit precondition to keep the R-PRE checklist self-contained for invocations of REARRANGE.
 
 Clause (iv) ensures that the affected range is covered: no gap exists within [c₀, c_{n−1}). Combined with D-CTG, this says the entire inter-cut range consists of valid V-positions in V_S(d). Clause (v) excludes degenerate cases where one region is empty.
 
@@ -228,10 +228,13 @@ For (b): the right-hand sides reference M(d)(c₂ + j) for j < w_β (ordinals of
 **R-PPERM — PivotPermutation (LEMMA).** The bijection π : dom(M(d)) → dom(M'(d)) satisfying M'(d)(π(v)) = M(d)(v) is:
 
 ```
-         ⎧ v                   if v < c₀ or v ≥ c₂     (exterior)
-π(v) =  ⎨ c₀ + w_β + j        if v = c₀ + j, 0 ≤ j < w_α  (α → end)
-         ⎩ c₀ + j              if v = c₁ + j, 0 ≤ j < w_β  (β → start)
+         ⎧ v                   if subspace(v) ≠ S                  (non-S)
+         ⎪ v                   if v ∈ V_S(d) and (v < c₀ or v ≥ c₂)  (subspace-S exterior)
+π(v) =  ⎨ c₀ + w_β + j        if v = c₀ + j, 0 ≤ j < w_α              (α → end)
+         ⎩ c₀ + j              if v = c₁ + j, 0 ≤ j < w_β              (β → start)
 ```
+
+The non-S branch records, in the piecewise definition itself, that π is the identity on positions with subspace(v) ≠ S — the same fact discharged in the proof below via R-FRAME-P(a). The subspace-S exterior, α, and β branches partition V_S(d), so the four-case piecewise definition is total on dom(M(d)).
 
 *Proof.* We verify M'(d)(π(v)) = M(d)(v) in each case. For v ∈ dom(M(d)) with subspace(v) ≠ S: π(v) = v, and M'(d)(v) = M(d)(v) by R-FRAME-P(a). For v ∈ V_S(d) with v < c₀ or v ≥ c₂: π(v) = v, and M'(d)(v) = M(d)(v) by R-EXT. For v = c₀ + j in α: π(v) = c₀ + w_β + j, and M'(d)(c₀ + w_β + j) = M(d)(c₀ + j) = M(d)(v) by R-P2. For v = c₁ + j in β: π(v) = c₀ + j, and M'(d)(c₀ + j) = M(d)(c₁ + j) = M(d)(v) by R-P1.
 
@@ -245,11 +248,14 @@ The pivot postcondition preserves dom(M(d)) (R-PIV), preserves C (R-FRAME-P(c)),
 **R-SPERM — SwapPermutation (LEMMA).** The bijection π satisfying M'(d)(π(v)) = M(d)(v) is:
 
 ```
-         ⎧ v                        if v < c₀ or v ≥ c₃               (exterior)
-         ⎪ c₀ + w_β + w_μ + j       if v = c₀ + j, 0 ≤ j < w_α        (α → end)
-π(v) =  ⎨ c₀ + w_β + j             if v = c₁ + j, 0 ≤ j < w_μ        (μ → middle)
-         ⎩ c₀ + j                   if v = c₂ + j, 0 ≤ j < w_β        (β → start)
+         ⎧ v                        if subspace(v) ≠ S                     (non-S)
+         ⎪ v                        if v ∈ V_S(d) and (v < c₀ or v ≥ c₃)     (subspace-S exterior)
+         ⎪ c₀ + w_β + w_μ + j       if v = c₀ + j, 0 ≤ j < w_α                (α → end)
+π(v) =  ⎨ c₀ + w_β + j             if v = c₁ + j, 0 ≤ j < w_μ                (μ → middle)
+         ⎩ c₀ + j                   if v = c₂ + j, 0 ≤ j < w_β                (β → start)
 ```
+
+The non-S branch records, in the piecewise definition itself, that π is the identity on positions with subspace(v) ≠ S — the same fact discharged in the proof below via R-FRAME-S(a). The subspace-S exterior, α, μ, and β branches partition V_S(d), so the five-case piecewise definition is total on dom(M(d)).
 
 *Proof.* We verify M'(d)(π(v)) = M(d)(v) in each case.
 
@@ -318,7 +324,13 @@ The permutations R-PPERM and R-SPERM can be characterized by ordinal displacemen
 Δ(v) = (−, ord(v) − ord(π(v)))              if ord(π(v)) < ord(v)
 ```
 
-All three cases use NAT-sub on its defined domain: the (+) case requires ord(π(v)) ≥ ord(v); the (−) case requires ord(v) ≥ ord(π(v)); the (0, 0) case sidesteps subtraction. We write `+n` for `(+, n)`, `−n` for `(−, n)`, and `0` for `(0, 0)` when no ambiguity arises. We say Δ(v₁) = Δ(v₂) when their signs and magnitudes are componentwise equal. We do *not* define addition, multiplication, or an ordering on the signed-magnitude carrier in this ASN; the lemmas that consume Δ (R-DISP, R-PPERM, R-SPERM, R-BLK) compare Δ-values only by equality, never by summation or comparison.
+All three cases use NAT-sub on its defined domain: the (+) case requires ord(π(v)) ≥ ord(v); the (−) case requires ord(v) ≥ ord(π(v)); the (0, 0) case sidesteps subtraction. We write `+n` for `(+, n)`, `−n` for `(−, n)`, and `0` for `(0, 0)` when no ambiguity arises.
+
+*Canonical form.* The only values produced by the case analysis are (0, 0), (+, n) with n ≥ 1, and (−, n) with n ≥ 1. The (+) branch fires only when ord(π(v)) > ord(v), so n = ord(π(v)) − ord(v) ≥ 1; the (−) branch fires only when ord(v) > ord(π(v)), so n = ord(v) − ord(π(v)) ≥ 1; the (0, 0) branch fires when π(v) = v. The spurious carrier values (+, 0), (−, 0), and (0, n) with n ≥ 1 are never produced. We say Δ(v₁) = Δ(v₂) when their canonical forms are componentwise equal (same σ and same n); the canonical-form restriction makes equality unambiguous (no two distinct case-analysis outputs share a carrier representation).
+
+*Mutual exclusivity of cases.* For non-S positions (subspace(v) ≠ S), π(v) = v by R-PPERM/R-SPERM (whose first branch is the identity on non-S positions via R-FRAME-P(a)/R-FRAME-S(a)), so the (0, 0) branch fires and the (+) and (−) branches — whose preconditions ord(π(v)) > ord(v) and ord(v) > ord(π(v)) would invoke NAT-sub on multi-component tumblers — are never reached. The non-S case is therefore independent of the NAT-sub typing of multi-component ordinal subtraction. For V_S(d) positions, ord is a single-component tumbler (depth 2, identified with a positive natural under the singleton-tumbler identification), so T1 trichotomy on (ord(π(v)), ord(v)) yields exactly one of ord(π(v)) = ord(v), ord(π(v)) > ord(v), or ord(π(v)) < ord(v) — discharging exactly one branch and excluding the other two. The three cases are exhaustive and mutually exclusive across dom(M(d)).
+
+We do *not* define addition, multiplication, or an ordering on the signed-magnitude carrier in this ASN; the lemmas that consume Δ (R-DISP, R-PPERM, R-SPERM, R-BLK) compare Δ-values only by equality, never by summation or comparison.
 
 On the exterior, π(v) = v, so Δ(v) = 0.
 
@@ -334,7 +346,7 @@ For the 4-cut swap, from R-SPERM:
 
 ```
 Δ(v) = +(w_β + w_μ)        if v ∈ α   (shifts forward past middle and β)
-Δ(v) = sign(w_β − w_α) · |w_β − w_α|   if v ∈ μ   (depends on width comparison; see below)
+Δ(v) on μ                              if v ∈ μ   (determined by case analysis on w_β vs w_α; see formal cases below)
 Δ(v) = −(w_α + w_μ)        if v ∈ β   (shifts backward past middle and α)
 Δ(v) = 0                   otherwise
 ```
@@ -388,13 +400,15 @@ Both pieces inherit S8(b) (consistency under A). For the first piece (v, a, c), 
  
 *(a) The maximal run containing any v ∈ V_S(d) is uniquely determined.* Fix v ∈ V_S(d). Define the *forward extent* f(v) = max{k ≥ 0 : (A j : 0 ≤ j ≤ k : v + j ∈ V_S(d) ∧ M(d)(v + j) = M(d)(v) + j)}. The defining set is non-empty (k = 0 works: v + 0 = v by the identity convention, v ∈ V_S(d) by assumption, and M(d)(v) = M(d)(v) + 0 by the identity convention again). By D-SEQ (ASN-0036), V_S(d) = {[S, 1], ..., [S, N]} for some N ∈ ℕ (the maximum ordinal in V_S(d), finite by S8-fin). Any k in the defining set satisfies v + k ∈ V_S(d), so ord(v + k) = ord(v) + k ≤ N (TS3 plus the identity convention), giving k ≤ N − ord(v). The defining set is therefore a non-empty subset of {0, 1, ..., N − ord(v)} ⊆ ℕ, bounded above by N − ord(v); existence of a maximum follows from the helper lemma above with B = N − ord(v). Define the *backward extent* r(v) = max{k ≥ 0 : [S, ord(v) − k] ∈ V_S(d) ∧ (A i : 0 ≤ i ≤ k : M(d)([S, ord(v) − k + i]) = shift(M(d)([S, ord(v) − k]), i))}, where the identity convention covers i = 0 and OrdinalShift applies for i ≥ 1. The defining set is non-empty (k = 0 works: [S, ord(v)] = v ∈ V_S(d), and the inner conjunct is vacuous/identity at i = 0). Any k in the defining set satisfies [S, ord(v) − k] ∈ V_S(d), so ord(v) − k ≥ 1 (S8a, ASN-0036), giving k ≤ ord(v) − 1. The defining set is therefore a non-empty subset of {0, 1, ..., ord(v) − 1} ⊆ ℕ, bounded above by ord(v) − 1; existence of a maximum again follows from the helper lemma with B = ord(v) − 1. The membership requirement [S, ord(v) − k] ∈ V_S(d) demands ord(v) − k ≥ 1 (since V-positions have positive ordinals by S8a) and is checked at the tentative start; for each intermediate offset i with 0 ≤ i ≤ k, the position [S, ord(v) − k + i] lies in V_S(d) automatically. To see this, note v ∈ V_S(d) gives ord(v) ∈ {1, ..., N} where V_S(d) = {[S, j] : 1 ≤ j ≤ N} by D-SEQ (ASN-0036), and [S, ord(v) − k] ∈ V_S(d) gives ord(v) − k ≥ 1; the intermediate ordinals ord(v) − k + i lie in [ord(v) − k, ord(v)] ⊆ [1, N], so [S, ord(v) − k + i] ∈ V_S(d). The inner consistency conjunct in r(v) is therefore well-formed at every offset. This formulation checks S8(b) forward from the tentative run start [S, ord(v) − k], avoiding subtraction on I-addresses. Both f(v) and r(v) are determined by M(d) and v alone — M(d) is a function (S2), so for each candidate position the correspondence either holds or does not, with no ambiguity. Writing v_s = [S, ord(v) − r(v)] for the start position, the maximal run containing v is (v_s, M(d)(v_s), r(v) + 1 + f(v)), and it is uniquely determined by the values of r(v) and f(v).
 
+*Maximality of the constructed run.* The run (v_s, M(d)(v_s), r(v) + 1 + f(v)) is maximal in the canonical-partition sense — no V-adjacent, I-adjacent extension is admissible. *Forward extension impossible:* extending the run to length r(v) + 2 + f(v) would require a forward offset f(v) + 1 with v + (f(v) + 1) ∈ V_S(d) and M(d)(v + (f(v) + 1)) = M(d)(v) + (f(v) + 1), so f(v) + 1 would lie in the defining set of f(v); but f(v) was chosen as the maximum of that set (helper lemma), so f(v) + 1 ≤ f(v), contradiction. *Backward extension impossible:* extending the run by one position to the left would require a backward offset r(v) + 1 with [S, ord(v) − r(v) − 1] ∈ V_S(d) and the inner forward-consistency conjunct holding from this new start, so r(v) + 1 would lie in the defining set of r(v); but r(v) was chosen as the maximum of that set, so r(v) + 1 ≤ r(v), contradiction. Hence no strict extension of the run exists, and the run is maximal. This maximality conclusion is the property that step (b) depends on.
+
 *(b) Two maximal runs sharing a V-position are identical.* Let b₁ = (v₁, a₁, n₁) and b₂ = (v₂, a₂, n₂) be maximal runs with some w ∈ V(b₁) ∩ V(b₂). Since w ∈ V(b₁), we have w = v₁ + k₁ and M(d)(w) = a₁ + k₁ for some 0 ≤ k₁ < n₁; similarly w = v₂ + k₂ and M(d)(w) = a₂ + k₂. We show b₁ = b₂ by establishing v₁ = v₂, a₁ = a₂, and n₁ = n₂ — each by contradiction with maximality, using only forward-defined operations.
 
 *v₁ = v₂:* Suppose v₂ < v₁ (the case v₁ < v₂ follows by swapping b₁ and b₂: backward-extending b₂ to contradict b₂'s maximality). Then k₂ ≥ 1 (since ord(v₂) < ord(v₁) ≤ ord(w) = ord(v₂) + k₂). Let p = ord(v₁) − ord(v₂) ≥ 1. We first locate the position [S, ord(v₁) − 1] inside V(b₂). From w = v₁ + k₁ = v₂ + k₂ at the ordinal level: ord(v₂) + k₂ = ord(v₁) + k₁ = ord(v₂) + p + k₁, so k₂ = p + k₁ ≥ p (using k₁ ≥ 0). Combined with k₂ < n₂ (since w ∈ V(b₂)), we obtain p ≤ k₂ < n₂, hence p − 1 < n₂. Also ord(v₁) − 1 = ord(v₂) + p − 1 ≥ ord(v₂) ≥ 1 (S8a, ASN-0036), so [S, ord(v₁) − 1] ∈ V_S(d) by D-SEQ; and ord(v₂) ≤ ord(v₁) − 1 < ord(v₂) + n₂, so [S, ord(v₁) − 1] ∈ V(b₂). By S8(b) of b₂ at offsets p − 1 and p: M(d)([S, ord(v₁) − 1]) = a₂ + (p − 1) and M(d)(v₁) = a₂ + p = a₁. Now shift(a₂ + (p − 1), 1) = a₂ + p by TS3 (when p ≥ 2) or the identity convention (when p = 1), so shift(M(d)([S, ord(v₁) − 1]), 1) = a₁ = M(d)(v₁). The singleton run b₀ = ([S, ord(v₁) − 1], a₂ + (p − 1), 1) — valid as a length-1 correspondence run since S8(b) holds trivially at offset 0 — is V-adjacent to b₁ (shift([S, ord(v₁) − 1], 1) = v₁) and I-adjacent to b₁ (a₂ + p = a₁). Applying Merge to b₀ and b₁ yields the run ([S, ord(v₁) − 1], a₂ + (p − 1), n₁ + 1), whose V-extent strictly contains V(b₁), contradicting b₁'s maximality. Therefore v₁ = v₂.
 
 *a₁ = a₂:* With v₁ = v₂, w = v₁ + k₁ = v₁ + k₂. We establish k₁ = k₂ by case analysis on the magnitudes of k₁ and k₂ (each is a natural number, so each is either 0 or ≥ 1).
 
-- *Both k₁ ≥ 1 and k₂ ≥ 1.* By TS5 (AmountMonotonicity, ASN-0034), if k₁ ≠ k₂ with both ≥ 1, then shift(v₁, k₁) ≠ shift(v₁, k₂); contrapositively, shift equality v₁ + k₁ = v₁ + k₂ forces k₁ = k₂.
+- *Both k₁ ≥ 1 and k₂ ≥ 1.* By TS5 (ShiftAmountMonotonicity, ASN-0034), if k₁ ≠ k₂ with both ≥ 1, then shift(v₁, k₁) ≠ shift(v₁, k₂); contrapositively, shift equality v₁ + k₁ = v₁ + k₂ forces k₁ = k₂.
 - *Exactly one of k₁, k₂ is zero (WLOG k₁ = 0, k₂ ≥ 1; the other ordering is symmetric).* By the identity convention, v₁ + 0 = v₁; by TS4 (StrictIncrease, ASN-0034), v₁ + k₂ = shift(v₁, k₂) > v₁ under T1's strict ordering on tumblers (ASN-0034). The equation v₁ = v₁ + k₂ would then yield v₁ < v₁, contradicting T1 irreflexivity (the strict ordering excludes equality, by the trichotomy/asymmetry built into a strict total order). So this sub-case cannot arise given w = v₁ + k₁ = v₁ + k₂.
 - *Both k₁ = 0 and k₂ = 0.* Immediate equality k₁ = k₂ = 0.
 
@@ -416,7 +430,7 @@ Suppose, toward contradiction, that some run b = (v_b, a_b, n_b) in the terminal
 
 *Forward extension.* Suppose v_b + n_b ∈ V_S(d) and M(d)(v_b + n_b) = a_b + n_b (witnessed by some forward extension b' = (v_b, a_b, n_b') with n_b' > n_b, whose S8(b) at offset n_b supplies this membership and I-address). The singleton b'' = (v_b + n_b, a_b + n_b, 1) is a valid length-1 run (S8(b) holds trivially at offset 0), V-adjacent to b (its V-start equals v_b + n_b) and I-adjacent to b (its I-start equals a_b + n_b).
 
-Now let c = (v_c, a_c, n_c) be the (unique) partition run with v_b + n_b ∈ V(c); existence follows because the partition (of V_S(d)) covers v_b + n_b ∈ V_S(d). We show v_c = v_b + n_b. Since v_b + n_b ∈ V(c), we have v_b + n_b = v_c + k_c for some 0 ≤ k_c < n_c. Suppose for contradiction that k_c ≥ 1, i.e., ord(v_c) < ord(v_b + n_b) = ord(v_b) + n_b. Then by S8(a) applied to c, the position v_c + (k_c − 1) = v_b + (n_b − 1) lies in V(c); but v_b + (n_b − 1) also lies in V(b) (offset n_b − 1 < n_b). Partition disjointness — distinct partition runs have disjoint V-extents (maintained as a partition invariant through merges, established above) — forces b = c. Under b = c, we have v_c = v_b and n_c = n_b, so v_b + n_b = v_c + k_c = v_b + k_c, and TS5 gives n_b = k_c (using n_b ≥ 1 from S8 and k_c ≥ 1 from the contradiction assumption: the contrapositive of TS5 (AmountMonotonicity, ASN-0034) on a common base v_b extracts equality of shift amounts from equality of shift outputs); but k_c < n_c = n_b gives n_b < n_b, contradiction. Hence k_c = 0 and v_c = v_b + n_b. Finally, S8(b) of c at offset 0 gives a_c = M(d)(v_c) = M(d)(v_b + n_b) = a_b + n_b. Thus c has V-start v_b + n_b (V-adjacent to b) and I-start a_b + n_b (I-adjacent to b), so (b, c) is a mergeable pair — contradicting the assumption that no mergeable pair remains.
+Now let c = (v_c, a_c, n_c) be the (unique) partition run with v_b + n_b ∈ V(c); existence follows because the partition (of V_S(d)) covers v_b + n_b ∈ V_S(d). We show v_c = v_b + n_b. Since v_b + n_b ∈ V(c), we have v_b + n_b = v_c + k_c for some 0 ≤ k_c < n_c. Suppose for contradiction that k_c ≥ 1, i.e., ord(v_c) < ord(v_b + n_b) = ord(v_b) + n_b. Then by S8(a) applied to c, the position v_c + (k_c − 1) = v_b + (n_b − 1) lies in V(c); but v_b + (n_b − 1) also lies in V(b) (offset n_b − 1 < n_b). Partition disjointness — distinct partition runs have disjoint V-extents (maintained as a partition invariant through merges, established above) — forces b = c. Under b = c, we have v_c = v_b and n_c = n_b, so v_b + n_b = v_c + k_c = v_b + k_c, and TS5 gives n_b = k_c (using n_b ≥ 1 from S8 and k_c ≥ 1 from the contradiction assumption: the contrapositive of TS5 (ShiftAmountMonotonicity, ASN-0034) on a common base v_b extracts equality of shift amounts from equality of shift outputs); but k_c < n_c = n_b gives n_b < n_b, contradiction. Hence k_c = 0 and v_c = v_b + n_b. Finally, S8(b) of c at offset 0 gives a_c = M(d)(v_c) = M(d)(v_b + n_b) = a_b + n_b. Thus c has V-start v_b + n_b (V-adjacent to b) and I-start a_b + n_b (I-adjacent to b), so (b, c) is a mergeable pair — contradicting the assumption that no mergeable pair remains.
 
 *Backward extension.* Suppose [S, ord(v_b) − 1] ∈ V_S(d) and shift(M(d)([S, ord(v_b) − 1]), 1) = a_b. Let c = (v_c, a_c, n_c) be the (unique) partition run with [S, ord(v_b) − 1] ∈ V(c); existence follows from partition coverage of V_S(d). Write [S, ord(v_b) − 1] = v_c + k_c for some 0 ≤ k_c < n_c, so ord(v_c) + k_c = ord(v_b) − 1 and hence v_c + (k_c + 1) = v_b. We show n_c = k_c + 1 (V-adjacency v_c + n_c = v_b). Suppose for contradiction that n_c > k_c + 1; then v_c + (k_c + 1) = v_b lies in V(c) by S8(a). But v_b also lies in V(b) (offset 0). Partition disjointness forces b = c, contradicting ord(v_c) ≤ ord(v_b) − 1 < ord(v_b). Hence n_c = k_c + 1. For I-adjacency a_c + n_c = a_b: S8(b) of c at offset k_c gives M(d)([S, ord(v_b) − 1]) = a_c + k_c, so shift(a_c + k_c, 1) = a_b. By TS3 (when k_c ≥ 1) or the identity convention (when k_c = 0), shift(a_c + k_c, 1) = a_c + (k_c + 1) = a_c + n_c. Therefore a_c + n_c = a_b, and (c, b) is a mergeable pair — contradicting the assumption that no mergeable pair remains.
 
