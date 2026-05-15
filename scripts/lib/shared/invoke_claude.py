@@ -264,8 +264,9 @@ def _next_config_dir():
     interleaved with cheap commit-msg calls).
 
     Fresh-process tie-break: when all accounts are at $0, returns the
-    first listed dir; subsequent calls naturally diverge as costs
-    accumulate.
+    first dir of the rotated `available` list (rotated by CLAUDE_WORKER_INDEX
+    so parallel workers diverge on their first call instead of all picking
+    the same account); subsequent calls naturally diverge as costs accumulate.
 
     Skips accounts paused by `_pause_account` (quota-exhausted).
     Returns None if all configured accounts are currently paused;
@@ -283,10 +284,20 @@ def _next_config_dir():
     if not available:
         return None
     with _rotation_lock:
+        # Rotate `available` by CLAUDE_WORKER_INDEX so parallel workers
+        # don't collide on the all-zero-cost tie-break (each worker's
+        # process starts with an empty cost dict; without rotation,
+        # every worker's first call piles onto the first listed dir).
+        try:
+            worker_index = int(os.environ.get("CLAUDE_WORKER_INDEX", "0"))
+        except ValueError:
+            worker_index = 0
+        offset = worker_index % len(available)
+        rotated = available[offset:] + available[:offset]
         # Pick the least-burdened of the available accounts. Cost dict
-        # may be empty (fresh process) — .get(d, 0.0) tie-breaks on
-        # the first listed dir via the stable min() iteration order.
-        picked = min(available, key=lambda d: _per_account_cost.get(d, 0.0))
+        # may be empty (fresh process) — .get(d, 0.0) tie-breaks on the
+        # first dir of `rotated` via the stable min() iteration order.
+        picked = min(rotated, key=lambda d: _per_account_cost.get(d, 0.0))
     cost_so_far = _per_account_cost.get(picked, 0.0)
     print(
         f"  [ROTATE] config_dir={os.path.basename(picked)} "

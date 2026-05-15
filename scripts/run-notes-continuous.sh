@@ -87,7 +87,7 @@ while true; do
     else
         WORKER_PIDS=()
         for i in $(seq 0 $((WORKERS - 1))); do
-            python scripts/note-scheduler.py --dag \
+            CLAUDE_WORKER_INDEX=$i python scripts/note-scheduler.py --dag \
                 --partition "$i/$WORKERS" 2>&1 \
                 | sed "s/^/[w$i] /" &
             WORKER_PIDS+=($!)
