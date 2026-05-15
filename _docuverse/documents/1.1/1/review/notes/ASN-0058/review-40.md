@@ -1,0 +1,21 @@
+# Review of ASN-0058
+
+## REVISE
+
+### Issue 1: Misnamed citation T0(a) in C0 (OrdinalDisplacementNecessity)
+
+**ASN-0058, C0 proof**: Two citations of T0(a):
+- "Each wⱼ is a member of `T`: by T0(a)'s carrier axiom (ASN-0034), `T` is the set of finite sequences over `ℕ` of length ≥ 1..."
+- "Since `ℕ` is unbounded (the `ℕ`-carrier underlying T0(a), ASN-0034), `{j ∈ ℕ : j > uₘ}` is infinite..."
+
+**Problem**: T0(a) (UnboundedComponentValues) is a derived claim about tumbler component unboundedness — its postcondition is "for every tumbler `t ∈ T` and every component position `i`... there exists `t' ∈ T`... whose value at that index exceeds M." It does *not* define the carrier T. The carrier characterization "T is the set of nonempty finite sequences over ℕ of length ≥ 1" is supplied by T0 (CarrierSetDefinition) via its comprehension clause. Similarly, ℕ's unboundedness (the basis for "{j ∈ ℕ : j > uₘ} is infinite") is supplied by the NAT-* foundation — specifically NAT-addcompat's strict successor inequality `n < n + 1` — not by T0(a), whose statement is about tumbler components, not the ambient ℕ.
+
+**Required**:
+- Replace "T0(a)'s carrier axiom (ASN-0034)" with "T0's comprehension clause (CarrierSetDefinition, ASN-0034)".
+- Replace "the ℕ-carrier underlying T0(a), ASN-0034" with "NAT-carrier (NatCarrierSet) combined with NAT-addcompat's strict successor inequality `n < n + 1`".
+
+## OUT_OF_SCOPE
+
+None — the ASN's "Open Questions" section already explicitly defers future-ASN topics (forward gap structure at canonical boundaries, lattice of equivalent decompositions, block count vs V-extent constraints, tumbler depth relationships within blocks, sequential resolution ordering for multi-source references). All in-scope material is addressed.
+
+VERDICT: REVISE
