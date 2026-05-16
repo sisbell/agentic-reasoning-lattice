@@ -40,23 +40,8 @@ def align(dfy_path, errors, formal_contract, *, asn_label, claim_label,
     accumulates in `git log -- <dfy_path>` showing the align cycle's
     sequence of attempted fixes.
     """
-    model_flag = {
-        "opus": "claude-opus-4-7",
-        "sonnet": "claude-sonnet-4-6",
-    }.get(model, model)
-
-    cmd = [
-        "claude", "-p",
-        "--model", model_flag,
-        "--output-format", "json",
-        "--max-turns", str(max_turns),
-        "--tools", "Read,Write,Bash",
-        "--allowedTools", "Read,Write,Bash",
-    ]
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
+    from lib.shared.invoke_claude import invoke_claude_agent
+    from lib.shared.paths import WORKSPACE
 
     dfy_source = read_file(dfy_path)
     align_template = read_prompt(ALIGN_TEMPLATE)
@@ -93,21 +78,22 @@ The `-- {dfy_path}` is REQUIRED. It scopes the commit to ONLY this
 This commit happens for EVERY verify, including failures.
 """
 
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE), timeout=None,
+    # Route through the shared wrapper — gets JSON envelope error
+    # detection, quota cooldown, overload backoff+poll, account
+    # rotation. Was previously a raw subprocess.run.
+    res = invoke_claude_agent(
+        prompt,
+        model=model,
+        effort=effort,
+        tools="Read,Write,Bash",
+        enabled_tools="Read,Write,Bash",
+        max_turns=max_turns,
+        cwd=WORKSPACE,
     )
-    elapsed = time.time() - start
 
-    cost = 0
-    try:
-        data = json.loads(result.stdout)
-        cost = data.get("total_cost_usd", 0)
-    except (json.JSONDecodeError, KeyError):
-        pass
-
-    return result.returncode == 0, elapsed, cost
+    # Success = wrapper got a result envelope without error
+    ok = res.ok and res.data is not None and not res.data.get("is_error", False)
+    return ok, res.elapsed, res.cost or 0
 
 
 def align_validate_cycle(dfy_path, formal_contract, label,

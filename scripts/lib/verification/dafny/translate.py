@@ -154,19 +154,7 @@ def translate_one(prompt, out_path, *, asn_label, claim_label,
     work). This produces one git commit per attempted fix; operator
     audits via `git log -- verification/dafny/ASN-NNNN/<label>.dfy`.
     """
-    model_flag = {
-        "opus": "claude-opus-4-7",
-        "sonnet": "claude-sonnet-4-6",
-    }.get(model, model)
-
-    cmd = [
-        "claude", "-p",
-        "--model", model_flag,
-        "--output-format", "json",
-        "--max-turns", str(max_turns),
-        "--tools", "Read,Write,Bash",
-        "--allowedTools", "Read,Write,Bash",
-    ]
+    from lib.shared.invoke_claude import invoke_claude_agent
 
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
@@ -239,37 +227,35 @@ history of {out_path} should show one commit per attempted fix when
 operator runs `git log -- {out_path}`.
 """
 
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=full_prompt, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE), timeout=None,
+    # Route through the shared wrapper — gets JSON envelope error
+    # detection, quota cooldown, overload backoff+poll, account
+    # rotation. Was previously a raw subprocess.run that treated
+    # claude's `is_error: true` + exit=1 responses as opaque "FAILED
+    # (exit 1)" with no retry or diagnostic.
+    res = invoke_claude_agent(
+        full_prompt,
+        model=model,
+        effort=effort,
+        tools="Read,Write,Bash",          # --allowedTools (skip permission prompts)
+        enabled_tools="Read,Write,Bash",  # --tools (whitelist what's available)
+        max_turns=max_turns,
+        cwd=WORKSPACE,
     )
-    elapsed = time.time() - start
+    elapsed = res.elapsed
+    cost = res.cost or 0
 
-    if result.returncode != 0:
-        print(f" FAILED (exit {result.returncode}, {elapsed:.0f}s)",
-              file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:3]:
-                print(f"    {line}", file=sys.stderr)
-        return False, elapsed, 0
-
-    # Parse JSON for usage stats
-    cost = 0
-    try:
-        data = json.loads(result.stdout)
-        usage = data.get("usage", {})
-        cost = data.get("total_cost_usd", 0)
+    if res.data is not None:
+        usage = res.data.get("usage", {}) or {}
         inp = (usage.get("input_tokens", 0) +
                usage.get("cache_read_input_tokens", 0) +
                usage.get("cache_creation_input_tokens", 0))
-        out = usage.get("output_tokens", 0)
-        print(f" [{elapsed:.0f}s] in:{inp} out:{out} ${cost:.4f}",
+        outp = usage.get("output_tokens", 0)
+        print(f" [{elapsed:.0f}s] in:{inp} out:{outp} ${cost:.4f}",
               file=sys.stderr, end="", flush=True)
-        subtype = data.get("subtype", "")
+        subtype = res.data.get("subtype", "")
         if subtype and subtype != "success":
             print(f" [{subtype}]", file=sys.stderr, end="", flush=True)
-    except (json.JSONDecodeError, KeyError):
+    else:
         print(f" [{elapsed:.0f}s]", file=sys.stderr, end="", flush=True)
 
     return out_path.exists(), elapsed, cost
