@@ -128,12 +128,14 @@ def main():
         print(f"error: {e}", file=sys.stderr)
         return 1
 
-    # An accept means an edit happened. Bump the claim's version
-    # marker (LM 4/52-4/53) so downstream predicates can detect that
-    # claim-derived attributes (description, etc.) are stale relative
-    # to the new revision.
-    if args.action == "accept":
-        session.register_version(claim_addr)
+    # Note: this tool used to call `register_version(claim_addr)` on
+    # every accept. That over-grew version chains 5-7x per fire when a
+    # revise closed multiple findings (the agent shells out to this CLI
+    # per finding, so N findings → N register_version calls → N new
+    # versions, each representing a slice of one logical edit). Chain
+    # advance is now a fire-lifecycle event handled by the refiner
+    # (`note_revise.py` / `claim_revise.py`) once after the LLM session
+    # returns. resolution.py is pure decision-recording.
 
     print(link.addr)
     return 0

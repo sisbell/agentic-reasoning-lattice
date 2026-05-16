@@ -295,8 +295,19 @@ class NoteReviseAgent(Agent):
                 success=False, elapsed=response.elapsed, detail="llm-failed",
             )
 
-        # Commit the revise edits + resolution links emitted by the
-        # in-process Claude session as a discrete pipeline event.
+        # One register_version per fire (regardless of accept count).
+        # resolution.py used to advance per accept, growing the note's
+        # version chain by N per fire when N findings were closed; the
+        # semantics are "one logical edit per fire," so the lifecycle
+        # belongs here, not in the per-finding decision tool.
+        accept_count = 0
+        for comment_addr, _finding, _title, _body in findings:
+            if session.active_links(
+                "resolution.edit", to_set=[comment_addr],
+            ):
+                accept_count += 1
+        if accept_count > 0:
+            session.register_version(note_addr)
 
         return AgentResult(
             success=True,

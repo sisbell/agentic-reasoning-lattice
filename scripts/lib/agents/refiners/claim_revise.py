@@ -190,6 +190,16 @@ class ClaimReviseAgent(Agent):
             return AgentResult(
                 success=False, detail=f"revise-failed comment={comment_addr}",
             )
+
+        # Advance the claim's version chain iff the reviser accepted.
+        # resolution.py used to do this per-accept; lifecycle now lives
+        # in the refiner. claim_revise fires per-comment so accept is
+        # binary (this comment is closed via resolution.edit or not),
+        # but we keep the structural check for clarity and symmetry
+        # with note_revise.
+        if session.active_links("resolution.edit", to_set=[comment_addr]):
+            session.register_version(claim_addr)
+
         return AgentResult(
             success=True, detail=f"closed comment={comment_addr}",
         )
