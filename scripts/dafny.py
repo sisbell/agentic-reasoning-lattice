@@ -88,6 +88,52 @@ def _save_cache(path, data):
     path.write_text(json.dumps(data, indent=2) + "\n")
 
 
+def _ensure_dfy_committed(dfy_path, status, verify_output,
+                          asn_label, claim_label):
+    """Safety net: commit the .dfy if it has uncommitted changes.
+
+    The translate agent is prompted to commit after each verify, but
+    may skip the step (exceptions, prompt drift, etc — turn-cap
+    removal lessens this but doesn't eliminate it). After translate
+    returns, if the .dfy is still uncommitted, commit it path-scoped
+    with the verify output as body.
+
+    No-op if the agent already committed (no uncommitted changes).
+    Path-scoped (`git commit -- <dfy>`) so it doesn't sweep other
+    staged work in the worktree.
+    """
+    import subprocess
+    if not dfy_path.exists():
+        return
+
+    # Check for uncommitted changes (modified or untracked)
+    status_result = subprocess.run(
+        ["git", "status", "--porcelain", str(dfy_path)],
+        capture_output=True, text=True, cwd=str(WORKSPACE),
+    )
+    if not status_result.stdout.strip():
+        return  # agent already committed; nothing to do
+
+    body = (verify_output or "").strip() or "(no verify output captured)"
+    msg = (f"dafny({asn_label}): {claim_label} final → {status}\n\n"
+           f"{body}")
+
+    subprocess.run(
+        ["git", "add", str(dfy_path)],
+        cwd=str(WORKSPACE), capture_output=True, text=True,
+    )
+    commit_result = subprocess.run(
+        ["git", "commit", "--", str(dfy_path), "-m", msg],
+        cwd=str(WORKSPACE), capture_output=True, text=True,
+    )
+    if commit_result.returncode == 0:
+        print(f"  [SAFETY] committed {claim_label} ({status}) — "
+              f"agent had not committed", file=sys.stderr)
+    else:
+        print(f"  [SAFETY] commit failed for {claim_label}: "
+              f"{commit_result.stderr[:200]}", file=sys.stderr)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate Dafny declarations per ASN claim")
@@ -95,13 +141,14 @@ def main():
                         help="ASN number (e.g., 1, 0001, ASN-0001)")
     parser.add_argument("--claim", "-p",
                         help="Generate specific claims, comma-separated")
-    parser.add_argument("--model", "-m", default="opus",
+    parser.add_argument("--model", "-m", default="sonnet",
                         choices=["opus", "sonnet"],
-                        help="Model (default: opus)")
+                        help="Model (default: sonnet)")
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level (low/medium/high/max)")
-    parser.add_argument("--max-turns", type=int, default=24,
-                        help="Max agent turns per claim (default: 24)")
+    parser.add_argument("--max-turns", type=int, default=None,
+                        help="Max agent turns per claim "
+                             "(default: unset — rely on 60min subprocess cap)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be generated without invoking Claude")
     parser.add_argument("--workers", type=int, default=3,
@@ -327,6 +374,12 @@ def main():
             else:
                 print(f" {status.upper()}", file=sys.stderr)
 
+            # Safety net — agent should have committed the .dfy per-verify
+            # via its prompt instructions, but if it didn't (e.g., exception,
+            # prompt drift), commit it here so the work isn't lost.
+            _ensure_dfy_committed(out_path, status, vout,
+                                  asn_label, proof_label)
+
             log_usage(asn_label, proof_label, elapsed, status == "verified", cost)
             return label, result
 
@@ -396,11 +449,11 @@ def main():
             print(f"  Reviews: {review_dir.relative_to(WORKSPACE)}/",
                   file=sys.stderr)
 
-        import subprocess
-        subprocess.run(
-            ["git", "add", str(out_dir)],
-            capture_output=True, text=True, cwd=str(WORKSPACE))
-        run_commit(f"{asn_label} dafny — {len(all_results)} claims")
+        # No final aggregate commit — per-claim commits (agent self-commit
+        # during translate + _ensure_dfy_committed safety net) cover
+        # everything. Prior code called run_commit() which routes through
+        # commit.py scoped to _docuverse/; dafny writes to verification/
+        # so that commit always reported "nothing to commit."
 
 
 if __name__ == "__main__":

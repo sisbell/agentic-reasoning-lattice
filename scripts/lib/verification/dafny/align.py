@@ -33,7 +33,7 @@ ALIGN_TEMPLATE = prompt_path("verification/dafny/align-with-contract.md")
 
 
 def align(dfy_path, errors, formal_contract, *, asn_label, claim_label,
-          cycle_num, model="opus", effort="max", max_turns=12):
+          cycle_num, model="sonnet", effort="max", max_turns=None):
     """Run align-with-contract agent. Returns (success, elapsed, cost).
 
     Agent commits after each dafny verify (path-scoped). Audit trail
@@ -98,7 +98,7 @@ This commit happens for EVERY verify, including failures.
 
 def align_validate_cycle(dfy_path, formal_contract, label,
                           *, asn_label,
-                          model="opus", effort="max", max_cycles=3):
+                          model="sonnet", effort="max", max_cycles=3):
     """Validate contract, then align -> verify -> validate cycle if FLAG.
 
     Runs initial validation. If CLEAN, returns immediately. If FLAG,
@@ -152,13 +152,14 @@ def main():
                         help="ASN number (e.g., 1, 0001, ASN-0001)")
     parser.add_argument("--claim", "-p",
                         help="Fix specific claims, comma-separated")
-    parser.add_argument("--model", "-m", default="opus",
+    parser.add_argument("--model", "-m", default="sonnet",
                         choices=["opus", "sonnet"],
-                        help="Model (default: opus)")
+                        help="Model (default: sonnet)")
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level")
-    parser.add_argument("--max-turns", type=int, default=24,
-                        help="Max agent turns per claim (default: 24)")
+    parser.add_argument("--max-turns", type=int, default=None,
+                        help="Max agent turns per claim "
+                             "(default: unset — rely on 60min subprocess cap)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be fixed without invoking Claude")
     args = parser.parse_args()

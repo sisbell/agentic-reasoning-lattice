@@ -146,7 +146,7 @@ def build_claim_prompt(template, row, extract, dep_context=""):
 
 
 def translate_one(prompt, out_path, *, asn_label, claim_label,
-                  model="sonnet", effort="max", max_turns=12):
+                  model="sonnet", effort="max", max_turns=None):
     """Launch a Claude agent with tools to write + verify the .dfy file.
 
     The agent commits after each dafny verify invocation (path-scoped
