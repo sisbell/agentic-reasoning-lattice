@@ -13,7 +13,7 @@ from __future__ import annotations
 from lib.agents.producers.note_draft import NoteDraftAgent
 from lib.backend.addressing import Address
 from lib.predicates import (
-    has_consultation_for_inquiry, has_note_for_inquiry,
+    has_consultation_for_inquiry, has_note_for_inquiry, is_retired,
 )
 from lib.protocols.febe.protocol import Session
 from lib.runner import Trigger
@@ -21,10 +21,12 @@ from lib.triggers.scope import per_inquiry_of_asn
 
 
 def _predicate(session: Session, addr: Address) -> bool:
-    """True (skip) iff draft has nothing to do — either consult hasn't
-    run yet (wait for inquiry-consult) or the note already exists."""
+    """True (skip) iff draft has nothing to do — the inquiry is retired,
+    consult hasn't run yet (wait for inquiry-consult), or the note
+    already exists."""
     return (
-        not has_consultation_for_inquiry(session, addr)
+        is_retired(session, addr)
+        or not has_consultation_for_inquiry(session, addr)
         or has_note_for_inquiry(session, addr)
     )
 

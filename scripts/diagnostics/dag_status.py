@@ -68,7 +68,8 @@ def _topo_sorted(session) -> tuple[list[str], dict[str, set[str]]]:
 
     state = session.store
 
-    # Filter out substrate-retired
+    # Filter out substrate-retired. For inquiry-only ASNs (no note),
+    # check retirement on the inquiry address — mirrors note-scheduler.
     active: set[str] = set()
     asn_to_note_addr: dict[str, object] = {}
     for asn in discovered:
@@ -78,7 +79,10 @@ def _topo_sorted(session) -> tuple[list[str], dict[str, set[str]]]:
                 note_addr = addr
                 break
         if note_addr is None:
-            active.add(asn)
+            inquiry_rel = f"_docuverse/documents/1.1/1/inquiry/{asn}.md"
+            inquiry_addr = state.path_to_addr.get(inquiry_rel)
+            if inquiry_addr is None or not is_retired(session, inquiry_addr):
+                active.add(asn)
             continue
         if not is_retired(session, note_addr):
             active.add(asn)

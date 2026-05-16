@@ -108,7 +108,10 @@ def _active_notes_topo_sorted() -> list[str]:
     # Filter out substrate-retired notes; collect edges via citation.depends
     with open_session(LATTICE) as session:
         state = session.store
-        # Resolve each ASN to its note address and check retirement
+        # Resolve each ASN to its note address and check retirement.
+        # For inquiry-only ASNs (no note yet), check retirement on the
+        # inquiry address — retirement is the operator's signal to the
+        # walker regardless of which doc carries it.
         active: set[str] = set()
         for asn in discovered:
             note_addr = None
@@ -117,8 +120,12 @@ def _active_notes_topo_sorted() -> list[str]:
                     note_addr = addr
                     break
             if note_addr is None:
-                # No registered substrate path; treat as active (legacy file)
-                active.add(asn)
+                inquiry_rel = (
+                    f"_docuverse/documents/1.1/1/inquiry/{asn}.md"
+                )
+                inquiry_addr = state.path_to_addr.get(inquiry_rel)
+                if inquiry_addr is None or not is_retired(session, inquiry_addr):
+                    active.add(asn)
                 continue
             if not is_retired(session, note_addr):
                 active.add(asn)
