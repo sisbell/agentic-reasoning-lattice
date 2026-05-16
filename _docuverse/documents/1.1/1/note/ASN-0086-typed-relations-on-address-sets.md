@@ -9,41 +9,55 @@ We are looking for what a relation algebra over the link store affords. The answ
 
 ## The Two Foundational Sets
 
-**Definition — AddressUniverse.** The substrate's address universe is
+**Setup hypothesis.** We work in systems satisfying ASN-0043 (and therefore ASN-0036 and ASN-0034). We additionally assume globally `s_C`-resident content:
 
-`A = dom(Σ.C) ∪ dom(Σ.L)`
+`(A a ∈ dom(Σ.C) :: subspace_I(a) = s_C)`
 
-By L14 (DualPrimitive, ASN-0043), `A` is the entirety of stored-entity addresses; no third category exists.
+Under this hypothesis the disjointness between content and tuple addresses (R4 below) holds substrate-wide as a structural property, not merely within the slice scoped to `s_C` that L14 (DualPrimitive, ASN-0043) supplies in its stated form.
+
+**Definition — AddressUniverse.** The substrate's address universe at state Σ is
+
+`A^Σ = dom(Σ.C) ∪ dom(Σ.L)`
+
+By L14 (DualPrimitive, ASN-0043) and the setup hypothesis, `A^Σ` is the entirety of stored-entity addresses at Σ; no third category exists.
 
 **Definition — Partition.** Define:
 
-`A_doc = dom(Σ.C)` &nbsp; — content addresses
-`A_rel = dom(Σ.L)` &nbsp; — relation-tuple addresses
+`A_doc^Σ = dom(Σ.C)` &nbsp; — content addresses
+`A_rel^Σ = dom(Σ.L)` &nbsp; — relation-tuple addresses
 
-We claim `A = A_doc ⊔ A_rel` (disjoint union). The disjointness is R4 below.
+We claim `A^Σ = A_doc^Σ ⊔ A_rel^Σ` (disjoint union). The disjointness is R4 below.
 
-**Definition — TypeCatalog.** The *type catalog* is the set of type-endsets actually in use:
+*Notation.* All three sets are state-dependent — they grow as the substrate evolves. Where the ambient state is unambiguous, we drop the superscript and write `A`, `A_doc`, `A_rel`.
 
-`T_cat = {Θ ∈ Endset : (E a ∈ dom(Σ.L) :: |Σ.L(a)| ≥ 3 ∧ Σ.L(a).type = Θ)}`
+**Definition — TypeCatalog.** The set of *admissible types* is
 
-By L4 (EndsetGenerality, ASN-0043) and L9 (TypeGhostPermission, ASN-0043), `T_cat` is unconstrained by content existence: type endsets may reference any tumbler addresses, including ghosts. We require only that type-equality is decidable by endset comparison — which it is, by L8 (TypeByAddress).
+`T_admissible = {K ∈ Endset : K ≠ ∅}`
 
-For the rest of this development we restrict attention to standard-triple links — those with `|Σ.L(a)| ≥ 3`. Higher-arity links (L3, NEndsetStructure) admit the same construction with additional slot positions; nothing in what follows depends on arity = 3 except the projection to a single (from, to) pair.
+— non-empty endsets, eligible to serve as a link's type endset by L3 (NEndsetStructure, ASN-0043). For each state Σ, the *type catalog at Σ* is the subset actually in use:
+
+`T_cat^Σ = {Θ ∈ T_admissible : (E a ∈ dom(Σ.L) :: |Σ.L(a)| = 3 ∧ Σ.L(a).e₃ = Θ)}`
+
+By L4 (EndsetGenerality, ASN-0043) and L9 (TypeGhostPermission, ASN-0043), `T_admissible` is unconstrained by content existence: type endsets may reference any tumbler addresses, including ghosts. We require only that type-equality is decidable by endset comparison — which it is, by L8 (TypeByAddress).
+
+Type indices in what follows range over `T_admissible`, not `T_cat^Σ`. `T_cat^Σ` is descriptive — the snapshot of which types are populated at state Σ — but is not constitutive: `L_K^Σ` (below) is well-defined for any `K ∈ T_admissible` and is simply empty when `K ∉ T_cat^Σ`. This avoids the bootstrap circularity that would arise if `K ∈ T_cat^Σ` were required as a precondition for introducing a genuinely new type via emission.
+
+For the rest of this development we restrict attention to standard-triple links — those with `|Σ.L(a)| = 3`. Higher-arity links (L3, NEndsetStructure, ASN-0043) exist in `dom(Σ.L)` but are not members of any `L_K`; they admit an analogous construction with additional slot positions, which we do not pursue here.
 
 
 ## The Typed Relation
 
-**Definition — TypedRelation.** For each `K ∈ T_cat`, the *typed relation of type K* is
+**Definition — TypedRelation.** For each `K ∈ T_admissible` and state Σ, the *typed relation of type K at Σ* is
 
-`L_K = {(a, F, G) : a ∈ dom(Σ.L) ∧ Σ.L(a) = (F, G, K) ∧ |Σ.L(a)| ≥ 3}`
+`L_K^Σ = {(a, F, G) : a ∈ dom(Σ.L) ∧ |Σ.L(a)| = 3 ∧ Σ.L(a) = (F, G, K)}`
 
-Each member is a triple of (tuple-address, from-endset, to-endset). The pair `(F, G)` is the *relational content* of the tuple; `a` is the *tuple address*. The substrate as a whole is the disjoint union over types:
+Each member is a triple of (tuple-address, from-endset, to-endset). The pair `(F, G)` is the *relational content* of the tuple; `a` is the *tuple address*. The substrate's standard-triple link store at state Σ is the disjoint union over admissible types:
 
-`L = ⨆_{K ∈ T_cat} L_K`
+`L^Σ = ⨆_{K ∈ T_admissible} L_K^Σ`
 
-We will show (R1) that this disjoint union is well-defined: each tuple address belongs to exactly one type-slice.
+We will show (R1) that this disjoint union is well-defined: each tuple address belongs to exactly one type-slice. Note that `L^Σ` collects only the arity-3 links; higher-arity links in `dom(Σ.L)` are outside its scope, as noted above. Where ambient state is clear we drop the superscript and write `L_K`, `L`.
 
-**Definition — TupleAddress.** Define `addr : L → A_rel` by `addr(a, F, G) = a`.
+**Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`.
 
 *Remark — relation to ℘(A) × ℘(A).* A generic mathematical typed relation is a subset of `℘(A) × ℘(A)` — a set of address-pair-pairs distinguished only by content. Our typed relation is richer: each tuple carries an address that participates in the relation's identity. The projection `(a, F, G) ↦ (coverage(F), coverage(G))` recovers the address-pair view, but it loses information that the substrate retains (R0, R1).
 
@@ -52,11 +66,21 @@ We will show (R1) that this disjoint union is well-defined: each tuple address b
 
 A generic mathematical relation distinguishes its members only by content: two tuples with identical (F, G) are the same tuple. The substrate's relations do not work that way. Each tuple emission allocates a fresh address (R0), the address-to-pair binding is a function (R1), and the binding is permanent (R2).
 
-**R0 — TupleAddressFreshness.** For any state Σ and any (F, G, K), there exists a state Σ' with Σ → Σ' that emits a tuple with content (F, G) of type K at a fresh address:
+**R0 — TupleAddressFreshness.** For any state Σ with `dom(Σ.M) ≠ ∅` and any `(F, G, K) ∈ Endset × Endset × T_admissible`, there exists a state Σ' with Σ → Σ' that emits a tuple with content (F, G) of type K at a fresh address:
 
-`(A Σ, F, G ∈ Endset, K ∈ T_cat :: (E Σ' extending Σ, a : a ∉ dom(Σ.L) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = (F, G, K)))`
+`(A Σ : dom(Σ.M) ≠ ∅ :: (A F, G ∈ Endset, K ∈ T_admissible :: (E Σ' extending Σ, a : a ∉ dom(Σ.L) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = (F, G, K))))`
 
-*Proof.* By L1c (LinkAllocatorConformance, ASN-0043), link allocation conforms to T10a (AllocatorDiscipline, ASN-0034). By GlobalUniqueness (UniqueAddressAllocation, ASN-0034), addresses produced by T10a-conforming allocators are globally unique — no allocation event in the system produces an address that has been allocated before. By L-fin (LinkStoreFiniteness, ASN-0043), `|dom(Σ.L)| < ∞`, so only finitely many addresses are occupied at any state. By L1b (LinkElementFieldDepth) and T0(a) (UnboundedComponentValues, ASN-0034), the set of valid link addresses within any document's link subspace is countably infinite. Therefore an unoccupied valid link address `a` exists; the witness construction in L11b (NonInjectivity, ASN-0043) shows that `Σ'` extending `Σ` with `Σ'.L(a) = (F, G, K)` preserves all invariants of ASN-0043 and ASN-0036. ∎
+*Proof.* We construct the witness in four steps.
+
+(Step 1 — locate a document subspace.) By precondition, `dom(Σ.M) ≠ ∅`; pick any `d ∈ dom(Σ.M)`. By ASN-0036, `d` is a document address whose link subspace `s_L(d)` is well-defined. By L1a (LinkResidence, ASN-0043), every link address resides in some `s_L(d')`.
+
+(Step 2 — exhibit an unoccupied valid link address.) By L1b (LinkElementFieldDepth, ASN-0043), valid link addresses within `s_L(d)` have a specified depth structure compatible with T1 (TumblerStructure, ASN-0034). By T0(a) (UnboundedComponentValues, ASN-0034), each tumbler component admits unbounded values, so the set of valid link addresses within `s_L(d)` is countably infinite. By L-fin (LinkStoreFiniteness, ASN-0043), `|dom(Σ.L)| < ∞`. The difference between a countably-infinite set and a finite subset is non-empty, so some unoccupied valid link address `a ∈ s_L(d) \ dom(Σ.L)` exists.
+
+(Step 3 — verify allocator admits `a`.) By L1c (LinkAllocatorConformance, ASN-0043), link allocation conforms to T10a (AllocatorDiscipline, ASN-0034). By T10a.4 (NoReuse, ASN-0034), the allocator never returns an address already in `dom(Σ.L)`, so `a` (being unoccupied) is admissible as an allocator output. By T10a.5 (FreshnessGuarantee, ASN-0034), the allocator's output for the current call is permitted to be `a` provided `a` is unallocated, which Step 2 established. By T10a.6 (DeterministicExtension, ASN-0034), the allocator's choice extends to a fresh subspace position without conflict.
+
+(Step 4 — exhibit Σ'.) Define `Σ'` by extending `Σ.L` with `Σ'.L(a) = (F, G, K)`, leaving `Σ.C` and `Σ.M` unchanged. We verify: (i) `Σ'.L` remains a partial function (extension at a fresh key); (ii) `(F, G, K)` is a well-formed standard-triple link by L3 (NEndsetStructure, ASN-0043) since `F, G ∈ Endset` and `K ∈ T_admissible` is non-empty; (iii) L1a–L1c hold (`a ∈ s_L(d)` by construction, allocator-conformant by Step 3); (iv) L11b (NonInjectivity, ASN-0043) is unaffected — value-level coincidence with any pre-existing link is permitted; (v) L12 (LinkImmutability) holds — no existing entry was modified; (vi) L-fin holds — finite plus one is finite. The L11b witness construction confirms that such an extension preserves all invariants of ASN-0043 and ASN-0036. ∎
+
+*Remark on the precondition.* The hypothesis `dom(Σ.M) ≠ ∅` is necessary: by L1a (LinkResidence), every link address lives in some document's link subspace, so before any document exists, no link can be allocated. Once at least one document is present, R0 supplies a fresh link address; in particular, R0 may be invoked recursively to add links into the same document or into any subsequently emitted one.
 
 **R1 — AddressInjectivity.** The map `addr : L → A_rel` is an injection:
 
@@ -104,13 +128,13 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 ## Subspace Disjointness (R4)
 
-**R4 — TupleAddressDisjointness.** Tuple addresses and document addresses are disjoint:
+**R4 — TupleAddressDisjointness.** Under the setup hypothesis, tuple addresses and document-content addresses are disjoint:
 
-`A_doc ∩ A_rel = ∅`
+`A_doc^Σ ∩ A_rel^Σ = ∅`
 
-*Proof.* By Definition, `A_doc = dom(Σ.C)` and `A_rel = dom(Σ.L)`. By L14 (DualPrimitive, ASN-0043), `dom(Σ.C) ∩ dom(Σ.L) = ∅`. ∎
+*Proof.* Let `a ∈ A_doc^Σ = dom(Σ.C)`. By the setup hypothesis (globally `s_C`-resident content), `subspace_I(a) = s_C`. Now consider any `a' ∈ A_rel^Σ = dom(Σ.L)`. By L0 (SubspacePartition, ASN-0043), every link address resides in the link subspace component: `subspace_I(a') = s_L`. By T7 (FirstElementFieldDistinction, ASN-0034), `s_C ≠ s_L` are distinct tumbler subspaces, and addresses in distinct subspaces are themselves distinct as tumblers. Therefore `a ≠ a'`. Since `a, a'` were arbitrary, `A_doc^Σ ∩ A_rel^Σ = ∅`. ∎
 
-A stronger structural form follows from L0 (SubspacePartition, ASN-0043): not merely empty intersection, but residence in disjoint subspaces (`s_C` and `s_L`). By T7 (SubspaceDisjointness, ASN-0034), addresses in different subspaces are permanently distinct as tumblers — the disjointness is a structural property of address composition, not a coincidence of which addresses happen to be currently occupied.
+*Remark on L14's scoped form.* L14 (DualPrimitive, ASN-0043) supplies disjointness scoped to its hypothesis on which subspace each content address inhabits; here the setup hypothesis is what discharges that scoping globally. The structural reason — distinct first-component subspaces (T7) — is the same in either form. Where future work admits `s_L`-resident content, R4 would be replaced by L14 in its native scoped form, and the consequences below would apply slice by slice rather than substrate-wide.
 
 *Consequences (S4).*
 
@@ -123,13 +147,32 @@ A stronger structural form follows from L0 (SubspacePartition, ASN-0043): not me
 
 ## Self-Reference (R5)
 
-**R5 — TupleSelfTargeting.** A tuple's from-set or to-set may reference tuple addresses:
+**R5 — TupleSelfTargeting.** A tuple's from-set or to-set may reference tuple addresses. Specifically, for any state Σ and any `a ∈ A_rel^Σ`, the unit-depth span `(a, δ(1, #a))` is well-formed and may appear in the from-set or to-set of an emitted tuple, with `a` in its coverage.
 
-`(A Σ, a ∈ dom(Σ.L), (F, G, K) = Σ.L(a) :: nothing in L0–L14, L-fin, S0–S3 forbids coverage(F) ∩ A_rel ≠ ∅ or coverage(G) ∩ A_rel ≠ ∅)`
+*Justification (positive permission).* We argue in two stages.
 
-That is: the substrate model imposes no constraint forbidding endsets from referencing other tuple addresses.
+(Stage 1 — the construct is permitted.) L4(c) (EndsetGenerality, ASN-0043) explicitly states that endset spans may reference addresses in the link subspace `s_L` — i.e., addresses of other links. L13 (ReflexiveAddressing, ASN-0043) establishes that for any address `b`, the unit-depth span `(b, δ(1, #b))` is well-formed with coverage `{t : b ≼ t}` ⊇ `{b}`. Specializing to `b = a` with `a ∈ A_rel^Σ`, the span `(a, δ(1, #a))` is well-formed by L13 and is span-target-admissible by L4(c). The L11b (NonInjectivity, ASN-0043) witness shows that an emission carrying such a span as an endset component preserves all L-invariants.
 
-*Justification.* L4 (EndsetGenerality, ASN-0043) imposes no constraint on endset span targets beyond well-formedness (T12). L4(c) explicitly notes that endset spans may reference addresses in the link subspace — that is, addresses of other links. L13 (ReflexiveAddressing, ASN-0043) establishes that link addresses are valid span targets and exhibits the canonical unit-depth span `(b, δ(1, #b))` whose coverage equals `{t : b ≼ t}` — exactly the entity at `b` and its extensions. Therefore tuples can target tuples by ordinary endset construction; no special machinery is required. The worked example in ASN-0043 explicitly constructs such a meta-link in its Step 2 verification. ∎
+(Stage 2 — no invariant opposes the construct.) An exhaustive check of the ASN-0043 invariants confirms none is in opposition to the construction in Stage 1. We list each and identify why:
+
+- L0 (SubspacePartition): constrains link-address residence (`s_L`), is silent on endset-target subspace.
+- L1a–L1c, L-fin (residence, depth, allocator, finiteness): constrain `Σ.L`'s domain, not span values within endsets.
+- L2 (ZeroEndsetExclusion): forbids `K = ∅`, not `a ∈ A_rel` as a span target.
+- L3 (NEndsetStructure): requires `|Σ.L(a)| ≥ 2`; agnostic to span targets.
+- L4 (EndsetGenerality), L4(c): the positive permission used in Stage 1.
+- L5 (EndsetSpanWellFormedness): requires only T12 compliance, which `(a, δ(1, #a))` satisfies by L13.
+- L6, L7 (OrderingLaws, EndsetEquality): operate on endset values; orthogonal to target subspace.
+- L8 (TypeByAddress): operates on type slot; orthogonal.
+- L9 (TypeGhostPermission): permits non-content type endsets; if anything, broadens what can be referenced.
+- L10 (Owner): identifies emitting agent; orthogonal to span targets.
+- L11, L11b (LinkPermanence, NonInjectivity): permanence and value-coincidence allowance; both compatible.
+- L12, L12a (LinkImmutability, LinkStoreMonotonicity): forbid mutation, not new emissions with self-targeting endsets.
+- L13 (ReflexiveAddressing): the constructive lemma used in Stage 1.
+- L14 (DualPrimitive): asserts content/link residence disjointness; does not restrict targets.
+
+The R-properties already derived (R0–R4) similarly impose no restriction on what addresses an emitted endset may contain. Therefore the construct is permitted by some invariant (L4(c) + L13) and contradicted by none — it is admissible. ∎
+
+*Modal note.* R5 differs in modality from R0–R4: those are *positive lemmas* (the substrate exhibits the property); R5 is a *permission claim* (the substrate does not forbid the construction and supplies the means to perform it). The worked example in ASN-0043 Step 2 exhibits a meta-link of exactly this form, confirming the permission is exercised within ASN-0043's own examples.
 
 *Consequences (S5).* Several constructs that would otherwise require out-of-band machinery collapse into the relational primitive:
 
@@ -148,27 +191,29 @@ Without R5, each construct would require its own layer that predicates could not
 
 R0–R5 are derivable from ASN-0043. The active subset is the substrate's own contribution — added here, not present in Nelson's link model. It is made possible by R5 (a self-referential retraction relation can exist) and R3 (the retraction relation accumulates monotonically, providing the audit trail against which the active subset is computed).
 
-**Definition — RetractionType.** Fix a designated type `R ∈ T_cat` reserved for retraction. The corresponding typed relation `L_R` is the *retraction relation*. By L9 (TypeGhostPermission), `R` need not refer to anything stored — it is a name chosen by convention.
+**Definition — RetractionType.** Fix a designated type endset `R ∈ T_admissible` reserved for retraction. The corresponding typed relation `L_R^Σ` is the *retraction relation at state Σ*. By L9 (TypeGhostPermission, ASN-0043), `R` need not refer to anything stored — it is an admissible endset chosen by convention, and is well-defined as a type index regardless of whether `R ∈ T_cat^Σ` at any particular state. Before the first retraction emission, `L_R^Σ = ∅` and `R ∉ T_cat^Σ`; after the first such emission, `R ∈ T_cat^Σ`. The definition of `L_R^Σ` does not depend on which case applies.
 
 **Definition — Nullified.** The set of *nullified* tuple addresses at state `Σ` is
 
-`nullified(Σ) = {a ∈ A_rel : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))}`
+`nullified(Σ) = {a ∈ A_rel^Σ : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))}`
 
-By R5, `coverage(G')` may include `A_rel` addresses, so `nullified(Σ)` is well-defined as a subset of `A_rel`.
+By R5, `coverage(G')` may include `A_rel^Σ` addresses, so `nullified(Σ)` is well-defined as a subset of `A_rel^Σ`.
 
-**Definition — ActiveSubset.** For each `K ∈ T_cat`, the *active subset of type K* at state Σ is
+**Definition — ActiveSubset.** For each `K ∈ T_admissible`, the *active subset of type K at state Σ* is
 
 `A_K^Σ = {(a, F, G) ∈ L_K^Σ : a ∉ nullified(Σ)}`
 
-**R6 — ActiveSubsetWellDefinedness.** For every state `Σ` and every type `K ∈ T_cat`, `A_K^Σ` is well-defined and computable from `Σ.L` alone, with no auxiliary state.
+**R6 — ActiveSubsetWellDefinedness.** For every state `Σ` and every `K ∈ T_admissible`, `A_K^Σ` is well-defined and computable from `Σ.L` alone, with no auxiliary state.
 
 *Proof.* `nullified(Σ)` is determined entirely by `L_R^Σ`, which by Definition of TypedRelation is determined by `Σ.L`. `A_K^Σ` is a set-difference between `L_K^Σ` and tuples whose addresses lie in `nullified(Σ)`; both inputs are determined by `Σ.L`. No flag, no version field, no separate snapshot is consulted. ∎
 
 **R6a — RetractionStability.** Once a tuple's address is nullified, it stays nullified across all future state transitions:
 
-`(A Σ → Σ', a ∈ A_rel : a ∈ nullified(Σ) :: a ∈ nullified(Σ'))`
+`(A Σ → Σ', a ∈ A_rel^Σ : a ∈ nullified(Σ) :: a ∈ nullified(Σ'))`
 
-*Proof.* Suppose `a ∈ nullified(Σ)`. By Definition, there exists `(b, F', G') ∈ L_R^Σ` with `a ∈ coverage(G')`. By R3, `(b, F', G') ∈ L_R^{Σ'}`. By R2, `coverage(G')` evaluated at `Σ'` equals `coverage(G')` evaluated at `Σ` (the endset value is preserved). So `a ∈ coverage(G')` at `Σ'` as well, and `a ∈ nullified(Σ')`. ∎
+*Proof.* Recall that `coverage : Endset → ℘(A)` is a pure function on endset values, fixed by the substrate model (ASN-0043, Definition of coverage): given an endset value `E`, `coverage(E)` is determined entirely by `E` and the tumbler-order relation `≼`, which itself is state-independent (T1, ASN-0034). In particular, `coverage(E)` does not depend on the state Σ in which `E` is evaluated.
+
+Suppose `a ∈ nullified(Σ)`. By Definition, there exist `b ∈ dom(Σ.L)` and `(b, F', G') ∈ L_R^Σ` with `a ∈ coverage(G')`. We exhibit the same witness at Σ': by R3 (applied to the type slice indexed by `R`), `L_R^Σ ⊆ L_R^{Σ'}`, so `(b, F', G') ∈ L_R^{Σ'}`. By R2, `b ∈ dom(Σ'.L)` with `Σ'.L(b) = (F', G', R)` — the same value `G'` appears in both states. Since `coverage` is a pure function on endset values, `coverage(G')` is a single fixed set, and `a ∈ coverage(G')` is a state-independent proposition once `G'` has been fixed. Therefore `a ∈ nullified(Σ')`. ∎
 
 **R6b — SingleDepthRetraction.** The retraction predicate is *single-depth*: `nullified(Σ)` checks only whether some tuple in `L_R` directly targets `a`, regardless of whether that retracting tuple is itself nullified.
 
@@ -197,27 +242,29 @@ To "restore" content, emit a fresh tuple with the desired value (R0). The new tu
 
 The six properties yield three operations that suffice to span all visible substrate change.
 
-**Definition — Emit_K.** For `K ∈ T_cat` and finite endsets `F, G`:
+**Definition — Emit_K.** Emit is a state-transforming operation with signature
 
-`Emit_K(F, G) → A_rel`
+`Emit_K : Σ × Endset × Endset → Σ' × A_rel^{Σ'}`
 
-allocates a fresh address `a ∉ dom(Σ.L)` (R0), extends `Σ.L` to `Σ'.L` with `Σ'.L(a) = (F, G, K)` while holding all other state in frame, and returns `a`. By R2, the binding is permanent.
+The defining precondition is `K ∈ T_admissible` and `dom(Σ.M) ≠ ∅`. Given input state Σ and finite endsets `F, G ∈ Endset`, `Emit_K(Σ, F, G)` returns `(Σ', a)` where, by R0, `a ∉ dom(Σ.L)`, `a ∈ dom(Σ'.L)`, and `Σ'.L(a) = (F, G, K)`. All other components of Σ are held in frame: `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. By R2, the binding `Σ'.L(a) = (F, G, K)` is permanent across all subsequent transitions.
 
-**Definition — Observe_K.** For `K ∈ T_cat`, a pattern `(F̂, Ĝ) ∈ ℘_fin(A) × ℘_fin(A)`, and a view selector:
+The address-returning convention in the rest of this note — `Emit_K(F, G) → A_rel` — is a metonym: the state is the ambient one, and `Σ'` is the post-emission state in which the returned address resides.
 
-`Observe_K(F̂, Ĝ, view) → ℘_fin(L_K)`
+**Definition — Observe_K.** For `K ∈ T_admissible`, a pattern `(F̂, Ĝ) ∈ ℘_fin(A) × ℘_fin(A)`, and a view selector, Observe is a pure read with signature
 
-returns
+`Observe_K : Σ × ℘_fin(A) × ℘_fin(A) × View → ℘_fin(L_K^Σ)`
+
+where `View ∈ {hist, oper}` selects between `L_K^Σ` (audit) and `A_K^Σ` (operational). It returns
 
 `{(a, F, G) ∈ view : F̂ ⊆ coverage(F) ∧ Ĝ ⊆ coverage(G)}`
 
-with `view ∈ {L_K^Σ, A_K^Σ}`. The audit query uses `L_K`; the operational query uses `A_K`. Matching is set-inclusion of pattern within coverage.
+with `view = L_K^Σ` if `View = hist` and `view = A_K^Σ` if `View = oper`. Observe leaves Σ unchanged.
 
-**Definition — Nullify.** For `a ∈ A_rel`:
+**Definition — Nullify.** For input state Σ and `a ∈ A_rel^Σ`, Nullify is the composition
 
-`Nullify(a) ≡ Emit_R(∅, {(a, δ(1, #a))})`
+`Nullify(Σ, a) ≡ Emit_R(Σ, ∅, {(a, δ(1, #a))})`
 
-That is, emit a tuple into the retraction relation with empty from-set and a unit-depth to-span targeting `a`. By PrefixSpanCoverage (ASN-0043), `coverage({(a, δ(1, #a))}) = {t : a ≼ t}`, which contains `a`. By Definition of `nullified`, `a ∈ nullified(Σ')` after the emission. By R6a, `a` remains nullified thereafter.
+That is, emit a tuple into the retraction relation with empty from-set and a unit-depth to-span targeting `a`. By PrefixSpanCoverage (ASN-0043), `coverage({(a, δ(1, #a))}) = {t : a ≼ t}`, which contains `a`. Let `(Σ', _) = Nullify(Σ, a)`. By Definition of `nullified`, `a ∈ nullified(Σ')`. By R6a, `a` remains nullified thereafter.
 
 **R7 — NullifyIsEmit.** Nullify is not a separate primitive; it is `Emit_R` with a designated argument shape.
 
@@ -228,14 +275,14 @@ That is, emit a tuple into the retraction relation with empty from-set and a uni
 
 We illustrate the structure of a retraction cycle in the relational vocabulary, building on the ASN-0043 worked example.
 
-*Setup.* Let `K ∈ T_cat` be any content-classifying type. Suppose at state `Σ_0` the substrate contains:
+*Setup.* Let `K ∈ T_admissible` be any content-classifying type with `K ∈ T_cat^{Σ_0}`. Suppose at state `Σ_0` the substrate contains:
 
 `L_K^{Σ_0} = {(a₁, F₁, G₁)}` &nbsp; — one classification tuple
 `L_R^{Σ_0} = ∅` &nbsp; — no retractions yet
 
-By Definition, `A_K^{Σ_0} = L_K^{Σ_0} = {(a₁, F₁, G₁)}` and `nullified(Σ_0) = ∅`.
+By Definition, `A_K^{Σ_0} = L_K^{Σ_0} = {(a₁, F₁, G₁)}` and `nullified(Σ_0) = ∅`. We further assume `a₁` is sited in some document subspace `s_L(d)` whose subsequent allocations need not nest under `a₁` — the typical configuration, since by L1c (LinkAllocatorConformance, ASN-0043) the allocator's outputs within `s_L(d)` are siblings or successors in the document's link subspace, not extensions of an existing link address.
 
-*Step 1: Nullify a₁.* `Σ_0 → Σ_1` via `Nullify(a₁) = Emit_R(∅, {(a₁, δ(1, #a₁))})`. This allocates a fresh `b₁ ∉ dom(Σ_0.L)` (R0) and sets `Σ_1.L(b₁) = (∅, {(a₁, δ(1, #a₁))}, R)`. Now:
+*Step 1: Nullify a₁.* `Σ_0 → Σ_1` via `Nullify(Σ_0, a₁) = Emit_R(Σ_0, ∅, {(a₁, δ(1, #a₁))})`. By R0, this allocates a fresh `b₁ ∉ dom(Σ_0.L)`; we choose `b₁` from the unoccupied link-subspace positions of `s_L(d)`, and by T10a.5 (FreshnessGuarantee, ASN-0034) the allocator's discipline supplies such a position. The witness construction in R0 (Step 3) further confirms that `b₁` and `a₁` are not in a prefix relation: T10a.4 forbids reuse, T10a.5 supplies freshness within the subspace, and T10a.6 extends the allocator's choice deterministically to a sibling position — so `a₁ ⊀ b₁`, and the to-set `{(a₁, δ(1, #a₁))}` covers `a₁` and its tumbler-prefix extensions without unintentionally covering `b₁` itself. The post-state has `Σ_1.L(b₁) = (∅, {(a₁, δ(1, #a₁))}, R)`. Now:
 
 - `L_K^{Σ_1} = {(a₁, F₁, G₁)}` &nbsp; — unchanged (R3 preserves `L_K`; the emission targets `L_R`)
 - `L_R^{Σ_1} = {(b₁, ∅, {(a₁, δ(1, #a₁))})}`
@@ -257,28 +304,30 @@ The relational content `(F₁, G₁)` is again present in `A_K`, but at a differ
 
 | Label | Type | Statement | Status |
 |-------|------|-----------|--------|
-| A | DEF | Address universe `dom(Σ.C) ∪ dom(Σ.L)` | introduced |
-| A_doc, A_rel | DEF | Partition of `A` into content addresses (`dom(Σ.C)`) and tuple addresses (`dom(Σ.L)`) | introduced |
-| T_cat | DEF | Type catalog — type-endsets actually in use | introduced |
-| L_K | DEF | Typed relation: `{(a, F, G) : Σ.L(a) = (F, G, K)}` | introduced |
-| L | DEF | Substrate relation: `⨆_{K ∈ T_cat} L_K` | introduced |
-| addr | DEF | Map `(a, F, G) ↦ a : L → A_rel` | introduced |
-| nullified(Σ) | DEF | Tuple addresses targeted by some `L_R` to-set at Σ | introduced |
+| Setup | HYP | Globally `s_C`-resident content: `(A a ∈ dom(Σ.C) :: subspace_I(a) = s_C)` | introduced |
+| A^Σ | DEF | Address universe at state Σ: `dom(Σ.C) ∪ dom(Σ.L)` | introduced |
+| A_doc^Σ, A_rel^Σ | DEF | Partition of `A^Σ` into content addresses (`dom(Σ.C)`) and tuple addresses (`dom(Σ.L)`) | introduced |
+| T_admissible | DEF | Admissible types: `{K ∈ Endset : K ≠ ∅}` — the indexing domain for typed relations | introduced |
+| T_cat^Σ | DEF | Type catalog at Σ — admissible types actually in use at Σ (descriptive, not constitutive) | introduced |
+| L_K^Σ | DEF | Typed relation: `{(a, F, G) : a ∈ dom(Σ.L) ∧ |Σ.L(a)| = 3 ∧ Σ.L(a) = (F, G, K)}` | introduced |
+| L^Σ | DEF | Standard-triple link store: `⨆_{K ∈ T_admissible} L_K^Σ` | introduced |
+| addr | DEF | Map `(a, F, G) ↦ a : L^Σ → A_rel^Σ` | introduced |
+| nullified(Σ) | DEF | Tuple addresses targeted by some `L_R^Σ` to-set | introduced |
 | A_K^Σ | DEF | Active subset: `{(a, F, G) ∈ L_K^Σ : a ∉ nullified(Σ)}` | introduced |
-| R0 | LEMMA | TupleAddressFreshness — every emission allocates a fresh address (= L1c + GlobalUniqueness + L-fin + L11b witness) | introduced |
+| R0 | LEMMA | TupleAddressFreshness — under precondition `dom(Σ.M) ≠ ∅`, every emission allocates a fresh address (= L1a + L1b + L1c + T0(a) + T10a.4 + T10a.5 + T10a.6 + L-fin + L11b witness) | introduced |
 | R1 | LEMMA | AddressInjectivity — `addr` is an injection (= function property of `Σ.L`) | introduced |
 | R2 | LEMMA | TupleAddressPermanence — addresses persist with values intact (= L12) | introduced |
-| R3 | LEMMA | TypedSliceMonotonicity — each `L_K` is monotone (= L12a + R2) | introduced |
-| R4 | LEMMA | TupleAddressDisjointness — `A_doc ∩ A_rel = ∅` (= L14) | introduced |
-| R5 | META | TupleSelfTargeting — endsets may reference `A_rel` addresses (= L4(c) + L13) | introduced |
+| R3 | LEMMA | TypedSliceMonotonicity — each `L_K^Σ` is monotone (= L12a + R2) | introduced |
+| R4 | LEMMA | TupleAddressDisjointness — `A_doc^Σ ∩ A_rel^Σ = ∅` (= Setup + L0 + T7) | introduced |
+| R5 | META | TupleSelfTargeting — for any `a ∈ A_rel^Σ`, the span `(a, δ(1, #a))` is admissible as an endset member (= L4(c) + L13, no opposing invariant) | introduced |
 | R6 | LEMMA | ActiveSubsetWellDefinedness — `A_K^Σ` is determined by `Σ.L` | introduced |
-| R6a | LEMMA | RetractionStability — once nullified, always nullified | introduced |
+| R6a | LEMMA | RetractionStability — once nullified, always nullified (= R3 + R2 + purity of coverage) | introduced |
 | R6b | LEMMA | SingleDepthRetraction — `nullified` checks only direct targeting | introduced |
 | R6c | LEMMA | RestorationByReemission — restoration is fresh emission, never retraction-of-retraction | introduced |
 | R7 | LEMMA | NullifyIsEmit — Nullify is `Emit_R` with designated argument shape, not a separate primitive | introduced |
-| Emit_K | OP | Allocate fresh address; extend `Σ.L` with `(F, G, K)` | introduced |
-| Observe_K | OP | Return matching `(a, F, G)` triples in selected view | introduced |
-| Nullify | OP | `Nullify(a) ≡ Emit_R(∅, {(a, δ(1, #a))})` | introduced |
+| Emit_K | OP | State-transforming: `Σ × Endset × Endset → Σ' × A_rel^{Σ'}`, with `K ∈ T_admissible` and `dom(Σ.M) ≠ ∅` | introduced |
+| Observe_K | OP | Pure read: `Σ × ℘_fin(A) × ℘_fin(A) × View → ℘_fin(L_K^Σ)`, selecting `L_K^Σ` or `A_K^Σ` | introduced |
+| Nullify | OP | `Nullify(Σ, a) ≡ Emit_R(Σ, ∅, {(a, δ(1, #a))})` | introduced |
 
 
 ## Open Questions
