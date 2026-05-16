@@ -19,14 +19,37 @@ def version_children(session: Session, doc_addr: Address) -> List[Address]:
     return session.version_children(doc_addr)
 
 
-def version_head(session: Session, doc_addr: Address) -> Address:
-    """Walk forward to the deepest descendant in the linear chain.
+def version_root(session: Session, addr: Address) -> Address:
+    """Walk up the version-parent map to find addr's identity.
 
-    At each level, picks the highest-numbered sibling. Branches
-    (versions of an earlier version that aren't the latest) are not
-    followed.
+    For an identity address (None parent), returns addr itself. For
+    a version address (sibling of identity in fan-out, or descendant
+    in legacy linear chains), walks parent map up until reaching the
+    root. Uses State.parent dict directly — O(depth_up) with the
+    children-index in place.
     """
-    cur = doc_addr
+    cur = addr
+    state = session._state
+    while True:
+        parent = state.parent.get(cur)
+        if parent is None:
+            return cur
+        cur = parent
+
+
+def version_head(session: Session, doc_addr: Address) -> Address:
+    """Walk forward to the latest version.
+
+    Normalizes doc_addr to its version root (identity) first, then
+    walks parent map down picking the max-tumbler sibling at each
+    level. Returns the same address whether the caller passes
+    identity, a prior version, or — in legacy mixed mode — any node
+    inside a deep chain rooted at identity.1.
+
+    Cost: O(depth_up + depth_down). For fan-out, depth_down=1. For
+    legacy linear chains, depth_down equals chain depth.
+    """
+    cur = version_root(session, doc_addr)
     while True:
         children = session.version_children(cur)
         if not children:
@@ -35,7 +58,23 @@ def version_head(session: Session, doc_addr: Address) -> Address:
 
 
 def is_head_version(session: Session, doc_addr: Address) -> bool:
-    return not session.version_children(doc_addr)
+    """True iff doc_addr is the latest version of its doc.
+
+    Walk-up + compare: normalizes to identity, finds the head from
+    there, returns whether doc_addr equals it. Works uniformly for
+    fan-out (head is max sibling of identity), legacy linear chains
+    (head is the deepest descendant), and any stale-version reference
+    (returns False).
+
+    The prior implementation `not session.version_children(addr)`
+    returned True for any leaf in the parent map — which under
+    fan-out is every sibling and under legacy linear chains is the
+    deepest descendant. After fan-out lands, a non-head sibling
+    has no version_children of its own but is still not the head;
+    leaf-check returns True incorrectly. Walk-up + compare is
+    structurally correct in all three regimes.
+    """
+    return doc_addr == version_head(session, doc_addr)
 
 
 def _walk_supersession(session: Session, doc_addr: Address):
@@ -65,10 +104,14 @@ def _walk_supersession(session: Session, doc_addr: Address):
 def supersession_head(session: Session, doc_addr: Address) -> Address:
     """Head version (terminal node) of doc_addr's supersession chain.
 
-    For docs whose versioning lives in the tumbler version field,
-    use `version_head` instead — the substrate currently lacks
-    version-bearing addresses, so supersession links carry the
-    version progression explicitly.
+    Walks the supersession link graph, not the parent map. The two
+    representations agree for register_version-generated chains
+    (parent map and supersession links are co-maintained), but
+    sidecar↔aggregate relationships use ONLY supersession links —
+    the aggregate is a separate doc joined to its sidecar via an
+    explicit `supersession` link, not via parent-map versioning.
+    Callers (motif, foundation, cascade `_assembly_artifact_or_self`)
+    rely on this to surface the aggregate from a sidecar base.
     """
     last = doc_addr
     for addr in _walk_supersession(session, doc_addr):

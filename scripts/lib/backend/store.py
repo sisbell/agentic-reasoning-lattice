@@ -296,53 +296,74 @@ class Store:
                 pass
 
     def register_version(self, addr: Address) -> Address:
-        """Advance the supersession chain for `addr`'s doc by one.
+        """Allocate a new version of `addr`'s doc — fan-out shape.
 
-        Per LM 4/52-4/53. Walks `addr`'s parent-map descendants to find
-        the current chain head, then allocates a tumbler-child of the
-        head and emits a `supersession(head, new_addr)` link.
+        Per LM 4/52-4/53. Walks `addr` up its version-parent chain to
+        find the doc's identity (the version root), then allocates a
+        sibling-child of identity. The new version is `identity.N`
+        where N is the next available sibling — a flat shape rather
+        than a chain extension:
 
-        The new address is a bare marker — no classifier, no lattice
-        membership, no path mapping. Existing relations (descriptions,
-        citations, attributes, comments) all continue to point at the
-        prior addresses; readers walk the supersession chain when they
-        need to know whether the base has been edited.
+            identity                identity
+            ├── v1 (= identity.1)   ├── v1
+            ├── v2 (= identity.2)   ├── v2
+            └── v3 (= identity.3)   └── v3
 
-        Resolving to head before allocating produces a linear chain:
-        identity → v1 → v2 → v3 → … . `supersession_chain_length`
-        grows monotonically with each call (load-bearing for sidecar
-        freshness predicates that compare chain lengths). Callers may
-        pass any address along the chain (identity, current head, or a
-        stale version reference); the chain always extends from the
-        current head.
+        Allocating from identity (not from the previous head) keeps
+        the parent-map depth at 1 regardless of revision count. At
+        N versions, `version_head(identity)` does one `version_children`
+        lookup and picks the max-tumbler child — O(1) with the index.
+        The prior design walked to head before allocating, producing
+        a depth-N linear chain whose walks scaled O(depth × N) and
+        became a measurable hot spot on ASN-51's 165-deep chain.
+
+        Existing relations (descriptions, citations, attributes,
+        comments) continue to point at the prior addresses; readers
+        normalize via walk-up to identity before resolving to head.
+
+        Supersession link emission: `supersession(prior_head, new)`
+        where `prior_head` is the highest-tumbler existing sibling
+        (or identity itself for the first version). Walking
+        supersession links from identity picks the max-tumbler target
+        at each step and terminates at the latest version. For docs
+        with legacy linear chains (rooted at identity.1), the legacy
+        chain stays addressable as historical depth — the new
+        sibling supersedes the legacy root, and walks across the new
+        edge bypass the legacy descent.
+
+        Callers may pass any address (identity, current head, prior
+        version, or — in legacy mixed mode — any node in a deep
+        chain); register_version always normalizes to identity before
+        allocating, so the new version is uniformly `identity.N`.
 
         Returns the new version's address.
         """
         if addr not in self.state._owner:
             raise ValueError(f"unknown doc address {addr}")
 
-        # Walk to current chain head — deepest descendant via the
-        # parent map. If the chain is already linear (each node has
-        # at most one child), this picks the leaf; if a fan-out
-        # exists from earlier versions, picks the highest-tumbler
-        # child at each step (matching version_head's algorithm).
-        head = addr
+        # Normalize to identity (version root). For identity-rooted
+        # addresses, this is a no-op. For descendant or sibling
+        # addresses, walks up via parent map until reaching None.
+        identity = addr
         while True:
-            children = sorted(
-                (a for a, p in self.state.parent.items() if p == head),
-                key=lambda a: a.digits,
-            )
-            if not children:
+            parent = self.state.parent.get(identity)
+            if parent is None:
                 break
-            head = children[-1]
+            identity = parent
 
-        new_addr = self.state._allocate_child(head)
-        self.state._set_parent(new_addr, head)
-        self.state.kind[new_addr] = self.state.kind.get(head, "doc")
+        # Prior head for the supersession FROM target. Empty siblings
+        # means this is the first version; the identity itself is the
+        # supersession source.
+        siblings = self.state.version_children(identity)
+        prior_head = siblings[-1] if siblings else identity
+
+        new_addr = self.state._allocate_child(identity)
+        self.state._set_parent(new_addr, identity)
+        self.state.kind[new_addr] = self.state.kind.get(identity, "doc")
         self.state.content[new_addr] = ""
 
         from .emit import emit_supersession
-        emit_supersession(self, head, new_addr)
+        emit_supersession(self, prior_head, new_addr)
 
         return new_addr
 

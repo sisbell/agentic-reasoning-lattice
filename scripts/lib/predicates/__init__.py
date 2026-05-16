@@ -92,7 +92,7 @@ from .reconciliation import (
 )
 from .versions import (
     is_head_version, supersession_chain_length, supersession_head,
-    version_children, version_head,
+    version_children, version_head, version_root,
 )
 
 __all__ = [
@@ -160,4 +160,5 @@ __all__ = [
     "unresolved_revise_comments",
     "version_children",
     "version_head",
+    "version_root",
 ]
