@@ -80,13 +80,13 @@ Two elementary transitions extend a document's arrangement by adding new V→I m
 
 **SV2 (ExtensionMonotonicity).** (We write π_Σ(e, d) when the state at which projection is evaluated matters; the subscript selects the state whose arrangement M(d) is used.)
 
-`(A Σ →_{K.μ⁺/K.μ⁺_L} Σ', e, d :: π_Σ(e, d) ⊆ π_{Σ'}(e, d))`
+`(A Σ →_{K.μ⁺/K.μ⁺_L} Σ', e, d :: π_Σ(e, d) ⊆ π_{Σ'}(e, d) ∧ locate_Σ(e, d) ⊆ locate_{Σ'}(e, d))`
 
-Vitality is monotonically preserved: if an endset was vital in d before extension, it remains vital afterward. Extension can only *enlarge* the projection — introducing I-addresses that were in coverage(e) but not previously in ran(M(d)). It cannot remove any.
+Vitality is monotonically preserved: if an endset was vital in d before extension, it remains vital afterward. Extension can only *enlarge* the projection — introducing I-addresses that were in coverage(e) but not previously in ran(M(d)). It cannot remove any. The resolution conjunct says the same on the V-side: every pre-existing locate-position survives, and additional V-positions introduced by the extension may enter the locate set when their I-addresses lie in coverage(e).
 
-Proof: π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (L12, ASN-0043) and ran(M'(d)) ⊇ ran(M(d)) (K.μ⁺/K.μ⁺_L effect — both transitions extend dom(M(d)) while preserving existing V↦I mappings, so the post-state range contains the pre-state range), we have coverage(e) ∩ ran(M'(d)) ⊇ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
+*Projection.* π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (L12, ASN-0043) and ran(M'(d)) ⊇ ran(M(d)) (K.μ⁺/K.μ⁺_L effect — both transitions extend dom(M(d)) while preserving existing V↦I mappings, so the post-state range contains the pre-state range), we have coverage(e) ∩ ran(M'(d)) ⊇ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
 
-*For resolution:* locate_Σ(e, d) ⊆ locate_{Σ'}(e, d). Let v ∈ locate_Σ(e, d). Then v ∈ dom(M(d)) and M(d)(v) ∈ coverage(e). Both K.μ⁺ and K.μ⁺_L preserve existing mappings (dom(M(d)) ⊆ dom(M'(d)) with M'(d)(v) = M(d)(v) for all v ∈ dom(M(d))). So v ∈ dom(M'(d)) and M'(d)(v) = M(d)(v) ∈ coverage(e), giving v ∈ locate_{Σ'}(e, d). New V-positions in dom(M'(d)) \ dom(M(d)) may additionally enter the locate set when their I-addresses lie in coverage(e). ∎
+*Resolution.* Let v ∈ locate_Σ(e, d). Then v ∈ dom(M(d)) and M(d)(v) ∈ coverage(e). Both K.μ⁺ and K.μ⁺_L preserve existing mappings (dom(M(d)) ⊆ dom(M'(d)) with M'(d)(v) = M(d)(v) for all v ∈ dom(M(d))). So v ∈ dom(M'(d)) and M'(d)(v) = M(d)(v) ∈ coverage(e), giving v ∈ locate_{Σ'}(e, d). New V-positions in dom(M'(d)) \ dom(M(d)) may additionally enter the locate set when their I-addresses lie in coverage(e). ∎
 
 *Distinct architectural roles.* The two transitions enlarge different parts of ran(M(d)) and so contribute to different parts of π(e, d). For an endset e whose coverage lies entirely in dom(Σ.C) (the typical content endset, with spans over content I-addresses), only K.μ⁺ can strictly enlarge π(e, d) — the new I-address introduced by K.μ⁺_L is a link address in dom(Σ.L), disjoint from coverage(e). Conversely, for an endset whose coverage contains link addresses — permitted by L4 (EndsetGenerality) and the reflexive-addressing case of L13 (ReflexiveAddressing) — K.μ⁺_L can strictly enlarge π(e, d) while K.μ⁺ cannot reach those coverage members at all. The unified SV2 statement remains correct for both cases (the inclusion is reflexive when neither extension touches coverage(e)); the strictness of the inclusion depends on which subspace the endset references. We defer the detailed analysis of link-referencing endsets and reflexive addressing to the Link Subspace ASN; SV2 here captures the monotonicity that both transitions share without committing to a particular subspace.
 
@@ -97,9 +97,9 @@ Arrangement contraction (K.μ⁻, ArrangementContraction) removes V→I mappings
 
 **SV3 (ContractionReduction).**
 
-`(A Σ →_{K.μ⁻} Σ', e, d :: π_{Σ'}(e, d) ⊆ π_Σ(e, d))`
+`(A Σ →_{K.μ⁻} Σ', e, d :: π_{Σ'}(e, d) ⊆ π_Σ(e, d) ∧ locate_{Σ'}(e, d) ⊆ locate_Σ(e, d))`
 
-Proof: π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (L12, ASN-0043) and ran(M'(d)) ⊆ ran(M(d)) (K.μ⁻ restricts the domain while preserving values), we have coverage(e) ∩ ran(M'(d)) ⊆ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
+*Projection.* π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (L12, ASN-0043) and ran(M'(d)) ⊆ ran(M(d)) (K.μ⁻ restricts the domain while preserving values), we have coverage(e) ∩ ran(M'(d)) ⊆ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
 
 Contraction can only *shrink* the projection. If the contraction removes all V-positions whose I-addresses are in coverage(e), then π_{Σ'}(e, d) = ∅ and the endset loses vitality in d. This is the mechanism by which editing can degrade a link's utility in a specific document.
 
@@ -111,7 +111,7 @@ which requires: `(A a : a ∈ coverage(e) ∩ ran(M(d)) : a ∉ ran(M'(d)))` —
 
 Nelson's survivability condition — "if anything is left at each end" — is precisely the negation of this: as long as at least one I-address from the endset remains in d's arrangement, the endset survives in d.
 
-*For resolution:* locate_{Σ'}(e, d) ⊆ locate_Σ(e, d). Let v ∈ locate_{Σ'}(e, d). Then v ∈ dom(M'(d)) and M'(d)(v) ∈ coverage(e). Since K.μ⁻ restricts the domain (dom(M'(d)) ⊂ dom(M(d))) while preserving values (M'(d)(v) = M(d)(v) for all v ∈ dom(M'(d))), we have v ∈ dom(M(d)) and M(d)(v) = M'(d)(v) ∈ coverage(e), giving v ∈ locate_Σ(e, d). ∎
+*Resolution.* Let v ∈ locate_{Σ'}(e, d). Then v ∈ dom(M'(d)) and M'(d)(v) ∈ coverage(e). Since K.μ⁻ restricts the domain (dom(M'(d)) ⊂ dom(M(d))) while preserving values (M'(d)(v) = M(d)(v) for all v ∈ dom(M'(d))), we have v ∈ dom(M(d)) and M(d)(v) = M'(d)(v) ∈ coverage(e), giving v ∈ locate_Σ(e, d). ∎
 
 
 ### Contraction Is Document-Local
@@ -160,7 +160,16 @@ The answer depends on the allocation regime and the address hierarchy. We establ
 
 `b ∉ ⟦(s, ℓ)⟧`
 
-*Precondition.* The span start s and the candidate address b are *T4-valid* element-level tumblers — they admit the hierarchical parsing of T4 (HierarchicalParsing, ASN-0034) into the projections (N, U, D, E), with element-level depth zeros(s) = zeros(b) = 3 placing each address in the element field per T4b (UniqueParse, ASN-0034). T4-validity ensures the projections N(s), U(s), D(s), N(b), U(b), D(b) are well-defined, and consequently `origin(s) = N(s).0.U(s).0.D(s)` and `origin(b) = N(b).0.U(b).0.D(b)` are well-defined (per the origin definition in ASN-0036, which presupposes T4-valid element-level arguments). L4 (EndsetGenerality, ASN-0043) permits non-element-level span starts, but the origin-based exclusion applies only when the start is a T4-valid element-level tumbler. The action point k of ℓ must satisfy: for s with zeros(s) = 3, let p₃ denote the position of the third zero component in s; the precondition is k > p₃. Equivalently, the leading k − 1 components of s contain all three field separators: `|{i : 1 ≤ i ≤ k−1 ∧ sᵢ = 0}| = 3`. This ensures the action point falls within the element field — beyond all three field separators.
+*Precondition.*
+- `s, b ∈ T`
+- `zeros(s) = 3 ∧ zeros(b) = 3`
+- `s, b` are T4-valid
+- `origin(b) ≠ origin(s)`
+- `k > p₃`, where `p₃` is the position of the third zero component in s
+
+Equivalently, the last condition `k > p₃` says the leading k − 1 components of s contain all three field separators: `|{i : 1 ≤ i ≤ k−1 ∧ sᵢ = 0}| = 3`. This places the action point within the element field — beyond all three field separators.
+
+T4-validity is the conjunction of the conditions in T4 (HierarchicalParsing, ASN-0034); it is required so that the projections N(s), U(s), D(s), N(b), U(b), D(b) are well-defined, and consequently `origin(s) = N(s).0.U(s).0.D(s)` and `origin(b) = N(b).0.U(b).0.D(b)` are well-defined (per the origin definition in ASN-0036, which presupposes T4-valid element-level arguments). The element-level depth condition `zeros(s) = zeros(b) = 3` places each address in the element field per T4b (UniqueParse, ASN-0034). L4 (EndsetGenerality, ASN-0043) permits non-element-level span starts, but the origin-based exclusion stated by SV6 applies only when the start is a T4-valid element-level tumbler.
 
 *Proof.* Let k be the action point of ℓ, with k > p₃ as stated. By TumblerAdd, components before k are copied from s, and (s ⊕ ℓ)ₖ = sₖ + ℓₖ, so s and s ⊕ ℓ agree on positions 1 through k−1. Consider any t with s ≤ t < s ⊕ ℓ.
 
@@ -168,7 +177,7 @@ The answer depends on the allocation regime and the address hierarchy. We establ
 
 *Prefix exclusion (#t ≥ j, so T1(i) applies).* T1(i) requires both t and s to have a component at position j. Span well-formedness (ASN-0034, span precondition `actionPoint(ℓ) ≤ #s`) gives k ≤ #s, so j < k ≤ #s and sⱼ is well-defined. For tⱼ, suppose for contradiction that #t < j. Then t and s agree on every position 1 through #t (because j is the *first* position of divergence and #t < j), and #t < j ≤ #s, so t is a proper prefix of s. By T1(ii) (a proper prefix is strictly less in the lex order), t < s — contradicting s ≤ t. Hence #t ≥ j, so tⱼ is well-defined.
 
-*Divergence is upward.* Since t ≥ s and t agrees with s on positions 1 through j−1, T1(i) gives tⱼ > sⱼ. By TumblerAdd, (s ⊕ ℓ)ⱼ = sⱼ for j < k. Since t and s ⊕ ℓ each agree with s on positions 1 through j−1, and s ⊕ ℓ agrees with s on positions 1 through k−1 (with j−1 < k−1), the first divergence of t and s ⊕ ℓ is at position j with tⱼ > sⱼ = (s ⊕ ℓ)ⱼ. By T1(i), t > s ⊕ ℓ — contradicting t < s ⊕ ℓ. □
+*Divergence is upward.* Since t ≥ s and t agrees with s on positions 1 through j−1, T1(i) gives tⱼ > sⱼ. By TumblerAdd, (s ⊕ ℓ)ⱼ = sⱼ for j < k. Since t agrees with s on positions 1..j−1 (first divergence at j) and s ⊕ ℓ agrees with s on positions 1..k−1 (TumblerAdd with k as action point), and j−1 < k−1, t agrees with s ⊕ ℓ on positions 1..j−1. So the first divergence of t and s ⊕ ℓ is at position j with tⱼ > sⱼ = (s ⊕ ℓ)ⱼ. By T1(i), t > s ⊕ ℓ — contradicting t < s ⊕ ℓ. □
 
 The two structural conclusions follow as parallel applications of the sub-lemma:
 
@@ -305,7 +314,7 @@ A decomposition term ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k) is itself contiguous in th
 
 `π_text(e, d) = (∪ j, k : 1 ≤ j ≤ m ∧ 1 ≤ k ≤ p : ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k))`
 
-The union is over *exactly* m · p decomposition terms (one per (span, block) pair), some possibly empty.
+The union is over *exactly* m · p decomposition terms (one per (span, block) pair), some possibly empty. Here "exactly m · p decomposition terms" counts (span, block)-indexed positions in the Cartesian product, not distinct subsets of π_text(e, d); two terms may coincide as sets.
 
 (b) *Maximal-fragment count — at most m · p fragments.* The same set π_text(e, d) is also the disjoint union (within each block) of its maximal ordinal-contiguous fragments, totalling *at most* m · p of them across all blocks; the inequality is strict whenever adjacent or overlapping decomposition terms within a single block coalesce into a single maximal fragment. (The "at most" bound is reached when every non-empty decomposition term is itself a maximal fragment, i.e., when the spans contribute pairwise non-adjacent regions within each block.)
 
@@ -390,7 +399,7 @@ Re-take the initial five-address content store with a₁ < a₂ < a₃ < a₄ < 
 
 `M(d) = {v₁ ↦ a₁, v₂ ↦ a₂, v₃ ↦ a₃, v₄ ↦ a₄, v₅ ↦ a₅, v₆ ↦ a₂, v₇ ↦ a₃}`
 
-with v₁ < v₂ < v₃ < v₄ < v₅ < v₆ < v₇. The maximally merged block decomposition of this restriction has p = 2 blocks: β₁ = (v₁, a₁, 5) covering v₁..v₅ with I-extent {a₁, a₂, a₃, a₄, a₅}, and β₂ = (v₆, a₂, 2) covering v₆..v₇ with I-extent {a₂, a₃}. The block boundary at v₅ → v₆ is enforced by a discontinuity in M(d)'s I-address sequence (a₅ → a₂ is not a +1 step), forcing M12's split rule. The two blocks share I-addresses {a₂, a₃} — this is the non-injective signature.
+with v₁ < v₂ < v₃ < v₄ < v₅ < v₆ < v₇. The maximally merged block decomposition of this restriction has p = 2 blocks: β₁ = (v₁, a₁, 5) covering v₁..v₅ with I-extent {a₁, a₂, a₃, a₄, a₅}, and β₂ = (v₆, a₂, 2) covering v₆..v₇ with I-extent {a₂, a₃}. We verify the M7 merge condition for β₁ and β₂ fails. *V-adjacency holds:* v₆ = shift(v₁, 5), i.e., v₆ is the V-position immediately after β₁'s last covered position v₅, so the V-side of M7 is satisfied. *I-adjacency fails:* M7 would require a₂ = a₁ ⊕ 5, but a₁ ⊕ 5 = a₅ + 1 ≠ a₂ (a₂ falls strictly inside the a₁..a₅ sequence, not past it). With one of the two adjacency conjuncts violated, M7 cannot succeed and M12's split rule forces the block boundary at v₅ → v₆. The two blocks share I-addresses {a₂, a₃} — this is the non-injective signature.
 
 Define a two-span endset `e = {(s₁, ℓ₁), (s₂, ℓ₂)}` with s₁ = a₁, ℓ₁ = a₃ ⊖ a₁ (reach a₃) and s₂ = a₃, ℓ₂ = a₅ ⊖ a₃ (reach a₅). Then `coverage(e) = ⟦(a₁, ℓ₁)⟧ ∪ ⟦(a₃, ℓ₂)⟧` and among the allocated I-addresses this contains {a₁, a₂, a₃, a₄}. The two spans abut at a₃: the first contains a₁, a₂ (interval `[a₁, a₃)`), the second contains a₃, a₄ (interval `[a₃, a₅)`).
 
@@ -473,7 +482,7 @@ We can now synthesize the survivability guarantee into a single coherent stateme
 - Contraction of M(d) can only shrink locate(e, d). [SV3]
 - Reordering of M(d) preserves π(e, d); locate_{Σ'}(e, d) = {ψ(v) : v ∈ locate_Σ(e, d)} where ψ is the reordering bijection from K.μ~, which by K.μ~-FIX (ASN-0047) acts on a fixed domain — dom(M'(d)) = dom(M(d)) — so the V-position arena is invariant and only the V↦I assignment is permuted. The locate *set* may change. [SV5]
 - Changes to M(d) cannot affect locate(e, d') for d' ≠ d. [SV4]
-- K.α, K.δ, K.ρ, and K.λ all preserve M in their frame, so locate(e, d) is unchanged for every endset e that existed prior to the transition. K.λ additionally creates a new link, and the locate and discover_s sets for its *new* endsets are evaluated against the unchanged M for the first time — see SV9 for the resulting monotonic growth of discover_s and SV7 for invariance under every transition *except* K.λ.
+- K.α, K.δ, K.ρ, and K.λ all preserve M in their frame, so locate(e, d) is unchanged for every endset e that existed prior to the transition. (K.μ⁺_L is *not* M-frame — it adds a V↦I mapping in the link subspace — and is covered by the extension bullet above; the M-frame list here is the complement of the M-modifying transitions enumerated in the four preceding bullets.) K.λ additionally creates a new link, and the locate and discover_s sets for its *new* endsets are evaluated against the unchanged M for the first time — see SV9 for the resulting monotonic growth of discover_s and SV7 for invariance under every transition *except* K.λ.
 
 (f) *Cross-origin coverage exclusion:* new allocations from a different origin cannot enter existing endset spans when the span start is element-level and the action point is within the element field. [SV6]
 
@@ -501,8 +510,8 @@ Nelson's "strap between bytes" is exactly right. The strap (the link's endsets) 
 | Maximal fragment | maximal contiguous ordinal subsequence within a single mapping block's I-extent | introduced |
 | NoStaleResolutionState | Architectural remark (not SV-labelled): no state component external to (coverage(e), current M(d)) participates in resolution; caching of historical V-positions is structurally precluded by the link-store and state-schema signatures | introduced |
 | ArrangementLinkFrame | Corollary of L12 (ASN-0043): arrangement changes preserve L entirely | cited |
-| SV2 | ExtensionMonotonicity: K.μ⁺/K.μ⁺_L can only enlarge π(e, d) | introduced |
-| SV3 | ContractionReduction: K.μ⁻ can only shrink π(e, d) | introduced |
+| SV2 | ExtensionMonotonicity: K.μ⁺/K.μ⁺_L can only enlarge π(e, d) and locate(e, d) | introduced |
+| SV3 | ContractionReduction: K.μ⁻ can only shrink π(e, d) and locate(e, d) | introduced |
 | SV4 | ArrangementIsolation: arrangement changes to M(d) do not affect π(e, d') or locate(e, d') for d' ≠ d | introduced |
 | SV5 | ReorderingProjectionInvariance: K.μ~ preserves π(e, d) exactly | introduced |
 | SV6 | CrossOriginExclusion: allocations from a different document prefix cannot enter existing endset spans (within element field) | introduced |
