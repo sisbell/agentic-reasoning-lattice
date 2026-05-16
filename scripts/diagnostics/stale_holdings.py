@@ -123,7 +123,7 @@ def _retract(session, target_addr: Address) -> int:
 
     # Sanity-check that this really is a holding link
     type_set = getattr(link, "type_set", []) or []
-    if not any("holding" in str(t) or t.endswith(".35") for t in type_set):
+    if not any("holding" in str(t) or str(t).endswith(".35") for t in type_set):
         print(
             f"  [STALE-HOLDINGS] {target_addr} is not a holding link "
             f"(type_set={type_set})",
