@@ -266,19 +266,23 @@ def commit_after_fire(
             return
         if commit_paths is not None:
             # Always include substrate metadata alongside per-fire content.
-            staging_paths = list(commit_paths) + [
+            scope_paths = list(commit_paths) + [
                 "_docuverse/links.jsonl",
                 "_docuverse/paths.json",
             ]
-            _stage_dirty(staging_paths)
         else:
-            _stage_dirty()
+            scope_paths = ["_docuverse/"]
+        _stage_dirty(scope_paths if commit_paths is not None else None)
         if not _git("diff", "--cached", "--name-only").stdout.strip():
             # Nothing actually got staged (e.g., changes were under
             # paths we deliberately don't auto-add).
             return
         msg = _draft_message(trigger_name, addr)
-        commit = _git_with_lock_retry("commit", "-m", msg)
+        # Path-scope the commit too. `git commit -m msg` (no paths)
+        # commits ALL staged work, which sweeps any operator-staged
+        # files outside the runner's scope into the auto-message.
+        # Explicit `-- <paths>` restricts the commit to scope.
+        commit = _git_with_lock_retry("commit", "-m", msg, "--", *scope_paths)
         if commit.returncode != 0:
             print(
                 f"  [AUTO-COMMIT] commit failed: {commit.stderr.strip()[:200]}",
