@@ -238,6 +238,23 @@ def main() -> int:
         asn_labels = [_parse_asn(a) for a in args.asns]
     triggers = _note_cycle_triggers()
 
+    # Inherited-env banner: surface CLAUDE_WORKER_INDEX, partition, and
+    # CLAUDE_CONFIG_DIRS so each worker visibly logs what it inherited
+    # from its spawn. Useful when debugging hot-reload of WORKERS or
+    # accounts via _workspace/runner.env, or when one worker's behavior
+    # diverges from another's.
+    import os as _os
+    worker_idx = _os.environ.get("CLAUDE_WORKER_INDEX", "(unset)")
+    config_dirs = _os.environ.get("CLAUDE_CONFIG_DIRS", "(unset)")
+    partition_str = (
+        f"{partition_index}/{partition_total}"
+        if partition_index is not None else "(none)"
+    )
+    print(
+        f"  [NOTE-SCHED] worker_idx={worker_idx} partition={partition_str} "
+        f"CLAUDE_CONFIG_DIRS={config_dirs}",
+        file=sys.stderr,
+    )
     print(
         f"  [NOTE-SCHED] {len(triggers)} triggers across "
         f"{len(asn_labels)} ASNs: {', '.join(asn_labels)}",
