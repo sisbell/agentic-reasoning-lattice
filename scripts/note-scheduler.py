@@ -40,6 +40,7 @@ from lib.runner import Scope, Trigger, run_until_quiescent
 
 
 NOTE_CYCLE_TRIGGER_NAMES = (
+    "note_draft",
     "note_review", "note_consult", "note_revise", "note_statements",
 )
 
@@ -93,6 +94,13 @@ def _active_notes_topo_sorted() -> list[str]:
     for f in glob("_docuverse/documents/**/note/ASN-*.md", recursive=True):
         if ".statements.md" in f or ".motif." in f:
             continue
+        m = asn_pat.search(f)
+        if m:
+            discovered.add(m.group(1))
+    # Also discover ASNs that have an inquiry but no note yet (pre-draft
+    # state — note_draft fires on these, the cycle triggers skip cleanly
+    # because their per-note scope queries yield empty).
+    for f in glob("_docuverse/documents/**/inquiry/ASN-*.md", recursive=True):
         m = asn_pat.search(f)
         if m:
             discovered.add(m.group(1))

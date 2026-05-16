@@ -32,6 +32,7 @@ from lib.shared.paths import LATTICE
 
 
 NOTE_TRIGGER_NAMES = (
+    "note_draft",
     "note_review", "note_consult", "note_revise", "note_statements",
 )
 
@@ -55,6 +56,12 @@ def _topo_sorted(session) -> tuple[list[str], dict[str, set[str]]]:
     for f in glob("_docuverse/documents/**/note/ASN-*.md", recursive=True):
         if ".statements.md" in f or ".motif." in f:
             continue
+        m = asn_pat.search(f)
+        if m:
+            discovered.add(m.group(1))
+    # Also discover ASNs that have an inquiry but no note yet (pre-draft
+    # state — surfaces with next-trigger=note-draft).
+    for f in glob("_docuverse/documents/**/inquiry/ASN-*.md", recursive=True):
         m = asn_pat.search(f)
         if m:
             discovered.add(m.group(1))
@@ -122,23 +129,43 @@ def _note_addr_for(session, asn: str):
     return None
 
 
+def _inquiry_addr_for(session, asn: str):
+    """Look up the inquiry doc address for an ASN. Used for pre-draft
+    ASNs where no note exists yet but an inquiry does."""
+    state = session.store
+    rel = f"_docuverse/documents/1.1/1/inquiry/{asn}.md"
+    return state.path_to_addr.get(rel)
+
+
 def _note_title_for(asn: str) -> str:
-    """Read the first H1 from the ASN's note file on disk. Strips the
-    `ASN-NNNN:` prefix when present. Empty string if file missing.
+    """Read the first H1 from the ASN's note file on disk, or fall back
+    to the inquiry's frontmatter `title` when no note exists yet.
+    Strips the `ASN-NNNN:` prefix when present.
     """
     matches = glob(f"_docuverse/documents/**/note/{asn}-*.md", recursive=True)
     matches = [m for m in matches if ".statements.md" not in m and ".motif." not in m]
-    if not matches:
+    if matches:
+        try:
+            with open(matches[0]) as f:
+                first_line = f.readline().strip()
+        except OSError:
+            first_line = ""
+        title = re.sub(r"^#+\s*", "", first_line)
+        title = re.sub(r"^ASN-\d{4}\s*[:\-]\s*", "", title)
+        return title
+
+    # Pre-draft fallback: read title from the inquiry frontmatter.
+    inq = Path(f"_docuverse/documents/1.1/1/inquiry/{asn}.md")
+    if not inq.exists():
         return ""
     try:
-        with open(matches[0]) as f:
-            first_line = f.readline().strip()
+        text = inq.read_text()
     except OSError:
         return ""
-    # Strip leading "# " and any "ASN-NNNN:" prefix
-    title = re.sub(r"^#+\s*", "", first_line)
-    title = re.sub(r"^ASN-\d{4}\s*[:\-]\s*", "", title)
-    return title
+    m = re.search(r"^title:\s*(.+?)\s*$", text, re.MULTILINE)
+    if not m:
+        return ""
+    return m.group(1).strip().strip('"').strip("'")
 
 
 def _print_partitions(order: list[str], states: dict[str, str], n_workers: int) -> None:
@@ -192,26 +219,38 @@ def main() -> int:
                 title = title[:29] + "…"
             dep_str = ",".join(d.replace("ASN-", "") for d in sorted(deps_map.get(asn, set()))) or "(none)"
 
-            if note_addr is None:
+            # Triggers come in two flavors:
+            #   - note-scope (per_active_note / per_asn_note): predicate
+            #     wants a note address. Skip if no note exists yet.
+            #   - inquiry-scope (per_inquiry_of_asn — note_draft): predicate
+            #     wants an inquiry address.
+            # Evaluate each against the address it expects; collect names
+            # of those that would fire (predicate returns False = fire).
+            inquiry_addr = _inquiry_addr_for(session, asn)
+            fires = []
+            for trig in triggers:
+                if trig.name == "note-draft":
+                    eval_addr = inquiry_addr
+                else:
+                    eval_addr = note_addr
+                if eval_addr is None:
+                    continue
+                try:
+                    skip = trig.predicate(session, eval_addr)
+                except Exception as e:
+                    skip = f"err:{e.__class__.__name__}"
+                if skip is False:
+                    fires.append(trig.name)
+
+            if note_addr is None and inquiry_addr is None:
                 state_label = "no-addr"
                 next_trigger = "?"
+            elif not fires:
+                state_label = "quiescent"
+                next_trigger = "-"
             else:
-                # Evaluate each predicate. Predicate True = SKIP.
-                # Trigger fires if predicate returns False.
-                fires = []
-                for trig in triggers:
-                    try:
-                        skip = trig.predicate(session, note_addr)
-                    except Exception as e:
-                        skip = f"err:{e.__class__.__name__}"
-                    if skip is False:
-                        fires.append(trig.name)
-                if not fires:
-                    state_label = "quiescent"
-                    next_trigger = "-"
-                else:
-                    state_label = "pending"
-                    next_trigger = ", ".join(fires)
+                state_label = "pending"
+                next_trigger = ", ".join(fires)
 
             states[asn] = state_label
             print(f"{i:<4}{asn:<10}{title:<32}{dep_str:<32}{state_label:<12}  {next_trigger}")
