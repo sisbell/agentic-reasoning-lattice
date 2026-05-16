@@ -231,11 +231,12 @@ class Session:
         return store.path_for_addr(addr)
 
     def version_children(self, doc: Address) -> List[Address]:
-        """Immediate version-children of this doc, sorted by sibling order."""
-        return sorted(
-            (a for a, p in self._state.parent.items() if p == doc),
-            key=lambda a: a.digits,
-        )
+        """Immediate version-children of this doc, sorted by sibling order.
+
+        Delegates to State's children-index for O(1) lookup. Previously
+        ran an O(N) scan over the full parent map.
+        """
+        return self._state.version_children(doc)
 
     # ── Document content ───────────────────────────────────────────
 

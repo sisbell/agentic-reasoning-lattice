@@ -75,6 +75,13 @@ class State:
         self._owner: Dict[Address, Allocator] = {}
         self._link_allocators: Dict[Address, Allocator] = {}
         self.parent: Dict[Address, Optional[Address]] = {}
+        # Reverse index over `parent`: maps each non-None parent address
+        # to its list of children. Maintained in sync with `parent` via
+        # `_set_parent`. Enables O(1) version-children lookup instead
+        # of an O(N) scan over the whole parent map (where N = total
+        # addresses), which previously made `version_head` on deep
+        # chains scale as O(depth × N).
+        self._children_index: Dict[Address, List[Address]] = {}
         self.kind: Dict[Address, str] = {}
         self.content: Dict[Address, str] = {}
         self.links = LinkStore()
@@ -83,7 +90,7 @@ class State:
         # classifier link — its role is recovered from being the anchor
         # of every type address.
         registry_addr = self._emit(self.doc_allocator)
-        self.parent[registry_addr] = None
+        self._set_parent(registry_addr, None)
         self.kind[registry_addr] = "type-registry"
         self.content[registry_addr] = ""
         self._registry_doc = registry_addr
@@ -92,6 +99,49 @@ class State:
     @property
     def registry_doc(self) -> Address:
         return self._registry_doc
+
+    # ----- parent map (with children index) -----
+
+    def _set_parent(
+        self, child: Address, parent: Optional[Address],
+    ) -> None:
+        """Set child's version-parent and update the children index.
+
+        Direct `self.parent[child] = parent` mutation is no longer
+        used outside this method — the children index mirrors the
+        non-None parent edges for O(1) child lookup, and using this
+        helper keeps the two in sync.
+
+        Idempotent: re-setting the same (child, parent) pair is a
+        no-op against the index. Re-parenting (rare; mostly reload
+        and tests) removes the child from the old parent's list
+        before inserting into the new one.
+        """
+        old_parent = self.parent.get(child)
+        if old_parent is not None and old_parent != parent:
+            siblings = self._children_index.get(old_parent)
+            if siblings is not None and child in siblings:
+                siblings.remove(child)
+                if not siblings:
+                    del self._children_index[old_parent]
+        self.parent[child] = parent
+        if parent is not None:
+            children = self._children_index.setdefault(parent, [])
+            if child not in children:
+                children.append(child)
+
+    def version_children(self, doc: Address) -> List[Address]:
+        """Immediate version-children of doc, sorted by tumbler order.
+
+        O(1) lookup + O(k log k) sort over k = direct children, vs the
+        prior O(N) scan over the full parent map. For docs with many
+        siblings (fan-out) or deep linear chains, this is a structural
+        speedup, not a marginal one.
+        """
+        children = self._children_index.get(doc)
+        if not children:
+            return []
+        return sorted(children, key=lambda a: a.digits)
 
     # ----- doc creation -----
 
@@ -133,7 +183,7 @@ class State:
         lattice: Optional[Address] = None,
     ) -> Address:
         addr = self._emit(self.doc_allocator)
-        self.parent[addr] = None
+        self._set_parent(addr, None)
         self.kind[addr] = kind
         self.content[addr] = ""
         self._emit_classifier(addr, kind)
@@ -147,7 +197,7 @@ class State:
         if doc not in self._owner:
             raise ValueError(f"unknown doc address {doc}")
         addr = self._allocate_child(doc)
-        self.parent[addr] = doc
+        self._set_parent(addr, doc)
         kind = self.kind.get(doc, "doc")
         self.kind[addr] = kind
         self.content[addr] = (
@@ -193,7 +243,7 @@ class State:
         link_alloc = self._link_allocators[homedoc]
         link_addr = link_alloc.emit_sibling()
         self._owner[link_addr] = link_alloc
-        self.parent[link_addr] = None
+        self._set_parent(link_addr, None)
         type_addrs = self._resolve_types(type_)
         if ts is None:
             import time
@@ -213,7 +263,7 @@ class State:
             raise ValueError(f"unknown link address {link_addr}")
         original = self.links.get(link_addr)
         new_addr = self._allocate_child(link_addr)
-        self.parent[new_addr] = link_addr
+        self._set_parent(new_addr, link_addr)
         new_from = tuple(from_set) if from_set is not None else original.from_set
         new_to = tuple(to_set) if to_set is not None else original.to_set
         new_type = (

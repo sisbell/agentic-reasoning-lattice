@@ -224,7 +224,7 @@ class Store:
                 return self.path_to_addr[path]
             # Allocate doc address without auto-emitting any classifier
             addr = self.state._emit(self.state.doc_allocator)
-            self.state.parent[addr] = None
+            self.state._set_parent(addr, None)
             self.state.kind[addr] = "doc"
             self.state.content[addr] = ""
             self.path_to_addr[path] = addr
@@ -337,7 +337,7 @@ class Store:
             head = children[-1]
 
         new_addr = self.state._allocate_child(head)
-        self.state.parent[new_addr] = head
+        self.state._set_parent(new_addr, head)
         self.state.kind[new_addr] = self.state.kind.get(head, "doc")
         self.state.content[new_addr] = ""
 
@@ -475,7 +475,7 @@ class Store:
                 continue
             parent_addr = link.from_set[0]
             child_addr = link.to_set[0]
-            self.state.parent[child_addr] = parent_addr
+            self.state._set_parent(child_addr, parent_addr)
             self.state.kind.setdefault(
                 child_addr, self.state.kind.get(parent_addr, "doc"),
             )
