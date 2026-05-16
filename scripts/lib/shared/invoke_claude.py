@@ -96,8 +96,15 @@ def _accumulate_usage(input_tokens, output_tokens, cost_usd):
 _rotation_lock = threading.Lock()
 _rotation_cycle = None
 _ACCOUNT_STATE_PATH = WORKSPACE / "_workspace" / "account-state.json"
-_QUOTA_COOLDOWN_SECONDS = 7200  # 2h
+_QUOTA_COOLDOWN_SECONDS = 3600  # 1h — matches Anthropic 5-hour rolling window cadence
 _SUBPROCESS_TIMEOUT_SECONDS = 3600  # 60min hard cap per LLM call
+
+# After exponential backoff exhausts on overload (4 attempts, max ~15min
+# total wait), enter polling phase: sleep + retry every interval until
+# success or max polls. Overload is transient global state — server
+# eventually catches up. Total max overload wait = backoff + polling.
+_OVERLOAD_POLL_INTERVAL_SECONDS = 300  # 5min between polls
+_OVERLOAD_POLL_MAX_ATTEMPTS = 12       # 1h total polling phase
 
 # Per-process cumulative cost per config_dir. The load-balanced
 # rotation reads this to pick the less-burdened account on each call.
@@ -227,6 +234,47 @@ def _is_quota_error(data):
     )
 
 
+def _overload_wait_and_continue(overload_attempts):
+    """Decide whether to retry after an overload response, sleep
+    accordingly, and return True if retry should proceed.
+
+    Strategy:
+      - First _OVERLOAD_BACKOFF_ATTEMPTS attempts (default 4): exponential
+        backoff 60, 120, 240, 480s (capped at 600s).
+      - Subsequent _OVERLOAD_POLL_MAX_ATTEMPTS attempts: fixed-interval
+        polling (default 5min each, up to 1h total polling phase).
+      - After both phases exhaust, return False (caller gives up).
+
+    Overload is global API state, not account-specific. Switching
+    accounts doesn't help — only waiting does. The polling phase keeps
+    retrying long after the exponential backoff would have given up,
+    matching the operator intuition that overload is transient and
+    eventually clears.
+    """
+    BACKOFF_ATTEMPTS = 4
+    if overload_attempts < BACKOFF_ATTEMPTS:
+        delay = min(60 * (2 ** overload_attempts), 600)
+        phase = f"backoff {overload_attempts + 1}/{BACKOFF_ATTEMPTS}"
+    elif overload_attempts < BACKOFF_ATTEMPTS + _OVERLOAD_POLL_MAX_ATTEMPTS:
+        delay = _OVERLOAD_POLL_INTERVAL_SECONDS
+        poll_idx = overload_attempts - BACKOFF_ATTEMPTS
+        phase = f"poll {poll_idx + 1}/{_OVERLOAD_POLL_MAX_ATTEMPTS}"
+    else:
+        print(
+            f"  [OVERLOADED] giving up after "
+            f"{BACKOFF_ATTEMPTS} backoff + "
+            f"{_OVERLOAD_POLL_MAX_ATTEMPTS} poll attempts exhausted",
+            file=sys.stderr,
+        )
+        return False
+    print(
+        f"  [OVERLOADED] {phase}; sleeping {delay}s before retry",
+        file=sys.stderr,
+    )
+    time.sleep(delay)
+    return True
+
+
 def _wait_for_account_unpause(check_interval=300):
     """Block until at least one configured account is unpaused.
 
@@ -331,7 +379,14 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
     max_attempts = 4 if has_rotation else 1
     last_elapsed = 0.0
 
-    for attempt in range(max_attempts):
+    # `attempt` counts account-attempts (consumed by quota / rotation).
+    # `overload_attempts` counts overload retries independently — overload
+    # is global API state, doesn't burn account quota, retries via the
+    # helper's backoff-then-poll strategy.
+    attempt = 0
+    overload_attempts = 0
+
+    while attempt < max_attempts:
         cmd = ["claude", "--print", "--model", model_flag]
         if output_format:
             cmd.extend(["--output-format", output_format])
@@ -346,7 +401,7 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
             config_dir = _next_config_dir()
             if config_dir is None:
                 _wait_for_account_unpause()
-                continue
+                continue  # don't bump attempt; just retry routing
             env["CLAUDE_CONFIG_DIR"] = config_dir
         if effort:
             env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
@@ -364,7 +419,8 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
                 f"cap = {_SUBPROCESS_TIMEOUT_SECONDS}s)",
                 file=sys.stderr,
             )
-            if has_rotation and attempt < max_attempts - 1:
+            attempt += 1
+            if has_rotation and attempt < max_attempts:
                 continue  # retry on next account
             return Result(elapsed=elapsed)
         elapsed = time.time() - start
@@ -383,21 +439,16 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
 
         if data is not None:
             if _is_overloaded_error(data):
-                if attempt < max_attempts - 1:
-                    delay = min(60 * (2 ** attempt), 600)
-                    print(
-                        f"  [OVERLOADED] API capacity (JSON); "
-                        f"sleeping {delay}s before retry",
-                        file=sys.stderr,
-                    )
-                    time.sleep(delay)
-                    continue
+                if _overload_wait_and_continue(overload_attempts):
+                    overload_attempts += 1
+                    continue  # don't bump account attempt
                 return Result(data=data, elapsed=elapsed)
 
             if _is_quota_error(data):
                 if config_dir:
                     _pause_account(config_dir)
-                if has_rotation and attempt < max_attempts - 1:
+                attempt += 1
+                if has_rotation and attempt < max_attempts:
                     continue
                 return Result(data=data, elapsed=elapsed)
 
@@ -416,19 +467,16 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
         # and edge cases where claude emits plain text on failure).
         if result.returncode != 0:
             combined = (result.stderr or "") + " " + (result.stdout or "")
-            if _is_overloaded_signal(combined) and attempt < max_attempts - 1:
-                delay = min(60 * (2 ** attempt), 600)
-                print(
-                    f"  [OVERLOADED] API capacity (exit {result.returncode}); "
-                    f"sleeping {delay}s before retry",
-                    file=sys.stderr,
-                )
-                time.sleep(delay)
-                continue
+            if _is_overloaded_signal(combined):
+                if _overload_wait_and_continue(overload_attempts):
+                    overload_attempts += 1
+                    continue  # don't bump account attempt
+                return Result(elapsed=elapsed)
             if _is_quota_signal(combined):
                 if config_dir:
                     _pause_account(config_dir)
-                if has_rotation and attempt < max_attempts - 1:
+                attempt += 1
+                if has_rotation and attempt < max_attempts:
                     continue
                 return Result(elapsed=elapsed)
             print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
@@ -486,7 +534,14 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
     max_attempts = 4 if has_rotation else 1
     last_elapsed = 0.0
 
-    for attempt in range(max_attempts):
+    # `attempt` counts account-attempts (consumed by quota / rotation).
+    # `overload_attempts` counts overload retries independently — overload
+    # is global API state, doesn't burn account quota, retries via the
+    # helper's backoff-then-poll strategy.
+    attempt = 0
+    overload_attempts = 0
+
+    while attempt < max_attempts:
         cmd = [
             "claude", "-p",
             "--model", model_flag,
@@ -506,7 +561,7 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
             config_dir = _next_config_dir()
             if config_dir is None:
                 _wait_for_account_unpause()
-                continue
+                continue  # don't bump attempt; just retry routing
             env["CLAUDE_CONFIG_DIR"] = config_dir
         if effort:
             env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
@@ -525,7 +580,8 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
                 f"cap = {_SUBPROCESS_TIMEOUT_SECONDS}s)",
                 file=sys.stderr,
             )
-            if has_rotation and attempt < max_attempts - 1:
+            attempt += 1
+            if has_rotation and attempt < max_attempts:
                 continue  # retry on next account
             return Result(elapsed=elapsed)
         elapsed = time.time() - start
@@ -543,21 +599,16 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
 
         if data is not None:
             if _is_overloaded_error(data):
-                if attempt < max_attempts - 1:
-                    delay = min(60 * (2 ** attempt), 600)
-                    print(
-                        f"  [OVERLOADED] API capacity (JSON); "
-                        f"sleeping {delay}s before retry",
-                        file=sys.stderr,
-                    )
-                    time.sleep(delay)
-                    continue
+                if _overload_wait_and_continue(overload_attempts):
+                    overload_attempts += 1
+                    continue  # don't bump account attempt
                 return Result(data=data, elapsed=elapsed)
 
             if _is_quota_error(data):
                 if config_dir:
                     _pause_account(config_dir)
-                if has_rotation and attempt < max_attempts - 1:
+                attempt += 1
+                if has_rotation and attempt < max_attempts:
                     continue
                 return Result(data=data, elapsed=elapsed)
 
@@ -569,19 +620,16 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
         # handling.
         if result.returncode != 0:
             combined = (result.stderr or "") + " " + (result.stdout or "")
-            if _is_overloaded_signal(combined) and attempt < max_attempts - 1:
-                delay = min(60 * (2 ** attempt), 600)
-                print(
-                    f"  [OVERLOADED] API capacity (exit {result.returncode}); "
-                    f"sleeping {delay}s before retry",
-                    file=sys.stderr,
-                )
-                time.sleep(delay)
-                continue
+            if _is_overloaded_signal(combined):
+                if _overload_wait_and_continue(overload_attempts):
+                    overload_attempts += 1
+                    continue  # don't bump account attempt
+                return Result(elapsed=elapsed)
             if _is_quota_signal(combined):
                 if config_dir:
                     _pause_account(config_dir)
-                if has_rotation and attempt < max_attempts - 1:
+                attempt += 1
+                if has_rotation and attempt < max_attempts:
                     continue
                 return Result(elapsed=elapsed)
             print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
