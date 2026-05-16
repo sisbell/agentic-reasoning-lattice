@@ -97,7 +97,7 @@ _rotation_lock = threading.Lock()
 _rotation_cycle = None
 _ACCOUNT_STATE_PATH = WORKSPACE / "_workspace" / "account-state.json"
 _QUOTA_COOLDOWN_SECONDS = 3600  # 1h — matches Anthropic 5-hour rolling window cadence
-_SUBPROCESS_TIMEOUT_SECONDS = 3600  # 60min hard cap per LLM call
+_SUBPROCESS_TIMEOUT_SECONDS = 7200  # 120min hard cap per LLM call
 
 # After exponential backoff exhausts on overload (4 attempts, max ~15min
 # total wait), enter polling phase: sleep + retry every interval until

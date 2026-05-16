@@ -120,27 +120,66 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+mkdir -p _workspace/logs
+
 while true; do
     stop_pusher
     git pull --rebase --autostash 2>&1 | grep -v '^$' || true
     _load_runtime_config
     echo "  [run-notes-continuous] cycle: WORKERS=$WORKERS CLAUDE_CONFIG_DIRS=${CLAUDE_CONFIG_DIRS:-(unset)}" >&2
+
+    # Surface orphan holdings before spawning workers. Silent when
+    # clean; loud banner + retract commands when stuck. Threshold
+    # default (135m) is safely above the 120m subprocess timeout, so
+    # a healthy slow revise does not trigger.
+    python scripts/diagnostics/stale_holdings.py --quiet || true
+
     start_pusher
+
+    # Per-cycle timestamp for worker log filenames; keeps history
+    # without ever-growing single files.
+    ts=$(date +%Y%m%d-%H%M%S)
 
     # Spawn workers in parallel. Each runs to outer-fixed-point
     # quiescence on its partition, then exits.
     if [ "$WORKERS" -eq 1 ]; then
-        python scripts/note-scheduler.py --dag
+        log_file="_workspace/logs/worker-0.$ts.log"
+        echo "  [run-notes-continuous] worker 0 → $log_file" >&2
+        python scripts/note-scheduler.py --dag 2>&1 \
+            | tee -a "$log_file"
+        worker_rc=${PIPESTATUS[0]}
+        if [ "$worker_rc" -ne 0 ]; then
+            echo "" >&2
+            echo "  ╔════════════════════════════════════════════════════════════════╗" >&2
+            echo "  ║  WORKER 0 CRASHED — exit code $worker_rc" >&2
+            echo "  ║  Log: $log_file" >&2
+            echo "  ╚════════════════════════════════════════════════════════════════╝" >&2
+            echo "" >&2
+        fi
     else
         WORKER_PIDS=()
+        WORKER_LOGS=()
         for i in $(seq 0 $((WORKERS - 1))); do
+            log_file="_workspace/logs/worker-$i.$ts.log"
+            WORKER_LOGS+=("$log_file")
+            echo "  [run-notes-continuous] worker $i → $log_file" >&2
             CLAUDE_WORKER_INDEX=$i python scripts/note-scheduler.py --dag \
                 --partition "$i/$WORKERS" 2>&1 \
+                | tee -a "$log_file" \
                 | sed "s/^/[w$i] /" &
             WORKER_PIDS+=($!)
         done
-        for pid in "${WORKER_PIDS[@]}"; do
-            wait "$pid"
+        for i in "${!WORKER_PIDS[@]}"; do
+            pid="${WORKER_PIDS[$i]}"
+            if ! wait "$pid"; then
+                rc=$?
+                echo "" >&2
+                echo "  ╔════════════════════════════════════════════════════════════════╗" >&2
+                echo "  ║  WORKER $i CRASHED — exit code $rc" >&2
+                echo "  ║  Log: ${WORKER_LOGS[$i]}" >&2
+                echo "  ╚════════════════════════════════════════════════════════════════╝" >&2
+                echo "" >&2
+            fi
         done
     fi
 
