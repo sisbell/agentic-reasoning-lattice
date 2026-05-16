@@ -48,6 +48,7 @@ from __future__ import annotations
 import os
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 from typing import ClassVar, List, Tuple
@@ -62,7 +63,7 @@ from lib.lattice.labels import format_label
 from lib.shared.frontmatter import read_doc_with_frontmatter
 from lib.shared.git_ops import step_commit
 from lib.shared.paths import (
-    IMPORT_DIR, IMPORT_INBOX, LATTICE, NOTE_DIR, WORKSPACE,
+    DOCUVERSE_DIR, IMPORT_DIR, IMPORT_INBOX, LATTICE, NOTE_DIR, WORKSPACE,
 )
 
 
@@ -239,6 +240,34 @@ def _emit_substrate(
     return note_addr
 
 
+# ─── Staging for commit ────────────────────────────────────────────
+
+
+def _stage_for_commit(substrate_spec_path: Path, note_path: Path) -> None:
+    """Stage the import's emitted files so `scripts/commit.py` can
+    commit them. Scoped to the four files this fire actually wrote:
+    the substrate spec, the new note, and the two substrate metadata
+    files (`links.jsonl`, `paths.json`) that accumulate emissions.
+
+    The commit prompt explicitly says callers must stage; without this,
+    the LLM sees an empty cached diff and reports done without
+    committing. Substrate state ends up ahead of git until a later
+    commit picks up the residue.
+    """
+    paths = [
+        str(substrate_spec_path.resolve().relative_to(WORKSPACE.resolve())),
+        str(note_path.resolve().relative_to(WORKSPACE.resolve())),
+        str((DOCUVERSE_DIR / "links.jsonl").resolve().relative_to(
+            WORKSPACE.resolve())),
+        str((DOCUVERSE_DIR / "paths.json").resolve().relative_to(
+            WORKSPACE.resolve())),
+    ]
+    subprocess.run(
+        ["git", "add"] + paths,
+        cwd=str(WORKSPACE), capture_output=True, text=True,
+    )
+
+
 # ─── Agent class ───────────────────────────────────────────────────
 
 
@@ -331,7 +360,12 @@ class NoteImportAgent(Agent):
                 file=sys.stderr,
             )
 
-        # 6. Commit
+        # 6. Stage + commit. `scripts/commit.py` expects the caller to
+        # have already staged the files it wants committed (per the
+        # commit prompt: "staging is handled by the caller"). Without
+        # this, the LLM-driven commit step sees an empty cached diff
+        # and reports done without actually committing.
+        _stage_for_commit(substrate_path, note_path)
         step_commit(f"import(asn): {source_doc} → {new_label} ({title})")
 
         return AgentResult(
