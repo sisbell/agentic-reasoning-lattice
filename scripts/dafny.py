@@ -281,6 +281,7 @@ def main():
                   file=sys.stderr, end="", flush=True)
             wrote, elapsed, cost = translate_one(
                 prompt, out_path,
+                asn_label=asn_label, claim_label=proof_label,
                 model=args.model, effort=args.effort, max_turns=args.max_turns,
             )
 
@@ -313,6 +314,7 @@ def main():
                 if section:
                     contract_result, reason, a_cost = align_validate_cycle(
                         out_path, section, label,
+                        asn_label=asn_label,
                         model=args.model, effort=args.effort)
                     result["contract"] = contract_result
                     result["review_reason"] = reason if contract_result == "FLAG" else ""

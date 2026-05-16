@@ -32,9 +32,14 @@ from lib.shared.prompts import read_prompt
 ALIGN_TEMPLATE = prompt_path("verification/dafny/align-with-contract.md")
 
 
-def align(dfy_path, errors, formal_contract, model="opus",
-              effort="max", max_turns=12):
-    """Run align-with-contract agent. Returns (success, elapsed, cost)."""
+def align(dfy_path, errors, formal_contract, *, asn_label, claim_label,
+          cycle_num, model="opus", effort="max", max_turns=12):
+    """Run align-with-contract agent. Returns (success, elapsed, cost).
+
+    Agent commits after each dafny verify (path-scoped). Audit trail
+    accumulates in `git log -- <dfy_path>` showing the align cycle's
+    sequence of attempted fixes.
+    """
     model_flag = {
         "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
@@ -61,6 +66,33 @@ def align(dfy_path, errors, formal_contract, model="opus",
         .replace("{{errors}}", errors)
         .replace("{{formal_contract}}", formal_contract or "(not available)"))
 
+    # Append commit instructions — agent self-commits after each verify
+    # for audit trail. Path-scoped to avoid sweeping unrelated work.
+    prompt += f"""
+
+## After EACH dafny verify, commit
+
+Every `dafny verify` invocation (pass or fail) must be followed by a
+git commit. This produces an audit trail of each attempted fix within
+the align cycle.
+
+After writing the .dfy and running verify:
+
+  dafny verify {dfy_path} 2>&1 | tee /tmp/dafny-verify-{claim_label}.txt
+  # determine status: "verified" if "0 errors";
+  # "proof_failure" otherwise.
+  {{
+    echo "dafny({asn_label}): {claim_label} align-{cycle_num} → $status"
+    echo
+    cat /tmp/dafny-verify-{claim_label}.txt
+  }} | git commit -- {dfy_path} -F -
+
+The `-- {dfy_path}` is REQUIRED. It scopes the commit to ONLY this
+.dfy. Without it, the commit would sweep unrelated staged work.
+
+This commit happens for EVERY verify, including failures.
+"""
+
     start = time.time()
     result = subprocess.run(
         cmd, input=prompt, capture_output=True, text=True, env=env,
@@ -79,6 +111,7 @@ def align(dfy_path, errors, formal_contract, model="opus",
 
 
 def align_validate_cycle(dfy_path, formal_contract, label,
+                          *, asn_label,
                           model="opus", effort="max", max_cycles=3):
     """Validate contract, then align -> verify -> validate cycle if FLAG.
 
@@ -102,6 +135,7 @@ def align_validate_cycle(dfy_path, formal_contract, label,
         flag_errors = f"Contract validation failed:\n{reason}"
         ok, a_elapsed, a_cost = align(
             dfy_path, flag_errors, formal_contract,
+            asn_label=asn_label, claim_label=label, cycle_num=cycle,
             model=model, effort=effort)
         total_cost += a_cost
 
@@ -248,6 +282,7 @@ def main():
 
         _, elapsed, cost = align(
             dfy_path, errors, formal_contract=formal_contract,
+            asn_label=asn_label, claim_label=claim_label, cycle_num=0,
             model=args.model, effort=args.effort, max_turns=args.max_turns,
         )
         total_cost += cost
@@ -264,6 +299,7 @@ def main():
             if formal_contract:
                 contract_result, reason, a_cost = align_validate_cycle(
                     dfy_path, formal_contract, claim_label,
+                    asn_label=asn_label,
                     model=args.model, effort=args.effort)
                 total_cost += a_cost
             else:

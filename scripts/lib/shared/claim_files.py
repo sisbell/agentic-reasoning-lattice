@@ -15,7 +15,7 @@ from lib.backend.schema import ATTRIBUTE_SUFFIXES as _ATTR_SUFFIXES
 from lib.backend.store import Store
 from lib.predicates import current_contract_kind
 from lib.protocols.febe.session import Session
-from lib.shared.paths import LATTICE
+from lib.shared.paths import LATTICE, WORKSPACE
 
 
 def _is_claim_md(name):
@@ -66,7 +66,10 @@ def load_claim_metadata(claim_dir, label=None):
         content = doc.read_text().strip()
         return content or None
 
-    lattice = Path(LATTICE).resolve()
+    # session.get_addr_for_path expects paths relative to WORKSPACE
+    # (the repo root, where _docuverse/ lives post-unified-docuverse
+    # migration), not LATTICE.
+    workspace = Path(WORKSPACE).resolve()
 
     def _build(session, stem):
         result = {"label": stem}
@@ -77,7 +80,7 @@ def load_claim_metadata(claim_dir, label=None):
         if desc:
             result["summary"] = desc
         md_rel = str(
-            (claim_dir / f"{stem}.md").resolve().relative_to(lattice)
+            (claim_dir / f"{stem}.md").resolve().relative_to(workspace)
         )
         addr = session.get_addr_for_path(md_rel)
         if addr is not None:

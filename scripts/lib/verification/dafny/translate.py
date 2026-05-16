@@ -145,8 +145,15 @@ def build_claim_prompt(template, row, extract, dep_context=""):
     )
 
 
-def translate_one(prompt, out_path, model="sonnet", effort="max", max_turns=12):
-    """Launch a Claude agent with tools to write + verify the .dfy file."""
+def translate_one(prompt, out_path, *, asn_label, claim_label,
+                  model="sonnet", effort="max", max_turns=12):
+    """Launch a Claude agent with tools to write + verify the .dfy file.
+
+    The agent commits after each dafny verify invocation (path-scoped
+    via `git commit -- <path>` so it can't sweep unrelated staged
+    work). This produces one git commit per attempted fix; operator
+    audits via `git log -- verification/dafny/ASN-NNNN/<label>.dfy`.
+    """
     model_flag = {
         "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
@@ -201,6 +208,35 @@ Work in small steps. Each step adds ONE thing, then verifies.
 
 Do NOT weaken `ensures` clauses, strengthen `requires` clauses, or
 add `assume` statements. The formal contract is authoritative.
+
+## After EACH dafny verify, commit
+
+Every `dafny verify` invocation (pass or fail) must be followed by a
+git commit. This produces an audit trail of each attempted fix.
+
+After writing the .dfy and running verify:
+
+  dafny verify {out_path} 2>&1 | tee /tmp/dafny-verify-{claim_label}.txt
+  # determine status from the output: "verified" if "0 errors";
+  # "proof_failure" if the errors mention "could not be proved" or
+  # "assertion might not hold"; "compile_failure" otherwise.
+  {{
+    echo "dafny({asn_label}): {claim_label} translate → $status"
+    echo
+    cat /tmp/dafny-verify-{claim_label}.txt
+  }} | git commit -- {out_path} -F -
+
+The `-- {out_path}` is REQUIRED. It scopes the commit to ONLY this
+.dfy. Without it, the commit would sweep unrelated staged work from
+the rest of the repo.
+
+Substitute the literal status into the subject (`verified`,
+`proof_failure`, or `compile_failure`). Do NOT escape variables in
+the subject — use shell expansion as shown.
+
+This commit happens for EVERY verify, including failures. The git
+history of {out_path} should show one commit per attempted fix when
+operator runs `git log -- {out_path}`.
 """
 
     start = time.time()

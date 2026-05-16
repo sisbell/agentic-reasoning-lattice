@@ -67,8 +67,12 @@ def prompt_path(subpath):
 VOCABULARY = LATTICE / "vocabulary.md"
 
 # Verification stage
+# Dafny moved to repo-root /verification/dafny/ for fresh regeneration.
+# Alloy + proofs constants still point at the legacy LATTICE-relative
+# locations (now under _archive/verification/...) — those subsystems
+# are not in active scope.
 ALLOY_DIR = LATTICE / "verification" / "alloy"
-DAFNY_DIR = LATTICE / "verification" / "dafny"
+DAFNY_DIR = WORKSPACE / "verification" / "dafny"
 PROOFS_DIR = LATTICE / "verification" / "proofs"                     # promoted/curated
 PROOFS_STAGING_DIR = LATTICE / "verification" / "proofs-staging"     # Level 2 builds, pre-curation
 PROOF_IMPORTS = PROOFS_STAGING_DIR / "imports.md"

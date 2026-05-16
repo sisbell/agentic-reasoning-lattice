@@ -6,7 +6,7 @@ Compares each generated .dfy file against its formal contract from
 per-claim files in _docuverse/documents/<node>/<user>/claim/. Flags mismatches for
 author review.
 
-Output: per-claim review files in lattices/xanadu/verification/dafny/ASN-NNNN/reviews/
+Output: per-claim review files in verification/dafny/ASN-NNNN/reviews/
 
 Usage:
     python scripts/lib/verification/dafny/validate.py 34
