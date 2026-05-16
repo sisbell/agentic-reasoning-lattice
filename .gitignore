@@ -12,9 +12,16 @@ channels/nelson/resources/literary-machines/*.pdf
 channels/nelson/resources/literary-machines/raw/
 /notes/
 
-# Alloy checker output (receipt.json, solution files)
+# Alloy checker output (receipt.json, solution files) — legacy path
+# under _archive/ after the unified-docuverse migration; rules kept
+# in case the archive is restored as a working tree.
 lattices/xanadu/verification/alloy/**/receipt.json
 lattices/xanadu/verification/alloy/**/*-solution-*.md
+
+# Dafny per-ASN hash cache — operator-local state for skip-unchanged
+# logic. Doesn't need to be versioned; fresh clones simply re-verify.
+verification/dafny/**/_dafny-cache.json
+
 worktrees/
 
 # Rust build artifacts
