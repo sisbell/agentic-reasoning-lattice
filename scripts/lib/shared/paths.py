@@ -159,6 +159,33 @@ ABSORB_INBOX = WORKSPACE_DIR / "absorbs"
 CLONE_INBOX = WORKSPACE_DIR / "clones"
 IMPORT_INBOX = WORKSPACE_DIR / "imports"
 
+# Per-worker substrate-emission buffer. During a fire, each worker
+# appends emissions to its own pending file rather than the canonical
+# `_docuverse/links.jsonl`. At commit step, the worker holds a brief
+# substrate-write lock, appends pending → canonical, truncates pending,
+# then runs the path-scoped commit. This isolates one worker's
+# emissions from another worker's commit — multiple workers writing in
+# parallel no longer cross-contaminate each other's commits.
+#
+# Lifecycle: pending files are operator-local scratch (lives under the
+# gitignored `_workspace/`). At runner startup the per-worker files
+# are truncated — any unflushed emissions from a previous worker death
+# are discarded (the death-cleanup tools handle pre-death substrate
+# state that DID land in canonical before death).
+WORKER_PENDING_DIR = WORKSPACE_DIR
+
+
+def worker_pending_jsonl(worker_idx):
+    """Path to the per-worker pending substrate-emissions file.
+
+    Returns None when worker_idx is None — for non-runner contexts
+    (operator CLI tools, tests) emit goes straight to canonical
+    `_docuverse/links.jsonl`.
+    """
+    if worker_idx is None:
+        return None
+    return WORKER_PENDING_DIR / f"links.worker-{int(worker_idx)}.jsonl"
+
 # Aggregate review docs (classified by `review`). Split by inquiry-target
 # kind so review numbering and substrate queries are scoped per kind.
 CLAIM_REVIEWS_DIR = DOCUVERSE_AUTHOR_DIR / "review" / "claims"

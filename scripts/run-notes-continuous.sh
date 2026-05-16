@@ -122,6 +122,13 @@ trap cleanup EXIT INT TERM
 
 mkdir -p _workspace/logs
 
+# Per-worker substrate-emission buffers. If a prior runner died with
+# emissions still in these files (unflushed), discard them — pre-death
+# emissions that already made it to canonical are kept (death-cleanup
+# tools handle those); pre-death emissions still in pending are
+# suspect (failed fire) and we start fresh.
+rm -f _workspace/links.worker-*.jsonl
+
 while true; do
     stop_pusher
     git pull --rebase --autostash 2>&1 | grep -v '^$' || true

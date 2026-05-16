@@ -106,6 +106,23 @@ class Store:
         self.jsonl_path = self.docuverse / "links.jsonl"
         self.paths_path = self.docuverse / "paths.json"
 
+        # Per-worker substrate-emission buffer. When CLAUDE_WORKER_INDEX
+        # is set (= we're inside a runner worker), emissions are appended
+        # to a per-worker pending file under `_workspace/` rather than
+        # the canonical jsonl. The commit step (`flush_pending`) holds a
+        # short substrate-write lock, appends pending → canonical,
+        # truncates pending. Isolates one worker's emissions from
+        # another worker's git commit. For non-runner contexts (operator
+        # CLIs, tests), pending_jsonl_path is None and emit writes
+        # directly to canonical — single-process, no isolation needed.
+        from lib.shared.paths import worker_pending_jsonl
+        worker_idx = os.environ.get("CLAUDE_WORKER_INDEX")
+        self.pending_jsonl_path = (
+            worker_pending_jsonl(int(worker_idx))
+            if worker_idx is not None and worker_idx != ""
+            else None
+        )
+
         if not self.paths_path.exists():
             raise FileNotFoundError(
                 f"paths.json not found at {self.paths_path} — has the "
@@ -139,6 +156,13 @@ class Store:
         # writes, we'll allocate via make_link's per-homedoc allocator
         # which tracks each homedoc's link subspace independently.
         self.state.links = load_jsonl(self.jsonl_path)
+        # Merge any per-worker pending emissions into the in-memory
+        # LinkStore so queries see emissions that haven't been flushed
+        # to canonical yet. The canonical jsonl is loaded first; per-
+        # worker pending files come after and append. At commit time
+        # the pending files are flushed → canonical (see
+        # `flush_pending`).
+        self._merge_pending_into_linkstore()
 
         # Re-register every doc address so make_link can locate
         # homedoc-owning allocators. The persisted links don't tell us
@@ -511,7 +535,89 @@ class Store:
             "type_set": [str(a) for a in link.type_set],
             "ts": ts,
         }
-        with open(self.jsonl_path, "a") as f:
+        # Route to per-worker pending file when we're inside a runner
+        # worker (CLAUDE_WORKER_INDEX set at Store-init time); otherwise
+        # append directly to canonical for one-shot operator scripts /
+        # tests. See `flush_pending` for the canonical merge step.
+        target = self.pending_jsonl_path or self.jsonl_path
+        if self.pending_jsonl_path is not None:
+            target.parent.mkdir(parents=True, exist_ok=True)
+        with open(target, "a") as f:
             f.write(json.dumps(record, sort_keys=True) + "\n")
+
+    # ----- per-worker pending flush -----
+
+    def _merge_pending_into_linkstore(self) -> None:
+        """Append every per-worker pending file's content into the
+        in-memory LinkStore so queries see unflushed emissions.
+
+        Walks `_workspace/links.worker-*.jsonl` regardless of which
+        worker we are — the substrate's logical state is the merge of
+        canonical + all live worker buffers.
+        """
+        from lib.shared.paths import WORKER_PENDING_DIR
+        if not WORKER_PENDING_DIR.exists():
+            return
+        pending_files = sorted(
+            WORKER_PENDING_DIR.glob("links.worker-*.jsonl")
+        )
+        pending_files = [p for p in pending_files if p.stat().st_size > 0]
+        if not pending_files:
+            return
+        # Pre-build a set of canonical addresses for O(1) dedupe lookup.
+        seen = {link.addr for link in self.state.links}
+        for pending_path in pending_files:
+            with open(pending_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        data = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    addr = Address(data["id"])
+                    if addr in seen:
+                        continue
+                    seen.add(addr)
+                    self.state.links.emit(
+                        addr,
+                        [Address(a) for a in data.get("from_set", [])],
+                        [Address(a) for a in data.get("to_set", [])],
+                        [Address(a) for a in data.get("type_set", [])],
+                        ts=data.get("ts"),
+                    )
+
+    def flush_pending(self) -> int:
+        """Move emissions from this worker's pending file into canonical.
+
+        No-op when there's no pending file (non-runner context) or the
+        pending file is empty. Otherwise: acquire substrate write lock,
+        append pending → canonical, truncate pending, release.
+
+        Returns the number of lines flushed.
+        """
+        if self.pending_jsonl_path is None:
+            return 0
+        if not self.pending_jsonl_path.exists():
+            return 0
+        if self.pending_jsonl_path.stat().st_size == 0:
+            return 0
+
+        with _register_path_lock(self.docuverse):
+            # Re-check size under lock (defensive).
+            if (not self.pending_jsonl_path.exists() or
+                    self.pending_jsonl_path.stat().st_size == 0):
+                return 0
+            with open(self.pending_jsonl_path) as src:
+                content = src.read()
+            flushed_lines = sum(
+                1 for line in content.splitlines() if line.strip()
+            )
+            with open(self.jsonl_path, "a") as dst:
+                dst.write(content)
+            # Truncate pending. Equivalent to deletion + recreation.
+            open(self.pending_jsonl_path, "w").close()
+        return flushed_lines
 
 

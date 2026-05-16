@@ -24,7 +24,7 @@ from pathlib import Path
 from lib.backend.addressing import Address
 from lib.backend.types import TypeRegistry
 from lib.shared.invoke_claude import invoke_claude
-from lib.shared.paths import WORKSPACE
+from lib.shared.paths import WORKSPACE, worker_pending_jsonl
 
 
 _MAX_DIFF_CHARS = 30000
@@ -241,6 +241,53 @@ def _draft_message(trigger_name: str, addr: str) -> str:
     return text
 
 
+def _flush_pending_jsonl() -> int:
+    """Move this worker's pending substrate emissions into canonical.
+
+    Acquires the substrate write lock (the same flock-style lock used
+    by `register_path`), appends pending → canonical, truncates
+    pending. No-op when there's no pending file (non-runner context,
+    or pending file empty).
+
+    Returns the number of jsonl lines flushed.
+
+    Mirrors `Store.flush_pending` but runs without opening a Store
+    handle — `commit_after_fire` runs between sessions, and a flush
+    only needs file operations + the lock.
+    """
+    import os, fcntl
+    worker_idx_raw = os.environ.get("CLAUDE_WORKER_INDEX")
+    if worker_idx_raw is None or worker_idx_raw == "":
+        return 0
+    try:
+        worker_idx = int(worker_idx_raw)
+    except ValueError:
+        return 0
+    pending = worker_pending_jsonl(worker_idx)
+    if pending is None or not pending.exists() or pending.stat().st_size == 0:
+        return 0
+    canonical = WORKSPACE / "_docuverse" / "links.jsonl"
+    docuverse = WORKSPACE / "_docuverse"
+    lock_path = docuverse / ".register_path.lock"
+    fd = os.open(str(lock_path), os.O_RDWR | os.O_CREAT, 0o644)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        # Re-check size under lock.
+        if not pending.exists() or pending.stat().st_size == 0:
+            return 0
+        with open(pending) as src:
+            content = src.read()
+        flushed = sum(1 for line in content.splitlines() if line.strip())
+        with open(canonical, "a") as dst:
+            dst.write(content)
+        # Truncate pending.
+        open(pending, "w").close()
+        return flushed
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
+
+
 def commit_after_fire(
     trigger_name: str,
     addr: str,
@@ -259,6 +306,21 @@ def commit_after_fire(
     swallowed with a stderr note; the runner continues. Stale dirt is
     swept up by the next successful fire's commit.
     """
+    # Flush this worker's per-worker substrate buffer into canonical
+    # FIRST. Emissions during the fire went to `_workspace/links.
+    # worker-N.jsonl`; flush appends them to canonical under a brief
+    # substrate lock. Without this, the dirty-check below would
+    # report clean (pending file is gitignored) and nothing would
+    # commit.
+    try:
+        _flush_pending_jsonl()
+    except Exception as exc:
+        print(
+            f"  [AUTO-COMMIT] pending flush failed on {trigger_name}/{addr}: "
+            f"{exc!r}",
+            file=sys.stderr,
+        )
+
     try:
         if not _is_dirty():
             return
