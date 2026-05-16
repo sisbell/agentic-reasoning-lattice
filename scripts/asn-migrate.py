@@ -30,8 +30,17 @@ Role mapping: legacy `nelson`/`gregory` answer-file role suffixes
 map to the current `theory`/`evidence` subtypes per the type
 registry (`consultation.answer.theory`, `consultation.answer.evidence`).
 
+Deps handling: declare the new ASN's deps either in the source
+inquiry's frontmatter ahead of time (`depends: [34, 36, ...]`) or
+via `--depends 34,36,...` on this CLI. The migrator writes the
+declared deps into the new inquiry's frontmatter and emits
+substrate `citation.depends` links from the new inquiry. If the
+source inquiry already has a `depends:` field and `--depends` is
+not given, it carries forward unchanged.
+
 Usage:
     python scripts/asn-migrate.py --from 59 --to 89
+    python scripts/asn-migrate.py --from 59 --to 89 --depends 34,36,47,53,58,82
     python scripts/asn-migrate.py --from 59 --to 89 --dry-run
 """
 
@@ -45,14 +54,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from lib.backend.emit import (
-    emit_consultation_answer, emit_consultation_coverage,
+    emit_citation, emit_consultation_answer, emit_consultation_coverage,
     emit_consultation_questions, emit_inquiry,
 )
 from lib.lattice.labels import format_label
 from lib.protocols.febe.session import open_session
+from lib.shared.frontmatter import read_doc_with_frontmatter
 from lib.shared.git_ops import step_commit
 from lib.shared.paths import (
-    CONSULTATIONS_DIR, DOCUVERSE_DIR, INQUIRY_DIR, LATTICE, WORKSPACE,
+    CONSULTATIONS_DIR, DOCUVERSE_DIR, INQUIRY_DIR, LATTICE, NOTE_DIR, WORKSPACE,
 )
 
 
@@ -88,7 +98,67 @@ def _stage_for_commit(new_inquiry: Path, new_consult_dir: Path) -> None:
     )
 
 
-def migrate(old_num: int, new_num: int, dry_run: bool = False) -> int:
+def _resolve_depends(old_inquiry: Path, cli_depends: str | None) -> list[int]:
+    """Determine the deps list for the new inquiry.
+
+    Precedence: CLI flag overrides; else inherit from source inquiry's
+    frontmatter; else empty (operator can add later via editing the
+    new inquiry md + running asn-sync-deps).
+    """
+    if cli_depends:
+        try:
+            return sorted({int(x) for x in cli_depends.split(",") if x.strip()})
+        except ValueError as e:
+            raise SystemExit(f"invalid --depends list: {cli_depends!r} ({e})")
+    fm, _body = read_doc_with_frontmatter(old_inquiry)
+    raw = (fm or {}).get("depends")
+    if not raw:
+        return []
+    try:
+        return sorted({int(x) for x in raw})
+    except (ValueError, TypeError) as e:
+        raise SystemExit(
+            f"source inquiry has malformed depends: {raw!r} ({e})"
+        )
+
+
+def _write_depends_into_inquiry(new_inquiry: Path, deps: list[int]) -> None:
+    """Inject `depends: [...]` into the new inquiry's YAML frontmatter.
+
+    Idempotent: replaces an existing `depends:` line if present;
+    otherwise inserts before the closing `---`.
+    """
+    text = new_inquiry.read_text()
+    deps_line = f"depends: [{', '.join(str(d) for d in deps)}]"
+    if re.search(r"^depends:\s*\[.*?\]\s*$", text, re.MULTILINE):
+        new_text = re.sub(
+            r"^depends:\s*\[.*?\]\s*$", deps_line, text,
+            count=1, flags=re.MULTILINE,
+        )
+    else:
+        # Insert before the second `---` (close of frontmatter).
+        new_text = re.sub(
+            r"(^---\s*\n.*?)(\n---\s*$)",
+            lambda m: m.group(1) + "\n" + deps_line + m.group(2),
+            text, count=1, flags=re.DOTALL | re.MULTILINE,
+        )
+    new_inquiry.write_text(new_text)
+
+
+def _find_note_base_addr(store, asn_num: int):
+    """Find the BASE/identity address of a dep ASN's note."""
+    label = format_label(asn_num)
+    prefix = str(NOTE_DIR.relative_to(WORKSPACE)) + f"/{label}-"
+    for path, addr in store.path_to_addr.items():
+        if path.startswith(prefix) and not path.endswith(".statements.md"):
+            return addr
+    return None
+
+
+def migrate(
+    old_num: int, new_num: int,
+    dry_run: bool = False, depends: str | None = None,
+) -> int:
     old_label = format_label(old_num)
     new_label = format_label(new_num)
 
@@ -122,6 +192,7 @@ def migrate(old_num: int, new_num: int, dry_run: bool = False) -> int:
     # Enumerate what will be migrated
     questions_file = old_consult_dir / "consultation" / "questions.md"
     answer_files = sorted(old_consult_dir.glob("consultation/answer-*.md"))
+    declared_deps = _resolve_depends(old_inquiry, depends)
 
     print(f"  [MIGRATE] {old_label} → {new_label}", file=sys.stderr)
     print(f"    inquiry: {old_inquiry.name}", file=sys.stderr)
@@ -130,6 +201,17 @@ def migrate(old_num: int, new_num: int, dry_run: bool = False) -> int:
         file=sys.stderr,
     )
     print(f"    answer files: {len(answer_files)}", file=sys.stderr)
+    if declared_deps:
+        print(
+            f"    depends: {', '.join(f'ASN-{d:04d}' for d in declared_deps)}",
+            file=sys.stderr,
+        )
+    else:
+        print(
+            f"    depends: (none — set in inquiry md + run asn-sync-deps "
+            f"later if needed)",
+            file=sys.stderr,
+        )
 
     if dry_run:
         print("    [DRY RUN] no changes made", file=sys.stderr)
@@ -138,6 +220,8 @@ def migrate(old_num: int, new_num: int, dry_run: bool = False) -> int:
     # Copy
     shutil.copy2(old_inquiry, new_inquiry)
     shutil.copytree(old_consult_dir, new_consult_dir)
+    if declared_deps:
+        _write_depends_into_inquiry(new_inquiry, declared_deps)
 
     # Register + emit substrate
     with open_session(LATTICE) as session:
@@ -189,6 +273,31 @@ def migrate(old_num: int, new_num: int, dry_run: bool = False) -> int:
             file=sys.stderr,
         )
 
+        # citation.depends from new inquiry → each declared dep note's
+        # BASE address. Matches the note_import convention and what
+        # note_dep_asn_ids expects (direct path_for_addr lookup;
+        # version-marker addresses aren't path-registered).
+        if declared_deps:
+            dep_emit_count = 0
+            for dep_id in declared_deps:
+                dep_addr = _find_note_base_addr(store, dep_id)
+                if dep_addr is None:
+                    print(
+                        f"    [WARN] dep ASN-{dep_id:04d} note not found; "
+                        f"skipping citation.depends",
+                        file=sys.stderr,
+                    )
+                    continue
+                emit_citation(
+                    store, new_inquiry_addr, dep_addr, direction="depends",
+                )
+                dep_emit_count += 1
+            print(
+                f"    emitted citation.depends: {dep_emit_count}/"
+                f"{len(declared_deps)}",
+                file=sys.stderr,
+            )
+
     # Stage + commit
     _stage_for_commit(new_inquiry, new_consult_dir)
     step_commit(
@@ -209,11 +318,22 @@ def main():
         help="New ASN number (e.g., 89)",
     )
     parser.add_argument(
+        "--depends", default=None,
+        help="Comma-separated dep ASN numbers (e.g., 34,36,47,53,58,82). "
+             "Overrides any `depends:` in the source inquiry's frontmatter. "
+             "If omitted, falls back to the source inquiry's `depends:` (if "
+             "present) — else no deps are declared and operator can add "
+             "them later via editing the new inquiry md + asn-sync-deps.",
+    )
+    parser.add_argument(
         "--dry-run", action="store_true",
         help="Show what would migrate without making changes",
     )
     args = parser.parse_args()
-    return migrate(args.src, args.dst, dry_run=args.dry_run)
+    return migrate(
+        args.src, args.dst,
+        dry_run=args.dry_run, depends=args.depends,
+    )
 
 
 if __name__ == "__main__":
