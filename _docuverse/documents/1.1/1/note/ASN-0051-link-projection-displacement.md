@@ -31,11 +31,11 @@ We observe that locate(e, d) is fully determined by two quantities: coverage(e),
 
 This observation is definitional — locate is defined as `{v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e)}`, so the input dependency is built into the function itself. The substantive claim worth stating is about *what the algebra forbids*: no state component external to (coverage(e), M(d)) participates in resolution, because no such component exists in the link store.
 
-**SV0 (NoStaleResolutionState).** For every state Σ, endset e, and document d ∈ Σ.E_doc:
+**SV0 (NoStaleResolutionState).** Resolution is determined by the link store and the current per-document arrangement, and by nothing else. For any states Σ₁, Σ₂, endset e, and document d ∈ Σ₁.E_doc ∩ Σ₂.E_doc:
 
-`locate_Σ(e, d) = {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(e)}`
+`Σ₁.L = Σ₂.L ∧ Σ₁.M(d) = Σ₂.M(d) ⇒ locate_{Σ₁}(e, d) = locate_{Σ₂}(e, d)`
 
-— that is, locate is computed against the *current* arrangement Σ.M(d), with no contribution from any earlier arrangement Σ_k.M(d) (k < current) or from any cached V-addresses derived at link creation.
+— no other state component of Σ enters the computation. Equivalently, locate is computed against the *current* arrangement Σ.M(d) only, with no contribution from any earlier arrangement Σ_k.M(d) (k < current) or from any cached V-addresses derived at link creation. The independence claim is non-trivial because Σ contains other components — Σ.C, Σ.R, Σ.V, and the auxiliary stores — any of which could in principle have been wired into a resolution function; SV0 asserts that none are.
 
 The claim is architectural, not definitional. A naive implementation might cache V-positions at link creation time, leaving stale entries when the document is rearranged. SV0 states that such caching is *structurally precluded* by the link-store representation. The link value Σ.L(a) = (F, G, Θ) stores I-addresses only — via spans (s, ℓ) over T (L3, TripleEndsetStructure) — and V-addresses are derived from them through the current arrangement. There is no creation-time arrangement field in the link value, no historical-M slot in Σ, and no operation that records or returns historical V-positions. Any conforming implementation must compute resolution against the current arrangement; no other behaviour is expressible within the algebra.
 
@@ -164,9 +164,17 @@ The answer depends on the allocation regime and the address hierarchy. We establ
 
 `b ∉ ⟦(s, ℓ)⟧`
 
-*Precondition:* s and b are element-level tumblers (zeros(s) = 3, zeros(b) = 3), so origin(s) and origin(b) are well-defined (per the origin definition in ASN-0036, which requires element-level arguments). L4 (EndsetGenerality) permits non-element-level span starts, but the origin-based exclusion applies only when the start is element-level. The action point k of ℓ must satisfy: for s with zeros(s) = 3, let p₃ denote the position of the third zero component in s; the precondition is k > p₃. Equivalently, the leading k − 1 components of s contain all three field separators: `|{i : 1 ≤ i ≤ k−1 ∧ sᵢ = 0}| = 3`. This ensures the action point falls within the element field — beyond all three field separators.
+*Precondition.* The span start s and the candidate address b are *T4-valid* element-level tumblers — they admit the hierarchical parsing of T4 (HierarchicalParsing, ASN-0034) into the projections (N, U, D, E), with element-level depth zeros(s) = zeros(b) = 3 placing each address in the element field per T4b (UniqueParse, ASN-0034). T4-validity ensures the projections N(s), U(s), D(s), N(b), U(b), D(b) are well-defined, and consequently `origin(s) = N(s).0.U(s).0.D(s)` and `origin(b) = N(b).0.U(b).0.D(b)` are well-defined (per the origin definition in ASN-0036, which presupposes T4-valid element-level arguments). L4 (EndsetGenerality, ASN-0043) permits non-element-level span starts, but the origin-based exclusion applies only when the start is a T4-valid element-level tumbler. The action point k of ℓ must satisfy: for s with zeros(s) = 3, let p₃ denote the position of the third zero component in s; the precondition is k > p₃. Equivalently, the leading k − 1 components of s contain all three field separators: `|{i : 1 ≤ i ≤ k−1 ∧ sᵢ = 0}| = 3`. This ensures the action point falls within the element field — beyond all three field separators.
 
-*Proof.* Let k be the action point of ℓ, with k > p₃ as stated. By TumblerAdd, components before k are copied from s, and (s ⊕ ℓ)ₖ = sₖ + ℓₖ, so s and s ⊕ ℓ agree on positions 1 through k−1. Now consider any t with s ≤ t < s ⊕ ℓ. First, #t ≥ k: if #t < k, then either t agrees with s on all positions 1 through #t — making t a proper prefix of s, so t < s by T1(ii), contradicting s ≤ t — or let j be the first position where tⱼ ≠ sⱼ; since t ≥ s and j is the first divergence, T1(i) gives tⱼ > sⱼ. Since j ≤ #t < k, we have (s ⊕ ℓ)ⱼ = sⱼ (TumblerAdd copies from s at positions before k). Moreover, t agrees with s on positions 1 through j−1, and s ⊕ ℓ agrees with s on positions 1 through k−1 (with j−1 < k−1), so the first divergence of t and s ⊕ ℓ is at j. Therefore tⱼ > (s ⊕ ℓ)ⱼ, giving t > s ⊕ ℓ by T1(i) — contradicting t < s ⊕ ℓ. We claim t agrees with s on all positions 1 through k−1. For suppose there exists a position j < k where tⱼ ≠ sⱼ, and let j be the *first* such position. Since t ≥ s and t agrees with s on positions 1 through j−1, T1(i) gives tⱼ > sⱼ. But sⱼ = (s ⊕ ℓ)ⱼ (TumblerAdd copies from s at positions before k). Since t agrees with s on positions 1 through j−1 and s ⊕ ℓ agrees with s on positions 1 through k−1 (with j−1 < k−1), the first divergence of t and s ⊕ ℓ is at j. Therefore tⱼ > (s ⊕ ℓ)ⱼ, giving t > s ⊕ ℓ by T1(i) — contradicting t < s ⊕ ℓ. Hence t agrees with s on all positions 1 through k−1.
+*Proof.* Let k be the action point of ℓ, with k > p₃ as stated. By TumblerAdd, components before k are copied from s, and (s ⊕ ℓ)ₖ = sₖ + ℓₖ, so s and s ⊕ ℓ agree on positions 1 through k−1. Consider any t with s ≤ t < s ⊕ ℓ.
+
+*Sub-lemma (no early divergence).* t cannot first diverge from s at any position j < k. Suppose for contradiction that the first position where tⱼ ≠ sⱼ is some j with j < k. Since t ≥ s and t agrees with s on positions 1 through j−1, T1(i) gives tⱼ > sⱼ. By TumblerAdd, (s ⊕ ℓ)ⱼ = sⱼ for j < k. Since t and s ⊕ ℓ each agree with s on positions 1 through j−1, and s ⊕ ℓ agrees with s on positions 1 through k−1 (with j−1 < k−1), the first divergence of t and s ⊕ ℓ is at position j with tⱼ > sⱼ = (s ⊕ ℓ)ⱼ. By T1(i), t > s ⊕ ℓ — contradicting t < s ⊕ ℓ. □
+
+The two structural conclusions follow as parallel applications of the sub-lemma:
+
+(a) *#t ≥ k.* Suppose #t < k. Then the sub-lemma excludes any first-divergence at j ≤ #t < k, so t agrees with s on all positions 1 through #t — making t a proper prefix of s, hence t < s by T1(ii), contradicting s ≤ t.
+
+(b) *t agrees with s on positions 1 through k−1.* If t did not agree with s on some position in [1, k−1], the first such position would be a divergence at some j < k — excluded by the sub-lemma.
 
 Since k > p₃, the first k−1 positions of t include all three field-separator positions of s — call them p₁, p₂, p₃ (the positions where sᵢ = 0). Because t agrees with s on positions 1 through k−1, we have t_{p₁} = t_{p₂} = t_{p₃} = 0, so t has at least three zero components, all located within positions 1 through k−1: zeros(t) ≥ 3, with at least three zeros at positions p₁, p₂, p₃.
 
@@ -178,7 +186,7 @@ Since b is element-level (S7b — `zeros(b) = 3`), and every element-level t ∈
 
 This property is robust — it depends only on the structural separation of document-level prefixes, not on any allocation discipline.
 
-**Same-origin coverage growth.** Under the same document prefix, two mechanisms can place a new I-address within an existing endset span's denotation.
+**Same-origin coverage growth.** Under the same document prefix, two mechanisms can place a new I-address within an existing endset span's denotation. *Scope.* We make no formal SV claim about same-origin coverage growth in this ASN. The analysis below is descriptive: it identifies the mechanisms (sequential overshoot, child-depth entry) by which TA5 and T10a allocations can enter existing endset coverage under a shared document prefix, but the precise allocator-discipline conditions that determine *which* same-origin allocations enter *which* spans are deferred to the allocator-discipline treatment in ASN-0034. The descriptive content here motivates the SV6 formal exclusion at element-level depth from cross-origin allocations and clarifies why endset coverage stability is *architectural*, not definitional.
 
 *Sequential overshoot.* If a span's reach extends beyond the current allocation maximum — i.e., the span references addresses not yet allocated — future sibling allocations (TA5(c)) will enter the span as they advance through the ordinal sequence. This is the mechanism by which type endsets referencing ghost addresses (L9, TypeGhostPermission) acquire content: a link whose type endset spans a range in the type hierarchy will match future type addresses as they are allocated within that range.
 
@@ -249,6 +257,13 @@ We have now defined two independent operations — discovery and resolution — 
 Note that discovery through d entails non-empty projection in d: if a ∈ discover_s({M(d)(v) : v ∈ V}), then coverage(Σ.L(a).s) ∩ {M(d)(v) : v ∈ V} ≠ ∅, and since {M(d)(v) : v ∈ V} ⊆ ran(M(d)), we have π(Σ.L(a).s, d) ⊇ coverage(Σ.L(a).s) ∩ {M(d)(v) : v ∈ V} ≠ ∅. So within the discovering document, resolution is guaranteed non-empty.
 
 This arises naturally. Suppose a link's from-endset covers I-addresses {i₁, i₂, i₃}. Document d's arrangement contains only i₂. Discovery succeeds (non-empty intersection). But resolution of the from-endset in d returns only the V-positions corresponding to i₂ — the other two I-addresses have no V-positions in d.
+
+*Concrete witness.* We exhibit a state Σ, link a, document d, slot s = from, and V ⊆ dom(Σ.M(d)) satisfying the existential. Take origin O = 1.0.1.0.1 and three element-level sibling addresses i₁ = O.0.1, i₂ = O.0.2, i₃ = O.0.3 — each T4-valid with zeros = 3 and origin O. Let s_span = i₁ and ℓ_span = 0.0.0.0.0.0.3, so the reach s_span ⊕ ℓ_span = O.0.4 and the span coverage `⟦(i₁, ℓ_span)⟧ = {t : i₁ ≤ t < O.0.4}` contains the element-level allocated addresses i₁, i₂, i₃. Set Σ.M(d) = {v₁ ↦ i₂}, and let a ∈ dom(Σ.L) carry F = {(i₁, ℓ_span)} so coverage(F) ⊇ {i₁, i₂, i₃} ∋ i₂. Then with V = {v₁} and A = {Σ.M(d)(v₁)} = {i₂}:
+
+- *Discovery succeeds:* coverage(F) ∩ A = {i₂} ≠ ∅, so a ∈ discover_from(A).
+- *Projection is proper:* π(F, d) = coverage(F) ∩ ran(Σ.M(d)) = coverage(F) ∩ {i₂} = {i₂}, but coverage(F) ⊇ {i₁, i₂, i₃} ⊋ {i₂}, so π(F, d) ⊊ coverage(F).
+
+The link is discoverable through d via the shared address i₂, yet resolves to only that one I-address — i₁ and i₃ remain in coverage(F) but are absent from ran(Σ.M(d)). ∎
 
 The cross-document case is starker: a link discovered through document d₁ (which shares I-addresses with the endset) may have empty resolution in a different document d₂ whose arrangement contains none of the endset's I-addresses. Discovery and resolution operate through independent documents; discovery through one does not entail resolution in another.
 
@@ -330,6 +345,31 @@ Note: this worked example illustrates a special case where the locate *set* is p
 
 The projection is invariant under reordering; the resolution set transforms by the reordering bijection ψ.
 
+*Two-span, non-injective scenario.* The preceding subcases used a single span (m = 1) and an injective arrangement. We now exercise SV11 with m = 2 spans and a non-injective Σ.M(d) to expose the cover-not-partition behaviour and the m · p decomposition bound.
+
+Re-take the initial five-address content store with a₁ < a₂ < a₃ < a₄ < a₅ all sharing one origin and one tumbler length. Extend the document's arrangement with two additional V-positions v₆, v₇ that share I-addresses with v₂ and v₃ (within-document sharing, S5):
+
+`M(d) = {v₁ ↦ a₁, v₂ ↦ a₂, v₃ ↦ a₃, v₄ ↦ a₄, v₅ ↦ a₅, v₆ ↦ a₂, v₇ ↦ a₃}`
+
+with v₁ < v₂ < v₃ < v₄ < v₅ < v₆ < v₇. The maximally merged block decomposition of this restriction has p = 2 blocks: β₁ = (v₁, a₁, 5) covering v₁..v₅ with I-extent {a₁, a₂, a₃, a₄, a₅}, and β₂ = (v₆, a₂, 2) covering v₆..v₇ with I-extent {a₂, a₃}. The block boundary at v₅ → v₆ is enforced by a discontinuity in M(d)'s I-address sequence (a₅ → a₂ is not a +1 step), forcing M12's split rule. The two blocks share I-addresses {a₂, a₃} — this is the non-injective signature.
+
+Define a two-span endset `e = {(s₁, ℓ₁), (s₂, ℓ₂)}` with s₁ = a₁, ℓ₁ = a₃ ⊖ a₁ (reach a₃) and s₂ = a₃, ℓ₂ = a₅ ⊖ a₃ (reach a₅). Then `coverage(e) = ⟦(a₁, ℓ₁)⟧ ∪ ⟦(a₃, ℓ₂)⟧` and among the allocated I-addresses this contains {a₁, a₂, a₃, a₄}. The two spans abut at a₃: the first contains a₁, a₂ (interval `[a₁, a₃)`), the second contains a₃, a₄ (interval `[a₃, a₅)`).
+
+*SV11 decomposition.* With m = 2 and p = 2 there are m · p = 4 decomposition terms:
+
+- ⟦(a₁, ℓ₁)⟧ ∩ I(β₁) = {a₁, a₂} (span 1 within block 1)
+- ⟦(a₃, ℓ₂)⟧ ∩ I(β₁) = {a₃, a₄} (span 2 within block 1)
+- ⟦(a₁, ℓ₁)⟧ ∩ I(β₂) = {a₂} (span 1 within block 2; β₂'s extent is {a₂, a₃}, intersected with `[a₁, a₃)`)
+- ⟦(a₃, ℓ₂)⟧ ∩ I(β₂) = {a₃} (span 2 within block 2)
+
+Union: `π_text(e, d) = {a₁, a₂} ∪ {a₃, a₄} ∪ {a₂} ∪ {a₃} = {a₁, a₂, a₃, a₄}`. ✓
+
+*Cover, not partition.* Summed term widths: 2 + 2 + 1 + 1 = 6, but |π_text(e, d)| = 4. The addresses a₂ and a₃ each occur in two terms — once per block — because the non-injective arrangement places these I-addresses in both β₁ and β₂. The fragments are not disjoint as sets; the set-union formula remains correct because set union is idempotent.
+
+*Maximal fragments.* Within β₁, the two terms {a₁, a₂} and {a₃, a₄} are adjacent in the ordinal sequence of I(β₁) (which is a₁ < a₂ < a₃ < a₄ < a₅), so they coalesce into a single maximal fragment {a₁, a₂, a₃, a₄}. Within β₂, the terms {a₂} and {a₃} are adjacent in the ordinal sequence of I(β₂) (a₂ < a₃) and coalesce into {a₂, a₃}. The fragment count is 2 — strictly less than the non-empty-term count (4) and the m · p upper bound (4) — because adjacency within blocks merges term-level contiguous regions, while non-injective sharing introduces no new fragments beyond those each block independently contributes.
+
+*Resolution.* `locate(e, d) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e)} = {v₁, v₂, v₃, v₄, v₆, v₇}` — both occurrences of a₂ (at v₂ and v₆) and both occurrences of a₃ (at v₃ and v₇) enter the locate set, while v₅ ↦ a₅ does not (a₅ ∉ coverage(e)). Thus |locate(e, d)| = 6 > 4 = |π(e, d)|, exhibiting the inequality `|locate(e, d)| ≥ |π(e, d)|` from the Endset Projection section under within-document sharing.
+
 *Cross-origin exclusion (SV6).* We now verify SV6 with explicit tumbler values. Let s = 1.0.1.0.1.0.1.2.3 — nine components; the zeros at positions 2, 4, 6 are field separators, so p₃ = 6. Let ℓ = 0.0.0.0.0.0.0.0.5 — action point k = 9 (the first nonzero component), and k = 9 > 6 = p₃. By TumblerAdd, positions 1 through 8 are copied from s, and position 9 advances: reach = s ⊕ ℓ = 1.0.1.0.1.0.1.2.8. We verify the sandwich: reach agrees with s on positions 1 through 8, confirming that the three field separators (positions 2, 4, 6) are preserved.
 
 Consider t = 1.0.1.0.1.0.1.2.5. We have s ≤ t (agree on positions 1–8; at position 9, t₉ = 5 > 3 = s₉) and t < reach (agree on positions 1–8; at position 9, t₉ = 5 < 8 = reach₉). So t ∈ ⟦(s, ℓ)⟧. The field separators of t are at positions 2, 4, 6 — matching s — so origin(t) = 1.0.1.0.1 = origin(s). ✓
@@ -350,29 +390,29 @@ The guarantee is architectural rather than cryptographic — there is no hash or
 
 ## Weakest Precondition Analysis
 
-The forward claims SV2–SV5 each have a natural reading as a *weakest precondition*. Given an elementary transition K and a postcondition R, write wp(K, R) for the weakest predicate on the pre-state such that R holds in every post-state reached by K. The wp form makes precise what the pre-state must guarantee for R to hold afterward — equivalently, what an editor would have to avoid in order not to falsify R. The forward claims SV2–SV5 give us each wp by direct rearrangement; we are recasting, not introducing new content. The "vitality loss condition" already developed in the SV3 discussion is essentially the wp of K.μ⁻ for non-vitality.
+The forward claims SV2–SV5 each have a natural reading as a *weakest precondition*. Given an elementary transition K and a postcondition R, write wp(K, R) for the weakest predicate on the *pre-state Σ and the transition's parameters* such that R holds in every reachable post-state. Each elementary transition in K is parameterised by what it adds or removes (an inserted V↦I mapping, a set of removed V-positions, an allocated address, a reordering bijection), and the wp expression names those parameters explicitly so that the predicate is evaluated entirely in the pre-state. The wp form makes precise what an editor must guarantee *before* acting in order not to falsify R afterward. The forward claims SV2–SV5 give us each wp by direct rearrangement; we are recasting, not introducing new content. The "vitality loss condition" already developed in the SV3 discussion is essentially the wp of K.μ⁻ for non-vitality.
 
 We take the postcondition R = "endset e remains vital in d after the transition", formally `π_{Σ'}(e, d) ≠ ∅`, and read off wp for each elementary transition. We restrict to non-empty endsets, as the empty case is degenerate (the section above).
 
-- **wp(K.μ⁻, π(e, d) ≠ ∅) = `coverage(e) ∩ ran(M'(d)) ≠ ∅`.** Contraction preserves vitality iff at least one I-address in coverage(e) survives the contraction. The contrapositive — the *vitality loss* condition — is `coverage(e) ∩ ran(M'(d)) = ∅`, equivalent to `(A i : i ∈ coverage(e) ∩ ran(M(d)) :: i ∉ ran(M'(d)))`: the contraction removes every I-address that the endset shared with d's arrangement. This is Nelson's "if anything is left at each end" condition in formal dress.
+- **wp(K.μ⁻ removing V_rm ⊆ dom(Σ.M(d)), π(e, d) ≠ ∅) = `(E v : v ∈ dom(Σ.M(d)) \ V_rm : Σ.M(d)(v) ∈ coverage(e))`.** K.μ⁻ removes a non-empty set V_rm of V-positions from the maximum end of dom(Σ.M(d)) within the operating subspace (D-SEQ, ASN-0047). Vitality is preserved iff some V-position *not* in V_rm carries an I-address in coverage(e). The contrapositive — the *vitality-loss* condition — is `(A v : v ∈ dom(Σ.M(d)) \ V_rm :: Σ.M(d)(v) ∉ coverage(e))` together with `(E v : v ∈ V_rm : Σ.M(d)(v) ∈ coverage(e))` (so the endset was vital pre-transition but every contributing V-position was removed). Both conjuncts are pre-state predicates over Σ and the removal parameter V_rm. This is Nelson's "if anything is left at each end" condition in formal dress.
 
-- **wp(K.μ⁺, π(e, d) ≠ ∅) = `π(e, d) ≠ ∅ ∨ (∃ v, i : v ↦ i ∈ M' \ M ∧ i ∈ coverage(e))`.** Extension preserves vitality if it already held *or* if the extension introduces at least one I-address in coverage(e). For the typical case of an endset already vital before the extension, the first disjunct is satisfied and the wp reduces to the pre-state vitality.
+- **wp(K.μ⁺ adding v_new ↦ i_new, π(e, d) ≠ ∅) = `π(e, d) ≠ ∅ ∨ i_new ∈ coverage(e)`** where (v_new, i_new) is the inserted mapping (with v_new ∉ dom(Σ.M(d)), i_new ∈ dom(Σ.C)). Extension preserves vitality if it already held in the pre-state *or* if the new I-address lies in coverage(e). For the typical case of an endset already vital before the extension, the first disjunct is satisfied and the wp reduces to the pre-state vitality.
 
-- **wp(K.μ⁺_L, π(e, d) ≠ ∅) = `π(e, d) ≠ ∅ ∨ ℓ ∈ coverage(e)`** where ℓ is the link address added by the transition. For endsets whose coverage lies entirely in dom(Σ.C) (the typical content endset), the second disjunct is unreachable and the wp reduces to pre-state vitality.
+- **wp(K.μ⁺_L adding v_ℓ ↦ ℓ, π(e, d) ≠ ∅) = `π(e, d) ≠ ∅ ∨ ℓ ∈ coverage(e)`** where ℓ is the link address added by the transition. For endsets whose coverage lies entirely in dom(Σ.C) (the typical content endset), the second disjunct is unreachable and the wp reduces to pre-state vitality.
 
-- **wp(K.μ~, π(e, d) ≠ ∅) = `π(e, d) ≠ ∅`.** Reordering preserves ran(M(d)) (SV5), so the precondition is identical to the postcondition.
+- **wp(K.μ~ under bijection ψ, π(e, d) ≠ ∅) = `π(e, d) ≠ ∅`.** Reordering preserves ran(M(d)) (SV5), so the precondition is identical to the postcondition and does not depend on ψ.
 
 - **wp(K.α, π(e, d) ≠ ∅) = `π(e, d) ≠ ∅`** and **wp(K.δ, π(e, d) ≠ ∅) = `π(e, d) ≠ ∅`** (for any d carried over by the frame) and **wp(K.ρ, π(e, d) ≠ ∅) = `π(e, d) ≠ ∅`** and **wp(K.λ, π(e, d) ≠ ∅) = `π(e, d) ≠ ∅`** for every pre-existing endset e. Each of these transitions preserves M in its frame, so π is unchanged for every endset that existed prior to the transition.
 
-The aggregate observation: only K.μ⁻ can falsify vitality, and only by a specific characterized action — exhausting `coverage(e) ∩ ran(M(d))`. Every other elementary transition either trivially preserves vitality (M-frame: K.α, K.δ, K.λ, K.ρ, K.μ~) or can only enlarge the projection (K.μ⁺, K.μ⁺_L). The wp framework therefore localizes the *single* operation that places vitality at risk and gives the *exact* condition under which the risk materializes.
+The aggregate observation: only K.μ⁻ can falsify vitality, and only by a specific characterised action — every pre-state V-position contributing to coverage(e) being among the set V_rm removed by the contraction. Every other elementary transition either trivially preserves vitality (M-frame: K.α, K.δ, K.λ, K.ρ, K.μ~) or can only enlarge the projection (K.μ⁺, K.μ⁺_L). The wp framework therefore localises the *single* operation that places vitality at risk and gives the *exact* pre-state condition under which the risk materialises.
 
 For discovery, the corresponding wp values follow the same pattern with discover_s in place of π. Because discover_s depends only on coverage(e) and dom(Σ.L), every transition that holds L in frame preserves discover_s pointwise:
 
 - **wp(K, a ∈ discover_s(A)) = `a ∈ discover_s(A)`** for every K ∈ {K.α, K.δ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ} and every fixed A. Discovery is invariant under arrangement and content operations.
 
-- **wp(K.λ, a ∈ discover_s(A)) = `a ∈ discover_s(A) ∨ (a = a_new ∧ coverage(L_new.s) ∩ A ≠ ∅)`** where a_new is the newly allocated link address. K.λ can extend dom(L) by exactly one entry, so a previously-non-discoverable a becomes discoverable only when it is the newly allocated link and the new link's endset shares an I-address with A.
+- **wp(K.λ allocating a_new with L_new(a_new) = (F_new, G_new, Θ_new), a ∈ discover_s(A)) = `a ∈ discover_s(A) ∨ (a = a_new ∧ coverage(L_new.s) ∩ A ≠ ∅)`** where a_new is the newly allocated link address and L_new is the corresponding endset tuple. K.λ can extend dom(L) by exactly one entry, so a previously-non-discoverable a becomes discoverable only when it is the newly allocated link and the new link's endset shares an I-address with A.
 
-The discovery wp formalizes SV7–SV9: invariance under L-frame transitions, monotonic growth under K.λ, permanence (SV8) as wp instance for any K. Nothing new is established beyond the forward claims; the reformulation makes the *direction of dependency* explicit — for a postcondition concerning resolution or discovery, we can read off the corresponding pre-state requirement directly from the transition's frame.
+The discovery wp formalises SV7–SV9: invariance under L-frame transitions, monotonic growth under K.λ, permanence (SV8) as wp instance for any K. Nothing new is established beyond the forward claims; the reformulation makes the *direction of dependency* explicit — for a postcondition concerning resolution or discovery, we can read off the corresponding pre-state requirement directly from the transition's parameters and frame.
 
 
 ## The Complete Guarantee
