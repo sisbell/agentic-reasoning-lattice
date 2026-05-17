@@ -34,6 +34,17 @@ module ZeroTumblers {
     ensures !HierarchicalParsing.HierarchicalParsing(t)
   { }
 
+  lemma LexOrderWitness(s: Tumbler, t: Tumbler, k: nat)
+    requires InT(s) && InT(t)
+    requires 1 <= k
+    requires forall i :: 1 <= i < k ==>
+               i <= Length(s) && i <= Length(t) &&
+               Component(s, i) == Component(t, i)
+    requires (k <= Length(s) && k <= Length(t) && Less(Component(s, k), Component(t, k)))
+             || (k == Length(s) + 1 && k <= Length(t))
+    ensures LexicographicOrder.LexicographicOrder(s, t)
+  { }
+
   lemma ZeroBelowPositive(s: Tumbler, t: Tumbler)
     requires InT(s) && InT(t)
     requires ZeroTumbler(s)
@@ -42,29 +53,17 @@ module ZeroTumblers {
   {
     var j := FirstNonzeroFrom(t, 1);
     if j <= Length(s) {
-      var k: nat := j;
-      assert 1 <= k <= Length(s) && k <= Length(t);
-      assert Less(Component(s, k), Component(t, k));
-      forall i | 1 <= i < k
-        ensures i <= Length(s) && i <= Length(t) &&
-                Component(s, i) == Component(t, i)
-      {
-        assert Component(s, i) == 0;
-        assert Component(t, i) == 0;
-      }
+      LexOrderWitness(s, t, j);
     } else {
-      var k: nat := Length(s) + 1;
+      var k := Length(s) + 1;
       assert k <= j <= Length(t);
       forall i | 1 <= i < k
         ensures i <= Length(s) && i <= Length(t) &&
                 Component(s, i) == Component(t, i)
       {
-        assert i <= Length(s);
         assert i < j;
-        assert Component(s, i) == 0;
-        assert Component(t, i) == 0;
       }
-      assert k == Length(s) + 1 && k <= Length(t);
+      LexOrderWitness(s, t, k);
     }
   }
 
