@@ -115,4 +115,64 @@ module ZeroPaddedDivergence {
     assert Divergence.Divergence(a, w) == Divergence.FirstMismatch(a, w, 1, m);
     FirstPaddedMismatchEqualsFirstMismatch(a, w, 1, m, L);
   }
+
+  // Advance the FirstPaddedMismatch scan past a prefix on which padded
+  // components agree. Used to skip the shared-prefix range in Case (ii)
+  // and to certify exhaustion when no trailing nonzero component exists.
+  lemma FirstPaddedMismatchAdvance(
+      a: Tumbler, w: Tumbler, start: nat, target: nat, L: nat)
+    requires InT(a) && InT(w)
+    requires 1 <= start <= target <= L + 1
+    requires forall i :: start <= i < target ==> PaddedComponent(a, i) == PaddedComponent(w, i)
+    ensures FirstPaddedMismatch(a, w, start, L) == FirstPaddedMismatch(a, w, target, L)
+    decreases target - start
+  {
+    if start == target {
+    } else {
+      FirstPaddedMismatchAdvance(a, w, start + 1, target, L);
+    }
+  }
+
+  // Relationship to Divergence — case (ii) sub-case (β): #a < #w with all
+  // shared components agreeing. Divergence returns #a + 1. The padded scan
+  // skips the agreeing prefix and inspects positions (#a, #w]: a's padded
+  // entries are 0, w's are wᵢ. If some wᵢ != 0, zpd is defined and at least
+  // #a + 1 = divergence; if all are 0, zpd is undefined (encoded 0).
+  lemma ZeroPaddedDivergenceCaseIIBeta(a: Tumbler, w: Tumbler)
+    requires InT(a) && InT(w)
+    requires a != w
+    requires Length(a) < Length(w)
+    requires forall i :: 1 <= i <= Length(a) ==> Component(a, i) == Component(w, i)
+    ensures (exists i :: Length(a) < i <= Length(w) && Component(w, i) != 0)
+              ==> (ZeroPaddedDivergence(a, w) != 0
+                   && ZeroPaddedDivergence(a, w) >= Divergence.Divergence(a, w))
+    ensures (forall i :: Length(a) < i <= Length(w) ==> Component(w, i) == 0)
+              ==> ZeroPaddedDivergence(a, w) == 0
+  {
+    var L := Length(w);
+    assert L == if Length(a) >= Length(w) then Length(a) else Length(w);
+
+    assert forall i :: 1 <= i <= Length(a) ==>
+      PaddedComponent(a, i) == PaddedComponent(w, i);
+    FirstPaddedMismatchAdvance(a, w, 1, Length(a) + 1, L);
+
+    if exists i :: Length(a) < i <= L && Component(w, i) != 0 {
+      var wit :| Length(a) < wit <= L && Component(w, wit) != 0;
+      assert PaddedComponent(a, wit) == 0;
+      assert PaddedComponent(w, wit) == Component(w, wit);
+      assert PaddedComponent(a, wit) != PaddedComponent(w, wit);
+      var fpm := FirstPaddedMismatch(a, w, Length(a) + 1, L);
+      // By FirstPaddedMismatch's postcondition, all positions in
+      // [Length(a)+1, fpm) have matching padded components. The wit
+      // disagrees and lies in [Length(a)+1, L], so fpm <= wit <= L.
+      assert Length(a) + 1 <= wit;
+      assert !(Length(a) + 1 <= wit < fpm);
+      assert fpm <= wit;
+    } else {
+      assert forall i :: Length(a) < i <= L ==> Component(w, i) == 0;
+      assert forall i :: Length(a) + 1 <= i <= L ==>
+        PaddedComponent(a, i) == 0 && PaddedComponent(w, i) == 0;
+      FirstPaddedMismatchAdvance(a, w, Length(a) + 1, L + 1, L);
+    }
+  }
 }
