@@ -50,12 +50,18 @@ module PositiveDominatesZero {
         Component(z, i) == Component(t, i);
     } else {
       // T1 case (ii) with witness Length(z) + 1.
-      var w := Length(z) + 1;
+      var w: nat := Length(z) + 1;
       assert w <= Length(t);
       assert forall i :: 1 <= i < w ==>
         i <= Length(z) && i <= Length(t) &&
         Component(z, i) == Component(t, i);
-      assert w == Length(z) + 1 && w <= Length(t);
+      assert
+        && 1 <= w
+        && (forall i :: 1 <= i < w ==>
+              i <= Length(z) && i <= Length(t) &&
+              Component(z, i) == Component(t, i))
+        && ((w <= Length(z) && w <= Length(t) && Less(Component(z, w), Component(t, w)))
+            || (w == Length(z) + 1 && w <= Length(t)));
     }
   }
 }
