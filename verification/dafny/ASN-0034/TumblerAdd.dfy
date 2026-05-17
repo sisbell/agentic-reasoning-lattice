@@ -69,33 +69,24 @@ module TumblerAdd {
     // Case on j: 0 means all a_i = 0 for i in [1, k] (equality);
     // nonzero j gives the divergence witness for LexicographicOrder(w, result).
     if j == 0 then
-      // Equality branch: each component of result equals the matching component of w.
+      // Equality branch: every component of a in [1, k] is zero.
       assert forall i :: 1 <= i <= k ==> Component(a, i) == 0;
-      assert forall i :: 1 <= i < k ==> Component(result, i) == 0;
-      assert forall i :: 1 <= i < k ==> Component(w, i) == 0;
-      assert Component(a, k) == 0;
-      assert Component(result, k) == Component(w, k);
-      // Bridge to seq indexing for extensionality.
-      assert forall p :: 0 <= p < |w.components| ==>
-        w.components[p] == result.components[p] by {
-        forall p | 0 <= p < |w.components|
-          ensures w.components[p] == result.components[p]
-        {
-          var i := p + 1;
-          assert 1 <= i <= Length(w);
-          assert Component(w, i) == w.components[p];
-          assert Component(result, i) == result.components[p];
-          if i < k {
-            assert Component(w, i) == 0;
-            assert Component(result, i) == 0;
-          } else if i == k {
-            assert Component(result, k) == Component(w, k);
-          } else {
-            assert Component(result, i) == Component(w, i);
-          }
-        }
-      };
-      assert |w.components| == |result.components|;
+      // a.components[0..k-1] are all zero (just a reformulation of the above).
+      assert forall p :: 0 <= p < k ==> a.components[p] == 0;
+      // w.components[0..k-2] are all zero (ActionPoint: w_i = 0 for i < k).
+      assert forall p :: 0 <= p < k - 1 ==> w.components[p] == 0;
+      // Hence a.components[..k-1] equals w.components[..k-1] (both all zero).
+      assert a.components[..k-1] == w.components[..k-1];
+      // a.components[k-1] + w.components[k-1] = 0 + w.components[k-1] = w.components[k-1].
+      assert a.components[k-1] + w.components[k-1] == w.components[k-1];
+      // Reassemble w from its three pieces.
+      assert w.components == w.components[..k-1]
+                            + [w.components[k-1]]
+                            + w.components[k..];
+      // Reassemble result by definition; pieces match those of w.
+      assert result.components == w.components[..k-1]
+                                  + [w.components[k-1]]
+                                  + w.components[k..];
       assert w.components == result.components;
       result
     else
