@@ -49,10 +49,11 @@ module HierarchicalIncrement {
       var result := Tumbler(t.components + seq(k - 1, _ => 0 as Carrier) + [1 as Carrier]);
       assert Length(result) == Length(t) + k;
       assert forall i :: 1 <= i <= Length(t) ==> Component(result, i) == Component(t, i);
-      var w := Length(t) + 1;
-      assert 1 <= w;
-      assert w == Length(t) + 1 && w <= Length(result);
-      assert forall i :: 1 <= i < w ==>
+      // Touch Component(result, Length(t) + 1) to trigger the existential.
+      ghost var cw := Component(result, Length(t) + 1);
+      assert 1 <= Length(t) + 1;
+      assert (Length(t) + 1) == Length(t) + 1 && (Length(t) + 1) <= Length(result);
+      assert forall i :: 1 <= i < Length(t) + 1 ==>
         i <= Length(t) && i <= Length(result) && Component(t, i) == Component(result, i);
       result
   }
