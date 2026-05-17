@@ -12,11 +12,11 @@ include "./CanonicalRepresentation.dfy"
 
 module LengthSeparation {
   import opened AllocatorDiscipline
-  import opened UniformSiblingLength
+  import USL = UniformSiblingLength
   import opened HierarchicalIncrement
   import opened CarrierSetDefinition
   import opened NatCarrierSet
-  import opened CanonicalRepresentation
+  import CR = CanonicalRepresentation
 
   // Distinct lengths force distinct tumblers (T3 corollary).
   lemma DistinctLengthsDistinctTumblers(a: Tumbler, b: Tumbler)
@@ -24,7 +24,7 @@ module LengthSeparation {
     requires Length(a) != Length(b)
     ensures a != b
   {
-    CanonicalRepresentation(a, b);
+    CR.CanonicalRepresentation(a, b);
   }
 
   // T10a.3 single-step length separation: every output of a child allocator
@@ -42,15 +42,15 @@ module LengthSeparation {
 
     // Witness for sp ∈ dom(p) — unfolds InDomain's existential.
     ghost var m: nat :| SiblingAt(p, m) == sp;
-    UniformSiblingLength(p, m);
+    USL.UniformSiblingLength(p, m);
 
     // T10a.1 on both allocators places all siblings at the base length.
-    UniformSiblingLength(c, nc);
-    UniformSiblingLength(p, np);
+    USL.UniformSiblingLength(c, nc);
+    USL.UniformSiblingLength(p, np);
 
     // T3 lifts the strict length inequality to distinctness.
-    SiblingInT(c, nc);
-    SiblingInT(p, np);
+    USL.SiblingInT(c, nc);
+    USL.SiblingInT(p, np);
     DistinctLengthsDistinctTumblers(SiblingAt(c, nc), SiblingAt(p, np));
   }
 }
