@@ -98,6 +98,37 @@ def _register_path_lock(docuverse_dir: Path):
         os.close(fd)
 
 
+_EMIT_LOCK_FILE = ".link_emit.lock"
+
+
+@contextmanager
+def _emit_lock(docuverse_dir: Path):
+    """Cross-process lock around a single link emission.
+
+    Prevents two workers from claiming the same id from a shared
+    per-homedoc allocator (e.g., agent doc's link allocator). Before
+    emitting, the caller holds this lock, scans all worker pending
+    files for the highest position already claimed under the allocator
+    base, advances the in-memory cursor past it, and only then emits.
+
+    The lock is held for microseconds (a pending-file scan + cursor
+    update + one append). Cross-worker contention is negligible at
+    typical fire rates (5-20 emissions per fire, fire every 60-1800s).
+
+    Scoped per docuverse dir so multiple lattices (if ever) get
+    independent locks.
+    """
+    docuverse_dir.mkdir(parents=True, exist_ok=True)
+    lock_path = docuverse_dir / _EMIT_LOCK_FILE
+    fd = os.open(str(lock_path), os.O_RDWR | os.O_CREAT, 0o644)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
+
+
 def _utcnow_unix() -> int:
     """Current UTC time as Unix epoch seconds (int).
 
@@ -466,9 +497,95 @@ class Store:
         type_: TypeArg,
     ) -> Link:
         ts = _utcnow_unix()
+        # In worker context, take the cross-process emit lock to keep
+        # ID allocation atomic across concurrent workers. Workers share
+        # in-memory allocator state separately, so without this lock
+        # two workers running parallel fires on the same agent doc both
+        # see cursor at N, both emit at N → L11a violation in canonical.
+        # The lock briefly (microseconds) serializes the cursor
+        # reconcile + emit step.
+        if self.pending_jsonl_path is not None:
+            with _emit_lock(self.docuverse):
+                self._reconcile_link_cursor(homedoc)
+                link = self.state.make_link(
+                    homedoc, from_set, to_set, type_, ts=ts,
+                )
+                self._append_record(link, ts=ts)
+                return link
+        # Single-process (operator CLI, test harness, etc.): no race.
         link = self.state.make_link(homedoc, from_set, to_set, type_, ts=ts)
         self._append_record(link, ts=ts)
         return link
+
+    def _reconcile_link_cursor(self, homedoc: Address) -> None:
+        """Advance `homedoc`'s link-allocator cursor past any positions
+        already claimed in worker pending files.
+
+        Called under `_emit_lock` immediately before emitting a link
+        from `homedoc`'s link allocator. Scans every
+        `_workspace/links.worker-*.jsonl` for IDs of the form
+        `<homedoc>.0.2.<N>` and, if any exceeds the in-memory cursor,
+        advances the cursor past the max. This catches the case where
+        another worker emitted in the same allocator since we last
+        loaded state — without the catch, both workers would assign
+        the same position N.
+
+        Idempotent on no-pending-conflict (cheap fall-through). Bounded
+        by per-pending-file size (each ~KB for typical fires).
+        """
+        from .allocator import Allocator
+        from .state import link_subspace_base
+        from lib.shared.paths import WORKER_PENDING_DIR
+
+        if not WORKER_PENDING_DIR.exists():
+            return
+
+        # Ensure the allocator exists; create if homedoc is new.
+        if homedoc not in self.state._link_allocators:
+            self.state._link_allocators[homedoc] = Allocator(
+                link_subspace_base(homedoc),
+            )
+        allocator = self.state._link_allocators[homedoc]
+
+        # IDs from this allocator look like `<homedoc>.0.2.<N>`. We need
+        # to find the max N across all pending files.
+        homedoc_str = str(homedoc)
+        id_prefix = f'"id": "{homedoc_str}.0.2.'
+        max_pos = 0
+        for pending_path in WORKER_PENDING_DIR.glob("links.worker-*.jsonl"):
+            try:
+                if pending_path.stat().st_size == 0:
+                    continue
+            except OSError:
+                continue
+            with open(pending_path) as f:
+                for line in f:
+                    # Fast prefix check before full JSON parse — most
+                    # lines in a pending file are unrelated to this
+                    # specific allocator.
+                    if id_prefix not in line:
+                        continue
+                    # Extract the id field's numeric tail.
+                    try:
+                        idx = line.index(id_prefix) + len(id_prefix)
+                        end = line.index('"', idx)
+                        n = int(line[idx:end])
+                        if n > max_pos:
+                            max_pos = n
+                    except (ValueError, IndexError):
+                        continue
+
+        if max_pos == 0:
+            return  # Nothing else has emitted in this allocator yet.
+
+        # Advance cursor past max_pos if not already there. Cursor's
+        # last digit is the *next* free position; max_pos is the
+        # highest claimed. So cursor should be at least max_pos + 1.
+        cursor_pos = allocator._cursor.digits[-1]
+        if max_pos >= cursor_pos:
+            allocator._cursor = Address(
+                allocator._cursor.digits[:-1] + (max_pos + 1,)
+            )
 
     # ----- internals -----
 
