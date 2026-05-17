@@ -42,34 +42,25 @@ module PositiveDominatesZero {
 
     if Length(z) >= k {
       // T1 case (i) with witness k.
+      assert 1 <= k;
       assert k <= Length(z) && k <= Length(t);
       NatZeroMinimum.NatZeroMinimum(Component(t, k));
       assert Less(Component(z, k), Component(t, k));
       assert forall i :: 1 <= i < k ==>
         i <= Length(z) && i <= Length(t) &&
         Component(z, i) == Component(t, i);
+      assert (k <= Length(z) && k <= Length(t) && Less(Component(z, k), Component(t, k)))
+             || (k == Length(z) + 1 && k <= Length(t));
     } else {
       // T1 case (ii) with witness Length(z) + 1.
       var w: nat := Length(z) + 1;
-      assert w <= Length(t);
+      assert 1 <= w;
+      assert w == Length(z) + 1 && w <= Length(t);
       assert forall i :: 1 <= i < w ==>
         i <= Length(z) && i <= Length(t) &&
         Component(z, i) == Component(t, i);
-      assert exists kw: nat ::
-        && 1 <= kw
-        && (forall i :: 1 <= i < kw ==>
-              i <= Length(z) && i <= Length(t) &&
-              Component(z, i) == Component(t, i))
-        && ((kw <= Length(z) && kw <= Length(t) && Less(Component(z, kw), Component(t, kw)))
-            || (kw == Length(z) + 1 && kw <= Length(t)))
-        by {
-          assert
-            && 1 <= w
-            && (forall i :: 1 <= i < w ==>
-                  i <= Length(z) && i <= Length(t) &&
-                  Component(z, i) == Component(t, i))
-            && (w == Length(z) + 1 && w <= Length(t));
-        }
+      assert (w <= Length(z) && w <= Length(t) && Less(Component(z, w), Component(t, w)))
+             || (w == Length(z) + 1 && w <= Length(t));
     }
   }
 }
