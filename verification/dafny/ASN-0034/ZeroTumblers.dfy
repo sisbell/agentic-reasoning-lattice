@@ -59,18 +59,19 @@ module ZeroTumblers {
     ensures LexicographicOrder.LexicographicOrder(s, t)
   {
     var k: nat := Length(s) + 1;
-    assert 1 <= k;
-    forall i | 1 <= i < k
-      ensures i <= Length(s) && i <= Length(t) &&
-              Component(s, i) == Component(t, i)
-    { }
     assert
       && 1 <= k
       && (forall i :: 1 <= i < k ==>
             i <= Length(s) && i <= Length(t) &&
             Component(s, i) == Component(t, i))
-      && ((k <= Length(s) && k <= Length(t) && Less(Component(s, k), Component(t, k)))
-          || (k == Length(s) + 1 && k <= Length(t)));
+      && (k == Length(s) + 1 && k <= Length(t));
+    assert exists kw: nat ::
+      && 1 <= kw
+      && (forall i :: 1 <= i < kw ==>
+            i <= Length(s) && i <= Length(t) &&
+            Component(s, i) == Component(t, i))
+      && ((kw <= Length(s) && kw <= Length(t) && Less(Component(s, kw), Component(t, kw)))
+          || (kw == Length(s) + 1 && kw <= Length(t)));
   }
 
   lemma ZeroBelowPositive(s: Tumbler, t: Tumbler)
