@@ -115,6 +115,7 @@ module OrderPreservationUnderSubtractionStrict {
     var k := ZeroPaddedDivergence.ZeroPaddedDivergence(x, w);
     var L := if Length(x) >= Length(w) then Length(x) else Length(w);
     assert 1 <= k <= L;
+    TumblerSub.TumblerSubPaddedDifference(x, w);
     assert PaddedComponent(x, k) > PaddedComponent(w, k);
     if k > Length(x) {
       assert PaddedComponent(x, k) == 0;
