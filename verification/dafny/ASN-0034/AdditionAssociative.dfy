@@ -134,7 +134,8 @@ module AdditionAssociative {
     ensures
       var s := TumblerAdd.TumblerAdd(b, c);
       PositiveTumbler.PositiveTumbler(s) &&
-      ActionPoint.ActionPoint(s) <= Length(a) &&
+      Length(TumblerAdd.TumblerAdd(TumblerAdd.TumblerAdd(a, b), c)) == Length(c) &&
+      Length(TumblerAdd.TumblerAdd(a, s)) == Length(c) &&
       TumblerAdd.TumblerAdd(TumblerAdd.TumblerAdd(a, b), c) ==
         TumblerAdd.TumblerAdd(a, s) &&
       (ActionPoint.ActionPoint(b) <= ActionPoint.ActionPoint(c) ==>
