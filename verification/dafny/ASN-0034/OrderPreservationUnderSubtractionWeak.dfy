@@ -98,6 +98,8 @@ module OrderPreservationUnderSubtractionWeak {
   }
 
   // Helper: in T1 case (ii), #a < #b and a prefixes b.
+  // Avoids :| extraction; uses ShorterPrefix to rule out #b < #a and Extensionality
+  // to rule out #a == #b.
   lemma PrefixCaseExtraction(a: Tumbler, b: Tumbler)
     requires InT(a) && InT(b)
     requires LexicographicOrder.LexicographicOrder(a, b)
@@ -110,25 +112,30 @@ module OrderPreservationUnderSubtractionWeak {
     var m := if Length(a) <= Length(b) then Length(a) else Length(b);
     var d := Divergence.Divergence(a, b);
     assert d == Divergence.FirstMismatch(a, b, 1, m);
-    // d > m means all positions 1..m agree
+    // FirstMismatch <= m + 1, and precondition forces d > m.
+    assert d > m by {
+      if Divergence.Divergence(a, b) > Length(a) {
+        assert d > Length(a) >= m;
+      } else {
+        assert d > Length(b) >= m;
+      }
+    }
+    assert d <= m + 1;
     assert d == m + 1;
+    // Pre-d agreement gives agreement on [1, m].
     assert forall i :: 1 <= i <= m ==> Component(a, i) == Component(b, i);
 
-    // Now we must show Length(a) < Length(b).
-    var kp :| 1 <= kp
-              && (forall i :: 1 <= i < kp ==>
-                    i <= Length(a) && i <= Length(b) &&
-                    Component(a, i) == Component(b, i))
-              && ((kp <= Length(a) && kp <= Length(b)
-                   && Less(Component(a, kp), Component(b, kp)))
-                  || (kp == Length(a) + 1 && kp <= Length(b)));
-    if kp <= Length(a) && kp <= Length(b) && Less(Component(a, kp), Component(b, kp)) {
-      assert kp <= m;
-      assert Component(a, kp) == Component(b, kp);
-      Irreflexive(Component(a, kp));
+    if Length(a) == Length(b) {
+      assert m == Length(a) == Length(b);
+      Extensionality(a, b);
+      assert false;
+    } else if Length(b) < Length(a) {
+      assert m == Length(b);
+      IC.ShorterPrefix(b, a);
+      assert false;
     }
-    assert kp == Length(a) + 1 && kp <= Length(b);
     assert Length(a) < Length(b);
+    assert m == Length(a);
   }
 
   // Helper: TumblerSub yields a tumbler with the SubComponent characterisation
@@ -157,13 +164,6 @@ module OrderPreservationUnderSubtractionWeak {
     LexImpliesNotEqual(a, b);
     var ra := TumblerSub.TumblerSub(a, w);
     var rb := TumblerSub.TumblerSub(b, w);
-    var ka := ZeroPaddedDivergence.ZeroPaddedDivergence(a, w);
-    var kb := ZeroPaddedDivergence.ZeroPaddedDivergence(b, w);
-    var La := if Length(a) >= Length(w) then Length(a) else Length(w);
-    var Lb := if Length(b) >= Length(w) then Length(b) else Length(w);
-    assert Length(ra) == La;
-    assert Length(rb) == Lb;
-    var m := if Length(a) <= Length(b) then Length(a) else Length(b);
     var d := Divergence.Divergence(a, b);
 
     if d <= Length(a) && d <= Length(b) {
@@ -222,19 +222,18 @@ module OrderPreservationUnderSubtractionWeak {
       assert PositiveTumbler.PositiveTumbler(rb);
       PositiveDominatesZero.PositiveDominatesZero(rb, ra);
     } else if kb == 0 {
-      // Contradiction: kb = 0 means b zero-padded-equal to w.
-      // But then component divergence and b ≥ w force a contradiction.
+      // Contradiction: kb = 0 means b zero-padded-equal to w,
+      // but component divergence and b ≥ w forces kb != 0.
       KbDefinedFromDivergence(a, b, w);
       assert false;
     } else {
       // ka != 0 and kb != 0.
       assert 1 <= ka <= Length(a);
       assert 1 <= kb <= Length(b);
-      // Both ra and rb are positive, with action points ka, kb respectively.
+      // Both ra and rb are positive.
       assert PositiveTumbler.PositiveTumbler(ra);
       assert PositiveTumbler.PositiveTumbler(rb);
 
-      // Now case on the relationship between ka and kb.
       Trichotomy(ka, kb);
       if ka == kb {
         EqualZpdCase(a, b, w);
@@ -246,7 +245,7 @@ module OrderPreservationUnderSubtractionWeak {
     }
   }
 
-  // Helper: ka != 0 ⟹ ka <= #a (analogously for kb).
+  // Helper: ka != 0 ⟹ ka <= #a.
   lemma KaBoundedByLength(a: Tumbler, w: Tumbler)
     requires InT(a) && InT(w)
     requires LexicographicOrder.LexicographicOrder(w, a) || w == a
@@ -258,11 +257,10 @@ module OrderPreservationUnderSubtractionWeak {
     if k == 0 {
     } else {
       assert 1 <= k <= L;
-      // TumblerSub's exported postcondition gives â_k > ŵ_k.
+      // Touch TumblerSub to expose its postcondition.
       var r := TumblerSub.TumblerSub(a, w);
       assert PaddedComponent(a, k) > PaddedComponent(w, k);
       if k > Length(a) {
-        // Then â_k = 0, contradicting â_k > ŵ_k since ŵ_k >= 0.
         assert PaddedComponent(a, k) == 0;
         NZM.NatZeroMinimum(PaddedComponent(w, k));
         assert false;
@@ -270,10 +268,12 @@ module OrderPreservationUnderSubtractionWeak {
     }
   }
 
-  // Helper: in component divergence case, kb != 0.
+  // Helper: in component divergence case under w ≤ b, kb != 0.
+  // Needs w ≤ a precondition to discharge the contradiction.
   lemma KbDefinedFromDivergence(a: Tumbler, b: Tumbler, w: Tumbler)
     requires InT(a) && InT(b) && InT(w)
     requires LexicographicOrder.LexicographicOrder(a, b)
+    requires LexicographicOrder.LexicographicOrder(w, a) || w == a
     requires LexicographicOrder.LexicographicOrder(w, b) || w == b
     requires a != b
     requires Divergence.Divergence(a, b) <= Length(a)
@@ -287,25 +287,34 @@ module OrderPreservationUnderSubtractionWeak {
     assert d <= Lb;
 
     if ZeroPaddedDivergence.ZeroPaddedDivergence(b, w) == 0 {
-      // Then padded sequences of b and w agree everywhere on [1, Lb].
       ZpdZeroImpliesPaddedEqual(b, w);
-      // In particular, at j = d: b̂_d = ŵ_d.
       assert PaddedComponent(b, d) == PaddedComponent(w, d);
       assert PaddedComponent(b, d) == Component(b, d);
-      // We need to derive a contradiction. Two cases on d vs #w.
       if d <= Length(w) {
-        // b_d = w_d. Combined with a_d < b_d = w_d, get a_d < w_d.
-        // For i < d, we need a_i = w_i. b_i = a_i (pre-d) and b_i = w_i (padded equality).
-        // So a_i = w_i for i < d. Then a < w via T1 case (i), contradicting w <= b.
-        // But we don't have w <= a as precondition here.
-        // Hmm: we have w <= b and a < b, but neither implies w <= a.
-        // The standard "a >= w" precondition is for the original lemma. Here we don't need it.
-        // Actually... let me think. We need to derive a contradiction from kb == 0.
-        // The TA3 hypothesis is a < b ∧ a >= w ∧ b >= w. So w <= a is provided.
-        // We need to add this as a precondition.
-        assert false; // placeholder — to be addressed
+        // b_d = w_d. Combined with a_d < b_d, get a_d < w_d.
+        // Also a_i = b_i = w_i for i < d. So a < w via T1 case (i),
+        // contradicting w <= a.
+        assert PaddedComponent(w, d) == Component(w, d);
+        assert Component(b, d) == Component(w, d);
+        // For i < d: agreement.
+        forall i | 1 <= i < d
+          ensures Component(a, i) == Component(w, i)
+        {
+          assert Component(a, i) == Component(b, i);
+          assert i <= Lb;
+          assert i <= Length(b);
+          assert PaddedComponent(b, i) == Component(b, i);
+          assert PaddedComponent(b, i) == PaddedComponent(w, i);
+          assert i <= Length(w);
+          assert PaddedComponent(w, i) == Component(w, i);
+        }
+        // Build LexOrder(a, w) witness at d.
+        ConstructLessFromDivergence(a, w, d);
+        // Contradict w <= a.
+        LexImpliesNotEqual(w, a);
+        LexAsymmetric(a, w);
       } else {
-        // d > #w. Then ŵ_d = 0, so b_d = 0. a_d < 0 contradicts nat.
+        // d > #w. ŵ_d = 0. b_d = 0. a_d < 0 contradicts nat.
         assert Length(w) < d;
         assert PaddedComponent(w, d) == 0;
         assert Component(b, d) == 0;
@@ -314,6 +323,21 @@ module OrderPreservationUnderSubtractionWeak {
         assert Component(a, d) < 0;
         assert false;
       }
+    }
+  }
+
+  // Helper: LexOrder is asymmetric.
+  lemma LexAsymmetric(a: Tumbler, b: Tumbler)
+    requires InT(a) && InT(b)
+    requires LexicographicOrder.LexicographicOrder(a, b)
+    requires LexicographicOrder.LexicographicOrder(b, a) || b == a
+    ensures false
+  {
+    if b == a {
+      LexImpliesNotEqual(a, b);
+    } else {
+      // Use IntrinsicComparison's structure: Compare(a, b) = LT and GT — impossible.
+      IC.IntrinsicComparison(a, b);
     }
   }
 
@@ -367,12 +391,11 @@ module OrderPreservationUnderSubtractionWeak {
     DivergenceCaseIStrict(a, b);
     KaBoundedByLength(a, w);
     KaBoundedByLength(b, w);
+    // Touch TumblerSub to expose its postconditions.
     var ra := TumblerSub.TumblerSub(a, w);
     var rb := TumblerSub.TumblerSub(b, w);
     var k := ZeroPaddedDivergence.ZeroPaddedDivergence(a, w);
     var d := Divergence.Divergence(a, b);
-    var La := if Length(a) >= Length(w) then Length(a) else Length(w);
-    var Lb := if Length(b) >= Length(w) then Length(b) else Length(w);
     assert 1 <= k <= Length(a);
     assert 1 <= k <= Length(b);
     assert PaddedComponent(a, k) > PaddedComponent(w, k);
@@ -380,26 +403,17 @@ module OrderPreservationUnderSubtractionWeak {
     assert PaddedComponent(a, k) == Component(a, k);
     assert PaddedComponent(b, k) == Component(b, k);
 
-    // Pre-k agreement on padded projections.
-    var Lmax := if La >= Lb then La else Lb;
-    // From ZPD's pre-divergence agreements for (a, w) and (b, w):
-    assert forall i :: 1 <= i < k ==> PaddedComponent(a, i) == PaddedComponent(w, i);
-    assert forall i :: 1 <= i < k ==> PaddedComponent(b, i) == PaddedComponent(w, i);
-    // Hence a_i = b_i for i < k (lift via padded-native equality).
-    assert forall i :: 1 <= i < k ==> Component(a, i) == Component(b, i)
-      by {
-        forall i | 1 <= i < k
-          ensures Component(a, i) == Component(b, i)
-        {
-          assert i < k <= Length(a);
-          assert i < k <= Length(b);
-          assert Component(a, i) == PaddedComponent(a, i);
-          assert PaddedComponent(b, i) == Component(b, i);
-        }
-      }
+    // Lift ZPD's pre-divergence agreements to native: a_i = b_i for i < k.
+    forall i | 1 <= i < k
+      ensures Component(a, i) == Component(b, i)
+    {
+      assert i < k <= Length(a);
+      assert i < k <= Length(b);
+      assert Component(a, i) == PaddedComponent(a, i);
+      assert PaddedComponent(b, i) == Component(b, i);
+    }
 
-    // d >= k: if d < k, then a_d = b_d (from pre-k agreement above),
-    // but DivergenceCaseIStrict gave a_d < b_d.
+    // d >= k: if d < k, then a_d = b_d (from pre-k agreement), but a_d < b_d.
     if d < k {
       assert Component(a, d) == Component(b, d);
       Irreflexive(Component(a, d));
@@ -407,7 +421,6 @@ module OrderPreservationUnderSubtractionWeak {
     }
     assert d >= k;
 
-    // Sub-cases: d == k vs d > k.
     if d == k {
       EqualZpdSubcaseDEqualsK(a, b, w);
     } else {
@@ -446,7 +459,6 @@ module OrderPreservationUnderSubtractionWeak {
     var La := if Length(a) >= Length(w) then Length(a) else Length(w);
     var Lb := if Length(b) >= Length(w) then Length(b) else Length(w);
 
-    // ra_k and rb_k via the SubComponent characterisation.
     assert PaddedComponent(a, k) > PaddedComponent(w, k);
     assert PaddedComponent(b, k) > PaddedComponent(w, k);
     assert k <= La && k <= Lb;
@@ -464,12 +476,8 @@ module OrderPreservationUnderSubtractionWeak {
       TumblerSubComponentChar(b, w, i);
     }
 
-    // At k: ra_k = a_k - w_k, rb_k = b_k - w_k, a_k < b_k, so ra_k < rb_k.
+    // At k: ra_k = a_k - w_k, rb_k = b_k - w_k, a_k < b_k.
     assert Component(a, k) < Component(b, k);
-    assert PaddedComponent(a, k) == Component(a, k);
-    assert PaddedComponent(b, k) == Component(b, k);
-    assert PaddedComponent(w, k) == (if k <= Length(w) then Component(w, k) else 0);
-    // NAT-sub strict monotonicity: ra_k < rb_k.
     var av := PaddedComponent(a, k);
     var bv := PaddedComponent(b, k);
     var wv := PaddedComponent(w, k);
@@ -483,7 +491,6 @@ module OrderPreservationUnderSubtractionWeak {
     assert Component(rb, k) == bv - wv;
     assert Less(Component(ra, k), Component(rb, k));
 
-    // Witness k for LexOrder(ra, rb).
     ConstructLessFromDivergence(ra, rb, k);
   }
 
@@ -524,7 +531,6 @@ module OrderPreservationUnderSubtractionWeak {
     // Pre-d agreement gives a_k = b_k.
     assert Component(a, k) == Component(b, k);
 
-    // For i < k: both ra_i = rb_i = 0.
     forall i | 1 <= i < k
       ensures i <= Length(ra) && i <= Length(rb)
               && Component(ra, i) == Component(rb, i)
@@ -533,13 +539,10 @@ module OrderPreservationUnderSubtractionWeak {
       TumblerSubComponentChar(b, w, i);
     }
 
-    // At k: ra_k = a_k - w_k = b_k - w_k = rb_k.
     TumblerSubComponentChar(a, w, k);
     TumblerSubComponentChar(b, w, k);
     assert Component(ra, k) == Component(rb, k);
 
-    // For k < i < d: ra_i = a_i (padded), rb_i = b_i (padded), and
-    // pre-d agreement gives a_i = b_i.
     forall i | k < i < d
       ensures i <= Length(ra) && i <= Length(rb)
               && Component(ra, i) == Component(rb, i)
@@ -553,7 +556,6 @@ module OrderPreservationUnderSubtractionWeak {
       assert PaddedComponent(b, i) == Component(b, i);
     }
 
-    // At d: ra_d = a_d, rb_d = b_d, a_d < b_d.
     TumblerSubComponentChar(a, w, d);
     TumblerSubComponentChar(b, w, d);
     assert d > k;
@@ -564,7 +566,6 @@ module OrderPreservationUnderSubtractionWeak {
     assert Less(Component(a, d), Component(b, d));
     assert Less(Component(ra, d), Component(rb, d));
 
-    // Build LexOrder witness at d.
     assert d <= Length(ra) && d <= Length(rb);
     forall i | 1 <= i < d
       ensures i <= Length(ra) && i <= Length(rb)
@@ -573,7 +574,7 @@ module OrderPreservationUnderSubtractionWeak {
     ConstructLessFromDivergence(ra, rb, d);
   }
 
-  // Case ka < kb: impossible (TumblerSub's > inequality at ka contradicts).
+  // Case ka < kb: impossible.
   lemma SmallerKaCase(a: Tumbler, b: Tumbler, w: Tumbler)
     requires InT(a) && InT(b) && InT(w)
     requires LexicographicOrder.LexicographicOrder(a, b)
@@ -594,22 +595,22 @@ module OrderPreservationUnderSubtractionWeak {
     DivergenceCaseIStrict(a, b);
     KaBoundedByLength(a, w);
     KaBoundedByLength(b, w);
+    // Touch TumblerSub to expose its postconditions.
+    var ra := TumblerSub.TumblerSub(a, w);
+    var rb := TumblerSub.TumblerSub(b, w);
     var ka := ZeroPaddedDivergence.ZeroPaddedDivergence(a, w);
     var kb := ZeroPaddedDivergence.ZeroPaddedDivergence(b, w);
     var d := Divergence.Divergence(a, b);
     assert ka <= Length(a) && kb <= Length(b);
     assert PaddedComponent(a, ka) > PaddedComponent(w, ka);
-    // Pre-kb agreement: b̂_ka = ŵ_ka.
     var Lb := if Length(b) >= Length(w) then Length(b) else Length(w);
     assert 1 <= ka < kb <= Lb;
     assert PaddedComponent(b, ka) == PaddedComponent(w, ka);
-    // Lift to native: a_ka != b_ka.
     assert PaddedComponent(a, ka) == Component(a, ka);
     assert ka <= Length(b);
     assert PaddedComponent(b, ka) == Component(b, ka);
     assert Component(a, ka) > Component(b, ka);
 
-    // Pre-ka agreement for both (a, w) and (b, w): a_i = w_i = b_i for i < ka.
     forall i | 1 <= i < ka
       ensures Component(a, i) == Component(b, i)
     {
@@ -618,18 +619,14 @@ module OrderPreservationUnderSubtractionWeak {
       assert PaddedComponent(a, i) == PaddedComponent(w, i);
       assert PaddedComponent(b, i) == PaddedComponent(w, i);
     }
-    // a_ka > b_ka and pre-ka agreement: gives Divergence(a,b) = ka, and a > b.
-    // But a < b precondition. Contradiction.
+    // a_ka > b_ka and pre-ka agreement: Divergence(a, b) = ka, b < a, contradicting a < b.
     assert d == ka by {
       assert d <= ka by {
-        // Divergence is the first mismatch position; we have a mismatch at ka.
-        // Since pre-ka agreement holds, d <= ka.
         if d > ka {
           assert Component(a, ka) == Component(b, ka);
           assert false;
         }
       }
-      // d >= ka: if d < ka, then a_d != b_d, but pre-ka agreement contradicts.
       if d < ka {
         assert Component(a, d) == Component(b, d);
         DivergenceCaseIStrict(a, b);
@@ -637,14 +634,13 @@ module OrderPreservationUnderSubtractionWeak {
         assert false;
       }
     }
-    assert d == ka;
     DivergenceCaseIStrict(a, b);
     assert Component(a, d) < Component(b, d);
     Asymmetric(Component(a, d), Component(b, d));
     assert false;
   }
 
-  // Case ka > kb: ra_kb = 0, rb_kb > 0 (from TumblerSub's > inequality at kb).
+  // Case ka > kb: ra_kb = 0, rb_kb > 0.
   lemma LargerKaCase(a: Tumbler, b: Tumbler, w: Tumbler)
     requires InT(a) && InT(b) && InT(w)
     requires LexicographicOrder.LexicographicOrder(a, b)
@@ -674,7 +670,6 @@ module OrderPreservationUnderSubtractionWeak {
     assert kb < ka <= Length(a);
     assert kb <= Length(b);
 
-    // For i < kb: ra_i = 0 (i < kb < ka), rb_i = 0 (i < kb).
     forall i | 1 <= i < kb
       ensures i <= Length(ra) && i <= Length(rb)
               && Component(ra, i) == Component(rb, i)
@@ -685,7 +680,6 @@ module OrderPreservationUnderSubtractionWeak {
       TumblerSubComponentChar(b, w, i);
     }
 
-    // At kb: ra_kb = 0 (kb < ka), rb_kb = b̂_kb - ŵ_kb > 0.
     assert PaddedComponent(b, kb) > PaddedComponent(w, kb);
     TumblerSubComponentChar(a, w, kb);
     TumblerSubComponentChar(b, w, kb);
@@ -725,8 +719,6 @@ module OrderPreservationUnderSubtractionWeak {
     var kb := ZeroPaddedDivergence.ZeroPaddedDivergence(b, w);
     var La := if Length(a) >= Length(w) then Length(a) else Length(w);
     var Lb := if Length(b) >= Length(w) then Length(b) else Length(w);
-    // Length(a) < Length(b), so Lb >= Length(b) > Length(a).
-    // La is max(#a, #w). In all cases Lb >= La.
     assert Lb >= La by {
       if Length(w) <= Length(a) {
         assert La == Length(a);
@@ -734,7 +726,6 @@ module OrderPreservationUnderSubtractionWeak {
       } else if Length(w) <= Length(b) {
         assert La == Length(w);
         assert Lb == Length(b);
-        assert Length(b) >= Length(w);
       } else {
         assert La == Length(w);
         assert Lb == Length(w);
@@ -742,21 +733,17 @@ module OrderPreservationUnderSubtractionWeak {
     }
 
     if ka == 0 && kb == 0 {
-      // Both are zero tumblers, but Lb >= La. If La == Lb then ra == rb, else ra < rb.
       assert PositiveTumbler.ZeroTumbler(ra);
       assert PositiveTumbler.ZeroTumbler(rb);
       if La < Lb {
-        // ra is a strict prefix of rb (both all zero, different lengths).
         forall i | 1 <= i <= La
           ensures i <= Length(rb) && Component(ra, i) == Component(rb, i)
         {
           assert Component(ra, i) == 0;
           assert Component(rb, i) == 0;
         }
-        // Witness Length(ra) + 1 for T1 case (ii).
         IC.LexOrderShorterWitness(ra, rb);
       } else {
-        // La == Lb. Both are zero tumblers of equal length, so ra == rb.
         assert La == Lb;
         forall i | 1 <= i <= La
           ensures Component(ra, i) == Component(rb, i)
@@ -767,21 +754,17 @@ module OrderPreservationUnderSubtractionWeak {
         Extensionality(ra, rb);
       }
     } else if ka == 0 && kb != 0 {
-      // ra is zero, rb is positive — TA-PosDom gives ra < rb.
       PositiveDominatesZero.PositiveDominatesZero(rb, ra);
     } else if ka != 0 && kb == 0 {
-      // Impossible: if a > w by zpd, then b (which prefixes-extends a)
-      // also has zpd != 0 with same component disagreement, OR has nonzero tail.
       KbZeroImpossibleInPrefix(a, b, w);
       assert false;
     } else {
-      // Both ka and kb defined. Use PrefixSubcase.
       assert ka != 0 && kb != 0;
       PrefixSubcaseBothPositive(a, b, w);
     }
   }
 
-  // In prefix case, if ka != 0 then kb != 0 as well.
+  // In prefix case, if ka != 0 then kb != 0.
   lemma KbZeroImpossibleInPrefix(a: Tumbler, b: Tumbler, w: Tumbler)
     requires InT(a) && InT(b) && InT(w)
     requires LexicographicOrder.LexicographicOrder(w, a) || w == a
@@ -796,13 +779,12 @@ module OrderPreservationUnderSubtractionWeak {
     var La := if Length(a) >= Length(w) then Length(a) else Length(w);
     var Lb := if Length(b) >= Length(w) then Length(b) else Length(w);
     assert 1 <= ka <= Length(a);
+    var ra := TumblerSub.TumblerSub(a, w);
     assert PaddedComponent(a, ka) > PaddedComponent(w, ka);
     assert PaddedComponent(a, ka) == Component(a, ka);
-    // Since ka <= Length(a) < Length(b), a_ka = b_ka.
     assert ka <= Length(a);
     assert Component(a, ka) == Component(b, ka);
     assert PaddedComponent(b, ka) == Component(b, ka);
-    // So b̂_ka != ŵ_ka.
     assert PaddedComponent(b, ka) != PaddedComponent(w, ka);
     assert 1 <= ka <= Lb by {
       assert Lb >= Length(b) >= Length(a) >= ka;
@@ -841,17 +823,12 @@ module OrderPreservationUnderSubtractionWeak {
     assert 1 <= ka <= Length(a);
     assert 1 <= kb <= Length(b);
 
-    // Pre-ka agreement of (a, w) gives a_i = w_i for i < ka, i <= #a, i <= #w.
-    // Since a prefixes b at indices <= #a, also b_i = a_i = w_i for i < ka.
-    // Hence pre-ka padded agreement of (b, w), so kb >= ka by ZPD's minimality.
     PrefixKbGEKa(a, b, w);
     assert kb >= ka;
 
     if kb == ka {
-      // Same divergence position. a_ka = b_ka. Both ra_ka = rb_ka = a_ka - w_ka.
       PrefixCaseEqualK(a, b, w);
     } else {
-      // kb > ka. Impossible: see PrefixCaseKbGreater (contradiction).
       PrefixCaseKbGreater(a, b, w);
       assert false;
     }
@@ -878,9 +855,6 @@ module OrderPreservationUnderSubtractionWeak {
     assert 1 <= ka <= Length(a);
     assert 1 <= kb <= Length(b);
 
-    // Pre-ka agreement for (a, w).
-    assert forall i :: 1 <= i < ka ==> PaddedComponent(a, i) == PaddedComponent(w, i);
-    // Lift to (b, w) on [1, ka): for i < ka <= #a, a_i = b_i (prefix).
     forall i | 1 <= i < ka
       ensures PaddedComponent(b, i) == PaddedComponent(w, i)
     {
@@ -889,17 +863,33 @@ module OrderPreservationUnderSubtractionWeak {
       assert PaddedComponent(a, i) == Component(a, i);
       assert i <= Length(b);
       assert PaddedComponent(b, i) == Component(b, i);
+      assert PaddedComponent(a, i) == PaddedComponent(w, i);
     }
-    // So b agrees with w on padded [1, ka). Hence first padded mismatch of (b, w)
-    // does not occur before ka.
     if kb < ka {
-      // FirstPaddedMismatch(b, w, 1, Lb) is at kb, contradicting pre-ka agreement.
       assert 1 <= kb < ka;
       assert PaddedComponent(b, kb) == PaddedComponent(w, kb);
-      // But ZPD's first-disagreement clause gives mismatch at kb.
       assert PaddedComponent(b, kb) != PaddedComponent(w, kb);
       assert false;
     }
+  }
+
+  // Helper: find first disagreement position in [start, L].
+  function FirstResultDisagreement(
+      ra: Tumbler, rb: Tumbler, start: nat, L: nat): nat
+    requires InT(ra) && InT(rb)
+    requires L <= Length(ra) && L <= Length(rb)
+    requires 1 <= start <= L + 1
+    ensures start <= FirstResultDisagreement(ra, rb, start, L) <= L + 1
+    ensures FirstResultDisagreement(ra, rb, start, L) <= L ==>
+            Component(ra, FirstResultDisagreement(ra, rb, start, L))
+              != Component(rb, FirstResultDisagreement(ra, rb, start, L))
+    ensures forall i :: start <= i < FirstResultDisagreement(ra, rb, start, L) ==>
+            Component(ra, i) == Component(rb, i)
+    decreases L + 1 - start
+  {
+    if start > L then L + 1
+    else if Component(ra, start) != Component(rb, start) then start
+    else FirstResultDisagreement(ra, rb, start + 1, L)
   }
 
   // Prefix case with kb == ka == k.
@@ -930,9 +920,7 @@ module OrderPreservationUnderSubtractionWeak {
     assert 1 <= k <= Length(a);
     assert k <= Length(b);
 
-    // Lengths: La <= Lb because of #a < #b.
     assert La <= Lb by {
-      // La = max(#a, #w), Lb = max(#b, #w). #a < #b, so max(#a, #w) <= max(#b, #w).
       if Length(w) <= Length(a) {
         assert La == Length(a) < Length(b) <= Lb;
       } else if Length(w) <= Length(b) {
@@ -943,67 +931,184 @@ module OrderPreservationUnderSubtractionWeak {
         assert La == Length(w) == Lb;
       }
     }
+    assert Length(ra) == La && Length(rb) == Lb;
+    assert La <= Length(ra) && La <= Length(rb);
 
-    // Both ra and rb agree on [1, La].
-    forall i | 1 <= i <= La
-      ensures i <= Length(rb) && Component(ra, i) == Component(rb, i)
+    // ra and rb agree on positions [1, #a].
+    forall i | 1 <= i <= Length(a)
+      ensures i <= Length(ra) && i <= Length(rb)
+              && Component(ra, i) == Component(rb, i)
     {
-      assert i <= La <= Lb;
+      assert i <= La;  // since Length(a) <= La (La = max(#a, #w))
+      assert i <= Lb;
       TumblerSubComponentChar(a, w, i);
       TumblerSubComponentChar(b, w, i);
-      // SubComponent(a, w, k, i) vs SubComponent(b, w, k, i)
       if i < k {
         // both 0
       } else if i == k {
-        // SatSub(PaddedComponent(a, k), PaddedComponent(w, k))
-        // = SatSub(PaddedComponent(b, k), PaddedComponent(w, k))
-        // since a_k = b_k (k <= #a)
         assert k <= Length(a);
         assert Component(a, k) == Component(b, k);
         assert PaddedComponent(a, k) == Component(a, k);
         assert PaddedComponent(b, k) == Component(b, k);
       } else {
-        // SubComponent = PaddedComponent at i
-        // PaddedComponent(a, i) = a_i if i <= #a, else 0.
-        // PaddedComponent(b, i) = b_i if i <= #b, else 0.
-        if i <= Length(a) {
-          assert PaddedComponent(a, i) == Component(a, i);
-          assert PaddedComponent(b, i) == Component(b, i);
-          assert Component(a, i) == Component(b, i);
-        } else {
-          assert i > Length(a);
-          assert PaddedComponent(a, i) == 0;
-          // i <= La. If La = #a then i > #a contradicts i <= La. So La > #a.
-          // La > #a means La = #w > #a. So i <= #w.
-          assert La == Length(w);
-          assert Length(w) > Length(a);
-          assert i <= Length(w);
-          // Now PaddedComponent(b, i): i could be <= #b or > #b.
-          // Wait: i <= La <= Lb, so i is a valid index. But is i <= #b or > #b?
-          // #b > #a, but i could be either.
-          // The case where i > #b is possible: La = #w, but #w > #b also possible.
-          // Hmm.
-          if i <= Length(b) {
-            // b_i exists, but we don't know it equals a_i.
-            // Wait — we have a < b in prefix case, b extends a beyond #a.
-            // We have no constraint on b_i for #a < i <= #b.
-            // So Component(b, i) is arbitrary.
-            // The result is therefore not equal to 0 in general.
-            // We CANNOT prove Component(ra, i) == Component(rb, i) here.
-          } else {
-            // i > #b, PaddedComponent(b, i) = 0 = PaddedComponent(a, i).
-            assert PaddedComponent(b, i) == 0;
-            assert PaddedComponent(a, i) == 0;
-          }
-        }
+        // i > k. SubComponent = PaddedComponent at i.
+        assert PaddedComponent(a, i) == Component(a, i);
+        assert i <= Length(b);
+        assert PaddedComponent(b, i) == Component(b, i);
+        assert Component(a, i) == Component(b, i);
       }
     }
 
-    if La == Lb {
-      Extensionality(ra, rb);
+    // Scan from #a + 1 to La for the first disagreement.
+    if Length(a) < La {
+      // La > #a, so La = #w. For #a < i <= La, ra_i = â_i = 0.
+      // rb_i = b̂_i which depends on whether i <= #b.
+      forall i | Length(a) < i <= La
+        ensures Component(ra, i) == 0
+      {
+        assert La == Length(w);
+        TumblerSubComponentChar(a, w, i);
+        assert i > k;
+        assert PaddedComponent(a, i) == 0;
+      }
+      PrefixCaseEqualKScan(a, b, w);
     } else {
-      assert La < Lb;
-      IC.LexOrderShorterWitness(ra, rb);
+      // La == #a. Then ra and rb agree on [1, La].
+      assert La == Length(a);
+      assert La <= Lb;
+      if La == Lb {
+        Extensionality(ra, rb);
+      } else {
+        assert La < Lb;
+        IC.LexOrderShorterWitness(ra, rb);
+      }
+    }
+  }
+
+  // Sub-lemma: when La > #a in prefix case, scan for first disagreement.
+  lemma PrefixCaseEqualKScan(a: Tumbler, b: Tumbler, w: Tumbler)
+    requires InT(a) && InT(b) && InT(w)
+    requires LexicographicOrder.LexicographicOrder(a, b)
+    requires LexicographicOrder.LexicographicOrder(w, a) || w == a
+    requires LexicographicOrder.LexicographicOrder(w, b) || w == b
+    requires a != b
+    requires Length(a) < Length(b)
+    requires forall i :: 1 <= i <= Length(a) ==> Component(a, i) == Component(b, i)
+    requires ZeroPaddedDivergence.ZeroPaddedDivergence(a, w) != 0
+    requires ZeroPaddedDivergence.ZeroPaddedDivergence(b, w) != 0
+    requires ZeroPaddedDivergence.ZeroPaddedDivergence(a, w)
+             == ZeroPaddedDivergence.ZeroPaddedDivergence(b, w)
+    requires Length(a) < (if Length(a) >= Length(w) then Length(a) else Length(w))
+    ensures
+      var ra := TumblerSub.TumblerSub(a, w);
+      var rb := TumblerSub.TumblerSub(b, w);
+      LexicographicOrder.LexicographicOrder(ra, rb) || ra == rb
+  {
+    KaBoundedByLength(a, w);
+    KaBoundedByLength(b, w);
+    var ra := TumblerSub.TumblerSub(a, w);
+    var rb := TumblerSub.TumblerSub(b, w);
+    var k := ZeroPaddedDivergence.ZeroPaddedDivergence(a, w);
+    var La := if Length(a) >= Length(w) then Length(a) else Length(w);
+    var Lb := if Length(b) >= Length(w) then Length(b) else Length(w);
+    assert La == Length(w);
+    assert Length(a) < Length(w);
+    assert La <= Lb by {
+      if Length(w) <= Length(b) {
+        assert Lb == Length(b);
+        assert La == Length(w) <= Length(b);
+      } else {
+        assert Lb == Length(w) == La;
+      }
+    }
+    assert La <= Length(ra) && La <= Length(rb);
+
+    // For #a < i <= La, ra_i = 0.
+    // We need to find the first p in [#a+1, La] with ra_p != rb_p (i.e., rb_p != 0).
+    var p := FirstResultDisagreement(ra, rb, Length(a) + 1, La);
+    if p <= La {
+      // Found a disagreement at p ∈ [#a + 1, La].
+      // ra_p = 0, rb_p != 0.
+      TumblerSubComponentChar(a, w, p);
+      assert p > Length(a);
+      assert p > k by { assert k <= Length(a); }
+      assert PaddedComponent(a, p) == 0;
+      assert Component(ra, p) == 0;
+      assert Component(ra, p) != Component(rb, p);
+      assert Component(rb, p) != 0;
+      // Also TumblerSubComponentChar gives rb_p = either SatSub(b̂_p, ŵ_p)
+      // (if p == k, but p > k here) or b̂_p (if p > k). So rb_p = b̂_p.
+      TumblerSubComponentChar(b, w, p);
+      assert Component(rb, p) == PaddedComponent(b, p);
+      NZM.NatZeroMinimum(Component(ra, p));
+      // Component(ra, p) = 0 < Component(rb, p), since rb_p != 0 and rb_p >= 0.
+      assert Component(rb, p) > 0;
+      assert Less(Component(ra, p), Component(rb, p));
+
+      // Agreement on [1, #a]: established by PrefixCaseEqualK; replay here.
+      forall i | 1 <= i <= Length(a)
+        ensures Component(ra, i) == Component(rb, i)
+      {
+        assert i <= La;
+        assert i <= Lb;
+        TumblerSubComponentChar(a, w, i);
+        TumblerSubComponentChar(b, w, i);
+        if i < k {
+        } else if i == k {
+          assert Component(a, k) == Component(b, k);
+          assert PaddedComponent(a, k) == Component(a, k);
+          assert PaddedComponent(b, k) == Component(b, k);
+        } else {
+          assert PaddedComponent(a, i) == Component(a, i);
+          assert i <= Length(b);
+          assert PaddedComponent(b, i) == Component(b, i);
+          assert Component(a, i) == Component(b, i);
+        }
+      }
+      // Agreement on [#a + 1, p - 1] from FirstResultDisagreement.
+      assert forall i :: Length(a) + 1 <= i < p ==>
+        Component(ra, i) == Component(rb, i);
+      assert forall i :: 1 <= i < p ==>
+        i <= Length(ra) && i <= Length(rb) &&
+        Component(ra, i) == Component(rb, i);
+      ConstructLessFromDivergence(ra, rb, p);
+    } else {
+      // No disagreement in [#a + 1, La]. ra and rb agree on [1, La].
+      assert p == La + 1;
+      // Agreement on [1, #a] (replayed).
+      forall i | 1 <= i <= Length(a)
+        ensures Component(ra, i) == Component(rb, i)
+      {
+        assert i <= La;
+        assert i <= Lb;
+        TumblerSubComponentChar(a, w, i);
+        TumblerSubComponentChar(b, w, i);
+        if i < k {
+        } else if i == k {
+          assert Component(a, k) == Component(b, k);
+        } else {
+          assert PaddedComponent(a, i) == Component(a, i);
+          assert i <= Length(b);
+          assert PaddedComponent(b, i) == Component(b, i);
+          assert Component(a, i) == Component(b, i);
+        }
+      }
+      // Agreement on [#a + 1, La] from FirstResultDisagreement.
+      assert forall i :: Length(a) + 1 <= i <= La ==>
+        Component(ra, i) == Component(rb, i);
+      // Combined: agreement on [1, La].
+      if La == Lb {
+        forall i | 1 <= i <= La
+          ensures Component(ra, i) == Component(rb, i)
+        { }
+        Extensionality(ra, rb);
+      } else {
+        assert La < Lb;
+        forall i | 1 <= i <= La
+          ensures Component(ra, i) == Component(rb, i)
+        { }
+        IC.LexOrderShorterWitness(ra, rb);
+      }
     }
   }
 
@@ -1033,19 +1138,13 @@ module OrderPreservationUnderSubtractionWeak {
     assert 1 <= ka <= Length(a);
     assert ka < kb <= Length(b);
 
-    // This case is impossible: ka <= #a, b_i = a_i for i <= #a (prefix).
-    // So PaddedComponent(b, ka) = b_ka = a_ka = PaddedComponent(a, ka)
-    //   != PaddedComponent(w, ka).
-    // Then ZPD's pre-divergence agreement for (b, w) at ka < kb gives
-    // PaddedComponent(b, ka) = PaddedComponent(w, ka). Contradiction.
+    assert PaddedComponent(a, ka) > PaddedComponent(w, ka);
     assert ka <= Length(a);
     assert Component(a, ka) == Component(b, ka);
     assert PaddedComponent(a, ka) == Component(a, ka);
     assert PaddedComponent(b, ka) == Component(b, ka);
-    assert PaddedComponent(a, ka) > PaddedComponent(w, ka);
     assert PaddedComponent(b, ka) > PaddedComponent(w, ka);
     assert PaddedComponent(b, ka) != PaddedComponent(w, ka);
-    // ZPD pre-divergence at ka < kb gives padded equality.
     assert 1 <= ka < kb;
     assert PaddedComponent(b, ka) == PaddedComponent(w, ka);
     assert false;
