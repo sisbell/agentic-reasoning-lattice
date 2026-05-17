@@ -92,6 +92,23 @@ module TumblerSub {
     result
   }
 
+  // Helper: from a padded mismatch at index i ∈ [1, L], derive a != w via T3.
+  // Case analysis on whether i lies in both native domains (A) or in a padding
+  // zone (B). Used by TumblerSubPaddedDifference.
+  lemma PaddedMismatchImpliesNotEqual(a: Tumbler, w: Tumbler, i: nat)
+    requires InT(a) && InT(w)
+    requires 1 <= i
+    requires i <= Length(a) || i <= Length(w)
+    requires PaddedComponent(a, i) != PaddedComponent(w, i)
+    ensures a != w
+  {
+    if i <= Length(a) && i <= Length(w) {
+      assert Component(a, i) != Component(w, i);
+    } else {
+      assert Length(a) != Length(w);
+    }
+  }
+
   // The contractual precondition consequence captured as a lemma.
   // Proved by case analysis on Divergence(a, w).
   lemma TumblerSubPaddedDifference(a: Tumbler, w: Tumbler)
@@ -101,5 +118,13 @@ module TumblerSub {
     ensures PaddedComponent(a, ZeroPaddedDivergence.ZeroPaddedDivergence(a, w)) >
             PaddedComponent(w, ZeroPaddedDivergence.ZeroPaddedDivergence(a, w))
   {
+    var L := if Length(a) >= Length(w) then Length(a) else Length(w);
+    var k := ZeroPaddedDivergence.ZeroPaddedDivergence(a, w);
+    assert 1 <= k <= L;
+    // FirstPaddedMismatch's postcondition gives padded mismatch at k.
+    assert PaddedComponent(a, k) != PaddedComponent(w, k);
+    assert k <= Length(a) || k <= Length(w);
+    PaddedMismatchImpliesNotEqual(a, w, k);
+    assert a != w;
   }
 }
