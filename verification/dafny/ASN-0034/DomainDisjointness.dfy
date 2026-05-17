@@ -1,5 +1,9 @@
 // ASN-0034: T10a.6 — DomainDisjointness (LEMMA, corollary)
-// Distinct allocators have disjoint output domains.
+// Distinct allocators on a common allocator tree have disjoint output domains.
+// Same-root precondition makes explicit the implicit assumption already
+// present in the contract's Case 2 (which invokes T10a.5, itself restricted
+// to Root(X) == Root(Y)); distinct RootAllocator bases can otherwise yield
+// overlapping inc(·, 0) sibling streams.
 //   Case split on the lineage relation between X and Y:
 //   (i)  Ancestor–descendant — OnLineage(X, Y) (or its symmetric) with
 //        X != Y forces strictly different depths (T10a OnLineageEqualDepth-
@@ -57,11 +61,12 @@ module DomainDisjointness {
     }
   }
 
-  // T10a.6: dom(X) ∩ dom(Y) = ∅ for any two distinct allocators conforming
-  // to T10a.
+  // T10a.6: dom(X) ∩ dom(Y) = ∅ whenever X and Y are distinct allocators on
+  // a common tree (Root(X) == Root(Y)).
   lemma DomainDisjointness(X: Allocator, Y: Allocator)
     requires AllocatorDiscipline.AllocatorDiscipline(X)
     requires AllocatorDiscipline.AllocatorDiscipline(Y)
+    requires Root(X) == Root(Y)
     requires X != Y
     ensures forall t: Tumbler :: !(InDomain(t, X) && InDomain(t, Y))
   {
@@ -69,9 +74,7 @@ module DomainDisjointness {
       ensures !(InDomain(t, X) && InDomain(t, Y))
     {
       if InDomain(t, X) && InDomain(t, Y) {
-        if Root(X) == Root(Y) {
-          DomainDisjointnessPair(X, Y, t);
-        }
+        DomainDisjointnessPair(X, Y, t);
       }
     }
   }
