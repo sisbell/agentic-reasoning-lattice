@@ -34,16 +34,37 @@ module ZeroTumblers {
     ensures !HierarchicalParsing.HierarchicalParsing(t)
   { }
 
-  lemma LexOrderWitness(s: Tumbler, t: Tumbler, k: nat)
+  lemma LexOrderWitnessCase1(s: Tumbler, t: Tumbler, k: nat)
     requires InT(s) && InT(t)
-    requires 1 <= k
+    requires 1 <= k <= Length(s) && k <= Length(t)
     requires forall i :: 1 <= i < k ==>
-               i <= Length(s) && i <= Length(t) &&
                Component(s, i) == Component(t, i)
-    requires (k <= Length(s) && k <= Length(t) && Less(Component(s, k), Component(t, k)))
-             || (k == Length(s) + 1 && k <= Length(t))
+    requires Less(Component(s, k), Component(t, k))
     ensures LexicographicOrder.LexicographicOrder(s, t)
-  { }
+  {
+    assert
+      && 1 <= k
+      && (forall i :: 1 <= i < k ==>
+            i <= Length(s) && i <= Length(t) &&
+            Component(s, i) == Component(t, i))
+      && (k <= Length(s) && k <= Length(t) && Less(Component(s, k), Component(t, k)));
+  }
+
+  lemma LexOrderWitnessCase2(s: Tumbler, t: Tumbler)
+    requires InT(s) && InT(t)
+    requires Length(s) + 1 <= Length(t)
+    requires forall i :: 1 <= i <= Length(s) ==>
+               Component(s, i) == Component(t, i)
+    ensures LexicographicOrder.LexicographicOrder(s, t)
+  {
+    var k := Length(s) + 1;
+    assert
+      && 1 <= k
+      && (forall i :: 1 <= i < k ==>
+            i <= Length(s) && i <= Length(t) &&
+            Component(s, i) == Component(t, i))
+      && (k == Length(s) + 1 && k <= Length(t));
+  }
 
   lemma ZeroBelowPositive(s: Tumbler, t: Tumbler)
     requires InT(s) && InT(t)
@@ -53,17 +74,9 @@ module ZeroTumblers {
   {
     var j := FirstNonzeroFrom(t, 1);
     if j <= Length(s) {
-      LexOrderWitness(s, t, j);
+      LexOrderWitnessCase1(s, t, j);
     } else {
-      var k := Length(s) + 1;
-      assert k <= j <= Length(t);
-      forall i | 1 <= i < k
-        ensures i <= Length(s) && i <= Length(t) &&
-                Component(s, i) == Component(t, i)
-      {
-        assert i < j;
-      }
-      LexOrderWitness(s, t, k);
+      LexOrderWitnessCase2(s, t);
     }
   }
 
