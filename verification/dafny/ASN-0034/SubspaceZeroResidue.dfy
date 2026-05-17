@@ -35,6 +35,6 @@ module SubspaceZeroResidue {
   {
     var L := Length(o);
     FirstPaddedMismatchSelf(o, 1, L);
-    assert ZeroPaddedDivergence(o, o) == 0;
+    assert ZeroPaddedDivergence.ZeroPaddedDivergence(o, o) == 0;
   }
 }
