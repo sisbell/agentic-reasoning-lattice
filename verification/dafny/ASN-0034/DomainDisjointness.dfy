@@ -36,23 +36,25 @@ module DomainDisjointness {
     var nx :| SiblingAt(X, nx) == t;
     var ny :| SiblingAt(Y, ny) == t;
 
-    if OnLineage(X, Y) {
-      OnLineageDepth(X, Y);
-      if Depth(X) == Depth(Y) {
-        CAI.OnLineageEqualDepthIsEqual(X, Y);
-        assert false;
+    if Root(X) == Root(Y) {
+      if OnLineage(X, Y) {
+        OnLineageDepth(X, Y);
+        if Depth(X) == Depth(Y) {
+          CAI.OnLineageEqualDepthIsEqual(X, Y);
+          assert false;
+        }
+        LocalMonotonicity(X, Y, nx, ny);
+      } else if OnLineage(Y, X) {
+        OnLineageDepth(Y, X);
+        if Depth(Y) == Depth(X) {
+          CAI.OnLineageEqualDepthIsEqual(Y, X);
+          assert false;
+        }
+        LocalMonotonicity(Y, X, ny, nx);
+      } else {
+        USL.SiblingInT(X, nx);
+        CAI.CrossAllocatorIncomparability(X, Y, t, t);
       }
-      LocalMonotonicity(X, Y, nx, ny);
-    } else if OnLineage(Y, X) {
-      OnLineageDepth(Y, X);
-      if Depth(Y) == Depth(X) {
-        CAI.OnLineageEqualDepthIsEqual(Y, X);
-        assert false;
-      }
-      LocalMonotonicity(Y, X, ny, nx);
-    } else {
-      USL.SiblingInT(X, nx);
-      CAI.CrossAllocatorIncomparability(X, Y, t, t);
     }
   }
 
