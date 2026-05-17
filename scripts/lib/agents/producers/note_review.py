@@ -42,6 +42,9 @@ from lib.shared.paths import (
 
 
 REVIEW_TEMPLATE = prompt_path("agents/producers/note_review.md")
+ANTI_BLOAT_BLOCK = prompt_path(
+    "agents/producers/note_review_anti_bloat.md",
+)
 
 
 def extract_note_findings(text: str) -> List[Tuple[str, str, str]]:
@@ -89,12 +92,16 @@ def _load_out_of_scope(asn_number: int) -> str:
 
 def _build_prompt(
     asn_content: str, vocabulary: str, out_of_scope: str = "",
-    foundation: str = "",
+    foundation: str = "", anti_bloat: bool = False,
 ) -> str:
     """Assemble review prompt from template + injected content.
 
     Caller supplies `foundation` directly. The template's foundation
     slot can be empty if the ASN has no upstream deps.
+
+    `anti_bloat=True` appends the forward-reference accretion patterns
+    from `note_review_anti_bloat.md` (used when the note carries the
+    `review-mode.anti-bloat` classifier).
     """
     template_path = REVIEW_TEMPLATE
     template = read_file(template_path)
@@ -115,13 +122,17 @@ def _build_prompt(
         if out_of_scope else ""
     )
 
+    anti_bloat_section = ""
+    if anti_bloat:
+        anti_bloat_section = "\n\n" + read_file(ANTI_BLOAT_BLOCK)
+
     return template.replace(
         "{{asn_content}}", asn_content
     ).replace(
         "{{vocabulary}}", vocabulary
     ).replace(
         "{{foundation_statements}}", foundation
-    ) + scope_note
+    ) + scope_note + anti_bloat_section
 
 
 # ---------------------------------------------------------------------------
@@ -213,10 +224,21 @@ class NoteReviewAgent(Agent):
         vocabulary = read_file(resolve_campaign(asn_label).vocabulary_path)
         out_of_scope = _load_out_of_scope(asn_number)
         foundation = load_foundation_for_note(asn_path, asn_number)
+        anti_bloat = bool(
+            session.active_links(
+                "review-mode.anti-bloat", to_set=[note_addr],
+            )
+        )
+        if anti_bloat:
+            print(
+                f"  [NOTE-REVIEW] anti-bloat mode enabled for {asn_label}",
+                file=sys.stderr,
+            )
         prompt = _build_prompt(
             asn_content, vocabulary,
             out_of_scope=out_of_scope,
             foundation=foundation,
+            anti_bloat=anti_bloat,
         )
         response = invoke_claude(
             prompt, model=self.model, effort=self.effort,
@@ -230,6 +252,27 @@ class NoteReviewAgent(Agent):
         validation_error = _validate_review(text)
         if validation_error:
             print(f"  MALFORMED REVIEW: {validation_error}", file=sys.stderr)
+            # Capture raw output to workspace for debugging malformed reviews.
+            from lib.shared.paths import WORKSPACE_DIR
+            from datetime import datetime, timezone
+            debug_dir = WORKSPACE_DIR / "debug" / "malformed-reviews"
+            debug_dir.mkdir(parents=True, exist_ok=True)
+            ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+            debug_path = debug_dir / f"{asn_label}-{ts}.md"
+            debug_path.write_text(
+                f"# Malformed review capture — {asn_label}\n\n"
+                f"*{ts}* / model={self.model}, effort={self.effort}, "
+                f"anti_bloat={anti_bloat}, elapsed={response.elapsed:.0f}s, "
+                f"prompt_kb={len(prompt)/1024:.1f}*\n\n"
+                f"## Validation error\n\n{validation_error}\n\n"
+                f"## Raw response (length={len(response.text)} chars)\n\n"
+                f"```\n{response.text}\n```\n"
+            )
+            print(
+                f"  [DEBUG] raw output captured: "
+                f"{debug_path.relative_to(WORKSPACE_DIR.parent)}",
+                file=sys.stderr,
+            )
             return AgentResult(
                 success=False, elapsed=response.elapsed,
                 detail=f"malformed: {validation_error}",

@@ -138,6 +138,7 @@ SHAPES: Dict[str, LinkShape] = {
     "clone": CLASSIFIER,
     "import": CLASSIFIER,
     "retired": CLASSIFIER,
+    "review-mode.anti-bloat": CLASSIFIER,
     "motifs": CLASSIFIER,
     "motif": CLASSIFIER,
 

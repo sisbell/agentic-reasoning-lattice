@@ -84,6 +84,7 @@ CANONICAL_POSITIONS: Dict[str, Tuple[int, ...]] = {
     "motif": (37,),
     "motif.attribution": (37, 1),
     "import": (38,),
+    "review-mode.anti-bloat": (39, 1),
     "agent.scope.note": (6, 1, 1),
     "agent.scope.claim": (6, 1, 2),
     "agent.scope.inquiry": (6, 1, 3),
@@ -110,6 +111,7 @@ PARENT_TYPES: Dict[str, Tuple[int, ...]] = {
     "promotion": (28,),
     "patch": (30,),
     "claims": (34,),
+    "review-mode": (39,),
     "agent.scope": (6, 1),
     "agent.caste": (6, 2),
 }
@@ -146,6 +148,7 @@ CLASSIFIER_TYPES: frozenset = frozenset({
     "absorb",
     "clone",
     "import",
+    "review-mode.anti-bloat",
     "claims.statements",
     "motifs",
     "motif",

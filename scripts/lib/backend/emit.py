@@ -310,6 +310,20 @@ def emit_retired(
     return emit_classifier(store, doc, "retired")
 
 
+def emit_review_mode_anti_bloat(
+    store: Store, doc: Address,
+) -> Tuple[Link, bool]:
+    """Tag a note for anti-bloat-augmented review.
+
+    Classifier-shape link (F=∅, G=[doc]). When present, NoteReviewAgent
+    appends the anti-bloat block (note_review_anti_bloat.md) to the
+    standard review prompt, adding forward-reference accretion patterns
+    to the reviewer's flag list. Idempotent on the active set; retract
+    via `emit_retraction` to remove the tag.
+    """
+    return emit_classifier(store, doc, "review-mode.anti-bloat")
+
+
 def emit_extends(
     store: Store, ext_note: Address, base_note: Address,
 ) -> Tuple[Link, bool]:
