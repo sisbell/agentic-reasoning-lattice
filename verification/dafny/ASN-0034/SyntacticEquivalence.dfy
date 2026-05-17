@@ -78,17 +78,19 @@ module SyntacticEquivalence {
     } else if |s| == 2 {
       // s = [non-zero, 0]: PositionalConstraint fails on s[|s|-1]!=0.
       var s1 := s[1..];
+      var emptyseq: seq<Carrier> := [];
       assert |s1| == 1 && s1[0] == 0;
-      assert s1[1..] == ([] as seq<Carrier>);
-      assert FieldSegments(s1[1..]) == [[]];
-      assert FieldSegments(s1) == [[]] + [[]];
+      assert |s1[1..]| == 0;
+      assert s1[1..] == emptyseq;
+      assert FieldSegments(emptyseq) == [emptyseq];
       var rest := FieldSegments(s1);
-      assert |rest| == 2 && rest[0] == [] && rest[1] == [];
-      assert rest[1..] == [[] as seq<Carrier>];
+      assert rest == [emptyseq] + [emptyseq];
+      assert |rest| == 2 && rest[0] == emptyseq && rest[1] == emptyseq;
       var segs := FieldSegments(s);
       assert segs == [[s[0]] + rest[0]] + rest[1..];
       assert |segs| == 2;
-      assert segs[1] == [];
+      assert segs[1] == rest[1];
+      assert segs[1] == emptyseq;
       assert |segs[1]| == 0;
       assert !AllFieldSegmentsNonEmpty(s);
       assert s[|s|-1] == 0;
@@ -97,14 +99,15 @@ module SyntacticEquivalence {
       // |s| >= 3, s[0] != 0, s[1] == 0: recurse on s[2..].
       SegmentsCharacterization(s[2..]);
       var s1 := s[1..];
+      var emptyseq: seq<Carrier> := [];
       assert s1[0] == 0;
       assert s1[1..] == s[2..];
       var rest2 := FieldSegments(s[2..]);
-      assert FieldSegments(s1) == [[]] + rest2;
+      assert FieldSegments(s1) == [emptyseq] + rest2;
       var rest := FieldSegments(s1);
-      assert rest == [[]] + rest2;
+      assert rest == [emptyseq] + rest2;
       assert |rest| == 1 + |rest2|;
-      assert rest[0] == [];
+      assert rest[0] == emptyseq;
       assert rest[1..] == rest2;
       var segs := FieldSegments(s);
       assert segs == [[s[0]] + rest[0]] + rest[1..];
