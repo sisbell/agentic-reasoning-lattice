@@ -21,6 +21,25 @@ module StrictOrderPreservation {
   import opened NatStrictTotalOrder
   import opened NatCarrierSet
 
+  // Helper: LexicographicOrder(a, b) implies a != b. (T1 witness rules out equality.)
+  lemma LexImpliesNotEqual(a: Tumbler, b: Tumbler)
+    requires InT(a) && InT(b)
+    requires LexicographicOrder.LexicographicOrder(a, b)
+    ensures a != b
+  {
+    if a == b {
+      var kw :| 1 <= kw
+                && (forall i :: 1 <= i < kw ==>
+                      i <= Length(a) && i <= Length(b) &&
+                      Component(a, i) == Component(b, i))
+                && ((kw <= Length(a) && kw <= Length(b) && Less(Component(a, kw), Component(b, kw)))
+                    || (kw == Length(a) + 1 && kw <= Length(b)));
+      if kw <= Length(a) && kw <= Length(b) && Less(Component(a, kw), Component(b, kw)) {
+        Irreflexive(Component(a, kw));
+      }
+    }
+  }
+
   // Helper: when divergence falls strictly within both lengths, the
   // T1 witness coincides with Divergence and case (i) holds.
   lemma DivergenceCaseIStrict(a: Tumbler, b: Tumbler)
@@ -68,12 +87,15 @@ module StrictOrderPreservation {
     requires PositiveTumbler.PositiveTumbler(w)
     requires ActionPoint.ActionPoint(w) <= Length(a)
     requires ActionPoint.ActionPoint(w) <= Length(b)
-    requires a != b
     requires ActionPoint.ActionPoint(w) >= Divergence.Divergence(a, b)
     ensures LexicographicOrder.LexicographicOrder(
               TumblerAdd.TumblerAdd(a, w),
               TumblerAdd.TumblerAdd(b, w))
   {
+    // From `a < b` and T1 irreflexivity, derive `a != b` to discharge
+    // Divergence's precondition.
+    LexImpliesNotEqual(a, b);
+
     var ap := ActionPoint.ActionPoint(w);
     var d := Divergence.Divergence(a, b);
     var ra := TumblerAdd.TumblerAdd(a, w);
