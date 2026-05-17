@@ -33,13 +33,53 @@ module UniqueParse {
               ZeroIndices(s)[0] >= 1
     ensures |ZeroIndices(s)| > 0 && |s| > 0 && s[|s|-1] != 0 ==>
               ZeroIndices(s)[|ZeroIndices(s)|-1] < |s| - 1
-    ensures forall j :: 0 <= j < |s| &&
-              (forall k :: 0 <= k < |ZeroIndices(s)| ==> ZeroIndices(s)[k] != j) ==>
-              s[j] > 0
   {
     if |s| == 0 then []
     else if s[0] == 0 then [0] + Shift(ZeroIndices(s[1..]))
     else Shift(ZeroIndices(s[1..]))
+  }
+
+  // Bridge lemma: if a position j is not listed in ZeroIndices(s), then
+  // s[j] is non-zero (hence > 0 since Carrier = nat). Proved by induction
+  // on |s|, threading the (s[0]==0 / s[0]!=0) split through the recursion.
+  lemma NotInZeroIndicesImpliesPositive(s: seq<Carrier>, j: nat)
+    requires 0 <= j < |s|
+    requires forall k :: 0 <= k < |ZeroIndices(s)| ==> ZeroIndices(s)[k] != j
+    ensures s[j] > 0
+    decreases |s|
+  {
+    if s[0] == 0 {
+      // ZeroIndices(s) == [0] + Shift(ZeroIndices(s[1..]))
+      if j == 0 {
+        assert ZeroIndices(s)[0] == 0;
+        // premise at k = 0 says zs[0] != 0; contradiction with above
+      } else {
+        var zs1 := ZeroIndices(s[1..]);
+        forall k' | 0 <= k' < |zs1|
+          ensures zs1[k'] != j - 1
+        {
+          assert ZeroIndices(s)[k' + 1] == Shift(zs1)[k'];
+          assert Shift(zs1)[k'] == zs1[k'] + 1;
+        }
+        NotInZeroIndicesImpliesPositive(s[1..], j - 1);
+        assert s[1..][j - 1] == s[j];
+      }
+    } else {
+      // ZeroIndices(s) == Shift(ZeroIndices(s[1..]))
+      if j == 0 {
+        // s[0] != 0 and Carrier = nat, so s[0] > 0
+      } else {
+        var zs1 := ZeroIndices(s[1..]);
+        forall k' | 0 <= k' < |zs1|
+          ensures zs1[k'] != j - 1
+        {
+          assert ZeroIndices(s)[k'] == Shift(zs1)[k'];
+          assert Shift(zs1)[k'] == zs1[k'] + 1;
+        }
+        NotInZeroIndicesImpliesPositive(s[1..], j - 1);
+        assert s[1..][j - 1] == s[j];
+      }
+    }
   }
 
   // Node-field projection: prefix of t.components before the first zero,
@@ -51,11 +91,26 @@ module UniqueParse {
     ensures forall i :: 0 <= i < |r.components| ==> r.components[i] > 0
   {
     var zs := ZeroIndices(t.components);
-    if |zs| == 0 then t
+    if |zs| == 0 then
+      assert forall i :: 0 <= i < |t.components| ==> t.components[i] > 0 by {
+        forall i | 0 <= i < |t.components|
+          ensures t.components[i] > 0
+        {
+          NotInZeroIndicesImpliesPositive(t.components, i);
+        }
+      }
+      t
     else
       assert Component(t, 1) == t.components[0];
       assert t.components[0] != 0;
       assert zs[0] >= 1;
+      assert forall i :: 0 <= i < zs[0] ==> t.components[i] > 0 by {
+        forall i | 0 <= i < zs[0]
+          ensures t.components[i] > 0
+        {
+          NotInZeroIndicesImpliesPositive(t.components, i);
+        }
+      }
       Tumbler(t.components[..zs[0]])
   }
 
@@ -73,6 +128,13 @@ module UniqueParse {
       assert Component(t, Length(t)) == t.components[|t.components|-1];
       assert t.components[|t.components|-1] != 0;
       assert zs[0] < |t.components| - 1;
+      assert forall i :: zs[0]+1 <= i < |t.components| ==> t.components[i] > 0 by {
+        forall i | zs[0]+1 <= i < |t.components|
+          ensures t.components[i] > 0
+        {
+          NotInZeroIndicesImpliesPositive(t.components, i);
+        }
+      }
       Tumbler(t.components[zs[0]+1..])
     else
       assert zs[0] < zs[1];
@@ -86,6 +148,13 @@ module UniqueParse {
       assert t.components[zs[0]+1] != 0;
       assert zs[1] != zs[0] + 1;
       assert zs[1] >= zs[0] + 2;
+      assert forall i :: zs[0]+1 <= i < zs[1] ==> t.components[i] > 0 by {
+        forall i | zs[0]+1 <= i < zs[1]
+          ensures t.components[i] > 0
+        {
+          NotInZeroIndicesImpliesPositive(t.components, i);
+        }
+      }
       Tumbler(t.components[zs[0]+1..zs[1]])
   }
 
@@ -103,6 +172,13 @@ module UniqueParse {
       assert Component(t, Length(t)) == t.components[|t.components|-1];
       assert t.components[|t.components|-1] != 0;
       assert zs[1] < |t.components| - 1;
+      assert forall i :: zs[1]+1 <= i < |t.components| ==> t.components[i] > 0 by {
+        forall i | zs[1]+1 <= i < |t.components|
+          ensures t.components[i] > 0
+        {
+          NotInZeroIndicesImpliesPositive(t.components, i);
+        }
+      }
       Tumbler(t.components[zs[1]+1..])
     else
       assert zs[1] < zs[2];
@@ -115,6 +191,13 @@ module UniqueParse {
       assert t.components[zs[1]+1] != 0;
       assert zs[2] != zs[1] + 1;
       assert zs[2] >= zs[1] + 2;
+      assert forall i :: zs[1]+1 <= i < zs[2] ==> t.components[i] > 0 by {
+        forall i | zs[1]+1 <= i < zs[2]
+          ensures t.components[i] > 0
+        {
+          NotInZeroIndicesImpliesPositive(t.components, i);
+        }
+      }
       Tumbler(t.components[zs[1]+1..zs[2]])
   }
 
@@ -130,6 +213,13 @@ module UniqueParse {
     assert Component(t, Length(t)) == t.components[|t.components|-1];
     assert t.components[|t.components|-1] != 0;
     assert zs[2] < |t.components| - 1;
+    assert forall i :: zs[2]+1 <= i < |t.components| ==> t.components[i] > 0 by {
+      forall i | zs[2]+1 <= i < |t.components|
+        ensures t.components[i] > 0
+      {
+        NotInZeroIndicesImpliesPositive(t.components, i);
+      }
+    }
     Tumbler(t.components[zs[2]+1..])
   }
 }
