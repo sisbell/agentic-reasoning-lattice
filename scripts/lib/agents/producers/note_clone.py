@@ -233,30 +233,27 @@ def _emit_substrate(
         emit_inquiry(session.store, clone_inquiry_addr)
 
         if origin_inquiry_addr is not None:
-            from lib.predicates.versions import version_head
             for link in session.active_links(
                 "citation.depends", from_set=[origin_inquiry_addr],
             ):
                 for cited in link.to_set:
-                    # Re-resolve to current head (origin's citation may
-                    # have targeted an older version of the upstream).
+                    # Note-level dep citations are base→base by
+                    # convention; `note_dep_asn_ids` resolves the cited
+                    # address via `path_for_addr` (only bases are
+                    # path-registered). Version drift on the upstream is
+                    # handled at load time, not at citation time.
                     emit_citation(
-                        session.store, clone_inquiry_addr,
-                        version_head(session, cited),
+                        session.store, clone_inquiry_addr, cited,
                         direction="depends",
                     )
 
     if origin_note_addr is not None:
-        from lib.predicates.versions import version_head
         for link in session.active_links(
             "citation.depends", from_set=[origin_note_addr],
         ):
             for cited in link.to_set:
-                # Re-resolve to current head (origin's citation may
-                # have targeted an older version of the upstream).
                 emit_citation(
-                    session.store, clone_note_addr,
-                    version_head(session, cited),
+                    session.store, clone_note_addr, cited,
                     direction="depends",
                 )
 
