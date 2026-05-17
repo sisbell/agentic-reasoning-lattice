@@ -1143,7 +1143,7 @@ Because K.μ~ is a named composite (K.μ⁻ followed by K.μ⁺), we trace it th
 *K.μ⁻ sub-step.* Remove the two content-subspace mappings `{[1,1], [1,2]}` while retaining the link-subspace mapping at `[2,1]`. The intermediate-state arrangement is `M_int(d) = {[2,1] ↦ ℓ}`. The content subspace contracts to empty (`V_{s_C}(d_int) = ∅`); the link subspace is unchanged (`V_{s_L}(d_int) = {[2,1]}`). Other stores frame: `C_int = C`, `L_int = L'`, `E_int = E`, `R_int = R`.
 
 *K.μ⁻ admissibility at M_int.* The removal pattern is per-subspace:
-- *Content-subspace pattern.* `V_{s_C}(d) = {[1,1], [1,2]}`, `V_{s_C}(d_int) = ∅` — full removal with `n'_{s_C} = 0`. This is the case-(d) admissible pattern of K.μ⁻ (subspace emptied; D-MIN★/D-CTG★/D-SEQ★ become vacuous on the cleared subspace).
+- *Content-subspace pattern.* `V_{s_C}(d) = {[1,1], [1,2]}`, `V_{s_C}(d_int) = ∅` — full removal with `n'_{s_C} = 0`. This is the case-(a) full-clearance admissible pattern of K.μ⁻ (case (a) with `n'_{s_C} = 0`: subspace emptied; D-MIN★/D-CTG★/D-SEQ★ become vacuous on the cleared subspace).
 - *Link-subspace pattern.* `V_{s_L}(d) = V_{s_L}(d_int) = {[2,1]}` — empty removal with `n'_{s_L} = n_{s_L} = 1`. This is the case-(a) zero-suffix admissible pattern.
 
 Both patterns admissible; K.μ⁻ commits.
