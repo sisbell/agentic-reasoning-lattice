@@ -75,4 +75,44 @@ module ZeroPaddedDivergence {
     assert L == Lswap;
     FirstPaddedMismatchSymmetric(a, w, 1, L);
   }
+
+  // On the shared-position range [start, m], padded components coincide with
+  // native components, so the padded mismatch scan agrees with the native one.
+  // When FirstMismatch returns a value <= m (Divergence case (i)),
+  // FirstPaddedMismatch over [start, L] returns the same index.
+  lemma FirstPaddedMismatchEqualsFirstMismatch(
+      a: Tumbler, w: Tumbler, start: nat, m: nat, L: nat)
+    requires InT(a) && InT(w)
+    requires m <= Length(a) && m <= Length(w)
+    requires L >= m
+    requires 1 <= start <= m + 1
+    requires Divergence.FirstMismatch(a, w, start, m) <= m
+    ensures FirstPaddedMismatch(a, w, start, L) == Divergence.FirstMismatch(a, w, start, m)
+    decreases m + 1 - start
+  {
+    if start > m {
+      // FirstMismatch returns m+1 here, contradicting the precondition.
+    } else if Component(a, start) != Component(w, start) {
+      assert PaddedComponent(a, start) == Component(a, start);
+      assert PaddedComponent(w, start) == Component(w, start);
+    } else {
+      FirstPaddedMismatchEqualsFirstMismatch(a, w, start + 1, m, L);
+    }
+  }
+
+  // Relationship to Divergence — case (i): component divergence at shared
+  // position k with k <= #a /\ k <= #w. The padded projections coincide with
+  // the native projections through 1, ..., k, so zpd(a, w) = divergence(a, w).
+  lemma ZeroPaddedDivergenceCaseI(a: Tumbler, w: Tumbler)
+    requires InT(a) && InT(w)
+    requires a != w
+    requires Divergence.Divergence(a, w) <= Length(a)
+    requires Divergence.Divergence(a, w) <= Length(w)
+    ensures ZeroPaddedDivergence(a, w) == Divergence.Divergence(a, w)
+  {
+    var m := if Length(a) <= Length(w) then Length(a) else Length(w);
+    var L := if Length(a) >= Length(w) then Length(a) else Length(w);
+    assert Divergence.Divergence(a, w) == Divergence.FirstMismatch(a, w, 1, m);
+    FirstPaddedMismatchEqualsFirstMismatch(a, w, 1, m, L);
+  }
 }
