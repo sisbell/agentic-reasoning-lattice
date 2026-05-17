@@ -34,4 +34,30 @@ module TumblerAdd {
             + [a.components[k-1] + w.components[k-1]]
             + w.components[k..])
   }
+
+  // Helper: extracted postcondition — a ⊕ w > a, justified by T1 case (i)
+  // at divergence position k = ActionPoint(w). The witness k satisfies
+  //   * agreement: rᵢ = aᵢ for i < k,
+  //   * divergence: rₖ = aₖ + wₖ > aₖ (since wₖ ≥ 1).
+  lemma StrictAdvancement(a: Tumbler, w: Tumbler)
+    requires InT(a) && InT(w)
+    requires PositiveTumbler.PositiveTumbler(w)
+    requires ActionPoint.ActionPoint(w) <= Length(a)
+    ensures LexicographicOrder.LexicographicOrder(a, TumblerAdd(a, w))
+  {
+    var r := TumblerAdd(a, w);
+    var k := ActionPoint.ActionPoint(w);
+    // wₖ ≥ 1 (from ActionPoint: wₖ ≠ 0, and wₖ is nat)
+    assert Component(w, k) >= 1;
+    // rₖ = aₖ + wₖ ≥ aₖ + 1 > aₖ
+    assert Component(r, k) == Component(a, k) + Component(w, k);
+    assert Less(Component(a, k), Component(r, k));
+    // Witness k for the existential in LexicographicOrder
+    assert 1 <= k;
+    assert k <= Length(a);
+    assert k <= Length(r);
+    assert forall i :: 1 <= i < k ==>
+            i <= Length(a) && i <= Length(r) &&
+            Component(a, i) == Component(r, i);
+  }
 }
