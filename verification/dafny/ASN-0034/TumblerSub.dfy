@@ -55,6 +55,8 @@ module TumblerSub {
     ensures ZeroPaddedDivergence.ZeroPaddedDivergence(a, w) != 0 ==>
               (PositiveTumbler.PositiveTumbler(r) &&
                ActionPoint.ActionPoint(r) == ZeroPaddedDivergence.ZeroPaddedDivergence(a, w))
+    ensures ZeroPaddedDivergence.ZeroPaddedDivergence(a, w) == 0 ==>
+              PositiveTumbler.ZeroTumbler(r)
   {
     var L := if Length(a) >= Length(w) then Length(a) else Length(w);
     var k := ZeroPaddedDivergence.ZeroPaddedDivergence(a, w);
