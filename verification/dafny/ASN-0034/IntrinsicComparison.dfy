@@ -47,6 +47,86 @@ module IntrinsicComparison {
     CompareFrom(a, b, 0)
   }
 
+  // Helper: when a is a strict componentwise prefix of b, LexOrder(a, b) holds
+  // (via T1 case (ii)) but LexOrder(b, a) cannot — its witness would have to
+  // be either a position where they agree (contradicting Less) or a length
+  // beyond Length(b), which exceeds Length(a).
+  lemma ShorterPrefix(a: Tumbler, b: Tumbler)
+    requires InT(a) && InT(b)
+    requires Length(a) < Length(b)
+    requires forall j :: 1 <= j <= Length(a) ==> Component(a, j) == Component(b, j)
+    ensures LexicographicOrder.LexicographicOrder(a, b)
+    ensures !LexicographicOrder.LexicographicOrder(b, a)
+    ensures a != b
+  {
+    // Witness for LexOrder(a, b) via T1 case (ii).
+    NatDiscreteness(Length(a), Length(b));
+    assert
+      var k := Length(a) + 1;
+      && 1 <= k
+      && (forall i' :: 1 <= i' < k ==>
+            i' <= Length(a) && i' <= Length(b) &&
+            Component(a, i') == Component(b, i'))
+      && (k == Length(a) + 1 && k <= Length(b));
+
+    if LexicographicOrder.LexicographicOrder(b, a) {
+      var k :| 1 <= k
+            && (forall i' :: 1 <= i' < k ==>
+                  i' <= Length(b) && i' <= Length(a) &&
+                  Component(b, i') == Component(a, i'))
+            && ((k <= Length(b) && k <= Length(a) &&
+                 Less(Component(b, k), Component(a, k)))
+                || (k == Length(b) + 1 && k <= Length(a)));
+      if k <= Length(b) && k <= Length(a) && Less(Component(b, k), Component(a, k)) {
+        assert Component(a, k) == Component(b, k);
+        Irreflexive(Component(a, k));
+      }
+    }
+  }
+
+  // Helper: at a divergence position with Less(a_{i+1}, b_{i+1}) and prior
+  // agreement, LexOrder(a, b) holds via T1 case (i) and LexOrder(b, a) cannot
+  // — any witness k' would either agree at k' ≤ i (impossible to Less) or
+  // diverge at i+1 with the inequality reversed (contradicting trichotomy).
+  lemma Divergence(a: Tumbler, b: Tumbler, i: nat)
+    requires InT(a) && InT(b)
+    requires 0 <= i < Length(a) && 0 <= i < Length(b)
+    requires forall j :: 1 <= j <= i ==> Component(a, j) == Component(b, j)
+    requires Less(Component(a, i + 1), Component(b, i + 1))
+    ensures LexicographicOrder.LexicographicOrder(a, b)
+    ensures !LexicographicOrder.LexicographicOrder(b, a)
+    ensures a != b
+  {
+    // Witness for LexOrder(a, b) via T1 case (i) at k = i + 1.
+    assert
+      var k := i + 1;
+      && 1 <= k
+      && (forall i' :: 1 <= i' < k ==>
+            i' <= Length(a) && i' <= Length(b) &&
+            Component(a, i') == Component(b, i'))
+      && (k <= Length(a) && k <= Length(b) &&
+          Less(Component(a, k), Component(b, k)));
+
+    if LexicographicOrder.LexicographicOrder(b, a) {
+      var k :| 1 <= k
+            && (forall i' :: 1 <= i' < k ==>
+                  i' <= Length(b) && i' <= Length(a) &&
+                  Component(b, i') == Component(a, i'))
+            && ((k <= Length(b) && k <= Length(a) &&
+                 Less(Component(b, k), Component(a, k)))
+                || (k == Length(b) + 1 && k <= Length(a)));
+      if k <= Length(b) && k <= Length(a) && Less(Component(b, k), Component(a, k)) {
+        if k <= i {
+          assert Component(a, k) == Component(b, k);
+          Irreflexive(Component(a, k));
+        } else {
+          assert k == i + 1;
+          Asymmetric(Component(a, i + 1), Component(b, i + 1));
+        }
+      }
+    }
+  }
+
   // T2: the constructive scan decides T1's order relation.
   lemma IntrinsicComparison(a: Tumbler, b: Tumbler)
     requires InT(a) && InT(b)
@@ -71,24 +151,16 @@ module IntrinsicComparison {
     if i == Length(a) && i == Length(b) {
       Extensionality(a, b);
     } else if i == Length(a) {
-      if LexicographicOrder.LexicographicOrder(b, a) {
-        var k :| 1 <= k
-              && (forall i' :: 1 <= i' < k ==>
-                    i' <= Length(b) && i' <= Length(a) &&
-                    Component(b, i') == Component(a, i'))
-              && ((k <= Length(b) && k <= Length(a) &&
-                   Less(Component(b, k), Component(a, k)))
-                  || (k == Length(b) + 1 && k <= Length(a)));
-        if k <= Length(b) && k <= Length(a) && Less(Component(b, k), Component(a, k)) {
-          Irreflexive(Component(a, k));
-        }
-      }
+      ShorterPrefix(a, b);
     } else if i == Length(b) {
+      ShorterPrefix(b, a);
     } else {
       var ai := Component(a, i + 1);
       var bi := Component(b, i + 1);
       if Less(ai, bi) {
+        Divergence(a, b, i);
       } else if Less(bi, ai) {
+        Divergence(b, a, i);
       } else {
         CompareFromCorrect(a, b, i + 1);
       }
