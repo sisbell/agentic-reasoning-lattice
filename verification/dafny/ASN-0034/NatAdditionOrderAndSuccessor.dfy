@@ -12,6 +12,10 @@ module NatAdditionOrderAndSuccessor {
     requires GreaterOrEqual(n, p)
     ensures GreaterOrEqual(m + n, m + p)
 
+  lemma {:axiom} AdditionMonotonicityRight(m: Carrier, n: Carrier, p: Carrier)
+    requires GreaterOrEqual(n, p)
+    ensures GreaterOrEqual(n + m, p + m)
+
   lemma {:axiom} StrictSuccessor(n: Carrier)
     ensures Less(n, n + 1)
 }
