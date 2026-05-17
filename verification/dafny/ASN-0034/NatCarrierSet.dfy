@@ -4,6 +4,8 @@ module NatCarrierSet {
 
   type Carrier = nat
 
+  ghost predicate InCarrier(c: Carrier) { true }
+
   lemma {:axiom} NatCarrierSet()
-    ensures exists c: Carrier :: c == 0
+    ensures exists c: Carrier :: InCarrier(c)
 }
