@@ -49,11 +49,6 @@ module SyntacticEquivalence {
     (forall i :: 0 <= i < |s| - 1 ==> !(s[i] == 0 && s[i+1] == 0))
   }
 
-  // The first segment of FieldSegments(s) is empty iff |s|==0 or s[0]==0.
-  lemma FirstSegmentEmpty(s: seq<Carrier>)
-    ensures |FieldSegments(s)[0]| == 0 <==> |s| == 0 || s[0] == 0
-  { }
-
   // Inductive characterization: positional constraint ⟺ every segment non-empty.
   lemma SegmentsCharacterization(s: seq<Carrier>)
     requires |s| >= 1
@@ -61,24 +56,26 @@ module SyntacticEquivalence {
     decreases |s|
   {
     if |s| == 1 {
-      // Base case handled by solver from the function unfolding.
+      // Base case: solver handles by unfolding FieldSegments.
     } else if s[0] == 0 {
-      // FieldSegments(s)[0] == [], so AllFieldSegmentsNonEmpty(s) false.
-      // PositionalConstraint(s) requires s[0] != 0, so false.
+      // First segment is empty; PositionalConstraint fails on s[0]!=0.
       assert FieldSegments(s)[0] == [];
-    } else {
-      // |s| >= 2 and s[0] != 0.
-      var rest := FieldSegments(s[1..]);
-      var segs := FieldSegments(s);
-      assert segs == [[s[0]] + rest[0]] + rest[1..];
-      assert |segs| == |rest|;
-      assert segs[0] == [s[0]] + rest[0];
-      assert |segs[0]| >= 1;
-      assert forall k :: 1 <= k < |segs| ==> segs[k] == rest[k];
-
+    } else if s[1] != 0 {
+      // s[0]!=0, s[1]!=0: recurse on s[1..], both sides shift cleanly.
       SegmentsCharacterization(s[1..]);
-      FirstSegmentEmpty(s[1..]);
-      // s[1..] is non-empty, so rest[0] is empty iff s[1] == 0.
+      var rest := FieldSegments(s[1..]);
+      assert |rest[0]| >= 1;  // s[1..] starts with non-zero
+    } else if |s| == 2 {
+      // s = [non-zero, 0]: PositionalConstraint fails on s[|s|-1]!=0.
+      // FieldSegments(s) = [[s[0]], []], last segment empty.
+      assert FieldSegments(s[1..]) == [[], []];
+    } else {
+      // |s| >= 3, s[0] != 0, s[1] == 0: recurse on s[2..].
+      SegmentsCharacterization(s[2..]);
+      var rest := FieldSegments(s[1..]);
+      assert rest == [[]] + FieldSegments(s[2..]);
+      var segs := FieldSegments(s);
+      assert segs == [[s[0]]] + FieldSegments(s[2..]);
     }
   }
 
@@ -88,8 +85,8 @@ module SyntacticEquivalence {
             AllFieldSegmentsNonEmpty(t.components)
   {
     SegmentsCharacterization(t.components);
-    // Bridge Tumbler/seq indexing:
-    // Component(t, i) == t.components[i-1] and Length(t) == |t.components|.
+    // Bridge Tumbler/seq indexing: Component(t, i) == t.components[i-1],
+    // Length(t) == |t.components|.
     assert FieldSegmentConstraint(t) <==> PositionalConstraint(t.components);
   }
 }
