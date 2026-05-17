@@ -33,6 +33,9 @@ module UniqueParse {
               ZeroIndices(s)[0] >= 1
     ensures |ZeroIndices(s)| > 0 && |s| > 0 && s[|s|-1] != 0 ==>
               ZeroIndices(s)[|ZeroIndices(s)|-1] < |s| - 1
+    ensures forall j :: 0 <= j < |s| &&
+              (forall k :: 0 <= k < |ZeroIndices(s)| ==> ZeroIndices(s)[k] != j) ==>
+              s[j] > 0
   {
     if |s| == 0 then []
     else if s[0] == 0 then [0] + Shift(ZeroIndices(s[1..]))
