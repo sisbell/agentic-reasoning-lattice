@@ -60,22 +60,58 @@ module SyntacticEquivalence {
     } else if s[0] == 0 {
       // First segment is empty; PositionalConstraint fails on s[0]!=0.
       assert FieldSegments(s)[0] == [];
+      assert !AllFieldSegmentsNonEmpty(s);
+      assert !PositionalConstraint(s);
     } else if s[1] != 0 {
       // s[0]!=0, s[1]!=0: recurse on s[1..], both sides shift cleanly.
       SegmentsCharacterization(s[1..]);
       var rest := FieldSegments(s[1..]);
       assert |rest[0]| >= 1;  // s[1..] starts with non-zero
+      var segs := FieldSegments(s);
+      assert segs == [[s[0]] + rest[0]] + rest[1..];
+      assert |segs| == |rest|;
+      assert segs[0] == [s[0]] + rest[0];
+      assert forall k :: 1 <= k < |segs| ==> segs[k] == rest[k];
+      // PositionalConstraint(s) iff PositionalConstraint(s[1..]):
+      // both s[0]!=0 and s[1]!=0 imply i=0 case of forall is vacuous,
+      // and remaining structure matches s[1..]'s.
+      assert (forall i :: 0 <= i < |s|-1 ==> !(s[i]==0 && s[i+1]==0)) <==>
+             (forall j :: 0 <= j < |s[1..]|-1 ==> !(s[1..][j]==0 && s[1..][j+1]==0));
+      assert s[|s|-1] == s[1..][|s[1..]|-1];
     } else if |s| == 2 {
       // s = [non-zero, 0]: PositionalConstraint fails on s[|s|-1]!=0.
-      // FieldSegments(s) = [[s[0]], []], last segment empty.
+      // FieldSegments(s[1..]) = FieldSegments([0]) = [[]] + FieldSegments([]) = [[], []].
+      // FieldSegments(s) = [[s[0]] + []] + [[]] = [[s[0]], []].
       assert FieldSegments(s[1..]) == [[], []];
+      assert FieldSegments(s) == [[s[0]], []];
+      assert |FieldSegments(s)[1]| == 0;
+      assert !AllFieldSegmentsNonEmpty(s);
+      assert s[|s|-1] == 0;
+      assert !PositionalConstraint(s);
     } else {
       // |s| >= 3, s[0] != 0, s[1] == 0: recurse on s[2..].
       SegmentsCharacterization(s[2..]);
       var rest := FieldSegments(s[1..]);
+      assert s[1..][0] == 0;
+      assert s[1..][1..] == s[2..];
       assert rest == [[]] + FieldSegments(s[2..]);
       var segs := FieldSegments(s);
+      assert rest[0] == [];
+      assert rest[1..] == FieldSegments(s[2..]);
+      assert segs == [[s[0]] + []] + FieldSegments(s[2..]);
       assert segs == [[s[0]]] + FieldSegments(s[2..]);
+      assert |segs| == 1 + |FieldSegments(s[2..])|;
+      assert segs[0] == [s[0]];
+      assert forall k :: 1 <= k < |segs| ==> segs[k] == FieldSegments(s[2..])[k-1];
+      // PositionalConstraint(s) iff PositionalConstraint(s[2..]):
+      // s[0]!=0, s[1]==0 ⟹ i=0 case vacuous;
+      // i=1 requires s[2]!=0 which is s[2..][0]!=0;
+      // s[|s|-1]!=0 == s[2..][|s[2..]|-1]!=0;
+      // remaining adjacency constraints align with s[2..]'s.
+      assert (forall i :: 0 <= i < |s|-1 ==> !(s[i]==0 && s[i+1]==0)) <==>
+             (s[2] != 0 &&
+              (forall j :: 0 <= j < |s[2..]|-1 ==> !(s[2..][j]==0 && s[2..][j+1]==0)));
+      assert s[|s|-1] == s[2..][|s[2..]|-1];
     }
   }
 
@@ -87,6 +123,12 @@ module SyntacticEquivalence {
     SegmentsCharacterization(t.components);
     // Bridge Tumbler/seq indexing: Component(t, i) == t.components[i-1],
     // Length(t) == |t.components|.
-    assert FieldSegmentConstraint(t) <==> PositionalConstraint(t.components);
+    var s := t.components;
+    assert |s| == Length(t);
+    assert s[0] == Component(t, 1);
+    assert s[|s|-1] == Component(t, Length(t));
+    assert forall i :: 0 <= i < |s|-1 ==>
+             (s[i] == Component(t, i+1) && s[i+1] == Component(t, i+2));
+    assert FieldSegmentConstraint(t) <==> PositionalConstraint(s);
   }
 }
