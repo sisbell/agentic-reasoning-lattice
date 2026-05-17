@@ -126,5 +126,18 @@ module TumblerSub {
     assert k <= Length(a) || k <= Length(w);
     PaddedMismatchImpliesNotEqual(a, w, k);
     assert a != w;
+    // From precondition w ≤ a and a != w, get w < a.
+    assert LexicographicOrder.LexicographicOrder(w, a);
+    // Case analysis on Divergence(a, w).
+    var m := if Length(a) <= Length(w) then Length(a) else Length(w);
+    var d := Divergence.Divergence(a, w);
+    if d <= m {
+      // Case (i): native divergence at d. ZPD reduces to Divergence.
+      ZeroPaddedDivergenceCaseI(a, w);
+      assert k == d;
+    } else {
+      // Case (ii): d = m + 1, prefix divergence.
+      assert d == m + 1;
+    }
   }
 }
