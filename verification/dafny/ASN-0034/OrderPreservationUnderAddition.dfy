@@ -36,6 +36,15 @@ module OrderPreservationUnderAddition {
       var r2 := TumblerAdd.TumblerAdd(b, w);
       LexicographicOrder.LexicographicOrder(r1, r2) || r1 == r2
   {
+    assert exists kw: nat ::
+      && 1 <= kw
+      && (forall i :: 1 <= i < kw ==>
+            i <= Length(a) && i <= Length(b) &&
+            Component(a, i) == Component(b, i))
+      && ((kw <= Length(a) && kw <= Length(b)
+           && Less(Component(a, kw), Component(b, kw)))
+          || (kw == Length(a) + 1 && kw <= Length(b)));
+
     var j :| 1 <= j
              && (forall i :: 1 <= i < j ==>
                    i <= Length(a) && i <= Length(b) &&
