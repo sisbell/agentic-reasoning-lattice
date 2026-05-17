@@ -34,46 +34,6 @@ module ZeroTumblers {
     ensures !HierarchicalParsing.HierarchicalParsing(t)
   { }
 
-  lemma LexOrderWitnessCase1(s: Tumbler, t: Tumbler, k: nat)
-    requires InT(s) && InT(t)
-    requires 1 <= k <= Length(s) && k <= Length(t)
-    requires forall i :: 1 <= i < k ==>
-               Component(s, i) == Component(t, i)
-    requires Less(Component(s, k), Component(t, k))
-    ensures LexicographicOrder.LexicographicOrder(s, t)
-  {
-    assert
-      && 1 <= k
-      && (forall i :: 1 <= i < k ==>
-            i <= Length(s) && i <= Length(t) &&
-            Component(s, i) == Component(t, i))
-      && ((k <= Length(s) && k <= Length(t) && Less(Component(s, k), Component(t, k)))
-          || (k == Length(s) + 1 && k <= Length(t)));
-  }
-
-  lemma LexOrderWitnessCase2(s: Tumbler, t: Tumbler)
-    requires InT(s) && InT(t)
-    requires Length(s) + 1 <= Length(t)
-    requires forall i :: 1 <= i <= Length(s) ==>
-               Component(s, i) == Component(t, i)
-    ensures LexicographicOrder.LexicographicOrder(s, t)
-  {
-    var k: nat := Length(s) + 1;
-    assert
-      && 1 <= k
-      && (forall i :: 1 <= i < k ==>
-            i <= Length(s) && i <= Length(t) &&
-            Component(s, i) == Component(t, i))
-      && (k == Length(s) + 1 && k <= Length(t));
-    assert exists kw: nat ::
-      && 1 <= kw
-      && (forall i :: 1 <= i < kw ==>
-            i <= Length(s) && i <= Length(t) &&
-            Component(s, i) == Component(t, i))
-      && ((kw <= Length(s) && kw <= Length(t) && Less(Component(s, kw), Component(t, kw)))
-          || (kw == Length(s) + 1 && kw <= Length(t)));
-  }
-
   lemma ZeroBelowPositive(s: Tumbler, t: Tumbler)
     requires InT(s) && InT(t)
     requires ZeroTumbler(s)
@@ -82,9 +42,21 @@ module ZeroTumblers {
   {
     var j := FirstNonzeroFrom(t, 1);
     if j <= Length(s) {
-      LexOrderWitnessCase1(s, t, j);
+      // Case (i): witness k = j; Less(0, Component(t, j)) since Component(t, j) != 0
+      assert 1 <= j <= Length(s) && j <= Length(t);
+      assert Less(Component(s, j), Component(t, j));
     } else {
-      LexOrderWitnessCase2(s, t);
+      // Case (ii): witness k = Length(s) + 1; activate trigger via Component(t, k)
+      var k: nat := Length(s) + 1;
+      assert k <= Length(t);
+      var trig := Component(t, k);
+      forall i | 1 <= i < k
+        ensures i <= Length(s) && i <= Length(t) &&
+                Component(s, i) == Component(t, i)
+      {
+        assert i < j;
+      }
+      assert k == Length(s) + 1 && k <= Length(t);
     }
   }
 
