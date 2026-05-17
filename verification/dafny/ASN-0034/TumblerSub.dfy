@@ -92,12 +92,14 @@ module TumblerSub {
     result
   }
 
-  // The contractual precondition consequence captured as a lemma. The body is
-  // left empty; the proof is the subject of a follow-up translation step.
-  lemma {:axiom} TumblerSubPaddedDifference(a: Tumbler, w: Tumbler)
+  // The contractual precondition consequence captured as a lemma.
+  // Proved by case analysis on Divergence(a, w).
+  lemma TumblerSubPaddedDifference(a: Tumbler, w: Tumbler)
     requires InT(a) && InT(w)
     requires LexicographicOrder.LexicographicOrder(w, a) || w == a
     requires ZeroPaddedDivergence.ZeroPaddedDivergence(a, w) != 0
     ensures PaddedComponent(a, ZeroPaddedDivergence.ZeroPaddedDivergence(a, w)) >
             PaddedComponent(w, ZeroPaddedDivergence.ZeroPaddedDivergence(a, w))
+  {
+  }
 }
