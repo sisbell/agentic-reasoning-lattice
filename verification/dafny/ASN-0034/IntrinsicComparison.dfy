@@ -47,6 +47,42 @@ module IntrinsicComparison {
     CompareFrom(a, b, 0)
   }
 
+  // Witness for LexOrder(a, b) via T1 case (ii) at k = Length(a) + 1.
+  // The trigger registration via Component(b, Length(a)+1) forces Z3 to
+  // consider k = Length(a) + 1 as an existential witness candidate.
+  lemma LexOrderShorterWitness(a: Tumbler, b: Tumbler)
+    requires InT(a) && InT(b)
+    requires Length(a) < Length(b)
+    requires forall j :: 1 <= j <= Length(a) ==> Component(a, j) == Component(b, j)
+    ensures LexicographicOrder.LexicographicOrder(a, b)
+  {
+    var w: nat := Length(a) + 1;
+    assert 1 <= w;
+    assert w <= Length(b);
+    // Register trigger Component(b, w) so Dafny considers k = w for the existential.
+    ghost var bw := Component(b, w);
+    assert forall i :: 1 <= i < w ==>
+            i <= Length(a) && i <= Length(b) &&
+            Component(a, i) == Component(b, i);
+  }
+
+  // Witness for LexOrder(a, b) via T1 case (i) at k = i + 1 with Less divergence.
+  lemma LexOrderDivergenceWitness(a: Tumbler, b: Tumbler, i: nat)
+    requires InT(a) && InT(b)
+    requires 0 <= i < Length(a) && 0 <= i < Length(b)
+    requires forall j :: 1 <= j <= i ==> Component(a, j) == Component(b, j)
+    requires Less(Component(a, i + 1), Component(b, i + 1))
+    ensures LexicographicOrder.LexicographicOrder(a, b)
+  {
+    ghost var k: nat :| k == i + 1;
+    assert 1 <= k;
+    assert k <= Length(a) && k <= Length(b);
+    assert Less(Component(a, k), Component(b, k));
+    assert forall i' :: 1 <= i' < k ==>
+            i' <= Length(a) && i' <= Length(b) &&
+            Component(a, i') == Component(b, i');
+  }
+
   // Helper: when a is a strict componentwise prefix of b, LexOrder(a, b) holds
   // (via T1 case (ii)) but LexOrder(b, a) cannot — its witness would have to
   // be either a position where they agree (contradicting Less) or a length
@@ -74,41 +110,6 @@ module IntrinsicComparison {
         Irreflexive(Component(a, k));
       }
     }
-  }
-
-  // Witness for LexOrder(a, b) via T1 case (ii) at k = Length(a) + 1.
-  lemma LexOrderShorterWitness(a: Tumbler, b: Tumbler)
-    requires InT(a) && InT(b)
-    requires Length(a) < Length(b)
-    requires forall j :: 1 <= j <= Length(a) ==> Component(a, j) == Component(b, j)
-    ensures LexicographicOrder.LexicographicOrder(a, b)
-  {
-    var k: nat := Length(a) + 1;
-    assert 1 <= k;
-    assert k == Length(a) + 1 && k <= Length(b);
-    assert forall i :: 1 <= i < k ==>
-            i <= Length(a) && i <= Length(b) &&
-            Component(a, i) == Component(b, i);
-    assert (k <= Length(a) && k <= Length(b) && Less(Component(a, k), Component(b, k)))
-           || (k == Length(a) + 1 && k <= Length(b));
-  }
-
-  // Witness for LexOrder(a, b) via T1 case (i) at k = i + 1 with Less divergence.
-  lemma LexOrderDivergenceWitness(a: Tumbler, b: Tumbler, i: nat)
-    requires InT(a) && InT(b)
-    requires 0 <= i < Length(a) && 0 <= i < Length(b)
-    requires forall j :: 1 <= j <= i ==> Component(a, j) == Component(b, j)
-    requires Less(Component(a, i + 1), Component(b, i + 1))
-    ensures LexicographicOrder.LexicographicOrder(a, b)
-  {
-    var k: nat := i + 1;
-    assert 1 <= k;
-    assert k <= Length(a) && k <= Length(b) && Less(Component(a, k), Component(b, k));
-    assert forall i' :: 1 <= i' < k ==>
-            i' <= Length(a) && i' <= Length(b) &&
-            Component(a, i') == Component(b, i');
-    assert (k <= Length(a) && k <= Length(b) && Less(Component(a, k), Component(b, k)))
-           || (k == Length(a) + 1 && k <= Length(b));
   }
 
   // Helper: at a divergence position with Less(a_{i+1}, b_{i+1}) and prior
