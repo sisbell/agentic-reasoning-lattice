@@ -102,7 +102,10 @@ module DisplacementRoundTrip {
     requires LexicographicOrder.LexicographicOrder(a, b)
     requires Divergence.Divergence(a, b) <= Length(a)
     requires Length(a) <= Length(b)
-    ensures TumblerAdd.TumblerAdd(a, TumblerSub.TumblerSub(b, a)) == b
+    ensures
+      var w := TumblerSub.TumblerSub(b, a);
+      PositiveTumbler.PositiveTumbler(w) && ActionPoint.ActionPoint(w) <= Length(a)
+      ==> TumblerAdd.TumblerAdd(a, w) == b
   {
     LexImpliesNotEqual(a, b);
     var k := Divergence.Divergence(a, b);
