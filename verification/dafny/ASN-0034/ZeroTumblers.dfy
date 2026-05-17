@@ -48,10 +48,18 @@ module ZeroTumblers {
       assert Less(Component(s, j), Component(t, j));
     } else {
       var k := Length(s) + 1;
-      assert k <= Length(t);
+      assert k <= j <= Length(t);
       assert forall i :: 1 <= i < k ==>
         i <= Length(s) && i <= Length(t) &&
-        Component(s, i) == 0 && Component(t, i) == 0;
+        Component(s, i) == Component(t, i);
+      assert k == Length(s) + 1 && k <= Length(t);
+      assert exists kw: nat ::
+        && 1 <= kw
+        && (forall i :: 1 <= i < kw ==>
+              i <= Length(s) && i <= Length(t) &&
+              Component(s, i) == Component(t, i))
+        && ((kw <= Length(s) && kw <= Length(t) && Less(Component(s, kw), Component(t, kw)))
+            || (kw == Length(s) + 1 && kw <= Length(t)));
     }
   }
 
