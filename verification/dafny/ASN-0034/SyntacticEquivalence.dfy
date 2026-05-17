@@ -72,9 +72,8 @@ module SyntacticEquivalence {
       assert |segs| == |rest|;
       assert segs[0] == [s[0]] + rest[0];
       assert forall k :: 1 <= k < |segs| ==> segs[k] == rest[k];
-      assert (forall i :: 0 <= i < |s|-1 ==> !(s[i]==0 && s[i+1]==0)) <==>
-             (forall j :: 0 <= j < |s[1..]|-1 ==> !(s[1..][j]==0 && s[1..][j+1]==0));
-      assert s[|s|-1] == s[1..][|s[1..]|-1];
+      assert AllFieldSegmentsNonEmpty(s) <==> AllFieldSegmentsNonEmpty(s[1..]);
+      assert PositionalConstraint(s) <==> PositionalConstraint(s[1..]);
     } else if |s| == 2 {
       // s = [non-zero, 0]: PositionalConstraint fails on s[|s|-1]!=0.
       var s1 := s[1..];
@@ -116,10 +115,8 @@ module SyntacticEquivalence {
       assert |segs| == 1 + |rest2|;
       assert segs[0] == [s[0]];
       assert forall k :: 1 <= k < |segs| ==> segs[k] == rest2[k-1];
-      assert (forall i :: 0 <= i < |s|-1 ==> !(s[i]==0 && s[i+1]==0)) <==>
-             (s[2] != 0 &&
-              (forall j :: 0 <= j < |s[2..]|-1 ==> !(s[2..][j]==0 && s[2..][j+1]==0)));
-      assert s[|s|-1] == s[2..][|s[2..]|-1];
+      assert AllFieldSegmentsNonEmpty(s) <==> AllFieldSegmentsNonEmpty(s[2..]);
+      assert PositionalConstraint(s) <==> PositionalConstraint(s[2..]);
     }
   }
 
@@ -133,7 +130,7 @@ module SyntacticEquivalence {
     assert |s| == Length(t);
     assert s[0] == Component(t, 1);
     assert s[|s|-1] == Component(t, Length(t));
-    assert forall i :: 0 <= i < |s|-1 ==>
+    assert forall i {:trigger Component(t, i+1)} :: 0 <= i < |s|-1 ==>
              (s[i] == Component(t, i+1) && s[i+1] == Component(t, i+2));
     assert FieldSegmentConstraint(t) <==> PositionalConstraint(s);
   }
