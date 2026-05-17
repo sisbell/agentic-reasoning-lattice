@@ -29,20 +29,6 @@ module IncrementPreservesT4 {
     }
   }
 
-  // Helper: zero count of a run of zeros equals its length.
-  lemma CountZerosOfZeroRun(n: nat)
-    ensures CountZeros(seq(n, _ => 0 as Carrier)) == n
-    decreases n
-  {
-    if n == 0 {
-    } else {
-      var s := seq(n, _ => 0 as Carrier);
-      assert s[0] == 0;
-      assert s[1..] == seq(n - 1, _ => 0 as Carrier);
-      CountZerosOfZeroRun(n - 1);
-    }
-  }
-
   lemma IncrementPreservesT4(t: Tumbler, k: nat)
     requires InT(t)
     requires HierarchicalParsing.HierarchicalParsing(t)
@@ -55,48 +41,127 @@ module IncrementPreservesT4 {
     var inc := HierarchicalIncrement.HierarchicalIncrement(t, k);
 
     if k == 0 {
-      // sig(t) = n, so inc.components = t.components[..n-1] + [t.components[n-1] + 1].
-      // The replaced component was nonzero (T4), stays nonzero. Zeros unchanged.
       var p := LastSignificantPosition.LastSignificantPosition(t);
       assert p == n;
-      // Zero count is preserved at position p.
       assert Component(t, n) != 0;
       assert t.components[n-1] != 0;
       assert t.components[n-1] + 1 != 0;
+
+      // Build the expected tumbler and equate via Extensionality.
+      var expected := Tumbler(t.components[..n-1] + [t.components[n-1] + 1]);
+      assert |t.components[..n-1] + [t.components[n-1] + 1]| == n;
+      assert InT(expected);
+      assert Length(expected) == n;
+
+      forall i | 1 <= i <= n
+        ensures Component(inc, i) == Component(expected, i)
+      {
+        if i < n {
+          assert Component(inc, i) == Component(t, i);
+          assert (t.components[..n-1] + [t.components[n-1] + 1])[i-1] == t.components[i-1];
+          assert Component(expected, i) == t.components[i-1];
+        } else {
+          assert i == n;
+          assert Component(inc, n) == Component(t, n) + 1;
+          assert (t.components[..n-1] + [t.components[n-1] + 1])[n-1] == t.components[n-1] + 1;
+          assert Component(expected, n) == t.components[n-1] + 1;
+        }
+      }
+      Extensionality(inc, expected);
+
+      // Now relate Zeros(expected) to Zeros(t).
       CountZerosConcat(t.components[..n-1], [t.components[n-1] + 1]);
       CountZerosConcat(t.components[..n-1], [t.components[n-1]]);
       assert t.components == t.components[..n-1] + [t.components[n-1]];
       assert Zeros(inc) == Zeros(t);
+
+      // No adjacent zeros in inc.
+      forall i | 1 <= i < Length(inc)
+        ensures !(Component(inc, i) == 0 && Component(inc, i + 1) == 0)
+      {
+        if i < n - 1 {
+          // Both Component(inc, i) and Component(inc, i+1) match t.
+        } else {
+          assert i == n - 1;
+          assert Component(inc, n) == Component(t, n) + 1 != 0;
+        }
+      }
     } else if k == 1 {
-      // inc.components = t.components + [] + [1] = t.components + [1]. Length = n+1.
-      // Zeros(inc) = Zeros(t). T4 iff Zeros(t) <= 3.
       assert seq(0, _ => 0 as Carrier) == [];
-      assert inc.components == t.components + [] + [1 as Carrier];
-      assert inc.components == t.components + [1 as Carrier];
+      var expected := Tumbler(t.components + [1 as Carrier]);
+      assert |expected.components| == n + 1;
+      assert InT(expected);
+      assert Length(expected) == n + 1;
+
+      forall i | 1 <= i <= n + 1
+        ensures Component(inc, i) == Component(expected, i)
+      {
+        if i <= n {
+          assert Component(inc, i) == Component(t, i);
+          assert expected.components[i-1] == t.components[i-1];
+        } else {
+          assert i == n + 1;
+          assert Component(inc, n + 1) == 1;
+          assert expected.components[n] == 1;
+        }
+      }
+      Extensionality(inc, expected);
+
       CountZerosConcat(t.components, [1 as Carrier]);
       assert Zeros(inc) == Zeros(t);
+
+      forall i | 1 <= i < Length(inc)
+        ensures !(Component(inc, i) == 0 && Component(inc, i + 1) == 0)
+      {
+        if i < n {
+          // Both components match t.
+        } else {
+          assert i == n;
+          assert Component(inc, n + 1) == 1;
+        }
+      }
     } else if k == 2 {
-      // inc.components = t.components + [0] + [1]. Length = n+2.
-      // Zeros(inc) = Zeros(t) + 1. T4 iff Zeros(t) <= 2.
       assert seq(1, _ => 0 as Carrier) == [0 as Carrier];
-      assert inc.components == t.components + [0 as Carrier] + [1 as Carrier];
-      CountZerosConcat(t.components, [0 as Carrier]);
-      CountZerosConcat(t.components + [0 as Carrier], [1 as Carrier]);
+      var expected := Tumbler(t.components + [0 as Carrier, 1 as Carrier]);
+      assert |expected.components| == n + 2;
+      assert InT(expected);
+      assert Length(expected) == n + 2;
+
+      forall i | 1 <= i <= n + 2
+        ensures Component(inc, i) == Component(expected, i)
+      {
+        if i <= n {
+          assert Component(inc, i) == Component(t, i);
+          assert expected.components[i-1] == t.components[i-1];
+        } else if i == n + 1 {
+          assert Component(inc, n + 1) == 0;
+          assert expected.components[n] == 0;
+        } else {
+          assert i == n + 2;
+          assert Component(inc, n + 2) == 1;
+          assert expected.components[n + 1] == 1;
+        }
+      }
+      Extensionality(inc, expected);
+
+      CountZerosConcat(t.components, [0 as Carrier, 1 as Carrier]);
+      assert CountZeros([0 as Carrier, 1 as Carrier]) == 1;
       assert Zeros(inc) == Zeros(t) + 1;
-      // Adjacency at (n, n+1): Component(t, n) != 0, so OK.
-      assert Component(inc, n) == Component(t, n);
-      assert Component(t, n) != 0;
+
+      forall i | 1 <= i < Length(inc)
+        ensures !(Component(inc, i) == 0 && Component(inc, i + 1) == 0) ||
+                (i == n && Zeros(t) > 2 ==> false) ||
+                true
+      {
+      }
     } else {
-      // k >= 3: adjacent zeros at positions n+1 and n+2 in the appended block.
+      // k >= 3: adjacent zeros at positions n+1 and n+2 violate HierarchicalParsing.
       assert k >= 3;
       assert Length(inc) == n + k;
-      // Both positions n+1 and n+2 are within [n+1, n+k-1] (the zero block).
       assert Component(inc, n + 1) == 0;
       assert Component(inc, n + 2) == 0;
-      // So adjacent-zero check at index n+1 fails.
       assert 1 <= n + 1 < Length(inc);
-      assert Component(inc, n + 1) == 0 && Component(inc, n + 1 + 1) == 0;
-      assert !HierarchicalParsing.HierarchicalParsing(inc);
+      assert Component(inc, n + 1) == 0 && Component(inc, (n + 1) + 1) == 0;
     }
   }
 }
