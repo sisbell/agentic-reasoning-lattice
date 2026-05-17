@@ -59,12 +59,7 @@ module IntrinsicComparison {
     ensures !LexicographicOrder.LexicographicOrder(b, a)
     ensures a != b
   {
-    // Witness for LexOrder(a, b) via T1 case (ii) at kab = Length(a) + 1.
-    var kab := Length(a) + 1;
-    assert kab == Length(a) + 1 && kab <= Length(b);
-    assert forall i' :: 1 <= i' < kab ==>
-            i' <= Length(a) && i' <= Length(b) &&
-            Component(a, i') == Component(b, i');
+    LexOrderShorterWitness(a, b);
 
     if LexicographicOrder.LexicographicOrder(b, a) {
       var k :| 1 <= k
@@ -81,6 +76,41 @@ module IntrinsicComparison {
     }
   }
 
+  // Witness for LexOrder(a, b) via T1 case (ii) at k = Length(a) + 1.
+  lemma LexOrderShorterWitness(a: Tumbler, b: Tumbler)
+    requires InT(a) && InT(b)
+    requires Length(a) < Length(b)
+    requires forall j :: 1 <= j <= Length(a) ==> Component(a, j) == Component(b, j)
+    ensures LexicographicOrder.LexicographicOrder(a, b)
+  {
+    var k: nat := Length(a) + 1;
+    assert 1 <= k;
+    assert k == Length(a) + 1 && k <= Length(b);
+    assert forall i :: 1 <= i < k ==>
+            i <= Length(a) && i <= Length(b) &&
+            Component(a, i) == Component(b, i);
+    assert (k <= Length(a) && k <= Length(b) && Less(Component(a, k), Component(b, k)))
+           || (k == Length(a) + 1 && k <= Length(b));
+  }
+
+  // Witness for LexOrder(a, b) via T1 case (i) at k = i + 1 with Less divergence.
+  lemma LexOrderDivergenceWitness(a: Tumbler, b: Tumbler, i: nat)
+    requires InT(a) && InT(b)
+    requires 0 <= i < Length(a) && 0 <= i < Length(b)
+    requires forall j :: 1 <= j <= i ==> Component(a, j) == Component(b, j)
+    requires Less(Component(a, i + 1), Component(b, i + 1))
+    ensures LexicographicOrder.LexicographicOrder(a, b)
+  {
+    var k: nat := i + 1;
+    assert 1 <= k;
+    assert k <= Length(a) && k <= Length(b) && Less(Component(a, k), Component(b, k));
+    assert forall i' :: 1 <= i' < k ==>
+            i' <= Length(a) && i' <= Length(b) &&
+            Component(a, i') == Component(b, i');
+    assert (k <= Length(a) && k <= Length(b) && Less(Component(a, k), Component(b, k)))
+           || (k == Length(a) + 1 && k <= Length(b));
+  }
+
   // Helper: at a divergence position with Less(a_{i+1}, b_{i+1}) and prior
   // agreement, LexOrder(a, b) holds via T1 case (i) and LexOrder(b, a) cannot
   // — any witness k' would either agree at k' ≤ i (impossible to Less) or
@@ -94,9 +124,7 @@ module IntrinsicComparison {
     ensures !LexicographicOrder.LexicographicOrder(b, a)
     ensures a != b
   {
-    // Witness for LexOrder(a, b) via T1 case (i) at kab = i + 1.
-    var kab := i + 1;
-    assert kab <= Length(a) && kab <= Length(b) && Less(Component(a, kab), Component(b, kab));
+    LexOrderDivergenceWitness(a, b, i);
 
     if LexicographicOrder.LexicographicOrder(b, a) {
       var k :| 1 <= k
