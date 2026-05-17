@@ -153,6 +153,7 @@ module SyntacticEquivalence {
 
   lemma SyntacticEquivalence(t: Tumbler)
     requires InT(t)
+    requires Zeros(t) <= 3
     ensures FieldSegmentConstraint(t) <==>
             AllFieldSegmentsNonEmpty(t.components)
   {
