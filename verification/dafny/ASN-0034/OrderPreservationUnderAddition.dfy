@@ -36,10 +36,6 @@ module OrderPreservationUnderAddition {
       var r2 := TumblerAdd.TumblerAdd(b, w);
       LexicographicOrder.LexicographicOrder(r1, r2) || r1 == r2
   {
-    var r1 := TumblerAdd.TumblerAdd(a, w);
-    var r2 := TumblerAdd.TumblerAdd(b, w);
-    var k := ActionPoint.ActionPoint(w);
-
     var j :| 1 <= j
              && (forall i :: 1 <= i < j ==>
                    i <= Length(a) && i <= Length(b) &&
@@ -47,6 +43,10 @@ module OrderPreservationUnderAddition {
              && ((j <= Length(a) && j <= Length(b)
                   && Less(Component(a, j), Component(b, j)))
                  || (j == Length(a) + 1 && j <= Length(b)));
+
+    var r1 := TumblerAdd.TumblerAdd(a, w);
+    var r2 := TumblerAdd.TumblerAdd(b, w);
+    var k := ActionPoint.ActionPoint(w);
 
     if j <= Length(a) && j <= Length(b)
        && Less(Component(a, j), Component(b, j)) {
