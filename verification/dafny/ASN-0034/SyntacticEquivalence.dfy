@@ -49,6 +49,40 @@ module SyntacticEquivalence {
     (forall i :: 0 <= i < |s| - 1 ==> !(s[i] == 0 && s[i+1] == 0))
   }
 
+  // If big = [non-empty head] + small, then all big segments non-empty
+  // iff all small segments non-empty.
+  lemma ShiftAllNonEmpty(big: seq<seq<Carrier>>, small: seq<seq<Carrier>>,
+                         head: seq<Carrier>)
+    requires big == [head] + small
+    requires |head| > 0
+    ensures (forall k :: 0 <= k < |big| ==> |big[k]| > 0)
+         <==> (forall j :: 0 <= j < |small| ==> |small[j]| > 0)
+  {
+    assert |big| == 1 + |small|;
+    assert big[0] == head;
+    forall k | 1 <= k < |big| ensures big[k] == small[k-1] { }
+    if forall k :: 0 <= k < |big| ==> |big[k]| > 0 {
+      forall j | 0 <= j < |small|
+        ensures |small[j]| > 0
+      {
+        assert |big[j+1]| > 0;
+        assert big[j+1] == small[j];
+      }
+    }
+    if forall j :: 0 <= j < |small| ==> |small[j]| > 0 {
+      forall k | 0 <= k < |big|
+        ensures |big[k]| > 0
+      {
+        if k == 0 {
+          // |big[0]| == |head| > 0
+        } else {
+          assert big[k] == small[k-1];
+          assert |small[k-1]| > 0;
+        }
+      }
+    }
+  }
+
   // Inductive characterization: positional constraint ⟺ every segment non-empty.
   lemma SegmentsCharacterization(s: seq<Carrier>)
     requires |s| >= 1
@@ -105,20 +139,13 @@ module SyntacticEquivalence {
       assert FieldSegments(s1) == [emptyseq] + rest2;
       var rest := FieldSegments(s1);
       assert rest == [emptyseq] + rest2;
-      assert |rest| == 1 + |rest2|;
       assert rest[0] == emptyseq;
       assert rest[1..] == rest2;
       var segs := FieldSegments(s);
       assert segs == [[s[0]] + rest[0]] + rest[1..];
       assert [s[0]] + rest[0] == [s[0]];
       assert segs == [[s[0]]] + rest2;
-      assert |segs| == 1 + |rest2|;
-      assert segs[0] == [s[0]];
-      assert |segs[0]| > 0;
-      assert forall k :: 1 <= k < |segs| ==> segs[k] == rest2[k-1];
-      // Index transformation between segs and rest2.
-      assert (forall k :: 0 <= k < |segs| ==> |segs[k]| > 0)
-          <==> (forall j :: 0 <= j < |rest2| ==> |rest2[j]| > 0);
+      ShiftAllNonEmpty(segs, rest2, [s[0]]);
       assert AllFieldSegmentsNonEmpty(s) <==> AllFieldSegmentsNonEmpty(s[2..]);
       assert PositionalConstraint(s) <==> PositionalConstraint(s[2..]);
     }
@@ -131,16 +158,30 @@ module SyntacticEquivalence {
   {
     SegmentsCharacterization(t.components);
     var s := t.components;
-    // Bridge Tumbler/seq indexing: Component(t, i) == t.components[i-1].
     assert |s| == Length(t);
-    assert |s| >= 1;
-    assert s[0] == Component(t, 1);
-    assert s[|s|-1] == Component(t, Length(t));
-    forall i | 0 <= i < |s|-1
-      ensures s[i] == Component(t, i+1)
-      ensures s[i+1] == Component(t, i+2)
-    {
+    // Forward: FieldSegmentConstraint(t) ⟹ PositionalConstraint(s).
+    if FieldSegmentConstraint(t) {
+      assert s[0] == Component(t, 1);
+      assert s[|s|-1] == Component(t, Length(t));
+      forall i | 0 <= i < |s|-1
+        ensures !(s[i] == 0 && s[i+1] == 0)
+      {
+        assert s[i] == Component(t, i+1);
+        assert s[i+1] == Component(t, i+2);
+        assert 1 <= i+1 < Length(t);
+      }
     }
-    assert FieldSegmentConstraint(t) <==> PositionalConstraint(s);
+    // Backward: PositionalConstraint(s) ⟹ FieldSegmentConstraint(t).
+    if PositionalConstraint(s) {
+      assert Component(t, 1) == s[0];
+      assert Component(t, Length(t)) == s[|s|-1];
+      forall i | 1 <= i < Length(t)
+        ensures !(Component(t, i) == 0 && Component(t, i+1) == 0)
+      {
+        assert Component(t, i) == s[i-1];
+        assert Component(t, i+1) == s[i];
+        assert 0 <= i-1 < |s|-1;
+      }
+    }
   }
 }
