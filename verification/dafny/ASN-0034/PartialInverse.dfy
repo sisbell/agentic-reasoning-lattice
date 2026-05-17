@@ -68,8 +68,13 @@ module PartialInverse {
       // For i < k, both r[i] and w[i] are zero.
       assert forall i :: 1 <= i < k ==> Component(r, i) == 0;
       assert forall i :: 1 <= i < k ==> Component(w, i) == 0;
+      assert forall i :: 1 <= i < k ==>
+        PaddedComponent(r, i) == PaddedComponent(w, i);
 
-      // Compute zpd(r, w) = k.
+      // Skip the agreeing prefix and observe the mismatch at k.
+      FirstPaddedMismatchAdvance(r, w, 1, k, k);
+      assert PaddedComponent(r, k) != PaddedComponent(w, k);
+      assert FirstPaddedMismatch(r, w, k, k) == k;
       assert ZeroPaddedDivergence.ZeroPaddedDivergence(r, w) == k;
 
       var s := TumblerSub.TumblerSub(r, w);
