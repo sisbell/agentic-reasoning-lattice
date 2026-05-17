@@ -28,11 +28,11 @@ module SubspaceZeroResidue {
   }
 
   lemma SubspaceZeroResidue(o: Tumbler)
-    requires InT(o)
-    requires InSubspaceS(o)
+    requires o in SubspaceS()
     ensures InT(TumblerSub.TumblerSub(o, o))
     ensures PositiveTumbler.ZeroTumbler(TumblerSub.TumblerSub(o, o))
   {
+    assert InT(o);
     var L := Length(o);
     FirstPaddedMismatchSelf(o, 1, L);
     assert ZeroPaddedDivergence.ZeroPaddedDivergence(o, o) == 0;
