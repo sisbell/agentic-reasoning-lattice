@@ -75,11 +75,27 @@ module TumblerAdd {
       assert forall i :: 1 <= i < k ==> Component(w, i) == 0;
       assert Component(a, k) == 0;
       assert Component(result, k) == Component(w, k);
-      assert forall i :: 1 <= i <= Length(w) ==>
-        Component(w, i) == Component(result, i);
-      // Drop to seq level: equal length + pointwise-equal components ⇒ equal seqs.
+      // Bridge to seq indexing for extensionality.
+      assert forall p :: 0 <= p < |w.components| ==>
+        w.components[p] == result.components[p] by {
+        forall p | 0 <= p < |w.components|
+          ensures w.components[p] == result.components[p]
+        {
+          var i := p + 1;
+          assert 1 <= i <= Length(w);
+          assert Component(w, i) == w.components[p];
+          assert Component(result, i) == result.components[p];
+          if i < k {
+            assert Component(w, i) == 0;
+            assert Component(result, i) == 0;
+          } else if i == k {
+            assert Component(result, k) == Component(w, k);
+          } else {
+            assert Component(result, i) == Component(w, i);
+          }
+        }
+      };
       assert |w.components| == |result.components|;
-      assert forall p :: 0 <= p < |w.components| ==> w.components[p] == result.components[p];
       assert w.components == result.components;
       result
     else
