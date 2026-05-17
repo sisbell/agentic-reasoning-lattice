@@ -25,6 +25,30 @@ module OrderPreservationUnderAddition {
   import opened NatAdditionCancellation
   import opened NatCarrierSet
 
+  // Constructive extraction of the LexicographicOrder witness as a returned
+  // ghost value. Wrapping the :| in a small helper sidesteps the issue where
+  // the solver cannot establish the existential when the enclosing lemma has
+  // a complex existential conclusion of its own.
+  lemma LexWitness(a: Tumbler, b: Tumbler) returns (k: nat)
+    requires InT(a) && InT(b)
+    requires LexicographicOrder.LexicographicOrder(a, b)
+    ensures 1 <= k
+    ensures forall i :: 1 <= i < k ==>
+              i <= Length(a) && i <= Length(b) &&
+              Component(a, i) == Component(b, i)
+    ensures (k <= Length(a) && k <= Length(b)
+             && Less(Component(a, k), Component(b, k)))
+            || (k == Length(a) + 1 && k <= Length(b))
+  {
+    k :| 1 <= k
+         && (forall i :: 1 <= i < k ==>
+               i <= Length(a) && i <= Length(b) &&
+               Component(a, i) == Component(b, i))
+         && ((k <= Length(a) && k <= Length(b)
+              && Less(Component(a, k), Component(b, k)))
+             || (k == Length(a) + 1 && k <= Length(b)));
+  }
+
   lemma OrderPreservationUnderAddition(a: Tumbler, b: Tumbler, w: Tumbler)
     requires InT(a) && InT(b) && InT(w)
     requires LexicographicOrder.LexicographicOrder(a, b)
@@ -36,22 +60,7 @@ module OrderPreservationUnderAddition {
       var r2 := TumblerAdd.TumblerAdd(b, w);
       LexicographicOrder.LexicographicOrder(r1, r2) || r1 == r2
   {
-    assert exists kw: nat ::
-      && 1 <= kw
-      && (forall i :: 1 <= i < kw ==>
-            i <= Length(a) && i <= Length(b) &&
-            Component(a, i) == Component(b, i))
-      && ((kw <= Length(a) && kw <= Length(b)
-           && Less(Component(a, kw), Component(b, kw)))
-          || (kw == Length(a) + 1 && kw <= Length(b)));
-
-    var j :| 1 <= j
-             && (forall i :: 1 <= i < j ==>
-                   i <= Length(a) && i <= Length(b) &&
-                   Component(a, i) == Component(b, i))
-             && ((j <= Length(a) && j <= Length(b)
-                  && Less(Component(a, j), Component(b, j)))
-                 || (j == Length(a) + 1 && j <= Length(b)));
+    var j := LexWitness(a, b);
 
     var r1 := TumblerAdd.TumblerAdd(a, w);
     var r2 := TumblerAdd.TumblerAdd(b, w);
