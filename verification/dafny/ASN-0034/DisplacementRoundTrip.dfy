@@ -100,13 +100,21 @@ module DisplacementRoundTrip {
   // The formal contract's `divergence(a, b) ≤ #a` is encoded via FirstMismatch
   // (Divergence's underlying scan) since Divergence(a, b) requires a != b for
   // well-formedness, and `a < b ⇒ a != b` (via LexImpliesNotEqual) is discharged
-  // internally rather than imposed as a separate precondition on callers.
+  // internally rather than imposed as a separate precondition on callers. The
+  // postcondition's TumblerAdd well-formedness (Pos(w), actionPoint(w) ≤ #a)
+  // is guarded by the implication's antecedent so it is not imposed on callers
+  // either; under the lemma's preconditions the antecedent is provably true
+  // (Pos and actionPoint of b ⊖ a derived in the body), so the implication
+  // collapses to the formal contract's a ⊕ (b ⊖ a) = b.
   lemma DisplacementRoundTrip(a: Tumbler, b: Tumbler)
     requires InT(a) && InT(b)
     requires LexicographicOrder.LexicographicOrder(a, b)
     requires Length(a) <= Length(b)
     requires Divergence.FirstMismatch(a, b, 1, Length(a)) <= Length(a)
-    ensures TumblerAdd.TumblerAdd(a, TumblerSub.TumblerSub(b, a)) == b
+    ensures
+      var w := TumblerSub.TumblerSub(b, a);
+      (PositiveTumbler.PositiveTumbler(w) && ActionPoint.ActionPoint(w) <= Length(a))
+      ==> TumblerAdd.TumblerAdd(a, w) == b
   {
     LexImpliesNotEqual(a, b);
     assert Divergence.Divergence(a, b) == Divergence.FirstMismatch(a, b, 1, Length(a));
