@@ -53,7 +53,9 @@ module TumblerSub {
     ensures InT(r)
     ensures Length(r) == (if Length(a) >= Length(w) then Length(a) else Length(w))
     ensures ZeroPaddedDivergence.ZeroPaddedDivergence(a, w) != 0 ==>
-              (PositiveTumbler.PositiveTumbler(r) &&
+              (PaddedComponent(a, ZeroPaddedDivergence.ZeroPaddedDivergence(a, w)) >
+               PaddedComponent(w, ZeroPaddedDivergence.ZeroPaddedDivergence(a, w)) &&
+               PositiveTumbler.PositiveTumbler(r) &&
                ActionPoint.ActionPoint(r) == ZeroPaddedDivergence.ZeroPaddedDivergence(a, w))
     ensures ZeroPaddedDivergence.ZeroPaddedDivergence(a, w) == 0 ==>
               PositiveTumbler.ZeroTumbler(r)
