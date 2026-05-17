@@ -28,6 +28,7 @@ module TumblerAdd {
     ensures forall i :: ActionPoint.ActionPoint(w) < i <= Length(w) ==>
               Component(r, i) == Component(w, i)
     ensures LexicographicOrder.LexicographicOrder(a, r)
+    ensures LexicographicOrder.LexicographicOrder(w, r) || w == r
   {
     var k := ActionPoint.ActionPoint(w);
     Tumbler(a.components[..k-1]
