@@ -5,7 +5,7 @@
 include "./CarrierSetDefinition.dfy"
 include "./PositiveTumbler.dfy"
 
-module ActionPointModule {
+module ActionPoint {
   import opened CarrierSetDefinition
   import opened PositiveTumbler
   import opened NatCarrierSet
