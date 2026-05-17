@@ -59,15 +59,12 @@ module IntrinsicComparison {
     ensures !LexicographicOrder.LexicographicOrder(b, a)
     ensures a != b
   {
-    // Witness for LexOrder(a, b) via T1 case (ii).
-    NatDiscreteness(Length(a), Length(b));
-    assert
-      var k := Length(a) + 1;
-      && 1 <= k
-      && (forall i' :: 1 <= i' < k ==>
+    // Witness for LexOrder(a, b) via T1 case (ii) at kab = Length(a) + 1.
+    var kab := Length(a) + 1;
+    assert kab == Length(a) + 1 && kab <= Length(b);
+    assert forall i' :: 1 <= i' < kab ==>
             i' <= Length(a) && i' <= Length(b) &&
-            Component(a, i') == Component(b, i'))
-      && (k == Length(a) + 1 && k <= Length(b));
+            Component(a, i') == Component(b, i');
 
     if LexicographicOrder.LexicographicOrder(b, a) {
       var k :| 1 <= k
@@ -97,15 +94,9 @@ module IntrinsicComparison {
     ensures !LexicographicOrder.LexicographicOrder(b, a)
     ensures a != b
   {
-    // Witness for LexOrder(a, b) via T1 case (i) at k = i + 1.
-    assert
-      var k := i + 1;
-      && 1 <= k
-      && (forall i' :: 1 <= i' < k ==>
-            i' <= Length(a) && i' <= Length(b) &&
-            Component(a, i') == Component(b, i'))
-      && (k <= Length(a) && k <= Length(b) &&
-          Less(Component(a, k), Component(b, k)));
+    // Witness for LexOrder(a, b) via T1 case (i) at kab = i + 1.
+    var kab := i + 1;
+    assert kab <= Length(a) && kab <= Length(b) && Less(Component(a, kab), Component(b, kab));
 
     if LexicographicOrder.LexicographicOrder(b, a) {
       var k :| 1 <= k
