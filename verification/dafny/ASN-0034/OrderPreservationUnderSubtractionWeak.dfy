@@ -28,7 +28,7 @@ module OrderPreservationUnderSubtractionWeak {
   import Divergence
   import IC = IntrinsicComparison
   import opened NatStrictTotalOrder
-  import opened NatZeroMinimum
+  import NZM = NatZeroMinimum
   import opened NatDiscreteness
   import opened NatPartialSubtraction
   import opened NatArithmeticClosureAndIdentity
@@ -264,7 +264,7 @@ module OrderPreservationUnderSubtractionWeak {
       if k > Length(a) {
         // Then â_k = 0, contradicting â_k > ŵ_k since ŵ_k >= 0.
         assert PaddedComponent(a, k) == 0;
-        NatZeroMinimum(PaddedComponent(w, k));
+        NZM.NatZeroMinimum(PaddedComponent(w, k));
         assert false;
       }
     }
@@ -294,31 +294,22 @@ module OrderPreservationUnderSubtractionWeak {
       assert PaddedComponent(b, d) == Component(b, d);
       // We need to derive a contradiction. Two cases on d vs #w.
       if d <= Length(w) {
-        assert PaddedComponent(w, d) == Component(w, d);
-        assert Component(b, d) == Component(w, d);
-        // Now b_d = w_d, and a_d < b_d, so a_d < w_d.
-        // Also for i < d, b_i = w_i (from agreement on padded), and a_i = b_i.
-        // So a_i = w_i for i < d.
-        // Now check pre-d agreement of a with w.
-        forall i | 1 <= i < d
-          ensures Component(a, i) == Component(w, i)
-        {
-          assert PaddedComponent(b, i) == PaddedComponent(w, i);
-          assert PaddedComponent(b, i) == Component(b, i);
-          assert i <= Length(w);
-          assert PaddedComponent(w, i) == Component(w, i);
-        }
-        // Now a < w via T1 case (i) at witness d.
-        // This contradicts w <= a.
-        ConstructLessFromDivergence(a, w, d);
-        // From a < b precondition... wait we don't have a ≥ w directly here.
+        // b_d = w_d. Combined with a_d < b_d = w_d, get a_d < w_d.
+        // For i < d, we need a_i = w_i. b_i = a_i (pre-d) and b_i = w_i (padded equality).
+        // So a_i = w_i for i < d. Then a < w via T1 case (i), contradicting w <= b.
+        // But we don't have w <= a as precondition here.
+        // Hmm: we have w <= b and a < b, but neither implies w <= a.
+        // The standard "a >= w" precondition is for the original lemma. Here we don't need it.
+        // Actually... let me think. We need to derive a contradiction from kb == 0.
+        // The TA3 hypothesis is a < b ∧ a >= w ∧ b >= w. So w <= a is provided.
+        // We need to add this as a precondition.
+        assert false; // placeholder — to be addressed
       } else {
-        // d > #w. Then ŵ_d = 0.
+        // d > #w. Then ŵ_d = 0, so b_d = 0. a_d < 0 contradicts nat.
         assert Length(w) < d;
         assert PaddedComponent(w, d) == 0;
         assert Component(b, d) == 0;
-        // a_d < b_d = 0 — but a_d ∈ ℕ so a_d >= 0; this is the contradiction.
-        NatZeroMinimum(Component(a, d));
+        NZM.NatZeroMinimum(Component(a, d));
         assert Component(a, d) < Component(b, d);
         assert Component(a, d) < 0;
         assert false;
@@ -751,7 +742,7 @@ module OrderPreservationUnderSubtractionWeak {
     }
 
     if ka == 0 && kb == 0 {
-      // Both are zero tumblers, but Lb > La means ra is proper prefix of rb.
+      // Both are zero tumblers, but Lb >= La. If La == Lb then ra == rb, else ra < rb.
       assert PositiveTumbler.ZeroTumbler(ra);
       assert PositiveTumbler.ZeroTumbler(rb);
       if La < Lb {
@@ -780,8 +771,7 @@ module OrderPreservationUnderSubtractionWeak {
       PositiveDominatesZero.PositiveDominatesZero(rb, ra);
     } else if ka != 0 && kb == 0 {
       // Impossible: if a > w by zpd, then b (which prefixes-extends a)
-      // also has zpd != 0 with same component disagreement, OR has nonzero
-      // tail.
+      // also has zpd != 0 with same component disagreement, OR has nonzero tail.
       KbZeroImpossibleInPrefix(a, b, w);
       assert false;
     } else {
@@ -861,9 +851,9 @@ module OrderPreservationUnderSubtractionWeak {
       // Same divergence position. a_ka = b_ka. Both ra_ka = rb_ka = a_ka - w_ka.
       PrefixCaseEqualK(a, b, w);
     } else {
-      // kb > ka. ra_ka = a_ka - w_ka > 0; rb_ka = 0 (since ka < kb).
-      // Then ra > rb — but we want ra <= rb. Hmm — let's investigate.
+      // kb > ka. Impossible: see PrefixCaseKbGreater (contradiction).
       PrefixCaseKbGreater(a, b, w);
+      assert false;
     }
   }
 
@@ -988,10 +978,23 @@ module OrderPreservationUnderSubtractionWeak {
           assert La == Length(w);
           assert Length(w) > Length(a);
           assert i <= Length(w);
-          // Now ŵ_i is defined as Component(w, i).
-          // SubComponent(a, w, k, i) = PaddedComponent(a, i) = 0.
-          // SubComponent(b, w, k, i) = PaddedComponent(b, i).
-          // We need them to be equal. But we don't know b_i = 0.
+          // Now PaddedComponent(b, i): i could be <= #b or > #b.
+          // Wait: i <= La <= Lb, so i is a valid index. But is i <= #b or > #b?
+          // #b > #a, but i could be either.
+          // The case where i > #b is possible: La = #w, but #w > #b also possible.
+          // Hmm.
+          if i <= Length(b) {
+            // b_i exists, but we don't know it equals a_i.
+            // Wait — we have a < b in prefix case, b extends a beyond #a.
+            // We have no constraint on b_i for #a < i <= #b.
+            // So Component(b, i) is arbitrary.
+            // The result is therefore not equal to 0 in general.
+            // We CANNOT prove Component(ra, i) == Component(rb, i) here.
+          } else {
+            // i > #b, PaddedComponent(b, i) = 0 = PaddedComponent(a, i).
+            assert PaddedComponent(b, i) == 0;
+            assert PaddedComponent(a, i) == 0;
+          }
         }
       }
     }
@@ -1004,7 +1007,7 @@ module OrderPreservationUnderSubtractionWeak {
     }
   }
 
-  // Prefix case with kb > ka.
+  // Prefix case with kb > ka. Impossible.
   lemma PrefixCaseKbGreater(a: Tumbler, b: Tumbler, w: Tumbler)
     requires InT(a) && InT(b) && InT(w)
     requires LexicographicOrder.LexicographicOrder(a, b)
@@ -1017,10 +1020,7 @@ module OrderPreservationUnderSubtractionWeak {
     requires ZeroPaddedDivergence.ZeroPaddedDivergence(b, w) != 0
     requires ZeroPaddedDivergence.ZeroPaddedDivergence(b, w)
              > ZeroPaddedDivergence.ZeroPaddedDivergence(a, w)
-    ensures
-      var ra := TumblerSub.TumblerSub(a, w);
-      var rb := TumblerSub.TumblerSub(b, w);
-      LexicographicOrder.LexicographicOrder(ra, rb) || ra == rb
+    ensures false
   {
     KaBoundedByLength(a, w);
     KaBoundedByLength(b, w);
