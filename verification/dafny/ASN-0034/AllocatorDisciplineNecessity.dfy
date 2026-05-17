@@ -11,16 +11,16 @@ include "./PrefixRelation.dfy"
 module AllocatorDisciplineNecessity {
   import opened CarrierSetDefinition
   import opened NatCarrierSet
-  import opened HierarchicalIncrement
+  import HI = HierarchicalIncrement
   import opened PrefixRelation
 
   lemma AllocatorDisciplineNecessity(t0: Tumbler, k: nat)
     requires InT(t0)
     requires k > 0
     ensures
-      var t1 := HierarchicalIncrement(t0, 0);
+      var t1 := HI.HierarchicalIncrement(t0, 0);
       InT(t1) &&
-      var t2 := HierarchicalIncrement(t1, k);
+      var t2 := HI.HierarchicalIncrement(t1, k);
       InT(t2) && PrefixOf(t1, t2) && t1 != t2
   {
   }
