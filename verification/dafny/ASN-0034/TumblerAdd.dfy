@@ -54,14 +54,32 @@ module TumblerAdd {
     var result := Tumbler(a.components[..k-1]
                           + [a.components[k-1] + w.components[k-1]]
                           + w.components[k..]);
+    // Seq facts derived directly from the constructor body.
+    assert forall i :: 1 <= i < k ==>
+      Component(result, i) == a.components[i - 1]
+                           == Component(a, i);
+    assert Component(result, k) == a.components[k - 1] + w.components[k - 1]
+                                == Component(a, k) + Component(w, k);
+    assert forall i :: k < i <= Length(w) ==>
+      Component(result, i) == w.components[i - 1]
+                           == Component(w, i);
+    assert Length(result) == Length(w);
+
     var j := FirstNonZeroInPrefix(a, k, 1);
     // Case on j: 0 means all a_i = 0 for i in [1, k] (equality);
-    // nonzero j gives the divergence witness for LexicographicOrder(w, r).
+    // nonzero j gives the divergence witness for LexicographicOrder(w, result).
     if j == 0 then
       // Equality branch: each component of result equals the matching component of w.
       assert forall i :: 1 <= i <= k ==> Component(a, i) == 0;
-      assert Length(w) == Length(result);
-      assert forall i :: 1 <= i <= Length(w) ==> Component(w, i) == Component(result, i);
+      assert forall i :: 1 <= i < k ==> Component(result, i) == 0;
+      assert forall i :: 1 <= i < k ==> Component(w, i) == 0;
+      assert Component(a, k) == 0;
+      assert Component(result, k) == Component(w, k);
+      assert forall i :: 1 <= i <= Length(w) ==>
+        Component(w, i) == Component(result, i);
+      // Drop to seq level: equal length + pointwise-equal components ⇒ equal seqs.
+      assert |w.components| == |result.components|;
+      assert forall p :: 0 <= p < |w.components| ==> w.components[p] == result.components[p];
       assert w.components == result.components;
       result
     else
@@ -69,6 +87,9 @@ module TumblerAdd {
       assert 1 <= j <= k;
       assert Component(a, j) != 0;
       assert forall i :: 1 <= i < j ==> Component(a, i) == 0;
+      assert forall i :: 1 <= i < j ==> i < k;
+      assert forall i :: 1 <= i < j ==> Component(result, i) == Component(a, i) == 0;
+      assert forall i :: 1 <= i < j ==> Component(w, i) == 0;
       assert forall i :: 1 <= i < j ==>
         i <= Length(w) && i <= Length(result) &&
         Component(w, i) == Component(result, i);
