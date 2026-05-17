@@ -6,6 +6,7 @@
 include "./Span.dfy"
 include "./WellDefinedAddition.dfy"
 include "./StrictIncrease.dfy"
+include "./IntrinsicComparison.dfy"
 
 module SpanWellDefinedness {
   import opened CarrierSetDefinition
@@ -18,80 +19,76 @@ module SpanWellDefinedness {
   import opened Span
   import opened NatStrictTotalOrder
   import opened NatCarrierSet
+  import IC = IntrinsicComparison
 
-  // Helper: transitivity of LexicographicOrder on Tumblers.
-  // Needed for order convexity: chains like s ≤ a ≤ b and b ≤ c < s ⊕ ℓ
-  // reduce to < chains via the < ∨ = decomposition.
+  // Inductive transitivity of CompareFrom on the LT result.
+  // Reasoning is structural on the CompareFrom definition: the cases for
+  // i == Length(a)/b/c either return a non-LT value (contradicting the
+  // preconditions), or reduce to nat order transitivity at position i+1.
+  lemma CompareFromTransitiveLT(a: Tumbler, b: Tumbler, c: Tumbler, i: nat)
+    requires InT(a) && InT(b) && InT(c)
+    requires 0 <= i <= Length(a) && 0 <= i <= Length(b) && 0 <= i <= Length(c)
+    requires IC.CompareFrom(a, b, i) == IC.LT
+    requires IC.CompareFrom(b, c, i) == IC.LT
+    ensures IC.CompareFrom(a, c, i) == IC.LT
+    decreases Length(b) - i
+  {
+    if i == Length(b) {
+      // CompareFrom(a, b, i) at i == Length(b) returns EQ (if i == Length(a))
+      // or GT (if i < Length(a)) — never LT.
+      assert false;
+    } else if i == Length(c) {
+      // CompareFrom(b, c, i) at i == Length(c) and i < Length(b) returns GT.
+      assert false;
+    } else if i == Length(a) {
+      // i < Length(b) and i < Length(c), so CompareFrom(a, c, i) returns LT.
+    } else {
+      var ai := Component(a, i + 1);
+      var bi := Component(b, i + 1);
+      var ci := Component(c, i + 1);
+
+      if Less(ai, bi) {
+        if Less(bi, ci) {
+          Transitive(ai, bi, ci);
+        } else if Less(ci, bi) {
+          // CompareFrom(b, c, i) would return GT.
+          assert false;
+        } else {
+          // bi == ci, so Less(ai, ci) from Less(ai, bi).
+        }
+      } else if Less(bi, ai) {
+        // CompareFrom(a, b, i) would return GT.
+        assert false;
+      } else {
+        // ai == bi.
+        if Less(bi, ci) {
+          // ai == bi < ci, so Less(ai, ci).
+        } else if Less(ci, bi) {
+          // CompareFrom(b, c, i) would return GT.
+          assert false;
+        } else {
+          // ai == bi == ci. Recurse with i + 1.
+          CompareFromTransitiveLT(a, b, c, i + 1);
+        }
+      }
+    }
+  }
+
+  // Transitivity of LexicographicOrder. Bridges via IntrinsicComparison: convert
+  // LexOrder to Compare == LT, prove transitivity for Compare, convert back.
   lemma LexicographicTransitive(a: Tumbler, b: Tumbler, c: Tumbler)
     requires InT(a) && InT(b) && InT(c)
     requires LexicographicOrder.LexicographicOrder(a, b)
     requires LexicographicOrder.LexicographicOrder(b, c)
     ensures LexicographicOrder.LexicographicOrder(a, c)
   {
-    var j: nat :| 1 <= j
-          && (forall i :: 1 <= i < j ==>
-                i <= Length(a) && i <= Length(b) &&
-                Component(a, i) == Component(b, i))
-          && ((j <= Length(a) && j <= Length(b) && Less(Component(a, j), Component(b, j)))
-              || (j == Length(a) + 1 && j <= Length(b)));
-    var k: nat :| 1 <= k
-          && (forall i :: 1 <= i < k ==>
-                i <= Length(b) && i <= Length(c) &&
-                Component(b, i) == Component(c, i))
-          && ((k <= Length(b) && k <= Length(c) && Less(Component(b, k), Component(c, k)))
-              || (k == Length(b) + 1 && k <= Length(c)));
-
-    // Witness for LexicographicOrder(a, c) is min(j, k).
-    var m := if j <= k then j else k;
-    assert 1 <= m;
-
-    // Agreement of a and c at positions 1..m-1.
-    assert forall i :: 1 <= i < m ==>
-              i < j && i < k &&
-              i <= Length(a) && i <= Length(b) && i <= Length(c) &&
-              Component(a, i) == Component(b, i) == Component(c, i);
-
-    if j < k {
-      // m == j. Either a_j < b_j or j == #a+1 ≤ #b.
-      // For both cases, j < k means j ≤ #b and Component(b, j) == Component(c, j).
-      assert j <= Length(b);
-      assert j <= Length(c);
-      assert Component(b, j) == Component(c, j);
-      if j <= Length(a) && j <= Length(b) && Less(Component(a, j), Component(b, j)) {
-        assert Less(Component(a, m), Component(c, m));
-      } else {
-        assert j == Length(a) + 1;
-        assert m == Length(a) + 1 && m <= Length(c);
-      }
-    } else if k < j {
-      // m == k.
-      assert k < j;
-      assert k <= Length(a);
-      assert Component(a, k) == Component(b, k);
-      assert k <= Length(b) && k <= Length(c) && Less(Component(b, k), Component(c, k));
-      assert Less(Component(a, m), Component(c, m));
-    } else {
-      // j == k == m.
-      if j <= Length(a) && j <= Length(b) && Less(Component(a, j), Component(b, j)) {
-        if k <= Length(b) && k <= Length(c) && Less(Component(b, k), Component(c, k)) {
-          Transitive(Component(a, m), Component(b, m), Component(c, m));
-          assert Less(Component(a, m), Component(c, m));
-        } else {
-          // k == #b + 1 ≤ #c. But j ≤ #b and j == k, contradiction.
-          assert false;
-        }
-      } else {
-        // j == #a + 1 ≤ #b.
-        assert j == Length(a) + 1;
-        if k <= Length(b) && k <= Length(c) && Less(Component(b, k), Component(c, k)) {
-          // k ≤ #b but j == k == #a + 1 ≤ #b. So m == #a + 1 ≤ #c.
-          assert m == Length(a) + 1 && m <= Length(c);
-        } else {
-          // k == #b + 1 ≤ #c. But j == k and j ≤ #b. Contradiction with k == #b + 1.
-          assert false;
-        }
-      }
-    }
+    IC.IntrinsicComparison(a, b);
+    IC.IntrinsicComparison(b, c);
+    assert IC.Compare(a, b) == IC.LT;
+    assert IC.Compare(b, c) == IC.LT;
+    CompareFromTransitiveLT(a, b, c, 0);
+    assert IC.Compare(a, c) == IC.LT;
+    IC.IntrinsicComparison(a, c);
   }
 
   // T12 — SpanWellDefinedness
@@ -115,7 +112,7 @@ module SpanWellDefinedness {
     WellDefinedAddition.WellDefinedAddition(s, l);
     // (b) follows from StrictIncrease — s < s ⊕ l, and s == s
     StrictIncrease.StrictIncrease(s, l);
-    // (c) Order convexity: bridge via transitivity for each (a, b, c) triple
+    // (c) Order convexity: bridge via transitivity of LexicographicOrder
     forall a, b, c |
               InT(a) && InT(b) && InT(c) &&
               a in Span.Span(s, l) && c in Span.Span(s, l) &&
@@ -123,12 +120,11 @@ module SpanWellDefinedness {
               (b == c || LexicographicOrder.LexicographicOrder(b, c))
       ensures b in Span.Span(s, l)
     {
-      // We need: (b == s || s < b) and b < s ⊕ l.
-      // First clause: s ≤ a (from a ∈ Span) and a ≤ b.
+      // First clause: (b == s || s < b)
+      // From a ∈ Span: s ≤ a. From hypothesis: a ≤ b.
       if a == s {
-        // s == a, so a ≤ b gives s == b or s < b directly.
+        // s == a, then s == b or s < b via a ≤ b.
       } else {
-        // s < a from membership of a in Span.
         assert LexicographicOrder.LexicographicOrder(s, a);
         if a == b {
           // s < a == b.
@@ -137,7 +133,8 @@ module SpanWellDefinedness {
           LexicographicTransitive(s, a, b);
         }
       }
-      // Second clause: b ≤ c and c < s ⊕ l.
+      // Second clause: b < s ⊕ l
+      // From c ∈ Span: c < s ⊕ l. From hypothesis: b ≤ c.
       if b == c {
         // b == c < s ⊕ l.
       } else {
