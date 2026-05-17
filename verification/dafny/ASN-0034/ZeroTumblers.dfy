@@ -47,7 +47,8 @@ module ZeroTumblers {
       && (forall i :: 1 <= i < k ==>
             i <= Length(s) && i <= Length(t) &&
             Component(s, i) == Component(t, i))
-      && (k <= Length(s) && k <= Length(t) && Less(Component(s, k), Component(t, k)));
+      && ((k <= Length(s) && k <= Length(t) && Less(Component(s, k), Component(t, k)))
+          || (k == Length(s) + 1 && k <= Length(t)));
   }
 
   lemma LexOrderWitnessCase2(s: Tumbler, t: Tumbler)
@@ -57,22 +58,19 @@ module ZeroTumblers {
                Component(s, i) == Component(t, i)
     ensures LexicographicOrder.LexicographicOrder(s, t)
   {
-    var k := Length(s) + 1;
+    var k: nat := Length(s) + 1;
     assert 1 <= k;
-    assert k == Length(s) + 1 && k <= Length(t);
     forall i | 1 <= i < k
       ensures i <= Length(s) && i <= Length(t) &&
               Component(s, i) == Component(t, i)
-    {
-      assert 1 <= i <= Length(s);
-      assert i <= Length(t);
-    }
+    { }
     assert
       && 1 <= k
       && (forall i :: 1 <= i < k ==>
             i <= Length(s) && i <= Length(t) &&
             Component(s, i) == Component(t, i))
-      && (k == Length(s) + 1 && k <= Length(t));
+      && ((k <= Length(s) && k <= Length(t) && Less(Component(s, k), Component(t, k)))
+          || (k == Length(s) + 1 && k <= Length(t)));
   }
 
   lemma ZeroBelowPositive(s: Tumbler, t: Tumbler)
