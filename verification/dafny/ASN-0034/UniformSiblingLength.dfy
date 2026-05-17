@@ -13,7 +13,7 @@ module UniformSiblingLength {
   import opened NatCarrierSet
 
   lemma SiblingInT(a: Allocator, n: nat)
-    requires AllocatorDiscipline(a)
+    requires AllocatorDiscipline.AllocatorDiscipline(a)
     ensures InT(SiblingAt(a, n))
     decreases n
   {
@@ -24,7 +24,7 @@ module UniformSiblingLength {
   }
 
   lemma UniformSiblingLength(a: Allocator, n: nat)
-    requires AllocatorDiscipline(a)
+    requires AllocatorDiscipline.AllocatorDiscipline(a)
     ensures Length(SiblingAt(a, n)) == Length(BaseAddress(a))
     decreases n
   {
