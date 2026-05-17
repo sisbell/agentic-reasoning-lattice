@@ -43,6 +43,7 @@ def revise(
     asn_num: int,
     title: str,
     finding_text: str,
+    claim_base_dir: Path,
     comment_id: Optional[str] = None,
     claim_path: Optional[str] = None,
 ) -> bool:
@@ -64,8 +65,7 @@ def revise(
     if asn_path is None:
         return False
 
-    from lib.shared.paths import CLAIM_DIR
-    claim_dir = CLAIM_DIR / asn_label
+    claim_dir = claim_base_dir / asn_label
 
     template = read_prompt(REVISE_TEMPLATE)
     rel_path = claim_dir.relative_to(WORKSPACE)
@@ -150,6 +150,7 @@ class ClaimReviseAgent(Agent):
     """
 
     role: ClassVar[str] = "claim-revise"
+    node: ClassVar[str] = "1.3"
 
     def run(self, session: Session, comment_addr: Address) -> AgentResult:
         try:
@@ -182,7 +183,7 @@ class ClaimReviseAgent(Agent):
         asn_num = int(digits)
 
         ok = revise(
-            asn_num, title, finding_body,
+            asn_num, title, finding_body, self.claim_dir,
             comment_id=str(comment_addr),
             claim_path=claim_rel,
         )

@@ -64,7 +64,7 @@ class HasBeenConeReviewed(unittest.TestCase):
         agent_dir.mkdir(parents=True)
         (agent_dir / "cone-review.md").write_text("# cone-review agent\n")
         self.cone_agent = self.session.register_path(
-            "_docuverse/documents/agent/cone-review.md",
+            "_docuverse/documents/1.1/1/agent/cone-review.md",
         )
         # Register a claim.
         claim_dir = (
@@ -112,7 +112,7 @@ class HasBeenConeReviewed(unittest.TestCase):
         agent_dir = self.lattice / "_docuverse" / "documents" / "agent"
         (agent_dir / "full-review.md").write_text("# full-review agent\n")
         full_agent = self.session.register_path(
-            "_docuverse/documents/agent/full-review.md",
+            "_docuverse/documents/1.1/1/agent/full-review.md",
         )
         # Emit a review.coverage attributed to full-review only.
         review = self.session.register_path(
@@ -158,7 +158,7 @@ class ConeReviewPredicateGate(unittest.TestCase):
         agent_dir.mkdir(parents=True)
         (agent_dir / "cone-review.md").write_text("# cone-review agent\n")
         self.cone_agent = self.session.register_path(
-            "_docuverse/documents/agent/cone-review.md",
+            "_docuverse/documents/1.1/1/agent/cone-review.md",
         )
         # Apex claim with FC.
         claim_dir = (

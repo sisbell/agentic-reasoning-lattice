@@ -56,6 +56,7 @@ class FullReviewAgent(Agent):
     """
 
     role: ClassVar[str] = "full-review"
+    node: ClassVar[str] = "1.3"
 
     def resolve_holds(
         self, session: Session, addr: Address, scope_type: str,
@@ -90,7 +91,9 @@ class FullReviewAgent(Agent):
         )
 
         # 1. Validate-gate (whole ASN).
-        gate_result = run_validate_gate(ctx.asn_label, scope_labels=None)
+        gate_result = run_validate_gate(
+            ctx.asn_label, scope_labels=None, claim_base_dir=self.claim_dir,
+        )
         if gate_result != "clean":
             print(
                 f"  [GATE] halted — structural violations remain "
@@ -104,7 +107,7 @@ class FullReviewAgent(Agent):
         previous_findings = previously_declined_findings(session, derived_addrs)
 
         # 3. Assemble + review (full upstream foundation, no narrowing).
-        asn_content = assemble_readonly(ctx.asn_label)
+        asn_content = assemble_readonly(ctx.asn_label, self.claim_dir)
         verdict, findings_text, _elapsed = run_review(
             ctx.asn_num, asn_content, ctx.asn_label, previous_findings,
             model=FULL_MODEL,

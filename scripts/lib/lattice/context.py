@@ -18,16 +18,35 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from lib.backend.addressing import Address
+from lib.backend.store import _parse_node_user_from_path
 from lib.lattice.labels import (
     build_cross_asn_label_index,
     extract_label_digits,
     format_label,
     label_pattern,
+    parse_claim_doc_path,
 )
 from lib.predicates.quiescence import derived_claims
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
-from lib.shared.paths import CLAIM_DIR
+from lib.shared.paths import CLAIM_DIR, WORKSPACE
+
+
+def _claim_dir_for_path(path: str, asn_label: str) -> Path:
+    """Build the claim directory for the (node, user) region in `path`.
+
+    Falls back to the lattice default `CLAIM_DIR` when the path has no
+    parseable (node, user) prefix — keeps the helper safe for legacy
+    paths that predate the prefix migration.
+    """
+    nu = _parse_node_user_from_path(path)
+    if nu is None:
+        return CLAIM_DIR / asn_label
+    node, user = nu
+    return (
+        WORKSPACE / "_docuverse" / "documents"
+        / node / user / "claim" / asn_label
+    )
 
 
 @dataclass(frozen=True)
@@ -69,10 +88,11 @@ def claim_context_from_addr(session: Session, addr: Address) -> ClaimContext:
     if path is None:
         raise ValueError(f"no path for address {addr}")
 
-    # _docuverse/documents/claim/<ASN>/<label>.md
-    asn_label = path.split("/")[3]
-    asn_num = int(asn_label[4:])
-    claim_dir = CLAIM_DIR / asn_label
+    parsed = parse_claim_doc_path(path)
+    if parsed is None:
+        raise ValueError(f"unparseable claim doc path {path!r}")
+    asn_label, _basename, asn_num = parsed
+    claim_dir = _claim_dir_for_path(path, asn_label)
 
     asn_labels = set(build_label_index(claim_dir).keys())
     same_asn_deps = tuple(
@@ -131,7 +151,7 @@ def asn_context_from_note(session: Session, addr: Address) -> AsnContext:
         raise ValueError(f"no lattice label in path {path}")
     asn_num = int(digits)
     asn_label = format_label(asn_num)
-    claim_dir = CLAIM_DIR / asn_label
+    claim_dir = _claim_dir_for_path(path, asn_label)
 
     return AsnContext(
         addr=addr,

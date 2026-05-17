@@ -36,7 +36,7 @@ from lib.shared.claim_files import build_label_index
 from lib.shared.common import read_file
 from lib.shared.llm_response import invoke_text, parse_two_sections
 from lib.shared.paths import (
-    CLAIM_DIR, LATTICE, SIGNATURE_RESOLVE_DIR, prompt_path,
+    LATTICE, SIGNATURE_RESOLVE_DIR, prompt_path,
 )
 
 
@@ -170,6 +170,7 @@ def _transitive_dep_signatures(
     claim_md_rel: str,
     label_index: dict,
     asn_label: str,
+    claim_base_dir: Path,
 ) -> list:
     """Collect signature sidecar contents for every claim transitively
     cited from this one (via citation.depends, same-ASN only).
@@ -178,7 +179,7 @@ def _transitive_dep_signatures(
     have a non-empty signature sidecar.
     """
     rev_index = {addr: label for label, addr in label_index.items()}
-    claim_dir = CLAIM_DIR / asn_label
+    claim_dir = claim_base_dir / asn_label
     asn_label_set = set(build_label_index(claim_dir).keys())
 
     from lib.predicates.versions import version_head
@@ -300,6 +301,7 @@ class ClaimSignatureResolveAgent(Agent):
     """
 
     role: ClassVar[str] = "claim-signature-resolve"
+    node: ClassVar[str] = "1.3"
 
     def __init__(self, *, model: str = SIGNATURE_MODEL):
         self.model = model
@@ -320,13 +322,13 @@ class ClaimSignatureResolveAgent(Agent):
         if not claim_md_full.exists():
             return AgentResult(success=False, detail="no-claim-file")
 
-        claim_dir = CLAIM_DIR / asn_label
+        claim_dir = self.claim_dir / asn_label
         claim_md_content = claim_md_full.read_text()
         existing_signature = _claim_signature_text(claim_dir, claim_label)
 
         label_index = build_cross_asn_label_index(session.store)
         upstream_sigs = _transitive_dep_signatures(
-            session, claim_rel, label_index, asn_label,
+            session, claim_rel, label_index, asn_label, self.claim_dir,
         )
         notation_primitives = read_notation(session.store)
 

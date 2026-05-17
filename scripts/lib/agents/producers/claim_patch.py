@@ -150,11 +150,11 @@ def _apply_patch(
 
 def _patch_scoped_review(
     asn_num: int, asn_path: Path, asn_label: str, patch_content: str,
-    *, model: str, effort: str,
+    *, model: str, effort: str, claim_base_dir: Path | None = None,
 ) -> str | None:
     """One-shot patch-scoped review. Returns review text, or None on
     LLM failure."""
-    asn_content = assemble_readonly(asn_label)
+    asn_content = assemble_readonly(asn_label, claim_base_dir)
     vocabulary = read_file(resolve_campaign(asn_num).vocabulary_path)
     foundation = load_foundation_for_note(asn_path, asn_num)
 
@@ -195,6 +195,7 @@ class ClaimPatchAgent(Agent):
     """
 
     role: ClassVar[str] = "claim-patch"
+    node: ClassVar[str] = "1.3"
 
     def __init__(
         self, *,
@@ -253,6 +254,7 @@ class ClaimPatchAgent(Agent):
         review_text = _patch_scoped_review(
             asn_num, asn_path, asn_label, patch_content,
             model=self.model, effort=self.effort,
+            claim_base_dir=self.claim_dir,
         )
         if review_text is None:
             return AgentResult(success=False, detail="review-failed")

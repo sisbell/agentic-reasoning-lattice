@@ -60,7 +60,6 @@ from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.renderers.claim_statements import render_claim_statements
 from lib.lattice.labels import extract_label_digits, format_label
-from lib.shared.paths import claim_statements_aggregate_path
 
 
 class ClaimsStatementsRefreshAgent(Agent):
@@ -73,6 +72,7 @@ class ClaimsStatementsRefreshAgent(Agent):
     """
 
     role: ClassVar[str] = "claims-statements-refresh"
+    node: ClassVar[str] = "1.3"
 
     def resolve_holds(
         self, session: Session, addr: Address, scope_type: str,
@@ -126,10 +126,8 @@ class ClaimsStatementsRefreshAgent(Agent):
         note_path = session.get_path_for_addr(note_addr)
         asn_label = _asn_label_from_path(note_path)
 
-        rel = str(
-            claim_statements_aggregate_path(asn_label)
-            .resolve().relative_to(lattice_root)
-        )
+        agg_path = self.claim_dir / asn_label / "_statements.md"
+        rel = str(agg_path.resolve().relative_to(lattice_root))
         addr = store.register_path(rel)
 
         emit_claims_statements(store, addr)

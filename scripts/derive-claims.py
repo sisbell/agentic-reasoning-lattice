@@ -30,6 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.agents.producers.claim_decompose import ClaimDecomposeAgent
+from lib.agents.scouts.claim_structural_audit import ClaimStructuralAuditAgent
 from lib.lattice.labels import format_label
 from lib.protocols.febe.session import open_session
 from lib.runner import Scope, run_until_quiescent
@@ -86,7 +87,10 @@ def _phase_post_decompose(asn_num: int) -> bool:
 def _phase_validate_gate(asn_num: int) -> bool:
     """Phase 3 — runner-driven validate-revise gate."""
     _, asn_label = find_asn(str(asn_num))
-    result = run_validate_gate(asn_label, scope_labels=None)
+    result = run_validate_gate(
+        asn_label, scope_labels=None,
+        claim_base_dir=ClaimStructuralAuditAgent().claim_dir,
+    )
     if result == "clean":
         return True
     print(
