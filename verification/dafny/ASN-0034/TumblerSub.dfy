@@ -62,11 +62,15 @@ module TumblerSub {
   {
     var L := if Length(a) >= Length(w) then Length(a) else Length(w);
     var k := ZeroPaddedDivergence.ZeroPaddedDivergence(a, w);
-    // Precondition consequence (see TumblerSubPaddedDifference below): when zpd
-    // is defined, aₖ > wₖ at k = zpd(a,w). Recorded here as an {:axiom} assume;
-    // the lemma below states the contractual obligation for external proof.
-    assume {:axiom} k != 0 ==>
-      PaddedComponent(a, k) > PaddedComponent(w, k);
+    // Precondition consequence: when zpd is defined, aₖ > wₖ at k = zpd(a,w).
+    // Discharged via the TumblerSubPaddedDifference lemma below.
+    assert k != 0 ==>
+      PaddedComponent(a, k) > PaddedComponent(w, k)
+      by {
+        if k != 0 {
+          TumblerSubPaddedDifference(a, w);
+        }
+      }
     var result := Tumbler(BuildSubSeq(a, w, k, L));
     // Structural identities from BuildSubSeq's ensures.
     assert Length(result) == L;
