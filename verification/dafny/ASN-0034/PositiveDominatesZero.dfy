@@ -59,8 +59,16 @@ module PositiveDominatesZero {
       assert forall i :: 1 <= i < w ==>
         i <= Length(z) && i <= Length(t) &&
         Component(z, i) == Component(t, i);
-      assert (w <= Length(z) && w <= Length(t) && Less(Component(z, w), Component(t, w)))
-             || (w == Length(z) + 1 && w <= Length(t));
+      // Explicit witness for the existential.
+      assert LexicographicOrder.LexicographicOrder(z, t) by {
+        assert 1 <= w;
+        assert forall i :: 1 <= i < w ==>
+          i <= Length(z) && i <= Length(t) &&
+          Component(z, i) == Component(t, i);
+        assert w == Length(z) + 1 && w <= Length(t);
+        assert (w <= Length(z) && w <= Length(t) && Less(Component(z, w), Component(t, w)))
+               || (w == Length(z) + 1 && w <= Length(t));
+      }
     }
   }
 }
