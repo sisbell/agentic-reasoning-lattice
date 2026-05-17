@@ -97,21 +97,20 @@ module DisplacementRoundTrip {
   { }
 
   // D1: DisplacementRoundTrip.
-  // The explicit `requires a != b` is a logical consequence of the lex-order
-  // precondition (see LexImpliesNotEqual); Dafny needs it for the well-formedness
-  // of Divergence(a, b) in the next requires.
+  // The formal contract's `divergence(a, b) ≤ #a` is encoded via FirstMismatch
+  // (Divergence's underlying scan) since Divergence(a, b) requires a != b for
+  // well-formedness, and `a < b ⇒ a != b` (via LexImpliesNotEqual) is discharged
+  // internally rather than imposed as a separate precondition on callers.
   lemma DisplacementRoundTrip(a: Tumbler, b: Tumbler)
     requires InT(a) && InT(b)
     requires LexicographicOrder.LexicographicOrder(a, b)
-    requires a != b
-    requires Divergence.Divergence(a, b) <= Length(a)
     requires Length(a) <= Length(b)
-    ensures
-      var w := TumblerSub.TumblerSub(b, a);
-      PositiveTumbler.PositiveTumbler(w)
-      && ActionPoint.ActionPoint(w) <= Length(a)
-      && TumblerAdd.TumblerAdd(a, w) == b
+    requires Divergence.FirstMismatch(a, b, 1, Length(a)) <= Length(a)
+    ensures TumblerAdd.TumblerAdd(a, TumblerSub.TumblerSub(b, a)) == b
   {
+    LexImpliesNotEqual(a, b);
+    assert Divergence.Divergence(a, b) == Divergence.FirstMismatch(a, b, 1, Length(a));
+    assert Divergence.Divergence(a, b) <= Length(a);
     var k := Divergence.Divergence(a, b);
     Divergence.DivergenceSymmetric(a, b);
     assert Divergence.Divergence(b, a) == k;
