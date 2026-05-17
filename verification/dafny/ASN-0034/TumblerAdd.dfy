@@ -4,11 +4,13 @@
 include "./CarrierSetDefinition.dfy"
 include "./PositiveTumbler.dfy"
 include "./ActionPoint.dfy"
+include "./LexicographicOrder.dfy"
 
 module TumblerAdd {
   import opened CarrierSetDefinition
   import opened PositiveTumbler
   import opened ActionPoint
+  import opened LexicographicOrder
   import opened NatCarrierSet
 
   function TumblerAdd(a: Tumbler, w: Tumbler): (r: Tumbler)
@@ -24,6 +26,8 @@ module TumblerAdd {
               Component(w, ActionPoint.ActionPoint(w))
     ensures forall i :: ActionPoint.ActionPoint(w) < i <= Length(w) ==>
               Component(r, i) == Component(w, i)
+    ensures LexicographicOrder.LexicographicOrder(a, r)
+    ensures LexicographicOrder.LexicographicOrder(w, r) || w == r
   {
     var k := ActionPoint.ActionPoint(w);
     Tumbler(a.components[..k-1]
