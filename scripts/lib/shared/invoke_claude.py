@@ -234,6 +234,46 @@ def _is_quota_error(data):
     )
 
 
+def _is_auth_error(data):
+    """True iff the JSON response looks like an authentication failure.
+
+    Detected via api_error_status == 401 OR substring match on the
+    error message (authentication_error, invalid authentication, failed
+    to authenticate). Treated the same as quota for rotation purposes:
+    pause the account and try the next one. The cooldown is the same as
+    quota's — the broken token won't fix itself, but pausing prevents
+    the worker from hammering the broken account indefinitely and gives
+    the operator time to re-login via CLAUDE_CONFIG_DIR=<dir> claude.
+    """
+    if not isinstance(data, dict) or not data.get("is_error"):
+        return False
+    status = data.get("api_error_status")
+    if status == 401:
+        return True
+    msg = (data.get("result") or "").lower()
+    return any(
+        s in msg for s in
+        ("authentication_error", "invalid authentication",
+         "failed to authenticate")
+    )
+
+
+def _is_auth_signal(text):
+    """True iff raw subprocess output contains an auth-error signature.
+
+    Fallback for when claude -p exits non-zero without emitting a
+    parseable JSON envelope. Mirrors `_is_quota_signal` for auth errors.
+    """
+    if not text:
+        return False
+    text_lower = text.lower()
+    return any(
+        s in text_lower for s in
+        ("authentication_error", "invalid authentication",
+         "failed to authenticate", " 401 ", "error: 401")
+    )
+
+
 def _overload_wait_and_continue(overload_attempts):
     """Decide whether to retry after an overload response, sleep
     accordingly, and return True if retry should proceed.
@@ -452,6 +492,19 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
                     continue
                 return Result(data=data, elapsed=elapsed)
 
+            if _is_auth_error(data):
+                if config_dir:
+                    print(
+                        f"  [AUTH-FAIL] {config_dir} — re-login with: "
+                        f"CLAUDE_CONFIG_DIR={config_dir} claude /login",
+                        file=sys.stderr,
+                    )
+                    _pause_account(config_dir)
+                attempt += 1
+                if has_rotation and attempt < max_attempts:
+                    continue
+                return Result(data=data, elapsed=elapsed)
+
             if data.get("is_error"):
                 print(f"  FAILED (is_error in JSON, {elapsed:.0f}s)", file=sys.stderr)
                 print(f"    api_error_status: {data.get('api_error_status')}", file=sys.stderr)
@@ -474,6 +527,18 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
                 return Result(elapsed=elapsed)
             if _is_quota_signal(combined):
                 if config_dir:
+                    _pause_account(config_dir)
+                attempt += 1
+                if has_rotation and attempt < max_attempts:
+                    continue
+                return Result(elapsed=elapsed)
+            if _is_auth_signal(combined):
+                if config_dir:
+                    print(
+                        f"  [AUTH-FAIL] {config_dir} — re-login with: "
+                        f"CLAUDE_CONFIG_DIR={config_dir} claude /login",
+                        file=sys.stderr,
+                    )
                     _pause_account(config_dir)
                 attempt += 1
                 if has_rotation and attempt < max_attempts:
@@ -612,6 +677,19 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
                     continue
                 return Result(data=data, elapsed=elapsed)
 
+            if _is_auth_error(data):
+                if config_dir:
+                    print(
+                        f"  [AUTH-FAIL] {config_dir} — re-login with: "
+                        f"CLAUDE_CONFIG_DIR={config_dir} claude /login",
+                        file=sys.stderr,
+                    )
+                    _pause_account(config_dir)
+                attempt += 1
+                if has_rotation and attempt < max_attempts:
+                    continue
+                return Result(data=data, elapsed=elapsed)
+
             result_obj = _result_from_json(data, elapsed)
             _record_call_cost(config_dir, result_obj.cost)
             return result_obj
@@ -627,6 +705,18 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
                 return Result(elapsed=elapsed)
             if _is_quota_signal(combined):
                 if config_dir:
+                    _pause_account(config_dir)
+                attempt += 1
+                if has_rotation and attempt < max_attempts:
+                    continue
+                return Result(elapsed=elapsed)
+            if _is_auth_signal(combined):
+                if config_dir:
+                    print(
+                        f"  [AUTH-FAIL] {config_dir} — re-login with: "
+                        f"CLAUDE_CONFIG_DIR={config_dir} claude /login",
+                        file=sys.stderr,
+                    )
                     _pause_account(config_dir)
                 attempt += 1
                 if has_rotation and attempt < max_attempts:
