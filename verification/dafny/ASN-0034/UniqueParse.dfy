@@ -43,7 +43,7 @@ module UniqueParse {
   // or all of t.components if no zero exists (Case k = 0).
   function N(t: Tumbler): (r: Tumbler)
     requires InT(t)
-    requires HierarchicalParsing(t)
+    requires HierarchicalParsing.HierarchicalParsing(t)
     ensures InT(r)
   {
     var zs := ZeroIndices(t.components);
@@ -59,7 +59,7 @@ module UniqueParse {
   // or from after the first zero to the end if only one zero exists.
   function U(t: Tumbler): (r: Tumbler)
     requires InT(t)
-    requires HierarchicalParsing(t)
+    requires HierarchicalParsing.HierarchicalParsing(t)
     requires Zeros(t) >= 1
     ensures InT(r)
   {
@@ -88,7 +88,7 @@ module UniqueParse {
   // or from after the second zero to the end if only two zeros exist.
   function D(t: Tumbler): (r: Tumbler)
     requires InT(t)
-    requires HierarchicalParsing(t)
+    requires HierarchicalParsing.HierarchicalParsing(t)
     requires Zeros(t) >= 2
     ensures InT(r)
   {
@@ -115,7 +115,7 @@ module UniqueParse {
   // Element-field projection: components after the third zero.
   function E(t: Tumbler): (r: Tumbler)
     requires InT(t)
-    requires HierarchicalParsing(t)
+    requires HierarchicalParsing.HierarchicalParsing(t)
     requires Zeros(t) == 3
     ensures InT(r)
   {
