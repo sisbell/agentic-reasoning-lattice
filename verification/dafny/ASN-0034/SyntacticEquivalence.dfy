@@ -40,9 +40,36 @@ module SyntacticEquivalence {
     Component(t, Length(t)) != 0
   }
 
+  // Sequence-level form of the field-segment constraint.
+  predicate PositionalConstraint(s: seq<Carrier>)
+  {
+    |s| >= 1 &&
+    s[0] != 0 &&
+    s[|s| - 1] != 0 &&
+    (forall i :: 0 <= i < |s| - 1 ==> !(s[i] == 0 && s[i+1] == 0))
+  }
+
+  // Inductive characterization: positional constraint ⟺ every segment non-empty.
+  lemma SegmentsCharacterization(s: seq<Carrier>)
+    requires |s| >= 1
+    ensures PositionalConstraint(s) <==> AllFieldSegmentsNonEmpty(s)
+    decreases |s|
+  {
+    if |s| == 1 {
+      // Base case: single component.
+    } else {
+      // |s| >= 2; recurse on s[1..] which has length >= 1.
+      SegmentsCharacterization(s[1..]);
+    }
+  }
+
   lemma SyntacticEquivalence(t: Tumbler)
     requires InT(t)
     ensures FieldSegmentConstraint(t) <==>
             AllFieldSegmentsNonEmpty(t.components)
-  { }
+  {
+    SegmentsCharacterization(t.components);
+    assert PositionalConstraint(t.components) <==>
+           FieldSegmentConstraint(t);
+  }
 }
