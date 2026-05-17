@@ -12,6 +12,11 @@ module Divergence {
     requires InT(a) && InT(b)
     requires m <= Length(a) && m <= Length(b)
     requires 1 <= start <= m + 1
+    ensures start <= FirstMismatch(a, b, start, m) <= m + 1
+    ensures FirstMismatch(a, b, start, m) <= m ==>
+      Component(a, FirstMismatch(a, b, start, m)) != Component(b, FirstMismatch(a, b, start, m))
+    ensures forall i :: start <= i < FirstMismatch(a, b, start, m) ==>
+      Component(a, i) == Component(b, i)
     decreases m + 1 - start
   {
     if start > m then m + 1
@@ -22,6 +27,9 @@ module Divergence {
   function Divergence(a: Tumbler, b: Tumbler): nat
     requires InT(a) && InT(b)
     requires a != b
+    ensures Length(a) < Length(b) &&
+            (forall i :: 1 <= i <= Length(a) ==> Component(a, i) == Component(b, i))
+            ==> Divergence(a, b) == Length(a) + 1
   {
     var m := if Length(a) <= Length(b) then Length(a) else Length(b);
     FirstMismatch(a, b, 1, m)
