@@ -20,6 +20,9 @@ module OrdinalShift {
     requires n >= 1
     ensures InT(r)
     ensures Length(r) == Length(v)
+    ensures forall i :: 1 <= i < Length(v) ==> Component(r, i) == Component(v, i)
+    ensures Component(r, Length(v)) == Component(v, Length(v)) + n
+    ensures Component(r, Length(v)) >= 1
   {
     TumblerAdd.TumblerAdd(v, OrdinalDisplacement.OrdinalDisplacement(n, Length(v)))
   }
