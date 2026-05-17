@@ -114,7 +114,11 @@ module SyntacticEquivalence {
       assert segs == [[s[0]]] + rest2;
       assert |segs| == 1 + |rest2|;
       assert segs[0] == [s[0]];
+      assert |segs[0]| > 0;
       assert forall k :: 1 <= k < |segs| ==> segs[k] == rest2[k-1];
+      // Index transformation between segs and rest2.
+      assert (forall k :: 0 <= k < |segs| ==> |segs[k]| > 0)
+          <==> (forall j :: 0 <= j < |rest2| ==> |rest2[j]| > 0);
       assert AllFieldSegmentsNonEmpty(s) <==> AllFieldSegmentsNonEmpty(s[2..]);
       assert PositionalConstraint(s) <==> PositionalConstraint(s[2..]);
     }
@@ -127,11 +131,16 @@ module SyntacticEquivalence {
   {
     SegmentsCharacterization(t.components);
     var s := t.components;
+    // Bridge Tumbler/seq indexing: Component(t, i) == t.components[i-1].
     assert |s| == Length(t);
+    assert |s| >= 1;
     assert s[0] == Component(t, 1);
     assert s[|s|-1] == Component(t, Length(t));
-    assert forall i {:trigger Component(t, i+1)} :: 0 <= i < |s|-1 ==>
-             (s[i] == Component(t, i+1) && s[i+1] == Component(t, i+2));
+    forall i | 0 <= i < |s|-1
+      ensures s[i] == Component(t, i+1)
+      ensures s[i+1] == Component(t, i+2)
+    {
+    }
     assert FieldSegmentConstraint(t) <==> PositionalConstraint(s);
   }
 }
