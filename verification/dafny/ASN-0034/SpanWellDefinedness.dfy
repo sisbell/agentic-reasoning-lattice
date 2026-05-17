@@ -28,13 +28,13 @@ module SpanWellDefinedness {
     requires LexicographicOrder.LexicographicOrder(b, c)
     ensures LexicographicOrder.LexicographicOrder(a, c)
   {
-    var j :| 1 <= j
+    var j: nat :| 1 <= j
           && (forall i :: 1 <= i < j ==>
                 i <= Length(a) && i <= Length(b) &&
                 Component(a, i) == Component(b, i))
           && ((j <= Length(a) && j <= Length(b) && Less(Component(a, j), Component(b, j)))
               || (j == Length(a) + 1 && j <= Length(b)));
-    var k :| 1 <= k
+    var k: nat :| 1 <= k
           && (forall i :: 1 <= i < k ==>
                 i <= Length(b) && i <= Length(c) &&
                 Component(b, i) == Component(c, i))
