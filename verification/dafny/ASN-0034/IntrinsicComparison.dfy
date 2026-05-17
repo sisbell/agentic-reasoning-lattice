@@ -67,5 +67,31 @@ module IntrinsicComparison {
     ensures CompareFrom(a, b, i) == GT <==> LexicographicOrder.LexicographicOrder(b, a)
     ensures CompareFrom(a, b, i) == EQ <==> a == b
     decreases (if Length(a) <= Length(b) then Length(a) else Length(b)) - i
-  { }
+  {
+    if i == Length(a) && i == Length(b) {
+      Extensionality(a, b);
+    } else if i == Length(a) {
+      if LexicographicOrder.LexicographicOrder(b, a) {
+        var k :| 1 <= k
+              && (forall i' :: 1 <= i' < k ==>
+                    i' <= Length(b) && i' <= Length(a) &&
+                    Component(b, i') == Component(a, i'))
+              && ((k <= Length(b) && k <= Length(a) &&
+                   Less(Component(b, k), Component(a, k)))
+                  || (k == Length(b) + 1 && k <= Length(a)));
+        if k <= Length(b) && k <= Length(a) && Less(Component(b, k), Component(a, k)) {
+          Irreflexive(Component(a, k));
+        }
+      }
+    } else if i == Length(b) {
+    } else {
+      var ai := Component(a, i + 1);
+      var bi := Component(b, i + 1);
+      if Less(ai, bi) {
+      } else if Less(bi, ai) {
+      } else {
+        CompareFromCorrect(a, b, i + 1);
+      }
+    }
+  }
 }
