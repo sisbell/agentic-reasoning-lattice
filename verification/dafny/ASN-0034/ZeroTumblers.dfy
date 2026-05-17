@@ -42,24 +42,29 @@ module ZeroTumblers {
   {
     var j := FirstNonzeroFrom(t, 1);
     if j <= Length(s) {
-      assert 1 <= j <= Length(s) && j <= Length(t);
-      assert Component(s, j) == 0;
-      assert Component(t, j) != 0;
-      assert Less(Component(s, j), Component(t, j));
+      var k: nat := j;
+      assert 1 <= k <= Length(s) && k <= Length(t);
+      assert Less(Component(s, k), Component(t, k));
+      forall i | 1 <= i < k
+        ensures i <= Length(s) && i <= Length(t) &&
+                Component(s, i) == Component(t, i)
+      {
+        assert Component(s, i) == 0;
+        assert Component(t, i) == 0;
+      }
     } else {
-      var k := Length(s) + 1;
+      var k: nat := Length(s) + 1;
       assert k <= j <= Length(t);
-      assert forall i :: 1 <= i < k ==>
-        i <= Length(s) && i <= Length(t) &&
-        Component(s, i) == Component(t, i);
+      forall i | 1 <= i < k
+        ensures i <= Length(s) && i <= Length(t) &&
+                Component(s, i) == Component(t, i)
+      {
+        assert i <= Length(s);
+        assert i < j;
+        assert Component(s, i) == 0;
+        assert Component(t, i) == 0;
+      }
       assert k == Length(s) + 1 && k <= Length(t);
-      assert exists kw: nat ::
-        && 1 <= kw
-        && (forall i :: 1 <= i < kw ==>
-              i <= Length(s) && i <= Length(t) &&
-              Component(s, i) == Component(t, i))
-        && ((kw <= Length(s) && kw <= Length(t) && Less(Component(s, kw), Component(t, kw)))
-            || (kw == Length(s) + 1 && kw <= Length(t)));
     }
   }
 
