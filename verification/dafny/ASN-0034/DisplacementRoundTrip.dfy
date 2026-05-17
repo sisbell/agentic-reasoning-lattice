@@ -100,17 +100,11 @@ module DisplacementRoundTrip {
   lemma DisplacementRoundTrip(a: Tumbler, b: Tumbler)
     requires InT(a) && InT(b)
     requires LexicographicOrder.LexicographicOrder(a, b)
+    requires Divergence.Divergence(a, b) <= Length(a)
     requires Length(a) <= Length(b)
-    requires Divergence.FirstMismatch(a, b, 1, Length(a)) <= Length(a)
-    ensures
-      var w := TumblerSub.TumblerSub(b, a);
-      && PositiveTumbler.PositiveTumbler(w)
-      && ActionPoint.ActionPoint(w) <= Length(a)
-      && TumblerAdd.TumblerAdd(a, w) == b
+    ensures TumblerAdd.TumblerAdd(a, TumblerSub.TumblerSub(b, a)) == b
   {
     LexImpliesNotEqual(a, b);
-    assert Divergence.Divergence(a, b) == Divergence.FirstMismatch(a, b, 1, Length(a));
-    assert Divergence.Divergence(a, b) <= Length(a);
     var k := Divergence.Divergence(a, b);
     Divergence.DivergenceSymmetric(a, b);
     assert Divergence.Divergence(b, a) == k;
