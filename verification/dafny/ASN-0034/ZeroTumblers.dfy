@@ -58,6 +58,15 @@ module ZeroTumblers {
     ensures LexicographicOrder.LexicographicOrder(s, t)
   {
     var k := Length(s) + 1;
+    assert 1 <= k;
+    assert k == Length(s) + 1 && k <= Length(t);
+    forall i | 1 <= i < k
+      ensures i <= Length(s) && i <= Length(t) &&
+              Component(s, i) == Component(t, i)
+    {
+      assert 1 <= i <= Length(s);
+      assert i <= Length(t);
+    }
     assert
       && 1 <= k
       && (forall i :: 1 <= i < k ==>
