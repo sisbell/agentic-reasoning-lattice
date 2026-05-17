@@ -1,0 +1,24 @@
+# Review of ASN-0086
+
+## REVISE
+
+### Issue 1: Class (iii) Frame condition leaves value-preservation at existing keys implicit, undermining R7a's "Frame-alone" derivation
+
+**ASN-0086, Frame conditions on the primitive transitions, and R7a's Step 3 discharge of Case (a)**:
+
+The Frame for class (iii) states:
+> "(iii) Link emission (Emit_K): `dom(Σ'.L) = dom(Σ.L) ∪ {a}` for a fresh link address `a ∉ dom(Σ.L)` with `Σ'.L(a) = (F, G, K)`; `Σ'.C = Σ.C` and `Σ'.M = Σ.M`."
+
+This specifies dom(Σ'.L), Σ'.L's value at the fresh key `a`, and full identity for C and M. But it does **not** explicitly state `Σ'.L(a') = Σ.L(a')` for `a' ∈ dom(Σ.L)` — value-preservation at existing keys.
+
+R7a's proof of Case (a) reads: "class (iii) extends at a fresh key `a ∉ dom(Σ.L)` and so cannot modify any address in `dom(Σ.L) ∩ dom(Σ'.L)`." This relies on reading "extends" as preserving existing values. The text further claims L12 and L12a are *"consistency consequences of [the Frame], not independent inputs"* — explicitly disclaiming L12's load-bearing status for R7a.
+
+**Problem**: Read literally, the Frame underspecifies Σ'.L at existing keys. A transition with `dom(Σ'.L) = dom(Σ.L) ∪ {a}`, `Σ'.L(a) = (F, G, K)`, but `Σ'.L(a') ≠ Σ.L(a')` for some `a' ∈ dom(Σ.L)` is admitted by the Frame as stated. Excluding this case requires either (a) an explicit Frame clause for value-preservation, or (b) L12 as a load-bearing premise. Currently R7a claims discharge from the Frame alone, but the Frame as stated doesn't deliver this. The natural reading aligns with L12, but the "consistency consequence" framing then misrepresents L12's role.
+
+**Required**: Either (a) tighten the class-(iii) Frame to include explicit preservation — e.g., `Σ'.L = Σ.L ⊕ {a ↦ (F, G, K)}`, or add a clause `Σ'.L(a') = Σ.L(a') for all a' ∈ dom(Σ.L)` — making R7a's "Frame-alone" derivation literal; or (b) acknowledge L12 as load-bearing for R7a's Case (a) and revise the "consistency consequence" framing to "consequence and *also* load-bearing input for the existing-key-preservation step of R7a." Option (a) is preferable since R7a's headline ("PROVEN from L12 + L12a + Frame, with L12/L12a as consistency consequences") wants to keep the derivation Frame-grounded.
+
+## OUT_OF_SCOPE
+
+None to add — the Open Questions section already enumerates the natural extensions (multi-arity links, ordering of Observe results, atomicity/concurrency, retraction cardinality bounds, lifting the sibling-frontier discipline to substrate guarantee, relaxing the depth-2 narrowing for Nelson-style deeper sub-links, L14-native-scoped-form slice-wise reformulation, dynamic type catalog extension).
+
+VERDICT: REVISE
