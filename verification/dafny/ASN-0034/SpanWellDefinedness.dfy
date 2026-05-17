@@ -9,13 +9,13 @@ include "./StrictIncrease.dfy"
 
 module SpanWellDefinedness {
   import opened CarrierSetDefinition
-  import PT = PositiveTumbler
-  import AP = ActionPoint
-  import TA = TumblerAdd
-  import LO = LexicographicOrder
-  import WDA = WellDefinedAddition
-  import SI = StrictIncrease
-  import SP = Span
+  import opened PositiveTumbler
+  import opened ActionPoint
+  import opened TumblerAdd
+  import opened LexicographicOrder
+  import opened WellDefinedAddition
+  import opened StrictIncrease
+  import opened Span
   import opened NatStrictTotalOrder
   import opened NatCarrierSet
 
@@ -24,9 +24,9 @@ module SpanWellDefinedness {
   // reduce to < chains via the < ∨ = decomposition.
   lemma LexicographicTransitive(a: Tumbler, b: Tumbler, c: Tumbler)
     requires InT(a) && InT(b) && InT(c)
-    requires LO.LexicographicOrder(a, b)
-    requires LO.LexicographicOrder(b, c)
-    ensures LO.LexicographicOrder(a, c)
+    requires LexicographicOrder.LexicographicOrder(a, b)
+    requires LexicographicOrder.LexicographicOrder(b, c)
+    ensures LexicographicOrder.LexicographicOrder(a, c)
   {
     var j :| 1 <= j
           && (forall i :: 1 <= i < j ==>
@@ -97,31 +97,31 @@ module SpanWellDefinedness {
   // T12 — SpanWellDefinedness
   lemma SpanWellDefinedness(s: Tumbler, l: Tumbler)
     requires InT(s) && InT(l)
-    requires PT.PositiveTumbler(l)
-    requires AP.ActionPoint(l) <= Length(s)
+    requires PositiveTumbler.PositiveTumbler(l)
+    requires ActionPoint.ActionPoint(l) <= Length(s)
     // (a) Endpoint exists in T
-    ensures InT(TA.TumblerAdd(s, l))
+    ensures InT(TumblerAdd.TumblerAdd(s, l))
     // (b) s ∈ span(s, ℓ)
-    ensures s in SP.Span(s, l)
+    ensures s in Span.Span(s, l)
     // (c) Order convexity: a ≤ b ≤ c with a, c ∈ span implies b ∈ span
     ensures forall a, b, c ::
               InT(a) && InT(b) && InT(c) &&
-              a in SP.Span(s, l) && c in SP.Span(s, l) &&
-              (a == b || LO.LexicographicOrder(a, b)) &&
-              (b == c || LO.LexicographicOrder(b, c))
-              ==> b in SP.Span(s, l)
+              a in Span.Span(s, l) && c in Span.Span(s, l) &&
+              (a == b || LexicographicOrder.LexicographicOrder(a, b)) &&
+              (b == c || LexicographicOrder.LexicographicOrder(b, c))
+              ==> b in Span.Span(s, l)
   {
     // (a) follows from WellDefinedAddition
-    WDA.WellDefinedAddition(s, l);
+    WellDefinedAddition.WellDefinedAddition(s, l);
     // (b) follows from StrictIncrease — s < s ⊕ l, and s == s
-    SI.StrictIncrease(s, l);
+    StrictIncrease.StrictIncrease(s, l);
     // (c) Order convexity: bridge via transitivity for each (a, b, c) triple
     forall a, b, c |
               InT(a) && InT(b) && InT(c) &&
-              a in SP.Span(s, l) && c in SP.Span(s, l) &&
-              (a == b || LO.LexicographicOrder(a, b)) &&
-              (b == c || LO.LexicographicOrder(b, c))
-      ensures b in SP.Span(s, l)
+              a in Span.Span(s, l) && c in Span.Span(s, l) &&
+              (a == b || LexicographicOrder.LexicographicOrder(a, b)) &&
+              (b == c || LexicographicOrder.LexicographicOrder(b, c))
+      ensures b in Span.Span(s, l)
     {
       // We need: (b == s || s < b) and b < s ⊕ l.
       // First clause: s ≤ a (from a ∈ Span) and a ≤ b.
@@ -129,11 +129,11 @@ module SpanWellDefinedness {
         // s == a, so a ≤ b gives s == b or s < b directly.
       } else {
         // s < a from membership of a in Span.
-        assert LO.LexicographicOrder(s, a);
+        assert LexicographicOrder.LexicographicOrder(s, a);
         if a == b {
           // s < a == b.
         } else {
-          assert LO.LexicographicOrder(a, b);
+          assert LexicographicOrder.LexicographicOrder(a, b);
           LexicographicTransitive(s, a, b);
         }
       }
@@ -141,9 +141,9 @@ module SpanWellDefinedness {
       if b == c {
         // b == c < s ⊕ l.
       } else {
-        assert LO.LexicographicOrder(b, c);
-        assert LO.LexicographicOrder(c, TA.TumblerAdd(s, l));
-        LexicographicTransitive(b, c, TA.TumblerAdd(s, l));
+        assert LexicographicOrder.LexicographicOrder(b, c);
+        assert LexicographicOrder.LexicographicOrder(c, TumblerAdd.TumblerAdd(s, l));
+        LexicographicTransitive(b, c, TumblerAdd.TumblerAdd(s, l));
       }
     }
   }
