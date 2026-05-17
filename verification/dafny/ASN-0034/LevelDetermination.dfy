@@ -13,7 +13,7 @@ module LevelDetermination {
 
   function LevelDetermination(t: Tumbler): Level
     requires InT(t)
-    requires HierarchicalParsing(t)
+    requires HierarchicalParsing.HierarchicalParsing(t)
     ensures Zeros(t) == 0 <==> LevelDetermination(t) == Node
     ensures Zeros(t) == 1 <==> LevelDetermination(t) == User
     ensures Zeros(t) == 2 <==> LevelDetermination(t) == Document
