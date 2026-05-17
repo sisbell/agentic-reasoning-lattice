@@ -27,5 +27,23 @@ module RightCancellationFailure {
     var a := Tumbler([1, 3, 5]);
     var b := Tumbler([1, 3, 7]);
     var w := Tumbler([0, 2, 4]);
+
+    assert InT(a) && InT(b) && InT(w);
+
+    // Pos(w): witness i = 2, Component(w, 2) = 2 != 0.
+    assert Component(w, 2) == 2;
+    assert PositiveTumbler.PositiveTumbler(w);
+
+    // ActionPoint(w) = 2: Component(w, 1) = 0 and Component(w, 2) != 0.
+    assert Component(w, 1) == 0;
+    assert ActionPoint.ActionPoint(w) == 2;
+
+    assert Length(a) == 3 && Length(b) == 3;
+    assert a != b;
+
+    // a ⊕ w and b ⊕ w both equal Tumbler([1, 5, 4]).
+    var ra := TumblerAdd.TumblerAdd(a, w);
+    var rb := TumblerAdd.TumblerAdd(b, w);
+    assert ra == rb;
   }
 }
