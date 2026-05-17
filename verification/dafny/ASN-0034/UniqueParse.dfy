@@ -45,6 +45,7 @@ module UniqueParse {
     requires InT(t)
     requires HierarchicalParsing.HierarchicalParsing(t)
     ensures InT(r)
+    ensures forall i :: 0 <= i < |r.components| ==> r.components[i] > 0
   {
     var zs := ZeroIndices(t.components);
     if |zs| == 0 then t
@@ -62,6 +63,7 @@ module UniqueParse {
     requires HierarchicalParsing.HierarchicalParsing(t)
     requires Zeros(t) >= 1
     ensures InT(r)
+    ensures forall i :: 0 <= i < |r.components| ==> r.components[i] > 0
   {
     var zs := ZeroIndices(t.components);
     if |zs| == 1 then
@@ -91,6 +93,7 @@ module UniqueParse {
     requires HierarchicalParsing.HierarchicalParsing(t)
     requires Zeros(t) >= 2
     ensures InT(r)
+    ensures forall i :: 0 <= i < |r.components| ==> r.components[i] > 0
   {
     var zs := ZeroIndices(t.components);
     if |zs| == 2 then
@@ -118,6 +121,7 @@ module UniqueParse {
     requires HierarchicalParsing.HierarchicalParsing(t)
     requires Zeros(t) == 3
     ensures InT(r)
+    ensures forall i :: 0 <= i < |r.components| ==> r.components[i] > 0
   {
     var zs := ZeroIndices(t.components);
     assert Component(t, Length(t)) == t.components[|t.components|-1];
