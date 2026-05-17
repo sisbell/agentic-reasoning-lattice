@@ -151,13 +151,18 @@ def _validate_review(text: str):
     """Check that review text has required structure. Returns error message or None."""
     if not re.search(rf"^# Review of {label_pattern().pattern}", text, re.MULTILINE):
         return f"missing '# Review of {lattice_config().label_prefix}-NNNN' header"
-    if not re.search(r"^VERDICT:\s*\w+", text, re.MULTILINE):
+    verdict_match = re.search(r"^VERDICT:\s*(\w+)", text, re.MULTILINE)
+    if not verdict_match:
         return "missing VERDICT line"
-    if not (
+    verdict = verdict_match.group(1).upper()
+    has_sections = bool(
         re.search(r"^## REVISE", text, re.MULTILINE)
         or re.search(r"^## OUT_OF_SCOPE", text, re.MULTILINE)
-    ):
-        return "missing ## REVISE or ## OUT_OF_SCOPE section"
+    )
+    # CONVERGED reviews have nothing to enumerate; empty section headers
+    # are bureaucratic. Sections required only when verdict != CONVERGED.
+    if verdict != "CONVERGED" and not has_sections:
+        return "missing ## REVISE or ## OUT_OF_SCOPE section (required when VERDICT != CONVERGED)"
     return None
 
 
