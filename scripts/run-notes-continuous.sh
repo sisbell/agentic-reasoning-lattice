@@ -115,8 +115,11 @@ stop_pusher() {
 # Ctrl-C lands.
 cleanup() {
     stop_pusher
-    # SIGTERM all children of this shell
-    pkill -P $$ 2>/dev/null || true
+    # Place the shutdown sentinel so any still-running workers exit
+    # gracefully on their next note-review check. No pkill of children
+    # — the bash wrapper's `python | tee | sed` pipeline makes signal
+    # forwarding unreliable; file-based coordination is the contract.
+    touch _workspace/runner.shutdown 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
@@ -130,6 +133,18 @@ mkdir -p _workspace/logs
 rm -f _workspace/links.worker-*.jsonl
 
 while true; do
+    # Honor the file-based shutdown sentinel. If the operator placed
+    # `_workspace/runner.shutdown` (e.g., via `scripts/runner-stop.sh`),
+    # exit without respawning workers. To resume: run
+    # `scripts/runner-resume.sh` to clear the sentinel, then restart
+    # this wrapper.
+    if [ -f "_workspace/runner.shutdown" ]; then
+        echo "  [run-notes-continuous] shutdown sentinel present at" \
+             "_workspace/runner.shutdown — exiting without respawn" >&2
+        echo "  [run-notes-continuous] to resume: scripts/runner-resume.sh" \
+             "then re-run this wrapper" >&2
+        exit 0
+    fi
     stop_pusher
     git pull --rebase --autostash 2>&1 | grep -v '^$' || true
     _load_runtime_config

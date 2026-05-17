@@ -42,7 +42,6 @@ from __future__ import annotations
 
 import argparse
 import re
-import signal
 import sys
 from pathlib import Path
 
@@ -50,27 +49,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib import triggers as triggers_module
 from lib.lattice.labels import format_label
 from lib.runner import Scope, Trigger, run_force_pass, run_until_quiescent
-from lib.runner.run import request_shutdown
-
-
-def _install_shutdown_handlers() -> None:
-    """Trap SIGTERM/SIGINT to request graceful runner shutdown.
-
-    Same behavior as note-scheduler.py: signal flips the runner's
-    shutdown flag; current fire completes; runner returns before
-    starting another. Use SIGKILL to abort mid-fire.
-    """
-    def _handler(signum, _frame):
-        sig_name = signal.Signals(signum).name
-        print(
-            f"\n  [run-trigger] {sig_name} received — finishing current "
-            f"fire then exiting (use SIGKILL to abort sooner)",
-            file=sys.stderr,
-        )
-        request_shutdown()
-
-    signal.signal(signal.SIGTERM, _handler)
-    signal.signal(signal.SIGINT, _handler)
 
 
 def _resolve_trigger(name: str) -> Trigger:
@@ -95,8 +73,6 @@ def _resolve_trigger(name: str) -> Trigger:
 
 
 def main() -> int:
-    _install_shutdown_handlers()
-
     parser = argparse.ArgumentParser(
         prog="run-trigger",
         description=(

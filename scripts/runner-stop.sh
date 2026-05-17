@@ -1,48 +1,28 @@
 #!/usr/bin/env bash
-# Graceful runner shutdown — locates the continuous-runner wrapper and
-# its worker children, sends SIGTERM.
+# Request graceful runner shutdown via the file-based sentinel.
 #
-# After the runner's signal-handler upgrade, SIGTERM is graceful: each
-# worker finishes its current fire (LLM call, substrate emissions,
-# retraction in `finally`, commit-step flush), then exits cleanly.
-# No worker-buffer cleanup or stale-holdings retraction is required.
+# Workers check `_workspace/runner.shutdown` before each note-review
+# fire. If present, they exit without starting a new review cycle —
+# in-flight consult/revise fires complete naturally (their predicates
+# remain True while their work exists), so the worker finishes the
+# current review→consult→revise chain cleanly before exiting.
+#
+# The bash wrapper (`run-notes-continuous.sh`) also checks the sentinel
+# at the top of its outer loop and exits without respawning workers.
 #
 # Usage:
 #   bash scripts/runner-stop.sh
 #
-# Exit codes:
-#   0 — signaled at least one process
-#   1 — no runner found (already stopped, or never started)
+# To resume:
+#   bash scripts/runner-resume.sh
+#   bash scripts/run-notes-continuous.sh --workers N
 #
-# For mid-fire abort (skip graceful shutdown): kill -9 the wrapper or
-# workers directly. That leaves the same cleanup mess as before this
-# script existed.
+# No signals, no pkill, no shell tricks. Just a file.
 
-# pgrep returns the wrapper PIDs one per line. Read into a variable
-# (works in bash 3.2 on macOS; mapfile would be bash 4+).
-wrapper_pids=$(pgrep -f "scripts/run-notes-continuous.sh")
-
-if [ -z "$wrapper_pids" ]; then
-    echo "  [runner-stop] no continuous runner found" >&2
-    # Check for orphan workers (note-scheduler without wrapper)
-    orphan_workers=$(pgrep -f "scripts/note-scheduler.py")
-    if [ -n "$orphan_workers" ]; then
-        echo "  [runner-stop] orphan workers detected:" >&2
-        ps -p $orphan_workers -o pid,etime,command >&2
-        echo "  [runner-stop] signaling workers directly" >&2
-        kill $orphan_workers
-        echo "  [runner-stop] workers will finish current fire then exit" >&2
-        exit 0
-    fi
-    exit 1
-fi
-
-echo "  [runner-stop] signaling wrapper(s):" $wrapper_pids >&2
-
-# SIGTERM the wrapper(s). The wrapper's existing trap forwards SIGTERM
-# to its child workers via pkill -P $$. Workers' signal handler flips
-# the runner's shutdown flag; current fire completes; workers exit.
-kill $wrapper_pids
-
-echo "  [runner-stop] workers will finish their current fire then exit" >&2
-echo "  [runner-stop] (current LLM call can be 300-700s; use kill -9 to abort sooner)" >&2
+mkdir -p _workspace
+touch _workspace/runner.shutdown
+echo "  [runner-stop] sentinel placed at _workspace/runner.shutdown" >&2
+echo "  [runner-stop] workers will finish the current review→consult→revise" >&2
+echo "  [runner-stop] chain, then exit. The bash wrapper exits when its" >&2
+echo "  [runner-stop] outer loop sees the sentinel." >&2
+echo "  [runner-stop] to resume: bash scripts/runner-resume.sh" >&2

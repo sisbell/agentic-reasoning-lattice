@@ -25,14 +25,13 @@ revisions. Until cascade-aware predicates exist, callers mitigate via
 from __future__ import annotations
 
 import sys
-import threading
 import time
 from dataclasses import dataclass, field
 from typing import Callable
 
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
-from lib.shared.paths import LATTICE
+from lib.shared.paths import LATTICE, WORKSPACE_DIR
 
 from ._commit import commit_after_fire
 from .scope import Scope
@@ -47,34 +46,34 @@ def _default_session_factory() -> Session:
 
 
 # ---------------------------------------------------------------------------
-# Graceful shutdown coordination.
+# Graceful shutdown coordination — file-based.
 #
-# `request_shutdown()` flips a module-level Event that `run_until_quiescent`
-# checks between fires. Callers (typically `note-scheduler.py`'s signal
-# handler) invoke this on SIGTERM / SIGINT. The current fire completes
-# normally — agent finishes its LLM call, retraction lands in `finally`,
-# commit step flushes the worker buffer — and the runner returns from its
-# scope loop on the next iteration, before starting another fire.
+# The operator places a sentinel file at `_workspace/runner.shutdown` to
+# request graceful shutdown. Workers check for the file before starting
+# any `note-review` fire. If present, the runner returns
+# `RunResult(shutdown=True, ...)` early — the worker exits without
+# starting a new review→consult→revise cycle. In-flight cycles (consult
+# and revise fires on the current ASN) complete naturally because they
+# fire reactively to substrate state (open comment.revise links, etc.),
+# not at the trigger walk's discretion.
 #
-# To clear the request (e.g., for tests that exercise the path), call
-# `clear_shutdown()`. Most callers don't need this.
+# File-based was chosen over signals because the bash wrapper's
+# `python | tee | sed` pipeline causes signal-delivery races that the
+# Python signal handler can't always win. A file check at known safe
+# points (start of each note-review fire) sidesteps all of that.
 
-_shutdown_event = threading.Event()
-
-
-def request_shutdown() -> None:
-    """Signal `run_until_quiescent` to exit after the current fire."""
-    _shutdown_event.set()
-
-
-def clear_shutdown() -> None:
-    """Reset the shutdown flag. Mainly for tests."""
-    _shutdown_event.clear()
+SHUTDOWN_FILE = WORKSPACE_DIR / "runner.shutdown"
 
 
 def shutdown_requested() -> bool:
-    """True iff `request_shutdown()` has been called and not cleared."""
-    return _shutdown_event.is_set()
+    """True iff the operator has placed the shutdown sentinel file.
+
+    Checked synchronously at well-defined safe points (start of each
+    note-review fire). No signal handlers, no in-memory state — just
+    `os.path.exists` on a file the operator created via
+    `scripts/runner-stop.sh`.
+    """
+    return SHUTDOWN_FILE.exists()
 
 
 @dataclass
@@ -132,6 +131,22 @@ def run_until_quiescent(
                 key = (trigger.name, str(addr))
                 if key in fired_this_pass:
                     continue
+                # File-based shutdown gate. Checked before starting any
+                # note-review fire so in-flight review→consult→revise
+                # chains complete naturally — consult/revise predicates
+                # remain True while their work exists. No new review
+                # cycle starts after the operator places the sentinel.
+                if trigger.name == "note-review" and shutdown_requested():
+                    print(
+                        f"  [RUNNER] shutdown sentinel detected — "
+                        f"exiting after {len(fires)} fire(s) without "
+                        f"starting new review",
+                        file=sys.stderr,
+                    )
+                    return RunResult(
+                        quiescent=False, iterations=iteration,
+                        fires=fires, errors=errors, shutdown=True,
+                    )
                 if trigger.predicate(session, addr):
                     continue
                 fired_this_pass.add(key)
@@ -165,21 +180,6 @@ def run_until_quiescent(
                             )
                             paths = None
                     commit_after_fire(trigger.name, str(addr), paths)
-                # Graceful-shutdown check. The fire has fully completed
-                # (agent ran to return, retraction emitted in finally,
-                # commit landed). Returning here leaves substrate in a
-                # consistent state with no dangling holds or unflushed
-                # buffers.
-                if _shutdown_event.is_set():
-                    print(
-                        f"  [RUNNER] shutdown requested — exiting after "
-                        f"{len(fires)} fire(s)",
-                        file=sys.stderr,
-                    )
-                    return RunResult(
-                        quiescent=False, iterations=iteration,
-                        fires=fires, errors=errors, shutdown=True,
-                    )
                 session = session_factory()
         if not fired_this_pass:
             return RunResult(
