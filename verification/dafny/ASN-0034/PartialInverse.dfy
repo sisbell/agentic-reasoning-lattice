@@ -52,7 +52,7 @@ module PartialInverse {
       assert r == w;
 
       var s := TumblerSub.TumblerSub(w, w);
-      assert ZeroPaddedDivergence(w, w) == 0;
+      assert ZeroPaddedDivergence.ZeroPaddedDivergence(w, w) == 0;
       assert ZeroTumbler(s);
       assert Length(s) == k;
 
@@ -70,7 +70,7 @@ module PartialInverse {
       assert forall i :: 1 <= i < k ==> Component(w, i) == 0;
 
       // Compute zpd(r, w) = k.
-      assert ZeroPaddedDivergence(r, w) == k;
+      assert ZeroPaddedDivergence.ZeroPaddedDivergence(r, w) == k;
 
       var s := TumblerSub.TumblerSub(r, w);
       assert Length(s) == k;
