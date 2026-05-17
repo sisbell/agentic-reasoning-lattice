@@ -9,13 +9,13 @@ include "./StrictIncrease.dfy"
 
 module SpanWellDefinedness {
   import opened CarrierSetDefinition
-  import opened PositiveTumbler
-  import opened ActionPoint
-  import opened TumblerAdd
-  import opened LexicographicOrder
-  import opened WellDefinedAddition
-  import opened StrictIncrease
-  import opened Span
+  import PT = PositiveTumbler
+  import AP = ActionPoint
+  import TA = TumblerAdd
+  import LO = LexicographicOrder
+  import WDA = WellDefinedAddition
+  import SI = StrictIncrease
+  import SP = Span
   import opened NatStrictTotalOrder
   import opened NatCarrierSet
 
@@ -24,9 +24,9 @@ module SpanWellDefinedness {
   // reduce to < chains via the < ∨ = decomposition.
   lemma LexicographicTransitive(a: Tumbler, b: Tumbler, c: Tumbler)
     requires InT(a) && InT(b) && InT(c)
-    requires LexicographicOrder(a, b)
-    requires LexicographicOrder(b, c)
-    ensures LexicographicOrder(a, c)
+    requires LO.LexicographicOrder(a, b)
+    requires LO.LexicographicOrder(b, c)
+    ensures LO.LexicographicOrder(a, c)
   {
     var j :| 1 <= j
           && (forall i :: 1 <= i < j ==>
@@ -72,7 +72,6 @@ module SpanWellDefinedness {
       assert Less(Component(a, m), Component(c, m));
     } else {
       // j == k == m.
-      // Both witnesses agree, but cases interact.
       if j <= Length(a) && j <= Length(b) && Less(Component(a, j), Component(b, j)) {
         if k <= Length(b) && k <= Length(c) && Less(Component(b, k), Component(c, k)) {
           Transitive(Component(a, m), Component(b, m), Component(c, m));
@@ -98,31 +97,31 @@ module SpanWellDefinedness {
   // T12 — SpanWellDefinedness
   lemma SpanWellDefinedness(s: Tumbler, l: Tumbler)
     requires InT(s) && InT(l)
-    requires PositiveTumbler(l)
-    requires ActionPoint(l) <= Length(s)
+    requires PT.PositiveTumbler(l)
+    requires AP.ActionPoint(l) <= Length(s)
     // (a) Endpoint exists in T
-    ensures InT(TumblerAdd(s, l))
+    ensures InT(TA.TumblerAdd(s, l))
     // (b) s ∈ span(s, ℓ)
-    ensures s in Span(s, l)
+    ensures s in SP.Span(s, l)
     // (c) Order convexity: a ≤ b ≤ c with a, c ∈ span implies b ∈ span
     ensures forall a, b, c ::
               InT(a) && InT(b) && InT(c) &&
-              a in Span(s, l) && c in Span(s, l) &&
-              (a == b || LexicographicOrder(a, b)) &&
-              (b == c || LexicographicOrder(b, c))
-              ==> b in Span(s, l)
+              a in SP.Span(s, l) && c in SP.Span(s, l) &&
+              (a == b || LO.LexicographicOrder(a, b)) &&
+              (b == c || LO.LexicographicOrder(b, c))
+              ==> b in SP.Span(s, l)
   {
     // (a) follows from WellDefinedAddition
-    WellDefinedAddition(s, l);
+    WDA.WellDefinedAddition(s, l);
     // (b) follows from StrictIncrease — s < s ⊕ l, and s == s
-    StrictIncrease(s, l);
+    SI.StrictIncrease(s, l);
     // (c) Order convexity: bridge via transitivity for each (a, b, c) triple
     forall a, b, c |
               InT(a) && InT(b) && InT(c) &&
-              a in Span(s, l) && c in Span(s, l) &&
-              (a == b || LexicographicOrder(a, b)) &&
-              (b == c || LexicographicOrder(b, c))
-      ensures b in Span(s, l)
+              a in SP.Span(s, l) && c in SP.Span(s, l) &&
+              (a == b || LO.LexicographicOrder(a, b)) &&
+              (b == c || LO.LexicographicOrder(b, c))
+      ensures b in SP.Span(s, l)
     {
       // We need: (b == s || s < b) and b < s ⊕ l.
       // First clause: s ≤ a (from a ∈ Span) and a ≤ b.
@@ -130,11 +129,11 @@ module SpanWellDefinedness {
         // s == a, so a ≤ b gives s == b or s < b directly.
       } else {
         // s < a from membership of a in Span.
-        assert LexicographicOrder(s, a);
+        assert LO.LexicographicOrder(s, a);
         if a == b {
           // s < a == b.
         } else {
-          assert LexicographicOrder(a, b);
+          assert LO.LexicographicOrder(a, b);
           LexicographicTransitive(s, a, b);
         }
       }
@@ -142,9 +141,9 @@ module SpanWellDefinedness {
       if b == c {
         // b == c < s ⊕ l.
       } else {
-        assert LexicographicOrder(b, c);
-        assert LexicographicOrder(c, TumblerAdd(s, l));
-        LexicographicTransitive(b, c, TumblerAdd(s, l));
+        assert LO.LexicographicOrder(b, c);
+        assert LO.LexicographicOrder(c, TA.TumblerAdd(s, l));
+        LexicographicTransitive(b, c, TA.TumblerAdd(s, l));
       }
     }
   }
