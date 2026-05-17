@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import signal
 import sys
 import time
 from pathlib import Path
@@ -37,6 +38,38 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib import triggers as triggers_module
 from lib.runner import Scope, Trigger, run_until_quiescent
+from lib.runner.run import request_shutdown, shutdown_requested
+
+
+def _install_shutdown_handlers() -> None:
+    """Trap SIGTERM and SIGINT to request graceful shutdown.
+
+    Sets the runner's shutdown event so `run_until_quiescent` exits
+    cleanly after the current fire completes — agent finishes its
+    LLM call, retraction emits in `finally`, commit step flushes the
+    worker buffer. Subsequent fires are skipped.
+
+    Operator usage:
+      kill <scheduler-pid>     # SIGTERM, graceful
+      Ctrl-C                   # SIGINT, graceful
+      kill -9 <scheduler-pid>  # SIGKILL, hard (no graceful path)
+
+    A second SIGTERM/SIGINT after the first re-enters this handler —
+    the event is already set, so the runner still finishes the
+    current fire before exiting. Use SIGKILL if you need to abort
+    mid-fire.
+    """
+    def _handler(signum, _frame):
+        sig_name = signal.Signals(signum).name
+        print(
+            f"\n  [NOTE-SCHED] {sig_name} received — finishing current "
+            f"fire then exiting (use SIGKILL to abort sooner)",
+            file=sys.stderr,
+        )
+        request_shutdown()
+
+    signal.signal(signal.SIGTERM, _handler)
+    signal.signal(signal.SIGINT, _handler)
 
 
 NOTE_CYCLE_TRIGGER_NAMES = (
@@ -171,6 +204,8 @@ def _active_notes_topo_sorted() -> list[str]:
 
 
 def main() -> int:
+    _install_shutdown_handlers()
+
     parser = argparse.ArgumentParser(
         prog="note-scheduler",
         description=(
@@ -312,6 +347,16 @@ def main() -> int:
             if not result.quiescent:
                 inner_capped.add(asn_label)
                 fired_any = True
+            if result.shutdown:
+                elapsed = time.time() - overall_start
+                print(
+                    f"\n  [NOTE-SCHED] graceful shutdown after "
+                    f"{len(result.fires)} fire(s) on {asn_label}; "
+                    f"total_fires={total_fires} "
+                    f"errors={len(total_errors)} ({elapsed:.0f}s)",
+                    file=sys.stderr,
+                )
+                return 0 if not total_errors else 1
         if not fired_any:
             elapsed = time.time() - overall_start
             print(

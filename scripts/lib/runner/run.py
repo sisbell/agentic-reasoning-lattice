@@ -25,6 +25,7 @@ revisions. Until cascade-aware predicates exist, callers mitigate via
 from __future__ import annotations
 
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Callable
@@ -45,12 +46,44 @@ def _default_session_factory() -> Session:
     return open_session(LATTICE)
 
 
+# ---------------------------------------------------------------------------
+# Graceful shutdown coordination.
+#
+# `request_shutdown()` flips a module-level Event that `run_until_quiescent`
+# checks between fires. Callers (typically `note-scheduler.py`'s signal
+# handler) invoke this on SIGTERM / SIGINT. The current fire completes
+# normally — agent finishes its LLM call, retraction lands in `finally`,
+# commit step flushes the worker buffer — and the runner returns from its
+# scope loop on the next iteration, before starting another fire.
+#
+# To clear the request (e.g., for tests that exercise the path), call
+# `clear_shutdown()`. Most callers don't need this.
+
+_shutdown_event = threading.Event()
+
+
+def request_shutdown() -> None:
+    """Signal `run_until_quiescent` to exit after the current fire."""
+    _shutdown_event.set()
+
+
+def clear_shutdown() -> None:
+    """Reset the shutdown flag. Mainly for tests."""
+    _shutdown_event.clear()
+
+
+def shutdown_requested() -> bool:
+    """True iff `request_shutdown()` has been called and not cleared."""
+    return _shutdown_event.is_set()
+
+
 @dataclass
 class RunResult:
     quiescent: bool
     iterations: int
     fires: list[tuple[str, str]] = field(default_factory=list)
     errors: list[tuple[str, str, str]] = field(default_factory=list)
+    shutdown: bool = False
 
 
 def run_until_quiescent(
@@ -132,6 +165,21 @@ def run_until_quiescent(
                             )
                             paths = None
                     commit_after_fire(trigger.name, str(addr), paths)
+                # Graceful-shutdown check. The fire has fully completed
+                # (agent ran to return, retraction emitted in finally,
+                # commit landed). Returning here leaves substrate in a
+                # consistent state with no dangling holds or unflushed
+                # buffers.
+                if _shutdown_event.is_set():
+                    print(
+                        f"  [RUNNER] shutdown requested — exiting after "
+                        f"{len(fires)} fire(s)",
+                        file=sys.stderr,
+                    )
+                    return RunResult(
+                        quiescent=False, iterations=iteration,
+                        fires=fires, errors=errors, shutdown=True,
+                    )
                 session = session_factory()
         if not fired_this_pass:
             return RunResult(
