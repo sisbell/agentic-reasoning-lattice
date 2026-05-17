@@ -175,4 +175,23 @@ module ZeroPaddedDivergence {
       FirstPaddedMismatchAdvance(a, w, Length(a) + 1, L + 1, L);
     }
   }
+
+  // Relationship to Divergence — case (ii) sub-case (γ): #w < #a, dual to (β).
+  // Swap operands and reduce via ZeroPaddedDivergenceSymmetric and
+  // Divergence.DivergenceSymmetric.
+  lemma ZeroPaddedDivergenceCaseIIGamma(a: Tumbler, w: Tumbler)
+    requires InT(a) && InT(w)
+    requires a != w
+    requires Length(w) < Length(a)
+    requires forall i :: 1 <= i <= Length(w) ==> Component(a, i) == Component(w, i)
+    ensures (exists i :: Length(w) < i <= Length(a) && Component(a, i) != 0)
+              ==> (ZeroPaddedDivergence(a, w) != 0
+                   && ZeroPaddedDivergence(a, w) >= Divergence.Divergence(a, w))
+    ensures (forall i :: Length(w) < i <= Length(a) ==> Component(a, i) == 0)
+              ==> ZeroPaddedDivergence(a, w) == 0
+  {
+    ZeroPaddedDivergenceCaseIIBeta(w, a);
+    ZeroPaddedDivergenceSymmetric(a, w);
+    Divergence.DivergenceSymmetric(a, w);
+  }
 }
