@@ -49,6 +49,11 @@ module SyntacticEquivalence {
     (forall i :: 0 <= i < |s| - 1 ==> !(s[i] == 0 && s[i+1] == 0))
   }
 
+  // The first segment of FieldSegments(s) is empty iff |s|==0 or s[0]==0.
+  lemma FirstSegmentEmpty(s: seq<Carrier>)
+    ensures |FieldSegments(s)[0]| == 0 <==> |s| == 0 || s[0] == 0
+  { }
+
   // Inductive characterization: positional constraint ⟺ every segment non-empty.
   lemma SegmentsCharacterization(s: seq<Carrier>)
     requires |s| >= 1
@@ -56,10 +61,24 @@ module SyntacticEquivalence {
     decreases |s|
   {
     if |s| == 1 {
-      // Base case: single component.
+      // Base case handled by solver from the function unfolding.
+    } else if s[0] == 0 {
+      // FieldSegments(s)[0] == [], so AllFieldSegmentsNonEmpty(s) false.
+      // PositionalConstraint(s) requires s[0] != 0, so false.
+      assert FieldSegments(s)[0] == [];
     } else {
-      // |s| >= 2; recurse on s[1..] which has length >= 1.
+      // |s| >= 2 and s[0] != 0.
+      var rest := FieldSegments(s[1..]);
+      var segs := FieldSegments(s);
+      assert segs == [[s[0]] + rest[0]] + rest[1..];
+      assert |segs| == |rest|;
+      assert segs[0] == [s[0]] + rest[0];
+      assert |segs[0]| >= 1;
+      assert forall k :: 1 <= k < |segs| ==> segs[k] == rest[k];
+
       SegmentsCharacterization(s[1..]);
+      FirstSegmentEmpty(s[1..]);
+      // s[1..] is non-empty, so rest[0] is empty iff s[1] == 0.
     }
   }
 
@@ -69,7 +88,8 @@ module SyntacticEquivalence {
             AllFieldSegmentsNonEmpty(t.components)
   {
     SegmentsCharacterization(t.components);
-    assert PositionalConstraint(t.components) <==>
-           FieldSegmentConstraint(t);
+    // Bridge Tumbler/seq indexing:
+    // Component(t, i) == t.components[i-1] and Length(t) == |t.components|.
+    assert FieldSegmentConstraint(t) <==> PositionalConstraint(t.components);
   }
 }
