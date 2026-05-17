@@ -34,15 +34,35 @@ module EnumerationInjectivity {
   lemma StrictMonotonicity(a: Allocator, m: nat, n: nat)
     requires AllocatorDiscipline.AllocatorDiscipline(a)
     requires m < n
+    ensures InT(SiblingAt(a, m))
+    ensures InT(SiblingAt(a, n))
     ensures LexicographicOrder.LexicographicOrder(
               SiblingAt(a, m), SiblingAt(a, n))
     decreases n - m
-  { }
+  {
+    SiblingInT(a, m);
+    SiblingInT(a, n);
+    if n == m + 1 {
+    } else {
+      StrictMonotonicity(a, m, n - 1);
+      SiblingInT(a, n - 1);
+      SpanWellDefinedness.LexicographicTransitive(
+        SiblingAt(a, m), SiblingAt(a, n - 1), SiblingAt(a, n));
+    }
+  }
 
   // T10a.7: distinct indices produce distinct addresses.
   lemma EnumerationInjectivity(a: Allocator, m: nat, n: nat)
     requires AllocatorDiscipline.AllocatorDiscipline(a)
     requires m != n
     ensures SiblingAt(a, m) != SiblingAt(a, n)
-  { }
+  {
+    if m < n {
+      StrictMonotonicity(a, m, n);
+      LexImpliesNotEqual(SiblingAt(a, m), SiblingAt(a, n));
+    } else {
+      StrictMonotonicity(a, n, m);
+      LexImpliesNotEqual(SiblingAt(a, n), SiblingAt(a, m));
+    }
+  }
 }
