@@ -71,19 +71,26 @@ module TumblerAdd {
     if j == 0 then
       // Equality branch: every component of a in [1, k] is zero.
       assert forall i :: 1 <= i <= k ==> Component(a, i) == 0;
-      // a.components[0..k-1] are all zero (just a reformulation of the above).
-      assert forall p :: 0 <= p < k ==> a.components[p] == 0;
-      // w.components[0..k-2] are all zero (ActionPoint: w_i = 0 for i < k).
-      assert forall p :: 0 <= p < k - 1 ==> w.components[p] == 0;
-      // Hence a.components[..k-1] equals w.components[..k-1] (both all zero).
+      // Restate using 0-indexed seq access (Component(a, i) := a.components[i-1]).
+      assert forall p :: 0 <= p <= k - 1 ==> a.components[p] == Component(a, p + 1) == 0;
+      // ActionPoint: w_i = 0 for 1 <= i < k.
+      assert forall p :: 0 <= p < k - 1 ==> w.components[p] == Component(w, p + 1) == 0;
+      // Hence a.components[..k-1] equals w.components[..k-1] (both are zero seqs of length k-1).
+      assert |a.components[..k-1]| == k - 1 == |w.components[..k-1]|;
+      assert forall p :: 0 <= p < k - 1 ==>
+        a.components[..k-1][p] == a.components[p] == 0 == w.components[p] == w.components[..k-1][p];
       assert a.components[..k-1] == w.components[..k-1];
       // a.components[k-1] + w.components[k-1] = 0 + w.components[k-1] = w.components[k-1].
+      assert a.components[k-1] == 0;
       assert a.components[k-1] + w.components[k-1] == w.components[k-1];
       // Reassemble w from its three pieces.
       assert w.components == w.components[..k-1]
                             + [w.components[k-1]]
                             + w.components[k..];
-      // Reassemble result by definition; pieces match those of w.
+      // result by definition; pieces match those of w.
+      assert result.components == a.components[..k-1]
+                                  + [a.components[k-1] + w.components[k-1]]
+                                  + w.components[k..];
       assert result.components == w.components[..k-1]
                                   + [w.components[k-1]]
                                   + w.components[k..];
@@ -94,7 +101,6 @@ module TumblerAdd {
       assert 1 <= j <= k;
       assert Component(a, j) != 0;
       assert forall i :: 1 <= i < j ==> Component(a, i) == 0;
-      assert forall i :: 1 <= i < j ==> i < k;
       assert forall i :: 1 <= i < j ==> Component(result, i) == Component(a, i) == 0;
       assert forall i :: 1 <= i < j ==> Component(w, i) == 0;
       assert forall i :: 1 <= i < j ==>
