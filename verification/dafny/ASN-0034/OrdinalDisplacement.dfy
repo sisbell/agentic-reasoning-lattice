@@ -20,6 +20,8 @@ module OrdinalDisplacement {
     ensures PositiveTumbler.PositiveTumbler(OrdinalDisplacement(n, m))
     ensures ActionPoint.ActionPoint(OrdinalDisplacement(n, m)) == m
   {
-    Tumbler(seq(m - 1, _ => 0 as Carrier) + [n])
+    var t := Tumbler(seq(m - 1, _ => 0 as Carrier) + [n]);
+    assert Component(t, m) == n;
+    t
   }
 }
