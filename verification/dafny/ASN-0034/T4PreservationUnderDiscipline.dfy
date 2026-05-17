@@ -15,7 +15,7 @@ module T4PreservationUnderDiscipline {
   // Strengthened hypothesis: every sibling in dom(a) is T4-valid.
   // Induction on (a, n) lexicographically.
   lemma SiblingT4(a: Allocator, n: nat)
-    requires AllocatorDiscipline(a)
+    requires AllocatorDiscipline.AllocatorDiscipline(a)
     ensures InT(SiblingAt(a, n))
     ensures HierarchicalParsing.HierarchicalParsing(SiblingAt(a, n))
     decreases a, n
@@ -37,7 +37,7 @@ module T4PreservationUnderDiscipline {
 
   // T10a.4: every t ∈ dom(a) is T4-valid.
   lemma T4PreservationUnderDiscipline(a: Allocator, t: Tumbler)
-    requires AllocatorDiscipline(a)
+    requires AllocatorDiscipline.AllocatorDiscipline(a)
     requires InDomain(t, a)
     ensures InT(t)
     ensures HierarchicalParsing.HierarchicalParsing(t)
