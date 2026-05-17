@@ -43,7 +43,7 @@ from lib.lattice.labels import (
 from lib.predicates import has_resolution
 from lib.protocols.febe.protocol import Session
 from lib.protocols.febe.session import open_session
-from lib.shared.paths import CLAIM_DIR, LATTICE, WORKSPACE, prompt_path
+from lib.shared.paths import LATTICE, WORKSPACE, prompt_path
 from lib.shared.invoke_claude import invoke_claude_agent
 
 
@@ -771,6 +771,7 @@ class ClaimStructuralReviseAgent(Agent):
     """
 
     role: ClassVar[str] = "claim-structural-revise"
+    node: ClassVar[str] = "1.3"
 
     def run(self, session: Session, claim_addr: Address) -> AgentResult:
         claim_rel = session.get_path_for_addr(claim_addr)
@@ -782,7 +783,7 @@ class ClaimStructuralReviseAgent(Agent):
             return AgentResult(success=False, detail="unparseable-claim-path")
         asn_label, claim_label, asn_num = parsed
 
-        claim_dir = CLAIM_DIR / asn_label
+        claim_dir = self.claim_dir / asn_label
         if not claim_dir.exists():
             return AgentResult(success=False, detail="no-claim-dir")
 

@@ -30,10 +30,11 @@ from __future__ import annotations
 import fcntl
 import json
 import os
+import re
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from .addressing import Address
 from .links import Link
@@ -42,6 +43,38 @@ from .state import State, TypeArg
 
 
 _REGISTER_PATH_LOCK_FILE = ".register_path.lock"
+
+# Path-prefix regex for substrate auto-routing. Lattice docs live at
+# `_docuverse/documents/<node>/<user>/...` where <node> is a
+# dot-separated address head (`1.1`, `1.3`, …) and <user> is one or
+# more digits (`1`). register_path uses this to pick the right doc
+# allocator from `State._doc_allocators` — emissions at `1.3/1/...`
+# allocate from the (1.3, 1) account instead of the primary one.
+_NODE_USER_PATH_RE = re.compile(
+    r"^_docuverse/documents/([0-9]+(?:\.[0-9]+)*)/([0-9]+)/"
+)
+
+
+def _parse_node_user_from_path(path: str) -> Optional[Tuple[str, str]]:
+    """Extract `(node, user)` from a substrate-relative path.
+
+    Returns None if the path doesn't match the substrate doc layout —
+    such paths fall back to the primary account's allocator.
+    """
+    m = _NODE_USER_PATH_RE.match(path)
+    if m is None:
+        return None
+    return m.group(1), m.group(2)
+
+
+def _account_from_node_user(node: str, user: str) -> Address:
+    """Build the user-level account address for a (node, user) pair.
+
+    The substrate's account = `<node>.0.<user>`, e.g. ("1.1", "1") →
+    `1.1.0.1`. Always has `zeros()==1` (one zero separator between
+    node and user fields).
+    """
+    return Address(f"{node}.0.{user}")
 
 
 @contextmanager
@@ -246,8 +279,13 @@ class Store:
             self._refresh_path_map_from_disk()
             if path in self.path_to_addr:
                 return self.path_to_addr[path]
+            # Auto-route: pick the doc allocator for this path's
+            # (node, user) prefix. Falls back to the primary allocator
+            # for paths that don't match the standard substrate layout
+            # (legacy or test paths).
+            allocator = self._doc_allocator_for_path(path)
             # Allocate doc address without auto-emitting any classifier
-            addr = self.state._emit(self.state.doc_allocator)
+            addr = self.state._emit(allocator)
             self.state._set_parent(addr, None)
             self.state.kind[addr] = "doc"
             self.state.content[addr] = ""
@@ -263,6 +301,22 @@ class Store:
                 type_="lattice",
             )
             return addr
+
+    def _doc_allocator_for_path(self, path: str):
+        """Return the State doc allocator for a path's (node, user).
+
+        Parses the substrate-relative path prefix; on match, asks State
+        for the corresponding account's allocator (creating one on
+        first request). On no match, returns State's primary allocator
+        — preserves single-account behavior for paths outside the
+        `_docuverse/documents/<node>/<user>/...` layout.
+        """
+        nu = _parse_node_user_from_path(path)
+        if nu is None:
+            return self.state.doc_allocator
+        node, user = nu
+        account = _account_from_node_user(node, user)
+        return self.state.get_or_create_doc_allocator(account)
 
     def _refresh_path_map_from_disk(self) -> None:
         """Re-read paths.json and absorb any new path→addr mappings.
@@ -459,37 +513,74 @@ class Store:
         from .predicates import active_links as _active_links
         from .state import link_subspace_base
 
-        active_base_len = len(self.state.doc_allocator.base.digits)
-        # Account user-prefix: doc_allocator.base is inc(account, 2) =
-        # account.digits + (0, 1). Strip the trailing (0, 1) to get the
-        # account user-address. The user-prefix that account-owned doc
-        # addresses begin with is account.digits + (0,).
-        account_prefix = self.state.doc_allocator.base.digits[:-1]
+        # First pass: discover every (node, user) account that has at
+        # least one registered path, and create its allocator. Walks
+        # path_to_addr so docs registered to paths_json — even ones
+        # without links emitted yet — count toward allocator
+        # provisioning.
+        seen_accounts: set[Address] = set()
+        for path in self.path_to_addr:
+            nu = _parse_node_user_from_path(path)
+            if nu is None:
+                continue
+            account = _account_from_node_user(*nu)
+            if account not in seen_accounts:
+                seen_accounts.add(account)
+                # Ensures the allocator dict has an entry for this
+                # account. Cursor advancement happens in the second
+                # pass below.
+                self.state.get_or_create_doc_allocator(account)
 
-        max_doc_position = 0
+        # Build a map from each known account → its doc allocator's
+        # base prefix (used for matching addresses to accounts in the
+        # link scan below). `base.digits == account.digits + (0, 1)`,
+        # so the user-prefix on doc addresses is `base.digits[:-1]`.
+        account_prefixes: dict[tuple, Allocator] = {
+            allocator.base.digits[:-1]: allocator
+            for allocator in self.state._doc_allocators.values()
+        }
+        active_base_len = len(self.state.doc_allocator.base.digits)
+        # Track high-water mark per allocator. Each entry maps a
+        # user-prefix tuple → max position seen at that prefix.
+        max_pos_per_account: dict[tuple, int] = {
+            prefix: 0 for prefix in account_prefixes
+        }
+
         for link in self.state.links:
             for endset in (link.from_set, link.to_set, (link.addr,)):
                 for a in endset:
-                    if a.zeros() == 2:
-                        # Doc address — register under doc_allocator
-                        self.state._owner.setdefault(a, self.state.doc_allocator)
-                        # Track high-water mark only for docs in the
-                        # active account's subspace (same prefix +
-                        # length).
-                        if (
-                            len(a.digits) == active_base_len
-                            and a.digits[:-1] == account_prefix
-                        ):
-                            max_doc_position = max(max_doc_position, a.digits[-1])
+                    if a.zeros() != 2:
+                        continue
+                    # Doc address — assign owner based on its prefix.
+                    if (
+                        len(a.digits) == active_base_len
+                        and a.digits[:-1] in account_prefixes
+                    ):
+                        owner_allocator = account_prefixes[a.digits[:-1]]
+                        self.state._owner.setdefault(a, owner_allocator)
+                        max_pos_per_account[a.digits[:-1]] = max(
+                            max_pos_per_account[a.digits[:-1]],
+                            a.digits[-1],
+                        )
+                    else:
+                        # Doc address outside any known account's
+                        # subspace — fall back to primary allocator
+                        # for ownership (matches legacy behavior;
+                        # tracking these doesn't advance any cursor).
+                        self.state._owner.setdefault(
+                            a, self.state.doc_allocator,
+                        )
 
-        # Advance doc_allocator's cursor past all known docs so future
-        # create_doc calls don't collide.
-        if max_doc_position > 0:
-            from .addressing import inc
-            target = Address(
-                self.state.doc_allocator.base.digits[:-1] + (max_doc_position + 1,)
-            )
-            self.state.doc_allocator._cursor = target
+        # Advance each allocator's cursor past its account's known
+        # high-water mark.
+        from .addressing import inc
+        for prefix, max_pos in max_pos_per_account.items():
+            if max_pos > 0:
+                allocator = account_prefixes[prefix]
+                target = Address(
+                    allocator.base.digits[:-1] + (max_pos + 1,)
+                )
+                allocator._cursor = target
 
         # Per-homedoc link allocators
         for link in self.state.links:

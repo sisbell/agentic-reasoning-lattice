@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 from lib.runner import Scope, run_until_quiescent
-from lib.shared.paths import CLAIM_DIR
+from lib.shared.paths import CLAIM_DIR  # default base; callers may override
 
 
 _SCRIPTS = Path(__file__).resolve().parent.parent.parent
@@ -39,8 +39,9 @@ def _load(name, path):
 VALIDATE = _load("claim_validate", _SCRIPTS / "claim-validate.py")
 
 
-def _run_validator(asn_label):
-    claim_dir = CLAIM_DIR / asn_label
+def _run_validator(asn_label, claim_base_dir=None):
+    base = Path(claim_base_dir) if claim_base_dir is not None else CLAIM_DIR
+    claim_dir = base / asn_label
     pairs = VALIDATE.load_pairs(claim_dir)
     return VALIDATE.run_all_checks(pairs, claim_dir=claim_dir)
 
@@ -59,7 +60,9 @@ def _cycle_findings(findings, scope_labels):
     return out
 
 
-def run_validate_gate(asn_label, scope_labels=None, max_iterations=3):
+def run_validate_gate(
+    asn_label, scope_labels=None, max_iterations=3, claim_base_dir=None,
+):
     """Run the structural-fix trigger over scope until clean.
 
     The runner walks ClaimStructuralReviseAgent over claims in scope;
@@ -101,7 +104,9 @@ def run_validate_gate(asn_label, scope_labels=None, max_iterations=3):
             )
         return "failed"
 
-    cycles = _cycle_findings(_run_validator(asn_label), scope_labels)
+    cycles = _cycle_findings(
+        _run_validator(asn_label, claim_base_dir), scope_labels,
+    )
     if cycles:
         print(
             f"  [GATE] {len(cycles)} cycle finding(s) in scope "

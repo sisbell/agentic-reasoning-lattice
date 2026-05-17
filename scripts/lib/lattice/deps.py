@@ -25,7 +25,7 @@ from lib.backend.predicates import active_links
 from lib.predicates import current_contract_kind
 
 
-def build_deps_for_asn(asn_num):
+def build_deps_for_asn(asn_num, claim_base_dir=None):
     """Build the per-ASN dependency dict from substrate state.
 
     Returns a dict {asn, depends, claims}, or None on failure.
@@ -35,7 +35,8 @@ def build_deps_for_asn(asn_num):
         print(f"  [ERROR] {format_label(asn_num)} not found", file=sys.stderr)
         return None
 
-    claim_dir = CLAIM_DIR / asn_label
+    base = claim_base_dir if claim_base_dir is not None else CLAIM_DIR
+    claim_dir = base / asn_label
     depends = claim_asn_dep_ids(asn_num)
     metadata = load_claim_metadata(claim_dir) if claim_dir.exists() else {}
 

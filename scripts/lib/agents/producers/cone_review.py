@@ -44,7 +44,7 @@ from lib.lattice.labels import build_cross_asn_label_index
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
-from lib.shared.paths import CLAIM_DIR, CLAIM_REVIEWS_DIR, next_review_number
+from lib.shared.paths import CLAIM_REVIEWS_DIR, next_review_number
 from lib.shared.validate_gate import run_validate_gate
 
 
@@ -56,12 +56,12 @@ _FORWARD_HEADER = "- *Forward References:*"
 # ─── Cone scope: transitive deps + content assembly ─────────────────
 
 
-def assemble_cone(asn_label, apex_label, dep_labels):
+def assemble_cone(asn_label, apex_label, dep_labels, claim_base_dir):
     """Assemble just the cone claims for focused review.
 
     Returns concatenated text of apex + same-ASN dependency claims.
     """
-    claim_dir = CLAIM_DIR / asn_label
+    claim_dir = claim_base_dir / asn_label
     label_index = build_label_index(claim_dir)
     parts = []
 
@@ -341,6 +341,7 @@ class ConeReviewAgent(Agent):
     """
 
     role: ClassVar[str] = "cone-review"
+    node: ClassVar[str] = "1.3"
 
     def run(self, session: Session, addr: Address) -> AgentResult:
         ctx = claim_context_from_addr(session, addr)
@@ -368,6 +369,7 @@ class ConeReviewAgent(Agent):
         gate_scope = {ctx.label} | set(dep_labels)
         gate_result = run_validate_gate(
             ctx.asn_label, scope_labels=gate_scope,
+            claim_base_dir=self.claim_dir,
         )
         if gate_result != "clean":
             print(
@@ -385,7 +387,9 @@ class ConeReviewAgent(Agent):
         previous_findings = previously_declined_findings(session, cone_addrs)
 
         # 3. Assemble + review.
-        cone_content = assemble_cone(ctx.asn_label, ctx.label, dep_labels)
+        cone_content = assemble_cone(
+            ctx.asn_label, ctx.label, dep_labels, self.claim_dir,
+        )
         verdict, findings_text, elapsed = run_review(
             ctx.asn_num, cone_content, ctx.asn_label, previous_findings,
             model=CONE_MODEL, foundation_labels=cross_asn_deps,

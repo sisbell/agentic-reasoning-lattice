@@ -27,6 +27,7 @@ from __future__ import annotations
 import re
 import sys
 import time
+from pathlib import Path
 from typing import ClassVar, List, Tuple
 
 from lib.agents.base import Agent, AgentResult
@@ -36,7 +37,7 @@ from lib.lattice.attributes import attest_attribute
 from lib.lattice.labels import extract_label_digits, format_label
 from lib.protocols.febe.protocol import Session
 from lib.shared.invoke_claude import parallel_llm_calls
-from lib.shared.paths import CLAIM_DIR, WORKSPACE
+from lib.shared.paths import WORKSPACE
 
 
 # Sections that are structural — no LLM analysis needed.
@@ -197,9 +198,18 @@ class ClaimDecomposeAgent(Agent):
     statements sidecar (if any).
 
     Producer caste: grants new substrate identity to each claim doc.
+
+    Emit region: claim derivation writes to its own (node, user)
+    region — `1.3/1` for xanadu's claim work. The address-space
+    partition keeps claim emissions isolated from the note region
+    (`1.1/1`) so the runner can process notes and a derive-claims
+    operator script can run concurrently without allocator contention.
+    Substrate auto-routes by path prefix; this class just declares
+    its target dir via `claim_dir`.
     """
 
     role: ClassVar[str] = "claim-decompose"
+    node: ClassVar[str] = "1.3"
 
     def run(self, session: Session, note_addr: Address) -> AgentResult:
         note_path_rel = session.get_path_for_addr(note_addr)
@@ -320,7 +330,7 @@ class ClaimDecomposeAgent(Agent):
 
         store = session.store
         lattice_root = store.lattice_dir.resolve()
-        claims_dir = CLAIM_DIR / asn_label
+        claims_dir = self.claim_dir / asn_label
         claims_dir.mkdir(parents=True, exist_ok=True)
 
         seen_labels: set[str] = set()

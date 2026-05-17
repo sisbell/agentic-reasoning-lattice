@@ -14,6 +14,7 @@ from __future__ import annotations
 import re
 
 from lib.backend.addressing import Address
+from lib.backend.store import _parse_node_user_from_path
 from lib.lattice.labels import label_pattern
 from lib.protocols.febe.protocol import Session
 from lib.shared.paths import (
@@ -28,6 +29,29 @@ def _asn_label_from_path(path: str) -> str | None:
         return None
     m = label_pattern().search(path)
     return m.group(0) if m else None
+
+
+def _claim_subdir_rel(path: str, kind: str, asn_label: str) -> str:
+    """Build the WORKSPACE-relative claim/review/finding subdir for `path`'s
+    (node, user) region.
+
+    `kind` ∈ {"claim", "review/claims", "finding/claims"}. The (node, user)
+    prefix is parsed from the substrate path so commit paths track the
+    actual region the addr lives in (e.g., 1.3/1 for claim-derivation
+    work), not the lattice default.
+    """
+    nu = _parse_node_user_from_path(path) if path else None
+    if nu is None:
+        # Fall back to lattice defaults for non-prefixed paths.
+        defaults = {
+            "claim": CLAIM_DIR,
+            "review/claims": CLAIM_REVIEWS_DIR,
+            "finding/claims": CLAIM_FINDINGS_DIR,
+            "finding/notes": NOTE_FINDINGS_DIR,
+        }
+        return str((defaults[kind] / asn_label).relative_to(WORKSPACE))
+    node, user = nu
+    return f"_docuverse/documents/{node}/{user}/{kind}/{asn_label}"
 
 
 def per_claim_commit_paths(
@@ -61,7 +85,7 @@ def per_claim_commit_paths(
         stem = stem[:-3]
     # If this is a sidecar (label.attr), take just the label part
     label = stem.split(".", 1)[0]
-    asn_dir_rel = str((CLAIM_DIR / asn_label).relative_to(WORKSPACE))
+    asn_dir_rel = _claim_subdir_rel(claim_path, "claim", asn_label)
     return [
         f"{asn_dir_rel}/{label}.md",
         f"{asn_dir_rel}/{label}.description.md",
@@ -88,8 +112,8 @@ def per_asn_claim_review_paths(
     if asn_label is None:
         return []
     return [
-        str((CLAIM_REVIEWS_DIR / asn_label).relative_to(WORKSPACE)),
-        str((CLAIM_FINDINGS_DIR / asn_label).relative_to(WORKSPACE)),
+        _claim_subdir_rel(path, "review/claims", asn_label),
+        _claim_subdir_rel(path, "finding/claims", asn_label),
     ]
 
 
@@ -112,8 +136,8 @@ def per_review_finding_paths(
         return []
     return [
         path,  # the review doc itself (in case its body gets touched)
-        str((CLAIM_FINDINGS_DIR / asn_label).relative_to(WORKSPACE)),
-        str((NOTE_FINDINGS_DIR / asn_label).relative_to(WORKSPACE)),
+        _claim_subdir_rel(path, "finding/claims", asn_label),
+        _claim_subdir_rel(path, "finding/notes", asn_label),
     ]
 
 
@@ -130,7 +154,14 @@ def claims_aggregate_paths(
     asn_label = _asn_label_from_path(path) if path else None
     if asn_label is None:
         return []
-    asn_dir_rel = str((CLAIM_DIR / asn_label).relative_to(WORKSPACE))
+    # claims-statements-refresh writes the aggregate into the agent's
+    # region (claim_dir), not the note's region. Use the agent's class
+    # attrs to derive the aggregate's location.
+    from lib.agents.producers.claims_statements_refresh import (
+        ClaimsStatementsRefreshAgent,
+    )
+    agg_kind_dir = ClaimsStatementsRefreshAgent().claim_dir / asn_label
+    asn_dir_rel = str(agg_kind_dir.relative_to(WORKSPACE))
     return [f"{asn_dir_rel}/_statements.md"]
 
 

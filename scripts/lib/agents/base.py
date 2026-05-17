@@ -27,12 +27,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
+from pathlib import Path
+
 from lib.backend.addressing import Address
 from lib.backend.emit import emit_holding, emit_retraction
 from lib.predicates.agents import agent_scope_for, resolve_to_scope
 from lib.protocols.febe.protocol import Session
 from lib.provenance import agent_context
-from lib.shared.paths import agent_doc_path
+from lib.shared.paths import LATTICE_NODE, LATTICE_USER, WORKSPACE, agent_doc_path
 
 
 @dataclass
@@ -65,6 +67,37 @@ class Agent(ABC):
     """
 
     role: ClassVar[str]
+
+    # Emission region. Defaults to the lattice's primary (node, user)
+    # — the standard place where this lattice's content lives. Agents
+    # whose substrate output belongs in a different region override
+    # these class attributes (e.g., claim-derivation agents set
+    # `node = "1.3"` so claims emit at the claim region).
+    #
+    # The substrate auto-routes by path prefix; these attributes drive
+    # the path strings the agent constructs, not the routing itself.
+    # An agent that declared a node but wrote paths at the primary
+    # region's prefix would still emit at the primary region — the
+    # path is the source of truth. Use the `claim_dir` / `note_dir`
+    # helper properties to keep these aligned.
+    node: ClassVar[str] = LATTICE_NODE
+    user: ClassVar[str] = LATTICE_USER
+
+    @property
+    def claim_dir(self) -> Path:
+        """Lattice-rooted claim directory for this agent's region."""
+        return (
+            WORKSPACE / "_docuverse" / "documents"
+            / self.node / self.user / "claim"
+        )
+
+    @property
+    def note_dir(self) -> Path:
+        """Lattice-rooted note directory for this agent's region."""
+        return (
+            WORKSPACE / "_docuverse" / "documents"
+            / self.node / self.user / "note"
+        )
 
     def __call__(
         self, session: Session, addr: Address, **kwargs,

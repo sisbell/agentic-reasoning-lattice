@@ -30,8 +30,10 @@ from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, Trigger
 from lib.shared.claim_files import build_label_index
-from lib.shared.paths import CLAIM_DIR
+from lib.shared.paths import agent_doc_path
 from lib.shared.topological_sort import topological_levels
+
+_AGENT = ConeReviewAgent()
 
 
 CONE_MIN_DEPS = 4
@@ -47,12 +49,12 @@ def apex_labels_in_topological_order(
     expansion. Pure read; no side effects.
     """
     asn_num = int(asn_label[4:])
-    claim_dir = CLAIM_DIR / asn_label
+    claim_dir = _AGENT.claim_dir / asn_label
     if not claim_dir.exists():
         return []
 
     asn_labels_in_asn = set(build_label_index(claim_dir).keys())
-    deps_data = build_deps_for_asn(asn_num)
+    deps_data = build_deps_for_asn(asn_num, _AGENT.claim_dir)
     if not deps_data:
         return []
 
@@ -122,9 +124,7 @@ def _has_been_cone_reviewed(
     `review.coverage` to the claim, but only the cone-review-attributed
     one means the apex has received its focused per-cone treatment.
     """
-    cone_agent = session.get_addr_for_path(
-        "_docuverse/documents/agent/cone-review.md",
-    )
+    cone_agent = session.get_addr_for_path(agent_doc_path("cone-review"))
     if cone_agent is None:
         return False
     for cov in session.active_links(
@@ -185,7 +185,7 @@ cone_review = Trigger(
     name="cone-review",
     scope_query=_scope_query,
     predicate=_predicate,
-    agent=ConeReviewAgent(),
+    agent=_AGENT,
     supports_claim_filter=True,
     commit_paths=per_asn_claim_review_paths,
 )

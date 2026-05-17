@@ -20,6 +20,7 @@ from __future__ import annotations
 import re
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import ClassVar, Tuple
 
 from lib.agents.base import Agent, AgentResult
@@ -33,7 +34,7 @@ from lib.shared.common import find_asn
 from lib.shared.foundation import _extract_formal_contract
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
-    CLAIM_DIR, FORMAL_CONTRACT_DIR, LATTICE, claim_statements, prompt_path,
+    FORMAL_CONTRACT_DIR, LATTICE, claim_statements, prompt_path,
 )
 from lib.shared.prompts import read_prompt
 
@@ -145,14 +146,14 @@ def validate_contract(
     return True, ""
 
 
-def build_dep_context(asn_num: int, label: str) -> str:
+def build_dep_context(asn_num: int, label: str, claim_base_dir: Path) -> str:
     """Assemble dependency context for the synthesis prompt.
 
     Returns markdown text with same-ASN dependency bodies + cross-ASN
     foundation excerpts (from claim-statements transclusion files).
     Returns "(none)" when no deps resolve.
     """
-    deps_data = build_deps_for_asn(asn_num)
+    deps_data = build_deps_for_asn(asn_num, claim_base_dir)
     if not deps_data:
         return "(none)"
 
@@ -161,7 +162,7 @@ def build_dep_context(asn_num: int, label: str) -> str:
     all_labels = set(deps_data.get("claims", {}).keys())
 
     _, asn_label = find_asn(str(asn_num))
-    claim_dir = CLAIM_DIR / asn_label
+    claim_dir = claim_base_dir / asn_label
     label_index = build_label_index(claim_dir)
 
     dep_parts = []
@@ -271,6 +272,7 @@ class ClaimFormalContractAgent(Agent):
     """
 
     role: ClassVar[str] = "claim-formal-contract"
+    node: ClassVar[str] = "1.3"
 
     def __init__(
         self, *, model: str = SYNTHESIS_MODEL, max_cycles: int = MAX_CYCLES,
@@ -302,7 +304,7 @@ class ClaimFormalContractAgent(Agent):
         if has_formal_contract(section):
             return AgentResult(success=True, detail="skip:already-has-contract")
 
-        dep_text = build_dep_context(asn_num, claim_label)
+        dep_text = build_dep_context(asn_num, claim_label, self.claim_dir)
 
         final_response = ""
         review_detail = ""

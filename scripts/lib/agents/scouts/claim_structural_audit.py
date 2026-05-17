@@ -41,7 +41,7 @@ from lib.backend.emit import (
 from lib.protocols.febe.protocol import Session
 from lib.lattice.labels import parse_claim_doc_path
 from lib.shared.paths import (
-    CLAIM_AUDITS_DIR, CLAIM_DIR, CLAIM_FINDINGS_DIR, WORKSPACE,
+    CLAIM_AUDITS_DIR, CLAIM_FINDINGS_DIR, WORKSPACE,
     audit_doc_path, next_audit_number,
 )
 
@@ -62,8 +62,8 @@ def _load_validator():
 VALIDATOR = _load_validator()
 
 
-def _run_validator(asn_label: str) -> list:
-    claim_dir = CLAIM_DIR / asn_label
+def _run_validator(asn_label: str, claim_base_dir: Path) -> list:
+    claim_dir = claim_base_dir / asn_label
     pairs = VALIDATOR.load_pairs(claim_dir)
     return VALIDATOR.run_all_checks(pairs, claim_dir=claim_dir)
 
@@ -156,6 +156,7 @@ class ClaimStructuralAuditAgent(Agent):
     """
 
     role: ClassVar[str] = "claim-structural-audit"
+    node: ClassVar[str] = "1.3"
 
     def run(self, session: Session, claim_addr: Address) -> AgentResult:
         claim_rel = session.get_path_for_addr(claim_addr)
@@ -168,7 +169,7 @@ class ClaimStructuralAuditAgent(Agent):
         asn_label, claim_label, asn_num = parsed
 
         # Run validator + filter to this claim.
-        all_findings = _run_validator(asn_label)
+        all_findings = _run_validator(asn_label, self.claim_dir)
         relevant = _filter_to_claim(all_findings, claim_label)
 
         # Per-rule outcome counts (every checked rule appears, even clean ones).

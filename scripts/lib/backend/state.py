@@ -72,6 +72,16 @@ class State:
                 f"with zeros={account.zeros()}"
             )
         self.doc_allocator = Allocator(inc(account, 2))
+        # Multi-account doc allocators (one per (node, user) pair). The
+        # primary `doc_allocator` above stays as the legacy interface;
+        # `_doc_allocators` is the dict register_path consults to route
+        # new emissions by path prefix. Populated lazily by
+        # `get_or_create_doc_allocator`. The primary account's allocator
+        # is registered up-front so existing single-account code paths
+        # find it without going through the dict.
+        self._doc_allocators: Dict[Address, Allocator] = {
+            account: self.doc_allocator
+        }
         self._owner: Dict[Address, Allocator] = {}
         self._link_allocators: Dict[Address, Allocator] = {}
         self.parent: Dict[Address, Optional[Address]] = {}
@@ -99,6 +109,30 @@ class State:
     @property
     def registry_doc(self) -> Address:
         return self._registry_doc
+
+    def get_or_create_doc_allocator(self, account: Address) -> Allocator:
+        """Return the doc allocator for a given account, creating it on
+        first request.
+
+        Each (node, user) account has its own doc allocator rooted at
+        `inc(account, 2)`. Substrate auto-routing (register_path) parses
+        the (node, user) from a file path and calls this to pick the
+        allocator. The primary account's allocator is the one created
+        in `__init__`; secondary accounts are created on demand.
+
+        Account must have `zeros()==1` (user-level address), matching
+        the constructor's invariant.
+        """
+        if account in self._doc_allocators:
+            return self._doc_allocators[account]
+        if account.zeros() != 1:
+            raise ValueError(
+                f"account must be a user address (zeros=1), got {account} "
+                f"with zeros={account.zeros()}"
+            )
+        allocator = Allocator(inc(account, 2))
+        self._doc_allocators[account] = allocator
+        return allocator
 
     # ----- parent map (with children index) -----
 

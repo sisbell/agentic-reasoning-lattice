@@ -77,7 +77,7 @@ def log_usage(skill, elapsed, **extra):
         pass
 
 
-def assemble_readonly(asn_label):
+def assemble_readonly(asn_label, claim_base_dir=None):
     """Concatenate source-note prose + per-claim files for read-only
     whole-ASN consumption.
 
@@ -85,6 +85,10 @@ def assemble_readonly(asn_label):
     worked example, and any other prose) followed by each derived
     claim's body. Used by cross-cutting scripts (full review, Dafny
     translation) that need the whole-ASN view.
+
+    `claim_base_dir` overrides the default lattice CLAIM_DIR — used by
+    claim-region agents that emit into a non-primary (node, user)
+    partition.
 
     Earlier versions read structural-section files from a workspace
     dir populated by the deleted transclude phase. After the
@@ -95,7 +99,8 @@ def assemble_readonly(asn_label):
     digits = extract_label_digits(asn_label)
     asn_num = int(digits) if digits else 0
     note_path, _ = find_asn(str(asn_num))
-    docs_dir = CLAIM_DIR / asn_label
+    base = claim_base_dir if claim_base_dir is not None else CLAIM_DIR
+    docs_dir = base / asn_label
 
     parts = []
     if note_path is not None and note_path.exists():
