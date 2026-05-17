@@ -30,6 +30,9 @@ module Divergence {
     ensures Length(a) < Length(b) &&
             (forall i :: 1 <= i <= Length(a) ==> Component(a, i) == Component(b, i))
             ==> Divergence(a, b) == Length(a) + 1
+    ensures Length(b) < Length(a) &&
+            (forall i :: 1 <= i <= Length(b) ==> Component(a, i) == Component(b, i))
+            ==> Divergence(a, b) == Length(b) + 1
   {
     var m := if Length(a) <= Length(b) then Length(a) else Length(b);
     FirstMismatch(a, b, 1, m)
