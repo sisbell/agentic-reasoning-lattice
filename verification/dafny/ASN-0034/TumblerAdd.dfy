@@ -14,6 +14,26 @@ module TumblerAdd {
   import opened NatStrictTotalOrder
   import opened NatCarrierSet
 
+  // Least index j in [1, k] with a_j != 0, or 0 if none.
+  // Used as the existential witness in the dominance proof of TumblerAdd.
+  function FirstNonZeroInPrefix(a: Tumbler, k: nat, start: nat): nat
+    requires InT(a)
+    requires 1 <= start
+    requires k <= Length(a)
+    ensures var r := FirstNonZeroInPrefix(a, k, start);
+            r == 0
+            || (start <= r <= k
+                && Component(a, r) != 0
+                && (forall i :: start <= i < r ==> Component(a, i) == 0))
+    ensures FirstNonZeroInPrefix(a, k, start) == 0
+            ==> (forall i :: start <= i <= k ==> Component(a, i) == 0)
+    decreases if start > k then 0 else k - start + 1
+  {
+    if start > k then 0
+    else if Component(a, start) != 0 then start
+    else FirstNonZeroInPrefix(a, k, start + 1)
+  }
+
   function TumblerAdd(a: Tumbler, w: Tumbler): (r: Tumbler)
     requires InT(a) && InT(w)
     requires PositiveTumbler.PositiveTumbler(w)
@@ -34,48 +54,26 @@ module TumblerAdd {
     var result := Tumbler(a.components[..k-1]
                           + [a.components[k-1] + w.components[k-1]]
                           + w.components[k..]);
-
-    // Dominance proof — case split on whether any aᵢ > 0 for i ∈ [1, k]
-    assert LexicographicOrder.LexicographicOrder(w, result) || w == result by {
-      if exists i :: 1 <= i <= k && Component(a, i) != 0 {
-        // Strict branch: pick the least such j (Hilbert choice; existence supplied
-        // by the exists-witness, with the forall asserting minimality).
-        var j :| 1 <= j <= k
-              && Component(a, j) != 0
-              && (forall i :: 1 <= i < j ==> Component(a, i) == 0);
-        // At positions i < j: w_i = 0 (ActionPoint, since j ≤ k), a_i = 0 (minimality),
-        // result_i: if i < k then a_i = 0 = w_i; impossible i ≥ k here since j ≤ k.
-        // At position j: w_j = 0 if j < k (ActionPoint); result_j = a_j if j < k.
-        // If j = k: w_k ≥ 1, result_k = a_k + w_k > w_k (since a_k > 0).
-        assert forall i :: 1 <= i < j ==> i <= Length(w) && i <= Length(result) &&
-                            Component(w, i) == Component(result, i);
-        if j < k {
-          assert Component(w, j) == 0;
-          assert Component(result, j) == Component(a, j);
-          assert Component(a, j) != 0;
-          assert Component(w, j) < Component(result, j);
-        } else {
-          assert j == k;
-          assert Component(result, k) == Component(a, k) + Component(w, k);
-          assert Component(a, k) != 0;
-          assert Component(w, k) < Component(result, k);
-        }
-        assert j <= Length(w) && j <= Length(result) &&
-               Less(Component(w, j), Component(result, j));
-      } else {
-        // Equality branch: all a_i = 0 for i ∈ [1, k]
-        // Therefore for each position p, result.components[p] equals w.components[p]
-        assert forall i :: 1 <= i <= k ==> Component(a, i) == 0;
-        // For i < k: result_i = a_i = 0 = w_i
-        // For i = k: result_k = a_k + w_k = 0 + w_k = w_k
-        // For i > k: result_i = w_i
-        assert Length(w) == Length(result);
-        assert forall i :: 1 <= i <= Length(w) ==>
-                 Component(w, i) == Component(result, i);
-        // Reduce Tumbler equality to seq equality
-        assert w.components == result.components;
-      }
-    };
-    result
+    var j := FirstNonZeroInPrefix(a, k, 1);
+    // Case on j: 0 means all a_i = 0 for i in [1, k] (equality);
+    // nonzero j gives the divergence witness for LexicographicOrder(w, r).
+    if j == 0 then
+      // Equality branch: each component of result equals the matching component of w.
+      assert forall i :: 1 <= i <= k ==> Component(a, i) == 0;
+      assert Length(w) == Length(result);
+      assert forall i :: 1 <= i <= Length(w) ==> Component(w, i) == Component(result, i);
+      assert w.components == result.components;
+      result
+    else
+      // Strict branch: j witnesses LexicographicOrder(w, result).
+      assert 1 <= j <= k;
+      assert Component(a, j) != 0;
+      assert forall i :: 1 <= i < j ==> Component(a, i) == 0;
+      assert forall i :: 1 <= i < j ==>
+        i <= Length(w) && i <= Length(result) &&
+        Component(w, i) == Component(result, i);
+      assert j <= Length(w) && j <= Length(result);
+      assert Less(Component(w, j), Component(result, j));
+      result
   }
 }
