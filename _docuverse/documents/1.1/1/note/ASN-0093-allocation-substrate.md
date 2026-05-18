@@ -1,32 +1,32 @@
 # ASN-0093: Allocation Substrate
 
-A Xanadu-style substrate maintains three address-keyed stores: the content store, the link store, and the document-arrangement function. Each store is grown by an allocation primitive that extends the store's domain at a fresh key with structural invariants on the new entry. ASN-0043 introduced the link store and its structural invariants (L0/L1/L1a/L1b/L1c/L3/L12/L14); ASN-0036 introduced the content store and arrangement function. ASN-0047 (Transition Model) folded both into a larger state model that also tracks entity allocation and arrangement provenance — `Σ = (C, L, E, M, R)` — and supplied the operational primitives for the full state.
+A Xanadu-style substrate maintains three address-keyed stores: the content store, the link store, and the document-arrangement function. Each store is grown by an allocation primitive that extends the store's domain at a fresh key with structural invariants on the new entry. ASN-0043 introduced the link store and its structural invariants (L0/L1/L1a/L1b/L1c/L3/L12/L14); ASN-0036 introduced the content store and arrangement function. Higher-layer transition models fold both into a larger state model that also tracks entity allocation and arrangement provenance — `Σ = (C, L, E, M, R)` — and supply the operational primitives for the full state.
 
-This note extracts the *allocation-substrate* layer: the three allocation primitives (K.σ, K.α, K.λ) and the structural invariants on `(Σ.C, Σ.L, Σ.M)` they preserve. The substrate requires no commitment to `Σ.E` (the entity set) or `Σ.R` (the provenance relation). Downstream ASNs that reason about address allocation into the three stores without lifting the entity/provenance layer can depend on this note directly, without inheriting the additional state components or their associated invariants. Higher-layer concerns — arrangement mutation, entity stratification, provenance recording — are deferred to ASN-0047, which composes this substrate's primitives with its additional disciplines.
+This note extracts the *allocation-substrate* layer: the three allocation primitives (K.σ, K.α, K.λ) and the structural invariants on `(Σ.C, Σ.L, Σ.M)` they preserve. The substrate requires no commitment to `Σ.E` (the entity set) or `Σ.R` (the provenance relation). Downstream ASNs that reason about address allocation into the three stores without lifting the entity/provenance layer can depend on this note directly, without inheriting the additional state components or their associated invariants. Higher-layer concerns — arrangement mutation, entity stratification, provenance recording — are deferred to higher-layer ASNs that compose this substrate's primitives with additional disciplines.
 
-The factoring is downward from ASN-0047: every operation and invariant here is identical to its counterpart in ASN-0047 except for one notational substitution — `E_doc` (the set of entities classified `IsDocument`) is replaced by `dom(M)` (the set of allocated documents in the arrangement function), so the substrate-layer claims can be stated without reference to the entity set.
+The factoring is downward from a fuller transition model: every operation and invariant here is identical to its counterpart in the fuller model except for one notational substitution — `E_doc` (the set of entities classified `IsDocument`) is replaced by `dom(M)` (the set of allocated documents in the arrangement function), so the substrate-layer claims can be stated without reference to the entity set.
 
 
 ## Scope
 
-Downstream ASNs that operate on the link store without needing arrangement mutation, entity stratification, or provenance recording can cite this substrate directly. Downstream ASNs that need any of the deferred machinery cite ASN-0047 (which itself depends on this substrate).
+Downstream ASNs that operate on the link store without needing arrangement mutation, entity stratification, or provenance recording can cite this substrate directly. Downstream ASNs that need any of the deferred machinery cite a higher-layer transition model that itself depends on this substrate.
 
 **Provided.** Three primitive operations and the structural invariants on `(C, L, M)` they preserve:
 
 - **Operations:** `K.σ` (document registration), `K.α` (content allocation), `K.λ` (link allocation)
-- **Invariants:** M0–M1 (arrangement-function shape), C0–C1c + C2 (content store), L0–L14 + L-fin (link store)
-- **Lemma:** Cross-document disjointness (T10a.{2,5} → T10)
-- **Axiom:** SubAllocatorAxiom (four clauses: Exists, Disjoint, FirstEmission, T10aConformance)
+- **Invariants:** M0–M1 (arrangement-function shape), C0–C1c + C2 + C-fin (content store), L0–L14 + L-fin (link store)
+- **Lemma:** Cross-document disjointness (T10 + Prefix + M0)
+- **Axiom:** SubAllocatorAxiom (four clauses: Exists, Disjoint, FirstEmission, ChainDiscipline)
 
 **Substrate axioms:** SubspaceConventionAxiom pinning `s_C = 1 ∧ s_L = 2`; SequentialTransitionAxiom committing transitions to atomic and sequential.
 
 **Deferred to higher-layer ASNs:**
 
-- **Arrangement mutation.** `K.μ⁺`, `K.μ⁻`, `K.μ~`, `K.μ⁺_L` — operations that modify `M(d)` for an existing `d ∈ dom(M)`. The substrate fixes `M(d)` at `∅` on registration and leaves it unmodified thereafter. Consequently, arrangement-side invariants from ASN-0036 (S2, S3, S8a, S8-depth, S8-fin, D-CTG, D-MIN) hold vacuously here since `M(d) = ∅` for every `d ∈ dom(M)`; arrangement-extension primitives that would make them non-trivial are deferred to ASN-0047.
-- **Entity allocation.** The substrate's `K.σ` is the document-registration primitive without the entity-hierarchy machinery. ASN-0047's `K.δ` rebuilds itself as `K.σ` plus entity-set tracking, lineage discipline (`NodeLineage`), and version-allocator activation.
-- **Provenance recording.** `K.ρ` and the provenance relation `R`. The substrate has no `R` component.
-- **Coupling constraints.** ASN-0047's J-family (J0, J1, J1', J2, J3, J4) coupling K.α to K.μ⁺ etc. is out of scope; the substrate's `K.α` and `K.λ` stand independently.
-- **Link withdrawal.** Nelson's tombstone-style withdrawal (LM 4/9) is not expressible at this layer. Closing the gap is deferred to a higher-layer ASN that may extend the substrate with an explicit retraction mechanism (per ASN-0086's `Nullify` or a future tombstoning ASN).
+- **Arrangement mutation.** `K.μ⁺`, `K.μ⁻`, `K.μ~`, `K.μ⁺_L` — operations that modify `M(d)` for an existing `d ∈ dom(M)`. The substrate fixes `M(d)` at `∅` on registration and leaves it unmodified thereafter. Consequently, arrangement-side invariants from ASN-0036 (S2, S3, S8a, S8-depth, S8-fin, D-CTG, D-MIN) hold vacuously here since `M(d) = ∅` for every `d ∈ dom(M)`; arrangement-extension primitives that would make them non-trivial are deferred to a higher-layer ASN.
+- **Entity allocation.** The substrate's `K.σ` is the document-registration primitive without the entity-hierarchy machinery. A higher-layer document-introduction primitive rebuilds itself as `K.σ` plus entity-set tracking, lineage discipline, and version-allocator activation.
+- **Provenance recording.** A provenance-emission primitive and the provenance relation `R`. The substrate has no `R` component.
+- **Coupling constraints.** Higher-layer coupling invariants binding K.α to K.μ⁺ etc. are out of scope; the substrate's `K.α` and `K.λ` stand independently.
+- **Link withdrawal.** Nelson's tombstone-style withdrawal (LM 4/9) is not expressible at this layer. Closing the gap is deferred to a higher-layer ASN that may extend the substrate with an explicit retraction mechanism — e.g., a future tombstoning ASN.
 
 
 ## State model
@@ -43,11 +43,11 @@ where
 
 `dom(M)` is the set of tumblers committed by `K.σ` events (defined below). A document is *allocated* iff `d ∈ dom(M)`; content addresses with `origin(a) = d` and link addresses with `origin(ℓ) = d` may be emitted only when `d ∈ dom(M)`. The `origin(·)` function is the tumbler-projection defined in ASN-0036 (truncation to the `zeros = 2` prefix); it is a pure structural projection on tumblers and depends on no state component.
 
-**Note on `M`'s shape.** In ASN-0047, `M` is total with the convention `M(e) = ∅` for `e ∉ E_doc`, and "allocated document" means `e ∈ E_doc`. In this substrate, `M` is partial: `dom(M)` is precisely the set of allocated documents, and the convention "`M(d) = ∅` outside the domain" is replaced by `M(d)` being undefined outside `dom(M)`. This is a semantic shift, not a notational one — the substrate's vocabulary for "document allocated" runs through `dom(M)` rather than through `E_doc`.
+**Note on `M`'s shape.** In a higher-layer entity-stratified model, `M` is total with the convention `M(e) = ∅` for `e ∉ E_doc`, and "allocated document" means `e ∈ E_doc`. In this substrate, `M` is partial: `dom(M)` is precisely the set of allocated documents, and the convention "`M(d) = ∅` outside the domain" is replaced by `M(d)` being undefined outside `dom(M)`. This is a semantic shift, not a notational one — the substrate's vocabulary for "document allocated" runs through `dom(M)` rather than through `E_doc`.
 
-**Design rationale for retaining `M`.** The substrate could replace `M` with a set `D ⊆ T` (since `M(d) = ∅` throughout this layer). `M` is retained as a partial function for *downward compatibility*: ASN-0047 and other higher-layer ASNs that compose this substrate with arrangement mutation extend `M(d)` from `∅` rather than re-introducing a new state component. Keeping `M` here makes the substrate→ASN-0047 lift trivial: `K.μ⁺` unfreezes what `K.σ` registers at `M(d) = ∅`.
+**Design rationale for retaining `M`.** The substrate could replace `M` with a set `D ⊆ T` (since `M(d) = ∅` throughout this layer). `M` is retained as a partial function for *downward compatibility*: higher-layer ASNs that compose this substrate with arrangement mutation extend `M(d)` from `∅` rather than re-introducing a new state component. Keeping `M` here makes the lift to a higher-layer transition model trivial: a higher-layer arrangement-extension primitive unfreezes what `K.σ` registers at `M(d) = ∅`.
 
-**Terminology.** "Document" in this substrate means "element of `dom(M)`" — a purely structural notion (a T4-valid tumbler with `zeros = 2` registered into the arrangement function's domain). ASN-0047's `IsDocument(e) ∧ e ∈ E` is a strict refinement: every Layer-2 document is a substrate document, but the substrate admits documents that may not pass Layer 2's entity-hierarchy discipline.
+**Terminology.** "Document" in this substrate means "element of `dom(M)`" — a purely structural notion (a T4-valid tumbler with `zeros = 2` registered into the arrangement function's domain). A higher-layer entity-hierarchy refinement (e.g., `IsDocument(e) ∧ e ∈ E`) is a strict tightening: every document admitted by that refinement is a substrate document, but the substrate admits documents that may not pass the higher-layer entity-hierarchy discipline.
 
 The initial state is `Σ₀ = (∅, ∅, ∅)` — no content, no links, no documents.
 
@@ -95,13 +95,19 @@ Every content address is an element-level tumbler. This is ASN-0036's S7b restat
 
 Every content address has at least two element-field components — the content-side analog of L1b. This is ASN-0036's S7c restated for the substrate. Discharged from `K.α`'s precondition.
 
-**C1c (ContentAllocatorConformance).** Every content address `a ∈ dom(C)` has a structural inc-chain from its home document to `a`: a finite sequence `(t₀, t₁, …, tₙ)` with `t₀ = origin(a)` and `tₙ = a`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints. The chain witnesses `a`'s structural producibility from its home document via the content sub-allocator. This is the content-side analog of L1c. The bootstrap gap (no T10a-tracked allocator domain for the anchor traversal and first emission) is closed by SubAllocatorAxiom.FirstEmission for the content sub-allocator; subsequent emissions inherit T10a's GlobalUniqueness via SubAllocatorAxiom.T10aConformance.
+**C1c (ContentAllocatorConformance).** Every content address `a ∈ dom(C)` has a structural inc-chain from its home document to `a`: a finite sequence `(t₀, t₁, …, tₙ)` with `t₀ = origin(a)` and `tₙ = a`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints. The chain witnesses `a`'s structural producibility from its home document via the content sub-allocator chain. This is the content-side analog of L1c. The bootstrap gap (no T10a-tracked allocator domain for the anchor traversal and first emission) is closed by SubAllocatorAxiom.FirstEmission for the content sub-allocator chain; subsequent emissions inherit T10a.7 (EnumerationInjectivity) via SubAllocatorAxiom.ChainDiscipline.
 
 **C2 (ContentScopedAllocation).**
 
   `(A a ∈ dom(C) :: origin(a) ∈ dom(M))`
 
 Every content address has its home document allocated — the content-side analog of L1a. Discharged from `K.α`'s precondition and M1.
+
+**C-fin (ContentStoreFiniteness).**
+
+  `|dom(C)| < ∞`
+
+The content store is finite at every reachable state — the content-side analog of L-fin. Discharged inductively from `Σ₀.C = ∅` and `K.α`'s singleton extension. C-fin is what makes the set `{a' ∈ dom(C) : origin(a') = d}` finite at every reachable state, in turn making the `max` invoked in `K.α`'s subsequent-emission precondition well-defined.
 
 
 ## Link store invariants
@@ -125,7 +131,7 @@ Every link address is an element-level tumbler.
 
   `(A a ∈ dom(L) :: origin(a) ∈ dom(M))`
 
-Every link address has its home document allocated. (Replaces `origin(a) ∈ E_doc` from ASN-0047 — at the substrate layer, the relevant predicate is "the document exists in the arrangement function's domain.")
+Every link address has its home document allocated. (Replaces the entity-stratified `origin(a) ∈ E_doc` form of higher-layer models — at the substrate layer, the relevant predicate is "the document exists in the arrangement function's domain.")
 
 **L1b (LinkElementFieldDepth).**
 
@@ -135,13 +141,13 @@ Every link address has at least two element-field components.
 
 **L1c (LinkAllocatorConformance).** Every link address `a ∈ dom(L)` has a *structural inc-chain* from its home document to `a`: a finite sequence `(t₀, t₁, …, tₙ)` with `t₀ = origin(a)` and `tₙ = a`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints (T4-validity preservation, zero-count side conditions). The chain witnesses `a`'s structural producibility from its home document via the link sub-allocator.
 
-The substrate states L1c in its per-step inc-rule form — not as the stronger "every intermediate `tᵢ` inhabits a T10a-tracked allocator's domain at the state of emission." The strong form fails for the anchor traversal and the first emission, which inhabit no T10a-tracked allocator domain at the moment of allocation; SubAllocatorAxiom.FirstEmission (below) closes the bootstrap gap by licensing the first emission directly, and SubAllocatorAxiom.T10aConformance carries subsequent emissions onto T10a's per-allocator inc chain. ASN-0047's L1c takes the same per-step inc-rule form.
+The substrate states L1c in its per-step inc-rule form — not as the stronger "every intermediate `tᵢ` inhabits a T10a-tracked allocator's domain at the state of emission." The strong form fails for the anchor traversal and the first emission, which inhabit no T10a-tracked allocator domain at the moment of allocation; SubAllocatorAxiom.FirstEmission (below) closes the bootstrap gap by licensing the first emission directly, and SubAllocatorAxiom.ChainDiscipline carries subsequent emissions onto the sub-allocator's `inc(·, 0)` chain.
 
 **L3 (TripleEndsetStructure, narrowed form).**
 
   `(A a ∈ dom(L) :: L(a) = (F, G, Θ) where F, G, Θ ∈ Endset ∧ Θ ≠ ∅)`
 
-Every link in the link store has exactly three endsets, with the type endset non-empty. This is a substrate-level *narrowing* of ASN-0043's L3 (`|L(a)| ≥ 3 ∧ L(a).e₃ ≠ ∅`): the substrate pins fixed-three-arity, matching ASN-0047's narrowing rather than ASN-0043's foundation form. ASN-0043's `N ≥ 3` generality is preserved in principle for foundation-level extensions, but the substrate's transition model is closed under fixed-three arity.
+Every link in the link store has exactly three endsets, with the type endset non-empty. This is a substrate-level *narrowing* of ASN-0043's L3 (`|L(a)| ≥ 3 ∧ L(a).e₃ ≠ ∅`): the substrate pins fixed-three-arity rather than retaining ASN-0043's foundation `N ≥ 3` form. ASN-0043's `N ≥ 3` generality is preserved in principle for foundation-level extensions, but the substrate's transition model is closed under fixed-three arity.
 
 **L12 (LinkImmutability).**
 
@@ -171,24 +177,24 @@ The content and link subspaces are organised as sibling element-field sub-alloca
 
 These anchors are *structurally producible* by T10a `inc` steps from `d`: `b_C(d) = inc(d, 2)` (TA5(d), `k = 2`) and `b_L(d) = inc(b_C(d), 0)` (TA5(c)). The anchors themselves are *not* in `dom(C) ∪ dom(L)` — content and link addresses have `#E ≥ 2` (C1; L1b above), and the anchors have `#E = 1` — so they inhabit the foundation carrier set `T` as structural witnesses without occupying any state component.
 
-**SubAllocatorAxiom (Axiom, ContentLinkSubAllocatorExistence).** For each `d ∈ dom(M)`, two sub-allocators are simultaneously activated under `d` at the moment of `d`'s registration into `dom(M)` (by `K.σ`). Three clauses, independently citable as discharge premises:
+**SubAllocatorAxiom (Axiom, ContentLinkSubAllocatorExistence).** For each `d ∈ dom(M)`, two sub-allocator chains are simultaneously activated under `d` at the moment of `d`'s registration into `dom(M)` (by `K.σ`). The substrate treats these chains as *T10a-discipline-satisfying chains* — finite `inc(·, 0)`-extension chains whose elements inherit the per-chain disciplines of T10a (T10a.1, T10a.7, T10a.8) — without claiming that `A_C(d)` and `A_L(d)` are embedded in T10a's global allocator tree as standalone allocators with spawning triples. The substrate makes no commitment about whether an implementation realises `A_C(d)`/`A_L(d)` as standalone T10a allocators or as discipline-conforming chains within a flatter allocator structure; only the per-chain disciplines below are asserted. Four clauses, independently citable as discharge premises:
 
-- *Existence (SubAllocatorAxiom.Exists).* For every `d ∈ dom(M)`, the content sub-allocator `A_C(d)` (anchored at `b_C(d)`) and the link sub-allocator `A_L(d)` (anchored at `b_L(d)`) are active. By M1 (ArrangementMonotonicity), once `d ∈ dom(M)` it remains so at every successor state, and the sub-allocators correspondingly remain active permanently.
+- *Existence (SubAllocatorAxiom.Exists).* For every `d ∈ dom(M)`, the content sub-allocator chain `A_C(d)` (anchored at `b_C(d)`) and the link sub-allocator chain `A_L(d)` (anchored at `b_L(d)`) are active. By M1 (ArrangementMonotonicity), once `d ∈ dom(M)` it remains so at every successor state, and the sub-allocator chains correspondingly remain active permanently.
 
-- *Disjointness (SubAllocatorAxiom.Disjoint).* Addresses produced by `A_C(d)` satisfy `E(·)₁ = s_C`; addresses produced by `A_L(d)` satisfy `E(·)₁ = s_L`. No address is produced by both sub-allocators.
+- *Disjointness (SubAllocatorAxiom.Disjoint).* Addresses produced by `A_C(d)` satisfy `E(·)₁ = s_C`; addresses produced by `A_L(d)` satisfy `E(·)₁ = s_L`. No address is produced by both sub-allocator chains.
 
-- *First-emission namespace property (SubAllocatorAxiom.FirstEmission).* The first emission of each sub-allocator carries a freshness commitment evaluated at the K.α (resp. K.λ) event that commits the address as the sub-allocator's first emission (not at the earlier K.σ event that activated the sub-allocator; in general the K.σ event and the first-emission K.α/K.λ event are distinct, separated by zero or more intervening transitions):
-  - *Content sub-allocator first-emit:* the first address `a` produced by `A_C(d)` satisfies `a ∉ dom(C) ∪ dom(L)` at the K.α event that emits `a`, with `E(a)₁ = s_C`, `origin(a) = d`, `#E(a) = 2`. Concretely: `a = [d.0.s_C.1]`.
-  - *Link sub-allocator first-emit:* the first address `ℓ` produced by `A_L(d)` satisfies `ℓ ∉ dom(L) ∪ dom(C)` at the K.λ event that emits `ℓ`, with `E(ℓ)₁ = s_L`, `origin(ℓ) = d`, `#E(ℓ) = 2`. Concretely: `ℓ = [d.0.s_L.1]`.
+- *First-emission namespace property (SubAllocatorAxiom.FirstEmission).* The first emission of each sub-allocator chain carries a freshness commitment evaluated at the K.α (resp. K.λ) event that commits the address as the chain's first emission (not at the earlier K.σ event that activated the chain; in general the K.σ event and the first-emission K.α/K.λ event are distinct, separated by zero or more intervening transitions):
+  - *Content chain first-emit:* the first address `a` produced by `A_C(d)` satisfies `a ∉ dom(C) ∪ dom(L)` at the K.α event that emits `a`, with `E(a)₁ = s_C`, `origin(a) = d`, `#E(a) = 2`. Concretely: `a = [d.0.s_C.1]`.
+  - *Link chain first-emit:* the first address `ℓ` produced by `A_L(d)` satisfies `ℓ ∉ dom(L) ∪ dom(C)` at the K.λ event that emits `ℓ`, with `E(ℓ)₁ = s_L`, `origin(ℓ) = d`, `#E(ℓ) = 2`. Concretely: `ℓ = [d.0.s_L.1]`.
 
-- *T10a-conformance from the second emission onward (SubAllocatorAxiom.T10aConformance).* From the second emission onward, `A_C(d)` and `A_L(d)` are T10a-conforming sub-allocators, each treating the first emission committed by SubAllocatorAxiom.FirstEmission as the base address of its `inc(·, 0)` sibling chain. T10a's GlobalUniqueness on that chain discharges freshness for every emission past the first. This clause underwrites the freshness obligations cited in K.α's and K.λ's subsequent-emission preconditions; without it, those preconditions' appeals to "T10a's GlobalUniqueness on the inc chain" would have no axiomatic basis at the substrate layer. M1's monotonicity carries the "remain active" property forward across all subsequent transitions.
+- *T10a-discipline-satisfying chains (SubAllocatorAxiom.ChainDiscipline).* From the first emission onward, `A_C(d)` and `A_L(d)` are T10a-discipline-satisfying chains: each is the `inc(·, 0)`-extension chain rooted at its first emission, and the elements of each chain inherit T10a.7 (EnumerationInjectivity — distinct chain indices produce distinct addresses), T10a.1 (UniformSiblingLength — all chain elements share the same length), and T10a.8 (UniformSiblingZeroCount — all chain elements share `zeros = 3` since the first emission has `zeros = 3` per FirstEmission). This clause does *not* claim that `A_C(d)` and `A_L(d)` are embedded in T10a's global allocator tree as standalone allocators with `(parent, spawnPt, spawnParam)` triples; it claims only that each chain's emissions satisfy the per-chain disciplines T10a guarantees for sibling streams. T10a.7 underwrites within-chain freshness for emissions past the first; the Cross-document disjointness lemma (below) underwrites cross-document freshness. Together these supply the substrate's freshness obligations without invoking T10a's global allocator-tree structure. M1's monotonicity carries the "remain active" property forward across all subsequent transitions.
 
-SubAllocatorAxiom.FirstEmission underwrites the bootstrap (where T10a alone cannot, since no prior `inc`-history exists in the sub-allocator's frontier); SubAllocatorAxiom.T10aConformance + T10a underwrites every subsequent emission. Together the four clauses cover the full sub-allocator lifecycle from activation through arbitrary emission.
+SubAllocatorAxiom.FirstEmission underwrites the bootstrap (where no prior `inc`-history exists in the chain's frontier and T10a.7 is therefore inapplicable to the first emission); SubAllocatorAxiom.ChainDiscipline + T10a.7 underwrites every subsequent emission's within-chain freshness; the Cross-document disjointness lemma underwrites cross-document freshness. Together the four clauses cover the full sub-allocator chain lifecycle from activation through arbitrary emission.
 
 
 ## Cross-document disjointness chain
 
-**Lemma (Cross-document disjointness; T10a.{2,5} → T10).** For any two distinct documents `d₁, d₂ ∈ dom(M)` with `d₁ ≠ d₂`, the link sub-allocator anchors `p₁ := b_L(d₁) = [d₁.0.s_L]` and `p₂ := b_L(d₂) = [d₂.0.s_L]` satisfy
+**Lemma (Cross-document disjointness; T10 + Prefix + M0).** For any two distinct documents `d₁, d₂ ∈ dom(M)` with `d₁ ≠ d₂`, the link sub-allocator anchors `p₁ := b_L(d₁) = [d₁.0.s_L]` and `p₂ := b_L(d₂) = [d₂.0.s_L]` satisfy
 
   `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`
 
@@ -221,6 +227,8 @@ Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by L14 (St
 
 The substrate admits three primitive transitions, one per state component. Each is atomic — its precondition is evaluated against `Σ` and its effect committed to `Σ'` in a single indivisible step; no intermediate state with the transition partially applied is admitted.
 
+*Parameter semantics.* For `K.α(d, a, v)` and `K.λ(d, ℓ, F, G, Θ)`, the address parameters `a` and `ℓ` appear in the operation signatures but their values are not free choices of the caller: the preconditions deterministically pin them from `(d, Σ)`. Specifically, the first-emit predicate forces `a = [d.0.s_C.1]` (resp. `ℓ = [d.0.s_L.1]`); the subsequent-emit predicate forces `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` (resp. `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)`). A caller is expected to compute the address from the current state via this pinning rule before invoking the operation; supplying a stale or otherwise non-conforming value causes the precondition check to fail. Implementations may treat the address as an output computed from `(d, Σ)` rather than as a free input; the substrate's semantics is unchanged in either reading because the pinning is total.
+
 ### K.σ (DocumentRegistration)
 
 Extends `dom(M)` by registering a new document address with an empty arrangement.
@@ -235,9 +243,9 @@ Extends `dom(M)` by registering a new document address with an empty arrangement
 
 *Cross-store freshness.* K.σ has no explicit `d ∉ dom(C) ∪ dom(L)` clause because cross-store freshness is automatic from the substrate's invariants: C1 forces `zeros(a) = 3` for every `a ∈ dom(C)`, L1 forces `zeros(ℓ) = 3` for every `ℓ ∈ dom(L)`, and K.σ's precondition pins `zeros(d) = 2`. Since no address can simultaneously satisfy `zeros = 2` and `zeros = 3`, `d ∉ dom(C) ∪ dom(L)` is forced by the precondition list together with C1/L1.
 
-K.σ activates `A_C(d)` and `A_L(d)` per SubAllocatorAxiom.Exists, opening the content and link sub-allocator frontiers under `d` for subsequent K.α and K.λ emissions. K.σ is the substrate-level document-introduction primitive; higher-layer ASNs that need entity stratification, lineage discipline, or version-allocator activation compose K.σ with their own additional preconditions (e.g., ASN-0047's K.δ rebuilds itself as K.σ-plus-entity-set-tracking-plus-NodeLineage-plus-version-allocator-activation).
+K.σ activates `A_C(d)` and `A_L(d)` per SubAllocatorAxiom.Exists, opening the content and link sub-allocator frontiers under `d` for subsequent K.α and K.λ emissions. K.σ is the substrate-level document-introduction primitive; higher-layer ASNs that need entity stratification, lineage discipline, or version-allocator activation compose K.σ with their own additional preconditions (e.g., a higher-layer document-introduction primitive rebuilds itself as K.σ-plus-entity-set-tracking-plus-lineage-discipline-plus-version-allocator-activation).
 
-This substrate makes no commitment about *which* document addresses are admissible at K.σ beyond T4-validity and `zeros(d) = 2`. The discipline that constrains which tumblers are introduced (Nelson's hierarchical baptism, T10a allocator conformance for the document allocator, etc.) is a higher-layer commitment; the substrate's only commitment is that whatever `d` is introduced satisfies M0 going forward. In particular, K.σ admits address-space configurations broader than Nelson's hierarchical baptism — a tumbler `d` with `zeros(d) = 2` whose prefix corresponds to no allocated node or account is structurally admissible at this layer. Downstream ASNs that lift entity hierarchy discipline (notably ASN-0047) tighten K.σ's precondition accordingly.
+This substrate makes no commitment about *which* document addresses are admissible at K.σ beyond T4-validity and `zeros(d) = 2`. The discipline that constrains which tumblers are introduced (Nelson's hierarchical baptism, T10a allocator conformance for the document allocator, etc.) is a higher-layer commitment; the substrate's only commitment is that whatever `d` is introduced satisfies M0 going forward. In particular, K.σ admits address-space configurations broader than Nelson's hierarchical baptism — a tumbler `d` with `zeros(d) = 2` whose prefix corresponds to no allocated node or account is structurally admissible at this layer. Downstream ASNs that lift entity-hierarchy discipline tighten K.σ's precondition accordingly.
 
 ### K.α (ContentAllocation)
 
@@ -251,7 +259,7 @@ Extends `dom(C)` with a fresh content address scoped to an allocated document.
 - `origin(a) = d` (scoped to home document — C2)
 - `a` is produced by `d`'s content sub-allocator `A_C(d)`:
   - *First emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} = ∅`): `a = [d.0.s_C.1]`. Freshness against `dom(C) ∪ dom(L)` is pinned by SubAllocatorAxiom.FirstEmission directly.
-  - *Subsequent emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`): `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` (TA5(c)), the next sibling on `A_C(d)`'s `inc` chain. Freshness against `dom(C)` is discharged by T10a's GlobalUniqueness on the `A_C(d)` `inc` chain; freshness against `dom(L)` is discharged by SC-NEQ + T7 (equivalently L14 at the pre-state).
+  - *Subsequent emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`): `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` (TA5(c)), the next sibling on `A_C(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (C-fin restricted by `origin(·) = d`). Freshness against `dom(C)` is discharged by T10a.7 (EnumerationInjectivity) applied to `A_C(d)`'s chain (per SubAllocatorAxiom.ChainDiscipline); cross-document collisions within `dom(C)` are ruled out by the Cross-document disjointness lemma. Freshness against `dom(L)` is discharged by SC-NEQ + T7 (equivalently L14 at the pre-state).
 - `v ∈ Val` (well-formed content value)
 
 *Effect:* `C' = C ∪ {a ↦ v}`
@@ -272,8 +280,7 @@ Extends `dom(L)` with a fresh link address scoped to an allocated document.
 - `origin(ℓ) = d` (scoped to home document — L1a)
 - `ℓ` is produced by `d`'s link sub-allocator `A_L(d)`:
   - *First emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`): `ℓ = [d.0.s_L.1]`, the determinate first emission of `A_L(d)`. Freshness against `dom(L) ∪ dom(C)` is pinned by SubAllocatorAxiom.FirstEmission directly.
-  - *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)` (TA5(c)), the next sibling on `A_L(d)`'s `inc` chain. Freshness against `dom(L)` is discharged by T10a's GlobalUniqueness on the `A_L(d)` `inc` chain; freshness against `dom(C)` is discharged by SC-NEQ + T7 (equivalently L14 at the pre-state).
-- `(A ℓ' : ℓ' ∈ dom(L) ∧ origin(ℓ') = d : ℓ' < ℓ)` (forward allocation — T9, ASN-0034; consequence of `inc(·, 0)` on the frontier in the subsequent case, and of the first-emit position being greater than any pre-existing `d`-scoped link in the first case, vacuous antecedent)
+  - *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)` (TA5(c)), the next sibling on `A_L(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (L-fin restricted by `origin(·) = d`). Freshness against `dom(L)` is discharged by T10a.7 (EnumerationInjectivity) applied to `A_L(d)`'s chain (per SubAllocatorAxiom.ChainDiscipline); cross-document collisions within `dom(L)` are ruled out by the Cross-document disjointness lemma. Freshness against `dom(C)` is discharged by SC-NEQ + T7 (equivalently L14 at the pre-state).
 - `(F, G, Θ) ∈ Endset × Endset × Endset ∧ Θ ≠ ∅` (well-formed link value with mandatory non-empty type endset — L3)
 
 *Effect:* `L' = L ∪ {ℓ ↦ (F, G, Θ)}`
@@ -282,15 +289,54 @@ Extends `dom(L)` with a fresh link address scoped to an allocated document.
 
 Cross-document disjointness for link allocations is supplied by the Cross-document disjointness chain lemma (above), applied with `p₁ := b_L(d)` and `p₂ := b_L(d')`.
 
+*Forward allocation, derivable.* The within-document forward-allocation property `(A ℓ' : ℓ' ∈ dom(L) ∧ origin(ℓ') = d : ℓ' < ℓ)` is not stated as a precondition because it is a derivable consequence of the emission rules — symmetrically with K.α. In the subsequent-emission case, `ℓ = inc(max{prev}, 0)` and TA5(a) gives `inc(t, 0) > t`, so `ℓ > max{prev} ≥ ℓ'` for every `ℓ' ∈ dom(L)` with `origin(ℓ') = d`. In the first-emission case the universal antecedent `{ℓ' : origin(ℓ') = d} = ∅` is vacuous. The same derivation applies to K.α's content emissions; neither operator carries the clause as a precondition.
+
+
+## Worked example
+
+To make the substrate's operation concrete, we trace a small scenario step-by-step starting from `Σ₀ = (∅, ∅, ∅)`.
+
+*Fix a document address.* Let `d = [1, 0, 2, 0, 5]` — `#d = 5`, with zeros at positions 2 and 4 so `zeros(d) = 2`, with positive first and last components (1 and 5) and no adjacent zeros, hence T4-valid. By T4b, its projections are `N(d) = [1]`, `U(d) = [2]`, `D(d) = [5]`. By SubspaceConventionAxiom, `s_C = 1` and `s_L = 2`.
+
+*Step 1 — `K.σ(d)` (document registration).* Precondition: `d ∉ dom(M₀) = ∅` ✓; `ValidAddress(d) ∧ zeros(d) = 2` ✓. Effect commits `dom(M₁) = {d}` with `M₁(d) = ∅`; `C₁ = ∅`, `L₁ = ∅`. By SubAllocatorAxiom.Exists, both `A_C(d)` and `A_L(d)` chains are active under `d`. Verifying invariants at `Σ₁ = (∅, ∅, {d ↦ ∅})`: M0 holds (the single key `d` satisfies `zeros = 2`); M1 holds (`∅ ⊆ {d}`); all C-/L-invariants and L14, L-fin, C-fin are vacuous or trivial on empty stores.
+
+*Step 2 — `K.α(d, a, v)` (first content emission).* Pinning the address from `Σ₁`: the predicate `{a' ∈ dom(C₁) : origin(a') = d} = ∅` selects the first-emit case, so `a = [d.0.s_C.1] = [1, 0, 2, 0, 5, 0, 1, 1]`. Witness it via the C1c chain `(t₀, t₁, t₂)`:
+- `t₀ = d = [1, 0, 2, 0, 5]`
+- `t₁ = inc(d, 2)`: TA5(d) at `k = 2` appends `[0, 1]`, yielding `[1, 0, 2, 0, 5, 0, 1] = b_C(d)`. Admissibility: M0 gives `zeros(d) = 2 ≤ 2`, satisfying T10a's `k = 2` side condition; TA5(d) gives `zeros(t₁) = 3`, T4-valid.
+- `t₂ = inc(b_C(d), 1)`: TA5(d) at `k = 1` appends `1`, yielding `[1, 0, 2, 0, 5, 0, 1, 1] = a`. Admissibility: `k = 1` has no zero-count side condition; `zeros(t₂) = 3`, T4-valid; `#E(t₂) = 2`.
+
+Verifying preconditions: `a ∉ dom(C₁) ∪ dom(L₁) = ∅` ✓; `zeros(a) = 3` ✓; `E(a) = [1, 1]` so `E(a)₁ = 1 = s_C` ✓; `#E(a) = 2 ≥ 2` ✓; `origin(a) = N(a).0.U(a).0.D(a) = [1].0.[2].0.[5] = d` ✓. Freshness of `a` against `dom(C₁) ∪ dom(L₁)` is pinned by SubAllocatorAxiom.FirstEmission directly.
+
+Effect: `C₂ = {a ↦ v}`; `L₂ = ∅`; `M₂ = M₁`. Verifying invariants at `Σ₂`: C0 (extended at fresh `a`), C1 (`zeros(a) = 3`), C1b (`#E(a) = 2`), C1c (chain exhibited above), C2 (`origin(a) = d ∈ dom(M₂)`), C-fin (`|dom(C₂)| = 1 < ∞`) all hold at the new key.
+
+*Step 3 — `K.λ(d, ℓ, F, G, Θ)` (first link emission).* Pinning from `Σ₂`: the predicate `{ℓ' ∈ dom(L₂) : origin(ℓ') = d} = ∅` selects the first-emit case, so `ℓ = [d.0.s_L.1] = [1, 0, 2, 0, 5, 0, 2, 1]`. Witness via the L1c chain `(t₀, t₁, t₂, t₃)`:
+- `t₀ = d = [1, 0, 2, 0, 5]`
+- `t₁ = inc(d, 2) = [1, 0, 2, 0, 5, 0, 1] = b_C(d)` (admissibility as in Step 2)
+- `t₂ = inc(b_C(d), 0)`: TA5(c) at `k = 0` increments `b_C(d)`'s rightmost nonzero component (position 7, from `1` to `2`), yielding `[1, 0, 2, 0, 5, 0, 2] = b_L(d)`. By SubspaceConventionAxiom, `s_L = 2 = s_C + 1`, matching position 7. Admissibility: TA5(c) is unconditionally T4-preserving.
+- `t₃ = inc(b_L(d), 1)`: TA5(d) at `k = 1` appends `1`, yielding `[1, 0, 2, 0, 5, 0, 2, 1] = ℓ`. `zeros(ℓ) = 3`, T4-valid, `#E(ℓ) = 2`.
+
+Verifying preconditions: `ℓ ∉ dom(L₂) ∪ dom(C₂) = {a}`. Disagreement at position 7 (`a₇ = 1` vs `ℓ₇ = 2`) gives `ℓ ≠ a`, confirming the L0 + SC-NEQ + T7 derivation: the two addresses sit in disjoint subspaces. `zeros(ℓ) = 3` ✓; `E(ℓ) = [2, 1]` so `E(ℓ)₁ = 2 = s_L` ✓; `#E(ℓ) = 2 ≥ 2` ✓; `origin(ℓ) = d` ✓. Freshness pinned by SubAllocatorAxiom.FirstEmission.
+
+Effect: `L₃ = {ℓ ↦ (F, G, Θ)}`; `C₃ = C₂`; `M₃ = M₂`. Verifying invariants at `Σ₃`: L0/L1/L1a/L1b/L1c/L3/L12 all hold at the new key per the matrix; L14 holds non-trivially: `dom(C₃) ∩ dom(L₃) = {a} ∩ {ℓ} = ∅` (verified by E(·)₁ disagreement); L-fin holds (`|dom(L₃)| = 1 < ∞`).
+
+*Step 4 — `K.α(d, a', v')` (second content emission, subsequent-emit branch).* Pinning from `Σ₃`: `{a'' ∈ dom(C₃) : origin(a'') = d} = {a}` is non-empty, so the subsequent-emit branch fires with `a' = inc(max{a}, 0) = inc(a, 0)`. Since `sig(a) = 8` with value `1`, TA5(c) gives `a' = [1, 0, 2, 0, 5, 0, 1, 2]`. The C1c chain extends `a`'s chain by one step: `(t₀, t₁, t₂, a')` with `a' = inc(t₂, 0) = inc(a, 0)`. Admissibility of the new step: TA5(c) at `k = 0` is unconditionally T4-preserving; freshness against `dom(C₃) = {a}` discharged by T10a.7 (within-chain injectivity) applied to `A_C(d)`'s chain (per SubAllocatorAxiom.ChainDiscipline); freshness against `dom(L₃) = {ℓ}` discharged by L0 + SC-NEQ + T7.
+
+Verifying preconditions: `a' ∉ dom(C₃) ∪ dom(L₃) = {a, ℓ}` ✓ (since `a' > a` strictly by TA5(a), and `E(a')₁ = 1 ≠ 2 = E(ℓ)₁`); structural preconditions inherit from `a` via the inc rule (TA5(b) preserves `zeros`, `E(·)₁`, and `origin(·)`).
+
+Effect: `C₄ = {a ↦ v, a' ↦ v'}`; `L₄ = L₃`; `M₄ = M₃`. All invariants continue to hold at `Σ₄`.
+
+The example confirms invariants C0–C2, C-fin, L0–L14, L-fin, M0, M1 at each successor state, exercises the C1c and L1c chain exhibitions on concrete tumblers, and demonstrates both the first-emit and subsequent-emit branches of K.α and K.λ.
+
 
 ## Discharge of stated invariants
 
 Each invariant is discharged by induction on transition sequences from `Σ₀`. The inductive step is recorded as a per-(invariant, transition) matrix; entries describe how each transition kind preserves or discharges each invariant.
 
-**Base case verification (at `Σ₀ = (∅, ∅, ∅)`).** Most invariants are vacuously satisfied: M0/M1/C1/C1b/C1c/C2/L0/L1/L1a/L1b/L1c/L3 quantify over `dom(C)`, `dom(L)`, or `dom(M)`, all empty at `Σ₀`. C0 and L12 quantify over transitions `Σ → Σ'`, vacuous at `Σ₀` until the first transition fires. Two invariants are non-vacuous but trivially satisfied at `Σ₀`:
+**Base case verification (at `Σ₀ = (∅, ∅, ∅)`).** Most invariants are vacuously satisfied: M0/M1/C1/C1b/C1c/C2/L0/L1/L1a/L1b/L1c/L3 quantify over `dom(C)`, `dom(L)`, or `dom(M)`, all empty at `Σ₀`. C0 and L12 quantify over transitions `Σ → Σ'`, vacuous at `Σ₀` until the first transition fires. Three invariants are non-vacuous but trivially satisfied at `Σ₀`:
 
 - **L14** (`dom(C) ∩ dom(L) = ∅`): at `Σ₀`, both stores empty, so `∅ ∩ ∅ = ∅` — trivially true.
 - **L-fin** (`|dom(L)| < ∞`): `|∅| = 0 < ∞` — trivially true.
+- **C-fin** (`|dom(C)| < ∞`): `|∅| = 0 < ∞` — trivially true.
 
 The base case holds.
 
@@ -303,7 +349,7 @@ The base case holds.
 | **C0** (ContentImmutability) | Preserved: `C` in frame | Discharged: effect extends `dom(C)` at fresh `a` with value `v`; value at existing keys unaltered (definitional in effect clause) | Preserved: `C` in frame |
 | **C1** (ContentElementLevel) | Preserved: `C` in frame | Discharged at new key: precondition pins `zeros(a) = 3` | Preserved: `C` in frame |
 | **C1b** (ContentElementFieldDepth) | Preserved: `C` in frame | Discharged at new key: precondition pins `#E(a) ≥ 2` | Preserved: `C` in frame |
-| **C1c** (ContentAllocatorConformance) | Preserved: `C` in frame | Discharged at new key via the structural inc-chain (parallel to L1c chain exhibition below; first-emit case substitutes `s_C` for `s_L` in the final step) | Preserved: `C` in frame |
+| **C1c** (ContentAllocatorConformance) | Preserved: `C` in frame | Discharged at new key via the structural inc-chain (see *C1c chain exhibition* below — first-emit and subsequent-emit cases) | Preserved: `C` in frame |
 | **C2** (ContentScopedAllocation) | Preserved: vacuously (no new content); for prior keys `a ∈ dom(C)`, `origin(a) ∈ dom(M) ⊆ dom(M')` (`C` in frame, M1 extends `dom(M)`) | Discharged at new key: precondition pins `origin(a) = d ∧ d ∈ dom(M)`; preserved at prior keys (`origin(·)` is structural, M1 extends `dom(M)`) | Preserved: `C` in frame; prior keys preserved by M1 |
 | **L0** (SubspacePartition) | Preserved: `L`, `C` in frame | Preserved on L-clause (`L` in frame); discharged at new key on C-clause via `E(a)₁ = s_C` precondition | Discharged at new key on L-clause via `E(ℓ)₁ = s_L` precondition; preserved on C-clause (`C` in frame) |
 | **L1** (LinkElementLevel) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `zeros(ℓ) = 3` |
@@ -314,10 +360,24 @@ The base case holds.
 | **L12** (LinkImmutability) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: effect extends `dom(L)` at fresh `ℓ`; value at existing keys unaltered (definitional) |
 | **L14** (StoreDisjointness) | Holds at Σ' by direct derivation: L0(Σ') + SC-NEQ + T7 — all hold at Σ' | Holds at Σ': same derivation | Holds at Σ': same derivation |
 | **L-fin** (LinkStoreFiniteness) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: `|dom(L')| = |dom(L)| + 1`; finiteness closed under +1 |
+| **C-fin** (ContentStoreFiniteness) | Preserved: `C` in frame | Discharged: `|dom(C')| = |dom(C)| + 1`; finiteness closed under +1 | Preserved: `C` in frame |
+
+*C1c chain exhibition.* The substrate's C1c is "every content address has a structural inc-chain from its home document." For `K.α`'s discharge, two sub-cases:
+
+**First-emit case** (`a = [d.0.s_C.1]`, predicate `{a' ∈ dom(C) : origin(a') = d} = ∅`). The structural inc-chain witnessing C1c is two inc steps from `d`:
+
+  `(t₀, t₁, t₂)` where `t₀ = d`, `t₁ = inc(d, 2) = b_C(d)`, `t₂ = inc(b_C(d), 1) = [d.0.s_C.1] = a`
+
+Per-step admissibility:
+
+- `t₁ = inc(d, 2)`: T10a admits `k = 2` when `zeros(spawnPt) ≤ 2`; by M0, `zeros(d) = 2`, satisfied. TA5(d) at `k = 2` yields `zeros(t₁) = 2 + (2 − 1) = 3` and `#t₁ = #d + 2`, T4-valid. The value at position `#d + 2` is `1 = s_C` (per SubspaceConventionAxiom), establishing `E(t₁)₁ = s_C` and `#E(t₁) = 1`.
+- `t₂ = inc(b_C(d), 1)`: TA5(d) at `k = 1` has no zero-count side condition; the new component appended at position `#b_C(d) + 1` is `1`. `zeros(t₂) = 3 + 0 = 3` (k = 1 introduces no new zero), T4-valid, with `#E(t₂) = 2` and `E(t₂)₁ = s_C` inherited from `t₁` per TA5(b).
+
+**Subsequent-emit case** (`a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)`, predicate `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`). Let `a_prev = max{a' ∈ dom(C) : origin(a') = d}`. By the inductive hypothesis on C1c, `a_prev` has a structural inc-chain `(t₀, …, t_n)` with `t₀ = d` and `t_n = a_prev`. The chain for `a` extends this by one step: `(t₀, …, t_n, t_{n+1})` with `t_{n+1} = inc(t_n, 0) = inc(a_prev, 0) = a`. Per-step admissibility of the new step `t_{n+1} = inc(a_prev, 0)`: TA5(c) at `k = 0` is unconditionally T4-preserving; within-chain freshness against the rest of `A_C(d)`'s chain is discharged by SubAllocatorAxiom.ChainDiscipline (T10a.7's EnumerationInjectivity); cross-document collisions with other documents' content chains are ruled out by the Cross-document disjointness lemma.
 
 *L1c chain exhibition.* The substrate's L1c is "every link address has a structural inc-chain from its home document." For `K.λ`'s discharge, two sub-cases:
 
-**First-emit case** (`ℓ = [d.0.s_L.1]`, predicate `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`). The structural inc-chain witnessing L1c is:
+**First-emit case** (`ℓ = [d.0.s_L.1]`, predicate `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`). The structural inc-chain witnessing L1c is three inc steps from `d`:
 
   `(t₀, t₁, t₂, t₃)` where `t₀ = d`, `t₁ = inc(d, 2) = b_C(d)`, `t₂ = inc(b_C(d), 0) = b_L(d)`, `t₃ = inc(b_L(d), 1) = [d.0.s_L.1] = ℓ`
 
@@ -327,31 +387,34 @@ Per-step admissibility:
 - `t₂ = inc(b_C(d), 0)`: TA5(c) at `k = 0` is unconditionally T4-preserving and length-preserving, with the sibling component advanced from `s_C` to `s_L`. By SubspaceConventionAxiom, `s_C = 1` and `s_L = 2`, so `inc([d.0.1], 0) = [d.0.2] = b_L(d)`. This step's correctness depends substantively on `s_L = s_C + 1`; the SubspaceConventionAxiom underwrites it.
 - `t₃ = inc(b_L(d), 1)`: TA5(d) at `k = 1` has no zero-count side condition; `zeros(t₃) = 3 + 0 = 3` (k = 1 introduces no new zero), T4-valid, with `#E(t₃) = 2`.
 
-**Subsequent-emit case** (`ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)`, predicate `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`). Let `ℓ_prev = max{ℓ' ∈ dom(L) : origin(ℓ') = d}`. By the inductive hypothesis on L1c, `ℓ_prev` has a structural inc-chain `(t₀, …, t_n)` with `t₀ = d` and `t_n = ℓ_prev`. The chain for `ℓ` extends this by one step: `(t₀, …, t_n, t_{n+1})` with `t_{n+1} = inc(t_n, 0) = inc(ℓ_prev, 0) = ℓ`. Per-step admissibility of the new step `t_{n+1} = inc(ℓ_prev, 0)`: TA5(c) at `k = 0` is unconditionally T4-preserving; freshness against `dom(L)` is discharged by SubAllocatorAxiom.T10aConformance applied to `A_L(d)`'s inc chain (T10a's GlobalUniqueness on the chain).
+Note that the C1c first-emit chain has *two* inc steps (`d → b_C(d) → a`) while the L1c first-emit chain has *three* (`d → b_C(d) → b_L(d) → ℓ`) — they are not parallel chains differing only in a single-step substitution. The link chain must traverse the additional `inc(b_C(d), 0) = b_L(d)` step because the link subspace anchor sits one sibling-component beyond the content subspace anchor.
+
+**Subsequent-emit case** (`ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)`, predicate `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`). Let `ℓ_prev = max{ℓ' ∈ dom(L) : origin(ℓ') = d}`. By the inductive hypothesis on L1c, `ℓ_prev` has a structural inc-chain `(t₀, …, t_n)` with `t₀ = d` and `t_n = ℓ_prev`. The chain for `ℓ` extends this by one step: `(t₀, …, t_n, t_{n+1})` with `t_{n+1} = inc(t_n, 0) = inc(ℓ_prev, 0) = ℓ`. Per-step admissibility of the new step `t_{n+1} = inc(ℓ_prev, 0)`: TA5(c) at `k = 0` is unconditionally T4-preserving; within-chain freshness against the rest of `A_L(d)`'s chain is discharged by SubAllocatorAxiom.ChainDiscipline (T10a.7's EnumerationInjectivity); cross-document collisions with other documents' link chains are ruled out by the Cross-document disjointness lemma.
 
 
 ## Properties Introduced
 
 | ID | Name | Status | Source |
 |---|---|---|---|
-| M0 | DocumentTumblerWellFormed | INV | Substrate, derived from K.σ precondition |
-| M1 | ArrangementMonotonicity | INV | Substrate, frame of all transitions |
-| C0 | ContentImmutability | INV | Substrate, ASN-0036's S0/S1 restated |
-| C1 | ContentElementLevel | INV | Substrate, ASN-0036's S7b restated |
-| C1b | ContentElementFieldDepth | INV | Substrate, ASN-0036's S7c restated; content-side analog of L1b |
-| C1c | ContentAllocatorConformance | INV | Substrate, content-side analog of L1c; first-emit gap closed by SubAllocatorAxiom.FirstEmission, subsequent-emit by SubAllocatorAxiom.T10aConformance |
-| C2 | ContentScopedAllocation | INV | Substrate, content-side analog of L1a |
-| L0 | SubspacePartition | INV | L-clause from ASN-0043; C-clause added here |
-| L1 | LinkElementLevel | INV | ASN-0043 |
-| L1a | LinkScopedAllocation | INV | ASN-0043 (refactored: `E_doc` → `dom(M)`) |
-| L1b | LinkElementFieldDepth | INV | ASN-0043 |
-| L1c | LinkAllocatorConformance | INV | Substrate commitment: per-step inc-rule conformance (matching ASN-0047's L1c form). First-emit gap closed by SubAllocatorAxiom.FirstEmission, subsequent-emit by SubAllocatorAxiom.T10aConformance |
-| L3 | TripleEndsetStructure | INV | Narrowed form of ASN-0043's L3 (fixed-three-arity, matching ASN-0047) |
-| L12 | LinkImmutability | INV | ASN-0043 |
+| M0 | DocumentTumblerWellFormed | INV | Substrate, established at K.σ (precondition pins `ValidAddress(d) ∧ zeros(d) = 2` at the new key); preserved at K.α/K.λ by frame on `M` |
+| M1 | ArrangementMonotonicity | INV | Substrate, established at K.σ by union extension `dom(M') = dom(M) ∪ {d}`; preserved at K.α/K.λ by frame on `M` |
+| C0 | ContentImmutability | INV | Substrate, restated from ASN-0036's S0/S1; established at K.α (effect extends `dom(C)` with new pair and leaves existing values unchanged); preserved at K.σ/K.λ by frame on `C` |
+| C1 | ContentElementLevel | INV | Substrate, restated from ASN-0036's S7b; established at K.α (precondition pins `zeros(a) = 3` at the new key); preserved at K.σ/K.λ by frame on `C` |
+| C1b | ContentElementFieldDepth | INV | Substrate, restated from ASN-0036's S7c (content-side analog of L1b); established at K.α (precondition pins `#E(a) ≥ 2` at the new key); preserved at K.σ/K.λ by frame on `C` |
+| C1c | ContentAllocatorConformance | INV | Substrate, content-side analog of L1c; established at K.α via the C1c chain exhibition (first-emit gap closed by SubAllocatorAxiom.FirstEmission, subsequent-emit by SubAllocatorAxiom.ChainDiscipline (T10a.7)); preserved at K.σ/K.λ by frame on `C` |
+| C2 | ContentScopedAllocation | INV | Substrate, content-side analog of L1a; established at K.α (precondition pins `origin(a) = d ∧ d ∈ dom(M)` at the new key); preserved at K.σ/K.λ by frame on `C` and M1's monotonicity of `dom(M)` |
+| L0 | SubspacePartition | INV | L-clause from ASN-0043; C-clause added here. Established at K.α (C-clause, via `E(a)₁ = s_C` precondition) and K.λ (L-clause, via `E(ℓ)₁ = s_L` precondition); preserved at K.σ by frame on both `C` and `L` |
+| L1 | LinkElementLevel | INV | ASN-0043; established at K.λ (precondition pins `zeros(ℓ) = 3` at the new key); preserved at K.σ/K.α by frame on `L` |
+| L1a | LinkScopedAllocation | INV | ASN-0043 (refactored: `E_doc` → `dom(M)`); established at K.λ (precondition pins `origin(ℓ) = d ∧ d ∈ dom(M)` at the new key); preserved at K.σ/K.α by frame on `L` and M1's monotonicity of `dom(M)` |
+| L1b | LinkElementFieldDepth | INV | ASN-0043; established at K.λ (precondition pins `#E(ℓ) ≥ 2` at the new key); preserved at K.σ/K.α by frame on `L` |
+| L1c | LinkAllocatorConformance | INV | Substrate commitment: per-step inc-rule conformance. Established at K.λ via the L1c chain exhibition (first-emit gap closed by SubAllocatorAxiom.FirstEmission, subsequent-emit by SubAllocatorAxiom.ChainDiscipline (T10a.7)); preserved at K.σ/K.α by frame on `L` |
+| L3 | TripleEndsetStructure | INV | Narrowed form of ASN-0043's L3 (fixed-three-arity); established at K.λ (precondition pins `(F, G, Θ) ∈ Endset × Endset × Endset ∧ Θ ≠ ∅`); preserved at K.σ/K.α by frame on `L` |
+| L12 | LinkImmutability | INV | ASN-0043; established at K.λ (effect extends `dom(L)` with new pair and leaves existing values unchanged); preserved at K.σ/K.α by frame on `L` |
 | L14 | StoreDisjointness | INV (derived) | L0 + SC-NEQ + T7 |
 | L-fin | LinkStoreFiniteness | INV (derived) | Inductively from `Σ₀.L = ∅` + K.λ |
-| SubAllocatorAxiom | ContentLinkSubAllocatorExistence | AXIOM | Four clauses: Exists, Disjoint, FirstEmission, T10aConformance |
-| Cross-doc disjointness | T10a.{2,5} → T10 lemma | LEMMA | Derived from M0 + T4 + T10 + Prefix (ASN-0034); T4's zero-count argument underwrites the Case A divergence step |
+| C-fin | ContentStoreFiniteness | INV (derived) | Inductively from `Σ₀.C = ∅` + K.α |
+| SubAllocatorAxiom | ContentLinkSubAllocatorExistence | AXIOM | Four clauses: Exists, Disjoint, FirstEmission, ChainDiscipline. Asserts T10a-discipline-satisfying chains (T10a.1, T10a.7, T10a.8) without claiming embedding in T10a's global allocator tree |
+| Cross-doc disjointness | T10 + Prefix + M0 lemma | LEMMA | Derived from M0 + T4 + T10 + Prefix (ASN-0034); T4's zero-count argument underwrites the Case A divergence step. The lemma operates directly at document-level anchors (T4-validity + zeros = 2) rather than through T10a.2/T10a.5, because the sub-allocator-pair disjointness it establishes is between document-level prefixes, not between sub-allocator allocation events. |
 | SubspaceConventionAxiom | FixedSubspaceIdentifiers | AXIOM | Substrate commitment: `s_C = 1 ∧ s_L = 2`; pinned by Nelson (LM 4/30–4/31) and Gregory (`xanadu.h:144–146`, `granf2.c:162`, `do2.c:94`). Underwrites L14 derivation and the L1c chain exhibition. |
 | SequentialTransitionAxiom | SequentialAtomicTransitions | AXIOM | Substrate commitment: `Σ → Σ'` is atomic, uninterruptible, totally ordered. |
 | K.σ | DocumentRegistration | OP | Substrate-level document introduction into `dom(M)` |
@@ -361,14 +424,14 @@ Per-step admissibility:
 
 ## Open Questions
 
-- *Link withdrawal.* The substrate admits no withdrawal of `dom(L)` entries (L12 enforces immutability). Nelson's tombstone-style withdrawal (LM 4/9) is not expressible at this layer. Closing the gap is deferred to a higher-layer ASN that may extend the substrate with an explicit retraction mechanism (per ASN-0086's `Nullify` or a future tombstoning ASN).
+- *Link withdrawal.* The substrate admits no withdrawal of `dom(L)` entries (L12 enforces immutability). Nelson's tombstone-style withdrawal (LM 4/9) is not expressible at this layer. Closing the gap is deferred to a higher-layer ASN that may extend the substrate with an explicit retraction mechanism — e.g., a future tombstoning ASN.
 
-- *Higher-arity links.* L3 here pins three-arity, matching ASN-0047's narrowing. ASN-0043's general `N ≥ 3` form is preserved in principle for foundation-level extensions; this substrate is closed under fixed-three arity.
+- *Higher-arity links.* L3 here pins three-arity. ASN-0043's general `N ≥ 3` form is preserved in principle for foundation-level extensions; this substrate is closed under fixed-three arity.
 
-- *Document address discipline.* K.σ's precondition is structural-only (`ValidAddress(d) ∧ zeros(d) = 2 ∧ d ∉ dom(M)`). The substrate admits any T4-valid document-level tumbler. Nelson's hierarchical baptism (where node-account-document chains are enforced) is a higher-layer commitment; ASN-0047's K.δ tightens K.σ's precondition with the additional discipline.
+- *Document address discipline.* K.σ's precondition is structural-only (`ValidAddress(d) ∧ zeros(d) = 2 ∧ d ∉ dom(M)`). The substrate admits any T4-valid document-level tumbler. Nelson's hierarchical baptism (where node-account-document chains are enforced) is a higher-layer commitment; a higher-layer document-introduction primitive tightens K.σ's precondition with the additional discipline.
 
 - *Concurrency.* `K.σ`, `K.α`, and `K.λ` are stated as atomic transitions; the discipline for concurrent emission across multiple allocators is not addressed at this layer.
 
 - *Sub-allocator stratification beyond `A_C(d)` and `A_L(d)`.* Future subspace identifiers `s ≥ 3` would require parallel sub-allocators; the present axiom commits to exactly two (content and link).
 
-- *Arrangement extension primitives.* The substrate fixes `M(d) = ∅` at K.σ-time and never re-modifies. ASN-0047's K.μ-family extends arrangements; downstream ASNs needing arrangement mutation depend on ASN-0047.
+- *Arrangement extension primitives.* The substrate fixes `M(d) = ∅` at K.σ-time and never re-modifies. Higher-layer arrangement-extension primitives extend arrangements; downstream ASNs needing arrangement mutation depend on those higher-layer primitives.
