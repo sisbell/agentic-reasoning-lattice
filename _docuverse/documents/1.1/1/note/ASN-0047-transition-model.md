@@ -83,7 +83,11 @@ where C : T ⇀ Val is as defined in ASN-0036, and M : T → (T ⇀ T) is total,
 - M₀(d) = ∅ for all d — (E₀)_doc = ∅, so every arrangement is the empty partial function
 - R₀ = ∅ (no provenance recorded)
 
-**Structural form of n₀.** The bootstrap node is fixed as `[1]` — a one-element tumbler with `zeros(n₀) = 0`, satisfying `IsNode(n₀)` and `ValidAddress(n₀)`. The NodeLineage invariant (`n₀ ≼ e`) constrains every node address to extend `[1]` by prefix, ruling out disconnected-forest allocations. At Σ₀, (E₀)_doc = ∅, so arrangement invariants hold vacuously.
+**Structural form of n₀.** The bootstrap node is fixed as `[1]` — a one-element tumbler with `zeros(n₀) = 0`, satisfying `IsNode(n₀)` and `ValidAddress(n₀)`. The NodeLineage invariant (`n₀ ≼ e`) constrains every node address to extend `[1]` by prefix, ruling out disconnected-forest allocations.
+
+The value `[1]` is not arbitrary: Nelson's design requires the bootstrap to be `[1]` specifically, not merely any single-component positive tumbler. The requirement follows from two interlocking design commitments. First, the *single root authority* (LM 4/17–4/22): all numeration descends by forking from one source — "Whoever owns a specific node, account, document or version may in turn designate (respectively) new nodes, accounts, documents and versions, by forking their integers" (LM 4/17) — so a single canonical root must exist; multiple roots would contradict the forking model. Second, the *"1 = all of" addressing convention* (LM 4/38): "A digit of 'one' may be used to designate all of a given version, all versions of a given document, all works of a given author, all documents in a given project, all documents on a given server — or the entire docuverse." Nelson is explicit at LM 4/28: "The server address always begins with the digit 1, since all other servers are descended from it. This may seem an unnecessary redundancy, but it permits referring to the entire docuverse by '1' on the first position." A different choice — `[2]`, `[42]` — would either fragment the root (contradicting the single root authority) or invalidate the docuverse-wide "1" span (contradicting the "1 = all of" convention). The ASN therefore fixes `n₀ = [1]` as a design requirement, not as a conventional placeholder.
+
+At Σ₀, (E₀)_doc = ∅, so arrangement invariants hold vacuously.
 
 **SequentialTransitionAxiom (Axiom, SequentialAtomicTransitions).** The transition relation `Σ → Σ'` is single-event sequential: each transition is an atomic, uninterruptible event in which the elementary precondition is evaluated against `Σ` and the elementary effect is committed to `Σ'` in one indivisible step, and transitions are totally ordered (no two transitions overlap in time). Equivalently, the system admits no intermediate state in which a transition has begun but not yet committed.
 
@@ -156,7 +160,7 @@ Derived from L0 and SC-NEQ via T7: if `a ∈ dom(C)` then `subspace_I(a) = s_C`,
 
 **Extended initial state.** Σ₀ = (C₀, L₀, E₀, M₀, R₀) with L₀ = ∅. The extended invariants hold vacuously at Σ₀: L0, L1, L1a, L3, L12, L14, L-fin are satisfied by empty L (L-fin: `|∅| = 0 < ∞`); S3★'s link-subspace clause is vacuous (no link-subspace V-positions exist in M₀); P4★ reduces to P4 (which holds at Σ₀ per ASN-0047); D-CTG and D-MIN hold vacuously since M₀(d) = ∅ for all d, so V_S(d) = ∅ for every subspace S. This closes the inductive base for the ExtendedReachableStateInvariants theorem.
 
-All existing elementary transitions from ASN-0047 hold L in their frame: L' = L.
+All existing elementary transitions from ASN-0047 — K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.ρ — hold L in their extended-state frame: `L' = L`. Only K.λ (introduced below) extends L. L12 (LinkImmutability) follows trivially from this split: `L' = L` preserves dom(L) and values pointwise, and K.λ appends a fresh entry without altering existing ones.
 
 
 ## Permanence
@@ -227,15 +231,13 @@ We seek the elementary modifications — the state changes from which all system
 - **Case (i) IsNode(e).** No operand `t` is consumed (`e` is supplied by the node-allocation protocol, not by inc). Required: `ValidAddress(e) ∧ IsNode(e) ∧ e ∉ E ∧ n₀ ≼ e`. The freshness conjunct `e ∉ E` is discharged by NodeUniqueAllocation — the protocol-established axiom — directly. The operational allocator is Nelson's hierarchical baptism / Gregory's single global granfilade with query-and-increment dispatch, outside T10a's standard discharge layer.
 - **Case (ii) ¬IsNode(e).** `e = inc(t, k)` for some operand `t` and `k ∈ {0, 1, 2}`. Required uniformly: `parent(e) ∈ E`. Per-sub-case additional requirements:
   - *k = 0 (sibling):* `t ∈ E ∧ parent(t) = parent(e) ∧ zeros(t) = zeros(e)`.
-  - *k = 1 (version):* `IsDocument(t)`. The operand need not be in E_doc; when `t ∉ E_doc` (ghost-base versioning) the freshness discharge routes through direct E-inspection rather than T10a GlobalUniqueness — see *Ghost-base versioning* below.
-  - *k = 2 (descent):* `t ∈ E ∧ parent(e) = t`.
-  - Structural identities: `zeros(e) = zeros(t)` for k ∈ {0, 1}; `zeros(e) = zeros(t) + 1` for k = 2; `parent(e) = parent(t)` for k ∈ {0, 1}; `parent(e) = t` for k = 2.
+  - *k = 1 (version):* `IsDocument(t)`. The operand need not be in E_doc; when `t ∉ E_doc` (ghost-base versioning) the freshness discharge routes through direct E-inspection rather than T10a GlobalUniqueness — see *Freshness discharge* below.
+  - *k = 2 (descent):* `t ∈ E ∧ parent(e) = t ∧ zeros(t) ≤ 1` (equivalently, `IsNode(t) ∨ IsAccount(t)`). The operand-level constraint follows from the case-level precondition `¬IsElement(e)` (`zeros(e) ≤ 2`) combined with the consequence `zeros(e) = zeros(t) + 1` recorded below; stated explicitly here so the operand admissibility is visible at the definition site rather than left as a derivation.
+  - Structural identities (consequences of TA5 + T4b's parent projection on `e = inc(t, k)`, not independent preconditions): `zeros(e) = zeros(t)` for k ∈ {0, 1} (TA5(c) preserves zeros for k = 0; TA5(d) at k = 1 appends a final 1 with no new zero, so zeros is preserved); `zeros(e) = zeros(t) + 1` for k = 2 (TA5(d) at k = 2 appends one zero separator and a final 1); `parent(e) = parent(t)` for k ∈ {0, 1} (k = 0 leaves the trailing-component position unchanged, k = 1 extends by one non-zero component without crossing a zero separator, so T4b's truncation past the last separator yields the same prefix); `parent(e) = t` for k = 2 (k = 2 introduces a new zero separator immediately after t, making t itself the parent prefix under T4b).
 
 *Freshness discharge.* The `e ∉ E` precondition is discharged by case on the K.δ form: case (i) is closed by NodeUniqueAllocation (the node-allocation protocol's axiomatic uniqueness clause); case (ii) with `InEntityAllocatorDomain(t)` is closed by T10a's GlobalUniqueness on the parent allocator's tracked domain; case (ii) with `¬InEntityAllocatorDomain(t)` (ghost operands, including the k = 1 ghost-base case and every subsequent k = 0 step in a chain rooted at a ghost-base) is closed by direct inspection of E at the allocation event — TA5 supplies the candidate's structural identity (`e = inc(t, k)`) and SequentialTransitionAxiom guarantees the inspection and the commit `E' = E ∪ {e}` form an atomic pair. The ghost-routing propagates chain-wide: T10a's T2 spawning requires the operand to inhabit its parent allocator's tracked domain, so an entire chain rooted at a ghost-base step inhabits no T10a-tracked frontier and discharges freshness by direct inspection at every step.
 
 *Effect on M, per case.* When IsDocument(e): M'(e) = ∅ (empty arrangement), and M'(d') = M(d') for every d' ≠ e. When IsAccount(e) or IsNode(e): M'(d') = M(d') for every d' (by the totality convention M(e) = ∅ for e ∉ E_doc). The collective effect on M is therefore `(A d' : d' ≠ e : M'(d') = M(d'))` ∧ `M'(e) = ∅`.
-
-*Ghost-base versioning (k = 1).* The k = 1 sub-case admits an inc operand `t ∉ E_doc`; the structural-only check on `t` and the chain-wide ghost-routing of freshness discharge are catalogued in K.δ's precondition list and *Freshness discharge* paragraph above.
 
 Nelson identifies two document-creation modes — ex nihilo and forking. At the elementary level, both begin with K.δ producing an empty document. When the source's content subspace is non-empty, forking is compound: K.δ followed by arrangement extension and provenance recording (J4 below). When the source's content subspace is empty, fork reduces to K.δ alone.
 
@@ -295,7 +297,7 @@ Only case (a) is admissible: (b) violates D-CTG★ (interior `[S, 1, ..., 1, k�
 
 *Frame:* C' = C; E' = E; (A d :: M'(d) = M(d)).
 
-The seven elementary kinds — K.α, K.δ, K.λ (introduced later under *Link allocation*), K.μ⁺, K.μ⁺_L (introduced later under *Link-subspace extension*), K.μ⁻, K.ρ — plus the named composite K.μ~ are *structurally sufficient* for the *catalogued* modification modes of this ASN, enumerated per component as follows. (i) *Existential components C, L, E and historical component R* admit only extension (P3★): the elementary set covers each via K.α, K.λ, K.δ, K.ρ respectively, with no contraction or value rewriting on any of them. (ii) *Presentational component M* admits three modes — *extension* (K.μ⁺ for content-subspace, K.μ⁺_L for link-subspace), *contraction* (K.μ⁻, with per-subspace suffix-removal patterns spelled out in K.μ⁻'s definition and exhaustiveness lemma), and *bijection-preserving reordering* (K.μ~, the named composite of K.μ⁻ + K.μ⁺ with subspace preservation and link-subspace fixity). (iii) *Replacement* — changing which I-address a V-position maps to — is the named compound K.μ⁻ + K.μ⁺ (decomposition below), with replacement granularity determined by position under K.μ⁻'s D-CTG★/D-MIN★-shaped contraction patterns:
+The seven elementary kinds — K.α, K.δ, K.λ (introduced later under *Link allocation*), K.μ⁺, K.μ⁺_L (introduced later under *Link-subspace extension*), K.μ⁻, K.ρ — plus the named composite K.μ~ are *structurally sufficient* for the *catalogued* modification modes of this ASN, enumerated per component as follows. (i) *Existential components C, L, E and historical component R* admit only extension (P3): the elementary set covers each via K.α, K.λ, K.δ, K.ρ respectively, with no contraction or value rewriting on any of them. (ii) *Presentational component M* admits three modes — *extension* (K.μ⁺ for content-subspace, K.μ⁺_L for link-subspace), *contraction* (K.μ⁻, with per-subspace suffix-removal patterns spelled out in K.μ⁻'s definition and exhaustiveness lemma), and *bijection-preserving reordering* (K.μ~, the named composite of K.μ⁻ + K.μ⁺ with subspace preservation and link-subspace fixity). (iii) *Replacement* — changing which I-address a V-position maps to — is the named compound K.μ⁻ + K.μ⁺ (decomposition below), with replacement granularity determined by position under K.μ⁻'s D-CTG★/D-MIN★-shaped contraction patterns:
 
 - **Replacement at the maximum position of a subspace.** When the replaced V-position is `max(V_S(d))` for its subspace S, K.μ⁻ removes that single position (a 1-element suffix of V_S(d)) and K.μ⁺ then re-adds it with the new value. Replacement is a single-position K.μ⁻ + K.μ⁺ pair.
 
@@ -311,8 +313,6 @@ We observe that neither split nor merge appears as an elementary transition. Nel
 
 
 ## Amendments to existing transitions
-
-**Frame extension (existing transitions).** Each of K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.ρ holds `L' = L` in its extended-state frame; only K.λ extends L. L12 (LinkImmutability) follows trivially: `L' = L` preserves dom(L) and values pointwise, and K.λ appends a fresh entry without altering existing ones.
 
 **K.α amendment (ContentSubspaceRestriction).** In the extended state, K.α is amended with a content-subspace restriction: the allocated address must satisfy `subspace_I(a) = s_C`. This parallels K.λ's `subspace_I(ℓ) = s_L` and is required by L0 clause 2 — without it, K.α could allocate an address with subspace s_L, placing it in dom(C') and violating the partition. The amendment also preserves L14: since `subspace_I(a) = s_C` and `s_C ≠ s_L` (SC-NEQ), the address `a` cannot appear in dom(L) — L0 clause 1 at the pre-state ensures all dom(L) addresses have subspace s_L — so `dom(C') ∩ dom(L') = ∅`.
 
@@ -420,7 +420,9 @@ Cross-subspace collisions are further prevented by L14 (StoreDisjointness), itse
 - zeros(ℓ) = 3 ∧ subspace_I(ℓ) = s_L  (element-level, link subspace — L0, L1)
 - #E(ℓ) ≥ 2  (link element field has at least two components — L1b, ASN-0043; established by the inc(t, 1) descent in the first-link case and preserved by the inc(t, 0) sibling step in subsequent cases)
 - origin(ℓ) = d  (scoped to home document — L1a)
-- ℓ is produced by d's link sub-allocator: `ℓ = [d.0.s_L.1]` on the first emission (pinned by SubAllocatorAxiom.FirstEmission, which alone commits the first emission outside `dom(L) ∪ dom(C)`), and `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)` (TA5(c)) on every subsequent emission (T10a GlobalUniqueness on the A_L(d) inc chain gives `ℓ ∉ dom(L)`; SC-NEQ + T7 give `ℓ ∉ dom(C)`). The first-emission and subsequent-emission routes are distinct: SubAllocatorAxiom.FirstEmission does not commit "every emission" outside `dom(L) ∪ dom(C)`, only the first.
+- ℓ is produced by d's link sub-allocator. The first-emission and subsequent-emission cases have structurally distinct discharge routes and must be stated separately; SubAllocatorAxiom.FirstEmission does not commit "every emission" outside `dom(L) ∪ dom(C)`, only the first.
+  - *First emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`): `ℓ = [d.0.s_L.1]`, the determinate first emission of A_L(d). Freshness against `dom(L) ∪ dom(C)` is pinned by SubAllocatorAxiom.FirstEmission directly — that clause alone commits the first emission outside both stores.
+  - *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)` (TA5(c)), the next sibling on A_L(d)'s inc chain. Freshness against `dom(L)` is discharged by T10a's GlobalUniqueness on the A_L(d) inc chain; freshness against `dom(C)` is discharged by SC-NEQ + T7 (and equivalently by L14 at the pre-state).
 - `(A ℓ' : ℓ' ∈ dom(L) ∧ origin(ℓ') = d : ℓ' < ℓ)`  (forward allocation — T9; consequence of inc(·, 0) on the frontier in the subsequent case, and of the first-emit position [d.0.s_L.1] being greater than any pre-existing d-scoped link in the first-link case, where the antecedent is vacuous)
 - (F, G, Θ) ∈ Link ∧ Θ ≠ ∅  (well-formed link value with mandatory non-empty type endset — L3)
 
@@ -448,7 +450,11 @@ The freshness obligations imposed by K.α, K.δ, and K.λ are closed by three di
 | K.λ | Any emission | `ℓ ∉ dom(C)` | SC-NEQ + T7 (cross-subspace distinctness via L14) |
 | K.λ | Cross-document distinctness | `ℓ ≠ ℓ'` for K.λ events under distinct d ≠ d' | Cross-document disjointness chain lemma (T10a.{2,5} → T10) |
 
-The asymmetric stratification — node allocation external to T10a (NodeUniqueAllocation), document/account allocation within T10a (GlobalUniqueness), and content/link sub-allocators activated by SubAllocatorAxiom — reflects three distinct allocation regimes: nodes are baptised by an external authority outside T10a's per-tumbler-spawn machinery (Nelson's hierarchical-baptism design); document and account allocation operates within T10a via inc-chains under their parent allocator's frontier; and content/link sub-allocator activation needs an axiomatic first-emission commitment because T10a's discipline does not span the bootstrap step from a document address `d` to the sub-allocator's first emission `[d.0.s_X.1]` (the at-most-once spawning constraint blocks d from minting that address directly under T10a).
+The asymmetric stratification — node allocation external to T10a (NodeUniqueAllocation), document/account allocation within T10a (GlobalUniqueness), and content/link sub-allocators activated by SubAllocatorAxiom — reflects three distinct allocation regimes. Nodes are baptised by an external authority outside T10a's per-tumbler-spawn machinery (Nelson's hierarchical-baptism design). Document and account allocation operates within T10a via inc-chains under their parent allocator's frontier. Content/link sub-allocator activation, in contrast, requires an axiomatic first-emission commitment as an abstraction over a multi-step T10a chain.
+
+*The multi-step T10a chain reaching `[d.0.s_X.1]`.* T10a does not block reachability of `[d.0.s_X.1]` from `d`; the address is reachable via a two-step T10a-conforming chain. First, d's allocator spawns a k = 2 child at `inc(d, 2) = [d.0.1] = b_C(d)` (TA5(d) with k = 2; T10a's `zeros(d) ≤ 2` precondition holds at `zeros(d) = 2`). Then the newly activated allocator at `b_C(d)` spawns a k = 1 child at `inc(b_C(d), 1) = [d.0.1.1] = [d.0.s_C.1]` (TA5(d) with k = 1; the k = 1 case carries no zero-count precondition, and T4 preservation holds by TA5a since k = 1 appends a non-zero component to a T4-valid base). The analogous chain through `b_L(d) = inc(b_C(d), 0)` reaches `[d.0.s_L.1] = inc(b_L(d), 1)`. d cannot directly mint `[d.0.s_X.1]` in a single inc-step (d's three available outputs from a single inc are inc(d, 0), inc(d, 1), inc(d, 2), none of which equals `[d.0.s_X.1]`), but the two-step chain is admissible.
+
+*Why SubAllocatorAxiom anyway.* The axiom is not a closure of a gap T10a leaves; it is an *abstraction* over the two-step T10a chain that simplifies downstream discharge. Under T10a's discipline, A_C(d) is naturally the allocator at `b_C(d)`, with [d.0.s_C.1] arising as the first emission of a k = 1 child sub-allocator at `b_C(d)`. SubAllocatorAxiom collapses the anchor `b_C(d)` (an internal artifact at `#E = 1` that inhabits no state component of Σ) and the [d.0.s_C.1]-rooted allocator into a single named sub-allocator A_C(d) with [d.0.s_C.1] as its first emission. The collapse buys two things downstream: (i) freshness for the first emission can be discharged by a single axiom citation rather than by tracking the two-step T10a activation chain through state, and (ii) the abstraction matches the implementation contract — Gregory's `docreatenewdocument` activates the content and link sub-allocators atomically with document creation, without exposing the anchor steps. The axiomatic abstraction is therefore presentational; the underlying chain remains T10a-conforming and the freshness conclusions remain T10a-derivable in principle.
 
 
 ## Generalized referential integrity
@@ -534,7 +540,9 @@ For `d ∈ E_doc`, K.μ~ realises the *bijection equation*:
 
 (4) *Identity via CL-UNIQ at the pre-state.* From (3), `M'(d)|_{dom_L} = M(d)|_{dom_L}`, so for the V-position `v ∈ dom_L(M(d))` under consideration, `M(d)(v) = ℓ`. Subspace preservation places `π(v) ∈ dom_L(M(d))` (using (1)'s cardinality equality `dom_L(M'(d)) = dom_L(M(d))`), and the bijection equation gives `M(d)(π(v)) = M'(d)(π(v)) = M(d)(v) = ℓ` (the first equality by (3) applied at `π(v) ∈ dom_L`). Both `v` and `π(v)` are link-subspace V-positions in `dom(M(d))` mapping to the same link `ℓ`. CL-UNIQ at Σ — the inductive hypothesis, link-subspace injectivity of `M(d)|_{dom_L}` — forces `π(v) = v`. ∎
 
-**Decomposition.** When π = id (including the empty bijection and the degenerate case `dom_C(M(d)) = ∅`, which forces π = id by link-subspace fixity), K.μ~ expands into zero elementary steps: M'(d) = M(d) and no K.μ⁻ + K.μ⁺ round-trip is invoked. When π ≠ id (which requires `dom_C(M(d)) ≠ ∅`), K.μ~ expands as *full content-subspace clearance and rebuild*: K.μ⁻ removes V_{s_C}(d) entirely (case-(a) full-clearance, with link-subspace retained) and K.μ⁺ then adds `{π(v) ↦ M(d)(v) : v ∈ V_{s_C}(d)}`. K.μ⁻ must retain link-subspace mappings — K.μ⁺ (amended) is content-only and K.μ⁺_L only places at the contiguous min or max, so any removed link-subspace position could not be restored.
+**Decomposition.** When π = id (including the empty bijection and the degenerate case `dom_C(M(d)) = ∅`, which forces π = id by link-subspace fixity), K.μ~ expands into zero elementary steps: M'(d) = M(d) and no K.μ⁻ + K.μ⁺ round-trip is invoked. When π ≠ id (which requires `dom_C(M(d)) ≠ ∅`), one valid expansion is *full content-subspace clearance and rebuild*: K.μ⁻ removes V_{s_C}(d) entirely (case-(a) maximal-suffix removal, with link-subspace retained) and K.μ⁺ then adds `{π(v) ↦ M(d)(v) : v ∈ V_{s_C}(d)}`. K.μ⁻ must retain link-subspace mappings — K.μ⁺ (amended) is content-only and K.μ⁺_L only places at the contiguous min or max, so any removed link-subspace position could not be restored.
+
+*Choice of decomposition.* The full-clearance decomposition is not unique. When π fixes a contiguous prefix `{[s_C, 1, ..., 1, k] : 1 ≤ k ≤ k₀ − 1}` of `V_{s_C}(d)` pointwise and permutes only the suffix `{[s_C, 1, ..., 1, k] : k₀ ≤ k ≤ n_{s_C}}`, an alternative *partial-suffix decomposition* is equally admissible: K.μ⁻ removes only the suffix from `[s_C, 1, ..., 1, k₀]` upward (case-(a) suffix removal at `n'_{s_C} = k₀ − 1`), and K.μ⁺ rebuilds that suffix with the permuted values. The interior content replacement worked example exhibits this pattern in a non-K.μ~ context with `k₀` strictly between 1 and the maximum. We adopt the full-clearance decomposition here for uniform treatment across arbitrary π — every non-identity permutation, whether it fixes a prefix or not, decomposes cleanly under full clearance — so downstream invariant verification need not case-split on the longest fixed prefix of π. The choice is presentational; both decompositions produce the same composite endpoints `Σ → Σ'` and discharge the same coupling and per-state invariants.
 
 *Intermediate-state admissibility.* At Σ_int (post-K.μ⁻, pre-K.μ⁺): C_int = C, M_int(d) = M(d) ↾ V_{s_L}(d). K.μ⁺'s preconditions at Σ_int discharge: `d ∈ E_doc` (frame); referential integrity from `M(d)(v) ∈ dom(C)` for `v ∈ V_{s_C}(d)` at pre-state; content-subspace restriction from K.μ~'s subspace-preserving precondition; S8a/S8-depth/S8-fin/D-CTG★/D-MIN★ on M'(d) from K.μ~'s postcondition. S2 holds because π is a bijection.
 
@@ -575,11 +583,13 @@ Every freshly allocated I-address appears in some arrangement in the post-state 
 
 `(A Σ → Σ', d ∈ E'_doc, a : a ∈ ran(M'(d)) \ ran(M(d)) : (a, d) ∈ R')`
 
-We derive this by wp. The invariant we need — Contains(Σ) ⊆ R — must hold after the composite transition. After K.μ⁺, Contains(Σ') ⊇ Contains(Σ), so new pairs appear. Since K.μ⁺ frames R (R' = R), evaluating `Contains(Σ') ⊆ R'` at the post-state of K.μ⁺ alone collapses the R' on the right-hand side to R:
+J1 does not fall out of the calculus alone; the wp computation reveals what coupling is needed *to preserve a design choice* — namely the invariant `Contains(Σ) ⊆ R` (P4 below), which declares that every current containment is recorded in R. The design choice is P4 itself: Nelson's docuverse commits to recording every document-content association into a permanent reverse index, and Gregory confirms the implementation accumulates entries "from every content addition." The wp computation then asks: given that K.μ⁺ frames R, can K.μ⁺ alone preserve P4 across `Σ → Σ'`?
+
+Computing wp backward from `Contains(Σ') ⊆ R'`: after K.μ⁺, `Contains(Σ') ⊇ Contains(Σ)`, so new pairs appear. Since K.μ⁺ frames R (`R' = R`), evaluating `Contains(Σ') ⊆ R'` collapses the R' on the right-hand side to R:
 
 `wp(K.μ⁺, Contains(Σ') ⊆ R') = (A a : a ∈ ran(M'(d)) \ ran(M(d)) : (a, d) ∈ R)`
 
-This requires every new containment pair to already be in R — not generally true for fresh content. K.μ⁺ in isolation cannot maintain the invariant; K.ρ must co-occur, extending R so that the composite post-state satisfies `(A a : a ∈ ran(M'(d)) \ ran(M(d)) : (a, d) ∈ R')`.
+This requires every new containment pair to already be in R — not generally true for fresh content. K.μ⁺ in isolation cannot maintain P4. Therefore, to maintain P4, K.ρ must co-occur, extending R so that the composite post-state satisfies `(A a : a ∈ ran(M'(d)) \ ran(M(d)) : (a, d) ∈ R')`. J1 is the coupling constraint that the design choice P4 forces upon the elementary transition set.
 
 Gregory identifies one implementation anomaly where provenance recording is skipped for a particular command, "making content invisible to find_documents." The abstract specification treats this as a defect: the coupling is required.
 
@@ -603,7 +613,7 @@ J1 ensures every new containment pair is recorded; J1' ensures every new provena
 
 `C' = C ∧ L' = L ∧ E' = E ∧ R' = R`
 
-(The `L' = L` conjunct is the link-store extension contributed by the Frame extension paragraph at the head of *Amendments to existing transitions* above; the original J2 predated the link store and is superseded by this extended form in the extended state.) The wp analysis confirms this. For P0: K.μ⁻ does not touch C. For P1: does not touch E. For P2: does not touch R. For L12: does not touch L. For the provenance bound Contains(Σ) ⊆ R: contraction can only remove pairs from Contains, so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. No co-occurring transition is needed to maintain any system invariant.
+(The `L' = L` conjunct is the link-store extension contributed by the *Extended system state* paragraph above; the original J2 predated the link store and is superseded by this extended form in the extended state.) The wp analysis confirms this. For P0: K.μ⁻ does not touch C. For P1: does not touch E. For P2: does not touch R. For L12: does not touch L. For the provenance bound Contains(Σ) ⊆ R: contraction can only remove pairs from Contains, so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. No co-occurring transition is needed to maintain any system invariant.
 
 This is the deepest consequence of the design. Deletion is purely presentational — it changes what appears, not what exists or what has been. Gregory confirms: contraction "never triggers" provenance recording, and the provenance structure "is never pruned."
 
@@ -611,7 +621,7 @@ This is the deepest consequence of the design. Deletion is purely presentational
 
 `C' = C ∧ L' = L ∧ E' = E ∧ R' = R`
 
-(As with J2, the `L' = L` conjunct is the link-store extension contributed by the Frame extension paragraph; the original J3 predated the link store and is superseded by this extended form in the extended state.) Reordering preserves ran(M(d)), so Contains(Σ') = Contains(Σ). All invariants are trivially maintained; no co-occurring transition is needed.
+(As with J2, the `L' = L` conjunct is the link-store extension contributed by the *Extended system state* paragraph; the original J3 predated the link store and is superseded by this extended form in the extended state.) Reordering preserves ran(M(d)), so Contains(Σ') = Contains(Σ). All invariants are trivially maintained; no co-occurring transition is needed.
 
 **J4 (Fork composite).** Nelson's forking creation mode — version creation with ancestry indication (LM 4/66, CREATENEWVERSION) — is a composite whose elementary steps are exactly K.δ + K.μ⁺ + K.ρ, all serving the new document d_new. *Fork is strictly the k = 1 version-creation case:* d_new = inc(d_src, 1), a child of d_src in the address space (zeros(d_new) = 2 = zeros(d_src), parent(d_new) = parent(d_src)). The k = 0 sibling allocation under the source's account (`docreatenewdocument` in Gregory's implementation) and the k = 2 hierarchical descent are *not* forks under this definition; they are independent K.δ + K.μ⁺ + K.ρ composites without the ancestry-by-address indication. This restriction matches Nelson's specific "fork" terminology and Gregory's `docreatenewversion` (which dispatches `makehint(DOCUMENT, DOCUMENT, depth=1)` to obtain the k = 1 child address).
 
@@ -731,11 +741,11 @@ P5 makes the confinement vivid. Every destructive state change — every removal
 
 ## Extended monotonicity invariants
 
-**P3★ (ArrangementMutabilityOnly, extended).** No component other than M admits contraction or value rewriting:
+**P3 (ArrangementMutabilityOnly).** No component other than M admits contraction or value rewriting:
 
   `(A Σ → Σ' :: dom(C) ⊆ dom(C') ∧ dom(L) ⊆ dom(L') ∧ E ⊆ E' ∧ R ⊆ R' ∧ (A a ∈ dom(C) :: C'(a) = C(a)) ∧ (A ℓ ∈ dom(L) :: L'(ℓ) = L(ℓ)))`
 
-P3★ synthesises P0 ∧ L12 ∧ P1 ∧ P2 into one named monotonicity predicate over `Σ → Σ'`. The only component that can lose information is M. P3★ supersedes P5 in the extended state, extending P5's monotonicity to L.
+P3 is introduced fresh in this ASN as a synthesis of P0 ∧ L12 ∧ P1 ∧ P2 — one named monotonicity predicate over `Σ → Σ'` covering every component except M. The label carries no "★" because there is no four-component predecessor to amend: P0 and P1 and P2 already inhabit the unstarred-label space (they retain their identities under both the four-component and extended states), and P3 packages them together with the link-store clause L12. The qualitative summary — destruction confined to M — was previously expressed as P5; P3 supersedes P5 in the extended state by adding the L clause.
 
 
 ## Worked example: entity hierarchy by K.δ
@@ -917,7 +927,7 @@ The *ghost* document address `t = 1.0.1.0.5` is a T4-valid IsDocument tumbler (z
 - *`parent(e₁) ∈ E`:* parent(`1.0.1.0.5.1`) = `1.0.1` ∈ E₆ (k = 1 introduces no new zero-separator, so the parent chain skips the depth-1 base and goes straight to the depth-2 account). ✓ Independent of `t ∈ E`.
 - *`k = 1 ⟹ IsDocument(t)`:* IsDocument(`1.0.1.0.5`) holds. ✓
 - *`e₁ ∉ E`:* fresh by inspection of E₆ = {1, 1.0.1, 1.0.1.0.1}. ✓ Freshness is supplied here entirely by the K.δ precondition verified against E₆, *not* by T10a — since `¬InEntityAllocatorDomain(t)`, T10a's GlobalUniqueness does not apply. TA5 supplies only the candidate's structural identity (`inc(t, 1) = t.1 = 1.0.1.0.5.1`), naming the address whose membership in E must be checked. This is the ghost-operand discharge route (K.δ precondition + TA5 determinism at the tumbler layer, under SequentialTransitionAxiom's atomic inspection-commit semantics).
-- *Ghost-base relaxation at k = 1:* the case admits `t ∉ E_doc` per the *k = 1 (version)* item of K.δ's *Per-sub-case additional requirements* list and the *Ghost-base versioning (k = 1)* paragraph at K.δ.
+- *Ghost-base relaxation at k = 1:* the case admits `t ∉ E_doc` per the *k = 1 (version)* item of K.δ's *Per-sub-case additional requirements* list; the chain-wide ghost-routing of freshness discharge is catalogued in K.δ's *Freshness discharge* paragraph above.
 
 *Effect.* E₇ = E₆ ∪ {`1.0.1.0.5.1`}; M₇(`1.0.1.0.5.1`) = ∅; C, L, R, and other arrangements frame.
 
@@ -1051,7 +1061,7 @@ The S7d★ conjunct here is the relaxed form (see Foundation invariants block be
 
 **ExtendedTransitionInvariants (per-transition).** Every valid composite transition `Σ → Σ'` satisfies:
 
-  P0 ∧ P1 ∧ P2 ∧ P3★ ∧ L12
+  P0 ∧ P1 ∧ P2 ∧ P3 ∧ L12
 
 P0 subsumes ASN-0036's S0 (ContentImmutability) and S1 (StoreMonotonicity); ASN-0036's S9 (TwoStreamSeparation) follows from P0 unconditionally.
 
@@ -1090,12 +1100,12 @@ P7a (`(A a ∈ dom(C) :: (E d :: (a, d) ∈ R))`): For `a ∈ dom(C') \ dom(C)`,
 
 Coupling constraints J0, J1★, J1'★ hold for all valid composites by the analysis in the Scoped coupling constraints section.
 
-**Per-transition invariants** (ExtendedTransitionInvariants: P0, P1, P2, P3★, L12).
+**Per-transition invariants** (ExtendedTransitionInvariants: P0, P1, P2, P3, L12).
 
 - *P0.* K.α extends dom(C) at `a ∉ dom(C)` without modifying existing entries; all other elementary transitions hold C in frame.
 - *P1.* K.δ extends E; all others hold E in frame.
 - *P2.* K.ρ extends R; all others hold R in frame.
-- *P3★* is the conjunction of P0, L12, P1, P2.
+- *P3* is the conjunction of P0, L12, P1, P2.
 - *L12.* K.λ extends dom(L) at `ℓ ∉ dom(L)` without modifying existing entries; all other elementary transitions hold L in frame.
 
 Each per-transition invariant therefore holds across every elementary step; transitivity of inclusion and equality over a finite composite sequence gives the per-transition invariant at the composite boundary. ∎
@@ -1192,15 +1202,15 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 | D-CTG★ | Per-subspace contiguity: `(A d, S : V_S(d) ≠ ∅ : V_S(d) is contiguous under the V-ordering on subspace S)` — local strengthening of ASN-0036's D-CTG dropping the link-subspace exemption; supersedes D-CTG within the extended state | ASN-0036's D-CTG (Contiguity) had a link-subspace exemption |
 | D-MIN★ | Per-subspace minimum position: `(A d, S : V_S(d) ≠ ∅ : min(V_S(d)) = [S, 1, ..., 1] of depth m_S)` — local strengthening of ASN-0036's D-MIN dropping the link-subspace exemption; supersedes D-MIN within the extended state | ASN-0036's D-MIN (MinimumPosition) had a link-subspace exemption |
 | D-SEQ★ | Per-subspace lex-sequential range: for each non-empty subspace S in M(d), `V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S}` of uniform depth m_S — derived from D-CTG★ + D-MIN★ + S8-depth + S8-fin + S8a, per-subspace promotion of ASN-0036's D-SEQ to a system-wide invariant of the extended state | ASN-0036's D-SEQ (LexSequential) was per-document; this ASN promotes per-subspace and elevates to system-wide invariant |
-| P3★ | No component other than M — specifically C, L, E, R — admits contraction or reordering; quantitative monotonicity formalised as `dom(C) ⊆ dom(C') ∧ dom(L) ⊆ dom(L') ∧ E ⊆ E' ∧ R ⊆ R' ∧ (A a ∈ dom(C) :: C'(a) = C(a)) ∧ (A ℓ ∈ dom(L) :: L'(ℓ) = L(ℓ))` | Synthesises this ASN's P0 (subsuming ASN-0036's S0/S1), P1 (specialising ASN-0034's T8), and P2 with ASN-0043's L12 — combined with the qualitative mode-enumeration "no contraction or reordering on C, L, E, R" |
+| P3 | No component other than M — specifically C, L, E, R — admits contraction or reordering; quantitative monotonicity formalised as `dom(C) ⊆ dom(C') ∧ dom(L) ⊆ dom(L') ∧ E ⊆ E' ∧ R ⊆ R' ∧ (A a ∈ dom(C) :: C'(a) = C(a)) ∧ (A ℓ ∈ dom(L) :: L'(ℓ) = L(ℓ))` | Synthesises this ASN's P0 (subsuming ASN-0036's S0/S1), P1 (specialising ASN-0034's T8), and P2 with ASN-0043's L12 — combined with the qualitative mode-enumeration "no contraction or reordering on C, L, E, R" |
 | P4★ | `Contains_C(Σ) ⊆ R` — provenance bounds scoped to content subspace; supersedes P4 | This ASN's own P4 with subspace scoping |
 | J1★ | Range-based content-subspace scoping of J1: provenance recording for I-addresses new to content-subspace range | This ASN's own J1 with subspace scoping |
 | J1'★ | Range-based content-subspace scoping of J1': provenance entries only from content-subspace range changes | This ASN's own J1' with subspace scoping |
 | ValidComposite★ | Valid composite in extended state: transition preconditions at each step (K.μ~ as shorthand for K.μ⁻ + K.μ⁺) + J0, J1★, J1'★ at composite boundary; supersedes ValidComposite | This ASN's own Valid composite definition extended for the two-subspace state |
 | S7d★ | Document allocation discipline (relaxed): every `d ∈ E_doc` is T4-valid with `zeros(d) = 2`, placed in E_doc by a K.δ event satisfying `e ∉ E` — discharged either by T10a GlobalUniqueness on a tracked allocator chain or by direct E-inspection at the K.δ event (ghost-base k = 1 sub-case); distinct K.δ events produce distinct documents in both regimes | ASN-0036's S7d requires every document to be the result of an allocation event under T10a; the relaxed S7d★ admits documents allocated via direct E-inspection (ghost-base case) while retaining the structural identity and cross-document distinctness consequences |
 | S8★ | Per-subspace span decomposition: for each d ∈ E_doc and each subspace S ∈ {s_C, s_L}, M(d)\|_{V_S(d)} decomposes into a finite set of correspondence runs satisfying ASN-0036's S8 conditions (a) and (b) on the per-subspace projection — content-subspace projection by ASN-0036's S8 directly, link-subspace projection by trivial length-1 decomposition | ASN-0036's S8 is stated under S3 (single store), failing on the unprojected M(d) once link-subspace V-positions target dom(L); S8★ restores S8 per-subspace using S3★'s per-subspace clauses |
-| ExtendedReachableStateInvariants | Every reachable state satisfies S2 ∧ S3★ ∧ S3★-aux ∧ S4 ∧ S7a–S7c ∧ S7d★ ∧ S8a ∧ S8-fin ∧ S8-depth ∧ S8★ ∧ D-CTG★ ∧ D-MIN★ ∧ D-SEQ★ ∧ P4★ ∧ P6–P8 ∧ L0 ∧ L1 ∧ L1a ∧ L1b ∧ L1c ∧ L3 ∧ L14 ∧ L-fin ∧ CL-OWN ∧ CL-UNIQ (per-state). P0, P1, P2, P3★, S9, L12 are *per-transition*: see ExtendedTransitionInvariants. Together supersedes ReachableStateInvariants | This ASN's own Reachable-state invariants synthesis extended to the two-subspace state |
-| ExtendedTransitionInvariants | Every valid composite transition Σ → Σ' satisfies P0 ∧ P1 ∧ P2 ∧ P3★ ∧ L12. P0 subsumes ASN-0036's S0 and S1; S9 follows from P0 | This ASN's own per-transition synthesis |
+| ExtendedReachableStateInvariants | Every reachable state satisfies S2 ∧ S3★ ∧ S3★-aux ∧ S4 ∧ S7a–S7c ∧ S7d★ ∧ S8a ∧ S8-fin ∧ S8-depth ∧ S8★ ∧ D-CTG★ ∧ D-MIN★ ∧ D-SEQ★ ∧ P4★ ∧ P6–P8 ∧ L0 ∧ L1 ∧ L1a ∧ L1b ∧ L1c ∧ L3 ∧ L14 ∧ L-fin ∧ CL-OWN ∧ CL-UNIQ (per-state). P0, P1, P2, P3, S9, L12 are *per-transition*: see ExtendedTransitionInvariants. Together supersedes ReachableStateInvariants | This ASN's own Reachable-state invariants synthesis extended to the two-subspace state |
+| ExtendedTransitionInvariants | Every valid composite transition Σ → Σ' satisfies P0 ∧ P1 ∧ P2 ∧ P3 ∧ L12. P0 subsumes ASN-0036's S0 and S1; S9 follows from P0 | This ASN's own per-transition synthesis |
 | K.α amendment | Content-subspace restriction (`subspace_I(a) = s_C`); preserves L0 clause 2 and L14 in the extended state | Strengthening of this ASN's K.α (defined in *Elementary transitions* above) at the extended-state introduction |
 | K.μ⁺ amendment | Content-subspace restriction (`subspace(v) = s_C`); existing D-CTG/D-MIN postconditions carry forward; partitions arrangement extension by subspace with K.μ⁺_L | Strengthening of this ASN's K.μ⁺ (defined in *Elementary transitions* above) at the extended-state introduction |
 | K.μ⁻ (per-subspace scope) | The per-subspace D-CTG★/D-MIN★ postconditions stated at K.μ⁻'s definition apply to each subspace independently; valid contractions per-subspace are per-subspace suffix removals or full clearances (per the K.μ⁻ exhaustiveness lemma) | ASN-0036's K.μ⁻ stated D-CTG/D-MIN with a link-subspace exemption; the per-subspace amendments D-CTG★/D-MIN★ above carry through K.μ⁻'s postconditions to two subspaces |
