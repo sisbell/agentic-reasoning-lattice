@@ -466,6 +466,24 @@ class Store:
         siblings = self.state.version_children(identity)
         prior_head = siblings[-1] if siblings else identity
 
+        # Reconcile the version-sub-allocator's cursor with existing
+        # siblings before emission. Sub-allocators are NOT reconstructed
+        # at session load (only doc-level allocators are populated by
+        # _reattach_doc_owners), so on the second-or-later versioning
+        # of a doc, the freshly-spawned sub-allocator's cursor starts
+        # at its base — which equals the existing first sibling's
+        # address. Without reconciliation, emit_sibling returns an
+        # already-occupied position and emit_supersession lands as a
+        # self-loop (prior_head == new_addr). Parallel to
+        # _reconcile_link_cursor for link allocators.
+        if siblings:
+            from .addressing import inc
+            owner = self.state._owner[identity]
+            child_alloc = owner.get_or_spawn_child(identity, k_prime=1)
+            max_existing = siblings[-1]
+            while child_alloc._cursor.digits <= max_existing.digits:
+                child_alloc._cursor = inc(child_alloc._cursor, 0)
+
         new_addr = self.state._allocate_child(identity)
         self.state._set_parent(new_addr, identity)
         self.state.kind[new_addr] = self.state.kind.get(identity, "doc")
