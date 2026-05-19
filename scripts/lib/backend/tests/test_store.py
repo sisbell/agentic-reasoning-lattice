@@ -208,5 +208,152 @@ class RegisterVersionTests(unittest.TestCase):
         self.assertEqual(len(links), 1)
 
 
+class RegisterVersionCursorReconcileTests(unittest.TestCase):
+    """register_version must advance the version-sub-allocator's cursor
+    past existing siblings before allocating, otherwise emit_sibling
+    returns an already-occupied address and emit_supersession lands
+    as a self-loop (prior_head == new_addr).
+
+    Sub-allocators aren't reconstructed by _reattach_doc_owners on
+    session load, so the second-or-later register_version call after
+    a restart is the regression site.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.lattice_dir = Path(self.tmp.name) / "test_lattice"
+        self.docuverse = self.lattice_dir / "_docuverse"
+        self.docuverse.mkdir(parents=True)
+        legacy = self.docuverse / "legacy_links.jsonl"
+        _seed_legacy_jsonl(legacy)
+        migrate(legacy, self.docuverse, lattice_name="test")
+
+    def test_second_versioning_after_reload_yields_distinct_address(self):
+        # First session: register v1 → v2
+        store = Store(self.lattice_dir)
+        v1 = store.addr_for_path("claim/A.md")
+        v2 = store.register_version(v1)
+        del store
+
+        # Simulated session restart
+        store2 = Store(self.lattice_dir)
+        v3 = store2.register_version(v1)
+
+        # v3 must be a fresh address, not a re-emission of v2
+        self.assertNotEqual(
+            v3, v2,
+            "second versioning re-emitted the first sibling — "
+            "cursor was not reconciled with existing siblings on load",
+        )
+        self.assertNotEqual(v3, v1)
+
+    def test_no_self_loop_supersession_emitted_after_reload(self):
+        # First session: register v1 → v2
+        store = Store(self.lattice_dir)
+        v1 = store.addr_for_path("claim/A.md")
+        v2 = store.register_version(v1)
+        del store
+
+        # Simulated session restart
+        store2 = Store(self.lattice_dir)
+        v3 = store2.register_version(v1)
+
+        # No self-loop supersession anywhere in the substrate
+        all_sup = store2.find_links(type_="supersession")
+        for link in all_sup:
+            self.assertFalse(
+                link.from_set and link.to_set
+                and link.from_set[0] == link.to_set[0],
+                f"self-loop supersession at {link.addr}: "
+                f"{link.from_set} → {link.to_set}",
+            )
+
+        # And the expected v2 → v3 edge exists
+        edge = store2.find_links(
+            from_set=[v2], to_set=[v3], type_="supersession",
+        )
+        self.assertEqual(len(edge), 1)
+
+    def test_multiple_versions_after_reload_strictly_increase(self):
+        # Three versionings, one per simulated session
+        store = Store(self.lattice_dir)
+        v1 = store.addr_for_path("claim/A.md")
+        v2 = store.register_version(v1)
+        del store
+
+        store2 = Store(self.lattice_dir)
+        v3 = store2.register_version(v1)
+        del store2
+
+        store3 = Store(self.lattice_dir)
+        v4 = store3.register_version(v1)
+
+        addrs = [v1, v2, v3, v4]
+        self.assertEqual(
+            len(set(addrs)), 4, f"versions not distinct: {addrs}",
+        )
+        # The chain of supersession edges traces the version sequence
+        self.assertEqual(
+            len(store3.find_links(
+                from_set=[v1], to_set=[v2], type_="supersession",
+            )), 1,
+        )
+        self.assertEqual(
+            len(store3.find_links(
+                from_set=[v2], to_set=[v3], type_="supersession",
+            )), 1,
+        )
+        self.assertEqual(
+            len(store3.find_links(
+                from_set=[v3], to_set=[v4], type_="supersession",
+            )), 1,
+        )
+
+    def test_first_versioning_unchanged_by_fix(self):
+        # Regression guard: the reconcile-cursor block is skipped when
+        # siblings is empty (first versioning), so first-time behavior
+        # must match what RegisterVersionTests already verifies.
+        store = Store(self.lattice_dir)
+        v1 = store.addr_for_path("claim/A.md")
+        v2 = store.register_version(v1)
+        self.assertNotEqual(v1, v2)
+        edges = store.find_links(
+            from_set=[v1], to_set=[v2], type_="supersession",
+        )
+        self.assertEqual(len(edges), 1)
+        self.assertNotEqual(
+            edges[0].from_set[0], edges[0].to_set[0],
+            "first-versioning supersession is a self-loop",
+        )
+
+    def test_same_session_multiple_versionings_unaffected(self):
+        # In a single session, register_version is called multiple
+        # times. The sub-allocator is created once and its cursor
+        # advances naturally between calls — no reconcile needed,
+        # but the reconcile loop should be a no-op in that case.
+        store = Store(self.lattice_dir)
+        v1 = store.addr_for_path("claim/A.md")
+        v2 = store.register_version(v1)
+        v3 = store.register_version(v1)
+        v4 = store.register_version(v1)
+        self.assertEqual(len({v1, v2, v3, v4}), 4)
+        self.assertEqual(
+            len(store.find_links(
+                from_set=[v1], to_set=[v2], type_="supersession",
+            )), 1,
+        )
+        self.assertEqual(
+            len(store.find_links(
+                from_set=[v2], to_set=[v3], type_="supersession",
+            )), 1,
+        )
+        self.assertEqual(
+            len(store.find_links(
+                from_set=[v3], to_set=[v4], type_="supersession",
+            )), 1,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
