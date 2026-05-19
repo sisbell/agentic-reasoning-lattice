@@ -104,7 +104,7 @@ This ASN uses properties of the link store. For self-containment, we restate the
 
 The derivation of L14 (StoreDisjointness, dom(C) ∩ dom(L) = ∅) is a three-premise chain:
 
-  - **L0 (SubspacePartition, this ASN, below).** Every a ∈ dom(C) has subspace_I(a) = s_C; every a ∈ dom(L) has subspace_I(a) = s_L. (L0's C-clause is added in this ASN; the L-clause is from ASN-0043.)
+  - **L0 (SubspacePartition, per ASN-0093).** Every a ∈ dom(C) has subspace_I(a) = s_C; every a ∈ dom(L) has subspace_I(a) = s_L. Both clauses are foundation invariants in ASN-0093.
   - **SC-NEQ (consequence of SubspaceConventionAxiom).** s_C ≠ s_L.
   - **T7 (FirstElementFieldDistinction, ASN-0034).** Two tumblers with distinct first element-field components are themselves distinct addresses; equivalently, the value of subspace_I(a) partitions tumblers into disjoint subspaces.
 
@@ -112,13 +112,13 @@ The derivation of L14 (StoreDisjointness, dom(C) ∩ dom(L) = ∅) is a three-pr
 
 We note that `s_C ≥ 1` follows from S7b and T4: content I-addresses are element-level by S7b (`zeros(a) = 3`), and T4 requires every element-field component to be strictly positive, so `subspace_I(a) = s_C > 0`. The same derivation gives `s_L ≥ 1`: link I-addresses are element-level by L1 below (`zeros(ℓ) = 3`), so by T4, `subspace_I(ℓ) = s_L > 0`.
 
-**L0 (SubspacePartition).**
+**L0 (SubspacePartition, per ASN-0093).** Both clauses are foundation invariants:
 
   `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`
 
   `(A a ∈ dom(Σ.C) :: subspace_I(a) = s_C)`
 
-The L-clause is from ASN-0043; the C-clause is introduced here, supplied by the K.α amendment below.
+The L-clause is the original ASN-0043 form; the C-clause was added in ASN-0093 (foundation L0) and is supplied at allocation time by ASN-0093's K.α precondition `E(a)₁ = s_C`. No "introduced here" claim — both clauses are inherited.
 
 **L1 (LinkElementLevel).**
 
@@ -206,19 +206,16 @@ We seek the elementary modifications — the state changes from which all system
 
 **Convention.** A transition with unsatisfied preconditions does not fire.
 
-**K.α (Content allocation).** A fresh I-address is bound to a value in the content store:
+**K.α (Content allocation).** Per ASN-0093 (foundation K.α, ContentAllocation): a fresh I-address is bound to a value in the content store. The precondition structure — `d ∈ dom(M)` (home document exists), `a ∉ dom(C) ∪ dom(L)` (fresh address), `zeros(a) = 3 ∧ E(a)₁ = s_C` (element-level, content subspace), `#E(a) ≥ 2`, `origin(a) = d`, the first/subsequent emission cases producing `a` via d's content sub-allocator `A_C(d)`, and `v ∈ Val` — is inherited from ASN-0093's K.α directly. We restate the emission cases here for narrative continuity:
 
-`C' = C ∪ {a ↦ v}` where `a ∉ dom(C)`
+- *First emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} = ∅`): `a = [d.0.s_C.1]`, the determinate first emission of `A_C(d)`. Freshness against `dom(C) ∪ dom(L)` is pinned by SubAllocatorAxiom.FirstEmission (ASN-0093) directly.
+- *Subsequent emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`): `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` (TA5(c)), the next sibling on `A_C(d)`'s inc chain. Freshness against `dom(C)` is discharged by T10a's GlobalUniqueness; freshness against `dom(L)` is discharged by SC-NEQ + T7 (equivalently L14 at the pre-state).
 
-*Precondition:*
-- `IsElement(a)` (S7b, ASN-0036)
-- `origin(a) ∈ E_doc`
-- `a ∉ dom(C) ∪ dom(L)`  (fresh address — L14)
-- `a` is produced by origin(a)'s content sub-allocator. The first-emission and subsequent-emission cases have structurally distinct discharge routes and must be stated separately; SubAllocatorAxiom.FirstEmission does not commit "every emission" outside `dom(C) ∪ dom(L)`, only the first.
-  - *First emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} = ∅` where `d = origin(a)`): `a = [d.0.s_C.1]`, the determinate first emission of A_C(d). Freshness against `dom(C) ∪ dom(L)` is pinned by SubAllocatorAxiom.FirstEmission directly — that clause alone commits the first emission outside both stores.
-  - *Subsequent emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`): `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` (TA5(c)), the next sibling on A_C(d)'s inc chain. Freshness against `dom(C)` is discharged by T10a's GlobalUniqueness on the A_C(d) inc chain; freshness against `dom(L)` is discharged by SC-NEQ + T7 (and equivalently by L14 at the pre-state).
+*Effect:* `C' = C ∪ {a ↦ v}`.
 
-*Frame:* E' = E; (A d :: M'(d) = M(d)); R' = R.
+*Frame:* `L' = L; E' = E; (A d :: M'(d) = M(d)); R' = R`. The `L' = L` conjunct comes from ASN-0093's K.α frame; `E' = E` and `R' = R` extend that frame with the entity and provenance components that ASN-0093 does not name (both are unchanged at K.α by inheritance).
+
+The content-subspace restriction `E(a)₁ = s_C` (equivalently `subspace_I(a) = s_C`) is part of ASN-0093's K.α precondition directly; no separate "K.α amendment" is needed in the extended state. (The four-component sections of this ASN — preceding the link store introduction — read K.α with `dom(L) = ∅` throughout, under which `a ∉ dom(C) ∪ dom(L)` reduces to `a ∉ dom(C)` and `L' = L` is vacuous.)
 
 **NodeLineage (Derived invariant, NodeDescentFromBootstrap).** `(A e ∈ E : IsNode(e) : n₀ ≼ e)`, where `≼` is the prefix order on tumblers (ASN-0034). Proved as part of ExtendedReachableStateInvariants below.
 
@@ -302,7 +299,13 @@ We observe that neither split nor merge appears as an elementary transition. Nel
 
 ## Amendments to existing transitions
 
-**K.α amendment (ContentSubspaceRestriction).** In the extended state, K.α is amended with a content-subspace restriction: the allocated address must satisfy `subspace_I(a) = s_C`. This parallels K.λ's `subspace_I(ℓ) = s_L` and is required by L0 clause 2 — without it, K.α could allocate an address with subspace s_L, placing it in dom(C') and violating the partition. The amendment also preserves L14: since `subspace_I(a) = s_C` and `s_C ≠ s_L` (SC-NEQ), the address `a` cannot appear in dom(L) — L0 clause 1 at the pre-state ensures all dom(L) addresses have subspace s_L — so `dom(C') ∩ dom(L') = ∅`.
+**K.α (no separate amendment in extended state).** ASN-0093's K.α already encodes the content-subspace restriction `E(a)₁ = s_C` (equivalently `subspace_I(a) = s_C`) in its precondition, and its frame already includes `L' = L`. There is therefore no separate "K.α amendment" in the extended state. References elsewhere in this ASN to "the K.α amendment" (in the verification matrix and discharge prose below) name the same content-subspace restriction — now interpreted as the inherited foundation precondition, not a local addition.
+
+*Frame (extended state).* `C' = C ∪ {a ↦ v}` (effect); `L' = L; E' = E; (A d :: M'(d) = M(d)); R' = R`. The `L' = L` conjunct comes from ASN-0093's K.α frame directly, discharging P3's L-monotonicity clause `dom(L) ⊆ dom(L')` explicitly; the `E' = E` and `R' = R` conjuncts inherit from the original K.α frame.
+
+**K.ρ (no precondition amendment in extended state).** K.ρ's precondition `a ∈ dom(C) ∧ d ∈ E_doc` and effect `R' = R ∪ {(a, d)}` are unchanged in the extended state.
+
+*Frame (extended state).* `C' = C; L' = L; E' = E; (A d :: M'(d) = M(d))`. The `L' = L` conjunct extends the original K.ρ frame (which predated the link store) into the extended state, discharging P3's L-monotonicity clause `dom(L) ⊆ dom(L')` explicitly.
 
 **K.μ⁺ amendment (ContentSubspaceRestriction).** K.μ⁺ is amended with a content-subspace restriction: new V-positions must satisfy `subspace(v) = s_C`. This complements K.μ⁺_L (defined below), which handles link-subspace extensions exclusively. The restriction is necessary — without it, K.μ⁺ could create a link-subspace V-position mapping to dom(C), violating S3★. With this amendment, the two transitions partition arrangement extensions by subspace. The existing D-CTG and D-MIN postconditions carry forward, now complemented by K.μ⁺_L's parallel contiguity and minimum-position preconditions in the link subspace.
 
@@ -370,16 +373,16 @@ The discharge of J4 (Fork) under the amended K.μ⁺ is given in *Coupling and i
 
 ## Allocator hierarchy under documents
 
-The content- and link-subspace allocators are organized as sibling element-field sub-allocators rooted at each document. We formalise the sub-allocator structure under each document — anchors, frontier discipline, and emission ordering.
+The content- and link-subspace allocators are organized as sibling element-field sub-allocators rooted at each document. The anchor and sub-allocator notation used throughout this ASN — `b_C(d)`, `b_L(d)`, `A_C(d)`, `A_L(d)` — is taken from ASN-0093 directly (the SubAllocatorAnchor and ActiveSubAllocatorChain definitions); we summarise it here for reading continuity.
 
-For each `d ∈ E_doc`, the document-level address `d` (zeros = 2) is the root of d's allocator subtree. Two element-field bases sit immediately under d:
+For each `d ∈ E_doc`, the document-level address `d` (zeros = 2) is the root of d's allocator subtree. Per ASN-0093, two element-field bases sit immediately under d:
 
 - `b_C(d) := [d.0.s_C]` (single-component element field with E₁ = s_C; zeros = 3, #E = 1) — the **content sub-allocator anchor**.
 - `b_L(d) := [d.0.s_L]` (single-component element field with E₁ = s_L; zeros = 3, #E = 1) — the **link sub-allocator anchor**.
 
-These anchors are structurally producible via T10a inc steps from `d`. Under SubspaceConventionAxiom (defined at the head of the *Link store and extended system state* section, fixing `s_C = 1` and `s_L = 2`), `b_C(d) = inc(d, 2) = [d.0.1]` (TA5(d) with k = 2), and `b_L(d) = inc(b_C(d), 0) = inc([d.0.1], 0) = [d.0.2]` (TA5(c)): the rightmost nonzero component of `b_C(d)` is `s_C = 1` and incrementing yields `s_L = 2`. The anchors are not themselves in `dom(C) ∪ dom(L)` — content addresses have `#E ≥ 2` (S7c), link addresses have `#E ≥ 2` (L1b), and the anchors have `#E = 1` — so they inhabit the foundation carrier set `T` but no state component of Σ.
+These anchors are structurally producible via T10a inc steps from `d`. Under SubspaceConventionAxiom (`s_C = 1` and `s_L = 2`), `b_C(d) = inc(d, 2) = [d.0.1]` (TA5(d) with k = 2), and `b_L(d) = inc(b_C(d), 0) = inc([d.0.1], 0) = [d.0.2]` (TA5(c)). The anchors are not themselves in `dom(C) ∪ dom(L)` — content addresses have `#E ≥ 2` (S7c), link addresses have `#E ≥ 2` (L1b), and the anchors have `#E = 1` — so they inhabit the foundation carrier set `T` but no state component of Σ.
 
-**Definition (Sub-allocator names).** For each `d ∈ E_doc`, three T10a sub-allocators are associated with d:
+**Sub-allocator names** (per ASN-0093). For each `d ∈ E_doc`, three T10a sub-allocators are associated with d:
 
 - `A_C(d)` — d's **content sub-allocator**, with anchor `b_C(d) = [d.0.s_C]`. Its outputs `a` satisfy `a ∈ dom(C)`, `subspace_I(a) = s_C`, `origin(a) = d`, and `zeros(a) = 3` (element-level).
 - `A_L(d)` — d's **link sub-allocator**, with anchor `b_L(d) = [d.0.s_L]`. Its outputs `ℓ` satisfy `ℓ ∈ dom(L)`, `subspace_I(ℓ) = s_L`, `origin(ℓ) = d`, and `zeros(ℓ) = 3` (element-level).
@@ -389,7 +392,7 @@ Outputs of `A_C(d)` and `A_L(d)` are *not* entity-level (their outputs inhabit `
 
 Once each element-field anchor heads a frontier (not derivable from T10a alone — admitted as SubAllocatorAxiom below), the sub-allocator behaves as a T10a-conforming `inc(·, 0)` chain: the first content address under d is `[d.0.s_C.1]`, subsequent siblings advance by `inc([d.0.s_C.k], 0)` (TA5(c)); the first link address is `[d.0.s_L.1]`, subsequent siblings by `inc(ℓ_prev, 0)`. The two frontiers advance independently — each inc step operates locally under its subspace prefix.
 
-**SubAllocatorAxiom (Axiom, ContentLinkSubAllocatorExistence).** For each `d ∈ E_doc`, the entity-allocation event placing d into E_doc activates a content sub-allocator `A_C(d)` with anchor `b_C(d) = [d.0.s_C]` and a link sub-allocator `A_L(d)` with anchor `b_L(d) = [d.0.s_L]`. The axiom comprises five sub-clauses:
+**SubAllocatorAxiom (per ASN-0093, ContentLinkSubAllocatorExistence).** The axiom is taken from ASN-0093 directly. For each `d ∈ E_doc`, the entity-allocation event placing d into E_doc activates a content sub-allocator `A_C(d)` with anchor `b_C(d) = [d.0.s_C]` and a link sub-allocator `A_L(d)` with anchor `b_L(d) = [d.0.s_L]`. The five sub-clauses are inherited from ASN-0093 without modification; we summarise them for downstream citation:
 
 - **SubAllocatorAxiom.Subspace.** Outputs of the two sub-allocators inhabit `s_C` and `s_L` respectively: every `a` emitted by `A_C(d)` has `subspace_I(a) = s_C`, every `ℓ` emitted by `A_L(d)` has `subspace_I(ℓ) = s_L`.
 - **SubAllocatorAxiom.FirstEmission.** The first emission of each is the determinate tumbler `[d.0.s_C.1]` (resp. `[d.0.s_L.1]`), satisfying `a ∉ dom(Σ.C) ∪ dom(Σ.L)` at the state of allocation with `origin(a) = d` and `#E(a) = 2`.
@@ -403,7 +406,7 @@ Once each element-field anchor heads a frontier (not derivable from T10a alone �
 
 *Proof.* Case-split on the prefix relationship between `e₁` and `e₂`, which is exhaustive: every distinct pair is either prefix-comparable or prefix-incomparable.
 
-*Case A — Prefix-comparable* (WLOG `e₁ ≺ e₂`, so `#e₁ < #e₂`). Both entities satisfy `zeros = z` (their common level by T4). Since e₂'s first `#e₁` positions reproduce e₁ exactly — including all of e₁'s zero separators — the remaining positions `#e₁+1, ..., #e₂` of e₂ carry no zeros, so `e₂[#e₁+1] ≠ 0`. The prefix `p₁ = [e₁.0.s]` places its own zero separator at position `#e₁+1` (`p₁[#e₁+1] = 0`), while `p₂[#e₁+1] = e₂[#e₁+1] ≠ 0`. We verify the divergence index `#e₁ + 1` sits inside both prefixes: each `pᵢ = [eᵢ.0.s]` extends `eᵢ` by exactly two components (one zero separator at position `#eᵢ + 1`, one component `s` at position `#eᵢ + 2`), so `#p₁ = #e₁ + 2` and `#p₂ = #e₂ + 2`. From `#e₁ < #e₂` we obtain `#e₁ + 2 ≤ #e₂ + 2`, i.e., `#p₁ ≤ #p₂`; hence `min(#p₁, #p₂) = #p₁ = #e₁ + 2`, and `#e₁ + 1 < #e₁ + 2 = #p₁ ≤ #p₂` places `#e₁ + 1` strictly inside `#p₁` and a fortiori inside `#p₂`. Position-divergence at index `#e₁+1 ≤ min(#p₁, #p₂)` witnesses `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` by Prefix.
+*Case A — Prefix-comparable* (WLOG `e₁ ≺ e₂`). The length comparison `#e₁ < #e₂` is derived in one step: by Prefix (ASN-0034), `e₁ ≼ e₂` gives `#e₁ ≤ #e₂`; combined with `e₁ ≠ e₂` (distinct entities by hypothesis) and T3 (CanonicalRepresentation, ASN-0034) — equal-length tumblers agreeing on every component are equal — `#e₁ = #e₂` would force `e₁ = e₂` (since `e₁ ≼ e₂` already supplies positional agreement on positions `1..#e₁`), contradicting distinctness. Hence `#e₁ < #e₂`. Both entities satisfy `zeros = z` (their common level by T4). Since e₂'s first `#e₁` positions reproduce e₁ exactly — including all of e₁'s zero separators — the remaining positions `#e₁+1, ..., #e₂` of e₂ carry no zeros, so `e₂[#e₁+1] ≠ 0`. The prefix `p₁ = [e₁.0.s]` places its own zero separator at position `#e₁+1` (`p₁[#e₁+1] = 0`), while `p₂[#e₁+1] = e₂[#e₁+1] ≠ 0`. We verify the divergence index `#e₁ + 1` sits inside both prefixes: each `pᵢ = [eᵢ.0.s]` extends `eᵢ` by exactly two components (one zero separator at position `#eᵢ + 1`, one component `s` at position `#eᵢ + 2`), so `#p₁ = #e₁ + 2` and `#p₂ = #e₂ + 2`. From `#e₁ < #e₂` we obtain `#e₁ + 2 ≤ #e₂ + 2`, i.e., `#p₁ ≤ #p₂`; hence `min(#p₁, #p₂) = #p₁ = #e₁ + 2`, and `#e₁ + 1 < #e₁ + 2 = #p₁ ≤ #p₂` places `#e₁ + 1` strictly inside `#p₁` and a fortiori inside `#p₂`. Position-divergence at index `#e₁+1 ≤ min(#p₁, #p₂)` witnesses `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` by Prefix.
 
 *Case B — Prefix-incomparable* (`e₁ ⋠ e₂ ∧ e₂ ⋠ e₁`). The hypothesis supplies a divergence position `k ≤ min(#e₁, #e₂)` with `e₁[k] ≠ e₂[k]`. Since each prefix `pᵢ = [eᵢ.0.s]` agrees with `eᵢ` on positions `1..#eᵢ`, `p₁[k] = e₁[k] ≠ e₂[k] = p₂[k]`, witnessing prefix-incomparability by Prefix.
 
@@ -416,23 +419,16 @@ Cross-subspace collisions are further prevented by L14 (StoreDisjointness), itse
 
 ## Link allocation
 
-**K.λ (LinkAllocation).** Creates a new entry in the link store.
+**K.λ (LinkAllocation).** Per ASN-0093 (foundation K.λ, LinkAllocation): a new entry is created in the link store. The precondition structure — `d ∈ dom(M)` (home document exists), `ℓ ∉ dom(L) ∪ dom(C)` (fresh address), `zeros(ℓ) = 3 ∧ E(ℓ)₁ = s_L` (element-level, link subspace), `#E(ℓ) ≥ 2`, `origin(ℓ) = d`, the first/subsequent emission cases producing `ℓ` via d's link sub-allocator `A_L(d)`, and `(F, G, Θ) ∈ Link ∧ Θ ≠ ∅` — is inherited from ASN-0093's K.λ directly. The L3-narrowing to arity exactly three (with non-empty type endset `Θ`) is this ASN's local strengthening; the rest is foundation. We restate the emission cases here for narrative continuity:
 
-*Precondition:*
-- d ∈ E_doc  (home document exists)
-- ℓ ∉ dom(L) ∪ dom(C)  (fresh address — L14)
-- zeros(ℓ) = 3 ∧ subspace_I(ℓ) = s_L  (element-level, link subspace — L0, L1)
-- #E(ℓ) ≥ 2  (link element field has at least two components — L1b, ASN-0043; established by the inc(t, 1) descent in the first-link case and preserved by the inc(t, 0) sibling step in subsequent cases)
-- origin(ℓ) = d  (scoped to home document — L1a)
-- ℓ is produced by d's link sub-allocator. The first-emission and subsequent-emission cases have structurally distinct discharge routes and must be stated separately; SubAllocatorAxiom.FirstEmission does not commit "every emission" outside `dom(L) ∪ dom(C)`, only the first.
-  - *First emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`): `ℓ = [d.0.s_L.1]`, the determinate first emission of A_L(d). Freshness against `dom(L) ∪ dom(C)` is pinned by SubAllocatorAxiom.FirstEmission directly — that clause alone commits the first emission outside both stores.
-  - *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)` (TA5(c)), the next sibling on A_L(d)'s inc chain. Freshness against `dom(L)` is discharged by T10a's GlobalUniqueness on the A_L(d) inc chain; freshness against `dom(C)` is discharged by SC-NEQ + T7 (and equivalently by L14 at the pre-state).
-- `(A ℓ' : ℓ' ∈ dom(L) ∧ origin(ℓ') = d : ℓ' < ℓ)`  (forward allocation — T9; consequence of inc(·, 0) on the frontier in the subsequent case, and of the first-emit position [d.0.s_L.1] being greater than any pre-existing d-scoped link in the first-link case, where the antecedent is vacuous)
-- (F, G, Θ) ∈ Link ∧ Θ ≠ ∅  (well-formed link value with mandatory non-empty type endset — L3)
+- *First emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`): `ℓ = [d.0.s_L.1]`, the determinate first emission of `A_L(d)`. Freshness against `dom(L) ∪ dom(C)` is pinned by SubAllocatorAxiom.FirstEmission (ASN-0093) directly.
+- *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)` (TA5(c)), the next sibling on `A_L(d)`'s inc chain. Freshness against `dom(L)` is discharged by T10a's GlobalUniqueness; freshness against `dom(C)` is discharged by SC-NEQ + T7 (equivalently L14 at the pre-state).
 
-*Effect:* `L' = L ∪ {ℓ ↦ (F, G, Θ)}`
+In addition, the forward-allocation conjunct `(A ℓ' : ℓ' ∈ dom(L) ∧ origin(ℓ') = d : ℓ' < ℓ)` (T9) holds: it is a consequence of `inc(·, 0)` on the frontier in the subsequent case, and is vacuous in the first-link case (the antecedent is empty).
 
-*Frame:* `C' = C; E' = E; (A d' :: M'(d') = M(d')); R' = R`
+*Effect:* `L' = L ∪ {ℓ ↦ (F, G, Θ)}`.
+
+*Frame:* `C' = C; E' = E; (A d' :: M'(d') = M(d')); R' = R`. The `dom(M)`-preserving conjuncts come from ASN-0093's K.λ frame; `E' = E` and `R' = R` extend that frame with the entity and provenance components ASN-0093 does not name (both are unchanged at K.λ by inheritance).
 
 Cross-document disjointness is supplied by the Cross-document disjointness chain lemma (T10a.{2,5} → T10) above, applied with `p₁ := b_L(d)` and `p₂ := b_L(d')`.
 
@@ -516,6 +512,17 @@ Equivalently, `M(d)|_{dom_L}` is a partial injection from V-positions to link ad
 
 
 ## Decomposition of K.μ~
+
+*Dependency chain at a glance.* The argument structure below has a fixed order of derivation, in which each step's input is the previous step's output. The chain is non-circular and load-bearing for both the K.μ~ link-subspace fixity result and the existence condition `|dom_C(M(d))| ≥ 2`:
+
+  S3★(Σ') from K.μ~ admissibility clause (ii)
+  → subspace preservation derived (from S3★ at both endpoints, the bijection equation, and L14)
+  → link-subspace fixity Steps 1–3 (functional identity `M'(d)|_{dom_L} = M(d)|_{dom_L}`, established without invoking CL-UNIQ)
+  → Step 4 (CL-UNIQ at the pre-state Σ supplies the pointwise identity `π(v) = v` on `dom_L`)
+  → admissibility clause (iii) `π ≠ id` excludes the trivial permutation
+  → existence condition `|dom_C(M(d))| ≥ 2`.
+
+Each step appears below in the same order; the prose substantiates each link explicitly.
 
 For `d ∈ E_doc`, K.μ~ realises the *bijection equation*:
 
@@ -1170,7 +1177,7 @@ P4★ (`Contains_C(Σ) ⊆ R`): For each `(a, d) ∈ Contains_C(Σ') \ Contains_
 
 P4a (`(A (a, d) ∈ R :: (E Σ_k in the transition history : (E v ∈ dom(M_k(d)) : subspace(v) = s_C ∧ M_k(d)(v) = a)))`): For `(a, d) ∈ R' \ R`, J1'★ supplies `v ∈ dom(M'(d))` with `subspace(v) = s_C ∧ M'(d)(v) = a`, so Σ' itself witnesses; for `(a, d) ∈ R`, the inductive hypothesis supplies a prior witnessing state Σ_k and P2 carries the entry into R'. All other transitions hold R in frame.
 
-P7a (`(A a ∈ dom(C) :: (E d :: (a, d) ∈ R))`): For `a ∈ dom(C') \ dom(C)`, J0 supplies `d` with `a ∈ ran(M'(d))` at a content-subspace V-position (forced by the K.μ⁺ amendment, with K.μ⁺ following K.α in the elementary sequence by referential integrity); J1★ then supplies `(a, d) ∈ R'`. No transition removes from dom(C) (P0) or from R (P2), so P7a, once established, persists.
+P7a (`(A a ∈ dom(C) :: (E d :: (a, d) ∈ R))`): For `a ∈ dom(C') \ dom(C)`, J0 supplies `d ∈ E'_doc` and `v ∈ dom(M'(d))` with `M'(d)(v) = a`. We show the V-position `v` must be content-subspace, by chained derivation from J0 + S3★ + L14 (not from the K.μ⁺ amendment alone — J0's statement quantifies over `v ∈ dom(M'(d))` without subspace restriction). Suppose for contradiction `subspace(v) = s_L`. Then by S3★'s link clause, `M'(d)(v) ∈ dom(L)`, i.e., `a ∈ dom(L)`. But `a ∈ dom(C')` (J0's defining membership) and L14 gives `dom(C') ∩ dom(L') = ∅`; with `dom(L) ⊆ dom(L')` (P3), `a ∈ dom(L) ⊆ dom(L')` contradicts `a ∈ dom(C')`. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`, so `subspace(v) = s_C`. J1★ — which is range-based and triggers when an I-address is new to the content-subspace range of `M'(d)` — then supplies `(a, d) ∈ R'`. No transition removes from dom(C) (P0) or from R (P2), so P7a, once established, persists.
 
 Coupling constraints J0, J1★, J1'★ hold for all valid composites by the analysis in the Scoped coupling constraints section.
 
