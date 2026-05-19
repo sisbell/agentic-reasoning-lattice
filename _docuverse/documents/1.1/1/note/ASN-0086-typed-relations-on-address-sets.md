@@ -9,7 +9,7 @@ We are looking for what a relation algebra over the link store affords. The answ
 
 ## The Two Foundational Sets
 
-**Setup hypothesis.** We work in systems satisfying ASN-0043 (and therefore ASN-0036 and ASN-0034). This note's substrate baseline is ASN-0036 + ASN-0043. Citations of S3 refer to S3 (ReferentialIntegrity, ASN-0036). We additionally assume globally `s_C`-resident content:
+**Setup hypothesis.** We work in systems satisfying ASN-0043 (and therefore ASN-0036 and ASN-0034). Citations of S3 refer to S3 (ReferentialIntegrity, ASN-0036). We additionally assume globally `s_C`-resident content:
 
 `(A a ∈ dom(Σ.C) :: subspace_I(a) = s_C)`
 
