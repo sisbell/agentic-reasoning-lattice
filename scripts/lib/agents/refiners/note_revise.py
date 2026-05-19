@@ -35,7 +35,7 @@ from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_for_note
 from lib.shared.invoke_claude import invoke_claude_agent
 from lib.shared.paths import (
-    USAGE_LOG, WORKSPACE, prompt_path,
+    USAGE_LOG, WORKSPACE, prompt_path, worker_pending_jsonl,
 )
 
 
@@ -300,12 +300,48 @@ class NoteReviseAgent(Agent):
         # version chain by N per fire when N findings were closed; the
         # semantics are "one logical edit per fire," so the lifecycle
         # belongs here, not in the per-finding decision tool.
+        #
+        # In worker mode the LLM's tool subprocesses emit resolution.edit
+        # links to _workspace/links.worker-N.jsonl (the per-worker
+        # pending buffer), NOT to canonical links.jsonl. This session's
+        # in-memory state was loaded from canonical at session start
+        # and does not reflect pending writes, so session.active_links
+        # alone returns 0 acceptances and register_version never fires.
+        # Scan the pending buffer too — same pattern _reconcile_link_cursor
+        # uses to coordinate across processes.
         accept_count = 0
+        finding_targets = {
+            str(comment_addr)
+            for comment_addr, _finding, _title, _body in findings
+        }
+        accepted_targets = set()
         for comment_addr, _finding, _title, _body in findings:
             if session.active_links(
                 "resolution.edit", to_set=[comment_addr],
             ):
-                accept_count += 1
+                accepted_targets.add(str(comment_addr))
+        worker_idx_env = os.environ.get("CLAUDE_WORKER_INDEX")
+        if worker_idx_env not in (None, ""):
+            pending_path = worker_pending_jsonl(int(worker_idx_env))
+            if pending_path and pending_path.exists():
+                res_edit_type = str(
+                    session.store.state.types.address_for("resolution.edit")
+                )
+                with open(pending_path) as pf:
+                    for line in pf:
+                        line = line.rstrip("\n")
+                        if not line:
+                            continue
+                        try:
+                            entry = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                        if res_edit_type not in entry.get("type_set", []):
+                            continue
+                        for tgt in entry.get("to_set", []):
+                            if tgt in finding_targets:
+                                accepted_targets.add(tgt)
+        accept_count = len(accepted_targets)
         if accept_count > 0:
             session.register_version(note_addr)
 
