@@ -145,11 +145,11 @@ Every link address has at least two element-field components.
 
 The substrate states L1c in its per-step inc-rule form — not as the stronger "every intermediate `tᵢ` inhabits a T10a-tracked allocator's domain at the state of emission." The strong form fails for the anchor traversal and the first emission, which inhabit no T10a-tracked allocator domain at the moment of allocation; SubAllocatorAxiom.FirstEmission (below) closes the bootstrap gap by licensing the first emission directly, and SubAllocatorAxiom.ChainDiscipline carries subsequent emissions onto the sub-allocator's `inc(·, 0)` chain.
 
-**L3 (TripleEndsetStructure, narrowed form).**
+**L3 (NEndsetStructure).**
 
-  `(A a ∈ dom(L) :: L(a) = (F, G, Θ) where F, G, Θ ∈ Endset ∧ Θ ≠ ∅)`
+  `(A a ∈ dom(L) :: |L(a)| ≥ 3 ∧ (A i : 1 ≤ i ≤ |L(a)| : L(a).eᵢ ∈ Endset) ∧ L(a).e₃ ≠ ∅)`
 
-Every link in the link store has exactly three endsets, with the type endset non-empty. This is a substrate-level *narrowing* of ASN-0043's L3 (`|L(a)| ≥ 3 ∧ L(a).e₃ ≠ ∅`): the substrate pins fixed-three-arity rather than retaining ASN-0043's foundation `N ≥ 3` form. ASN-0043's `N ≥ 3` generality is preserved in principle for foundation-level extensions, but the substrate's transition model is closed under fixed-three arity.
+Every link is a sequence of at least three endsets, with the type endset (slot 3) non-empty. This is ASN-0043's L3 restated for the substrate. The three-endset convention (slot 1 = from, slot 2 = to, slot 3 = type, written `(F, G, Θ)`) is preserved as the default form for worked examples and notational convenience but not enforced structurally — the substrate admits arbitrary arity `N ≥ 3`.
 
 **L12 (LinkImmutability).**
 
@@ -240,7 +240,7 @@ The weaker subset inclusion `dom(C) ∩ {a' : origin(a') = d} ⊆ A_C(d)` (and i
 
   The link contiguous-prefix postcondition is unchanged by frame on `dom(L)`.
 
-- *K.λ(d, ℓ, F, G, Θ):* Symmetric to K.α with content↔link, using SubAllocatorAxiom.FirstEmission for the first-emit branch (placing `ℓ = s_1`, witnessing `n_d = 1`) and SubAllocatorAxiom.ChainDiscipline for the subsequent-emit branch (placing `ℓ = s_{n_d + 1}` from `ℓ_prev = s_{n_d}` by T10a.7, witnessing `n_d + 1` at `Σ'`). The content contiguous-prefix postcondition is unchanged by frame on `dom(C)`. ∎
+- *K.λ(d, ℓ, (e₁, …, eₙ)):* Symmetric to K.α with content↔link, using SubAllocatorAxiom.FirstEmission for the first-emit branch (placing `ℓ = s_1`, witnessing `n_d = 1`) and SubAllocatorAxiom.ChainDiscipline for the subsequent-emit branch (placing `ℓ = s_{n_d + 1}` from `ℓ_prev = s_{n_d}` by T10a.7, witnessing `n_d + 1` at `Σ'`). The content contiguous-prefix postcondition is unchanged by frame on `dom(C)`. ∎
 
 This lemma is the inductive invariant that licenses application of T10a.7 (EnumerationInjectivity) to `(a_prev, a)` in the K.α subsequent-emit case and to `(ℓ_prev, ℓ)` in the K.λ subsequent-emit case: T10a.7 (applicability justified by the *T10a chain-lemma applicability* remark above) requires both indices to inhabit the same chain, and ChainMembershipForOrigin supplies that membership for the predecessor.
 
@@ -295,7 +295,7 @@ Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by L14 (St
 
 The substrate admits three primitive transitions, one per state component. Each is atomic — its precondition is evaluated against `Σ` and its effect committed to `Σ'` in a single indivisible step; no intermediate state with the transition partially applied is admitted.
 
-*Parameter semantics.* For `K.α(d, a, v)` and `K.λ(d, ℓ, F, G, Θ)`, the address parameters `a` and `ℓ` appear in the operation signatures but their values are not free choices of the caller: the preconditions deterministically pin them from `(d, Σ)`. Specifically, the first-emit predicate forces `a = [d.0.s_C.1]` (resp. `ℓ = [d.0.s_L.1]`); the subsequent-emit predicate forces `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` (resp. `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)`). A caller is expected to compute the address from the current state via this pinning rule before invoking the operation; supplying a stale or otherwise non-conforming value causes the precondition check to fail. Implementations may treat the address as an output computed from `(d, Σ)` rather than as a free input; the substrate's semantics is unchanged in either reading because the pinning is total.
+*Parameter semantics.* For `K.α(d, a, v)` and `K.λ(d, ℓ, (e₁, …, eₙ))`, the address parameters `a` and `ℓ` appear in the operation signatures but their values are not free choices of the caller: the preconditions deterministically pin them from `(d, Σ)`. Specifically, the first-emit predicate forces `a = [d.0.s_C.1]` (resp. `ℓ = [d.0.s_L.1]`); the subsequent-emit predicate forces `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` (resp. `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)`). A caller is expected to compute the address from the current state via this pinning rule before invoking the operation; supplying a stale or otherwise non-conforming value causes the precondition check to fail. Implementations may treat the address as an output computed from `(d, Σ)` rather than as a free input; the substrate's semantics is unchanged in either reading because the pinning is total.
 
 ### K.σ (DocumentRegistration)
 
@@ -340,6 +340,8 @@ Cross-document disjointness for content allocations is supplied by the Cross-doc
 
 Extends `dom(L)` with a fresh link address scoped to an allocated document.
 
+Signature: `K.λ(d, ℓ, (e₁, …, eₙ))` where the link value is a finite sequence of `N` endsets.
+
 *Precondition:*
 - `d ∈ dom(M)` (home document exists)
 - `ℓ ∉ dom(L) ∪ dom(C)` (fresh address — L14)
@@ -349,9 +351,9 @@ Extends `dom(L)` with a fresh link address scoped to an allocated document.
 - `ℓ` is produced by `d`'s link sub-allocator `A_L(d)`:
   - *First emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`): `ℓ = [d.0.s_L.1]`, the determinate first emission of `A_L(d)`. Freshness against `dom(L) ∪ dom(C)` is pinned by SubAllocatorAxiom.FirstEmission directly.
   - *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(ℓ_prev, 0)` (TA5(c)) where `ℓ_prev := max{ℓ' ∈ dom(L) : origin(ℓ') = d}`, the next sibling on `A_L(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (L-fin restricted by `origin(·) = d`). *Within-document freshness against `dom(L)`* is discharged by combining T10a.7 with the max-property of `ℓ_prev`. Let `n_prev` be the chain index of `ℓ_prev` within `A_L(d)`. For every `ℓ' ∈ dom(L)` with `origin(ℓ') = d`: (i) ChainMembershipForOrigin places `ℓ' ∈ A_L(d)` at some chain index `m`; (ii) T10a.7 (EnumerationInjectivity, applicability justified by the *T10a chain-lemma applicability* remark) gives strict monotonicity `m < n ⟹ t_m < t_n`, whose contrapositive combined with `ℓ' ≤ ℓ_prev` (the lex-order max-property) yields `m ≤ n_prev`; (iii) SubAllocatorAxiom.ChainDiscipline places `ℓ = inc(ℓ_prev, 0)` at chain index `n_prev + 1`, so T10a.7 then yields `ℓ' = t_m ≤ t_{n_prev} = ℓ_prev < t_{n_prev + 1} = ℓ`, hence `ℓ' ≠ ℓ`. The max-property of `ℓ_prev` alone bounds `dom(L)_d`'s chain indices from above. (ChainMembershipForOrigin's stronger contiguous-prefix postcondition identifies the prior intersection as `{s_1, …, s_{n_d}}` with `ℓ_prev = s_{n_d}` and `ℓ = s_{n_d + 1}`, but the freshness argument needs only the subset form.) *Cross-document freshness against `dom(L)`* (for `ℓ' ∈ dom(L)` with `origin(ℓ') ≠ d`) is discharged in three steps: (a) `ℓ = inc(ℓ_prev, 0)` extends `b_L(d)` — by IH on ChainMembershipForOrigin at `Σ`, `ℓ_prev ∈ A_L(d)`; by ChainPrefixExtension at `Σ`, `b_L(d) ≼ ℓ_prev`; ChainPrefixExtension's step argument (TA5(b)/(c) at `k = 0` preserving positions `1..#ℓ_prev − 1` under TA5-SigValid pinning `sig(ℓ_prev) = #ℓ_prev`) carries the prefix relation forward, giving `b_L(d) ≼ ℓ`. (b) For every `ℓ' ∈ dom(L)` with `origin(ℓ') ≠ d`: ChainMembershipForOrigin at `Σ` places `ℓ' ∈ A_L(origin(ℓ'))` (well-defined since `origin(ℓ') ∈ dom(M)` by L1a at `Σ`), and ChainPrefixExtension at `Σ` gives `b_L(origin(ℓ')) ≼ ℓ'`. (c) Cross-document disjointness applied to `(d, origin(ℓ'))` gives `b_L(d) ⋠ b_L(origin(ℓ')) ∧ b_L(origin(ℓ')) ⋠ b_L(d)`; T10 (PartitionIndependence, ASN-0034) closes: `ℓ ≠ ℓ'`. *Freshness against `dom(C)`* is discharged by L0 + SC-NEQ + StoreT4Validity + T7: StoreT4Validity at `Σ` gives T4-validity of every `a ∈ dom(C)`; `ℓ` is T4-valid by chain-element T4-validity (since `ℓ ∈ A_L(d)` by ChainDiscipline's closure, with FirstEmission + TA5a propagation); L0 supplies `E(ℓ)₁ = s_L ≠ s_C = E(a)₁` (SC-NEQ); `zeros(ℓ) = zeros(a) = 3` by L1/C1. T7 (FirstElementFieldDistinction, ASN-0034) closes: `ℓ ≠ a`. (Equivalently the conclusion may be cited via L14 at the pre-state.)
-- `(F, G, Θ) ∈ Endset × Endset × Endset ∧ Θ ≠ ∅` (well-formed link value with mandatory non-empty type endset — L3)
+- `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` (well-formed link value with mandatory non-empty type endset at slot 3 — L3). The arity-3 default `(F, G, Θ)` (slot 1 = from, slot 2 = to, slot 3 = type) is the StandardTriple convention retained for worked examples and notational compactness; the substrate admits arbitrary arity `N ≥ 3`.
 
-*Effect:* `L' = L ∪ {ℓ ↦ (F, G, Θ)}`
+*Effect:* `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}`
 
 *Frame:* `C' = C; (A d' :: M'(d') = M(d'))`
 
@@ -363,6 +365,8 @@ Cross-document disjointness for link allocations is supplied by the Cross-docume
 ## Worked example
 
 To make the substrate's operation concrete, we trace a small scenario step-by-step starting from `Σ₀ = (∅, ∅, ∅)`.
+
+*Arity convention.* The K.λ invocations below use the arity-3 default `(F, G, Θ)` (StandardTriple — slot 1 from, slot 2 to, slot 3 type) for notational compactness. This is one admissible instance of K.λ's general signature `K.λ(d, ℓ, (e₁, …, eₙ))` with `N = 3`; the substrate admits arbitrary `N ≥ 3` per L3, and any higher-arity link value satisfying the precondition would be equally well-formed.
 
 *Fix a document address.* Let `d = [1, 0, 2, 0, 5]` — `#d = 5`, with zeros at positions 2 and 4 so `zeros(d) = 2`, with positive first and last components (1 and 5) and no adjacent zeros, hence T4-valid. By T4b, its projections are `N(d) = [1]`, `U(d) = [2]`, `D(d) = [5]`. By SubspaceConventionAxiom, `s_C = 1` and `s_L = 2`.
 
@@ -481,7 +485,7 @@ The base case holds.
 | **L1a** (LinkScopedAllocation) | Preserved: vacuously (no new link); for prior keys `ℓ ∈ dom(L)`, `origin(ℓ) ∈ dom(M) ⊆ dom(M')` (M1 extends `dom(M)`) | Preserved: `L` in frame; prior keys preserved by M1 | Discharged at new key: precondition pins `origin(ℓ) = d ∧ d ∈ dom(M)`; prior keys preserved by M1 |
 | **L1b** (LinkElementFieldDepth) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `#E(ℓ) ≥ 2` |
 | **L1c** (LinkAllocatorConformance) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key via the structural inc-chain (see *L1c chain exhibition* below — first-emit and subsequent-emit cases) |
-| **L3** (TripleEndsetStructure, narrowed) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `(F, G, Θ) ∈ Endset × Endset × Endset ∧ Θ ≠ ∅` |
+| **L3** (NEndsetStructure) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `|L(ℓ)| ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` |
 | **L12** (LinkImmutability) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: effect extends `dom(L)` at fresh `ℓ`; value at existing keys unaltered (definitional) |
 | **L14** (StoreDisjointness) | Holds at Σ' by direct derivation: L0(Σ') + SC-NEQ + StoreT4Validity(Σ') + T7. L0 supplies `E(a)₁ = s_C` for `a ∈ dom(C)` and `E(ℓ)₁ = s_L` for `ℓ ∈ dom(L)`; SC-NEQ supplies `s_C ≠ s_L`; StoreT4Validity supplies T4-validity of every entry of `dom(C) ∪ dom(L)` (T7's precondition); C1/L1 supply `zeros(a) = zeros(ℓ) = 3`. T7 (FirstElementFieldDistinction, ASN-0034) closes: differing `E(·)₁` ⟹ `a ≠ ℓ`. All four premises hold at Σ' | Holds at Σ': same derivation | Holds at Σ': same derivation |
 | **L-fin** (LinkStoreFiniteness) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: `|dom(L')| = |dom(L)| + 1`; finiteness closed under +1 |
@@ -533,7 +537,7 @@ Note that the C1c first-emit chain has *two* inc steps (`d → b_C(d) → a`) wh
 | L1a | LinkScopedAllocation | INV | ASN-0043 (refactored: `E_doc` → `dom(M)`); established at K.λ (precondition pins `origin(ℓ) = d ∧ d ∈ dom(M)` at the new key); preserved at K.σ/K.α by frame on `L` and M1's monotonicity of `dom(M)` |
 | L1b | LinkElementFieldDepth | INV | ASN-0043; established at K.λ (precondition pins `#E(ℓ) ≥ 2` at the new key); preserved at K.σ/K.α by frame on `L` |
 | L1c | LinkAllocatorConformance | INV | Substrate commitment: per-step inc-rule conformance. Established at K.λ via the L1c chain exhibition (first-emit gap closed by SubAllocatorAxiom.FirstEmission, subsequent-emit by SubAllocatorAxiom.ChainDiscipline (T10a.7)); preserved at K.σ/K.α by frame on `L` |
-| L3 | TripleEndsetStructure | INV | Narrowed form of ASN-0043's L3 (fixed-three-arity); established at K.λ (precondition pins `(F, G, Θ) ∈ Endset × Endset × Endset ∧ Θ ≠ ∅`); preserved at K.σ/K.α by frame on `L` |
+| L3 | NEndsetStructure | INV | ASN-0043; established at K.λ (precondition pins `|L(ℓ)| ≥ 3 ∧ (e₃) ≠ ∅`); preserved at K.σ/K.α by frame on `L` |
 | L12 | LinkImmutability | INV | ASN-0043; established at K.λ (effect extends `dom(L)` with new pair and leaves existing values unchanged); preserved at K.σ/K.α by frame on `L` |
 | L14 | StoreDisjointness | INV (derived) | L0 + SC-NEQ + StoreT4Validity + T7 |
 | L-fin | LinkStoreFiniteness | INV (derived) | Inductively from `Σ₀.L = ∅` + K.λ |
@@ -554,7 +558,7 @@ Note that the C1c first-emit chain has *two* inc steps (`d → b_C(d) → a`) wh
 
 - *Link withdrawal.* The substrate admits no withdrawal of `dom(L)` entries (L12 enforces immutability). Nelson's tombstone-style withdrawal (LM 4/9) is not expressible at this layer. Closing the gap is deferred to a higher-layer ASN that may extend the substrate with an explicit retraction mechanism — e.g., a future tombstoning ASN.
 
-- *Higher-arity links.* L3 here pins three-arity. ASN-0043's general `N ≥ 3` form is preserved in principle for foundation-level extensions; this substrate is closed under fixed-three arity.
+- *Higher-arity link discipline.* L3 admits arbitrary `N ≥ 3` (matching ASN-0043's foundation form). The substrate enforces no upper bound on arity and no constraints on the semantics of slots beyond the type endset at slot 3. Higher-layer ASNs may impose further constraints on arity, slot interpretation, or relations between slots if needed for specific link semantics — for example, a layer that fixes the StandardTriple convention as a structural commitment rather than a notational default.
 
 - *Document address discipline.* K.σ's precondition is structural-only (`ValidAddress(d) ∧ zeros(d) = 2 ∧ d ∉ dom(M)`). The substrate admits any T4-valid document-level tumbler. Nelson's hierarchical baptism (where node-account-document chains are enforced) is a higher-layer commitment; a higher-layer document-introduction primitive tightens K.σ's precondition with the additional discipline.
 
