@@ -210,7 +210,22 @@ def main() -> int:
             "topo positions 0, 2, 4, ...; --partition 1/2 takes 1, 3, 5, ...."
         ),
     )
+    parser.add_argument(
+        "--exclude", metavar="CLASSES", default=None,
+        help=(
+            "Comma-separated class labels to exclude from the walk. "
+            "Recognized: operations, protocols. core is always included. "
+            "Class membership is read from _workspace/asn-classes.yaml. "
+            "Example: --exclude operations,protocols restricts to core."
+        ),
+    )
     args = parser.parse_args()
+
+    from lib.shared.asn_classes import apply_exclude, parse_exclude_arg
+    try:
+        excluded_classes = parse_exclude_arg(args.exclude)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     partition_index = None
     partition_total = None
@@ -233,6 +248,14 @@ def main() -> int:
             print("  [NOTE-SCHED] --dag: no active notes found",
                   file=sys.stderr)
             return 0
+        if excluded_classes:
+            before = len(asn_labels)
+            asn_labels = apply_exclude(asn_labels, excluded_classes)
+            print(
+                f"  [NOTE-SCHED] --exclude {','.join(sorted(excluded_classes))}: "
+                f"{before} → {len(asn_labels)} ASNs",
+                file=sys.stderr,
+            )
         if partition_index is not None:
             asn_labels = [
                 asn_labels[i] for i in range(len(asn_labels))
@@ -248,6 +271,8 @@ def main() -> int:
     else:
         if partition_index is not None:
             parser.error("--partition requires --dag")
+        if excluded_classes:
+            parser.error("--exclude requires --dag")
         if not args.asns:
             parser.error("ASN(s) required, or use --dag")
         asn_labels = [_parse_asn(a) for a in args.asns]

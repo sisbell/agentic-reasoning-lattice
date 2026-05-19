@@ -207,14 +207,37 @@ def main() -> int:
         help="Show how the topo-sorted ASN list would split across N workers "
              "(round-robin). 0 (default) skips partition preview.",
     )
+    parser.add_argument(
+        "--exclude", metavar="CLASSES", default=None,
+        help=(
+            "Comma-separated class labels to exclude from the listing. "
+            "Recognized: operations, protocols. core is always included. "
+            "Class membership is read from _workspace/asn-classes.yaml."
+        ),
+    )
     args = parser.parse_args()
+
+    from lib.shared.asn_classes import (
+        apply_exclude, class_for, parse_exclude_arg,
+    )
+    try:
+        excluded_classes = parse_exclude_arg(args.exclude)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     triggers = _note_triggers()
     states: dict[str, str] = {}
     with open_session(LATTICE) as session:
         order, deps_map = _topo_sorted(session)
-        print(f"{'#':<4}{'ASN':<10}{'title':<32}{'deps':<32}{'state':<12}  next-trigger(s)")
-        print("─" * 130)
+        if excluded_classes:
+            before = len(order)
+            order = apply_exclude(order, excluded_classes)
+            print(
+                f"  [DAG-STATUS] --exclude {','.join(sorted(excluded_classes))}: "
+                f"{before} → {len(order)} ASNs",
+            )
+        print(f"{'#':<4}{'ASN':<10}{'title':<32}{'class':<12}{'deps':<32}{'state':<12}  next-trigger(s)")
+        print("─" * 142)
         for i, asn in enumerate(order, 1):
             note_addr = _note_addr_for(session, asn)
             title = _note_title_for(asn)
@@ -257,7 +280,9 @@ def main() -> int:
                 next_trigger = ", ".join(fires)
 
             states[asn] = state_label
-            print(f"{i:<4}{asn:<10}{title:<32}{dep_str:<32}{state_label:<12}  {next_trigger}")
+            asn_num = int(asn.replace("ASN-", ""))
+            cls = class_for(asn_num)
+            print(f"{i:<4}{asn:<10}{title:<32}{cls:<12}{dep_str:<32}{state_label:<12}  {next_trigger}")
 
     print()
     print(f"  {len(order)} active notes in DAG walk order.")

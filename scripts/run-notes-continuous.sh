@@ -162,12 +162,20 @@ while true; do
     # without ever-growing single files.
     ts=$(date +%Y%m%d-%H%M%S)
 
+    # Build optional --exclude arg from EXCLUDE_CLASSES env var (set
+    # in runner.env). Empty / unset means no exclusion.
+    exclude_args=()
+    if [[ -n "${EXCLUDE_CLASSES:-}" ]]; then
+        exclude_args=(--exclude "$EXCLUDE_CLASSES")
+        echo "  [run-notes-continuous] EXCLUDE_CLASSES=$EXCLUDE_CLASSES" >&2
+    fi
+
     # Spawn workers in parallel. Each runs to outer-fixed-point
     # quiescence on its partition, then exits.
     if [ "$WORKERS" -eq 1 ]; then
         log_file="_workspace/logs/worker-0.$ts.log"
         echo "  [run-notes-continuous] worker 0 → $log_file" >&2
-        python scripts/note-scheduler.py --dag 2>&1 \
+        python scripts/note-scheduler.py --dag "${exclude_args[@]}" 2>&1 \
             | tee -a "$log_file"
         worker_rc=${PIPESTATUS[0]}
         if [ "$worker_rc" -ne 0 ]; then
@@ -186,7 +194,7 @@ while true; do
             WORKER_LOGS+=("$log_file")
             echo "  [run-notes-continuous] worker $i → $log_file" >&2
             CLAUDE_WORKER_INDEX=$i python scripts/note-scheduler.py --dag \
-                --partition "$i/$WORKERS" 2>&1 \
+                --partition "$i/$WORKERS" "${exclude_args[@]}" 2>&1 \
                 | tee -a "$log_file" \
                 | sed "s/^/[w$i] /" &
             WORKER_PIDS+=($!)
