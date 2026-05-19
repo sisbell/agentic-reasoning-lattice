@@ -206,6 +206,21 @@ The substrate's freshness obligations decompose as: (i) within-chain freshness f
 
 *Earlier-draft note.* Two clauses present in earlier drafts — *Disjointness* (`A_C(d)` and `A_L(d)` produce addresses with `E(·)₁ = s_C` and `s_L` respectively) and *FirstEmission's freshness conclusion* — are not axiom content. They are restated as derived lemmas DisjointSubAllocatorChains and FirstEmissionFreshness below, respectively.
 
+**Dependency ordering of the chain lemmas.** The six chain lemmas below are presented — and *proved* — in a fixed dependency order:
+
+  ChainElementT4Validity → ChainUniformLength → ChainEnumerationInjectivity → ChainUniformZeroCount → DisjointSubAllocatorChains → ChainPrefixExtension
+
+This ordering is load-bearing: each lemma's proof is permitted to cite the conclusions of all earlier lemmas in the list as fully established facts at every chain index `n ≥ 1`, but not the conclusions of any later lemma. Because each lemma proceeds by induction on the same chain-index variable `n`, an out-of-order citation would amount to a nested induction at the inductive step — i.e., re-proving an earlier lemma's full conclusion inside the step of a later one. By proving in dependency order and citing only prior lemmas, every inductive step consumes its premises as standalone prior facts (already universally quantified over all chain indices), not as parallel induction hypotheses. In particular:
+
+- ChainElementT4Validity stands alone (no chain-lemma dependencies; cites only FirstElementValidity from the Definition and TA5a from ASN-0034 foundation).
+- ChainUniformLength stands alone (cites only SiblingRecurrence and TA5(c) foundation; no T4-validity required).
+- ChainEnumerationInjectivity stands alone (cites only SiblingRecurrence, TA5(a), T1(a)/T1(c) foundation; no T4-validity required).
+- ChainUniformZeroCount cites ChainElementT4Validity at its step (for `t_n`'s T4-validity, supplying TA5-SigValid's precondition).
+- DisjointSubAllocatorChains cites ChainElementT4Validity (chain-element T4-validity feeding TA5-SigValid) and ChainUniformLength (uniform length pinning `sig(t_n) = #d + 3` at every index).
+- ChainPrefixExtension cites ChainElementT4Validity (for `t_n`'s T4-validity at the step) and ChainUniformLength (for `#t_n = #d + 3` at the step) — both as established prior facts, not via nested induction.
+
+The substrate's transition-indexed proofs (ChainMembershipForOrigin, StoreT4Validity, FirstEmissionFreshness, and the discharge matrix entries) are free to cite any of the six chain lemmas without restriction, because by the time those transition-indexed inductions fire, all six chain lemmas hold once-and-for-all on every T10a-discipline-satisfying chain.
+
 **Lemma (ChainElementT4Validity).** Every element of a T10a-discipline-satisfying chain is T4-valid:
 
   `(A chain (t_1, t_2, t_3, …) satisfying FirstElementValidity ∧ SiblingRecurrence : (A n ≥ 1 :: t_n is T4-valid))`
@@ -341,7 +356,7 @@ So `k ≤ min(#p₁, #p₂)`. The values:
 - `p₁[k] = p₁[#d₁ + 1] = 0` (the zero separator inserted by the `b_L` construction)
 - `p₂[k] = p₂[#d₁ + 1] = d₂[#d₁ + 1] ≠ 0` (by the M0-at-both-`d₁`-and-`d₂` zero-count argument above; `#d₁ + 1 ≤ #d₂` since `#d₁ < #d₂`)
 
-Thus `p₁[k] = 0 ≠ p₂[k]` at an index within both anchors, witnessing `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` via the position-divergence clause of Prefix (ASN-0034).
+Thus `p₁[k] = 0 ≠ p₂[k]` at an index within both anchors. This witnesses `p₁ ⋠ p₂` via the component-disagreement direction of Prefix's negation (Prefix, ASN-0034): unfolding `p ⋠ q ≡ ¬(#p ≤ #q ∧ (∀i : 1 ≤ i ≤ #p : qᵢ = pᵢ))`, the negation reads `#p > #q ∨ (∃ i : 1 ≤ i ≤ #p : qᵢ ≠ pᵢ)`; at `(p, q) := (p₁, p₂)`, the existential disjunct is discharged by the witness `k = #d₁ + 1` with `k ≤ #p₁` and `p₂[k] ≠ p₁[k]`. For `p₂ ⋠ p₁`, the length-disjunct route applies directly: `#p₂ = #d₂ + 2 > #d₁ + 2 = #p₁`, so the length conjunct `#p₂ ≤ #p₁` of `p₂ ≼ p₁` fails outright, witnessing `p₂ ⋠ p₁` without need of a component-divergence index. (The component-disagreement direction also discharges `p₂ ⋠ p₁` at the same `k` and the same disagreement values — since `k = #d₁ + 1 ≤ #p₂` — providing an independent alternative witness.)
 
 *Case B — Prefix-incomparable.* `d₁ ⋠ d₂ ∧ d₂ ⋠ d₁` at the document level. The joint conjunction does not directly yield a position divergence at `k ≤ min(#d₁, #d₂)`: in asymmetric-length subcases, one of the two `⋠` clauses is satisfied by the failure of Prefix's length conjunct alone, supplying no component-divergence witness; the position-divergence witness must be extracted from the *other* clause. We case-split on the length relationship between `d₁` and `d₂`, exhaustive by NAT-order's at-least-one trichotomy at `(#d₁, #d₂)`.
 
@@ -349,7 +364,7 @@ Thus `p₁[k] = 0 ≠ p₂[k]` at an index within both anchors, witnessing `p₁
 
 *Sub-case B.ii — `#d₂ < #d₁`.* Symmetric: the length conjunct of `d₂ ≼ d₁` holds, so `d₂ ⋠ d₁` is witnessed by some `i` with `1 ≤ i ≤ #d₂` and `d₁[i] ≠ d₂[i]`. Take `k := i`; then `k ≤ #d₂ = min(#d₁, #d₂)`.
 
-In either sub-case the witness `k` satisfies `k ≤ min(#d₁, #d₂)`. From `#p_i = #d_i + 2`, NAT-addcompat's strict successor lifts `#d_i ≤ #p_i`, so `min(#d₁, #d₂) ≤ min(#p₁, #p₂)`. The anchors are length-`+2` extensions agreeing with `d_i` at positions `1..#d_i`, so `p₁[k] = d₁[k] ≠ d₂[k] = p₂[k]` at an index within both anchors, witnessing `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` via the position-divergence clause of Prefix (ASN-0034).
+In either sub-case the witness `k` satisfies `k ≤ min(#d₁, #d₂)`. From `#p_i = #d_i + 2`, NAT-addcompat's strict successor lifts `#d_i ≤ #p_i`, so `min(#d₁, #d₂) ≤ min(#p₁, #p₂)`. The anchors are length-`+2` extensions agreeing with `d_i` at positions `1..#d_i`, so `p₁[k] = d₁[k] ≠ d₂[k] = p₂[k]` at an index within both anchors, witnessing `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` via the component-disagreement direction of Prefix's negation (Prefix, ASN-0034) — the existential disjunct of `¬(#p ≤ #q ∧ (∀i : 1 ≤ i ≤ #p : qᵢ = pᵢ))` discharged by `k` in both directions. (In sub-case B.ii where `#d₂ < #d₁`, the length-disjunct also discharges `p₁ ⋠ p₂` directly via `#p₁ > #p₂`, as an alternative independent of the component witness; in sub-case B.i with `#d₁ = #d₂`, the lengths agree and only the component-disagreement route applies.)
 
 *Closure.* T10 (PartitionIndependence, ASN-0034) applies uniformly: for any `a, b ∈ T` with `p₁ ≼ a` and `p₂ ≼ b`, we have `a ≠ b`. Every link address allocated under `d₁` extends `p₁ = b_L(d₁)`; every link address allocated under `d₂` extends `p₂ = b_L(d₂)`. Therefore no link allocated under `d₁` can coincide with any link allocated under `d₂`. The same argument with `b_C(d_i)` in place of `b_L(d_i)` gives cross-document content disjointness. ∎
 
@@ -563,7 +578,7 @@ The base case holds.
 | **L1c** (LinkAllocatorConformance) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key via the structural inc-chain (see *L1c chain exhibition* below — first-emit and subsequent-emit cases) |
 | **L3** (NEndsetStructure) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `|L(ℓ)| ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` |
 | **L12** (LinkImmutability) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: effect extends `dom(L)` at fresh `ℓ`; value at existing keys unaltered (definitional) |
-| **L14** (StoreDisjointness) | Holds at Σ' by direct derivation: L0(Σ') + SC-NEQ + StoreT4Validity(Σ') + T7. L0 supplies `E(a)₁ = s_C` for `a ∈ dom(C)` and `E(ℓ)₁ = s_L` for `ℓ ∈ dom(L)`; SC-NEQ supplies `s_C ≠ s_L`; StoreT4Validity supplies T4-validity of every entry of `dom(C) ∪ dom(L)` (T7's precondition); C1/L1 supply `zeros(a) = zeros(ℓ) = 3`. T7 (FirstElementFieldDistinction, ASN-0034) closes: differing `E(·)₁` ⟹ `a ≠ ℓ`. All four premises hold at Σ' | Holds at Σ': same derivation | Holds at Σ': same derivation |
+| **L14** (StoreDisjointness) | Preserved by frame: `C` and `L` are both in frame, so `dom(C') = dom(C)` and `dom(L') = dom(L)`, and IH-L14 (`dom(C) ∩ dom(L) = ∅`) transfers directly to Σ'. No new key in either store; no fresh discharge required | Discharged at the new key `a`. At prior keys (`a' ∈ dom(C)`, `ℓ ∈ dom(L)`) IH-L14 supplies disjointness by frame on `L` (`L' = L`). For pairs `(a, ℓ)` with `ℓ ∈ dom(L) = dom(L')`: L0's C-clause at `a` is discharged from K.α's precondition `E(a)₁ = s_C`; L0's L-clause at `ℓ` is inherited from IH-L0 at Σ; SC-NEQ supplies `s_C ≠ s_L`; StoreT4Validity at `a` is discharged from ChainElementT4Validity applied to `A_C(d)` (whose first emission is T4-valid by FirstEmission); StoreT4Validity at `ℓ` is inherited from IH-StoreT4Validity at Σ; C1 supplies `zeros(a) = 3` from K.α's precondition; L1 supplies `zeros(ℓ) = 3` from IH-L1 at Σ. T7 (FirstElementFieldDistinction, ASN-0034) closes: differing `E(·)₁` ⟹ `a ≠ ℓ` | Discharged at the new key `ℓ`, symmetric to K.α with content↔link. At prior keys IH-L14 supplies disjointness by frame on `C` (`C' = C`). For pairs `(a, ℓ)` with `a ∈ dom(C) = dom(C')`: L0's L-clause at `ℓ` is discharged from K.λ's precondition `E(ℓ)₁ = s_L`; L0's C-clause at `a` is inherited from IH-L0 at Σ; StoreT4Validity at `ℓ` is discharged from ChainElementT4Validity applied to `A_L(d)`; StoreT4Validity at `a` is inherited from IH-StoreT4Validity at Σ; L1 supplies `zeros(ℓ) = 3` from K.λ's precondition; C1 supplies `zeros(a) = 3` from IH-C1 at Σ. T7 closes |
 | **L-fin** (LinkStoreFiniteness) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: `|dom(L')| = |dom(L)| + 1`; finiteness closed under +1 |
 | **C-fin** (ContentStoreFiniteness) | Preserved: `C` in frame | Discharged: `|dom(C')| = |dom(C)| + 1`; finiteness closed under +1 | Preserved: `C` in frame |
 
