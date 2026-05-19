@@ -1,29 +1,40 @@
-# Review of ASN-0093
+# Patch Review of ASN-0093
 
 ## REVISE
 
-(none — see analysis notes below)
+### Issue 1: L3 invariant statement not reverted
+**ASN-0093, Link store invariants → L3**: "L3 (TripleEndsetStructure, narrowed form). `(A a ∈ dom(L) :: L(a) = (F, G, Θ) where F, G, Θ ∈ Endset ∧ Θ ≠ ∅)` Every link in the link store has exactly three endsets... This is a substrate-level *narrowing* of ASN-0043's L3... the substrate pins fixed-three-arity rather than retaining ASN-0043's foundation `N ≥ 3` form. ASN-0043's `N ≥ 3` generality is preserved in principle for foundation-level extensions, but the substrate's transition model is closed under fixed-three arity."
+**Problem**: The patch explicitly instructed to revert L3 to ASN-0043's general `N ≥ 3` form. The current L3 still narrows to exactly three endsets via `L(a) = (F, G, Θ)`, still labels itself "narrowed form" in the header, and still asserts "substrate's transition model is closed under fixed-three arity" — directly contradicting the patch.
+**Required**: Replace the L3 statement with the general form, e.g.: "L3 (NEndsetStructure). `(A a ∈ dom(L) :: |L(a)| ≥ 3 ∧ (A i : 1 ≤ i ≤ |L(a)| : L(a).eᵢ ∈ Endset) ∧ L(a).e₃ ≠ ∅)`. Every link is a sequence of at least three endsets, with the type endset (slot 3) non-empty. The three-endset convention (slot 1 = from, slot 2 = to, slot 3 = type, written `(F, G, Θ)`) is preserved as the default but not enforced structurally." Remove "narrowed form" from the header and remove the "narrowing" explanation paragraph.
 
-## OUT_OF_SCOPE
+### Issue 2: K.λ operation signature still locks to three-arity
+**ASN-0093, Substrate primitive operations → K.λ**: Signature `K.λ(d, ℓ, F, G, Θ)`; precondition `(F, G, Θ) ∈ Endset × Endset × Endset ∧ Θ ≠ ∅`; effect `L' = L ∪ {ℓ ↦ (F, G, Θ)}`.
+**Problem**: With L3 reverted to `N ≥ 3`, the substrate must admit construction of links with N > 3. K.λ's hardcoded three-tuple signature and precondition make it structurally impossible to construct a link with `|L(a)| > 3`, contradicting the patch's intent that arity be unconstrained at the substrate. The L3 invariant cannot have an N ≥ 3 form if the only operation that introduces links cannot produce non-3 arities.
+**Required**: Revise K.λ to accept a variable-arity link value. Replace parameters `F, G, Θ` with a sequence `(e₁, …, eₙ)`; replace the precondition with `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅`; replace the effect with `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}`. The arity-3 default can be retained as a notational convenience in worked examples.
 
-(none — the ASN's scope statement matches the prompt's deferred topics, and all deferred items are explicitly marked in Open Questions)
+### Issue 3: Parameter semantics paragraph not updated for K.λ
+**ASN-0093, Substrate primitive operations → Parameter semantics**: "For `K.α(d, a, v)` and `K.λ(d, ℓ, F, G, Θ)`, the address parameters `a` and `ℓ` appear in the operation signatures..."
+**Problem**: The K.λ signature here is the fixed-three-arity form. Should match the revised K.λ signature.
+**Required**: Update the citation of K.λ's signature to match the revised arity-N form.
 
-## Analysis Notes
+### Issue 4: Registry entry for L3 not updated
+**ASN-0093, Properties Introduced**: "| L3 | TripleEndsetStructure | INV | Narrowed form of ASN-0043's L3 (fixed-three-arity); established at K.λ (precondition pins `(F, G, Θ) ∈ Endset × Endset × Endset ∧ Θ ≠ ∅`); preserved at K.σ/K.α by frame on `L` |"
+**Problem**: The Name column ("TripleEndsetStructure"), Status description ("Narrowed form... fixed-three-arity"), and discharge description (citing the three-tuple precondition) all reflect the pre-patch fixed-three-arity form.
+**Required**: Rename to "NEndsetStructure" (matching ASN-0043's L3 name). Replace the Source column with: "ASN-0043; established at K.λ (precondition pins `|L(ℓ)| ≥ 3 ∧ (e₃) ≠ ∅`); preserved at K.σ/K.α by frame on `L`."
 
-**Simultaneous-induction framing is sound.** I verified no circular dependency within the inductive step: L14(Σ') depends on L0(Σ') and StoreT4Validity(Σ'), neither of which transitively depends on L14. ChainMembershipForOrigin(Σ') depends on IH-at-Σ plus axiom + foundation, not on itself at Σ'.
+### Issue 5: Discharge matrix entry for L3 cites fixed-three-arity precondition
+**ASN-0093, Discharge of stated invariants → matrix row for L3**: "| **L3** (TripleEndsetStructure, narrowed) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `(F, G, Θ) ∈ Endset × Endset × Endset ∧ Θ ≠ ∅` |"
+**Problem**: Label "(narrowed)" and discharge text both reflect the fixed-three-arity form.
+**Required**: Update label and discharge text to reflect the N ≥ 3 form, citing the revised K.λ precondition.
 
-**Cross-document disjointness Case A.** Verified: from `d₁ ≼ d₂` proper with M0's `zeros = 2` at both, `d₂[#d₁+1] ≠ 0` (else `zeros(d₂) > 2`), giving divergence at `k = #d₁ + 1` within both anchors. Case B exhausts via NAT-order trichotomy with B.i and B.ii handling equality and asymmetric lengths respectively.
+### Issue 6: Open Questions item contradicts patch
+**ASN-0093, Open Questions**: "*Higher-arity links.* L3 here pins three-arity. ASN-0043's general `N ≥ 3` form is preserved in principle for foundation-level extensions; this substrate is closed under fixed-three arity."
+**Problem**: This item asserts that the substrate pins three-arity and is "closed under fixed-three arity" — directly contradicting the patch's revert of L3 to N ≥ 3. Higher-arity links are no longer an open question at this layer; they are admitted.
+**Required**: Either remove the item entirely (it is no longer an open question), or replace it with a forward-looking note acknowledging that L3 now admits N ≥ 3 and that higher-layer ASNs may impose further constraints if needed.
 
-**T10a.7 contrapositive argument.** Verified: `t_m ≤ t_{n_prev} ⟹ m ≤ n_prev` is the correct contrapositive of strict monotonicity. The full chain `a' = t_m ≤ t_{n_prev} = a_prev < t_{n_prev+1} = a` correctly establishes `a' < a`, hence `a' ≠ a`.
+### Issue 7: Worked example consistency check
+**ASN-0093, Worked example**: All K.λ calls in Steps 3, 7, 8 use the three-tuple form `K.λ(d, ℓ, F, G, Θ)`.
+**Problem**: While the patch preserves three-endset as the default, the worked example invokes the K.λ signature that is itself misaligned (per Issue 2). Once K.λ is revised to accept N-tuples, the example signatures should be cited in a form compatible with both the revised operation and the arity-3 convention (e.g., explicitly noting that the example uses the arity-3 default).
+**Required**: Once K.λ is revised, reconcile the worked example invocations either by updating to the variable-arity form (e.g., `K.λ(d, ℓ, (F, G, Θ))`) or by adding a one-line note that the worked example exhibits the arity-3 default permitted by K.λ's general signature.
 
-**FirstEmission's freshness derivation in the Remark.** Verified: against `dom(C)`, uses ChainPrefixExtension (base case for the new emission, IH at pre-state for existing entries) + ChainMembershipForOrigin + Cross-document disjointness + T10. Against `dom(L)`, uses StoreT4Validity + L0 + SC-NEQ + T7. No circularity.
-
-**Worked example.** Spot-checked Steps 1–9 including the structural form of `[d.0.s_C.1]`, `b_C(d)` and `b_L(d)` chain steps via TA5(c)/TA5(d), origin projection computation, Cross-document disjointness verification at Step 5 (Case A with `d ≼ d'`) and Step 9 (Case B.i with `#d = #d_alt`, Case B.ii with `#d_alt < #d'`). All concrete computations match.
-
-**Discharge matrix.** All 17 invariants × 3 transitions = 51 entries cover preservation correctly. The repeated "Holds at Σ': same derivation" for L14 across all three transitions over-derives at K.σ (where C/L are both in frame) but is not incorrect.
-
-**T10a chain-lemma applicability remark.** The proof-inspection argument that T10a.1/T10a.7 require no T4-validity and T10a.8's T10a.4 citation can be replaced by TA5a per-step propagation is sound. The substrate's substitution preserves T10a.8's conclusion without invoking tree-embedding.
-
-META: (none — the ASN remains squarely in spec territory, defining state, operations, invariants, and proving preservation by simultaneous induction)
-
-VERDICT: CONVERGED
+VERDICT: REVISE
