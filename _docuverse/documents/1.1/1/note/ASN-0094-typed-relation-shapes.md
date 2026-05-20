@@ -28,6 +28,7 @@ Shapes are not derivable from R0–R7. They are an additional design decision th
 - *Document address structure.* Every `d ∈ dom(Σ.M)` is T4-valid with `zeros(d) = 2` — i.e., a document-level tumbler with two field-separator zeros (after node and user fields), no element-field zero. This is the property of document addresses surfaced by the substrate-conforming layer; the framework cites it directly without unpacking the chain through any specific numbered substrate invariant.
 - *Per-document link sub-allocator chains.* For each `d ∈ dom(Σ.M)` the substrate-conforming layer supplies a link sub-allocator whose output chain enumerates `{ℓ : home(ℓ) = d}` under T9 (ForwardAllocation, ASN-0034); this is the same chain enumeration referenced by ASN-0086's R0a-Cor1 and FreshEmissionAddress.
 - *Uniform link sub-allocator chain length.* All outputs of a single document's link sub-allocator share the same tumbler length: for every `d ∈ dom(Σ.M)` and every pair `ℓ_1, ℓ_2` in the chain at `d`, `#ℓ_1 = #ℓ_2`. (Property of the chain discipline supplied by the substrate-conforming layer; the framework cites this scaffolding name in proofs that need to compare two chain elements' lengths.)
+- *Link sub-allocator chain-index function.* For each `d ∈ dom(Σ.M)` and each `ℓ` in the chain at `d`, the substrate-conforming layer supplies a total function `chain_index(ℓ, d) ∈ ℕ` such that `ℓ = inc^{chain_index(ℓ, d)}(d.0.s_L.1, 0)` — the unique non-negative integer indexing `ℓ`'s position in the link sub-allocator's enumeration. Well-defined and single-valued by T10a.7 (EnumerationInjectivity, ASN-0034) applied to the chain at `d`; total because the lemma's hypothesis "`ℓ` in the chain at `d`" supplies a chain index by construction. The framework cites this scaffolding name when downstream templates and disciplines (e.g., `emission_order` in the Coverage walkthrough) need a named accessor onto the chain-index machinery rather than appealing to implicit chain enumeration.
 
 We refer to these collectively as *the content-side scaffolding* and cite them by name in proofs below.
 
@@ -74,13 +75,19 @@ The shape framework restricts every shape-conformant emission's `F` and `G` to c
 
 *Case 2* (`x, a ∈ dom(Σ.C)`): By the content-store antichain assumption (Scope and Substrate Scaffolding above), `dom(Σ.C)` is a tumbler-prefix antichain, so `x ≼ a ⟹ x = a`.
 
-*Case 3* (`x` and `a` lie in different domains). WLOG `x ∈ dom(Σ.L), a ∈ dom(Σ.C)`; the sub-case `x ∈ dom(Σ.C), a ∈ dom(Σ.L)` proceeds identically with the subspace identifiers `s_L` and `s_C` exchanged in Step 3.3 (the prefix relation `x ≼ a` is unchanged; what symmetrizes is the subspace assignment at position `E(·).1`). By L1 (LinkElementLevel, ASN-0043) and the element-level content-address assumption, both `x` and `a` are element-level (`zeros(x) = zeros(a) = 3`); Step 3.2 below establishes E-field non-emptiness (`#E(·) ≥ 1`) from T4(iv) alone, so both `E(x).1` and `E(a).1` are well-defined.
+*Case 3* (`x` and `a` lie in different domains). Sub-case 3a treats `x ∈ dom(Σ.L), a ∈ dom(Σ.C)`; Sub-case 3b treats `x ∈ dom(Σ.C), a ∈ dom(Σ.L)`. By L1 (LinkElementLevel, ASN-0043) and the element-level content-address assumption, both `x` and `a` are element-level (`zeros(x) = zeros(a) = 3`) in either sub-case; Step 3.2 below establishes E-field non-emptiness (`#E(·) ≥ 1`) from T4(iv) alone, so both `E(x).1` and `E(a).1` are well-defined.
 
-*Step 3.1 — Shared zero positions.* The prefix `x ≼ a` gives `#x ≤ #a` and componentwise agreement `aᵢ = xᵢ` for `1 ≤ i ≤ #x`. Let `x`'s three zero positions be `n_1 < n_2 < n_3` with `1 ≤ n_1` and `n_3 ≤ #x` (the three witnesses to `zeros(x) = 3`). By componentwise agreement at positions `n_1, n_2, n_3 ≤ #x`, `a` also has `aₙ₁ = aₙ₂ = aₙ₃ = 0`. Suppose, toward contradiction, that `a` has a fourth zero at some position `m ∈ {1, ..., #a} ∖ {n_1, n_2, n_3}`: if `m ≤ #x`, then `aₘ = 0` together with componentwise agreement forces `xₘ = 0`, adding a fourth zero to `x` and contradicting `zeros(x) = 3`; if `m > #x`, then `m` is a zero position in `a` outside `{n_1, n_2, n_3}` (which all lie at positions `≤ #x`), so `zeros(a) ≥ 4`, contradicting `zeros(a) = 3`. So `a`'s three zero positions are exactly `n_1 < n_2 < n_3`, the same as `x`'s.
+*Symmetry argument.* The lemma's hypothesis `x ≼ a` is symmetric in `x` and `a` only with respect to the subspace assignment: Steps 3.1 and 3.2 quantify over the positional structure of `x` and `a` (their zero positions, their E-field offsets, their componentwise agreement under the prefix relation) without reference to which side is link versus content, so both steps deliver identical conclusions in both sub-cases. The asymmetry lives entirely in Step 3.3, where the subspace partition scaffolding clauses assign `E(·).1` based on domain membership — `E(·).1 = s_L` for link-side, `E(·).1 = s_C` for content-side. The two sub-cases therefore differ only in which side carries which subspace identifier; the `s_L ≠ s_C` disjointness is itself symmetric, so both sub-cases reach the same contradiction by the same final step. Steps 3.1 and 3.2 are written once and apply to both sub-cases; Step 3.3 is written out explicitly for each.
 
-*Step 3.2 — E-field prefix relation.* The E-field of `x` is non-empty (we need only `#E(x) ≥ 1`, not the stronger `≥ 2` from L1b or its content-side analog, since Step 3.2's conclusion below uses only the index `j = 1`): T4(iv) applied to `x` gives `x_{#x} ≠ 0`, while `x_{n_3} = 0`, so `n_3 ≠ #x`; combined with `n_3 ≤ #x` (since `n_3` is a position of `x`) this gives `n_3 < #x`, i.e., `#x − n_3 ≥ 1`. By T4b's E-field index range `n_3 + 1 .. #x` with length `#E(x) = #x − n_3`, `#E(x) ≥ 1`. The same holds for `a` by the symmetric T4(iv) application at `a`. By T4b (UniqueParse, ASN-0034), with both `x` and `a` element-level and sharing the same three zero positions `n_1 < n_2 < n_3`, the E-field of `x` occupies positions `n_3 + 1 .. #x` and the E-field of `a` occupies positions `n_3 + 1 .. #a`. Hence `#E(x) = #x − n_3` and `#E(a) = #a − n_3`; with `#x ≤ #a` this gives `#E(x) ≤ #E(a)`. For component agreement: componentwise agreement at every position `n_3 + 1 ≤ i ≤ #x` (a subrange of `1 ≤ i ≤ #x` where `x ≼ a` already gives `xᵢ = aᵢ`) translates, via T4b's index offset, into `E(x)ⱼ = E(a)ⱼ` for every `1 ≤ j ≤ #E(x)` (taking `j = i − n_3`). With `#E(x) ≤ #E(a)` and componentwise agreement on `1 ≤ j ≤ #E(x)`, the Prefix definition (ASN-0034) gives `E(x) ≼ E(a)`. In particular, taking `j = 1`, `E(x).1 = E(a).1`.
+*Step 3.1 — Shared zero positions.* The prefix `x ≼ a` gives `#x ≤ #a` and componentwise agreement `aᵢ = xᵢ` for `1 ≤ i ≤ #x`. Let `x`'s three zero positions be `n_1 < n_2 < n_3` with `1 ≤ n_1` and `n_3 ≤ #x` (the three witnesses to `zeros(x) = 3`). By componentwise agreement at positions `n_1, n_2, n_3 ≤ #x`, `a` also has `aₙ₁ = aₙ₂ = aₙ₃ = 0`. Suppose, toward contradiction, that `a` has a fourth zero at some position `m ∈ {1, ..., #a} ∖ {n_1, n_2, n_3}`: if `m ≤ #x`, then `aₘ = 0` together with componentwise agreement forces `xₘ = 0`, adding a fourth zero to `x` and contradicting `zeros(x) = 3`; if `m > #x`, then `m` is a zero position in `a` outside `{n_1, n_2, n_3}` (which all lie at positions `≤ #x`), so `zeros(a) ≥ 4`, contradicting `zeros(a) = 3`. So `a`'s three zero positions are exactly `n_1 < n_2 < n_3`, the same as `x`'s. This step holds in both sub-cases because it consumes only the prefix relation `x ≼ a` and the shared-`zeros = 3` constraint, neither of which references domain membership.
 
-*Step 3.3 — Subspace contradiction.* The link subspace partition scaffolding gives `E(x).1 = s_L` directly (`x ∈ dom(Σ.L)`); the content subspace partition scaffolding gives `E(a).1 = s_C` directly (`a ∈ dom(Σ.C)`); both scaffolding clauses fix `s_L ≠ s_C`. But Step 3.2 gives `E(x).1 = E(a).1`. Contradiction. In the alternate sub-case `x ∈ dom(Σ.C), a ∈ dom(Σ.L)`, the subspace assignments are exchanged — `E(x).1 = s_C` and `E(a).1 = s_L` — but `s_C ≠ s_L` is symmetric and yields the same contradiction. Both sub-cases vacuous. ∎
+*Step 3.2 — E-field prefix relation.* The E-field of `x` is non-empty (we need only `#E(x) ≥ 1`, not the stronger `≥ 2` from L1b or its content-side analog, since Step 3.2's conclusion below uses only the index `j = 1`): T4(iv) applied to `x` gives `x_{#x} ≠ 0`, while `x_{n_3} = 0`, so `n_3 ≠ #x`; combined with `n_3 ≤ #x` (since `n_3` is a position of `x`) this gives `n_3 < #x`, i.e., `#x − n_3 ≥ 1`. By T4b's E-field index range `n_3 + 1 .. #x` with length `#E(x) = #x − n_3`, `#E(x) ≥ 1`. The same holds for `a` by the symmetric T4(iv) application at `a`. By T4b (UniqueParse, ASN-0034), with both `x` and `a` element-level and sharing the same three zero positions `n_1 < n_2 < n_3`, the E-field of `x` occupies positions `n_3 + 1 .. #x` and the E-field of `a` occupies positions `n_3 + 1 .. #a`. Hence `#E(x) = #x − n_3` and `#E(a) = #a − n_3`; with `#x ≤ #a` this gives `#E(x) ≤ #E(a)`. For component agreement: componentwise agreement at every position `n_3 + 1 ≤ i ≤ #x` (a subrange of `1 ≤ i ≤ #x` where `x ≼ a` already gives `xᵢ = aᵢ`) translates, via T4b's index offset, into `E(x)ⱼ = E(a)ⱼ` for every `1 ≤ j ≤ #E(x)` (taking `j = i − n_3`). With `#E(x) ≤ #E(a)` and componentwise agreement on `1 ≤ j ≤ #E(x)`, the Prefix definition (ASN-0034) gives `E(x) ≼ E(a)`. In particular, taking `j = 1`, `E(x).1 = E(a).1`. This step holds in both sub-cases because the T4-validity citations and T4b's E-field structure apply uniformly to element-level addresses without reference to subspace identifier.
+
+*Step 3.3a — Subspace contradiction (Sub-case 3a: `x ∈ dom(Σ.L), a ∈ dom(Σ.C)`).* The link subspace partition scaffolding gives `E(x).1 = s_L` directly (`x ∈ dom(Σ.L)`); the content subspace partition scaffolding gives `E(a).1 = s_C` directly (`a ∈ dom(Σ.C)`); the *Content subspace partition* scaffolding clause fixes `s_L ≠ s_C`. But Step 3.2 gives `E(x).1 = E(a).1`. Substituting, `s_L = s_C`, contradicting the scaffolding's disjointness. Sub-case 3a vacuous.
+
+*Step 3.3b — Subspace contradiction (Sub-case 3b: `x ∈ dom(Σ.C), a ∈ dom(Σ.L)`).* By the symmetric application of the scaffolding clauses: the content subspace partition scaffolding gives `E(x).1 = s_C` directly (`x ∈ dom(Σ.C)`); the link subspace partition scaffolding gives `E(a).1 = s_L` directly (`a ∈ dom(Σ.L)`); the *Content subspace partition* scaffolding clause again fixes `s_C ≠ s_L`. Step 3.2 gives `E(x).1 = E(a).1`, so substituting yields `s_C = s_L`, contradicting the scaffolding's disjointness (the disjointness predicate `s_C ≠ s_L` is symmetric, so the contradiction reads the same regardless of which side of the equality the link or content identifier appears on). Sub-case 3b vacuous.
+
+Both sub-cases of Case 3 are vacuous. ∎
 
 The lemma underwrites the syntactic-to-semantic bridge: a canonical-slot endset at an allocated address `x` denotes exactly `{x}` among allocated addresses, so `slot_addrs(F) = {x}` matches "what allocated address does this slot refer to" with no ambiguity. Without this lemma, "the slot at `x`" could resolve to multiple allocated addresses when `x` has allocated descendants — which is precisely what the antichain rules out at element level.
 
@@ -155,7 +162,7 @@ Write `conf_K^Σ(F, G)` for this predicate.
 
 `wp_086(Emit_K(Σ, d, F, G), (a, F, G) ∈ A_K^{Σ'}) ≡ d ∈ dom(Σ.M) ∧ K ∈ T_admissible ∧ NoCraftedSpanReachesD(Σ, d) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))`
 
-with the last two conjuncts collapsing to `⊤` under the relational layer's committed operations (regime (i) of ASN-0086's wp simplification under the unit-depth retraction discipline). Within the shape framework, this regime (i) collapse is secured *by Retraction's shape itself*: Retraction's catalog entry `(*, 1, A, A_rel, ⊤)` together with Sh-conf clauses (a)/(b) (canonical-slot form) and clause (c) at `c_G = 1` (`|slot_addrs(G)| = 1`) forces every shape-conformant `Emit_R` emission's G-endset to a single unit-depth span `{(b, δ(1, #b))}` for some `b ∈ A_rel^Σ` — exactly ASN-0086's unit-depth retraction discipline. (The same point is elaborated under *Unit-depth retraction discipline secured by Retraction's shape* in the Retraction catalog row's walkthrough.) Consequently `NoCraftedSpanReachesD(Σ, d)` holds automatically at every Sh-conf-admitted Retraction call site (by Lemma — RetractionTargetNotOnChain below, which spells out the per-home and cross-home chain-element argument), and the `(K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))` clause likewise collapses, so `wp_086` reduces to `d ∈ dom(Σ.M) ∧ K ∈ T_admissible`. Sh-conf adds the conjuncts `K ∈ T_cat ∧ conf_K^Σ(F, G)`. The *effective wp* for `Emit_K` under Sh-conf is the conjunction:
+with the last two conjuncts collapsing to `⊤` under the relational layer's committed operations (regime (i) of ASN-0086's wp simplification under the unit-depth retraction discipline). Within the shape framework, this regime (i) collapse is secured *by Retraction's shape itself*: Retraction's catalog entry `(*, 1, A, A_rel, ⊤)` together with Sh-conf clauses (a)/(b) (canonical-slot form) and clause (c) at `c_G = 1` (`|slot_addrs(G)| = 1`) forces every shape-conformant `Emit_R` emission's G-endset to a single unit-depth span `{(b, δ(1, #b))}` for some `b ∈ A_rel^Σ` — exactly ASN-0086's unit-depth retraction discipline. (The same point is elaborated under *Unit-depth retraction discipline secured by Retraction's shape* in the Retraction catalog row's walkthrough.) Consequently `NoCraftedSpanReachesD(Σ, d)` holds automatically at every Sh-conf-admitted Retraction call site (by Lemma — RetractionTargetNotOnChain, *stated and proved immediately below this derivation*, which spells out the per-home and cross-home chain-element argument), and the `(K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))` clause likewise collapses, so `wp_086` reduces to `d ∈ dom(Σ.M) ∧ K ∈ T_admissible`. The reader may take this derivation as preliminary on first pass — it depends on the lemma whose proof appears in the next subsection — and confirm the collapse against the lemma's case analysis once that lemma has been read. Sh-conf adds the conjuncts `K ∈ T_cat ∧ conf_K^Σ(F, G)`. The *effective wp* for `Emit_K` under Sh-conf is the conjunction:
 
 `wp_eff(Emit_K(Σ, d, F, G), (a, F, G) ∈ A_K^{Σ'}) ≡ wp_086 ∧ K ∈ T_cat ∧ conf_K^Σ(F, G)`
 
@@ -311,9 +318,11 @@ For shapes with `c_G = 1`:
 
 For shapes with `c_F = 0|1` or `c_G = 0|1`, the partial accessor returns `⊥` (undefined) when the slot is empty:
 
-`from₁⁻ : L_K^Σ → shape(K).t_F^Σ ∪ {⊥}` defined when `c_F ∈ {1, 0|1}`; returns `⊥` iff `|slot_addrs(F)| = 0`.
+`from₁⁻ : L_K^Σ → shape(K).t_F^Σ ∪ {⊥}` defined when `c_F ∈ {1, 0|1}`; returns `⊥` iff `|slot_addrs(F)| = 0`, and returns the unique element of `slot_addrs(F)` otherwise.
 
-`to₁⁻` defined analogously.
+`to₁⁻ : L_K^Σ → shape(K).t_G^Σ ∪ {⊥}` defined analogously when `c_G ∈ {1, 0|1}`; returns `⊥` iff `|slot_addrs(G)| = 0`, and returns the unique element of `slot_addrs(G)` otherwise.
+
+*Codomain convention for partial templates.* Every partial-valued template introduced in this framework declares its codomain as `(typed allocated set) ∪ {⊥}` where `⊥` is the distinguished partiality token. Concretely: `from₁⁻` lands in `t_F^Σ ∪ {⊥}`; `to₁⁻` lands in `t_G^Σ ∪ {⊥}`; `K_target_of` (DirectedPair under FDD) lands in `A_doc^Σ ∪ {⊥}`; `latest_K_for_addr` (NonIdempotentDirectedPair under SHCD) lands in `A_K^Σ ∪ {⊥}` (returning a tuple rather than an address, the tuple-valued analog). The pattern is uniform: every template whose body's "unique element" or "argmax" step can fail to produce a value declares the failure value as `⊥` and the success value's domain explicitly.
 
 **Lemma — SlotAccessorTotality.** When `shape(K).c_F = 1`, `from₁` is a total function on `L_K^Σ`. Similarly for `to₁` when `c_G = 1`.
 
@@ -346,7 +355,9 @@ via the two-step procedure:
 
 (iii) Only if `C(F, G, Σ) = ∅` does the layer issue `Emit_K(Σ, d, F, G)`.
 
-The layer commits to executing clauses (i)–(iii) atomically with respect to other Sh4-emitters at the same `~`-equivalence class of K — concurrent emission and retraction events at any K' with `K' ~ K` that could split (i)'s observation from (iii)'s emission must be serialized by the layer. `L_K` is `~`-class indexed (ASN-0086, `L_K^Σ = L_{K'}^Σ` whenever `K ~ K'`), so concurrent emitters at distinct-but-`~`-equivalent type indices write to the same active subset; atomicity scoped at the `~`-class is what closes the race.
+The layer commits to executing clauses (i)–(iii) atomically with respect to other Sh4-emitters at the same `~`-equivalence class of K — emission and retraction events at any K' with `K' ~ K` that could split (i)'s observation from (iii)'s emission must be serialized by the layer. `L_K` is `~`-class indexed (ASN-0086, `L_K^Σ = L_{K'}^Σ` whenever `K ~ K'`), so emitters at distinct-but-`~`-equivalent type indices write to the same active subset; atomicity scoped at the `~`-class is what closes the race.
+
+*Scope: single-process substrate.* The framework's scope is restricted to single-process substrates, in which `↦`-transitions are sequential by construction — between any two transitions there is a well-defined "before" and "after" state and no third transition interleaves. Under this scope, "atomicity of clauses (i)–(iii)" reduces operationally to "within a single `Emit_K` call site, clauses (i.a), (i.b), and (iii) execute in sequence without intervening `↦`-steps from any other source." A layer satisfies this by issuing the `Observe_K` call of (i.a), the post-filter of (i.b), and (if `C = ∅`) the substrate K.λ-step of (iii) as a single uninterrupted procedure call. The "concurrent emitter or retractor" wording above refers to this within-call sequencing requirement: no other Sh4-emitter at a `~`-equivalent K may interleave a `↦`-step between (i) and (iii) of an in-progress call. Multi-process substrates — where two emitter processes might race to compute `C(F, G, Σ)` against the same state — would require a coordination protocol beyond the within-call sequentiality this framework assumes; the Open Questions section flags cross-process consistency as not addressed.
 
 *Cross-`~`-class concurrency is benign.* Concurrent `Emit_R` retracting K-tuples while `Emit_K` is in flight (with `R ≁ K`) does not require serialization. The only mutation an `Emit_R` step applies to `A_K` is removal (a K-tuple is filtered out by `nullified(Σ)` membership); removing a tuple from `A_K` cannot violate the pairwise-slot-pair-distinctness condition, only restore it (a removed tuple is no longer a candidate witness for any pair-violation). The Sh4 atomicity scope is therefore correctly tightened to the `~`-equivalence class of K and not widened to all retractors. When `R ~ K` (K is itself the retraction relation), retraction and emission write to the same `A_K = A_R`, and the layer's atomicity at the `~`-class scope already handles the race — this is the Case D analyzed below.
 
@@ -413,13 +424,13 @@ The substrate's relations fall into a small fixed set of canonical shapes. Each 
 
 | Shape                     | (c_F, c_G) | t_F   | t_G   | idem | Template family                                              |
 |---------------------------|------------|-------|-------|------|--------------------------------------------------------------|
-| Classifier                | (0, 1)     | -     | A_doc | ⊤    | `is_K(d)`                                                    |
-| Tuple-Classifier          | (0, 1)     | -     | A_rel | ⊤    | `is_K(τ)`                                                    |
+| Classifier                | (0, 1)     | -     | A_doc | ⊤    | *base:* `is_K(d)` |
+| Tuple-Classifier          | (0, 1)     | -     | A_rel | ⊤    | *base:* `is_K(τ)` (same body as Classifier's `is_K` with the signature shifted from `A_doc → Bool` to `A_rel → Bool` per Sh5(b)) |
 | DirectedPair              | (1, 1)     | A_doc | A_doc | ⊤    | *base:* `pair_K(a, b)`, `from_K(a)`, `to_K(b)`, `from_addrs_K(b)`, `to_addrs_K(a)`; *opt-in (per-K):* `K_target_of(a)` under FunctionalDependencyDiscipline |
 | NonIdempotentDirectedPair | (1, 1)     | A_doc | A_doc | ⊥    | *base:* `pair_K(a, b)`, `from_K(a)`, `to_K(b)`, `from_addrs_K(b)`, `to_addrs_K(a)` (set-valued by R1 AddressInjectivity; may contain slot-pair-identical tuples without Sh4); *opt-in (per-K):* `latest_K_for_addr(d)` under SingleHomeCoverageDiscipline; *parametric:* `unresolved_K_comments_via(K_res, d)`, `all_K_resolved_via(K_res, d)` in any Resolution-shaped `K_res` |
-| Resolution                | (1, 1)     | A_doc | A_rel | ⊤    | *base (inherited from `(1, 1, A_doc, A_rel, ⊤)` per Sh5(b)):* `pair_K(a, b)`, `from_K(a)`, `to_K(b)`, `from_addrs_K(b)`, `to_addrs_K(a)`; *primary consumption:* parametrically by NonIdempotentDirectedPair's `_via` templates (column lists only this consumer, not the base family) |
+| Resolution                | (1, 1)     | A_doc | A_rel | ⊤    | *base (inherited from `(1, 1, A_doc, A_rel, ⊤)` per Sh5(b)):* `pair_K(a, b)`, `from_K(a)`, `to_K(b)`, `from_addrs_K(b)`, `to_addrs_K(a)`; *primary consumption:* parametrically by NonIdempotentDirectedPair's `_via` templates |
 | Retraction                | (\*, 1)    | A     | A_rel | ⊤    | *base (reformulated under `c_F = *`; bodies in the walkthrough):* `pair_K(F̂, b)` (F̂ matched by set equality), `from_K(a)` (membership-based: τ included iff `a ∈ slot_addrs(F_τ)`), `to_K(b)`, `from_addrs_K(b)`, `to_addrs_K(a)`; *primary consumption:* by R6's active-subset definition (`nullified(·)` reads `to_K`'s coverage) |
-| Provenance                | (1, 0\|1)  | A     | A     | ⊤    | `outgoing_K(s)`                                              |
+| Provenance                | (1, 0\|1)  | A     | A     | ⊤    | *base (`c_G = 0|1` requires explicit `⊥`-handling on G-side templates; bodies in the walkthrough):* `outgoing_K(s)` (alias of `from_K(s)`), `pair_K(a, b)`, `from_K(a)`, `to_K(b)` (excludes attribution-only tuples), `from_addrs_K(b)`, `to_addrs_K(a)` (with `⊥`-filter) |
 
 *Catalog row structure: base, opt-in, parametric.* Each row separates templates by what enables them. The three categories are defined by a precise criterion:
 
@@ -446,6 +457,8 @@ We walk the canonical shapes and exhibit the predicate templates each generates.
 
 Every tuple in `L_K` has `slot_addrs(F) = ∅` (Sh0) and `slot_addrs(G) = {d}` for some `d ∈ A_doc^Σ` (Sh1, Sh3). The to-accessor `to₁(τ) ∈ A_doc^Σ` is total (SlotAccessorTotality).
 
+`is_K : A_doc → Bool`
+
 `is_K(d) ≡ (E τ ∈ A_K^Σ :: to₁(τ) = d)`
 
 A document `d` is *classified as K* iff there exists an active tuple in `L_K` whose to-slot is `d`. By Sh4 idempotency (layer-enforced), the existential is yes/no — multiple slot-identical active tuples are precluded by policy.
@@ -453,6 +466,8 @@ A document `d` is *classified as K* iff there exists an active tuple in `L_K` wh
 ### Tuple-Classifier — `(0, 1, -, A_rel, ⊤)`
 
 Structurally identical to Classifier; the only difference is the target domain. Every tuple in `L_K` has `slot_addrs(F) = ∅` and `slot_addrs(G) = {τ}` for some `τ ∈ A_rel^Σ`. The to-accessor `to₁(σ) ∈ A_rel^Σ` is total.
+
+`is_K : A_rel → Bool`
 
 `is_K(τ) ≡ (E σ ∈ A_K^Σ :: to₁(σ) = τ)`
 
@@ -466,19 +481,24 @@ Tuple-Classifier admits useful predicates over substrate-internal entities — m
 
 Tuples have form `slot_addrs(F) = {a}, slot_addrs(G) = {b}` with `a, b ∈ A_doc^Σ` — a single document address in each slot. Role-specific readings (parent → sidecar, citing → cited, asserter → asserted, etc.) are layer conventions over a single structural shape.
 
-*Canonical template family (role-neutral).* Every K registered at this shape generates the following five templates mechanically from the shape components. Each is unconditional under Sh0–Sh4 (Sh0/Sh1 supply canonical-slot form and unit cardinality; Sh2/Sh3 supply `A_doc^Σ` codomains for the slot accessors; Sh4 ensures the returned tuple-sets and address-sets are slot-pair-distinct, not multisets):
+*Canonical template family (role-neutral).* Every K registered at this shape generates the following five templates mechanically from the shape components. Each is unconditional under Sh0–Sh4 (Sh0/Sh1 supply canonical-slot form and unit cardinality; Sh2/Sh3 supply `A_doc^Σ` codomains for the slot accessors; Sh4 ensures the returned tuple-sets and address-sets are slot-pair-distinct, not multisets). Codomains are made explicit per the *Codomain convention* for templates:
 
+`pair_K : A_doc × A_doc → Bool`
 `pair_K(a, b)         ≡ (E τ ∈ A_K^Σ :: from₁(τ) = a ∧ to₁(τ) = b)`
 
+`from_K : A_doc → ℘_fin(A_K^Σ)`
 `from_K(a)            ≡ {τ ∈ A_K^Σ : from₁(τ) = a}`
 
+`to_K   : A_doc → ℘_fin(A_K^Σ)`
 `to_K(b)              ≡ {τ ∈ A_K^Σ : to₁(τ) = b}`
 
+`to_addrs_K   : A_doc → ℘_fin(A_doc^Σ)`
 `to_addrs_K(a)        ≡ {to₁(τ) : τ ∈ A_K^Σ ∧ from₁(τ) = a}`
 
+`from_addrs_K : A_doc → ℘_fin(A_doc^Σ)`
 `from_addrs_K(b)      ≡ {from₁(τ) : τ ∈ A_K^Σ ∧ to₁(τ) = b}`
 
-`pair_K` returns Boolean. `from_K` and `to_K` return tuple-sets. `to_addrs_K` and `from_addrs_K` return address-sets, obtained by composing slot accessors over the corresponding tuple-set.
+`pair_K` returns Boolean. `from_K` and `to_K` return tuple-sets in `℘_fin(A_K^Σ)`. `to_addrs_K` and `from_addrs_K` return address-sets in `℘_fin(A_doc^Σ)`, obtained by composing slot accessors over the corresponding tuple-set; the codomains are pinned to `A_doc^Σ` by Sh2/Sh3 at the DirectedPair shape.
 
 *Layer aliasing conventions.* Specific K registrations may pair the canonical templates with role-specific names. Two common conventions:
 
@@ -505,7 +525,7 @@ at every reachable state Σ.
 
 (iii) Only if `C_fd(F, Σ) = ∅` does the layer issue `Emit_K(Σ, d, F, G)`.
 
-The layer commits to executing (i)–(iii) atomically with respect to other emitters and retractors at the same `~`-equivalence class of K.
+The layer commits to executing (i)–(iii) atomically with respect to other emitters and retractors at the same `~`-equivalence class of K. The same single-process-substrate scope from Sh4's contract applies: atomicity reduces operationally to within-call sequentiality between `Observe_K` and the substrate K.λ-step within a single `Emit_K` call, with no intervening `↦`-step from another FDD-emitter at a `~`-equivalent K.
 
 *Preservation under the discipline.* The inductive argument runs three cases: Case A (active subset unchanged), Case B (single new tuple at K), and Case C (retraction-only contraction). Case D (the K=R simultaneous addition-and-contraction case from Sh4) is excluded by shape-tuple structure: FDD requires `shape(K) = (1, 1, A_doc, A_doc, ⊤)`, while Retraction has `shape(R) = (*, 1, A, A_rel, ⊤)`; per-class constancy of `shape` (`K ~ K' ⟹ shape(K) = shape(K')`) and the shape-tuple inequality (differs on `c_F`, `t_F`, `t_G`) force `K ≁ R` for every FDD-registered K, so no `Emit_R` step can extend `A_K`.
 
@@ -523,7 +543,13 @@ The induction closes. ∎
 
 *Singleton-returning template under FunctionalDependencyDiscipline.* When the discipline holds at every reachable state, the candidate set `from_K(a) = {τ ∈ A_K^Σ : from₁(τ) = a}` is empty or singleton for every `a`, so a value-returning accessor is well-defined:
 
-`K_target_of(a)       ≡ to₁(τ)` &nbsp; where τ is the unique element of `from_K(a)` &nbsp; (returns `⊥` when `from_K(a) = ∅`)
+`K_target_of : A_doc → A_doc^Σ ∪ {⊥}`
+
+`K_target_of(a) ≡ to₁(τ)` &nbsp; where τ is the unique element of `from_K(a)` &nbsp; (returns `⊥` when `from_K(a) = ∅`)
+
+*Precondition.* Under FunctionalDependencyDiscipline at K, `from_K(a)` is empty or singleton at every reachable state Σ (by the preservation theorem above, which discharges FDD inductively under the layer-discipline contract); the "unique element" reading of the template's body is well-formed exactly because FDD guarantees cardinality `|from_K(a)| ∈ {0, 1}`. Without FDD, the bare DirectedPair shape does not constrain `|from_K(a)|`, the candidate set may carry multiple elements, and the template's body is ill-formed (no unique element exists to apply `to₁` to). The catalog entry's *opt-in (per-K) under FunctionalDependencyDiscipline* tagging encodes this precondition: registering K with DirectedPair but without FDD precludes instantiating `K_target_of`; consumers wanting a singleton-returning accessor at a non-FDD K must instead use `to_addrs_K(a)` (set-valued by Sh5's base templates) and disambiguate at the consumer's site.
+
+The codomain `A_doc^Σ ∪ {⊥}` records that the template returns either a content address (in the to-slot's target domain `A_doc` per the DirectedPair shape's `t_G`) or the partiality token `⊥`; consumers must dispatch on the `⊥` case before composing further accessors.
 
 *Aliases under FunctionalDependencyDiscipline.* An Attribute-style K committed to FunctionalDependencyDiscipline aliases the singleton accessor as `K_sidecar_of(d) := K_target_of(d)`. Without FunctionalDependencyDiscipline, layers must use `to_addrs_K(d)` (set-valued) and disambiguate at the consumer.
 
@@ -591,15 +617,15 @@ where `S_d = {τ ∈ A_K^Σ : to₁(τ) = d}` ranges over all active Coverage tu
 
 *Why single-home matters for `emission_order`.* T9 (ForwardAllocation, ASN-0034) supplies a total order on outputs of a single allocator's chain — specifically, for `same_allocator(a, b) ∧ allocated_before(a, b)`, T9 gives `a < b` under T1. Tuple addresses in a Coverage relation belong to per-document link sub-allocators (the substrate-conforming layer's link-side chain enumeration referenced by Scope and Substrate Scaffolding; ASN-0086 R0a-Cor1 and FreshEmissionAddress consume this same enumeration). Under SingleHomeCoverageDiscipline, every `τ` with `to₁(τ) = d` has the same `home(τ) = d_K`, hence the same link sub-allocator chain. We define:
 
-`emission_order(τ) := the chain-index of addr(τ) within the link sub-allocator chain at d_K`
+`emission_order(τ) := chain_index(addr(τ), d_K)`
 
-equivalently, the unique `n ≥ 0` with `addr(τ) = inc^n(d_K.0.s_L.1, 0)` (by the substrate-conforming layer's chain enumeration discipline; cf. ASN-0086's FreshEmissionAddress).
+— the *Link sub-allocator chain-index function* scaffolding clause supplies `chain_index(·, d_K) : {chain elements at d_K} → ℕ` directly as a named accessor, returning the unique `n ≥ 0` with `addr(τ) = inc^n(d_K.0.s_L.1, 0)` (well-defined and single-valued by T10a.7, EnumerationInjectivity, ASN-0034, as recorded in that scaffolding clause). `emission_order` is thus a direct composition of the scaffolding's chain-index function with `addr(·)` — no appeal to implicit chain enumeration is required, and the per-K template's well-formedness depends only on the named scaffolding accessor plus `addr(·)` (an R1 export from ASN-0086).
 
 *Why the `argmax` in `latest_K_for_addr` is well-defined under T1.* Three ingredients:
 
 (i) `S_d` is finite at every reachable Σ. `S_d ⊆ A_K^Σ ⊆ L_K^Σ ⊆ dom(Σ.L)`, and `dom(Σ.L)` is finite by L-fin (ASN-0043) — the link-side finiteness fact, whose content-side analog `dom(Σ.C)` finite is recorded as the content-store finiteness scaffolding clause and is the partner citation invoked at `cov_allocated`'s finiteness claim above.
 
-(ii) The chain-index map `τ ↦ emission_order(τ)` is injective on `S_d`. Under SingleHomeCoverageDiscipline every `τ ∈ S_d` has `home(τ) = d_K`, so by the per-document link sub-allocator chain (Scope and Substrate Scaffolding) every such `addr(τ)` lies in the chain enumeration `{inc^n(d_K.0.s_L.1, 0) : n ≥ 0}` whose existence is supplied by the substrate-conforming layer; by T10a.7 (EnumerationInjectivity, ASN-0034) the chain index is the unique `n` with `addr(τ) = inc^n(d_K.0.s_L.1, 0)`, so distinct `τ, τ'` with distinct addresses (R1, AddressInjectivity, ASN-0086) have distinct chain indices.
+(ii) The chain-index map `τ ↦ emission_order(τ)` is injective on `S_d`. Under SingleHomeCoverageDiscipline every `τ ∈ S_d` has `home(τ) = d_K`, so by the *Per-document link sub-allocator chains* scaffolding clause every such `addr(τ)` is a chain element at `d_K`. The *Link sub-allocator chain-index function* scaffolding clause then supplies a well-defined and single-valued `chain_index(addr(τ), d_K) ∈ ℕ` per τ (with single-valuedness inherited from T10a.7, EnumerationInjectivity, ASN-0034, as that scaffolding clause records). Distinct `τ, τ'` with distinct addresses (R1, AddressInjectivity, ASN-0086) therefore receive distinct chain indices, since the scaffolding's `chain_index(·, d_K)` is a function on chain-element inputs.
 
 (iii) Chain-index order coincides with T1-order on the chain. By T9, within `A_L(d_K)`'s chain, `allocated_before(a, b) ⟹ a < b` under T1; combined with T10a.7's enumeration `tₙ₊₁ = inc(tₙ, 0)` and TA5(a)'s strict-increase under `inc(·, 0)`, the chain-index ordering on `A_L(d_K)` is strictly increasing under T1. Hence `argmax_{τ ∈ S_d} emission_order(τ)` selects the same unique element whether the ordering is read off chain-indices or off T1 — namely the τ of maximal chain-index in `S_d` (well-defined because `S_d` is finite and chain-indices are totally ordered on ℕ).
 
@@ -629,11 +655,29 @@ These templates consume the Resolution shape parametrically — Resolution does 
 
 ### Provenance — `(1, 0|1, A, A, ⊤)`
 
-Provenance tuples attribute one substrate event (the F-slot) to another (the G-slot). The G-slot may be empty (`c_G = 0|1`) — used to record agent attribution where the attributed event is the emission itself. Slot accessor `to₁⁻` is partial (returns `⊥` when G is empty).
+Provenance tuples attribute one substrate event (the F-slot) to another (the G-slot). The G-slot may be empty (`c_G = 0|1`) — used to record agent attribution where the attributed event is the emission itself. Slot accessor `to₁⁻` is partial (returns `⊥` when G is empty); `from₁` remains total because `c_F = 1`.
 
-`outgoing_K(s) ≡ {τ ∈ A_K^Σ : from₁(τ) = s}`
+*Canonical base template family.* Per Sh5(b), the shape `(1, 0|1, A, A, ⊤)` mechanically generates a base template family analogous to DirectedPair's, with the asymmetry that `c_G = 0|1` requires explicit `⊥`-handling on G-side templates. The F-side templates close over the totality of `from₁`; the G-side templates must filter out tuples whose `to₁⁻` is undefined before applying the to-side accessor. Codomains follow the *Codomain convention for partial templates* established for partial accessors above:
 
-The single template returns the set of provenance tuples sourced at s. Predicates over provenance are typically composed atomically into agent-attribution and audit queries. The unrestricted target domains (`t_F = t_G = A`) reflect that provenance can attribute either document events or relational events to either kind of source.
+`outgoing_K       : A^Σ → ℘_fin(A_K^Σ)`
+`outgoing_K(s)    ≡ {τ ∈ A_K^Σ : from₁(τ) = s}`
+
+`pair_K           : A^Σ × A^Σ → Bool`
+`pair_K(a, b)     ≡ (E τ ∈ A_K^Σ :: from₁(τ) = a ∧ to₁⁻(τ) = b)`
+
+`from_K           : A^Σ → ℘_fin(A_K^Σ)`
+`from_K(a)        ≡ {τ ∈ A_K^Σ : from₁(τ) = a}`
+
+`to_K             : A^Σ → ℘_fin(A_K^Σ)`
+`to_K(b)          ≡ {τ ∈ A_K^Σ : to₁⁻(τ) = b}`  (tuples with `to₁⁻(τ) = ⊥` are excluded because `⊥ ≠ b` for any `b ∈ A^Σ`)
+
+`from_addrs_K     : A^Σ → ℘_fin(A^Σ)`
+`from_addrs_K(b)  ≡ {from₁(τ) : τ ∈ A_K^Σ ∧ to₁⁻(τ) = b}`
+
+`to_addrs_K       : A^Σ → ℘_fin(A^Σ)`
+`to_addrs_K(a)    ≡ {to₁⁻(τ) : τ ∈ A_K^Σ ∧ from₁(τ) = a ∧ to₁⁻(τ) ≠ ⊥}`  (the `⊥`-filter is required because the set comprehension's codomain must remain `A^Σ`)
+
+`outgoing_K(s)` is identical in body to `from_K(s)` and is retained as a named alias because the *outgoing* reading — "the set of provenance tuples sourced at the agent s" — is the dominant downstream consumption pattern; `from_K` is the role-neutral name. Predicates over provenance are typically composed atomically into agent-attribution and audit queries. The unrestricted target domains (`t_F = t_G = A`) reflect that provenance can attribute either document events or relational events to either kind of source. *Asymmetry of `to_K` against DirectedPair's `to_K`:* under DirectedPair (`c_G = 1`), `to_K` collects every tuple in the relation since `to₁` is total; under Provenance (`c_G = 0|1`), `to_K(b)` necessarily excludes the agent-attribution-only tuples (those with `to₁⁻(τ) = ⊥`). Consumers querying "all attribution sources" should use `outgoing_K` (or `from_K`) rather than `to_K`'s codomain.
 
 
 ## Layer Composites
@@ -870,13 +914,13 @@ To exhibit Sh4 suppression in action (independent of FDD), register `K = endorse
 | Sh2 | LEMMA | FromSlotTargetRestricted — `slot_addrs(F) ⊆ t_F^Σ` on every tuple | introduced |
 | Sh3 | LEMMA | ToSlotTargetRestricted — symmetric to Sh2; commutes with retraction (`A_K ⊆ L_K`) | introduced |
 | SlotAccessorTotality | LEMMA | When `c = 1`, the point accessor is a total function | introduced |
-| Sh4 | LEMMA | IdempotencyDiscipline — at-most-one active duplicate when `idem = ⊤`; theorem under the layer-discipline contract; universal scope clarified (off-diagonal substance, diagonal trivial); proof covers A/B/C plus Case D (K=R simultaneous addition and contraction) | introduced |
+| Sh4 | LEMMA | IdempotencyDiscipline — at-most-one active duplicate when `idem = ⊤`; theorem under the layer-discipline contract (single-process substrate scope: atomicity of clauses (i)–(iii) reduces to within-call sequentiality between `Observe_K` and the substrate K.λ-step); universal scope clarified (off-diagonal substance, diagonal trivial); proof covers A/B/C plus Case D (K=R simultaneous addition and contraction) | introduced |
 | Sh5 | META | TemplateCatalog — hand-curated per-shape template families; status split into META observation (no procedure derives templates from arbitrary shapes) and META discipline (templates depend only on shape + K's name + named accessors); base/opt-in/parametric criterion formalized | introduced |
 | SingleHomeCoverageDiscipline | DEF | Per-K commitment securing `emission_order` for Coverage instantiations of NonIdempotentDirectedPair; allows non-K relations at the same home as long as K is single-home | introduced |
 | FunctionalDependencyDiscipline | DEF | Per-K commitment (strictly stronger than Sh4) for DirectedPair: at most one active tuple per from-slot value; secures the singleton-returning `K_target_of` accessor | introduced |
 | layer-discipline contract (Sh4) | DEF | Observe-then-Emit protocol clauses (i)–(iii) the layer commits to for idempotent K; clause (i) uses the two-step procedure (i.a) finite-argument `Observe_K(slot_addrs(F), slot_addrs(G), oper)` over-approximation + (i.b) exact-slot-equality post-filter; atomically scoped at the `~`-equivalence class of K | introduced |
 | layer-discipline contract (FunctionalDependencyDiscipline) | DEF | Observe-then-Emit protocol with from-slot-only candidate set `C_fd`; same two-step procedure as Sh4 contract; same atomicity scope as Sh4; structurally exclusive with SingleHomeCoverageDiscipline by `idem` flag | introduced |
-| content-side scaffolding | ASSUMPTION | Element-level content addresses, content subspace partition, link subspace partition (`E(a).1 = s_L` for every `a ∈ dom(Σ.L)`; concrete realization of L0's abstract `subspace_I(·)` as `E(·).1`), content-store antichain, content-store monotonicity, content-store finiteness, document address structure (`zeros(d) = 2`), per-document link sub-allocator chains, uniform link sub-allocator chain length — assumed of the substrate-conforming layer; surfaced as named scaffolding clauses for direct citation, with attribution to specific upstream numbered invariants kept inside the layer's interface | introduced |
+| content-side scaffolding | ASSUMPTION | Element-level content addresses, content subspace partition, link subspace partition (`E(a).1 = s_L` for every `a ∈ dom(Σ.L)`; concrete realization of L0's abstract `subspace_I(·)` as `E(·).1`), content-store antichain, content-store monotonicity, content-store finiteness, document address structure (`zeros(d) = 2`), per-document link sub-allocator chains, uniform link sub-allocator chain length, link sub-allocator chain-index function (`chain_index(ℓ, d) ∈ ℕ` with `ℓ = inc^{chain_index(ℓ, d)}(d.0.s_L.1, 0)`, single-valued by T10a.7) — assumed of the substrate-conforming layer; surfaced as named scaffolding clauses for direct citation, with attribution to specific upstream numbered invariants kept inside the layer's interface | introduced |
 | layer commitment (Emit_K routing) | ASSUMPTION | Every class-(iii) emission of `K ∈ T_cat` routes through `Emit_K` | introduced |
 
 
@@ -888,4 +932,4 @@ To exhibit Sh4 suppression in action (independent of FDD), register `K = endorse
 - Should the per-K opt-in registry — currently FunctionalDependencyDiscipline and SingleHomeCoverageDiscipline — be promoted to a sixth shape-tuple component, so that registrations with and without the discipline become structurally distinct rows rather than the same row with different opt-in flags? The current catalog encodes them as opt-in extensions atop a five-component shape; a sixth component would make the shape registry exhaustive but inflate the canonical-shape space considerably.
 - The shape constraint `slot_addrs(F) ⊆ t_F^Σ` requires slot addresses to be already-allocated at emission time. This precludes shape-conformant emissions whose slot addresses are *ghost* (currently outside `A^Σ`, possibly to be allocated later). L9 (TypeGhostPermission, ASN-0043) permits ghost spans in endsets; the shape framework restricts this to *non-slot* uses only. Whether future shape families should admit ghost-targeting slot semantics — and under what state-dependent conformance rule — is an open design question.
 - Do *composite shapes* (relations whose F or G is itself constrained by another relation's content) require a new restriction axis, or do they decompose into existing primitives plus auxiliary predicates expressible in the current template language?
-- What guarantees the shape registry stays consistent across processes? Lifetime constancy is asserted as a substrate-level commitment within a single process; cross-process consistency (e.g., concurrent shape re-registration in a distributed substrate) is not addressed.
+- What guarantees the shape registry stays consistent across processes? Lifetime constancy is asserted as a substrate-level commitment within a single process; cross-process consistency (e.g., concurrent shape re-registration in a distributed substrate) is not addressed. Relatedly, Sh4's layer-discipline contract is scoped to single-process substrates — its atomicity premise reduces to within-call sequentiality between `Observe_K` and the substrate K.λ-step within a single `Emit_K` call. Multi-process substrates with racing Sh4-emitters at coverage-equivalent K's would require a coordination protocol (e.g., distributed lock at the `~`-equivalence class scope) not specified by this framework; characterizing the minimum protocol that preserves Sh4 in the multi-process setting is open.
