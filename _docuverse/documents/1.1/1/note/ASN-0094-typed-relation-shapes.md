@@ -11,6 +11,23 @@ We are looking for the minimum additional layer that closes this gap. The answer
 Shapes are not derivable from R0–R7. They are an additional design decision the substrate makes about which relations it admits and what `(F, G)` pairs each admits. We justify each constraint by what predicate forms it makes possible, and by what the substrate cannot express without it.
 
 
+## Scope and Substrate Scaffolding
+
+*Arity scope.* This framework restricts the standard-triple slice `L^Σ` of `dom(Σ.L)` — the arity-3 links collected by ASN-0086's `L^Σ` definition. Higher-arity links admitted by L3 (ASN-0043) are outside its scope: the cardinality and target-domain shape components are defined over two slots only (F and G), and the slot-accessor and template machinery presupposes the arity-3 structure. Extending the framework to higher arities would require additional shape components per extra slot, which we do not pursue here.
+
+*Layer commitment.* The framework is a discipline imposed by a relational layer atop ASN-0086. Every class-(iii) emission of a type `K ∈ T_cat` is committed to route through `Emit_K`; non-`Emit_K` class-(iii) invocations of these types are outside the framework's scope. Sh-conf below binds `Emit_K` (the relational-layer operation), not K.λ (the substrate primitive — K.λ remains permissive at the substrate level: any `F, G ∈ Endset` with `K ∈ T_admissible` is admissible to K.λ). The inductive arguments for Sh0–Sh3 invoke this layer commitment to conclude that every new tuple in `L_K^Σ` for `K ∈ T_cat` arrived via an `Emit_K` call subject to Sh-conf.
+
+*Content-side scaffolding.* The framework operates atop a *substrate-conforming layer* (ASN-0086, Definition). Where the framework's proofs and definitions require properties of `dom(Σ.C)` not derivable from ASN-0034/ASN-0043/ASN-0086 alone, they consume them through the substrate-conforming-layer interface. The properties consumed:
+
+- *Element-level content addresses.* Every `a ∈ dom(Σ.C)` satisfies `zeros(a) = 3` and `#E(a) ≥ 2`. (Content-side analog of L1 and L1b from ASN-0043.)
+- *Content subspace partition.* There is a fixed subspace identifier `s_C ∈ ℕ` with `s_C ≠ s_L` such that `E(a).1 = s_C` for every `a ∈ dom(Σ.C)`. (Symmetric to L0 from ASN-0043, with `s_C ≠ s_L` distinct.)
+- *Content-store antichain.* `dom(Σ.C)` is a tumbler-prefix antichain at every reachable state: `(A a, a' ∈ dom(Σ.C) :: a ≼ a' ⟹ a = a')`. (Content-side symmetric to R0a from ASN-0086.)
+- *Content-store monotonicity.* `dom(Σ.C) ⊆ dom(Σ'.C)` for every transition `Σ ↦ Σ'`. (Content-side symmetric to L12a from ASN-0043; content addresses are never deallocated.)
+- *Per-document link sub-allocator chains.* For each `d ∈ dom(Σ.M)` the substrate-conforming layer supplies a link sub-allocator whose output chain enumerates `{ℓ : home(ℓ) = d}` under T9 (ForwardAllocation, ASN-0034); this is the same chain enumeration referenced by ASN-0086's R0a-Cor1 and FreshEmissionAddress.
+
+We refer to these collectively as *the content-side scaffolding* and cite them by name in proofs below.
+
+
 ## The Address-Set Projection
 
 Shape constraints operate on a *syntactic* projection of `(F, G)` — the slot-address sets extracted from canonical-form endsets — together with an *allocated-address* projection that bridges the syntactic check to substrate semantics. Two projections matter.
@@ -49,9 +66,9 @@ The shape framework restricts every shape-conformant emission's `F` and `G` to c
 
 *Case 1* (`x, a ∈ dom(Σ.L)`): By R0a (FlatLinkDomain, ASN-0086), `dom(Σ.L)` is a tumbler-prefix antichain, so `x ≼ a ⟹ x = a`.
 
-*Case 2* (`x, a ∈ dom(Σ.C)`): By substrate-conforming chain discipline (ASN-0093 — ChainEnumerationInjectivity, ChainUniformLength, ChainPrefixExtension, CrossDocDisjointness), content sub-allocator outputs are pairwise prefix-incomparable within each `A_C(d)` chain (same length, distinct enumeration index) and across documents (anchors `b_C(d), b_C(d')` prefix-incomparable). Hence `dom(Σ.C)` is a tumbler-prefix antichain, and `x ≼ a ⟹ x = a`.
+*Case 2* (`x, a ∈ dom(Σ.C)`): By the content-store antichain assumption (Scope and Substrate Scaffolding above), `dom(Σ.C)` is a tumbler-prefix antichain, so `x ≼ a ⟹ x = a`.
 
-*Case 3* (`x ∈ dom(Σ.L), a ∈ dom(Σ.C)`, or vice versa): By L1 (LinkElementLevel, ASN-0043) and ASN-0093's content-side analog, both `x` and `a` are element-level (`zeros = 3`). The prefix `x ≼ a` with both element-level forces T4b's E-projection to satisfy `E(x) ≼ E(a)`, hence `E(x).1 = E(a).1`. But L0 (SubspacePartition, ASN-0043) gives `E(x).1 = s_L` for links and ASN-0093 gives `E(a).1 = s_C` for content, with `s_L ≠ s_C` (SC-NEQ). Contradiction; this case is vacuous. ∎
+*Case 3* (`x ∈ dom(Σ.L), a ∈ dom(Σ.C)`, or vice versa): By L1 (LinkElementLevel, ASN-0043) and the element-level content-address assumption, both `x` and `a` are element-level (`zeros = 3`); by L1b (ASN-0043) and the content-side analog `#E(·) ≥ 2`, both have a well-defined first element-field component. The prefix `x ≼ a` with both element-level forces T4b's E-projection to satisfy `E(x) ≼ E(a)`, hence `E(x).1 = E(a).1`. But L0 (SubspacePartition, ASN-0043) gives `E(x).1 = s_L` for links and the content subspace partition assumption gives `E(a).1 = s_C`, with `s_L ≠ s_C`. Contradiction; this case is vacuous. ∎
 
 The lemma underwrites the syntactic-to-semantic bridge: a canonical-slot endset at an allocated address `x` denotes exactly `{x}` among allocated addresses, so `slot_addrs(F) = {x}` matches "what allocated address does this slot refer to" with no ambiguity. Without this lemma, "the slot at `x`" could resolve to multiple allocated addresses when `x` has allocated descendants — which is precisely what the antichain rules out at element level.
 
@@ -96,16 +113,18 @@ Lifetime constancy is a substrate-level commitment, not derivable from R0–R7. 
 
 Write `conf_K^Σ(F, G)` for this predicate.
 
-*State-dependence and monotone discharge.* Conformance is state-indexed because clause (d) depends on the allocated sets `A_doc^Σ, A_rel^Σ, A^Σ`. These sets grow monotonically along `⊑̂`: `Σ ⊑̂ Σ'` entails `A^Σ ⊆ A^{Σ'}` and analogous for the partition sets (by L12a, ASN-0043, for `dom(Σ.L)` and the symmetric content-side claim from ASN-0093 for `dom(Σ.C)`). Therefore `conf_K^Σ(F, G) ⟹ conf_K^{Σ'}(F, G)` for every `Σ ⊑̂ Σ'`: once conformant, a tuple remains conformant under every reachable future state. This monotonicity is what permits the inductive arguments of Sh0–Sh3 to commute with arbitrary `↦*` transitions.
+*State-dependence and monotone discharge.* Conformance is state-indexed because clause (d) depends on the allocated sets `A_doc^Σ, A_rel^Σ, A^Σ`. These sets grow monotonically along `⊑̂`: `Σ ⊑̂ Σ'` entails `A^Σ ⊆ A^{Σ'}` and analogous for the partition sets (by L12a, ASN-0043, for `dom(Σ.L)` and by the content-store monotonicity scaffolding assumption (Scope and Substrate Scaffolding) for `dom(Σ.C)`). Therefore `conf_K^Σ(F, G) ⟹ conf_K^{Σ'}(F, G)` for every `Σ ⊑̂ Σ'`: once conformant, a tuple remains conformant under every reachable future state. This monotonicity is what permits the inductive arguments of Sh0–Sh3 to commute with arbitrary `↦*` transitions.
 
 
 ## The Conformance Axiom
 
-**Sh-conf — ShapeConformanceAxiom.** The substrate restricts ASN-0086's `Emit_K` by adding two preconditions:
+**Sh-conf — ShapeConformanceAxiom.** The framework restricts ASN-0086's `Emit_K` (the relational-layer operation) by adding two preconditions:
 
 `Emit_K(Σ, d, F, G)` succeeds iff `K ∈ T_cat ∧ conf_K^Σ(F, G)`. Emissions failing either conjunct are rejected before any state transition occurs.
 
-*Justification.* This is an axiom about the substrate's enforcement, not a theorem derivable from R0–R7. R0 (TupleAddressFreshness, ASN-0086) alone permits any `(F, G, K)` triple with `K ∈ T_admissible` to be emitted at a fresh address. Sh-conf narrows the admissible triples to those whose `F, G` are in canonical-slot form, whose slot-address cardinalities match the registered shape, and whose slot addresses land in the registered target domains.
+*Scope.* Sh-conf binds `Emit_K`, not the substrate primitive K.λ. K.λ remains permissive at the substrate level: ASN-0086's R0 admits any `(F, G, K)` triple with `K ∈ T_admissible` at a fresh K.λ-emitted address. The framework's discipline is realized through the layer commitment of Scope and Substrate Scaffolding: every class-(iii) emission of a type `K ∈ T_cat` routes through `Emit_K`, and Sh-conf rejects non-conformant `Emit_K` calls before they reach K.λ. The inductive proofs of Sh0–Sh3 invoke the layer commitment to conclude that every new tuple in `L_K^{Σ'}` for `K ∈ T_cat` arrived via an `Emit_K` call subject to Sh-conf.
+
+*Justification.* This is an axiom about the framework's layer-level enforcement, not a theorem derivable from R0–R7. R0 (TupleAddressFreshness, ASN-0086) alone permits any `(F, G, K)` triple with `K ∈ T_admissible` to be emitted at a fresh address. Sh-conf narrows the admissible triples — those traveling through `Emit_K` — to those whose `F, G` are in canonical-slot form, whose slot-address cardinalities match the registered shape, and whose slot addresses land in the registered target domains.
 
 Without Sh-conf, the cardinality and target-domain consequences (Sh0–Sh3 below) would not hold across state transitions — they would be vacuously true on an empty `L_K` and immediately false after the first non-conformant emission.
 
@@ -129,7 +148,7 @@ Sh-conf admits every well-formed Nullify call; the substrate's retraction primit
 
 *Inductive step.* Suppose the property holds at Σ; let `Σ ↦ Σ'` be a single broad transition. Two sub-cases.
 
-*Case A: `Σ → Σ'` is a dom-extending step (K.σ, K.α, K.λ).* K.σ and K.α leave `Σ.L` unchanged, so `L_K^{Σ'} = L_K^Σ` for every K; the property is inherited. The only sub-class affecting `dom(Σ.L)` is K.λ, which under Sh-conf succeeded only because `conf_K^Σ(F, G)` held — i.e., `F` is canonical-slot form and `match(|slot_addrs(F)|, c_F)`. The new tuple satisfies the property; existing tuples retain their values by R2 (TupleAddressPermanence, ASN-0086) and their conformance by the inductive hypothesis.
+*Case A: `Σ → Σ'` is a dom-extending step (K.σ, K.α, K.λ).* K.σ and K.α leave `Σ.L` unchanged, so `L_K^{Σ'} = L_K^Σ` for every K; the property is inherited. The only sub-class affecting `dom(Σ.L)` is K.λ. By the layer commitment (Scope and Substrate Scaffolding), every K.λ-step producing a tuple in `L_K^Σ` for `K ∈ T_cat` originates as an `Emit_K` call; Sh-conf admitted that call only because `conf_K^Σ(F, G)` held — i.e., `F` is canonical-slot form and `match(|slot_addrs(F)|, c_F)`. The new tuple satisfies the property; existing tuples retain their values by R2 (TupleAddressPermanence, ASN-0086) and their conformance by the inductive hypothesis.
 
 *Case B: `Σ ↦ Σ'` is an arrangement-modifying step in `↦ \ →`.* By LinkStoreInvarianceUnderArrangement (ASN-0086), `Σ'.L = Σ.L` pointwise, so `L_K^{Σ'} = L_K^Σ` for every K. The property is preserved trivially.
 
@@ -168,7 +187,7 @@ Both cases preserve the property; the induction closes. ∎
 
 *Inductive step.*
 
-*Case A (`Σ → Σ'`).* K.σ and K.α do not affect `L_K`; the property is inherited on existing tuples, with monotone preservation `X_F ⊆ t_F^Σ ⟹ X_F ⊆ t_F^{Σ'}` because `t_F^Σ ⊆ t_F^{Σ'}` (allocated-set monotonicity along `→`). K.λ: the new tuple satisfies `X_F ⊆ t_F^Σ` by Sh-conf at emission, hence `X_F ⊆ t_F^{Σ'}` by monotonicity. Existing tuples retain their values by R2.
+*Case A (`Σ → Σ'`).* K.σ and K.α do not affect `L_K`; the property is inherited on existing tuples, with monotone preservation `X_F ⊆ t_F^Σ ⟹ X_F ⊆ t_F^{Σ'}` because `t_F^Σ ⊆ t_F^{Σ'}` (allocated-set monotonicity along `→`: link-side from L12a ASN-0043, content-side from the scaffolding assumption). For K.λ: by the layer commitment (Scope and Substrate Scaffolding), this K.λ-step producing a tuple in `L_K^Σ` for `K ∈ T_cat` originates as an `Emit_K` call subject to Sh-conf; the new tuple satisfies `X_F ⊆ t_F^Σ` by Sh-conf at emission, hence `X_F ⊆ t_F^{Σ'}` by monotonicity. Existing tuples retain their values by R2.
 
 *Case B (`Σ ↦ Σ'` in `↦ \ →`).* `L_K^{Σ'} = L_K^Σ` by LinkStoreInvarianceUnderArrangement. Arrangement steps do not change `dom(Σ.C)` or `dom(Σ.L)` (they modify `Σ.M` pointwise; see ASN-0086), so `t_F^Σ = t_F^{Σ'}`. The property is preserved trivially. ∎
 
@@ -230,21 +249,47 @@ For the rest of this document, we drop subscripts and write `from`, `to` when th
 
 `(A τ, τ' ∈ A_K^Σ : (slot_addrs(F)(τ), slot_addrs(G)(τ)) = (slot_addrs(F)(τ'), slot_addrs(G)(τ')) :: addr(τ) = addr(τ'))`
 
-*Status.* Sh4 is a *layer-level discipline*, not a substrate-enforced axiom. The substrate as defined by ASN-0086 does not enforce Sh4: R0 (TupleAddressFreshness) explicitly permits two emissions with identical `(F, G)` to produce two distinct tuples; R1 (AddressInjectivity) keeps them distinguishable. Sh4 is realized by the calling layer: before emitting `(F, G)` into an idempotent relation, the layer first executes `Observe_K(coverage(F), coverage(G), A_K^Σ)`; if a match exists, the emission is suppressed.
+*Layer-discipline contract.* Sh4 is realized through a contract the calling layer commits to honor uniformly across every reachable state. For each `K ∈ T_cat` with `shape(K).idem = ⊤`, on every `Emit_K(Σ, d, F, G)` call site the layer enforces the following protocol:
 
-*Conditional consumption of Sh4 by templates.* Templates that consume Sh4 — specifically `K_sidecar_of` under the Attribute shape — are well-defined only when the calling layer's Sh4 enforcement is correct. Under Sh4 violation, the candidate set `{τ ∈ A_K^Σ : from₁(τ) = d}` may contain multiple elements, and the substrate offers no canonical choice among them. Per-template specifications below state explicitly when a template's totality depends on Sh4.
+(i) Before issuing the emission, the layer computes the candidate set
+`C(F, G, Σ) := {τ ∈ A_K^Σ : slot_addrs(F)(τ) = slot_addrs(F) ∧ slot_addrs(G)(τ) = slot_addrs(G)}`
+via `Observe_K(coverage(F), coverage(G), oper)` filtered to canonical-form matches.
+
+(ii) If `C(F, G, Σ) ≠ ∅`, the emission is *suppressed*: no `→`-step occurs.
+
+(iii) Only if `C(F, G, Σ) = ∅` does the layer issue `Emit_K(Σ, d, F, G)`.
+
+The layer commits to executing clauses (i)–(iii) atomically with respect to other Sh4-emitters at the same K — concurrent emission and retraction events that could split (i)'s observation from (iii)'s emission must be serialized by the layer.
+
+*Preservation under the contract.* Sh4 holds at every reachable state under the contract, by induction on `↦*`.
+
+*Base.* At `Σ_0`, `L_K^{Σ_0} = A_K^{Σ_0} = ∅`; Sh4's universal is vacuous.
+
+*Step (Case A: `Σ → Σ'` is K.σ or K.α).* `Σ.L` is preserved pointwise (ASN-0086, K.σ/K.α frame), so `A_K^Σ = A_K^{Σ'}`; Sh4 is inherited.
+
+*Step (Case B: `Σ → Σ'` is a K.λ-step admitting a new K-tuple).* By the layer commitment of Scope and Substrate Scaffolding, this K.λ-step originates as an `Emit_K` call. By contract clause (iii), the emission proceeded only because `C(F, G, Σ) = ∅`. Let `τ_new` be the new tuple. Suppose, toward contradiction, that some prior `τ ∈ A_K^Σ` satisfies `(slot_addrs(F)(τ), slot_addrs(G)(τ)) = (slot_addrs(F)(τ_new), slot_addrs(G)(τ_new))`. Then by definition `τ ∈ C(F, G, Σ)`, contradicting `C(F, G, Σ) = ∅`. So no such `τ` exists, and `A_K^{Σ'} = A_K^Σ ∪ {τ_new}` extends with a slot-pair-unique element. The pairwise condition is preserved: existing pairs were Sh4-distinct by IH; `τ_new` shares no slot-pair with any prior active tuple.
+
+*Step (Case C: `Σ → Σ'` is a retraction (`Emit_R`-step) or `Σ ↦ Σ'` in `↦ \ →`).* Retraction filters `A_K^Σ` by `nullified(Σ)` membership but cannot introduce new K-tuples; the pairwise condition is preserved on any subset. Arrangement-modifying steps preserve `Σ.L` and `nullified(Σ)` pointwise by LinkStoreInvarianceUnderArrangement (ASN-0086), so `A_K^{Σ'} = A_K^Σ` and Sh4 is inherited.
+
+The induction closes. ∎
+
+*Status.* Sh4 is a *theorem under the layer-discipline contract*, not a substrate-enforced axiom. The substrate as defined by ASN-0086 does not enforce Sh4 directly: R0 (TupleAddressFreshness) explicitly permits two emissions with identical `(F, G)` to produce two distinct tuples; R1 (AddressInjectivity) keeps them distinguishable. Without the layer contract, the substrate would admit such emissions and Sh4 would fail. The framework's Sh4 conclusion depends on the layer's protocol fidelity.
+
+*Failure modes under contract violation.* If the layer breaks any of clauses (i)–(iii) at any emission site — forgetting to observe, racing with concurrent emitters, or admitting an emission whose `C(F, G, Σ) ≠ ∅` — Sh4 may fail at the resulting state. Templates that consume Sh4 (specifically `K_sidecar_of` under the Attribute shape) become undefined on the candidate set when it contains multiple elements. Per-template specifications below state explicitly when a template's totality depends on Sh4.
 
 A defensive alternative (presented under the Attribute walkthrough) is to expose the set-valued accessor `K_sidecars_of(d) := {τ ∈ A_K^Σ : from₁(τ) = d}` and use it where Sh4 cannot be relied on. This is well-defined unconditionally.
+
+*Why a layer-level contract rather than a substrate-level axiom.* Lifting Sh4 into Sh-conf as an `Emit_K`-precondition (e.g., "reject `Emit_K` when `shape(K).idem = ⊤ ∧ C(F, G, Σ) ≠ ∅`") is technically feasible but conflicts with the substrate's design intent. Type semantics in ASN-0086 are by address identity, not by content-equivalence policy; substrate-level idempotency enforcement would require the substrate to commit to a duplicate-detection semantics (set vs. multiset, exact vs. coverage-equivalent) and would couple the substrate to a particular Observe-time-of-emit transactional discipline. Keeping Sh4 at the layer separates the substrate's address-permanence guarantee from the layer's idempotency policy: layers may adopt set-semantics idempotency for some K and bag-semantics for others, with the substrate uniformly admitting all emissions and the framework's templates consuming whichever discipline the layer commits to.
 
 *Justification of the policy.* Some predicates need yes/no semantics on tuple existence: "is `d` classified as a claim?" should not be answered by counting `(∅, {d})` tuples. For idempotent relations the predicate template uses *set semantics* — the active relation is treated as a set of `(F, G)` slot-address pairs, with multiplicities collapsed. For non-idempotent relations (e.g., Comment, where each comment is a distinct event), the predicate template uses *bag semantics* — multiplicities are preserved.
 
 *Consequences.*
 
-(a) *Existence-vs-count distinction.* Idempotent relations support `exists_K(F, G) : Bool` predicates with stable yes/no answers (modulo Sh4 enforcement). Non-idempotent relations support `count_K(...)` predicates whose value reflects the number of distinct emission events.
+(a) *Existence-vs-count distinction.* Idempotent relations support `exists_K(F, G) : Bool` predicates with stable yes/no answers under the contract. Non-idempotent relations support `count_K(...)` predicates whose value reflects the number of distinct emission events.
 
 (b) *Re-emit-vs-fail behavior is registry-driven.* Library helpers like `emit_attribute` consult `shape(K).idem` to decide whether to short-circuit on existing match or always allocate a fresh address. The decision is mechanical from the shape, not from inspection of K's name.
 
-(c) *Idempotency is a property of A_K, not L_K.* By R3, `L_K` always retains every emission ever made — duplicates included. Idempotency restricts what reaches `A_K`. Once a duplicate is emitted, it stays in `L_K` for audit but the emission policy ensures only one is active at a time. Retraction-then-reemit cycles can leave multiple coverage-identical tuples in `L_K` with at most one active.
+(c) *Idempotency is a property of A_K, not L_K.* By R3, `L_K` always retains every emission ever made — including any duplicates that may exist if the contract was ever violated. The contract restricts what reaches `A_K`. Under correct contract enforcement, once a duplicate would be emitted, the layer suppresses it. The audit slice `L_K` retains historical state regardless: retraction-then-reemit cycles can leave multiple coverage-identical tuples in `L_K` with at most one active.
 
 
 ## Template Catalog (Sh5)
@@ -272,8 +317,8 @@ The substrate's relations fall into a small fixed set of canonical shapes. Each 
 | Attribute        | (1, 1)     | A_doc | A_doc | ⊤    | `has_K(d)`, `K_sidecar_of(d)` (cond. on Sh4), `K_sidecars_of(d)` |
 | Citation         | (1, 1)     | A_doc | A_doc | ⊤    | `cites_K(a, b)`, `K_incoming(b)`                             |
 | Coverage         | (1, 1)     | A_doc | A_doc | ⊥    | `latest_K_for_addr(d)` (with SingleHomeCoverageDiscipline)    |
-| Comment          | (1, 1)     | A_doc | A_doc | ⊥    | `unresolved_K_comments(d)`, `all_K_resolved(d)`              |
-| Resolution       | (1, 1)     | A_doc | A_rel | ⊤    | (consumed by `all_K_resolved` template at Comment shape)     |
+| Comment          | (1, 1)     | A_doc | A_doc | ⊥    | `unresolved_K_comments_via(K_res, d)`, `all_K_resolved_via(K_res, d)` |
+| Resolution       | (1, 1)     | A_doc | A_rel | ⊤    | (consumed parametrically by Comment's `_via` templates)      |
 | Retraction       | (\*, 1)    | A     | A_rel | ⊤    | (consumed by R6's active-subset definition)                  |
 | Provenance       | (1, 0\|1)  | A     | A     | ⊤    | `outgoing_K(s)`                                              |
 
@@ -330,19 +375,25 @@ The first is Boolean — does the citation exist? The second is value-returning 
 
 ### Comment — `(1, 1, A_doc, A_doc, ⊥)`
 
-Comments are non-idempotent: each comment is a distinct event, even with identical slot-addresses. The predicate template depends on a separate Resolution relation `K_res` of Resolution shape (see below).
+Comments are non-idempotent: each comment is a distinct event, even with identical slot-addresses. The Comment shape generates a template family parameterized by a *resolver-type argument* `K_res` of Resolution shape — Comment relations do not co-register a particular resolver in the shape registry. The framework treats any active `K_res`-typed tuple targeting τ's address as resolving τ, regardless of provenance: there is no notion of "the K_res paired with K"; the layer chooses which Resolution-shaped relation to consult when querying resolution status.
 
-`unresolved_K_comments(d) ≡ {τ ∈ A_K^Σ : to₁(τ) = d ∧ ¬resolved_by(τ, K_res)}`
+`unresolved_K_comments_via(K_res, d) ≡ {τ ∈ A_K^Σ : to₁(τ) = d ∧ ¬resolved_by(τ, K_res)}`
 
 where `resolved_by(τ, K_res) ≡ (E ρ ∈ A_{K_res}^Σ :: to₁(ρ) = addr(τ))`.
 
-`all_K_resolved(d) ≡ unresolved_K_comments(d) = ∅`
+`all_K_resolved_via(K_res, d) ≡ unresolved_K_comments_via(K_res, d) = ∅`
 
-A comment τ is *unresolved* iff no active resolution tuple targets τ's address (R5, TupleSelfTargeting, ASN-0086, makes this targeting expressible). This template is what consumes the Resolution shape — Resolution does not generate its own template family; it is consumed here.
+A comment τ is *unresolved with respect to K_res* iff no active `K_res`-tuple targets τ's address (R5, TupleSelfTargeting, ASN-0086, makes this targeting expressible). The template signature includes `K_res` explicitly because the framework imposes no co-registration between Comment relations and their resolvers: different layers may resolve the same comment relation under different `K_res`, and the predicate is well-defined parametrically across that choice.
+
+The semantics are deliberately permissive — *any* active `K_res`-tuple targeting τ counts as a resolution, modulo whatever additional filtering the calling layer applies via its choice of `K_res`. This matches the substrate's open-ended type discipline: typed relations are claims surfaced for layer-level evaluation, not assertions adjudicated by the substrate.
+
+*Layer-level aliasing convention.* When a calling layer commits to a single canonical resolver `K_res_canonical` for `K` (a layer convention, not a framework-level registration), it may define an alias `unresolved_K_comments(d) := unresolved_K_comments_via(K_res_canonical, d)`. This alias is a layer construct and is not part of the shape framework's template family.
+
+This is the template that consumes the Resolution shape — Resolution does not generate its own template family; it is consumed parametrically here.
 
 ### Resolution — `(1, 1, A_doc, A_rel, ⊤)`
 
-Tuples have form `slot_addrs(F) = {d}, slot_addrs(G) = {addr(σ)}` where `d ∈ A_doc^Σ` is the resolving document and `σ ∈ A_rel^Σ` is the comment-tuple being resolved. The shape generates no standalone predicate template — its purpose is to feed the Comment template above. Sh3 (`t_G = A_rel`) is what makes that consumption possible: a Resolution tuple's to-slot targets a tuple address, not a document.
+Tuples have form `slot_addrs(F) = {d}, slot_addrs(G) = {addr(σ)}` where `d ∈ A_doc^Σ` is the resolving document and `σ ∈ A_rel^Σ` is the comment-tuple being resolved. The shape generates no standalone predicate template — its purpose is to be consumed parametrically by Comment's `unresolved_K_comments_via` / `all_K_resolved_via` templates as the `K_res` argument. Sh3 (`t_G = A_rel`) is what makes that consumption possible: a Resolution tuple's to-slot targets a tuple address, not a document.
 
 ### Retraction — `(\*, 1, A, A_rel, ⊤)`
 
@@ -352,7 +403,9 @@ The unrestricted from-slot (`c_F = *`) accommodates use cases where the retracti
 
 ### Coverage — `(1, 1, A_doc, A_doc, ⊥)`
 
-For K with this shape, multiple emissions targeting the same document `d` are expected (e.g., evolving review status). The template projects to the most recent:
+Coverage tuples assert that a witnessing document covers (reviews, revises, evaluates) a target document. The from-slot identifies the *witness/asserter* — the document making the coverage claim (e.g., a review document, a revision document). The to-slot identifies the *subject* — the document being covered. The framework requires `c_F = 1` rather than `c_F = 0` because Coverage relations carry directional provenance: knowing *which* document witnessed a coverage event is constitutive of the assertion, not auxiliary metadata. A Coverage relation without an attributed witness would not be a coverage assertion at all; it would be an unattributed flag, which the Classifier shape `(0, 1)` already covers. The `(1, 1)` shape encodes the witness-to-subject directionality intrinsic to coverage semantics.
+
+For K with this shape, multiple emissions targeting the same subject `d` are expected (e.g., evolving review status from the same or successive witnesses). The template projects to the most recent:
 
 `latest_K_for_addr : A_doc → A_rel^Σ ∪ {⊥}`
 
@@ -360,15 +413,15 @@ For K with this shape, multiple emissions targeting the same document `d` are ex
 
 `latest_K_for_addr(d) ≡ ⊥` &nbsp; if &nbsp; `S_d = ∅`
 
-where `S_d = {τ ∈ A_K^Σ : to₁(τ) = d}`. The accessor is *partial*: it returns `⊥` when no Coverage tuple has yet targeted `d`. Consumers of `latest_K_for_addr` must handle the `⊥` case explicitly.
+where `S_d = {τ ∈ A_K^Σ : to₁(τ) = d}` ranges over all active Coverage tuples targeting `d`, regardless of which witness `from₁(τ)` they originate from. The template's signature is indexed by the subject alone because "the latest assertion about `d`" is a function of `d`'s coverage-event history; the from-slot is consulted by the *consumer* of `latest_K_for_addr(d)` (which can read `from₁` off the returned tuple to recover the witness), not by the template's projection itself. The accessor is *partial*: it returns `⊥` when no Coverage tuple has yet targeted `d`. Consumers of `latest_K_for_addr` must handle the `⊥` case explicitly.
 
 **Definition — SingleHomeCoverageDiscipline.** A registered Coverage relation `K` commits to *single-home emission* iff every emission `Emit_K(Σ, d, F, G)` for type K uses a single fixed home document `d = d_K ∈ dom(Σ.M)` across the relation's lifetime. The commitment is a per-K registration constraint, not a universal shape constraint.
 
-*Why single-home matters for `emission_order`.* T9 (ForwardAllocation, ASN-0034) supplies a total order on outputs of a single allocator's chain — specifically, for `same_allocator(a, b) ∧ allocated_before(a, b)`, T9 gives `a < b` under T1. Tuple addresses in a Coverage relation belong to `A_L(home(τ))` sub-allocators (ASN-0093). Under SingleHomeCoverageDiscipline, every `τ` with `to₁(τ) = d` has the same `home(τ) = d_K`, hence the same `A_L(d_K)` chain; T9 orders them, and that ordering is monotone in emission time. We define:
+*Why single-home matters for `emission_order`.* T9 (ForwardAllocation, ASN-0034) supplies a total order on outputs of a single allocator's chain — specifically, for `same_allocator(a, b) ∧ allocated_before(a, b)`, T9 gives `a < b` under T1. Tuple addresses in a Coverage relation belong to per-document link sub-allocators (the substrate-conforming layer's link-side chain enumeration referenced by Scope and Substrate Scaffolding; ASN-0086 R0a-Cor1 and FreshEmissionAddress consume this same enumeration). Under SingleHomeCoverageDiscipline, every `τ` with `to₁(τ) = d` has the same `home(τ) = d_K`, hence the same link sub-allocator chain; T9 orders them, and that ordering is monotone in emission time. We define:
 
-`emission_order(τ) := the chain-index of addr(τ) within A_L(d_K)`
+`emission_order(τ) := the chain-index of addr(τ) within the link sub-allocator chain at d_K`
 
-equivalently, the unique `n ≥ 0` with `addr(τ) = inc^n(d_K.0.s_L.1, 0)` (by ASN-0093's chain enumeration discipline). The `argmax` in `latest_K_for_addr` is then well-defined under T1.
+equivalently, the unique `n ≥ 0` with `addr(τ) = inc^n(d_K.0.s_L.1, 0)` (by the substrate-conforming layer's chain enumeration discipline; cf. ASN-0086's FreshEmissionAddress). The `argmax` in `latest_K_for_addr` is then well-defined under T1.
 
 *Without SingleHomeCoverageDiscipline:* the Coverage relation must layer-supply an `emission_order` total order on `S_d`. Sh5's mechanical-derivability claim degrades at this point; the layer carries the ordering obligation. Coverage relations that decline to commit to single-home emission must register their layer-supplied `emission_order` accessor as part of their shape contract.
 
@@ -408,19 +461,24 @@ To verify the framework on a concrete instance, register `K = comment` with the 
 
 *Sh-conf check at Σ_1.* Symmetric to Emission 1. Admitted. ✓
 
-**Sh0–Sh3 hold at Σ_2 by direct check.** `L_K^{Σ_2} = {τ_1, τ_2}`. Both tuples have F and G canonical-slot, slot-cardinality 1, and slot-addresses in `A_doc^{Σ_2}` (the allocated-set has not shrunk). Sh0/Sh1 give the canonical-form-and-cardinality property; Sh2/Sh3 give the target-domain inclusion. ✓
+**Sh0–Sh3 hold at Σ_2 by direct check.** `L_K^{Σ_2} = {τ_1, τ_2}`. Per-tuple verification:
 
-**Template evaluation at Σ_2.** Suppose no Resolution tuples have been emitted yet, so `A_{K_res}^{Σ_2} = ∅` for a co-registered Resolution relation `K_res` of shape `(1, 1, A_doc, A_rel, ⊤)`. Compute:
+- *τ_1:* `slot_addrs(F_1) = {d_1}`, `|{d_1}| = 1`, `match(1, c_F = 1)` ✓ (Sh0); `slot_addrs(G_1) = {d_2}`, `|{d_2}| = 1`, `match(1, c_G = 1)` ✓ (Sh1); `{d_1} ⊆ A_doc^{Σ_2}` ✓ (Sh2, `d_1` is allocated since `d_1 ∈ A_doc^{Σ_0} ⊆ A_doc^{Σ_2}` by allocated-set monotonicity); `{d_2} ⊆ A_doc^{Σ_2}` ✓ (Sh3, same).
+- *τ_2:* `slot_addrs(F_2) = {d_2}`, `|{d_2}| = 1`, `match(1, c_F = 1)` ✓ (Sh0); `slot_addrs(G_2) = {d_2}`, `|{d_2}| = 1`, `match(1, c_G = 1)` ✓ (Sh1); `{d_2} ⊆ A_doc^{Σ_2}` ✓ (Sh2 and Sh3, same slot address).
+
+The per-tuple checks discharge each invariant pointwise; the universal quantifier in Sh0–Sh3 closes by inspection of the two-element relation.
+
+**Template evaluation at Σ_2.** Suppose no Resolution tuples have been emitted yet, so `A_{K_res}^{Σ_2} = ∅` for a chosen Resolution relation `K_res` of shape `(1, 1, A_doc, A_rel, ⊤)`. (The layer selects `K_res` as the resolver vocabulary; the framework imposes no co-registration.) Compute:
 
 `A_K^{Σ_2} = L_K^{Σ_2} \ nullified(Σ_2) = {τ_1, τ_2}` (no retractions issued).
 
-`unresolved_K_comments(d_2) = {τ ∈ A_K^{Σ_2} : to₁(τ) = d_2 ∧ ¬resolved_by(τ, K_res)}`
+`unresolved_K_comments_via(K_res, d_2) = {τ ∈ A_K^{Σ_2} : to₁(τ) = d_2 ∧ ¬resolved_by(τ, K_res)}`
 
 Both τ_1 and τ_2 have `to₁(·) = d_2`; for each, `resolved_by(τ, K_res)` requires `(E ρ ∈ A_{K_res}^{Σ_2} :: to₁(ρ) = addr(τ))`, vacuously false since `A_{K_res}^{Σ_2} = ∅`. So:
 
-`unresolved_K_comments(d_2) = {τ_1, τ_2}`
+`unresolved_K_comments_via(K_res, d_2) = {τ_1, τ_2}`
 
-`all_K_resolved(d_2) = false`.
+`all_K_resolved_via(K_res, d_2) = false`.
 
 **Emission 3 (resolution).** `ρ_1 := Emit_{K_res}(Σ_2, home_R, F_ρ, G_ρ)` with `F_ρ = {(d_2, δ(1, #d_2))}` (resolver) and `G_ρ = {(a_1, δ(1, #a_1))}` (resolves τ_1 via R5, TupleSelfTargeting, ASN-0086). Result Σ_3.
 
@@ -432,23 +490,31 @@ Both τ_1 and τ_2 have `to₁(·) = d_2`; for each, `resolved_by(τ, K_res)` re
 
 `resolved_by(τ_1, K_res) = true` (ρ_1 witnesses); `resolved_by(τ_2, K_res) = false`.
 
-`unresolved_K_comments(d_2) = {τ_2}`
+`unresolved_K_comments_via(K_res, d_2) = {τ_2}`
 
-`all_K_resolved(d_2) = false` (τ_2 still unresolved).
+`all_K_resolved_via(K_res, d_2) = false` (τ_2 still unresolved).
 
 **Emission 4 (resolution of τ_2).** Emit `ρ_2` resolving τ_2 (analogous to Emission 3 with `G = {(a_2, δ(1, #a_2))}`). Result Σ_4.
 
-`unresolved_K_comments(d_2) = ∅`
+`unresolved_K_comments_via(K_res, d_2) = ∅`
 
-`all_K_resolved(d_2) = true`. The flag flips as expected.
+`all_K_resolved_via(K_res, d_2) = true`. The flag flips as expected.
+
+**Rejection case 1: non-canonical from-set.** From Σ_4, attempt `Emit_K(Σ_4, home_K, F_3, G_3)` with `F_3 = {(d_1, δ(2, #d_1))}` — a depth-2 span violating canonical-slot form, which requires unit-depth displacements `δ(1, #x)`. Sh-conf clause (a) fails: `F_3` is not in canonical-slot form, so `slot_addrs(F_3)` is undefined (there is no `X_F` such that `F_3 = {(x, δ(1, #x)) : x ∈ X_F}`). The emission is rejected before any state transition. State remains Σ_4 unchanged; in particular `L_K^{Σ_4}, A_K^{Σ_4}` are not modified. ✗
+
+Note that L4 (EndsetGenerality, ASN-0043) permits `F_3` in the substrate's link store at the level of endset well-formedness; the framework rejects it as a layer-level discipline imposed by Sh-conf. The substrate primitive K.λ would still accept `F_3` if invoked outside Emit_K — but per the layer commitment (Scope and Substrate Scaffolding), the relational layer routes all class-(iii) emissions of `K ∈ T_cat` through Emit_K, so this bypass is not exercised within the framework's scope.
+
+**Rejection case 2: unallocated to-slot address.** From Σ_4, let `d_ghost ∈ T` be a tumbler outside `A^{Σ_4}` — an unallocated address (e.g., a future document not yet registered, or a deliberately-chosen ghost per L9 of ASN-0043). Attempt `Emit_K(Σ_4, home_K, F_4, G_4)` with `F_4 = {(d_1, δ(1, #d_1))}` (canonical-slot, `slot_addrs(F_4) = {d_1}`) and `G_4 = {(d_ghost, δ(1, #d_ghost))}` (canonical-slot, `slot_addrs(G_4) = {d_ghost}`). Sh-conf clause (d) fails on the G-side: `slot_addrs(G_4) = {d_ghost}` is not a subset of `t_G^{Σ_4} = A_doc^{Σ_4}` because `d_ghost ∉ A_doc^{Σ_4}`. The emission is rejected before any state transition. State remains Σ_4. ✗
+
+This rejection is constitutive of the framework's discipline: shapes restrict slot addresses to *already-allocated* targets at emission time. L9 (TypeGhostPermission, ASN-0043) admits ghost spans in endsets generally — including in the type-endset slot — but the shape framework forbids ghost addresses in *slot positions* of registered relations. Whether a future shape family should admit ghost-targeting slot semantics is an open question (see Open Questions).
 
 **Edge case: retraction of τ_1.** From Σ_4, issue `Nullify(Σ_4, d_retr, a_1)` producing Σ_5. By R6c (RestorationByReemission, ASN-0086), τ_1 is permanently removed from `A_K^Σ` for all future states. So:
 
 `A_K^{Σ_5} = {τ_2}` (τ_1 nullified; τ_2 remains).
 
-`unresolved_K_comments(d_2) = {τ ∈ A_K^{Σ_5} : to₁(τ) = d_2 ∧ ¬resolved_by(τ, K_res)} = ∅` (τ_2 still resolved by ρ_2, which is in `A_{K_res}^{Σ_5}`).
+`unresolved_K_comments_via(K_res, d_2) = {τ ∈ A_K^{Σ_5} : to₁(τ) = d_2 ∧ ¬resolved_by(τ, K_res)} = ∅` (τ_2 still resolved by ρ_2, which is in `A_{K_res}^{Σ_5}`).
 
-`all_K_resolved(d_2) = true`.
+`all_K_resolved_via(K_res, d_2) = true`.
 
 The framework gives stable, well-typed answers across emission and retraction events. Sh0–Sh3 are preserved inductively, template signatures match the shape registry, and the active-subset machinery composes cleanly with retraction.
 
@@ -481,16 +547,19 @@ The framework gives stable, well-typed answers across emission and retraction ev
 | from_K^Σ, to_K^Σ | DEF | Total set-valued slot accessors | introduced |
 | from₁, to₁ | DEF | Point-valued slot accessors (defined when c = 1) | introduced |
 | from₁⁻, to₁⁻ | DEF | Optional point-valued slot accessors (defined when c = 0\|1) | introduced |
-| Sh-conf | AXIOM | ShapeConformanceAxiom — Emit_K rejects unregistered types and non-conformant emissions | introduced |
-| Sh0 | LEMMA | FromSlotCanonicalAndCardinalityFixed — proof covers both `→` and `↦ \ →` | introduced |
+| Sh-conf | AXIOM | ShapeConformanceAxiom — Emit_K (relational-layer op) rejects unregistered types and non-conformant emissions; binds Emit_K, not K.λ | introduced |
+| Sh0 | LEMMA | FromSlotCanonicalAndCardinalityFixed — proof covers both `→` and `↦ \ →`, via layer-commitment routing | introduced |
 | Sh1 | LEMMA | ToSlotCanonicalAndCardinalityFixed — symmetric to Sh0 | introduced |
 | Sh2 | LEMMA | FromSlotTargetRestricted — `slot_addrs(F) ⊆ t_F^Σ` on every tuple | introduced |
 | Sh3 | LEMMA | ToSlotTargetRestricted — symmetric to Sh2; commutes with retraction (`A_K ⊆ L_K`) | introduced |
 | SlotAccessorTotality | LEMMA | When `c = 1`, the point accessor is a total function | introduced |
-| Sh4 | META | IdempotencyDiscipline — at-most-one active duplicate when `idem = ⊤`; layer policy, not substrate axiom | introduced |
+| Sh4 | LEMMA | IdempotencyDiscipline — at-most-one active duplicate when `idem = ⊤`; theorem under the layer-discipline contract, with inductive preservation argument | introduced |
 | Sh5 | META | TemplateCatalog — hand-curated per-shape template families; mechanical-derivation downgraded from prior LEMMA claim | introduced |
 | SingleHomeCoverageDiscipline | DEF | Per-K commitment securing `emission_order` for Coverage relations | introduced |
 | Tpl | DEF | Map from canonical shape to its predicate template family | introduced |
+| layer-discipline contract (Sh4) | DEF | Observe-then-Emit protocol clauses (i)–(iii) the layer commits to for idempotent K | introduced |
+| content-side scaffolding | ASSUMPTION | Element-level content addresses, content subspace partition, content-store antichain, content-store monotonicity, per-document link sub-allocator chains — assumed of the substrate-conforming layer | introduced |
+| layer commitment (Emit_K routing) | ASSUMPTION | Every class-(iii) emission of `K ∈ T_cat` routes through `Emit_K` | introduced |
 
 
 ## Open Questions
