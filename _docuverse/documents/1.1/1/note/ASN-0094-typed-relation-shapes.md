@@ -74,7 +74,7 @@ The shape framework restricts every shape-conformant emission's `F` and `G` to c
 
 *Step 3.2 — E-field prefix relation.* The E-field of `x` is non-empty: by L1b (ASN-0043) applied to the link side and by the content-side scaffolding's `#E(·) ≥ 2` clause applied to the content side, `#E(x) ≥ 2 ≥ 1`. T4b's E-field index range is `n_3 + 1 .. #x` with length `#E(x) = #x − n_3`, so non-emptiness gives `n_3 + 1 ≤ #x`, i.e., `n_3 < #x` (T4(iv) excludes `n_3 = #x` independently, since `x_{#x} ≠ 0` while `x_{n_3} = 0`). The same holds for `a`. By T4b (UniqueParse, ASN-0034), with both `x` and `a` element-level and sharing the same three zero positions `n_1 < n_2 < n_3`, the E-field of `x` occupies positions `n_3 + 1 .. #x` and the E-field of `a` occupies positions `n_3 + 1 .. #a`. Hence `#E(x) = #x − n_3` and `#E(a) = #a − n_3`; with `#x ≤ #a` this gives `#E(x) ≤ #E(a)`. For component agreement: componentwise agreement at every position `n_3 + 1 ≤ i ≤ #x` (a subrange of `1 ≤ i ≤ #x` where `x ≼ a` already gives `xᵢ = aᵢ`) translates, via T4b's index offset, into `E(x)ⱼ = E(a)ⱼ` for every `1 ≤ j ≤ #E(x)` (taking `j = i − n_3`). With `#E(x) ≤ #E(a)` and componentwise agreement on `1 ≤ j ≤ #E(x)`, the Prefix definition (ASN-0034) gives `E(x) ≼ E(a)`. In particular, taking `j = 1`, `E(x).1 = E(a).1`.
 
-*Step 3.3 — Subspace contradiction.* L0 (SubspacePartition, ASN-0043) gives `E(x).1 = s_L` for links and the content subspace partition assumption gives `E(a).1 = s_C`, with `s_L ≠ s_C`. But Step 3.2 gives `E(x).1 = E(a).1`. Contradiction. In the alternate sub-case `x ∈ dom(Σ.C), a ∈ dom(Σ.L)`, the subspace assignments are exchanged — `E(x).1 = s_C` and `E(a).1 = s_L` — but `s_C ≠ s_L` is symmetric and yields the same contradiction. Both sub-cases vacuous. ∎
+*Step 3.3 — Subspace contradiction.* L0 (SubspacePartition, ASN-0043) is stated as `subspace_I(a) = s_L` over the function `subspace_I(·)`; under T7 (FirstElementFieldDistinction, ASN-0034) and T4b's E-field structure on element-level addresses, this identifier is exactly the first element-field component, i.e., `subspace_I(a) = E(a).1`. We use this identification throughout. L0 therefore gives `E(x).1 = s_L` for links and the content subspace partition assumption (similarly expressed) gives `E(a).1 = s_C`, with `s_L ≠ s_C`. But Step 3.2 gives `E(x).1 = E(a).1`. Contradiction. In the alternate sub-case `x ∈ dom(Σ.C), a ∈ dom(Σ.L)`, the subspace assignments are exchanged — `E(x).1 = s_C` and `E(a).1 = s_L` — but `s_C ≠ s_L` is symmetric and yields the same contradiction. Both sub-cases vacuous. ∎
 
 The lemma underwrites the syntactic-to-semantic bridge: a canonical-slot endset at an allocated address `x` denotes exactly `{x}` among allocated addresses, so `slot_addrs(F) = {x}` matches "what allocated address does this slot refer to" with no ambiguity. Without this lemma, "the slot at `x`" could resolve to multiple allocated addresses when `x` has allocated descendants — which is precisely what the antichain rules out at element level.
 
@@ -139,9 +139,9 @@ Write `conf_K^Σ(F, G)` for this predicate.
 
 ## The Conformance Axiom
 
-**Sh-conf — ShapeConformanceAxiom.** The framework restricts ASN-0086's `Emit_K` (the relational-layer operation) by adding two preconditions:
+**Sh-conf — ShapeConformanceAxiom.** The framework restricts ASN-0086's `Emit_K` (the relational-layer operation) by adding two preconditions: `K ∈ T_cat` and `conf_K^Σ(F, G)`. These are *added* to ASN-0086's existing preconditions; they do not displace them. The combined success condition is:
 
-`Emit_K(Σ, d, F, G)` succeeds iff `K ∈ T_cat ∧ conf_K^Σ(F, G)`. The framework extends ASN-0086's `Emit_K` return type from `Σ' × A_rel^{Σ'}` to `(Σ' × A_rel^{Σ'}) ∪ {⊥}` where `⊥` is a distinguished rejection token: on failure of either conjunct, `Emit_K` returns `⊥` and leaves the state unchanged (no `↦`-step occurs). The layer-discipline contracts of Sh4 and FunctionalDependencyDiscipline below additionally return `⊥` on suppression (clause (ii) of their respective contracts); a caller that needs to distinguish rejection-by-Sh-conf from rejection-by-discipline-suppression may consult the discipline's pre-emission candidate-set computation before issuing the `Emit_K` call. The framework does not impose a finer-grained sum type at the substrate boundary; callers wanting that granularity wrap `Emit_K` with their own classification.
+`Emit_K(Σ, d, F, G)` succeeds iff *ASN-0086's preconditions hold (specifically `d ∈ dom(Σ.M)`, with the regime simplification of `wp_086` below) and `K ∈ T_cat` and `conf_K^Σ(F, G)`*. Equivalently, the framework imposes two new conjuncts atop ASN-0086's `wp_086`: failure of either added conjunct, or failure of any ASN-0086 conjunct, produces `⊥`. The framework extends ASN-0086's `Emit_K` return type from `Σ' × A_rel^{Σ'}` to `(Σ' × A_rel^{Σ'}) ∪ {⊥}` where `⊥` is a distinguished rejection token: on any failure (substrate or framework), `Emit_K` returns `⊥` and leaves the state unchanged (no `↦`-step occurs). The layer-discipline contracts of Sh4 and FunctionalDependencyDiscipline below additionally return `⊥` on suppression (clause (ii) of their respective contracts); a caller that needs to distinguish rejection-by-Sh-conf from rejection-by-discipline-suppression may consult the discipline's pre-emission candidate-set computation before issuing the `Emit_K` call. The framework does not impose a finer-grained sum type at the substrate boundary; callers wanting that granularity wrap `Emit_K` with their own classification.
 
 *Effective weakest-precondition under Sh-conf.* ASN-0086 (`Emit_K`, WeakestPreconditionEmitK) defines
 
@@ -242,7 +242,15 @@ Both cases preserve the property at the chosen K; quantifying over K closes the 
 
 `(A K ∈ T_cat, (a, F, G) ∈ L_K^Σ :: slot_addrs(G) ⊆ shape(K).t_G^Σ)`
 
-*Proof.* Symmetric to Sh2. ∎
+*Proof.* By induction on `↦*` from `Σ_0`. Fix `K ∈ T_cat`. By R3, `L_K` is monotone non-decreasing, so the inductive step splits on whether the transition leaves `L_K` unchanged (Case A) or extends it by one tuple (Case B); no contraction case for `L_K` arises. The structure mirrors Sh2 with the substitution F → G throughout — clauses (b) and (c) of Sh-conf cited where Sh2 cites (a) and (c), and `t_G` substituted for `t_F`.
+
+*Base case.* `L_K^{Σ_0} = ∅` vacuously.
+
+*Inductive step.*
+
+*Case A: `L_K^{Σ'} = L_K^Σ`.* `L_K` is unchanged. The property is inherited on every existing tuple, with monotone preservation `X_G ⊆ t_G^Σ ⟹ X_G ⊆ t_G^{Σ'}` because `t_G^Σ ⊆ t_G^{Σ'}` (allocated-set monotonicity: link-side from L12a ASN-0043, content-side from the scaffolding assumption; arrangement steps preserve `dom(Σ.C)` and `dom(Σ.L)` so the inclusion is equality there). This case covers K.σ-steps, K.α-steps, K.λ-steps for non-K-coverage-equivalent types, and arrangement-modifying steps in `↦ \ →` (via LinkStoreInvarianceUnderArrangement).
+
+*Case B: `L_K^{Σ'} = L_K^Σ ∪ {τ_new}`.* By the layer commitment, the K.λ-step originates as an `Emit_K`-class call (at K or a `~`-equivalent type by T_cat's `~`-closure) subject to Sh-conf. Sh-conf admitted that call only because `conf_K^Σ(F, G)` held — in particular, by Sh-conf clause (b), `G` is in canonical-slot form (so `slot_addrs(G) = X_G` is well-defined), and by Sh-conf clause (d) on the G-side, `X_G ⊆ t_G^Σ` at emission, hence `X_G ⊆ t_G^{Σ'}` by monotonicity. Existing tuples retain their values by R2 and their target-domain conformance by the IH plus monotonicity. ∎
 
 *Retraction commutativity.* `A_K^Σ ⊆ L_K^Σ` always (R6 derivation in ASN-0086, since `nullified(Σ)` filters but never adds). Sh0–Sh3 universally quantify over `L_K^Σ`, so every tuple in `A_K^Σ` is also shape-conformant. Retraction removes a tuple from `A_K^Σ` but never introduces a non-conformant tuple. The shape predicates over `A_K^Σ` are therefore well-typed at every state, including post-retraction states. This closes the question of whether shape commutes with retraction.
 
@@ -504,6 +512,8 @@ Tuples have form `slot_addrs(F) = {d}, slot_addrs(G) = {addr(σ)}` where `d ∈ 
 ### Retraction — `(\*, 1, A, A_rel, ⊤)`
 
 Tuples have form `slot_addrs(F) ⊆ A^Σ` (any finite set, possibly empty) and `slot_addrs(G) = {addr(σ)}` for `σ ∈ A_rel^Σ` the tuple being retracted. The retraction shape is consumed by R6 (ASN-0086) directly: the active-subset definition uses `L_R`'s tuples to compute `nullified(Σ)`. No predicate template family — Retraction's role is to flip A_K membership for arbitrary K, not to host its own predicates.
+
+*Unit-depth retraction discipline secured by Retraction's shape.* Retraction's `c_G = 1` together with canonical-slot form (Sh-conf clauses (a)/(b)) forces every shape-conformant Retraction emission's G-endset to a single unit-depth span `{(b, δ(1, #b))}` for some `b ∈ A_rel^Σ`. This is exactly ASN-0086's unit-depth retraction discipline: every emission that lands in `L_R^Σ` via `Emit_R` satisfies the discipline by construction. Consequently, ASN-0086's wp simplification under regime (i) applies to every Sh-conf-admitted Retraction emission — `NoCraftedSpanReachesD(Σ, d)` holds automatically at every such call site — so the wp_086 in the Sh-conf section's effective-wp derivation collapses to `d ∈ dom(Σ.M) ∧ K ∈ T_admissible` without manual discharge.
 
 The unrestricted from-slot (`c_F = *`) accommodates use cases where the retracting party is recorded in F (e.g., F's slot addresses include an agent address), as well as the bare retraction `Nullify(Σ, d_retr, a) = Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` of ASN-0086, where `F = ∅`. Both forms are canonical-slot (the bare form trivially, the attributed form when its from-slot endset is in canonical form). The shape framework rejects retractions whose from-slot uses non-canonical-form endsets, consistent with the discipline imposed across the catalog.
 
@@ -803,7 +813,7 @@ To exhibit Sh4 suppression in action (independent of FDD), register `K = endorse
 
 | Label | Type | Statement | Status |
 |-------|------|-----------|--------|
-| cov | DEF | Coverage projection `L_K → ℘(T) × ℘(T)` (codomain corrected from prior draft's `℘_fin`) | introduced |
+| cov | DEF | Coverage projection `L_K → ℘(T) × ℘(T)` | introduced |
 | cov_allocated | DEF | Allocated-coverage projection `(F, Σ) → coverage(F) ∩ A^Σ`; finite per Σ, monotone along `⊑̂` | introduced |
 | canonical-slot form | DEF | Endset form `{(x, δ(1, #x)) : x ∈ X_F}` with extractable slot-address set | introduced |
 | slot_addrs | DEF | Extraction `F ↦ X_F` for canonical-form F | introduced |
