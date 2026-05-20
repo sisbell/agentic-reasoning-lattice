@@ -1,0 +1,46 @@
+# Review of ASN-0047
+
+This ASN is genuinely substantial and rigorous. The state model decomposition, K.μ~ link-subspace fixity proof, allocator discharge analysis, and verification matrix are all carefully constructed. The few issues below are tractable refinements, not structural problems.
+
+## REVISE
+
+### Issue 1: K.μ⁺'s functionality precondition leaves pairwise distinctness of new positions implicit
+**ASN-0047, *Elementary transitions* (K.μ⁺)**: "Functionality (S2) is preserved: dom(M'(d)) ⊃ dom(M(d)) with value preservation at existing positions means new entries are assigned at positions outside dom(M(d)), so M'(d) remains a function — extending a partial function at disjoint domain elements cannot introduce ambiguity."
+**Problem**: The argument addresses disjointness from dom(M(d)) but not pairwise distinctness *among* the newly added V-positions. If K.μ⁺ specifies two new mappings (v₁ ↦ a₁) and (v₂ ↦ a₂) with v₁ = v₂ but a₁ ≠ a₂, the post-state would not be a partial function at all. The ASN treats this as implicit in M'(d) being typed as a partial function, but the precondition should state it.
+**Required**: Add an explicit clause to the K.μ⁺ precondition: the set of newly added V-positions {v : v ∈ dom(M'(d)) \ dom(M(d))} is in bijective correspondence with the new mappings (equivalently, no two distinct new mappings share a V-position). Apply the analogous tightening to K.μ⁺_L (where only one mapping is added, so the issue is trivial there).
+
+### Issue 2: Cross-document disjointness lemma Case A relies on zeros(e₁) = zeros(e₂) without citation
+**ASN-0047, *Allocator hierarchy under documents*, Lemma (Cross-document disjointness chain), Case A**: "Both entities satisfy `zeros = z` (their common level by T4). Since e₂'s first `#e₁` positions reproduce e₁ exactly — including all of e₁'s zero separators — the remaining positions `#e₁+1, ..., #e₂` of e₂ carry no zeros, so `e₂[#e₁+1] ≠ 0`."
+**Problem**: The conclusion "remaining positions carry no zeros" is correct, but it depends critically on the precondition zeros(e₁) = zeros(e₂) = z. The argument as written treats this as a one-line consequence of the prefix-relation alone, which it is not — without the common-level constraint, e₂ could perfectly well have additional zero separators in its extension (e.g., the chain `n₀ → 1.0.1 → 1.0.1.0.1` has each entity properly extending the previous with intervening zeros). The argument should make explicit: "Since both e₁ and e₂ have z zeros and e₁'s prefix already accounts for all of e₂'s z zeros, the extension positions #e₁+1..#e₂ contain 0 zeros."
+**Required**: Insert one explanatory sentence at the relevant step, citing the precondition explicitly, so the lemma's domain of applicability is unambiguous on first reading.
+
+### Issue 3: The "Class (b) properties may transiently fail" matrix entry for P4a is operationally misleading
+**ASN-0047, *Extended reachable-state invariants*, Composite-boundary verification matrix, P4a row**: "May transiently fail at any intermediate state where K.ρ has fired without a matching K.μ⁺ having fired in the same composite; J1'★ excludes composites whose net effect adds an R-entry without a corresponding content-subspace range change, so every valid composite ends with the witnessing state in its transition history"
+**Problem**: The wording suggests P4a's transient failure depends on ordering K.ρ before K.μ⁺ within a composite. But K.ρ's elementary precondition `a ∈ dom(C)` only requires content existence, not arrangement — so an ordering K.α → K.ρ → K.μ⁺ does pass elementary preconditions at each intermediate state, and at the post-K.ρ intermediate state P4a's quantifier includes a fresh (a, d) entry with no prior witnessing state. The matrix should make this concrete: a worked sub-trace (or one-sentence example) showing the ordering that triggers transient P4a failure would clarify whether the discharge is "K.ρ trails K.μ⁺ in every valid composite" (which the ASN doesn't enforce) or "even K.ρ-first orderings restore P4a at the boundary because the subsequent K.μ⁺ supplies the witness in M'(d) itself."
+**Required**: Either (a) tighten ValidComposite★ to require K.μ⁺ to precede K.ρ for newly-K.α'd content (preventing the transient failure entirely), or (b) state explicitly that the K.ρ-first ordering is admissible and the transient failure is restored at the boundary because at Σ' both R' contains (a, d) and M'(d) contains v ↦ a, making Σ' itself a witnessing state under P4a's quantifier.
+
+### Issue 4: The "necessary and sufficient" claim for K.μ~'s existence condition mixes axiom-tight necessity with operation-side sufficiency
+**ASN-0047, *Decomposition of K.μ~***: "the necessary-and-sufficient existence condition is `|dom_C(M(d))| ≥ 2`."
+**Problem**: The condition is necessary (singleton dom_C admits only id; empty case doubly excluded) and sufficient *given* that an admissible K.μ⁻ + K.μ⁺ pair realizing the chosen π is available — but the ASN's argument for sufficiency relies on the full-clearance form being admissible for every admissible π, which is itself proved separately under the partial-suffix-vs-full-clearance dichotomy. The two arguments are kept far apart in the prose. A reader following the K.μ~ decomposition forward arrives at the existence condition before learning that the full-clearance form is universally admissible.
+**Required**: Either (a) state the existence condition in two parts — "necessary: |dom_C(M(d))| ≥ 2; sufficient because the full-clearance form realizes every admissible π" — with the sufficiency direction pointing forward to where the full-clearance admissibility is established, or (b) front-load the full-clearance form's universal admissibility so the existence condition's sufficiency is immediate.
+
+### Issue 5: The Class (b) introduction's distinction between "per-state" and "composite-boundary" deserves a concrete example at the point of definition
+**ASN-0047, *Extended reachable-state invariants*, opening paragraphs**: The ASN distinguishes per-state invariants (preserved by each elementary transition) from composite-boundary properties (may transiently fail). It then verifies the distinction via a matrix.
+**Problem**: A reader encountering the distinction for the first time has to wait until the worked examples to see what "transient failure" actually looks like in a state trace. One concrete step-by-step trace at the point of definition — for instance, showing P7a explicitly failing at Σ_post.α (a ∈ dom(C') but no provenance) and being restored at Σ_post.ρ — would make the distinction operationally clear.
+**Required**: Add a 3-4 line concrete trace example to the *Extended reachable-state invariants* opening, showing a single composite-boundary property transitioning through its transient failure and restoration. The worked example "interior content replacement" later in the ASN provides the material; the introductory section should extract a one-paragraph summary at the point the distinction is first introduced.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Concurrency model for the operational frontier check in K.δ k = 0
+**Why out of scope**: The ASN's K.δ k = 0 discharge relies on `inc(t, 0) ∉ E` as an operational precondition checked against the current state. Under SequentialTransitionAxiom, transitions are atomic and sequential, so two concurrent attempts cannot both succeed. But the question of *how* the frontier is tracked (per-sub-allocator frontier registers, on-demand recomputation, etc.) and how the system observes "the current frontier" at the moment of K.δ firing is an implementation detail. ASN-0047 is correct to leave it to the implementation layer.
+
+### Topic 2: Interior link withdrawal mechanism
+**Why out of scope**: The ASN explicitly catalogues this in Open Questions: D-CTG★ on the link subspace forces suffix-only contraction, so "interior link withdrawal" (marking an interior link as withdrawn while preserving the V-positions of trailing links) requires a separate mechanism — a status flag, retraction-link convention, or version-scoped membership. The current ASN correctly orthogonalises V-arrangement (governed by D-CTG★/D-MIN★/D-SEQ★) from per-link withdrawal status (deferred to future work).
+
+### Topic 3: The K.λ first-emission discharge interface with T10a's tracked-domain monotonicity
+**Why out of scope**: The interaction between SubAllocatorAxiom.FirstEmission and T10a's full discipline at the moment of first emission is handled by treating the anchors b_C(d), b_L(d) as "virtual" — not in dom(C) ∪ dom(L), inhabiting T but no state component. Whether a future foundation refinement should reconcile T10a's allocator-tree spawning rule with SubAllocatorAxiom's joint-spawn semantics into a single rule is a foundation-layer question, not an ASN-0047 obligation.
+
+### Topic 4: Account-level depth-1 tumbler extension (K.δ k = 1 with IsAccount(t))
+**Why out of scope**: The ASN restricts K.δ k = 1 to t ∈ E_doc by precondition, citing the implementation evidence that versioning is reserved to documents. Whether a future extension (account renaming, multi-account user identity) should admit account-level k = 1 is correctly flagged in Open Questions.
+
+VERDICT: REVISE
