@@ -68,7 +68,13 @@ The shape framework restricts every shape-conformant emission's `F` and `G` to c
 
 *Case 2* (`x, a ∈ dom(Σ.C)`): By the content-store antichain assumption (Scope and Substrate Scaffolding above), `dom(Σ.C)` is a tumbler-prefix antichain, so `x ≼ a ⟹ x = a`.
 
-*Case 3* (`x` and `a` lie in different domains). WLOG `x ∈ dom(Σ.L), a ∈ dom(Σ.C)`; the symmetric sub-case `x ∈ dom(Σ.C), a ∈ dom(Σ.L)` follows by swapping the roles of `x` and `a` (the argument below uses only that one side carries `s_L` and the other `s_C`, with `s_L ≠ s_C` symmetric). By L1 (LinkElementLevel, ASN-0043) and the element-level content-address assumption, both `x` and `a` are element-level (`zeros = 3`); by L1b (ASN-0043) and the content-side analog `#E(·) ≥ 2`, both have a well-defined first element-field component. The prefix `x ≼ a` with both element-level forces T4b's E-projection to satisfy `E(x) ≼ E(a)`, hence `E(x).1 = E(a).1`. But L0 (SubspacePartition, ASN-0043) gives `E(x).1 = s_L` for links and the content subspace partition assumption gives `E(a).1 = s_C`, with `s_L ≠ s_C`. Contradiction. In the swapped sub-case, `E(x).1 = s_C` and `E(a).1 = s_L` instead, but `s_C ≠ s_L` is symmetric and yields the same contradiction. Both sub-cases vacuous. ∎
+*Case 3* (`x` and `a` lie in different domains). WLOG `x ∈ dom(Σ.L), a ∈ dom(Σ.C)`; the symmetric sub-case `x ∈ dom(Σ.C), a ∈ dom(Σ.L)` follows by swapping the roles of `x` and `a` (the argument below uses only that one side carries `s_L` and the other `s_C`, with `s_L ≠ s_C` symmetric). By L1 (LinkElementLevel, ASN-0043) and the element-level content-address assumption, both `x` and `a` are element-level (`zeros(x) = zeros(a) = 3`); by L1b (ASN-0043) and the content-side analog `#E(·) ≥ 2`, both have a well-defined first element-field component.
+
+*Step 3.1 — Shared zero positions.* The prefix `x ≼ a` gives `#x ≤ #a` and componentwise agreement `aᵢ = xᵢ` for `1 ≤ i ≤ #x`. Let `x`'s three zero positions be `n_1 < n_2 < n_3` with `1 ≤ n_1` and `n_3 ≤ #x` (the three witnesses to `zeros(x) = 3`). By componentwise agreement at positions `n_1, n_2, n_3 ≤ #x`, `a` also has `aₙ₁ = aₙ₂ = aₙ₃ = 0`. Suppose, toward contradiction, that `a` has a fourth zero at some position `m ∈ {1, ..., #a} ∖ {n_1, n_2, n_3}`: if `m ≤ #x`, then `aₘ = 0` together with componentwise agreement forces `xₘ = 0`, adding a fourth zero to `x` and contradicting `zeros(x) = 3`; if `m > #x`, then `m` is a zero position in `a` outside `{n_1, n_2, n_3}` (which all lie at positions `≤ #x`), so `zeros(a) ≥ 4`, contradicting `zeros(a) = 3`. So `a`'s three zero positions are exactly `n_1 < n_2 < n_3`, the same as `x`'s.
+
+*Step 3.2 — E-field prefix relation.* By T4b (UniqueParse, ASN-0034), with both `x` and `a` element-level and sharing the same three zero positions `n_1 < n_2 < n_3`, the E-field of `x` occupies positions `n_3 + 1 .. #x` and the E-field of `a` occupies positions `n_3 + 1 .. #a`. Hence `#E(x) = #x − n_3` and `#E(a) = #a − n_3`; with `#x ≤ #a` this gives `#E(x) ≤ #E(a)`. For component agreement: componentwise agreement at every position `n_3 + 1 ≤ i ≤ #x` (a subrange of `1 ≤ i ≤ #x` where `x ≼ a` already gives `xᵢ = aᵢ`) translates, via T4b's index offset, into `E(x)ⱼ = E(a)ⱼ` for every `1 ≤ j ≤ #E(x)` (taking `j = i − n_3`). With `#E(x) ≤ #E(a)` and componentwise agreement on `1 ≤ j ≤ #E(x)`, the Prefix definition (ASN-0034) gives `E(x) ≼ E(a)`. In particular, taking `j = 1`, `E(x).1 = E(a).1`.
+
+*Step 3.3 — Subspace contradiction.* L0 (SubspacePartition, ASN-0043) gives `E(x).1 = s_L` for links and the content subspace partition assumption gives `E(a).1 = s_C`, with `s_L ≠ s_C`. But Step 3.2 gives `E(x).1 = E(a).1`. Contradiction. In the swapped sub-case, `E(x).1 = s_C` and `E(a).1 = s_L` instead, but `s_C ≠ s_L` is symmetric and yields the same contradiction. Both sub-cases vacuous. ∎
 
 The lemma underwrites the syntactic-to-semantic bridge: a canonical-slot endset at an allocated address `x` denotes exactly `{x}` among allocated addresses, so `slot_addrs(F) = {x}` matches "what allocated address does this slot refer to" with no ambiguity. Without this lemma, "the slot at `x`" could resolve to multiple allocated addresses when `x` has allocated descendants — which is precisely what the antichain rules out at element level.
 
@@ -114,6 +120,8 @@ Lifetime constancy is a substrate-level commitment, not derivable from R0–R7. 
 (d) `X_F ⊆ shape(K).t_F^Σ ∧ X_G ⊆ shape(K).t_G^Σ`, with the symbolic `t` expanded per the Shape definition. When `t_F = -` (only legal under `c_F = 0`), the F-side of (d) is vacuously satisfied since `X_F = ∅`; symmetric for G.
 
 Write `conf_K^Σ(F, G)` for this predicate.
+
+*Structural gates.* Clauses (a) and (b) jointly form the **canonical-form gate** (one gate, two operands); clause (c) is the **cardinality gate**; clause (d) is the **target-domain gate**. Three independent gates, each rejecting independently. When the worked examples below refer to "Sh-conf's three independently-checked structural gates", they index the canonical-form, cardinality, and target-domain gates in that order; a non-canonical F (clause (a)) and a non-canonical G (clause (b)) are distinguishable as clause-level failures but both fall under the same gate.
 
 *State-dependence and monotone discharge.* Conformance is state-indexed because clause (d) depends on the allocated sets `A_doc^Σ, A_rel^Σ, A^Σ`. These sets grow monotonically along `⊑̂`: `Σ ⊑̂ Σ'` entails `A^Σ ⊆ A^{Σ'}` and analogous for the partition sets (by L12a, ASN-0043, for `dom(Σ.L)` and by the content-store monotonicity scaffolding assumption (Scope and Substrate Scaffolding) for `dom(Σ.C)`). Therefore `conf_K^Σ(F, G) ⟹ conf_K^{Σ'}(F, G)` for every `Σ ⊑̂ Σ'`: once conformant, a tuple remains conformant under every reachable future state. This monotonicity is what permits the inductive arguments of Sh0–Sh3 to commute with arbitrary `↦*` transitions.
 
@@ -273,6 +281,8 @@ via `Observe_K(coverage(F), coverage(G), oper)` filtered to canonical-form match
 
 The layer commits to executing clauses (i)–(iii) atomically with respect to other Sh4-emitters at the same `~`-equivalence class of K — concurrent emission and retraction events at any K' with `K' ~ K` that could split (i)'s observation from (iii)'s emission must be serialized by the layer. `L_K` is `~`-class indexed (ASN-0086, `L_K^Σ = L_{K'}^Σ` whenever `K ~ K'`), so concurrent emitters at distinct-but-`~`-equivalent type indices write to the same active subset; atomicity scoped at the `~`-class is what closes the race.
 
+*Cross-`~`-class concurrency is benign.* Concurrent `Emit_R` retracting K-tuples while `Emit_K` is in flight (with `R ≁ K`) does not require serialization. The only mutation an `Emit_R` step applies to `A_K` is removal (a K-tuple is filtered out by `nullified(Σ)` membership); removing a tuple from `A_K` cannot violate the pairwise-slot-pair-distinctness condition, only restore it (a removed tuple is no longer a candidate witness for any pair-violation). The Sh4 atomicity scope is therefore correctly tightened to the `~`-equivalence class of K and not widened to all retractors. When `R ~ K` (K is itself the retraction relation), retraction and emission write to the same `A_K = A_R`, and the layer's atomicity at the `~`-class scope already handles the race — this is the Case D analyzed below.
+
 *Preservation under the contract.* Sh4 holds at every reachable state under the contract, by induction on `↦*`. Fix `K ∈ T_cat` with `shape(K).idem = ⊤`.
 
 *Base.* At `Σ_0`, `L_K^{Σ_0} = A_K^{Σ_0} = ∅`; Sh4's universal is vacuous.
@@ -317,29 +327,30 @@ The singleton-returning `K_target_of` accessor (DirectedPair walkthrough) requir
 *Auxiliary accessors.* Two templates depend on data outside the substrate's relational structure:
 
 - `K_is_fresh` (filesystem freshness, presented under Layer Composites below) consumes a layer-supplied `mtime` accessor over `A_doc`. The substrate does not provide `mtime`; layers built atop the substrate furnish it.
-- `latest_K_for_addr` (Coverage shape, see walkthrough) consumes an `emission_order` total order on per-document tuple subsets. The substrate provides this *only* when the Coverage relation commits to single-home emission (see SingleHomeCoverageDiscipline below); otherwise the layer must supply its own ordering.
+- `latest_K_for_addr` (Coverage instantiation of NonIdempotentDirectedPair, see walkthrough) consumes an `emission_order` total order on per-document tuple subsets. The substrate provides this *only* when the Coverage instantiation commits to single-home emission (see SingleHomeCoverageDiscipline below); otherwise the layer must supply its own ordering.
 
 *What Sh5 is not.* Sh5 does not claim a procedure that, given an arbitrary shape, derives a template family. New shapes added to the catalog acquire templates by analogy with existing entries and by hand-design; the framework discipline limits design choices to those compatible with Sh0–Sh4, but it does not eliminate the design step.
 
 
 ## The Canonical Shape Catalog
 
-The substrate's relations fall into a small fixed set of canonical shapes. Each canonical shape pairs with a predicate template family that is forced by the shape — there is no design freedom in template selection once the shape is fixed.
+The substrate's relations fall into a small fixed set of canonical shapes. Each canonical shape pairs with a *base* predicate template family that is forced by the shape — there is no design freedom in base template selection once the shape is fixed. Per-K opt-in and parametric extensions sit atop the base family and require additional registration (per-K disciplines) or additional arguments at evaluation time (type-index parameters).
 
-| Shape            | (c_F, c_G) | t_F   | t_G   | idem | Template family                                              |
-|------------------|------------|-------|-------|------|--------------------------------------------------------------|
-| Classifier       | (0, 1)     | -     | A_doc | ⊤    | `is_K(d)`                                                    |
-| Tuple-Classifier | (0, 1)     | -     | A_rel | ⊤    | `is_K(τ)`                                                    |
-| DirectedPair     | (1, 1)     | A_doc | A_doc | ⊤    | `pair_K(a, b)`, `from_K(a)`, `to_K(b)`, `from_addrs_K(b)`, `to_addrs_K(a)`; `K_target_of(a)` under FunctionalDependencyDiscipline |
-| Coverage         | (1, 1)     | A_doc | A_doc | ⊥    | `latest_K_for_addr(d)` (with SingleHomeCoverageDiscipline)    |
-| Comment          | (1, 1)     | A_doc | A_doc | ⊥    | `unresolved_K_comments_via(K_res, d)`, `all_K_resolved_via(K_res, d)` |
-| Resolution       | (1, 1)     | A_doc | A_rel | ⊤    | (consumed parametrically by Comment's `_via` templates)      |
-| Retraction       | (\*, 1)    | A     | A_rel | ⊤    | (consumed by R6's active-subset definition)                  |
-| Provenance       | (1, 0\|1)  | A     | A     | ⊤    | `outgoing_K(s)`                                              |
+| Shape                     | (c_F, c_G) | t_F   | t_G   | idem | Template family                                              |
+|---------------------------|------------|-------|-------|------|--------------------------------------------------------------|
+| Classifier                | (0, 1)     | -     | A_doc | ⊤    | `is_K(d)`                                                    |
+| Tuple-Classifier          | (0, 1)     | -     | A_rel | ⊤    | `is_K(τ)`                                                    |
+| DirectedPair              | (1, 1)     | A_doc | A_doc | ⊤    | *base:* `pair_K(a, b)`, `from_K(a)`, `to_K(b)`, `from_addrs_K(b)`, `to_addrs_K(a)`; *opt-in (per-K):* `K_target_of(a)` under FunctionalDependencyDiscipline |
+| NonIdempotentDirectedPair | (1, 1)     | A_doc | A_doc | ⊥    | *base:* `pair_K(a, b)`, `from_K(a)`, `to_K(b)`, `from_addrs_K(b)`, `to_addrs_K(a)` (multiset-valued on the tuple side without Sh4); *opt-in (per-K):* `latest_K_for_addr(d)` under SingleHomeCoverageDiscipline; *parametric:* `unresolved_K_comments_via(K_res, d)`, `all_K_resolved_via(K_res, d)` in any Resolution-shaped `K_res` |
+| Resolution                | (1, 1)     | A_doc | A_rel | ⊤    | (consumed parametrically by NonIdempotentDirectedPair's `_via` templates) |
+| Retraction                | (\*, 1)    | A     | A_rel | ⊤    | (consumed by R6's active-subset definition)                  |
+| Provenance                | (1, 0\|1)  | A     | A     | ⊤    | `outgoing_K(s)`                                              |
+
+*Catalog row structure: base, opt-in, parametric.* Each row separates templates by what enables them. *Base* templates are forced by the shape tuple alone — every K registered at the shape generates them. *Opt-in (per-K)* templates require a per-K discipline registration (e.g., FunctionalDependencyDiscipline, SingleHomeCoverageDiscipline) that strengthens Sh-conf's gate at that K beyond what the bare shape demands. *Parametric* templates take an additional type-index argument (e.g., a Resolution relation `K_res`) supplied at predicate-evaluation time, with no registration commitment at K. The split is what makes Sh5's per-shape discipline falsifiable: rows with identical `(c_F, c_G, t_F, t_G, idem)` tuples agree on base templates by Sh5; divergent template families across two equal-shape rows would falsify the discipline.
 
 The catalog has *bipartite coverage*: for each structural pattern (cardinality + idempotency), entries with `t_G = A_doc` and `t_G = A_rel` are listed separately. Classifier and Tuple-Classifier are the two `(0, 1, -, ·, ⊤)` rows; DirectedPair and (a hypothetical Tuple-DirectedPair) would be the two `(1, 1, ·, ·, ⊤)` rows on the document/tuple axis. The current catalog enumerates the rows demanded by present-day predicate templates; further bipartite entries can be added by extending the catalog.
 
-*Naming conventions are layer constructs, not catalog rows.* Two structurally identical shapes — i.e., shapes whose tuples `(c_F, c_G, t_F, t_G, idem)` are equal — necessarily share the same canonical template family by Sh5: there is no design freedom in template selection once the shape is fixed. Therefore relations that prior drafts of this catalog separated by role-specific naming (e.g., "Attribute" for parent → sidecar, "Citation" for citing → cited) — but which share an identical shape tuple `(1, 1, A_doc, A_doc, ⊤)` — collapse into a single DirectedPair row. Distinguishing them at the catalog level would split a single template family into two non-derivable lists, violating Sh5's per-shape-derives-template-family discipline. The role-specific naming belongs to the layer that registers a particular K with the DirectedPair shape, not to the framework.
+*Naming conventions are layer constructs, not catalog rows.* Two structurally identical shapes — i.e., shapes whose tuples `(c_F, c_G, t_F, t_G, idem)` are equal — necessarily share the same canonical *base* template family by Sh5: there is no design freedom in base template selection once the shape is fixed. Per-K opt-in and parametric extensions are layer registrations atop the bare shape — they refine the templates that K supports without changing what shape-mates of K must share. Therefore relations that prior drafts of this catalog separated by role-specific naming — e.g., "Attribute" for parent → sidecar and "Citation" for citing → cited (both `(1, 1, A_doc, A_doc, ⊤)`); "Coverage" for witness → subject and "Comment" for commenter → target (both `(1, 1, A_doc, A_doc, ⊥)`) — collapse into a single shape row each (DirectedPair and NonIdempotentDirectedPair respectively). Distinguishing them at the catalog level would split a single base template family into two non-derivable lists, violating Sh5's per-shape-derives-base-templates discipline. The role-specific naming belongs to the layer that registers a particular K with the canonical shape, not to the framework; per-K disciplines (FDD, SingleHomeCoverageDiscipline) and parametric arguments (`K_res`) belong to the catalog row as opt-in/parametric extensions but do not modify the shape tuple.
 
 
 ## Per-Shape Template Walkthroughs
@@ -409,7 +420,11 @@ at every reachable state Σ.
 
 (iii) Only if `C_fd(F, Σ) = ∅` does the layer issue `Emit_K(Σ, d, F, G)`.
 
-The layer commits to executing (i)–(iii) atomically with respect to other emitters and retractors at the same `~`-equivalence class of K. Preservation under the discipline follows the same inductive argument as Sh4's layer-discipline contract, with the candidate set widened to all from-slot matches; the simultaneous-addition-and-contraction case (Sh4 Case D) carries over verbatim when K is itself the retraction relation. We omit the proof; the structure is identical to Sh4's.
+The layer commits to executing (i)–(iii) atomically with respect to other emitters and retractors at the same `~`-equivalence class of K.
+
+*Preservation under the discipline.* The inductive argument runs Cases A, B, and C identically to Sh4's layer-discipline contract, with one structural difference: FDD's shape constraint forces every FDD-registered K to have `shape(K) = (1, 1, A_doc, A_doc, ⊤)` (the DirectedPair shape), while Retraction has `shape(R) = (*, 1, A, A_rel, ⊤)`. Because `shape` is per-class constant (`K ~ K' ⟹ shape(K) = shape(K')`), `K ~ R` would force `shape(K) = shape(R)` — but the shape tuples differ on `c_F` (1 vs `*`), on `t_F` (`A_doc` vs `A`), and on `t_G` (`A_doc` vs `A_rel`). So `K ≁ R` for every FDD-registered K, and Sh4's Case D (simultaneous addition to `A_K` and contraction at K ~ R) cannot fire: no `Emit_R` step simultaneously adds a tuple to `A_K` and nullifies a prior K-tuple, because `Emit_R` is `~`-equivalent only to R and so cannot extend `A_K` at all when `K ≁ R`. The preservation proof has cases A, B, C only; D is excluded by the shape-tuple structure.
+
+The candidate set `C_fd(F, Σ) := {τ ∈ A_K^Σ : slot_addrs(F_τ) = slot_addrs(F)}` is broader in scope than Sh4's `C(F, G, Σ)` — it matches on from-slot alone rather than on the slot-pair — so `C ⊆ C_fd` at every state. The discipline is therefore *stricter as a gate* (more candidate sets are non-empty, so more emissions are suppressed) even though its candidate set is broader. We omit the formal Cases A/B/C bookkeeping; the structure is identical to Sh4's modulo this substitution of `C_fd` for `C`.
 
 *Singleton-returning template under FunctionalDependencyDiscipline.* When the discipline holds at every reachable state, the candidate set `from_K(a) = {τ ∈ A_K^Σ : from₁(τ) = a}` is empty or singleton for every `a`, so a value-returning accessor is well-defined:
 
@@ -418,24 +433,6 @@ The layer commits to executing (i)–(iii) atomically with respect to other emit
 *Aliases under FunctionalDependencyDiscipline.* An Attribute-style K committed to FunctionalDependencyDiscipline aliases the singleton accessor as `K_sidecar_of(d) := K_target_of(d)`. Without FunctionalDependencyDiscipline, layers must use `to_addrs_K(d)` (set-valued) and disambiguate at the consumer.
 
 *Failure mode.* Templates consuming FunctionalDependencyDiscipline (specifically `K_target_of` and its aliases) become undefined on the candidate set when the discipline is violated and the set contains multiple elements. Per-template specifications below state explicitly when a template's totality depends on this discipline.
-
-### Comment — `(1, 1, A_doc, A_doc, ⊥)`
-
-Comments are non-idempotent: each comment is a distinct event, even with identical slot-addresses. The Comment shape generates a template family parameterized by a *resolver-type argument* `K_res` of Resolution shape — Comment relations do not co-register a particular resolver in the shape registry. The framework treats any active `K_res`-typed tuple targeting τ's address as resolving τ, regardless of provenance: there is no notion of "the K_res paired with K"; the layer chooses which Resolution-shaped relation to consult when querying resolution status.
-
-`unresolved_K_comments_via(K_res, d) ≡ {τ ∈ A_K^Σ : to₁(τ) = d ∧ ¬resolved_by(τ, K_res)}`
-
-where `resolved_by(τ, K_res) ≡ (E ρ ∈ A_{K_res}^Σ :: to₁(ρ) = addr(τ))`.
-
-`all_K_resolved_via(K_res, d) ≡ unresolved_K_comments_via(K_res, d) = ∅`
-
-A comment τ is *unresolved with respect to K_res* iff no active `K_res`-tuple targets τ's address (R5, TupleSelfTargeting, ASN-0086, makes this targeting expressible). The template signature includes `K_res` explicitly because the framework imposes no co-registration between Comment relations and their resolvers: different layers may resolve the same comment relation under different `K_res`, and the predicate is well-defined parametrically across that choice.
-
-The semantics are deliberately permissive — *any* active `K_res`-tuple targeting τ counts as a resolution, modulo whatever additional filtering the calling layer applies via its choice of `K_res`. This matches the substrate's open-ended type discipline: typed relations are claims surfaced for layer-level evaluation, not assertions adjudicated by the substrate.
-
-*Layer-level aliasing convention.* When a calling layer commits to a single canonical resolver `K_res_canonical` for `K` (a layer convention, not a framework-level registration), it may define an alias `unresolved_K_comments(d) := unresolved_K_comments_via(K_res_canonical, d)`. This alias is a layer construct and is not part of the shape framework's template family.
-
-This is the template that consumes the Resolution shape — Resolution does not generate its own template family; it is consumed parametrically here.
 
 ### Resolution — `(1, 1, A_doc, A_rel, ⊤)`
 
@@ -447,11 +444,31 @@ Tuples have form `slot_addrs(F) ⊆ A^Σ` (any finite set, possibly empty) and `
 
 The unrestricted from-slot (`c_F = *`) accommodates use cases where the retracting party is recorded in F (e.g., F's slot addresses include an agent address), as well as the bare retraction `Nullify(Σ, d_retr, a) = Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` of ASN-0086, where `F = ∅`. Both forms are canonical-slot (the bare form trivially, the attributed form when its from-slot endset is in canonical form). The shape framework rejects retractions whose from-slot uses non-canonical-form endsets, consistent with the discipline imposed across the catalog.
 
-### Coverage — `(1, 1, A_doc, A_doc, ⊥)`
+### NonIdempotentDirectedPair — `(1, 1, A_doc, A_doc, ⊥)`
+
+Non-idempotent directed-pair tuples allow multiple distinct emissions sharing the same slot-address pair — each emission is a distinct event, retained in `L_K` regardless of slot-address coincidence with prior tuples. Role-specific readings (witness → subject for coverage, commenter → target for comment, etc.) are layer conventions over a single structural shape.
+
+*Canonical base templates (forced by shape).* By analogy with DirectedPair, every K registered at this shape generates:
+
+`pair_K(a, b)         ≡ (E τ ∈ A_K^Σ :: from₁(τ) = a ∧ to₁(τ) = b)`
+
+`from_K(a)            ≡ {τ ∈ A_K^Σ : from₁(τ) = a}`
+
+`to_K(b)              ≡ {τ ∈ A_K^Σ : to₁(τ) = b}`
+
+`to_addrs_K(a)        ≡ {to₁(τ) : τ ∈ A_K^Σ ∧ from₁(τ) = a}`
+
+`from_addrs_K(b)      ≡ {from₁(τ) : τ ∈ A_K^Σ ∧ to₁(τ) = b}`
+
+The signatures match DirectedPair's. Without Sh4, the tuple-valued accessors `from_K` and `to_K` may contain multiple slot-pair-identical tuples (R1 keeps them distinct by tuple address; slot-pair duplicates are preserved). `pair_K` remains a Boolean: `(E τ ::)` is yes/no regardless of how many witnesses satisfy the body. The address-valued projections `to_addrs_K` and `from_addrs_K` are set-comprehensions over slot-addresses, so any multiplicity from `from_K`/`to_K` collapses on the address side.
+
+Two role-specific instantiations of NonIdempotentDirectedPair are catalogued, each adding extensions atop the base templates.
+
+#### Coverage instantiation (opt-in via SingleHomeCoverageDiscipline)
 
 Coverage tuples assert that a witnessing document covers (reviews, revises, evaluates) a target document. The from-slot identifies the *witness/asserter* — the document making the coverage claim (e.g., a review document, a revision document). The to-slot identifies the *subject* — the document being covered. The framework requires `c_F = 1` rather than `c_F = 0` because Coverage relations carry directional provenance: knowing *which* document witnessed a coverage event is constitutive of the assertion, not auxiliary metadata. A Coverage relation without an attributed witness would not be a coverage assertion at all; it would be an unattributed flag, which the Classifier shape `(0, 1)` already covers. The `(1, 1)` shape encodes the witness-to-subject directionality intrinsic to coverage semantics.
 
-For K with this shape, multiple emissions targeting the same subject `d` are expected (e.g., evolving review status from the same or successive witnesses). The template projects to the most recent:
+For K with this instantiation, multiple emissions targeting the same subject `d` are expected (e.g., evolving review status from the same or successive witnesses). The opt-in `latest_K_for_addr` template projects to the most recent:
 
 `latest_K_for_addr : A_doc → A_rel^Σ ∪ {⊥}`
 
@@ -477,9 +494,29 @@ equivalently, the unique `n ≥ 0` with `addr(τ) = inc^n(d_K.0.s_L.1, 0)` (by t
 
 (iii) Chain-index order coincides with T1-order on the chain. By T9, within `A_L(d_K)`'s chain, `allocated_before(a, b) ⟹ a < b` under T1; combined with T10a.7's enumeration `tₙ₊₁ = inc(tₙ, 0)` and TA5(a)'s strict-increase under `inc(·, 0)`, the chain-index ordering on `A_L(d_K)` is strictly increasing under T1. Hence `argmax_{τ ∈ S_d} emission_order(τ)` selects the same unique element whether the ordering is read off chain-indices or off T1 — namely the τ of maximal chain-index in `S_d` (well-defined because `S_d` is finite and chain-indices are totally ordered on ℕ).
 
-*Without SingleHomeCoverageDiscipline:* the Coverage relation must layer-supply an `emission_order` total order on `S_d`. Sh5's mechanical-derivability claim degrades at this point; the layer carries the ordering obligation. Coverage relations that decline to commit to single-home emission must register their layer-supplied `emission_order` accessor as part of their shape contract.
+*Subset preservation when `d_K` hosts multiple relations.* SingleHomeCoverageDiscipline pins all K-tuples to one home document but does *not* require `d_K` to host only K. Other relations (any K' with `home(emission) = d_K`) interleave their tuples with K's into `d_K`'s link sub-allocator chain, so the chain-indices occupied by K-tuples need not be contiguous — chain indices 0, 2, 5 might be K while 1, 3, 4 are other relations. The argmax remains well-defined on this subset: (ii) injectivity is over `S_d ⊆ {chain elements at d_K}` and restricts to any subset; (iii) the T1-order strictly increasing along chain-indices restricts unchanged to any subset. So `argmax_{τ ∈ S_d} emission_order(τ)` picks the unique element of `S_d` with maximal chain-index regardless of whether the chain-index set is contiguous; SingleHomeCoverageDiscipline therefore does not constrain `d_K`'s exclusivity to K, only K's exclusivity to `d_K`.
 
-Coverage is the only canonical shape that uses `idem = ⊥` *intentionally* to retain all historical states. Comment's `idem = ⊥` is incidental — comments differ in F or G even when "looking the same" in content; Coverage's `idem = ⊥` is principled — coverage tuples by design supersede each other.
+*Without SingleHomeCoverageDiscipline:* the Coverage instantiation must layer-supply an `emission_order` total order on `S_d`. Sh5's mechanical-derivability claim degrades at this point; the layer carries the ordering obligation. Coverage instantiations that decline to commit to single-home emission must register their layer-supplied `emission_order` accessor as part of their per-K registration.
+
+Coverage and Comment both use `idem = ⊥` but for different reasons. Coverage's `idem = ⊥` is principled — coverage tuples by design supersede each other (the `latest_K_for_addr` opt-in template surfaces this directly). Comment's `idem = ⊥` is incidental — comments differ in F or G even when "looking the same" in content; the parametric `_via` templates do not consume an ordering, they consume a resolver type.
+
+#### Comment instantiation (parametric in K_res)
+
+Comments are events: each comment is a distinct emission, even with identical slot-addresses. The Comment instantiation adds a parametric template family taking a *resolver-type argument* `K_res` of Resolution shape — Comment instantiations do not co-register a particular resolver at the type level. The framework treats any active `K_res`-typed tuple targeting τ's address as resolving τ, regardless of provenance: there is no notion of "the K_res paired with K"; the layer chooses which Resolution-shaped relation to consult when querying resolution status.
+
+`unresolved_K_comments_via(K_res, d) ≡ {τ ∈ A_K^Σ : to₁(τ) = d ∧ ¬resolved_by(τ, K_res)}`
+
+where `resolved_by(τ, K_res) ≡ (E ρ ∈ A_{K_res}^Σ :: to₁(ρ) = addr(τ))`.
+
+`all_K_resolved_via(K_res, d) ≡ unresolved_K_comments_via(K_res, d) = ∅`
+
+A comment τ is *unresolved with respect to K_res* iff no active `K_res`-tuple targets τ's address (R5, TupleSelfTargeting, ASN-0086, makes this targeting expressible). The template signature includes `K_res` explicitly because the framework imposes no co-registration between Comment instantiations and their resolvers: different layers may resolve the same Comment relation under different `K_res`, and the predicate is well-defined parametrically across that choice.
+
+The semantics are deliberately permissive — *any* active `K_res`-tuple targeting τ counts as a resolution, modulo whatever additional filtering the calling layer applies via its choice of `K_res`. This matches the substrate's open-ended type discipline: typed relations are claims surfaced for layer-level evaluation, not assertions adjudicated by the substrate.
+
+*Layer-level aliasing convention.* When a calling layer commits to a single canonical resolver `K_res_canonical` for `K` (a layer convention, not a framework-level registration), it may define an alias `unresolved_K_comments(d) := unresolved_K_comments_via(K_res_canonical, d)`. This alias is a layer construct and is not part of the shape framework's template family.
+
+These templates consume the Resolution shape parametrically — Resolution does not generate its own template family; it is consumed here.
 
 ### Provenance — `(1, 0|1, A, A, ⊤)`
 
@@ -507,7 +544,7 @@ This composite was previously listed under the (now-merged) Attribute template f
 
 ## Worked Example: K = comment
 
-To verify the framework on a concrete instance, register `K = comment` with the Comment shape `(1, 1, A_doc, A_doc, ⊥)`. Consider states reached by the following emissions, starting from an initial state Σ_0 with two pre-allocated documents `d_1, d_2 ∈ A_doc^{Σ_0}` and a home document `home_K ∈ dom(Σ_0.M)` (single-home not required for Comment; we use one home for simplicity).
+To verify the framework on a concrete instance, register `K = comment` with the Comment instantiation of NonIdempotentDirectedPair (shape `(1, 1, A_doc, A_doc, ⊥)`). Consider states reached by the following emissions, starting from an initial state Σ_0 with two pre-allocated documents `d_1, d_2 ∈ A_doc^{Σ_0}` and a home document `home_K ∈ dom(Σ_0.M)` (single-home not required for the Comment instantiation; we use one home for simplicity).
 
 **Emission 1.** `Emit_K(Σ_0, home_K, F_1, G_1)` with `F_1 = {(d_1, δ(1, #d_1))}` (commenter is d_1) and `G_1 = {(d_2, δ(1, #d_2))}` (target is d_2). Let the result be Σ_1 with new tuple `τ_1` at address `a_1 := addr(τ_1)`.
 
@@ -556,7 +593,7 @@ Both τ_1 and τ_2 have `to₁(·) = d_2`; for each, `resolved_by(τ, K_res)` re
 
 `all_K_resolved_via(K_res, d_2) = true`. The flag flips as expected.
 
-**Rejection case 1: non-canonical from-set.** From Σ_4, attempt `Emit_K(Σ_4, home_K, F_3, G_3)` with `F_3 = {(d_1, δ(2, #d_1))}` — a depth-2 span violating canonical-slot form, which requires unit-depth displacements `δ(1, #x)`. Sh-conf clause (a) fails: `F_3` is not in canonical-slot form, so `slot_addrs(F_3)` is undefined (there is no `X_F` such that `F_3 = {(x, δ(1, #x)) : x ∈ X_F}`). The emission is rejected before any state transition. State remains Σ_4 unchanged; in particular `L_K^{Σ_4}, A_K^{Σ_4}` are not modified. ✗
+**Rejection case 1: non-canonical from-set.** From Σ_4, attempt `Emit_K(Σ_4, home_K, F_3, G_3)` with `F_3 = {(d_1, δ(2, #d_1))}` — a width-2 displacement violating canonical-slot form, which requires unit-width displacements `δ(1, #x)` (the canonical form fixes the last-component value at 1; values ≥ 2 are rejected). Here `δ(2, #d_1)` and the canonical `δ(1, #d_1)` share the same length `#d_1` — the displacement *depth* is identical; they differ only at the last component, where the canonical form admits the value 1 and rejects 2. Sh-conf clause (a) fails: `F_3` is not in canonical-slot form, so `slot_addrs(F_3)` is undefined (there is no `X_F` such that `F_3 = {(x, δ(1, #x)) : x ∈ X_F}`). The emission is rejected before any state transition. State remains Σ_4 unchanged; in particular `L_K^{Σ_4}, A_K^{Σ_4}` are not modified. ✗
 
 Note that L4 (EndsetGenerality, ASN-0043) permits `F_3` in the substrate's link store at the level of endset well-formedness; the framework rejects it as a layer-level discipline imposed by Sh-conf. The substrate primitive K.λ would still accept `F_3` if invoked outside Emit_K — but per the layer commitment (Scope and Substrate Scaffolding), the relational layer routes all class-(iii) emissions of `K ∈ T_cat` through Emit_K, so this bypass is not exercised within the framework's scope.
 
@@ -583,7 +620,7 @@ The framework gives stable, well-typed answers across emission and retraction ev
 
 ### Coverage under SingleHomeCoverageDiscipline
 
-Register `K = review` with the Coverage shape `(1, 1, A_doc, A_doc, ⊥)`, committed to single-home emission at `d_K ∈ dom(Σ_0.M)`. Pre-allocate `d_witness, d_subject ∈ A_doc^{Σ_0}` and `d_witness' ∈ A_doc^{Σ_0}`.
+Register `K = review` with the Coverage instantiation of NonIdempotentDirectedPair (shape `(1, 1, A_doc, A_doc, ⊥)`), committed to single-home emission at `d_K ∈ dom(Σ_0.M)`. Pre-allocate `d_witness, d_subject ∈ A_doc^{Σ_0}` and `d_witness' ∈ A_doc^{Σ_0}`.
 
 **Emission C1.** `Emit_K(Σ_0, d_K, F_C1, G_C1)` with `F_C1 = {(d_witness, δ(1, #d_witness))}` (witness) and `G_C1 = {(d_subject, δ(1, #d_subject))}` (subject). Sh-conf admits (canonical-slot, cardinality 1/1, both `⊆ A_doc^{Σ_0}`). Result Σ_1 with τ_1 at address `a_1 = [d_K.0.s_L.1]` (first emission per K.λ's first-emission branch, ASN-0086). `emission_order(τ_1) = 0`.
 
@@ -657,7 +694,7 @@ Template evaluation: `outgoing_K(s) = {τ ∈ A_K^Σ : from₁(τ) = s}` returns
 | SlotAccessorTotality | LEMMA | When `c = 1`, the point accessor is a total function | introduced |
 | Sh4 | LEMMA | IdempotencyDiscipline — at-most-one active duplicate when `idem = ⊤`; theorem under the layer-discipline contract; proof covers A/B/C plus Case D (K=R simultaneous addition and contraction) | introduced |
 | Sh5 | META | TemplateCatalog — hand-curated per-shape template families; mechanical-derivation downgraded from prior LEMMA claim | introduced |
-| SingleHomeCoverageDiscipline | DEF | Per-K commitment securing `emission_order` for Coverage relations | introduced |
+| SingleHomeCoverageDiscipline | DEF | Per-K commitment securing `emission_order` for Coverage instantiations of NonIdempotentDirectedPair; allows non-K relations at the same home as long as K is single-home | introduced |
 | FunctionalDependencyDiscipline | DEF | Per-K commitment (strictly stronger than Sh4) for DirectedPair: at most one active tuple per from-slot value; secures the singleton-returning `K_target_of` accessor | introduced |
 | layer-discipline contract (Sh4) | DEF | Observe-then-Emit protocol clauses (i)–(iii) the layer commits to for idempotent K, atomically scoped at the `~`-equivalence class of K | introduced |
 | layer-discipline contract (FunctionalDependencyDiscipline) | DEF | Observe-then-Emit protocol with from-slot-only candidate set `C_fd`, same atomicity scope as Sh4 | introduced |
@@ -670,7 +707,7 @@ Template evaluation: `outgoing_K(s) = {τ ∈ A_K^Σ : from₁(τ) = s}` returns
 - Should `(0, 0)` shapes be admitted? A relation with `c_F = c_G = 0` would be a single-tuple existence flag whose only role is "this event happened" without any from/to attribution; whether the substrate has any such relations is unclear, and the slot accessors degenerate to constants on it.
 - Provenance's `c_G = 0|1` mixes shapes — should it be split into two distinct canonical shapes (Provenance-with-target and Provenance-attribution-only), each generating separate templates? The current formulation requires the optional accessor `to₁⁻` to handle both cases in a single template.
 - Is idempotency recoverable from cardinality plus target-domain alone, or is it an independent axis? Empirically the canonical catalog has both `idem = ⊤` (DirectedPair) and `idem = ⊥` (Coverage, Comment) at `(1, 1, A_doc, A_doc, _)`, suggesting independence.
-- Coverage and Comment both register at shape `(1, 1, A_doc, A_doc, ⊥)`, with different layer-augmented template families (SingleHomeCoverageDiscipline for Coverage; a resolver-type parameter `K_res` for Comment). Should they be merged into a single canonical `NonIdempotentDirectedPair` row, with the discipline- and parameter-augmented templates listed as opt-in extensions, the same way DirectedPair lists `K_target_of` under FunctionalDependencyDiscipline? Doing so would tighten Sh5's per-shape-derives-template-family discipline; deferring it preserves the present distinction between historical-snapshot-style (Coverage) and event-with-resolver-style (Comment) semantics in the catalog itself.
+- Should the per-K opt-in registry — currently FunctionalDependencyDiscipline and SingleHomeCoverageDiscipline — be promoted to a sixth shape-tuple component, so that registrations with and without the discipline become structurally distinct rows rather than the same row with different opt-in flags? The current catalog encodes them as opt-in extensions atop a five-component shape; a sixth component would make the shape registry exhaustive but inflate the canonical-shape space considerably.
 - The shape constraint `slot_addrs(F) ⊆ t_F^Σ` requires slot addresses to be already-allocated at emission time. This precludes shape-conformant emissions whose slot addresses are *ghost* (currently outside `A^Σ`, possibly to be allocated later). L9 (TypeGhostPermission, ASN-0043) permits ghost spans in endsets; the shape framework restricts this to *non-slot* uses only. Whether future shape families should admit ghost-targeting slot semantics — and under what state-dependent conformance rule — is an open design question.
 - Do *composite shapes* (relations whose F or G is itself constrained by another relation's content) require a new restriction axis, or do they decompose into existing primitives plus auxiliary predicates expressible in the current template language?
 - What guarantees the shape registry stays consistent across processes? Lifetime constancy is asserted as a substrate-level commitment within a single process; cross-process consistency (e.g., concurrent shape re-registration in a distributed substrate) is not addressed.
