@@ -1,0 +1,19 @@
+# Review of ASN-0094
+
+I performed a careful pass through the conformance axiom, the four preservation theorems (Sh0–Sh4), the RetractionTargetNotOnChain lemma, the EffectiveWpSimplification corollary, the NullifyActiveSubsetCompatibility corollary, and the template catalog (Sh5) with its discipline. I also walked the worked examples (Comment, Coverage under SHCD, Resolution direct, Tuple-Classifier, Provenance, Attributed Retraction, FDD) against the framework's claims, including the per-K discipline contracts (Sh4 idempotency, FDD, SHCD).
+
+Specific checks performed:
+
+- **Stratification**: Sh0/Sh1 → Sh2/Sh3 → EffectiveWpSimplification → Sh4 cycle-free; Lemma independent of Sh0–Sh4; NullifyActiveSubsetCompatibility's forward dependency on the *Sh4 idempotency contract* (introduced by name in *Scope and Substrate Scaffolding*) is non-circular.
+- **AllocatedAddressAntichain Case 3**: The case-symmetry argument is *justified*, not asserted — Steps 3.1 and 3.2 cite domain-independent properties (NAT-card, T4b, Prefix), with Step 3.3a's swap-symmetric Step 3.3b discharged on the side-label exchange against `s_L ≠ s_C`. The worked example walks Sub-case 3a explicitly with concrete subspace values.
+- **RetractionTargetNotOnChain Case II.B**: Steps II.0–II.3 chain NAT-card additivity (Step II.1), T4b's positional index ranges (Step II.2), and L1a's home projection (Step II.3) correctly. The structural observation that `#w ≤ 1` for natural K.λ-emitted addresses (with the counterfactual `#w ≥ 2` example exhibiting the additivity firing nontrivially) is sound.
+- **Sh4 Case D Step D.0**: The two Lemma applications (self-nullification via the new emission's b; cross-nullification via Sh1/Sh3 at K := R on prior R-tuples) close the existential over `L_R^{Σ'} = L_R^Σ ∪ {τ_new}` exhaustively. The `|leaving| ≤ 1` structural bound from R0a + R1 + PrefixSpanCoverage is correctly derived.
+- **EffectiveWpSimplification**: Step 1 uses Sh1/Sh3 at R to characterize *current-state* G-endset structure (not the implicit "Sh-conf-at-past-emission + R2 + monotonicity" bridge); Step 2's case-split on `K ≁ R` vs `K ~ R` correctly applies the Lemma at the new emission's G-slot under Sh-conf admission.
+- **NullifyActiveSubsetCompatibility**: Case A (clause (iii) issue) via R0a + R6a at Σ'; Case B (clause (ii) suppression) via the candidate-set witness `τ_prior ∈ L_R^Σ` plus Definition (nullified, ASN-0086) at Σ. The audit-slice multiplicity loss is correctly recorded as a deliberate shape commitment.
+- **Boundary cases**: Empty `L_K^{Σ_init}` baseline; first-emission and subsequent-emission K.λ branches; partial accessor `⊥`-dispatch; Sh-conf rejection at each clause (a, c, d explicit; b symmetric); Sh4 suppression, FDD rejection, SHCD home-mismatch rejection; partition vs allocation aspects of clause (d) at AR3 vs Rejection-2.
+- **Sh5 META discipline (b)**: The catalog-wide citation audit enumerates ten accepted rows by category (i)–(iv); the rejected `K_is_fresh` candidate exhibits the discipline's falsification path. The meta-operator carve-out (argmax, set-comprehensions, etc.) and the base-machinery accessor carve-out (A_K^Σ, addr, slot_addrs, δ) are explicit.
+- **Cross-ASN references**: All direct references in ASN-0094 are to foundation ASNs (0034, 0043, 0086). ASN-0093 appears only inside ASN-0086's `SubstrateConformingLayer` Definition (foundation text), and the framework consumes this through the named scaffolding-clause interface rather than by direct citation.
+
+The proofs are detailed, the worked examples cover the key cases (including failure modes for each per-K discipline), and the dependency stratification is explicit. The Open Questions section properly distinguishes design choices, refinement candidates, and scope boundaries (e.g., single-process substrate scope, ghost-targeting slot semantics).
+
+VERDICT: CONVERGED
