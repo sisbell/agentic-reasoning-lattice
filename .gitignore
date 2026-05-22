@@ -24,6 +24,7 @@ lattices/xanadu/verification/alloy/**/*-solution-*.md
 verification/dafny/**/_dafny-cache.json
 
 worktrees/
+articles/
 
 # Rust build artifacts
 target/
