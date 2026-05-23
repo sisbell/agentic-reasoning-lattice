@@ -19,7 +19,8 @@ from lib.agents.producers.note_review import NoteReviewAgent
 from lib.backend.addressing import Address
 from lib.lattice.labels import format_label, label_pattern
 from lib.predicates import (
-    has_been_reviewed, is_doc_quiescent, last_n_reviews_were_clean,
+    has_been_reviewed, is_doc_quiescent, is_note_cascade_fresh,
+    last_n_reviews_were_clean,
 )
 from lib.protocols.febe.protocol import Session
 from lib.runner import Trigger
@@ -33,7 +34,7 @@ NOTE_REVIEW_CONVERGENCE_DEPTH = 2
 def _predicate(session: Session, addr: Address) -> bool:
     """True (skip) iff there's nothing for review to do *now*.
 
-    Two skip conditions:
+    Three skip conditions:
 
       - Open revises pending. The previous review's findings haven't
         been resolved yet — note_revise is the trigger that should
@@ -41,14 +42,20 @@ def _predicate(session: Session, addr: Address) -> bool:
         this clause, note_review would re-fire each runner pass
         while revises pile up, producing redundant findings on the
         same prose.
-      - The last N reviews were all clean (and any review has
-        happened). Per `docs/design-notes/stochastic-quiescence.md`,
+      - The last N reviews were all clean AND the cascade anchor on
+        the latest review still points at head versions of every
+        cited foundation. Per `docs/design-notes/stochastic-quiescence.md`,
         single CONVERGED is a statistically unstable gate for a
         stochastic LLM reviewer — the empirical note-scope threshold
-        is two consecutive CONVERGED draws.
+        is two consecutive CONVERGED draws. The cascade-fresh check
+        re-opens the skip when any upstream foundation has advanced
+        since the last review's anchor was emitted; this is how
+        dependency-change detection re-fires review/revise on stale
+        notes.
 
-    Fire iff doc is quiescent AND fewer than N consecutive reviews
-    came up clean (or no review yet exists).
+    Fire iff doc is quiescent AND (fewer than N consecutive reviews
+    came up clean OR an upstream foundation has advanced since the
+    latest review's cascade anchor).
     """
     return (
         not is_doc_quiescent(session, addr)
@@ -57,6 +64,7 @@ def _predicate(session: Session, addr: Address) -> bool:
             and last_n_reviews_were_clean(
                 session, addr, n=NOTE_REVIEW_CONVERGENCE_DEPTH,
             )
+            and is_note_cascade_fresh(session, addr)
         )
     )
 

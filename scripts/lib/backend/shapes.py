@@ -28,7 +28,14 @@ class LinkShape:
 
     Fields:
       f_cardinality: "empty" | "one"
-      g_cardinality: "empty" | "one" | "one_or_empty"
+      g_cardinality: "empty" | "one" | "one_or_empty" | "many"
+                     "many" admits any finite count (including 1), the
+                     code-side encoding of ASN-0094's `*` cardinality.
+                     `citation.depends` registers at the FanOutPair
+                     shape `(1, *, A_doc, A_doc, ⊤)` to carry bundled
+                     multi-target emissions; legacy single-target
+                     emissions remain admissible since cardinality 1
+                     matches `many`.
       g_targets:     "doc" | "link"  (whether G addresses a doc or a link)
       idempotent:    True if a structurally-equivalent active link
                      causes a re-emit to no-op; False if every emit
@@ -51,6 +58,16 @@ ATTRIBUTE = LinkShape("one", "one")
 
 # Citation — F=[citing], G=[cited]. Directed dep/forward/resolve.
 CITATION = LinkShape("one", "one")
+
+# FanOutPair — F=[citing], G=[cited1, cited2, ...]. ASN-0094's `(1, *,
+# A_doc, A_doc, ⊤)` row. One source doc, any finite count of target
+# docs in a single tuple. Registered K: `citation.depends`. Legacy
+# single-target emissions remain admissible (cardinality 1 matches
+# "many"). Used by the cascade-anchor pattern: each review-N doc emits
+# one bundled `citation.depends` to the foundation heads it read, and
+# the cascade-fresh predicate walks that link's to_set checking
+# `is_head_version` per target.
+FAN_OUT = LinkShape("one", "many")
 
 # Coverage — F=[meta], G=[covered]. "Meta doc audited covered doc."
 COVERAGE = LinkShape("one", "one")
@@ -152,7 +169,7 @@ SHAPES: Dict[str, LinkShape] = {
     "motif.attribution": ATTRIBUTE,
 
     # ── Citations ──
-    "citation.depends": CITATION,
+    "citation.depends": FAN_OUT,
     "citation.forward": CITATION,
     "citation.resolve": CITATION,
 

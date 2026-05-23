@@ -54,6 +54,11 @@ def _validate_cardinality(shape: LinkShape, from_set, to_set) -> None:
                 f"{name} must be empty or exactly one address; "
                 f"got {len(actual)}"
             )
+        if expected == "many" and not actual:
+            raise ValueError(
+                f"{name} must have at least one address for this shape; "
+                f"got 0"
+            )
 
     check("from_set", shape.f_cardinality, from_set)
     check("to_set", shape.g_cardinality, to_set)
@@ -504,6 +509,41 @@ def emit_citation(
     return emit(
         store, f"citation.{direction}",
         from_set=[citing], to_set=[cited],
+    )
+
+
+def emit_citation_bundle(
+    store: Store,
+    citing: Address,
+    cited: List[Address],
+    *,
+    direction: str = "depends",
+) -> Tuple[Link, bool]:
+    """File a bundled citation link with multiple targets in to_set.
+
+    Only valid for citation subtypes registered at FanOutPair
+    (`citation.depends`). One source doc, any positive count of cited
+    docs in a single tuple. Used by the cascade-anchor pattern: a
+    review-N doc emits one bundled `citation.depends` recording the
+    foundation heads it read.
+
+    Empty `cited` raises (FanOutPair's `c_G = *` admits any natural
+    number but emitting zero targets carries no information; callers
+    should skip the emission entirely if the dep list is empty).
+    """
+    valid = subtypes_of("citation")
+    if direction not in valid:
+        raise ValueError(
+            f"invalid citation direction {direction!r}; "
+            f"must be one of {sorted(valid)}"
+        )
+    if not cited:
+        raise ValueError(
+            "emit_citation_bundle requires at least one cited address"
+        )
+    return emit(
+        store, f"citation.{direction}",
+        from_set=[citing], to_set=list(cited),
     )
 
 

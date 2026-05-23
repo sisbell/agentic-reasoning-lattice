@@ -96,11 +96,12 @@ def claim_context_from_addr(session: Session, addr: Address) -> ClaimContext:
 
     asn_labels = set(build_label_index(claim_dir).keys())
     same_asn_deps = tuple(
-        rev_index[link.to_set[0]]
+        rev_index[cited]
         for link in session.active_links(
             "citation.depends", from_set=[addr],
         )
-        if link.to_set and rev_index.get(link.to_set[0]) in asn_labels
+        for cited in link.to_set
+        if rev_index.get(cited) in asn_labels
     )
 
     return ClaimContext(

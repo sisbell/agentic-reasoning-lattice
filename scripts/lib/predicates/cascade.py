@@ -50,7 +50,7 @@ from .attributes import (
 from .citations import depends
 from .quiescence import (
     derived_claims, is_asn_confirmed, is_claim_confirmed, is_claim_quiescent,
-    is_claim_structurally_clean,
+    is_claim_structurally_clean, latest_review_for_addr,
 )
 from .versions import (
     _walk_supersession, is_head_version, supersession_head, version_head,
@@ -114,6 +114,42 @@ def is_cascade_fresh_one_hop(
     for upstream in depends(session, head):
         target = _assembly_artifact_or_self(session, upstream)
         if not is_head_version(session, target):
+            return False
+    return True
+
+
+def is_note_cascade_fresh(
+    session: Session, note_addr: Address,
+) -> bool:
+    """True iff the note's latest review's cascade anchor still points
+    at head versions of every cited foundation.
+
+    Each `note_review` fire emits one bundled `citation.depends` link
+    from the new review-N doc to `version_head(F)` for every foundation
+    F in the note's import-time dependencies. This is the cascade
+    anchor: a snapshot of "what foundation versions did this review
+    actually read."
+
+    The predicate walks the latest review's outgoing `citation.depends`
+    and checks `is_head_version` on each target. Any non-head target
+    means an upstream foundation has advanced since the review was
+    emitted → cascade-stale → note_review should re-fire to validate
+    the note's reasoning against the new upstream state.
+
+    Vacuously fresh when:
+      - No review has covered the note yet — handled by other clauses
+        of the note_review predicate (e.g., `has_been_reviewed`).
+      - The latest review has no outgoing `citation.depends` (e.g.,
+        a pre-feature review with no anchor yet, or a note with no
+        foundations). Such notes can't be cascade-stale because there
+        is no cascade signal to compare against; they re-enter normal
+        review cadence via the n-consecutive-clean gate.
+    """
+    latest = latest_review_for_addr(session, note_addr)
+    if latest is None:
+        return True
+    for upstream in depends(session, latest):
+        if not is_head_version(session, upstream):
             return False
     return True
 

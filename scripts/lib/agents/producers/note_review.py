@@ -22,7 +22,10 @@ from typing import ClassVar, List, Tuple
 
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
-from lib.backend.emit import emit_review_content, emit_review_coverage
+from lib.backend.emit import (
+    emit_citation_bundle, emit_review_content, emit_review_coverage,
+)
+from lib.predicates import depends, version_head
 from lib.lattice.config import lattice_config
 from lib.lattice.findings import record_one_finding
 from lib.lattice.labels import (
@@ -285,6 +288,22 @@ class NoteReviewAgent(Agent):
         review_addr = session.register_path(review_rel)
         emit_review_content(session.store, review_addr)
         emit_review_coverage(session.store, review_addr, note_addr)
+
+        # Cascade anchor: record which foundation version each upstream
+        # was at when this review read the note. The cascade-fresh
+        # predicate walks this bundled link's to_set checking
+        # is_head_version per target; any non-head target means an
+        # upstream advanced since the anchor was emitted, re-firing
+        # note_review on the stale note.
+        foundation_heads = [
+            version_head(session, dep)
+            for dep in depends(session, note_addr)
+        ]
+        if foundation_heads:
+            emit_citation_bundle(
+                session.store, review_addr, foundation_heads,
+                direction="depends",
+            )
 
         findings = extract_note_findings(text)
         findings_root = NOTE_FINDINGS_DIR / asn_label / f"review-{next_n}"

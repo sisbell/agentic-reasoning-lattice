@@ -44,6 +44,7 @@ from .cascade import (
     description_is_fresh_after_asn_confirmation,
     is_cascade_fresh_one_hop,
     is_claims_statements_fresh,
+    is_note_cascade_fresh,
     is_upstream_settled_one_hop,
     signature_is_fresh_after_asn_confirmation,
 )
@@ -134,6 +135,7 @@ __all__ = [
     "is_claim_quiescent",
     "is_claim_structurally_clean",
     "is_claims_statements_fresh",
+    "is_note_cascade_fresh",
     "is_review_decomposed",
     "is_quiescent",
     "is_doc_quiescent",
