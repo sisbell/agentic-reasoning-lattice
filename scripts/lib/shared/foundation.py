@@ -181,9 +181,11 @@ def load_foundation_for_note(asn_path, asn_id):
         dep_ids = note_dep_asn_ids(store, note_addr)
 
         sections = []
+        skipped = []
         for dep_id in dep_ids:
             dep_path, _ = find_asn(str(dep_id))
             if dep_path is None:
+                skipped.append((dep_id, "no on-disk note file"))
                 continue
             dep_rel = str(
                 dep_path.resolve().relative_to(
@@ -192,9 +194,11 @@ def load_foundation_for_note(asn_path, asn_id):
             )
             dep_note_addr = store.path_to_addr.get(dep_rel)
             if dep_note_addr is None:
+                skipped.append((dep_id, "note not path-registered"))
                 continue
             sidecar = statements_sidecar_of(session, dep_note_addr)
             if sidecar is None:
+                skipped.append((dep_id, "no statements sidecar"))
                 continue
             # Substrate walk: latest_doc_head crosses the sidecar →
             # aggregate bridge (if derived) and normalizes any version
@@ -204,6 +208,23 @@ def load_foundation_for_note(asn_path, asn_id):
             # sidecar has been register_version'd but not decomposed.
             head = latest_doc_head(session, sidecar)
             sections.append(read_doc(session, head))
+
+        # Loader-side coverage assertion. Silent skips here are how the
+        # foundation-loader bug of 2026-05-23 went undetected — ASN-0047
+        # disappeared from the prompt and the reviewer hallucinated a
+        # false finding. Surface every skip at fire time so the operator
+        # sees it in the runner log; the operator's downstream diagnostic
+        # `scripts/diagnostics/foundation_coverage.py` walks the whole
+        # lattice with the same logic for on-demand audits.
+        if skipped:
+            import sys
+            asn_label = format_label(asn_id)
+            for dep_id, reason in skipped:
+                print(
+                    f"  [FOUNDATION] {asn_label}: dep "
+                    f"ASN-{dep_id:04d} unresolvable — {reason}",
+                    file=sys.stderr,
+                )
     return "\n\n".join(sections)
 
 
