@@ -4,39 +4,39 @@
 The cascade-anchor feature emits a bundled `citation.depends` from each
 new review-N doc to the version_head of every foundation when
 note_review fires. Pre-feature reviews have no such anchor, so the
-`is_note_cascade_fresh` predicate treats them as vacuously fresh —
-including notes whose foundations have advanced post-import.
+`is_note_cascade_fresh` predicate treats them as vacuously fresh.
 
-This script backfills: for each note's latest review (or every review
-on its supersession chain — see Discussion), emits one bundled
-`citation.depends` from the review_addr to the *base* addresses of
-every foundation the note declares as a dep. The cascade-fresh
-predicate then checks `is_head_version(base)` per target — a base
-with version-children (i.e., the foundation has been version-
-registered after the note was imported) returns False, re-firing
-note_review.
+The substrate does not preserve "what was head when this review
+emitted" for legacy data (cross-allocator address comparison is not
+structural; timestamp comparison is against the freshness discipline).
+So this backfill takes operator-supplied knowledge as the source of
+truth via the `--target` flag:
 
-Why bases rather than version_heads:
-  - Emitting at version_head would freeze the anchor at "current"
-    state, masking any staleness that's already present at script
-    runtime. Notes like ASN-0051 — whose foundations have actually
-    advanced — would be erroneously marked fresh.
-  - Emitting at base correctly detects staleness: `is_head_version`
-    returns False whenever a foundation's base has been version-
-    registered, which is exactly the condition the feature exists
-    to catch.
-  - After the first post-backfill re-review fires, the agent emits
-    a fresh anchor pointing at the current version_head and the
-    normal head-comparison pattern takes over.
+  --target=version-head (default)
+      Anchor at each foundation's current `version_head`. Operator
+      affirms "this review is valid against current foundation state."
+      Predicate stays fresh until a foundation advances post-backfill;
+      future advances correctly trigger re-review. Use for ASNs you
+      know are currently up-to-date.
+
+  --target=base
+      Anchor at each foundation's base address. `is_head_version(base)`
+      returns False for any foundation that has been version-registered,
+      so the predicate immediately flags the note for re-review. Use
+      for ASNs you know need to be re-reviewed under current foundation
+      state.
 
 Idempotent: skips a review whose outgoing `citation.depends` already
 includes every dep target.
 
 Usage:
-    python scripts/backfill-cascade-anchors.py            # all notes
-    python scripts/backfill-cascade-anchors.py 51         # just ASN-0051
-    python scripts/backfill-cascade-anchors.py 51 86 94   # batch
-    python scripts/backfill-cascade-anchors.py --dry-run
+    # ASNs operator affirms as up-to-date — anchor at current heads:
+    python scripts/backfill-cascade-anchors.py 36 40 42 43 ...
+
+    # ASNs operator knows need re-review — anchor at bases:
+    python scripts/backfill-cascade-anchors.py 51 86 --target=base
+
+    python scripts/backfill-cascade-anchors.py 51 --dry-run --target=base
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from lib.backend.emit import emit_citation_bundle
 from lib.lattice.labels import format_label, label_pattern
-from lib.predicates import depends, latest_review_for_addr
+from lib.predicates import depends, latest_review_for_addr, version_head
 from lib.protocols.febe.session import open_session
 from lib.shared.git_ops import step_commit
 from lib.shared.paths import DOCUVERSE_DIR, LATTICE, NOTE_DIR, WORKSPACE
@@ -91,7 +91,14 @@ def _existing_anchor_targets(session, review_addr):
     return cited
 
 
-def backfill(asn_filter=None, dry_run=False):
+def _resolve_targets(session, dep_bases, target_mode):
+    """Map foundation bases to the anchor targets per --target mode."""
+    if target_mode == "version-head":
+        return [version_head(session, b) for b in dep_bases]
+    return list(dep_bases)
+
+
+def backfill(asn_filter=None, dry_run=False, target_mode="version-head"):
     """Walk notes, emit cascade anchors for latest reviews. Returns
     (emitted_count, skipped_count, missing_review_count)."""
     emitted = 0
@@ -120,20 +127,22 @@ def backfill(asn_filter=None, dry_run=False):
                 )
                 continue
 
+            targets = _resolve_targets(session, dep_bases, target_mode)
             existing = _existing_anchor_targets(session, review_addr)
-            missing = [b for b in dep_bases if b not in existing]
+            missing = [t for t in targets if t not in existing]
             if not missing:
                 skipped += 1
                 print(
                     f"  [{label}] anchor already covers all "
-                    f"{len(dep_bases)} deps — skipping",
+                    f"{len(targets)} deps — skipping",
                     file=sys.stderr,
                 )
                 continue
 
             print(
                 f"  [{label}] backfilling anchor on latest review "
-                f"({len(missing)}/{len(dep_bases)} targets missing)",
+                f"({len(missing)}/{len(targets)} targets, "
+                f"mode={target_mode})",
                 file=sys.stderr,
             )
             emitted += 1
@@ -169,6 +178,15 @@ def main():
              "(e.g., 51 86 94). Default: all notes.",
     )
     parser.add_argument(
+        "--target", choices=("version-head", "base"),
+        default="version-head",
+        help="Anchor target. version-head (default) snapshots current "
+             "head per dep — use for ASNs operator affirms as up-to-date. "
+             "base anchors at foundation base — predicate flags any "
+             "foundation that has been version-registered, forcing "
+             "re-review. Use for ASNs known to need re-review.",
+    )
+    parser.add_argument(
         "--dry-run", action="store_true",
         help="Show which notes would be backfilled without writing.",
     )
@@ -184,6 +202,7 @@ def main():
 
     emitted, skipped, no_review = backfill(
         asn_filter=asn_filter, dry_run=args.dry_run,
+        target_mode=args.target,
     )
     print(
         f"\n  backfill: emitted={emitted}, skipped={skipped}, "
@@ -195,7 +214,8 @@ def main():
         _stage_for_commit()
         step_commit(
             f"backfill(cascade-anchors): emit citation.depends from "
-            f"latest reviews to foundation bases ({emitted} notes)"
+            f"latest reviews to foundation {args.target} "
+            f"({emitted} notes)"
         )
 
     return 0
