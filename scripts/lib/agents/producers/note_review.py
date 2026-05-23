@@ -37,7 +37,7 @@ from lib.shared.foundation import load_foundation_for_note
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
     NOTE_FINDINGS_DIR, REVIEWS_DIR, USAGE_LOG, WORKSPACE,
-    load_inquiry, prompt_path, sorted_reviews,
+    load_inquiry, next_review_number, prompt_path,
 )
 
 
@@ -170,16 +170,6 @@ def _validate_review(text: str):
 # Trigger-runner entry: class form
 
 
-def _next_review_num(asn_label: str) -> int:
-    """Next sequential review-N for this ASN. 1 if none exist yet."""
-    n = 1
-    for f in sorted_reviews(asn_label):
-        m = re.search(r"review-(\d+)\.md$", f.name)
-        if m:
-            n = max(n, int(m.group(1)) + 1)
-    return n
-
-
 def _log_review_usage(asn_label: str, elapsed: float) -> None:
     """Append a review-usage entry to the lattice usage log."""
     entry = {
@@ -284,7 +274,7 @@ class NoteReviewAgent(Agent):
             )
 
         # Persist review aggregate doc + emit substrate facts
-        next_n = _next_review_num(asn_label)
+        next_n = next_review_number(asn_label, kind="note")
         review_dir = REVIEWS_DIR / asn_label
         review_dir.mkdir(parents=True, exist_ok=True)
         review_path = review_dir / f"review-{next_n}.md"

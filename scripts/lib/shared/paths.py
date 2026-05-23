@@ -394,21 +394,6 @@ def claim_statements(asn_num):
     return asn_path.parent / f"{asn_path.stem}.statements.md"
 
 
-def _review_sort_key(path):
-    """Extract numeric review number for sorting. review-9 < review-13."""
-    m = re.search(r"review-(\d+)\.md$", path.name)
-    return int(m.group(1)) if m else 0
-
-
-def sorted_reviews(asn_label, reviews_dir=None):
-    """Return review files for an ASN, sorted by numeric review number."""
-    d = reviews_dir or REVIEWS_DIR
-    note_subdir = d / asn_label
-    if not note_subdir.exists():
-        return []
-    return sorted(note_subdir.glob("review-*.md"), key=_review_sort_key)
-
-
 def sanitize_filename(label, name):
     """Build a filename-safe string from label and name.
 
@@ -447,16 +432,30 @@ def find_review(asn_label, review_spec=None):
 def next_review_number(asn_label, *, kind, reviews_dir=None):
     """Find the next review number for this ASN.
 
-    `kind` selects the findings namespace ("claim" or "note"); numbering is
-    independent per kind. Sources from two places, taking max+1 across both:
-      1. Legacy review files (review-N.md) under `reviews_dir` if provided —
-         caller-supplied path, typically `claim-convergence/<asn>/reviews/`.
-         Not written by current code, but historical numbers are respected.
-      2. Current review directories (review-N/) under the kind's findings dir.
+    `kind` selects both the reviews dir and the findings namespace
+    ("claim" or "note"); numbering is independent per kind. Sources
+    from three places, taking max+1 across all:
+      1. Current review files (review-N.md) under the kind's reviews
+         dir. CONVERGED reviews leave a file here but no findings
+         directory, so this scan is required to avoid overwriting them.
+      2. Legacy review files (review-N.md) under `reviews_dir` if
+         provided — caller-supplied path. Retained for callers that
+         track auxiliary review locations alongside the kind's primary
+         dir.
+      3. Current review directories (review-N/) under the kind's
+         findings dir.
     """
     nums = []
 
-    # Legacy review files (numbered review-N.md). Caller passes the dir.
+    # Current review files under the kind's reviews dir.
+    primary_reviews = _reviews_dir_for_kind(kind) / asn_label
+    if primary_reviews.exists():
+        for p in primary_reviews.glob("review-*.md"):
+            m = re.search(r"review-(\d+)\.md$", p.name)
+            if m:
+                nums.append(int(m.group(1)))
+
+    # Auxiliary review files (numbered review-N.md). Caller passes the dir.
     if reviews_dir is not None and Path(reviews_dir).exists():
         for p in Path(reviews_dir).glob("review-*.md"):
             m = re.search(r"review-(\d+)\.md$", p.name)
