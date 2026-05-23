@@ -119,6 +119,33 @@ def supersession_head(session: Session, doc_addr: Address) -> Address:
     return last
 
 
+def latest_doc_head(session: Session, doc_addr: Address) -> Address:
+    """Latest path-bearing (identity) address in the supersession chain.
+
+    Version markers emitted by `register_version` are internal chain
+    nodes: they record that a doc's content advanced, but they have no
+    file path of their own (`path_for_addr(marker) = None`). Callers
+    that READ the doc — foundation loader, motif citation targets,
+    anyone calling `read_doc` on the result — need the latest *identity*
+    address, not the raw chain head.
+
+    Implementation: walk `supersession_head` then normalize through
+    `version_root`. The composition handles all three chain shapes:
+
+      - Sidecar edited, no decompose: `head = sidecar.v_N` (version
+        marker); `version_root → sidecar` (base).
+      - Sidecar decomposed: `head = claims.statements` (already
+        identity); `version_root` is a no-op.
+      - Sidecar decomposed, aggregate refreshed: `head =
+        claims.statements.v_N`; `version_root → claims.statements`.
+
+    For callers tracking chain *advancement* (cascade-fresh predicates
+    via `is_head_version`), use `supersession_head` directly — those
+    callers handle version markers internally.
+    """
+    return version_root(session, supersession_head(session, doc_addr))
+
+
 def supersession_chain_length(session: Session, doc_addr: Address) -> int:
     """Number of nodes in doc_addr's supersession chain.
 

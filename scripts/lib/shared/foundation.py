@@ -168,7 +168,7 @@ def load_foundation_for_note(asn_path, asn_id):
     """
     from lib.lattice.labels import note_dep_asn_ids
     from lib.lattice.render import read_doc
-    from lib.predicates import statements_sidecar_of, supersession_head
+    from lib.predicates import latest_doc_head, statements_sidecar_of
     from lib.protocols.febe.session import open_session
     from lib.shared.common import find_asn
     from lib.shared.paths import LATTICE, WORKSPACE
@@ -196,15 +196,14 @@ def load_foundation_for_note(asn_path, asn_id):
             sidecar = statements_sidecar_of(session, dep_note_addr)
             if sidecar is None:
                 continue
-            # Substrate walk: supersession_head crosses the
-            # sidecar → aggregate bridge (if derived) and walks the
-            # aggregate's version chain to the latest version.
-            # read_doc owns the address-to-content resolution.
-            head = supersession_head(session, sidecar)
-            try:
-                sections.append(read_doc(session, head))
-            except (FileNotFoundError, KeyError):
-                continue
+            # Substrate walk: latest_doc_head crosses the sidecar →
+            # aggregate bridge (if derived) and normalizes any version
+            # markers in the supersession chain back to their identity
+            # address — version markers carry no file, so reading the
+            # raw supersession_head can drop a dep silently when the
+            # sidecar has been register_version'd but not decomposed.
+            head = latest_doc_head(session, sidecar)
+            sections.append(read_doc(session, head))
     return "\n\n".join(sections)
 
 

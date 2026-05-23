@@ -47,7 +47,6 @@ from lib.backend.emit import (
     emit_patch_note,
 )
 from lib.lattice.labels import format_label
-from lib.predicates import statements_sidecar_of, supersession_head
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import find_asn, read_file

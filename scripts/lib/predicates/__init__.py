@@ -92,7 +92,8 @@ from .reconciliation import (
     orphan_sidecars,
 )
 from .versions import (
-    is_head_version, supersession_chain_length, supersession_head,
+    is_head_version, latest_doc_head, supersession_chain_length,
+    supersession_head,
     version_children, version_head, version_root,
 )
 
@@ -157,6 +158,7 @@ __all__ = [
     "signature_sidecar_of",
     "statements_is_fresh",
     "statements_sidecar_of",
+    "latest_doc_head",
     "supersession_chain_length",
     "supersession_head",
     "unresolved_revise_comments",

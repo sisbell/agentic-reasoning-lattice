@@ -35,7 +35,7 @@ from lib.backend.emit import (
     emit_empty_derivation,
 )
 from lib.lattice.labels import format_label, note_dep_asn_ids
-from lib.predicates import statements_sidecar_of, supersession_head
+from lib.predicates import latest_doc_head, statements_sidecar_of
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import find_asn, read_file
@@ -431,14 +431,16 @@ class MotifAgent(Agent):
     def _resolve_statements_head(
         self, session: Session, asn_label: str,
     ) -> Optional[Address]:
-        """Resolve `ASN-NNNN` to the supersession head of its note's
+        """Resolve `ASN-NNNN` to the latest doc-level head of its note's
         statements sidecar.
 
-        Walks `note → statements → supersession_head`. The chain head
-        is the `claims.statements` aggregate when the note's been
-        through claim derivation, otherwise the operator-drafted
-        statements sidecar. This is the canonical target for citation
-        anchors against a note's claim content.
+        Walks `note → statements → latest_doc_head`. The result is the
+        `claims.statements` aggregate when the note's been through
+        claim derivation, otherwise the operator-drafted statements
+        sidecar — both are path-bearing identity addresses. Version
+        markers in the supersession chain are normalized via
+        `version_root` so the citation target always resolves to a
+        readable doc.
         """
         note_addr = self._resolve_asn(session, asn_label)
         if note_addr is None:
@@ -446,4 +448,4 @@ class MotifAgent(Agent):
         sidecar = statements_sidecar_of(session, note_addr)
         if sidecar is None:
             return None
-        return supersession_head(session, sidecar)
+        return latest_doc_head(session, sidecar)
