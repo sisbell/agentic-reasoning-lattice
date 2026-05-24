@@ -175,7 +175,7 @@ while true; do
     if [ "$WORKERS" -eq 1 ]; then
         log_file="_workspace/logs/worker-0.$ts.log"
         echo "  [run-notes-continuous] worker 0 → $log_file" >&2
-        python scripts/note-scheduler.py --dag "${exclude_args[@]}" 2>&1 \
+        python scripts/note-scheduler.py --dag ${exclude_args[@]+"${exclude_args[@]}"} 2>&1 \
             | tee -a "$log_file"
         worker_rc=${PIPESTATUS[0]}
         if [ "$worker_rc" -ne 0 ]; then
@@ -194,7 +194,7 @@ while true; do
             WORKER_LOGS+=("$log_file")
             echo "  [run-notes-continuous] worker $i → $log_file" >&2
             CLAUDE_WORKER_INDEX=$i python scripts/note-scheduler.py --dag \
-                --partition "$i/$WORKERS" "${exclude_args[@]}" 2>&1 \
+                --partition "$i/$WORKERS" ${exclude_args[@]+"${exclude_args[@]}"} 2>&1 \
                 | tee -a "$log_file" \
                 | sed "s/^/[w$i] /" &
             WORKER_PIDS+=($!)
