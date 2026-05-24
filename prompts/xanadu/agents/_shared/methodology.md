@@ -36,7 +36,7 @@ Each ASN is a complete, standalone argument. A reader should be able to understa
 
 Your topic is provided as input. Write one ASN exploring that topic.
 
-Write to `lattices/xanadu/discovery/notes/{{label_prefix}}-NNNN-title.md` where NNNN is the assigned number.
+Write to `{{notes_dir}}/{{label_prefix}}-NNNN-title.md` where NNNN is the assigned number.
 
 ---
 
@@ -151,7 +151,7 @@ Describe **state**, not execution. Never "the program then goes to..." — inste
 
 **No big blocks of notation without reasoning. Be consistent.**
 
-**Use relative paths** (e.g., `lattices/xanadu/discovery/notes/{{label_prefix}}-0001-*.md`) when referencing files, never absolute paths.
+**Use relative paths** (e.g., `{{notes_dir}}/{{label_prefix}}-0001-*.md`) when referencing files, never absolute paths.
 
 ---
 
@@ -197,7 +197,7 @@ For each named claim, definition, or state component this ASN establishes, list:
 **Topic**: {{title}}
 **Question**: {{question}}
 
-Write {{asn_number}} to `lattices/xanadu/discovery/notes/{{asn_number}}-{{slug}}.md`.
+Write {{asn_number}} to `{{notes_dir}}/{{asn_number}}-{{slug}}.md`.
 
 Remember:
 1. Read the consultation answers above — they are your primary input.

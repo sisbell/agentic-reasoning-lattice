@@ -115,6 +115,7 @@ def _build_discovery_prompt(inquiry, asn_number, slug, answers_content,
         return None
     vocab_section = f"\n\n## Shared Vocabulary\n\n{vocab}" if vocab else ""
     foundation_section = f"\n\n{foundation}" if foundation else ""
+    notes_dir = str(NOTE_DIR.relative_to(WORKSPACE))
     return (template
         .replace("{{consultation_answers}}", answers_content)
         .replace("{{asn_number}}", format_label(asn_number))
@@ -123,7 +124,8 @@ def _build_discovery_prompt(inquiry, asn_number, slug, answers_content,
         .replace("{{slug}}", slug)
         .replace("{{foundation_section}}", foundation_section)
         .replace("{{vocabulary_section}}", vocab_section)
-        .replace("{{out_of_scope_note}}", scope_note))
+        .replace("{{out_of_scope_note}}", scope_note)
+        .replace("{{notes_dir}}", notes_dir))
 
 
 def _build_consultation_content(asn_number):

@@ -36,7 +36,7 @@ Each note is a complete, standalone argument. A reader should be able to underst
 
 Your topic is provided as input. Write one note exploring that topic.
 
-Write to `lattices/materials/discovery/notes/{{label_prefix}}-NNNN-title.md` where NNNN is the assigned number.
+Write to `{{notes_dir}}/{{label_prefix}}-NNNN-title.md` where NNNN is the assigned number.
 
 ---
 
@@ -147,7 +147,7 @@ Describe **state and relations**, not mechanisms. Never "the thermometer then re
 
 **No big blocks of notation without reasoning. Be consistent.**
 
-**Use relative paths** (e.g., `lattices/materials/discovery/notes/{{label_prefix}}-0001-*.md`) when referencing files, never absolute paths.
+**Use relative paths** (e.g., `{{notes_dir}}/{{label_prefix}}-0001-*.md`) when referencing files, never absolute paths.
 
 ---
 
@@ -191,7 +191,7 @@ For each named claim, definition, or state component this note establishes, list
 **Topic**: {{title}}
 **Question**: {{question}}
 
-Write {{asn_number}} to `lattices/materials/discovery/notes/{{asn_number}}-{{slug}}.md`.
+Write {{asn_number}} to `{{notes_dir}}/{{asn_number}}-{{slug}}.md`.
 
 Remember:
 1. Read the consultation answers above — they are your primary input.
