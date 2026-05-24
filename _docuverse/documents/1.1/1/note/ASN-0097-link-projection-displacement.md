@@ -60,7 +60,7 @@ Inherited from L12. The transition vocabulary (ASN-0047) provides no operation t
 
 **Π3 (CoveragePermanence).** `cov(Σ'.L(ℓ).eᵢ) = cov(Σ.L(ℓ).eᵢ)`. The set of I-addresses each endset references is permanent. Coverage is a function of the endset, and the endset is permanent by Π2.
 
-**Π4 (DirectionalPermanence).** The role of each slot — which is the *from*-endset, which is the *to*-endset, which is the *type*-endset under the StandardTriple convention, or whatever role assignment is in force for higher-arity links — is determined by slot position alone (L6, L7, ASN-0043). Slot positions are permanent by Π2; no transition swaps, reorders, or relabels slots; no transition reinterprets the directional role of an existing slot.
+**Π4 (DirectionalPermanence).** The role of each slot — which is the *from*-endset, which is the *to*-endset, which is the *type*-endset under the StandardTriple convention, or whatever role assignment is in force for higher-arity links — is determined by slot position alone (L6, L7, ASN-0043). *Proof.* By Π0, `Σ'.L(ℓ) = Σ.L(ℓ)`. By L6 (link equality is component-wise tuple equality, with slot index a primitive positional accessor), tuple-level equality forces slot-wise equality at every index: `Σ'.L(ℓ).eᵢ = Σ.L(ℓ).eᵢ` for every `i ∈ {1, ..., |Σ.L(ℓ)|}` (this is the content of Π2). By L7, the directional role assigned to slot `i` is a function of the slot index `i` alone, supplied by the link type's external interpretation; this role-by-index function lives outside `Σ.L` and is not in the write set of any operation in the transition vocabulary (ASN-0047), so it is invariant across every transition. Composing the two preservations — the slot's contents at each index (Π2 via L6 + Π0) and the role-by-index function (L7 via the transition vocabulary's silence on link-type interpretation) — the directional role of every slot of `ℓ` is preserved across `Σ → Σ'`. □
 
 The structure of `ℓ` — address, value, arity, endsets, coverage, slot positions, directional roles — is, taken together, the *invariant content of the link*. The link holder can treat all of it as fixed.
 
@@ -242,9 +242,27 @@ The structure of `Σ.L` is logically independent of the structure of any `Σ.M(d
 
 `ℓ ∈ dom(Σ.L) ∧ ¬(E d ∈ E_doc, v ∈ dom(Σ.M(d)) :: Σ.M(d)(v) = ℓ)`
 
-*Proof.* `K.λ` (ASN-0047) allocates `ℓ` by adding it to `dom(L)` and is constrained by Π14 to leave every `M(d)` untouched. Let `Σ_pre` be the state immediately before such a `K.λ`; let `Σ` be the immediate successor. Then `ℓ ∈ dom(Σ.L)`, and for every `d ∈ E_doc`, `Σ.M(d) = Σ_pre.M(d)`.
+*Proof.* `K.λ` (ASN-0047) allocates `ℓ` by adding it to `dom(L)` and is constrained by Π14 to leave every `M(d)` untouched. Let `Σ_pre` be the state immediately before such a `K.λ`; let `Σ` be the immediate successor. Then `ℓ ∈ dom(Σ.L)`, and for every `d ∈ E_doc`, `Σ.M(d) = Σ_pre.M(d)`. Our task is to show that no `M(d)` in `Σ_pre` maps any V-position to `ℓ`.
 
-We verify that no `M(d)` in `Σ_pre` maps any V-position to `ℓ`. By S3 (ReferentialIntegrity, ASN-0036), `ran(Σ_pre.M(d)) ⊆ dom(Σ_pre.C)` for every `d ∈ E_doc` — every arrangement value must lie in the content store's domain in the same state. The K.λ allocator discipline (L1c, ASN-0043, derived from T10a's GlobalUniqueness) produces a link address `ℓ` fresh with respect to the prior allocation state; in particular `ℓ ∉ dom(Σ_pre.L)`, and under the disjointness `dom(Σ.L) ∩ dom(Σ.C) = ∅` derived from L14/L0a (ASN-0043) for `s_C`-resident content, `ℓ ∉ dom(Σ_pre.C)` either. Combining: `ℓ ∉ dom(Σ_pre.C)` together with `ran(Σ_pre.M(d)) ⊆ dom(Σ_pre.C)` yields `ℓ ∉ ran(Σ_pre.M(d))`. Since `Σ.M(d) = Σ_pre.M(d)`, the same holds in `Σ`. The witness exists. □
+We need a subspace-aware referential-integrity premise. The address space partitions into a text-content subspace `s_C` and a link subspace `s_L` (L0, ASN-0043) with `s_L ∩ s_C = ∅`. V-positions inherit this partition by the `subspace` projection (ASN-0036, S8a) — every V-position `v ∈ dom(Σ.M(d))` has a subspace identifier `subspace(v)`. We write `M(d)|_{s_C}` and `M(d)|_{s_L}` for the restrictions of `M(d)` to V-positions in the text-content and link subspaces respectively; their domains are disjoint and their union recovers `M(d)`, so `ran(Σ.M(d)) = ran(Σ.M(d)|_{s_C}) ∪ ran(Σ.M(d)|_{s_L})`. The consultation evidence (Nelson on design intent, Gregory on the implementation's POOM) supports a *subspace-stratified* reading of S3 (ReferentialIntegrity, ASN-0036): rather than a single global constraint `ran(Σ.M(d)) ⊆ dom(Σ.C)`, the constraint is stratified by what each subspace references. We adopt this stratification locally as a strengthening of S3:
+
+`(S3-text)` `ran(Σ.M(d)|_{s_C}) ⊆ dom(Σ.C)|_{s_C}` — text-subspace V-positions arrange `s_C`-resident content.
+
+`(S3-link)` `ran(Σ.M(d)|_{s_L}) ⊆ dom(Σ.L)` — link-subspace V-positions arrange addresses of allocated links.
+
+Both strata are consistent with S3 read on the `s_C`-resident slice: the union of their ranges is a subset of `dom(Σ.C)|_{s_C} ∪ dom(Σ.L)`, and L14/L0a (ASN-0043) gives the disjointness `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`.
+
+We now derive `ℓ ∉ ran(Σ_pre.M(d))` in four explicit steps.
+
+(i) *Allocator freshness over `L`.* The K.λ allocator discipline (L1c, ASN-0043, derived from T10a's GlobalUniqueness) produces `ℓ` fresh with respect to the prior link store: `ℓ ∉ dom(Σ_pre.L)`.
+
+(ii) *Allocator type.* The K.λ allocator allocates link addresses, which by L0 (ASN-0043) inhabit the link subspace: `subspace_I(ℓ) = s_L`, equivalently `ℓ ∈ s_L`.
+
+(iii) *Address-space disjointness.* By L0 and the subspace partition, `s_L ∩ s_C = ∅`. Combined with (ii), `ℓ ∉ s_C`.
+
+(iv) *Combining strata.* Per `(S3-link)`, `ran(Σ_pre.M(d)|_{s_L}) ⊆ dom(Σ_pre.L)`; by (i), `ℓ ∉ dom(Σ_pre.L)`, so `ℓ ∉ ran(Σ_pre.M(d)|_{s_L})`. Per `(S3-text)`, `ran(Σ_pre.M(d)|_{s_C}) ⊆ dom(Σ_pre.C)|_{s_C} ⊆ s_C`; by (iii), `ℓ ∉ s_C`, so `ℓ ∉ ran(Σ_pre.M(d)|_{s_C})`. The decomposition `ran(Σ_pre.M(d)) = ran(Σ_pre.M(d)|_{s_C}) ∪ ran(Σ_pre.M(d)|_{s_L})` then gives `ℓ ∉ ran(Σ_pre.M(d))`.
+
+Since `Σ.M(d) = Σ_pre.M(d)` for every `d ∈ E_doc`, the same holds in `Σ`. The witness exists. □
 
 **Π15b (ReverseOrphaningPreservesL).** For any K.μ⁻ transition `Σ → Σ'` on some `M(d)` that drops a V-position `v` previously arranging `ℓ` (`Σ.M(d)(v) = ℓ`):
 
@@ -266,11 +284,13 @@ The forward projection direction — link to V-positions — has a backward dual
 
 `reaches(ℓ, d, V_q, Σ) ≡ (E i :: proj(d, ℓ, i, Σ) ∩ V_q ≠ ∅)`
 
-This V-side definition has an I-side equivalent that re-expresses reach in terms of the V-region's I-image:
+This V-side definition has an I-side equivalent that we now establish as a named lemma, since it is load-bearing for the discovery claims below.
+
+**RB (ReachBridge).** Reach has an I-side reformulation in terms of the V-region's I-image:
 
 `reaches(ℓ, d, V_q, Σ) ⟺ (E i :: cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q}) ≠ ∅)`
 
-*Proof of equivalence.* For each slot `i`, we show that `proj(d, ℓ, i, Σ) ∩ V_q ≠ ∅ ⟺ cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q}) ≠ ∅`; existential quantification over slots then gives the full claim. This is the bridge equality (proved at the definition of `iproj`) restricted to `V_q`.
+*Proof.* For each slot `i`, we show that `proj(d, ℓ, i, Σ) ∩ V_q ≠ ∅ ⟺ cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q}) ≠ ∅`; existential quantification over slots then gives the full claim. This is the bridge equality (proved at the definition of `iproj`) restricted to `V_q`.
 
 (⟹): Let `v ∈ proj(d, ℓ, i, Σ) ∩ V_q`. From `v ∈ proj(d, ℓ, i, Σ)`, `v ∈ dom(Σ.M(d))` and `Σ.M(d)(v) ∈ cov(Σ.L(ℓ).eᵢ)`. Combined with `v ∈ V_q`, we have `v ∈ V_q ∩ dom(Σ.M(d)) = dom(Σ.M(d)|_{V_q})`, hence `Σ.M(d)(v) ∈ ran(Σ.M(d)|_{V_q})`. Combined with `Σ.M(d)(v) ∈ cov(Σ.L(ℓ).eᵢ)`, the intersection `cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q})` is non-empty.
 
@@ -280,7 +300,7 @@ This V-side definition has an I-side equivalent that re-expresses reach in terms
 
 `(A Σ, Σ', ℓ, d, V_q : Σ.L = Σ'.L ∧ Σ.M(d)|_{V_q} = Σ'.M(d)|_{V_q} : reaches(ℓ, d, V_q, Σ) ⟺ reaches(ℓ, d, V_q, Σ'))`
 
-*Proof.* We invoke the I-side equivalent of `reaches` proved above. From `Σ.L = Σ'.L` we obtain `Σ.L(ℓ).eᵢ = Σ'.L(ℓ).eᵢ` for every slot `i`, hence `cov(Σ.L(ℓ).eᵢ) = cov(Σ'.L(ℓ).eᵢ)`. From `Σ.M(d)|_{V_q} = Σ'.M(d)|_{V_q}` — equality of partial maps on the same domain — we obtain `ran(Σ.M(d)|_{V_q}) = ran(Σ'.M(d)|_{V_q})`. Both operands of the intersection `cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q})` therefore agree between `Σ` and `Σ'`, so the intersection is non-empty in `Σ` iff non-empty in `Σ'`. Existential quantification over slots preserves the equivalence: `reaches(ℓ, d, V_q, Σ) ⟺ reaches(ℓ, d, V_q, Σ')`. □
+*Proof.* We invoke RB (ReachBridge, proved above) to re-express both sides of the equivalence in I-terms. From `Σ.L = Σ'.L` we obtain `Σ.L(ℓ).eᵢ = Σ'.L(ℓ).eᵢ` for every slot `i`, hence `cov(Σ.L(ℓ).eᵢ) = cov(Σ'.L(ℓ).eᵢ)`. From `Σ.M(d)|_{V_q} = Σ'.M(d)|_{V_q}` — equality of partial maps on the same domain — we obtain `ran(Σ.M(d)|_{V_q}) = ran(Σ'.M(d)|_{V_q})`. Both operands of the intersection `cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q})` therefore agree between `Σ` and `Σ'`, so the intersection is non-empty in `Σ` iff non-empty in `Σ'`. Existential quantification over slots preserves the equivalence; applying RB again to translate back: `reaches(ℓ, d, V_q, Σ) ⟺ reaches(ℓ, d, V_q, Σ')`. □
 
 No provenance — neither the document that allocated `ℓ`, nor the document where the I-addresses originated, nor any history of which document first arranged those I-addresses — participates in the reach relation. The relation is intrinsic to the current state.
 
@@ -332,7 +352,7 @@ To confirm that the claims survive a non-trivial state, we trace through a small
 
 - `Σ₀.M(d) = {0 ↦ a₅, 1 ↦ a₆, 2 ↦ a₇, 3 ↦ a₈}` — the principal document of our trace.
 - `Σ₀.M(d') = {0 ↦ a₆, 1 ↦ a₉}` — a second document arranging `a₆ ∈ cov(e)` and an unrelated `a₉ ∉ cov(e)`. This lets us witness R10 (cross-document independence).
-- `Σ₀.M(d_link) = {0 ↦ ℓ}` — a third document whose link-subspace arrangement includes `ℓ` itself at V-position `0` of `d_link`. (Per ASN-0043, the link store `L` and a document's link-subspace arrangement are distinct: a link is born in `L` by `K.λ`, but whether it is *arranged* in some document's link-subspace V-stream is a separate matter — what we are about to vary.) This lets us witness R11 (reverse orphaning).
+- `Σ₀.M(d_link) = {0 ↦ ℓ}` — a third document whose link-subspace arrangement includes `ℓ` itself at V-position `0` of `d_link`. Here the V-position `0` is shorthand for the first V-position in `s_L` of `d_link`, so this entry lives in `M(d_link)|_{s_L}` and falls under `(S3-link)` (`ran ⊆ dom(Σ.L)`). (Per ASN-0043, the link store `L` and a document's link-subspace arrangement are distinct: a link is born in `L` by `K.λ`, but whether it is *arranged* in some document's link-subspace V-stream is a separate matter — what we are about to vary.) This lets us witness R11 (reverse orphaning).
 
 The starting projections and I-projections are:
 
@@ -528,6 +548,9 @@ Across all three modes, projection displacement is bounded by the elementary tra
 | Π15b | ReverseOrphaningPreservesL: K.μ⁻ on `M(d)` removing `ℓ` from `ran` leaves `Σ.L` unchanged | introduced |
 | Π16 | ReachLocality: reach depends only on `L`, `M(d)\|_{V_q}`, and the V-region | introduced |
 | Π17 | PartialReach: non-empty coverage-range intersection suffices for reach | introduced |
+| RB | ReachBridge: `reaches(ℓ, d, V_q, Σ) ⟺ (E i :: cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)\|_{V_q}) ≠ ∅)` — I-side reformulation of reach used by Π16 | introduced |
+| S3-text | Subspace-stratified S3 (text): `ran(Σ.M(d)\|_{s_C}) ⊆ dom(Σ.C)\|_{s_C}` — local strengthening of S3 (ASN-0036) adopted in Π15a's proof | local axiom |
+| S3-link | Subspace-stratified S3 (link): `ran(Σ.M(d)\|_{s_L}) ⊆ dom(Σ.L)` — local strengthening of S3 (ASN-0036) adopted in Π15a's proof | local axiom |
 | Σ.proj | `proj(d, e, Σ) = {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ cov(e)}` | introduced |
 | Σ.iproj | `iproj(d, e, Σ) = cov(e) ∩ ran(Σ.M(d))` | introduced |
 | Σ.reaches | `reaches(ℓ, d, V_q, Σ) ≡ (E i :: proj(d, ℓ, i, Σ) ∩ V_q ≠ ∅)` | introduced |
