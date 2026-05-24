@@ -273,6 +273,12 @@ def _classify(a: AsnAudit) -> str:
 
 
 def _iter_active_asns(session) -> List[int]:
+    """Active, non-retired ASN ids in the lattice, sorted ascending.
+
+    Filters retired notes (they carry a `retired` classifier on top of
+    the `note` classifier) — operationally settled ASNs aren't subject
+    to the substrate-cleanup contract.
+    """
     pattern = label_pattern()
     note_prefix = str(NOTE_DIR.relative_to(WORKSPACE)) + "/"
     found = set()
@@ -282,6 +288,8 @@ def _iter_active_asns(session) -> List[int]:
         if path.endswith(".statements.md"):
             continue
         if not session.active_links("note", to_set=[addr]):
+            continue
+        if session.active_links("retired", to_set=[addr]):
             continue
         m = pattern.search(path)
         if not m:
