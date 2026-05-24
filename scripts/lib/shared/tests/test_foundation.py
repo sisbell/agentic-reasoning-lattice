@@ -144,10 +144,26 @@ def test_load_foundation_rejects_invalid_asn_id() -> None:
         load_foundation("97")  # type: ignore[arg-type]
 
 
-def test_load_foundation_raises_on_missing_inquiry() -> None:
-    # An ASN id with no inquiry file on disk
-    with pytest.raises(FoundationError, match="inquiry file missing"):
+def test_load_foundation_raises_on_missing_inquiry_and_note() -> None:
+    # An ASN id with no inquiry file AND no note in substrate. The new
+    # LEGACY fallback handles "no inquiry but note exists"; for an ASN
+    # with neither, the loader raises with a clear message.
+    with pytest.raises(
+        FoundationError,
+        match="no inquiry file AND no note in substrate",
+    ):
         load_foundation(99999)
+
+
+def test_load_foundation_legacy_fallback_for_protocol_notes(capsys) -> None:
+    """Hand-authored protocol notes (no inquiry file) load via the
+    LEGACY note-side substrate fallback. ASN-0086 is a known protocol
+    note; expect non-empty content and a stderr fallback log line."""
+    result = load_foundation(86)
+    assert result, "ASN-0086 should load via LEGACY fallback"
+    captured = capsys.readouterr()
+    assert "LEGACY" in captured.err
+    assert "ASN-0086" in captured.err
 
 
 # ─── Integration: live substrate ───────────────────────────────────
@@ -159,7 +175,11 @@ def test_load_foundation_raises_on_missing_inquiry() -> None:
 
 
 def _iter_active_asn_ids() -> list[int]:
-    """Enumerate active ASN ids from the live substrate."""
+    """Enumerate active, non-retired ASN ids from the live substrate.
+
+    Filters retired notes (carry `retired` classifier on top of `note`)
+    — retired ASNs aren't subject to the loader contract.
+    """
     from lib.lattice.labels import label_pattern
     from lib.protocols.febe.session import open_session
     from lib.shared.paths import LATTICE, NOTE_DIR, WORKSPACE
@@ -173,6 +193,8 @@ def _iter_active_asn_ids() -> list[int]:
             if path.endswith(".statements.md"):
                 continue
             if not session.active_links("note", to_set=[addr]):
+                continue
+            if session.active_links("retired", to_set=[addr]):
                 continue
             m = pattern.search(path)
             if m:

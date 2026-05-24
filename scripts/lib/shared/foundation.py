@@ -555,25 +555,12 @@ def load_foundation(asn_id: int) -> str:
 
     _validate_asn_id(asn_id)
 
-    # Layer 2 — declarative source
-    declared = _read_inquiry_depends(asn_id)
-    if not declared:
-        return ""
-
-    # Layer 2 (continued) — substrate must mirror frontmatter
     with open_session(LATTICE) as session:
-        substrate_deps = _query_inquiry_deps(session, asn_id)
-        if set(substrate_deps) != set(declared):
-            missing_in_substrate = sorted(set(declared) - set(substrate_deps))
-            extra_in_substrate = sorted(set(substrate_deps) - set(declared))
-            raise FoundationError(
-                f"ASN-{asn_id:04d}: substrate citation.depends "
-                f"{substrate_deps} does not match frontmatter "
-                f"{declared}. "
-                f"Missing in substrate: {missing_in_substrate}. "
-                f"Extra in substrate: {extra_in_substrate}. "
-                f"Run `asn-sync-deps {asn_id}` to reconcile.",
-            )
+        # Layer 2 — declarative source (inquiry frontmatter; falls back
+        # to note-side substrate for hand-authored protocol notes).
+        declared = _resolve_declared_deps(session, asn_id)
+        if not declared:
+            return ""
 
         # Layer 3 — per-dep resolution
         sections = []
@@ -592,3 +579,75 @@ def load_foundation(asn_id: int) -> str:
             f"result despite {len(declared)} declared deps",
         )
     return result
+
+
+def _resolve_declared_deps(session, asn_id: int) -> list[int]:
+    """Determine the declared dep list for an ASN.
+
+    Primary path: inquiry frontmatter declares `depends:` and the
+    substrate citation.depends mirror must match it. This is the
+    canonical convention for inquiry-driven ASNs.
+
+    LEGACY fallback: when no inquiry file exists (hand-authored
+    protocol notes), reads citation.depends directly from the note
+    address — substrate IS the spec in this case, no frontmatter to
+    validate against. Logged to stderr so the operator sees fallback
+    usage; should disappear once protocol notes are brought under a
+    declarative spec convention.
+
+    Raises FoundationError when neither path can resolve.
+    """
+    from lib.shared.paths import inquiry_doc_path
+
+    inq_path = inquiry_doc_path(asn_id)
+    if inq_path.exists():
+        declared = _read_inquiry_depends(asn_id)
+        if declared:
+            substrate_deps = _query_inquiry_deps(session, asn_id)
+            if set(substrate_deps) != set(declared):
+                missing_in_substrate = sorted(set(declared) - set(substrate_deps))
+                extra_in_substrate = sorted(set(substrate_deps) - set(declared))
+                raise FoundationError(
+                    f"ASN-{asn_id:04d}: substrate citation.depends "
+                    f"{substrate_deps} does not match frontmatter "
+                    f"{declared}. "
+                    f"Missing in substrate: {missing_in_substrate}. "
+                    f"Extra in substrate: {extra_in_substrate}. "
+                    f"Run `asn-sync-deps {asn_id}` to reconcile.",
+                )
+        return declared
+
+    # LEGACY fallback — hand-authored protocol note
+    deps = _read_note_side_depends(session, asn_id)
+    print(
+        f"  [FOUNDATION] {format_label(asn_id)}: using LEGACY note-side "
+        f"substrate (no inquiry file); {len(deps)} dep(s) → "
+        f"{[f'ASN-{d:04d}' for d in deps]}",
+        file=sys.stderr,
+    )
+    return deps
+
+
+def _read_note_side_depends(session, asn_id: int) -> list[int]:
+    """Read citation.depends directly from the note address.
+
+    Used by the LEGACY fallback path in `_resolve_declared_deps`. The
+    note address is the source-of-truth for dep declarations under the
+    pre-inquiry convention used by hand-authored protocol notes.
+    """
+    from lib.lattice.labels import note_dep_asn_ids
+    from lib.shared.paths import NOTE_DIR, WORKSPACE
+
+    label = format_label(asn_id)
+    note_prefix = str(NOTE_DIR.relative_to(WORKSPACE)) + f"/{label}-"
+    note_addr = None
+    for path, addr in session.store.path_to_addr.items():
+        if path.startswith(note_prefix) and not path.endswith(".statements.md"):
+            note_addr = addr
+            break
+    if note_addr is None:
+        raise FoundationError(
+            f"ASN-{asn_id:04d}: no inquiry file AND no note in substrate "
+            f"— nothing to load",
+        )
+    return note_dep_asn_ids(session.store, note_addr)
