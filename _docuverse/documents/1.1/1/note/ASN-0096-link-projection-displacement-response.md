@@ -11,7 +11,7 @@ The Xanadu design separates *what is stored in the link* from *what is presented
 
 This ASN states the guarantees that fall out of this design. The aim is to characterize precisely what survives state changes, what displaces, and what a link holder can rely on. We work from the state components defined in ASN-0036 (content store, arrangement), ASN-0043 (link store, endsets, coverage), and ASN-0047 (state transitions), together with the addressing foundation of ASN-0034.
 
-The argument develops in stages. We first fix the state and the projection's type signature, then catalog the six *still-point* invariants of the link itself, then the four *displacement modes* of the projection under arrangement transitions, then derive *survival* and *discoverability* with explicit premise sets and wp computations, then exhibit the three *non-invariants* with witness transitions, then walk a concrete example through INSERT and DELETE, and finally enumerate the boundary cases. The claims number nineteen, organized as two foundational definitions plus seventeen named guarantees.
+The argument develops in stages. We first fix the state and the projection's type signature, then catalog the six *still-point* invariants of the link itself, then the *operation-to-displacement* mapping over the seventeen FEBE commands, then the *displacement modes* of the projection under arrangement transitions (three pure-atom modes, two composed modes), then derive *survival* and *discoverability* with explicit premise sets and wp computations, then exhibit the three *non-invariants* with witness transitions, then walk a concrete example through atomic decompositions of INSERT and DELETE, and finally enumerate the boundary cases. The claims number twenty-three, organized as three foundational definitions plus twenty named guarantees.
 
 ## State Components
 
@@ -42,11 +42,11 @@ A document `d ∈ Σ.E_doc` has an arrangement `Σ.M(d) : T ⇀ T` mapping V-pos
 
 The link's endset names a set of I-addresses. The reader looking at a document sees V-positions. The bridge between them is the inverse image of coverage under the arrangement. Before stating the definition we fix the signature so that endset-level, span-level, and address-level projections are not conflated.
 
-**Type signature.** Projection is a total function on three arguments:
+**Type signature.** Projection is a *dependent* function: the valid second argument (`d`) and the codomain (V-positions drawn from `d`'s arrangement) both depend on the state argument (`Σ`). State-first presentation makes the dependence explicit:
 
-  `proj : Endset × Σ.E_doc × State → ℘_fin(T)`
+  `proj : (Σ : State) → Endset → (d : Σ.E_doc) → ℘_fin(dom(Σ.M(d)))`
 
-where `Endset = ℘_fin(Span)` is the set of finite sets of well-formed spans (ASN-0043, L4); `Σ.E_doc ⊆ T` is the set of allocated document addresses in the supplied state; `State` is the set of reachable system states (ASN-0047); and `℘_fin(T)` is the set of finite subsets of tumbler space — the codomain consists of *V-positions*, i.e., tumbler addresses drawn from `dom(Σ.M(d))`. The codomain is a *set*, not a sequence or multiset; no ordering or multiplicity is imposed at this layer (see the open question on projection ordering for whether a higher layer should impose tumbler order on the result). Finiteness follows from the finiteness of `dom(Σ.M(d))` at every reachable state: the codomain is bounded by `|dom(Σ.M(d))|`.
+`State` is the set of reachable system states (ASN-0047). `Endset = ℘_fin(Span)` (ASN-0043, L4) is the only argument whose denotation is state-independent. `Σ.E_doc ⊆ T` — the set of allocated document addresses *in the supplied state* — determines which document arguments are admissible; `dom(Σ.M(d))` — the V-positions actually mapped by `d` in Σ — determines the codomain. We retain the conventional argument order `proj(e, d, Σ)` in subsequent prose for readability, but the underlying signature is the dependent product above. `proj(e, d, Σ)` is *undefined* when `d ∉ Σ.E_doc`. The codomain is a *set*, not a sequence or multiset; no ordering or multiplicity is imposed at this layer (see the open question on projection ordering for whether a higher layer should impose tumbler order on the result). Finiteness follows from the finiteness of `dom(Σ.M(d))` at every reachable state.
 
 The signature is at the *endset* level. Span-level and address-level projection are special cases obtained by restriction, and they carry distinct cardinality semantics that must not be conflated with the endset signature:
 
@@ -68,49 +68,54 @@ The projection is the set of V-positions in `d` that currently map to an address
 
 The rendering presents the link as it currently appears in `d`: a sequence of V-position sets, one per endset, in slot order.
 
-The link itself — the value at `ℓ` in `Σ.L` — never directly contains any V-position. V-positions appear only at the rendering layer, computed on demand from the durable stored value and the document's current arrangement.
+**Definition (Document footprint).** For a link `ℓ ∈ dom(Σ.L)` and a slot index `i ∈ {1, ..., |Σ.L(ℓ)|}`:
+
+  `footprint(ℓ, i, Σ) := {d ∈ Σ.E_doc : proj(Σ.L(ℓ).eᵢ, d, Σ) ≠ ∅}`
+
+The footprint is the set of documents through which the link's `i`-th endset has at least one rendered V-position at state Σ. Like `proj`, it is computed on demand from current state — no per-link "where it appears" cache exists in any state component. Where `render` answers *what V-positions does this endset show in this document*, `footprint` answers *which documents show this endset at all*. We use the footprint primitive in LP-NOD below and in the open question on visibility partition.
+
+The link itself — the value at `ℓ` in `Σ.L` — never directly contains any V-position or any document identity. V-positions appear only at the rendering layer; document membership appears only at the footprint layer. Both are computed on demand from the durable stored value and the documents' current arrangements.
 
 ## Operation Families and Displacement Modes
 
-ASN-0047 supplies four arrangement-modifying transition families: K.μ⁺ (positive content arrangement), K.μ⁺_L (positive link arrangement), K.μ⁻ (negative arrangement / contraction), and K.μ~ (rearrangement). The remaining transition atoms (K.α, K.λ, K.δ, K.ρ) do not touch any existing `Σ.M(d)`. Editing and document operations at the FEBE level (Nelson's design intent, with seventeen commands) decompose onto these atoms. We assert the surjection and verify it family by family.
+ASN-0047 supplies four arrangement-modifying transition families: K.μ⁺ (positive content arrangement), K.μ⁺_L (positive link arrangement), K.μ⁻ (negative arrangement / contraction), and K.μ~ (rearrangement). The remaining transition atoms (K.α, K.λ, K.δ, K.ρ) do not touch any existing `Σ.M(d)`. We adopt the ASN-0047 atoms in their *pure* form throughout this ASN — that is, K.μ⁺ adds new V→I mappings *without relabeling* any pre-existing V-position; K.μ⁻ realizes `Σ'.M(d) = Σ.M(d) ↾ R` as pure restriction *without relabeling* surviving V-positions; K.μ~ is bijective permutation of `dom(Σ.M(d))` with constant domain. This isolation matters: each pure atom corresponds to exactly one displacement mode, and FEBE-level operations whose effect appears to combine "extend and shift" or "restrict and shift" decompose into a composition of atoms, not into a single non-pure atom.
 
-**LP-MAP (Operation-to-mode surjection).** Every FEBE editing or document operation that can change `proj(e, d, Σ)` for some endset `e` and some document `d` decomposes into one of K.μ⁺, K.μ⁺_L, K.μ⁻, or K.μ~ on at least one document, and possibly composed with K.δ, K.α, K.λ. Each arrangement transition's effect on the projection is given by exactly one of the four displacement claims (LP-REARR, LP-CONTR, LP-EXT) or by LP-FRAME (no change). The map:
+The seventeen FEBE editing/document commands at the protocol layer (Nelson, LM 4/61: "Of the 17 current commands in XU.87.1, only one command (RETRIEVEV) is concerned with delivery of the actual content fragments") partition cleanly. Eight commands modify a document's arrangement; the remaining nine are read-only searches, retrievals, comparisons, and metadata queries (per Nelson's command roster). LP-MAP catalogs the arrangement-modifying eight; LP-FRAME-READ records the trivial fact about the nine read-only commands.
 
-| FEBE operation | Decomposes to | Displacement claim |
-|----------------|---------------|---------------------|
-| INSERT (text) | K.α (fresh I-addresses) ∘ K.μ⁺ on d (text subspace) | LP-EXT (new V-positions) composed with within-subspace LP-REARR (shift of pre-existing V-positions in the affected subspace) |
-| COPY / VCOPY | K.μ⁺ on d (text subspace, with pre-existing I-addresses) | LP-EXT composed with within-subspace LP-REARR |
-| DELETEVSPAN | K.μ⁻ on d (text subspace) | LP-CONTR composed with within-subspace LP-REARR |
-| REARRANGE | K.μ~ on d | LP-REARR |
-| APPEND | K.α ∘ K.μ⁺ on d at end of text subspace | LP-EXT (no within-subspace shift, since appending at the subspace end leaves all existing V-positions fixed) |
-| MAKELINK | K.λ (fresh link address) ∘ K.μ⁺_L on home(ℓ) (link subspace) | LP-EXT in link subspace; LP-FRAME for any text-subspace endset's projection |
-| CREATENEWDOCUMENT | K.δ (fresh document) ∘ K.α | LP-FRAME on every existing document (LP-CROSS); the new document has empty arrangement, so every endset projects to ∅ initially |
-| CREATENEWVERSION | K.δ ∘ K.μ⁺ on the new document (transcluding I-addresses from the source) | LP-FRAME on the source document; LP-EXT in the new document for each transcluded coverage I-address |
+**LP-MAP (Operation-to-mode surjection over arrangement-modifying commands).** Every arrangement-modifying FEBE command decomposes into a composition of pure atomic transitions K.α, K.λ, K.δ, K.ρ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, each atom inducing exactly one displacement mode on the projection (LP-EXT-PURE, LP-CONTR-PURE, LP-REARR, or LP-FRAME). The composed displacement on the projection follows from applying the atomic modes in sequence:
 
-The justification, family by family:
+| FEBE command | Atomic decomposition | Composed projection displacement |
+|--------------|----------------------|-----------------------------------|
+| INSERT (mid-subspace) | K.α ∘ K.μ~ ∘ K.μ⁺ on d (text subspace) | LP-REARR (within-subspace shift of pre-existing V-positions) followed by LP-EXT-PURE (new V-positions admit coverage iff their fresh I-addresses fall in coverage — typically empty by T9 ForwardAllocation) |
+| APPEND | K.α ∘ K.μ⁺ on d (at end of text subspace) | LP-EXT-PURE (no shift needed; appending leaves all pre-existing V-positions fixed) |
+| COPY / VCOPY (mid-subspace) | K.μ~ ∘ K.μ⁺ on d (no K.α — re-uses source I-addresses) | LP-REARR followed by LP-EXT-PURE (new V-positions admit coverage iff transcluded I-addresses fall in coverage — non-empty whenever transclusion overlaps an existing endset) |
+| COPY / VCOPY (subspace-end) | K.μ⁺ on d (at end of text subspace) | LP-EXT-PURE |
+| DELETEVSPAN (interior, with subsequent V-positions to shift) | K.μ⁻ ∘ K.μ~ on d (text subspace) | LP-CONTR-PURE (drop coverage V-positions in the deleted range) followed by LP-REARR (within-subspace shift of surviving V-positions backward) |
+| DELETEVSPAN (subspace-tail) | K.μ⁻ on d (text subspace) | LP-CONTR-PURE (no shift; deletion at the end leaves earlier V-positions fixed) |
+| REARRANGE (pivot/swap) | K.μ~ on d | LP-REARR |
+| MAKELINK | K.λ ∘ K.μ⁺_L on home(ℓ) | LP-EXT-PURE in the link subspace at `home(ℓ)`; LP-FRAME for every text-subspace endset's projection and every other document's projection |
+| CREATENEWDOCUMENT | K.δ on E_doc (plus K.α for the document address) | LP-FRAME on every existing document (LP-CROSS); the new document has empty arrangement, so every endset projects to ∅ in the new document at creation |
+| CREATENEWVERSION | K.δ ∘ (K.μ⁺ on the new document, copying V→I mappings from the source) | LP-FRAME on the source document; LP-EXT-PURE in the new document for each copied V→I mapping whose I-address is in coverage |
 
-- **K.μ⁺ on d (LP-EXT, optionally composed with within-subspace LP-REARR).** Adds new V→I mappings to `Σ.M(d)`. If an inserted V-position maps to an I-address already in `coverage(e)`, that V-position joins `proj(e, d, Σ')`. INSERT additionally shifts pre-existing V-positions in the affected subspace forward by the insertion width: that shift is a within-subspace bijection on the surviving V-positions, falling under LP-REARR restricted to the subspace. The composed transformation on the projection is `proj' = π(proj) ∪ (new V-positions whose I-addresses are in coverage)`, where `π` is the within-subspace shift.
+The decomposition justification, atom by atom:
 
-- **K.μ⁻ on d (LP-CONTR, composed with within-subspace LP-REARR).** Removes V→I mappings. Surviving V-positions retain their I-addresses, but their V-labels in the affected subspace may shift backward by the deletion width. The composed effect on the projection is `proj' = π(proj ∩ R_ret)`, where `R_ret` is the retention set and `π` is the within-subspace shift.
+- **K.μ⁺ on d (pure, LP-EXT-PURE).** Adds new V→I mappings to `Σ.M(d)` at V-positions disjoint from `dom(Σ.M(d))`. No pre-existing V-position is relabeled. The projection's existing V-positions are untouched; new V-positions join `proj(e, d, Σ')` iff their I-addresses lie in `coverage(e)`. Statement: `proj(e, d, Σ') = proj(e, d, Σ) ∪ {v_new ∈ dom(Σ'.M(d)) \ dom(Σ.M(d)) : Σ'.M(d)(v_new) ∈ coverage(e)}`. Pure superset relation: `proj' ⊇ proj`.
 
-- **K.μ~ on d (LP-REARR).** A pure bijective permutation of `dom(Σ.M(d))` (constant domain). Only V-position labels move; the I-address content is preserved at the permuted V-positions.
+- **K.μ⁻ on d (pure, LP-CONTR-PURE).** Effect `Σ'.M(d) = Σ.M(d) ↾ R` per ASN-0047 — pure restriction. Surviving V-positions retain their original V-labels (no shift). Statement: `proj(e, d, Σ') = proj(e, d, Σ) ∩ R`.
 
-- **K.μ⁺_L on d (LP-EXT in link subspace).** Adds a new V→I mapping in the link subspace at the end of that subspace (Gregory's evidence: `findnextlinkvsa` places links at `vspanreach`, always at the document end of the link subspace). By the disjointness of subspaces (ASN-0036), this never shifts text-subspace mappings; for any endset `e` whose coverage is entirely in the text subspace, `proj(e, d, Σ') = proj(e, d, Σ)`. For an endset whose coverage is in the link subspace and intersects the newly created link's address, the projection grows by exactly the new V-position. LP-EXT applies in the link subspace; LP-FRAME applies to text-subspace projections.
+- **K.μ~ on d (LP-REARR).** Bijective permutation of `dom(Σ.M(d))` with constant domain; surviving V-positions get re-labeled. Statement: `proj(e, d, Σ') = π(proj(e, d, Σ))`.
 
-- **K.δ (frame for existing documents).** Creates a fresh document address with empty arrangement. For every existing document `d`, `Σ'.M(d) = Σ.M(d)`, so by LP-CROSS every existing projection is unchanged. The new document `d_new` has `dom(Σ'.M(d_new)) = ∅`, so `proj(e, d_new, Σ') = ∅` for every `e` at the moment of creation.
+- **K.μ⁺_L on d (LP-EXT-PURE in link subspace).** Specialization of K.μ⁺ to the link subspace. Adds a new V→I mapping at the end of the link subspace (Gregory's evidence: `findnextlinkvsa` always places links at `vspanreach`). By the disjointness of subspaces (ASN-0036), no text-subspace mapping is touched.
 
-- **K.α, K.λ, K.ρ (frame for arrangements).** Pure allocation transitions: K.α allocates content I-addresses (the addresses appear in `Σ.C` but not yet in any `M(d)`), K.λ allocates link addresses (the addresses appear in `Σ.L` but not yet in any `M(d)`), K.ρ modifies the region store. None touches any `M(d)`; LP-FRAME holds for every projection.
+- **K.δ (LP-FRAME on existing documents).** Creates a fresh document address with empty arrangement. For every existing document `d`, `Σ'.M(d) = Σ.M(d)`. The new document `d_new` has `dom(Σ'.M(d_new)) = ∅`, so `proj(e, d_new, Σ') = ∅` for every `e`.
 
-The surjection from FEBE editing/document operations onto displacement modes is therefore:
+- **K.α, K.λ, K.ρ (LP-FRAME).** Pure allocation transitions. K.α allocates content I-addresses; K.λ allocates link addresses; K.ρ modifies the region store. None touches any `M(d)`.
 
-  `{INSERT (text path), COPY, APPEND, MAKELINK (in link subspace), CREATENEWVERSION's transclusions} ↠ LP-EXT`
-  `{DELETEVSPAN} ↠ LP-CONTR`
-  `{REARRANGE} ↠ LP-REARR`
-  `{CREATENEWDOCUMENT, K.α alone, K.λ alone, K.ρ, MAKELINK (on text-subspace endsets)} ↠ LP-FRAME`
+The FEBE-level *composed* displacements that combine atomic effects — for instance INSERT mid-subspace, which interleaves K.μ~ (shift existing V-positions) and K.μ⁺ (add new mappings at the freed slots) — are recorded as LP-EXT-COMP and LP-CONTR-COMP below.
 
-The within-subspace shifts induced by INSERT (when not at the subspace end) and DELETEVSPAN compose LP-EXT (or LP-CONTR) with LP-REARR on the affected subspace's domain. Every FEBE editing or document operation that can affect a projection does so through one or two of these four modes; nothing else displaces.
+**LP-FRAME-READ (Read-only commands frame all projections).** The nine read-only FEBE commands — RETRIEVEV, RETRIEVEDOCVSPAN, RETRIEVEDOCVSPANSET, RETRIEVEENDSETS, FINDLINKSFROMTOTHREE, FINDNUMOFLINKSFROMTOTHREE, FINDNEXTNLINKSFROMTOTHREE, FINDDOCSCONTAINING, SHOWRELATIONOF2VERSIONS — modify no state component. By the frame-vacuity of pure observation, `Σ' = Σ` and therefore `(A e, d, ℓ :: proj(e, d, Σ') = proj(e, d, Σ) ∧ Σ'.L(ℓ) = Σ.L(ℓ))`. The seventeen-command surjection is therefore complete: every FEBE command either (a) decomposes via LP-MAP into atoms whose displacement modes are catalogued, or (b) frames all projections by LP-FRAME-READ.
 
-Gregory's implementation evidence corroborates the surjection: the three POOM-mutating sites in udanax-green — the V-displacement decrement in `deletend` (DELETE: K.μ⁻), the V-displacement add in `rearrangend` (REARRANGE: K.μ~), and the V-displacement add in `makegappm` (INSERT/COPY when mid-document: K.μ⁺ composed with the shift) — are the only three points in the codebase where existing POOM crums have their V-coordinates mutated. All other operations (VCOPY at document boundaries, CREATELINK, CREATENEWVERSION) only append new mappings without disturbing existing ones, falling under pure LP-EXT or LP-FRAME.
+Gregory's implementation evidence corroborates the decomposition: the three POOM-mutating sites in udanax-green — the V-displacement decrement in `deletend` (DELETEVSPAN: the K.μ⁻ part), the V-displacement add in `rearrangend` (REARRANGE: K.μ~), and the V-displacement add in `makegappm` (INSERT/COPY mid-document: the K.μ~ part of the composition) — are the only three points in the codebase where existing POOM crums have their V-coordinates mutated. All other operations (APPEND, COPY at the subspace end, CREATELINK, CREATENEWVERSION) only append new mappings without disturbing existing ones, falling under pure K.μ⁺. The implementation's "compound" deletend (which both removes crums and shifts survivors) and "compound" makegappm (which both shifts existing crums and inserts new ones) are evidence that the FEBE-level operations are composed; the abstract specification decomposes them into the pure atoms whose displacement is each given by exactly one of LP-EXT-PURE, LP-CONTR-PURE, LP-REARR, or LP-FRAME.
 
 ## What Is Permanent — The Still Point
 
@@ -132,11 +137,21 @@ This follows from tuple equality (component-wise) under L6 (ASN-0043) and the li
 
 The set of I-addresses an endset references is fixed at link creation. No transition can extend, contract, redirect, or relabel coverage.
 
-**LP-CON (Content persistence at coverage).** Content at every I-address that has ever been allocated persists with its value. By P0 (ASN-0047) — which subsumes S0 (ASN-0036) — for every `Σ → Σ'`:
+**LP-CON (Content allocation persistence).** Content at every I-address that has ever been allocated persists with its value. By P0 (ASN-0047) — which subsumes S0 (ASN-0036) — for every `Σ → Σ'`:
 
   `(A a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))`
 
-For every `a ∈ coverage(eᵢ)` with `a ∈ dom(Σ.C)`: the bytes at `a` are the same forever. The link's coverage references content; if the content was at any state, it remains at every subsequent state with the same value. The coverage is preserved (LP-COV), and the content under coverage is preserved (LP-CON), so the *identity of what the link references* is unconditionally permanent.
+The statement scopes universally over `dom(Σ.C)`, not over coverage specifically — this matters because, by L4 (ASN-0043), an endset's coverage may reference addresses not yet in `dom(Σ.C)`. Nelson's design intent makes this explicit: "A span that contains nothing today may at a later time contain a million documents" and "these elements are virtually present in tumbler-space, since links may be made to them which embrace all the contents below them." Endset spans designate *regions* of tumbler space; whether storage backs a given coordinate is a separate, mutable matter resolved at projection time.
+
+We can therefore partition coverage at any state Σ:
+
+  `coverage(eᵢ) = (coverage(eᵢ) ∩ dom(Σ.C))  ∪  (coverage(eᵢ) \ dom(Σ.C))`
+
+For `a` in the first part — *currently allocated* coverage — LP-CON guarantees that the bytes at `a` are fixed forever and that `a` remains in `dom(Σ'.C)`. For `a` in the second part — *speculative* or *forward-referencing* coverage — LP-CON makes no claim about `a` at Σ, but the moment any subsequent K.α allocates `a` (necessarily with some value `Σ'.C(a)`), the address transitions into the first part and LP-CON guarantees its value persists thereafter. The link does not need updating: the address enters the link's effective referenced set automatically, by virtue of having been in coverage all along.
+
+Two consequences. *First*: the link holder's reliance is that "the content at each currently-allocated address in my coverage is permanent" — never that "every address in coverage holds content at every state." The reliance contract excludes the speculative-coverage region from any content claim at Σ; it asserts only that, *if and when* coverage gets populated, the value persists. *Second*: when a future K.α allocates an I-address that happens to fall within an existing endset's coverage, that allocation becomes part of the link's effective referenced set without modifying the link. The discipline that prevents accidental absorption rests on (i) *ownership scope* — "The owner of a given item controls the allocation of the numbers under it" (LM 4/20) limits who can populate under a given address prefix; (ii) *creator choice* — endsets are span-*sets*, so a creator who wants exact reference (no forward-extension) can specify the union of currently-existing single-byte spans rather than a broad range; and (iii) *query precision* — searches that target a specific subset of coverage use exact-overlap matching, not membership against the full span (cf. LP-DISC, where `discoverable` requires intersection with a specific V-window, not enclosure by the whole coverage). The architecture admits forward-referencing coverage as a designed capability; whether a given specification is *well-behaved* in some application-level sense is a discipline question at the link-creation layer, not an invariant question at the projection or content-store layer.
+
+The coverage is preserved (LP-COV); the content at addresses ever populated within coverage is preserved (LP-CON); the addresses themselves cannot be reused (T8, ASN-0034). Together these give the *identity of what the link references* as an unconditional permanent: each named address either holds nothing yet, or holds a fixed value forever.
 
 **LP-MON (Link store monotonicity).** Once created, a link cannot be removed:
 
@@ -166,7 +181,7 @@ The arrangement `Σ.M(d)` is the only state component that arrangement transitio
 
 The projection is displaced by exactly `π`. Its cardinality is preserved (`π` is a bijection). The same I-addresses still appear in `d`'s arrangement; their V-positions have moved. A reader querying through `d` sees the link's endpoints at new V-positions, but the same content — and the link is unchanged.
 
-**LP-CONTR (Shrinkage under contraction).** Let `Σ → Σ'` be a K.μ⁻ transition on `d` with retention set `R ⊆ dom(Σ.M(d))` such that `Σ'.M(d) = Σ.M(d) ↾ R` (per K.μ⁻ effect, ASN-0047). For any endset `e`:
+**LP-CONTR-PURE (Shrinkage under pure contraction).** Let `Σ → Σ'` be a pure K.μ⁻ transition on `d` with retention set `R ⊆ dom(Σ.M(d))` such that `Σ'.M(d) = Σ.M(d) ↾ R` — pure restriction, with no relabeling of surviving V-positions (per K.μ⁻ effect, ASN-0047). For any endset `e`:
 
   `proj(e, d, Σ')`
   `= {v ∈ R : Σ'.M(d)(v) ∈ coverage(e)}`
@@ -177,15 +192,32 @@ The projection is the original projection restricted to surviving V-positions. V
 
 This is the partial-survival case. Of the `k` I-addresses in `coverage(e)` originally projected to `k` V-positions in `d`, some `k' ≤ k` survive. The link's endpoint in `d` narrows from `k` V-positions to `k'`, but the link itself is unchanged.
 
-**LP-EXT (Growth under extension).** Let `Σ → Σ'` be a K.μ⁺ or K.μ⁺_L transition on `d` introducing new V→I mappings. For any endset `e`:
+**LP-EXT-PURE (Growth under pure extension).** Let `Σ → Σ'` be a pure K.μ⁺ or K.μ⁺_L transition on `d` introducing new V→I mappings at V-positions disjoint from `dom(Σ.M(d))` — no relabeling of any pre-existing V-position. For any endset `e`:
 
-  `proj(e, d, Σ') ⊇ proj(e, d, Σ)`
+  `proj(e, d, Σ')`
+  `= {v ∈ dom(Σ'.M(d)) : Σ'.M(d)(v) ∈ coverage(e)}`
+  `= {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(e)} ∪ {v_new ∈ dom(Σ'.M(d)) \ dom(Σ.M(d)) : Σ'.M(d)(v_new) ∈ coverage(e)}`
+  `= proj(e, d, Σ) ∪ {v_new : Σ'.M(d)(v_new) ∈ coverage(e)}`
 
-with the new entries being precisely the V-positions `v_new ∈ dom(Σ'.M(d)) \ dom(Σ.M(d))` whose I-address `Σ'.M(d)(v_new)` is in `coverage(e)`.
+In particular `proj(e, d, Σ') ⊇ proj(e, d, Σ)`: the projection grows monotonically, gaining exactly those new V-positions whose I-addresses lie in coverage.
 
-The endset is unchanged: the link did not expand to include new content. The *projection* in this particular document grew because the document's arrangement happens to add a V→I mapping targeting an address that was already in coverage. The most common cause is K.μ⁺ transcluding content that was already linked — the same I-addresses now mapped at new V-positions in `d`.
+The endset is unchanged: the link did not expand to include new content. The *projection* in this particular document grew because the document's arrangement happens to add a V→I mapping targeting an address that was already in coverage. The most common cause is COPY/VCOPY transcluding content that was already linked — the same I-addresses now mapped at new V-positions in `d`. For INSERT under T9 (ForwardAllocation, ASN-0034), the fresh I-addresses from K.α are strictly greater than every prior allocation, so they typically lie *outside* coverage; the growth term is then empty and `proj(e, d, Σ') = proj(e, d, Σ)`.
 
-The pure LP-EXT statement holds when the new mappings are appended without disturbing existing V-positions (K.μ⁺ at the subspace end, or K.μ⁺_L at the link-subspace end). When K.μ⁺ inserts mid-subspace, the pre-existing V-positions in the affected subspace shift forward by the insertion width; the composed statement is `proj(e, d, Σ') = π(proj(e, d, Σ)) ∪ (new V-positions whose I-addresses are in coverage(e))`, where `π` is the within-subspace shift. The within-subspace LP-REARR composition is necessary to state the displacement of pre-existing coverage-mapping V-positions; pure LP-EXT alone covers the new-position growth.
+The two pure statements LP-EXT-PURE and LP-CONTR-PURE apply when the FEBE-level operation realizes only the pure atom — that is, when the operation does not need to relabel any pre-existing V-position. APPEND, COPY/VCOPY at the subspace end, and CREATENEWVERSION's transclusions are pure K.μ⁺ (no shift). DELETEVSPAN at the subspace tail is pure K.μ⁻ (no shift). MAKELINK is pure K.μ⁺_L (no shift). For mid-subspace INSERT and interior DELETEVSPAN — the FEBE operations that compose pure atoms with K.μ~ — the *composed* statements below apply.
+
+**LP-EXT-COMP (Growth composed with within-subspace shift).** Let `Σ → Σ''` be a composition K.μ~ ∘ K.μ⁺ on `d` realizing FEBE INSERT mid-subspace (or COPY/VCOPY mid-subspace), where K.μ~ relabels pre-existing V-positions in the affected subspace by the bijection `π` (shifting them forward to make room) and K.μ⁺ then introduces new V→I mappings at the freed V-positions. For any endset `e`, applying LP-REARR then LP-EXT-PURE composes:
+
+  `proj(e, d, Σ'') = π(proj(e, d, Σ)) ∪ {v_new ∈ dom(Σ''.M(d)) \ π(dom(Σ.M(d))) : Σ''.M(d)(v_new) ∈ coverage(e)}`
+
+Pre-existing coverage-mapping V-positions move to their π-images; new V-positions are added iff their I-addresses fall in coverage.
+
+**LP-CONTR-COMP (Shrinkage composed with within-subspace shift).** Let `Σ → Σ''` be a composition K.μ~ ∘ K.μ⁻ on `d` realizing FEBE DELETEVSPAN with interior deletion, where K.μ⁻ restricts to `R_ret` and K.μ~ then relabels surviving V-positions in the affected subspace by the bijection `π'` (shifting them backward to close the gap). For any endset `e`, applying LP-CONTR-PURE then LP-REARR composes:
+
+  `proj(e, d, Σ'') = π'(proj(e, d, Σ) ∩ R_ret)`
+
+Surviving coverage-mapping V-positions in `R_ret` are re-labeled by `π'`; dropped V-positions are gone.
+
+The two composed claims hold *as derived consequences* of LP-EXT-PURE, LP-CONTR-PURE, and LP-REARR applied in sequence: the abstract decomposition matches the implementation reality without requiring any non-atomic statement.
 
 **LP-CROSS (Cross-document independence).** For any arrangement transition `Σ → Σ'` whose target document is `d`, and any `d' ≠ d`:
 
@@ -264,11 +296,11 @@ We now establish two derived guarantees. Each carries an explicit premise set so
 
   In compact form: `LP-COV ∧ LP-MON ∧ LP-SLOT ∧ LP-CROSS ∧ proj_def ⊨ LP-DISC`.
 
-  *Derivation walk.*
-  Forward (from source): The link's endsets are addressable by LP-MON (`ℓ` is in `dom(Σ.L)`) and stable by LP-IMM (the endset values are preserved). For each slot `i ∈ {1, ..., |Σ.L(ℓ)|}`, LP-SLOT ensures the slot index is valid and `coverage(Σ.L(ℓ).eᵢ)` is determined by LP-COV. The forward predicate `Σ.M(d)(v) ∈ coverage(eᵢ)` is well-defined at every Σ: `Σ.M(d)(v)` is read from the document's current arrangement, `coverage(eᵢ)` is read from the (permanent) endset.
+  *Well-definedness.* The biconditional itself holds *by definition*: the right-hand side `(E i, v : ... : Σ.M(d)(v) ∈ coverage(Σ.L(ℓ).eᵢ))` *is* the definition of `discoverable(ℓ, d, [v_lo, v_hi), Σ)`. There is no theorem to derive; what we owe is a demonstration that the definition is *well-formed* at every reachable state and that the *computation realizing it* — forward and reverse — terminates and is sound. The remainder of this section discharges that obligation.
+  Forward (from source): The link's endsets are addressable by LP-MON (`ℓ` is in `dom(Σ.L)`) and stable by LP-IMM (the endset values are preserved). For each slot `i ∈ {1, ..., |Σ.L(ℓ)|}`, LP-SLOT ensures the slot index is valid and `coverage(Σ.L(ℓ).eᵢ)` is determined by LP-COV. The forward predicate `Σ.M(d)(v) ∈ coverage(eᵢ)` is well-defined at every Σ: `Σ.M(d)(v)` is read from the document's current arrangement, `coverage(eᵢ)` is read from the (permanent) endset. A bounded iteration `v ∈ [v_lo, v_hi) ∩ dom(Σ.M(d))` × `i ∈ {1, ..., |Σ.L(ℓ)|}` decides the predicate; both ranges are finite (by `dom(Σ.M(d))` finite and `|Σ.L(ℓ)|` finite per L3, ASN-0043).
   Reverse (from target): given a V-position `v` and a candidate I-address `Σ.M(d)(v) = a`, the search "which links discover `a`?" iterates over `dom(Σ.L)`; for each ℓ in the domain, for each slot i, the predicate `a ∈ coverage(Σ.L(ℓ).eᵢ)` is well-defined by LP-MON + LP-COV + LP-SLOT. The search terminates because `dom(Σ.L)` is finite at every reachable state (L-fin, ASN-0043).
   Per-document scoping: LP-CROSS ensures that the discoverability check is determined entirely by `Σ.M(d)`; no other document's state participates.
-  Composition: the symmetry of `∩` and per-slot independence (LP-SLOT) compose the forward and reverse walks into the biconditional.
+  The forward and reverse walks are two terminating decision procedures for the same definitional predicate; they agree on the value `discoverable(ℓ, d, [v_lo, v_hi), Σ)` because they are evaluating the same right-hand-side formula. The biconditional in the statement records this equivalence between the predicate's *name* (`discoverable`) and its *defining formula*.
 
   *Weakest-precondition reading.* For the postcondition `D := discoverable(ℓ, d, [v_lo, v_hi), Σ)`:
   - `wp(K.μ⁻ on d, D)` requires `(E i, v : v ∈ R_ret ∩ [v_lo, v_hi) : Σ.M(d)(v) ∈ coverage(eᵢ))` — the queried V-window must retain at least one coverage-mapping V-position.
@@ -293,7 +325,7 @@ Synthesizing the guarantees from LP-IMM through LP-DISC, the link holder can rel
 
 (b) *The coverage I specified — the set of I-addresses my endset names — is permanent.* By LP-COV.
 
-(c) *The content at each address in my coverage is permanent.* By LP-CON. If the bytes were there when I created the link, they are there now, with the same value.
+(c) *The content at each currently-allocated address in my coverage is permanent.* By LP-CON. If the bytes were there when I created the link, they are there now, with the same value. Speculative-coverage addresses (in coverage but not yet allocated) carry no value claim at the current state, but acquire one — irrevocable — as soon as they are allocated.
 
 (d) *The link's address is permanent.* By LP-MON.
 
@@ -343,9 +375,9 @@ The displacement modes catalog what is *not* invariant. These are not failures �
 
   *Statement.* There exists link `ℓ`, slot `i`, and a pair of states `Σ → Σ'` such that:
 
-    `{d ∈ Σ.E_doc : proj(Σ.L(ℓ).eᵢ, d, Σ) ≠ ∅} ≠ {d ∈ Σ'.E_doc : proj(Σ.L(ℓ).eᵢ, d, Σ') ≠ ∅}`
+    `footprint(ℓ, i, Σ) ≠ footprint(ℓ, i, Σ')`
 
-  We call the right-hand-side set the *document footprint* of slot `i` at state Σ, written `footprint(ℓ, i, Σ)`.
+  (Recall the footprint definition: `footprint(ℓ, i, Σ) = {d ∈ Σ.E_doc : proj(Σ.L(ℓ).eᵢ, d, Σ) ≠ ∅}`.)
 
   *Witness for growth (K.μ⁺ on a new document).* Let `coverage(Σ.L(ℓ).e₁) = {a}`. Suppose `Σ.M(d₁)(1.3) = a` and `Σ.M(d₂)` does not map to `a` (`a ∉ ran(Σ.M(d₂))`). Then `footprint(ℓ, 1, Σ) = {d₁}`. Apply K.μ⁺ on `d₂` transcluding `a` at V-position 5.5: `Σ'.M(d₂)(5.5) = a`. Then `proj(e₁, d₂, Σ') = {5.5} ≠ ∅`, so `footprint(ℓ, 1, Σ') = {d₁, d₂}`. The footprint grew: `{d₁} ≠ {d₁, d₂}`, LP-NOD witnessed.
 
@@ -371,9 +403,9 @@ In conjunction with LP-CROSS, this gives the full asymmetry of the displacement:
 
 Allocation transitions also leave projections of existing links unchanged at the atomic level. K.α adds to `C` with frame `(A d :: M'(d) = M(d))`; K.λ adds to `L` (a new link, not modifying existing entries) with the same arrangement frame; K.δ adds to `E` and creates new documents with `M'(e) = ∅` for new `e ∈ E_doc`; K.ρ modifies only `R`. None of these atomic transitions changes any existing `proj(e, d, Σ)`. Projections move only when arrangements move, and arrangements move only through the K.μ family.
 
-## A Worked Example: LP-EXT and LP-CONTR Composed
+## A Worked Example: Atomic Decomposition of INSERT and DELETEVSPAN
 
-We exhibit a concrete example tracing a projection through a sequence of state transitions, verifying LP-EXT and LP-CONTR at each step. The example uses tumbler-decimal notation for V-positions where the leading "1." denotes the text subspace (`s_T = 1`).
+We exhibit a concrete example tracing a projection through a sequence of FEBE-level state transitions, with each FEBE operation decomposed into its constituent pure atoms. The example uses tumbler-decimal notation for V-positions where the leading "1." denotes the text subspace (`s_T = 1`).
 
 *Initial state Σ₀.* Document `d` has an arrangement mapping the text subspace:
 
@@ -388,46 +420,69 @@ A link ℓ exists with endset `Σ₀.L(ℓ).e₁ = {(a₂, 0.3)}` — coverage i
 
 The link's endpoint appears at V-positions 1.2, 1.3, 1.4 — three V-positions, contiguous. Cardinality 3.
 
-*Transition K.μ⁺ on d — INSERT "XY" at V-position 1.3.* Two fresh I-addresses `b₁, b₂` are allocated by K.α; by T9 (ForwardAllocation, ASN-0034), `b₁, b₂` are strictly greater than every prior I-address allocated under the relevant allocator, so `b₁, b₂ ∉ {a₁, ..., a₅}` and `b₁, b₂ ∉ coverage(e₁)`. The within-subspace shift moves V-positions 1.3, 1.4, 1.5 forward by 0.2 (the insertion width). The new arrangement:
+*FEBE INSERT "XY" at V-position 1.3, decomposed as K.α ∘ K.μ~ ∘ K.μ⁺.* We trace through each atom.
+
+**Atom 1 — K.α** allocates two fresh I-addresses `b₁, b₂` in `Σ.C`; by T9 (ForwardAllocation, ASN-0034), `b₁, b₂` are strictly greater than every prior I-address allocated under the relevant allocator, so `b₁, b₂ ∉ {a₁, ..., a₅}` and `b₁, b₂ ∉ coverage(e₁)`. No `M(d)` is touched. By LP-FRAME, `proj(e₁, d, Σ₀.⁺K.α) = proj(e₁, d, Σ₀) = {1.2, 1.3, 1.4}`.
+
+**Atom 2 — K.μ~** on `d` relabels the pre-existing V-positions 1.3, 1.4, 1.5 forward by 0.2 (making room for the insertion). The relabel bijection `π` acts as identity on {1.1, 1.2} and as `v ↦ v + 0.2` on {1.3, 1.4, 1.5}. The intermediate arrangement Σ₀.⁺K.α.⁺K.μ~ satisfies:
+
+  `M(d)(1.1) = a₁,  M(d)(1.2) = a₂,  M(d)(1.5) = a₃,  M(d)(1.6) = a₄,  M(d)(1.7) = a₅`
+
+(V-positions 1.3 and 1.4 are not yet in the domain.) By LP-REARR:
+
+  `proj(e₁, d, after K.μ~) = π(proj(e₁, d, Σ₀)) = π({1.2, 1.3, 1.4}) = {1.2, 1.5, 1.6}`
+
+Cardinality preserved at 3; V-positions displaced from {1.2, 1.3, 1.4} to {1.2, 1.5, 1.6}.
+
+**Atom 3 — K.μ⁺** on `d` adds two new V→I mappings `1.3 ↦ b₁` and `1.4 ↦ b₂` at V-positions disjoint from the relabeled domain. The post-state Σ₁ arrangement:
 
   `Σ₁.M(d)(1.1) = a₁,  Σ₁.M(d)(1.2) = a₂,  Σ₁.M(d)(1.3) = b₁,  Σ₁.M(d)(1.4) = b₂,`
   `Σ₁.M(d)(1.5) = a₃,  Σ₁.M(d)(1.6) = a₄,  Σ₁.M(d)(1.7) = a₅`
 
-Projection at Σ₁:
+By LP-EXT-PURE:
 
-  `proj(e₁, d, Σ₁) = {v ∈ dom(Σ₁.M(d)) : Σ₁.M(d)(v) ∈ {a₂, a₃, a₄}} = {1.2, 1.5, 1.6}`
-
-*Verification of LP-EXT composed with within-subspace LP-REARR.* The shift bijection `π` on the text subspace acts as identity on {1.1, 1.2} and as `v ↦ v + 0.2` on {1.3, 1.4, 1.5}. The newly added V-positions are {1.3, 1.4} mapping to {b₁, b₂} — neither I-address is in `coverage(e₁)`. The composed claim predicts:
-
-  `proj(e₁, d, Σ₁) = π(proj(e₁, d, Σ₀)) ∪ (new V-positions whose I-addresses are in coverage)`
-                    `= π({1.2, 1.3, 1.4}) ∪ ∅`
+  `proj(e₁, d, Σ₁) = proj(e₁, d, after K.μ~) ∪ {v_new ∈ {1.3, 1.4} : Σ₁.M(d)(v_new) ∈ coverage(e₁)}`
+                    `= {1.2, 1.5, 1.6} ∪ ∅`
                     `= {1.2, 1.5, 1.6}` ✓
 
-LP-COV holds: `coverage(e₁)` is still `{a₂, a₃, a₄}`. LP-CON holds: `a₂, a₃, a₄ ∈ dom(Σ₁.C)` with the same byte values. LP-NOV is witnessed: the V-position set changed from `{1.2, 1.3, 1.4}` to `{1.2, 1.5, 1.6}`. LP-NOC is *not* witnessed at this step: cardinality stayed at 3 because the within-subspace shift preserved the count.
+The growth term is empty because `b₁, b₂ ∉ coverage(e₁)` (T9). The composed displacement is exactly LP-EXT-COMP applied to the pair (K.μ~, K.μ⁺):
 
-*Transition K.μ⁻ on d — DELETEVSPAN at V-span [1.5, 1.7).* This removes the V-positions 1.5 and 1.6 (i.e., the V-positions mapping to `a₃` and `a₄`). The retention set is `R_ret = dom(Σ₁.M(d)) \ {1.5, 1.6} = {1.1, 1.2, 1.3, 1.4, 1.7}`. The within-subspace shift moves the surviving V-position 1.7 back by 0.2 to 1.5. The new arrangement:
+  `proj(e₁, d, Σ₁) = π(proj(e₁, d, Σ₀)) ∪ ∅ = {1.2, 1.5, 1.6}` ✓
+
+LP-COV holds: `coverage(e₁)` is still `{a₂, a₃, a₄}`. LP-CON holds: `a₂, a₃, a₄ ∈ dom(Σ₁.C)` with the same byte values. LP-NOV is witnessed across Σ₀ → Σ₁: the V-position set changed from `{1.2, 1.3, 1.4}` to `{1.2, 1.5, 1.6}`. LP-NOC is *not* witnessed at this step: cardinality stayed at 3 because K.μ~ is bijective and the K.μ⁺ growth term was empty.
+
+*FEBE DELETEVSPAN at V-span [1.5, 1.7), decomposed as K.μ⁻ ∘ K.μ~.* We trace through each atom.
+
+**Atom 1 — K.μ⁻** on `d` with retention `R_ret = dom(Σ₁.M(d)) \ {1.5, 1.6} = {1.1, 1.2, 1.3, 1.4, 1.7}` realizes the pure restriction `Σ₁.M(d) ↾ R_ret`. The intermediate arrangement Σ₁.⁺K.μ⁻ satisfies:
+
+  `M(d)(1.1) = a₁,  M(d)(1.2) = a₂,  M(d)(1.3) = b₁,  M(d)(1.4) = b₂,  M(d)(1.7) = a₅`
+
+(V-position 1.7 retains its original label.) By LP-CONTR-PURE:
+
+  `proj(e₁, d, after K.μ⁻) = proj(e₁, d, Σ₁) ∩ R_ret = {1.2, 1.5, 1.6} ∩ {1.1, 1.2, 1.3, 1.4, 1.7} = {1.2}`
+
+Cardinality dropped from 3 to 1; the dropped V-positions 1.5 and 1.6 (which mapped to `a₃, a₄`) are no longer in the domain.
+
+**Atom 2 — K.μ~** on `d` relabels the surviving V-position 1.7 backward by 0.2 to 1.5 (closing the gap). The relabel bijection `π'` acts as identity on {1.1, 1.2, 1.3, 1.4} and as `1.7 ↦ 1.5`. The post-state Σ₂ arrangement:
 
   `Σ₂.M(d)(1.1) = a₁,  Σ₂.M(d)(1.2) = a₂,  Σ₂.M(d)(1.3) = b₁,`
   `Σ₂.M(d)(1.4) = b₂,  Σ₂.M(d)(1.5) = a₅`
 
-Projection at Σ₂:
+By LP-REARR:
 
-  `proj(e₁, d, Σ₂) = {v ∈ dom(Σ₂.M(d)) : Σ₂.M(d)(v) ∈ {a₂, a₃, a₄}} = {1.2}`
+  `proj(e₁, d, Σ₂) = π'(proj(e₁, d, after K.μ⁻)) = π'({1.2}) = {1.2}` ✓
 
-*Verification of LP-CONTR composed with within-subspace LP-REARR.* The retention-then-shift bijection `π'` acts as identity on {1.1, 1.2, 1.3, 1.4} and as `1.7 ↦ 1.5`. The composed claim predicts:
+The composed displacement is exactly LP-CONTR-COMP applied to the pair (K.μ⁻, K.μ~):
 
-  `proj(e₁, d, Σ₂) = π'(proj(e₁, d, Σ₁) ∩ R_ret)`
-                    `= π'({1.2, 1.5, 1.6} ∩ {1.1, 1.2, 1.3, 1.4, 1.7})`
-                    `= π'({1.2})`
-                    `= {1.2}` ✓
+  `proj(e₁, d, Σ₂) = π'(proj(e₁, d, Σ₁) ∩ R_ret) = π'({1.2}) = {1.2}` ✓
 
-LP-COV holds: `coverage(e₁)` is still `{a₂, a₃, a₄}`. LP-CON holds: `a₃ ∈ dom(Σ₂.C)` despite being absent from `ran(Σ₂.M(d))` — the I-address persists in the content store; only its V-mapping in `d` was removed. LP-NOC is witnessed: cardinality dropped from 3 to 1. LP-SURV holds: `ran(Σ₂.M(d)) ∩ coverage(e₁) = {a₁, a₂, b₁, b₂, a₅} ∩ {a₂, a₃, a₄} = {a₂} ≠ ∅`, so `proj(e₁, d, Σ₂) ≠ ∅` — Nelson's "anything left at each end" reading holds with `a₂` as the witness.
+LP-COV holds: `coverage(e₁)` is still `{a₂, a₃, a₄}`. LP-CON holds: `a₃ ∈ dom(Σ₂.C)` despite being absent from `ran(Σ₂.M(d))` — the I-address persists in the content store; only its V-mapping in `d` was removed. LP-NOC is witnessed across Σ₁ → Σ₂: cardinality dropped from 3 to 1. LP-SURV holds: `ran(Σ₂.M(d)) ∩ coverage(e₁) = {a₁, a₂, b₁, b₂, a₅} ∩ {a₂, a₃, a₄} = {a₂} ≠ ∅`, so `proj(e₁, d, Σ₂) ≠ ∅` — Nelson's "anything left at each end" reading holds with `a₂` as the witness.
 
-The example verifies LP-EXT (composed with within-subspace LP-REARR) on the INSERT step and LP-CONTR (composed with within-subspace LP-REARR) on the DELETE step, with LP-COV and LP-CON preserved throughout, and LP-NOV (Σ₀ → Σ₁) and LP-NOC (Σ₁ → Σ₂) witnessed at their respective transitions. The link itself — the value `Σ.L(ℓ)` — is unchanged at all three states (LP-IMM, LP-FRAME).
+The example verifies LP-EXT-PURE (atom 3 of INSERT), LP-CONTR-PURE (atom 1 of DELETEVSPAN), LP-REARR (atom 2 of INSERT and atom 2 of DELETEVSPAN), and their compositions LP-EXT-COMP (Σ₀ → Σ₁ overall) and LP-CONTR-COMP (Σ₁ → Σ₂ overall). LP-COV and LP-CON hold throughout. LP-NOV is witnessed at Σ₀ → Σ₁; LP-NOC is witnessed at Σ₁ → Σ₂. The link itself — the value `Σ.L(ℓ)` — is unchanged at all three states (LP-IMM, LP-FRAME).
 
 ## Boundary Cases
 
-We work through cases that test the boundaries of the projection definition. The first six cases test the type signature directly (empty projection, empty endset, zero-width span, exact-coverage deletion, mid-coverage insertion, coverage cluster structure); the remaining cases test the interaction with versioning, ownership, and split coverage.
+We work through cases that test the boundaries of the projection definition. The first six cases probe structural edge behaviors of the projection definition itself — degenerate inputs and the post-state structure under specific composed transitions (empty projection, empty endset, zero-width span, exact-coverage deletion, mid-coverage insertion, coverage cluster structure); the remaining cases test the interaction with versioning, ownership, and split coverage.
 
 **Empty projection.** If `proj(Σ.L(ℓ).eᵢ, d, Σ) = ∅` for every `d`, the endset's coverage has no current V-position in any document. The link still exists (LP-MON); its coverage is still defined (LP-COV); the I-addresses in coverage still hold content if they were ever allocated (LP-CON). The link is *orphaned with respect to placement* but is not invalid. A subsequent K.μ⁺ transition placing any coverage address into some document's arrangement restores a non-empty projection in that document. The link is discoverable (LP-DISC) from no document during the orphan period; once any coverage address is placed, discovery from the receiving document becomes possible.
 
@@ -457,34 +512,34 @@ The composite case — an endset whose every span has zero width — coincides w
 
 In both sub-cases the projection cardinality is `k` (assuming no S5 sharing). The projection definition does not distinguish single-run from multi-run; it returns the set of V-positions, leaving cluster structure to higher layers (rendering, retrieval). The number of V-runs equals the number of maximal V-contiguous segments in `proj(e, d, Σ)`; LP-NOV implies cluster structure is not stable across editing.
 
-The straddling-versus-contained case generalizes: coverage may be split across `m` V-runs in `d` for `1 ≤ m ≤ k`; the projection is the union of `m` contiguous segments. LP-EXT can split a single run by inserting non-coverage content into its middle (see next case); LP-CONTR can merge two runs by deleting non-coverage content between them. The displacement claims do not distinguish single-cluster from multi-cluster projections in their statements; they hold structurally regardless.
+The straddling-versus-contained case generalizes: coverage may be split across `m` V-runs in `d` for `1 ≤ m ≤ k`; the projection is the union of `m` contiguous segments. LP-EXT-COMP can split a single run by inserting non-coverage content into its middle (see next case); LP-CONTR-COMP can merge two runs by deleting non-coverage content between them. The displacement claims do not distinguish single-cluster from multi-cluster projections in their statements; they hold structurally regardless.
 
-**DELETE of the exact coverage range.** Suppose `Σ.M(d)` maps V-positions `[v_lo, v_hi)` to `coverage(eᵢ)` (so `proj(eᵢ, d, Σ) = [v_lo, v_hi)` as a contiguous V-range) and no other V-position in `d` maps to coverage. Apply K.μ⁻ on `d` with retention `R_ret = dom(Σ.M(d)) \ [v_lo, v_hi)`. By LP-CONTR:
+**DELETE of the exact coverage range.** Suppose `Σ.M(d)` maps V-positions `[v_lo, v_hi)` to `coverage(eᵢ)` (so `proj(eᵢ, d, Σ) = [v_lo, v_hi)` as a contiguous V-range) and no other V-position in `d` maps to coverage. Apply the FEBE DELETEVSPAN — decomposed as K.μ⁻ ∘ K.μ~ — with retention `R_ret = dom(Σ.M(d)) \ [v_lo, v_hi)`. By LP-CONTR-PURE applied to the K.μ⁻ atom:
 
-  `proj(eᵢ, d, Σ') = proj(eᵢ, d, Σ) ∩ R_ret = [v_lo, v_hi) ∩ R_ret = ∅`
+  `proj(eᵢ, d, after K.μ⁻) = proj(eᵢ, d, Σ) ∩ R_ret = [v_lo, v_hi) ∩ R_ret = ∅`
 
-The projection collapses to empty *in d*. The coverage I-addresses are unchanged in `dom(Σ.C)` (LP-CON); they are simply no longer in `ran(Σ.M(d))`. The link is now orphaned with respect to `d` but may still project non-trivially in other documents (LP-CROSS).
+By LP-REARR applied to the subsequent K.μ~ atom (relabeling surviving V-positions backward), `proj(eᵢ, d, Σ') = π'(∅) = ∅`. The projection collapses to empty *in d* under either the pure or composed claim — the K.μ~ atom is the identity on the empty set.
+
+The coverage I-addresses are unchanged in `dom(Σ.C)` (LP-CON); they are simply no longer in `ran(Σ.M(d))`. The link is now orphaned with respect to `d` but may still project non-trivially in other documents (LP-CROSS).
 
 This is the *exact-coverage deletion* case, distinguished from *partial-coverage deletion* by the resulting projection cardinality:
 
 - exact-coverage deletion: `R_ret ∩ proj(eᵢ, d, Σ) = ∅`, so `proj(eᵢ, d, Σ') = ∅`;
 - partial-coverage deletion: `∅ ⊊ R_ret ∩ proj(eᵢ, d, Σ) ⊊ proj(eᵢ, d, Σ)`, so `∅ ⊊ proj(eᵢ, d, Σ') ⊊ proj(eᵢ, d, Σ)`.
 
-Both fall under the same claim LP-CONTR; LP-CONTR does not need to distinguish the two — the structural difference is in the resulting cardinality, which is exactly what the intersection `proj ∩ R_ret` reports. The exact case is the wp boundary at which `wp(K.μ⁻, R) = false` (R := projection non-empty in d): the retention removes the last coverage-mapping V-position. After exact deletion, LP-SURV holds vacuously *in d* (since the antecedent is now false), but it may still hold non-vacuously in other documents whose arrangements still map to coverage.
+Both fall under the same pair of claims LP-CONTR-PURE and LP-CONTR-COMP; the claims do not need to distinguish the two — the structural difference is in the resulting cardinality, which is exactly what the intersection `proj ∩ R_ret` reports. The exact case is the wp boundary at which `wp(K.μ⁻, R) = false` (R := projection non-empty in d): the retention removes the last coverage-mapping V-position. After exact deletion, LP-SURV holds vacuously *in d* (since the antecedent is now false), but it may still hold non-vacuously in other documents whose arrangements still map to coverage.
 
 Gregory's implementation evidence confirms the count: at exact-coverage deletion, the implementation produces *zero* projection clusters (the spanning crum is `disown`ed and freed entirely); the projection set is empty.
 
-**INSERT inside a coverage range.** Suppose `proj(eᵢ, d, Σ) = {v_a, v_{a+1}, v_{a+2}, v_{a+3}}` is a four-V-position contiguous run mapping to coverage I-addresses, occupying V-range `[v_a, v_a + 4δ)` for the V-step `δ`. Apply K.μ⁺ on `d` at V-position `v_mid ∈ (v_a + δ, v_a + 3δ)` (strictly between v_{a+1} and v_{a+2}, say), inserting one fresh byte with `Σ'.M(d)(v_mid) = a_new ∉ coverage(eᵢ)` (typical case by T9). The within-subspace shift moves V-positions `v_{a+2}, v_{a+3}` forward by the insertion width. By LP-EXT composed with within-subspace LP-REARR:
+**INSERT inside a coverage range.** Suppose `proj(eᵢ, d, Σ) = {v_a, v_{a+1}, v_{a+2}, v_{a+3}}` is a four-V-position contiguous run mapping to coverage I-addresses, occupying V-range `[v_a, v_a + 4δ)` for the V-step `δ`. Apply the FEBE INSERT mid-subspace — decomposed as K.α ∘ K.μ~ ∘ K.μ⁺ — at V-position `v_mid ∈ (v_a + δ, v_a + 3δ)` (strictly between v_{a+1} and v_{a+2}, say), inserting one fresh byte with `Σ'.M(d)(v_mid) = a_new ∉ coverage(eᵢ)` (typical case by T9). The K.μ~ atom shifts V-positions `v_{a+2}, v_{a+3}` forward by the insertion width `w` via the bijection `π` (identity on `{v_a, v_{a+1}}`, plus `w` on `{v_{a+2}, v_{a+3}}`). The K.μ⁺ atom adds the new V-position `v_mid` mapping to `a_new ∉ coverage`. By LP-EXT-COMP:
 
-  `proj(eᵢ, d, Σ') = π(proj(eᵢ, d, Σ)) ∪ (new V-positions mapping to coverage)`
+  `proj(eᵢ, d, Σ') = π(proj(eᵢ, d, Σ)) ∪ {v_new : Σ'.M(d)(v_new) ∈ coverage(eᵢ)}`
                    `= π({v_a, v_{a+1}, v_{a+2}, v_{a+3}}) ∪ ∅`
                    `= {v_a, v_{a+1}, v_{a+2} + w, v_{a+3} + w}`
 
-where `w` is the insertion width and `π` is the shift bijection that is identity on `{v_a, v_{a+1}}` and adds `w` on `{v_{a+2}, v_{a+3}}`.
-
 The four V-positions remain but now form *two* contiguous clusters separated by the inserted V-position: `{v_a, v_{a+1}}` and `{v_{a+2} + w, v_{a+3} + w}`. The link's endpoint now appears at two non-contiguous V-positions in `d`. The link object, its coverage, and its projection cardinality are all preserved; only the cluster structure has split.
 
-This is the projection-cluster-fragmentation case: a single contiguous V-run is split into two by a mid-range insertion of non-coverage content. From the link holder's perspective, the link's endpoint *fragments* its visual presentation in `d` — the same content is now displayed in two non-adjacent V-runs. The fragmentation cannot decrease the projection cardinality (LP-EXT is monotone) but it can change the cluster count from 1 to 2 (and a sequence of mid-range insertions can fragment the cluster further).
+This is the projection-cluster-fragmentation case: a single contiguous V-run is split into two by a mid-range insertion of non-coverage content. From the link holder's perspective, the link's endpoint *fragments* its visual presentation in `d` — the same content is now displayed in two non-adjacent V-runs. The fragmentation cannot decrease the projection cardinality (LP-EXT-COMP is monotone in `π`, which is a bijection) but it can change the cluster count from 1 to 2 (and a sequence of mid-range insertions can fragment the cluster further).
 
 Gregory's implementation evidence confirms: at mid-coverage INSERT, the implementation produces *two* projection clusters (the spanning crum is split at the insertion point; both halves remain in the POOM and both project independently); the projection set has the same cardinality but two cluster connected components.
 
@@ -496,11 +551,11 @@ For an endset specified at link creation against then-existing content, K.α all
 
 The general statement is more delicate. The link itself never changes; the projection in `d` includes the new V-position iff `a_new ∈ coverage`. There is no rule that "extends" coverage on insertion; the endset's spans are fixed at creation. Whether `a_new` happens to fall within coverage is a mathematical property of the spans, not a structural guarantee of the link.
 
-**Cross-version visibility.** A version `v` of `d` arises by K.δ (with `k = 1`) creating a new document address, followed by K.μ⁺ transitions populating `M(v)`. If `v`'s arrangement transcludes content from `d` that was linked, the coverage I-addresses appear in `ran(M(v))`, and `proj(eᵢ, v, Σ)` is non-empty. The link is discoverable from `v` just as from `d`, with no provenance check (LP-DISC). Subsequent edits to `v` (contraction or rearrangement) displace the projection in `v` per LP-CONTR/LP-REARR, without affecting the projection in `d`. The link itself remains a single object with a single set of endsets, visible through both versions independently.
+**Cross-version visibility.** A version `v` of `d` arises by K.δ (with `k = 1`) creating a new document address, followed by K.μ⁺ transitions populating `M(v)`. If `v`'s arrangement transcludes content from `d` that was linked, the coverage I-addresses appear in `ran(M(v))`, and `proj(eᵢ, v, Σ)` is non-empty. The link is discoverable from `v` just as from `d`, with no provenance check (LP-DISC). Subsequent edits to `v` (contraction or rearrangement) displace the projection in `v` per LP-CONTR-PURE/LP-CONTR-COMP/LP-REARR, without affecting the projection in `d`. The link itself remains a single object with a single set of endsets, visible through both versions independently.
 
 A link created against version `n` of a document is visible through version `n+1` to the extent that version `n+1` transcludes the coverage addresses. The link is not *bound* to version `n`; it is bound to coverage I-addresses, which may appear in any version's arrangement.
 
-**Cross-owner editing.** Consider a link owned by user A (link's home document is owned by A) referencing content allocated by user B (in B's document). B's edits affect projections through B's documents but cannot modify the link's value. LP-FRAME guarantees that K.μ⁻ and K.μ~ on B's document do not touch `Σ.L`. A's link's coverage is unchanged by any of B's edits. The projection of A's link in B's document may displace under rearrangement (LP-REARR), shrink under contraction (LP-CONTR), or remain stable. The link remains A's property; the rendering in B's document follows B's current arrangement.
+**Cross-owner editing.** Consider a link owned by user A (link's home document is owned by A) referencing content allocated by user B (in B's document). B's edits affect projections through B's documents but cannot modify the link's value. LP-FRAME guarantees that K.μ⁻ and K.μ~ on B's document do not touch `Σ.L`. A's link's coverage is unchanged by any of B's edits. The projection of A's link in B's document may displace under rearrangement (LP-REARR), shrink under contraction (LP-CONTR-PURE) or contraction-with-shift (LP-CONTR-COMP), or remain stable. The link remains A's property; the rendering in B's document follows B's current arrangement.
 
 A could in principle remove the link from her own document's V-arrangement of the link subspace via K.μ⁻ on subspace `s_L`. This removes the link's V-position in A's home document but does not remove it from `dom(L)` (LP-MON) — link addresses are permanent, and the link's value, coverage, and discoverability are unaffected.
 
@@ -535,28 +590,32 @@ The link holder's reliance is precisely characterized: durable identity (I-addre
 
 ## Claims Introduced
 
-Nineteen claims, organized as two foundational definitions, six still-point invariants, one operation-to-mode surjection, four displacement modes, two derived guarantees, three non-invariants, and one frame condition.
+Twenty-three claims, organized as three foundational definitions, six still-point invariants, two operation-coverage claims, three pure-atom displacement modes, two composed displacement modes, one cross-document independence, two derived guarantees, three non-invariants, and one frame condition.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| `proj` | `proj : Endset × Σ.E_doc × State → ℘_fin(T)`, with `proj(e, d, Σ) = {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(e)}` | introduced |
+| `proj` | `proj : (Σ : State) → Endset → (d : Σ.E_doc) → ℘_fin(dom(Σ.M(d)))` (dependent), with `proj(e, d, Σ) = {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(e)}`; undefined when `d ∉ Σ.E_doc` | introduced |
 | `render` | `render(ℓ, d, Σ) = ⟨proj(Σ.L(ℓ).eᵢ, d, Σ) : i = 1..|Σ.L(ℓ)|⟩` | introduced |
+| `footprint` | `footprint(ℓ, i, Σ) = {d ∈ Σ.E_doc : proj(Σ.L(ℓ).eᵢ, d, Σ) ≠ ∅}` | introduced |
 | LP-IMM | `(A Σ → Σ', ℓ ∈ dom(Σ.L) :: Σ'.L(ℓ) = Σ.L(ℓ))` | introduced |
 | LP-COV | `(A Σ → Σ', ℓ ∈ dom(Σ.L), i :: coverage(Σ'.L(ℓ).eᵢ) = coverage(Σ.L(ℓ).eᵢ))` | introduced |
-| LP-CON | `(A Σ → Σ', a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))` — content under coverage persists | introduced |
+| LP-CON | `(A Σ → Σ', a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))` — content allocation persistence (statement scoped to allocated coverage; speculative-coverage addresses gain a value only upon their eventual K.α allocation) | introduced |
 | LP-MON | `(A Σ → Σ' :: dom(Σ.L) ⊆ dom(Σ'.L))` — link addresses permanent | introduced |
 | LP-SLOT | Slot index of each endset is positional and permanent across state transitions | introduced |
 | LP-TYPE | `(A Σ → Σ', ℓ ∈ dom(Σ.L) :: Σ'.L(ℓ).type = Σ.L(ℓ).type)` | introduced |
-| LP-MAP | Every FEBE editing/document operation that can change `proj(e, d, Σ)` decomposes into K.μ⁺ / K.μ⁺_L / K.μ⁻ / K.μ~ (possibly composed with K.α, K.λ, K.δ); each arrangement transition reduces to LP-EXT, LP-CONTR, LP-REARR, or LP-FRAME on the projection | introduced |
-| LP-REARR | Under K.μ~ on `d` with bijection `π`: `proj(e, d, Σ') = π(proj(e, d, Σ))` | introduced |
-| LP-CONTR | Under K.μ⁻ on `d` with retention `R`: `proj(e, d, Σ') = proj(e, d, Σ) ∩ R` (composed with within-subspace LP-REARR when DELETE shifts subsequent V-positions) | introduced |
-| LP-EXT | Under K.μ⁺/K.μ⁺_L on `d`: `proj(e, d, Σ') ⊇ proj(e, d, Σ)`, with new V-positions iff their I-addresses are in coverage (composed with within-subspace LP-REARR when INSERT shifts subsequent V-positions) | introduced |
+| LP-MAP | Of the seventeen FEBE commands, the eight arrangement-modifying commands (INSERT, APPEND, COPY/VCOPY, DELETEVSPAN, REARRANGE, MAKELINK, CREATENEWDOCUMENT, CREATENEWVERSION) decompose into pure atoms K.α, K.λ, K.δ, K.ρ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~; each atom induces LP-EXT-PURE, LP-CONTR-PURE, LP-REARR, or LP-FRAME on the projection | introduced |
+| LP-FRAME-READ | The nine read-only FEBE commands (RETRIEVEV, RETRIEVEDOCVSPAN, RETRIEVEDOCVSPANSET, RETRIEVEENDSETS, FINDLINKSFROMTOTHREE, FINDNUMOFLINKSFROMTOTHREE, FINDNEXTNLINKSFROMTOTHREE, FINDDOCSCONTAINING, SHOWRELATIONOF2VERSIONS) modify no state component; `(A e, d, ℓ :: proj' = proj ∧ Σ'.L(ℓ) = Σ.L(ℓ))` | introduced |
+| LP-REARR | Under pure K.μ~ on `d` with bijection `π`: `proj(e, d, Σ') = π(proj(e, d, Σ))` | introduced |
+| LP-CONTR-PURE | Under pure K.μ⁻ on `d` with retention `R` and `Σ'.M(d) = Σ.M(d) ↾ R` (no relabeling): `proj(e, d, Σ') = proj(e, d, Σ) ∩ R` | introduced |
+| LP-EXT-PURE | Under pure K.μ⁺/K.μ⁺_L on `d` adding mappings at V-positions disjoint from `dom(Σ.M(d))` (no relabeling): `proj(e, d, Σ') = proj(e, d, Σ) ∪ {v_new : Σ'.M(d)(v_new) ∈ coverage(e)}`; in particular `proj' ⊇ proj` | introduced |
+| LP-CONTR-COMP | Under composition K.μ~ ∘ K.μ⁻ on `d` (retention `R_ret`, then bijection `π'` relabeling survivors): `proj(e, d, Σ'') = π'(proj(e, d, Σ) ∩ R_ret)` — derived consequence of LP-CONTR-PURE ∘ LP-REARR | introduced |
+| LP-EXT-COMP | Under composition K.μ~ ∘ K.μ⁺ on `d` (bijection `π` relabeling pre-existing V-positions, then K.μ⁺ adding new mappings): `proj(e, d, Σ'') = π(proj(e, d, Σ)) ∪ {v_new : Σ''.M(d)(v_new) ∈ coverage(e)}` — derived consequence of LP-REARR ∘ LP-EXT-PURE | introduced |
 | LP-CROSS | For any arrangement transition on `d` and any `d' ≠ d`: `proj(e, d', Σ') = proj(e, d', Σ)` | introduced |
 | LP-SURV | `proj(e, d, Σ) ≠ ∅  ⟺  ran(Σ.M(d)) ∩ coverage(e) ≠ ∅`; derived from `proj_def` at a single state; lifted across transitions via LP-IMM ⇒ LP-COV ⇒ stability of coverage | introduced |
-| LP-DISC | `ℓ` discoverable from `(d, [v_lo, v_hi))` iff some endset's coverage intersects the V-range's images in `M(d)`; derived from LP-COV ∧ LP-MON ∧ LP-SLOT ∧ LP-CROSS ∧ `proj_def` | introduced |
+| LP-DISC | `ℓ` discoverable from `(d, [v_lo, v_hi))` iff some endset's coverage intersects the V-range's images in `M(d)`; the iff holds *by definition* (`discoverable` is defined by the right-hand side); well-formedness audited via LP-COV ∧ LP-MON ∧ LP-SLOT ∧ LP-CROSS ∧ `proj_def` | introduced |
 | LP-NOV | V-positions in `proj(Σ.L(ℓ).eᵢ, d, Σ)` are not stable; witness: K.μ⁺ inserting non-coverage content into a non-empty subspace at a position with coverage-mapping V-positions downstream | introduced |
 | LP-NOC | `|proj(Σ.L(ℓ).eᵢ, d, Σ)|` is not stable; witnesses: K.μ⁻ with retention dropping a coverage-mapping V-position (shrinkage); K.μ⁺ transcluding a coverage I-address at a new V-position (growth) | introduced |
-| LP-NOD | The footprint `{d : proj(Σ.L(ℓ).eᵢ, d, Σ) ≠ ∅}` is not stable; witnesses: K.μ⁺ on a new document placing a coverage I-address (growth); K.μ⁻ removing the last coverage-mapping V-position in some document (shrinkage) | introduced |
+| LP-NOD | `footprint(ℓ, i, Σ)` is not stable; witnesses: K.μ⁺ on a new document placing a coverage I-address (growth); K.μ⁻ removing the last coverage-mapping V-position in some document (shrinkage) | introduced |
 | LP-FRAME | Arrangement transitions (K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~) do not modify `Σ.L`; allocation transitions (K.α, K.λ, K.δ, K.ρ) do not modify any existing `Σ.M(d)` | introduced |
 
 ## Open Questions
@@ -575,7 +634,7 @@ What invariants govern the projection when an endset's coverage spans I-addresse
 
 What guarantees does the system provide about projection composition — when one link's endset references the address of a second link, does projecting the second link's endsets through some document yield a meaningful transitive projection of the first?
 
-Under what conditions can a fresh K.α allocation produce an I-address that falls within an existing endset's coverage, and what abstract characterization of "well-behaved endset specifications" rules out this case?
+What abstract characterization of "well-behaved endset specifications" — beyond the ownership-scope, span-precision, and query-precision considerations sketched in LP-CON — distinguishes endsets that intend forward-reference (covering future allocations as designed) from endsets whose forward-reference would be a specification accident?
 
 What guarantees about projection consistency hold across the lifetime of a single FOLLOWLINK-style operation — does the projection observed by a reader reflect a single state, and what mechanism ensures this against concurrent state transitions?
 
