@@ -260,8 +260,11 @@ def _classify(a: AsnAudit) -> str:
             # Substrate is fine; deps don't resolve at loader time (e.g.,
             # dep note has no sidecar yet — downstream pipeline state).
             return "DEPS_UNRESOLVABLE"
-        # HEALTHY requires fan-out shape (one bundled link); otherwise NEW_ONLY
-        if len(a.inquiry_link_shapes) == 1 and a.inquiry_link_shapes[0].startswith("fanout"):
+        # HEALTHY iff substrate has exactly ONE inquiry-side link
+        # covering all declared deps. For single-dep ASNs this is a
+        # `pair`; for multi-dep ASNs it must be `fanout(N)`. Multiple
+        # links (one-per-target legacy shape) is NEW_ONLY.
+        if len(a.inquiry_link_shapes) == 1:
             return "HEALTHY"
         return "NEW_ONLY"
     # Note-side only with frontmatter declared — call it MIXED, since
