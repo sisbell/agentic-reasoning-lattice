@@ -72,6 +72,8 @@ The projection, in contrast, is computed afresh in each state.
 
 `(A Σ, Σ', d, e : Σ.M(d) = Σ'.M(d) : proj(d, e, Σ) = proj(d, e, Σ'))`
 
+*Proof.* By definition, `proj(d, e, Σ) = {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ cov(e)}`. The defining set is syntactically a function of two operands: the partial map `Σ.M(d)` (consulted both for its domain and pointwise for the membership predicate) and the address set `cov(e)`. Given `Σ.M(d) = Σ'.M(d)`, both operands of the definition agree between `Σ` and `Σ'`, so the defined sets `{v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ cov(e)}` and `{v ∈ dom(Σ'.M(d)) : Σ'.M(d)(v) ∈ cov(e)}` are element-wise identical. □
+
 If two states agree on `M(d)`, their projections into `d` agree, irrespective of any other difference. In particular, the projection does not depend on:
 
 - which document allocated `ℓ` (its origin, derivable via L1c of ASN-0043 from `ℓ`'s tumbler — but never consulted);
@@ -92,6 +94,8 @@ A single link projects into many documents simultaneously; each projection is de
 **Π7 (CoverageEquivalence).** Two endsets with identical coverage produce identical projections:
 
 `cov(e₁) = cov(e₂) ⟹ (A d, Σ :: proj(d, e₁, Σ) = proj(d, e₂, Σ))`
+
+*Proof.* By definition, `proj(d, eⱼ, Σ) = {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ cov(eⱼ)}` for `j ∈ {1, 2}`. The endset operand enters this definition only through `cov(·)`; nothing else about `eⱼ` is consulted. Under the hypothesis `cov(e₁) = cov(e₂)`, the membership predicates `Σ.M(d)(v) ∈ cov(e₁)` and `Σ.M(d)(v) ∈ cov(e₂)` coincide pointwise, so the two defined sets are equal. □
 
 Different span decompositions of the same coverage set are projection-indistinguishable. Coverage — not the literal span tuple — is the observable through projection.
 
@@ -203,7 +207,11 @@ The document-targeted arrangement operations `K.μ⁻`, `K.μ⁺`, `K.μ~` (per 
 
 `(A d, e :: proj(d, e, Σ) = proj(d, e, Σ'))`
 
-across every `K.α`-transition. A newly allocated content address is not in any arrangement until a subsequent `K.μ⁺` places it; its presence in `dom(C)` alone does not affect any existing projection.
+across every `K.α`-transition.
+
+*Proof.* The K.α frame condition (ASN-0047) writes only to `Σ.C`: every `M(d)` is in K.α's read-only frame, so `Σ'.M(d) = Σ.M(d)` for every `d ∈ E_doc`. By Π5, `Σ.M(d) = Σ'.M(d)` gives `proj(d, e, Σ) = proj(d, e, Σ')` for every endset `e`. Universally quantifying over `d` and `e` discharges the claim. □
+
+A newly allocated content address is not in any arrangement until a subsequent `K.μ⁺` places it; its presence in `dom(C)` alone does not affect any existing projection.
 
 A separate question — distinct from this frame condition — is whether the newly allocated address may already lie in `cov(eᵢ)` for some pre-existing link's endset `eᵢ`. The frame condition above is unconditional: `K.α` alone does not change any `M(d)`, so the projection cannot change at the `K.α` step, regardless of whether the new address lies in some endset's coverage. The interaction only manifests at a subsequent `K.μ⁺` that arranges the new address; whether that arrangement enters some projection depends on coverage, which is decided at link creation.
 
@@ -220,7 +228,11 @@ The consultation evidence indicates that the design intent (Nelson) is CCR-open:
 
 `(A d, e :: proj(d, e, Σ) = proj(d, e, Σ'))`
 
-across every `K.λ`-transition. Applied pointwise to endsets of pre-existing links — for every `ℓ ∈ dom(Σ.L)` and slot index `i`, instantiate the universally quantified equation with `e := Σ.L(ℓ).eᵢ` — this yields `proj(d, ℓ, i, Σ) = proj(d, ℓ, i, Σ')`. The newly allocated link's endsets exist in `Σ'.L` but not in `Σ.L`; there is no projection to compare for the new link, only forward from `Σ'`.
+across every `K.λ`-transition.
+
+*Proof.* The K.λ frame condition (ASN-0047) writes only to `Σ.L`: every `M(d)` is in K.λ's read-only frame, so `Σ'.M(d) = Σ.M(d)` for every `d ∈ E_doc`. By Π5, `Σ.M(d) = Σ'.M(d)` gives `proj(d, e, Σ) = proj(d, e, Σ')` for every endset `e`. Universally quantifying over `d` and `e` discharges the claim. □
+
+Applied pointwise to endsets of pre-existing links — for every `ℓ ∈ dom(Σ.L)` and slot index `i`, instantiate the universally quantified equation with `e := Σ.L(ℓ).eᵢ` — this yields `proj(d, ℓ, i, Σ) = proj(d, ℓ, i, Σ')`. The newly allocated link's endsets exist in `Σ'.L` but not in `Σ.L`; there is no projection to compare for the new link, only forward from `Σ'`.
 
 ## Independence from Arrangement
 
@@ -230,7 +242,9 @@ The structure of `Σ.L` is logically independent of the structure of any `Σ.M(d
 
 `ℓ ∈ dom(Σ.L) ∧ ¬(E d ∈ E_doc, v ∈ dom(Σ.M(d)) :: Σ.M(d)(v) = ℓ)`
 
-*Proof.* `K.λ` (ASN-0047) allocates `ℓ` by adding it to `dom(L)` and is constrained by Π14 to leave every `M(d)` untouched. Let `Σ_pre` be the state immediately before such a `K.λ`; let `Σ` be the immediate successor. Then `ℓ ∈ dom(Σ.L)`, and for every `d ∈ E_doc`, `Σ.M(d) = Σ_pre.M(d)`. Since `ℓ ∉ dom(Σ_pre.L)`, no `M(d)` in `Σ_pre` could have mapped any V-position to `ℓ` (an arrangement value must reference an allocated address), and so the same holds in `Σ`. The witness exists. □
+*Proof.* `K.λ` (ASN-0047) allocates `ℓ` by adding it to `dom(L)` and is constrained by Π14 to leave every `M(d)` untouched. Let `Σ_pre` be the state immediately before such a `K.λ`; let `Σ` be the immediate successor. Then `ℓ ∈ dom(Σ.L)`, and for every `d ∈ E_doc`, `Σ.M(d) = Σ_pre.M(d)`.
+
+We verify that no `M(d)` in `Σ_pre` maps any V-position to `ℓ`. By S3 (ReferentialIntegrity, ASN-0036), `ran(Σ_pre.M(d)) ⊆ dom(Σ_pre.C)` for every `d ∈ E_doc` — every arrangement value must lie in the content store's domain in the same state. The K.λ allocator discipline (L1c, ASN-0043, derived from T10a's GlobalUniqueness) produces a link address `ℓ` fresh with respect to the prior allocation state; in particular `ℓ ∉ dom(Σ_pre.L)`, and under the disjointness `dom(Σ.L) ∩ dom(Σ.C) = ∅` derived from L14/L0a (ASN-0043) for `s_C`-resident content, `ℓ ∉ dom(Σ_pre.C)` either. Combining: `ℓ ∉ dom(Σ_pre.C)` together with `ran(Σ_pre.M(d)) ⊆ dom(Σ_pre.C)` yields `ℓ ∉ ran(Σ_pre.M(d))`. Since `Σ.M(d) = Σ_pre.M(d)`, the same holds in `Σ`. The witness exists. □
 
 **Π15b (ReverseOrphaningPreservesL).** For any K.μ⁻ transition `Σ → Σ'` on some `M(d)` that drops a V-position `v` previously arranging `ℓ` (`Σ.M(d)(v) = ℓ`):
 
@@ -252,19 +266,29 @@ The forward projection direction — link to V-positions — has a backward dual
 
 `reaches(ℓ, d, V_q, Σ) ≡ (E i :: proj(d, ℓ, i, Σ) ∩ V_q ≠ ∅)`
 
-Equivalently:
+This V-side definition has an I-side equivalent that re-expresses reach in terms of the V-region's I-image:
 
-`reaches(ℓ, d, V_q, Σ) ≡ (E i :: cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q}) ≠ ∅)`
+`reaches(ℓ, d, V_q, Σ) ⟺ (E i :: cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q}) ≠ ∅)`
+
+*Proof of equivalence.* For each slot `i`, we show that `proj(d, ℓ, i, Σ) ∩ V_q ≠ ∅ ⟺ cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q}) ≠ ∅`; existential quantification over slots then gives the full claim. This is the bridge equality (proved at the definition of `iproj`) restricted to `V_q`.
+
+(⟹): Let `v ∈ proj(d, ℓ, i, Σ) ∩ V_q`. From `v ∈ proj(d, ℓ, i, Σ)`, `v ∈ dom(Σ.M(d))` and `Σ.M(d)(v) ∈ cov(Σ.L(ℓ).eᵢ)`. Combined with `v ∈ V_q`, we have `v ∈ V_q ∩ dom(Σ.M(d)) = dom(Σ.M(d)|_{V_q})`, hence `Σ.M(d)(v) ∈ ran(Σ.M(d)|_{V_q})`. Combined with `Σ.M(d)(v) ∈ cov(Σ.L(ℓ).eᵢ)`, the intersection `cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q})` is non-empty.
+
+(⟸): Let `α ∈ cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q})`. From `α ∈ ran(Σ.M(d)|_{V_q})`, pick `v ∈ dom(Σ.M(d)|_{V_q}) = V_q ∩ dom(Σ.M(d))` with `Σ.M(d)(v) = α`. Then `Σ.M(d)(v) = α ∈ cov(Σ.L(ℓ).eᵢ)` and `v ∈ dom(Σ.M(d))`, so `v ∈ proj(d, ℓ, i, Σ)`. Combined with `v ∈ V_q`, the intersection `proj(d, ℓ, i, Σ) ∩ V_q` is non-empty. □
 
 **Π16 (ReachLocality).** Whether a link reaches a V-region is computable from `Σ.L`, `Σ.M(d)|_{V_q}`, and the region `V_q` alone:
 
 `(A Σ, Σ', ℓ, d, V_q : Σ.L = Σ'.L ∧ Σ.M(d)|_{V_q} = Σ'.M(d)|_{V_q} : reaches(ℓ, d, V_q, Σ) ⟺ reaches(ℓ, d, V_q, Σ'))`
 
+*Proof.* We invoke the I-side equivalent of `reaches` proved above. From `Σ.L = Σ'.L` we obtain `Σ.L(ℓ).eᵢ = Σ'.L(ℓ).eᵢ` for every slot `i`, hence `cov(Σ.L(ℓ).eᵢ) = cov(Σ'.L(ℓ).eᵢ)`. From `Σ.M(d)|_{V_q} = Σ'.M(d)|_{V_q}` — equality of partial maps on the same domain — we obtain `ran(Σ.M(d)|_{V_q}) = ran(Σ'.M(d)|_{V_q})`. Both operands of the intersection `cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q})` therefore agree between `Σ` and `Σ'`, so the intersection is non-empty in `Σ` iff non-empty in `Σ'`. Existential quantification over slots preserves the equivalence: `reaches(ℓ, d, V_q, Σ) ⟺ reaches(ℓ, d, V_q, Σ')`. □
+
 No provenance — neither the document that allocated `ℓ`, nor the document where the I-addresses originated, nor any history of which document first arranged those I-addresses — participates in the reach relation. The relation is intrinsic to the current state.
 
 **Π17 (PartialReach).** Non-empty intersection of coverage with the V-region's image suffices for reach:
 
-`(E α : α ∈ cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q}) :: reaches(ℓ, d, V_q, Σ))`
+`cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q}) ≠ ∅ ⟹ reaches(ℓ, d, V_q, Σ)`
+
+*Proof.* Assume `cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)|_{V_q}) ≠ ∅`. Pick a witness `α` in the intersection. From `α ∈ ran(Σ.M(d)|_{V_q})` we obtain a V-position `v ∈ V_q ∩ dom(Σ.M(d))` with `Σ.M(d)(v) = α`. Combined with `α ∈ cov(Σ.L(ℓ).eᵢ)`, we have `Σ.M(d)(v) ∈ cov(Σ.L(ℓ).eᵢ)`, hence `v ∈ proj(d, ℓ, i, Σ)` by definition of `proj`. Since additionally `v ∈ V_q`, `v ∈ proj(d, ℓ, i, Σ) ∩ V_q`, so this intersection is non-empty. Existentially quantifying over slots, `reaches(ℓ, d, V_q, Σ)` holds by definition. □
 
 A region that arranges only some I-addresses of `cov(eᵢ)` — for instance, a document that transcludes only a few bytes of a longer linked passage — still discovers the link through those bytes. Reach is intersection, not containment.
 
@@ -383,7 +407,7 @@ The projection in `d`:
 - `proj(d, e, Σ₃) = {v ∈ {3} : Σ₃.M(d)(v) ∈ {a₅, a₆, a₇}} = ∅` — no projecting V-position survives.
 - `iproj(d, e, Σ₃) = {a₅, a₆, a₇} ∩ {a₈} = ∅` — no coverage address remains in range.
 
-Check against the wp characterization derived above: `wp(K.μ⁻[V_drop], iproj(d, e) ≠ ∅) ≡ proj(d, e, Σ₂) ⊄ V_drop`. Here `proj(d, e, Σ₂) = {0, 2} ⊆ {0, 2} = V_drop`, so the precondition for non-empty post-projection fails — and indeed `iproj(d, e, Σ₃) = ∅`. ✓
+Check against the wp characterization derived in §Weakest Preconditions below: `wp(K.μ⁻[V_drop], iproj(d, e) ≠ ∅) ≡ proj(d, e, Σ₂) ⊄ V_drop`. Here `proj(d, e, Σ₂) = {0, 2} ⊆ {0, 2} = V_drop`, so the precondition for non-empty post-projection fails — and indeed `iproj(d, e, Σ₃) = ∅`. ✓
 
 Also check Π11(d) (transition closed form). Here `Δran⁻ = ran(Σ₂.M(d)) ∖ ran(Σ₃.M(d)) = {a₇, a₅, a₈} ∖ {a₈} = {a₅, a₇}` and `Δran⁺ = {a₈} ∖ {a₇, a₅, a₈} = ∅` (K.μ⁻ adds no new range-values). The closed form predicts `iproj(d, e, Σ₃) = (iproj(d, e, Σ₂) ∖ Δran⁻) ∪ (cov(e) ∩ Δran⁺) = ({a₅, a₇} ∖ {a₅, a₇}) ∪ (cov(e) ∩ ∅) = ∅ ∪ ∅ = ∅`. ✓
 
@@ -461,7 +485,7 @@ The same projection function governs three operational scenarios, each a differe
 
 **Mode I: Editing.** A sequence of `K.μ⁺`, `K.μ⁻`, `K.μ~` operations on `M(d)` modifies how content is arranged in document `d`. The link's structure is untouched (R1–R4). The projection in `d` follows the content via I-address identity (Π11): V-positions may shift under rearrangement (Π10); the projection may narrow under contraction (Π9) or grow under extension (Π8). In every case, every I-address in `cov(eᵢ)` that survives in `ran(M(d))` is still in `iproj(d, ℓ, i, Σ)`, and the V-position currently realizing it is in `proj(d, ℓ, i, Σ)`. The strap stays attached to the bytes; only their current V-positions change.
 
-The boundary insertion case is contingent on CCR-restricted: when `K.α` allocates a new content address `a_new` and a subsequent `K.μ⁺` places `a_new` in `M(d)` adjacent to or amid a linked region, `a_new ∉ cov(eᵢ)` *provided* CCR-restricted held at link creation, since under that rule `cov(eᵢ) ⊆ dom(Σ₀.C)` and `a_new ∉ dom(Σ₀.C)`. Under CCR-restricted no "boundary rule" is needed; the I-address algebra excludes the new bytes by construction. Under CCR-open, a ghost endset may already cover `a_new`, and the projection grows accordingly — by design, not by accident (R13 conditional).
+The boundary insertion case is contingent on CCR-restricted: when `K.α` allocates a new content address `a_new` and a subsequent `K.μ⁺` places `a_new` in `M(d)` adjacent to or amid a linked region, `a_new ∉ cov(eᵢ)` *provided* CCR-restricted held at link creation. The chain of justification has three steps. (i) The K.α allocator discipline (ASN-0047, drawing on T10a's GlobalUniqueness) produces `a_new` fresh with respect to the K.α-pre-state `Σ_k`: `a_new ∉ dom(Σ_k.C)`. (ii) S1 (StoreMonotonicity, ASN-0036) gives `dom(Σ₀.C) ⊆ dom(Σ_k.C)` for any forward-reachable `Σ₀ → ... → Σ_k`. (iii) Contrapositively, freshness at `Σ_k` (`a_new ∉ dom(Σ_k.C)`) combined with the inclusion `dom(Σ₀.C) ⊆ dom(Σ_k.C)` yields `a_new ∉ dom(Σ₀.C)`. Under CCR-restricted, `cov(eᵢ) ⊆ dom(Σ₀.C)`, so `a_new ∉ cov(eᵢ)`. Under CCR-restricted no "boundary rule" is needed; the I-address algebra excludes the new bytes by construction. Under CCR-open, a ghost endset may already cover `a_new`, and the projection grows accordingly — by design, not by accident (R13 conditional).
 
 **Mode II: Versioning and Transclusion.** This mode depends on a structural property of versioning operations that we now state and name explicitly, rather than borrowing it from another ASN.
 
