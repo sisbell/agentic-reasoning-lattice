@@ -57,7 +57,7 @@ from lib.predicates import derived_claims
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import assemble_readonly, find_asn, log_usage, read_file
-from lib.shared.foundation import load_foundation_for_note
+from lib.shared.foundation import FoundationError, load_foundation
 from lib.shared.invoke_claude import invoke_claude, invoke_claude_agent
 from lib.shared.paths import (
     CLAIM_REVIEWS_DIR, LATTICE,
@@ -156,7 +156,14 @@ def _patch_scoped_review(
     LLM failure."""
     asn_content = assemble_readonly(asn_label, claim_base_dir)
     vocabulary = read_file(resolve_campaign(asn_num).vocabulary_path)
-    foundation = load_foundation_for_note(asn_path, asn_num)
+    try:
+        foundation = load_foundation(asn_num)
+    except FoundationError as e:
+        print(
+            f"  [FOUNDATION] {asn_label}: {e}",
+            file=sys.stderr,
+        )
+        return None
 
     template = read_prompt(REVIEW_TEMPLATE)
     if not template:

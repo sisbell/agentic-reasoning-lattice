@@ -63,7 +63,7 @@ from lib.lattice.labels import extract_label_digits, format_label
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, log_usage, read_file
-from lib.shared.foundation import load_foundation_for_note
+from lib.shared.foundation import FoundationError, load_foundation
 from lib.shared.invoke_claude import invoke_claude, invoke_claude_agent
 from lib.shared.paths import (
     LATTICE, NOTE_FINDINGS_DIR, NOTE_REVIEWS_DIR,
@@ -161,7 +161,14 @@ def _patch_scoped_review(
     LLM failure."""
     asn_content = asn_path.read_text()
     vocabulary = read_file(resolve_campaign(asn_num).vocabulary_path)
-    foundation = load_foundation_for_note(asn_path, asn_num)
+    try:
+        foundation = load_foundation(asn_num)
+    except FoundationError as e:
+        print(
+            f"  [FOUNDATION] {asn_label}: {e}",
+            file=sys.stderr,
+        )
+        return None
 
     template = read_prompt(REVIEW_TEMPLATE)
     if not template:

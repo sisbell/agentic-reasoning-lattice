@@ -33,7 +33,7 @@ from lib.protocols.febe.session import open_session
 from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
-from lib.shared.foundation import load_foundation_for_note
+from lib.shared.foundation import FoundationError, load_foundation
 from lib.shared.invoke_claude import invoke_claude_agent
 from lib.shared.paths import (
     LATTICE, NOTE_DIR, USAGE_LOG, WORKSPACE,
@@ -192,10 +192,14 @@ def _run_discovery(inquiry, asn_number, slug, force=False):
     )
 
     vocab = read_file(resolve_campaign(asn_number).vocabulary_path)
-    # Foundation deps come from substrate citations on the inquiry md.
-    foundation = load_foundation_for_note(
-        inquiry_doc_path(asn_number), asn_number,
-    )
+    try:
+        foundation = load_foundation(asn_number)
+    except FoundationError as e:
+        print(
+            f"  [FOUNDATION] {format_label(asn_number)}: {e}",
+            file=sys.stderr,
+        )
+        return None
     out_of_scope = inquiry.get("out_of_scope", "")
     scope_note = (f"\n5. The following topics are OUT OF SCOPE for this ASN — "
                   f"do not define claims or operations for them, even if the "

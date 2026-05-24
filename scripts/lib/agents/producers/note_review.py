@@ -36,7 +36,7 @@ from lib.lattice.labels import (
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
-from lib.shared.foundation import load_foundation_for_note
+from lib.shared.foundation import FoundationError, load_foundation
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
     NOTE_FINDINGS_DIR, REVIEWS_DIR, USAGE_LOG, WORKSPACE,
@@ -221,7 +221,17 @@ class NoteReviewAgent(Agent):
         asn_content = asn_path.read_text()
         vocabulary = read_file(resolve_campaign(asn_label).vocabulary_path)
         out_of_scope = _load_out_of_scope(asn_number)
-        foundation = load_foundation_for_note(asn_path, asn_number)
+        try:
+            foundation = load_foundation(asn_number)
+        except FoundationError as e:
+            print(
+                f"  [FOUNDATION] {asn_label}: {e}",
+                file=sys.stderr,
+            )
+            return AgentResult(
+                success=False,
+                detail=f"foundation-load-failed: {e}",
+            )
         anti_bloat = bool(
             session.active_links(
                 "review-mode.anti-bloat", to_set=[note_addr],

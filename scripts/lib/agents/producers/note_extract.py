@@ -68,7 +68,7 @@ from lib.lattice.labels import format_label, label_pattern
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, log_usage, read_file
 from lib.shared.foundation import (
-    find_extensions, load_foundation_for_note,
+    FoundationError, find_extensions, load_foundation,
 )
 from lib.shared.frontmatter import read_doc_with_frontmatter
 from lib.shared.git_ops import step_commit
@@ -366,9 +366,17 @@ class NoteExtractAgent(Agent):
             read_claim_statements_view(session, absorb_into_label)
             or "(no claim-statements export available)"
         )
-        foundation = load_foundation_for_note(
-            absorb_into_path, absorb_into,
-        )
+        try:
+            foundation = load_foundation(absorb_into)
+        except FoundationError as e:
+            print(
+                f"  [FOUNDATION] {absorb_into_label}: {e}",
+                file=sys.stderr,
+            )
+            return AgentResult(
+                success=False,
+                detail=f"foundation-load-failed: {e}",
+            )
 
         # 6. Build prompt
         prompt = _build_prompt(

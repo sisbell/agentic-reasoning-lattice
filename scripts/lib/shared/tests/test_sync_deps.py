@@ -141,10 +141,12 @@ def test_plan_for_asn_0088_raises_when_dep_unresolvable() -> None:
     assert plan.inquiry_addr is not None
 
 
-def test_plan_for_asn_with_missing_depends_field_raises() -> None:
-    """ASN-0036 has no `depends:` field in frontmatter. The planner
-    (via _read_inquiry_depends) should raise FoundationError."""
+def test_plan_for_asn_with_no_inquiry_file_raises() -> None:
+    """ASN-0086 (a hand-authored protocol note) has no inquiry file.
+    The planner (via _read_inquiry_depends) should raise
+    FoundationError. The specific failure mode is "inquiry file
+    missing" but we just assert SOME FoundationError is raised."""
+    from lib.shared.foundation import FoundationError
     with _open_session() as session:
-        with pytest.raises(Exception) as exc_info:
-            plan_reconciliation(session, 36)
-        assert "depends" in str(exc_info.value).lower()
+        with pytest.raises(FoundationError):
+            plan_reconciliation(session, 86)
