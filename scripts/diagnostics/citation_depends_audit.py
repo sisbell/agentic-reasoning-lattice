@@ -9,15 +9,18 @@ Reports, per active ASN:
   - End-to-end loader test (does load_foundation_for_note return non-empty?)
 
 Classifies each ASN into one of:
-  HEALTHY     — frontmatter matches inquiry-side fan-out, zero note-side, all deps resolve
-  EMPTY_OK    — `depends: []` declared, zero substrate (foundation-ASN case)
-  NEW_ONLY    — frontmatter declared, inquiry-side citations only (any shape), resolves
-  LEGACY      — no frontmatter, note-side substrate citations present (loads fine — needs frontmatter backfill before retiring note-side)
-  MIXED       — substrate citations on BOTH inquiry-side AND note-side
-  DEFUNCT     — no frontmatter and no substrate at all (pre-modern / unused ASN; not a problem, just not part of operational lattice)
-  BROKEN      — frontmatter declared deps but loader fails resolution, OR frontmatter declared but substrate empty on both sides
+  HEALTHY            — frontmatter matches inquiry-side fan-out, zero note-side, all deps resolve
+  EMPTY_OK           — `depends: []` declared, zero substrate (foundation-ASN case)
+  NEW_ONLY           — frontmatter declared, inquiry-side citations only (one-per-target shape), all deps resolve
+  DEPS_UNRESOLVABLE  — substrate shape matches frontmatter, but per-dep resolution fails (e.g., dep note has no .statements.md sidecar yet — downstream pipeline state, not a substrate issue)
+  LEGACY             — no frontmatter, note-side substrate citations present (loads fine — needs frontmatter backfill before retiring note-side)
+  MIXED              — substrate citations on BOTH inquiry-side AND note-side
+  DEFUNCT            — no frontmatter and no substrate at all (pre-modern / unused ASN; not a problem, just not part of operational lattice)
+  SUBSTRATE_BROKEN   — frontmatter declares deps but substrate doesn't match (empty on both sides, OR inquiry-side targets ≠ declared)
 
-Exit code is nonzero if any ASN is BROKEN (CI gate).
+Exit code is nonzero if any ASN is SUBSTRATE_BROKEN (CI gate).
+DEPS_UNRESOLVABLE does not fail the gate — it signals downstream
+pipeline state (e.g., missing sidecar), not a substrate issue.
 
 Usage:
     python scripts/diagnostics/citation_depends_audit.py
@@ -247,10 +250,16 @@ def _classify(a: AsnAudit) -> str:
     if a.inquiry_link_count > 0 and a.note_link_count > 0:
         return "MIXED"
     if a.inquiry_link_count == 0 and a.note_link_count == 0:
-        return "BROKEN"  # frontmatter declares but substrate empty everywhere
+        return "SUBSTRATE_BROKEN"  # frontmatter declares but substrate empty
     if a.inquiry_link_count > 0:
-        if not (inq_match and res_ok):
-            return "BROKEN"
+        if not inq_match:
+            # Substrate shape disagrees with frontmatter declaration
+            return "SUBSTRATE_BROKEN"
+        # Substrate aligns with frontmatter. Resolution status decides next.
+        if not res_ok:
+            # Substrate is fine; deps don't resolve at loader time (e.g.,
+            # dep note has no sidecar yet — downstream pipeline state).
+            return "DEPS_UNRESOLVABLE"
         # HEALTHY requires fan-out shape (one bundled link); otherwise NEW_ONLY
         if len(a.inquiry_link_shapes) == 1 and a.inquiry_link_shapes[0].startswith("fanout"):
             return "HEALTHY"
@@ -305,7 +314,12 @@ def _print_human(audits: List[AsnAudit]) -> None:
 
     # Detail for problematic ASNs — exclude DEFUNCT (not actionable) and
     # LEGACY (working, just needs frontmatter backfill — bulk operation).
-    problems = [a for a in audits if a.state in ("BROKEN", "MIXED", "NEW_ONLY")]
+    # DEPS_UNRESOLVABLE is also excluded — it's a downstream pipeline
+    # state (missing sidecar), not a substrate problem.
+    problems = [
+        a for a in audits
+        if a.state in ("SUBSTRATE_BROKEN", "MIXED", "NEW_ONLY")
+    ]
     if problems:
         print(f"\n  Detail for {len(problems)} actionable ASNs:", file=sys.stderr)
         for a in problems:
@@ -355,8 +369,10 @@ def main() -> int:
     else:
         _print_human(audits)
 
-    # Exit nonzero if any ASN is BROKEN (CI gate)
-    broken = sum(1 for a in audits if a.state == "BROKEN")
+    # Exit nonzero if any ASN is SUBSTRATE_BROKEN (CI gate).
+    # DEPS_UNRESOLVABLE is excluded — it's a downstream pipeline state
+    # (e.g., dep note has no sidecar yet), not a substrate problem.
+    broken = sum(1 for a in audits if a.state == "SUBSTRATE_BROKEN")
     return 1 if broken else 0
 
 
