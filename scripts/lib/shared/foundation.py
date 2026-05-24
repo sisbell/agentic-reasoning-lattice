@@ -306,3 +306,289 @@ def load_foundation_for_labels(asn_id, labels, dep_ids=None):
                   file=sys.stderr)
 
     return "\n\n---\n\n".join(sections)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# New foundation loader (substrate-only, inquiry-emit, hard-fail).
+#
+# Replacement for `load_foundation_for_note` per the 2026-05-24
+# refactor: reads inquiry frontmatter `depends:` as the declarative
+# source, queries substrate `citation.depends` from the inquiry
+# address (handles both fan-out and one-per-target shapes), walks
+# substrate for sidecar + supersession_head, reads the resolved file.
+# Raises `FoundationError` on any failure — never returns `""` except
+# when `depends: []` is declared (legitimate for foundation ASNs).
+#
+# Step 3 of the refactor: added alongside the old loader, no callers
+# migrated yet. Tested in isolation against the live substrate via
+# the integration test in this module's test sibling.
+# ─────────────────────────────────────────────────────────────────────
+
+
+class FoundationError(Exception):
+    """Foundation loading failed.
+
+    Always raised with a precise message naming the ASN and the
+    failing layer (input / spec / resolution / output). Never caught
+    silently — callers should let it propagate so the runner aborts
+    the fire and surfaces the failure to the operator.
+    """
+
+
+def _validate_asn_id(asn_id) -> int:
+    """Layer 1 gate: caller-provided asn_id is a positive int."""
+    if not isinstance(asn_id, int) or isinstance(asn_id, bool):
+        raise FoundationError(
+            f"asn_id must be int, got {type(asn_id).__name__}: {asn_id!r}",
+        )
+    if asn_id <= 0:
+        raise FoundationError(f"asn_id must be positive, got {asn_id}")
+    return asn_id
+
+
+def _validate_dep_ids(parent_id: int, raw_list) -> list[int]:
+    """Layer 2 gate: each dep id in the declared list is a positive,
+    non-self int. Accepts int or numeric string; rejects empty strings,
+    None, floats, and self-references. Returns a sorted unique list."""
+    if not isinstance(raw_list, list):
+        raise FoundationError(
+            f"ASN-{parent_id:04d} `depends:` must be a list, "
+            f"got {type(raw_list).__name__}: {raw_list!r}",
+        )
+    out: set[int] = set()
+    for raw in raw_list:
+        if isinstance(raw, bool) or raw is None:
+            raise FoundationError(
+                f"ASN-{parent_id:04d} `depends:` contains invalid entry "
+                f"{raw!r}",
+            )
+        if isinstance(raw, str):
+            stripped = raw.strip()
+            if not stripped:
+                raise FoundationError(
+                    f"ASN-{parent_id:04d} `depends:` contains empty string",
+                )
+            try:
+                n = int(stripped)
+            except ValueError:
+                raise FoundationError(
+                    f"ASN-{parent_id:04d} `depends:` entry {raw!r} "
+                    f"is not numeric",
+                )
+        elif isinstance(raw, int):
+            n = raw
+        else:
+            raise FoundationError(
+                f"ASN-{parent_id:04d} `depends:` entry has unsupported "
+                f"type {type(raw).__name__}: {raw!r}",
+            )
+        if n <= 0:
+            raise FoundationError(
+                f"ASN-{parent_id:04d} `depends:` entry {n} is non-positive",
+            )
+        if n == parent_id:
+            raise FoundationError(
+                f"ASN-{parent_id:04d} `depends:` is self-referential",
+            )
+        out.add(n)
+    return sorted(out)
+
+
+def _read_inquiry_depends(asn_id: int) -> list[int]:
+    """Layer 2 gate (continued): read inquiry frontmatter, return the
+    validated dep list. Raises if the inquiry is missing or has no
+    `depends:` key."""
+    from lib.shared.frontmatter import read_doc_with_frontmatter
+    from lib.shared.paths import inquiry_doc_path
+
+    inq_path = inquiry_doc_path(asn_id)
+    if not inq_path.exists():
+        raise FoundationError(
+            f"ASN-{asn_id:04d}: inquiry file missing at {inq_path}",
+        )
+    try:
+        fm, _body = read_doc_with_frontmatter(inq_path)
+    except Exception as e:
+        raise FoundationError(
+            f"ASN-{asn_id:04d}: cannot read inquiry frontmatter: "
+            f"{type(e).__name__}: {e}",
+        )
+    if fm is None:
+        raise FoundationError(
+            f"ASN-{asn_id:04d}: inquiry has no frontmatter ({inq_path})",
+        )
+    if "depends" not in fm:
+        raise FoundationError(
+            f"ASN-{asn_id:04d}: inquiry frontmatter missing `depends:` "
+            f"key ({inq_path}). Add `depends: []` for foundation ASNs.",
+        )
+    raw = fm["depends"] if fm["depends"] is not None else []
+    return _validate_dep_ids(asn_id, raw)
+
+
+def _resolve_dep_to_file(session, parent_id: int, dep_id: int) -> tuple:
+    """Layer 3 gate: walk substrate for one dep.
+
+    Returns `(path, content)` for the dep's statements file (sidecar
+    or supersession-resolved aggregate). Raises on any failure.
+    """
+    from lib.predicates import latest_doc_head, statements_sidecar_of
+    from lib.backend.predicates import active_links
+    from lib.shared.common import find_asn
+    from lib.shared.paths import WORKSPACE
+
+    store = session.store
+    label = f"ASN-{dep_id:04d}"
+
+    dep_path, _ = find_asn(str(dep_id))
+    if dep_path is None:
+        raise FoundationError(
+            f"ASN-{parent_id:04d} declares dep {label} but no note "
+            f"file exists on disk",
+        )
+    dep_rel = str(dep_path.resolve().relative_to(Path(WORKSPACE).resolve()))
+    dep_note_addr = store.path_to_addr.get(dep_rel)
+    if dep_note_addr is None:
+        raise FoundationError(
+            f"ASN-{parent_id:04d} declares dep {label}: note file "
+            f"{dep_rel} is not path-registered in substrate",
+        )
+
+    if active_links(store.state, "retired", to_set=[dep_note_addr]):
+        raise FoundationError(
+            f"ASN-{parent_id:04d} declares dep {label} which is retired",
+        )
+
+    sidecar = statements_sidecar_of(session, dep_note_addr)
+    if sidecar is None:
+        raise FoundationError(
+            f"ASN-{parent_id:04d} declares dep {label} but its note "
+            f"has no statements sidecar",
+        )
+
+    head = latest_doc_head(session, sidecar)
+    head_path_rel = store.path_for_addr(head)
+    if head_path_rel is None:
+        raise FoundationError(
+            f"ASN-{parent_id:04d} dep {label}: supersession_head "
+            f"{head} has no registered path",
+        )
+
+    head_path = Path(WORKSPACE) / head_path_rel
+    if not head_path.exists():
+        raise FoundationError(
+            f"ASN-{parent_id:04d} dep {label}: statements file "
+            f"{head_path} does not exist on disk",
+        )
+
+    content = head_path.read_text()
+    if not content.strip():
+        raise FoundationError(
+            f"ASN-{parent_id:04d} dep {label}: statements file "
+            f"{head_path} is empty",
+        )
+    return (head_path_rel, content)
+
+
+def _query_inquiry_deps(session, asn_id: int) -> list[int]:
+    """Layer 2 gate: substrate must declare deps matching frontmatter.
+
+    Queries active `citation.depends` from the inquiry address,
+    iterating every link's `to_set` (handles both fan-out and
+    one-per-target shapes). Returns sorted unique dep ASN ids.
+    """
+    from lib.backend.predicates import active_links
+    from lib.lattice.labels import label_pattern
+    from lib.shared.paths import WORKSPACE, inquiry_doc_path
+
+    store = session.store
+    inq_path = inquiry_doc_path(asn_id)
+    inq_rel = str(inq_path.resolve().relative_to(Path(WORKSPACE).resolve()))
+    inq_addr = store.path_to_addr.get(inq_rel)
+    if inq_addr is None:
+        raise FoundationError(
+            f"ASN-{asn_id:04d}: inquiry {inq_rel} not path-registered "
+            f"in substrate",
+        )
+
+    pattern = label_pattern()
+    seen: set[int] = set()
+    for link in active_links(
+        store.state, "citation.depends", from_set=[inq_addr],
+    ):
+        for target in link.to_set:
+            tpath = store.path_for_addr(target)
+            if tpath is None:
+                continue
+            m = pattern.search(tpath)
+            if not m:
+                continue
+            seen.add(int(m.group(1)))
+    return sorted(seen)
+
+
+def load_foundation(asn_id: int) -> str:
+    """Load foundation statements for an ASN by id (new contract).
+
+    Reads `depends:` from the ASN's inquiry frontmatter, validates
+    substrate citation.depends matches, resolves each dep through
+    substrate (note → sidecar → supersession_head → path), reads each
+    file, and returns the concatenated prose in id-sorted order.
+
+    Raises FoundationError (a subclass of Exception) on any failure:
+      - asn_id is not a positive int
+      - inquiry file missing or malformed
+      - `depends:` field missing from frontmatter
+      - any dep id invalid (non-int, non-positive, self-ref, empty)
+      - substrate dep set does not match frontmatter declaration
+      - any dep's note file or substrate registration missing
+      - any dep is retired
+      - any dep's statements sidecar missing
+      - any dep's resolved file missing or empty
+
+    Returns `""` ONLY when `depends: []` is declared (legitimate
+    foundation-ASN case). Every other code path either returns
+    non-empty content or raises.
+    """
+    from lib.protocols.febe.session import open_session
+    from lib.shared.paths import LATTICE
+
+    _validate_asn_id(asn_id)
+
+    # Layer 2 — declarative source
+    declared = _read_inquiry_depends(asn_id)
+    if not declared:
+        return ""
+
+    # Layer 2 (continued) — substrate must mirror frontmatter
+    with open_session(LATTICE) as session:
+        substrate_deps = _query_inquiry_deps(session, asn_id)
+        if set(substrate_deps) != set(declared):
+            missing_in_substrate = sorted(set(declared) - set(substrate_deps))
+            extra_in_substrate = sorted(set(substrate_deps) - set(declared))
+            raise FoundationError(
+                f"ASN-{asn_id:04d}: substrate citation.depends "
+                f"{substrate_deps} does not match frontmatter "
+                f"{declared}. "
+                f"Missing in substrate: {missing_in_substrate}. "
+                f"Extra in substrate: {extra_in_substrate}. "
+                f"Run `asn-sync-deps {asn_id}` to reconcile.",
+            )
+
+        # Layer 3 — per-dep resolution
+        sections = []
+        for dep_id in declared:
+            _path, content = _resolve_dep_to_file(session, asn_id, dep_id)
+            sections.append(content)
+
+    # Layer 4 — output gate
+    result = "\n\n".join(sections)
+    if not result.strip():
+        # Defensive — unreachable given non-empty declared + per-dep
+        # non-empty check above, but guards against future regressions
+        # if the per-dep check is ever loosened.
+        raise FoundationError(
+            f"ASN-{asn_id:04d}: foundation resolution produced empty "
+            f"result despite {len(declared)} declared deps",
+        )
+    return result
