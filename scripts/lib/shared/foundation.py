@@ -634,6 +634,13 @@ def _read_note_side_depends(session, asn_id: int) -> list[int]:
     Used by the LEGACY fallback path in `_resolve_declared_deps`. The
     note address is the source-of-truth for dep declarations under the
     pre-inquiry convention used by hand-authored protocol notes.
+
+    The substrate-returned list is well-formed by construction
+    (note_dep_asn_ids filters retired + self-refs, returns sorted
+    positive ints), but we still route it through `_validate_dep_ids`
+    as defense-in-depth: same gate the inquiry path uses, applied
+    uniformly so future regressions in note_dep_asn_ids (e.g., looser
+    filtering) can't slip invalid dep ids past the loader.
     """
     from lib.lattice.labels import note_dep_asn_ids
     from lib.shared.paths import NOTE_DIR, WORKSPACE
@@ -650,4 +657,5 @@ def _read_note_side_depends(session, asn_id: int) -> list[int]:
             f"ASN-{asn_id:04d}: no inquiry file AND no note in substrate "
             f"— nothing to load",
         )
-    return note_dep_asn_ids(session.store, note_addr)
+    raw_deps = note_dep_asn_ids(session.store, note_addr)
+    return _validate_dep_ids(asn_id, raw_deps)
