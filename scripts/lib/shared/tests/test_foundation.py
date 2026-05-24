@@ -6,9 +6,8 @@ every active ASN, asserting each one either resolves to non-empty
 content OR raises FoundationError with a clear message — never a
 silent zero return.
 
-These tests cover the NEW loader (`load_foundation`) only. The old
-`load_foundation_for_note` is the bug we're replacing and is not
-covered here.
+These tests cover `load_foundation` — the substrate-only loader
+that replaced the buggy path-driven loader retired in this arc.
 """
 
 from __future__ import annotations

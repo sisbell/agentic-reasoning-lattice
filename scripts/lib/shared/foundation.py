@@ -93,7 +93,7 @@ def _dep_ids_with_extensions(asn_id, dep_ids=None):
     `dep_ids` must be supplied (sourced from substrate citations on the
     relevant doc — note md, claim files aggregate, or inquiry md). The
     manifest depends: field no longer exists post-Phase-2; callers
-    should route through `load_foundation_for_note` /
+    should route through `load_foundation` (note-side) /
     `load_foundation_for_claim_asn` which derive dep_ids from substrate.
     """
     if dep_ids is None:
@@ -153,100 +153,11 @@ def load_foundation_statements(asn_id, dep_ids=None):
     return "\n\n---\n\n".join(sections)
 
 
-def load_foundation_for_note(asn_path, asn_id):
-    """Load foundation statements for a note, sourcing dep ASN ids from
-    substrate citations on the note md.
-
-    For each dep ASN: walk `note → statements → supersession_head`
-    and read the resulting doc. When the dep has been derived, the
-    chain head is the claims.statements aggregate; when it hasn't,
-    the chain head is the original operator-drafted statements
-    sidecar. The substrate's supersession chain routes between the
-    two without the loader needing to distinguish.
-
-    Falls back to an empty string when the note has no citations.
-    """
-    from lib.lattice.labels import note_dep_asn_ids
-    from lib.lattice.render import read_doc
-    from lib.predicates import latest_doc_head, statements_sidecar_of
-    from lib.protocols.febe.session import open_session
-    from lib.shared.common import find_asn
-    from lib.shared.paths import LATTICE, WORKSPACE
-    note_rel = str(asn_path.resolve().relative_to(Path(WORKSPACE).resolve()))
-    with open_session(LATTICE) as session:
-        store = session.store
-        note_addr = store.path_to_addr.get(note_rel)
-        if note_addr is None:
-            return ""
-        dep_ids = note_dep_asn_ids(store, note_addr)
-
-        # Print the load plan up front so the operator can see — at fire
-        # time — exactly which deps will surface in the foundation block.
-        # Retired deps are already filtered out at note_dep_asn_ids; this
-        # log line is the positive complement to the skip warnings below.
-        if dep_ids:
-            import sys
-            asn_label = format_label(asn_id)
-            dep_labels = ", ".join(f"ASN-{d:04d}" for d in dep_ids)
-            print(
-                f"  [FOUNDATION] {asn_label}: loading {len(dep_ids)} deps "
-                f"[{dep_labels}]",
-                file=sys.stderr,
-            )
-
-        sections = []
-        skipped = []
-        for dep_id in dep_ids:
-            dep_path, _ = find_asn(str(dep_id))
-            if dep_path is None:
-                skipped.append((dep_id, "no on-disk note file"))
-                continue
-            dep_rel = str(
-                dep_path.resolve().relative_to(
-                    Path(WORKSPACE).resolve(),
-                ),
-            )
-            dep_note_addr = store.path_to_addr.get(dep_rel)
-            if dep_note_addr is None:
-                skipped.append((dep_id, "note not path-registered"))
-                continue
-            sidecar = statements_sidecar_of(session, dep_note_addr)
-            if sidecar is None:
-                skipped.append((dep_id, "no statements sidecar"))
-                continue
-            # Substrate walk: latest_doc_head crosses the sidecar →
-            # aggregate bridge (if derived) and normalizes any version
-            # markers in the supersession chain back to their identity
-            # address — version markers carry no file, so reading the
-            # raw supersession_head can drop a dep silently when the
-            # sidecar has been register_version'd but not decomposed.
-            head = latest_doc_head(session, sidecar)
-            sections.append(read_doc(session, head))
-
-        # Loader-side coverage assertion. Silent skips here are how the
-        # foundation-loader bug of 2026-05-23 went undetected — ASN-0047
-        # disappeared from the prompt and the reviewer hallucinated a
-        # false finding. Surface every skip at fire time so the operator
-        # sees it in the runner log; the operator's downstream diagnostic
-        # `scripts/diagnostics/foundation_coverage.py` walks the whole
-        # lattice with the same logic for on-demand audits.
-        if skipped:
-            import sys
-            asn_label = format_label(asn_id)
-            for dep_id, reason in skipped:
-                print(
-                    f"  [FOUNDATION] {asn_label}: dep "
-                    f"ASN-{dep_id:04d} unresolvable — {reason}",
-                    file=sys.stderr,
-                )
-    return "\n\n".join(sections)
-
-
 def load_foundation_for_claim_asn(asn_id):
     """Load foundation statements for a claim ASN, sourcing dep ASN ids
     from per-claim substrate citations aggregated up to ASN granularity.
 
-    Parallels `load_foundation_for_note`. The claim-side aggregation is
+    Parallels `load_foundation` (note-side). The claim-side aggregation is
     the union of cross-ASN citations sourced from any claim md in this
     ASN's docuverse claim directory.
     """
@@ -311,17 +222,15 @@ def load_foundation_for_labels(asn_id, labels, dep_ids=None):
 # ─────────────────────────────────────────────────────────────────────
 # New foundation loader (substrate-only, inquiry-emit, hard-fail).
 #
-# Replacement for `load_foundation_for_note` per the 2026-05-24
-# refactor: reads inquiry frontmatter `depends:` as the declarative
-# source, queries substrate `citation.depends` from the inquiry
-# address (handles both fan-out and one-per-target shapes), walks
-# substrate for sidecar + supersession_head, reads the resolved file.
-# Raises `FoundationError` on any failure — never returns `""` except
-# when `depends: []` is declared (legitimate for foundation ASNs).
+# Reads inquiry frontmatter `depends:` as the declarative source,
+# queries substrate `citation.depends` from the inquiry address,
+# walks substrate for sidecar + supersession_head, reads the
+# resolved file. Falls back to note-side substrate citations for
+# hand-authored protocol notes with no inquiry file (LEGACY path,
+# logged to stderr).
 #
-# Step 3 of the refactor: added alongside the old loader, no callers
-# migrated yet. Tested in isolation against the live substrate via
-# the integration test in this module's test sibling.
+# Raises `FoundationError` on any failure — never returns `""`
+# except when `depends: []` is declared (legitimate foundation ASN).
 # ─────────────────────────────────────────────────────────────────────
 
 

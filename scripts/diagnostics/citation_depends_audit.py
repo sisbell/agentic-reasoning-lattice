@@ -6,7 +6,7 @@ Reports, per active ASN:
   - Inquiry-side substrate citation.depends (count + shape)
   - Note-side substrate citation.depends (count + shape; LEGACY)
   - Per-dep resolution (note → sidecar → supersession_head → path)
-  - End-to-end loader test (does load_foundation_for_note return non-empty?)
+  - End-to-end loader test (does load_foundation return non-empty?)
 
 Classifies each ASN into one of:
   HEALTHY            — frontmatter matches inquiry-side fan-out, zero note-side, all deps resolve
@@ -44,7 +44,7 @@ from lib.lattice.labels import format_label, label_pattern
 from lib.predicates import latest_doc_head, statements_sidecar_of
 from lib.protocols.febe.session import open_session
 from lib.shared.common import find_asn
-from lib.shared.foundation import load_foundation_for_note
+from lib.shared.foundation import load_foundation
 from lib.shared.frontmatter import read_doc_with_frontmatter
 from lib.shared.paths import (
     INQUIRY_DIR, LATTICE, NOTE_DIR, WORKSPACE, inquiry_doc_path,
@@ -194,23 +194,16 @@ def _audit_one_asn(session, asn_id: int) -> AsnAudit:
                 _resolve_one_dep(session, dep_id, pattern),
             )
 
-    # End-to-end loader test
-    if note_addr is not None:
-        note_path_rel = store.path_for_addr(note_addr)
-        asn_path = WORKSPACE / note_path_rel if note_path_rel else None
-        if asn_path and asn_path.exists():
-            try:
-                result = load_foundation_for_note(asn_path, asn_id)
-                if not result:
-                    audit.loader_result = "empty"
-                else:
-                    audit.loader_result = f"ok({len(result)} chars)"
-            except Exception as e:
-                audit.loader_result = f"raised: {type(e).__name__}: {e}"
+    # End-to-end loader test — invokes the new substrate-only
+    # load_foundation. Reports raised/empty/ok with byte counts.
+    try:
+        result = load_foundation(asn_id)
+        if not result:
+            audit.loader_result = "empty"
         else:
-            audit.loader_result = "no-note-file"
-    else:
-        audit.loader_result = "no-note-addr"
+            audit.loader_result = f"ok({len(result)} chars)"
+    except Exception as e:
+        audit.loader_result = f"raised: {type(e).__name__}: {e}"
 
     # Classification
     audit.state = _classify(audit)
