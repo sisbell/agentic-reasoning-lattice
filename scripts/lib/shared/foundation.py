@@ -180,6 +180,20 @@ def load_foundation_for_note(asn_path, asn_id):
             return ""
         dep_ids = note_dep_asn_ids(store, note_addr)
 
+        # Print the load plan up front so the operator can see — at fire
+        # time — exactly which deps will surface in the foundation block.
+        # Retired deps are already filtered out at note_dep_asn_ids; this
+        # log line is the positive complement to the skip warnings below.
+        if dep_ids:
+            import sys
+            asn_label = format_label(asn_id)
+            dep_labels = ", ".join(f"ASN-{d:04d}" for d in dep_ids)
+            print(
+                f"  [FOUNDATION] {asn_label}: loading {len(dep_ids)} deps "
+                f"[{dep_labels}]",
+                file=sys.stderr,
+            )
+
         sections = []
         skipped = []
         for dep_id in dep_ids:
