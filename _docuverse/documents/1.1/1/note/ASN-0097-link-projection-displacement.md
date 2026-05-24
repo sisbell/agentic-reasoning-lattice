@@ -22,6 +22,46 @@ A link value (L3, ASN-0043) is a tuple of `N ≥ 3` endsets `(e₁, ..., e_N)`, 
 
 — the set of I-addresses the endset references. Coverage is a set in `T`. It is independent of the particular span decomposition `e` happens to use: two endsets whose span tuples differ but whose denoted address sets are equal have the same coverage.
 
+## Foundation Contracts
+
+The proofs in this ASN rest on specific contracts established in ASN-0006, ASN-0036, ASN-0043, and ASN-0047. We restate the load-bearing ones inline so the reasoning here is independently checkable. Each contract below is named so the proofs can cite it without consulting the originating ASN.
+
+**From the global identity foundation (ASN-0006).**
+
+- **T10a (GlobalUniqueness).** Every allocator produces an address that has never previously been allocated; allocator freshness is a global guarantee on the address space, not merely local to a subspace.
+
+**From the address-space and arrangement foundation (ASN-0036).**
+
+- **S0 (ContentImmutability).** `(A Σ → Σ', a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))`. Once allocated, a content address remains in `dom(C)` forever, and its stored value never changes.
+- **S1 (StoreMonotonicity).** `(A Σ → Σ' :: dom(Σ.C) ⊆ dom(Σ'.C))`. The content store grows monotonically across transitions.
+- **S3 (ReferentialIntegrity).** For each `d ∈ E_doc`, `ran(Σ.M(d)) ⊆ dom(Σ.C)`. We flag here that the exact reading of `dom(Σ.C)` on the RHS — whether it admits link addresses (i.e., `dom(C)` is to be read as `dom(C) ∪ dom(L)` in the stratified interpretation, or as text-content only) — is a foundation-level question this ASN cannot settle. Where the proof depends on a stratified reading, we state local premises at the point of use (see Π15a).
+- **S8a (SubspaceProjection).** The I-address space `T` is partitioned by a `subspace : T → S` function; for every `t ∈ T`, `subspace(t)` identifies which subspace `t` inhabits. The partition extends to V-positions: every `v ∈ dom(Σ.M(d))` has `subspace(v) ∈ S`.
+
+**From the link foundation (ASN-0043).**
+
+- **L0 (LinkAddressing).** Link addresses inhabit a distinct subspace `s_L ⊆ T`; text-content addresses inhabit `s_C ⊆ T`; `s_L ∩ s_C = ∅`.
+- **L0a (LinkSubspaceMembership).** `(A ℓ ∈ dom(Σ.L) :: subspace(ℓ) = s_L)`. (Equivalently, `dom(Σ.L) ⊆ s_L`.)
+- **L1c (LinkAllocatorFreshness).** When `K.λ` allocates `ℓ` from pre-state `Σ_pre`, `ℓ ∉ dom(Σ_pre.L)`. (Derived from T10a applied to the link subspace.)
+- **L3 (LinkValueShape).** A link value is a tuple `(e₁, ..., e_N)` of `N ≥ 3` endsets; each `eᵢ ∈ Endset` is a finite set of well-formed I-space spans.
+- **L6 (LinkValueEquality).** Link values are equal iff their endset tuples are componentwise equal: `v₁ = v₂ ⟺ (A i :: v₁.eᵢ = v₂.eᵢ)`. The slot index `i ∈ {1, ..., N}` is a primitive positional accessor.
+- **L7 (LinkDirectionalRoles).** Each link slot index `i ∈ {1, ..., N}` has a directional role assigned by the link's type. The role assignment is a fixed function `Role : LinkType × ℕ → Direction` that is Σ-external (a constant function on its domain, not a component of any state `Σ`).
+- **L12 (LinkValuePermanence).** `(A Σ → Σ', ℓ ∈ dom(Σ.L) :: ℓ ∈ dom(Σ'.L) ∧ Σ'.L(ℓ) = Σ.L(ℓ))`. The link store is append-only with immutable values.
+- **L14 (LinkSubspaceDisjointness).** `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`. (A direct consequence of L0 + L0a + S0-allocator placement of content addresses in `s_C`.)
+
+**From the transition-vocabulary foundation (ASN-0047).**
+
+- **K.α (ContentAllocation).** Allocates a fresh address `a_new` to `dom(C)` with `a_new ∉ dom(Σ_pre.C)` (freshness, via T10a applied to `s_C`). *Frame:* writes only to `Σ.C`; for every `d ∈ E_doc`, `Σ'.M(d) = Σ.M(d)`; `Σ'.L = Σ.L`.
+- **K.λ (LinkAllocation).** Allocates a fresh link `ℓ` to `dom(L)` with value `v = (e₁, ..., e_N)`; `ℓ ∉ dom(Σ_pre.L)` (L1c freshness). *Frame:* writes only to `Σ.L`; for every `d ∈ E_doc`, `Σ'.M(d) = Σ.M(d)`; `Σ'.C = Σ.C`.
+- **K.μ⁺ (ArrangementExtension).** For target document `d`, extends `Σ.M(d)` to `Σ'.M(d)` with `dom(Σ'.M(d)) ⊇ dom(Σ.M(d))` and `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ dom(Σ.M(d))` (existing pairs preserved). *Frame:* writes only to `Σ.M(d)`; `Σ.M(d') = Σ'.M(d')` for `d' ≠ d`; `Σ.C` and `Σ.L` unchanged.
+- **K.μ⁻ (ArrangementContraction).** For target `d`, contracts `Σ.M(d)` to `Σ'.M(d)` with `dom(Σ'.M(d)) ⊆ dom(Σ.M(d))` and `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ dom(Σ'.M(d))` (retained pairs preserved). *Frame:* writes only to `Σ.M(d)`; `Σ.M(d') = Σ'.M(d')` for `d' ≠ d`; `Σ.C` and `Σ.L` unchanged.
+- **K.μ~ (ArrangementRearrangement).** For target `d`, transforms `Σ.M(d)` to `Σ'.M(d)` via a bijection `π : dom(Σ.M(d)) → dom(Σ'.M(d))` satisfying `Σ'.M(d)(π(v)) = Σ.M(d)(v)`. **K.μ~-FIX:** the bijection has equal domain and codomain — `dom(Σ'.M(d)) = dom(Σ.M(d))`. *Frame:* writes only to `Σ.M(d)`; `Σ.M(d') = Σ'.M(d')` for `d' ≠ d`; `Σ.C` and `Σ.L` unchanged.
+
+**Local precondition on link allocation (this ASN).**
+
+- **K.λ-cov-nonempty (local axiom).** For every slot `i ∈ {1, ..., N}` of a value allocated by `K.λ`, `cov(eᵢ) ≠ ∅`: every endset denotes at least one I-address. This is a local strengthening adopted in this ASN; we discuss the alternative — admitting `cov(eᵢ) = ∅` and observing that every projection claim then holds vacuously — in the empty-endset note in §The Projection.
+
+These twelve contracts (plus the local K.λ-cov-nonempty premise) are the complete external dependency of the proofs that follow. Where a proof cites e.g. "L12", "K.μ⁺", or "S0", the cited contract is the inline statement above.
+
 ## The Projection
 
 We need a bridge between the link's I-address endsets and the V-positions a reader sees in a document. We call this bridge the *projection*.
@@ -44,6 +84,8 @@ Where `proj(d, e, Σ) ⊆ dom(Σ.M(d))` lives in V-space, `iproj(d, e, Σ) ⊆ T
 
 The projection function consults only `Σ.M(d)` and the endset `e`. No history of how `M(d)` was constructed, no link's home document, no auxiliary registry, no other document's arrangement appears in the definition. This locality is the first nontrivial property we shall establish.
 
+*Boundary case: empty coverage.* An endset with no spans, or with every span of zero width, satisfies `cov(e) = ∅` and is a degenerate input to `proj`. The definitions handle this case uniformly: `proj(d, e, Σ) = {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ ∅} = ∅`, and `iproj(d, e, Σ) = ∅ ∩ ran(Σ.M(d)) = ∅`, for every `d` and every `Σ`. Every claim in this ASN concerning `proj` and `iproj` (Π5–Π11, Π13–Π14, Π16–Π17) holds *vacuously* when `cov(e) = ∅` — set-equality and inclusion claims between two empty sets are trivially true, and existential claims (Π17's `(E i :: ...) ≠ ∅`) cannot witness a slot with empty coverage. Two abstract postures are coherent. The first is to admit `cov(e) = ∅` and rely on the vacuous reading throughout; nothing in Π5–Π17 breaks. The second — which we recommend at the link-allocation contract — is to forbid empty endsets at creation via the local precondition `K.λ-cov-nonempty` stated in §Foundation Contracts. The two postures are interchangeable for the projection theorems below; they diverge only in what counts as a well-formed link at the time of `K.λ`. Where it matters in a proof, we will state the assumption locally.
+
 ## Permanence of Link Structure
 
 The first claims concern what does not change. Each is a structural consequence of `L12`; together they say that whatever was true of `ℓ`'s value at creation is true forever.
@@ -60,7 +102,7 @@ Inherited from L12. The transition vocabulary (ASN-0047) provides no operation t
 
 **Π3 (CoveragePermanence).** `cov(Σ'.L(ℓ).eᵢ) = cov(Σ.L(ℓ).eᵢ)`. The set of I-addresses each endset references is permanent. Coverage is a function of the endset, and the endset is permanent by Π2.
 
-**Π4 (DirectionalPermanence).** The role of each slot — which is the *from*-endset, which is the *to*-endset, which is the *type*-endset under the StandardTriple convention, or whatever role assignment is in force for higher-arity links — is determined by slot position alone (L6, L7, ASN-0043). *Proof.* By Π0, `Σ'.L(ℓ) = Σ.L(ℓ)`. By L6 (link equality is component-wise tuple equality, with slot index a primitive positional accessor), tuple-level equality forces slot-wise equality at every index: `Σ'.L(ℓ).eᵢ = Σ.L(ℓ).eᵢ` for every `i ∈ {1, ..., |Σ.L(ℓ)|}` (this is the content of Π2). By L7, the directional role assigned to slot `i` is a function of the slot index `i` alone, supplied by the link type's external interpretation; this role-by-index function lives outside `Σ.L` and is not in the write set of any operation in the transition vocabulary (ASN-0047), so it is invariant across every transition. Composing the two preservations — the slot's contents at each index (Π2 via L6 + Π0) and the role-by-index function (L7 via the transition vocabulary's silence on link-type interpretation) — the directional role of every slot of `ℓ` is preserved across `Σ → Σ'`. □
+**Π4 (DirectionalPermanence).** The role of each slot — which is the *from*-endset, which is the *to*-endset, which is the *type*-endset under the StandardTriple convention, or whatever role assignment is in force for higher-arity links — is determined by slot position alone. *Proof.* By Π0, `Σ'.L(ℓ) = Σ.L(ℓ)`. By L6 (link equality is component-wise tuple equality, with slot index a primitive positional accessor), tuple-level equality forces slot-wise equality at every index: `Σ'.L(ℓ).eᵢ = Σ.L(ℓ).eᵢ` for every `i ∈ {1, ..., |Σ.L(ℓ)|}` (this is the content of Π2). By L7, there is a fixed function `Role : LinkType × ℕ → Direction` that assigns each slot index its directional role, parameterized by the link's type — given a link of type `τ`, the role of slot `i` is `Role(τ, i)`. Per L7, this function is Σ-external: `Role` is a constant function on its domain, not a component of any state `Σ`, and `Role` therefore appears in no operation's write set. (Explicitly: the write sets of the transition vocabulary — K.α writes to `Σ.C`, K.λ writes to `Σ.L`, K.μ⁺/μ⁻/μ~ write to `Σ.M(d)` — are disjoint from anything reachable through `Role`.) Hence for every transition `Σ → Σ'`, `Role` is the same function in both states. Composing the two preservations — the slot's contents at each index (Π2 via L6 + Π0) and the role-by-index function `Role` (L7 via the frame conditions of the transition vocabulary) — the directional role `Role(τ_ℓ, i)` of every slot `i` of `ℓ` is preserved across `Σ → Σ'`. □
 
 The structure of `ℓ` — address, value, arity, endsets, coverage, slot positions, directional roles — is, taken together, the *invariant content of the link*. The link holder can treat all of it as fixed.
 
@@ -222,7 +264,7 @@ We therefore separate two questions. (i) Is `K.α` projection-preserving? Yes �
 - *CCR-restricted*: at link creation, each `cov(eᵢ) ⊆ dom(Σ₀.C)`. Endsets reference only addresses then in the content store.
 - *CCR-open*: at link creation, each `cov(eᵢ) ⊆ T`. Endsets may reference any addresses in the address space, including those not yet allocated; we refer to such addresses as *ghost* references — addresses present in the abstract space but absent from `dom(Σ₀.C)`.
 
-The consultation evidence indicates that the design intent (Nelson) is CCR-open: the address space is held to be conceptually populated independently of what is stored, and an endset "may be made to … embrace all the contents below" a ghost position. The implementation evidence (Gregory) indicates that the running system enforces document-existence at creation but does not enforce span-level membership in the content store, which is consistent with CCR-open at the span level (and CCR-restricted at the document-container level only). Whether the abstract specification ought to admit CCR-restricted as an *additional* span-level constraint is an open structural choice; this ASN does not settle it and conditions dependent claims on it explicitly below.
+We do not select between these policies in this ASN. Each yields a coherent specification — the proofs below are policy-agnostic except where they speak about the post-allocation behavior of newly-allocated `K.α` addresses, and we factor the dependent claims through the chosen policy explicitly (see R13 conditional, below, and the worked-example Step 6 sub-trace). The selection is a structural axiom belonging to the link-allocation foundation rather than to this ASN, and the two policies differ in observable consequence: under CCR-restricted a fresh `a_new` cannot enter any pre-existing endset's coverage; under CCR-open it can, provided the endset was created reaching forward to `a_new`. We catalogue the divergence below and leave the selection open.
 
 **Π14 (LinkAllocationFrame).** `K.λ` extends `dom(L)` but does not modify any `M(d)`:
 
@@ -244,13 +286,15 @@ The structure of `Σ.L` is logically independent of the structure of any `Σ.M(d
 
 *Proof.* `K.λ` (ASN-0047) allocates `ℓ` by adding it to `dom(L)` and is constrained by Π14 to leave every `M(d)` untouched. Let `Σ_pre` be the state immediately before such a `K.λ`; let `Σ` be the immediate successor. Then `ℓ ∈ dom(Σ.L)`, and for every `d ∈ E_doc`, `Σ.M(d) = Σ_pre.M(d)`. Our task is to show that no `M(d)` in `Σ_pre` maps any V-position to `ℓ`.
 
-We need a subspace-aware referential-integrity premise. The address space partitions into a text-content subspace `s_C` and a link subspace `s_L` (L0, ASN-0043) with `s_L ∩ s_C = ∅`. V-positions inherit this partition by the `subspace` projection (ASN-0036, S8a) — every V-position `v ∈ dom(Σ.M(d))` has a subspace identifier `subspace(v)`. We write `M(d)|_{s_C}` and `M(d)|_{s_L}` for the restrictions of `M(d)` to V-positions in the text-content and link subspaces respectively; their domains are disjoint and their union recovers `M(d)`, so `ran(Σ.M(d)) = ran(Σ.M(d)|_{s_C}) ∪ ran(Σ.M(d)|_{s_L})`. The consultation evidence (Nelson on design intent, Gregory on the implementation's POOM) supports a *subspace-stratified* reading of S3 (ReferentialIntegrity, ASN-0036): rather than a single global constraint `ran(Σ.M(d)) ⊆ dom(Σ.C)`, the constraint is stratified by what each subspace references. We adopt this stratification locally as a strengthening of S3:
+We need a subspace-aware referential-integrity premise. The address space partitions into a text-content subspace `s_C` and a link subspace `s_L` (L0) with `s_L ∩ s_C = ∅`. V-positions inherit this partition by the `subspace` projection (S8a) — every V-position `v ∈ dom(Σ.M(d))` has a subspace identifier `subspace(v)`. We write `M(d)|_{s_C}` and `M(d)|_{s_L}` for the restrictions of `M(d)` to V-positions in the text-content and link subspaces respectively; their domains are disjoint and their union recovers `M(d)`, so `ran(Σ.M(d)) = ran(Σ.M(d)|_{s_C}) ∪ ran(Σ.M(d)|_{s_L})`.
 
-`(S3-text)` `ran(Σ.M(d)|_{s_C}) ⊆ dom(Σ.C)|_{s_C}` — text-subspace V-positions arrange `s_C`-resident content.
+The proof requires a stratified referential-integrity premise — that V-positions in the link subspace arrange link addresses, and V-positions in the text subspace arrange text-content addresses. The foundation invariant S3 — `ran(Σ.M(d)) ⊆ dom(Σ.C)` — does not on its face speak to this stratification. Whether S3 should be read as a single global constraint or as a stratified family of constraints is a foundation-level question this ASN cannot settle: under the global reading, `dom(Σ.C)` would have to be enlarged to include link addresses for the link-subspace fibre to be coherent; under the stratified reading, two disjoint range constraints replace the single one. We do not select between these readings for the foundation. Instead, we adopt two local structural premises that are sufficient for this proof and that any foundation-level reading consistent with the link/text subspace partition must imply:
 
-`(S3-link)` `ran(Σ.M(d)|_{s_L}) ⊆ dom(Σ.L)` — link-subspace V-positions arrange addresses of allocated links.
+`(S3-text, local axiom)` `ran(Σ.M(d)|_{s_C}) ⊆ dom(Σ.C)|_{s_C}` — text-subspace V-positions arrange `s_C`-resident content.
 
-Both strata are consistent with S3 read on the `s_C`-resident slice: the union of their ranges is a subset of `dom(Σ.C)|_{s_C} ∪ dom(Σ.L)`, and L14/L0a (ASN-0043) gives the disjointness `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`.
+`(S3-link, local axiom)` `ran(Σ.M(d)|_{s_L}) ⊆ dom(Σ.L)` — link-subspace V-positions arrange allocated-link addresses.
+
+These are stated as **local axioms of this ASN**, not as derivations from S3 nor as a modification of S3. They constrain a stratum of the document arrangement that the original S3 leaves underspecified; whether the foundation invariant should be revised to make this stratification global, or whether `dom(C)` should be interpreted as `dom(C) ∪ dom(L)` in the original S3 to recover consistency, is a question for foundation-level revision and is beyond the scope of this ASN. The local axioms suffice for Π15a; future ASNs depending on the original S3 are not affected by this local choice, since the local axioms strengthen no foundation claim — they speak about disjoint subspace fibres of `M(d)`. L14 (`dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`) ensures that `(S3-text)` and `(S3-link)` together do not over-constrain `ran(M(d))`: the two strata range over disjoint regions of `T`.
 
 We now derive `ℓ ∉ ran(Σ_pre.M(d))` in four explicit steps.
 
@@ -461,6 +505,28 @@ Verify Π11(d) closed form: `Δran⁺ = {a₈, a₆} ∖ {a₈} = {a₆}` and `�
 
 This is R9 (reintroduction) in its strongest form: *even from a state with empty I-projection in `d` and a reverse-orphaned `ℓ`*, a single `K.μ⁺` placing a coverage address `a₆ ∈ dom(Σ.C)` into `M(d)` restores `a₆` to the projection. The link's coverage permanence (Π3) and the content's permanence in `dom(Σ.C)` (S0) together suffice; neither emptying the projection in `d` nor unarranging `ℓ` itself permanently extinguishes the projection's recoverability.
 
+**Step 6: K.α + K.μ⁺ illustrating R13's two CCR policies (`Σ₅ → Σ₇`).** R13 is the only synthesized guarantee whose behavior depends on the choice between CCR-restricted and CCR-open. The worked example so far has not exhibited the divergence; we now exhibit it under both policies.
+
+From `Σ₅`, suppose `K.α` allocates a fresh content address `a_new` (with `a_new ∉ dom(Σ₅.C)`, by K.α's freshness clause) — call the intermediate post-state `Σ₆`. Then a subsequent `K.μ⁺` extends `M(d)` to place `a_new` at a new V-position 5, "between" the existing arrangement and the link's earlier reach:
+
+`Σ₇.M(d) = {3 ↦ a₈, 4 ↦ a₆, 5 ↦ a_new}`
+
+with `dom(Σ₇.M(d)) = {3, 4, 5} ⊃ {3, 4} = dom(Σ₆.M(d))` and `Σ₇.M(d)(v) = Σ₆.M(d)(v) = Σ₅.M(d)(v)` for `v ∈ {3, 4}` (K.μ⁺ contract). Note that `Σ₆.M = Σ₅.M` by K.α's frame condition (Π13), so the substantive change to `M(d)` is concentrated at K.μ⁺. The question is whether `a_new ∈ iproj(d, e, Σ₇)` — equivalently, whether the projection grows beyond `{a₆}`.
+
+*Policy (i) — CCR-restricted.* Under this policy, link allocation `K.λ` at `Σ₀` enforced `cov(e) ⊆ dom(Σ₀.C)`. We chain three appeals. (a) K.α's freshness gives `a_new ∉ dom(Σ₅.C)`. (b) S1 (StoreMonotonicity) gives `dom(Σ₀.C) ⊆ dom(Σ₅.C)`. (c) Combining contrapositively, `a_new ∉ dom(Σ₀.C) ⊇ cov(e) = {a₅, a₆, a₇}`, so `a_new ∉ cov(e)`. Apply Π11(d): `Δran⁺ = ran(Σ₇.M(d)) ∖ ran(Σ₅.M(d)) = {a₈, a₆, a_new} ∖ {a₈, a₆} = {a_new}` and `Δran⁻ = ∅`; the closed form predicts
+ 
+`iproj(d, e, Σ₇) = (iproj(d, e, Σ₅) ∖ ∅) ∪ (cov(e) ∩ {a_new}) = {a₆} ∪ ∅ = {a₆}`.
+
+The new content does not enter the projection. The V-projection accordingly remains `proj(d, e, Σ₇) = {4}` — V-position 5 maps to `a_new ∉ cov(e)` and is excluded. This is R13's "strap holds its original bytes" guarantee, witnessed concretely.
+
+*Policy (ii) — CCR-open.* Under this policy, `K.λ` at `Σ₀` was permitted to allocate `e` with ghost references — I-addresses present in `T` but not yet in `dom(Σ₀.C)`. Suppose `e` was created with `cov(e) = {a₅, a₆, a₇, a_new}` — i.e., the endset deliberately reached forward to `a_new` as a ghost reference at link creation. By coverage permanence (Π3), this coverage is fixed across all reachable states, so `cov(Σ₅.L(ℓ).e) = cov(Σ₇.L(ℓ).e) = {a₅, a₆, a₇, a_new}`. At `Σ₅`, however, `a_new ∉ dom(Σ₅.C)` (the K.α step has not yet occurred) and `a_new ∉ ran(Σ₅.M(d)) = {a₈, a₆}`, so `iproj(d, e, Σ₅) = cov(e) ∩ {a₈, a₆} = {a₆}` — the ghost reference contributes nothing while `a_new` is unallocated and unarranged. After K.α (now `a_new ∈ dom(Σ₆.C)`) and K.μ⁺ (now `a_new ∈ ran(Σ₇.M(d))`), apply Π11(d): `Δran⁺ = {a_new}` and `cov(e) ∩ Δran⁺ = {a_new}`; the closed form predicts
+
+`iproj(d, e, Σ₇) = ({a₆} ∖ ∅) ∪ ({a_new}) = {a₆, a_new}`.
+
+The projection has grown by `a_new` — exactly the design-intended behavior of forward-reference endsets. R13's "no silent extension" guarantee does not apply under CCR-open, and indeed the V-projection now includes V-position 5: `proj(d, e, Σ₇) = {4, 5}`.
+
+*The divergence.* The two policies produce different post-projections from identical sequences of K.α + K.μ⁺ on identical-looking arrangements, depending entirely on what `cov(e)` was permitted to reach at `K.λ`. The divergence is not observable from `M(d)` alone — it is encoded in `cov(e)`, fixed forever at link allocation by Π3, and the two policies allocate different coverage sets at the same `K.λ` event. R9 (the Step 5 reintroduction of `a₆`) is unaffected by the choice — `a₆` was in `cov(e)` and `dom(Σ₀.C)` under both policies, so neither policy excludes it — but R13 is genuinely divided.
+
 ## Weakest Preconditions
 
 We now derive a weakest-precondition expression — a backward calculation of which initial states satisfy a chosen postcondition under a given transition.
@@ -549,8 +615,10 @@ Across all three modes, projection displacement is bounded by the elementary tra
 | Π16 | ReachLocality: reach depends only on `L`, `M(d)\|_{V_q}`, and the V-region | introduced |
 | Π17 | PartialReach: non-empty coverage-range intersection suffices for reach | introduced |
 | RB | ReachBridge: `reaches(ℓ, d, V_q, Σ) ⟺ (E i :: cov(Σ.L(ℓ).eᵢ) ∩ ran(Σ.M(d)\|_{V_q}) ≠ ∅)` — I-side reformulation of reach used by Π16 | introduced |
-| S3-text | Subspace-stratified S3 (text): `ran(Σ.M(d)\|_{s_C}) ⊆ dom(Σ.C)\|_{s_C}` — local strengthening of S3 (ASN-0036) adopted in Π15a's proof | local axiom |
-| S3-link | Subspace-stratified S3 (link): `ran(Σ.M(d)\|_{s_L}) ⊆ dom(Σ.L)` — local strengthening of S3 (ASN-0036) adopted in Π15a's proof | local axiom |
+| S3-text | Stratified text-subspace referential integrity: `ran(Σ.M(d)\|_{s_C}) ⊆ dom(Σ.C)\|_{s_C}` — local axiom adopted in Π15a's proof; not a modification of foundation S3 | local axiom |
+| S3-link | Stratified link-subspace referential integrity: `ran(Σ.M(d)\|_{s_L}) ⊆ dom(Σ.L)` — local axiom adopted in Π15a's proof; not a modification of foundation S3 | local axiom |
+| Role | `Role : LinkType × ℕ → Direction` — the Σ-external slot-role function from L7, named explicitly here and invoked in Π4 | introduced (named) |
+| K.λ-cov-nonempty | For every slot `i` of a `K.λ`-allocated value, `cov(eᵢ) ≠ ∅` | local axiom (recommended) |
 | Σ.proj | `proj(d, e, Σ) = {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ cov(e)}` | introduced |
 | Σ.iproj | `iproj(d, e, Σ) = cov(e) ∩ ran(Σ.M(d))` | introduced |
 | Σ.reaches | `reaches(ℓ, d, V_q, Σ) ≡ (E i :: proj(d, ℓ, i, Σ) ∩ V_q ≠ ∅)` | introduced |
