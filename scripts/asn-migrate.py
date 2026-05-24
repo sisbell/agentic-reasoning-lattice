@@ -54,7 +54,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from lib.backend.emit import (
-    emit_citation, emit_consultation_answer, emit_consultation_coverage,
+    emit_citation_bundle, emit_consultation_answer, emit_consultation_coverage,
     emit_consultation_questions, emit_inquiry,
 )
 from lib.lattice.labels import format_label
@@ -273,30 +273,32 @@ def migrate(
             file=sys.stderr,
         )
 
-        # citation.depends from new inquiry → each declared dep note's
-        # BASE address. Matches the note_import convention and what
-        # note_dep_asn_ids expects (direct path_for_addr lookup;
-        # version-marker addresses aren't path-registered).
+        # citation.depends fan-out from new inquiry → declared dep
+        # notes' BASE addresses. One bundled link in the FanOutPair
+        # shape per the 2026-05-24 reconciliation; loads cleanly via
+        # the new substrate-only foundation loader.
         if declared_deps:
-            dep_emit_count = 0
+            dep_addrs = []
             for dep_id in declared_deps:
                 dep_addr = _find_note_base_addr(store, dep_id)
                 if dep_addr is None:
                     print(
                         f"    [WARN] dep ASN-{dep_id:04d} note not found; "
-                        f"skipping citation.depends",
+                        f"skipping",
                         file=sys.stderr,
                     )
                     continue
-                emit_citation(
-                    store, new_inquiry_addr, dep_addr, direction="depends",
+                dep_addrs.append(dep_addr)
+            if dep_addrs:
+                emit_citation_bundle(
+                    store, new_inquiry_addr, dep_addrs,
+                    direction="depends",
                 )
-                dep_emit_count += 1
-            print(
-                f"    emitted citation.depends: {dep_emit_count}/"
-                f"{len(declared_deps)}",
-                file=sys.stderr,
-            )
+                print(
+                    f"    emitted citation.depends fan-out: "
+                    f"{len(dep_addrs)}/{len(declared_deps)} targets",
+                    file=sys.stderr,
+                )
 
     # Stage + commit
     _stage_for_commit(new_inquiry, new_consult_dir)
