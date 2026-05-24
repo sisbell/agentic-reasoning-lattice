@@ -40,6 +40,8 @@ A useful complement records *which I-addresses* the projection reaches in `d`:
 
 Where `proj(d, e, Σ) ⊆ dom(Σ.M(d))` lives in V-space, `iproj(d, e, Σ) ⊆ T` lives in I-space, and the two are connected by the arrangement: `iproj(d, e, Σ) = Σ.M(d)(proj(d, e, Σ))`.
 
+*Proof of the bridge equality.* ⊆: Let `a ∈ iproj(d, e, Σ) = cov(e) ∩ ran(Σ.M(d))`. From `a ∈ ran(Σ.M(d))` pick `v ∈ dom(Σ.M(d))` with `Σ.M(d)(v) = a`; combined with `Σ.M(d)(v) = a ∈ cov(e)`, this gives `v ∈ proj(d, e, Σ)`, hence `a = Σ.M(d)(v) ∈ Σ.M(d)(proj(d, e, Σ))`. ⊇: Let `a ∈ Σ.M(d)(proj(d, e, Σ))`; pick `v ∈ proj(d, e, Σ)` with `a = Σ.M(d)(v)`. From `v ∈ proj(d, e, Σ)`: `v ∈ dom(Σ.M(d))` gives `a ∈ ran(Σ.M(d))`, and `Σ.M(d)(v) ∈ cov(e)` gives `a ∈ cov(e)`. Hence `a ∈ cov(e) ∩ ran(Σ.M(d)) = iproj(d, e, Σ)`. □
+
 The projection function consults only `Σ.M(d)` and the endset `e`. No history of how `M(d)` was constructed, no link's home document, no auxiliary registry, no other document's arrangement appears in the definition. This locality is the first nontrivial property we shall establish.
 
 ## Permanence of Link Structure
@@ -81,7 +83,9 @@ This is what an alternative implementation must guarantee for cross-document lin
 
 **Π6 (CrossDocumentIndependence).** For `d ≠ d'`:
 
-`proj(d, e, Σ)` and `proj(d', e, Σ)` are computed independently of each other.
+`proj(d, e, Σ)` and `proj(d', e, Σ)` are computed independently of each other — formally, each is determined by a state component disjoint from the one determining the other.
+
+*Proof.* `Σ.M : D × T ⇀ T` is a family indexed by document; for `d ≠ d'`, `Σ.M(d)` and `Σ.M(d')` are independent fibres of this family — modifying one does not constrain the other. Apply Π5 to `proj(d, e, ·)`: its value depends only on `Σ.M(d)` and `cov(e)`. Apply Π5 to `proj(d', e, ·)`: its value depends only on `Σ.M(d')` and `cov(e)`. Hence for any two states `Σ, Σ'` with `Σ.M(d) = Σ'.M(d)` (but `Σ.M(d')` and `Σ'.M(d')` arbitrary), Π5 gives `proj(d, e, Σ) = proj(d, e, Σ')`; the projection into `d` is invariant under arbitrary variation of `M(d')`. Symmetrically for the projection into `d'`. Each projection is therefore a function of state components disjoint from those determining the other, and computing either does not require consulting the other. □
 
 A single link projects into many documents simultaneously; each projection is determined by that document's arrangement alone.
 
@@ -161,21 +165,43 @@ K.μ~-FIX (ASN-0047) gives `dom(Σ'.M(d)) = dom(Σ.M(d))`. Rearrangement preserv
 
 (c) Under `K.μ~` rearrangement: `iproj(d, e, Σ') = iproj(d, e, Σ)`. (Identical to Π10(a).)
 
-Pulling these into a single closed form, in every reachable state and every transition:
+(d) **Transition closed form.** Define the range-additions and range-removals of the transition as `Δran⁺ := ran(Σ'.M(d)) ∖ ran(Σ.M(d))` and `Δran⁻ := ran(Σ.M(d)) ∖ ran(Σ'.M(d))`. For every K.μ-class transition on `M(d)`:
 
-`a ∈ iproj(d, e, Σ') ⟺ a ∈ cov(e) ∧ a ∈ ran(Σ'.M(d))`
+`iproj(d, e, Σ') = (iproj(d, e, Σ) ∖ Δran⁻) ∪ (cov(e) ∩ Δran⁺)`
 
-— a single-state characterization, which falls out of the definition of `iproj`. The transition content of Π11 is the monotonicity above: K.μ-class transitions move `iproj` only in the direction the operation moves `ran(M(d))`. The V-projection may be wholesale displaced (Π10b shows it can be permuted arbitrarily), but the I-projection moves predictably with the arrangement's reach. This is the *strap-between-bytes* principle formalized: editing operations displace V-positions, but the link's coverage in I-space remains a fixed target. The projection tracks the content.
+*Proof.* We compute:
 
-**Π12 (CrossDocumentFrame).** Operations whose effect on `M` is confined to a single document leave projections into other documents untouched. For any transition `Σ → Σ'` and documents `d ≠ d'`:
+```
+(iproj(d, e, Σ) ∖ Δran⁻) ∪ (cov(e) ∩ Δran⁺)
+= {def of iproj}
+  ((cov(e) ∩ ran(Σ.M(d))) ∖ Δran⁻) ∪ (cov(e) ∩ Δran⁺)
+= {Δran⁻ = ran(Σ.M(d)) ∖ ran(Σ'.M(d)), so ran(Σ.M(d)) ∖ Δran⁻ = ran(Σ.M(d)) ∩ ran(Σ'.M(d))}
+  (cov(e) ∩ ran(Σ.M(d)) ∩ ran(Σ'.M(d))) ∪ (cov(e) ∩ Δran⁺)
+= {distribute cov(e) ∩ -}
+  cov(e) ∩ ((ran(Σ.M(d)) ∩ ran(Σ'.M(d))) ∪ Δran⁺)
+= {ran(Σ'.M(d)) = (ran(Σ.M(d)) ∩ ran(Σ'.M(d))) ∪ Δran⁺ — partitioning ran(Σ'.M(d)) into shared and added}
+  cov(e) ∩ ran(Σ'.M(d))
+= {def of iproj}
+  iproj(d, e, Σ')
+```
 
-`(A op : op modifies only M(d') :: (A e :: proj(d, e, Σ) = proj(d, e, Σ')))`
+□
 
-`K.α`, `K.λ`, `K.δ`, `K.μ⁻`, `K.μ⁺`, `K.μ⁺_L`, `K.μ~`, and `K.ρ` all carry such a frame on documents other than their target (per ASN-0047). The projection into `d` is invariant under any operation that does not touch `M(d)`.
+The three cases (a)–(c) are specializations. Under `K.μ⁺`, the contract preserves all `(v ↦ a)` pairs on `dom(Σ.M(d))`, so `ran(Σ.M(d)) ⊆ ran(Σ'.M(d))` and `Δran⁻ = ∅`; the closed form reduces to `iproj(d, e, Σ') = iproj(d, e, Σ) ∪ (cov(e) ∩ Δran⁺)`, recovering (a). Under `K.μ⁻`, no new pairs are introduced, so `ran(Σ'.M(d)) ⊆ ran(Σ.M(d))` and `Δran⁺ = ∅`; the closed form reduces to `iproj(d, e, Σ') = iproj(d, e, Σ) ∖ Δran⁻`, recovering (b). Under `K.μ~`, Π10(a) gives `ran(Σ.M(d)) = ran(Σ'.M(d))`, so `Δran⁻ = Δran⁺ = ∅`, recovering (c). The closed form thus unifies the three case analyses into one calculational identity: I-projection evolution is a difference-of-sets in `ran(M(d))` — the projection gains exactly the newly-arranged range-addresses that lie in coverage, and loses exactly the dropped range-addresses that were in coverage.
+
+The V-projection may be wholesale displaced (Π10(b) shows it can be permuted arbitrarily), but the I-projection's evolution is computable from the operation's effect on `ran(M(d))` alone. This is the *strap-between-bytes* principle formalized: editing operations displace V-positions, but the link's coverage in I-space remains a fixed target. The projection tracks the content.
+
+**Π12 (CrossDocumentFrame).** For any transition `Σ → Σ'` whose write set on `M` is confined to a single target document `d'` (i.e., `Σ.M(d) = Σ'.M(d)` for every `d ≠ d'`), projections into other documents are unchanged:
+
+`(A d, e : d ≠ d' :: proj(d, e, Σ) = proj(d, e, Σ'))`
+
+*Proof.* For `d ≠ d'`, the confinement hypothesis gives `Σ.M(d) = Σ'.M(d)`. Π5 then gives `proj(d, e, Σ) = proj(d, e, Σ')` for every endset `e`. □
+
+The document-targeted arrangement operations `K.μ⁻`, `K.μ⁺`, `K.μ~` (per ASN-0047) all satisfy this confinement on `M`. The non-document-targeted operations `K.α` and `K.λ` modify `C` and `L` respectively but leave every `M(d)` untouched; their interaction with projections is handled separately by Π13 and Π14 below.
 
 **Π13 (ContentAllocationFrame).** `K.α` extends `dom(C)` but does not modify any `M(d)`:
 
-`(A d, e, ℓ ∈ dom(Σ.L) : proj(d, e, Σ) = proj(d, e, Σ'))`
+`(A d, e :: proj(d, e, Σ) = proj(d, e, Σ'))`
 
 across every `K.α`-transition. A newly allocated content address is not in any arrangement until a subsequent `K.μ⁺` places it; its presence in `dom(C)` alone does not affect any existing projection.
 
@@ -192,9 +218,9 @@ The consultation evidence indicates that the design intent (Nelson) is CCR-open:
 
 **Π14 (LinkAllocationFrame).** `K.λ` extends `dom(L)` but does not modify any `M(d)`:
 
-`(A d, e, ℓ ∈ dom(Σ.L) : proj(d, e, Σ) = proj(d, e, Σ'))`
+`(A d, e :: proj(d, e, Σ) = proj(d, e, Σ'))`
 
-across every `K.λ`-transition. The newly allocated link's endsets exist in `Σ'.L` but not in `Σ.L`; there is no projection to compare for the new link, only forward from `Σ'`.
+across every `K.λ`-transition. Applied pointwise to endsets of pre-existing links — for every `ℓ ∈ dom(Σ.L)` and slot index `i`, instantiate the universally quantified equation with `e := Σ.L(ℓ).eᵢ` — this yields `proj(d, ℓ, i, Σ) = proj(d, ℓ, i, Σ')`. The newly allocated link's endsets exist in `Σ'.L` but not in `Σ.L`; there is no projection to compare for the new link, only forward from `Σ'`.
 
 ## Independence from Arrangement
 
@@ -278,16 +304,20 @@ Under CCR-open, R13 must be read with a caveat: a link's endset may reference gh
 
 To confirm that the claims survive a non-trivial state, we trace through a small scenario.
 
-**Initial state `Σ₀`.** A link `ℓ` has been allocated with coverage `cov(e) = {a₅, a₆, a₇}` for some endset `e ∈ Σ₀.L(ℓ)`. A document `d` is arranged by
+**Initial state `Σ₀`.** A link `ℓ` has been allocated with coverage `cov(e) = {a₅, a₆, a₇}` for some endset `e ∈ Σ₀.L(ℓ)`. Three documents are arranged:
 
-`Σ₀.M(d) = {0 ↦ a₅, 1 ↦ a₆, 2 ↦ a₇, 3 ↦ a₈}`
+- `Σ₀.M(d) = {0 ↦ a₅, 1 ↦ a₆, 2 ↦ a₇, 3 ↦ a₈}` — the principal document of our trace.
+- `Σ₀.M(d') = {0 ↦ a₆, 1 ↦ a₉}` — a second document arranging `a₆ ∈ cov(e)` and an unrelated `a₉ ∉ cov(e)`. This lets us witness R10 (cross-document independence).
+- `Σ₀.M(d_link) = {0 ↦ ℓ}` — a third document whose link-subspace arrangement includes `ℓ` itself at V-position `0` of `d_link`. (Per ASN-0043, the link store `L` and a document's link-subspace arrangement are distinct: a link is born in `L` by `K.λ`, but whether it is *arranged* in some document's link-subspace V-stream is a separate matter — what we are about to vary.) This lets us witness R11 (reverse orphaning).
 
-The starting projection and I-projection are:
+The starting projections and I-projections are:
 
 - `proj(d, e, Σ₀) = {v ∈ {0, 1, 2, 3} : Σ₀.M(d)(v) ∈ {a₅, a₆, a₇}} = {0, 1, 2}`
 - `iproj(d, e, Σ₀) = {a₅, a₆, a₇} ∩ {a₅, a₆, a₇, a₈} = {a₅, a₆, a₇}`
+- `proj(d', e, Σ₀) = {v ∈ {0, 1} : Σ₀.M(d')(v) ∈ {a₅, a₆, a₇}} = {0}`
+- `iproj(d', e, Σ₀) = {a₅, a₆, a₇} ∩ {a₆, a₉} = {a₆}`
 
-All three coverage addresses are reached; the projection witnesses every one of them.
+All three coverage addresses are reached by `d`; only `a₆` is reached by `d'`. The link `ℓ` is itself arranged at V-position `0` of `d_link`.
 
 **Step 1: K.μ⁻ removing V-position 1 (`Σ₀ → Σ₁`).** Contract `Σ₀.M(d)` by dropping position `1`:
 
@@ -311,6 +341,8 @@ The I-projection in `Σ₁`:
 `iproj(d, e, Σ₁) = {a₅, a₆, a₇} ∩ {a₅, a₇, a₈} = {a₅, a₇}`
 
 The contraction has lost the witness for `a₆`. The link still has `a₆` in its coverage (Π3), but no V-position in `Σ₁` realizes it. This is the *partial survival* case: `proj` and `iproj` narrowed, the link itself is intact.
+
+Cross-document frame (Π12): the operation's write set is `M(d)`, so `Σ₁.M(d') = Σ₀.M(d')` and `Σ₁.M(d_link) = Σ₀.M(d_link)`. Hence `proj(d', e, Σ₁) = {0}` and `iproj(d', e, Σ₁) = {a₆}` (both unchanged), and `ℓ ∈ ran(Σ₁.M(d_link))` (still arranged).
 
 **Step 2: K.μ~ swapping V-positions 0 and 2 (`Σ₁ → Σ₂`).** Let `π` be the bijection `dom(Σ₁.M(d)) → dom(Σ₂.M(d))` with `π(0) = 2`, `π(2) = 0`, `π(3) = 3`. The K.μ~ contract `Σ₂.M(d)(π(v)) = Σ₁.M(d)(v)` yields:
 
@@ -340,12 +372,50 @@ Verify Π11 transition synthesis. From `Σ₀` to `Σ₂`:
 - Step 2 (K.μ~): `iproj(d, e, Σ₂) = {a₅, a₇} = iproj(d, e, Σ₁)`. (Π11c equality holds.)
 - Overall: `a₆` was lost only at the K.μ⁻ step; the K.μ~ step did not lose or recover any coverage address. The transition history of `iproj` is monotone-with-the-operation.
 
-**Step 3 (counterfactual): a hypothetical K.μ⁺ adding `(4 ↦ a₆)`.** Suppose `Σ₂ → Σ₃` extends `Σ₂.M(d)` by `Σ₃.M(d)(4) = a₆`, with all earlier mappings preserved. Then:
+Cross-document frame again applies: `Σ₂.M(d') = Σ₁.M(d')` and `Σ₂.M(d_link) = Σ₁.M(d_link)` by Π12, so `proj(d', e, Σ₂) = {0}`, `iproj(d', e, Σ₂) = {a₆}`, and `ℓ ∈ ran(Σ₂.M(d_link))` — all unchanged.
 
-- `iproj(d, e, Σ₃) = {a₅, a₆, a₇} ∩ {a₇, a₅, a₈, a₆} = {a₅, a₆, a₇}` — restoring full coverage.
-- `proj(d, e, Σ₃) = {0, 2, 4}` — the V-witness for `a₆` is now position 4.
+**Step 3: K.μ⁻ removing V-positions `{0, 2}` from `M(d)` (`Σ₂ → Σ₃`).** Now we drop every position currently in `proj(d, e, Σ₂)`. Set `V_drop = {0, 2}`. The K.μ⁻ contract gives `dom(Σ₃.M(d)) = {3}` and `Σ₃.M(d)(3) = Σ₂.M(d)(3) = a₈`, so
 
-This is R9 (reintroduction) in action: because `a₆ ∈ dom(C)` is permanent and `a₆ ∈ cov(e)` is permanent, the I-projection's loss at Step 1 is recoverable by a later K.μ⁺.
+`Σ₃.M(d) = {3 ↦ a₈}`
+
+The projection in `d`:
+
+- `proj(d, e, Σ₃) = {v ∈ {3} : Σ₃.M(d)(v) ∈ {a₅, a₆, a₇}} = ∅` — no projecting V-position survives.
+- `iproj(d, e, Σ₃) = {a₅, a₆, a₇} ∩ {a₈} = ∅` — no coverage address remains in range.
+
+Check against the wp characterization derived above: `wp(K.μ⁻[V_drop], iproj(d, e) ≠ ∅) ≡ proj(d, e, Σ₂) ⊄ V_drop`. Here `proj(d, e, Σ₂) = {0, 2} ⊆ {0, 2} = V_drop`, so the precondition for non-empty post-projection fails — and indeed `iproj(d, e, Σ₃) = ∅`. ✓
+
+Also check Π11(d) (transition closed form). Here `Δran⁻ = ran(Σ₂.M(d)) ∖ ran(Σ₃.M(d)) = {a₇, a₅, a₈} ∖ {a₈} = {a₅, a₇}` and `Δran⁺ = {a₈} ∖ {a₇, a₅, a₈} = ∅` (K.μ⁻ adds no new range-values). The closed form predicts `iproj(d, e, Σ₃) = (iproj(d, e, Σ₂) ∖ Δran⁻) ∪ (cov(e) ∩ Δran⁺) = ({a₅, a₇} ∖ {a₅, a₇}) ∪ (cov(e) ∩ ∅) = ∅ ∪ ∅ = ∅`. ✓
+
+Cross-document frame: `Σ₃.M(d') = Σ₂.M(d')` by Π12, so `proj(d', e, Σ₃) = {0}` and `iproj(d', e, Σ₃) = {a₆}` — both *unchanged*. This is the **R10 witness**: `proj(d, e, Σ₃) = ∅` while simultaneously `proj(d', e, Σ₃) = {0} ≠ ∅`. Emptying the projection in one document leaves the projection in another document — and hence the link's discoverability through that document — entirely intact. `ℓ` itself is still arranged in `d_link`: `Σ₃.M(d_link) = Σ₂.M(d_link) = {0 ↦ ℓ}`.
+
+**Step 4: K.μ⁻ on `M(d_link)` removing V-position `0` (`Σ₃ → Σ₄`).** Now we *reverse-orphan* `ℓ` — drop the sole V-position of `d_link` that arranges `ℓ`. The K.μ⁻ contract gives `dom(Σ₄.M(d_link)) = ∅`, so
+
+`Σ₄.M(d_link) = ∅`
+
+Now `ℓ ∉ ran(Σ₄.M(d_link))`, and (because we set up `d_link` as the *only* document arranging `ℓ`) `ℓ ∉ ran(Σ₄.M(d''))` for every `d'' ∈ E_doc`. The link is unarranged in every document's link subspace.
+
+Apply Π15b: K.μ⁻ on `M(d_link)` leaves `Σ.L` and every link value untouched. Hence `Σ₄.L = Σ₃.L = Σ₀.L`, `ℓ ∈ dom(Σ₄.L)`, and `cov(Σ₄.L(ℓ).e) = {a₅, a₆, a₇} = cov(Σ₀.L(ℓ).e)`. The endset's coverage is permanent regardless of whether `ℓ` itself is arranged anywhere.
+
+Cross-document frame (Π12) on the projection side: the write set is `M(d_link)`, so `Σ₄.M(d) = Σ₃.M(d) = {3 ↦ a₈}` and `Σ₄.M(d') = Σ₃.M(d') = {0 ↦ a₆, 1 ↦ a₉}`. Therefore:
+
+- `proj(d, e, Σ₄) = ∅`, `iproj(d, e, Σ₄) = ∅` (carried over from Σ₃).
+- `proj(d', e, Σ₄) = {0}`, `iproj(d', e, Σ₄) = {a₆}` (carried over from Σ₃).
+
+This is the **R11 witness**: `ℓ` is reverse-orphaned (no document arranges it), yet the endset projection of `ℓ` into `d'` continues to function exactly as before. The link's *self-arrangement* (whether it appears in some document's link-subspace V-stream) is independent of its *endset projection* (the V-positions reached by following its endset coverage). Furthermore, by Π16/Π17, the link remains discoverable via `d'` from any V-region of `d'` containing position `0` — for instance, `reaches(ℓ, d', {0}, Σ₄)` holds because `a₆ ∈ cov(Σ₄.L(ℓ).e) ∩ ran(Σ₄.M(d')|_{0})`.
+
+**Step 5 (counterfactual): a hypothetical K.μ⁺ adding `(4 ↦ a₆)` to `M(d)` (`Σ₄ → Σ₅`).** From the doubly-degraded state of Σ₄ (empty `proj(d, e, ·)`, reverse-orphaned `ℓ`), extend `M(d)` by placing `a₆` at a fresh V-position:
+
+`Σ₅.M(d) = {3 ↦ a₈, 4 ↦ a₆}`
+
+with `dom(Σ₅.M(d)) = {3, 4} ⊃ {3} = dom(Σ₄.M(d))` and the K.μ⁺ contract preserving `Σ₅.M(d)(3) = a₈`.
+
+- `iproj(d, e, Σ₅) = {a₅, a₆, a₇} ∩ {a₈, a₆} = {a₆}` — partial recovery: the V-projection of `e` into `d` is non-empty again.
+- `proj(d, e, Σ₅) = {v ∈ {3, 4} : Σ₅.M(d)(v) ∈ cov(e)} = {4}` — V-position `4` now realizes the coverage address `a₆`.
+
+Verify Π11(d) closed form: `Δran⁺ = {a₈, a₆} ∖ {a₈} = {a₆}` and `Δran⁻ = {a₈} ∖ {a₈, a₆} = ∅`. The closed form predicts `iproj(d, e, Σ₅) = (∅ ∖ ∅) ∪ ({a₅, a₆, a₇} ∩ {a₆}) = ∅ ∪ {a₆} = {a₆}`. ✓
+
+This is R9 (reintroduction) in its strongest form: *even from a state with empty I-projection in `d` and a reverse-orphaned `ℓ`*, a single `K.μ⁺` placing a coverage address `a₆ ∈ dom(Σ.C)` into `M(d)` restores `a₆` to the projection. The link's coverage permanence (Π3) and the content's permanence in `dom(Σ.C)` (S0) together suffice; neither emptying the projection in `d` nor unarranging `ℓ` itself permanently extinguishes the projection's recoverability.
 
 ## Weakest Preconditions
 
@@ -393,7 +463,17 @@ The same projection function governs three operational scenarios, each a differe
 
 The boundary insertion case is contingent on CCR-restricted: when `K.α` allocates a new content address `a_new` and a subsequent `K.μ⁺` places `a_new` in `M(d)` adjacent to or amid a linked region, `a_new ∉ cov(eᵢ)` *provided* CCR-restricted held at link creation, since under that rule `cov(eᵢ) ⊆ dom(Σ₀.C)` and `a_new ∉ dom(Σ₀.C)`. Under CCR-restricted no "boundary rule" is needed; the I-address algebra excludes the new bytes by construction. Under CCR-open, a ghost endset may already cover `a_new`, and the projection grows accordingly — by design, not by accident (R13 conditional).
 
-**Mode II: Versioning and Transclusion.** Forking a document `d` to a version `d_v` (via the `K.δ` + `K.μ⁺` composite J4 in ASN-0047) places `d_v` in `E_doc` and arranges `d_v` such that `ran(M(d_v)) ⊆ ran(M(d))` — sharing I-addresses with the source. By Π5 and Π6, any link whose endsets reach `ran(M(d))` may also reach `ran(M(d_v))`, and the projection into `d_v` is computed locally from `M(d_v)`. Whatever I-addresses `M(d_v)` covers from `cov(eᵢ)`, the link projects into `d_v` accordingly — independently of whether `d_v`'s arrangement was constructed wholesale or piecewise, independently of `d`'s current state, and independently of any version's lineage.
+**Mode II: Versioning and Transclusion.** This mode depends on a structural property of versioning operations that we now state and name explicitly, rather than borrowing it from another ASN.
+
+**Versioning Assumption (VA).** A versioning operation that creates a fresh document `d_v ∈ E_doc` as a version of `d ∈ E_doc` produces an initial arrangement satisfying `ran(Σ.M(d_v)) ⊆ ran(Σ.M(d))` in the immediate post-state `Σ`. That is, `d_v`'s arrangement initially reaches only I-addresses already reached by `d`'s arrangement; no fresh I-addresses are coined by the versioning act itself.
+
+We adopt VA as a local axiom for this mode of analysis. It is consistent with Nelson's design intent that a version *shares* content with its source (rather than replicating it) and with the I-pool / V-arrangement separation that underpins Mode III. It also constrains only the *initial* post-fork state: subsequent K.μ-transitions on `d_v` may add to or remove from `ran(Σ.M(d_v))` independently of `d`, which is exactly what Π8, Π9, Π10 already govern. A separate ASN may derive VA from a more primitive versioning contract; here we use VA without further derivation.
+
+Under VA, in the immediate post-fork state `Σ`, the I-projection into `d_v` is bounded above by the I-projection into `d`:
+
+`iproj(d_v, e, Σ) = cov(e) ∩ ran(Σ.M(d_v)) ⊆ cov(e) ∩ ran(Σ.M(d)) = iproj(d, e, Σ)`
+
+— the first equality is the definition of `iproj`, the inclusion follows from VA by intersecting with `cov(e)`, and the second equality is again the definition. Hence any I-address that `cov(e)` reaches via `d`'s arrangement and that is also retained in `d_v`'s inherited arrangement appears in `iproj(d_v, e, Σ)`; the link projects into `d_v` accordingly. By Π5, this projection is computed locally from `M(d_v)` and `cov(e)` alone; by Π6, it is independent of `d`'s subsequent state and of any version's lineage. Whether the two I-projections are equal or proper depends on what fraction of `ran(Σ.M(d))` was carried over to `M(d_v)` at forking and how `M(d_v)` subsequently evolves.
 
 Transclusion (and general inter-document sharing) is the same phenomenon viewed differently: any document whose arrangement reaches a shared I-address inherits the link's projection at that address. A "link to one version" is a "link to all versions" precisely because every version shares the I-addresses of the source (Π11, Π17). The link is not bound to any one document; it follows the content through every document that arranges that content.
 
@@ -416,7 +496,7 @@ Across all three modes, projection displacement is bounded by the elementary tra
 | Π8 | ProjectionUnderExtension: `K.μ⁺` can only grow the projection | introduced |
 | Π9 | ProjectionUnderContraction: `K.μ⁻` can only shrink the projection | introduced |
 | Π10 | ProjectionUnderRearrangement: `K.μ~` permutes V-projection, preserves I-projection | introduced |
-| Π11 | ProjectionFollowsContent: `iproj` is monotone with `ran(M(d))` across K.μ-transitions (Π11a–c) | introduced |
+| Π11 | ProjectionFollowsContent: `iproj` is monotone with `ran(M(d))` across K.μ-transitions (Π11a–c); closed form `iproj(d, e, Σ') = (iproj(d, e, Σ) ∖ Δran⁻) ∪ (cov(e) ∩ Δran⁺)` (Π11d) | introduced |
 | Π12 | CrossDocumentFrame: operations on `M(d')` do not affect `proj(d, ·, ·)` for `d ≠ d'` | introduced |
 | Π13 | ContentAllocationFrame: `K.α` does not affect any existing projection | introduced |
 | Π14 | LinkAllocationFrame: `K.λ` does not affect any existing projection | introduced |
@@ -428,6 +508,7 @@ Across all three modes, projection displacement is bounded by the elementary tra
 | Σ.iproj | `iproj(d, e, Σ) = cov(e) ∩ ran(Σ.M(d))` | introduced |
 | Σ.reaches | `reaches(ℓ, d, V_q, Σ) ≡ (E i :: proj(d, ℓ, i, Σ) ∩ V_q ≠ ∅)` | introduced |
 | CCR | Coverage-at-Creation Rule: structural choice between CCR-restricted (`cov(eᵢ) ⊆ dom(Σ₀.C)`) and CCR-open (`cov(eᵢ) ⊆ T`, ghost references permitted) | open axiom |
+| VA | Versioning Assumption: the immediate post-fork state satisfies `ran(Σ.M(d_v)) ⊆ ran(Σ.M(d))` | local axiom |
 
 ## Open Questions
 
