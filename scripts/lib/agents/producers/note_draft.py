@@ -158,7 +158,7 @@ def _build_consultation_content(asn_number):
             source_rel = session.get_path_for_addr(source_addr)
             if not source_rel:
                 continue
-            full = LATTICE / source_rel
+            full = WORKSPACE / source_rel
             if not full.exists():
                 continue
             parts.append(full.read_text().strip())

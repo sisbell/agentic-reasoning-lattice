@@ -123,27 +123,45 @@ def has_been_reviewed(session: Session, addr: Address) -> bool:
     return latest_review_for_addr(session, addr) is not None
 
 
+def _review_filed_revise(session: Session, review_addr: Address) -> bool:
+    """True iff `review_addr` originally emitted any `comment.revise`
+    findings — including comment.revise links that have since been
+    retracted (e.g., by note_revise closing them).
+
+    Stochastic-quiescence cleanness is about the reviewer's emit-time
+    verdict, not the current resolution state. A review with 5 REVISE
+    findings does not become "clean" because those findings were later
+    addressed — it's still a non-CONVERGED draw, and n-consecutive-clean
+    must require a fresh CONVERGED draw on top.
+
+    Walks find_links (including retracted) on each finding doc derived
+    from the review.
+    """
+    state = session._state
+    finding_addrs = {
+        target
+        for link in session.active_links(
+            "provenance.derivation", from_set=[review_addr],
+        )
+        for target in link.to_set
+    }
+    for finding in finding_addrs:
+        if state.find_links(from_set=[finding], type_="comment.revise"):
+            return True
+    return False
+
+
 def latest_review_was_clean(session: Session, addr: Address) -> bool:
     """True iff the most recent review on `addr`'s scope filed zero
-    `comment.revise` findings (none of its derived findings own a
-    comment.revise link).
+    `comment.revise` findings at emit time (retracted findings still
+    count — see `_review_filed_revise`).
 
     Returns False when no review has covered `addr`.
     """
     review_meta = latest_review_for_addr(session, addr)
     if review_meta is None:
         return False
-    finding_addrs = {
-        target
-        for link in session.active_links(
-            "provenance.derivation", from_set=[review_meta],
-        )
-        for target in link.to_set
-    }
-    for finding in finding_addrs:
-        if session.active_links("comment.revise", from_set=[finding]):
-            return False
-    return True
+    return not _review_filed_revise(session, review_meta)
 
 
 def last_n_reviews_were_clean(
@@ -175,19 +193,8 @@ def last_n_reviews_were_clean(
         return False
     coverage_links.sort(key=lambda link: link.addr.digits)
     for cov_link in coverage_links[-n:]:
-        review_addr = cov_link.from_set[0]
-        finding_addrs = {
-            target
-            for link in session.active_links(
-                "provenance.derivation", from_set=[review_addr],
-            )
-            for target in link.to_set
-        }
-        for finding in finding_addrs:
-            if session.active_links(
-                "comment.revise", from_set=[finding],
-            ):
-                return False
+        if _review_filed_revise(session, cov_link.from_set[0]):
+            return False
     return True
 
 

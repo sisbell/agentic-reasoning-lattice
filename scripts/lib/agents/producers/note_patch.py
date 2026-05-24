@@ -54,7 +54,8 @@ from lib.agents.base import Agent, AgentResult
 from lib.agents.producers.note_review import extract_note_findings
 from lib.backend.addressing import Address
 from lib.backend.emit import (
-    emit_derivation, emit_patch_note, emit_review, emit_review_coverage,
+    emit_derivation, emit_patch_note, emit_review, emit_review_content,
+    emit_review_coverage,
 )
 from lib.shared.prompts import read_prompt
 from lib.lattice.findings import record_one_finding
@@ -211,6 +212,7 @@ def _emit_review_with_findings(
     session.update_document(review_rel, body)
     review_addr = session.register_path(review_rel)
     emit_review(session.store, review_addr)
+    emit_review_content(session.store, review_addr)
     emit_review_coverage(session.store, review_addr, note_addr)
     emit_derivation(session.store, patch_addr, review_addr)
 
