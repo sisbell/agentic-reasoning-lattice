@@ -78,7 +78,7 @@ from lib.lattice.labels import extract_label_digits, format_label
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, log_usage, read_file
-from lib.shared.foundation import load_foundation_for_note
+from lib.shared.foundation import FoundationError, load_foundation
 from lib.shared.frontmatter import read_doc_with_frontmatter
 from lib.shared.invoke_claude import invoke_claude, invoke_claude_agent
 from lib.shared.paths import (
@@ -288,7 +288,14 @@ def _integration_review(
         return None
 
     vocabulary = read_file(resolve_campaign(base_num).vocabulary_path)
-    foundation = load_foundation_for_note(base_path, base_num)
+    try:
+        foundation = load_foundation(base_num)
+    except FoundationError as e:
+        print(
+            f"  [FOUNDATION] {base_label}: {e}",
+            file=sys.stderr,
+        )
+        return None
 
     prompt = (
         template

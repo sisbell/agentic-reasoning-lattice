@@ -32,7 +32,7 @@ from lib.lattice.render import read_doc
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
-from lib.shared.foundation import load_foundation_for_note
+from lib.shared.foundation import FoundationError, load_foundation
 from lib.shared.invoke_claude import invoke_claude_agent
 from lib.shared.paths import (
     USAGE_LOG, WORKSPACE, prompt_path, worker_pending_jsonl,
@@ -74,7 +74,7 @@ def build_prompt(
     if vocab:
         parts.append(f"## Shared Vocabulary\n\n{vocab}")
 
-    foundation = load_foundation_for_note(asn_path, asn_number)
+    foundation = load_foundation(asn_number)
     if foundation:
         parts.append(foundation)
 
@@ -272,11 +272,21 @@ class NoteReviseAgent(Agent):
 
         vocab = read_file(resolve_campaign(asn_label).vocabulary_path)
         consultation_content = _build_consultation_content(session, findings)
-        prompt = build_prompt(
-            asn_path, findings, vocab,
-            consultation_content=consultation_content,
-            asn_number=asn_number,
-        )
+        try:
+            prompt = build_prompt(
+                asn_path, findings, vocab,
+                consultation_content=consultation_content,
+                asn_number=asn_number,
+            )
+        except FoundationError as e:
+            print(
+                f"  [FOUNDATION] {asn_label}: {e}",
+                file=sys.stderr,
+            )
+            return AgentResult(
+                success=False,
+                detail=f"foundation-load-failed: {e}",
+            )
         print(
             f"  [NOTE-REVISE] {asn_label} {len(findings)} finding(s) "
             f"(prompt {len(prompt) // 1024}KB)",
