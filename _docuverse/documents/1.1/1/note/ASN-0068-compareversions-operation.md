@@ -11,6 +11,8 @@ Before deriving the operation, we must rule out one natural-sounding alternative
 The operation takes two `(document, restricting span-set)` pairs:
 
 > `compareversions : (E_doc × SpanSet) × (E_doc × SpanSet) → Result`
+>
+> where `Result := P(T × T × ℕ⁺)` — a set of triples `(v_a, v_b, n)` with `n ≥ 1`, the *correspondence runs* defined below. Equivalently (presentational, not semantic), `Result ≅ P(Span × Span)` via the projection introduced after CV-MAX.
 
 written `compareversions(d_a, R_a, d_b, R_b)`. The restricting span-sets `R_a, R_b` select which portions of each arrangement participate. Without them, comparison would implicitly span the entire arrangement of each side; with them, the caller confines the operation to a passage of `d_a` against a passage of `d_b`. Restriction is therefore not a separate filtering stage — it is part of what defines the operation, the lens through which it is asked to look.
 
@@ -20,9 +22,15 @@ For the operation to be well-defined we require:
 
 The common-subspace restriction is not optional. Were `R_a` to range over content positions (subspace `s_C`) while `R_b` ranged over link positions (subspace `s_L`), the I-addresses on the two sides would inhabit disjoint storage subspaces — `dom(C)` and `dom(L)` respectively, by L14 (ASN-0047) — and no I-address could coincide. The relation would be empty, but more importantly, its very meaning would be confused: comparison is a per-subspace operation. We require this invariant up front.
 
-The typical setting is `S = s_C`. Comparing arrangements in `s_L` is meaningful (one can ask "which link arrangements do two documents share?") but is a separate semantic concern, and the development here applies uniformly to either single subspace.
+The typical setting is `S = s_C`. The development that follows applies uniformly to either single subspace, but the `s_L` case is structurally degenerate, as the following corollary records.
+
+> **CV-LINK-DEGEN** (*link-subspace degeneracy*): When `S = s_L` and `d_a ≠ d_b`, the result is necessarily empty.
+
+*Justification.* By CL-OWN (ASN-0047), every V-position in `s_L` of document `d`'s arrangement maps to a link `ℓ ∈ dom(L)` with `origin(ℓ) = d`. So for any `v_a ∈ ⟦R_a⟧ ∩ dom(M(d_a))` with `subspace(v_a) = s_L`, `origin(M(d_a)(v_a)) = d_a`; symmetrically `origin(M(d_b)(v_b)) = d_b`. If the I-addresses coincided, `origin` (a function: each I-address has exactly one allocating document, S7, ASN-0036) would return both `d_a` and `d_b`, contradicting `d_a ≠ d_b`. The correspondence relation `corr_{a,b}` restricted to `s_L` is therefore empty, and the operation returns `∅`. The same reasoning, applied to the self-comparison case `d_a = d_b`, combines with CL-UNIQ (ASN-0047) — `M(d)|_{dom_L}` is injective — to leave only the identity correspondences in `s_L`. Nelson's "word for word" intercomparison (LM 2/20) was conceived as a content-subspace operation; structurally, the operation specializes to `s_C` in practice.
 
 We do *not* require `m_a = m_b`. Two documents may carry V-positions at different depths in the same subspace, and the comparison must accommodate this. The depths affect only how V-positions are represented within each document; the I-addresses they point to are sub-allocator outputs whose comparison is depth-independent.
+
+*Self-comparison is admissible.* CV-IN does not exclude `d_a = d_b`. When invoked with both operands referring to the same document — Nelson's framing of intercomparison centers on distinct versions, but the operation's signature treats spec-sets symmetrically and the relation is computed by structural identity — `corr_{a,a}` contains every pair `(v¹, v²) ∈ (⟦R_a⟧ ∩ dom(M(d))) × (⟦R_b⟧ ∩ dom(M(d)))` with `M(d)(v¹) = M(d)(v²)`. This always includes the identity pairs `(v, v)` for each occupied `v`, and additionally contains a pair for each instance of self-transclusion within the restriction (distinct V-positions sharing one I-address). The maximal decomposition contains the identity-diagonal runs together with off-diagonal width-1 runs for each self-transclusion pair (extension is generally blocked, since adjacent offsets are not pointwise correspondent unless the self-transclusion is itself a multi-byte run). The operation is well-defined on this degenerate input.
 
 ## The Correspondence Relation
 
@@ -60,14 +68,14 @@ A *correspondence run* between `(d_a, R_a)` and `(d_b, R_b)` is a triple `(v_a, 
 > (ii)  `v_b + k ∈ ⟦R_b⟧ ∩ dom(M(d_b))` for `0 ≤ k < n`
 > (iii) `M(d_a)(v_a + k) = M(d_b)(v_b + k)` for `0 ≤ k < n`
 
-The notation `v + k` denotes shift in the V-position depth of each document (ASN-0034). A run records that `n` consecutive V-offsets, starting at `v_a` in `d_a` and at `v_b` in `d_b`, share their I-addresses pointwise.
+The notation `v + k` denotes shift at the V-position depth of each document, following the OrdinalShiftBase convention of ASN-0058: for `k ≥ 1`, `v + k := shift(v, k)` (OrdinalShift, ASN-0034); for `k = 0`, `v + 0 := v` by definition. This covers the `k = 0` case (which OrdinalShift alone does not handle, since `δ(0, m)` is not a positive tumbler). A run records that `n` consecutive V-offsets, starting at `v_a` in `d_a` and at `v_b` in `d_b`, share their I-addresses pointwise.
 
 A run is *maximal* when it cannot be extended on either side without leaving a restriction, leaving a domain, or breaking pointwise correspondence:
 
 > *Left-maximal*: either `v_a − 1` is not a valid V-predecessor at depth `m_a` within `⟦R_a⟧ ∩ dom(M(d_a))`, or `v_b − 1` is not a valid V-predecessor at depth `m_b` within `⟦R_b⟧ ∩ dom(M(d_b))`, or `M(d_a)(v_a − 1) ≠ M(d_b)(v_b − 1)`.
 > *Right-maximal*: either `v_a + n ∉ ⟦R_a⟧ ∩ dom(M(d_a))`, or `v_b + n ∉ ⟦R_b⟧ ∩ dom(M(d_b))`, or `M(d_a)(v_a + n) ≠ M(d_b)(v_b + n)`.
 
-(Here "valid V-predecessor at depth `m`" means the unique tumbler `v'` of depth `m` with `v' + 1 = v`, if such exists at depth `m` within the relevant subspace. By S8a and D-MIN★ (ASN-0047), the V-position `[S, 1, ..., 1]` is the minimum at any given depth and has no predecessor; in that case left-maximality is automatic.)
+(Here "valid V-predecessor at depth `m`" means the unique tumbler `v'` of depth `m` with `v' + 1 = v`, if such exists at depth `m` within the relevant subspace. By D-SEQ★ (ASN-0047), V-positions in subspace `S` of a document have the form `[S, 1, ..., 1, k]` for `k ≥ 1`; the predecessor of `[S, 1, ..., 1, k]` for `k ≥ 2` is `[S, 1, ..., 1, k − 1]`, and its uniqueness follows from ShiftInjectivity (TS2, ASN-0034) — if two depth-`m` tumblers satisfy `v'₁ + 1 = v = v'₂ + 1`, then `v'₁ = v'₂`. By S8a and D-MIN★ (ASN-0047), the V-position `[S, 1, ..., 1]` is the minimum at any given depth and has no V-predecessor; in that case left-maximality is automatic.)
 
 We define the result of the operation as the set of all maximal correspondence runs over the given input.
 
@@ -79,25 +87,91 @@ We define the result of the operation as the set of all maximal correspondence r
 >
 >     `compareversions(d_a, R_a, d_b, R_b) = MaxRuns(d_a, R_a, d_b, R_b)`
 
-The uniqueness of the maximal decomposition follows the same line of reasoning that underwrites the canonical mapping-block decomposition of an arrangement (M12, ASN-0058). Walking left from any pair `(v_a, v_b) ∈ corr_{a,b}` while pointwise correspondence and restriction membership both hold reaches a unique left-maximal extension; walking right reaches a unique right-maximal extension; the combined extension is the unique maximal run containing the pair.
+*Proof.* (Existence.) Fix any `(v_a, v_b) ∈ corr_{a,b}`. By S8-fin (ASN-0036), `dom(M(d_a))` and `dom(M(d_b))` are finite, so only finitely many `k ∈ ℕ` can satisfy the run conditions (i)–(iii) at offset `k` starting from `(v_a, v_b)`. Walking right, let `n_R` be the largest `n ≥ 1` such that conditions (i)–(iii) hold for all `0 ≤ k < n` starting from `(v_a, v_b)`. Walking left, let `j ≥ 0` be the largest count of valid backward steps from `(v_a, v_b)` — i.e., such that for all `0 ≤ i ≤ j`, the V-predecessors `(v_a − i, v_b − i)` exist within their restrictions and remain pointwise correspondent. Termination of both walks is forced by the finiteness of the underlying domains. The triple `(v_a − j, v_b − j, j + n_R)` is then a correspondence run containing `(v_a, v_b)` at offset `k = j`, and it is maximal: right-maximality holds because extending by one more right step contradicts the choice of `n_R`; left-maximality holds because extending by one more left step contradicts the choice of `j`.
+
+*Proof.* (Uniqueness.) Suppose `(v_a, v_b) ∈ corr_{a,b}` is witnessed by two maximal runs `R¹ = (v¹_a, v¹_b, n¹)` and `R² = (v²_a, v²_b, n²)`, with offsets `k¹ ∈ [0, n¹)` and `k² ∈ [0, n²)`:
+
+> `v_a = v¹_a + k¹ = v²_a + k²` and `v_b = v¹_b + k¹ = v²_b + k²`
+
+*Lockstep offset.* By S8-depth (ASN-0036), all four positions `v¹_a, v²_a, v_a` share the common depth `m_a` of `d_a`'s V-positions in subspace `S`; similarly the b-positions share depth `m_b`. By D-SEQ★ (ASN-0047), each has the form `[S, 1, ..., 1, j]`; write `v¹_a = [S, 1, ..., 1, j¹_a]`, `v²_a = [S, 1, ..., 1, j²_a]`, and similarly for the b-side. By OrdinalShift's last-component formula (ASN-0034) together with T3 (ASN-0034), the equation `v¹_a + k¹ = v²_a + k²` reduces to `j¹_a + k¹ = j²_a + k²`, hence `k¹ − k² = j²_a − j¹_a`. The b-side equation gives `k¹ − k² = j²_b − j¹_b` by the same argument. Therefore
+
+> `δ := j²_a − j¹_a = j²_b − j¹_b`
+
+so `R²` is shifted from `R¹` by a common signed offset `δ` on both sides. WLOG `δ ≥ 0` (else swap the role of `R¹` and `R²`).
+
+*Contradiction from maximality.* Two cases.
+
+*Case δ = 0.* Then `v¹_a = v²_a` and `v¹_b = v²_b`. If `n¹ = n²` we are done. Otherwise WLOG `n¹ < n²`. The offset `k = n¹` satisfies `0 ≤ k < n²`, so `R²`'s run conditions give `v¹_a + n¹ = v²_a + n¹ ∈ ⟦R_a⟧ ∩ dom(M(d_a))`, `v¹_b + n¹ ∈ ⟦R_b⟧ ∩ dom(M(d_b))`, and `M(d_a)(v¹_a + n¹) = M(d_b)(v¹_b + n¹)` — a valid right-extension of `R¹`, contradicting `R¹`'s right-maximality. So `n¹ = n²` and `R¹ = R²`.
+
+*Case δ > 0.* From `k¹ − k² = δ` and `k¹ < n¹` we get `k² + δ = k¹ < n¹`, hence `δ − 1 < n¹ − k² ≤ n¹`, and since `k² ≥ 0`, also `δ − 1 ≥ 0`. So `0 ≤ δ − 1 < n¹`. Consider position `v²_a − 1 = v¹_a + (δ − 1)`, the V-predecessor of `v²_a` at depth `m_a` (D-SEQ★ guarantees `v²_a = [S, 1, ..., 1, j²_a]` with `j²_a = j¹_a + δ ≥ 1 + δ ≥ 2`, so a predecessor exists). Since `0 ≤ δ − 1 < n¹`, `R¹`'s run conditions at offset `δ − 1` yield `v²_a − 1 ∈ ⟦R_a⟧ ∩ dom(M(d_a))`, `v²_b − 1 ∈ ⟦R_b⟧ ∩ dom(M(d_b))`, and `M(d_a)(v²_a − 1) = M(d_b)(v²_b − 1)` — a valid left-extension of `R²`, contradicting `R²`'s left-maximality. So `δ > 0` is impossible.
+
+Both cases combined: `δ = 0` and `n¹ = n²`, so `R¹ = R²`. ∎
+
+*Empty inputs.* The proof and the operation are well-defined on the boundary cases. If either restriction has empty denotation — e.g., `R_a = ⟨⟩` so `⟦R_a⟧ = ∅`, or the restriction selects only unmapped positions — then `corr_{a,b} = ∅`, no run conditions can be satisfied, and `MaxRuns(d_a, R_a, d_b, R_b) = ∅`.
+
+## Worked Examples
+
+We verify the definitions and CV-MAX against two concrete configurations.
+
+*Example 1 (contiguous transclusion).* Let `d_a` and `d_b` be documents in subspace `S = s_C` with common depth `m_a = m_b = 2`. Let `a₁, a₂, a₃, b₁, b₂` be five distinct I-addresses in `dom(C)`. Suppose
+
+> `M(d_a):  [1,1] ↦ a₁,  [1,2] ↦ a₂,  [1,3] ↦ a₃`
+>
+> `M(d_b):  [1,1] ↦ b₁,  [1,2] ↦ a₁,  [1,3] ↦ a₂,  [1,4] ↦ b₂`
+
+Take `R_a` and `R_b` to span the full arrangement of each document. The correspondence relation is:
+
+> `corr_{a,b} = { ([1,1], [1,2]),  ([1,2], [1,3]) }`
+
+— `a₁` matches at `(v_a, v_b) = ([1,1], [1,2])` and `a₂` matches at `([1,2], [1,3])`. The offsets between matched a-side and b-side positions are identical: `v_b − v_a = 1` at both pairs. Walking right from `([1,1], [1,2])`: offset 1 gives `([1,2], [1,3])` with `M(d_a)([1,2]) = a₂ = M(d_b)([1,3])` ✓. Offset 2 gives `([1,3], [1,4])` with `M(d_a)([1,3]) = a₃ ≠ b₂ = M(d_b)([1,4])` ✗. The right walk terminates at width 2. Walking left from `([1,1], [1,2])`: `v_a − 1 = [1,0]`, which is not a valid V-position (D-MIN★ gives `[1,1]` as the minimum). Left-maximality holds.
+
+The result is therefore a single maximal run:
+
+> `MaxRuns = { ([1,1], [1,2], 2) }`
+
+— not two separate width-1 runs. The aggregation reflects the underlying I-address contiguity.
+
+*Example 2 (self-transclusion blocks merging).* Let `d_a`, `d_b` be at depth 2. Let `a, b, c` be distinct I-addresses with `a` appearing twice in `d_a` (self-transclusion):
+
+> `M(d_a):  [1,1] ↦ a,  [1,2] ↦ b,  [1,3] ↦ a`
+>
+> `M(d_b):  [1,1] ↦ a,  [1,2] ↦ c`
+
+The correspondence relation is:
+
+> `corr_{a,b} = { ([1,1], [1,1]),  ([1,3], [1,1]) }`
+
+— `a` matches at `([1,1], [1,1])` (offset 0 on both sides) and at `([1,3], [1,1])` (offsets differ by 2). Walking right from `([1,1], [1,1])`: offset 1 gives `([1,2], [1,2])` with `M(d_a)([1,2]) = b ≠ c = M(d_b)([1,2])` ✗. Walking right from `([1,3], [1,1])`: offset 1 gives `([1,4], [1,2])`, and `[1,4] ∉ dom(M(d_a))` ✗ (or `b ≠ c` if we were to compare values, but absence from the domain is enough). Walking left from either pair similarly fails (the lockstep predecessors `([1,0], [1,0])` and `([1,2], [1,0])` are either invalid or non-correspondent).
+
+The result has two distinct maximal runs:
+
+> `MaxRuns = { ([1,1], [1,1], 1),  ([1,3], [1,1], 1) }`
+
+The two runs cannot be merged because they have different lockstep offsets (`δ = 0` for the first, `δ = 2` for the second). Each is its own maximal extension. This is the M14 (ASN-0058) phenomenon at the cross-document level: shared I-address at multiple V-positions produces independent correspondence-run entries.
 
 A correspondence run `(v_a, v_b, n)` projects naturally to a pair of V-spans `(σ_a, σ_b)`:
 
 > `σ_a = (v_a, δ(n, m_a))` and `σ_b = (v_b, δ(n, m_b))`
 
-The widths `δ(n, m_a)` and `δ(n, m_b)` (OrdinalDisplacement, ASN-0034) denote the same ordinal count `n`, expressed at each document's V-position depth. Both spans are level-uniform, and the span-pair view is the natural form for a user-facing rendering: a client can highlight `σ_a` in `d_a` and `σ_b` in `d_b` synchronously, knowing that the underlying I-addresses correspond pointwise.
+The widths `δ(n, m_a)` and `δ(n, m_b)` (OrdinalDisplacement, ASN-0034) denote the same ordinal count `n`, expressed at each document's V-position depth.
+
+*Verification of span well-formedness.* By OrdinalDisplacement (ASN-0034), `δ(n, m_a) ∈ T`, `Pos(δ(n, m_a))` (since `n ≥ 1`), and `actionPoint(δ(n, m_a)) = m_a`. By S8-depth (ASN-0036), `v_a` (a V-position in subspace `S` of `d_a`) has length `#v_a = m_a`, so `actionPoint(δ(n, m_a)) = m_a ≤ #v_a` discharges the T12 (ASN-0034) precondition for span well-formedness of `σ_a`. Level-uniformity (S6, ASN-0053) follows from `#δ(n, m_a) = m_a = #v_a`. The same chain, with `m_b` in place of `m_a`, establishes well-formedness and level-uniformity of `σ_b`.
+
+The span-pair view is the natural form for a user-facing rendering: a client can highlight `σ_a` in `d_a` and `σ_b` in `d_b` synchronously, knowing that the underlying I-addresses correspond pointwise.
 
 The set of maximal correspondence runs equivalently presents as a set of span-pairs `{(σ¹_a, σ¹_b), ..., (σᵏ_a, σᵏ_b)}`. The triple form and the span-pair form carry the same information; the choice of representation is presentational, not semantic.
 
 ## Atomicity and Granularity
 
-The smallest unit at which sharing is recognized is a single I-address. There is no minimum quotation length, no merge threshold, no lower bound on a meaningful correspondence.
+CV-MAX establishes that the result is the unique maximal decomposition. A separate, substantive claim is that the operation imposes no width threshold at the construction layer: a width-1 maximal run is admissible, and an isolated single-address match is preserved as its own maximal run rather than absorbed into surrounding non-matching content.
 
-> **CV-ATOM** (*byte granularity*): For each I-address `a ∈ dom(C)` (resp. `dom(L)`) that appears in both restrictions — i.e., `a ∈ ran(M(d_a)|_{⟦R_a⟧})` and `a ∈ ran(M(d_b)|_{⟦R_b⟧})` — every V-position pair `(v_a, v_b)` with `M(d_a)(v_a) = M(d_b)(v_b) = a` is witnessed by a maximal correspondence run of width at least 1 containing it.
+> **CV-ATOM** (*byte-granular construction*): A correspondence run of width `n = 1` is admissible and is preserved as a maximal element of the result whenever it satisfies maximality. The operation defines no minimum-quotation-length cutoff below which matches are discarded, no merge-window heuristic that would join near-but-not-adjacent matches, and no block-alignment constraint that would require runs to begin at fixed offsets within either arrangement. Every pair `(v_a, v_b) ∈ corr_{a,b}` contributes to the result, regardless of how isolated.
 
-This atomicity flows from the addressing scheme. Every byte has its own I-address; correspondence is decided per-address; the result's granularity is therefore one byte. Aggregation into wider runs is a *consequence* of consecutive matches at consecutive offsets — not an editorial choice imposed at the result-construction layer. The maximality condition ensures that contiguous matches do aggregate (a width-`n` run with `n > 1` is not represented as `n` separate width-1 runs); conversely, an isolated single-byte match is not absorbed into a neighboring run if it does not lie in the relation at the adjacent offset.
+This is a non-trivial claim about the operation's character. Conventional textual-diff algorithms typically impose width thresholds (matches below `k` bytes are noise) or block-alignment constraints (matches must begin at line boundaries, word boundaries, etc.). CV-ATOM rules these out by construction. The granularity is determined by the addressing scheme — every byte has its own I-address; correspondence is decided per-address — and no aggregation policy is layered on top. Aggregation into wider runs is a *consequence* of consecutive matches at consecutive offsets, surfaced by maximality; it is not an editorial choice. The maximality condition ensures that contiguous matches *do* aggregate (a width-`n` run with `n > 1` is not represented as `n` separate width-1 runs); conversely, an isolated single-address match is *not* absorbed into a neighboring run if it does not lie in the relation at the adjacent offset.
 
-A subtle consequence: in the presence of self-transclusion, the same I-address `a` may produce multiple width-1 runs that cannot be merged. If `a` appears at V-positions `v¹_a, v²_a` in `d_a` and at `u_b` in `d_b`, the result contains two runs `(v¹_a, u_b, 1)` and `(v²_a, u_b, 1)`. Each is its own maximal extension; the relation `corr_{a,b}` contains two distinct pairs that must both be witnessed (M14, ASN-0058, supplies the structural analogue: multiple V-positions sharing one I-address are independent mapping-block entries).
+Nelson framed intercomparison as showing "word for word, what parts of two versions are the same" (LM 2/20). CV-ATOM is the abstract form of that commitment: correspondence is *structural*, looked up by I-address equality, not *inferred* by a heuristic that might suppress fine-grained matches.
+
+A subtle consequence of CV-ATOM in the presence of self-transclusion: the same I-address `a` may produce multiple width-1 runs that cannot be merged. If `a` appears at V-positions `v¹_a, v²_a` in `d_a` and at `u_b` in `d_b`, the result contains two runs `(v¹_a, u_b, 1)` and `(v²_a, u_b, 1)`. Each is its own maximal extension, and the operation reports both faithfully (M14, ASN-0058, supplies the structural analogue: multiple V-positions sharing one I-address are independent mapping-block entries). Example 2 above exhibits this phenomenon concretely.
 
 ## Symmetry
 
@@ -105,7 +179,9 @@ The operation is *symmetric in content* and *order-preserving in presentation*. 
 
 > **CV-SYM** (*operand symmetry*): There exists a bijection between `compareversions(d_a, R_a, d_b, R_b)` and `compareversions(d_b, R_b, d_a, R_a)` that pairs each run `(v_a, v_b, n)` of the first result with the run `(v_b, v_a, n)` of the second.
 
-This is immediate from the symmetry of the underlying relation: `(v_a, v_b) ∈ corr_{a,b} ⟺ (v_b, v_a) ∈ corr_{b,a}`. The maximal decomposition extends this pointwise symmetry to run-level symmetry: a maximal run in one ordering corresponds to a maximal run in the other, related by the swap of operand positions within the triple.
+*Verification.* The pointwise symmetry of `corr` is immediate from the symmetry of equality: `M(d_a)(v_a) = M(d_b)(v_b) ⟺ M(d_b)(v_b) = M(d_a)(v_a)`. The run conditions (i), (ii), (iii) — `v_a + k ∈ ⟦R_a⟧ ∩ dom(M(d_a))`, `v_b + k ∈ ⟦R_b⟧ ∩ dom(M(d_b))`, `M(d_a)(v_a + k) = M(d_b)(v_b + k)` for `0 ≤ k < n` — are syntactically the conjunction of three sub-claims, each of which is preserved under the relabeling `(d_a, R_a, v_a) ↔ (d_b, R_b, v_b)`: conditions (i) and (ii) swap roles, and condition (iii) is symmetric in equality. Therefore `(v_a, v_b, n)` is a correspondence run for `(d_a, R_a, d_b, R_b)` iff `(v_b, v_a, n)` is a correspondence run for `(d_b, R_b, d_a, R_a)`.
+
+The maximality conditions are likewise symmetric. Left-maximality of `(v_a, v_b, n)` is the disjunction "`v_a − 1` invalid on the a-side, or `v_b − 1` invalid on the b-side, or values differ at offset `−1`" — a disjunction over both operand positions. The same disjunction, viewed from the swapped ordering, becomes "`v_b − 1` invalid on the b-side, or `v_a − 1` invalid on the a-side, or values differ at offset `−1`" — the same disjunction, with terms reordered. Right-maximality is symmetric in the same way. So `(v_a, v_b, n)` is maximal iff `(v_b, v_a, n)` is maximal in the swapped ordering. The bijection on the result sets is the operand-swap map.
 
 The relation is symmetric; the *presentation* preserves operand order. Calling `d_a` the "reference" and `d_b` the "comparator" is a convention of the caller, not a distinction the system honors structurally. The operation computes a join, not a unilateral examination.
 
@@ -161,14 +237,16 @@ These two properties together — read-only and deterministic — make `comparev
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| CV-IN | Admissibility: `d_a, d_b ∈ E_doc`; `R_a, R_b` normalized V-span-sets lying within a single common subspace `S`; each span level-uniform at the document's V-position depth in `S` | introduced |
+| CV-IN | Admissibility: `d_a, d_b ∈ E_doc` (with `d_a = d_b` admissible); `R_a, R_b` normalized V-span-sets lying within a single common subspace `S`; each span level-uniform at the document's V-position depth in `S` | introduced |
+| Result | `Result := P(T × T × ℕ⁺)` — set of correspondence-run triples | introduced |
 | `corr_{a,b}` | Correspondence relation: `{(v_a, v_b) ∈ ⟦R_a⟧ ∩ dom(M(d_a)) × ⟦R_b⟧ ∩ dom(M(d_b)) : M(d_a)(v_a) = M(d_b)(v_b)}` | introduced |
 | CV-IDENT | Correspondence is determined by I-address equality, not by value equality of stored content | introduced |
 | CV-PROV-FORGOTTEN | The relation does not distinguish how shared I-addresses came to be referenced — direct or transitive transclusion produces indistinguishable correspondences | introduced |
+| CV-LINK-DEGEN | When `S = s_L` and `d_a ≠ d_b`, the result is necessarily empty (CL-OWN + S7 force I-address origins to disagree) | introduced |
 | Correspondence run | A triple `(v_a, v_b, n)` with `n ≥ 1` and pointwise correspondence at all offsets `0 ≤ k < n`, both endpoints lying in their restrictions | introduced |
 | Maximal correspondence run | A correspondence run that cannot be extended left or right without leaving a restriction or breaking pointwise correspondence | introduced |
 | CV-MAX | `MaxRuns(d_a, R_a, d_b, R_b)` is uniquely determined; every pair in `corr_{a,b}` is witnessed by exactly one maximal run | introduced |
-| CV-ATOM | Sharing is recognized at single-I-address granularity; the minimum-width run is 1; no quotation-length threshold | introduced |
+| CV-ATOM | Byte-granular construction: width-1 runs are admissible and preserved; no quotation-length cutoff, no merge-window heuristic, no block-alignment constraint is imposed | introduced |
 | CV-SYM | Operand-swap symmetry: there is a bijection swapping each run `(v_a, v_b, n)` with `(v_b, v_a, n)` between the two orderings of the operation | introduced |
 | CV-RO | The operation is read-only — no component of `Σ` is modified by its invocation; it is not an element of the transition vocabulary | introduced |
 | CV-DETERM | The result is uniquely determined by the inputs and the state; two invocations against identical state with identical inputs yield identical results | introduced |
