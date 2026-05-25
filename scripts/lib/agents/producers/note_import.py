@@ -56,7 +56,7 @@ from typing import ClassVar, List, Tuple
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.backend.emit import (
-    emit_citation, emit_import, emit_note, emit_provenance_import,
+    emit_citation_bundle, emit_import, emit_note, emit_provenance_import,
 )
 from lib.protocols.febe.protocol import Session
 from lib.lattice.labels import format_label
@@ -214,12 +214,12 @@ def _emit_substrate(
     note_addr = session.store.register_path(note_rel)
     emit_note(session.store, note_addr)
 
+    dep_addrs = []
     for dep_asn_id in depends:
         dep_path, _ = find_asn(str(dep_asn_id))
         if dep_path is None:
             print(
-                f"  [WARN] dep ASN-{dep_asn_id:04d} not found, "
-                f"skipping citation.depends",
+                f"  [WARN] dep ASN-{dep_asn_id:04d} not found, skipping",
                 file=sys.stderr,
             )
             continue
@@ -232,8 +232,13 @@ def _emit_substrate(
                 file=sys.stderr,
             )
             continue
-        emit_citation(
-            session.store, note_addr, dep_addr, direction="depends",
+        dep_addrs.append(dep_addr)
+    if dep_addrs:
+        # Fan-out citation.depends from note_addr — imports have no
+        # inquiry, so the LEGACY note-side direction is correct here
+        # (loader's fallback handles this case explicitly).
+        emit_citation_bundle(
+            session.store, note_addr, dep_addrs, direction="depends",
         )
 
     emit_provenance_import(session.store, spec_addr, note_addr)
