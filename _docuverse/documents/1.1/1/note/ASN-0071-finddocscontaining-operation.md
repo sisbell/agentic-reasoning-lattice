@@ -7,13 +7,17 @@ The same reader can ask the inverse: *what documents contain this content?* This
 
 We specify what such an operation must do. Following Nelson we call it **FINDDOCSCONTAINING**. The question this ASN answers is: what is its result set? What determines membership, what guarantees govern completeness, and what does the operation deliberately not promise about currency in a permanent address space?
 
-We work within the strand model. State `Σ` carries the content store `Σ.C : T ⇀ Val`, document entities `Σ.E_doc ⊆ Σ.E`, and arrangements `Σ.M(d) : T ⇀ T` for each `d ∈ Σ.E_doc` — partial functions from V-positions to I-addresses satisfying functionality (S2), referential integrity (S3), and content immutability (S0). Sharing is unrestricted: distinct `(d, v)` pairs may map to the same I-address (S5). We assume content has been allocated and arranged through the standard transitions of ASN-0047; we specify only the query, not the operations that produce its inputs.
+We work within the strand model as extended by ASN-0047. State `Σ` carries the content store `Σ.C : T ⇀ Val`, the link store `Σ.L`, document entities `Σ.E_doc ⊆ Σ.E`, and arrangements `Σ.M(d) : T ⇀ T` for each `d ∈ Σ.E_doc` — partial functions from V-positions to I-addresses satisfying functionality (S2), generalized referential integrity (S3★), and content permanence (P0, which subsumes S0 and S1). Sharing is unrestricted: distinct `(d, v)` pairs may map to the same I-address (S5). The extended state admits two V-subspaces — content (`s_C`) and link (`s_L`) — and S3★ routes each V-position to its appropriate store: `M(d)(v) ∈ dom(C)` when `subspace(v) = s_C`, and `M(d)(v) ∈ dom(L)` when `subspace(v) = s_L`. We assume content has been allocated and arranged through the standard transitions of ASN-0047; we specify only the query, not the operations that produce its inputs.
 
 ## The query
 
 Content can be named in two registers. By I-address — "the content at addresses `A`" — purely structural. By V-position with source — "the content of document `d` at positions `σ`" — referenced from where the user encountered it.
 
-We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s ∈ Σ.E_doc` names a source document and `σ = (u, ℓ)` is a level-uniform V-span (a span over `T` satisfying `Pos(ℓ)`, `actionPoint(ℓ) ≤ #u`, and `#ℓ = #u`, in the sense of ASN-0053). A **vspec-set** is a finite collection `Q = ⟨q₁, q₂, ..., q_k⟩` of vspecs, possibly drawn from multiple source documents.
+We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s ∈ Σ.E_doc` names a source document and `σ = (u, ℓ)` is a level-uniform V-span over the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) ≤ #u`, and `#ℓ = #u` (in the sense of ASN-0053). A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
+
+The restriction `subspace(u) = s_C` is load-bearing. FINDDOCSCONTAINING tracks transclusion of byte content — Nelson's "regardless of where the native copies are located" — and only the content subspace participates in transclusion. Link addresses have unique home documents recoverable directly from the tumbler via `origin` (S7), so a query naming a link-subspace span would degenerate to "the link's home document," derivable without the operation. We exclude such queries by construction.
+
+A vspec is structurally a relaxation of ASN-0058's `ContentReference`. ContentReference additionally requires well-formedness — every depth-`m` position in `⟦σ⟧` belongs to `dom(M(d_s))` — together with `V_{u₁}(d_s) ≠ ∅` and `#u = m` (the common depth of `d_s`'s text-subspace V-positions per S8-depth). The vspec drops all three: it admits spans whose positions may not all be currently arranged, whose source subspace may be empty in `d_s`, and whose depth may differ from `d_s`'s common depth. The relaxation makes the query total over well-typed inputs; resolution silently filters anything that does not match a current arrangement entry (justified below).
 
 Why vspecs and not direct I-addresses? Because users name content from where they encounter it. The reader sees document `d` at position `v`; what they want to find is content equivalent to "what `d` puts at `v`". The I-address is structural, typically unknown to the user, and reachable only by consulting `M(d_s)`. The operation accepts the user's name; resolution to I-addresses is its first task.
 
@@ -27,7 +31,9 @@ For a vspec-set `Q`:
 
   `iaddrs(Q)(Σ) := ⋃_{(d_s, σ) ∈ Q} iaddrs_one(d_s, σ)(Σ)`
 
-By S3, every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — every resolved address is a valid content address.
+Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)`. The argument: by the vspec precondition `subspace(u) = s_C`, every position `t ∈ ⟦σ⟧` has `subspace(t) = s_C` (every `t` in the half-open interval `[u, u ⊕ ℓ)` shares position 1 with `u`, since level-uniformity gives `#u = #ℓ` and the action point of `ℓ` lies at or beyond position 1 — this is the abstract content of C0a). Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`. The codomain `P(dom(C))` is consistent with the content-subspace restriction.
+
+The relationship to ASN-0058's `resolve` is direct: when a vspec `(d_s, σ)` is also a well-formed ContentReference, `iaddrs_one(d_s, σ)(Σ)` equals the set-flattening of `resolve(d_s, σ)` — concretely, `{ a + k : (a, n) ∈ resolve(d_s, σ) ∧ 0 ≤ k < n }`. The relaxation matters only when `⟦σ⟧` contains positions outside `dom(M(d_s))`: ContentReference treats such a span as ill-formed, while vspec silently drops the missing positions.
 
 A vspec may name positions not currently in `dom(Σ.M(d_s))`. The definition handles this silently: the intersection `⟦σ⟧ ∩ dom(Σ.M(d_s))` drops unresolvable positions, and their absence contributes nothing to `iaddrs`. The query reads charitably — as "find documents containing the content at whatever positions of `σ` are currently bound" — rather than insisting on total resolvability.
 
@@ -43,30 +49,74 @@ Given resolved I-addresses, FINDDOCSCONTAINING returns the documents whose arran
 
 The definition is brief. Everything FINDDOCSCONTAINING claims is contained in the predicate `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅`. The remainder of this ASN unpacks what that predicate guarantees.
 
+The empty query is the boundary case. When `Q = ∅`, the union `iaddrs(∅)(Σ) = ⋃_{(d_s, σ) ∈ ∅} ...` is the empty set, so for every `d ∈ Σ.E_doc` the intersection `ran(Σ.M(d)) ∩ ∅ = ∅` is empty. Therefore `find(∅)(Σ) = ∅`. The operation is total on the empty input — no special case is needed in the definition.
+
+## A worked scenario
+
+We exhibit a minimal state in which two documents share a single content I-address through transclusion, and trace what FINDDOCSCONTAINING returns.
+
+Start from `Σ₀` and apply the following transitions of ASN-0047 (each precondition is discharged by the prior state; we narrate the result):
+
+1. K.δ creates document `d_A ∈ E_doc` (a fresh document address; activates `A_C(d_A)` and `A_L(d_A)`).
+2. K.α emits one content I-address `a₁` under `d_A`: `a₁ = [d_A.0.s_C.1]`, `Σ.C(a₁) = v_A` for some value `v_A`, `origin(a₁) = d_A`.
+3. K.μ⁺ binds `M(d_A)(v_A) = a₁`, where `v_A = [s_C, 1]` is the minimum content-subspace V-position of `d_A` (D-MIN★, depth `m_C = 2`).
+4. K.ρ records provenance: `(a₁, d_A) ∈ R`.
+5. K.δ creates document `d_B ∈ E_doc`.
+6. K.μ⁺ binds `M(d_B)(v_B) = a₁`, where `v_B = [s_C, 1]` is the minimum content-subspace V-position of `d_B`. This is transclusion: the I-address `a₁` allocated under `d_A` is now also referenced from `d_B`'s arrangement, *without* a new K.α emission. The bind is licensed by S3★ since `a₁ ∈ dom(C)`.
+7. K.ρ records provenance: `(a₁, d_B) ∈ R`. The composite (steps 5–7) discharges J1's coupling constraint: a content-subspace position newly mapped to `a₁` must have its provenance recorded.
+
+The resulting state `Σ` has:
+
+  `Σ.E_doc ⊇ {d_A, d_B}`,   `Σ.C ⊇ {a₁ ↦ v_A}`,   `Σ.M(d_A) = {v_A ↦ a₁}`,   `Σ.M(d_B) = {v_B ↦ a₁}`,   `origin(a₁) = d_A`
+
+Construct the query `Q = {(d_A, σ_A)}` with `σ_A = (v_A, δ(1, 2))` — a single-position level-uniform span starting at `v_A` with width 1 in the content subspace.
+
+**Resolution.** The span denotes `⟦σ_A⟧ = {v_A}` (one position). The vspec preconditions hold: `subspace(v_A) = s_C`, `Pos(δ(1, 2))`, `actionPoint(δ(1, 2)) = 2 ≤ #v_A = 2`, `#δ(1, 2) = 2 = #v_A`. Resolving:
+
+  `iaddrs_one(d_A, σ_A)(Σ) = { M(d_A)(v) : v ∈ {v_A} ∩ dom(M(d_A)) } = { M(d_A)(v_A) } = { a₁ }`
+
+  `iaddrs(Q)(Σ) = { a₁ }`
+
+**Find.** Evaluate the membership predicate at each `d ∈ E_doc`:
+
+  `d = d_A`: `ran(M(d_A)) ∩ {a₁} = {a₁} ∩ {a₁} = {a₁} ≠ ∅`, so `d_A ∈ find(Q)(Σ)`.
+  `d = d_B`: `ran(M(d_B)) ∩ {a₁} = {a₁} ∩ {a₁} = {a₁} ≠ ∅`, so `d_B ∈ find(Q)(Σ)`.
+  All other `d ∈ E_doc`: `a₁ ∉ ran(M(d))` (those documents reference no I-addresses), so `d ∉ find(Q)(Σ)`.
+
+Therefore `find(Q)(Σ) = {d_A, d_B}`.
+
+**What this verifies.**
+
+- *F-SHARE.* Both `d_A` and `d_B` are discovered by the same query, demonstrating cross-document discovery through shared I-address. The query named `(d_A, σ_A)` — `d_B` was not mentioned — yet `d_B` appears in the result because its arrangement references the resolved I-address.
+- *F-DIST.* Each document appears exactly once in `find(Q)(Σ) = {d_A, d_B}`, despite both satisfying the predicate. The result is a set; `d_A` is not duplicated even though it is both the source-document of `Q` and a member of the result.
+- *F-PART.* A single shared I-address (`a₁`) is sufficient for inclusion. The result does not require a document to reference any particular portion of the queried span.
+- *F-CUR.* The result depends only on `Σ.M(d_A)` and `Σ.M(d_B)`. Were a later K.μ⁻ to contract `M(d_B)` to remove `v_B`, the query would return `{d_A}` only — `d_B` would no longer be currently containing, even though `(a₁, d_B) ∈ R` would persist (P2).
+- *Home/transcluding recovery.* `origin(a₁) = d_A` (S7), so the requester can distinguish: `d_A` is the home document of `a₁`, and `d_B` transcludes it. The operation itself does not tag the result; the tagging is a function the requester computes from each `a ∈ iaddrs(Q)` and each `d ∈ find(Q)`.
+
 ## Completeness and soundness
 
-The membership criterion is a biconditional: a document is in the result iff its current arrangement references at least one resolved I-address.
+The membership criterion is a biconditional — the definition of `find(Q)(Σ)`:
 
   `d ∈ find(Q)(Σ)  ⟺  d ∈ Σ.E_doc ∧ ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅`
 
-This bundles two distinct guarantees:
+The biconditional decomposes into two directions:
 
-  (⟸) **Completeness.** Every `d` satisfying the predicate is in the result.
-  (⟹) **Soundness.** Every `d` in the result satisfies the predicate.
+  (⟸) **F-COMP** (completeness): every `d` satisfying the predicate is in `find(Q)(Σ)`.
+  (⟹) **F-SOUND** (soundness): every `d ∈ find(Q)(Σ)` satisfies the predicate.
 
-An implementation that omits any qualifying document fails completeness. An implementation that includes a document not satisfying the predicate fails soundness. The specification demands both.
+F-COMP and F-SOUND are not independent properties of the abstract operation — they are the two halves of its definition. Together they constitute the definition; separately, they name the obligations on any candidate implementation. An implementation that omits any qualifying document realizes a strict subset of `find` (the `⟸` direction of the definition is violated). An implementation that includes a document not satisfying the predicate realizes a strict superset (the `⟹` direction is violated). Conformance to FINDDOCSCONTAINING means: the returned set coincides with the set characterized by the predicate.
 
-A specific failure mode is worth flagging. An implementation that maintains an auxiliary index — "documents containing I-address `a`" — in an append-only fashion, never removing entries when arrangements are contracted, returns a *superset*. Every truly containing document is included (completeness preserved) but some included documents may no longer contain (soundness violated). Such an implementation realizes `find` as a superset oracle:
+A specific failure mode is worth flagging. An implementation that maintains an auxiliary index — "documents containing I-address `a`" — in an append-only fashion, never removing entries when arrangements are contracted, returns a *superset*. Every truly containing document is included (F-COMP preserved) but some included documents may no longer contain (F-SOUND violated). Such an implementation realizes `find` as a superset oracle:
 
   `actual_find(Q)(Σ) ⊆ implementation(Q)(Σ)`
 
-The deviation is observable from the abstract specification — a returned `d` for which `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) = ∅` is a soundness failure. We do not adjudicate whether such relaxation is acceptable in practice; we only note that the abstract specification demands exact correspondence, and any deviation must be flagged as a relaxation against the specification rather than treated as conforming.
+The deviation is observable from the abstract specification — a returned `d` for which `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) = ∅` is an F-SOUND failure. We do not adjudicate whether such relaxation is acceptable in practice; we only note that the abstract specification demands exact correspondence, and any deviation must be flagged as a relaxation against the specification rather than treated as conforming.
 
 ## Partial overlap suffices
 
 The predicate uses `≠ ∅`. A single shared I-address — one `a ∈ ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)` — is sufficient for `d`'s inclusion:
 
-  `d ∈ find(Q)(Σ)  ⟺  d ∈ Σ.E_doc ∧ (E a : a ∈ ran(Σ.M(d)) ∧ a ∈ iaddrs(Q)(Σ) ::)`
+  `d ∈ find(Q)(Σ)  ⟺  d ∈ Σ.E_doc ∧ (E a : a ∈ ran(Σ.M(d)) : a ∈ iaddrs(Q)(Σ))`
 
 The result does not require `d` to reference all of `iaddrs(Q)`; it does not require `d`'s reference to be of any particular extent. A document that transcludes a single sentence from a chapter-length query passage qualifies, alongside documents that transclude the whole.
 
@@ -90,7 +140,7 @@ The most architecturally significant consequence concerns transclusion. If I-add
 
 In particular: `a`'s home document (`origin(a)`, per S7 — if it itself still references `a`) and every transcluding document are discovered by the same query and reported as equally-qualifying members of the result.
 
-The find operation does not distinguish home from transcluding document. Both reference `a`; both satisfy the predicate. The mechanism is structural — the I-address `a` is the same `a` everywhere it appears, because content has permanent identity (S0). Sharing of content corresponds to identity of I-address; identity of I-address is what `find` tests for.
+The find operation does not distinguish home from transcluding document. Both reference `a`; both satisfy the predicate. The mechanism is structural — the I-address `a` is the same `a` everywhere it appears, because content has permanent identity (P0). Sharing of content corresponds to identity of I-address; identity of I-address is what `find` tests for.
 
 This makes `find` the structural dual of the read-direction. Reading goes from arrangement to content: given `d`, `M(d)` tells which I-addresses `d` references. Finding goes from content to arrangement: given resolved I-addresses, `find` tells which documents reference them. The two operations are duals over the same `M : E_doc → (T ⇀ T)` structure.
 
@@ -98,7 +148,7 @@ The result does not, on its own, distinguish *how* each reported document refere
 
 ## Currency: state dependence
 
-`find(Q)(Σ)` is a function of `Σ`. It depends only on the current state — specifically on `Σ.E_doc` and `Σ.M` (and through `M`'s range, on `dom(Σ.C)` via S3):
+`find(Q)(Σ)` is a function of `Σ`. It depends only on the current state — specifically on `Σ.E_doc` and `Σ.M` (and through `M`'s range, on `dom(Σ.C)` via S3★):
 
   `(Σ.E_doc = Σ'.E_doc) ∧ (A d ∈ Σ.E_doc : Σ.M(d) = Σ'.M(d))  ⟹  find(Q)(Σ) = find(Q)(Σ')`
 
@@ -106,7 +156,7 @@ History does not enter the definition. The operation does not consult past state
 
 This is what Nelson's "containing" (present participle) commits to. The predicate is evaluated at the moment of query, not over the lifetime of the docuverse. A document whose arrangement once referenced `a` but has since been contracted (via K.μ⁻ from ASN-0047) is not in `find(Q)` even if it once was. The operation reports current containment, full stop.
 
-The completeness claim of section 4 must be read in this light. Completeness is over the *currently-containing* set, not over the historically-containing set. An implementation that misses a currently-containing document violates completeness; one that omits a historically-containing-but-no-longer-current document does not. The two semantics are distinct, and the operation commits to the present-tense reading.
+F-COMP must be read in this light. Completeness is over the *currently-containing* set, not over the historically-containing set. An implementation that misses a currently-containing document violates F-COMP; one that omits a historically-containing-but-no-longer-current document does not. The two semantics are distinct, and the operation commits to the present-tense reading.
 
 ## Permanence and currency reconciled
 
@@ -128,7 +178,15 @@ The completeness guarantee of `find` is over *currency*. The completeness guaran
 
   `|find(Q)(Σ)| < ∞`
 
-At any reachable state, `Σ.E_doc` is finite — it grows by one with each K.δ document-creation event, and there have been finitely many transitions from `Σ₀`. `find(Q)(Σ) ⊆ Σ.E_doc` is therefore finite.
+The argument is three-step:
+
+(a) The initial state has `|Σ₀.E_doc| = 0`. ASN-0047 gives `E₀ = {n₀}` with `IsNode(n₀)`, so `n₀ ∉ E_doc` and `(E₀)_doc = ∅`.
+
+(b) Each elementary transition adds at most one entity to `E_doc`. Among ASN-0047's transitions, only K.δ modifies `E` (its effect is `E' = E ∪ {e}` for a single `e`); the others (K.α, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ) leave `E` unchanged by their frame clauses. K.δ adds `e` to `E_doc` only when `IsDocument(e)`, otherwise to `E_node` or `E_account`. Either way, `|E_doc|` grows by at most one per transition.
+
+(c) A reachable state is reached by finitely many transitions. By the sequential-transition discipline (SequentialTransitionAxiom, ASN-0047), the state space is generated by finite sequences `Σ₀ → Σ₁ → ... → Σ_n` of atomic transitions; the count `n` is a finite natural number for any reachable `Σ`.
+
+Combining: `|Σ.E_doc| ≤ n < ∞` at any reachable `Σ`. Since `find(Q)(Σ) ⊆ Σ.E_doc`, finiteness follows.
 
 This is worth stating because `iaddrs(Q)` may name content that is widely transcluded — a single popular passage could appear in many documents. The result is bounded only by `E_doc` itself. The operation does not promise a small result, only a finite one. Implementations that must materialize the entire result before returning it should be designed expecting that the result can grow with the docuverse.
 
@@ -146,19 +204,22 @@ These omissions are deliberate. They distinguish what FINDDOCSCONTAINING fundame
 
 ## Claims Introduced
 
-| Label | Statement | Status |
-|-------|-----------|--------|
-| F-iaddrs | `iaddrs : VSpecSet × Σ → P(dom(C))` with `iaddrs(Q)(Σ) = ⋃_{(d_s, σ) ∈ Q} { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }` | introduced |
-| F-find | `find : VSpecSet × Σ → P(E_doc)` with `find(Q)(Σ) = { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }` | introduced |
-| F-COMP | Completeness: every `d ∈ Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` is in `find(Q)(Σ)` | introduced |
-| F-SOUND | Soundness: every `d ∈ find(Q)(Σ)` is in `Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` | introduced |
-| F-PART | Partial overlap suffices: `d ∈ find(Q)(Σ) ⟺ d ∈ Σ.E_doc ∧ (E a : a ∈ ran(Σ.M(d)) ∧ a ∈ iaddrs(Q)(Σ) ::)` | introduced |
-| F-DIST | `find(Q)(Σ)` is a set; each `d ∈ E_doc` appears at most once | introduced |
-| F-SHARE | Cross-document discovery: `a ∈ iaddrs(Q)(Σ) ∧ a ∈ ran(Σ.M(d)) ∧ d ∈ Σ.E_doc ⟹ d ∈ find(Q)(Σ)` | introduced |
-| F-CUR | State dependence: `(Σ.E_doc = Σ'.E_doc) ∧ (A d ∈ Σ.E_doc : Σ.M(d) = Σ'.M(d)) ⟹ find(Q)(Σ) = find(Q)(Σ')` | introduced |
-| F-FILT | Silent resolution filtering: positions in `⟦σ⟧ \ dom(Σ.M(d_s))` contribute no I-addresses to `iaddrs(Q)(Σ)` | introduced |
-| F-LOC | Source locality: `(A Σ, Σ' : Σ.M(d_s) = Σ'.M(d_s) ⟹ iaddrs_one(d_s, σ)(Σ) = iaddrs_one(d_s, σ)(Σ'))` | introduced |
-| F-FIN | `|find(Q)(Σ)| < ∞` at every reachable state | introduced |
+The Basis column records how each claim relates to the definitions F-iaddrs and F-find. *Definition* indicates a top-level definition; *direct from F-X* indicates that the claim is a definitional consequence — one direction of the defining iff, a type signature unfolded, or a substitution into the definition. *Derived* indicates that further reasoning is required (auxiliary lemmas, induction over reachable states, or composition with foundation invariants).
+
+| Label | Statement | Basis | Status |
+|-------|-----------|-------|--------|
+| F-iaddrs | `iaddrs : VSpecSet × Σ → P(dom(C))` with `iaddrs(Q)(Σ) = ⋃_{(d_s, σ) ∈ Q} { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }` | definition; codomain `P(dom(C))` derived from vspec precondition `subspace(u) = s_C` + C0a + S3★ | introduced |
+| F-find | `find : VSpecSet × Σ → P(E_doc)` with `find(Q)(Σ) = { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }` | definition | introduced |
+| F-COMP | Completeness: every `d ∈ Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` is in `find(Q)(Σ)` | direct from F-find (⟸ direction of the defining iff) | introduced |
+| F-SOUND | Soundness: every `d ∈ find(Q)(Σ)` is in `Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` | direct from F-find (⟹ direction of the defining iff) | introduced |
+| F-PART | Partial overlap suffices: `d ∈ find(Q)(Σ) ⟺ d ∈ Σ.E_doc ∧ (E a : a ∈ ran(Σ.M(d)) : a ∈ iaddrs(Q)(Σ))` | direct from F-find (unfolding `≠ ∅` of a binary intersection) | introduced |
+| F-DIST | `find(Q)(Σ)` is a set; each `d ∈ E_doc` appears at most once | direct from F-find (codomain is `P(E_doc)`) | introduced |
+| F-SHARE | Cross-document discovery: `a ∈ iaddrs(Q)(Σ) ∧ a ∈ ran(Σ.M(d)) ∧ d ∈ Σ.E_doc ⟹ d ∈ find(Q)(Σ)` | direct from F-find (sufficient condition for non-empty intersection) | introduced |
+| F-CUR | State dependence: `(Σ.E_doc = Σ'.E_doc) ∧ (A d ∈ Σ.E_doc : Σ.M(d) = Σ'.M(d)) ⟹ find(Q)(Σ) = find(Q)(Σ')` | derived from F-find + F-iaddrs (the operation reads only `E_doc` and `M`, both of which are identical at Σ and Σ' by hypothesis) | introduced |
+| F-FILT | Silent resolution filtering: positions in `⟦σ⟧ \ dom(Σ.M(d_s))` contribute no I-addresses to `iaddrs(Q)(Σ)` | direct from F-iaddrs (the intersection `⟦σ⟧ ∩ dom(Σ.M(d_s))` excludes such positions) | introduced |
+| F-LOC | Source locality: `Σ.M(d_s) = Σ'.M(d_s) ⟹ iaddrs_one(d_s, σ)(Σ) = iaddrs_one(d_s, σ)(Σ')` | direct from F-iaddrs (iaddrs_one references state Σ only via `Σ.M(d_s)`) | introduced |
+| F-EMPTY | `find(∅)(Σ) = ∅` | direct from F-find (union over empty index set is empty; intersection with ∅ is empty) | introduced |
+| F-FIN | `|find(Q)(Σ)| < ∞` at every reachable state | derived from F-find + ASN-0047 (`Σ₀.E_doc = ∅`; K.δ adds ≤ 1; reachable states have finite transition count) | introduced |
 
 ## Open Questions
 
