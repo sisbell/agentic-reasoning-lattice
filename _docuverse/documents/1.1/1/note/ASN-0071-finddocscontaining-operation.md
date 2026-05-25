@@ -33,11 +33,11 @@ For a vspec-set `Q`:
 
   `iaddrs(Q)(Σ) := ⋃_{(d_s, σ) ∈ Q} iaddrs_one(d_s, σ)(Σ)`
 
-Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)`. The argument is that every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(C)` rather than `dom(L)`. We show subspace confinement first, then apply S3★.
+Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` holds for every `Q` and every `Σ`. The argument is that every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(Σ.C)` rather than `dom(Σ.L)`. We show subspace confinement first, then apply S3★.
 
-*Subspace confinement.* Fix `t ∈ ⟦σ⟧`. By the half-open interval definition, `u ≤ t < u ⊕ ℓ`. We argue `t₁ = u₁`. Position 1 lies strictly below the action point: by the vspec precondition `actionPoint(ℓ) ≥ 2`, we have `1 < actionPoint(ℓ)`. By TumblerAdd, the result of `u ⊕ ℓ` at any position `i < actionPoint(ℓ)` is copied from `u`: `(u ⊕ ℓ)₁ = u₁`. Now `u` and `u ⊕ ℓ` agree at position 1, so any `t` lying in the lexicographic interval between them must also agree at position 1 — were `t₁ < u₁`, then `t < u` by T1 case (i) at position 1, contradicting `u ≤ t`; were `t₁ > u₁ = (u ⊕ ℓ)₁`, then `t > u ⊕ ℓ` by T1 case (i) at position 1, contradicting `t < u ⊕ ℓ`. So `t₁ = u₁ = s_C` by trichotomy, hence `subspace(t) = s_C`.
+*Subspace confinement.* Fix `t ∈ ⟦σ⟧`. By the half-open interval definition, `u ≤ t < u ⊕ ℓ`. We argue `t₁ = u₁`. Position 1 lies strictly below the action point: by the vspec precondition `actionPoint(ℓ) ≥ 2`, we have `1 < actionPoint(ℓ)`. By TumblerAdd, the result of `u ⊕ ℓ` at any position `i < actionPoint(ℓ)` is copied from `u`: `(u ⊕ ℓ)₁ = u₁`. Now `u` and `u ⊕ ℓ` agree at position 1, so any `t` lying in the lexicographic interval between them must also agree at position 1 — were `t₁ < u₁`, then `t < u` by T1 case (i) at position 1, contradicting `u ≤ t`; were `t₁ > u₁ = (u ⊕ ℓ)₁`, then `t > u ⊕ ℓ` by T1 case (i) at position 1, contradicting `t < u ⊕ ℓ`. So `t₁ = u₁ = s_C` by NAT-order trichotomy on ℕ applied to the components `t₁, u₁ ∈ ℕ` (T0), hence `subspace(t) = s_C`.
 
-*Routing.* Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`. The codomain `P(dom(C))` is consistent with the content-subspace restriction. Without the `actionPoint(ℓ) ≥ 2` precondition, position 1 could fall *at* or *beyond* the action point, where TumblerAdd's prefix-copy reasoning does not apply — and the counter-example `u = [1, 5]`, `ℓ = [2, 0]` exhibited above would silently include a link-subspace V-position in the resolution if `d_s` arranges one.
+*Routing.* Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`. The subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` is read with `Σ` explicit on both sides — the right-hand side is the input state's content store, not a fixed set. Without the `actionPoint(ℓ) ≥ 2` precondition, position 1 could fall *at* or *beyond* the action point, where TumblerAdd's prefix-copy reasoning does not apply — and the counter-example `u = [1, 5]`, `ℓ = [2, 0]` exhibited above would silently include a link-subspace V-position in the resolution if `d_s` arranges one.
 
 The relationship to ASN-0058's `resolve` is direct: when a vspec `(d_s, σ)` is also a well-formed ContentReference, `iaddrs_one(d_s, σ)(Σ)` equals the set-flattening of `resolve(d_s, σ)` — concretely, `{ a + k : (a, n) ∈ resolve(d_s, σ) ∧ 0 ≤ k < n }`. The relaxation matters only when `⟦σ⟧` contains positions outside `dom(M(d_s))`: ContentReference treats such a span as ill-formed, while vspec silently drops the missing positions.
 
@@ -64,7 +64,7 @@ We exhibit a minimal state in which two documents share a single content I-addre
 Start from `Σ₀` and apply the following transitions of ASN-0047 (each precondition is discharged by the prior state; we narrate the result):
 
 1. K.δ creates document `d_A ∈ E_doc` (a fresh document address; activates `A_C(d_A)` and `A_L(d_A)`).
-2. K.α emits one content I-address `a₁` under `d_A`: `a₁ = [d_A.0.s_C.1]`, `Σ.C(a₁) = v_A` for some value `v_A`, `origin(a₁) = d_A`.
+2. K.α emits one content I-address `a₁` under `d_A`: `a₁ = [d_A.0.s_C.1]`, `Σ.C(a₁) = val_A` for some value `val_A ∈ Val`, `origin(a₁) = d_A`.
 3. K.μ⁺ binds `M(d_A)(v_A) = a₁`, where `v_A = [s_C, 1]` is the minimum content-subspace V-position of `d_A` (D-MIN★, depth `m_C = 2`).
 4. K.ρ records provenance: `(a₁, d_A) ∈ R`.
 5. K.δ creates document `d_B ∈ E_doc`.
@@ -73,7 +73,7 @@ Start from `Σ₀` and apply the following transitions of ASN-0047 (each precond
 
 The resulting state `Σ` has:
 
-  `Σ.E_doc ⊇ {d_A, d_B}`,   `Σ.C ⊇ {a₁ ↦ v_A}`,   `Σ.M(d_A) = {v_A ↦ a₁}`,   `Σ.M(d_B) = {v_B ↦ a₁}`,   `origin(a₁) = d_A`
+  `Σ.E_doc ⊇ {d_A, d_B}`,   `Σ.C ⊇ {a₁ ↦ val_A}`,   `Σ.M(d_A) = {v_A ↦ a₁}`,   `Σ.M(d_B) = {v_B ↦ a₁}`,   `origin(a₁) = d_A`
 
 Construct the query `Q = {(d_A, σ_A)}` with `σ_A = (v_A, δ(1, 2))` — a single-position level-uniform span starting at `v_A` with width 1 in the content subspace.
 
@@ -199,7 +199,7 @@ The argument is three-step:
 
 (b) Each elementary transition adds at most one entity to `E_doc`. Among ASN-0047's transitions, only K.δ modifies `E` (its effect is `E' = E ∪ {e}` for a single `e`); the others (K.α, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ) leave `E` unchanged by their frame clauses. K.δ adds `e` to `E_doc` only when `IsDocument(e)`, otherwise to `E_node` or `E_account`. Either way, `|E_doc|` grows by at most one per transition.
 
-(c) A reachable state is reached by finitely many transitions. By the sequential-transition discipline (SequentialTransitionAxiom, ASN-0047), the state space is generated by finite sequences `Σ₀ → Σ₁ → ... → Σ_n` of atomic transitions; the count `n` is a finite natural number for any reachable `Σ`.
+(c) A reachable state is reached by finitely many transitions. ASN-0047's ExtendedReachableStateInvariants characterises every reachable state as "reachable from `Σ₀` by a finite sequence of valid composite transitions" — finite ancestry is by definition of reachability, not a consequence of any single axiom. SequentialTransitionAxiom (ASN-0047) supplies the orthogonal property that each transition is atomic, uninterruptible, and totally ordered, which makes individual transitions countable within such a sequence. So the count `n` of transitions producing any reachable `Σ` is a finite natural number.
 
 Combining: `|Σ.E_doc| ≤ n < ∞` at any reachable `Σ`. Since `find(Q)(Σ) ⊆ Σ.E_doc`, finiteness follows.
 
@@ -223,7 +223,7 @@ The Basis column records how each claim relates to the definitions F-iaddrs and 
 
 | Label | Statement | Basis | Status |
 |-------|-----------|-------|--------|
-| F-iaddrs | `iaddrs : VSpecSet × Σ → P(dom(C))` with `iaddrs(Q)(Σ) = ⋃_{(d_s, σ) ∈ Q} { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }` | definition; codomain `P(dom(C))` derived from vspec preconditions `subspace(u) = s_C` and `actionPoint(ℓ) ≥ 2` (subspace confinement of `⟦σ⟧` via TumblerAdd prefix-copy + T1) + S3★ | introduced |
+| F-iaddrs | `iaddrs : VSpecSet × Σ → P(T)` with `iaddrs(Q)(Σ) = ⋃_{(d_s, σ) ∈ Q} { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }`; subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` for every `Q` and `Σ` (both sides state-dependent at `Σ`) | definition; subset claim derived from vspec preconditions `subspace(u) = s_C` and `actionPoint(ℓ) ≥ 2` (subspace confinement of `⟦σ⟧` via TumblerAdd prefix-copy + T1) + S3★ | introduced |
 | F-find | `find : VSpecSet × Σ → P(E_doc)` with `find(Q)(Σ) = { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }` | definition | introduced |
 | F-COMP | Completeness: every `d ∈ Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` is in `find(Q)(Σ)` | direct from F-find (⟸ direction of the defining iff) | introduced |
 | F-SOUND | Soundness: every `d ∈ find(Q)(Σ)` is in `Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` | direct from F-find (⟹ direction of the defining iff) | introduced |
