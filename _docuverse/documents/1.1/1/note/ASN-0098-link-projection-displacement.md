@@ -45,9 +45,13 @@ By L5 (EndsetSetSemantics, ASN-0043), an endset is an unordered set. Two endsets
 
 For an endset `e`, a document `d ∈ dom(Σ.M)`, and a state `Σ`, define the *projection of `e` through `d` at `Σ`* as the set of V-positions in `d`'s arrangement whose I-addresses lie within `e`'s coverage:
 
-**project(e, d, Σ) ≡ {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(e)}**
+```
+project(e, d, Σ)
+  defined when  d ∈ dom(Σ.M)
+  ≡             {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(e)}
+```
 
-For a link `a ∈ dom(Σ.L)` with slot `i ∈ {1, …, |Σ.L(a)|}`, write `project(a, i, d, Σ) ≡ project(Σ.L(a).eᵢ, d, Σ)`.
+The precondition `d ∈ dom(Σ.M)` is what makes `Σ.M(d)` well-defined; we adopt the convention that `project(e, d, Σ)` is left undefined when `d ∉ dom(Σ.M)`, rather than assigning it a default value, so that every appeal to `project` carries the membership obligation explicitly. For a link `a ∈ dom(Σ.L)` with slot `i ∈ {1, …, |Σ.L(a)|}`, write `project(a, i, d, Σ) ≡ project(Σ.L(a).eᵢ, d, Σ)`, defined when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`.
 
 The definition reads from two inputs:
 - The endset, fixed once and for all by the link's creation (and immune to subsequent transitions, by L12).
@@ -124,7 +128,7 @@ project(e, d, Σ') = project(e, d, Σ)
 ```
 for every endset `e` and every such `d`, whenever `Σ → Σ'` is a K.α transition.
 
-Newly allocated I-addresses are invisible to projection until some subsequent K.μ⁺ adds an arrangement entry referencing them. This is the precise sense in which "insertion at the boundary of a linked passage" cannot extend the link's reach: insertion as a composite (allocate + arrange) splits into a K.α step (no projection effect) and a K.μ⁺ step. The K.μ⁺ step might add a V-position to the projection, but only if the new V-position's I-address is in `coverage(e)`. By T10a (AllocatorDiscipline, ASN-0034), each new K.α-allocated I-address is structurally distinct from all prior allocations; the new V-position's I-address lies outside `coverage(e)` whenever `e` was tightly constructed (LP19 below formalises this), and in that case the projection does not grow. Without tightness, the new I-address could fall within a half-open coverage interval reaching past existing content; the precise condition under which boundary insertion is excluded is therefore tightness, not allocator behaviour alone.
+Newly allocated I-addresses are invisible to projection until some subsequent K.μ⁺ adds an arrangement entry referencing them. This is the precise sense in which "insertion at the boundary of a linked passage" cannot extend the link's reach: insertion as a composite (allocate + arrange) splits into a K.α step (no projection effect) and a K.μ⁺ step. The K.μ⁺ step might add a V-position to the projection, but only if the new V-position's I-address is in `coverage(e)`. By T10a (AllocatorDiscipline, ASN-0034), each new K.α-allocated I-address is structurally distinct from all prior allocations; under tight construction the new I-address lies outside `coverage(e)` (LP19a below formalises this freshness claim), and the projection does not grow (LP19, the projection consequence). Without tightness, the new I-address could fall within a half-open coverage interval reaching past existing content; the precise condition under which boundary insertion is excluded is therefore tightness, not allocator behaviour alone.
 
 The abstract guarantee is sharper than the "outside the strap" metaphor: the projection depends on coverage and arrangement alone, and content allocation alone (K.α) affects neither.
 
@@ -174,6 +178,8 @@ When deletion removes V-positions whose I-addresses are in coverage, those V-pos
 
 The "partial deletion" case follows immediately: if some but not all V-positions of a contiguous projection are removed, the remaining V-positions stay in the projection. The link survives on whatever V-positions remain. This is Nelson's "if anything is left at each end" condition made precise.
 
+*Boundary case — empty arrangement.* K.μ⁻'s precondition admits retention `n'_S = 0` for every subspace `S`, provided the pre-state has at least one position so that the strict-shrink clause `(E S :: n'_S < n_S)` is discharged (the pre-state condition `dom(Σ.M(d)) ≠ ∅` is required by the operation regardless). When `n'_S = 0` holds for both `s_C` and `s_L`, the post-state arrangement is empty: `dom(Σ'.M(d)) = ∅`. In this case `project(e, d, Σ') = ∅` for every endset `e`, since the comprehension ranges over the empty domain; the exact-difference formula reduces to `project(e, d, Σ) ∖ ∅ = project(e, d, Σ)` — every V-position that was in the pre-state projection has departed. The lemma's inclusion `project(e, d, Σ') ⊆ project(e, d, Σ)` holds vacuously.
+
 **LP11 — Reordering under K.μ~**: For every K.μ~ transition `Σ → Σ'` operating on `d` via the witnessing bijection `π : dom(Σ.M(d)) → dom(Σ'.M(d))`, and every endset `e`:
 ```
 project(e, d, Σ') = π(project(e, d, Σ))
@@ -218,7 +224,7 @@ The precondition `a ∈ dom(Σ.L)` is what makes `|Σ.L(a)|` and the slot access
 discoverable_from(a, d, Σ) ⟺ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)
 ```
 
-Direct from definitions. `v ∈ project(a, i, d, Σ)` requires `Σ.M(d)(v) ∈ coverage(Σ.L(a).eᵢ)`, which requires some I-address in the coverage to be in the range. Conversely, any I-address `a*` in `coverage(eᵢ) ∩ ran(Σ.M(d))` is reached by some `v ∈ dom(Σ.M(d))` with `Σ.M(d)(v) = a*`, and that `v` lies in `project(a, i, d, Σ)`.
+Direct from definitions. Per-slot first: `v ∈ project(a, i, d, Σ)` requires `Σ.M(d)(v) ∈ coverage(Σ.L(a).eᵢ)`, which requires some I-address in the coverage to be in the range. Conversely, any I-address `a*` in `coverage(eᵢ) ∩ ran(Σ.M(d))` is reached by some `v ∈ dom(Σ.M(d))` with `Σ.M(d)(v) = a*`, and that `v` lies in `project(a, i, d, Σ)`. This gives the per-slot biconditional `project(a, i, d, Σ) ≠ ∅ ⟺ coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅`. Lifting existentially over `i ∈ {1, …, |Σ.L(a)|}` preserves the biconditional: `(E i : project(a, i, d, Σ) ≠ ∅) ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)`. Unfolding the left-hand side via the `discoverable_from` definition completes the biconditional.
 
 **LP13 — PartialSurvival**: A link's discoverability from `d` requires only that *some* I-address from *some* endset persist in `d`'s range. The link survives deletion as long as the deletion does not exhaust the coverage-range intersection of every slot. The link continues to exist in `dom(Σ.L)` (by L12, ASN-0043) regardless of arrangement state; only its *navigational usability from `d`* depends on the coverage-range intersection.
 
@@ -237,9 +243,15 @@ These three may be the same, all different, or any combination. The discoverabil
 
 The transclusion mechanism is the architectural lever that activates this provenance-indifference.
 
-**LP16 — TransclusionDiscoverability**: If a document `d_new` transcludes content from another document `d_src` (via a fork composite or any K.μ⁺ that adds arrangement entries mapping V-positions to I-addresses already in `dom(Σ.C)`), then every link discoverable from `d_src` via those I-addresses is also discoverable from `d_new` via the corresponding V-positions in `d_new`.
+**LP16 — TransclusionDiscoverability**: For any link `a ∈ dom(Σ.L)`, slot `i ∈ {1, …, |Σ.L(a)|}`, and documents `d_src, d_new ∈ dom(Σ.M)` at state `Σ`:
+```
+coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d_src)) ∩ ran(Σ.M(d_new)) ≠ ∅
+  ⟹  discoverable_from(a, d_src, Σ) ∧ discoverable_from(a, d_new, Σ)
+```
 
-Let `a*` be an I-address with `a* ∈ ran(Σ.M(d_src))` and `a* ∈ ran(Σ.M(d_new))`. For any link `a` and slot `i` with `a* ∈ coverage(Σ.L(a).eᵢ)`, both projections `project(a, i, d_src, Σ)` and `project(a, i, d_new, Σ)` are non-empty — the former by some `v_src` with `Σ.M(d_src)(v_src) = a*`, the latter by some `v_new` with `Σ.M(d_new)(v_new) = a*`. Discoverability extends to every document that transcludes any I-address in coverage. No notification of the link is required; the link is *passively* discoverable from `d_new` simply because `d_new` arranges the I-address.
+Let `a*` be any I-address in the triple intersection: `a* ∈ coverage(Σ.L(a).eᵢ)`, `a* ∈ ran(Σ.M(d_src))`, and `a* ∈ ran(Σ.M(d_new))`. By `a* ∈ ran(Σ.M(d_src))`, there exists `v_src ∈ dom(Σ.M(d_src))` with `Σ.M(d_src)(v_src) = a*`, so `v_src ∈ project(a, i, d_src, Σ)`, hence `project(a, i, d_src, Σ) ≠ ∅`. Symmetrically `v_new ∈ project(a, i, d_new, Σ)` for some `v_new`. By the discoverable_from definition (witnessed at slot `i`), both `discoverable_from(a, d_src, Σ)` and `discoverable_from(a, d_new, Σ)` hold.
+
+The triple intersection is exactly the condition transclusion produces: when `d_new` transcludes some content from `d_src` (via a fork composite or any K.μ⁺ that adds arrangement entries mapping V-positions to I-addresses already in `ran(Σ.M(d_src))`), the shared I-addresses are members of `ran(Σ.M(d_src)) ∩ ran(Σ.M(d_new))`. If any of these shared I-addresses also lies in `coverage(Σ.L(a).eᵢ)` for some link `a` and slot `i`, the lemma's hypothesis is met. Discoverability extends to every document that transcludes any I-address in coverage. No notification of the link is required; the link is *passively* discoverable from `d_new` simply because `d_new` arranges the I-address.
 
 This is the architectural mechanism behind Nelson's "a link to one version is a link to all versions" claim and the cross-document discovery property: link discovery is a function of I-address intersection alone, and transclusion shares I-addresses by definition.
 
@@ -266,21 +278,26 @@ A link can pass through arbitrarily many states of orphanage and resurrection wi
 
 We address two further questions about the structural behaviour of projection under specific operation patterns.
 
-**LP19 — TightEndsetBoundaryExclusion**: We formalise the "boundary insertion does not extend the link" property by isolating the construction discipline that makes it hold. An endset `e` is *tight at state `Σ_e`* when its coverage is entirely populated at `Σ_e`:
+We formalise the "boundary insertion does not extend the link" property by isolating the construction discipline that makes it hold. An endset `e` is *tight at state `Σ_e`* when its coverage is entirely populated at `Σ_e`:
 ```
 tight(e, Σ_e)  ≡  coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)
 ```
 
-Equivalently: every I-address denoted by an endset span is allocated as content or as a link at `Σ_e`. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state. Under tight construction, the link's reach cannot be extended by subsequent allocations:
+Equivalently: every I-address denoted by an endset span is allocated as content or as a link at `Σ_e`. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state. We separate two claims: first, that fresh allocations cannot enter a tight endset's coverage; second, that the consequent K.μ⁺/K.μ⁺_L step cannot grow the projection by the resulting V-position.
 
-For any endset `e` tight at `Σ_e`, any state sequence `Σ_e →* Σ →* Σ_post`, and any K.α (or K.λ) transition `Σ → Σ_post` allocating a fresh address `a_new`:
+**LP19a — TightFreshness**: For any endset `e` tight at `Σ_e`, any reachable state sequence `Σ_e →* Σ`, and any K.α (or K.λ) transition `Σ → Σ'` allocating a fresh address `a_new`:
 ```
 a_new ∉ coverage(e)
 ```
 
-Consequently, if any later K.μ⁺ or K.μ⁺_L transition `Σ_n → Σ_{n+1}` (with `Σ_post →* Σ_n`) extends `Σ_n.M(d)` by a mapping `(v_new, a_new)`, then `v_new ∉ project(e, d, Σ_{n+1})`.
+Each allocation operation supplies the required freshness as a per-call precondition. K.α's precondition (ASN-0093) requires `a_new ∉ dom(Σ.C) ∪ dom(Σ.L)` at the state `Σ` immediately before allocation; K.λ's precondition (ASN-0093) requires `ℓ ∉ dom(Σ.L) ∪ dom(Σ.C)`, the same freshness condition with operand order swapped. In both cases the allocated address is fresh against the union `dom(Σ.C) ∪ dom(Σ.L)` at `Σ`. By Store Monotonicity★ applied to the prefix `Σ_e →* Σ`, `dom(Σ.C) ⊇ dom(Σ_e.C)` and `dom(Σ.L) ⊇ dom(Σ_e.L)`. So `a_new ∉ dom(Σ_e.C) ∪ dom(Σ_e.L)`. By the tightness condition, `coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)`, so `a_new ∉ coverage(e)`.
 
-The proof is direct. Each operation supplies the required freshness as a per-call precondition. K.α's precondition (ASN-0093) requires `a_new ∉ dom(Σ.C) ∪ dom(Σ.L)` at the state `Σ` immediately before allocation; K.λ's precondition (ASN-0093) requires `ℓ ∉ dom(Σ.L) ∪ dom(Σ.C)`, the same freshness condition with operand order swapped. In both cases the allocated address is fresh against the union `dom(Σ.C) ∪ dom(Σ.L)` at `Σ`. By Store Monotonicity★ applied to the prefix `Σ_e →* Σ`, `dom(Σ.C) ⊇ dom(Σ_e.C)` and `dom(Σ.L) ⊇ dom(Σ_e.L)`. So `a_new ∉ dom(Σ_e.C) ∪ dom(Σ_e.L)`. By the tightness condition, `coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)`, so `a_new ∉ coverage(e)`. For the consequence: a later K.μ⁺ or K.μ⁺_L transition `Σ_n → Σ_{n+1}` adds the mapping `(v_new, a_new)`, giving `v_new ∈ dom(Σ_{n+1}.M(d))` and `Σ_{n+1}.M(d)(v_new) = a_new`. Since `coverage(e)` is a deterministic function of `e`'s spans (per the coverage definition of ASN-0043) and `e` is a fixed endset value across the entire sequence — `coverage` consults no state component — the membership `a_new ∉ coverage(e)` carries through unchanged to `Σ_{n+1}`. The projection definition then excludes `v_new` from `project(e, d, Σ_{n+1})`.
+**LP19 — TightEndsetBoundaryExclusion**: For any endset `e` tight at `Σ_e`, any reachable state sequence `Σ_e →* Σ_n` whose prefix contains a K.α (or K.λ) transition allocating a fresh address `a_new`, and any K.μ⁺ (or K.μ⁺_L) transition `Σ_n → Σ_{n+1}` that extends `Σ_n.M(d)` by a mapping `(v_new, a_new)`:
+```
+v_new ∉ project(e, d, Σ_{n+1})
+```
+
+The K.α (or K.λ) step that allocated `a_new` lies on the prefix `Σ_e →* Σ_n`, so LP19a applied at that step yields `a_new ∉ coverage(e)`. Since `coverage(e)` is a deterministic function of `e`'s spans (per the coverage definition of ASN-0043) and `e` is a fixed endset value across the entire sequence — `coverage` consults no state component — the membership `a_new ∉ coverage(e)` carries through unchanged to `Σ_{n+1}`. The K.μ⁺ (or K.μ⁺_L) transition `Σ_n → Σ_{n+1}` adds the mapping `(v_new, a_new)`, giving `v_new ∈ dom(Σ_{n+1}.M(d))` and `Σ_{n+1}.M(d)(v_new) = a_new ∉ coverage(e)`. The projection definition then excludes `v_new` from `project(e, d, Σ_{n+1})`.
 
 Tightness is a construction discipline, not a structural invariant the system enforces. The system permits endsets whose spans denote half-open intervals reaching past existing content; such endsets are not tight, and an `a_new` allocated within their forward extent would in fact enter the coverage. The architectural significance of LP19 is that the canonical endset construction — selecting spans whose start and width capture exactly the I-addresses resident at construction time — produces tight endsets, and tight endsets are immune to absorbing addresses produced by subsequent K.α or K.λ. Boundary insertion as a composite (K.α + K.μ⁺) cannot enlarge a tight link's reach.
 
@@ -391,7 +408,7 @@ At no point during this trace did the link itself change. The link's address, en
 | LP3 | `(A Σ → Σ', a, i : a ∈ dom(Σ.L) : coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ))` — coverage invariance | introduced |
 | LP3★ | Multi-step coverage invariance: for `Σ →* Σ'`, `a ∈ dom(Σ.L)`, slot `i`, `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` | introduced |
 | Store Monotonicity★ | `Σ →* Σ' ⟹ dom(Σ.C) ⊆ dom(Σ'.C) ∧ dom(Σ.L) ⊆ dom(Σ'.L)` | introduced |
-| project | `project(e, d, Σ) ≡ {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(e)}` — the live projection function | introduced |
+| project | `project(e, d, Σ) ≡ {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(e)}` (defined when `d ∈ dom(Σ.M)`) — the live projection function | introduced |
 | LP4 | `Σ'.M(d) = Σ.M(d) ⟹ project(e, d, Σ') = project(e, d, Σ)` — arrangement specificity | introduced |
 | LP5 | Cross-document independence: projection through `d` unaffected by edits to `d' ≠ d` (frames over K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~) | introduced |
 | LP6 | K.α (content allocation) does not displace any projection | introduced |
@@ -408,11 +425,12 @@ At no point during this trace did the link itself change. The link's address, en
 | LP17 | Ghost projection: orphaned links persist in `dom(Σ.L)` with empty projections everywhere | introduced |
 | LP18 | Resurrection: re-introducing a coverage I-address via K.μ⁺ or K.μ⁺_L restores discoverability | introduced |
 | tight | `tight(e, Σ_e) ≡ coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)` — tight endset construction predicate | introduced |
-| LP19 | Tight endset boundary exclusion: under tight construction, K.α/K.λ-allocated addresses fall outside coverage | introduced |
+| LP19a | Tight freshness: under tight construction, K.α/K.λ-allocated addresses fall outside `coverage(e)` | introduced |
+| LP19 | Tight endset boundary exclusion: K.μ⁺/K.μ⁺_L mapping to such an address cannot grow `project(e, d, ·)` | introduced |
 | LP20 | Range confinement: `{Σ.M(d)(v) : v ∈ project(e, d, Σ)} ⊆ coverage(e) ∩ (dom(Σ.C) ∪ dom(Σ.L))` | introduced |
 | LP21 | Representation invariance: equal coverage implies equal projection | introduced |
 
-*Numbering note.* Labels LP1, LP15 are deliberately absent. LP14 and LP15 from earlier drafts of this ASN were collapsed in revision; LP14 has been reclaimed here to label the K.ρ frame lemma added in this revision. LP1 was never assigned. Other labels (LP2 through LP21, omitting LP15) preserve their revision-history identities.
+*Numbering note.* Labels LP1, LP15 are deliberately absent. LP14 and LP15 from earlier drafts of this ASN were collapsed in revision; LP14 has been reclaimed here to label the K.ρ frame lemma added in this revision. LP1 was never assigned. LP19a is introduced in this revision to separate the tight-freshness claim from its projection consequence (LP19); both labels are introduced here. Other labels (LP2 through LP21, omitting LP15) preserve their revision-history identities.
 
 ## Open Questions
 
