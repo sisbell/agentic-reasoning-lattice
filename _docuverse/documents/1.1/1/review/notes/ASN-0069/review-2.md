@@ -1,0 +1,38 @@
+# Review of ASN-0069
+
+## REVISE
+
+### Issue 1: V1's formula is only correct for the first fork
+**ASN-0069, V1**: "A fork of `d_src` produces a new entity `d_new = inc(d_src, 1)`"
+**ASN-0069, V0 effects**: "E' = E ∪ {d_new}  where  d_new = inc(d_src, 1)"
+**ASN-0069, composite verification ("The Fork Composite")**: "Case (ii) with `k = 1`, `t = d_src`. ... `d_new = inc(d_src, 1)` is `A_v(d_src)`'s first emission"
+**Problem**: The formula `d_new = inc(d_src, 1)` is correct only for the **first** fork of `d_src`. Per ASN-0047's Allocator hierarchy — "first emission `inc(d, 1)`, subsequent emissions `inc(prev_version, 0)`" — the second fork of `d_src` produces `d_new = inc(inc(d_src, 1), 0)`, the third produces `inc(inc(inc(d_src, 1), 0), 0)`, etc. After the first fork, `inc(d_src, 1) ∈ E_doc`, so K.δ's `e ∉ E` precondition forbids re-firing case (ii) with k=1, t=d_src; the second fork must use k=0 with t=prev_version. V1's `d_new ∉ E_doc` clause silently limits V1 to first fork while its universal phrasing claims to cover any fork. The ASN's own V10 acknowledges the chain-advancement convention, contradicting V1. The composite verification at the bottom inherits the same issue: "Case (ii) with `k = 1`" only verifies the first-fork composite shape.
+**Required**: Either qualify V1 (and V0's effects, and the composite verification) to the first fork only — adding a separate property covering subsequent-fork identity via A_v(d_src)'s enumeration — or generalize V1 to "d_new is A_v(d_src)'s next emission" with the K.δ case-and-operand selection determined by the allocator's state. The composite verification must cover both the k=1 (first fork) and k=0 (subsequent fork) cases.
+
+### Issue 2: V7's K.δ-alone composite is not a J4 composite
+**ASN-0069, "What Must Be Constructed"**: "The composite is J4 of ASN-0047, named *ForkComposite*. We adopt it as the structural skeleton..."
+**ASN-0069, V7**: "A fork of `d_src` with `V_{s_C}(d_src) = ∅` reduces to K.δ alone, producing a new entity `d_new ∈ E'_doc` with `M'(d_new) = ∅` and `R' = R`."
+**Problem**: J4 defines the fork composite as K.δ + K.μ⁺ + K.ρ with precondition `V_{s_C}(d_src) ≠ ∅`. V7's empty-source case omits K.μ⁺ and K.ρ — it is a K.δ-only composite, **not** a J4 composite, and J4's precondition is violated in V7's domain. The ASN says it "adopts J4 as the structural skeleton" then V7 commits to a different composite shape without locating it relative to J4. V0 names the two composite shapes ("when V_{s_C}(d_src) ≠ ∅... K.δ alone, per V7") but the relationship to J4 — strengthening, extension, or relaxation — is left unaddressed.
+**Required**: State explicitly that V7 introduces a fork composite (K.δ alone) that is not the J4 composite of ASN-0047. Either (a) frame V7 as an extension of J4 admitting an additional composite shape when `V_{s_C}(d_src) = ∅`, or (b) frame V7 as a relaxation of J4's precondition with the composite collapsing to K.δ in the degenerate case. Either way, the deviation must be acknowledged with the same explicitness as V4's "V4 *strengthens* J4's clause (ii)".
+
+### Issue 3: V2's derivation only handles first-fork case
+**ASN-0069, V2 derivation**: "By TA5(b), the agreement clause for `inc(t, k)` at `k > 0` is `(A i : 1 ≤ i ≤ #t : t'_i = t_i)` — every component of `t` is preserved in the prefix of `t'`."
+**Problem**: V2's derivation uses the k > 0 clause of TA5(b), which fits only the first-fork case. For subsequent forks where `d_new` is reached via `inc(prev_version, 0)`, TA5(b)'s k = 0 clause applies — `(A i : 1 ≤ i ≤ #t ∧ i ≠ sig(t) : t'ᵢ = tᵢ)` — agreement at all positions **except** sig(t). The derivation of `d_src ≼ d_new` for a subsequent fork requires chaining: `d_src ≼ d_src.1` (first fork via TA5(b) at k=1), then noting that inc(d_src.1, 0) modifies only position sig(d_src.1) = #d_src.1 > #d_src (by TA5-SigValid), so positions 1..#d_src are unchanged. The current single-step derivation does not cover this chain.
+**Required**: Extend V2's derivation to handle subsequent forks via chained `inc(·, 0)` applications, establishing `d_src ≼ d_new` for arbitrary version depths. The conclusion still holds; the derivation needs an inductive or explicit-chain step using TA5(b)'s k=0 clause and TA5-SigValid.
+
+### Issue 4: V8c's derivation is hand-waved
+**ASN-0069, V8c**: "The defining predicate — domain membership in both arrangements conjoined with equality of images at each V-position — is symmetric in its two arguments; swapping `(d_src, d_new)` for `(d_new, d_src)` leaves the set unchanged."
+**Problem**: V8c's claim is that the correspondence set is invariant under swapping `d_src` and `d_new`. The "derivation" gestures at "symmetry of the predicate" but does not cite the underlying premises. The actual chain is: V8 gives `M'(d_src)(v) = M'(d_new)(v)`; symmetry of equality (a property of equality, **not** of the predicate's surface form) gives `M'(d_new)(v) = M'(d_src)(v)`; together with symmetric domain-intersection, the set-defining predicate evaluates the same under either ordering.
+**Required**: Cite V8 explicitly for one direction of equality and the symmetry of equality for the other, rather than appealing to predicate symmetry as an unanalyzed primitive.
+
+### Issue 5: V11's derivation lacks induction structure
+**ASN-0069, V11 derivation**: "V4 establishes I-address equality at each fork step. The composition of equalities is equality."
+**Problem**: V11 claims propagation through an arbitrary-length fork chain `d_src → d¹_new → ... → d^k_new`. The derivation is two sentences. This is the *shape* of an inductive argument, not the argument. For k = 1, V4 applies directly. For k ≥ 2, we need: V4 at step k gives `M'(d^k_new)(v) = M^{k-1}(d^{k-1}_new)(v)`; V5 at each intermediate step preserves the previous arrangement's mappings; by inductive hypothesis `M^{k-1}(d^{k-1}_new)(v) = M(d_src)(v)`; transitively the claim holds at step k. The "composition of equalities" assertion does not formalize either the induction's base, step, or the V5-supplied preservation that bridges between intermediate arrangements.
+**Required**: Formalize as induction on chain length. State the base case (k=1) and the inductive step, including the V5 invocation that allows treating the intermediate arrangement at step i-1 as still holding at step i's pre-state.
+
+### Issue 6: K.ρ multiplicity in the composite is left informal
+**ASN-0069, V0 effects and "The Fork Composite" verification**: "K.δ + K.μ⁺ + K.ρ"; "K.ρ at Σ², repeated. For each `a ∈ ran(M²(d_new))`, record `(a, d_new) ∈ R`."
+**Problem**: K.ρ as defined in ASN-0047 records a single `(a, d)` pair per invocation. The fork records provenance for every `a ∈ ran(M'(d_new))` — i.e., `|ran(M'(d_new))|` elementary K.ρ invocations, not one. V0's description "K.δ + K.μ⁺ + K.ρ" and the verification's "K.ρ at Σ², repeated" treat this informally. The composite is technically `K.δ + K.μ⁺ + K.ρ × n` where `n = |ran(M'(d_new))|`. The composite-boundary J0/J1★/J1'★ check depends on all n records being emitted; the multi-step structure must be explicit so ValidComposite★'s "each step ... satisfies the elementary precondition" condition can be discharged at each K.ρ step (e.g., each K.ρ's precondition `a ∈ dom(C)` must be verified after K.μ⁺ has placed all the relevant addresses).
+**Required**: Either (a) make K.ρ's multiplicity explicit in V0's effects description and in the composite verification — specifying that the composite is K.δ + K.μ⁺ followed by n elementary K.ρ steps — or (b) define a derived multi-record K.ρ* operation and use it consistently.
+
+VERDICT: REVISE
