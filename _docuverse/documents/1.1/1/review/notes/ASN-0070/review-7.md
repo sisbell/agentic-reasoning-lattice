@@ -1,0 +1,19 @@
+# Review of ASN-0070
+
+## REVISE
+
+### Issue 1: F-canonical Step 1, case k = m_S(d) — implicit "exactly" derivation
+
+**ASN-0070, F-canonical Step 1 (case `k = m_S(d)`)**: "Then `ℓ = [0, ..., 0, ℓ_m] = δ(ℓ_m, m_S(d))` is an ordinal displacement, and `⟦σ⟧_V` contains exactly the `ℓ_m` tumblers `[s_1, ..., s_{m-1}, s_m + j]` for `0 ≤ j < ℓ_m` — finite and confined to subspace `S` at depth `m_S(d)`."
+
+**Problem**: The "contains exactly" claim has two halves: (i) each listed tumbler is in `⟦σ⟧_V` (verifiable in 2–3 lines via TumblerAdd computation), and (ii) no other depth-`m` subspace-`S` positive tumbler is in `⟦σ⟧_V`. Part (ii) is non-trivial — it requires showing that any `t ∈ ⟦σ⟧` at depth `m` must agree with `s` on positions `1..m-1`, via a T1 case analysis on the hypothetical divergence position `p < m`. The sibling case `k < m_S(d)` in the same Step 1 has a detailed multi-step derivation; leaving the symmetric case implicit is the asymmetry. 
+
+The gap propagates: Step 2's "Internal contiguity of `⟦σ_j⟧_V`" opens with "From Step 1's case `k = m_S(d)`, `⟦σ_j⟧_V = {[s_j.1, ..., s_j.{m-1}, s_j.m + i] : 0 ≤ i < c_j}`" — directly relying on the unstated `∀`-direction. F-empty's representational conclusion (`Σ_V^S = ⟨⟩` when `⟦Σ_V^S⟧_V = ∅`) also inherits the dependency by routing through "by F-canonical Step 1, every component span... has start `s` ... `s ∈ ⟦σ⟧_V`, so `⟦σ⟧_V` is non-empty."
+
+**Required**: Add the explicit `∀`-direction derivation in Step 1's case `k = m_S(d)`. For any `t ∈ ⟦σ⟧` with `t ≥ s` and `t < s ⊕ ℓ` (where TumblerAdd at action point `m` gives `s ⊕ ℓ = [s_1, ..., s_{m-1}, s_m + ℓ_m]`), suppose for contradiction that `t` diverges from `s` at some position `p < m` with `t_p > s_p`. Since `s` and `s ⊕ ℓ` agree on positions `1..m-1` (prefix-copy region of TumblerAdd), `(s ⊕ ℓ)_p = s_p`, so `t_p > (s ⊕ ℓ)_p` at position `p` with agreement on `1..p-1`. By T1 case (i), `t > s ⊕ ℓ`, contradicting `t < s ⊕ ℓ`. Hence `t` agrees with `s` on `1..m-1`, and `t_m ∈ [s_m, s_m + ℓ_m)` — the form claimed.
+
+## OUT_OF_SCOPE
+
+None.
+
+VERDICT: REVISE
