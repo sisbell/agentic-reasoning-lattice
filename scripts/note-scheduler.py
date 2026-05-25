@@ -40,6 +40,7 @@ from lib.runner import Scope, Trigger, run_until_quiescent
 
 
 NOTE_CYCLE_TRIGGER_NAMES = (
+    "inquiry_consult",
     "note_draft",
     "note_review", "note_consult", "note_revise", "note_statements",
 )

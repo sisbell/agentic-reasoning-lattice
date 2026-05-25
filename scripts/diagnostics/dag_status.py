@@ -32,6 +32,7 @@ from lib.shared.paths import LATTICE
 
 
 NOTE_TRIGGER_NAMES = (
+    "inquiry_consult",
     "note_draft",
     "note_review", "note_consult", "note_revise", "note_statements",
 )
@@ -256,7 +257,7 @@ def main() -> int:
             inquiry_addr = _inquiry_addr_for(session, asn)
             fires = []
             for trig in triggers:
-                if trig.name == "note-draft":
+                if trig.name in ("note-draft", "inquiry-consult"):
                     eval_addr = inquiry_addr
                 else:
                     eval_addr = note_addr
