@@ -1,30 +1,33 @@
-# Channel Assignment — ASN-0097 review-2
+# Channel Assignment — ASN-0098 review-2
 
-**Date:** 2026-05-24 10:36
+**Date:** 2026-05-24 19:38
 
-## Issue 1: Π11's "single closed form" is just `iproj`'s definition
-Reason: The fix is internal — the author can either drop the line they themselves acknowledge as definitional, or compose a genuine transition-level closed form using `iproj`'s definition and the K.μ frame contracts already stated in Π8/Π9/Π10. No external evidence or intent is needed.
+## Issue 1: K.δ reference inconsistent with the state model in use
+Reason: The fix is a choice between two cited ASNs already in the spec corpus (ASN-0093 vs ASN-0047). The author can resolve internal consistency by picking one model and aligning all references to it.
 
-## Issue 2: Mode II asserts `ran(M(d_v)) ⊆ ran(M(d))` without derivation
-Reason: The fix is internal — J4's contract lives in ASN-0047 (project corpus), so the author can either restate it and derive the inclusion, promote it to an explicit Π-claim, or fall back to the reviewer's option (c) and label it as a versioning assumption. All paths stay within the project's own materials.
+## Issue 2: K.ρ from ASN-0047 not addressed
+Reason: K.ρ's frame (preserving M) is defined in ASN-0047, already accessible to the ASN. The fix is a one-line lemma derivable from LP4 applied to K.ρ's frame.
 
-## Issue 3: `iproj = Σ.M(d)(proj)` asserted but not derived
-Reason: The fix is internal — a one-line bidirectional set-equality proof from the two definitions (`proj` and `iproj`) already given in the ASN's "The Projection" section.
+## Issue 3: Multi-step composition left implicit in LP18 and LP19
+Reason: Purely a proof-technique fix — introducing star-corollaries via induction over per-step versions. Pattern is established in ASN-0040 and derivable from the ASN's own content.
 
-## Issue 4: Π6 has no proof, only a restatement
-Reason: The fix is internal — derivation follows from Π5 applied twice (once for `d`, once for `d'`) plus the fact that `M(d)` and `M(d')` are disjoint state components in `Σ.M : D × T ⇀ T`, which the ASN already cites from ASN-0036.
+## Issue 4: LP11 reverse inclusion not made explicit
+Reason: Proof-completeness fix — the missing step uses bijectivity already stated in the proof. Internal to the ASN's existing reasoning.
 
-## Issue 5: `K.μ⁺_L` listed in Π12 but never defined or analyzed
-Reason: The fix is internal — the minimal correct fix is to remove `K.μ⁺_L` from the enumeration with a parenthetical note that link-subspace extension is out of scope for this ASN's endset-projection analysis, or to state that Π8's argument applies generically. Both are editorial decisions within the ASN's purview.
+## Issue 5: `discoverable_from` definition presupposes `a ∈ dom(Σ.L)` implicitly
+Reason: Definition precondition fix, parallel to how `project` already conditions on `d ∈ dom(Σ.M)`. Internal.
 
-## Issue 6: Π12's enumeration confuses "frame on other documents" with "no document target"
-Reason: The fix is internal — restructure Π12 using a uniform "operations whose write set does not include `M(d)`" framing, or restrict Π12 to document-targeted operations and let Π13/Π14 absorb `K.α` and `K.λ`. Pure editorial restructuring.
+## Issue 6: Worked trace's K.μ~ example does not illustrate projection motion
+Reason: Editorial fix to the example — modify coverage or add per-V-position rebinding. Derivable from LP11's own statement.
 
-## Issue 7: Π13's claim does not match Π13's proof scope
-Reason: The fix is internal — a quantifier correction. Replace the unbound `ℓ` with either `(A d, e :: ...)` or `(A d, ℓ, i :: ...)` and apply the same fix to Π14.
+## Issue 7: "Tight at state Σ_e" prose conflicts with formal definition
+Reason: Editorial choice between dropping the parenthetical or tightening the formal definition. Review recommends the former; internal decision.
 
-## Issue 8: Worked example does not test cross-document or reverse-orphaning claims
-Reason: The fix is internal — extending the example with a second document `d'` and a reverse-orphaning step requires only the definitions and Π-claims already present in the ASN; no external evidence or intent is consulted to construct the witness.
+## Issue 8: Numbering gaps unexplained
+Reason: Editorial fix — renumber or footnote. Internal to the ASN's presentation.
 
-## Issue 9: Π11's transition claim and "transition content" sentence contradict each other
-Reason: The fix is internal — editorial collapse of redundant framing or substitution of a genuinely new composed-inequality synthesis. The author's own statements provide the material.
+## Issue 9: "Claims Introduced" table omits `discoverable_from`
+Reason: Table completeness fix. Internal.
+
+## Issue 10: Informal text about K.α boundary insertion uses "typically" without anchoring
+Reason: Forward-reference fix to align prose with LP19. Internal to the ASN's existing structure.
