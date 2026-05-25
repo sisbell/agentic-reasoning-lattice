@@ -2,10 +2,11 @@
 
 The YAML declares one or more classes; each class is a list of ASN
 numbers. `core` is the implicit default for any ASN not listed under
-another class — `core` is never declared explicitly and can never be
-excluded.
+another class — `core` is never declared explicitly in the YAML (any
+such section is silently ignored) but CAN be excluded like any other
+class.
 
-Any other class name is valid:
+Any class name is valid:
 
     operations:
       - 87
@@ -18,9 +19,10 @@ Any other class name is valid:
       - 69
 
 The runner's `--exclude` flag (or `EXCLUDE_CLASSES` env var) drops
-any combination of declared classes from the walk. Example:
+any combination of classes from the walk. Examples:
 
-    EXCLUDE_CLASSES=operations,protocols   # leaves consult + core
+    EXCLUDE_CLASSES=operations,protocols       # leaves consult + core
+    EXCLUDE_CLASSES=core,operations,protocols  # leaves only consult
 
 Used by `note-scheduler.py --dag`, `dag_status.py`, and the continuous
 runner wrapper.
@@ -91,27 +93,24 @@ def class_for(asn_number: int) -> str:
 def parse_exclude_arg(value: str | None) -> Set[str]:
     """Parse a comma-separated --exclude value into a set of class labels.
 
-    Empty / None / 'none' yields an empty set. `core` is rejected
-    explicitly (always included). Any other token must name a class
-    actually declared in the YAML.
+    Empty / None / 'none' yields an empty set. `core` is always valid
+    (acts as "exclude all unlisted ASNs"). Any other token must name
+    a class actually declared in the YAML.
     """
     if value is None or not value.strip() or value.strip().lower() == "none":
         return set()
     declared = set(_parse_yaml().keys())
+    valid_choices = declared | {CORE}
     out: Set[str] = set()
     for token in value.split(","):
         t = token.strip().lower()
         if not t:
             continue
-        if t == CORE:
-            raise ValueError(
-                f"cannot exclude {CORE!r}; core is always included"
-            )
-        if t not in declared:
-            valid = ", ".join(sorted(declared)) if declared else "(none declared)"
+        if t not in valid_choices:
+            valid_str = ", ".join(sorted(valid_choices))
             raise ValueError(
                 f"invalid --exclude class {t!r}; "
-                f"must be one of declared classes: {valid}"
+                f"must be one of: {valid_str}",
             )
         out.add(t)
     return out
@@ -125,8 +124,8 @@ def apply_exclude(
     any whose class is in excluded_classes. Order preserved.
 
     Notes:
-    - core is never excluded (rejected at parse_exclude_arg).
-    - Unrecognized ASN numbers default to core and are kept.
+    - core can be excluded if explicitly listed; unrecognized ASN
+      numbers default to core and get dropped when core is excluded.
     """
     if not excluded_classes:
         return list(asn_labels)

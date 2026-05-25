@@ -87,17 +87,25 @@ def test_parse_exclude_accepts_declared(yaml_at):
     assert parse_exclude_arg("operations, consult") == {"operations", "consult"}
 
 
-def test_parse_exclude_rejects_core(yaml_at):
+def test_parse_exclude_accepts_core(yaml_at):
+    """core can be excluded — acts as 'drop all implicit-default ASNs'."""
     yaml_at("operations:\n  - 87\n")
-    with pytest.raises(ValueError, match="cannot exclude 'core'"):
-        parse_exclude_arg("core")
+    assert parse_exclude_arg("core") == {"core"}
+    assert parse_exclude_arg("core,operations") == {"core", "operations"}
+
+
+def test_apply_exclude_drops_core_when_listed(yaml_at):
+    yaml_at("consult:\n  - 68\n  - 69\n")
+    labels = ["ASN-0034", "ASN-0068", "ASN-0069"]
+    out = apply_exclude(labels, {"core"})
+    assert out == ["ASN-0068", "ASN-0069"]
 
 
 def test_parse_exclude_rejects_undeclared(yaml_at):
     yaml_at("operations:\n  - 87\n")
     with pytest.raises(ValueError, match="invalid --exclude class 'foo'"):
         parse_exclude_arg("foo")
-    with pytest.raises(ValueError, match="must be one of declared classes: operations"):
+    with pytest.raises(ValueError, match="must be one of: core, operations"):
         parse_exclude_arg("foo")
 
 

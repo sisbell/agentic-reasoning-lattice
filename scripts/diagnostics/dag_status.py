@@ -212,7 +212,7 @@ def main() -> int:
         "--exclude", metavar="CLASSES", default=None,
         help=(
             "Comma-separated class labels to exclude from the listing. "
-            "Recognized: operations, protocols. core is always included. "
+            "Any class declared in the YAML is valid (plus 'core' for the implicit-default set). "
             "Class membership is read from _workspace/asn-classes.yaml."
         ),
     )
