@@ -13,6 +13,8 @@
 
 from __future__ import annotations
 
+import os
+import sys
 from pathlib import Path
 
 from lib.agents.producers.note_review import NoteReviewAgent
@@ -31,11 +33,64 @@ from lib.triggers.scope import per_active_note
 NOTE_REVIEW_CONVERGENCE_DEPTH = 2
 
 
+def _max_reviews_cap() -> int | None:
+    """Read MAX_REVIEWS env var (operator-set bound on review count
+    per note). Returns int cap or None for "no cap" (default).
+
+    The cap is a target: once a note's active content-review count
+    reaches the cap, the predicate skips firing. Operator workflow is
+    "set MAX_REVIEWS, run, inspect, bump MAX_REVIEWS, re-run."
+
+    Raises SystemExit on bad config (non-numeric or negative) — loud
+    failure is preferable to silent default since the cap is operator
+    intent and a typo would silently disable bounding.
+    """
+    raw = os.environ.get("MAX_REVIEWS", "").strip()
+    if not raw:
+        return None
+    try:
+        cap = int(raw)
+    except ValueError:
+        print(
+            f"  [note_review] MAX_REVIEWS={raw!r} is not numeric",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
+    if cap < 0:
+        print(
+            f"  [note_review] MAX_REVIEWS={raw} must be >= 0",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
+    return cap
+
+
+def _count_content_reviews(session: Session, note_addr: Address) -> int:
+    """Count active content-review docs covering note_addr.
+
+    Mirrors `last_n_reviews_were_clean`'s counting: walks
+    `review.coverage` links targeting the note, keeps only those whose
+    source review carries the `review.content` classifier (excludes
+    structural-only reviews).
+    """
+    n = 0
+    for link in session.active_links("review.coverage", to_set=[note_addr]):
+        if not link.from_set:
+            continue
+        if session.active_links("review.content", to_set=[link.from_set[0]]):
+            n += 1
+    return n
+
+
 def _predicate(session: Session, addr: Address) -> bool:
     """True (skip) iff there's nothing for review to do *now*.
 
-    Three skip conditions:
+    Four skip conditions:
 
+      - MAX_REVIEWS env-var cap reached. Operator-set target; when
+        the note has already received MAX_REVIEWS content-reviews,
+        no more fire. Bumping MAX_REVIEWS and restarting the runner
+        re-opens the gate.
       - Open revises pending. The previous review's findings haven't
         been resolved yet — note_revise is the trigger that should
         run, not another review on the same unrevised text. Without
@@ -53,10 +108,14 @@ def _predicate(session: Session, addr: Address) -> bool:
         dependency-change detection re-fires review/revise on stale
         notes.
 
-    Fire iff doc is quiescent AND (fewer than N consecutive reviews
-    came up clean OR an upstream foundation has advanced since the
-    latest review's cascade anchor).
+    Fire iff under-cap AND doc is quiescent AND (fewer than N
+    consecutive reviews came up clean OR an upstream foundation has
+    advanced since the latest review's cascade anchor).
     """
+    cap = _max_reviews_cap()
+    if cap is not None and _count_content_reviews(session, addr) >= cap:
+        return True
+
     return (
         not is_doc_quiescent(session, addr)
         or (
