@@ -105,9 +105,11 @@ Let `V_{s_C}(d) = {v ∈ dom(M(d)) : subspace(v) = s_C}` denote the content-subs
 
 The fork installs the source's content-subspace V-positions and their I-addresses into `M'(d_new)`. We name what is established and then derive what follows.
 
-> **V4** (*arrangement inheritance*): After a fork of `d_src` with `V_{s_C}(d_src) ≠ ∅`, the new document's content-subspace arrangement satisfies:
+> **V4** (*arrangement inheritance*): After any fork of `d_src`, the new document's content-subspace arrangement satisfies:
 >
 > `(A v ∈ V_{s_C}(d_src) :: v ∈ dom(M'(d_new)) ∧ M'(d_new)(v) = M(d_src)(v))`
+>
+> V4 holds unconditionally: the formal universal is vacuously true when `V_{s_C}(d_src) = ∅` (V7's empty-source case, where the quantifier ranges over the empty set) and substantively true when `V_{s_C}(d_src) ≠ ∅` (where K.μ⁺ populates `M'(d_new)` from `V_{s_C}(d_src)` per J4's clause (ii)). No precondition on `V_{s_C}(d_src)` is needed; the claim is consistent with the Properties Introduced table entry, which likewise carries no precondition.
 
 V4 makes two distinct claims. First, the *V-positions are inherited literally* — the same tumblers `[s_C, 1, ..., 1, k]` appear in both arrangements, not rebased relative to `d_new`. Second, the *I-addresses at each position are inherited literally* — every `M'(d_new)(v)` equals `M(d_src)(v)`, the same I-address the source holds.
 
@@ -221,7 +223,7 @@ The "word for word" comparison is the I-address equality test: at each shared V-
 
 We record three immediate corollaries.
 
-> **V8a** (*correspondence persistence under content-store growth*): Subsequent K.α allocations (extending `C`) do not affect existing I-addresses (by P0/S0), so V8's correspondence between `d_src` and `d_new` over the V-positions present at fork time is preserved as long as those V-positions remain in both arrangements.
+> **V8a** (*correspondence persistence under content-store growth*): Subsequent K.α allocations (extending `C`) leave every arrangement unchanged — K.α's frame condition `(A d :: M'(d) = M(d))` (ASN-0047) preserves `M(d_src)` and `M(d_new)` across each K.α step. Since V8's correspondence is an equality of arrangement values `M(d_src)(v) = M(d_new)(v)`, and neither side of the equality is modified by K.α, V8's correspondence between `d_src` and `d_new` over the V-positions present at fork time is preserved across every K.α step as long as those V-positions remain in both arrangements. (P0/S0 govern content-store growth — `dom(C) ⊆ dom(C')` and value preservation — which is orthogonal to arrangement preservation; V8a's persistence claim rests on K.α's arrangement-preservation frame, not on P0/S0.)
 
 > **V8b** (*correspondence is state-relative — bounded fork-time witness set*): Let `Σ' →* Σ_g` be any sequence of valid composite transitions from the post-fork state `Σ'`. The set of V-positions at which `d_src` and `d_new` correspond at `Σ_g` is
 >
@@ -376,10 +378,14 @@ We assemble the formal definition.
 >     d_new = inc(d_prev, 0)  on subsequent fork
 >       (d_prev = A_v(d_src)'s most recent prior emission)
 > M'(d_new)(v) = M(d_src)(v)  for v ∈ V_{s_C}(d_src)  (V4)
-> M'(d_new)(v) undefined       for v ∉ V_{s_C}(d_src) (V6)
+> M'(d_new)(v) undefined       for v ∉ V_{s_C}(d_src) (V4b; V6 as corollary for link-subspace V-positions)
 > (A d' : d' ≠ d_new : M'(d') = M(d'))                (V5, V5a)
-> R' = R ∪ {(a, d_new) : a ∈ ran(M'(d_new))}          (V9)
+> R' = R ∪ {(a, d_new) : a ∈ ran(M'(d_new))}          (V9, with set equality by K.δ frame R¹ = R + K.μ⁺ frame R² = R¹ + K.ρ × n cumulative effect)
 > ```
+>
+> The "undefined elsewhere" line is the *exact* characterization `dom(M'(d_new)) = V_{s_C}(d_src)` supplied by V4b — V6's `V_{s_L}(d_new) = ∅` is a corollary covering the link-subspace V-positions specifically, but V4b is the primary justification because it rules out any V-position outside `V_{s_C}(d_src)` regardless of subspace.
+>
+> The R' line is a set equality, not the inclusion `R' ⊇ R ∪ {(a, d_new) : a ∈ ran(M'(d_new))}` that V9 alone supplies. The equality is verified by the elementary decomposition: K.δ's frame condition gives `R¹ = R` (no pairs added by entity creation); K.μ⁺'s frame condition gives `R² = R¹` (no pairs added by arrangement extension); the K.ρ × n phase adds exactly the `n` distinct pairs `{(a_j, d_new) : 1 ≤ j ≤ n}` enumerating `ran(M'(d_new))`. Composing the three elementary frame and effect clauses across the composite produces the set equality.
 >
 > The K.ρ phase is `n` elementary K.ρ invocations (one per `a ∈ ran(M'(d_new))`), each recording a single `(a, d_new)` pair per K.ρ's definition (ASN-0047). The set-builder `{(a, d_new) : a ∈ ran(M'(d_new))}` denotes the cumulative effect of all `n` invocations on `R`; the elementary multiplicity is verified per step in "The Fork Composite" verification below.
 >
