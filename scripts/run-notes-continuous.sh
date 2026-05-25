@@ -86,9 +86,13 @@ _load_runtime_config() {
         WORKERS="$prev_workers"
     fi
     export CLAUDE_CONFIG_DIRS
+    # MAX_REVIEWS (operator cap on per-note review count) — read by the
+    # note_review trigger predicate from the Python subprocess env.
+    # Source-then-export so it propagates from runner.env across cycles.
+    [[ -n "${MAX_REVIEWS:-}" ]] && export MAX_REVIEWS
 }
 
-echo "  [run-notes-continuous] startup: WORKERS=$WORKERS CLAUDE_CONFIG_DIRS=${CLAUDE_CONFIG_DIRS:-(unset)}" >&2
+echo "  [run-notes-continuous] startup: WORKERS=$WORKERS CLAUDE_CONFIG_DIRS=${CLAUDE_CONFIG_DIRS:-(unset)} MAX_REVIEWS=${MAX_REVIEWS:-(unset)}" >&2
 if [[ -f "$CONFIG_FILE" ]]; then
     echo "  [run-notes-continuous] runtime config at $CONFIG_FILE will be sourced each cycle" >&2
 fi
@@ -148,7 +152,7 @@ while true; do
     stop_pusher
     git pull --rebase --autostash 2>&1 | grep -v '^$' || true
     _load_runtime_config
-    echo "  [run-notes-continuous] cycle: WORKERS=$WORKERS CLAUDE_CONFIG_DIRS=${CLAUDE_CONFIG_DIRS:-(unset)}" >&2
+    echo "  [run-notes-continuous] cycle: WORKERS=$WORKERS CLAUDE_CONFIG_DIRS=${CLAUDE_CONFIG_DIRS:-(unset)} MAX_REVIEWS=${MAX_REVIEWS:-(unset)}" >&2
 
     # Surface orphan holdings before spawning workers. Silent when
     # clean; loud banner + retract commands when stuck. Threshold
