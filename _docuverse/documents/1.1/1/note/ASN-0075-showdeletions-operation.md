@@ -66,13 +66,13 @@ Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix
 Σ_0  →* K.δ(d)
      →* K.δ(d')
      →* K.α(a, d)
-     →* K.μ⁺(d,  v  ↦ a)
-     →* K.μ⁺(d', v' ↦ a)
+     →* K.μ⁺(d,  v  ↦ a);  K.ρ(a, d)
+     →* K.μ⁺(d', v' ↦ a);  K.ρ(a, d')
      →* K.μ⁻(d)              [retain n'_{s_C} = 0]
      =   Σ_1
 ```
 
-The two K.μ⁺ steps insert `a` at content-subspace V-positions `v = [s_C, 1]` (in `d`) and `v' = [s_C, 1]` (in `d'`); by J1★ in the extended state, the composite records `(a, d) ∈ R_1` and `(a, d') ∈ R_1`. The K.μ⁻ step on `d` retains zero content-subspace V-positions (`n'_{s_C} = 0`), removing `v ↦ a` from `M(d)`; by P2 (`R ⊆ R'`), `(a, d) ∈ R_1` persists. Final state: `dom(C_1) = {a}`, `M_1(d) = ∅`, `M_1(d') = {v' ↦ a}`, `(a, d) ∈ R_1`. So `DELETED(a, d)` holds at `Σ_1`.
+The two K.μ⁺ steps insert `a` at content-subspace V-positions `v = [s_C, 1]` (in `d`) and `v' = [s_C, 1]` (in `d'`); the accompanying K.ρ steps record `(a, d) ∈ R_1` and `(a, d') ∈ R_1` — K.μ⁺'s frame leaves `R` unchanged (ASN-0047), so the bundled `K.μ⁺; K.ρ` composites are what satisfy J1★ end-to-end on the introduction of each new arrangement entry. The K.μ⁻ step on `d` retains zero content-subspace V-positions (`n'_{s_C} = 0`), removing `v ↦ a` from `M(d)`; by P2 (`R ⊆ R'`), `(a, d) ∈ R_1` persists. Final state: `dom(C_1) = {a}`, `M_1(d) = ∅`, `M_1(d') = {v' ↦ a}`, `(a, d) ∈ R_1`. So `DELETED(a, d)` holds at `Σ_1`.
 
 *History 2 (yields NEVER_INCLUDED).*
 
@@ -80,11 +80,11 @@ The two K.μ⁺ steps insert `a` at content-subspace V-positions `v = [s_C, 1]` 
 Σ_0  →* K.δ(d)
      →* K.δ(d')
      →* K.α(a, d)
-     →* K.μ⁺(d', v' ↦ a)
+     →* K.μ⁺(d', v' ↦ a);  K.ρ(a, d')
      =   Σ_2
 ```
 
-One K.μ⁺ step, into `d'` at the same `v' = [s_C, 1]`. J1★ records `(a, d') ∈ R_2`, but `d` is never extended with `a`, so `(a, d) ∉ R_2`. Final state: `dom(C_2) = {a}`, `M_2(d) = ∅`, `M_2(d') = {v' ↦ a}`, `(a, d) ∉ R_2`. So `NEVER_INCLUDED(a, d)` holds at `Σ_2`.
+One K.μ⁺ step, into `d'` at the same `v' = [s_C, 1]`, paired with K.ρ(a, d') to satisfy J1★ end-to-end. The composite records `(a, d') ∈ R_2`, but `d` is never extended with `a`, so `(a, d) ∉ R_2`. Final state: `dom(C_2) = {a}`, `M_2(d) = ∅`, `M_2(d') = {v' ↦ a}`, `(a, d) ∉ R_2`. So `NEVER_INCLUDED(a, d)` holds at `Σ_2`.
 
 *Agreement on (C, M).* Comparing the components of `Σ_1` and `Σ_2`:
 
@@ -174,21 +174,20 @@ We illustrate SHOWDELETIONS on the canonical scenario: a document is forked, and
 
 ```
 Σ_0  →* K.δ(d_A)
-     →* K.α(a, d_A);  K.μ⁺(d_A, [1,1] ↦ a)
-     →* K.α(b, d_A);  K.μ⁺(d_A, [1,2] ↦ b)
-     →* K.α(c, d_A);  K.μ⁺(d_A, [1,3] ↦ c)
+     →* K.α(a, d_A);  K.μ⁺(d_A, [1,1] ↦ a);  K.ρ(a, d_A)
+     →* K.α(b, d_A);  K.μ⁺(d_A, [1,2] ↦ b);  K.ρ(b, d_A)
+     →* K.α(c, d_A);  K.μ⁺(d_A, [1,3] ↦ c);  K.ρ(c, d_A)
      →* K.δ(d_B)                                                  [d_B = inc(d_A, 1)]
-     →* K.μ⁺(d_B, [1,1] ↦ a, [1,2] ↦ b, [1,3] ↦ c)
+     →* K.μ⁺(d_B, [1,1] ↦ a, [1,2] ↦ b, [1,3] ↦ c);  K.ρ(a, d_B);  K.ρ(b, d_B);  K.ρ(c, d_B)
      →* K.μ~(d_A)  [permute so c at [1,2], b at [1,3]]
      →* K.μ⁻(d_A)  [retain n'_{s_C} = 2 of content subspace]
-     →* K.μ~(d_B)  [permute so b at [1,2], c at [1,3]]
      →* K.μ⁻(d_B)  [retain n'_{s_C} = 2 of content subspace]
      =   Σ
 ```
 
-The first six lines create `d_A` with three content addresses `a, b, c` (all with `origin = d_A` by S7), arranged at `[1,1], [1,2], [1,3]`. The seventh line forks `d_A` to `d_B = inc(d_A, 1)` (K.δ case (ii), `k = 1`); the eighth line populates `d_B` by transclusion — the *same* I-addresses `a, b, c` are referenced from `d_B`'s V-positions. J1★ records `R ⊇ {(a, d_A), (b, d_A), (c, d_A), (a, d_B), (b, d_B), (c, d_B)}`.
+The first four lines create `d_A` with three content addresses `a, b, c` (all with `origin = d_A` by S7), arranged at `[1,1], [1,2], [1,3]`; the per-line K.ρ steps record the corresponding provenance, with each `K.μ⁺; K.ρ` bundle satisfying J1★ end-to-end (K.μ⁺'s frame leaves `R` unchanged on its own, so K.ρ is what supplies the provenance update the coupling demands). Line 5 forks `d_A` to `d_B = inc(d_A, 1)` (K.δ case (ii), `k = 1`); line 6 populates `d_B` by transclusion — the *same* I-addresses `a, b, c` are referenced from `d_B`'s V-positions — and records the three accompanying provenance pairs in one composite. The resulting provenance relation contains `R ⊇ {(a, d_A), (b, d_A), (c, d_A), (a, d_B), (b, d_B), (c, d_B)}`.
 
-The last four lines effect a divergent edit. Lines 9–10 reorder `M(d_A)` to put `b` at the trailing position and then truncate, removing `b` from `d_A`'s arrangement. Lines 11–12 symmetrically remove `c` from `d_B`'s arrangement. By P2, the deletions leave `R` unchanged.
+The last three lines effect a divergent edit. Lines 7–8 reorder `M(d_A)` to put `b` at the trailing position `[1,3]` and then truncate, removing `b` from `d_A`'s arrangement. Line 9 removes `c` from `d_B`'s arrangement directly — no prior rearrangement is needed because `c` is already at the trailing position `[1,3]`, so K.μ⁻ retaining the first two content positions drops exactly `c`. By P2, the deletions leave `R` unchanged.
 
 *Resulting state.*
 
@@ -314,7 +313,7 @@ A *deletion witness run* is a triple `(i_start, ℓ, origin)` such that, using t
 - every such address satisfies `origin(a) = origin`;
 - no contiguous extension to the left or right is also in the deletion set with the same origin.
 
-The decomposition into maximal witness runs is uniquely determined by the deletion set itself. The deletion set is finite (a subset of `dom(C)`, finite by C-fin, ASN-0047) and totally ordered under T1 (ASN-0034). Define adjacency on the deletion set: two addresses `a, a'` are *I-adjacent* iff `a' = shift(a, 1)` and `origin(a) = origin(a')`. The reflexive-transitive closure of I-adjacency partitions the deletion set into equivalence classes; each class is a maximal `T1`-contiguous run of addresses sharing one origin — a witness run. The partition is unique because I-adjacency is determinate: `shift(·, 1)` is a function (OrdinalShift, ASN-0034) and `origin` is a function on `dom(C)` (S7, ASN-0036), so for any pair `(a, a')` in the deletion set the adjacency predicate evaluates to a fixed truth value. The partition is finite because the deletion set is finite. We emphasise that this decomposition is on the deletion set viewed as an I-set — it is not the V→I block decomposition of any document's arrangement (ASN-0058, M11–M12); two I-adjacent same-origin addresses may be non-V-adjacent in any particular witness's arrangement, and conversely, so the two notions of "run" do not coincide. The witness-run collection can be enumerated, transmitted, and consumed without information loss.
+The decomposition into maximal witness runs is uniquely determined by the deletion set itself. The deletion set is finite (a subset of `dom(C)`, finite by C-fin, ASN-0047) and totally ordered under T1 (ASN-0034). Define adjacency on the deletion set: two addresses `a, a'` are *I-adjacent* iff (`a' = shift(a, 1)` or `a = shift(a', 1)`) and `origin(a) = origin(a')`. I-adjacency is symmetric by construction; its reflexive-transitive closure is therefore an equivalence relation, which partitions the deletion set into equivalence classes. Each class is a maximal `T1`-contiguous run of addresses sharing one origin — a witness run. The partition is unique because I-adjacency is determinate: `shift(·, 1)` is a function (OrdinalShift, ASN-0034) and `origin` is a function on `dom(C)` (S7, ASN-0036), so for any pair `(a, a')` in the deletion set the adjacency predicate evaluates to a fixed truth value. The partition is finite because the deletion set is finite. We emphasise that this decomposition is on the deletion set viewed as an I-set — it is not the V→I block decomposition of any document's arrangement (ASN-0058, M11–M12); two I-adjacent same-origin addresses may be non-V-adjacent in any particular witness's arrangement, and conversely, so the two notions of "run" do not coincide. The witness-run collection can be enumerated, transmitted, and consumed without information loss.
 
 We emphasise: this presentation is a *form*, not a *fundamental commitment*. The abstract specification fixes only the set of I-addresses. The run-grouping presentation is a useful packaging that preserves identity (every position is its original I-address) and origin (every address shares the named origin), making the output efficient to transmit while remaining compositional.
 
