@@ -26,19 +26,58 @@ Resolution is the inverse problem: given I-addresses (from an endset), find the 
 
 ## The Inverse-Image Relation
 
-The mathematical content of resolution is the inverse image. For a document `d` and an endset `e`, define:
+The mathematical content of resolution is the inverse image.
+
+### F0 — InverseImageRelation (DEF)
+
+**Domain.** `d ∈ E_doc`; `e` is an endset — a finite set of well-formed I-spans (L3, ASN-0043). `coverage(e) ⊆ T` is the union of span coverages (L3 of ASN-0043; T12 of ASN-0034 underwrites each span).
+
+**Definition.**
 
 ```
-R(d, e) = { v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e) }
+R(d, e) := M(d)⁻¹(coverage(e)) = { v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e) }
 ```
 
-Equivalently, `R(d, e) = M(d)⁻¹(coverage(e))`.
+**Subspace partition.** Writing `R(d, e)|_S := {v ∈ R(d, e) : subspace(v) = S}` for `S ∈ {s_C, s_L}`:
 
-This is well-defined. By S2 (ArrangementFunctionality, ASN-0036), `M(d)` is a partial function — every V-position in its domain has exactly one image. The inverse image of `coverage(e)` is the set of pre-images, and it is a uniquely determined subset of `dom(M(d))`.
+```
+R(d, e) = R(d, e)|_{s_C} ⊎ R(d, e)|_{s_L}
+```
+
+The partition is disjoint (subspace is single-valued per the first-component projection) and exhaustive (every `v ∈ dom(M(d))` has `subspace(v) ∈ {s_C, s_L}` by S3★-aux of ASN-0047).
+
+**Well-definedness.** By S2 (ArrangementFunctionality, ASN-0036), `M(d)` is a partial function — every V-position in its domain has exactly one image. The inverse image of `coverage(e)` is therefore a uniquely determined subset of `dom(M(d))`.
+
+**Frame.** State-pure: `R` reads `M(d)` and `coverage(e)`; modifies nothing.
 
 The definition is *abstract*. It does not depend on how `M(d)` is stored, decomposed, or accessed. It does not depend on the order or structure of spans within `e`. Two endsets with the same coverage produce the same `R(d, e)`. Resolution is a function of coverage and arrangement — nothing more.
 
-`R(d, e)` partitions naturally by V-subspace. Writing `R(d, e)|_S = {v ∈ R(d, e) : subspace(v) = S}` for `S ∈ {s_C, s_L}`, we have `R(d, e) = R(d, e)|_{s_C} ⊎ R(d, e)|_{s_L}` (disjoint union, since the subspace partition is exhaustive in `dom(M(d))` per S3★-aux of ASN-0047). Within each component, V-positions share common depth, so each component is level-uniform and amenable to span-set representation.
+Within each subspace component, V-positions share common depth (S8-depth of ASN-0036 for `s_C`; LinkVPositionDepthAxiom of ASN-0047 for `s_L`), so each component is level-uniform and amenable to span-set representation.
+
+### F-subspace — IOSubspaceCorrespondence (LEMMA)
+
+The V-subspace of a V-position determines the I-subspace of its image.
+
+**Preconditions.** `v ∈ dom(M(d))`.
+
+**Postcondition.** `subspace(v) = subspace_I(M(d)(v))`. In particular:
+- `subspace(v) = s_C ⟹ subspace_I(M(d)(v)) = s_C`
+- `subspace(v) = s_L ⟹ subspace_I(M(d)(v)) = s_L`
+
+**Depends.** S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`, and `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)`. L0 (SubspacePartition, ASN-0047) — `a ∈ dom(C) ⟹ subspace_I(a) = s_C`, and `a ∈ dom(L) ⟹ subspace_I(a) = s_L`. Composing the two implications yields the claim.
+
+**Frame.** State-pure.
+
+**Consequence.** The subspace projection of `R` decomposes by I-subspace:
+
+```
+R(d, e)|_{s_C} = M(d)⁻¹(coverage(e) ∩ dom(C))
+R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))
+```
+
+*Derivation.* For the `s_C` case: `v ∈ R(d, e)|_{s_C}` iff `v ∈ R(d, e) ∧ subspace(v) = s_C` iff `M(d)(v) ∈ coverage(e) ∧ subspace(v) = s_C`. By F-subspace, `subspace(v) = s_C ⟺ M(d)(v) ∈ dom(C)` for `v ∈ dom(M(d))`. So `v ∈ R(d, e)|_{s_C}` iff `M(d)(v) ∈ coverage(e) ∩ dom(C)` iff `v ∈ M(d)⁻¹(coverage(e) ∩ dom(C))`. The `s_L` case is symmetric.
+
+The `s_C`-component of the result picks out the content-subspace portion of coverage; the `s_L`-component picks out the link-subspace portion. An endset whose coverage straddles both I-subspaces (admissible by L4, ASN-0043) contributes to both result components; an endset confined to one I-subspace contributes only to that component.
 
 From this single relation, the entire specification of FOLLOWLINK follows.
 
@@ -64,17 +103,41 @@ The per-subspace decomposition is structurally required, not a stylistic choice.
 
 The representation choice is *natural and compact*, not derived from a stronger constraint. An alternative such as an explicit enumeration of V-positions would also satisfy a denotational postcondition; we adopt the span-set family because (i) the per-subspace decomposition of `M(d)` (S8★, ASN-0047) and the existence of finite mapping-block decompositions (M2, ASN-0058) ensure that `M(d)⁻¹(X)` for any finite union of I-spans `X` corresponds to a finite collection of contiguous V-runs, and (ii) finite V-runs are exactly what a span-set encodes compactly. The size of the resulting span-set is bounded by the number of (block, endset-span) intersections, which is finite.
 
+### V-Restricted Denotation
+
+The span-set denotation `⟦Σ⟧` of ASN-0053 is taken over all of `T`: by T12 (SpanWellDefinedness, ASN-0034), `⟦σ⟧ = {t ∈ T : start(σ) ≤ t < reach(σ)}`. For a span `σ = (s, ℓ)` with `s` a depth-`m_S(d)` V-position and `ℓ = δ(c, m_S(d))` an ordinal displacement, the raw denotation includes every tumbler in the lexicographic interval — including tumblers of greater depth that are not V-positions of `d`. To express the postcondition correctly, we restrict to admissible V-positions.
+
+**Definition (V-restricted denotation).** For a span-set `Σ_V^S` whose components are level-uniform at V-position depth `m_S(d)` in subspace `S`:
+
+```
+⟦Σ_V^S⟧_V := { t ∈ ⟦Σ_V^S⟧ : subspace(t) = S ∧ #t = m_S(d) }
+```
+
+— the projection of the raw span-set denotation onto V-position tumblers of subspace `S` at the document's common depth.
+
+For the full family `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})`, define the joint V-restricted denotation:
+
+```
+⟦Σ_V⟧_V := ⟦Σ_V^{s_C}⟧_V ⊎ ⟦Σ_V^{s_L}⟧_V
+```
+
+The two subspace components are disjoint by S3★-aux applied to V-positions.
+
+The V-restricted denotation is what the postcondition fixes. The raw denotation `⟦Σ_V^S⟧` is correspondingly larger; the discrepancy is the irrelevant deeper-depth and cross-subspace tumblers in the lexicographic interval. Implementations and downstream consumers must compare results via `⟦·⟧_V`, not `⟦·⟧`.
+
+### F1 — FollowOperation (DEF)
+
 Concretely, the operation FOLLOWLINK has the following form:
 
-```
-follow : (ℓ, d, i) → (d, Σ_V)
-```
-
-where `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` is a per-subspace family of finite V-span-sets.
+**Signature.** `follow : (ℓ, d, i) → (d, Σ_V)` where `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` is a per-subspace family of finite V-span-sets.
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
 
-**Postcondition.** `follow(ℓ, d, i) = (d, (Σ_V^{s_C}, Σ_V^{s_L}))` where each `Σ_V^S` is a finite V-span-set with components in subspace `S` of depth `m_S(d)`, and `⟦Σ_V^S⟧ = R(d, L(ℓ).eᵢ)|_S`.
+**Postcondition.** `follow(ℓ, d, i) = (d, (Σ_V^{s_C}, Σ_V^{s_L}))` where each `Σ_V^S` is a finite V-span-set whose components are spans in subspace `S` of depth `m_S(d)`, and:
+
+```
+⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S    for each S ∈ {s_C, s_L}
+```
 
 **Frame.** `Σ' = Σ`. No component of state is modified.
 
@@ -84,7 +147,7 @@ The result is a *pair* `(d, Σ_V)`. The document `d` accompanies the per-subspac
 
 ### Canonical Form
 
-The postcondition fixes the *denotation* of each component but not its representation. Distinct representations satisfying the postcondition exist whenever the underlying point-set admits multiple span-set decompositions. To make the result representationally unique for downstream comparison, we define the *canonical form*.
+The postcondition fixes the *V-restricted denotation* of each component but not its representation. Distinct representations satisfying the postcondition exist whenever the underlying point-set admits multiple span-set decompositions. To make the result representationally unique for downstream comparison, we define the *canonical form*.
 
 **Definition (CanonicalForm).** The canonical form of `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` is the per-subspace family in which:
 
@@ -92,7 +155,17 @@ The postcondition fixes the *denotation* of each component but not its represent
 
 (ii) The two components are presented in a fixed external order: `s_C`-component first, `s_L`-component second. (This convention pins down the family-level ordering, which S9 alone does not address since it operates within a single level-uniform span-set.)
 
-A given `R(d, e)` admits exactly one canonical form, by S9 applied per subspace and the fixed external ordering. We do not commit the operation's postcondition to canonical form: the abstract specification fixes only `⟦Σ_V^S⟧ = R(d, e)|_S`. An implementation may return any representationally equivalent form. The canonical form is the derivation that callers apply when representational identity matters.
+**Derivation of uniqueness.** Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`. We show each subspace component admits exactly one normalised representation.
+
+*Step 1 — Level-uniformity within each subspace.* By S8-depth (ASN-0036) for the content subspace and LinkVPositionDepthAxiom (ASN-0047) for the link subspace, all V-positions in `R(d, e)|_S` share the common depth `m_S(d)`. Spans constructed with these V-positions as starts and ordinal displacements as widths (per F-contig below) have start, width, and reach all of length `m_S(d)` — the level-uniformity hypothesis of S6 (LevelConstraint, ASN-0053). Mutual level-compatibility follows immediately since all components share length `m_S(d)`.
+
+*Step 2 — Per-subspace uniqueness.* With the level-uniformity precondition discharged, S9 (NormalizationUniqueness, ASN-0053) gives, among span-sets denoting the same V-restricted set of positions, a unique normalised form. Applied to each `R(d, e)|_S`, this yields exactly one normalised `Σ_V^S`.
+
+*Step 3 — Family-level ordering.* The fixed external convention (`s_C`-component first, then `s_L`-component) removes the remaining ambiguity at the family level: there is one pair `(Σ_V^{s_C}, Σ_V^{s_L})` consistent with this ordering.
+
+Therefore, given `R(d, e)`, the canonical form is uniquely determined.
+
+We do not commit the operation's postcondition to canonical form: the abstract specification fixes only `⟦Σ_V^S⟧_V = R(d, e)|_S`. An implementation may return any representationally equivalent form. The canonical form is the derivation that callers apply when representational identity matters.
 
 (Implementation evidence: udanax-green's follow-equivalent operation does not normalise — it returns whatever decomposition the enfilade traversal produces, and may even emit duplicate spans in some configurations. The denotation is determined; the representation is not. Implementations seeking representational identity must canonicalise downstream.)
 
@@ -100,7 +173,7 @@ A given `R(d, e)` admits exactly one canonical form, by S9 applied per subspace 
 
 We verify that the stated preconditions are minimal for the postcondition.
 
-For the postcondition `⟦Σ_V^S⟧ = R(d, L(ℓ).eᵢ)|_S`, the weakest precondition requires that `R(d, L(ℓ).eᵢ)|_S` be well-defined. Unpacking:
+For the postcondition `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S`, the weakest precondition requires that `R(d, L(ℓ).eᵢ)|_S` be well-defined. Unpacking:
 
 - `L(ℓ).eᵢ` requires `ℓ ∈ dom(Σ.L)` (so `L(ℓ)` is defined) and `1 ≤ i ≤ |L(ℓ)|` (so the slot exists). By L3 (ASN-0043), `|L(ℓ)| ≥ 3`, so `i ∈ {1, 2, 3}` is always admissible when the link exists; higher indices require checking against `|L(ℓ)|`.
 - `M(d)` requires `d ∈ E_doc` (so the arrangement is defined). Reachable-state invariants guarantee that every `d ∈ E_doc` has an associated `M(d)` (per K.δ's effect clause in ASN-0047 and the ExtendedReachableStateInvariants theorem).
@@ -108,7 +181,7 @@ For the postcondition `⟦Σ_V^S⟧ = R(d, L(ℓ).eᵢ)|_S`, the weakest precond
 - `M(d)⁻¹(·)` is well-defined for any subset of `T` whenever `M(d)` is defined (S2).
 - The subspace projection `R(d, e)|_S` is well-defined whenever `R(d, e)` is, by S3★-aux's exhaustiveness.
 
-Hence `wp(follow, ⟦Σ_V^S⟧ = R(d, e)|_S) = ℓ ∈ dom(Σ.L) ∧ d ∈ E_doc ∧ 1 ≤ i ≤ |L(ℓ)|`, matching the stated preconditions. No implicit invariants are required beyond the per-state invariants of ASN-0036, ASN-0043, and ASN-0047 (which the reachable-state theorem guarantees).
+Hence `wp(follow, ⟦Σ_V^S⟧_V = R(d, e)|_S) = ℓ ∈ dom(Σ.L) ∧ d ∈ E_doc ∧ 1 ≤ i ≤ |L(ℓ)|`, matching the stated preconditions. No implicit invariants are required beyond the per-state invariants of ASN-0036, ASN-0043, and ASN-0047 (which the reachable-state theorem guarantees).
 
 For the frame `Σ' = Σ`: `wp(follow, Σ' = Σ) = true`. The frame imposes no additional precondition because the operation does not write any state component.
 
@@ -127,15 +200,24 @@ For each endset I-span `σ = (s, ℓ_σ)` with coverage `⟦σ⟧`:
 
 **Contiguity claim.** We prove that `I(β) ∩ ⟦σ⟧`, when non-empty, is a contiguous sub-progression of `I(β)`.
 
-The I-extent `I(β) = {a + k : 0 ≤ k < n}` is an arithmetic progression under OrdinalShift (ASN-0034). By TS5 (ShiftAmountMonotonicity), the mapping `k ↦ a + k` is strictly monotone: `k₁ < k₂ ⟹ a + k₁ < a + k₂` under T1. The span coverage `⟦σ⟧ = {t : s ≤ t < s ⊕ ℓ_σ}` is convex under T1 by T12 (SpanWellDefinedness, ASN-0034) — its order-convexity postcondition (c) states that for any `t₁, t₂ ∈ ⟦σ⟧` and `t₁ ≤ t' ≤ t₂`, we have `t' ∈ ⟦σ⟧`.
+The I-extent `I(β) = {a + k : 0 ≤ k < n}` is an arithmetic progression under OrdinalShift (ASN-0034), interpreted via the OrdinalShiftBase convention (ASN-0058): `a + k = shift(a, k)` for `k ≥ 1`, and `a + 0 = a` by definition.
 
-Suppose `a + k₁, a + k₂ ∈ I(β) ∩ ⟦σ⟧` with `0 ≤ k₁ ≤ k₂ < n`. For any `k` with `k₁ ≤ k ≤ k₂`, TS5 gives `a + k₁ ≤ a + k ≤ a + k₂`. Both endpoints lie in `⟦σ⟧`, so by T12's order-convexity, `a + k ∈ ⟦σ⟧`. Since `0 ≤ k < n` (as `k₁, k₂` are in `[0, n)`), also `a + k ∈ I(β)`. Hence `a + k ∈ I(β) ∩ ⟦σ⟧`.
+We first establish that the index-to-tumbler map `k ↦ a + k` is strictly monotone over `0 ≤ k < n`. Two cases on the smaller index:
+
+- *Case `1 ≤ k₁ < k₂`.* TS5 (ShiftAmountMonotonicity, ASN-0034) gives `shift(a, k₁) < shift(a, k₂)`, hence `a + k₁ < a + k₂`.
+- *Case `k₁ = 0, k₂ ≥ 1`.* By OrdinalShiftBase, `a + 0 = a`. By TS4 (ShiftStrictIncrease, ASN-0034), `a < shift(a, k₂) = a + k₂`. Hence `a + 0 < a + k₂`.
+
+Combining the two cases: `0 ≤ k₁ < k₂ < n ⟹ a + k₁ < a + k₂`. The map is therefore strictly monotone over `0 ≤ k < n`.
+
+The span coverage `⟦σ⟧ = {t : s ≤ t < s ⊕ ℓ_σ}` is convex under T1 by T12 (SpanWellDefinedness, ASN-0034) — its order-convexity postcondition (c) states that for any `t₁, t₂ ∈ ⟦σ⟧` and `t₁ ≤ t' ≤ t₂`, we have `t' ∈ ⟦σ⟧`.
+
+Suppose `a + k₁, a + k₂ ∈ I(β) ∩ ⟦σ⟧` with `0 ≤ k₁ ≤ k₂ < n`. For any `k` with `k₁ ≤ k ≤ k₂`, strict monotonicity (above) — combined with reflexivity when an inequality is an equality — gives `a + k₁ ≤ a + k ≤ a + k₂`. Both endpoints lie in `⟦σ⟧`, so by T12's order-convexity, `a + k ∈ ⟦σ⟧`. Since `0 ≤ k < n`, also `a + k ∈ I(β)`. Hence `a + k ∈ I(β) ∩ ⟦σ⟧`.
 
 Therefore the intersection, when non-empty, contains every index between its minimum and maximum — a contiguous sub-progression `{a + j + k : 0 ≤ k < c}` where `j` is the smallest qualifying index and `j + c − 1` is the largest. ∎
 
 Aggregating across all blocks and all endset spans, partitioning by V-subspace, then normalising each subspace component via S8, yields `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` in canonical form.
 
-This is *one* admissible computation. The abstract specification does not mandate the decomposition strategy. Any procedure that produces a per-subspace family with denotation `R(d, e)|_S` per subspace satisfies the postcondition. The decomposition view simply confirms that the computation is finite and well-structured: linear in the number of (block, endset-span) pairs whose I-extents intersect.
+This is *one* admissible computation. The abstract specification does not mandate the decomposition strategy. Any procedure that produces a per-subspace family with V-restricted denotation `R(d, e)|_S` per subspace satisfies the postcondition. The decomposition view simply confirms that the computation is finite and well-structured: linear in the number of (block, endset-span) pairs whose I-extents intersect.
 
 The decomposition also clarifies why fragmentation appears naturally. If a single endset I-span `σ` intersects two non-adjacent mapping blocks of `d` in the same subspace, it produces two non-adjacent V-runs in the result — exactly because the blocks themselves are non-adjacent in V-space. No special logic handles fragmentation; the decomposition delivers it automatically. The same observation explains multiplicity: if multiple blocks each have the same `a` as their I-start with the same width, each block independently contributes a V-run, and the result contains all of them.
 
@@ -183,13 +265,14 @@ Process each block against the endset span:
 follow(ℓ, d, 1) = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
 ```
 
-**Verification against derived properties.**
+**Verification against derived properties.** The V-restricted denotation of `Σ_V^{s_C} = ⟨([1, 4], δ(2, 2))⟩` at content-subspace depth 2 is `⟦Σ_V^{s_C}⟧_V = {[1, 4], [1, 5]}`. (The raw denotation `⟦Σ_V^{s_C}⟧` under T1 would also contain, e.g., `[1, 4, 0]` and `[1, 4, 7]` — tumblers of greater depth in the lexicographic interval — but these are not depth-2 V-positions in subspace 1, and so are removed by the V-restriction.)
 
 - *F-sound.* Both `[1, 4]` and `[1, 5]` are in `dom(M(d))`. `M(d)([1, 4]) = a₁ + 1 ∈ coverage(L(ℓ).e₁)`. `M(d)([1, 5]) = a₁ + 2 ∈ coverage(L(ℓ).e₁)`. ✓
-- *F-complete.* The only V-positions `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).e₁)` are `[1, 4]` and `[1, 5]` (the V-positions covered by `β₁`). Both are in `⟦Σ_V^{s_C}⟧`. ✓
+- *F-complete.* The only V-positions `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).e₁)` are `[1, 4]` and `[1, 5]` (the V-positions covered by `β₁`). Both are in `⟦Σ_V^{s_C}⟧_V`. ✓
 - *F-multi.* Not exercised in this example (no I-address in `coverage(L(ℓ).e₁)` appears at multiple V-positions of `d`).
-- *F-empty.* The link-subspace component `Σ_V^{s_L}` is empty — a regular outcome. ✓
-- *F-det (denotational).* The denotation `⟦Σ_V⟧ = {[1, 4], [1, 5]}` is uniquely determined.
+- *F-empty.* The link-subspace component `Σ_V^{s_L}` is empty — `⟦Σ_V^{s_L}⟧_V = ∅`, a regular outcome. ✓
+- *F-det (denotational).* The V-restricted denotation `⟦Σ_V^{s_C}⟧_V = {[1, 4], [1, 5]}` is uniquely determined.
+- *F-subspace.* `M(d)([1, 4]) = a₁ + 1`, presumably in `dom(C)`, so `subspace_I(a₁ + 1) = s_C` — matching `subspace([1, 4]) = 1 = s_C`. ✓
 
 **Second configuration — multiplicity.** Modify the endset to `L(ℓ).e₁ = {(a₀, δ(1, m_a))}`, so `coverage = {a₀}`. Now `a₀ ∈ I(β₂)` (at offset 0) and `a₀ ∈ I(β₃)` (at offset 0). Both blocks contribute:
 
@@ -217,7 +300,7 @@ All three arise without special logic from the inverse-image definition. They ar
 A link `L(ℓ) = (e₁, ..., eₙ)` has multiple endset slots, including the designated type endset `e₃` (StandardTriple convention, ASN-0043). The operation `follow` treats every slot identically. For any `i ∈ {1, ..., |L(ℓ)|}`:
 
 ```
-follow(ℓ, d, i) = (d, Σ_V) with ⟦Σ_V^S⟧ = R(d, L(ℓ).eᵢ)|_S for each subspace S
+follow(ℓ, d, i) = (d, Σ_V) with ⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S for each subspace S
 ```
 
 The from-endset, the to-endset, and the type endset resolve by the same mechanism. There is no special routing for the type slot, no privileged path for the source, no different handling for any role. Whatever semantics slots carry — directionality, type-as-classifier, additional roles in extended links — they are imposed by interpretation, not by resolution.
@@ -251,7 +334,7 @@ The condition tests `M(d)(v) ∈ coverage(e)`. It does not test the home of `M(d
 
 This is the structural form of Nelson's claim that non-native bytes are as much a logical part of a document as native bytes. From the resolution function's perspective, they are indistinguishable.
 
-The home distinction does become observable downstream. For any `v ∈ ⟦Σ_V^S⟧`, the address `M(d)(v)` is recoverable by consulting the state. From that address, the home document is computable by the structural projection `N(a).0.U(a).0.D(a)`. This projection is named `origin(a)` for content addresses (S7 of ASN-0036) and `home(a)` for link addresses (Definition LinkHome of ASN-0043) — two ASNs' names for the same structural quantity. A reader examining the result can ascertain the home of any V-position they look at, by applying the appropriate projection to the I-address according to its subspace. But the resolution itself does not filter by home, and the operation makes no architectural distinction between native and transcluded V-positions.
+The home distinction does become observable downstream. For any `v ∈ ⟦Σ_V^S⟧_V`, the address `M(d)(v)` is recoverable by consulting the state. From that address, the home document is computable by the structural projection `N(a).0.U(a).0.D(a)`. This projection is named `origin(a)` for content addresses (S7 of ASN-0036) and `home(a)` for link addresses (Definition LinkHome of ASN-0043) — two ASNs' names for the same structural quantity. A reader examining the result can ascertain the home of any V-position they look at, by applying the appropriate projection to the I-address according to its subspace. But the resolution itself does not filter by home, and the operation makes no architectural distinction between native and transcluded V-positions.
 
 ## State-Dependence
 
@@ -293,77 +376,99 @@ Were any of these relaxed, repeatability would fail. With all three in place, `f
 
 Each of the following is a consequence of the inverse-image definition combined with the foundations. We catalogue them as F-det, F-sound, etc., and present each with explicit preconditions, postconditions, dependencies, and frame.
 
-The properties divide into two kinds: *guarantees* — denotation-level facts that follow from the postcondition — and *implementation obligations* — verification conditions that any concrete computation must satisfy. F-sound and F-complete are the latter: they are restatements of the postcondition viewed as obligations on what an implementation must achieve, not consequences derived from it.
+Among these, F-sound and F-complete are the two halves of the postcondition's set equality `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S`, viewed as derived lemmas: F-sound is the `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S` direction; F-complete is the reverse inclusion. They are not independent obligations but consequences of the postcondition by set-equality unpacking; verifying an implementation's compliance with the postcondition discharges them automatically. We catalogue them separately because they correspond to the two distinct error modes an implementation might exhibit (spurious inclusion vs. omission), and because verifiers may find it convenient to check each direction separately.
 
 ### F-det — DenotationalDeterminism (LEMMA)
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
 
-**Postcondition.** For two evaluations of `follow(ℓ, d, i)` against the same state `Σ`, returning `(d, Σ_V)` and `(d, Σ_V')`: `⟦Σ_V^S⟧ = ⟦Σ_V'^S⟧` for each subspace `S`. The denotation is uniquely determined by `Σ`, `ℓ`, `d`, `i`. The representations `Σ_V` and `Σ_V'` may differ; after canonical-form derivation, they coincide.
+**Postcondition.** For two evaluations of `follow(ℓ, d, i)` against the same state `Σ`, returning `(d, Σ_V)` and `(d, Σ_V')`: `⟦Σ_V^S⟧_V = ⟦Σ_V'^S⟧_V` for each subspace `S`. The V-restricted denotation is uniquely determined by `Σ`, `ℓ`, `d`, `i`. The representations `Σ_V` and `Σ_V'` may differ; after canonical-form derivation, they coincide.
 
-**Depends.** S2 (ArrangementFunctionality, ASN-0036) — `M(d)` is a partial function, so `M(d)⁻¹(X)` is a uniquely determined set. S3★-aux (SubspaceExhaustiveness, ASN-0047) — the subspace partition of `dom(M(d))` is exhaustive, so `R(d, e)|_S` is uniquely determined. S9 (NormalizationUniqueness, ASN-0053) — the canonical form within each subspace is unique. The per-subspace family ordering is fixed by external convention.
-
-**Frame.** No state modification.
-
-Nelson's commitment — "a given part of a given version at a given time" yields the same answer — is the structural consequence of working with functions and a canonical normal form. Without it, citation would be impossible. Note: the operation's postcondition fixes denotation, not representation; downstream callers needing representational identity must apply canonical-form derivation.
-
-### F-sound — Soundness (IMPLEMENTATION OBLIGATION)
-
-**Preconditions.** Implementation `follow*` claims to compute `follow` against state `Σ` with inputs `ℓ, d, i` satisfying the preconditions of `follow`.
-
-**Postcondition.** Every `v ∈ ⟦Σ_V^S⟧` (any subspace `S`) returned by `follow*` satisfies `v ∈ dom(M(d))` and `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`.
-
-**Depends.** Definition of `R(d, e)`.
+**Depends.** S2 (ArrangementFunctionality, ASN-0036); S3★-aux (SubspaceExhaustiveness, ASN-0047); S9 (NormalizationUniqueness, ASN-0053); F-canonical (derived above).
 
 **Frame.** No state modification.
 
-This is an obligation, not a derived consequence: the postcondition of `follow` already fixes `⟦Σ_V^S⟧ = R(d, e)|_S`, and F-sound is the half of that equation reading "the implementation must not return extraneous V-positions." An implementation that returns spurious V-positions fails F-sound. A verifier proving an implementation correct must verify F-sound directly.
+**Derivation.** For fixed `Σ`:
 
-### F-complete — Completeness (IMPLEMENTATION OBLIGATION)
+1. By S2 (ArrangementFunctionality), `M(d)` is a partial function, so its inverse image on any fixed subset of `T` is a single, uniquely determined set. Applied to `coverage(L(ℓ).eᵢ)`: `M(d)⁻¹(coverage(L(ℓ).eᵢ))` is uniquely determined.
+2. By the definition of `R` (F0), `R(d, L(ℓ).eᵢ) = M(d)⁻¹(coverage(L(ℓ).eᵢ))`, hence `R(d, L(ℓ).eᵢ)` is uniquely determined by `Σ`, `d`, and `L(ℓ).eᵢ` — all of which are fixed.
+3. By S3★-aux (SubspaceExhaustiveness), every `v ∈ dom(M(d))` has `subspace(v) ∈ {s_C, s_L}`, so the partition `R(d, L(ℓ).eᵢ) = R(d, L(ℓ).eᵢ)|_{s_C} ⊎ R(d, L(ℓ).eᵢ)|_{s_L}` is exhaustive and the two components are each uniquely determined.
+4. By the postcondition of `follow`, any returned `Σ_V` satisfies `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` for each `S`. Combined with step 3, the V-restricted denotation of each subspace component is therefore uniquely determined.
+5. By F-canonical, given the fixed V-restricted denotation per subspace, S9 (NormalizationUniqueness, ASN-0053) yields a unique normalised form per component, and the fixed external ordering yields a unique family-level form. The canonical form is therefore uniquely determined.
 
-**Preconditions.** Implementation `follow*` claims to compute `follow` against state `Σ` with inputs `ℓ, d, i` satisfying the preconditions of `follow`.
+The representations `Σ_V` and `Σ_V'` may differ at the representational level (e.g., non-canonical decompositions of the same V-restricted point set), but their V-restricted denotations coincide. ∎
 
-**Postcondition.** Every `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` satisfies `v ∈ ⟦Σ_V^S⟧` for `S = subspace(v)`.
+Nelson's commitment — "a given part of a given version at a given time" yields the same answer — is the structural consequence of working with functions and a canonical normal form. Without it, citation would be impossible. Note: the operation's postcondition fixes V-restricted denotation, not representation; downstream callers needing representational identity must apply canonical-form derivation.
 
-**Depends.** Definition of `R(d, e)`.
+### F-sound — Soundness (LEMMA)
+
+**Preconditions.** As `follow`.
+
+**Postcondition.** Every `v ∈ ⟦Σ_V^S⟧_V` (any subspace `S`) satisfies `v ∈ dom(M(d))` and `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`.
+
+**Depends.** The postcondition of `follow` (F1); the definition of `R(d, e)` (F0).
 
 **Frame.** No state modification.
 
-The companion obligation: the implementation must omit no qualifying V-position. An implementation that drops qualifying positions fails F-complete. F-sound and F-complete together constitute the verifier's discharge of the postcondition's set-equality.
+**Derivation.** By the postcondition of `follow`, `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S`. For any `v ∈ R(d, L(ℓ).eᵢ)|_S`, the definition of `R` (F0) gives `v ∈ dom(M(d))` and `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`. The set equality transports this directly to every `v ∈ ⟦Σ_V^S⟧_V`. ∎
+
+This is the `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S` direction of the postcondition. An implementation that returns extraneous V-positions in `⟦Σ_V^S⟧_V` is failing the postcondition; a verifier can decompose postcondition verification into checking F-sound (no spurious V-positions) and F-complete (no omitted qualifying V-positions).
+
+### F-complete — Completeness (LEMMA)
+
+**Preconditions.** As `follow`.
+
+**Postcondition.** Every `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` satisfies `v ∈ ⟦Σ_V^S⟧_V` for `S = subspace(v)`.
+
+**Depends.** The postcondition of `follow` (F1); the definition of `R(d, e)` (F0).
+
+**Frame.** No state modification.
+
+**Derivation.** Given `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`, the definition of `R` (F0) gives `v ∈ R(d, L(ℓ).eᵢ)`. The subspace projection at `S = subspace(v)` is well-defined (S3★-aux) and gives `v ∈ R(d, L(ℓ).eᵢ)|_S`. By the postcondition of `follow`, `R(d, L(ℓ).eᵢ)|_S = ⟦Σ_V^S⟧_V`, so `v ∈ ⟦Σ_V^S⟧_V`. ∎
+
+This is the `R(d, L(ℓ).eᵢ)|_S ⊆ ⟦Σ_V^S⟧_V` direction of the postcondition. F-sound and F-complete together unpack the set equality.
 
 ### F-empty — EmptyAdmissibility (LEMMA)
 
 **Preconditions.** As `follow`; additionally `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅` in `Σ`.
 
-**Postcondition.** `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩` — both components are the empty span-set. The operation succeeds and returns `(d, (⟨⟩, ⟨⟩))`.
+**Postcondition.** `⟦Σ_V^{s_C}⟧_V = ∅` and `⟦Σ_V^{s_L}⟧_V = ∅`. Under canonical form, both components are the empty span-set: `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. The operation succeeds and returns `(d, (Σ_V^{s_C}, Σ_V^{s_L}))` with both V-restricted denotations empty.
 
-**Depends.** Definition of `R(d, e)`; vacuous inverse image of an empty intersection.
+**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1). For the representational conclusion under canonical form: F-canonical and S9 (NormalizationUniqueness, ASN-0053).
 
 **Frame.** No state modification.
 
-There is no exception, no error, no fallback. The empty per-subspace family is a regular outcome of the operation.
+**Derivation.** Chain the implications from the hypothesis:
+
+1. *Hypothesis.* `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅`.
+2. *Translate to membership.* For any `v ∈ dom(M(d))`, `M(d)(v) ∈ ran(M(d))`. By the hypothesis, `M(d)(v) ∉ coverage(L(ℓ).eᵢ)`. Hence `(A v ∈ dom(M(d)) :: M(d)(v) ∉ coverage(L(ℓ).eᵢ))`.
+3. *Apply F0.* By the definition of `R`: `R(d, L(ℓ).eᵢ) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(L(ℓ).eᵢ)}`. Step 2 makes this set empty: `R(d, L(ℓ).eᵢ) = ∅`.
+4. *Project per subspace.* `R(d, L(ℓ).eᵢ)|_S = R(d, L(ℓ).eᵢ) ∩ {v : subspace(v) = S} = ∅` for each `S ∈ {s_C, s_L}`.
+5. *Apply F1.* By the postcondition of `follow`, `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S = ∅` for each `S`.
+
+This establishes the V-restricted denotational conclusion unconditionally. The representational conclusion `Σ_V^S = ⟨⟩` requires canonical form: by F-canonical, the canonical form is the unique normalised span-set whose V-restricted denotation equals the target set; for the empty target set, the unique normalised representative is the empty sequence `⟨⟩` (any non-empty normalised span-set has non-empty V-restricted denotation by S2 of ASN-0053). An implementation may return any representation with empty V-restricted denotation; the canonical-form conclusion follows only after canonicalisation. ∎
+
+There is no exception, no error, no fallback. The empty per-subspace family (V-restricted) is a regular outcome of the operation.
 
 ### F-multi — MultiplicityPreservation (LEMMA)
 
 **Preconditions.** As `follow`; additionally `v₁, v₂ ∈ dom(M(d))` with `v₁ ≠ v₂` and `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)`.
 
-**Postcondition.** Both `v₁ ∈ ⟦Σ_V^{S₁}⟧` (where `S₁ = subspace(v₁)`) and `v₂ ∈ ⟦Σ_V^{S₂}⟧` (where `S₂ = subspace(v₂)`).
+**Postcondition.** Both `v₁ ∈ ⟦Σ_V^{S₁}⟧_V` (where `S₁ = subspace(v₁)`) and `v₂ ∈ ⟦Σ_V^{S₂}⟧_V` (where `S₂ = subspace(v₂)`). When `S₁ = S₂`, both belong to the same subspace component.
 
-**Depends.** S5 (UnrestrictedSharing, ASN-0036) — the within-document multiplicity configuration is structurally admissible; the inverse-image definition.
+**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); S3★-aux (SubspaceExhaustiveness, ASN-0047).
 
 **Frame.** No state modification.
 
-**Derivation.** Unpack the inverse image as a union of singleton pre-images:
+**Derivation.** Two arguments, kept separate.
 
-```
-R(d, coverage(e)) = M(d)⁻¹(coverage(e)) = ⋃_{a ∈ coverage(e)} M(d)⁻¹({a})
-```
+*Implication (from hypothesis to conclusion).* The hypothesis directly supplies the membership condition for `R`. For `v₁`: `v₁ ∈ dom(M(d))` and `M(d)(v₁) = a ∈ coverage(L(ℓ).eᵢ)`, so by the definition of `R` (F0), `v₁ ∈ R(d, L(ℓ).eᵢ)`. Subspace projection (well-defined by S3★-aux) places `v₁ ∈ R(d, L(ℓ).eᵢ)|_{S₁}` where `S₁ = subspace(v₁)`. By the postcondition of `follow`, `⟦Σ_V^{S₁}⟧_V = R(d, L(ℓ).eᵢ)|_{S₁}`, hence `v₁ ∈ ⟦Σ_V^{S₁}⟧_V`. The argument for `v₂` is identical with subscripts replaced. ∎
 
-This is the standard set-theoretic identity: the pre-image of a union is the union of pre-images. For each `a ∈ coverage(e)`, `M(d)⁻¹({a}) = {v ∈ dom(M(d)) : M(d)(v) = a}` — the set of all V-positions in `d` mapping to `a`. By S5, the cardinality of this set is unbounded above: for any `N ∈ ℕ`, a state exists in which some address `a` has more than `N` distinct V-positions mapping to it within a single document. The hypothesis of F-multi instantiates this for `a` shared by `v₁` and `v₂`.
+*Structural admissibility (the hypothesis is realisable).* The implication above derives the conclusion from the hypothesis without further assumption. What ensures the hypothesis is not vacuously satisfied is S5 (UnrestrictedSharing, ASN-0036): for any `N ∈ ℕ`, there exists a reachable state in which some `a ∈ dom(C)` has more than `N` distinct V-positions of a single document mapping to it. S5 establishes that multiplicity configurations of arbitrary cardinality are reachable; without it, `v₁ ≠ v₂` with `M(d)(v₁) = M(d)(v₂)` might be a hypothesis no state could satisfy.
 
-Both `v₁` and `v₂` are in `M(d)⁻¹({a})`, hence in `R(d, coverage(e))`. Projecting onto subspaces: `v₁ ∈ R(d, e)|_{S₁}` and `v₂ ∈ R(d, e)|_{S₂}`. By the postcondition of `follow`, `⟦Σ_V^{S₁}⟧ = R(d, e)|_{S₁}` contains `v₁`, and `⟦Σ_V^{S₂}⟧ = R(d, e)|_{S₂}` contains `v₂`. ∎
+The two arguments play different roles. The implication is what the operation guarantees about any state in which the hypothesis happens to hold. The admissibility result is what makes the hypothesis a non-trivial precondition that the system actually exhibits. F-multi names both together because operational interest in multiplicity preservation depends on both: that the operation handles it, and that the configuration can arise.
 
-S5 makes multiplicity *structurally realizable*; the inverse-image identity makes its preservation through resolution *automatic*. The operation does not deduplicate, does not select a "canonical" V-position, does not collapse multiplicity in any way.
+The operation does not deduplicate, does not select a "canonical" V-position, does not collapse multiplicity in any way. Each `v` with `M(d)(v) ∈ coverage(e)` is in the result, regardless of whether other V-positions of `d` also map to the same `M(d)(v)`.
 
 ### F-frame — Frame (INV)
 
@@ -381,7 +486,7 @@ The operation requires no write-locking and no exclusive access. Concurrent quer
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d ∈ E_doc`; `i, i' ∈ {1, ..., |L(ℓ)|}`.
 
-**Postcondition.** For any two slot indices `i, i'`, `follow(ℓ, d, i)` and `follow(ℓ, d, i')` are computed by the same definition: `⟦Σ_V^S⟧ = R(d, L(ℓ).eᵢ)|_S` and `⟦Σ_V'^S⟧ = R(d, L(ℓ).eᵢ')|_S` respectively. The resolution mechanism applies identically across slots; differing results reflect differing endsets, not differing routing.
+**Postcondition.** For any two slot indices `i, i'`, `follow(ℓ, d, i)` and `follow(ℓ, d, i')` are computed by the same definition: `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` and `⟦Σ_V'^S⟧_V = R(d, L(ℓ).eᵢ')|_S` respectively. The resolution mechanism applies identically across slots; differing results reflect differing endsets, not differing routing.
 
 **Depends.** Slot accessor L6 (SlotDistinction, ASN-0043) — slots are uniformly indexed. L3's asymmetric well-formedness (`e₃ ≠ ∅` required, others may be empty) constrains link construction, not resolution.
 
@@ -440,20 +545,21 @@ These properties are not independent axioms requiring separate verification. The
 | Label | Statement | Kind | Status |
 |-------|-----------|------|--------|
 | F0 | `R(d, e) := M(d)⁻¹(coverage(e))` is the V-position set of endset `e` in document `d`; partitions as `R(d, e) = R(d, e)|_{s_C} ⊎ R(d, e)|_{s_L}` | DEF | introduced |
-| F1 | `follow : (ℓ, d, i) → (d, (Σ_V^{s_C}, Σ_V^{s_L}))` with `⟦Σ_V^S⟧ = R(d, L(ℓ).eᵢ)|_S` per subspace; `Σ' = Σ` | DEF | introduced |
-| F-canonical | The canonical form of `Σ_V` is the per-subspace family with each component normalised per S9 and ordered (`s_C`, then `s_L`); a given `R(d, e)` admits exactly one canonical form | DEF | introduced |
-| F-det | DenotationalDeterminism — same `Σ` produces the same `R(d, e)|_S` per subspace, hence the same canonical form | LEMMA | introduced |
-| F-sound | Implementation obligation — every returned `v ∈ ⟦Σ_V^S⟧` satisfies `v ∈ dom(M(d))` and `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` | OBLIGATION | introduced |
-| F-complete | Implementation obligation — every qualifying `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` is in `⟦Σ_V^S⟧` for `S = subspace(v)` | OBLIGATION | introduced |
-| F-empty | EmptyAdmissibility — `Σ_V = (⟨⟩, ⟨⟩)` is a regular outcome when `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅` | LEMMA | introduced |
-| F-multi | MultiplicityPreservation — when `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)` with `v₁ ≠ v₂`, both are in `⟦Σ_V⟧`; derived from `M(d)⁻¹(⋃ X) = ⋃ M(d)⁻¹(X)` with S5 making multiplicity structurally admissible | LEMMA | introduced |
+| F1 | `follow : (ℓ, d, i) → (d, (Σ_V^{s_C}, Σ_V^{s_L}))` with `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` per subspace; `Σ' = Σ`. V-restricted denotation: `⟦Σ_V^S⟧_V := {t ∈ ⟦Σ_V^S⟧ : subspace(t) = S ∧ #t = m_S(d)}` | DEF | introduced |
+| F-subspace | IOSubspaceCorrespondence — for `v ∈ dom(M(d))`, `subspace(v) = subspace_I(M(d)(v))`; hence `R(d, e)|_{s_C} = M(d)⁻¹(coverage(e) ∩ dom(C))` and `R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))` | LEMMA | introduced |
+| F-canonical | The canonical form of `Σ_V` is the per-subspace family with each component normalised per S9 and ordered (`s_C`, then `s_L`); a given `R(d, e)` admits exactly one canonical form (derived from S8-depth/LinkVPositionDepthAxiom for level-uniformity, S9 for per-subspace uniqueness, and the fixed external ordering) | DEF | introduced |
+| F-det | DenotationalDeterminism — same `Σ` produces the same `R(d, e)|_S` per subspace, hence the same canonical form; chain S2 → unique inverse image → unique partition (S3★-aux) → unique V-restricted denotation → unique canonical form (F-canonical/S9) | LEMMA | introduced |
+| F-sound | Soundness — `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S`: every `v ∈ ⟦Σ_V^S⟧_V` satisfies `v ∈ dom(M(d))` and `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`; ⊆ half of the postcondition's set equality | LEMMA | introduced |
+| F-complete | Completeness — `R(d, L(ℓ).eᵢ)|_S ⊆ ⟦Σ_V^S⟧_V`: every qualifying `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` is in `⟦Σ_V^S⟧_V` for `S = subspace(v)`; ⊇ half of the postcondition's set equality | LEMMA | introduced |
+| F-empty | EmptyAdmissibility — `⟦Σ_V^{s_C}⟧_V = ∅` and `⟦Σ_V^{s_L}⟧_V = ∅` when `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅`; under canonical form, both components are `⟨⟩` | LEMMA | introduced |
+| F-multi | MultiplicityPreservation — when `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)` with `v₁ ≠ v₂`, both `v₁ ∈ ⟦Σ_V^{S₁}⟧_V` and `v₂ ∈ ⟦Σ_V^{S₂}⟧_V`; conclusion follows from F0+F1 directly, with S5 ensuring the hypothesis is structurally realisable | LEMMA | introduced |
 | F-frame | `follow` reads `Σ` and modifies no state component | INV | introduced |
 | F-slot | SlotUniformity — all slots resolve by the same `R` mechanism; L3's asymmetric well-formedness constrains construction, not resolution | LEMMA | introduced |
 | F-origin | OriginSymmetry — `R` does not filter by `origin`/`home`; native and transcluded V-positions are treated identically | LEMMA | introduced |
 | F-persist | LinkPersistence — `ℓ` remains in `dom(Σ.L)` regardless of reach (by L12) | LEMMA | introduced |
 | F-state | StateDependenceCorollary — across transitions, denotation may differ via `M(d)` variation though `L(ℓ)` is L12-invariant | COROLLARY | introduced |
 | F-multidoc | NoPreferredDocument — `home(ℓ)` plays no privileged role; any `d ∈ E_doc` is admissible | LEMMA | introduced |
-| F-contig | Contiguity — for any mapping block `β = (v, a, n)` and endset I-span `σ`, `I(β) ∩ ⟦σ⟧` is either empty or a contiguous sub-progression `{a + j + k : 0 ≤ k < c}`; proved via TS5 (ShiftAmountMonotonicity) and T12 (SpanWellDefinedness order-convexity) | LEMMA | introduced |
+| F-contig | Contiguity — for any mapping block `β = (v, a, n)` and endset I-span `σ`, `I(β) ∩ ⟦σ⟧` is either empty or a contiguous sub-progression `{a + j + k : 0 ≤ k < c}`; proved via TS5 (ShiftAmountMonotonicity) plus TS4 + OrdinalShiftBase for `k = 0`, and T12 (SpanWellDefinedness order-convexity) | LEMMA | introduced |
 
 ## Open Questions
 
@@ -465,14 +571,10 @@ What concurrency semantics, if any, must `follow` guarantee when the document be
 
 Under what conditions, if any, must the result of `follow(ℓ, d, i)` and `follow(ℓ, d', i)` be related when `d` and `d'` share transclusion lineage — that is, when significant portions of their arrangements reference the same I-addresses?
 
-Must the system distinguish the case where `L(ℓ).eᵢ = ∅` (the endset itself is empty) from the case where `L(ℓ).eᵢ ≠ ∅` but `R(d, L(ℓ).eᵢ) = ∅` (the endset has content but none is arranged in `d`)?
-
-When an endset's coverage straddles the content and link subspaces, what must the system guarantee about the relationship between the `s_C` and `s_L` components of the result — must they be presented together, or may a caller request only one subspace?
-
 What must the system promise about ordering of the returned canonical span-set — is the canonical V-tumbler order under T1 required, or is any equivalent denotation admissible?
 
 When `coverage(L(ℓ).eᵢ)` is unbounded in cardinality (an endset spanning a very long region of I-space), what must the system guarantee about the result's representational compactness — must the per-subspace family be in canonical form, or is any finite representation admissible regardless of redundancy?
 
 What must the system guarantee about the relationship between resolution and content retrieval — must `R(d, e)` always yield V-positions whose subsequent content lookup via `M(d)` and `C` succeeds, or may resolution succeed where content access would fail?
 
-What must the system guarantee about the relationship between an implementation's representational choice (any `Σ_V` with `⟦Σ_V^S⟧ = R(d, e)|_S`) and the canonical form — must the implementation expose a canonicalisation procedure, or may callers be required to derive it independently?
+What must the system guarantee about the relationship between an implementation's representational choice (any `Σ_V` with `⟦Σ_V^S⟧_V = R(d, e)|_S`) and the canonical form — must the implementation expose a canonicalisation procedure, or may callers be required to derive it independently?
