@@ -342,7 +342,6 @@ def _resolve_dep_to_file(session, parent_id: int, dep_id: int) -> tuple:
     or supersession-resolved aggregate). Raises on any failure.
     """
     from lib.predicates import latest_doc_head, statements_sidecar_of
-    from lib.backend.predicates import active_links
     from lib.shared.common import find_asn
     from lib.shared.paths import WORKSPACE
 
@@ -363,10 +362,8 @@ def _resolve_dep_to_file(session, parent_id: int, dep_id: int) -> tuple:
             f"{dep_rel} is not path-registered in substrate",
         )
 
-    if active_links(store.state, "retired", to_set=[dep_note_addr]):
-        raise FoundationError(
-            f"ASN-{parent_id:04d} declares dep {label} which is retired",
-        )
+    # Retirement filtering happens upstream in `_resolve_declared_deps`
+    # via `_filter_retired_with_warning`; retired deps never reach here.
 
     sidecar = statements_sidecar_of(session, dep_note_addr)
     if sidecar is None:
@@ -491,7 +488,7 @@ def load_foundation(asn_id: int) -> str:
 
 
 def _resolve_declared_deps(session, asn_id: int) -> list[int]:
-    """Determine the declared dep list for an ASN.
+    """Determine the declared dep list for an ASN — filtered.
 
     Primary path: inquiry frontmatter declares `depends:` and the
     substrate citation.depends mirror must match it. This is the
@@ -504,7 +501,13 @@ def _resolve_declared_deps(session, asn_id: int) -> list[int]:
     usage; should disappear once protocol notes are brought under a
     declarative spec convention.
 
-    Raises FoundationError when neither path can resolve.
+    Centralized retirement filter: any declared dep whose note is
+    retired is filtered from the returned list and a warning is
+    logged to stderr (per dep). Retired deps are never injected into
+    foundation prose, never traversed by motif BFS, never recorded as
+    cascade-anchor targets — they're operationally out-of-scope.
+
+    Raises FoundationError when neither inquiry nor note exists.
     """
     from lib.shared.paths import inquiry_doc_path
 
@@ -524,17 +527,55 @@ def _resolve_declared_deps(session, asn_id: int) -> list[int]:
                     f"Extra in substrate: {extra_in_substrate}. "
                     f"Run `asn-sync-deps {asn_id}` to reconcile.",
                 )
-        return declared
+    else:
+        # LEGACY fallback — hand-authored protocol note
+        declared = _read_note_side_depends(session, asn_id)
+        print(
+            f"  [FOUNDATION] {format_label(asn_id)}: using LEGACY note-side "
+            f"substrate (no inquiry file); {len(declared)} dep(s) → "
+            f"{[f'ASN-{d:04d}' for d in declared]}",
+            file=sys.stderr,
+        )
 
-    # LEGACY fallback — hand-authored protocol note
-    deps = _read_note_side_depends(session, asn_id)
-    print(
-        f"  [FOUNDATION] {format_label(asn_id)}: using LEGACY note-side "
-        f"substrate (no inquiry file); {len(deps)} dep(s) → "
-        f"{[f'ASN-{d:04d}' for d in deps]}",
-        file=sys.stderr,
-    )
-    return deps
+    return _filter_retired_with_warning(session, asn_id, declared)
+
+
+def _filter_retired_with_warning(
+    session, parent_id: int, dep_ids: list[int],
+) -> list[int]:
+    """Drop any dep whose note carries the `retired` classifier, with a
+    warning to stderr per dropped dep. Retired deps are never injected.
+
+    The check resolves each dep_id to its note address and queries the
+    substrate for an active `retired` link. Misses (no note in
+    substrate, no path) are not filtered here — they surface later
+    in `_resolve_dep_to_file` if the caller actually tries to load.
+    """
+    from lib.backend.predicates import active_links
+    from lib.shared.common import find_asn
+    from lib.shared.paths import WORKSPACE
+
+    out = []
+    for dep_id in dep_ids:
+        dep_path, _ = find_asn(str(dep_id))
+        if dep_path is None:
+            out.append(dep_id)
+            continue
+        dep_rel = str(dep_path.resolve().relative_to(Path(WORKSPACE).resolve()))
+        dep_note_addr = session.store.path_to_addr.get(dep_rel)
+        if dep_note_addr is None:
+            out.append(dep_id)
+            continue
+        if active_links(session.store.state, "retired", to_set=[dep_note_addr]):
+            print(
+                f"  [FOUNDATION] {format_label(parent_id)}: declared dep "
+                f"{format_label(dep_id)} is retired — skipping (operator "
+                f"should remove from inquiry frontmatter)",
+                file=sys.stderr,
+            )
+            continue
+        out.append(dep_id)
+    return out
 
 
 def foundation_dep_ids(session, asn_id: int) -> list[int]:
@@ -542,17 +583,20 @@ def foundation_dep_ids(session, asn_id: int) -> list[int]:
 
     Uses the same dep-resolution path as `load_foundation` and
     `foundation_dep_addrs` (inquiry primary, note-side LEGACY
-    fallback). This is the CANONICAL way to ask "what other ASNs
-    does ASN_id depend on?" Every consumer that wants dep ids
-    should route through here — NEVER call `note_dep_asn_ids`
-    directly for that purpose (it queries one substrate side
-    only and silently returns empty under the inquiry-emit
-    convention).
+    fallback, retired-dep filter+warn). This is the CANONICAL way
+    to ask "what other ASNs does ASN_id depend on?" Every consumer
+    that wants dep ids should route through here — NEVER call
+    `note_dep_asn_ids` directly for that purpose (it queries one
+    substrate side only and silently returns empty under the
+    inquiry-emit convention).
 
     Returns empty list if no deps declared (foundation-ASN case
-    where `depends: []` is explicit, e.g., ASN-0034).
-    Raises FoundationError if no inquiry AND no note in substrate.
+    where `depends: []` is explicit, e.g., ASN-0034). Retired deps
+    are filtered with a stderr warning — never returned.
+    Raises FoundationError if no inquiry AND no note in substrate,
+    or if `asn_id` is not a positive int.
     """
+    _validate_asn_id(asn_id)
     return _resolve_declared_deps(session, asn_id)
 
 
@@ -565,12 +609,14 @@ def foundation_dep_addrs(session, asn_id: int) -> list:
     records as the foundations the review actually consumed.
 
     Returns empty list if no deps declared (foundation-ASN case).
-    Raises FoundationError if any dep can't be resolved to a note
-    address (same conditions as `load_foundation` raises).
+    Retired deps are filtered with a stderr warning — never returned.
+    Raises FoundationError if any non-retired dep can't be resolved
+    to a note address, or if `asn_id` is not a positive int.
     """
     from lib.shared.common import find_asn
     from lib.shared.paths import WORKSPACE
 
+    _validate_asn_id(asn_id)
     declared = _resolve_declared_deps(session, asn_id)
     out = []
     for dep_id in declared:

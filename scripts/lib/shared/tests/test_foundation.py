@@ -19,6 +19,7 @@ from lib.shared.foundation import (
     _validate_asn_id,
     _validate_dep_ids,
     foundation_dep_addrs,
+    foundation_dep_ids,
     load_foundation,
 )
 
@@ -153,6 +154,27 @@ def test_load_foundation_raises_on_missing_inquiry_and_note() -> None:
         match="no inquiry file AND no note in substrate",
     ):
         load_foundation(99999)
+
+
+def test_foundation_dep_ids_rejects_invalid_asn_id() -> None:
+    from lib.protocols.febe.session import open_session
+    from lib.shared.paths import LATTICE
+    with open_session(LATTICE) as session:
+        with pytest.raises(FoundationError, match="must be positive"):
+            foundation_dep_ids(session, 0)
+        with pytest.raises(FoundationError, match="must be int"):
+            foundation_dep_ids(session, "97")  # type: ignore[arg-type]
+
+
+def test_foundation_dep_addrs_rejects_invalid_asn_id() -> None:
+    from lib.protocols.febe.session import open_session
+    from lib.shared.paths import LATTICE
+    from lib.shared.foundation import foundation_dep_addrs
+    with open_session(LATTICE) as session:
+        with pytest.raises(FoundationError, match="must be positive"):
+            foundation_dep_addrs(session, -5)
+        with pytest.raises(FoundationError, match="must be int"):
+            foundation_dep_addrs(session, None)  # type: ignore[arg-type]
 
 
 def test_foundation_dep_addrs_returns_addresses_for_healthy_asn() -> None:

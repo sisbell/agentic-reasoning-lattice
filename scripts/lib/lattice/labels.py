@@ -201,16 +201,17 @@ def note_dep_asn_ids(store: Store, note_addr: Address) -> List[int]:
     for them and silently misleads callers. For canonical dep lookups
     use `lib.shared.foundation.foundation_dep_ids(session, asn_id)`,
     which routes through the inquiry-primary + LEGACY-fallback
-    resolution path.
+    resolution path AND filters retired deps with a warning.
 
     Legitimate uses of this helper:
       - The LEGACY fallback inside `_resolve_declared_deps` (needs
-        raw note-side substrate query)
+        raw note-side substrate query; retirement filter applied
+        centrally upstream)
       - The audit (`citation_depends_audit.py`) which inspects both
         sides on purpose
 
-    Returns sorted list of int ASN ids. Retired-dep filter centralized
-    here so the LEGACY fallback respects retirement.
+    Returns sorted list of int ASN ids. Does NOT filter retired —
+    that's done centrally by `_filter_retired_with_warning`.
     """
     pattern = label_pattern()
     note_path = store.path_for_addr(note_addr)
@@ -234,39 +235,8 @@ def note_dep_asn_ids(store: Store, note_addr: Address) -> List[int]:
             asn_digits = m.group(1)
             if asn_digits == own_asn:
                 continue
-            # Skip retired ASNs — substrate citation.depends link remains
-            # active after retire.py runs, but the target's content
-            # shouldn't surface as a foundation dep. citation.depends can
-            # target an inquiry address OR a note address depending on
-            # when it was emitted; retire.py classifies the note address
-            # (or inquiry, if pre-draft), so we check both via the ASN
-            # label resolved from the path.
-            if _asn_is_retired(store, asn_digits):
-                continue
             deps.add(int(asn_digits.lstrip("0") or "0"))
     return sorted(deps)
-
-
-def _asn_is_retired(store: Store, asn_digits: str) -> bool:
-    """True iff the ASN's note or inquiry has the `retired` classifier.
-
-    Tries the note address first (the typical retire target), then falls
-    back to the inquiry address (the pre-draft retire target).
-    """
-    label = f"ASN-{asn_digits}"
-    note_prefix = f"_docuverse/documents/1.1/1/note/{label}-"
-    inq_path = f"_docuverse/documents/1.1/1/inquiry/{label}.md"
-    for path, addr in store.path_to_addr.items():
-        if path.startswith(note_prefix) and not path.endswith(".statements.md"):
-            if active_links(store.state, "retired", to_set=[addr]):
-                return True
-            break  # found the note; only one note per ASN
-    inq_addr = store.path_to_addr.get(inq_path)
-    if inq_addr is not None and active_links(
-        store.state, "retired", to_set=[inq_addr],
-    ):
-        return True
-    return False
 
 
 def is_note_path(doc_path: str) -> bool:
