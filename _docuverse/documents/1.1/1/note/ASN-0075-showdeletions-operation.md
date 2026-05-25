@@ -48,7 +48,7 @@ We must show these are exhaustive and mutually exclusive — otherwise the opera
 | No  | Yes | DELETED |
 | No  | No  | NEVER_INCLUDED |
 
-The "impossible" row is excluded by P4★: if `a ∈ ran(M(d))` and `subspace_I(a) = s_C`, then `(a, d) ∈ Contains_C(Σ) ⊆ R`, contradicting `(a, d) ∉ R`. The remaining three rows are mutually exclusive and exhaustive. ∎
+The "impossible" row is excluded by the following chain. From `a ∈ ran(M(d))` we obtain some `v ∈ dom(M(d))` with `M(d)(v) = a`. The precondition for `subspace_I(a) = s_C` to be well-defined is `a ∈ dom(Σ.C)`; by L14 (`dom(C) ∩ dom(L) = ∅`), we therefore have `a ∉ dom(L)`. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`. The contrapositive of S3★'s link clause — `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)` — together with `M(d)(v) = a ∉ dom(L)` forces `subspace(v) ≠ s_L`, so `subspace(v) = s_C`. With `v` witnessing `v ∈ dom(M(d)) ∧ subspace(v) = s_C ∧ M(d)(v) = a`, the pair `(a, d)` belongs to `Contains_C(Σ)` by definition, and `Contains_C(Σ) ⊆ R` by P4★. So `(a, d) ∈ R`, contradicting `(a, d) ∉ R`. The remaining three rows are mutually exclusive and exhaustive. ∎
 
 ## Why the Provenance Relation Is Load-Bearing
 
@@ -56,13 +56,49 @@ We now show that the state components `(C, M)` alone are insufficient to support
 
 **Lemma D-DISCR (Discrimination Requires Provenance).** No function computable from `(Σ.C, Σ.M)` alone can distinguish `DELETED(a, d)` from `NEVER_INCLUDED(a, d)` for arbitrary `(a, d)`.
 
-*Argument.* We exhibit two reachable states `Σ_k` and `Σ'_k` for which `(Σ.C, Σ.M)` agree but `DELETED` and `NEVER_INCLUDED` disagree.
+*Argument.* We exhibit two reachable states `Σ_1` and `Σ_2` for which `(Σ.C, Σ.M)` agree across every document but `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` disagree.
 
-Consider two transition histories. In the first, document `d` is created, content `a` is inserted into its arrangement, then `a` is removed. The final state `Σ_k` has `a ∈ dom(C)`, `a ∉ ran(M_k(d))`, and `(a, d) ∈ R_k` (because `a` was once in `d`'s arrangement, and P2 preserves this). So `DELETED(a, d)` holds at `Σ_k`.
+Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix `K.δ(d); K.δ(d'); K.α(a, d)` — creating two documents `d, d'` and allocating one content address. By K.α's first-emission rule (`{a' ∈ dom(C) : origin(a') = d} = ∅` initially), the allocated address is determinately `a = [d.0.s_C.1]`. By GlobalUniqueness (ASN-0034) applied to identical allocator firings, the same address value `a` appears in both histories.
 
-In the second, document `d` is created and `a` is inserted into the arrangement of *some other document `d'`*, never into `d`. The final state `Σ'_k` has `a ∈ dom(C)`, `a ∉ ran(M'_k(d))`, and `(a, d) ∉ R'_k`. So `NEVER_INCLUDED(a, d)` holds at `Σ'_k`.
+*History 1 (yields DELETED).*
 
-By choice of operations, `Σ.C_k = Σ.C'_k` (both contain `a`) and `Σ.M_k(d) = Σ.M'_k(d) = ∅`. Any function `f(C, M)` returns the same value at both states. But the classifications differ — so `f` cannot be a discriminating predicate. ∎
+```
+Σ_0  →* K.δ(d)
+     →* K.δ(d')
+     →* K.α(a, d)
+     →* K.μ⁺(d,  v  ↦ a)
+     →* K.μ⁺(d', v' ↦ a)
+     →* K.μ⁻(d)              [retain n'_{s_C} = 0]
+     =   Σ_1
+```
+
+The two K.μ⁺ steps insert `a` at content-subspace V-positions `v = [s_C, 1]` (in `d`) and `v' = [s_C, 1]` (in `d'`); by J1★ in the extended state, the composite records `(a, d) ∈ R_1` and `(a, d') ∈ R_1`. The K.μ⁻ step on `d` retains zero content-subspace V-positions (`n'_{s_C} = 0`), removing `v ↦ a` from `M(d)`; by P2 (`R ⊆ R'`), `(a, d) ∈ R_1` persists. Final state: `dom(C_1) = {a}`, `M_1(d) = ∅`, `M_1(d') = {v' ↦ a}`, `(a, d) ∈ R_1`. So `DELETED(a, d)` holds at `Σ_1`.
+
+*History 2 (yields NEVER_INCLUDED).*
+
+```
+Σ_0  →* K.δ(d)
+     →* K.δ(d')
+     →* K.α(a, d)
+     →* K.μ⁺(d', v' ↦ a)
+     =   Σ_2
+```
+
+One K.μ⁺ step, into `d'` at the same `v' = [s_C, 1]`. J1★ records `(a, d') ∈ R_2`, but `d` is never extended with `a`, so `(a, d) ∉ R_2`. Final state: `dom(C_2) = {a}`, `M_2(d) = ∅`, `M_2(d') = {v' ↦ a}`, `(a, d) ∉ R_2`. So `NEVER_INCLUDED(a, d)` holds at `Σ_2`.
+
+*Agreement on (C, M).* Comparing the components of `Σ_1` and `Σ_2`:
+
+| Component | `Σ_1` | `Σ_2` |
+|---|---|---|
+| `dom(C)` | `{a}` | `{a}` |
+| `C` value at `a` | the K.α-supplied value `v_a` | same |
+| `E_doc` | `{d, d'}` | `{d, d'}` |
+| `M(d)` | `∅` | `∅` |
+| `M(d')` | `{v' ↦ a}` | `{v' ↦ a}` |
+
+`(Σ_1.C, Σ_1.M) = (Σ_2.C, Σ_2.M)` on every document. The histories differ only in `R`: `R_1 ⊇ {(a, d), (a, d')}` and `R_2 ⊇ {(a, d')}`, with `(a, d) ∈ R_1 \ R_2`.
+
+Any function `f(C, M)` returns the same value at both states. But the classifications differ — `DELETED(a, d)` at `Σ_1`, `NEVER_INCLUDED(a, d)` at `Σ_2` — so `f` cannot be a discriminating predicate. ∎
 
 This is the abstract justification for the provenance relation: without `R` (or any informationally equivalent component), the system cannot tell "this content was lost" from "this content was never here." The "show deletions" operation requires the former interpretation; therefore any system supporting it must maintain `R`.
 
@@ -102,6 +138,98 @@ Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
 ```
 
 Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc)`. The operation always terminates with `q` true when its precondition holds.
+
+Because SHOWDELETIONS is observational (D-OBS below), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
+
+*Non-emptiness of one report half.* Let `Q1` abbreviate `DeletedFromAWithB(d_A, d_B) ≠ ∅`. Unpacking the definition of `DeletedFromAWithB`:
+
+```
+wp(SHOWDELETIONS(d_A, d_B), Q1)
+   =  d_A ∈ E_doc  ∧  d_B ∈ E_doc
+    ∧  (E a ∈ dom(C) :  subspace_I(a) = s_C
+                       ∧ (a, d_A) ∈ R
+                       ∧ a ∉ ran(M(d_A))
+                       ∧ a ∈ ran(M(d_B)))
+```
+
+So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement. The fourth conjunct (presence in `d_B`) is what makes the report *recoverable* in the sense of D-IDENT below — every reported deletion has a concrete witness in the partner document. This is not an additional postcondition; it is implicit in the definition of `DeletedFromAWithB`.
+
+*Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. Then:
+
+```
+wp(SHOWDELETIONS(d_A, d_B), Q0)
+   =  d_A ∈ E_doc  ∧  d_B ∈ E_doc
+    ∧  (A a ∈ dom(C) :  subspace_I(a) = s_C :
+            ¬(DELETED(a, d_A)  ∧  CURRENT(a, d_B))
+          ∧ ¬(DELETED(a, d_B)  ∧  CURRENT(a, d_A)))
+```
+
+The joint report is empty exactly when no content has been deleted from one document while remaining current in the other. Documents with completely disjoint histories — no shared `R`-projection on the content subspace — satisfy `Q0` vacuously: no `a` has `(a, d_A) ∈ R`, so no `a` is DELETED from `d_A`. Documents with synchronised edits (each deletion mirrored in the partner) satisfy `Q0` non-vacuously: for shared content, removal from one is matched by removal from the other.
+
+## A Worked Example
+
+We illustrate SHOWDELETIONS on the canonical scenario: a document is forked, and the two siblings diverge by each deleting different content. The claims D-EXH, D-IDENT, D-ORIG, and D-SYM can be checked concretely against the resulting state.
+
+*Setup.* Begin at `Σ_0` (the initial state of ASN-0047) and apply the composite
+
+```
+Σ_0  →* K.δ(d_A)
+     →* K.α(a, d_A);  K.μ⁺(d_A, [1,1] ↦ a)
+     →* K.α(b, d_A);  K.μ⁺(d_A, [1,2] ↦ b)
+     →* K.α(c, d_A);  K.μ⁺(d_A, [1,3] ↦ c)
+     →* K.δ(d_B)                                                  [d_B = inc(d_A, 1)]
+     →* K.μ⁺(d_B, [1,1] ↦ a, [1,2] ↦ b, [1,3] ↦ c)
+     →* K.μ~(d_A)  [permute so c at [1,2], b at [1,3]]
+     →* K.μ⁻(d_A)  [retain n'_{s_C} = 2 of content subspace]
+     →* K.μ~(d_B)  [permute so b at [1,2], c at [1,3]]
+     →* K.μ⁻(d_B)  [retain n'_{s_C} = 2 of content subspace]
+     =   Σ
+```
+
+The first six lines create `d_A` with three content addresses `a, b, c` (all with `origin = d_A` by S7), arranged at `[1,1], [1,2], [1,3]`. The seventh line forks `d_A` to `d_B = inc(d_A, 1)` (K.δ case (ii), `k = 1`); the eighth line populates `d_B` by transclusion — the *same* I-addresses `a, b, c` are referenced from `d_B`'s V-positions. J1★ records `R ⊇ {(a, d_A), (b, d_A), (c, d_A), (a, d_B), (b, d_B), (c, d_B)}`.
+
+The last four lines effect a divergent edit. Lines 9–10 reorder `M(d_A)` to put `b` at the trailing position and then truncate, removing `b` from `d_A`'s arrangement. Lines 11–12 symmetrically remove `c` from `d_B`'s arrangement. By P2, the deletions leave `R` unchanged.
+
+*Resulting state.*
+
+| Component | Value |
+|---|---|
+| `dom(C)` | `{a, b, c}` |
+| `origin` | `origin(a) = origin(b) = origin(c) = d_A` |
+| `E_doc` | `{d_A, d_B}` |
+| `M(d_A)` | `{[1,1] ↦ a, [1,2] ↦ c}` |
+| `M(d_B)` | `{[1,1] ↦ a, [1,2] ↦ b}` |
+| `R ⊇` | `{(a, d_A), (b, d_A), (c, d_A), (a, d_B), (b, d_B), (c, d_B)}` |
+
+*Classifying each pair.* For each of the six pairs `(x, d) ∈ {a, b, c} × {d_A, d_B}`, D-EXH yields a unique classification:
+
+| Pair | `x ∈ ran(M(d))?` | `(x, d) ∈ R?` | Class |
+|---|---|---|---|
+| `(a, d_A)` | yes | yes | CURRENT |
+| `(b, d_A)` | no  | yes | DELETED |
+| `(c, d_A)` | yes | yes | CURRENT |
+| `(a, d_B)` | yes | yes | CURRENT |
+| `(b, d_B)` | yes | yes | CURRENT |
+| `(c, d_B)` | no  | yes | DELETED |
+
+*Computing the output.*
+
+```
+DeletedFromAWithB(d_A, d_B)  =  {x ∈ dom(C) : DELETED(x, d_A) ∧ CURRENT(x, d_B)}  =  {b}
+DeletedFromBWithA(d_A, d_B)  =  {x ∈ dom(C) : DELETED(x, d_B) ∧ CURRENT(x, d_A)}  =  {c}
+SHOWDELETIONS(d_A, d_B)       =  ({b}, {c})
+```
+
+Only `b` is deleted from `d_A` while remaining in `d_B`; only `c` is deleted from `d_B` while remaining in `d_A`. The shared content `a` is current in both and reported in neither half.
+
+*Verifying the claims on this state.*
+
+- *D-EXH.* The classification table assigns each pair exactly one class; mutual exclusion is by construction (DELETED requires `x ∉ ran(M(d))`, CURRENT requires `x ∈ ran(M(d))`).
+- *D-IDENT.* The returned `b` is the same I-address that inhabits `dom(C)` and `ran(M(d_B))` — no value has been copied into a new tumbler. The same holds for `c`.
+- *D-ORIG.* `origin(b) = origin(c) = d_A`, derivable from the tumblers themselves via S7. The output addresses self-identify their allocator.
+- *D-SYM.* Applying the definition with operands swapped, `DeletedFromAWithB(d_B, d_A) = {x : DELETED(x, d_B) ∧ CURRENT(x, d_A)} = {c}` and `DeletedFromBWithA(d_B, d_A) = {b}`. So `SHOWDELETIONS(d_B, d_A) = ({c}, {b})` — the component-swap of `SHOWDELETIONS(d_A, d_B)`.
+
+The example also illustrates the structural significance of the witness: `b` is reported as deleted from `d_A` only because `d_B` still holds it; if `d_B` had also deleted `b`, the pair `(b, d_A)` would still be DELETED, but `b` would not appear in `DeletedFromAWithB` because the witness condition `CURRENT(b, d_B)` would fail. Cross-document SHOWDELETIONS exposes exactly the asymmetric losses — deletions that one document made and the other did not.
 
 ## Distinguishing Deletions from Additions
 
@@ -151,7 +279,7 @@ This matters operationally because it scopes recovery rights and accounting. The
 
 **Claim D-ORD.** If the output is presented as an ordered sequence, the order is consistent with the witness document's V-position ordering of the referenced addresses.
 
-For `DeletedFromAWithB(d_A, d_B)`, define `vpos_B(a)` as the unique (by S2) V-position satisfying `M(d_B)(vpos_B(a)) = a` for `a ∈ ran(M(d_B))`. The output is ordered such that for any `a, a'` with `vpos_B(a) < vpos_B(a')` under T1 (ASN-0034), `a` precedes `a'` in the presentation. Symmetrically for `DeletedFromBWithA` using `vpos_A`.
+For `DeletedFromAWithB(d_A, d_B)`, define `vpos_B(a) = min{v ∈ dom(M(d_B)) : M(d_B)(v) = a}` under T1. The set `{v ∈ dom(M(d_B)) : M(d_B)(v) = a}` is finite (a subset of `dom(M(d_B))`, finite by S8-fin) and non-empty when `a ∈ ran(M(d_B))`, so the minimum exists. We use the minimum rather than asserting uniqueness because S5 (UnrestrictedSharing, ASN-0036) permits a single I-address to occupy multiple V-positions within one document — S2 establishes that `M(d_B)` is a function (each V-position maps to at most one I-address) but does *not* preclude its inverse from being multi-valued. The minimum under T1 is a canonical representative chosen deterministically from whatever multiplicity the arrangement contains. The output is ordered such that for any `a, a'` with `vpos_B(a) < vpos_B(a')` under T1 (ASN-0034), `a` precedes `a'` in the presentation. Symmetrically for `DeletedFromBWithA` using `vpos_A(a) = min{v ∈ dom(M(d_A)) : M(d_A)(v) = a}`.
 
 *Justification.* Deleted content has no V-position in the document from which it was deleted: V-position information is local to a current arrangement and is not preserved by `R`. So the deleted document's "original ordering" of the content is not observable in the current state — it was a property of an arrangement no longer present. The only observable V-ordering is the witness document's. Choosing the witness order for presentation is the only choice that uses observable data.
 
@@ -186,7 +314,7 @@ A *deletion witness run* is a triple `(i_start, ℓ, origin)` such that, using t
 - every such address satisfies `origin(a) = origin`;
 - no contiguous extension to the left or right is also in the deletion set with the same origin.
 
-By construction (and using the canonical-decomposition results of ASN-0058, M11–M12, applied to the witness's arrangement restricted to the deletion set), the deletion set decomposes uniquely into a finite collection of maximal witness runs. The collection can be enumerated, transmitted, and consumed without information loss.
+The decomposition into maximal witness runs is uniquely determined by the deletion set itself. The deletion set is finite (a subset of `dom(C)`, finite by C-fin, ASN-0047) and totally ordered under T1 (ASN-0034). Define adjacency on the deletion set: two addresses `a, a'` are *I-adjacent* iff `a' = shift(a, 1)` and `origin(a) = origin(a')`. The reflexive-transitive closure of I-adjacency partitions the deletion set into equivalence classes; each class is a maximal `T1`-contiguous run of addresses sharing one origin — a witness run. The partition is unique because I-adjacency is determinate: `shift(·, 1)` is a function (OrdinalShift, ASN-0034) and `origin` is a function on `dom(C)` (S7, ASN-0036), so for any pair `(a, a')` in the deletion set the adjacency predicate evaluates to a fixed truth value. The partition is finite because the deletion set is finite. We emphasise that this decomposition is on the deletion set viewed as an I-set — it is not the V→I block decomposition of any document's arrangement (ASN-0058, M11–M12); two I-adjacent same-origin addresses may be non-V-adjacent in any particular witness's arrangement, and conversely, so the two notions of "run" do not coincide. The witness-run collection can be enumerated, transmitted, and consumed without information loss.
 
 We emphasise: this presentation is a *form*, not a *fundamental commitment*. The abstract specification fixes only the set of I-addresses. The run-grouping presentation is a useful packaging that preserves identity (every position is its original I-address) and origin (every address shares the named origin), making the output efficient to transmit while remaining compositional.
 
@@ -270,8 +398,6 @@ The user-facing meaning: a "show deletions" query feeds naturally into a "bring 
 What abstract characterisation of "shared content history" between two documents, expressed solely in terms of R, predicts when SHOWDELETIONS will yield non-empty results?
 
 When deleted content has been removed from every document that ever contained it, through what state component does the system still retain the option to expose it for query or recovery?
-
-What invariants must hold over the evolution of R to ensure that DELETED is monotone — once classified DELETED, always classified DELETED unless content is re-introduced into the document's arrangement?
 
 How should SHOWDELETIONS report content that was deleted from both compared documents but remains current in a third document not in the pair?
 
