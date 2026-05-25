@@ -50,8 +50,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from lib.backend.emit import emit_citation_bundle
 from lib.lattice.labels import format_label, label_pattern
-from lib.predicates import depends, latest_review_for_addr, version_head
+from lib.predicates import latest_review_for_addr, version_head
 from lib.protocols.febe.session import open_session
+from lib.shared.foundation import FoundationError, foundation_dep_addrs
 from lib.shared.git_ops import step_commit
 from lib.shared.paths import DOCUVERSE_DIR, LATTICE, NOTE_DIR, WORKSPACE
 
@@ -118,7 +119,20 @@ def backfill(asn_filter=None, dry_run=False, target_mode="version-head"):
                 )
                 continue
 
-            dep_bases = depends(session, note_addr)
+            # Canonical dep lookup (inquiry-primary + LEGACY fallback)
+            # via foundation_dep_addrs. Querying citation.depends from
+            # note_addr would silently return empty for HEALTHY ASNs.
+            asn_num = int(label.split("-")[1])
+            try:
+                dep_bases = foundation_dep_addrs(session, asn_num)
+            except FoundationError as e:
+                skipped += 1
+                print(
+                    f"  [{label}] foundation deps unresolvable — "
+                    f"skipping ({e})",
+                    file=sys.stderr,
+                )
+                continue
             if not dep_bases:
                 skipped += 1
                 print(

@@ -34,7 +34,8 @@ from lib.backend.emit import (
     emit_attribute_link, emit_citation, emit_classifier, emit_derivation,
     emit_empty_derivation,
 )
-from lib.lattice.labels import format_label, note_dep_asn_ids
+from lib.lattice.labels import format_label
+from lib.shared.foundation import FoundationError, foundation_dep_ids
 from lib.predicates import latest_doc_head, statements_sidecar_of
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
@@ -124,7 +125,13 @@ def _format_notes_block(notes) -> str:
 
 
 def _all_transitive_deps(session: Session, asn_nums: List[int]) -> List[int]:
-    """BFS over note-level citation.depends from the given ASNs."""
+    """BFS over foundation deps from the given ASNs.
+
+    Uses `foundation_dep_ids` — the canonical "what are ASN X's
+    foundation deps?" entry point. Skips ASNs whose deps can't be
+    resolved (e.g., no inquiry AND no note in substrate) rather than
+    crashing the BFS.
+    """
     visited = set()
     queue = list(asn_nums)
     while queue:
@@ -132,14 +139,10 @@ def _all_transitive_deps(session: Session, asn_nums: List[int]) -> List[int]:
         if n in visited:
             continue
         visited.add(n)
-        path, _ = find_asn(str(n))
-        if path is None:
+        try:
+            deps = foundation_dep_ids(session, n)
+        except FoundationError:
             continue
-        rel = str(path.resolve().relative_to(Path(WORKSPACE).resolve()))
-        addr = session.store.path_to_addr.get(rel)
-        if addr is None:
-            continue
-        deps = note_dep_asn_ids(session.store, addr)
         queue.extend(d for d in deps if d not in visited)
     return sorted(visited - set(asn_nums))
 
