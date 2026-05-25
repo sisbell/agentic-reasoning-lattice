@@ -193,20 +193,24 @@ def aggregate_asn_deps(
 
 
 def note_dep_asn_ids(store: Store, note_addr: Address) -> List[int]:
-    """ASN ids cited by a note via active `citation.depends` links,
-    excluding any ASN whose note is `retired`.
+    """Substrate-side query: ASN ids of citation.depends from note_addr.
 
-    Returns sorted list of int ASN ids. Self-references included or not
-    is irrelevant since note depends are inter-note.
+    **NOT for general "what are ASN X's deps?" lookups.** Under the
+    post-2026-05-24 convention, citation.depends for HEALTHY ASNs
+    lives on inquiry_addr, not note_addr — this helper returns empty
+    for them and silently misleads callers. For canonical dep lookups
+    use `lib.shared.foundation.foundation_dep_ids(session, asn_id)`,
+    which routes through the inquiry-primary + LEGACY-fallback
+    resolution path.
 
-    Retired-dep filtering rationale: `retire.py` marks a note retired but
-    doesn't retract incoming citation.depends substrate links. Without
-    filtering here, the foundation loader (and any other consumer using
-    this helper) would still resolve retired notes by file path and load
-    their content into prompts, polluting downstream LLM inputs with
-    superseded prose. Filtering at this helper centralizes the rule so
-    every consumer (foundation loader, motif, asn-sync-deps, etc.)
-    respects retirement uniformly.
+    Legitimate uses of this helper:
+      - The LEGACY fallback inside `_resolve_declared_deps` (needs
+        raw note-side substrate query)
+      - The audit (`citation_depends_audit.py`) which inspects both
+        sides on purpose
+
+    Returns sorted list of int ASN ids. Retired-dep filter centralized
+    here so the LEGACY fallback respects retirement.
     """
     pattern = label_pattern()
     note_path = store.path_for_addr(note_addr)

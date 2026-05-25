@@ -537,6 +537,25 @@ def _resolve_declared_deps(session, asn_id: int) -> list[int]:
     return deps
 
 
+def foundation_dep_ids(session, asn_id: int) -> list[int]:
+    """Return the dep ASN ids declared by ASN_id, in sorted order.
+
+    Uses the same dep-resolution path as `load_foundation` and
+    `foundation_dep_addrs` (inquiry primary, note-side LEGACY
+    fallback). This is the CANONICAL way to ask "what other ASNs
+    does ASN_id depend on?" Every consumer that wants dep ids
+    should route through here — NEVER call `note_dep_asn_ids`
+    directly for that purpose (it queries one substrate side
+    only and silently returns empty under the inquiry-emit
+    convention).
+
+    Returns empty list if no deps declared (foundation-ASN case
+    where `depends: []` is explicit, e.g., ASN-0034).
+    Raises FoundationError if no inquiry AND no note in substrate.
+    """
+    return _resolve_declared_deps(session, asn_id)
+
+
 def foundation_dep_addrs(session, asn_id: int) -> list:
     """Return the dep NOTE base addresses for an ASN, in id-sorted order.
 
