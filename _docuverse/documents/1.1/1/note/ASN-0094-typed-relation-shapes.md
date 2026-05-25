@@ -134,9 +134,19 @@ The shape registry admits only well-formed shapes.
 
 *Decidable membership.* Because `T_cat` is closed under `~` and finite at the quotient level, the predicate `K ∈ T_cat` is the coverage-class membership test `[K] ∈ T_cat / ~` — equivalently, "there exists `K'` in the registered representative list with `K ~ K'`". The test is decidable on arbitrary `K ∈ T_admissible` by checking `coverage(K) = coverage(K_rep)` against each of the finitely many registered representatives `K_rep`: coverage is a pure function of the endset value (Definition — Coverage, ASN-0043), and coverage-equality of two finite span sets is decidable per the derivation below. The membership predicate is therefore *not* a literal-equality test on the endset value `K` itself (which would reject every coverage-equivalent endset whose value differs from the listed representative); it is a coverage-equivalence test against the representative list. Subsequent prose referring to "the membership test `K ∈ T_cat`" or to "the literal membership test" abbreviates this coverage-equivalence check; the word "literal" applies to the registry's representative list (literally enumerated) and to the well-definedness of the check (no state-indexed quantification), not to the comparison operation on endsets (which is coverage-equivalence, not value-equality).
 
-*Decidability of coverage-equality on finite span sets.* For any finite endset `E`, `coverage(E)` is a finite union of half-open intervals under T1. To test `coverage(E) = coverage(E')`: (1) compute both endpoint sets (T1, TumblerAdd); (2) sort their union under T1 (T2) into intervals delimited by consecutive endpoints; (3) test each delimited interval for membership in each coverage via a representative point (T1/T2); (4) equality holds iff every delimited interval has matching outcomes. The procedure is polynomial in `n + n'` and uses only T1/T2/T12/TumblerAdd, with no canonical-slot precondition.
+*Decidability of coverage-equality on finite span sets.* For any finite endset `E = {(s_1, ℓ_1), …, (s_n, ℓ_n)}`, `coverage(E)` is a finite union of *bounded* half-open intervals under T1: each span `(s_i, ℓ_i)` denotes `{t ∈ T : s_i ≤ t < s_i ⊕ ℓ_i}` (T12 well-formedness, ASN-0034) — bounded above by the explicit upper endpoint `s_i ⊕ ℓ_i ∈ T` (well-defined by TA0, ASN-0034, since `Pos(ℓ_i)` and `actionPoint(ℓ_i) ≤ #s_i` hold by T12). Even the canonical unit-depth span `(x, δ(1, #x))`, whose prefix-closure reading `{t : x ≼ t}` (PrefixSpanCoverage, ASN-0043) might *appear* unbounded, is in fact bounded above by `x ⊕ δ(1, #x) = shift(x, 1)` (OrdinalShift, ASN-0034): the prefix-closure of `x` and the half-open interval `[x, shift(x, 1))` denote the same address set by T5 (ContiguousSubtrees, ASN-0034), so the procedure can treat every span uniformly as a bounded T1-interval. To test `coverage(E) = coverage(E')`:
 
-*Lifetime constancy of `T_cat`.* The set `T_cat` is fixed at the substrate's initial state `Σ_init` and does not change as states evolve: at every reachable state Σ, the registered catalog is the same set `T_cat` declared at `Σ_init`. The lifetime constancy is required for the inductive baselines of Sh0–Sh4 to discharge uniformly. Each induction begins with "At `Σ_0`, every `L_K^{Σ_0} = ∅`; the universal quantifier is vacuous." A K admitted to `T_cat` only after some prior states have elapsed would face a non-vacuous baseline at its registration point — `L_K^{Σ_registered}` could be non-empty from class-(iii) emissions at coverage-equivalent type indices issued before K joined `T_cat` — and the induction's base case would not discharge. The framework forbids runtime extension of `T_cat`: layers that wish to introduce new typed relations must declare them at `Σ_init`, or face the burden of verifying `L_K^{Σ_registered} = ∅` at the registration point (equivalent to the framework's empty-baseline assumption).
+(1) Compute both endpoint sets `EP := {s_i, s_i ⊕ ℓ_i : 1 ≤ i ≤ n} ∪ {s_j', s_j' ⊕ ℓ_j' : 1 ≤ j ≤ n'}` (T1, TA0, TumblerAdd) — at most `2(n + n')` tumblers, all in T.
+
+(2) Sort `EP` under T1 into a strictly increasing sequence `e_1 < e_2 < … < e_m` with `m ≤ 2(n + n')` (T2 IntrinsicComparison, ASN-0034). This partitions the range `[e_1, e_m)` into `m − 1` consecutive half-open intervals `[e_k, e_{k+1})` for `1 ≤ k < m`.
+
+(3) For each delimited interval `[e_k, e_{k+1})`, test membership in `coverage(E)` and in `coverage(E')` via the representative point `e_k`: `e_k ∈ coverage(E) ⟺ (∃ i : 1 ≤ i ≤ n : s_i ≤ e_k < s_i ⊕ ℓ_i)` — `n` T1 comparisons per interval (T2 IntrinsicComparison). Same for `coverage(E')`. Because each span is a T1-interval and the chosen partition is finer than every span's boundary, membership is uniform on each delimited interval: `e_k ∈ coverage(E)` iff every point of `[e_k, e_{k+1})` is in `coverage(E)` (the span's lower endpoint is `≤ e_k` and its upper endpoint is `≥ e_{k+1}`, so the interval lies inside the span).
+
+(4) Equality holds iff every delimited interval has matching outcomes (`e_k ∈ coverage(E) ⟺ e_k ∈ coverage(E')` for every `1 ≤ k < m`). Outside `[e_1, e_m)`, both coverages are empty by construction (no span has an endpoint outside `EP`, so no span covers any point outside the range).
+
+The procedure is polynomial in `n + n'`: step (1) is `O(n + n')` tumbler additions; step (2) is `O((n + n') \log(n + n'))` T1 comparisons; step (3) is `O((n + n')^2)` T1 comparisons (per-interval membership over both coverages). The procedure uses only T1/T2/T12/TumblerAdd/TA0/T5/PrefixSpanCoverage, with no canonical-slot precondition.
+
+*Lifetime constancy of `T_cat`.* The set `T_cat` is fixed at the substrate's initial state `Σ_init` and does not change as states evolve: at every reachable state Σ, the registered catalog is the same set `T_cat` declared at `Σ_init`. The lifetime constancy is required for the inductive baselines of Sh0–Sh4 to discharge uniformly. Each induction begins with "At `Σ_init`, every `L_K^{Σ_init} = ∅`; the universal quantifier is vacuous." A K admitted to `T_cat` only after some prior states have elapsed would face a non-vacuous baseline at its registration point — `L_K^{Σ_registered}` could be non-empty from class-(iii) emissions at coverage-equivalent type indices issued before K joined `T_cat` — and the induction's base case would not discharge. The framework forbids runtime extension of `T_cat`: layers that wish to introduce new typed relations must declare them at `Σ_init`, or face the burden of verifying `L_K^{Σ_registered} = ∅` at the registration point (equivalent to the framework's empty-baseline assumption).
 
 For any `K ∈ T_admissible \ T_cat` (equivalently, every member of every class not represented), no shape is registered. The substrate's shape-conformance gate rejects `Emit_K` at unregistered types — the membership test `K ∈ T_cat`, decidable as the coverage-equivalence check against the representative list per the *Decidable membership* paragraph above (see Sh-conf below).
 
@@ -183,7 +193,15 @@ Write `conf_K^Σ(F, G)` for this predicate.
 
 Both queries are side-effect-free reads of the framework's relational state at Σ. `C_K(F, G, Σ)` is computed via `Observe_K(slot_addrs(F), slot_addrs(G), oper)` followed by an exact slot-pair-equality postfilter; `C_fd_K(F, Σ)` via `Observe_K(slot_addrs(F), ∅, oper)` followed by exact F-slot-equality postfilter. Well-formedness on canonical-slot F, G is inherited from Sh0/Sh1; the post-filter's exact-equality test is decidable in finite time. Callers use these queries to disambiguate Sh-conf rejection from per-K-discipline suppression before issuing `Emit_K`. The *single-home commitment* requires no candidate-set query — its check is the literal-equality test `d = d_K`.
 
-**Definition — CallerSideClassification.** A caller wanting fine-grained classification of an `Emit_K` rejection cause invokes the following six side-effect-free checks in order, halting at the first failure to identify the rejecting gate (numbering mirrors the *Gate Ordering (consolidated)* below):
+**Definition — CallerSideClassification.** A caller wanting fine-grained classification of an `Emit_K` rejection cause invokes the following six side-effect-free checks in order, halting at the first failure to identify the rejecting gate. The check numbering is *finer-grained* than the consolidated *Gate Ordering* below — the two enumerations are aligned but not identical:
+
+- *Registry check* (#1) is implicit in the consolidated *Gate Ordering*: the substrate-level `K ∈ T_cat` test fires before any conformance gate, since `shape(K)` resolution presupposes registry membership. The consolidated ordering enumerates only the post-registry gates and folds registry rejection into the framework's admission gate; the Caller-side ordering surfaces it as a distinct check.
+- *Single-home check* (#2) corresponds to consolidated gate 1.
+- *Canonical-form check* (#3) corresponds to consolidated gate 2 (Sh-conf clauses (a)/(b)).
+- *Discipline-suppression check* (#4) corresponds to consolidated gate 3 (the per-K Observe-then-Emit contract, encompassing both *Sh4 idempotency contract* and *FDD functional-dependency contract*).
+- *Cardinality check* (#5) and *Target-domain check* (#6) together correspond to consolidated gate 4 (Sh-conf clauses (c) and (d), bundled into a single gate in the consolidated ordering). The Caller-side ordering splits them because they index distinct rejection causes (cardinality-rejection vs target-domain-rejection) the caller may wish to distinguish.
+
+The six Caller-side checks therefore expand consolidated gates 1–4 into a finer six-check sequence; consolidated gate 5 (substrate primitive K.λ) is not a separate Caller-side check because it is the post-admission emission step, not a rejection cause. The Caller-side and consolidated orderings agree on relative gate ordering and on rejection outcomes.
 
 1. *Registry check* — Test `K ∈ T_cat` via the coverage-equivalence check against the registered representative list (per the *Decidable membership* paragraph in the TypedRelationCatalog Definition). Failure ⇒ registry rejection.
 2. *Single-home check* (if K registered under SingleHomeCoverageDiscipline) — Test `d ?= d_K` against the per-K registration constant. Failure ⇒ single-home rejection.
@@ -222,7 +240,7 @@ The retraction type `R` (ASN-0086, Definition — RetractionType) is registered 
 
 ## Initial-State Baseline
 
-*Initial-state baseline for preservation proofs.* Sh0–Sh4 presuppose `L_K^{Σ_init} = ∅` for every `K ∈ T_cat`. References to `Σ_0` in proofs denote this `Σ_init`. States reached before the *Emit_K routing commitment* was honored are outside the framework's scope.
+*Initial-state baseline for preservation proofs.* Sh0–Sh4 presuppose `L_K^{Σ_init} = ∅` for every `K ∈ T_cat`. Preservation-proof text below names this baseline `Σ_init` directly (avoiding the prior convention that aliased it as `Σ_0`); the symbol `Σ_0` is reserved for worked-example walkthrough setup, where it denotes a pre-emission state reached from `Σ_init` by a finite sequence of K.σ/K.α steps (no K.λ-steps) — so `dom(Σ_0.L) = ∅` holds in walkthroughs but `Σ_0` is not in general identified with `Σ_init`. States reached before the *Emit_K routing commitment* was honored are outside the framework's scope.
 
 *Global empty-link-store assumption (walkthrough convention).* The walkthroughs below assume the stronger `dom(Σ_init.L) = ∅` globally so K.λ's first-emission predicate fires uniformly at each walkthrough's first emission. This is a notational simplification, not a framework requirement — preservation theorems discharge from the per-K empty baseline `L_K^{Σ_init} = ∅` for `K ∈ T_cat` alone.
 
@@ -265,19 +283,29 @@ Either case yields `b ⋠ a_emit(Σ, d)`. ∎
 
 ## Cardinality (Sh0, Sh1)
 
+**Lemma — CaseAClosureForLK.** For every `K ∈ T_cat` and every broad transition `Σ ↦ Σ'` of the framework's `↦`-vocabulary, the case-equation `L_K^{Σ'} = L_K^Σ` holds whenever the step is one of the following three classes; equivalently, `L_K^{Σ'} ⊋ L_K^Σ` strictly only when the step is a K.λ-step at some type `K' ~ K`:
+
+1. *K.σ-steps and K.α-steps:* the `→` Definition (ASN-0086) frames `Σ.L` pointwise; hence `Σ'.L = Σ.L` and `L_K^{Σ'} = L_K^Σ` for every `K`.
+2. *K.λ-steps at type `K'` with `K' ≁ K`:* the new tuple enters the disjoint `~`-class slice `L_{K'}^{Σ'}`; since `L_K^Σ = L_{K''}^Σ` for every `K'' ~ K` (ASN-0086, `~`-class indexing), `L_K` is untouched.
+3. *Arrangement-modifying steps in `↦ \ →`:* LinkStoreInvarianceUnderArrangement (ASN-0086) gives `Σ'.L = Σ.L` pointwise; hence `L_K^{Σ'} = L_K^Σ`.
+
+The complement — Case B — is a single class: K.λ-steps at type `K' ~ K` extend `L_K` by exactly one tuple via the *Emit_K routing commitment*'s admit clauses on `Emit_K`. The exhaustiveness of the four-class classification (3 Case-A sub-classes + 1 Case-B class) covers the framework's complete `↦`-vocabulary. *Proof.* Each sub-class's case-equation discharge is the direct citation given inline above; the Case B claim follows from R3 (ASN-0086) under the *Emit_K routing commitment*. ∎
+
+Sh0–Sh3 below all share this Case-A enumeration; each invokes the lemma at "Case A" and supplies its own Case B argument. The lemma's quantifier ranges over every `K ∈ T_cat`, so the inductive step's "Fix `K ∈ T_cat`" precondition is uniformly discharged across Sh0–Sh3.
+
 **Sh0 — FromSlotCanonicalAndCardinalityFixed.** For each `K ∈ T_cat`, every tuple in `L_K^Σ` at every reachable state Σ has `F` in canonical-slot form with `|slot_addrs(F)|` matching `c_F`:
 
 `(A K ∈ T_cat, (a, F, G) ∈ L_K^Σ :: F is canonical-slot form ∧ match(|slot_addrs(F)|, shape(K).c_F))`
 
-*Proof.* By induction on the broad transition relation `↦*` from the initial state `Σ_0`. Reachable states are reached under `↦*` (the broader relation including arrangement-modifying steps), not just `→*`, so the induction must cover both transition classes.
+*Proof.* By induction on the broad transition relation `↦*` from the initial state `Σ_init`. Reachable states are reached under `↦*` (the broader relation including arrangement-modifying steps), not just `→*`, so the induction must cover both transition classes.
 
-*Base case.* At `Σ_0 = Σ_init` (per the framework's empty-baseline assumption, *Initial-state baseline for preservation proofs* in the Initial-State Baseline section above), every `L_K^{Σ_0} = ∅`; the universal quantifier is vacuous.
+*Base case.* At `Σ_init` (per the framework's empty-baseline assumption, *Initial-state baseline for preservation proofs* in the Initial-State Baseline section above), every `L_K^{Σ_init} = ∅`; the universal quantifier is vacuous.
 
-*Inductive step.* Suppose the property holds at Σ; let `Σ ↦ Σ'` be a single broad transition. Fix `K ∈ T_cat`. `L_K` is monotone non-decreasing along `↦*` (R3 on `→`-steps; LinkStoreInvarianceUnderArrangement on `↦ \ →`-steps), with strict increase confined to K.λ-steps emitting at K or a `~`-equivalent type. Split on whether the step affects `L_K`.
+*Inductive step.* Suppose the property holds at Σ; let `Σ ↦ Σ'` be a single broad transition. Fix `K ∈ T_cat`. By Lemma — CaseAClosureForLK, the step either falls into one of the three Case-A sub-classes (with `L_K^{Σ'} = L_K^Σ`) or is a K.λ-step at `K' ~ K` (Case B).
 
-*Case A (`L_K^{Σ'} = L_K^Σ`).* Set extensionality: inherited from IH; existing tuples retain values by R2. Covers K.σ/K.α (frame preserves `Σ.L`), K.λ at `K' ≁ K` (the new tuple enters a disjoint `~`-class slice), and arrangement-modifying steps (LinkStoreInvarianceUnderArrangement).
+*Case A (`L_K^{Σ'} = L_K^Σ`).* Set extensionality from the lemma gives `L_K^{Σ'} = L_K^Σ` as the same set of triples; existing tuples retain values by R2 (ASN-0086). The IH applies pointwise to the unchanged set.
 
-*Case B (`L_K^{Σ'} = L_K^Σ ∪ {τ_new}`).* By the *Emit_K routing commitment*, an `Emit_K` call at K (or a `~`-equivalent K' with `shape(K') = shape(K)` by per-class constancy). Sh-conf clauses (a) and (c) give τ_new canonical-slot with `match(|slot_addrs(F)|, c_F)`. Existing tuples preserved by R2 + IH.
+*Case B (`L_K^{Σ'} = L_K^Σ ∪ {τ_new}`, a K.λ-step at type `K' ~ K`).* By the *Emit_K routing commitment*, this K.λ-step originates as an `Emit_K` call (at K or a `~`-equivalent K' with `shape(K') = shape(K)` by per-class constancy). Sh-conf clause (a) gives `τ_new` canonical-slot on F; Sh-conf clause (c) gives `match(|slot_addrs(F_{τ_new})|, c_F)`. Existing tuples preserved by R2 + IH.
 
 Quantifying over K closes the induction. ∎
 
@@ -285,7 +313,11 @@ Quantifying over K closes the induction. ∎
 
 `(A K ∈ T_cat, (a, F, G) ∈ L_K^Σ :: G is canonical-slot form ∧ match(|slot_addrs(G)|, shape(K).c_G))`
 
-*Proof.* By induction on `↦*`. Case A by case-equation. Case B: Sh-conf clauses (b) and (c) discharge canonical-slot form and cardinality match on the new tuple. ∎
+*Proof.* By induction on `↦*` with the same baseline (Σ_init, `L_K^{Σ_init} = ∅`) and the same Case-A/Case-B dispatch via Lemma — CaseAClosureForLK as Sh0. The two cases:
+
+*Case A (`L_K^{Σ'} = L_K^Σ`).* The lemma classifies the step into one of: (i) K.σ/K.α (frame preserves `Σ.L`, so `L_K^{Σ'} = L_K^Σ`); (ii) K.λ at `K' ≁ K` (the new tuple enters the disjoint `L_{K'}^{Σ'}` slice); (iii) arrangement-modifying step in `↦ \ →` (LinkStoreInvarianceUnderArrangement gives `Σ'.L = Σ.L`). In every case the IH applies pointwise to the unchanged `L_K^{Σ'} = L_K^Σ`.
+
+*Case B (`L_K^{Σ'} = L_K^Σ ∪ {τ_new}`, a K.λ-step at type `K' ~ K`).* By the *Emit_K routing commitment*, an `Emit_K` call at K' with `shape(K') = shape(K)` by per-class constancy. Sh-conf clauses (b) and (c) discharge canonical-slot form on G and `match(|slot_addrs(G_{τ_new})|, c_G)` on the new tuple. Existing tuples preserved by R2 + IH. ∎
 
 
 ## Target Domain (Sh2, Sh3)
@@ -296,13 +328,23 @@ Quantifying over K closes the induction. ∎
 
 (vacuous when `t_F = -`). `slot_addrs(F)` is well-defined throughout by Sh0.
 
-*Proof.* By induction on `↦*`. Case A by case-equation, with monotone preservation `t_F^Σ ⊆ t_F^{Σ'}` lifting the IH. Case B: Sh-conf clause (d) gives `X_F ⊆ t_F^Σ ⊆ t_F^{Σ'}` for τ_new. ∎
+*Proof.* By induction on `↦*` with the same baseline (Σ_init, `L_K^{Σ_init} = ∅`) and the same Case-A/Case-B dispatch via Lemma — CaseAClosureForLK as Sh0/Sh1.
+
+*Case A (`L_K^{Σ'} = L_K^Σ`).* The lemma classifies the step into one of: (i) K.σ/K.α (frame preserves `Σ.L`); (ii) K.λ at `K' ≁ K` (disjoint slice); (iii) arrangement-modifying step in `↦ \ →` (LinkStoreInvarianceUnderArrangement). In every case `L_K^{Σ'} = L_K^Σ` as a set of triples, and monotone preservation `t_F^Σ ⊆ t_F^{Σ'}` (L12a, ASN-0043, for `A_rel`; content-store monotonicity scaffolding for `A_doc`; their union for `A`) lifts the IH from `slot_addrs(F) ⊆ t_F^Σ` to `slot_addrs(F) ⊆ t_F^{Σ'}` on every existing tuple.
+
+*Case B (`L_K^{Σ'} = L_K^Σ ∪ {τ_new}`, a K.λ-step at type `K' ~ K`).* By the *Emit_K routing commitment*, an `Emit_K` call at K' with `shape(K') = shape(K)` by per-class constancy. Sh-conf clause (d) gives `slot_addrs(F_{τ_new}) ⊆ t_F^Σ ⊆ t_F^{Σ'}` (the second inclusion is the same monotone preservation invoked in Case A). Existing tuples preserved by R2 + IH + monotonicity. ∎
 
 **Sh3 — ToSlotTargetRestricted.** Symmetric for `G`:
 
 `(A K ∈ T_cat, (a, F, G) ∈ L_K^Σ :: slot_addrs(G) ⊆ shape(K).t_G^Σ)`
 
-Well-formedness from Sh1. *Proof.* Mirrors Sh2 with F → G, clauses (b) and (d). ∎
+Well-formedness from Sh1.
+
+*Proof.* By induction on `↦*` with the same baseline (Σ_init, `L_K^{Σ_init} = ∅`) and the same Case-A/Case-B dispatch via Lemma — CaseAClosureForLK as Sh0/Sh1/Sh2.
+
+*Case A (`L_K^{Σ'} = L_K^Σ`).* The lemma classifies the step into one of: (i) K.σ/K.α (frame preserves `Σ.L`); (ii) K.λ at `K' ≁ K` (disjoint slice); (iii) arrangement-modifying step in `↦ \ →` (LinkStoreInvarianceUnderArrangement). In every case `L_K^{Σ'} = L_K^Σ`, and monotone preservation `t_G^Σ ⊆ t_G^{Σ'}` lifts the IH from `slot_addrs(G) ⊆ t_G^Σ` to `slot_addrs(G) ⊆ t_G^{Σ'}` on every existing tuple.
+
+*Case B (`L_K^{Σ'} = L_K^Σ ∪ {τ_new}`, a K.λ-step at type `K' ~ K`).* By the *Emit_K routing commitment*, an `Emit_K` call at K' with `shape(K') = shape(K)` by per-class constancy. Sh-conf clauses (b) and (d) give `slot_addrs(G_{τ_new})` defined and `⊆ t_G^Σ ⊆ t_G^{Σ'}`. Existing tuples preserved by R2 + IH + monotonicity. ∎
 
 *Retraction commutativity.* `A_K^Σ ⊆ L_K^Σ` (filtering by `nullified(·)`). Sh0–Sh3 quantify over `L_K^Σ`, so every tuple in `A_K^Σ` is shape-conformant.
 
@@ -367,9 +409,34 @@ For shapes with `c_F = 0|1` or `c_G = 0|1`, the partial accessor returns `⊥` (
 
 **Lemma — SlotAccessorTotality.** When `shape(K).c_F = 1`, `from₁` is a total function on `L_K^Σ`. Similarly for `to₁` when `c_G = 1`.
 
-*Proof.* By Sh0, every `τ ∈ L_K^Σ` has `F` in canonical-slot form with `|slot_addrs(F)| = 1` (since `match(n, 1) ⟺ n = 1`). A finite set of cardinality 1 has a unique element. Define `from₁(τ)` as that element. By Sh2, this element lies in `t_F^Σ`. ∎
+*Proof.* By Sh0, every `τ ∈ L_K^Σ` has `F` in canonical-slot form with `|slot_addrs(F)| = 1` (since `match(n, 1) ⟺ n = 1`). A finite set of cardinality 1 has a unique element. Define `from₁(τ)` as that element. By Sh2, this element lies in `t_F^Σ`; AllocatedAddressAntichain at this `x = from₁(τ)` (well-formed precondition: `x ∈ t_F^Σ ⊆ A^Σ`) confirms `from₁(τ)` is the unique allocated address denoted by `F_τ`'s slot, ruling out any allocated descendant of `from₁(τ)` as an alternative "what address does this slot reference" answer — the syntactic-to-semantic bridge that makes the point accessor's image well-defined as a single allocated address rather than a prefix-closure of addresses. ∎
 
 For the rest of this document, we drop subscripts and write `from`, `to` when the shape unambiguously fixes which accessor is meant. We additionally use `addr(τ) = a` for the tuple address (R1, AddressInjectivity, ASN-0086).
+
+
+## Lemma — RetractionSelfFreshness
+
+This lemma bridges Sh-conf's admit at a Retraction emission to the active-subset content of the resulting tuple. Independent of Sh4's preservation argument (cited downstream by Sh4 Case C and Case D), and structurally parallel to LinkAddressNotPrefixOfEmit's placement before Sh0.
+
+**Lemma — RetractionSelfFreshness.** Let Σ be reachable from `Σ_init` under the framework's *Emit_K routing commitment*, with R registered in `T_cat` per the framework's baseline registration requirement (Nullify Compatibility). Suppose every framework gate at an `Emit_R(Σ, d, F, G)` call site admits the call — Sh-conf clauses (a)–(d) all pass and the *Sh4 idempotency contract* clause (iii) fires — so the call proceeds to K.λ at home `d` and deposits a fresh tuple τ_new with `addr(τ_new) = a_emit(Σ, d)`, producing result state Σ'. Then:
+
+`addr(τ_new) ∉ nullified(Σ')`
+
+— equivalently, `τ_new ∈ A_R^{Σ'}`.
+
+*Proof.* By Definition (nullified, ASN-0086) at Σ', `addr(τ_new) ∈ nullified(Σ') ⟺ (E (b̂, F', G') ∈ L_R^{Σ'} :: addr(τ_new) ∈ coverage(G'))`; the existential ranges over `L_R^{Σ'} = L_R^Σ ∪ {τ_new}` (R3 monotonicity on `L_R`, since this is a class-(iii) `Emit_R` step that adds exactly τ_new to `L_R`). Two witnesses must be ruled out, both by Lemma — LinkAddressNotPrefixOfEmit:
+
+(i) *Self-nullification check (witness `(b̂, F', G') = τ_new`).* Sh-conf at the new emission admitted the call only because clauses (a)–(d) held; under `shape(R) = (*, 1, A, A_rel, ⊤)`, clauses (b)/(c)/(d) force `G_{τ_new} = {(b, δ(1, #b))}` for a unique `b ∈ A_rel^Σ`, so by PrefixSpanCoverage (ASN-0043) `coverage(G_{τ_new}) = {t : b ≼ t}`. Lemma — LinkAddressNotPrefixOfEmit applied at `b ∈ dom(Σ.L)` and `d := home(τ_new) ∈ dom(Σ.M)` yields `b ⋠ a_emit(Σ, d) = addr(τ_new)`, so `addr(τ_new) ∉ {t : b ≼ t} = coverage(G_{τ_new})`.
+
+(ii) *Cross-nullification check (witness ranges over `L_R^Σ`).* For every prior `(b̂, F', G') ∈ L_R^Σ`, Sh1 at `K := R` gives `G'` canonical-slot with `|slot_addrs(G')| = 1`, and Sh3 at `K := R` gives `slot_addrs(G') ⊆ A_rel^Σ ⊆ A_rel^{Σ'}`. So `G' = {(b', δ(1, #b'))}` for a unique `b' ∈ dom(Σ.L) ⊆ dom(Σ'.L)`. Lemma — LinkAddressNotPrefixOfEmit applied at `b'` and the same `d = home(τ_new)` yields `b' ⋠ a_emit(Σ, d) = addr(τ_new)`, so `addr(τ_new) ∉ coverage(G')`. Quantifying over all `(b̂, F', G') ∈ L_R^Σ` discharges the cross-nullification disjunct.
+
+Combining (i) and (ii) over the full disjunction `L_R^{Σ'} = L_R^Σ ∪ {τ_new}`: for every witness in `L_R^{Σ'}`, `addr(τ_new) ∉ coverage(G')`. Hence `addr(τ_new) ∉ nullified(Σ')`, and τ_new ∈ A_R^{Σ'} by Definition (A_K^Σ, ASN-0086). ∎
+
+*Use sites.* The lemma is cited by Sh4's preservation argument at:
+- *Case C* — to rule out the `K ~ R` self-retraction sub-case (clause (i) of the lemma's proof gives `addr(τ_new) ∉ coverage(G_{τ_new})`, so τ_new is never self-nullified).
+- *Case D* — to establish the structural pivot `τ_new ∈ A_R^{Σ'}` from which the simultaneous addition-and-contraction analysis proceeds.
+
+The Nullify Compatibility section's *NullifyActiveSubsetCompatibility* Corollary uses R0a at Σ' directly for the same kind of antichain-driven reasoning, without going through this lemma — its postcondition (i) `{t : a ≼ t} ∩ A_rel^{Σ_target} = {a}` quantifies over the *target* address `a` (not over τ_new), so the lemma's `addr(τ_new) ∉ nullified(Σ')` conclusion is not the load-bearing fact there. The two results are dual: the Lemma names the *new tuple's freshness from nullification* at Σ'; the Corollary names the *target's single-tuple scope* in dom(Σ'.L) under R0a. Both rest on LinkAddressNotPrefixOfEmit.
 
 
 ## Idempotency (Sh4)
@@ -388,7 +455,14 @@ via the two-step procedure:
 
 &nbsp;&nbsp;(i.a) Query `Observe_K(slot_addrs(F), slot_addrs(G), oper)` — a well-typed call by the ordering above: Sh-conf clauses (a)/(b) have already gated canonical-form, so `slot_addrs(F)` and `slot_addrs(G)` are finite subsets of `T` at this point in the protocol. Observe_K's semantics returns the (finite) set of active tuples whose slot coverages prefix-contain the pattern addresses — concretely, `{τ ∈ A_K^Σ : slot_addrs(F) ⊆ coverage(F_τ) ∧ slot_addrs(G) ⊆ coverage(G_τ)}`. Under Sh0/Sh1, every `τ ∈ A_K^Σ` has canonical-form slot endsets, so `coverage(F_τ) = ⋃ {{t : y ≼ t} : y ∈ slot_addrs(F_τ)}` and `slot_addrs(F) ⊆ coverage(F_τ)` iff every `x ∈ slot_addrs(F)` has some `y ∈ slot_addrs(F_τ)` with `y ≼ x`.
 
-&nbsp;&nbsp;*Contract correctness.* `C(F, G, Σ)` equals the specified set regardless of Sh-conf clause (d): the post-filter (i.b) tests exact slot-address-set equality, and any τ in the specified set passes both (i.a)'s Observe (by Prefix reflexivity on each pattern address) and (i.b)'s filter.
+&nbsp;&nbsp;*Contract correctness.* `C(F, G, Σ)` equals the specified set regardless of Sh-conf clause (d): the post-filter (i.b) tests exact slot-address-set equality, and any τ in the specified set passes both (i.a)'s Observe (by Prefix reflexivity on each pattern address) and (i.b)'s filter. *AllocatedAddressAntichain citation.* When Sh-conf clause (d) *does* hold for the new emission's `F` and `G` (so `slot_addrs(F) ⊆ A^Σ` and `slot_addrs(G) ⊆ A^Σ`), the Lemma — AllocatedAddressAntichain tightens (i.a)'s prefix-containment over-approximation to exact slot-address-set equality on the allocated-address side: by the Lemma, for every `x ∈ slot_addrs(F)` and every `τ ∈ A_K^Σ` whose canonical-slot `slot_addrs(F_τ)` is contained in `A^Σ` (Sh2 + Sh0), the prefix relation `y ≼ x` for `y ∈ slot_addrs(F_τ)` forces `y = x` — making (i.a)'s over-approximation `{τ : slot_addrs(F) ⊆ coverage(F_τ)}` collapse to `{τ : slot_addrs(F) ⊆ slot_addrs(F_τ)}`. The post-filter (i.b) then refines this to set equality. This is the tightening argument the contract claims as "the same AllocatedAddressAntichain argument" when downstream consumers (notably FDD's contract correctness paragraph) cite back to Sh4. Under the conditional hypothesis (Sh-conf clause (d)), Observe-then-post-filter is *equivalent* to the post-filter alone.
+
+&nbsp;&nbsp;*Without the conditional hypothesis (Sh-conf clause (d) fails on the new emission's pattern).* Suppose `slot_addrs(F) = {d_unallocated}` where `d_unallocated ∈ T \ A^Σ` — the caller patterned the F-slot at an unallocated address. We walk through the contract's behavior to show `C(F, G, Σ)` still equals the specified set:
+- *Step 1 — (i.a)'s Observe returns over-approximation.* `Observe_K(slot_addrs(F), ·, oper)` returns `{τ ∈ A_K^Σ : slot_addrs(F) ⊆ coverage(F_τ)}`. The membership `d_unallocated ∈ coverage(F_τ)` reduces to `(E y ∈ slot_addrs(F_τ) :: y ≼ d_unallocated)` by canonical-slot unfolding (Sh0). Without the AllocatedAddressAntichain tightening (the Lemma's precondition `x ∈ A^Σ` fails on `d_unallocated`), this prefix-containment is genuinely *broader* than equality: some `y ∈ slot_addrs(F_τ) ⊆ A^Σ` (by Sh2) could be a proper prefix of the unallocated `d_unallocated`, satisfying the Observe semantics without satisfying the post-filter's set equality.
+- *Step 2 — (i.b)'s post-filter forces exact equality.* The post-filter retains only `τ` with `slot_addrs(F_τ) = slot_addrs(F) = {d_unallocated}`. For any `τ ∈ A_K^Σ`, `slot_addrs(F_τ) ⊆ t_F^Σ ⊆ A^Σ` by Sh2; so `slot_addrs(F_τ) = {d_unallocated}` would force `d_unallocated ∈ A^Σ`, contradicting the unallocated-pattern hypothesis. No `τ` survives the post-filter.
+- *Step 3 — Result.* `C(F, G, Σ) = ∅`, matching the specified set `{τ : slot_addrs(F_τ) = {d_unallocated} ∧ ⋯}` which is vacuously empty (no `τ` in `A_K^Σ` can have a slot-address set including an unallocated address). The contract's clause (iii) fires (the candidate set is empty); the call proceeds to gate 4, where Sh-conf clause (d) then rejects the emission.
+
+&nbsp;&nbsp;The contract's correctness is therefore *unconditional* on Sh-conf clause (d): with the hypothesis, the AllocatedAddressAntichain tightening makes Observe-then-post-filter equivalent to the post-filter alone; without the hypothesis, the post-filter's exact-equality test alone still yields `C(F, G, Σ)` exactly. Sh-conf clause (d)'s subsequent gate-4 rejection is what actually halts the emission in the unallocated-pattern case; the Sh4 contract at gate 3 sees an empty candidate set, fires clause (iii), and defers the rejection downstream.
 
 &nbsp;&nbsp;(i.b) Post-filter the result of (i.a): retain only τ with `slot_addrs(F_τ) = slot_addrs(F)` and `slot_addrs(G_τ) = slot_addrs(G)`. Each returned τ has canonical-slot form by Sh0/Sh1, so `slot_addrs(F_τ)` is a well-defined finite set; exact-equality checks against the finite pattern slot-address sets are decidable in finite time. The composition (i.a) ∘ (i.b) yields exactly `C(F, G, Σ)` as specified above.
 
@@ -404,22 +478,7 @@ The layer commits to executing clauses (i)–(iii) atomically with respect to ot
 
 *Preservation under the contract.* Sh4 holds at every reachable state under the contract, by induction on `↦*`. Fix `K ∈ T_cat` with `shape(K).idem = ⊤`.
 
-
-**Lemma — RetractionSelfFreshness.** Let Σ be reachable from `Σ_init` under the framework's *Emit_K routing commitment*, with R registered in `T_cat` per the framework's baseline registration requirement (Nullify Compatibility). Suppose every framework gate at an `Emit_R(Σ, d, F, G)` call site admits the call — Sh-conf clauses (a)–(d) all pass and the *Sh4 idempotency contract* clause (iii) fires — so the call proceeds to K.λ at home `d` and deposits a fresh tuple τ_new with `addr(τ_new) = a_emit(Σ, d)`, producing result state Σ'. Then:
-
-`addr(τ_new) ∉ nullified(Σ')`
-
-— equivalently, `τ_new ∈ A_R^{Σ'}`.
-
-*Proof.* By Definition (nullified, ASN-0086) at Σ', `addr(τ_new) ∈ nullified(Σ') ⟺ (E (b̂, F', G') ∈ L_R^{Σ'} :: addr(τ_new) ∈ coverage(G'))`; the existential ranges over `L_R^{Σ'} = L_R^Σ ∪ {τ_new}` (R3 monotonicity on `L_R`, since this is a class-(iii) `Emit_R` step that adds exactly τ_new to `L_R`). Two witnesses must be ruled out, both by Lemma — LinkAddressNotPrefixOfEmit:
-
-(i) *Self-nullification check (witness `(b̂, F', G') = τ_new`).* Sh-conf at the new emission admitted the call only because clauses (a)–(d) held; under `shape(R) = (*, 1, A, A_rel, ⊤)`, clauses (b)/(c)/(d) force `G_{τ_new} = {(b, δ(1, #b))}` for a unique `b ∈ A_rel^Σ`, so by PrefixSpanCoverage (ASN-0043) `coverage(G_{τ_new}) = {t : b ≼ t}`. Lemma — LinkAddressNotPrefixOfEmit applied at `b ∈ dom(Σ.L)` and `d := home(τ_new) ∈ dom(Σ.M)` yields `b ⋠ a_emit(Σ, d) = addr(τ_new)`, so `addr(τ_new) ∉ {t : b ≼ t} = coverage(G_{τ_new})`.
-
-(ii) *Cross-nullification check (witness ranges over `L_R^Σ`).* For every prior `(b̂, F', G') ∈ L_R^Σ`, Sh1 at `K := R` gives `G'` canonical-slot with `|slot_addrs(G')| = 1`, and Sh3 at `K := R` gives `slot_addrs(G') ⊆ A_rel^Σ ⊆ A_rel^{Σ'}`. So `G' = {(b', δ(1, #b'))}` for a unique `b' ∈ dom(Σ.L) ⊆ dom(Σ'.L)`. Lemma — LinkAddressNotPrefixOfEmit applied at `b'` and the same `d = home(τ_new)` yields `b' ⋠ a_emit(Σ, d) = addr(τ_new)`, so `addr(τ_new) ∉ coverage(G')`. Quantifying over all `(b̂, F', G') ∈ L_R^Σ` discharges the cross-nullification disjunct.
-
-Combining (i) and (ii) over the full disjunction `L_R^{Σ'} = L_R^Σ ∪ {τ_new}`: for every witness in `L_R^{Σ'}`, `addr(τ_new) ∉ coverage(G')`. Hence `addr(τ_new) ∉ nullified(Σ')`, and τ_new ∈ A_R^{Σ'} by Definition (A_K^Σ, ASN-0086). ∎
-
-*Base.* At `Σ_0 = Σ_init` (per the framework's empty-baseline assumption, *Initial-state baseline for preservation proofs* in the Initial-State Baseline section above), `L_K^{Σ_0} = A_K^{Σ_0} = ∅`; Sh4's universal is vacuous.
+*Base.* At `Σ_init` (per the framework's empty-baseline assumption, *Initial-state baseline for preservation proofs* in the Initial-State Baseline section above), `L_K^{Σ_init} = A_K^{Σ_init} = ∅`; Sh4's universal is vacuous.
 
 *Step (Case A: `A_K^{Σ'} = A_K^Σ`).* The active subset is unchanged at K. Once the case-equation holds, Sh4 is inherited directly: `A_K^{Σ'} = A_K^Σ` as sets of triples (by set extensionality), so Sh4's body — quantifying over triples — yields the same Boolean at both states. The case-equation's *closure* is therefore trivial; the substantive work in Case A is verifying that each `↦`-step in the framework's transition vocabulary which lands in Case A actually satisfies the case-equation. We enumerate those classes here exhaustively (the framework's `↦`-vocabulary is `↦ = (K.σ ∪ K.α ∪ K.λ) ∪ arrangement-modifying` per ASN-0086's `→` Definition and `↦` relation), with each class's case-equation discharge cited inline:
 
@@ -432,7 +491,7 @@ The enumeration is exhaustive for *Case A coverage* within the framework's `↦`
 
 *Step (Case B: `A_K^{Σ'} = A_K^Σ ∪ {τ_new}`, a K.λ-step at type K with `K ≁ R`).* The case is structurally restricted to `K ≁ R` rather than carrying a conditional "no concurrent nullification" qualifier: by the class-decomposition of `↦` (per ASN-0086's `→` Definition and `↦`'s broader transition relation), concurrent nullification at the same step happens only at `Emit_R` steps, since `nullified(Σ)`'s definition reads over `L_R^Σ`'s G-coverages and only `Emit_R` extends `L_R`. A non-Retraction-typed K.λ-step (i.e., the `K ≁ R` regime selected here) cannot extend `L_R^Σ` and therefore cannot expand `nullified(Σ)`, so no τ ∈ A_K^Σ leaves `A_K` at this step — concurrent nullification is structurally impossible in Case B, not a conditional precondition. The complementary `K ~ R` regime is routed to Case D below, where the step is by definition an `Emit_R`-step at the same `~`-class as K and the simultaneous addition-and-possible-contraction structure is handled via the candidate-set argument plus the structural bound `|leaving| ≤ 1`. The case-decomposition exhausts the simultaneous-effect possibilities at the K.λ class: Case B covers `K ≁ R` (no possible nullification), Case D covers `K ~ R` (possible nullification handled explicitly). By the *Emit_K routing commitment*, this K.λ-step originates as an `Emit_K` call (with K or `~`-equivalent registered type). By the *Sh4 idempotency contract* clause (iii), the emission proceeded only because `C(F, G, Σ) = ∅`. Let `τ_new` be the new tuple. Suppose, toward contradiction, that some prior `τ ∈ A_K^Σ` satisfies `(slot_addrs(F_τ), slot_addrs(G_τ)) = (slot_addrs(F_{τ_new}), slot_addrs(G_{τ_new}))`. Then by definition `τ ∈ C(F, G, Σ)`, contradicting `C(F, G, Σ) = ∅`. So no such `τ` exists, and `A_K^{Σ'}` extends with a slot-pair-unique element. The pairwise condition is preserved: existing pairs were Sh4-distinct by IH; `τ_new` shares no slot-pair with any prior active tuple.
 
-*Step (Case C: `A_K^{Σ'} ⊆ A_K^Σ` strictly, an `Emit_R`-step nullifying one or more K-tuple addresses without adding to A_K).* Retraction filters `A_K^Σ` by `nullified(Σ)` membership but cannot introduce new K-tuples; the pairwise condition is preserved on any subset. This case fires when `K ≁ R` (so the Emit_R step's `τ_new` does not join `A_K`). The complementary `K ~ R` sub-case — where one might expect "self-retraction" of `τ_new` by the same step — is empty by Lemma — RetractionSelfFreshness (stated above, before the Base), part (i): under `K ~ R` the Lemma's self-nullification clause gives `addr(τ_new) ∉ coverage(G_{τ_new})`, so `τ_new` is never self-nullified. The `K ~ R` simultaneous-effect case where τ_new adds to A_R and one or more *prior* R-tuples leave is Case D below.
+*Step (Case C: `A_K^{Σ'} ⊆ A_K^Σ` strictly, an `Emit_R`-step nullifying one or more K-tuple addresses without adding to A_K).* Retraction filters `A_K^Σ` by `nullified(Σ)` membership but cannot introduce new K-tuples; the pairwise condition is preserved on any subset. This case fires when `K ≁ R` (so the Emit_R step's `τ_new` does not join `A_K`). The complementary `K ~ R` sub-case — where one might expect "self-retraction" of `τ_new` by the same step — is empty by the hoisted Lemma — RetractionSelfFreshness (top-level section above), part (i): under `K ~ R` the Lemma's self-nullification clause gives `addr(τ_new) ∉ coverage(G_{τ_new})`, so `τ_new` is never self-nullified. The `K ~ R` simultaneous-effect case where τ_new adds to A_R and one or more *prior* R-tuples leave is Case D below.
 
 *Step (Case D: K ~ R, `Emit_R`-step adding τ_new to A_R while potentially nullifying prior R-tuple addresses).* By RetractionSelfFreshness, τ_new ∈ A_R^{Σ'}. Combined with `nullified(·)`-filtering, `A_R^{Σ'} = (A_R^Σ ∪ {τ_new}) \ leaving` where `leaving := {τ ∈ A_R^Σ : addr(τ) ∈ coverage(G_{τ_new})}`. This case-description equation follows by unfolding ASN-0086's `A_K^Σ` and `nullified` Definitions at Σ': R3 gives `L_R^{Σ'} = L_R^Σ ∪ {τ_new}`; splitting `nullified(Σ')`'s existential by prior-tuple vs new-tuple witness yields `nullified(Σ') = nullified(Σ) ∪ {a : a ∈ coverage(G_{τ_new})}` restricted to `A_rel^{Σ'}`; substituting into `A_R^{Σ'}`'s Definition and applying RetractionSelfFreshness's `addr(τ_new) ∉ nullified(Σ')` yields the equation. When `leaving = ∅` the step is pure addition; when `|leaving| = 1` it is `+1, −1`.
 
@@ -488,7 +547,7 @@ The substrate's relations fall into a small fixed set of canonical shapes. Each 
 
 We walk the canonical shapes and exhibit the predicate templates each generates.
 
-*Common rejection patterns.* Walkthroughs cite these patterns by number; the Comment walkthrough below derives patterns 1–4 in full as canonical references, with pattern 5 derived first at Classifier.
+*Common rejection patterns.* Walkthroughs cite these patterns by number; the Comment walkthrough below derives patterns 1–4 in full as canonical references, pattern 5 is derived first at Classifier, and pattern 6 is derived first at BundledDirectedPair (the *Sh4 suppression on a duplicate empty-G attempt* sub-section of the BundledDirectedPair walkthrough).
 
 1. *Non-canonical from/to-set rejection* (Sh-conf clause (a)/(b) failure).
 2. *Unallocated target rejection* (Sh-conf clause (d) failure, allocation aspect).
@@ -593,7 +652,7 @@ The layer commits to executing (i)–(iii) atomically with respect to other emit
 
 Fix `K ∈ T_cat` with FDD registered. By the same off-diagonal/diagonal split as in Sh4 (see *Universal scope* above), the substantive content of FDD's property `(A τ, τ' ∈ A_K^Σ : from₁(τ) = from₁(τ') :: addr(τ) = addr(τ'))` is that no two *distinct* active K-tuples share a from-slot value; the diagonal `τ = τ'` is trivial by reflexivity of `addr(·) = addr(·)`. The candidate set `C_fd(F, Σ) := {τ ∈ A_K^Σ : slot_addrs(F_τ) = slot_addrs(F)}` is broader in scope than Sh4's `C(F, G, Σ)` — it matches on from-slot alone rather than on the slot-pair — so `C ⊆ C_fd` at every state. The discipline is therefore *stricter as a gate* (more candidate sets are non-empty, so more emissions are suppressed) even though its candidate set is broader.
 
-*Base.* At `Σ_0 = Σ_init` (per the framework's empty-baseline assumption, *Initial-state baseline for preservation proofs* in the Initial-State Baseline section above), `L_K^{Σ_0} = A_K^{Σ_0} = ∅`; FDD's universal is vacuous.
+*Base.* At `Σ_init` (per the framework's empty-baseline assumption, *Initial-state baseline for preservation proofs* in the Initial-State Baseline section above), `L_K^{Σ_init} = A_K^{Σ_init} = ∅`; FDD's universal is vacuous.
 
 *Step (Case A: `A_K^{Σ'} = A_K^Σ`).* The active subset is unchanged at K. FDD is inherited directly from the IH: the same set of pairs `(τ, τ')` over `A_K` is being quantified over, with the same `from₁` values, so the implication's consequent is unchanged at every pair. This case covers all K.σ-steps, K.α-steps, K.λ-steps emitting a tuple of any type `K'` with `K' ≁ K` and `K' ≁ R` (so `L_K` and `nullified` are both untouched at K), and all arrangement-modifying steps in `↦ \ →` (by LinkStoreInvarianceUnderArrangement).
 
@@ -675,7 +734,7 @@ The Boolean `pair_K`'s G-side argument is an *address-set pattern* `Ĝ` matched 
 
 *Worked example.* Register `K = citation.depends` with the BundledDirectedPair shape (`T_cat = {citation.depends, R}`), pre-allocating a citing document `d_cite ∈ A_doc^{Σ_0}`, three cited documents `d_src1, d_src2, d_src3 ∈ A_doc^{Σ_0}`, and a home `home_cite ∈ dom(Σ_0.M)` with `dom(Σ_0.L) = ∅`.
 
-*Timeline structure.* The walkthrough's main timeline runs `Σ_0 → Σ_1 → Σ_2` via two emissions exercising the shape's two non-empty G-cardinality regimes — Emission BDP1 (bundled multi-target, `|slot_addrs(G)| = 3`) at `Σ_0 → Σ_1`, then Emission BDP2 (legacy single-target, `|slot_addrs(G)| = 1`) at `Σ_1 → Σ_2`. A separately-labeled *alternative continuation from Σ_0* — Emission BDP0 exercising the empty-G boundary `|slot_addrs(G)| = 0` — is presented at the end of this walkthrough; that branch produces a parallel state Σ_0a and does *not* extend the main timeline. Template evaluation at Σ_2 uses only the main timeline's active subset `A_K^{Σ_2} = {γ_1, γ_2}`.
+*Timeline structure.* The walkthrough's main timeline runs `Σ_0 → Σ_1 → Σ_2` via two emissions exercising the shape's two non-empty G-cardinality regimes — Emission BDP1 (bundled multi-target, `|slot_addrs(G)| = 3`) at `Σ_0 → Σ_1`, then Emission BDP2 (legacy single-target, `|slot_addrs(G)| = 1`) at `Σ_1 → Σ_2`. A separately-presented *narrative variant* — Emission BDP0 exercising the empty-G boundary `|slot_addrs(G)| = 0` — is presented at the end of this walkthrough; this variant returns to `Σ_0` (the same starting state) and applies a different first-step emission, producing a successor state we call `Σ_1'` (apostrophe-disambiguated from the main timeline's `Σ_1`). The "parallel" terminology in subsequent prose refers to the walkthrough author's choice of two separate first-step explorations from the same `Σ_0`, *not* to parallel reachability in the state graph (which is sequential under `↦`). Template evaluation at Σ_2 uses only the main timeline's active subset `A_K^{Σ_2} = {γ_1, γ_2}`; `Σ_1'` and any state reachable only from it are exhibited solely for the empty-G discussion and never compose into the main timeline.
 
 **Emission BDP1 (bundled multi-target, `|slot_addrs(G)| = 3`).** `Emit_K(Σ_0, home_cite, F_BDP1, G_BDP1)` with `F_BDP1 = {(d_cite, δ(1, #d_cite))}` and `G_BDP1 = {(d_src1, δ(1, #d_src1)), (d_src2, δ(1, #d_src2)), (d_src3, δ(1, #d_src3))}` (bundled dependency on three sources).
 
@@ -694,7 +753,7 @@ The Boolean `pair_K`'s G-side argument is an *address-set pattern* `Ĝ` matched 
 | `pair_K(d_cite, {d_src1, d_src2, d_src3})` | `(E τ ∈ A_K^{Σ_2} :: from₁(τ) = d_cite ∧ slot_addrs(G_τ) = {d_src1, d_src2, d_src3}) = true` | Witnessed by γ_1; set-equality test on G. |
 | `pair_K(d_cite, {d_src1})` | `= true` | Witnessed by γ_2; legacy single-target shape. |
 | `pair_K(d_cite, {d_src1, d_src2})` | `= false` | No τ has G-slot exactly `{d_src1, d_src2}`. |
-| `pair_K(d_cite, ∅)` | `= false` | Empty-G cardinality boundary: BDP1 and BDP2 both emitted non-empty G, so no active τ at Σ_2 has empty G-slot. The alternative continuation BDP0 below would produce a γ_0 with empty G-slot at the parallel state Σ_0a; in that branch `pair_K(d_cite, ∅)` would evaluate to `true`. The present (main-timeline) value `false` reflects that γ_0 is not in `A_K^{Σ_2}`. |
+| `pair_K(d_cite, ∅)` | `= false` | Empty-G cardinality boundary: BDP1 and BDP2 both emitted non-empty G, so no active τ at Σ_2 has empty G-slot. The narrative-variant emission BDP0 below would produce a γ_0 with empty G-slot at the alternative successor state `Σ_1'` of `Σ_0`; in that variant `pair_K(d_cite, ∅)` would evaluate to `true`. The present (main-timeline) value `false` reflects that γ_0 is not in `A_K^{Σ_2}` — `Σ_1'` is not a predecessor of `Σ_2` on the main timeline. |
 | `from_K(d_cite)` | `{τ ∈ A_K^{Σ_2} : from₁(τ) = d_cite} = {γ_1, γ_2}` | Both tuples from the same citing document. |
 | `to_K(d_src1)` | `{τ ∈ A_K^{Σ_2} : d_src1 ∈ slot_addrs(G_τ)} = {γ_1, γ_2}` | Both tuples reference d_src1 (γ_1 via the bundle, γ_2 directly). |
 | `to_K(d_src2)` | `= {γ_1}` | Only γ_1's bundle references d_src2. |
@@ -704,13 +763,13 @@ The Boolean `pair_K`'s G-side argument is an *address-set pattern* `Ĝ` matched 
 
 The bundled (γ_1) and legacy (γ_2) tuples co-exist in the same active subset under one registration; `pair_K`'s set-equality test distinguishes the two regimes at the Boolean level, while membership-based `to_K(b)` admits queries that don't care about the bundle structure.
 
-**Alternative continuation from Σ_0 — Emission BDP0 (empty-G boundary, `|slot_addrs(G)| = 0`).** To exhibit the `n = 0` admissibility flagged in the *Empty-G admissibility* paragraph above, consider the parallel branch from the same `Σ_0` that the main timeline started from: fire `Emit_K(Σ_0, home_cite, F_BDP0, G_BDP0)` with `F_BDP0 = {(d_cite, δ(1, #d_cite))}` and `G_BDP0 = ∅` — citing document declares no dependency targets at all. **This branch produces a parallel state Σ_0a and does not extend the main timeline above.** Σ_0a is exhibited only to walk the `n = 0` admissibility and the corresponding Sh4 suppression behavior; γ_0 never enters `A_K^{Σ_1}`, `A_K^{Σ_2}`, or any subsequent main-timeline state.
+**Narrative variant from Σ_0 — Emission BDP0 (empty-G boundary, `|slot_addrs(G)| = 0`).** To exhibit the `n = 0` admissibility flagged in the *Empty-G admissibility* paragraph above, return to the same `Σ_0` the main timeline started from and apply a different first-step emission: fire `Emit_K(Σ_0, home_cite, F_BDP0, G_BDP0)` with `F_BDP0 = {(d_cite, δ(1, #d_cite))}` and `G_BDP0 = ∅` — citing document declares no dependency targets at all. **This first step produces a successor state `Σ_1'` of `Σ_0` (apostrophe-disambiguated from the main timeline's `Σ_1`) and is presented as a narrative variant, not as a parallel run of the state graph.** `Σ_1'` is exhibited only to walk the `n = 0` admissibility and the corresponding Sh4 suppression behavior; γ_0 never enters `A_K^{Σ_1}`, `A_K^{Σ_2}`, or any subsequent main-timeline state.
 
-*Sh-conf check at Σ_0 (alternative branch).* F_BDP0 canonical-slot with `slot_addrs(F_BDP0) = {d_cite}`, `|·| = 1`, `match(1, c_F = 1)` ✓. G_BDP0 is canonical-slot trivially with `slot_addrs(G_BDP0) = ∅`, `|·| = 0`, `match(0, c_G = *)` ✓ (since `0 ∈ ℕ`). Target-domain: `{d_cite} ⊆ A_doc^{Σ_0}` ✓; `∅ ⊆ A_doc^{Σ_0}` vacuously ✓. Sh4 contract clause (i) computes `C(F_BDP0, G_BDP0, Σ_0) = ∅` (no prior K-tuples at Σ_0). Clause (iii) issues. Admitted. Result Σ_0a with new tuple γ_0 having `slot_addrs(F_{γ_0}) = {d_cite}` and `slot_addrs(G_{γ_0}) = ∅`.
+*Sh-conf check at Σ_0 (variant).* F_BDP0 canonical-slot with `slot_addrs(F_BDP0) = {d_cite}`, `|·| = 1`, `match(1, c_F = 1)` ✓. G_BDP0 is canonical-slot trivially with `slot_addrs(G_BDP0) = ∅`, `|·| = 0`, `match(0, c_G = *)` ✓ (since `0 ∈ ℕ`). Target-domain: `{d_cite} ⊆ A_doc^{Σ_0}` ✓; `∅ ⊆ A_doc^{Σ_0}` vacuously ✓. Sh4 contract clause (i) computes `C(F_BDP0, G_BDP0, Σ_0) = ∅` (no prior K-tuples at Σ_0). Clause (iii) issues. Admitted. Result `Σ_1'` with new tuple γ_0 having `slot_addrs(F_{γ_0}) = {d_cite}` and `slot_addrs(G_{γ_0}) = ∅`.
 
-*Sh4 suppression on a duplicate empty-G attempt (within the alternative branch).* From Σ_0a, attempt a *second* identical call `Emit_K(Σ_0a, home_cite, F_BDP0, G_BDP0)`. Sh4 contract clause (i) computes `C(F_BDP0, G_BDP0, Σ_0a) = {τ ∈ A_K^{Σ_0a} : slot_addrs(F_τ) = {d_cite} ∧ slot_addrs(G_τ) = ∅} = {γ_0}` (exact slot-pair-equality on the empty set matches γ_0 directly). Clause (ii) *suppresses*: `Emit_K` returns `⊥`, state remains Σ_0a, `A_K^{Σ_0a} = {γ_0}` unchanged — the empty-G slot-pair behaves identically to non-empty-G slot-pairs under Sh4.
+*Sh4 suppression on a duplicate empty-G attempt (within the variant).* From `Σ_1'`, attempt a *second* identical call `Emit_K(Σ_1', home_cite, F_BDP0, G_BDP0)`. Sh4 contract clause (i) computes `C(F_BDP0, G_BDP0, Σ_1') = {τ ∈ A_K^{Σ_1'} : slot_addrs(F_τ) = {d_cite} ∧ slot_addrs(G_τ) = ∅} = {γ_0}` (exact slot-pair-equality on the empty set matches γ_0 directly). Clause (ii) *suppresses*: `Emit_K` returns `⊥`, state remains `Σ_1'`, `A_K^{Σ_1'} = {γ_0}` unchanged — the empty-G slot-pair behaves identically to non-empty-G slot-pairs under Sh4.
 
-*Template evaluation at Σ_0a (alternative branch).* `A_K^{Σ_0a} = {γ_0}`. `pair_K(d_cite, ∅) = true` (witnessed by γ_0); `pair_K(d_cite, {d_src1})` and similar non-empty-G probes evaluate to `false` at Σ_0a (γ_0 has empty G-slot, so its slot-pair `({d_cite}, ∅)` does not match any non-empty G-pattern). This is the parallel reading the main-timeline table's `pair_K(d_cite, ∅)` row contrasts against; under the main timeline at Σ_2, the same probe evaluates to `false` because the main-timeline emissions never produced an empty-G tuple.
+*Template evaluation at `Σ_1'` (variant).* `A_K^{Σ_1'} = {γ_0}`. `pair_K(d_cite, ∅) = true` (witnessed by γ_0); `pair_K(d_cite, {d_src1})` and similar non-empty-G probes evaluate to `false` at `Σ_1'` (γ_0 has empty G-slot, so its slot-pair `({d_cite}, ∅)` does not match any non-empty G-pattern). This is the variant reading the main-timeline table's `pair_K(d_cite, ∅)` row contrasts against; under the main timeline at Σ_2, the same probe evaluates to `false` because the main-timeline emissions never produced an empty-G tuple, and `Σ_1'` is not a predecessor of `Σ_2`.
 
 *Rejection case BDP3 (cardinality mismatch under a hypothetical `c_G = 1` re-registration).* If `K = citation.depends` had been registered at the prior `c_G = 1` shape, Emission BDP1 would have failed Sh-conf clause (c) with `match(3, c_G = 1) = false`. The new `c_G = *` registration is what admits BDP1; the new shape's strict superset relationship `{n ∈ ℕ : match(n, 1)} = {1} ⊂ ℕ = {n ∈ ℕ : match(n, *)}` formalizes the backward-compatible widening. ✗ at `c_G = 1`, ✓ at `c_G = *`.
 
@@ -780,7 +839,7 @@ Unlike the *Sh4 idempotency contract* and the *FDD functional-dependency contrac
 The single-home property `(A τ ∈ L_K^Σ :: home(addr(τ)) = d_K)` is the homed-set commitment: every K-tuple ever emitted resides under `d_K`. The companion property `S_d ⊆ {chain elements at d_K}` for every `d ∈ A_doc^Σ` follows directly: `S_d = {τ ∈ A_K^Σ : to₁(τ) = d} ⊆ A_K^Σ ⊆ L_K^Σ`, and every τ ∈ L_K^Σ has `home(addr(τ)) = d_K` by the homed-set commitment, hence `addr(τ)` is a chain element at `d_K` by the *Per-document link sub-allocator chains* scaffolding clause.
 
 
-*Base.* At `Σ_0 = Σ_init`, `L_K^{Σ_0} = ∅`; the universal `(A τ ∈ L_K^{Σ_0} :: home(addr(τ)) = d_K)` is vacuous.
+*Base.* At `Σ_init`, `L_K^{Σ_init} = ∅`; the universal `(A τ ∈ L_K^{Σ_init} :: home(addr(τ)) = d_K)` is vacuous.
 
 *Step (Case A: `L_K^{Σ'} = L_K^Σ`).* `L_K` is unchanged. The property is inherited tuple-by-tuple from the IH (no new τ to check; existing τ retain `home(addr(τ)) = d_K`).
 
@@ -863,26 +922,44 @@ To verify the framework on a concrete instance, register `K = comment` at NonIde
 
 *Sh-conf check at Σ_0.* F_1 canonical-slot, `slot_addrs(F_1) = {d_1}`, `|{d_1}| = 1`, matches `c_F = 1`. G_1 canonical-slot, `slot_addrs(G_1) = {d_2}`, `|{d_2}| = 1`, matches `c_G = 1`. `{d_1} ⊆ A_doc^{Σ_0}` (d_1 allocated) and `{d_2} ⊆ A_doc^{Σ_0}` (d_2 allocated). Admitted. ✓
 
-**Emission 2.** `Emit_K(Σ_1, home_K, F_2, G_2)` with `F_2 = {(d_2, δ(1, #d_2))}` (commenter is d_2) and `G_2 = {(d_2, δ(1, #d_2))}` (target is d_2 again). Let the result be Σ_2 with new tuple `τ_2`. K.λ's subsequent-emission branch now fires at home_K: `{ℓ' ∈ dom(Σ_1.L) : origin(ℓ') = home_K} = {a_1}` (non-empty after Emission 1), so `ℓ_prev = max{a_1} = a_1` under T1 and `a_2 := addr(τ_2) = inc(a_1, 0)` (ASN-0086, K.λ subsequent-emission deposit address).
+**Emission 1' (non-idempotency demonstration).** `Emit_K(Σ_1, home_K, F_1, G_1)` with the *exact same* `F_1 = {(d_1, δ(1, #d_1))}` and `G_1 = {(d_2, δ(1, #d_2))}` as Emission 1 — a literal re-emission of the same slot-pair from the same commenter to the same target. Let the result be Σ_1' with new tuple `τ_1'`. K.λ's subsequent-emission branch fires at home_K: `{ℓ' ∈ dom(Σ_1.L) : origin(ℓ') = home_K} = {a_1}` (non-empty after Emission 1), so `ℓ_prev = max{a_1} = a_1` under T1 and `a_1' := addr(τ_1') = inc(a_1, 0)` (ASN-0086, K.λ subsequent-emission deposit address). Crucially, `addr(τ_1') = a_1' ≠ a_1 = addr(τ_1)` (T10a.7 EnumerationInjectivity, ASN-0034 — distinct chain indices yield distinct tumblers).
 
-*Sh-conf check at Σ_1.* Symmetric to Emission 1. Admitted. ✓
+*Sh-conf check at Σ_1.* Identical to Emission 1's Sh-conf check; same canonical-slot, same cardinality match, same target-domain inclusion (the allocated-address sets are monotone, so `{d_1}, {d_2} ⊆ A_doc^{Σ_1}` still). Admitted. ✓
 
-**Sh0–Sh3 hold at Σ_2 by direct check.** `L_K^{Σ_2} = {τ_1, τ_2}`. Per-tuple verification:
+*Why no Sh4 suppression fires.* `comment` has `shape(K).idem = ⊥` (NonIdempotentDirectedPair), so K is not registered under the *Sh4 idempotency contract*. The Sh4 contract's gate-3 candidate-set check `C(F_1, G_1, Σ_1)` is *not executed* — gate 3 is skipped entirely at idem = ⊥ K not under FDD (per the *Gate Ordering* consolidated section). Compare against the hypothetical case where `comment` were registered with `idem = ⊤`: then `C(F_1, G_1, Σ_1) = {τ_1}` (slot-pair `({d_1}, {d_2})` matches τ_1 exactly), clause (ii) would suppress, and `Emit_K` would return `⊥`. The defining feature of NonIdempotentDirectedPair is exactly this admission of slot-pair-identical re-emissions as distinct active tuples. After Emission 1': `L_K^{Σ_1'} = A_K^{Σ_1'} = {τ_1, τ_1'}` — two active tuples with the *same* slot-address pair `({d_1}, {d_2})` but distinct tuple addresses `a_1 ≠ a_1'`.
+
+**Emission 2.** `Emit_K(Σ_1', home_K, F_2, G_2)` with `F_2 = {(d_2, δ(1, #d_2))}` (commenter is d_2) and `G_2 = {(d_2, δ(1, #d_2))}` (target is d_2 again). Let the result be Σ_2 with new tuple `τ_2`. K.λ's subsequent-emission branch fires at home_K: `{ℓ' ∈ dom(Σ_1'.L) : origin(ℓ') = home_K} = {a_1, a_1'}` (non-empty after Emissions 1 and 1'), so `ℓ_prev = max{a_1, a_1'} = a_1'` under T1 (since `a_1' = inc(a_1, 0) > a_1` by TA5(a), ASN-0034) and `a_2 := addr(τ_2) = inc(a_1', 0)` (ASN-0086, K.λ subsequent-emission deposit address).
+
+*Sh-conf check at Σ_1'.* Symmetric to Emission 1. Admitted. ✓
+
+**Sh0–Sh3 hold at Σ_2 by direct check.** `L_K^{Σ_2} = {τ_1, τ_1', τ_2}`. Per-tuple verification:
 
 - *τ_1:* `slot_addrs(F_1) = {d_1}`, `|{d_1}| = 1`, `match(1, c_F = 1)` ✓ (Sh0); `slot_addrs(G_1) = {d_2}`, `|{d_2}| = 1`, `match(1, c_G = 1)` ✓ (Sh1); `{d_1} ⊆ A_doc^{Σ_2}` ✓ (Sh2, `d_1` is allocated since `d_1 ∈ A_doc^{Σ_0} ⊆ A_doc^{Σ_2}` by allocated-set monotonicity); `{d_2} ⊆ A_doc^{Σ_2}` ✓ (Sh3, same).
+- *τ_1':* `slot_addrs(F_{τ_1'}) = {d_1}`, `|{d_1}| = 1`, `match(1, c_F = 1)` ✓ (Sh0); `slot_addrs(G_{τ_1'}) = {d_2}`, `|{d_2}| = 1`, `match(1, c_G = 1)` ✓ (Sh1); `{d_1} ⊆ A_doc^{Σ_2}` ✓ (Sh2); `{d_2} ⊆ A_doc^{Σ_2}` ✓ (Sh3). The slot-address sets coincide with τ_1's, but Sh0–Sh3 quantify over each tuple independently — the per-tuple checks discharge identically without any pairwise-distinctness obligation. Sh4 would impose pairwise distinctness, but Sh4 is conditional on `shape(K).idem = ⊤`, and `comment`'s `idem = ⊥` excludes this K from Sh4's universal.
 - *τ_2:* `slot_addrs(F_2) = {d_2}`, `|{d_2}| = 1`, `match(1, c_F = 1)` ✓ (Sh0); `slot_addrs(G_2) = {d_2}`, `|{d_2}| = 1`, `match(1, c_G = 1)` ✓ (Sh1); `{d_2} ⊆ A_doc^{Σ_2}` ✓ (Sh2 and Sh3, same slot address).
 
-The per-tuple checks discharge each invariant pointwise; the universal quantifier in Sh0–Sh3 closes by inspection of the two-element relation.
+The per-tuple checks discharge each invariant pointwise; the universal quantifier in Sh0–Sh3 closes by inspection of the three-element relation. The slot-pair coincidence `(slot_addrs(F_{τ_1}), slot_addrs(G_{τ_1})) = (slot_addrs(F_{τ_1'}), slot_addrs(G_{τ_1'})) = ({d_1}, {d_2})` is admissible because `comment` is not under Sh4.
 
 **Template evaluation at Σ_2.** Suppose no Resolution tuples have been emitted yet, so `A_{K_res}^{Σ_2} = ∅` for a chosen Resolution relation `K_res` of shape `(1, 1, A_doc, A_rel, ⊤)`. (The layer selects `K_res` as the resolver vocabulary; the framework imposes no co-registration.) Compute:
 
-`A_K^{Σ_2} = L_K^{Σ_2} \ nullified(Σ_2) = {τ_1, τ_2}` (no retractions issued).
+`A_K^{Σ_2} = L_K^{Σ_2} \ nullified(Σ_2) = {τ_1, τ_1', τ_2}` (no retractions issued).
+
+The NonIdempotentDirectedPair base templates evaluate at Σ_2 as:
+
+| Template | Evaluation at Σ_2 | Notes |
+|---|---|---|
+| `pair_K(d_1, d_2)` | `(E τ ∈ A_K^{Σ_2} :: from₁(τ) = d_1 ∧ to₁(τ) = d_2) = true` | Witnessed by *either* τ_1 *or* τ_1' (or both — pair_K is Boolean, so multiplicity is not visible at the witness level). |
+| `from_K(d_1)` | `{τ ∈ A_K^{Σ_2} : from₁(τ) = d_1} = {τ_1, τ_1'}` | Both tuples have from₁(·) = d_1 (Emission 1 and Emission 1'). The slot-pair-identical tuples are kept distinct by tuple address (R1, ASN-0086) — the set carries both, exhibiting the non-idempotency that Sh4 would otherwise suppress. |
+| `from_K(d_2)` | `{τ_2}` | Only τ_2 has from₁(·) = d_2. |
+| `to_K(d_2)` | `{τ ∈ A_K^{Σ_2} : to₁(τ) = d_2} = {τ_1, τ_1', τ_2}` | All three active tuples target d_2; the multiplicity at τ_1 vs τ_1' is preserved in the tuple-valued accessor. |
+| `to_addrs_K(d_1)` | `{to₁(τ) : τ ∈ A_K^{Σ_2} ∧ from₁(τ) = d_1} = {d_2}` | The set comprehension collapses τ_1 and τ_1' onto their shared to-address d_2; the address-valued projection is therefore a singleton even though `from_K(d_1)` has two tuples. |
+| `from_addrs_K(d_2)` | `{from₁(τ) : τ ∈ A_K^{Σ_2} ∧ to₁(τ) = d_2} = {d_1, d_2}` | Address-side collapse across τ_1, τ_1', τ_2: τ_1 and τ_1' contribute d_1 (collapsed by set union); τ_2 contributes d_2. |
 
 `unresolved_K_comments_via(K_res, d_2) = {τ ∈ A_K^{Σ_2} : to₁(τ) = d_2 ∧ ¬resolved_by(τ, K_res)}`
 
-Both τ_1 and τ_2 have `to₁(·) = d_2`; for each, `resolved_by(τ, K_res)` requires `(E ρ ∈ A_{K_res}^{Σ_2} :: to₁(ρ) = addr(τ))`, vacuously false since `A_{K_res}^{Σ_2} = ∅`. So:
+All three of τ_1, τ_1', τ_2 have `to₁(·) = d_2`; for each, `resolved_by(τ, K_res)` requires `(E ρ ∈ A_{K_res}^{Σ_2} :: to₁(ρ) = addr(τ))`, vacuously false since `A_{K_res}^{Σ_2} = ∅`. So:
 
-`unresolved_K_comments_via(K_res, d_2) = {τ_1, τ_2}`
+`unresolved_K_comments_via(K_res, d_2) = {τ_1, τ_1', τ_2}`
 
 `all_K_resolved_via(K_res, d_2) = false`.
 
@@ -894,41 +971,49 @@ Both τ_1 and τ_2 have `to₁(·) = d_2`; for each, `resolved_by(τ, K_res)` re
 
 `A_{K_res}^{Σ_3} = {ρ_1}` (no nullification).
 
-`resolved_by(τ_1, K_res) = true` (ρ_1 witnesses); `resolved_by(τ_2, K_res) = false`.
+`resolved_by(τ_1, K_res) = true` (ρ_1 witnesses, since `to₁(ρ_1) = a_1 = addr(τ_1)`); `resolved_by(τ_1', K_res) = false` (ρ_1's to-slot is a_1, not a_1' = addr(τ_1') — the non-idempotency makes each slot-pair-identical tuple independently resolvable); `resolved_by(τ_2, K_res) = false`.
 
-`unresolved_K_comments_via(K_res, d_2) = {τ_2}`
+`unresolved_K_comments_via(K_res, d_2) = {τ_1', τ_2}`
 
-`all_K_resolved_via(K_res, d_2) = false` (τ_2 still unresolved).
+`all_K_resolved_via(K_res, d_2) = false` (τ_1' and τ_2 still unresolved).
 
-**Emission 4 (resolution of τ_2).** Emit `ρ_2` resolving τ_2 (analogous to Emission 3 with `G = {(a_2, δ(1, #a_2))}`). Result Σ_4.
+**Emission 4 (resolution of τ_1').** `ρ_1' := Emit_{K_res}(Σ_3, home_R, F_ρ, G_{ρ'})` with `F_ρ = {(d_2, δ(1, #d_2))}` and `G_{ρ'} = {(a_1', δ(1, #a_1'))}` (resolves τ_1'). Result Σ_4. *Sh-conf check at Σ_3 (under K_res shape).* F_ρ canonical-slot, `slot_addrs = {d_2}`, matches `c_F = 1`, `{d_2} ⊆ A_doc^{Σ_3}` (d_2 allocated). G_{ρ'} canonical-slot, `slot_addrs = {a_1'}`, matches `c_G = 1`, `{a_1'} ⊆ A_rel^{Σ_3}` (since `a_1' ∈ dom(Σ_1'.L) ⊆ dom(Σ_3.L)` by L12a monotonicity). Admitted. ✓ After this emission: `resolved_by(τ_1', K_res) = true` (ρ_1' witnesses).
 
-`unresolved_K_comments_via(K_res, d_2) = ∅`
+**Emission 5 (resolution of τ_2).** Emit `ρ_2` resolving τ_2 (analogous to Emission 3 with `G = {(a_2, δ(1, #a_2))}`). Result Σ_5.
 
-`all_K_resolved_via(K_res, d_2) = true`. The flag flips as expected.
+`A_K^{Σ_5} = {τ_1, τ_1', τ_2}` (no comment retractions issued; the resolution emissions extend `A_{K_res}`, not `A_K`).
 
-**Rejection case 1: non-canonical from-set.** From Σ_4, attempt `Emit_K(Σ_4, home_K, F_3, G_3)` with `F_3 = {(d_1, δ(2, #d_1))}` — a width-2 displacement violating canonical-slot form, which requires unit-width displacements `δ(1, #x)` (the canonical form fixes the last-component value at 1; values ≥ 2 are rejected). Here `δ(2, #d_1)` and the canonical `δ(1, #d_1)` share the same length `#d_1` — the displacement *depth* is identical; they differ only at the last component, where the canonical form admits the value 1 and rejects 2. Sh-conf clause (a) fails: `F_3` is not in canonical-slot form, so `slot_addrs(F_3)` is undefined (there is no `X_F` such that `F_3 = {(x, δ(1, #x)) : x ∈ X_F}`). The emission is rejected before any state transition. State remains Σ_4 unchanged; in particular `L_K^{Σ_4}, A_K^{Σ_4}` are not modified. ✗
+`A_{K_res}^{Σ_5} = {ρ_1, ρ_1', ρ_2}`.
+
+`unresolved_K_comments_via(K_res, d_2) = ∅` (all three comments now resolved).
+
+`all_K_resolved_via(K_res, d_2) = true`. The flag flips as expected. The fact that *two* resolution emissions (ρ_1 for τ_1 and ρ_1' for τ_1') were required to resolve the slot-pair-identical comments — even though their slot-pairs coincide — is a direct consequence of NonIdempotentDirectedPair's `idem = ⊥`: resolution targets *tuple addresses* (via R5 TupleSelfTargeting, ASN-0086), and the two slot-pair-identical comments have distinct tuple addresses, hence require distinct resolutions.
+
+**Rejection case 1: non-canonical from-set.** From Σ_5, attempt `Emit_K(Σ_5, home_K, F_3, G_3)` with `F_3 = {(d_1, δ(2, #d_1))}` — a width-2 displacement violating canonical-slot form, which requires unit-width displacements `δ(1, #x)` (the canonical form fixes the last-component value at 1; values ≥ 2 are rejected). Here `δ(2, #d_1)` and the canonical `δ(1, #d_1)` share the same length `#d_1` — the displacement *depth* is identical; they differ only at the last component, where the canonical form admits the value 1 and rejects 2. Sh-conf clause (a) fails: `F_3` is not in canonical-slot form, so `slot_addrs(F_3)` is undefined (there is no `X_F` such that `F_3 = {(x, δ(1, #x)) : x ∈ X_F}`). The emission is rejected before any state transition. State remains Σ_5 unchanged; in particular `L_K^{Σ_5}, A_K^{Σ_5}` are not modified. ✗
 
 Note that L4 (EndsetGenerality, ASN-0043) permits `F_3` in the substrate's link store at the level of endset well-formedness; the framework rejects it as a layer-level discipline imposed by Sh-conf. The substrate primitive K.λ would still accept `F_3` if invoked outside Emit_K — but per the *Emit_K routing commitment* (Scope and Substrate Scaffolding), the relational layer routes all class-(iii) emissions of `K ∈ T_cat` through Emit_K, so this bypass is not exercised within the framework's scope.
 
-**Rejection case 2: unallocated to-slot address.** From Σ_4, let `d_ghost ∈ T` be a tumbler outside `A^{Σ_4}` — an unallocated address (e.g., a future document not yet registered, or a deliberately-chosen ghost per L9 of ASN-0043). Attempt `Emit_K(Σ_4, home_K, F_4, G_4)` with `F_4 = {(d_1, δ(1, #d_1))}` (canonical-slot, `slot_addrs(F_4) = {d_1}`) and `G_4 = {(d_ghost, δ(1, #d_ghost))}` (canonical-slot, `slot_addrs(G_4) = {d_ghost}`). Sh-conf clause (d) fails on the G-side: `slot_addrs(G_4) = {d_ghost}` is not a subset of `t_G^{Σ_4} = A_doc^{Σ_4}` because `d_ghost ∉ A_doc^{Σ_4}`. The emission is rejected before any state transition. State remains Σ_4. ✗
+**Rejection case 2: unallocated to-slot address.** From Σ_5, let `d_ghost ∈ T` be a tumbler outside `A^{Σ_5}` — an unallocated address (e.g., a future document not yet registered, or a deliberately-chosen ghost per L9 of ASN-0043). Attempt `Emit_K(Σ_5, home_K, F_4, G_4)` with `F_4 = {(d_1, δ(1, #d_1))}` (canonical-slot, `slot_addrs(F_4) = {d_1}`) and `G_4 = {(d_ghost, δ(1, #d_ghost))}` (canonical-slot, `slot_addrs(G_4) = {d_ghost}`). Sh-conf clause (d) fails on the G-side: `slot_addrs(G_4) = {d_ghost}` is not a subset of `t_G^{Σ_5} = A_doc^{Σ_5}` because `d_ghost ∉ A_doc^{Σ_5}`. The emission is rejected before any state transition. State remains Σ_5. ✗
 
 This rejection is constitutive of the framework's discipline: shapes restrict slot addresses to *already-allocated* targets at emission time. L9 (TypeGhostPermission, ASN-0043) admits ghost spans in endsets generally — including in the type-endset slot — but the shape framework forbids ghost addresses in *slot positions* of registered relations. Whether a future shape family should admit ghost-targeting slot semantics is an open question (see Open Questions).
 
-**Rejection case 3: cardinality mismatch.** From Σ_4, attempt `Emit_K(Σ_4, home_K, F_5, G_5)` with `F_5 = {(d_1, δ(1, #d_1)), (d_2, δ(1, #d_2))}` (canonical-slot, but `slot_addrs(F_5) = {d_1, d_2}` with `|·| = 2`) and `G_5 = {(d_2, δ(1, #d_2))}` (canonical-slot, single slot address). Sh-conf clause (c) fails on the F-side: `match(2, c_F = 1)` is false (cardinality 2 does not match the exact-1 requirement). The emission is rejected before any state transition. State remains Σ_4. ✗
+**Rejection case 3: cardinality mismatch.** From Σ_5, attempt `Emit_K(Σ_5, home_K, F_5, G_5)` with `F_5 = {(d_1, δ(1, #d_1)), (d_2, δ(1, #d_2))}` (canonical-slot, but `slot_addrs(F_5) = {d_1, d_2}` with `|·| = 2`) and `G_5 = {(d_2, δ(1, #d_2))}` (canonical-slot, single slot address). Sh-conf clause (c) fails on the F-side: `match(2, c_F = 1)` is false (cardinality 2 does not match the exact-1 requirement). The emission is rejected before any state transition. State remains Σ_5. ✗
 
 Symmetric rejection: emitting with `F_5' = ∅` against `c_F = 1` fails on `match(0, 1)`; emitting with the same `G_5` swapped for an empty G fails on `match(0, c_G = 1)`. Cardinality is the second of Sh-conf's three independently-checked structural gates (canonical form, cardinality, target domain); a mismatch at any gate rejects.
 
-**Rejection case 4: unregistered type (K ∉ T_cat).** Let `K_ghost ∈ T_admissible \ T_cat` be a non-empty type endset that has not been registered with the catalog — for example, a type endset whose coverage class corresponds to no canonical shape, perhaps because the calling layer has not yet declared the relation, or because the type was constructed ad-hoc and never added to `T_cat`. Attempt `Emit_{K_ghost}(Σ_4, home_K, F_6, G_6)` with arbitrary `F_6, G_6 ∈ Endset` — concretely, we reuse Emission 1's values: `F_6 = F_1 = {(d_1, δ(1, #d_1))}` and `G_6 = G_1 = {(d_2, δ(1, #d_2))}`, both canonical-slot and well-allocated. Sh-conf's first conjunct `K_ghost ∈ T_cat` is *false* at the coverage-equivalence membership test against the registered representative list (per the *Decidable membership* paragraph in the TypedRelationCatalog Definition above): `K_ghost`'s coverage class is not one of the registered classes, so no representative `K_rep` in the list satisfies `K_ghost ~ K_rep`. The emission is rejected at this gate; `Emit_K` returns `⊥` (per Sh-conf's extended return type) and no state transition occurs. The second conjunct `conf_{K_ghost}^{Σ_4}(F_6, G_6)` is unevaluable — `shape(K_ghost)` is undefined for unregistered K, so the conformance predicate has no shape tuple to test against — but the first conjunct's failure is sufficient to reject without proceeding to the conformance check. State remains Σ_4. ✗
+**Rejection case 4: unregistered type (K ∉ T_cat).** Let `K_ghost ∈ T_admissible \ T_cat` be a non-empty type endset that has not been registered with the catalog — for example, a type endset whose coverage class corresponds to no canonical shape, perhaps because the calling layer has not yet declared the relation, or because the type was constructed ad-hoc and never added to `T_cat`. Attempt `Emit_{K_ghost}(Σ_5, home_K, F_6, G_6)` with arbitrary `F_6, G_6 ∈ Endset` — concretely, we reuse Emission 1's values: `F_6 = F_1 = {(d_1, δ(1, #d_1))}` and `G_6 = G_1 = {(d_2, δ(1, #d_2))}`, both canonical-slot and well-allocated. Sh-conf's first conjunct `K_ghost ∈ T_cat` is *false* at the coverage-equivalence membership test against the registered representative list (per the *Decidable membership* paragraph in the TypedRelationCatalog Definition above): `K_ghost`'s coverage class is not one of the registered classes, so no representative `K_rep` in the list satisfies `K_ghost ~ K_rep`. The emission is rejected at this gate; `Emit_K` returns `⊥` (per Sh-conf's extended return type) and no state transition occurs. The second conjunct `conf_{K_ghost}^{Σ_5}(F_6, G_6)` is unevaluable — `shape(K_ghost)` is undefined for unregistered K, so the conformance predicate has no shape tuple to test against — but the first conjunct's failure is sufficient to reject without proceeding to the conformance check. State remains Σ_5. ✗
 
 The `K ∈ T_cat` gate is structurally separate from the three conformance gates (clauses (a)–(d) of Sh-conf). It protects the framework's invariants against accidental schema drift: only registered relations participate in shape-discipline reasoning, and emissions at unregistered types are rejected at the registry boundary regardless of how their `F, G` are structured. A layer that wants to admit `K_ghost` must first register it with the catalog — selecting a shape, committing to the per-class constancy of `shape(·)`, and accepting Sh-conf's structural gates for all subsequent emissions at that K.
 
-**Edge case: retraction of τ_1.** From Σ_4, issue `Nullify(Σ_4, d_retr, a_1)` producing Σ_5. By R6c (RestorationByReemission, ASN-0086), τ_1 is permanently removed from `A_K^Σ` for all future states. So:
+**Edge case: retraction of τ_1.** From Σ_5, issue `Nullify(Σ_5, d_retr, a_1)` producing Σ_6. By R6c (RestorationByReemission, ASN-0086), τ_1 is permanently removed from `A_K^Σ` for all future states. So:
 
-`A_K^{Σ_5} = {τ_2}` (τ_1 nullified; τ_2 remains).
+`A_K^{Σ_6} = {τ_1', τ_2}` (τ_1 nullified; τ_1' and τ_2 remain — τ_1' is unaffected by the retraction of τ_1, since the two have distinct tuple addresses despite sharing slot-pair).
 
-`unresolved_K_comments_via(K_res, d_2) = {τ ∈ A_K^{Σ_5} : to₁(τ) = d_2 ∧ ¬resolved_by(τ, K_res)} = ∅` (τ_2 still resolved by ρ_2, which is in `A_{K_res}^{Σ_5}`).
+`unresolved_K_comments_via(K_res, d_2) = {τ ∈ A_K^{Σ_6} : to₁(τ) = d_2 ∧ ¬resolved_by(τ, K_res)} = ∅` (τ_1' is still resolved by ρ_1' and τ_2 still resolved by ρ_2, both of which remain in `A_{K_res}^{Σ_6}`).
 
 `all_K_resolved_via(K_res, d_2) = true`.
+
+*Distinction from the idempotent case.* Under DirectedPair (idem = ⊤), Emission 1' would have been suppressed at gate 3 by Sh4, so τ_1' would never have entered A_K, and the retraction of τ_1 would have left `A_K^{Σ_6} = {τ_2}` — a single tuple at slot-pair ({d_1}, {d_2}) erased entirely. Under NonIdempotentDirectedPair (idem = ⊥), each emission produces a distinct active tuple, and retracting one leaves the others intact — this is the *event-distinct* semantics non-idempotent shapes are designed to preserve.
 
 The framework gives stable, well-typed answers across emission and retraction events. Sh0–Sh3 are preserved inductively, template signatures match the shape registry, and the active-subset machinery composes cleanly with retraction.
 
@@ -951,6 +1036,7 @@ The framework gives stable, well-typed answers across emission and retraction ev
 | Label | Type | Statement |
 |-------|------|-----------|
 | Sh-conf | AXIOM | Emit_K rejects unregistered types and non-conformant emissions; returns `⊥` on failure |
+| CaseAClosureForLK | LEMMA | Classifies the four ↦-step classes preserving `L_K^{Σ'} = L_K^Σ` (Case A) versus extending it by one tuple (Case B); shared by Sh0–Sh3 |
 | Sh0 | LEMMA | FromSlotCanonicalAndCardinalityFixed |
 | Sh1 | LEMMA | ToSlotCanonicalAndCardinalityFixed |
 | Sh2 | LEMMA | FromSlotTargetRestricted — `slot_addrs(F) ⊆ t_F^Σ` |
@@ -959,6 +1045,7 @@ The framework gives stable, well-typed answers across emission and retraction ev
 | SlotAccessorTotality | LEMMA | When `c = 1`, the point accessor is total |
 | AllocatedAddressAntichain | LEMMA | At a substrate-conforming layer, `cov_allocated({(x, δ(1, #x))}, Σ) = {x}` for every `x ∈ A^Σ` |
 | LinkAddressNotPrefixOfEmit | LEMMA | `b ⋠ a_emit(Σ, d)` for every `b ∈ dom(Σ.L)` and `d ∈ dom(Σ.M)` |
+| RetractionSelfFreshness | LEMMA | When R is registered and Sh-conf + Sh4 admit an `Emit_R` call to clause (iii), the freshly deposited tuple τ_new satisfies `addr(τ_new) ∉ nullified(Σ')` (equivalently, `τ_new ∈ A_R^{Σ'}`); hoisted as a top-level section before Sh4; cited by Sh4 Case C (self-retraction sub-case) and Case D (pivot for simultaneous addition-and-contraction); structurally dual to NullifyActiveSubsetCompatibility's R0a-driven postcondition on the target address |
 | EffectiveWpSimplification | COROLLARY | Under the *Emit_K routing commitment*, `wp_eff = d ∈ dom(Σ.M) ∧ K ∈ T_cat ∧ conf_K^Σ(F, G) ∧ Π_K` with `Π_K` capturing per-K discipline non-suppression |
 | NullifyActiveSubsetCompatibility | COROLLARY | Active-subset content of ASN-0086's Nullify postcondition holds at `Σ_target` whether the call issues or suppresses; audit-slice multiplicity not preserved |
 | Sh4 idempotency contract | CONTRACT | Observe-then-Emit protocol for idempotent K, atomically scoped at `~`-class of K |
