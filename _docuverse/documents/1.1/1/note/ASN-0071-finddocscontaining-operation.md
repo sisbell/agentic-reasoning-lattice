@@ -77,9 +77,17 @@ The resulting state `Σ` has:
 
 Construct the query `Q = {(d_A, σ_A)}` with `σ_A = (v_A, δ(1, 2))` — a single-position level-uniform span starting at `v_A` with width 1 in the content subspace.
 
-**Resolution.** The span denotes `⟦σ_A⟧ = {v_A}` (one position). The vspec preconditions hold: `subspace(v_A) = s_C`, `Pos(δ(1, 2))`, `actionPoint(δ(1, 2)) = 2 ≥ 2`, `actionPoint(δ(1, 2)) = 2 ≤ #v_A = 2`, `#δ(1, 2) = 2 = #v_A`. Resolving:
+**Resolution.** The vspec preconditions hold: `subspace(v_A) = s_C`, `Pos(δ(1, 2))`, `actionPoint(δ(1, 2)) = 2 ≥ 2`, `actionPoint(δ(1, 2)) = 2 ≤ #v_A = 2`, `#δ(1, 2) = 2 = #v_A`. Computing the reach: `v_A ⊕ δ(1, 2) = [s_C, 2]` by TumblerAdd (position 1 lies below the action point and is copied from `v_A`; position 2 is the action point itself and sums to `1 + 1 = 2`). So the span denotes the half-open interval
 
-  `iaddrs_one(d_A, σ_A)(Σ) = { M(d_A)(v) : v ∈ {v_A} ∩ dom(M(d_A)) } = { M(d_A)(v_A) } = { a₁ }`
+  `⟦σ_A⟧ = {t ∈ T : [s_C, 1] ≤ t < [s_C, 2]}`
+
+This set is infinite as a subset of `T`: by T1 case (ii), every extension `[s_C, 1, x₁, ..., x_m]` of any depth ≥ 3 exceeds `[s_C, 1]` (proper prefix); by T1 case (i) at position 2, every such tumbler lies below `[s_C, 2]` since `1 < 2`. The depth-2 tumblers in `⟦σ_A⟧` are exactly `{[s_C, 1]} = {v_A}`, but `⟦⋅⟧` is not depth-restricted. The intersection with `dom(M(d_A)) = {v_A}` filters the entire infinite reach down to a single position:
+
+  `⟦σ_A⟧ ∩ dom(M(d_A)) = {v_A}`
+
+Positions in `⟦σ_A⟧ \ dom(M(d_A))` are silently dropped (F-FILT). Hence:
+
+  `iaddrs_one(d_A, σ_A)(Σ) = { M(d_A)(v) : v ∈ {v_A} } = { M(d_A)(v_A) } = { a₁ }`
 
   `iaddrs(Q)(Σ) = { a₁ }`
 
@@ -96,6 +104,7 @@ Therefore `find(Q)(Σ) = {d_A, d_B}`.
 - *F-SHARE.* Both `d_A` and `d_B` are discovered by the same query, demonstrating cross-document discovery through shared I-address. The query named `(d_A, σ_A)` — `d_B` was not mentioned — yet `d_B` appears in the result because its arrangement references the resolved I-address.
 - *F-DIST.* Each document appears exactly once in `find(Q)(Σ) = {d_A, d_B}`, despite both satisfying the predicate. The result is a set; `d_A` is not duplicated even though it is both the source-document of `Q` and a member of the result.
 - *F-PART.* A single shared I-address (`a₁`) is sufficient for inclusion. The result does not require a document to reference any particular portion of the queried span.
+- *F-FILT.* The span `⟦σ_A⟧` is an infinite subset of `T`, but the intersection with `dom(M(d_A)) = {v_A}` reduces it to a single position. The operation does not reject `σ_A` for naming positions outside `d_A`'s arrangement — unresolvable positions contribute nothing and the query reads charitably over what is currently bound.
 - *F-CUR.* The result depends only on `Σ.M(d_A)` and `Σ.M(d_B)`. Were a later K.μ⁻ to contract `M(d_B)` to remove `v_B`, the query would return `{d_A}` only — `d_B` would no longer be currently containing, even though `(a₁, d_B) ∈ R` would persist (P2).
 - *Home/transcluding recovery.* `origin(a₁) = d_A` (S7), so the requester can distinguish: `d_A` is the home document of `a₁`, and `d_B` transcludes it. The operation itself does not tag the result; the tagging is a function the requester computes from each `a ∈ iaddrs(Q)` and each `d ∈ find(Q)`.
 
