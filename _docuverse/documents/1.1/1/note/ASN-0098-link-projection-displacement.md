@@ -68,6 +68,13 @@ Before we can reason about how projection displaces, we must pin down what does 
 
 This follows from L12 (ASN-0043) by component projection on the sequence: equal sequences have equal entries at every position. In particular, the slot-position assignment fixed at link creation — from-set at slot 1, to-set at slot 2, type-set at slot 3, and any additional slots — is structurally preserved. No editing operation can swap, relabel, or alter which slot carries which endset. The directionality of a standard triple (which end is "from", which is "to") is encoded in slot position alone, and slot position is immutable.
 
+**LP2★ — MultiStepSlotInvariance**: For every reachable state sequence `Σ →* Σ'`, every link `a ∈ dom(Σ.L)`, and every slot index `i ∈ {1, …, |Σ.L(a)|}`:
+```
+a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ
+```
+
+This is the reflexive-transitive closure of LP2. Proof by induction on the length of the transition sequence. The empty sequence (`Σ = Σ'`) gives the conjunction by reflexivity. For the inductive step, suppose `Σ →* Σ_n → Σ'` with `Σ_n.L(a).eᵢ = Σ.L(a).eᵢ` and `a ∈ dom(Σ_n.L)` by induction hypothesis. The single step `Σ_n → Σ'` gives `a ∈ dom(Σ'.L)` and `Σ'.L(a).eᵢ = Σ_n.L(a).eᵢ` by LP2, so by transitivity of equality the full chain holds.
+
 **LP3 — CoverageInvariance**: For every transition `Σ → Σ'`, every link `a`, and every slot `i`:
 ```
 coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)
@@ -141,6 +148,8 @@ The new V-positions that enter the projection are exactly the new arrangement en
 project(e, d, Σ') ∖ project(e, d, Σ) = {v ∈ dom(Σ'.M(d)) ∖ dom(Σ.M(d)) : Σ'.M(d)(v) ∈ coverage(e)}
 ```
 
+The forward inclusion (⊆): suppose `v ∈ project(e, d, Σ') ∖ project(e, d, Σ)`. Then `v ∈ dom(Σ'.M(d))` and `Σ'.M(d)(v) ∈ coverage(e)` by the first conjunct. For the second, either `v ∉ dom(Σ.M(d))` or `Σ.M(d)(v) ∉ coverage(e)`. The second alternative is excluded: if `v ∈ dom(Σ.M(d))`, the agreement clause gives `Σ.M(d)(v) = Σ'.M(d)(v) ∈ coverage(e)`, contradicting `v ∉ project(e, d, Σ)`. So `v ∉ dom(Σ.M(d))`, placing `v ∈ dom(Σ'.M(d)) ∖ dom(Σ.M(d))`. The reverse inclusion (⊇): if `v ∈ dom(Σ'.M(d)) ∖ dom(Σ.M(d))` with `Σ'.M(d)(v) ∈ coverage(e)`, then `v ∈ project(e, d, Σ')` directly; and `v ∉ project(e, d, Σ)` since `v ∉ dom(Σ.M(d))`.
+
 When K.μ⁺ adds entries mapping V-positions to newly K.α-allocated I-addresses, those I-addresses lie outside any existing endset's coverage (the typical case — formalised below as LP19), and the projection does not grow. When K.μ⁺ adds entries mapping V-positions to *existing* I-addresses (the transclusion case), the projection grows by precisely those new V-positions whose mappings fall in coverage. This is the mechanism by which a link "comes into view" in a document that newly transcludes its target content. K.μ⁺_L exhibits the same growth behaviour for link-subspace V-positions when an existing link address is admitted into a home-document arrangement.
 
 **LP10 — Contraction under K.μ⁻**: For every K.μ⁻ transition `Σ → Σ'` operating on `d`, and every endset `e`:
@@ -154,6 +163,8 @@ The V-positions that leave the projection are exactly the arrangement entries re
 ```
 project(e, d, Σ) ∖ project(e, d, Σ') = {v ∈ dom(Σ.M(d)) ∖ dom(Σ'.M(d)) : Σ.M(d)(v) ∈ coverage(e)}
 ```
+
+The forward inclusion (⊆): if `v ∈ project(e, d, Σ) ∖ project(e, d, Σ')`, then `v ∈ dom(Σ.M(d))` and `Σ.M(d)(v) ∈ coverage(e)` by the first conjunct, while the second forces either `v ∉ dom(Σ'.M(d))` or `Σ'.M(d)(v) ∉ coverage(e)`. The second alternative is excluded: if `v ∈ dom(Σ'.M(d)) ⊆ dom(Σ.M(d))`, the agreement clause gives `Σ'.M(d)(v) = Σ.M(d)(v) ∈ coverage(e)`, contradicting `v ∉ project(e, d, Σ')`. So `v ∉ dom(Σ'.M(d))`, placing `v ∈ dom(Σ.M(d)) ∖ dom(Σ'.M(d))`. The reverse inclusion (⊇): if `v ∈ dom(Σ.M(d)) ∖ dom(Σ'.M(d))` with `Σ.M(d)(v) ∈ coverage(e)`, then `v ∈ project(e, d, Σ)` directly; and `v ∉ project(e, d, Σ')` since `v ∉ dom(Σ'.M(d))`.
 
 When deletion removes V-positions whose I-addresses are in coverage, those V-positions leave the projection. The I-addresses themselves persist in `dom(Σ.C)` by S0; they are merely no longer in `ran(Σ.M(d))`. Other documents that still arrange those I-addresses are unaffected (LP5) — the link can still be projected through them.
 
@@ -256,14 +267,14 @@ tight(e, Σ_e)  ≡  coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)
 
 Equivalently: every I-address denoted by an endset span is allocated as content or as a link at `Σ_e`. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state. Under tight construction, the link's reach cannot be extended by subsequent allocations:
 
-For any endset `e` tight at `Σ_e`, any state sequence `Σ_e →* Σ →* Σ'`, and any K.α (or K.λ) transition between `Σ` and `Σ'` allocating a fresh address `a_new`:
+For any endset `e` tight at `Σ_e`, any state sequence `Σ_e →* Σ →* Σ_post`, and any K.α (or K.λ) transition `Σ → Σ_post` allocating a fresh address `a_new`:
 ```
 a_new ∉ coverage(e)
 ```
 
-Consequently, if a subsequent K.μ⁺ or K.μ⁺_L extends `Σ.M(d)` by a mapping `(v_new, a_new)`, then `v_new ∉ project(e, d, Σ')`.
+Consequently, if any later K.μ⁺ or K.μ⁺_L transition `Σ_n → Σ_{n+1}` (with `Σ_post →* Σ_n`) extends `Σ_n.M(d)` by a mapping `(v_new, a_new)`, then `v_new ∉ project(e, d, Σ_{n+1})`.
 
-The proof is direct. K.α's precondition (ASN-0093) requires `a_new ∉ dom(Σ.C) ∪ dom(Σ.L)` at the state `Σ` immediately before allocation; the analogous L14 disjointness applies to K.λ. By Store Monotonicity★ applied to the prefix `Σ_e →* Σ`, `dom(Σ.C) ⊇ dom(Σ_e.C)` and `dom(Σ.L) ⊇ dom(Σ_e.L)`. So `a_new ∉ dom(Σ_e.C) ∪ dom(Σ_e.L)`. By the tightness condition, `coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)`, so `a_new ∉ coverage(e)`. Then `Σ'.M(d)(v_new) = a_new ∉ coverage(e)`, which excludes `v_new` from `project(e, d, Σ')` by the projection definition.
+The proof is direct. K.α's precondition (ASN-0093) requires `a_new ∉ dom(Σ.C) ∪ dom(Σ.L)` at the state `Σ` immediately before allocation; the analogous L14 disjointness applies to K.λ. By Store Monotonicity★ applied to the prefix `Σ_e →* Σ`, `dom(Σ.C) ⊇ dom(Σ_e.C)` and `dom(Σ.L) ⊇ dom(Σ_e.L)`. So `a_new ∉ dom(Σ_e.C) ∪ dom(Σ_e.L)`. By the tightness condition, `coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)`, so `a_new ∉ coverage(e)`. For the consequence: a later K.μ⁺ or K.μ⁺_L transition `Σ_n → Σ_{n+1}` adds the mapping `(v_new, a_new)`, giving `v_new ∈ dom(Σ_{n+1}.M(d))` and `Σ_{n+1}.M(d)(v_new) = a_new`. The coverage of `e` is unchanged across `Σ_post →* Σ_{n+1}` by LP3★ (applied through whichever link slot carries `e`), so `a_new ∉ coverage(e)` still holds at `Σ_{n+1}`. The projection definition then excludes `v_new` from `project(e, d, Σ_{n+1})`.
 
 Tightness is a construction discipline, not a structural invariant the system enforces. The system permits endsets whose spans denote half-open intervals reaching past existing content; such endsets are not tight, and an `a_new` allocated within their forward extent would in fact enter the coverage. The architectural significance of LP19 is that the canonical endset construction — selecting spans whose start and width capture exactly the I-addresses resident at construction time — produces tight endsets, and tight endsets are immune to absorbing addresses produced by subsequent K.α or K.λ. Boundary insertion as a composite (K.α + K.μ⁺) cannot enlarge a tight link's reach.
 
@@ -293,11 +304,11 @@ We have established a catalogue of guarantees. We now consolidate them into a ho
 
 The holder owns the link `a` and possesses, at minimum, knowledge of its address and the endsets at each slot. Across any state evolution `Σ →* Σ'`:
 
-- The address `a` remains in `dom(Σ'.L)` (L12, ASN-0043).
-- The endsets `Σ'.L(a).eᵢ` are byte-identical to `Σ.L(a).eᵢ` for every slot (LP2).
-- The slot ordering is preserved — what was at slot 1 is still at slot 1, the type endset is still at slot 3 (LP2).
-- The coverage of each endset is fixed — `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` (LP3).
-- The I-addresses in coverage all remain in `dom(Σ'.C)` if they were ever in `dom(Σ.C)`, with their content values unchanged (S0, S1).
+- The address `a` remains in `dom(Σ'.L)` (Store Monotonicity★).
+- The endsets `Σ'.L(a).eᵢ` are byte-identical to `Σ.L(a).eᵢ` for every slot (LP2★).
+- The slot ordering is preserved — what was at slot 1 is still at slot 1, the type endset is still at slot 3 (LP2★).
+- The coverage of each endset is fixed — `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` (LP3★).
+- The I-addresses in coverage all remain in `dom(Σ'.C)` if they were ever in `dom(Σ.C)` (Store Monotonicity★), with their content values unchanged (S0, applied step-wise across the sequence).
 
 What can vary:
 
@@ -370,6 +381,7 @@ At no point during this trace did the link itself change. The link's address, en
 | Label | Statement | Status |
 |-------|-----------|--------|
 | LP2 | `(A Σ → Σ', a ∈ dom(Σ.L), i : 1 ≤ i ≤ |Σ.L(a)| : Σ'.L(a).eᵢ = Σ.L(a).eᵢ)` — slot invariance | introduced |
+| LP2★ | Multi-step slot invariance: for `Σ →* Σ'`, `a ∈ dom(Σ.L)`, slot `i`, `a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ` | introduced |
 | LP3 | `(A Σ → Σ', a, i : a ∈ dom(Σ.L) : coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ))` — coverage invariance | introduced |
 | LP3★ | Multi-step coverage invariance: for `Σ →* Σ'`, `a ∈ dom(Σ.L)`, slot `i`, `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` | introduced |
 | Store Monotonicity★ | `Σ →* Σ' ⟹ dom(Σ.C) ⊆ dom(Σ'.C) ∧ dom(Σ.L) ⊆ dom(Σ'.L)` | introduced |
