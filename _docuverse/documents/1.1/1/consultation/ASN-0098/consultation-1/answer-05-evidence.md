@@ -1,172 +1,246 @@
 ## Question 5 [evidence]
 
-> How does udanax-green handle DELETE of the exact coverage range and INSERT strictly inside a coverage range — does it produce one projection cluster or split into multiple?
+> Does udanax-green's span or endset construction follow any convention — e.g., tight coverage matching the I-addresses resident at construction time — that ensures K.α-allocated addresses fall outside existing endset coverage?
 
 ## KB Synthesis
 
-## DELETE of Exact Coverage Range
+## Endset Coverage and Allocation Disjointness
 
-When both deletion boundaries align exactly with a crum's grasp and reach, `whereoncrum` returns `ONMYLEFTBORDER` and `ONMYRIGHTBORDER` respectively — neither is `THRUME`. The guard in `makecutsbackuptohere` only calls `slicecbcpm` for `THRUME`, so Phase 1 produces **no cuts**. The crum is handled whole in Phase 2 as Case 1 (fully within deletion range): it is `disown`ed and freed as a single unit. No proliferation — exactly one crum is removed. [PRE-DELETE / Finding 0075]
+The KB does not describe an **explicit** tight-coverage convention designed with this goal in mind, but the property holds implicitly through two independent mechanisms that combine.
 
-## INSERT Strictly Inside a Coverage Range
+### Endset Construction Is POOM-Resident-Exact
 
-An interior insertion where `crum.grasp < v < crum.reach` triggers `whereoncrum = THRUME`. `makegappm` constructs its two-blade knife, `slicecbcpm` splits the existing crum at the cut, and a new crum is created for the inserted content. Net result: **1 crum becomes 3** (left half + new content crum + right half, Δ = +2). [ST-INSERT / Finding 0062]
+`vspanset2sporglset` converts V-spans to sporgls via `vspanset2ispanset` → `permute` → `span2spanset` → `retrieverestricted`, walking the document's POOM to find every contiguous I-address region covered by the input spans [SS-VSPAN-TO-SPORGL, SS-SPORGL]. The resulting endset I-address coverage exactly matches the I-addresses resident in the POOM at construction time — neither more nor less. A multi-source V-span (transcluded content) produces multiple sporgls, one per contiguous I-address run [SS-LINK-ENDPOINT, Finding 0037]. This makes the coverage tight in the sense asked about.
 
-Subsequent inserts at `v+1`, `v+2`, ... hit `ONMYRIGHTBORDER` on the new content crum, triggering `isanextensionnd` coalescing — so only the *first* interior insert at a new position pays the +2 penalty; continued typing there costs +0. [ST-CRUM-BOUND / Finding 0062]
+### Subsequent Allocations Are Strictly Greater
 
-**Summary:** boundary-aligned DELETE leaves no residual crums; interior INSERT splits into three, with subsequent adjacent inserts merging back into the new crum rather than fragmenting further.
+Because `findpreviousisagr` queries the entire granfilade tree for the current maximum I-address and increments by 1 [SS-ADDRESS-SPACE, Finding 0061], every allocation after link creation receives an address strictly exceeding all previously allocated addresses. This holds unconditionally:
+
+- Text content allocations [INV-MONOTONIC]: `∀ alloc_a, alloc_b : time(a) < time(b) ⟹ iaddr(b) > iaddr(a)`
+- Link orgl allocations within a document's element-subspace-2 partition [SS-ADDRESS-ALLOC, Finding 0065]
+- No I-address is ever freed or reused [INV-NO-IADDR-REUSE]
+
+DELETE does not affect the granfilade — it removes only POOM mappings [FC-GRANF-ON-DELETE] — so even deleted I-addresses remain in the granfilade tree as allocation anchors, preventing gaps from being filled.
+
+### Caveat: CREATELINK Advances the Counter
+
+CREATELINK allocates a link orgl I-address within the same granfilade tree, advancing the maximum and creating a gap in the subsequent text I-address sequence [INT-LINK-INSERT, Finding 0063]. This means text content inserted after CREATELINK is non-contiguous with text inserted before — but crucially, those new text I-addresses still fall outside (strictly above) the endset's covered range, since the endset was built from I-addresses that existed before CREATELINK.
+
+### Summary
+
+The disjointness property — that K.α-allocated addresses fall outside existing endset coverage — holds by composition: **tight POOM-resident capture at construction time** [SS-VSPAN-TO-SPORGL] plus **strict monotonic allocation** [INV-MONOTONIC, INV-NO-IADDR-REUSE]. There is no named invariant or design comment articulating this as an intentional goal; it is an emergent consequence of the append-only granfilade strategy.
 
 ---
 
 ## Code Exploration
 
-Now I have all the source I need. Let me write the precise answer.
-
 ---
 
-## How udanax-green Handles DELETE of Exact Coverage and INSERT Strictly Inside
+## Analysis: Span/Endset Construction Conventions and K.α Address Allocation
 
-### Architecture Background
+### 1. What "endsets" and "spans" mean here
 
-The document POOM (permutation matrix enfilade) stores 2D crums, each mapping a contiguous V-range to a contiguous I-range at 1:1 width. One bottom crum = one projection cluster: V[a, b) ↔ I[x, y) where b-a == y-x.
+There are two distinct coverage structures to track:
 
-Link endpoints are stored as I-spans in the link's own orgl and in the spanfilade. Following a link projects I-spans through the target document's POOM via `permute` → `span2spanset` → `context2span`. The number of V-spans returned equals the number of POOM crums that overlap the query I-span.
+**I-space spans (granfilade coverage):** The granfilade is indexed by `WIDTH` (I-space). Text and orgls occupy I-address ranges stored as bottom-crum records (`GRANTEXT`, `GRANORGL`). The *effective span* of a content block is the I-address range it occupies.
 
----
+**V-space endsets (POOM + spanfilade):** Links store their endpoint content as sporglsets that record I-spans. Those are mapped through the POOM to V-addresses, and the link endpoint records (keyed by `LINKFROMSPAN`/`LINKTOSPAN`/`LINKTHREESPAN`) are stored in the spanfilade. The term "endset" in the code refers specifically to these three link-endpoint records.
 
-### Case 1: DELETE of the Exact Coverage Range
-
-**Call chain:**
-```
-dodeletevspan [do1.c:158]
-  → findorgl + deletevspanpm [orglinks.c:145]
-      → deletend [edit.c:31]
-```
-
-`deletevspanpm` [orglinks.c:145-152]:
+The constants at `xanadu.h:36–39`:
 ```c
-bool deletevspanpm(typetask *taskptr, tumbler *docisaptr, typeorgl docorgl, typevspan *vspanptr)
+#define LINKFROMSPAN    1
+#define LINKTOSPAN      2
+#define LINKTHREESPAN   3
+#define DOCISPAN        4
+```
+
+---
+
+### 2. I-space allocation: `findisatoinsertgr` and its two paths
+
+Every new I-space address goes through `granf2.c:130` (`findisatoinsertgr`), which dispatches on atom type:
+
+```c
+bool findisatoinsertgr(typecuc *fullcrumptr, typehint *hintptr, typeisa *isaptr)
 {
-    if (iszerotumbler(&vspanptr->width))
+    if (hintptr->subtype == ATOM) {
+        if (!isaexistsgr (fullcrumptr, &hintptr->hintisa)) { return FALSE; }
+        findisatoinsertmolecule (fullcrumptr, hintptr, isaptr);
+    } else {
+        findisatoinsertnonmolecule (fullcrumptr, hintptr, isaptr);
+    }
+    tumblerjustify(isaptr);
+    return (TRUE);
+}
+```
+[`granf2.c:130–156`]
+
+**Path A — atoms (text, links):** `findisatoinsertmolecule` [`granf2.c:158–181`]:
+```c
+tumblerincrement (&hintptr->hintisa, 2, hintptr->atomtype + 1, &upperbound);
+clear (&lowerbound, sizeof(lowerbound));
+findpreviousisagr ((typecorecrum*)fullcrumptr, &upperbound, &lowerbound);
+if (tumblerlength (&hintptr->hintisa) == tumblerlength (&lowerbound)) {
+    tumblerincrement (&lowerbound, 2, hintptr->atomtype, isaptr);
+    tumblerincrement (isaptr, 1, 1, isaptr);
+} else if (hintptr->atomtype == TEXTATOM) {
+        tumblerincrement (&lowerbound, 0, 1, isaptr);
+} else if (hintptr->atomtype == LINKATOM) {
+    tumblerincrement (&hintptr->hintisa, 2, 2, isaptr);
+    if (tumblercmp (&lowerbound, isaptr) == LESS)
+        tumblerincrement (isaptr, 1, 1, isaptr);
+    else
+        tumblerincrement (&lowerbound , 0, 1, isaptr);
+}
+```
+
+The protocol: set `upperbound = hintisa + (atomtype+1) × 10⁻²`, find the last existing ISA below that bound via `findpreviousisagr`, then allocate at `lowerbound + 1` (last digit incremented). The new address is strictly greater than all existing addresses within the hinted scope.
+
+**Path B — documents/accounts:** `findisatoinsertnonmolecule` [`granf2.c:203–242`]:
+```c
+depth = hintptr->supertype == hintptr->subtype ? 1 : 2;
+hintlength = tumblerlength (&hintptr->hintisa);
+tumblerincrement (&hintptr->hintisa, depth - 1, 1, &upperbound);
+...
+findpreviousisagr ((typecorecrum*)fullcrumptr, &upperbound, &lowerbound);
+...
+if (iszerotumbler(&lowerbound) || !lowerbound_under_hint) {
+    tumblerincrement(&hintptr->hintisa, depth, 1, isaptr);
+} else {
+    tumblertruncate (&lowerbound, hintlength + depth, isaptr);
+    tumblerincrement(isaptr, tumblerlength(isaptr)==hintlength?depth:0, 1, isaptr);
+}
+```
+
+Same pattern: finds previous, increments. `lowerbound_under_hint` guards against picking up an address from a sibling account.
+
+**In both paths, the allocation is strictly monotonically increasing within the hinted scope.** There is no randomness, no gap pre-reservation, and no look-ahead. The algorithm is: "find the highest existing address in this scope, produce the next one."
+
+---
+
+### 3. Endset construction is tight
+
+**Text insertion** — `inserttextgr` [`granf2.c:83–109`]:
+```c
+if (!findisatoinsertgr ((typecuc*)fullcrumptr, hintptr, &lsa))
+    return (FALSE);
+movetumbler (&lsa, &spanorigin);
+for (; textset; textset = textset->next) {
+    ...
+    insertseq ((typecuc*)fullcrumptr, &lsa, &locinfo);
+    tumblerincrement (&lsa, 0, textset->length, &lsa);
+}
+ispanptr->stream = spanorigin;
+tumblersub (&lsa, &spanorigin, &ispanptr->width);  // width = exactly bytes written
+```
+
+`width = lsa − spanorigin` = exactly the characters just inserted. No pre-allocated headroom, no over-coverage.
+
+`findlastisaincbcgr` [`granf2.c:280–284`] is what `findpreviousisagr` uses at leaf level:
+```c
+int findlastisaincbcgr(typecbc *ptr, typeisa *offset)
+{
+    if (ptr->cinfo.infotype == GRANTEXT)
+        tumblerincrement (offset, 0, (INT) ptr->cinfo.granstuff.textstuff.textlength - 1, offset);
+}
+```
+This returns `start_of_last_text + length − 1`, i.e., the address of the last byte. Then `findisatoinsertmolecule` increments it by 1 (`tumblerincrement(&lowerbound, 0, 1, isaptr)`), yielding `start_of_last_text + length` — exactly the exclusive right endpoint of the last span. The new allocation starts where the previous span ends.
+
+**POOM extension logic** — `isanextensionnd` [`insertnd.c:301–309`]:
+```c
+bool isanextensionnd(typecbc *ptr, typedsp *offsetptr, typedsp *originptr, type2dbottomcruminfo *infoptr)
+{
+    if (!tumblereq (&infoptr->homedoc, &((type2dcbc *)ptr)->c2dinfo.homedoc))
         return (FALSE);
-    deletend((typecuc*)docorgl, &vspanptr->stream, &vspanptr->width, V);
-    ...
+    prologuend ((typecorecrum*)ptr, offsetptr, &grasp, &reach);
+    return (lockeq (reach.dsas, originptr->dsas, (unsigned)dspsize(ptr->cenftype)));
 }
 ```
+A new crum extends an existing one only when (a) same `homedoc` AND (b) `reach == origin` exactly. This is exact-boundary coverage — no overlap, no gap. Non-abutting insertions create a new crum via `insertcbcnd` [`insertnd.c:242–275`].
 
-`deletend` [edit.c:31-76]:
+**Link ISA footprint** — `tumbler2spanset` [`do2.c:48–61`] converts a link's ISA to its granfilade footprint:
 ```c
-int deletend(typecuc *fullcrumptr, tumbler *origin, tumbler *width, INT index)
-{
-    ...
-    movetumbler (origin, &knives.blades[0]);          // [edit.c:40] cut at delete-start
-    tumbleradd (origin, width, &knives.blades[1]);    // [edit.c:41] cut at delete-end
-    knives.nblades = 2;
-    makecutsnd (fullcrumptr, &knives);                // split crums at both boundaries
-    newfindintersectionnd (fullcrumptr, &knives, &father, &foffset);
-    ...
-    for (ptr = findleftson(father); ptr; ptr = next) {
-        switch (deletecutsectionnd(ptr, &fgrasp, &knives)) {
-          case 1:
-            disown((typecorecrum*)ptr);               // [edit.c:59]
-            subtreefree((typecorecrum*)ptr);          // completely removed
-            break;
-          case 2:
-            tumblersub(&ptr->cdsp.dsas[index], width, &ptr->cdsp.dsas[index]); // [edit.c:63] shift back
-            break;
-        }
-    }
-    setwispupwards(father, 1);
-    recombine(father);                                // [edit.c:75]
-}
+tumblerincrement (&spanptr->width, tumblerlength (tumblerptr)-1, 1, &spanptr->width);
 ```
-
-`deletecutsectionnd` [edit.c:235-248] iterates knives from right to left. For a crum sitting exactly at [a, b) with knives at a (`blades[0]`) and b (`blades[1]`):
-
-- i=1: `whereoncrum(crum_[a,b), blades[1]=b)` → `ONMYRIGHTBORDER`, which is **greater than** `ONMYLEFTBORDER` → not case 2
-- i=0: `whereoncrum(crum_[a,b), blades[0]=a)` → `ONMYLEFTBORDER` ≤ `ONMYLEFTBORDER` → **returns case 1**
-
-**Case 1 → `disown` + `subtreefree`.** The crum is removed from the tree entirely.
-
-After deletion, a subsequent `permute` call querying the link's I-span [x, y) calls `retrieverestricted` [retrie.c:56-85] → `findcbcinarea2d` [retrie.c:229-268]. `crumqualifies2d` [retrie.c:270-305] finds **no crums** whose I-range overlaps [x, y) — all were deleted. `span2spanset` [orglinks.c:439] iterates an empty context list.
-
-**Result: ZERO projection clusters.** The link endpoint becomes invisible; its content no longer exists in the document's V-space.
+Width is `10^{−(length−1)}` — exactly one "unit" at the tumbler's own depth. Tight.
 
 ---
 
-### Case 2: INSERT Strictly Inside a Coverage Range
+### 4. Spanfilade endsets: fixed slots, not I-space range coverage
 
-**Call chain:**
-```
-doinsert [do1.c:87]
-  → inserttextingranf + docopy [do1.c:119]
-      → insertpm [orglinks.c:75]
-          → insertnd [insertnd.c:15]
-              → makegappm [insertnd.c:54,124]  ← splits the spanning crum
-              → doinsertnd                      ← places new content
-              → recombine [insertnd.c:76]
-```
-
-`makegappm` [insertnd.c:124-172] opens a gap in the POOM at the insert position p:
+`retrieveendsetsfromspanf` [`spanf1.c:190–235`] and `insertendsetsinspanf` [`do2.c:116–128`] show that endsets in the spanfilade are indexed in ORGLRANGE by a fixed small integer prefixed to the link ISA (not a range):
 
 ```c
-int makegappm(typetask *taskptr, typecuc *fullcrumptr, typewid *origin, typewid *width)
-{
-    ...
-    if (iszerotumbler(&fullcrumptr->cwid.dsas[V])
-    || tumblercmp(&origin->dsas[V], &grasp.dsas[V]) == LESS
-    || tumblercmp(&origin->dsas[V], &reach.dsas[V]) != LESS)
-        return(0);                                   // [insertnd.c:143] guard: p outside range
-
-    movetumbler(&origin->dsas[V], &knives.blades[0]);     // [insertnd.c:144] cut at p
-    findaddressofsecondcutforinsert(&origin->dsas[V], &knives.blades[1]); // [insertnd.c:145]
-    knives.nblades = 2;
-    makecutsnd(fullcrumptr, &knives);               // [insertnd.c:148] split crum spanning p
-    ...
-    for (ptr = findleftson(father); ptr; ...) {
-        switch (insertcutsectionnd(ptr, &fgrasp, &knives)) {  // [insertnd.c:152]
-          case 1:
-            tumbleradd(&ptr->cdsp.dsas[V], &width->dsas[V], &ptr->cdsp.dsas[V]); // [insertnd.c:162]
-            ivemodified(ptr);
-            break;
-        }
-    }
-    ...
-}
+fromspace.stream.mantissa[0] = LINKFROMSPAN;   // = 1
+fromspace.width.mantissa[0] = 1;
+tospace.stream.mantissa[0]  = LINKTOSPAN;      // = 2
+tospace.width.mantissa[0]   = 1;
 ```
+[`spanf1.c:210–214`]
 
-`makecutsnd` is called with cuts at p (`blades[0]`) and `secondCut` (`blades[1]`). Any POOM bottom crum that has p strictly inside it — i.e., the crum spanning [a, b) where a < p < b — is **split at p** by `makecutsnd`. After splitting, two crums exist:
-
-- Crum A: V [a, p) → I [x, x+(p−a))  
-- Crum B: V [p, b) → I [x+(p−a), y)
-
-`insertcutsectionnd` [edit.c:207-233] then classifies Crum B (which starts at p) as **case 1** → its V-displacement is shifted forward by insertion width w:
-
-- Crum A: V [a, p) → I [x, x+(p−a))  **unchanged**
-- Crum B: V [p+w, b+w) → I [x+(p−a), y)  **shifted forward**
-
-Then `recombine(fullcrumptr)` [insertnd.c:76] runs `recombinend` [recombine.c:104-131]. `recombinend` calls `ishouldbother` [recombine.c:150-163] and `takeovernephewsnd` [recombine.c:165-203] to attempt merges. **Crucially, Crum A and Crum B cannot be merged** because they are now separated in V-space by a gap [p, p+w) containing the newly inserted content (which has its own I-span from the granfilade). Their I-spans [x, x+(p-a)) and [x+(p-a), y) are adjacent but their V-spans are not contiguous, so no structural merging of their mappings occurs.
-
-When following the link with I-span [x, y), `span2spanset` [orglinks.c:425-454] calls `retrieverestricted` → `findcbcinarea2d` [retrie.c:229-268]. `crumqualifies2d` [retrie.c:270-305] returns TRUE for **both** Crum A and Crum B since both overlap [x, y) in the I-dimension. Both are threaded onto the context list via `incontextlistnd` [context.c:75-111]. The loop at [orglinks.c:439]:
-
+And `insertspanf` [`spanf1.c:22`]:
 ```c
-for (c = context; c; c = c->nextcontext) {
-    context2span(c, restrictionspanptr, restrictionindex, &foundspan, targindex);
-    nextptr = (typespan *)onitemlist(taskptr, (typeitem*)&foundspan, (typeitemset*)targspansetptr);
-}
+prefixtumbler (isaptr, spantype, &crumorigin.dsas[ORGLRANGE]);
 ```
-
-`context2span` [context.c:176-212] converts each context (Crum A and Crum B) into a V-span by clipping to the restriction I-span and reading the corresponding V coordinates. Crum A produces V-span [a, p); Crum B produces V-span [p+w, b+w). Both are appended to `targspansetptr` via `onitemlist`.
-
-**Result: TWO projection clusters.** The link endpoint now projects to two non-contiguous V-spans — [a, p) and [p+w, b+w) — separated by the inserted content at [p, p+w).
+The ORGLRANGE key is `prefixtumbler(linkISA, 1/2/3)` — a unique address per link, not a range competing with content. The SPANRANGE dimension carries the actual content I-spans the user specified. The two dimensions do not interfere with each other.
 
 ---
 
-### Summary Table
+### 5. V-space: what the backend does and does not guarantee
 
-| Operation | What Happens to POOM Crum | Projection Clusters |
-|-----------|--------------------------|---------------------|
-| DELETE of exact [a, b) | `deletecutsectionnd` case 1 → `disown` + `subtreefree` [edit.c:59-60] | **0** (crum gone; `findcbcinarea2d` finds nothing) |
-| INSERT at p strictly inside [a, b) | `makecutsnd` splits spanning crum; `insertcutsectionnd` case 1 shifts right half forward [insertnd.c:162] | **2** (both halves qualify in `crumqualifies2d`; both returned by `span2spanset`) |
+**For text:** The caller supplies the V-address (`vsaptr`) directly to `doinsert` [`do1.c:87`]. The backend's `acceptablevsa` [`do2.c:110–113`] is:
+```c
+bool acceptablevsa(tumbler *vsaptr, typeorgl orglptr)
+{
+    return (TRUE);
+}
+```
+Completely unchecked. The POOM will accept any V-address, including one that overlaps existing content. V-space coverage for text depends entirely on client correctness.
 
-The critical asymmetry: deletion at an exact boundary hits `deletecutsectionnd` case 1 because `whereoncrum` at the crum's own left-border address returns `ONMYLEFTBORDER` ≤ `ONMYLEFTBORDER` [edit.c:243]. An insert strictly inside hits `makecutsnd` first, which physically splits the crum at the insert point [insertnd.c:148], then `recombine` cannot re-merge the two halves because their V-spans are no longer contiguous.
+**For links:** V-addresses are allocated by `findnextlinkvsa` [`do2.c:151–167`]:
+```c
+tumblerclear (&firstlink);
+tumblerincrement (&firstlink, 0, 2, &firstlink);
+tumblerincrement (&firstlink, 1, 1, &firstlink);   // firstlink = 2.1
+
+doretrievedocvspan (taskptr, docisaptr, &vspan);
+tumbleradd (&vspan.stream, &vspan.width, &vspanreach);
+if (tumblercmp (&vspanreach, &firstlink) == LESS)
+    movetumbler (&firstlink, vsaptr);
+else
+    movetumbler (&vspanreach, vsaptr);
+```
+New link V-address = max(document's current V-reach, 2.1). This guarantees link metadata lands past all existing V-content (text is in V ≥ 1.0; links get V ≥ 2.1). The `setlinkvsas` convention [`do2.c:169–183`] then assigns from-endpoint at 1.1, to-endpoint at 2.1, three-endpoint at 3.1 *within the link's own orgl* — these are intra-link relative slots, not global V-space.
+
+---
+
+### 6. Does the convention ensure K.α addresses fall outside existing endset coverage?
+
+**In I-space (granfilade): YES, by the sequential allocation algorithm itself.**
+
+The invariant is maintained operationally, not by an explicit assertion:
+
+1. `findpreviousisagr` finds the last (highest) existing ISA below `upperbound`
+2. `lowerbound` = that address (with the last-byte correction from `findlastisaincbcgr`)
+3. New ISA = `lowerbound + 1` at the same digit depth
+
+Since all existing spans end at addresses ≤ `lowerbound`, and the new address is `lowerbound + 1`, the new address is strictly past the right endpoint of every existing span in scope. It cannot fall inside any existing I-space span.
+
+This is a consequence of tight endset coverage + monotonically increasing allocation. If endsets over-covered (padded beyond actual content), a new allocation could land in padding and create a false collision. The tight construction in `inserttextgr` is what makes the allocation safe.
+
+**In V-space for text: NOT guaranteed by the backend.** `acceptablevsa` is a stub. This is a known gap — the backend trusts the client not to supply overlapping V-addresses for text.
+
+**In V-space for links: YES, guaranteed by `findnextlinkvsa`**, which ensures link V-addresses land past all existing V-content.
+
+---
+
+### Summary
+
+| Address space | Coverage convention | Guarantee for K.α |
+|---|---|---|
+| I-space (granfilade text/links) | Tight: `width = lsa − spanorigin` exactly | **Yes** — `findpreviousisagr + increment` ensures strict monotone order |
+| I-space (POOM extension) | Exact boundary: `isanextensionnd` requires `reach == origin` | **Yes** — same allocation path |
+| V-space text (client-supplied) | Not validated (`acceptablevsa` returns TRUE always) | **No guarantee from backend** |
+| V-space links | `findnextlinkvsa` sets to max(doc reach, 2.1) | **Yes** — always past existing V-content |
+
+The tight endset construction is not incidental — without it, `findpreviousisagr`'s "last ISA" would be inside a padded span, and `lowerbound + 1` would land inside existing coverage. The tight coverage is structurally necessary for safe sequential allocation, even though no assertion checks this invariant explicitly.

@@ -1,35 +1,22 @@
 ## Question 5 [theory]
 
-> Was projection of zero-width spans and empty endsets designed as vacuously defined, undefined, or a vanishing operation?
+> Was boundary-insertion exclusion (newly allocated content not extending a link's reach into its coverage) an intentional design guarantee, and was there a specific discipline for endset/span construction intended to enforce it?
 
-Three different cases need separate answers - the question conflates phenomena I treated differently in my specification.
+Yes — boundary-insertion exclusion follows necessarily from the discipline I imposed on endsets, though I didn't name it as a separate guarantee.
 
-**Empty endsets — vanishing.** This was designed as a vanishing operation. From 4/43:
+The discipline is **byte-anchoring**: endsets attach to specific bytes by their permanent Istream addresses, not by position in the current arrangement. A link is "a strap between bytes" [LM 4/42] — the strap holds to those particular bytes. New content receives fresh Istream addresses at creation; it simply isn't the bytes any pre-existing endset refers to.
 
-> "Links between bytes can survive deletions, insertions and rearrangements, if anything is left at each end." [LM 4/43]
+For spans I made this principle explicit: "The first point of a span may designate a server, an account, a document or an element; so may the last point. There is no choice as to what lies between; this is implicit in the choice of first and last point." [LM 4/25]
 
-The conditional "if anything is left" is the operative principle. When nothing remains at an end, the link does not survive in that version. The link object itself persists (it has a permanent tumbler address; it remains discoverable in Istream), but it has no semantic effect in the current arrangement.
+The mechanism enforcing exclusion:
 
-**Zero-width spans — not designed.** I did not designate these as a first-class case. My specification consistently treats spans as having content:
+1. From-sets and to-sets are arbitrary collections of byte-spans referenced by I-address [LM 4/42-4/43]
+2. I-addresses are permanent — fixed at content creation
+3. Newly inserted bytes receive new I-addresses, allocated outside any pre-existing span's range
+4. Therefore inserted bytes cannot be silently absorbed into prior link coverage
 
-> "In fact, a tumbler-span may range in possible size from one byte to the whole docuverse on the whole network." [LM 4/24]
+What I called out explicitly was the *complementary* property — survivability: "Links between bytes can survive deletions, insertions and rearrangements, if anything is left at each end" [LM 4/43]. Survivability protects existing connections from being lost. Exclusion prevents existing connections from silently expanding. Both fall out of the same byte-anchored design, but I emphasized survivability because that's the worry authors actually have — broken links, not swollen ones.
 
-> "A tumbler-span is not a conventional number, and it does not designate the number of bytes contained. It does not designate a number of anything." [LM 4/24]
+The point of byte-set referencing (as opposed to position-anchoring) was precisely to make link coverage **mean** something stable: the bytes it grasps, no more and no less. Position-anchored systems give you neither guarantee — they leak in both directions.
 
-The minimum is one byte, not zero. For link-to-link references, I specified "a span of 1 to designate that unit only" [LM 4/49] — again, the floor is 1.
-
-A span where first equals last is degenerate in my model. I did not specify whether implementations should treat this as vacuously defined, as an error, or as collapse. This is genuinely underspecified.
-
-**Projection across versions — vanishing.** For refractive link following, the behavior is conditional:
-
-> "the user's front-end machine may easily be set up to follow the link to the same passage in the most recent version—if it's still there." [LM 2/43]
-
-"If it's still there" — when correspondence cannot be established, the projection has no result. The link is not deleted; it simply produces nothing in the target version.
-
-**The unifying principle.** Spans and endsets refer to content, not positions. When the content is absent, the reference has no semantic effect. This follows from my deeper commitment that links connect bytes, not positions:
-
-> "A Xanadu link is not between points, but between spans of data. Thus we may visualize it as a strap between bytes." [LM 4/42]
-
-If there are no bytes — empty endset, deleted target, or degenerate zero-width — there is no strap. Whether implementations call this "vacuously defined" or "vanishing" is terminology; the observable result is the same: the operation has no semantic effect, while the link object remains intact in Istream awaiting historical backtrack.
-
-NEED_RAW: 4/47, 4/48, 4/56-4/60 — these pages on link search semantics and the AND-of-ORs satisfaction model may contain additional language about empty satisfaction sets that would tighten this answer, particularly for FINDLINKSFROMTOTHREE behavior when an endset becomes empty.
+NEED_RAW: 4/9, 4/30 — for explicit discussion of how new bytes are allocated relative to existing I-address ranges, and whether sub-addressing within a pre-existing span's range was considered (which would be the one edge case where exclusion could in principle be defeated).
