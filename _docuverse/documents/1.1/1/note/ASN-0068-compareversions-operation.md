@@ -18,17 +18,27 @@ written `compareversions(d_a, R_a, d_b, R_b)`. The restricting span-sets `R_a, R
 
 For the operation to be well-defined we require:
 
-> **CV-IN**: `d_a, d_b ∈ E_doc`. `R_a, R_b` are normalized V-span-sets (ASN-0053). For every span `σ ∈ R_a ∪ R_b`: `start(σ) ∈ V_S(d)` for the relevant document `d` and a common subspace identifier `S ∈ {s_C, s_L}` (the same `S` for both `R_a` and `R_b`); `σ` is level-uniform (S6, ASN-0053) at the document's V-position depth `m_σ ∈ {m_a, m_b}` (with `m_a := m_{d_a, S}` for `σ ∈ R_a` and `m_b := m_{d_b, S}` for `σ ∈ R_b`, both supplied by S8-depth, ASN-0036); and `actionPoint(width(σ)) = m_σ` — equivalently, `width(σ) = δ(n_σ, m_σ)` is an ordinal displacement at the document's depth for some `n_σ ≥ 1` (OrdinalDisplacement, ASN-0034; ASN-0058 C0). The depth bound `m_σ ≥ 2` is itself supplied by S8a (ASN-0036) on V-positions.
+> **CV-IN**: `d_a, d_b ∈ E_doc`. `R_a, R_b` are normalized V-span-sets (ASN-0053). A common subspace identifier `S ∈ {s_C, s_L}` governs both restrictions; write `m_a := m_{d_a, S}` and `m_b := m_{d_b, S}` for the V-position depths supplied by S8-depth (ASN-0036) in subspace `S` of each document, both bounded below by `m_a, m_b ≥ 2` (S8a, ASN-0036). When σ's side membership is unambiguous, we write `m_σ` for the corresponding depth — `m_a` if `σ ∈ R_a`, `m_b` if `σ ∈ R_b`.
+>
+> For every `σ ∈ R_a`: `start(σ) ∈ V_S(d_a)`; `σ` is level-uniform (S6, ASN-0053) at depth `m_a`; and `actionPoint(width(σ)) = m_a` — equivalently, `width(σ) = δ(n_σ, m_a)` is an ordinal displacement at depth `m_a` for some `n_σ ≥ 1` (OrdinalDisplacement, ASN-0034; ASN-0058 C0).
+>
+> For every `σ ∈ R_b`: `start(σ) ∈ V_S(d_b)`; `σ` is level-uniform at depth `m_b`; and `actionPoint(width(σ)) = m_b` — equivalently, `width(σ) = δ(n_σ, m_b)` for some `n_σ ≥ 1`.
+>
+> If a single span literal lies in `R_a ∩ R_b` and `m_a ≠ m_b`, both clauses constrain the same `σ` at incompatible depths and admissibility fails — the inadmissibility is now explicit rather than buried in a side-conditional resolution.
 
 The action-point clause `actionPoint(width(σ)) = m_σ` is load-bearing. Level-uniformity (S6) alone requires only `#start(σ) = #width(σ)`; it does not constrain the action point of the width. We rule out two weaker alternatives. When `actionPoint(width(σ)) = 1`, TumblerAdd (ASN-0034) makes the first component of `reach(σ)` equal to `start(σ)₁ + width(σ)₁ > S`, so `⟦σ⟧` extends into tumblers with first component greater than `S` — leaving the subspace `S`. The weaker constraint `actionPoint(width(σ)) ≥ 2` confines `reach(σ)` to the first-component-`S` region (TumblerAdd's prefix-copy region at positions `i < actionPoint`, propagated throughout `⟦σ⟧` by T5 ContiguousSubtrees, ASN-0034), but admits widths like `[0, w_2, 0, ..., 0, 0]` with `actionPoint = 2` when `m_σ ≥ 3`; under such a width, `reach(σ)` dominates every depth-`m_σ` V-position from `start(σ)` onward in V-order by T1 case (i) at position 2, so `⟦σ⟧ ∩ V_S(d)` captures the subspace's entire trailing extent rather than a bounded contiguous range. The exact constraint `actionPoint(width(σ)) = m_σ` forces `reach(σ)` to agree with `start(σ)` at all positions `1 ≤ i < m_σ` and differ only at position `m_σ`, yielding `⟦σ⟧ ∩ V_S(d)` as exactly `n_σ` consecutive depth-`m_σ` V-positions starting at `start(σ)`. This matches the well-formedness condition for content references (ASN-0058 C0) and produces the bounded ordinal-displacement restriction semantics the operation contracts on. The depth-`m_σ` projection itself arises from intersection with `dom(M(d))`, since `dom(M(d))` contains only depth-`m_σ` V-positions in subspace `S` (S8-depth, ASN-0036); without this intersection, `⟦σ⟧` would also contain higher-depth tumblers extending `start(σ)` as a proper prefix (T1 case (ii)). We make the constraint explicit at the input level rather than rely on the downstream relation `corr_{a,b}` to filter cross-subspace positions via L0 + L14 (ASN-0047); structurally, the input is what the operation contracts on.
 
 The common-subspace restriction is not optional. Were `R_a` to range over content positions (subspace `s_C`) while `R_b` ranged over link positions (subspace `s_L`), the I-addresses on the two sides would inhabit disjoint storage subspaces — `dom(C)` and `dom(L)` respectively, by L14 (ASN-0047) — and no I-address could coincide. The relation would be empty, but more importantly, its very meaning would be confused: comparison is a per-subspace operation. We require this invariant up front.
 
-The typical setting is `S = s_C`. The development that follows applies uniformly to either single subspace, but the `s_L` case is structurally degenerate, as the following corollary records.
+The typical setting is `S = s_C`. The development that follows applies uniformly to either single subspace, but the `s_L` case is structurally constrained, as the following two corollaries record.
 
-> **CV-LINK-DEGEN** (*link-subspace degeneracy*): When `S = s_L` and `d_a ≠ d_b`, the result is necessarily empty.
+> **CV-LINK-DEGEN** (*link-subspace cross-document emptiness*): When `S = s_L` and `d_a ≠ d_b`, the result is necessarily empty.
 
-*Justification.* By CL-OWN (ASN-0047), every V-position in `s_L` of document `d`'s arrangement maps to a link `ℓ ∈ dom(L)` with `origin(ℓ) = d`. So for any `v_a ∈ ⟦R_a⟧ ∩ dom(M(d_a))` with `subspace(v_a) = s_L`, `origin(M(d_a)(v_a)) = d_a`; symmetrically `origin(M(d_b)(v_b)) = d_b`. If the I-addresses coincided, `origin` (a function: each I-address has exactly one allocating document, S7, ASN-0036) would return both `d_a` and `d_b`, contradicting `d_a ≠ d_b`. The correspondence relation `corr_{a,b}` restricted to `s_L` is therefore empty, and the operation returns `∅`. The same reasoning, applied to the self-comparison case `d_a = d_b`, combines with CL-UNIQ (ASN-0047) — `M(d)|_{dom_L}` is injective — to leave only the identity correspondences in `s_L`. Nelson's "word for word" intercomparison (LM 2/20) was conceived as a content-subspace operation; structurally, the operation specializes to `s_C` in practice.
+*Justification.* By CL-OWN (ASN-0047), every V-position in `s_L` of document `d`'s arrangement maps to a link `ℓ ∈ dom(L)` with `origin(ℓ) = d`. So for any `v_a ∈ ⟦R_a⟧ ∩ dom(M(d_a))` with `subspace(v_a) = s_L`, `origin(M(d_a)(v_a)) = d_a`; symmetrically `origin(M(d_b)(v_b)) = d_b`. If the I-addresses coincided, `origin` (a function: each I-address has exactly one allocating document, S7, ASN-0036) would return both `d_a` and `d_b`, contradicting `d_a ≠ d_b`. The correspondence relation `corr_{a,b}` restricted to `s_L` is therefore empty, and the operation returns `∅`. Nelson's "word for word" intercomparison (LM 2/20) was conceived as a content-subspace operation; structurally, the operation specializes to `s_C` in practice.
+
+> **CV-LINK-SELF** (*link-subspace self-comparison diagonal*): When `S = s_L` and `d_a = d_b = d`, the correspondence relation in `s_L` collapses to the identity diagonal: `corr_{a,a} ∩ (V_{s_L}(d) × V_{s_L}(d)) = {(v, v) : v ∈ ⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_L}(d)}`.
+
+*Justification.* The argument from CV-LINK-DEGEN does not apply when `d_a = d_b`: there is only one allocating document and `origin` returns a single value, so no contradiction is forced by I-address coincidence. The constraining fact is instead CL-UNIQ (ASN-0047): `M(d)|_{V_{s_L}(d)}` is an injection from `s_L` V-positions to link addresses. For any `v¹, v² ∈ ⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_L}(d)` with `M(d)(v¹) = M(d)(v²)`, injectivity forces `v¹ = v²`. The only pairs of `s_L` V-positions in `corr_{a,a}` are therefore identity pairs `(v, v)`, drawn from the intersection of the two restrictions with the link subspace of `d`. The result is the set of maximal runs over this diagonal.
 
 We do *not* require `m_a = m_b`. Two documents may carry V-positions at different depths in the same subspace, and the comparison must accommodate this. The depths affect only how V-positions are represented within each document; the I-addresses they point to are sub-allocator outputs whose comparison is depth-independent.
 
@@ -121,9 +131,15 @@ Both cases combined: `δ = 0` and `n¹ = n²`, so `R¹ = R²`. ∎
 
 This boundary is the most common practical input shape: a fresh fork (whose target document's arrangement is empty per K.δ's effect on M), or a comparison restricted to a subspace that one of the documents has never populated. The operation produces the correct result `∅` without exception or special-case handling.
 
+> **CV-FIN** (*finite result*): For admissible input, the result is finite, with `|MaxRuns(d_a, R_a, d_b, R_b)| ≤ |corr_{a,b}| ≤ |dom(M(d_a))| · |dom(M(d_b))| < ∞`.
+
+*Justification.* By S8-fin (ASN-0036), `dom(M(d_a))` and `dom(M(d_b))` are finite. The relation `corr_{a,b}` is a subset of `(⟦R_a⟧ ∩ dom(M(d_a))) × (⟦R_b⟧ ∩ dom(M(d_b))) ⊆ dom(M(d_a)) × dom(M(d_b))`, so `|corr_{a,b}| ≤ |dom(M(d_a))| · |dom(M(d_b))| < ∞`. To bound `|MaxRuns|`, consider the map `R = (v_a, v_b, n) ↦ (v_a, v_b)` sending each run to its starting pair. By CV-MAX, the starting pair of `R` is witnessed by `R` at offset 0; CV-MAX's "exactly one run, exactly one offset" property forces two distinct runs to have distinct starting pairs (else the same pair would be witnessed at offset 0 by both, contradicting uniqueness). The map is therefore injective from `MaxRuns` into `corr_{a,b}`, yielding `|MaxRuns| ≤ |corr_{a,b}|`. Finiteness underwrites termination of the walks in CV-MAX's existence proof and makes the result enumerable for any caller — `MaxRuns` is a concrete finite set, not a schema for one.
+
+The interior bound `min(|dom(M(d_a))|, |dom(M(d_b))|)` is not in general an upper bound on `|MaxRuns|`: a self-comparison configuration with two V-positions sharing one I-address (Example 3 below) achieves `|MaxRuns| = 3 > 2 = min(|dom(M(d_a))|, |dom(M(d_b))|)`, so the tighter Cartesian-product bound is the correct one. The product bound is itself not always tight — Example 1 below achieves `|MaxRuns| = 1` against a product bound of `3 · 4 = 12` — but it is the smallest bound expressible from cardinalities of `dom(M)` alone.
+
 ## Worked Examples
 
-We verify the definitions and CV-MAX against two concrete configurations.
+We verify the definitions and CV-MAX against three concrete configurations: a cross-document contiguous-transclusion case (Example 1), a cross-document self-transclusion case where merging is blocked (Example 2), and a self-comparison case exhibiting both diagonal aggregation and off-diagonal width-1 runs (Example 3).
 
 *Example 1 (contiguous transclusion).* Let `d_a` and `d_b` be documents in subspace `S = s_C` with common depth `m_a = m_b = 2`. Let `a₁, a₂, a₃, b₁, b₂` be five distinct I-addresses in `dom(C)`. Suppose
 
@@ -159,7 +175,27 @@ The result has two distinct maximal runs:
 
 > `MaxRuns = { ([1,1], [1,1], 1),  ([1,3], [1,1], 1) }`
 
-The two runs cannot be merged because they have different lockstep offsets (`δ = 0` for the first, `δ = 2` for the second). Each is its own maximal extension. This is the M14 (ASN-0058) phenomenon at the cross-document level: shared I-address at multiple V-positions produces independent correspondence-run entries.
+The two runs cannot be merged because they have different cross-side offsets `v_b − v_a` at their starting pairs (`0` for the first run, `−2` for the second, using the same signed convention as Example 1). For width-1 runs at distinct starting pairs to amalgamate, both sides would have to advance in lockstep — i.e., the per-side last-component offset `j_a − j_b` would have to agree between the runs — but here the per-side offsets differ. Each is its own maximal extension. (This cross-side offset between sides of a single pair is a different quantity from the cross-run offset `δ = j²_a − j¹_a = j²_b − j¹_b` of the CV-MAX uniqueness proof, which constrains two runs that witness the *same* pair; here we have two runs witnessing two *different* pairs.) This is the M14 (ASN-0058) phenomenon at the cross-document level: shared I-address at multiple V-positions produces independent correspondence-run entries.
+
+*Example 3 (self-comparison with self-transclusion).* Let `d` be a single document at depth 2 with self-transclusion: the same I-address `a` appears at two distinct V-positions:
+
+> `M(d):  [1,1] ↦ a,  [1,2] ↦ a`
+
+Invoke `compareversions(d, R_a, d, R_b)` with `R_a = R_b` spanning the full arrangement of `d` (so `d_a = d_b = d`, an admissible self-comparison input). The correspondence relation contains every pair `(v¹, v²)` with `M(d)(v¹) = M(d)(v²)`:
+
+> `corr_{a,a} = { ([1,1], [1,1]),  ([1,1], [1,2]),  ([1,2], [1,1]),  ([1,2], [1,2]) }`
+
+— four pairs: two on the identity diagonal `v¹ = v²`, and two off-diagonal pairs witnessing self-transclusion.
+
+Walking right from the diagonal pair `([1,1], [1,1])`: offset 1 gives `([1,2], [1,2])` with `M(d)([1,2]) = a = M(d)([1,2])` ✓. Offset 2 gives `([1,3], [1,3])` with `[1,3] ∉ dom(M(d))` ✗. The right walk terminates at width 2. Walking left: `[1,0]` is not a valid V-predecessor (D-MIN★ gives `[1,1]` as the minimum). Left-maximal. The diagonal pair extends into a single run `([1,1], [1,1], 2)`, which witnesses both diagonal pairs `([1,1], [1,1])` and `([1,2], [1,2])` at offsets 0 and 1.
+
+Walking right from the off-diagonal pair `([1,1], [1,2])`: offset 1 gives `([1,2], [1,3])`, and `[1,3] ∉ dom(M(d))` ✗. Walking left from `([1,1], [1,2])`: the a-side predecessor `[1,0]` is invalid (D-MIN★), so left-maximal. The run is `([1,1], [1,2], 1)`. Symmetrically for `([1,2], [1,1])`: right-extension hits `[1,3] ∉ dom(M(d))`; the b-side left-predecessor `[1,0]` is invalid; so the run is `([1,2], [1,1], 1)`.
+
+The result is therefore:
+
+> `MaxRuns = { ([1,1], [1,1], 2),  ([1,1], [1,2], 1),  ([1,2], [1,1], 1) }`
+
+The identity diagonal aggregates into a single width-2 run (because consecutive offsets share I-addresses pointwise under the identity map), while the off-diagonal self-transclusion correspondences each remain as their own width-1 run (because adjacent offsets do not preserve the off-diagonal alignment — extending an off-diagonal width-1 run would require the next a-side and b-side V-positions to also share an I-address at the same cross-side offset, which would require additional self-transclusion structure that this `M(d)` does not exhibit). CV-MAX's unique-witness property is observable concretely: the four pairs in `corr_{a,a}` are partitioned across the three runs as (2, 1, 1), each pair witnessed at exactly one offset of exactly one run. The CV-ATOM byte-granular admissibility shows up directly: the off-diagonal width-1 runs are preserved, not absorbed into the wider diagonal run.
 
 A correspondence run `(v_a, v_b, n)` projects naturally to a pair of V-spans `(σ_a, σ_b)`:
 
@@ -251,16 +287,18 @@ These two properties together — read-only and deterministic — make `comparev
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| CV-IN | Admissibility: `d_a, d_b ∈ E_doc` (with `d_a = d_b` admissible); `R_a, R_b` normalized V-span-sets lying within a single common subspace `S`; each span level-uniform at the document's V-position depth `m_σ` in `S` with `actionPoint(width(σ)) = m_σ` — equivalently, `width(σ) = δ(n_σ, m_σ)` is an ordinal displacement at depth `m_σ` | introduced |
+| CV-IN | Admissibility: `d_a, d_b ∈ E_doc` (with `d_a = d_b` admissible); `R_a, R_b` normalized V-span-sets lying within a single common subspace `S`; each `σ ∈ R_a` level-uniform at depth `m_a := m_{d_a, S}` with `actionPoint(width(σ)) = m_a`, and symmetrically each `σ ∈ R_b` at depth `m_b := m_{d_b, S}` — equivalently, `width(σ) = δ(n_σ, m_σ)` is an ordinal displacement at the home-document depth (`m_σ` = `m_a` or `m_b` according to side) | introduced |
 | Result | `Result := P(T × T × ℕ⁺)` — set of correspondence-run triples | introduced |
 | `corr_{a,b}` | Correspondence relation: `{(v_a, v_b) ∈ ⟦R_a⟧ ∩ dom(M(d_a)) × ⟦R_b⟧ ∩ dom(M(d_b)) : M(d_a)(v_a) = M(d_b)(v_b)}` | introduced |
 | CV-IDENT | Correspondence is determined by I-address equality, not by value equality of stored content | introduced |
 | CV-PROV-FORGOTTEN | The relation does not distinguish how shared I-addresses came to be referenced — direct or transitive transclusion produces indistinguishable correspondences | introduced |
 | CV-LINK-DEGEN | When `S = s_L` and `d_a ≠ d_b`, the result is necessarily empty (CL-OWN + S7 force I-address origins to disagree) | introduced |
+| CV-LINK-SELF | When `S = s_L` and `d_a = d_b = d`, the correspondence relation in `s_L` collapses to the identity diagonal (CL-UNIQ forces equal I-addresses to come from equal V-positions) | introduced |
 | Correspondence run | A triple `(v_a, v_b, n)` with `n ≥ 1` and pointwise correspondence at all offsets `0 ≤ k < n`, both endpoints lying in their restrictions | introduced |
 | Maximal correspondence run | A correspondence run that cannot be extended left or right without leaving a restriction or breaking pointwise correspondence | introduced |
 | CV-MAX | `MaxRuns(d_a, R_a, d_b, R_b)` is uniquely determined; every pair in `corr_{a,b}` is witnessed by exactly one maximal run | introduced |
 | CV-EMPTY | When `⟦R_a⟧ ∩ dom(M(d_a)) = ∅` or `⟦R_b⟧ ∩ dom(M(d_b)) = ∅`, `MaxRuns(d_a, R_a, d_b, R_b) = ∅` | introduced |
+| CV-FIN | The result is finite, with `|MaxRuns| ≤ |corr_{a,b}| ≤ |dom(M(d_a))| · |dom(M(d_b))| < ∞` (by S8-fin, ASN-0036) | introduced |
 | CV-ATOM | Byte-granular construction: width-1 runs are admissible and preserved; no quotation-length cutoff, no merge-window heuristic, no block-alignment constraint is imposed | introduced |
 | CV-SYM | Operand-swap symmetry: there is a bijection swapping each run `(v_a, v_b, n)` with `(v_b, v_a, n)` between the two orderings of the operation | introduced |
 | CV-RO | The operation is read-only — no component of `Σ` is modified by its invocation; it is not an element of the transition vocabulary | introduced |
