@@ -537,6 +537,41 @@ def _resolve_declared_deps(session, asn_id: int) -> list[int]:
     return deps
 
 
+def foundation_dep_addrs(session, asn_id: int) -> list:
+    """Return the dep NOTE base addresses for an ASN, in id-sorted order.
+
+    Uses the same dep-resolution path as `load_foundation` (inquiry
+    primary, note-side LEGACY fallback) — guarantees consistency
+    between what the loader reads and what cascade-anchor emission
+    records as the foundations the review actually consumed.
+
+    Returns empty list if no deps declared (foundation-ASN case).
+    Raises FoundationError if any dep can't be resolved to a note
+    address (same conditions as `load_foundation` raises).
+    """
+    from lib.shared.common import find_asn
+    from lib.shared.paths import WORKSPACE
+
+    declared = _resolve_declared_deps(session, asn_id)
+    out = []
+    for dep_id in declared:
+        dep_path, _ = find_asn(str(dep_id))
+        if dep_path is None:
+            raise FoundationError(
+                f"ASN-{asn_id:04d} declares dep ASN-{dep_id:04d} but "
+                f"no note file exists on disk",
+            )
+        dep_rel = str(dep_path.resolve().relative_to(Path(WORKSPACE).resolve()))
+        dep_note_addr = session.store.path_to_addr.get(dep_rel)
+        if dep_note_addr is None:
+            raise FoundationError(
+                f"ASN-{asn_id:04d} declares dep ASN-{dep_id:04d}: note "
+                f"file {dep_rel} not path-registered in substrate",
+            )
+        out.append(dep_note_addr)
+    return out
+
+
 def _read_note_side_depends(session, asn_id: int) -> list[int]:
     """Read citation.depends directly from the note address.
 

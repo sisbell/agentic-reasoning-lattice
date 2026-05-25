@@ -25,7 +25,7 @@ from lib.backend.addressing import Address
 from lib.backend.emit import (
     emit_citation_bundle, emit_review_content, emit_review_coverage,
 )
-from lib.predicates import depends, version_head
+from lib.predicates import version_head
 from lib.lattice.config import lattice_config
 from lib.lattice.findings import record_one_finding
 from lib.lattice.labels import (
@@ -36,7 +36,9 @@ from lib.lattice.labels import (
 from lib.protocols.febe.protocol import Session
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
-from lib.shared.foundation import FoundationError, load_foundation
+from lib.shared.foundation import (
+    FoundationError, foundation_dep_addrs, load_foundation,
+)
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
     NOTE_FINDINGS_DIR, REVIEWS_DIR, USAGE_LOG, WORKSPACE,
@@ -305,9 +307,15 @@ class NoteReviewAgent(Agent):
         # is_head_version per target; any non-head target means an
         # upstream advanced since the anchor was emitted, re-firing
         # note_review on the stale note.
+        #
+        # Dep addresses come via `foundation_dep_addrs` — the same
+        # resolution path the loader just used. Querying citation.depends
+        # from note_addr would silently return empty for HEALTHY ASNs
+        # (citations live on inquiry_addr); the helper consults the
+        # canonical source.
         foundation_heads = [
             version_head(session, dep)
-            for dep in depends(session, note_addr)
+            for dep in foundation_dep_addrs(session, asn_number)
         ]
         if foundation_heads:
             emit_citation_bundle(

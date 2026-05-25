@@ -18,6 +18,7 @@ from lib.shared.foundation import (
     FoundationError,
     _validate_asn_id,
     _validate_dep_ids,
+    foundation_dep_addrs,
     load_foundation,
 )
 
@@ -152,6 +153,39 @@ def test_load_foundation_raises_on_missing_inquiry_and_note() -> None:
         match="no inquiry file AND no note in substrate",
     ):
         load_foundation(99999)
+
+
+def test_foundation_dep_addrs_returns_addresses_for_healthy_asn() -> None:
+    """For a HEALTHY ASN with declared deps, foundation_dep_addrs
+    returns the dep note base addresses in id-sorted order. Used by
+    note_review for cascade-anchor emission."""
+    from lib.protocols.febe.session import open_session
+    from lib.shared.paths import LATTICE
+    with open_session(LATTICE) as session:
+        addrs = foundation_dep_addrs(session, 97)
+    assert len(addrs) == 7, "ASN-0097 has 7 declared deps"
+    # All resolved to substrate addresses (truthy)
+    assert all(a for a in addrs)
+
+
+def test_foundation_dep_addrs_returns_empty_for_foundation_asn() -> None:
+    """ASN-0034 has `depends: []` declared — foundation_dep_addrs
+    returns empty list, not None."""
+    from lib.protocols.febe.session import open_session
+    from lib.shared.paths import LATTICE
+    with open_session(LATTICE) as session:
+        addrs = foundation_dep_addrs(session, 34)
+    assert addrs == []
+
+
+def test_foundation_dep_addrs_legacy_fallback() -> None:
+    """Protocol note (ASN-0086) has no inquiry; foundation_dep_addrs
+    falls back to note-side substrate, same as load_foundation."""
+    from lib.protocols.febe.session import open_session
+    from lib.shared.paths import LATTICE
+    with open_session(LATTICE) as session:
+        addrs = foundation_dep_addrs(session, 86)
+    assert len(addrs) == 5, "ASN-0086 has 5 note-side citations"
 
 
 def test_load_foundation_legacy_fallback_for_protocol_notes(capsys) -> None:
