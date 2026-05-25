@@ -1,23 +1,18 @@
-# Revision Categorization — ASN-0051 review-6
+# Channel Assignment — ASN-0098 review-6
 
-**Date:** 2026-03-20 21:45
+**Date:** 2026-05-24 20:41
 
-## Issue 1: SV6 precondition "within the element field" is informal
-Category: INTERNAL
-Reason: The T4 field decomposition and zeros(s) are already defined in the foundation ASNs. The fix is to restate the informal gloss using the position p₃ of the third zero component — purely a precision improvement derivable from existing definitions.
+## Issue 1: Project function precondition absent from formal definition box
+Reason: Pure formal-hygiene fix internal to the ASN — add the precondition `d ∈ dom(Σ.M)` to the definition box to match the style already used by `discoverable_from`. No design intent or implementation evidence needed; the convention is set by the ASN itself.
 
-## Issue 2: Resolution change under reordering — claimed without proof, contradicted by worked example
-Category: INTERNAL
-Reason: The formal relationship resolve_{Σ'} = π(resolve_Σ) follows directly from K.μ~'s definition already in ASN-0047, and a proper witness can be constructed from the existing definitions of resolve and reordering. The worked example annotation is editorial.
+## Issue 2: LP10 boundary case — K.μ⁻ contracting to empty arrangement
+Reason: The K.μ⁻ precondition admitting `n'_S = 0` is established in ASN-0047 and the projection-empty consequence follows mechanically from the projection definition. Adding an explicit boundary acknowledgment requires no external input.
 
-## Issue 3: SV7 formal content is subsumed by SV8
-Category: INTERNAL
-Reason: The logical subsumption is visible from the two properties' statements within this ASN. Reformulating SV7 to capture the "no coupling step" claim requires only checking that no link-propagation operation exists in the ASN-0047 repertoire — derivable from the existing operation definitions.
+## Issue 3: LP16 statement informally phrased
+Reason: Formalization of an already-proved claim using vocabulary the ASN has fully established (`coverage`, `ran(Σ.M(d))`, `discoverable_from`). No design intent or implementation question is at stake — the proof already references the precise condition.
 
-## Issue 4: Bilateral vitality — vacuous case unaddressed
-Category: INTERNAL
-Reason: L3 already permits empty endsets as an established foundation axiom. The fix is to acknowledge the vacuous case and note that a (∅, ∅, Θ) link is a pure type annotation with no content vitality to lose — this follows from the existing definitions without requiring design-intent consultation.
+## Issue 4: LP19 multi-state chain obscures the lemma content
+Reason: Presentation refactor of an existing proof. Whether to split into two lemmas or simplify the chain is an internal exposition choice; the content and proof obligations are already in the ASN.
 
-## Issue 5: SV13(e) omits non-arrangement transitions
-Category: INTERNAL
-Reason: The frame conditions of K.α, K.δ, and K.ρ are explicitly stated in ASN-0047. The fix is mechanical — add a sentence noting these transitions hold M constant, so resolve is trivially preserved.
+## Issue 5: LP12 existential lift left implicit
+Reason: Elementary proof completion using definitions (`discoverable_from`, `project`) already in the ASN. The lift from per-slot to existential biconditional is mechanical and requires no external evidence.
