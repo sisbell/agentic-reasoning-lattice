@@ -22,21 +22,32 @@ The fork operation produces a new document `d_new` from a source document `d_src
 
 (c) *A provenance record.* For every I-address appearing in `M'(d_new)`, a witness `(a, d_new) ∈ R'` recording that `d_new` now contains `a`.
 
-The first is supplied by entity creation; the second by arrangement extension; the third by provenance recording. The vocabulary of ASN-0047 names these K.δ (case k = 1, version-spawn), K.μ⁺ (arrangement extension), and K.ρ (provenance recording). The fork composite is exactly the sequencing of these three.
+The first is supplied by entity creation; the second by arrangement extension; the third by provenance recording. The vocabulary of ASN-0047 names these K.δ (case (ii) with `k = 1` for the first fork of `d_src`, `k = 0` for subsequent forks — both consistent with `A_v(d_src)`'s chain-advancement convention), K.μ⁺ (arrangement extension), and K.ρ (provenance recording — invoked once per inherited I-address). The fork composite is exactly the sequencing of these elementary steps.
 
 The composite is J4 of ASN-0047, named *ForkComposite*. We adopt it as the structural skeleton and derive from first principles what it guarantees, what it forbids, and what it leaves to the source-fork relationship.
 
 ## Identity by Sub-Allocation
 
-We begin with `d_new`. The system already has an apparatus for allocating tumblers under a parent: T10a's allocator discipline and ASN-0047's K.δ. For a document, the operation that produces a child tumbler is `inc(t, k)` with `k = 1`, which by TA5(d) appends a single non-zero component to `t`. Under K.δ case (ii) at `k = 1`, the precondition is `t ∈ E_doc` and the effect is `E' = E ∪ {inc(t, 1)}` with the new entity satisfying `IsDocument(·)` — its zero count is preserved (KDeltaZerosK01) at `zeros(t) = 2`, so the result remains at document level.
+We begin with `d_new`. The system already has an apparatus for allocating tumblers under the version sub-allocator of `d_src`: T10a's allocator discipline and ASN-0047's K.δ. For a document's versions, the producing allocator is `A_v(d_src)` (ASN-0047's Allocator hierarchy), which emits its first output via K.δ case (ii) at `k = 1` — `inc(d_src, 1)`, by TA5(d) appending a single non-zero component — and emits each subsequent output via K.δ case (ii) at `k = 0` — `inc(d_prev, 0)`, by TA5(c) preserving length while advancing the trailing component. In both cases the new entity satisfies `IsDocument(·)`: its zero count is preserved at `zeros = 2` by KDeltaZerosK01 (at `k = 0` and at `k = 1`), so the result remains at document level.
 
 We make explicit:
 
-> **V1** (*new-version identity*): A fork of `d_src` produces a new entity `d_new = inc(d_src, 1)` satisfying `d_new ∈ E'_doc`, `d_new ∉ E_doc`, and `parent(d_new) = parent(d_src)` (KDeltaParentK01, ASN-0047). The new entity inherits the source's account-level prefix while extending into a fresh sub-tumbler.
+> **V1** (*new-version identity*): A fork of `d_src` produces a new entity `d_new` allocated as `A_v(d_src)`'s next emission per the Allocator hierarchy (ASN-0047):
+>
+> - *First fork of `d_src`* (when `A_v(d_src)` has emitted no prior version): `d_new = inc(d_src, 1)`, produced by K.δ case (ii) with `k = 1`, `t = d_src`.
+> - *Subsequent fork of `d_src`* (when `A_v(d_src)` has prior emissions with most recent `d_prev`): `d_new = inc(d_prev, 0)`, produced by K.δ case (ii) with `k = 0`, `t = d_prev`.
+>
+> In either case `d_new ∈ E'_doc`, `d_new ∉ E_doc` (pre-fork), `IsDocument(d_new)` (by KDeltaZerosK01, ASN-0047, which preserves zeros at both `k = 0` and `k = 1`), and `parent(d_new) = parent(d_src)` (by KDeltaParentK01 at the first fork; by KDeltaParentK01 applied at each step of `A_v(d_src)`'s emission chain combined with induction on the chain for subsequent forks). The new entity inherits the source's account-level prefix while extending into a fresh sub-tumbler.
 
 Two consequences follow without further machinery.
 
-*Structural ancestry.* By TA5(b), the agreement clause for `inc(t, k)` at `k > 0` is `(A i : 1 ≤ i ≤ #t : t'_i = t_i)` — every component of `t` is preserved in the prefix of `t'`. By the Prefix definition (ASN-0034), this is exactly `d_src ≼ d_new`. The source's tumbler is a prefix of the fork's tumbler. We name this so that downstream users of the operation can rely on it as a structural property of the operation itself, not as a metadata field that could fall out of sync.
+*Structural ancestry.* We derive `d_src ≼ d_new` by induction on `A_v(d_src)`'s emission count.
+
+*Base case (first fork).* `d_new = inc(d_src, 1)`. By TA5(b) at `k = 1 > 0`, every component of `d_src` is preserved: `(A i : 1 ≤ i ≤ #d_src : (d_new)_i = (d_src)_i)`. By TA5(d), `#d_new = #d_src + 1`, so `#d_src ≤ #d_new`. By the Prefix definition (ASN-0034), `d_src ≼ d_new`.
+
+*Inductive step (subsequent fork).* Suppose `d_src ≼ d_prev`, where `d_prev` is `A_v(d_src)`'s most recent prior emission. Then `d_new = inc(d_prev, 0)`. By TA5(b) at `k = 0`, agreement holds at every position of `d_prev` except `sig(d_prev)`: `(A i : 1 ≤ i ≤ #d_prev ∧ i ≠ sig(d_prev) : (d_new)_i = (d_prev)_i)`. By T10a.4 (T4PreservationUnderDiscipline, ASN-0034), every `A_v(d_src)` output is T4-valid, so `d_prev` is T4-valid; by TA5-SigValid (ASN-0034), `sig(d_prev) = #d_prev`. The modified position is therefore the last position of `d_prev`. By TA5(c), `#d_new = #d_prev`. From the base case `#d¹ = #d_src + 1` combined with TA5(c) preserving length at each subsequent `k = 0` step, every version-sub-allocator output of `A_v(d_src)` has length exactly `#d_src + 1`, so in particular `#d_prev = #d_src + 1 > #d_src`. The modified position `sig(d_prev) = #d_prev` therefore exceeds `#d_src`. For positions `1 ≤ i ≤ #d_src`: agreement gives `(d_new)_i = (d_prev)_i` (since `i ≤ #d_src < #d_prev = sig(d_prev)`), and the induction hypothesis gives `(d_prev)_i = (d_src)_i`. Composing: `(d_new)_i = (d_src)_i` for `1 ≤ i ≤ #d_src`. With `#d_src ≤ #d_new` (since `#d_new = #d_prev > #d_src`), the Prefix definition gives `d_src ≼ d_new`. ∎
+
+The source's tumbler is a prefix of the fork's tumbler. We name this so that downstream users of the operation can rely on it as a structural property of the operation itself, not as a metadata field that could fall out of sync.
 
 > **V2** (*prefix-encoded ancestry*): `d_src ≼ d_new` under the tumbler prefix order. The ancestry relationship is recoverable from `d_new`'s tumbler alone by truncating the trailing extension component; no separate lineage table is consulted.
 
@@ -170,6 +181,8 @@ We therefore commit to producing an empty fork as the normative behavior:
 
 > **V7** (*empty-source behavior*): A fork of `d_src` with `V_{s_C}(d_src) = ∅` reduces to K.δ alone, producing a new entity `d_new ∈ E'_doc` with `M'(d_new) = ∅` and `R' = R`. The operation succeeds; the fork is itself an empty document, eligible for subsequent insertion or further forking.
 
+V7's K.δ-alone composite is not a J4 composite. J4 of ASN-0047 defines the fork composite as K.δ + K.μ⁺ + K.ρ with precondition `V_{s_C}(d_src) ≠ ∅`; V7 admits an additional composite shape — K.δ alone, without K.μ⁺ or K.ρ — when J4's precondition fails. We frame V7 as an *extension* of J4: this ASN's fork operation V0 supports both composite shapes, dispatching on whether `V_{s_C}(d_src)` is empty. The structural skeleton from "What Must Be Constructed" is therefore *J4 plus V7's extension*, with J4 covering the non-empty case and V7 covering the empty case. The deviation from J4 is explicit and intentional; J4's clauses (ii) and (iii) — which constrain K.μ⁺ and require K.ρ records — are vacated in V7's composite, where K.μ⁺ does not fire and `ran(M'(d_new))` is empty.
+
 The alternative — rejecting the operation when the source is empty — is *inadmissible* under V7. Rejection would force the user to populate the source before forking, which contradicts Nelson's design intent that an empty source is degenerate but valid (CREATENEWDOCUMENT produces empty documents on demand, and they remain valid `E_doc` members). Rejection would also make the downstream property V11 (transitive identity through fork chains) implementation-dependent: a chain involving an empty intermediate would succeed under one implementation and fail under another.
 
 Under V7's normative behavior, V1, V2, V3, V5, V10, V11, V12 hold unconditionally; V9 holds vacuously (`ran(M'(d_new)) = ∅` adds nothing to `R`); V4, V6, V8 are vacuous when `V_{s_C}(d_src) = ∅` (the universal quantifier ranges over an empty set). A fork of an empty fork produces a third empty entity, each with prefix-encoded ancestry via V2 but no shared I-addresses (because there were none to share). The fork chain remains structurally coherent.
@@ -196,7 +209,7 @@ We record three immediate corollaries.
 
 > **V8b** (*correspondence degrades under arrangement editing*): If after the fork either `M(d_src)` or `M(d_new)` is modified by K.μ⁻ (removing V-positions) or K.μ~ (reordering), the correspondence holds only over V-positions still present in both arrangements with their original mappings. Insertions into either side (K.μ⁺) introduce V-positions absent from the other, where correspondence fails by domain incompatibility. The structural test V8 captures the correspondence *given the current state of each arrangement*; what the comparison surfaces is the V-positions where the inherited mappings have survived intact.
 
-> **V8c** (*correspondence is symmetric and untyped*): The relationship V8 records is between two documents; it does not distinguish "source" from "fork." After the fork is complete, both `d_src` and `d_new` are documents in `E_doc`, and the set of corresponding V-positions `{v ∈ T : v ∈ dom(M'(d_src)) ∩ dom(M'(d_new)) ∧ M'(d_src)(v) = M'(d_new)(v)}` is invariant under swap of the two documents. *Derivation.* The defining predicate — domain membership in both arrangements conjoined with equality of images at each V-position — is symmetric in its two arguments; swapping `(d_src, d_new)` for `(d_new, d_src)` leaves the set unchanged. ∎
+> **V8c** (*correspondence is symmetric and untyped*): The relationship V8 records is between two documents; it does not distinguish "source" from "fork." After the fork is complete, both `d_src` and `d_new` are documents in `E_doc`, and the set of corresponding V-positions `{v ∈ T : v ∈ dom(M'(d_src)) ∩ dom(M'(d_new)) ∧ M'(d_src)(v) = M'(d_new)(v)}` is invariant under swap of the two documents. *Derivation.* The set is defined by two conjuncts: (i) `v ∈ dom(M'(d_src)) ∩ dom(M'(d_new))` and (ii) `M'(d_src)(v) = M'(d_new)(v)`. Conjunct (i) is invariant under swap because set intersection is commutative: `dom(M'(d_src)) ∩ dom(M'(d_new)) = dom(M'(d_new)) ∩ dom(M'(d_src))`. For conjunct (ii), V8 supplies `M'(d_src)(v) = M'(d_new)(v)` for the V-positions in the set; symmetry of equality (a property of `=`, applied to the V8-supplied equality) gives the equivalent `M'(d_new)(v) = M'(d_src)(v)`, which is conjunct (ii) under the swapped ordering. Both conjuncts therefore evaluate the same under either ordering of the two documents, and the set is unchanged. ∎
 
 The intercomparison guarantee is *perpetual*. By T8 (AllocationPermanence, ASN-0034), `d_src` and `d_new` remain in `E_doc` forever; by P0/S0, their I-addresses persist in `dom(C)` forever; by the per-document arrangement frame discipline, neither side's arrangement modifies the other's. V8 holds in the post-fork state, and its consequences propagate to every subsequent state in which neither side has overwritten the relevant V-positions.
 
@@ -248,9 +261,25 @@ Suppose `Σ →* Σ¹` forks `d_src` to `d¹_new`, then `Σ¹ →* Σ²` forks `
 
 By V4 at each fork: `M¹(d¹_new) = M(d_src)|_{V_{s_C}(d_src)}` (in the sense that for each content-subspace V-position of the source, the same V-position with the same I-address appears in the fork). Then `M²(d²_new) = M¹(d¹_new)|_{V_{s_C}(d¹_new)}`. Composing: the I-addresses in `M²(d²_new)` are the same I-addresses as in `M(d_src)` over the V-positions present in all three arrangements.
 
-> **V11** (*transitive identity*): For every chain of forks `d_src → d¹_new → d²_new → ... → d^k_new`, the I-addresses inherited by `d^k_new` at each V-position present throughout the chain are the same I-addresses as in `d_src`'s arrangement.
+> **V11** (*transitive identity*): For every chain of forks `d_src → d¹_new → d²_new → ... → d^k_new` (with each step `dⁱ⁻¹_new → dⁱ_new` a fork composite, taking `d⁰_new := d_src`), the I-addresses inherited by `d^k_new` at each V-position present throughout the chain are the same I-addresses as in `d_src`'s arrangement: for every `v ∈ V_{s_C}(d_src)` propagated through the chain, `M^k(d^k_new)(v) = M(d_src)(v)`.
 >
-> *Derivation.* V4 establishes I-address equality at each fork step. The composition of equalities is equality. Each hop preserves the I-address by literal-inheritance; no transformation occurs at any step. ∎
+> *Derivation by induction on chain length `k`.*
+>
+> *Base case (`k = 1`).* V4 applied to the first fork `d_src → d¹_new` gives `M¹(d¹_new)(v) = M(d_src)(v)` for every `v ∈ V_{s_C}(d_src)`, and supplies `V_{s_C}(d_src) ⊆ dom(M¹(d¹_new))`.
+>
+> *Inductive step (`k ≥ 2`).* Assume the induction hypothesis at step `k − 1`: for every `v ∈ V_{s_C}(d_src)`, `v ∈ dom(M^{k-1}(d^{k-1}_new))` and `M^{k-1}(d^{k-1}_new)(v) = M(d_src)(v)`. (V4 applied at each prior step propagates `V_{s_C}(d_src)` forward into each `V_{s_C}(dⁱ_new)`, justifying the inclusion `V_{s_C}(d_src) ⊆ V_{s_C}(d^{k-1}_new)` that the hypothesis names.) The k-th fork composite `Σ^{k-1} →* Σ^k` takes `d^{k-1}_new` as source and produces `d^k_new`. Two equalities bridge step `k − 1`'s arrangement values into step `k`'s post-state:
+>
+> 1. *Source-arrangement preservation.* V5 applied to the k-th fork composite with `d^{k-1}_new` as source gives `M^k(d^{k-1}_new) = M^{k-1}(d^{k-1}_new)` — the source arrangement is unchanged across the fork composite, so the induction hypothesis's values carry into step `k`'s pre-state.
+>
+> 2. *Literal inheritance.* V4 applied to the k-th fork gives `M^k(d^k_new)(v) = M^k(d^{k-1}_new)(v)` for every `v ∈ V_{s_C}(d^{k-1}_new)` (in particular for every `v ∈ V_{s_C}(d_src)` by the IH-supplied inclusion).
+>
+> Composing: for every `v ∈ V_{s_C}(d_src)`,
+>
+> `M^k(d^k_new)(v) = M^k(d^{k-1}_new)(v)  [V4 at step k]`
+> `                = M^{k-1}(d^{k-1}_new)(v)  [V5 at step k]`
+> `                = M(d_src)(v)  [induction hypothesis]`
+>
+> The induction closes. ∎
 
 > **V11a** (*ancestry composition*): The prefix relation chains: `d_src ≼ d¹_new ≼ d²_new ≼ ... ≼ d^k_new`. Every fork in the chain is recoverable from the prefix structure of `d^k_new`'s tumbler alone, by reading off the successive extensions added by each `inc(·, 1)`. *Derivation.* We first verify that `≼` is transitive by unfolding the Prefix definition (ASN-0034). Suppose `a ≼ b` and `b ≼ c`. By Prefix, `a ≼ b` gives `#a ≤ #b` and `(A i : 1 ≤ i ≤ #a : bᵢ = aᵢ)`; `b ≼ c` gives `#b ≤ #c` and `(A i : 1 ≤ i ≤ #b : cᵢ = bᵢ)`. By T0's transitivity of `≤` on ℕ (NAT-order), `#a ≤ #c`. For each `i` with `1 ≤ i ≤ #a`: since `#a ≤ #b`, also `1 ≤ i ≤ #b`, so `cᵢ = bᵢ` by the second hypothesis; and `bᵢ = aᵢ` by the first hypothesis; composing the two component equalities gives `cᵢ = aᵢ`. Both conjuncts of `a ≼ c` are established. V2 at each fork step supplies the immediate prefix relation `dⁱ⁻¹_new ≼ dⁱ_new` (with `d⁰_new := d_src`); the chain `d_src ≼ d¹_new ≼ ... ≼ d^k_new` follows by repeated application of transitivity. ∎
 
@@ -294,31 +323,47 @@ We assemble the formal definition.
 >
 > *Precondition.* `d_src ∈ E_doc`. No content-existence precondition is imposed; the empty-source case is normative per V7.
 >
-> *Effects.* When `V_{s_C}(d_src) ≠ ∅` (the composite is K.δ + K.μ⁺ + K.ρ):
+> *Effects.* When `V_{s_C}(d_src) ≠ ∅` (the composite is K.δ + K.μ⁺ + K.ρ × n, where `n = |ran(M'(d_new))|`):
 >
 > ```
 > C' = C                                              (V3)
 > L' = L                                              (no K.λ or K.μ⁺_L steps)
-> E' = E ∪ {d_new}  where  d_new = inc(d_src, 1)      (V1)
+> E' = E ∪ {d_new}                                    (V1)
+>   where d_new is A_v(d_src)'s next emission:
+>     d_new = inc(d_src, 1)   on first fork of d_src
+>     d_new = inc(d_prev, 0)  on subsequent fork
+>       (d_prev = A_v(d_src)'s most recent prior emission)
 > M'(d_new)(v) = M(d_src)(v)  for v ∈ V_{s_C}(d_src)  (V4)
 > M'(d_new)(v) undefined       for v ∉ V_{s_C}(d_src) (V6)
 > (A d' : d' ≠ d_new : M'(d') = M(d'))                (V5, V5a)
 > R' = R ∪ {(a, d_new) : a ∈ ran(M'(d_new))}          (V9)
 > ```
 >
-> When `V_{s_C}(d_src) = ∅` (the composite is K.δ alone, per V7): `C' = C`, `L' = L`, `E' = E ∪ {d_new}` where `d_new = inc(d_src, 1)`, `M'(d_new) = ∅`, `M'(d') = M(d')` for `d' ≠ d_new`, `R' = R`. The operation succeeds.
+> The K.ρ phase is `n` elementary K.ρ invocations (one per `a ∈ ran(M'(d_new))`), each recording a single `(a, d_new)` pair per K.ρ's definition (ASN-0047). The set-builder `{(a, d_new) : a ∈ ran(M'(d_new))}` denotes the cumulative effect of all `n` invocations on `R`; the elementary multiplicity is verified per step in "The Fork Composite" verification below.
+>
+> When `V_{s_C}(d_src) = ∅` (the composite is K.δ alone, per V7's extension of J4): `C' = C`, `L' = L`, `E' = E ∪ {d_new}` (where `d_new` is `A_v(d_src)`'s next emission, formula as above), `M'(d_new) = ∅`, `M'(d') = M(d')` for `d' ≠ d_new`, `R' = R`. The operation succeeds.
 
-The elementary decomposition into K.δ + K.μ⁺ + K.ρ (or K.δ alone in the empty case) verifies the ValidComposite★ conditions of ASN-0047. We check briefly.
+The elementary decomposition into K.δ + K.μ⁺ + K.ρ × n (where `n = |ran(M'(d_new))|`), or K.δ alone in the empty case, verifies the ValidComposite★ conditions of ASN-0047. We check briefly.
 
-*K.δ at the pre-fork state Σ.* Case (ii) with `k = 1`, `t = d_src`. Required: `d_src ∈ E_doc` (P.1). `d_new = inc(d_src, 1)`; by KDeltaZerosK01, `zeros(d_new) = zeros(d_src) = 2`, so `IsDocument(d_new)`. By T10a's allocator discipline applied to the version sub-allocator `A_v(d_src)` (defined in ASN-0047's Allocator hierarchy), `d_new = inc(d_src, 1)` is `A_v(d_src)`'s first emission; T10a.6 (DomainDisjointness, ASN-0034) makes its domain disjoint from every other allocator's, and the per-allocator chain-advancement uniqueness places the first emission outside any other allocator's range, so `d_new ∉ E`. (NodeUniqueAllocation does not apply — it governs only K.δ events with `IsNode(e)`, while `d_new` satisfies `IsDocument(d_new)`.) Effect: `E¹ = E ∪ {d_new}`, `M¹(d_new) = ∅`, `M¹(d') = M(d')` for `d' ≠ d_new`. Frame: `C¹ = C`, `L¹ = L`, `R¹ = R`.
+*K.δ at the pre-fork state Σ.* The K.δ sub-case is determined by `A_v(d_src)`'s state.
+
+*K.δ sub-case A — first fork.* `A_v(d_src)` has emitted no prior version. K.δ case (ii) with `k = 1`, `t = d_src`. Required: `d_src ∈ E_doc` (P.1). `d_new = inc(d_src, 1)`; by KDeltaZerosK01, `zeros(d_new) = zeros(d_src) = 2`, so `IsDocument(d_new)`. By T10a's allocator discipline applied to `A_v(d_src)` (ASN-0047's Allocator hierarchy), `d_new = inc(d_src, 1)` is `A_v(d_src)`'s first emission; T10a.6 (DomainDisjointness, ASN-0034) makes its domain disjoint from every other allocator's, and the per-allocator chain-advancement uniqueness places the first emission outside any other allocator's range, so `d_new ∉ E`.
+
+*K.δ sub-case B — subsequent fork.* `A_v(d_src)` has prior emissions with most recent `d_prev ∈ E_doc`. K.δ case (ii) with `k = 0`, `t = d_prev`. Required: `d_prev ∈ E ∧ ¬IsNode(d_prev) ∧ inc(d_prev, 0) ∉ E`. `d_prev ∈ E` by P1 (entity permanence, ASN-0047) applied to its earlier K.δ event. `d_prev` is a `A_v(d_src)` output with `IsDocument(d_prev)` (zeros preserved at the first emission by KDeltaZerosK01 at `k = 1`, and preserved at each subsequent emission by KDeltaZerosK01 at `k = 0`), so `¬IsNode(d_prev)`. The freshness `inc(d_prev, 0) ∉ E` follows from T10a.7 (EnumerationInjectivity, ASN-0034) applied to `A_v(d_src)`'s sibling-stream enumeration — the next sibling tumbler is distinct from every prior emission — combined with T10a.6, which places the new emission outside every other allocator's domain. By KDeltaZerosK01, `zeros(d_new) = zeros(d_prev) = 2`, so `IsDocument(d_new)`.
+
+(NodeUniqueAllocation does not apply in either sub-case — it governs only K.δ events with `IsNode(e)`, while `d_new` satisfies `IsDocument(d_new)`.)
+
+Effect (both sub-cases): `E¹ = E ∪ {d_new}`, `M¹(d_new) = ∅`, `M¹(d') = M(d')` for `d' ≠ d_new`. Frame: `C¹ = C`, `L¹ = L`, `R¹ = R`.
 
 *K.μ⁺ at Σ¹ (skipped in the empty case).* Target `d = d_new`. The extension set is `V_{s_C}(d_src)`. Precondition: `d_new ∈ E¹_doc` (just established); for every `v ∈ V_{s_C}(d_src)`, the target `M(d_src)(v) ∈ dom(C¹) = dom(C)` (S3 at `d_src`, ASN-0036); new V-positions satisfy S8a (all components positive, by S8a applied at `d_src`) and S8-depth (common depth `m_{s_C}`); `dom(M²(d_new))` finite (subset of `dom(M(d_src))` which is finite by S8-fin); `M²(d_new)` satisfies D-CTG★ (the inherited positions form `V_{s_C}(d_src) = {[s_C, 1, ..., 1, k] : 1 ≤ k ≤ n_{s_C}}` per D-SEQ★, contiguous by construction) and D-MIN★ (minimum is `[s_C, 1, ..., 1]`); newly added V-positions are pairwise distinct (they are pairwise distinct in `V_{s_C}(d_src)`). The K.μ⁺ amendment of ASN-0047 requires `subspace(v) = s_C` for all new V-positions, which holds throughout. Strict extension: `V_{s_C}(d_src) ≠ ∅` by P.2.
 
 Effect: `M²(d_new)(v) = M(d_src)(v)` for `v ∈ V_{s_C}(d_src)`. Frame: `C² = C`, `L² = L`, `E² = E¹`, `M²(d') = M¹(d')` for `d' ≠ d_new`, `R² = R¹ = R`.
 
-*K.ρ at Σ², repeated.* For each `a ∈ ran(M²(d_new))`, record `(a, d_new) ∈ R`. Precondition at Σ²: `a ∈ dom(C²) = dom(C)` (by S3 at `M²(d_new)` per K.μ⁺'s postcondition) and `d_new ∈ E²_doc`. Frame: `C³ = C`, `L³ = L`, `E³ = E²`, `M³ = M²`.
+*K.ρ × n at Σ², n = |ran(M²(d_new))|.* The K.ρ phase consists of `n` elementary K.ρ invocations, each recording one `(aⱼ, d_new)` pair. Enumerate `ran(M²(d_new)) = {a₁, ..., a_n}` (finite by S8-fin applied to `dom(M²(d_new))`; image of a finite set under a function is finite). The composite proceeds through `n` sequential elementary K.ρ steps: at step `j` (for `1 ≤ j ≤ n`), K.ρ at intermediate state `Σ^{1+j}` records `(aⱼ, d_new)` producing `Σ^{1+j+1} = Σ^{2+j}`. At step `j`, the K.ρ precondition (ASN-0047) is `aⱼ ∈ dom(C^{1+j})` and `d_new ∈ E^{1+j}_doc`. The content store is preserved by K.ρ's frame condition at each prior step (`C^{1+j} = C^{1+j-1} = ... = C² = C` by induction on `j`), so `aⱼ ∈ dom(C^{1+j}) ⟺ aⱼ ∈ dom(C)`; the latter holds because `aⱼ ∈ ran(M²(d_new))` and S3 at `M²(d_new)` (from K.μ⁺'s postcondition) gives `ran(M²(d_new)) ⊆ dom(C²) = dom(C)`. Similarly, `d_new ∈ E^{1+j}_doc` holds because K.ρ's frame preserves E, so `E^{1+j} = E² = E¹`, and `d_new ∈ E¹_doc` from the K.δ effect. Each elementary K.ρ step satisfies its precondition.
 
-*Coupling at (Σ, Σ³).* J0 holds vacuously: `dom(C³) \ dom(C) = ∅`. J1★ holds by the K.ρ records. J1'★ holds because every `(a, d) ∈ R³ \ R` was added in K.ρ, satisfying the range-based content-subspace scoping.
+Cumulative effect across the `n` K.ρ steps: `R^{2+n} = R² ∪ {(aⱼ, d_new) : 1 ≤ j ≤ n} = R ∪ {(a, d_new) : a ∈ ran(M²(d_new))}`. Frame: `C^{2+n} = C`, `L^{2+n} = L`, `E^{2+n} = E²`, `M^{2+n} = M²`.
+
+*Coupling at (Σ, Σ^{2+n}).* J0 holds vacuously: `dom(C^{2+n}) \ dom(C) = ∅`. J1★ holds because every `a` with `(E v ∈ dom(M^{2+n}(d_new)) : subspace(v) = s_C ∧ M^{2+n}(d_new)(v) = a)` had `(a, d_new)` recorded by some K.ρ step (the K.ρ enumeration ranges over all of `ran(M²(d_new))`, which is exactly the content-subspace range by V6). J1'★ holds because every `(a, d) ∈ R^{2+n} \ R` was added by some K.ρ step with `d = d_new` and `a ∈ ran(M²(d_new))`, satisfying the range-based content-subspace scoping.
 
 The composite is a valid composite under ValidComposite★. ∎
 
@@ -378,8 +423,8 @@ The link subspace of `d_new` is empty: `V_{s_L}(d_new) = ∅`. The link `ℓ` re
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| V0 | FORK composite: K.δ + K.μ⁺ + K.ρ producing new document inheriting source's content-subspace arrangement | introduced |
-| V1 | `d_new = inc(d_src, 1) ∈ E'_doc`, `d_new ∉ E_doc`, `parent(d_new) = parent(d_src)` | introduced |
+| V0 | FORK composite: K.δ + K.μ⁺ + K.ρ × n (n = `|ran(M'(d_new))|`), or K.δ alone in the empty-source case (V7's extension of J4); produces new document inheriting source's content-subspace arrangement | introduced |
+| V1 | `d_new ∈ E'_doc`, `d_new ∉ E_doc`, `parent(d_new) = parent(d_src)`, with `d_new` = `A_v(d_src)`'s next emission: `inc(d_src, 1)` on first fork, `inc(d_prev, 0)` on subsequent fork | introduced |
 | V2 | `d_src ≼ d_new` — prefix-encoded ancestry recoverable from `d_new`'s tumbler | introduced |
 | V3 | `C' = C` — fork allocates no new content | introduced |
 | V3a | `{a ∈ dom(C') : origin(a) = d'} = {a ∈ dom(C) : origin(a) = d'}` for every `d'` — allocation invariance | introduced |
@@ -398,7 +443,7 @@ The link subspace of `d_new` is empty: `V_{s_L}(d_new) = ∅`. The link `ℓ` re
 | V9a | Provenance records containment, not derivation path — chain of custody is reconstructable from I-addresses and prefix structure, not stored | introduced |
 | V10 | Sibling forks of the same source are independent in identity, arrangement, and provenance | introduced |
 | V10a | Each fork derives from `M(d_src)` *at the moment of forking* — time-sensitivity | introduced |
-| V11 | Transitive identity: forks of forks share I-addresses through the chain | introduced |
+| V11 | Transitive identity: for every fork chain `d_src → d¹_new → ... → d^k_new`, `M^k(d^k_new)(v) = M(d_src)(v)` for every `v ∈ V_{s_C}(d_src)` propagated through the chain | introduced |
 | V11a | Prefix relation chains: `d_src ≼ d¹_new ≼ ... ≼ d^k_new` — ancestry composition recoverable from tumbler structure | introduced |
 | V12 | Joint permanence of source, fork, inherited I-addresses, and provenance records across all subsequent states | introduced |
 
