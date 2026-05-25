@@ -1,25 +1,27 @@
-# Channel Assignment — ASN-0097 review-5
+# Channel Assignment — ASN-0098 review-5
 
-**Date:** 2026-05-24 12:40
+**Date:** 2026-05-24 20:25
 
-## Issue 1: Π15a's stratified-S3 axioms modify a foundation invariant
-Reason: The fix requires both design intent on whether M(d) was meant to be subspace-stratified (Nelson) and implementation evidence on what the running system actually permits in M(d)'s range (Gregory).
-Nelson question: Was the design intent for M(d) to be subspace-stratified — text-subspace V-positions arranging content addresses and link-subspace V-positions arranging link addresses — or was M(d) intended to range exclusively over content addresses?
-Gregory question: Does the udanax-green implementation allow a document's arrangement to reference link addresses (e.g., for link-subspace V-positions), and if so what referential-integrity invariant does it enforce across the subspaces?
+## Issue 1: Citation error — "P0 of ASN-0093" does not exist
+Reason: Pure citation correction. The reviewer has identified the correct label (C0 of ASN-0093 or P0 of ASN-0047) and the fix is mechanical replacement against existing ASN content.
 
-## Issue 2: Proof justification by "consultation evidence"
-Reason: This is an editorial fix derivable from the ASN — remove the empirical appeals and label the underlying premises as local axioms. The substantive grounding of those premises is handled under Issues 1 and 7.
+## Issue 2: LP11 — second conjunct asserted without proof
+Reason: Proof gap with the discharging step already supplied in the review. The required derivation uses K.μ~-FIX and the bijection equation already cited in this ASN; no external evidence needed.
 
-## Issue 3: Π4 invokes an undeclared external interpretation function
-Reason: The fix is to name the role-by-index function and cite ASN-0043's L7 (a stated foundation in this work); this is derivable from existing ASN content without external consultation.
+## Issue 3: LP9 prose conflates the tight-endset case with the general case
+Reason: Editorial rewording to match LP6's conditional structure. The correct content (tightness as the operative condition) is already established in LP19 within this ASN.
 
-## Issue 4: Empty endset / empty coverage boundary unaddressed
-Reason: The fix requires knowing whether the design admits empty endsets (Nelson) and whether the implementation enforces a non-emptiness precondition at link creation (Gregory).
-Nelson question: Did Nelson's design intend MAKELINK to admit endsets with no spans or with all-zero-width spans (yielding cov(e) = ∅), or was an endset always required to denote at least one I-address?
-Gregory question: Does udanax-green's link-creation primitive reject endsets whose span tuples are empty or whose spans all have zero width, or does it accept such endsets without precondition failure?
+## Issue 4: Reference-frame ambiguity in State Components
+Reason: Editorial commitment on which reference frame this ASN works in. Since projection consults only `coverage(e)` and `Σ.M(d)` (per the project definition already in this ASN), the resolution is internal — clarifying the frame statement, not establishing new facts.
 
-## Issue 5: R13 (CCR-conditional) not exemplified in the worked example
-Reason: The fix constructs two sub-traces directly from CCR-restricted and CCR-open as already defined in the ASN; no external evidence is needed to exhibit the divergence.
+## Issue 5: LP20 — exhaustiveness of subspace case split is implicit
+Reason: Citation addition. S3★-aux (SubspaceExhaustiveness, ASN-0047) is the correct discharge and is already named by the reviewer; no consultation needed to locate the supporting claim.
 
-## Issue 6: Heavy reliance on cross-ASN labels with no foundations listed in this review
-Reason: The fix establishes ASN-0036/0043/0047 as declared foundations or restates load-bearing contracts inline; both options draw on already-available foundation ASN content and need no external consultation.
+## Issue 6: LP14 numbering note contains internal-revision artifact
+Reason: Trivial editorial deletion of a stale reviewer-issue reference. No external context required.
+
+## Issue 7: LP13 table summary is ambiguous
+Reason: Editorial rewording to align the table entry with the body prose (which is already clear). The intended semantics are already specified in this ASN.
+
+## Issue 8: LP19 quantifies over "K.α (or K.λ)" but the proof handles them uniformly only on first reading
+Reason: Citation correction. The reviewer has identified the correct precondition (K.λ's freshness condition `ℓ ∉ dom(L) ∪ dom(C)` from ASN-0093) and the fix is to substitute the right reference for the misapplied L14 citation.
