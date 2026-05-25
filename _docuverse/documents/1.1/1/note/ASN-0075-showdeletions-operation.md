@@ -37,7 +37,9 @@ NEVER_INCLUDED(a, d)  ≡  (a, d) ∉ R
 
 We must show these are exhaustive and mutually exclusive — otherwise the operation's outputs would have undefined classifications.
 
-**Lemma D-EXH (Three-State Exhaustion).** For every `(a, d)` with `a ∈ dom(C)`, `subspace_I(a) = s_C`, and `d ∈ E_doc`, exactly one of `CURRENT(a, d)`, `DELETED(a, d)`, `NEVER_INCLUDED(a, d)` holds.
+**Lemma D-EXH (Three-State Exhaustion).** Let `Σ` be a state reachable from `Σ_0` by a finite sequence of valid composite transitions (equivalently, `Σ` is a composite boundary). For every `(a, d)` with `a ∈ dom(Σ.C)`, `subspace_I(a) = s_C`, and `d ∈ Σ.E_doc`, exactly one of `CURRENT(a, d)`, `DELETED(a, d)`, `NEVER_INCLUDED(a, d)` holds.
+
+The reachability hypothesis is load-bearing for the proof: it activates `P4★` (`Contains_C(Σ) ⊆ R`), which ASN-0047 establishes as a composite-boundary property — not as a per-state invariant preserved by every elementary transition. At intermediate states inside a composite, `P4★` may fail, so the lemma's universal claim applies only to states observed at composite boundaries. SHOWDELETIONS is an observational operation (D-OBS) that is only meaningful at reachable states, so the restriction does not narrow its operational scope.
 
 *Proof.* The three predicates correspond to three of the four cases of the cross-product `(a ∈ ran(M(d))) × ((a, d) ∈ R)`:
 
@@ -52,13 +54,15 @@ The "impossible" row is excluded by the following chain. From `a ∈ ran(M(d))` 
 
 ## Why the Provenance Relation Is Load-Bearing
 
-We now show that the state components `(C, M)` alone are insufficient to support SHOWDELETIONS — any conforming implementation must maintain auxiliary state components beyond `(C, M)` that suffice to disambiguate the predicates `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` at every reachable state.
+We now show that the four foundation state components `(C, L, E, M)` together are insufficient to support SHOWDELETIONS — any conforming implementation must maintain auxiliary state components beyond `(C, L, E, M)` that suffice to disambiguate the predicates `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` at every reachable state.
 
-**Lemma D-DISCR (Discrimination Requires Provenance).** No function computable from `(Σ.C, Σ.M)` alone can distinguish `DELETED(a, d)` from `NEVER_INCLUDED(a, d)` for arbitrary `(a, d)`.
+**Lemma D-DISCR (Discrimination Requires Provenance).** No function computable from `(Σ.C, Σ.L, Σ.E, Σ.M)` alone can distinguish `DELETED(a, d)` from `NEVER_INCLUDED(a, d)` for arbitrary `(a, d)`.
 
-*Argument.* We exhibit two reachable states `Σ_1` and `Σ_2` for which `(Σ.C, Σ.M)` agree across every document but `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` disagree.
+*Argument.* We exhibit two reachable states `Σ_1` and `Σ_2` for which `(Σ.C, Σ.L, Σ.E, Σ.M)` agree across every document but `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` disagree.
 
 *Notational convention.* In the histories below, each `→*` arrow denotes one valid composite under ValidComposite★ (ASN-0047); line breaks are visual aids only, and composite groupings are determined by the coupling requirements of the elementary steps. In particular, K.α must be bundled with an immediately-following K.μ⁺/K.ρ pair into a single composite, because K.α's frame leaves `M` unchanged — a standalone-K.α composite would produce `a ∈ dom(C') \ dom(C)` without placing `a` in any arrangement, violating J0 (AllocationRequiresPlacement, ASN-0047). The bundling pattern matches the worked example above.
+
+A second bundling concerns document creation. K.δ case (ii) with `k = 2` (descent) requires `t ∈ E ∧ zeros(t) ≤ 1`. From `Σ_0` (where the only entity is the bootstrap node `n_0` with `zeros(n_0) = 0`), a single elementary K.δ step produces at most an account (`zeros = 1`). Producing a document (`zeros = 2`) requires a precursor account-creation step. We therefore use `K.δ(d)` as shorthand for a composite containing whatever precursor K.δ steps are needed to satisfy the entity-hierarchy preconditions — for example, the composite `K.δ(A); K.δ(d)` where `A = inc(n_0, 2)` is the account and `d = inc(A, 2)` is the document. The composite is valid by ValidComposite★: each elementary step satisfies its precondition at its intermediate state, and J0/J1★/J1'★ are vacuous because no K.α, K.μ⁺, or K.ρ steps appear. The same convention applies to `K.δ(d_A)` and `K.δ(d_B)` in the worked example below.
 
 Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix `K.δ(d); K.δ(d')` — creating two documents `d, d'`. Both then invoke K.α(a, d) to allocate one content address. By K.α's first-emission rule (`{a' ∈ dom(C) : origin(a') = d} = ∅` initially), the allocated address is determinately `a = [d.0.s_C.1]` — a value fixed by `d` alone. Both histories pass the same `d` to the first-emission predicate, so both yield the same allocated address `a`. The histories then differ in where `a` is placed and which provenance pairs are recorded.
 
@@ -86,21 +90,23 @@ The third composite bundles K.α with K.μ⁺(d, v ↦ a) and K.ρ(a, d): K.α p
 
 The third composite bundles K.α with K.μ⁺(d', v' ↦ a) and K.ρ(a, d'): K.α produces `a ∈ dom(C')`, K.μ⁺ places `a` in `M(d')` (discharging J0 — J0 requires placement in *some* document's arrangement, not specifically in the origin's), and K.ρ records `(a, d') ∈ R'` (discharging J1★). The composite records `(a, d') ∈ R_2`, but `d` is never extended with `a`, so `(a, d) ∉ R_2`. Final state: `dom(C_2) = {a}`, `M_2(d) = ∅`, `M_2(d') = {v' ↦ a}`, `(a, d) ∉ R_2`. So `NEVER_INCLUDED(a, d)` holds at `Σ_2`.
 
-*Agreement on (C, M).* Comparing the components of `Σ_1` and `Σ_2`:
+*Agreement on (C, L, E, M).* Comparing the components of `Σ_1` and `Σ_2`:
 
 | Component | `Σ_1` | `Σ_2` |
 |---|---|---|
 | `dom(C)` | `{a}` | `{a}` |
 | `C` value at `a` | the K.α-supplied value `v_a` | same |
+| `L` | `∅` | `∅` |
+| `E` | `{n_0, …, d, d'}` | `{n_0, …, d, d'}` |
 | `E_doc` | `{d, d'}` | `{d, d'}` |
 | `M(d)` | `∅` | `∅` |
 | `M(d')` | `{v' ↦ a}` | `{v' ↦ a}` |
 
-`(Σ_1.C, Σ_1.M) = (Σ_2.C, Σ_2.M)` on every document. The histories differ only in `R`: `R_1 ⊇ {(a, d), (a, d')}` and `R_2 ⊇ {(a, d')}`, with `(a, d) ∈ R_1 \ R_2`.
+Neither history invokes K.λ, so `L_1 = L_2 = ∅`. Both histories execute the same K.δ sequence to create `d` and `d'`, so `E_1 = E_2` (entities are permanent by P1, and no entity-creating step distinguishes the two). `(Σ_1.C, Σ_1.L, Σ_1.E, Σ_1.M) = (Σ_2.C, Σ_2.L, Σ_2.E, Σ_2.M)` on every component. The histories differ only in `R`: `R_1 ⊇ {(a, d), (a, d')}` and `R_2 ⊇ {(a, d')}`, with `(a, d) ∈ R_1 \ R_2`.
 
-Any function `f(C, M)` returns the same value at both states. But the classifications differ — `DELETED(a, d)` at `Σ_1`, `NEVER_INCLUDED(a, d)` at `Σ_2` — so `f` cannot be a discriminating predicate. ∎
+Any function `f(C, L, E, M)` returns the same value at both states. But the classifications differ — `DELETED(a, d)` at `Σ_1`, `NEVER_INCLUDED(a, d)` at `Σ_2` — so `f` cannot be a discriminating predicate. ∎
 
-This is the abstract justification for the provenance relation. The negative result is sharp: any system supporting SHOWDELETIONS must maintain state components `C*` (in addition to `C` and `M`) such that, for every reachable state `Σ` and every pair `(a, d)` with `a ∈ dom(C)` and `d ∈ E_doc`, consulting `(C, M, C*)` at `Σ` determines whether `(a, d)` is `DELETED` or `NEVER_INCLUDED`. `R` as defined in ASN-0047 is one such `C*`; the necessity claim is that *some* `C*` adequate to discharge this disambiguation must be present, regardless of its specific representation.
+This is the abstract justification for the provenance relation. The negative result is sharp in its full strength: the witnesses establish that no function of `(C, L, E, M)` alone discriminates, so any system supporting SHOWDELETIONS must maintain state components `C*` *beyond* the four foundation components `(C, L, E, M)` collectively — adding `L` or `E` (or both) to the discriminating function does not suffice. For every reachable state `Σ` and every pair `(a, d)` with `a ∈ dom(C)` and `d ∈ E_doc`, consulting `(C, L, E, M, C*)` at `Σ` must determine whether `(a, d)` is `DELETED` or `NEVER_INCLUDED`. `R` as defined in ASN-0047 is one such `C*`; the necessity claim is that *some* `C*` adequate to discharge this disambiguation must be present, regardless of its specific representation.
 
 ## The SHOWDELETIONS Operation
 
@@ -164,7 +170,7 @@ wp(SHOWDELETIONS(d_A, d_B), Q0)
           ∧ ¬(DELETED(a, d_B)  ∧  CURRENT(a, d_A)))
 ```
 
-The joint report is empty exactly when no content has been deleted from one document while remaining current in the other. Documents with completely disjoint histories — no shared `R`-projection on the content subspace — satisfy `Q0` vacuously: no `a` has `(a, d_A) ∈ R`, so no `a` is DELETED from `d_A`. Documents with synchronised edits (each deletion mirrored in the partner) satisfy `Q0` non-vacuously: for shared content, removal from one is matched by removal from the other.
+The joint report is empty exactly when no content has been deleted from one document while remaining current in the other. Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0`. For any `a` with `(a, d_A) ∈ R`, disjointness gives `(a, d_B) ∉ R`; for the conjunct `DELETED(a, d_A) ∧ CURRENT(a, d_B)` to hold, `CURRENT(a, d_B)` requires `a ∈ ran(M(d_B))`, which by `P4★` forces `(a, d_B) ∈ R` — contradiction. The symmetric argument excludes `DELETED(a, d_B) ∧ CURRENT(a, d_A)` for any `a` with `(a, d_B) ∈ R`. Addresses with neither `(a, d_A) ∈ R` nor `(a, d_B) ∈ R` are classified `NEVER_INCLUDED` against both documents and trivially satisfy both negations. So every `a ∈ dom(C)` falsifies both conjuncts, and `Q0` holds. The argument covers the special case of one or both `R`-projections being empty without separate handling. Documents with synchronised edits (each deletion mirrored in the partner) satisfy `Q0` non-vacuously: for shared content, removal from one is matched by removal from the other.
 
 ## A Worked Example
 
@@ -376,8 +382,8 @@ The user-facing meaning: a "show deletions" query feeds naturally into a "bring 
 | CURRENT | `CURRENT(a, d) ≡ a ∈ ran(M(d))` | introduced |
 | DELETED | `DELETED(a, d) ≡ (a, d) ∈ R ∧ a ∉ ran(M(d))` | introduced |
 | NEVER_INCLUDED | `NEVER_INCLUDED(a, d) ≡ (a, d) ∉ R` | introduced |
-| D-EXH | For every `(a, d)` with `a ∈ dom(C)`, `subspace_I(a) = s_C`, `d ∈ E_doc`, exactly one of CURRENT, DELETED, NEVER_INCLUDED holds | introduced |
-| D-DISCR | No function of `(C, M)` alone can distinguish DELETED from NEVER_INCLUDED; any system supporting SHOWDELETIONS must maintain state components `C*` such that consulting `(C, M, C*)` at every reachable Σ determines whether each `(a, d)` is DELETED or NEVER_INCLUDED | introduced |
+| D-EXH | For every reachable state Σ and every `(a, d)` with `a ∈ dom(Σ.C)`, `subspace_I(a) = s_C`, `d ∈ Σ.E_doc`, exactly one of CURRENT, DELETED, NEVER_INCLUDED holds | introduced |
+| D-DISCR | No function of `(C, L, E, M)` alone can distinguish DELETED from NEVER_INCLUDED; any system supporting SHOWDELETIONS must maintain state components `C*` beyond the four foundation components such that consulting `(C, L, E, M, C*)` at every reachable Σ determines whether each `(a, d)` is DELETED or NEVER_INCLUDED | introduced |
 | DeletedFromAWithB | `{a ∈ dom(C) : subspace_I(a) = s_C ∧ DELETED(a, d_A) ∧ CURRENT(a, d_B)}` | introduced |
 | DeletedFromBWithA | Symmetric counterpart of DeletedFromAWithB | introduced |
 | SHOWDELETIONS | Observational operation `SHOWDELETIONS(d_A, d_B) = (DeletedFromAWithB(d_A, d_B), DeletedFromBWithA(d_A, d_B))` | introduced |
