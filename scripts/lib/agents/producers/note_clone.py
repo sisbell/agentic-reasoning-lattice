@@ -53,7 +53,7 @@ from typing import ClassVar, List, Tuple
 from lib.agents.base import Agent, AgentResult
 from lib.backend.addressing import Address
 from lib.backend.emit import (
-    emit_citation, emit_clone, emit_inquiry, emit_note,
+    emit_citation_bundle, emit_clone, emit_inquiry, emit_note,
     emit_provenance_clone,
 )
 from lib.protocols.febe.protocol import Session
@@ -236,25 +236,25 @@ def _emit_substrate(
             for link in session.active_links(
                 "citation.depends", from_set=[origin_inquiry_addr],
             ):
-                for cited in link.to_set:
-                    # Note-level dep citations are base→base by
-                    # convention; `note_dep_asn_ids` resolves the cited
-                    # address via `path_for_addr` (only bases are
-                    # path-registered). Version drift on the upstream is
-                    # handled at load time, not at citation time.
-                    emit_citation(
-                        session.store, clone_inquiry_addr, cited,
-                        direction="depends",
+                # Preserve the origin link's to_set shape — if origin
+                # was fan-out, clone is fan-out; if origin was a single
+                # pair, clone is a single pair (a 1-target bundle is
+                # still valid under FanOutPair). Base→base convention;
+                # version drift handled at load time.
+                if link.to_set:
+                    emit_citation_bundle(
+                        session.store, clone_inquiry_addr,
+                        list(link.to_set), direction="depends",
                     )
 
     if origin_note_addr is not None:
         for link in session.active_links(
             "citation.depends", from_set=[origin_note_addr],
         ):
-            for cited in link.to_set:
-                emit_citation(
-                    session.store, clone_note_addr, cited,
-                    direction="depends",
+            if link.to_set:
+                emit_citation_bundle(
+                    session.store, clone_note_addr,
+                    list(link.to_set), direction="depends",
                 )
 
     return clone_note_addr, clone_inquiry_addr
