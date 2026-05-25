@@ -14,7 +14,27 @@ The origin of a single I-address is not a new fact we must compute — it is rec
 
 a projection that is total on `dom(C)`, single-valued, and document-level (`zeros(origin(a)) = 2`). By S7d (DocumentAllocationDiscipline), distinct documents have distinct tumblers, so `origin(a₁) = origin(a₂)` says exactly that `a₁` and `a₂` were allocated by the same document. By S7's clause (d), `origin(a)` is invariant across every state in which `a ∈ dom(C)`. The structural projection reads only components of `a` itself; no registry, no index, no external context is consulted.
 
-The same structural projection extends uniformly to link addresses. By L1b (foundation ASN-0047), every `ℓ ∈ dom(Σ.L)` satisfies `zeros(ℓ) = 3`, so T4b's projections `N(ℓ)`, `U(ℓ)`, `D(ℓ)` are well-defined; the projection `origin(ℓ) = N(ℓ).0.U(ℓ).0.D(ℓ)` is therefore total on `dom(L)` by the same construction that defines it on `dom(C)`. CL-OWN (foundation ASN-0047) records the consequence within an arrangement: every link arranged at a link-subspace V-position of document `d` satisfies `origin(M(d)(v)) = d` — links are owned by their home document, and the projection trivializes accordingly. We henceforth read `origin` as a total function on `dom(C) ∪ dom(L)`, with the same structural definition. The extension is faithful to Nelson's design intent that origin reporting applies uniformly to all addressed material in tumbler-space, not only to content: links are first-class citizens with home documents, and the same structural lookup that names the home of a byte also names the home of a link.
+The same structural projection extends uniformly to link addresses. We make the extension a labeled claim on the same footing as S7, so subsequent uses of `origin` on `dom(L)` rest on a discharged definition rather than on prose.
+
+**Claim O0 (Origin extended to dom(L)).** *Define `origin : dom(C) ∪ dom(L) → E_doc` by uniformly applying S7's structural projection:*
+
+> *`origin(x) = N(x).0.U(x).0.D(x)` for all `x ∈ dom(C) ∪ dom(L)`.*
+
+*This extension satisfies:*
+
+> *(a) Structural well-definedness — for every `x ∈ dom(C) ∪ dom(L)`, T4b's projections `N(x), U(x), D(x)` are defined, and `origin(x)` is a document-level tumbler with `zeros(origin(x)) = 2`.*
+>
+> *(b) Semantic correspondence — for every `x ∈ dom(C) ∪ dom(L)`, `origin(x)` is the tumbler of the document that allocated `x`.*
+>
+> *(c) Totality and single-valuedness — `origin` is total on `dom(C) ∪ dom(L)` and single-valued; permanence under state transitions is O5, derived below.*
+
+*Derivation.* (a) For `x ∈ dom(C)`, S7b (ASN-0036) gives `zeros(x) = 3`. For `x ∈ dom(L)`, L1b (ASN-0047) gives `zeros(x) = 3`. In both cases T4b (UniqueParse, ASN-0034) is applicable, so the projections `N(x), U(x), D(x)` are well-defined; the constructed tumbler `N(x).0.U(x).0.D(x)` is document-level by direct count of separators (`zeros = 2`).
+
+(b) For `x ∈ dom(C)`, S7 of ASN-0036 supplies the correspondence: `origin(x)` is the document that performed the allocation event placing `x` into `dom(C)`. For `x ∈ dom(L)`, the allocation discipline of K.λ (LinkAllocation, ASN-0047) supplies the analogous correspondence: K.λ's preconditions include `zeros(ℓ) = 3` (so the structural projection is well-defined on the candidate address) and `origin(ℓ) = d`, where `d ∈ E_doc` is the document performing the allocation event. The latter precondition fixes that the document-level projection of every freshly emitted `ℓ ∈ dom(L)` coincides with the allocating document's tumbler. L1c (LinkAllocatorConformance, ASN-0047) corroborates the same identification: every `ℓ ∈ dom(L)` descends from a document-level seed `t₀ = origin(ℓ)` via a sub-allocator rooted at that seed. Hence `origin(ℓ)` names the document that allocated `ℓ`.
+
+(c) Totality is (a). Single-valuedness is T4b's functional definition of projections. Permanence is O5 below; it applies uniformly to `dom(C) ∪ dom(L)` because the same pointwise projection is involved. ∎
+
+CL-OWN (ASN-0047) records a related consequence at the arrangement level: every link *arranged* at a link-subspace V-position of document `d` satisfies `origin(M(d)(v)) = d`. This is downstream of (b) — CL-OWN governs *which document arranges* a link, while K.λ governs *which document allocates* it. The two coincide for the home-document case (`d` arranging its own link), which O2 below relies on. The extension is faithful to Nelson's design intent that origin reporting applies uniformly to all addressed material in tumbler-space, not only to content: links are first-class citizens with home documents, and the same structural lookup that names the home of a byte also names the home of a link.
 
 What we do not yet have is an operation that takes a *span* — not just one address — and reports the documents present. That is what we now construct.
 
@@ -50,17 +70,19 @@ Two corollaries follow without further argument.
 
 A reader more naturally has access to a V-span — a contiguous region of positions in the document they are reading. The content at those positions may be native (allocated by the reader's document) or transcluded (allocated elsewhere, included by reference). SHOWORIGIN must resolve this question through the document's arrangement.
 
-Foundation ASN-0058 supplies the machinery. A content reference is a pair `(d, σ)` where `d` is a document and `σ = (u, ℓ)` is a level-uniform V-span in `d`'s arrangement. The resolution function returns a sequence of mapping blocks:
+Foundation ASN-0058 supplies the machinery in subspace-agnostic form. Let `f = M(d) ↾ ⟦σ⟧` — the restriction of `d`'s arrangement to the positions of σ. By C1a (RestrictionDecomposition, ASN-0058), `f` admits a unique maximally merged block decomposition
 
-> `resolve(d, σ) = ⟨ (a₁, n₁), ..., (aₖ, nₖ) ⟩`,
+> `{β₁, ..., βₖ} = {(v₁, a₁, n₁), ..., (vₖ, aₖ, nₖ)}`,
 
-where each block `(aⱼ, nⱼ)` denotes the I-address run `aⱼ, aⱼ + 1, ..., aⱼ + (nⱼ − 1)`. The V-positions in `⟦σ⟧` map to exactly the I-addresses in these runs (M2, M3 of ASN-0058).
+where each block `βⱼ` denotes the V→I correspondence `vⱼ + i ↦ aⱼ + i` for `0 ≤ i < nⱼ` (B3, ASN-0058), and the blocks partition `dom(f)` (B1, ASN-0058). C1a's preconditions — functionality (S2), finite domain (S8-fin), and common depth `m ≥ 2` (S8-depth combined with S8a, ASN-0036) — are subspace-agnostic; the decomposition is well-defined whether the V-positions of `dom(f)` lie in the content subspace (so I-addresses lie in `dom(C)` by S3★) or the link subspace (so I-addresses lie in `dom(L)` by S3★).
+
+We deliberately work with C1a's block decomposition rather than ASN-0058's `resolve` function. ASN-0058's `resolve` is specified for content references whose I-targets lie in `dom(C)` — its C1 (ResolutionIntegrity) explicitly asserts `aⱼ + i ∈ dom(C)`. The SHOWORIGIN_V operation we are building admits link-subspace V-spans as well, whose I-targets lie in `dom(L)`. C1a's underlying decomposition extends uniformly to both cases, while `resolve`'s integrity guarantee does not; routing through C1a avoids the misclassification.
 
 We work with three equivalent expressions for `origins_V(Σ, d, σ)`. The reader-facing form — the form that the operation specification will use — is:
 
 > *(F1)* `origins_V(Σ, d, σ) = { origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d)) }`.
 
-The decomposition-expanded form, which reads through `resolve`:
+The decomposition-expanded form, which reads through the C1a block decomposition:
 
 > *(F2)* `origins_V(Σ, d, σ) = ⋃_{j=1}^{k} { origin(aⱼ + i) : 0 ≤ i < nⱼ }`.
 
@@ -72,11 +94,11 @@ We adopt (F1) as the definition and derive (F2) and (F3) as equivalent forms; th
 
 **Claim O2 (Block uniformity).** *For each mapping block `(vⱼ, aⱼ, nⱼ)` arising in a decomposition of `f = M(d) ↾ ⟦σ⟧`, every I-address in `I(βⱼ)` shares `origin(aⱼ)`.*
 
-*Derivation.* Fix `0 ≤ i < nⱼ`. B3 (Consistency, ASN-0058) gives `f(vⱼ + i) = aⱼ + i`; since `f` is a restriction of `M(d)`, also `M(d)(vⱼ + i) = aⱼ + i`. Two cases by subspace of `vⱼ`. *Content block* (`subspace(vⱼ) = s_C`): S3★ (ASN-0047) gives `aⱼ + i ∈ dom(C)`. This discharges M16a's precondition at `(aⱼ, i)`, and M16a (OriginInvarianceUnderShift, ASN-0058) delivers `origin(aⱼ + i) = origin(aⱼ)`. *Link block* (`subspace(vⱼ) = s_L`): S3★ gives `aⱼ + i ∈ dom(L)`, and CL-OWN (ASN-0047) applied at both `v = vⱼ` and `v = vⱼ + i` (each membership of `dom(M(d))` is supplied by B1 via the block decomposition) gives `origin(aⱼ + i) = d = origin(aⱼ)`. In both cases `origin(aⱼ + i) = origin(aⱼ)`. ∎
+*Derivation.* Fix `0 ≤ i < nⱼ`. B3 (Consistency, ASN-0058) gives `f(vⱼ + i) = aⱼ + i`; since `f` is a restriction of `M(d)`, also `M(d)(vⱼ + i) = aⱼ + i`. B1 (Coverage, ASN-0058) gives `vⱼ + i ∈ V(βⱼ) ⊆ dom(f) ⊆ dom(M(d))`. Two cases by subspace of `vⱼ`. *Content block* (`subspace(vⱼ) = s_C`): S3★ (ASN-0047) gives `aⱼ + i ∈ dom(C)`. This discharges M16a's precondition at `(aⱼ, i)`, and M16a (OriginInvarianceUnderShift, ASN-0058) delivers `origin(aⱼ + i) = origin(aⱼ)`. *Link block* (`subspace(vⱼ) = s_L`): S3★ gives `aⱼ + i ∈ dom(L)`. To apply CL-OWN at `vⱼ + i`, we need both `vⱼ + i ∈ dom(M(d))` (already established) and `subspace(vⱼ + i) = s_L`. The subspace bridge: S8a (ASN-0036) at `vⱼ ∈ dom(M(d))` gives `#vⱼ ≥ 2`, which discharges M-sub(a)'s precondition on the block `(vⱼ, aⱼ, nⱼ)`; M-sub(a) (SubspaceConfinement, ASN-0058) then yields `subspace(vⱼ + i) = subspace(vⱼ) = s_L` for every `0 ≤ i < nⱼ`. With both CL-OWN preconditions discharged at `vⱼ + i` and (by `i = 0`) at `vⱼ`, CL-OWN (ASN-0047) gives `origin(M(d)(vⱼ)) = d` (so `origin(aⱼ) = d`) and `origin(M(d)(vⱼ + i)) = d` (so `origin(aⱼ + i) = d`). Hence `origin(aⱼ + i) = d = origin(aⱼ)`. In both cases `origin(aⱼ + i) = origin(aⱼ)`. ∎
 
-**Equivalence chain (F1) ≡ (F2) ≡ (F3).** Apply C1a (RestrictionDecomposition, ASN-0058) to `f = M(d) ↾ ⟦σ⟧`: `f` is a finite partial function with functionality (S2), finite domain (S8-fin), and common depth `m ≥ 2` across its domain (S8-depth combined with S8a, ASN-0036). C1a yields a unique maximally merged decomposition `{β₁, ..., βₖ} = {(v₁, a₁, n₁), ..., (vₖ, aₖ, nₖ)}` of `f`.
+**Equivalence chain (F1) ≡ (F2) ≡ (F3).** The decomposition `{β₁, ..., βₖ} = {(v₁, a₁, n₁), ..., (vₖ, aₖ, nₖ)}` introduced above (via C1a, ASN-0058) is the basis for the equivalence.
 
-*(F2) = (F3):* Inside the inner set for each `j`, M16a applied as in O2 collapses `{ origin(aⱼ + i) : 0 ≤ i < nⱼ }` to `{ origin(aⱼ) }`. Taking the union over `j` yields `{ origin(aⱼ) : 1 ≤ j ≤ k }`.
+*(F2) = (F3):* Inside the inner set for each `j`, O2 (Block uniformity, just established) collapses `{ origin(aⱼ + i) : 0 ≤ i < nⱼ }` to `{ origin(aⱼ) }`. O2 — not M16a alone — is what discharges this step uniformly across content and link blocks; M16a applies only when `aⱼ ∈ dom(C)`, while O2 also handles the link case via CL-OWN bridged by M-sub(a). Taking the union over `j` yields `{ origin(aⱼ) : 1 ≤ j ≤ k }`.
 
 *(F1) ⊆ (F3):* Fix `v ∈ ⟦σ⟧ ∩ dom(M(d))`. Since `v ∈ ⟦σ⟧ ∩ dom(M(d))` is exactly `v ∈ dom(M(d) ↾ ⟦σ⟧) = dom(f)`, B1 (Coverage, ASN-0058) applied to the decomposition of `f` gives a unique `j` with `v ∈ V(βⱼ)`, so `v = vⱼ + i` for some `0 ≤ i < nⱼ`. By B3, `f(v) = aⱼ + i`, and since `f` is the restriction, `M(d)(v) = aⱼ + i`. By O2, `origin(M(d)(v)) = origin(aⱼ + i) = origin(aⱼ)`, an element of (F3).
 
@@ -92,7 +114,7 @@ The most important claim about SHOWORIGIN is not what it computes but what it do
 
 **Claim O3 (Structural derivation).** *`origin(a)` is computable from `a` alone, consulting no further state. `origins_I(Σ, σ)` is computable from `⟦σ⟧ ∩ dom(C)` alone; `origins_V(Σ, d, σ)` is computable from `M(d) ↾ ⟦σ⟧` alone.*
 
-*Derivation.* For the pointwise claim: (i) S7 of ASN-0036 defines `origin(a) = N(a).0.U(a).0.D(a)` on `dom(C)`; the same structural projection extends to `dom(L)` (see "Where origin already lives"), so `origin` is defined on `dom(C) ∪ dom(L)`. (ii) T4b (UniqueParse, ASN-0034) defines `N(a), U(a), D(a)` as projections that read only the component sequence of `a` — they require the structural facts `zeros(a) ≥ 2` (here `= 3` by S7b of ASN-0036 for `dom(C)` and by L1b of ASN-0047 for `dom(L)`) and the field-separator positions, both determinable by scanning `a`. (iii) Composition of two functions that read only `a` is a function that reads only `a`. Hence `origin(a)` consults no state beyond `a`.
+*Derivation.* For the pointwise claim: (i) S7 of ASN-0036 defines `origin(a) = N(a).0.U(a).0.D(a)` on `dom(C)`; O0 (above) extends the same structural projection uniformly to `dom(L)`, so `origin` is total on `dom(C) ∪ dom(L)`. (ii) T4b (UniqueParse, ASN-0034) defines `N(a), U(a), D(a)` as projections that read only the component sequence of `a` — they require the structural facts `zeros(a) ≥ 2` (here `= 3` by S7b of ASN-0036 for `dom(C)` and by L1b of ASN-0047 for `dom(L)`) and the field-separator positions, both determinable by scanning `a`. (iii) Composition of two functions that read only `a` is a function that reads only `a`. Hence `origin(a)` consults no state beyond `a`.
 
 For the I-span lift: `origins_I(Σ, σ) = { origin(a) : a ∈ ⟦σ⟧ ∩ dom(C) }` evaluates `origin` pointwise. The set `⟦σ⟧ ∩ dom(C)` is determined by σ (whose denotation is a function of `start(σ)` and `width(σ)` alone, by ASN-0053) and by `dom(C)` (the set of allocated content addresses in Σ). No other component of Σ is consulted.
 
@@ -192,7 +214,17 @@ Each of the following configurations satisfies the operation precondition; we re
 
 *Empty intersection (I-span).* When `⟦σ⟧ ∩ dom(Σ.C) = ∅` — the well-formed span happens to contain no allocated content addresses — the postcondition expression evaluates to `∅`. The operation succeeds and returns the empty set as a legitimate output. This case is not exceptional: by O6, an empty result at Σ may become non-empty at some `Σ'` if new content is allocated within σ.
 
-*Singleton I-span.* For any `a ∈ dom(Σ.C)`, the span `σ_a = (a, [0, ..., 0, 1])` of length `#a` with all-zero prefix and final component 1 satisfies T12: `Pos(ℓ)` holds, and `actionPoint(ℓ) = #a ≤ #a`. By TA-strict (ASN-0034), `a ⊕ ℓ > a`, so `a ∈ ⟦σ_a⟧`. To show `⟦σ_a⟧ ∩ dom(C) = {a}`, suppose `b ∈ ⟦σ_a⟧ ∩ dom(C)`. The T1 analysis of `a ≤ b < a ⊕ ℓ` forces `b` to agree with `a` at positions 1 to `#a − 1` (any earlier divergence would push `b` outside `[a, a ⊕ ℓ)`) and `b_{#a} = a_{#a}` (squeezed by `a_{#a} ≤ b_{#a} < a_{#a} + 1`). So either `#b = #a` (giving `b = a` directly), or `#b > #a` (`b` is a proper extension of `a`). The latter case is excluded by structural arguments rather than S4 (which addresses distinctness of allocation events, not exclusion of competing addresses from a span). By S7b (ASN-0036), `b ∈ dom(C)` requires `zeros(b) = 3`, ruling out zero-component extensions. For non-zero extensions, K.α (ASN-0047) emits every content address by `inc(·, 0)` from a content sub-allocator whose first emission `[d.0.s_C.1]` has length `#d + 2` and whose subsequent emissions preserve length by TA5(c); since `b` would extend `a` and so share `a`'s origin document `d = origin(a)`, `b` and `a` would have the same length `#d + 2`, contradicting `#b > #a`. Hence `b = a`, and the result is `{origin(a)}`, a single document.
+*Singleton I-span.* For any `a ∈ dom(Σ.C)`, the span `σ_a = (a, [0, ..., 0, 1])` of length `#a` with all-zero prefix and final component 1 satisfies T12: `Pos(ℓ)` holds, and `actionPoint(ℓ) = #a ≤ #a`. By TA-strict (ASN-0034), `a ⊕ ℓ > a`, so `a ∈ ⟦σ_a⟧`. To show `⟦σ_a⟧ ∩ dom(C) = {a}`, suppose `b ∈ ⟦σ_a⟧ ∩ dom(C)`. We dispose of the three length cases in turn.
+
+*Case `#b < #a` is excluded by T1.* Suppose `#b < #a`. Equality `a = b` is impossible (T3 of ASN-0034 requires `#a = #b`), so by T1 trichotomy `a < b`. T1 case (ii) requires `a` to be a proper prefix of `b`, i.e. `#a < #b` — contradicting `#b < #a`. T1 case (i) requires some `k ≤ min(#a, #b) = #b` with `a_k < b_k` and agreement on positions `1, ..., k − 1`; since `k ≤ #b < #a`, position `k` falls in TumblerAdd's prefix-copy region for `a ⊕ ℓ`, giving `(a ⊕ ℓ)_k = a_k < b_k`. By T1 case (i) at the same `k`, `a ⊕ ℓ < b` — contradicting `b < a ⊕ ℓ`. Hence `#b ≥ #a`.
+
+With `#b ≥ #a` in hand, the T1 analysis of `a ≤ b < a ⊕ ℓ` forces `b` to agree with `a` at positions 1 to `#a − 1` (any earlier divergence would push `b` outside `[a, a ⊕ ℓ)`) and `b_{#a} = a_{#a}` (squeezed by `a_{#a} ≤ b_{#a} < a_{#a} + 1`).
+
+*Case `#b = #a` gives `b = a` directly* by T3 (component-wise equality with equal length).
+
+*Case `#b > #a` is excluded by structural arguments* rather than S4 (which addresses distinctness of allocation events, not exclusion of competing addresses from a span). The T1 analysis above forces `b` to be a proper extension of `a`. By S7b (ASN-0036), `b ∈ dom(C)` requires `zeros(b) = 3`, ruling out zero-component extensions. For non-zero extensions, K.α (ASN-0047) emits every content address by `inc(·, 0)` from a content sub-allocator whose first emission `[d.0.s_C.1]` has length `#d + 2` and whose subsequent emissions preserve length by TA5(c); since `b` would extend `a` and so share `a`'s origin document `d = origin(a)`, `b` and `a` would have the same length `#d + 2`, contradicting `#b > #a`.
+
+Hence `b = a`, and the result is `{origin(a)}`, a single document.
 
 *Cross-subspace I-span.* If `⟦σ⟧` spans positions in both the content subspace (`subspace_I = s_C`) and the link subspace (`subspace_I = s_L`) — say, `s` has element field beginning with `s_C` and `reach(σ)` has element field beginning beyond `s_L` — then `⟦σ⟧ ∩ dom(Σ.C)` automatically excludes the link addresses (by L0 of ASN-0047, `dom(L) ⊆ {a : subspace_I(a) = s_L}` and `dom(C) ⊆ {a : subspace_I(a) = s_C}`, and L14 gives `dom(C) ∩ dom(L) = ∅`). The lift's intersection with `dom(C)` therefore silently drops link addresses; no link origins appear in `origins_I`. This is a deliberate choice of the I-span lift's definition: SHOWORIGIN over an I-span reports origins of content, not of links. (Reporting link origins from an I-span is left as Open Question 1; the V-span case is uniformly handled — see below.)
 
@@ -216,7 +248,7 @@ A second wp characterises when a specific document is reported by SHOWORIGIN_V:
 
 > `wp(SHOWORIGIN_V(d, σ), d_q ∈ result) = (E v : v ∈ ⟦σ⟧ ∩ dom(M(d)) : origin(M(d)(v)) = d_q)`.
 
-That is, the precondition that some block of the resolution of `(d, σ)` is sourced from `d_q`. This delivers the operational use of SHOWORIGIN as a discovery probe: a reader who suspects that material from `d_q` is present in some region of `d`'s arrangement can confirm or refute by SHOWORIGIN's output.
+That is, the precondition that some block of the C1a decomposition of `(d, σ)` is sourced from `d_q`. This delivers the operational use of SHOWORIGIN as a discovery probe: a reader who suspects that material from `d_q` is present in some region of `d`'s arrangement can confirm or refute by SHOWORIGIN's output.
 
 ## What SHOWORIGIN does not promise
 
@@ -234,7 +266,7 @@ We exhibit a scenario that exercises each of the claims in turn.
 
 *Initial state Σ₀.* Document `d₁` allocates content at I-addresses `[d₁.0.1.1]` through `[d₁.0.1.5]` containing the five characters of *Hello*. Document `d₂` arranges these five I-addresses at V-positions `[1,1,1]` through `[1,1,5]` in its own arrangement — a transclusion of the entire word, by reference. Document `d₃` similarly transcludes `d₂`'s arrangement of these positions, recording I-addresses `[d₁.0.1.1]` through `[d₁.0.1.5]` at its own V-positions — note that `d₃`'s arrangement records the original I-addresses directly, not pointers to `d₂`'s arrangement.
 
-A reader at `d₃` asks SHOWORIGIN over the V-span containing all five positions. The resolution yields one mapping block `(v_start, [d₁.0.1.1], 5)`. By O2, this block contributes one origin: `origin([d₁.0.1.1]) = d₁`. The answer is `{d₁}`. The intermediate document `d₂` does not appear — illustrating O4 (parallel witnesses): `d₂` and `d₃` each independently hold an arrangement entry mapping their own V-positions to the same I-address `[d₁.0.1.1]`, and either document could be queried with identical result.
+A reader at `d₃` asks SHOWORIGIN over the V-span containing all five positions. The block decomposition (C1a, ASN-0058) of `M(d₃) ↾ ⟦σ⟧` yields one mapping block `(v_start, [d₁.0.1.1], 5)`. By O2, this block contributes one origin: `origin([d₁.0.1.1]) = d₁`. The answer is `{d₁}`. The intermediate document `d₂` does not appear — illustrating O4 (parallel witnesses): `d₂` and `d₃` each independently hold an arrangement entry mapping their own V-positions to the same I-address `[d₁.0.1.1]`, and either document could be queried with identical result.
 
 *Transition Σ₀ → Σ₁ (allocation of native content in `d₃`).* `d₃` natively appends two new characters at V-positions `[1,1,6]` and `[1,1,7]`, allocated at `[d₃.0.1.1]` and `[d₃.0.1.2]` via K.α (ASN-0047) and arranged via K.μ⁺. A SHOWORIGIN over the full seven-position V-span returns two origins:
 
@@ -263,7 +295,7 @@ The inclusion `origins_I(Σ₀, σ_{cover}) ⊆ origins_I(Σ₁, σ_{cover})` ho
 
 The abstract specification of SHOWORIGIN reduces to three primitives:
 
-(1) The pointwise projection `origin : dom(C) ∪ dom(L) → E_doc` (established in S7 of foundation ASN-0036 for `dom(C)` and extended by the same structural projection to `dom(L)` via L1b of ASN-0047), which is structural, total, and permanent.
+(1) The pointwise projection `origin : dom(C) ∪ dom(L) → E_doc` (established in S7 of foundation ASN-0036 for `dom(C)` and extended to `dom(L)` by O0, grounded structurally in L1b of ASN-0047 and semantically in K.λ's allocation precondition `origin(ℓ) = d`), which is structural, total, and permanent.
 
 (2) The lift to I-spans, `origins_I(Σ, σ) = origin(⟦σ⟧ ∩ dom(C))`, computable from the span and `dom(C)` alone. (The I-span lift restricts to content by definitional choice; the link-subspace case is left as Open Question 1.)
 
@@ -277,6 +309,7 @@ Any implementation of Xanadu that claims to support SHOWORIGIN must satisfy O1�
 
 | Label | Statement | Status |
 |-------|-----------|--------|
+| O0 | Origin extended to `dom(L)`: `origin : dom(C) ∪ dom(L) → E_doc` defined by uniform structural projection, with (a) structural well-definedness via S7b/L1b, (b) semantic correspondence via S7/K.λ-precondition, (c) totality and single-valuedness | introduced |
 | `origins_I(Σ, σ)` | `origins_I(Σ, σ) = { origin(a) : a ∈ ⟦σ⟧ ∩ dom(Σ.C) }` — I-span lift of origin | introduced |
 | `origins_V(Σ, d, σ)` | `origins_V(Σ, d, σ) = { origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d)) }` — V-span lift via arrangement | introduced |
 | O1 | Origin partitions allocated content: `~_o` is an equivalence on `⟦σ⟧ ∩ dom(C)` whose quotient is in bijection with `origins_I(Σ, σ)`; each class corresponds to one document's allocations | introduced |
