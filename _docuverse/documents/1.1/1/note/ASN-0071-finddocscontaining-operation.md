@@ -13,11 +13,13 @@ We work within the strand model as extended by ASN-0047. State `Σ` carries the 
 
 Content can be named in two registers. By I-address — "the content at addresses `A`" — purely structural. By V-position with source — "the content of document `d` at positions `σ`" — referenced from where the user encountered it.
 
-We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s ∈ Σ.E_doc` names a source document and `σ = (u, ℓ)` is a level-uniform V-span over the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) ≤ #u`, and `#ℓ = #u` (in the sense of ASN-0053). A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
+We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s ∈ Σ.E_doc` names a source document and `σ = (u, ℓ)` is a level-uniform V-span confined to the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) ≤ #u`, `#ℓ = #u` (in the sense of ASN-0053), and `actionPoint(ℓ) ≥ 2` (equivalently `ℓ₁ = 0`: the displacement does not perturb the subspace identifier at position 1). A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
 
 The restriction `subspace(u) = s_C` is load-bearing. FINDDOCSCONTAINING tracks transclusion of byte content — Nelson's "regardless of where the native copies are located" — and only the content subspace participates in transclusion. Link addresses have unique home documents recoverable directly from the tumbler via `origin` (S7), so a query naming a link-subspace span would degenerate to "the link's home document," derivable without the operation. We exclude such queries by construction.
 
-A vspec is structurally a relaxation of ASN-0058's `ContentReference`. ContentReference additionally requires well-formedness — every depth-`m` position in `⟦σ⟧` belongs to `dom(M(d_s))` — together with `V_{u₁}(d_s) ≠ ∅` and `#u = m` (the common depth of `d_s`'s text-subspace V-positions per S8-depth). The vspec drops all three: it admits spans whose positions may not all be currently arranged, whose source subspace may be empty in `d_s`, and whose depth may differ from `d_s`'s common depth. The relaxation makes the query total over well-typed inputs; resolution silently filters anything that does not match a current arrangement entry (justified below).
+The companion restriction `actionPoint(ℓ) ≥ 2` enforces *subspace confinement* of the entire span. Without it, the vspec preconditions admit displacements that perturb position 1 — for example, `u = [1, 5]` with `ℓ = [2, 0]` satisfies `Pos(ℓ)`, `actionPoint(ℓ) = 1 ≤ #u`, and `#ℓ = #u`, so the span `⟦σ⟧` extends to `[3, 0)` and contains `[2, 1]` whose subspace identifier is `2 = s_L`. Such a span would straddle the content and link subspaces in `d_s`'s V-space, conflating two transclusion regimes that the operation deliberately separates. Requiring `actionPoint(ℓ) ≥ 2` places `ℓ`'s first nonzero component at position 2 or beyond, so by TumblerAdd's prefix-copy region position 1 of every `t ∈ ⟦σ⟧` equals `u₁ = s_C` — the entire span lives in the content subspace. We rely on this property in the codomain argument below.
+
+A vspec is structurally a relaxation of ASN-0058's `ContentReference`. ContentReference additionally requires well-formedness — every depth-`m` position in `⟦σ⟧` belongs to `dom(M(d_s))` — together with `V_{u₁}(d_s) ≠ ∅` and `#u = m` (the common depth of `d_s`'s text-subspace V-positions per S8-depth). The vspec drops all three: it admits spans whose positions may not all be currently arranged, whose source subspace may be empty in `d_s`, and whose depth may differ from `d_s`'s common depth. The relaxation makes the query total over well-typed inputs; resolution silently filters anything that does not match a current arrangement entry (justified below). What the vspec retains from ContentReference is subspace confinement — well-formedness implies `actionPoint(ℓ) = m ≥ 2` via C0, and we lift this consequence into an explicit precondition since the well-formedness that C0 derived it from is no longer available.
 
 Why vspecs and not direct I-addresses? Because users name content from where they encounter it. The reader sees document `d` at position `v`; what they want to find is content equivalent to "what `d` puts at `v`". The I-address is structural, typically unknown to the user, and reachable only by consulting `M(d_s)`. The operation accepts the user's name; resolution to I-addresses is its first task.
 
@@ -31,7 +33,11 @@ For a vspec-set `Q`:
 
   `iaddrs(Q)(Σ) := ⋃_{(d_s, σ) ∈ Q} iaddrs_one(d_s, σ)(Σ)`
 
-Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)`. The argument: by the vspec precondition `subspace(u) = s_C`, every position `t ∈ ⟦σ⟧` has `subspace(t) = s_C` (every `t` in the half-open interval `[u, u ⊕ ℓ)` shares position 1 with `u`, since level-uniformity gives `#u = #ℓ` and the action point of `ℓ` lies at or beyond position 1 — this is the abstract content of C0a). Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`. The codomain `P(dom(C))` is consistent with the content-subspace restriction.
+Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)`. The argument is that every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(C)` rather than `dom(L)`. We show subspace confinement first, then apply S3★.
+
+*Subspace confinement.* Fix `t ∈ ⟦σ⟧`. By the half-open interval definition, `u ≤ t < u ⊕ ℓ`. We argue `t₁ = u₁`. Position 1 lies strictly below the action point: by the vspec precondition `actionPoint(ℓ) ≥ 2`, we have `1 < actionPoint(ℓ)`. By TumblerAdd, the result of `u ⊕ ℓ` at any position `i < actionPoint(ℓ)` is copied from `u`: `(u ⊕ ℓ)₁ = u₁`. Now `u` and `u ⊕ ℓ` agree at position 1, so any `t` lying in the lexicographic interval between them must also agree at position 1 — were `t₁ < u₁`, then `t < u` by T1 case (i) at position 1, contradicting `u ≤ t`; were `t₁ > u₁ = (u ⊕ ℓ)₁`, then `t > u ⊕ ℓ` by T1 case (i) at position 1, contradicting `t < u ⊕ ℓ`. So `t₁ = u₁ = s_C` by trichotomy, hence `subspace(t) = s_C`.
+
+*Routing.* Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`. The codomain `P(dom(C))` is consistent with the content-subspace restriction. Without the `actionPoint(ℓ) ≥ 2` precondition, position 1 could fall *at* or *beyond* the action point, where TumblerAdd's prefix-copy reasoning does not apply — and the counter-example `u = [1, 5]`, `ℓ = [2, 0]` exhibited above would silently include a link-subspace V-position in the resolution if `d_s` arranges one.
 
 The relationship to ASN-0058's `resolve` is direct: when a vspec `(d_s, σ)` is also a well-formed ContentReference, `iaddrs_one(d_s, σ)(Σ)` equals the set-flattening of `resolve(d_s, σ)` — concretely, `{ a + k : (a, n) ∈ resolve(d_s, σ) ∧ 0 ≤ k < n }`. The relaxation matters only when `⟦σ⟧` contains positions outside `dom(M(d_s))`: ContentReference treats such a span as ill-formed, while vspec silently drops the missing positions.
 
@@ -71,7 +77,7 @@ The resulting state `Σ` has:
 
 Construct the query `Q = {(d_A, σ_A)}` with `σ_A = (v_A, δ(1, 2))` — a single-position level-uniform span starting at `v_A` with width 1 in the content subspace.
 
-**Resolution.** The span denotes `⟦σ_A⟧ = {v_A}` (one position). The vspec preconditions hold: `subspace(v_A) = s_C`, `Pos(δ(1, 2))`, `actionPoint(δ(1, 2)) = 2 ≤ #v_A = 2`, `#δ(1, 2) = 2 = #v_A`. Resolving:
+**Resolution.** The span denotes `⟦σ_A⟧ = {v_A}` (one position). The vspec preconditions hold: `subspace(v_A) = s_C`, `Pos(δ(1, 2))`, `actionPoint(δ(1, 2)) = 2 ≥ 2`, `actionPoint(δ(1, 2)) = 2 ≤ #v_A = 2`, `#δ(1, 2) = 2 = #v_A`. Resolving:
 
   `iaddrs_one(d_A, σ_A)(Σ) = { M(d_A)(v) : v ∈ {v_A} ∩ dom(M(d_A)) } = { M(d_A)(v_A) } = { a₁ }`
 
@@ -208,7 +214,7 @@ The Basis column records how each claim relates to the definitions F-iaddrs and 
 
 | Label | Statement | Basis | Status |
 |-------|-----------|-------|--------|
-| F-iaddrs | `iaddrs : VSpecSet × Σ → P(dom(C))` with `iaddrs(Q)(Σ) = ⋃_{(d_s, σ) ∈ Q} { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }` | definition; codomain `P(dom(C))` derived from vspec precondition `subspace(u) = s_C` + C0a + S3★ | introduced |
+| F-iaddrs | `iaddrs : VSpecSet × Σ → P(dom(C))` with `iaddrs(Q)(Σ) = ⋃_{(d_s, σ) ∈ Q} { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }` | definition; codomain `P(dom(C))` derived from vspec preconditions `subspace(u) = s_C` and `actionPoint(ℓ) ≥ 2` (subspace confinement of `⟦σ⟧` via TumblerAdd prefix-copy + T1) + S3★ | introduced |
 | F-find | `find : VSpecSet × Σ → P(E_doc)` with `find(Q)(Σ) = { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }` | definition | introduced |
 | F-COMP | Completeness: every `d ∈ Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` is in `find(Q)(Σ)` | direct from F-find (⟸ direction of the defining iff) | introduced |
 | F-SOUND | Soundness: every `d ∈ find(Q)(Σ)` is in `Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` | direct from F-find (⟹ direction of the defining iff) | introduced |
