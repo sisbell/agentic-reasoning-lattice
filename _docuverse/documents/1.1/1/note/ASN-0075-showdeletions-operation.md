@@ -4,7 +4,7 @@
 
 Nelson lists "show deletions" among the operations the system must provide (LM 4/79). The intuition is direct: given two documents that share content history, identify the content that was present in one but is absent from the other. We approach this abstractly. We do not specify how documents come to share history, nor how content is removed from an arrangement — those mechanics belong elsewhere. We specify only what the operation must produce, what guarantees it must offer over its output, and what state it consults.
 
-The central difficulty is that two situations are observationally indistinguishable without further information: content `a` may be absent from document `d`'s arrangement because `d` once contained `a` and removed it (it was *deleted*), or because `d` was never an arrangement that contained `a` (it was *never included*). A "show deletions" operation must distinguish these. We will show that the provenance relation `R` introduced in the transition model supplies exactly the information required, and that any conforming implementation must therefore maintain such a relation — without it, deletion is not detectable as a kind separate from prior absence.
+The central difficulty is that two situations are observationally indistinguishable without further information: content `a` may be absent from document `d`'s arrangement because `d` once contained `a` and removed it (it was *deleted*), or because `d` was never an arrangement that contained `a` (it was *never included*). A "show deletions" operation must distinguish these. We will show that the provenance relation `R` introduced in the transition model supplies exactly the information required, and that any conforming implementation must therefore maintain state components — beyond `C` and `M` alone — sufficient to disambiguate the two predicates at every reachable state. Without such components, deletion is not detectable as a kind separate from prior absence.
 
 ## Foundation Recap
 
@@ -52,39 +52,39 @@ The "impossible" row is excluded by the following chain. From `a ∈ ran(M(d))` 
 
 ## Why the Provenance Relation Is Load-Bearing
 
-We now show that the state components `(C, M)` alone are insufficient to support SHOWDELETIONS — any conforming implementation must maintain state information equivalent to `R`.
+We now show that the state components `(C, M)` alone are insufficient to support SHOWDELETIONS — any conforming implementation must maintain auxiliary state components beyond `(C, M)` that suffice to disambiguate the predicates `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` at every reachable state.
 
 **Lemma D-DISCR (Discrimination Requires Provenance).** No function computable from `(Σ.C, Σ.M)` alone can distinguish `DELETED(a, d)` from `NEVER_INCLUDED(a, d)` for arbitrary `(a, d)`.
 
 *Argument.* We exhibit two reachable states `Σ_1` and `Σ_2` for which `(Σ.C, Σ.M)` agree across every document but `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` disagree.
 
-Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix `K.δ(d); K.δ(d'); K.α(a, d)` — creating two documents `d, d'` and allocating one content address. By K.α's first-emission rule (`{a' ∈ dom(C) : origin(a') = d} = ∅` initially), the allocated address is determinately `a = [d.0.s_C.1]`. By GlobalUniqueness (ASN-0034) applied to identical allocator firings, the same address value `a` appears in both histories.
+*Notational convention.* In the histories below, each `→*` arrow denotes one valid composite under ValidComposite★ (ASN-0047); line breaks are visual aids only, and composite groupings are determined by the coupling requirements of the elementary steps. In particular, K.α must be bundled with an immediately-following K.μ⁺/K.ρ pair into a single composite, because K.α's frame leaves `M` unchanged — a standalone-K.α composite would produce `a ∈ dom(C') \ dom(C)` without placing `a` in any arrangement, violating J0 (AllocationRequiresPlacement, ASN-0047). The bundling pattern matches the worked example above.
+
+Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix `K.δ(d); K.δ(d')` — creating two documents `d, d'`. Both then invoke K.α(a, d) to allocate one content address. By K.α's first-emission rule (`{a' ∈ dom(C) : origin(a') = d} = ∅` initially), the allocated address is determinately `a = [d.0.s_C.1]` — a value fixed by `d` alone. Both histories pass the same `d` to the first-emission predicate, so both yield the same allocated address `a`. The histories then differ in where `a` is placed and which provenance pairs are recorded.
 
 *History 1 (yields DELETED).*
 
 ```
 Σ_0  →* K.δ(d)
      →* K.δ(d')
-     →* K.α(a, d)
-     →* K.μ⁺(d,  v  ↦ a);  K.ρ(a, d)
+     →* K.α(a, d);   K.μ⁺(d,  v  ↦ a);  K.ρ(a, d)
      →* K.μ⁺(d', v' ↦ a);  K.ρ(a, d')
      →* K.μ⁻(d)              [retain n'_{s_C} = 0]
      =   Σ_1
 ```
 
-The two K.μ⁺ steps insert `a` at content-subspace V-positions `v = [s_C, 1]` (in `d`) and `v' = [s_C, 1]` (in `d'`); the accompanying K.ρ steps record `(a, d) ∈ R_1` and `(a, d') ∈ R_1` — K.μ⁺'s frame leaves `R` unchanged (ASN-0047), so the bundled `K.μ⁺; K.ρ` composites are what satisfy J1★ end-to-end on the introduction of each new arrangement entry. The K.μ⁻ step on `d` retains zero content-subspace V-positions (`n'_{s_C} = 0`), removing `v ↦ a` from `M(d)`; by P2 (`R ⊆ R'`), `(a, d) ∈ R_1` persists. Final state: `dom(C_1) = {a}`, `M_1(d) = ∅`, `M_1(d') = {v' ↦ a}`, `(a, d) ∈ R_1`. So `DELETED(a, d)` holds at `Σ_1`.
+The third composite bundles K.α with K.μ⁺(d, v ↦ a) and K.ρ(a, d): K.α produces `a ∈ dom(C')`, K.μ⁺ places `a` in `M(d)` (discharging J0), and K.ρ records `(a, d) ∈ R'` (discharging J1★, since K.μ⁺'s frame leaves `R` unchanged on its own). The fourth composite extends `M(d')` with the same `a` at `v' = [s_C, 1]` and pairs it with K.ρ(a, d') so the composite discharges J1★ end-to-end. The K.μ⁻ step on `d` retains zero content-subspace V-positions (`n'_{s_C} = 0`), removing `v ↦ a` from `M(d)`; by P2 (`R ⊆ R'`), `(a, d) ∈ R_1` persists. Final state: `dom(C_1) = {a}`, `M_1(d) = ∅`, `M_1(d') = {v' ↦ a}`, `(a, d) ∈ R_1`. So `DELETED(a, d)` holds at `Σ_1`.
 
 *History 2 (yields NEVER_INCLUDED).*
 
 ```
 Σ_0  →* K.δ(d)
      →* K.δ(d')
-     →* K.α(a, d)
-     →* K.μ⁺(d', v' ↦ a);  K.ρ(a, d')
+     →* K.α(a, d);   K.μ⁺(d', v' ↦ a);  K.ρ(a, d')
      =   Σ_2
 ```
 
-One K.μ⁺ step, into `d'` at the same `v' = [s_C, 1]`, paired with K.ρ(a, d') to satisfy J1★ end-to-end. The composite records `(a, d') ∈ R_2`, but `d` is never extended with `a`, so `(a, d) ∉ R_2`. Final state: `dom(C_2) = {a}`, `M_2(d) = ∅`, `M_2(d') = {v' ↦ a}`, `(a, d) ∉ R_2`. So `NEVER_INCLUDED(a, d)` holds at `Σ_2`.
+The third composite bundles K.α with K.μ⁺(d', v' ↦ a) and K.ρ(a, d'): K.α produces `a ∈ dom(C')`, K.μ⁺ places `a` in `M(d')` (discharging J0 — J0 requires placement in *some* document's arrangement, not specifically in the origin's), and K.ρ records `(a, d') ∈ R'` (discharging J1★). The composite records `(a, d') ∈ R_2`, but `d` is never extended with `a`, so `(a, d) ∉ R_2`. Final state: `dom(C_2) = {a}`, `M_2(d) = ∅`, `M_2(d') = {v' ↦ a}`, `(a, d) ∉ R_2`. So `NEVER_INCLUDED(a, d)` holds at `Σ_2`.
 
 *Agreement on (C, M).* Comparing the components of `Σ_1` and `Σ_2`:
 
@@ -100,7 +100,7 @@ One K.μ⁺ step, into `d'` at the same `v' = [s_C, 1]`, paired with K.ρ(a, d')
 
 Any function `f(C, M)` returns the same value at both states. But the classifications differ — `DELETED(a, d)` at `Σ_1`, `NEVER_INCLUDED(a, d)` at `Σ_2` — so `f` cannot be a discriminating predicate. ∎
 
-This is the abstract justification for the provenance relation: without `R` (or any informationally equivalent component), the system cannot tell "this content was lost" from "this content was never here." The "show deletions" operation requires the former interpretation; therefore any system supporting it must maintain `R`.
+This is the abstract justification for the provenance relation. The negative result is sharp: any system supporting SHOWDELETIONS must maintain state components `C*` (in addition to `C` and `M`) such that, for every reachable state `Σ` and every pair `(a, d)` with `a ∈ dom(C)` and `d ∈ E_doc`, consulting `(C, M, C*)` at `Σ` determines whether `(a, d)` is `DELETED` or `NEVER_INCLUDED`. `R` as defined in ASN-0047 is one such `C*`; the necessity claim is that *some* `C*` adequate to discharge this disambiguation must be present, regardless of its specific representation.
 
 ## The SHOWDELETIONS Operation
 
@@ -258,9 +258,9 @@ Restricting SHOWDELETIONS to the content subspace is therefore not an implementa
 
 The architectural significance is foundational. An operation that recovers content using these references dereferences existing entries in `C`; it does not allocate new ones. Three guarantees that depend on persistent I-address identity therefore survive recovery:
 
-- *Link survival.* By foundation invariants on link endsets, links attach to I-addresses. If `a` is in `dom(L)`'s endsets, the link continues to resolve to the same `a` regardless of which arrangements currently expose `a`.
-- *Transclusion integrity.* If another document's arrangement maps a V-position to `a`, that mapping continues to reference the same content; no aliasing or shadow copy is introduced.
-- *Origin attribution.* `origin(a)` continues to identify the original allocator of `a`; the chain of provenance is not severed by recovery.
+- *Link survival.* By L3 (NEndsetStructure, ASN-0047) together with the link-store definition `L : T ⇀ Endset^N`, every link in `dom(L)` references content through endset spans whose entries are I-addresses; the address `a` is the link's referent. By P3 (ArrangementMutabilityOnly, ASN-0047), `L` is preserved across all transitions — `L' = L` for every K.μ⁺/K.μ⁻/K.μ~ — so a link whose endset names `a` continues to name the same `a` regardless of which arrangements currently expose it.
+- *Transclusion integrity.* By S2 (ArrangementFunctionality, ASN-0036) and S3★ (GeneralizedReferentialIntegrity, ASN-0047), arrangements reference I-addresses by tumbler identity: each V-position maps to a determinate `a ∈ dom(C)`. If another document's arrangement maps a V-position to `a`, that mapping continues to reference the same `a` because P0 (ContentPermanence, ASN-0047, subsuming S0 of ASN-0036) preserves both `dom(C)` and the value at every existing entry across all transitions; no aliasing or shadow copy is introduced.
+- *Origin attribution.* By S7 (StructuralAttribution, ASN-0036), `origin(a)` is derivable from `a`'s tumbler alone and is invariant across all states in which `a ∈ dom(C)`. The chain of provenance is not severed by recovery.
 
 If SHOWDELETIONS returned new identities — fresh I-addresses with the same byte values — all three guarantees would collapse. The recovered content would be unaddressable by existing links, would not match existing transclusions, and would have spurious new origin. Returning addresses is therefore not a presentation choice; it is a correctness requirement.
 
@@ -377,7 +377,7 @@ The user-facing meaning: a "show deletions" query feeds naturally into a "bring 
 | DELETED | `DELETED(a, d) ≡ (a, d) ∈ R ∧ a ∉ ran(M(d))` | introduced |
 | NEVER_INCLUDED | `NEVER_INCLUDED(a, d) ≡ (a, d) ∉ R` | introduced |
 | D-EXH | For every `(a, d)` with `a ∈ dom(C)`, `subspace_I(a) = s_C`, `d ∈ E_doc`, exactly one of CURRENT, DELETED, NEVER_INCLUDED holds | introduced |
-| D-DISCR | No function of `(C, M)` alone can distinguish DELETED from NEVER_INCLUDED; any system supporting SHOWDELETIONS must maintain a state component informationally equivalent to R | introduced |
+| D-DISCR | No function of `(C, M)` alone can distinguish DELETED from NEVER_INCLUDED; any system supporting SHOWDELETIONS must maintain state components `C*` such that consulting `(C, M, C*)` at every reachable Σ determines whether each `(a, d)` is DELETED or NEVER_INCLUDED | introduced |
 | DeletedFromAWithB | `{a ∈ dom(C) : subspace_I(a) = s_C ∧ DELETED(a, d_A) ∧ CURRENT(a, d_B)}` | introduced |
 | DeletedFromBWithA | Symmetric counterpart of DeletedFromAWithB | introduced |
 | SHOWDELETIONS | Observational operation `SHOWDELETIONS(d_A, d_B) = (DeletedFromAWithB(d_A, d_B), DeletedFromBWithA(d_A, d_B))` | introduced |
