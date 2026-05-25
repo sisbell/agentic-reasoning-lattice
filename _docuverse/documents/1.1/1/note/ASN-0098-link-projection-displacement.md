@@ -63,10 +63,10 @@ Before we can reason about how projection displaces, we must pin down what does 
 
 **LP2 — SlotInvariance**: For every transition `Σ → Σ'`, every link `a ∈ dom(Σ.L)`, and every slot index `i ∈ {1, …, |Σ.L(a)|}`:
 ```
-Σ'.L(a).eᵢ = Σ.L(a).eᵢ
+a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ
 ```
 
-This follows from L12 (ASN-0043) by component projection on the sequence: equal sequences have equal entries at every position. In particular, the slot-position assignment fixed at link creation — from-set at slot 1, to-set at slot 2, type-set at slot 3, and any additional slots — is structurally preserved. No editing operation can swap, relabel, or alter which slot carries which endset. The directionality of a standard triple (which end is "from", which is "to") is encoded in slot position alone, and slot position is immutable.
+L12 (ASN-0043) supplies two conclusions on the hypothesis `a ∈ dom(Σ.L)`: address persistence `a ∈ dom(Σ'.L)` (which makes the slot accessor on the left-hand side well-defined) and value preservation `Σ'.L(a) = Σ.L(a)`. The slot equation then follows by component projection on the sequence: equal sequences have equal entries at every position. In particular, the slot-position assignment fixed at link creation — from-set at slot 1, to-set at slot 2, type-set at slot 3, and any additional slots — is structurally preserved. No editing operation can swap, relabel, or alter which slot carries which endset. The directionality of a standard triple (which end is "from", which is "to") is encoded in slot position alone, and slot position is immutable.
 
 **LP2★ — MultiStepSlotInvariance**: For every reachable state sequence `Σ →* Σ'`, every link `a ∈ dom(Σ.L)`, and every slot index `i ∈ {1, …, |Σ.L(a)|}`:
 ```
@@ -75,12 +75,12 @@ a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ
 
 This is the reflexive-transitive closure of LP2. Proof by induction on the length of the transition sequence. The empty sequence (`Σ = Σ'`) gives the conjunction by reflexivity. For the inductive step, suppose `Σ →* Σ_n → Σ'` with `Σ_n.L(a).eᵢ = Σ.L(a).eᵢ` and `a ∈ dom(Σ_n.L)` by induction hypothesis. The single step `Σ_n → Σ'` gives `a ∈ dom(Σ'.L)` and `Σ'.L(a).eᵢ = Σ_n.L(a).eᵢ` by LP2, so by transitivity of equality the full chain holds.
 
-**LP3 — CoverageInvariance**: For every transition `Σ → Σ'`, every link `a`, and every slot `i`:
+**LP3 — CoverageInvariance**: For every transition `Σ → Σ'`, every link `a ∈ dom(Σ.L)`, and every slot `i`:
 ```
-coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)
+a ∈ dom(Σ'.L) ∧ coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)
 ```
 
-This follows from LP2 by applying `coverage` to both sides. The set of I-addresses the link refers to is computed from its endsets; if the endsets are byte-identical between states, the coverage is identical between states. Combining L12 with LP2 and LP3: the link, the slot, and the I-addresses it reaches are all permanent. What can vary is only which of those I-addresses are currently arranged in any given document.
+LP2 supplies both conjuncts: `a ∈ dom(Σ'.L)` directly (so the slot accessor on the left-hand side of the coverage equation is well-defined), and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` from which the coverage equation follows by applying `coverage` to both sides. The set of I-addresses the link refers to is computed from its endsets; if the endsets are byte-identical between states, the coverage is identical between states. Combining L12 with LP2 and LP3: the link, the slot, and the I-addresses it reaches are all permanent. What can vary is only which of those I-addresses are currently arranged in any given document.
 
 **LP3★ — MultiStepCoverageInvariance**: For every reachable state sequence `Σ →* Σ'`, every `a ∈ dom(Σ.L)`, and every slot `i`:
 ```
@@ -116,21 +116,23 @@ The projection function depends on exactly two inputs: `coverage(e)` and `Σ.M(d
 
 A link's projection through one document is unaffected by editing operations on a different document. Projections are *per-document* facts. The link itself is a single global object, but the V-positions it reaches in any given document depend only on that document's local state.
 
-**LP6 — Content-Allocation Invariance**: The K.α operation (ASN-0093) modifies only `Σ.C` and has frame `(A d :: M'(d) = M(d))`. By LP4 applied to every `d`:
+**LP6 — Content-Allocation Invariance**: The K.α operation (ASN-0093) modifies only `Σ.C` and has frame `(A d :: M'(d) = M(d))`; K.α also preserves `dom(Σ.M)`, so `dom(Σ.M) = dom(Σ'.M)`. By LP4 applied to every `d ∈ dom(Σ.M) = dom(Σ'.M)`:
 ```
 project(e, d, Σ') = project(e, d, Σ)
 ```
-for every endset `e` and every `d`, whenever `Σ → Σ'` is a K.α transition.
+for every endset `e` and every such `d`, whenever `Σ → Σ'` is a K.α transition.
 
 Newly allocated I-addresses are invisible to projection until some subsequent K.μ⁺ adds an arrangement entry referencing them. This is the precise sense in which "insertion at the boundary of a linked passage" cannot extend the link's reach: insertion as a composite (allocate + arrange) splits into a K.α step (no projection effect) and a K.μ⁺ step. The K.μ⁺ step might add a V-position to the projection, but only if the new V-position's I-address is in `coverage(e)`. By T10a (AllocatorDiscipline, ASN-0034), each new K.α-allocated I-address is structurally distinct from all prior allocations; the new V-position's I-address lies outside `coverage(e)` whenever `e` was tightly constructed (LP19 below formalises this), and in that case the projection does not grow. Without tightness, the new I-address could fall within a half-open coverage interval reaching past existing content; the precise condition under which boundary insertion is excluded is therefore tightness, not allocator behaviour alone.
 
 The abstract guarantee is sharper than the "outside the strap" metaphor: the projection depends on coverage and arrangement alone, and content allocation alone (K.α) affects neither.
 
-**LP7 — Link-Allocation Invariance**: The K.λ operation modifies only `Σ.L`; its frame is `(A d :: M'(d) = M(d))`. By LP4, K.λ does not displace any existing projection. Creating a new link cannot retroactively affect the projection of any other link.
+**LP7 — Link-Allocation Invariance**: The K.λ operation modifies only `Σ.L`; its frame is `(A d :: M'(d) = M(d))`, and K.λ preserves `dom(Σ.M)`. By LP4 applied to every `d ∈ dom(Σ.M) = dom(Σ'.M)`, `project(e, d, Σ') = project(e, d, Σ)` for every endset `e` and every such `d`. Creating a new link cannot retroactively affect the projection of any other link.
 
 **LP8 — Entity-Registration Invariance**: K.σ (document registration) extends `dom(Σ.M)` by adding a fresh document `d_new` with `M'(d_new) = ∅` and preserves all existing arrangements. For every endset `e` and every `d ∈ dom(Σ.M)` (the pre-state domain), `project(e, d, Σ') = project(e, d, Σ)` by LP4. The newly created `d_new` has `project(e, d_new, Σ') = ∅` since `dom(Σ'.M(d_new)) = ∅`.
 
-**LP14 — ProvenanceRecording Invariance**: The K.ρ operation (ASN-0047), which records provenance by adding a pair to `Σ.R`, has frame `(A d :: M'(d) = M(d))` — it leaves every document's arrangement intact. By LP4 applied to every `d`, `project(e, d, Σ') = project(e, d, Σ)` for every endset `e` and every `d`, whenever `Σ → Σ'` is a K.ρ transition. Provenance bookkeeping does not displace any projection.
+*Remark on K.δ.* ASN-0047 includes K.δ as a unified entity-creation operation spanning nodes, accounts, and documents. The K.δ-IsNode and K.δ-IsAccount cases have frame `(A d :: M'(d) = M(d))` — no arrangement is modified — so LP4 applied to every `d ∈ dom(Σ.M) = dom(Σ'.M)` yields projection invariance. The K.δ-IsDocument case creates a new document `d_new` with `M'(d_new) = ∅`, which is the same scenario as LP8 above; in this ASN's reference frame K.σ (ASN-0093) is the document-registration operation, and K.δ-IsDocument is subsumed by the LP8 argument. Each K.δ kind therefore reduces to either LP4 or LP8, and no separate displacement claim is required.
+
+**LP14 — ProvenanceRecording Invariance**: The K.ρ operation (ASN-0047), which records provenance by adding a pair to `Σ.R`, has frame `(A d :: M'(d) = M(d))` — it leaves every document's arrangement intact — and preserves `dom(Σ.M)`. By LP4 applied to every `d ∈ dom(Σ.M) = dom(Σ'.M)`, `project(e, d, Σ') = project(e, d, Σ)` for every endset `e` and every such `d`, whenever `Σ → Σ'` is a K.ρ transition. Provenance bookkeeping does not displace any projection.
 
 ## Operation Effects on Projection
 
@@ -274,7 +276,7 @@ a_new ∉ coverage(e)
 
 Consequently, if any later K.μ⁺ or K.μ⁺_L transition `Σ_n → Σ_{n+1}` (with `Σ_post →* Σ_n`) extends `Σ_n.M(d)` by a mapping `(v_new, a_new)`, then `v_new ∉ project(e, d, Σ_{n+1})`.
 
-The proof is direct. K.α's precondition (ASN-0093) requires `a_new ∉ dom(Σ.C) ∪ dom(Σ.L)` at the state `Σ` immediately before allocation; the analogous L14 disjointness applies to K.λ. By Store Monotonicity★ applied to the prefix `Σ_e →* Σ`, `dom(Σ.C) ⊇ dom(Σ_e.C)` and `dom(Σ.L) ⊇ dom(Σ_e.L)`. So `a_new ∉ dom(Σ_e.C) ∪ dom(Σ_e.L)`. By the tightness condition, `coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)`, so `a_new ∉ coverage(e)`. For the consequence: a later K.μ⁺ or K.μ⁺_L transition `Σ_n → Σ_{n+1}` adds the mapping `(v_new, a_new)`, giving `v_new ∈ dom(Σ_{n+1}.M(d))` and `Σ_{n+1}.M(d)(v_new) = a_new`. The coverage of `e` is unchanged across `Σ_post →* Σ_{n+1}` by LP3★ (applied through whichever link slot carries `e`), so `a_new ∉ coverage(e)` still holds at `Σ_{n+1}`. The projection definition then excludes `v_new` from `project(e, d, Σ_{n+1})`.
+The proof is direct. K.α's precondition (ASN-0093) requires `a_new ∉ dom(Σ.C) ∪ dom(Σ.L)` at the state `Σ` immediately before allocation; the analogous L14 disjointness applies to K.λ. By Store Monotonicity★ applied to the prefix `Σ_e →* Σ`, `dom(Σ.C) ⊇ dom(Σ_e.C)` and `dom(Σ.L) ⊇ dom(Σ_e.L)`. So `a_new ∉ dom(Σ_e.C) ∪ dom(Σ_e.L)`. By the tightness condition, `coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)`, so `a_new ∉ coverage(e)`. For the consequence: a later K.μ⁺ or K.μ⁺_L transition `Σ_n → Σ_{n+1}` adds the mapping `(v_new, a_new)`, giving `v_new ∈ dom(Σ_{n+1}.M(d))` and `Σ_{n+1}.M(d)(v_new) = a_new`. Since `coverage(e)` is a deterministic function of `e`'s spans (per the coverage definition of ASN-0043) and `e` is a fixed endset value across the entire sequence — `coverage` consults no state component — the membership `a_new ∉ coverage(e)` carries through unchanged to `Σ_{n+1}`. The projection definition then excludes `v_new` from `project(e, d, Σ_{n+1})`.
 
 Tightness is a construction discipline, not a structural invariant the system enforces. The system permits endsets whose spans denote half-open intervals reaching past existing content; such endsets are not tight, and an `a_new` allocated within their forward extent would in fact enter the coverage. The architectural significance of LP19 is that the canonical endset construction — selecting spans whose start and width capture exactly the I-addresses resident at construction time — produces tight endsets, and tight endsets are immune to absorbing addresses produced by subsequent K.α or K.λ. Boundary insertion as a composite (K.α + K.μ⁺) cannot enlarge a tight link's reach.
 
@@ -332,7 +334,7 @@ The trust relationship between the link holder and the system is asymmetric. The
 
 To make the displacement concrete, we trace a small example. Consider:
 
-- A link `a` with endset `e₁ = {(i₀, ℓ)}` covering I-addresses `{i₁, i₂, i₃, i₄}`, where `i₀ ≤ i₁ < i₂ < i₃ < i₄ < i₀ ⊕ ℓ` and `i₁, …, i₄ ∈ dom(Σ.C)`.
+- A link `a` with endset `e₁ = {(i₀, ℓ)}`. By T12 (ASN-0034), `coverage(e₁) = {t ∈ T : i₀ ≤ t < i₀ ⊕ ℓ}` — the entire half-open interval, not merely a discrete set. The I-addresses `i₁, i₂, i₃, i₄` satisfy `i₀ ≤ i₁ < i₂ < i₃ < i₄ < i₀ ⊕ ℓ` and `i₁, …, i₄ ∈ dom(Σ.C)`; the interval `coverage(e₁)` contains these four addresses (along with any other tumbler lying in the interval). For trace clarity we follow only these four, since they are precisely the addresses in `coverage(e₁) ∩ ran(Σ.M(d₁))` for the document considered below — and by LP12 the projection through `d₁` is governed by that intersection, not by the full coverage.
 - A document `d₁` whose content subspace arranges these four I-addresses in order: `Σ.M(d₁) = {v₁ ↦ i₁, v₂ ↦ i₂, v₃ ↦ i₃, v₄ ↦ i₄}`, with `v_k = [s_C, 1, …, 1, k]` so the sequence `(v₁, v₂, v₃, v₄)` satisfies D-SEQ★ at content-subspace count `n_{s_C} = 4`.
 
 At state `Σ`:
@@ -346,7 +348,7 @@ Apply K.μ⁻ retaining the first three content-subspace positions (so `n'_{s_C}
 project(a, 1, d₁, Σ_1) = {v₁, v₂, v₃}
 ```
 
-The projection has shrunk by `{v₄}` (per LP10's exact characterisation), and the retained set `{v₁, v₂, v₃}` is the D-SEQ★-admissible prefix permitted by K.μ⁻. The I-address `i₄` is still in `dom(Σ.C)` by S0, but no longer in `ran(Σ_1.M(d₁))`. The link's coverage is unchanged — still `{i₁, i₂, i₃, i₄}`.
+The projection has shrunk by `{v₄}` (per LP10's exact characterisation), and the retained set `{v₁, v₂, v₃}` is the D-SEQ★-admissible prefix permitted by K.μ⁻. The I-address `i₄` is still in `dom(Σ.C)` by S0, but no longer in `ran(Σ_1.M(d₁))`. The link's coverage is unchanged — still the half-open interval `{t ∈ T : i₀ ≤ t < i₀ ⊕ ℓ}`, of which `{i₁, i₂, i₃, i₄}` remain the traced members.
 
 Now suppose another document `d₂` is registered and transcludes `i₄` via K.σ followed by K.μ⁺, producing state `Σ_2`:
 ```
@@ -354,13 +356,13 @@ Now suppose another document `d₂` is registered and transcludes `i₄` via K.�
 project(a, 1, d₂, Σ_2) = {w₁}
 ```
 
-The link is now discoverable from both `d₁` (where the projection is `{v₁, v₂, v₃}` reaching `{i₁, i₂, i₃}`) and `d₂` (where the projection is `{w₁}` reaching `{i₄}`). Together the two projections reach the full coverage `{i₁, i₂, i₃, i₄}` despite no single document containing all four I-addresses.
+The link is now discoverable from both `d₁` (where the projection is `{v₁, v₂, v₃}` reaching `{i₁, i₂, i₃}`) and `d₂` (where the projection is `{w₁}` reaching `{i₄}`). Together the two projections reach the four traced I-addresses `{i₁, i₂, i₃, i₄}` — the entirety of `coverage(e₁)` that bears on these documents' ranges — despite no single document containing all four.
 
-To exhibit projection motion clearly under K.μ~, consider slot 2 of the link, with endset `e₂` whose coverage is the narrower set `{i₁}` (admissible by L4 of ASN-0043, which imposes no constraint on which I-addresses an endset references). At `Σ_1`:
+To exhibit projection motion clearly under K.μ~, consider slot 2 of the link, with endset `e₂` chosen so that `coverage(e₂) ∩ ran(Σ_1.M(d₁)) = {i₁}` — only the I-address `i₁` from `d₁`'s current range lies in this slot's coverage (admissible by L4 of ASN-0043, which imposes no constraint on which I-addresses an endset references; for trace clarity we follow only the intersection with `d₁`'s range, since by LP12 that intersection is what governs projection through `d₁`). At `Σ_1`:
 ```
 project(a, 2, d₁, Σ_1) = {v₁}
 ```
-— a strict subset of `dom(Σ_1.M(d₁)) = {v₁, v₂, v₃}`, because only `v₁` maps to an I-address in `coverage(e₂) = {i₁}`.
+— a strict subset of `dom(Σ_1.M(d₁)) = {v₁, v₂, v₃}`, because among the V-positions of `Σ_1.M(d₁)` only `v₁` maps to an I-address in `coverage(e₂)`.
 
 Now apply K.μ~ to `d₁` via a bijection `π` that permutes the V-positions, fixing `dom(Σ_1.M(d₁))` setwise (per K.μ~-FIX of ASN-0047):
 ```
