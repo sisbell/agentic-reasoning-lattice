@@ -117,7 +117,11 @@ We register the consequence:
 
 > **V4a** (*positional identity*): For every V-position `v ∈ V_{s_C}(d_src)`, both `M(d_src)(v)` and `M'(d_new)(v)` are defined, and both equal the same I-address `a ∈ dom(C)`. The V-position `v` is *the same tumbler* in both arrangements.
 
-V4a is the structural basis of correspondence. We expand its consequences in §"Structural Correspondence" below.
+V4 gives the one-way containment `V_{s_C}(d_src) ⊆ dom(M'(d_new))`, but the fork's elementary decomposition supplies the stronger fact that *no other* V-position enters `dom(M'(d_new))`. K.δ initialises `M'(d_new) = ∅` (its effect clause when `IsDocument(e)`); K.μ⁺ adds exactly the positions of `V_{s_C}(d_src)` per J4's clause (ii) (and by V6 the link subspace receives no additions); K.ρ does not modify arrangements. Combining, `dom(M'(d_new)) = V_{s_C}(d_src)` exactly, and by V6 every position in `dom(M'(d_new))` lies in the content subspace, so:
+
+> **V4b** (*domain equality*): In the post-fork state, `dom(M'(d_new)) = V_{s_C}(d_src)` and `V_{s_C}(d_new) = V_{s_C}(d_src)`. The fork's V-position domain is *exactly* the source's content-subspace V-position set — not merely a superset.
+
+V4a and V4b together are the structural basis of correspondence. We expand their consequences in §"Structural Correspondence" below.
 
 ## Frame: Source Isolation
 
@@ -161,7 +165,7 @@ Suppose, for contradiction, that a fork transferred `d_src`'s link-subspace V-po
 >
 > `V_{s_L}(d_new) = ∅` (in `Σ'`, the post-fork state)
 >
-> *Derivation.* K.δ's effect on the newly created document is `M'(d_new) = ∅`. K.μ⁺ in J4's clause (ii) extends `M'(d_new)` only with positions drawn from `V_{s_C}(d_src)`, all of which have `subspace(v) = s_C` (S8a's positive-component property applied at depth `m_{s_C}` with first component `s_C`). No link-subspace V-position is added. K.ρ does not modify arrangements. ∎
+> *Derivation.* K.δ's effect on the newly created document is `M'(d_new) = ∅`. K.μ⁺ in J4's clause (ii) extends `M'(d_new)` only with positions drawn from `V_{s_C}(d_src)`, all of which have `subspace(v) = s_C` by the definition of `V_{s_C}(d_src) := {v ∈ dom(M(d_src)) : subspace(v) = s_C}` (ASN-0047). No link-subspace V-position is added. K.ρ does not modify arrangements. ∎
 
 V6 has an immediate consequence: links in `d_src` are not present in `d_new`'s arrangement. But this does not mean they are inaccessible from `d_new`. A link's endsets reference I-addresses (`Endset` per ASN-0047), and the I-addresses in `d_new`'s arrangement are *the same I-addresses* as in `d_src`'s arrangement (V4a). Any link discovery operation that takes an I-address and returns the set of links whose endsets reference it will, for I-addresses shared between `d_src` and `d_new`, return the same links from both vantage points. Link discoverability via shared I-addresses survives the fork.
 
@@ -209,13 +213,17 @@ We record three immediate corollaries.
 
 > **V8a** (*correspondence persistence under content-store growth*): Subsequent K.α allocations (extending `C`) do not affect existing I-addresses (by P0/S0), so V8's correspondence between `d_src` and `d_new` over the V-positions present at fork time is preserved as long as those V-positions remain in both arrangements.
 
-> **V8b** (*correspondence is state-relative*): Let `Σ' →* Σ_g` be any sequence of valid composite transitions from the post-fork state `Σ'`. The set of V-positions at which `d_src` and `d_new` correspond at `Σ_g` is
+> **V8b** (*correspondence is state-relative — monotonic decay of the fork-time witness set*): Let `Σ' →* Σ_g` be any sequence of valid composite transitions from the post-fork state `Σ'`. The set of V-positions at which `d_src` and `d_new` correspond at `Σ_g` is
 >
 > `Corr_g := {v ∈ T : v ∈ dom(M_g(d_src)) ∩ dom(M_g(d_new)) ∧ M_g(d_src)(v) = M_g(d_new)(v)}`
 >
-> For each fork-time V-position `v ∈ V_{s_C}(d_src)|_{Σ'}`, membership in `Corr_g` requires both (a) `v ∈ dom(M_g(d_src)) ∩ dom(M_g(d_new))` and (b) `M_g(d_src)(v) = M_g(d_new)(v)`. V8 establishes `V_{s_C}(d_src)|_{Σ'} ⊆ Corr_{Σ'}` at the post-fork state; each subsequent transition can preserve or shrink this inclusion but never violate it.
+> Let `F := V_{s_C}(d_src)|_{Σ'}` denote the fork-time content-subspace witness set (fixed by the post-fork state), and define the *time-indexed fork-time witness set*
 >
-> *Derivation.* By V5a (bidirectional independence), each subsequent arrangement-modifying transition (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L of ASN-0047) modifies at most one of `M(d_src)` and `M(d_new)`. The fork-installed mapping at `v` survives independently on each side: it persists in `M_g(d_src)(v)` iff `d_src`'s editing history between `Σ'` and `Σ_g` has not removed `v` (via K.μ⁻ on `d_src`) nor remapped its image (via K.μ~ on `d_src`), and symmetrically for `M_g(d_new)(v)`. Where both sides have preserved the fork-installed mapping at `v`, both sides hold the same I-address: V4 ∧ V5 supplied `M'(d_src)(v) = M'(d_new)(v)` at `Σ'`, and P0 (ASN-0047) ensures the I-address persists in `dom(C)` across every subsequent state. Where either side has deleted `v` (K.μ⁻) or repermuted its image (K.μ~), condition (a) or (b) fails for that `v`. Where either side has extended its arrangement via K.μ⁺ at a V-position absent from the other, condition (a) fails. ∎
+> `Π_g := F ∩ Corr_g`
+>
+> — the V-positions that existed in `d_src`'s content subspace at fork-time *and* still witness correspondence at `Σ_g`. The set `Π_g` is *monotonically non-increasing* in `g`: for any subsequent state `Σ_h` reached from `Σ_g` by a further sequence of valid composite transitions, `Π_h ⊆ Π_g`. At the post-fork state itself, `Π_{Σ'} = F` (V8 supplies `F ⊆ Corr_{Σ'}`).
+>
+> *Derivation.* By V5a (bidirectional independence), each subsequent arrangement-modifying transition (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L of ASN-0047) modifies at most one of `M(d_src)` and `M(d_new)`. The fork-installed mapping at `v ∈ F` survives independently on each side: it persists in `M_g(d_src)(v)` iff `d_src`'s editing history between `Σ'` and `Σ_g` has not removed `v` (via K.μ⁻ on `d_src`) nor remapped its image (via K.μ~ on `d_src`), and symmetrically for `M_g(d_new)(v)`. Where both sides have preserved the fork-installed mapping at `v`, both sides hold the same I-address: V4 ∧ V5 supplied `M'(d_src)(v) = M'(d_new)(v)` at `Σ'`, and P0 (ASN-0047) ensures the I-address persists in `dom(C)` across every subsequent state, so such a `v` remains in `Π_g`. For monotonicity from `Σ_g` to `Σ_h`: any `v ∈ Π_h` satisfies `v ∈ F` (by definition) and `v ∈ Corr_h`. To show `v ∈ Π_g`, we need `v ∈ Corr_g`. Suppose for contradiction `v ∉ Corr_g`. Then at `Σ_g` either condition (a) fails — some side already lost `v` from its arrangement — or condition (b) fails — the two sides hold distinct I-addresses at `v`. In the first case, P3 (ArrangementMutabilityOnly, ASN-0047) across `Σ_g →* Σ_h` does not restore a removed V-position to either arrangement; K.μ⁺ could re-add `v` to one side, but per V5a only one side can be modified per transition, so the other side remains without `v`, leaving condition (a) failing at `Σ_h`. In the second case, K.μ~ on either side cannot restore equality (it only re-permutes existing images), and K.μ⁺ cannot affect an existing V-position. So `v ∉ Corr_h`, contradicting `v ∈ Π_h`. Therefore `Π_h ⊆ Π_g`. ∎
 
 > **V8c** (*correspondence is symmetric and untyped*): The relationship V8 records is between two documents; it does not distinguish "source" from "fork." After the fork is complete, both `d_src` and `d_new` are documents in `E_doc`, and the set of corresponding V-positions `{v ∈ T : v ∈ dom(M'(d_src)) ∩ dom(M'(d_new)) ∧ M'(d_src)(v) = M'(d_new)(v)}` is invariant under swap of the two documents. *Derivation.* The set is defined by two conjuncts: (i) `v ∈ dom(M'(d_src)) ∩ dom(M'(d_new))` and (ii) `M'(d_src)(v) = M'(d_new)(v)`. Conjunct (i) is invariant under swap because set intersection is commutative: `dom(M'(d_src)) ∩ dom(M'(d_new)) = dom(M'(d_new)) ∩ dom(M'(d_src))`. For conjunct (ii), V8 supplies `M'(d_src)(v) = M'(d_new)(v)` for the V-positions in the set; symmetry of equality (a property of `=`, applied to the V8-supplied equality) gives the equivalent `M'(d_new)(v) = M'(d_src)(v)`, which is conjunct (ii) under the swapped ordering. Both conjuncts therefore evaluate the same under either ordering of the two documents, and the set is unchanged. ∎
 
@@ -245,15 +253,17 @@ A single source may be forked many times. Each fork produces a distinct child tu
 
 By T10a's allocator discipline and the Allocator hierarchy definition (ASN-0047), the version sub-allocator `A_v(d_src)` of `d_src` activates upon `d_src`'s creation and produces version outputs by repeated sibling generation. The first fork's `d_new = inc(d_src, 1)`; a second fork — under the chain-advancement convention `inc(prev_version, 0)` of ASN-0047's allocator hierarchy — produces a distinct sibling. T10a.7 (EnumerationInjectivity) makes the indexing map of the sub-allocator's outputs injective: distinct enumeration indices produce distinct addresses. No two forks of the same source share a tumbler.
 
-> **V10** (*sibling independence*): Two forks of the same source, `Σ →* Σ¹` producing `d¹_new` and `Σ →* Σ²` producing `d²_new`, are independent in three senses:
->
-> (a) *Distinct identities.* `d¹_new ≠ d²_new`.
->
-> (b) *Independent content shares.* Both `d¹_new` and `d²_new` inherit content from the same pre-fork `M(d_src)` (or from the current `M(d_src)` at the moment of each fork), but their inherited V→I mappings live in separate arrangements `M'(d¹_new)` and `M'(d²_new)`. Modifications to one do not propagate to the other.
->
-> (c) *Independent provenance records.* `R'` contains both `(a, d¹_new)` and `(a, d²_new)` for shared I-addresses, but these are distinct pairs.
+Two forks of the same source occur *sequentially*, not in parallel: the SequentialTransitionAxiom (ASN-0047) orders all state transitions totally, and `A_v(d_src)`'s emission count is part of the state, so the second fork necessarily reads a post-state in which the first fork's emission has already advanced the sub-allocator. The pre-state of the second fork is the post-state of the first, with `d¹_new` having entered `E_doc` and `A_v(d_src)`'s frontier having advanced. V1's subsequent-fork sub-case then governs the second fork's allocation.
 
-V10's part (a) follows from T10a.6 and T10a.7. Part (b) follows from V5a applied symmetrically. Part (c) follows from V9 applied at each fork independently.
+> **V10** (*sibling independence*): Let `Σ →* Σ¹` be a fork of `d_src` producing `d¹_new`, and let `Σ¹ →* Σ²` be a later fork of the same `d_src` (read at the post-state of the first fork) producing `d²_new`. The two forks are independent in three senses:
+>
+> (a) *Distinct identities.* `d¹_new ≠ d²_new`. By V1, `d¹_new = inc(d_src, 1)` (first-fork sub-case at `Σ`) and `d²_new = inc(d¹_new, 0)` (subsequent-fork sub-case at `Σ¹`, since `A_v(d_src)`'s most recent emission at `Σ¹` is `d¹_new`). T10a.7 (EnumerationInjectivity, ASN-0034) applied to `A_v(d_src)`'s enumeration `(d¹_new, d²_new, ...)` gives distinct addresses at distinct indices; T10a.6 (DomainDisjointness) rules out cross-allocator equality. So `d¹_new ≠ d²_new`.
+>
+> (b) *Independent content shares.* Both `d¹_new` and `d²_new` inherit content from `M(d_src)` *at the moment of each respective fork* — `d¹_new` reads `M(d_src)` at `Σ`, and `d²_new` reads `M(d_src)` at `Σ¹`. By V5 applied to the first fork, `M¹(d_src) = M(d_src)`, so the two reads agree unless an editing operation intervenes between `Σ¹` and the start of the second fork composite. Their inherited V→I mappings live in separate arrangements `M¹(d¹_new)` and `M²(d²_new)`. By V5a, modifications to one do not propagate to the other.
+>
+> (c) *Independent provenance records.* `R²` contains both `(a, d¹_new)` and `(a, d²_new)` for shared I-addresses, but these are distinct pairs (since `d¹_new ≠ d²_new` by (a)).
+
+V10's part (a) follows from T10a.6 and T10a.7 as derived above. Part (b) follows from V5a applied symmetrically. Part (c) follows from V9 applied at each fork independently.
 
 We further observe that each fork independently derives from `d_src`'s state *at the moment of forking*. If two forks are separated in time by an editing operation on `d_src`, the two forks inherit different arrangements.
 
@@ -275,17 +285,12 @@ By V4 at each fork: `M¹(d¹_new) = M(d_src)|_{V_{s_C}(d_src)}` (in the sense th
 >
 > *Base case (`k = 1`).* V4 applied to the first fork `d_src → d¹_new` gives `M¹(d¹_new)(v) = M(d_src)(v)` for every `v ∈ V_{s_C}(d_src)`, and supplies `V_{s_C}(d_src) ⊆ dom(M¹(d¹_new))`.
 >
-> *Inductive step (`k ≥ 2`).* Assume the induction hypothesis at step `k − 1`: for every `v ∈ V_{s_C}(d_src)`, `v ∈ dom(M^{k-1}(d^{k-1}_new))` and `M^{k-1}(d^{k-1}_new)(v) = M(d_src)(v)`. (V4 applied at each prior step propagates `V_{s_C}(d_src)` forward into each `V_{s_C}(dⁱ_new)`, justifying the inclusion `V_{s_C}(d_src) ⊆ V_{s_C}(d^{k-1}_new)` that the hypothesis names.) The k-th fork composite `Σ^{k-1} →* Σ^k` takes `d^{k-1}_new` as source and produces `d^k_new`. Two equalities bridge step `k − 1`'s arrangement values into step `k`'s post-state:
+> *Inductive step (`k ≥ 2`).* Assume the induction hypothesis at step `k − 1`: for every `v ∈ V_{s_C}(d_src)`, `v ∈ dom(M^{k-1}(d^{k-1}_new))` and `M^{k-1}(d^{k-1}_new)(v) = M(d_src)(v)`. (V4 applied at each prior step propagates `V_{s_C}(d_src)` forward into each `V_{s_C}(dⁱ_new)`, justifying the inclusion `V_{s_C}(d_src) ⊆ V_{s_C}(d^{k-1}_new)` that the hypothesis names.) The k-th fork composite `Σ^{k-1} →* Σ^k` takes `d^{k-1}_new` as source and produces `d^k_new`. V4's literal statement at the k-th fork is `M^k(d^k_new)(v) = M^{k-1}(d^{k-1}_new)(v)` for every `v ∈ V_{s_C}(d^{k-1}_new)` (in particular for every `v ∈ V_{s_C}(d_src)` by the IH-supplied inclusion) — post-fork-of-step-k value on the left, pre-fork-of-step-k (i.e., step-`k−1` post-state) value on the right.
 >
-> 1. *Source-arrangement preservation.* V5 applied to the k-th fork composite with `d^{k-1}_new` as source gives `M^k(d^{k-1}_new) = M^{k-1}(d^{k-1}_new)` — the source arrangement is unchanged across the fork composite, so the induction hypothesis's values carry into step `k`'s pre-state.
+> Composing V4's direct form with the induction hypothesis: for every `v ∈ V_{s_C}(d_src)`,
 >
-> 2. *Literal inheritance.* V4 applied to the k-th fork gives `M^k(d^k_new)(v) = M^k(d^{k-1}_new)(v)` for every `v ∈ V_{s_C}(d^{k-1}_new)` (in particular for every `v ∈ V_{s_C}(d_src)` by the IH-supplied inclusion).
->
-> Composing: for every `v ∈ V_{s_C}(d_src)`,
->
-> `M^k(d^k_new)(v) = M^k(d^{k-1}_new)(v)  [V4 at step k]`
-> `                = M^{k-1}(d^{k-1}_new)(v)  [V5 at step k]`
-> `                = M(d_src)(v)  [induction hypothesis]`
+> `M^k(d^k_new)(v) = M^{k-1}(d^{k-1}_new)(v)  [V4 at step k, direct form]`
+> `                = M(d_src)(v)              [induction hypothesis]`
 >
 > The induction closes. ∎
 
@@ -355,7 +360,7 @@ The elementary decomposition into K.δ + K.μ⁺ + K.ρ × n (where `n = |ran(M'
 
 *K.δ at the pre-fork state Σ.* The K.δ sub-case is determined by `A_v(d_src)`'s state.
 
-*K.δ sub-case A — first fork.* `A_v(d_src)` has emitted no prior version. K.δ case (ii) with `k = 1`, `t = d_src`. Required: `d_src ∈ E_doc` (P.1). `d_new = inc(d_src, 1)`; by KDeltaZerosK01, `zeros(d_new) = zeros(d_src) = 2`, so `IsDocument(d_new)`. The freshness `d_new ∉ E` is discharged by two T10a constraints. *T10a's at-most-once-per-(t, k') child-spawning constraint (ASN-0034)* — "Each `(t, k')` pair — domain element and spawning parameter — yields at most one child-spawning event" — combined with sub-case A's predicate that `A_v(d_src)` has emitted no prior version (so no prior K.δ event has fired with operand `t = d_src` and parameter `k = 1`), forces that `inc(d_src, 1)` has not been previously placed into `E` by any spawning of `A_v(d_src)`. *T10a.6 (DomainDisjointness, ASN-0034)* — `A_v(d_src)`'s domain is disjoint from every other allocator's domain — rules out any other allocator having produced `inc(d_src, 1)`. Combining the two: no allocator, present or past, has placed `inc(d_src, 1)` into `E`, so `d_new ∉ E`.
+*K.δ sub-case A — first fork.* `A_v(d_src)` has emitted no prior version. K.δ case (ii) with `k = 1`, `t = d_src`. Required: `d_src ∈ E_doc` (V0's precondition). `d_new = inc(d_src, 1)`; by KDeltaZerosK01, `zeros(d_new) = zeros(d_src) = 2`, so `IsDocument(d_new)`. The freshness `d_new ∉ E` is discharged by two T10a constraints. *T10a's at-most-once-per-(t, k') child-spawning constraint (ASN-0034)* — "Each `(t, k')` pair — domain element and spawning parameter — yields at most one child-spawning event" — combined with sub-case A's predicate that `A_v(d_src)` has emitted no prior version (so no prior K.δ event has fired with operand `t = d_src` and parameter `k = 1`), forces that `inc(d_src, 1)` has not been previously placed into `E` by any spawning of `A_v(d_src)`. *T10a.6 (DomainDisjointness, ASN-0034)* — `A_v(d_src)`'s domain is disjoint from every other allocator's domain — rules out any other allocator having produced `inc(d_src, 1)`. Combining the two: no allocator, present or past, has placed `inc(d_src, 1)` into `E`, so `d_new ∉ E`.
 
 *K.δ sub-case B — subsequent fork.* `A_v(d_src)` has prior emissions with most recent `d_prev ∈ E_doc`. K.δ case (ii) with `k = 0`, `t = d_prev`. Required: `d_prev ∈ E ∧ ¬IsNode(d_prev) ∧ inc(d_prev, 0) ∉ E`. `d_prev ∈ E` by P1 (entity permanence, ASN-0047) applied to its earlier K.δ event. `d_prev` is a `A_v(d_src)` output with `IsDocument(d_prev)` (zeros preserved at the first emission by KDeltaZerosK01 at `k = 1`, and preserved at each subsequent emission by KDeltaZerosK01 at `k = 0`), so `¬IsNode(d_prev)`. The freshness `inc(d_prev, 0) ∉ E` follows from T10a.7 (EnumerationInjectivity, ASN-0034) applied to `A_v(d_src)`'s sibling-stream enumeration — the next sibling tumbler is distinct from every prior emission — combined with T10a.6, which places the new emission outside every other allocator's domain. By KDeltaZerosK01, `zeros(d_new) = zeros(d_prev) = 2`, so `IsDocument(d_new)`.
 
@@ -363,7 +368,7 @@ The elementary decomposition into K.δ + K.μ⁺ + K.ρ × n (where `n = |ran(M'
 
 Effect (both sub-cases): `E¹ = E ∪ {d_new}`, `M¹(d_new) = ∅`, `M¹(d') = M(d')` for `d' ≠ d_new`. Frame: `C¹ = C`, `L¹ = L`, `R¹ = R`.
 
-*K.μ⁺ at Σ¹ (skipped in the empty case).* Target `d = d_new`. The extension set is `V_{s_C}(d_src)`. Precondition: `d_new ∈ E¹_doc` (just established); for every `v ∈ V_{s_C}(d_src)`, the target `M(d_src)(v) ∈ dom(C¹) = dom(C)` (S3 at `d_src`, ASN-0036); new V-positions satisfy S8a (all components positive, by S8a applied at `d_src`) and S8-depth (common depth `m_{s_C}`); `dom(M²(d_new))` finite (subset of `dom(M(d_src))` which is finite by S8-fin); `M²(d_new)` satisfies D-CTG★ (the inherited positions form `V_{s_C}(d_src) = {[s_C, 1, ..., 1, k] : 1 ≤ k ≤ n_{s_C}}` per D-SEQ★, contiguous by construction) and D-MIN★ (minimum is `[s_C, 1, ..., 1]`); newly added V-positions are pairwise distinct (they are pairwise distinct in `V_{s_C}(d_src)`). The K.μ⁺ amendment of ASN-0047 requires `subspace(v) = s_C` for all new V-positions, which holds throughout. Strict extension: `V_{s_C}(d_src) ≠ ∅` by P.2.
+*K.μ⁺ at Σ¹ (skipped in the empty case).* Target `d = d_new`. The extension set is `V_{s_C}(d_src)`. Precondition: `d_new ∈ E¹_doc` (just established); for every `v ∈ V_{s_C}(d_src)`, the target `M(d_src)(v) ∈ dom(C¹) = dom(C)` (S3★ at `d_src` restricted to `subspace(v) = s_C`, ASN-0047, with `M¹(d_src) = M(d_src)` by V5 carrying the source arrangement unchanged from `Σ` to `Σ¹`); new V-positions satisfy S8a (all components positive, by S8a applied at `d_src`) and S8-depth (common depth `m_{s_C}`); `dom(M²(d_new))` finite (subset of `dom(M(d_src))` which is finite by S8-fin); `M²(d_new)` satisfies D-CTG★ (the inherited positions form `V_{s_C}(d_src) = {[s_C, 1, ..., 1, k] : 1 ≤ k ≤ n_{s_C}}` per D-SEQ★, contiguous by construction) and D-MIN★ (minimum is `[s_C, 1, ..., 1]`); newly added V-positions are pairwise distinct (they are pairwise distinct in `V_{s_C}(d_src)`). The K.μ⁺ amendment of ASN-0047 requires `subspace(v) = s_C` for all new V-positions, which holds throughout. Strict extension: `V_{s_C}(d_src) ≠ ∅` by the non-empty-source case hypothesis governing this branch of V0.
 
 Effect: `M²(d_new)(v) = M(d_src)(v)` for `v ∈ V_{s_C}(d_src)`. Frame: `C² = C`, `L² = L`, `E² = E¹`, `M²(d') = M¹(d')` for `d' ≠ d_new`, `R² = R¹ = R`.
 
@@ -425,7 +430,11 @@ The link subspace of `d_new` is empty: `V_{s_L}(d_new) = ∅`. The link `ℓ` re
 
 *Subsequent edits.* Suppose `d_src`'s owner later deletes `[s_C, 2]` from `d_src`'s arrangement (K.μ⁻ contraction). By V5a, `M(d_new)` is unaffected — `a₂` remains in `d_new`'s arrangement. By V12(c), `(a₂, d_new) ∈ R` persists; by V12(b), `a₂ ∈ dom(C)` persists. Symmetrically, if `d_new`'s owner deletes from `d_new`'s arrangement, `d_src` is unaffected.
 
-*Further forking.* A fork of `d_new` (chained from the original fork of `d_src`) produces `d²_new = inc(d_new, 1)` with `d_src ≼ d_new ≼ d²_new` (V11a). The I-addresses inherited by `d²_new` are still `a₁, a₂, a₃` — the same I-addresses originally allocated by `d_src` (V11).
+*Further forking — fork of a fork.* A fork of `d_new` (chained from the original fork of `d_src`) produces `d²_new = inc(d_new, 1)` with `d_src ≼ d_new ≼ d²_new` (V11a). The I-addresses inherited by `d²_new` are still `a₁, a₂, a₃` — the same I-addresses originally allocated by `d_src` (V11).
+
+*Subsequent fork of `d_src` — V1's `k = 0` sub-case.* Returning to the state after the first fork of `d_src` (with `d_new` having been allocated as `inc(d_src, 1)`), suppose the operator now forks `d_src` again. V1's subsequent-fork sub-case applies: `A_v(d_src)`'s most recent emission is `d_new`, so the new fork is `d²_new = inc(d_new, 0)`. By KDeltaParentK01, `parent(d²_new) = parent(d_new) = parent(d_src)`. By V2 applied at this second fork — whose inductive argument we walked through in §"Identity by Sub-Allocation" — `d_src ≼ d²_new`. We can verify directly: by TA5(c) `#d²_new = #d_new = #d_src + 1`; by TA5(b) at `k = 0`, `d²_new` agrees with `d_new` at every position except `sig(d_new) = #d_new`; combined with the base-case agreement `d_new_i = d_src_i` for `1 ≤ i ≤ #d_src`, the positions `1 ≤ i ≤ #d_src` satisfy `(d²_new)_i = (d_new)_i = (d_src)_i`, and `#d_src ≤ #d²_new` since `#d²_new = #d_src + 1`. The Prefix definition then gives `d_src ≼ d²_new`.
+
+V10(a) holds concretely: `d_new = inc(d_src, 1)` differs from `d²_new = inc(d_new, 0)` in length when contrasted with `d_src` (both share length `#d_src + 1`) and in the trailing component when contrasted with each other (TA5(c) at the subsequent fork modifies position `sig(d_new) = #d_new` only — incrementing `d_new`'s final `1` to `2` — so `(d²_new)_{#d_new} = 2 ≠ 1 = (d_new)_{#d_new}`). The two siblings are distinct addresses sharing the same parent prefix `d_src`. V10(b) and V10(c) apply with `Σ¹` (the post-first-fork state) as the pre-state of the second fork; `M²(d²_new)` is again populated with `{[s_C, 1] ↦ a₁, [s_C, 2] ↦ a₂, [s_C, 3] ↦ a₃}` (assuming `M(d_src)` has not been edited between the two forks), and `R² ⊇ R¹ ∪ {(a₁, d²_new), (a₂, d²_new), (a₃, d²_new)}` is disjoint from the analogous `(aᵢ, d_new)` records added by the first fork.
 
 ## Properties Introduced
 
@@ -438,6 +447,7 @@ The link subspace of `d_new` is empty: `V_{s_L}(d_new) = ∅`. The link `ℓ` re
 | V3a | `{a ∈ dom(C') : origin(a) = d'} = {a ∈ dom(C) : origin(a) = d'}` for every `d'` — allocation invariance | introduced |
 | V4 | `(A v ∈ V_{s_C}(d_src) :: v ∈ dom(M'(d_new)) ∧ M'(d_new)(v) = M(d_src)(v))` — arrangement inheritance | introduced |
 | V4a | For every `v ∈ V_{s_C}(d_src)`, `M'(d_src)(v) = M'(d_new)(v)` — positional identity | introduced |
+| V4b | `dom(M'(d_new)) = V_{s_C}(d_src)` and `V_{s_C}(d_new) = V_{s_C}(d_src)` — domain equality (exact, not just one-sided containment) | introduced |
 | V5 | `M'(d_src) = M(d_src)` — source arrangement isolated from fork | introduced |
 | V5a | Subsequent arrangement modifications to either side do not propagate to the other — bidirectional independence | introduced |
 | V6 | `V_{s_L}(d_new) = ∅` in the post-fork state — link subspace not inherited (forced by CL-OWN) | introduced |
@@ -445,7 +455,7 @@ The link subspace of `d_new` is empty: `V_{s_L}(d_new) = ∅`. The link `ℓ` re
 | V7 | Empty-source behavior: fork of `d_src` with `V_{s_C}(d_src) = ∅` reduces to K.δ alone, succeeding with `M'(d_new) = ∅` and `R' = R` | introduced |
 | V8 | `(A v ∈ V_{s_C}(d_src) :: M'(d_src)(v) = M'(d_new)(v))` — structural correspondence at fork-time | introduced |
 | V8a | Correspondence persists under content-store growth | introduced |
-| V8b | Correspondence is state-relative: at any post-fork `Σ_g`, `Corr_g = {v : v ∈ dom(M_g(d_src)) ∩ dom(M_g(d_new)) ∧ M_g(d_src)(v) = M_g(d_new)(v)}`; fork-time V-positions stay in `Corr_g` exactly when each side preserves the fork-installed mapping | introduced |
+| V8b | Correspondence is state-relative — monotonic decay: let `F := V_{s_C}(d_src)\|_{Σ'}` and `Π_g := F ∩ Corr_g`; then `Π_h ⊆ Π_g` for any `Σ_g →* Σ_h` (the fork-time witness set never re-grows) | introduced |
 | V8c | Correspondence is symmetric and document-type-untyped | introduced |
 | V9 | `(A a : a ∈ ran(M'(d_new)) : (a, d_new) ∈ R')` — provenance recorded for every inherited I-address | introduced |
 | V9a | Provenance records containment, not derivation path — chain of custody is reconstructable from I-addresses and prefix structure, not stored | introduced |
