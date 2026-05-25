@@ -268,13 +268,21 @@ def _classify(a: AsnAudit) -> str:
 def _iter_active_asns(session) -> List[int]:
     """Active, non-retired ASN ids in the lattice, sorted ascending.
 
-    Filters retired notes (they carry a `retired` classifier on top of
-    the `note` classifier) — operationally settled ASNs aren't subject
-    to the substrate-cleanup contract.
+    Includes BOTH note-classified ASNs (drafted) AND inquiry-only ASNs
+    (pre-draft, scheduler fires note_draft on them). Matches the
+    discovery scope of `scripts/note-scheduler.py --dag`.
+
+    Filters ASNs whose note OR inquiry carries the `retired` classifier
+    — operationally settled ASNs aren't subject to the substrate-cleanup
+    contract.
     """
+    from lib.shared.paths import INQUIRY_DIR
     pattern = label_pattern()
     note_prefix = str(NOTE_DIR.relative_to(WORKSPACE)) + "/"
+    inq_prefix = str(INQUIRY_DIR.relative_to(WORKSPACE)) + "/"
     found = set()
+
+    # Note-classified ASNs (drafted)
     for path, addr in session.store.path_to_addr.items():
         if not path.startswith(note_prefix):
             continue
@@ -288,6 +296,43 @@ def _iter_active_asns(session) -> List[int]:
         if not m:
             continue
         found.add(int(m.group(1)))
+
+    # Pre-build a "note exists" set so the inquiry-loop can distinguish
+    # "inquiry-only ASN" (legitimate) from "inquiry exists alongside a
+    # retired note" (operationally retired — skip).
+    notes_on_disk = set()
+    for path in session.store.path_to_addr:
+        if not path.startswith(note_prefix):
+            continue
+        if path.endswith(".statements.md"):
+            continue
+        m = pattern.search(path)
+        if m:
+            notes_on_disk.add(int(m.group(1)))
+
+    # Inquiry-only ASNs (pre-draft) — discovered for substrate-state
+    # accounting; loader will succeed on them when deps resolve, since
+    # note absence is fine (load_foundation works from inquiry alone).
+    for path, addr in session.store.path_to_addr.items():
+        if not path.startswith(inq_prefix):
+            continue
+        if not path.endswith(".md"):
+            continue
+        m = pattern.search(path)
+        if not m:
+            continue
+        asn_id = int(m.group(1))
+        if asn_id in found:
+            continue
+        if session.active_links("retired", to_set=[addr]):
+            continue
+        # If a note exists for this ASN but the note-loop didn't add
+        # it (already happened above), the note must be retired —
+        # treat the whole ASN as retired and skip.
+        if asn_id in notes_on_disk:
+            continue
+        found.add(asn_id)
+
     return sorted(found)
 
 
