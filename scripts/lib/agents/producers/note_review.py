@@ -313,10 +313,25 @@ class NoteReviewAgent(Agent):
         # from note_addr would silently return empty for HEALTHY ASNs
         # (citations live on inquiry_addr); the helper consults the
         # canonical source.
-        foundation_heads = [
-            version_head(session, dep)
-            for dep in foundation_dep_addrs(session, asn_number)
-        ]
+        #
+        # Defensive try/except: if substrate changes between load and
+        # cascade-anchor emission (e.g., another worker retires a dep
+        # during the LLM call window), skip emission rather than leave
+        # the review in a partial state. Loud stderr so the operator
+        # sees the inconsistency. Missing anchor → vacuously fresh on
+        # the next cascade-fresh check, same as before.
+        try:
+            foundation_heads = [
+                version_head(session, dep)
+                for dep in foundation_dep_addrs(session, asn_number)
+            ]
+        except FoundationError as e:
+            print(
+                f"  [FOUNDATION] {asn_label}: cascade-anchor emission "
+                f"skipped — deps unresolvable post-load ({e})",
+                file=sys.stderr,
+            )
+            foundation_heads = []
         if foundation_heads:
             emit_citation_bundle(
                 session.store, review_addr, foundation_heads,
