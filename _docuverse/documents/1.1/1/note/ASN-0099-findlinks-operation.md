@@ -14,13 +14,13 @@ The links the reader wants live in `dom(Σ.L)`. By L1 (ASN-0043), each is at an 
 
 Before any formalism, let us recognize that the question splits cleanly into two phases with qualitatively different concerns. We separate them deliberately so each can be analyzed without the other underfoot.
 
-**Phase 1 (V→I).** Given a query region `R ⊆ dom(Σ.M(d))`, produce the *I-image* of the region:
+**Phase 1 (V→I).** Given a document `d ∈ dom(Σ.M)` and a query region `R ⊆ dom(Σ.M(d))`, produce the *I-image* of the region:
 
 ```
 image(R, d, Σ) = {Σ.M(d)(v) : v ∈ R}
 ```
 
-The image is a set of I-addresses, every member of which lies in `dom(Σ.C) ∪ dom(Σ.L)` by S3★ (ASN-0047). The phase reduces V-coordinates to address-of-content.
+The two preconditions are load-bearing: `d ∈ dom(Σ.M)` so that `Σ.M(d)` is defined as a partial function, and `R ⊆ dom(Σ.M(d))` so that every `Σ.M(d)(v)` is defined for `v ∈ R`. Without both, the comprehension is ill-formed. The reader's V-selection presupposes them — they query a position they can see, in a document that exists — but we state them explicitly because the operation has no value to take at positions outside the arrangement's domain. A query that nominates `v ∉ dom(Σ.M(d))` is either rejected at a higher protocol layer or treated as if `v` were absent from `R`; the abstract specification supports both treatments by leaving `image` undefined on such inputs rather than extending it with a sentinel. The image is a set of I-addresses, every member of which lies in `dom(Σ.C) ∪ dom(Σ.L)` by S3★ (ASN-0047). The phase reduces V-coordinates to address-of-content.
 
 **Phase 2 (I→Link).** Given a set of I-addresses `I ⊆ T`, produce the set of links whose endsets intersect `I`:
 
@@ -44,7 +44,9 @@ The V-region `R` need not be contiguous. The reader may select a single position
 
 When `R` is a contiguous V-span in subspace `s_C`, the image decomposes naturally by ASN-0058's mapping block decomposition: each maximal correspondence run whose V-extent overlaps `R` contributes a contiguous I-run to `image(R, d, Σ)`. If the content of `d` was natively allocated in `d`, the image is a single contiguous I-run lying in `A_C(d)`'s chain. If `d` contains transclusions from multiple sources, the image is a union of disjoint I-runs, each rooted in a different sub-allocator chain.
 
-We let this fact emerge naturally rather than encode it in the operation's signature. The match predicate in phase 2 treats `I` as an opaque set of I-addresses; it does not consult `origin(·)` and does not care that `I` decomposes into multiple sub-chains. Whatever the V-region's history, the image is the I-address set we hand to phase 2.
+The query may also touch the link subspace. When `v ∈ R` has `subspace(v) = s_L`, then by S3★ (ASN-0047), `Σ.M(d)(v) ∈ dom(Σ.L)` — the image picks up a link address, not a content address. The match predicate accepts this without modification: endsets may reference any addresses in `T` (L4, ASN-0043), so the link subspace is admissible as a coverage target. A query for the links attached to an arranged link — an annotation on an annotation, a comment about a typed connection — is the natural use case. The operation works uniformly across subspaces because the match predicate is address-set agnostic: it consults coverage of the endset and overlap with the image, not what kind of entity inhabits the image's addresses.
+
+We let these facts emerge naturally rather than encode them in the operation's signature. The match predicate in phase 2 treats `I` as an opaque set of I-addresses; it does not consult `origin(·)` and does not care that `I` decomposes into multiple sub-chains, nor whether each address inhabits `dom(Σ.C)` or `dom(Σ.L)`. Whatever the V-region's history and whatever the subspace of its positions, the image is the I-address set we hand to phase 2.
 
 ## The Match Predicate
 
@@ -81,9 +83,27 @@ findlinks_filtered(C, Σ)
   = {a ∈ dom(Σ.L) : (A (i, J) ∈ C : coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)}
 ```
 
-where `C` is a finite set of slot constraints. The unfiltered form is recovered by taking `C = {(*, I)}` where `*` denotes "existentially quantified over slots" — equivalently, the unfiltered match is itself the existential over single-slot constraints `{(i, I) : 1 ≤ i ≤ |Σ.L(a)|}`. The from-to query "links from `I_from` to `I_to`" is the constraint set `{(1, I_from), (2, I_to)}`. The three-endset query adds `(3, I_type)`. A query that restricts only by type is `{(3, I_type)}` — the from and to slots are unconstrained, so the link matches regardless of where its from and to endsets land.
+where `C` is a finite set of slot constraints. The from-to query "links from `I_from` to `I_to`" is the constraint set `{(1, I_from), (2, I_to)}`. The three-endset query adds `(3, I_type)`. A query that restricts only by type is `{(3, I_type)}` — the from and to slots are unconstrained, so the link matches regardless of where its from and to endsets land.
+
+The filtered form is *not* a strict generalization of the unfiltered form: the unfiltered match is an existential over slots (a link matches if *any* slot's coverage meets `I`), while the filtered match is a universal over constraints (a link matches if *every* `(i, J)` is satisfied at slot `i`). The two are structurally distinct — disjunction versus conjunction — and no single conjunctive constraint set over the present `C`-vocabulary recovers the disjunction. The unfiltered form is instead recovered as a *union* over single-slot filters: `findlinks(I, Σ) = ⋃ᵢ findlinks_filtered({(i, I)}, Σ)`, where the union ranges over the slot indices of each link. Extending the constraint vocabulary to admit per-slot disjunctions would close the gap structurally, but the present spec keeps the two operations side by side, with the explicit conversion above.
 
 The conjunction is intersection in the link-set lattice. The implementation may compute each per-slot result independently and intersect, or may apply constraints sequentially with pruning, or may employ any other strategy that produces the same set. The abstract specification only requires that the *result* be the conjunctive set.
+
+These structural properties travel together:
+
+```
+F7 (EndsetSymmetry):
+   (a) Slot symmetry: matches(a, I, Σ) consults all slots uniformly via the
+       existential (E i : 1 ≤ i ≤ |Σ.L(a)|), so no slot is privileged a priori.
+       Type-endsets and any further slots in the N-endset structure (L3) are
+       searchable on the same footing as the conventional from/to.
+   (b) Filter conjunction: findlinks_filtered(C, Σ) intersects per-slot
+       constraints via the universal (A (i, J) ∈ C), so the force of a filter
+       set is conjunctive — a link must satisfy every constraint to appear in
+       the result.
+```
+
+Both halves follow directly from the quantifier structure of the definitions: the existential in `matches` makes slots equally searchable (the reader's question does not privilege which endset connects); the universal in `findlinks_filtered` makes filters conjoin (each constraint narrows the candidate set). The symmetry is intrinsic to the formal shape — no auxiliary axiom is needed.
 
 ## Completeness
 
@@ -98,8 +118,6 @@ F2 (Completeness):
 
 For the filtered form, completeness reads against the filtered predicate: every link satisfying every constraint in `C` appears in `result(C, Σ)`.
 
-Completeness must hold *unconditionally* with respect to the population of `dom(Σ.L)`. The number of non-matching links is irrelevant — performance is an implementation property, completeness is a correctness property. The operation cannot terminate early after collecting "enough" links, cannot omit links by random sampling, cannot drop links because they are stored on a remote server that is slow to answer, and cannot exclude links because their endsets are large. If the link is in the store and the match holds, the link is in the result.
-
 The dual obligation is *soundness*:
 
 ```
@@ -108,6 +126,10 @@ F3 (Soundness):
 ```
 
 A link that appears in the result but does not match is also a violation. Completeness and soundness together pin the result to a single set; there is exactly one correct answer.
+
+**F2 and F3 as tautologies of the definition.** Both follow immediately from the abstract specification `findlinks(I, Σ) = {a ∈ dom(Σ.L) : matches(a, I, Σ)}`. Completeness: a comprehension by construction contains every element of its source set satisfying the predicate, so every `a ∈ dom(Σ.L)` with `matches(a, I, Σ)` is included. Soundness: the source restriction places every result in `dom(Σ.L)` and the predicate guard ensures the match. At the level of the abstract definition the two are trivial; they acquire force only as implementation obligations that constrain *how* the comprehension is computed.
+
+Completeness must hold *unconditionally* with respect to the population of `dom(Σ.L)`. The number of non-matching links is irrelevant — performance is an implementation property, completeness is a correctness property. The operation cannot terminate early after collecting "enough" links, cannot omit links by random sampling, cannot drop links because they are stored on a remote server that is slow to answer, and cannot exclude links because their endsets are large. If the link is in the store and the match holds, the link is in the result. Soundness's force is dual: a conforming implementation cannot return links that fail the match — no false positives from a stale index, no extras from an over-approximating filter — and so the implementation's index, if any, must remain in lockstep with the link store rather than offering a superset.
 
 ## Determinism
 
@@ -118,7 +140,7 @@ F8 (Determinism):
    result(I, Σ) = result(I, Σ')  whenever Σ.L = Σ'.L.
 ```
 
-Determinism is structurally guaranteed by the form of `matches`. The match predicate consults `Σ.L(a).eᵢ` and `I`; if `Σ.L` agrees with `Σ'.L` on `a`, and `I` is the same, the match predicate yields the same Boolean. The result is the set of matching links.
+Determinism is structurally guaranteed by the form of `matches`. The derivation chain unfolds step by step. From `Σ.L = Σ'.L`, equality of partial functions gives `dom(Σ.L) = dom(Σ'.L)` and `(A a ∈ dom(Σ.L) :: Σ.L(a) = Σ'.L(a))`. Per-link, component-wise tuple equality on `Link` values (L6, ASN-0043) gives per-slot agreement `Σ.L(a).eᵢ = Σ'.L(a).eᵢ` for every `i ∈ {1, …, |Σ.L(a)|}`. The `coverage(·)` operator is a deterministic function of its argument endset (it takes the union of T1-half-open intervals over the endset's spans), so per-slot endset equality yields per-slot coverage equality `coverage(Σ.L(a).eᵢ) = coverage(Σ'.L(a).eᵢ)`. The predicate `matches(a, I, Σ) ≡ (E i : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` is then point-wise equal at the two states for every `a ∈ dom(Σ.L)`. Set extensionality applied to the comprehensions `{a ∈ dom(Σ.L) : matches(a, I, Σ)}` and `{a ∈ dom(Σ'.L) : matches(a, I, Σ')}` (with equal source sets and equal predicates) closes the chain: the result sets are equal.
 
 A direct consequence: the two phases compose unambiguously. Once `I = image(R, d, Σ)` is computed, the I-Link search is determined by `Σ.L`. Two different ways of arriving at the same `I` produce the same result. If a reader at state `Σ` and another reader at state `Σ'` both produce the I-set `I` (perhaps because their respective documents transclude overlapping content), they receive the same result if `Σ.L = Σ'.L`.
 
@@ -185,6 +207,12 @@ The right-hand side is non-empty iff at least one disjunct is non-empty. So a li
 
 The operation is therefore additive in its I-input. Multi-source content imposes no special machinery beyond the underlying span-set generalization. The same property propagates to V-region inputs: the I-image of a V-region union is the union of I-images (since `image` is the image-of-set under the function `Σ.M(d)`), so V-region union induces I-set union, and the result is union.
 
+## The Empty Query
+
+The empty query is a meaningful boundary, and the abstract specification handles it without ceremony. For `I = ∅`: every `coverage(e) ∩ ∅ = ∅`, so the slot-existential `(E i : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` has no witness, and `matches(a, ∅, Σ) = false` for every `a ∈ dom(Σ.L)`. The comprehension gives `findlinks(∅, Σ) = ∅`. Symmetrically, `image(∅, d, Σ) = {Σ.M(d)(v) : v ∈ ∅} = ∅`, so `findlinks_V(∅, d, Σ) = findlinks(∅, Σ) = ∅`.
+
+The empty query is the additive identity in F13: `findlinks(∅ ∪ I₂, Σ) = findlinks(I₂, Σ) = ∅ ∪ findlinks(I₂, Σ) = findlinks(∅, Σ) ∪ findlinks(I₂, Σ)`. F2 holds vacuously (no link satisfies the predicate); F3 holds vacuously (the result is empty); F8 and F9 are trivial since both sides of every equality are empty. The reader who selects no V-positions receives no links, in agreement with the natural reading.
+
 ## Scope
 
 The operation may be restricted by a *scope* — a constraint on which links are considered. The default scope is `dom(Σ.L)` (the whole link store). The reader, or a higher-level system, may narrow it to a subset:
@@ -211,9 +239,9 @@ F10 (OrderedResult):
    with aⱼ ∈ dom(Σ.L) satisfying matches(aⱼ, I, Σ), and a₁ < a₂ < ... < aₙ under T1.
 ```
 
-The ordering is total and deterministic by T1's trichotomy (ASN-0034). Pagination is then well-defined: "the next N links past `aⱼ`" means the next N elements in the sorted sequence with addresses greater than `aⱼ` under T1.
+Presentability as a finite sequence rests on finiteness, which we discharge explicitly. By F3, `result(I, Σ) ⊆ dom(Σ.L)`; by L-fin (ASN-0093), `|dom(Σ.L)| < ∞`; so `result(I, Σ)` is finite as a subset of a finite set. T1 (LexicographicOrder, ASN-0034) is a strict total order on `T`, and by trichotomy it restricts to a strict total order on any subset of `T`. A finite strictly totally ordered set has a unique enumeration in increasing order (the least element exists by well-orderedness of `T1`'s restriction, the second-least is the least of the remainder, and so on by finite induction). The ordering is therefore total, deterministic, and uniquely realized. Pagination is then well-defined: "the next N links past `aⱼ`" means the next N elements in the sorted sequence with addresses greater than `aⱼ` under T1.
 
-The presentation order, when combined with L1c (ASN-0043) and the chain enumeration injectivity of allocators, recovers the creation-order property: within a single home document, link addresses are produced by repeated `inc(·, 0)` from a base, so T1 on those addresses agrees with the order in which links were allocated. Across home documents, T1 sorts by `home(·)` (which is itself a prefix), grouping links by home document and ordering the groups lexicographically. The reader sees results in a canonical, repeatable order.
+The presentation order recovers a creation-order property within each home document. By SubAllocatorAxiom.ChainDiscipline (ASN-0093), each document `d`'s link sub-allocator chain `A_L(d)` is generated by repeated `inc(·, 0)` from the first emission `[d.0.s_L.1]`. ChainEnumerationInjectivity (ASN-0093) shows that this chain is strictly T1-increasing (per-step `inc(tₙ, 0) > tₙ` by TA5(a), lifted across arbitrary gaps by T1 transitivity). So sorting link addresses within a single home document by T1 yields exactly the order in which they were allocated. Across home documents, T1 sorts by document prefix — addresses with the same `home(·)` group together, and home documents themselves order lexicographically. The reader sees results in a canonical, repeatable order: links within a document in allocation order, documents in tumbler order.
 
 ## Persistent Discoverability
 
@@ -230,6 +258,37 @@ This follows from L12 (ASN-0093): `a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L) ∧ Σ'.
 A link is permanently discoverable for any query I-set that overlaps any of its endset coverages. This is the discovery counterpart of link immutability: the link is not only structurally fixed, it is *findability-fixed*. Editing the documents around it, deleting the V-positions that arrange its referenced content, transcluding the content into new documents — none of these alter the link's match status against a fixed I-set.
 
 The converse direction is also worth noting. Across a transition, new links may *enter* the result set (via K.λ adding a link whose endsets overlap `I`), but existing matching links cannot leave it. The result is monotonic in the link store. Phrased differently: if we hold `I` fixed and let `Σ` evolve, `findlinks(I, ·)` is monotone non-decreasing in `Σ.L`.
+
+## A Worked Example
+
+The abstract specification is short enough that it can read as content-free without an instance to anchor it. We fix a small one.
+
+Consider a state `Σ` with two documents, both inhabiting `dom(Σ.M)`.
+
+- `d_a` is a content-bearing document. Its content sub-allocator `A_C(d_a)` (ASN-0093) has produced three I-addresses: `α₁ = [d_a.0.s_C.1]`, `α₂ = [d_a.0.s_C.2]`, `α₃ = [d_a.0.s_C.3]`, each placed into `dom(Σ.C)` by successive K.α steps with values `v₁, v₂, v₃ ∈ Val`. Its arrangement, by D-SEQ★ (ASN-0036), is `Σ.M(d_a) = {v_a^1 ↦ α₁, v_a^2 ↦ α₂, v_a^3 ↦ α₃}`, where `v_a^k = [s_C, 1, ..., 1, k]` is the canonical depth-`m_C` text-subspace V-position.
+
+- `d_b` transcludes the latter two positions from `d_a`. Its arrangement is `Σ.M(d_b) = {v_b^1 ↦ α₂, v_b^2 ↦ α₃}`, sharing the I-addresses `α₂` and `α₃` with `d_a`. (No new content addresses were allocated for `d_b`; transclusion shares by reference. By P4★ (ASN-0047), `(α₂, d_b), (α₃, d_b) ∈ Σ.R`.)
+
+- One link `ℓ ∈ dom(Σ.L)` with arity 3, allocated by some `K.λ` step under its home document:
+  - Slot 1 (from-endset): one canonical span `(α₂, δ(1, #α₂))`, so `coverage(Σ.L(ℓ).e₁) = {α₂}` by PrefixSpanCoverage (ASN-0043).
+  - Slot 2 (to-endset): one canonical span `(α₃, δ(1, #α₃))`, so `coverage(Σ.L(ℓ).e₂) = {α₃}`.
+  - Slot 3 (type-endset): some non-empty type endset whose coverage we leave abstract; assume it does not meet the content I-addresses we query.
+
+**Query 1: `findlinks_V({v_a^2}, d_a, Σ)`.** Phase 1: the preconditions `d_a ∈ dom(Σ.M)` and `{v_a^2} ⊆ dom(Σ.M(d_a))` hold, so `image({v_a^2}, d_a, Σ) = {Σ.M(d_a)(v_a^2)} = {α₂}`. Phase 2: test each link in `dom(Σ.L)` against `I = {α₂}`. The only link is `ℓ`. At slot 1, `coverage(Σ.L(ℓ).e₁) ∩ {α₂} = {α₂} ∩ {α₂} = {α₂} ≠ ∅`, so the slot-existential fires and `matches(ℓ, {α₂}, Σ) = true`. The result is `{ℓ}`.
+
+**Query 2: `findlinks_V({v_b^1}, d_b, Σ)`.** Phase 1: `image({v_b^1}, d_b, Σ) = {Σ.M(d_b)(v_b^1)} = {α₂}` — the same image as Query 1, because `d_b`'s transclusion of `α₂` produces the same I-address as `d_a`'s native arrangement of `α₂`. Phase 2 is therefore identical to Query 1's Phase 2: result `{ℓ}`. This is F6 (TransclusionTransparency) in operation — the reader querying `d_b`'s view of `α₂` discovers the same link they would have discovered via `d_a`'s native arrangement, because identity travels with the I-address.
+
+**Query 3: `findlinks_V({v_a^2, v_a^3}, d_a, Σ)`.** Phase 1: `image({v_a^2, v_a^3}, d_a, Σ) = {α₂, α₃}`. Phase 2: at `ℓ`, slot 1 gives `coverage(Σ.L(ℓ).e₁) ∩ {α₂, α₃} = {α₂} ∩ {α₂, α₃} = {α₂} ≠ ∅`. The existential is satisfied by slot 1 alone; we need not consult slot 2 (although it also fires, with `{α₃}` as witness). Result: `{ℓ}`. The link appears once, not twice — the result is a set.
+
+**Verifying F13 (SetAdditive).** Compute each side separately. `findlinks({α₂}, Σ) = {ℓ}` (via slot 1) and `findlinks({α₃}, Σ) = {ℓ}` (via slot 2); their union is `{ℓ}`. Independently, `findlinks({α₂, α₃}, Σ) = {ℓ}` (via slot 1's intersection with `{α₂}`, or via slot 2's with `{α₃}`). The two computations agree: `findlinks({α₂} ∪ {α₃}, Σ) = findlinks({α₂}, Σ) ∪ findlinks({α₃}, Σ) = {ℓ}`.
+
+**Verifying F2 (Completeness) against the instance.** The set `dom(Σ.L) = {ℓ}` is the universe of candidates. For the query `{α₂}`, the match predicate fires at `ℓ`; F2 demands `ℓ ∈ result({α₂}, Σ)`. The comprehension `{a ∈ dom(Σ.L) : matches(a, {α₂}, Σ)}` evaluates to `{ℓ}`. Completeness holds.
+
+**Verifying F3 (Soundness) against the instance.** The result `{ℓ}` is a subset of `dom(Σ.L)` (which contains only `ℓ`), and `matches(ℓ, {α₂}, Σ) = true` was verified above. No spurious link appears.
+
+**Verifying F6 against the instance.** Queries 1 and 2 produce the same I-image `{α₂}` and hence the same result `{ℓ}`, despite the V-positions `v_a^2` and `v_b^1` belonging to different documents. The match predicate consulted only the I-image and the link store; the document of origin of the V-position vanished from the computation after Phase 1.
+
+The example is small enough to inspect by eye, and the abstract definitions reduce to elementary set operations. Larger instances scale the same way: each link tests independently, slot existentials collect witnesses, and the comprehension assembles the answer.
 
 ## What Completeness Demands of Implementations
 
