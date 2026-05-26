@@ -56,9 +56,9 @@ By S7a (DocumentScopedAllocation, foundation ASN-0036), every I-address allocate
 
 > *(a) `~_o` is an equivalence relation on `⟦σ⟧ ∩ dom(C)`;*
 > *(b) the quotient map `[a]_{~_o} ↦ origin(a)` is a bijection from `(⟦σ⟧ ∩ dom(C)) / ~_o` to `origins_I(Σ, σ)`;*
-> *(c) each equivalence class consists exactly of those I-addresses in `⟦σ⟧ ∩ dom(C)` allocated by one document — by S7d (DocumentAllocationDiscipline, ASN-0036), one allocator.*
+> *(c) each equivalence class consists exactly of those I-addresses in `⟦σ⟧ ∩ dom(C)` allocated by one document — by S7d (DocumentAllocationDiscipline, ASN-0036), one document tumbler; by SubAllocatorAxiom (a) and (e) (ASN-0047), the outputs of that document's unique content sub-allocator `A_C(d)`.*
 
-*Derivation.* (a) Reflexivity, symmetry, and transitivity are inherited from equality on the codomain of `origin`. (b) The map is well-defined: if `a₁ ~_o a₂` then `origin(a₁) = origin(a₂)` by definition. It is surjective onto `origins_I(Σ, σ) = { origin(a) : a ∈ ⟦σ⟧ ∩ dom(C) }` by the definition of `origins_I` (every element is hit by the class of some `a`). It is injective: if `[a₁]_{~_o} ≠ [a₂]_{~_o}` then `origin(a₁) ≠ origin(a₂)`, so the images differ. (c) Fix an equivalence class `[a]_{~_o}`. By S7a, every `b ∈ ⟦σ⟧ ∩ dom(C)` with `origin(b) = origin(a)` was allocated by the document whose tumbler is `origin(a)`. By S7d, distinct documents have distinct tumblers, so a single document tumbler `origin(a)` names a single allocator. Hence the class `[a]_{~_o}` consists exactly of addresses allocated by that one document. ∎
+*Derivation.* (a) Reflexivity, symmetry, and transitivity are inherited from equality on the codomain of `origin`. (b) The map is well-defined: if `a₁ ~_o a₂` then `origin(a₁) = origin(a₂)` by definition. It is surjective onto `origins_I(Σ, σ) = { origin(a) : a ∈ ⟦σ⟧ ∩ dom(C) }` by the definition of `origins_I` (every element is hit by the class of some `a`). It is injective: if `[a₁]_{~_o} ≠ [a₂]_{~_o}` then `origin(a₁) ≠ origin(a₂)`, so the images differ. (c) Fix an equivalence class `[a]_{~_o}` and write `d = origin(a)`. By S7a, every `b ∈ ⟦σ⟧ ∩ dom(C)` with `origin(b) = d` was allocated by the document whose tumbler is `d`. By S7d, distinct documents have distinct tumblers, so the tumbler `d` names exactly one document. S7d alone delivers *one document*; the further identification with *one allocator* requires the sub-allocator structure of ASN-0047. By SubAllocatorAxiom (a) (ASN-0047), every output of `d`'s content sub-allocator `A_C(d)` has `subspace_I = s_C` and every output of `d`'s link sub-allocator `A_L(d)` has `subspace_I = s_L`; by SubAllocatorAxiom (e) (ASN-0047), `dom(A_C(d)) ∩ dom(A_L(d)) = ∅`. By L0 (SubspacePartition, ASN-0047), every `b ∈ dom(C)` has `subspace_I(b) = s_C`, so `d`'s allocations into `dom(C)` route exclusively through `A_C(d)` (and not `A_L(d)`). Hence the class `[a]_{~_o}` consists exactly of addresses allocated by document `d` — equivalently, the outputs of `A_C(d)`. ∎
 
 Two corollaries follow without further argument.
 
@@ -168,15 +168,29 @@ The V-span lift is more nuanced. `origins_V(Σ, d, σ)` depends on the arrangeme
 
 *Derivation.* By (F1), `origins_V(Σ, d, σ) = { origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d)) }`. (1) The frame condition `M'(d) ↾ ⟦σ⟧ = M(d) ↾ ⟦σ⟧` gives `dom(M'(d) ↾ ⟦σ⟧) = dom(M(d) ↾ ⟦σ⟧)`; that is, `⟦σ⟧ ∩ dom(M'(d)) = ⟦σ⟧ ∩ dom(M(d))`. The two indexing sets are identical. (2) For each `v` in the common indexing set, the function values agree: `M'(d)(v) = M(d)(v)`. (3) Let `a = M(d)(v) = M'(d)(v)`. By S3★ (ASN-0047), `a ∈ dom(Σ.C) ∪ dom(Σ.L)`. (4) P3 (ArrangementMutabilityOnly, ASN-0047) — `dom(C) ⊆ dom(C')` and `dom(L) ⊆ dom(L')` — gives `a ∈ dom(Σ'.C) ∪ dom(Σ'.L)`. (5) By O5, `origin'(a) = origin(a)`. (6) Hence `origin'(M'(d)(v)) = origin(M(d)(v))` for every `v` in the common indexing set. (7) The two sets `origins_V(Σ', d, σ)` and `origins_V(Σ, d, σ)` are constructed by applying the same operation to the same data, and therefore coincide. ∎
 
-## Span union monotonicity
+The complementary case strengthens this for arrangement *extensions*: when `M(d)` grows by K.μ⁺, the reported origins are non-decreasing. The argument parallels O6, with K.μ⁺'s mapping-preservation clause taking the place of P0's content-preservation clause.
+
+**Claim O11 (V-span monotonic growth under K.μ⁺).** *For any reachable K.μ⁺ transition `Σ → Σ'` extending `M(d)` and any V-span `σ` over `d`: `origins_V(Σ, d, σ) ⊆ origins_V(Σ', d, σ)`.*
+
+*Derivation.* Fix `o ∈ origins_V(Σ, d, σ)`. By (F1), there exists `v ∈ ⟦σ⟧ ∩ dom(M(d))` with `origin(M(d)(v)) = o`. (1) K.μ⁺ (ArrangementExtension, ASN-0047) extends `dom(M(d)) ⊆ dom(M'(d))` while preserving existing mappings: `(A v : v ∈ dom(M(d)) : M'(d)(v) = M(d)(v))`. Hence `v ∈ dom(M'(d))` and `M'(d)(v) = M(d)(v)`. (2) Since `⟦σ⟧` is state-independent (ASN-0053), `v ∈ ⟦σ⟧ ∩ dom(M'(d))`. (3) Let `a = M(d)(v) = M'(d)(v)`. By S3★ (ASN-0047), `a ∈ dom(C) ∪ dom(L)`. (4) By O5, `origin'(a) = origin(a) = o`. (5) Hence `o ∈ origins_V(Σ', d, σ)`. ∎
+
+The same argument carries through verbatim for the link-subspace extension K.μ⁺_L (ASN-0047), which likewise extends `dom(M(d))` while preserving existing mappings; the parallel claim is omitted as a separate derivation. The two cases together cover every arrangement-extending transition; under K.μ⁻ (contraction) the inclusion can fail by loss of admissibility, and under K.μ~ (reordering) by mapping reassignment — both are discussed in the worked example.
+
+## Span containment monotonicity
 
 Nelson is explicit that the system must distinguish no scale below *any specific word or character*: the mechanism that names the home of a million-character chapter must name the home of a single character [Q8]. *Uniformity of mechanism* is captured by O3 (Structural derivation): a single pointwise projection performs the work, with no procedural case distinction on size. What remains to record is the corresponding *set-inclusion* property: enlarging the span never loses an origin.
 
-**Claim O8 (Span union monotonicity).** *For I-spans `σ₁, σ₂` with `⟦σ₁⟧ ⊆ ⟦σ₂⟧`: `origins_I(Σ, σ₁) ⊆ origins_I(Σ, σ₂)`.*
+**Claim O8 (I-span containment monotonicity).** *For I-spans `σ₁, σ₂` with `⟦σ₁⟧ ⊆ ⟦σ₂⟧`: `origins_I(Σ, σ₁) ⊆ origins_I(Σ, σ₂)`.*
 
 *Derivation.* Fix `o ∈ origins_I(Σ, σ₁)`. By definition, there exists `a ∈ ⟦σ₁⟧ ∩ dom(Σ.C)` with `origin(a) = o`. By hypothesis `⟦σ₁⟧ ⊆ ⟦σ₂⟧`, so `a ∈ ⟦σ₂⟧`. Since `a ∈ dom(Σ.C)` is unchanged, `a ∈ ⟦σ₂⟧ ∩ dom(Σ.C)`, and `origin(a) = o ∈ origins_I(Σ, σ₂)`. ∎
 
 The smallest case is the singleton: for any `a ∈ dom(C)`, the singleton span (containing only `a`) yields `origins_I = {origin(a)}`. The largest case is unbounded — by T0(b) of ASN-0034, there is no maximum tumbler length, so spans can be arbitrarily wide. The pointwise projection (O3) is what makes attribution at the paragraph level reducible to attribution at the character level; O8 records the elementary set-inclusion consequence.
+
+The V-span counterpart follows by the same set-inclusion argument, routed through (F1) instead of the definition of `origins_I`. The hypothesis is denotational containment of the spans; the arrangement `M(d)` is held fixed.
+
+**Claim O12 (V-span containment monotonicity).** *For V-spans `σ₁, σ₂` over the same document `d` with `⟦σ₁⟧ ⊆ ⟦σ₂⟧`: `origins_V(Σ, d, σ₁) ⊆ origins_V(Σ, d, σ₂)`.*
+
+*Derivation.* Fix `o ∈ origins_V(Σ, d, σ₁)`. By (F1), there exists `v ∈ ⟦σ₁⟧ ∩ dom(M(d))` with `origin(M(d)(v)) = o`. By hypothesis `⟦σ₁⟧ ⊆ ⟦σ₂⟧`, so `v ∈ ⟦σ₂⟧`. Since `v ∈ dom(M(d))` is unchanged, `v ∈ ⟦σ₂⟧ ∩ dom(M(d))`, and `origin(M(d)(v)) = o ∈ origins_V(Σ, d, σ₂)`. ∎
 
 ## Identity, not equivalence
 
@@ -301,9 +315,9 @@ The abstract specification of SHOWORIGIN reduces to three primitives:
 
 (3) The lift to V-spans, `origins_V(Σ, d, σ) = origin(ran(M(d) ↾ ⟦σ⟧))`, computable from the span, the arrangement, and `dom(C) ∪ dom(L)` alone. Uniform across subspaces: content-subspace V-spans report origins of their resolved content; link-subspace V-spans report `{d}` (the home document) trivially via CL-OWN.
 
-Every other property — span union monotonicity, transclusion-depth invariance, permanence under state, immunity to source-document unreachability — follows from these three. The operation derives no new knowledge; it presents existing structural facts about the address space.
+Every other property — span containment monotonicity (both I-span and V-span variants), transclusion-depth invariance, permanence under state, monotonic growth under arrangement extension, immunity to source-document unreachability — follows from these three. The operation derives no new knowledge; it presents existing structural facts about the address space.
 
-Any implementation of Xanadu that claims to support SHOWORIGIN must satisfy O1–O10 (with the O1 corollaries O1.1, O1.2). It may realise the operation through different mechanisms — direct tumbler-prefix decomposition, spanfilade lookup, granfilade traversal, or per-block `homedoc` records [Q12, Q13] — and these mechanisms may have different operational characteristics. But the abstract guarantees they deliver must coincide: every byte names its home, every span reveals its sources, and the answer never changes once given.
+Any implementation of Xanadu that claims to support SHOWORIGIN must satisfy O1–O12 (with the O1 corollaries O1.1, O1.2). It may realise the operation through different mechanisms — direct tumbler-prefix decomposition, spanfilade lookup, granfilade traversal, or per-block `homedoc` records [Q12, Q13] — and these mechanisms may have different operational characteristics. But the abstract guarantees they deliver must coincide: every byte names its home, every span reveals its sources, and the answer never changes once given.
 
 ## Claims Introduced
 
@@ -321,9 +335,11 @@ Any implementation of Xanadu that claims to support SHOWORIGIN must satisfy O1�
 | O5 | Origin permanence: `origin'(a) = origin(a)` under every reachable transition `Σ → Σ'`, for any `a ∈ dom(Σ.C) ∪ dom(Σ.L)` (membership preservation discharged by P3) | introduced |
 | O6 | Monotonic growth under state: `origins_I` is non-decreasing as content is added | introduced |
 | O7 | V-span stability under fixed arrangement: `origins_V` is unchanged when the arrangement restricted to the span is unchanged | introduced |
-| O8 | Span union monotonicity: `⟦σ₁⟧ ⊆ ⟦σ₂⟧` ⇒ `origins_I(Σ, σ₁) ⊆ origins_I(Σ, σ₂)` | introduced |
+| O8 | I-span containment monotonicity: `⟦σ₁⟧ ⊆ ⟦σ₂⟧` ⇒ `origins_I(Σ, σ₁) ⊆ origins_I(Σ, σ₂)` | introduced |
 | O9 | Origin tracks creation, not content: two addresses allocated under distinct documents have distinct origins, regardless of content values | introduced |
 | O10 | Read-only frame; idempotence: SHOWORIGIN preserves the state; consecutive applications at the same state yield identical results | introduced |
+| O11 | V-span monotonic growth under K.μ⁺: arrangement extensions are non-decreasing in `origins_V`; same argument extends to K.μ⁺_L | introduced |
+| O12 | V-span containment monotonicity: `⟦σ₁⟧ ⊆ ⟦σ₂⟧` ⇒ `origins_V(Σ, d, σ₁) ⊆ origins_V(Σ, d, σ₂)` | introduced |
 | `F1 ≡ F2 ≡ F3` | Equivalence chain for `origins_V`: reader-form `{origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d))}` ≡ decomposition-form `⋃_j {origin(aⱼ + i) : 0 ≤ i < nⱼ}` ≡ block-collapsed-form `{origin(aⱼ) : 1 ≤ j ≤ k}` | introduced |
 | wp(SHOWORIGIN_I, \|result\| = 1) | `(⟦σ⟧ ∩ dom(C) ≠ ∅) ∧ (A a, b ∈ ⟦σ⟧ ∩ dom(C) : origin(a) = origin(b))` — characterisation of single-origin I-spans | introduced |
 | wp(SHOWORIGIN_V, d_q ∈ result) | `(E v : v ∈ ⟦σ⟧ ∩ dom(M(d)) : origin(M(d)(v)) = d_q)` — characterisation of when a queried document appears in the V-span result | introduced |
