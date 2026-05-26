@@ -135,7 +135,7 @@ The MAKELINK operation respects this symmetry by treating all `N ≥ 3` endsets 
 
 We illustrate MAKELINK on a concrete state. Suppose at `Σ`:
 
-- `dom(Σ.M) = {d, d'}` with `d = [1, 0, 1, 0, 1]` and `d' = [1, 0, 1, 0, 2]` — sibling versions under the same account.
+- `dom(Σ.M) = {d, d'}` with `d = [1, 0, 1, 0, 1]` and `d' = [1, 0, 1, 0, 2]` — sibling documents under the same account.
 - `dom(Σ.C) = {a₁, a₂, a₃}` with `a₁ = [d, 0, 1, 1]`, `a₂ = [d, 0, 1, 2]` (allocated by `A_C(d)`) and `a₃ = [d', 0, 1, 1]` (allocated by `A_C(d')`).
 - `dom(Σ.L) = ∅` — no prior links.
 - `Σ.M(d)` maps `[1, 1] ↦ a₁` and `[1, 2] ↦ a₂` (content-subspace positions at depth 2).
@@ -143,9 +143,9 @@ We illustrate MAKELINK on a concrete state. Suppose at `Σ`:
 
 A caller invokes MAKELINK with home document `d` and endsets:
 
-- `e₁ = {(a₁, δ(1, #a₁))}` — covers `{a₁}` by PrefixSpanCoverage (ASN-0043).
-- `e₂ = {(a₃, δ(1, #a₃))}` — covers `{a₃}`.
-- `e₃ = {(τ, δ(1, #τ))}` for some type-tumbler `τ ∈ T` — covers `{τ}`; non-empty as required by L3.
+- `e₁ = {(a₁, δ(1, #a₁))}` — by PrefixSpanCoverage (ASN-0043), `coverage(e₁) = {t ∈ T : a₁ ≼ t}`.
+- `e₂ = {(a₃, δ(1, #a₃))}` — `coverage(e₂) = {t ∈ T : a₃ ≼ t}`.
+- `e₃ = {(τ, δ(1, #τ))}` for some type-tumbler `τ ∈ T` chosen so that `τ ⋠ x` for every `x ∈ {a₁, a₂, a₃, ℓ}` — `coverage(e₃) = {t ∈ T : τ ≼ t}`; non-empty as required by L3.
 
 System-determined parameters:
 
@@ -161,13 +161,13 @@ Post-state `Σ'`:
 
 Discoverability checks via LP12:
 
-- `discoverable_from(ℓ, d, Σ')`: `ran(Σ'.M(d)) = {a₁, a₂, ℓ}`. `coverage(e₁) ∩ ran(Σ'.M(d)) = {a₁} ∩ {a₁, a₂, ℓ} = {a₁} ≠ ∅`. Hence `ℓ` is discoverable from its home document `d` via slot 1 — `d`'s arrangement reaches `a₁`, which `e₁` covers.
+- `discoverable_from(ℓ, d, Σ')`: `ran(Σ'.M(d)) = {a₁, a₂, ℓ}`. We compute `coverage(e₁) ∩ ran(Σ'.M(d)) = {t : a₁ ≼ t} ∩ {a₁, a₂, ℓ}` by prefix-testing each element of `ran(Σ'.M(d))` against `a₁`. With `a₁ = [1, 0, 1, 0, 1, 0, 1, 1]`, `a₂ = [1, 0, 1, 0, 1, 0, 1, 2]`, and `ℓ = [1, 0, 1, 0, 1, 0, 2, 1]` (all of length 8): `a₁ ≼ a₁` trivially; `a₁ ⋠ a₂` since the two have equal length and disagree at position 8 (`1 ≠ 2`); `a₁ ⋠ ℓ` since the two have equal length and disagree at position 7 (`1 ≠ 2`). The intersection is `{a₁} ≠ ∅`. Hence `ℓ` is discoverable from its home document `d` via slot 1 — `d`'s arrangement reaches `a₁`, which `e₁` covers.
 
-- `discoverable_from(ℓ, d', Σ')`: `ran(Σ'.M(d')) = {a₃}`. `coverage(e₂) ∩ ran(Σ'.M(d')) = {a₃} ∩ {a₃} = {a₃} ≠ ∅`. Hence `ℓ` is discoverable from `d'` via slot 2.
+- `discoverable_from(ℓ, d', Σ')`: `ran(Σ'.M(d')) = {a₃}`. Prefix-testing `a₃ ≼ a₃` holds trivially, so `coverage(e₂) ∩ ran(Σ'.M(d')) = {t : a₃ ≼ t} ∩ {a₃} = {a₃} ≠ ∅`. Hence `ℓ` is discoverable from `d'` via slot 2.
 
 The cross-document case `d' ≠ d` exhibits M-DiscSymmetry: discovery from `d'` does not consult `Σ'.M(d)`. The link's home document plays no privileged role in `d'`'s discovery; the relevant relation is `coverage(e₂) ∩ ran(Σ'.M(d'))`.
 
-The type-endset coverage (`e₃` covering `{τ}`) does not contribute to discoverability from either `d` or `d'` in this state, since neither arrangement reaches `τ`. This is consistent with the type endset's role: it carries the link's classification, not its content connections.
+The type-endset coverage `coverage(e₃) = {t : τ ≼ t}` does not contribute to discoverability from either `d` or `d'` in this state: by the setup's constraint that `τ ⋠ x` for every `x ∈ {a₁, a₂, a₃, ℓ}`, prefix-testing each element of `ran(Σ'.M(d)) = {a₁, a₂, ℓ}` and `ran(Σ'.M(d')) = {a₃}` against `τ` yields no matches. Hence `coverage(e₃) ∩ ran(Σ'.M(d)) = ∅` and `coverage(e₃) ∩ ran(Σ'.M(d')) = ∅`. This is consistent with the type endset's role: it carries the link's classification, not its content connections.
 
 ## Weakest Precondition for Discoverability
 
@@ -292,7 +292,7 @@ The chain satisfies every L1c clause: every `kᵢ ∈ {0, 1, 2}`, `k₁ = 2`, ev
 
 For the V-arrangement entry `v_ℓ ↦ ℓ`:
 
-  S2:       M'(d) remains a partial function                      v_ℓ ∉ dom(Σ.M(d)) by K.μ⁺_L positioning + D-SEQ★ at Σ (V_{s_L}(d) = {[s_L, k] : 1 ≤ k ≤ n_L}, v_ℓ = [s_L, n_L + 1] outside this set), so adding {v_ℓ ↦ ℓ} cannot collide with any existing image
+  S2:       M'(d) remains a partial function                      v_ℓ ∉ dom(Σ.M(d)) by K.μ⁺_L positioning + D-SEQ★ at Σ (V_{s_L}(d) = {[s_L, k] : 1 ≤ k ≤ n_L}, v_ℓ = [s_L, n_L + 1] outside this set), so v_ℓ enters dom(M'(d)) fresh, preserving functionality of M'(d)
   S3★:      image of v_ℓ is ℓ ∈ dom(L'), subspace(v_ℓ) = s_L     direct from the effect
   S3★-aux:  subspace(v_ℓ) = s_L ∈ {s_C, s_L}                      direct from the effect
   S8a:      zeros(v_ℓ) = 0, #v_ℓ = 2 ≥ 2, components all > 0      v_ℓ = [s_L, k] with s_L = 2 > 0, k ≥ 1
@@ -394,7 +394,7 @@ For clarity, we enumerate what MAKELINK does not perform:
 | M-Effect | `Σ'.L = Σ.L ∪ {ℓ ↦ (e₁, ..., eₙ)}`; `Σ'.M(d) = Σ.M(d) ∪ {v_ℓ ↦ ℓ}` where `v_ℓ = [s_L, 1]` if `V_{s_L}(d) = ∅` at `Σ`, else `v_ℓ = shift(max(V_{s_L}(d)), 1) = [s_L, n_L + 1]` (with `n_L = |V_{s_L}(d)|`). | introduced |
 | M-Frame | `Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`; existing entries in `L` and in `M(d')` for `d' ≠ d` are unchanged. | introduced |
 | M-NoContentEffect | For every `a ∈ dom(Σ.C)`: `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The referenced content is byte-identical before and after MAKELINK. | introduced |
-| M-DiscSymmetry | Discoverability of `ℓ` is symmetric across all documents whose arrangements reach into any endset coverage; the home document has no privileged role in LP12's definition. Any asymmetry of outcome reflects asymmetry of arrangement-reach, not a privileged status. (M-Disc was previously asserted as a separate claim restating LP12 at `Σ'`; it has been removed as redundant — LP12 is a theorem at every reachable state, and the MAKELINK-specific reduction to pre-state predicates is captured by M-WP.) | introduced |
+| M-DiscSymmetry | Discoverability of `ℓ` is symmetric across all documents whose arrangements reach into any endset coverage; the home document has no privileged role in LP12's definition. Any asymmetry of outcome reflects asymmetry of arrangement-reach, not a privileged status. | introduced |
 | M-Reflexive | If `ℓ ∈ coverage(eᵢ)` for some `i` (the reflexive endset case), then `v_ℓ ∈ project(ℓ, i, d, Σ')` and `discoverable_from(ℓ, d, Σ')` is forced true regardless of `Σ.M(d)`'s pre-existing arrangement. Under standard authoring (`coverage(eᵢ) ⊆ dom(Σ.C) ∪ dom(Σ.L)` for every `i`), the reflexive case is excluded by K.λ's freshness. | introduced |
 | M-PriorLinkDisc | For every prior link `ℓ' ∈ dom(Σ.L)` and every document `d_target ∈ dom(Σ.M)`: if `d_target = d` (the home document of the new link `ℓ`), then `discoverable_from(ℓ', d, Σ') ⟺ discoverable_from(ℓ', d, Σ) ∨ (E i :: ℓ ∈ coverage(Σ.L(ℓ').eᵢ))` — a prior link is newly discoverable from `d` precisely when some endset of `ℓ'` covers `ℓ`; if `d_target ≠ d`, then `discoverable_from(ℓ', d_target, Σ') = discoverable_from(ℓ', d_target, Σ)` by K.μ⁺_L's frame on `M` (and K.λ's frame on `M`), so prior-link discoverability is unchanged. The discoverability relation is derived from `(L, M)` and is not preserved by the frame on `L` alone; the side-effect window is confined to the home document. | introduced |
 | M-WP | Post-MAKELINK discoverability has explicit weakest preconditions on `Σ`: for `d_target ≠ d`, `wp ≡ (E i :: coverage(eᵢ) ∩ ran(Σ.M(d_target)) ≠ ∅)`; for `d_target = d`, `wp ≡ (E i :: coverage(eᵢ) ∩ ran(Σ.M(d)) ≠ ∅) ∨ (E i :: ℓ ∈ coverage(eᵢ))`. Under standard authoring, the home and non-home wp shapes coincide. | introduced |
