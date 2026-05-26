@@ -1,7 +1,15 @@
-# Revision Categorization — ASN-0065 review-8
+# Channel Assignment — ASN-0091 review-8
 
-**Date:** 2026-03-21 23:18
+**Date:** 2026-05-26 15:58
 
-## Issue 1: CutSequence definition prevents rearranging the last document position
-Category: INTERNAL
-Reason: The fix is entirely derivable from the ASN's own content — the postcondition formulas already treat c_{n−1} as an exclusive upper bound that is never evaluated in M(d), and R-PRE(iv) already quantifies correctly. The issue is purely terminological ("V-positions" vs "tumblers") and the ASN itself identifies the exact resolution.
+## Issue 1: Abstract definition implicitly requires d ∈ dom(Σ.M) without stating it
+Reason: Pure definitional fix — adding an explicit precondition that aligns with K.μ~'s existing `d ∈ E_doc` from ASN-0047. No design intent or implementation evidence needed; derivable from the ASN's own formal scaffolding.
+
+## Issue 2: Reverse witness coalescence requires justifying why cross-chain disjointness implies c ∉ {a-1, a+2}
+Reason: The structural-form argument rests on sub-allocator chain element forms already established in foundation ASN-0093 (SC-NEQ, cross-document position-5 disagreement). Fix is internal exposition — either restate as explicit precondition or expand the chain-element form citation.
+
+## Issue 3: Worked example admissibility section omits S2 verification
+Reason: S2 is a foundation invariant from ASN-0036; verification is immediate by inspection of the displayed post-state map. Pure exposition fix, no external consultation needed.
+
+## Issue 4: Identity case derivation compresses RA-frame's role
+Reason: Pure proof exposition fix — stating the two-step composition explicitly using premises already present in the ASN (RA-π, RA-dom, RA-frame). No design intent or implementation evidence required.
