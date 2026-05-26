@@ -1,9 +1,9 @@
-# Channel Assignment — ASN-0051 review-23
+# Channel Assignment — ASN-0098 review-23
 
-**Date:** 2026-05-15 20:45
+**Date:** 2026-05-26 04:35
 
-## Issue 1: SV11 — incorrect foundation citation for ordinal monotonicity
-Reason: Pure citation correction. The reviewer has identified the exact replacement (M1 from ASN-0058) and the substitution is verifiable against the cited prior ASN — no design intent or implementation evidence required.
+## Issue 1: LP4 listed twice in working reference frame paragraph
+Reason: Purely editorial redundancy. The fix is a textual choice between two enumerations both already present in the paragraph; no design intent or implementation evidence is needed.
 
-## Issue 2: SV0 — set notation error
-Reason: Pure notation fix derivable from ASN-0047's definition of Σ.E_doc as a set. The reviewer has provided the exact correction; no external channel input needed.
+## Issue 2: Trace example leaves i₀ structurally unspecified
+Reason: The ASN already establishes all structural machinery (chain elements, anchors, half-open T1 intervals, PrefixSpanCoverage) needed to pin i₀ to a concrete choice. Selecting one that makes coverage(e₁) ⊇ {i₁..i₄} mechanically verifiable is internal to the ASN.
