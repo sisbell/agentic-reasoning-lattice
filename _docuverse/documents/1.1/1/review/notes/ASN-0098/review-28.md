@@ -1,0 +1,19 @@
+# Review of ASN-0098
+
+## REVISE
+
+### Issue 1: Inconsistent decidability hedge for non-canonical ground (ii)
+
+**ASN-0098, "Boundary and Width Behaviour" section, paragraph immediately following the ground (i)–(iii) enumeration**: "In ground (ii) the universal quantifier might or might not be decidable depending on the specific structural form of ℓ, but the question does not arise — the predicate is restricted to canonical spans by definition."
+
+**Problem**: This hedge is contradicted by the immediately subsequent paragraph's within-chain construction proof, which explicitly establishes — for every ℓ in ground (ii) (i.e., every ℓ with `#ℓ = #s` and `actionPoint(ℓ) < #s`) — that `{t_k^X(d_0) : k ≥ k_s} ⊆ F ∩ [s, s ⊕ ℓ)`. This is an infinite subset for every such ℓ, derived by a construction parametric in ℓ that consumes only `actionPoint(ℓ) < #s` and chain structural form. Decidability of the universal quantifier therefore fails uniformly for ground (ii), exactly as for ground (i) — it is not contingent on "the specific structural form of ℓ".
+
+The two paragraphs read in sequence assert mutually incompatible claims about the same quantifier domain on the same span class.
+
+**Required**: Tighten the hedge to reflect what the subsequent proof establishes. For example: "In ground (ii) the universal quantifier is also undecidable (proven below by within-chain construction extension), so the canonical restriction is again structurally necessary for predicate decidability — but the definitional exclusion of ground (ii) makes this independent justification redundant for the tightness predicate's purposes." Alternatively, move the ground (ii) decidability claim out of the hedge and into a forward reference to the explicit proof.
+
+## OUT_OF_SCOPE
+
+(none)
+
+VERDICT: REVISE
