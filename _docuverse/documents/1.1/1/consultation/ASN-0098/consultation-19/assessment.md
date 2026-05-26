@@ -1,11 +1,15 @@
-# Revision Categorization — ASN-0051 review-19
+# Channel Assignment — ASN-0098 review-19
 
-**Date:** 2026-03-23 03:40
+**Date:** 2026-05-26 03:17
 
-## Issue 1: SV7 formal statement scope narrower than Properties table
-Category: INTERNAL
-Reason: The body text already proves the general claim for all L-preserving transitions and the proof depends solely on L invariance. The fix is aligning the formal statement with the generalization already established in the same ASN.
+## Issue 1: LP19's hypothesis ambiguous about per-pair scope under K.μ⁺ multi-mapping
+Reason: Pure wording clarification — the lemma's mathematical content is sound, and K.μ⁺'s multi-mapping behaviour is already cited from ASN-0047 elsewhere in the ASN (LP9's effect-clause discussion). The fix restates the hypothesis to bind (v_new, a_new) per-pair, derivable from the existing ASN-0047 references.
 
-## Issue 2: SV13 remark contradicts the ASN's own analysis
-Category: INTERNAL
-Reason: The detailed "Content Allocation and Coverage Stability" section already contains the correct qualified language ("typically closed") and explicit counterexamples. The fix is restoring the qualification that the ASN's own analysis already provides.
+## Issue 2: Empty endset projection statement lacks domain qualification
+Reason: Pure formal precision — the `project` definition's precondition `d ∈ dom(Σ.M)` is already stated immediately above the degenerate-configuration sentences. The fix is a quantifier scope adjustment derivable from the ASN's own convention.
+
+## Issue 3: Achievability subsection redundant with LP-Fin Corollary
+Reason: Editorial/structural decision about exposition — the relationship between the four cross-document sub-cases and the corollary they instantiate is internal to the ASN. Either flagging redundancy or collapsing the cases requires only the ASN's own content.
+
+## Issue 4: LP12a second boundary case forward-references LP-Fin Corollary
+Reason: Organizational choice about placement of LP-Fin within the ASN's flow, or whether to introduce a tracked label (e.g., LP12b) for the deferred discharge. Decision derivable from the ASN's own structure without external input.
