@@ -208,7 +208,7 @@ L13 (ReflexiveAddressing, ASN-0043) permits link addresses as valid endset targe
 
 *The caller cannot construct a reflexive endset deliberately.* The substrate does not expose `A_L(d)`'s next emission to the caller. Endsets are chosen without knowledge of `ℓ`. Reflexive coverage arises only by accident — when an endset span chosen for other reasons happens to contain the address `ℓ` that `A_L(d)` will emit. Under standard authoring (endsets that reference *already-existing* addresses), the reflexive case is excluded by K.λ's freshness, since `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`.
 
-*A reflexive endset yields guaranteed home-document discovery at the post-state.* Suppose `ℓ ∈ coverage(eᵢ)` for some `i ∈ {1, ..., N}`. After MAKELINK, `Σ'.M(d)(v_ℓ) = ℓ ∈ coverage(Σ'.L(ℓ).eᵢ)` (using LP3★ to lift `coverage` to `Σ'`). Hence `v_ℓ ∈ project(ℓ, i, d, Σ')`, giving `discoverable_from(ℓ, d, Σ')`. The home document's reflexive discovery is forced regardless of `Σ.M(d)`'s pre-existing arrangement.
+*A reflexive endset yields guaranteed home-document discovery at the post-state.* Suppose `ℓ ∈ coverage(eᵢ)` for some `i ∈ {1, ..., N}`. After MAKELINK, `Σ'.M(d)(v_ℓ) = ℓ ∈ coverage(Σ'.L(ℓ).eᵢ)` (by K.λ's effect `Σ_mid.L(ℓ) = (e₁, ..., eₙ)` and K.μ⁺_L's frame `Σ'.L = Σ_mid.L`, so `Σ'.L(ℓ).eᵢ = eᵢ` and `coverage(Σ'.L(ℓ).eᵢ) = coverage(eᵢ)`). Hence `v_ℓ ∈ project(ℓ, i, d, Σ')`, giving `discoverable_from(ℓ, d, Σ')`. The home document's reflexive discovery is forced regardless of `Σ.M(d)`'s pre-existing arrangement.
 
 *No reflexive discovery from other documents.* For `d_target ≠ d`, K.μ⁺_L's frame leaves `Σ.M(d_target)` unchanged: `ran(Σ'.M(d_target)) = ran(Σ.M(d_target))`. The address `ℓ` enters only `d`'s arrangement, so only `d`'s `discoverable_from` query benefits from the reflexive endset. Other documents must rely on their own arrangement-reach into `coverage(eᵢ)` to discover `ℓ`.
 
@@ -247,6 +247,8 @@ This is the LP9 (ExtensionMonotonicity, ASN-0098) growth characterization specia
 
 The side effect is bounded: it can only occur when `ℓ'` was authored with an endset whose span coverage extends to addresses not yet allocated at authoring time. Such forward-reaching endsets are permitted by L4 (EndsetGenerality, ASN-0043) — endset spans may reference any addresses in the tumbler space, including those not currently in `dom(C) ∪ dom(L)`. MAKELINK's allocation of `ℓ` "fills in" a previously-uncovered region of the address space, retroactively activating any prior endset that had pre-emptively claimed it. Under standard authoring (every endset's coverage is a subset of `dom(C) ∪ dom(L)` at authoring time), no prior link can cover the fresh `ℓ`, so the side effect is vacuous.
 
+*Restriction to the home document.* The biconditional above is stated for `d` — MAKELINK's home document — because `d` is the only document whose arrangement K.μ⁺_L modifies. For any other document `d_target ≠ d`, K.μ⁺_L's frame `(A d' ≠ d :: Σ'.M(d') = Σ.M(d'))` preserves the arrangement, and K.λ leaves `M` entirely unchanged, so `ran(Σ'.M(d_target)) = ran(Σ.M(d_target))`. By LP12, prior-link discoverability from `d_target` is unchanged: `discoverable_from(ℓ', d_target, Σ') = discoverable_from(ℓ', d_target, Σ)`. The side-effect window is confined to the home document.
+
 ## Invariant Preservation
 
 We verify the post-state `Σ'` satisfies the substrate invariants. The new entries are `ℓ ∈ dom(L)` and `v_ℓ ∈ dom(M(d))`; prior entries are unchanged by the frame.
@@ -284,6 +286,7 @@ The chain satisfies every L1c clause: every `kᵢ ∈ {0, 1, 2}`, `k₁ = 2`, ev
 
 For the V-arrangement entry `v_ℓ ↦ ℓ`:
 
+  S2:       M'(d) remains a partial function                      v_ℓ ∉ dom(Σ.M(d)) by K.μ⁺_L positioning + D-SEQ★ at Σ (V_{s_L}(d) = {[s_L, k] : 1 ≤ k ≤ n_L}, v_ℓ = [s_L, n_L + 1] outside this set), so adding {v_ℓ ↦ ℓ} cannot collide with any existing image
   S3★:      image of v_ℓ is ℓ ∈ dom(L'), subspace(v_ℓ) = s_L     direct from the effect
   S3★-aux:  subspace(v_ℓ) = s_L ∈ {s_C, s_L}                      direct from the effect
   S8a:      zeros(v_ℓ) = 0, #v_ℓ = 2 ≥ 2, components all > 0      v_ℓ = [s_L, k] with s_L = 2 > 0, k ≥ 1
@@ -300,7 +303,16 @@ For D-SEQ★: by D-SEQ★ at `Σ`, `V_{s_L}(d) = {[s_L, k] : 1 ≤ k ≤ n_L}` f
 
 For S8★: per ASN-0047's S8★, the link-subspace projected arrangement `M'(d)|_{V_{s_L}(d')} : V_{s_L}(d') → dom(L')` admits the trivial length-1 decomposition `{(v, M'(d)(v), 1) : v ∈ V_{s_L}(d')}`. The new entry `(v_ℓ, ℓ, 1)` joins this decomposition; S8's conditions (a) and (b) hold trivially at length 1. ✓
 
-For state components unchanged by MAKELINK (`C`, `E`, `R`), the invariants P0, P1, P2, P4★, P6, P7, P8 are preserved trivially.
+For state components unchanged by MAKELINK (`C`, `E`, `R`), the remaining per-state invariants are preserved:
+
+- S4 (origin-based identity): the new allocation event for `ℓ` is distinct from every prior allocation event (by ChainEnumerationInjectivity, DisjointSubAllocatorChains, and Cross-doc disjointness — see "Freshness of the Allocation"), so S4's distinctness conclusion holds at `Σ'`.
+- S7a, S7b, S7c, S7d (origin and structural attribution for content addresses): vacuous since `Σ'.C = Σ.C`; the predicates quantify over `dom(C)`, which is unchanged.
+- C-fin (content store finiteness): vacuous since `dom(Σ'.C) = dom(Σ.C)` is finite at `Σ`.
+- P6 (existential coherence), P7 (provenance grounding): vacuous since `dom(C)`, `dom(M)`, and `R` are unchanged in the relevant respects (`dom(M)` grows only by new V-positions within an already-allocated document, not by new documents; `R` is unchanged).
+- P8 (entity hierarchy): vacuous since `E` is unchanged.
+- NodeLineage (descent from bootstrap): vacuous since `E` is unchanged.
+
+The transition invariants P0 (content permanence), P1 (entity permanence), P2 (provenance permanence) are preserved by the trivial frame on `C`, `E`, `R`. P4★ (provenance bounds content subspace) is preserved because the new V-arrangement entry lies in the link subspace, not the content subspace — `Contains_C(Σ')` is unchanged from `Contains_C(Σ)`, and `R' = R`.
 
 ## Atomicity
 
@@ -311,6 +323,8 @@ In the intermediate state `Σ_mid` between K.λ and K.μ⁺_L:
 - `ℓ ∈ dom(Σ_mid.L)` with value `Σ_mid.L(ℓ) = (e₁, ..., eₙ)` — the link exists, with its endsets recorded.
 - `ℓ ∉ ran(Σ_mid.M(d))` — the link is not yet visible in any V-arrangement (derived in Preconditions).
 - `discoverable_from(ℓ, d_target, Σ_mid)` is well-defined for every `d_target ∈ dom(Σ_mid.M) = dom(Σ.M)` since `ℓ ∈ dom(Σ_mid.L)` and `Σ_mid.L(ℓ) = (e₁, ..., eₙ)`.
+
+`Σ_mid` is a fully reachable state, not a transitional artifact: by SequentialTransitionAxiom (ASN-0093), every atomic step commits before the next begins, so K.λ on `Σ` yields a complete state `Σ_mid` against which K.μ⁺_L's precondition is evaluated. The per-state invariants hold at `Σ_mid` — in particular, S3★ (referential integrity) is preserved because K.λ extends `dom(L)` from `dom(Σ.L)` to `dom(Σ.L) ∪ {ℓ}` while preserving `M` entirely (K.λ frame: `Σ_mid.M = Σ.M`), so every `v ∈ dom(Σ_mid.M(d'))` images consistently — content-subspace V-positions still point into the unchanged `dom(Σ_mid.C) = dom(Σ.C)`, and link-subspace V-positions still point into `dom(Σ_mid.L) ⊇ dom(Σ.L)` (referential integrity cannot break under growth). The same reasoning preserves all link-store invariants (L0, L1, L1a, L1b, L1c, L3, L14, L-fin) at `Σ_mid` via K.λ's precondition discharge.
 
 We compare discoverability at `Σ_mid` and `Σ'`. By LP12:
 
@@ -331,7 +345,7 @@ By LP13 (ASN-0098), the link persists unconditionally:
 
 No transition in the substrate's vocabulary removes `ℓ` from `dom(L)` or modifies `L(ℓ)`. The link is permanent in the strongest sense: its identity, its value, and its home are all immutable for the life of the system.
 
-The link's V-position `v_ℓ` in the home document is less permanent. Subsequent operations may remove it (per the contraction operation's rules) or reassign it (per the reordering operation's rules). What is permanent is the link's I-address and value; what is mutable is the link's V-position in the home document's arrangement. This is S9 (TwoStreamSeparation, ASN-0036) specialized to the link subspace.
+The link's V-position `v_ℓ` in the home document is less permanent. Subsequent operations may remove it (per the contraction operation's rules) or rebind its image (per the reordering operation's rules — K.μ~ does not reassign V-positions themselves but applies a bijection `π : dom(M(d)) → dom(M'(d))` to the mapping graph, and by K.μ~-FIX `dom(M'(d)) = dom(M(d))`, so `v_ℓ` itself persists in the domain; what changes is which value `M(d)(v_ℓ)` maps to, and where `ℓ` re-appears as the image of some other V-position). What is permanent is the link's I-address and value; what is mutable is the V-position-to-link binding within the home document's arrangement graph. This is S9 (TwoStreamSeparation, ASN-0036) specialized to the link subspace.
 
 Even if `v_ℓ` is later removed from `dom(M(d))`, the link is still in `dom(L)` and still discoverable when conditions warrant. By LP17 (ASN-0098), a link orphaned from all V-arrangements remains in the store; by LP18, it becomes discoverable again when any document later transcludes content covered by its endsets. The two-stream architecture makes link permanence cleanly separable from link visibility.
 
@@ -360,12 +374,12 @@ For clarity, we enumerate what MAKELINK does not perform:
 | M-Disc | After MAKELINK: `discoverable_from(ℓ, d_target, Σ') ⟺ (E i : coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d_target)) ≠ ∅)`, by LP12. | introduced |
 | M-DiscSymmetry | Discoverability of `ℓ` is symmetric across all documents whose arrangements reach into any endset coverage; the home document has no privileged role in LP12's definition. Any asymmetry of outcome reflects asymmetry of arrangement-reach, not a privileged status. | introduced |
 | M-Reflexive | If `ℓ ∈ coverage(eᵢ)` for some `i` (the reflexive endset case), then `v_ℓ ∈ project(ℓ, i, d, Σ')` and `discoverable_from(ℓ, d, Σ')` is forced true regardless of `Σ.M(d)`'s pre-existing arrangement. Under standard authoring (`coverage(eᵢ) ⊆ dom(Σ.C) ∪ dom(Σ.L)` for every `i`), the reflexive case is excluded by K.λ's freshness. | introduced |
-| M-PriorLinkDisc | For every prior link `ℓ' ∈ dom(Σ.L)`: `discoverable_from(ℓ', d, Σ') ⟺ discoverable_from(ℓ', d, Σ) ∨ (E i :: ℓ ∈ coverage(Σ.L(ℓ').eᵢ))`. A prior link is newly discoverable from `d` precisely when some endset of `ℓ'` covers `ℓ`. The discoverability relation is derived from `(L, M)` and is not preserved by the frame, even though `L` itself is. | introduced |
+| M-PriorLinkDisc | For every prior link `ℓ' ∈ dom(Σ.L)` and every document `d_target ∈ dom(Σ.M)`: if `d_target = d` (the home document of the new link `ℓ`), then `discoverable_from(ℓ', d, Σ') ⟺ discoverable_from(ℓ', d, Σ) ∨ (E i :: ℓ ∈ coverage(Σ.L(ℓ').eᵢ))` — a prior link is newly discoverable from `d` precisely when some endset of `ℓ'` covers `ℓ`; if `d_target ≠ d`, then `discoverable_from(ℓ', d_target, Σ') = discoverable_from(ℓ', d_target, Σ)` by K.μ⁺_L's frame on `M` (and K.λ's frame on `M`), so prior-link discoverability is unchanged. The discoverability relation is derived from `(L, M)` and is not preserved by the frame on `L` alone; the side-effect window is confined to the home document. | introduced |
 | M-WP | Post-MAKELINK discoverability has explicit weakest preconditions on `Σ`: for `d_target ≠ d`, `wp ≡ (E i :: coverage(eᵢ) ∩ ran(Σ.M(d_target)) ≠ ∅)`; for `d_target = d`, `wp ≡ (E i :: coverage(eᵢ) ∩ ran(Σ.M(d)) ≠ ∅) ∨ (E i :: ℓ ∈ coverage(eᵢ))`. Under standard authoring, the home and non-home wp shapes coincide. | introduced |
 | M-Perm | After MAKELINK: `(A Σ' →* Σ'' :: ℓ ∈ dom(Σ''.L) ∧ Σ''.L(ℓ) = Σ'.L(ℓ))`, by LP13. | introduced |
 | M-NoIndexState | The abstract specification requires no separate index state component. Discoverability is computed from `L` and `M` via the projection function of ASN-0098. | introduced |
 | M-CompAtomicity | The composite is not atomic at the substrate level. The intermediate state `Σ_mid` between K.λ and K.μ⁺_L has the link allocated but not placed. `discoverable_from(ℓ, d_target, ·)` agrees at `Σ_mid` and `Σ'` for every `d_target ≠ d`; for `d_target = d` the two values agree unless some endset reflexively covers `ℓ`. Composite-level atomicity, if required, belongs to the protocol layer above the substrate. | introduced |
-| M-Inv | The post-state `Σ'` satisfies the link-store invariants (L0, L1, L1a, L1b, L1c, L3, L12, L14, L-fin), the arrangement invariants (S3★, S3★-aux, S8a, S8-depth, S8-fin, S8★, CL-OWN, CL-UNIQ, D-MIN★, D-CTG★, D-SEQ★), and all unchanged-component invariants (P0, P1, P2, P4★, P6, P7, P8). | introduced |
+| M-Inv | The post-state `Σ'` satisfies the link-store invariants (L0, L1, L1a, L1b, L1c, L3, L12, L14, L-fin), the arrangement invariants (S2, S3★, S3★-aux, S8a, S8-depth, S8-fin, S8★, CL-OWN, CL-UNIQ, D-MIN★, D-CTG★, D-SEQ★), and all unchanged-component invariants (S4, S7a, S7b, S7c, S7d, C-fin, P0, P1, P2, P4★, P6, P7, P8, NodeLineage). | introduced |
 
 ## Open Questions
 
