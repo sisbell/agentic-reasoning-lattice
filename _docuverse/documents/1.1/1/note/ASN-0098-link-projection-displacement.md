@@ -158,7 +158,7 @@ project(e, d, Σ') ∖ project(e, d, Σ) = {v ∈ dom(Σ'.M(d)) ∖ dom(Σ.M(d))
 
 The forward inclusion (⊆): suppose `v ∈ project(e, d, Σ') ∖ project(e, d, Σ)`. Then `v ∈ dom(Σ'.M(d))` and `Σ'.M(d)(v) ∈ coverage(e)` by the first conjunct. For the second, either `v ∉ dom(Σ.M(d))` or `Σ.M(d)(v) ∉ coverage(e)`. The second alternative is excluded: if `v ∈ dom(Σ.M(d))`, the agreement clause gives `Σ.M(d)(v) = Σ'.M(d)(v) ∈ coverage(e)`, contradicting `v ∉ project(e, d, Σ)`. So `v ∉ dom(Σ.M(d))`, placing `v ∈ dom(Σ'.M(d)) ∖ dom(Σ.M(d))`. The reverse inclusion (⊇): if `v ∈ dom(Σ'.M(d)) ∖ dom(Σ.M(d))` with `Σ'.M(d)(v) ∈ coverage(e)`, then `v ∈ project(e, d, Σ')` directly; and `v ∉ project(e, d, Σ)` since `v ∉ dom(Σ.M(d))`.
 
-When K.μ⁺ adds entries mapping V-positions to newly K.α-allocated I-addresses, the projection's behaviour depends on the construction discipline of the endset. For endsets *tightly constructed* — whose coverage was entirely populated at construction time (formalised below as LP19) — the newly allocated I-address lies outside coverage, and the projection does not grow. Without tightness, the new I-address could fall within a half-open coverage interval reaching past existing content, in which case the projection grows by that V-position. When K.μ⁺ adds entries mapping V-positions to *existing* I-addresses (the transclusion case), the projection grows by precisely those new V-positions whose mappings fall in coverage. This is the mechanism by which a link "comes into view" in a document that newly transcludes its target content. K.μ⁺_L exhibits the same growth behaviour for link-subspace V-positions when an existing link address is admitted into a home-document arrangement.
+When K.μ⁺ adds entries mapping V-positions to newly K.α-allocated I-addresses, the projection's behaviour depends on the construction discipline of the endset. For endsets *tightly constructed* — whose spans do not extend past the relevant sub-allocator's emission frontier at construction time (formalised below as LP19) — the newly allocated I-address lies outside coverage, and the projection does not grow. Without tightness, the new I-address could fall within a half-open coverage interval reaching past existing content, in which case the projection grows by that V-position. When K.μ⁺ adds entries mapping V-positions to *existing* I-addresses (the transclusion case), the projection grows by precisely those new V-positions whose mappings fall in coverage. This is the mechanism by which a link "comes into view" in a document that newly transcludes its target content. K.μ⁺_L exhibits the same growth behaviour for link-subspace V-positions when an existing link address is admitted into a home-document arrangement.
 
 **LP10 — Contraction under K.μ⁻**: For every K.μ⁻ transition `Σ → Σ'` operating on `d`, and every endset `e`:
 ```
@@ -278,19 +278,29 @@ A link can pass through arbitrarily many states of orphanage and resurrection wi
 
 We address two further questions about the structural behaviour of projection under specific operation patterns.
 
-We formalise the "boundary insertion does not extend the link" property by isolating the construction discipline that makes it hold. An endset `e` is *tight at state `Σ_e`* when its coverage is entirely populated at `Σ_e`:
+We formalise the "boundary insertion does not extend the link" property by isolating the construction discipline that makes it hold. The naive formulation `coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)` is vacuous: by T1 case (ii) of ASN-0034, a span `(s, ℓ)` includes the zero-extension `s.0` (since `s ≺ s.0`, with `s.0 < s ⊕ ℓ` by a divergence argument at the action point `k ≤ #s` of `ℓ` where `(s.0)_k = s_k < s_k + ℓ_k = (s ⊕ ℓ)_k`), and by induction `s.0.0`, `s.0.0.0`, …; coverage is infinite while `dom(Σ_e.C) ∪ dom(Σ_e.L)` is finite (C-fin, L-fin of ASN-0093), so the containment fails for every non-empty endset. The architectural property we want is narrower: every address the substrate *could ever K.α/K.λ-emit* within the span's reach must already be allocated. Addresses like `s.0` carry a trailing zero and so violate T4-validity, which by T10a.4 (ASN-0034) excludes them from any allocator chain — their proliferation in `coverage(e)` is irrelevant to the boundary question.
+
+By ASN-0093, every K.α/K.λ-allocated address is a chain element of some sub-allocator `A_C(d)` or `A_L(d)`, with structural form `[d, 0, s_C, k]` (resp. `[d, 0, s_L, k]`) for some T4-valid document tumbler `d` (i.e., `d ∈ T` with `zeros(d) = 2`) and some `k ≥ 1`. We do not require `d ∈ dom(Σ_e.M)` — future K.σ transitions can register additional documents whose chains then become active, and the tightness condition must guard against those too. The set of *substrate-emittable addresses* is the union of all such chain elements across all T4-valid document tumblers and both subspaces; we denote it `F`. An address outside `F` cannot be the target of any K.α/K.λ emission.
+
+An endset `e` is *tight at state `Σ_e`* iff every span `(s, ℓ) ∈ e` satisfies:
 ```
-tight(e, Σ_e)  ≡  coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)
+s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)  ∧  (A t ∈ F : s ≤ t < s ⊕ ℓ : t ∈ dom(Σ_e.C) ∪ dom(Σ_e.L))
 ```
 
-Equivalently: every I-address denoted by an endset span is allocated as content or as a link at `Σ_e`. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state. We separate two claims: first, that fresh allocations cannot enter a tight endset's coverage; second, that the consequent K.μ⁺/K.μ⁺_L step cannot grow the projection by the resulting V-position.
+The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state.
+
+*Achievability.* The non-empty case is reached by the canonical construction: span endpoints drawn from currently-allocated content, with reach at or before the relevant chain's next emission point. For a span on `A_C(d_0)`'s chain with currently-allocated maximum at chain index `m`, choosing `s ⊕ ℓ ≤ inc(t_m^C(d_0), 0)` makes the span tight — chain elements with index `> m` lie at or above `inc(t_m^C(d_0), 0)` by ChainEnumerationInjectivity (T10a.7, ASN-0093), so none fall in `[s, s ⊕ ℓ)`. Cross-chain interference is automatically excluded: by T10 (PartitionIndependence, ASN-0034), chain elements of `A_sub'(d')` for `d'` non-nesting with `d_0` differ from `s` at the document-prefix position and so do not fall in `[s, s ⊕ ℓ)` for spans confined to a single document's subspace.
+
+We separate two claims: first, that fresh allocations cannot enter a tight endset's coverage; second, that the consequent K.μ⁺/K.μ⁺_L step cannot grow the projection by the resulting V-position.
 
 **LP19a — TightFreshness**: For any endset `e` tight at `Σ_e`, any reachable state sequence `Σ_e →* Σ`, and any K.α (or K.λ) transition `Σ → Σ'` allocating a fresh address `a_new`:
 ```
 a_new ∉ coverage(e)
 ```
 
-Each allocation operation supplies the required freshness as a per-call precondition. K.α's precondition (ASN-0093) requires `a_new ∉ dom(Σ.C) ∪ dom(Σ.L)` at the state `Σ` immediately before allocation; K.λ's precondition (ASN-0093) requires `ℓ ∉ dom(Σ.L) ∪ dom(Σ.C)`, the same freshness condition with operand order swapped. In both cases the allocated address is fresh against the union `dom(Σ.C) ∪ dom(Σ.L)` at `Σ`. By Store Monotonicity★ applied to the prefix `Σ_e →* Σ`, `dom(Σ.C) ⊇ dom(Σ_e.C)` and `dom(Σ.L) ⊇ dom(Σ_e.L)`. So `a_new ∉ dom(Σ_e.C) ∪ dom(Σ_e.L)`. By the tightness condition, `coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)`, so `a_new ∉ coverage(e)`.
+The K.α step emits `a_new` from sub-allocator `A_C(d_alloc)` for some `d_alloc ∈ dom(Σ.M)`; symmetrically K.λ emits from `A_L(d_alloc)`. By the chain structure of ASN-0093, `a_new` is a chain element of `A_C(d_alloc)` (resp. `A_L(d_alloc)`), so `a_new ∈ F`. K.α's precondition (ASN-0093) requires `a_new ∉ dom(Σ.C) ∪ dom(Σ.L)`; K.λ's precondition requires `ℓ ∉ dom(Σ.L) ∪ dom(Σ.C)` — the same freshness condition with operand order swapped. By Store Monotonicity★ applied to `Σ_e →* Σ`, `dom(Σ.C) ⊇ dom(Σ_e.C)` and `dom(Σ.L) ⊇ dom(Σ_e.L)`. So `a_new ∉ dom(Σ_e.C) ∪ dom(Σ_e.L)`.
+
+Suppose for contradiction `a_new ∈ coverage(e)`. Then `a_new ∈ [s, s ⊕ ℓ)` for some span `(s, ℓ) ∈ e`. The tightness condition at `Σ_e`, applied with the substrate-emittable `a_new ∈ F` lying in `[s, s ⊕ ℓ)`, yields `a_new ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)` — contradicting the freshness conclusion. Therefore `a_new ∉ coverage(e)`.
 
 **LP19 — TightEndsetBoundaryExclusion**: For any endset `e` tight at `Σ_e`, any reachable state sequence `Σ_e →* Σ_n` whose prefix contains a K.α (or K.λ) transition allocating a fresh address `a_new`, and any K.μ⁺ (or K.μ⁺_L) transition `Σ_n → Σ_{n+1}` that extends `Σ_n.M(d)` by a mapping `(v_new, a_new)`:
 ```
@@ -299,7 +309,7 @@ v_new ∉ project(e, d, Σ_{n+1})
 
 The K.α (or K.λ) step that allocated `a_new` lies on the prefix `Σ_e →* Σ_n`, so LP19a applied at that step yields `a_new ∉ coverage(e)`. Since `coverage(e)` is a deterministic function of `e`'s spans (per the coverage definition of ASN-0043) and `e` is a fixed endset value across the entire sequence — `coverage` consults no state component — the membership `a_new ∉ coverage(e)` carries through unchanged to `Σ_{n+1}`. The K.μ⁺ (or K.μ⁺_L) transition `Σ_n → Σ_{n+1}` adds the mapping `(v_new, a_new)`, giving `v_new ∈ dom(Σ_{n+1}.M(d))` and `Σ_{n+1}.M(d)(v_new) = a_new ∉ coverage(e)`. The projection definition then excludes `v_new` from `project(e, d, Σ_{n+1})`.
 
-Tightness is a construction discipline, not a structural invariant the system enforces. The system permits endsets whose spans denote half-open intervals reaching past existing content; such endsets are not tight, and an `a_new` allocated within their forward extent would in fact enter the coverage. The architectural significance of LP19 is that the canonical endset construction — selecting spans whose start and width capture exactly the I-addresses resident at construction time — produces tight endsets, and tight endsets are immune to absorbing addresses produced by subsequent K.α or K.λ. Boundary insertion as a composite (K.α + K.μ⁺) cannot enlarge a tight link's reach.
+Tightness is a construction discipline, not a structural invariant the system enforces. The system permits endsets whose spans extend past the relevant sub-allocator's current emission frontier; such endsets are not tight, and an `a_new` allocated within their forward extent (a substrate-emittable address inside `[s, s ⊕ ℓ)`) would in fact enter the coverage — LP9's growth behaviour then applies. The architectural significance of LP19 is that the canonical construction — selecting span endpoints among I-addresses resident at construction time, with reach at or before the chain's next emission point — produces tight endsets, and tight endsets are immune to absorbing addresses produced by subsequent K.α or K.λ. Boundary insertion as a composite (K.α + K.μ⁺) cannot enlarge a tight link's reach.
 
 **LP20 — RangeConfinement**: For every endset `e`, document `d`, state `Σ`:
 ```
@@ -424,7 +434,7 @@ At no point during this trace did the link itself change. The link's address, en
 | LP16 | Transclusion confers discoverability: shared I-addresses transfer discoverability across documents | introduced |
 | LP17 | Ghost projection: orphaned links persist in `dom(Σ.L)` with empty projections everywhere | introduced |
 | LP18 | Resurrection: re-introducing a coverage I-address via K.μ⁺ or K.μ⁺_L restores discoverability | introduced |
-| tight | `tight(e, Σ_e) ≡ coverage(e) ⊆ dom(Σ_e.C) ∪ dom(Σ_e.L)` — tight endset construction predicate | introduced |
+| tight | `tight(e, Σ_e)` ≡ for every span `(s, ℓ) ∈ e`, `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)` and every substrate-emittable address in `[s, s ⊕ ℓ)` is allocated at `Σ_e` | introduced |
 | LP19a | Tight freshness: under tight construction, K.α/K.λ-allocated addresses fall outside `coverage(e)` | introduced |
 | LP19 | Tight endset boundary exclusion: K.μ⁺/K.μ⁺_L mapping to such an address cannot grow `project(e, d, ·)` | introduced |
 | LP20 | Range confinement: `{Σ.M(d)(v) : v ∈ project(e, d, Σ)} ⊆ coverage(e) ∩ (dom(Σ.C) ∪ dom(Σ.L))` | introduced |
@@ -441,8 +451,6 @@ Under what conditions must the projection of an endset through a document be exp
 What guarantees must the system provide about the *V-order* of positions within a single projection — does the V-order of projected positions reflect the I-order of their underlying I-addresses, and under what arrangement-shape conditions is this reflection preserved by K.μ~?
 
 What invariants must the system maintain when a link's endset references the address of another link (rather than content) — under what conditions must the discovery of one link induce the discovery of the other?
-
-What does the system guarantee about a link whose coverage spans I-addresses partially outside `dom(Σ.C)` at link-creation time — what must remain true if future K.α allocations fall within the previously unallocated portion of the coverage?
 
 Under what conditions must the system commit to producing identical projections for two documents that have undergone "the same" sequence of editing operations, given that arrangement state is per-document and operations are not directly comparable across documents?
 
