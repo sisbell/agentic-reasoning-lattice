@@ -1,15 +1,15 @@
-# Revision Categorization — ASN-0051 review-13
+# Channel Assignment — ASN-0098 review-13
 
-**Date:** 2026-03-23 01:04
+**Date:** 2026-05-26 00:35
 
-## Issue 1: Worked example constructs an invalid state
-Category: INTERNAL
-Reason: The fix requires reconstructing the example using D-CTG and D-SEQ constraints already defined in the referenced ASNs. The valid composite (K.μ~ + K.μ⁻) and its consequences are fully derivable from existing definitions.
+## Issue 1: LP-Fin is false for non-canonical spans
+Reason: The fix is purely internal — the ASN's achievability section already commits to canonical construction (`ℓ = δ(n, #s)`, ordinal displacement with `#ℓ = #s`), and restricting LP-Fin to that form makes the structural-rigidity argument close. No design intent question or implementation evidence is needed; the canonical commitment is already present in the ASN.
 
-## Issue 2: Interior contraction claim conflicts with D-SEQ
-Category: INTERNAL
-Reason: D-SEQ's constraint that contractions remove from the maximum end is already established in ASN-0047. Correcting "a single contraction" to describe the composite (K.μ~ + K.μ⁻) requires only the definitions already present.
+## Issue 2: Tightness predicate is structurally unsatisfiable for non-canonical spans
+Reason: Derivable from the ASN's own content. C-fin/L-fin plus the infinite-`F ∩ [s, s⊕ℓ)` cardinality (from Issue 1's counter-example) force non-canonical spans to be unconditionally non-tight; the fix is to restrict the predicate to canonical spans or add an explicit clause. The ASN's own commitment to canonical construction in the achievability section justifies the restriction without external input.
 
-## Issue 3: SV13(f) embeds a conditional claim within a theorem
-Category: INTERNAL
-Reason: This is a structural issue about what belongs in a theorem statement versus a remark. The split between the formally proved SV6 and the unformalised byte-level closure claim is determinable entirely from the ASN's own content and its explicit acknowledgment of which premises are formalised.
+## Issue 3: Descendant document achievability argument requires canonical ℓ
+Reason: Internal — the canonical-ℓ assumption is already implicit in the construction commitment (`ℓ = δ(n, #s)`) at the start of the achievability section; the fix is to surface it as an explicit header-level assumption and flag its load-bearing role in the descendant/ancestor cases. Proof-structural, no design or implementation question.
+
+## Issue 4: Trace example's composite is not ValidComposite★ as written
+Reason: Derivable from ASN-0047's already-referenced composite/J1★ machinery. The fix is editorial — either insert the K.ρ step into the composite or add a parenthetical noting R bookkeeping is elided since `project` does not consult `R` (a fact already established by LP14 in this ASN).
