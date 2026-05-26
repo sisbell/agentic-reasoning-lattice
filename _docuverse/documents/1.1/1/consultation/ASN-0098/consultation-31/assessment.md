@@ -1,21 +1,21 @@
-# Channel Assignment — ASN-0051 review-31
+# Channel Assignment — ASN-0098 review-31
 
-**Date:** 2026-05-15 23:53
+**Date:** 2026-05-26 07:28
 
-## Issue 1: SV2 and SV3 statements cover π but proofs additionally establish locate
-Reason: Purely a structural/symmetry fix to the formal statements. The locate content already lives in the proofs; the question is presentation — expand statements or split into named claims. Derivable from the ASN's own content.
+## Issue 1: LP12b's `dom(Σ.L) ⊆ F` derivation is too compressed
+Reason: The fix requires adding explicit citations to named axioms of ASN-0093 (ChainMembershipForOrigin, SubAllocatorAxiom.FirstEmission/ChainDiscipline). These axioms are part of the working frame already referenced by the ASN; the citation chain is derivable from ASN-0093's own structure without consulting design intent or implementation evidence.
 
-## Issue 2: SV6 sub-lemma elides a needed agreement step
-Reason: Proof-level gap; the missing transitivity step (t↔s on 1..j−1 and s⊕ℓ↔s on 1..k−1 ⇒ t↔s⊕ℓ on 1..j−1) is mechanical and already implicit in the surrounding facts. Fix is internal to the proof.
+## Issue 2: Achievability zero-count balance argument is asserted, not derived
+Reason: The fix is a proof expansion using Prefix (ASN-0034) for position-wise agreement and arithmetic decomposition of `zeros(·)`. All needed machinery is in ASN-0034 and the ASN's own structural setup; no external channel input is needed.
 
-## Issue 3: SV6 precondition is embedded inside a paragraph
-Reason: Pure formatting — convert prose precondition to a structured bullet list. All content is already stated; only the presentation needs restructuring. Internal.
+## Issue 3: Worked Trace's K.μ~ admissibility verification is omitted
+Reason: K.μ~'s precondition (S8a, S8-depth, D-CTG★, D-MIN★, S3★) is fully specified in ASN-0047. Verifying admissibility against concrete V-position values, or explicitly noting admissibility is presupposed, is internal to the ASN's frame.
 
-## Issue 4: Two-span worked example asserts "this is the maximally merged decomposition" without verifying merge condition fails
-Reason: M7's merge condition (V-adjacency and I-adjacency) is defined in ASN-0058 and the necessary check is mechanical — verify v₆ relative to v₅ and a₂ relative to a₁+5. Derivable from cited ASN-0058 machinery.
+## Issue 4: Achievability section is structurally dense
+Reason: This is a structural/organizational decision (fold cases into LP-Fin Corollary's proof, or add sub-labels) that affects citability and redundancy. The choice is editorial within the ASN's own scope and does not require design intent or implementation evidence.
 
-## Issue 5: SV13 part (e) — K.μ⁺_L placement relative to M-frame list
-Reason: Resolution requires checking K.μ⁺_L's frame condition against ASN-0047's operational closure (K.μ⁺_L modifies M; K.λ is M-frame). All transition semantics are settled in ASN-0047. Internal taxonomy fix.
+## Issue 5: LP-Fin Corollary's load-bearing role for LP12b should be reflected in the claims table
+Reason: This is a claims-table description update to reflect the existing citation chain (LP12a → LP12b → LP-Fin Corollary) that already appears in the ASN's proof structure. Purely internal bookkeeping.
 
-## Issue 6: SV11's "exactly m · p decomposition terms" — indexed positions vs distinct sets
-Reason: Pure clarification — distinguish Cartesian-product index count from distinct-set count. The mathematical content is already correct; only the count semantics need disambiguating in one sentence. Internal.
+## Issue 6: LP10's empty-post-state boundary case uses an unstated reduction
+Reason: The fix is a reformulation of the boundary specialisation in terms of LP10's stated exact-difference formula's right-hand side. The reformulation works entirely within the formula already proved earlier in LP10's body; no external input is needed.
