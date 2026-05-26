@@ -1,35 +1,30 @@
-# Revision Categorization — ASN-0063 review-1
+# Channel Assignment — ASN-0087 review-1
 
-**Date:** 2026-03-21 18:04
+**Date:** 2026-05-26 11:45
 
-## Issue 1: CL1/CL2 claim coverage equals image, but the equality is false
-Category: INTERNAL
-Reason: The mismatch between finite image sets and infinite span denotations is derivable from the tumbler ordering definitions already present in ASN-0034 and ASN-0053. The fix (containment instead of equality, or element-level restriction) uses only existing definitions.
+## Issue 1: L1c invariant verification is hand-waved
+Reason: The inc-chain construction is mechanical from ASN-0093's SubAllocatorAxiom.ChainDiscipline and the address scheme of ASN-0034/0043. All step labels and length monotonicity are derivable from foundation definitions already cited by the ASN.
 
-## Issue 2: Step 2 of CREATELINK is not a defined elementary transition
-Category: INTERNAL
-Reason: The pattern for defining elementary transitions is established by K.μ⁺ in ASN-0047, and the link subspace invariants (D-CTG, D-MIN, S8-depth) are already stated in ASN-0036/0058. The new transition is a straightforward adaptation with subspace-specific referential integrity.
+## Issue 2: Missing S-invariant verifications in M-Inv
+Reason: S8a, S8-depth, S8-fin, D-SEQ★, S8★ are foundation invariants from ASN-0036/0047; verification follows directly from K.μ⁺_L's positioning rule and the depth-2 link-subspace structure already documented.
 
-## Issue 3: S3 violated by link-subspace arrangement mappings
-Category: INTERNAL
-Reason: The ASN already commits to placing links in M(d) and acknowledges a "link-subspace analogue" of S3. Generalizing S3 to subspace-conditional referential integrity follows directly from the existing subspace separation (L0, L14) and the ASN's own design choice.
+## Issue 3: No concrete example
+Reason: A worked scenario is an exposition exercise constructed from the ASN's own definitions and the LP12 evaluation already specified — no design intent or implementation evidence is needed.
 
-## Issue 4: J1 and P7 are mutually unsatisfiable for link-subspace mappings
-Category: INTERNAL
-Reason: The ASN deliberately omits K.ρ from the composite, implicitly scoping provenance to content. The fix (scope J1 and P7 to content-subspace mappings) follows from the existing subspace partition and the ASN's own treatment of the composite. The coupling constraints in ASN-0047 were written before link-subspace mappings existed and simply need the same subspace guards.
+## Issue 4: No weakest precondition analysis
+Reason: wp(MAKELINK, discoverable_from) is mechanical given the effect (M-Effect) and the LP12 biconditional already cited; the computation is purely formal.
 
-## Issue 5: "Already normalized" claim is incorrect
-Category: INTERNAL
-Reason: The counterexample (non-consecutive blocks producing overlapping I-spans through transclusion) is constructible from existing definitions of mapping blocks (ASN-0058) and content sharing (S5, ASN-0036). The fix is removing the false claim and noting S8 normalization is required.
+## Issue 5: v_ℓ construction not made explicit in Effect
+Reason: The construction formula lives in K.μ⁺_L's foundation definition (ASN-0093/0047) and just needs to be restated at the operator-facing layer.
 
-## Issue 6: Normalization invokes S8 without checking level-compatibility
-Category: INTERNAL
-Reason: T10 (PartitionIndependence, ASN-0034) guarantees that spans of different depths occupy disjoint address subspaces, so different-depth CL0 I-spans cannot overlap or be adjacent. Normalization can proceed independently per depth level. This follows from existing tumbler algebra properties.
+## Issue 6: Intermediate-state discoverability claim is imprecise
+Reason: The predicate-domain correction is a logical fix — `discoverable_from` is undefined when `ℓ ∉ dom(L)`. The proper Σ_mid-vs-Σ' comparison and reflexive-vs-non-reflexive split follow from the definitions already in the ASN.
 
-## Issue 7: CL11 incorrectly claims D-CTG and D-MIN are text-subspace-scoped
-Category: INTERNAL
-Reason: D-CTG's quantification over all subspaces is explicit in ASN-0036. Verifying D-CTG, D-MIN, and S8-depth for the link subspace follows once Issue 2's fix specifies v_ℓ's value. The invariant statements and verification machinery are all present.
+## Issue 7: MAKELINK's side effect on other links' discoverability not analyzed
+Reason: The change to `ran(M(d))` by adding `ℓ` is captured by M-Effect; the consequence for prior links with endsets covering `ℓ` follows directly from LP12, which the ASN already cites.
 
-## Issue 8: No concrete worked example
-Category: INTERNAL
-Reason: All the machinery for constructing a worked example — tumbler address format, mapping blocks, V→I projections, endset construction, postcondition verification — exists in ASN-0034, 0036, 0053, 0058, and this ASN. The example is constructible from existing definitions without external evidence.
+## Issue 8: Reflexive endset case not addressed
+Reason: L13 (ASN-0043) already permits link addresses as endset targets, so the foundation allows the case abstractly. The fix — either explicit treatment or scoping out — is derivable from the cited foundation and the LP12 projection function.
+
+## Issue 9: Verification that K.μ⁺_L's first-arrangement guard is satisfied is incomplete
+Reason: The S3★ + L14 derivation chain uses only foundation invariants already cited by the ASN (ASN-0036 for S3★, ASN-0043/0093 for L14). The missing step is mechanical.
