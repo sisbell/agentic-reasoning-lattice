@@ -1,0 +1,15 @@
+# Review of ASN-0094
+
+## REVISE
+
+### Issue 1: T5 citation does not justify the prefix-closure / half-open interval identification
+**ASN-0094, CoverageEqualityDecidability proof**: "the prefix-closure of `x` and the half-open interval `[x, shift(x, 1))` denote the same address set by T5 (ContiguousSubtrees, ASN-0034)"
+**Problem**: T5 establishes *convexity* of subtrees under T1 — given `a, c ∈ subtree(p)` and `a ≤ b ≤ c`, then `b ∈ subtree(p)`. It does not by itself establish the boundary identification `subtree(p) = [p, shift(p, 1))`. The (⊆) direction in particular (every `t` with `p ≤ t < shift(p, 1)` satisfies `p ≼ t`) requires T1 case analysis on the divergence position relative to `#p`, plus TumblerAdd's prefix-copy rule. T5 has no two-endpoint pair to feed it; `shift(p, 1)` is not in `subtree(p)` (they have equal length but differ at position `#p`, so they are prefix-incomparable).
+**Required**: Either (a) cite the equality as a consequence of `coverage` having two equivalent characterizations — T12's interval reading (`{t : s ≤ t < s ⊕ ℓ}`) and PrefixSpanCoverage's prefix reading (`{t : x ≼ t}`) — both axiomatic over the same denotation; or (b) supply the T1 case analysis explicitly; or (c) sidestep the issue by working purely with T12's bounded-interval reading (which suffices for the decidability argument, since `s_i ⊕ ℓ_i` is the explicit upper bound regardless of which reading is preferred).
+
+### Issue 2: Sh4 suppression probe absent from three idempotent walkthroughs
+**ASN-0094, Per-Shape Template Walkthroughs (Classifier, Tuple-Classifier, Provenance)**: Each shape has `idem = ⊤`, so the Sh4 idempotency contract fires at gate 3 and suppresses duplicate-slot-pair re-emissions; but the Classifier walkthrough has only one Emit_K call (admission), the Tuple-Classifier walkthrough has only Emission 0 (target setup) + Emission 1 (admission), and the Provenance walkthrough has only PROV0 and PROV1 with distinct slot-pairs.
+**Problem**: The walkthroughs are structured to exhibit each shape's distinctive behaviors (admission, Sh-conf rejection patterns, per-K-discipline effects). BundledDirectedPair and Resolution exhibit Sh4 clause (ii) suppression on duplicate slot-pair re-emission; the three idempotent walkthroughs above do not. The reader cannot verify by inspection that Sh4 actually fires at these shapes — only that the framework *claims* it does in the preservation proof. The Comment walkthrough exhibits the converse (non-idempotency via Emission 1' under `idem = ⊥`); without parallel demonstrations of suppression at `idem = ⊤` shapes, the asymmetry in coverage understates what the contract does.
+**Required**: Add a Sh4 suppression probe to each of Classifier, Tuple-Classifier, and Provenance walkthroughs — attempt a re-emission with the same slot-pair as a prior admitted emission, show the candidate set `C(F, G, Σ) = {prior_τ}`, and show clause (ii) returns `⊥` with state unchanged. Parallel to the BundledDirectedPair "Sh4 suppression on duplicate empty-G re-emission" probe.
+
+VERDICT: REVISE
