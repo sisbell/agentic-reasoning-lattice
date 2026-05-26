@@ -1,11 +1,12 @@
-# Revision Categorization — ASN-0065 review-7
+# Channel Assignment — ASN-0091 review-7
 
-**Date:** 2026-03-21 23:00
+**Date:** 2026-05-26 15:43
 
-## Issue 1: P4 preservation not derived
-Category: INTERNAL
-Reason: The fix requires deriving P4 preservation from R-CP, R-XD, and J3 — all of which are already established within the ASN. The three-step chain (Contains(Σ') = Contains(Σ) ⊆ R = R') uses only definitions and results present in the document.
+## Issue 1: Empty arrangement boundary case is implicit, not explicit
+Reason: The fix is internal. The ASN already states `|dom_C(M(d))| ≥ 2` is forced by R-PRE(iv) ∧ CS2; extending this to explicitly note the empty case follows from RA-π's vacuous behavior on an empty domain plus the existing cardinality argument.
 
-## Issue 2: Incorrect position labels in composition discussion
-Category: INTERNAL
-Reason: The fix is a straightforward correction of interval arithmetic using the pivot postcondition (R-P1, R-P2) already defined in the ASN. The correct positions [c₀, c₀ + w_μ) and [c₀ + w_μ, c₂) follow directly from the existing definitions.
+## Issue 2: "Transclusion-bearing arrangement" phrasing is potentially misleading
+Reason: The fix is internal. Fragmentation depends only on breaking I-address-chain adjacency under π; this is derivable from the existing definitions of maximal runs and the construction. The reviewer has supplied the replacement phrasing directly.
+
+## Issue 3: Per-state foundation invariant verification missing from worked examples
+Reason: The fix is internal. The relevant invariants (S8a, S8-depth, S3★, D-CTG★, D-MIN★, D-SEQ★) are formal definitions in the project's own foundation specs (ASN-0036/ASN-0047), not external knowledge requiring Nelson's design intent or Gregory's implementation evidence — the author can apply them to the concrete arrangements exhibited in each worked example.
