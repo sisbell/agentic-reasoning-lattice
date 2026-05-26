@@ -172,7 +172,31 @@ The asymmetry between immutable link entities and mutable supersession assertion
 
 **E5 (DivergentSuccessors).** For any state `Σ` satisfying all invariants and any natural number `k`, there exists a sequence of transitions `Σ →* Σ_k` such that `Σ_k` contains `k` distinct supersession links each naming `ℓ_old` in its from-endset, with `k` distinct successor links in their respective to-endsets.
 
-*Proof.* By induction on `k`. The base `k = 0` is trivial. For the inductive step, given `Σ_{k-1}` with `k-1` such supersessions, apply EDITLINK to produce a fresh successor `ℓ_new,k` (distinct from all prior successors by L11a) and a fresh supersession link `ℓ_sup,k` (likewise distinct). By L12, all `k-1` prior supersessions persist; the new one is added; the resulting state `Σ_k` has the required structure.
+*Proof.* By induction on `k`. The base case `k = 0` is vacuous: `Σ_0 = Σ` realizes the required structure with the empty set of supersession links, and the universal conjunction over an empty index set holds trivially.
+
+For the inductive step, assume the inductive hypothesis: `Σ_{k-1}` contains `k-1` distinct supersession links `{ℓ_sup,1, ..., ℓ_sup,k-1}` each with `ℓ_old` in its from-endset, paired with `k-1` distinct successor links `{ℓ_new,1, ..., ℓ_new,k-1}` in the corresponding to-endsets. We apply a fresh EDITLINK composite at `Σ_{k-1}` to extend to `k` supersessions.
+
+*Precondition verification at `Σ_{k-1}`.* The composite-level preconditions of EDITLINK require `ℓ_old ∈ dom(Σ_{k-1}.L)`, `d_new,k ∈ Σ_{k-1}.E_doc`, and caller-supplied endsets `(e'_{1,k}, ..., e'_{N_k,k})` and type address `τ_sup,k` satisfying L3 and `#τ_sup,k ≥ 1`.
+
+- *Link persistence.* By the outer hypothesis `ℓ_old ∈ dom(Σ.L)`, and by L12 applied iteratively across the `k-1` prior EDITLINK composites — each composite is a sequence of K.λ steps, each step preserves prior entries in `dom(L)` — we obtain `ℓ_old ∈ dom(Σ_{k-1}.L)`.
+
+- *Target document availability.* Fix a single target document for the entire induction — for instance, `home(ℓ_old)`. Since `ℓ_old ∈ dom(Σ_{k-1}.L)` (established above) and L1a (LinkScopedAllocation, ASN-0043) is a per-state invariant preserved at every reachable state (ExtendedReachableStateInvariants, ASN-0047), `home(ℓ_old) ∈ dom(Σ_{k-1}.M)`. The arrangement family `M` is indexed by `E_doc` in the extended state (by K.δ's document-case effect, ASN-0047), so `home(ℓ_old) ∈ Σ_{k-1}.E_doc`. K.λ's precondition `d ∈ E_doc` is therefore discharged by `d_new,k = home(ℓ_old)`. Nothing in EDITLINK's preconditions requires distinct target documents across distinct composites; a single `d_new` may serve at every step.
+
+- *Endset structure.* `(e'_{1,k}, ..., e'_{N_k,k})` and `τ_sup,k` are caller-supplied at each step and may be chosen to satisfy L3 and `#τ_sup,k ≥ 1` trivially.
+
+By E0 (EditLinkComposite), EDITLINK applied at `Σ_{k-1}` is a ValidComposite★, so the composite fires and produces a successor state `Σ_k`. The composite allocates `ℓ_new,k` via its first K.λ step (the successor step) and `ℓ_sup,k` via its second K.λ step (the supersession step).
+
+*Post-state structure verification at `Σ_k`.* We verify each conjunct of the required structure in turn:
+
+(a) *Prior supersession links persist with unchanged values.* For each `j ∈ {1, ..., k-1}`, `ℓ_sup,j ∈ dom(Σ_{k-1}.L)` by the inductive hypothesis. By L12 applied to each of the two K.λ steps of the k-th composite in turn, `ℓ_sup,j ∈ dom(Σ_k.L)` and `Σ_k.L(ℓ_sup,j) = Σ_{k-1}.L(ℓ_sup,j)`. In particular, the from-endset reference to `ℓ_old` in each prior `ℓ_sup,j` is structurally preserved.
+
+(b) *Prior successor links persist.* Symmetrically, for each `j ∈ {1, ..., k-1}`, `ℓ_new,j ∈ dom(Σ_k.L)` with `Σ_k.L(ℓ_new,j) = Σ_{k-1}.L(ℓ_new,j)`, by L12 applied across both K.λ steps of the k-th composite.
+
+(c) *The new supersession link references `ℓ_old` in its from-endset and `ℓ_new,k` in its to-endset.* By E4 (SupersessionLink) applied to the k-th EDITLINK composite, `Σ_k` contains a link `ℓ_sup,k ∈ dom(Σ_k.L)` with `(ℓ_old, δ(1, #ℓ_old)) ∈ Σ_k.L(ℓ_sup,k).e_1` and `(ℓ_new,k, δ(1, #ℓ_new,k)) ∈ Σ_k.L(ℓ_sup,k).e_2`.
+
+(d) *Pairwise distinctness of all 2k allocated link addresses.* The 2k K.λ allocation events — the 2(k-1) prior events producing `{ℓ_new,1, ℓ_sup,1, ..., ℓ_new,k-1, ℓ_sup,k-1}` plus the 2 events of the k-th composite producing `ℓ_new,k` and `ℓ_sup,k` — are pairwise distinct as events: by SequentialTransitionAxiom (ASN-0047), each atomic transition is a totally-ordered single-event point in time, so no two K.λ firings coincide. By L11a (LinkUniqueness, ASN-0043), distinct T10a-conforming allocation events produce distinct link addresses; each K.λ step emits via some `A_L(d_new,j)`, which is T10a-conforming by SubAllocatorAxiom.T10aConformance (ASN-0047). Hence all 2k allocated link addresses are pairwise distinct. In particular, `ℓ_new,k` differs from every prior successor `{ℓ_new,1, ..., ℓ_new,k-1}` and every prior supersession `{ℓ_sup,1, ..., ℓ_sup,k-1}`, and `ℓ_sup,k` differs from every prior link and from `ℓ_new,k`.
+
+The state `Σ_k` therefore exhibits the required structure: `k` distinct supersession links `{ℓ_sup,1, ..., ℓ_sup,k}` each naming `ℓ_old` in its from-endset, paired with `k` distinct successor links `{ℓ_new,1, ..., ℓ_new,k}` in their respective to-endsets.
 
 The system imposes no exclusivity. Two independent EDITLINK composites against the same `ℓ_old`, occurring in either order in the transition sequence, yield a state containing both supersession claims as distinct facts; no transition ordering produces a conflict. Both claims persist; both are discoverable; no claim is privileged over any other within the link model itself. What it means to "resolve" the ambiguity — which successor is the authoritative one, which lineage to follow — is a reader-side policy decision, outside the scope of the link model.
 
