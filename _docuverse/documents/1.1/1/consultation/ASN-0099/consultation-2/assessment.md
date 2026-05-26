@@ -1,21 +1,27 @@
-# Revision Categorization — ASN-0079 review-2
+# Channel Assignment — ASN-0099 review-2
 
-**Date:** 2026-03-23 01:16
+**Date:** 2026-05-26 16:29
 
-## Issue 1: Worked example span excludes a₃ (off-by-one)
-Category: INTERNAL
-Reason: The span algebra definitions (half-open denotation, reach, displacement) are fully established in the ASN and its dependencies. The fix is mechanical: adjust the width to δ(3, m) and propagate through the projection verification.
+## Issue 1: F11 derivation uses single-step L12 for a multi-step claim
+Reason: Pure formal bookkeeping — invoke ASN-0098's LP13/LP3★ (already-formalized multi-step lemma) or write explicit induction. Derivable from cited dependencies alone.
 
-## Issue 2: Empty-endset boundary case unverified
-Category: INTERNAL
-Reason: The behavior follows directly from existing definitions — coverage(∅) = ∅ and ∅ ∩ P = ∅ — all within the ASN's own formalism. Adding the explicit statement requires no external evidence.
+## Issue 2: F8 and F9 state essentially the same proposition
+Reason: Internal restructuring choice (merge vs. sharpen as K.μ frame condition). All needed material is in ASN-0099 and ASN-0093; no design intent or implementation evidence required.
 
-## Issue 3: F1a states unnecessary disjointness precondition
-Category: INTERNAL
-Reason: The proof uses standard set distribution and "non-empty union iff some component non-empty," neither of which requires disjointness. The fix is removing one word from the precondition.
+## Issue 3: `result(I, Σ)` vs `findlinks(I, Σ)` notational distinction not formal
+Reason: Pure formalism choice — either collapse `result` into `findlinks` or introduce it as a distinct implementation-output symbol with F2/F3 as conformance obligations. Internal.
 
-## Issue 4: F19 scaling requirement internally inconsistent
-Category: BOTH
-Reason: Nelson's phrase "does not in principle impede" could mean O(1) independence or merely sublinear growth — this is a design-intent question. The spanfilade's actual complexity characteristics determine which formalization the implementation supports.
-Nelson question: When you wrote that the quantity of non-satisfying links must not "in principle impede" search, did you mean cost must be strictly independent of total link count, or that it must not grow linearly (admitting logarithmic overhead from tree-based indexing)?
-Gregory question: What is the actual complexity of a spanfilade lookup in udanax-green as a function of total link count — is it O(log n) from tree traversal, O(1) from hashing, or something else?
+## Issue 4: Filter-to-union conversion lacks explicit slot index range
+Reason: Notational fix — pin the index range and specify behavior when `i > |L(a)|`. The natural reading (constraint unsatisfiable, link excluded) is derivable from the existing definitions plus L3 (ASN-0043).
+
+## Issue 5: F5 wording "are independent" is ambiguous
+Reason: Pure rewording — recast as a property of the match predicate rather than the result sets. No external input needed.
+
+## Issue 6: Empty link store boundary not addressed
+Reason: One-sentence addition citing ASN-0047's L₀=∅. Derivable from the comprehension's definition; no channel input required.
+
+## Issue 7: Worked example does not exercise F11
+Reason: Extend the existing instance with a K.μ⁻ step and recompute. The K.μ⁻ semantics is in the ASN-0093/operations layer already cited; example construction is internal expository work.
+
+## Issue 8: Connection to ASN-0098 LP12 unstated
+Reason: Pure cross-reference — state that `findlinks(ran(Σ.M(d)), Σ) = {a : discoverable_from(a, d, Σ)}`. Both sides are defined in the cited ASNs; no external input needed.
