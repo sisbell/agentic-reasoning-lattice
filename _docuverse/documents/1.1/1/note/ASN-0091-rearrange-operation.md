@@ -21,14 +21,15 @@ satisfying
 ```
 together with the frame conditions
 ```
-Σ'.C = Σ.C  ∧  Σ'.L = Σ.L  ∧  (A d' : d' ≠ d : Σ'.M(d') = Σ.M(d'))                     (RA-frame)
+Σ'.C = Σ.C  ∧  Σ'.L = Σ.L  ∧  Σ'.E = Σ.E  ∧  Σ'.R = Σ.R                                 (RA-frame)
+  ∧  (A d' : d' ≠ d : Σ'.M(d') = Σ.M(d'))
 ```
 
-The bijection π is the *rearrangement permutation*. RA-dom pins the post-state arrangement's support to the same V-positions; without it, RA-π alone would only entail `dom(Σ'.M(d)) ⊇ dom(Σ.M(d))` (since RA-π asserts each `π(v)` is defined in `Σ'.M(d)`), leaving open the possibility of additional populated V-positions in the post-state. The defining equation RA-π then says that for every V-position `v` populated in `Σ.M(d)`, the same I-address `Σ.M(d)(v)` lives in `Σ'.M(d)` — but at the V-position `π(v)`. The (V, I) pairs are permuted; no pair is created, destroyed, or modified.
+The bijection π is the *rearrangement permutation*. RA-dom pins the post-state arrangement's support to the same V-positions; without it, RA-π alone would only entail `dom(Σ'.M(d)) ⊇ dom(Σ.M(d))` (since RA-π asserts each `π(v)` is defined in `Σ'.M(d)`), leaving open the possibility of additional populated V-positions in the post-state. The defining equation RA-π then says that for every V-position `v` populated in `Σ.M(d)`, the same I-address `Σ.M(d)(v)` lives in `Σ'.M(d)` — but at the V-position `π(v)`. The (V, I) pairs are permuted; no pair is created, destroyed, or modified. RA-frame fixes every state component apart from `Σ.M(d)` itself — the content store `C`, link store `L`, entity set `E`, and provenance relation `R` are all preserved, as are the arrangements of every other document. The abstract class is genuinely "Vstream-only on d."
 
 The abstract class admits the degenerate identity case π = id, in which RA-π collapses to `Σ'.M(d)(v) = Σ.M(d)(v)` and RA-frame forces `Σ' = Σ`. Every claim derived below holds uniformly across the identity and non-identity cases — under π = id all RE-* claims reduce to identities of Σ with itself. REARRANGE_K excludes this degenerate case via ASN-0084's K.μ~ admissibility (clause (ii): π ≠ id) together with its existence precondition `|dom_C(M(d))| ≥ 2`, so REARRANGE_K realizes a strictly non-trivial subset of the abstract class.
 
-REARRANGE_K (the cut-sequence operation of ASN-0084) realizes this class. ASN-0084's R-PPERM and R-SPERM construct π explicitly for 3-cut pivot and 4-cut swap respectively. ASN-0084's K.μ~-FIX (DomainFixity) discharges RA-dom: `dom(Σ'.M(d)) = dom(Σ.M(d))` follows from π's bijectivity together with D-SEQ★ at both endpoints (per-subspace V-position enumeration matches across the transition). REARRANGE_K is the concrete realization of ASN-0047's K.μ~ operation, whose frame supplies RA-frame in full. K.μ~'s ASN-0047 frame reads `C' = C; E' = E; R' = R; L' = L; (A d' : d' ≠ d : M'(d') = M(d'))`, which strictly contains all three RA-frame conjuncts — notably `L' = L`, which is the source of the link-store invariance derived below (RE-L). ASN-0084's R-FRAME-P/S, by contrast, supply only the within-document, within-subspace clauses at the cut-sequence level (clause (a): non-S V-positions preserved; clause (b): other documents' arrangements preserved; clause (c): `C' = C`); link-store preservation enters the picture through K.μ~ at the ASN-0047 layer, not through R-FRAME-P/S. The cut sequence further restricts the bijection — π acts as identity on V-positions outside the affected range `[c₀, c_{n−1})` and on V-positions in subspaces other than the cut subspace S — but the abstract claims below are derivable from RA-dom, RA-π, and RA-frame alone, independent of how π was generated.
+REARRANGE_K (the cut-sequence operation of ASN-0084) realizes this class. ASN-0084's R-PPERM and R-SPERM construct π explicitly for 3-cut pivot and 4-cut swap respectively. ASN-0084's K.μ~-FIX (DomainFixity) discharges RA-dom: `dom(Σ'.M(d)) = dom(Σ.M(d))` follows from π's bijectivity together with D-SEQ★ at both endpoints (per-subspace V-position enumeration matches across the transition). REARRANGE_K is the concrete realization of ASN-0047's K.μ~ operation, whose frame supplies RA-frame in full. K.μ~'s ASN-0047 frame reads `C' = C; E' = E; R' = R; L' = L; (A d' : d' ≠ d : M'(d') = M(d'))`, which matches each RA-frame conjunct exactly — notably `L' = L` (the source of the link-store invariance derived below, RE-L), `E' = E`, and `R' = R` (the source of RE-R). ASN-0084's R-FRAME-P/S, by contrast, supply only the within-document, within-subspace clauses at the cut-sequence level (clause (a): non-S V-positions preserved; clause (b): other documents' arrangements preserved; clause (c): `C' = C`); link-store, entity-set, and provenance preservation enter the picture through K.μ~ at the ASN-0047 layer, not through R-FRAME-P/S. The cut sequence further restricts the bijection — π acts as identity on V-positions outside the affected range `[c₀, c_{n−1})` and on V-positions in subspaces other than the cut subspace S. Most of the abstract claims below are derivable from RA-dom, RA-π, and RA-frame alone, independent of how π was generated; the exception is RE-sub (subspace frame), which requires the cut-subspace restriction supplied by ASN-0084's R-FRAME-P/S(a) and is therefore REARRANGE_K-specific.
 
 The cut subspace is fixed at S = s_C by ASN-0084's CS3, so REARRANGE_K rearranges the content subspace alone. We will examine the consequences for the link subspace as a separate frame property below.
 
@@ -176,7 +177,9 @@ By RE-ran, the multiset of foreign addresses `{a ∈ ran(Σ.M(d)) : origin(a) �
 
 Even when REARRANGE fragments d's view of the transcluded span (RE-frag), each piece independently carries its foreign origin. Splitting at a cut point does not turn one transclusion into two distinct relationships; it produces two contiguous V-intervals that *jointly* refer to the same span at the source. The transcluding document still finds its borrowed content; the home document is undisturbed; and the function answering "where did this byte come from?" is invariant.
 
-## Subspace Frame
+## Subspace Frame (REARRANGE_K-specific)
+
+RE-sub is the one consequence in this ASN that does not flow from the abstract class alone. The abstract bijection RA-π acts on `dom(Σ.M(d))` without constraint and could, in principle, move V-positions across subspaces; only the cut-sequence structure pins π down to the cut subspace S.
 
 ASN-0084's R-FRAME-P/S(a) restricts the cut sequence's effect to the content subspace S = s_C. V-positions in any other subspace are untouched:
 ```
@@ -185,7 +188,7 @@ ASN-0084's R-FRAME-P/S(a) restricts the cut sequence's effect to the content sub
 
 When the cut subspace is the content subspace, the link subspace is wholly preserved — both its set of populated V-positions and its V→I mapping. Rearrangement of content does not perturb the link arrangement.
 
-This is structurally necessary. If REARRANGE could carry content-subspace V-positions into link-subspace V-positions or vice versa, the typed referential integrity invariant (foundation S3★: content-subspace V-positions map to `dom(C)`, link-subspace V-positions map to `dom(L)`) would be violable by rearrangement. The subspace restriction is what makes typed referential integrity stable under arrangement permutations.
+This is structurally necessary. If REARRANGE could carry content-subspace V-positions into link-subspace V-positions or vice versa, the typed referential integrity invariant (foundation S3★: content-subspace V-positions map to `dom(C)`, link-subspace V-positions map to `dom(L)`) would be violable by rearrangement. The subspace restriction is what makes typed referential integrity stable under arrangement permutations — and that restriction is supplied at the cut-sequence layer, not at the abstract Vstream-only layer.
 
 ## Origin and Provenance Invariance
 
@@ -196,12 +199,12 @@ The function `origin(a) = N(a).0.U(a).0.D(a)` (S7 of ASN-0036) projects an I-add
 
 (More precisely: origin is a function on tumblers, not state, so it has no temporal dimension at all. RE-origin records the fact that REARRANGE consumes no degree of freedom that origin depends on.)
 
-The provenance relation `Σ.R ⊆ T × E_doc` records which documents have, at some point in their history, contained which I-addresses. ASN-0047's J3 (Reordering Isolation) places R in K.μ~'s frame:
+The provenance relation `Σ.R ⊆ T × E_doc` records which documents have, at some point in their history, contained which I-addresses. RA-frame includes `Σ'.R = Σ.R` directly, so:
 ```
 Σ'.R = Σ.R                                                                              (RE-R)
 ```
 
-The historical record is intact across rearrangement. The bytes that have ever lived in d are exactly the bytes that live in d after the rearrangement (since REARRANGE adds and removes nothing — RE-ran), and the records of their past containments in other documents are unchanged.
+The historical record is intact across rearrangement. The bytes that have ever lived in d are exactly the bytes that live in d after the rearrangement (since REARRANGE adds and removes nothing — RE-ran), and the records of their past containments in other documents are unchanged. For REARRANGE_K specifically, the same conclusion is independently supplied by ASN-0047's J3 (Reordering Isolation), which places R in K.μ~'s frame — confirming that K.μ~ realizes the abstract class's R-preservation property.
 
 ## What Rearrangement Is Not
 
@@ -255,20 +258,20 @@ We trace a small concrete state through a single REARRANGE_K invocation and veri
 - **RE-trans.** Both `a₁` and `a₂` have `origin(·) = d' ≠ d`, so each is a transclusion in `d`. `{a₁, a₂} ⊆ ran(Σ.M(d))` and `{a₁, a₂} ⊆ ran(Σ'.M(d))`. `origin(a₁) = origin(a₂) = d'` is unchanged (RE-origin). `Σ'.M(d') = Σ.M(d')` by RE-other.
 - **RE-sub.** No link-subspace V-positions in `dom(Σ.M(d))` in this configuration — the link subspace at `d` is empty — so RE-sub holds vacuously.
 - **RE-origin.** `origin(a₁) = origin(a₂) = d'` (extracted from positions 1–5 of `a₁` and `a₂`); `origin(b₁) = d` (extracted from positions 1–5 of `b₁`). Origin is a structural projection on the address; it does not depend on state and is unchanged.
-- **RE-R.** `Σ'.R = Σ.R` by ASN-0047's J3 (Reordering Isolation), which K.μ~'s frame propagates through REARRANGE_K.
+- **RE-R.** `Σ'.R = Σ.R` by RA-frame directly; equivalently, by ASN-0047's J3 (Reordering Isolation) through K.μ~'s frame.
 
 Every derived claim holds at the concrete level; no two derived claims conflict at any point of the trace.
 
 ## Composition Across Multi-Step REARRANGE Sequences
 
-Each RE-* claim is stated as a single-step property of `Σ → Σ'`. For a finite sequence of REARRANGE-only transitions `Σ₀ →_R Σ₁ →_R ⋯ →_R Σ_n`, the single-step claims compose by trivial induction. Equalities chain transitively, yielding the multi-step (★) forms:
+Each RE-* claim is stated as a single-step property of `Σ → Σ'`. Write `Σ →_R Σ'` to denote a single REARRANGE step — a transition satisfying RA-dom, RA-π, and RA-frame for some document `d` (equivalently, an abstract Vstream-only transition; REARRANGE_K is one realisation). For a finite sequence of REARRANGE-only transitions `Σ₀ →_R Σ₁ →_R ⋯ →_R Σ_n`, the single-step claims compose by trivial induction. Equalities chain transitively, yielding the multi-step (★) forms:
 
 - **RE-C★, RE-L★, RE-dom★, RE-ran★, RE-other★, RE-sub★, RE-R★:** equalities `X(Σ₀) = X(Σ_n)` follow by chaining `X(Σᵢ) = X(Σᵢ₊₁)` across the n steps.
 - **RE-μ★:** `μ_a(Σ_n.M(d)) = μ_a(Σ₀.M(d))` for every I-address `a` and every document `d`.
 - **RE-cov★:** `coverage(Σ_n.L(a).eᵢ) = coverage(Σ₀.L(a).eᵢ)` for every link `a` and slot `i`.
 - **RE-disc★:** `discoverable_from(a, d, Σ_n) ⟺ discoverable_from(a, d, Σ₀)` for every link `a` and document `d` — biconditionals compose.
 - **RE-proj★:** `project(e, d, Σ_n) = (π_n ∘ ⋯ ∘ π_1)(project(e, d, Σ_0))`, with the composed bijection acting on the projection set.
-- **RE-frag★:** run-decomposition cardinality can drift in either direction across the sequence (each step may increase or decrease it independently); no monotonicity claim is available even in the limit.
+- **RE-frag★:** no per-step monotonicity is available — each step in the sequence may independently increase or decrease run-decomposition cardinality, as the single-step fragmentation and coalescence witnesses above demonstrate. The claim is the negation of any uniform per-step direction; we do not assert anything stronger about the net cardinality change `|runs(Σ_n.M(d))| − |runs(Σ₀.M(d))|` across the full sequence.
 - **RE-trans★:** transclusion relationships present at `Σ₀` persist at `Σ_n` with identical multiplicity, since RE-trans persists across each step.
 - **RE-origin★:** origin is state-independent, so trivially invariant across any sequence.
 
@@ -276,25 +279,27 @@ For mixed sequences that interleave REARRANGE with other transitions (K.α, K.λ
 
 ## Claims Introduced
 
-| Label | Statement | Status |
-|-------|-----------|--------|
-| RA-dom | Rearrangement domain stability: dom(Σ'.M(d)) = dom(Σ.M(d)) | introduced |
-| RA-π | Rearrangement equation: π : dom(M(d)) → dom(M(d)) is a bijection with M'(d)(π(v)) = M(d)(v) for every v ∈ dom(M(d)) | introduced |
-| RA-frame | Rearrangement frame: Σ'.C = Σ.C, Σ'.L = Σ.L, and Σ'.M(d') = Σ.M(d') for every d' ≠ d | introduced |
-| RE-C | Content-store invariance: Σ'.C = Σ.C under REARRANGE | introduced |
-| RE-dom | Domain stability: dom(Σ'.M(d)) = dom(Σ.M(d)) | introduced |
-| RE-ran | Range invariance: ran(Σ'.M(d)) = ran(Σ.M(d)) | introduced |
-| RE-μ | Per-address multiplicity invariance: μ_a(Σ'.M(d)) = μ_a(Σ.M(d)) for every I-address a | introduced |
-| RE-L | Link store invariance: dom(Σ'.L) = dom(Σ.L) and Σ'.L(a) = Σ.L(a) for every a ∈ dom(Σ.L) | introduced |
-| RE-cov | Coverage invariance: coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ) for every link a and slot i | introduced |
-| RE-disc | Discoverability invariance: discoverable_from(a, d, Σ') ⟺ discoverable_from(a, d, Σ) for every link a and document d | introduced |
-| RE-proj | Projection transport: project(e, d, Σ') = π(project(e, d, Σ)) for every endset e | introduced |
-| RE-frag | Fragmentation possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) strictly increases | introduced |
-| RE-other | Other-document invariance: Σ'.M(d') = Σ.M(d') for every d' ≠ d | introduced |
-| RE-trans | Transclusion preservation: for every (a, d) with a ∈ ran(Σ.M(d)) and origin(a) ≠ d, the transclusion relationship and its multiplicity persist at Σ', and origin(a)'s arrangement is unchanged | introduced |
-| RE-sub | Subspace frame: for every v ∈ dom(M(d)) with subspace(v) ≠ S, Σ'.M(d)(v) = Σ.M(d)(v) | introduced |
-| RE-origin | Origin invariance: origin(a) is unchanged across REARRANGE for every a | introduced |
-| RE-R | Provenance invariance: Σ'.R = Σ.R under REARRANGE | introduced |
+The *Provenance* column records which premises a claim depends on: **abstract** = derivable from RA-dom, RA-π, and RA-frame alone (the abstract Vstream-only class); **REARRANGE_K** = requires the cut-sequence specifics supplied by ASN-0084's R-FRAME-P/S; **structural** = state-independent (holds without reference to any state transition).
+
+| Label | Statement | Provenance | Status |
+|-------|-----------|-----------|--------|
+| RA-dom | Rearrangement domain stability: dom(Σ'.M(d)) = dom(Σ.M(d)) | abstract (definition) | introduced |
+| RA-π | Rearrangement equation: π : dom(M(d)) → dom(M(d)) is a bijection with M'(d)(π(v)) = M(d)(v) for every v ∈ dom(M(d)) | abstract (definition) | introduced |
+| RA-frame | Rearrangement frame: Σ'.C = Σ.C, Σ'.L = Σ.L, Σ'.E = Σ.E, Σ'.R = Σ.R, and Σ'.M(d') = Σ.M(d') for every d' ≠ d | abstract (definition) | introduced |
+| RE-C | Content-store invariance: Σ'.C = Σ.C under REARRANGE | abstract (from RA-frame) | introduced |
+| RE-dom | Domain stability: dom(Σ'.M(d)) = dom(Σ.M(d)) | abstract (from RA-dom) | introduced |
+| RE-ran | Range invariance: ran(Σ'.M(d)) = ran(Σ.M(d)) | abstract (from RA-π) | introduced |
+| RE-μ | Per-address multiplicity invariance: μ_a(Σ'.M(d)) = μ_a(Σ.M(d)) for every I-address a | abstract (from RA-π) | introduced |
+| RE-L | Link store invariance: dom(Σ'.L) = dom(Σ.L) and Σ'.L(a) = Σ.L(a) for every a ∈ dom(Σ.L) | abstract (from RA-frame) | introduced |
+| RE-cov | Coverage invariance: coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ) for every link a and slot i | abstract (from RE-L) | introduced |
+| RE-disc | Discoverability invariance: discoverable_from(a, d, Σ') ⟺ discoverable_from(a, d, Σ) for every link a and document d | abstract (from RE-cov + RE-ran via LP12) | introduced |
+| RE-proj | Projection transport: project(e, d, Σ') = π(project(e, d, Σ)) for every endset e | abstract (from RA-π + RE-cov) | introduced |
+| RE-frag | Fragmentation possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) strictly increases | abstract (existential; witnesses are REARRANGE_K) | introduced |
+| RE-other | Other-document invariance: Σ'.M(d') = Σ.M(d') for every d' ≠ d | abstract (from RA-frame) | introduced |
+| RE-trans | Transclusion preservation: for every (a, d) with a ∈ ran(Σ.M(d)) and origin(a) ≠ d, the transclusion relationship and its multiplicity persist at Σ', and origin(a)'s arrangement is unchanged | abstract (from RE-ran + RE-other + RE-C + RE-origin) | introduced |
+| RE-sub | Subspace frame: for every v ∈ dom(M(d)) with subspace(v) ≠ S, Σ'.M(d)(v) = Σ.M(d)(v) | REARRANGE_K (from R-FRAME-P/S(a)) | introduced |
+| RE-origin | Origin invariance: origin(a) is unchanged across REARRANGE for every a | structural (state-independent) | introduced |
+| RE-R | Provenance invariance: Σ'.R = Σ.R under REARRANGE | abstract (from RA-frame; equivalently, J3 for REARRANGE_K) | introduced |
 
 ## Open Questions
 
