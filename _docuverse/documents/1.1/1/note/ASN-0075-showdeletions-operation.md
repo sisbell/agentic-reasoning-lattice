@@ -325,6 +325,8 @@ The natural compact form is therefore a set of I-spans, each tagged with the ori
 
 A *deletion witness run* is a triple `(i_start, ℓ, origin)` with `ℓ ≥ 1` such that, using the OrdinalShift of ASN-0034:
 
+Throughout this section, *the deletion set* refers to either `DeletedFromAWithB(d_A, d_B)` or `DeletedFromBWithA(d_A, d_B)` individually; the witness-run decomposition is applied to each half of the SHOWDELETIONS output independently, never to their union. The per-half scope is load-bearing: an address `[d.0.s_C.k]` in `DeletedFromAWithB` and `[d.0.s_C.k+1]` in `DeletedFromBWithA` are I-adjacent under the same origin `d`, so a union-level decomposition would merge them into a single length-2 run and silently conflate two semantically distinct deletions, losing the deleted-from-which-document distinction that the asymmetric output is designed to preserve.
+
 - *Coverage.* Every address in `{i_start, shift(i_start, 1), …, shift(i_start, ℓ − 1)}` (which is `{i_start}` when `ℓ = 1`) belongs to the deletion set;
 - *Origin uniformity.* Every such address satisfies `origin(·) = origin`;
 - *Right-maximality.* `shift(i_start, ℓ)` is not in the deletion set;
