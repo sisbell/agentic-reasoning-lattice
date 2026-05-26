@@ -78,9 +78,33 @@ We claim:
 
 **E0 (EditLinkComposite).** EDITLINK is realized as a sequence of exactly two K.λ steps: the first allocates the successor link `ℓ_new` with the new endset sequence; the second allocates the supersession link `ℓ_sup` whose from- and to-endsets reference `ℓ_old` and `ℓ_new` respectively, and whose type-endset references the designated supersession-type address `τ_sup`.
 
-The composite must be admissible under K.λ's preconditions evaluated at each intermediate state. K.λ requires (i) the target document to be in `E_doc`, (ii) the new link's I-address to lie outside `dom(C) ∪ dom(L)`, (iii) the I-address to satisfy the link allocation discipline (zeros = 3, subspace = s_L, origin = `d_new`, `#E ≥ 2`), and (iv) the endset sequence to satisfy L3. These conditions are independently discharged for the successor step and the supersession step.
+The composite must be admissible under K.λ's preconditions evaluated at each intermediate state. K.λ requires (i) the target document to be in `E_doc`; (ii) the new link's I-address to lie outside `dom(C) ∪ dom(L)`; (iii) the I-address to satisfy the link allocation discipline `zeros(·) = 3 ∧ E(·)_1 = s_L ∧ #E(·) ≥ 2 ∧ origin(·) = d_new`; and (iv) the endset sequence to satisfy L3 — arity at least 3, each endset in `Endset` (equivalently: each constituent span satisfies T12), and the third endset non-empty.
+
+We discharge each precondition at each step explicitly.
+
+**Successor step** — `K.λ(d_new, ℓ_new, (e'_1, ..., e'_N))` fires from the pre-state `Σ`. The K.λ rule determines `ℓ_new` from `d_new`'s allocator state by case analysis:
+
+*Sub-case (a) — first emission.* When `{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d_new} = ∅`, K.λ's first-emission rule fixes `ℓ_new = [d_new.0.s_L.1]`. SubAllocatorAxiom.FirstEmission (ASN-0047) certifies that this tumbler satisfies `ℓ_new ∉ dom(Σ.C) ∪ dom(Σ.L)` at the state of allocation, with `origin(ℓ_new) = d_new` and `#E(ℓ_new) = 2`.
+
+*Sub-case (b) — subsequent emission.* When `{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d_new} ≠ ∅`, K.λ's subsequent-emission rule fixes `ℓ_new = inc(max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d_new}, 0)`. By SubAllocatorAxiom.T10aConformance, `A_L(d_new)` is a T10a-conforming allocator and `inc(·, 0)` extends its enumeration; by L11a (LinkUniqueness, ASN-0043) the output is distinct from every prior link allocation, so `ℓ_new ∉ dom(Σ.L)`. By SubAllocatorAxiom.Disjointness, `dom(A_L(d_new))` is disjoint from every content sub-allocator's domain; combined with L14 (StoreDisjointness, ASN-0047), `ℓ_new ∉ dom(Σ.C)`.
+
+In both sub-cases, SubAllocatorAxiom.Namespace certifies that `ℓ_new` is T4-valid with `zeros(ℓ_new) = 3`; SubAllocatorAxiom.Subspace gives `E(ℓ_new)_1 = s_L`. The origin equality `origin(ℓ_new) = d_new` follows from the allocator rule (`ℓ_new` is emitted by `A_L(d_new)`, whose outputs all carry origin `d_new`). The depth bound `#E(ℓ_new) ≥ 2` holds directly in (a) (the first emission has `#E = 2`) and is inherited in (b) from TA5(c) — `inc(·, 0)` preserves length — applied to a prior emission that itself satisfied `#E ≥ 2`. The endset sequence `(e'_1, ..., e'_N)` satisfies L3 by the precondition of the composite. Clauses (i)–(iv) of K.λ are therefore discharged at the successor step.
+
+After the successor step, the intermediate state `Σ_1` has `dom(Σ_1.L) = dom(Σ.L) ∪ {ℓ_new}` with `Σ_1.L(ℓ_new) = (e'_1, ..., e'_N)`; all other state components are unchanged by K.λ's frame.
+
+**Supersession step** — `K.λ(d_new, ℓ_sup, (E_from, E_to, E_type))` fires from `Σ_1`. Since `ℓ_new ∈ dom(Σ_1.L)` with `origin(ℓ_new) = d_new`, the set `{ℓ' ∈ dom(Σ_1.L) : origin(ℓ') = d_new}` is non-empty; K.λ's subsequent-emission rule applies unconditionally. Since `inc(·, 0)` strictly increases its argument by TA5(a), `ℓ_new` is the maximum of `A_L(d_new)`'s outputs in `dom(Σ_1.L)`, so the rule fixes `ℓ_sup = inc(ℓ_new, 0)`. By the same argument structure as sub-case (b) of the successor step, now applied at `Σ_1`: T10aConformance + L11a give `ℓ_sup ∉ dom(Σ_1.L)`; Disjointness + L14 give `ℓ_sup ∉ dom(Σ_1.C)`. Namespace gives `zeros(ℓ_sup) = 3`; Subspace gives `E(ℓ_sup)_1 = s_L`. The origin equality follows from the allocator rule. The depth bound `#E(ℓ_sup) ≥ 2` follows from TA5(c) inherited from `#E(ℓ_new) ≥ 2`. Clauses (i)–(iii) of K.λ are thereby discharged at the supersession step; clause (iv) — L3 for the supersession endset sequence — requires further work.
+
+L3 requires arity at least 3 (satisfied by arity 3), every endset in `Endset`, and the third endset non-empty. The third endset `E_type` is a singleton, hence non-empty. Membership of each of `E_from`, `E_to`, `E_type` in `Endset = 𝒫_fin(Span)` requires each constituent span to satisfy T12. The three spans share the form `(x, δ(1, #x))` for `x ∈ {ℓ_old, ℓ_new, τ_sup}`. T12 (SpanWellDefinedness, ASN-0034) requires (a) `Pos(ℓ)` and (b) `actionPoint(ℓ) ≤ #s`. By OrdinalDisplacement (ASN-0034) at `(n, m) = (1, #x)`: `Pos(δ(1, #x))` holds (since `n = 1 ≥ 1` and `m = #x ≥ 1`) and `actionPoint(δ(1, #x)) = #x`. So T12(b) reads `#x ≤ #x`, saturating with equality. The three lengths are positive in each case:
+
+- *For `E_from`:* `#ℓ_old ≥ 1` by T0 (every tumbler in T has length ≥ 1, ASN-0034); concretely `#ℓ_old ≥ 6` since `ℓ_old` is element-level with `#E ≥ 2` (L1, L1b).
+- *For `E_to`:* `#ℓ_new ≥ 1` by T0; concretely `#ℓ_new ≥ 6` for the same reason.
+- *For `E_type`:* `#τ_sup ≥ 1` by the precondition of the composite.
+
+Each of the three supersession spans therefore lies in `Span`, each singleton endset lies in `Endset`, and L3 holds for `(E_from, E_to, E_type)`. Clause (iv) of K.λ is discharged at the supersession step.
 
 We must observe two things about the order. First, the successor step must precede the supersession step *if* we require the supersession endsets to reference an existing link entity; by L4 the supersession step is admissible at any time, but its referent is meaningful only after `ℓ_new ∈ dom(L)`. Second, by SequentialTransitionAxiom (ASN-0047) each K.λ step is atomic, but the two steps need not be adjacent in the transition sequence; arbitrary other transitions may intervene between them.
+
+**Invariant inheritance.** EDITLINK is a ValidComposite★ (discharged in §The Composite), so by ExtendedReachableStateInvariants (ASN-0047) every per-state invariant of the extended reachable state continues to hold at the post-state — in particular L0, L1, L1a, L1b, L1c, L3, L12, L14, L-fin, CL-OWN, CL-UNIQ, and the S-invariants S0–S3★, S7a–d, S8a, S8-fin, S8-depth, S8★, D-CTG★, D-MIN★, D-SEQ★, P6, P7, P8, NodeLineage. The composite-boundary properties P4★, P4a, P7a hold at the post-state because EDITLINK satisfies J0, J1★, and J1'★ (discharged in §The Composite). EDITLINK therefore preserves the full invariant suite of ASN-0047's extended reachable state without introducing any new invariants of its own.
 
 ## E1 — Original Preservation
 
@@ -124,9 +148,9 @@ This is what "edit" means abstractly. The user-facing operation is not parameter
 
 ## The Supersession Relationship
 
-We now examine the second link in the composite — the link that does the work of asserting "the new replaces the old."
+We now examine the second link in the composite — the link that we will call a *supersession link* by convention, while keeping the conventional designation carefully separated from the structural witness the link model can actually establish.
 
-A supersession link, in our construction, is a link of arity 3 whose endsets are structured as in the composite definition: from-endset referencing `ℓ_old`, to-endset referencing `ℓ_new`, type-endset designating supersession.
+What we will call a supersession link, in our construction, has the structural form of a link of arity 3 whose endsets reference `ℓ_old`, `ℓ_new`, and `τ_sup` via canonical unit-depth spans, as specified in the composite definition. The link model alone cannot *identify* such a link as a supersession: it admits arity-3 links whose first endset references one link, whose second endset references another link, and whose third endset references some third address for any number of reasons, with no syntactic mark distinguishing those whose author meant to assert supersession from those whose author did not. Identification depends on the external convention that designates `τ_sup` as the supersession-type address — a convention this ASN cannot fix and defers to a future ASN on type-endset conventions (see Open Questions). The claim that follows is therefore structural: it establishes that the spans are present in the endsets and recoverable by any discovery operation, not that the link is identifiable as a supersession without an external designation of `τ_sup`.
 
 **E4 (SupersessionLink).** Following EDITLINK, the state `Σ'` contains a link `ℓ_sup ∈ dom(Σ'.L)` with:
 
@@ -244,6 +268,8 @@ Each displacement is `δ(1, 8)` — length 8 (matching the target tumbler), all 
 
 We check the claims against this state.
 
+**E0.** K.λ's preconditions were discharged for both steps in the trace above. Step 1 invoked the first-emission rule (no prior outputs of `A_L(d_bob)`); SubAllocatorAxiom.FirstEmission furnished `ℓ_new ∉ dom(Σ.C) ∪ dom(Σ.L)` and `#E(ℓ_new) = 2`; .Namespace and .Subspace furnished `zeros(ℓ_new) = 3 ∧ E(ℓ_new)_1 = 2 = s_L`; the allocator rule fixed `origin(ℓ_new) = d_bob`; the supplied `(e'_1, e'_2, e'_3)` satisfied L3. Step 2 invoked the subsequent-emission rule with `ℓ_new` as the maximum prior output of `A_L(d_bob)`; .T10aConformance + L11a + .Disjointness + L14 (StoreDisjointness) gave `ℓ_sup ∉ dom(L_1) ∪ dom(C_1)`; .Namespace + .Subspace + TA5(c) (inheriting `#E ≥ 2` from `ℓ_new`) discharged the namespace clauses. T12 held for the three supersession spans at `actionPoint(δ(1, 8)) = 8 ≤ 8 = #x`, with `Pos(δ(1, 8))` by OrdinalDisplacement (n = 1, m = 8); L3 thus held for `(E_from, E_to, E_type)`. ✓
+
 **E1.** `ℓ_old = [3.0.5.0.7.0.2.1] ∈ dom(Σ'.L)` because L12 preserves it across both K.λ steps; `Σ'.L(ℓ_old) = (F_old, G_old, Θ_old) = Σ.L(ℓ_old)`. Alice's link is untouched. ✓
 
 **E2.** Pairwise distinctness:
@@ -251,13 +277,23 @@ We check the claims against this state.
 - `ℓ_sup ≠ ℓ_old`: `[4.0.2.0.3.0.2.2] ≠ [3.0.5.0.7.0.2.1]`, differing at component 1.
 - `ℓ_sup ≠ ℓ_new`: `[4.0.2.0.3.0.2.2] ≠ [4.0.2.0.3.0.2.1]`, differing at component 8 (`2 ≠ 1`). ✓
 
-**E4.** The post-state contains `ℓ_sup` with the expected endset structure. By PrefixSpanCoverage, `coverage({(ℓ_old, δ(1, 8))}) = {t : ℓ_old ≼ t}`, which includes `ℓ_old` by reflexivity. So `(ℓ_old, δ(1, 8)) ∈ Σ'.L(ℓ_sup).e_1`, witnessing the from-endset clause; symmetrically for `e_2` and `e_3`. ✓
+**E3.** Bob is free to make `(e'_1, e'_2, e'_3)` bear no resemblance whatsoever to `(F_old, G_old, Θ_old)`: any from-endset, any to-endset, any type-endset designator. The composite imposes no coupling between the new sequence and Alice's original; the only constraints are L3's structural ones (`N = 3 ≥ 3`, each `e'_i ∈ Endset`, `e'_3 ≠ ∅`), which the precondition supplies. ✓
+
+**E4.** The post-state contains `ℓ_sup` with the expected endset structure. By PrefixSpanCoverage, `coverage({(ℓ_old, δ(1, 8))}) = {t : ℓ_old ≼ t}`, which includes `ℓ_old` by reflexivity. So `(ℓ_old, δ(1, 8)) ∈ Σ'.L(ℓ_sup).e_1`, witnessing the structural reference to `ℓ_old` in the first endset; symmetrically for `e_2` and `e_3`. (We do not — and cannot, within the link model — claim from this that `ℓ_sup` is *the* supersession of `ℓ_old`; that designation requires the external `τ_sup` convention.) ✓
+
+**E5.** Suppose Carol owns `d_carol = [5.0.1.0.4]` and, from the post-state `Σ'`, independently runs `EDITLINK(ℓ_old, (e''_1, e''_2, e''_3), d_carol, τ_sup)`. By L12, Bob's `ℓ_new = [4.0.2.0.3.0.2.1]` and `ℓ_sup = [4.0.2.0.3.0.2.2]` persist into Carol's pre-state. Carol's `A_L(d_carol)` has emitted no prior links, so the first-emission rule fixes her successor at `ℓ_new,carol = [5.0.1.0.4.0.2.1]`; the subsequent-emission rule then fixes her supersession at `ℓ_sup,carol = [5.0.1.0.4.0.2.2]`. By L11a, all four addresses are pairwise distinct. The resulting state contains two distinct links whose first endsets reference `ℓ_old`. The argument generalizes by induction on the number of independent edits. ✓
+
+**E6.** `home(ℓ_sup) = d_bob = [4.0.2.0.3] ≠ [3.0.5.0.7] = d_alice = home(ℓ_old)`. K.λ's precondition `d_new ∈ E_doc` was satisfied by `d_bob` alone; nothing in the composite required `d_bob = home(ℓ_old)`. Bob's claim is published in his own namespace, attributable to him, without Alice's participation. ✓
 
 **E7.** `ℓ_sup ∈ covers(Σ', ℓ_old)`: take `i = 1`, `(s, w) = (ℓ_old, δ(1, 8))`; `ℓ_old ∈ coverage({(ℓ_old, δ(1, 8))})` by PrefixSpanCoverage and reflexivity. Symmetrically `ℓ_sup ∈ covers(Σ', ℓ_new)`. ✓
 
+**E8.** Any operation that reads `Σ'.L(ℓ_old)` obtains `(F_old, G_old, Θ_old)` — identical to what `Σ.L(ℓ_old)` would have returned. The claim reduces to E1, which gives `Σ'.L(ℓ_old) = Σ.L(ℓ_old)`. ✓
+
+**E9.** Across any future transition `Σ' → Σ''`, L12 applied to `ℓ_sup ∈ dom(Σ'.L)` gives `ℓ_sup ∈ dom(Σ''.L) ∧ Σ''.L(ℓ_sup) = Σ'.L(ℓ_sup) = (E_from, E_to, E_type)`. The supersession assertion persists indefinitely; no transition admitted by the model can retract it. ✓
+
 **E10.** No K.λ step modifies any arrangement or `R`. `Σ'.M(d_alice) = Σ.M(d_alice)`; `Σ'.M(d_bob) = Σ.M(d_bob)`; and for every other `d ∈ E_doc`, `Σ'.M(d) = Σ.M(d)`. `Σ'.R = Σ.R`. In particular, Alice's arrangement is unchanged — she receives no notification of Bob's claim. ✓
 
-The example exhibits one further feature worth noting: `home(ℓ_sup) = d_bob ≠ d_alice = home(ℓ_old)`, illustrating E6 (Bob may publish a supersession claim against Alice's link without Alice's involvement). Alice retains full control of `d_alice`; Bob retains full control of `d_bob`; the supersession claim itself lives in `d_bob`, attributable to Bob, discoverable from either endpoint.
+The example exhibits the asymmetry recorded in E6: Alice retains full control of `d_alice`; Bob retains full control of `d_bob`; the supersession claim itself lives in `d_bob`, attributable to Bob, discoverable from either endpoint via E7.
 
 ## Why Editing Cannot Be Otherwise
 
@@ -317,7 +353,7 @@ What such a procedure should return, whether it terminates, how it should reconc
 | E1 | Across EDITLINK, the original link's address persists and its endset value is unchanged | introduced |
 | E2 | The successor link's I-address differs from the original's, and the supersession link's I-address differs from both | introduced |
 | E3 | The successor's endset sequence may differ arbitrarily from the original's, subject only to L3 | introduced |
-| E4 | The post-state contains a supersession link whose from-endset references the original and whose to-endset references the successor, with the supersession type designator in slot 3 | introduced |
+| E4 | The post-state contains a link `ℓ_sup` whose first endset references `ℓ_old`, whose second endset references `ℓ_new`, and whose third endset references `τ_sup` via canonical unit-depth spans (a structural witness; semantic identification as a supersession requires an external `τ_sup` convention) | introduced |
 | E5 | Multiple independent supersessions of the same original link are admissible; the resulting state contains all of them as distinct first-class facts | introduced |
 | E6 | The supersession link's home document need not coincide with the original link's home document; any document owner may publish a supersession claim | introduced |
 | E7 | The supersession link's endsets structurally contain `ℓ_old` and `ℓ_new` as covering witnesses, available to any discovery operation that returns links covering a given target | introduced |
