@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
-"""Operator-driven note re-review trigger.
+"""Operator-driven note dep-integration audit trigger.
 
-Emits a synthetic review + finding + comment.revise on the target
-note so the runner re-engages the cycle:
+Emits a synthetic review + finding + comment.revise on the target note
+so the runner picks up a dep-audit pass:
 
   1. is_doc_quiescent flips False (open revise present)
-  2. note_revise fires → reviser closes the synthetic finding (no edit)
-  3. last_n_reviews_were_clean(n=2) sees the synthetic REVISE on top →
-     streak broken → note_review fires fresh
-  4. Re-review surfaces real issues (if any) or rebuilds the 2-CLEAN streak
+  2. note_consult routes the finding through consultation
+  3. note_revise fires → reviser actions the audit directive: reviews body
+     against declared dependencies, replaces redevelopments with citations
+     where the dep already establishes the claim, and flags unused deps
+  4. note_review re-evaluates the revised body
 
-Use when an external change (upstream update, manual intervention)
-should re-engage convergence on a note that's already quiescent.
+Use after dep changes (additions, swaps, foundation cycles) when the
+body should be brought into alignment with the new dependency set.
 
 Usage:
     python scripts/invalidate-note.py <asn> --reason "<why>"
 
 Example:
-    python scripts/invalidate-note.py 43 --reason "ASN-36 statements updated"
+    python scripts/invalidate-note.py 76 --reason "ASN-0098 added as dep"
 """
 
 from __future__ import annotations
@@ -38,23 +39,31 @@ from lib.shared.paths import (
 )
 
 
-SYNTHETIC_REVIEW_TEMPLATE = """# Operator-Triggered Re-Review of {asn_label}
+SYNTHETIC_REVIEW_TEMPLATE = """# Operator-Triggered Dep Audit of {asn_label}
 
-This review was emitted by `scripts/invalidate-note.py` to re-engage
-the convergence cycle on {asn_label}. See finding 0 for details.
+This review was emitted to direct an audit of the note body against its
+declared dependencies. See finding 0 for the audit directive.
 
 ## REVISE
 
-### Issue 1: Re-review requested
+### Issue 1: Body-dependency integration audit
 
 Reason: {reason}
 
 VERDICT: REVISE
 """
 
-SYNTHETIC_FINDING_TEMPLATE = """Do not edit. Close this finding.
+SYNTHETIC_FINDING_TEMPLATE = """Audit the note body against the inquiry's declared dependencies.
 
-Reason: {reason}
+For each dep listed in the inquiry's `depends:` set, check whether the
+body redevelops claims, lemmas, or proofs that the foundation already
+establishes. Where redevelopment is found, replace it with explicit
+citation to the foundation (cite by ASN number and claim name).
+
+If a declared dep has no use site in the body after auditing, document
+why it is retained or flag for removal from `depends:`.
+
+Reason for this audit: {reason}
 """
 
 
@@ -77,8 +86,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         prog="invalidate-note",
         description=(
-            "Emit a synthetic review + finding to re-engage convergence "
-            "on a quiescent note."
+            "Emit a synthetic review + finding directing the reviser to "
+            "audit the note body against its declared dependencies."
         ),
     )
     parser.add_argument("asn", help="ASN number (e.g., 43, 0043, ASN-0043)")
@@ -126,7 +135,8 @@ def main() -> int:
         file=sys.stderr,
     )
     print(
-        f"  Next runner pass will fire note_revise → note_review on {asn_label}",
+        f"  Next runner pass will fire note_consult → note_revise → "
+        f"note_review on {asn_label}",
         file=sys.stderr,
     )
     return 0
