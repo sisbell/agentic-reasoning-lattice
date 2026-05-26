@@ -18,6 +18,10 @@ What must the caller supply?
 
 The caller does *not* — and cannot — specify the link's address or its V-position in the home document. Both are determined by the system from the current state.
 
+*Notation convention — `dom(M)` and `E_doc`.* ASN-0093 uses `dom(M)` for the set of allocated documents; ASN-0047 uses `E_doc` for the same set. In the combined substrate (ASN-0093 + ASN-0047), the two are identical at every reachable state: document registration occurs by K.σ (ASN-0093) or by K.δ in the IsDocument case (ASN-0047), each of which simultaneously enters `d` into both `dom(M)` and `E_doc`; and no transition removes a document from either set. Hence `d ∈ dom(M) ⟺ d ∈ E_doc` is a preserved invariant of the combined model. We use `dom(M)` throughout this ASN; ASN-0047 preconditions stated against `E_doc` — notably K.μ⁺_L's `d ∈ E_doc` — are discharged equivalently by membership in `dom(M)`.
+
+*Endsets and emptiness.* L3 (ASN-0043) requires the third slot `e₃` to be non-empty but imposes no non-emptiness constraint on the other slots. The empty endset `eᵢ = ∅` is a permitted boundary case for `i ≠ 3`: by the coverage definition, `coverage(∅) = ⋃_{(s,ℓ) ∈ ∅} … = ∅`, so an empty slot contributes nothing to any `project(ℓ, i, ·, ·)` and nothing to any LP12-based discoverability disjunct. The analysis below covers this case implicitly through the existential `(E i :: …)` in LP12: empty slots simply fail to witness, leaving the disjunction's truth value determined by the non-empty slots.
+
 ## Decomposition
 
 We observe that link creation must accomplish two distinct effects: (i) introduce the link into `dom(L)` with its value recorded, and (ii) make the link visible in the home document's arrangement. The substrate (ASN-0093, ASN-0047) provides exactly two atomic operations matching this division:
@@ -290,9 +294,11 @@ so `n = k_s + 2`. The "bound" column records TA5a's preservation precondition: a
 
 The chain satisfies every L1c clause: every `kᵢ ∈ {0, 1, 2}`, `k₁ = 2`, every `#tᵢ > #d`, and TA5a's per-step admissibility holds throughout — the `k = 2` step at position 1 against `zeros(d) = 2`, and the `k = 1` step at position 3 against `zeros(b_L(d)) = 3`. Zero counts saturate at 3 from t₁ onward, consistent with L1's `zeros(ℓ) = 3`.
 
+Both admissibility bounds *saturate exactly* — the `k = 2` step at position 1 with `zeros(d) = 2 = 2` (TA5a's `k = 2` limit) and the `k = 1` step at position 3 with `zeros(b_L(d)) = 3 = 3` (TA5a's `k = 1` limit) — leaving no slack in either direction. From the post-t₁ state with `zeros = 3`, no further `k = 2` step is admissible (would require `zeros ≤ 2`); from the post-t₃ state with `zeros = 3`, no further `k = 1` step is admissible (would require `zeros ≤ 3` — this bound is also at saturation but additional `k = 1` steps would drive `#E` and length beyond the structural target). Combined with TA5a's branching constraint (each step fixes one of `k ∈ {0, 1, 2}` with the precondition-permitted values determined by the current zero count), the chain `(d, b_C(d), b_L(d), t_1^L(d), …, ℓ)` is the *unique* structural inc-derivation of any `ℓ ∈ dom(L)` from its home document. L1c's existential conclusion ("there exists a chain") therefore tightens, for link addresses, to a canonical witness — every `ℓ ∈ dom(L)` has exactly one structural inc-derivation from `origin(ℓ)`.
+
 For the V-arrangement entry `v_ℓ ↦ ℓ`:
 
-  S2:       M'(d) remains a partial function                      v_ℓ ∉ dom(Σ.M(d)) by K.μ⁺_L positioning + D-SEQ★ at Σ (V_{s_L}(d) = {[s_L, k] : 1 ≤ k ≤ n_L}, v_ℓ = [s_L, n_L + 1] outside this set), so v_ℓ enters dom(M'(d)) fresh, preserving functionality of M'(d)
+  S2:       M'(d) remains a partial function                      v_ℓ ∉ dom(Σ.M(d)) by the two-part argument below; v_ℓ enters dom(M'(d)) fresh, preserving functionality of M'(d)
   S3★:      image of v_ℓ is ℓ ∈ dom(L'), subspace(v_ℓ) = s_L     direct from the effect
   S3★-aux:  subspace(v_ℓ) = s_L ∈ {s_C, s_L}                      direct from the effect
   S8a:      zeros(v_ℓ) = 0, #v_ℓ = 2 ≥ 2, components all > 0      v_ℓ = [s_L, k] with s_L = 2 > 0, k ≥ 1
@@ -304,6 +310,12 @@ For the V-arrangement entry `v_ℓ ↦ ℓ`:
   D-MIN★:   v_ℓ at minimum if empty                               K.μ⁺_L positioning rule (depth 2)
   D-CTG★:   extension is contiguous                               K.μ⁺_L positioning rule
   D-SEQ★:   V_{s_L}(d') is contiguous initial segment             see below
+
+For S2: we must show `v_ℓ ∉ dom(Σ.M(d))`, not merely `v_ℓ ∉ V_{s_L}(d)`. By S3★-aux at `Σ`, `dom(Σ.M(d)) = V_{s_C}(d) ∪ V_{s_L}(d)`, so the obligation splits into two exclusions:
+- *Within-subspace exclusion:* `v_ℓ ∉ V_{s_L}(d)`. By D-SEQ★ at `Σ`, `V_{s_L}(d) = {[s_L, k] : 1 ≤ k ≤ n_L}`; K.μ⁺_L's positioning rule sets `v_ℓ = [s_L, n_L + 1]` (or `[s_L, 1]` when `n_L = 0`), which lies outside this set by the strict inequality `n_L + 1 > n_L` (resp. by the emptiness of the set when `n_L = 0`).
+- *Cross-subspace exclusion:* `v_ℓ ∉ V_{s_C}(d)`. By construction `(v_ℓ)₁ = s_L`, while by S8a every `v ∈ V_{s_C}(d)` has `(v)₁ = s_C`. By SC-NEQ (ASN-0093), `s_L ≠ s_C`, so `v_ℓ ≠ v` for every `v ∈ V_{s_C}(d)`.
+
+Combining the two exclusions, `v_ℓ ∉ V_{s_C}(d) ∪ V_{s_L}(d) = dom(Σ.M(d))`, discharging S2. ✓
 
 For D-SEQ★: by D-SEQ★ at `Σ`, `V_{s_L}(d) = {[s_L, k] : 1 ≤ k ≤ n_L}` for some `n_L ≥ 0` (with `n_L = 0` meaning the link subspace at `d` is empty). If `n_L = 0`, the K.μ⁺_L positioning rule gives `v_ℓ = [s_L, 1]`, so `V_{s_L}(d') = {[s_L, 1]}` — a contiguous initial segment of length 1. If `n_L ≥ 1`, the rule gives `v_ℓ = shift([s_L, n_L], 1) = [s_L, n_L + 1]`, so `V_{s_L}(d') = {[s_L, k] : 1 ≤ k ≤ n_L + 1}` — a contiguous initial segment of length `n_L + 1`. Either way, the post-state set conforms to D-SEQ★. ✓
 
