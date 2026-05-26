@@ -134,7 +134,13 @@ The abstract guarantee is sharper than the "outside the strap" metaphor: the pro
 
 **LP7 — Link-Allocation Invariance**: The K.λ operation modifies only `Σ.L`; its frame is `(A d :: M'(d) = M(d))`, and K.λ preserves `dom(Σ.M)`. By LP4 applied to every `d ∈ dom(Σ.M) = dom(Σ'.M)`, `project(e, d, Σ') = project(e, d, Σ)` for every endset `e` and every such `d`. Creating a new link cannot retroactively affect the projection of any other link.
 
-**LP8 — Entity-Registration Invariance**: K.σ (document registration) extends `dom(Σ.M)` by adding a fresh document `d_new` with `M'(d_new) = ∅` and preserves all existing arrangements. For every endset `e` and every `d ∈ dom(Σ.M)` (the pre-state domain), `project(e, d, Σ') = project(e, d, Σ)` by LP4. The newly created `d_new` has `project(e, d_new, Σ') = ∅` since `dom(Σ'.M(d_new)) = ∅`.
+**LP8 — Entity-Registration Invariance**: For any K.σ transition `Σ → Σ'` registering a fresh document `d_new` (with `d_new ∉ dom(Σ.M)`, `dom(Σ'.M) = dom(Σ.M) ∪ {d_new}`, `Σ'.M(d_new) = ∅`, and `Σ'.M(d) = Σ.M(d)` for every `d ∈ dom(Σ.M)`) and any endset `e`, both:
+
+(a) Pre-state preservation: `(A d ∈ dom(Σ.M) :: project(e, d, Σ') = project(e, d, Σ))`.
+
+(b) Newly-registered emptiness: `project(e, d_new, Σ') = ∅`.
+
+Postcondition (a) follows by LP4 applied to each `d ∈ dom(Σ.M)`: the K.σ frame holds `Σ'.M(d) = Σ.M(d)` for every such `d`. Postcondition (b) follows from the definition of `project`: with `d_new ∈ dom(Σ'.M)` (so the projection is defined) and `dom(Σ'.M(d_new)) = ∅`, the set comprehension `{v ∈ dom(Σ'.M(d_new)) : Σ'.M(d_new)(v) ∈ coverage(e)}` ranges over the empty domain and is empty. Both postconditions are commitments — LP18 (resurrection) requires the well-defined empty projection through a newly-registered document until a K.μ⁺ or K.μ⁺_L fires; (a) and (b) together establish that no displacement occurs at K.σ time, neither at pre-existing documents nor at the new one.
 
 *Remark on K.δ.* ASN-0047 includes K.δ as a unified entity-creation operation spanning nodes, accounts, and documents. The K.δ-IsNode and K.δ-IsAccount cases have frame `(A d :: M'(d) = M(d))` — no arrangement is modified — so LP4 applied to every `d ∈ dom(Σ.M) = dom(Σ'.M)` yields projection invariance. The K.δ-IsDocument case creates a new document `d_new` with `M'(d_new) = ∅`, which is the same scenario as LP8 above; in this ASN's reference frame K.σ (ASN-0093) is the document-registration operation, and K.δ-IsDocument is subsumed by the LP8 argument. Each K.δ kind therefore reduces to either LP4 or LP8, and no separate displacement claim is required.
 
@@ -226,9 +232,16 @@ discoverable_from(a, d, Σ) ⟺ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).
 
 Direct from definitions. Per-slot first: `v ∈ project(a, i, d, Σ)` requires `Σ.M(d)(v) ∈ coverage(Σ.L(a).eᵢ)`, which requires some I-address in the coverage to be in the range. Conversely, any I-address `a*` in `coverage(eᵢ) ∩ ran(Σ.M(d))` is reached by some `v ∈ dom(Σ.M(d))` with `Σ.M(d)(v) = a*`, and that `v` lies in `project(a, i, d, Σ)`. This gives the per-slot biconditional `project(a, i, d, Σ) ≠ ∅ ⟺ coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅`. Lifting existentially over `i ∈ {1, …, |Σ.L(a)|}` preserves the biconditional: `(E i : project(a, i, d, Σ) ≠ ∅) ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)`. Unfolding the left-hand side via the `discoverable_from` definition completes the biconditional.
 
-**LP13 — PartialSurvival**: A link's discoverability from `d` requires only that *some* I-address from *some* endset persist in `d`'s range. The link survives deletion as long as the deletion does not exhaust the coverage-range intersection of every slot. The link continues to exist in `dom(Σ.L)` (by L12, ASN-0043) regardless of arrangement state; only its *navigational usability from `d`* depends on the coverage-range intersection.
+The phrase "anything is left at each end" can now be stated formally: discoverability from `d` requires that, for at least one slot `i`, `coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅`. For mere existence of the link, nothing is required at all — this is the substantive content of the next claim.
 
-The phrase "anything is left at each end" can now be stated formally: discoverability from `d` requires that, for at least one slot `i`, `coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅`. For mere existence of the link, nothing is required at all.
+**LP13 — UnconditionalLinkPersistence**: For every reachable state sequence `Σ →* Σ'` and every link `a ∈ dom(Σ.L)`:
+```
+a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)
+```
+
+The conclusion holds independently of `Σ.M`, `Σ'.M`, `dom(Σ.M)`, `dom(Σ'.M)`, and any document's range. By L12 (ASN-0043) applied step-wise along the sequence, the link's address persists and its endset sequence is byte-identical at every intermediate state. The hypothesis `a ∈ dom(Σ.L)` is the only requirement; the conclusion never consults whether `a` is discoverable from any document.
+
+The architectural separation LP13 commits to is that *storage* and *navigability* are independently regulated. LP12 characterises when a link is discoverable (a property of `coverage ∩ ran`); LP13 says the link's stored object persists regardless (a property of `Σ.L` alone). In particular: an orphaned link (LP17, having empty coverage-range intersection in every document at `Σ'`) and a discoverable link are stored identically in `Σ'.L`; the architecture distinguishes them only at the navigability layer. The "anything is left at each end" condition characterises navigability from `d`, not the link's existence. A link holder can rely on the stored object permanently; the holder cannot rely on discoverability from any particular document without further conditions on that document's arrangement (LP9–LP11 govern how those conditions evolve).
 
 ## Discovery Independence of Origin
 
@@ -282,6 +295,8 @@ We formalise the "boundary insertion does not extend the link" property by isola
 
 By ASN-0093, every K.α/K.λ-allocated address is a chain element of some sub-allocator `A_C(d)` or `A_L(d)`, with structural form `[d, 0, s_C, k]` (resp. `[d, 0, s_L, k]`) for some T4-valid document tumbler `d` (i.e., `d ∈ T` with `zeros(d) = 2`) and some `k ≥ 1`. We do not require `d ∈ dom(Σ_e.M)` — future K.σ transitions can register additional documents whose chains then become active, and the tightness condition must guard against those too. The set of *substrate-emittable addresses* is the union of all such chain elements across all T4-valid document tumblers and both subspaces; we denote it `F`. An address outside `F` cannot be the target of any K.α/K.λ emission.
 
+`F` is countably infinite. By T0(a) and T0(b) of ASN-0034, the set of T4-valid document tumblers is itself infinite (component values are unbounded and tumbler length is unbounded), and each contributes a countably infinite chain in each of the two subspaces. The universal quantifier `(A t ∈ F : s ≤ t < s ⊕ ℓ : …)` in the tightness predicate therefore ranges over an infinite domain. Nonetheless, the quantifier is decidable by structural analysis: each candidate `t ∈ F` has the determinate form `[d, 0, s, k]` for T4-valid `d`, subspace `s ∈ {s_C, s_L}`, and `k ≥ 1`, and the bounded constraint `s ≤ t < s ⊕ ℓ` reduces to a finite case split on these structural components under T1 comparison. The proofs that follow consult `F` only through structural analysis of candidate forms, never via enumeration; for any specific span `(s, ℓ)`, only those `(d, s, k)` triples whose lex position falls within the interval need be examined.
+
 An endset `e` is *tight at state `Σ_e`* iff every span `(s, ℓ) ∈ e` satisfies:
 ```
 s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)  ∧  (A t ∈ F : s ≤ t < s ⊕ ℓ : t ∈ dom(Σ_e.C) ∪ dom(Σ_e.L))
@@ -289,7 +304,21 @@ s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)  ∧  (A t ∈ F : s ≤ t < s ⊕ ℓ : t ∈
 
 The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state.
 
-*Achievability.* The non-empty case is reached by the canonical construction: span endpoints drawn from currently-allocated content, with reach at or before the relevant chain's next emission point. For a span on `A_C(d_0)`'s chain with currently-allocated maximum at chain index `m`, choosing `s ⊕ ℓ ≤ inc(t_m^C(d_0), 0)` makes the span tight — chain elements with index `> m` lie at or above `inc(t_m^C(d_0), 0)` by ChainEnumerationInjectivity (T10a.7, ASN-0093), so none fall in `[s, s ⊕ ℓ)`. Cross-chain interference is automatically excluded: by T10 (PartitionIndependence, ASN-0034), chain elements of `A_sub'(d')` for `d'` non-nesting with `d_0` differ from `s` at the document-prefix position and so do not fall in `[s, s ⊕ ℓ)` for spans confined to a single document's subspace.
+*Achievability.* The non-empty case is reached by the canonical construction: span endpoints drawn from currently-allocated content, with reach at or before the relevant chain's next emission point. For a span on `A_C(d_0)`'s chain with currently-allocated maximum at chain index `m`, choosing `s ⊕ ℓ ≤ inc(t_m^C(d_0), 0)` makes the span tight — chain elements with index `> m` lie at or above `inc(t_m^C(d_0), 0)` by ChainEnumerationInjectivity (T10a.7, ASN-0093), so none fall in `[s, s ⊕ ℓ)`. Cross-chain interference splits into two cases by the prefix relation between document tumblers.
+
+*Non-nesting documents.* By T10 (PartitionIndependence, ASN-0034), chain elements of `A_sub'(d')` for `d'` non-nesting with `d_0` differ from `s` at the document-prefix position and so do not fall in `[s, s ⊕ ℓ)` for spans confined to a single document's subspace.
+
+*Nesting documents.* The remaining case is documents `d'` standing in a proper prefix relation `d_0 ≺ d'`. By the K.δ rules for document allocation (ASN-0047), the only way to obtain a T4-valid document with `d_0 ≺ d'` is via the version sub-allocator, i.e. a chain of `inc(_, 1)` steps from `d_0`. Each such step appends a single non-zero component at the next position. Concretely, `d' = inc(d_0, 1)` gives `d' = d_0.1` (with positions `1..#d_0` agreeing with `d_0` by TA5(b), position `#d_0+1` equal to `1` by TA5(d), and `#d' = #d_0 + 1`); chains of further version steps append additional non-zero components without introducing new zeros. Chain elements of `A_C(d')` (resp. `A_L(d')`) therefore have the form `[d_0, x_1, x_2, …, x_q, 0, s_C, k]` with each `x_i ≥ 1` and `q ≥ 1`. Compare with `s = [d_0, 0, s_C, 1]` and `s ⊕ ℓ = [d_0, 0, s_C, ℓ_{#s}+1]` (since `ℓ` is an ordinal displacement at the chain's element position by C0, ASN-0058): at position `#d_0 + 1` the chain element of `A_sub'(d')` has value `x_1 ≥ 1`, while both `s` and `s ⊕ ℓ` have value `0` (positions ≤ `#s` of `s` and `s ⊕ ℓ` agree in the prefix-copy region of TumblerAdd, since the action point `k = #s` of `ℓ` lies at the last position). By T1 case (i) at the divergence position `#d_0 + 1`, the chain element of `A_sub'(d')` exceeds `s ⊕ ℓ` — and thus lies above the interval `[s, s ⊕ ℓ)`. This argument extends inductively to descendants of `d'` (further version chains), whose chain elements diverge at position `#d_0 + 1` for exactly the same reason. Tightness is therefore preserved against every document at every depth of the version sub-allocator tree rooted at `d_0`.
+
+*Worked numerical example.* Let `d` be a T4-valid document with `s_C = 1`. Suppose `A_C(d)` has emitted three chain elements at the current state `Σ_e`:
+```
+t_1^C(d) = [d.0.1.1],  t_2^C(d) = [d.0.1.2],  t_3^C(d) = [d.0.1.3]   — all in dom(Σ_e.C)
+```
+The next chain element (not yet emitted) is `t_4^C(d) = [d.0.1.4]`; subsequent elements are `t_5^C(d) = [d.0.1.5]`, and so on.
+
+*Tight example.* Construct the endset `e = {(s, ℓ)}` with `s = [d.0.1.1]` and `ℓ = δ(3, 4) = [0, 0, 0, 3]` — a displacement at depth 4 advancing the final component by 3. Then `s ⊕ ℓ = [d.0.1.4]`, and `coverage(e) = {t ∈ T : [d.0.1.1] ≤ t < [d.0.1.4]}`. The substrate-emittable addresses in `[s, s ⊕ ℓ)` are exactly `t_1^C(d), t_2^C(d), t_3^C(d)` (chain elements of `A_C(d)` with index in `{1, 2, 3}`; index `≥ 4` is excluded by the half-open upper bound `< [d.0.1.4]`, and cross-document chain elements are excluded by the non-nesting and nesting arguments above). All three are in `dom(Σ_e.C)`, so the tightness condition holds: `e` is tight at `Σ_e`. Now suppose a K.α transition fires next on `A_C(d)`, producing `a_new = t_4^C(d) = [d.0.1.4]`. By half-open semantics, `a_new = s ⊕ ℓ ∉ [s, s ⊕ ℓ) = coverage(e)` — LP19a holds, and any subsequent K.μ⁺ mapping a V-position to `a_new` does not extend the projection of `e` (LP19).
+
+*Non-tight contrast.* Construct instead `e' = {(s, ℓ')}` with the same `s = [d.0.1.1]` but `ℓ' = δ(4, 4) = [0, 0, 0, 4]`. Then `s ⊕ ℓ' = [d.0.1.5]`, and `coverage(e') = {t ∈ T : [d.0.1.1] ≤ t < [d.0.1.5]}`. The substrate-emittable addresses in this interval are `t_1^C(d), t_2^C(d), t_3^C(d), t_4^C(d)`. At `Σ_e`, `t_4^C(d) ∈ F` but `t_4^C(d) ∉ dom(Σ_e.C)` — so the tightness condition's second conjunct fails on the witness `t_4^C(d) ∈ F ∩ [s, s ⊕ ℓ')`. The endset `e'` is *not* tight at `Σ_e`. After K.α fires producing `a_new = t_4^C(d) = [d.0.1.4]`, we have `a_new ∈ [s, s ⊕ ℓ') = coverage(e')`. If a subsequent K.μ⁺ maps a V-position `v_new` to `a_new`, then `v_new` enters `project(e', d, ·)` by LP9 — boundary insertion extends the (non-tight) reach. The single integer-component difference between `ℓ = δ(3, 4)` and `ℓ' = δ(4, 4)` is the entire difference between tight construction and a span whose reach extends past the current emission frontier; the architecture admits both, but only the first is immune to absorbing fresh allocations.
 
 We separate two claims: first, that fresh allocations cannot enter a tight endset's coverage; second, that the consequent K.μ⁺/K.μ⁺_L step cannot grow the projection by the resulting V-position.
 
@@ -389,13 +418,15 @@ project(a, 1, d₂, Σ_2) = {w₁}
 
 The link is now discoverable from both `d₁` (where the projection is `{v₁, v₂, v₃}` reaching `{i₁, i₂, i₃}`) and `d₂` (where the projection is `{w₁}` reaching `{i₄}`). Together the two projections reach the four traced I-addresses `{i₁, i₂, i₃, i₄}` — the entirety of `coverage(e₁)` that bears on these documents' ranges — despite no single document containing all four.
 
+*Branch point — alternative continuation from `Σ_1`.* The next step does *not* follow `Σ_2`. We return to `Σ_1` (the post-K.μ⁻ state, before any `d₂` registration) and explore a separate continuation that isolates K.μ~ behaviour. In this branch, `d₂` is never introduced; `dom(Σ_1.M)` retains its pre-`Σ_2` membership. We rename the post-K.μ~ state `Σ_3` to flag that it is a sibling of `Σ_2` under `Σ_1`, not a successor of `Σ_2`.
+
 To exhibit projection motion clearly under K.μ~, consider slot 2 of the link, with endset `e₂` chosen so that `coverage(e₂) ∩ ran(Σ_1.M(d₁)) = {i₁}` — only the I-address `i₁` from `d₁`'s current range lies in this slot's coverage (admissible by L4 of ASN-0043, which imposes no constraint on which I-addresses an endset references; for trace clarity we follow only the intersection with `d₁`'s range, since by LP12 that intersection is what governs projection through `d₁`). At `Σ_1`:
 ```
 project(a, 2, d₁, Σ_1) = {v₁}
 ```
 — a strict subset of `dom(Σ_1.M(d₁)) = {v₁, v₂, v₃}`, because among the V-positions of `Σ_1.M(d₁)` only `v₁` maps to an I-address in `coverage(e₂)`.
 
-Now apply K.μ~ to `d₁` via a bijection `π` that permutes the V-positions, fixing `dom(Σ_1.M(d₁))` setwise (per K.μ~-FIX of ASN-0047):
+Now (still in this alternative branch from `Σ_1`) apply K.μ~ to `d₁` via a bijection `π` that permutes the V-positions, fixing `dom(Σ_1.M(d₁))` setwise (per K.μ~-FIX of ASN-0047). The K.μ~ operates on the `Σ_1`-state arrangement directly, so the references to `Σ_1.M(d₁)` on both sides of the bijection equation point to the same source state:
 ```
 π(v₁) = v₃, π(v₂) = v₂, π(v₃) = v₁
 Σ_3.M(d₁) = {v₃ ↦ i₁, v₂ ↦ i₂, v₁ ↦ i₃}
@@ -407,7 +438,7 @@ The slot-2 projection moves: it was `{v₁}` at `Σ_1`, it is `{v₃}` at `Σ_3`
 
 Per LP11, both projections' V-positions are permuted by `π`, and the set of I-addresses reached is unchanged within each slot. The link "followed its content" through the reordering.
 
-At no point during this trace did the link itself change. The link's address, endsets, coverage, and slot ordering remained byte-identical from `Σ` through `Σ_3`. What displaced was the projection, and the displacement was entirely a function of the operations applied to the documents' arrangements.
+At no point during either branch of this trace did the link itself change. The link's address, endsets, coverage, and slot ordering remained byte-identical from `Σ` through `Σ_2` (the transclusion branch) and from `Σ` through `Σ_3` (the reordering branch). What displaced was the projection, and the displacement was entirely a function of the operations applied to the documents' arrangements.
 
 ## Claims Introduced
 
@@ -423,14 +454,14 @@ At no point during this trace did the link itself change. The link's address, en
 | LP5 | Cross-document independence: projection through `d` unaffected by edits to `d' ≠ d` (frames over K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~) | introduced |
 | LP6 | K.α (content allocation) does not displace any projection | introduced |
 | LP7 | K.λ (link allocation) does not displace existing projections | introduced |
-| LP8 | K.σ (document registration) does not displace existing projections | introduced |
+| LP8 | K.σ (document registration): (a) `(A d ∈ dom(Σ.M) : project(e, d, Σ') = project(e, d, Σ))`; (b) `project(e, d_new, Σ') = ∅` | introduced |
 | LP14 | K.ρ (provenance recording) does not displace any projection | introduced |
 | LP9 | K.μ⁺ and K.μ⁺_L can only enlarge projection; new V-positions come from new arrangement entries | introduced |
 | LP10 | K.μ⁻ can only shrink projection; lost V-positions come from removed arrangement entries | introduced |
 | LP11 | K.μ~ rebinds projection: `project(e, d, Σ') = π(project(e, d, Σ))` via bijection π | introduced |
 | discoverable_from | `discoverable_from(a, d, Σ) ≡ (E i : project(a, i, d, Σ) ≠ ∅)` (defined when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`) | introduced |
 | LP12 | `discoverable_from(a, d, Σ) ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)` | introduced |
-| LP13 | Partial survival: discoverability requires only that some I-address in some slot's coverage-range intersection remain | introduced |
+| LP13 | Unconditional link persistence: `Σ →* Σ' ∧ a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)` — independent of any discoverability | introduced |
 | LP16 | Transclusion confers discoverability: shared I-addresses transfer discoverability across documents | introduced |
 | LP17 | Ghost projection: orphaned links persist in `dom(Σ.L)` with empty projections everywhere | introduced |
 | LP18 | Resurrection: re-introducing a coverage I-address via K.μ⁺ or K.μ⁺_L restores discoverability | introduced |
