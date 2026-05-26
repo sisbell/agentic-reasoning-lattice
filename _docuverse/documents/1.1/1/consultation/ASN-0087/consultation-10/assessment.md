@@ -1,7 +1,6 @@
-# Revision Categorization — ASN-0063 review-10
+# Channel Assignment — ASN-0087 review-10
 
-**Date:** 2026-03-21 21:11
+**Date:** 2026-05-26 14:00
 
-## Issue 1: Incorrect disjointness claim for CL0 I-spans from different-depth blocks
-Category: INTERNAL
-Reason: The review identifies exactly what's wrong (over-broad claim, wrong citation) and specifies exactly what the correction should be — different-origin disjointness justified by T10/T4/T1 instead of different-depth disjointness. All necessary definitions and theorems are already present in the ASN and its dependencies.
+## Issue 1: L1c uniqueness argument for k₁ = 1 has incorrect reasoning
+Reason: Pure proof-structural fix. The reviewer has already supplied the corrected origin-based argument, which uses only `inc`/TA5 semantics (ASN-0034) and the definition of `origin(·)` (ASN-0093) — both already cited dependencies. No design-intent or implementation evidence needed.
