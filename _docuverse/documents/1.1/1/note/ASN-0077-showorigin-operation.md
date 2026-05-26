@@ -128,7 +128,7 @@ This is what Nelson means when he insists attribution is *unstrippable within th
 
 Suppose content was allocated in document `d₁`. Document `d₂` transcludes it; `d₃` transcludes from `d₂`; this continues to `dₙ`. A reader of `dₙ` asks SHOWORIGIN. What does it return?
 
-Because each transclusion is by reference rather than copy, the I-address recorded in every intermediate document's arrangement is the *same* — it points to the bytes baptised by `d₁`. Each intermediate document `d₂, d₃, ..., d_{n-1}` holds an arrangement entry mapping its own V-positions to this single I-address, but the address does not change as it propagates. The substantive claim is therefore not that origin is computable from `a` alone — that was already O3 — but that *each intermediate document's arrangement independently records the same `a`*, and any of these arrangements can be queried with the same result:
+Because each transclusion is by reference rather than copy, the I-address recorded in every intermediate document's arrangement is the *same* — it points to the bytes baptised by `d₁`. The mechanism is foundation: K.μ⁺ (ArrangementExtension, ASN-0047) admits any allocated I-address `a ∈ dom(C)` as a transclusion target — including foreign ones allocated by another document — and J4 (ForkComposite, ASN-0047) propagates I-address ranges through forks by the range-inclusion guarantee `ran(M'(d_new)) ⊆ ran(M(d_src)|_{V_{s_C}(d_src)})`; together they realize O4's hypothesis along any chain of transclusion operations, since each intermediate document's K.μ⁺ extension or fork records exactly the original I-address `a` rather than a copy. Each intermediate document `d₂, d₃, ..., d_{n-1}` therefore holds an arrangement entry mapping its own V-positions to this single I-address, but the address does not change as it propagates. The substantive claim is therefore not that origin is computable from `a` alone — that was already O3 — but that *each intermediate document's arrangement independently records the same `a`*, and any of these arrangements can be queried with the same result:
 
 **Claim O4 (Parallel witnesses to a single origin).** *Suppose `a ∈ dom(Σ.C)` with `origin(a) = d₁`, and suppose `d₂, d₃, ..., dₙ` are distinct documents each holding a V-position `vᵢ ∈ dom(M(dᵢ))` with `M(dᵢ)(vᵢ) = a` (for `2 ≤ i ≤ n`). Then for every `i ∈ {2, ..., n}`:*
 
@@ -168,19 +168,47 @@ The V-span lift is more nuanced. `origins_V(Σ, d, σ)` depends on the arrangeme
 
 *Derivation.* By (F1), `origins_V(Σ, d, σ) = { origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d)) }`. (1) The frame condition `M'(d) ↾ ⟦σ⟧ = M(d) ↾ ⟦σ⟧` gives `dom(M'(d) ↾ ⟦σ⟧) = dom(M(d) ↾ ⟦σ⟧)`; that is, `⟦σ⟧ ∩ dom(M'(d)) = ⟦σ⟧ ∩ dom(M(d))`. The two indexing sets are identical. (2) For each `v` in the common indexing set, the function values agree: `M'(d)(v) = M(d)(v)`. (3) Let `a = M(d)(v) = M'(d)(v)`. By S3★ (ASN-0047), `a ∈ dom(Σ.C) ∪ dom(Σ.L)`. (4) P3 (ArrangementMutabilityOnly, ASN-0047) — `dom(C) ⊆ dom(C')` and `dom(L) ⊆ dom(L')` — gives `a ∈ dom(Σ'.C) ∪ dom(Σ'.L)`. (5) By O5, `origin'(a) = origin(a)`. (6) Hence `origin'(M'(d)(v)) = origin(M(d)(v))` for every `v` in the common indexing set. (7) The two sets `origins_V(Σ', d, σ)` and `origins_V(Σ, d, σ)` are constructed by applying the same operation to the same data, and therefore coincide. ∎
 
-The complementary case strengthens this for arrangement *extensions*: when `M(d)` grows by K.μ⁺, the reported origins are non-decreasing. The argument parallels O6, with K.μ⁺'s mapping-preservation clause taking the place of P0's content-preservation clause.
+The complementary case yields a parallel *preservation* result for arrangement *extensions*: when `M(d)` grows by K.μ⁺ and the V-span σ is well-formed at the pre-state, the reported origins are exactly preserved — not merely non-decreasing. The (⊆) direction parallels O6 (via K.μ⁺'s mapping preservation); the (⊇) direction requires case-analysis showing that newly-added V-positions cannot simultaneously satisfy σ's level-uniformity (C0a) and well-formedness condition (vi).
 
-**Claim O11 (V-span monotonic growth under K.μ⁺).** *For any reachable K.μ⁺ transition `Σ → Σ'` extending `M(d)` and any V-span `σ` over `d`: `origins_V(Σ, d, σ) ⊆ origins_V(Σ', d, σ)`.*
+**Claim O11 (V-span preservation under K.μ⁺).** *For any reachable K.μ⁺ transition `Σ → Σ'` extending `M(d)` and any V-span `σ` over `d` satisfying the SHOWORIGIN_V well-formedness preconditions at Σ — in particular precondition (vi), `{v ∈ T : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d))`: `origins_V(Σ, d, σ) = origins_V(Σ', d, σ)`.*
 
-*Derivation.* Fix `o ∈ origins_V(Σ, d, σ)`. By (F1), there exists `v ∈ ⟦σ⟧ ∩ dom(M(d))` with `origin(M(d)(v)) = o`. (1) K.μ⁺ (ArrangementExtension, ASN-0047) extends `dom(M(d)) ⊆ dom(M'(d))` while preserving existing mappings: `(A v : v ∈ dom(M(d)) : M'(d)(v) = M(d)(v))`. Hence `v ∈ dom(M'(d))` and `M'(d)(v) = M(d)(v)`. (2) Since `⟦σ⟧` is state-independent (ASN-0053), `v ∈ ⟦σ⟧ ∩ dom(M'(d))`. (3) Let `a = M(d)(v) = M'(d)(v)`. By S3★ (ASN-0047), `a ∈ dom(C) ∪ dom(L)`. (4) By O5, `origin'(a) = origin(a) = o`. (5) Hence `o ∈ origins_V(Σ', d, σ)`. ∎
+*Derivation.* We show inclusion in both directions.
 
-The link-subspace extension K.μ⁺_L is a formally distinct transition with its own precondition (`ℓ ∈ dom(L)`, `origin(ℓ) = d`, `ℓ ∉ ran(M(d))`) and effect (adding a single fresh V-position `v_ℓ`). We state its parallel claim separately rather than as a parenthetical note, so that downstream proofs needing arrangement-extension monotonicity under K.μ⁺_L can cite a labeled result.
+(⊆): Fix `o ∈ origins_V(Σ, d, σ)`. By (F1), there exists `v ∈ ⟦σ⟧ ∩ dom(M(d))` with `origin(M(d)(v)) = o`. (1) K.μ⁺ (ArrangementExtension, ASN-0047) extends `dom(M(d)) ⊆ dom(M'(d))` while preserving existing mappings: `(A v : v ∈ dom(M(d)) : M'(d)(v) = M(d)(v))`. Hence `v ∈ dom(M'(d))` and `M'(d)(v) = M(d)(v)`. (2) Since `⟦σ⟧` is state-independent (ASN-0053), `v ∈ ⟦σ⟧ ∩ dom(M'(d))`. (3) Let `a = M(d)(v) = M'(d)(v)`. By S3★ (ASN-0047), `a ∈ dom(C) ∪ dom(L)`. (4) By O5, `origin'(a) = origin(a) = o`. (5) Hence `o ∈ origins_V(Σ', d, σ)`.
 
-**Claim O11' (V-span monotonic growth under K.μ⁺_L).** *For any reachable K.μ⁺_L transition `Σ → Σ'` extending `M(d)` and any V-span `σ` over `d`: `origins_V(Σ, d, σ) ⊆ origins_V(Σ', d, σ)`.*
+(⊇): Fix `o ∈ origins_V(Σ', d, σ)`. By (F1), there exists `v ∈ ⟦σ⟧ ∩ dom(M'(d))` with `origin(M'(d)(v)) = o`. Two cases.
 
-*Derivation.* Fix `o ∈ origins_V(Σ, d, σ)`. By (F1), there exists `v ∈ ⟦σ⟧ ∩ dom(M(d))` with `origin(M(d)(v)) = o`. (1) K.μ⁺_L (LinkSubspaceExtension, ASN-0047) has effect `M'(d) = M(d) ∪ {v_ℓ ↦ ℓ}` with `dom(M'(d)) = dom(M(d)) ∪ {v_ℓ} ⊃ dom(M(d))`. The strict containment asserted in the effect axiom forces `v_ℓ ∉ dom(M(d))` directly — equality of `dom(M(d)) ∪ {v_ℓ}` with `dom(M(d))` would collapse the union and contradict strictness — so the freshness of `v_ℓ` need not be re-derived from the V-position construction. The effect therefore preserves `M(d)(v)` at every prior `v ∈ dom(M(d))`: in particular `v ∈ dom(M'(d))` and `M'(d)(v) = M(d)(v)`. (2) Since `⟦σ⟧` is state-independent (ASN-0053), `v ∈ ⟦σ⟧ ∩ dom(M'(d))`. (3) Let `a = M(d)(v) = M'(d)(v)`. By S3★ (ASN-0047), `a ∈ dom(C) ∪ dom(L)`. (4) By O5, `origin'(a) = origin(a) = o`. (5) Hence `o ∈ origins_V(Σ', d, σ)`. ∎
+*Case (i): `v ∈ dom(M(d))`.* Then by K.μ⁺'s mapping preservation, `M'(d)(v) = M(d)(v)`. Hence `v ∈ ⟦σ⟧ ∩ dom(M(d))` with `origin(M(d)(v)) = o`, so `o ∈ origins_V(Σ, d, σ)`.
 
-O11 and O11' together cover every arrangement-extending transition. The non-extension transitions behave differently: under K.μ⁻ (contraction) the inclusion can fail by loss of admissibility, and under K.μ~ (reordering) by mapping reassignment — both are exhibited concretely in the worked example below.
+*Case (ii): `v ∈ dom(M'(d)) ∖ dom(M(d))`.* We show this case is impossible. By KMuPlusContentSubspaceRestriction (ASN-0047), every newly added V-position has `subspace(v) = s_C`. By precondition (v) of SHOWORIGIN_V, σ is level-uniform with common depth `m ≥ 2` (the bound inherited from S8a, ASN-0036). Two sub-cases by `subspace(u)`:
+
+*Sub-case (a): `subspace(u) = s_C`.* By S8-depth (ASN-0036) on `d`'s content subspace, every position in `V_{s_C}(d) ⊆ dom(M'(d))` shares the common depth — equal to `m` by precondition (v)'s definition of `m` as `d`'s common depth in subspace `u₁ = s_C`. Hence `#v = m`. Combined with `v ∈ ⟦σ⟧` (which unfolds to `u ≤ v < reach(σ)`), precondition (vi) at Σ gives `v ∈ dom(M(d))`, contradicting `v ∉ dom(M(d))`.
+
+*Sub-case (b): `subspace(u) = s_L`.* By C0a (PrefixConfinement, ASN-0058) applied to level-uniform σ with `m ≥ 2`, every `t ∈ ⟦σ⟧` satisfies `t_1 = u_1 = s_L`. But the newly added position has `subspace(v) = s_C ≠ s_L` (by SC-NEQ, ASN-0047). So `v ∉ ⟦σ⟧`, contradicting `v ∈ ⟦σ⟧ ∩ dom(M'(d))`.
+
+Both sub-cases yield contradictions, so case (ii) is impossible. Hence every `o ∈ origins_V(Σ', d, σ)` is in `origins_V(Σ, d, σ)`. Combined with (⊆), the two sets are equal. ∎
+
+The link-subspace extension K.μ⁺_L is a formally distinct transition with its own precondition (`ℓ ∈ dom(L)`, `origin(ℓ) = d`, `ℓ ∉ ran(M(d))`) and effect (adding a single fresh V-position `v_ℓ`). We state its parallel claim separately rather than as a parenthetical note, so that downstream proofs needing arrangement-extension preservation under K.μ⁺_L can cite a labeled result.
+
+**Claim O11' (V-span preservation under K.μ⁺_L).** *For any reachable K.μ⁺_L transition `Σ → Σ'` extending `M(d)` and any V-span `σ` over `d` satisfying the SHOWORIGIN_V well-formedness preconditions at Σ: `origins_V(Σ, d, σ) = origins_V(Σ', d, σ)`.*
+
+*Derivation.* We show inclusion in both directions.
+
+(⊆): K.μ⁺_L (LinkSubspaceExtension, ASN-0047) has effect `M'(d) = M(d) ∪ {v_ℓ ↦ ℓ}` with `dom(M'(d)) = dom(M(d)) ∪ {v_ℓ} ⊃ dom(M(d))`. The strict containment forces `v_ℓ ∉ dom(M(d))` directly — equality of `dom(M(d)) ∪ {v_ℓ}` with `dom(M(d))` would collapse the union and contradict strictness — so the effect preserves `M(d)(v)` at every prior `v ∈ dom(M(d))`. Fix `o ∈ origins_V(Σ, d, σ)`. By (F1), there exists `v ∈ ⟦σ⟧ ∩ dom(M(d))` with `origin(M(d)(v)) = o`. Then `v ∈ dom(M'(d))` and `M'(d)(v) = M(d)(v)`; with `⟦σ⟧` state-independent (ASN-0053), `v ∈ ⟦σ⟧ ∩ dom(M'(d))`. Let `a = M(d)(v) = M'(d)(v)`; by S3★ (ASN-0047), `a ∈ dom(C) ∪ dom(L)`; by O5, `origin'(a) = origin(a) = o`. Hence `o ∈ origins_V(Σ', d, σ)`.
+
+(⊇): Fix `o ∈ origins_V(Σ', d, σ)`. By (F1), there exists `v ∈ ⟦σ⟧ ∩ dom(M'(d))` with `origin(M'(d)(v)) = o`.
+
+*Case (i): `v ∈ dom(M(d))`.* As above, `M'(d)(v) = M(d)(v)`, so `o ∈ origins_V(Σ, d, σ)`.
+
+*Case (ii): `v ∈ dom(M'(d)) ∖ dom(M(d)) = {v_ℓ}`.* By K.μ⁺_L's V-position precondition, `subspace(v_ℓ) = s_L` and `#v_ℓ = m_L = 2` (LinkVPositionDepthAxiom, ASN-0047). By precondition (v) of SHOWORIGIN_V on σ, σ is level-uniform with common depth `m ≥ 2`. Two sub-cases:
+
+*Sub-case (a): `subspace(u) = s_C`.* By C0a (PrefixConfinement, ASN-0058), every `t ∈ ⟦σ⟧` satisfies `t_1 = u_1 = s_C`. But `subspace(v_ℓ) = s_L ≠ s_C` (SC-NEQ, ASN-0047). So `v_ℓ ∉ ⟦σ⟧`, contradicting `v = v_ℓ ∈ ⟦σ⟧`.
+
+*Sub-case (b): `subspace(u) = s_L`.* Then by precondition (v)'s definition, `m` is the common depth of `d`'s link subspace, which equals `m_L = 2` by LinkVPositionDepthAxiom. So `#v_ℓ = m_L = m`. With `v_ℓ ∈ ⟦σ⟧`, `#v_ℓ = m`, and `u ≤ v_ℓ < reach(σ)`, precondition (vi) at Σ gives `v_ℓ ∈ dom(M(d))`, contradicting `v_ℓ ∉ dom(M(d))`.
+
+Both sub-cases contradict, so case (ii) is impossible. Combined with case (i), `origins_V(Σ', d, σ) ⊆ origins_V(Σ, d, σ)`; with (⊆) we have equality. ∎
+
+O11 and O11' together cover every arrangement-extending transition. The non-extension transitions behave differently: under K.μ⁻ (contraction) preservation fails by loss of admissibility — σ's well-formedness condition (vi) ceases to hold at the post-state — and under K.μ~ (reordering) preservation fails even at the inclusion level by mapping reassignment. Both are exhibited concretely in the worked example below.
 
 ## Span containment monotonicity
 
@@ -331,7 +359,7 @@ The abstract specification of SHOWORIGIN reduces to three primitives:
 
 (3) The lift to V-spans, `origins_V(Σ, d, σ) = origin(ran(M(d) ↾ ⟦σ⟧))`, computable from the span, the arrangement, and `dom(C) ∪ dom(L)` alone. Uniform across subspaces: content-subspace V-spans report origins of their resolved content; link-subspace V-spans report `{d}` (the home document) trivially via CL-OWN.
 
-Every other property — span containment monotonicity (both I-span and V-span variants), transclusion-depth invariance, permanence under state, monotonic growth under arrangement extension, immunity to source-document unreachability — follows from these three. The operation derives no new knowledge; it presents existing structural facts about the address space.
+Every other property — span containment monotonicity (both I-span and V-span variants), transclusion-depth invariance, permanence under state, preservation under arrangement extension (equality under K.μ⁺ and K.μ⁺_L for σ well-formed at the pre-state), immunity to source-document unreachability — follows from these three. The operation derives no new knowledge; it presents existing structural facts about the address space.
 
 Any implementation of Xanadu that claims to support SHOWORIGIN must satisfy O0–O12 (with the O1 corollaries O1.1, O1.2). O0 is load-bearing: without the extension of `origin` to `dom(L)`, the link-subspace V-span case (which the V-span operation admits uniformly) has no defined answer. It may realise the operation through different mechanisms — direct tumbler-prefix decomposition, spanfilade lookup, granfilade traversal, or per-block `homedoc` records [Q12, Q13] — and these mechanisms may have different operational characteristics. But the abstract guarantees they deliver must coincide: every byte names its home, every span reveals its sources, and the answer never changes once given.
 
@@ -354,8 +382,8 @@ Any implementation of Xanadu that claims to support SHOWORIGIN must satisfy O0�
 | O8 | I-span containment monotonicity: `⟦σ₁⟧ ⊆ ⟦σ₂⟧` ⇒ `origins_I(Σ, σ₁) ⊆ origins_I(Σ, σ₂)` | introduced |
 | O9 | Origin tracks creation, not content: two addresses allocated under distinct documents have distinct origins, regardless of content values | introduced |
 | O10 | Read-only frame; idempotence: SHOWORIGIN preserves the state; consecutive applications at the same state yield identical results | introduced |
-| O11 | V-span monotonic growth under K.μ⁺: content-subspace arrangement extensions are non-decreasing in `origins_V` | introduced |
-| O11' | V-span monotonic growth under K.μ⁺_L: link-subspace arrangement extensions are non-decreasing in `origins_V` (parallel to O11; freshness of `v_ℓ` discharged by K.μ⁺_L construction) | introduced |
+| O11 | V-span preservation under K.μ⁺: for σ well-formed at Σ (in particular precondition (vi)), content-subspace arrangement extensions exactly preserve `origins_V` — equality, not merely inclusion | introduced |
+| O11' | V-span preservation under K.μ⁺_L: for σ well-formed at Σ, link-subspace arrangement extensions exactly preserve `origins_V` (parallel to O11; freshness of `v_ℓ` discharged by K.μ⁺_L's strict containment) | introduced |
 | O12 | V-span containment monotonicity: `⟦σ₁⟧ ⊆ ⟦σ₂⟧` ⇒ `origins_V(Σ, d, σ₁) ⊆ origins_V(Σ, d, σ₂)` | introduced |
 | `F1 ≡ F2 ≡ F3` | Equivalence chain for `origins_V`: reader-form `{origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d))}` ≡ decomposition-form `⋃_j {origin(aⱼ + i) : 0 ≤ i < nⱼ}` ≡ block-collapsed-form `{origin(aⱼ) : 1 ≤ j ≤ k}` | introduced |
 | wp(SHOWORIGIN_I, \|result\| = 1) | `(⟦σ⟧ ∩ dom(C) ≠ ∅) ∧ (A a, b ∈ ⟦σ⟧ ∩ dom(C) : origin(a) = origin(b))` — characterisation of single-origin I-spans | introduced |
