@@ -1,0 +1,37 @@
+# Review of ASN-0098
+
+## REVISE
+
+### Issue 1: Proof support gap for "non-canonical ⟹ infinite F-intersection"
+
+**ASN-0098, ground (i) of the "Non-canonical spans are unconditionally non-tight" discussion preceding the tightness predicate definition**: "For spans satisfying T12 with `#ℓ < #s`, LP-Fin's non-canonical remark (above) gives `|F ∩ [s, s ⊕ ℓ)| = ℵ₀`."
+
+**Problem**: LP-Fin's non-canonical remark establishes the cardinality conclusion via the descendant mechanism — exhibiting `a_n = [d_n, 0, X, 1]` with `d_0 ≺ d_n` and `#d_n > #d_0`. The argument explicitly says "*When `#ℓ ≤ #d_0`*, position `#d_0 + 1` exceeds `#(s ⊕ ℓ)`... The trap that drives sub-case (i)'s contradiction... cannot be sprung". The witness construction relies on this — its descendants are "constructed so their tails beyond `#ℓ` are unconstrained by the comparison". For `#d_0 < #ℓ < #s`, position `#d_0 + 1` enters the comparison range and the trap is potentially closable, so the remark's specific construction does not produce witnesses in this sub-range. The cited remark therefore does not support the asserted universal claim over `#ℓ < #s`.
+
+The general claim is in fact correct, but via a different argument (within-chain): for any non-canonical `ℓ`, `actionPoint(ℓ) ≤ #ℓ < #s` forces `actionPoint(ℓ) ≤ #s − 1`, which lies in the region where `t_k^X(d_0)` and `s` agree (they differ only at position `#s`); T1 case (i) at `actionPoint(ℓ)` then gives `t_k^X(d_0) < s ⊕ ℓ` for every `k`, and `t_k^X(d_0) ≥ s` iff `k ≥ k_s`, so `{t_k^X(d_0) : k ≥ k_s} ⊆ F ∩ [s, s ⊕ ℓ)` is infinite. This is parametric in `#ℓ < #s` without invoking the position-`#d_0 + 1` trap.
+
+**Required**: Either extend LP-Fin's non-canonical remark with the within-chain argument (proving the cardinality uniformly across `#ℓ < #s`), or restrict ground (i)'s downstream claim to `#ℓ ≤ #d_0` (with `#d_0 < #ℓ < #s` either separately argued or dispatched under ground (ii)'s definitional exclusion). The architectural conclusion survives — ground (ii) independently suffices — but the prose's citation overstates what the remark proves.
+
+## OUT_OF_SCOPE
+
+The ASN's "Open Questions" section enumerates topics it explicitly defers. These are appropriate scope deferrals.
+
+### Topic 1: Reverse-discovery primitive
+**Why out of scope**: A V-position-to-link inverse query is a new operation, not a refinement of `project`.
+
+### Topic 2: Contiguous V-range expressibility after K.μ~
+**Why out of scope**: Future-ASN question about arrangement-shape discipline post-reordering.
+
+### Topic 3: V-order reflects I-order in projections
+**Why out of scope**: Future property about K.μ~'s preservation of projection-internal ordering.
+
+### Topic 4: Link-to-link discovery
+**Why out of scope**: Introduces transitive discoverability not present in the current model.
+
+### Topic 5: Cross-document "same-operation" projection equality
+**Why out of scope**: Requires defining cross-document operation correspondence.
+
+### Topic 6: Fork composite with non-transcluded link-subspace V-positions
+**Why out of scope**: Multi-component composite analysis beyond per-step displacement.
+
+VERDICT: REVISE
