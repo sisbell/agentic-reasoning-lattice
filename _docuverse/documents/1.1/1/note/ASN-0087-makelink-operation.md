@@ -312,7 +312,8 @@ For S8★: per ASN-0047's S8★, the link-subspace projected arrangement `M'(d)|
 For state components unchanged by MAKELINK (`C`, `E`, `R`) and for the document-set `dom(M)`, the remaining per-state invariants are preserved:
 
 - M0 (DocumentTumblerWellFormed, ASN-0093): vacuous since `dom(Σ'.M) = dom(Σ.M)` (MAKELINK allocates no new document); every `d ∈ dom(Σ'.M)` satisfies M0 by inheritance from `Σ`.
-- S4 (origin-based identity): the new allocation event for `ℓ` is distinct from every prior allocation event (by ChainEnumerationInjectivity, DisjointSubAllocatorChains, and Cross-doc disjointness — see "Freshness of the Allocation"), so S4's distinctness conclusion holds at `Σ'`.
+- S4 (origin-based identity for content addresses, ASN-0036): vacuous since `Σ'.C = Σ.C`; the lemma quantifies over `dom(C)` allocation events, of which MAKELINK introduces none.
+- L11a (link uniqueness, ASN-0043): the new allocation event for `ℓ` is distinct from every prior link allocation event (by ChainEnumerationInjectivity, DisjointSubAllocatorChains, and Cross-doc disjointness — see "Freshness of the Allocation"), so L11a's distinctness conclusion holds at `Σ'`.
 - S7a, S7b, S7c, S7d (origin and structural attribution for content addresses): vacuous since `Σ'.C = Σ.C`; the predicates quantify over `dom(C)`, which is unchanged.
 - C-fin (content store finiteness): vacuous since `dom(Σ'.C) = dom(Σ.C)` is finite at `Σ`.
 - P6 (existential coherence), P7 (provenance grounding): vacuous since `dom(C)`, `dom(M)`, and `R` are unchanged in the relevant respects (`dom(M)` grows only by new V-positions within an already-allocated document, not by new documents; `R` is unchanged).
