@@ -1,15 +1,9 @@
-# Channel Assignment — ASN-0051 review-32
+# Channel Assignment — ASN-0098 review-32
 
-**Date:** 2026-05-16 00:11
+**Date:** 2026-05-26 08:06
 
-## Issue 1: Implicit s_C = 1 in SV10 witness
-Reason: The fix is purely notational — make the implicit convention `s_C = 1` explicit in the witness construction. This is internal to the ASN and derivable from the already-cited K.α amendment in ASN-0047.
+## Issue 1: Cross-ASN reference to ASN-0058 (non-foundation)
+Reason: The fix is internal — remove or reword the parenthetical. The action-point identification `k_ℓ = #s` is already discharged in the same passage from OrdinalDisplacement (ASN-0034), which is foundation; no external evidence or design intent is needed to rephrase the contrast.
 
-## Issue 2: "Contrapositive" misused in wp section
-Reason: Pure logical terminology correction (negation vs. contrapositive). The content is correct; only the label needs renaming. Fully internal.
-
-## Issue 3: Cross-document discovery-resolution claim is informal
-Reason: The cross-document corollary is derivable by composing existing SV4 (ArrangementIsolation) with SV10 using the predicate machinery already established. The witness is trivial as the review notes. Internal.
-
-## Issue 4: NoStaleResolutionState section presentation
-Reason: Editorial restructuring to separate the definitional observation from the architectural schema-closure claim. All content already exists in the ASN; only the presentation order needs adjustment. Internal.
+## Issue 2: LP18 omits K.δ-IsDocument from its transition vocabulary
+Reason: The fix is internal — align LP18's enumeration with LP8's unification of K.σ and K.δ-IsDocument as document-registration operations, both already established within this ASN. No consultation needed.
