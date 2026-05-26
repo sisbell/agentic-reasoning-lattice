@@ -25,7 +25,7 @@ We observe that link creation must accomplish two distinct effects: (i) introduc
 - `K.λ` allocates the link in `dom(L)`, binding it to the given endsets.
 - `K.μ⁺_L` extends `M(d)` in the link subspace, mapping a fresh V-position to the link.
 
-We therefore identify MAKELINK as the composite `K.λ ⊕ K.μ⁺_L` applied to the same home document. The order is forced: K.μ⁺_L's precondition requires `ℓ ∈ dom(L)`, so K.λ must precede it.
+We therefore identify MAKELINK as the composite `K.λ ; K.μ⁺_L` — K.λ followed by K.μ⁺_L — applied to the same home document. The semicolon denotes sequential composition of atomic transitions, distinct from the tumbler addition operator `⊕` of ASN-0034. The order is forced: K.μ⁺_L's precondition requires `ℓ ∈ dom(L)`, so K.λ must precede it.
 
 Why must MAKELINK include K.μ⁺_L? The substrate's coupling constraints (J0, J1★, J1'★ from ASN-0047) do not require it — they apply only to content-subspace allocations. But Nelson's design is explicit that a document "consists of its contents and its out-links" — retrieval of the home document's arrangement must yield the link. By L14a's supersession (ASN-0047), the link subspace of the home document's arrangement is where links live in V-space; K.μ⁺_L is what places them there. Without K.μ⁺_L, the link would be allocated but invisible to any retrieval framed against its home document's arrangement.
 
@@ -41,11 +41,13 @@ The composite is valid when its component preconditions hold. For K.λ at `Σ`:
 
 For K.μ⁺_L at the intermediate state `Σ_mid` after K.λ:
 
-  d ∈ dom(M)             [preserved by K.λ's frame on dom(M)]
-  ℓ ∈ dom(L)             [established by K.λ]
-  origin(ℓ) = d           [established by K.λ]
-  ℓ ∉ ran(M(d))           [derived below]
-  v_ℓ at the next link-subspace position per D-MIN★ / D-CTG★, depth m_L = 2
+  d ∈ dom(M)                  [preserved by K.λ's frame on dom(M)]
+  ℓ ∈ dom(L)                  [established by K.λ]
+  origin(ℓ) = d                [established by K.λ]
+  ℓ ∉ ran(M(d))                [derived below]
+  subspace(v_ℓ) = s_L          [by construction: v_ℓ = [s_L, k], so (v_ℓ)₁ = s_L]
+  #v_ℓ = m_L = 2              [by LinkVPositionDepthAxiom (ASN-0047)]
+  v_ℓ at the next link-subspace position per D-MIN★ / D-CTG★ at depth 2
 
 The condition `ℓ ∉ ran(Σ_mid.M(d))` requires more than `ℓ ∉ dom(Σ.L)`; it must be derived through the S3★ + S3★-aux + L14 chain. K.λ's frame preserves `M`, so `Σ_mid.M(d) = Σ.M(d)` and `ran(Σ_mid.M(d)) = ran(Σ.M(d))`. By S3★-aux (ASN-0047), every `v ∈ dom(Σ.M(d))` has `subspace(v) ∈ {s_C, s_L}`. By S3★:
 
@@ -82,7 +84,7 @@ Other components are unchanged:
 
 The address `ℓ` is genuinely new. The argument proceeds in three layers.
 
-*Within d's link chain.* By ChainEnumerationInjectivity (ASN-0093), the chain `A_L(d) = (t_1, t_2, ...)` is strictly monotone under T1. Each K.λ event on `A_L(d)` consumes the next index in the chain, so `ℓ ≠ t_k` for any `k ≤ n_d` where `n_d` is the current count of links with `origin(·) = d`.
+*Within d's link chain.* By ChainMembershipForOrigin (ASN-0093), the set `dom(Σ.L) ∩ {ℓ' : origin(ℓ') = d}` is a contiguous initial segment `{s_1, …, s_{n_d}}` of `A_L(d)`'s enumeration, where `n_d` is the current count of links with `origin(·) = d`. Hence `max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = s_{n_d}` (when `n_d ≥ 1`). K.λ's subsequent-emission rule selects `ℓ = inc(s_{n_d}, 0) = s_{n_d + 1}`. By ChainEnumerationInjectivity (ASN-0093), the chain `A_L(d) = (t_1, t_2, …)` is strictly monotone under T1, so `s_{n_d + 1} ≠ s_k` for every `k ≤ n_d` — i.e., `ℓ ∉ {s_1, …, s_{n_d}} = dom(Σ.L) ∩ {ℓ' : origin(ℓ') = d}`. In the first-emission case (`n_d = 0`), `ℓ = s_1` is the first chain element and `dom(Σ.L) ∩ {ℓ' : origin(ℓ') = d} = ∅`, so the conclusion holds trivially.
 
 *Cross-subspace, within d.* By DisjointSubAllocatorChains (ASN-0093), `A_C(d)` and `A_L(d)` are disjoint — outputs differ in their element-field subspace identifier (`s_C` vs `s_L`), forced apart by SC-NEQ.
 
@@ -214,7 +216,7 @@ L13 (ReflexiveAddressing, ASN-0043) permits link addresses as valid endset targe
 
 *Consistency with M-DiscSymmetry.* The home-document privilege under reflexive endsets is structural, not semantic. M-DiscSymmetry asserts that LP12's definition of `discoverable_from` treats every document uniformly — it does not distinguish home from non-home. The asymmetry of outcome under reflexive endsets reflects the asymmetry of arrangement-reach: MAKELINK places `v_ℓ` in `d`'s arrangement only, not in any other document's. The discovery protocol is symmetric; the substrate state change is localised to `d`.
 
-*Boundary case for M-Disc.* M-Disc's biconditional `discoverable_from(ℓ, d_target, Σ') ⟺ (E i :: coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d_target)) ≠ ∅)` holds in the reflexive case via the witness `ℓ ∈ coverage(eᵢ) ∩ {ℓ} ⊆ coverage(eᵢ) ∩ ran(Σ'.M(d))` (using `v_ℓ ↦ ℓ ∈ ran(Σ'.M(d))`). No special-case rule is needed; LP12 covers the reflexive case uniformly.
+*Boundary case for LP12.* LP12's biconditional `discoverable_from(ℓ, d_target, Σ') ⟺ (E i :: coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d_target)) ≠ ∅)` holds in the reflexive case via the witness `ℓ ∈ coverage(eᵢ) ∩ {ℓ} ⊆ coverage(eᵢ) ∩ ran(Σ'.M(d))` (using `v_ℓ ↦ ℓ ∈ ran(Σ'.M(d))`). No special-case rule is needed; LP12 covers the reflexive case uniformly.
 
 ## What Does Not Change
 
@@ -251,7 +253,9 @@ The side effect is bounded: it can only occur when `ℓ'` was authored with an e
 
 ## Invariant Preservation
 
-We verify the post-state `Σ'` satisfies the substrate invariants. The new entries are `ℓ ∈ dom(L)` and `v_ℓ ∈ dom(M(d))`; prior entries are unchanged by the frame.
+We verify the substrate invariants in three classes, following ASN-0047's stratification: (a) *per-state invariants* holding at the post-state `Σ'`; (b) *composite-boundary properties* (P4★, P4a, P7a) evaluated at composite boundaries; (c) *transition invariants* governing the pair `Σ → Σ'`. The new entries are `ℓ ∈ dom(L)` and `v_ℓ ∈ dom(M(d))`; prior entries are unchanged by the frame.
+
+### Per-State Invariants at Σ'
 
 For the link itself:
 
@@ -264,25 +268,27 @@ For the link itself:
   L14:   store disjointness                    ℓ ∉ dom(C) from K.λ freshness
   L-fin: link store finiteness                 |dom(L')| = |dom(L)| + 1
 
-L1c (structural inc-chain conformance) requires an explicit chain from `origin(ℓ) = d` to `ℓ`. Writing `ℓ = [d, 0, s_L, k_s]` for the chain index `k_s ≥ 1` of `ℓ` in `A_L(d)`, we construct the chain `(t₀, t₁, ..., t_n)`:
+L1c (structural inc-chain conformance) requires an explicit chain from `origin(ℓ) = d` to `ℓ`. Writing `ℓ = [d, 0, s_L, k_s]` for the chain index `k_s ≥ 1` of `ℓ` in `A_L(d)`, we construct the chain `(t₀, t₁, ..., t_n)` with explicit zero counts:
 
-  t₀ = d
-  t₁ = inc(d, 2)           = [d, 0, 1]         = b_C(d)       k₁ = 2
-  t₂ = inc(b_C(d), 0)      = [d, 0, 2]         = b_L(d)       k₂ = 0
-  t₃ = inc(b_L(d), 1)      = [d, 0, 2, 1]      = t_1^L(d)     k₃ = 1
-  t_{3+j} = inc(t_{2+j}, 0) = [d, 0, 2, 1+j]                  k_{3+j} = 0  (1 ≤ j ≤ k_s − 1)
+  i   tᵢ                                                kᵢ   zeros(tᵢ₋₁) bound  zeros(tᵢ)
+  0   d                                                  —    —                  2          (M0)
+  1   inc(d, 2)      = [d, 0, 1]      = b_C(d)           2    zeros(d) = 2 ≤ 2   3
+  2   inc(b_C(d),0)  = [d, 0, 2]      = b_L(d)           0    n/a                3
+  3   inc(b_L(d),1)  = [d, 0, 2, 1]   = t_1^L(d)         1    zeros(b_L(d))=3≤3  3
+  3+j inc(t_{2+j},0) = [d, 0, 2, 1+j]                    0    n/a                3
+                                                                                  (1 ≤ j ≤ k_s − 1)
 
-so `n = k_s + 2`. Step-by-step verification:
+so `n = k_s + 2`. The "bound" column records TA5a's preservation precondition: at `k = 2`, `zeros(t) ≤ 2`; at `k = 1`, `zeros(t) ≤ 3`; at `k = 0`, no bound applies. The `zeros(tᵢ)` column records the post-step value, derived from K.δ-ID.zeros-0/1 and K.δ-ID.zeros-2 (ASN-0047): `k ∈ {0, 1}` preserves zeros; `k = 2` adds one. Step-by-step verification:
 
-- *t₁ = inc(d, 2) = b_C(d):* By TA5(d) (ASN-0034) at `k = 2`, `inc(d, 2)` appends positions `#d + 1` (value 0) and `#d + 2` (value 1), giving `[d, 0, 1]`. Under SubspaceConventionAxiom (ASN-0093), `s_C = 1`, so `[d, 0, 1] = [d, 0, s_C] = b_C(d)`. T10a's `k = 2` admissibility requires `zeros(t₀) ≤ 2`; by M0 (ASN-0093), `zeros(d) = 2`, so the bound holds. T4-validity is preserved by TA5a (ASN-0034). `#t₁ = #d + 2 > #d`. The L1c clause `k₁ = 2` is satisfied. ✓
+- *t₁ = inc(d, 2) = b_C(d):* By TA5(d) (ASN-0034) at `k = 2`, `inc(d, 2)` appends positions `#d + 1` (value 0) and `#d + 2` (value 1), giving `[d, 0, 1]`. Under SubspaceConventionAxiom (ASN-0093), `s_C = 1`, so `[d, 0, 1] = [d, 0, s_C] = b_C(d)`. TA5a's `k = 2` admissibility requires `zeros(t₀) ≤ 2`; by M0 (ASN-0093), `zeros(d) = 2`, so the bound holds with equality. T4-validity is preserved by TA5a. `zeros(t₁) = zeros(d) + 1 = 3`. `#t₁ = #d + 2 > #d`. The L1c clause `k₁ = 2` is satisfied. ✓
 
-- *t₂ = inc(b_C(d), 0) = b_L(d):* By TA5(c) at `k = 0`, `inc(b_C(d), 0)` increments the rightmost nonzero component (position `#d + 2`, value 1) to 2, giving `[d, 0, 2] = b_L(d)` (since `s_L = 2` by SubspaceConventionAxiom). No zero-count side condition applies at `k = 0`. T4-validity preserved by TA5a (sibling step). `#t₂ = #d + 2 > #d`. ✓
+- *t₂ = inc(b_C(d), 0) = b_L(d):* By TA5(c) at `k = 0`, `inc(b_C(d), 0)` increments the rightmost nonzero component (position `#d + 2`, value 1) to 2, giving `[d, 0, 2] = b_L(d)` (since `s_L = 2` by SubspaceConventionAxiom). No zero-count side condition applies at `k = 0`. T4-validity preserved by TA5a (sibling step). `zeros(t₂) = zeros(b_C(d)) = 3`. `#t₂ = #d + 2 > #d`. ✓
 
-- *t₃ = inc(b_L(d), 1) = t_1^L(d):* By TA5(d) at `k = 1`, `inc(b_L(d), 1)` appends a single component of value 1 at position `#d + 3`, giving `[d, 0, 2, 1]`. By SubAllocatorAxiom.FirstEmission (ASN-0093), this is exactly `t_1^L(d)`. No zero-count side condition at `k = 1` (the bound applies only for `k = 2`). T4-validity preserved by TA5a. `#t₃ = #d + 3 > #d`. ✓
+- *t₃ = inc(b_L(d), 1) = t_1^L(d):* By TA5(d) at `k = 1`, `inc(b_L(d), 1)` appends a single component of value 1 at position `#d + 3`, giving `[d, 0, 2, 1]`. By SubAllocatorAxiom.FirstEmission (ASN-0093), this is exactly `t_1^L(d)`. TA5a's `k = 1` admissibility requires `zeros(b_L(d)) ≤ 3`; from step t₂ we have `zeros(b_L(d)) = 3`, so the bound holds with equality. T4-validity preserved by TA5a. `zeros(t₃) = zeros(b_L(d)) = 3`. `#t₃ = #d + 3 > #d`. ✓
 
-- *t_{3+j} = inc(t_{2+j}, 0) for j ≥ 1:* These are A_L(d)'s SiblingRecurrence steps (SubAllocatorAxiom.ChainDiscipline). Each `k_{3+j} = 0` increments the rightmost nonzero position (the element-field counter). T4-validity preserved by TA5a, length unchanged at `#d + 3 > #d`. ✓
+- *t_{3+j} = inc(t_{2+j}, 0) for j ≥ 1:* These are A_L(d)'s SiblingRecurrence steps (SubAllocatorAxiom.ChainDiscipline). Each `k_{3+j} = 0` increments the rightmost nonzero position (the element-field counter). No zero-count bound applies at `k = 0`. T4-validity preserved by TA5a. `zeros(t_{3+j}) = zeros(t_{2+j}) = 3`. Length unchanged at `#d + 3 > #d`. ✓
 
-The chain satisfies every L1c clause: every `kᵢ ∈ {0, 1, 2}`, `k₁ = 2`, every `#tᵢ > #d`, T10a's per-step admissibility holds throughout.
+The chain satisfies every L1c clause: every `kᵢ ∈ {0, 1, 2}`, `k₁ = 2`, every `#tᵢ > #d`, and TA5a's per-step admissibility holds throughout — the `k = 2` step at position 1 against `zeros(d) = 2`, and the `k = 1` step at position 3 against `zeros(b_L(d)) = 3`. Zero counts saturate at 3 from t₁ onward, consistent with L1's `zeros(ℓ) = 3`.
 
 For the V-arrangement entry `v_ℓ ↦ ℓ`:
 
@@ -303,8 +309,9 @@ For D-SEQ★: by D-SEQ★ at `Σ`, `V_{s_L}(d) = {[s_L, k] : 1 ≤ k ≤ n_L}` f
 
 For S8★: per ASN-0047's S8★, the link-subspace projected arrangement `M'(d)|_{V_{s_L}(d')} : V_{s_L}(d') → dom(L')` admits the trivial length-1 decomposition `{(v, M'(d)(v), 1) : v ∈ V_{s_L}(d')}`. The new entry `(v_ℓ, ℓ, 1)` joins this decomposition; S8's conditions (a) and (b) hold trivially at length 1. ✓
 
-For state components unchanged by MAKELINK (`C`, `E`, `R`), the remaining per-state invariants are preserved:
+For state components unchanged by MAKELINK (`C`, `E`, `R`) and for the document-set `dom(M)`, the remaining per-state invariants are preserved:
 
+- M0 (DocumentTumblerWellFormed, ASN-0093): vacuous since `dom(Σ'.M) = dom(Σ.M)` (MAKELINK allocates no new document); every `d ∈ dom(Σ'.M)` satisfies M0 by inheritance from `Σ`.
 - S4 (origin-based identity): the new allocation event for `ℓ` is distinct from every prior allocation event (by ChainEnumerationInjectivity, DisjointSubAllocatorChains, and Cross-doc disjointness — see "Freshness of the Allocation"), so S4's distinctness conclusion holds at `Σ'`.
 - S7a, S7b, S7c, S7d (origin and structural attribution for content addresses): vacuous since `Σ'.C = Σ.C`; the predicates quantify over `dom(C)`, which is unchanged.
 - C-fin (content store finiteness): vacuous since `dom(Σ'.C) = dom(Σ.C)` is finite at `Σ`.
@@ -312,7 +319,23 @@ For state components unchanged by MAKELINK (`C`, `E`, `R`), the remaining per-st
 - P8 (entity hierarchy): vacuous since `E` is unchanged.
 - NodeLineage (descent from bootstrap): vacuous since `E` is unchanged.
 
-The transition invariants P0 (content permanence), P1 (entity permanence), P2 (provenance permanence) are preserved by the trivial frame on `C`, `E`, `R`. P4★ (provenance bounds content subspace) is preserved because the new V-arrangement entry lies in the link subspace, not the content subspace — `Contains_C(Σ')` is unchanged from `Contains_C(Σ)`, and `R' = R`.
+### Composite-Boundary Properties
+
+ASN-0047 classifies P4★, P4a, and P7a as Class (b) — properties discharged at composite boundaries by the coupling constraints J0, J1★, J1'★. MAKELINK introduces a single link-subspace V-arrangement entry; J-coupling is vacuous (J0, J1★, J1'★ all quantify over content-subspace effects on `dom(C) \ pre-state` or `ran(M(d)) \ pre-state` restricted to `subspace = s_C`, none of which are produced by MAKELINK).
+
+- P4★ (ProvenanceBoundsContentSubspace): `Contains_C(Σ') ⊆ R'`. The new V-arrangement entry `v_ℓ ↦ ℓ` has `subspace(v_ℓ) = s_L`, so it does not contribute to `Contains_C(Σ')`. Hence `Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`.
+- P4a (HistoricalFidelity): for every `(a, d') ∈ R'`, some prior state `Σ_k` in the transition history had `M_k(d')(v) = a` with `subspace(v) = s_C`. Since `R' = R`, the obligation is identical to P4a at `Σ`, which holds by the reachability hypothesis on `Σ`.
+- P7a (ProvenanceCoverage): for every `a ∈ dom(Σ'.C)`, some `d'` satisfies `(a, d') ∈ R'`. Since `dom(Σ'.C) = dom(Σ.C)` and `R' = R`, the obligation is identical to P7a at `Σ`, which holds by reachability.
+
+### Transition Invariants for Σ → Σ'
+
+- M1 (ArrangementMonotonicity, ASN-0093): `dom(Σ.M) ⊆ dom(Σ'.M)`. Trivially holds with equality — MAKELINK does not extend `dom(M)`.
+- L12 (LinkImmutability): `(A ℓ' ∈ dom(Σ.L) :: ℓ' ∈ dom(Σ'.L) ∧ Σ'.L(ℓ') = Σ.L(ℓ'))`. K.λ adds only the fresh `ℓ`; no prior entry is modified.
+- P0 (ContentPermanence): trivially via the frame `Σ'.C = Σ.C`.
+- P1 (EntityPermanence): trivially via the frame `Σ'.E = Σ.E`.
+- P2 (ProvenancePermanence): trivially via the frame `Σ'.R = Σ.R`.
+- P3 (ArrangementMutabilityOnly): the conjunction P0 ∧ P1 ∧ P2 ∧ L12, already discharged above clause-by-clause. P3 holds at MAKELINK.
+- S9 (TwoStreamSeparation, ASN-0036): `S9` follows from P0 alone — since `Σ'.C = Σ.C`, the antecedent's consequent (preservation of every content entry) is satisfied by the identity, regardless of which arrangement modifications occurred. P0 is discharged trivially.
 
 ## Atomicity
 
@@ -365,21 +388,22 @@ For clarity, we enumerate what MAKELINK does not perform:
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| M-Comp | MAKELINK is the composite `K.λ ⊕ K.μ⁺_L`, in that order, applied to the same home document `d`. | introduced |
+| M-Comp | MAKELINK is the composite `K.λ ; K.μ⁺_L` — K.λ followed by K.μ⁺_L — applied to the same home document `d`. The semicolon denotes sequential composition, distinct from the tumbler addition `⊕` of ASN-0034. | introduced |
 | M-Pre | Caller-visible precondition: `d ∈ dom(M)`, `N ≥ 3`, `(A i : eᵢ ∈ Endset)`, `e₃ ≠ ∅`. System-supplied parameters: `ℓ` from `A_L(d)`'s next emission, `v_ℓ` from K.μ⁺_L's positioning rule at depth `m_L = 2`. | introduced |
 | M-Alloc | MAKELINK allocates a fresh `ℓ ∈ T \ (dom(Σ.L) ∪ dom(Σ.C))` and a fresh `v_ℓ ∈ T \ dom(Σ.M(d))` with `subspace(v_ℓ) = s_L` and `#v_ℓ = 2`. | introduced |
 | M-Effect | `Σ'.L = Σ.L ∪ {ℓ ↦ (e₁, ..., eₙ)}`; `Σ'.M(d) = Σ.M(d) ∪ {v_ℓ ↦ ℓ}` where `v_ℓ = [s_L, 1]` if `V_{s_L}(d) = ∅` at `Σ`, else `v_ℓ = shift(max(V_{s_L}(d)), 1) = [s_L, n_L + 1]` (with `n_L = |V_{s_L}(d)|`). | introduced |
 | M-Frame | `Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`; existing entries in `L` and in `M(d')` for `d' ≠ d` are unchanged. | introduced |
 | M-NoContentEffect | For every `a ∈ dom(Σ.C)`: `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The referenced content is byte-identical before and after MAKELINK. | introduced |
-| M-Disc | After MAKELINK: `discoverable_from(ℓ, d_target, Σ') ⟺ (E i : coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d_target)) ≠ ∅)`, by LP12. | introduced |
-| M-DiscSymmetry | Discoverability of `ℓ` is symmetric across all documents whose arrangements reach into any endset coverage; the home document has no privileged role in LP12's definition. Any asymmetry of outcome reflects asymmetry of arrangement-reach, not a privileged status. | introduced |
+| M-DiscSymmetry | Discoverability of `ℓ` is symmetric across all documents whose arrangements reach into any endset coverage; the home document has no privileged role in LP12's definition. Any asymmetry of outcome reflects asymmetry of arrangement-reach, not a privileged status. (M-Disc was previously asserted as a separate claim restating LP12 at `Σ'`; it has been removed as redundant — LP12 is a theorem at every reachable state, and the MAKELINK-specific reduction to pre-state predicates is captured by M-WP.) | introduced |
 | M-Reflexive | If `ℓ ∈ coverage(eᵢ)` for some `i` (the reflexive endset case), then `v_ℓ ∈ project(ℓ, i, d, Σ')` and `discoverable_from(ℓ, d, Σ')` is forced true regardless of `Σ.M(d)`'s pre-existing arrangement. Under standard authoring (`coverage(eᵢ) ⊆ dom(Σ.C) ∪ dom(Σ.L)` for every `i`), the reflexive case is excluded by K.λ's freshness. | introduced |
 | M-PriorLinkDisc | For every prior link `ℓ' ∈ dom(Σ.L)` and every document `d_target ∈ dom(Σ.M)`: if `d_target = d` (the home document of the new link `ℓ`), then `discoverable_from(ℓ', d, Σ') ⟺ discoverable_from(ℓ', d, Σ) ∨ (E i :: ℓ ∈ coverage(Σ.L(ℓ').eᵢ))` — a prior link is newly discoverable from `d` precisely when some endset of `ℓ'` covers `ℓ`; if `d_target ≠ d`, then `discoverable_from(ℓ', d_target, Σ') = discoverable_from(ℓ', d_target, Σ)` by K.μ⁺_L's frame on `M` (and K.λ's frame on `M`), so prior-link discoverability is unchanged. The discoverability relation is derived from `(L, M)` and is not preserved by the frame on `L` alone; the side-effect window is confined to the home document. | introduced |
 | M-WP | Post-MAKELINK discoverability has explicit weakest preconditions on `Σ`: for `d_target ≠ d`, `wp ≡ (E i :: coverage(eᵢ) ∩ ran(Σ.M(d_target)) ≠ ∅)`; for `d_target = d`, `wp ≡ (E i :: coverage(eᵢ) ∩ ran(Σ.M(d)) ≠ ∅) ∨ (E i :: ℓ ∈ coverage(eᵢ))`. Under standard authoring, the home and non-home wp shapes coincide. | introduced |
 | M-Perm | After MAKELINK: `(A Σ' →* Σ'' :: ℓ ∈ dom(Σ''.L) ∧ Σ''.L(ℓ) = Σ'.L(ℓ))`, by LP13. | introduced |
 | M-NoIndexState | The abstract specification requires no separate index state component. Discoverability is computed from `L` and `M` via the projection function of ASN-0098. | introduced |
 | M-CompAtomicity | The composite is not atomic at the substrate level. The intermediate state `Σ_mid` between K.λ and K.μ⁺_L has the link allocated but not placed. `discoverable_from(ℓ, d_target, ·)` agrees at `Σ_mid` and `Σ'` for every `d_target ≠ d`; for `d_target = d` the two values agree unless some endset reflexively covers `ℓ`. Composite-level atomicity, if required, belongs to the protocol layer above the substrate. | introduced |
-| M-Inv | The post-state `Σ'` satisfies the link-store invariants (L0, L1, L1a, L1b, L1c, L3, L12, L14, L-fin), the arrangement invariants (S2, S3★, S3★-aux, S8a, S8-depth, S8-fin, S8★, CL-OWN, CL-UNIQ, D-MIN★, D-CTG★, D-SEQ★), and all unchanged-component invariants (S4, S7a, S7b, S7c, S7d, C-fin, P0, P1, P2, P4★, P6, P7, P8, NodeLineage). | introduced |
+| M-Inv-State | *Per-state invariants at `Σ'`.* The post-state satisfies: link-store invariants (L0, L1, L1a, L1b, L1c, L3, L14, L-fin); arrangement invariants (S2, S3★, S3★-aux, S8a, S8-depth, S8-fin, S8★, CL-OWN, CL-UNIQ, D-MIN★, D-CTG★, D-SEQ★); and vacuous-by-frame invariants (M0, S4, S7a, S7b, S7c, S7d, C-fin, P6, P7, P8, NodeLineage). | introduced |
+| M-Inv-Bdry | *Composite-boundary properties at `Σ'`.* P4★, P4a, P7a hold at `Σ'` — all preserved because `R' = R`, `dom(Σ'.C) = dom(Σ.C)`, and the new V-arrangement entry is link-subspace (so it does not enter `Contains_C(Σ')`). J0, J1★, J1'★ are vacuously satisfied (no content-subspace allocation, no content-subspace range growth). | introduced |
+| M-Inv-Trans | *Transition invariants for `Σ → Σ'`.* M1, L12, P0, P1, P2, and P3 hold; S9 follows from P0. Each is discharged trivially by the frames `Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, and L12 by K.λ adding only the fresh `ℓ`. P3 is the conjunction `P0 ∧ P1 ∧ P2 ∧ L12`. | introduced |
 
 ## Open Questions
 
