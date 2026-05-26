@@ -165,6 +165,12 @@ assigns each registered type its shape. Two properties:
 
 Lifetime constancy is a substrate-level commitment, not derivable from R0…R7a. It is what lets Sh-conf evaluate emissions against a stable shape that matches the shape under which prior tuples of the same type were emitted, so the inductive proofs of Sh0–Sh3 can rely on a fixed conformance predicate. Mutable shape re-registration (e.g., relaxing a cardinality bound after some tuples are already emitted) would invalidate the induction; the framework forbids it. The lifetime constancy at the registry level reads as: the representative list `T_cat / ~` and the function `shape ∘ (·/~)` are both fixed at `Σ_init` and do not change as states evolve.
 
+**Lemma — NonRSeparation.** For every `K ∈ T_cat` with `shape(K) ≠ shape(R)`: `K ≁ R`.
+
+*Proof.* By per-class constancy of `shape(·)` (Definition — ShapeRegistry): `K ~ K' ⟹ shape(K) = shape(K')`. Contrapositively, `shape(K) ≠ shape(K') ⟹ K ≁ K'`. Instantiating at `K' := R` gives `shape(K) ≠ shape(R) ⟹ K ≁ R`. ∎
+
+The lemma is the single derivation underwriting every "K at a non-R catalog row is coverage-class-disjoint from R" claim used downstream. Each consuming site observes the local shape-tuple difference against R's `(*, 1, A, A_rel, ⊤)` — typically pointing out which components diverge — and cites the lemma rather than re-deriving the contrapositive.
+
 **Definition — Conformance.** A tuple `(a, F, G) ∈ L_K^Σ` (with `K ∈ T_cat`) is *shape-conformant at state Σ* iff all of the following hold:
 
 (a) `F` is in canonical-slot form; let `X_F = slot_addrs(F)`.
@@ -419,7 +425,7 @@ In both sub-cases, `addr(τ_new) ∉ nullified(Σ')`, so τ_new lies in `A_K^{Σ
 
 *Step 5 — Assembly of `wp_eff`.* Combined with gates 0–4's admit conjuncts (gate 0 contributes `d ∈ dom(Σ.M) ∧ K ∈ T_cat`; Sh-conf clauses (a)–(d) at gates 2 and 4 contribute `conf_K^Σ(F, G)`; gates 1 and 3 contribute the `Π_K` implications), and absorbing `K ∈ T_admissible` into `K ∈ T_cat`, the named `wp_eff` form follows. ∎
 
-*Coverage-class disjointness from R at every non-R catalog row.* For any K registered at a catalog row whose shape tuple differs from R's `(*, 1, A, A_rel, ⊤)` on any component, per-class constancy of `shape(·)` (`K ~ K' ⟹ shape(K) = shape(K')`) gives the contrapositive `shape(K) ≠ shape(K') ⟹ K ≁ K'`, so `K ≁ R` follows immediately and Step 2 lands in Case A.
+*Coverage-class disjointness from R at every non-R catalog row.* For any K registered at a catalog row whose shape tuple differs from R's `(*, 1, A, A_rel, ⊤)` on any component, Lemma — NonRSeparation gives `K ≁ R` immediately, so Step 2 lands in Case A.
 
 Downstream proofs that need to reason about `Emit_K`'s preconditions cite this Corollary directly rather than re-deriving the simplification.
 
@@ -664,16 +670,16 @@ Downstream consumers citing Sh4 at FDD-registered K should cite this corollary r
 
 The layer commits to executing (i)–(iii) atomically with respect to other emitters and retractors at the same `~`-equivalence class of K, under the same scope as Sh4's *Scope: single-process substrate.* clause.
 
-*Preservation under the discipline.* Under the baseline assumption `L_K^{Σ_init} = ∅` for every `K ∈ T_cat`, the inductive argument runs three cases: Case A (active subset unchanged), Case B (single new tuple at K), and Case C (retraction-only contraction). Case D (the K=R simultaneous addition-and-contraction case from Sh4) is excluded by shape-tuple structure: FDD requires `shape(K) = (1, 1, A_doc, A_doc, ⊤)`, while Retraction has `shape(R) = (*, 1, A, A_rel, ⊤)`; per-class constancy of `shape` (`K ~ K' ⟹ shape(K) = shape(K')`) and the shape-tuple inequality (differs on `c_F`, `t_F`, `t_G`) force `K ≁ R` for every FDD-registered K, so no `Emit_R` step can extend `A_K`.
+*Preservation under the discipline.* Under the baseline assumption `L_K^{Σ_init} = ∅` for every `K ∈ T_cat`, the inductive argument runs three cases: Case A (active subset unchanged), Case B (single new tuple at K), and Case C (retraction-only contraction). Case D (the K=R simultaneous addition-and-contraction case from Sh4) is excluded by shape-tuple structure: FDD requires `shape(K) = (1, 1, A_doc, A_doc, ⊤)`, while Retraction has `shape(R) = (*, 1, A, A_rel, ⊤)`, which differs on `c_F`, `t_F`, and `t_G`; Lemma — NonRSeparation gives `K ≁ R` for every FDD-registered K, so no `Emit_R` step can extend `A_K`.
 
 
 Fix `K ∈ T_cat` with FDD registered. By the same off-diagonal/diagonal split as in Sh4 (see *Universal scope* above), the substantive content of FDD's property `(A τ, τ' ∈ A_K^Σ : from₁(τ) = from₁(τ') :: addr(τ) = addr(τ'))` is that no two *distinct* active K-tuples share a from-slot value; the diagonal `τ = τ'` is trivial by reflexivity of `addr(·) = addr(·)`. The candidate set `C_fd(F, Σ) := {τ ∈ A_K^Σ : slot_addrs(F_τ) = slot_addrs(F)}` is broader in scope than Sh4's `C(F, G, Σ)` — it matches on from-slot alone rather than on the slot-pair — so `C ⊆ C_fd` at every state. The discipline is therefore *stricter as a gate* (more candidate sets are non-empty, so more emissions are suppressed) even though its candidate set is broader.
 
 *Base.* At `Σ_init` (per the framework's empty-baseline assumption, *Initial-state baseline for preservation proofs* in the Initial-State Baseline section above), `L_K^{Σ_init} = A_K^{Σ_init} = ∅`; FDD's universal is vacuous.
 
-*Step (Case A: `A_K^{Σ'} = A_K^Σ`).* By Lemma — CaseAClosureForAK, the broad transition falls into A-sub-class 1, 2, 3, or 4, and in each `A_K^{Σ'} = A_K^Σ` (with A-sub-class 3's complementary sub-regime routed to Case C below). FDD is inherited from the IH on the unchanged active subset. K.λ at type `K'` with `K' ~ K` is the Case B regime; per-class constancy of `shape(·)` and the shape-tuple inequality between FDD's `(1, 1, A_doc, A_doc, ⊤)` and R's `(*, 1, A, A_rel, ⊤)` force `K ≁ R` for every FDD-registered K, so the K' ~ K branch never coincides with K' ~ R; consequently Case D from Sh4's enumeration is structurally excluded at FDD-registered K.
+*Step (Case A: `A_K^{Σ'} = A_K^Σ`).* By Lemma — CaseAClosureForAK, the broad transition falls into A-sub-class 1, 2, 3, or 4, and in each `A_K^{Σ'} = A_K^Σ` (with A-sub-class 3's complementary sub-regime routed to Case C below). FDD is inherited from the IH on the unchanged active subset. K.λ at type `K'` with `K' ~ K` is the Case B regime; FDD's `(1, 1, A_doc, A_doc, ⊤)` differs from R's `(*, 1, A, A_rel, ⊤)`, so Lemma — NonRSeparation gives `K ≁ R` for every FDD-registered K, the `K' ~ K` branch never coincides with `K' ~ R`, and Case D from Sh4's enumeration is structurally excluded at FDD-registered K.
 
-*Step (Case B: `A_K^{Σ'} = A_K^Σ ∪ {τ_new}`, a K.λ-step at type K).* FDD's shape `(1, 1, A_doc, A_doc, ⊤)` differs componentwise from R's `(*, 1, A, A_rel, ⊤)`, so per-class constancy forces `K ≁ R` for every FDD-registered K (cf. the Case A exclusion of Sh4's Case D above). A K.λ-step at FDD-registered K therefore cannot extend `L_R^Σ` and cannot expand `nullified(Σ)`; no concurrent nullification of any τ ∈ A_K^Σ is structurally possible at this step, so the qualifier need not be threaded through Case B's hypotheses. By the *Emit_K routing commitment*, this K.λ-step originates as an `Emit_K` call (with K or `~`-equivalent registered type). By the *FDD functional-dependency contract* clause (iii), the emission proceeded only because `C_fd(F, Σ) = ∅`. Suppose, toward contradiction, that some prior `τ ∈ A_K^Σ` satisfies `from₁(τ) = from₁(τ_new)`. Under FDD's shape `(1, 1, A_doc, A_doc, ⊤)`, `from₁` of any tuple is the unique element of `slot_addrs(F)` (SlotAccessorTotality), so `from₁(τ) = from₁(τ_new)` iff `slot_addrs(F_τ) = slot_addrs(F_{τ_new})`. Hence `τ ∈ C_fd(F_{τ_new}, Σ)`, contradicting `C_fd(F, Σ) = ∅`. So no such `τ` exists, and `τ_new`'s from-slot value is fresh among `A_K^Σ`. Combined with the IH (which gives from-slot uniqueness off-diagonal on `A_K^Σ`) and reflexivity at the diagonal `(τ_new, τ_new)`, FDD holds on `A_K^{Σ'} = A_K^Σ ∪ {τ_new}`.
+*Step (Case B: `A_K^{Σ'} = A_K^Σ ∪ {τ_new}`, a K.λ-step at type K).* Lemma — NonRSeparation gives `K ≁ R` for every FDD-registered K (FDD's shape differs from R's, as noted in the preservation header above). A K.λ-step at FDD-registered K therefore cannot extend `L_R^Σ` and cannot expand `nullified(Σ)`; no concurrent nullification of any τ ∈ A_K^Σ is structurally possible at this step, so the qualifier need not be threaded through Case B's hypotheses. By the *Emit_K routing commitment*, this K.λ-step originates as an `Emit_K` call (with K or `~`-equivalent registered type). By the *FDD functional-dependency contract* clause (iii), the emission proceeded only because `C_fd(F, Σ) = ∅`. Suppose, toward contradiction, that some prior `τ ∈ A_K^Σ` satisfies `from₁(τ) = from₁(τ_new)`. Under FDD's shape `(1, 1, A_doc, A_doc, ⊤)`, `from₁` of any tuple is the unique element of `slot_addrs(F)` (SlotAccessorTotality), so `from₁(τ) = from₁(τ_new)` iff `slot_addrs(F_τ) = slot_addrs(F_{τ_new})`. Hence `τ ∈ C_fd(F_{τ_new}, Σ)`, contradicting `C_fd(F, Σ) = ∅`. So no such `τ` exists, and `τ_new`'s from-slot value is fresh among `A_K^Σ`. Combined with the IH (which gives from-slot uniqueness off-diagonal on `A_K^Σ`) and reflexivity at the diagonal `(τ_new, τ_new)`, FDD holds on `A_K^{Σ'} = A_K^Σ ∪ {τ_new}`.
 
 *Step (Case C: `A_K^{Σ'} ⊆ A_K^Σ` strictly, an `Emit_R`-step nullifying one or more K-tuple addresses without adding to A_K).* Retraction filters `A_K^Σ` by `nullified(Σ)` membership but cannot introduce new K-tuples (this case fires when `K ≁ R`, which holds for every FDD-registered K). The from-slot-uniqueness property is preserved on any subset: the universal quantifier ranges over fewer pairs but the predicate is unchanged, and any pair surviving in `A_K^{Σ'}` was already constrained by the IH on `A_K^Σ`.
 
@@ -757,6 +763,45 @@ The four set-valued templates take an *address* on the from-side (`from_K`, `fro
 
 The unrestricted from-slot (`c_F = *`) accommodates use cases where the retracting party is recorded in F (e.g., F's slot addresses include an agent address), as well as the bare retraction `Nullify(Σ, d_retr, a) = Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` of ASN-0086, where `F = ∅`. Both forms are canonical-slot (the bare form trivially, the attributed form when its from-slot endset is in canonical form). The shape framework rejects retractions whose from-slot uses non-canonical-form endsets, consistent with the discipline imposed across the catalog.
 
+*Worked example.* Register `K_neighbor = endorses` at NonIdempotentDirectedPair (`T_cat = {endorses, R}`) to supply retraction targets; R is registered per the *R-registration commitment*. Pre-allocate three commenter documents `d_src1, d_src2, d_src3 ∈ A_doc^{Σ_0}`, a common target document `d_tgt ∈ A_doc^{Σ_0}`, two agent documents `a_agent1, a_agent2 ∈ A_doc^{Σ_0}` (the retracting parties), and homes `home_endorses, home_R ∈ dom(Σ_0.M)`. The walkthrough runs a single linear timeline whose steps exhibit the shape's three F-cardinality regimes — bare (RETR1, `|slot_addrs(F)| = 0`) and two attributed regimes with distinct from-slot values (RETR2 with `{a_agent1}`, RETR3 with `{a_agent2}`) — followed by a Sh4 suppression of a duplicate attributed re-emission (RETR4).
+
+**Pre-emission RETR0 (creating three retraction targets at K_neighbor).** Three NonIdempotentDirectedPair emissions issue from `home_endorses`: `Emit_{K_neighbor}(Σ_0, home_endorses, {(d_src_i, δ(1, #d_src_i))}, {(d_tgt, δ(1, #d_tgt))})` for `i ∈ {1, 2, 3}`. Each Sh-conf check passes (canonical-slot, cardinalities match, target-domain inclusion in `A_doc`). At `K_neighbor`'s `idem = ⊥`, Sh4 does not fire. Result Σ_3 with tuples σ_1, σ_2, σ_3 ∈ A_rel^{Σ_3} at distinct tuple addresses (T10a.7 EnumerationInjectivity, ASN-0034).
+
+**Emission RETR1 (bare retraction of σ_1, `|slot_addrs(F)| = 0`).** Issued via the Nullify alias: `Nullify(Σ_3, home_R, addr(σ_1)) ≡ Emit_R(Σ_3, home_R, ∅, {(addr(σ_1), δ(1, #addr(σ_1)))})`.
+
+*Sh-conf check at Σ_3.* F = ∅ canonical-slot trivially, `slot_addrs(F) = ∅`, `match(0, c_F = *)` ✓ (since `0 ∈ ℕ`). G canonical-slot, `slot_addrs(G) = {addr(σ_1)}`, `match(1, c_G = 1)` ✓. Target-domain: `∅ ⊆ A^{Σ_3}` vacuously ✓; `{addr(σ_1)} ⊆ A_rel^{Σ_3}` ✓ (since `addr(σ_1) ∈ dom(Σ_3.L)`). Sh4 contract clause (i) computes `C(∅, {(addr(σ_1), δ(1, #addr(σ_1)))}, Σ_3) = ∅` (no prior R-tuples). Clause (iii) issues. Admitted. Result Σ_4 with new tuple ρ_0 having slot-pair `(∅, {addr(σ_1)})`; by Definition (nullified, ASN-0086), `addr(σ_1) ∈ nullified(Σ_4)`, so `A_{K_neighbor}^{Σ_4} = {σ_2, σ_3}`.
+
+**Emission RETR2 (attributed retraction of σ_2 by a_agent1).** Direct `Emit_R` with non-empty F: `Emit_R(Σ_4, home_R, {(a_agent1, δ(1, #a_agent1))}, {(addr(σ_2), δ(1, #addr(σ_2)))})`.
+
+*Sh-conf check at Σ_4.* F canonical-slot, `slot_addrs(F) = {a_agent1}`, `match(1, c_F = *)` ✓ (since `1 ∈ ℕ`). G canonical-slot, `slot_addrs(G) = {addr(σ_2)}`, `match(1, c_G = 1)` ✓. Target-domain: `{a_agent1} ⊆ A^{Σ_4}` ✓ (since `a_agent1 ∈ A_doc^{Σ_4} ⊆ A^{Σ_4}`); `{addr(σ_2)} ⊆ A_rel^{Σ_4}` ✓. Sh4 contract: `C({(a_agent1, δ(1, #a_agent1))}, {(addr(σ_2), δ(1, #addr(σ_2)))}, Σ_4) = ∅` — the slot-pair `({a_agent1}, {addr(σ_2)})` differs from ρ_0's `(∅, {addr(σ_1)})` on both components. Clause (iii) issues. Admitted. Result Σ_5 with new tuple ρ_1; `addr(σ_2) ∈ nullified(Σ_5)`, so `A_{K_neighbor}^{Σ_5} = {σ_3}`.
+
+**Emission RETR3 (attributed retraction of σ_3 by a_agent2 — distinct from-slot value).** `Emit_R(Σ_5, home_R, {(a_agent2, δ(1, #a_agent2))}, {(addr(σ_3), δ(1, #addr(σ_3)))})`.
+
+*Sh-conf check at Σ_5.* F canonical-slot, `slot_addrs(F) = {a_agent2}`, `match(1, c_F = *)` ✓. G canonical-slot, `slot_addrs(G) = {addr(σ_3)}`, `match(1, c_G = 1)` ✓. Target-domain ✓. Sh4 contract: `C({(a_agent2, δ(1, #a_agent2))}, {(addr(σ_3), δ(1, #addr(σ_3)))}, Σ_5) = ∅` — the slot-pair differs from both ρ_0 and ρ_1 on at least the G-component (ρ_0, ρ_1 target σ_1, σ_2 respectively). Clause (iii) issues. Admitted. Result Σ_6 with new tuple ρ_2; `addr(σ_3) ∈ nullified(Σ_6)`, so `A_{K_neighbor}^{Σ_6} = ∅`. RETR2 and RETR3 jointly exhibit the migration-recipe payoff: distinct from-slot values are admitted as distinct slot-pairs at Sh4, preserving per-event audit-slice multiplicity that the bare alias collapses.
+
+**Emission RETR4 (Sh4 suppression — duplicate attributed retraction).** From Σ_6, attempt a re-emission of RETR2: `Emit_R(Σ_6, home_R, {(a_agent1, δ(1, #a_agent1))}, {(addr(σ_2), δ(1, #addr(σ_2)))})` with the exact same slot-pair as RETR2.
+
+*Sh-conf check at Σ_6.* All clauses (a)–(d) pass identically to RETR2. Sh4 contract clause (i) computes `C({(a_agent1, δ(1, #a_agent1))}, {(addr(σ_2), δ(1, #addr(σ_2)))}, Σ_6) = {τ ∈ A_R^{Σ_6} : slot_addrs(F_τ) = {a_agent1} ∧ slot_addrs(G_τ) = {addr(σ_2)}} = {ρ_1}` (the slot-pair matches ρ_1 exactly; ρ_0 has empty F and targets σ_1, ρ_2 has `{a_agent2}` and targets σ_3, so both are excluded by exact set-equality). Clause (ii) *suppresses*: `Emit_R` returns `⊥`, state remains Σ_6, `A_R^{Σ_6} = {ρ_0, ρ_1, ρ_2}` unchanged. The audit-slice compression at duplicate slot-pairs is the semantic departure from ASN-0086's apparent multiset semantics flagged in the Nullify Compatibility section. ✗
+
+**Template evaluation at Σ_6.** `A_R^{Σ_6} = {ρ_0, ρ_1, ρ_2}` with slot-pairs `(∅, {addr(σ_1)})`, `({a_agent1}, {addr(σ_2)})`, `({a_agent2}, {addr(σ_3)})` respectively. Per the canonical base templates:
+
+| Template | Evaluation at Σ_6 | Notes |
+|---|---|---|
+| `pair_R(∅, addr(σ_1))` | `true` | Witnessed by ρ_0; exhibits the bare regime via set-equality `slot_addrs(F_{ρ_0}) = ∅`. |
+| `pair_R({a_agent1}, addr(σ_2))` | `true` | Witnessed by ρ_1; exhibits the attributed regime. |
+| `pair_R({a_agent1}, addr(σ_1))` | `false` | No τ has slot-pair `({a_agent1}, {addr(σ_1)})`; ρ_0's F is `∅ ≠ {a_agent1}`. |
+| `from_R(a_agent1)` | `{ρ_1}` | Only ρ_1 has `a_agent1 ∈ slot_addrs(F_τ)`; ρ_0 (empty F) and ρ_2 (F = `{a_agent2}`) excluded by membership. |
+| `from_R(a_agent2)` | `{ρ_2}` | Symmetric. |
+| `to_R(addr(σ_1))` | `{ρ_0}` | Only ρ_0 has `to₁(τ) = addr(σ_1)`. |
+| `to_R(addr(σ_2))` | `{ρ_1}` | Only ρ_1 targets σ_2. |
+| `from_addrs_R(addr(σ_2))` | `{a_agent1}` | The agent who retracted σ_2 (recorded in ρ_1's F). |
+| `from_addrs_R(addr(σ_1))` | `∅` | ρ_0's F is empty, contributing no witness. The empty result distinguishes bare from attributed retraction at the audit-slice level. |
+| `to_addrs_R(a_agent1)` | `{addr(σ_2)}` | The tuple a_agent1 retracted; collapses to a singleton because RETR4 was suppressed (otherwise this would still be a singleton under Sh4's set semantics). |
+
+The bare (ρ_0) and attributed (ρ_1, ρ_2) regimes co-exist in the active subset under one registration. The `from_addrs_R(b) = ∅` outcome at the bare-retraction target distinguishes "no agent attributed" from "agent X attributed" at the audit-slice level — the central semantic distinction that the `c_F = *` cardinality bound makes accessible.
+
+*Coverage class self-identity at R.* Retraction's shape tuple `(*, 1, A, A_rel, ⊤)` equals `shape(R)` definitionally, so Lemma — NonRSeparation does not apply at K := R: every R-typed `Emit_K` call goes through Step 2's Case B (`K ~ R`) in EffectiveWpSimplification's proof, where the unit-depth G constraint (Sh-conf clauses (b)/(c)/(d) at `c_G = 1`) discharges `a_emit(Σ, d) ∉ coverage(G)` via Lemma — LinkAddressNotPrefixOfEmit.
+
 ### BundledDirectedPair — `(1, \*, A_doc, A_doc, ⊤)`
 
 Tuples have form `slot_addrs(F) = {a}` for `a ∈ A_doc^Σ` and `slot_addrs(G) ⊆ A_doc^Σ` (any finite set, possibly empty, possibly singleton, possibly multi-element). The shape's distinguishing feature is `c_G = *`: a single emission may bundle multiple to-side document targets into one tuple, rather than requiring a separate tuple per target. Role-specific readings (parent → multiple sidecars, citing → multiple cited works, source → multiple dependents) are layer conventions over a single structural shape.
@@ -781,7 +826,7 @@ The Boolean `pair_K`'s G-side argument is an *address-set pattern* `Ĝ` matched 
 
 *Empty-G admissibility.* `c_G = *` admits `n = 0` per `match(0, *)`; the cardinality vocabulary `{0, 1, *, 0|1}` carries no `1..*` token, so a `1..*` lower bound cannot be expressed at the registry level. The asymmetry with Retraction: Retraction admits empty-F (the bare Nullify alias) with non-empty-G, while BundledDirectedPair admits non-empty-F with empty-G. Sh4 suppression applies uniformly at `n = 0` (exact slot-pair-equality on the empty set is decidable).
 
-*Coverage class disjointness from R.* The BundledDirectedPair shape tuple `(1, *, A_doc, A_doc, ⊤)` differs from R's `(*, 1, A, A_rel, ⊤)` on `c_F`, `c_G`, `t_F`, and `t_G`; per-class constancy of `shape(·)` (contrapositive: `shape(K) ≠ shape(R) ⟹ K ≁ R`) gives `K ≁ R` for every K at this shape, so EffectiveWpSimplification's wp simplification applies uniformly at every Sh-conf-admitted `Emit_K` call site for K at this shape.
+*Coverage class disjointness from R.* The BundledDirectedPair shape tuple `(1, *, A_doc, A_doc, ⊤)` differs from R's `(*, 1, A, A_rel, ⊤)` on `c_F`, `c_G`, `t_F`, and `t_G`; Lemma — NonRSeparation gives `K ≁ R` for every K at this shape, so EffectiveWpSimplification's wp simplification applies uniformly at every Sh-conf-admitted `Emit_K` call site for K at this shape.
 
 *Worked example.* Register `K = citation.depends` with the BundledDirectedPair shape (`T_cat = {citation.depends, R}`), pre-allocating a citing document `d_cite ∈ A_doc^{Σ_0}`, three cited documents `d_src1, d_src2, d_src3 ∈ A_doc^{Σ_0}`, and a home `home_cite ∈ dom(Σ_0.M)`. The walkthrough runs a single linear timeline `Σ_0 → Σ_1 → Σ_2 → Σ_3` whose three steps exhibit the shape's three G-cardinality regimes — empty-G (BDP0, `|slot_addrs(G)| = 0`), bundled multi-target (BDP1, `|slot_addrs(G)| = 3`), and legacy single-target (BDP2, `|slot_addrs(G)| = 1`) — co-existing in the active subset at Σ_3.
 
@@ -890,7 +935,7 @@ The single-home property `(A τ ∈ L_K^Σ :: home(addr(τ)) = d_K)` is the home
 
 *Step (Case A: `L_K^{Σ'} = L_K^Σ`).* By Lemma — CaseAClosureForLK, the broad transition falls into one of three Case-A sub-classes (K.σ/K.α, K.λ at K' ≁ K, or arrangement-modifying), in each of which `L_K^{Σ'} = L_K^Σ`. The homed-set property is inherited tuple-by-tuple from the IH on the unchanged `L_K`. Nullification of any prior K-tuple does not affect the property: SHCD's body quantifies over `L_K^Σ` (not `A_K^Σ`), and `L_K` is monotone non-decreasing by R3, so retraction-extending steps preserve L_K-side membership.
 
-K.λ at type `K' ~ K` is the Case B regime; per-class constancy of `shape(·)` and the shape-tuple inequality with R force `K ≁ R` for every SHCD-registered K, so the `K' ~ K` branch never coincides with `K' ~ R`.
+K.λ at type `K' ~ K` is the Case B regime; SHCD's `(1, 1, A_doc, A_doc, ⊥)` differs from R's `(*, 1, A, A_rel, ⊤)`, so Lemma — NonRSeparation gives `K ≁ R` for every SHCD-registered K, and the `K' ~ K` branch never coincides with `K' ~ R`.
 
 *Step (Case B: `L_K^{Σ'} = L_K^Σ ∪ {τ_new}`).* By the *Emit_K routing commitment*, the K.λ-step originates as an `Emit_K(Σ, d, F, G)` call. The *single-home commitment* clause (i) admits the call only if `d = d_K`. Under clause (ii), K.λ's first/subsequent-emission protocol fires at home `d = d_K`, depositing τ_new at an address with `home(addr(τ_new)) = d_K` (ASN-0086, R0a-Cor1 places the deposit address in `d_K`'s link sub-allocator chain, so its home is `d_K` by L1a). So `home(addr(τ_new)) = d_K`. Combined with the IH on the older tuples, every τ ∈ L_K^{Σ'} has `home(addr(τ)) = d_K`.
 
@@ -1112,7 +1157,7 @@ The framework gives stable, well-typed answers across emission and retraction ev
 
 Named claims defined in this ASN, listed for navigation. See each named section in the body for statement and proof.
 
-*Axioms, lemmas, corollaries.* Sh-conf; CaseAClosureForLK; CaseAClosureForAK; Sh0; Sh1; Sh2; Sh3; Sh4; Sh4HoldsAtFDDRegisteredK; SlotAccessorTotality; AllocatedAddressAntichain; CoverageEqualityDecidability; LinkAddressNotPrefixOfEmit; RetractionSelfFreshness; EffectiveWpSimplification; NullifyActiveSubsetCompatibility.
+*Axioms, lemmas, corollaries.* Sh-conf; NonRSeparation; CaseAClosureForLK; CaseAClosureForAK; Sh0; Sh1; Sh2; Sh3; Sh4; Sh4HoldsAtFDDRegisteredK; SlotAccessorTotality; AllocatedAddressAntichain; CoverageEqualityDecidability; LinkAddressNotPrefixOfEmit; RetractionSelfFreshness; EffectiveWpSimplification; NullifyActiveSubsetCompatibility.
 
 *Layer-discipline contracts.* Sh4 idempotency contract; FDD functional-dependency contract; single-home commitment.
 
