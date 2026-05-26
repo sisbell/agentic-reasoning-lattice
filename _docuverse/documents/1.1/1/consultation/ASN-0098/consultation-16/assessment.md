@@ -1,15 +1,9 @@
-# Revision Categorization — ASN-0051 review-16
+# Channel Assignment — ASN-0098 review-16
 
-**Date:** 2026-03-23 01:57
+**Date:** 2026-05-26 01:51
 
-## Issue 1: SV11 block decomposition scope in the two-subspace model
-Category: INTERNAL
-Reason: The fix requires choosing between two options (restrict B to content-subspace, or justify reading v₁ ≥ 1 as v₁ = s_C), both derivable from existing definitions in ASN-0058 (B1, M12) and ASN-0047 (two-subspace model, SC-NEQ). No design intent or implementation evidence needed.
+## Issue 1: LP12a boundary case ("content-subspace empty") hand-waves the coverage-subspace argument
+Reason: The required corollary is a structural fact about F-candidates inside a canonical span's coverage, derivable from LP-Fin's existing #d ≤ #d_0 argument combined with the position-(#d_0+2) subspace-comparison already used in the "same document, cross subspace" achievability case. All ingredients (T1 case (i), structural form of F, SubspaceConventionAxiom citation pattern) are present in the ASN.
 
-## Issue 2: SV7 conflates discovery mechanism with valid composite construction
-Category: INTERNAL
-Reason: The review itself states the fix: add a sentence noting J1★ (ASN-0047) may require K.ρ in a valid composite, but K.ρ modifies R not L or M, so discovery is unaffected. All relevant definitions (J1★, discover_s, K.ρ's frame) are already present in the ASNs.
-
-## Issue 3: SV11 fragment overlap under within-document sharing
-Category: INTERNAL
-Reason: The clarification that fragments form a cover rather than a partition follows directly from S5 (UnrestrictedSharing permits non-injective M(d)) and the set-union formula already stated in SV11. The fix is a mathematical observation about existing definitions, not a design or implementation question.
+## Issue 2: LP-Fin's finiteness conclusion is asserted rather than derived case-by-case
+Reason: The required case decomposition uses only T1 case (i), T4-validity of d_0 (specifying zero positions z_1, z_2), the prefix-copy region of TumblerAdd (for canonical ℓ), and the structural form of F — all already established in the ASN. The fix expands the existing finiteness assertion into the sharper #d < #d_0 (zero candidates) vs. #d = #d_0 (exactly n candidates) split.
