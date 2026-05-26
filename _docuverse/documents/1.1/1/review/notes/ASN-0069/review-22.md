@@ -1,0 +1,14 @@
+# Review of ASN-0069
+
+## REVISE
+
+### Issue 1: V12(d) derivation cites V4 alone for range inclusion
+**ASN-0069, "Permanence Across Source and Fork" (V12(d) derivation)**: "By V4, `ran(M'(d_new)) ⊆ ran(M(d_src)|_{V_{s_C}(d_src)})` — every inherited I-address is content-subspace-referenced in `d_src`'s arrangement at the pre-fork state."
+**Problem**: V4 alone is insufficient. V4 establishes only the one-sided containment `V_{s_C}(d_src) ⊆ dom(M'(d_new))` together with pointwise equality on that subset; it permits `dom(M'(d_new))` to contain extra positions outside `V_{s_C}(d_src)` mapping to addresses outside `ran(M(d_src)|_{V_{s_C}(d_src)})`. From V4 alone we get only `ran(M'(d_new)|_{V_{s_C}(d_src)}) ⊆ ran(M(d_src)|_{V_{s_C}(d_src)})`, not the unrestricted range inclusion claimed. The conclusion is true (because V4b holds and V0's Effects table commits to it), but the cited justification is incomplete — the citation pattern elsewhere in this ASN (V0's Effects table, for example) properly distinguishes V4 from V4b, so the loose citation here is asymmetric with the rest of the document.
+**Required**: Cite V4b alongside V4 (V4b supplies `dom(M'(d_new)) = V_{s_C}(d_src)`, which combined with V4's pointwise equality yields the range equality, of which the inclusion is an immediate corollary). Alternatively, cite J4's range constraint from ASN-0047 directly, since that constraint is exactly the inclusion needed and is a foundation guarantee.
+
+## OUT_OF_SCOPE
+
+(None)
+
+VERDICT: REVISE
