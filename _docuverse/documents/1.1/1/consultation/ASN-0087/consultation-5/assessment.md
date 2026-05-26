@@ -1,21 +1,15 @@
-# Revision Categorization — ASN-0063 review-5
+# Channel Assignment — ASN-0087 review-5
 
-**Date:** 2026-03-21 19:24
+**Date:** 2026-05-26 12:47
 
+## Issue 1: Worked example imprecisely describes coverage
+Reason: Fix is internal — PrefixSpanCoverage (ASN-0043) is already cited in the ASN; the correction is restating coverage as a prefix-closed set and computing the intersection via prefix tests, both derivable from the cited definition.
 
+## Issue 2: "Sibling versions" terminology contradicts the substrate's version semantics
+Reason: Fix is internal — K.δ's k=0 (sibling) vs k=1 (version) classification is in ASN-0047 (already cited in this ASN); the correction is a terminology swap from "sibling versions" to "sibling documents".
 
-## Issue 1: K.μ~ preservation of S3★ is asserted without proof
-Category: INTERNAL
-Reason: The argument is fully derivable from the existing definitions of K.μ~, the amended K.μ⁺, and S3★ — all present in this ASN and ASN-0047. The review even sketches the three-step proof needed.
+## Issue 3: Internal editing note embedded in M-DiscSymmetry claim
+Reason: Fix is internal — purely editorial cleanup, remove the parenthetical revision-history annotation from the claim body.
 
-## Issue 2: CL3 postcondition omits the arrangement change
-Category: INTERNAL
-Reason: The missing postcondition clauses (f) and (g) follow directly from K.μ⁺_L's definition and frame, both specified in this ASN. No external design intent or implementation evidence is needed.
-
-## Issue 3: K.μ⁺_L precondition uses post-state notation
-Category: INTERNAL
-Reason: This is a notational consistency fix aligning with the pre-state convention established in ASN-0047. The correct variable name (unprimed L) and the reasoning are already present in the ASN.
-
-## Issue 4: CL2 claimed for the direct I-span form where it does not apply
-Category: INTERNAL
-Reason: The fix requires choosing between generalizing CL2 or scoping it to V-space only — both options are derivable from the definitions already in this ASN. No Nelson design intent or Gregory implementation evidence is needed.
+## Issue 4: S2 preservation argument uses imprecise language
+Reason: Fix is internal — S2 (ArrangementFunctionality) requires domain-uniqueness, not injectivity; S5 already noted as permitting many V-positions to share an image. Rephrasing uses definitions already in the substrate stack.
