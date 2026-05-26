@@ -1,17 +1,6 @@
-# Revision Categorization — ASN-0051 review-18
+# Channel Assignment — ASN-0098 review-18
 
-**Date:** 2026-03-23 03:19
+**Date:** 2026-05-26 02:53
 
-
-
-## Issue 1: SV7 scope is misleadingly narrow
-Category: INTERNAL
-Reason: The fix requires only logical analysis of which elementary transitions hold L in frame — all defined in the ASN's own foundation citations. No design intent or implementation evidence needed.
-
-## Issue 2: SV13(g) and properties table inconsistent with SV11's cover qualification
-Category: INTERNAL
-Reason: SV11 already contains the explicit cover-vs-partition discussion. The fix is purely editorial: propagating SV11's own qualification to SV13(g) and the properties table.
-
-## Issue 3: SV6 parenthetical about T5 is confusing
-Category: INTERNAL
-Reason: The parenthetical is a presentational issue within a self-contained proof. The fix is editorial — remove or relocate the remark — requiring no external evidence.
+## Issue 1: Proof support gap for "non-canonical ⟹ infinite F-intersection"
+Reason: Pure proof-engineering issue internal to the ASN. The reviewer has both identified the gap (the descendant-mechanism witness only covers `#ℓ ≤ #d_0`) and supplied the fix (the within-chain argument using `actionPoint(ℓ) ≤ #ℓ < #s` together with T1 case (i) on existing chain structure). All facts needed — OrdinalDisplacement, T1, ChainEnumerationInjectivity, and the structural form of `F` — are already established in the ASN's own content and its cited foundations. No design intent (Nelson) or implementation evidence (Gregory) is required.
