@@ -1,0 +1,17 @@
+# Review of ASN-0099
+
+## REVISE
+
+### Issue 1: Strengthening 2 witness construction is inconsistent with L3
+
+**ASN-0099, F4 (Realizability discharge, Strengthening 2)**: "Witness: link `a` with one canonical span `(α, δ(1, #α))` at some slot (other slots arbitrary; the link-level existential `(E i : I ⊆ coverage(eᵢ))` fails on empty slots when `I ≠ ∅`). ... at every other (possibly empty) slot, `coverage = ∅` cannot contain non-empty `I`."
+
+**Problem**: The argument requires *every* non-witness slot to have `coverage = ∅`. But L3 (ASN-0043) mandates slot 3 non-empty for every link. If the witness span is placed at slot 1 or 2 (as permitted by "at some slot"), then slot 3 must be non-empty and the "all other slots have coverage = ∅" claim fails. The construction is sound only if the witness is placed at slot 3 specifically (allowing slots 1, 2 to be empty), or if non-empty non-witness slots are explicitly constrained so coverage does not contain I. Strengthening 1 by contrast explicitly populates all three slots and justifies why; Strengthening 3 is robust because I is singleton. Strengthening 2's mid-position is the gap.
+
+**Required**: Either (a) specify the witness is placed at slot 3 with slots 1, 2 empty, or (b) state the additional constraint on non-empty non-witness slots (e.g., choose slot 3's span as `(τ, δ(1, #τ))` with τ non-nesting with both α and γ, so coverage(slot 3) misses γ). The realizability argument permits either; the witness construction needs to commit to one.
+
+## OUT_OF_SCOPE
+
+None.
+
+VERDICT: REVISE
