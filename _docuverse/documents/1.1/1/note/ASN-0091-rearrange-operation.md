@@ -67,30 +67,32 @@ dom(Σ'.M(d)) = dom(Σ.M(d))                                                    
 
 This distinguishes rearrangement from contraction (which removes V-positions) and from extension (which adds them). Rearrangement is the unique transition class that touches the arrangement's *structure* without changing its *support*.
 
-The bijection further makes the range — viewed as a set or as a multiset — a permutation of itself. Compute:
+The bijection further makes the range — viewed as a set or as a multiset — a permutation of itself. We derive the conclusion uniformly across every registered document via a two-case argument: the target document `d` via the π-bijection, and every other registered document via RA-frame's other-document clause. For the target document `d`, compute:
 ```
 ran(Σ'.M(d)) = {Σ'.M(d)(v') : v' ∈ dom(Σ'.M(d))}
              = {Σ'.M(d)(π(v)) : v ∈ dom(Σ.M(d))}        [π bijects dom onto itself]
              = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}             [RA-π]
              = ran(Σ.M(d))
 ```
+For every other registered document `d' ∈ dom(Σ.M)` with `d' ≠ d`, RA-frame's other-document clause `Σ'.M(d') = Σ.M(d')` (the same equality later catalogued as RE-other) forces `ran(Σ'.M(d')) = ran(Σ.M(d'))` trivially, since identical partial functions have identical ranges. Combining the two cases delivers range invariance uniformly across every registered document.
 
 **Range Invariance**:
 ```
-ran(Σ'.M(d)) = ran(Σ.M(d))                                                              (RE-ran)
+(A d' ∈ dom(Σ.M) :: ran(Σ'.M(d')) = ran(Σ.M(d')))                                      (RE-ran)
 ```
 
-Lifting to multisets: for each I-address `a`, define `μ_a(M) = |{v : v ∈ dom(M) ∧ M(v) = a}|`. By injectivity of π on a finite set (dom(M(d)) is finite by S8-fin):
+Lifting to multisets: for each I-address `a` and each registered document `d'`, define `μ_a(M(d')) = |{v : v ∈ dom(M(d')) ∧ M(d')(v) = a}|`. The same two-case argument applies. For the target document `d`, by injectivity of π on a finite set (dom(M(d)) is finite by S8-fin):
 ```
 μ_a(Σ'.M(d)) = |{v' : v' ∈ dom(Σ'.M(d)) ∧ Σ'.M(d)(v') = a}|
              = |{π(v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|       [substitute v' = π(v)]
              = |{v : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|           [π injective]
              = μ_a(Σ.M(d))
 ```
+For every other registered document `d' ∈ dom(Σ.M)` with `d' ≠ d`, RA-frame's other-document clause gives `Σ'.M(d') = Σ.M(d')`, whence `μ_a(Σ'.M(d')) = μ_a(Σ.M(d'))` trivially — the multiplicity of `a` is a function of the arrangement alone, which is fixed.
 
 **Per-Address Multiplicity Invariance**:
 ```
-(A a ∈ T :: μ_a(Σ'.M(d)) = μ_a(Σ.M(d)))                                                (RE-μ)
+(A a ∈ T, d' ∈ dom(Σ.M) :: μ_a(Σ'.M(d')) = μ_a(Σ.M(d')))                              (RE-μ)
 ```
 
 Together, RE-ran and RE-μ are the formal content of Nelson's "the document afterward contains exactly the same set of content as before — no additions, no losses, no duplications." Range invariance says the set is identical. Multiplicity invariance says each I-address appears the same number of times. The arrangement is a permutation, not a transformation.
@@ -121,7 +123,7 @@ This is the formal precipitate of Nelson's "links between bytes can survive rear
 
 ## Discoverability Is Preserved
 
-A link is *discoverable from* document `d` at state `Σ` when some endset's coverage intersects the document's I-address range — when there exists a slot `i` with `coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅` (the characterisation supplied by foundation lemma LP12 of ASN-0098). Combining RE-cov and RE-ran:
+A link is *discoverable from* document `d` at state `Σ` when some endset's coverage intersects the document's I-address range — when there exists a slot `i` with `coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅` (the characterisation supplied by foundation lemma LP12 of ASN-0098). The claim below quantifies `d` over every registered document — the rearrangement target *and* every non-target. Each citation below applies at any such `d`: RE-cov is uniform over all links and slots and is independent of `d`, and RE-ran (in its generalised form derived above — target case by π-bijectivity, non-target cases by RA-frame's other-document clause) is uniform over all `d ∈ dom(Σ.M)`. Combining them:
 ```
 discoverable_from(a, d, Σ')
   ⟺ (E i :: coverage(Σ'.L(a).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
@@ -204,7 +206,7 @@ This is the formal precipitate of Nelson's "REARRANGE is document-scoped — the
 
 When `a ∈ ran(Σ.M(d))` with `origin(a) ≠ d`, the I-address `a` is foreign content displayed in d — a transclusion from d's perspective. The transclusion relationship has three components: (a) `a` is in d's arrangement; (b) `a`'s home document `origin(a)` is present and undisturbed; (c) the origin function — which document allocated `a` — is unchanged.
 
-By RE-ran, the *set* of foreign addresses `{a ∈ ran(Σ.M(d)) : origin(a) ≠ d}` is preserved; by RE-μ, each such address appears in d's arrangement with the same multiplicity at Σ' as at Σ — so the multiset of foreign addresses is preserved. By CL-OWN (ASN-0047), every link-subspace V-position in d maps to a link with `origin = d`, so a foreign address `a` with `origin(a) ≠ d` cannot arise at a link-subspace V-position; by S3★-aux (ASN-0047), V-positions in `dom(Σ.M(d))` are exhaustively content-subspace or link-subspace, so the V-position witnessing `a ∈ ran(Σ.M(d))` is therefore content-subspace, after which S3★ (ASN-0047) gives `a ∈ dom(Σ.C)`. By C2 (ASN-0093), `origin(a) ∈ dom(Σ.M)`, so the home document is a registered document at Σ and RE-other applies at `d' = origin(a)` to give an unchanged source arrangement. By RE-C, the address `a` remains in `dom(Σ'.C)` with its original value. Origin itself is a function of the address (per S7 of ASN-0036) — not of state — so it is invariant unconditionally.
+The claim ranges over every (a, d) pair with `a ∈ ran(Σ.M(d))` and `origin(a) ≠ d` — `d` here can be the rearrangement target or any other registered document, both of which are admitted; each per-d citation below applies uniformly. By RE-ran applied at d (uniform over all `d ∈ dom(Σ.M)` per its generalised statement — for the target document d, by π-bijectivity; for any non-target document d, by RA-frame's other-document clause, which fixes `Σ'.M(d) = Σ.M(d)` entirely and so preserves the range trivially), the *set* of foreign addresses `{a ∈ ran(Σ.M(d)) : origin(a) ≠ d}` is preserved; by RE-μ applied at d (likewise uniform, with the non-target case again trivial under `Σ'.M(d) = Σ.M(d)`), each such address appears in d's arrangement with the same multiplicity at Σ' as at Σ — so the multiset of foreign addresses is preserved. By CL-OWN (ASN-0047), every link-subspace V-position in d maps to a link with `origin = d`, so a foreign address `a` with `origin(a) ≠ d` cannot arise at a link-subspace V-position; by S3★-aux (ASN-0047), V-positions in `dom(Σ.M(d))` are exhaustively content-subspace or link-subspace, so the V-position witnessing `a ∈ ran(Σ.M(d))` is therefore content-subspace, after which S3★ (ASN-0047) gives `a ∈ dom(Σ.C)`. By C2 (ASN-0093), `origin(a) ∈ dom(Σ.M)`, so the home document is a registered document at Σ and RE-other applies at `d' = origin(a)` (which satisfies `d' ≠ d` since `origin(a) ≠ d`) to give an unchanged source arrangement — independent of whether d itself is the rearrangement target. By RE-C, the address `a` remains in `dom(Σ'.C)` with its original value. Origin itself is a function of the address (per S7 of ASN-0036) — not of state — so it is invariant unconditionally.
 
 > **Transclusion Preservation.** For every transclusion relationship at Σ — every pair (a, d) with `a ∈ ran(Σ.M(d))` and `origin(a) ≠ d` — the same relationship holds at Σ', with the same multiplicity, and the home document `origin(a)`'s arrangement is unchanged. (RE-trans)
 
@@ -474,8 +476,8 @@ The *Provenance* column records which premises a claim depends on: **abstract** 
 | RA-adm | Rearrangement admissibility: every foundation invariant satisfied by Σ is satisfied by Σ' | abstract (definition) | introduced |
 | RE-C | Content-store invariance: Σ'.C = Σ.C under REARRANGE | abstract (from RA-frame) | introduced |
 | RE-dom | Domain stability: dom(Σ'.M(d)) = dom(Σ.M(d)) | abstract (from RA-dom) | introduced |
-| RE-ran | Range invariance: ran(Σ'.M(d)) = ran(Σ.M(d)) | abstract (from RA-π) | introduced |
-| RE-μ | Per-address multiplicity invariance: μ_a(Σ'.M(d)) = μ_a(Σ.M(d)) for every I-address a | abstract (from RA-π) | introduced |
+| RE-ran | Range invariance: ran(Σ'.M(d')) = ran(Σ.M(d')) for every d' ∈ dom(Σ.M) | abstract (target case from RA-π; non-target case from RA-frame's other-document clause) | introduced |
+| RE-μ | Per-address multiplicity invariance: μ_a(Σ'.M(d')) = μ_a(Σ.M(d')) for every I-address a and every d' ∈ dom(Σ.M) | abstract (target case from RA-π; non-target case from RA-frame's other-document clause) | introduced |
 | RE-L | Link store invariance: dom(Σ'.L) = dom(Σ.L) and Σ'.L(a) = Σ.L(a) for every a ∈ dom(Σ.L) | abstract (from RA-frame) | introduced |
 | RE-cov | Coverage invariance: coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ) for every link a and slot i | abstract (from RE-L) | introduced |
 | RE-disc | Discoverability invariance: discoverable_from(a, d, Σ') ⟺ discoverable_from(a, d, Σ) for every link a and document d | abstract (from RE-cov + RE-ran via LP12) | introduced |
