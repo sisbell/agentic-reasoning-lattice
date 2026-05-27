@@ -346,10 +346,9 @@ By V4 at each fork: `M¹(d¹_new) = M(d_src)|_{V_{s_C}(d_src)}` (in the sense th
 >
 > *Stage 2 — formal premise carries the inclusion across the gap to the pre-state of step `k`.* The formal premise at `i = k` states that `V_{s_C}(d^{k-1}_new)` is the same set in the post-state of step `k − 1` and the pre-state of step `k`, and that for every element `v` of this set, `M(d^{k-1}_new)(v)` is the same value in both states. Applying the premise pointwise to the `v ∈ V_{s_C}(d^{k-1}_new)` supplied by Stage 1: `v ∈ V_{s_C}(d^{k-1}_new)` at the pre-state of step `k`, and the value `M^{k-1}(d^{k-1}_new)(v)` at post-step-(k−1) — which by the IH equals `M(d_src)(v)` at `Σ` — reads through unchanged into the pre-state of step `k`. (The premise's universal "`V_{s_C}(d^{i-1}_new)` is the same set" entails the membership-transfer step `v ∈ V_{s_C}(d^{k-1}_new) at post-(k−1) ⟹ v ∈ V_{s_C}(d^{k-1}_new) at pre-k` directly; no set-equality chain back to `V_{s_C}(d_src)` through earlier chain members is needed, so the derivation rests on the formal premise as written without strengthening it.)
 >
-> *Closing.* V4 at the k-th fork now applies for every `v ∈ V_{s_C}(d_src)` at `Σ`: V4 takes `v ∈ V_{s_C}(d^{k-1}_new)` (pre-step-k) as input and concludes `v ∈ dom(M^k(d^k_new))` at post-step-k with `M^k(d^k_new)(v) = M^k(d^{k-1}_new)(v)` at post-step-k. V5 applied to step `k` gives `M^k(d^{k-1}_new) = M^{k-1}(d^{k-1}_new)`, so the source's arrangement is identical at pre-step-k and post-step-k. Composing:
+> *Closing.* V4 at the k-th fork now applies for every `v ∈ V_{s_C}(d_src)` at `Σ`: V4 takes `v ∈ V_{s_C}(d^{k-1}_new)` (pre-step-k) as input and concludes `v ∈ dom(M^k(d^k_new))` at post-step-k with `M^k(d^k_new)(v)` at post-step-k equal to `M^{k-1}(d^{k-1}_new)(v)` at pre-step-k (V4's standard prime-convention reading: post-state value of the fork equals pre-state value of the source). Composing:
 >
-> `M^k(d^k_new)(v) at post-step-k = M^k(d^{k-1}_new)(v) at post-step-k     [V4 at step k]`
-> `                              = M^{k-1}(d^{k-1}_new)(v) at pre-step-k    [V5 across step k]`
+> `M^k(d^k_new)(v) at post-step-k = M^{k-1}(d^{k-1}_new)(v) at pre-step-k     [V4 at step k]`
 > `                              = M^{k-1}(d^{k-1}_new)(v) at post-step-(k-1) [premise at i=k, Stage 2]`
 > `                              = M(d_src)(v) at Σ                          [induction hypothesis]`
 >
