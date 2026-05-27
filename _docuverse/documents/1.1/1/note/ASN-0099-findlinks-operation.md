@@ -4,7 +4,7 @@
 
 ## The Reader's Question
 
-The reader looks at a stretch of content in their document and asks: *what connects here from elsewhere?* This is one half of the central reader-side promise of a Xanadu-style system — that the literature is bidirectionally navigable, that the links from the rest of the docuverse to the content in front of me must be findable on demand and without appreciable delay. We adopt this as our starting obligation. The user supplies a region of arranged content; the system must return every link whose endsets touch that content.
+The reader looks at a stretch of content in their document and asks: *what connects here from elsewhere?* This is one half of the central reader-side promise of a Xanadu-style system — that the literature is bidirectionally navigable, that the links from the rest of the docuverse to the content in front of me must be findable on demand and (per Nelson's design intent at Literary Machines 2/46, "without appreciable delay") at interactive responsiveness rather than batch latency. We adopt this as our starting obligation, treating the Nelson phrase here as design framing for the operation's reader-experience role — binding on interactive responsiveness for backlink discovery, but silent on stronger commit-visibility models. The user supplies a region of arranged content; the system must return every link whose endsets touch that content.
 
 The reader knows only what they see. They see arranged content — a stretch of V-positions in some document `d`. They do not see I-addresses directly, do not see the content store, do not see other documents' arrangements, and they certainly do not see the link store. The query is in V-coordinates of `d`.
 
@@ -107,10 +107,20 @@ F4 (MatchFormulaMinimality):
    — and, with respect to F1, incomplete — conforming result set.
 
    (Weakening direction.) The dual direction is discharged by F3
-   (Soundness): an implementation conforming to a weakening `P_w` of F1
-   (a predicate admitting strictly more `(a, I)` pairs) would return
-   links satisfying `P_w` but not F1, violating F3 which requires
-   `a ∈ result(I, Σ) ⟹ matches(a, I, Σ)` with `matches` read as F1.
+   (Soundness). F3 is invoked here with `matches` *fixed* to F1 at the
+   meta-level (per the framing paragraph above) — F3, taken with F1 as
+   its embedded match predicate, is the conformance test that every
+   `result`-output must pass against *this* specification. An
+   alternative implementation conforming to a weakening `P_w` of F1
+   (a predicate admitting strictly more `(a, I)` pairs) would, by
+   hypothesis, conform to F3 with `matches := P_w` — that is, satisfy
+   F3's literal contract as parameterised by its own match predicate —
+   and so return links satisfying `P_w` but not F1. Read against the
+   F1-fixed F3, the alternative implementation fails the conformance
+   test at the F1-non-admitted pair: a link is in `result(I, Σ)` but
+   not in `findlinks(I, Σ) = {a ∈ dom(Σ.L) : matches_{F1}(a, I, Σ)}`.
+   The operationally observable gap is precisely that excluded-by-F1
+   link returned by the alternative implementation.
 
    Together: F2 forbids strengthenings (which would miss F1-admitted
    matches), F3 forbids weakenings (which would return non-F1 links).
@@ -135,6 +145,8 @@ Combined with the strengthened universal claim, the realizability discharge give
 The reader's promise rests on this singleton-overlap reading, as argued above for the "Why intersection" choice: a link is about every byte its endset names (L13, ASN-0043), and one shared byte is one shared byte. F4 records that this minimality is not optional: alternative match formulas are alternative operations, not alternative implementations of FINDLINKS. Conforming implementations are bound to F1 as the unique match predicate against which F2 ∧ F3 are evaluated.
 
 **Empty endsets at non-type slots.** L3 (ASN-0043) requires only the type-endset (slot 3) to be non-empty; any other slot may carry the empty endset. An empty endset has `coverage(∅) = ∅` (the empty union), so the intersection `coverage(Σ.L(a).eᵢ) ∩ I = ∅` for every `I` whenever `Σ.L(a).eᵢ = ∅`. The slot-existential `(E i : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` is therefore never witnessed by an empty slot — but other non-empty slots of the same link may still witness it. The match predicate accommodates empty endsets mechanically: a link with `Σ.L(a).e₁ = ∅` and a non-empty `Σ.L(a).e₂` whose coverage meets `I` still matches `I`, via slot 2. The filtered form behaves differently: a filter constraint `(i, J)` is satisfied at slot `i` iff `i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅`, and when `Σ.L(a).eᵢ = ∅` the right conjunct is false for every `J`, so any constraint naming slot `i` is unsatisfiable at that link. A filtered query that explicitly nominates an empty slot therefore excludes the link from its result, even when other slots' coverages would have admitted it under the unfiltered match.
+
+Note two distinct short-circuits for an unsatisfied per-constraint conjunct of the filtered match: when `i > |Σ.L(a)|`, the *left* conjunct `i ≤ |Σ.L(a)|` is false and short-circuits the conjunction — the slot does not exist on this link (a structural mismatch between the constraint's positional reference and the link's arity); when `i ≤ |Σ.L(a)| ∧ Σ.L(a).eᵢ = ∅`, the left conjunct passes but the *right* conjunct `coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅` is false for every `J` — the slot exists but its coverage is empty (a structurally present slot whose endset carries no spans). Both paths produce the same outcome (the constraint is unsatisfiable at `a`, so the link is excluded from the filtered result) via distinct argumentative routes. Implementation-side, the distinction is useful for diagnostics — "wrong link kind" (slot index out of range, e.g. asking a 3-endset link to satisfy a constraint at slot 4) vs. "incomplete link" (slot is present but its endset has not been populated) — but abstract conformance is indifferent to which short-circuit fires first.
 
 ## Endset Filtering
 
@@ -268,14 +280,12 @@ A direct consequence: the two phases compose unambiguously. Once `I = image(R, d
 
 ## Arrangement Independence
 
-The I→Link phase consults `Σ.L` and `I` alone. It does not consult any arrangement. F8 already encodes this in its hypothesis `Σ.L = Σ'.L`: `Σ.M` is unmentioned, so two states agreeing on the link store give equal results regardless of how their arrangements differ. Before stating the operationally salient specialisation as the frame condition exercised by editing operations, we surface one structural invariant of the substrate on which the derivation of survivability rests.
+The I→Link phase consults `Σ.L` and `I` alone. It does not consult any arrangement. F8 already encodes this in its hypothesis `Σ.L = Σ'.L`: `Σ.M` is unmentioned, so two states agreeing on the link store give equal results regardless of how their arrangements differ. Before stating the operationally salient specialisation as the frame condition exercised by editing operations, we surface one structural lemma of the substrate on which the derivation of survivability rests.
 
-ASN-0093's operation specifications list every preserved component explicitly — K.σ, K.α, and K.λ each end with `L' = L`. Several operations in ASN-0047 omit `L` from their published frames: K.μ⁺ (its frame names only `C`, `E`, `R`, and per-document arrangement), K.μ⁻ (likewise), and K.ρ (whose frame names only `C`, `E`, and per-document arrangement). We do not infer preservation from this silence. Nor can we derive the preservation from any presently-available substrate axiom: L12 (LinkImmutability, ASN-0093) supplies per-link value preservation conditional on `a ∈ dom(L)`, and L12a (LinkStoreMonotonicity, ASN-0093) supplies `dom(L) ⊆ dom(L')`, but neither rules out `dom(L)` growing during a K.μ⁺, K.μ⁻, or K.ρ step — both axioms permit incidental link allocation by these operations, so neither suffices to pin down `Σ'.L = Σ.L`.
-
-We therefore introduce the missing preservation as an explicit axiom at the applications level. We name it A1 and acknowledge openly that the substrate spec is currently silent on it; the axiom rests on consultative grounding pending formal promotion to ASN-0047:
+ASN-0093's operation specifications list every preserved component explicitly — K.σ, K.α, and K.λ each end with `L' = L`. ASN-0047's K.δ, K.μ~, and K.μ⁺_L likewise list `L' = L` in their published frames. Three operations in ASN-0047 omit `L` from their published frames: K.μ⁺ (its frame names only `C`, `E`, `R`, and per-document arrangement), K.μ⁻ (likewise), and K.ρ (whose frame names only `C`, `E`, and per-document arrangement). At each of these three transitions, L12 (LinkImmutability, ASN-0093) supplies per-link value preservation conditional on `a ∈ dom(L)`, and L12a (LinkStoreMonotonicity, ASN-0093) supplies `dom(L) ⊆ dom(L')`, but neither pins down equality `Σ'.L = Σ.L` directly — they permit but do not require `dom(L)` to remain fixed. We derive the missing equality as a structural lemma of this ASN, A1 below, from the substrate's effect-clause convention together with the architectural separation between content and link state components. The derivation is supported by two convergent sources — design intent and implementation evidence — that ground the closed-world reading of the substrate effect-clause convention applied here.
 
 ```
-A1 (LinkStoreInertOfNonAllocatingOperations):
+A1 (LinkStoreInertOfNonAllocatingOperations) — derived structural lemma:
    For every transition Σ → Σ' produced by an operation in V ∖ {K.λ} —
    that is, K.σ, K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, or K.ρ — the
    link store is preserved:
@@ -288,115 +298,23 @@ A1 (LinkStoreInertOfNonAllocatingOperations):
    ASN was written. Downstream ASNs consuming A1 against an evolved
    vocabulary must restate the claim against the then-current
    operation set.
-
-   Status. A1 is not derivable from the substrate vocabulary as
-   currently published. ASN-0047's frame clauses for K.μ⁺, K.μ⁻, and
-   K.ρ do not list `L`, and L12 (LinkImmutability) + L12a
-   (LinkStoreMonotonicity) together permit `dom(L)` to grow at any of
-   these three transitions without violating the substrate's published
-   axioms. The present ASN does not have authority to amend ASN-0047's
-   frames. We therefore introduce A1 as an explicit applications-level
-   axiom, grounded on the two converging sources of consultative
-   evidence below, and we flag A1 for formal promotion to the
-   substrate (see Substrate-promotion request below). The five
-   non-allocating operations whose published frames already name
-   `L' = L` (K.σ, K.α, K.δ, K.μ~, K.μ⁺_L) inherit preservation
-   directly from those frames and do not depend on A1; K.λ is
-   excluded from A1's scope by its own effect clause. A1 is therefore
-   load-bearing precisely at three operations — K.μ⁺, K.μ⁻, and K.ρ —
-   and only at those.
-
-   (1) Design intent (Nelson). Link allocation is treated as
-   axiomatically reserved to a single creation primitive: MAKELINK at
-   the FEBE level (K.λ in V) is the unique operation Literary Machines
-   describes as allocating a link, and the editing operations (COPY,
-   INSERT, DELETEVSPAN, REARRANGE, APPEND — the FEBE counterparts of
-   the K.μ family) are described purely in content and arrangement
-   terms with no link-allocation side effects. The architectural
-   promise that "links between bytes can survive deletions,
-   insertions and rearrangements, if anything is left at each end"
-   presupposes that K.μ⁺ and K.μ⁻ leave the link store unmodified —
-   link survivability is a structural property dependent on this
-   preservation. Stable order-of-arrival addressing of links would be
-   incoherent if any operation other than K.λ could allocate into
-   `dom(L)`. Provenance is structural rather than metadata-bearing:
-   it emerges from the I-address itself (the address records its home
-   document), so no link-store mutation is required for K.ρ to record
-   provenance. Nelson's expert position is that the substrate spec
-   should harden this convention into an axiom: "Allowing K.μ⁺,
-   K.μ⁻, K.ρ to incidentally allocate links violates the spirit of
-   clean operational separation. Ownership becomes ambiguous (whose
-   link, attached how?), the user can no longer reason about when
-   allocation occurs, and 'MAKELINK returns the id of the link made'
-   stops being a complete account. The substrate spec should harden
-   the convention into an axiom — that is the design intent even
-   though I did not write it as a forbidden-from clause."
-
-   (2) Implementation evidence (Gregory, udanax-green). In the
-   realized implementation, link endpoint records (the LINKFROMSPAN,
-   LINKTOSPAN, and LINKTHREESPAN entries in the spanfilade) are
-   written exclusively by the link-creation routine CREATELINK.
-   Content-extension and provenance-recording routines write only to
-   the document-content portion of the spanfilade (DOCISPAN entries);
-   content-contraction routines do not write to the spanfilade at
-   all. The invariant is *behavioral convention only*, not structural
-   enforcement: `insertspanf` is a public function whose `spantype`
-   parameter is an unguarded `INT`, and the constants LINKFROMSPAN,
-   LINKTOSPAN, LINKTHREESPAN are bare `#define` integers in a shared
-   header. No type system, module wall, or runtime gate prevents a
-   non-CREATELINK caller from supplying link-type constants. The
-   invariant holds in the realized implementation because no current
-   routine violates it, not because the architecture prevents
-   violation. Gregory's evidence therefore confirms the design intent
-   at the level of present behavioral practice without strengthening
-   it to structural enforcement — a confirmation of practice, not a
-   verification of impossibility.
-
-   Substrate-promotion request. We recommend that ASN-0047 add
-   `L' = L` explicitly to the frame clauses of K.μ⁺, K.μ⁻, and K.ρ,
-   thereby promoting A1 to a per-operation frame condition derivable
-   directly from the substrate. Pending that revision, A1 stands here
-   as an applications-level axiom whose grounding is consultative
-   rather than substrate-derived. Downstream consumers that adopt A1
-   inherit its consultative grounding and the same promotion
-   obligation; substrate revisions that explicitly list `L' = L` in
-   the three frames will retire A1's status as an applications-level
-   axiom and convert it to a derived consequence of the substrate.
-
-   Convergence status. A1 is *transitional*, not permanently
-   applications-level. Its scope is substrate-wide — it constrains
-   every operation in V at the frame level — and the only reason it
-   appears at the applications layer is that ASN-0047's published
-   frames for K.μ⁺, K.μ⁻, and K.ρ are currently silent on `L`. The
-   applications-level placement is therefore a holding pattern, not a
-   considered judgment that A1 belongs outside the substrate. This
-   ASN is consequently not finally converged: its derivations are
-   correct as written but rest on a hypothesis (A1) that should
-   migrate out of this document and into ASN-0047 in a subsequent
-   substrate revision. Once that revision lands and the three
-   missing `L' = L` clauses are added to ASN-0047's frames, this ASN
-   should be revised to remove A1 from its Claims Introduced table,
-   retitle every reference to A1 as a citation of the corresponding
-   substrate frame clauses, and close out the substrate-promotion
-   request. Until that point, readers should treat the F9 / F9★ /
-   F9★-cor / F9-cor / F17 / F18 / F19-filt / F19-sco derivations
-   below as conditional on A1's adoption — substantively correct
-   under any reasonable reading of substrate intent, but pending
-   the formal substrate-side commitment that turns A1 from
-   consultative axiom into derivable lemma. The alternative
-   reading — that A1 is permanently applications-level because
-   ASN-0047's authors decline the promotion — would require an
-   independent justification of why a substrate-wide frame
-   constraint properly lives outside the substrate, and no such
-   justification is offered here. The transitional reading is the
-   only one this ASN endorses.
-
-   The invariant is load-bearing across F9, F9★, F9★-cor, F9-cor,
-   F17, and F18 wherever the `Σ.L = Σ'.L` hypothesis must be
-   discharged for an operation whose published frame omits `L`.
 ```
 
-A1's load-bearing role in this ASN is bounded to exactly three operations of V — K.μ⁺, K.μ⁻, and K.ρ — and these are precisely the operations for which the consultation evidence directly establishes the preservation. The five remaining non-allocating operations (K.σ, K.α, K.δ, K.μ~, K.μ⁺_L) inherit the preservation from their own published frame clauses, so A1 is the bridge across which this ASN's derivations transport the unmentioned `L' = L` conjunct from ASN-0047's frames for the three operations where the published text is silent. Readers auditing the chain of derivations should treat A1 as an explicit applications-level hypothesis pending substrate revision, with the same epistemic status as any other axiom this ASN introduces — load-bearing where invoked, transparent in its grounding, and flagged for promotion to its proper home in ASN-0047.
+The derivation splits V ∖ {K.λ} into two cases by source of preservation.
+
+*Case (a): operations whose published frames name `L' = L` directly.* K.σ (ASN-0093), K.α (ASN-0093 and ASN-0047 both name `L' = L`), K.δ (ASN-0047), K.μ~ (ASN-0047 derived frame: `L' = L` is listed in K.μ~'s frame clause), and K.μ⁺_L (ASN-0047) each list `L' = L` directly in their published frames. The preservation conclusion `Σ'.L = Σ.L` is immediate from the published frame at any transition of these operations and requires no further argument.
+
+*Case (b): operations whose published frames omit `L`.* K.μ⁺, K.μ⁻, and K.ρ (all ASN-0047) have frames that enumerate the preserved state components (C, E, M for d' ≠ d, R) but do not list L. The preservation conclusion at these three operations rests on the substrate's effect-clause convention. An operation's effect clause enumerates every state-component modification the operation makes; components absent from both the effect and the frame are unchanged. K.μ⁺'s effect (ASN-0047) names only extensions to `dom(M(d))`; K.μ⁻'s effect names only contractions of `dom(M(d))`; K.ρ's effect names only an addition to `R`. None of these effect clauses names `L`, `dom(L)`, or any sub-component of the link store. Under the closed-world reading of the effect-clause convention — every operation's effect clause is a complete enumeration of state-component changes — the absence of `L` from an effect clause is equivalent to `Σ'.L = Σ.L`.
+
+The closed-world reading at K.μ⁺, K.μ⁻, K.ρ is grounded in two convergent sources.
+
+(1) *Design intent (Nelson, Literary Machines).* Link allocation is architecturally reserved to a single creation primitive: MAKELINK at the FEBE level (K.λ in V) is the unique operation Literary Machines describes as allocating a link, and the editing operations (COPY, INSERT, DELETEVSPAN, REARRANGE, APPEND — the FEBE counterparts of the K.μ family) are described purely in content and arrangement terms with no link-allocation side effects. The architectural promise that "links between bytes can survive deletions, insertions and rearrangements, if anything is left at each end" (Literary Machines 4/43) presupposes that K.μ⁺ and K.μ⁻ leave the link store unmodified — link survivability is a structural property dependent on this preservation. Provenance is structural rather than metadata-bearing: it emerges from the I-address itself (the address records its home document), so no link-store mutation is required for K.ρ to record provenance. The architectural reading of the silent frames is therefore the design-intent reading: link preservation under content editing is a *substrate property* derived from two architectural facts — K.μ⁺, K.μ⁻, and K.ρ act on V→I mappings and provenance records, while link records reside in a disjoint subspace and reference content by identity, not arrangement. From those two facts, `Σ'.L = Σ.L` at these three operations is theorem, not axiom. (Equivalently: the substrate spec's silence on `L` in the three frames is the architecturally correct presentation. Adding `L' = L` clauses would imply that link preservation is something the operations *choose* to do rather than something the architecture makes structurally impossible to violate; the substrate frames properly let the addressing scheme carry the guarantee.)
+
+(2) *Implementation evidence (Gregory, udanax-green).* In the realized implementation, link endpoint records (the LINKFROMSPAN, LINKTOSPAN, and LINKTHREESPAN entries in the spanfilade) are written exclusively by `insertendsetsinspanf`, which has exactly two callers (`domakelink` and `docreatelink`), both link-creation routines. Content-extension call chains (`doinsert` → `docopy` → `insertspanf(..., DOCISPAN)`) pass only the DOCISPAN type constant; content-contraction call chains (`dodeletevspan` → `deletevspanpm` → `deletend`) write only to the granfilade (the document POOM) and make no `insertspanf` call at all; provenance-recording call chains (`docreatenewversion` → `docopyinternal` → `insertspanf(..., DOCISPAN)`) likewise pass only DOCISPAN. The LINK*SPAN regions of the spanfilade are reached only via `insertendsetsinspanf`, and no code path connects content-extension, content-contraction, or provenance-recording routines to that gateway. The isolation is enforced by hardcoded type constants at each `insertspanf` call site — a behavioral discipline rather than a runtime guard, but one that the udanax-green codebase honors uniformly across all content/contraction/provenance paths. Gregory's evidence therefore confirms the design-intent reading at the level of realized implementation behavior: the closed-world interpretation of the silent frames is exactly the discipline that the implementation honors.
+
+The two sources converge on the same conclusion: the substrate's effect clauses for K.μ⁺, K.μ⁻, and K.ρ name only what these operations modify, and the closed-world reading of that convention is supported by both architectural design intent and realized implementation behavior. A1 follows from the substrate-published effect clauses under this reading, with the closed-world interpretation discharged from the converging consultative evidence above.
+
+A1's load-bearing role in this ASN is bounded to exactly three operations of V — K.μ⁺, K.μ⁻, and K.ρ — and these are precisely the operations whose published frames omit `L`. The five remaining non-allocating operations (K.σ, K.α, K.δ, K.μ~, K.μ⁺_L) inherit the preservation from their own published frame clauses (case (a) above), so A1 is the bridge across which this ASN's derivations transport the unmentioned `L' = L` conjunct from ASN-0047's frames for the three operations where the published text is silent. Readers auditing the chain of derivations should treat A1 as a derived structural lemma of this ASN — load-bearing where invoked, with its derivation discharged from the substrate-published effect clauses under the closed-world reading.
 
 We now state the specialisation:
 
@@ -415,9 +333,9 @@ F9 follows from F8 once we observe that `Σ'.L = Σ.L` at every K.μ-family tran
 
 *K.μ~ and K.μ⁺_L.* These operations state `L' = L` explicitly in their frame clauses (ASN-0047), so the F8 hypothesis is satisfied directly from the published frame.
 
-*K.μ⁺ and K.μ⁻.* These operations do not list `L` in their published frames in ASN-0047 — their frames cover `C`, `E`, `R`, and the per-document arrangement clause `(A d' : d' ≠ d : M'(d') = M(d'))`, but say nothing about `L`. A1 (LinkStoreInertOfNonAllocatingOperations) supplies the preservation as a structural invariant of the substrate, established by the convergence of design intent (link allocation reserved to K.λ; link survivability across content edits requires the link store to be invariant under K.μ⁺ and K.μ⁻) and implementation evidence (link endpoint records written only by the link-allocation routine in udanax-green). A1's conclusion `dom(Σ'.L) = dom(Σ.L) ∧ (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a))` at every K.μ⁺ and K.μ⁻ transition is `Σ.L = Σ'.L` as partial functions. This is consistent with — and in the value-preservation conjunct, exactly the restriction to existing entries of — L12 (LinkImmutability, ASN-0093). The F8 hypothesis is satisfied at K.μ⁺ and K.μ⁻ transitions.
+*K.μ⁺ and K.μ⁻.* These operations do not list `L` in their published frames in ASN-0047 — their frames cover `C`, `E`, `R`, and the per-document arrangement clause `(A d' : d' ≠ d : M'(d') = M(d'))`, but say nothing about `L`. A1 (LinkStoreInertOfNonAllocatingOperations) supplies the preservation as a derived structural lemma of this ASN, with the derivation (above) discharged from the substrate's effect-clause convention under the closed-world reading, grounded on the converging design intent (link allocation reserved to K.λ; link survivability across content edits requires the link store to be invariant under K.μ⁺ and K.μ⁻) and implementation evidence (link endpoint records written only by the link-allocation routine in udanax-green). A1's conclusion `dom(Σ'.L) = dom(Σ.L) ∧ (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a))` at every K.μ⁺ and K.μ⁻ transition is `Σ.L = Σ'.L` as partial functions. This is consistent with — and in the value-preservation conjunct, exactly the restriction to existing entries of — L12 (LinkImmutability, ASN-0093). The F8 hypothesis is satisfied at K.μ⁺ and K.μ⁻ transitions.
 
-For completeness, the substrate-level view of which operations modify `L`: the full operation vocabulary is exactly {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ}. Among these, K.λ is the unique operation whose effect clause names `L`: K.λ's effect is `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}` (ASN-0093 K.λ). Every other operation's effect clause modifies only non-L state components — K.σ modifies `dom(M)` and `M(d_new)`; K.α modifies `C`; K.δ modifies `E` (and `M(d_new)` in the IsDocument case); K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L modify a specific `M(d)`; K.ρ modifies `R`. A1 packages this enumeration together with the consultation-grounded preservation conclusion into the single structural invariant that K.λ is the unique L-modifying operation in V.
+For completeness, the substrate-level view of which operations modify `L`: the full operation vocabulary is exactly {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ}. Among these, K.λ is the unique operation whose effect clause names `L`: K.λ's effect is `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}` (ASN-0093 K.λ). Every other operation's effect clause modifies only non-L state components — K.σ modifies `dom(M)` and `M(d_new)`; K.α modifies `C`; K.δ modifies `E` (and `M(d_new)` in the IsDocument case); K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L modify a specific `M(d)`; K.ρ modifies `R`. A1 packages this enumeration together with the closed-world reading discharge above into the single structural lemma that K.λ is the unique L-modifying operation in V.
 
 We state F9 separately because it names the operation classes by which arrangements actually change, and so reads as a direct survivability promise: editing does not invalidate discovery. K.α, K.λ, K.δ, K.ρ, and K.σ touch one of the non-arrangement components and so fall outside F9's scope; the K.μ family is exactly the editing surface against which links must remain findable.
 
@@ -579,7 +497,7 @@ F15 (FilteredDeterminism):
    findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ')  whenever Σ.L = Σ'.L.
 ```
 
-The filtered comprehension's predicate `(A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)` consults only `(Σ.L, C)`: coverage is a function of the endset alone, `|Σ.L(a)|` is determined by `Σ.L(a)`, and `C` is the supplied query. Equality of `Σ.L` forces equality of every per-constraint conjunct (by the same per-slot coverage equality that drives F8's derivation), and set extensionality on the comprehensions closes the chain.
+The filtered comprehension's predicate `(A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)` consults only `(Σ.L, C)`: coverage is a function of the endset alone, `|Σ.L(a)|` is determined by `Σ.L(a)`, and `C` is the supplied query. Equality of `Σ.L` forces both `|Σ.L(a)| = |Σ'.L(a)|` and per-slot coverage equality `coverage(Σ.L(a).eᵢ) = coverage(Σ'.L(a).eᵢ)` at every `a ∈ dom(Σ.L)` — the former by L6 (ASN-0043)'s component-wise tuple equality on `Link` values (so the slot-index guard `i ≤ |Σ.L(a)|` evaluates identically at the two states for every constraint `(i, J) ∈ C`), the latter by the deterministic action of `coverage(·)` on equal endsets (the same fact F8 used). The universal `(A (i, J) ∈ C : ...)` therefore ranges over the same finite constraint set `C` at both states (`C` is query-data, not state-data, so its slot-index range is fixed by the query itself), and each per-constraint conjunct evaluates identically — every conjunct is true at one state iff true at the other, so the universal as a whole is true at one state iff true at the other. Set extensionality on the comprehensions closes the chain.
 
 ```
 F16 (ScopedDeterminism):
@@ -595,7 +513,7 @@ F17 (FilteredSurvivability):
        findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ').
 ```
 
-Every K.μ-family step preserves `Σ.L` (per F9's derivation, invoking A1 at the K.μ⁺ and K.μ⁻ cases). F15 then forces equality of the filtered result at the two states.
+Every K.μ-family step preserves `Σ.L` (per F9's derivation, invoking A1 at the K.μ⁺ and K.μ⁻ cases). F15 then forces equality of the filtered result at the two states, via the same universal-quantifier carry-through argument given in F15: `Σ.L = Σ'.L` gives `|Σ.L(a)| = |Σ'.L(a)|` (by L6's component-wise tuple equality) and per-slot coverage equality (by `coverage(·)` determinism on equal endsets), so the universal `(A (i, J) ∈ C : ...)` ranges over the same `C` at both states and every per-constraint conjunct evaluates identically.
 
 ```
 F18 (ScopedSurvivability):
@@ -620,7 +538,7 @@ F10 (OrderedResult):
 
 Presentability as a finite sequence rests on finiteness, which we discharge explicitly. By F3, `result(I, Σ) ⊆ dom(Σ.L)`; by L-fin (ASN-0093), `|dom(Σ.L)| < ∞`; so `result(I, Σ)` is finite as a subset of a finite set. T1 (LexicographicOrder, ASN-0034) is a strict total order on `T`, and by trichotomy it restricts to a strict total order on any subset of `T`. A finite strictly totally ordered set has a unique enumeration in increasing order (the least element exists by well-orderedness of `T1`'s restriction, the second-least is the least of the remainder, and so on by finite induction). The ordering is therefore total, deterministic, and uniquely realized. Pagination is then well-defined: "the next N links past `aⱼ`" means the next N elements in the sorted sequence with addresses greater than `aⱼ` under T1.
 
-The presentation order recovers a creation-order property within each home document. By SubAllocatorAxiom.ChainDiscipline (ASN-0093), each document `d`'s link sub-allocator chain `A_L(d)` is generated by repeated `inc(·, 0)` from the first emission `[d.0.s_L.1]`. K.λ's *subsequent emission* precondition (ASN-0093) pins each new link allocation under `d` to the chain successor of the previously-most-recently-allocated link: `ℓ = inc(ℓ_prev, 0)` where `ℓ_prev := max{ℓ' ∈ dom(L) : origin(ℓ') = d}` (with `max` taken under T1, equivalently the latest-allocated element by ChainEnumerationInjectivity below). Consecutive K.λ events for the same home document therefore use successive chain elements, so the chain index of a link within `A_L(d)` equals the K.λ event count for `d` at the moment of that allocation. ChainEnumerationInjectivity (ASN-0093) shows that this chain is strictly T1-increasing (per-step `inc(tₙ, 0) > tₙ` by TA5(a), lifted across arbitrary gaps by T1 transitivity). The two facts compose: chain index = K.λ event count = T1 rank within `A_L(d)`. So sorting link addresses within a single home document by T1 yields exactly the order in which they were allocated.
+The presentation order recovers a creation-order property within each home document. By SubAllocatorAxiom.ChainDiscipline (ASN-0093), each document `d`'s link sub-allocator chain `A_L(d)` is generated by repeated `inc(·, 0)` from the first emission `[d.0.s_L.1]`. K.λ's *subsequent emission* precondition (ASN-0093) pins each new link allocation under `d` to the chain successor of the previously-most-recently-allocated link: `ℓ = inc(ℓ_prev, 0)` where `ℓ_prev := max{ℓ' ∈ dom(L) : origin(ℓ') = d}` (with `max` taken under T1, equivalently the latest-allocated element by ChainEnumerationInjectivity below). The identification chain-index = K.λ-event-count for `d` rests on connecting K.λ's subsequent-emission precondition to the chain enumeration: ChainMembershipForOrigin (ASN-0093) places `dom(L) ∩ {ℓ' : origin(ℓ') = d}` as a contiguous prefix `{t_1, …, t_{m_d}}` of `A_L(d)`'s enumeration (where `t_i = inc^{i-1}(t_1, 0)` and `m_d` is the count of links allocated under `d` so far); ChainEnumerationInjectivity (ASN-0093) gives strict T1-ordering `t_1 < t_2 < ... < t_{m_d}` on this prefix (per-step `inc(t_n, 0) > t_n` by TA5(a), lifted across arbitrary gaps by T1 transitivity); so `max{t_1, …, t_{m_d}} = t_{m_d}` is the chain element at index `m_d` — equivalently, the most recently allocated link under `d`. K.λ's subsequent-emission precondition therefore pins the new allocation to `ℓ = inc(t_{m_d}, 0) = t_{m_d + 1}`, advancing the chain index by exactly one per K.λ event. The chain index of a link within `A_L(d)` equals the K.λ event count for `d` at the moment of that allocation, and the chain remains strictly T1-increasing across the entire allocation history. The three facts compose: chain index = K.λ event count = T1 rank within `A_L(d)`. So sorting link addresses within a single home document by T1 yields exactly the order in which they were allocated.
 
 For the cross-document part of the ordering claim, we derive that addresses with the same `home(·)` group together and that home documents themselves order lexicographically. ChainMembershipForOrigin (ASN-0093) places every link address `ℓ` with `home(ℓ) = d` in `A_L(d)`, and ChainPrefixExtension (ASN-0093) gives `b_L(d) ≼ ℓ` for every such `ℓ`. For two distinct documents `d₁ ≠ d₂`, CrossDocDisjointness (ASN-0093) supplies that `b_L(d₁)` and `b_L(d₂)` are non-nesting under `≼` — this is the load-bearing source of non-nesting in both T1 cases below; we do not re-derive non-nesting locally. The remaining task is to lift the T1 order from documents to anchors: if `d₁ < d₂` under T1, then `b_L(d₁) < b_L(d₂)` under T1. In T1 case (i) on `d₁ < d₂`, the divergence position `k ≤ min(#d₁, #d₂)` with `d₁_k < d₂_k` carries over to `b_L(d₁) vs b_L(d₂)` at the same position, since each anchor agrees with its document on positions `1..#d`. T1 case (ii) on documents is the routine version-extension case rather than an exotic branch — K.δ at `k=1` (ASN-0047) creates a version via `d₂ = inc(d₁, 1)`, producing `d₁ ≺ d₂` as the version-of relationship under the prefix order — so the derivation here exercises the version-ordering machinery on which any multi-version corpus rests. In that case `d₁ ≺ d₂` (so `#d₁ < #d₂`) forces `d₂_{#d₁+1} ≥ 1` — both documents satisfy `zeros(·) = 2` by M0 (ASN-0093), so the proper extension cannot introduce a zero — and at position `#d₁+1`, `b_L(d₁)` has the appended `0` separator while `b_L(d₂)` has `d₂_{#d₁+1} ≥ 1`. The zero-count step is identifying the divergence position needed to invoke T1 case (i) for the *strict ordering* of the anchors, not re-establishing non-nesting (which is already discharged above by CrossDocDisjointness). We verify the length condition for T1 case (i): the anchors have lengths `#b_L(d₁) = #d₁ + 2` and `#b_L(d₂) = #d₂ + 2 ≥ #d₁ + 3`, so the divergence position `#d₁ + 1` satisfies `#d₁ + 1 ≤ #d₁ + 2 = min(#b_L(d₁), #b_L(d₂))`. T1 case (i) therefore applies at position `#d₁ + 1` and yields `b_L(d₁) < b_L(d₂)`. With `b_L(d₁) < b_L(d₂)` (from the local zero-count + T1 derivation just given) and the anchors non-nesting (from CrossDocDisjointness), PrefixOrderingExtension (ASN-0034) lifts to every extension: every `ℓ₁` extending `b_L(d₁)` is strictly less than every `ℓ₂` extending `b_L(d₂)`. So under T1, link addresses with the same `home(·)` group together as a contiguous T1-block (all extending the common anchor `b_L(d)`), and the blocks for distinct documents sort by their documents' tumblers. The reader sees results in a canonical, repeatable order: links within a document in allocation order, documents in tumbler order — and, in the version-extension case, a version's link block sits between its parent's block and the parent's siblings' blocks. The general nesting structure follows from applying the pairwise case analysis above iteratively: case (ii) at the parent–version pair gives `b_L(d_parent) < b_L(d_version)`, case (i) at the parent–sibling pair gives `b_L(d_parent) < b_L(d_sibling)` (with the sibling allocated after the parent under the same account), and a separate case (i) at the version–sibling pair places the version's anchor below the sibling's. PrefixOrderingExtension (ASN-0034) lifts each pairwise inequality to every extension, yielding `ℓ_parent < ℓ_version < ℓ_sibling` across the three blocks. The specific instance ℓ < ℓ_v < ℓ' is the one exhibited in the worked example's "Verifying F10 across a version extension" paragraph; the general claim — that any version's link block nests strictly between its parent's and the parent's sibling's — is the iterated application of the same case analysis to each pairwise comparison, with no additional derivation needed beyond the pairwise machinery above.
 
@@ -664,7 +582,7 @@ F19-sco (ScopedMonotonicity):
        findlinks_scoped(I, S, Σ) ⊆ findlinks_scoped(I, S, Σ').
 ```
 
-F19-filt tracks F11 directly: for any `a ∈ findlinks_filtered(C, Σ)`, every constraint `(i, J) ∈ C` is satisfied at `a` in `Σ` — `i ≤ |Σ.L(a)|` and `coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅`. LP13 (UnconditionalLinkPersistence, ASN-0098) gives `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)` across any reachable sequence, so `|Σ'.L(a)| = |Σ.L(a)|` and per-slot coverages are identical at the two states; every per-constraint conjunct continues to hold at `Σ'`, and `a ∈ findlinks_filtered(C, Σ')`. F19-sco follows from F19 by intersection-preservation: `findlinks(I, Σ) ⊆ findlinks(I, Σ')` (F19) implies `findlinks(I, Σ) ∩ S ⊆ findlinks(I, Σ') ∩ S` for the query-supplied `S`, which by F14 is `findlinks_scoped(I, S, Σ) ⊆ findlinks_scoped(I, S, Σ')`.
+F19-filt tracks F11 directly, with the universal-quantifier structure of the filtered predicate carrying through LP13's per-link value preservation just as the existential in `matches` does in F11's lift. For any `a ∈ findlinks_filtered(C, Σ)`, every constraint `(i, J) ∈ C` is satisfied at `a` in `Σ` — `i ≤ |Σ.L(a)|` and `coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅`. LP13 (UnconditionalLinkPersistence, ASN-0098) gives `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)` across any reachable sequence; by L6 (ASN-0043)'s component-wise tuple equality on `Link` values, this forces `|Σ'.L(a)| = |Σ.L(a)|` and per-slot endset equality `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` for every `i` in the common slot range; per-slot coverages are then identical at the two states by the deterministic action of `coverage(·)` on equal endsets (the same fact F8, F15, and F11's derivation used). The universal `(A (i, J) ∈ C : ...)` therefore ranges over the same finite constraint set `C` at both states, and every per-constraint conjunct continues to hold at `Σ'` — both the slot-index guard `i ≤ |Σ'.L(a)|` and the coverage-overlap condition `coverage(Σ'.L(a).eᵢ) ∩ J ≠ ∅` evaluate identically to their `Σ`-side counterparts. So `a ∈ findlinks_filtered(C, Σ')`. F19-sco follows from F19 by intersection-preservation: `findlinks(I, Σ) ⊆ findlinks(I, Σ')` (F19) implies `findlinks(I, Σ) ∩ S ⊆ findlinks(I, Σ') ∩ S` for the query-supplied `S`, which by F14 is `findlinks_scoped(I, S, Σ) ⊆ findlinks_scoped(I, S, Σ')`.
 
 F19 (together with F19-filt and F19-sco) is the load-bearing consequence behind any indexed implementation's promise: an index that mirrors `findlinks` — or its filtered or scoped variant — is *never required to remove entries* as the state evolves, only to add them. The discovery operation is monotone non-decreasing in the link store at the set level across all three abstract forms, so indexes can be append-only just like the link store itself.
 
@@ -676,7 +594,7 @@ Consider a state `Σ` with two documents, both inhabiting `dom(Σ.M)`.
 
 - `d_a` is a content-bearing document. Its content sub-allocator `A_C(d_a)` (ASN-0093) has produced three I-addresses: `α₁ = [d_a.0.s_C.1]`, `α₂ = [d_a.0.s_C.2]`, `α₃ = [d_a.0.s_C.3]`, each placed into `dom(Σ.C)` by successive K.α steps with values `v₁, v₂, v₃ ∈ Val`. Its arrangement, by D-SEQ★ (ASN-0047), is `Σ.M(d_a) = {v_a^1 ↦ α₁, v_a^2 ↦ α₂, v_a^3 ↦ α₃}`. We fix the content-subspace depth at `m_C = 2` so that each text-subspace V-position takes the canonical form `v_a^k = [s_C, k]`. The choice makes the depth structure visible at every V-position and aligns the content subspace with the link subspace's fixed depth `m_L = 2` exercised by Query 9 below; per-subspace depth independence (S8-depth, ASN-0036) permits `m_C` and `m_L` to be chosen separately within each document, and we use the same value here only for the worked example's uniformity.
 
-- `d_b` transcludes the latter two positions from `d_a`. Its arrangement is `Σ.M(d_b) = {v_b^1 ↦ α₂, v_b^2 ↦ α₃}` with `v_b^k = [s_C, k]` of depth 2 (we fix `m_C = 2` for `d_b`'s text subspace as well), sharing the I-addresses `α₂` and `α₃` with `d_a`. (No new content addresses were allocated for `d_b`; transclusion shares by reference. By P4★ (ASN-0047), `(α₂, d_b), (α₃, d_b) ∈ Σ.R`.) We assume `d_a` was allocated before `d_b` under the same account, so by SubAllocatorAxiom.ChainDiscipline and T10a (ASN-0093, ASN-0034), `d_a < d_b` under T1.
+- `d_b` transcludes the latter two positions from `d_a`. Its arrangement is `Σ.M(d_b) = {v_b^1 ↦ α₂, v_b^2 ↦ α₃}` with `v_b^k = [s_C, k]` of depth 2 (we fix `m_C = 2` for `d_b`'s text subspace as well), sharing the I-addresses `α₂` and `α₃` with `d_a`. (No new content addresses were allocated for `d_b`; transclusion shares by reference. By P4★ (ASN-0047), `(α₂, d_b), (α₃, d_b) ∈ Σ.R`.) We assume `d_a` was allocated immediately before `d_b` under the same account, with no intervening document allocations — that is, `d_b = inc(d_a, 0)` is the next chain emission of that account's document sub-allocator after `d_a`. By SubAllocatorAxiom.ChainDiscipline and T10a (ASN-0093, ASN-0034), `d_a < d_b` under T1. With this immediate-successor assumption, `d_b` sits at the document-chain frontier of its account at `Σ`, so `inc(d_b, 0) ∉ E` is available for a fresh K.δ at `k = 0` from `d_b` — a point exercised by Query 10 below.
 
 - Three type-tumbler addresses `τ_comment`, `τ_reply`, `τ_meta`, pairwise distinct and pairwise disjoint from the content addresses `{α₁, α₂, α₃}` under the prefix order (none is a prefix or extension of any other or of any `αᵢ`). We do not specify their full structure beyond their distinctness — they can be any T-tumblers serving as type labels (e.g. element-level addresses allocated under a separate "type registry" document, or any other tumblers chosen by the link author).
 
@@ -771,7 +689,7 @@ The abstract specification is stated against a single state `Σ`. By the sequent
 
 A K.λ transition commits a link to `dom(Σ.L)` atomically. By the time the K.λ committing `a` returns, `a` is in `dom(Σ.L)`. The next query — at any state succeeding the K.λ — must include `a` in its result if `a` matches. There is no intermediate state in which `a` exists in `dom(Σ.L)` but is undiscoverable through the abstract operation.
 
-This atomicity is what underwrites the *immediate* component of Nelson's "without appreciable delay" promise within a single instance. The query result reflects the current state's link store, fully and exactly. Implementations that defer index maintenance to a background process create a window in which the index lags the link store; during that window, results computed from the index would violate F2. The abstract specification permits no such window.
+This atomicity is the abstract-specification-level mechanism by which any conforming implementation makes the *next-query* coherence concrete: the query result reflects the current state's link store, fully and exactly. Implementations that defer index maintenance to a background process create a window in which the index lags the link store; during that window, results computed from the index would violate F2. The abstract specification permits no such window. (Nelson's design intent at Literary Machines 2/46 — that backlinks be returnable "without appreciable delay" — is a commitment on interactive responsiveness for the reader experience, binding the implementation to interactive rather than batch latency for backlink discovery, but silent on stronger commit-visibility models beyond the "next query after K.λ commitment reflects the link" reading. The next-query coherence above is the abstract-specification-level reading of this latency commitment; no foundation invariant of this ASN formalises a timing bound.)
 
 ## Implementation Notes (Non-Normative)
 
@@ -805,7 +723,7 @@ The reverse claim is equally true. None of these design choices could have been 
 | `findlinks_V(R, d, Σ)` | Two-phase composite: `findlinks(image(R, d, Σ), Σ)` (see F12) | definition |
 | `findlinks_filtered(C, Σ)` | Filtered form with slot constraints `C` | definition |
 | `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | definition |
-| A1 | LinkStoreInertOfNonAllocatingOperations: K.λ is the unique operation in V that modifies the link store; every operation in V ∖ {K.λ} preserves `Σ.L`. Grounded in design intent (link allocation reserved to MAKELINK; link survivability under content edits) and implementation evidence (link endpoint records written only by CREATELINK in udanax-green) | introduced (transitional — pending substrate promotion to ASN-0047) |
+| A1 | LinkStoreInertOfNonAllocatingOperations: K.λ is the unique operation in V that modifies the link store; every operation in V ∖ {K.λ} preserves `Σ.L`. Derived structural lemma: at K.σ, K.α, K.δ, K.μ~, K.μ⁺_L the preservation follows immediately from the published `L' = L` frame clauses; at K.μ⁺, K.μ⁻, K.ρ the preservation is discharged from the substrate's effect-clause convention (closed-world reading: components absent from both effect and frame are unchanged), grounded on the converging design intent (link allocation architecturally reserved to MAKELINK; link survivability under content edits a structural property of the disjoint-subspace separation) and implementation evidence (link endpoint records written only by CREATELINK in udanax-green) | introduced (derived structural lemma) |
 | F1 | Match predicate as set-theoretic overlap, existential over slots | introduced |
 | F2 | Completeness: every matching link in `dom(Σ.L)` appears in the result | introduced |
 | F3 | Soundness: every link in the result is in `dom(Σ.L)` and matches | introduced |
