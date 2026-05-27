@@ -16,7 +16,8 @@ We take from the foundation:
 
 - **Link store** `Σ.L : T ⇀ Link` (ASN-0043): a partial function mapping tumbler addresses to link values, each of arity ≥ 3 (L3).
 - **Link addresses** are element-level tumblers in the link subspace `s_L` (L0, L1).
-- **Link Permanence** (L12): `(A Σ → Σ' :: (A a : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)))` — once created, a link's address persists and its value is permanently fixed.
+- **Link Permanence** (L12, ASN-0043, single-step): `(A Σ → Σ' :: (A a : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)))` — once created, a link's address persists and its value is permanently fixed.
+- **Unconditional Link Persistence** (LP13, ASN-0098, multi-step): `(A Σ →* Σ', a ∈ dom(Σ.L) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` — L12's conclusion lifted to every reachable transition sequence. LP13 is the proper citation wherever EDITLINK's reasoning crosses multiple atomic steps; we use it in preference to repeated single-step L12 applications.
 - **Link uniqueness** (L11a): distinct T10a-conforming allocation events produce distinct link addresses.
 - **Link allocation discipline** (L1a, L1c): every link is allocated under its home document's tumbler prefix via T10a-conforming increments.
 - **N-endset structure** (L3): every link has `|Σ.L(a)| ≥ 3` endsets; the third (type) endset is non-empty.
@@ -27,7 +28,7 @@ We take from the foundation:
 - **K.λ — LinkAllocation** (ASN-0047): the elementary transition that adds a fresh link to `dom(L)` under a specified home document with specified endsets. The frame of K.λ preserves `C`, `E`, `M`, and `R`.
 - **PrefixSpanCoverage** (ASN-0043): for any tumbler `x` with `#x ≥ 1`, `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}` — the unit-depth span at `x` denotes exactly the prefix-closure of `x`.
 
-These are the foundation items most central to the construction. Additional items — from ASN-0034 (T0, T1, T4, T4b, T10a.7, T12, TA5, TA5-SigValid, OrdinalDisplacement), ASN-0043 (L0, L1b, L14, L-fin), and ASN-0047 (SC-NEQ, SubAllocatorAxiom, SubspaceConventionAxiom, SequentialTransitionAxiom, ExtendedReachableStateInvariants, ExtendedTransitionInvariants, ValidComposite★, the couplings J0/J1★/J1'★, the persistence invariants P0–P3 with P4★/P4a/P7a) — are cited at the points where they bear on a specific discharge.
+These are the foundation items most central to the construction. Additional items — from ASN-0034 (T0, T1, T4, T4b, T10a.7, T12, TA5, TA5-SigValid, OrdinalDisplacement), ASN-0043 (L0, L1b, L14, L-fin), ASN-0047 (SC-NEQ, SubAllocatorAxiom, SubspaceConventionAxiom, SequentialTransitionAxiom, ExtendedReachableStateInvariants, ExtendedTransitionInvariants, ValidComposite★, the couplings J0/J1★/J1'★, the persistence invariants P0–P3 with P4★/P4a/P7a), and ASN-0098 (LP13 for multi-step link persistence across reachable sequences) — are cited at the points where they bear on a specific discharge.
 
 ## The Composite
 
@@ -118,7 +119,7 @@ The center of the construction is what does *not* happen.
 ℓ_old ∈ dom(Σ'.L)  ∧  Σ'.L(ℓ_old) = Σ.L(ℓ_old)
 ```
 
-*Proof.* The composite consists of two K.λ steps. K.λ's frame preserves all existing entries in `dom(L)` and adds exactly one new entry. By L12 applied to each step in sequence, every entry present in `dom(Σ.L)` is present and unchanged in the post-state of each K.λ application, and therefore present and unchanged in `dom(Σ'.L)`. Since `ℓ_old ∈ dom(Σ.L)` by the precondition of the composite, the conclusion follows.
+*Proof.* EDITLINK realises the reachable sequence `Σ →* Σ'` consisting of two K.λ steps. By LP13 (UnconditionalLinkPersistence, ASN-0098) applied to this sequence: every link present in `dom(Σ.L)` persists with unchanged value at `Σ'`. Since `ℓ_old ∈ dom(Σ.L)` by the composite's precondition, `ℓ_old ∈ dom(Σ'.L) ∧ Σ'.L(ℓ_old) = Σ.L(ℓ_old)`.
 
 This is the central architectural claim. The original link's I-address remains valid; its endsets are bit-for-bit identical to what they were before EDITLINK; its home document and ownership are unchanged. Any property of the system that depended on `Σ.L(ℓ_old)` continues to hold in the post-state, by structural identity of the relevant state component.
 
@@ -184,7 +185,7 @@ For the inductive step, assume the inductive hypothesis: `Σ_{k-1}` is reachable
 
 *Precondition verification at `Σ_{k-1}`.* The composite-level preconditions of EDITLINK require `ℓ_old ∈ dom(Σ_{k-1}.L)`, `d_new,k ∈ Σ_{k-1}.E_doc`, and caller-supplied endsets `(e'_{1,k}, ..., e'_{N_k,k})` and type address `τ_sup,k` satisfying L3 and `#τ_sup,k ≥ 1`.
 
-- *Link persistence.* By the outer hypothesis `ℓ_old ∈ dom(Σ.L)`, and by L12 applied iteratively across the `k-1` prior EDITLINK composites — each composite is a sequence of K.λ steps, each step preserves prior entries in `dom(L)` — we obtain `ℓ_old ∈ dom(Σ_{k-1}.L)`.
+- *Link persistence.* By the outer hypothesis `ℓ_old ∈ dom(Σ.L)`, and by LP13 (UnconditionalLinkPersistence, ASN-0098) applied to the reachable sequence `Σ →* Σ_{k-1}` — the concatenation of `k-1` prior EDITLINK composites, each a ValidComposite★ by E0 and hence a finite sequence of atomic K.λ transitions — we obtain `ℓ_old ∈ dom(Σ_{k-1}.L)`.
 
 - *Target document availability.* Fix a single target document for the entire induction — for instance, `home(ℓ_old)`. Since `ℓ_old ∈ dom(Σ_{k-1}.L)` (established above) and L1a (LinkScopedAllocation, ASN-0043) is a per-state invariant preserved at every reachable state (ExtendedReachableStateInvariants, ASN-0047), `home(ℓ_old) ∈ dom(Σ_{k-1}.M)`. The arrangement family `M` is indexed by `E_doc` in the extended state (by K.δ's document-case effect, ASN-0047), so `home(ℓ_old) ∈ Σ_{k-1}.E_doc`. K.λ's precondition `d ∈ E_doc` is therefore discharged by `d_new,k = home(ℓ_old)`. Nothing in EDITLINK's preconditions requires distinct target documents across distinct composites; a single `d_new` may serve at every step.
 
@@ -194,9 +195,9 @@ By E0 (EditLinkComposite), EDITLINK applied at `Σ_{k-1}` is a ValidComposite★
 
 *Post-state structure verification at `Σ_k`.* We verify each conjunct of the required structure in turn:
 
-(a) *Prior supersession links persist with unchanged values.* For each `j ∈ {1, ..., k-1}`, `ℓ_sup,j ∈ dom(Σ_{k-1}.L)` by the inductive hypothesis. By L12 applied to each of the two K.λ steps of the k-th composite in turn, `ℓ_sup,j ∈ dom(Σ_k.L)` and `Σ_k.L(ℓ_sup,j) = Σ_{k-1}.L(ℓ_sup,j)`. In particular, the from-endset reference to `ℓ_old` in each prior `ℓ_sup,j` is structurally preserved.
+(a) *Prior supersession links persist with unchanged values.* For each `j ∈ {1, ..., k-1}`, `ℓ_sup,j ∈ dom(Σ_{k-1}.L)` by the inductive hypothesis. By LP13 (UnconditionalLinkPersistence, ASN-0098) applied to the k-th composite's reachable sequence `Σ_{k-1} →* Σ_k`, `ℓ_sup,j ∈ dom(Σ_k.L) ∧ Σ_k.L(ℓ_sup,j) = Σ_{k-1}.L(ℓ_sup,j)`. In particular, the from-endset reference to `ℓ_old` in each prior `ℓ_sup,j` is structurally preserved.
 
-(b) *Prior successor links persist.* Symmetrically, for each `j ∈ {1, ..., k-1}`, `ℓ_new,j ∈ dom(Σ_k.L)` with `Σ_k.L(ℓ_new,j) = Σ_{k-1}.L(ℓ_new,j)`, by L12 applied across both K.λ steps of the k-th composite.
+(b) *Prior successor links persist.* Symmetrically, for each `j ∈ {1, ..., k-1}`, `ℓ_new,j ∈ dom(Σ_k.L) ∧ Σ_k.L(ℓ_new,j) = Σ_{k-1}.L(ℓ_new,j)` by LP13 (ASN-0098) applied to `Σ_{k-1} →* Σ_k`.
 
 (c) *The new supersession link references `ℓ_old` in its from-endset and `ℓ_new,k` in its to-endset.* By E4 (SupersessionLink) applied to the k-th EDITLINK composite, `Σ_k` contains a link `ℓ_sup,k ∈ dom(Σ_k.L)` with `(ℓ_old, δ(1, #ℓ_old)) ∈ Σ_k.L(ℓ_sup,k).e_1` and `(ℓ_new,k, δ(1, #ℓ_new,k)) ∈ Σ_k.L(ℓ_sup,k).e_2`.
 
@@ -258,7 +259,7 @@ The same argument that protects the original protects the supersession assertion
 ℓ_sup ∈ dom(Σ.L)  ⟹  (A Σ → Σ' :: ℓ_sup ∈ dom(Σ'.L) ∧ Σ'.L(ℓ_sup) = Σ.L(ℓ_sup))
 ```
 
-*Proof.* The supersession link is a link, and L12 applies uniformly to all entries in `dom(L)`.
+*Proof.* The supersession link is a link, and L12 applies uniformly to all entries in `dom(L)` at every atomic step. The multi-step extension reading — that `ℓ_sup` persists across any reachable sequence rather than just one transition — is LP13 (UnconditionalLinkPersistence, ASN-0098).
 
 The implication is that *the historical record of editing is itself immutable*. A user who later wishes to "retract" the supersession cannot do so by mutating `ℓ_sup`. They can, however, allocate a *counter-claim* — a new link asserting that the supersession is not in force, or that a different supersession should take precedence. The counter-claim is, structurally, just another link; it is itself permanent; and it joins the supersession in the discoverable web of assertions about `ℓ_old`. The system accumulates the full history of claims and counter-claims, leaving the resolution policy to the reader.
 
@@ -304,7 +305,7 @@ We check the claims against this state.
 
 **E0.** K.λ's preconditions were discharged for both steps in the trace above. Step 1 invoked the first-emission rule (no prior outputs of `A_L(d_bob)`); SubAllocatorAxiom.FirstEmission furnished `ℓ_new ∉ dom(Σ.C) ∪ dom(Σ.L)` and `#E(ℓ_new) = 2`; .Namespace and .Subspace furnished `zeros(ℓ_new) = 3 ∧ E(ℓ_new)_1 = 2 = s_L`; the allocator rule fixed `origin(ℓ_new) = d_bob`; the supplied `(e'_1, e'_2, e'_3)` satisfied L3. Step 2 invoked the subsequent-emission rule with `ℓ_new` as the maximum prior output of `A_L(d_bob)`; .T10aConformance + L11a gave `ℓ_sup ∉ dom(L_1)`, and .Subspace + L0 + SC-NEQ gave `ℓ_sup ∉ dom(C_1)`; .Namespace + .Subspace + TA5(c) + TA5(b) (inheriting `#E ≥ 2` from `ℓ_new`) discharged the namespace clauses. T12 held for the three supersession spans at `actionPoint(δ(1, 8)) = 8 ≤ 8 = #x`, with `Pos(δ(1, 8))` by OrdinalDisplacement (n = 1, m = 8); L3 thus held for `(E_from, E_to, E_type)`. ✓
 
-**E1.** `ℓ_old = [3.0.5.0.7.0.2.1] ∈ dom(Σ'.L)` because L12 preserves it across both K.λ steps; `Σ'.L(ℓ_old) = (F_old, G_old, Θ_old) = Σ.L(ℓ_old)`. Alice's link is untouched. ✓
+**E1.** `ℓ_old = [3.0.5.0.7.0.2.1] ∈ dom(Σ'.L)` by LP13 (ASN-0098) applied to `Σ →* Σ'`; `Σ'.L(ℓ_old) = (F_old, G_old, Θ_old) = Σ.L(ℓ_old)`. Alice's link is untouched. ✓
 
 **E2.** Pairwise distinctness:
 - `ℓ_new ≠ ℓ_old`: `[4.0.2.0.3.0.2.1] ≠ [3.0.5.0.7.0.2.1]`, differing at component 1 (`4 ≠ 3`).
@@ -315,7 +316,7 @@ We check the claims against this state.
 
 **E4.** The post-state contains `ℓ_sup` with the expected endset structure. By PrefixSpanCoverage, `coverage({(ℓ_old, δ(1, 8))}) = {t : ℓ_old ≼ t}`, which includes `ℓ_old` by reflexivity. So `(ℓ_old, δ(1, 8)) ∈ Σ'.L(ℓ_sup).e_1`, witnessing the structural reference to `ℓ_old` in the first endset; symmetrically for `e_2` and `e_3`. (We do not — and cannot, within the link model — claim from this that `ℓ_sup` is *the* supersession of `ℓ_old`; that designation requires the external `τ_sup` convention.) ✓
 
-**E5.** Suppose Carol owns `d_carol = [5.0.1.0.4]` and, from the post-state `Σ'`, independently runs `EDITLINK(ℓ_old, (e''_1, e''_2, e''_3), d_carol, τ_sup)`. By L12, Bob's `ℓ_new = [4.0.2.0.3.0.2.1]` and `ℓ_sup = [4.0.2.0.3.0.2.2]` persist into Carol's pre-state. Carol's `A_L(d_carol)` has emitted no prior links, so the first-emission rule fixes her successor at `ℓ_new,carol = [5.0.1.0.4.0.2.1]`; the subsequent-emission rule then fixes her supersession at `ℓ_sup,carol = [5.0.1.0.4.0.2.2]`. By L11a, all four addresses are pairwise distinct. The resulting state contains two distinct links whose first endsets reference `ℓ_old`. The argument generalizes by induction on the number of independent edits. ✓
+**E5.** Suppose Carol owns `d_carol = [5.0.1.0.4]` and, from the post-state `Σ'`, independently runs `EDITLINK(ℓ_old, (e''_1, e''_2, e''_3), d_carol, τ_sup)`. By LP13 (ASN-0098) applied to the reachable sequence from `Σ'` to Carol's pre-state, Bob's `ℓ_new = [4.0.2.0.3.0.2.1]` and `ℓ_sup = [4.0.2.0.3.0.2.2]` persist with unchanged values. Carol's `A_L(d_carol)` has emitted no prior links, so the first-emission rule fixes her successor at `ℓ_new,carol = [5.0.1.0.4.0.2.1]`; the subsequent-emission rule then fixes her supersession at `ℓ_sup,carol = [5.0.1.0.4.0.2.2]`. By L11a, all four addresses are pairwise distinct. The resulting state contains two distinct links whose first endsets reference `ℓ_old`. The argument generalizes by induction on the number of independent edits. ✓
 
 **E6.** `home(ℓ_sup) = d_bob = [4.0.2.0.3] ≠ [3.0.5.0.7] = d_alice = home(ℓ_old)`. K.λ's precondition `d_new ∈ E_doc` was satisfied by `d_bob` alone; nothing in the composite required `d_bob = home(ℓ_old)`. Bob's claim is published in his own namespace, attributable to him, without Alice's participation. ✓
 
@@ -323,7 +324,7 @@ We check the claims against this state.
 
 **E8.** Any operation that reads `Σ'.L(ℓ_old)` obtains `(F_old, G_old, Θ_old)` — identical to what `Σ.L(ℓ_old)` would have returned. The claim reduces to E1, which gives `Σ'.L(ℓ_old) = Σ.L(ℓ_old)`. ✓
 
-**E9.** Across any future transition `Σ' → Σ''`, L12 applied to `ℓ_sup ∈ dom(Σ'.L)` gives `ℓ_sup ∈ dom(Σ''.L) ∧ Σ''.L(ℓ_sup) = Σ'.L(ℓ_sup) = (E_from, E_to, E_type)`. The supersession assertion persists indefinitely; no transition admitted by the model can retract it. ✓
+**E9.** Across any future transition `Σ' → Σ''`, L12 applied to `ℓ_sup ∈ dom(Σ'.L)` gives `ℓ_sup ∈ dom(Σ''.L) ∧ Σ''.L(ℓ_sup) = Σ'.L(ℓ_sup) = (E_from, E_to, E_type)`; LP13 (ASN-0098) lifts the same conclusion to any reachable sequence `Σ' →* Σ''`. The supersession assertion persists indefinitely; no transition admitted by the model can retract it. ✓
 
 **E10.** No K.λ step modifies any arrangement or `R`. `Σ'.M(d_alice) = Σ.M(d_alice)`; `Σ'.M(d_bob) = Σ.M(d_bob)`; and for every other `d ∈ E_doc`, `Σ'.M(d) = Σ.M(d)`. `Σ'.R = Σ.R`. In particular, Alice's arrangement is unchanged — she receives no notification of Bob's claim. ✓
 
@@ -399,5 +400,5 @@ The sketch motivates the design — it indicates the kind of consumer the struct
 | E6 | The supersession link's home document need not coincide with the original link's home document; the only formal constraint EDITLINK places on `d_new` is `d_new ∈ E_doc` | introduced |
 | E7 | The supersession link's endsets structurally contain `ℓ_old` and `ℓ_new` as covering witnesses, available to any discovery operation that returns links covering a given target | introduced |
 | E8 | Any resolution of `ℓ_old`'s endsets after EDITLINK obtains the same value as before EDITLINK | introduced |
-| E9 | The supersession link itself is permanent under L12 across all subsequent state transitions | introduced |
+| E9 | The supersession link itself is permanent under L12 (single-step, ASN-0043) — equivalently LP13 (multi-step, ASN-0098) — across all subsequent state transitions | introduced |
 | E10 | EDITLINK modifies no arrangement and does not extend `R`; no notification reaches the original owner | introduced |
