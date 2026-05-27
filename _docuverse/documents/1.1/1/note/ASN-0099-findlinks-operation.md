@@ -14,15 +14,15 @@ The links the reader wants live in `dom(Σ.L)`. By L1 (ASN-0043), each is at an 
 
 Before any formalism, let us recognize that the question splits cleanly into two phases with qualitatively different concerns. We separate them deliberately so each can be analyzed without the other underfoot.
 
-**Phase 1 (V→I).** Given a document `d ∈ dom(Σ.M)` and a query region `R ⊆ dom(Σ.M(d))`, produce the *I-image* of the region:
+**Phase 1 (V→I).** Given a document `d ∈ dom(Σ.M)` and a query region `R ⊆ T`, produce the *I-image* of the region:
 
 ```
 image(R, d, Σ)
-  defined when  d ∈ dom(Σ.M) ∧ R ⊆ dom(Σ.M(d))
-  ≡             {Σ.M(d)(v) : v ∈ R}
+  defined when  d ∈ dom(Σ.M)
+  ≡             {Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}
 ```
 
-The two preconditions in the `defined when` clause are load-bearing: `d ∈ dom(Σ.M)` so that `Σ.M(d)` is defined as a partial function, and `R ⊆ dom(Σ.M(d))` so that every `Σ.M(d)(v)` is defined for `v ∈ R`. Without both, the comprehension is ill-formed. The reader's V-selection presupposes them — they query a position they can see, in a document that exists — but we state them explicitly because the operation has no value to take at positions outside the arrangement's domain. A query that nominates `v ∉ dom(Σ.M(d))` is either rejected at a higher protocol layer or treated as if `v` were absent from `R`; the abstract specification supports both treatments by leaving `image` undefined on such inputs rather than extending it with a sentinel. The image is a set of I-addresses, every member of which lies in `dom(Σ.C) ∪ dom(Σ.L)` by S3★ (ASN-0047). The phase reduces V-coordinates to address-of-content.
+The single precondition `d ∈ dom(Σ.M)` is load-bearing so that `Σ.M(d)` is defined as a partial function. The comprehension silently projects `R` onto `dom(Σ.M(d))`: V-positions in `R` that are absent from the arrangement contribute nothing to the image. We choose silent projection deliberately. A V-position outside the arrangement's domain has no I-address to map to, and no I-address can encode "this V-position", so omitting such positions from the image is the only treatment that leaves the operation total over `R ⊆ T` without introducing a sentinel value. The treatment matches the system's natural reading at both extremes: an empty `R` produces an empty image, and an `R` that intersects the arrangement in a non-empty subset produces the image of that subset. The image is a set of I-addresses, every member of which lies in `dom(Σ.C) ∪ dom(Σ.L)` by S3★ (ASN-0047). The phase reduces V-coordinates to address-of-content.
 
 **Phase 2 (I→Link).** Given a set of I-addresses `I ⊆ T`, produce the set of links whose endsets intersect `I`:
 
@@ -35,11 +35,11 @@ The two phases compose into the reader-facing operation:
 ```
 F12 (TwoPhaseFactoring):
    findlinks_V(R, d, Σ)
-     defined when  d ∈ dom(Σ.M) ∧ R ⊆ dom(Σ.M(d))
+     defined when  d ∈ dom(Σ.M)
      ≡             findlinks(image(R, d, Σ), Σ).
 ```
 
-The preconditions are inherited from `image`'s `defined when` clause — `findlinks_V` is well-formed precisely when `image(R, d, Σ)` is. We restate them at the composite to keep the partiality visible at the call site: a query that nominates a non-existent document or a V-position outside the arrangement's domain has no well-defined V-side answer, and the abstract specification declines to invent one.
+The single precondition is inherited from `image`'s `defined when` clause — `findlinks_V` is well-formed precisely when `image(R, d, Σ)` is. We restate it at the composite to keep the document-existence requirement visible at the call site. V-positions in `R` that lie outside `dom(Σ.M(d))` are silently projected away by `image` and do not impose a pre-validation obligation on the caller; this is the only treatment that gives a total operation over `R ⊆ T` for a fixed allocated document.
 
 The factoring matters because the two phases have entirely different stability properties. The arrangement `Σ.M` is mutable: K.μ⁺, K.μ⁻, K.μ~, and K.μ⁺_L all modify it. The link store `Σ.L` is monotonic: K.λ adds to it, and L12 (ASN-0093) forbids any modification of existing entries. Phase 1 consults the mutable component; phase 2 consults the monotonic component. This separation will let us conclude later that link discovery is fundamentally a property of `(Σ.L, I)`, with the arrangement entering only to translate V-input into I-input.
 
@@ -47,7 +47,7 @@ We will spend most of our effort on phase 2. Phase 1 is a finite lookup once the
 
 ## The Image Set
 
-The V-region `R` need not be contiguous. The reader may select a single position, a contiguous V-span, or any subset of `dom(Σ.M(d))`. We do not constrain `R` beyond its inclusion in the arrangement's domain.
+The V-region `R` need not be contiguous, nor confined to the arrangement's current domain. The reader may select a single position, a contiguous V-span, or any subset of `T`; `image` projects `R` onto `dom(Σ.M(d))` and consults only the surviving intersection. We do not constrain `R` beyond `R ⊆ T`.
 
 When `R` is a contiguous V-span in subspace `s_C`, the image decomposes naturally by ASN-0058's mapping block decomposition: each maximal correspondence run whose V-extent overlaps `R` contributes a contiguous I-run to `image(R, d, Σ)`. If the content of `d` was natively allocated in `d`, the image is a single contiguous I-run lying in `A_C(d)`'s chain. If `d` contains transclusions from multiple sources, the image is a union of disjoint I-runs, each rooted in a different sub-allocator chain.
 
@@ -76,11 +76,11 @@ Stated formally:
 
 ```
 F4 (PartialOverlapSuffices):
-   For any e and any I, if there exists α ∈ T with α ∈ coverage(e) ∧ α ∈ I,
-   then a link with endset e at slot i has matches(a, I, Σ) = true.
+   (A a ∈ dom(Σ.L), i : 1 ≤ i ≤ |Σ.L(a)| :
+       coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅ ⟹ matches(a, I, Σ)).
 ```
 
-This is immediate from the definition of `matches`. We name it as a separate claim because the consequence — that the implementation cannot require full overlap, near-overlap, majority overlap, or any other strengthened condition — is a load-bearing design choice that propagates through the rest of the operation's semantics.
+This is immediate from the definition of `matches`: the slot-existential in F1 is witnessed by the very `i` whose coverage meets `I`, so the implication discharges by F1's definitional content. We name F4 as a separate claim because the consequence — that the implementation cannot require full overlap, near-overlap, majority overlap, or any other strengthened condition — is a load-bearing design choice that propagates through the rest of the operation's semantics.
 
 **Empty endsets at non-type slots.** L3 (ASN-0043) requires only the type-endset (slot 3) to be non-empty; any other slot may carry the empty endset. An empty endset has `coverage(∅) = ∅` (the empty union), so the intersection `coverage(Σ.L(a).eᵢ) ∩ I = ∅` for every `I` whenever `Σ.L(a).eᵢ = ∅`. The slot-existential `(E i : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` is therefore never witnessed by an empty slot — but other non-empty slots of the same link may still witness it. The match predicate accommodates empty endsets mechanically: a link with `Σ.L(a).e₁ = ∅` and a non-empty `Σ.L(a).e₂` whose coverage meets `I` still matches `I`, via slot 2. The filtered form behaves differently: a filter constraint `(i, J)` is satisfied at slot `i` iff `i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅`, and when `Σ.L(a).eᵢ = ∅` the right conjunct is false for every `J`, so any constraint naming slot `i` is unsatisfiable at that link. A filtered query that explicitly nominates an empty slot therefore excludes the link from its result, even when other slots' coverages would have admitted it under the unfiltered match.
 
@@ -165,7 +165,22 @@ A direct consequence: the two phases compose unambiguously. Once `I = image(R, d
 
 ## Arrangement Independence
 
-The I→Link phase consults `Σ.L` and `I` alone. It does not consult any arrangement. F8 already encodes this in its hypothesis `Σ.L = Σ'.L`: `Σ.M` is unmentioned, so two states agreeing on the link store give equal results regardless of how their arrangements differ. We name the operationally salient specialisation separately, as the frame condition exercised by editing operations:
+The I→Link phase consults `Σ.L` and `I` alone. It does not consult any arrangement. F8 already encodes this in its hypothesis `Σ.L = Σ'.L`: `Σ.M` is unmentioned, so two states agreeing on the link store give equal results regardless of how their arrangements differ. Before stating the operationally salient specialisation as the frame condition exercised by editing operations, we surface one reading convention that this ASN adopts as a first-class assumption.
+
+Operation effects/frames in this specification family are stated by ASN-0093 and ASN-0047 in side-by-side fashion: an *effect* clause names what changes, and a *frame* clause names what does not. ASN-0093's operation specifications list every preserved component explicitly — K.σ, for instance, ends its frame with `L' = L` — but ASN-0047's K.μ⁺ and K.μ⁻ frames do not mention `L`. To reason uniformly across both ASNs, we adopt:
+
+```
+A1 (EffectClauseExhaustivity):
+   For every operation in the vocabulary {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻,
+   K.μ~, K.μ⁺_L, K.ρ}, the operation's stated effect clause names every
+   state-component modification the operation makes. Equivalently: any
+   state component not appearing in either the effect clause or the frame
+   clause is unchanged across the transition.
+```
+
+A1 is the standard reading of operation effect/frame pairs across this specification family. ASN-0093's K.σ frame lists `L' = L` directly, demonstrating that frame clauses do name `L` when authors track the dependency, and ASN-0047's omission for K.μ⁺ and K.μ⁻ reads as a documentation gap that an ASN-0047 revision adding `L' = L` to both frames would close without changing A1's content. The convention is invoked in F9's derivation below and once more in Query 4 of the Worked Example; outside these uses it does not propagate into the rest of this ASN.
+
+We now state the specialisation:
 
 ```
 F9 (LinkSurvivabilityUnderEdits):
@@ -174,32 +189,23 @@ F9 (LinkSurvivabilityUnderEdits):
    K.μ~ (reordering), or K.μ⁺_L (link extension) — and any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   Load-bearing premise: at K.μ⁺ and K.μ⁻ steps the conclusion depends on
-   effect-clause exhaustivity (an operation's effect clause names every
-   modified state component) as ASN-0047's published frames for K.μ⁺ and
-   K.μ⁻ do not list L explicitly. See the derivation paragraphs and the
-   Open Question on closing the ASN-0047 frame gap.
+   Premise: A1 (EffectClauseExhaustivity), invoked at the K.μ⁺ and K.μ⁻
+   sub-cases of the derivation below.
 ```
 
 F9 follows from F8 once we observe that `Σ'.L = Σ.L` at every K.μ-family transition. The derivation splits into two cases.
 
 *K.μ~ and K.μ⁺_L.* These operations state `L' = L` explicitly in their frame clauses (ASN-0047), so the F8 hypothesis is satisfied directly from the published frame.
 
-*K.μ⁺ and K.μ⁻.* These operations do not list `L` in their published frames in ASN-0047 — their frames cover `C`, `E`, `R`, and the per-document arrangement clause `(A d' : d' ≠ d : M'(d') = M(d'))`, but say nothing about `L`. We derive `Σ.L = Σ'.L` for these operations in two steps, by combining L12 (LinkImmutability, ASN-0093) with an explicit enumeration of the link-modifying operations.
+*K.μ⁺ and K.μ⁻.* These operations do not list `L` in their published frames in ASN-0047 — their frames cover `C`, `E`, `R`, and the per-document arrangement clause `(A d' : d' ≠ d : M'(d') = M(d'))`, but say nothing about `L`. We derive `Σ.L = Σ'.L` by combining L12 (LinkImmutability, ASN-0093) with A1.
 
 First, L12 gives `(A a ∈ dom(Σ.L) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` at every transition. This yields the inclusion `Σ.L ⊆ Σ'.L` as partial functions: every existing entry persists in `dom(Σ'.L)` with its value unchanged. The remaining question is whether `dom(Σ'.L) ∖ dom(Σ.L)` can be non-empty at a K.μ⁺ or K.μ⁻ step — that is, whether either operation can add new links.
 
-Second, we enumerate the link-modifying operations. The full operation vocabulary established by ASN-0093 and ASN-0047 is exactly {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ} — no other operations modify the system state. Among these, K.λ is the unique operation whose effect clause names `L`: K.λ's effect is `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}` (ASN-0093 K.λ). Every other operation's effect clause modifies only non-L state components — K.σ modifies `dom(M)` and `M(d_new)`; K.α modifies `C`; K.δ modifies `E` (and `M(d_new)` in the IsDocument case); K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L modify a specific `M(d)`; K.ρ modifies `R`. To close the argument we adopt *effect-clause exhaustivity*: an operation's stated effect clause names every state-component modification the operation makes, so any state component not named in the effect clause is unchanged across the transition. Under this convention, the absence of `L` from the effect clauses of K.μ⁺ and K.μ⁻ forces `dom(Σ'.L) = dom(Σ.L)` at K.μ⁺ and K.μ⁻ steps. Combined with L12, this gives `Σ.L = Σ'.L`.
-
-We surface effect-clause exhaustivity explicitly because it is load-bearing for F9 in the absence of explicit `L' = L` clauses in ASN-0047's K.μ⁺ and K.μ⁻ frames. It is the standard reading of operation effect/frame pairs across this specification family — ASN-0093's K.σ, for instance, includes `L' = L` directly in its frame, demonstrating that frame clauses do list `L` when authors track the dependency — and ASN-0047's omission for K.μ⁺ and K.μ⁻ reads as a documentation gap that a revision adding `L' = L` to both frames would close cleanly. The convention is invoked once more in the Worked Example below, when re-evaluating the link store after a K.μ⁻ transition; outside these uses it does not propagate into the rest of the derivation.
+Second, we enumerate the link-modifying operations. The full operation vocabulary is exactly {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ} — no other operations modify the system state. Among these, K.λ is the unique operation whose effect clause names `L`: K.λ's effect is `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}` (ASN-0093 K.λ). Every other operation's effect clause modifies only non-L state components — K.σ modifies `dom(M)` and `M(d_new)`; K.α modifies `C`; K.δ modifies `E` (and `M(d_new)` in the IsDocument case); K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L modify a specific `M(d)`; K.ρ modifies `R`. Invoking A1, the absence of `L` from the effect clauses of K.μ⁺ and K.μ⁻ forces `dom(Σ'.L) = dom(Σ.L)` at K.μ⁺ and K.μ⁻ steps. Combined with L12, this gives `Σ.L = Σ'.L`.
 
 We state F9 separately because it names the operation classes by which arrangements actually change, and so reads as a direct survivability promise: editing does not invalidate discovery. K.α, K.λ, K.δ, K.ρ, and K.σ touch one of the non-arrangement components and so fall outside F9's scope; the K.μ family is exactly the editing surface against which links must remain findable.
 
-The multi-step lift splits into two cases depending on whether the sequence contains any link-store-modifying steps.
-
-*Pure K.μ-family sequences.* For any reachable sequence `Σ →* Σ'` whose every elementary step is drawn from {K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L}, F9 composes inductively step-by-step to give findlinks-equality across the whole sequence: `findlinks(I, Σ) = findlinks(I, Σ')`. Each step's `Σᵢ.L = Σᵢ₊₁.L` chains by transitivity, and F8 applied to the endpoints gives the conclusion.
-
-*Mixed sequences.* When the sequence contains one or more K.λ steps, findlinks-equality may fail in the direction of strict growth — a K.λ step that allocates a new link whose endsets cover some `α ∈ I` adds that link to the post-state's `findlinks(I, Σ')` while contributing nothing to the pre-state's. F9 alone does not cover this case. The weaker survival claim that suffices is `findlinks(I, Σ) ⊆ findlinks(I, Σ')` — *persistence* of matching links, not result-set equality — and this is F11 (PersistentDiscoverability) below, which holds across every reachable sequence regardless of which operations appear. F11's derivation uses LP13 (UnconditionalLinkPersistence, ASN-0098); F9 is not invoked for mixed sequences.
+F9 lifts to multi-step sequences only under restrictive conditions. Operationally relevant sequences interleave K.λ with K.μ-family steps, and a K.λ step that allocates a new matching link adds to the result without removing anything — so findlinks-equality fails along the direction of strict growth. The multi-step claim that holds across every reachable sequence is the weaker inclusion `findlinks(I, Σ) ⊆ findlinks(I, Σ')`, which is F11 (PersistentDiscoverability) below; F11's derivation uses LP13 (UnconditionalLinkPersistence, ASN-0098) and does not invoke F9. The pure-K.μ inductive composition of F9 across edit-only sequences (each step's `Σᵢ.L = Σᵢ₊₁.L` chaining by transitivity into F8 over the endpoints) is a structural completeness observation rather than an operationally needed claim; we note it here but do not develop it further.
 
 The V→I phase is sensitive to arrangement, of course — querying the same V-region before and after an edit may yield different I-images. But the link result for any *fixed* I-set is invariant under every K.μ-family step and monotone non-decreasing across every reachable sequence. The two-phase factoring keeps these concerns separate: V-volatility lives in phase 1; phase 2 is arrangement-blind in the K.μ-only setting and monotone in the general setting.
 
@@ -258,7 +264,7 @@ The operation is therefore additive in its I-input. Multi-source content imposes
 
 ## The Empty Query
 
-The empty query is a meaningful boundary, and the abstract specification handles it without ceremony. For `I = ∅`: every `coverage(e) ∩ ∅ = ∅`, so the slot-existential `(E i : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` has no witness, and `matches(a, ∅, Σ) = false` for every `a ∈ dom(Σ.L)`. The comprehension gives `findlinks(∅, Σ) = ∅`. Symmetrically, `image(∅, d, Σ) = {Σ.M(d)(v) : v ∈ ∅} = ∅`, so `findlinks_V(∅, d, Σ) = findlinks(∅, Σ) = ∅`.
+The empty query is a meaningful boundary, and the abstract specification handles it without ceremony. For `I = ∅`: every `coverage(e) ∩ ∅ = ∅`, so the slot-existential `(E i : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` has no witness, and `matches(a, ∅, Σ) = false` for every `a ∈ dom(Σ.L)`. The comprehension gives `findlinks(∅, Σ) = ∅`. Symmetrically, `image(∅, d, Σ) = {Σ.M(d)(v) : v ∈ ∅ ∩ dom(Σ.M(d))} = {Σ.M(d)(v) : v ∈ ∅} = ∅`, so `findlinks_V(∅, d, Σ) = findlinks(∅, Σ) = ∅`. A V-region `R` entirely disjoint from `dom(Σ.M(d))` is also a boundary handled uniformly: `R ∩ dom(Σ.M(d)) = ∅` projects to the empty image, and the V-side query returns `∅` without any error path.
 
 The dual boundary is the empty link store. When `dom(Σ.L) = ∅`, the comprehension's source set is empty and `findlinks(I, Σ) = ∅` for every `I ⊆ T`. This is the bootstrap behaviour at the initial state Σ₀, where `L₀ = ∅` (ASN-0047): every query produces the empty result until the first K.λ allocates a link. F2 holds vacuously (the source set has no member to test); F3 holds vacuously (the result is empty); F10 and F11 hold vacuously for the same reason. The reader querying an empty docuverse receives an empty answer, consistent with the natural reading and with the absence of any structure for the query to discover.
 
@@ -336,7 +342,7 @@ Consider a state `Σ` with two documents, both inhabiting `dom(Σ.M)`.
 
 The three prefix-subtrees over `α₁, α₂, α₃` are pairwise disjoint: each `αᵢ` is an element-level tumbler of equal length with disagreeing final components (1, 2, 3 respectively), so no pair extends the other (`αᵢ ⋠ αⱼ` for `i ≠ j`), and a tumbler cannot extend two of them simultaneously. By ChainEnumerationInjectivity and CrossDocDisjointness (ASN-0093) together with PrefixOrderingExtension (ASN-0034), the link addresses satisfy `ℓ < ℓ'` under T1: at the divergence position between `d_a` and `d_b` (where `d_a` precedes `d_b`), the same divergence carries forward to `b_L(d_a) < b_L(d_b)` and onward to every extension, giving `ℓ < ℓ'`.
 
-**Query 1: `findlinks_V({v_a^2}, d_a, Σ)`.** Phase 1: the preconditions `d_a ∈ dom(Σ.M)` and `{v_a^2} ⊆ dom(Σ.M(d_a))` hold, so `image({v_a^2}, d_a, Σ) = {Σ.M(d_a)(v_a^2)} = {α₂}`. Phase 2: test each link in `dom(Σ.L)` against `I = {α₂}`. At `ℓ`, slot 1 gives `coverage(Σ.L(ℓ).e₁) ∩ {α₂} = {t : α₂ ≼ t} ∩ {α₂} = {α₂} ≠ ∅` (the only element of `{α₂}` that extends `α₂` is `α₂` itself, by reflexivity of `≼`), so the slot-existential fires and `matches(ℓ, {α₂}, Σ) = true`. At `ℓ'`, slot 1 covers `{t : α₃ ≼ t}`, slot 2 covers `{t : α₁ ≼ t}`, and slot 3's coverage is disjoint from the content addresses by assumption; none meet `{α₂}` (since `α₃ ⋠ α₂` and `α₁ ⋠ α₂` — final components disagree). The result is `{ℓ}`.
+**Query 1: `findlinks_V({v_a^2}, d_a, Σ)`.** Phase 1: the precondition `d_a ∈ dom(Σ.M)` holds, and `{v_a^2} ∩ dom(Σ.M(d_a)) = {v_a^2}` (the queried position survives the projection), so `image({v_a^2}, d_a, Σ) = {Σ.M(d_a)(v_a^2)} = {α₂}`. Phase 2: test each link in `dom(Σ.L)` against `I = {α₂}`. At `ℓ`, slot 1 gives `coverage(Σ.L(ℓ).e₁) ∩ {α₂} = {t : α₂ ≼ t} ∩ {α₂} = {α₂} ≠ ∅` (the only element of `{α₂}` that extends `α₂` is `α₂` itself, by reflexivity of `≼`), so the slot-existential fires and `matches(ℓ, {α₂}, Σ) = true`. At `ℓ'`, slot 1 covers `{t : α₃ ≼ t}`, slot 2 covers `{t : α₁ ≼ t}`, and slot 3's coverage is disjoint from the content addresses by assumption; none meet `{α₂}` (since `α₃ ⋠ α₂` and `α₁ ⋠ α₂` — final components disagree). The result is `{ℓ}`.
 
 **Query 2: `findlinks_V({v_b^1}, d_b, Σ)`.** Phase 1: `image({v_b^1}, d_b, Σ) = {Σ.M(d_b)(v_b^1)} = {α₂}` — the same image as Query 1, because `d_b`'s transclusion of `α₂` produces the same I-address as `d_a`'s native arrangement of `α₂`. Phase 2 is therefore identical to Query 1's Phase 2: result `{ℓ}`. This is F6 (TransclusionTransparency) in operation — the reader querying `d_b`'s view of `α₂` discovers the same link they would have discovered via `d_a`'s native arrangement, because identity travels with the I-address.
 
@@ -354,13 +360,15 @@ The three prefix-subtrees over `α₁, α₂, α₃` are pairwise disjoint: each
 
 **Verifying F5 (IdentityNotValue) against the instance.** Slot 1's coverage at `ℓ` is `{t : α₂ ≼ t}`, so `matches(ℓ, {α₂}, Σ) = true` (via slot 1: `α₂ ≼ α₂` puts `α₂` in the intersection with `{α₂}`) while `matches(ℓ, {α₃}, Σ) = true` only via slot 2 — the slot 1 test against `{α₃}` evaluates `{t : α₂ ≼ t} ∩ {α₃} = ∅` (since `α₂ ⋠ α₃`) and so does not fire. The slot 1 decision turns entirely on which I-addresses extend `α₂` as tumblers. The content values `v₂, v₃ ∈ Val` at `α₂, α₃` are never consulted: even if the writer of `d_a` had stored `v₂ = v₃` (the same value at distinct addresses), the slot 1 test would still discriminate `{α₂}` from `{α₃}` — the address-level intersection `{t : α₂ ≼ t} ∩ {α₃} = ∅` is decided by `α₂ ⋠ α₃` (their last components disagree, 2 vs 3), itself a consequence of GlobalUniqueness (ASN-0034) which forced these addresses to be distinct in the first place. F5 says the match predicate factors through the address space, not through the value space; this instance exhibits the factoring directly.
 
-**Query 4: Survivability under arrangement edit (F11, F9).** Apply a K.μ⁻ transition to `d_a` retaining only the first content position: the post-state Σ' has `Σ'.M(d_a) = {v_a^1 ↦ α₁}`, with `v_a^2` and `v_a^3` removed from `dom(Σ'.M(d_a))` (so `α₂` and `α₃` are no longer in `ran(Σ'.M(d_a))`). The link store is untouched by K.μ⁻ — its effect clause names only `M(d_a)`, so by effect-clause exhaustivity (the convention surfaced in F9's derivation), `L' = L` — so `dom(Σ'.L) = {ℓ, ℓ'}` and `Σ'.L(ℓ) = Σ.L(ℓ)`, `Σ'.L(ℓ') = Σ.L(ℓ')`. Re-evaluate `findlinks({α₂}, Σ')`: the match predicate at `ℓ` tests slot 1, `coverage(Σ'.L(ℓ).e₁) ∩ {α₂} = {α₂} ≠ ∅`, so `matches(ℓ, {α₂}, Σ') = true`. `ℓ'`'s endsets still do not meet `{α₂}`. The result is `{ℓ}`, the same as Query 1's pre-edit result.
+**Query 4: Survivability under arrangement edit (F11, F9).** Apply a K.μ⁻ transition to `d_a` retaining only the first content position: the post-state Σ' has `Σ'.M(d_a) = {v_a^1 ↦ α₁}`, with `v_a^2` and `v_a^3` removed from `dom(Σ'.M(d_a))` (so `α₂` and `α₃` are no longer in `ran(Σ'.M(d_a))`). The link store is untouched by K.μ⁻ — its effect clause names only `M(d_a)`, so by A1 (EffectClauseExhaustivity), `L' = L` — so `dom(Σ'.L) = {ℓ, ℓ'}` and `Σ'.L(ℓ) = Σ.L(ℓ)`, `Σ'.L(ℓ') = Σ.L(ℓ')`. Re-evaluate `findlinks({α₂}, Σ')`: the match predicate at `ℓ` tests slot 1, `coverage(Σ'.L(ℓ).e₁) ∩ {α₂} = {α₂} ≠ ∅`, so `matches(ℓ, {α₂}, Σ') = true`. `ℓ'`'s endsets still do not meet `{α₂}`. The result is `{ℓ}`, the same as Query 1's pre-edit result.
 
-This exercises F11 directly: the link survives the arrangement edit because its endset references `α₂`'s I-address (not `v_a^2`'s V-position), and `α₂`'s identity is preserved by content immutability (C0, ASN-0093). It also exercises F9 — the K.μ⁻ transition is a K.μ-family step satisfying F9's frame condition, so `findlinks({α₂}, Σ) = findlinks({α₂}, Σ')` is guaranteed before we re-evaluate the comprehension. The V-side query `findlinks_V({v_a^2}, d_a, Σ')` is now ill-formed in Phase 1 because `v_a^2 ∉ dom(Σ'.M(d_a))`; the reader who previously queried via `v_a^2` must now route through `d_b`'s transclusion (`findlinks_V({v_b^1}, d_b, Σ')` still images to `{α₂}` and recovers `ℓ`). The link's I-side identity persists; the V-side query surface has shrunk while the link-side survivability has not.
+This exercises F11 directly: the link survives the arrangement edit because its endset references `α₂`'s I-address (not `v_a^2`'s V-position), and `α₂`'s identity is preserved by content immutability (C0, ASN-0093). It also exercises F9 — the K.μ⁻ transition is a K.μ-family step satisfying F9's frame condition, so `findlinks({α₂}, Σ) = findlinks({α₂}, Σ')` is guaranteed before we re-evaluate the comprehension. The V-side query `findlinks_V({v_a^2}, d_a, Σ')` remains well-formed under the projection semantics of `image`: `{v_a^2} ∩ dom(Σ'.M(d_a)) = ∅` (since `v_a^2` was contracted out), so `image({v_a^2}, d_a, Σ') = ∅` and `findlinks_V({v_a^2}, d_a, Σ') = findlinks(∅, Σ') = ∅`. The reader who previously queried `α₂` via `v_a^2` now receives an empty V-side answer through that route and must reach `α₂` via a surviving V-position — `d_b`'s transclusion suffices: `findlinks_V({v_b^1}, d_b, Σ')` images to `{α₂}` and recovers `ℓ`. The link's I-side identity persists; the V-side query surface has shrunk while the link-side survivability has not.
 
 **Query 5: Filtered query exercising F7 (filter conjunction).** Evaluate `findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ)` — the conjunctive "links from `α₂` to `α₃`" query. At `ℓ`: slot 1 satisfies `coverage(Σ.L(ℓ).e₁) ∩ {α₂} = {α₂} ≠ ∅`, slot 2 satisfies `coverage(Σ.L(ℓ).e₂) ∩ {α₃} = {α₃} ≠ ∅`. Both constraints hold; `ℓ` is in the result. At `ℓ'`: slot 1 covers `{t : α₃ ≼ t}`, intersected with `{α₂}` is `∅` (since `α₃ ⋠ α₂`); the slot-1 constraint already fails, the universal is false, and `ℓ'` is excluded — even though `ℓ'`'s slot 1 *does* meet `{α₃}`, which would have satisfied a slot-1 constraint had we named the to-set under slot 1. The conjunctive force of the filter is essential: the *from* slot must meet `{α₂}` and the *to* slot must meet `{α₃}`, both holding simultaneously. Result: `{ℓ}`. Contrast with the union-form unfiltered query `findlinks({α₂} ∪ {α₃}, Σ) = {ℓ, ℓ'}` — the filtered form is strictly stricter, as F7(b) and the section on filtered semantics anticipate.
 
 **Query 6: Scoped query exercising F14.** Evaluate `findlinks_scoped({α₂, α₃}, {a ∈ T : home(a) = d_a}, Σ)`. The unscoped result `findlinks({α₂, α₃}, Σ) = {ℓ, ℓ'}` (Query 3). The scope `S = {a : home(a) = d_a}` contains every link allocated under `d_a`; in this instance only `ℓ`, since `home(ℓ) = d_a` while `home(ℓ') = d_b`. The intersection `findlinks({α₂, α₃}, Σ) ∩ S = {ℓ, ℓ'} ∩ {ℓ} = {ℓ}`. The reader who restricts to `d_a`-owned links receives `{ℓ}`, even though `ℓ'` also touches the queried content. The match predicate is unweakened — `ℓ'` still matches the I-set — but the scope narrows the candidate set before reporting. F14's definition `findlinks_scoped = findlinks(I, Σ) ∩ S` is exercised by direct intersection.
+
+**Query 7: Determinism under arrangement variation (F8).** Apply a K.μ~ reordering transition to `d_a` realising the cyclic permutation `π(v_a^k) = v_a^{(k mod 3) + 1}`: the post-state Σ'' has `Σ''.M(d_a) = {v_a^1 ↦ α₃, v_a^2 ↦ α₁, v_a^3 ↦ α₂}` (the same three I-addresses arranged at the same three V-positions, rotated). By A1, K.μ~'s effect clause names only `M(d_a)`, so `L'' = L`; combined with L12, `Σ''.L = Σ.L` exactly. F8's hypothesis is satisfied, and F8 forces `findlinks({α₂}, Σ) = findlinks({α₂}, Σ'')` directly from the I-side: the match predicate consults only `(Σ.L, I)`, both unchanged, so the comprehension produces the same set. Direct evaluation at Σ'' confirms — the slot-1 test at `ℓ` evaluates `coverage(Σ''.L(ℓ).e₁) ∩ {α₂} = {t : α₂ ≼ t} ∩ {α₂} = {α₂} ≠ ∅` exactly as in Query 1; `ℓ'`'s endset coverages do not meet `{α₂}` for the same address-level reasons; the result is `{ℓ}`. Crucially, no V-position appeared anywhere in the I-side derivation. The V-image *of any V-position in `d_a`* changed under the reordering (`v_a^2` now maps to `α₁` rather than `α₂`), but the link-side answer for the fixed I-set `{α₂}` is invariant. This is the operational content of F8: link discovery is a property of `(Σ.L, I)`, with arrangement permutations preserving the link store leaving the answer untouched.
 
 The example is small enough to inspect by eye, and the abstract definitions reduce to elementary set operations. Larger instances scale the same way: each link tests independently, slot existentials collect witnesses, and the comprehension assembles the answer.
 
@@ -404,12 +412,13 @@ The reverse claim is equally true. None of these design choices could have been 
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| `image(R, d, Σ)` | I-image of a V-region: `{Σ.M(d)(v) : v ∈ R}` | introduced |
+| `image(R, d, Σ)` | I-image of a V-region with silent projection: `{Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}` | introduced |
 | `matches(a, I, Σ)` | Match predicate: `(E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` | introduced |
 | `findlinks(I, Σ)` | Discovery operation: `{a ∈ dom(Σ.L) : matches(a, I, Σ)}` | introduced |
 | `findlinks_V(R, d, Σ)` | Two-phase composite: `findlinks(image(R, d, Σ), Σ)` | introduced |
 | `findlinks_filtered(C, Σ)` | Filtered form with slot constraints `C` | introduced |
 | `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | introduced |
+| A1 | EffectClauseExhaustivity: an operation's effect clause names every modified state component (vocabulary-wide convention) | introduced |
 | F1 | Match predicate as set-theoretic overlap, existential over slots | introduced |
 | F2 | Completeness: every matching link in `dom(Σ.L)` appears in the result | introduced |
 | F3 | Soundness: every link in the result is in `dom(Σ.L)` and matches | introduced |
@@ -441,4 +450,4 @@ Should the abstract specification require any bound on the time between K.λ com
 
 What is the relationship between FINDLINKS and the inverse direction (resolving the result's endsets back to V-positions in some target document), and what additional guarantees does the inverse direction require that FINDLINKS does not?
 
-When should ASN-0047's K.μ⁺ and K.μ⁻ frame clauses be revised to include explicit `L' = L` conjuncts, closing the documentation gap that forces F9's K.μ⁺/K.μ⁻ case to rely on the unstated effect-clause-exhaustivity convention rather than a directly published frame?
+Should ASN-0047's K.μ⁺ and K.μ⁻ frame clauses be revised to include explicit `L' = L` conjuncts? Doing so would discharge F9's K.μ⁺/K.μ⁻ case from a published frame rather than through A1 (EffectClauseExhaustivity), eliminating the only dependency on A1 in this ASN's derivations.
