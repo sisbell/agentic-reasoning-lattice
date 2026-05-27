@@ -1,0 +1,17 @@
+# Review of ASN-0069
+
+## REVISE
+
+### Issue 1: V11a's recovery sub-claim is over-narrow and undischarged
+
+**ASN-0069, V11a (ancestry composition)**: "Every fork in the chain is recoverable from the prefix structure of d^k_new's tumbler alone, by reading off the successive extensions added by each inc(·, 1)."
+
+**Problem**: V11's chain explicitly admits both V1 sub-cases at every step — first fork (`inc(·, 1)`) and subsequent fork (`inc(d_prev, 0)`). V11's text says only "each step dⁱ⁻¹_new → dⁱ_new is a fork composite", with no restriction to first-fork composites, and the conclusion goes through under both sub-cases because V2 and V4 are derived in the body to cover both. But V11a's recovery procedure assumes uniform `inc(·, 1)` extensions, which is false for chains containing a subsequent-fork step. Concretely: if d¹_new = inc(d_src, 1) and step 2 is a subsequent fork of d¹_new (because another operator first-forked d¹_new before us), then d²_new = inc(d_prev, 0) where d_prev is a sibling of d²_new — yielding d²_new = d¹_new · "2", whose extension component is "2", not "1". The "reading off … inc(·, 1)" wording does not describe such a chain. Separately, the V11a derivation rigorously proves the prefix-chain identity d_src ≼ ... ≼ d^k_new but never discharges the recovery sub-claim — it is asserted, not proved.
+
+**Required**: Either (a) explicitly restrict V11 (and V11a) to first-fork chains and update the chain-notation convention accordingly, or (b) generalize V11a's recovery wording to describe what subsequent-fork steps contribute to the tumbler structure (the prefix-chain identity itself survives, but the per-step extension is no longer uniformly inc(·, 1)). If only the high-level summary in the Properties Introduced table ("ancestry composition recoverable from tumbler structure") is intended, drop the over-specific "by reading off … inc(·, 1)" from the body or supply a derivation that covers every chain V11 admits.
+
+## OUT_OF_SCOPE
+
+None — the ASN's Open Questions section already captures the relevant future-ASN topics (concurrent modification beyond SequentialTransitionAxiom, snapshot vs living forks, forking transcludents, source-side withdrawal, etc.), and the Scope-out items (INSERT/DELETE/COPY/REARRANGE mechanics, link semantics, version DAG structure, BEBE) are not addressed by the ASN.
+
+VERDICT: REVISE
