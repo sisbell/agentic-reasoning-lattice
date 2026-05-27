@@ -47,6 +47,7 @@ The factoring matters because the two phases have different stability properties
 
 ```
 F1 (MatchPredicate):
+   For a ∈ dom(Σ.L), I ⊆ T, Σ ∈ 𝒮:
    matches(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅).
 ```
 
@@ -58,20 +59,31 @@ F4 below is a *design justification*, not a uniqueness theorem. The shape of the
 
 *Layer 2 — the structural family (LM 4/58).* "A link satisfies a search request if one span of each endset satisfies a corresponding part of the request" prescribes the AND-of-ORs existential structure: ∃ per endset (one span witnesses), ∧ across endsets (every endset participates). F1's slot-existential form lives inside this family.
 
-*Layer 3 — the robustness principle (LM 4/60).* "THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS." Within the LM 4/58 family, this design principle favors a non-conjunctive overlap predicate at the span level — adding non-overlapping spans to other endsets must not suppress an existing match. Singleton overlap honors this; predicates demanding containment, reverse containment, or quantitative thresholds do not.
+*Layer 3 — spans-monotonicity within an endset (consequence of LM 4/58's per-span existential).* LM 4/58's per-endset clause — "one span ... satisfies a corresponding part of the request" — places satisfaction at the per-span level as an existential. This existential structure has a structural consequence: adding a non-witnessing span to an endset that already has a witnessing span cannot suppress the existing witness — the existential survives. F1 honors this because its endset-level overlap unfolds to a span-level existential: `coverage(eᵢ) ∩ I ≠ ∅` iff `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`. Predicates that fold the spans of an endset into a universal or aggregate constraint (containment `coverage(eᵢ) ⊆ I`, reverse containment, quantitative thresholds) break this monotonicity: adding a non-witnessing span can violate the universal or fail to advance the aggregate. LM 4/60's across-link robustness principle ("THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS") is *convergent* with this within-endset choice but is not its direct anchor — LM 4/60 governs the cross-link case (filtering across distinct link objects), while spans-monotonicity within a single endset is grounded in LM 4/58's existential structure itself.
+
+*Spans-monotonicity, illustrated.* Take link L₀ with slot 1 holding the single span `(α, δ(1, #α))`, and query `I = {t : α ≼ t}` (the prefix-subtree of α). Then `coverage(L₀.e₁) = I` exactly, so both F1's overlap predicate and an endset-level containment predicate `coverage(eᵢ) ⊆ I` admit L₀. Now extend L₀ to L₁ by adding a span `(β, δ(1, #β))` at the same slot, with β non-nesting with α (β ⋠ α and α ⋠ β; e.g., β a same-length sibling differing from α at position `#α`). Under F1: L₁ still matches — `coverage(L₁.e₁) ∩ I ⊇ {α} ≠ ∅`, the α-span witness survives. Under endset-level containment: L₁ fails — `coverage(L₁.e₁) = {t : α ≼ t} ∪ {t : β ≼ t}`, and `β ∈ coverage(L₁.e₁)` with `β ∉ I` (since β ⋠ α), so the containment relation breaks. Adding a non-witnessing span to L₀'s slot 1 suppresses L₀'s containment-match while preserving F1's overlap-match. This is the spans-monotonicity LM 4/58's existential structure entails, and it is what the realizability witnesses below (Strengthenings 1–3) operationally distinguish under F2 ∧ F3.
 
 ```
 F4 (MatchFormulaDesignJustification):
    F1's slot-existential / singleton-overlap form is design-justified
-   within the AND-of-ORs family that LM 4/58 prescribes. Within that
-   family, F1's choice of overlap predicate (≠ ∅) at the span level is
-   anchored by LM 4/60's robustness principle. Predicates outside F1
-   (containment, reverse containment, cardinality thresholds, the
-   full-empty extremes) define different operations and are surfaced
-   by the conformance contract F2 ∧ F3: any P ≠ F1 produces a
-   result(I, Σ) that disagrees with findlinks(I, Σ) on at least one
-   realizable (a, I) pair, hence non-conformance with F2 ∧ F3 as
-   written.
+   within the AND-of-ORs family that LM 4/58 prescribes. The
+   AND-of-ORs structure — AND across endsets, existential over spans
+   within each endset — is fixed by LM 4/58 at all levels. Within
+   that structure, F1's span-level overlap predicate (`≠ ∅`) is the
+   choice that preserves the existential's spans-monotonicity:
+   adding a non-witnessing span to an endset cannot suppress an
+   existing witness. LM 4/60's across-link robustness principle is
+   convergent with this within-endset choice but is not the direct
+   anchor — LM 4/60 governs the cross-link case (junk-link filtering
+   across distinct links), while spans-monotonicity within a single
+   endset is grounded in LM 4/58's existential structure itself.
+
+   Predicates outside F1 (containment, reverse containment,
+   cardinality thresholds, the full-empty extremes) define different
+   operations and are surfaced by the conformance contract F2 ∧ F3:
+   any P ≠ F1 produces a result(I, Σ) that disagrees with
+   findlinks(I, Σ) on at least one realizable (a, I) pair, hence
+   non-conformance with F2 ∧ F3 as written.
 
    The uniqueness asserted is *operational distinguishability* under
    F2 ∧ F3 wired with F1 — not mathematical uniqueness derivable from
@@ -89,7 +101,7 @@ F4 (MatchFormulaDesignJustification):
 
 *Strengthening 3 — Cardinality threshold (`|coverage ∩ I| ≥ k` for `k > 1`).* Same canonical span; `I = {α}`. Then `|coverage ∩ I| = 1 < k` for every `k > 1`. F1 admits via singleton overlap; threshold strengthening excludes `a`.
 
-*Weakening 1 — Slot-vacuous match (`P_⊤(a, I, Σ) ≡ a ∈ dom(Σ.L)`).* Witness: any link `a ∈ dom(Σ.L)` with all `coverage(Σ.L(a).eᵢ)` disjoint from `I`. Concrete instance: `Σ.L(a)` with `(τ, δ(1, #τ))` at slot 3 (the mandatory non-empty type endset), `∅` at slots 1 and 2, and `I = {α}` with `τ ⋠ α` and `α ⋠ τ` (cross-document non-nesting τ). Then `coverage(Σ.L(a).e₃) ∩ I = ∅` and the other slots are coverage-empty, so F1 rejects `a`. `P_⊤` admits `a`. The weakening returns links with no overlap to the query I-set — non-conforming with LM 4/60's pairing of overlap-witness with relevance.
+*Weakening 1 — Slot-vacuous match (`P_⊤(a, I, Σ) ≡ a ∈ dom(Σ.L)`).* Witness: any link `a ∈ dom(Σ.L)` with all `coverage(Σ.L(a).eᵢ)` disjoint from `I`. Concrete instance: `Σ.L(a)` with `(τ, δ(1, #τ))` at slot 3 (the mandatory non-empty type endset), `∅` at slots 1 and 2, and `I = {α}` with `τ ⋠ α` and `α ⋠ τ` (cross-document non-nesting τ). Then `coverage(Σ.L(a).e₃) ∩ I = ∅` and the other slots are coverage-empty, so F1 rejects `a`. `P_⊤` admits `a`. The weakening returns links with no overlap to the query I-set — non-conforming with the LM 4/58-derived relevance principle that some span in some endset must witness a non-empty intersection with the request.
 
 *Weakening 2 — Slot-disjunctive ignoring I (`P_∃-slot(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ≠ ∅)`).* Witness: the same `(a, I)` as Weakening 1. `Σ.L(a).e₃ = {(τ, δ(1, #τ))}` is non-empty (mandated by L3), so `coverage(Σ.L(a).e₃) ≠ ∅` and `P_∃-slot` admits `a` regardless of `I`. F1 rejects (no slot's coverage meets `I`). The weakening collapses the I-dependence of the match entirely — every link in `dom(Σ.L)` matches every query, violating the relevance principle.
 
@@ -272,7 +284,34 @@ F9★ (NonAllocatingMultiStepPreservation):
 
 (The K.μ-only specialization of F9★ is the one-line corollary: every K.μ-family step is in V ∖ {K.λ}, so any K.μ-only sequence is one for which F9★ applies; we do not name it separately.)
 
-K.λ is the only operation of V that can change `findlinks(I, ·)` across a single step, and F19 below confirms the change is monotone.
+The remaining single-step case — K.λ itself — is the unique operation of V that can change `findlinks(I, ·)` across one step, and the change is fully characterized:
+
+```
+F9-λ (KλInducedIncrement):
+   For any single-step transition Σ → Σ' produced by K.λ allocating
+   a fresh link ℓ_new with endsets (e₁, …, e_N), and any I ⊆ T:
+       findlinks(I, Σ') = findlinks(I, Σ) ⊎ ({ℓ_new} if matches(ℓ_new, I, Σ') else ∅).
+
+   The two parts are disjoint (⊎): K.λ's freshness precondition
+   ℓ_new ∉ dom(Σ.L) ∪ dom(Σ.C) (ASN-0093) gives ℓ_new ∉ dom(Σ.L),
+   so ℓ_new ∉ findlinks(I, Σ).
+
+   Derivation. K.λ's effect-clause gives dom(Σ'.L) = dom(Σ.L) ∪
+   {ℓ_new} with Σ'.L(a) = Σ.L(a) for every a ∈ dom(Σ.L) (L12
+   supplies value preservation on prior keys; K.λ's effect-clause
+   adds only the fresh mapping). Split findlinks(I, Σ') by domain
+   into the prior-key contribution from dom(Σ.L) and the fresh-key
+   contribution from {ℓ_new}. For each a ∈ dom(Σ.L):
+   PerLinkInvarianceUnderValuePreservation at this a transports
+   matches(a, I, ·) unchanged from Σ to Σ', so the prior-key part
+   contributes exactly findlinks(I, Σ). The fresh-key part
+   contributes the singleton {ℓ_new} when matches(ℓ_new, I, Σ')
+   holds, and ∅ otherwise. ComprehensionInvariantUnderΣL is *not*
+   applicable here (dom(Σ'.L) ⊋ dom(Σ.L)); the per-link primitive
+   is the load-bearing step.
+```
+
+F9-cor and F9-λ together exhaust V's single-step impact on `findlinks(I, ·)`: F9-cor's invariance across V ∖ {K.λ} and F9-λ's controlled increment at K.λ. F19 below confirms the multi-step closure is monotone.
 
 ## Transclusion Transparency
 
@@ -495,6 +534,12 @@ By PrefixSpanCoverage, each canonical span's coverage is a prefix subtree. The t
 
 Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, Σ_5)` for every `I ⊆ T`. At `I = {α₂}`: `findlinks({α₂}, Σ) = {ℓ}` (Query 1) and `findlinks({α₂}, Σ_5) = {ℓ}` by direct evaluation (link values preserved by L12; the slot-1 test at `ℓ` still meets `{α₂}`). The V-side answer at `v_a^2` in `d_a` does change across the chain (the K.μ⁻ step contracts `v_a^2` out of `dom(M(d_a))`, so `findlinks_V({v_a^2}, d_a, Σ_5) = findlinks(∅, Σ_5) = ∅`); the I-side answer at the fixed I-set `{α₂}` does not. F9★ holds across the chain.
 
+**Query 6 (F11 + F9-λ, persistence and growth across K.λ).** Query 5's chain stays in V ∖ {K.λ}, so it cannot exercise F11's load-bearing case — the case where `dom(Σ.L)` grows under the persistence claim. We extend `Σ_5` with one K.λ step to surface that case explicitly. From `Σ_5`, apply K.λ allocating `ℓ_new ∈ A_L(d_c)` (the first emission of `d_c`'s link sub-allocator, since no K.λ under `d_c` has fired in the prior chain) with endsets: slot 1 `(α_c, δ(1, #α_c))`, slot 2 `∅`, slot 3 `(τ_meta, δ(1, #τ_meta))` (reusing `τ_meta` from `Σ`'s setup, persisted into `Σ_5` by L12). The freshness precondition discharges because `ℓ_new = [d_c.0.s_L.1]` and `{ℓ' ∈ dom(Σ_5.L) : origin(ℓ') = d_c} = ∅`. Call the post-state `Σ_6`. K.λ's published frame names `L'` as the only modified component; M, C, E, R are unchanged.
+
+*I-side persistence of the `{α₂}` query (F11 across K.λ).* At `Σ_5`, `findlinks({α₂}, Σ_5) = {ℓ}`. At `Σ_6`: `ℓ ∈ dom(Σ_5.L) ⊆ dom(Σ_6.L)` with `Σ_6.L(ℓ) = Σ_5.L(ℓ)` by L12, so PerLinkInvarianceUnderValuePreservation at `ℓ` gives `matches(ℓ, {α₂}, Σ_6) = true`. For the freshly allocated `ℓ_new`: `coverage(ℓ_new.e₁) = {t : α_c ≼ t}` and `coverage(ℓ_new.e₃) = {t : τ_meta ≼ t}`, both disjoint from `{α₂}` (sibling content-address non-nesting between `α_c` and `α₂` under distinct documents `d_c ≠ d_a`; cross-document non-nesting between `τ_meta` and `α₂` by setup). So `matches(ℓ_new, {α₂}, Σ_6) = false`. By F9-λ: `findlinks({α₂}, Σ_6) = findlinks({α₂}, Σ_5) ⊎ ∅ = {ℓ}`. F11's persistence holds across the K.λ step: `ℓ` remains `{α₂}`-discoverable even as `dom(Σ.L)` grows. The comprehension-level ComprehensionInvariantUnderΣL is *not* applicable (`dom(Σ_6.L) ⊋ dom(Σ_5.L)`); the load-bearing step is PerLinkInvarianceUnderValuePreservation at `ℓ` specifically — exactly the per-link primitive separated out for this case.
+
+*I-side growth for a query covering `ℓ_new` (F19 monotonicity at K.λ).* Take `I' = {α_c}`. At `Σ_5`: `α_c ∈ dom(Σ_5.C)` (allocated in Query 5 step (ii)), but no link in `dom(Σ_5.L) = {ℓ, ℓ', ℓ_meta}` mentions `α_c` in any endset coverage (each prior link's slots cover prefix-subtrees over `α₁, α₂, α₃, τ_·, ℓ`, all non-nesting with `α_c` under `d_c`). So `findlinks({α_c}, Σ_5) = ∅`. At `Σ_6`: `matches(ℓ_new, {α_c}, Σ_6) = true` (slot 1's coverage `{t : α_c ≼ t}` contains `α_c` reflexively); the prior-key links remain non-matching by PerLinkInvarianceUnderValuePreservation. By F9-λ: `findlinks({α_c}, Σ_6) = ∅ ⊎ {ℓ_new} = {ℓ_new}`. F19 monotonicity is exhibited: `findlinks({α_c}, Σ_5) = ∅ ⊆ {ℓ_new} = findlinks({α_c}, Σ_6)`. F11 and F19 compose: a query covering the freshly allocated link grows, while every prior matching link remains matched.
+
 ## What Completeness Demands of Implementations
 
 The spec's demand is exactly F2 ∧ F3: `result(I, Σ) = findlinks(I, Σ)`. The mechanism is unspecified. Any implementation whose `result(I, Σ)` differs from the set comprehension is non-conforming, regardless of cause.
@@ -558,7 +603,7 @@ Both are *convergent* with A1b's conclusion but not constitutive; the methodolog
 | F2-filt, F3-filt | Filtered conformance pair | introduced |
 | F2-sco, F3-sco | Scoped conformance pair | introduced |
 | F2-V, F3-V | V-side conformance pair (primary obligation on `result_V`) | introduced |
-| F4 | MatchFormulaDesignJustification: F1 design-justified within LM 4/58's AND-of-ORs family by LM 4/60's robustness principle; operationally distinguishable from alternative predicates under F2 ∧ F3 | introduced |
+| F4 | MatchFormulaDesignJustification: F1 design-justified within LM 4/58's AND-of-ORs family by the spans-monotonicity consequence of LM 4/58's existential structure (LM 4/60 convergent but cross-link); operationally distinguishable from alternative predicates under F2 ∧ F3 | introduced |
 | F5 | Identity, not value: match consults coverage, not content | introduced |
 | F6 | Transclusion transparency | introduced |
 | F7 | Endset symmetry (slot equality + filter conjunction) | introduced |
@@ -566,6 +611,7 @@ Both are *convergent* with A1b's conclusion but not constitutive; the methodolog
 | F9 | Link survivability under K.μ-family edits | introduced |
 | F9-cor | Non-allocating preservation across single-step V ∖ {K.λ} | introduced |
 | F9★ | Multi-step closure of F9-cor across V ∖ {K.λ} sequences | introduced |
+| F9-λ | KλInducedIncrement: characterises the K.λ-induced delta to findlinks(I, ·) as disjoint union with a singleton or ∅ depending on whether ℓ_new matches | introduced |
 | F10 | Ordered result: canonical T1-sorted presentation | introduced |
 | F10-filt, F10-sco | Filtered and scoped ordered presentations | introduced |
 | F10a | AnchorLiftingOfDocumentOrdering | introduced |
