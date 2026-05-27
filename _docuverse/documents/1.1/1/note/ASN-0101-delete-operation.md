@@ -1,0 +1,301 @@
+# ASN-0101: DELETE Operation
+
+*2026-05-27*
+
+We seek a precise account of DELETE — the operation by which content disappears from a document's current view but never from the system. The contrast with conventional editing is stark. In a "destructive replacement" model, deletion overwrites prior bytes; the only record of what was removed is whatever the system happened to log. In Xanadu, deletion is a Vstream operation: it modifies the arrangement of references a document presents to its readers while leaving the underlying content store entirely untouched. The architectural commitment is unconditional:
+
+> "DELETED BYTES (not currently addressable, awaiting historical backtrack functions, may remain included in other versions.)" [LM 4/9]
+
+> "Note that the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included." [LM 4/11]
+
+The two halves of this commitment — content persistence and cross-document non-interference — are not independent. Each rests on the same structural fact: that *what exists* (the Istream of allocated I-addresses) is held in a different state component from *how it is currently arranged* (the Vstream of V→I mappings). DELETE manipulates the second without touching the first. Our task is to make this separation precise: to state exactly what DELETE changes, exactly what it preserves, and exactly which invariants the completed operation must re-establish.
+
+## The setting
+
+We adopt the state space of the foundations. A state `Σ = (C, L, M, ...)` carries at least:
+
+- the content store `C : T ⇀ Val`, with `dom(C)` the set of allocated I-addresses bearing values;
+- the link store `L : T ⇀ Link`, with `dom(L)` the set of allocated link addresses;
+- the family of arrangements `M : T ⇀ (T ⇀ T)`, with `M(d) : T ⇀ T` the arrangement of document `d` whenever `d ∈ dom(M)`.
+
+The standing invariants are those established in the strand model, link model, and substrate: every `a ∈ dom(C)` is an element-level tumbler with `subspace_I(a) = s_C` and `#E(a) ≥ 2`; every `ℓ ∈ dom(L)` is similarly element-level with `subspace_I(ℓ) = s_L`; for each `d ∈ dom(M)` the arrangement `M(d)` is finite (S8-fin), functional (S2), referentially valid (S3★), and per-subspace contiguous with minimum at `[S, 1, ..., 1]` and sequential ordering (D-CTG★, D-MIN★, D-SEQ★ of ASN-0047). The two stores are disjoint (L14) and immutable across all transitions in their respective ways (P0 for content, L12 for links).
+
+For each document `d ∈ dom(M)` and each subspace `S ∈ {s_C, s_L}`, write
+
+`V_S(d) := {v ∈ dom(M(d)) : subspace(v) = S}`
+
+— the set of V-positions in subspace `S`. By S8-depth, all V-positions in `V_S(d)` share a common depth `m_S ≥ 2`. By D-SEQ★, when non-empty `V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S}` for some `n_S ≥ 1`. We write `δ(n, m)` for the ordinal displacement of ASN-0034 — the tumbler `[0, ..., 0, n]` of length `m` — and `shift(v, n)` for `v ⊕ δ(n, #v)`, the OrdinalShift advancing `v`'s last component by `n`.
+
+## The operation
+
+We specify DELETE as an atomic state transition `DEL[d, σ]` removing a V-span `σ` from document `d`'s arrangement. The operation generalises the contraction of ASN-0082 (which fixes `S = s_C` and `m = 2`) to any subspace and depth.
+
+**Operation DEL[d, σ].**
+
+*Parameters.* A document `d` and a level-uniform V-span `σ = (s, ℓ)` of ordinal type.
+
+*Preconditions.*
+
+- *Document membership:* `d ∈ dom(M)`.
+- *Span well-formedness:* `s ∈ V_S(d)` for some subspace `S = subspace(s) ∈ {s_C, s_L}`; `Pos(ℓ)`; `#ℓ = #s = m_S`; the action point of `ℓ` is `m_S` (equivalently `ℓ = δ(n, m_S)` for some `n ≥ 1`).
+- *Containment:* writing `r := s ⊕ ℓ`, every depth-`m_S` position `v` with `subspace(v) = S` and `s ≤ v < r` lies in `V_S(d)`. Under D-SEQ★ this reduces to `s = [S, 1, ..., 1, p]` for some `p ∈ {1, ..., n_S}` and `p + n − 1 ≤ n_S`, equivalently `p + n ≤ n_S + 1`.
+
+*Effect.* Let `L := {v ∈ V_S(d) : v < s}` (positions strictly before the deleted span), `X := {v ∈ V_S(d) : s ≤ v < r}` (positions in the deleted span), `R := {v ∈ V_S(d) : v ≥ r}` (positions strictly after). The shift function
+
+`σ_d(v) := vpos(S, ord(v) ⊖ δ(n, m_S)_{ord})`
+
+— equivalently, `σ_d(v)` decrements `v`'s last component by `n` while leaving earlier components unchanged — maps `R` bijectively onto `Q := {σ_d(v) : v ∈ R}`. The post-state arrangement `M'(d)` satisfies:
+
+- *Domain:* `V_S(M'(d)) = L ∪ Q`, and `V_{S'}(M'(d)) = V_{S'}(d)` for every `S' ∈ {s_C, s_L}` with `S' ≠ S`.
+- *Values, left of the cut:* `(A v ∈ L :: M'(d)(v) = M(d)(v))`.
+- *Values, shifted right of the cut:* `(A v ∈ R :: M'(d)(σ_d(v)) = M(d)(v))`.
+- *Values, other subspace:* `(A v : v ∈ V_{S'}(d) ∧ S' ≠ S :: M'(d)(v) = M(d)(v))`.
+
+*Frame.*
+
+- *Content store:* `C' = C` exactly — `dom(C') = dom(C)` and `(A a ∈ dom(C) :: C'(a) = C(a))`.
+- *Link store:* `L' = L` exactly — `dom(L') = dom(L)` and `(A ℓ ∈ dom(L) :: L'(ℓ) = L(ℓ))`.
+- *Document set:* `dom(M') = dom(M)` — `d` is not removed, and no other document is added.
+- *Other documents:* `(A d' ∈ dom(M) : d' ≠ d :: M'(d') = M(d'))`.
+
+We refer to this transition specification as **D0**.
+
+The form of the effect makes explicit a structural fact that is easy to miss: DELETE does not "remove and then re-number" as two operations. It is one operation whose post-state arrangement is determined by the pre-state and the span alone. The shift function `σ_d` is the bijection from `R` to `Q` that closes the gap, and the post-state mapping is obtained by composing `M(d)` with `σ_d^{-1}` on the shifted region. No intermediate state with "holes" is observable — the operation is atomic.
+
+## What shifts: closing the gap
+
+The ASN-0034 algebra fixes the shift mechanism precisely. Let `v ∈ R` with `v = [S, 1, ..., 1, k]` and `k ≥ p + n`. Then `ord(v) = [1, ..., 1, k]` (length `m_S − 1`), and `δ(n, m_S)_{ord} = [0, ..., 0, n]` (length `m_S − 1`). The subtraction `ord(v) ⊖ δ(n, m_S)_{ord}` zeros the components where `ord(v)` and the displacement agree, reverses at the divergence (the last component), and gives `[1, ..., 1, k − n]`. Reconstructing, `σ_d(v) = [S, 1, ..., 1, k − n]`. The boundary case `v = r = [S, 1, ..., 1, p + n]` maps to `σ_d(r) = [S, 1, ..., 1, p] = s`, so the first shifted position lands exactly where the deletion began — closing the gap precisely.
+
+That the operation actually closes the gap, rather than leaving it open with placeholders, is Nelson's explicit design choice. We extract it from the dense-sequence convention: the V-stream is defined to be a contiguous ordering with no notion of "empty positions" between consecutive members. There is nothing in the abstract specification of the V-stream to denote — and nothing for a reader to observe — at a vacated position. The closure of the gap follows from the choice of representation, not from a separate gap-closing pass.
+
+We record the basic structural consequence of the shift:
+
+**D1 — Gap closure.** Let `Σ → Σ'` be a DEL[d, σ] transition with `σ = (s, ℓ)`. The shift function `σ_d` is an order-preserving bijection from `R` onto `Q`, and `(L ∪ Q)` is contiguous with minimum `[S, 1, ..., 1]`. Concretely, writing `n_S' := |V_S(d)| − n`, the post-state has `V_S(M'(d)) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S'}` (empty when `n_S' = 0`).
+
+*Justification.* Order preservation and injectivity follow from TS1 and TS2 applied to the equal-length, last-component-only shift produced by `σ_d`. Surjectivity onto `Q` is by construction. The post-state characterisation: each `v ∈ L` has `v = [S, 1, ..., 1, k]` with `1 ≤ k ≤ p − 1`; each `σ_d(v')` with `v' = [S, 1, ..., 1, k']` and `p + n ≤ k' ≤ n_S` maps to `[S, 1, ..., 1, k' − n]` with `p ≤ k' − n ≤ n_S − n`. The union is `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}`. ∎
+
+Gregory's implementation realises this through a two-phase protocol on the tree of POOM crums that materialises `M(d)`. Phase 1 establishes "knives" at the boundaries `s` and `r`, splitting any crum interior to either knife into a pair of crums boundary-aligned with the knife. Phase 2 walks the affected children of the spanning node and applies one of three actions per crum: untouched (the crum lies before `s`), freed (the crum lies in `[s, r)`), or shifted (the crum lies at or after `r`, and its V-displacement is reduced by `width(σ)`). After the walk, a width-recomputation pass propagates the changes upward.
+
+The abstract specification is silent on the tree structure but does require *some* such mechanism — the operation must be able, in finite work proportional to the affected region, to produce a post-state arrangement satisfying D0's domain and value conditions. The two-knife structure is an implementation choice that realises this in a particularly direct way. Two observations sharpen the abstract picture:
+
+- *Boundary alignment is necessary, not incidental.* Any implementation that represents the arrangement compactly (as runs, or as B-tree nodes) must arrange for the deletion boundaries `s` and `r` to coincide with representation boundaries before the per-region action can be applied uniformly. Without such alignment, individual cells of the representation would span the boundary and require special-case handling. The two-knife pattern (cut at both endpoints, then classify) generalises beyond tree representations to any compact arrangement.
+
+- *No reconciliation across the gap.* After the shift, two runs that were previously separated by the deleted region become V-adjacent. Whether their I-extents are now I-adjacent — and could therefore be merged into a single run under the bundle-algebra rules — is in general indeterminate. The abstract specification does not require a reconciliation pass, and Gregory confirms that none is performed: formerly non-adjacent crums whose V-positions become contiguous remain separate. This is consistent with the principle that DELETE preserves arrangement information without re-canonicalising; merging would conflate the boundaries of two independently inserted runs with the boundaries of a single uninterrupted run.
+
+## What is preserved
+
+We turn to the structural commitments that distinguish DELETE from destructive replacement. Each appears as a frame condition in D0; each deserves an explicit statement because each was load-bearing for Nelson's design intent.
+
+### Content store: the Istream is untouched
+
+**D2 — Content immutability under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ]:
+
+`dom(C') = dom(C)  ∧  (A a ∈ dom(C) :: C'(a) = C(a))`
+
+*Justification.* Direct from the frame clause of D0. The operation specification names `M(d)` as its only modified component; `C` is not mentioned in the effect, so the equality `C' = C` is structural. ∎
+
+D2 is a strict equality, not merely the monotonic `dom(C) ⊆ dom(C')` of P0 (which would permit growth). DELETE does not grow `C` — it does not allocate, modify, or remove content. Every I-address that was bound to a value before the operation remains bound to the same value after.
+
+The architectural significance is precisely the contrast with destructive replacement. In a system where editing a document overwrites the bytes that were there, the bytes are *gone* — recoverable only from external logs. In Xanadu, the bytes are not gone. They are still in `dom(C)`, addressable by their original I-address. What has changed is only the arrangement that references them. Several downstream guarantees flow from D2:
+
+- **The deleted content remains addressable.** Any I-address `a` that appeared in `ran(M(d))` before DELETE remains in `dom(C')`. A consumer that holds `a` — a link's endset, an external record, another document's arrangement — can still retrieve `C'(a) = C(a)`.
+
+- **Prior versions of `d` can be reconstructed.** Reconstructing the pre-DELETE arrangement requires only `M(d)` (which the system retains as a prior version, when versioning is in effect) and `C` (which is unchanged). The bytes needed for reconstruction are all still present.
+
+- **No I-address space is reclaimed.** The architectural commitment to permanent addresses, expressed by `dom(C) ⊆ dom(C')` in P0, is strengthened by D2 to `dom(C) = dom(C')` for DELETE specifically. Reclamation would require a separate operation; DELETE itself does not provide one, and the design intent is that no such operation exists.
+
+The cardinality consequence is that `|dom(C)|` is non-decreasing across all DELETE transitions. Combined with the cardinality non-decrease across allocation (K.α), the content store is monotonically non-decreasing across the entire transition vocabulary. The implication for resource accounting is intentional: storage is consumed at allocation and is never freed by deletion.
+
+### Link store: the link graph is untouched
+
+**D3 — Link store immutability under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ]:
+
+`dom(L') = dom(L)  ∧  (A ℓ ∈ dom(L) :: L'(ℓ) = L(ℓ))`
+
+*Justification.* Direct from the frame clause of D0. The operation specification names `M(d)` as its only modified component. ∎
+
+D3 is the structural basis for what Nelson called *link survivability*. The architectural fact that supports it is the form of an endset: a set of well-formed spans, each given by a *start I-address* and an *ordinal length*. The endset has no V-stream coordinates anywhere in its structure. A link does not say "from position 47 of document A to position 92 of document B"; it says "from I-address range `[a, a ⊕ ℓ)` to I-address range `[b, b ⊕ m)`". When `M(d)` changes, the link is unaware.
+
+We can be sharper about what D3 entails. Consider a link `ℓ ∈ dom(L)` and a slot `i`. The coverage `coverage(L(ℓ).eᵢ)` is the set of I-addresses that the slot references — defined by the spans in the endset, evaluated via the span semantics of ASN-0053. Coverage is a function of the endset alone; it depends on no part of state except `L(ℓ).eᵢ` itself. Under D3, `L'(ℓ).eᵢ = L(ℓ).eᵢ`, so `coverage(L'(ℓ).eᵢ) = coverage(L(ℓ).eᵢ)`. Whatever I-addresses the link referenced before DELETE, it references after.
+
+What changes is *discoverability* — the property of being projectable into a document's current arrangement. The projection
+
+`project(L(ℓ).eᵢ, d, Σ) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(L(ℓ).eᵢ)}`
+
+depends on `M(d)`. After DELETE, the projection can lose elements: V-positions in `X` (the deleted span) that referenced I-addresses in the coverage are removed from `dom(M'(d))`, and so removed from the projection. V-positions in `R` are renamed by `σ_d` and reappear in the projection at their new V-positions. V-positions in `L` are unchanged.
+
+The link itself is intact. Its discoverability from `d` may shrink. Its discoverability from other documents `d' ≠ d` is unchanged (by the frame condition on other arrangements; see D5). And — crucially — its discoverability can be *restored* by a subsequent operation that reintroduces a V-position mapping to an I-address in the coverage. The link is not erased; it is, at worst, temporarily without a witnessing arrangement entry.
+
+This pattern of "structural persistence with conditional visibility" is the architectural pattern that DELETE establishes. It is the same pattern by which content survives deletion: the bytes persist in `C`, even if no `M(d)(v)` currently references them. The link case is the natural extension of the content case to the second store.
+
+### Document identity: the document is not destroyed
+
+**D4 — Document identity persistence under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ]:
+
+`d ∈ dom(M')  ∧  dom(M') = dom(M)`
+
+*Justification.* The frame clause of D0 states `dom(M') = dom(M)`. Since `d ∈ dom(M)` by the precondition of DEL, `d ∈ dom(M')` follows. ∎
+
+D4 is the abstract analogue of Nelson's *evolving braid*. The document `d` is not a snapshot but a trajectory through arrangement-space; DELETE modifies the current point of the trajectory without altering which trajectory it is. The document's tumbler address `d` — which serves both as its identifier and as the prefix of every address allocated under it — is unchanged.
+
+The contrast is with a distinct operation that would create a new document by forking: such an operation appears in the foundations as the depth-1 child case of K.δ, producing `d' = inc(d, 1)` with `d' ≠ d`. DELETE does no such thing. The post-state arrangement `M'(d)` is bound to the same `d` as the pre-state arrangement `M(d)`. References to `d` — by name, by external citation, by another document's transclusion — remain valid and point to the same trajectory, now at a different state.
+
+A subtle consequence: D4 binds `d`'s allocator chains as well. The substrate associates `d` with content sub-allocator `A_C(d)` and link sub-allocator `A_L(d)`; these chains are functions of `d`, not of `d`'s arrangement state. After DELETE, the next address emitted by `A_C(d)` is still determined by the prior maximum of `{a' ∈ dom(C) : origin(a') = d}`, which is unchanged by DELETE (because `dom(C)` is unchanged by D2). The deletion of arrangement entries does not free up positions in the allocator chain. New content allocated to `d` after DELETE continues to receive fresh, monotonically advancing I-addresses.
+
+### Cross-document isolation
+
+**D5 — Cross-document arrangement isolation under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ]:
+
+`(A d' ∈ dom(M) : d' ≠ d :: M'(d') = M(d'))`
+
+*Justification.* Direct from the frame clause of D0. ∎
+
+D5 is the deepest of the structural commitments because it is the one that makes transclusion safe. If two documents `d` and `d'` reference the same I-address `a` — either because `d'` was forked from `d`, or because their arrangements were independently populated to share content — then they hold V-positions whose images coincide. The pre-DELETE condition
+
+`(E v ∈ dom(M(d)) :: M(d)(v) = a)  ∧  (E v' ∈ dom(M(d')) :: M(d')(v') = a)`
+
+may transition under DEL[d, σ] to a post-state where the first conjunct fails (if `a` was removed from the projection of `M(d)` over the deleted span). The second conjunct is unaffected. From `d'`'s view, `a` is still present: still in `ran(M'(d'))` (because `M'(d') = M(d')` by D5), still in `dom(C')` (by D2). The content remains visible in `d'` as it was before.
+
+This is the property that distinguishes Xanadu transclusion from copy-and-paste. In copy-and-paste, the shared bytes are duplicated; each copy lives independently, and deletion from one is structurally independent of the other only because they were never linked. In Xanadu transclusion, the I-addresses *are* shared; deletion from one document's arrangement is structurally independent of the other only because of D5.
+
+Without D5, a deletion in `d` would have to either:
+- propagate to every document that shares the deleted content (violating the autonomy of `d'`'s owner), or
+- prevent the deletion (because some other document depends on the content), or
+- somehow allow the deletion to be "local" while leaving global effects.
+
+D5 chooses the third option, and the structural separation between Istream (shared, immutable) and Vstream (per-document, mutable) is what makes it coherent. `d` modifies its own Vstream; `d'`'s Vstream is unaffected; the shared Istream is unchanged. Each document gets a different "view" of the same persistent content; deletion changes the view, not the content.
+
+### Subspace isolation within a document
+
+**D6 — Subspace isolation under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ] with `S = subspace(s)`:
+
+`(A S' ∈ {s_C, s_L} : S' ≠ S :: V_{S'}(M'(d)) = V_{S'}(d)  ∧  (A v ∈ V_{S'}(d) :: M'(d)(v) = M(d)(v)))`
+
+*Justification.* The effect clauses of D0 state that the post-state agrees with the pre-state on every V-position in subspaces other than `S`. ∎
+
+D6 is the within-document analogue of D5. A document carries (in the working framework) two parallel sequences of V-positions — one in the content subspace, one in the link subspace. The two subspaces share the document `d` but are otherwise independent: their V-positions live at disjoint addresses (different first components), their depths can differ, their contents address disjoint stores. DELETE in one subspace must not perturb the other.
+
+The implementation evidence reinforces this from an unexpected angle. Gregory's `tumblersub` uses an exponent-guarded subtraction: when the width's exponent is finer than a crum's V-displacement exponent, the subtraction is a no-op. Because text and link addresses sit at different exponents in the tree representation, the exponent guard *coincidentally* protects the unrelated subspace from being shifted by a deletion in the other. This is a happy accident at the implementation level — the abstract specification requires subspace isolation as a frame condition, but the tree implementation happens to deliver it through ordinary arithmetic rather than through a special-case check.
+
+The opposite direction of isolation (deletion in the link subspace not perturbing the content subspace) is also required by D6 but is delivered by a different implementation mechanism in Gregory's code: positional ordering puts text addresses entirely below link addresses, so a link-subspace deletion's classification routine simply classifies every text crum as "before the deletion" and skips it. Two unrelated mechanisms — arithmetic short-circuit and positional ordering — converge on the same abstract guarantee. The abstract specification does not care which mechanism is used; it requires only the guarantee itself.
+
+### Attribution survival
+
+**D7 — Attribution survival under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ] and every I-address `a` that appeared in `ran(M(d))` before the operation:
+
+`a ∈ dom(C')  ∧  origin(a) at Σ' = origin(a) at Σ`
+
+*Justification.* The pre-condition `a ∈ ran(M(d))` together with S3★ at the pre-state gives `a ∈ dom(C) ∪ dom(L)`. By D2 and D3, both stores are unchanged: `dom(C') = dom(C)` and `dom(L') = dom(L)`. So `a` remains in `dom(C') ∪ dom(L')`. The origin function `origin(a)` is a structural projection of `a` (specifically, the document-level prefix of `a`'s tumbler under T4-parsing), and depends only on `a`'s components, not on any state component. So `origin(a)` is unchanged across the transition. ∎
+
+D7 is what Nelson called the structural anchor of attribution. Attribution is not a metadata field that DELETE could accidentally strip; it is encoded *in the address itself*. The I-address `a = [d_0, 0, s_C, k]` has `d_0` as the document-level prefix, identifying the document `d_0` that allocated `a`. No operation can change `d_0` without changing `a`, and no operation removes `a`. So no operation can sever the connection between `a` and `d_0`.
+
+D7's significance is that authorship survives in a form that cannot be tampered with by editing operations. A document that transcluded a paragraph from another author still references the original author's I-addresses after the transcluding document deletes the paragraph from its arrangement. The author's name is implicit in every I-address that ever bore the paragraph's bytes, and DELETE does not touch those I-addresses. A reader who later reconstructs the deletion's history can trace the deleted I-addresses to their allocating document and identify the original author by structural means alone — no external registry, no metadata table, no signature scheme.
+
+We should be careful what D7 does *not* claim. It does not claim that the deleted content's *attribution* is visible in the post-DELETE arrangement — manifestly, the V-positions are gone. What survives is the attribution *of the underlying I-addresses*, which remain in `dom(C')`. Any process that holds (or can rediscover) those I-addresses can read off attribution. The mechanisms by which a post-DELETE reader might rediscover them (historical backtrack, version comparison, transclusion in other documents) are downstream features that depend on additional state components beyond what DELETE itself maintains.
+
+### Well-formedness preservation
+
+**D8 — Arrangement well-formedness preservation under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ], the post-state arrangement `M'(d)` satisfies:
+
+- *Functionality (S2):* `M'(d)` is a well-defined partial function.
+- *Finite domain (S8-fin):* `|dom(M'(d))| < ∞`.
+- *Well-formed V-positions (S8a):* `(A v ∈ dom(M'(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`.
+- *Per-subspace common depth (S8-depth):* within each subspace, all V-positions share a common depth.
+- *Referential integrity (S3★):* `(A v ∈ dom(M'(d)) :: (subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C')) ∧ (subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L')))`.
+- *Per-subspace contiguity, minimum, sequentiality (D-CTG★, D-MIN★, D-SEQ★):* `V_S(M'(d)) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}` for the affected subspace; unchanged for the other.
+
+*Justification.* By D1, `V_S(M'(d))` has the stated form, so D-CTG★, D-MIN★, D-SEQ★ hold. By D6, the other subspace is unchanged. S8-depth at the post-state holds because all positions in `V_S(M'(d))` have depth `m_S` (positions in `L` are unchanged from `V_S(d)`, positions in `Q` are shifts at the same depth by OrdShiftHom). S8a holds at each post-state position: positions in `L` satisfy S8a directly; positions in `Q` are `[S, 1, ..., 1, k − n]` with `1 ≤ k − n ≤ n_S − n`, satisfying `zeros = 0`, `#v = m_S ≥ 2`, all components positive. S8-fin holds because `|dom(M'(d))| ≤ |dom(M(d))|`. S2 holds by the construction of `M'(d)`: the disjoint sources `L`, `Q`, and `V_{S'}(d)` for `S' ≠ S` each provide a single value for each position, and they cover disjoint subsets of the post-state domain. S3★ holds by inheritance: the post-state mappings agree with pre-state values, which were in `dom(C) = dom(C')` or `dom(L) = dom(L')` by the pre-state S3★. ∎
+
+The well-formedness preservation is what closes the loop: DELETE is not just a local edit; it is a transition between two states each of which satisfies the global invariants. A reader of the post-state sees a coherent document, indistinguishable from one whose V-positions had been allocated in their post-DELETE form from the start. The pre-state knowledge of which positions were deleted — and where the gap was — is not present in `M'(d)` at all. It can be recovered, if at all, only from external state (a versioning system, a comparison with an earlier `M(d)`).
+
+## Link discoverability: the projection picture
+
+The conjunction of D2, D3, D5, and D6 establishes that DELETE is, from the link store's viewpoint, an arrangement-only operation: link values are unchanged, coverage is unchanged, only the projection into the affected document's affected subspace is altered. We can characterise the alteration precisely. Let `ℓ ∈ dom(L)` and let `Σ → Σ'` be a DEL[d, σ] transition with `σ = (s, ℓ_σ)`, removing span `(s, ℓ_σ)` from subspace `S` of `d`. For each slot `i` of `ℓ`:
+
+- *Projection into `d`'s shifted subspace.* The post-state projection in subspace `S` of `d` is composed of two contributions: the unshifted contribution from `L` (positions before the deleted region whose mapped I-address is in the coverage) and the shifted contribution from `R` (positions after the deleted region, renamed by `σ_d`). The positions in `X` (within the deleted region) that referenced coverage I-addresses are removed from the projection.
+
+- *Projection into `d`'s other subspace.* Unchanged, by D6.
+
+- *Projection into any other document `d'`.* Unchanged, by D5.
+
+We extract this as an abstract characterisation:
+
+**D9 — Link projection under DELETE.** For every link `ℓ ∈ dom(L)`, every slot `i`, every DEL[d, σ] transition `Σ → Σ'`, and every document `d''`:
+
+- If `d'' ≠ d`: `project(L'(ℓ).eᵢ, d'', Σ') = project(L(ℓ).eᵢ, d'', Σ)`.
+- If `d'' = d`, restricted to subspace `S' ≠ S`: `project(L'(ℓ).eᵢ, d, Σ') ∩ V_{S'}(M'(d)) = project(L(ℓ).eᵢ, d, Σ) ∩ V_{S'}(d)`.
+- If `d'' = d`, restricted to subspace `S`: the projection equals `(project(L(ℓ).eᵢ, d, Σ) ∩ L) ∪ {σ_d(v) : v ∈ project(L(ℓ).eᵢ, d, Σ) ∩ R}`.
+
+*Justification.* For `d'' ≠ d`: `M'(d'') = M(d'')` by D5, so `dom(M'(d'')) = dom(M(d''))` and the projection's defining set is unchanged. For `d'' = d` in subspace `S' ≠ S`: M'(d) agrees with M(d) on V_{S'}(d) by D6, with the same domain and values. For `d'' = d` in subspace `S`: the post-state V-positions in subspace `S` partition as `L ⊎ Q`, with `Q = σ_d(R)`. The projection contains a position `v ∈ L` iff `M'(d)(v) = M(d)(v) ∈ coverage(L'(ℓ).eᵢ) = coverage(L(ℓ).eᵢ)` (the latter equality by D3). The projection contains a position `σ_d(v)` for `v ∈ R` iff `M'(d)(σ_d(v)) = M(d)(v) ∈ coverage(L(ℓ).eᵢ)`. ∎
+
+D9 makes precise what *can* and *cannot* happen to a link's discoverability under DELETE. Discoverability from any document other than `d` is invariant. Discoverability from `d`'s other subspace is invariant. Discoverability from `d`'s affected subspace can shrink (when V-positions in the deleted span referenced the link's coverage) or rename (when V-positions in the shifted region referenced the link's coverage). The latter is invisible from outside — the projection has the same cardinality, just relocated.
+
+The cardinality can shrink to zero. A link whose coverage was referenced only by V-positions in the deleted span becomes — temporarily — not discoverable from `d`. This is the "orphan" or "ghost" condition discussed in the link projection foundations. The orphan condition is reversible: a subsequent operation that adds a V-position in `d` mapping to an I-address in the link's coverage restores discoverability. The link itself is never lost.
+
+## A note on recoverability and historical reconstruction
+
+Nelson's design intent goes beyond "DELETE doesn't destroy" to a stronger claim: that any prior arrangement of `d` — including the deleted V-span's positional layout — should remain reconstructible. The relevant evidence:
+
+> "The file management system we are talking about automatically keeps track of the changes and the pieces, so that when you ask for a given part of a given version at a given time, it comes to your screen." [LM 2/15]
+
+This claim concerns the *system as a whole*, not the DELETE operation in isolation. DELETE alone does not provide the prior state — it produces a transition from `Σ` to `Σ'`, and the post-state `Σ'` does not, by itself, contain `M(d)` as it was at `Σ`. What DELETE does is not *destroy* the information needed for reconstruction. The information is held in two places:
+
+- **Content.** Every I-address that was in `ran(M(d))` is in `dom(C')` (by D2). The bytes needed to reproduce the deleted content are present.
+- **Prior arrangements.** The pre-state arrangement `M(d)` is whatever the system of *versions* retains. A version is, in the working framework, a separately addressed document — `inc(d, 1)`, in the K.δ vocabulary — whose arrangement is set up to match `d`'s arrangement at a particular point in time. If a version was created before DELETE, its arrangement `M(d_v)` retains the pre-DELETE layout, including the V→I mappings that DELETE removed from `M(d)`. By D5, DELETE on `d` leaves `M(d_v)` untouched.
+
+The combination of D2 and D5 thus makes recoverability *possible*, conditional on the system having taken a version (or being able to derive one) before the DELETE. The pre-DELETE arrangement of `d` is exactly `M(d_v)` for any version `d_v` taken at the pre-DELETE state — and that arrangement is preserved across the DELETE on `d`. The bytes referenced by that arrangement are still in `dom(C')`. Reconstruction follows.
+
+DELETE is *necessary* for this picture: without the architectural commitment that DELETE only removes V-positions (rather than C entries or L entries or other documents' arrangements), the prior arrangement would not be reconstructible from any combination of post-state components. The system's recoverability property depends on DELETE's preservation properties.
+
+DELETE is *not sufficient*: without versions, the pre-state of `d` itself is not preserved. The post-state has only `M'(d)`, which is the post-DELETE arrangement. Recovering `M(d)` from `M'(d)` alone is not possible — DELETE is information-destroying with respect to the current arrangement of `d`.
+
+The conclusion is that DELETE supplies the *substrate* for recoverability — non-destruction of content, isolation across documents — without supplying the *mechanism* (which is versioning). This division of labour is structural. The DELETE operation is simpler than recoverable-DELETE would have to be; the versioning mechanism is independent of the DELETE operation; both contribute to the system-level guarantee.
+
+## Boundaries the abstract specification does not cross
+
+Three patterns of implementation behaviour observed in the udanax-green system represent failures or limitations relative to the abstract specification. We name them to make clear that the abstract specification does not adopt them as features:
+
+- **Stale auxiliary indices.** In the studied implementation, a global index of "documents containing I-address" is updated when content is placed into a document's arrangement, but not when it is removed by DELETE. The result is that `find_documents_containing(a)` may return documents whose arrangements no longer contain `a` after a deletion. The abstract specification does not include this index; D2 + D5 supply the underlying truth (`a ∈ dom(C')` and `M'(d') = M(d')` for unaffected documents), from which a correct index can be derived. Implementations may, but are not required to, maintain such an index.
+
+- **Permanent tree height.** The studied implementation grows its tree representation as the arrangement grows but does not shrink the representation when arrangement entries are removed. After DELETE empties an arrangement, the tree retains its growth-induced height with no leaf nodes. The abstract specification has no notion of "tree" and so no notion of "tree height"; the post-state arrangement is fully characterised by `M'(d)` as a partial function. Implementations are free to choose any representation that supports the operation's effect and frame.
+
+- **No enumeration of orphaned I-addresses.** The studied implementation provides no operation by which a client can enumerate I-addresses currently absent from every arrangement. The abstract specification is silent on this — D2 establishes that orphaned I-addresses persist in `dom(C')`, but offers no operation to discover them. Implementations may, but are not required to, provide such an enumeration. The abstract operation set treats orphaned I-addresses as a feature (content survives independent of arrangement), not a bug to be papered over by enumeration support.
+
+These observations clarify the scope of the abstract specification. DELETE's preservation guarantees are about state components named in the operation specification. Auxiliary indices, representation choices, and discovery operations are downstream concerns.
+
+## Closing observations
+
+The DELETE operation is small in its effect — a single document's arrangement loses some entries and renumbers others — but large in its commitments. The five preservation claims (content, links, document identity, other documents, other subspaces) and the two derived claims (attribution, well-formedness) jointly establish that DELETE is *not* the operation it appears to be in conventional systems. It is not destruction; it is not bytewise erasure; it is not a forking event that produces a new document. It is the modification of one component of one document's state, with everything else held invariant by frame condition.
+
+The breadth of the frame is the design choice. Any one of the preservation claims could have been negotiated away: a system could erase deleted bytes (sacrificing D2 for storage reclamation); a system could break links to deleted addresses (sacrificing D3 for link-graph "cleanliness"); a system could propagate deletions across transclusions (sacrificing D5 for global consistency); a system could give the post-DELETE document a new identity (sacrificing D4 for explicit version branching). None of these would be wrong in the abstract; each represents a different architectural philosophy. The choice to preserve all five jointly is Xanadu's.
+
+The five-fold preservation has a unifying theme. Each of the preserved components carries information that *some other party* — another document, another reader, another moment in time — might depend on. The owner of `d` has the authority to modify `d`'s arrangement; the owner does not have the authority to modify the bytes that other documents transclude, the links that other parties have created, the identity by which external citations name `d`, the unrelated subspace within `d`'s own state, or the arrangement of any other document. DELETE respects this separation of authority by not crossing any of these boundaries.
+
+## Claims Introduced
+
+| Label | Statement | Status |
+|-------|-----------|--------|
+| D0 | Operation DEL[d, σ] specification: preconditions, effect (per-subspace shift `σ_d` with domain `L ∪ Q ∪ V_{S'}`), frame (`C' = C`, `L' = L`, `dom(M') = dom(M)`, `M'(d') = M(d')` for `d' ≠ d`) | introduced |
+| D1 | Gap closure: post-state `V_S(M'(d)) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}`, shift bijection `σ_d` order-preserving from `R` to `Q` | introduced |
+| D2 | Content immutability under DELETE: `dom(C') = dom(C)` and `(A a ∈ dom(C) :: C'(a) = C(a))` | introduced |
+| D3 | Link store immutability under DELETE: `dom(L') = dom(L)` and `(A ℓ ∈ dom(L) :: L'(ℓ) = L(ℓ))` | introduced |
+| D4 | Document identity persistence under DELETE: `d ∈ dom(M')` and `dom(M') = dom(M)` | introduced |
+| D5 | Cross-document arrangement isolation under DELETE: `(A d' ∈ dom(M) : d' ≠ d :: M'(d') = M(d'))` | introduced |
+| D6 | Subspace isolation under DELETE: other subspaces of `d` preserve domain and values across the transition | introduced |
+| D7 | Attribution survival under DELETE: I-addresses in `ran(M(d))` persist in `dom(C')` with unchanged `origin` | introduced |
+| D8 | Arrangement well-formedness preservation: S2, S8-fin, S8a, S8-depth, S3★, D-CTG★, D-MIN★, D-SEQ★ all hold at the post-state | introduced |
+| D9 | Link projection under DELETE: precise characterisation of how `project(L(ℓ).eᵢ, d'', Σ')` relates to `project(L(ℓ).eᵢ, d'', Σ)` per document and subspace | introduced |
+
+## Open Questions
+
+- What additional preservation guarantees, beyond D2 and D5, must the broader transition vocabulary supply so that any pre-DELETE arrangement of a document remains reconstructible from the post-DELETE state plus a versioning mechanism?
+
+- Under what abstract conditions does DELETE followed by an insertion at the same V-position recover the pre-DELETE arrangement exactly, rather than merely producing an arrangement with the same domain?
+
+- What invariant must hold across an empty-arrangement state to ensure that subsequent insertion operations behave identically to insertion into a never-populated arrangement, given that DELETE can reduce a document's V-positions in a subspace to the empty set?
+
+- When DELETE removes a span whose contents include I-addresses referenced by no link and by no other document's arrangement, what abstract obligation (if any) does the system have to make those I-addresses rediscoverable?
+
+- What guarantee must the operation provide regarding *causal ordering* between DELETE on one document and DELETE on another transcluding document, given that D5 makes the two operations structurally independent but downstream observers may need to relate them?
+
+- Under what condition on the post-DELETE arrangement does a subsequent operation observe a state indistinguishable from a state reached without the DELETE — that is, when is DELETE *fully reversible* relative to a given observer's view, even though it is information-destroying relative to the document's history?
