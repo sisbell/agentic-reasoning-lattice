@@ -1,17 +1,18 @@
-# Revision Categorization — ASN-0059 review-5
+# Channel Assignment — ASN-0100 review-5
 
-**Date:** 2026-03-20 22:54
+**Date:** 2026-05-27 13:44
 
+## Issue 1: FirstEmissionFreshness citation is too narrow for arbitrary k
+Reason: The fuller chain machinery (ChainEnumerationInjectivity, ChainMembershipForOrigin, SubAllocatorAxiom.Disjointness, K.α freshness against Σ_k, P0 monotonicity) is already laid out in §Effect One of this same ASN. The fix is to swap in citations the ASN itself already establishes.
 
+## Issue 2: L14 citation in Effect One reverses cause and effect
+Reason: The proper discharge (SubAllocatorAxiom.Subspace + L0 + SC-NEQ) is in the same paragraph; the fix is a reframing of the lead-in citation. No external evidence or intent question is involved.
 
-## Issue 1: I10 B2 verification — within-group disjointness omitted
-Category: INTERNAL
-Reason: The fix requires adding two sentences deriving within-group disjointness from B2 (already established in ASN-0058) and I7 (established in this ASN). All needed properties are present in the document.
+## Issue 3: S8★ preservation not explicitly verified
+Reason: S8★ follows from M2 (DecompositionExistence; ASN-0058) on the per-state preconditions already verified in this ASN (S8-fin, S2, S3, S8a, S8-depth, S7b, S7c) plus TA5(c) (ASN-0034) for the Insertion region's I-adjacent run. The review supplies the proof sketch; all cited dependencies are pre-existing.
 
-## Issue 2: TA-strict cited for ordinal increment
-Category: INTERNAL
-Reason: The fix is a citation correction — replacing TA-strict with TA5(a), both defined in ASN-0034. The correct property is already available; only the reference needs updating.
+## Issue 4: shift(p, 0) convention not declared at first use
+Reason: The convention is already used silently throughout the ASN and is consistent with OrdinalShiftBase (ASN-0058) per the review's own assessment. The fix is a notational declaration or a piecewise rewrite — purely an authorial choice.
 
-## Issue 3: VContiguity quantifies over invalid and unbounded intermediate positions
-Category: INTERNAL
-Reason: The fix is adding a clarifying note about the definition's scope at depth ≥ 3, which follows from the interaction of lexicographic ordering (T1, ASN-0034) with S8-fin. No external design intent or implementation evidence is needed — the mathematical observation is self-contained.
+## Issue 5: Empty-case K.α emission framing implicit about prior chain state
+Reason: The semantic separation of dom(C) from dom(M(d)) is fixed by P0 (ContentPermanence; ASN-0047, already cited) and the substrate's two-stream architecture documented in §Background. K.α's two-branch emission predicate is in ASN-0093 (already cited). The fix is a clarifying sentence distinguishing the two conditions.
