@@ -1,11 +1,12 @@
-# Revision Categorization — ASN-0059 review-4
+# Channel Assignment — ASN-0100 review-4
 
-**Date:** 2026-03-20 22:30
+**Date:** 2026-05-27 13:22
 
-## Issue 1: Composite transition step (ii) is not well-defined when the shift is vacuous
-Category: INTERNAL
-Reason: The fix is purely structural — making step (ii) conditional and verifying coupling constraints for the reduced composite. All needed definitions (K.μ~, J0, J1, J1') are in ASN-0047, and the postcondition (I1–I5) is already correct for the vacuous case.
+## Issue 1: I3-C citation does not match INSERT's content frame
+Reason: Citation/internal consistency issue — INS.C and S0/P0 already establish the correct (weaker) content frame within the ASN. The fix is to remove or rephrase the I3-C citation; no external channel input is needed.
 
-## Issue 2: Elementary preconditions at intermediate states not verified
-Category: INTERNAL
-Reason: The missing derivations use only properties already present in the ASN: I0(ii) with TA-strict for K.α freshness at intermediate states, and the shift displacement for K.μ⁺ domain availability. The review itself sketches the one-line arguments needed.
+## Issue 2: Imprecise citations for shift last-component arithmetic in S2 disjointness proof
+Reason: Pure citation precision fix — the correct lemmas (TumblerAdd in ASN-0034, OrdAddHom (a) in ASN-0036) are already established and cited elsewhere in the ASN. Replacement is mechanical and derivable from the existing formal apparatus.
+
+## Issue 3: Missing explicit Insertion-region carve-out for I3-VD, I3-VP, I3-fin, I3-S7
+Reason: Presentational/structural fix — the Insertion-region verification of S8-depth, S8a, S8-fin, and S7 invariants follows from existing arguments in the ASN (e.g., the empty-case S8a verification, TumblerAdd's result-length identity, OrdAddHom). The fix is to factor these out explicitly and parallel the I3-S2 / I3-S3 carve-out pattern.
