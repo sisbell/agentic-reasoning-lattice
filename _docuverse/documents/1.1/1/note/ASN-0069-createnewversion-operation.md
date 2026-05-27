@@ -179,11 +179,19 @@ Suppose, for contradiction, that a fork transferred `d_src`'s link-subspace V-po
 >
 > *Derivation.* K.δ's effect on the newly created document is `M'(d_new) = ∅`. K.μ⁺ in J4's clause (ii) extends `M'(d_new)` only with positions drawn from `V_{s_C}(d_src)`, all of which have `subspace(v) = s_C` by the definition of `V_{s_C}(d_src) := {v ∈ dom(M(d_src)) : subspace(v) = s_C}` (ASN-0047). No link-subspace V-position is added. K.ρ does not modify arrangements. ∎
 
-V6 has an immediate consequence: links in `d_src` are not present in `d_new`'s arrangement. But this does not mean they are inaccessible from `d_new`. A link's endsets reference I-addresses (`Endset` per ASN-0047), and the I-addresses in `d_new`'s arrangement are *the same I-addresses* as in `d_src`'s arrangement (V4a). Any link discovery operation that takes an I-address and returns the set of links whose endsets reference it will, for I-addresses shared between `d_src` and `d_new`, return the same links from both vantage points. Link discoverability via shared I-addresses survives the fork.
+V6 has an immediate consequence: links in `d_src` are not present in `d_new`'s arrangement. But this does not mean they are inaccessible from `d_new`. A link's endsets reference I-addresses (`Endset` per ASN-0047), and the I-addresses in `d_new`'s arrangement are *the same I-addresses* as in `d_src`'s arrangement at every inherited V-position (V4a). ASN-0098 (Link Projection Displacement) formalises link discoverability across state changes via `coverage(e)` (the address set induced by an endset's spans), `project(e, d, Σ)` (the V-positions of document `d` whose images at `Σ` lie in `coverage(e)`), and `discoverable_from(a, d, Σ)` (the existence of such a witness for any slot of `a`); we cite its lemmas directly here rather than redevelop the framework. The post-fork state inherits both the link store and the source's projections, and the fork's content-subspace V-positions project under any endset whose coverage hits the shared range.
 
 We record this consequence as a structural lemma:
 
-> **V6a** (*link discoverability inheritance*): For any I-address `a ∈ ran(M'(d_new))`, the set of links `ℓ ∈ dom(L)` whose endsets reference `a` is the same set of links discoverable from `a` via `d_src`'s arrangement. The link store `L` is unchanged by the fork (its frame condition under K.δ + K.μ⁺ + K.ρ is `L' = L`), so the link-discovery relation grounded in I-address identity is preserved.
+> **V6a** (*link discoverability inheritance*): For every link `a ∈ dom(Σ.L)`, after the fork composite `Σ →* Σ'`:
+>
+> (i) `Σ'.L(a) = Σ.L(a)` — the link's endsets persist across the composite, by LP13 (UnconditionalLinkPersistence, ASN-0098) applied to the reachable sequence `Σ →* Σ'`. In particular, `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` for every slot `i`.
+>
+> (ii) `project(a, i, d_src, Σ') = project(a, i, d_src, Σ)` for every slot `i` — the source's projection is unchanged, by LP4 (ArrangementSpecificity, ASN-0098) applied across each elementary step of the fork composite, with `M'(d_src) = M(d_src)` supplied by V5 at every intermediate state.
+>
+> (iii) `project(a, i, d_src, Σ) ∩ V_{s_C}(d_src) ⊆ project(a, i, d_new, Σ')` for every slot `i` — the fork inherits the source's content-subspace projection witnesses. For every `v ∈ project(a, i, d_src, Σ) ∩ V_{s_C}(d_src)`, V4 and V4b give `v ∈ dom(M'(d_new))` and `M'(d_new)(v) = M(d_src)(v) ∈ coverage(Σ.L(a).eᵢ) = coverage(Σ'.L(a).eᵢ)` (the final equality by (i)), so `v ∈ project(a, i, d_new, Σ')`.
+>
+> The link store is unchanged, the source's discoverability is preserved, and the fork inherits the source's content-subspace projection witnesses.
 
 The implementation observation is that Gregory's `docreatenewversion` excludes the link subspace through a structural V-space layout — text starts at `1.x` and links at `2.x`, with the kluged `retrievedocumentpartofvspanpm` extracting only the text-subspace V-span. We note this is one of several ways to achieve V6: an alternative implementation could check `subspace(v) = s_C` explicitly per position, or could compute the V-span of the content subspace by a different mechanism entirely. The abstract claim — V6 — is what every conforming implementation must satisfy.
 
@@ -449,7 +457,7 @@ The composite is a valid composite under ValidComposite★. ∎
 
 We have built the source-fork relationship entirely from I-address equality. We pause to record what this gives us and what it does not.
 
-What I-address identity captures: structural correspondence (V8), shared content discoverability (V9), link survivability via shared addresses (V6a), automatic attribution (origin invariance through V4a and S7), transitive identity through fork chains (V11). All of these arise from the single design commitment that I-addresses are permanent and unique.
+What I-address identity captures: structural correspondence (V8), shared content discoverability (V9), link discoverability via shared addresses (V6a, grounded in LP4, LP13, and LP16 of ASN-0098), automatic attribution (origin invariance through V4a and S7 of ASN-0036), transitive identity through fork chains (V11). All of these arise from the single design commitment that I-addresses are permanent and unique.
 
 What I-address identity does not capture: counterpart correspondence (independently typed but textually identical content has different I-addresses), derivation lineage at the I-address level (an I-address does not record which forking event placed it where), semantic equivalence (two distinct I-addresses with equal byte values are not the same content). These would require additional structure — explicitly asserted counterpart links, an explicit derivation graph, or value-based comparison machinery — none of which is part of the abstract specification of the fork operation itself.
 
@@ -491,7 +499,7 @@ The link subspace of `d_new` is empty: `V_{s_L}(d_new) = ∅`. The link `ℓ` re
 
 *Correspondence (V8).* At each `v ∈ {[s_C, 1], [s_C, 2], [s_C, 3]}`, `M'(d_src)(v) = M'(d_new)(v)`. The CompareVersions operation on `(d_src, d_new)` over the full content subspace would return a single maximal run `([s_C, 1], [s_C, 1], 3)` — three pointwise-corresponding positions.
 
-*Link discoverability (V6a).* Querying "which links reference `a₁`?" returns `ℓ` (which has `a₁` in some endset, hypothetically), and this answer is the same whether we ask from `d_src`'s vantage or `d_new`'s vantage, because `L' = L` and `a₁` is the same I-address in both arrangements.
+*Link discoverability (V6a).* By LP13 (UnconditionalLinkPersistence, ASN-0098), `Σ'.L(ℓ) = Σ.L(ℓ)` across the fork composite, so `ℓ`'s endset structure persists. Querying "which links reference `a₁`?" returns `ℓ` (assuming `a₁ ∈ coverage(Σ.L(ℓ).eᵢ)` for some slot `i`, hypothetically), and this answer is the same whether we ask from `d_src`'s vantage or `d_new`'s vantage: by LP16 (TransclusionDiscoverability, ASN-0098) applied at `Σ'` with `a₁ ∈ coverage(Σ'.L(ℓ).eᵢ) ∩ ran(M'(d_src)) ∩ ran(M'(d_new))`, both `discoverable_from(ℓ, d_src, Σ')` and `discoverable_from(ℓ, d_new, Σ')` hold.
 
 *Subsequent edits.* Suppose `d_src`'s owner later deletes `[s_C, 3]` from `d_src`'s arrangement via a K.μ⁻ contraction with `n'_{s_C} = 2` — retaining the suffix-prefix `{[s_C, 1], [s_C, 2]}`, as required by K.μ⁻'s per-subspace retention semantics (ASN-0047) and D-CTG★. A middle-only deletion such as removing `[s_C, 2]` while keeping `[s_C, 3]` is not expressible as a K.μ⁻ at all. By V5a, `M(d_new)` is unaffected — `a₃` remains in `d_new`'s arrangement. By V12(c), `(a₃, d_new) ∈ R` persists; by V12(b), `a₃ ∈ dom(C)` persists. Symmetrically, if `d_new`'s owner deletes from `d_new`'s arrangement, `d_src` is unaffected.
 
@@ -520,7 +528,7 @@ V10(a) holds concretely: `d_new = inc(d_src, 1)` differs from `d_new² = inc(d_n
 | V5 | `M'(d_src) = M(d_src)` — source arrangement isolated from fork | introduced |
 | V5a | Subsequent arrangement modifications to either side do not propagate to the other — bidirectional independence | introduced |
 | V6 | `V_{s_L}(d_new) = ∅` in the post-fork state — link subspace not inherited (forced by CL-OWN) | introduced |
-| V6a | Link discoverability via shared I-addresses survives the fork (`L' = L`) | introduced |
+| V6a | Link spans persist (LP13, ASN-0098), source projection invariant (LP4, ASN-0098), fork inherits source's content-subspace projection witnesses | introduced |
 | V7 | Empty-source behavior: fork of `d_src` with `V_{s_C}(d_src) = ∅` reduces to K.δ alone, succeeding with `M'(d_new) = ∅` and `R' = R` | introduced |
 | V8 | `(A v ∈ V_{s_C}(d_src) :: M'(d_src)(v) = M'(d_new)(v))` — structural correspondence at fork-time | introduced |
 | V8a | Correspondence persists under content-store growth | introduced |
@@ -533,6 +541,12 @@ V10(a) holds concretely: `d_new = inc(d_src, 1)` differs from `d_new² = inc(d_n
 | V11 | Transitive identity along unedited fork chains: for every fork chain `d_src → d¹_new → ... → d^k_new` where each step's source has its content-subspace arrangement (set and pointwise values) unchanged between the prior step's post-state and the current step's pre-state, `M^k(d^k_new)(v) = M(d_src)(v)` for every `v ∈ V_{s_C}(d_src)` | introduced |
 | V11a | Prefix relation chains: `d_src ≼ d¹_new ≼ ... ≼ d^k_new` — ancestry composition recoverable from tumbler structure | introduced |
 | V12 | Joint permanence of source, fork, inherited I-addresses, and provenance records across all subsequent states | introduced |
+
+## Dependency Audit
+
+This ASN's body consumes claims from four foundation ASNs. ASN-0034 (Tumbler Algebra) supplies T0, T1, T8, TA5, TA5(b), TA5(c), TA5(d), TA5-SigValid, T10a, T10a.4, T10a.6, T10a.7, Prefix, and ASN-0034's NAT-order transitivity. ASN-0036 (Strand Model) supplies S2, S7, S8a, S8-fin, S8-depth, and the V-position / I-address vocabulary. ASN-0047 (Transition Model) supplies K.δ (cases (ii) at `k = 0` and `k = 1`), K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ, K.α, K.λ, J0, J1★, J1'★, J4, P0, P1, P2, P4★, S3★, D-CTG★, D-MIN★, D-SEQ★, CL-OWN, KDeltaZerosK01, KDeltaParentK01, SubAllocatorAxiom, SequentialTransitionAxiom, SubspaceConventionAxiom, ValidComposite★, the Allocator hierarchy, P8 (EntityHierarchy), and the `Σ = (C, L, E, M, R)` substrate. ASN-0098 (Link Projection Displacement) supplies LP4 (ArrangementSpecificity), LP13 (UnconditionalLinkPersistence), and LP16 (TransclusionDiscoverability) — invoked by V6a and by the worked example to discharge link-discoverability inheritance via cite-and-defer rather than independent redevelopment of `coverage`, `project`, and `discoverable_from`.
+
+ASN-0040 (Tumbler Baptism), declared in the inquiry's `depends:` set, has no use site in this ASN's body. The baptism vocabulary (`Σ.B`, `next`, `hwm`, `baptize`, B0–B10) does not appear: the fork operation works entirely in ASN-0047's K.δ + Allocator hierarchy + SubAllocatorAxiom + SequentialTransitionAxiom vocabulary for entity allocation and frontier advancement, with ASN-0034's T10a (allocator discipline), T10a.6 (DomainDisjointness), T10a.7 (EnumerationInjectivity), and T10a.4 (T4PreservationUnderDiscipline) supplying the underlying tumbler-arithmetic guarantees. ASN-0040 is flagged for removal from this inquiry's `depends:` set.
 
 ## Open Questions
 
