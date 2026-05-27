@@ -157,7 +157,32 @@ ComprehensionInvariantUnderΣL — meta-lemma:
    the two states. Set extensionality closes the equality.
 ```
 
-F8 is the instance for F1's existential; F15 is the instance for the filtered universal; F11, F17, F19, F19-filt each invoke the same chain against the substitution `Σ' = post-state of a transition preserving Σ.L`.
+We also factor out the per-link primitive that grounds the chain above. Several downstream claims (F11, F19-filt) reason from a per-link hypothesis — LP13's `Σ'.L(a) = Σ.L(a)` at a specific `a ∈ dom(Σ.L)` — without full `Σ.L = Σ'.L` (since `dom(Σ'.L)` may have grown via K.λ along the reachable sequence). The per-link substep stands on its own:
+
+```
+PerLinkInvarianceUnderValuePreservation — sub-lemma:
+   For any link a with a ∈ dom(Σ.L) ∩ dom(Σ'.L) and
+   Σ'.L(a) = Σ.L(a):
+   - matches(a, I, Σ) ⟺ matches(a, I, Σ') for every I ⊆ T.
+   - For every slot constraint (i, J), the per-link filter conjunct
+       i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅
+     evaluates identically at Σ and Σ'.
+   - Consequently, for every constraint set C, the filtered per-link
+     universal `(A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧
+     coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)` evaluates identically at Σ and Σ'.
+
+   Proof: Σ'.L(a) = Σ.L(a) gives, by L6's component-wise tuple
+   equality on Link values, |Σ'.L(a)| = |Σ.L(a)| and per-slot endset
+   equality Σ'.L(a).eᵢ = Σ.L(a).eᵢ for every i ∈ {1, …, |Σ.L(a)|}.
+   Coverage is a deterministic function of its endset argument, so
+   per-slot coverage agrees. F1's existential and the filtered
+   per-link conjunct each consult only |Σ.L(a)| and per-slot
+   coverage, so both evaluate identically at the two states.
+```
+
+ComprehensionInvariantUnderΣL is the comprehension-level composition of PerLinkInvarianceUnderValuePreservation: full `Σ.L = Σ'.L` contributes domain equality (closing the comprehension over a shared index set) and licenses PerLinkInvarianceUnderValuePreservation at every `a` in that shared domain.
+
+F8 is the comprehension-level instance for F1's existential; F15 is the comprehension-level instance for the filtered universal; F17 and F19 invoke ComprehensionInvariantUnderΣL against the substitution `Σ' = post-state of a transition preserving Σ.L`. F11 and F19-filt instead invoke the per-link primitive, since their hypotheses supply only per-link value preservation rather than full `Σ.L = Σ'.L`.
 
 ## Arrangement Independence
 
@@ -374,7 +399,7 @@ F11 (PersistentDiscoverability):
    matches(a, I, Σ):  a ∈ dom(Σ'.L) ∧ matches(a, I, Σ').
 ```
 
-LP13 (UnconditionalLinkPersistence, ASN-0098) supplies the multi-step per-link guarantee `a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`. ComprehensionInvariantUnderΣL's chain then gives per-slot coverage equality at `Σ` and `Σ'`, so the F1 existential evaluates identically — the witness slot found at Σ remains a witness at Σ'.
+LP13 (UnconditionalLinkPersistence, ASN-0098) supplies the multi-step per-link guarantee `a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`. PerLinkInvarianceUnderValuePreservation applied at this `a` then gives `matches(a, I, Σ) ⟺ matches(a, I, Σ')` — the witness slot found at Σ remains a witness at Σ'. (The comprehension-level meta-lemma ComprehensionInvariantUnderΣL is not available here, since K.λ steps in the reachable sequence `Σ →* Σ'` may grow `dom(L)`; per-link reasoning is the appropriate tool.)
 
 A link is permanently discoverable for any query I-set overlapping any of its endset coverages. Editing the documents around it, contracting the V-positions arranging its referenced content, transcluding the content into new documents — none alter the link's match status against a fixed I-set.
 
@@ -390,7 +415,7 @@ F19-filt: findlinks_filtered(C, Σ) ⊆ findlinks_filtered(C, Σ').
 F19-sco:  findlinks_scoped(I, S, Σ) ⊆ findlinks_scoped(I, S, Σ').
 ```
 
-F19-filt follows from LP13 + ComprehensionInvariantUnderΣL applied to the filtered universal: each per-constraint conjunct continues to hold at `Σ'` since `Σ'.L(a) = Σ.L(a)` for every `a` already in `dom(Σ.L)`. F19-sco follows from F19 + intersection-preservation with the query-supplied `S`.
+F19-filt follows from LP13 + PerLinkInvarianceUnderValuePreservation applied per link: for every `a ∈ findlinks_filtered(C, Σ)`, LP13 gives `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)`, and PerLinkInvarianceUnderValuePreservation transports the filtered per-link universal unchanged to `Σ'`, so `a ∈ findlinks_filtered(C, Σ')`. (The comprehension-level meta-lemma is not available across the reachable sequence, since K.λ may grow `dom(L)`.) F19-sco follows from F19 + intersection-preservation with the query-supplied `S`.
 
 F19 (and its filtered/scoped variants) is the load-bearing consequence behind any indexed implementation's promise: an index that mirrors `findlinks` is never required to remove entries as the state evolves, only to add them.
 
@@ -479,6 +504,7 @@ Both are *convergent* with A1b's conclusion but not constitutive; the methodolog
 | `findlinks_filtered(C, Σ)` | Filtered form with slot constraints | definition |
 | `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | definition |
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
+| PerLinkInvarianceUnderValuePreservation | Per-link primitive: match and filtered per-link universal evaluate identically when `Σ'.L(a) = Σ.L(a)` at a specific `a` | introduced (sub-lemma) |
 | ChainIndexEqualsAllocationOrder | Within a home document, T1 rank = chain index = K.λ event count | introduced (sub-lemma) |
 | A1a | PublishedFramePreservation: {K.σ, K.α, K.δ, K.μ~, K.μ⁺_L} preserve `Σ.L` from published frames | introduced (structural lemma) |
 | A1b | ClosedWorldPreservation: {K.μ⁺, K.μ⁻, K.ρ} preserve `Σ.L` under closed-world reading of substrate effect-clause convention; convention-grounded | introduced (convention-grounded lemma) |
