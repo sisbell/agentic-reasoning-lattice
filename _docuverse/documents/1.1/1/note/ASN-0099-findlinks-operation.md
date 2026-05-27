@@ -85,7 +85,17 @@ F4 (MatchFormulaUniqueness):
    F1, incomplete — conforming result set.
 ```
 
-The derivation is immediate from F1 under existential introduction: any singleton overlap at any slot satisfies F1's predicate, so any predicate that fails to recognize at least one such overlap excludes a link that F1 includes. The reader's promise rests on this singleton-overlap reading, as argued above for the "Why intersection" choice: a link is about every byte its endset names (L13, ASN-0043), and one shared byte is one shared byte. F4 records that this minimality is not optional: alternative match formulas are alternative operations, not alternative implementations of FINDLINKS. Conforming implementations are bound to F1 as the unique match predicate against which F2 ∧ F3 are evaluated.
+The derivation is immediate from F1 under existential introduction: any singleton overlap at any slot satisfies F1's predicate, so any predicate that fails to recognize at least one such overlap excludes a link that F1 includes. We discharge each enumerated strengthening with a concrete `(eᵢ, I)` witness pair that F1 admits but the strengthening rejects. Each witness exists in the abstract because F1's coverage space is `𝒫(T)` — by L4 (ASN-0043), endset spans may reference any addresses in T, and the query I-set `I ⊆ T` is unconstrained — so the witness shapes below can be exhibited at any state with at least one link satisfying the structural premise (a non-singleton coverage at some slot, or a singleton coverage at some slot, as each case requires).
+
+*Containment from coverage to query (`coverage(Σ.L(a).eᵢ) ⊆ I`).* Witness: a slot `i` at link `a` with `coverage(Σ.L(a).eᵢ) = {α, β}` (any two distinct addresses) and `I = {α}`. Then `coverage(Σ.L(a).eᵢ) ∩ I = {α} ≠ ∅`, so F1 includes `a`; but `coverage(Σ.L(a).eᵢ) ⊄ I` because `β ∉ I`, so the strengthening excludes `a`. F1's matching pair is excluded by the strengthening.
+
+*Containment from query to coverage (`I ⊆ coverage(Σ.L(a).eᵢ)`).* Witness: a slot `i` at link `a` with `coverage(Σ.L(a).eᵢ) = {α}` (singleton coverage) and `I = {α, γ}` for any `γ ∉ coverage(Σ.L(a).eᵢ)`. Then `coverage(Σ.L(a).eᵢ) ∩ I = {α} ≠ ∅`, so F1 includes `a`; but `I ⊄ coverage(Σ.L(a).eᵢ)` because `γ` is not covered, so the strengthening excludes `a`.
+
+*Cardinality threshold (`|coverage(Σ.L(a).eᵢ) ∩ I| ≥ k` for any fixed `k > 1`).* Witness: any slot `i` and `I` arranged so that `coverage(Σ.L(a).eᵢ) ∩ I = {α}` (singleton intersection — produced, for instance, by either of the two witness shapes above). Then F1 includes `a`; but `|{α}| = 1 < k`, so the strengthening excludes `a`. The argument is parametric in `k > 1`: a singleton intersection witnesses F1's existential and lies below every threshold strictly greater than one.
+
+*Any other refinement.* The general clause is the contrapositive of F1's structural minimality: if a candidate predicate `P` fails on any `(eᵢ, I)` pair whose intersection is a singleton, then `P` excludes some link that F1 includes, since F1's predicate is satisfied by exactly that singleton-witness instance. The three enumerated cases are particular shapes of this general phenomenon — each names a specific way to fail on a singleton-witness pair — and any further refinement is governed by the same witness pattern.
+
+The reader's promise rests on this singleton-overlap reading, as argued above for the "Why intersection" choice: a link is about every byte its endset names (L13, ASN-0043), and one shared byte is one shared byte. F4 records that this minimality is not optional: alternative match formulas are alternative operations, not alternative implementations of FINDLINKS. Conforming implementations are bound to F1 as the unique match predicate against which F2 ∧ F3 are evaluated.
 
 **Empty endsets at non-type slots.** L3 (ASN-0043) requires only the type-endset (slot 3) to be non-empty; any other slot may carry the empty endset. An empty endset has `coverage(∅) = ∅` (the empty union), so the intersection `coverage(Σ.L(a).eᵢ) ∩ I = ∅` for every `I` whenever `Σ.L(a).eᵢ = ∅`. The slot-existential `(E i : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` is therefore never witnessed by an empty slot — but other non-empty slots of the same link may still witness it. The match predicate accommodates empty endsets mechanically: a link with `Σ.L(a).e₁ = ∅` and a non-empty `Σ.L(a).e₂` whose coverage meets `I` still matches `I`, via slot 2. The filtered form behaves differently: a filter constraint `(i, J)` is satisfied at slot `i` iff `i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅`, and when `Σ.L(a).eᵢ = ∅` the right conjunct is false for every `J`, so any constraint naming slot `i` is unsatisfiable at that link. A filtered query that explicitly nominates an empty slot therefore excludes the link from its result, even when other slots' coverages would have admitted it under the unfiltered match.
 
@@ -149,9 +159,40 @@ F3 (Soundness):
    Equivalently: result(I, Σ) ⊆ findlinks(I, Σ).
 ```
 
-Together F2 and F3 force `result(I, Σ) = findlinks(I, Σ)` — there is exactly one conforming output set. For the filtered form, the same obligation holds against `findlinks_filtered(C, Σ)`: completeness requires every link satisfying every constraint in `C` to appear in the filtered output, and soundness requires no spurious link.
+Together F2 and F3 force `result(I, Σ) = findlinks(I, Σ)` — there is exactly one conforming output set. The same conformance obligation transfers to the filtered and scoped forms, and we state both formally so the claims table pins each abstract operation to a named implementation contract. We let `result_filtered(C, Σ)` and `result_scoped(I, S, Σ)` denote an implementation's actual outputs for the filtered and scoped operations.
 
-F2 and F3 are not tautologies of the abstract definition `findlinks` — they are constraints on the separate symbol `result`. At the level of `findlinks` alone the corresponding inclusions are trivial (a comprehension contains exactly those source elements satisfying its predicate, and only those); the abstract specification is one set. F2 and F3 acquire force precisely as the conformance requirements that an implementation's actual output must coincide with this set.
+```
+F2-filt (FilteredCompleteness):
+   For every a ∈ dom(Σ.L):
+       (A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)
+         ⟹ a ∈ result_filtered(C, Σ).
+   Equivalently: findlinks_filtered(C, Σ) ⊆ result_filtered(C, Σ).
+```
+
+```
+F3-filt (FilteredSoundness):
+   For every a ∈ result_filtered(C, Σ):
+       a ∈ dom(Σ.L) ∧ (A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅).
+   Equivalently: result_filtered(C, Σ) ⊆ findlinks_filtered(C, Σ).
+```
+
+```
+F2-sco (ScopedCompleteness):
+   For every a ∈ dom(Σ.L) ∩ S:
+       matches(a, I, Σ) ⟹ a ∈ result_scoped(I, S, Σ).
+   Equivalently: findlinks_scoped(I, S, Σ) ⊆ result_scoped(I, S, Σ).
+```
+
+```
+F3-sco (ScopedSoundness):
+   For every a ∈ result_scoped(I, S, Σ):
+       a ∈ dom(Σ.L) ∩ S ∧ matches(a, I, Σ).
+   Equivalently: result_scoped(I, S, Σ) ⊆ findlinks_scoped(I, S, Σ).
+```
+
+F2-filt ∧ F3-filt forces `result_filtered(C, Σ) = findlinks_filtered(C, Σ)`; F2-sco ∧ F3-sco forces `result_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ)`. The four claims share the same conformance structure as F2 ∧ F3 — each pair pins the implementation's actual output to the abstract specification of the corresponding operation. Completeness for the filtered form requires every link satisfying *every* constraint in `C` to appear in the filtered output, and soundness rejects any spurious link. Completeness for the scoped form is restated *within the scope*: every link in `S ∩ dom(Σ.L)` satisfying the match predicate must appear, while soundness rejects links that fail the match or fall outside `S`.
+
+F2 and F3 (and their variants F2-filt, F3-filt, F2-sco, F3-sco) are not tautologies of the abstract definitions — they are constraints on the separate symbols `result`, `result_filtered`, and `result_scoped`. At the level of the abstract operations alone the corresponding inclusions are trivial (a comprehension contains exactly those source elements satisfying its predicate, and only those); each abstract specification is one set. The named conformance claims acquire force precisely as the requirements that the implementations' actual outputs must coincide with their respective abstract sets.
 
 Completeness must hold *unconditionally* with respect to the population of `dom(Σ.L)`. The number of non-matching links is irrelevant — performance is an implementation property, completeness is a correctness property. The operation cannot terminate early after collecting "enough" links, cannot omit links by random sampling, cannot drop links because they are stored on a remote server that is slow to answer, and cannot exclude links because their endsets are large. If the link is in the store and the match holds, the link is in the result. Soundness's force is dual: a conforming implementation cannot return links that fail the match — no false positives from a stale index, no extras from an over-approximating filter — and so the implementation's index, if any, must remain in lockstep with the link store rather than offering a superset.
 
@@ -178,40 +219,39 @@ Operation effects/frames in this specification family are stated by ASN-0093 and
 
 ```
 A1 (EffectClauseExhaustivity):
-   Vocabulary scope (scope of the contract): The operation vocabulary V
-   of the substrate is whatever set of operations is currently published
-   across ASN-0047 and ASN-0093. At the time this ASN was written, that
-   set is V = {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ}; this
-   enumeration is illustrative, not constraining. A1 binds the current
-   vocabulary whatever it may be — the listed set is not frozen against
-   substrate evolution. No operation outside the current V exists in the
-   substrate.
+   Vocabulary scope (scope of the contract): A1's scope is exactly the
+   operation vocabulary V published in ASN-0047 and ASN-0093 at the
+   time this ASN was written — V = {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻,
+   K.μ~, K.μ⁺_L, K.ρ}. The enumeration is binding: A1 is a discharge
+   premise this ASN consumes against the substrate as currently
+   published, not a forward obligation on substrate evolution. Future
+   revisions of ASN-0047 or ASN-0093 that extend, replace, or remove
+   operations are outside A1's reach, and downstream ASNs that consume
+   F9 or F9-cor against an evolved vocabulary must restate the
+   discharge premise against the then-current operation set.
 
-   Contract (obligation on every operation specification in V): The
-   operation's stated effect clause must name every state-component
-   modification the operation makes. Equivalently: any state component
-   not appearing in either the effect clause or the frame clause is
-   required to be unchanged across the transition. An operation
-   specification whose published effect clause omits a modification it
-   actually performs is non-conforming.
+   Contract (obligation on every operation specification in the
+   enumerated V): The operation's stated effect clause must name every
+   state-component modification the operation makes. Equivalently: any
+   state component not appearing in either the effect clause or the
+   frame clause is required to be unchanged across the transition. An
+   operation specification whose published effect clause omits a
+   modification it actually performs is non-conforming.
 
-   Propagation (binding force across revisions): The exhaustivity
-   obligation applies to every operation in the substrate's current
-   vocabulary at every state of substrate evolution. If V is extended by
-   future revision — a new operation added, an existing operation
-   replaced — every operation in the revised V inherits the same
-   exhaustivity obligation. The propagation clause overrides any
-   reading of the vocabulary-scope clause that would freeze A1's reach
-   to the operations enumerated above.
+   Transience: A1 is a transient assumption pending the ASN-0047
+   revision proposed in the Open Questions — adding `L' = L` to K.μ⁺'s,
+   K.μ⁻'s, and K.ρ's published frames. Once that revision lands, A1
+   reverts to a recorded contract with no active deductive role in this
+   ASN, and the load-bearing premise for F9's K.μ⁺/K.μ⁻ cases and
+   F9-cor's K.ρ case is discharged from each operation's own published
+   frame.
 ```
 
-A1 is not a passive observation about current text — it is an explicit interface contract that every operation specification in V must satisfy, and that this ASN treats as part of the published interface against which it specifies FINDLINKS. Three consequences follow.
+A1 is not a passive observation about current text — it is an explicit interface contract that every operation specification in the enumerated V must satisfy, and that this ASN treats as part of the published interface against which it specifies FINDLINKS. Two consequences follow.
 
 *First, A1 is the obligation discharged differently by ASN-0093 and ASN-0047.* ASN-0093's K.σ honours the contract directly by listing `L' = L` in its frame; the K.σ specification is conforming on the contract's own terms with no further argument required. ASN-0047's K.μ⁺, K.μ⁻, and K.ρ leave `L` unmentioned in their published frames; under A1 this silence is constrained to mean *no modification*, and any implementation of these operations that modifies `L` violates the contract and is non-conforming. The contract is therefore the bridge across which this ASN's derivations transport the unmentioned `L' = L` conjunct from ASN-0047's frames into F9's `Σ.L = Σ'.L` hypothesis.
 
-*Second, A1's propagation clause makes the contract binding on future revisions.* If the substrate vocabulary is later extended — a new operation `K.foo` added to V — that operation's specification must publish its `L`-behaviour (and the behaviour of every other state component) explicitly to satisfy A1. The contract does not weaken or expand with vocabulary growth; new operations inherit the same exhaustivity obligation, and the propagation clause is explicit that this binding overrides any reading of the vocabulary-scope clause that would freeze A1's reach to the operations currently enumerated. Likewise, if any existing operation in V is revised to modify a previously-unmentioned component, the revision is non-conforming until the published effect clause is updated.
-
-*Third, A1's load-bearing role is bounded and can be discharged by ASN-0047 revision.* A1 is load-bearing in this ASN for exactly three operations of V: K.μ⁺, K.μ⁻, and K.ρ. F9's derivation invokes A1 at the K.μ⁺ and K.μ⁻ cases; the K.ρ case enters via the unified corollary to F9 (below) and is reused for K.ρ in any composite that records provenance. Query 4 of the Worked Example exercises K.μ⁻. The natural path to eliminate A1 from this ASN's derivations is the ASN-0047 revision proposed in the Open Questions: adding `L' = L` to K.μ⁺'s, K.μ⁻'s, and K.ρ's published frames discharges F9's hypothesis from each operation's own text rather than through A1, after which A1 reverts to a recorded contract with no active deductive role. Until that revision lands, A1 stands as the contract this ASN consumes from ASN-0047 (and ASN-0093), and downstream ASNs that consume F9 inherit the same contract.
+*Second, A1's load-bearing role is bounded and can be discharged by ASN-0047 revision.* A1 is load-bearing in this ASN for exactly three operations of V: K.μ⁺, K.μ⁻, and K.ρ. F9's derivation invokes A1 at the K.μ⁺ and K.μ⁻ cases; the K.ρ case enters via the unified corollary to F9 (below) and is reused for K.ρ in any composite that records provenance. Query 4 of the Worked Example exercises K.μ⁻. The natural path to eliminate A1 from this ASN's derivations is the ASN-0047 revision proposed in the Open Questions: adding `L' = L` to K.μ⁺'s, K.μ⁻'s, and K.ρ's published frames discharges F9's hypothesis from each operation's own text rather than through A1, after which A1 reverts to a recorded contract with no active deductive role. Until that revision lands, A1 stands as the contract this ASN consumes from ASN-0047 (and ASN-0093) — scoped strictly to the published vocabulary at the time of writing, with no claim on the substrate's future revisions.
 
 We now state the specialisation:
 
@@ -435,7 +475,23 @@ F19 (ResultSetMonotonicity):
 
 The derivation is a one-line lift of F11 to the comprehension level. By the definition of `findlinks`, `a ∈ findlinks(I, Σ)` iff `a ∈ dom(Σ.L) ∧ matches(a, I, Σ)`. F11 gives `a ∈ dom(Σ'.L) ∧ matches(a, I, Σ')` for every such `a` across any reachable sequence `Σ →* Σ'`, which is `a ∈ findlinks(I, Σ')` by the same definition. Set extensionality closes the inclusion.
 
-F19 is the load-bearing consequence behind any indexed implementation's promise: an index that mirrors `findlinks` is *never required to remove entries* as the state evolves, only to add them. The discovery operation is monotone non-decreasing in the link store at the set level, so indexes can be append-only just like the link store itself.
+Monotonicity propagates to the filtered and scoped forms with the same force. We state both explicitly so that the operationally common forms are not relegated to silent corollary status (matching the explicit treatment of F15–F18 for determinism and survivability):
+
+```
+F19-filt (FilteredMonotonicity):
+   For any reachable state sequence Σ →* Σ' and any finite set of slot constraints C:
+       findlinks_filtered(C, Σ) ⊆ findlinks_filtered(C, Σ').
+```
+
+```
+F19-sco (ScopedMonotonicity):
+   For any reachable state sequence Σ →* Σ', any I ⊆ T, and any S ⊆ T:
+       findlinks_scoped(I, S, Σ) ⊆ findlinks_scoped(I, S, Σ').
+```
+
+F19-filt tracks F11 directly: for any `a ∈ findlinks_filtered(C, Σ)`, every constraint `(i, J) ∈ C` is satisfied at `a` in `Σ` — `i ≤ |Σ.L(a)|` and `coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅`. LP13 (UnconditionalLinkPersistence, ASN-0098) gives `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)` across any reachable sequence, so `|Σ'.L(a)| = |Σ.L(a)|` and per-slot coverages are identical at the two states; every per-constraint conjunct continues to hold at `Σ'`, and `a ∈ findlinks_filtered(C, Σ')`. F19-sco follows from F19 by intersection-preservation: `findlinks(I, Σ) ⊆ findlinks(I, Σ')` (F19) implies `findlinks(I, Σ) ∩ S ⊆ findlinks(I, Σ') ∩ S` for the query-supplied `S`, which by F14 is `findlinks_scoped(I, S, Σ) ⊆ findlinks_scoped(I, S, Σ')`.
+
+F19 (together with F19-filt and F19-sco) is the load-bearing consequence behind any indexed implementation's promise: an index that mirrors `findlinks` — or its filtered or scoped variant — is *never required to remove entries* as the state evolves, only to add them. The discovery operation is monotone non-decreasing in the link store at the set level across all three abstract forms, so indexes can be append-only just like the link store itself.
 
 ## A Worked Example
 
@@ -543,10 +599,14 @@ The reverse claim is equally true. None of these design choices could have been 
 | `findlinks_V(R, d, Σ)` | Two-phase composite: `findlinks(image(R, d, Σ), Σ)` | introduced |
 | `findlinks_filtered(C, Σ)` | Filtered form with slot constraints `C` | introduced |
 | `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | introduced |
-| A1 | EffectClauseExhaustivity (interface contract on every operation specification in V): the effect clause must name every modified state component, so silence in the frame is binding preservation; scope fixed by the vocabulary-closure premise | introduced |
+| A1 | EffectClauseExhaustivity (transient interface contract on every operation specification in the enumerated V at the time of writing): the effect clause must name every modified state component, so silence in the frame is binding preservation; scope strictly bounded to the published vocabulary, no forward obligation on substrate evolution | introduced |
 | F1 | Match predicate as set-theoretic overlap, existential over slots | introduced |
 | F2 | Completeness: every matching link in `dom(Σ.L)` appears in the result | introduced |
 | F3 | Soundness: every link in the result is in `dom(Σ.L)` and matches | introduced |
+| F2-filt | Filtered completeness: every link satisfying every constraint in `C` appears in `result_filtered(C, Σ)` | introduced |
+| F3-filt | Filtered soundness: every link in `result_filtered(C, Σ)` is in `dom(Σ.L)` and satisfies every constraint in `C` | introduced |
+| F2-sco | Scoped completeness: every link in `dom(Σ.L) ∩ S` matching `I` appears in `result_scoped(I, S, Σ)` | introduced |
+| F3-sco | Scoped soundness: every link in `result_scoped(I, S, Σ)` is in `dom(Σ.L) ∩ S` and matches `I` | introduced |
 | F4 | MatchFormulaUniqueness: F1's slot-existential / singleton-overlap form is the unique match predicate; no strengthening is a refinement of F1 | introduced |
 | F5 | Identity, not value: the match consults coverage, not content values | introduced |
 | F6 | Transclusion transparency: same I-address, same matches regardless of V-path | introduced |
@@ -564,6 +624,8 @@ The reverse claim is equally true. None of these design choices could have been 
 | F17 | Filtered survivability: K.μ-family transitions preserve `findlinks_filtered(C, ·)` | introduced |
 | F18 | Scoped survivability: K.μ-family transitions preserve `findlinks_scoped(I, S, ·)` | introduced |
 | F19 | Result-set monotonicity: `findlinks(I, Σ) ⊆ findlinks(I, Σ')` for every reachable sequence `Σ →* Σ'` | introduced |
+| F19-filt | Filtered monotonicity: `findlinks_filtered(C, Σ) ⊆ findlinks_filtered(C, Σ')` for every reachable sequence | introduced |
+| F19-sco | Scoped monotonicity: `findlinks_scoped(I, S, Σ) ⊆ findlinks_scoped(I, S, Σ')` for every reachable sequence | introduced |
 | F20 | Image set-additive: `image(R₁ ∪ R₂, d, Σ) = image(R₁, d, Σ) ∪ image(R₂, d, Σ)` | introduced |
 
 ## Open Questions
