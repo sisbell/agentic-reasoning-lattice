@@ -123,14 +123,18 @@ We state INSERT as a composite `Σ →* Σ'`.
 
 Each intermediate state in this sequence satisfies the per-state invariants (Class (a) of ASN-0047); the composite-boundary properties (Class (b): P4★, P4a, P7a) are discharged at the boundary `Σ →* Σ'` by the constraints J0, J1★, J1'★.
 
-**Preconditions** (evaluated against the operation's pre-state Σ):
+**State Preconditions** (evaluated against the operation's pre-state Σ):
 - `d ∈ dom(M)` (so K.α, K.μ⁺, K.ρ all have their `d ∈ E_doc` precondition met; K.μ⁻ when fired further requires `dom(M(d)) ≠ ∅`, satisfied in cases that invoke it)
 - `subspace(p) = s_C`
 - `#p = m_C` (the common depth of `V_{s_C}(d)` if non-empty per S8-depth, ASN-0036; the caller's chosen depth `m ≥ 2` if empty)
 - `p` is a valid insertion position: either `ValidInsertionPosition(d, p)` (ASN-0036) for non-empty `V_{s_C}(d)` — equivalently `p ∈ {shift(min(V_{s_C}(d)), j) : 0 ≤ j ≤ |V_{s_C}(d)|}` reading `shift(t, 0) = t` per OrdinalShiftBase (ASN-0058) — or `ValidFirstInsertionPosition(d, p, m)` (ASN-0036) for empty `V_{s_C}(d)`, equivalently `p = [s_C, 1, …, 1]` of depth `m`
 - `n ≥ 1`
 - `v_k ∈ Val` for each `0 ≤ k < n`
-- **Composite atomicity assumption.** No elementary transition of any other composite interleaves between INSERT's elementaries — equivalently, the sequence `Σ →* Σ'` is a contiguous run of INSERT's own elementaries in the global transition order. SequentialTransitionAxiom (ASN-0093) supplies elementary-level atomicity (each individual elementary transition is uninterruptible), but composite-level atomicity is a stronger property the substrate environment must provide. Where this assumption fails — concurrent INSERTs on the same document, for example — the chain index `m_d` consulted by K.α can advance mid-composite via another composite's K.α on the same `A_C(d)`, and the freshness arguments above no longer determine `a_k` from the operation's pre-state alone. The post-state in that case is governed by the actually-committed chain emissions, not by the contract specified here.
+
+**Environmental Assumptions** (properties of the substrate execution environment, not of the pre-state):
+- **Composite atomicity.** No elementary transition of any other composite interleaves between INSERT's elementaries — equivalently, the sequence `Σ →* Σ'` is a contiguous run of INSERT's own elementaries in the global transition order. SequentialTransitionAxiom (ASN-0093) supplies elementary-level atomicity (each individual elementary transition is uninterruptible), but composite-level atomicity is a stronger property the substrate environment must provide. Where this assumption fails — concurrent INSERTs on the same document, for example — the chain index `m_d` consulted by K.α can advance mid-composite via another composite's K.α on the same `A_C(d)`, and the freshness arguments above no longer determine `a_k` from the operation's pre-state alone. The post-state in that case is governed by the actually-committed chain emissions, not by the contract specified here.
+
+The distinction matters for backward reasoning: wp-style derivation of INSERT's preconditions applies to state preconditions, which are predicates on Σ. The composite-atomicity environmental assumption is not such a predicate — it constrains the substrate's execution model, not the state — and so it sits outside the wp calculus. An implementation must establish it by construction (single-threaded serialisation, per-document locking, or any other mechanism preventing inter-composite elementary interleaving on the affected document and its allocator chain).
 
 **Effect — Content Store:**
 Let `a_0, a_1, …, a_{n−1}` denote the `n` successive emissions of `A_C(d)` produced by the K.α firings of step 1. Then:
@@ -201,7 +205,7 @@ The post-state Σ' must satisfy every system invariant. We verify the principal 
 
 ### Permanence of existing content (S0, P0)
 
-The content-store effect's third clause asserts `(A a : a ∈ dom(C) : a ∈ dom(C') ∧ C'(a) = C(a))`. This is S0 (ContentImmutability; ASN-0036), strengthened by P0 (ContentPermanence; ASN-0047), verbatim. The first clause `dom(C') = dom(C) ∪ {a_0, …, a_{n−1}}` adds new addresses without removing any; the new addresses are fresh by ChainEnumerationInjectivity and FirstEmissionFreshness (ASN-0093), so no overwrite occurs. Store monotonicity `dom(C) ⊆ dom(C')` follows.
+The content-store effect's third clause asserts `(A a : a ∈ dom(C) : a ∈ dom(C') ∧ C'(a) = C(a))`. This is S0 (ContentImmutability; ASN-0036), equivalently P0 (ContentPermanence; ASN-0047), which subsumes S0 ∧ S1. The first clause `dom(C') = dom(C) ∪ {a_0, …, a_{n−1}}` adds new addresses without removing any; the new addresses are fresh by ChainEnumerationInjectivity and FirstEmissionFreshness (ASN-0093), so no overwrite occurs. Store monotonicity `dom(C) ⊆ dom(C')` follows.
 
 Each per-step K.α firing preserves S0 by its own frame (its effect adds a new binding without modifying existing ones); K.μ⁻, K.μ⁺, K.ρ have frame `C' = C` and so preserve S0 trivially. The composite preserves S0 by composition.
 
@@ -312,9 +316,64 @@ where:
 - *For `d' = d`, link subspace:* the link-subspace contribution is unchanged (frame), so `π` is the identity on link-subspace contributions and `N_{ℓ,i}` contributes none.
 - *For `d' = d`, text subspace:* `π` is the *region-aware shift map* — identity on the Left region (`v < p`) and `shift(·, n)` on the Right region (`v ≥ p`); `N_{ℓ,i} ⊆ {shift(p, k) : 0 ≤ k < n}` is the set of newly placed V-positions in `V_{s_C}(d')` whose image `a_k` happens to lie in `coverage(Σ'.L(ℓ).e_i)`.
 
-The derivation: by INS.M-left every Left pre-state mapping `v → M(d)(v)` re-appears at the same V-position with the same I-address, so `v ∈ project(·, ·, d, Σ) ⟺ v ∈ project(·, ·, d, Σ')` for Left positions. By INS.M-shift every Right pre-state mapping `v → M(d)(v)` re-appears at `shift(v, n) → M(d)(v)`, so `v ∈ project(·, ·, d, Σ) ⟺ shift(v, n) ∈ project(·, ·, d, Σ')` for Right positions. By INS.M-insert the new Insertion V-positions map to fresh `a_k`, which contribute to the projection precisely when `a_k ∈ coverage(Σ'.L(ℓ).e_i)`. The three contributions partition the post-state projection.
+The derivation tracks `project(ℓ, i, d, ·)` through each intermediate state of the substrate decomposition. Let `e_i := Σ.L(ℓ).e_i` denote the slot's endset; LP3★ (MultiStepCoverageInvariance; ASN-0098) gives `coverage(Σ_j.L(ℓ).e_i) = coverage(e_i)` at every intermediate `Σ_j`, so we write `coverage(e_i)` unambiguously throughout.
 
-LP9 (ExtensionMonotonicity; ASN-0098) gives the per-step characterisation of K.μ⁺'s contribution to projection growth; the composite's projection-shift correspondence is the combined Left-fixed + Right-shifted form, accounting also for K.μ⁻'s temporary retraction of the Right region within the composite's interior (which LP10, ContractionMonotonicity; ASN-0098, governs per-step but cancels against K.μ⁺'s re-introduction at the composite boundary).
+Step 0 — pre-state:
+
+  `P_0 := project(ℓ, i, d, Σ) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e_i)}`
+
+Partition `P_0` into:
+- `P_0^L := {v ∈ P_0 : subspace(v) = s_C ∧ v < p}` (Left contributions)
+- `P_0^R := {v ∈ P_0 : subspace(v) = s_C ∧ v ≥ p}` (Right contributions)
+- `P_0^{s_L} := {v ∈ P_0 : subspace(v) = s_L}` (link-subspace contributions)
+
+By S3★-aux (SubspaceExhaustiveness; ASN-0047), `dom(M(d)) ⊆ V_{s_C}(d) ∪ V_{s_L}(d)`, so `P_0 = P_0^L ∪ P_0^R ∪ P_0^{s_L}` is exact.
+
+Step 1 — after each K.α firing:
+
+  `project(ℓ, i, d, Σ_α_k) = project(ℓ, i, d, Σ_α_{k−1}) = … = P_0`
+
+by LP6 (ContentAllocationInvariance; ASN-0098): K.α modifies only C and has frame `(A d :: M'(d) = M(d))`, so the projection is unchanged at every K.α intermediate.
+
+Step 2 — after K.μ⁻ (when fired). K.μ⁻ retains `R_kept := L ∪ V_{s_L}(d)` where `L := {v ∈ V_{s_C}(d) : v < p}`; the Right region is removed from `dom(M(d))`. By LP10 (ContractionMonotonicity; ASN-0098), the projection contracts to its intersection with the kept domain:
+
+  `project(ℓ, i, d, Σ_μ⁻) = P_0 ∩ R_kept = P_0^L ∪ P_0^{s_L}`
+
+— the Right contributions are temporarily removed; Left and link-subspace contributions are preserved.
+
+Step 3 — after K.μ⁺. K.μ⁺ adds two disjoint sets of new V-positions:
+- *Insertion positions* `I := {shift(p, k) : 0 ≤ k < n}`, each mapping `shift(p, k) ↦ a_k`
+- *Shifted-right positions* `S := {shift(v, n) : v ∈ V_{s_C}(d) ∧ v ≥ p}`, each mapping `shift(v, n) ↦ M(d)(v)`
+
+By LP9 (ExtensionMonotonicity; ASN-0098), the projection grows by exactly those new V-positions whose image lies in `coverage(e_i)`:
+
+  `project(ℓ, i, d, Σ_μ⁺) = project(ℓ, i, d, Σ_μ⁻) ∪ N_I ∪ N_S`
+
+where:
+- `N_I := {shift(p, k) : 0 ≤ k < n ∧ a_k ∈ coverage(e_i)}` — Insertion contributions
+- `N_S := {shift(v, n) : v ∈ V_{s_C}(d) ∧ v ≥ p ∧ M(d)(v) ∈ coverage(e_i)} = {shift(v, n) : v ∈ P_0^R}` — Shifted-right contributions
+
+Substituting:
+
+  `project(ℓ, i, d, Σ_μ⁺) = P_0^L ∪ P_0^{s_L} ∪ N_I ∪ {shift(v, n) : v ∈ P_0^R}`
+
+Step 4 — after each K.ρ firing:
+
+  `project(ℓ, i, d, Σ_ρ_k) = project(ℓ, i, d, Σ_μ⁺) = … = project(ℓ, i, d, Σ')`
+
+by LP14 (ProvenanceRecordingInvariance; ASN-0098): K.ρ modifies only R and has frame `(A d :: M'(d) = M(d))`, so the projection is unchanged.
+
+Combining:
+
+  `project(ℓ, i, d, Σ') = P_0^L ∪ {shift(v, n) : v ∈ P_0^R} ∪ P_0^{s_L} ∪ N_I`
+
+Identifying π as the region-aware shift map (identity on Left and link-subspace contributions, `shift(·, n)` on Right contributions) and setting `N_{ℓ,i} := N_I`:
+
+  `π(P_0) := P_0^L ∪ {shift(v, n) : v ∈ P_0^R} ∪ P_0^{s_L}`
+
+  `project(ℓ, i, d, Σ') = π(project(ℓ, i, d, Σ)) ∪ N_{ℓ,i}`
+
+The K.μ⁻ step's "temporary retraction" of `P_0^R` from the intermediate projection is *cancelled* by K.μ⁺'s reintroduction of those V-positions at shifted addresses: the Right contributions disappear at `Σ_μ⁻` (because their V-positions are removed from `dom(M(d))`) and reappear at `Σ_μ⁺` at the V-positions `shift(v, n)` (with the same I-addresses `M(d)(v)`). The cancellation is exact because K.μ⁺ adds *exactly* the shifted V-positions `{shift(v, n) : v ∈ V_{s_C}(d) ∧ v ≥ p}` with the same image mapping, so every Right contribution to the projection is recovered at its shifted V-position.
 
 *Consequence — preservation of pre-state discoverability:*
 
@@ -347,6 +406,15 @@ INSERT does *not* allocate new documents (`dom(M') = dom(M)`), does *not* alloca
 Nelson requires that after INSERT, the system is in "canonical order" — every structural invariant holds simultaneously. INSERT is a substrate composite governed by ValidComposite★ (ASN-0047), and its atomicity is the *composite-boundary* form: per-state invariants (Class (a) of ASN-0047 — S2, S3★, S8-depth, S8a, D-CTG★, D-MIN★, D-SEQ★, L0, L12, L14, …) hold at *every* state including each intermediate within the composite; composite-boundary properties (Class (b) — P4★, P4a, P7a) and the coupling constraints (J0, J1★, J1'★) hold at the boundary between Σ and Σ'.
 
 We verify that each intermediate state in INSERT's substrate decomposition satisfies the per-state invariants.
+
+ASN-0047's ExtendedReachableStateInvariants enumerates ~28 per-state invariants. Many are trivially preserved by frame at every intermediate of INSERT's decomposition because the state components they constrain are never modified. We group these by the state component they range over:
+
+- *Entity-set invariants* — P8 (EntityHierarchy), NodeLineage (NodeDescentFromBootstrap), S4 (OriginBasedIdentity), M0 (DocumentTumblerWellFormed; ASN-0093). The entity set E (equivalently `dom(M)` for documents under ValidComposite★) is unchanged at every intermediate: no K.δ fires, no K.σ fires. Each invariant is a predicate over E (or `dom(M)`) and so holds at every intermediate by inheritance from the pre-state.
+- *Link-store invariants* — L1 (LinkElementLevel), L1a (LinkScopedAllocation), L1b (LinkElementFieldDepth), L1c (LinkAllocatorConformance), L3 (NEndsetStructure), L-fin (LinkStoreFiniteness), L12 (LinkImmutability), CL-OWN (LinkSubspaceOwnership), CL-UNIQ (LinkSubspacePositionUniqueness). The link store L is unchanged at every intermediate: no K.λ fires. CL-OWN and CL-UNIQ constrain link-subspace V-position mappings; the link subspace `V_{s_L}(d)` is preserved by every step (K.α and K.ρ leave M untouched; K.μ⁻ retains `V_{s_L}(d)` with `n'_{s_L} = n_{s_L}`; K.μ⁺ adds only content-subspace positions per the ASN-0047 amendment). The link-subspace mappings are therefore unchanged across the composite, and CL-OWN, CL-UNIQ inherit from the pre-state.
+- *Content-store finiteness* — C-fin (ContentStoreFiniteness). The pre-state has `|dom(C)| < ∞`; each K.α firing adds exactly one address; n is finite. So `|dom(C')| ≤ |dom(C)| + n < ∞` at every intermediate.
+- *Subspace exhaustiveness* — S3★-aux (SubspaceExhaustiveness). At every intermediate, `V_{s_C}(d)` and `V_{s_L}(d)` together cover `dom(M(d))` because the K.μ⁻ and K.μ⁺ steps add and remove only positions with subspace ∈ {s_C, s_L} (the K.μ⁺ amendment restricts new V-positions to `subspace = s_C`; K.μ⁻'s per-subspace retention preserves the same partition). Other documents' arrangements are unchanged. So S3★-aux holds.
+
+These invariants are not re-verified in the per-step analysis below, which focuses on the invariants whose preservation requires non-trivial argument under INSERT's specific composition.
 
 - *After each of the `n` K.α firings of step 1.* `dom(C)` extends by one fresh `a_k` with `origin(a_k) = d`; `M(d)` is unchanged. Per-state invariants on M (S2, S3★, S8a, S8-depth, S8-fin, D-CTG★, D-MIN★, D-SEQ★) hold trivially because M is unchanged. S8a in particular continues to hold of every pre-existing V-position by hypothesis on the pre-state; S8-depth continues to fix the same `m_C` (resp. `m_L`) per subspace because `dom(M(d))` is unchanged. Per-state invariants on C (C-fin, S7a, S7b, S7c) hold because each `a_k` is a well-formed content-subspace address with `zeros(a_k) = 3` and `#E(a_k) ≥ 2`, satisfying the per-address conditions. L14 holds because `a_k ∉ dom(L)` (K.α's freshness precondition). The composite-boundary properties (J0, J1★, P4★) are not yet required to hold at this intermediate — `a_k` is in `dom(C)` but not yet placed, which J0 would forbid at a composite boundary, but the intermediate is interior to the composite.
 
@@ -382,13 +450,23 @@ The post-state Σ' is *uniquely determined* by the operation contract; the subst
 
 Two representative comparisons confirm: a decomposition with `n'_{s_C} = p_m − 1` (the canonical choice) and one with `n'_{s_C} = 0` (full shrinkage) reach different intermediate states (the latter has empty V_{s_C} at the intermediate, the former retains the Left prefix), but both arrive at the same Σ'. K.μ⁻ retention parameters may range over `{0, 1, …, p_m − 1}` for the content subspace, K.μ⁺ may be split across multiple firings, and K.α + K.ρ firings may be reordered to a degree (described below), provided each intermediate satisfies the per-state invariants.
 
-Among the elementary firings, certain reorderings are admissible and others are not:
+Among the elementary firings, the forced orderings are exactly three, and every other pair commutes at the per-state level:
 
-- *K.α firings have a strict order.* By K.α's allocation discipline (ASN-0093), the k-th K.α firing produces the k-th element of the chain `A_C(d)`. ChainEnumerationInjectivity (ASN-0093) establishes that the chain enumeration is strictly increasing under the tumbler order; the first firing must produce the unique first-emission tumbler (`[d.0.s_C.1]` for an empty chain, or `inc(a_prev, 0)` otherwise), the second firing must produce `inc(a_0, 0)`, and so on. There is no freedom to fire K.α producing `a_1` before K.α producing `a_0`, because `a_1 = inc(a_0, 0)` is *defined* in terms of `a_0`'s prior commitment to `dom(C)`.
+- *K.α(a_k) before K.α(a_{k+1}).* By K.α's allocation discipline (ASN-0093), the k-th K.α firing produces the k-th element of the chain `A_C(d)`. ChainEnumerationInjectivity (ASN-0093) establishes that the chain enumeration is strictly increasing under the tumbler order; the first firing must produce the unique first-emission tumbler (`[d.0.s_C.1]` for an empty chain, or `inc(a_prev, 0)` otherwise), the second firing must produce `inc(a_0, 0)`, and so on. There is no freedom to fire K.α producing `a_1` before K.α producing `a_0`, because `a_1 = inc(a_0, 0)` is *defined* in terms of `a_0`'s prior commitment to `dom(C)`.
 
-- *K.ρ firings commute among themselves and may be reordered with respect to K.α.* K.ρ(a_k, d) has precondition `a ∈ dom(C) ∧ d ∈ E_doc`; once `a_k` is in `dom(C)` via the k-th K.α firing, K.ρ(a_k, d) may fire at any subsequent point. Different K.ρ firings have independent effects on R and so commute. A K.ρ(a_k, d) firing may be reordered with respect to a *later* K.α firing (one producing `a_j` with `j > k`), provided the per-firing precondition for K.ρ(a_k, d) — that `a_k ∈ dom(C)` — holds at the time of its firing.
+- *K.α(a_k) before K.μ⁺ placing `a_k`.* K.μ⁺'s precondition requires each new mapping's image to be in `dom(C)`. If K.μ⁺ attempted to add `shift(p, k) ↦ a_k` before the K.α firing that produces `a_k`, the intermediate would have `a_k ∉ dom(C)` and the per-step precondition would fail.
 
-- *K.α and K.ρ do not commute with K.μ⁺ and K.μ⁻.* K.μ⁺'s precondition requires each new mapping's image to be in `dom(C)`, so K.μ⁺ placing `a_k` must follow the K.α producing `a_k`. K.ρ(a_k, d) recording provenance for an arranged `a_k` must follow K.μ⁺ if J1★ is to be discharged at the boundary by historical state.
+- *K.α(a_k) before K.ρ(a_k, d).* K.ρ's precondition requires `a ∈ dom(C)`. K.ρ(a_k, d) firing before K.α(a_k) would find `a_k ∉ dom(C)` and the per-step precondition would fail.
+
+Every other pair commutes at the per-state level:
+
+- *K.μ⁻ commutes with every K.α.* K.μ⁻'s precondition `dom(M(d)) ≠ ∅` depends only on M, not on C; its effect modifies M only. K.α's precondition (freshness against `dom(C) ∪ dom(L)`) and its chain emission discipline depend only on C and L. Neither operation's precondition is sensitive to the other's effect, and both can fire in either order against the same pre-state without violating any per-state invariant.
+
+- *K.ρ commutes with K.μ⁻ and K.μ⁺.* K.ρ's precondition depends only on C and the entity set; its effect modifies only R. K.μ⁻ and K.μ⁺ modify only M and depend (besides M itself) on C only for K.μ⁺'s `a ∈ dom(C)` clause. K.ρ does not consult M; K.μ⁻ and K.μ⁺ do not consult R. J1★ is a composite-boundary coupling, not a per-state invariant — it constrains `R'` at the boundary, but does not require K.ρ(a_k, d) to fire after K.μ⁺ within the composite. As long as both K.α(a_k) and K.ρ(a_k, d) commit somewhere in the composite (in that order), J1★ is satisfied regardless of K.ρ's position relative to K.μ⁺.
+
+- *K.ρ firings commute among themselves.* Different K.ρ firings have independent effects on R (set union is order-independent), and a later K.ρ(a_k, d) firing does not modify the precondition of any other K.ρ.
+
+The canonical decomposition (steps 1–4 above) places K.ρ firings at the end purely for exposition; an alternative decomposition could interleave K.ρ(a_k, d) immediately after K.α(a_k), or fire it after K.μ⁻ but before K.μ⁺, without compromising any invariant or boundary obligation.
 
 This is what Nelson calls "all changes, once made, leave the file remaining in canonical order, which was an internal mandate of the system." Implementations realise the composite via transactional sequencing, locking, copy-on-write, or log-and-commit — but the choice of decomposition is below the level of abstraction at which INSERT is specified. External observers see the composite boundary; the intermediate states are not externally observable.
 
