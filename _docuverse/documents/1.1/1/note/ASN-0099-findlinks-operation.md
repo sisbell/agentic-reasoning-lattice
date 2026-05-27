@@ -77,6 +77,25 @@ F1's slot-existential together with its intersection (rather than containment) f
 ```
 F4 (MatchFormulaMinimality):
    The match predicate of F1 is uniquely fixed by the reader's promise.
+
+   Framing of the uniqueness claim. F4's uniqueness is stated
+   *relative to the reader's promise* — the architectural commitment
+   that "every link touching the queried region must appear". F1 is
+   the unique match predicate compatible with that promise, and F4
+   demonstrates this by showing that any predicate that disagrees
+   with F1 on any reachable F1-admitted pair defines a different
+   operation. The two derivation directions below treat F1 as the
+   fixed reference: strengthenings are read as "fails to admit at
+   least one F1-admitted pair", and weakenings as "admits at least
+   one F1-non-admitted pair". The clauses "violating F3 ... with
+   `matches` read as F1" in the weakening direction below should be
+   understood as fixing F1 at the meta-level — F3, taken with F1 as
+   its embedded match predicate, becomes the test that any alternative
+   `result`-output must pass. F4 therefore does not establish that F1
+   is the only possible match predicate in some absolute sense; it
+   establishes that F1 is the unique predicate that, when wired into
+   F2 and F3, produces conformance with the reader's promise.
+
    We discharge the two directions separately:
 
    (Strengthening direction.) No strengthened condition —
@@ -163,7 +182,7 @@ Both halves follow directly from the quantifier structure of the definitions: th
 
 The operation's defining obligation is *completeness*: every link in `dom(Σ.L)` satisfying the match predicate must appear in an implementation's output. The promise is to the reader, who is told that the link mechanism ties together the corpus and that the system will return all connections to the queried content. A link that exists in the link store and touches the queried I-set, but fails to appear in the result, is a violation of the reader's promise.
 
-The abstract specification `findlinks(I, Σ) = {a ∈ dom(Σ.L) : matches(a, I, Σ)}` is one set — uniquely determined by `(Σ.L, I)`. A conforming implementation must produce *exactly* this set in response to the query. We let `result : 𝒫(T) × 𝒮 → 𝒫(T)` denote a conforming implementation's actual output function, where `𝒮` is the system state space introduced by ASN-0034's AllocatedSet and exercised throughout the substrate; the codomain is the powerset of `T`, matching `findlinks`'s codomain. The signature commits the implementation to *functionality* — `result(I, Σ)` is uniquely determined by `(I, Σ)`, with no non-deterministic dependence on any other variable, and any two evaluations on equal arguments yield equal outputs. We state completeness and soundness as the two halves of the conformance obligation pinning `result` to `findlinks`:
+The abstract specification `findlinks(I, Σ) = {a ∈ dom(Σ.L) : matches(a, I, Σ)}` is one set — uniquely determined by `(Σ.L, I)`. A conforming implementation must produce *exactly* this set in response to the query. We let `result : 𝒫(T) × 𝒮 → 𝒫(T)` denote a conforming implementation's actual output function, where `𝒮` is the Xanadu system state space — states of the form `Σ = (C, L, M, E, R, …)` carrying the substrate's content store, link store, arrangements, entity set, provenance relation, and any further components introduced downstream by ASN-0036, ASN-0043, ASN-0047, and ASN-0093. We use `𝒮` locally for this full-system state space; it is distinct from ASN-0034's AllocatedSet, which scopes its own state space to allocator-tree configurations alone. The codomain is the powerset of `T`, matching `findlinks`'s codomain. The signature commits the implementation to *functionality* — `result(I, Σ)` is uniquely determined by `(I, Σ)`, with no non-deterministic dependence on any other variable, and any two evaluations on equal arguments yield equal outputs. We state completeness and soundness as the two halves of the conformance obligation pinning `result` to `findlinks`:
 
 ```
 F2 (Completeness):
@@ -177,7 +196,7 @@ F3 (Soundness):
    Equivalently: result(I, Σ) ⊆ findlinks(I, Σ).
 ```
 
-Together F2 and F3 force `result(I, Σ) = findlinks(I, Σ)` — there is exactly one conforming output set. The same conformance obligation transfers to the filtered and scoped forms, and we state both formally so the claims table pins each abstract operation to a named implementation contract. We let `result_filtered : 𝒫(ℕ⁺ × 𝒫(T)) × 𝒮 → 𝒫(T)` and `result_scoped : 𝒫(T) × 𝒫(T) × 𝒮 → 𝒫(T)` denote conforming implementations' actual output functions for the filtered and scoped operations — each functional in its arguments by the same hypothesis applied to `result` above.
+Together F2 and F3 force `result(I, Σ) = findlinks(I, Σ)` — there is exactly one conforming output set. The same conformance obligation transfers to the filtered and scoped forms, and we state both formally so the claims table pins each abstract operation to a named implementation contract. We let `result_filtered : 𝒫(ℕ⁺ × 𝒫(T)) × 𝒮 → 𝒫(T)` and `result_scoped : 𝒫(T) × 𝒫(T) × 𝒮 → 𝒫(T)` denote conforming implementations' actual output functions for the filtered and scoped operations — `𝒮` here is the same full-system state space defined above — each functional in its arguments by the same hypothesis applied to `result` above.
 
 ```
 F2-filt (FilteredCompleteness):
@@ -209,6 +228,8 @@ F3-sco (ScopedSoundness):
 ```
 
 F2-filt ∧ F3-filt forces `result_filtered(C, Σ) = findlinks_filtered(C, Σ)`; F2-sco ∧ F3-sco forces `result_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ)`. The four claims share the same conformance structure as F2 ∧ F3 — each pair pins the implementation's actual output to the abstract specification of the corresponding operation. Completeness for the filtered form requires every link satisfying *every* constraint in `C` to appear in the filtered output, and soundness rejects any spurious link. Completeness for the scoped form is restated *within the scope*: every link in `S ∩ dom(Σ.L)` satisfying the match predicate must appear, while soundness rejects links that fail the match or fall outside `S`.
+
+A note on predicate domain. The match predicate `matches(a, I, Σ)` is defined only for `a ∈ dom(Σ.L)` — its definition consults `|Σ.L(a)|` (which requires `a ∈ dom(Σ.L)` so that `Σ.L(a)` is defined) and `Σ.L(a).eᵢ` (likewise). For `a ∉ dom(Σ.L)`, the predicate is undefined; we make no claim about its value, and no claim of this ASN takes such an `a` as an argument. The scope-filter intersection `dom(Σ.L) ∩ S` in F2-sco's universal and in F3-sco's conjunct keeps every quantification within the predicate's domain: F2-sco quantifies only over `a ∈ dom(Σ.L) ∩ S ⊆ dom(Σ.L)`, and F3-sco asserts `a ∈ dom(Σ.L) ∩ S` as part of the soundness conclusion, so the predicate is invoked only on `a ∈ dom(Σ.L)`. The boundary case `a ∈ S ∖ dom(Σ.L)` — addresses in the user-supplied scope that are not link addresses — is operationally excluded from the result by F3-sco's `a ∈ dom(Σ.L) ∩ S` clause, so the predicate is never invoked outside its domain at the implementation surface. This well-definedness convention applies uniformly to F2, F3, F2-filt, F3-filt, F2-sco, and F3-sco; we surface it here at the scoped pair because the scope set `S` is the only place where a user-supplied `S` could in principle drag a non-link address into the quantifier's range.
 
 F2 and F3 (and their variants F2-filt, F3-filt, F2-sco, F3-sco) are not tautologies of the abstract definitions — they are constraints on the separate symbols `result`, `result_filtered`, and `result_scoped`. At the level of the abstract operations alone the corresponding inclusions are trivial (a comprehension contains exactly those source elements satisfying its predicate, and only those); each abstract specification is one set. The named conformance claims acquire force precisely as the requirements that the implementations' actual outputs must coincide with their respective abstract sets.
 
@@ -688,7 +709,7 @@ Across the whole chain `Σ → Σ_1 → Σ_2 → Σ_3 → Σ_4 → Σ_5`, transi
 
 **Verifying F15 (FilteredDeterminism) at Σ vs. Σ''.** The K.μ~ transition of Query 7 preserves `Σ.L` exactly (by K.μ~'s published `L' = L` frame), so `Σ''.L = Σ.L`. F15's hypothesis is satisfied, and F15 predicts `findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ) = findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ'')`. Direct evaluation at Σ'' confirms: at `ℓ`, slot 1 covers `{t : α₂ ≼ t}` (unchanged from Σ by L12) and meets `{α₂}` in `{α₂}`; slot 2 covers `{t : α₃ ≼ t}` and meets `{α₃}` in `{α₃}`; both constraints hold. At `ℓ'`, slot 1's intersection with `{α₂}` is empty, the universal fails. At `ℓ_meta`, slot 1 covers `{t : ℓ ≼ t}` (subspace-disjoint from `{α₂}`); the slot-1 constraint fails. Result: `{ℓ}`, matching Query 5's pre-K.μ~ evaluation. The arrangement permutation did not perturb the filtered answer because the filtered predicate consults only `(Σ.L, C)` and `Σ.L` is invariant under K.μ~.
 
-**Verifying F17 (FilteredSurvivability) across Query 4's K.μ⁻.** Query 4's K.μ⁻ transition Σ → Σ' contracts `d_a` to `{v_a^1 ↦ α₁}`, but by F9-cor (with K.μ⁻ inheriting `Σ.L = Σ'.L` from A1), `Σ'.L = Σ.L`. F17 then predicts `findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ) = findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ')`. Direct evaluation at Σ' confirms: at `ℓ`, slot 1 coverage and slot 2 coverage are both unchanged from Σ (L12), so both constraints continue to hold and `ℓ` is in the filtered result. At `ℓ'`, slot 1 still fails the `{α₂}` test, so `ℓ'` is excluded. At `ℓ_meta`, slot 1's subspace mismatch persists, so the slot-1 constraint still fails. Result: `{ℓ}`, matching Query 5's pre-edit evaluation. The reader's "from `α₂` to `α₃`" query survives the contraction in the I-side answer; the V-side query surface has shrunk (no V-position in `d_a` now maps to `α₂` or `α₃`), but the filtered link-side answer at the fixed `(I_from, I_to)` is invariant.
+**Verifying F17 (FilteredSurvivability) across Query 4's K.μ⁻.** Query 4's K.μ⁻ transition Σ → Σ' contracts `d_a` to `{v_a^1 ↦ α₁}`, but by A1 (LinkStoreInertOfNonAllocatingOperations, invoked at the K.μ⁻ step), `Σ'.L = Σ.L`. F17 then predicts `findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ) = findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ')`. Direct evaluation at Σ' confirms: at `ℓ`, slot 1 coverage and slot 2 coverage are both unchanged from Σ (L12), so both constraints continue to hold and `ℓ` is in the filtered result. At `ℓ'`, slot 1 still fails the `{α₂}` test, so `ℓ'` is excluded. At `ℓ_meta`, slot 1's subspace mismatch persists, so the slot-1 constraint still fails. Result: `{ℓ}`, matching Query 5's pre-edit evaluation. The reader's "from `α₂` to `α₃`" query survives the contraction in the I-side answer; the V-side query surface has shrunk (no V-position in `d_a` now maps to `α₂` or `α₃`), but the filtered link-side answer at the fixed `(I_from, I_to)` is invariant.
 
 The example is small enough to inspect by eye, and the abstract definitions reduce to elementary set operations. Larger instances scale the same way: each link tests independently, slot existentials collect witnesses, and the comprehension assembles the answer.
 
