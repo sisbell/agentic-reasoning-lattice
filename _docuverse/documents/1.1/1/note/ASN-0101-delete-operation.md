@@ -12,13 +12,15 @@ The two halves of this commitment — content persistence and cross-document non
 
 ## The setting
 
-We adopt the state space of the foundations. A state `Σ = (C, L, M, ...)` carries at least:
+We adopt the state space of the foundations. A state `Σ = (C, L, E, M, R)` carries at least:
 
 - the content store `C : T ⇀ Val`, with `dom(C)` the set of allocated I-addresses bearing values;
 - the link store `L : T ⇀ Link`, with `dom(L)` the set of allocated link addresses;
-- the family of arrangements `M : T ⇀ (T ⇀ T)`, with `M(d) : T ⇀ T` the arrangement of document `d` whenever `d ∈ dom(M)`.
+- the entity set `E ⊆ T` of allocated node, account, and document addresses (ASN-0047);
+- the family of arrangements `M : T ⇀ (T ⇀ T)`, with `M(d) : T ⇀ T` the arrangement of document `d` whenever `d ∈ dom(M)`;
+- the provenance relation `R ⊆ T × E_doc` recording, for each I-address that has ever been arranged in a document, the documents into which it has been placed (ASN-0047).
 
-The standing invariants are those established in the strand model, link model, and substrate: every `a ∈ dom(C)` is an element-level tumbler with `subspace_I(a) = s_C` and `#E(a) ≥ 2`; every `ℓ ∈ dom(L)` is similarly element-level with `subspace_I(ℓ) = s_L`; for each `d ∈ dom(M)` the arrangement `M(d)` is finite (S8-fin), functional (S2), referentially valid (S3★), and per-subspace contiguous with minimum at `[S, 1, ..., 1]` and sequential ordering (D-CTG★, D-MIN★, D-SEQ★ of ASN-0047). The two stores are disjoint (L14) and immutable across all transitions in their respective ways (P0 for content, L12 for links).
+The standing invariants are those established in the strand model, link model, and substrate: every `a ∈ dom(C)` is an element-level tumbler with `subspace_I(a) = s_C` and `#E(a) ≥ 2`; every `ℓ ∈ dom(L)` is similarly element-level with `subspace_I(ℓ) = s_L`; for each `d ∈ dom(M)` the arrangement `M(d)` is finite (S8-fin), functional (S2), referentially valid (S3★), and per-subspace contiguous with minimum at `[S, 1, ..., 1]` and sequential ordering (D-CTG★, D-MIN★, D-SEQ★ of ASN-0047). The two stores are disjoint (L14) and immutable across all transitions in their respective ways (P0 for content, L12 for links). Link-subspace V-positions, when present, are constrained by CL-OWN (the link must be home-document allocated) and CL-UNIQ (at most one V-position per link), both inherited from ASN-0047.
 
 For each document `d ∈ dom(M)` and each subspace `S ∈ {s_C, s_L}`, write
 
@@ -29,6 +31,10 @@ For each document `d ∈ dom(M)` and each subspace `S ∈ {s_C, s_L}`, write
 ## The operation
 
 We specify DELETE as an atomic state transition `DEL[d, σ]` removing a V-span `σ` from document `d`'s arrangement. The operation generalises the contraction of ASN-0082 (which fixes `S = s_C` and `m = 2`) to any subspace and depth.
+
+Nelson's FEBE protocol treats DELETE as a single primitive — `DELETEVSPAN` (LM 4/66) — over arbitrary spans, with no syntactic distinction between deletions at the end of a document (suffix truncation) and deletions in the interior. We adopt this stance: `DEL[d, σ]` is a *new atomic transition kind* extending the foundation's transition vocabulary `{K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ, K.σ}` (ASN-0047, ASN-0093). It is *not* a derived composite of `K.μ⁻` (suffix truncation) and `K.μ~` (reordering); composing those would either fail D5 (the reordering would have to be admissible under a stricter invariant) or require an intermediate state that violates S2 or D-CTG★. DEL closes the gap as a single indivisible step, consistent with Nelson's primitive and with Gregory's run-to-completion implementation in `bed.c`.
+
+The coupling constraints J0, J1★, and J1'★ of ASN-0047's ValidComposite★ — each of which records what must be true of a composite *that places new content into arrangements* — are vacuous for DEL: D0 below ensures `dom(C') = dom(C)`, `dom(L') = dom(L)`, and `R' = R`, so no allocation can be required to "match" a placement, and no extension can be required to "match" a provenance record. DEL contributes a single elementary transition to any ValidComposite★ chain in which it appears, with its preconditions evaluated at the pre-state and its effect committed atomically.
 
 **Operation DEL[d, σ].**
 
@@ -55,6 +61,8 @@ We specify DELETE as an atomic state transition `DEL[d, σ]` removing a V-span `
 
 - *Content store:* `C' = C` exactly — `dom(C') = dom(C)` and `(A a ∈ dom(C) :: C'(a) = C(a))`.
 - *Link store:* `L' = L` exactly — `dom(L') = dom(L)` and `(A ℓ ∈ dom(L) :: L'(ℓ) = L(ℓ))`.
+- *Entity set:* `E' = E` exactly — no entity is added or removed (DELETE does not allocate or de-allocate documents, accounts, or nodes).
+- *Provenance:* `R' = R` exactly — no provenance pair is added or removed (DELETE only removes arrangement entries; the historical record of which I-addresses have ever inhabited which documents is preserved).
 - *Document set:* `dom(M') = dom(M)` — `d` is not removed, and no other document is added.
 - *Other documents:* `(A d' ∈ dom(M) : d' ≠ d :: M'(d') = M(d'))`.
 
@@ -70,9 +78,11 @@ That the operation actually closes the gap, rather than leaving it open with pla
 
 We record the basic structural consequence of the shift:
 
-**D1 — Gap closure.** Let `Σ → Σ'` be a DEL[d, σ] transition with `σ = (s, ℓ)`. The shift function `σ_d` is an order-preserving bijection from `R` onto `Q`, and `(L ∪ Q)` is contiguous with minimum `[S, 1, ..., 1]`. Concretely, writing `n_S' := |V_S(d)| − n`, the post-state has `V_S(M'(d)) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S'}` (empty when `n_S' = 0`).
+**D1 — Gap closure.** Let `Σ → Σ'` be a DEL[d, σ] transition with `σ = (s, ℓ)`. The shift function `σ_d` is an order-preserving bijection from `R` onto `Q`. Writing `n_S' := |V_S(d)| − n`: when `n_S' ≥ 1`, `V_S(M'(d)) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S'}` is contiguous with minimum `[S, 1, ..., 1]` of depth `m_S`; when `n_S' = 0`, `V_S(M'(d)) = ∅` and D-CTG★, D-MIN★, D-SEQ★ hold vacuously for subspace `S`.
 
-*Justification.* Order preservation and injectivity follow from TS1 and TS2 applied to the equal-length, last-component-only shift produced by `σ_d`. Surjectivity onto `Q` is by construction. The post-state characterisation: each `v ∈ L` has `v = [S, 1, ..., 1, k]` with `1 ≤ k ≤ p − 1`; each `σ_d(v')` with `v' = [S, 1, ..., 1, k']` and `p + n ≤ k' ≤ n_S` maps to `[S, 1, ..., 1, k' − n]` with `p ≤ k' − n ≤ n_S − n`. The union is `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}`. ∎
+*Justification.* Order preservation: for `v₁, v₂ ∈ R` with `v₁ < v₂`, OrdinalOrderEquivalence (ASN-0082) gives `ord(v₁) < ord(v₂)`; both ordinals have length `m_S − 1` by S8-depth, both dominate `δ(n, m_S)_{ord}` componentwise (every component of an `R`-ordinal is at least 1 except the last, which is at least `p + n > n`, while `δ(n, m_S)_{ord} = [0, ..., 0, n]`), and `#δ(n, m_S)_{ord} = m_S − 1 = #ord(vᵢ)`. The preconditions of TA3-strict (ASN-0034) are therefore satisfied, yielding `ord(v₁) ⊖ δ(n, m_S)_{ord} < ord(v₂) ⊖ δ(n, m_S)_{ord}`. The `vpos` reconstruction preserves order on equal-length ordinals (component 1 fixed at `S`, remaining components inherited from the ordinal), giving `σ_d(v₁) < σ_d(v₂)`. Injectivity then follows from order preservation by trichotomy of T1. Surjectivity onto `Q` is by construction. The post-state characterisation: each `v ∈ L` has `v = [S, 1, ..., 1, k]` with `1 ≤ k ≤ p − 1`; each `σ_d(v')` with `v' = [S, 1, ..., 1, k']` and `p + n ≤ k' ≤ n_S` maps to `[S, 1, ..., 1, k' − n]` with `p ≤ k' − n ≤ n_S − n`. The union is `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}`. When this set is empty (`n_S = n`), there are no positions to order, and the contiguity, minimum, and sequentiality predicates hold vacuously. ∎
+
+This is the natural generalisation of ASN-0082's D-BJ (which discharges the same conclusion at the fixed depth `m = 2` and the fixed subspace `S = s_C`) to arbitrary subspaces and depths. The argument is uniform in `m_S`: the ordinal-stripping homomorphism reduces order preservation on V-positions to order preservation on ordinals, and TA3-strict supplies the ordinal-level conclusion at any length.
 
 Gregory's implementation realises this through a two-phase protocol on the tree of POOM crums that materialises `M(d)`. Phase 1 establishes "knives" at the boundaries `s` and `r`, splitting any crum interior to either knife into a pair of crums boundary-aligned with the knife. Phase 2 walks the affected children of the spanning node and applies one of three actions per crum: untouched (the crum lies before `s`), freed (the crum lies in `[s, r)`), or shifted (the crum lies at or after `r`, and its V-displacement is reduced by `width(σ)`). After the walk, a width-recomputation pass propagates the changes upward.
 
@@ -81,6 +91,65 @@ The abstract specification is silent on the tree structure but does require *som
 - *Boundary alignment is necessary, not incidental.* Any implementation that represents the arrangement compactly (as runs, or as B-tree nodes) must arrange for the deletion boundaries `s` and `r` to coincide with representation boundaries before the per-region action can be applied uniformly. Without such alignment, individual cells of the representation would span the boundary and require special-case handling. The two-knife pattern (cut at both endpoints, then classify) generalises beyond tree representations to any compact arrangement.
 
 - *No reconciliation across the gap.* After the shift, two runs that were previously separated by the deleted region become V-adjacent. Whether their I-extents are now I-adjacent — and could therefore be merged into a single run under the bundle-algebra rules — is in general indeterminate. The abstract specification does not require a reconciliation pass, and Gregory confirms that none is performed: formerly non-adjacent crums whose V-positions become contiguous remain separate. This is consistent with the principle that DELETE preserves arrangement information without re-canonicalising; merging would conflate the boundaries of two independently inserted runs with the boundaries of a single uninterrupted run.
+
+## A worked example
+
+We instantiate the operation on a concrete arrangement to verify the postconditions. Consider a document `d` with content-subspace arrangement (`S = s_C = 1`, depth `m_S = 3`):
+
+```
+V_1(d) = {[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 1, 4]}
+M(d)(v) = a_v  where a_1, a_2, a_3, a_4 ∈ dom(C) are four distinct I-addresses
+```
+
+so `n_S = 4`. We apply `DEL[d, σ]` with `s = [1, 1, 2]` and `ℓ = δ(2, 3) = [0, 0, 2]`. Then `r = s ⊕ ℓ = [1, 1, 4]`, `p = 2`, `n = 2`.
+
+*Region computation.*
+
+- `L = {v ∈ V_1(d) : v < [1, 1, 2]} = {[1, 1, 1]}`.
+- `X = {v ∈ V_1(d) : [1, 1, 2] ≤ v < [1, 1, 4]} = {[1, 1, 2], [1, 1, 3]}`.
+- `R = {v ∈ V_1(d) : v ≥ [1, 1, 4]} = {[1, 1, 4]}`.
+
+*Shift function.* `δ(2, 3)_{ord} = [0, 2]`. For the single element of `R`:
+
+```
+ord([1, 1, 4]) = [1, 4]
+[1, 4] ⊖ [0, 2] = [1, 2]    (the zero-prefix-up-to-divergence rule of TumblerSub)
+σ_d([1, 1, 4]) = vpos(1, [1, 2]) = [1, 1, 2]
+```
+
+So `Q = {[1, 1, 2]}`.
+
+*Post-state.*
+
+- *Domain:* `V_1(M'(d)) = L ∪ Q = {[1, 1, 1], [1, 1, 2]}`, of cardinality `n_S − n = 4 − 2 = 2`.
+- *Values:* `M'(d)([1, 1, 1]) = a_1` (from `L`); `M'(d)([1, 1, 2]) = M(d)(σ_d^{-1}([1, 1, 2])) = M(d)([1, 1, 4]) = a_4` (from the shifted `R`).
+- *Stores:* `dom(C') = dom(C)`, with `a_1, a_2, a_3, a_4` all still in `dom(C')` (D2). The originals `a_2` and `a_3` are now orphaned with respect to `M'(d)` but remain addressable from `C'`.
+
+*Verification of D1.* The post-state `V_1(M'(d)) = {[1, 1, 1], [1, 1, 2]}` is `{[1, 1, 1, k] : 1 ≤ k ≤ 2}` (using the depth-3 form `[1, 1, k]` with the implicit leading `1`s), matching D1's predicted form `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}`. The shift `σ_d` is a bijection from `R = {[1, 1, 4]}` to `Q = {[1, 1, 2]}` — trivially so on a singleton.
+
+*Verification of D8.* S8a holds on every post-state V-position (zeros = 0, depth = 3, components positive). S8-depth holds (both surviving positions have depth 3). S2 holds (the domain is two distinct keys, each with a single value). S3★ holds: `a_1, a_4 ∈ dom(C') = dom(C)` by D2. D-CTG★, D-MIN★, D-SEQ★ hold: the post-state is the contiguous prefix of depth-3 positions in subspace 1 starting at `[1, 1, 1]`, with maximum `[1, 1, 2]`.
+
+*Verification of D9 (link discoverability).* Suppose a link `ℓ ∈ dom(L)` has `coverage(ℓ.eᵢ) ⊇ {a_2, a_3}` and no other post-state contact with `M'(d)`. Then `project(ℓ.eᵢ, d, Σ) = {[1, 1, 2], [1, 1, 3]} ⊆ X`, and `project(ℓ.eᵢ, d, Σ') = (∅ ∩ L) ∪ {σ_d(v) : v ∈ ∅ ∩ R} = ∅` — the link has become orphaned with respect to `d`. By D3, `L'(ℓ).eᵢ = L(ℓ).eᵢ`, so a later operation that inserts a V-position in `d` mapping to `a_2` or `a_3` (drawing from `dom(C')`) would restore discoverability.
+
+The example uses subspace `S = s_C = 1` with depth `m_S = 3`; an analogous worked example with `S = s_L = 2` (depth typically `m_S = 2`) follows the same pattern, with I-addresses in `dom(L)` rather than `dom(C)` and with the link-subspace-specific invariants CL-OWN and CL-UNIQ being inherited rather than re-established. In the link case, D7 affirms `a ∈ dom(L') ∪ dom(C')` with the subspace classification preserved.
+
+## Boundary cases
+
+We enumerate configurations that stress different parts of the specification, verifying that D0 and D8 hold uniformly.
+
+*Empty post-state (`n = n_S`, `p = 1`).* The entire content subspace is deleted: `L = ∅`, `X = V_S(d)`, `R = ∅`, `Q = ∅`. The post-state `V_S(M'(d)) = ∅`. D-MIN★ holds vacuously (no minimum to predicate over). D-CTG★ and D-SEQ★ hold vacuously. By D6, `V_{S'}(M'(d))` for `S' ≠ S` is unchanged — the other subspace's arrangement, its links, and its discoverability all survive the emptying of the affected subspace. D8 holds: S8-fin reduces `|dom(M'(d))| ≤ |dom(M(d))|` to a strict inequality, and the empty subspace contributes no constraints.
+
+*Deletion at the start (`p = 1`, `n < n_S`).* `L = ∅`, `X = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n}`, `R = {[S, 1, ..., 1, k] : n + 1 ≤ k ≤ n_S}`. The first position of `R` is `r = [S, 1, ..., 1, n + 1]`. Computing `σ_d(r)`: `ord(r) = [1, ..., 1, n + 1]`, `δ(n, m_S)_{ord} = [0, ..., 0, n]`, `ord(r) ⊖ δ(n, m_S)_{ord} = [1, ..., 1, 1]` (the divergence falls at the last position, yielding `n + 1 − n = 1`), so `σ_d(r) = [S, 1, ..., 1, 1]`. D-MIN★ holds: the post-state minimum is `σ_d(r) = [S, 1, ..., 1]`, exactly the form D-MIN★ requires.
+
+*Deletion at the end (`p + n = n_S + 1`).* `R = ∅`, so no shift occurs. `V_S(M'(d)) = L = {[S, 1, ..., 1, k] : 1 ≤ k ≤ p − 1}`. This is the case that ASN-0047's `K.μ⁻` (suffix truncation) covers as a special case; DEL generalises by allowing arbitrary `s` rather than requiring `p` to start at any specific position. D1's post-state characterisation reduces correctly: `n_S' = n_S − n = p − 1`.
+
+*Singleton subspace deletion (`n_S = 1`, `n = 1`, `p = 1`).* Both `L = ∅` and `R = ∅`. The subspace is emptied in one step. This is a specialisation of the empty post-state case above.
+
+*Singleton interior deletion (`n = 1`, `1 < p < n_S`).* The most arithmetically subtle of the small cases. `L = {[S, 1, ..., 1, k] : 1 ≤ k ≤ p − 1}` (non-empty), `X = {[S, 1, ..., 1, p]}` (singleton), `R = {[S, 1, ..., 1, k] : p + 1 ≤ k ≤ n_S}` (non-empty). Every position in `R` is shifted by 1: `σ_d([S, 1, ..., 1, k]) = [S, 1, ..., 1, k − 1]`. The post-state is `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − 1}` — the contiguous prefix of length `n_S − 1`.
+
+*Cross-subspace independence.* For each boundary case above, D6 ensures the other subspace's arrangement is preserved bytewise. A document with both content and link subspaces populated, on which DEL affects only the content subspace, leaves CL-OWN and CL-UNIQ trivially intact for the link subspace because no link-subspace V-position is altered.
+
+In each case, D0's effect, D1's gap-closure characterisation, and D8's well-formedness preservation hold. The specification is not specialised by case; the same formulas apply, and degenerate sub-expressions (empty `L`, `R`, or `Q`) reduce predictably.
 
 ## What is preserved
 
@@ -183,9 +252,11 @@ The opposite direction of isolation (deletion in the link subspace not perturbin
 
 **D7 — Attribution survival under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ] and every I-address `a` that appeared in `ran(M(d))` before the operation:
 
-`a ∈ dom(C')  ∧  origin(a) at Σ' = origin(a) at Σ`
+`a ∈ dom(C') ∪ dom(L')  ∧  origin(a) at Σ' = origin(a) at Σ`
 
-*Justification.* The pre-condition `a ∈ ran(M(d))` together with S3★ at the pre-state gives `a ∈ dom(C) ∪ dom(L)`. By D2 and D3, both stores are unchanged: `dom(C') = dom(C)` and `dom(L') = dom(L)`. So `a` remains in `dom(C') ∪ dom(L')`. The origin function `origin(a)` is a structural projection of `a` (specifically, the document-level prefix of `a`'s tumbler under T4-parsing), and depends only on `a`'s components, not on any state component. So `origin(a)` is unchanged across the transition. ∎
+Equivalently, restricted by subspace: when `subspace_I(a) = s_C`, `a ∈ dom(C')`; when `subspace_I(a) = s_L`, `a ∈ dom(L')`. By L14 (store disjointness), these are mutually exclusive.
+
+*Justification.* The pre-condition `a ∈ ran(M(d))` together with S3★ at the pre-state gives `a ∈ dom(C) ∪ dom(L)`, with the partition determined by S3★: a content-subspace V-position maps into `dom(C)`, a link-subspace V-position maps into `dom(L)`. By D2 and D3, both stores are unchanged: `dom(C') = dom(C)` and `dom(L') = dom(L)`. So `a` remains in `dom(C') ∪ dom(L')` with the same subspace classification. The origin function `origin(a)` is a structural projection of `a` (specifically, the document-level prefix of `a`'s tumbler under T4-parsing), and depends only on `a`'s components, not on any state component. So `origin(a)` is unchanged across the transition. ∎
 
 D7 is what Nelson called the structural anchor of attribution. Attribution is not a metadata field that DELETE could accidentally strip; it is encoded *in the address itself*. The I-address `a = [d_0, 0, s_C, k]` has `d_0` as the document-level prefix, identifying the document `d_0` that allocated `a`. No operation can change `d_0` without changing `a`, and no operation removes `a`. So no operation can sever the connection between `a` and `d_0`.
 
@@ -195,16 +266,28 @@ We should be careful what D7 does *not* claim. It does not claim that the delete
 
 ### Well-formedness preservation
 
-**D8 — Arrangement well-formedness preservation under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ], the post-state arrangement `M'(d)` satisfies:
+**D8 — Arrangement well-formedness preservation under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ], the post-state satisfies every foundation invariant that the pre-state was required to satisfy. The invariants partition into three groups by the mechanism that preserves them.
+
+*Group (i): Arrangement invariants on the modified document `d`.* The post-state arrangement `M'(d)` satisfies:
 
 - *Functionality (S2):* `M'(d)` is a well-defined partial function.
 - *Finite domain (S8-fin):* `|dom(M'(d))| < ∞`.
 - *Well-formed V-positions (S8a):* `(A v ∈ dom(M'(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`.
 - *Per-subspace common depth (S8-depth):* within each subspace, all V-positions share a common depth.
 - *Referential integrity (S3★):* `(A v ∈ dom(M'(d)) :: (subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C')) ∧ (subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L')))`.
-- *Per-subspace contiguity, minimum, sequentiality (D-CTG★, D-MIN★, D-SEQ★):* `V_S(M'(d)) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}` for the affected subspace; unchanged for the other.
+- *Per-subspace contiguity, minimum, sequentiality (D-CTG★, D-MIN★, D-SEQ★):* `V_S(M'(d)) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}` for the affected subspace; unchanged for the other. When `n_S − n = 0`, all three predicates hold vacuously for subspace `S`.
+- *Per-subspace span decomposition (S8★):* the per-subspace arrangement decomposes into finite correspondence runs.
+- *Subspace exhaustiveness (S3★-aux):* every V-position lies in `s_C` or `s_L`.
+- *Link-subspace ownership (CL-OWN):* every link-subspace V-position maps to a link with `origin = d`.
+- *Link-subspace position uniqueness (CL-UNIQ):* the link-subspace restriction is injective.
 
-*Justification.* By D1, `V_S(M'(d))` has the stated form, so D-CTG★, D-MIN★, D-SEQ★ hold. By D6, the other subspace is unchanged. S8-depth at the post-state holds because all positions in `V_S(M'(d))` have depth `m_S` (positions in `L` are unchanged from `V_S(d)`, positions in `Q` are shifts at the same depth by OrdShiftHom). S8a holds at each post-state position: positions in `L` satisfy S8a directly; positions in `Q` are `[S, 1, ..., 1, k − n]` with `1 ≤ k − n ≤ n_S − n`, satisfying `zeros = 0`, `#v = m_S ≥ 2`, all components positive. S8-fin holds because `|dom(M'(d))| ≤ |dom(M(d))|`. S2 holds by the construction of `M'(d)`: the disjoint sources `L`, `Q`, and `V_{S'}(d)` for `S' ≠ S` each provide a single value for each position, and they cover disjoint subsets of the post-state domain. S3★ holds by inheritance: the post-state mappings agree with pre-state values, which were in `dom(C) = dom(C')` or `dom(L) = dom(L')` by the pre-state S3★. ∎
+*Group (ii): Allocation and store invariants.* All of S7a, S7b, S7c, S7d, L0, L1, L1a, L1b, L1c, L3, L12, L14, L-fin, C-fin, NodeLineage (ASN-0036, ASN-0043, ASN-0093) hold trivially at the post-state because `C' = C`, `L' = L`, `E' = E`, and `dom(M') = dom(M)` by D0's frame — every clause of every invariant in this group is a predicate over one or more of these components, and equality of each component pointwise propagates the predicate from `Σ` to `Σ'`.
+
+*Group (iii): Cross-transition invariants.* P0, P1, P2, P3 (permanence and arrangement-mutability-only), P4★, P4a (provenance bounds and historical fidelity), P6, P7, P7a (existence and grounding), P8 (entity hierarchy), and L12a, L12b (link-store monotonicity and home persistence) all hold for the transition `Σ → Σ'`. Each is preserved trivially: P0 by `dom(C') = dom(C)`; P1 by `E' = E`; P2 by `R' = R`; P3 as the conjunction of the previous three plus L12; P4★ by the conjunction `R' = R` and `Contains_C(Σ') ⊆ Contains_C(Σ)` (DELETE can only shrink the content-subspace range, so historical containment is preserved); P4a by `R' = R` combined with the fact that any pair `(a, d) ∈ R` was witnessed at some `Σ_k` in the pre-state history, which remains in the post-state history; P6, P7, P7a, P8 by `dom(C') = dom(C)`, `dom(L') = dom(L)`, `E' = E`, `R' = R`, and the structural definition of `origin`; L12a, L12b similarly.
+
+*Justification (Group (i)).* By D1, `V_S(M'(d))` has the stated form, so D-CTG★, D-MIN★, D-SEQ★ hold (vacuously when empty, as noted). By D6, the other subspace is unchanged, inheriting D-CTG★, D-MIN★, D-SEQ★ from the pre-state. S8-depth at the post-state holds because all positions in `V_S(M'(d))` have depth `m_S`: positions in `L` inherit depth `m_S` from the pre-state; positions in `Q = σ_d(R)` have the form `vpos(S, ord(v) ⊖ δ(n, m_S)_{ord})` for `v ∈ R`, and depth-preservation follows from `#(ord(v) ⊖ δ(n, m_S)_{ord}) = max(#ord(v), #δ(n, m_S)_{ord}) = max(m_S − 1, m_S − 1) = m_S − 1` by TumblerSub's result-length identity, combined with `#vpos(S, o) = #o + 1 = m_S` from the vpos length identity. S8a holds at each post-state position: positions in `L` satisfy S8a directly; positions in `Q` are `[S, 1, ..., 1, k − n]` with `1 ≤ k − n ≤ n_S − n`, satisfying `zeros = 0`, `#v = m_S ≥ 2`, all components positive (since `S ≥ 1` and `k − n ≥ 1`). S8-fin holds because `|dom(M'(d))| ≤ |dom(M(d))|` (positions in `X` are removed; positions in `R` are bijected by `σ_d` and so preserved in count; positions in `L` are unchanged). S2 holds by the construction of `M'(d)`: the disjoint sources `L`, `Q`, and `V_{S'}(d)` for `S' ≠ S` each provide a single value for each position, and they cover disjoint subsets of the post-state domain. S3★ holds by inheritance: the post-state mappings agree with pre-state values, which were in `dom(C) = dom(C')` or `dom(L) = dom(L')` by the pre-state S3★. S8★, S3★-aux, CL-OWN, CL-UNIQ hold by inheritance from the pre-state restricted to the surviving V-positions: each is a per-V-position predicate, and DELETE neither introduces a new V-position with an out-of-pattern image nor changes the I-address that any surviving V-position maps to.
+
+*Justification (Groups (ii) and (iii)).* By the frame argument outlined in each group's description above. The key uniform observation: every invariant in these groups is either (a) a predicate over `(C, L, E, R, dom(M))`, each of which is pointwise preserved by D0's frame; or (b) a transition predicate that compares pre- and post-state values of these same components, and so reduces to the equality case under D0's frame. ∎
 
 The well-formedness preservation is what closes the loop: DELETE is not just a local edit; it is a transition between two states each of which satisfies the global invariants. A reader of the post-state sees a coherent document, indistinguishable from one whose V-positions had been allocated in their post-DELETE form from the start. The pre-state knowledge of which positions were deleted — and where the gap was — is not present in `M'(d)` at all. It can be recovered, if at all, only from external state (a versioning system, a comparison with an earlier `M(d)`).
 
@@ -224,9 +307,9 @@ We extract this as an abstract characterisation:
 
 - If `d'' ≠ d`: `project(L'(ℓ).eᵢ, d'', Σ') = project(L(ℓ).eᵢ, d'', Σ)`.
 - If `d'' = d`, restricted to subspace `S' ≠ S`: `project(L'(ℓ).eᵢ, d, Σ') ∩ V_{S'}(M'(d)) = project(L(ℓ).eᵢ, d, Σ) ∩ V_{S'}(d)`.
-- If `d'' = d`, restricted to subspace `S`: the projection equals `(project(L(ℓ).eᵢ, d, Σ) ∩ L) ∪ {σ_d(v) : v ∈ project(L(ℓ).eᵢ, d, Σ) ∩ R}`.
+- If `d'' = d`, restricted to subspace `S`: `project(L'(ℓ).eᵢ, d, Σ') ∩ V_S(M'(d)) = (project(L(ℓ).eᵢ, d, Σ) ∩ L) ∪ {σ_d(v) : v ∈ project(L(ℓ).eᵢ, d, Σ) ∩ R}`. Here `L`, `X`, `R ⊆ V_S(d)` are the subspace-`S` regions defined in D0; the intersection of the pre-state projection with each region is therefore a subset of `V_S(d)`, well-formed by construction.
 
-*Justification.* For `d'' ≠ d`: `M'(d'') = M(d'')` by D5, so `dom(M'(d'')) = dom(M(d''))` and the projection's defining set is unchanged. For `d'' = d` in subspace `S' ≠ S`: M'(d) agrees with M(d) on V_{S'}(d) by D6, with the same domain and values. For `d'' = d` in subspace `S`: the post-state V-positions in subspace `S` partition as `L ⊎ Q`, with `Q = σ_d(R)`. The projection contains a position `v ∈ L` iff `M'(d)(v) = M(d)(v) ∈ coverage(L'(ℓ).eᵢ) = coverage(L(ℓ).eᵢ)` (the latter equality by D3). The projection contains a position `σ_d(v)` for `v ∈ R` iff `M'(d)(σ_d(v)) = M(d)(v) ∈ coverage(L(ℓ).eᵢ)`. ∎
+*Justification.* For `d'' ≠ d`: `M'(d'') = M(d'')` by D5, so `dom(M'(d'')) = dom(M(d''))` and the projection's defining set is unchanged. For `d'' = d` in subspace `S' ≠ S`: M'(d) agrees with M(d) on V_{S'}(d) by D6, with the same domain and values. For `d'' = d` restricted to subspace `S`: the post-state V-positions in subspace `S` partition as `L ⊎ Q`, with `Q = σ_d(R)`. The post-state projection in subspace `S` contains a position `v ∈ L` iff `M'(d)(v) = M(d)(v) ∈ coverage(L'(ℓ).eᵢ) = coverage(L(ℓ).eᵢ)` (the latter equality by D3); these positions are exactly `project(L(ℓ).eᵢ, d, Σ) ∩ L`. The post-state projection in subspace `S` contains a position `σ_d(v)` for `v ∈ R` iff `M'(d)(σ_d(v)) = M(d)(v) ∈ coverage(L(ℓ).eᵢ)`; these positions are exactly `{σ_d(v) : v ∈ project(L(ℓ).eᵢ, d, Σ) ∩ R}`. The pre-state projection's intersections with `L` and with `R` are well-defined: although `project(L(ℓ).eᵢ, d, Σ)` ranges over all of `dom(M(d))`, intersecting with `L ⊆ V_S(d)` or `R ⊆ V_S(d)` automatically restricts to subspace `S`. ∎
 
 D9 makes precise what *can* and *cannot* happen to a link's discoverability under DELETE. Discoverability from any document other than `d` is invariant. Discoverability from `d`'s other subspace is invariant. Discoverability from `d`'s affected subspace can shrink (when V-positions in the deleted span referenced the link's coverage) or rename (when V-positions in the shifted region referenced the link's coverage). The latter is invisible from outside — the projection has the same cardinality, just relocated.
 
@@ -275,16 +358,16 @@ The five-fold preservation has a unifying theme. Each of the preserved component
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| D0 | Operation DEL[d, σ] specification: preconditions, effect (per-subspace shift `σ_d` with domain `L ∪ Q ∪ V_{S'}`), frame (`C' = C`, `L' = L`, `dom(M') = dom(M)`, `M'(d') = M(d')` for `d' ≠ d`) | introduced |
-| D1 | Gap closure: post-state `V_S(M'(d)) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}`, shift bijection `σ_d` order-preserving from `R` to `Q` | introduced |
+| D0 | Operation DEL[d, σ] specification: preconditions, effect (per-subspace shift `σ_d` with domain `L ∪ Q ∪ V_{S'}`), frame (`C' = C`, `L' = L`, `E' = E`, `R' = R`, `dom(M') = dom(M)`, `M'(d') = M(d')` for `d' ≠ d`). DEL is a new atomic transition kind extending ASN-0047's transition vocabulary. | introduced |
+| D1 | Gap closure: post-state `V_S(M'(d)) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}` when non-empty (and `∅` otherwise), shift bijection `σ_d` order-preserving from `R` to `Q`. Justified by TA3-strict (ordinal-level) lifted via OrdinalOrderEquivalence (ASN-0082) — the natural generalisation of ASN-0082's D-BJ from `m = 2` to arbitrary `m_S ≥ 2`. | introduced |
 | D2 | Content immutability under DELETE: `dom(C') = dom(C)` and `(A a ∈ dom(C) :: C'(a) = C(a))` | introduced |
 | D3 | Link store immutability under DELETE: `dom(L') = dom(L)` and `(A ℓ ∈ dom(L) :: L'(ℓ) = L(ℓ))` | introduced |
 | D4 | Document identity persistence under DELETE: `d ∈ dom(M')` and `dom(M') = dom(M)` | introduced |
 | D5 | Cross-document arrangement isolation under DELETE: `(A d' ∈ dom(M) : d' ≠ d :: M'(d') = M(d'))` | introduced |
 | D6 | Subspace isolation under DELETE: other subspaces of `d` preserve domain and values across the transition | introduced |
-| D7 | Attribution survival under DELETE: I-addresses in `ran(M(d))` persist in `dom(C')` with unchanged `origin` | introduced |
-| D8 | Arrangement well-formedness preservation: S2, S8-fin, S8a, S8-depth, S3★, D-CTG★, D-MIN★, D-SEQ★ all hold at the post-state | introduced |
-| D9 | Link projection under DELETE: precise characterisation of how `project(L(ℓ).eᵢ, d'', Σ')` relates to `project(L(ℓ).eᵢ, d'', Σ)` per document and subspace | introduced |
+| D7 | Attribution survival under DELETE: I-addresses in `ran(M(d))` persist in `dom(C') ∪ dom(L')` (partitioned by subspace) with unchanged `origin` | introduced |
+| D8 | Arrangement well-formedness preservation: all foundation invariants — Group (i) arrangement invariants (S2, S8-fin, S8a, S8-depth, S3★, S3★-aux, D-CTG★, D-MIN★, D-SEQ★, S8★, CL-OWN, CL-UNIQ), Group (ii) allocation/store invariants (S7a–d, L0, L1, L1a–c, L3, L12, L14, L-fin, C-fin, NodeLineage), Group (iii) cross-transition invariants (P0, P1, P2, P3, P4★, P4a, P6, P7, P7a, P8, L12a, L12b) — all hold at the post-state | introduced |
+| D9 | Link projection under DELETE: precise characterisation (restricted by subspace) of how `project(L(ℓ).eᵢ, d'', Σ')` relates to `project(L(ℓ).eᵢ, d'', Σ)` per document and subspace | introduced |
 
 ## Open Questions
 
