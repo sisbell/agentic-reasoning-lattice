@@ -98,7 +98,7 @@ For positions in subspaces other than `s_C` — including the link subspace — 
 
 For other documents `d' ≠ d`, the arrangement is unchanged (I3-D, PostInsertionCrossDocumentFrame; ASN-0082).
 
-The content store is unchanged outside the freshly allocated addresses (I3-C, PostInsertionContentFrame; ASN-0082).
+Pre-existing content store entries are preserved pointwise — every `a ∈ dom(C)` has `a ∈ dom(C')` with `C'(a) = C(a)` (S0, ContentImmutability; ASN-0036, and P0, ContentPermanence; ASN-0047) — discharged by INS.C's third clause. INSERT extends `dom(C)` by the freshly allocated addresses (Effect One), so the store itself is *not* unchanged; ASN-0082's I3-C (PostInsertionContentFrame), asserting exact equality `Σ'.C = Σ.C` for its shift-only model, is strictly stronger than INSERT's content frame and is not preserved here.
 
 These exhaust the cases.
 
@@ -217,9 +217,9 @@ We verify that `M'(d)` is a function (S2, ArrangementFunctionality; ASN-0036): n
 
 The Left, Insertion, and Shifted-right regions are pairwise disjoint as sets of V-positions. Writing `p = [s_C, 1, …, 1, p_m]`:
 
-- *Left ∩ Insertion = ∅.* Left positions have last component `< p_m`; Insertion positions have last component in `{p_m, p_m + 1, …, p_m + n − 1}` (by shift's last-component arithmetic per OrdAddHom and ShiftPreservation, ASN-0036).
+- *Left ∩ Insertion = ∅.* Left positions have last component `< p_m`; Insertion positions have last component in `{p_m, p_m + 1, …, p_m + n − 1}`. The component arithmetic follows from the OrdinalShift definition `shift(p, k) = p ⊕ δ(k, m_C)` (ASN-0034) and TumblerAdd's piecewise rule (ASN-0034) at action point `m_C`: positions `1, …, m_C − 1` are inherited from `p`, and the final component is `(shift(p, k))_{m_C} = p_{m_C} + δ(k, m_C)_{m_C} = p_m + k` for `0 ≤ k < n`.
 
-- *Insertion ∩ Shifted-right = ∅.* Insertion positions have last component in `{p_m, …, p_m + n − 1}`. Shifted-right positions image `v` with last component `≥ p_m` to a position with last component `≥ p_m + n` (by TS4, ShiftStrictIncrease; ASN-0034). Hence Shifted-right positions have last component `≥ p_m + n`, strictly greater than Insertion positions.
+- *Insertion ∩ Shifted-right = ∅.* Insertion positions have last component in `{p_m, …, p_m + n − 1}`. Shifted-right positions image `v` with last component `v_m ≥ p_m` to `shift(v, n) = v ⊕ δ(n, m_C)`; by the same TumblerAdd rule (ASN-0034), the last component of `shift(v, n)` is `v_m + n`. Since `v_m ≥ p_m` and `n ≥ 1`, every Shifted-right last component satisfies `v_m + n ≥ p_m + n`, strictly greater than every Insertion last component.
 
 - *Left ∩ Shifted-right = ∅.* Left last components are `< p_m`; Shifted-right last components are `≥ p_m + n ≥ p_m + 1`.
 
@@ -262,6 +262,18 @@ Post-state `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}`. We verify each
 - *S8a:* each Insertion position `[s_C, 1, …, 1, k]` is zero-free (subspace identifier `s_C ≥ 1` and all other components `1`), has length `m ≥ 2`, and has all components strictly positive.
 
 The empty case differs from the non-empty case in that no Left or Shifted-right regions appear and no K.μ⁻ fires in the composite (per the case (i.a)/(i.b) routing above), but the post-state invariants are verified by the same predicate checks on the post-state's exhibited form.
+
+### Post-state V-position well-formedness (S8-depth, S8a, S8-fin) and S7 invariants
+
+ASN-0082's I3-VD (PostInsertionDepthUniformity), I3-VP (PostInsertionWellFormedness), I3-fin (PostInsertionFiniteness), and I3-S7 (PostInsertionAllocationInvariants) discharge their respective post-state predicates over ASN-0082's *shift-only* post-state — Left + Shifted-right + cross-subspace. They do not cover INSERT's Insertion region: the freshly placed V-positions `shift(p, k)` for `0 ≤ k < n` and the freshly allocated I-addresses `{a_0, …, a_{n−1}}` lie outside I3's post-state by I3-CS's domain closure. The Insertion-region contribution is verified explicitly below.
+
+- *S8-depth (FixedDepthVPositions, ASN-0036; cf. I3-VD).* By the OrdinalShift definition (ASN-0034), `shift(p, k) = p ⊕ δ(k, m_C)`; TumblerAdd's result-length identity (ASN-0034) gives `#shift(p, k) = #δ(k, m_C) = m_C`. Every Insertion position has depth `m_C`, matching the depth that I3-VD already establishes for Left and Shifted-right positions and the cross-subspace depths preserved by I3-X. S8-depth holds across all subspaces of the post-state.
+
+- *S8a (VPositionWellFormedness, ASN-0036; cf. I3-VP).* For each Insertion position `shift(p, k)`, TumblerAdd's piecewise rule (ASN-0034) at action point `m_C` copies the leading `m_C − 1` components from `p`, which are all `1` (since `p` is a valid insertion position of the form `[s_C, 1, …, 1, p_m]` per ValidInsertionPosition's postcondition (d), ASN-0036, or `[s_C, 1, …, 1]` per ValidFirstInsertionPosition's postcondition (d), ASN-0036); the final component is `p_m + k ≥ p_m ≥ 1`. So `zeros(shift(p, k)) = 0`, `#shift(p, k) = m_C ≥ 2`, and every component is strictly positive. S8a holds on Insertion positions; combined with I3-VP on Left + Shifted-right + cross-subspace, S8a holds across the post-state. (This subsumes the empty-case S8a verification above, factoring out the Insertion-region argument as a general property of `shift(p, k)` independent of whether the Left and Shifted-right regions are non-empty.)
+
+- *S8-fin (FiniteArrangement, ASN-0036; cf. I3-fin).* The Insertion region contributes exactly `n` new V-positions to `dom(M'(d))`. The pre-state `dom(M(d))` is finite by pre-state S8-fin; the post-state `dom(M'(d))` is the union of finite Left + finite Shifted-right + finite Insertion (cardinality `n`) + finite cross-subspace contributions, hence finite.
+
+- *S7 invariants (S7a, S7b, S7c, S7d, and the derived theorem S7, ASN-0036; cf. I3-S7).* The predicates range over `dom(C)` and the document set. Every pre-state `a ∈ dom(C)` inherits S7a–S7d at the post-state by the pointwise S0/P0 preservation already established under §Permanence and the unchanged document set. For each freshly allocated `a_k ∈ dom(C') ∖ dom(C)`: `origin(a_k) = d ∈ dom(M')` discharges S7a (DocumentScopedAllocation) by K.α's emission discipline (ASN-0093); `zeros(a_k) = 3` discharges S7b (ElementLevelIAddresses) by ChainUniformZeroCount (ASN-0093) — every element of `A_C(d)` has `zeros = 3`; `#E(a_k) ≥ 2` discharges S7c (ElementFieldDepth) since `A_C(d)`'s first emission has `#E = 2` (SubAllocatorAxiom.FirstEmission, ASN-0093) and every subsequent emission via `inc(·, 0)` preserves length (TA5(c), ASN-0034); S7d (DocumentAllocationDiscipline) holds at `d` by pre-state inheritance — `d ∈ dom(M)` was a document-allocation event under T10a with `zeros(d) = 2` and T4-validity (M0, ASN-0093). The derived theorem S7 (StructuralAttribution) follows by composition.
 
 ### Cross-subspace isolation
 
