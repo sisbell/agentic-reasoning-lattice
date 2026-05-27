@@ -84,7 +84,7 @@ ASN-0084's R-SP (RearrangeSufficientPrecondition) is stated as a *whole-package*
 
 ### Per-Invariant Discharges (ASN-0036 Foundation Invariants)
 
-The ASN-0036 invariants load-bearing in the unified state — those unchanged between ASN-0036 and the unified state and not superseded — are: S0, S1, S2, S4, S5, S7a–d, S9, S8a, S8-fin, S8-depth, D-CTG, D-MIN, and D-SEQ. We discharge each at Σ' from premises that survive in the unified state, listing per-invariant:
+The ASN-0036 invariants load-bearing in the unified state — those unchanged between ASN-0036 and the unified state and not superseded — are: S0, S1, S2, S4, S5, S7a–d, S9, S8a, S8-fin, and S8-depth. (The ASN-0036 forms D-CTG, D-MIN, and D-SEQ are superseded by ASN-0047's per-subspace D-CTG★, D-MIN★, and D-SEQ★ in the unified state; they are therefore discharged in the "ASN-0047 Extended Invariants" subsection below rather than here.) We discharge each at Σ' from premises that survive in the unified state, listing per-invariant:
 
 - **S0 (ContentImmutability).** From R-FRAME-P/S(c) directly (`Σ'.C = Σ.C`). No S3 dependency.
 - **S1 (StoreMonotonicity).** Corollary of S0: the monotonicity `dom(Σ.C) ⊆ dom(Σ'.C)` follows from the equality `Σ'.C = Σ.C`.
@@ -96,9 +96,6 @@ The ASN-0036 invariants load-bearing in the unified state — those unchanged be
 - **S8a (VPositionWellFormedness).** Property of `dom(Σ'.M(d))` inherited from `dom(Σ.M(d))` via RA-dom: each V-position's well-formedness depends only on state-independent structural projections (`subspace(v)`, `#v`, `zeros(v)`, componentwise positivity) — properties of the tumbler value, not of the state.
 - **S8-fin (FiniteArrangement).** From RA-dom: `dom(Σ'.M(d)) = dom(Σ.M(d))` carries finiteness verbatim.
 - **S8-depth (FixedDepthVPositions).** From RA-dom together with the state-independent length projection `#v`.
-- **D-CTG (VContiguity).** From RA-dom together with state-independent ordering: contiguity of `V_S(d)` under the V-ordering is a property of the set of V-positions, preserved verbatim.
-- **D-MIN (VMinimumPosition).** From RA-dom: `min(V_S(d))` is determined by the set `V_S(d)`, which is unchanged.
-- **D-SEQ (SequentialPositions).** Corollary of D-CTG + D-MIN + S8-depth, all preserved above.
 
 Additionally, ASN-0093's substrate invariants M0 and M1 — which co-occur with ASN-0036's foundation invariants in the unified-state preservation obligation — are discharged here for completeness:
 
@@ -109,8 +106,11 @@ None of these per-invariant discharges consults pre-state S3 or pre-state S8, so
 
 ### Per-Invariant Discharges (ASN-0047 Extended Invariants)
 
-The ASN-0047 *extended* invariants — S3★, S3★-aux, CL-OWN, CL-UNIQ, P4★, and S8★ — lie outside R-SP's named scope and are discharged separately by REARRANGE_K's structural properties. The discharges rest on two structural facts: (a) by CS3 the cut subspace is `S = s_C`, so the link-subspace portion of `M(d)` is preserved pointwise (R-FRAME-P/S(a) gives `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ dom(Σ.M(d))` with `subspace(v) = s_L ≠ s_C = S`); (b) R-PPERM/R-SPERM construct π's branches confined to V-positions within each subspace, so `subspace(π(v)) = subspace(v)` constructively (the cut-sequence-specific strengthening of the abstract RE-subpres property derived earlier).
+The ASN-0047 *extended* invariants — D-CTG★, D-MIN★, D-SEQ★, S3★, S3★-aux, CL-OWN, CL-UNIQ, P4★, and S8★ — lie outside R-SP's named scope and are discharged separately. The per-subspace contiguity/minimum/sequential trio (D-CTG★/D-MIN★/D-SEQ★) follows from RA-dom alone plus state-independent per-subspace projections, mirroring the discharges of D-CTG/D-MIN/D-SEQ that R-SP's abstract argument supplied for the ASN-0036 forms — the per-subspace refinement does not introduce new state dependencies. The remaining extended invariants rest on two structural facts specific to REARRANGE_K: (a) by CS3 the cut subspace is `S = s_C`, so the link-subspace portion of `M(d)` is preserved pointwise (R-FRAME-P/S(a) gives `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ dom(Σ.M(d))` with `subspace(v) = s_L ≠ s_C = S`); (b) R-PPERM/R-SPERM construct π's branches confined to V-positions within each subspace, so `subspace(π(v)) = subspace(v)` constructively (the cut-sequence-specific strengthening of the abstract RE-subpres property derived earlier).
 
+- **D-CTG★ (PerSubspaceContiguity).** From RA-dom together with state-independent per-subspace ordering: for each subspace `S`, the contiguity of `V_S(d)` under the V-ordering on subspace `S` is a property of the set of V-positions of that subspace, preserved verbatim across `Σ → Σ'` since `dom(Σ'.M(d)) = dom(Σ.M(d))` (RA-dom) and the subspace projection `subspace(v) = v₁` is state-independent — hence `V_S(Σ') = V_S(Σ)` per subspace `S`, and contiguity transfers.
+- **D-MIN★ (PerSubspaceMinimumPosition).** From RA-dom: for each subspace `S`, `min(V_S(d))` is determined by the set `V_S(d)` under the per-subspace V-ordering, both of which are unchanged across the transition.
+- **D-SEQ★ (PerSubspaceSequentialPositions).** Corollary of D-CTG★ + D-MIN★ + S8-depth + S8-fin + S8a, each preserved above (D-CTG★ and D-MIN★ in this subsection; S8-depth, S8-fin, S8a in the ASN-0036 Foundation Invariants subsection).
 - **CL-OWN (LinkSubspaceOwnership).** `Σ'.M(d)|_{V_{s_L}(d)} = Σ.M(d)|_{V_{s_L}(d)}` pointwise (fact (a)), so every link-subspace V-position still maps to a link with `origin = d`.
 - **CL-UNIQ (LinkSubspacePositionUniqueness).** Same pointwise preservation: the partial-injection property of `M(d)|_{dom_L}` carries over verbatim from Σ to Σ'.
 - **S3★ (GeneralizedReferentialIntegrity).** Constructive subspace-preservation of π (fact (b)) combined with pre-state S3★ and the equalities `dom(Σ'.C) = dom(Σ.C)` (RE-C) and `dom(Σ'.L) = dom(Σ.L)` (RE-L). For every `v ∈ dom(Σ.M(d))`: by RA-π, `Σ'.M(d)(π(v)) = Σ.M(d)(v)`; by fact (b), `π(v)` lies in the same subspace as `v`; pre-state S3★ supplies a target in `dom(Σ.C)` (if `subspace(v) = s_C`) or `dom(Σ.L)` (if `subspace(v) = s_L`); RE-C / RE-L identify this target with the post-state store. So each post-state image lands in the store correct for its subspace, discharging S3★ at Σ' from constructive premises rather than from circular appeal to RA-adm.
