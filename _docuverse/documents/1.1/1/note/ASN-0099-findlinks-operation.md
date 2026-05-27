@@ -30,16 +30,16 @@ The single precondition `d ∈ dom(Σ.M)` is load-bearing so that `Σ.M(d)` is d
 findlinks(I, Σ) = {a ∈ dom(Σ.L) : (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)}
 ```
 
-The two phases compose into the reader-facing operation, defined as their composite:
+The two phases compose into the reader-facing operation, defined as their composite. We name the definitional unfolding so downstream derivations can cite it as a discrete step rather than re-unfolding `findlinks_V` from first principles each time:
 
 ```
-F12 (TwoPhaseFactoring) — definition of findlinks_V:
+F12 (TwoPhaseFactoring) — DEFINITION of findlinks_V (not a derived identity):
    findlinks_V(R, d, Σ)
      defined when  d ∈ dom(Σ.M)
      ≡             findlinks(image(R, d, Σ), Σ).
 ```
 
-F12 *defines* `findlinks_V` rather than asserting a substantive identity — there is no separate definition; the composite is the operation. The labeled-claim form is retained because downstream derivations (F6, V-side additivity, the worked example) cite F12 by name when unfolding `findlinks_V` to its two-phase form, and naming the definitional move keeps those derivations auditable. The single precondition is inherited from `image`'s `defined when` clause — `findlinks_V` is well-formed precisely when `image(R, d, Σ)` is. We restate it at the composite to keep the document-existence requirement visible at the call site. The treatment of the two failure modes is asymmetric and worth stating explicitly. (i) Document non-existence: for `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined* — `image(R, d, Σ)` has no value at such `d`, and the composite inherits the undefinedness. The caller is responsible for establishing `d ∈ dom(Σ.M)` before invoking the V-side operation; no silent fallback (empty set, error sentinel) is supplied at the abstract specification level. (ii) Position non-existence: for `d ∈ dom(Σ.M)` and V-positions in `R` that lie outside `dom(Σ.M(d))`, those positions are silently projected away by `image` and do not impose a pre-validation obligation on the caller; this is the only treatment that gives a total operation over `R ⊆ T` for a fixed allocated document.
+F12 is a definition: it introduces no claim over and above the abstract definition of `findlinks_V`, and the equivalence holds by stipulation. The "F12" label exists only as a citation handle so downstream derivations (F6, V-side additivity, the worked example) can name the definitional move when unfolding `findlinks_V` to its two-phase form. Readers auditing a chain of derivations should treat "by F12" as "by definition" — equivalent in epistemic force to "by F8's hypothesis" but applied to a definitional equation rather than a derived implication. The single precondition is inherited from `image`'s `defined when` clause — `findlinks_V` is well-formed precisely when `image(R, d, Σ)` is. We restate it at the composite to keep the document-existence requirement visible at the call site. The treatment of the two failure modes is asymmetric and worth stating explicitly. (i) Document non-existence: for `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined* — `image(R, d, Σ)` has no value at such `d`, and the composite inherits the undefinedness. The caller is responsible for establishing `d ∈ dom(Σ.M)` before invoking the V-side operation; no silent fallback (empty set, error sentinel) is supplied at the abstract specification level. (ii) Position non-existence: for `d ∈ dom(Σ.M)` and V-positions in `R` that lie outside `dom(Σ.M(d))`, those positions are silently projected away by `image` and do not impose a pre-validation obligation on the caller; this is the only treatment that gives a total operation over `R ⊆ T` for a fixed allocated document.
 
 The factoring matters because the two phases have entirely different stability properties. The arrangement `Σ.M` is mutable: K.μ⁺, K.μ⁻, K.μ~, and K.μ⁺_L all modify it. The link store `Σ.L` is monotonic: K.λ adds to it, and L12 (ASN-0093) forbids any modification of existing entries. Phase 1 consults the mutable component; phase 2 consults the monotonic component. This separation will let us conclude later that link discovery is fundamentally a property of `(Σ.L, I)`, with the arrangement entering only to translate V-input into I-input.
 
@@ -107,7 +107,11 @@ The derivation is immediate from F1 under existential introduction: any singleto
 
 *Cardinality threshold (`|coverage(Σ.L(a).eᵢ) ∩ I| ≥ k` for any fixed `k > 1`).* Witness: the same canonical span `(α, δ(1, #α))` (so `coverage(Σ.L(a).eᵢ) = {t : α ≼ t}`) and `I = {α}`. Then `coverage(Σ.L(a).eᵢ) ∩ I = {α}` (as computed in the first witness above), so F1 includes `a` via the singleton intersection; but `|{α}| = 1 < k`, so the strengthening excludes `a`. The argument is parametric in `k > 1`: a singleton intersection witnesses F1's existential and lies below every threshold strictly greater than one.
 
-*Any other refinement.* F1's structural minimality is the abstract claim: any predicate `P` that fails on some `(a, I)` pair admitted by F1 — equivalently, that excludes some link F1 includes for some query — defines a different match predicate. The argument is immediate from set-theoretic minimality: an existential `(E i : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` is satisfied by any single witness pair, so a strictly stronger predicate must reject at least one witness pair F1 admits, and that rejection is exactly an excluded link. The three enumerated cases above each name a specific failure shape and discharge it with an explicit canonical-span witness. The abstract uniqueness statement is unconditional and does not depend on the witness construction — any `P` that excludes some F1-admitted pair `(a, I)` is, by that excluded pair alone, a different match predicate, regardless of whether the pair takes canonical-span form. The canonical-span construction we exhibit is one realizability check per enumerated class, demonstrating that each of the three named strengthening shapes has a concrete excluded witness in conforming states; further strengthening classes can be discharged by the same construction pattern when a canonical witness applies, but the abstract uniqueness conclusion stands regardless of whether such a realization is exhibited.
+*Any other refinement (reachable exclusions).* We strengthen the universal claim: any predicate `P` that excludes a *reachable* F1-admitted pair `(a, I)` — meaning `(a, I)` is realizable as a link configuration and query I-set in some conforming state — defines a different match predicate, and the implementation gap is operationally observable as an excluded link in that state. The qualification on reachability matters: an unreachable exclusion would produce a `P` and an F1 that agree on all conforming behavior, making the distinction predicate-definitional rather than operational. We close this gap by showing that the entire space of F1-admitted pairs is reachable.
+
+The realizability discharge is global. For any candidate F1-admitted pair `(a, I)` — a link with arbitrary endset configuration and an arbitrary query I-set — we exhibit a conforming state in which `(a, I)` realizes. The construction extends any base state Σ with `dom(Σ.M) ≠ ∅` as follows. K.λ (LinkAllocation, ASN-0093) admits, at any such state, the allocation of a link with arity `N ≥ 3` whose endset sequence `(e₁, ..., e_N)` is freely chosen subject only to K.λ's well-formedness preconditions: each `eᵢ ∈ Endset` (well-formed span-set) and `e₃ ≠ ∅` (non-empty type slot). L4 (ASN-0043) places no constraint on which addresses the spans in any endset may reference. The query I-set is independent of state — it is a parameter of the query, not a state component — so any `I ⊆ T` is admissible. Therefore any pair `(a, I)` satisfying F1's existential at some slot `i` (i.e., a link `a` with endset configuration such that `coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅` for some `i ∈ {1, …, |Σ.L(a)|}`) is realizable as a conforming state extending some base via a single K.λ step. The three enumerated cases above are concrete instances of this construction at canonical-span coverage shapes; the general result covers every F1-admitted pair regardless of coverage shape.
+
+Combined with the strengthened universal claim, the realizability discharge gives operational minimality: any strengthening that excludes any F1-admitted pair excludes a witness that some conforming state realizes, and the implementation gap is observable as an excluded link in that state. The abstract uniqueness conclusion is therefore not merely predicate-theoretic but operationally binding — F1 is the unique match predicate satisfying both halves of the conformance contract over all reachable F1-admissions.
 
 The reader's promise rests on this singleton-overlap reading, as argued above for the "Why intersection" choice: a link is about every byte its endset names (L13, ASN-0043), and one shared byte is one shared byte. F4 records that this minimality is not optional: alternative match formulas are alternative operations, not alternative implementations of FINDLINKS. Conforming implementations are bound to F1 as the unique match predicate against which F2 ∧ F3 are evaluated.
 
@@ -227,45 +231,63 @@ A direct consequence: the two phases compose unambiguously. Once `I = image(R, d
 
 ## Arrangement Independence
 
-The I→Link phase consults `Σ.L` and `I` alone. It does not consult any arrangement. F8 already encodes this in its hypothesis `Σ.L = Σ'.L`: `Σ.M` is unmentioned, so two states agreeing on the link store give equal results regardless of how their arrangements differ. Before stating the operationally salient specialisation as the frame condition exercised by editing operations, we surface one structural premise on which the derivation of survivability rests.
+The I→Link phase consults `Σ.L` and `I` alone. It does not consult any arrangement. F8 already encodes this in its hypothesis `Σ.L = Σ'.L`: `Σ.M` is unmentioned, so two states agreeing on the link store give equal results regardless of how their arrangements differ. Before stating the operationally salient specialisation as the frame condition exercised by editing operations, we surface one structural invariant of the substrate on which the derivation of survivability rests.
 
-Operation effects/frames in this specification family are stated by ASN-0093 and ASN-0047 in side-by-side fashion: an *effect* clause names what changes, and a *frame* clause names what does not. ASN-0093's operation specifications list every preserved component explicitly — K.σ, for instance, ends its frame with `L' = L`. Several operations in ASN-0047 omit `L` from their published frames: K.μ⁺ (its frame names only `C`, `E`, `R`, and per-document arrangement), K.μ⁻ (likewise), and K.ρ (whose frame names only `C`, `E`, and per-document arrangement). To bridge this gap we make explicit the interface contract that every operation specification in V must satisfy:
+ASN-0093's operation specifications list every preserved component explicitly — K.σ, K.α, and K.λ each end with `L' = L`. Several operations in ASN-0047 omit `L` from their published frames: K.μ⁺ (its frame names only `C`, `E`, `R`, and per-document arrangement), K.μ⁻ (likewise), and K.ρ (whose frame names only `C`, `E`, and per-document arrangement). We do not infer preservation from this silence. Instead, we surface a substrate-level structural invariant — confirmed by both Nelson's design intent and Gregory's implementation evidence — that pins down the preservation directly:
 
 ```
-A1 (EffectClauseExhaustivity):
-   Vocabulary scope (scope of the contract): A1's scope is exactly the
-   operation vocabulary V published in ASN-0047 and ASN-0093 at the
-   time this ASN was written — V = {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻,
-   K.μ~, K.μ⁺_L, K.ρ}. The enumeration is binding: A1 is a discharge
-   premise this ASN consumes against the substrate as currently
-   published, not a forward obligation on substrate evolution. Future
-   revisions of ASN-0047 or ASN-0093 that extend, replace, or remove
-   operations are outside A1's reach, and downstream ASNs that consume
-   F9 or F9-cor against an evolved vocabulary must restate the
-   discharge premise against the then-current operation set.
+A1 (LinkStoreInertOfNonAllocatingOperations):
+   For every transition Σ → Σ' produced by an operation in V ∖ {K.λ} —
+   that is, K.σ, K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, or K.ρ — the
+   link store is preserved:
+       dom(Σ'.L) = dom(Σ.L) ∧ (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a)).
+   Equivalently, K.λ is the unique operation of the substrate
+   vocabulary V that modifies the link store.
 
-   Contract (obligation on every operation specification in the
-   enumerated V): The operation's stated effect clause must name every
-   state-component modification the operation makes. Equivalently: any
-   state component not appearing in either the effect clause or the
-   frame clause is required to be unchanged across the transition. An
-   operation specification whose published effect clause omits a
-   modification it actually performs is non-conforming.
+   Vocabulary scope: V = {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~,
+   K.μ⁺_L, K.ρ} as published in ASN-0047 and ASN-0093 at the time this
+   ASN was written. Downstream ASNs consuming A1 against an evolved
+   vocabulary must restate the claim against the then-current
+   operation set.
 
-   Transience: A1 is a transient assumption pending the ASN-0047
-   revision proposed in the Open Questions — adding `L' = L` to K.μ⁺'s,
-   K.μ⁻'s, and K.ρ's published frames. Once that revision lands, A1
-   reverts to a recorded contract with no active deductive role in this
-   ASN, and the load-bearing premise for F9's K.μ⁺/K.μ⁻ cases and
-   F9-cor's K.ρ case is discharged from each operation's own published
-   frame.
+   Discharge: K.σ, K.α, K.δ, K.μ~, and K.μ⁺_L state `L' = L` directly
+   in their published frame clauses (ASN-0047, ASN-0093). K.λ is
+   the operation excluded from A1's scope (it modifies `L` by its
+   effect clause). For the remaining three operations — K.μ⁺, K.μ⁻,
+   and K.ρ — whose published frames in ASN-0047 do not name `L` — the
+   preservation is established by two converging sources of authority:
+
+   (1) Design intent (Nelson). Link allocation is reserved to a single
+   creation primitive (MAKELINK at the FEBE level, K.λ in V), and the
+   architectural promise that "links between bytes can survive
+   deletions, insertions and rearrangements, if anything is left at
+   each end" presupposes that K.μ⁺ and K.μ⁻ leave the link store
+   unmodified — link survivability is a structural property dependent
+   on this preservation. Stable order-of-arrival addressing of links
+   would be incoherent if any operation other than K.λ could allocate
+   into `dom(L)`. Provenance is structural rather than metadata-
+   bearing: it emerges from the I-address itself (the address records
+   its home document), so no link-store mutation is required for K.ρ
+   to record provenance.
+
+   (2) Implementation evidence (Gregory, udanax-green). Link endpoint
+   records (the LINKFROMSPAN, LINKTOSPAN, and LINKTHREESPAN entries in
+   the spanfilade) are written exclusively by the link-creation
+   routine CREATELINK. Content-extension and provenance-recording
+   routines write only to the document-content portion of the
+   spanfilade (DOCISPAN entries); content-contraction routines do not
+   write to the spanfilade at all. No content-editing or
+   provenance-recording operation in the realized implementation
+   modifies link endpoint records, confirming the design intent.
+
+   A1 is therefore a structural invariant of the substrate confirmed
+   by both authorities, not an inference from frame-clause silence.
+   The invariant is load-bearing across F9, F9★, F9★-cor, F9-cor,
+   F17, and F18 wherever the `Σ.L = Σ'.L` hypothesis must be
+   discharged for an operation whose published frame omits `L`.
 ```
 
-A1 is not a passive observation about current text — it is an explicit interface contract that every operation specification in the enumerated V must satisfy, and that this ASN treats as part of the published interface against which it specifies FINDLINKS. Two consequences follow.
-
-*First, A1 is the obligation discharged differently by ASN-0093 and ASN-0047.* ASN-0093's K.σ honours the contract directly by listing `L' = L` in its frame; the K.σ specification is conforming on the contract's own terms with no further argument required. ASN-0047's K.μ⁺, K.μ⁻, and K.ρ leave `L` unmentioned in their published frames; under A1 this silence is constrained to mean *no modification*, and any implementation of these operations that modifies `L` violates the contract and is non-conforming. The contract is therefore the bridge across which this ASN's derivations transport the unmentioned `L' = L` conjunct from ASN-0047's frames into F9's `Σ.L = Σ'.L` hypothesis.
-
-*Second, A1's load-bearing role is bounded and can be discharged by ASN-0047 revision.* A1 is load-bearing in this ASN for exactly three operations of V: K.μ⁺, K.μ⁻, and K.ρ. F9's derivation invokes A1 at the K.μ⁺ and K.μ⁻ cases; the K.ρ case enters via the unified corollary to F9 (below) and is reused for K.ρ in any composite that records provenance. Query 4 of the Worked Example exercises K.μ⁻. The natural path to eliminate A1 from this ASN's derivations is the ASN-0047 revision proposed in the Open Questions: adding `L' = L` to K.μ⁺'s, K.μ⁻'s, and K.ρ's published frames discharges F9's hypothesis from each operation's own text rather than through A1, after which A1 reverts to a recorded contract with no active deductive role. Until that revision lands, A1 stands as the contract this ASN consumes from ASN-0047 (and ASN-0093) — scoped strictly to the published vocabulary at the time of writing, with no claim on the substrate's future revisions.
+A1's load-bearing role in this ASN is bounded to exactly three operations of V — K.μ⁺, K.μ⁻, and K.ρ — and these are precisely the operations for which the consultation evidence directly establishes the preservation. The five remaining non-allocating operations (K.σ, K.α, K.δ, K.μ~, K.μ⁺_L) inherit the preservation from their own published frame clauses, so A1 is the bridge across which this ASN's derivations transport the unmentioned `L' = L` conjunct from ASN-0047's frames for the three operations where the published text is silent.
 
 We now state the specialisation:
 
@@ -276,19 +298,17 @@ F9 (LinkSurvivabilityUnderEdits):
    K.μ~ (reordering), or K.μ⁺_L (link extension) — and any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   Premise: A1 (EffectClauseExhaustivity), invoked at the K.μ⁺ and K.μ⁻
-   sub-cases of the derivation below.
+   Premise: A1 (LinkStoreInertOfNonAllocatingOperations), invoked at the
+   K.μ⁺ and K.μ⁻ sub-cases of the derivation below.
 ```
 
 F9 follows from F8 once we observe that `Σ'.L = Σ.L` at every K.μ-family transition. The derivation splits into two cases.
 
 *K.μ~ and K.μ⁺_L.* These operations state `L' = L` explicitly in their frame clauses (ASN-0047), so the F8 hypothesis is satisfied directly from the published frame.
 
-*K.μ⁺ and K.μ⁻.* These operations do not list `L` in their published frames in ASN-0047 — their frames cover `C`, `E`, `R`, and the per-document arrangement clause `(A d' : d' ≠ d : M'(d') = M(d'))`, but say nothing about `L`. We derive `Σ.L = Σ'.L` by combining L12 (LinkImmutability, ASN-0093) with A1.
+*K.μ⁺ and K.μ⁻.* These operations do not list `L` in their published frames in ASN-0047 — their frames cover `C`, `E`, `R`, and the per-document arrangement clause `(A d' : d' ≠ d : M'(d') = M(d'))`, but say nothing about `L`. A1 (LinkStoreInertOfNonAllocatingOperations) supplies the preservation as a structural invariant of the substrate, established by the convergence of design intent (link allocation reserved to K.λ; link survivability across content edits requires the link store to be invariant under K.μ⁺ and K.μ⁻) and implementation evidence (link endpoint records written only by the link-allocation routine in udanax-green). A1's conclusion `dom(Σ'.L) = dom(Σ.L) ∧ (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a))` at every K.μ⁺ and K.μ⁻ transition is `Σ.L = Σ'.L` as partial functions. This is consistent with — and in the value-preservation conjunct, exactly the restriction to existing entries of — L12 (LinkImmutability, ASN-0093). The F8 hypothesis is satisfied at K.μ⁺ and K.μ⁻ transitions.
 
-First, L12 gives `(A a ∈ dom(Σ.L) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` at every transition. This yields the inclusion `Σ.L ⊆ Σ'.L` as partial functions: every existing entry persists in `dom(Σ'.L)` with its value unchanged. The remaining question is whether `dom(Σ'.L) ∖ dom(Σ.L)` can be non-empty at a K.μ⁺ or K.μ⁻ step — that is, whether either operation can add new links.
-
-Second, we enumerate the link-modifying operations. The full operation vocabulary is exactly {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ} — no other operations modify the system state. Among these, K.λ is the unique operation whose effect clause names `L`: K.λ's effect is `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}` (ASN-0093 K.λ). Every other operation's effect clause modifies only non-L state components — K.σ modifies `dom(M)` and `M(d_new)`; K.α modifies `C`; K.δ modifies `E` (and `M(d_new)` in the IsDocument case); K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L modify a specific `M(d)`; K.ρ modifies `R`. Invoking A1, the absence of `L` from the effect clauses of K.μ⁺ and K.μ⁻ forces `dom(Σ'.L) = dom(Σ.L)` at K.μ⁺ and K.μ⁻ steps. Combined with L12, this gives `Σ.L = Σ'.L`.
+For completeness, the substrate-level view of which operations modify `L`: the full operation vocabulary is exactly {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ}. Among these, K.λ is the unique operation whose effect clause names `L`: K.λ's effect is `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}` (ASN-0093 K.λ). Every other operation's effect clause modifies only non-L state components — K.σ modifies `dom(M)` and `M(d_new)`; K.α modifies `C`; K.δ modifies `E` (and `M(d_new)` in the IsDocument case); K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L modify a specific `M(d)`; K.ρ modifies `R`. A1 packages this enumeration together with the consultation-grounded preservation conclusion into the single structural invariant that K.λ is the unique L-modifying operation in V.
 
 We state F9 separately because it names the operation classes by which arrangements actually change, and so reads as a direct survivability promise: editing does not invalidate discovery. K.α, K.λ, K.δ, K.ρ, and K.σ touch one of the non-arrangement components and so fall outside F9's scope; the K.μ family is exactly the editing surface against which links must remain findable.
 
@@ -300,11 +320,11 @@ F9-cor (NonAllocatingPreservation):
        findlinks(I, Σ) = findlinks(I, Σ').
 ```
 
-By F8, it suffices to verify `Σ.L = Σ'.L` at every such transition. Splitting V ∖ {K.λ} by the source of the preservation: K.σ, K.α, K.δ, K.μ~, and K.μ⁺_L each name `L' = L` directly in the published frame; K.μ⁺, K.μ⁻, and K.ρ omit `L` from the published frame and inherit `Σ.L = Σ'.L` from the L12 + A1 derivation given for K.μ⁺/K.μ⁻ above, with K.ρ's argument structurally identical (its effect modifies only `R`, so A1 forces `dom(Σ'.L) = dom(Σ.L)`, and L12 fixes the values).
+By F8, it suffices to verify `Σ.L = Σ'.L` at every such transition. Splitting V ∖ {K.λ} by the source of the preservation: K.σ, K.α, K.δ, K.μ~, and K.μ⁺_L each name `L' = L` directly in the published frame; K.μ⁺, K.μ⁻, and K.ρ omit `L` from the published frame and inherit `Σ.L = Σ'.L` from A1 (LinkStoreInertOfNonAllocatingOperations), which covers all three operations uniformly as part of its enumeration of V ∖ {K.λ}. K.ρ enters A1's scope on the same structural footing as K.μ⁺ and K.μ⁻ — its effect modifies only `R`, and Nelson's design intent (structural provenance via I-address attribution) together with Gregory's implementation evidence (no link-store mutation in provenance-recording routines) establishes preservation at K.ρ.
 
 K.δ has three sub-cases (IsNode, IsAccount, IsDocument), and the IsDocument sub-case modifies `M(d_new)` (setting it to `∅`) in addition to extending `E`. F9-cor's conclusion `findlinks(I, Σ) = findlinks(I, Σ')` is unaffected by this M-modification: the comprehension `findlinks(I, Σ) = {a ∈ dom(Σ.L) : matches(a, I, Σ)}` consults only `dom(Σ.L)`, the link values `Σ.L(a)`, and the query I-set, never `Σ.M`. K.δ's published frame includes `L' = L` uniformly across its three sub-cases, so F8's hypothesis `Σ.L = Σ'.L` is satisfied for K.δ as a whole regardless of which sub-case fires. (The V-side companion claim — that `findlinks_V(R, d, Σ) = findlinks_V(R, d, Σ')` across a K.δ-IsDocument step that introduces a fresh document — is the subject of ASN-0098's LP8 and is not what F9-cor asserts; F9-cor scopes to the I-level operation.)
 
-F9-cor surfaces the full dependency surface of A1 in one place: only K.μ⁺, K.μ⁻, and K.ρ require A1 to discharge the F8 hypothesis. K.λ is the only operation of V that can change `findlinks(I, ·)` across a single step, and F19 below confirms that the change is monotone — additions only, never removals.
+F9-cor surfaces the full dependency surface of A1 in one place: only K.μ⁺, K.μ⁻, and K.ρ require A1 to discharge the F8 hypothesis, and these are precisely the three operations for which A1 is the load-bearing premise. K.λ is the only operation of V that can change `findlinks(I, ·)` across a single step, and F19 below confirms that the change is monotone — additions only, never removals.
 
 F9 lifts to multi-step sequences only under restrictive conditions. Operationally relevant sequences interleave K.λ with K.μ-family steps, and a K.λ step that allocates a new matching link adds to the result without removing anything — so findlinks-equality fails along the direction of strict growth. The multi-step claim that holds across every reachable sequence is the weaker inclusion `findlinks(I, Σ) ⊆ findlinks(I, Σ')`, which is F11 (PersistentDiscoverability) below; F11's derivation uses LP13 (UnconditionalLinkPersistence, ASN-0098) and does not invoke F9. The edit-only specialization, however, lifts to equality and is worth stating explicitly:
 
@@ -315,10 +335,26 @@ F9★ (EditOnlySurvivability):
    I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   Premise: A1 (EffectClauseExhaustivity), invoked once per K.μ⁺ and K.μ⁻ step.
+   Premise: A1 (LinkStoreInertOfNonAllocatingOperations), invoked once per
+   K.μ⁺ and K.μ⁻ step.
 ```
 
 The derivation is the per-step F9 chained by transitivity. Each step satisfies `Σᵢ.L = Σᵢ₊₁.L` by F9's derivation (drawing on A1 for the K.μ⁺ and K.μ⁻ sub-cases). Transitivity of equality across the finite chain yields `Σ.L = Σ₀.L = Σ₁.L = ... = Σₙ.L = Σ'.L`. F8 then forces `findlinks(I, Σ) = findlinks(I, Σ')`. F9★ is the multi-step closure of F9 within the edit-only fragment of the operation vocabulary; the moment a K.λ enters the sequence, the claim collapses to the strict inclusion of F11/F19.
+
+F9★ naturally generalizes from the K.μ-family to the full non-allocating fragment V ∖ {K.λ}: editing operations are not the only ones that preserve `findlinks(I, ·)`, since by F9-cor every operation in V ∖ {K.λ} does. The multi-step closure across this broader fragment is the natural lift of F9-cor:
+
+```
+F9★-cor (NonAllocatingMultiStepPreservation):
+   For any reachable transition sequence Σ = Σ₀ → Σ₁ → ... → Σₙ = Σ' in which
+   every step Σᵢ → Σᵢ₊₁ is an operation in V ∖ {K.λ} — that is, any of K.σ,
+   K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, or K.ρ — and any I ⊆ T:
+       findlinks(I, Σ) = findlinks(I, Σ').
+
+   Premise: A1 (LinkStoreInertOfNonAllocatingOperations), invoked once per
+   K.μ⁺, K.μ⁻, and K.ρ step in the sequence.
+```
+
+The derivation is the per-step F9-cor chained by transitivity. Each step satisfies `Σᵢ.L = Σᵢ₊₁.L` by F9-cor's derivation: K.σ, K.α, K.δ, K.μ~, and K.μ⁺_L from their own published `L' = L` frames, and K.μ⁺, K.μ⁻, K.ρ from A1. Transitivity of equality across the finite chain yields `Σ.L = Σ₀.L = ... = Σₙ.L = Σ'.L`, and F8 forces `findlinks(I, Σ) = findlinks(I, Σ')`. F9★ is the specialization of F9★-cor to the K.μ-family fragment alone, kept as a separate named claim because the operationally salient sequence in the editing surface is exactly K.μ-only and reads as a direct survivability promise; F9★-cor covers the broader case of sequences that interleave editing with content allocation, document registration, or provenance recording — common in practice once the substrate accumulates non-trivial state. Both claims collapse to the strict inclusion of F11/F19 the moment a K.λ enters the sequence.
 
 The V→I phase is sensitive to arrangement, of course — querying the same V-region before and after an edit may yield different I-images. But the link result for any *fixed* I-set is invariant under every K.μ-family step and monotone non-decreasing across every reachable sequence. The two-phase factoring keeps these concerns separate: V-volatility lives in phase 1; phase 2 is arrangement-blind in the K.μ-only setting and monotone in the general setting.
 
@@ -566,7 +602,7 @@ The three prefix-subtrees over `α₁, α₂, α₃` are pairwise disjoint: each
 
 **Verifying F5 (IdentityNotValue) against the instance.** Slot 1's coverage at `ℓ` is `{t : α₂ ≼ t}`, so `matches(ℓ, {α₂}, Σ) = true` (via slot 1: `α₂ ≼ α₂` puts `α₂` in the intersection with `{α₂}`) while `matches(ℓ, {α₃}, Σ) = true` only via slot 2 — the slot 1 test against `{α₃}` evaluates `{t : α₂ ≼ t} ∩ {α₃} = ∅` (since `α₂ ⋠ α₃`) and so does not fire. The slot 1 decision turns entirely on which I-addresses extend `α₂` as tumblers. The content values `v₂, v₃ ∈ Val` at `α₂, α₃` are never consulted: even if the writer of `d_a` had stored `v₂ = v₃` (the same value at distinct addresses), the slot 1 test would still discriminate `{α₂}` from `{α₃}` — the address-level intersection `{t : α₂ ≼ t} ∩ {α₃} = ∅` is decided by `α₂ ⋠ α₃` (their last components disagree, 2 vs 3), itself a consequence of GlobalUniqueness (ASN-0034) which forced these addresses to be distinct in the first place. F5 says the match predicate factors through the address space, not through the value space; this instance exhibits the factoring directly.
 
-**Query 4: Survivability under arrangement edit (F11, F9).** Apply a K.μ⁻ transition to `d_a` retaining only the first content position: the post-state Σ' has `Σ'.M(d_a) = {v_a^1 ↦ α₁}`, with `v_a^2` and `v_a^3` removed from `dom(Σ'.M(d_a))` (so `α₂` and `α₃` are no longer in `ran(Σ'.M(d_a))`). The link store is untouched by K.μ⁻ — its effect clause names only `M(d_a)`, so by A1 (EffectClauseExhaustivity), `L' = L` — so `dom(Σ'.L) = {ℓ, ℓ', ℓ_meta}` and each link's value is preserved (`Σ'.L(·) = Σ.L(·)` per L12 + A1). Re-evaluate `findlinks({α₂}, Σ')`: the match predicate at `ℓ` tests slot 1, `coverage(Σ'.L(ℓ).e₁) ∩ {α₂} = {α₂} ≠ ∅`, so `matches(ℓ, {α₂}, Σ') = true`. `ℓ'`'s endsets still do not meet `{α₂}`, and ℓ_meta's endsets remain subspace/τ-disjoint from `{α₂}` (Query 1's reasoning carries over since per-link endset values are preserved). The result is `{ℓ}`, the same as Query 1's pre-edit result.
+**Query 4: Survivability under arrangement edit (F11, F9).** Apply a K.μ⁻ transition to `d_a` retaining only the first content position: the post-state Σ' has `Σ'.M(d_a) = {v_a^1 ↦ α₁}`, with `v_a^2` and `v_a^3` removed from `dom(Σ'.M(d_a))` (so `α₂` and `α₃` are no longer in `ran(Σ'.M(d_a))`). The link store is untouched by K.μ⁻: K.μ⁻ falls in V ∖ {K.λ}, so by A1 (LinkStoreInertOfNonAllocatingOperations) the structural invariant `dom(Σ'.L) = dom(Σ.L) ∧ (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a))` holds across the step — `dom(Σ'.L) = {ℓ, ℓ', ℓ_meta}` and each link's value is preserved (`Σ'.L(·) = Σ.L(·)`), consistent with L12. Re-evaluate `findlinks({α₂}, Σ')`: the match predicate at `ℓ` tests slot 1, `coverage(Σ'.L(ℓ).e₁) ∩ {α₂} = {α₂} ≠ ∅`, so `matches(ℓ, {α₂}, Σ') = true`. `ℓ'`'s endsets still do not meet `{α₂}`, and ℓ_meta's endsets remain subspace/τ-disjoint from `{α₂}` (Query 1's reasoning carries over since per-link endset values are preserved). The result is `{ℓ}`, the same as Query 1's pre-edit result.
 
 This exercises F11 directly: the link survives the arrangement edit because its endset references `α₂`'s I-address (not `v_a^2`'s V-position), and `α₂`'s identity is preserved by content immutability (C0, ASN-0093). It also exercises F9 — the K.μ⁻ transition is a K.μ-family step satisfying F9's frame condition, so `findlinks({α₂}, Σ) = findlinks({α₂}, Σ')` is guaranteed before we re-evaluate the comprehension. The V-side query `findlinks_V({v_a^2}, d_a, Σ')` remains well-formed under the projection semantics of `image`: `{v_a^2} ∩ dom(Σ'.M(d_a)) = ∅` (since `v_a^2` was contracted out), so `image({v_a^2}, d_a, Σ') = ∅` and `findlinks_V({v_a^2}, d_a, Σ') = findlinks(∅, Σ') = ∅`. The reader who previously queried `α₂` via `v_a^2` now receives an empty V-side answer through that route and must reach `α₂` via a surviving V-position — `d_b`'s transclusion suffices: `findlinks_V({v_b^1}, d_b, Σ')` images to `{α₂}` and recovers `ℓ`. The link's I-side identity persists; the V-side query surface has shrunk while the link-side survivability has not.
 
@@ -592,7 +628,7 @@ The reader who selects the V-position `v_a^L` in `d_a` — a position arranged i
 
 **Verifying F15 (FilteredDeterminism) at Σ vs. Σ''.** The K.μ~ transition of Query 7 preserves `Σ.L` exactly (by K.μ~'s published `L' = L` frame), so `Σ''.L = Σ.L`. F15's hypothesis is satisfied, and F15 predicts `findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ) = findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ'')`. Direct evaluation at Σ'' confirms: at `ℓ`, slot 1 covers `{t : α₂ ≼ t}` (unchanged from Σ by L12) and meets `{α₂}` in `{α₂}`; slot 2 covers `{t : α₃ ≼ t}` and meets `{α₃}` in `{α₃}`; both constraints hold. At `ℓ'`, slot 1's intersection with `{α₂}` is empty, the universal fails. At `ℓ_meta`, slot 1 covers `{t : ℓ ≼ t}` (subspace-disjoint from `{α₂}`); the slot-1 constraint fails. Result: `{ℓ}`, matching Query 5's pre-K.μ~ evaluation. The arrangement permutation did not perturb the filtered answer because the filtered predicate consults only `(Σ.L, C)` and `Σ.L` is invariant under K.μ~.
 
-**Verifying F17 (FilteredSurvivability) across Query 4's K.μ⁻.** Query 4's K.μ⁻ transition Σ → Σ' contracts `d_a` to `{v_a^1 ↦ α₁}`, but by F9-cor (with K.μ⁻ inheriting `Σ.L = Σ'.L` via the L12 + A1 derivation), `Σ'.L = Σ.L`. F17 then predicts `findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ) = findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ')`. Direct evaluation at Σ' confirms: at `ℓ`, slot 1 coverage and slot 2 coverage are both unchanged from Σ (L12), so both constraints continue to hold and `ℓ` is in the filtered result. At `ℓ'`, slot 1 still fails the `{α₂}` test, so `ℓ'` is excluded. At `ℓ_meta`, slot 1's subspace mismatch persists, so the slot-1 constraint still fails. Result: `{ℓ}`, matching Query 5's pre-edit evaluation. The reader's "from `α₂` to `α₃`" query survives the contraction in the I-side answer; the V-side query surface has shrunk (no V-position in `d_a` now maps to `α₂` or `α₃`), but the filtered link-side answer at the fixed `(I_from, I_to)` is invariant.
+**Verifying F17 (FilteredSurvivability) across Query 4's K.μ⁻.** Query 4's K.μ⁻ transition Σ → Σ' contracts `d_a` to `{v_a^1 ↦ α₁}`, but by F9-cor (with K.μ⁻ inheriting `Σ.L = Σ'.L` from A1), `Σ'.L = Σ.L`. F17 then predicts `findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ) = findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ')`. Direct evaluation at Σ' confirms: at `ℓ`, slot 1 coverage and slot 2 coverage are both unchanged from Σ (L12), so both constraints continue to hold and `ℓ` is in the filtered result. At `ℓ'`, slot 1 still fails the `{α₂}` test, so `ℓ'` is excluded. At `ℓ_meta`, slot 1's subspace mismatch persists, so the slot-1 constraint still fails. Result: `{ℓ}`, matching Query 5's pre-edit evaluation. The reader's "from `α₂` to `α₃`" query survives the contraction in the I-side answer; the V-side query surface has shrunk (no V-position in `d_a` now maps to `α₂` or `α₃`), but the filtered link-side answer at the fixed `(I_from, I_to)` is invariant.
 
 The example is small enough to inspect by eye, and the abstract definitions reduce to elementary set operations. Larger instances scale the same way: each link tests independently, slot existentials collect witnesses, and the comprehension assembles the answer.
 
@@ -634,13 +670,13 @@ The reverse claim is equally true. None of these design choices could have been 
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| `image(R, d, Σ)` | I-image of a V-region with silent projection: `{Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}` | introduced |
-| `matches(a, I, Σ)` | Match predicate: `(E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` | introduced |
-| `findlinks(I, Σ)` | Discovery operation: `{a ∈ dom(Σ.L) : matches(a, I, Σ)}` | introduced |
-| `findlinks_V(R, d, Σ)` | Two-phase composite: `findlinks(image(R, d, Σ), Σ)` | introduced |
-| `findlinks_filtered(C, Σ)` | Filtered form with slot constraints `C` | introduced |
-| `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | introduced |
-| A1 | EffectClauseExhaustivity (transient interface contract on every operation specification in the enumerated V at the time of writing): the effect clause must name every modified state component, so silence in the frame is binding preservation; scope strictly bounded to the published vocabulary, no forward obligation on substrate evolution | introduced |
+| `image(R, d, Σ)` | I-image of a V-region with silent projection: `{Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}` | definition |
+| `matches(a, I, Σ)` | Match predicate: `(E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` | definition |
+| `findlinks(I, Σ)` | Discovery operation: `{a ∈ dom(Σ.L) : matches(a, I, Σ)}` | definition |
+| `findlinks_V(R, d, Σ)` | Two-phase composite: `findlinks(image(R, d, Σ), Σ)` (see F12) | definition |
+| `findlinks_filtered(C, Σ)` | Filtered form with slot constraints `C` | definition |
+| `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | definition |
+| A1 | LinkStoreInertOfNonAllocatingOperations: K.λ is the unique operation in V that modifies the link store; every operation in V ∖ {K.λ} preserves `Σ.L`. Grounded in design intent (link allocation reserved to MAKELINK; link survivability under content edits) and implementation evidence (link endpoint records written only by CREATELINK in udanax-green) | introduced |
 | F1 | Match predicate as set-theoretic overlap, existential over slots | introduced |
 | F2 | Completeness: every matching link in `dom(Σ.L)` appears in the result | introduced |
 | F3 | Soundness: every link in the result is in `dom(Σ.L)` and matches | introduced |
@@ -648,17 +684,18 @@ The reverse claim is equally true. None of these design choices could have been 
 | F3-filt | Filtered soundness: every link in `result_filtered(C, Σ)` is in `dom(Σ.L)` and satisfies every constraint in `C` | introduced |
 | F2-sco | Scoped completeness: every link in `dom(Σ.L) ∩ S` matching `I` appears in `result_scoped(I, S, Σ)` | introduced |
 | F3-sco | Scoped soundness: every link in `result_scoped(I, S, Σ)` is in `dom(Σ.L) ∩ S` and matches `I` | introduced |
-| F4 | MatchFormulaMinimality: F1's slot-existential / singleton-overlap form is the unique match predicate; F2 forbids strengthenings (incompleteness), F3 forbids weakenings (unsoundness) | introduced |
+| F4 | MatchFormulaMinimality: F1's slot-existential / singleton-overlap form is the unique match predicate; F2 forbids strengthenings (incompleteness), F3 forbids weakenings (unsoundness); realizability discharge covers the full space of F1-admitted pairs via K.λ allocation | introduced |
 | F5 | Identity, not value: the match consults coverage, not content values | introduced |
 | F6 | Transclusion transparency: same I-address, same matches regardless of V-path | introduced |
 | F7 | Endset symmetry: slots are equally searchable; filters conjoin | introduced |
 | F8 | Determinism: `result(I, Σ)` is a function of `(Σ.L, I)` | introduced |
 | F9 | Link survivability under edits: K.μ-family transitions preserve `findlinks(I, ·)` | introduced |
 | F9★ | Edit-only survivability: across any reachable sequence in which every step is a K.μ-family operation, `findlinks(I, ·)` is invariant — multi-step closure of F9 within the edit-only fragment | introduced |
-| F9-cor | Non-allocating preservation: every operation in V ∖ {K.λ} preserves `findlinks(I, ·)`; surfaces the full A1 dependency surface (K.μ⁺, K.μ⁻, K.ρ) | introduced |
+| F9★-cor | Non-allocating multi-step preservation: across any reachable sequence in which every step is in V ∖ {K.λ}, `findlinks(I, ·)` is invariant — multi-step closure of F9-cor across the full non-allocating fragment | introduced |
+| F9-cor | Non-allocating preservation: every operation in V ∖ {K.λ} preserves `findlinks(I, ·)`; A1 is the load-bearing premise at K.μ⁺, K.μ⁻, and K.ρ | introduced |
 | F10 | Ordered result: canonical T1-sorted presentation | introduced |
 | F11 | Persistent discoverability: matching at `Σ` implies matching at every `Σ'` reached from `Σ` | introduced |
-| F12 | TwoPhaseFactoring (definition of `findlinks_V`): `findlinks_V(R, d, Σ) ≡ findlinks(image(R, d, Σ), Σ)` — names the V→I→Link composite and is invoked by name in downstream derivations | introduced |
+| F12 | TwoPhaseFactoring (definitional unfolding of `findlinks_V`): `findlinks_V(R, d, Σ) ≡ findlinks(image(R, d, Σ), Σ)` — names the V→I→Link composite for citation in downstream derivations; this is a definition, not a derived identity | definition |
 | F13 | Set-additive in the I-input: `findlinks(I₁ ∪ I₂, Σ) = findlinks(I₁, Σ) ∪ findlinks(I₂, Σ)` | introduced |
 | F14 | Scope filter is intersection: `findlinks_scoped(I, S, Σ) = findlinks(I, Σ) ∩ S` | introduced |
 | F15 | Filtered determinism: `findlinks_filtered(C, ·)` is a function of `(Σ.L, C)` | introduced |
@@ -686,4 +723,4 @@ Should the abstract specification require any bound on the time between K.λ com
 
 What is the relationship between FINDLINKS and the inverse direction (resolving the result's endsets back to V-positions in some target document), and what additional guarantees does the inverse direction require that FINDLINKS does not?
 
-**Convergence dependency on ASN-0047 revision.** Should ASN-0047's K.μ⁺, K.μ⁻, and K.ρ frame clauses be revised to include explicit `L' = L` conjuncts? This is not a stylistic question — it is a convergence-blocking dependency for this ASN. A1 (EffectClauseExhaustivity) is a transient interface contract that reads ASN-0047's frame-clause silence as binding preservation. A1's reading is *not* explicit in ASN-0047's published text; if ASN-0047 were ever amended in a way that intentionally left `L` unchanged without adding the `L' = L` conjunct, A1 would still extract the preservation — possibly incorrectly. The convergence of ASN-0099 is therefore contingent on ASN-0047 being revised to discharge A1's role: adding `L' = L` to K.μ⁺'s, K.μ⁻'s, and K.ρ's published frames removes A1 from the load-bearing derivation surface (F9, F9★, F9-cor, F17, F18 currently rely on A1 at these three operation cases), after which A1 reverts to a recorded contract with no active deductive role. Until that revision lands, A1 stands as a substrate-reading premise this ASN consumes; the dependency is documented in A1's section and surfaces concretely in F9's derivation, F9-cor, F9★'s premise clause, Query 4 of the Worked Example, and F17's derivation chain.
+What is the minimum structural commitment any conforming substrate must make to the non-allocating fragment of its operation vocabulary in order to support link-discovery invariance under those operations?
