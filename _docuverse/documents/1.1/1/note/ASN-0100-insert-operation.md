@@ -84,6 +84,8 @@ Every existing V-position `v ∈ V_{s_C}(d)` with `v ≥ p` must remap. The cont
 
 This clause is exactly the I3 postcondition (PostInsertionShift) of ASN-0082, instantiated for the text subspace `S = s_C` of `d`. The right region is the source of the shift; the shifted-right region is its image. The two are related by the order-preserving (TS1, ShiftOrderPreservation; ASN-0034) and injective (TS2, ShiftInjectivity; ASN-0034) shift map. The image of the shift map is exactly `{[s_C, 1, …, 1, k + n] : p_m ≤ k ≤ N}` when we write `p = [s_C, 1, …, 1, p_m]` with `p_m ∈ {1, …, N+1}`.
 
+ASN-0082's `M'(d)` and INSERT's `M'(d)` agree exactly on the shift-image positions because both apply the same shift rule on the Right region; INSERT additionally introduces Insertion positions `shift(p, k)` for `0 ≤ k < n` that are disjoint from the shift-images (by the pairwise-disjointness argument below for S2). I3 establishes the shift-image clause unchanged in either model; the Insertion positions are an additional, independent contribution that INSERT specifies and ASN-0082's model omits.
+
 For positions `v ∈ V_{s_C}(d)` with `v < p` (the left region), the arrangement is unchanged (I3-L, PostInsertionLeftFrame; ASN-0082).
 
 For positions in subspaces other than `s_C` — including the link subspace — the arrangement is unchanged (I3-X, PostInsertionCrossSubspaceFrame; ASN-0082).
@@ -105,7 +107,7 @@ We state INSERT as a composite `Σ →* Σ'`.
 **Substrate Decomposition.** INSERT realises as the following sequence of elementary transitions, in order:
 
 1. **`n` successive K.α firings** allocating fresh content addresses `a_0, a_1, …, a_{n−1}` from `A_C(d)`. Each K.α firing satisfies its freshness precondition against the intermediate state immediately preceding it (justified by ChainEnumerationInjectivity; ASN-0093 — see Effect One above).
-2. **One K.μ⁻ on `d`** retaining the Left prefix of `V_{s_C}(d)` (with `n'_{s_C} = p_m − 1`) and retaining all of `V_{s_L}(d)` (with `n'_{s_L} = n_{s_L}`). *Omitted in two cases:* (i) when the pre-state `V_{s_C}(d) = ∅` (nothing to retain or shrink); (ii) when `p_m = N + 1` (append case — Left = entire pre-state `V_{s_C}(d)`, so no strict shrinkage of `V_{s_C}(d)` is required, and K.μ⁻'s precondition `(E S :: n'_S < n_S)` cannot be satisfied without affecting `V_{s_L}(d)`).
+2. **One K.μ⁻ on `d`** retaining the Left prefix of `V_{s_C}(d)` (with `n'_{s_C} = p_m − 1`) and retaining all of `V_{s_L}(d)` (with `n'_{s_L} = n_{s_L}`). *Omitted in three cases:* (i.a) when both `V_{s_C}(d) = ∅` and `V_{s_L}(d) = ∅` — K.μ⁻'s precondition `dom(M(d)) ≠ ∅` fails, so K.μ⁻ cannot fire at all; (i.b) when `V_{s_C}(d) = ∅` and `V_{s_L}(d) ≠ ∅` — K.μ⁻'s `dom(M(d)) ≠ ∅` precondition holds, but its strict-shrinkage clause `(E S :: n'_S < n_S)` cannot be satisfied without shrinking `V_{s_L}(d)`, which would violate INS.frame.subspace; (ii) when `p_m = N + 1` (append case — Left = entire pre-state `V_{s_C}(d)`), so no strict shrinkage of `V_{s_C}(d)` is required, and K.μ⁻'s strict-shrinkage clause cannot be satisfied without affecting `V_{s_L}(d)`.
 3. **One K.μ⁺ on `d`** adding the Insertion V-positions (mapping `shift(p, k) ↦ a_k` for `0 ≤ k < n`) and the Shifted-right V-positions (mapping `shift(v, n) ↦ M(d)(v)` for each `v ∈ V_{s_C}(d)` with `v ≥ p`). All additions are in subspace `s_C`, as required by K.μ⁺'s content-subspace restriction (ASN-0047).
 4. **`n` successive K.ρ firings** recording provenance pairs `(a_k, d)` for `0 ≤ k < n`.
 
@@ -198,6 +200,8 @@ The frame `(A d' : d' ≠ d : M'(d') = M(d'))` directly enforces independence: n
 
 The two documents may share I-addresses through transclusion, but the cross-document frame and content preservation together ensure that the shared I-addresses' values and the *other* document's mappings are unaffected.
 
+The cross-document independence extends to link projection. For any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, the projection from `d'` is unchanged: `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)`. This is LP4 (ArrangementSpecificity; ASN-0098) applied to the unchanged `M'(d') = M(d')` together with LP5 (CrossDocumentIndependence; ASN-0098) on the substrate's cross-document frame. See the *Projection-shift correspondence* clause below in §Coverage and link discoverability for the full per-document derivation.
+
 ### Arrangement functionality (S2)
 
 We verify that `M'(d)` is a function (S2, ArrangementFunctionality; ASN-0036): no V-position has two distinct image I-addresses.
@@ -212,7 +216,7 @@ The Left, Insertion, and Shifted-right regions are pairwise disjoint as sets of 
 
 Within each region the mapping is uniquely defined: Left and Shifted-right by `M(d)` applied to a unique source position — for Shifted-right, source uniqueness follows from TS2 (ShiftInjectivity; ASN-0034): distinct sources `v₁ ≠ v₂` yield `shift(v₁, n) ≠ shift(v₂, n)`. Insertion images are uniquely indexed by `k`. So `M'(d)` is a well-defined function.
 
-This conclusion is also discharged transitively by I3-S2 (PostInsertionFunctionality; ASN-0082), which establishes functionality of the post-state arrangement under the same shift discipline. For other subspaces and other documents, `M'` equals `M`, which is already a function by the pre-state S2.
+I3-S2 (PostInsertionFunctionality; ASN-0082) covers a structurally smaller post-state — the *shift-only* model whose post-state domain ranges over three regions (shifted, left, cross-subspace) per I3-CS and I3-V. It discharges functionality on the Left + Shifted-right + cross-subspace portion of INSERT's post-state, but does *not* cover the Insertion region — the freshly placed V-positions `shift(p, k)` for `0 ≤ k < n` lie outside I3's post-state by I3-CS's domain closure. The Insertion region's contribution to functionality is verified by the explicit pairwise-disjointness argument above. For other subspaces and other documents, `M'` equals `M`, which is already a function by the pre-state S2.
 
 ### Referential integrity (S3★)
 
@@ -224,7 +228,7 @@ For Insertion positions: the image is `a_k ∈ dom(C')` by the content-store eff
 
 For positions in subspaces other than `s_C` of `d` (notably `s_L`), and for positions in other documents: unchanged by frame; S3★ follows from the pre-state combined with link-store immutability `L' = L`.
 
-This conclusion is also discharged by I3-S3 (PostInsertionReferentialIntegrity; ASN-0082).
+I3-S3 (PostInsertionReferentialIntegrity; ASN-0082) discharges referential integrity over the Left + Shifted-right + cross-subspace portion of the post-state (the regions ASN-0082's shift-only model covers); the Insertion region's contribution is verified explicitly above by the freshness of each `a_k ∈ dom(C')`.
 
 ### Sequential text-subspace structure (D-CTG★, D-MIN★, D-SEQ★)
 
@@ -238,7 +242,17 @@ Suppose `V_{s_C}(d) = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ N}` with `N ≥ 1` (by 
 
 Their union is `{[s_C, 1, …, 1, k] : 1 ≤ k ≤ N + n}`, which is exactly the sequential structure required by D-SEQ★ with new cardinality `N + n`. The minimum `[s_C, 1, …, 1]` is in the union, so D-MIN★ holds. The integer range `{1, …, N + n}` of last-component values is contiguous, so D-CTG★ holds.
 
-For the empty pre-state case (`V_{s_C}(d) = ∅`) with `p = [s_C, 1, …, 1]` of depth `m`: post-state `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}`, satisfying all three predicates with `m_C := m`. From this point onward, S8-depth (FixedDepthVPositions; ASN-0036) — a per-state invariant — fixes the text-subspace depth at `m` for all subsequent transitions on `d`.
+For the empty pre-state case (`V_{s_C}(d) = ∅`) with `p = [s_C, 1, …, 1]` of caller-chosen depth `m ≥ 2` (via ValidFirstInsertionPosition; ASN-0036): the post-state has only the Insertion region (Left and Shifted-right are empty). The Insertion positions are `shift(p, k) = [s_C, 1, …, 1, 1 + k]` for `0 ≤ k < n`, by OrdAddHom: `shift(p, k) = p ⊕ δ(k, m)`, which agrees with `p` on positions `1, …, m − 1` and adds `k` to position `m`. Since `p_m = 1` (the unique valid first position has last component 1), the last components of the Insertion positions are `{1 + 0, 1 + 1, …, 1 + (n − 1)} = {1, 2, …, n}` and the leading `m − 1` components are all `1` throughout. Reading `shift(p, 0) = p` per OrdinalShiftBase, the Insertion at `k = 0` gives the position `[s_C, 1, …, 1, 1] = [s_C, 1, …, 1]` itself.
+
+Post-state `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}`. We verify each predicate:
+
+- *D-MIN★:* the minimum of `V_{s_C}(d')` under T1 is the position with the smallest last component, namely `[s_C, 1, …, 1, 1] = [s_C, 1, …, 1]` of depth `m`. This matches D-MIN★'s required form `[s_C, 1, …, 1]`.
+- *D-CTG★:* the last-component values `{1, 2, …, n}` form a contiguous integer range with no gaps; T1 makes the V-ordering on a fixed-prefix, fixed-depth subspace agree with the integer ordering on the last component, so contiguity holds.
+- *D-SEQ★:* the explicit form `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}` matches D-SEQ★ with `n_{s_C} = n` and depth `m_{s_C} = m`.
+- *S8-depth:* every position in `V_{s_C}(d')` has length `m`. Pre-state `V_{s_C}(d) = ∅` imposes no depth constraint, so the post-state's `m_{s_C} := m` is the first occurrence — the freedom afforded by ValidFirstInsertionPosition's depth parameter. From this point onward, S8-depth — a per-state invariant under ValidComposite★ — fixes `m_{s_C} = m` for `d` permanently; every subsequent text-subspace operation on `d` must use depth `m`.
+- *S8a:* each Insertion position `[s_C, 1, …, 1, k]` is zero-free (subspace identifier `s_C ≥ 1` and all other components `1`), has length `m ≥ 2`, and has all components strictly positive.
+
+The empty case differs from the non-empty case in that no Left or Shifted-right regions appear and no K.μ⁻ fires in the composite (per the case (i.a)/(i.b) routing above), but the post-state invariants are verified by the same predicate checks on the post-state's exhibited form.
 
 ### Cross-subspace isolation
 
@@ -317,11 +331,53 @@ The composite is *not* admissible in alternative decompositions that would break
 
 - *K.μ⁺ without prior K.μ⁻ in an interior insertion.* K.μ⁺ extends `dom(M(d))`; it preserves existing mappings. To map both `[s_C, 1, …, 1, p_m]` to `M(d)([s_C, 1, …, 1, p_m])` (the original content) and to `a_0` (the new content) would violate S2 — per-state functionality. So shift via K.μ⁻ + K.μ⁺ is *required*, not an implementation choice.
 
-- *K.μ⁻ retaining strictly less than the Left prefix.* This would shrink `V_{s_C}(d_intermediate)` further than needed; the subsequent K.μ⁺ would have to re-add positions in the middle of the Left region (between `[s_C, 1, …, 1, k]` and `[s_C, 1, …, 1, k+1]`), but K.μ⁺'s constraints D-CTG★, D-MIN★ force any new V-position in `V_{s_C}(d)` to extend the existing sequential run at its high end. The interior gap cannot be filled by K.μ⁺.
+- *K.μ⁻ retaining strictly less than the Left prefix.* Both retention parameters of K.μ⁻ are admissible across `{0, 1, …, n_S}` per K.μ⁻'s precondition. A decomposition with `n'_{s_C} = 0` (full content-subspace shrinkage) is well-typed: the intermediate has `V_{s_C}(d_intermediate) = ∅` and satisfies D-CTG★, D-MIN★, D-SEQ★ vacuously. The subsequent K.μ⁺ may re-add the full sequential run `{[s_C, 1, …, 1, k] : 1 ≤ k ≤ N + n}` starting from the minimum, mapping each position to the appropriate I-address. The K.μ⁺ precondition requires only that the resulting M'(d) satisfies D-CTG★ and D-MIN★ — it does not require new positions to be added only at the high end. The post-state Σ' is identical to that of the canonical decomposition above. Such alternative decompositions are admissible and reach the same Σ'.
 
-Each ruled-out decomposition is either ill-typed (precondition violated) or per-state-invariant-violating. The substrate decomposition above is the unique well-typed sequence, modulo the ordering of independent K.α and K.ρ firings (which commute among themselves but not with K.μ⁺ and K.μ⁻).
+The post-state Σ' is uniquely determined by the operation contract; the substrate decomposition that realises it is *not* unique. K.μ⁻ retention parameters may range over `{0, 1, …, p_m − 1}` for the content subspace, K.μ⁺ may be split across multiple firings, and K.α + K.ρ firings may be reordered to a degree (described below), provided each intermediate satisfies the per-state invariants.
 
-This is what Nelson calls "all changes, once made, leave the file remaining in canonical order, which was an internal mandate of the system." Implementations realise the composite via transactional sequencing, locking, copy-on-write, or log-and-commit — but the choice is below the level of abstraction at which INSERT is specified. External observers see the composite boundary; the intermediate states are not externally observable. By the SequentialTransitionAxiom of ASN-0093, no other composite can interleave between Σ and Σ'.
+Among the elementary firings, certain reorderings are admissible and others are not:
+
+- *K.α firings have a strict order.* By K.α's allocation discipline (ASN-0093), the k-th K.α firing produces the k-th element of the chain `A_C(d)`. ChainEnumerationInjectivity (ASN-0093) establishes that the chain enumeration is strictly increasing under the tumbler order; the first firing must produce the unique first-emission tumbler (`[d.0.s_C.1]` for an empty chain, or `inc(a_prev, 0)` otherwise), the second firing must produce `inc(a_0, 0)`, and so on. There is no freedom to fire K.α producing `a_1` before K.α producing `a_0`, because `a_1 = inc(a_0, 0)` is *defined* in terms of `a_0`'s prior commitment to `dom(C)`.
+
+- *K.ρ firings commute among themselves and may be reordered with respect to K.α.* K.ρ(a_k, d) has precondition `a ∈ dom(C) ∧ d ∈ E_doc`; once `a_k` is in `dom(C)` via the k-th K.α firing, K.ρ(a_k, d) may fire at any subsequent point. Different K.ρ firings have independent effects on R and so commute. A K.ρ(a_k, d) firing may be reordered with respect to a *later* K.α firing (one producing `a_j` with `j > k`), provided the per-firing precondition for K.ρ(a_k, d) — that `a_k ∈ dom(C)` — holds at the time of its firing.
+
+- *K.α and K.ρ do not commute with K.μ⁺ and K.μ⁻.* K.μ⁺'s precondition requires each new mapping's image to be in `dom(C)`, so K.μ⁺ placing `a_k` must follow the K.α producing `a_k`. K.ρ(a_k, d) recording provenance for an arranged `a_k` must follow K.μ⁺ if J1★ is to be discharged at the boundary by historical state.
+
+This is what Nelson calls "all changes, once made, leave the file remaining in canonical order, which was an internal mandate of the system." Implementations realise the composite via transactional sequencing, locking, copy-on-write, or log-and-commit — but the choice of decomposition is below the level of abstraction at which INSERT is specified. External observers see the composite boundary; the intermediate states are not externally observable. SequentialTransitionAxiom (ASN-0093) guarantees only that each *elementary* transition is atomic — no elementary transition of another composite can split an elementary transition of INSERT. Composite-level atomicity — the guarantee that no elementary transition of another composite interleaves between INSERT's elementaries — is not entailed by SequentialTransitionAxiom; it is an implementation concern (see Open Questions).
+
+## Weakest-Precondition Analysis
+
+The verification above proceeds forward — from preconditions and substrate effects to the post-state. We can also reason backward from a desired postcondition to the pre-state condition that secures it. This is Dijkstra's `wp` calculus, and we apply it to two non-trivial postconditions.
+
+**Discoverability preservation.** Consider the postcondition `discoverable_from(ℓ, d, ·)` for a fixed link `ℓ ∈ dom(L)` and the operation's target document `d`. We compute:
+
+  `wp(INSERT(d, p, ⟨v_0, …, v_{n−1}⟩), discoverable_from(ℓ, d, ·))`
+
+By LP12 (DiscoverabilityCharacterisation; ASN-0098), `discoverable_from(ℓ, d, Σ')` is equivalent to `(E i : coverage(Σ'.L(ℓ).e_i) ∩ ran(Σ'.M(d)) ≠ ∅)`. By LP3★ (MultiStepCoverageInvariance; ASN-0098), `coverage(Σ'.L(ℓ).e_i) = coverage(Σ.L(ℓ).e_i)` since INSERT does not alter `L`. By the post-state's M-effect, `ran(M'(d)) = ran(M(d)) ∪ {a_k : 0 ≤ k < n}` — the pre-existing range augmented by the freshly allocated I-addresses. The wp expands to:
+
+  `(E i : coverage(Σ.L(ℓ).e_i) ∩ (ran(Σ.M(d)) ∪ {a_k : 0 ≤ k < n}) ≠ ∅)`
+
+which distributes to:
+
+  `discoverable_from(ℓ, d, Σ) ∨ (E i, k : 0 ≤ k < n : a_k ∈ coverage(Σ.L(ℓ).e_i))`
+
+The second disjunct — fresh-address capture — collapses to `false` for any *tight* endset `e_i` (with `tight(e_i, Σ_{e_i})` evaluated at the state of `e_i`'s incorporation). LP19a (TightFreshness; ASN-0098) establishes that a freshly allocated `a_k` cannot lie in a tight endset's coverage, because `a_k ∉ dom(Σ_{e_i}.C) ∪ dom(Σ_{e_i}.L)` by Store Monotonicity★ and the freshness of K.α's emission against the operation's pre-state. Thus, when every slot of `Σ.L(ℓ)` is tight at its incorporation state, the wp simplifies to:
+
+  `wp(INSERT(d, p, ⟨v_0, …, v_{n−1}⟩), discoverable_from(ℓ, d, ·)) ≡ discoverable_from(ℓ, d, Σ)`
+
+— a non-trivial conclusion: discoverability of a tight-endset link from `d` is preserved exactly when it held at the pre-state. INSERT neither creates nor destroys discoverability for tight links; it is transparent to them.
+
+**P4★ for a specific I-address.** Consider the postcondition `(a, d) ∈ R'` for a fixed I-address `a` and target document `d`. We compute:
+
+  `wp(INSERT(d, p, ⟨v_0, …, v_{n−1}⟩), (a, d) ∈ R')`
+
+By the post-state's R-effect, `R' = R ∪ {(a_k, d) : 0 ≤ k < n}` where `a_0, …, a_{n−1}` are the freshly allocated content addresses. Thus `(a, d) ∈ R'` holds iff `(a, d) ∈ R` or `a ∈ {a_0, …, a_{n−1}}`. The second disjunct depends on the K.α emission discipline: `a = a_k` for some `k` iff `a` is the `(m_d + k + 1)`-th element of the chain `A_C(d)` (where `m_d` is the chain index of the last emission already in `dom(Σ.C)` for origin `d`). For a fixed `a`, this is a structural predicate on the pre-state: either `a` lies in `dom(C)` already (and is *not* a freshly allocated address — the second disjunct fails) or `a` is one of the next `n` chain elements of `A_C(d)` that K.α will produce. The wp is therefore:
+
+  `(a, d) ∈ R  ∨  a ∈ {next n chain elements of A_C(d) starting from chain index m_d + 1}`
+
+where the second-disjunct chain elements are determined by `Σ.C` and the chain enumeration of `A_C(d)`. The pre-state condition is operationally decidable: the chain index `m_d` is recoverable from `Σ.C` via the chain enumeration, and the next `n` chain elements are then determined.
+
+This wp captures both the substrate's effect on R and the structural determinism of the K.α firings — the pre-state condition is a Boolean combination of a pre-state predicate (`(a, d) ∈ R`) and a substrate-derivable property (chain membership), reflecting INSERT's combined provenance-recording and fresh-allocation behaviour.
 
 ## Position Constraints
 
