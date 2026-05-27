@@ -165,9 +165,9 @@ A direct consequence: the two phases compose unambiguously. Once `I = image(R, d
 
 ## Arrangement Independence
 
-The I→Link phase consults `Σ.L` and `I` alone. It does not consult any arrangement. F8 already encodes this in its hypothesis `Σ.L = Σ'.L`: `Σ.M` is unmentioned, so two states agreeing on the link store give equal results regardless of how their arrangements differ. Before stating the operationally salient specialisation as the frame condition exercised by editing operations, we surface one reading convention that this ASN adopts as a first-class assumption.
+The I→Link phase consults `Σ.L` and `I` alone. It does not consult any arrangement. F8 already encodes this in its hypothesis `Σ.L = Σ'.L`: `Σ.M` is unmentioned, so two states agreeing on the link store give equal results regardless of how their arrangements differ. Before stating the operationally salient specialisation as the frame condition exercised by editing operations, we surface one structural premise on which the derivation of survivability rests.
 
-Operation effects/frames in this specification family are stated by ASN-0093 and ASN-0047 in side-by-side fashion: an *effect* clause names what changes, and a *frame* clause names what does not. ASN-0093's operation specifications list every preserved component explicitly — K.σ, for instance, ends its frame with `L' = L` — but ASN-0047's K.μ⁺ and K.μ⁻ frames do not mention `L`. To reason uniformly across both ASNs, we adopt:
+Operation effects/frames in this specification family are stated by ASN-0093 and ASN-0047 in side-by-side fashion: an *effect* clause names what changes, and a *frame* clause names what does not. ASN-0093's operation specifications list every preserved component explicitly — K.σ, for instance, ends its frame with `L' = L` — but ASN-0047's K.μ⁺ and K.μ⁻ frames do not mention `L`. We therefore assert as a structural axiom:
 
 ```
 A1 (EffectClauseExhaustivity):
@@ -178,7 +178,7 @@ A1 (EffectClauseExhaustivity):
    clause is unchanged across the transition.
 ```
 
-A1 is the standard reading of operation effect/frame pairs across this specification family. ASN-0093's K.σ frame lists `L' = L` directly, demonstrating that frame clauses do name `L` when authors track the dependency, and ASN-0047's omission for K.μ⁺ and K.μ⁻ reads as a documentation gap that an ASN-0047 revision adding `L' = L` to both frames would close without changing A1's content. The convention is invoked in F9's derivation below and once more in Query 4 of the Worked Example; outside these uses it does not propagate into the rest of this ASN.
+A1 is a meta-axiom about the published specifications: it asserts that the effect clauses as written are *exhaustive* with respect to the modifications each operation performs. Its validity rests on two distinct premises. First, the operation vocabulary is *closed*: we enumerate `{K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ}` as the full set of state-modifying operations across ASN-0047 and ASN-0093, and we rely on no operation outside this enumeration to exist in the substrate. Second, each enumerated operation's effect clause is read as a complete listing — additions to `L` happen only at operations whose effect clauses name `L`, and analogously for the other state components. ASN-0093's K.σ frame lists `L' = L` directly, demonstrating that authors do name `L` in frame clauses when they track the dependency; ASN-0047's omission for K.μ⁺ and K.μ⁻ is a documentation gap that an ASN-0047 revision adding `L' = L` to both frames would close, eliminating A1's load-bearing role in F9's derivation. Until that revision lands, A1 is the bridge by which we read ASN-0047's silence as the assertion that K.μ⁺ and K.μ⁻ do not modify `L`. The axiom is invoked in F9's derivation below and once more in Query 4 of the Worked Example; outside these uses it does not propagate into the rest of this ASN.
 
 We now state the specialisation:
 
@@ -260,7 +260,29 @@ coverage(e) ∩ (I₁ ∪ I₂) = (coverage(e) ∩ I₁) ∪ (coverage(e) ∩ I�
 
 The right-hand side is non-empty iff at least one disjunct is non-empty. So a link matches `I₁ ∪ I₂` iff it matches `I₁` or matches `I₂`, and the result is set-theoretic union.
 
-The operation is therefore additive in its I-input. Multi-source content imposes no special machinery beyond the underlying span-set generalization. The same property propagates to V-region inputs: the I-image of a V-region union is the union of I-images (since `image` is the image-of-set under the function `Σ.M(d)`), so V-region union induces I-set union, and the result is union.
+The operation is therefore additive in its I-input. Multi-source content imposes no special machinery beyond the underlying span-set generalization. The same property propagates to V-region inputs through the image function's own additivity:
+
+```
+F20 (ImageSetAdditive):
+   For any d ∈ dom(Σ.M) and any R₁, R₂ ⊆ T:
+       image(R₁ ∪ R₂, d, Σ) = image(R₁, d, Σ) ∪ image(R₂, d, Σ).
+```
+
+The derivation is the standard image-of-union identity for any function. `image(R, d, Σ) = {Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}`, so
+`image(R₁ ∪ R₂, d, Σ) = {Σ.M(d)(v) : v ∈ (R₁ ∪ R₂) ∩ dom(Σ.M(d))} = {Σ.M(d)(v) : v ∈ (R₁ ∩ dom(Σ.M(d))) ∪ (R₂ ∩ dom(Σ.M(d)))}`,
+which by distributing the comprehension over the union splits as `{Σ.M(d)(v) : v ∈ R₁ ∩ dom(Σ.M(d))} ∪ {Σ.M(d)(v) : v ∈ R₂ ∩ dom(Σ.M(d))} = image(R₁, d, Σ) ∪ image(R₂, d, Σ)`. The function-image-of-set identity supplies the second equality directly.
+
+V-side additivity for `findlinks_V` is then immediate from F12, F13, and F20:
+
+```
+findlinks_V(R₁ ∪ R₂, d, Σ)
+  = findlinks(image(R₁ ∪ R₂, d, Σ), Σ)              by F12
+  = findlinks(image(R₁, d, Σ) ∪ image(R₂, d, Σ), Σ)  by F20
+  = findlinks(image(R₁, d, Σ), Σ) ∪ findlinks(image(R₂, d, Σ), Σ)  by F13
+  = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)   by F12.
+```
+
+A reader who selects two V-regions and asks for the links touching either receives the same answer as one who asks for each region separately and unions the results. The two-phase factoring distributes over set union at every stage.
 
 ## The Empty Query
 
@@ -288,7 +310,41 @@ Scope does not weaken the match predicate. A scoped query still requires full ov
 
 Scope is also where access control may live. A link in a private document, inaccessible to the querying user, may be excluded from the candidate set before the match predicate is applied. The match is unchanged; the candidate set is narrowed by the access-control predicate. We mention this but do not formalize access control here — it is a separate concern that composes with discovery rather than altering its semantics.
 
-The determinism (F8) and survivability (F9) properties extend uniformly to both the filtered and the scoped forms by the same derivations. F8 holds because the filtered comprehension's predicate `(A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)` consults only `(Σ.L, C)` — coverage is a function of the endset alone, `|Σ.L(a)|` is determined by `Σ.L(a)`, and `C` is the supplied query — so `findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ')` whenever `Σ.L = Σ'.L`. The scoped form additionally intersects with `S ⊆ T`, which is supplied by the query and is not a state component, so `findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ')` whenever `Σ.L = Σ'.L`. F9 transfers in the same way: every K.μ-family step preserves `Σ.L` (per F9's derivation), so each form's result is unchanged across each step. We state F8 and F9 explicitly for `findlinks` because that is the unrestricted form most often analysed; the corresponding claims for the filtered and scoped forms hold by identical arguments and the abstract specification accords them the same status.
+The determinism (F8) and survivability (F9) properties extend uniformly to both the filtered and the scoped forms. We state the four corresponding claims explicitly so that the filtered and scoped forms are not relegated to silent corollary status.
+
+```
+F15 (FilteredDeterminism):
+   findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ')  whenever Σ.L = Σ'.L.
+```
+
+The filtered comprehension's predicate `(A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)` consults only `(Σ.L, C)`: coverage is a function of the endset alone, `|Σ.L(a)|` is determined by `Σ.L(a)`, and `C` is the supplied query. Equality of `Σ.L` forces equality of every per-constraint conjunct (by the same per-slot coverage equality that drives F8's derivation), and set extensionality on the comprehensions closes the chain.
+
+```
+F16 (ScopedDeterminism):
+   findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ')  whenever Σ.L = Σ'.L.
+```
+
+`findlinks_scoped(I, S, Σ) = findlinks(I, Σ) ∩ S` by F14. Equality `Σ.L = Σ'.L` gives `findlinks(I, Σ) = findlinks(I, Σ')` by F8, and intersection with the query-supplied `S` (which is not a state component) preserves equality on both sides.
+
+```
+F17 (FilteredSurvivability):
+   For any single-step transition Σ → Σ' produced by a K.μ-family operation
+   on a document d, and any finite set of slot constraints C:
+       findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ').
+```
+
+Every K.μ-family step preserves `Σ.L` (per F9's derivation, invoking A1 at the K.μ⁺ and K.μ⁻ cases). F15 then forces equality of the filtered result at the two states.
+
+```
+F18 (ScopedSurvivability):
+   For any single-step transition Σ → Σ' produced by a K.μ-family operation
+   on a document d, any I ⊆ T, and any S ⊆ T:
+       findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ').
+```
+
+By F9, `findlinks(I, Σ) = findlinks(I, Σ')` across any K.μ-family step. Intersecting both sides with the same query-supplied `S` preserves the equality, yielding F18 directly.
+
+The four claims share the same structural backbone as F8 and F9: the abstract-side comprehensions consult only `(Σ.L, query-data)`, and the K.μ family preserves `Σ.L`. We state them explicitly because filtered and scoped queries are the operationally common forms — the unfiltered, full-store `findlinks` is rarely what a reader-facing UI calls — and the determinism/survivability obligations propagate to them with the same force.
 
 ## Result Ordering
 
@@ -320,7 +376,17 @@ The conclusion is the multi-step lift of single-step link permanence. ASN-0098's
 
 A link is permanently discoverable for any query I-set that overlaps any of its endset coverages. This is the discovery counterpart of link immutability: the link is not only structurally fixed, it is *findability-fixed*. Editing the documents around it, deleting the V-positions that arrange its referenced content, transcluding the content into new documents — none of these alter the link's match status against a fixed I-set.
 
-The converse direction is also worth noting. Across a transition, new links may *enter* the result set (via K.λ adding a link whose endsets overlap `I`), but existing matching links cannot leave it. The result is monotonic in the link store. Phrased differently: if we hold `I` fixed and let `Σ` evolve, `findlinks(I, ·)` is monotone non-decreasing in `Σ.L`.
+The converse direction is also worth noting. Across a transition, new links may *enter* the result set (via K.λ adding a link whose endsets overlap `I`), but existing matching links cannot leave it. The result is monotonic in the link store. Stated as a set-level claim:
+
+```
+F19 (ResultSetMonotonicity):
+   For any reachable state sequence Σ →* Σ' and any I ⊆ T:
+       findlinks(I, Σ) ⊆ findlinks(I, Σ').
+```
+
+The derivation is a one-line lift of F11 to the comprehension level. By the definition of `findlinks`, `a ∈ findlinks(I, Σ)` iff `a ∈ dom(Σ.L) ∧ matches(a, I, Σ)`. F11 gives `a ∈ dom(Σ'.L) ∧ matches(a, I, Σ')` for every such `a` across any reachable sequence `Σ →* Σ'`, which is `a ∈ findlinks(I, Σ')` by the same definition. Set extensionality closes the inclusion.
+
+F19 is the load-bearing consequence behind any indexed implementation's promise: an index that mirrors `findlinks` is *never required to remove entries* as the state evolves, only to add them. The discovery operation is monotone non-decreasing in the link store at the set level, so indexes can be append-only just like the link store itself.
 
 ## A Worked Example
 
@@ -352,7 +418,7 @@ The three prefix-subtrees over `α₁, α₂, α₃` are pairwise disjoint: each
 
 **Verifying F13 (SetAdditive).** Compute each side separately. `findlinks({α₂}, Σ) = {ℓ}` (`ℓ` via slot 1; `ℓ'` matches none of `{α₂}`) and `findlinks({α₃}, Σ) = {ℓ, ℓ'}` (`ℓ` via slot 2 and `ℓ'` via slot 1, both intersecting `{α₃}` in `{α₃}`); their union is `{ℓ, ℓ'}`. Independently, `findlinks({α₂, α₃}, Σ) = {ℓ, ℓ'}` by direct evaluation as in Query 3. The two computations agree: `findlinks({α₂} ∪ {α₃}, Σ) = findlinks({α₂}, Σ) ∪ findlinks({α₃}, Σ) = {ℓ, ℓ'}`.
 
-**Verifying F2 (Completeness) against the instance.** The set `dom(Σ.L) = {ℓ, ℓ'}` is the universe of candidates. For the query `{α₂}`, the match predicate fires at `ℓ` only; F2 demands `ℓ ∈ result({α₂}, Σ)` (and tolerates no spurious `ℓ'`). The comprehension `{a ∈ dom(Σ.L) : matches(a, {α₂}, Σ)}` evaluates to `{ℓ}`. Completeness holds.
+**Verifying F2 (Completeness) against the instance.** The set `dom(Σ.L) = {ℓ, ℓ'}` is the universe of candidates. For the query `{α₂}`, the match predicate fires at `ℓ` only; F2 demands `ℓ ∈ result({α₂}, Σ)` — the no-spurious obligation belongs to F3 and is addressed in the next paragraph. The comprehension `{a ∈ dom(Σ.L) : matches(a, {α₂}, Σ)}` evaluates to `{ℓ}`. Completeness holds.
 
 **Verifying F3 (Soundness) against the instance.** The result `{ℓ}` is a subset of `dom(Σ.L) = {ℓ, ℓ'}`, and `matches(ℓ, {α₂}, Σ) = true` was verified above. `ℓ'` is correctly absent from the result because `matches(ℓ', {α₂}, Σ) = false`. No spurious link appears.
 
@@ -376,13 +442,7 @@ The example is small enough to inspect by eye, and the abstract definitions redu
 
 We have specified the result as a set. An implementation must produce exactly this set — no more, no fewer. The abstract specification is silent on *how* the set is computed.
 
-Implementations commonly maintain indexes — auxiliary structures that map I-addresses to the links whose endsets cover them. An index makes the I→Link search fast at the cost of an obligation: the index must agree with the link store on every reachable state. This obligation is not an addition to the abstract spec; it is what the abstract spec demands of any index-based implementation. The spec's set comprehension is the answer; an index is just a means.
-
-The implementation obligation has a concrete form. Each K.λ transition that adds a link `a` to `dom(Σ.L)` must arrange for `a` to be findable via every I-address in `coverage(Σ.L(a).eᵢ)` for every slot `i`. If the implementation maintains an index, every I-address in every endset's coverage must, by the end of the transition, point to `a` in the index. If multiple I-runs participate in a single endset's coverage (because the endset has multiple disjoint spans), each I-run requires its own index entry.
-
-The obligation extends to durability: the index must survive any system event short of a fault that loses the link itself. If a crash leaves the link present and the index absent, the link is permanently undiscoverable through the index path. That state violates F2 if the implementation relies on the index for completeness. A conforming implementation must either guarantee atomic index-with-link write, or maintain a fallback path that reads the link store directly to recover from index incoherence.
-
-We do not specify the mechanism. We specify the result. Any implementation whose `result(I, Σ)` differs from the set comprehension is non-conforming, regardless of cause.
+The spec's demand on any conforming implementation is exactly F2 ∧ F3: `result(I, Σ) = findlinks(I, Σ)`. We do not specify the mechanism. We specify the result. Any implementation whose `result(I, Σ)` differs from the set comprehension is non-conforming, regardless of cause.
 
 ## Local Atomicity and the Single-State Setting
 
@@ -391,6 +451,16 @@ The abstract specification is stated against a single state `Σ`. By the sequent
 A K.λ transition commits a link to `dom(Σ.L)` atomically. By the time the K.λ committing `a` returns, `a` is in `dom(Σ.L)`. The next query — at any state succeeding the K.λ — must include `a` in its result if `a` matches. There is no intermediate state in which `a` exists in `dom(Σ.L)` but is undiscoverable through the abstract operation.
 
 This atomicity is what underwrites the *immediate* component of Nelson's "without appreciable delay" promise within a single instance. The query result reflects the current state's link store, fully and exactly. Implementations that defer index maintenance to a background process create a window in which the index lags the link store; during that window, results computed from the index would violate F2. The abstract specification permits no such window.
+
+## Implementation Notes (Non-Normative)
+
+This section is outside the abstract specification. It records implementation guidance that a conforming `result(I, Σ) = findlinks(I, Σ)` implementor will likely find useful, but no claim here adds force to the spec — the spec's demand is exhausted by F2 ∧ F3, and any pattern that produces `result(I, Σ) = findlinks(I, Σ)` conforms, regardless of how it achieves the equality.
+
+Implementations commonly maintain indexes — auxiliary structures that map I-addresses to the links whose endsets cover them. An index makes the I→Link search fast at the cost of an obligation: the index must agree with the link store on every reachable state. The spec's set comprehension is the answer; an index is just a means.
+
+For index-based implementations, the K.λ-time obligation has a concrete form. Each K.λ transition that adds a link `a` to `dom(Σ.L)` must arrange for `a` to be findable via every I-address in `coverage(Σ.L(a).eᵢ)` for every slot `i`. If the implementation maintains an index, every I-address in every endset's coverage must, by the end of the transition, point to `a` in the index. If multiple I-runs participate in a single endset's coverage (because the endset has multiple disjoint spans), each I-run requires its own index entry.
+
+For index-based implementations, the obligation extends to durability: the index must survive any system event short of a fault that loses the link itself. If a crash leaves the link present and the index absent, the link is permanently undiscoverable through the index path. That state would yield a `result(I, Σ)` differing from `findlinks(I, Σ)` and so violate F2. A conforming index-based implementation must either guarantee atomic index-with-link write, or maintain a fallback path that reads the link store directly to recover from index incoherence. An implementation that computes `result(I, Σ)` directly from the link store at every query — no index — has no such obligation; the spec is index-agnostic.
 
 ## What We Have Not Specified
 
@@ -418,7 +488,7 @@ The reverse claim is equally true. None of these design choices could have been 
 | `findlinks_V(R, d, Σ)` | Two-phase composite: `findlinks(image(R, d, Σ), Σ)` | introduced |
 | `findlinks_filtered(C, Σ)` | Filtered form with slot constraints `C` | introduced |
 | `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | introduced |
-| A1 | EffectClauseExhaustivity: an operation's effect clause names every modified state component (vocabulary-wide convention) | introduced |
+| A1 | EffectClauseExhaustivity (structural axiom): an operation's effect clause names every modified state component, contingent on the closure of the operation vocabulary | introduced |
 | F1 | Match predicate as set-theoretic overlap, existential over slots | introduced |
 | F2 | Completeness: every matching link in `dom(Σ.L)` appears in the result | introduced |
 | F3 | Soundness: every link in the result is in `dom(Σ.L)` and matches | introduced |
@@ -433,6 +503,12 @@ The reverse claim is equally true. None of these design choices could have been 
 | F12 | Two-phase factoring: `findlinks_V` composes `image` (V→I) and `findlinks` (I→Link) | introduced |
 | F13 | Set-additive in the I-input: `findlinks(I₁ ∪ I₂, Σ) = findlinks(I₁, Σ) ∪ findlinks(I₂, Σ)` | introduced |
 | F14 | Scope filter is intersection: `findlinks_scoped(I, S, Σ) = findlinks(I, Σ) ∩ S` | introduced |
+| F15 | Filtered determinism: `findlinks_filtered(C, ·)` is a function of `(Σ.L, C)` | introduced |
+| F16 | Scoped determinism: `findlinks_scoped(I, S, ·)` is a function of `(Σ.L, I, S)` | introduced |
+| F17 | Filtered survivability: K.μ-family transitions preserve `findlinks_filtered(C, ·)` | introduced |
+| F18 | Scoped survivability: K.μ-family transitions preserve `findlinks_scoped(I, S, ·)` | introduced |
+| F19 | Result-set monotonicity: `findlinks(I, Σ) ⊆ findlinks(I, Σ')` for every reachable sequence `Σ →* Σ'` | introduced |
+| F20 | Image set-additive: `image(R₁ ∪ R₂, d, Σ) = image(R₁, d, Σ) ∪ image(R₂, d, Σ)` | introduced |
 
 ## Open Questions
 
