@@ -39,7 +39,7 @@ F12 (TwoPhaseFactoring) — DEFINITION of findlinks_V (not a derived identity):
      ≡             findlinks(image(R, d, Σ), Σ).
 ```
 
-F12 is a definition: it introduces no claim over and above the abstract definition of `findlinks_V`, and the equivalence holds by stipulation. The "F12" label exists only as a citation handle so downstream derivations (F6, V-side additivity, the worked example) can name the definitional move when unfolding `findlinks_V` to its two-phase form. Readers auditing a chain of derivations should treat "by F12" as "by definition" — equivalent in epistemic force to "by F8's hypothesis" but applied to a definitional equation rather than a derived implication. The single precondition is inherited from `image`'s `defined when` clause — `findlinks_V` is well-formed precisely when `image(R, d, Σ)` is. We restate it at the composite to keep the document-existence requirement visible at the call site. The treatment of the two failure modes is asymmetric and worth stating explicitly. (i) Document non-existence: for `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined* — `image(R, d, Σ)` has no value at such `d`, and the composite inherits the undefinedness. The caller is responsible for establishing `d ∈ dom(Σ.M)` before invoking the V-side operation; no silent fallback (empty set, error sentinel) is supplied at the abstract specification level. (ii) Position non-existence: for `d ∈ dom(Σ.M)` and V-positions in `R` that lie outside `dom(Σ.M(d))`, those positions are silently projected away by `image` and do not impose a pre-validation obligation on the caller; this is the only treatment that gives a total operation over `R ⊆ T` for a fixed allocated document.
+F12 is a definition: it introduces no claim over and above the abstract definition of `findlinks_V`, and the equivalence holds by stipulation. The "F12" label exists only as a citation handle so downstream derivations (F6, V-side additivity, the worked example) can name the definitional move when unfolding `findlinks_V` to its two-phase form. To keep this status visible at the citation site, downstream derivations write "by F12 (def)" or "by F12's definition" when the step is definitional unfolding. Readers auditing a chain of derivations should treat any such citation as "by definition" — equivalent in epistemic force to a substitution lemma rather than a derived implication. The single precondition is inherited from `image`'s `defined when` clause — `findlinks_V` is well-formed precisely when `image(R, d, Σ)` is. We restate it at the composite to keep the document-existence requirement visible at the call site. The treatment of the two failure modes is asymmetric and worth stating explicitly. (i) Document non-existence: for `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined* — `image(R, d, Σ)` has no value at such `d`, and the composite inherits the undefinedness. The caller is responsible for establishing `d ∈ dom(Σ.M)` before invoking the V-side operation; no silent fallback (empty set, error sentinel) is supplied at the abstract specification level. (ii) Position non-existence: for `d ∈ dom(Σ.M)` and V-positions in `R` that lie outside `dom(Σ.M(d))`, those positions are silently projected away by `image` and do not impose a pre-validation obligation on the caller; this is the only treatment that gives a total operation over `R ⊆ T` for a fixed allocated document.
 
 The factoring matters because the two phases have entirely different stability properties. The arrangement `Σ.M` is mutable: K.μ⁺, K.μ⁻, K.μ~, and K.μ⁺_L all modify it. The link store `Σ.L` is monotonic: K.λ adds to it, and L12 (ASN-0093) forbids any modification of existing entries. Phase 1 consults the mutable component; phase 2 consults the monotonic component. This separation will let us conclude later that link discovery is fundamentally a property of `(Σ.L, I)`, with the arrangement entering only to translate V-input into I-input.
 
@@ -77,81 +77,49 @@ F1's slot-existential together with its intersection (rather than containment) f
 ```
 F4 (MatchFormulaMinimality):
    F1's slot-existential / singleton-overlap form is the unique
-   match predicate up to operational distinguishability via F2 ∧ F3
-   conformance, with the operational gap realizable at K.λ-reachable
-   states. The uniqueness is *operational*, not absolute: F4 does
-   not establish that F1 is the only conceivable match predicate in
-   some predicate-theoretic sense; it establishes that F1 is the
-   unique predicate that, when wired into F2 and F3, produces
+   match predicate that, when wired into F2 ∧ F3, produces
    conformance with the reader's promise — the architectural
    commitment that "every link touching the queried region must
-   appear" — and that any alternative predicate's gap against F1 is
-   exhibited as an observable behavioral disagreement at some
-   K.λ-reachable state.
-
-   Framing of the uniqueness claim. F4's uniqueness is stated
-   *relative to the reader's promise*, and F4 demonstrates the
-   operational character of the uniqueness by showing that any
-   predicate that disagrees with F1 on any reachable F1-admitted
-   pair defines a different operation. The two derivation directions below treat F1 as the
-   fixed reference: strengthenings are read as "fails to admit at
-   least one F1-admitted pair", and weakenings as "admits at least
-   one F1-non-admitted pair". The clauses "violating F3 ... with
-   `matches` read as F1" in the weakening direction below should be
-   understood as fixing F1 at the meta-level — F3, taken with F1 as
-   its embedded match predicate, becomes the test that any alternative
-   `result`-output must pass. F4 therefore does not establish that F1
-   is the only possible match predicate in some absolute sense; it
-   establishes that F1 is the unique predicate that, when wired into
-   F2 and F3, produces conformance with the reader's promise.
+   appear". The substantive content of F4 is *realizability*: any
+   alternative predicate's gap against F1 manifests as an observable
+   behavioral disagreement at some K.λ-reachable state. The
+   uniqueness is therefore operational, not predicate-theoretic —
+   F4 does not establish that F1 is the only conceivable match
+   predicate in some absolute sense; it establishes that any
+   predicate disagreeing with F1 on a realizable (a, I) pair defines
+   a different operation. Throughout the two derivation directions
+   below, F1 is fixed as the meta-level reference: strengthenings
+   are read as "fails to admit at least one F1-admitted pair";
+   weakenings as "admits at least one F1-non-admitted pair"; and
+   "conforming to F2 ∧ F3" means satisfying F2 ∧ F3 with F1 as the
+   embedded match predicate.
 
    We discharge the two directions separately:
 
-   (Strengthening direction.) No strengthened condition —
+   (Strengthening direction.) No strengthening of F1 —
    `coverage(Σ.L(a).eᵢ) ⊆ I`, `I ⊆ coverage(Σ.L(a).eᵢ)`,
-   `|coverage(Σ.L(a).eᵢ) ∩ I| ≥ k` for any fixed `k > 1`, or any other
-   refinement that excludes at least one singleton-overlap pair `(eᵢ, I)` —
-   is a refinement of F1. Any such alternative defines a different match
-   predicate `P_s` strictly narrower than F1. An implementation
-   conforming to F2 with `matches := P_s` — i.e., satisfying F2's
-   literal contract as parameterised by its own match predicate —
-   omits the F1-admitted-but-P_s-rejected witness pair `(eᵢ, I)` at
-   any state where that pair is realized (the implementation's
-   `result(I, Σ)` excludes a link that F1's match condition admits).
-   Read against the F1-fixed F2 ∧ F3 — F2 ∧ F3 taken with F1 as
-   their embedded match predicate (per the framing paragraph above) —
-   the alternative implementation fails the conformance test at the
-   realized state: a link belongs to the F1-fixed `findlinks(I, Σ) =
-   {a' ∈ dom(Σ.L) : matches_{F1}(a', I, Σ)}` but is missing from
-   `result(I, Σ)`. The operationally observable gap is that
-   omitted-by-P_s F1-admitted link, witnessed at the K.λ-realized
-   state.
+   `|coverage(Σ.L(a).eᵢ) ∩ I| ≥ k` for any fixed `k > 1`, or any
+   other refinement that excludes at least one singleton-overlap
+   pair `(eᵢ, I)` — defines a predicate `P_s` strictly narrower
+   than F1. An implementation that computes `result(I, Σ)` using
+   `P_s` omits the F1-admitted-but-`P_s`-rejected witness pair at
+   any state where that pair is realized — and the realizability
+   argument below shows that some such state exists for every
+   strengthening considered. The conformance test (F2 ∧ F3 evaluated
+   against F1) then fails: a link belongs to F1's `findlinks(I, Σ)`
+   but is missing from the alternative `result(I, Σ)`.
 
-   (Weakening direction.) The dual direction leads with
-   realizability. For any predicate `P_w` admitting strictly more
-   `(a, I)` pairs than F1, pick a witness pair `(a, I)` admitted by
-   `P_w` but not by F1; such a pair exists by the strict-admission
-   hypothesis. K.λ (LinkAllocation, ASN-0093) places no constraint
-   on the endset configuration beyond well-formedness (and L4,
-   ASN-0043, places no constraint on which addresses spans may
-   reference), so the witness link's configuration is realizable by
-   direct K.λ allocation in any conforming state with `dom(Σ.M) ≠ ∅`.
-   (The construction is identical in form to the realizability
-   discharge below; only the choice of coverage shape differs —
-   chosen here to land outside F1's admission.) The pair `(a, I)`
-   is therefore operationally observable at the realized state. An
-   implementation conforming to F3 with `matches := P_w` — i.e.,
-   satisfying F3's literal contract as parameterised by its own
-   match predicate — returns `a` in `result(I, Σ)` at that state;
-   the F1-fixed `findlinks(I, Σ) = {a' ∈ dom(Σ.L) : matches_{F1}(a',
-   I, Σ)}` excludes `a` by the F1-non-admission of the pair. Read
-   against the F1-fixed F3 — F3 taken with F1 as its embedded match
-   predicate (per the framing paragraph above) — the alternative
-   implementation fails the conformance test at the realized state:
-   a link is in `result(I, Σ)` but not in the F1-fixed `findlinks(I,
-   Σ)`. The operationally observable gap is that excluded-by-F1
-   link returned by the alternative implementation, witnessed at the
-   K.λ-realized state.
+   (Weakening direction.) Any predicate `P_w` admitting strictly
+   more `(a, I)` pairs than F1 has some witness pair admitted by
+   `P_w` but not by F1. K.λ (LinkAllocation, ASN-0093) and L4
+   (ASN-0043) impose no constraint on endset configurations or on
+   the addresses spans may reference, so the witness link is
+   realizable by direct K.λ allocation in any conforming state with
+   `dom(Σ.M) ≠ ∅`. An implementation using `P_w` returns the
+   witness `a` in `result(I, Σ)` at that state; F1's
+   `findlinks(I, Σ)` excludes `a` by F1-non-admission. The
+   conformance test fails: the alternative `result(I, Σ)` contains
+   a link absent from F1's `findlinks(I, Σ)`.
 
    Together: F2 forbids strengthenings (which would miss F1-admitted
    matches), F3 forbids weakenings (which would return non-F1 links).
@@ -292,13 +260,7 @@ F3-V (VSideSoundness):
 
 F2-filt ∧ F3-filt forces `result_filtered(C, Σ) = findlinks_filtered(C, Σ)`; F2-sco ∧ F3-sco forces `result_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ)`; F2-V ∧ F3-V forces `result_V(R, d, Σ) = findlinks_V(R, d, Σ)` for every `R ⊆ T` and every `d ∈ dom(Σ.M)`. The six claims share the same conformance structure as F2 ∧ F3 — each pair pins the implementation's actual output to the abstract specification of the corresponding operation. Completeness for the filtered form requires every link satisfying *every* constraint in `C` to appear in the filtered output, and soundness rejects any spurious link. Completeness for the scoped form is restated *within the scope*: every link in `S ∩ dom(Σ.L)` satisfying the match predicate must appear, while soundness rejects links that fail the match or fall outside `S`. Completeness for the V-side form binds the reader-facing operation directly: every link whose endset coverage meets the I-image of the V-region must appear in `result_V(R, d, Σ)`, and soundness rejects any link absent from `dom(Σ.L)` or failing the match against the I-image.
 
-F2-V ∧ F3-V is a stand-alone conformance pair whose conformance status depends on the implementation's architectural choice. We articulate the two conformance models the pair supports.
-
-*Factored-through-result.* When the implementation exposes a single `result(I, Σ)` function and computes the V-side output as `result_V(R, d, Σ) := result(image(R, d, Σ), Σ)` at every `(R, d, Σ)` with `d ∈ dom(Σ.M)`, F2-V ∧ F3-V is a *derived consequence* of F2 ∧ F3: F2 ∧ F3 gives `result(image(R, d, Σ), Σ) = findlinks(image(R, d, Σ), Σ)`, and F12 (TwoPhaseFactoring) unfolds the right-hand side to `findlinks_V(R, d, Σ)`. Conforming to F2 ∧ F3 automatically yields conformance to F2-V ∧ F3-V via the factoring equation; no separate verification step is needed.
-
-*Direct-V-side.* When the implementation exposes `findlinks_V` directly as its reader-facing surface — bypassing any internal `result` function — F2-V ∧ F3-V is an *independent (parallel) conformance obligation*. There is no intermediate `result` call through which F2 ∧ F3 could discharge the V-side claim, so the implementation must satisfy F2-V ∧ F3-V on its own terms. The factoring equation is not assumed; the implementation may compute `result_V(R, d, Σ)` by any procedure that produces `findlinks_V(R, d, Σ)` exactly.
-
-The two conformance models are operationally equivalent at every `(R, d, Σ)`: both pin the V-side output to `findlinks_V(R, d, Σ)` by the abstract definition, so the *outputs* coincide. What differs is the conformance obligation structure: the factored-through-result model has one obligation pair (F2 ∧ F3) discharged via the factoring equation; the direct-V-side model has the V-side pair (F2-V ∧ F3-V) as a parallel obligation, with no factoring assumed. An implementation that exposes both surfaces (a `result(I, Σ)` function for the I-side and a `result_V(R, d, Σ)` function for the V-side) must satisfy F2 ∧ F3 and F2-V ∧ F3-V independently — or assert the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` and discharge F2-V ∧ F3-V through F2 ∧ F3. Implementations cannot disagree across the two surfaces at the same `(R, d, Σ)` because both surfaces are pinned to the same abstract `findlinks_V` value; the disjunctive structure is in *how* conformance is established, not in *what* the conforming outputs are.
+F2-V ∧ F3-V pins `result_V(R, d, Σ)` to `findlinks_V(R, d, Σ)` exactly at every `(R, d, Σ)` with `d ∈ dom(Σ.M)`. Implementations may compute the V-side output by routing through an internal `result` function — `result_V(R, d, Σ) := result(image(R, d, Σ), Σ)`, in which case F2-V ∧ F3-V is a derived consequence of F2 ∧ F3 via the factoring equation and F12's definitional unfolding — or by any direct procedure that produces `findlinks_V(R, d, Σ)` exactly, in which case F2-V ∧ F3-V is a parallel conformance obligation. The choice is purely one of code organization within the implementation; the abstract spec produces the same `findlinks_V(R, d, Σ)` value in either case, so the *outputs* are identical at every `(R, d, Σ)`. An implementation exposing both surfaces must satisfy F2 ∧ F3 and F2-V ∧ F3-V coherently — either by asserting the factoring equation and discharging F2-V ∧ F3-V through F2 ∧ F3, or by satisfying both independently — but cannot disagree across the two surfaces, since both are pinned to the same abstract value.
 
 A note on predicate domain. The match predicate `matches(a, I, Σ)` is defined only for `a ∈ dom(Σ.L)` — its definition consults `|Σ.L(a)|` (which requires `a ∈ dom(Σ.L)` so that `Σ.L(a)` is defined) and `Σ.L(a).eᵢ` (likewise). For `a ∉ dom(Σ.L)`, the predicate is undefined; we make no claim about its value, and no claim of this ASN takes such an `a` as an argument. The scope-filter intersection `dom(Σ.L) ∩ S` in F2-sco's universal and in F3-sco's conjunct keeps every quantification within the predicate's domain: F2-sco quantifies only over `a ∈ dom(Σ.L) ∩ S ⊆ dom(Σ.L)`, and F3-sco asserts `a ∈ dom(Σ.L) ∩ S` as part of the soundness conclusion, so the predicate is invoked only on `a ∈ dom(Σ.L)`. The boundary case `a ∈ S ∖ dom(Σ.L)` — addresses in the user-supplied scope that are not link addresses — is operationally excluded from the result by F3-sco's `a ∈ dom(Σ.L) ∩ S` clause, so the predicate is never invoked outside its domain at the implementation surface. This well-definedness convention applies uniformly to F2, F3, F2-filt, F3-filt, F2-sco, F3-sco, F2-V, and F3-V; we surface it here at the scoped pair because the scope set `S` is the only place where a user-supplied `S` could in principle drag a non-link address into the quantifier's range. F2-V and F3-V respect the convention by quantifying over `a ∈ dom(Σ.L)` (in F2-V's universal) and asserting `a ∈ dom(Σ.L)` (in F3-V's soundness conjunct).
 
@@ -349,9 +311,8 @@ A1b (ClosedWorldPreservation) — convention-grounded structural lemma:
        dom(Σ'.L) = dom(Σ.L) ∧ (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a)).
    This ASN reads ASN-0047's effect-clause convention as closed-world:
    components absent from both effect and frame are preserved across
-   the transition. We adopt this reading purely as a methodological
-   choice for this specification's evaluation of silent frames; no
-   appeal is made here to sources outside the foundation. The
+   the transition. We adopt this reading as the methodological default
+   for this specification's evaluation of silent frames. The
    substrate-published lemmas L12 (LinkImmutability) and L12a
    (LinkStoreMonotonicity) supply only the directionally-correct
    halves of the equality — value preservation conditional on `a ∈
@@ -359,15 +320,53 @@ A1b (ClosedWorldPreservation) — convention-grounded structural lemma:
    ⊊ dom(Σ'.L)` (link allocation) at any operation whose frame is
    silent on L. The equality refinement `dom(Σ'.L) = dom(Σ.L)` at
    K.μ⁺, K.μ⁻, K.ρ is supplied by the closed-world reading, not by
-   the substrate lemmas alone. A1b is therefore the
-   *convention-grounded* half of A1; readers who reject the
+   the substrate lemmas alone.
+
+   Convergent grounding (non-constitutive). Two outside-the-foundation
+   sources converge with — but do not constitute — the closed-world
+   reading. (i) Nelson's design intent in Literary Machines requires
+   that operations preserve state they do not explicitly modify: the
+   Istream is append-only ("user makes changes, the changes difflessly
+   into the storage system, filed, as it were, chronologically" at
+   2/14), edits are non-destructive ("users may create new published
+   documents out of old ones indefinitely, making whatever changes
+   seem appropriate—without damaging the originals" at 2/45), and
+   modification is restricted to the owner ("Only the owner has a
+   right to withdraw a document or change it" at 2/29). The closed-
+   world reading is one faithful way to discharge these principles
+   for the substrate effect-clause convention; an open-world reading
+   that derived preservation from the principles by an explicit
+   side-condition on each operation would be equally faithful. (ii)
+   Gregory's udanax-green implementation leaves the link store
+   unmodified across the operations corresponding to K.μ⁺ (INSERT),
+   K.μ⁻ (DELETE / `dodeletevspan`), and K.ρ (DOCISPAN insertion via
+   `docopy`) — confirming that closed-world behavior at these three
+   operations is the established implementation pattern, not merely
+   an interpretive choice of the present ASN. Both sources are
+   *convergent*: they support the same conclusion that A1b reaches
+   via the closed-world reading, but the methodological commitment
+   remains primary because the substrate spec does not formally
+   axiomatise the convention.
+
+   Why not a substrate revision. A foundation revision — publishing
+   `L' = L` explicitly in the three silent frames of ASN-0047, or
+   axiomatising the closed-world convention as a substrate-level
+   meta-axiom — would discharge A1b directly and remove the
+   convention-grounded interpretive commitment from every downstream
+   invocation. We prefer the local methodological commitment in
+   ASN-0099 for two reasons. First, scope: revising ASN-0047 is a
+   substrate-level amendment whose impact extends to every consumer
+   of the operation vocabulary (not just discovery-side ASNs), and
+   ASN-0099 should not unilaterally commit the substrate to a
+   convention that other downstream ASNs may not need or may
+   articulate differently. Second, separability: tagging A1b with
+   convention status keeps the interpretive commitment surfaced at
+   the citation site of every claim that depends on it, so a future
+   substrate revision can replace A1b's convention-grounded reading
+   with an axiomatised one cleanly — removing the tag without
+   restructuring the dependent claims. Readers who reject the
    closed-world reading must restate A1b against an alternative
    interpretation or weaken its conclusion at these three operations.
-   A foundation revision (publishing `L' = L` in the three silent
-   frames, or axiomatising the closed-world convention) would
-   discharge A1b directly without the methodological commitment; this
-   ASN does not attempt that revision and instead adopts the closed-
-   world reading locally.
 ```
 
 ```
@@ -403,7 +402,7 @@ The split of A1 into A1a and A1b makes the methodological status of each derivat
 
 The closed-world reading underlying A1b deserves expanded statement here, since A1b is the load-bearing premise behind every downstream invocation that this ASN cites against the three silent-frame operations.
 
-*The closed-world reading.* The substrate's effect-clause convention is that an operation's effect clause is a complete enumeration of every state-component modification the operation makes, with components absent from both the effect and the frame held unchanged. K.μ⁺'s effect (ASN-0047) names only extensions to `dom(M(d))`; K.μ⁻'s effect names only contractions of `dom(M(d))`; K.ρ's effect names only an addition to `R`. None of these effect clauses names `L`, `dom(L)`, or any sub-component of the link store. Under the closed-world reading, the absence of `L` from an effect clause is equivalent to `Σ'.L = Σ.L`. The substrate ASNs (ASN-0047, ASN-0093) do not explicitly axiomatise this reading; A1b adopts it as a methodological choice for this ASN's evaluation of silent frames, without grounding the choice on sources outside the foundation. The alternative interpretation — that silent frames leave the component's evolution unconstrained — would deny A1b its conclusion and require the substrate to either publish `L' = L` explicitly in the three frames or axiomatise the closed-world convention; the present ASN does not attempt that revision and instead adopts the methodological reading locally.
+*The closed-world reading.* The substrate's effect-clause convention is that an operation's effect clause is a complete enumeration of every state-component modification the operation makes, with components absent from both the effect and the frame held unchanged. K.μ⁺'s effect (ASN-0047) names only extensions to `dom(M(d))`; K.μ⁻'s effect names only contractions of `dom(M(d))`; K.ρ's effect names only an addition to `R`. None of these effect clauses names `L`, `dom(L)`, or any sub-component of the link store. Under the closed-world reading, the absence of `L` from an effect clause is equivalent to `Σ'.L = Σ.L`. The substrate ASNs (ASN-0047, ASN-0093) do not explicitly axiomatise this reading; A1b adopts it as the methodological default for this ASN's evaluation of silent frames. As A1b's statement records, two convergent grounding sources support the choice (Nelson's design-intent principles of append-only, non-destruction, and owner-only modification; Gregory's udanax-green implementation showing link-store invariance at INSERT, DELETE, and `docopy`), though neither is constitutive — the methodological commitment remains primary. The alternative interpretation — that silent frames leave the component's evolution unconstrained — would deny A1b its conclusion and require the substrate to either publish `L' = L` explicitly in the three frames or axiomatise the closed-world convention; for the reasons stated in A1b's "Why not a substrate revision" paragraph, the present ASN does not attempt that revision and instead adopts the methodological reading locally.
 
 A1's load-bearing role in this ASN is bounded to exactly three operations of V — K.μ⁺, K.μ⁻, and K.ρ — and these are precisely the operations covered by A1b. The five remaining non-allocating operations (K.σ, K.α, K.δ, K.μ~, K.μ⁺_L) are covered by A1a and inherit preservation from their own published frame clauses, so A1 is the bridge across which this ASN's derivations transport the unmentioned `L' = L` conjunct from ASN-0047's frames *only at the three silent-frame operations* — and the A1b sub-lemma is the precise load-bearing component. Readers auditing the chain of derivations should treat each A1 invocation at K.μ⁺, K.μ⁻, or K.ρ as an A1b invocation that inherits the convention-grounded interpretive commitment; A1 invocations at the other five operations are A1a invocations that inherit nothing beyond the published frames.
 
@@ -497,7 +496,7 @@ F6 (TransclusionTransparency):
        findlinks_V({v₁}, d₁, Σ) = findlinks_V({v₂}, d₂, Σ).
 ```
 
-The derivation chain unfolds in three steps. Direct evaluation of `image` on each singleton gives `image({v₁}, d₁, Σ) = {Σ.M(d₁)(v₁)} = {α}` (since the precondition `v₁ ∈ dom(Σ.M(d₁))` survives the projection `{v₁} ∩ dom(Σ.M(d₁)) = {v₁}`), and symmetrically `image({v₂}, d₂, Σ) = {α}`. F12 (TwoPhaseFactoring) then unfolds each V-side query to its I-side comprehension: `findlinks_V({v₁}, d₁, Σ) = findlinks(image({v₁}, d₁, Σ), Σ) = findlinks({α}, Σ)`, and symmetrically `findlinks_V({v₂}, d₂, Σ) = findlinks({α}, Σ)`. Functional determinism of `findlinks` (one set per `(I, Σ)`) supplies `findlinks({α}, Σ) = findlinks({α}, Σ)` reflexively, closing the equality. The match predicate consulted only the I-image and the link store; how `α` came to be in `I` — through `d₁`'s native arrangement or `d₂`'s transclusion — is invisible to phase 2.
+The derivation chain unfolds in three steps. Direct evaluation of `image` on each singleton gives `image({v₁}, d₁, Σ) = {Σ.M(d₁)(v₁)} = {α}` (since the precondition `v₁ ∈ dom(Σ.M(d₁))` survives the projection `{v₁} ∩ dom(Σ.M(d₁)) = {v₁}`), and symmetrically `image({v₂}, d₂, Σ) = {α}`. By F12's definition of `findlinks_V`, each V-side query unfolds to its I-side comprehension: `findlinks_V({v₁}, d₁, Σ) = findlinks(image({v₁}, d₁, Σ), Σ) = findlinks({α}, Σ)`, and symmetrically `findlinks_V({v₂}, d₂, Σ) = findlinks({α}, Σ)`. Functional determinism of `findlinks` (one set per `(I, Σ)`) supplies `findlinks({α}, Σ) = findlinks({α}, Σ)` reflexively, closing the equality. The match predicate consulted only the I-image and the link store; how `α` came to be in `I` — through `d₁`'s native arrangement or `d₂`'s transclusion — is invisible to phase 2.
 
 The corollary is the cross-document discoverability of links via shared content. A link created against `α`'s native location in `d_a` is found when querying `d_b`'s transclusion of `α`. The link does not "belong" to `d_a` in any sense visible to the discovery operation — it belongs to its home document by L1a (ASN-0043), but its *findability* is at the I-address, not at the document. The two-phase factoring makes this fall out without effort.
 
@@ -553,11 +552,13 @@ V-side additivity for `findlinks_V` is then immediate from F12, F13, and F20:
 
 ```
 findlinks_V(R₁ ∪ R₂, d, Σ)
-  = findlinks(image(R₁ ∪ R₂, d, Σ), Σ)              by F12
+  = findlinks(image(R₁ ∪ R₂, d, Σ), Σ)              by F12 (def)
   = findlinks(image(R₁, d, Σ) ∪ image(R₂, d, Σ), Σ)  by F20
   = findlinks(image(R₁, d, Σ), Σ) ∪ findlinks(image(R₂, d, Σ), Σ)  by F13
-  = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)   by F12.
+  = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)   by F12 (def).
 ```
+
+(The two F12 citations above mark definitional unfolding rather than derivation steps — F12 introduces `findlinks_V` as the named composite, so "by F12 (def)" reads "by definition". We mark them explicitly to distinguish from genuine implication steps elsewhere in the chain.)
 
 A reader who selects two V-regions and asks for the links touching either receives the same answer as one who asks for each region separately and unions the results. The two-phase factoring distributes over set union at every stage.
 
@@ -623,7 +624,7 @@ F18 (ScopedSurvivability):
        findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ').
 ```
 
-By F9, `findlinks(I, Σ) = findlinks(I, Σ')` across any K.μ-family step. Intersecting both sides with the same query-supplied `S` preserves the equality, yielding F18 directly.
+By F9, `findlinks(I, Σ) = findlinks(I, Σ')` across any K.μ-family step. Intersecting both sides with the same query-supplied `S` preserves the equality, yielding F18 directly. F18 inherits A1b's closed-world interpretive commitment transitively through F9 at the K.μ⁺ and K.μ⁻ sub-cases; the K.μ~ and K.μ⁺_L sub-cases discharge from F9's A1a coverage of their published `L' = L` frames.
 
 The four claims share the same structural backbone as F8 and F9: the abstract-side comprehensions consult only `(Σ.L, query-data)`, and the K.μ family preserves `Σ.L`. We state them explicitly because filtered and scoped queries are the operationally common forms — the unfiltered, full-store `findlinks` is rarely what a reader-facing UI calls — and the determinism/survivability obligations propagate to them with the same force.
 
@@ -785,9 +786,9 @@ The three prefix-subtrees over `α₁, α₂, α₃` are pairwise disjoint: each
 
 **Verifying F13 (SetAdditive).** Compute each side separately. `findlinks({α₂}, Σ) = {ℓ}` (`ℓ` via slot 1; neither `ℓ'` nor `ℓ_meta` matches `{α₂}`) and `findlinks({α₃}, Σ) = {ℓ, ℓ'}` (`ℓ` via slot 2 and `ℓ'` via slot 1, both intersecting `{α₃}` in `{α₃}`; `ℓ_meta`'s endsets remain subspace/τ-disjoint from `{α₃}`); their union is `{ℓ, ℓ'}`. Independently, `findlinks({α₂, α₃}, Σ) = {ℓ, ℓ'}` by direct evaluation as in Query 3. The two computations agree: `findlinks({α₂} ∪ {α₃}, Σ) = findlinks({α₂}, Σ) ∪ findlinks({α₃}, Σ) = {ℓ, ℓ'}`.
 
-**Verifying F2 (Completeness) against the instance.** F2 and F3 are conformance contracts on a separate implementation function `result(I, Σ)`; the verification therefore establishes what F2 ∧ F3 *obligate* any conforming implementation to produce at this instance, not that the abstract specification satisfies a property of itself. The set `dom(Σ.L) = {ℓ, ℓ', ℓ_meta}` is the universe of candidates. For the query `{α₂}`, the match predicate fires at `ℓ` only. F2 obligates any conforming implementation to satisfy `result({α₂}, Σ) ⊇ {ℓ}` — the matching link must appear in the implementation's output. The abstract comprehension `{a ∈ dom(Σ.L) : matches(a, {α₂}, Σ)}` evaluates to `{ℓ}` for this instance, pinning the completeness obligation: an implementation conforms to F2 here iff its actual `result({α₂}, Σ)` contains at least `{ℓ}`. (The dual no-spurious obligation belongs to F3 and is addressed in the next paragraph.)
+**F2 (Completeness): conformance obligation at the instance.** F2 and F3 are conformance contracts on a separate implementation function `result(I, Σ)`; the worked example does not "verify" the abstract specification against itself but exhibits what F2 ∧ F3 *obligate* any conforming implementation to produce at this specific `(I, Σ)`. The set `dom(Σ.L) = {ℓ, ℓ', ℓ_meta}` is the universe of candidates. For the query `{α₂}`, the match predicate fires at `ℓ` only. F2 obligates any conforming implementation to satisfy `result({α₂}, Σ) ⊇ {ℓ}` — the matching link must appear in the implementation's output. The abstract comprehension `{a ∈ dom(Σ.L) : matches(a, {α₂}, Σ)}` evaluates to `{ℓ}` for this instance, pinning the completeness obligation: an implementation conforms to F2 here iff its actual `result({α₂}, Σ)` contains at least `{ℓ}`. (The dual no-spurious obligation belongs to F3 and is addressed in the next paragraph.)
 
-**Verifying F3 (Soundness) against the instance.** F3 obligates any conforming implementation to satisfy `result({α₂}, Σ) ⊆ {ℓ}` — only links in `dom(Σ.L)` that match `{α₂}` may appear in the output. We verified above that `matches(ℓ', {α₂}, Σ) = false` and `matches(ℓ_meta, {α₂}, Σ) = false`, so a conforming implementation cannot return `ℓ'` or `ℓ_meta`. Jointly F2 ∧ F3 force `result({α₂}, Σ) = {ℓ}`; the abstract specification produces `{ℓ}` for this instance, and every conforming implementation must produce exactly this set.
+**F3 (Soundness): conformance obligation at the instance.** F3 obligates any conforming implementation to satisfy `result({α₂}, Σ) ⊆ {ℓ}` — only links in `dom(Σ.L)` that match `{α₂}` may appear in the output. We verified above that `matches(ℓ', {α₂}, Σ) = false` and `matches(ℓ_meta, {α₂}, Σ) = false`, so a conforming implementation cannot return `ℓ'` or `ℓ_meta`. Jointly F2 ∧ F3 force `result({α₂}, Σ) = {ℓ}`; the abstract specification produces `{ℓ}` for this instance, and every conforming implementation must produce exactly this set.
 
 **Verifying F6 against the instance.** Queries 1 and 2 produce the same I-image `{α₂}` and hence the same result `{ℓ}`, despite the V-positions `v_a^2` and `v_b^1` belonging to different documents. The match predicate consulted only the I-image and the link store; the document of origin of the V-position vanished from the computation after Phase 1.
 
@@ -827,11 +828,13 @@ Throughout this sequence we operate against the extended state of ASN-0047 (`Σ 
 
 Across the whole chain `Σ → Σ_1 → Σ_2 → Σ_3 → Σ_4 → Σ_5`, transitivity of equality through the per-step `Σᵢ.L = Σᵢ₋₁.L` chain yields `Σ.L = Σ_5.L`. F8 then forces `findlinks(I, Σ) = findlinks(I, Σ_5)` for every I ⊆ T — the I-side answer at every step of the sequence is exactly the I-side answer at `Σ`. Concretely, at `I = {α₂}`: `findlinks({α₂}, Σ) = {ℓ}` (Query 1) and `findlinks({α₂}, Σ_5) = {ℓ}` by direct evaluation (`Σ_5.L = Σ.L = {ℓ, ℓ', ℓ_meta}` with values preserved by L12 across the whole chain; the slot-1 test at `ℓ` still produces `coverage(Σ_5.L(ℓ).e₁) ∩ {α₂} = {α₂} ≠ ∅`, and `ℓ'`, `ℓ_meta` remain non-matching by their endset-coverage reasoning of Query 1, unchanged). The chain exercises A1b three times — once each at the K.μ⁺, K.μ⁻, and K.ρ steps — and exercises A1a's coverage of the published `L' = L` frame twice (at K.δ in step i and K.α in step ii); K.σ, K.μ~, and K.μ⁺_L are not invoked here since the sequence does not use them, but their published `L' = L` frames (also A1a) would extend the chain identically. F9★-cor's claim that any reachable sequence in V ∖ {K.λ} preserves `findlinks(I, ·)` is operationally exercised here against a sequence that touches every other state component, with the discovery answer invariant across the chain. The V-side answer at `v_a^2` in `d_a` does change across the chain (the K.μ⁻ step contracts `v_a^2` out of `dom(M(d_a))`, so `findlinks_V({v_a^2}, d_a, Σ_5) = findlinks(∅, Σ_5) = ∅`), but the I-side answer at the fixed I-set `{α₂}` does not.
 
-**Query 11: F9★ verification via a K.μ-only two-step chain.** Query 10 exhibits the broader F9★-cor closure across a mixed sequence; F9★'s K.μ-only specialization deserves its own direct exhibition, since the operationally salient editing surface is exactly K.μ-only. Compose Query 4's K.μ⁻ transition `Σ → Σ'` (contracting `Σ.M(d_a)` to `{v_a^1 ↦ α₁}`) with Query 9's K.μ⁺_L transition extended now off `Σ'` (extending `Σ'.M(d_a)` with `v_a^L ↦ ℓ`, yielding state `Σ_edit_link`). The local name `Σ_edit_link` is chosen to disambiguate from Query 7's `Σ''` — that state arose from a single K.μ~ reordering and is structurally different from this two-step composite (K.μ⁻ then K.μ⁺_L), so a distinct name keeps the worked-example state names unambiguous. The K.μ⁺_L precondition transfers cleanly from Σ to Σ': `ℓ ∈ dom(Σ'.L) = dom(Σ.L)` (preserved by A1b across the K.μ⁻ step), `origin(ℓ) = d_a`, `ℓ ∉ ran(Σ'.M(d_a)) = {α₁}` (K.μ⁻ contracted everything but `α₁`), and `v_a^L = [s_L, 1]` is the canonical depth-2 minimum in `d_a`'s link subspace (which is empty at Σ' since it was empty at Σ and K.μ⁻ touched only the content subspace). Both steps are K.μ-family operations: K.μ⁻ ∈ {K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L} and K.μ⁺_L ∈ that set. Per-step `Σᵢ.L = Σᵢ₋₁.L` discharges: K.μ⁻ via A1b (silent frame), K.μ⁺_L via A1a's coverage of its published `L' = L` frame. Transitivity yields `Σ.L = Σ'.L = Σ_edit_link.L`. F8 then forces `findlinks(I, Σ) = findlinks(I, Σ_edit_link)` for every I ⊆ T — the K.μ-only multi-step closure asserted by F9★. Concretely at `I = {α₂}`: `findlinks({α₂}, Σ) = {ℓ}` (Query 1) and `findlinks({α₂}, Σ_edit_link) = {ℓ}` by direct evaluation (the link store is identical to Σ.L across both steps, so the slot-1 test at `ℓ` still meets `{α₂}`; `ℓ'`, `ℓ_meta` remain non-matching). F9★ holds across the chain — every step is K.μ-family, and the result is invariant — matching F9★'s claim against a sequence drawn entirely from the editing surface.
+**Query 11: F9★ verification via a K.μ-only two-step chain (cross-step precondition transfer).** Query 10 exhibits the broader F9★-cor closure across a mixed sequence; F9★'s K.μ-only specialization deserves its own direct exhibition, since the operationally salient editing surface is exactly K.μ-only. The chain we construct also illustrates a feature absent from Query 9's single K.μ⁺_L: a K.μ⁺_L step whose precondition was originally evaluated against the base state Σ must be re-evaluated against the intermediate state at which it actually fires. Compose Query 4's K.μ⁻ transition `Σ → Σ'` (contracting `Σ.M(d_a)` to `{v_a^1 ↦ α₁}`) with Query 9's K.μ⁺_L transition extended now off `Σ'` (extending `Σ'.M(d_a)` with `v_a^L ↦ ℓ`, yielding state `Σ_edit_link`). The local name `Σ_edit_link` is chosen to disambiguate from Query 7's `Σ''` — that state arose from a single K.μ~ reordering and is structurally different from this two-step composite (K.μ⁻ then K.μ⁺_L), so a distinct name keeps the worked-example state names unambiguous.
+
+The cross-step precondition transfer is load-bearing: K.μ⁺_L's precondition `ℓ ∈ dom(M.L)`, `origin(ℓ) = d_a`, `ℓ ∉ ran(M(d_a))`, and the D-MIN★ admissibility of `v_a^L` were all stated against the base state Σ in Query 9; here we must check them against Σ' (the K.μ⁻ post-state). All four transfer cleanly: `ℓ ∈ dom(Σ'.L) = dom(Σ.L)` (preserved by A1b across the K.μ⁻ step, since K.μ⁻'s published frame is silent on L), `origin(ℓ) = d_a` (a property of `ℓ`'s allocation history, invariant across non-allocating transitions), `ℓ ∉ ran(Σ'.M(d_a)) = {α₁}` (K.μ⁻ contracted everything but `α₁` from the content subspace, and `ℓ ∉ {α₁}` by subspace separation), and `v_a^L = [s_L, 1]` is the canonical depth-2 minimum in `d_a`'s link subspace (which remains empty at Σ' since it was empty at Σ and K.μ⁻ touched only the content subspace, so D-MIN★ admits `v_a^L` at Σ'). Both steps are K.μ-family operations: K.μ⁻ ∈ {K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L} and K.μ⁺_L ∈ that set. Per-step `Σᵢ.L = Σᵢ₋₁.L` discharges: K.μ⁻ via A1b (silent frame), K.μ⁺_L via A1a's coverage of its published `L' = L` frame. Transitivity yields `Σ.L = Σ'.L = Σ_edit_link.L`. F8 then forces `findlinks(I, Σ) = findlinks(I, Σ_edit_link)` for every I ⊆ T — the K.μ-only multi-step closure asserted by F9★. Concretely at `I = {α₂}`: `findlinks({α₂}, Σ) = {ℓ}` (Query 1) and `findlinks({α₂}, Σ_edit_link) = {ℓ}` by direct evaluation (the link store is identical to Σ.L across both steps, so the slot-1 test at `ℓ` still meets `{α₂}`; `ℓ'`, `ℓ_meta` remain non-matching). F9★ holds across the chain — every step is K.μ-family, and the result is invariant — matching F9★'s claim against a sequence drawn entirely from the editing surface.
 
 **Implicit verifications in Queries 1–3 (F1, F7(a)).** Queries 1–3 each rely on the singleton-overlap reading of F1's slot-existential: in Query 1, slot 1's coverage at `ℓ` meets `{α₂}` in the singleton `{α₂}`, and that singleton overlap suffices to fire the existential and put `ℓ` in the result without examining slot 2 or slot 3. The design constraint that no strengthening of the intersection condition is permitted (full overlap, majority overlap, etc.) is exercised silently throughout — any strengthening would have excluded `ℓ` from Query 1's result, since slot 1's coverage is the entire prefix-closure of `α₂` and the query is a singleton. Queries 1–3 also exercise F7(a)'s slot symmetry: the match predicate's existential ranges over every slot of every link uniformly, so when Query 3 finds `ℓ'` via its slot 1 (whose coverage extends `α₃`), no slot is privileged over any other — the same uniformity that lets Query 1 find `ℓ` via slot 1 alone. Both observations are intrinsic to the existential structure of `matches` and require no separate verification step.
 
-**Verifying F20 (ImageSetAdditive) by splitting Query 3.** Decompose the V-region `R = {v_a^2, v_a^3}` of Query 3 into the disjoint sub-regions `R₁ = {v_a^2}` and `R₂ = {v_a^3}`. Compute each image separately: `image(R₁, d_a, Σ) = {α₂}` (Query 1's image); `image(R₂, d_a, Σ) = {Σ.M(d_a)(v_a^3)} = {α₃}` by the same projection. Their union `{α₂} ∪ {α₃} = {α₂, α₃}` agrees with the direct computation `image(R₁ ∪ R₂, d_a, Σ) = image({v_a^2, v_a^3}, d_a, Σ) = {α₂, α₃}` (Query 3's image). Composing with `findlinks` via F12 yields V-side additivity: `findlinks_V(R₁ ∪ R₂, d_a, Σ) = findlinks_V(R₁, d_a, Σ) ∪ findlinks_V(R₂, d_a, Σ) = {ℓ} ∪ {ℓ, ℓ'} = {ℓ, ℓ'}`, matching Query 3's result.
+**Verifying F20 (ImageSetAdditive) by splitting Query 3.** Decompose the V-region `R = {v_a^2, v_a^3}` of Query 3 into the disjoint sub-regions `R₁ = {v_a^2}` and `R₂ = {v_a^3}`. Compute each image separately: `image(R₁, d_a, Σ) = {α₂}` (Query 1's image); `image(R₂, d_a, Σ) = {Σ.M(d_a)(v_a^3)} = {α₃}` by the same projection. Their union `{α₂} ∪ {α₃} = {α₂, α₃}` agrees with the direct computation `image(R₁ ∪ R₂, d_a, Σ) = image({v_a^2, v_a^3}, d_a, Σ) = {α₂, α₃}` (Query 3's image). Composing with `findlinks` via F12's definition yields V-side additivity: `findlinks_V(R₁ ∪ R₂, d_a, Σ) = findlinks_V(R₁, d_a, Σ) ∪ findlinks_V(R₂, d_a, Σ) = {ℓ} ∪ {ℓ, ℓ'} = {ℓ, ℓ'}`, matching Query 3's result.
 
 **Verifying F19 (ResultSetMonotonicity) under a K.λ extension.** From the original state Σ, apply a single K.λ allocating a fresh link `ℓ_n` under `d_a` whose slot 1 has the canonical span `(α₂, δ(1, #α₂))` (so its coverage is the same prefix-closure as `ℓ`'s slot 1) and whose slot 2 and slot 3 have coverages disjoint from `{α₂}`. K.λ's subsequent-emission precondition pins `ℓ_n` to the chain successor of the most-recently-allocated link under `d_a`: `ℓ_n = inc(ℓ, 0) = [d_a.0.s_L.2]`. By the K.λ effect, `Σ'''.L = Σ.L ∪ {ℓ_n ↦ ...}` with all prior entries unchanged (L12). Then `findlinks({α₂}, Σ) = {ℓ}` (Query 1) while `findlinks({α₂}, Σ''') = {ℓ, ℓ_n}` (both `ℓ` and `ℓ_n` now satisfy the slot-1 test against `{α₂}`; ℓ' and ℓ_meta still do not, per Query 1's reasoning carried forward). The inclusion `findlinks({α₂}, Σ) ⊆ findlinks({α₂}, Σ''')` holds with strict containment: `ℓ_n` enters the result, and no prior member leaves it. K.λ is the only operation of V that can grow the result; the growth is monotone, never destructive.
 
@@ -887,7 +890,7 @@ The reverse claim is equally true. None of these design choices could have been 
 | `findlinks_filtered(C, Σ)` | Filtered form with slot constraints `C` | definition |
 | `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | definition |
 | A1a | PublishedFramePreservation: for operations in {K.σ, K.α, K.δ, K.μ~, K.μ⁺_L} (the subset of V ∖ {K.λ} whose published frames list `L' = L` directly), every transition preserves `Σ.L` immediately from the published frame. Derived structural lemma carrying no interpretive commitment beyond the substrate spec | introduced (derived structural lemma) |
-| A1b | ClosedWorldPreservation: for operations in {K.μ⁺, K.μ⁻, K.ρ} (the subset of V ∖ {K.λ} whose published frames omit `L`), every transition preserves `Σ.L` under the closed-world reading of the substrate's effect-clause convention (components absent from both effect and frame are unchanged). Convention-grounded structural lemma adopted methodologically by this ASN, with no appeal to sources outside the foundation; downstream citations at K.μ⁺, K.μ⁻, K.ρ inherit the convention-grounded interpretive commitment | introduced (convention-grounded structural lemma) |
+| A1b | ClosedWorldPreservation: for operations in {K.μ⁺, K.μ⁻, K.ρ} (the subset of V ∖ {K.λ} whose published frames omit `L`), every transition preserves `Σ.L` under the closed-world reading of the substrate's effect-clause convention (components absent from both effect and frame are unchanged). Convention-grounded structural lemma adopted methodologically by this ASN; downstream citations at K.μ⁺, K.μ⁻, K.ρ inherit the convention-grounded interpretive commitment. Convergent (non-constitutive) grounding from Nelson's design-intent principles (LM 2/14, 2/45, 2/29) and Gregory's udanax-green implementation evidence at INSERT, DELETE, and `docopy` supports the closed-world reading; the methodological commitment remains primary because the substrate spec does not formally axiomatise the convention. Substrate revision (publishing `L' = L` in the three silent frames or axiomatising the convention) is not pursued here for scope and separability reasons recorded in A1b's body | introduced (convention-grounded structural lemma) |
 | A1 | LinkStoreInertOfNonAllocatingOperations: K.λ is the unique operation in V that modifies the link store; every operation in V ∖ {K.λ} preserves `Σ.L`. Composite structural lemma: union of A1a (covering K.σ, K.α, K.δ, K.μ~, K.μ⁺_L from published frames — A1a invocations carry no convention-grounded commitment) and A1b (covering K.μ⁺, K.μ⁻, K.ρ from the closed-world reading — A1b invocations inherit the convention-grounded interpretive commitment). Operational reach of A1's contribution is entirely through A1b at the three silent-frame operations; A1a invocations at the other five operations rest on substrate-published frames alone | introduced (composite structural lemma) |
 | F1 | MatchPredicate: defining equation `matches(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` introducing the named match predicate (uniqueness as a match formula is the substantive content of F4) | definition |
 | F2 | Completeness: every matching link in `dom(Σ.L)` appears in the result | introduced |
