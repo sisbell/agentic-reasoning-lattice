@@ -205,7 +205,7 @@ We record the consequence as a structural lemma:
 >
 > (ii) `project(a, i, d_src, Σ') = project(a, i, d_src, Σ)` for every slot `i` — the source's projection is unchanged. *Derivation.* Unfolding the definition: `project(a, i, d_src, Σ') = {v ∈ dom(Σ'.M(d_src)) : Σ'.M(d_src)(v) ∈ coverage(Σ'.L(a).eᵢ)}`. By V5, `Σ'.M(d_src) = Σ.M(d_src)` (so `dom` and pointwise values coincide); by (i), `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`. Substituting both equalities into the set-builder: `project(a, i, d_src, Σ') = {v ∈ dom(Σ.M(d_src)) : Σ.M(d_src)(v) ∈ coverage(Σ.L(a).eᵢ)} = project(a, i, d_src, Σ)`.
 >
-> (iii) `project(a, i, d_src, Σ) ∩ V_{s_C}(d_src) ⊆ project(a, i, d_new, Σ')` for every slot `i` — the fork inherits the source's content-subspace projection witnesses. *Derivation.* For every `v ∈ project(a, i, d_src, Σ) ∩ V_{s_C}(d_src)`: by V4 and V4b, `v ∈ dom(M'(d_new))` and `M'(d_new)(v) = M(d_src)(v)`. By the definition of `project(a, i, d_src, Σ)`, `M(d_src)(v) ∈ coverage(Σ.L(a).eᵢ)`. By (i), `coverage(Σ.L(a).eᵢ) = coverage(Σ'.L(a).eᵢ)`. Composing: `M'(d_new)(v) ∈ coverage(Σ'.L(a).eᵢ)`, so `v ∈ project(a, i, d_new, Σ')`.
+> (iii) `project(a, i, d_src, Σ) ∩ V_{s_C}(d_src) = project(a, i, d_new, Σ')` for every slot `i` — the fork's projection equals the source's content-subspace-restricted projection. *Derivation.* We show both inclusions. *(⊆)* For every `v ∈ project(a, i, d_src, Σ) ∩ V_{s_C}(d_src)`: by V4 and V4b, `v ∈ dom(M'(d_new))` and `M'(d_new)(v) = M(d_src)(v)`. By the definition of `project(a, i, d_src, Σ)`, `M(d_src)(v) ∈ coverage(Σ.L(a).eᵢ)`. By (i), `coverage(Σ.L(a).eᵢ) = coverage(Σ'.L(a).eᵢ)`. Composing: `M'(d_new)(v) ∈ coverage(Σ'.L(a).eᵢ)`, so `v ∈ project(a, i, d_new, Σ')`. *(⊇)* For every `v ∈ project(a, i, d_new, Σ')`: by the definition of `project`, `v ∈ dom(M'(d_new))` and `M'(d_new)(v) ∈ coverage(Σ'.L(a).eᵢ)`. By V4b's exact equality `dom(M'(d_new)) = V_{s_C}(d_src)`, `v ∈ V_{s_C}(d_src)` (which is `⊆ dom(M(d_src))` by `V_{s_C}(d_src) := {v ∈ dom(M(d_src)) : subspace(v) = s_C}`, so `v ∈ dom(M(d_src))`). By V4, `M'(d_new)(v) = M(d_src)(v)`; by (i), `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`. Composing: `M(d_src)(v) ∈ coverage(Σ.L(a).eᵢ)`, so `v ∈ project(a, i, d_src, Σ)`, and combined with `v ∈ V_{s_C}(d_src)`, `v ∈ project(a, i, d_src, Σ) ∩ V_{s_C}(d_src)`.
 >
 > The link store is unchanged, the source's discoverability is preserved, and the fork inherits the source's content-subspace projection witnesses.
 
@@ -373,7 +373,7 @@ We name the combined consequence.
 
 > **V12** (*joint permanence*): After a fork, both `d_src` and `d_new` and all their inherited I-addresses are permanent. For every reachable state subsequent to the fork:
 >
-> (a) `d_src ∈ E'_doc ∧ d_new ∈ E'_doc` (T8, P1)
+> (a) `d_src ∈ E'_doc ∧ d_new ∈ E'_doc` (P1)
 >
 > (b) `(A a ∈ ran(M'(d_new)) :: a ∈ dom(C'')` for every subsequent state `Σ''` (P0)
 >
@@ -544,7 +544,7 @@ V10(a) holds concretely: `d_new = inc(d_src, 1)` differs from `d_new² = inc(d_n
 | V5 | `M'(d_src) = M(d_src)` — source arrangement isolated from fork | introduced |
 | V5a | Per-document arrangement independence: (a) per-elementary-transition — a step M-targeted at `d_target ≠ d*` or any non-arrangement-modifying step preserves `M(d*)`; (b) per-sequence — a sequence with no step M-targeted at `d*` preserves `M(d*)`. Corollary 1: source–fork isolation. Corollary 2: pairwise independence for sibling forks (consumed by V10(b)) | introduced |
 | V6 | `V_{s_L}(d_new) = ∅` in the post-fork state — link subspace not inherited (forced by CL-OWN) | introduced |
-| V6a | Across the fork composite: `Σ'.L(a) = Σ.L(a)` (link store unchanged by frame composition), `project(a, i, d_src, Σ') = project(a, i, d_src, Σ)` (source projection invariant via V5), and `project(a, i, d_src, Σ) ∩ V_{s_C}(d_src) ⊆ project(a, i, d_new, Σ')` (fork inherits source's content-subspace projection witnesses via V4/V4b). `coverage`, `project`, and `discoverable_from` defined locally over foundation vocabulary | introduced |
+| V6a | Across the fork composite: `Σ'.L(a) = Σ.L(a)` (link store unchanged by frame composition), `project(a, i, d_src, Σ') = project(a, i, d_src, Σ)` (source projection invariant via V5), and `project(a, i, d_src, Σ) ∩ V_{s_C}(d_src) = project(a, i, d_new, Σ')` (fork's projection equals the source's content-subspace-restricted projection via V4/V4b). `coverage`, `project`, and `discoverable_from` defined locally over foundation vocabulary | introduced |
 | V7 | Empty-source behavior: fork of `d_src` with `V_{s_C}(d_src) = ∅` reduces to K.δ alone, succeeding with `M'(d_new) = ∅` and `R' = R` | introduced |
 | V8 | `(A v ∈ V_{s_C}(d_src) :: M'(d_src)(v) = M'(d_new)(v))` — structural correspondence at fork-time | introduced |
 | V8a | Correspondence persists under content-store growth | introduced |
@@ -554,7 +554,7 @@ V10(a) holds concretely: `d_new = inc(d_src, 1)` differs from `d_new² = inc(d_n
 | V9a | Provenance records containment, not derivation path — chain of custody is reconstructable from I-addresses and prefix structure, not stored | introduced |
 | V10 | Sibling forks of the same source are independent in identity, arrangement, and provenance | introduced |
 | V10a | Each fork derives from `M(d_src)` *at the moment of forking* — time-sensitivity | introduced |
-| V11 | Transitive identity along unedited fork chains: for every fork chain `d_src → d¹_new → ... → d^k_new` where each step's source has its content-subspace arrangement (set and pointwise values) unchanged between the prior step's post-state and the current step's pre-state, `M^k(d^k_new)(v) = M(d_src)(v)` for every `v ∈ V_{s_C}(d_src)` | introduced |
+| V11 | Transitive identity along unedited fork chains: for every fork chain `d_src → d¹_new → ... → d^k_new` where each step's source has its content-subspace arrangement (set and pointwise values) unchanged between the prior step's post-state and the current step's pre-state, `v ∈ dom(M^k(d^k_new))` and `M^k(d^k_new)(v) = M(d_src)(v)` for every `v ∈ V_{s_C}(d_src)` | introduced |
 | V11a | Prefix relation chains: `d_src ≼ d¹_new ≼ ... ≼ d^k_new` — ancestry composition recoverable from tumbler structure | introduced |
 | V12 | Joint permanence of source, fork, inherited I-addresses, and provenance records across all subsequent states | introduced |
 
