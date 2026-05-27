@@ -53,13 +53,13 @@ F1 (MatchPredicate):
 
 F1 generalizes ASN-0098's `discoverable_from(a, d, Σ) = matches(a, ran(Σ.M(d)), Σ)`. The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to. Intersection (rather than containment) is forced by symmetry: a link is about every byte its endsets cover (L13), one shared byte suffices, and to require containment in either direction would impose a circular precondition (the reader would need to know each link's extent to know whether to include it in the query).
 
-F4 below is a *design justification*, not a uniqueness theorem. The shape of the match predicate is partially prescribed by Nelson's text; F1 is one design-justified choice within that prescribed family. Two layers of prescription are at work, and we surface them separately before stating F4.
+F4 below is a *design justification*, not a uniqueness theorem. The shape of the match predicate is partially prescribed by Nelson's text; F1 is one design-justified choice within that prescribed family. Two layers of prescription are at work — we surface them as commentary motivating F4, with the load-bearing work carried by the realizability witnesses stated after F4 (the three strengthenings and two weakenings).
 
 *Layer 1 — the user-facing guarantee (LM 2/46).* Nelson constrains only the *deliverable*: backlinks must be returnable without appreciable delay. No predicate shape is fixed at this layer.
 
-*Layer 2 — the structural family (LM 4/58).* "A link satisfies a search request if one span of each endset satisfies a corresponding part of the request" prescribes an AND-of-ORs structure: ∧ across endsets (every endset participates with a witnessing span), OR over spans within each endset (one span witnesses). The phrase "corresponding part" decomposes the request per-endset, so LM 4/58 directly describes a *filtered* query — its literal realization is `findlinks_filtered` with one constraint per slot (e.g., `findlinks_filtered({(1, I_from), (2, I_to), (3, I_type)}, Σ)`), AND across constraints with per-slot overlap as the existential. F1's unfiltered `findlinks` is *not* a member of this AND family; it is the OR-across-slots aggregation obtained by applying a single I against all endsets and reporting a hit when any endset overlaps: `findlinks(I, Σ) = ⋃_{i=1}^{N} findlinks_filtered({(i, I)}, Σ)` (the union form is derived below). What F1 carries forward from LM 4/58 is the *per-endset* structure — the overlap existential over spans within a single endset; the across-endsets quantifier is a separate, reader-facing surface choice. F4 below treats these two layers as separable design decisions.
+*Layer 2 — the structural family (LM 4/58).* "A link satisfies a search request if one span of each endset satisfies a corresponding part of the request" prescribes an AND-of-ORs structure: ∧ across endsets (every endset participates with a witnessing span), OR over spans within each endset (one span witnesses). The phrase "corresponding part" decomposes the request per-endset, so LM 4/58 directly describes a *filtered* query — its literal realization is `findlinks_filtered` (formally defined below in "Endset Filtering"; in brief, `findlinks_filtered(C, Σ) = {a ∈ dom(Σ.L) : (A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)}` — a constraint-set comprehension binding each constraint to a fixed slot index) with one constraint per slot (e.g., `findlinks_filtered({(1, I_from), (2, I_to), (3, I_type)}, Σ)`), AND across constraints with per-slot overlap as the existential. F1's unfiltered `findlinks` is *not* a member of this AND family; it is the OR-across-slots aggregation obtained by applying a single I against all endsets and reporting a hit when any endset overlaps: `findlinks(I, Σ) = ⋃_{i=1}^{N} findlinks_filtered({(i, I)}, Σ)` (the union form is derived below). What F1 carries forward from LM 4/58 is the *per-endset* structure — the overlap existential over spans within a single endset; the across-endsets quantifier is a separate, reader-facing surface choice. F4 below treats these two layers as separable design decisions.
 
-*Layer 3 — spans-monotonicity within an endset (consequence of LM 4/58's per-span existential).* LM 4/58's per-endset clause — "one span ... satisfies a corresponding part of the request" — places satisfaction at the per-span level as an existential. This existential structure has a structural consequence: adding a non-witnessing span to an endset that already has a witnessing span cannot suppress the existing witness — the existential survives. F1 honors this because its endset-level overlap unfolds to a span-level existential: `coverage(eᵢ) ∩ I ≠ ∅` iff `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`. Predicates that fold the spans of an endset into a universal or aggregate constraint (containment `coverage(eᵢ) ⊆ I`, reverse containment, quantitative thresholds) break this monotonicity: adding a non-witnessing span can violate the universal or fail to advance the aggregate. LM 4/60's across-link robustness principle ("THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS") is *convergent* with this within-endset choice but is not its direct anchor — LM 4/60 governs the cross-link case (filtering across distinct link objects), while spans-monotonicity within a single endset is grounded in LM 4/58's existential structure itself.
+*Structural consequence of Layer 2 — spans-monotonicity within an endset.* Layer 2's per-endset clause — "one span ... satisfies a corresponding part of the request" — places satisfaction at the per-span level as an existential. This existential has a structural consequence we surface here because F4 (a) operationalises it: adding a non-witnessing span to an endset that already has a witnessing span cannot suppress the existing witness — the existential survives. F1 honors this because its endset-level overlap unfolds to a span-level existential: `coverage(eᵢ) ∩ I ≠ ∅` iff `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`. Predicates that fold the spans of an endset into a universal or aggregate constraint (containment `coverage(eᵢ) ⊆ I`, reverse containment, quantitative thresholds) break this monotonicity: adding a non-witnessing span can violate the universal or fail to advance the aggregate. LM 4/60's across-link robustness principle ("THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS") is *convergent* with this within-endset choice but is not its direct anchor — LM 4/60 governs the cross-link case (filtering across distinct link objects), while spans-monotonicity within a single endset is grounded in Layer 2's existential structure itself.
 
 *Spans-monotonicity, illustrated.* Take link L₀ with slot 1 holding the single span `(α, δ(1, #α))`, and query `I = {t : α ≼ t}` (the prefix-subtree of α). Then `coverage(L₀.e₁) = I` exactly, so both F1's overlap predicate and an endset-level containment predicate `coverage(eᵢ) ⊆ I` admit L₀. Now extend L₀ to L₁ by adding a span `(β, δ(1, #β))` at the same slot, with β non-nesting with α (β ⋠ α and α ⋠ β; e.g., β a same-length sibling differing from α at position `#α`). Under F1: L₁ still matches — `coverage(L₁.e₁) ∩ I ⊇ {α} ≠ ∅`, the α-span witness survives. Under endset-level containment: L₁ fails — `coverage(L₁.e₁) = {t : α ≼ t} ∪ {t : β ≼ t}`, and `β ∈ coverage(L₁.e₁)` with `β ∉ I` (since β ⋠ α), so the containment relation breaks. Adding a non-witnessing span to L₀'s slot 1 suppresses L₀'s containment-match while preserving F1's overlap-match. This is the spans-monotonicity LM 4/58's existential structure entails, and it is what the realizability witnesses below (Strengthenings 1–3) operationally distinguish under F2 ∧ F3.
 
@@ -185,7 +185,7 @@ F2-V    ∧ F3-V:     result_V(R, d, Σ)        = findlinks_V(R, d, Σ),
                     for every (R, d, Σ) with d ∈ dom(Σ.M).
 ```
 
-Each pair carries the same structure as F2 ∧ F3, with the predicate adjusted to the operation: the universal `(A (i, J) ∈ C : …)` for the filtered form, the intersection `dom(Σ.L) ∩ S` for the scoped form, and the I-image `image(R, d, Σ)` for the V-side form. F2-V ∧ F3-V is the **primary obligation on `result_V`**: any implementation exposing the V-side surface must satisfy it. When the implementation also exposes the I-side surface satisfying F2 ∧ F3, the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2-V ∧ F3-V + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly; the two surfaces are then coherently linked through F12's definitional unfolding. An implementation may compute the V-side result by routing through `result` internally or by a direct procedure — but the conformance contract is fixed at F2-V ∧ F3-V.
+Each labeled pair `F2-X ∧ F3-X` denotes the conjunction of two individual containments analogous to F2 and F3: F2-X is the completeness containment `findlinks_*(args) ⊆ result_*(args)` and F3-X is the soundness containment `result_*(args) ⊆ findlinks_*(args)`; the conjunction forces the equality stated above. The two halves remain independently citable, so a non-conforming implementation that violates one direction (e.g., a filtered/scoped implementation with a deferred-index obligation that breaks F3-filt while satisfying F2-filt) can be pinned to the specific half at fault. Each pair carries the same structure as F2 ∧ F3, with the predicate adjusted to the operation: the universal `(A (i, J) ∈ C : …)` for the filtered form, the intersection `dom(Σ.L) ∩ S` for the scoped form, and the I-image `image(R, d, Σ)` for the V-side form. F2-V ∧ F3-V is the **primary obligation on `result_V`**: any implementation exposing the V-side surface must satisfy it. When the implementation also exposes the I-side surface satisfying F2 ∧ F3, the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2-V ∧ F3-V + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly; the two surfaces are then coherently linked through F12's definitional unfolding. An implementation may compute the V-side result by routing through `result` internally or by a direct procedure — but the conformance contract is fixed at F2-V ∧ F3-V.
 
 *Predicate domain.* `matches(a, I, Σ)` is defined only for `a ∈ dom(Σ.L)`. The scoped form's `a ∈ dom(Σ.L) ∩ S` clauses (in F2-sco's universal and F3-sco's conclusion) keep every invocation inside the domain; F2-V and F3-V respect the convention by quantifying over `a ∈ dom(Σ.L)`. The boundary case `a ∈ S ∖ dom(Σ.L)` is operationally excluded by F3-sco.
 
@@ -365,6 +365,16 @@ F5 (IdentityNotValue):
    matches(a, {β}, Σ) are computed independently — each decided by
    address-level membership in coverage(Σ.L(a).eᵢ), with no reference
    to content values.
+
+   Derivation. By inspection of F1's RHS, the existential
+   `(E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` consults
+   only |Σ.L(a)|, per-slot endsets Σ.L(a).eᵢ, the coverage function
+   on endsets, and the I-set — Σ.C does not appear among the consulted
+   components. For distinct α ≠ β, the queries matches(a, {α}, Σ) and
+   matches(a, {β}, Σ) reduce per slot to the address-level set-
+   membership tests `α ∈ coverage(Σ.L(a).eᵢ)` and
+   `β ∈ coverage(Σ.L(a).eᵢ)`; these are independent membership
+   predicates over coverage sets, with no shared content lookup.
 ```
 
 If two users write the same string at different I-addresses, links to one are not links to the other. Identity comes from origin (GlobalUniqueness, ASN-0034) and is preserved through every operation touching the content store (P0, ASN-0047); discovery builds on this foundation, not on content equivalence.
@@ -476,18 +486,21 @@ F10a (AnchorLiftingOfDocumentOrdering):
    foundation steps. Step 1 (M0, ASN-0093): zeros(d₁) = zeros(d₂) = 2
    at the document level. Step 2 (T4, ASN-0034): T4's last-component
    constraint d[#d] ≠ 0 places d₁'s two zeros at positions strictly
-   less than #d₁. Step 3 (Prefix, ASN-0034): d₁ ≺ d₂ unfolds to
-   componentwise agreement on positions 1..#d₁, so d₂ inherits exactly
-   those two zeros at the same positions, with d₂'s remaining
-   positions (#d₁+1..#d₂) contributing the balance of the zero count.
-   Step 4 (M0 + T0, ASN-0034 + ASN-0093): zeros(d₂) = 2 total and two
-   zeros already accounted for at positions ≤ #d₁ − 1 force no
-   additional zeros at positions #d₁+1..#d₂; in particular
-   d₂_{#d₁+1} ≠ 0, and T0's ℕ-discreteness (no m ∈ ℕ with
-   0 < m < 1) sharpens this to d₂_{#d₁+1} ≥ 1. b_L(d₁) has the
-   appended 0 separator from b_L(·) = [·.0.s_L] at position #d₁ + 1.
-   T1 case (i) at position #d₁ + 1 yields b_L(d₁) < b_L(d₂). Anchors
-   non-nest at #d₁ + 1.
+   less than #d₁ (i.e., at positions ≤ #d₁ − 1), and forces
+   d₁[#d₁] ≠ 0. Step 3 (Prefix, ASN-0034): d₁ ≺ d₂ unfolds to
+   componentwise agreement on positions 1..#d₁, so d₂ inherits
+   exactly those two zeros at the same positions ≤ #d₁ − 1, and the
+   non-zero terminal d₂[#d₁] = d₁[#d₁] ≠ 0 transports unchanged —
+   position #d₁ contributes no zero to d₂'s count. d₂'s remaining
+   positions (#d₁+1..#d₂) contribute the balance of the zero count.
+   Step 4 (M0 + T0, ASN-0034 + ASN-0093): zeros(d₂) = 2 total, two
+   zeros already accounted for at positions ≤ #d₁ − 1, and position
+   #d₁ contributing no zero (Step 3), force no additional zeros at
+   positions #d₁+1..#d₂; in particular d₂_{#d₁+1} ≠ 0, and T0's
+   ℕ-discreteness (no m ∈ ℕ with 0 < m < 1) sharpens this to
+   d₂_{#d₁+1} ≥ 1. b_L(d₁) has the appended 0 separator from
+   b_L(·) = [·.0.s_L] at position #d₁ + 1. T1 case (i) at position
+   #d₁ + 1 yields b_L(d₁) < b_L(d₂). Anchors non-nest at #d₁ + 1.
 ```
 
 ChainMembershipForOrigin places every `ℓ` with `home(ℓ) = d` in `A_L(d)`, and ChainPrefixExtension (ASN-0093) gives `b_L(d) ≼ ℓ`. For `d₁ < d₂`, F10a lifts to `b_L(d₁) < b_L(d₂)` non-nesting, and PrefixOrderingExtension lifts to every extension. Under T1, link addresses with the same `home(·)` group together as a contiguous T1-block; blocks for distinct documents sort by their documents' tumblers. T1's strict total order on the finite set `dom(Σ.L)` chains the pairwise inequalities into the unique total order without inductive case analysis: T1 itself is the chaining mechanism.
