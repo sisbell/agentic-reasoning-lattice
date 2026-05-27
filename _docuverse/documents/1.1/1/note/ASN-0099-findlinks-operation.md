@@ -35,7 +35,7 @@ F12 (TwoPhaseFactoring) — DEFINITION of findlinks_V:
      ≡             findlinks(image(R, d, Σ), Σ).
 ```
 
-F12 is a definition; the "F12" label is a citation handle so downstream derivations can name the definitional unfolding. For `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined* — no silent fallback. For V-positions in `R` outside `dom(Σ.M(d))`, the silent projection in `image` absorbs them; the caller has no pre-validation obligation beyond establishing `d ∈ dom(Σ.M)`.
+F12 carries two complementary roles under one block: it *defines* the operation `findlinks_V` (the name and signature) and *names the unfolding identity* `findlinks_V(R, d, Σ) ≡ findlinks(image(R, d, Σ), Σ)`. Downstream citations of "F12" invoke the unfolding identity (e.g., Query 1's "By F12, both V-side queries unfold to findlinks({α}, Σ)"); downstream citations of `findlinks_V` invoke the operation itself. The Claims Introduced table lists `findlinks_V` and F12 as separate rows for these two citation purposes — both refer to the same artifact. For `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined* — no silent fallback. For V-positions in `R` outside `dom(Σ.M(d))`, the silent projection in `image` absorbs them; the caller has no pre-validation obligation beyond establishing `d ∈ dom(Σ.M)`.
 
 The factoring matters because the two phases have different stability properties. `Σ.M` is mutable (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L all modify it); `Σ.L` is monotonic (K.λ adds, L12 forbids modification of existing entries). Phase 1 consults the mutable component; phase 2 consults the monotonic component.
 
@@ -59,7 +59,7 @@ F4 below is a *design justification*, not a uniqueness theorem. The shape of the
 
 *Layer 2 — the structural family (LM 4/58).* "A link satisfies a search request if one span of each endset satisfies a corresponding part of the request" prescribes an AND-of-ORs structure: ∧ across endsets (every endset participates with a witnessing span), OR over spans within each endset (one span witnesses). The phrase "corresponding part" decomposes the request per-endset, so LM 4/58 directly describes a *filtered* query — its literal realization is `findlinks_filtered` (formally defined below in "Endset Filtering"; in brief, `findlinks_filtered(C, Σ) = {a ∈ dom(Σ.L) : (A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)}` — a constraint-set comprehension binding each constraint to a fixed slot index) with one constraint per slot (e.g., `findlinks_filtered({(1, I_from), (2, I_to), (3, I_type)}, Σ)`), AND across constraints with per-slot overlap as the existential. F1's unfiltered `findlinks` is *not* a member of this AND family; it is the OR-across-slots aggregation obtained by applying a single I against all endsets and reporting a hit when any endset overlaps: `findlinks(I, Σ) = ⋃_{i=1}^{N} findlinks_filtered({(i, I)}, Σ)` (the union form is derived below). What F1 carries forward from LM 4/58 is the *per-endset* structure — the overlap existential over spans within a single endset; the across-endsets quantifier is a separate, reader-facing surface choice. F4 below treats these two layers as separable design decisions.
 
-*Structural consequence of Layer 2 — spans-monotonicity within an endset.* Layer 2's per-endset clause — "one span ... satisfies a corresponding part of the request" — places satisfaction at the per-span level as an existential. This existential has a structural consequence we surface here because F4 (a) operationalises it: adding a non-witnessing span to an endset that already has a witnessing span cannot suppress the existing witness — the existential survives. F1 honors this because its endset-level overlap unfolds to a span-level existential: `coverage(eᵢ) ∩ I ≠ ∅` iff `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`. Predicates that fold the spans of an endset into a universal or aggregate constraint (containment `coverage(eᵢ) ⊆ I`, reverse containment, quantitative thresholds) break this monotonicity: adding a non-witnessing span can violate the universal or fail to advance the aggregate. LM 4/60's across-link robustness principle ("THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS") is *convergent* with this within-endset choice but is not its direct anchor — LM 4/60 governs the cross-link case (filtering across distinct link objects), while spans-monotonicity within a single endset is grounded in Layer 2's existential structure itself.
+*Structural consequence of Layer 2 — spans-monotonicity within an endset.* Layer 2's per-endset clause — "one span ... satisfies a corresponding part of the request" — places satisfaction at the per-span level as an existential. This existential has a structural consequence we surface here because F4 (a) operationalises it: adding a non-witnessing span to an endset that already has a witnessing span cannot suppress the existing witness — the existential survives. F1 honors this because its endset-level overlap unfolds to a span-level existential: `coverage(eᵢ) ∩ I ≠ ∅` iff `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`. Among the natural alternatives that fold an endset's spans into a single constraint, only *containment* `coverage(eᵢ) ⊆ I` *breaks* spans-monotonicity: adding a non-conforming span (whose coverage falls outside `I`) violates the per-span universal and so suppresses an existing satisfying state. *Reverse containment* `I ⊆ coverage(eᵢ)` and *cardinality thresholds* `|coverage(eᵢ) ∩ I| ≥ k` are themselves spans-monotone — adding a span enlarges `coverage(eᵢ)` (so any existing `I ⊆ coverage`-satisfaction survives) and can only weakly grow `|coverage(eᵢ) ∩ I|` (so any existing threshold-satisfaction survives). What distinguishes F1 from these two aggregates is therefore *not* spans-monotonicity but the *per-span witness structure*: F1's match is anchored at a single witnessing span `(s, ℓ) ∈ eᵢ` with `{t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅`, while reverse containment and cardinality fold every span's contribution into a global condition with no individual span identifiable as the reason for the match. F1 is robust to adversarial junk-span insertion at the existential level on two counts: spans-monotonicity preserves any prior witness across span addition, and the per-span witness structure keeps that surviving witness locatable. LM 4/60's across-link robustness principle ("THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS") is *convergent* with this within-endset choice but is not its direct anchor — LM 4/60 governs the cross-link case (filtering across distinct link objects), while spans-monotonicity within a single endset is grounded in Layer 2's existential structure itself.
 
 *Spans-monotonicity, illustrated.* Take link L₀ with slot 1 holding the single span `(α, δ(1, #α))`, and query `I = {t : α ≼ t}` (the prefix-subtree of α). Then `coverage(L₀.e₁) = I` exactly, so both F1's overlap predicate and an endset-level containment predicate `coverage(eᵢ) ⊆ I` admit L₀. Now extend L₀ to L₁ by adding a span `(β, δ(1, #β))` at the same slot, with β non-nesting with α (β ⋠ α and α ⋠ β; e.g., β a same-length sibling differing from α at position `#α`). Under F1: L₁ still matches — `coverage(L₁.e₁) ∩ I ⊇ {α} ≠ ∅`, the α-span witness survives. Under endset-level containment: L₁ fails — `coverage(L₁.e₁) = {t : α ≼ t} ∪ {t : β ≼ t}`, and `β ∈ coverage(L₁.e₁)` with `β ∉ I` (since β ⋠ α), so the containment relation breaks. Adding a non-witnessing span to L₀'s slot 1 suppresses L₀'s containment-match while preserving F1's overlap-match. This is the spans-monotonicity LM 4/58's existential structure entails, and it is what the realizability witnesses below (Strengthenings 1–3) operationally distinguish under F2 ∧ F3.
 
@@ -72,12 +72,27 @@ F4 (MatchFormulaDesignJustification):
    endset, satisfaction is existential over spans, and the per-span
    test is overlap (`coverage(span) ∩ I ≠ ∅`). F1's endset-level
    overlap `coverage(eᵢ) ∩ I ≠ ∅` unfolds to this per-span
-   existential, which preserves spans-monotonicity: adding a non-
-   witnessing span to an endset cannot suppress an existing witness.
-   Predicates that fold an endset's spans into a universal or
-   aggregate (containment `coverage ⊆ I`, reverse containment
-   `I ⊆ coverage`, cardinality thresholds `|coverage ∩ I| ≥ k`)
-   break this monotonicity.
+   existential with an identifiable witness span `(s, ℓ) ∈ eᵢ`.
+   Two compositional properties separate F1 from the natural
+   alternatives. *Spans-monotonicity* — adding a non-witnessing
+   span to an endset cannot suppress an existing satisfying state —
+   is broken only by *containment* `coverage(eᵢ) ⊆ I`: adding a
+   non-conforming span violates the per-span universal. *Reverse
+   containment* `I ⊆ coverage(eᵢ)` and *cardinality thresholds*
+   `|coverage(eᵢ) ∩ I| ≥ k` are themselves spans-monotone — adding
+   a span enlarges `coverage(eᵢ)`, so any prior `I ⊆ coverage`-
+   satisfaction survives, and `|coverage(eᵢ) ∩ I|` can only weakly
+   grow, preserving any prior threshold-satisfaction. What
+   distinguishes F1 from these two aggregates is therefore *not*
+   spans-monotonicity but the *per-span witness structure*: F1's
+   match is anchored at a single identifiable span, while reverse
+   containment and cardinality fold every span's contribution into
+   a global condition with no individual span identifiable as the
+   reason for the match. F1 is robust to adversarial junk-span
+   insertion on both counts — the witness survives addition and
+   remains locatable; containment fails monotonicity outright,
+   while the two aggregates preserve satisfaction but lose the
+   anchor.
 
    (b) *Across-endsets quantifier (reader-facing surface choice).*
    F1 chooses OR-across-slots — the link-level slot-existential
@@ -129,7 +144,7 @@ F4 (MatchFormulaDesignJustification):
 
 *Strengthening 2 — Containment from query to coverage (`I ⊆ coverage`).* Witness: link `a` with one canonical span `(α, δ(1, #α))` at slot 3 (the mandatory non-empty type-endset slot per L3), and slots 1 and 2 empty (permitted by L3 for non-type slots). Query `I = {α, γ}` for any `γ ∈ T` with `α ⋠ γ` (e.g., a same-length sibling differing at position `#α`). F1 admits via slot 3: `coverage(L(a).e₃) ∩ I = {α} ≠ ∅`. The link-level strengthening predicate is the slot-existential `(E i : I ⊆ coverage(eᵢ))`; we check every slot: at slot 3, `coverage(e₃) = {t : α ≼ t}` (by PrefixSpanCoverage, ASN-0043) contains `α` reflexively but not `γ` (since `α ⋠ γ`), so `I ⊄ coverage(e₃)`; at slots 1 and 2 (empty), `coverage(∅) = ∅` cannot contain non-empty `I = {α, γ}`. Strengthening excludes `a`. Placing the witness at slot 3 is essential: L3 mandates `e₃ ≠ ∅`, so a witness placed at slot 1 or 2 would force slot 3 non-empty and would require independently arguing that slot 3's spans do not satisfy `I ⊆ coverage(e₃)` — placing the witness at slot 3 directly while leaving slots 1 and 2 empty discharges the slot-existential uniformly without that additional construction.
 
-*Strengthening 3 — Cardinality threshold (`|coverage ∩ I| ≥ k` for `k > 1`).* Witness: link `a` with one canonical span `(α, δ(1, #α))` at some slot (other slots arbitrary; the link-level existential `(E i : |coverage(eᵢ) ∩ I| ≥ k)` for `k > 1` fails on empty slots since `|∅ ∩ I| = 0 < k`). Query `I = {α}`. At the witness slot, `|coverage ∩ I| = 1 < k` for every `k > 1`; at empty slots the cardinality is 0. F1 admits via singleton overlap; threshold strengthening excludes `a`.
+*Strengthening 3 — Cardinality threshold (`|coverage ∩ I| ≥ k` for `k > 1`).* Witness: link `a` with one canonical span `(α, δ(1, #α))` at slot 3 (the mandatory non-empty type-endset slot per L3), and slots 1 and 2 empty (permitted by L3 for non-type slots). Query `I = {α}`. The link-level strengthening predicate is the slot-existential `(E i : |coverage(eᵢ) ∩ I| ≥ k)` for `k > 1`; we check every slot: at slot 3, `|coverage(e₃) ∩ I| = |{t : α ≼ t} ∩ {α}| = 1 < k`; at slots 1 and 2 (empty), `|coverage(∅) ∩ I| = |∅ ∩ {α}| = 0 < k`. No slot satisfies the threshold; strengthening excludes `a`. F1 admits via slot 3's singleton overlap. Placing the witness at slot 3 with slots 1 and 2 empty is essential: leaving slot 3 empty would violate L3; placing the witness at slot 1 or 2 and populating slot 3 with arbitrary content would require independently arguing that slot 3's coverage does not contribute a threshold-witnessing intersection of size `≥ k`. Slots 1 and 2 empty discharges the slot-existential at those positions uniformly (`|∅ ∩ I| = 0 < k`), and the single-span witness at slot 3 caps the contribution at 1.
 
 *Weakening 1 — Slot-vacuous match (`P_⊤(a, I, Σ) ≡ a ∈ dom(Σ.L)`).* Witness: any link `a ∈ dom(Σ.L)` with all `coverage(Σ.L(a).eᵢ)` disjoint from `I`. Concrete instance: `Σ.L(a)` with `(τ, δ(1, #τ))` at slot 3 (the mandatory non-empty type endset), `∅` at slots 1 and 2, and `I = {α}` with `τ ⋠ α` and `α ⋠ τ` (cross-document non-nesting τ). Then `coverage(Σ.L(a).e₃) ∩ I = ∅` and the other slots are coverage-empty, so F1 rejects `a`. `P_⊤` admits `a`. The weakening returns links with no overlap to the query I-set — non-conforming with F1's relevance principle (the OR-across-slots existential of layer-(a)'s per-endset overlap test): some span in some endset must witness a non-empty intersection with the request.
 
@@ -631,7 +646,7 @@ Both are *convergent* with A1b's conclusion but not constitutive; the methodolog
 |-------|-----------|--------|
 | `image(R, d, Σ)` | I-image of a V-region with silent projection | definition |
 | `findlinks(I, Σ)` | Discovery operation comprehension | definition |
-| `findlinks_V(R, d, Σ)` | Two-phase composite (see F12) | definition |
+| `findlinks_V(R, d, Σ)` | Two-phase composite (operation name; the F12 row below is the same artifact under its citation-handle label) | definition |
 | `findlinks_filtered(C, Σ)` | Filtered form with slot constraints | definition |
 | `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | definition |
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
@@ -659,7 +674,7 @@ Both are *convergent* with A1b's conclusion but not constitutive; the methodolog
 | F10-filt, F10-sco | Filtered and scoped ordered presentations | introduced |
 | F10a | AnchorLiftingOfDocumentOrdering | introduced |
 | F11 | PersistentDiscoverabilityI: I-side match against fixed I preserved across reachable sequences (distinct from ASN-0098's V-side discoverable_from, which is not persistent) | introduced |
-| F12 | TwoPhaseFactoring: `findlinks_V` definitional unfolding | definition |
+| F12 | TwoPhaseFactoring: citation handle for `findlinks_V`'s definitional unfolding `findlinks_V(R, d, Σ) ≡ findlinks(image(R, d, Σ), Σ)` (cite F12 to invoke the unfolding identity; cite `findlinks_V` to invoke the operation itself — same artifact, two labels for two citation purposes) | definition |
 | F13 | Set-additive in the I-input | introduced |
 | F14 | Scope filter is intersection | introduced |
 | F15, F16 | Filtered and scoped determinism | introduced |
