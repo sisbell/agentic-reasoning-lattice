@@ -1,17 +1,10 @@
-# Revision Categorization — ASN-0067 review-7
+# Channel Assignment — ASN-0102 review-7
 
-**Date:** 2026-03-21 18:27
+**Date:** 2026-05-28 15:09
 
+## Issue 1: X5 (TransitiveIdentity) proven by appeal to "this same X3 applied to that earlier step"
+Reason: The required fix is fully internal — it reassembles claims already present in the note (S4/GlobalUniqueness, S7, X1) into a one-step argument. No design intent or implementation evidence is needed; the review even specifies the closing argument.
 
-
-## Issue 1: C13 contradicts the ASN's own observation about D-CTG
-Category: INTERNAL
-Reason: The ASN already contains the correct observation about D-CTG not being an invariant of all reachable states. The fix is rewording C13(a) to be consistent with what the ASN itself already says — no external evidence needed.
-
-## Issue 2: Worked example — maximal merging check incomplete
-Category: INTERNAL
-Reason: The I-adjacency check for blocks 3 and 4 is a straightforward arithmetic verification using values already present in the worked example. The conclusion is correct; only the justification text needs the missing pair checked.
-
-## Issue 3: ContentReference "m" refers to an ambiguous subspace
-Category: INTERNAL
-Reason: The fix is a wording clarification to specify which subspace's depth determines m. The mathematical content is unaffected — m = #u already determines everything — and the corrected phrasing follows directly from the existing definitions.
+## Issue 2: X4 attributes a consultation answer to Nelson
+Reason: The fix's preferred path is to cite the primary `LM` passage that actually states "COPY adds a reference, not a duplicate"; only Nelson can confirm whether such a passage exists and supply its `LM x/y` locus. (If none exists, reframe to "the consultation record holds…", but that determination still wants Nelson's source.)
+Nelson question: Is there a primary Literary Machines passage stating that inclusion/virtual-copy creates an additional reference to the same stream content rather than duplicating it, and if so what is its `LM x/y` locus?
