@@ -1,23 +1,12 @@
-# Revision Categorization — ASN-0067 review-6
+# Channel Assignment — ASN-0102 review-6
 
-**Date:** 2026-03-21 18:01
+**Date:** 2026-05-28 15:01
 
-## Issue 1: C4 (Displacement) applies shift to non-target subspaces
-Category: INTERNAL
-Reason: The construction (B') is correct — B_other leaves non-target subspaces unchanged. The fix is restricting C4's quantifier and updating C5/C7a derivations to match the existing construction. All needed information is in the ASN.
+## Issue 1: P6 preservation rationale cites the wrong frame component
+Reason: Internal. The fix is a correction of which proof obligation discharges P6 — X1 already gives `dom(Σ'.C) = dom(Σ.C)` and the frame gives `Σ'.E = Σ.E`, which is exactly what P6's `(A a ∈ dom(C) :: origin(a) ∈ E_doc)` needs; no external evidence or design intent is in question.
 
-## Issue 2: Effects frame condition too narrow and ambiguously scoped
-Category: INTERNAL
-Reason: B_other already handles all non-S subspaces correctly in the composition. The fix is editorial — making the effects summary match B' by broadening the frame condition from `p₁ < 1` to `subspace(p) ≠ S`.
+## Issue 2: X8 within-reference non-coalescence is asserted, not derived
+Reason: Internal. The missing intermediate step (V-adjacency of consecutive maximal runs from content-reference well-formedness + C0a, then maximality ⟹ non-I-adjacency ⟹ M7 fails) is entirely a matter of ASN-0058 lemmas the note already cites; it is a proof-completeness gap, not a question about the implementation or the design.
 
-## Issue 3: ValidInsertionPosition undefined when N = 0
-Category: INTERNAL
-Reason: The ASN already contains both cases (N > 0 and N = 0) in separate sentences. The fix is restructuring the definition to avoid referencing undefined v₀, using information already present.
-
-## Issue 4: Resolution applies M11/M12 to a restriction without justification
-Category: INTERNAL
-Reason: The ASN already identifies the inherited properties (S2, S8-fin, S8-depth). The fix adds an explicit argument that M11/M12 proofs depend only on these properties, which is derivable from the proof structure in ASN-0058.
-
-## Issue 5: Inconsistent property labels (INV vs POST)
-Category: INTERNAL
-Reason: The foundation ASNs establish the INV/POST labeling convention. C0, C6, C11, C13 are COPY-specific postconditions, not universal state invariants. The fix is a relabeling using conventions already defined in the foundation.
+## Issue 3: X14 New/Old distinction introduced as a dangling paragraph
+Reason: Internal. This is a purely presentational reorganization — promoting the New/Old setup to a labelled lead-in or folding it into the J1★ bullet — with no bearing on intent or implementation evidence.
