@@ -1,0 +1,16 @@
+# Review of ASN-0077
+
+## REVISE
+
+### Issue 1: O0(c) closure argument omits K.σ for dom(C)
+**ASN-0077, O0 derivation clause (c)**: "For x ∈ dom(C): closure that every x ∈ dom(C) arose through some K.α event follows by direct enumeration parallel to the closure step in (b) for dom(L). K.α's effect clause C' = C ∪ {a ↦ v} is the only ASN-0047 transition effect clause that names C... Every other ASN-0047 transition declares an explicit C' = C frame clause (K.δ, K.μ⁺, K.μ⁻, K.μ~, K.λ, K.μ⁺_L, K.ρ — ...)"
+
+**Problem**: Clause (b) for the dom(L) closure explicitly addresses K.σ by name: "(LP8 (DocumentRegistrationInvariance, ASN-0098) supplies coverage of K.σ — which lies outside ASN-0047's transition vocabulary and so is not addressed by the per-transition inspection above..." Clause (c) only enumerates the eight ASN-0047 transitions and never mentions K.σ. The phrase "parallel to the closure step in (b)" is an implicit hedge, but strict closure requires explicitly establishing that K.σ does not add to dom(C) either. Without this, induction over "reachable transition sequences" in clause (c) cannot conclude that every x ∈ dom(C) arose through K.α — a non-ASN-0047 transition might have added a content address, escaping the per-transition inspection.
+
+**Required**: Add an explicit parenthetical to clause (c) stating that K.σ (ASN-0093) similarly does not modify C, either via the frame-exhaustiveness assumption applied to K.σ's effect (which names only M) or via a foundation-level argument paralleling LP8's role in (b). The asymmetry between (b)'s explicit K.σ treatment and (c)'s silent omission is the only textual gap blocking full rigor.
+
+## OUT_OF_SCOPE
+
+(None. The Open Questions section already enumerates the legitimate future-ASN territory: subspace-crossing I-span semantics, transclusion-chain reconstruction, native-versus-transcluded distinction at query time, and the historical-containment operation coupled to Σ.R. The ASN is correct to leave these for separate operations.)
+
+VERDICT: REVISE
