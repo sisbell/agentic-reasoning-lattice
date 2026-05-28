@@ -1,13 +1,9 @@
-# Revision Categorization — ASN-0067 review-10
+# Channel Assignment — ASN-0102 review-10
 
-**Date:** 2026-03-21 20:07
+**Date:** 2026-05-28 15:30
 
+## Issue 1: X7 mislabels the freed positions; the stated set is false for small W
+Reason: This is a purely internal arithmetic/labeling error — the correct sets (`[p, n_S]` for vacated slots vs. `[p, min(n_S, p+W−1)]` for the pre-occupied portion of the target region) are both fully determined by P4, the definition's shift clause, and X16, all present in the ASN. No design intent or implementation evidence bears on the fix.
 
-
-## Issue 1: Block decomposition scoped to text subspace while insertion position is unrestricted
-Category: INTERNAL
-Reason: The fix is derivable from the ASN's own definitions — either restrict S ≥ 1 in the COPY preconditions (aligning with COPY's stated role as content placement) or scope B to the target subspace. Both options are fully determined by the existing formal framework without needing external evidence.
-
-## Issue 2: S8a preservation proof assumes text subspace
-Category: INTERNAL
-Reason: This is a proof argument error whose fix follows directly from Issue 1's resolution — if S ≥ 1 is added as a precondition, the proof holds as written; if not, the case split for S = 0 is derivable from S8a's existing guard condition. No external design intent or implementation evidence is needed.
+## Issue 2: X7 cites X16 as "already established" though X16 is stated later
+Reason: A presentation-order defect resolvable entirely within the note — the disjointness of copied last-components `[p, p+W)` and displaced-image `[p+W, n_S+W]` is derived in X16 from the ASN's own shift semantics, so it can be inlined into X7 or reordered without consulting either channel.
