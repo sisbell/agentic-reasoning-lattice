@@ -45,7 +45,7 @@ from lib.shared.paths import (
 
 METHODOLOGY_PROMPT = prompt_path("agents/_shared/methodology.md")
 
-MODEL = "claude-opus-4-7[1m]"
+MODEL = "claude-opus-4-8[1m]"
 
 
 # ─── Helpers ────────────────────────────────────────────────────

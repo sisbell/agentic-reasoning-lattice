@@ -79,7 +79,7 @@ def revise(
 
     cmd = [
         "claude", "-p",
-        "--model", "claude-opus-4-7[1m]",
+        "--model", "claude-opus-4-8[1m]",
         "--output-format", "json",
         "--allowedTools", "Edit,Write,Read,Glob,Grep,Bash",
     ]

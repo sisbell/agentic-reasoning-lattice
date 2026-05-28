@@ -26,7 +26,7 @@ from lib.shared.paths import WORKSPACE
 
 
 MODEL_FLAGS = {
-    "opus": "claude-opus-4-7[1m]",
+    "opus": "claude-opus-4-8[1m]",
     "sonnet": "claude-sonnet-4-6",
 }
 

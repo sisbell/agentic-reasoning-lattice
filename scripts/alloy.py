@@ -59,7 +59,7 @@ def _review_counterexample(claim_text, als_path, checker_output):
               .replace("{{alloy_source}}", als_source)
               .replace("{{checker_output}}", checker_output))
     import os, subprocess
-    cmd = ["claude", "--print", "--model", "claude-opus-4-7[1m]"]
+    cmd = ["claude", "--print", "--model", "claude-opus-4-8[1m]"]
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
     env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
