@@ -1,27 +1,19 @@
-# Revision Categorization — ASN-0067 review-2
+# Channel Assignment — ASN-0102 review-2
 
-**Date:** 2026-03-21 16:29
+**Date:** 2026-05-28 14:17
 
-## Issue 1: C3 claims "every foundational invariant" but the proof omits three
-Category: INTERNAL
-Reason: P4a, P5, and P3 are all defined in ASN-0047; the review itself notes each verification is trivial and one-sentence. The fix is derivable entirely from existing definitions.
+## Issue 1: Operation effect on state components L, E, R is unspecified
+Reason: Internal. The frame is derivable from COPY's own model — it touches neither the link store nor `Σ.E`, so `Σ'.L = Σ.L` and `Σ'.E = Σ.E` follow from the definition's content/arrangement-only effect; the `Σ.R` effect is settled under Issue 2.
 
-## Issue 2: C12a text–formula mismatch
-Category: INTERNAL
-Reason: The text says "runs" (k) but the formula gives total width (Σnⱼ). This is an internal inconsistency between two parts of the same lemma statement — aligning them requires no external evidence.
+## Issue 2: The coupling invariant J1★ is never discharged
+Reason: Internal. J1★ (ASN-0047) is a coupling invariant binding *every* valid composite that extends the content-subspace range, so COPY is not exempt; the required K.ρ effect and discharge are forced by the foundation, and the matching implementation evidence (spanfilade recorded against destination) is already cited at X14 (Gregory Q18/Q19).
 
-## Issue 3: Elementary Decomposition uses K.μ~ as if elementary
-Category: INTERNAL
-Reason: K.μ~ is defined as a composite in ASN-0047. Unfolding it into K.μ⁻ + K.μ⁺ and verifying the K.μ⁻ precondition requires only the definitions already present in ASN-0047.
+## Issue 3: COPY's transition status (elementary vs. composite) is left undeclared
+Reason: Internal. The classification is a modeling decision over ASN-0047/0093's transition vocabulary: K.μ⁺'s old-position-fixity rules out a single ArrangementExtension, and the note already states the displacement is identical to INSERT's, so COPY inherits whatever transition shape INSERT is given in the foundation — resolvable from the foundation without external input.
 
-## Issue 4: ContentReference does not require level-uniform V-spans
-Category: INTERNAL
-Reason: The constraint #ℓ = m follows from the existing framework — S8-depth requires fixed-depth V-positions, and the span algebra (ASN-0053) is developed for level-uniform spans. Adding the requirement is derivable from properties already stated.
+## Issue 4: X8's claim that distinct references carry distinct origins is false
+Reason: Gregory needed. Correcting the constructed-count claim requires confirming exactly when `docopy`/`isanextensionnd` coalesces across a reference boundary — specifically the shared-origin, I-adjacent case the reviewer flags — so the revised text states the implementation's agreement only where it actually holds.
+Gregory question: When two consecutive content references in a single COPY resolve to content sharing one origin (equal `homedoc`) and abutting in I-space across the boundary, does `docopy`/`insertspanf` (via `isanextensionnd`) coalesce them into one crum, or still emit a separate crum per reference?
 
-## Issue 5: Five-step construction omits non-text-subspace frame
-Category: INTERNAL
-Reason: The elementary decomposition already in the ASN shows link-subspace positions (v₁ = 0) are below the text-subspace insertion point and map to themselves under K.μ~. The fix is stating explicitly what the decomposition already implies.
-
-## Issue 6: ValidInsertionPosition depth underdetermined for empty documents
-Category: INTERNAL
-Reason: That m = #v follows from the parameter list. That the first operation establishes permanent depth follows from S8-depth (ASN-0036). Both are derivable from existing definitions — no design intent or implementation evidence needed.
+## Issue 5: First Open Question appears already answered by X10/X15
+Reason: Internal. This is a self-consistency fix: X10 and X15 already pin `resolve_Σ(R)` to the frozen pre-state for the target-inside-source case, so the question is either removed or narrowed to a residual guarantee — entirely a judgment over the note's own content.
