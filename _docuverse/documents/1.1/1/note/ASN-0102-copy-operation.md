@@ -41,10 +41,18 @@ We collect the complete precondition under which `COPY(R, d, v)` is defined at `
 
 ## Definition of COPY
 
+COPY is a *single elementary transition*: we add it to the system's transition vocabulary `Σ` (ASN-0047) as its own operation, with the complete frame stated below. It is deliberately *not* an instance of K.μ⁺ (ArrangementExtension, ASN-0047), which requires `M'(d)(v) = M(d)(v)` on every pre-existing V-position; COPY *relabels* the content-subspace positions at or after `v` by the forward shift `· + W`, so no extension transition describes it. Declaring COPY elementary — one indivisible event, precondition read against `Σ` and effect committed to `Σ'` in a single step under SequentialTransitionAxiom (ASN-0047/0093) — is what underwrites both the atomicity guarantee (X15) and the pre-state resolution that makes self-transclusion well-defined (X10). Because the standing state carries five components, `Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)`, the contract must pin all five.
+
 The operation `COPY(R, d, v)` carries `Σ → Σ'` as follows.
 
 **Content store — untouched.**
 `Σ'.C = Σ.C`.
+
+**Link store — untouched.**
+`Σ'.L = Σ.L`. COPY creates no link and alters none; this discharges the `s_L`-routing conjunct of S3★ below and preserves L12 (link immutability) vacuously.
+
+**Entity set — untouched.**
+`Σ'.E = Σ.E`. COPY allocates no node, account, or document.
 
 **Other documents — untouched.**
 `(A d' : d' ≠ d : Σ'.M(d') = Σ.M(d'))`.
@@ -58,6 +66,12 @@ a contiguous lay-down of the resolved I-sequence at consecutive target V-positio
 - `Σ'.M(d)(u) = Σ.M(d)(u)` for `u ∈ dom(Σ.M(d))` with `subspace(u) ≠ s_C`, or with `subspace(u) = s_C ∧ u < v`;
 - `Σ'.M(d)(v + c) = a_j + i` where `c = c_j + i`, `0 ≤ i < n_j`, for each `0 ≤ c < W` (the copied region `B_copy`);
 - `Σ'.M(d)(u + W) = Σ.M(d)(u)` for `u ∈ V_{s_C}(d)` with `u ≥ v` (the displaced region).
+
+**Provenance.** COPY extends `d`'s content-subspace range by the copied addresses, so its effect records their containment in the provenance relation:
+
+`Σ'.R = Σ.R ∪ {(a_j + i, d) : 1 ≤ j ≤ k, 0 ≤ i < n_j}`.
+
+This is a state component distinct from the *derived* containment relation `Contains_C` (which reads off `Σ'.M` automatically): the provenance relation `Σ.R` records the fact persistently, and it is the effect that discharges the coupling invariant J1★ (ExtensionRecordsProvenanceContentSubspace, ASN-0047) — see X14. Folding the K.ρ-style recording into COPY's own effect is what lets a single elementary transition meet the coupling obligation that the foundation otherwise discharges at a composite boundary.
 
 The displacement is the same forward shift that INSERT performs — Nelson treats COPY's positional effect as identical to INSERT's [LM 4/66–67] — and we specify it here only as far as needed to state COPY's invariants; its position-management mechanics are not the subject of this note. What *is* the subject is the half of the definition that distinguishes COPY from every content-creating operation: `Σ'.C = Σ.C`. We now derive its consequences.
 
@@ -120,7 +134,7 @@ The displacement clause moves existing content forward to make room; it must los
 - *Within a single reference*, consecutive runs are the maximal runs of that reference (C1a, M12), hence pairwise non-I-adjacent by definition of maximality; they never coalesce.
 - *Across an inter-reference boundary*, the last block of `r_i` and the first of `r_{i+1}` are V-adjacent by construction and may also be I-adjacent — precisely when they share an origin and abut in I-space (`a' = a + n`, M16/M16a). Such a boundary satisfies the merge condition M7 and coalesces in the canonical form.
 
-Hence the canonical block count is `≤ k`, with equality exactly when no inter-reference boundary is I-adjacent (in particular whenever consecutive references draw from distinct origins, X11). Gregory's `docopy`/`insertspanf` realises the constructed `k`-block form directly and performs *no* cross-reference coalescing: `isanextensionnd` gates extension on `homedoc` equality *and* I-adjacency, and distinct content references carry distinct `homedoc`, so the first gate fails and a separate crum is emitted per reference (Q8). The constructed count and the green implementation's count thus agree at `k`; the canonical count is the abstract lower bound an alternative implementation is free to reach.
+Hence the canonical block count is `≤ k`, with equality exactly when no inter-reference boundary is I-adjacent (in particular whenever consecutive references draw from distinct origins, X11). The constructed `k`-block form is what the contiguous lay-down produces directly; whether Gregory's implementation *coalesces* below `k` depends on which index one examines, and the two indices part company precisely at a same-origin, I-abutting boundary. The POOM side (`docopy` → `insertpm`) *does* coalesce such a boundary: `insertcbcnd` widens an existing crum in place exactly when `isanextensionnd`'s twin gates both pass — `homedoc` equality *and* I-adjacency (the incoming I-origin equals the existing crum's I-reach) — and because the references are laid down at consecutive V-positions, the second `insertpm` finds the first crum's reach at exactly the abutting position and extends it rather than emitting a second crum (Q8). The POOM therefore realises the *canonical* (`≤ k`) count. The spanfilade side (`insertspanf`) has no such extension mechanism: it issues one `insertnd` call per I-span entry and stores one DOCISPAN entry per reference, realising the constructed count `k`. The two counts agree exactly when no inter-reference boundary is same-origin and I-adjacent; where one is, the POOM crum count drops below `k` while the spanfilade entry count stays at `k`. The canonical count is the abstract lower bound, and the POOM attains it.
 
 **X9 (ContiguousTargetRange).** Although the source may fragment into `k` runs and may draw from several source documents, the copied content occupies one *contiguous* V-range `[v, v + W)` in the target, in source order. *Derivation.* The blocks of `B_copy` are pairwise V-adjacent by construction (`c_{j+1} = c_j + n_j`); resolution concatenates references in their listed order and preserves intra-reference V-order (ASN-0058 C1b), so the target V-order is exactly the source order (Gregory Q14/Q17). The 2-D rebalancing of any concrete index cannot perturb this, since V-order is recomputed from coordinates that COPY does not alter (Q14).
 
@@ -151,9 +165,15 @@ Neither boundary is privileged: each may absorb, both may, or neither, and the c
 
 **X13 (Multiplicity).** After COPY the placed addresses are referenced from at least two V-positions — their source appearance and their target appearance — and the model imposes no bound on such multiplicity (ASN-0036, S5, UnrestrictedSharing). A single I-address may be referenced from arbitrarily many documents and positions; COPY is the operation that increases this multiplicity without increasing the content store.
 
-**X14 (ContainmentRecording).** At completion, `d` contains each copied address: `(A j, i : 0 ≤ i < n_j : a_j + i ∈ ran(Σ'.M(d)))`, so the content-containment relation `Contains_C(Σ')` records `(a_j + i, d)`. By content-containment permanence this record persists across subsequent states (the address remains discoverable as contained in `d` even if `d` later drops it from its arrangement). This is the abstract counterpart of the spanfilade entry that makes FINDDOCSCONTAINING return the target immediately after a copy, recorded against the *destination* document, not the original creator (Gregory Q18/Q19; Nelson Q6/Q8). Origin-traceability (X6) and containment-recording (X14) are independent facts: the former says *where the content was born*, the latter says *which documents now hold it* — COPY establishes both.
+**X14 (ContainmentRecording and coupling discharge).** At completion, `d` contains each copied address: `(A j, i : 0 ≤ i < n_j : a_j + i ∈ ran(Σ'.M(d)))`, so the *derived* content-containment relation records `Contains_C(Σ') ⊇ {(a_j + i, d)}`. Containment is read off `Σ'.M` and is therefore automatic; the *provenance* relation `Σ.R` is a separate state component, which COPY's effect populates explicitly (Definition): `Σ'.R = Σ.R ∪ {(a_j + i, d)}`. We must show this post-state is well-formed against the coupling invariants of ValidComposite★ (ASN-0047). Treating COPY as the length-1 composite it is, each is discharged:
 
-**X15 (Atomicity).** COPY either applies in full — establishing X1, X3, X7, S2, S3★, and the subspace's density discipline D-SEQ (X16) together — or not at all; no intermediate state is observable in which the displacement has been applied but the copied region not yet laid down, or vice versa. *Derivation.* Transitions are atomic and totally ordered (ASN-0047/0093, SequentialTransitionAxiom): the precondition is read against `Σ` and the effect committed to `Σ'` in one indivisible step. This same axiom pins `resolve_Σ(R)` to the pre-state — the source is read *before* any displacement (cf. X10), so self-transclusion sees a frozen image. A partial application would leave `Σ'.M(d)` either non-dense (a V-gap, contradicting X16) or double-bound (two I-addresses at one position), violating the arrangement well-formedness that holds at every reachable state. Nelson reaches the same conclusion from the design side: the file is left "in canonical order, which was an internal mandate of the system" [LM 1/34] — there is no acknowledged state in which canonical order is suspended.
+- *J0 (AllocationRequiresPlacement).* Vacuous: by X1, `dom(Σ'.C) = dom(Σ.C)`, so the antecedent `a ∈ dom(Σ'.C) ∖ dom(Σ.C)` is never satisfied — COPY allocates no content.
+- *J1★ (ExtensionRecordsProvenanceContentSubspace).* The content-subspace range gains exactly `{a_j + i}` (X3, restricted to subspace `s_C`), and the Definition's provenance effect records `(a_j + i, d) ∈ Σ'.R` for precisely these addresses. The obligation is met by COPY's own effect, not deferred.
+- *J1'★ (ProvenanceRequiresExtension).* The only pairs added to `R` are `{(a_j + i, d)}`, and each `a_j + i` is a content address newly mapped in `d`'s content subspace at the copied position `v + c_j + i`. Every new provenance pair is therefore backed by a genuine content-subspace range extension, with no spurious record.
+
+By content-containment permanence this record persists across subsequent states (the address remains discoverable as contained in `d` even if `d` later drops it from its arrangement). This is the abstract counterpart of the spanfilade entry that makes FINDDOCSCONTAINING return the target immediately after a copy, recorded against the *destination* document, not the original creator (Gregory Q18/Q19; Nelson Q6/Q8). Origin-traceability (X6) and containment-recording (X14) are independent facts: the former says *where the content was born*, the latter says *which documents now hold it* — COPY establishes both.
+
+**X15 (Atomicity).** COPY either applies in full — establishing X1, X3, X7, S2, S3★, and the subspace's density discipline D-SEQ (X16) together — or not at all; no intermediate state is observable in which the displacement has been applied but the copied region not yet laid down, or vice versa. *Derivation.* COPY is a *single* elementary transition (Definition), not a composite of K.μ steps, so SequentialTransitionAxiom (ASN-0047/0093) applies to it directly: the precondition is read against `Σ` and the effect committed to `Σ'` in one indivisible step, with no intermediate state between. (Were COPY instead a composite, ValidComposite★ would admit observable states between its atomic steps, and this clause would weaken to a composite-boundary guarantee; the elementary declaration is what licenses the strong "no intermediate state" form here.) This same axiom pins `resolve_Σ(R)` to the pre-state — the source is read *before* any displacement (cf. X10), so self-transclusion sees a frozen image. A partial application would leave `Σ'.M(d)` either non-dense (a V-gap, contradicting X16) or double-bound (two I-addresses at one position), violating the arrangement well-formedness that holds at every reachable state. Nelson reaches the same conclusion from the design side: the file is left "in canonical order, which was an internal mandate of the system" [LM 1/34] — there is no acknowledged state in which canonical order is suspended.
 
 ---
 
@@ -204,7 +224,7 @@ Strip the displacement away — which COPY shares with content creation — and 
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| COPY | `COPY(R, d, v)` (precond. P1–P4, target subspace `S = s_C`): `Σ'.C = Σ.C`; `Σ'.M(d') = Σ.M(d')` for `d' ≠ d`; content subspace displaced forward by `W` and gap `[v, v+W)` bound to `resolve_Σ(R)` in order | introduced |
+| COPY | `COPY(R, d, v)` (single elementary transition; precond. P1–P4, target subspace `S = s_C`): `Σ'.C = Σ.C`; `Σ'.L = Σ.L`; `Σ'.E = Σ.E`; `Σ'.M(d') = Σ.M(d')` for `d' ≠ d`; content subspace displaced forward by `W` and gap `[v, v+W)` bound to `resolve_Σ(R)` in order; `Σ'.R = Σ.R ∪ {(a_j+i, d)}` | introduced |
 | X1 | ContentStoreInvariance — `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))` | introduced |
 | X2 | NoFreshAllocation — COPY consumes no previously-unallocated address; next content-allocation frontier of `d` unchanged | introduced |
 | X3 | SharedReference — `ran(Σ'.M(d)) ∖ ran(Σ.M(d)) ⊆ dom(Σ.C)`; placed addresses pre-exist (forced by X1 ∧ S3★) | introduced |
@@ -218,13 +238,11 @@ Strip the displacement away — which COPY shares with content creation — and 
 | X11 | CrossOriginSeparation — blocks of distinct origin cannot merge (M7 ∧ M16); distinct portions stay distinguishable | introduced |
 | X12 | BoundaryAbsorption — leading boundary (`p ≥ 2`) and trailing boundary (`p ≤ n_S`) are independent merge candidates, each absorbing iff I-adjacent; origin still carried | introduced |
 | X13 | Multiplicity — placed addresses gain reference multiplicity ≥ 2, with no model-imposed bound (S5) | introduced |
-| X14 | ContainmentRecording — `d` recorded as containing each copied address; record permanent; against destination | introduced |
-| X15 | Atomicity — COPY applies wholly or not at all; no partial arrangement observable | introduced |
+| X14 | ContainmentRecording and coupling discharge — `d` recorded as containing each copied address; provenance written to `Σ.R`; J0/J1★/J1'★ discharged; record permanent; against destination | introduced |
+| X15 | Atomicity — COPY (single elementary transition) applies wholly or not at all; no partial/intermediate arrangement observable | introduced |
 | X16 | PostStateDensity — post-state `V_{s_C}(d) = {[s_C,1,…,1,c] : 1 ≤ c ≤ n_S + W}`, contiguous (D-SEQ), min `[s_C,1,…,1]` (D-MIN) | introduced |
 
 ## Open Questions
-
-What must a placement operation guarantee about the consistency of a self-transclusion when the target position lies strictly inside the source span?
 
 When copied content is later displaced again by a subsequent operation, what invariant ties the original origin to the address's continued discoverability?
 
