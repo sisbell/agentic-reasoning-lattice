@@ -74,20 +74,6 @@ def _parse_asn(raw: str) -> str:
     return format_label(int(digits))
 
 
-def _has_fireable_trigger(session, asn_label: str, triggers: list) -> bool:
-    """True iff at least one (trigger, addr) pair in this ASN's scope has
-    an unsatisfied predicate — i.e., the runner would fire something on
-    this ASN. Early-exits on the first fire-able pair to keep the
-    partition-time pre-check cheap.
-    """
-    scope = Scope(asn_label=asn_label)
-    for trig in triggers:
-        for addr in trig.scope_query(session, scope):
-            if not trig.predicate(session, addr):
-                return True
-    return False
-
-
 def _active_notes_topo_sorted() -> list[str]:
     """Discover every active note (body file present, not substrate-retired)
     and return its ASN label list in topological order — foundations before
@@ -272,29 +258,6 @@ def main() -> int:
                 file=sys.stderr,
             )
         if partition_index is not None:
-            # Filter to ASNs with at least one fire-able trigger BEFORE
-            # partitioning so the round-robin splits active work evenly
-            # across workers. Without this, quiesced ASNs consume
-            # partition slots without contributing fires, producing
-            # imbalanced workers when active ASNs cluster on one
-            # topo-parity. One-shot at startup; not re-evaluated as the
-            # active set drifts during the run.
-            cycle_triggers = _note_cycle_triggers()
-            from lib.protocols.febe.session import open_session
-            from lib.shared.paths import LATTICE
-            before = len(asn_labels)
-            with open_session(LATTICE) as filter_session:
-                asn_labels = [
-                    label for label in asn_labels
-                    if _has_fireable_trigger(
-                        filter_session, label, cycle_triggers,
-                    )
-                ]
-            print(
-                f"  [NOTE-SCHED] active-trigger filter: "
-                f"{before} → {len(asn_labels)} active ASNs",
-                file=sys.stderr,
-            )
             asn_labels = [
                 asn_labels[i] for i in range(len(asn_labels))
                 if i % partition_total == partition_index
