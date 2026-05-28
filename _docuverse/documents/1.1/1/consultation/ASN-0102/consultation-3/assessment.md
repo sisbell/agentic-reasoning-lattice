@@ -1,23 +1,15 @@
-# Revision Categorization — ASN-0067 review-3
+# Channel Assignment — ASN-0102 review-3
 
-**Date:** 2026-03-21 16:50
+**Date:** 2026-05-28 14:28
 
-## Issue 1: Variable name collision — "m" used for both V-position depth and content reference count
-Category: INTERNAL
-Reason: This is a notation inconsistency within the ASN. The fix is a variable rename — no external evidence about design intent or implementation behavior is needed.
+## Issue 1: J1'★ coupling discharge is invalid for self-transclusion (and any copy of content `d` already references)
+Reason: Internal fix. The repair is a proof correction using definitions already in the note — split `{a_j+i}` into addresses new to `ran(Σ.M(d))` (recorded by COPY's effect) versus those already present (already in `Σ.R` by P4★), then discharge J1'★ for each class. No design intent or implementation evidence is at stake; X3, P4★, and the J-invariants supply everything.
 
-## Issue 2: Wrong citation for S8a preservation in C3
-Category: INTERNAL
-Reason: The reviewer already identifies the correct justification (OrdinalShift definition from ASN-0034). The fix is replacing a misattributed citation with the correct one, derivable entirely from existing definitions.
+## Issue 2: X7's freed-gap justification is stated backwards
+Reason: Internal fix. Purely a temporal-phrasing correction (the gap is freed *by* the `·+W` relabelling, not pre-existing); the disjointness argument via TS1/TS2/TS4 is already present and correct. Derivable from the ASN alone.
 
-## Issue 3: Elementary decomposition does not handle B_post = ∅
-Category: INTERNAL
-Reason: The boundary cases and their correct decompositions are derivable from the elementary transition vocabulary (ASN-0047) and block decomposition (ASN-0058). The reviewer has already identified the correct two-step composite for B_post = ∅ and the needed D-CTG clarification.
+## Issue 3: Symbol `Σ` overloaded — state vs. transition vocabulary
+Reason: Internal fix. A notation disambiguation — pick a distinct symbol for the transition vocabulary versus system state. No external channel; the convention is fixed inside the note and its cited foundations.
 
-## Issue 4: "Injectivity" where "functionality" is meant
-Category: INTERNAL
-Reason: This is a terminology error — S2 defines functionality, not injectivity, and S5 explicitly permits non-injectivity. The fix is a word replacement derivable from existing definitions.
-
-## Issue 5: No concrete worked example
-Category: INTERNAL
-Reason: All ingredients for the worked example — tumbler arithmetic (ASN-0034), block decomposition (ASN-0058), and the COPY definition itself — are already present in the ASN and its dependencies. No external design intent or implementation evidence is needed.
+## Issue 4: S8a not discharged for the interior copied positions
+Reason: Internal fix. The interior positions `[s_C,1,…,1,p+c]` structurally satisfy S8a (subspace id ≥ 1, intermediate 1s, positive last component, depth `m ≥ 2`); the note already derives their shape in X16 and need only add the confirming line. Derivable from the ASN alone.
