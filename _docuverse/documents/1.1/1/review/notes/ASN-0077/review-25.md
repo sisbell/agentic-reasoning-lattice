@@ -1,0 +1,19 @@
+# Review of ASN-0077
+
+## REVISE
+
+### Issue 1: Cross-references to non-foundation ASN-0093
+
+**ASN-0077, O0 derivation, clause (b)**:
+- "every reachable transition Σ → Σ' belongs to the closed enumeration of elementary transitions fixed by the working frame ASN-0047 + ASN-0093, matching ASN-0098's LP-Comp scope"
+- "together with K.σ (ASN-0093 — document registration, which modifies dom(M) but not dom(L))"
+
+**Problem**: ASN-0093 is not in the foundation list (foundation: ASN-0034, ASN-0036, ASN-0040, ASN-0047, ASN-0053, ASN-0058, ASN-0098). Direct references to non-foundation ASNs by number violate the self-contained constraint. Each ASN must rest only on foundation; downstream ASNs cannot be cited directly even when they happen to be referenced from within foundation (as ASN-0098 incidentally does).
+
+**Required**: Rephrase to remove direct ASN-0093 citations. K.σ is already accessible through foundation ASN-0098 — LP8 names it explicitly ("either K.σ (ASN-0093) or K.δ in the IsDocument case (ASN-0047)") and LP-Comp scopes the transition vocabulary. The closure argument in O0(b) can cite ASN-0047 (for K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.λ, K.μ⁺_L, K.ρ) and ASN-0098 (for the K.σ + K.δ-IsDocument document-registration framing via LP8 and LP-Comp), without naming ASN-0093 directly. The underlying mathematical content of O0's derivation is sound; only the citation form requires repair.
+
+## OUT_OF_SCOPE
+
+None — the ASN's Open Questions section already correctly flags items that belong to future work (cross-subspace I-spans, transitive provenance chains, native-vs-transcluded distinction, unreachable home-document semantics, historical containment via Σ.R, intra-document sharing).
+
+VERDICT: REVISE
