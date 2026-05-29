@@ -170,7 +170,7 @@ For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states th
 
 **(⟹) Necessity (of (ii) and (iii), given (i)).** Violating condition (ii) or (iii) produces a T4 violation in the stream.
 
-*Condition (ii) is necessary for T4.* Let d ≥ 3. By TA5(d), inc(p, d) appends d − 1 ≥ 2 zeros followed by 1. Positions #p + 1 and #p + 2 are both zero — adjacent zeros that parse as two consecutive field separators enclosing an empty field, violating T4's non-empty-field constraint. No choice of p avoids this: the adjacent zeros lie in the appended suffix, independent of p's content.
+*Condition (ii) is necessary for T4.* Let d ≥ 3. The first child c₁ = inc(p, d) is an increment at k = d ≥ 3, and TA5a (IncrementPreservesT4, ASN-0034) states that inc(t, k) violates T4 for every k ≥ 3 — the same foundation clause the sufficiency direction invokes for the k = d case. No choice of p avoids this: TA5a's k ≥ 3 failure is independent of p's content.
 
 *Condition (iii) is necessary at d = 2.* At d = 1, condition (iii) reduces to zeros(p) ≤ 3, which is already discharged by T4-validity of p (condition (i)) — so at d = 1 it imposes no additional constraint, and the d = 2 case is the only binding necessity claim for (iii). Let zeros(p) + (d − 1) > 3 with p satisfying T4. By B5, zeros(c₁) = zeros(p) + (d − 1) > 3. But T4 requires zeros(t) ≤ 3 for any valid address — at most three field separators for the four-level hierarchy. The first child already exceeds the zero budget, so c₁ violates T4. ∎
 
@@ -426,6 +426,22 @@ TA5(d) with d = 1: d − 1 = 0 intermediate zeros, so no zero separator is inser
 
 State: B₄ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1]}.
 
+**Step 5: element under first document.** Namespace ([1, 0, 1, 0, 1], 2) — document [1, 0, 1, 0, 1], depth 2 (level crossing to element). This is the first trace step to reach the deepest hierarchical level, and it lands exactly on the tightest sufficiency boundary.
+
+  next(B₄, [1, 0, 1, 0, 1], 2) = inc([1, 0, 1, 0, 1], 2) = [1, 0, 1, 0, 1, 0, 1]
+
+TA5(d) with d = 2: appends d − 1 = 1 zero separator at position 6 and child value 1 at position 7. B5: zeros([1, 0, 1, 0, 1, 0, 1]) = 3 = 2 + (2 − 1) — the depth-2 increment crosses from document to element, advancing the zero count to its maximum. B6: d = 2 ∈ {1, 2}, and B6(iii) holds *at the boundary*: zeros([1, 0, 1, 0, 1]) + 1 = 3 ≤ 3, i.e. zeros(p) = 2 ≤ 2 — exactly TA5a's `k = 2 ∧ zeros(t) ≤ 2` constraint at equality, with zero slack. The result is T4-valid: zeros = 3 is permitted (the element level saturates the four-level budget), no two zeros are adjacent (positions 2, 4, 6 are separated by positive ordinals), and the last component is positive. B1: children([1, 0, 1, 0, 1], 2) = {[1, 0, 1, 0, 1, 0, 1]}, a prefix of length 1. B7: namespace ([1, 0, 1, 0, 1], 2) has element length 7, while the Step 4 namespace ([1, 0, 1, 0, 1], 1) has length 6 — the *Length split* case gives disjointness despite the shared parent.
+
+State: B₅ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1], [1, 0, 1, 0, 1, 0, 1]}.
+
+**Step 6: sub-element under that element.** Namespace ([1, 0, 1, 0, 1, 0, 1], 1) — element [1, 0, 1, 0, 1, 0, 1], depth 1 (intra-level descent). This exercises the other binding boundary: a depth-1 baptism from a parent whose zero budget is already saturated.
+
+  next(B₅, [1, 0, 1, 0, 1, 0, 1], 1) = inc([1, 0, 1, 0, 1, 0, 1], 1) = [1, 0, 1, 0, 1, 0, 1, 1]
+
+TA5(d) with d = 1: d − 1 = 0 intermediate zeros, so no separator; the value 1 is appended at position 8. B5: zeros([1, 0, 1, 0, 1, 0, 1, 1]) = 3 = 3 + (1 − 1) — d = 1 adds no zero, so the element's saturated count is preserved. B6: d = 1 ∈ {1, 2}, and B6(iii) at d = 1 reduces to zeros(p) ≤ 3, holding *at the boundary* zeros([1, 0, 1, 0, 1, 0, 1]) = 3 ≤ 3 — exactly TA5a's `k = 1 ∧ zeros(t) ≤ 3` constraint at equality. The result is T4-valid: zeros = 3 within budget, no adjacent zeros, last component positive. B1: children([1, 0, 1, 0, 1, 0, 1], 1) = {[1, 0, 1, 0, 1, 0, 1, 1]}, a prefix of length 1.
+
+State: B₆ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1], [1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1]}.
+
 Nelson's "Items 2.1, 2.2, 2.3, 2.4" is exactly this mechanism — successive baptisms under parent 2 at depth 1, yielding the sibling stream 2.1, 2.2, 2.3, 2.4 by repeated application of inc(·, 0). The sequence is determined, contiguous, and the ordinals carry no semantics beyond order.
 
 **B7 illustrated — equal-length parents.** The equal-length-parents case is witnessed by S([1, 0, 1], 1) and S([1, 0, 2], 1) from state B₂: both have element length 4 with equal-length distinct parents, so a shared element would force [1, 0, 1] = [1, 0, 2] by T3 — disjoint.
@@ -434,7 +450,7 @@ Nelson's "Items 2.1, 2.2, 2.3, 2.4" is exactly this mechanism — successive bap
 
 At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 2 is 0, the zero separator produced by TA5(d) with d − 1 = 1 intermediate zero. inc([1, 1], 1) = [1, 1, 1] — the value at position 2 is p'₂ = 1 > 0 (by T4, valid addresses do not end in zero, so the last component of [1, 1] is positive). Sibling increments inc(·, 0) modify only the last component (TA5(c)), so position 2 is invariant across both streams: always 0 in S([1], 2), always 1 in S([1, 1], 1). The streams disagree at a fixed position and are therefore disjoint.
 
-**Unbounded extent exhibited.** The trace stops at B₄ with hwm(B₄, [1], 2) = 2. Three further sibling baptisms in ([1], 2) yield [1, 0, 3], [1, 0, 4], [1, 0, 5], advancing hwm to 5 — and nothing in the construction caps the count.
+**Unbounded extent exhibited.** The trace stops at B₆ with hwm(B₆, [1], 2) = 2. Three further sibling baptisms in ([1], 2) yield [1, 0, 3], [1, 0, 4], [1, 0, 5], advancing hwm to 5 — and nothing in the construction caps the count.
 
 
 ## Uniqueness
