@@ -65,8 +65,6 @@ Let `a ∈ dom(Σ.C)` be arbitrary. By S0 (content immutability), `a ∈ dom(Σ.
 - *Preconditions:* State transition `Σ → Σ'` in a system satisfying S0 (content immutability).
 - *Postconditions:* `dom(Σ.C) ⊆ dom(Σ'.C)`.
 
-*Remark.* S1 covers addresses at which content has actually been stored, a narrower scope than T8's allocation permanence, which covers any allocated address whether or not it carries content.
-
 
 ## The arrangement and referential integrity
 
@@ -453,9 +451,7 @@ When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as 
 - The common V-position depth `m` of V_1(d) is fixed by S8-depth. By S8a, `m ≥ 2`.
 - Setting `N = |V_1(d)|`, the predicate holds iff `v = shift(min(V_1(d)), j)` for some `j ∈ {0, 1, ..., N}` (taking `shift(·, 0)` as the identity, so the `j = 0` case is `v = min(V_1(d))`).
 
-There are exactly `N + 1` valid insertion positions: the `N` positions coinciding with existing V-positions `v₀` through `v_{N−1}`, plus the append position `shift(min(V_1(d)), N)`.
-
-**Definition (ValidFirstInsertionPosition, empty case).** For a document `d` with `V_1(d) = ∅`, the *ternary* predicate `ValidFirstInsertionPosition(d, v, m)` is satisfied when `m ∈ ℕ` with `m ≥ 2` and `v = [1, 1, ..., 1]` of depth `m`. Distinct values of `m` identify distinct valid positions; the strand model fixes only the lower bound `m ≥ 2`.
+**Definition (ValidFirstInsertionPosition, empty case).** For a document `d` with `V_1(d) = ∅`, the *ternary* predicate `ValidFirstInsertionPosition(d, v, m)` is satisfied when `m ∈ ℕ` with `m ≥ 2` and `v = [1, 1, ..., 1]` of depth `m`.
 
 For `m ≥ 2`, OrdinalShift (ASN-0034) preserves component 1, so the subspace identifier is preserved under shift. This is the canonical minimum position required by D-MIN.
 
