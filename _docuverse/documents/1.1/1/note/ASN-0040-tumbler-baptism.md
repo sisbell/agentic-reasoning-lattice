@@ -21,13 +21,11 @@ We work within the foundation's transition framework (ASN-0034, AllocatedSet and
 
 The initial state s_init has s_init.B = B₀, the seed set established at genesis; "reachable" without qualification means reachable from s_init.
 
-This framework leaves `→*` *branching* in general. At any state where more than one operation is defined — for instance `baptize(p, d)` for several distinct B6-valid `(p, d)` — multiple successors exist, so the induced relation has several outgoing edges and the set of reachable states forms a tree rather than a chain.
-
-Because `→*` branches, a uniqueness argument that presumed a single execution path would not hold across divergent branches: two acts proceeding from a common state could compute the same address independently. We therefore make the execution discipline an explicit axiom.
+The execution discipline under a single baptismal authority we make explicit:
 
 **B-Seq (Sequential Commitment).** Within a single baptismal authority, the states actually realized by execution lie on one transition path from s_init: the visited states are totally ordered by `→*`. Equivalently, no two distinct baptismal commits proceed from the same state onto divergent branches — every commit reads the registry left by its predecessor.
 
-*Justification.* Grounded in implementation: Gregory's udanax-green commits baptisms through a single fully serialized path — a single-process, single-threaded event loop dispatches each operation run-to-completion, and there is exactly one persistent-store writer — so the realized history is a strict linear sequence.
+*Justification.* Grounded in implementation: Gregory's udanax-green commits baptisms through a single serialized path, so the realized history is a strict linear sequence.
 
 *Formal Contract:*
 - *Axiom:* The states realized under a single baptismal authority are totally ordered by `→*` — for any two such reachable states s, s', either s →* s' or s' →* s.
@@ -174,7 +172,7 @@ For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states th
 
 *Condition (ii) is necessary for T4.* Let d ≥ 3. By TA5(d), inc(p, d) appends d − 1 ≥ 2 zeros followed by 1. Positions #p + 1 and #p + 2 are both zero — adjacent zeros that parse as two consecutive field separators enclosing an empty field, violating T4's non-empty-field constraint. No choice of p avoids this: the adjacent zeros lie in the appended suffix, independent of p's content.
 
-*Condition (iii) is necessary at d = 2.* Let zeros(p) + (d − 1) > 3 with p satisfying T4. By B5, zeros(c₁) = zeros(p) + (d − 1) > 3. But T4 requires zeros(t) ≤ 3 for any valid address — at most three field separators for the four-level hierarchy. The first child already exceeds the zero budget, so c₁ violates T4. ∎
+*Condition (iii) is necessary at d = 2.* At d = 1, condition (iii) reduces to zeros(p) ≤ 3, which is already discharged by T4-validity of p (condition (i)) — so at d = 1 it imposes no additional constraint, and the d = 2 case is the only binding necessity claim for (iii). Let zeros(p) + (d − 1) > 3 with p satisfying T4. By B5, zeros(c₁) = zeros(p) + (d − 1) > 3. But T4 requires zeros(t) ≤ 3 for any valid address — at most three field separators for the four-level hierarchy. The first child already exceeds the zero budget, so c₁ violates T4. ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1.
@@ -449,7 +447,7 @@ The proof splits two ways: distinct baptisms within the same namespace, and bapt
 
 *Proof.* Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We take β₁ and β₂ to be commits under a single baptismal authority, so B-Seq (Sequential Commitment) applies: the realized states are totally ordered by →*. We proceed by case analysis on whether the two baptisms target the same or different namespaces.
 
-*Case 1: same namespace — (p, d) = (p', d').* Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts, and let s₁' = β₁(s₁) be the successor state. We say β₁ *precedes* β₂ when s₁' →* s₂ — when the state β₂ reads is reachable from the state β₁ leaves. By B-Seq the realized states are totally ordered by →*, so s₁' and s₂ are comparable: either s₁' →* s₂ or s₂ →* s₁'. Relabel the two acts so that s₁' →* s₂ (i.e. β₁ precedes β₂); since β₁ and β₂ play symmetric roles, this relabeling is without loss of generality and excludes the case s₂ →* s₁ in which a ∉ s₂.B. By B4 (Atomic Baptism), each baptism is a single Σ-edge. By the Bop postcondition, s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. From s₁' →* s₂, B0★ gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
+*Case 1: same namespace — (p, d) = (p', d').* Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts, and let s₁' = β₁(s₁) be the successor state. We say β₁ *precedes* β₂ when s₁' →* s₂ — when the state β₂ reads is reachable from the state β₁ leaves. By B-Seq the realized states are totally ordered by →*, so s₁' and s₂ are comparable: either s₁' →* s₂ or s₂ →* s₁'. Relabel the two acts so that s₁' →* s₂ (i.e. β₁ precedes β₂); since β₁ and β₂ play symmetric roles, this relabeling is without loss of generality. By B4 (Atomic Baptism), each baptism is a single Σ-edge. By the Bop postcondition, s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. From s₁' →* s₂, B0★ gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
 
 Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mark Sufficiency), a = c_{m₁+1} and b = c_{m₂+1}, where cₙ denotes the n-th element of S(p, d). Since a = c_{m₁+1} ∈ s₂.B and B1 (Contiguous Prefix) holds for s₂, the children of (p, d) in s₂ include {c₁, ..., c_{m₁+1}}, so hwm(s₂.B, p, d) ≥ m₁ + 1. That is, m₂ ≥ m₁ + 1, hence m₂ + 1 ≥ m₁ + 2 > m₁ + 1. The indices m₁ + 1 and m₂ + 1 are distinct with m₁ + 1 < m₂ + 1. By S0 (StreamOrdering), c_{m₁+1} < c_{m₂+1} under the lexicographic order T1. By T1 irreflexivity, c_{m₁+1} ≠ c_{m₂+1}. Therefore a ≠ b.
 
