@@ -265,11 +265,11 @@ We note a subtlety. S7 identifies the document that ALLOCATED the I-address — 
 - *Frame:* The content values `Σ.C(a)` and arrangement functions `Σ.M(d)` play no role — attribution is a property of the addressing scheme alone.
 
 
-## Span decomposition
+## Singleton span partition
 
-The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(M(d))` is finite (S8-fin), the mapping always admits a *finite* partition into singleton intervals, one per V-position — this is the existence claim we establish here. The correspondence-run apparatus (general `n`, the ordinal-displacement identity over `0 ≤ k < n`) is introduced as forward-scaffolding: it frames the genuinely structural question of *maximal* runs (`n > 1`), which we defer to Open Questions. What S8 proves is the trivial (singleton) instance of that apparatus together with disjointness of the singleton intervals.
+The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(M(d))` is finite (S8-fin), the mapping always admits a *finite* partition into singleton intervals, one per V-position — this is the existence claim we establish here.
 
-Before defining correspondence runs, we must establish the structure of `dom(M(d))` more carefully.
+Before stating the partition, we must establish the structure of `dom(M(d))` more carefully.
 
 **S8-fin (Finite arrangement).** For each document `d`, `dom(Σ.M(d))` is finite. A document contains finitely many V-positions at any given state.
 
@@ -319,27 +319,21 @@ Gregory's evidence supports it: V-addresses in the text subspace consistently us
 
 S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: position `s.x` is followed by `s.(x+1)`, where `+1` is NAT addition on the ordinal component. We reserve the symbol `+` for NAT addition on components and indices throughout this ASN; tumbler ordinal displacement is always written `shift(v, k)` (equivalently `v ⊕ δ(k, m)` per ASN-0034), never `v + k`.
 
-We extend `shift` to `k = 0` by convention: define `shift(v, 0) = v` (identity); for `k ≥ 1`, `shift(v, k) = v ⊕ δ(k, #v)` per OrdinalShift (ASN-0034). OrdinalShift's precondition is `n ≥ 1`; the extension to `k = 0` is purely notational — no arithmetic is performed. For I-addresses, `shift(a, 0) = a` and `shift(a, k) = a ⊕ δ(k, #a)` for `k ≥ 1`. This is well-defined: the action point of `δ(k, #a)` is `#a`, which falls at the element field's last component — S7c guarantees element-field depth `δ ≥ 2`, so the last component of the full address *is* the element ordinal's deepest position — and TumblerAdd's prefix rule copies all earlier components (node, user, document fields, their separators, and the subspace identifier) unchanged, producing a result of length `#a`.
+For each V-position `v`, its *singleton interval* is the half-open tumbler interval `[v, shift(v, 1))`, where `shift(v, 1) = v ⊕ δ(1, #v)` per OrdinalShift (ASN-0034) is the next ordinal at the same depth.
 
-A *correspondence run* is a triple `(v, a, n)` — a V-position, an I-address, and a natural number `n ≥ 1` — such that the arrangement preserves ordinal displacement within the run:
+**S8 (Singleton span partition).** For each document `d`, the singleton intervals `{[vⱼ, shift(vⱼ, 1)) : vⱼ ∈ dom(Σ.M(d))}` — one per V-position, with `aⱼ = Σ.M(d)(vⱼ)` — partition the V-positions of `dom(Σ.M(d))`:
 
-`(A k : 0 ≤ k < n : Σ.M(d)(shift(v, k)) = shift(a, k))`
+(a) Every V-position falls in exactly one singleton interval — `(A v ∈ dom(Σ.M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, 1)))`
 
-At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount. Within a correspondence run, each step forward in Vstream corresponds to the same step forward in Istream.
+(b) Each singleton carries its own image: `Σ.M(d)(vⱼ) = aⱼ`
 
-**S8 (Singleton span partition).** For each document `d`, the arrangement `{(v, Σ.M(d)(v)) : v ∈ dom(Σ.M(d))}` admits a finite set of singleton correspondence runs `{(vⱼ, aⱼ, 1)}` — one per V-position — whose half-open intervals are pairwise disjoint and cover `dom(Σ.M(d))`. Cast in the general correspondence-run form `{(vⱼ, aⱼ, nⱼ)}`, this is the instance with every `nⱼ = 1`:
-
-(a) The singleton runs partition the V-positions: every V-position in `dom(Σ.M(d))` falls in exactly one run — `(A v ∈ dom(Σ.M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, nⱼ)))`
-
-(b) Within each run: `Σ.M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for all `k` with `0 ≤ k < nⱼ`, which at `nⱼ = 1` ranges over `k = 0` alone and reduces to `Σ.M(d)(vⱼ) = aⱼ`
-
-What S8 establishes is exactly this singleton partition: conjunct (a) for the singleton intervals (their pairwise disjointness) and conjunct (b) in its degenerate `nⱼ = 1` form. The genuinely structural content — existence and uniqueness of *maximal* runs (`nⱼ > 1`), where (b) carries non-trivial ordinal-displacement obligations — is not proved here; the general `(vⱼ, aⱼ, nⱼ)` form stands as forward-scaffolding for that deferred question (Open Questions).
+This is the singleton (`n = 1`) instance of a more general notion of *correspondence run* `(v, a, n)` — a V-position, an I-address, and a length `n ≥ 1` over which the arrangement preserves ordinal displacement, `Σ.M(d)(shift(v, k)) = shift(a, k)` for `0 ≤ k < n`. The existence and uniqueness of *maximal* runs (`n > 1`) — where (b) carries non-trivial ordinal-displacement obligations — this ASN does not discharge; we defer it to the Open Questions.
 
 *Proof.* We construct a finite decomposition satisfying both conjuncts and prove it partitions `dom(M(d))`.
 
-**Existence.** By S8-fin, `dom(M(d))` is finite. By S2 (ArrangementFunctionality), `M(d)` is a function, so each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`. By S3 (referential integrity), `a ∈ dom(Σ.C)`. For each such `v`, form the singleton run `(v, a, 1)`. Conjunct (b) requires `M(d)(shift(v, k)) = shift(a, k)` for all `k` with `0 ≤ k < 1` — the only such `k` is `0`, where `shift(v, 0) = v` and `shift(a, 0) = a` by convention, so the identity reduces to `M(d)(v) = a`, which holds by construction. Since `dom(M(d))` is finite, the collection of singletons is finite. The singleton decomposition witnesses existence.
+**Existence.** By S8-fin, `dom(M(d))` is finite. By S2 (ArrangementFunctionality), `M(d)` is a function, so each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`. By S3 (referential integrity), `a ∈ dom(Σ.C)`. For each such `v`, form the singleton `(v, a)` with interval `[v, shift(v, 1))`. Conjunct (b) is `M(d)(v) = a`, which holds by construction. Since `dom(M(d))` is finite, the collection of singletons is finite. The singleton decomposition witnesses existence.
 
-**Coverage.** Each `v ∈ dom(M(d))` lies in its own singleton's interval: `v ≤ v < shift(v, 1)`, where the right inequality holds because `shift(v, 1) > v` by TS4 (ShiftStrictIncrease, ASN-0034). So every V-position falls in at least one run.
+**Coverage.** Each `v ∈ dom(M(d))` lies in its own singleton's interval: `v ≤ v < shift(v, 1)`, where the right inequality holds because `shift(v, 1) > v` by TS4 (ShiftStrictIncrease, ASN-0034). So every V-position falls in at least one singleton interval.
 
 **Uniqueness within a subspace.** Let `v, w ∈ dom(M(d))` be distinct V-positions with `v₁ = w₁ = S`. By S8-depth, `#v = #w = m` for some common depth `m`. We show `w ∉ [v, shift(v, 1))` via a clean lemma that abstracts away from the specific pair `(v, w)`.
 
@@ -358,11 +352,11 @@ For `m ≥ 2` (the only case under S8a), the successor `shift(v, 1)` also extend
 
 Since `[S₁] ≼ v` and `[S₁] ≼ shift(v, 1)` and `v ≤ shift(v, 1)` by TS4 (ShiftStrictIncrease, ASN-0034), T5 (ContiguousSubtrees, ASN-0034) gives: for any `t` with `v ≤ t ≤ shift(v, 1)`, `[S₁] ≼ t`. Every element of `[v, shift(v, 1))` therefore extends `[S₁]`. By T10 (ASN-0034), since `[S₁]` and `[S₂]` are non-nesting prefixes, any tumbler extending `[S₁]` is distinct from any tumbler extending `[S₂]`. In particular, `w` (which extends `[S₂]`) cannot belong to `[v, shift(v, 1))`.
 
-**Conclusion.** The singleton runs cover every V-position in `dom(M(d))` (coverage) and no V-position falls in two distinct singleton intervals (uniqueness within and across subspaces). The singletons partition `dom(M(d))`. Since `dom(M(d))` is finite (S8-fin), the decomposition is finite, establishing both conjuncts (a) and (b). ∎
+**Conclusion.** The singleton intervals cover every V-position in `dom(M(d))` (coverage) and no V-position falls in two distinct singleton intervals (uniqueness within and across subspaces). The singletons therefore partition the V-positions of `dom(M(d))`. Since `dom(M(d))` is finite (S8-fin), the decomposition is finite, establishing both conjuncts (a) and (b). ∎
 
 *Formal Contract:*
 - *Preconditions:* `dom(M(d))` finite (S8-fin); `M(d)` a function (S2); referential integrity (S3); `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` (S8a); within each subspace, all V-positions share a common depth (S8-depth).
-- *Postconditions:* There exists a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` whose half-open intervals are pairwise disjoint and cover `dom(M(d))`: (a) `(A v ∈ dom(M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, nⱼ)))`; and (b) `(A j, k : 0 ≤ k < nⱼ : M(d)(shift(vⱼ, k)) = shift(aⱼ, k))`, which for the exhibited singleton witness (every `nⱼ = 1`) ranges over `k = 0` and gives `M(d)(vⱼ) = aⱼ`.
+- *Postconditions:* The finite set of singleton intervals `{[vⱼ, shift(vⱼ, 1)) : vⱼ ∈ dom(M(d))}`, with `aⱼ = M(d)(vⱼ)`, partitions the V-positions of `dom(M(d))`: (a) `(A v ∈ dom(M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, 1)))`; and (b) `M(d)(vⱼ) = aⱼ`.
 - *Depends:* (*Local properties*) S2 (ArrangementFunctionality) — each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`; S3 (referential integrity) — `M(d)(v) ∈ dom(Σ.C)`; S8a — `zeros(v) = 0`, `#v ≥ 2`, and componentwise positivity of V-positions; S8-depth — a common depth `m` for every V-position in a fixed subspace; S8-fin — finite `dom(M(d))`. (*Foundation claims, ASN-0034*) T1 (TumblerOrdering) case (i) — first-divergence comparison; T3 (CanonicalRepresentation) — equates tumblers with their canonical component sequences; T5 (ContiguousSubtrees) — a prefix's extensions form a contiguous interval under T1; T10 — non-nesting prefixes generate disjoint tumbler subtrees; TS4 (ShiftStrictIncrease) — `v < shift(v, 1)`; TumblerAdd, OrdinalShift, OrdinalDisplacement — the action-point semantics of `δ(k, m)`, the three-region component formula, and the action-point identity `shift(v, 1)_m = v_m + 1`. NAT-discrete (NatDiscreteness) — the strict-to-`+1` promotion `m < n ⟹ m + 1 ≤ n`. NAT-closure (NatArithmeticClosureAndIdentity) — closure of ℕ under addition places `v_m + 1` in ℕ. NAT-order (NatStrictTotalOrder) — the exactly-one trichotomy clause `¬(a < b ∧ b ≤ a)`.
 
 ## Arrangement contiguity
@@ -544,7 +538,7 @@ That gives N + 1 = 4 positions. Any successor state whose `V₁(d)` gains a posi
 
 ## Worked example
 
-We instantiate the state model with specific tumblers to ground the abstractions. Consider two documents: document `d₁` at tumbler `1.0.1.0.1` and document `d₂` at tumbler `1.0.1.0.2`. The user creates `d₁` with the text "hello" (five characters), then creates `d₂` which transcludes three characters ("llo") from `d₁` and appends two new characters ("ws"). The multi-step (maximal, `n > 1`) runs exhibited by hand below illustrate the *deferred* maximal case — they are concrete instances of conjunct (b) for `n > 1`, not a proof of maximal-run existence or uniqueness, which S8 leaves to Open Questions. S8 itself proves only the singleton (`n = 1`) partition.
+We instantiate the state model with specific tumblers to ground the abstractions. Consider two documents: document `d₁` at tumbler `1.0.1.0.1` and document `d₂` at tumbler `1.0.1.0.2`. The user creates `d₁` with the text "hello" (five characters), then creates `d₂` which transcludes three characters ("llo") from `d₁` and appends two new characters ("ws"). At each state we exhibit the singleton partition S8 proves and check the design constraints (S0, S3, S7, D-SEQ).
 
 **Initial state Σ₀**: empty. `dom(C) = ∅`, `dom(M(d₁)) = dom(M(d₂)) = ∅`.
 
@@ -568,13 +562,7 @@ The arrangement `M(d₁)` maps V-positions (in subspace 1, text) to these I-addr
 | `1.4` | `1.0.1.0.1.0.1.4` |
 | `1.5` | `1.0.1.0.1.0.1.5` |
 
-*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Verify conjunct (b) by direct computation*: we exhibit, by hand, a maximal correspondence run `(v, a, n) = (1.1, 1.0.1.0.1.0.1.1, 5)` whose ordinal-displacement identity (b) holds at every `k ∈ {0, 1, 2, 3, 4}`. We verify the identity explicitly at `k = 3`:
-
-- *Left side: `M(d₁)(shift(1.1, 3))`.* The V-position `v = 1.1 = [1, 1]` has depth `m = 2`, so `shift(v, 3) = v ⊕ δ(3, 2) = [1, 1] ⊕ [0, 3] = [1, 4]` (action point 2; component 1 copied unchanged, component 2 receives `1 + 3 = 4`). Reading `M(d₁)([1, 4])` from the arrangement table: `M(d₁)(1.4) = 1.0.1.0.1.0.1.4`.
-
-- *Right side: `shift(1.0.1.0.1.0.1.1, 3)`.* The I-address `a = 1.0.1.0.1.0.1.1` has depth `#a = 8` (three field-separator zeros plus five non-separator components), so `shift(a, 3) = a ⊕ δ(3, 8) = [1, 0, 1, 0, 1, 0, 1, 1] ⊕ [0, 0, 0, 0, 0, 0, 0, 3]` (action point 8 — the element ordinal's last component). TumblerAdd copies components 1 through 7 from `a` unchanged — including the three separator zeros at positions 2, 4, 6 (so `zeros(shift(a, 3)) = zeros(a) = 3` — the prefix rule copies every position before the action point unchanged, preserving the zero/nonzero status of each) and the subspace identifier `subspace_I(a) = E(a)₁ = 1` at position 7 — and sets component 8 to `1 + 3 = 4`, yielding `[1, 0, 1, 0, 1, 0, 1, 4] = 1.0.1.0.1.0.1.4`.
-
-- *Both sides equal `1.0.1.0.1.0.1.4`.* The same component-by-component computation works at every `k ∈ {0, 1, 2, 3, 4}`: `M(d₁)(shift(1.1, k)) = M(d₁)(1.(1+k)) = 1.0.1.0.1.0.1.(1+k) = shift(1.0.1.0.1.0.1.1, k)`.
+*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Verify S8 (singleton partition)*: each of the five V-positions is its own singleton. For `v = 1.1 = [1, 1]` (depth `m = 2`), the interval is `[1.1, shift(1.1, 1)) = [[1, 1], [1, 2])`, where `shift([1, 1], 1) = [1, 1] ⊕ δ(1, 2) = [1, 2]` (action point 2; component 1 copied unchanged, component 2 receives `1 + 1 = 2`). This interval contains exactly the V-position `1.1` — the next V-position `1.2 = [1, 2]` is excluded by the half-open upper bound. The five singletons `{[1.k, 1.(k+1)) : 1 ≤ k ≤ 5}` partition `V₁(d₁) = {1.1, …, 1.5}`, and conjunct (b) holds at each: `M(d₁)(1.k) = 1.0.1.0.1.0.1.k`.
 
 *Check D-SEQ*: V₁(d₁) = {[1, k] : 1 ≤ k ≤ 5}, satisfying D-SEQ with n = 5. D-CTG holds (no gaps in the ordinal range 1..5) and D-MIN holds (min = [1, 1]).
 
@@ -597,7 +585,7 @@ The arrangement `M(d₂)`:
 | `1.4` | `1.0.1.0.2.0.1.1` | `d₂` (native 'w') |
 | `1.5` | `1.0.1.0.2.0.1.2` | `d₂` (native 's') |
 
-*Check S0*: all 5 prior entries in `dom(C)` remain with unchanged values. The transition added 2 new entries. *Check S3*: every V-reference in `M(d₂)` resolves — positions `1.1`–`1.3` reference I-addresses from `d₁` (which exist by S1), positions `1.4`–`1.5` reference the newly allocated addresses. *Check S7*: for `a = 1.0.1.0.1.0.1.4` (the second 'l' in `d₂`), `origin(a) = 1.0.1.0.1 = d₁` — attribution traces to the originating document, not to `d₂` where the content currently appears. *Check S5*: the I-address `1.0.1.0.1.0.1.3` now appears in both `ran(M(d₁))` and `ran(M(d₂))` — sharing multiplicity is 2. *Conjunct (b) by direct computation*: `M(d₂)` admits by hand a two-run maximal decomposition — `(1.1, 1.0.1.0.1.0.1.3, 3)` for the transclusion and `(1.4, 1.0.1.0.2.0.1.1, 2)` for the native content — whose runs partition the five V-positions exactly. *Check D-SEQ*: V₁(d₁) is unchanged — {[1, k] : 1 ≤ k ≤ 5}, D-SEQ with n = 5. V₁(d₂) = {[1, k] : 1 ≤ k ≤ 5}, D-SEQ with n = 5. Both satisfy D-CTG and D-MIN.
+*Check S0*: all 5 prior entries in `dom(C)` remain with unchanged values. The transition added 2 new entries. *Check S3*: every V-reference in `M(d₂)` resolves — positions `1.1`–`1.3` reference I-addresses from `d₁` (which exist by S1), positions `1.4`–`1.5` reference the newly allocated addresses. *Check S7*: for `a = 1.0.1.0.1.0.1.4` (the second 'l' in `d₂`), `origin(a) = 1.0.1.0.1 = d₁` — attribution traces to the originating document, not to `d₂` where the content currently appears. *Check S5*: the I-address `1.0.1.0.1.0.1.3` now appears in both `ran(M(d₁))` and `ran(M(d₂))` — sharing multiplicity is 2. *Verify S8 (singleton partition)*: the five V-positions `1.1`–`1.5` each form a singleton interval `[1.k, 1.(k+1))`, together partitioning `dom(M(d₂))`; conjunct (b) gives `M(d₂)(1.k)` equal to the tabulated I-address (note that contiguous V-positions need not map to contiguous I-addresses — `1.3` maps to `…1.5` while `1.4` maps to `…2.1`). *Check D-SEQ*: V₁(d₁) is unchanged — {[1, k] : 1 ≤ k ≤ 5}, D-SEQ with n = 5. V₁(d₂) = {[1, k] : 1 ≤ k ≤ 5}, D-SEQ with n = 5. Both satisfy D-CTG and D-MIN.
 
 **After deleting "llo" from d₁** — state Σ₃. DELETE removes V-positions `1.3`–`1.5` from `M(d₁)`:
 
@@ -606,7 +594,7 @@ The arrangement `M(d₂)`:
 | `1.1` | `1.0.1.0.1.0.1.1` |
 | `1.2` | `1.0.1.0.1.0.1.2` |
 
-*Check S0*: all 7 entries in `dom(C)` remain. The I-addresses `1.0.1.0.1.0.1.3`–`.5` are no longer in `ran(M(d₁))` but persist in `dom(C)`; these three addresses are now "orphaned" from `d₁`'s perspective, but still referenced by `M(d₂)` — persistence is unconditional (S0). *Check S9*: the deletion modified `M(d₁)` but `C` is unchanged — separation holds. *Conjunct (b) by direct computation*: `M(d₁)` now admits the single maximal run `(1.1, 1.0.1.0.1.0.1.1, 2)` (the deletion removed an entire suffix, not a middle segment, so the by-hand decomposition stays a single run). `M(d₂)` is unchanged — still two runs. *Check D-SEQ*: V₁(d₁) = {[1, k] : 1 ≤ k ≤ 2}, D-SEQ with n = 2. D-CTG holds (no gaps in 1..2) and D-MIN holds (min = [1, 1]). V₁(d₂) is unchanged — D-SEQ with n = 5.
+*Check S0*: all 7 entries in `dom(C)` remain. The I-addresses `1.0.1.0.1.0.1.3`–`.5` are no longer in `ran(M(d₁))` but persist in `dom(C)`; these three addresses are now "orphaned" from `d₁`'s perspective, but still referenced by `M(d₂)` — persistence is unconditional (S0). *Check S9*: the deletion modified `M(d₁)` but `C` is unchanged — separation holds. *Verify S8 (singleton partition)*: the now-two V-positions `1.1` and `1.2` each form a singleton interval, partitioning the two-element `dom(M(d₁))`; `M(d₂)` is unchanged. *Check D-SEQ*: V₁(d₁) = {[1, k] : 1 ≤ k ≤ 2}, D-SEQ with n = 2. D-CTG holds (no gaps in 1..2) and D-MIN holds (min = [1, 1]). V₁(d₂) is unchanged — D-SEQ with n = 5.
 
 
 ## The document as arrangement
@@ -641,7 +629,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — element-field tumblers of depth ≥ 2 with componentwise positive entries | definition (V-positions are isolated element fields of depth ≥ 2, paralleling S7c; `zeros(v) = 0` and `#v ≥ 2` are definitional); positivity derived from `zeros = 0` via T0, NAT-discrete (ASN-0034) |
 | subspace(v) | V-position subspace identifier: `subspace(v) = v₁`; well-defined when `#v ≥ 1` | introduced; uses T0 (ASN-0034), S8a |
 | S8-depth | Fixed-depth V-positions: `(A d, u, w : u ∈ dom(M(d)) ∧ w ∈ dom(M(d)) ∧ subspace(u) = subspace(w) : #u = #w)` | design; uses S8a |
-| S8 | Singleton span partition: `dom(M(d))` partitions into finitely many disjoint singleton runs `(vⱼ, aⱼ, 1)` with `M(d)(vⱼ) = aⱼ`; the general `(vⱼ, aⱼ, nⱼ)` form is forward-scaffolding (maximal runs deferred) | theorem from S2, S3, S8-fin, S8a, S8-depth, T1, T3, T5, T10, TumblerAdd, OrdinalShift, OrdinalDisplacement, TS4, NAT-discrete, NAT-closure, NAT-order (ASN-0034) |
+| S8 | Singleton span partition: the singleton intervals `[vⱼ, shift(vⱼ, 1))` partition the V-positions of `dom(M(d))`, with `M(d)(vⱼ) = aⱼ` | theorem from S2, S3, S8-fin, S8a, S8-depth, T1, T3, T5, T10, TumblerAdd, OrdinalShift, OrdinalDisplacement, TS4, NAT-discrete, NAT-closure, NAT-order (ASN-0034) |
 | D-CTG | V-position contiguity: V_1(d) forms a contiguous ordinal range with no gaps — design constraint on well-formed document states | design; uses S8a, S8-depth, T1 (ASN-0034) |
 | D-MIN | V-position minimum: non-empty V_1(d) has minimum [1, 1, ..., 1] with every component equal to 1 — design constraint | design requirement |
 | D-CTG-depth | Shared prefix reduction (applies wherever D-CTG holds): at depth m ≥ 3, all positions in V_1(d) share components 2 through m − 1, so contiguity reduces to the last component | corollary of D-CTG, S8a, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
@@ -655,7 +643,7 @@ This has a formal consequence: document equality is not decidable by content com
 
 What constraints must the content store's value domain `Val` satisfy — must all entries be uniform in type, or must `Val` support heterogeneous content (text, links, media) as first-class distinctions?
 
-Must the span decomposition of an arrangement have a unique maximal form (fewest possible runs), or can multiple valid decompositions of different cardinality coexist for the same arrangement?
+Must every arrangement admit a unique *maximal* correspondence-run decomposition — a minimal set of runs `(vⱼ, aⱼ, nⱼ)`, each preserving ordinal displacement `M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for `0 ≤ k < nⱼ` — or can decompositions of different cardinality coexist for the same arrangement?
 
 What must the system guarantee about the computability of the sharing inverse — given an I-address, what is the cost bound for determining which documents currently reference it?
 
