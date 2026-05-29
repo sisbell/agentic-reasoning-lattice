@@ -45,7 +45,7 @@ B0 is a single-step law. We extend it to finite transition sequences:
 
 *Proof.* By induction on the length of the witnessing transition sequence. *Base* (empty path, s = s'): `s.B ⊆ s.B` by reflexivity of ⊆. *Step:* given `s → s₁ →* s'`, B0 gives `s.B ⊆ s₁.B` for the single step and the inductive hypothesis gives `s₁.B ⊆ s'.B`; transitivity of ⊆ composes them to `s.B ⊆ s'.B`. ∎
 
-The binary character of this state is fundamental. Nelson's model has no third status between baptized and unbaptized: "the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A position is either conceptually assigned (in B) or not. Whether anything is *stored* at that position is a separate question, which we address below as the ghost validity property.
+The binary character of this state is fundamental. Nelson's model has no third status between baptized and unbaptized: "the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A position is either conceptually assigned (in B) or not.
 
 
 ## The sibling stream
@@ -148,7 +148,7 @@ Condition (i) supplies a T4-valid parent; given that, conditions (ii) and (iii) 
 | Document (zeros = 2) | sub-document / version | element child |
 | Element (zeros = 3) | sub-element | **invalid** |
 
-At most three level crossings can occur in a valid address chain: node → user, user → document, document → element. This is the four-field structure of T4, now visible as a consequence of baptism depth arithmetic rather than an independent syntactic constraint.
+d = 2 crosses one level; the four-field cap follows from condition (iii).
 
 *Proof.* The theorem is: given a T4-valid parent (i), conditions (ii) and (iii) are necessary and sufficient for stream T4-preservation. We prove sufficiency (all three conditions imply T4 preservation) and then necessity of (ii) and (iii).
 
@@ -429,9 +429,9 @@ State: B₄ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1]}.
 
 Nelson's "Items 2.1, 2.2, 2.3, 2.4" is exactly this mechanism — successive baptisms under parent 2 at depth 1, yielding the sibling stream 2.1, 2.2, 2.3, 2.4 by repeated application of inc(·, 0). The sequence is determined, contiguous, and the ordinals carry no semantics beyond order.
 
-**B7 illustrated — non-nesting prefixes.** The steps above produce streams of different lengths, the easiest disjointness witness. We now exhibit two namespaces whose elements share a length yet remain disjoint because their parents are non-nesting. From state B₂ above, the parents [1, 0, 1] and [1, 0, 2] are both length 3, distinct, and neither is a prefix of the other (they disagree at position 3). Consider S([1, 0, 1], 1) and S([1, 0, 2], 1). Both streams have element length 4: #[1, 0, 1] + 1 = #[1, 0, 2] + 1 = 4, with p = [1, 0, 1], d = 1, p' = [1, 0, 2], d' = 1.
+**B7 illustrated — equal-length parents.** The steps above produce streams of different lengths, the easiest disjointness witness (B7's *length split*). We now exhibit two namespaces whose elements share a length, exercising B7's *equal-length-parents* case. From state B₂ above, the parents [1, 0, 1] and [1, 0, 2] are both length 3 and distinct. Consider S([1, 0, 1], 1) and S([1, 0, 2], 1). Both streams have element length 4: #[1, 0, 1] + 1 = #[1, 0, 2] + 1 = 4, with p = [1, 0, 1], d = 1, p' = [1, 0, 2], d' = 1 — so #p = #p' and consequently d = d'.
 
-At position 3 of each stream: c₁ = inc([1, 0, 1], 1) = [1, 0, 1, 1] and c'₁ = inc([1, 0, 2], 1) = [1, 0, 2, 1]. By S1, every cₙ ∈ S([1, 0, 1], 1) preserves [1, 0, 1] as prefix and hence has value 1 at position 3, and every c'ₘ ∈ S([1, 0, 2], 1) has value 2 at position 3. Sibling increments inc(·, 0) modify only position sig(·) — namely position 4 in both streams (TA5(c)) — so position 3 is invariant across both streams: always 1 in S([1, 0, 1], 1), always 2 in S([1, 0, 2], 1). By T1's lexicographic comparison resolving at the first position of disagreement, every element of S([1, 0, 1], 1) is distinct from every element of S([1, 0, 2], 1). The streams are disjoint.
+Suppose some x lay in both streams. By S(p,d)'s element form, the first #p = 3 components of x equal [1, 0, 1] (reading x ∈ S([1, 0, 1], 1)) and also equal [1, 0, 2] (reading x ∈ S([1, 0, 2], 1)). Hence [1, 0, 1] = [1, 0, 2] by T3 — false, since the two parents disagree at position 3. This is exactly B7's equal-length-parents contradiction: equal element length together with equal parent length forces the parents to coincide, contradicting their distinctness. No shared element exists, so the streams are disjoint.
 
 **B7 illustrated — nesting prefixes.** A harder witness: two namespaces whose elements share a length and whose parents nest. Suppose node [1, 1] has been baptized via inc([1], 1) = [1, 1] (TA5(d) with k = 1: #t' = 2, zero intermediate zeros, position 2 set to 1). Consider S([1], 2) and S([1, 1], 1). Both streams have element length 3: #[1] + 2 = #[1, 1] + 1 = 3. The prefixes nest — [1] ≼ [1, 1] — with p = [1], d = 2, p' = [1, 1], d' = 1.
 
