@@ -19,7 +19,7 @@ The reach is the first position beyond σ — the exclusive upper bound. It is w
 
 We shall need the reverse: given two positions a ≤ b on the tumbler line, can we recover the displacement from a to b — the unique width w such that a ⊕ w = b?
 
-ASN-0034 answers this directly: the unique width w with a ⊕ w = b is the TumblerSub w = b ⊖ a (TumblerSub, ASN-0034). We call it the *displacement from a to b*. The displacement is well-defined when a < b and divergence(a, b) ≤ #a (D0, ASN-0034).
+ASN-0034 answers this directly: the candidate width is the TumblerSub w = b ⊖ a (TumblerSub, ASN-0034), which we call the *displacement from a to b*. The subtraction itself is well-defined when a < b and divergence(a, b) ≤ #a (D0, ASN-0034); but D0's own postcondition shows the round-trip can fail (#a > #b → a ⊕ (b ⊖ a) ≠ b), so well-definedness of the subtraction does not by itself guarantee a width carrying a to b. Existence of a width w with a ⊕ w = b — and the identity w = b ⊖ a — holds exactly when the additional length condition #a ≤ #b is met (D1, ASN-0034); uniqueness of that width is D2 (ASN-0034). Every use in this ASN is level-uniform (#a = #b), so all three conditions hold throughout.
 
 **S6** (*LevelConstraint*). Two tumblers t₁ and t₂ are *level-compatible*, written level_compat(t₁, t₂), when they have the same length:
 
@@ -35,7 +35,7 @@ Gregory confirms the implementation enforces this: the split operation requires 
 
 **WR** (*WidthRecovery*). For a level-uniform span σ = (s, ℓ): reach(σ) ⊖ start(σ) = width(σ).
 
-*Proof.* The reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), D2 (DisplacementUnique, ASN-0034) gives reach(σ) ⊖ start(σ) = ℓ = width(σ), provided its preconditions hold for (a, b, w) = (s, reach(σ), ℓ). We discharge them: s < reach(σ) by TA-strict on T12; ℓ > 0 and its action point k ≤ #s by T12; s ⊕ ℓ = reach(σ) by definition of reach (so TA0's preconditions hold, giving #(s ⊕ ℓ) = #ℓ = #s); the divergence between s and reach(σ) is of type (i) with k ≤ #s (as established in WF's proof, since #s = #reach(σ) excludes the prefix case), satisfying D0; #s ≤ #reach(σ) since both equal #s. Every D2 precondition is met, so reach(σ) ⊖ start(σ) = width(σ).  ∎
+*Proof.* The reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), D2 (DisplacementUnique, ASN-0034) gives reach(σ) ⊖ start(σ) = ℓ = width(σ), provided its preconditions hold for (a, b, w) = (s, reach(σ), ℓ). We discharge them: s < reach(σ) by TA-strict on T12; ℓ > 0 and its action point k ≤ #s by T12; s ⊕ ℓ = reach(σ) by definition of reach (so TA0's preconditions hold, giving #(s ⊕ ℓ) = #ℓ = #s); divergence(s, reach(σ)) = k ≤ #s, the D2 precondition on divergence (established as in WF's proof: #s = #reach(σ) excludes the prefix case, so the divergence is of type (i)); #s ≤ #reach(σ) since both equal #s. Every D2 precondition is met, so reach(σ) ⊖ start(σ) = width(σ).  ∎
 
 A worked instance of the unequal-length failure: σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2] — when #start > #width the recovered displacement does not round-trip.
 
@@ -82,7 +82,7 @@ Formally: for level-uniform spans α and β with level_compat(start(α), start(�
 
 We verify this equality by membership. Take any t ∈ ⟦α⟧ ∩ ⟦β⟧. Then start(α) ≤ t < reach(α) and start(β) ≤ t < reach(β), so t ≥ max(start(α), start(β)) = s' and t < min(reach(α), reach(β)) = r'; hence s' ≤ t < r'. Conversely, take any t with s' ≤ t < r'. Then t ≥ s' = max(start(α), start(β)) ≥ start(α) and t < r' = min(reach(α), reach(β)) ≤ reach(α), so t ∈ ⟦α⟧; symmetrically t ≥ start(β) and t < reach(β), so t ∈ ⟦β⟧; hence t ∈ ⟦α⟧ ∩ ⟦β⟧. The intersection is therefore the half-open interval [s', r'). The set is non-empty (s' is a member since s' < r'). By level-uniformity and S6, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length. So #s' = #r', and with s' < r', WF gives that the pair γ = (s', r' ⊖ s') is a well-formed level-uniform span with reach(γ) = r'.  ∎
 
-The significance is topological: convex sets in a total order have convex intersection. The tumbler space's hierarchical structure cannot fragment an intersection — there is no configuration where two contiguous regions share a disconnected collection of positions. Gregory confirms this from the implementation: intersecting two spans yields at most one output span (Q10).
+Gregory confirms this from the implementation: intersecting two spans yields at most one output span (Q10).
 
 A concrete instance: let α = ([1, 3], [0, 4]) and β = ([1, 5], [0, 6]). Then reach(α) = [1, 7], reach(β) = [1, 11], s' = [1, 5], r' = [1, 7]. The intersection is ([1, 5], [0, 2]) — a single span covering positions [1, 5] through [1, 7) exclusive.
 
@@ -93,7 +93,7 @@ A concrete instance: let α = ([1, 3], [0, 4]) and β = ([1, 5], [0, 6]). Then r
 
 This follows from T12 and TA-strict: ℓ > 0 and k ≤ #s imply s ⊕ ℓ > s, so the half-open interval [s, s ⊕ ℓ) contains at least s itself.
 
-The distinction matters: the result of intersecting two disjoint spans is the *absence* of a span, not a "span of zero width." These are categorically different — at our level of abstraction there are spans (non-empty, always) and the empty set (not a span, never).
+So the intersection of two disjoint spans is "no span" — the empty set — not a zero-width span.
 
 
 ## Merge
@@ -140,7 +140,7 @@ Splitting is the reverse of merging: given a span σ and a point interior to it,
 
 (b): ⟦λ⟧ ∩ ⟦ρ⟧ = {t : s ≤ t < p ∧ p ≤ t} = ∅, since t < p and t ≥ p cannot both hold.
 
-(c): Since #s = #p (level compatibility) and s < p, D1 gives s ⊕ (p ⊖ s) = p. So reach(λ) = s ⊕ d = p = start(ρ).  ∎
+(c): Since #s = #p (level compatibility) and s < p, the divergence is of type (i) with divergence(s, p) ≤ #s — equal length excludes the prefix case — so D1's preconditions (s < p, divergence(s, p) ≤ #s, #s ≤ #p) are met and D1 gives s ⊕ (p ⊖ s) = p. So reach(λ) = s ⊕ d = p = start(ρ).  ∎
 
 A concrete instance: let σ = ([1, 0, 1, 0, 1, 0, 5], [0, 0, 0, 0, 0, 0, 8]), a level-uniform span with #s = #ℓ = 7. The action point is k = 7, giving reach = [1, 0, 1, 0, 1, 0, 13]. Split at p = [1, 0, 1, 0, 1, 0, 9], which is interior (s < p < reach at position 7) and level-compatible (#p = 7 = #s).
 
@@ -156,7 +156,7 @@ Each element of ⟦σ⟧ appears in exactly one of ⟦λ⟧ or ⟦ρ⟧ — thos
 
   d ⊕ d' = ℓ
 
-*Proof.* By D1, s ⊕ d = p (since s < p and #s = #d = #p). By D1 again, p ⊕ d' = reach(σ) (since p < reach(σ) and #p = #d' = #reach). Chaining:
+*Proof.* By D1, s ⊕ d = p (since s < p, #s = #d = #p, and equal length forces divergence(s, p) ≤ #s by excluding the prefix case). By D1 again, p ⊕ d' = reach(σ) (since p < reach(σ), #p = #d' = #reach, and equal length likewise forces divergence(p, reach(σ)) ≤ #p). Chaining:
 
   (s ⊕ d) ⊕ d' = reach(σ) = s ⊕ ℓ
 
@@ -198,8 +198,6 @@ Continuing the S4 worked instance (σ = ([1, 0, 1, 0, 1, 0, 5], [0, 0, 0, 0, 0, 
 Splitting γ at p yields λ = (start(α), p ⊖ start(α)) and ρ = (p, reach(γ) ⊖ p). For λ: p ⊖ start(α) = reach(α) ⊖ start(α) = width(α) by WR (α is level-uniform). So λ = (start(α), width(α)) = α. For ρ: reach(γ) ⊖ p = reach(β) ⊖ start(β) = width(β) by WR (β is level-uniform). So ρ = (start(β), width(β)) = β.
 
 *Case B: reach(β) = start(α).* By S3a (merge commutativity) the merge of α and β equals the merge of β and α, which is the Case A configuration with the roles of α and β exchanged. Applying Case A to the pair ⟨β, α⟩, splitting the merged span at the shared boundary start(α) yields left part λ = β and right part ρ = α. The unordered pair {λ, ρ} = {β, α} = {α, β} is recovered exactly; the left-right assignment is reversed relative to Case A.  ∎
-
-Together with S4a, this establishes that split and merge are exact inverses in both directions: split followed by merge recovers the original span (S4a), and merge followed by split at the original boundary recovers the original pair (S3b).
 
 
 ## Span-sets
@@ -306,7 +304,7 @@ For span-sets Σ₁, Σ₂, Σ₃ whose component spans are level-uniform and mu
 
   normalize((Σ₁ ∪ Σ₂) ∪ Σ₃) = normalize(Σ₁ ∪ (Σ₂ ∪ Σ₃))    (associativity)
 
-*Proof.* ⟦Σ₁ ∪ Σ₂⟧ = ⟦Σ₁⟧ ∪ ⟦Σ₂⟧ = ⟦Σ₂⟧ ∪ ⟦Σ₁⟧ = ⟦Σ₂ ∪ Σ₁⟧. Since normalization depends only on the denotation (S9), normalize(Σ₁ ∪ Σ₂) = normalize(Σ₂ ∪ Σ₁). Associativity follows identically from the associativity of set union.  ∎
+*Proof.* ⟦Σ₁ ∪ Σ₂⟧ = ⟦Σ₁⟧ ∪ ⟦Σ₂⟧ = ⟦Σ₂⟧ ∪ ⟦Σ₁⟧ = ⟦Σ₂ ∪ Σ₁⟧. Let A = normalize(Σ₁ ∪ Σ₂) and B = normalize(Σ₂ ∪ Σ₁). The hypothesis that the component spans are level-uniform and mutually level-compatible across both sets is preserved under union (concatenation introduces no new spans), so S8 applies to each union span-set: A is a normalized equivalent of Σ₁ ∪ Σ₂ and B a normalized equivalent of Σ₂ ∪ Σ₁, giving ⟦A⟧ = ⟦Σ₁ ∪ Σ₂⟧ = ⟦Σ₂ ∪ Σ₁⟧ = ⟦B⟧. Both A and B are normalized with equal denotation, so by S9 (uniqueness) A = B. Associativity follows identically — S8 supplies a normalized equivalent for each grouping (the level hypotheses hold across all three sets), S9 forces the two to coincide, and the underlying denotations agree by associativity of set union.  ∎
 
 The set-theoretic semantics — span-sets denote byte collections, not ordered series — is Nelson's intent (Q8): "what matters is which bytes are designated, not the order of the series."
 
