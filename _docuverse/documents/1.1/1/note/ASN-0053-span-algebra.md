@@ -31,8 +31,6 @@ For a level-uniform span σ = (s, ℓ) with #s = #ℓ, the reach has #reach(σ) 
 
 The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. Of the three quantities — start, width, reach — two of the three pairings determine the third: start and width determine reach (by definition of ⊕); start and reach determine width (by D2). But width and reach do not determine start: ⊕ is not right-cancellative (TA-RC, ASN-0034), and TA-MTO (ASN-0034) makes the precise statement — two starts agreeing through the action point k of the width yield the same reach, while positions k+1..#s are overwritten by the width's tail and unrecoverable. For instance, s₁ = [1, 3, 5] and s₂ = [1, 3, 7] with width [0, 2, 4] (action point k = 2) both yield reach [1, 5, 4]. Same width, same reach, different starts — and different denotations.
 
-When a = b, b ⊖ a produces the zero tumbler and a ⊕ (b ⊖ a) is not well-formed (TA0 requires w > 0), so this degenerate case is handled separately.
-
 A worked instance of the unequal-length failure: σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2] — when #start > #width the recovered displacement does not round-trip.
 
 
@@ -75,8 +73,6 @@ Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cas
 A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity from TA0 (#(s ⊕ ℓ) = #ℓ), already established above. The start, width, and reach all share the same tumbler length. A level-uniform span automatically satisfies D0 for the (start(σ), reach(σ)) pair: by TA-strict, start(σ) < reach(σ); and since #start(σ) = #reach(σ), neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start(σ). An interior point at a deeper level, such as [1, 3, 0, 1] relative to start [1, 3], diverges at position 3 (after zero-padding), exceeding #[1, 3] = 2, and admits no valid displacement. (In a flat address space every interior point would admit a split; the tumbler space stratifies positions by depth, so arithmetic must respect that stratification.)
 
 Gregory confirms the implementation enforces this: the split operation requires the cut and the width to share a tumbler length and aborts when this invariant is violated (Q14, Q15). The level constraint is load-bearing.
-
-We isolate the well-formedness verification that recurs at every span-construction site below, so that no later proof need re-derive it.
 
 **WF** (*WellFormedSpanFromEndpoints*). For s, r ∈ T with s < r and #s = #r, the pair γ = (s, r ⊖ s) is a well-formed level-uniform span (satisfying T12) with reach(γ) = r.
 
@@ -233,7 +229,7 @@ Two span-sets are *equivalent* when they denote the same set of positions: Σ₁
 
 *Proof.* For any tumbler t, define ℓ = [0, ..., 0, 1] with #ℓ = #t (all components zero except the last, which is 1). Then ℓ > 0 (the last component is nonzero) and the action point k = #t ≤ #t, so (t, ℓ) satisfies T12. By TA-strict, t ⊕ ℓ > t, so t ∈ [t, t ⊕ ℓ) = ⟦(t, ℓ)⟧ — the span covers t. Taking one such span per position in P gives Σ with |Σ| = |P| and ⟦Σ⟧ ⊇ P.
 
-*Why exact representation fails in general.* Every span denotes a subtree-convex interval (S0): a non-empty set closed under betweenness in T1. By T0(b) the half-open interval [t, t ⊕ [0,...,0,1]) covering a single position t always contains strictly deeper points — for instance t.0.1 lies between t and t ⊕ [0,...,0,1] under the prefix convention — so no span denotes the singleton {t}. Hence for any P that is not itself a union of subtree-convex intervals (in particular any finite P containing an isolated position with deeper interior points), no span-set denotes P exactly; the inclusion ⟦Σ⟧ ⊇ P is the strongest finite guarantee available. We retain |Σ| = |P| rather than the weaker |Σ| ≤ |P|, since the construction emits exactly one span per position.
+*Why exact representation fails in general.* Every span denotes a subtree-convex interval (S0): a non-empty set closed under betweenness in T1. By T0(b) the half-open interval [t, t ⊕ [0,...,0,1]) covering a single position t always contains strictly deeper points — for instance t.0.1 lies between t and t ⊕ [0,...,0,1] under the prefix convention — so no span denotes the singleton {t}. Hence for any P that is not itself a union of subtree-convex intervals (in particular any finite P containing an isolated position with deeper interior points), no span-set denotes P exactly; the inclusion ⟦Σ⟧ ⊇ P is the strongest finite guarantee available.
 
 Nelson confirms the covering reach: "a tumbler-span may range in possible size from one byte to the whole docuverse" (LM 4/24, Q4).
 
@@ -253,7 +249,7 @@ Condition N2 uses strict inequality. If reach(σᵢ) = start(σᵢ₊₁), the s
 
 **S8** (*NormalizationExistence*). Every span-set Σ whose component spans are level-uniform and mutually level-compatible has a normalized equivalent Σ̂ with Σ̂ ≡ Σ.
 
-*Construction.* If n = 0, the result is the empty span-set ⟨⟩, which vacuously satisfies N1 and N2. For n ≥ 1, proceed as follows. Sort the component spans into non-decreasing order of start position; T1 totally orders tumblers, but distinct spans may share a start (SC cases (iv) and (v)), so any ties are broken arbitrarily. The construction below depends only on the non-decreasing order of starts, not on the tie-breaking choice — uniqueness of the emitted span-set is inherited from S9. Seed the current interval [s, r) = [start(σ₁), reach(σ₁)) from the first span in sorted order, with the emitted set E = ∅. Then scan σ₂, ..., σₙ left to right. For each span σᵢ with i ≥ 2:
+*Construction.* If n = 0, the result is the empty span-set ⟨⟩, which vacuously satisfies N1 and N2. For n ≥ 1, proceed as follows. Sort the component spans into non-decreasing order of start position; T1 totally orders tumblers, but distinct spans may share a start (SC cases (iv) and (v)), so any ties are broken arbitrarily; any resulting normalized equivalent satisfies N1/N2 with ⟦Σ̂⟧ = ⟦Σ⟧, which is all S8 requires. Seed the current interval [s, r) = [start(σ₁), reach(σ₁)) from the first span in sorted order, with the emitted set E = ∅. Then scan σ₂, ..., σₙ left to right. For each span σᵢ with i ≥ 2:
 
   — If start(σᵢ) ≤ r (overlap or adjacency): extend r to max(r, reach(σᵢ)).
   — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s). Level-uniformity and S6 ensure #s = #r, and s < r (the current interval was initialized from a non-empty span and is only extended by the merge step), so by WF the emitted pair (s, r ⊖ s) is a well-formed level-uniform span with reach r. Then start a new current interval at [start(σᵢ), reach(σᵢ)).
