@@ -1,6 +1,6 @@
 # ASN-0036: Strand Model
 
-*2026-03-14; revised 2026-03-21, 2026-03-22, 2026-03-22, 2026-03-28, 2026-04-09, 2026-04-11*
+*2026-03-14; revised 2026-03-21, 2026-03-22, 2026-03-22, 2026-03-28, 2026-04-09, 2026-04-11, 2026-05-29*
 
 We wish to understand what formal invariants govern the relationship between permanent content storage and mutable document arrangement in Xanadu. Nelson separated these concerns into two address spaces — Istream for content identity and Vstream for document positions — and asserted this separation as the architectural foundation on which permanence, transclusion, and attribution all rest. We seek the abstract properties that define this separation: what must hold in any correct implementation, regardless of the underlying data structures.
 
@@ -267,7 +267,7 @@ We note a subtlety. S7 identifies the document that ALLOCATED the I-address — 
 
 ## Span decomposition
 
-The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(M(d))` is finite (S8-fin), the mapping always admits a *finite* decomposition into correspondence runs — this is the existence claim we establish here.
+The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(M(d))` is finite (S8-fin), the mapping always admits a *finite* partition into singleton intervals, one per V-position — this is the existence claim we establish here. The correspondence-run apparatus (general `n`, the ordinal-displacement identity over `0 ≤ k < n`) is introduced as forward-scaffolding: it frames the genuinely structural question of *maximal* runs (`n > 1`), which we defer to Open Questions. What S8 proves is the trivial (singleton) instance of that apparatus together with disjointness of the singleton intervals.
 
 Before defining correspondence runs, we must establish the structure of `dom(M(d))` more carefully.
 
@@ -286,12 +286,12 @@ This is a design requirement on every reachable state: no document arrangement i
 
 A V-position represents the element field of a full document-scoped address — the fourth field in the T4 field structure. Its first component `v₁` is the subspace identifier (1 for text, 2 for links); the `0` in full tumbler notation (e.g., `N.0.U.0.D.0.2.1`) is a field separator, not a subspace identifier. The depth constraint `#v ≥ 2` parallels S7c for I-address element fields: it ensures the subspace identifier `v₁` and the within-subspace ordinal `[v₂, ..., v_m]` occupy distinct components. The domain and range of `M(d)` live in structurally different tumbler subsets: `dom(M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2 ∧ (A i : tᵢ > 0)}` (element-field tumblers of depth at least 2), while `ran(M(d)) ⊆ {t ∈ T : zeros(t) = 3}` (full element-level addresses, per S7b). Since all V-positions in subspace `s` extend the single-component prefix `[s]`, T5 (ContiguousSubtrees, ASN-0034) guarantees they form a contiguous interval under T1 — grounding the application of tumbler ordering properties to V-positions and justifying S8-depth's reference to "within a subspace."
 
-*Proof.* A V-position is, by definition, an isolated element field of depth at least 2 (paralleling S7c's element field for I-addresses), so `zeros(v) = 0` and `#v ≥ 2` hold by definition. Componentwise positivity follows: every component of `v` lies in T0's carrier ℕ, and `zeros(v) = 0` forces each to be `≠ 0`, hence `≥ 1` by **Nat-pos** — the elementary fact that for `n ∈ ℕ`, `n ≠ 0 ⟹ n ≥ 1` (immediate from NAT-discrete at `m = 0`); in particular the subspace identifier `v₁ ≥ 1`. ∎
+*Proof.* A V-position is, by definition, an isolated element field of depth at least 2 (paralleling S7c's element field for I-addresses), so `zeros(v) = 0` and `#v ≥ 2` hold by definition. Componentwise positivity follows: every component of `v` lies in T0's carrier ℕ, and `zeros(v) = 0` forces each to be `≠ 0`, hence `≥ 1` by NAT-discrete (ASN-0034) instantiated at `m = 0` (no natural lies strictly between `0` and `1`); in particular the subspace identifier `v₁ ≥ 1`. ∎
 *Formal Contract:*
 - *Definition:* A V-position is, by definition, an isolated element field of depth at least 2 — paralleling S7c for I-address element fields.
 - *Preconditions:* The element-field definitional commitment (a V-position is an isolated element field of depth ≥ 2 with no field separators); T0 — components are natural numbers.
 - *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`.
-- *Depends:* T0 (ASN-0034) — supplies the ℕ-valued component carrier on which `vᵢ ∈ ℕ` for every component; NAT-discrete (NatDiscreteness, ASN-0034) — underwrites Nat-pos (the `n ≠ 0 ⟹ n ≥ 1` fact, immediate from NAT-discrete at `m = 0`), which discharges the positivity step: `vᵢ ≠ 0` (delivered by `zeros(v) = 0`) gives `vᵢ ≥ 1`, hence `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
+- *Depends:* T0 (ASN-0034) — supplies the ℕ-valued component carrier on which `vᵢ ∈ ℕ` for every component; NAT-discrete (NatDiscreteness, ASN-0034) — instantiated at `m = 0`, supplies the `n ≠ 0 ⟹ n ≥ 1` fact that discharges the positivity step: `vᵢ ≠ 0` (delivered by `zeros(v) = 0`) gives `vᵢ ≥ 1`, hence `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
 
 **subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
 
@@ -327,13 +327,13 @@ A *correspondence run* is a triple `(v, a, n)` — a V-position, an I-address, a
 
 At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount. Within a correspondence run, each step forward in Vstream corresponds to the same step forward in Istream.
 
-**S8 (Finite span decomposition).** For each document `d`, the arrangement `{(v, Σ.M(d)(v)) : v ∈ dom(Σ.M(d))}` can be decomposed into a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` such that:
+**S8 (Singleton span partition).** For each document `d`, the arrangement `{(v, Σ.M(d)(v)) : v ∈ dom(Σ.M(d))}` admits a finite set of singleton correspondence runs `{(vⱼ, aⱼ, 1)}` — one per V-position — whose half-open intervals are pairwise disjoint and cover `dom(Σ.M(d))`. Cast in the general correspondence-run form `{(vⱼ, aⱼ, nⱼ)}`, this is the instance with every `nⱼ = 1`:
 
-(a) The runs partition the V-positions: every V-position in `dom(Σ.M(d))` falls in exactly one run — `(A v ∈ dom(Σ.M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, nⱼ)))`
+(a) The singleton runs partition the V-positions: every V-position in `dom(Σ.M(d))` falls in exactly one run — `(A v ∈ dom(Σ.M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, nⱼ)))`
 
-(b) Within each run: `Σ.M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for all `k` with `0 ≤ k < nⱼ`
+(b) Within each run: `Σ.M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for all `k` with `0 ≤ k < nⱼ`, which at `nⱼ = 1` ranges over `k = 0` alone and reduces to `Σ.M(d)(vⱼ) = aⱼ`
 
-S8 establishes conjunct (a) together with conjunct (b) under the singleton decomposition — every V-position is its own run (`nⱼ = 1`). The existence and uniqueness of maximal runs (`nⱼ > 1`) is left to Open Questions.
+What S8 establishes is exactly this singleton partition: conjunct (a) for the singleton intervals (their pairwise disjointness) and conjunct (b) in its degenerate `nⱼ = 1` form. The genuinely structural content — existence and uniqueness of *maximal* runs (`nⱼ > 1`), where (b) carries non-trivial ordinal-displacement obligations — is not proved here; the general `(vⱼ, aⱼ, nⱼ)` form stands as forward-scaffolding for that deferred question (Open Questions).
 
 *Proof.* We construct a finite decomposition satisfying both conjuncts and prove it partitions `dom(M(d))`.
 
@@ -363,7 +363,7 @@ Since `[S₁] ≼ v` and `[S₁] ≼ shift(v, 1)` and `v ≤ shift(v, 1)` by TS4
 *Formal Contract:*
 - *Preconditions:* `dom(M(d))` finite (S8-fin); `M(d)` a function (S2); referential integrity (S3); `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` (S8a); within each subspace, all V-positions share a common depth (S8-depth).
 - *Postconditions:* There exists a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` whose half-open intervals are pairwise disjoint and cover `dom(M(d))`: (a) `(A v ∈ dom(M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, nⱼ)))`; and (b) `(A j, k : 0 ≤ k < nⱼ : M(d)(shift(vⱼ, k)) = shift(aⱼ, k))`, which for the exhibited singleton witness (every `nⱼ = 1`) ranges over `k = 0` and gives `M(d)(vⱼ) = aⱼ`.
-- *Depends:* (*Local properties*) S2 (ArrangementFunctionality) — each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`; S3 (referential integrity) — `M(d)(v) ∈ dom(Σ.C)`; S8a — `zeros(v) = 0`, `#v ≥ 2`, and componentwise positivity of V-positions; S8-depth — a common depth `m` for every V-position in a fixed subspace; S8-fin — finite `dom(M(d))`. (*Foundation claims, ASN-0034*) T1 (TumblerOrdering) case (i) — first-divergence comparison; T3 (CanonicalRepresentation) — equates tumblers with their canonical component sequences; T4 (HierarchicalParsing) — partitions tumblers into N/U/D/E fields; T5 (ContiguousSubtrees) — a prefix's extensions form a contiguous interval under T1; T10 — non-nesting prefixes generate disjoint tumbler subtrees; TS4 (ShiftStrictIncrease) — `v < shift(v, 1)`; TumblerAdd, OrdinalShift, OrdinalDisplacement — the action-point semantics of `δ(k, m)`, the three-region component formula, and the action-point identity `shift(v, 1)_m = v_m + 1`. NAT-discrete (NatDiscreteness) — the strict-to-`+1` promotion `m < n ⟹ m + 1 ≤ n`. NAT-closure (NatArithmeticClosureAndIdentity) — closure of ℕ under addition places `v_m + 1` in ℕ. NAT-order (NatStrictTotalOrder) — the exactly-one trichotomy clause `¬(a < b ∧ b ≤ a)`.
+- *Depends:* (*Local properties*) S2 (ArrangementFunctionality) — each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`; S3 (referential integrity) — `M(d)(v) ∈ dom(Σ.C)`; S8a — `zeros(v) = 0`, `#v ≥ 2`, and componentwise positivity of V-positions; S8-depth — a common depth `m` for every V-position in a fixed subspace; S8-fin — finite `dom(M(d))`. (*Foundation claims, ASN-0034*) T1 (TumblerOrdering) case (i) — first-divergence comparison; T3 (CanonicalRepresentation) — equates tumblers with their canonical component sequences; T5 (ContiguousSubtrees) — a prefix's extensions form a contiguous interval under T1; T10 — non-nesting prefixes generate disjoint tumbler subtrees; TS4 (ShiftStrictIncrease) — `v < shift(v, 1)`; TumblerAdd, OrdinalShift, OrdinalDisplacement — the action-point semantics of `δ(k, m)`, the three-region component formula, and the action-point identity `shift(v, 1)_m = v_m + 1`. NAT-discrete (NatDiscreteness) — the strict-to-`+1` promotion `m < n ⟹ m + 1 ≤ n`. NAT-closure (NatArithmeticClosureAndIdentity) — closure of ℕ under addition places `v_m + 1` in ℕ. NAT-order (NatStrictTotalOrder) — the exactly-one trichotomy clause `¬(a < b ∧ b ≤ a)`.
 
 ## Arrangement contiguity
 
@@ -539,18 +539,12 @@ That gives N + 1 = 4 positions. Any successor state whose `V₁(d)` gains a posi
 
 ## The separation theorem
 
-We can now state the property that Nelson calls "the architectural foundation of everything" as an immediate corollary of S0 rather than a separate axiom.
-
-**S9 (Two-stream separation), corollary of S0.** S9 is S0 read directionally: arrangement-only transitions (`Σ'.M(d) ≠ Σ.M(d)`) cannot alter `C`, since S0 already holds for every transition unconditionally.
-
-This realises Nelson's design: "The integrity of each document is maintained by keeping the two aspects separate: derivative documents are permanently defined (and stored) in terms of the originals and the changes."
-
-Gregory's implementation confirms the separation operationally: no command crosses the boundary in the dangerous direction — no arrangement operation modifies stored content, consistent with S0 holding unconditionally across every transition.
+**S9 (Two-stream separation), corollary of S0.** S9 is S0 read directionally — arrangement-only transitions (`Σ'.M(d) ≠ Σ.M(d)`) cannot alter `C`, since S0 holds unconditionally for every transition — and adds no formal content beyond S0; we name it only because Nelson emphasises this separation as "the architectural foundation of everything."
 
 
 ## Worked example
 
-We instantiate the state model with specific tumblers to ground the abstractions. Consider two documents: document `d₁` at tumbler `1.0.1.0.1` and document `d₂` at tumbler `1.0.1.0.2`. The user creates `d₁` with the text "hello" (five characters), then creates `d₂` which transcludes three characters ("llo") from `d₁` and appends two new characters ("ws"). The maximal-run decompositions exhibited by hand below are concrete instances verifying conjunct (b).
+We instantiate the state model with specific tumblers to ground the abstractions. Consider two documents: document `d₁` at tumbler `1.0.1.0.1` and document `d₂` at tumbler `1.0.1.0.2`. The user creates `d₁` with the text "hello" (five characters), then creates `d₂` which transcludes three characters ("llo") from `d₁` and appends two new characters ("ws"). The multi-step (maximal, `n > 1`) runs exhibited by hand below illustrate the *deferred* maximal case — they are concrete instances of conjunct (b) for `n > 1`, not a proof of maximal-run existence or uniqueness, which S8 leaves to Open Questions. S8 itself proves only the singleton (`n = 1`) partition.
 
 **Initial state Σ₀**: empty. `dom(C) = ∅`, `dom(M(d₁)) = dom(M(d₂)) = ∅`.
 
@@ -647,7 +641,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — element-field tumblers of depth ≥ 2 with componentwise positive entries | definition (V-positions are isolated element fields of depth ≥ 2, paralleling S7c; `zeros(v) = 0` and `#v ≥ 2` are definitional); positivity derived from `zeros = 0` via T0, NAT-discrete (ASN-0034) |
 | subspace(v) | V-position subspace identifier: `subspace(v) = v₁`; well-defined when `#v ≥ 1` | introduced; uses T0 (ASN-0034), S8a |
 | S8-depth | Fixed-depth V-positions: `(A d, u, w : u ∈ dom(M(d)) ∧ w ∈ dom(M(d)) ∧ subspace(u) = subspace(w) : #u = #w)` | design; uses S8a |
-| S8 | Span decomposition: `dom(M(d))` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for `0 ≤ k < nⱼ` | theorem from S2, S3, S8-fin, S8a, S8-depth, T1, T3, T4, T5, T10, TumblerAdd, OrdinalShift, OrdinalDisplacement, TS4, NAT-discrete, NAT-closure, NAT-order (ASN-0034) |
+| S8 | Singleton span partition: `dom(M(d))` partitions into finitely many disjoint singleton runs `(vⱼ, aⱼ, 1)` with `M(d)(vⱼ) = aⱼ`; the general `(vⱼ, aⱼ, nⱼ)` form is forward-scaffolding (maximal runs deferred) | theorem from S2, S3, S8-fin, S8a, S8-depth, T1, T3, T5, T10, TumblerAdd, OrdinalShift, OrdinalDisplacement, TS4, NAT-discrete, NAT-closure, NAT-order (ASN-0034) |
 | D-CTG | V-position contiguity: V_1(d) forms a contiguous ordinal range with no gaps — design constraint on well-formed document states | design; uses S8a, S8-depth, T1 (ASN-0034) |
 | D-MIN | V-position minimum: non-empty V_1(d) has minimum [1, 1, ..., 1] with every component equal to 1 — design constraint | design requirement |
 | D-CTG-depth | Shared prefix reduction (applies wherever D-CTG holds): at depth m ≥ 3, all positions in V_1(d) share components 2 through m − 1, so contiguity reduces to the last component | corollary of D-CTG, S8a, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
