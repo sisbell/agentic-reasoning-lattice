@@ -43,9 +43,9 @@ We state the closure law directly on the operation vocabulary Σ rather than on 
 
 Each `op ∈ Σ` is in exactly one class by its symbol: the baptismal class is the named family `{baptize(p, d) : B6(p, d)}`, and the s.B-frame class is its complement in Σ.
 
-Equivalently, `(A s, s' : s → s' : s'.B = s.B ∨ (E (p, d) : B6(p, d) : s'.B = s.B ∪ {next(s.B, p, d)}))` — every transition either leaves the registry unchanged or extends it by exactly the address that the corresponding baptismal operation would produce. The equivalence rests on the *State Space and Transitions* section's definition of transition: every `s → s'` is of the form `(s, op(s))` for some `op ∈ Σ`, so a partition of Σ into baptismal and s.B-frame classes induces a partition of transitions over the same two alternatives.
+Equivalently, `(A s, s' : s → s' : s'.B = s.B ∨ (E (p, d) : B6(p, d) : s'.B = s.B ∪ {next(s.B, p, d)}))` — every transition either leaves the registry unchanged or extends it by exactly the address that the corresponding baptismal operation would produce.
 
-Here "satisfying B6" means p satisfies T4, d ∈ {1, 2}, and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below. B0a constrains only the depth arithmetic, not the authorization chain — whether p must itself be baptized (p ∈ s.B) before children can be baptized beneath it. The closure is structural: there is no operation symbol in Σ outside the baptismal class that touches s.B.
+Here "satisfying B6" means p satisfies T4, d ∈ {1, 2}, and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below. The closure is structural: there is no operation symbol in Σ outside the baptismal class that touches s.B.
 
 Irrevocability follows immediately:
 
@@ -79,17 +79,17 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 *Formal Contract:*
 - *Definition:* S(p, d) = c₁, c₂, c₃, ... where c₁ = inc(p, d) and cₙ₊₁ = inc(cₙ, 0) for n ≥ 1.
 - *Preconditions:* p ∈ T, d ≥ 1.
-- *Postconditions:* `(A n ≥ 1 : cₙ = [p₁, ..., p_{#p}, 0, ..., 0, n])` with d − 1 zeros and `#cₙ = #p + d`.
+- *Postconditions:* `(A n ≥ 1 : cₙ = [p₁, ..., p_{#p}, 0, ..., 0, n])` with d − 1 zeros, `#cₙ = #p + d`, `sig(cₙ) = #p + d`, and `cₙᵢ = pᵢ` for `1 ≤ i ≤ #p`. (The sig identity holds because the ordinal n ≥ 1 occupies the final position #p + d, which is therefore the rightmost nonzero component.)
 - *Axiom:* TA5(b) (prefix preservation), TA5(c) (sibling structure), TA5(d) (child structure).
 
 **S0 (StreamOrdering).** `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
 
-*Proof.* The sibling stream is an inc(·, 0)-enumeration with base c₁ = inc(p, d): writing t₀ = c₁ and tₙ₊₁ = inc(tₙ, 0), the sequence {c₁, c₂, ...} is exactly the domain enumeration {t₀, t₁, ...} that ASN-0034's allocator discipline indexes. ASN-0034's T10a.7 (EnumerationInjectivity) establishes that every such enumeration is strictly increasing under T1 — `(A m, n ≥ 0 : m < n : tₘ < tₙ)` — and its proof rests only on TA5(a) (per-step strict increase of inc(·, 0)) and T1's transitivity (c) and irreflexivity (a), none of which appeal to T4-validity of the base. Re-indexing (cᵢ = t_{i−1}), the conclusion is exactly `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`. ∎
+*Proof.* We derive the strict ordering directly from the per-step increase of inc(·, 0). For each n ≥ 1, cₙ₊₁ = inc(cₙ, 0), and TA5(a) gives inc(cₙ, 0) > cₙ, so cₙ < cₙ₊₁. To extend this to arbitrary indices i < j, fix i and induct on j. *Base case (j = i + 1):* cᵢ < cᵢ₊₁ is the per-step increase just established. *Inductive step:* assume cᵢ < cⱼ; the per-step increase gives cⱼ < cⱼ₊₁, and T1's transitivity (c) gives cᵢ < cⱼ₊₁. By induction, cᵢ < cⱼ for every j > i. The base c₁ = inc(p, d) ∈ T (TA5(d)) and each cₙ ∈ T (TA5(c)) supply the well-formed operands these comparisons require; no T4-validity of the base is needed. ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ≥ 1. S(p, d) = c₁, c₂, ... defined by c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0).
 - *Postconditions:* `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — the sibling stream is strictly increasing.
-- *Axiom:* ASN-0034 T10a.7 (EnumerationInjectivity) — the strict-increase conclusion for an inc(·, 0)-enumeration, which itself packages TA5(a) and T1's transitivity and irreflexivity.
+- *Axiom:* TA5(a) — per-step strict increase of inc(·, 0); T1 transitivity (c) and irreflexivity (a).
 
 **S1 (StreamPrefix).** `(A n : n ≥ 1 : p ≼ cₙ)` — every stream element extends p as a prefix.
 
@@ -97,9 +97,7 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 
 *Base case (n = 1).* c₁ = inc(p, d) with d ≥ 1. By TA5(d), c₁ has length #p + d, with the first #p components preserved from p: c₁ᵢ = pᵢ for 1 ≤ i ≤ #p. Since d ≥ 1, #c₁ = #p + d ≥ #p + 1 > #p. Both conditions of the prefix relation are satisfied: p ≼ c₁.
 
-*Inductive step.* Assume p ≼ cₙ for some n ≥ 1. We show p ≼ cₙ₊₁ where cₙ₊₁ = inc(cₙ, 0). By TA5(c), cₙ₊₁ has the same length as cₙ (#cₙ₊₁ = #cₙ) and differs from cₙ only at position sig(cₙ), where cₙ₊₁ at sig(cₙ) equals cₙ at sig(cₙ) plus 1. The modification preserves the prefix provided sig(cₙ) > #p — we establish this now.
-
-For c₁, the final component has value 1 (TA5(d)), so sig(c₁) = #c₁ = #p + d. Each subsequent cₙ₊₁ = inc(cₙ, 0) advances the value at position sig(cₙ) by 1 (TA5(c)), preserving its positivity, and preserves length. By induction on the stream index, sig(cₙ) = #cₙ = #p + d for all n ≥ 1. Since d ≥ 1, sig(cₙ) = #p + d > #p.
+*Inductive step.* Assume p ≼ cₙ for some n ≥ 1. We show p ≼ cₙ₊₁ where cₙ₊₁ = inc(cₙ, 0). By TA5(c), cₙ₊₁ has the same length as cₙ (#cₙ₊₁ = #cₙ) and differs from cₙ only at position sig(cₙ), where cₙ₊₁ at sig(cₙ) equals cₙ at sig(cₙ) plus 1. The modification preserves the prefix provided sig(cₙ) > #p. By S(p, d), sig(cₙ) = #p + d for all n ≥ 1, and since d ≥ 1, sig(cₙ) = #p + d > #p.
 
 Therefore every position i with 1 ≤ i ≤ #p satisfies i < sig(cₙ), so cₙ₊₁ᵢ = cₙᵢ at these positions (TA5(c) modifies only sig(cₙ)). By the inductive hypothesis, cₙᵢ = pᵢ for 1 ≤ i ≤ #p, hence cₙ₊₁ᵢ = pᵢ. Since #cₙ₊₁ = #cₙ ≥ #p (from the hypothesis), both prefix conditions hold: p ≼ cₙ₊₁. ∎
 
@@ -161,7 +159,7 @@ In both cases, next(B, p, d) produces an element of T. The definition is total o
 
 The frame condition's scope is essential. With respect to s.B, baptism is precise: `s'.B = s.B ∪ {next(s.B, p, d)}` and nothing more. Other state components — content storage, link structures, arrangement, and the allocator-side state of ASN-0034 — are not subjects of this ASN's specification; Bop makes no commitment about whether they are modified across the same transition. By B4 (Atomic Baptism, §B4 below), next(s.B, p, d) is evaluated against the precondition state s of the same transition that produces s'.
 
-*Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined, produces a fresh address, and preserves the system invariants B0, B1, B10, and B_fin. These invariants are established, each by its own induction, in dependency order: B_fin (§B_fin) from B₀ conf. and B0a; B10 (§B10) from B_fin and §B6's sufficiency; B1 (§B1) from B10. At the precondition state s of any reachable transition we may therefore cite each as already holding.
+*Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined, produces a fresh address, and preserves the system invariants B0, B1, B10, and B_fin. We cite B_fin (§B_fin), B10 (§B10), and B1 (§B1) as the established invariants they are, holding at the precondition state s of any reachable transition.
 
 **Well-definedness.** The postcondition invokes next(s.B, p, d), which branches on whether children(s.B, p, d) is empty. If empty, the result is inc(p, d) — well-defined for any p ∈ T and d ≥ 1 by TA5's first postcondition (the unlabeled `t' ∈ T`). If non-empty, the result is inc(max(children(s.B, p, d)), 0). By B1 (§B1), children(s.B, p, d) = {c₁, ..., cₘ} for some m ≥ 1, a contiguous prefix, and B_fin (§B_fin) gives this set finite; max therefore exists and equals cₘ. B10 (§B10) gives registry-wide T4 validity, so cₘ ∈ s.B ⊆ T; TA5's first (unlabeled) postcondition then gives `inc(cₘ, 0) ∈ T`. In both branches, next produces an element of T.
 
@@ -262,7 +260,7 @@ From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by in
 
 *Baptismal transitions.* Otherwise the transition is induced by a baptismal operation baptize(p, d) for some (p, d) satisfying B6, so B' = B ∪ {a} where a = next(B, p, d). We must show every t ∈ B' satisfies T4. For elements t ∈ B, the inductive hypothesis gives t satisfies T4 directly. It remains to show the new element a satisfies T4.
 
-By the definition of next (NextAddress), a = next(B, p, d) is a stream element of S(p, d): the first child a = inc(p, d) = c₁ when children(B, p, d) = ∅, and the sibling a = inc(max(children(B, p, d)), 0) = c_{m+1} otherwise (the maximum exists because B is finite by B_fin and T1 totally orders the non-empty finite set children(B, p, d) ⊆ B). Since (p, d) satisfies B6, B6's sufficiency result (§B6) gives that every element of S(p, d) satisfies T4; in particular a does.
+By the definition of next (NextAddress), a = next(B, p, d) is a stream element of S(p, d): the first child a = inc(p, d) = c₁ when children(B, p, d) = ∅, and the sibling a = inc(cⱼ, 0) = c_{j+1} ∈ S(p, d) otherwise, where cⱼ = max(children(B, p, d)) (the maximum exists because B is finite by B_fin and T1 totally orders the non-empty finite set children(B, p, d) ⊆ B). Since (p, d) satisfies B6, B6's sufficiency result (§B6) gives that every element of S(p, d) satisfies T4; in particular a does.
 
 So a satisfies T4. Since every element of B satisfies T4 by the inductive hypothesis and the new element a satisfies T4 by the case analysis, every element of B' = B ∪ {a} satisfies T4. B10 holds at B' under baptismal transitions, and by the frame argument above, B10 holds at B' under s.B-frame transitions. By induction on the transition sequence, B10 holds in every reachable state. ∎
 
@@ -375,9 +373,9 @@ In the transition relation `→` of the state space 𝒮, the observation of the
 
 B0a guarantees that no other operation modifies s.B between any two transitions, so within a single Σ-transition the read of `s.B ∩ S(p, d)` is exact, and across two same-namespace baptismal transitions β₁, β₂, exactly one of `β₁; β₂` or `β₂; β₁` describes their relative order in the transition sequence — there is no third option of overlap.
 
-B4's scope is *per-namespace* in the sense that B7 guarantees baptisms under distinct (p, d) pairs produce disjoint outputs; if the system later admits a model with concurrent operations, the serialization requirement collapses to "same-namespace baptisms must reduce to a sequential order, distinct-namespace baptisms need not." The minimum serialization grain is the namespace, not the entire system. This is precisely what enables decentralized baptism — two agents baptizing under different parents proceed independently, and their addresses are guaranteed distinct by the partition structure of the address space (T10).
+B4's scope is *per-namespace*: B7 guarantees baptisms under distinct (p, d) pairs produce disjoint outputs, so the minimum serialization grain is the namespace, not the entire system. This is precisely what enables decentralized baptism — two agents baptizing under different parents proceed independently, and their addresses are guaranteed distinct by the partition structure of the address space (T10).
 
-Gregory's implementation achieves the atomic-transition semantics through single-threaded dispatch — the event loop processes one request to completion before accepting another, and the entire path from query through increment to write runs without yielding control. But B4 is a specification-level requirement, not an implementation prescription. Any mechanism that exhibits one Σ-transition per baptism — locking, transactions, hardware serialization, single-threaded dispatch — satisfies B4.
+Gregory's implementation achieves the atomic-transition semantics through single-threaded dispatch. B4 is a specification-level requirement, not an implementation prescription: any mechanism that exhibits one Σ-transition per baptism satisfies it.
 
 
 ## Depth and field structure
@@ -410,7 +408,7 @@ We count zeros in t' by comparing each component with the corresponding componen
 - *Preconditions:* t ∈ T with t_{sig(t)} > 0.
 - *Postconditions:* `zeros(inc(t, 0)) = zeros(t)`.
 
-To apply B5a inductively across the sibling stream S(p, d), we must discharge its precondition: every cₙ satisfies cₙ_{sig(cₙ)} > 0. For c₁ = inc(p, d), the final component is 1 (from TA5(d)), so sig(c₁) = #c₁ and c₁_{sig(c₁)} = 1 > 0. Each cₙ₊₁ = inc(cₙ, 0) advances the value at sig(cₙ) by 1 (TA5(c)), preserving positivity. By induction, every stream element satisfies the precondition. Combined with B5, every element of S(p, d) inherits the zeros count established at c₁:
+To apply B5a across the sibling stream S(p, d), we discharge its precondition: every cₙ satisfies cₙ_{sig(cₙ)} > 0. By S(p, d), sig(cₙ) = #p + d and (cₙ)_{#p+d} = n ≥ 1 > 0, so every stream element satisfies the precondition. Combined with B5, every element of S(p, d) inherits the zeros count established at c₁:
 
   `(A n ≥ 1 : zeros(cₙ) = zeros(p) + (d − 1))`
 
@@ -459,7 +457,7 @@ For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states th
 
 *(b) Pure trailing zero as the sole T4 defect: p_{#p} = 0, p₁ > 0, no adjacent zeros in p (which forces #p ≥ 2, since p₁ > 0 = p_{#p} requires the leading and trailing positions to be distinct).* This sub-case splits on the value of d. When d = 1, the stream may satisfy T4 without condition (i). Consider p = [1, 0] with d = 1. Then c₁ = inc([1, 0], 1) = [1, 0, 1] — one zero at position 2, positive first and last components, no adjacent zeros — and every cₙ = [1, 0, n] satisfies T4. However, S([1, 0], 1) is identical to S([1], 2): both produce the sequence [1, 0, 1], [1, 0, 2], [1, 0, 3], ... In general, let p' be p with the trailing zero removed; by S2 (Trailing-Zero Stream Identity), S(p, 1) = S(p', 2). The trailing zero of p merges with the stream structure to produce the same elements as a T4-valid namespace at greater depth. Permitting baptism under such a malformed parent creates a namespace whose sibling stream coincides with an existing valid namespace, collapsing global uniqueness: two distinct baptismal acts — one under invalid (p, 1), one under B6-valid (p', 2) — would produce the same stream element, giving distinct baptisms the same address.
 
-When d = 2, every stream element violates T4 — but by a propagation argument structurally distinct from sub-case (a). The defect does not preexist in p's interior; it arises within c₁ itself from the union of p's trailing zero and the separator TA5(d) inserts. By TA5(b), c₁ preserves positions 1 through #p of p, so (c₁)_{#p} = p_{#p} = 0. By TA5(d) with d = 2, c₁ has length #p + 2 and the intermediate position #p + 1 holds the field separator with value 0. Therefore (c₁)_{#p} = 0 and (c₁)_{#p+1} = 0 — adjacent zeros at positions #p and #p + 1 of c₁, violating T4's non-empty-field constraint (T4(ii) at i = #p). To propagate this to every cₙ, we show position #p + 1 is never modified by sibling increments. For c₁, position #p + 2 holds the value 1 (TA5(d)), so sig(c₁) = #p + 2; by TA5(c) each cₙ₊₁ = inc(cₙ, 0) advances the value at sig(cₙ) by 1 and preserves length, so sig(cₙ) = #p + 2 for all n ≥ 1. Position #p + 1 satisfies #p + 1 < #p + 2 = sig(cₙ), so it is invariant across the stream. By induction on n, (cₙ)_{#p} = 0 and (cₙ)_{#p+1} = 0 for every n ≥ 1, and every stream element carries the same adjacent-zero violation as c₁.
+When d = 2, every stream element violates T4 — but by a propagation argument structurally distinct from sub-case (a). The defect does not preexist in p's interior; it arises within c₁ itself from the union of p's trailing zero and the separator TA5(d) inserts. By TA5(b), c₁ preserves positions 1 through #p of p, so (c₁)_{#p} = p_{#p} = 0. By TA5(d) with d = 2, c₁ has length #p + 2 and the intermediate position #p + 1 holds the field separator with value 0. Therefore (c₁)_{#p} = 0 and (c₁)_{#p+1} = 0 — adjacent zeros at positions #p and #p + 1 of c₁, violating T4's non-empty-field constraint (T4(ii) at i = #p). To propagate this to every cₙ, we show position #p + 1 is never modified by sibling increments. By S(p, 2), sig(cₙ) = #p + 2 for all n ≥ 1, and position #p + 1 satisfies #p + 1 < #p + 2 = sig(cₙ), so it is invariant across the stream (TA5(c) modifies only sig(cₙ)). Hence (cₙ)_{#p} = 0 and (cₙ)_{#p+1} = 0 for every n ≥ 1, and every stream element carries the same adjacent-zero violation as c₁.
 
 Condition (i) is therefore necessary: T4 defects in p's preserved prefix — interior, leading, or the singleton p = [0] — propagate to every stream element via TA5(b), and pure trailing-zero defects (where p's leading and interior positions are T4-valid) either propagate (when d = 2 creates adjacent zeros within c₁) or — when d = 1 — produce a stream identical to some valid S(p', 2), collapsing B8 (Global Uniqueness) by allowing two distinct baptisms (one under invalid (p, 1), one under B6-valid (p', 2)) to deliver the same address. ∎
 
@@ -476,7 +474,7 @@ Each parent-depth pair defines a namespace. Distinct namespaces must produce non
 
   S(p, d) ∩ S(p', d') = ∅
 
-provided both parents satisfy T4 and both depths satisfy B6.
+provided both `(p, d)` and `(p', d')` satisfy B6.
 
 *Proof.* We must show that for distinct valid pairs (p, d) ≠ (p', d'), where both parents satisfy T4 and both depths satisfy B6, no tumbler belongs to both S(p, d) and S(p', d'). Let a ∈ S(p, d) and b ∈ S(p', d'). We show a ≠ b by exhaustive case analysis on the relationship between the two pairs.
 
@@ -488,7 +486,7 @@ We first establish a uniform length property. The base c₁ = inc(p, d) has leng
 
 *Case 3: equal element lengths, nesting prefixes.* Suppose #p + d = #p' + d' and one prefix extends the other — say p ≼ p' without loss of generality (the argument for p' ≼ p is identical with the roles exchanged). Since (p, d) ≠ (p', d') and p ≼ p', either p = p' with d ≠ d', or p is a strict prefix of p'. If p = p' then #p = #p', so #p + d = #p' + d' gives d = d', contradicting d ≠ d'. Therefore p is a strict prefix of p': #p' > #p. From #p + d = #p' + d' we obtain d − d' = #p' − #p > 0, so d > d'. Since d, d' ∈ {1, 2} by B6(ii), the constraint d > d' forces d = 2 and d' = 1, whence #p' = #p + 1.
 
-We show the two streams disagree at position #p + 1 for every pair of elements. For an arbitrary cₙ ∈ S(p, 2): at c₁ = inc(p, 2), TA5(d) places d − 1 = 1 zero-valued component at position #p + 1, so (c₁)_{#p+1} = 0. Each subsequent cₙ₊₁ = inc(cₙ, 0) modifies only position sig(cₙ). Since sig(c₁) = #c₁ = #p + 2 (the last component has value 1, hence is the rightmost nonzero position), and each sibling increment preserves length and advances only position sig(cₙ) by TA5(c), we have sig(cₙ) = #p + 2 for all n ≥ 1. Because #p + 2 ≠ #p + 1, position #p + 1 is never modified. By induction on n, (cₙ)_{#p+1} = 0 for all n ≥ 1.
+We show the two streams disagree at position #p + 1 for every pair of elements. By S(p, 2), every cₙ ∈ S(p, 2) has canonical form [p₁, ..., p_{#p}, 0, n] — the single separator (TA5(d) with d − 1 = 1) sits at position #p + 1 — so (cₙ)_{#p+1} = 0 for all n ≥ 1.
 
 For an arbitrary c'ₘ ∈ S(p', 1): by S1, p' ≼ c'ₘ, so (c'ₘ)_i = p'_i for all 1 ≤ i ≤ #p'. In particular, (c'ₘ)_{#p+1} = p'_{#p+1}. Since #p + 1 = #p', this is the last component of p'. By T4, valid addresses do not end in zero, so p'_{#p'} > 0. Therefore (c'ₘ)_{#p+1} = p'_{#p+1} > 0 for all m ≥ 1.
 
@@ -609,11 +607,7 @@ Nelson insists that the address space imposes no capacity limits:
 
 **B9 (Unbounded Extent).** `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))`.
 
-No architectural limit constrains how many children a position may have. This follows from T0(a) (UnboundedComponents): since each tumbler component is an unbounded natural number and the child ordinal occupies a single component, the ordinal can grow without bound. Combined with B1, the children of any parent can grow to form an arbitrarily long contiguous prefix {c₁, ..., cₘ} for any m.
-
-Nelson designed this deliberately: "New items may be continually inserted in tumbler-space while the other addresses remain valid." The word "continually" carries the weight — the process of baptism never exhausts any namespace. Between physical resource limits and address space design, there is a deliberate gap: the design guarantees infinite headroom, leaving capacity as a pure engineering concern.
-
-Nelson reinforces this at every level: "A server node, or station, has ancestors and may have possible descendant nodes. An account, too, and a document, all have possible descendants." The word "possible" does not mean "a finite number of possible" — it means the tree can always grow further. The address space is designed not for a known population but for indefinite proliferation.
+No architectural limit constrains how many children a position may have. This follows from T0(a) (UnboundedComponents): since each tumbler component is an unbounded natural number and the child ordinal occupies a single component, the ordinal can grow without bound. Combined with B1, the children of any parent can grow to form an arbitrarily long contiguous prefix {c₁, ..., cₘ} for any m. The design guarantees infinite headroom, leaving capacity as a pure engineering concern.
 
 *Proof.* We must show that for any pair (p, d) satisfying B6 and any bound M ∈ ℕ, there exists a state s' with s →* s' (via baptisms) such that hwm(s'.B, p, d) ≥ M. The argument is constructive: we exhibit the required sequence of baptismal transitions.
 
@@ -644,7 +638,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | hwm(B,p,d) | High water mark: #children(B, p, d) — sufficient allocation statistic | from B1, S0 |
 | next(B,p,d) | Next address: if children = ∅ then inc(p, d) else inc(max(children), 0) | from TA5(c), TA5(d), T1 |
 | Bop | baptize(p, d): PRE B6; STRUCT B4 (invariant of Σ, not per-call); POST s'.B = s.B ∪ {next(s.B, p, d)}; FRAME constrains s.B only, silent on other components (incl. ASN-0034's Act, nₛ) | from B0, B1, B4, B6, B7, B0a, B10, TA5, TA5a |
-| S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from ASN-0034 T10a.7 (EnumerationInjectivity) |
+| S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from TA5(a), T1 |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
 | S2 | `#p ≥ 2 ∧ p_{#p} = 0 ⟹ S(p, 1) = S(p′, 2)` (p′ = p without trailing zero) — trailing-zero stream identity | from TA5(d) |
 | B0 | `s.B ⊆ s'.B` for all transitions — irrevocability (extends T8) | from B0a |
