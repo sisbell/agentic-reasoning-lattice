@@ -43,9 +43,7 @@ We state the closure law directly on the operation vocabulary Σ rather than on 
 
 Each `op ∈ Σ` is in exactly one class by its symbol: the baptismal class is the named family `{baptize(p, d) : B6(p, d)}`, and the s.B-frame class is its complement in Σ.
 
-Equivalently, `(A s, s' : s → s' : s'.B = s.B ∨ (E (p, d) : B6(p, d) : s'.B = s.B ∪ {next(s.B, p, d)}))` — every transition either leaves the registry unchanged or extends it by exactly the address that the corresponding baptismal operation would produce.
-
-Here "satisfying B6" means p satisfies T4, d ∈ {1, 2}, and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below. The closure is structural: there is no operation symbol in Σ outside the baptismal class that touches s.B.
+Here "satisfying B6" means p satisfies T4, d ∈ {1, 2}, and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below.
 
 Irrevocability follows immediately:
 
@@ -310,28 +308,6 @@ In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. The proof depends on B1 to gu
 - *Preconditions:* B satisfies B1 for all (p, d); p ∈ T, d ≥ 1; S(p, d) = c₁, c₂, ... defined by c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0).
 - *Postconditions:* `next(B, p, d) = c_{hwm(B,p,d) + 1}`.
 
-The substantive wp question targets the invariants themselves. What must hold before a baptism for B1 to hold after? We separate three kinds of condition: the *state precondition* (what must hold of B), the *environmental assumptions* (what the system must enforce around the operation), and the *supporting lemma* (a mathematical property of the stream structure that the wp derivation depends on).
-
-Throughout these derivations, we assume B4 (Atomic Baptism): `children(B, p, d)` is evaluated against the precondition state B of the same transition that produces B'.
-
-Under B4 (serialized execution within the namespace):
-
-  wp(baptize(p, d), B1) — state precondition: B1; environmental: B0a, B4; lemma: B7.
-
-Let B' = B ∪ {a} where a = next(B, p, d) = c_{hwm+1}. B1 for B' requires two things. First, every previously baptized cₙ in B still has predecessors c₁, ..., c_{n−1} in B' — satisfied because B ⊆ B' (by B0). Second, the new element c_{hwm+1} has predecessors c₁, ..., c_{hwm} in B' — satisfied iff children(B, p, d) = {c₁, ..., c_{hwm}}, which is exactly B1 for the current state. The second condition also requires that no non-baptismal mechanism has altered the namespace — the transition constraint B0a.
-
-The freshness derivation similarly:
-
-  wp(baptize(p, d), a ∉ B) — state precondition: B1; environmental: B4; lemma: S0.
-
-The new address c_{hwm+1} must not already appear in B. By construction, c_{hwm+1} ∈ S(p, d). Since children(B, p, d) = B ∩ S(p, d), membership of c_{hwm+1} in B would place it in children(B, p, d). By B1, children is a contiguous prefix {c₁, ..., c_{hwm}}. By S0, distinct stream indices produce distinct elements, so c_{hwm+1} ∉ {c₁, ..., c_{hwm}}. Contradiction: c_{hwm+1} ∉ B.
-
-The T4 validity of the new element is the third wp obligation:
-
-  wp(baptize(p, d), B10) — state precondition: B10 at s; environmental: B0a, B6 from Bop's precondition on (p, d); lemma: B6 sufficiency.
-
-B10 at B' requires every t ∈ B' to satisfy T4. For elements already in B, the state precondition (B10 at s) gives T4 directly, and B0a's partition rules out any non-baptismal mechanism that could have introduced a T4-violating element between the wp evaluation and the transition. For the newly added element a = next(B, p, d) ∈ S(p, d), B6 (Bop's precondition on (p, d)) and B6's sufficiency result (§B6) give that every element of S(p, d) — hence a — satisfies T4. Both the B6 precondition and the state precondition B10 must hold for the joint claim to carry forward to B'.
-
 Two systems beginning from the same B₀ and executing the same sequence of baptisms — same parents, same depths, same order — produce identical address spaces. The addresses are not identifiers assigned by fiat; they are the inevitable consequence of the baptism history.
 
 
@@ -356,14 +332,9 @@ A ghost element is "virtually present in tumbler-space, since links may be made 
   - t ∉ s.B ∧ ¬Occupied(t, s): an unbaptized, unoccupied position (not addressable)
   - t ∉ s.B ∧ Occupied(t, s): forbidden (excluded by the forward requirement above)
 
-The forbidden row is not a current invariant of the present ASN: the row's contrapositive (`Occupied(t, s) ⟹ t ∈ s.B`) is the obligation we hand forward. Future specifications of content storage operations must enforce `t ∈ s.B` as a precondition on any write that would make Occupied(t, s) hold. The "ghost element" row is explicitly permitted and common: structural positions — nodes, users, documents — ordinarily function as ghosts, existing to organize the namespace and anchor children rather than to carry payload.
-
-B3 separates two questions that might otherwise be conflated. "Does address t exist?" is answered by s.B in the present ASN. "Is there content at t?" will be answered by Occupied, once a future ASN introduces it. The baptismal registry is an existence index; the contemplated Occupied is a content index; B3 binds them by a one-way implication and defers everything else.
-
-
 ## Atomicity
 
-Informally, the baptism process — read the high water mark, compute the next address, commit the result — must not be interleaved with another baptism in the same namespace. If two baptisms both read hwm = m before either commits, both compute c_{m+1} and both attempt to commit the same address — violating B8. We state this as a constraint at the level of the transition system rather than over an undefined event vocabulary of "read" and "commit".
+Informally, the baptism process — read the high water mark, compute the next address, commit the result — must not be interleaved with another baptism in the same namespace. If two baptisms both read hwm = m before either commits, both compute c_{m+1} and both attempt to commit the same address — violating B8.
 
 **B4 (Atomic Baptism).** Each baptismal operation is a single atomic transition. For every (p, d) satisfying B6:
 
@@ -374,8 +345,6 @@ In the transition relation `→` of the state space 𝒮, the observation of the
 B0a guarantees that no other operation modifies s.B between any two transitions, so within a single Σ-transition the read of `s.B ∩ S(p, d)` is exact, and across two same-namespace baptismal transitions β₁, β₂, exactly one of `β₁; β₂` or `β₂; β₁` describes their relative order in the transition sequence — there is no third option of overlap.
 
 B4's scope is *per-namespace*: B7 guarantees baptisms under distinct (p, d) pairs produce disjoint outputs, so the minimum serialization grain is the namespace, not the entire system. This is precisely what enables decentralized baptism — two agents baptizing under different parents proceed independently, and their addresses are guaranteed distinct by the partition structure of the address space (T10).
-
-Gregory's implementation achieves the atomic-transition semantics through single-threaded dispatch. B4 is a specification-level requirement, not an implementation prescription: any mechanism that exhibits one Σ-transition per baptism satisfies it.
 
 
 ## Depth and field structure
@@ -415,8 +384,6 @@ To apply B5a across the sibling stream S(p, d), we discharge its precondition: e
 The B6 validity table below depends on this uniformity — all elements in a stream share the same hierarchical level.
 
 This deserves attention. The `.0.` that appears in addresses like `1.1.0.1.0.1` is not a syntactic convention imposed by a parser — it is a *consequence* of baptism at depth 2. When inc(p, 2) extends p by two components, the first is zero (the field separator, from TA5(d)'s d − 1 = 1 intermediate zero) and the second is 1 (the first child's ordinal). The field structure of tumblers is *produced* by baptism arithmetic.
-
-Gregory's evidence confirms the structural necessity in three independent ways. First, the zero separator is mechanically produced by the depth parameter computed from the type hierarchy — crossing from one hierarchical level to the next always uses d = 2 and therefore always inserts exactly one zero. Second, it is semantically interpreted by the containment operation, which treats zero positions as namespace boundaries during prefix comparison. Third, it is arithmetically essential for allocation: the search-bound and truncation logic depend on measuring the parent's length against the zero boundary. An address produced without the correct zero separators corrupts containment testing and all subsequent baptisms in the affected namespace.
 
 **B6 (Valid Depth).** Baptism at depth d from parent p is valid when:
 
@@ -478,7 +445,7 @@ provided both `(p, d)` and `(p', d')` satisfy B6.
 
 *Proof.* We must show that for distinct valid pairs (p, d) ≠ (p', d'), where both parents satisfy T4 and both depths satisfy B6, no tumbler belongs to both S(p, d) and S(p', d'). Let a ∈ S(p, d) and b ∈ S(p', d'). We show a ≠ b by exhaustive case analysis on the relationship between the two pairs.
 
-We first establish a uniform length property. The base c₁ = inc(p, d) has length #p + d by TA5(d), and the stream is an inc(·, 0)-enumeration with base c₁; ASN-0034's T10a.1 (UniformSiblingLength) gives that every sibling of such a stream shares the base length, so #cₙ = #p + d for all n ≥ 1, without re-running the length induction. Similarly, every element of S(p', d') has length #p' + d'.
+We first recall the uniform length property. By S(p, d)'s postcondition, #cₙ = #p + d for all n ≥ 1. Similarly, by S(p', d')'s postcondition, every element of S(p', d') has length #p' + d'.
 
 *Case 1: different element lengths.* Suppose #p + d ≠ #p' + d'. Then #a = #p + d ≠ #p' + d' = #b. By T3, tumblers of different lengths are never equal, so a ≠ b.
 
@@ -653,7 +620,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
-| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from T3, T4, T10, S1, TA5(d), T10a.1 (uniform length), B6 |
+| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from T3, T4, T10, S1, TA5(d), S(p,d) (uniform length), B6 |
 | B8 | Distinct baptisms produce distinct addresses — global uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))` — unbounded extent | from T0(a), B1, B2, B4, B6, Bop, TA5(c), TA5(d) |
 | B10 | `(A t ∈ s.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
