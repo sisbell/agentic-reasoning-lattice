@@ -306,7 +306,7 @@ The configuration start(αᵢ) = start(βᵢ) ∧ reach(αᵢ) = reach(βᵢ) ca
 
 All cases yield contradiction, so Σ̂₁ = Σ̂₂.  ∎
 
-Nelson confirms both existence and uniqueness: "The tumbler line is a total order... The contiguity relation partitions S into maximal contiguous components. Each run yields exactly one span... The minimal span-set is unique" (Q4).
+Nelson confirms the uniqueness: "Each run yields exactly one span... The minimal span-set is unique" (Q4).
 
 
 ## Union is order-independent
