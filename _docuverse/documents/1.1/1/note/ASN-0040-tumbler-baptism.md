@@ -67,7 +67,7 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 *Formal Contract:*
 - *Definition:* S(p, d) = c₁, c₂, c₃, ... where c₁ = inc(p, d) and cₙ₊₁ = inc(cₙ, 0) for n ≥ 1.
 - *Preconditions:* p ∈ T, d ≥ 1.
-- *Postconditions:* `(A n ≥ 1 : cₙ = [p₁, ..., p_{#p}, 0, ..., 0, n])` with d − 1 zeros, `#cₙ = #p + d`, `sig(cₙ) = #p + d`, and `cₙᵢ = pᵢ` for `1 ≤ i ≤ #p`. (The sig identity holds because the ordinal n ≥ 1 occupies the final position #p + d, which is therefore the rightmost nonzero component.)
+- *Postconditions:* `(A n ≥ 1 : cₙ = [p₁, ..., p_{#p}, 0, ..., 0, n])` with d − 1 zeros, `#cₙ = #p + d`, `sig(cₙ) = #p + d`, and `cₙᵢ = pᵢ` for `1 ≤ i ≤ #p`.
 - *Axiom:* TA5(b) (prefix preservation), TA5(c) (sibling structure), TA5(d) (child structure).
 
 **S0 (StreamOrdering).** `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
@@ -187,7 +187,7 @@ provided both `(p, d)` and `(p', d')` satisfy B6.
 
 In every case `S(p, d) ∩ S(p', d') = ∅`. ∎
 
-B6(i) is load-bearing: dropping it admits aliasing. A pure-trailing-zero parent and its truncation at the next depth produce the identical base, hence the identical stream — e.g. ([1, 0], 1) and ([1], 2) both yield base [1, 0, 1] and stream {[1, 0, n] : n ≥ 1}. The T4-validity of p' (B6(i)) — forbidding a zero final component — is exactly the hypothesis the unequal-length case above relies on.
+B6(i) is load-bearing: dropping it admits aliasing. A pure-trailing-zero parent and its truncation at the next depth produce the identical base, hence the identical stream — e.g. ([1, 0], 1) and ([1], 2) both yield base [1, 0, 1] and stream {[1, 0, n] : n ≥ 1}.
 
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
@@ -329,11 +329,9 @@ In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. ∎
 
 Baptism reads the high water mark, computes the next address, and commits the result as one indivisible step.
 
-**B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each baptismal operation is a single atomic transition. For every (p, d) satisfying B6:
+**B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each baptismal operation is a single atomic transition. For every (p, d) satisfying B6, `baptize(p, d) ∈ Σ` (B0a), and the foundation fixes every `op ∈ Σ` as a single partial function on 𝒮. Hence whatever registry update the operation performs is committed on one edge of `→`:
 
-  `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s')`, where the registry update `s'.B` is the action specified by Bop below.
-
-Because `baptize(p, d) ∈ Σ` (B0a) and the foundation fixes every `op ∈ Σ` as a single partial function on 𝒮, Bop's registry update is committed on one edge of `→`: there is no intermediate observable state s_mid with `s → s_mid → s'`.
+  `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s')` with no intermediate observable state s_mid satisfying `s → s_mid → s'`.
 
 
 ## The baptism operation
@@ -519,7 +517,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B1 | `B6(p, d) ⟹ (cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))` — contiguous prefix over B6-valid namespaces (requires conforming B₀) | from B₀ conf., B0, B0a, B6, B7, next def., S0, TA5(c) |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
 | B3 | Forward requirement on a future predicate `Occupied : T × 𝒮 → {⊤, ⊥}`: `(A s reachable, t ∈ T : Occupied(t, s) ⟹ t ∈ s.B)` — content permitted only at baptized addresses; ghost elements (`t ∈ s.B ∧ ¬Occupied(t, s)`) explicitly allowed | forward requirement on future ASN |
-| B4 | Each `baptize(p, d) ∈ Σ` is a single atomic transition: `baptize(p, d)(s).B = s.B ∪ {next(s.B, p, d)}` is computed and committed in one step, with no intermediate observable state | corollary of B0a + foundation Σ signature |
+| B4 | Each `baptize(p, d) ∈ Σ` is a single atomic transition: the operation's registry update is committed on one edge of `→`, with no intermediate observable state | corollary of B0a + foundation Σ signature |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
