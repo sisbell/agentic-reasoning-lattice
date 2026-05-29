@@ -150,8 +150,6 @@ Gregory confirms the unbounded nature at the implementation level. The global in
 
 S4 and S5 together make quotation a first-class structural relationship: any number of documents can quote the same passage, and the system knows they are all quoting — not independently writing — because they share I-addresses.
 
-We observe that the sharing relation is a function of `Σ` alone: for any `a ∈ dom(C)`, the set `{d : (E v :: M(d)(v) = a)}` is determined by the state.
-
 *Proof.* We wish to show that for every `N ∈ ℕ`, there exists a state `Σ` satisfying S0–S3 in which some I-address has sharing multiplicity exceeding `N`. We give two constructions — one for cross-document sharing, one for within-document sharing — each succeeding for arbitrary `N`.
 
 **Cross-document construction.** Fix `N ∈ ℕ`. Define state `Σ_N = (C_N, M_N)` by:
@@ -473,7 +471,7 @@ For `m ≥ 2`, OrdinalShift (ASN-0034) preserves component 1, so the subspace id
 
 In both predicates, `v₁ = 1` is the text subspace identifier.
 
-By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fixed common depth in the non-empty case, or the chosen depth in the empty case). By OrdinalShift (ASN-0034), whose postconditions give `shift(v, n)ᵢ = vᵢ` for `i < m` and `shift(v, n)_m = v_m + n` for `n ≥ 1`, `shift([1, 1, ..., 1], j)` for `j ≥ 1` keeps components 1 through `m − 1` unchanged and sets the last to `1 + j`; for `j = 0` we adopt the local convention `shift(·, 0) = id` (OrdinalShift requires `n ≥ 1` and so does not cover this case), giving `shift([1, 1, ..., 1], 0) = [1, 1, ..., 1]`, which is the same prefix-preserving form with last component `1 + 0 = 1`. The explicit form for the non-empty case is `shift(min(V_1(d)), j) = [1, 1, ..., 1 + j]`. From this form every component is `≥ 1` — the leading `m − 1` components equal 1 and the last equals `1 + j ≥ 1` (since `j ≥ 0`) — so `zeros(v) = 0` and S8a's componentwise positivity both hold, establishing postcondition (b). Distinctness of the `N + 1` valid positions is the one step worth spelling out: for `j, j' ∈ {0, ..., N}` with `j ≠ j'`, the last components `1 + j` and `1 + j'` differ (NAT-order, ASN-0034), so the two length-`m` tumblers diverge at position `m` and are distinct by T3 (CanonicalRepresentation, ASN-0034). Hence the predicate is satisfied by exactly `N + 1` distinct positions.
+By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fixed common depth in the non-empty case, or the chosen depth in the empty case). By OrdinalShift (ASN-0034), whose postconditions give `shift(v, n)ᵢ = vᵢ` for `i < m` and `shift(v, n)_m = v_m + n` for `n ≥ 1`, `shift([1, 1, ..., 1], j)` for `j ≥ 1` keeps components 1 through `m − 1` unchanged and sets the last to `1 + j`; for `j = 0` we adopt the local convention `shift(·, 0) = id` (OrdinalShift requires `n ≥ 1` and so does not cover this case), giving `shift([1, 1, ..., 1], 0) = [1, 1, ..., 1]`, which is the same prefix-preserving form with last component `1 + 0 = 1`. The explicit form for the non-empty case is `shift(min(V_1(d)), j) = [1, 1, ..., 1 + j]`. From this form every component is `≥ 1` — the leading `m − 1` components equal 1 and the last equals `1 + j ≥ 1` (since `j ≥ 0`) — so `zeros(v) = 0` and S8a's componentwise positivity both hold, establishing postcondition (b). For distinctness of the `N + 1` valid positions: for `j, j' ∈ {0, ..., N}` with `j ≠ j'`, the last components `1 + j` and `1 + j'` differ (NAT-order, ASN-0034), so the two length-`m` tumblers diverge at position `m` and are distinct by T3 (CanonicalRepresentation, ASN-0034). Hence the predicate is satisfied by exactly `N + 1` distinct positions.
 
 *Formal Contract (ValidInsertionPosition, non-empty case).*
 - *Signature:* `ValidInsertionPosition(d, v)` — a *binary* predicate on document `d` and V-position `v`. The common V-position depth `m` is determined by `d` via S8-depth and read from state.
@@ -572,7 +570,7 @@ Two documents `d₁ ≠ d₂` may render identically — displaying the same tex
 
 Nelson: "There is thus no 'basic' version of a document set apart from other versions — 'alternative' versions — any more than one arrangement of the same materials is a priori better than other arrangements." The document is, in his metaphor, "an evolving ongoing braid." The braid is the arrangement; the strands are the Istream content. The braid is re-twisted when parts are rearranged, added, or subtracted — but the strands remain intact.
 
-This has a formal consequence: document equality is not decidable by content comparison. You cannot determine whether two documents are "the same" by comparing their rendered output — the same output can arise from different arrangements of different I-addresses that happen to carry identical values. Identity requires comparing document identifiers (tumblers, per T3) or arrangement functions, not rendered content.
+*Remark.* This motivates a design stance the strand model adopts but does not formalize here: document equality is not approached by content comparison. Two documents that render identically may arise from different arrangements of different I-addresses that happen to carry identical values, so identity is taken to rest on document identifiers (tumblers, per T3) or arrangement functions, not on rendered content. A formal decidability statement would border on the out-of-scope document-creation-and-lifecycle cluster; we record the stance as motivation rather than a derived guarantee.
 
 
 ## Properties Introduced
@@ -616,12 +614,8 @@ Under what conditions, if any, may the referential integrity invariant S3 be tem
 
 What abstract property distinguishes content that exists but is unreachable from all current arrangements from content that exists and is reachable — and must the system maintain this distinction as queryable state?
 
-Does each well-formed editing operation (DELETE, INSERT, COPY, REARRANGE) preserve D-CTG and D-MIN?
-
-What invariants must the displacement mechanism satisfy so that insertion at a ValidInsertionPosition preserves D-CTG, D-MIN, and S2?
+What must each well-formed editing operation (DELETE, INSERT, COPY, REARRANGE) — and the displacement mechanism underlying insertion at a ValidInsertionPosition — guarantee in order to preserve the contiguity invariants D-CTG, D-MIN, and S2, including the case where insertion coincides with an occupied V-position?
 
 The strand model fixes only the lower bound m ≥ 2 for V-position depth in an empty subspace; the specific value is a one-time allocation convention chosen by the first-placing operation, not a strand-level commitment. What operation-layer constraints determine the canonical choice of m (e.g., m = 2 for basic INSERT/DELETE versus deeper subdivisions Nelson contemplated)? What downstream capabilities — nested hierarchies, link subdivision, future extensibility — does each depth choice unlock or foreclose?
-
-What must an operation guarantee about existing V-to-I mappings when it inserts at a position that coincides with an occupied V-position?
 
 The strand model treats subspace alignment — a V-position's subspace identifier `subspace(v) = v₁` matching the first element-field component of the I-address `M(d)(v)` it maps to — as an operations-layer preservation obligation rather than a state-level invariant on arrangements. Which editing operations must establish this alignment for the V-positions they produce, and under what allocation conventions is preservation automatic versus requiring explicit operation-level enforcement?
