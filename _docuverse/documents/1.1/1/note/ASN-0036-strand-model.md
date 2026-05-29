@@ -171,7 +171,6 @@ The within-document sharing multiplicity is `|{v : v ∈ dom(M'_N(d)) ∧ M'_N(d
 *Formal Contract:*
 - *Preconditions:* `N ∈ ℕ` arbitrary.
 - *Postconditions:* There exists a state `Σ` satisfying S0 (content immutability), S1 (store monotonicity), S2 (arrangement functionality), and S3 (referential integrity) such that for some `a ∈ dom(Σ.C)`, `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N`. The construction works both across documents (multiplicity `N + 1` over `N + 1` documents) and within a single document (multiplicity `N + 1` at `N + 1` distinct V-positions).
-- *Frame:* S5 ranges over S0–S3 only; the witnesses are not claimed to satisfy later invariants.
 - *Depends:* S0 (content immutability) — preserved vacuously by the single-state construction; S1 (store monotonicity) — preserved vacuously; S2 (arrangement functionality) — required to establish that the constructed `M(d)` is a well-defined function (pairwise-distinct keys map to single images); S3 (referential integrity) — established by construction since `ran(M(d)) = {a} ⊆ dom(C)`; T0 (ASN-0034) — supplies the ℕ-valued component carrier from which the explicit witness enumerations `dᵢ = [1, 0, 1, 0, i]` and `vₖ = [1, k]` are drawn; T3 (CanonicalRepresentation, ASN-0034) — used in the cross-document construction to establish distinctness of the explicit document witnesses `dᵢ` from distinct last components (the V-positions are identical `[1, 1]` across all documents); and in the within-document construction to establish distinctness of V-positions `[1, k]` for `k = 1, …, N + 1` from distinct last components (a single document is used).
 
 
@@ -250,7 +249,7 @@ A V-position represents the element field of a full document-scoped address — 
 
 *Proof.* From the Definition, `zeros(v) = 0` and `#v ≥ 2` hold directly. Componentwise positivity follows: every component of `v` lies in T0's carrier ℕ, and `zeros(v) = 0` forces each to be `≠ 0`, hence `≥ 1` by NAT-discrete (ASN-0034) instantiated at `m = 0` (no natural lies strictly between `0` and `1`); in particular the subspace identifier `v₁ ≥ 1`. ∎
 *Formal Contract:*
-- *Definition:* A V-position is a tumbler `v` with `zeros(v) = 0` and `#v ≥ 2`. (Motivating reading: an isolated element field of depth at least 2 — the within-document arrangement coordinate, carrying no field separators.)
+- *Definition:* A V-position is a tumbler `v` with `zeros(v) = 0` and `#v ≥ 2`.
 - *Preconditions:* The V-position Definition above; T0 — components are natural numbers.
 - *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`.
 - *Depends:* T0 (ASN-0034) — supplies the ℕ-valued component carrier on which `vᵢ ∈ ℕ` for every component; NAT-discrete (NatDiscreteness, ASN-0034) — instantiated at `m = 0`, supplies the `n ≠ 0 ⟹ n ≥ 1` fact that discharges the positivity step: `vᵢ ≠ 0` (delivered by `zeros(v) = 0`) gives `vᵢ ≥ 1`, hence `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
@@ -285,7 +284,7 @@ For each V-position `v`, its *singleton interval* is the half-open tumbler inter
 
 (a) Every V-position falls in exactly one singleton interval — `(A v ∈ dom(Σ.M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, 1)))`
 
-(b) The labeling `vⱼ ↦ aⱼ` is well-defined: the label `aⱼ = Σ.M(d)(vⱼ)` exists and is unique because `Σ.M(d)` is a function (S2), and `aⱼ ∈ dom(Σ.C)` by referential integrity (S3). Conjunct (b) is a definition of the labeled partition, not a theorem.
+(b) The labeling `vⱼ ↦ aⱼ` is well-defined: the label `aⱼ = Σ.M(d)(vⱼ)` exists and is unique because `Σ.M(d)` is a function (S2), and `aⱼ ∈ dom(Σ.C)` by referential integrity (S3).
 
 *Proof.* We construct a finite decomposition satisfying both conjuncts and prove it partitions `dom(M(d))`.
 
@@ -314,12 +313,12 @@ Since `[S₁] ≼ v` and `[S₁] ≼ shift(v, 1)` and `v ≤ shift(v, 1)` by TS4
 
 *Formal Contract:*
 - *Preconditions:* `dom(M(d))` finite (S8-fin); `M(d)` a function (S2); referential integrity (S3); `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` (S8a); within each subspace, all V-positions share a common depth (S8-depth).
-- *Postconditions:* The finite set of singleton intervals `{[vⱼ, shift(vⱼ, 1)) : vⱼ ∈ dom(M(d))}` partitions the V-positions of `dom(M(d))`: (a) `(A v ∈ dom(M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, 1)))`. The labeling `vⱼ ↦ aⱼ = M(d)(vⱼ)` is well-defined (label unique by S2, `aⱼ ∈ dom(Σ.C)` by S3), yielding the labeled partition (b).
+- *Postconditions:* The finite set of singleton intervals `{[vⱼ, shift(vⱼ, 1)) : vⱼ ∈ dom(M(d))}` partitions the V-positions of `dom(M(d))`: (a) `(A v ∈ dom(M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, 1)))`. (b) The labeling `vⱼ ↦ aⱼ = M(d)(vⱼ)` is well-defined (established in the proof), yielding the labeled partition.
 - *Depends:* (*Local properties*) S2 (ArrangementFunctionality) — each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`; S3 (referential integrity) — `M(d)(v) ∈ dom(Σ.C)`; S8a — `zeros(v) = 0`, `#v ≥ 2`, and componentwise positivity of V-positions; S8-depth — a common depth `m` for every V-position in a fixed subspace; S8-fin — finite `dom(M(d))`. (*Foundation claims, ASN-0034*) T1 (TumblerOrdering) case (i) — first-divergence comparison; T3 (CanonicalRepresentation) — equates tumblers with their canonical component sequences; T5 (ContiguousSubtrees) — a prefix's extensions form a contiguous interval under T1; T10 — non-nesting prefixes generate disjoint tumbler subtrees; TS4 (ShiftStrictIncrease) — `v < shift(v, 1)`; TumblerAdd, OrdinalShift, OrdinalDisplacement — the action-point semantics of `δ(k, m)`, the three-region component formula, and the action-point identity `shift(v, 1)_m = v_m + 1`. NAT-discrete (NatDiscreteness) — the strict-to-`+1` promotion `m < n ⟹ m + 1 ≤ n`. NAT-closure (NatArithmeticClosureAndIdentity) — closure of ℕ under addition places `v_m + 1` in ℕ. NAT-order (NatStrictTotalOrder) — the exactly-one trichotomy clause `¬(a < b ∧ b ≤ a)`.
 
 ## Arrangement contiguity
 
-Nelson states that the Vstream is always a "dense, contiguous sequence" — after removal, "the v-stream addresses of any following characters in the document are [decreased] by the length of the [deleted] text" [LM 4/66]. The Vstream has no concept of empty positions: "if you have 100 bytes, you have addresses 1 through 100." This statement is specific to the text subspace (S = 1), where Nelson's "addresses 1 through 100" describes character positions. The properties below (D-CTG, D-MIN, D-CTG-depth, D-SEQ) bind `S = 1` in their formal statements and constrain only the text subspace; contiguity semantics for other subspaces are out of scope for this ASN.
+Nelson states that the Vstream is always a "dense, contiguous sequence" — after removal, "the v-stream addresses of any following characters in the document are [decreased] by the length of the [deleted] text" [LM 4/66]. The Vstream has no concept of empty positions: "if you have 100 bytes, you have addresses 1 through 100." This statement is specific to the text subspace (S = 1), where Nelson's "addresses 1 through 100" describes character positions. The properties below (D-CTG, D-MIN, D-CTG-depth, D-SEQ) bind `S = 1` in their formal statements.
 
 Abbreviate `S = subspace(v) = v₁` (per S8a), and write `V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}` for the set of V-positions in subspace S of document d. The specialization to the text subspace is `V_1(d) = {v ∈ dom(M(d)) : subspace(v) = 1}`. All V-positions in a given subspace share the same tumbler depth (S8-depth).
 
@@ -453,17 +452,12 @@ When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as 
 
 **Definition (ValidFirstInsertionPosition, empty case).** For a document `d` with `V_1(d) = ∅`, the *ternary* predicate `ValidFirstInsertionPosition(d, v, m)` is satisfied when `m ∈ ℕ` with `m ≥ 2` and `v = [1, 1, ..., 1]` of depth `m`.
 
-By OrdinalShift (ASN-0034) — for `m ≥ 2`, `shift(v, n)` agrees with `v` on positions `1 ≤ i < m` and so preserves the subspace identifier `v₁` — the subspace identifier is preserved under shift. This is the canonical minimum position required by D-MIN.
-
-In both predicates, `v₁ = 1` is the text subspace identifier.
-
-By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fixed common depth in the non-empty case, or the chosen depth in the empty case). By OrdinalShift (ASN-0034) — for `m ≥ 2`, shift preserves components `1 ≤ i < m` and increments the ordinal at position `m` — `shift([1, 1, ..., 1], j)` for `j ≥ 1` keeps components 1 through `m − 1` unchanged and sets the last to `1 + j`; for `j = 0` we adopt the local convention `shift(·, 0) = id` (OrdinalShift requires `n ≥ 1` and so does not cover this case), giving `shift([1, 1, ..., 1], 0) = [1, 1, ..., 1]`, which is the same prefix-preserving form with last component `1 + 0 = 1`. The explicit form for the non-empty case is `shift(min(V_1(d)), j) = [1, 1, ..., 1 + j]`. From this form every component is `≥ 1` — the leading `m − 1` components equal 1 and the last equals `1 + j ≥ 1` (since `j ≥ 0`) — so `zeros(v) = 0` and S8a's componentwise positivity both hold, establishing postcondition (b). For distinctness of the `N + 1` valid positions: for `j, j' ∈ {0, ..., N}` with `j ≠ j'`, the last components `1 + j` and `1 + j'` differ (NAT-order, ASN-0034), so the two length-`m` tumblers diverge at position `m` and are distinct by T3 (CanonicalRepresentation, ASN-0034). Hence the predicate is satisfied by exactly `N + 1` distinct positions.
-
 *Formal Contract (ValidInsertionPosition, non-empty case).*
 - *Signature:* `ValidInsertionPosition(d, v)` — a *binary* predicate on document `d` and V-position `v`. The common V-position depth `m` is determined by `d` via S8-depth and read from state.
 - *Preconditions:* Document `d` with `V_1(d) ⊆ dom(M(d))` non-empty; D-CTG holds on V_1(d); D-MIN gives `min(V_1(d)) = [1, ..., 1]` and D-SEQ gives `V_1(d) = {[1, ..., 1, k] : 1 ≤ k ≤ N}` (both needed to discharge the explicit form (d)); `m ≥ 2` is the common depth of V_1(d) by S8-depth and S8a.
 - *Definition:* `ValidInsertionPosition(d, v)` holds iff, writing `N = |V_1(d)|`, `v = shift(min(V_1(d)), j)` for some `j ∈ {0, 1, ..., N}` (with `shift(·, 0) = identity`).
 - *Postconditions:* (a) `subspace(v) = 1` and `#v = m` (the state-fixed common depth). (b) `v` satisfies S8a: `zeros(v) = 0` and all components positive. (c) For fixed `d`, exactly `N + 1` values of `v` satisfy the predicate. (d) The explicit form is `v = [1, 1, ..., 1 + j]` with last component `1 + j` and all preceding components equal to 1.
+- *Derivation:* By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m`. By OrdinalShift (ASN-0034), for `m ≥ 2` shift preserves components `1 ≤ i < m` and increments position `m`, so `shift([1, ..., 1], j) = [1, ..., 1, 1 + j]` for `j ≥ 1`; the local convention `shift(·, 0) = id` (OrdinalShift requires `n ≥ 1`) gives the same form at `j = 0` with last component `1`. This is (d). Every component is then `≥ 1` — the leading `m − 1` equal 1, the last `1 + j ≥ 1` — so `zeros(v) = 0` with componentwise positivity (b), and the preserved leading component fixes `v₁ = 1` as the text subspace identifier. For `j ≠ j'` in `{0, ..., N}` the last components `1 + j ≠ 1 + j'` (NAT-order, ASN-0034), so the length-`m` tumblers diverge at position `m` and are distinct by T3 (ASN-0034), giving exactly `N + 1` positions (c).
 - *Depends:* D-MIN, D-CTG, D-CTG-depth, D-SEQ; S8a, S8-fin, S8-depth; OrdinalShift, TumblerAdd, T3 (ASN-0034).
 
 *Formal Contract (ValidFirstInsertionPosition, empty case).*
