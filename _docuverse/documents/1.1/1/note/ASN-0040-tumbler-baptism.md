@@ -386,8 +386,6 @@ A ghost element is "virtually present in tumbler-space, since links may be made 
   - baptized and empty: t ∈ s.B with nothing stored — a ghost element (permitted)
   - unbaptized: t ∉ s.B — not a system entity
 
-Content presupposes baptism: any content-storage layer built atop this model may store content at an address only after that address is baptized.
-
 
 ## A baptism traced
 
@@ -454,21 +452,27 @@ At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 
 
 ## Uniqueness
 
-**B8 (Uniqueness).** Distinct baptismal acts produce distinct addresses:
+**B8 (Uniqueness).** Baptismal acts in distinct namespaces produce distinct addresses unconditionally; baptismal acts within a single namespace produce distinct addresses under a single baptismal authority:
 
-  `(A a, b : produced by distinct baptismal acts : a ≠ b)`.
+  cross-namespace: `(A a, b : produced in distinct namespaces : a ≠ b)`;
 
-The proof splits two ways: distinct baptisms within the same namespace, and baptisms in different namespaces.
+  same-namespace: `(A a, b : produced in one namespace under a single authority : a ≠ b)`.
+
+The proof splits two ways: distinct baptisms within the same namespace (the authority-dependent clause), and baptisms in different namespaces (the unconditional clause).
 
 *Proof.* Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We take β₁ and β₂ to be commits under a single baptismal authority, so B-Seq (Sequential Commitment) applies: the realized states are totally ordered by →*. We proceed by case analysis on whether the two baptisms target the same or different namespaces.
 
-*Case 1: same namespace — (p, d) = (p', d').* Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts, and let s₁' = β₁(s₁) be the successor state. We say β₁ *precedes* β₂ when s₁' →* s₂ — when the state β₂ reads is reachable from the state β₁ leaves. By B-Seq the realized states are totally ordered by →*, so s₁' and s₂ are comparable: either s₁' →* s₂ or s₂ →* s₁'. Relabel the two acts so that s₁' →* s₂ (i.e. β₁ precedes β₂); since β₁ and β₂ play symmetric roles, this relabeling is without loss of generality. By B4 (Atomic Baptism), each baptism is a single Σ-edge. By the Bop postcondition, s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. From s₁' →* s₂, B0★ gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
+*Case 1: same namespace — (p, d) = (p', d').* Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts, with successor states s₁' = β₁(s₁) and s₂' = β₂(s₂). By B4 (Atomic Baptism), each baptism is a single Σ-edge: no realized state lies strictly between s₁ and s₁', nor strictly between s₂ and s₂'. By B-Seq's no-fork clause, two distinct commits never read the same state, so s₁ ≠ s₂. We say β₁ *precedes* β₂ when s₁' →* s₂ — when the state β₂ reads is reachable from the state β₁ leaves. We show that, after possibly swapping the (symmetric) names of the two acts, s₁' →* s₂ holds.
+
+By B-Seq the realized states are totally ordered by →*, so s₁' and s₂ are comparable. If s₁' →* s₂ we are done. Otherwise s₂ →* s₁', and s₂ ≠ s₁' (else s₁' →* s₂ holds by reflexivity), so s₂ →⁺ s₁'. We cannot have s₁ →⁺ s₂ →⁺ s₁', since by B4 no realized state is interior to β₁'s edge; comparability of s₂ and s₁ therefore leaves only s₂ →* s₁, and with s₂ ≠ s₁ (no-fork) this is s₂ →⁺ s₁. Now s₁ is a realized state strictly after s₂; we cannot have s₂ →⁺ s₁ →⁺ s₂', since by B4 no realized state is interior to β₂'s edge, so comparability of s₁ and s₂' gives s₂' →* s₁ — that is, β₂ precedes β₁. Swapping the names of β₁ and β₂ restores s₁' →* s₂. In every case the relabeled acts satisfy s₁' →* s₂.
+
+By the Bop postcondition, s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. From s₁' →* s₂, B0★ gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
 
 Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mark Sufficiency), a = c_{m₁+1} and b = c_{m₂+1}, where cₙ denotes the n-th element of S(p, d). Since a = c_{m₁+1} ∈ s₂.B and B1 (Contiguous Prefix) holds for s₂, the children of (p, d) in s₂ include {c₁, ..., c_{m₁+1}}, so hwm(s₂.B, p, d) ≥ m₁ + 1. That is, m₂ ≥ m₁ + 1, hence m₂ + 1 ≥ m₁ + 2 > m₁ + 1. The indices m₁ + 1 and m₂ + 1 are distinct with m₁ + 1 < m₂ + 1. By S0 (StreamOrdering), c_{m₁+1} < c_{m₂+1} under the lexicographic order T1. By T1 irreflexivity, c_{m₁+1} ≠ c_{m₂+1}. Therefore a ≠ b.
 
 *Case 2: different namespaces — (p, d) ≠ (p', d').* By construction, a ∈ S(p, d) — baptism in namespace (p, d) produces the next element of its sibling stream — and b ∈ S(p', d') by the same reasoning. By B7 (Namespace Disjointness), S(p, d) ∩ S(p', d') = ∅, so a ≠ b.
 
-In both cases a ≠ b. The two clauses of this guarantee rest on different foundations and carry different strengths. The same-namespace clause (Case 1) holds *under a single baptismal authority*: it is discharged entirely by B-Seq's serialization, and two concurrent commits reading the same hwm would both compute c_{m+1} and collide — so this clause does not extend across authorities (see Open Question 6). The cross-namespace clause (Case 2) — baptisms across sibling namespaces or at different hierarchical levels — rests on B7, which is purely structural and authority-independent, so distinctness there holds regardless of how many authorities are active. ∎
+In both cases a ≠ b. ∎
 
 *Formal Contract:*
 - *Preconditions:* β₁, β₂ are distinct baptismal acts under a single baptismal authority (so B-Seq applies) in a system conforming to B-Seq, B0★ (which subsumes B0), B0a, B1, B4, and B7; β₁ produces a in namespace (p, d) and β₂ produces b in namespace (p', d'), where both (p, d) and (p', d') satisfy B6.
@@ -524,13 +528,13 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B_fin | `(A s reachable : s.B is finite)` — registry finiteness | from B₀ conf., B0a |
 | B1 | `B6(p, d) ⟹ (cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))` — contiguous prefix over B6-valid namespaces (requires conforming B₀) | from B₀ conf., B0, B0a, B6, B7, next def., S0, TA5(c) |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
-| B3 | Baptism (`t ∈ s.B`) is independent of content: a baptized position may hold nothing — a ghost element — and content presupposes baptism | introduced |
+| B3 | Baptism (`t ∈ s.B`) is independent of content: a baptized position may hold nothing — a ghost element | introduced |
 | B4 | Each `baptize(p, d) ∈ Σ` is a single edge of `→` — no transition interposes between evaluating `next` and committing the union | corollary of foundation Σ signature |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
 | B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from S(p,d) structure, TA5(c), B6, TA5(d), T3, T4 |
-| B8 | Distinct baptisms produce distinct addresses — uniqueness | from B-Seq, B0★, B1, B2, B4, B7, S0, T1 |
+| B8 | Distinct-namespace baptisms produce distinct addresses (unconditional); same-namespace baptisms produce distinct addresses under a single authority — uniqueness | from B-Seq, B0★, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))` — unbounded extent | from B1, B2, B4, B6, Bop, TA5(c), TA5(d), NAT-closure |
 | B10 | `(A t ∈ s.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
 
