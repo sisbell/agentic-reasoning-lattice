@@ -232,7 +232,7 @@ where `E(a)` is the element-field projection supplied by T4b (UniqueParse, ASN-0
 - *Signature:* `subspace_I : T → ℕ` — projects the first component of the element field of an I-address.
 - *Preconditions:* `a ∈ dom(Σ.C)` (so S7b's `zeros(a) = 3` holds, making T4b's element-field projection `E(a)` well-defined); S7c's `#E(a) ≥ 2` (so that `E(a)₁` is well-defined as the first component of a non-empty element field).
 - *Definition:* `subspace_I(a) = E(a)₁`.
-- *Postconditions:* (a) `subspace_I(a) ∈ ℕ` — the projected component inherits T0's ℕ-valued carrier (ASN-0034). (b) `subspace_I(a) ≥ 1` — established at S7b, whose T4-validity already makes every present-field component strictly positive; this is read off at the first element-field component, not re-derived here.
+- *Postconditions:* (a) `subspace_I(a) ∈ ℕ` — the projected component inherits T0's ℕ-valued carrier (ASN-0034). (b) `subspace_I(a) ≥ 1` — by S7b's T4-validity, which makes every present-field component strictly positive.
 - *Depends:* T0 (ASN-0034) — ℕ-valued component carrier underwriting postcondition (a); T4b (UniqueParse, ASN-0034) — supplies `E(a)` once S7b holds; S7b — provides `E(a)` via `zeros(a) = 3` and the T4-validity from which `E(a)₁ ≥ 1` follows (postcondition (b)); S7c — provides `#E(a) ≥ 2`.
 
 **S7d (Document allocation discipline).** Every document is addressed by a document-level tumbler (`zeros = 2`) allocated via T10a's allocator discipline (ASN-0034) under the owning user's prefix. Distinct documents arise from distinct allocation events.
@@ -252,7 +252,7 @@ With S7a, S7b, and S7d established, we can state structural attribution.
 
 This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system. Since document creation is an allocation event within a system conforming to T10a, GlobalUniqueness (ASN-0034) directly guarantees that distinct documents have distinct tumblers, and therefore distinct document-level prefixes. It is not metadata that can be stripped or forged — it IS the address. To retrieve the content, the system must know its I-address; to know its I-address is to know its origin.
 
-S7 follows from S7a (document-scoped allocation ensures the document-level prefix identifies the allocating document), S7b (element-level restriction ensures all three identifying fields are present), S7d (document tumblers are themselves products of T10a allocation events, supplying the precondition for GlobalUniqueness), T4 (HierarchicalParsing, ASN-0034), and GlobalUniqueness (ASN-0034) (distinct document allocation events produce distinct document tumblers). Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
+Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
 
 We note a subtlety. S7 identifies the document that ALLOCATED the I-address — the document where the content was first created. This is distinct from the document where the content currently appears. When content is transcluded from document B into document A, the reader viewing A sees the content, but S7 traces it to B. The distinction between "where I am reading" (Vstream context, document A) and "where this came from" (Istream structure, document B) is precisely the two-stream separation made visible.
 
@@ -276,7 +276,7 @@ Gregory's implementation corroborates S7a: the I-address prefix itself encodes t
 
 ## Span decomposition
 
-The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(M(d))` is finite (S8-fin), the mapping always admits a *finite* decomposition into correspondence runs — this is the existence claim we establish here. Whether contiguous V-ranges that correspond ordinally to contiguous I-ranges can be *coalesced* into longer maximal runs — the compression that would make finite representation compact — is a separate question.
+The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(M(d))` is finite (S8-fin), the mapping always admits a *finite* decomposition into correspondence runs — this is the existence claim we establish here.
 
 Before defining correspondence runs, we must establish the structure of `dom(M(d))` more carefully.
 
@@ -312,7 +312,7 @@ extracting the subspace identifier as the first component of a V-position.
 - *Signature:* `subspace : T → ℕ` — projects the first component of a tumbler.
 - *Preconditions:* `v ∈ T`, `#v ≥ 1` (so that `v₁` is well-defined as the first component of a non-empty tumbler).
 - *Definition:* `subspace(v) = v₁`.
-- *Postconditions:* (a) `subspace(v) ∈ ℕ` — the projected component inherits T0's ℕ-valued carrier (ASN-0034). (b) When `v` satisfies S8a, `subspace(v) ≥ 1` — S8a's componentwise positivity at `i = 1` gives `v₁ ≥ 1`; not re-derived here.
+- *Postconditions:* (a) `subspace(v) ∈ ℕ` — the projected component inherits T0's ℕ-valued carrier (ASN-0034). (b) When `v` satisfies S8a, `subspace(v) ≥ 1` — by S8a's componentwise positivity at `i = 1`.
 - *Depends:* T0 (ASN-0034) — ℕ-valued component carrier underwriting postcondition (a); S8a — componentwise positivity at `i = 1` underwriting postcondition (b).
 
 **S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth:
@@ -342,7 +342,7 @@ At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments b
 
 (b) Within each run: `Σ.M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for all `k` with `0 ≤ k < nⱼ`
 
-Conjunct (b) is what *defines* a correspondence run: when `nⱼ > 1` it asserts a non-trivial ordinal-displacement identity, exercised at `k ≥ 1` only on runs of length greater than one (the worked example below checks such a run at `k = 3`). The theorem proved here is the existence claim alone, and the witness it exhibits is the degenerate one — every V-position is its own singleton run (`nⱼ = 1`), for which (b) collapses to the base case `M(d)(vⱼ) = aⱼ`. Whether adjacent singletons coalesce into longer maximal runs is the separate compaction question noted at the head of this section; S8 does not establish it.
+Conjunct (b) is what *defines* a correspondence run: when `nⱼ > 1` it asserts a non-trivial ordinal-displacement identity, exercised at `k ≥ 1` only on runs of length greater than one (the worked example below checks such a run at `k = 3`). The theorem proved here is the existence claim alone, and the witness it exhibits is the degenerate one — every V-position is its own singleton run (`nⱼ = 1`), for which (b) collapses to the base case `M(d)(vⱼ) = aⱼ`.
 
 *Proof.* We construct a finite decomposition satisfying both conjuncts and prove it partitions `dom(M(d))`.
 
@@ -510,9 +510,9 @@ When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as 
 
 There are exactly `N + 1` valid insertion positions: the `N` positions coinciding with existing V-positions `v₀` through `v_{N−1}`, plus the append position `shift(min(V_1(d)), N)`.
 
-**Definition (ValidFirstInsertionPosition, empty case).** For a document `d` with `V_1(d) = ∅`, the *ternary* predicate `ValidFirstInsertionPosition(d, v, m)` is satisfied when `m ∈ ℕ` with `m ≥ 2` and `v = [1, 1, ..., 1]` of depth `m`. Here `m` is an operational input chosen by the placing operation — distinct values of `m` identify distinct valid positions. The strand model fixes only the lower bound `m ≥ 2`; the specific value is an allocation convention.
+**Definition (ValidFirstInsertionPosition, empty case).** For a document `d` with `V_1(d) = ∅`, the *ternary* predicate `ValidFirstInsertionPosition(d, v, m)` is satisfied when `m ∈ ℕ` with `m ≥ 2` and `v = [1, 1, ..., 1]` of depth `m`. Distinct values of `m` identify distinct valid positions; the strand model fixes only the lower bound `m ≥ 2` (the choice of specific value is deferred to the Open Questions).
 
-For `m ≥ 2`, `δ(n, m)` has action point `m > 1`, so TumblerAdd copies component 1 unchanged and the subspace identifier is preserved. This is the canonical minimum position required by D-MIN. Basic INSERT typically commits to `m = 2`.
+For `m ≥ 2`, `δ(n, m)` has action point `m > 1`, so TumblerAdd copies component 1 unchanged and the subspace identifier is preserved. This is the canonical minimum position required by D-MIN.
 
 In both predicates, `v₁ = 1` is the text subspace identifier.
 
@@ -526,10 +526,10 @@ By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fi
 - *Depends:* D-MIN, D-CTG, D-CTG-depth, D-SEQ; S8a, S8-fin, S8-depth; OrdinalShift, TumblerAdd, T3 (ASN-0034).
 
 *Formal Contract (ValidFirstInsertionPosition, empty case).*
-- *Signature:* `ValidFirstInsertionPosition(d, v, m)` — a *ternary* predicate on document `d`, V-position `v`, and depth `m`. The depth `m` is an operational input chosen by the placing operation; the strand model fixes only the lower bound `m ≥ 2`.
+- *Signature:* `ValidFirstInsertionPosition(d, v, m)` — a *ternary* predicate on document `d`, V-position `v`, and depth `m`. The strand model fixes only the lower bound `m ≥ 2`.
 - *Preconditions:* Document `d` with `V_1(d) = ∅`; `m ∈ ℕ` with `m ≥ 2`.
 - *Definition:* `ValidFirstInsertionPosition(d, v, m)` holds iff `v = [1, 1, ..., 1]` of depth `m`.
-- *Postconditions:* (a) `subspace(v) = 1` and `#v = m`. (b) `v` satisfies S8a: `zeros(v) = 0` and all components positive. (c) For fixed `d` and `m`, exactly one value of `v` satisfies the predicate. (d) Once the position is placed, S8-depth fixes the depth at `m` for all subsequent positions in the text subspace, after which validity of further insertion positions is governed by `ValidInsertionPosition(d, v)`.
+- *Postconditions:* (a) `subspace(v) = 1` and `#v = m`. (b) `v` satisfies S8a: `zeros(v) = 0` and all components positive. (c) For fixed `d` and `m`, exactly one value of `v` satisfies the predicate. (d) In any state where `V_1(d)` is non-empty at depth `m`, S8-depth fixes the text-subspace depth at `m`, and validity of further insertion positions is governed by `ValidInsertionPosition(d, v)`.
 - *Depends:* D-MIN; S8a, S8-depth; OrdinalShift, TumblerAdd, T3 (ASN-0034).
 
 ### Valid insertion position examples
@@ -541,7 +541,7 @@ By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fi
 - j = 2: v = shift([1, 1], 2) = [1, 3]
 - j = 3: v = shift([1, 1], 3) = [1, 4]
 
-That gives N + 1 = 4 positions. After an operation places new content at, say, [1, 2] — with whatever displacement mechanism the operation defines — the resulting V₁(d) must satisfy D-CTG and D-MIN. Verifying this is the operation's obligation, not the predicate's.
+That gives N + 1 = 4 positions. Any successor state whose `V₁(d)` gains a position at, say, [1, 2] must still satisfy D-CTG and D-MIN.
 
 **Empty case (ternary predicate).** V₁(d) = ∅. Choosing depth m = 2, the unique `v` satisfying `ValidFirstInsertionPosition(d, v, 2)` is `[1, 1]`. D-MIN requires min(V₁(d)) = [1, 1] once the subspace becomes non-empty, so the position is exactly the one D-MIN demands. Choosing m = 3 instead, `ValidFirstInsertionPosition(d, v, 3)` is satisfied uniquely by `v = [1, 1, 1]`; by T3, this is a different tumbler.
 
@@ -583,7 +583,7 @@ The arrangement `M(d₁)` maps V-positions (in subspace 1, text) to these I-addr
 | `1.4` | `1.0.1.0.1.0.1.4` |
 | `1.5` | `1.0.1.0.1.0.1.5` |
 
-*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Check S8*: the arrangement admits a single correspondence run `(v₁, a₁, n₁) = (1.1, 1.0.1.0.1.0.1.1, 5)`, exhibiting the index-arithmetic identity at every `k ∈ {0, 1, 2, 3, 4}`. We verify the identity explicitly at `k = 3`:
+*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Check S8*: the arrangement admits a single maximal correspondence run `(v₁, a₁, n₁) = (1.1, 1.0.1.0.1.0.1.1, 5)`, exhibiting the index-arithmetic identity at every `k ∈ {0, 1, 2, 3, 4}`. (This length-5 run illustrates the *definition* of a correspondence run — conjunct (b) at `nⱼ > 1` — not the output of S8's existence theorem, which guarantees only the singleton partition; the coalescing of singletons into maximal runs is the Open Question deferred below.) We verify the identity explicitly at `k = 3`:
 
 - *Left side: `M(d₁)(shift(1.1, 3))`.* The V-position `v = 1.1 = [1, 1]` has depth `m = 2`, so `shift(v, 3) = v ⊕ δ(3, 2) = [1, 1] ⊕ [0, 3] = [1, 4]` (action point 2; component 1 copied unchanged, component 2 receives `1 + 3 = 4`). Reading `M(d₁)([1, 4])` from the arrangement table: `M(d₁)(1.4) = 1.0.1.0.1.0.1.4`.
 
@@ -663,7 +663,7 @@ This has a formal consequence: document equality is not decidable by content com
 | D-CTG-depth | Shared prefix reduction (applies wherever D-CTG holds): at depth m ≥ 3, all positions in V_1(d) share components 2 through m − 1, so contiguity reduces to the last component | corollary of D-CTG, S8a, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
 | D-SEQ | Sequential positions: non-empty V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | from D-CTG, D-CTG-depth, D-MIN, S8a, S8-fin, S8-depth, T1 (ASN-0034) |
 | ValidInsertionPosition | Binary predicate `ValidInsertionPosition(d, v)` (non-empty case): when V_1(d) ≠ ∅, m is the common depth of V_1(d) (state-determined via S8-depth), and v = shift(min(V_1(d)), j) for j ∈ {0, ..., N} where N = |V_1(d)| | introduced |
-| ValidFirstInsertionPosition | Ternary predicate `ValidFirstInsertionPosition(d, v, m)` (empty case): when V_1(d) = ∅, m ≥ 2 is an operational input chosen by the placing operation, and v = [1, 1, ..., 1] of depth m | introduced |
+| ValidFirstInsertionPosition | Ternary predicate `ValidFirstInsertionPosition(d, v, m)` (empty case): when V_1(d) = ∅, m ≥ 2, and v = [1, 1, ..., 1] of depth m | introduced |
 | S9 | Two-stream separation: arrangement changes cannot alter stored content | named directional reading of S0 (no formal content beyond S0) |
 
 
