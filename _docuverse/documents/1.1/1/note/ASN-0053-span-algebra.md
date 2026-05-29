@@ -74,7 +74,13 @@ Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cas
 
 A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity from TA0 (#(s ⊕ ℓ) = #ℓ), already established above. The start, width, and reach all share the same tumbler length. A level-uniform span automatically satisfies D0 for the (start(σ), reach(σ)) pair: by TA-strict, start(σ) < reach(σ); and since #start(σ) = #reach(σ), neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start(σ). An interior point at a deeper level, such as [1, 3, 0, 1] relative to start [1, 3], diverges at position 3 (after zero-padding), exceeding #[1, 3] = 2, and admits no valid displacement. (In a flat address space every interior point would admit a split; the tumbler space stratifies positions by depth, so arithmetic must respect that stratification.)
 
-Gregory confirms the implementation enforces this: the split operation checks `tumblerlength(cut) = tumblerlength(width)` and aborts with a fatal error when the invariant is violated (Q14, Q15). The level constraint is load-bearing.
+Gregory confirms the implementation enforces this: the split operation requires the cut and the width to share a tumbler length and aborts when this invariant is violated (Q14, Q15). The level constraint is load-bearing.
+
+We isolate the well-formedness verification that recurs at every span-construction site below, so that no later proof need re-derive it.
+
+**WF** (*WellFormedSpanFromEndpoints*). For s, r ∈ T with s < r and #s = #r, the pair γ = (s, r ⊖ s) is a well-formed level-uniform span (satisfying T12) with reach(γ) = r.
+
+*Proof.* Since s < r and #s = #r, the divergence k is of type (i) with k ≤ #s — equal length excludes the prefix case. The width r ⊖ s has a positive component at position k (namely rₖ − sₖ > 0), so it is positive with action point k ≤ #s; T12 is satisfied. By D1, reach(γ) = s ⊕ (r ⊖ s) = r. The span is level-uniform: #width(γ) = #(r ⊖ s) = max(#r, #s) = #s = #start(γ).  ∎
 
 
 ## Intersection
@@ -87,9 +93,9 @@ Formally: for level-uniform spans α and β with level_compat(start(α), start(�
 
   ⟦α⟧ ∩ ⟦β⟧ = {t : s' ≤ t < r'}
 
-We verify this equality by membership. Take any t ∈ ⟦α⟧ ∩ ⟦β⟧. Then start(α) ≤ t < reach(α) and start(β) ≤ t < reach(β), so t ≥ max(start(α), start(β)) = s' and t < min(reach(α), reach(β)) = r'; hence s' ≤ t < r'. Conversely, take any t with s' ≤ t < r'. Then t ≥ s' = max(start(α), start(β)) ≥ start(α) and t < r' = min(reach(α), reach(β)) ≤ reach(α), so t ∈ ⟦α⟧; symmetrically t ≥ start(β) and t < reach(β), so t ∈ ⟦β⟧; hence t ∈ ⟦α⟧ ∩ ⟦β⟧. The intersection is therefore the half-open interval [s', r'). The set is non-empty (s' is a member since s' < r'). By level-uniformity and S6, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length. So #s' = #r', and by D1 the interval is representable as a span γ = (s', r' ⊖ s') with reach(γ) = s' ⊕ (r' ⊖ s') = r'. We verify T12 for γ: since s' < r', the divergence k satisfies k ≤ #s' (type (i) divergence, as #s' = #r' excludes the prefix case), and the width r' ⊖ s' has a positive component at position k (namely r'ₖ − s'ₖ > 0), so the width is positive and its action point k ≤ #s'. The constructed span is well-formed. Moreover, γ is level-uniform: #width(γ) = #(r' ⊖ s') = max(#r', #s') = #s' = #start(γ), since all boundary tumblers share the same length.  ∎
+We verify this equality by membership. Take any t ∈ ⟦α⟧ ∩ ⟦β⟧. Then start(α) ≤ t < reach(α) and start(β) ≤ t < reach(β), so t ≥ max(start(α), start(β)) = s' and t < min(reach(α), reach(β)) = r'; hence s' ≤ t < r'. Conversely, take any t with s' ≤ t < r'. Then t ≥ s' = max(start(α), start(β)) ≥ start(α) and t < r' = min(reach(α), reach(β)) ≤ reach(α), so t ∈ ⟦α⟧; symmetrically t ≥ start(β) and t < reach(β), so t ∈ ⟦β⟧; hence t ∈ ⟦α⟧ ∩ ⟦β⟧. The intersection is therefore the half-open interval [s', r'). The set is non-empty (s' is a member since s' < r'). By level-uniformity and S6, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length. So #s' = #r', and with s' < r', WF gives that the pair γ = (s', r' ⊖ s') is a well-formed level-uniform span with reach(γ) = r'.  ∎
 
-The significance is topological: convex sets in a total order have convex intersection. The tumbler space's hierarchical structure cannot fragment an intersection — there is no configuration where two contiguous regions share a disconnected collection of positions. Gregory confirms this from the implementation: the function `spanintersection` always produces at most one output span (Q10, `correspond.c:210-265`). Nelson confirms it from design intent: the system "knows precisely" what two regions share, "because correspondence is a structural relation derivable from I-addresses" (Q1).
+The significance is topological: convex sets in a total order have convex intersection. The tumbler space's hierarchical structure cannot fragment an intersection — there is no configuration where two contiguous regions share a disconnected collection of positions. Gregory confirms this from the implementation: intersecting two spans yields at most one output span (Q10). Nelson confirms it from design intent: the system "knows precisely" what two regions share, "because correspondence is a structural relation derivable from I-addresses" (Q1).
 
 A concrete instance: let α = ([1, 3], [0, 4]) and β = ([1, 5], [0, 6]). Then reach(α) = [1, 7], reach(β) = [1, 11], s' = [1, 5], r' = [1, 7]. The intersection is ([1, 5], [0, 2]) — a single span covering positions [1, 5] through [1, 7) exclusive.
 
@@ -130,7 +136,7 @@ Adjacent spans share no positions (reach is an exclusive upper bound) but their 
 
 Then ⟦α⟧ ∪ ⟦β⟧ = {t : s ≤ t < r}. To verify the union: every position in ⟦α⟧ satisfies s ≤ t (since s = start(α)) and t < r (since reach(α) ≤ r). Every position in ⟦β⟧ satisfies s ≤ t (since start(β) ≥ start(α) = s) and t < r (since reach(β) ≤ r). Conversely, take any t with s ≤ t < r. Two cases arise. *Case 1:* t < reach(α). Then start(α) = s ≤ t < reach(α), so t ∈ ⟦α⟧. *Case 2:* t ≥ reach(α). Since t < r = max(reach(α), reach(β)) and t ≥ reach(α), we have r > reach(α), which forces r = reach(β). Then t < reach(β). The overlap/adjacency condition gives t ≥ reach(α) ≥ start(β), so start(β) ≤ t < reach(β), giving t ∈ ⟦β⟧. Every t ∈ [s, r) falls in ⟦α⟧ ∪ ⟦β⟧.
 
-The merged span γ = (s, r ⊖ s) denotes {t : s ≤ t < r}. Level-uniformity and S6 ensure #s = #r (both are starts or reaches of level-uniform spans at the same length), so by D1 the reach is s ⊕ (r ⊖ s) = r. We verify T12 for γ: since s < r (the union is non-empty), the divergence k satisfies k ≤ #s (type (i), as #s = #r), and the width r ⊖ s has a positive component at position k (rₖ − sₖ > 0 at the divergence point). The action point of the width is k ≤ #s, so γ is well-formed. The merged span is level-uniform: #start(γ) = #s = max(#r, #s) = #(r ⊖ s) = #width(γ), since #s = #r by level-compatibility. The denotation depends only on the endpoints s and r, not on the history of how they were obtained — confirming Nelson's assertion that "there is no choice as to what lies between" (LM 4/25).  ∎
+The merged span γ = (s, r ⊖ s) denotes {t : s ≤ t < r}. Level-uniformity and S6 ensure #s = #r (both are starts or reaches of level-uniform spans at the same length), and s < r since the union is non-empty, so by WF the pair γ = (s, r ⊖ s) is a well-formed level-uniform span with reach(γ) = r. The denotation depends only on the endpoints s and r, not on the history of how they were obtained — confirming Nelson's assertion that "there is no choice as to what lies between" (LM 4/25).  ∎
 
 A concrete instance (reusing S1's spans): let α = ([1, 3], [0, 4]) and β = ([1, 5], [0, 6]). Then reach(α) = [1, 7] and reach(β) = [1, 11]. Since start(α) = [1, 3] ≤ start(β) = [1, 5] and reach(α) = [1, 7] > start(β) = [1, 5], the spans overlap. We have s = [1, 3] and r = max([1, 7], [1, 11]) = [1, 11]. The merged span is γ = ([1, 3], [1, 11] ⊖ [1, 3]) = ([1, 3], [0, 8]) — divergence at position 2 gives 11 − 3 = 8. Verify: reach(γ) = [1, 3] ⊕ [0, 8] = [1, 11]. And ⟦α⟧ ∪ ⟦β⟧ = {t : [1, 3] ≤ t < [1, 7]} ∪ {t : [1, 5] ≤ t < [1, 11]} = {t : [1, 3] ≤ t < [1, 11]} = ⟦γ⟧ — the overlap region [1, 5]..[1, 7) is covered by both spans, and the union fills the interval without gaps.
 
@@ -151,7 +157,7 @@ Splitting is the reverse of merging: given a span σ and a point interior to it,
   (b) ⟦λ⟧ ∩ ⟦ρ⟧ = ∅                      (nothing duplicated)
   (c) reach(λ) = start(ρ) = p             (the parts are adjacent)
 
-*Proof.* First we verify T12 for both constructed spans. For λ = (s, d) where d = p ⊖ s: since s < p and #s = #p, the divergence k is of type (i) with k ≤ #s, and dₖ = pₖ − sₖ > 0, so d is positive with action point k ≤ #s. For ρ = (p, d') where d' = reach(σ) ⊖ p: since p < reach(σ) and #p = #reach(σ) (level-uniformity gives #reach = #s = #p), the divergence k' is of type (i) with k' ≤ #p, and d'ₖ' > 0. Both spans are well-formed and level-uniform: #start(λ) = #s = #d = #width(λ), and #start(ρ) = #p = #s = #d' = #width(ρ).
+*Proof.* First we verify T12 for both constructed spans. For λ = (s, d) where d = p ⊖ s: since s < p and #s = #p, WF gives a well-formed level-uniform span with reach(λ) = p. For ρ = (p, d') where d' = reach(σ) ⊖ p: since p < reach(σ) and #p = #reach(σ) (level-uniformity gives #reach = #s = #p), WF gives a well-formed level-uniform span with reach(ρ) = reach(σ).
 
 (a): ⟦λ⟧ ∪ ⟦ρ⟧ = {t : s ≤ t < p} ∪ {t : p ≤ t < reach(σ)} = {t : s ≤ t < reach(σ)} = ⟦σ⟧.
 
@@ -250,9 +256,9 @@ Condition N2 uses strict inequality. If reach(σᵢ) = start(σᵢ₊₁), the s
 *Construction.* If n = 0, the result is the empty span-set ⟨⟩, which vacuously satisfies N1 and N2. For n ≥ 1, proceed as follows. Sort the component spans into non-decreasing order of start position; T1 totally orders tumblers, but distinct spans may share a start (SC cases (iv) and (v)), so any ties are broken arbitrarily. The construction below depends only on the non-decreasing order of starts, not on the tie-breaking choice — uniqueness of the emitted span-set is inherited from S9. Seed the current interval [s, r) = [start(σ₁), reach(σ₁)) from the first span in sorted order, with the emitted set E = ∅. Then scan σ₂, ..., σₙ left to right. For each span σᵢ with i ≥ 2:
 
   — If start(σᵢ) ≤ r (overlap or adjacency): extend r to max(r, reach(σᵢ)).
-  — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s). Level-uniformity and S6 ensure #s = #r, so by D1 the reach is faithful. We verify T12: since s < r (the current interval was initialized from a non-empty span and is only extended by the merge step), the divergence k satisfies k ≤ #s (type (i), as #s = #r excludes the prefix case), and the width r ⊖ s has a positive component at position k (rₖ − sₖ > 0 at the divergence point). The action point of the width is k ≤ #s, so the emitted span is well-formed and level-uniform: #(r ⊖ s) = max(#r, #s) = #s, giving #start = #width. Then start a new current interval at [start(σᵢ), reach(σᵢ)).
+  — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s). Level-uniformity and S6 ensure #s = #r, and s < r (the current interval was initialized from a non-empty span and is only extended by the merge step), so by WF the emitted pair (s, r ⊖ s) is a well-formed level-uniform span with reach r. Then start a new current interval at [start(σᵢ), reach(σᵢ)).
 
-After processing all spans, emit the final interval — the same T12 and level-uniformity verification applies (the final interval is non-empty because it was initialized from a non-empty span).
+After processing all spans, emit the final interval — WF applies identically (the final interval is non-empty because it was initialized from a non-empty span).
 
 *Loop invariant.* Let E be the set of emitted spans after processing σ₁..σᵢ, and [s, r) the current interval. The invariant J is:
 
@@ -330,7 +336,7 @@ When one span contains another, the remainder is always bounded:
 
 **S11** (*DifferenceBound*). For level-uniform spans α and β with level_compat(start(α), start(β)) and ⟦β⟧ ⊆ ⟦α⟧, the set difference ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most two spans.
 
-*Proof.* Containment means start(α) ≤ start(β) and reach(β) ≤ reach(α). We derive the decomposition by element-chasing. Let t ∈ ⟦α⟧, i.e., start(α) ≤ t < reach(α). The total order T1 splits this range into three sub-ranges relative to β's endpoints:
+*Proof.* We first derive the boundary characterization of containment: ⟦β⟧ ⊆ ⟦α⟧ implies start(α) ≤ start(β) and reach(β) ≤ reach(α). For the start: start(β) ∈ ⟦β⟧ ⊆ ⟦α⟧ gives start(α) ≤ start(β) (and, since start(β) ∈ ⟦α⟧, also start(β) < reach(α)). For the reach: suppose for contradiction reach(β) > reach(α). Then start(β) < reach(α) < reach(β), so reach(α) ∈ ⟦β⟧ ⊆ ⟦α⟧, whence reach(α) < reach(α) — contradiction. Hence reach(β) ≤ reach(α). (S11d below derives the symmetric reverse-containment boundary chars at the same rigor.) We now derive the decomposition by element-chasing. Let t ∈ ⟦α⟧, i.e., start(α) ≤ t < reach(α). The total order T1 splits this range into three sub-ranges relative to β's endpoints:
 
   (L) start(α) ≤ t < start(β)
   (M) start(β) ≤ t < reach(β)
@@ -341,9 +347,9 @@ These three sub-ranges are exhaustive and pairwise disjoint by T1's totality: co
   Left:   {t : start(α) ≤ t < start(β)}      (empty when start(α) = start(β))
   Right:  {t : reach(β) ≤ t < reach(α)}       (empty when reach(β) = reach(α))
 
-We construct the spans explicitly. For the left interval, when start(α) < start(β), define λ = (start(α), start(β) ⊖ start(α)). Since start(α) < start(β) and #start(α) = #start(β) (level-compatibility), the divergence k is of type (i) with k ≤ #start(α). The width start(β) ⊖ start(α) has a positive component at position k (start(β)ₖ − start(α)ₖ > 0), so it is positive with action point k ≤ #start(α) — T12 is satisfied. By D1, reach(λ) = start(α) ⊕ (start(β) ⊖ start(α)) = start(β). The span is level-uniform: #width(λ) = max(#start(β), #start(α)) = #start(α) = #start(λ).
+We construct the spans explicitly. For the left interval, when start(α) < start(β), define λ = (start(α), start(β) ⊖ start(α)). Since start(α) < start(β) and #start(α) = #start(β) (level-compatibility), WF gives a well-formed level-uniform span with reach(λ) = start(β).
 
-For the right interval, when reach(β) < reach(α), define ρ = (reach(β), reach(α) ⊖ reach(β)). Since reach(β) < reach(α) and #reach(β) = #reach(α) (level-uniformity and level-compatibility ensure all boundary tumblers share the same length), the divergence k' is of type (i) with k' ≤ #reach(β). The width reach(α) ⊖ reach(β) has a positive component at position k' (reach(α)ₖ' − reach(β)ₖ' > 0), so it is positive with action point k' ≤ #reach(β) — T12 is satisfied. By D1, reach(ρ) = reach(β) ⊕ (reach(α) ⊖ reach(β)) = reach(α). The span is level-uniform: #width(ρ) = max(#reach(α), #reach(β)) = #reach(β) = #start(ρ).
+For the right interval, when reach(β) < reach(α), define ρ = (reach(β), reach(α) ⊖ reach(β)). Since reach(β) < reach(α) and #reach(β) = #reach(α) (level-uniformity and level-compatibility ensure all boundary tumblers share the same length), WF gives a well-formed level-uniform span with reach(ρ) = reach(α).
 
 The result is a span-set of 0, 1, or 2 components:
 
@@ -390,7 +396,7 @@ Nelson confirms the bound and the mechanism: "Removing a contained span from a c
 
 Therefore ⟦α⟧ \ ⟦β⟧ = {t : start(α) ≤ t < start(β)}. This is non-empty (start(α) < start(β) and start(α) ∈ ⟦α⟧ \ ⟦β⟧) and forms a single contiguous interval. We construct the span explicitly.
 
-Define γ = (start(α), start(β) ⊖ start(α)). Since start(α) < start(β) and #start(α) = #start(β) (level-compatibility), the divergence k is of type (i) with k ≤ #start(α). The width start(β) ⊖ start(α) has a positive component at position k, so it is positive with action point k ≤ #start(α) — T12 is satisfied. By D1 (DisplacementRoundTrip, ASN-0034), reach(γ) = start(α) ⊕ (start(β) ⊖ start(α)) = start(β). The span is level-uniform: #width(γ) = max(#start(β), #start(α)) = #start(α) = #start(γ).
+Define γ = (start(α), start(β) ⊖ start(α)). Since start(α) < start(β) and #start(α) = #start(β) (level-compatibility), WF gives a well-formed level-uniform span with reach(γ) = start(β).
 
 The denotation ⟦γ⟧ = {t : start(α) ≤ t < start(β)} = ⟦α⟧ \ ⟦β⟧. The result is exactly 1 span.
 
@@ -398,7 +404,7 @@ The denotation ⟦γ⟧ = {t : start(α) ≤ t < start(β)} = ⟦α⟧ \ ⟦β�
 
 **Case 2:** start(β) < start(α) < reach(β) < reach(α). We derive the difference by element-chasing. For t ∈ ⟦α⟧ (i.e., start(α) ≤ t < reach(α)): if t < reach(β), then start(β) < start(α) ≤ t and t < reach(β), so t ∈ ⟦β⟧; if t ≥ reach(β), then t ∉ ⟦β⟧ (since reach(β) is the exclusive upper bound of β). Therefore ⟦α⟧ \ ⟦β⟧ = {t : reach(β) ≤ t < reach(α)}.
 
-Define γ' = (reach(β), reach(α) ⊖ reach(β)). We verify D1 preconditions for the pair (reach(β), reach(α)): reach(β) < reach(α) is given; level-uniformity of α gives #reach(α) = #start(α), level-uniformity of β gives #reach(β) = #start(β), and level_compat(start(α), start(β)) gives #start(α) = #start(β), so #reach(β) = #reach(α) — neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #reach(β). The width reach(α) ⊖ reach(β) has a positive component at position k, so it is positive with action point k ≤ #reach(β) = #start(γ') — T12 is satisfied. By D1, reach(γ') = reach(β) ⊕ (reach(α) ⊖ reach(β)) = reach(α). The span is level-uniform: #width(γ') = max(#reach(α), #reach(β)) = #reach(β) = #start(γ').
+Define γ' = (reach(β), reach(α) ⊖ reach(β)). We establish #reach(β) = #reach(α): level-uniformity of α gives #reach(α) = #start(α), level-uniformity of β gives #reach(β) = #start(β), and level_compat(start(α), start(β)) gives #start(α) = #start(β). With reach(β) < reach(α) given, WF gives a well-formed level-uniform span with reach(γ') = reach(α).
 
 The denotation ⟦γ'⟧ = {t : reach(β) ≤ t < reach(α)} = ⟦α⟧ \ ⟦β⟧. The result is exactly 1 span.  ∎
 
@@ -411,7 +417,7 @@ The four results combine into a single statement covering all SC cases:
 
 **S11d** — *GeneralDifferenceBound* (LEMMA, lemma). For level-uniform spans α and β with level_compat(start(α), start(β)), the set difference ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most 2 spans.
 
-*Proof.* By SC (SpanClassification, ASN-0053), exactly one of five cases holds. For the reverse containment sub-case of SC(iv) — start(β) ≤ start(α) and reach(α) ≤ reach(β) with at least one strict — we derive ⟦α⟧ ⊆ ⟦β⟧: for t ∈ ⟦α⟧, start(β) ≤ start(α) ≤ t and t < reach(α) ≤ reach(β), so t ∈ ⟦β⟧. Hence the difference is empty.
+*Proof.* By SC, exactly one of five cases holds. For the reverse containment sub-case of SC(iv) — start(β) ≤ start(α) and reach(α) ≤ reach(β) with at least one strict — we derive ⟦α⟧ ⊆ ⟦β⟧: for t ∈ ⟦α⟧, start(β) ≤ start(α) ≤ t and t < reach(α) ≤ reach(β), so t ∈ ⟦β⟧. Hence the difference is empty.
 
 | SC case | Difference | Bound | By |
 |---------|-----------|-------|----|
@@ -439,6 +445,7 @@ The span algebra is defined over denotations — the sets of positions covered �
 | D0 | Displacement well-definedness: a < b and divergence(a, b) ≤ #a (DisplacementWellDefined, ASN-0034) | cited |
 | D1 | Displacement round-trip: for a < b with divergence(a, b) ≤ #a and #a ≤ #b, a ⊕ (b ⊖ a) = b (DisplacementRoundTrip, ASN-0034) | cited |
 | WR | Width recovery (span-level consequence): for level-uniform σ, reach(σ) ⊖ start(σ) = width(σ) — derived here from DisplacementUnique (D2, ASN-0034) | introduced |
+| WF | For s, r ∈ T with s < r and #s = #r, the pair (s, r ⊖ s) is a well-formed level-uniform span with reach r | introduced |
 | S0 | Spans are convex: every position between two members is also a member | introduced |
 | SC | Span classification: five exhaustive cases (separated, adjacent, proper overlap, containment, equal) | introduced |
 | S6 | Level constraint: level_compat(t₁, t₂) ≡ #t₁ = #t₂; a span is level-uniform when #start = #width | introduced |
