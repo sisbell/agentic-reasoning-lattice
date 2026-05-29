@@ -74,8 +74,6 @@ Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cas
 
 ## Well-formed spans from endpoints
 
-The level_compat precondition is what excludes the troublesome cross-level case: a deeper-level point such as [1, 3, 0, 1] relative to start [1, 3] has divergence([1, 3], [1, 3, 0, 1]) = 3 (the prefix case, min + 1), exceeding #[1, 3] = 2, so D0 fails and no valid displacement exists. When start and reach are level-compatible this case cannot arise, and we can always recover a well-formed span from its endpoints.
-
 **WF** (*WellFormedSpanFromEndpoints*). For s, r ∈ T with s < r and #s = #r, the pair γ = (s, r ⊖ s) is a well-formed level-uniform span (satisfying T12) with reach(γ) = r.
 
 *Proof.* Since s < r and #s = #r, the divergence k is of type (i) with k ≤ #s — equal length excludes the prefix case. The width r ⊖ s has a positive component at position k (namely rₖ − sₖ > 0), so it is positive with action point k ≤ #s; T12 is satisfied. By D1, reach(γ) = s ⊕ (r ⊖ s) = r. The span is level-uniform: #width(γ) = #(r ⊖ s) = max(#r, #s) = #s = #start(γ).  ∎
@@ -319,7 +317,7 @@ For span-sets Σ₁, Σ₂, Σ₃ whose component spans are level-uniform and mu
 
 *Proof.* ⟦Σ₁ ∪ Σ₂⟧ = ⟦Σ₁⟧ ∪ ⟦Σ₂⟧ = ⟦Σ₂⟧ ∪ ⟦Σ₁⟧ = ⟦Σ₂ ∪ Σ₁⟧. Since normalization depends only on the denotation (S9), normalize(Σ₁ ∪ Σ₂) = normalize(Σ₂ ∪ Σ₁). Associativity follows identically from the associativity of set union.  ∎
 
-Nelson argues this is structurally guaranteed: "spans are intervals on a total order. Combining intervals on a total order is set union, which is commutative and associative" (Q8). He notes that span-sets are described as "a series of spans" — suggesting ordered representation — but the semantics are purely set-theoretic: "what matters is which bytes are designated, not the order of the series." Two span-sets denoting the same byte collection are equivalent regardless of how their component spans are listed.
+The set-theoretic semantics — span-sets denote byte collections, not ordered series — is Nelson's intent (Q8): "what matters is which bytes are designated, not the order of the series."
 
 
 ## Difference
