@@ -2,7 +2,7 @@
 
 *2026-03-18, revised 2026-03-19*
 
-ASN-0034 gave us the tumbler space T with its total order (T1) and its arithmetic — the addition ⊕ that advances along the tumbler line, the subtraction ⊖ that recovers displacements. It defined a span σ = (s, ℓ) as a well-formed pair satisfying T12: ℓ is positive, the action point of ℓ falls within #s, and σ denotes the half-open interval ⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}. By TA-strict, every span is non-empty.
+A span σ = (s, ℓ) denotes the half-open interval ⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}, and by TA-strict every span is non-empty.
 
 But a single span is merely a building block. This ASN formalizes the algebra over spans: comparing them, merging them, splitting them, normalizing collections to canonical form, and taking their difference.
 
@@ -19,7 +19,7 @@ The reach is the first position beyond σ — the exclusive upper bound. It is w
 
 We shall need the reverse: given two positions a ≤ b on the tumbler line, can we recover the displacement from a to b — the unique width w such that a ⊕ w = b?
 
-ASN-0034 answers this directly: the displacement from a to b is w = b ⊖ a (TumblerSub, ASN-0034), well-defined and round-tripping (a ⊕ w = b) exactly when a < b, divergence(a, b) ≤ #a, and #a ≤ #b (D1, ASN-0034), with uniqueness by D2 (ASN-0034).
+The displacement recovering b from a is w = b ⊖ a (TumblerSub, ASN-0034); WF and WR below discharge the conditions under which it round-trips.
 
 **S6** (*LevelConstraint*). Two tumblers t₁ and t₂ are *level-compatible*, written level_compat(t₁, t₂), when they have the same length:
 
