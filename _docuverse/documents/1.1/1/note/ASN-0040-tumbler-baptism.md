@@ -88,8 +88,6 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 - *Preconditions:* p ∈ T, d ≥ 1. S(p, d) = c₁, c₂, ... defined by c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0).
 - *Postconditions:* `(A n : n ≥ 1 : p ≼ cₙ)` — every stream element extends p as a prefix.
 
-As a consequence, since every cₙ extends p, the entire stream lies within the set {t ∈ T : p ≼ t}, which forms a contiguous interval under T1 by T5 (ContiguousSubtrees).
-
 Nelson describes exactly this process: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right."
 
 
@@ -108,7 +106,7 @@ We partition the components of t' into three ranges and count zeros in each. Pos
 Since these three ranges exhaust all #p + d positions of t', the total zero count is zeros(t') = zeros(p) + (d − 1) + 0 = zeros(p) + (d − 1). ∎
 
 *Formal Contract:*
-- *Preconditions:* p ∈ T with d ≥ 1. (In the baptismal context, d ∈ {1, 2} by B6(ii).)
+- *Preconditions:* p ∈ T with d ≥ 1.
 - *Postconditions:* `zeros(inc(p, d)) = zeros(p) + (d − 1)`.
 
 B5 establishes the zeros count for the *first* child c₁ of a stream. The sibling stream preserves it:
@@ -190,7 +188,7 @@ Equal tumblers have equal length (T3, CanonicalRepresentation), so #p + d = #p' 
 
 In every case the assumed `x` leads to contradiction, so `S(p, d) ∩ S(p', d') = ∅`. ∎
 
-Dropping B6(i) admits aliasing: a pure-trailing-zero parent and its truncation at the next depth produce the identical base, hence the identical stream — e.g. ([1, 0], 1) and ([1], 2) both yield base [1, 0, 1] and stream {[1, 0, n] : n ≥ 1}. This is precisely the unequal-length-parents case: position 2 reads as the lone zero separator from the ([1], 2) form and as the last component of [1, 0] from the ([1, 0], 1) form — and since [1, 0] ends in zero, both readings are 0, so the contradiction collapses and the streams genuinely coincide. The T4-validity of p' (B6(i)) — forbidding a zero final component — is exactly the hypothesis that closes that case.
+B6(i) is load-bearing: dropping it admits aliasing. A pure-trailing-zero parent and its truncation at the next depth produce the identical base, hence the identical stream — e.g. ([1, 0], 1) and ([1], 2) both yield base [1, 0, 1] and stream {[1, 0, n] : n ≥ 1}. The T4-validity of p' (B6(i)) — forbidding a zero final component — is exactly the hypothesis the unequal-length case above relies on.
 
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
