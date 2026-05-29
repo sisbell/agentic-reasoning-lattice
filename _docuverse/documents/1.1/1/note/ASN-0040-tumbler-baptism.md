@@ -37,7 +37,7 @@ s.B is the *committed registry* of baptized positions, distinct from the foundat
   - *Baptismal operations.* For each (p, d) satisfying B6 (Valid Depth, below), `baptize(p, d) ∈ Σ` adjoins a single element to the registry: `op(s).B = s.B ∪ {next(s.B, p, d)}`.
   - *s.B-frame operations.* Every other `op ∈ Σ` preserves the registry: `(A op ∈ Σ \ {baptize(p, d) : B6(p, d)}, s ∈ dom(op) : op(s).B = s.B)`.
 
-This partition fixes the shape of every inductive step over reachable states. We call it the *s.B-frame dispatch*.
+We call it the *s.B-frame dispatch*.
 
 Irrevocability follows immediately:
 
@@ -427,19 +427,17 @@ At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 
 **Unbounded extent exhibited.** The trace stops at B₄ with hwm(B₄, [1], 2) = 2. Three further sibling baptisms in ([1], 2) yield [1, 0, 3], [1, 0, 4], [1, 0, 5], advancing hwm to 5 — and nothing in the construction caps the count.
 
 
-## Co-reachable uniqueness
+## Uniqueness
 
-**B8 (Co-reachable Uniqueness).** Distinct *co-reachable* baptismal acts produce distinct addresses, where two acts are co-reachable iff both lie on a single transition path s_init →* s for some reachable state s:
+**B8 (Uniqueness).** Distinct baptismal acts produce distinct addresses:
 
-  `(A a, b : produced by distinct co-reachable baptismal acts : a ≠ b)`.
-
-Under a single linear history — the only reachability this model admits, since every reachable state extends one transition path from s_init — co-reachability holds of every pair of baptismal acts, so B8 coincides here with the foundation's unconditional GlobalUniqueness (ASN-0034). The restriction to co-reachable acts becomes substantive only once histories may diverge across replicas; that branching case is deferred to the cross-replica open question below.
+  `(A a, b : produced by distinct baptismal acts : a ≠ b)`.
 
 The proof splits two ways: distinct baptisms within the same namespace, and baptisms in different namespaces.
 
-*Proof.* Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'); by the co-reachability hypothesis both acts lie on a single transition path s_init →* s. We proceed by case analysis on whether the two baptisms target the same or different namespaces.
+*Proof.* Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). This model admits only linear history — every reachable state extends one transition path from s_init — so both acts lie on a single transition path s_init →* s. We proceed by case analysis on whether the two baptisms target the same or different namespaces.
 
-*Case 1: same namespace — (p, d) = (p', d').* The co-reachability hypothesis gives a single transition path s_init →* s carrying both β₁ and β₂. Along that one path the edges are linearly ordered, so β₁ and β₂ are comparable; without loss of generality β₁ precedes β₂, the argument with roles exchanged being identical. By B4 (Atomic Baptism), each baptism is a single Σ-edge of this path. Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts. By the Bop postcondition, the successor state s₁' = β₁(s₁) has s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. Since β₁ precedes β₂, s₂ is reachable from s₁' through a (possibly empty) sequence of transitions — that is, s₁' →* s₂. B0★ gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
+*Case 1: same namespace — (p, d) = (p', d').* The single transition path s_init →* s carries both β₁ and β₂. Along that one path the edges are linearly ordered, so β₁ and β₂ are comparable; without loss of generality β₁ precedes β₂, the argument with roles exchanged being identical. By B4 (Atomic Baptism), each baptism is a single Σ-edge of this path. Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts. By the Bop postcondition, the successor state s₁' = β₁(s₁) has s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. Since β₁ precedes β₂, s₂ is reachable from s₁' through a (possibly empty) sequence of transitions — that is, s₁' →* s₂. B0★ gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
 
 Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mark Sufficiency), a = c_{m₁+1} and b = c_{m₂+1}, where cₙ denotes the n-th element of S(p, d). Since a = c_{m₁+1} ∈ s₂.B and B1 (Contiguous Prefix) holds for s₂, the children of (p, d) in s₂ include {c₁, ..., c_{m₁+1}}, so hwm(s₂.B, p, d) ≥ m₁ + 1. That is, m₂ ≥ m₁ + 1, hence m₂ + 1 ≥ m₁ + 2 > m₁ + 1. The indices m₁ + 1 and m₂ + 1 are distinct with m₁ + 1 < m₂ + 1. By S0 (StreamOrdering), c_{m₁+1} < c_{m₂+1} under the lexicographic order T1. By T1 irreflexivity, c_{m₁+1} ≠ c_{m₂+1}. Therefore a ≠ b.
 
@@ -448,7 +446,7 @@ Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mar
 In both cases a ≠ b. No two distinct baptisms, whether in the same namespace, across sibling namespaces, or at different hierarchical levels, can produce the same address. ∎
 
 *Formal Contract:*
-- *Preconditions:* β₁, β₂ are distinct *co-reachable* baptismal acts in a system conforming to B0★ (which subsumes B0), B0a, B1, B4, and B7; β₁ produces a in namespace (p, d) and β₂ produces b in namespace (p', d'), where both (p, d) and (p', d') satisfy B6.
+- *Preconditions:* β₁, β₂ are distinct baptismal acts in a system conforming to B0★ (which subsumes B0), B0a, B1, B4, and B7; β₁ produces a in namespace (p, d) and β₂ produces b in namespace (p', d'), where both (p, d) and (p', d') satisfy B6.
 - *Postconditions:* `a ≠ b`.
 
 
@@ -506,7 +504,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
 | B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from S(p,d) structure, TA5(c), B6, TA5(d), T3, T4 |
-| B8 | Distinct co-reachable baptisms produce distinct addresses — co-reachable (single-path) uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
+| B8 | Distinct baptisms produce distinct addresses — uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))` — unbounded extent | from B1, B2, B4, B6, Bop, TA5(c), TA5(d), NAT-closure |
 | B10 | `(A t ∈ s.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
 
