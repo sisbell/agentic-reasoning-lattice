@@ -27,7 +27,9 @@ with k = divergence(a, b). We write w = b ⊖ a and call it the *displacement fr
 
 D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). For equal-length endpoints with a < b and #a = #b, the divergence is of type (i) with k ≤ #a — equal length excludes the prefix case — so D0's domain condition holds, and #a ≤ #b lets D1 (ASN-0034) close the round-trip: a ⊕ (b ⊖ a) = b. The displacement from a to b is recovered faithfully whenever the two endpoints share a length.
 
-**WR** (*WidthRecovery*). For a level-uniform span σ = (s, ℓ) with #s = #ℓ: reach(σ) ⊖ start(σ) = width(σ).
+This equal-length condition recurs throughout the algebra, so we name it now. Two tumblers are *level-compatible* when they have the same length, and a span σ = (s, ℓ) is *level-uniform* when its start and width share a length, #s = #ℓ; S6 below states this formally as the predicate level_compat and develops its consequences. For a level-uniform span, #reach(σ) = #s by the result-length identity (#(s ⊕ ℓ) = #ℓ), so start, width, and reach all share one length.
+
+**WR** (*WidthRecovery*). For a level-uniform span σ = (s, ℓ): reach(σ) ⊖ start(σ) = width(σ).
 
 *Proof.* The reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), D2 (DisplacementUnique, ASN-0034) gives reach(σ) ⊖ start(σ) = ℓ = width(σ), provided its preconditions hold for (a, b, w) = (s, reach(σ), ℓ). We discharge them: s < reach(σ) by TA-strict on T12; ℓ > 0 and its action point k ≤ #s by T12; s ⊕ ℓ = reach(σ) by definition of reach (so TA0's preconditions hold, giving #(s ⊕ ℓ) = #ℓ = #s); the divergence between s and reach(σ) is of type (i) with k ≤ #s, since s < reach(σ) and #s = #reach(σ) excludes the prefix case, satisfying D0; #s ≤ #reach(σ) since both equal #s. Every D2 precondition is met, so reach(σ) ⊖ start(σ) = width(σ).  ∎
 
@@ -186,7 +188,15 @@ TA-assoc applies, yielding (i) associativity (s ⊕ d) ⊕ d' = s ⊕ (d ⊕ d')
 
   s ⊕ (d ⊕ d') = s ⊕ ℓ
 
-To apply TA-LC (ASN-0034), both compositions must be well-defined: s ⊕ (d ⊕ d') by TA-assoc, and s ⊕ ℓ since it equals reach(σ) (TA0 on σ). TA-LC gives:
+We discharge TA-LC's preconditions (TA-LC, ASN-0034) with a := s, x := d ⊕ d', y := ℓ:
+
+- *Pos(d ⊕ d')*: consequence (ii) of TA-assoc.
+- *Pos(ℓ)*: T12 on σ.
+- *actionPoint(d ⊕ d') ≤ #s*: consequence (iii) gives actionPoint(d ⊕ d') = min(k_d, k_{d'}) ≤ k_d ≤ #s, the last bound being T12 on λ discharged above.
+- *actionPoint(ℓ) ≤ #s*: T12 on σ.
+- *s ⊕ (d ⊕ d') = s ⊕ ℓ*: the chain above.
+
+TA-LC gives:
 
   d ⊕ d' = ℓ.  ∎
 
@@ -300,7 +310,7 @@ The configuration start(αᵢ) = start(βᵢ) ∧ reach(αᵢ) = reach(βᵢ) ca
 
 All cases yield contradiction, so Σ̂₁ = Σ̂₂.  ∎
 
-Nelson confirms both existence and uniqueness: "The tumbler line is a total order... The contiguity relation partitions S into maximal contiguous components. Each run yields exactly one span... The minimal span-set is unique" (Q4). He also identifies a critical caveat: the normalized form is unique *at a given instant* but depends on the ambient population of the tumbler line. Since "a span that contains nothing today may at a later time contain a million documents" (LM 4/25), a span-set that minimally covers a target set of positions may need revision as new addresses are allocated between existing ones. The normalization S8-S9 concerns a fixed span-set's canonical decomposition into non-overlapping components — not the evolving relationship between a span-set and a changing population.
+Nelson confirms both existence and uniqueness: "The tumbler line is a total order... The contiguity relation partitions S into maximal contiguous components. Each run yields exactly one span... The minimal span-set is unique" (Q4). This uniqueness is fixed-instant: S8–S9 concern a fixed span-set's canonical decomposition, not its stability as new addresses are allocated into the ambient population — Open Question 1 poses that concern.
 
 
 ## Union is order-independent
