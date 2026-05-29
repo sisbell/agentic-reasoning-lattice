@@ -175,18 +175,17 @@ Each parent-depth pair defines a namespace. Distinct namespaces must produce non
 
 provided both `(p, d)` and `(p', d')` satisfy B6.
 
-*Proof.* Suppose, for contradiction, some `x ∈ S(p, d) ∩ S(p', d')`. By S(p, d)'s postconditions, x is simultaneously
-`x = [p₁, …, p_{#p}, 0, …, 0, n]` of length #p + d (with d − 1 separating zeros and ordinal n ≥ 1) and
-`x = [p'₁, …, p'_{#p'}, 0, …, 0, m]` of length #p' + d' (with d' − 1 separating zeros and ordinal m ≥ 1).
-Equal tumblers have equal length (T3, CanonicalRepresentation), so #p + d = #p' + d'.
+*Proof.* We prove disjointness directly by cases on the element lengths of the two streams, which are #p + d and #p' + d' by S(p, d)'s postconditions. Recall that every element of S(p, d) has the form `[p₁, …, p_{#p}, 0, …, 0, n]` (length #p + d, with d − 1 separating zeros and ordinal n ≥ 1), and symmetrically for S(p', d').
 
-*Length split.* If #p + d ≠ #p' + d', no shared element exists (T3) and the streams are disjoint outright; this disposes of every unequal-length pair. So assume #p + d = #p' + d' and examine the two ways the parents' lengths can relate.
+*Length split (unequal element length, #p + d ≠ #p' + d').* Every element of S(p, d) has length #p + d and every element of S(p', d') has length #p' + d'; since equal tumblers have equal length (T3, CanonicalRepresentation), no tumbler can belong to both. The streams are disjoint outright, disposing of every unequal-length pair.
 
-*Equal-length parents (#p = #p').* Then d = d'. The first #p components of x equal both p and p', so p = p' by T3, whence (p, d) = (p', d') — contradicting (p, d) ≠ (p', d'). No shared element is possible.
+*Equal element length (#p + d = #p' + d').* We examine the two ways the parents' lengths can relate, ruling out a shared element in each.
 
-*Unequal-length parents (#p ≠ #p').* With d, d' ∈ {1, 2} (B6(ii)) and #p + d = #p' + d', the parent lengths differ by at most 1, so WLOG #p' = #p + 1, d = 2, d' = 1. Read position #p + 1 of x two ways. From the (p, 2) form it is the lone separating zero, value 0. From the (p', 1) form there are no separating zeros and positions 1 … #p' = 1 … #p + 1 are preserved from p', so this position equals p'_{#p'}, the last component of p'. Since (p', d') satisfies B6, p' satisfies T4, whose field-segment constraint forbids a zero final component (TA5-SigValid: p'_{#p'} ≠ 0). The two readings — 0 and a nonzero value — are incompatible, so no shared element exists.
+*Equal-length parents (#p = #p').* Then d = d'. Suppose some `x ∈ S(p, d) ∩ S(p', d')`. The first #p components of x equal both p and p' by the element form, so p = p' by T3, whence (p, d) = (p', d') — contradicting (p, d) ≠ (p', d'). No shared element is possible.
 
-In every case the assumed `x` leads to contradiction, so `S(p, d) ∩ S(p', d') = ∅`. ∎
+*Unequal-length parents (#p ≠ #p').* With d, d' ∈ {1, 2} (B6(ii)) and #p + d = #p' + d', the parent lengths differ by at most 1, so WLOG #p' = #p + 1, d = 2, d' = 1. Suppose some `x ∈ S(p, d) ∩ S(p', d')`, and read position #p + 1 of x two ways. From the (p, 2) form it is the lone separating zero, value 0. From the (p', 1) form there are no separating zeros and positions 1 … #p' = 1 … #p + 1 are preserved from p', so this position equals p'_{#p'}, the last component of p'. Since (p', d') satisfies B6, p' satisfies T4, whose field-segment constraint forbids a zero final component (TA5-SigValid: p'_{#p'} ≠ 0). The two readings — 0 and a nonzero value — are incompatible, so no shared element exists.
+
+In every case `S(p, d) ∩ S(p', d') = ∅`. ∎
 
 B6(i) is load-bearing: dropping it admits aliasing. A pure-trailing-zero parent and its truncation at the next depth produce the identical base, hence the identical stream — e.g. ([1, 0], 1) and ([1], 2) both yield base [1, 0, 1] and stream {[1, 0, n] : n ≥ 1}. The T4-validity of p' (B6(i)) — forbidding a zero final component — is exactly the hypothesis the unequal-length case above relies on.
 
@@ -351,11 +350,11 @@ We now specify the baptism operation itself.
 
 **Well-definedness.** The postcondition invokes next(s.B, p, d), which NextAddress establishes lies in T for any finite B ⊆ T, p ∈ T, d ≥ 1; B_fin (§B_fin) discharges the finiteness premise for B = s.B at any reachable s, so next(s.B, p, d) ∈ T here.
 
-**Freshness.** Let a = next(s.B, p, d). We show a ∉ s.B without appeal to contiguity. By definition children(s.B, p, d) = s.B ∩ S(p, d) ⊆ S(p, d). Two branches of the next definition arise.
+**Freshness.** Let a = next(s.B, p, d). We show a ∉ s.B. By definition children(s.B, p, d) = s.B ∩ S(p, d) ⊆ S(p, d). Two branches of the next definition arise.
 
 *children(s.B, p, d) = ∅.* Then a = inc(p, d) = c₁ ∈ S(p, d). Were a ∈ s.B, then a ∈ s.B ∩ S(p, d) = children(s.B, p, d) = ∅ — impossible. So a ∉ s.B.
 
-*children(s.B, p, d) ≠ ∅.* Then a = inc(max(children(s.B, p, d)), 0); the maximum is well-defined by NextAddress's totality argument (§NextAddress). Write q = max(children(s.B, p, d)). Since q ∈ children(s.B, p, d) ⊆ S(p, d), q = cₘ for some m, and a = inc(cₘ, 0) = c_{m+1} ∈ S(p, d). By S0 / TA5(a), inc(·, 0) strictly advances its argument, so a > q ≥ x for every x ∈ children(s.B, p, d); hence a ∉ children(s.B, p, d). Since a ∈ S(p, d), from a ∉ children(s.B, p, d) = s.B ∩ S(p, d) we get a ∉ s.B.
+*children(s.B, p, d) ≠ ∅.* Then a = inc(max(children(s.B, p, d)), 0). Write q = max(children(s.B, p, d)). Since q ∈ children(s.B, p, d) ⊆ S(p, d), q = cₘ for some m, and a = inc(cₘ, 0) = c_{m+1} ∈ S(p, d). By S0 / TA5(a), inc(·, 0) strictly advances its argument, so a > q ≥ x for every x ∈ children(s.B, p, d); hence a ∉ children(s.B, p, d). Since a ∈ S(p, d), from a ∉ children(s.B, p, d) = s.B ∩ S(p, d) we get a ∉ s.B.
 
 In both branches a ∉ s.B. ∎
 
