@@ -34,7 +34,7 @@ s.B is the *committed registry* of baptized positions, distinct from the foundat
 
 **B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
 
-  - *Baptismal operations.* For each (p, d) satisfying B6 (Valid Depth, below), `baptize(p, d) ∈ Σ` is the operation specified at Bop, the canonical site of the registry-mutation rule. Its sole effect on the registry is the single-element adjunction Bop fixes.
+  - *Baptismal operations.* For each (p, d) satisfying B6 (Valid Depth, below), `baptize(p, d) ∈ Σ` adjoins a single element to the registry: `op(s).B = s.B ∪ {next(s.B, p, d)}`.
   - *s.B-frame operations.* Every other `op ∈ Σ` preserves the registry: `(A op ∈ Σ \ {baptize(p, d) : B6(p, d)}, s ∈ dom(op) : op(s).B = s.B)`.
 
 Irrevocability follows immediately:
@@ -185,7 +185,7 @@ provided both `(p, d)` and `(p', d')` satisfy B6.
 
 *Equal-length parents (#p = #p').* Then d = d', and since (p, d) ≠ (p', d') we have p ≠ p'. By T3 the parents differ at some position j with 1 ≤ j ≤ #p, so pⱼ ≠ p'ⱼ. Since d ≥ 1, j ≤ #p ≤ #p + d − 1, so position j lies in the invariant prefix of both streams (and equally below #p' + d' − 1, as #p' = #p). Every element of S(p, d) carries pⱼ at position j and every element of S(p', d') carries p'ⱼ ≠ pⱼ there, so the streams disagree at the fixed position j and are disjoint.
 
-*Unequal-length parents (#p ≠ #p').* With d, d' ∈ {1, 2} (B6(ii)) and #p + d = #p' + d', the parent lengths differ by at most 1, so WLOG #p' = #p + 1, d = 2, d' = 1. Consider the fixed position #p + 1. In S(p, 2) it is the lone separating zero, value 0, and #p + 1 = #p + 2 − 1 places it at the last invariant-prefix position. In S(p', 1) there are no separating zeros and positions 1 … #p' = 1 … #p + 1 are preserved from p', so position #p + 1 equals p'_{#p'}, the last component of p'; this is the last invariant-prefix position there too, since #p + 1 = #p' = (#p' + 1) − 1. Since (p', d') satisfies B6, p' satisfies T4, whose field-segment constraint forbids a zero final component (TA5-SigValid: p'_{#p'} ≠ 0). The two streams thus carry 0 and a nonzero value at the fixed position #p + 1, so they disagree there and are disjoint.
+*Unequal-length parents (#p ≠ #p').* With d, d' ∈ {1, 2} (B6(ii)) and #p + d = #p' + d', the parent lengths differ by at most 1, so WLOG #p' = #p + 1, d = 2, d' = 1. Consider the fixed position #p + 1. In S(p, 2) it is the lone separating zero, value 0, and #p + 1 = #p + 2 − 1 places it at the last invariant-prefix position. In S(p', 1) there are no separating zeros and positions 1 … #p' = 1 … #p + 1 are preserved from p', so position #p + 1 equals p'_{#p'}, the last component of p'; this is the last invariant-prefix position there too, since #p + 1 = #p' = (#p' + 1) − 1. Since (p', d') satisfies B6, p' satisfies T4, whose field-segment constraint forbids a zero final component (T4: p'_{#p'} ≠ 0). The two streams thus carry 0 and a nonzero value at the fixed position #p + 1, so they disagree there and are disjoint.
 
 In every case the two streams disagree at a fixed position (or differ in length outright), so `S(p, d) ∩ S(p', d') = ∅`. ∎
 
@@ -194,7 +194,7 @@ B6(i) is load-bearing: dropping it admits aliasing. A pure-trailing-zero parent 
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
 - *Postconditions:* `S(p, d) ∩ S(p', d') = ∅`.
-- *Depends:* S(p, d) postconditions (canonical form [p, 0^{d−1}, n], uniform length #p + d, and the invariant prefix across positions 1 … #p + d − 1), TA5(c) (sibling increments fix every position but the last, so the invariant prefix is shared across the stream), B6 (T4-validity and d ∈ {1, 2} of both parents), TA5(d) (base-address length and component structure underlying the canonical form), T3 (CanonicalRepresentation — unequal lengths give distinct tumblers, driving the length split; disagreement at a fixed position gives distinct tumblers, closing the equal-length cases), T4 / TA5-SigValid (valid parent has a nonzero last component, closing the unequal-length-parents case).
+- *Depends:* S(p, d) postconditions (canonical form [p, 0^{d−1}, n], uniform length #p + d, and the invariant prefix across positions 1 … #p + d − 1), TA5(c) (sibling increments fix every position but the last, so the invariant prefix is shared across the stream), B6 (T4-validity and d ∈ {1, 2} of both parents), TA5(d) (base-address length and component structure underlying the canonical form), T3 (CanonicalRepresentation — unequal lengths give distinct tumblers, driving the length split; disagreement at a fixed position gives distinct tumblers, closing the equal-length cases), T4 (valid parent has a nonzero last component — field-segment constraint t_{#t} ≠ 0 — closing the unequal-length-parents case).
 
 
 ## Seed conformance and registry finiteness
@@ -371,15 +371,13 @@ A baptized position need not contain anything. Nelson names these *ghost element
 
 A ghost element is "virtually present in tumbler-space, since links may be made to them which embrace all the contents below them." The position is in s.B — it has been baptized, it is permanent, it anchors a namespace for children — but nothing is stored at that address.
 
-**B3 (Ghost Validity).** We introduce `Occupied : T × 𝒮 → {⊤, ⊥}` as an abstract predicate parameter of the baptism model — a placeholder for any future content-storage layer, read as "the address t carries content in state s". Content storage is out of scope here, so `Occupied` is left uninterpreted and no operation of this ASN reads or sets it. B3 is an *introduced constraint* on any future content-storage operation:
+**B3 (Ghost Validity).** Baptism establishes a position as a permanent, addressable anchor — its membership in s.B — independently of whether any content is ever stored there. A baptized position that holds no content is a *ghost element*: it is permanent, ordered, and able to anchor a namespace for children, yet stores nothing. The admissible configurations of a tumbler t ∈ T in a reachable state s are therefore:
 
-  `(A s : s reachable from s_init : (A t ∈ T : Occupied(t, s) ⟹ t ∈ s.B))`
+  - baptized and populated: t ∈ s.B with content stored at t
+  - baptized and empty: t ∈ s.B with nothing stored — a ghost element (permitted)
+  - unbaptized: t ∉ s.B — not a system entity
 
-— content is permitted only at baptized addresses. Under this constraint, the permitted configurations of a tumbler t ∈ T in a reachable state s are:
-
-  - t ∈ s.B ∧ Occupied(t, s): a populated position
-  - t ∈ s.B ∧ ¬Occupied(t, s): a ghost element (permitted)
-  - t ∉ s.B ∧ ¬Occupied(t, s): an unbaptized, unoccupied position (not a baptized position / not a system entity)
+Content presupposes baptism: any content-storage layer built atop this model may store content at an address only after that address is baptized.
 
 
 ## A baptism traced
@@ -500,12 +498,12 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B_fin | `(A s reachable : s.B is finite)` — registry finiteness | from B₀ conf., B0a |
 | B1 | `B6(p, d) ⟹ (cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))` — contiguous prefix over B6-valid namespaces (requires conforming B₀) | from B₀ conf., B0, B0a, B6, B7, next def., S0, TA5(c) |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
-| B3 | `(A s reachable, t ∈ T : Occupied(t, s) ⟹ t ∈ s.B)` — content permitted only at baptized addresses; ghost elements (`t ∈ s.B ∧ ¬Occupied(t, s)`) explicitly allowed | introduced |
+| B3 | Baptism (`t ∈ s.B`) is independent of content: a baptized position may hold nothing — a ghost element — and content presupposes baptism | introduced |
 | B4 | Each `baptize(p, d) ∈ Σ` is a single edge of `→`: read-hwm / compute-next / commit-union collapse onto one transition | corollary of B0a + foundation Σ signature |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
-| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from S(p,d) structure, TA5(c), B6, TA5(d), T3, T4/TA5-SigValid |
+| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from S(p,d) structure, TA5(c), B6, TA5(d), T3, T4 |
 | B8 | Distinct co-reachable baptisms produce distinct addresses — co-reachable (single-path) uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))` — unbounded extent | from B1, B2, B4, B6, Bop, TA5(c), TA5(d), NAT-closure |
 | B10 | `(A t ∈ s.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
