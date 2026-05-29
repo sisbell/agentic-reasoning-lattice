@@ -30,6 +30,8 @@ We introduce the central state component:
 
 A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed set B₀ ⊆ T of root addresses established at system genesis, subject to the conformance requirement stated at B₀ conf. below. Thereafter it grows monotonically.
 
+We must situate s.B against the foundation's `allocated(s)` (AllocatedSet, ASN-0034), since both name "a position that has been assigned." They are not the same component: `allocated(s)` is the allocator's *realized domain* — the addresses an allocator chain has actually produced, the *query* phase of Gregory's two-phase anatomy — whereas s.B is the *committed registry*, the candidates written into the persistent store, the *write* phase that is the moment of baptism. This ASN governs the write, so B0/B0★ are not a re-derivation of T8's permanence but the permanence law for the registry component specifically; whether the two components coincide (whether every allocator extension is matched by a baptismal write) is deferred to the open question `allocated(s) ⊆ s.B` below.
+
 **B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
 
   - *Baptismal operations.* For each (p, d) satisfying B6 (Valid Depth, below), `baptize(p, d) ∈ Σ` is the operation specified by Bop below; its action on the registry is the one Bop fixes, adding one new element.
@@ -68,7 +70,7 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 - *Definition:* S(p, d) = c₁, c₂, c₃, ... where c₁ = inc(p, d) and cₙ₊₁ = inc(cₙ, 0) for n ≥ 1.
 - *Preconditions:* p ∈ T, d ≥ 1.
 - *Postconditions:* `(A n ≥ 1 : cₙ = [p₁, ..., p_{#p}, 0, ..., 0, n])` with d − 1 zeros, `#cₙ = #p + d`, `sig(cₙ) = #p + d`, and `cₙᵢ = pᵢ` for `1 ≤ i ≤ #p`.
-- *Axiom:* TA5(b) (prefix preservation), TA5(c) (sibling structure), TA5(d) (child structure).
+- *Depends:* TA5(b) (prefix preservation), TA5(c) (sibling structure), TA5(d) (child structure).
 
 **S0 (StreamOrdering).** `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
 
@@ -235,7 +237,7 @@ We define the *children* of parent p at depth d in state B:
 - *Definition:* next(B, p, d) = if children(B, p, d) = ∅ then inc(p, d) else inc(max(children(B, p, d)), 0), where children(B, p, d) = B ∩ S(p, d).
 - *Preconditions:* B ⊆ T finite (discharged by B_fin when B = s.B for a reachable s); p ∈ T; d ≥ 1; S(p, d) defined.
 - *Postconditions:* next(B, p, d) ∈ T — the result is a valid tumbler.
-- *Axiom:* TA5(c) (sibling increment well-definedness), TA5(d) (child increment well-definedness), T1 (total order guarantees max exists).
+- *Depends:* TA5(c) (sibling increment well-definedness), TA5(d) (child increment well-definedness), T1 (total order guarantees max exists).
 
 
 ## The contiguous prefix property
@@ -304,7 +306,7 @@ B1 yields a simplification: the entire allocation state of a namespace reduces t
 - *Definition:* hwm(B, p, d) = #children(B, p, d) where children(B, p, d) = {cₙ ∈ S(p, d) : cₙ ∈ B}.
 - *Preconditions:* B6(p, d); B satisfies B1 for (p, d); p ∈ T, d ≥ 1; S(p, d) defined.
 - *Invariant:* for B6-valid (p, d), hwm(B, p, d) = m implies children(B, p, d) = {c₁, ..., cₘ} and max(children) = cₘ (when m ≥ 1).
-- *Axiom:* B1 (contiguous prefix), S0 (stream ordering).
+- *Depends:* B1 (contiguous prefix), S0 (stream ordering).
 
 Because children(B, p, d) = {c₁, ..., cₘ} is a contiguous prefix (B1), the maximum is always cₘ and the next element is always c_{m+1}. The operational definition of next — "find max, increment" — reduces to counting:
 
@@ -495,7 +497,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 *Formal Contract:*
 - *Preconditions:* (p, d) satisfying B6(p, d); M ∈ ℕ; current state s reachable from s_init.
 - *Postconditions:* There exists s' with s →* s' via a finite sequence of baptismal transitions such that hwm(s'.B, p, d) ≥ M.
-- *Axiom:* TA5(c), TA5(d) — inc(·, 0) and inc(·, d) are total on T, supplying each cₙ; NAT-closure — ℕ is closed under successor, so the child ordinal n + 1 ∈ ℕ at every step, hence grows without bound.
+- *Depends:* TA5(c), TA5(d) — inc(·, 0) and inc(·, d) are total on T, supplying each cₙ; NAT-closure — ℕ is closed under successor, so the child ordinal n + 1 ∈ ℕ at every step, hence grows without bound.
 
 
 ## Properties Introduced
