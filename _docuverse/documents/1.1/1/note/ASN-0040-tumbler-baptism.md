@@ -28,7 +28,7 @@ We introduce the central state component:
 
 **s.B (BaptismalRegistry).** s.B ⊆ T — the set of baptized tumblers.
 
-A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed set B₀ ⊆ T of root addresses established at system genesis, subject to the conformance requirement stated at B₀ conf. below. Thereafter it grows monotonically.
+A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed set B₀ ⊆ T of root addresses established at system genesis. Thereafter it grows monotonically.
 
 s.B is the *committed registry* of baptized positions, distinct from the foundation's `allocated(s)` (AllocatedSet, ASN-0034), which is the allocator's *realized domain*.
 
@@ -37,7 +37,7 @@ s.B is the *committed registry* of baptized positions, distinct from the foundat
   - *Baptismal operations.* For each (p, d) satisfying B6 (Valid Depth, below), `baptize(p, d) ∈ Σ` adjoins a single element to the registry: `op(s).B = s.B ∪ {next(s.B, p, d)}`.
   - *s.B-frame operations.* Every other `op ∈ Σ` preserves the registry: `(A op ∈ Σ \ {baptize(p, d) : B6(p, d)}, s ∈ dom(op) : op(s).B = s.B)`.
 
-This partition fixes the shape of every inductive step over reachable states. We call it the *s.B-frame dispatch*: in an s.B-frame transition `op(s).B = s.B`, so any predicate on s.B carried by the inductive hypothesis transfers to the successor unchanged, leaving only the baptismal case to argue.
+This partition fixes the shape of every inductive step over reachable states. We call it the *s.B-frame dispatch*.
 
 Irrevocability follows immediately:
 
@@ -432,6 +432,8 @@ At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 
 **B8 (Co-reachable Uniqueness).** Distinct *co-reachable* baptismal acts produce distinct addresses, where two acts are co-reachable iff both lie on a single transition path s_init →* s for some reachable state s:
 
   `(A a, b : produced by distinct co-reachable baptismal acts : a ≠ b)`.
+
+Under a single linear history — the only reachability this model admits, since every reachable state extends one transition path from s_init — co-reachability holds of every pair of baptismal acts, so B8 coincides here with the foundation's unconditional GlobalUniqueness (ASN-0034). The restriction to co-reachable acts becomes substantive only once histories may diverge across replicas; that branching case is deferred to the cross-replica open question below.
 
 The proof splits two ways: distinct baptisms within the same namespace, and baptisms in different namespaces.
 
