@@ -28,8 +28,7 @@ The execution discipline under a single baptismal authority we make explicit:
 *Justification.* Grounded in implementation: Gregory's udanax-green commits baptisms through a single serialized path, so the realized history is a strict linear sequence.
 
 *Formal Contract:*
-- *Axiom:* The states realized under a single baptismal authority are totally ordered by `→*` — for any two such reachable states s, s', either s →* s' or s' →* s.
-- *Scope:* single baptismal authority (one serialized commit path); cross-replica concurrency is out of scope.
+- *Axiom:* The states realized under a single baptismal authority — one serialized commit path — are totally ordered by `→*`: for any two such reachable states s, s', either s →* s' or s' →* s.
 
 
 ## The baptismal registry
@@ -469,7 +468,7 @@ Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mar
 
 *Case 2: different namespaces — (p, d) ≠ (p', d').* By construction, a ∈ S(p, d) — baptism in namespace (p, d) produces the next element of its sibling stream — and b ∈ S(p', d') by the same reasoning. By B7 (Namespace Disjointness), S(p, d) ∩ S(p', d') = ∅, so a ≠ b.
 
-In both cases a ≠ b. No two distinct baptisms, whether in the same namespace, across sibling namespaces, or at different hierarchical levels, can produce the same address. ∎
+In both cases a ≠ b. The two clauses of this guarantee rest on different foundations and carry different strengths. The same-namespace clause (Case 1) holds *under a single baptismal authority*: it is discharged entirely by B-Seq's serialization, and two concurrent commits reading the same hwm would both compute c_{m+1} and collide — so this clause does not extend across authorities (see Open Question 6). The cross-namespace clause (Case 2) — baptisms across sibling namespaces or at different hierarchical levels — rests on B7, which is purely structural and authority-independent, so distinctness there holds regardless of how many authorities are active. ∎
 
 *Formal Contract:*
 - *Preconditions:* β₁, β₂ are distinct baptismal acts under a single baptismal authority (so B-Seq applies) in a system conforming to B-Seq, B0★ (which subsumes B0), B0a, B1, B4, and B7; β₁ produces a in namespace (p, d) and β₂ produces b in namespace (p', d'), where both (p, d) and (p', d') satisfy B6.
