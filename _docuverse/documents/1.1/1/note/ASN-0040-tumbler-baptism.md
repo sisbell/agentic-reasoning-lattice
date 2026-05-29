@@ -72,8 +72,6 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 
 **S0 (StreamOrdering).** `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
 
-S0 mirrors T10a.7 (EnumerationInjectivity); it is re-derived here from TA5(a) pending the `allocated(s) ⊆ s.B` alignment (Open Questions).
-
 *Proof.* For each n ≥ 1, cₙ₊₁ = inc(cₙ, 0), and TA5(a) gives inc(cₙ, 0) > cₙ, so cₙ < cₙ₊₁. To extend this to arbitrary indices i < j, fix i and induct on j. *Base case (j = i + 1):* cᵢ < cᵢ₊₁ is the per-step increase just established. *Inductive step:* assume cᵢ < cⱼ; the per-step increase gives cⱼ < cⱼ₊₁, and T1's transitivity (c) gives cᵢ < cⱼ₊₁. By induction, cᵢ < cⱼ for every j > i. The base c₁ = inc(p, d) ∈ T (TA5(d)) and each cₙ ∈ T (TA5(c)) supply the well-formed operands these comparisons require. ∎
 
 *Formal Contract:*
@@ -141,7 +139,7 @@ The `.0.` that appears in addresses like `1.1.0.1.0.1` is not a syntactic conven
 
   (iii) zeros(p) + (d − 1) ≤ 3.
 
-Condition (i) supplies a T4-valid parent; given that, conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream. Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy; it is binding only at d = 2 (at d = 1 it reduces to T4's own zero bound on p). Together:
+Condition (i) supplies a T4-valid parent; given that, conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream. Condition (ii) follows from TA5a (IncrementPreservesT4): for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy; it is binding only at d = 2 (at d = 1 it reduces to T4's own zero bound on p). Together:
 
 | Parent level | d = 1 (same level) | d = 2 (level crossing) |
 |---|---|---|
@@ -191,7 +189,7 @@ provided both `(p, d)` and `(p', d')` satisfy B6.
 
 Every case yields a contradiction, so S(p, d) ∩ S(p', d') = ∅. ∎
 
-B6(i)'s role is visible in the unequal-length case: it is the T4-validity of p' (hence p'_{#p'} ≠ 0, via TA5-SigValid) that forces a_{#p+1} > 0 and closes the contradiction. Without it, a pure-trailing-zero parent and its truncation at the next depth would alias to the identical stream — e.g. ([1, 0], 1) and ([1], 2) both produce {[1, 0, n] : n ≥ 1} — so distinct pairs (p, d) ≠ (p', d') could share a stream and B7 would be false. Requiring (i) admits exactly one of each such pair, making the disjointness statement well-posed.
+Dropping B6(i) admits aliasing: a pure-trailing-zero parent and its truncation at the next depth produce the identical stream — e.g. ([1, 0], 1) and ([1], 2) both produce {[1, 0, n] : n ≥ 1}.
 
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
@@ -203,7 +201,7 @@ B6(i)'s role is visible in the unequal-length case: it is the T4-validity of p' 
 
 The invariant proofs that follow induct over transition sequences from the initial state. They require a conforming seed and a finiteness guarantee that each transition preserves.
 
-**B₀ conf. (SeedConformance).** B₀ is finite, `(A p, d : children(B₀, p, d) is a contiguous prefix of S(p, d))`, and `(A t ∈ B₀ : t satisfies T4)`.
+**B₀ conf. (SeedConformance).** B₀ is finite, `(A p, d : B6(p, d) : children(B₀, p, d) is a contiguous prefix of S(p, d))`, and `(A t ∈ B₀ : t satisfies T4)`.
 
 Non-emptiness is not among them; this ASN neither requires nor establishes it.
 
@@ -256,7 +254,7 @@ Equivalently: for every B6-valid namespace (p, d), children(B, p, d) = {c₁, ..
 
 *Proof.* We must show that in every state reachable from a conforming seed B₀, for every B6-valid namespace (p, d), children(s.B, p, d) is a contiguous prefix of S(p, d). The argument proceeds by induction on the number of state transitions from the initial state.
 
-*Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), children(B₀, p, d) is a contiguous prefix of S(p, d) for every (p, d). B1 holds at genesis.
+*Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), children(B₀, p, d) is a contiguous prefix of S(p, d) for every B6-valid (p, d). B1 holds at genesis.
 
 *Inductive step.* Assume B1 holds for state s with registry B. By B0a, a transition s → s' is either s.B-frame — then B' = B and B1 holds at B' immediately by the inductive hypothesis — or baptismal, the case we now treat.
 
@@ -276,7 +274,7 @@ Since B1 is preserved in the target namespace and in every other B6-valid namesp
 
 *Formal Contract:*
 - *Invariant:* `(A p, d : B6(p, d) : (A n : n ≥ 1 ∧ cₙ ∈ s.B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ s.B)))` — equivalently, for every B6-valid (p, d), children(s.B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
-- *Base:* B₀ conf. — seed set satisfies contiguous prefix for all (p, d), a fortiori for every B6-valid (p, d).
+- *Base:* B₀ conf. — seed set satisfies contiguous prefix for every B6-valid (p, d).
 - *Preservation:* Each baptismal transition preserves B1 in the target namespace (by B0a, B0, S0, TA5(c), and the next definition) and in every other B6-valid namespace (by B7).
 
 From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by induction on the baptism sequence that T4 validity is a registry-wide invariant:
@@ -525,7 +523,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B0 | `s.B ⊆ s'.B` for all transitions — irrevocability (analogous to T8 for the registry component) | from B0a |
 | B0★ | `s.B ⊆ s'.B` for all s →* s' (reflexive-transitive closure of transitions) — multi-step irrevocability | labelled corollary of B0 |
 | B0a | Σ partitions into baptismal operations (the `baptize(p, d)` for B6-valid (p, d), each acting on s.B as in Bop) and s.B-frame operations (every other op satisfies `op(s).B = s.B`) — registry grows only through baptism | design requirement |
-| B₀ conf. | B₀ is finite, `children(B₀, p, d)` is a contiguous prefix for all (p, d), and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | design requirement |
+| B₀ conf. | B₀ is finite, `children(B₀, p, d)` is a contiguous prefix for every B6-valid (p, d), and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | design requirement |
 | B_fin | `(A s reachable : s.B is finite)` — registry finiteness | from B₀ conf., B0a |
 | B1 | `B6(p, d) ⟹ (cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))` — contiguous prefix over B6-valid namespaces (requires conforming B₀) | from B₀ conf., B0, B0a, B6, B7, next def., S0, TA5(c) |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
