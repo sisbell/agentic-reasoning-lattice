@@ -147,10 +147,8 @@ In both cases, next(B, p, d) produces an element of T. The definition is total o
 **Bop (Baptism).** The operation baptize(p, d) is defined by:
 
   PRE: B6(p, d) — depth validity (defined below); no parent-baptized prerequisite is imposed
-  POST: s'.B = s.B ∪ {next(s.B, p, d)}
-  STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below). See the Formal Contract for its status as a Σ-invariant.
-
-The frame condition — only s.B is modified — is stated in the Formal Contract *Frame:* line below.
+  POST: s'.B = s.B ∪ {next(s.B, p, d)}; only s.B is modified
+  STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below) — each baptize(p, d) is a single atomic Σ-edge
 
 By B4 (Atomic Baptism, §B4 below), next(s.B, p, d) is evaluated against the precondition state s of the same transition that produces s'.
 
@@ -173,7 +171,7 @@ We claim that children(B, p, d) is always a *prefix* of the sibling stream: the 
 
 **B1 (Contiguous Prefix).** `(A p, d : B6(p, d) : (A n : n ≥ 1 ∧ cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)))`.
 
-Equivalently: for every B6-valid namespace (p, d), children(B, p, d) = {c₁, ..., cₘ} for some m ≥ 0. Nothing downstream needs contiguity for a namespace baptism can never target — every consumer (hwm, B2, Bop's freshness clause, B8 Case 1, B9) invokes B1 only for B6-valid (p, d) — so the invariant is scoped accordingly.
+Equivalently: for every B6-valid namespace (p, d), children(B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
 
 *Proof.* We must show that in every state reachable from a conforming seed B₀, for every B6-valid namespace (p, d), children(s.B, p, d) is a contiguous prefix of S(p, d). The argument proceeds by induction on the number of state transitions from the initial state.
 
@@ -191,7 +189,7 @@ When m = 0: children(B, p₀, d₀) = ∅, so a = next(B, p₀, d₀) = inc(p₀
 
 When m ≥ 1: the maximum of children(B, p₀, d₀) is cₘ, since the prefix {c₁, ..., cₘ} is strictly ordered by S0 (StreamOrdering). The definition of next gives a = inc(cₘ, 0). By TA5(c), this sibling increment advances only the last significant component of cₘ by 1, producing exactly c_{m+1} — the immediate successor in S(p₀, d₀). No element is skipped: the definition of next always selects the immediate successor via inc(cₘ, 0), which by TA5(c) cannot leap over any stream element. By B0 (Irrevocability), B ⊆ B', so {c₁, ..., cₘ} ⊆ B'. Together with the new element c_{m+1} ∈ B', we obtain children(B', p₀, d₀) = {c₁, ..., cₘ, c_{m+1}}, a contiguous prefix of length m + 1.
 
-*All other B6-valid namespaces: (p, d) ≠ (p₀, d₀) with (p, d) satisfying B6.* Both (p₀, d₀) and (p, d) meet B7's preconditions, so B7 gives S(p₀, d₀) ∩ S(p, d) = ∅, hence a ∉ S(p, d). Therefore children(B', p, d) = children(B, p, d), a contiguous prefix by the inductive hypothesis. Because B1 is scoped to B6-valid namespaces, no non-B6 pair need be considered: the target reduces to (p₀, d₀) and every other case to a distinct B6-valid pair handled by B7.
+*All other B6-valid namespaces: (p, d) ≠ (p₀, d₀) with (p, d) satisfying B6.* Both (p₀, d₀) and (p, d) meet B7's preconditions, so B7 gives S(p₀, d₀) ∩ S(p, d) = ∅, hence a ∉ S(p, d). Therefore children(B', p, d) = children(B, p, d), a contiguous prefix by the inductive hypothesis.
 
 In both the target namespace and every other B6-valid namespace, children(B', p, d) is a contiguous prefix of S(p, d).
 
@@ -206,7 +204,7 @@ The induction also requires a conforming base:
 
 **B₀ conf. (SeedConformance).** B₀ is finite, `(A p, d : children(B₀, p, d) is a contiguous prefix of S(p, d))`, and `(A t ∈ B₀ : t satisfies T4)`.
 
-The three conditions are the Base lines of B_fin (finiteness), B1 (genesis contiguity), and B10 (seed T4-validity) respectively. Non-emptiness is not among them; this ASN neither requires nor establishes it.
+Non-emptiness is not among them; this ASN neither requires nor establishes it.
 
 B₀ conformance fixes the seed as a finite set; B0a constrains every transition to add at most one element. The composition yields a registry-wide finiteness invariant:
 
@@ -263,8 +261,8 @@ It follows that the prefix's maximum is its last element cₘ — the identity m
 
 *Formal Contract:*
 - *Definition:* hwm(B, p, d) = #children(B, p, d) where children(B, p, d) = {cₙ ∈ S(p, d) : cₙ ∈ B}.
-- *Preconditions:* B satisfies B1 for (p, d); p ∈ T, d ≥ 1; S(p, d) defined.
-- *Invariant:* hwm(B, p, d) = m implies children(B, p, d) = {c₁, ..., cₘ} and max(children) = cₘ (when m ≥ 1).
+- *Preconditions:* B6(p, d); B satisfies B1 for (p, d); p ∈ T, d ≥ 1; S(p, d) defined.
+- *Invariant:* for B6-valid (p, d), hwm(B, p, d) = m implies children(B, p, d) = {c₁, ..., cₘ} and max(children) = cₘ (when m ≥ 1).
 - *Axiom:* B1 (contiguous prefix), S0 (stream ordering).
 
 Because children(B, p, d) = {c₁, ..., cₘ} is a contiguous prefix (B1), the maximum is always cₘ and the next element is always c_{m+1}. The operational definition of next — "find max, increment" — reduces to counting:
@@ -540,7 +538,7 @@ Nelson insists that the address space imposes no capacity limits:
 
 **B9 (Unbounded Extent).** `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))`.
 
-No architectural limit constrains how many children a position may have. This follows from T0(a) (UnboundedComponents): since each tumbler component is an unbounded natural number and the child ordinal occupies a single component, the ordinal can grow without bound. Combined with B1, the children of any parent can grow to form an arbitrarily long contiguous prefix {c₁, ..., cₘ} for any m. The design guarantees infinite headroom, leaving capacity as a pure engineering concern.
+No architectural limit constrains how many children a position may have. This follows from T0(a) (UnboundedComponentValues): since each tumbler component is an unbounded natural number and the child ordinal occupies a single component, the ordinal can grow without bound. Combined with B1, the children of any parent can grow to form an arbitrarily long contiguous prefix {c₁, ..., cₘ} for any m. The design guarantees infinite headroom, leaving capacity as a pure engineering concern.
 
 *Proof.* We must show that for any pair (p, d) satisfying B6 and any bound M ∈ ℕ, there exists a state s' with s →* s' (via baptisms) such that hwm(s'.B, p, d) ≥ M. The argument is constructive: we exhibit the required sequence of baptismal transitions.
 
