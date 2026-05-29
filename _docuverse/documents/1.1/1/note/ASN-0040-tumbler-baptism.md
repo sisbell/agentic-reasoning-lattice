@@ -23,7 +23,7 @@ The initial state s_init has s_init.B = B₀, the seed set established at genesi
 
 The execution discipline under a single baptismal authority we make explicit:
 
-**B-Seq (Sequential Commitment).** Within a single baptismal authority, the states actually realized by execution lie on one transition path from s_init: the visited states are totally ordered by `→*`. Equivalently, no two distinct baptismal commits proceed from the same state onto divergent branches — every commit reads the registry left by its predecessor.
+**B-Seq (Sequential Commitment).** Within a single baptismal authority, the states actually realized by execution lie on one transition path from s_init: the visited states are totally ordered by `→*`.
 
 *Justification.* Grounded in implementation: Gregory's udanax-green commits baptisms through a single serialized path, so the realized history is a strict linear sequence.
 
@@ -111,7 +111,7 @@ Baptism interacts with the field hierarchy through the depth parameter. Recall f
 
 **B5 (Field Advancement).** `zeros(inc(p, d)) = zeros(p) + (d − 1)`.
 
-For d = 1: zeros is preserved — the child is at the same hierarchical level. For d = 2: zeros advances by 1 — the child descends one level.
+For d = 1: zeros is preserved — the child is at the same hierarchical level. For d = 2: zeros advances by 1 — the child descends one level, the increment emitting one separator zero (TA5(d)'s lone intermediate zero) followed by the first child's ordinal 1.
 
 *Proof.* Let t' = inc(p, d). Since d ≥ 1, TA5(d) applies: t' has length #p + d, with the first #p components preserved from p (TA5(b)), d − 1 zero-valued components at positions #p + 1 through #p + d − 1, and a final component of value 1 at position #p + d.
 
@@ -140,8 +140,6 @@ To apply B5a across the sibling stream S(p, d), we discharge its precondition: e
   `(A n ≥ 1 : zeros(cₙ) = zeros(p) + (d − 1))`
 
 All elements in a stream share the same hierarchical level.
-
-The `.0.` that appears in addresses like `1.1.0.1.0.1` is not a syntactic convention imposed by a parser — it is arithmetic output. When inc(p, 2) extends p by two components, the first is zero (the field separator, from TA5(d)'s d − 1 = 1 intermediate zero) and the second is 1 (the first child's ordinal). The depth-2 increment emits the separator and ordinal; the field structure of tumblers is *produced* by baptism arithmetic.
 
 **B6 (Valid Depth).** Baptism at depth d from parent p is valid when:
 
@@ -341,7 +339,9 @@ In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. ∎
 
 ## Atomicity
 
-**B4 (Atomic Baptism — corollary of the foundation Σ signature).** Each `baptize(p, d) ∈ Σ` is a single edge of `→`: no transition interposes between evaluating `next(s.B, p, d)` and committing the union. This is the foundation's transition model (NoDeallocation: each `op ∈ Σ` is a partial function `𝒮 ⇀ 𝒮`, a transition being the pair `(s, op(s))`) read off for baptism.
+**B4 (Atomic Baptism — corollary of the foundation Σ signature).** Each `baptize(p, d) ∈ Σ` is a single edge of `→`: no transition interposes between evaluating `next(s.B, p, d)` and committing the union.
+
+*Depends:* NoDeallocation (ASN-0034) — each `op ∈ Σ` is a partial function `𝒮 ⇀ 𝒮`, a transition being the pair `(s, op(s))`.
 
 
 ## The baptism operation
