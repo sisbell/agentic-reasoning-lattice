@@ -286,8 +286,6 @@ We record the relationship between baptism and content as a *forward requirement
   - t ∈ s.B ∧ ¬Occupied(t, s): a ghost element (permitted)
   - t ∉ s.B ∧ ¬Occupied(t, s): an unbaptized, unoccupied position (not a baptized position / not a system entity)
 
-The fourth quadrant — t ∉ s.B ∧ Occupied(t, s) — is precisely the negation of the requirement, hence forbidden.
-
 ## Atomicity
 
 Baptism reads the high water mark, computes the next address, and commits the result as one indivisible step.
@@ -347,7 +345,7 @@ This deserves attention. The `.0.` that appears in addresses like `1.1.0.1.0.1` 
 
   (iii) zeros(p) + (d − 1) ≤ 3.
 
-Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (i) is necessary for T4 except at the d = 1 trailing-zero case (S2), where it is retained to keep the namespace map injective. Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy; it is independently necessary only at d = 2 (at d = 1 it reduces to zeros(p) ≤ 3 and is subsumed by condition (i)). Together:
+Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (i) is necessary for T4 except at the d = 1 trailing-zero case, where it is retained for the injectivity reason given at S2. Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy; it is independently necessary only at d = 2. Together:
 
 | Parent level | d = 1 (same level) | d = 2 (level crossing) |
 |---|---|---|
@@ -384,7 +382,7 @@ Condition (i) is therefore necessary for T4 preservation: a count violation (zer
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1.
-- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: conditions (i), (ii), (iii) are jointly necessary for T4 preservation of the sibling stream — violating any single one forces a T4 violation, with one exception: the d = 1 trailing-zero case (the S2 exception).
+- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: each condition is necessary at the depth where it binds — (i) and (ii) wherever they apply, (iii) independently only at d = 2 — and violating a binding condition forces a T4 violation; the sole exception is the d = 1 trailing-zero case, where (i) is retained for injectivity (S2) rather than for T4.
 
 
 ## Namespace disjointness
@@ -469,28 +467,14 @@ At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 
 
   State: B₅ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1], [1, 0, 3]}. hwm(B₅, [1], 2) = 3.
 
-  **Step 6: fourth user.** Same namespace ([1], 2).
+  And so on for the M − m = 2 further steps: each is a single inc(·, 0) on namespace ([1], 2) that advances the ordinal by one and (by B2) yields c_{hwm+1} — inc([1, 0, 3], 0) = [1, 0, 4] brings hwm to 4 (state B₆), then inc([1, 0, 4], 0) = [1, 0, 5] brings hwm to 5 = M (state B₇ = B₅ ∪ {[1, 0, 4], [1, 0, 5]}).
 
-  next(B₅, [1], 2) = inc([1, 0, 3], 0) = [1, 0, 4]
-
-  By B2, c_{hwm+1} = c₄. B1: children = {c₁, c₂, c₃, c₄}, contiguous prefix of length 4.
-
-  State: B₆ = B₅ ∪ {[1, 0, 4]}. hwm(B₆, [1], 2) = 4.
-
-  **Step 7: fifth user.** Same namespace ([1], 2).
-
-  next(B₆, [1], 2) = inc([1, 0, 4], 0) = [1, 0, 5]
-
-  By B2, c_{hwm+1} = c₅. B1: children = {c₁, c₂, c₃, c₄, c₅}, contiguous prefix of length 5.
-
-  State: B₇ = B₆ ∪ {[1, 0, 5]}. hwm(B₇, [1], 2) = 5 = M.
-
-The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9 for the pair ((p, d), M) = (([1], 2), 5); for any target M' > 5, an additional M' − 5 baptisms in ([1], 2) extend B₇ to a registry with hwm = M' along the same pattern. Crucially, contiguity is maintained at every step — children(B₄, [1], 2) = {c₁, c₂}, children(B₅, [1], 2) = {c₁, c₂, c₃}, children(B₆, [1], 2) = {c₁, ..., c₄}, and children(B₇, [1], 2) = {c₁, ..., c₅} — so the trace simultaneously witnesses B9 (unboundedness) and B1 (contiguity) under iteration.
+The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9 for the pair ((p, d), M) = (([1], 2), 5); for any target M' > 5, an additional M' − 5 baptisms in ([1], 2) extend B₇ to a registry with hwm = M' along the same pattern. Crucially, contiguity is maintained at every step — children(B₅, [1], 2) = {c₁, c₂, c₃}, children(B₆, [1], 2) = {c₁, ..., c₄}, and children(B₇, [1], 2) = {c₁, ..., c₅} — so the trace simultaneously witnesses B9 (unboundedness) and B1 (contiguity) under iteration.
 
 
-## Global uniqueness
+## Co-reachable uniqueness
 
-**B8 (Global Uniqueness).** Distinct *co-reachable* baptismal acts produce distinct addresses, where two acts are co-reachable iff both lie on a single transition path s_init →* s for some reachable state s:
+**B8 (Co-reachable Uniqueness).** Distinct *co-reachable* baptismal acts produce distinct addresses, where two acts are co-reachable iff both lie on a single transition path s_init →* s for some reachable state s:
 
   `(A a, b : produced by distinct co-reachable baptismal acts : a ≠ b)`.
 
@@ -567,7 +551,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
 | B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from S(p,d), S1, T3, T4/TA5-SigValid, TA5(d), B6 |
-| B8 | Distinct baptisms produce distinct addresses — global uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
+| B8 | Distinct co-reachable baptisms produce distinct addresses — co-reachable (single-path) uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))` — unbounded extent | from B1, B2, B4, B6, Bop, TA5(c), TA5(d), NAT-closure |
 | B10 | `(A t ∈ s.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
 
