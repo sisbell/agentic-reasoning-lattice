@@ -76,11 +76,13 @@ Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cas
 
 Formally: for level-uniform spans α and β with level_compat(start(α), start(β)), either ⟦α⟧ ∩ ⟦β⟧ = ∅, or there exists a span γ such that ⟦γ⟧ = ⟦α⟧ ∩ ⟦β⟧.
 
-*Proof.* Define s' = max(start(α), start(β)) and r' = min(reach(α), reach(β)). If r' ≤ s', the intersection is empty — this covers the separated and adjacent cases. Otherwise r' > s', and:
+*Proof.* Define s' = max(start(α), start(β)) and r' = min(reach(α), reach(β)). The forward inclusion holds unconditionally, before any case split, by the total order alone: take any t ∈ ⟦α⟧ ∩ ⟦β⟧, then start(α) ≤ t < reach(α) and start(β) ≤ t < reach(β), so t ≥ max(start(α), start(β)) = s' and t < min(reach(α), reach(β)) = r'; hence s' ≤ t < r'. Thus ⟦α⟧ ∩ ⟦β⟧ ⊆ {t : s' ≤ t < r'}.
+
+Now split on r' against s'. If r' ≤ s', then {t : s' ≤ t < r'} = ∅, so the forward inclusion forces ⟦α⟧ ∩ ⟦β⟧ = ∅ — emptiness by derivation, not assertion; this covers the separated and adjacent cases. Otherwise r' > s', and:
 
   ⟦α⟧ ∩ ⟦β⟧ = {t : s' ≤ t < r'}
 
-We verify this equality by membership. Take any t ∈ ⟦α⟧ ∩ ⟦β⟧. Then start(α) ≤ t < reach(α) and start(β) ≤ t < reach(β), so t ≥ max(start(α), start(β)) = s' and t < min(reach(α), reach(β)) = r'; hence s' ≤ t < r'. Conversely, take any t with s' ≤ t < r'. Then t ≥ s' = max(start(α), start(β)) ≥ start(α) and t < r' = min(reach(α), reach(β)) ≤ reach(α), so t ∈ ⟦α⟧; symmetrically t ≥ start(β) and t < reach(β), so t ∈ ⟦β⟧; hence t ∈ ⟦α⟧ ∩ ⟦β⟧. The intersection is therefore the half-open interval [s', r'). The set is non-empty (s' is a member since s' < r'). By level-uniformity and S6, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length. So #s' = #r', and with s' < r', WF gives that the pair γ = (s', r' ⊖ s') is a well-formed level-uniform span with reach(γ) = r'.  ∎
+The forward inclusion is already in hand; for the reverse, take any t with s' ≤ t < r'. Then t ≥ s' = max(start(α), start(β)) ≥ start(α) and t < r' = min(reach(α), reach(β)) ≤ reach(α), so t ∈ ⟦α⟧; symmetrically t ≥ start(β) and t < reach(β), so t ∈ ⟦β⟧; hence t ∈ ⟦α⟧ ∩ ⟦β⟧. The intersection is therefore the half-open interval [s', r'). The set is non-empty (s' is a member since s' < r'). By level-uniformity and S6, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length. So #s' = #r', and with s' < r', WF gives that the pair γ = (s', r' ⊖ s') is a well-formed level-uniform span with reach(γ) = r'.  ∎
 
 Gregory confirms this from the implementation: intersecting two spans yields at most one output span (Q10).
 
@@ -106,7 +108,7 @@ Adjacent spans share no positions (reach is an exclusive upper bound) but their 
 
 **S3** (*MergeEquivalence*). For level-uniform spans α and β with level_compat(start(α), start(β)), when they overlap or are adjacent, the union ⟦α⟧ ∪ ⟦β⟧ is the denotation of a single span. Moreover, this merged span is identical to one specified directly with the same endpoints.
 
-*Proof.* Without loss of generality, assume start(α) ≤ start(β). The overlap-or-adjacency condition means reach(α) ≥ start(β). Define:
+*Proof.* Without loss of generality, assume start(α) ≤ start(β). The adjacency predicate has two disjuncts; under this assumption the disjunct reach(β) = start(α) is vacuous, since it would give reach(β) = start(α) ≤ start(β) < reach(β), i.e. reach(β) < reach(β). Overlap-or-adjacency therefore reduces to reach(α) = start(β) (adjacency) or reach(α) > start(β) (overlap), whence reach(α) ≥ start(β). Define:
 
   s = start(α) = min(start(α), start(β))
   r = max(reach(α), reach(β))
