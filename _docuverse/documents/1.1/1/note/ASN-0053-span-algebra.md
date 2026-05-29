@@ -39,8 +39,6 @@ Gregory confirms the implementation enforces this: the split operation requires 
 
 *Proof.* The reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), D2 (DisplacementUnique, ASN-0034) gives reach(σ) ⊖ start(σ) = ℓ = width(σ), provided its preconditions hold for (a, b, w) = (s, reach(σ), ℓ). We discharge them: s < reach(σ) by TA-strict on T12; ℓ > 0 and its action point k ≤ #s by T12; s ⊕ ℓ = reach(σ) by definition of reach (so TA0's preconditions hold, giving #(s ⊕ ℓ) = #ℓ = #s); the divergence between s and reach(σ) is of type (i) with k ≤ #s, since s < reach(σ) and #s = #reach(σ) excludes the prefix case, satisfying D0; #s ≤ #reach(σ) since both equal #s. Every D2 precondition is met, so reach(σ) ⊖ start(σ) = width(σ).  ∎
 
-The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. So start ⊕ width determines reach (by definition of ⊕), and start and reach determine width (by D2, via reach ⊖ start).
-
 A worked instance of the unequal-length failure: σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2] — when #start > #width the recovered displacement does not round-trip.
 
 
@@ -52,7 +50,7 @@ The first property of spans is that they admit no gaps:
 
 *Proof.* If start(σ) ≤ p ≤ q ≤ r < reach(σ), then start(σ) ≤ q < reach(σ), so q ∈ ⟦σ⟧.  ∎
 
-This follows solely from T1 being a total order. Every position between two members of a span is itself a member — a span cannot "skip" a position. In topological terms, half-open intervals on a total order are convex. The hierarchical structure of tumbler addresses does not affect this: sub-addresses like [1, 3, 0, 5] that fall numerically between [1, 3] and [1, 7] are genuinely interior to any span containing both endpoints, because `tumblercmp` compares tumblers lexicographically without treating zero-separators specially (Gregory, Q11). The ordering is flat even though the addresses are hierarchical.
+This follows solely from T1 being a total order. Every position between two members of a span is itself a member — a span cannot "skip" a position. Sub-addresses like [1, 3, 0, 5] that fall numerically between [1, 3] and [1, 7] are genuinely interior to any span containing both endpoints, because `tumblercmp` compares tumblers lexicographically without treating zero-separators specially (Gregory, Q11).
 
 
 ## How two spans relate
@@ -95,7 +93,7 @@ Formally: for level-uniform spans α and β with level_compat(start(α), start(�
 
 We verify this equality by membership. Take any t ∈ ⟦α⟧ ∩ ⟦β⟧. Then start(α) ≤ t < reach(α) and start(β) ≤ t < reach(β), so t ≥ max(start(α), start(β)) = s' and t < min(reach(α), reach(β)) = r'; hence s' ≤ t < r'. Conversely, take any t with s' ≤ t < r'. Then t ≥ s' = max(start(α), start(β)) ≥ start(α) and t < r' = min(reach(α), reach(β)) ≤ reach(α), so t ∈ ⟦α⟧; symmetrically t ≥ start(β) and t < reach(β), so t ∈ ⟦β⟧; hence t ∈ ⟦α⟧ ∩ ⟦β⟧. The intersection is therefore the half-open interval [s', r'). The set is non-empty (s' is a member since s' < r'). By level-uniformity and S6, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length. So #s' = #r', and with s' < r', WF gives that the pair γ = (s', r' ⊖ s') is a well-formed level-uniform span with reach(γ) = r'.  ∎
 
-The significance is topological: convex sets in a total order have convex intersection. The tumbler space's hierarchical structure cannot fragment an intersection — there is no configuration where two contiguous regions share a disconnected collection of positions. Gregory confirms this from the implementation: intersecting two spans yields at most one output span (Q10). Nelson confirms it from design intent: the system "knows precisely" what two regions share, "because correspondence is a structural relation derivable from I-addresses" (Q1).
+The significance is topological: convex sets in a total order have convex intersection. The tumbler space's hierarchical structure cannot fragment an intersection — there is no configuration where two contiguous regions share a disconnected collection of positions. Gregory confirms this from the implementation: intersecting two spans yields at most one output span (Q10).
 
 A concrete instance: let α = ([1, 3], [0, 4]) and β = ([1, 5], [0, 6]). Then reach(α) = [1, 7], reach(β) = [1, 11], s' = [1, 5], r' = [1, 7]. The intersection is ([1, 5], [0, 2]) — a single span covering positions [1, 5] through [1, 7) exclusive.
 
@@ -166,8 +164,6 @@ Verify S4: (a) ⟦λ⟧ ∪ ⟦ρ⟧ = {t : [.., 5] ≤ t < [.., 9]} ∪ {t : [.
 Verify S5: d ⊕ d' = [0, 0, 0, 0, 0, 0, 4] ⊕ [0, 0, 0, 0, 0, 0, 4]. Action point k = 7: 4 + 4 = 8. Result = [0, 0, 0, 0, 0, 0, 8] = ℓ.
 
 Each element of ⟦σ⟧ appears in exactly one of ⟦λ⟧ or ⟦ρ⟧ — those before p go left, those from p onward go right. The partition is forced by the total order; there is no ambiguity. Nelson confirms the structural basis: "each element occupies exactly one position on the tumbler line" and spans include "everything between their endpoints with no discretion" (Q2).
-
-The composition property below depends on left cancellation of TumblerAdd: if a ⊕ x = a ⊕ y with both sides well-defined, then x = y (TA-LC, ASN-0034).
 
 **S5** (*SplitWidthComposition*). Under the same conditions as S4, the widths of the two parts compose to the original width:
 
