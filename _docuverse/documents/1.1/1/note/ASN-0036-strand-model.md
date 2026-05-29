@@ -160,7 +160,7 @@ The arrangement function `M(d)` need not be injective. This is not a deficiency 
 
 `(A N ∈ ℕ :: (E Σ :: Σ satisfies S0–S3 ∧ (E a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N)))`
 
-To see this, fix any `N`. Construct state `Σ_N` with one I-address `a` where `C(a) = w` for some value `w`, and `N + 1` documents `d₁, ..., d_{N+1}`, each with `M(dᵢ) = {v ↦ a}` for a single shared V-position `v` — the pairs `(dᵢ, v)` are distinct because the documents are. S0 is vacuous — single state, no transition to check. S2 holds: each `M(dᵢ)` is a function with a single entry. S3 holds: `a ∈ dom(C)`. The sharing multiplicity of `a` is `N + 1 > N`. Since `N` was arbitrary, no finite bound is entailed. The same holds within a single document: for any `N`, construct `Σ'_N` with one I-address `a` where `C(a) = w`, and one document `d` with `M(d) = {v₁ ↦ a, v₂ ↦ a, ..., v_{N+1} ↦ a}` for `N + 1` distinct V-positions. S0 and S1 are vacuous as above (single state, no transition to check). S2 holds — each `vᵢ` maps to exactly one I-address (namely `a`). S3 holds — `a ∈ dom(C)`. The within-document sharing multiplicity is `N + 1 > N`.
+Sharing defeats any finite bound in two independent ways: across documents, where `N + 1` distinct documents each map a V-position to a single shared `a`; and within a single document, where one document maps `N + 1` distinct V-positions to `a`. In both, the sharing multiplicity of `a` is `N + 1 > N`, and since `N` is arbitrary no finite bound is entailed. The Proof below discharges both constructions, verifying S0–S3 for each.
 
 In any particular state, the sharing multiplicity of each address is a definite finite number — possibly zero for orphaned content. The property is an architectural anti-constraint: the invariants place no finite cap on how many references may accumulate.
 
@@ -254,7 +254,7 @@ This parallels `subspace(v) = v₁` for V-positions: both extract the subspace c
 - *Consequence (a) — subspace-ordinal separation:* `subspace_I(a) = E(a)₁` and the content ordinal `[E(a)₂, ..., E(a)_{#E(a)}]` occupy distinct components of `E(a)`. *Derivation:* By S7b, `zeros(a) = 3`, so T4b's element-field projection `E(a)` is well-defined as a finite sequence of components. The axiom `#E(a) ≥ 2` gives the element field at least two components — `E(a)₁` and `E(a)₂` are therefore distinct positions. The content ordinal `[E(a)₂, ..., E(a)_{#E(a)}]` begins at position 2 within `E(a)` and so does not overlap `E(a)₁` at position 1.
 - *Depends:* S7b (element-level I-addresses) — provides `E(a)`; T4b (UniqueParse, ASN-0034) — defines element-field projection.
 
-**subspace_I (I-address subspace identifier).** With S7c in hand, the projection `subspace_I(a) = E(a)₁` named in the prose above receives a standalone Formal Contract, paralleling the `subspace` block below for V-positions.
+**subspace_I (I-address subspace identifier).** For any `a` with `zeros(a) = 3` and `#E(a) ≥ 2`, the subspace identifier of an I-address is the first component of its element field: `subspace_I(a) = E(a)₁`.
 
 *Formal Contract:*
 - *Signature:* `subspace_I : T → ℕ` — projects the first component of the element field of an I-address.
@@ -313,7 +313,7 @@ Gregory's implementation reveals two mechanisms for origin lookup. The I-address
 
 *Proof.* We wish to show that for every `a ∈ dom(Σ.C)`, the function `origin(a) = N(a).0.U(a).0.D(a)` is well-defined, uniquely identifies the document that allocated `a`, and that this identification is permanent and unseverable.
 
-**Well-definedness.** Two distinct contributions establish that `a` is a well-formed T4 tumbler on which the field-decomposition machinery applies. *First,* by S7b (element-level I-addresses), every `a ∈ dom(Σ.C)` satisfies `zeros(a) = 3` — this strict equality is supplied axiomatically as a design requirement on element-level I-addresses, fixing the zero-count exactly. *Second,* by T10a.4 (T4PreservationUnderDiscipline, ASN-0034), every address produced by an allocation event under T10a's discipline is a well-formed T4 tumbler — T10a.4 preserves the surrounding T4-validity stated at S7b as a structural invariant under allocation, but does *not* itself fix the exact value `zeros = 3`. Combining the two: S7b pins the zero-count at exactly 3, T10a.4 supplies the structural well-formedness, and together they guarantee that T4's field-decomposition machinery applies to `a`. By T4 (HierarchicalParsing, ASN-0034), `zeros(a) = 3` means `a` contains exactly three zero-valued field separators, and the partial projections supplied by T4b (UniqueParse, ASN-0034) — `N(a)`, `U(a)`, `D(a)`, `E(a)` — extract the node, user, document, and element fields respectively, each as a finite sequence of strictly positive natural numbers. T4's positive-component constraint guarantees every non-separator component is strictly positive, and T4's non-empty field constraint guarantees each present field has at least one component. The projections `N(a)`, `U(a)`, and `D(a)` are therefore all well-defined with at least one strictly positive component each. The truncation `origin(a)` — formed by concatenating the node field, a zero separator, the user field, a zero separator, and the document field — is a well-defined tumbler satisfying `zeros(origin(a)) = 2`, placing it at the document level in T4's hierarchy.
+**Well-definedness.** By S7b (element-level I-addresses), `zeros(a) = 3`, and by T10a.4 (T4PreservationUnderDiscipline, ASN-0034), `a` is T4-valid; hence T4's field-decomposition machinery applies to `a`. By T4 (HierarchicalParsing, ASN-0034), `zeros(a) = 3` means `a` contains exactly three zero-valued field separators, and the partial projections supplied by T4b (UniqueParse, ASN-0034) — `N(a)`, `U(a)`, `D(a)`, `E(a)` — extract the node, user, document, and element fields respectively, each as a finite sequence of strictly positive natural numbers. T4's positive-component constraint guarantees every non-separator component is strictly positive, and T4's non-empty field constraint guarantees each present field has at least one component. The projections `N(a)`, `U(a)`, and `D(a)` are therefore all well-defined with at least one strictly positive component each. The truncation `origin(a)` — formed by concatenating the node field, a zero separator, the user field, a zero separator, and the document field — is a well-defined tumbler satisfying `zeros(origin(a)) = 2`, placing it at the document level in T4's hierarchy.
 
 **Identification.** By S7a (document-scoped allocation), every I-address is allocated under the tumbler prefix of the document that created it. The document-level prefix of `a` — precisely `origin(a)`, the tumbler `N.0.U.0.D` obtained by truncating the element field — identifies the document whose owner performed the allocation that placed `a` into `dom(C)`. This is not a lookup or annotation: the address structurally encodes its provenance. S7a ensures that `origin(a)` IS the allocating document's tumbler.
 
@@ -350,7 +350,7 @@ A V-position represents the element field of a full document-scoped address — 
 
 *Remark.* The shared vocabulary identifies a second subspace for links (v₁ = 2, per T4 and LM 4/30). Link-subspace V-positions satisfy the same `zeros(v) = 0`, `#v ≥ 2`, and componentwise positivity constraints as text-subspace positions — both are element-field tumblers of depth ≥ 2 with strictly positive components. The subspace identifier (1 for text, 2 for links) is the first component of the element field; the `0` in tumbler notation (e.g., `N.0.U.0.D.0.2.1`) is a field separator, not a subspace identifier. S8a holds uniformly across both subspaces. (Subspace *alignment* — the requirement that each V-position resolve to an I-address in the matching subspace, `subspace(v) = subspace_I(M(d)(v))` — is deliberately not a strand-level invariant; it is an operations-layer obligation, posed as an Open Question below.)
 
-*Proof.* S8a is a design requirement: V-positions are element-field tumblers of depth at least 2, paralleling S7c for I-address element fields. T4 (HierarchicalParsing, ASN-0034) constrains the structure of every field, and S7c-analog reasoning fixes the depth lower bound. We show each conjunct follows from this structural commitment.
+*Proof.* S8a is a design requirement: V-positions are element-field tumblers of depth at least 2, paralleling S7c for I-address element fields. A V-position is an isolated element field, not a full four-field T4 address; the conjuncts follow from this element-field commitment together with T0's ℕ-valued carrier, without appeal to T4's field-segment constraint (which governs whole N.0.U.0.D.0.E addresses, not bare fields). We show each conjunct follows from this structural commitment.
 
 A full element-level I-address has the form `N.0.U.0.D.0.E` where `N`, `U`, `D`, `E` are the node, user, document, and element fields respectively, separated by zero-valued components (the projections supplied by T4b, ASN-0034). The arrangement `M(d)` maps V-positions to such I-addresses (S3, S7b). A V-position `v` is structurally an element-field tumbler — the same shape as `E(a)` extracted from a document-scoped address. As an isolated field, `v` contains no field separators: the zeros in the full address are inter-field boundaries, not intra-field components. Therefore `zeros(v) = 0`.
 
@@ -360,15 +360,15 @@ The conjunct `(A i : 1 ≤ i ≤ #v : vᵢ > 0)` — every component of `v` is s
 
 *Formal Contract:*
 - *Definition:* A V-position is an element-field tumbler of depth at least 2 — paralleling S7c for I-address element fields. The `zeros(v) = 0` and componentwise-positivity conjuncts of the postcondition are derived from this structural commitment (proof above), not independently posited.
-- *Preconditions:* T4 (HierarchicalParsing, ASN-0034) — every non-separator component is strictly positive, every present field has at least one component; T0 — components are natural numbers. (Note: S7c's `#E(a) ≥ 2` for I-address element fields is the architectural parallel that motivates the depth-≥-2 definition for V-positions; the definition is an independent commitment about V-positions, not derived from S7b or S7c.)
+- *Preconditions:* The element-field definitional commitment (a V-position is an isolated element field of depth ≥ 2 with no field separators); T0 — components are natural numbers. (Note: S7c's `#E(a) ≥ 2` for I-address element fields is the architectural parallel that motivates the depth-≥-2 definition for V-positions; the definition is an independent commitment about V-positions, not derived from S7b or S7c.)
 - *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`, where `#v ≥ 2` is *definitional* (the depth commitment for V-positions) and `zeros(v) = 0` together with componentwise positivity `(A i : 1 ≤ i ≤ #v : vᵢ > 0)` are *derived* from the element-field structural commitment (proof above).
-- *Depends:* T0 (ASN-0034) — supplies the ℕ-valued component carrier on which `vᵢ ∈ ℕ` for every component; T4 (HierarchicalParsing, ASN-0034) — fixes the field-structural premises (non-separator components are strictly positive, each present field has at least one component); NAT-discrete (NatDiscreteness, ASN-0034) — discharges the positivity step: from `vᵢ ∈ ℕ` and `vᵢ ≠ 0` (the latter delivered by `zeros(v) = 0`), with `0` the least element of T0's carrier ℕ, NAT-discrete at `m = 0` excludes `vᵢ < 1`, yielding `vᵢ ≥ 1` and hence `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
+- *Depends:* T0 (ASN-0034) — supplies the ℕ-valued component carrier on which `vᵢ ∈ ℕ` for every component; NAT-discrete (NatDiscreteness, ASN-0034) — discharges the positivity step: from `vᵢ ∈ ℕ` and `vᵢ ≠ 0` (the latter delivered by `zeros(v) = 0`), with `0` the least element of T0's carrier ℕ, NAT-discrete at `m = 0` excludes `vᵢ < 1`, yielding `vᵢ ≥ 1` and hence `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
 
 **subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
 
 `subspace(v) = v₁`
 
-extracting the subspace identifier as the first component. This is the definitional shorthand named in the prose under S7c (`subspace_I(a) = E(a)₁`), here given a standalone Formal Contract for V-positions.
+extracting the subspace identifier as the first component of a V-position.
 
 *Formal Contract:*
 - *Signature:* `subspace : T → ℕ` — projects the first component of a tumbler.
@@ -582,7 +582,7 @@ Since `shift(v, n) = v ⊕ δ(n, m)` and `δ(n, m) = [0, ..., 0, n]` has `δ(n, 
 
 Nelson states that the Vstream is always a "dense, contiguous sequence" — after removal, "the v-stream addresses of any following characters in the document are [decreased] by the length of the [deleted] text" [LM 4/66]. The Vstream has no concept of empty positions: "if you have 100 bytes, you have addresses 1 through 100." This statement is specific to the text subspace (S = 1), where Nelson's "addresses 1 through 100" describes character positions. The link subspace (S = 2) has different structural semantics — link addresses are sparse and append-only, with deleted links marked by tombstones rather than ordinal renumbering. We formalize the text-subspace contiguity properties below as constraints on V-position sets within the text subspace; link-subspace contiguity semantics are deferred to a future ASN.
 
-Write `S = subspace(v) = v₁` for the subspace identifier (the first component of the element-field V-position), and `V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}` for the set of V-positions in subspace S of document d. The specialization to the text subspace is `V_1(d) = {v ∈ dom(M(d)) : subspace(v) = 1}`. All V-positions in a given subspace share the same tumbler depth (S8-depth). The properties D-CTG, D-MIN, D-CTG-depth, and D-SEQ below bind `S = 1` directly in their formal statements — the architectural design constraint imposed by this ASN applies only to the text subspace; they are not claimed to hold for the link subspace `S = 2` or any other subspace. The underlying reasoning is parametric in S — should the constraints be extended to another subspace in future work, the proofs would apply with the obvious substitution `1 ↦ S` — but the formal contracts here are written for `S = 1`.
+Write `S = subspace(v) = v₁` for the subspace identifier (the first component of the element-field V-position), and `V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}` for the set of V-positions in subspace S of document d. The specialization to the text subspace is `V_1(d) = {v ∈ dom(M(d)) : subspace(v) = 1}`. All V-positions in a given subspace share the same tumbler depth (S8-depth). The properties D-CTG, D-MIN, D-CTG-depth, and D-SEQ below bind `S = 1` directly in their formal statements — the architectural design constraint imposed by this ASN applies only to the text subspace; they are not claimed to hold for the link subspace `S = 2` or any other subspace. The formal contracts here are written for `S = 1`.
 
 **D-CTG (VContiguity).** For each document d, V_1(d) (the text subspace) is either empty or occupies every intermediate position between its extremes:
 
@@ -709,8 +709,6 @@ We work with the arrangement M(d) and the contiguity constraint D-CTG from above
 
 When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as v₀, v₁, ..., v_{N−1} where v₀ is the minimum (D-MIN) and v_{j+1} = shift(v_j, 1) for 0 ≤ j < N − 1 (D-SEQ).
 
-We split the valid-insertion-position predicate by document state. The non-empty case has its depth determined by state via S8-depth, so the predicate is binary; the empty case takes the depth as an operational input subject only to the strand-level bound `m ≥ 2`, so the predicate is genuinely ternary. Splitting eliminates the ambiguous third argument from the non-empty case while keeping the empty case's depth input explicit.
-
 **Definition (ValidInsertionPosition, non-empty case).** For a document `d` with `V_1(d) ≠ ∅`, the *binary* predicate `ValidInsertionPosition(d, v)` is satisfied when:
 
 - The common V-position depth `m` of V_1(d) is fixed by S8-depth and read from state — it is *not* a parameter of the predicate. By S8a, `m ≥ 2`.
@@ -765,27 +763,11 @@ That gives N + 1 = 4 positions. After an operation places new content at, say, [
 
 ## The separation theorem
 
-We can now state the property that Nelson calls "the architectural foundation of everything" as a theorem rather than an axiom.
+We can now state the property that Nelson calls "the architectural foundation of everything" as an immediate corollary of S0 rather than a separate axiom.
 
-**S9 (Two-stream separation).** No modification to any arrangement `Σ.M(d)` can alter the content store `Σ.C`:
+**S9 (Two-stream separation), corollary of S0.** No modification to any arrangement `Σ.M(d)` can alter the content store: since S0 holds for every transition `Σ → Σ'` unconditionally, it holds in particular for the arrangement-modifying ones (`Σ'.M(d) ≠ Σ.M(d)`), so `(A a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))`. S9 is the directional reading of S0: arrangement edits — the only transitions that touch `M` — cannot reach across into `C`.
 
-`[Σ'.M(d) ≠ Σ.M(d) ⟹ (A a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))]`
-
-*Corollary of S0.* S0 holds for every transition `Σ → Σ'` unconditionally, so it holds in particular for the arrangement-modifying ones (`Σ'.M(d) ≠ Σ.M(d)`), discharging the consequent. S9 is the directional reading: arrangement edits — the only transitions that touch `M` — cannot reach across into `C`.
-
-*Formal Contract:*
-- *Preconditions:* State transition `Σ → Σ'` such that `Σ'.M(d) ≠ Σ.M(d)` for some document `d` (an arrangement-modifying transition); system satisfies S0 (content immutability).
-- *Postconditions:* `(A a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))` — every content entry persists with its value across the transition.
-- *Frame:* The arrangement modification may be arbitrary (insertion, deletion, rearrangement, or any combination); S9 holds regardless of the specific transformation applied to `Σ.M(d)`.
-- *Depends:* S0 (content immutability) — supplies the universal guarantee that S9 specialises to arrangement-modifying transitions.
-
-S9 is the formal statement of Nelson's claim: "The integrity of each document is maintained by keeping the two aspects separate: derivative documents are permanently defined (and stored) in terms of the originals and the changes." It says: the two state components are coupled only through S3 (referential integrity). Arrangements depend on the content store — S3 requires every V-reference to resolve — but the content store is independent of all arrangements. This is a one-way dependency:
-
-```
-C ← M(d₁), M(d₂), M(d₃), ...
-```
-
-Changes to any `M(d)` cannot break `C`. But changes to `C` could break `M` — which is precisely why `C` is immutable. S0 (content immutability) is the mechanism; S9 (two-stream separation) is the consequence.
+S9 is the formal statement of Nelson's claim: "The integrity of each document is maintained by keeping the two aspects separate: derivative documents are permanently defined (and stored) in terms of the originals and the changes." The two state components are coupled only through S3 (referential integrity): arrangements depend on the content store — S3 requires every V-reference to resolve — but the content store is independent of all arrangements. Changes to any `M(d)` cannot break `C`; changes to `C` could break `M`, which is precisely why `C` is immutable.
 
 The asymmetry is deliberate and load-bearing. Nelson enumerates the guarantees that depend on it: link survivability (links point to I-addresses, which S0 preserves), version reconstruction (historical states are assembled from Istream fragments, which S0 preserves), transclusion integrity (transcluded content maintains its value because S0 prevents mutation), and origin traceability (I-addresses encode provenance permanently because S0 prevents reassignment).
 
