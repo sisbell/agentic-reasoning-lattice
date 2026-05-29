@@ -82,7 +82,7 @@ We note the phrase "regardless of their native origin." A document's Vstream pre
 
 *Formal Contract:*
 - *Axiom (definitional):* `Σ.M(d) : T ⇀ T` is a (partial) function — `(A d, v, a₁, a₂ : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a₁ ∧ Σ.M(d)(v) = a₂ : a₁ = a₂)`.
-- *Postconditions:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` is a well-defined set; distinct V-positions may collide in the range (the map is not injective — see Frame).
+- *Postconditions:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` is a well-defined set.
 - *Frame:* Distinct V-positions may map to the same I-address (sharing — S5); injectivity is *not* asserted.
 
 The bridge between the two state components is a well-formedness condition:
@@ -155,7 +155,7 @@ S4 and S5 together make quotation a first-class structural relationship: any num
 - `C_N = {a ↦ w}` for a single I-address `a` and arbitrary value `w ∈ Val`.
 - `N + 1` documents `d₁, …, d_{N+1}` with explicit witnesses `dᵢ = [1, 0, 1, 0, i]` for `i = 1, …, N + 1`. The `dᵢ` are pairwise distinct by T3 (CanonicalRepresentation, ASN-0034) since they have distinct last components — all S5 requires of them, since S0–S3 treat `d` only as an index into `M`. Fix a single V-position `v = [1, 1]` shared across all `N + 1` documents, and define each arrangement as `M_N(dᵢ) = {v ↦ a}`. The pairs `(dᵢ, v)` are pairwise distinct because the first coordinates `dᵢ` are pairwise distinct, which suffices for distinctness of pairs.
 
-We verify each invariant. A state `Σ` satisfies a transition invariant iff every transition incident to `Σ` does; we exhibit `Σ_N` as an isolated state with no incident transition, so the universal quantification is vacuous. S0 (content immutability) and S1 (store monotonicity) quantify over state transitions `Σ → Σ'` and therefore hold vacuously of `Σ_N`. S2 (arrangement functionality): each `M_N(dᵢ)` contains a single entry `{v ↦ a}` — the domain has one element, so uniqueness of the image is immediate; `M_N(dᵢ)` is a function. S3 (referential integrity): the sole I-address referenced by any arrangement is `a`, and `a ∈ dom(C_N)` by construction.
+We verify each invariant. S5 is a non-entailment result — it asserts that unbounded sharing is *consistent* with S0∧S1∧S2∧S3, not that any particular operation set reaches `Σ_N`; hence any model of S0∧S1∧S2∧S3 exhibiting the sharing multiplicity is a sufficient witness, and the witness need not be a reachable state. A state `Σ` satisfies a transition invariant iff every transition incident to `Σ` does; we exhibit `Σ_N` as an isolated state with no incident transition, so the universal quantification is vacuous. S0 (content immutability) and S1 (store monotonicity) quantify over state transitions `Σ → Σ'` and therefore hold vacuously of `Σ_N`. S2 (arrangement functionality): each `M_N(dᵢ)` contains a single entry `{v ↦ a}` — the domain has one element, so uniqueness of the image is immediate; `M_N(dᵢ)` is a function. S3 (referential integrity): the sole I-address referenced by any arrangement is `a`, and `a ∈ dom(C_N)` by construction.
 
 The sharing multiplicity of `a` in `Σ_N` is `|{(d, v) : v ∈ dom(M_N(d)) ∧ M_N(d)(v) = a}| = N + 1`, since each of the `N + 1` documents contributes exactly one pair `(dᵢ, v)` (with the same fixed `v = [1, 1]` across all `i`). Thus the multiplicity exceeds `N`.
 
@@ -237,9 +237,7 @@ We note a subtlety. S7 identifies the document that ALLOCATED the I-address — 
 
 The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(M(d))` is finite (S8-fin), the mapping always admits a *finite* partition into singleton intervals, one per V-position — this is the existence claim we establish here.
 
-**S8-fin (Finite arrangement).** For each document `d`, `dom(Σ.M(d))` is finite. A document contains finitely many V-positions at any given state.
-
-This is a design requirement on every reachable state: no document arrangement is permitted to hold infinitely many V-positions.
+**S8-fin (Finite arrangement).** For each document `d`, `dom(Σ.M(d))` is finite. This is a design requirement on every reachable state: no document arrangement is permitted to hold infinitely many V-positions.
 
 *Formal Contract:*
 - *Axiom (design requirement):* For every state `Σ` and document `d`, `dom(Σ.M(d))` is a finite set.
@@ -452,7 +450,7 @@ When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as 
 
 **Definition (ValidInsertionPosition, non-empty case).** For a document `d` with `V_1(d) ≠ ∅`, the *binary* predicate `ValidInsertionPosition(d, v)` is satisfied when:
 
-- The common V-position depth `m` of V_1(d) is fixed by S8-depth and read from state — it is *not* a parameter of the predicate. By S8a, `m ≥ 2`.
+- The common V-position depth `m` of V_1(d) is fixed by S8-depth. By S8a, `m ≥ 2`.
 - Setting `N = |V_1(d)|`, the predicate holds iff `v = shift(min(V_1(d)), j)` for some `j ∈ {0, 1, ..., N}` (taking `shift(·, 0)` as the identity, so the `j = 0` case is `v = min(V_1(d))`).
 
 There are exactly `N + 1` valid insertion positions: the `N` positions coinciding with existing V-positions `v₀` through `v_{N−1}`, plus the append position `shift(min(V_1(d)), N)`.
