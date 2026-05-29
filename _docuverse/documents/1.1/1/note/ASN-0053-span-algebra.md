@@ -31,7 +31,7 @@ For a level-uniform span σ = (s, ℓ) with #s = #ℓ, the reach has #reach(σ) 
 
 The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. Of the three quantities — start, width, reach — two of the three pairings determine the third: start and width determine reach (by definition of ⊕); start and reach determine width (by D2). But width and reach do not determine start: ⊕ is not right-cancellative (TA-RC, ASN-0034), and TA-MTO (ASN-0034) makes the precise statement — two starts agreeing through the action point k of the width yield the same reach, while positions k+1..#s are overwritten by the width's tail and unrecoverable. For instance, s₁ = [1, 3, 5] and s₂ = [1, 3, 7] with width [0, 2, 4] (action point k = 2) both yield reach [1, 5, 4]. Same width, same reach, different starts — and different denotations.
 
-When a = b, no displacement is needed; the degenerate case is handled separately since b ⊖ a produces the zero tumbler and a ⊕ (b ⊖ a) is not well-formed (TA0 requires w > 0). D0 ensures the displacement is well-defined; D1 ensures the round-trip is faithful for a < b.
+When a = b, b ⊖ a produces the zero tumbler and a ⊕ (b ⊖ a) is not well-formed (TA0 requires w > 0), so this degenerate case is handled separately.
 
 A worked instance of the #start > #width failure (the #a > #b half of the dichotomy stated above): σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2].
 
@@ -76,9 +76,7 @@ The properties that follow — intersection, merge, split, normalization — req
 
 A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity from TA0 (#(s ⊕ ℓ) = #ℓ), already established above. The start, width, and reach all share the same tumbler length. A level-uniform span automatically satisfies D0 for the (start(σ), reach(σ)) pair: by TA-strict, start(σ) < reach(σ); and since #start(σ) = #reach(σ), neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start(σ).
 
-The constraint is not merely technical — it reflects the tree structure of the tumbler space. A tumbler [1, 3, 0, 5] has four components spanning two hierarchical levels (separated by zero). A span with start [1, 3] and width [0, 2] operates at depth 2 — it varies position 2 while position 1 is fixed. An interior point at a deeper level, such as [1, 3, 0, 1], diverges from [1, 3] at position 3 (after zero-padding), exceeding #[1, 3] = 2. No valid displacement exists. A span defined at one depth can only interact with points at that same depth.
-
-In a flat address space (integers), every interior point would admit a valid split. The tumbler space, being hierarchical, stratifies positions by depth, and arithmetic must respect this stratification. The subspace closure TA7a from ASN-0034 captures the favorable case: within a single subspace using ordinal-only representation, addition and subtraction are fully closed. This is the abstract guarantee that span operations work for the common case of content within a document subspace.
+The load-bearing fact is the one just stated: when #s = #ℓ, every endpoint pair drawn from the span has equal length, so divergence is of type (i) with k ≤ #start, and D0 is satisfied. An interior point at a deeper level, such as [1, 3, 0, 1] relative to start [1, 3], diverges at position 3 (after zero-padding), exceeding #[1, 3] = 2, and admits no valid displacement. (In a flat address space every interior point would admit a split; the tumbler space stratifies positions by depth, so arithmetic must respect that stratification.)
 
 Gregory confirms the implementation enforces this: the split operation checks `tumblerlength(cut) = tumblerlength(width)` and aborts with a fatal error when the invariant is violated (Q14, Q15). The level constraint is load-bearing.
 
@@ -229,11 +227,13 @@ A *span-set* is a finite sequence of spans Σ = ⟨σ₁, σ₂, ..., σₙ⟩. 
 
 Two span-sets are *equivalent* when they denote the same set of positions: Σ₁ ≡ Σ₂ ⟺ ⟦Σ₁⟧ = ⟦Σ₂⟧. The empty span-set ⟨⟩ denotes ∅. The singleton span-set ⟨σ⟩ denotes ⟦σ⟧. For span-sets Σ₁ = ⟨α₁, ..., αₘ⟩ and Σ₂ = ⟨β₁, ..., βₙ⟩, the *union* Σ₁ ∪ Σ₂ is the concatenated sequence ⟨α₁, ..., αₘ, β₁, ..., βₙ⟩; by the denotation definition, ⟦Σ₁ ∪ Σ₂⟧ = ⟦Σ₁⟧ ∪ ⟦Σ₂⟧.
 
-**S7** (*FiniteRepresentability*). Every finite set of positions P ⊂ T admits a span-set Σ with |Σ| ≤ |P| and ⟦Σ⟧ ⊇ P.
+**S7** (*CoveringExistence*). Every finite set of positions P ⊂ T admits a covering span-set Σ with |Σ| = |P| and ⟦Σ⟧ ⊇ P. This is a *covering* claim, not an exact representation: in general no span-set Σ satisfies ⟦Σ⟧ = P for an arbitrary finite P.
 
-*Proof.* For any tumbler t, define ℓ = [0, ..., 0, 1] with #ℓ = #t (all components zero except the last, which is 1). Then ℓ > 0 (the last component is nonzero) and the action point k = #t ≤ #t, so (t, ℓ) satisfies T12. By TA-strict, t ⊕ ℓ > t, so t ∈ [t, t ⊕ ℓ) = ⟦(t, ℓ)⟧ — the span covers t. Taking one such span per position in P gives Σ with |Σ| = |P| ≤ |P| and ⟦Σ⟧ ⊇ P.
+*Proof.* For any tumbler t, define ℓ = [0, ..., 0, 1] with #ℓ = #t (all components zero except the last, which is 1). Then ℓ > 0 (the last component is nonzero) and the action point k = #t ≤ #t, so (t, ℓ) satisfies T12. By TA-strict, t ⊕ ℓ > t, so t ∈ [t, t ⊕ ℓ) = ⟦(t, ℓ)⟧ — the span covers t. Taking one such span per position in P gives Σ with |Σ| = |P| and ⟦Σ⟧ ⊇ P.
 
-Nelson confirms: "a tumbler-span may range in possible size from one byte to the whole docuverse" (LM 4/24, Q4).
+*Why exact representation fails in general.* Every span denotes a subtree-convex interval (S0): a non-empty set closed under betweenness in T1. By T0(b) the half-open interval [t, t ⊕ [0,...,0,1]) covering a single position t always contains strictly deeper points — for instance t.0.1 lies between t and t ⊕ [0,...,0,1] under the prefix convention — so no span denotes the singleton {t}. Hence for any P that is not itself a union of subtree-convex intervals (in particular any finite P containing an isolated position with deeper interior points), no span-set denotes P exactly; the inclusion ⟦Σ⟧ ⊇ P is the strongest finite guarantee available. We retain |Σ| = |P| rather than the weaker |Σ| ≤ |P|, since the construction emits exactly one span per position.
+
+Nelson confirms the covering reach: "a tumbler-span may range in possible size from one byte to the whole docuverse" (LM 4/24, Q4).
 
 
 ## Normalization
@@ -247,7 +247,7 @@ A span-set is *normalized* when its components are sorted, non-overlapping, and 
 
 Condition N2 uses strict inequality. If reach(σᵢ) = start(σᵢ₊₁), the spans are adjacent and could be merged — so the form is not yet minimal. If reach(σᵢ) > start(σᵢ₊₁), the spans overlap and must be merged. The normalized form is the irreducible representation: every span is as large as it can be, and no two spans can be combined.
 
-**Definition** (*Mutually level-compatible*). A span-set Σ = ⟨σ₁, ..., σₙ⟩ is *mutually level-compatible* when level_compat(start(σᵢ), start(σⱼ)) holds for all 1 ≤ i, j ≤ n. By S6, this is equivalent to: there exists a single length L with #start(σᵢ) = L for every i. When each component σᵢ is also level-uniform, all four boundary tumblers of every span — start(σᵢ), width(σᵢ), reach(σᵢ) — share the common length L, so any pair of endpoints drawn from any pair of spans satisfies D0 (by the argument given in S6).
+**Definition** (*Mutually level-compatible*). A span-set Σ = ⟨σ₁, ..., σₙ⟩ is *mutually level-compatible* when level_compat(start(σᵢ), start(σⱼ)) holds for all 1 ≤ i, j ≤ n. By S6, this is equivalent to: there exists a single length L with #start(σᵢ) = L for every i. When each component σᵢ is also level-uniform, all boundary tumblers of every span — start(σᵢ), width(σᵢ), reach(σᵢ) — share the common length L, so any pair of distinct endpoints a < b drawn from any pair of spans has #a = #b: divergence is of type (i) with k ≤ #a, and D0 is satisfied.
 
 **S8** (*NormalizationExistence*). Every span-set Σ whose component spans are level-uniform and mutually level-compatible has a normalized equivalent Σ̂ with Σ̂ ≡ Σ.
 
@@ -431,13 +431,9 @@ The maximum across all cases is 2, achieved only in the containment case.  ∎
 The bound of 2 is tight: S11 shows containment achieves it. No SC case exceeds it. This confirms Nelson's span-set mechanism is sufficient for representing any two-span difference.
 
 
-## Observations from the implementation
+## Denotation, not encoding
 
-Two findings from Gregory's implementation evidence illuminate the boundary between abstract properties and practical constraints. These observations do not affect the abstract properties — S0 through S11 hold for any correctly-implemented span algebra over the tumbler space. They identify where implementations must take particular care.
-
-*Observation 1: Width encoding is not unique under naive comparison.* The same byte count can be encoded at different tumbler precisions — a V-dimension width of 11 characters might appear as [0, 11] (action point at position 2) while the corresponding I-dimension width appears as [0, 0, 0, 0, 0, 0, 0, 0, 11] (action point at position 9). Both decode to the integer 11, but they are distinct tumblers under T3 (Q13). The abstract algebra is unaffected: what matters is the *denotation* (the set of positions covered), not the encoding. But implementations that compare widths structurally rather than by denotation may produce incorrect results. The canonical form T3 guarantees uniqueness *per tumbler*, not across encoding conventions.
-
-*Observation 2: Cross-depth arithmetic silently degenerates.* When the tumbler subtraction encounters operands at different hierarchical depths, the implementation returns the minuend unchanged — as if the subtrahend were zero (Q12). No error is raised. The implication: span operations that cross hierarchical levels do not fail loudly; they produce incorrect results silently. The level constraint S6 is not merely advisory — violating it yields arithmetic that looks correct but is not. Gregory describes this as span difference being "a partial function whose domain is restricted to same-exponent operands" (Q12). Any implementation must either enforce level compatibility at the point of operation or validate results post hoc. The implementation chooses enforcement: the split function aborts with a fatal error when level invariants are violated, rather than proceeding with approximate arithmetic (Q15).
+The span algebra is defined over denotations — the sets of positions covered — not over the tumbler encodings of widths. Two widths denoting the same displacement may differ as tumblers: a V-dimension width of 11 characters may appear as [0, 11] (action point at position 2) while the corresponding I-dimension width appears as [0, 0, 0, 0, 0, 0, 0, 0, 11] (action point at position 9). Both denote the same advance, yet they are distinct tumblers under T3 (Q13). The properties above quantify over ⟦σ⟧, so they are blind to this distinction; a width compared by its tumbler representation rather than by the interval it denotes is a different question, governed by T3's per-tumbler canonical form, not by the span algebra.
 
 
 ## Properties Introduced
@@ -446,7 +442,7 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 |-------|-----------|--------|
 | D0 | Displacement well-definedness: a < b and divergence(a, b) ≤ #a (DisplacementWellDefined, ASN-0034) | cited |
 | D1 | Displacement round-trip: for a < b with divergence(a, b) ≤ #a and #a ≤ #b, a ⊕ (b ⊖ a) = b (DisplacementRoundTrip, ASN-0034) | cited |
-| D2 | Width recovery: for level-uniform σ, reach(σ) ⊖ start(σ) = width(σ) — follows from DisplacementUnique (D2, ASN-0034) | cited |
+| WR | Width recovery (span-level consequence): for level-uniform σ, reach(σ) ⊖ start(σ) = width(σ) — derived here from DisplacementUnique (D2, ASN-0034) | introduced |
 | S0 | Spans are convex: every position between two members is also a member | introduced |
 | SC | Span classification: five exhaustive cases (separated, adjacent, proper overlap, containment, equal) | introduced |
 | S6 | Level constraint: level_compat(t₁, t₂) ≡ #t₁ = #t₂; a span is level-uniform when #start = #width | introduced |
@@ -459,7 +455,7 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 | S5 | The widths of two split parts compose under ⊕ to the original width | introduced |
 | S4a | Split-merge inverse: splitting σ at a level-compatible interior point and merging recovers σ exactly | introduced |
 | S3b | Merge-split inverse: merging adjacent level-uniform spans and splitting at the original boundary recovers the unordered pair {α, β} exactly | introduced |
-| S7 | Every finite set of positions P admits a covering span-set Σ with |Σ| ≤ |P| | introduced |
+| S7 | Every finite set of positions P admits a covering span-set Σ with |Σ| = |P| and ⟦Σ⟧ ⊇ P; exact representation of arbitrary finite P is impossible (spans are subtree-convex) | introduced |
 | S8 | Every level-compatible span-set has a normalized equivalent: sorted, non-overlapping, non-adjacent | introduced |
 | S9 | The normalized form of a span-set is unique | introduced |
 | S10 | For level-uniform, mutually level-compatible span-sets, union (as normalization) is commutative and associative | introduced |
