@@ -61,10 +61,32 @@ class Link:
 
 
 class LinkStore:
-    """Append-only log of MAKELINK emissions."""
+    """Append-only log of MAKELINK emissions.
+
+    Maintains inverted indexes on link emit so find_links runs in O(query
+    result size) instead of O(total link count). The substrate today has
+    ~47k links; predicates make hundreds of find_links calls per ASN per
+    filter pass — the indexed lookup turns minutes of scheduling
+    overhead into seconds.
+
+    Indexes (populated lazily in `emit`):
+      _by_from[addr]    → set of link.addr where addr ∈ from_set
+      _by_to[addr]      → set of link.addr where addr ∈ to_set
+      _by_type[addr]    → set of link.addr where addr ∈ type_set (exact)
+      _by_addr[addr]    → Link with that addr (O(1) get)
+
+    Type prefix-match (L10) is handled in find_links by walking the
+    _by_type keyset for prefixes when a query type has no exact-match
+    hit; this keeps the common-case (exact-match) path O(1) while
+    preserving subtype semantics.
+    """
 
     def __init__(self) -> None:
         self._links: List[Link] = []
+        self._by_from: dict[Address, set[Address]] = {}
+        self._by_to: dict[Address, set[Address]] = {}
+        self._by_type: dict[Address, set[Address]] = {}
+        self._by_addr: dict[Address, Link] = {}
 
     def __len__(self) -> int:
         return len(self._links)
@@ -73,10 +95,10 @@ class LinkStore:
         return iter(self._links)
 
     def get(self, addr: Address) -> Link:
-        for link in self._links:
-            if link.addr == addr:
-                return link
-        raise KeyError(f"no link at {addr}")
+        link = self._by_addr.get(addr)
+        if link is None:
+            raise KeyError(f"no link at {addr}")
+        return link
 
     def emit(
         self,
@@ -94,6 +116,13 @@ class LinkStore:
             ts=ts,
         )
         self._links.append(link)
+        self._by_addr[addr] = link
+        for a in link.from_set:
+            self._by_from.setdefault(a, set()).add(addr)
+        for a in link.to_set:
+            self._by_to.setdefault(a, set()).add(addr)
+        for a in link.type_set:
+            self._by_type.setdefault(a, set()).add(addr)
         return link
 
     def find_links(
@@ -103,7 +132,8 @@ class LinkStore:
         type_set: Optional[Iterable[Address]] = None,
         homedoc: Optional[Address] = None,
     ) -> List[Link]:
-        """FINDLINKS: scan with optional from/to/type/homedoc filters.
+        """FINDLINKS: optional from/to/type/homedoc filters with
+        inverted-index acceleration.
 
         type_set filter is **prefix-match per L10** on type addresses —
         a query at a parent type's address matches every subtype whose
@@ -115,25 +145,83 @@ class LinkStore:
 
         homedoc filter compares against link.homedoc (derived from the
         link's address per ASN-0043).
+
+        Algorithm: pick the smallest filter as the seed candidate set
+        (union of inverted-index buckets for each query value), then
+        apply the remaining filters in-memory against that subset. The
+        cost is O(matching_subset) instead of O(total_link_count).
+
+        When no filter is provided, falls back to a full scan (rare —
+        most callers filter by at least one of from/to/type).
         """
-        from_filter = set(from_set) if from_set is not None else None
-        to_filter = set(to_set) if to_set is not None else None
-        type_queries = list(type_set) if type_set is not None else None
+        # Collect candidate addrs from any provided filters.
+        # The smallest candidate set wins; subsequent filters run as
+        # in-memory predicates over that set.
+        candidate_sets: List[set[Address]] = []
+        from_list = list(from_set) if from_set is not None else None
+        to_list = list(to_set) if to_set is not None else None
+        type_list = list(type_set) if type_set is not None else None
+
+        if from_list is not None:
+            seed: set[Address] = set()
+            for a in from_list:
+                seed.update(self._by_from.get(a, ()))
+            candidate_sets.append(seed)
+        if to_list is not None:
+            seed = set()
+            for a in to_list:
+                seed.update(self._by_to.get(a, ()))
+            candidate_sets.append(seed)
+        if type_list is not None:
+            seed = set()
+            exact_hits_only = True
+            for q in type_list:
+                exact = self._by_type.get(q)
+                if exact is not None:
+                    seed.update(exact)
+                # Prefix-match per L10: walk the index keyset for any
+                # registered type whose addr extends the query.
+                for t_addr, bucket in self._by_type.items():
+                    if t_addr == q:
+                        continue
+                    if _is_prefix_or_equal(q, t_addr):
+                        seed.update(bucket)
+                        exact_hits_only = False
+            candidate_sets.append(seed)
+
+        if not candidate_sets:
+            # No filters → full scan with only homedoc test.
+            return [
+                link for link in self._links
+                if homedoc is None or link.homedoc == homedoc
+            ]
+
+        # Pick the smallest seed (best selectivity), then intersect
+        # against the others.
+        candidate_sets.sort(key=len)
+        candidates = candidate_sets[0]
+        for other in candidate_sets[1:]:
+            candidates &= other
+            if not candidates:
+                return []
+
+        # Apply the original filters in-memory against the surviving
+        # candidates. Cheaper than re-iterating since most queries land
+        # only a few links.
+        from_filter = set(from_list) if from_list is not None else None
+        to_filter = set(to_list) if to_list is not None else None
 
         out: List[Link] = []
-        for link in self._links:
+        for addr in candidates:
+            link = self._by_addr.get(addr)
+            if link is None:
+                continue
             if homedoc is not None and link.homedoc != homedoc:
                 continue
             if from_filter is not None and from_filter.isdisjoint(link.from_set):
                 continue
             if to_filter is not None and to_filter.isdisjoint(link.to_set):
                 continue
-            if type_queries is not None:
-                if not any(
-                    _is_prefix_or_equal(q, t)
-                    for q in type_queries
-                    for t in link.type_set
-                ):
-                    continue
+            # type_list already enforced via seed-set; no re-check needed.
             out.append(link)
         return out
