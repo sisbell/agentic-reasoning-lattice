@@ -34,17 +34,7 @@ The set-membership constraint `s.B ⊆ T` needs no separate induction: B10 (§B1
 
 *Relationship to ASN-0034's allocated set.* The inclusion `allocated(s) ⊆ s.B` holds only conditionally on the activation-discipline ASN, which must align each allocator-extension transition with a unique baptismal operation adding the same address to s.B, and cover the genesis allocator domain with the seed (`allocated(s_init) ⊆ B₀`); both discharges belong to that ASN.
 
-**B0 (Irrevocability).** `(A s, s' : s → s' : s.B ⊆ s'.B)`.
-
-No operation removes a tumbler from B. This is the state-level reading of T8 (AllocationPermanence). T8 says the allocator never reclaims an address; B0 says the *registry* never shrinks. The distinction matters: B0 forbids any mechanism — not just the allocator — from removing a baptized position. Administrative action, garbage collection, storage failure — none may contract B. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid."
-
-B0 is a single-step law. We extend it to finite transition sequences:
-
-**B0★ (Multi-step Irrevocability — corollary of B0).** `(A s, s' : s →* s' : s.B ⊆ s'.B)`, where s →* s' denotes the reflexive-transitive closure of the transition relation — that is, s' is reachable from s by a finite (possibly empty) sequence of transitions.
-
-*Proof.* By induction on the length k of the transition sequence witnessing s →* s'. *Base case (k = 0).* s' = s, so s.B ⊆ s'.B = s.B by reflexivity of ⊆. *Inductive step.* Suppose s →* sₖ is witnessed by a length-k sequence with s.B ⊆ sₖ.B (inductive hypothesis), and sₖ → sₖ₊₁ extends it to a length-(k+1) sequence s →* sₖ₊₁. By B0 applied to the single-step transition sₖ → sₖ₊₁, sₖ.B ⊆ sₖ₊₁.B. Transitivity of ⊆ gives s.B ⊆ sₖ.B ⊆ sₖ₊₁.B, so s.B ⊆ sₖ₊₁.B. By induction, s.B ⊆ s'.B for every s →* s'. ∎
-
-B0 tells us baptism cannot be undone; its companion tells us what *can* add to B. We state the closure law directly on the operation vocabulary Σ rather than on an opaque predicate "produced by baptism":
+We state the closure law directly on the operation vocabulary Σ rather than on an opaque predicate "produced by baptism":
 
 **B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
 
@@ -55,9 +45,17 @@ Each `op ∈ Σ` is in exactly one class by its symbol: the baptismal class is t
 
 Equivalently, `(A s, s' : s → s' : s'.B = s.B ∨ (E (p, d) : B6(p, d) : s'.B = s.B ∪ {next(s.B, p, d)}))` — every transition either leaves the registry unchanged or extends it by exactly the address that the corresponding baptismal operation would produce. The equivalence rests on the *State Space and Transitions* section's definition of transition: every `s → s'` is of the form `(s, op(s))` for some `op ∈ Σ`, so a partition of Σ into baptismal and s.B-frame classes induces a partition of transitions over the same two alternatives.
 
-B0 (stated above) now follows from B0a: in the baptismal branch `op(s).B = s.B ∪ {next(s.B, p, d)}` and in the s.B-frame branch `op(s).B = s.B`, so `s.B ⊆ op(s).B` in both, hence `s.B ⊆ s'.B` for every transition.
-
 Here "satisfying B6" means p satisfies T4, d ∈ {1, 2}, and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below. B0a constrains only the depth arithmetic, not the authorization chain — whether p must itself be baptized (p ∈ s.B) before children can be baptized beneath it. The closure is structural: there is no operation symbol in Σ outside the baptismal class that touches s.B.
+
+Irrevocability follows immediately:
+
+**B0 (Irrevocability — corollary of B0a).** `(A s, s' : s → s' : s.B ⊆ s'.B)`. In the baptismal branch `op(s).B = s.B ∪ {next(s.B, p, d)}` and in the s.B-frame branch `op(s).B = s.B`, so `s.B ⊆ op(s).B` in both, hence `s.B ⊆ s'.B` for every transition. This is the state-level reading of T8 (AllocationPermanence): T8 says the allocator never reclaims an address; B0 says the *registry* never shrinks — and because B0a quantifies over all of Σ, B0 forbids *any* mechanism, not just the allocator, from removing a baptized position. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid."
+
+B0 is a single-step law. We extend it to finite transition sequences:
+
+**B0★ (Multi-step Irrevocability — corollary of B0).** `(A s, s' : s →* s' : s.B ⊆ s'.B)`, where s →* s' denotes the reflexive-transitive closure of the transition relation — that is, s' is reachable from s by a finite (possibly empty) sequence of transitions.
+
+*Proof.* By induction on the length k of the transition sequence witnessing s →* s'. *Base case (k = 0).* s' = s, so s.B ⊆ s'.B = s.B by reflexivity of ⊆. *Inductive step.* Suppose s →* sₖ is witnessed by a length-k sequence with s.B ⊆ sₖ.B (inductive hypothesis), and sₖ → sₖ₊₁ extends it to a length-(k+1) sequence s →* sₖ₊₁. By B0 applied to the single-step transition sₖ → sₖ₊₁, sₖ.B ⊆ sₖ₊₁.B. Transitivity of ⊆ gives s.B ⊆ sₖ.B ⊆ sₖ₊₁.B, so s.B ⊆ sₖ₊₁.B. By induction, s.B ⊆ s'.B for every s →* s'. ∎
 
 The binary character of this state is fundamental. Nelson's model has no third status between baptized and unbaptized: "the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A position is either conceptually assigned (in B) or not. Whether anything is *stored* at that position is a separate question, which we address below as the ghost validity property.
 
@@ -140,9 +138,7 @@ We define the *children* of parent p at depth d in state B:
 
 — find the greatest baptized sibling and produce its immediate successor; if none exists, produce the first child.
 
-*Justification of well-definedness.* We must show that next(B, p, d) is well-defined for any registry B ⊆ T, parent p ∈ T, and depth d ≥ 1 — that is, each branch of the conditional produces an element of T, and the case split is exhaustive.
-
-The case split is exhaustive: children(B, p, d) = B ∩ S(p, d) is a set, so it is either empty or non-empty. No third possibility exists.
+*Justification of well-definedness.* We must show that next(B, p, d) is well-defined for any registry B ⊆ T, parent p ∈ T, and depth d ≥ 1 — that is, each branch of the conditional produces an element of T.
 
 *Case 1: children(B, p, d) = ∅.* The definition yields next(B, p, d) = inc(p, d). By TA5(d) (ASN-0034), inc(p, d) is well-defined for any p ∈ T and d ≥ 1, producing a tumbler of length #p + d whose first #p components are preserved from p, whose next d − 1 positions are zero-valued field separators, and whose final position has value 1. The result is an element of T — specifically, c₁ of the sibling stream S(p, d).
 
@@ -161,7 +157,7 @@ In both cases, next(B, p, d) produces an element of T. The definition is total o
   PRE: B6(p, d) — depth validity (defined below); no parent-baptized prerequisite is imposed
   POST: s'.B = s.B ∪ {next(s.B, p, d)}
   FRAME: s.B is modified as specified by POST; other components are left to the ASNs that introduce them (see the Formal Contract *Frame:* line).
-  STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below) — an invariant of the operation vocabulary satisfied by construction of Σ, not a caller-checked precondition discharged per call.
+  STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below). See the Formal Contract for its status as a Σ-invariant.
 
 The frame condition's scope is essential. With respect to s.B, baptism is precise: `s'.B = s.B ∪ {next(s.B, p, d)}` and nothing more. Other state components — content storage, link structures, arrangement, and the allocator-side state of ASN-0034 — are not subjects of this ASN's specification; Bop makes no commitment about whether they are modified across the same transition. By B4 (Atomic Baptism, §B4 below), next(s.B, p, d) is evaluated against the precondition state s of the same transition that produces s'.
 
@@ -208,9 +204,9 @@ When m = 0: children(B, p₀, d₀) = ∅, so a = next(B, p₀, d₀) = inc(p₀
 
 When m ≥ 1: the maximum of children(B, p₀, d₀) is cₘ, since the prefix {c₁, ..., cₘ} is strictly ordered by S0 (StreamOrdering). The definition of next gives a = inc(cₘ, 0). By TA5(c), this sibling increment advances only the last significant component of cₘ by 1, producing exactly c_{m+1} — the immediate successor in S(p₀, d₀). No element is skipped: the definition of next always selects the immediate successor via inc(cₘ, 0), which by TA5(c) cannot leap over any stream element. By B0 (Irrevocability), B ⊆ B', so {c₁, ..., cₘ} ⊆ B'. Together with the new element c_{m+1} ∈ B', we obtain children(B', p₀, d₀) = {c₁, ..., cₘ, c_{m+1}}, a contiguous prefix of length m + 1.
 
-*All other namespaces: (p, d) ≠ (p₀, d₀).* By construction, a ∈ S(p₀, d₀) and a satisfies T4 (by B10 preservation, established in the Bop correctness proof). We show children(B', p, d) is a contiguous prefix by case analysis on (p, d).
+*All other namespaces: (p, d) ≠ (p₀, d₀).* By construction, a ∈ S(p₀, d₀); since (p₀, d₀) satisfies B6 and a ∈ S(p₀, d₀), B6's sufficiency result (§B6) gives that a satisfies T4. We show children(B', p, d) is a contiguous prefix by case analysis on (p, d).
 
-The case analysis is exhaustive over arbitrary (p, d) ≠ (p₀, d₀). We split first on whether (p, d) satisfies B6, and within the non-B6 branch on whether S(p, d) contains any T4-valid element. This yields three sub-cases: (A) (p, d) satisfies B6; (B) (p, d) violates B6 and every element of S(p, d) violates T4; and (C) (p, d) violates B6 but S(p, d) contains T4-valid elements. The partition is exhaustive on its face: B6 either holds (A) or fails, and within failing-B6 the stream either has all elements violating T4 (B) or contains some T4-valid element (C). Which configurations fall under (B) versus (C) is exactly B6's necessity result (§B6): every failure mode drives all of S(p, d) out of T4 except the sole-defect trailing-zero configuration with d = 1, which is sub-case (C).
+The case analysis is exhaustive over arbitrary (p, d) ≠ (p₀, d₀). We split first on whether (p, d) satisfies B6, and within the non-B6 branch on whether S(p, d) contains any T4-valid element. This yields three sub-cases: (A) (p, d) satisfies B6; (B) (p, d) violates B6 and every element of S(p, d) violates T4; and (C) (p, d) violates B6 but S(p, d) contains T4-valid elements. Which configurations fall under (B) versus (C) is exactly B6's necessity result (§B6): every failure mode drives all of S(p, d) out of T4 except the sole-defect trailing-zero configuration with d = 1, which is sub-case (C).
 
 When (p, d) satisfies B6 (sub-case A): both (p₀, d₀) and (p, d) meet B7's preconditions, so B7 gives S(p₀, d₀) ∩ S(p, d) = ∅, hence a ∉ S(p, d). Therefore children(B', p, d) = children(B, p, d), a contiguous prefix by the inductive hypothesis.
 
@@ -318,7 +314,7 @@ In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. The proof depends on B1 to gu
 
 The substantive wp question targets the invariants themselves. What must hold before a baptism for B1 to hold after? We separate three kinds of condition: the *state precondition* (what must hold of B), the *environmental assumptions* (what the system must enforce around the operation), and the *supporting lemma* (a mathematical property of the stream structure that the wp derivation depends on).
 
-Throughout these derivations, B4 (Atomic Baptism) guarantees that `children(B, p, d)` is evaluated against the precondition state B of the same transition that produces B'; we state this once here and do not repeat it per derivation.
+Throughout these derivations, we assume B4 (Atomic Baptism): `children(B, p, d)` is evaluated against the precondition state B of the same transition that produces B'.
 
 Under B4 (serialized execution within the namespace):
 
@@ -375,9 +371,7 @@ Informally, the baptism process — read the high water mark, compute the next a
 
   `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s' with s'.B = s.B ∪ {next(s.B, p, d)})`
 
-The value `next(s.B, p, d)` is computed against the state s that licenses the transition and is committed to the successor state s' in the same step; the transition admits no intermediate state in which `s.B ∩ S(p, d)` has been observed but the registry has not yet grown.
-
-Equivalently, in the transition relation `→` of the state space 𝒮: the observation of the precondition state and the commitment of the postcondition state are not separable. There is no state s_mid with `s → s_mid → s'` representing an "intent to baptize" that some later step fulfills. Each `baptize(p, d) ∈ Σ` is a single edge in the transition graph.
+In the transition relation `→` of the state space 𝒮, the observation of the precondition state and the commitment of the postcondition state are not separable. There is no state s_mid with `s → s_mid → s'` representing an "intent to baptize" that some later step fulfills: `next(s.B, p, d)` is computed against s and committed to s' in the same step, and each `baptize(p, d) ∈ Σ` is a single edge in the transition graph.
 
 B0a guarantees that no other operation modifies s.B between any two transitions, so within a single Σ-transition the read of `s.B ∩ S(p, d)` is exact, and across two same-namespace baptismal transitions β₁, β₂, exactly one of `β₁; β₂` or `β₂; β₁` describes their relative order in the transition sequence — there is no third option of overlap.
 
@@ -600,7 +594,7 @@ Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mar
 
 *Case 2: different namespaces — (p, d) ≠ (p', d').* By construction, a ∈ S(p, d) — baptism in namespace (p, d) produces the next element of its sibling stream — and b ∈ S(p', d') by the same reasoning. By B7 (Namespace Disjointness), S(p, d) ∩ S(p', d') = ∅, so a ≠ b.
 
-The two cases are exhaustive: two baptisms either target the same namespace or they do not. In both cases a ≠ b. No two distinct baptisms, whether in the same namespace, across sibling namespaces, or at different hierarchical levels, can produce the same address. ∎
+In both cases a ≠ b. No two distinct baptisms, whether in the same namespace, across sibling namespaces, or at different hierarchical levels, can produce the same address. ∎
 
 *Formal Contract:*
 - *Preconditions:* β₁, β₂ are distinct baptismal acts in a system conforming to B0★ (which subsumes B0), B0a, B1, B4, and B7; β₁ produces a in namespace (p, d) and β₂ produces b in namespace (p', d'), where both (p, d) and (p', d') satisfy B6.
