@@ -12,7 +12,11 @@ The rename applies only to the address-class label. T4b's projection symbol `U :
 
 ## Hierarchy Level Definitions
 
-For any tumbler t, T4-valid(t) (T4, ASN-0034) means t parses as a well-formed address. Given T4-valid(t), T4c assigns t to exactly one level by zeros(t). We name the four corresponding predicates by definitional equivalence:
+For any tumbler t, T4-valid(t) (T4, ASN-0034) means t parses as a well-formed address. T4 is a foundation axiom characterizing valid address tumblers but introduces no one-place predicate symbol; ASN-0045 coins `T4-valid` as the conjunction of T4's four clauses, pinned down explicitly:
+
+**T4-valid** — `T4-valid(t) ≡ zeros(t) ≤ 3 ∧ (A i : 1 ≤ i < #t : ¬(tᵢ = 0 ∧ tᵢ₊₁ = 0)) ∧ t₁ ≠ 0 ∧ t_{#t} ≠ 0`.
+
+Given T4-valid(t), T4c assigns t to exactly one level by zeros(t). We name the four corresponding predicates by definitional equivalence:
 
 **Node** — `Node(t) ≡ T4-valid(t) ∧ zeros(t) = 0`.
 
@@ -68,7 +72,7 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 
 - *Preconditions.* None (predicate is total on T).
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0 (carrier ℕ; the constant 0 ∈ ℕ), T4 (T4-valid; axiom zeros(t) ≤ 3), T4c (level naming).
+- *Depends.* T0 (carrier ℕ; the constant 0 ∈ ℕ), T4 (T4-valid). T4c justifies the *node* level label only; it does no work in this biconditional and is not a proof dependency.
 - *Postcondition.* `(A t : T :: Node(t) ⟺ T4-valid(t) ∧ zeros(t) = 0)`.
 
 **Account** (`Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1`)
@@ -84,14 +88,14 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `2 := 1 + 1`).
+- *Depends.* T0, T4 (T4-valid), NAT-closure (successor and addition closure ground the numeral `2 := 1 + 1`). T4c justifies the *document* level label only; it does no work in this biconditional and is not a proof dependency.
 - *Postcondition.* `(A t : T :: Document(t) ⟺ T4-valid(t) ∧ zeros(t) = 2)`.
 
 **Element** (`Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3`)
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `3 := 2 + 1`).
+- *Depends.* T0, T4 (T4-valid), NAT-closure (successor and addition closure ground the numeral `3 := 2 + 1`). T4c justifies the *element* level label only; it does no work in this biconditional and is not a proof dependency.
 - *Postcondition.* `(A t : T :: Element(t) ⟺ T4-valid(t) ∧ zeros(t) = 3)`.
 
 **Partition**
