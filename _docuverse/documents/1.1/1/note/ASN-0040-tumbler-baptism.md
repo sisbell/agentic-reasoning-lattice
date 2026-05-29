@@ -48,6 +48,8 @@ s.B is the *committed registry* of baptized positions, distinct from the foundat
 
 We call it the *s.B-frame dispatch*.
 
+**B0a-frame (Frame Preservation — corollary of B0a).** Any state invariant `I(s)` that is a predicate on the registry component alone — `I(s) ≡ φ(s.B)` for some `φ` — is preserved by every s.B-frame transition: if `op` is an s.B-frame operation then `op(s).B = s.B` (B0a), so `φ(op(s).B) = φ(s.B)`. Consequently, in any inductive proof that such an `I` is invariant, the s.B-frame case is discharged here once and for all; only the baptismal case requires per-invariant treatment. The invariants B1, B10, and B_fin are each of this form (predicates on s.B), so each inherits frame preservation from B0a-frame.
+
 Irrevocability follows immediately:
 
 **B0 (Irrevocability — corollary of B0a).** `(A s, s' : s → s' : s.B ⊆ s'.B)`. In the baptismal branch Bop adjoins a single element, giving `s.B ⊆ op(s).B`; in the s.B-frame branch B0a gives `op(s).B = s.B`. So `s.B ⊆ op(s).B` in both, hence `s.B ⊆ s'.B` for every transition. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid."
@@ -186,6 +188,8 @@ Each parent-depth pair defines a namespace. Distinct namespaces must produce non
 
 provided both `(p, d)` and `(p', d')` satisfy B6.
 
+The foundation's disjointness results (T10a.6 DomainDisjointness, GlobalUniqueness, and T10 PartitionIndependence) discharge the structurally identical fact for the domains of *allocators in a conforming allocator tree*. We cannot simply invoke them, because B7 quantifies over *every* B6-valid pair `(p, d)` with arbitrary `p ∈ T` — not only over the parent-depth pairs realized as allocators in some particular conforming tree. A reduction would require first exhibiting, for each such `(p, d)`, a conforming allocator whose domain is exactly S(p, d), and then ruling out the aliasing collision (distinct pairs yielding the same base) that B6(i) below forbids. We therefore re-derive disjointness directly from the canonical stream form, obtaining a result valid for all B6-valid pairs without reference to any allocator tree.
+
 *Proof.* Every element of S(p, d) has the canonical form `[p₁, …, p_{#p}, 0, …, 0, n]` (length #p + d, with d − 1 separating zeros, ordinal n at the last position), and sibling increments fix every position except the last (TA5(c)). So all elements of S(p, d) share the invariant prefix `[p₁, …, p_{#p}, 0, …, 0]` on positions 1 through #p + d − 1, and symmetrically all of S(p', d') share their own invariant prefix on positions 1 through #p' + d' − 1. To establish disjointness it suffices to exhibit a *fixed* position — one at or below #p + d − 1 in S(p, d) and at or below #p' + d' − 1 in S(p', d') — at which the two invariant prefixes carry different values: any such disagreement makes every element of one stream differ from every element of the other (T3). We argue by cases on the base lengths #p + d and #p' + d'.
 
 *Length split (unequal base length, #p + d ≠ #p' + d').* Every element of S(p, d) has length #p + d and every element of S(p', d') has length #p' + d'. With unequal lengths, no element of one can equal any element of the other (T3, CanonicalRepresentation: equal tumblers have equal length), so the streams are disjoint.
@@ -218,7 +222,7 @@ B₀ conformance fixes the seed as a finite set; B0a constrains every transition
 
 *Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), B₀ is finite. The invariant holds at genesis.
 
-*Inductive step.* Assume s.B is finite for state s with registry B. By the s.B-frame dispatch (§B0a) the frame case carries finiteness unchanged; in the baptismal case B0a sets B' = B ∪ {a} for a single new element a — a finite set plus a singleton, hence finite. By induction, s.B is finite in every reachable state. ∎
+*Inductive step.* Assume s.B is finite for state s with registry B. The s.B-frame case is discharged by B0a-frame (finiteness is a predicate on s.B). In the baptismal case B0a sets B' = B ∪ {a} for a single new element a — a finite set plus a singleton, hence finite. By induction, s.B is finite in every reachable state. ∎
 
 *Formal Contract:*
 - *Invariant:* `(A s : s reachable from s_init : s.B is finite)`.
@@ -261,7 +265,7 @@ Equivalently: for every B6-valid namespace (p, d), children(B, p, d) = {c₁, ..
 
 *Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), children(B₀, p, d) is a contiguous prefix of S(p, d) for every B6-valid (p, d). B1 holds at genesis.
 
-*Inductive step.* Assume B1 holds for state s with registry B. By the s.B-frame dispatch (§B0a) the frame case carries B1 to s' unchanged; the baptismal case we now treat.
+*Inductive step.* Assume B1 holds for state s with registry B. The s.B-frame case is discharged by B0a-frame (B1 is a predicate on s.B); the baptismal case we now treat.
 
 *Baptismal transition.* By B0a, a baptismal transition sets B' = B ∪ {a} where a = next(B, p₀, d₀) for some (p₀, d₀) satisfying B6. We must show that children(B', p, d) is a contiguous prefix of S(p, d) for every B6-valid (p, d). Two cases exhaust the possibilities.
 
@@ -275,7 +279,7 @@ When m ≥ 1: the maximum of children(B, p₀, d₀) is cₘ, since the prefix {
 
 In both the target namespace and every other B6-valid namespace, children(B', p, d) is a contiguous prefix of S(p, d).
 
-Since B1 is preserved in the target namespace and in every other B6-valid namespace, B1 holds for B' under baptismal transitions; the s.B-frame case was dispatched above via B0a. By induction on the transition sequence, B1 holds in every reachable state. ∎
+Since B1 is preserved in the target namespace and in every other B6-valid namespace, B1 holds for B' under baptismal transitions; the s.B-frame case was discharged by B0a-frame. By induction on the transition sequence, B1 holds in every reachable state. ∎
 
 *Formal Contract:*
 - *Invariant:* `(A p, d : B6(p, d) : (A n : n ≥ 1 ∧ cₙ ∈ s.B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ s.B)))` — equivalently, for every B6-valid (p, d), children(s.B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
@@ -290,13 +294,13 @@ From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by in
 
 *Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), every t ∈ B₀ satisfies T4. The invariant holds at genesis.
 
-*Inductive step.* Assume B10 holds for state s with registry B — every t ∈ B satisfies T4. By the s.B-frame dispatch (§B0a) the frame case carries B10 to s' unchanged; the baptismal case we now treat.
+*Inductive step.* Assume B10 holds for state s with registry B — every t ∈ B satisfies T4. The s.B-frame case is discharged by B0a-frame (B10 is a predicate on s.B); the baptismal case we now treat.
 
 *Baptismal transition.* By B0a, the transition sets B' = B ∪ {a} where a = next(B, p, d) for some (p, d) satisfying B6. We must show every t ∈ B' satisfies T4. For elements t ∈ B, the inductive hypothesis gives t satisfies T4 directly. It remains to show the new element a satisfies T4.
 
 By the definition of next (NextAddress), a = next(B, p, d) is a stream element of S(p, d): the first child a = inc(p, d) = c₁ when children(B, p, d) = ∅, and the sibling a = inc(cⱼ, 0) = c_{j+1} ∈ S(p, d) otherwise, where cⱼ = max(children(B, p, d)) (the maximum exists because B is finite by B_fin and T1 totally orders the non-empty finite set children(B, p, d) ⊆ B). Since (p, d) satisfies B6, B6's sufficiency result (§B6) gives that every element of S(p, d) satisfies T4; in particular a does.
 
-So a satisfies T4. With every element of B satisfying T4 by the inductive hypothesis, every element of B' = B ∪ {a} satisfies T4; the s.B-frame case was dispatched above via B0a. By induction on the transition sequence, B10 holds in every reachable state. ∎
+So a satisfies T4. With every element of B satisfying T4 by the inductive hypothesis, every element of B' = B ∪ {a} satisfies T4; the s.B-frame case was discharged by B0a-frame. By induction on the transition sequence, B10 holds in every reachable state. ∎
 
 *Formal Contract:*
 - *Invariant:* `(A t ∈ s.B : t satisfies T4)` — every baptized address satisfies T4 (HierarchicalParsing).
@@ -460,11 +464,11 @@ At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 
 
 The proof splits two ways: distinct baptisms within the same namespace (the authority-dependent clause), and baptisms in different namespaces (the unconditional clause).
 
-*Proof.* Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We take β₁ and β₂ to be commits under a single baptismal authority, so B-Seq (Sequential Commitment) applies: the realized states are totally ordered by →*. We proceed by case analysis on whether the two baptisms target the same or different namespaces.
+*Proof.* Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We proceed by case analysis on whether the two baptisms target the same or different namespaces. The single-authority assumption (and with it B-Seq) is invoked only in Case 1; Case 2 is unconditional.
 
-*Case 1: same namespace — (p, d) = (p', d').* Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts, with successor states s₁' = β₁(s₁) and s₂' = β₂(s₂). By B4 (Atomic Baptism), each baptism is a single Σ-edge: no realized state lies strictly between s₁ and s₁', nor strictly between s₂ and s₂'. By B-Seq's no-fork clause, two distinct commits never read the same state, so s₁ ≠ s₂. We say β₁ *precedes* β₂ when s₁' →* s₂ — when the state β₂ reads is reachable from the state β₁ leaves. We show that, after possibly swapping the (symmetric) names of the two acts, s₁' →* s₂ holds.
+*Case 1: same namespace — (p, d) = (p', d').* Here we take β₁ and β₂ to be commits under a single baptismal authority, so B-Seq (Sequential Commitment) applies: the realized states are totally ordered by →*. Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts, with successor states s₁' = β₁(s₁) and s₂' = β₂(s₂). By B4 (Atomic Baptism), each baptism is a single Σ-edge: no realized state lies strictly between s₁ and s₁', nor strictly between s₂ and s₂'. We first establish s₁ ≠ s₂. Suppose s₁ = s₂. Since this is the same-namespace case, both acts apply the same operation `baptize(p, d) ∈ Σ`, which is a partial *function* on 𝒮 (foundation Σ signature, B4). Determinism then gives β₁ = (s₁, baptize(p, d)(s₁)) = (s₂, baptize(p, d)(s₂)) = β₂, contradicting the distinctness of the two acts. Hence s₁ ≠ s₂. We say β₁ *precedes* β₂ when s₁' →* s₂ — when the state β₂ reads is reachable from the state β₁ leaves. We show that, after possibly swapping the (symmetric) names of the two acts, s₁' →* s₂ holds.
 
-By B-Seq the realized states are totally ordered by →*, so s₁' and s₂ are comparable. If s₁' →* s₂ we are done. Otherwise s₂ →* s₁', and s₂ ≠ s₁' (else s₁' →* s₂ holds by reflexivity), so s₂ →⁺ s₁'. We cannot have s₁ →⁺ s₂ →⁺ s₁', since by B4 no realized state is interior to β₁'s edge; comparability of s₂ and s₁ therefore leaves only s₂ →* s₁, and with s₂ ≠ s₁ (no-fork) this is s₂ →⁺ s₁. Now s₁ is a realized state strictly after s₂; we cannot have s₂ →⁺ s₁ →⁺ s₂', since by B4 no realized state is interior to β₂'s edge, so comparability of s₁ and s₂' gives s₂' →* s₁ — that is, β₂ precedes β₁. Swapping the names of β₁ and β₂ restores s₁' →* s₂. In every case the relabeled acts satisfy s₁' →* s₂.
+By B-Seq the realized states are totally ordered by →*, so s₁' and s₂ are comparable. If s₁' →* s₂ we are done. Otherwise s₂ →* s₁', and s₂ ≠ s₁' (else s₁' →* s₂ holds by reflexivity), so s₂ →⁺ s₁'. We cannot have s₁ →⁺ s₂ →⁺ s₁', since by B4 no realized state is interior to β₁'s edge; comparability of s₂ and s₁ therefore leaves only s₂ →* s₁, and with s₂ ≠ s₁ (established above) this is s₂ →⁺ s₁. Now s₁ is a realized state strictly after s₂; we cannot have s₂ →⁺ s₁ →⁺ s₂', since by B4 no realized state is interior to β₂'s edge, so comparability of s₁ and s₂' gives s₂' →* s₁ — that is, β₂ precedes β₁. Swapping the names of β₁ and β₂ restores s₁' →* s₂. In every case the relabeled acts satisfy s₁' →* s₂.
 
 By the Bop postcondition, s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. From s₁' →* s₂, B0★ gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
 
@@ -474,8 +478,12 @@ Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mar
 
 In both cases a ≠ b. ∎
 
-*Formal Contract:*
-- *Preconditions:* β₁, β₂ are distinct baptismal acts under a single baptismal authority (so B-Seq applies) in a system conforming to B-Seq, B0★ (which subsumes B0), B0a, B1, B4, and B7; β₁ produces a in namespace (p, d) and β₂ produces b in namespace (p', d'), where both (p, d) and (p', d') satisfy B6.
+*Formal Contract (cross-namespace — unconditional):*
+- *Preconditions:* β₁ produces a in namespace (p, d) and β₂ produces b in namespace (p', d') with (p, d) ≠ (p', d'), where both (p, d) and (p', d') satisfy B6; the system conforms to B7. No single-authority or B-Seq assumption is required.
+- *Postconditions:* `a ≠ b`.
+
+*Formal Contract (same-namespace — single authority):*
+- *Preconditions:* β₁, β₂ are distinct baptismal acts in one namespace (p, d) = (p', d') satisfying B6, committed under a single baptismal authority (so B-Seq applies), in a system conforming to B-Seq, B0★ (which subsumes B0), B0a, B1, B2, and B4.
 - *Postconditions:* `a ≠ b`.
 
 
