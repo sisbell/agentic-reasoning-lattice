@@ -30,7 +30,7 @@ We introduce the central state component:
 
 A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed set B₀ ⊆ T of root addresses established at system genesis, subject to the conformance requirement stated at B₀ conf. below. Thereafter it grows monotonically.
 
-We must situate s.B against the foundation's `allocated(s)` (AllocatedSet, ASN-0034), since both name "a position that has been assigned." s.B is a distinct state component: `allocated(s)` is the allocator's *realized domain* — the addresses an allocator chain has actually produced — whereas s.B is the *committed registry* of baptized positions.
+s.B is the *committed registry* of baptized positions, distinct from the foundation's `allocated(s)` (AllocatedSet, ASN-0034), which is the allocator's *realized domain*.
 
 **B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
 
@@ -46,8 +46,6 @@ B0 is a single-step law. We extend it to finite transition sequences:
 **B0★ (Multi-step Irrevocability — corollary of B0).** `(A s, s' : s →* s' : s.B ⊆ s'.B)`, where s →* s' denotes the reflexive-transitive closure of the transition relation — that is, s' is reachable from s by a finite (possibly empty) sequence of transitions.
 
 *Proof.* By induction on the length of the witnessing transition sequence. *Base* (empty path, s = s'): `s.B ⊆ s.B` by reflexivity of ⊆. *Step:* given `s → s₁ →* s'`, B0 gives `s.B ⊆ s₁.B` for the single step and the inductive hypothesis gives `s₁.B ⊆ s'.B`; transitivity of ⊆ composes them to `s.B ⊆ s'.B`. ∎
-
-The binary character of this state is fundamental. Nelson's model has no third status between baptized and unbaptized: "the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A position is either conceptually assigned (in B) or not.
 
 
 ## The sibling stream
@@ -331,7 +329,7 @@ In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. ∎
 
 Baptism reads the high water mark, computes the next address, and commits the result as one indivisible step.
 
-**B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each `baptize(p, d) ∈ Σ` is a single edge of `→`. The baptism-specific content is that the operation's three internal steps — read the high water mark hwm(s.B, p, d), compute next(s.B, p, d) = c_{hwm+1}, and commit s'.B = s.B ∪ {next(s.B, p, d)} — collapse onto that one edge: no transition interposes between the read and the commit. In particular, no second baptism in the same namespace can interleave, which would let two acts read the same hwm and compute the same c_{hwm+1}. Atomicity is what forecloses that interleaving; it is the handle B8 and B9 cite.
+**B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each `baptize(p, d) ∈ Σ` is a single edge of `→`. The baptism-specific content is that the operation's three internal steps — read the high water mark hwm(s.B, p, d), compute next(s.B, p, d) = c_{hwm+1}, and commit s'.B = s.B ∪ {next(s.B, p, d)} — collapse onto that one edge: no transition interposes between the read and the commit.
 
 
 ## The baptism operation
@@ -371,13 +369,11 @@ A baptized position need not contain anything. Nelson names these *ghost element
 
 A ghost element is "virtually present in tumbler-space, since links may be made to them which embrace all the contents below them." The position is in s.B — it has been baptized, it is permanent, it anchors a namespace for children — but nothing is stored at that address.
 
-We record the relationship between baptism and content as a *forward requirement* on whichever future ASN introduces content storage.
-
-**B3 (Ghost Validity — forward requirement on content storage).** Let a future ASN introduce a predicate `Occupied : T × 𝒮 → {⊤, ⊥}` denoting "the address t carries content in state s". Every future ASN introducing Occupied must arrange its operations so that
+**B3 (Ghost Validity).** Let `Occupied : T × 𝒮 → {⊤, ⊥}` (introduced elsewhere) denote "the address t carries content in state s". The ghost invariant is
 
   `(A s : s reachable from s_init : (A t ∈ T : Occupied(t, s) ⟹ t ∈ s.B))`
 
-— content is permitted only at baptized addresses. Under this requirement, the permitted configurations of a tumbler t ∈ T in a reachable state s are:
+— content is permitted only at baptized addresses. Under this invariant, the permitted configurations of a tumbler t ∈ T in a reachable state s are:
 
   - t ∈ s.B ∧ Occupied(t, s): a populated position
   - t ∈ s.B ∧ ¬Occupied(t, s): a ghost element (permitted)
@@ -422,27 +418,13 @@ State: B₄ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1]}.
 
 Nelson's "Items 2.1, 2.2, 2.3, 2.4" is exactly this mechanism — successive baptisms under parent 2 at depth 1, yielding the sibling stream 2.1, 2.2, 2.3, 2.4 by repeated application of inc(·, 0). The sequence is determined, contiguous, and the ordinals carry no semantics beyond order.
 
-**B7 illustrated — equal-length parents.** The steps above produce streams of different lengths, the easiest disjointness witness (B7's *length split*). We now exhibit two namespaces whose elements share a length, exercising B7's *equal-length-parents* case. From state B₂ above, the parents [1, 0, 1] and [1, 0, 2] are both length 3 and distinct. Consider S([1, 0, 1], 1) and S([1, 0, 2], 1). Both streams have element length 4: #[1, 0, 1] + 1 = #[1, 0, 2] + 1 = 4, with p = [1, 0, 1], d = 1, p' = [1, 0, 2], d' = 1 — so #p = #p' and consequently d = d'.
-
-Suppose some x lay in both streams. By S(p,d)'s element form, the first #p = 3 components of x equal [1, 0, 1] (reading x ∈ S([1, 0, 1], 1)) and also equal [1, 0, 2] (reading x ∈ S([1, 0, 2], 1)). Hence [1, 0, 1] = [1, 0, 2] by T3 — false, since the two parents disagree at position 3. This is exactly B7's equal-length-parents contradiction: equal element length together with equal parent length forces the parents to coincide, contradicting their distinctness. No shared element exists, so the streams are disjoint.
+**B7 illustrated — equal-length parents.** The equal-length-parents case is witnessed by S([1, 0, 1], 1) and S([1, 0, 2], 1) from state B₂: both have element length 4 with equal-length distinct parents, so a shared element would force [1, 0, 1] = [1, 0, 2] by T3 — disjoint.
 
 **B7 illustrated — nesting prefixes.** A harder witness: two namespaces whose elements share a length and whose parents nest. Suppose node [1, 1] has been baptized via inc([1], 1) = [1, 1] (TA5(d) with k = 1: #t' = 2, zero intermediate zeros, position 2 set to 1). Consider S([1], 2) and S([1, 1], 1). Both streams have element length 3: #[1] + 2 = #[1, 1] + 1 = 3. The prefixes nest — [1] ≼ [1, 1] — with p = [1], d = 2, p' = [1, 1], d' = 1.
 
 At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 2 is 0, the zero separator produced by TA5(d) with d − 1 = 1 intermediate zero. inc([1, 1], 1) = [1, 1, 1] — the value at position 2 is p'₂ = 1 > 0 (by T4, valid addresses do not end in zero, so the last component of [1, 1] is positive). Sibling increments inc(·, 0) modify only the last component (TA5(c)), so position 2 is invariant across both streams: always 0 in S([1], 2), always 1 in S([1, 1], 1). The streams disagree at a fixed position and are therefore disjoint.
 
-**B9 unbounded extent exhibited.** The trace so far stops at B₄ with hwm(B₄, [1], 2) = 2 — two children of [1] at depth 2 (the addresses [1, 0, 1] and [1, 0, 2] baptized in Steps 1 and 2; Step 4's d = 1 baptism contributed to a different namespace and left hwm at ([1], 2) unchanged). B9 (Unbounded Extent, stated below) asserts that for any target M ∈ ℕ, a finite sequence of further baptisms in this namespace reaches hwm ≥ M. We exhibit the construction concretely for M = 5: three additional baptisms suffice (since hwm currently equals 2). Each step is a single Bop transition on namespace ([1], 2); we record next(B, [1], 2), the postcondition state, the resulting children set, and the contiguous-prefix verification.
-
-  **Step 5: third user.** Same namespace ([1], 2).
-
-  next(B₄, [1], 2) = inc(max{[1, 0, 1], [1, 0, 2]}, 0) = inc([1, 0, 2], 0) = [1, 0, 3]
-
-  TA5(c): sibling increment preserves length, advances position sig([1, 0, 2]) = 3, so the ordinal goes from 2 to 3. By B2, this is c_{hwm+1} = c₃. B6 holds as in Step 2 ((p, d) = ([1], 2) is unchanged). B5a: zeros([1, 0, 3]) = 1 = zeros([1, 0, 2]) — sibling preserves zeros. B1: children = {[1, 0, 1], [1, 0, 2], [1, 0, 3]} = {c₁, c₂, c₃}, contiguous prefix of length 3.
-
-  State: B₅ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1], [1, 0, 3]}. hwm(B₅, [1], 2) = 3.
-
-  The remaining two baptisms in ([1], 2) follow the same pattern, reaching the final state B₇ = B₅ ∪ {[1, 0, 4], [1, 0, 5]} with hwm(B₇, [1], 2) = 5 = M.
-
-The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9 for the pair ((p, d), M) = (([1], 2), 5).
+**B9 unbounded extent exhibited.** The trace stops at B₄ with hwm(B₄, [1], 2) = 2; B9's constructive proof instantiates here as three further sibling baptisms in ([1], 2) yielding [1, 0, 3], [1, 0, 4], [1, 0, 5] and reaching hwm = 5 for M = 5.
 
 
 ## Co-reachable uniqueness
@@ -516,8 +498,8 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B_fin | `(A s reachable : s.B is finite)` — registry finiteness | from B₀ conf., B0a |
 | B1 | `B6(p, d) ⟹ (cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))` — contiguous prefix over B6-valid namespaces (requires conforming B₀) | from B₀ conf., B0, B0a, B6, B7, next def., S0, TA5(c) |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
-| B3 | Forward requirement on a future predicate `Occupied : T × 𝒮 → {⊤, ⊥}`: `(A s reachable, t ∈ T : Occupied(t, s) ⟹ t ∈ s.B)` — content permitted only at baptized addresses; ghost elements (`t ∈ s.B ∧ ¬Occupied(t, s)`) explicitly allowed | forward requirement on future ASN |
-| B4 | Each `baptize(p, d) ∈ Σ` is a single edge of `→`: read-hwm / compute-next / commit-union collapse onto one transition, foreclosing interleaved same-namespace allocation | corollary of B0a + foundation Σ signature |
+| B3 | `(A s reachable, t ∈ T : Occupied(t, s) ⟹ t ∈ s.B)` — content permitted only at baptized addresses; ghost elements (`t ∈ s.B ∧ ¬Occupied(t, s)`) explicitly allowed | introduced |
+| B4 | Each `baptize(p, d) ∈ Σ` is a single edge of `→`: read-hwm / compute-next / commit-union collapse onto one transition | corollary of B0a + foundation Σ signature |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
