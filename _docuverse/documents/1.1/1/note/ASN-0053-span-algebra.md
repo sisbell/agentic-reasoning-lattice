@@ -6,7 +6,7 @@ ASN-0034 gave us the tumbler space T with its total order (T1) and its arithmeti
 
 But a single span is merely a building block. This ASN formalizes the algebra over spans: comparing them, merging them, splitting them, normalizing collections to canonical form, and taking their difference.
 
-Nelson provides span-sets as the mechanism for arbitrary content designation: "if you want to designate a separated series of items exactly, including nothing else, you do this by a span-set, which is a series of spans" (LM 4/25). And he expects front-ends to manipulate them fluently: "The manipulation of request sets is an important aspect of what front-end functions do. Understanding spans is a key to appropriate software design for handling request-sets" (LM 4/37). Gregory confirms the implementation: two dedicated merge sites in the backend (the enfilade-level `isanextensionnd` and the output-level `putvspaninlist`) enforce precise adjacency and overlap conditions on spans.
+Nelson provides span-sets as the mechanism for arbitrary content designation: "if you want to designate a separated series of items exactly, including nothing else, you do this by a span-set, which is a series of spans" (LM 4/25). Gregory confirms the implementation: two dedicated merge sites in the backend (the enfilade-level `isanextensionnd` and the output-level `putvspaninlist`) enforce precise adjacency and overlap conditions on spans.
 
 
 ## The reach function
@@ -19,13 +19,7 @@ The reach is the first position beyond σ — the exclusive upper bound. It is w
 
 We shall need the reverse: given two positions a ≤ b on the tumbler line, can we recover the displacement from a to b — the unique width w such that a ⊕ w = b?
 
-ASN-0034 answers this directly: the unique width w with a ⊕ w = b is the TumblerSub b ⊖ a, whose component formula (TumblerSub, ASN-0034) is
-
-  wᵢ = 0  for i < k,    wₖ = bₖ − aₖ,    wᵢ = bᵢ  for i > k
-
-with k = divergence(a, b). We write w = b ⊖ a and call it the *displacement from a to b*. The displacement is well-defined when a < b and divergence(a, b) ≤ #a (D0, ASN-0034).
-
-D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). For equal-length endpoints with a < b and #a = #b, the divergence is of type (i) with k ≤ #a — equal length excludes the prefix case — so D0's domain condition holds, and #a ≤ #b lets D1 (ASN-0034) close the round-trip: a ⊕ (b ⊖ a) = b. The displacement from a to b is recovered faithfully whenever the two endpoints share a length.
+ASN-0034 answers this directly: the unique width w with a ⊕ w = b is the TumblerSub w = b ⊖ a (TumblerSub, ASN-0034). We call it the *displacement from a to b*. The displacement is well-defined when a < b and divergence(a, b) ≤ #a (D0, ASN-0034).
 
 **S6** (*LevelConstraint*). Two tumblers t₁ and t₂ are *level-compatible*, written level_compat(t₁, t₂), when they have the same length:
 
@@ -35,9 +29,13 @@ A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #�
 
 Gregory confirms the implementation enforces this: the split operation requires the cut and the width to share a tumbler length and aborts when this invariant is violated (Q14, Q15).
 
+**WF** (*WellFormedSpanFromEndpoints*). For s, r ∈ T with s < r and #s = #r, the pair γ = (s, r ⊖ s) is a well-formed level-uniform span (satisfying T12) with reach(γ) = r.
+
+*Proof.* Since s < r and #s = #r, the divergence k is of type (i) with k ≤ #s — equal length excludes the prefix case. The width r ⊖ s has a positive component at position k (namely rₖ − sₖ > 0), so it is positive with action point k ≤ #s; T12 is satisfied. By D1, reach(γ) = s ⊕ (r ⊖ s) = r. The span is level-uniform: #width(γ) = #(r ⊖ s) = max(#r, #s) = #s = #start(γ).  ∎
+
 **WR** (*WidthRecovery*). For a level-uniform span σ = (s, ℓ): reach(σ) ⊖ start(σ) = width(σ).
 
-*Proof.* The reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), D2 (DisplacementUnique, ASN-0034) gives reach(σ) ⊖ start(σ) = ℓ = width(σ), provided its preconditions hold for (a, b, w) = (s, reach(σ), ℓ). We discharge them: s < reach(σ) by TA-strict on T12; ℓ > 0 and its action point k ≤ #s by T12; s ⊕ ℓ = reach(σ) by definition of reach (so TA0's preconditions hold, giving #(s ⊕ ℓ) = #ℓ = #s); the divergence between s and reach(σ) is of type (i) with k ≤ #s, since s < reach(σ) and #s = #reach(σ) excludes the prefix case, satisfying D0; #s ≤ #reach(σ) since both equal #s. Every D2 precondition is met, so reach(σ) ⊖ start(σ) = width(σ).  ∎
+*Proof.* The reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), D2 (DisplacementUnique, ASN-0034) gives reach(σ) ⊖ start(σ) = ℓ = width(σ), provided its preconditions hold for (a, b, w) = (s, reach(σ), ℓ). We discharge them: s < reach(σ) by TA-strict on T12; ℓ > 0 and its action point k ≤ #s by T12; s ⊕ ℓ = reach(σ) by definition of reach (so TA0's preconditions hold, giving #(s ⊕ ℓ) = #ℓ = #s); the divergence between s and reach(σ) is of type (i) with k ≤ #s (as established in WF's proof, since #s = #reach(σ) excludes the prefix case), satisfying D0; #s ≤ #reach(σ) since both equal #s. Every D2 precondition is met, so reach(σ) ⊖ start(σ) = width(σ).  ∎
 
 A worked instance of the unequal-length failure: σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2] — when #start > #width the recovered displacement does not round-trip.
 
@@ -70,13 +68,6 @@ This follows solely from T1 being a total order. Every position between two memb
 Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cases (iii), (iv), and (v) are the *overlapping* cases — ⟦α⟧ ∩ ⟦β⟧ ≠ ∅.
 
 *Exhaustiveness.* Assume without loss of generality that start(α) ≤ start(β); configurations with start(α) > start(β) yield the same case with α, β exchanged, since each case clause is either symmetric (cases (i), (ii), (v)) or carries an explicit "or symmetrically" rider (cases (iii), (iv)). Compare reach(α) with start(β): if reach(α) < start(β), case (i); if reach(α) = start(β), case (ii); if reach(α) > start(β), the spans share positions. In the sharing case, compare start(α) with start(β): if start(α) < start(β), compare reach(α) with reach(β) — reach(α) < reach(β) gives case (iii), reach(α) ≥ reach(β) gives case (iv). If start(α) = start(β), compare reaches — reach(α) = reach(β) gives case (v), otherwise case (iv). Every ordering of the four boundary points {start(α), reach(α), start(β), reach(β)}, subject to start < reach for each span, falls into exactly one case.
-
-
-## Well-formed spans from endpoints
-
-**WF** (*WellFormedSpanFromEndpoints*). For s, r ∈ T with s < r and #s = #r, the pair γ = (s, r ⊖ s) is a well-formed level-uniform span (satisfying T12) with reach(γ) = r.
-
-*Proof.* Since s < r and #s = #r, the divergence k is of type (i) with k ≤ #s — equal length excludes the prefix case. The width r ⊖ s has a positive component at position k (namely rₖ − sₖ > 0), so it is positive with action point k ≤ #s; T12 is satisfied. By D1, reach(γ) = s ⊕ (r ⊖ s) = r. The span is level-uniform: #width(γ) = #(r ⊖ s) = max(#r, #s) = #s = #start(γ).  ∎
 
 
 ## Intersection
@@ -159,8 +150,6 @@ The split parts: λ = ([1, 0, 1, 0, 1, 0, 5], [0, 0, 0, 0, 0, 0, 4]) and ρ = ([
 
 Verify S4: (a) ⟦λ⟧ ∪ ⟦ρ⟧ = {t : [.., 5] ≤ t < [.., 9]} ∪ {t : [.., 9] ≤ t < [.., 13]} = {t : [.., 5] ≤ t < [.., 13]} = ⟦σ⟧. (b) ⟦λ⟧ ∩ ⟦ρ⟧ = ∅ (t < [.., 9] vs t ≥ [.., 9]). (c) reach(λ) = [.., 5] ⊕ [.., 4] = [.., 9] = p = start(ρ).
 
-Verify S5: d ⊕ d' = [0, 0, 0, 0, 0, 0, 4] ⊕ [0, 0, 0, 0, 0, 0, 4]. Action point k = 7: 4 + 4 = 8. Result = [0, 0, 0, 0, 0, 0, 8] = ℓ.
-
 Each element of ⟦σ⟧ appears in exactly one of ⟦λ⟧ or ⟦ρ⟧ — those before p go left, those from p onward go right. The partition is forced by the total order; there is no ambiguity. Nelson confirms the structural basis: "each element occupies exactly one position on the tumbler line" and spans include "everything between their endpoints with no discretion" (Q2).
 
 **S5** (*SplitWidthComposition*). Under the same conditions as S4, the widths of the two parts compose to the original width:
@@ -193,6 +182,8 @@ We discharge TA-LC's preconditions (TA-LC, ASN-0034) with a := s, x := d ⊕ d',
 TA-LC gives:
 
   d ⊕ d' = ℓ.  ∎
+
+Continuing the S4 worked instance (σ = ([1, 0, 1, 0, 1, 0, 5], [0, 0, 0, 0, 0, 0, 8]) split at p = [1, 0, 1, 0, 1, 0, 9], giving d = d' = [0, 0, 0, 0, 0, 0, 4]): d ⊕ d' = [0, 0, 0, 0, 0, 0, 4] ⊕ [0, 0, 0, 0, 0, 0, 4]. Action point k = 7: 4 + 4 = 8. Result = [0, 0, 0, 0, 0, 0, 8] = ℓ.
 
 **S4a** (*SplitMergeInverse*). For a level-uniform span σ = (s, ℓ) and an interior point p with level_compat(s, p), splitting σ at p (S4) and merging the two parts (S3) recovers σ exactly.
 
