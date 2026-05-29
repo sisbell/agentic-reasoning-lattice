@@ -208,7 +208,7 @@ Splitting γ at p yields λ = (start(α), p ⊖ start(α)) and ρ = (p, reach(γ
 
 *Case B: reach(β) = start(α).* By S3a (merge commutativity) the merge of α and β equals the merge of β and α, which is the Case A configuration with the roles of α and β exchanged. Applying Case A to the pair ⟨β, α⟩, splitting the merged span at the shared boundary start(α) yields left part λ = β and right part ρ = α. The unordered pair {λ, ρ} = {β, α} = {α, β} is recovered exactly; the left-right assignment is reversed relative to Case A.  ∎
 
-Together with S4a, this establishes that split and merge are exact inverses in both directions: split followed by merge recovers the original span (S4a), and merge followed by split at the original boundary recovers the original pair (S3b). The two operations form a bijection between single spans with a marked interior point and pairs of adjacent spans.
+Together with S4a, this establishes that split and merge are exact inverses in both directions: split followed by merge recovers the original span (S4a), and merge followed by split at the original boundary recovers the original pair (S3b).
 
 
 ## Span-sets
