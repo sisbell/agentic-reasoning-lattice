@@ -386,7 +386,7 @@ Nelson's statement specifies not just contiguity but also the starting ordinal: 
 
 where the tuple has length m (the common depth of V-positions in the text subspace per S8-depth), and every component is 1.
 
-At depth 2 this gives min(V_1(d)) = [1, 1]. Combined with D-CTG and S8-fin, a document with n text elements occupies V-positions [1, 1] through [1, n] — matching Nelson's "addresses 1 through 100."
+At depth 2 this gives min(V_1(d)) = [1, 1].
 
 *Formal Contract:*
 - *Axiom (design requirement):* `V_1(d) ≠ ∅ ⟹ min(V_1(d)) = [1, 1, ..., 1]` of length `m_1` (the common depth per S8-depth).
