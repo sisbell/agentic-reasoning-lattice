@@ -81,17 +81,9 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 - *Postconditions:* `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — the sibling stream is strictly increasing.
 - *Axiom:* TA5(a) — per-step strict increase of inc(·, 0); T1 transitivity (c) and irreflexivity (a).
 
-S0 restates, at the level of the *committed registry*, the foundation guarantee T10a.7 (EnumerationInjectivity): an allocator's `inc(·, 0)` chain is strictly increasing and hence injective. We re-prove it here rather than cite it because this ASN's sibling stream S(p, d) is a registry-level construct over baptized addresses, and the bridge identifying it with the foundation's per-allocator enumeration — the inclusion `allocated(s) ⊆ s.B` — is not yet available (it is the second Open Question below). Once that bridge is established, S0 becomes a corollary of T10a.7 with d in the role of the child-spawn parameter k′ ∈ {1, 2}.
-
 **S1 (StreamPrefix).** `(A n : n ≥ 1 : p ≼ cₙ)` — every stream element extends p as a prefix.
 
-*Proof.* We must show that for every n ≥ 1, the n-th element cₙ of S(p, d) satisfies p ≼ cₙ — that is, #cₙ ≥ #p and cₙᵢ = pᵢ for all 1 ≤ i ≤ #p. The argument proceeds by induction on n.
-
-*Base case (n = 1).* c₁ = inc(p, d) with d ≥ 1. By TA5(d), c₁ has length #p + d, with the first #p components preserved from p: c₁ᵢ = pᵢ for 1 ≤ i ≤ #p. Since d ≥ 1, #c₁ = #p + d ≥ #p + 1 > #p. Both conditions of the prefix relation are satisfied: p ≼ c₁.
-
-*Inductive step.* Assume p ≼ cₙ for some n ≥ 1. We show p ≼ cₙ₊₁ where cₙ₊₁ = inc(cₙ, 0). By TA5(c), cₙ₊₁ has the same length as cₙ (#cₙ₊₁ = #cₙ) and differs from cₙ only at position sig(cₙ), where cₙ₊₁ at sig(cₙ) equals cₙ at sig(cₙ) plus 1. The modification preserves the prefix provided sig(cₙ) > #p. By S(p, d), sig(cₙ) = #p + d for all n ≥ 1, and since d ≥ 1, sig(cₙ) = #p + d > #p.
-
-Therefore every position i with 1 ≤ i ≤ #p satisfies i < sig(cₙ), so cₙ₊₁ᵢ = cₙᵢ at these positions (TA5(c) modifies only sig(cₙ)). By the inductive hypothesis, cₙᵢ = pᵢ for 1 ≤ i ≤ #p, hence cₙ₊₁ᵢ = pᵢ. Since #cₙ₊₁ = #cₙ ≥ #p (from the hypothesis), both prefix conditions hold: p ≼ cₙ₊₁. ∎
+*Proof.* `p ≼ cₙ` is immediate from S(p,d)'s postconditions `#cₙ = #p + d ≥ #p` (since d ≥ 1) and `cₙᵢ = pᵢ` for `1 ≤ i ≤ #p`, by the Prefix definition (ASN-0034). ∎
 
 *Formal Contract:*
 - *Relation:* `≼` is the foundation Prefix relation (Prefix, ASN-0034).
@@ -146,7 +138,7 @@ In both cases, next(B, p, d) produces an element of T. The definition is total o
 
   PRE: B6(p, d) — depth validity (defined below); no parent-baptized prerequisite is imposed
   POST: s'.B = s.B ∪ {next(s.B, p, d)}; only s.B is modified
-  STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below) — each baptize(p, d) is a single atomic Σ-edge; the read next(s.B, p, d) is against the precondition state s
+  STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below) — read-against-precondition-state semantics
 
 *Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined and produces a fresh address.
 
@@ -310,7 +302,7 @@ Baptism reads the high water mark, computes the next address, and commits the re
 
   `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s' with s'.B = s.B ∪ {next(s.B, p, d)})`
 
-In the transition relation `→` of the state space 𝒮, the observation of the precondition state and the commitment of the postcondition state are not separable. There is no state s_mid with `s → s_mid → s'` representing an "intent to baptize" that some later step fulfills: `next(s.B, p, d)` is computed against s and committed to s' in the same step, and each `baptize(p, d) ∈ Σ` is a single edge in the transition graph. We record this as the *read-against-precondition-state semantics*: the value `next(s.B, p, d)` — and hence `children(s.B, p, d)` — used in the postcondition is read against the precondition state s that licenses the transition, and is the same value committed by that edge. Proofs below cite B4 for this fact without re-narrating it.
+In the transition relation `→` of the state space 𝒮, the observation of the precondition state and the commitment of the postcondition state are not separable. There is no state s_mid with `s → s_mid → s'` representing an "intent to baptize" that some later step fulfills: `next(s.B, p, d)` is computed against s and committed to s' in the same step, and each `baptize(p, d) ∈ Σ` is a single edge in the transition graph. We record this as the *read-against-precondition-state semantics*: the value `next(s.B, p, d)` — and hence `children(s.B, p, d)` — used in the postcondition is read against the precondition state s that licenses the transition, and is the same value committed by that edge.
 
 B0a guarantees that no other operation modifies s.B between any two transitions, so within a single Σ-transition the read of `s.B ∩ S(p, d)` is exact.
 
@@ -426,8 +418,6 @@ Every case yields a contradiction, so S(p, d) ∩ S(p', d') = ∅. ∎
 - *Postconditions:* `S(p, d) ∩ S(p', d') = ∅`.
 - *Depends:* S(p,d) (canonical stream form and length #p + d), S1 (every element extends p), T3 (CanonicalRepresentation — a tumbler has a single length, and componentwise prefix agreement forces parent equality), T4 / TA5-SigValid (valid addresses have a nonzero last component, via B6(i)), TA5(d) (child increment, fixing the separator positions).
 
-B7 restates, at the committed-registry level, the foundation guarantee that distinct allocators occupy disjoint regions of address space — T10a.6 (DomainDisjointness), itself resting on the prefix-incomparability of T10a.5. We re-prove it directly from the canonical stream form rather than cite those results because a baptismal namespace (p, d) is not yet identified with a foundation allocator: the allocation↔baptism bridge `allocated(s) ⊆ s.B` is the second Open Question below. Until that bridge exists, namespace disjointness cannot be inherited from allocator domain disjointness and must be established on the stream forms alone.
-
 
 ## A baptism traced
 
@@ -510,9 +500,7 @@ The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9
 
   `(A a, b : produced by distinct co-reachable baptismal acts : a ≠ b)`.
 
-The proof splits two ways: distinct baptisms within the same namespace, and baptisms in different namespaces.
-
-B8 restates, at the committed-registry level, the foundation guarantee GlobalUniqueness (no two distinct allocation events produce the same address). We re-prove it from the registry invariants (B0★, B1, B2, B4, B7, S0) rather than cite GlobalUniqueness because that result quantifies over *allocation events*, whereas B8 quantifies over *baptismal acts*; the two coincide only under the allocation↔baptism bridge `allocated(s) ⊆ s.B`, which this ASN leaves open (second Open Question below). The registry-level proof is therefore the standalone argument available until the bridge identifies baptism with the allocator discipline.
+The proof splits two ways: distinct baptisms within the same namespace, and baptisms in different namespaces. B8 establishes uniqueness only along a single transition path; cross-branch uniqueness — whether two baptisms on incomparable branches of the reachability relation produce distinct addresses — is unaddressed.
 
 *Proof.* We must show that for any two distinct *co-reachable* baptismal acts β₁ and β₂ — both lying, by the co-reachability hypothesis, on a single transition path s_init →* s — the addresses they produce are distinct. Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We proceed by case analysis on whether the two baptisms target the same or different namespaces.
 
