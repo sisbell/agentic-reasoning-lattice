@@ -32,8 +32,6 @@ A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed se
 
 The set-membership constraint `s.B ⊆ T` needs no separate induction: B10 (§B10) establishes that every t ∈ s.B satisfies T4, and T4-validity entails t ∈ T.
 
-We state the closure law directly on the operation vocabulary Σ rather than on an opaque predicate "produced by baptism":
-
 **B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
 
   - *Baptismal operations.* For each (p, d) satisfying B6, `baptize(p, d) ∈ Σ` is the operation specified by Bop below; its action on the registry is `op(s).B = s.B ∪ {next(s.B, p, d)}`.
@@ -257,7 +255,7 @@ B1 yields a simplification: the entire allocation state of a namespace reduces t
 
 By B1 (Contiguous Prefix), children(B, p, d) = {c₁, ..., cₘ} — the first m elements of the sibling stream S(p, d) with no gaps. This contiguity is the load-bearing property: it means the set of children is determined entirely by its cardinality. Any set of m elements drawn from a contiguous prefix of a sequence is the prefix itself, so knowing m tells us children(B, p, d) = {c₁, ..., cₘ}.
 
-It follows that the prefix's maximum is its last element cₘ — the identity max(children(B, p, d)) = cₘ derived once at B2 below, where the next-address derivation from m is carried. No scan of the children set is needed; the count alone suffices. ∎
+The count m therefore determines the entire children set: children(B, p, d) is a single-valued function of m. No scan is needed; the count alone is a sufficient statistic for the allocation state of the namespace. ∎
 
 *Formal Contract:*
 - *Definition:* hwm(B, p, d) = #children(B, p, d) where children(B, p, d) = {cₙ ∈ S(p, d) : cₙ ∈ B}.
@@ -315,7 +313,7 @@ Baptism reads the high water mark, computes the next address, and commits the re
 
 In the transition relation `→` of the state space 𝒮, the observation of the precondition state and the commitment of the postcondition state are not separable. There is no state s_mid with `s → s_mid → s'` representing an "intent to baptize" that some later step fulfills: `next(s.B, p, d)` is computed against s and committed to s' in the same step, and each `baptize(p, d) ∈ Σ` is a single edge in the transition graph.
 
-B0a guarantees that no other operation modifies s.B between any two transitions, so within a single Σ-transition the read of `s.B ∩ S(p, d)` is exact, and across two same-namespace baptismal transitions β₁, β₂, exactly one of `β₁; β₂` or `β₂; β₁` describes their relative order in the transition sequence — there is no third option of overlap.
+B0a guarantees that no other operation modifies s.B between any two transitions, so within a single Σ-transition the read of `s.B ∩ S(p, d)` is exact.
 
 B4's scope is *per-namespace*: B7 guarantees baptisms under distinct (p, d) pairs produce disjoint outputs, so the minimum serialization grain is the namespace, not the entire system.
 
@@ -598,6 +596,4 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 - Must the specification distinguish between a ghost element that could hold content and a structural position that cannot — or is this distinction derivable from the field structure alone?
 - Under what conditions may bulk allocation — baptizing a contiguous range of k positions in a single operation — satisfy B4's atomicity and B1's contiguity requirements?
 - What must a distributed system guarantee about cross-replica baptism ordering to maintain global address uniqueness without centralized coordination?
-- Does the abstract specification require a single canonical depth d for each parent level, or may a parent simultaneously baptize children at both d = 1 and d = 2?
-- What is the minimal serialization grain for baptism — must operations be serialized per-parent per-depth, or per-parent across all depths?
 - What invariants must element-level subspace partitioning (T7) satisfy so that the contiguous prefix property holds independently within each subspace?
