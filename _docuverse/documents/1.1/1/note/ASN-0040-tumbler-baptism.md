@@ -45,7 +45,7 @@ B0 is a single-step law. We extend it to finite transition sequences:
 
 *Proof.* B0 makes `s ↦ s.B` monotone under single transitions, and monotonicity transfers to the reflexive-transitive closure by chaining ⊆ along the witnessing sequence. ∎
 
-**B0b (Transition Dichotomy — corollary of B0a).** Every transition `s → s'` has exactly one of two shapes: it is *s.B-frame*, with `s'.B = s.B`; or it is *baptismal*, induced by `baptize(p, d)` for some B6-valid (p, d), with `s'.B = s.B ∪ {next(s.B, p, d)}`. This union form is immediate from B0a's partition of Σ; that the union strictly enlarges the set (`next(s.B, p, d) ∉ s.B`, so `|s'.B| = |s.B| + 1`) is the separate freshness claim proved in Bop and is not asserted here.
+**B0b (Transition Dichotomy — corollary of B0a).** Every transition `s → s'` has exactly one of two shapes: it is *s.B-frame*, with `s'.B = s.B`; or it is *baptismal*, induced by `baptize(p, d)` for some B6-valid (p, d), with `s'.B = s.B ∪ {next(s.B, p, d)}`. This union form is immediate from B0a's partition of Σ.
 
 The binary character of this state is fundamental. Nelson's model has no third status between baptized and unbaptized: "the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A position is either conceptually assigned (in B) or not. Whether anything is *stored* at that position is a separate question, which we address below as the ghost validity property.
 
@@ -100,7 +100,7 @@ One structural identity of the stream construction relates a depth-1 stream unde
 
 *Proof.* The first element of S(p, 1) is c₁ = inc(p, 1); by TA5(d) with d − 1 = 0 intermediate zeros, c₁ has length #p + 1 with positions 1 through #p preserved from p and position #p + 1 set to 1, so c₁ = [p₁, ..., p_{#p−1}, 0, 1] (using p_{#p} = 0). The first element of S(p′, 2) is c′₁ = inc(p′, 2); by TA5(d) with one intermediate zero, c′₁ has length #p′ + 2 = #p + 1 with positions 1 through #p′ = #p − 1 preserved from p′, position #p′ + 1 = #p set to 0 (the separator), and position #p′ + 2 = #p + 1 set to 1, so c′₁ = [p₁, ..., p_{#p−1}, 0, 1]. Component-by-component, c₁ = c′₁. Both streams share the deterministic recurrence cₙ₊₁ = inc(cₙ, 0), so they coincide: S(p, 1) = S(p′, 2). ∎
 
-A trailing-zero parent at d = 1 is the one case where S2 bites on the namespace: p = [1, 0] (T4-defective by its trailing zero alone) yields the fully T4-valid stream [1, 0, n], yet by S2 this is identical to S([1], 2), the stream of the B6-valid namespace ([1], 2). Admitting ([1, 0], 1) would thus give two distinct namespaces sharing their entire stream. The consequence B6(i) draws from this collision — exclusion of such parents to keep the namespace map injective — is argued in B6's necessity discussion below.
+A trailing-zero parent at d = 1 is the one case where S2 bites on the namespace: p = [1, 0] (T4-defective by its trailing zero alone) yields the fully T4-valid stream [1, 0, n], yet by S2 this is identical to S([1], 2), the stream of the B6-valid namespace ([1], 2). That is, S([1, 0], 1) = S([1], 2): two distinct namespaces would share their entire stream.
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, #p ≥ 2, p_{#p} = 0; p′ = [p₁, ..., p_{#p−1}] (so p′ ∈ T).
@@ -122,13 +122,7 @@ We define the *children* of parent p at depth d in state B:
 
 — find the greatest baptized sibling and produce its immediate successor; if none exists, produce the first child.
 
-*Justification of well-definedness.* We must show that next(B, p, d) is well-defined for any registry B ⊆ T, parent p ∈ T, and depth d ≥ 1 — that is, each branch of the conditional produces an element of T.
-
-*Case 1: children(B, p, d) = ∅.* The definition yields next(B, p, d) = inc(p, d). By TA5(d) (ASN-0034), inc(p, d) is well-defined for any p ∈ T and d ≥ 1, producing a tumbler of length #p + d whose first #p components are preserved from p, whose next d − 1 positions are zero-valued field separators, and whose final position has value 1. The result is an element of T — specifically, c₁ of the sibling stream S(p, d).
-
-*Case 2: children(B, p, d) ≠ ∅.* The definition yields next(B, p, d) = inc(max(children(B, p, d)), 0). We must show that max(children(B, p, d)) exists and that the subsequent increment is well-defined. The set children(B, p, d) is a non-empty finite subset of T (finite because B is finite, non-empty by hypothesis). The lexicographic order T1 is a strict total order on T, so every non-empty finite subset has a unique maximum. Let t = max(children(B, p, d)). TA5's first (unlabeled) postcondition (ASN-0034) gives `inc(t, 0) ∈ T` for any t ∈ T; TA5(c) further specifies the form — length preserved, value at position sig(t) advanced by 1.
-
-In both cases, next(B, p, d) produces an element of T. The definition is total on its domain {(B, p, d) : B ⊆ T finite, p ∈ T, d ≥ 1}. ∎
+*Justification of well-definedness.* When children(B, p, d) = ∅ the result is inc(p, d); otherwise children(B, p, d) is a non-empty finite subset of T (finite by B_fin), which T1 totally orders, so its max exists. Both branches land in T by TA5 (TA5(d) for inc(p, d), TA5(c) for inc(max(...), 0)), so next is total on its domain. ∎
 
 *Formal Contract:*
 - *Definition:* next(B, p, d) = if children(B, p, d) = ∅ then inc(p, d) else inc(max(children(B, p, d)), 0), where children(B, p, d) = B ∩ S(p, d).
@@ -345,7 +339,7 @@ This deserves attention. The `.0.` that appears in addresses like `1.1.0.1.0.1` 
 
   (iii) zeros(p) + (d − 1) ≤ 3.
 
-Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (i) is necessary for T4 except at the d = 1 trailing-zero case, where it is retained for the injectivity reason given at S2. Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy; it is independently necessary only at d = 2. Together:
+Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (i) is necessary for T4 except at the d = 1 trailing-zero case, where it is retained for the injectivity reason given at S2. Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy. Together:
 
 | Parent level | d = 1 (same level) | d = 2 (level crossing) |
 |---|---|---|
@@ -382,7 +376,7 @@ Condition (i) is therefore necessary for T4 preservation: a count violation (zer
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1.
-- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: each condition is necessary at the depth where it binds — (i) and (ii) wherever they apply, (iii) independently only at d = 2 — and violating a binding condition forces a T4 violation; the sole exception is the d = 1 trailing-zero case, where (i) is retained for injectivity (S2) rather than for T4.
+- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: violating a binding condition forces a T4 violation; the sole exception is the d = 1 trailing-zero case, where (i) is retained for injectivity (S2) rather than for T4.
 
 
 ## Namespace disjointness
@@ -478,7 +472,7 @@ The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9
 
   `(A a, b : produced by distinct co-reachable baptismal acts : a ≠ b)`.
 
-The proof splits two ways: distinct baptisms within the same namespace, and baptisms in different namespaces. B8 establishes uniqueness only along a single transition path (the scope limitation is recorded in the postcondition note below).
+The proof splits two ways: distinct baptisms within the same namespace, and baptisms in different namespaces. B8 establishes uniqueness only along a single transition path.
 
 *Proof.* We must show that for any two distinct *co-reachable* baptismal acts β₁ and β₂ — both lying, by the co-reachability hypothesis, on a single transition path s_init →* s — the addresses they produce are distinct. Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We proceed by case analysis on whether the two baptisms target the same or different namespaces.
 
@@ -503,7 +497,7 @@ Nelson insists that the address space imposes no capacity limits:
 
 **B9 (Unbounded Extent).** `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))`.
 
-No architectural limit constrains how many children a position may have. The child ordinal occupies a single component, and each baptism advances it by one via inc(·, 0) — total on T by TA5(c) — to a successor that remains a natural number by NAT-closure. Since neither the increment nor successor closure bounds the ordinal, it grows without bound. Combined with B1, the children of any parent can grow to form an arbitrarily long contiguous prefix {c₁, ..., cₘ} for any m.
+No architectural limit constrains how many children a position may have.
 
 *Proof.* We must show that for any pair (p, d) satisfying B6 and any bound M ∈ ℕ, there exists a state s' with s →* s' (via baptisms) such that hwm(s'.B, p, d) ≥ M. The argument is constructive: we exhibit the required sequence of baptismal transitions.
 
