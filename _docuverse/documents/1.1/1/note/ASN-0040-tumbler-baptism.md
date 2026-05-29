@@ -21,6 +21,18 @@ We work within the foundation's transition framework (ASN-0034, AllocatedSet and
 
 The initial state s_init has s_init.B = B₀, the seed set established at genesis; "reachable" without qualification means reachable from s_init.
 
+This framework leaves `→*` *branching* in general. At any state where more than one operation is defined — for instance `baptize(p, d)` for several distinct B6-valid `(p, d)` — multiple successors exist, so the induced relation has several outgoing edges and the set of reachable states forms a tree rather than a chain. We must not silently assume otherwise: a uniqueness argument that quietly presumes a single execution path would not hold across divergent branches, where two acts proceeding from a common state could compute the same address independently. We therefore make the execution discipline an explicit axiom rather than an implicit reading of the model.
+
+**B-Seq (Sequential Commitment).** Within a single baptismal authority, the states actually realized by execution lie on one transition path from s_init: the visited states are totally ordered by `→*`. Equivalently, no two distinct baptismal commits proceed from the same state onto divergent branches — every commit reads the registry left by its predecessor.
+
+*Justification.* This is not derivable from the foundation's Σ framework, which (as noted) admits branching; it is an added model axiom specific to single-server baptism, and it is grounded in implementation. Gregory's udanax-green commits baptisms through a single fully serialized path: a single-process, single-threaded event loop dispatches each operation run-to-completion before the next begins, allocation is a stateless query-and-increment (`findpreviousisagr` then `tumblerincrement`) over one shared in-memory granfilade, and there is exactly one persistent-store writer. The second of two back-to-back baptisms therefore always observes the first's committed address and allocates strictly above it; two commits cannot fork from the same state. So the realized history is a strict linear sequence.
+
+We must reconcile this with Nelson's design intent, which deliberately contemplates *concurrent, branching allocation from genesis* — "whoever owns a specific node, account, document or version may in turn designate ... new nodes, accounts, documents and versions, by forking their integers," with "the owner of a given item controls the allocation of the numbers under it" requiring no central coordinator. The reconciliation is that concurrency across independent owners is concurrency over *disjoint* namespaces, where B7 (Namespace Disjointness) already guarantees non-overlapping address ranges regardless of interleaving — so it never threatens uniqueness within an owned subtree. The hazardous case the branching model permits — two commits to the *same* namespace from a shared state — is precisely what sequential commitment excludes within a single authority. Genuinely divergent branches that coexist (distinct replicas allocating without a shared commit path) fall outside B-Seq's scope and are deferred to the cross-replica question (Open Questions).
+
+*Formal Contract:*
+- *Axiom:* The states realized under a single baptismal authority are totally ordered by `→*` — for any two such reachable states s, s', either s →* s' or s' →* s.
+- *Scope:* single baptismal authority (one serialized commit path); cross-replica concurrency is out of scope.
+
 
 ## The baptismal registry
 
@@ -435,9 +447,9 @@ At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 
 
 The proof splits two ways: distinct baptisms within the same namespace, and baptisms in different namespaces.
 
-*Proof.* Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). This model admits only linear history — every reachable state extends one transition path from s_init — so both acts lie on a single transition path s_init →* s. We proceed by case analysis on whether the two baptisms target the same or different namespaces.
+*Proof.* Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We take β₁ and β₂ to be commits under a single baptismal authority, so B-Seq (Sequential Commitment) applies: the states they act on are totally ordered by →*, and both acts therefore lie on a single transition path s_init →* s. We invoke B-Seq explicitly because the foundation's Σ framework leaves →* branching in general — without sequential commitment, β₁ and β₂ could proceed from a shared state onto divergent branches and Case 1 below would not go through (two same-namespace commits from one state would compute the identical address). We proceed by case analysis on whether the two baptisms target the same or different namespaces.
 
-*Case 1: same namespace — (p, d) = (p', d').* The single transition path s_init →* s carries both β₁ and β₂. Along that one path the edges are linearly ordered, so β₁ and β₂ are comparable; without loss of generality β₁ precedes β₂, the argument with roles exchanged being identical. By B4 (Atomic Baptism), each baptism is a single Σ-edge of this path. Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts. By the Bop postcondition, the successor state s₁' = β₁(s₁) has s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. Since β₁ precedes β₂, s₂ is reachable from s₁' through a (possibly empty) sequence of transitions — that is, s₁' →* s₂. B0★ gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
+*Case 1: same namespace — (p, d) = (p', d').* By B-Seq the states acted on by β₁ and β₂ are totally ordered by →*, so the two commits are comparable; without loss of generality β₁ precedes β₂, the argument with roles exchanged being identical. By B4 (Atomic Baptism), each baptism is a single Σ-edge of this path. Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts. By the Bop postcondition, the successor state s₁' = β₁(s₁) has s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. Since β₁ precedes β₂, s₂ is reachable from s₁' through a (possibly empty) sequence of transitions — that is, s₁' →* s₂. B0★ gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
 
 Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mark Sufficiency), a = c_{m₁+1} and b = c_{m₂+1}, where cₙ denotes the n-th element of S(p, d). Since a = c_{m₁+1} ∈ s₂.B and B1 (Contiguous Prefix) holds for s₂, the children of (p, d) in s₂ include {c₁, ..., c_{m₁+1}}, so hwm(s₂.B, p, d) ≥ m₁ + 1. That is, m₂ ≥ m₁ + 1, hence m₂ + 1 ≥ m₁ + 2 > m₁ + 1. The indices m₁ + 1 and m₂ + 1 are distinct with m₁ + 1 < m₂ + 1. By S0 (StreamOrdering), c_{m₁+1} < c_{m₂+1} under the lexicographic order T1. By T1 irreflexivity, c_{m₁+1} ≠ c_{m₂+1}. Therefore a ≠ b.
 
@@ -446,7 +458,7 @@ Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mar
 In both cases a ≠ b. No two distinct baptisms, whether in the same namespace, across sibling namespaces, or at different hierarchical levels, can produce the same address. ∎
 
 *Formal Contract:*
-- *Preconditions:* β₁, β₂ are distinct baptismal acts in a system conforming to B0★ (which subsumes B0), B0a, B1, B4, and B7; β₁ produces a in namespace (p, d) and β₂ produces b in namespace (p', d'), where both (p, d) and (p', d') satisfy B6.
+- *Preconditions:* β₁, β₂ are distinct baptismal acts under a single baptismal authority (so B-Seq applies) in a system conforming to B-Seq, B0★ (which subsumes B0), B0a, B1, B4, and B7; β₁ produces a in namespace (p, d) and β₂ produces b in namespace (p', d'), where both (p, d) and (p', d') satisfy B6.
 - *Postconditions:* `a ≠ b`.
 
 
@@ -493,6 +505,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
 | B0 | `s.B ⊆ s'.B` for all transitions — irrevocability (analogous to T8 for the registry component) | from B0a |
 | B0★ | `s.B ⊆ s'.B` for all s →* s' (reflexive-transitive closure of transitions) — multi-step irrevocability | labelled corollary of B0 |
+| B-Seq | States realized under a single baptismal authority are totally ordered by →* — no two commits fork from a shared state (sequential commitment) | model axiom (grounded in implementation) |
 | B0a | Σ partitions into baptismal operations (the `baptize(p, d)` for B6-valid (p, d), each acting on s.B as in Bop) and s.B-frame operations (every other op satisfies `op(s).B = s.B`) — registry grows only through baptism | design requirement |
 | B₀ conf. | B₀ is finite, `children(B₀, p, d)` is a contiguous prefix for every B6-valid (p, d), and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | design requirement |
 | B_fin | `(A s reachable : s.B is finite)` — registry finiteness | from B₀ conf., B0a |
@@ -504,7 +517,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
 | B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from S(p,d) structure, TA5(c), B6, TA5(d), T3, T4 |
-| B8 | Distinct baptisms produce distinct addresses — uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
+| B8 | Distinct baptisms produce distinct addresses — uniqueness | from B-Seq, B0★, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))` — unbounded extent | from B1, B2, B4, B6, Bop, TA5(c), TA5(d), NAT-closure |
 | B10 | `(A t ∈ s.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
 
