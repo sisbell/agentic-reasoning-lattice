@@ -32,7 +32,7 @@ A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed se
 
 **B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
 
-  - *Baptismal operations.* For each (p, d) satisfying B6 (Valid Depth, below), `baptize(p, d) ∈ Σ` is the operation specified by Bop below; its action on the registry is `op(s).B = s.B ∪ {next(s.B, p, d)}`, adding one new element.
+  - *Baptismal operations.* For each (p, d) satisfying B6 (Valid Depth, below), `baptize(p, d) ∈ Σ` is the operation specified by Bop below; its action on the registry is the one Bop fixes, adding one new element.
   - *s.B-frame operations.* Every other `op ∈ Σ` preserves the registry: `(A op ∈ Σ \ {baptize(p, d) : B6(p, d)}, s ∈ dom(op) : op(s).B = s.B)`.
 
 Irrevocability follows immediately:
@@ -90,7 +90,7 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 
 As a consequence, since every cₙ extends p, the entire stream lies within the set {t ∈ T : p ≼ t}, which forms a contiguous interval under T1 by T5 (ContiguousSubtrees).
 
-Nelson describes exactly this process: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right." The word "successive" is precise — positions arrive in order, c₁ before c₂ before c₃. "Items 2.1, 2.2, 2.3, 2.4... are successive items being placed under 2." The stream is traversed monotonically, not sampled.
+Nelson describes exactly this process: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right." The word "successive" is precise — positions arrive in order, c₁ before c₂ before c₃. The stream is traversed monotonically, not sampled.
 
 
 ## Depth and field structure
@@ -336,9 +336,9 @@ Baptism reads the high water mark, computes the next address, and commits the re
 
 **B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each baptismal operation is a single atomic transition. For every (p, d) satisfying B6:
 
-  `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s' with s'.B = s.B ∪ {next(s.B, p, d)})`
+  `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s')`, where the registry update `s'.B` is the action specified by Bop below.
 
-Because `baptize(p, d) ∈ Σ` (B0a) and the foundation fixes every `op ∈ Σ` as a single partial function on 𝒮, the value `s'.B = s.B ∪ {next(s.B, p, d)}` is committed on one edge of `→`: there is no intermediate observable state s_mid with `s → s_mid → s'`.
+Because `baptize(p, d) ∈ Σ` (B0a) and the foundation fixes every `op ∈ Σ` as a single partial function on 𝒮, Bop's registry update is committed on one edge of `→`: there is no intermediate observable state s_mid with `s → s_mid → s'`.
 
 
 ## The baptism operation
@@ -449,7 +449,7 @@ At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 
 
   The remaining two baptisms in ([1], 2) follow the same pattern, reaching the final state B₇ = B₅ ∪ {[1, 0, 4], [1, 0, 5]} with hwm(B₇, [1], 2) = 5 = M.
 
-The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9 for the pair ((p, d), M) = (([1], 2), 5); for any target M' > 5, an additional M' − 5 baptisms in ([1], 2) extend B₇ to a registry with hwm = M' along the same pattern. Crucially, contiguity is maintained at every step — children(B₅, [1], 2) = {c₁, c₂, c₃}, children(B₆, [1], 2) = {c₁, ..., c₄}, and children(B₇, [1], 2) = {c₁, ..., c₅} — so the trace simultaneously witnesses B9 (unboundedness) and B1 (contiguity) under iteration.
+The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9 for the pair ((p, d), M) = (([1], 2), 5).
 
 
 ## Co-reachable uniqueness
