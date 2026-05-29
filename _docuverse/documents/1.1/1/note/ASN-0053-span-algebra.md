@@ -63,7 +63,7 @@ This follows solely from T1 being a total order. Every position between two memb
 
 Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cases (iii), (iv), and (v) are the *overlapping* cases — ⟦α⟧ ∩ ⟦β⟧ ≠ ∅.
 
-*Exhaustiveness.* The SC definition is symmetric in α and β: each case clause is either symmetric (cases (i), (ii), (v) phrase both directions as a disjunction) or carries an explicit "or symmetrically" rider (cases (iii), (iv)). Swapping α and β maps each case to itself, so the classification is invariant under that swap. We may therefore assume without loss of generality that start(α) ≤ start(β); the configurations with start(α) > start(β) yield the same case (with α, β exchanged) under the symmetric clauses. Compare reach(α) with start(β): if reach(α) < start(β), case (i); if reach(α) = start(β), case (ii); if reach(α) > start(β), the spans share positions. In the sharing case, compare start(α) with start(β): if start(α) < start(β), compare reach(α) with reach(β) — reach(α) < reach(β) gives case (iii), reach(α) ≥ reach(β) gives case (iv). If start(α) = start(β), compare reaches — reach(α) = reach(β) gives case (v), otherwise case (iv). Every ordering of the four boundary points {start(α), reach(α), start(β), reach(β)}, subject to start < reach for each span, falls into exactly one case. No sixth case exists.
+*Exhaustiveness.* Assume without loss of generality that start(α) ≤ start(β); configurations with start(α) > start(β) yield the same case with α, β exchanged, since each case clause is either symmetric (cases (i), (ii), (v)) or carries an explicit "or symmetrically" rider (cases (iii), (iv)). Compare reach(α) with start(β): if reach(α) < start(β), case (i); if reach(α) = start(β), case (ii); if reach(α) > start(β), the spans share positions. In the sharing case, compare start(α) with start(β): if start(α) < start(β), compare reach(α) with reach(β) — reach(α) < reach(β) gives case (iii), reach(α) ≥ reach(β) gives case (iv). If start(α) = start(β), compare reaches — reach(α) = reach(β) gives case (v), otherwise case (iv). Every ordering of the four boundary points {start(α), reach(α), start(β), reach(β)}, subject to start < reach for each span, falls into exactly one case.
 
 
 ## The level constraint
@@ -72,7 +72,7 @@ Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cas
 
   level_compat(t₁, t₂)  ≡  #t₁ = #t₂
 
-A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity from TA0 (#(s ⊕ ℓ) = #ℓ), already established above. The start, width, and reach all share the same tumbler length. A level-uniform span automatically satisfies D0 for the (start(σ), reach(σ)) pair: by TA-strict, start(σ) < reach(σ); and since #start(σ) = #reach(σ), neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start(σ). The level_compat precondition is what excludes the troublesome case: a deeper-level point such as [1, 3, 0, 1] relative to start [1, 3] has divergence([1, 3], [1, 3, 0, 1]) = 3 (the prefix case, min + 1), exceeding #[1, 3] = 2, so D0 fails and no valid displacement exists. The precondition rules out exactly such points. (In a flat address space every interior point would admit a split; the tumbler space stratifies positions by depth, so arithmetic must respect that stratification.)
+A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity from TA0 (#(s ⊕ ℓ) = #ℓ), already established above. The start, width, and reach all share the same tumbler length. A level-uniform span automatically satisfies D0 for the (start(σ), reach(σ)) pair: by TA-strict, start(σ) < reach(σ); and since #start(σ) = #reach(σ), neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start(σ). The level_compat precondition is what excludes the troublesome case: a deeper-level point such as [1, 3, 0, 1] relative to start [1, 3] has divergence([1, 3], [1, 3, 0, 1]) = 3 (the prefix case, min + 1), exceeding #[1, 3] = 2, so D0 fails and no valid displacement exists. The precondition rules out exactly such points.
 
 Gregory confirms the implementation enforces this: the split operation requires the cut and the width to share a tumbler length and aborts when this invariant is violated (Q14, Q15).
 
@@ -124,7 +124,7 @@ Adjacent spans share no positions (reach is an exclusive upper bound) but their 
 
 Then ⟦α⟧ ∪ ⟦β⟧ = {t : s ≤ t < r}. To verify the union: every position in ⟦α⟧ satisfies s ≤ t (since s = start(α)) and t < r (since reach(α) ≤ r). Every position in ⟦β⟧ satisfies s ≤ t (since start(β) ≥ start(α) = s) and t < r (since reach(β) ≤ r). Conversely, take any t with s ≤ t < r. Two cases arise. *Case 1:* t < reach(α). Then start(α) = s ≤ t < reach(α), so t ∈ ⟦α⟧. *Case 2:* t ≥ reach(α). Since t < r = max(reach(α), reach(β)) and t ≥ reach(α), we have r > reach(α), which forces r = reach(β). Then t < reach(β). The overlap/adjacency condition gives t ≥ reach(α) ≥ start(β), so start(β) ≤ t < reach(β), giving t ∈ ⟦β⟧. Every t ∈ [s, r) falls in ⟦α⟧ ∪ ⟦β⟧.
 
-The merged span γ = (s, r ⊖ s) denotes {t : s ≤ t < r}. Level-uniformity and S6 ensure #s = #r (both are starts or reaches of level-uniform spans at the same length), and s < r since the union is non-empty, so by WF the pair γ = (s, r ⊖ s) is a well-formed level-uniform span with reach(γ) = r. The denotation depends only on the endpoints s and r, not on the history of how they were obtained — confirming Nelson's assertion that "there is no choice as to what lies between" (LM 4/25).  ∎
+The merged span γ = (s, r ⊖ s) denotes {t : s ≤ t < r}. Level-uniformity and S6 ensure #s = #r (both are starts or reaches of level-uniform spans at the same length), and s < r since the union is non-empty, so by WF the pair γ = (s, r ⊖ s) is a well-formed level-uniform span with reach(γ) = r. The denotation depends only on the endpoints s and r, not on the history of how they were obtained.  ∎
 
 A concrete instance (reusing S1's spans): let α = ([1, 3], [0, 4]) and β = ([1, 5], [0, 6]). Then reach(α) = [1, 7] and reach(β) = [1, 11]. Since start(α) = [1, 3] ≤ start(β) = [1, 5] and reach(α) = [1, 7] > start(β) = [1, 5], the spans overlap. We have s = [1, 3] and r = max([1, 7], [1, 11]) = [1, 11]. The merged span is γ = ([1, 3], [1, 11] ⊖ [1, 3]) = ([1, 3], [0, 8]) — divergence at position 2 gives 11 − 3 = 8. Verify: reach(γ) = [1, 3] ⊕ [0, 8] = [1, 11]. And ⟦α⟧ ∪ ⟦β⟧ = {t : [1, 3] ≤ t < [1, 7]} ∪ {t : [1, 5] ≤ t < [1, 11]} = {t : [1, 3] ≤ t < [1, 11]} = ⟦γ⟧ — the overlap region [1, 5]..[1, 7) is covered by both spans, and the union fills the interval without gaps.
 
@@ -421,17 +421,13 @@ The maximum across all cases is 2, achieved only in the containment case.  ∎
 The bound of 2 is tight: S11 shows containment achieves it. No SC case exceeds it. This confirms Nelson's span-set mechanism is sufficient for representing any two-span difference.
 
 
-## Denotation, not encoding
-
-All properties above quantify over the denotation ⟦σ⟧ — the set of positions covered — and are therefore insensitive to the tumbler-length of a width: a width compared by its tumbler representation rather than by the interval it denotes is a separate question, governed by T3's per-tumbler canonical form, not by the span algebra.
-
-
 ## Properties Introduced
 
 | Label | Statement | Status |
 |-------|-----------|--------|
 | D0 | Displacement well-definedness: a < b and divergence(a, b) ≤ #a (DisplacementWellDefined, ASN-0034) | cited |
 | D1 | Displacement round-trip: for a < b with divergence(a, b) ≤ #a and #a ≤ #b, a ⊕ (b ⊖ a) = b (DisplacementRoundTrip, ASN-0034) | cited |
+| D2 | Displacement uniqueness: any w with a ⊕ w = b equals b ⊖ a (DisplacementUnique, ASN-0034) | cited |
 | WR | Width recovery: for level-uniform σ, reach(σ) ⊖ start(σ) = width(σ) | introduced |
 | WF | For s, r ∈ T with s < r and #s = #r, the pair (s, r ⊖ s) is a well-formed level-uniform span with reach r | introduced |
 | S0 | Spans are convex: every position between two members is also a member | introduced |
@@ -443,6 +439,7 @@ All properties above quantify over the denotation ⟦σ⟧ — the set of positi
 | S3a | Span merge is commutative | introduced |
 | S4 | Split at a level-compatible interior point produces an exact partition: nothing lost, nothing duplicated, the two parts adjacent | introduced |
 | TA-LC | a ⊕ x = a ⊕ y ⟹ x = y (LeftCancellation, ASN-0034) | cited |
+| TA-assoc | (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) under ordered action points (AdditionAssociative, ASN-0034) | cited |
 | S5 | The widths of two split parts compose under ⊕ to the original width | introduced |
 | S4a | Split-merge inverse: splitting σ at a level-compatible interior point and merging recovers σ exactly | introduced |
 | S3b | Merge-split inverse: merging adjacent level-uniform spans and splitting at the original boundary recovers the unordered pair {α, β} exactly | introduced |
@@ -470,3 +467,4 @@ All properties above quantify over the denotation ⟦σ⟧ — the set of positi
 - What guarantees must span operations provide at subspace boundaries, where hierarchical level transitions are structurally inherent?
 - When the minimal span-set covering a target population changes due to address allocation, what is the minimal update to the old normalized form that produces the new one?
 - Does the general difference bound extend to span-set difference? Given normalized span-sets Σ₁ and Σ₂, what is the tight bound on |normalize(⟦Σ₁⟧ \ ⟦Σ₂⟧)|?
+- All properties here quantify over the denotation ⟦σ⟧ rather than the tumbler-length of a width; what must hold for width comparison by tumbler representation (governed by T3's canonical form) to agree with comparison by denotation?
