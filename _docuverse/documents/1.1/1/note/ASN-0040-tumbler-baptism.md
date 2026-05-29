@@ -30,7 +30,7 @@ We introduce the central state component:
 
 A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed set B₀ ⊆ T of root addresses established at system genesis, subject to the conformance requirement stated at B₀ conf. below. Thereafter it grows monotonically.
 
-We must situate s.B against the foundation's `allocated(s)` (AllocatedSet, ASN-0034), since both name "a position that has been assigned." They are not the same component: `allocated(s)` is the allocator's *realized domain* — the addresses an allocator chain has actually produced, the *query* phase of Gregory's two-phase anatomy — whereas s.B is the *committed registry*, the candidates written into the persistent store, the *write* phase that is the moment of baptism. This ASN governs the write, so B0/B0★ are not a re-derivation of T8's permanence but the permanence law for the registry component specifically; whether the two components coincide (whether every allocator extension is matched by a baptismal write) is deferred to the open question `allocated(s) ⊆ s.B` below.
+We must situate s.B against the foundation's `allocated(s)` (AllocatedSet, ASN-0034), since both name "a position that has been assigned." They are not the same component: `allocated(s)` is the allocator's *realized domain* — the addresses an allocator chain has actually produced, the *query* phase of Gregory's two-phase anatomy — whereas s.B is the *committed registry*, the candidates written into the persistent store, the *write* phase that is the moment of baptism.
 
 **B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
 
@@ -331,9 +331,7 @@ In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. ∎
 
 Baptism reads the high water mark, computes the next address, and commits the result as one indivisible step.
 
-**B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each baptismal operation is a single atomic transition. For every (p, d) satisfying B6, `baptize(p, d) ∈ Σ` (B0a), and the foundation fixes every `op ∈ Σ` as a single partial function on 𝒮. Hence whatever registry update the operation performs is committed on one edge of `→`:
-
-  `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s')` with no intermediate observable state s_mid satisfying `s → s_mid → s'`.
+**B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each `baptize(p, d) ∈ Σ` is one transition edge by the foundation Σ signature: its registry update is committed on a single edge of `→`, with no intermediate observable state s_mid satisfying `s → s_mid → s'`.
 
 
 ## The baptism operation
