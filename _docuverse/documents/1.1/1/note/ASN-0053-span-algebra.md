@@ -19,7 +19,7 @@ The reach is the first position beyond σ — the exclusive upper bound. It is w
 
 We shall need the reverse: given two positions a ≤ b on the tumbler line, can we recover the displacement from a to b — the unique width w such that a ⊕ w = b?
 
-ASN-0034 answers this directly: the candidate width is the TumblerSub w = b ⊖ a (TumblerSub, ASN-0034), which we call the *displacement from a to b*. The subtraction itself is well-defined when a < b and divergence(a, b) ≤ #a (D0, ASN-0034); but D0's own postcondition shows the round-trip can fail (#a > #b → a ⊕ (b ⊖ a) ≠ b), so well-definedness of the subtraction does not by itself guarantee a width carrying a to b. Existence of a width w with a ⊕ w = b — and the identity w = b ⊖ a — holds exactly when the additional length condition #a ≤ #b is met (D1, ASN-0034); uniqueness of that width is D2 (ASN-0034). Every use in this ASN is level-uniform (#a = #b), so all three conditions hold throughout.
+ASN-0034 answers this directly: the displacement from a to b is w = b ⊖ a (TumblerSub, ASN-0034), well-defined and round-tripping (a ⊕ w = b) exactly when a < b, divergence(a, b) ≤ #a, and #a ≤ #b (D1, ASN-0034), with uniqueness by D2 (ASN-0034).
 
 **S6** (*LevelConstraint*). Two tumblers t₁ and t₂ are *level-compatible*, written level_compat(t₁, t₂), when they have the same length:
 
