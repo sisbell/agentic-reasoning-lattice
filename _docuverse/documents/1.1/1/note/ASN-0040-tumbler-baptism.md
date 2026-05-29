@@ -34,10 +34,8 @@ The set-membership constraint `s.B ⊆ T` needs no separate induction: B10 (§B1
 
 **B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
 
-  - *Baptismal operations.* For each (p, d) satisfying B6, `baptize(p, d) ∈ Σ` is the operation specified by Bop below; its action on the registry is `op(s).B = s.B ∪ {next(s.B, p, d)}`.
+  - *Baptismal operations.* For each (p, d) satisfying B6 (Valid Depth, below), `baptize(p, d) ∈ Σ` is the operation specified by Bop below; its action on the registry is `op(s).B = s.B ∪ {next(s.B, p, d)}`.
   - *s.B-frame operations.* Every other `op ∈ Σ` preserves the registry: `(A op ∈ Σ \ {baptize(p, d) : B6(p, d)}, s ∈ dom(op) : op(s).B = s.B)`.
-
-Here "satisfying B6" means p satisfies T4, d ∈ {1, 2}, and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below.
 
 Irrevocability follows immediately:
 
@@ -82,6 +80,8 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 - *Preconditions:* p ∈ T, d ≥ 1. S(p, d) = c₁, c₂, ... defined by c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0).
 - *Postconditions:* `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — the sibling stream is strictly increasing.
 - *Axiom:* TA5(a) — per-step strict increase of inc(·, 0); T1 transitivity (c) and irreflexivity (a).
+
+S0 restates, at the level of the *committed registry*, the foundation guarantee T10a.7 (EnumerationInjectivity): an allocator's `inc(·, 0)` chain is strictly increasing and hence injective. We re-prove it here rather than cite it because this ASN's sibling stream S(p, d) is a registry-level construct over baptized addresses, and the bridge identifying it with the foundation's per-allocator enumeration — the inclusion `allocated(s) ⊆ s.B` — is not yet available (it is the second Open Question below). Once that bridge is established, S0 becomes a corollary of T10a.7 with d in the role of the child-spawn parameter k′ ∈ {1, 2}.
 
 **S1 (StreamPrefix).** `(A n : n ≥ 1 : p ≼ cₙ)` — every stream element extends p as a prefix.
 
@@ -146,18 +146,16 @@ In both cases, next(B, p, d) produces an element of T. The definition is total o
 
   PRE: B6(p, d) — depth validity (defined below); no parent-baptized prerequisite is imposed
   POST: s'.B = s.B ∪ {next(s.B, p, d)}; only s.B is modified
-  STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below) — each baptize(p, d) is a single atomic Σ-edge
-
-The read next(s.B, p, d) is against the precondition state s (by B4, §B4 below).
+  STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below) — each baptize(p, d) is a single atomic Σ-edge; the read next(s.B, p, d) is against the precondition state s
 
 *Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined and produces a fresh address.
 
 **Well-definedness.** The postcondition invokes next(s.B, p, d), whose Justification of well-definedness (NextAddress) already establishes next(s.B, p, d) ∈ T for any B ⊆ T finite, p ∈ T, and d ≥ 1 — the empty branch yielding inc(p, d) ∈ T and the non-empty branch yielding inc(max(children(s.B, p, d)), 0) ∈ T. B_fin (§B_fin) discharges the finiteness premise for B = s.B at any reachable s, so next(s.B, p, d) ∈ T here.
 
-**Freshness.** Let a = next(s.B, p, d) = c_{m+1} where m = hwm(s.B, p, d). We show a ∉ s.B. By construction, a = c_{m+1} ∈ S(p, d). Since children(s.B, p, d) = s.B ∩ S(p, d) by definition, if a ∈ s.B then a ∈ children(s.B, p, d). By B1, children(s.B, p, d) = {c₁, ..., cₘ}. By S0 (StreamOrdering), distinct stream indices produce distinct elements: since m + 1 > i for all 1 ≤ i ≤ m, we have c_{m+1} ≠ cᵢ for each such i. Therefore a ∉ {c₁, ..., cₘ} = children(s.B, p, d), contradicting the supposition. We conclude a ∉ s.B. The value of children(s.B, p, d) used here is the same value committed by that edge (by B4). ∎
+**Freshness.** Let a = next(s.B, p, d) = c_{m+1} where m = hwm(s.B, p, d). We show a ∉ s.B. By construction, a = c_{m+1} ∈ S(p, d). Since children(s.B, p, d) = s.B ∩ S(p, d) by definition, if a ∈ s.B then a ∈ children(s.B, p, d). By B1, children(s.B, p, d) = {c₁, ..., cₘ}. By S0 (StreamOrdering), distinct stream indices produce distinct elements: since m + 1 > i for all 1 ≤ i ≤ m, we have c_{m+1} ≠ cᵢ for each such i. Therefore a ∉ {c₁, ..., cₘ} = children(s.B, p, d), contradicting the supposition. We conclude a ∉ s.B. (The children value used here is read against the precondition state and committed by the same edge, by B4.) ∎
 
 *Formal Contract:*
-- *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1; B6(p, d) holds. (B1, B10, and B_fin are *state invariants*, not per-call obligations: they are established at genesis by B₀ conf. and preserved inductively by the proofs in §B1, §B10, and §B_fin, so they hold in every reachable state at which baptize(p, d) can be invoked. They are appealed to in the well-definedness and preservation arguments below but are not discharged by the caller.)
+- *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1; B6(p, d) holds. (B1, B10, B_fin are reachable-state invariants, not caller obligations.)
 - *Structural assumptions on Σ:* B4 (Atomic Baptism) — each `baptize(p, d) ∈ Σ` is a single atomic edge of the transition graph; this is an invariant of the operation vocabulary, not a caller-checked precondition.
 - *Postconditions:* s'.B = s.B ∪ {next(s.B, p, d)} with next(s.B, p, d) ∉ s.B; s'.B satisfies B0, B1, B10, and B_fin.
 - *Frame:* Only s.B is modified.
@@ -181,7 +179,7 @@ Equivalently: for every B6-valid namespace (p, d), children(B, p, d) = {c₁, ..
 
 *Baptismal transitions.* Otherwise the transition is induced by a baptismal operation baptize(p₀, d₀) for some (p₀, d₀) satisfying B6, so B' = B ∪ {a} where a = next(B, p₀, d₀). We must show that children(B', p, d) is a contiguous prefix of S(p, d) for every B6-valid (p, d). Two cases exhaust the possibilities.
 
-*Target namespace: (p, d) = (p₀, d₀).* The value of children(B, p₀, d₀) appearing in the postcondition is read against the same precondition state B that licenses the transition (by B4). By the inductive hypothesis, children(B, p₀, d₀) = {c₁, ..., cₘ} for some m ≥ 0. Two sub-cases arise from the definition of next (NextAddress).
+*Target namespace: (p, d) = (p₀, d₀).* By the inductive hypothesis, children(B, p₀, d₀) = {c₁, ..., cₘ} for some m ≥ 0 (read against precondition state B, by B4). Two sub-cases arise from the definition of next (NextAddress).
 
 When m = 0: children(B, p₀, d₀) = ∅, so a = next(B, p₀, d₀) = inc(p₀, d₀) = c₁, the first element of S(p₀, d₀) by the definition of the sibling stream. Therefore children(B', p₀, d₀) = {c₁}, a contiguous prefix of length 1.
 
@@ -300,7 +298,7 @@ A ghost element is "virtually present in tumbler-space, since links may be made 
 
   - t ∈ s.B ∧ Occupied(t, s): a populated position
   - t ∈ s.B ∧ ¬Occupied(t, s): a ghost element (permitted)
-  - t ∉ s.B ∧ ¬Occupied(t, s): an unbaptized, unoccupied position (not addressable)
+  - t ∉ s.B ∧ ¬Occupied(t, s): an unbaptized, unoccupied position (not a baptized position / not a system entity)
 
 The fourth quadrant — t ∉ s.B ∧ Occupied(t, s) — is precisely the negation of the requirement, hence forbidden.
 
@@ -312,11 +310,9 @@ Baptism reads the high water mark, computes the next address, and commits the re
 
   `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s' with s'.B = s.B ∪ {next(s.B, p, d)})`
 
-In the transition relation `→` of the state space 𝒮, the observation of the precondition state and the commitment of the postcondition state are not separable. There is no state s_mid with `s → s_mid → s'` representing an "intent to baptize" that some later step fulfills: `next(s.B, p, d)` is computed against s and committed to s' in the same step, and each `baptize(p, d) ∈ Σ` is a single edge in the transition graph.
+In the transition relation `→` of the state space 𝒮, the observation of the precondition state and the commitment of the postcondition state are not separable. There is no state s_mid with `s → s_mid → s'` representing an "intent to baptize" that some later step fulfills: `next(s.B, p, d)` is computed against s and committed to s' in the same step, and each `baptize(p, d) ∈ Σ` is a single edge in the transition graph. We record this as the *read-against-precondition-state semantics*: the value `next(s.B, p, d)` — and hence `children(s.B, p, d)` — used in the postcondition is read against the precondition state s that licenses the transition, and is the same value committed by that edge. Proofs below cite B4 for this fact without re-narrating it.
 
 B0a guarantees that no other operation modifies s.B between any two transitions, so within a single Σ-transition the read of `s.B ∩ S(p, d)` is exact.
-
-B4's scope is *per-namespace*: B7 guarantees baptisms under distinct (p, d) pairs produce disjoint outputs, so the minimum serialization grain is the namespace, not the entire system.
 
 
 ## Depth and field structure
@@ -365,7 +361,7 @@ This deserves attention. The `.0.` that appears in addresses like `1.1.0.1.0.1` 
 
   (iii) zeros(p) + (d − 1) ≤ 3.
 
-Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy; it is independently necessary only at d = 2 (at d = 1 it reduces to zeros(p) ≤ 3 and is subsumed by condition (i)). Condition (i) is necessary by two distinct mechanisms — defect propagation and namespace collapse — established in the necessity proof's sub-cases (a) and (b) below. The three conditions together are necessary for the baptism system to maintain its invariants — each rules out a distinct failure, with (iii)'s independent contribution arising at d = 2. Together:
+Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy; it is independently necessary only at d = 2 (at d = 1 it reduces to zeros(p) ≤ 3 and is subsumed by condition (i)). Condition (i) is necessary by two distinct mechanisms — defect propagation and namespace collapse — established in the necessity proof's sub-cases (a) and (b) below. Together:
 
 | Parent level | d = 1 (same level) | d = 2 (level crossing) |
 |---|---|---|
@@ -429,6 +425,8 @@ Every case yields a contradiction, so S(p, d) ∩ S(p', d') = ∅. ∎
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
 - *Postconditions:* `S(p, d) ∩ S(p', d') = ∅`.
 - *Depends:* S(p,d) (canonical stream form and length #p + d), S1 (every element extends p), T3 (CanonicalRepresentation — a tumbler has a single length, and componentwise prefix agreement forces parent equality), T4 / TA5-SigValid (valid addresses have a nonzero last component, via B6(i)), TA5(d) (child increment, fixing the separator positions).
+
+B7 restates, at the committed-registry level, the foundation guarantee that distinct allocators occupy disjoint regions of address space — T10a.6 (DomainDisjointness), itself resting on the prefix-incomparability of T10a.5. We re-prove it directly from the canonical stream form rather than cite those results because a baptismal namespace (p, d) is not yet identified with a foundation allocator: the allocation↔baptism bridge `allocated(s) ⊆ s.B` is the second Open Question below. Until that bridge exists, namespace disjointness cannot be inherited from allocator domain disjointness and must be established on the stream forms alone.
 
 
 ## A baptism traced
@@ -512,7 +510,9 @@ The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9
 
   `(A a, b : produced by distinct co-reachable baptismal acts : a ≠ b)`.
 
-Within the same namespace, B4 makes each baptize(p, d) a single edge of the transition graph; distinct same-namespace baptismal transitions occupy distinct edges and therefore evaluate next against distinct precondition states with distinct hwm values, and B1 ensures sequential, gap-free allocation, so distinct baptisms produce distinct stream indices, which S0 maps to distinct addresses. Across namespaces, B7 ensures non-overlapping ranges. Together, no two baptisms in any reachable state produce the same tumbler.
+The proof splits two ways: distinct baptisms within the same namespace, and baptisms in different namespaces.
+
+B8 restates, at the committed-registry level, the foundation guarantee GlobalUniqueness (no two distinct allocation events produce the same address). We re-prove it from the registry invariants (B0★, B1, B2, B4, B7, S0) rather than cite GlobalUniqueness because that result quantifies over *allocation events*, whereas B8 quantifies over *baptismal acts*; the two coincide only under the allocation↔baptism bridge `allocated(s) ⊆ s.B`, which this ASN leaves open (second Open Question below). The registry-level proof is therefore the standalone argument available until the bridge identifies baptism with the allocator discipline.
 
 *Proof.* We must show that for any two distinct *co-reachable* baptismal acts β₁ and β₂ — both lying, by the co-reachability hypothesis, on a single transition path s_init →* s — the addresses they produce are distinct. Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We proceed by case analysis on whether the two baptisms target the same or different namespaces.
 
