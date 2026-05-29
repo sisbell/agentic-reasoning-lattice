@@ -46,8 +46,6 @@ We therefore require:
 
 Once content is stored at address `a`, both the address and its value are fixed for all future states. This is the central invariant of the two-stream architecture.
 
-S0 is a strong property. It asserts two things simultaneously: that `a` remains in the domain (the address persists), and that the value at `a` is unchanged (the content is immutable). It constrains every operation to either leave `C(a)` unchanged or to operate only on addresses not yet in `dom(C)` — that is, to create new content at fresh addresses.
-
 *Formal Contract:*
 - *Axiom (design requirement):* For every state transition `Σ → Σ'`, `(A a : a ∈ dom(Σ.C) : a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))`.
 - *Postconditions:* (a) Domain persistence — `a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C)`. (b) Value preservation — `a ∈ dom(Σ.C) ⟹ Σ'.C(a) = Σ.C(a)`.
@@ -84,7 +82,7 @@ We note the phrase "regardless of their native origin." A document's Vstream pre
 
 *Formal Contract:*
 - *Axiom (definitional):* `Σ.M(d) : T ⇀ T` is a (partial) function — `(A d, v, a₁, a₂ : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a₁ ∧ Σ.M(d)(v) = a₂ : a₁ = a₂)`.
-- *Postconditions:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` is a well-defined set — single-valuedness makes the image of `M(d)` depend only on its domain, so the range is determined.
+- *Postconditions:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` is a well-defined set; distinct V-positions may collide in the range (the map is not injective — see Frame).
 - *Frame:* Distinct V-positions may map to the same I-address (sharing — S5); injectivity is *not* asserted.
 
 The bridge between the two state components is a well-formedness condition:
@@ -95,7 +93,7 @@ Every V-reference resolves. If a document's arrangement says "at position `v`, d
 
 Any transition that establishes a V-mapping `M(d)(v) = a` must therefore have `a ∈ dom(Σ'.C)` in the post-state. S1 (store monotonicity) then guarantees that once `a` enters `dom(C)` it remains, so a valid reference cannot become dangling through any subsequent state transition.
 
-We observe a deliberate asymmetry. S3 says arrangement implies existence: `ran(M(d)) ⊆ dom(C)`. It does NOT say existence implies arrangement. Content can exist in Istream without being arranged in any current document — and since S0's antecedent is `a ∈ dom(Σ.C)` alone, not conditioned on whether `a` appears in any `ran(M(d))`, such unreferenced content is never reclaimed and persists. Nelson requires this for history — he calls such content "deleted bytes — not currently addressable, awaiting historical backtrack functions, may remain included in other versions," and version reconstruction depends on the availability of Istream fragments from prior arrangements. This persistence independence is the space the asymmetry opens.
+Content unreferenced by any current arrangement still persists. Since S0's antecedent is `a ∈ dom(Σ.C)` alone, not conditioned on whether `a` appears in any `ran(M(d))`, such content is never reclaimed. Nelson requires this for history — he calls such content "deleted bytes — not currently addressable, awaiting historical backtrack functions, may remain included in other versions," and version reconstruction depends on the availability of Istream fragments from prior arrangements.
 
 *Formal Contract (S3):*
 - *Axiom (well-formedness invariant):* In every state `Σ`, `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))` — equivalently, `ran(Σ.M(d)) ⊆ dom(Σ.C)`.
@@ -126,7 +124,7 @@ Live content shares I-addresses. Dead copies create new ones. The difference is 
 
 GlobalUniqueness (ASN-0034) establishes the following invariant: for every pair of addresses `a, b` produced by distinct allocation events in any reachable system state, `a ≠ b`. The invariant's precondition requires only that `a₁` and `a₂` arise from distinct allocation events under T10a — it places no condition on the values `Σ.C(a₁)` and `Σ.C(a₂)`. Since `a₁` and `a₂` are produced by distinct allocation events by hypothesis, GlobalUniqueness yields `a₁ ≠ a₂` directly.
 
-Finally, the distinctness `a₁ ≠ a₂` is decidable from the addresses alone by T3 (CanonicalRepresentation, ASN-0034): two tumblers are equal if and only if they have the same length and agree at every component. No value comparison is required — the structural test for shared identity is address equality, computable in time proportional to the shorter address. ∎
+Finally, the distinctness `a₁ ≠ a₂` is decidable from the addresses alone by T3 (CanonicalRepresentation, ASN-0034): two tumblers are equal if and only if they have the same length and agree at every component. No value comparison is required. ∎
 
 *Formal Contract:*
 - *Preconditions:* `a₁, a₂ ∈ dom(Σ.C)` produced by distinct allocation events within a system conforming to T10a (allocator discipline, ASN-0034).
@@ -183,7 +181,7 @@ The within-document sharing multiplicity is `|{v : v ∈ dom(M'_N(d)) ∧ M'_N(d
 
 Every V-position can be traced to the document that originally created its content.
 
-We first restrict S7's domain. The projection `D(a)` is well-defined only when `zeros(a) ≥ 2` (per T4's field correspondence: `zeros = 0` is node-only, `zeros = 1` is node+user, `zeros ≥ 2` has a document field). Since Istream addresses designate content elements within documents, we require:
+The projection `D(a)` is well-defined only when `zeros(a) ≥ 2` (per T4's field correspondence: `zeros = 0` is node-only, `zeros = 1` is node+user, `zeros ≥ 2` has a document field). Since Istream addresses designate content elements within documents, we require:
 
 **S7b (Element-level I-addresses).** We require that every address in `dom(Σ.C)` is an element-level tumbler: `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
 
@@ -208,8 +206,6 @@ Nelson's baptism principle establishes it: "The owner of a given item controls t
 - *Axiom (design requirement):* Every document tumbler `d` satisfies `zeros(d) = 2` and is the result of an allocation event under T10a; distinct documents arise from distinct allocation events.
 - *Postconditions:* By GlobalUniqueness (ASN-0034), distinct documents have distinct document-level tumblers.
 - *Depends:* T10a (AllocatorDiscipline, ASN-0034) — allocation events; T10a.4 (T4PreservationUnderDiscipline, ASN-0034) — T4 preservation, here at `zeros = 2`; T4 (HierarchicalParsing, ASN-0034) — field correspondence at `zeros = 2`; GlobalUniqueness (ASN-0034) — uniqueness across allocation events.
-
-With S7a, S7b, and S7d established, we can state structural attribution.
 
 **S7 (Structural attribution).** For every `a ∈ dom(Σ.C)`, define the *origin* as the document-level prefix obtained by truncating the element field:
 
@@ -241,8 +237,6 @@ We note a subtlety. S7 identifies the document that ALLOCATED the I-address — 
 
 The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(M(d))` is finite (S8-fin), the mapping always admits a *finite* partition into singleton intervals, one per V-position — this is the existence claim we establish here.
 
-Before stating the partition, we must establish the structure of `dom(M(d))` more carefully.
-
 **S8-fin (Finite arrangement).** For each document `d`, `dom(Σ.M(d))` is finite. A document contains finitely many V-positions at any given state.
 
 This is a design requirement on every reachable state: no document arrangement is permitted to hold infinitely many V-positions.
@@ -258,10 +252,10 @@ This is a design requirement on every reachable state: no document arrangement i
 
 A V-position represents the element field of a full document-scoped address — the fourth field in the T4 field structure. Its first component `v₁` is the subspace identifier (1 for text, 2 for links); the `0` in full tumbler notation (e.g., `N.0.U.0.D.0.2.1`) is a field separator, not a subspace identifier. The depth constraint `#v ≥ 2` ensures the subspace identifier `v₁` and the within-subspace ordinal `[v₂, ..., v_m]` occupy distinct components. The domain and range of `M(d)` live in structurally different tumbler subsets: `dom(M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2 ∧ (A i : tᵢ > 0)}` (element-field tumblers of depth at least 2), while `ran(M(d)) ⊆ {t ∈ T : zeros(t) = 3}` (full element-level addresses, per S7b).
 
-*Proof.* A V-position is, by definition, an isolated element field of depth at least 2, so `zeros(v) = 0` and `#v ≥ 2` hold by definition. Componentwise positivity follows: every component of `v` lies in T0's carrier ℕ, and `zeros(v) = 0` forces each to be `≠ 0`, hence `≥ 1` by NAT-discrete (ASN-0034) instantiated at `m = 0` (no natural lies strictly between `0` and `1`); in particular the subspace identifier `v₁ ≥ 1`. ∎
+*Proof.* From the Definition, `zeros(v) = 0` and `#v ≥ 2` hold directly. Componentwise positivity follows: every component of `v` lies in T0's carrier ℕ, and `zeros(v) = 0` forces each to be `≠ 0`, hence `≥ 1` by NAT-discrete (ASN-0034) instantiated at `m = 0` (no natural lies strictly between `0` and `1`); in particular the subspace identifier `v₁ ≥ 1`. ∎
 *Formal Contract:*
 - *Definition:* A V-position is, by definition, an isolated element field of depth at least 2.
-- *Preconditions:* The element-field definitional commitment (a V-position is an isolated element field of depth ≥ 2 with no field separators); T0 — components are natural numbers.
+- *Preconditions:* The V-position Definition above; T0 — components are natural numbers.
 - *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`.
 - *Depends:* T0 (ASN-0034) — supplies the ℕ-valued component carrier on which `vᵢ ∈ ℕ` for every component; NAT-discrete (NatDiscreteness, ASN-0034) — instantiated at `m = 0`, supplies the `n ≠ 0 ⟹ n ≥ 1` fact that discharges the positivity step: `vᵢ ≠ 0` (delivered by `zeros(v) = 0`) gives `vᵢ ≥ 1`, hence `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
 
