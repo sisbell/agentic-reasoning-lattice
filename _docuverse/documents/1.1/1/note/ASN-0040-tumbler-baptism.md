@@ -17,51 +17,47 @@ We formalize baptism as the growth law of the address space.
 
 ## State space and transitions
 
-We work within the foundation's transition framework (ASN-0034, AllocatedSet and NoDeallocation): a state space, a closed vocabulary of partial operations on it, and the reflexive-transitive closure of the induced transition relation as reachability. We do not re-derive it here. Obligations of the form `(A Σ, Σ' : Σ → Σ' : …)` constrain every admissible transition; `(A Σ : Σ reachable from Σ_init : I(Σ))` is a state invariant.
+We work within the foundation's transition framework (ASN-0034, AllocatedSet and NoDeallocation): a state space, a closed vocabulary of partial operations on it, and the reflexive-transitive closure of the induced transition relation as reachability. We do not re-derive it here, and we adopt the foundation's notation directly: an individual *state* is `s`, the *state space* is `𝒮` (the same Kripke space, here extended with the registry component this ASN introduces), and the *transition vocabulary* is `Σ`. The registry component is written `s.B`. Obligations of the form `(A s, s' : s → s' : …)` constrain every admissible transition; `(A s : s reachable from s_init : I(s))` is a state invariant.
 
-One notational divergence requires flagging. ASN-0034 writes the *transition vocabulary* as Σ and an individual *state* as lowercase `s`. The present ASN reserves Σ for an individual *state* — so that the registry component reads `Σ.B` — and writes the vocabulary as **Op**: where the foundation says `op ∈ Σ`, we say `op ∈ Op`, and where it says `s ∈ 𝒮`, we say `Σ ∈ 𝒮`. The carrier 𝒮 is the same Kripke state space, now extended with the registry component this ASN introduces.
-
-This ASN introduces one state component — the baptismal registry Σ.B (defined below) — and constrains Op's treatment of it (B0, B0a, B4) without enumerating Op exhaustively; content, link, and ownership operations are admitted subject to those constraints, and the frame at Bop keeps such extensions orthogonal to Σ.B. The initial state Σ_init has Σ_init.B = B₀, the seed set established at genesis; "reachable" without qualification means reachable from Σ_init. The relationship between Σ.B and ASN-0034's `allocated(s)` is articulated below at the introduction of Σ.B.
+This ASN introduces one state component — the baptismal registry s.B (defined below) — and constrains Σ's treatment of it (B0, B0a, B4) without enumerating Σ exhaustively; content, link, and ownership operations are admitted subject to those constraints, and the frame at Bop keeps such extensions orthogonal to s.B. The initial state s_init has s_init.B = B₀, the seed set established at genesis; "reachable" without qualification means reachable from s_init. The relationship between s.B and ASN-0034's `allocated(s)` is articulated below at the introduction of s.B.
 
 
 ## The baptismal registry
 
 We introduce the central state component:
 
-**Σ.B (BaptismalRegistry).** Σ.B ⊆ T — the set of baptized tumblers.
+**s.B (BaptismalRegistry).** s.B ⊆ T — the set of baptized tumblers.
 
-A tumbler t is *baptized* iff t ∈ Σ.B. Initially Σ.B contains a finite seed set B₀ ⊆ T of root addresses established at system genesis, subject to the conformance requirement stated at B₀ conf. below. Thereafter it grows monotonically:
+A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed set B₀ ⊆ T of root addresses established at system genesis, subject to the conformance requirement stated at B₀ conf. below. Thereafter it grows monotonically.
 
-The set-membership constraint `Σ.B ⊆ T` is not a free design stipulation, but it requires no separate induction: it is a corollary of B10 (T4ValidityInvariant, §B10).
+The set-membership constraint `s.B ⊆ T` needs no separate induction: B10 (§B10) establishes that every t ∈ s.B satisfies T4, and T4-validity entails t ∈ T.
 
-**B_type (RegistryTyping).** `(A Σ : Σ reachable from Σ_init : Σ.B ⊆ T)` — every baptized address is a well-formed tumbler. *Corollary of B10:* §B10 establishes that every t ∈ Σ.B satisfies T4, and T4-validity entails t ∈ T (T4 ranges over T, ASN-0034); no proof below cites B_type ahead of B10.
+*Relationship to ASN-0034's allocated set.* The inclusion `allocated(s) ⊆ s.B` holds only conditionally on the activation-discipline ASN, which must align each allocator-extension transition with a unique baptismal operation adding the same address to s.B, and cover the genesis allocator domain with the seed (`allocated(s_init) ⊆ B₀`); both discharges belong to that ASN.
 
-*Relationship to ASN-0034's allocated set.* The inclusion `allocated(Σ) ⊆ Σ.B` holds only conditionally on the activation-discipline ASN, which must align each allocator-extension transition with a unique baptismal operation adding the same address to Σ.B, and cover the genesis allocator domain with the seed (`allocated(Σ_init) ⊆ B₀`); both discharges belong to that ASN.
-
-B0 follows from B0a: the partition forces `op(Σ).B = Σ.B ∪ {next(Σ.B, p, d)}` in the baptismal branch and `op(Σ).B = Σ.B` in the Σ.B-frame branch, so `Σ.B ⊆ op(Σ).B` in both, hence `Σ.B ⊆ Σ'.B` for every transition.
-
-**B0 (Irrevocability).** `(A Σ, Σ' : Σ → Σ' : Σ.B ⊆ Σ'.B)`.
+**B0 (Irrevocability).** `(A s, s' : s → s' : s.B ⊆ s'.B)`.
 
 No operation removes a tumbler from B. This is the state-level reading of T8 (AllocationPermanence). T8 says the allocator never reclaims an address; B0 says the *registry* never shrinks. The distinction matters: B0 forbids any mechanism — not just the allocator — from removing a baptized position. Administrative action, garbage collection, storage failure — none may contract B. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid."
 
 B0 is a single-step law. We extend it to finite transition sequences:
 
-**B0★ (Multi-step Irrevocability — corollary of B0).** `(A Σ, Σ' : Σ →* Σ' : Σ.B ⊆ Σ'.B)`, where Σ →* Σ' denotes the reflexive-transitive closure of the transition relation — that is, Σ' is reachable from Σ by a finite (possibly empty) sequence of transitions.
+**B0★ (Multi-step Irrevocability — corollary of B0).** `(A s, s' : s →* s' : s.B ⊆ s'.B)`, where s →* s' denotes the reflexive-transitive closure of the transition relation — that is, s' is reachable from s by a finite (possibly empty) sequence of transitions.
 
-*Proof.* By induction on the length k of the transition sequence witnessing Σ →* Σ'. *Base case (k = 0).* Σ' = Σ, so Σ.B ⊆ Σ'.B = Σ.B by reflexivity of ⊆. *Inductive step.* Suppose Σ →* Σₖ is witnessed by a length-k sequence with Σ.B ⊆ Σₖ.B (inductive hypothesis), and Σₖ → Σₖ₊₁ extends it to a length-(k+1) sequence Σ →* Σₖ₊₁. By B0 applied to the single-step transition Σₖ → Σₖ₊₁, Σₖ.B ⊆ Σₖ₊₁.B. Transitivity of ⊆ gives Σ.B ⊆ Σₖ.B ⊆ Σₖ₊₁.B, so Σ.B ⊆ Σₖ₊₁.B. By induction, Σ.B ⊆ Σ'.B for every Σ →* Σ'. ∎
+*Proof.* By induction on the length k of the transition sequence witnessing s →* s'. *Base case (k = 0).* s' = s, so s.B ⊆ s'.B = s.B by reflexivity of ⊆. *Inductive step.* Suppose s →* sₖ is witnessed by a length-k sequence with s.B ⊆ sₖ.B (inductive hypothesis), and sₖ → sₖ₊₁ extends it to a length-(k+1) sequence s →* sₖ₊₁. By B0 applied to the single-step transition sₖ → sₖ₊₁, sₖ.B ⊆ sₖ₊₁.B. Transitivity of ⊆ gives s.B ⊆ sₖ.B ⊆ sₖ₊₁.B, so s.B ⊆ sₖ₊₁.B. By induction, s.B ⊆ s'.B for every s →* s'. ∎
 
-B0 tells us baptism cannot be undone; its companion tells us what *can* add to B. We state the closure law directly on the operation vocabulary Op rather than on an opaque predicate "produced by baptism":
+B0 tells us baptism cannot be undone; its companion tells us what *can* add to B. We state the closure law directly on the operation vocabulary Σ rather than on an opaque predicate "produced by baptism":
 
-**B0a (Baptismal Closure).** Op partitions into two classes whose treatment of the Σ.B component is fixed:
+**B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
 
-  - *Baptismal operations.* For each (p, d) satisfying B6, `baptize(p, d) ∈ Op` is the operation specified by Bop below; its action on the registry is `op(Σ).B = Σ.B ∪ {next(Σ.B, p, d)}`.
-  - *Σ.B-frame operations.* Every other `op ∈ Op` preserves the registry: `(A op ∈ Op \ {baptize(p, d) : B6(p, d)}, Σ ∈ dom(op) : op(Σ).B = Σ.B)`.
+  - *Baptismal operations.* For each (p, d) satisfying B6, `baptize(p, d) ∈ Σ` is the operation specified by Bop below; its action on the registry is `op(s).B = s.B ∪ {next(s.B, p, d)}`.
+  - *s.B-frame operations.* Every other `op ∈ Σ` preserves the registry: `(A op ∈ Σ \ {baptize(p, d) : B6(p, d)}, s ∈ dom(op) : op(s).B = s.B)`.
 
-Each `op ∈ Op` is in exactly one class by its symbol: the baptismal class is the named family `{baptize(p, d) : B6(p, d)}`, and the Σ.B-frame class is its complement in Op.
+Each `op ∈ Σ` is in exactly one class by its symbol: the baptismal class is the named family `{baptize(p, d) : B6(p, d)}`, and the s.B-frame class is its complement in Σ.
 
-Equivalently, `(A Σ, Σ' : Σ → Σ' : Σ'.B = Σ.B ∨ (E (p, d) : B6(p, d) : Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}))` — every transition either leaves the registry unchanged or extends it by exactly the address that the corresponding baptismal operation would produce. The equivalence rests on the *State Space and Transitions* section's definition of transition: every `Σ → Σ'` is of the form `(Σ, op(Σ))` for some `op ∈ Op`, so a partition of Op into baptismal and Σ.B-frame classes induces a partition of transitions over the same two alternatives.
+Equivalently, `(A s, s' : s → s' : s'.B = s.B ∨ (E (p, d) : B6(p, d) : s'.B = s.B ∪ {next(s.B, p, d)}))` — every transition either leaves the registry unchanged or extends it by exactly the address that the corresponding baptismal operation would produce. The equivalence rests on the *State Space and Transitions* section's definition of transition: every `s → s'` is of the form `(s, op(s))` for some `op ∈ Σ`, so a partition of Σ into baptismal and s.B-frame classes induces a partition of transitions over the same two alternatives.
 
-Here "satisfying B6" means p satisfies T4, d ∈ {1, 2}, and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below. B0a constrains only the depth arithmetic, not the authorization chain — whether p must itself be baptized (p ∈ Σ.B) before children can be baptized beneath it. The closure is structural: there is no operation symbol in Op outside the baptismal class that touches Σ.B. Administrative actions, content writes, link operations, ownership transfers — these are members of the Σ.B-frame class by construction and so leave the registry exactly intact. B0 says nothing leaves; B0a says nothing enters except through the designated gate.
+B0 (stated above) now follows from B0a: in the baptismal branch `op(s).B = s.B ∪ {next(s.B, p, d)}` and in the s.B-frame branch `op(s).B = s.B`, so `s.B ⊆ op(s).B` in both, hence `s.B ⊆ s'.B` for every transition.
+
+Here "satisfying B6" means p satisfies T4, d ∈ {1, 2}, and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below. B0a constrains only the depth arithmetic, not the authorization chain — whether p must itself be baptized (p ∈ s.B) before children can be baptized beneath it. The closure is structural: there is no operation symbol in Σ outside the baptismal class that touches s.B. Administrative actions, content writes, link operations, ownership transfers — these are members of the s.B-frame class by construction and so leave the registry exactly intact. B0 says nothing leaves; B0a says nothing enters except through the designated gate.
 
 The binary character of this state is fundamental. Nelson's model has no third status between baptized and unbaptized: "the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A position is either conceptually assigned (in B) or not. Whether anything is *stored* at that position is a separate question, which we address below as the ghost validity property.
 
@@ -156,36 +152,36 @@ In both cases, next(B, p, d) produces an element of T. The definition is total o
 
 *Formal Contract:*
 - *Definition:* next(B, p, d) = if children(B, p, d) = ∅ then inc(p, d) else inc(max(children(B, p, d)), 0), where children(B, p, d) = B ∩ S(p, d).
-- *Preconditions:* B ⊆ T finite (discharged by B_fin when B = Σ.B for a reachable Σ); p ∈ T; d ≥ 1; S(p, d) defined.
+- *Preconditions:* B ⊆ T finite (discharged by B_fin when B = s.B for a reachable s); p ∈ T; d ≥ 1; S(p, d) defined.
 - *Postconditions:* next(B, p, d) ∈ T — the result is a valid tumbler.
 - *Axiom:* TA5(c) (sibling increment well-definedness), TA5(d) (child increment well-definedness), T1 (total order guarantees max exists).
 
 **Bop (Baptism).** The operation baptize(p, d) is defined by:
 
   PRE: B6(p, d) — depth validity (defined below); no parent-baptized prerequisite is imposed
-  POST: Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}
-  FRAME: Σ.B is modified as specified by POST; other components are left to the ASNs that introduce them (see the Formal Contract *Frame:* line).
-  STRUCTURAL (on Op): B4 (Atomic Baptism, §B4 below) — an invariant of the operation vocabulary satisfied by construction of Op, not a caller-checked precondition discharged per call.
+  POST: s'.B = s.B ∪ {next(s.B, p, d)}
+  FRAME: s.B is modified as specified by POST; other components are left to the ASNs that introduce them (see the Formal Contract *Frame:* line).
+  STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below) — an invariant of the operation vocabulary satisfied by construction of Σ, not a caller-checked precondition discharged per call.
 
-The frame condition's scope is essential. With respect to Σ.B, baptism is precise: `Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}` and nothing more. Other state components — content storage, link structures, arrangement, and the allocator-side state of ASN-0034 — are not subjects of this ASN's specification; Bop makes no commitment about whether they are modified across the same transition. The structural assumption B4 — that each baptize(p, d) is a single edge in the transition relation — makes next(Σ.B, p, d) evaluable against the precondition state Σ of the same transition that produces Σ'; no other transition mediates between the evaluation of next and the registry update.
+The frame condition's scope is essential. With respect to s.B, baptism is precise: `s'.B = s.B ∪ {next(s.B, p, d)}` and nothing more. Other state components — content storage, link structures, arrangement, and the allocator-side state of ASN-0034 — are not subjects of this ASN's specification; Bop makes no commitment about whether they are modified across the same transition. By B4 (Atomic Baptism, §B4 below), next(s.B, p, d) is evaluated against the precondition state s of the same transition that produces s'.
 
-*Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined, produces a fresh address, and preserves the system invariants B0, B1, B10, and B_fin. These invariants are established, each by its own induction, in dependency order: B_fin (§B_fin) from B₀ conf. and B0a; B10 (§B10) from B_fin and §B6's sufficiency; B1 (§B1) from B10. At the precondition state Σ of any reachable transition we may therefore cite each as already holding.
+*Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined, produces a fresh address, and preserves the system invariants B0, B1, B10, and B_fin. These invariants are established, each by its own induction, in dependency order: B_fin (§B_fin) from B₀ conf. and B0a; B10 (§B10) from B_fin and §B6's sufficiency; B1 (§B1) from B10. At the precondition state s of any reachable transition we may therefore cite each as already holding.
 
-**Well-definedness.** The postcondition invokes next(Σ.B, p, d), which branches on whether children(Σ.B, p, d) is empty. If empty, the result is inc(p, d) — well-defined for any p ∈ T and d ≥ 1 by TA5's first postcondition (the unlabeled `t' ∈ T`). If non-empty, the result is inc(max(children(Σ.B, p, d)), 0). By B1 (§B1), children(Σ.B, p, d) = {c₁, ..., cₘ} for some m ≥ 1, a contiguous prefix, and B_fin (§B_fin) gives this set finite; max therefore exists and equals cₘ. B10 (§B10) gives registry-wide T4 validity, so cₘ ∈ Σ.B ⊆ T; TA5's first (unlabeled) postcondition then gives `inc(cₘ, 0) ∈ T`. In both branches, next produces an element of T.
+**Well-definedness.** The postcondition invokes next(s.B, p, d), which branches on whether children(s.B, p, d) is empty. If empty, the result is inc(p, d) — well-defined for any p ∈ T and d ≥ 1 by TA5's first postcondition (the unlabeled `t' ∈ T`). If non-empty, the result is inc(max(children(s.B, p, d)), 0). By B1 (§B1), children(s.B, p, d) = {c₁, ..., cₘ} for some m ≥ 1, a contiguous prefix, and B_fin (§B_fin) gives this set finite; max therefore exists and equals cₘ. B10 (§B10) gives registry-wide T4 validity, so cₘ ∈ s.B ⊆ T; TA5's first (unlabeled) postcondition then gives `inc(cₘ, 0) ∈ T`. In both branches, next produces an element of T.
 
-**Freshness.** Let a = next(Σ.B, p, d) = c_{m+1} where m = hwm(Σ.B, p, d). We show a ∉ Σ.B. By construction, a = c_{m+1} ∈ S(p, d). Since children(Σ.B, p, d) = Σ.B ∩ S(p, d) by definition, if a ∈ Σ.B then a ∈ children(Σ.B, p, d). By B1, children(Σ.B, p, d) = {c₁, ..., cₘ}. By S0 (StreamOrdering), distinct stream indices produce distinct elements: since m + 1 > i for all 1 ≤ i ≤ m, we have c_{m+1} ≠ cᵢ for each such i. Therefore a ∉ {c₁, ..., cₘ} = children(Σ.B, p, d), contradicting the supposition. We conclude a ∉ Σ.B. B4 guarantees that next(Σ.B, p, d) is evaluated against the precondition state Σ of the same transition that produces Σ', so the value of children(Σ.B, p, d) used here is exactly the value used in the postcondition of the same edge.
+**Freshness.** Let a = next(s.B, p, d) = c_{m+1} where m = hwm(s.B, p, d). We show a ∉ s.B. By construction, a = c_{m+1} ∈ S(p, d). Since children(s.B, p, d) = s.B ∩ S(p, d) by definition, if a ∈ s.B then a ∈ children(s.B, p, d). By B1, children(s.B, p, d) = {c₁, ..., cₘ}. By S0 (StreamOrdering), distinct stream indices produce distinct elements: since m + 1 > i for all 1 ≤ i ≤ m, we have c_{m+1} ≠ cᵢ for each such i. Therefore a ∉ {c₁, ..., cₘ} = children(s.B, p, d), contradicting the supposition. We conclude a ∉ s.B. By B4 (Atomic Baptism), children(s.B, p, d) is evaluated against the precondition state s of the same transition, so the value used here is exactly the value used in the postcondition of that edge.
 
-**Monotonicity (B0).** Σ'.B = Σ.B ∪ {a} ⊇ Σ.B directly — the registry grows by one element and no element is removed.
+**Monotonicity (B0).** s'.B = s.B ∪ {a} ⊇ s.B directly — the registry grows by one element and no element is removed.
 
-**B1 preservation.** In the target namespace, children(Σ'.B, p, d) = {c₁, ..., cₘ, c_{m+1}} — a contiguous prefix of length m + 1, since the new element is the immediate successor of the previous maximum. The registry-wide preservation across all namespaces (B6-valid namespaces via B7, non-B6 namespaces via T4-invalidity or the trailing-zero stream identity) is carried by §B1; B0a (Baptismal Closure) guarantees no non-baptismal mechanism introduces elements that could disrupt contiguity in any namespace.
+**B1 preservation.** In the target namespace, children(s'.B, p, d) = {c₁, ..., cₘ, c_{m+1}} — a contiguous prefix of length m + 1, since the new element is the immediate successor of the previous maximum. The registry-wide preservation across all namespaces (B6-valid namespaces via B7, non-B6 namespaces via T4-invalidity or the trailing-zero stream identity) is carried by §B1; B0a (Baptismal Closure) guarantees no non-baptismal mechanism introduces elements that could disrupt contiguity in any namespace.
 
-**B10 preservation.** By construction, a = next(Σ.B, p, d) ∈ S(p, d) — the first child c₁ when children are empty, the sibling c_{m+1} = inc(cₘ, 0) otherwise. Since (p, d) satisfies B6, B6's sufficiency result (§B6) gives that every element of S(p, d) satisfies T4; in particular a does. The registry-wide preservation is carried by §B10. ∎
+**B10 preservation.** By construction, a = next(s.B, p, d) ∈ S(p, d) — the first child c₁ when children are empty, the sibling c_{m+1} = inc(cₘ, 0) otherwise. Since (p, d) satisfies B6, B6's sufficiency result (§B6) gives that every element of S(p, d) satisfies T4; in particular a does. The registry-wide preservation is carried by §B10. ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1; B6(p, d) holds. (B1, B10, and B_fin are *state invariants*, not per-call obligations: they are established at genesis by B₀ conf. and preserved inductively by the proofs in §B1, §B10, and §B_fin, so they hold in every reachable state at which baptize(p, d) can be invoked. They are appealed to in the well-definedness and preservation arguments below but are not discharged by the caller.)
-- *Structural assumptions on Op:* B4 (Atomic Baptism) — each `baptize(p, d) ∈ Op` is a single atomic edge of the transition graph; this is an invariant of the operation vocabulary, not a caller-checked precondition.
-- *Postconditions:* Σ'.B = Σ.B ∪ {next(Σ.B, p, d)} with next(Σ.B, p, d) ∉ Σ.B; Σ'.B satisfies B0, B1, B10, and B_fin.
-- *Frame:* Σ.B is modified as specified by the postcondition above. This ASN makes no commitment about whether or how other components Σ carries (content storage, link structures, arrangement, and ASN-0034's Act and nₛ) are modified across the same transition; their specification is left to the ASNs that introduce them. The full successor state Σ' = baptize(p, d)(Σ) is thereby compatible with the activation-discipline requirement's joint update of Σ.B and ASN-0034's allocator-side state across one baptismal transition.
+- *Structural assumptions on Σ:* B4 (Atomic Baptism) — each `baptize(p, d) ∈ Σ` is a single atomic edge of the transition graph; this is an invariant of the operation vocabulary, not a caller-checked precondition.
+- *Postconditions:* s'.B = s.B ∪ {next(s.B, p, d)} with next(s.B, p, d) ∉ s.B; s'.B satisfies B0, B1, B10, and B_fin.
+- *Frame:* Only s.B is modified, as specified by the postcondition above; this ASN makes no commitment about other components s carries (content, links, arrangement, ASN-0034's Act and nₛ), whose specification is left to the ASNs that introduce them.
 
 
 ## The contiguous prefix property
@@ -196,17 +192,17 @@ We claim that children(B, p, d) is always a *prefix* of the sibling stream: the 
 
 Equivalently: children(B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
 
-*Proof.* We must show that in every state reachable from a conforming seed B₀, for every parent p and depth d, children(Σ.B, p, d) is a contiguous prefix of S(p, d). The argument proceeds by induction on the number of state transitions from the initial state.
+*Proof.* We must show that in every state reachable from a conforming seed B₀, for every parent p and depth d, children(s.B, p, d) is a contiguous prefix of S(p, d). The argument proceeds by induction on the number of state transitions from the initial state.
 
-*Base case.* In the initial state, Σ.B = B₀. By B₀ conf. (SeedConformance), children(B₀, p, d) is a contiguous prefix of S(p, d) for every (p, d). B1 holds at genesis.
+*Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), children(B₀, p, d) is a contiguous prefix of S(p, d) for every (p, d). B1 holds at genesis.
 
-*Inductive step.* Assume B1 holds for state Σ with registry B. Consider a transition Σ → Σ' producing registry B'. By B0a (Baptismal Closure), Op partitions into Σ.B-frame operations and baptismal operations; we treat the two transition classes in turn.
+*Inductive step.* Assume B1 holds for state s with registry B. Consider a transition s → s' producing registry B'. By B0a (Baptismal Closure), Σ partitions into s.B-frame operations and baptismal operations; we treat the two transition classes in turn.
 
-*Σ.B-frame transitions.* If the transition is induced by a Σ.B-frame operation, then Σ'.B = Σ.B — that is, B' = B. For every (p, d), children(B', p, d) = B' ∩ S(p, d) = B ∩ S(p, d) = children(B, p, d), a contiguous prefix of S(p, d) by the inductive hypothesis. B1 holds at B'.
+*s.B-frame transitions.* If the transition is induced by a s.B-frame operation, then s'.B = s.B — that is, B' = B. For every (p, d), children(B', p, d) = B' ∩ S(p, d) = B ∩ S(p, d) = children(B, p, d), a contiguous prefix of S(p, d) by the inductive hypothesis. B1 holds at B'.
 
 *Baptismal transitions.* Otherwise the transition is induced by a baptismal operation baptize(p₀, d₀) for some (p₀, d₀) satisfying B6, so B' = B ∪ {a} where a = next(B, p₀, d₀). We must show that children(B', p, d) is a contiguous prefix of S(p, d) for every (p, d). Two cases exhaust the possibilities.
 
-*Target namespace: (p, d) = (p₀, d₀).* By B4 (Atomic Baptism), this baptism is a single Op-transition acting on B; the value of children(B, p₀, d₀) appearing in the postcondition is computed from the same precondition state B that licenses the transition. By the inductive hypothesis, children(B, p₀, d₀) = {c₁, ..., cₘ} for some m ≥ 0. Two sub-cases arise from the definition of next (NextAddress).
+*Target namespace: (p, d) = (p₀, d₀).* By B4 (Atomic Baptism), this baptism is a single Σ-transition acting on B; the value of children(B, p₀, d₀) appearing in the postcondition is computed from the same precondition state B that licenses the transition. By the inductive hypothesis, children(B, p₀, d₀) = {c₁, ..., cₘ} for some m ≥ 0. Two sub-cases arise from the definition of next (NextAddress).
 
 When m = 0: children(B, p₀, d₀) = ∅, so a = next(B, p₀, d₀) = inc(p₀, d₀) = c₁, the first element of S(p₀, d₀) by the definition of the sibling stream. Therefore children(B', p₀, d₀) = {c₁}, a contiguous prefix of length 1.
 
@@ -226,10 +222,10 @@ We verify that p' satisfies T4 and (p', 2) satisfies B6. For T4: p₁ > 0 (inher
 
 In all sub-cases, children(B', p, d) is a contiguous prefix of S(p, d).
 
-Since B1 is preserved in the target namespace and in every other namespace, B1 holds for B' under baptismal transitions. By the frame argument above, B1 also holds for B' under Σ.B-frame transitions. By induction on the transition sequence, B1 holds in every reachable state. ∎
+Since B1 is preserved in the target namespace and in every other namespace, B1 holds for B' under baptismal transitions. By the frame argument above, B1 also holds for B' under s.B-frame transitions. By induction on the transition sequence, B1 holds in every reachable state. ∎
 
 *Formal Contract:*
-- *Invariant:* `(A p, d, n : n ≥ 1 ∧ cₙ ∈ Σ.B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ Σ.B))` — equivalently, children(Σ.B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
+- *Invariant:* `(A p, d, n : n ≥ 1 ∧ cₙ ∈ s.B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ s.B))` — equivalently, children(s.B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
 - *Base:* B₀ conf. — seed set satisfies contiguous prefix for all (p, d).
 - *Preservation:* Each baptism preserves B1 in the target namespace (by Bop, B0, B4, S0, TA5(c)) and in all other namespaces (by B7 for B6-valid pairs; by B10 for non-B6 pairs whose streams are entirely T4-invalid; by stream identity S(p, 1) = S(p', 2) (S2) for non-B6 pairs where p ends in zero as its sole defect and d = 1).
 
@@ -239,47 +235,45 @@ The induction also requires a conforming base:
 
 **B₀ conf. (SeedConformance).** B₀ is finite, `(A p, d : children(B₀, p, d) is a contiguous prefix of S(p, d))`, and `(A t ∈ B₀ : t satisfies T4)`.
 
-B₀ must be finite, satisfy B1 for every namespace at genesis, and have every seed element be a valid address under T4. Non-emptiness is *not* a separate clause of B₀ conf.; it is forced externally by the composition of the activation-discipline requirement `allocated(Σ_init) ⊆ B₀` and ASN-0034's `allocated(s₀) = {t₀}`, which together require t₀ ∈ B₀ and hence B₀ ≠ ∅ in every system conforming to both ASNs. Keeping non-emptiness out of B₀ conf. preserves the layering: B₀ conf. specifies the *structural* conditions a seed must satisfy (finiteness, per-namespace contiguity, per-element T4-validity), while the *contents* of B₀ — which addresses sit alongside the algebra-mandated root, and whether the seed admits non-singleton root configurations — are settled by the activation-discipline ASN through its `allocated(Σ_init) ⊆ B₀` requirement. The remaining structural conditions are individually necessary. Finiteness is required because the next function's well-definedness depends on max(children(B, p, d)) existing, which requires children to be a finite set; since B starts as B₀ and grows by one element per baptism, B₀ finite implies B finite in every reachable state. Without the contiguity requirement, the seed set could contain {c₁, c₃} for some namespace — a gap that the inductive argument cannot repair, since baptism only appends the next sibling. Without the T4 requirement, a seed element could serve as a parent that violates B6(i), undermining B7's disjointness guarantee.
+B₀ must be finite, satisfy B1 for every namespace at genesis, and have every seed element be a valid address under T4. Non-emptiness is *not* a separate clause of B₀ conf.; it is forced externally — the activation-discipline requirement (see *Relationship to ASN-0034's allocated set* above), composed with ASN-0034's `allocated(s₀) = {t₀}`, requires t₀ ∈ B₀ and hence B₀ ≠ ∅. Keeping non-emptiness out of B₀ conf. preserves the layering: B₀ conf. specifies the *structural* conditions a seed must satisfy (finiteness, per-namespace contiguity, per-element T4-validity), while the *contents* of B₀ — which addresses sit alongside the algebra-mandated root, and whether the seed admits non-singleton root configurations — are settled there. The remaining structural conditions are individually necessary. Finiteness is required because the next function's well-definedness depends on max(children(B, p, d)) existing, which requires children to be a finite set; since B starts as B₀ and grows by one element per baptism, B₀ finite implies B finite in every reachable state. Without the contiguity requirement, the seed set could contain {c₁, c₃} for some namespace — a gap that the inductive argument cannot repair, since baptism only appends the next sibling. Without the T4 requirement, a seed element could serve as a parent that violates B6(i), undermining B7's disjointness guarantee.
 
 B₀ conformance fixes the seed as a finite set; B0a constrains every transition to add at most one element. The composition yields a registry-wide finiteness invariant:
 
-**B_fin (Registry Finiteness).** `(A Σ : Σ reachable from Σ_init : Σ.B is finite)`.
+**B_fin (Registry Finiteness).** `(A s : s reachable from s_init : s.B is finite)`.
 
 *Proof.* By induction on the number of state transitions from the initial state.
 
-*Base case.* In the initial state, Σ.B = B₀. By B₀ conf. (SeedConformance), B₀ is finite. The invariant holds at genesis.
+*Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), B₀ is finite. The invariant holds at genesis.
 
-*Inductive step.* Assume Σ.B is finite for state Σ with registry B. Consider a transition Σ → Σ' producing registry B'. By B0a (Baptismal Closure), either the transition is Σ.B-frame, in which case B' = B and B' is finite by the inductive hypothesis; or the transition is baptismal, in which case B' = B ∪ {a} for a single new element a, and B' is the union of a finite set with a singleton, hence finite. In both transition classes, B' is finite. By induction, Σ.B is finite in every reachable state. ∎
+*Inductive step.* Assume s.B is finite for state s with registry B. Consider a transition s → s' producing registry B'. By B0a (Baptismal Closure), either the transition is s.B-frame, in which case B' = B and B' is finite by the inductive hypothesis; or the transition is baptismal, in which case B' = B ∪ {a} for a single new element a, and B' is the union of a finite set with a singleton, hence finite. In both transition classes, B' is finite. By induction, s.B is finite in every reachable state. ∎
 
 *Formal Contract:*
-- *Invariant:* `(A Σ : Σ reachable from Σ_init : Σ.B is finite)`.
+- *Invariant:* `(A s : s reachable from s_init : s.B is finite)`.
 - *Base:* B₀ conf. — B₀ is finite.
-- *Preservation:* B0a — every transition either leaves Σ.B unchanged or adds exactly one new element.
+- *Preservation:* B0a — every transition either leaves s.B unchanged or adds exactly one new element.
 
 From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by induction on the baptism sequence that T4 validity is a registry-wide invariant:
 
-**B10 (T4ValidityInvariant).** `(A t ∈ Σ.B : t satisfies T4)`
+**B10 (T4ValidityInvariant).** `(A t ∈ s.B : t satisfies T4)`
 
-*Proof.* We must show that in every state reachable from a conforming seed B₀, every element of Σ.B satisfies T4 (FieldSeparatorConstraint, ASN-0034). The argument proceeds by induction on the number of state transitions from the initial state.
+*Proof.* We must show that in every state reachable from a conforming seed B₀, every element of s.B satisfies T4 (FieldSeparatorConstraint, ASN-0034). The argument proceeds by induction on the number of state transitions from the initial state.
 
-*Base case.* In the initial state, Σ.B = B₀. By B₀ conf. (SeedConformance), every t ∈ B₀ satisfies T4. The invariant holds at genesis.
+*Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), every t ∈ B₀ satisfies T4. The invariant holds at genesis.
 
-*Inductive step.* Assume B10 holds for state Σ with registry B — that is, every t ∈ B satisfies T4. Consider a transition Σ → Σ' producing registry B'. By B0a (Baptismal Closure), Op partitions into Σ.B-frame operations and baptismal operations; we treat the two transition classes in turn.
+*Inductive step.* Assume B10 holds for state s with registry B — that is, every t ∈ B satisfies T4. Consider a transition s → s' producing registry B'. By B0a (Baptismal Closure), Σ partitions into s.B-frame operations and baptismal operations; we treat the two transition classes in turn.
 
-*Σ.B-frame transitions.* If the transition is induced by a Σ.B-frame operation, then Σ'.B = Σ.B — that is, B' = B. Every t ∈ B' = B satisfies T4 by the inductive hypothesis. B10 holds at B'.
+*s.B-frame transitions.* If the transition is induced by a s.B-frame operation, then s'.B = s.B — that is, B' = B. Every t ∈ B' = B satisfies T4 by the inductive hypothesis. B10 holds at B'.
 
 *Baptismal transitions.* Otherwise the transition is induced by a baptismal operation baptize(p, d) for some (p, d) satisfying B6, so B' = B ∪ {a} where a = next(B, p, d). We must show every t ∈ B' satisfies T4. For elements t ∈ B, the inductive hypothesis gives t satisfies T4 directly. It remains to show the new element a satisfies T4.
 
 By the definition of next (NextAddress), a = next(B, p, d) is a stream element of S(p, d): the first child a = inc(p, d) = c₁ when children(B, p, d) = ∅, and the sibling a = inc(max(children(B, p, d)), 0) = c_{m+1} otherwise (the maximum exists because B is finite by B_fin and T1 totally orders the non-empty finite set children(B, p, d) ⊆ B). Since (p, d) satisfies B6, B6's sufficiency result (§B6) gives that every element of S(p, d) satisfies T4; in particular a does.
 
-So a satisfies T4. Since every element of B satisfies T4 by the inductive hypothesis and the new element a satisfies T4 by the case analysis, every element of B' = B ∪ {a} satisfies T4. B10 holds at B' under baptismal transitions, and by the frame argument above, B10 holds at B' under Σ.B-frame transitions. By induction on the transition sequence, B10 holds in every reachable state. ∎
+So a satisfies T4. Since every element of B satisfies T4 by the inductive hypothesis and the new element a satisfies T4 by the case analysis, every element of B' = B ∪ {a} satisfies T4. B10 holds at B' under baptismal transitions, and by the frame argument above, B10 holds at B' under s.B-frame transitions. By induction on the transition sequence, B10 holds in every reachable state. ∎
 
 *Formal Contract:*
-- *Invariant:* `(A t ∈ Σ.B : t satisfies T4)` — every baptized address satisfies FieldSeparatorConstraint.
+- *Invariant:* `(A t ∈ s.B : t satisfies T4)` — every baptized address satisfies FieldSeparatorConstraint.
 - *Base:* B₀ conf. — every seed element satisfies T4.
-- *Preservation:* Each baptism adds a = next(Σ.B, p, d) ∈ S(p, d); since (p, d) satisfies B6, B6's sufficiency result gives every element of S(p, d) — hence a — satisfies T4. B0a ensures no non-baptismal mechanism introduces elements that might violate T4.
-
-B1 holds for all states reachable from a conforming B₀ under operations satisfying B0a and B7.
+- *Preservation:* Each baptism adds a = next(s.B, p, d) ∈ S(p, d); since (p, d) satisfies B6, B6's sufficiency result gives every element of S(p, d) — hence a — satisfies T4. B0a ensures no non-baptismal mechanism introduces elements that might violate T4.
 
 The gap between T9 (ForwardAllocation) and B1 is the *no-skip property*: baptism always selects the immediate successor in the stream, never an arbitrary later value. T9 says addresses increase; B1 says they increase *contiguously*. The difference is the guarantee that every ordinal from 1 through m is represented, which T9 alone does not assert.
 
@@ -340,13 +334,11 @@ The new address c_{hwm+1} must not already appear in B. By construction, c_{hwm+
 
 The T4 validity of the new element is the third wp obligation:
 
-  wp(baptize(p, d), B10) — state precondition: B10 at Σ; environmental: B0a, B6 from Bop's precondition on (p, d); lemma: B6 sufficiency.
+  wp(baptize(p, d), B10) — state precondition: B10 at s; environmental: B0a, B6 from Bop's precondition on (p, d); lemma: B6 sufficiency.
 
-B10 at B' requires every t ∈ B' to satisfy T4. For elements already in B, the state precondition (B10 at Σ) gives T4 directly, and B0a's partition rules out any non-baptismal mechanism that could have introduced a T4-violating element between the wp evaluation and the transition. For the newly added element a = next(B, p, d) ∈ S(p, d), B6 (Bop's precondition on (p, d)) and B6's sufficiency result (§B6) give that every element of S(p, d) — hence a — satisfies T4. Both the B6 precondition and the state precondition B10 must hold for the joint claim to carry forward to B'.
+B10 at B' requires every t ∈ B' to satisfy T4. For elements already in B, the state precondition (B10 at s) gives T4 directly, and B0a's partition rules out any non-baptismal mechanism that could have introduced a T4-violating element between the wp evaluation and the transition. For the newly added element a = next(B, p, d) ∈ S(p, d), B6 (Bop's precondition on (p, d)) and B6's sufficiency result (§B6) give that every element of S(p, d) — hence a — satisfies T4. Both the B6 precondition and the state precondition B10 must hold for the joint claim to carry forward to B'.
 
 Two systems beginning from the same B₀ and executing the same sequence of baptisms — same parents, same depths, same order — produce identical address spaces. The addresses are not identifiers assigned by fiat; they are the inevitable consequence of the baptism history.
-
-We observe that next is *idempotent in evaluation*: as a pure function it is determined entirely by its arguments, so evaluating it leaves B untouched and a second evaluation against the same B returns the same answer. The address enters Σ.B only through a baptize(p, d) transition whose postcondition adds it; a baptism abandoned after the candidate is computed but before the transition is taken does no harm, since a later baptize(p, d) from the same precondition state returns the same address. Gregory's implementation confirms this: the query-and-increment function produces a candidate in a local variable, and the address enters reality only when the subsequent insertion function writes it into the tree.
 
 
 ## Ghost elements: baptism without content
@@ -355,24 +347,24 @@ A baptized position need not contain anything. Nelson names these *ghost element
 
 > "While servers, accounts and documents logically occupy positions on the developing tumbler line, no specific element need be stored in tumbler-space to correspond to them. Hence we may call them ghost elements."
 
-A ghost element is "virtually present in tumbler-space, since links may be made to them which embrace all the contents below them." The position is in Σ.B — it has been baptized, it is permanent, it anchors a namespace for children — but nothing is stored at that address.
+A ghost element is "virtually present in tumbler-space, since links may be made to them which embrace all the contents below them." The position is in s.B — it has been baptized, it is permanent, it anchors a namespace for children — but nothing is stored at that address.
 
-"Occupied" is not a predicate of this ASN. Σ in our state space carries a single component — Σ.B — and no notion of content is defined here. We record the relationship between baptism and content as a *forward requirement* on whichever future ASN introduces content storage.
+"Occupied" is not a predicate of this ASN. s in our state space carries a single component — s.B — and no notion of content is defined here. We record the relationship between baptism and content as a *forward requirement* on whichever future ASN introduces content storage.
 
-**B3 (Ghost Validity — forward requirement on content storage).** Let a future ASN introduce a predicate `Occupied : T × 𝒮 → {⊤, ⊥}` denoting "the address t carries content in state Σ". The present ASN does not define Occupied; the four-way classification below is therefore stated parametrically in Occupied. The forward requirement is that every future ASN introducing Occupied must arrange its operations so that
+**B3 (Ghost Validity — forward requirement on content storage).** Let a future ASN introduce a predicate `Occupied : T × 𝒮 → {⊤, ⊥}` denoting "the address t carries content in state s". The present ASN does not define Occupied; the four-way classification below is therefore stated parametrically in Occupied. The forward requirement is that every future ASN introducing Occupied must arrange its operations so that
 
-  `(A Σ : Σ reachable from Σ_init : (A t ∈ T : Occupied(t, Σ) ⟹ t ∈ Σ.B))`
+  `(A s : s reachable from s_init : (A t ∈ T : Occupied(t, s) ⟹ t ∈ s.B))`
 
-— content is permitted only at baptized addresses. Under this requirement, the configurations of a tumbler t ∈ T in a reachable state Σ partition into:
+— content is permitted only at baptized addresses. Under this requirement, the configurations of a tumbler t ∈ T in a reachable state s partition into:
 
-  - t ∈ Σ.B ∧ Occupied(t, Σ): a populated position
-  - t ∈ Σ.B ∧ ¬Occupied(t, Σ): a ghost element (permitted)
-  - t ∉ Σ.B ∧ ¬Occupied(t, Σ): an unbaptized, unoccupied position (not addressable)
-  - t ∉ Σ.B ∧ Occupied(t, Σ): forbidden (excluded by the forward requirement above)
+  - t ∈ s.B ∧ Occupied(t, s): a populated position
+  - t ∈ s.B ∧ ¬Occupied(t, s): a ghost element (permitted)
+  - t ∉ s.B ∧ ¬Occupied(t, s): an unbaptized, unoccupied position (not addressable)
+  - t ∉ s.B ∧ Occupied(t, s): forbidden (excluded by the forward requirement above)
 
-The forbidden row is not a current invariant of the present ASN: the row's contrapositive (`Occupied(t, Σ) ⟹ t ∈ Σ.B`) is the obligation we hand forward. Future specifications of content storage operations must enforce `t ∈ Σ.B` as a precondition on any write that would make Occupied(t, Σ) hold. The "ghost element" row is explicitly permitted and common: structural positions — nodes, users, documents — ordinarily function as ghosts, existing to organize the namespace and anchor children rather than to carry payload.
+The forbidden row is not a current invariant of the present ASN: the row's contrapositive (`Occupied(t, s) ⟹ t ∈ s.B`) is the obligation we hand forward. Future specifications of content storage operations must enforce `t ∈ s.B` as a precondition on any write that would make Occupied(t, s) hold. The "ghost element" row is explicitly permitted and common: structural positions — nodes, users, documents — ordinarily function as ghosts, existing to organize the namespace and anchor children rather than to carry payload.
 
-B3 separates two questions that might otherwise be conflated. "Does address t exist?" is answered by Σ.B in the present ASN. "Is there content at t?" will be answered by Occupied, once a future ASN introduces it. The baptismal registry is an existence index; the contemplated Occupied is a content index; B3 binds them by a one-way implication and defers everything else.
+B3 separates two questions that might otherwise be conflated. "Does address t exist?" is answered by s.B in the present ASN. "Is there content at t?" will be answered by Occupied, once a future ASN introduces it. The baptismal registry is an existence index; the contemplated Occupied is a content index; B3 binds them by a one-way implication and defers everything else.
 
 
 ## Atomicity
@@ -381,17 +373,17 @@ Informally, the baptism process — read the high water mark, compute the next a
 
 **B4 (Atomic Baptism).** Each baptismal operation is a single atomic transition. For every (p, d) satisfying B6:
 
-  `(A Σ ∈ dom(baptize(p, d)) : baptize(p, d)(Σ) = Σ' with Σ'.B = Σ.B ∪ {next(Σ.B, p, d)})`
+  `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s' with s'.B = s.B ∪ {next(s.B, p, d)})`
 
-The value `next(Σ.B, p, d)` is computed against the state Σ that licenses the transition and is committed to the successor state Σ' in the same step; the transition admits no intermediate state in which `Σ.B ∩ S(p, d)` has been observed but the registry has not yet grown.
+The value `next(s.B, p, d)` is computed against the state s that licenses the transition and is committed to the successor state s' in the same step; the transition admits no intermediate state in which `s.B ∩ S(p, d)` has been observed but the registry has not yet grown.
 
-Equivalently, in the transition relation `→` of the state space 𝒮: the observation of the precondition state and the commitment of the postcondition state are not separable. There is no state Σ_mid with `Σ → Σ_mid → Σ'` representing an "intent to baptize" that some later step fulfills. Each `baptize(p, d) ∈ Op` is a single edge in the transition graph.
+Equivalently, in the transition relation `→` of the state space 𝒮: the observation of the precondition state and the commitment of the postcondition state are not separable. There is no state s_mid with `s → s_mid → s'` representing an "intent to baptize" that some later step fulfills. Each `baptize(p, d) ∈ Σ` is a single edge in the transition graph.
 
-B0a guarantees that no other operation modifies Σ.B between any two transitions, so within a single Op-transition the read of `Σ.B ∩ S(p, d)` is exact, and across two same-namespace baptismal transitions β₁, β₂, exactly one of `β₁; β₂` or `β₂; β₁` describes their relative order in the transition sequence — there is no third option of overlap.
+B0a guarantees that no other operation modifies s.B between any two transitions, so within a single Σ-transition the read of `s.B ∩ S(p, d)` is exact, and across two same-namespace baptismal transitions β₁, β₂, exactly one of `β₁; β₂` or `β₂; β₁` describes their relative order in the transition sequence — there is no third option of overlap.
 
 B4's scope is *per-namespace* in the sense that B7 guarantees baptisms under distinct (p, d) pairs produce disjoint outputs; if the system later admits a model with concurrent operations, the serialization requirement collapses to "same-namespace baptisms must reduce to a sequential order, distinct-namespace baptisms need not." The minimum serialization grain is the namespace, not the entire system. This is precisely what enables decentralized baptism — two agents baptizing under different parents proceed independently, and their addresses are guaranteed distinct by the partition structure of the address space (T10).
 
-Gregory's implementation achieves the atomic-transition semantics through single-threaded dispatch — the event loop processes one request to completion before accepting another, and the entire path from query through increment to write runs without yielding control. But B4 is a specification-level requirement, not an implementation prescription. Any mechanism that exhibits one Op-transition per baptism — locking, transactions, hardware serialization, single-threaded dispatch — satisfies B4.
+Gregory's implementation achieves the atomic-transition semantics through single-threaded dispatch — the event loop processes one request to completion before accepting another, and the entire path from query through increment to write runs without yielding control. But B4 is a specification-level requirement, not an implementation prescription. Any mechanism that exhibits one Σ-transition per baptism — locking, transactions, hardware serialization, single-threaded dispatch — satisfies B4.
 
 
 ## Depth and field structure
@@ -457,7 +449,7 @@ At most three level crossings can occur in a valid address chain: node → user,
 
 **(⟸) Sufficiency.** Assume (i) p satisfies T4, (ii) d ∈ {1, 2}, and (iii) zeros(p) + (d − 1) ≤ 3. We show every element of S(p, d) satisfies T4.
 
-For the first child c₁ = inc(p, d): TA5a (IncrementPreservesT4, ASN-0034) states that for any t satisfying T4, inc(t, k) satisfies T4 iff `k ∈ {0, 1}`, or `k = 2 ∧ zeros(t) ≤ 2`. With t = p and k = d, conditions (i) and (ii) make p T4-valid and put d ∈ {1, 2}. For d = 1, TA5a's `k ∈ {0, 1}` branch applies directly with no further obligation on zeros(p); condition (iii) then reduces to zeros(p) ≤ 3, already guaranteed by T4-validity of p. For d = 2, TA5a's `k = 2 ∧ zeros(t) ≤ 2` branch requires zeros(p) ≤ 2, which is exactly condition (iii) specialized to d = 2. The TA5a case applicable at the chosen d is therefore satisfied, so c₁ satisfies T4.
+For the first child c₁ = inc(p, d): TA5a (IncrementPreservesT4, ASN-0034) states that for any t satisfying T4, inc(t, k) satisfies T4 iff `k = 0`, or `k = 1 ∧ zeros(t) ≤ 3`, or `k = 2 ∧ zeros(t) ≤ 2`. With t = p and k = d, conditions (i) and (ii) make p T4-valid and put d ∈ {1, 2}. For d = 1, the first child is c₁ = inc(p, 1), i.e. k = 1, which TA5a conditions on zeros(p) ≤ 3; this is discharged by T4-validity of p (T4 permits at most three zeros), the same bound that condition (iii) reduces to at d = 1. For d = 2, TA5a's `k = 2 ∧ zeros(t) ≤ 2` branch requires zeros(p) ≤ 2, which is exactly condition (iii) specialized to d = 2. The TA5a case applicable at the chosen d is therefore satisfied, so c₁ satisfies T4.
 
 For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states that inc(t, 0) satisfies T4 for any T4-valid t with no further constraint — sibling increment modifies only position sig(t), advancing a positive value by one (TA5(c)), so no zeros are added and no new adjacencies are introduced. Since c₁ satisfies T4, and each sibling increment preserves T4, by induction every cₙ satisfies T4.
 
@@ -602,9 +594,9 @@ B8 restates ASN-0034's GlobalUniqueness at the namespace level, via baptism name
 
 *Proof.* We must show that for any two distinct baptismal acts β₁ and β₂, the addresses they produce are distinct. Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We proceed by case analysis on whether the two baptisms target the same or different namespaces.
 
-*Case 1: same namespace — (p, d) = (p', d').* By B4 (Atomic Baptism), each baptism is a single Op-transition, so β₁ and β₂ occupy distinct edges of the transition sequence. Without loss of generality, β₁ precedes β₂ in that sequence — the argument with roles exchanged is identical. Let Σ₁ be the state on which β₁ acts and Σ₂ the state on which β₂ acts. By the Bop postcondition, the successor state Σ₁' = β₁(Σ₁) has Σ₁'.B = Σ₁.B ∪ {a}, so a ∈ Σ₁'.B. Since β₁ precedes β₂, Σ₂ is reachable from Σ₁' through a (possibly empty) sequence of transitions — that is, Σ₁' →* Σ₂. B0★ (Multi-step Irrevocability), the labelled corollary of B0 covering finite transition sequences, gives Σ₁'.B ⊆ Σ₂.B, hence a ∈ Σ₂.B.
+*Case 1: same namespace — (p, d) = (p', d').* By B4 (Atomic Baptism), each baptism is a single Σ-transition, so β₁ and β₂ occupy distinct edges of the transition sequence. Without loss of generality, β₁ precedes β₂ in that sequence — the argument with roles exchanged is identical. Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts. By the Bop postcondition, the successor state s₁' = β₁(s₁) has s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. Since β₁ precedes β₂, s₂ is reachable from s₁' through a (possibly empty) sequence of transitions — that is, s₁' →* s₂. B0★ (Multi-step Irrevocability), the labelled corollary of B0 covering finite transition sequences, gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
 
-Let m₁ = hwm(Σ₁.B, p, d) and m₂ = hwm(Σ₂.B, p, d). By B2 (High Water Mark Sufficiency), a = c_{m₁+1} and b = c_{m₂+1}, where cₙ denotes the n-th element of S(p, d). Since a = c_{m₁+1} ∈ Σ₂.B and B1 (Contiguous Prefix) holds for Σ₂, the children of (p, d) in Σ₂ include {c₁, ..., c_{m₁+1}}, so hwm(Σ₂.B, p, d) ≥ m₁ + 1. That is, m₂ ≥ m₁ + 1, hence m₂ + 1 ≥ m₁ + 2 > m₁ + 1. The indices m₁ + 1 and m₂ + 1 are distinct with m₁ + 1 < m₂ + 1. By S0 (StreamOrdering), c_{m₁+1} < c_{m₂+1} under the lexicographic order T1. By T1 irreflexivity, c_{m₁+1} ≠ c_{m₂+1}. Therefore a ≠ b.
+Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mark Sufficiency), a = c_{m₁+1} and b = c_{m₂+1}, where cₙ denotes the n-th element of S(p, d). Since a = c_{m₁+1} ∈ s₂.B and B1 (Contiguous Prefix) holds for s₂, the children of (p, d) in s₂ include {c₁, ..., c_{m₁+1}}, so hwm(s₂.B, p, d) ≥ m₁ + 1. That is, m₂ ≥ m₁ + 1, hence m₂ + 1 ≥ m₁ + 2 > m₁ + 1. The indices m₁ + 1 and m₂ + 1 are distinct with m₁ + 1 < m₂ + 1. By S0 (StreamOrdering), c_{m₁+1} < c_{m₂+1} under the lexicographic order T1. By T1 irreflexivity, c_{m₁+1} ≠ c_{m₂+1}. Therefore a ≠ b.
 
 *Case 2: different namespaces — (p, d) ≠ (p', d').* By construction, a ∈ S(p, d) — baptism in namespace (p, d) produces the next element of its sibling stream — and b ∈ S(p', d') by the same reasoning. By B7 (Namespace Disjointness), S(p, d) ∩ S(p', d') = ∅, so a ≠ b.
 
@@ -621,7 +613,7 @@ Nelson insists that the address space imposes no capacity limits:
 
 > "A tumbler consists of a series of integers. Each integer has no upper limit."
 
-**B9 (Unbounded Extent).** `(A p, d : B6(p, d) : (A M ∈ ℕ : (E Σ' : Σ →* Σ' via baptisms : hwm(Σ'.B, p, d) ≥ M)))`.
+**B9 (Unbounded Extent).** `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))`.
 
 No architectural limit constrains how many children a position may have. This follows from T0(a) (UnboundedComponents): since each tumbler component is an unbounded natural number and the child ordinal occupies a single component, the ordinal can grow without bound. Combined with B1, the children of any parent can grow to form an arbitrarily long contiguous prefix {c₁, ..., cₘ} for any m.
 
@@ -629,23 +621,23 @@ Nelson designed this deliberately: "New items may be continually inserted in tum
 
 Nelson reinforces this at every level: "A server node, or station, has ancestors and may have possible descendant nodes. An account, too, and a document, all have possible descendants." The word "possible" does not mean "a finite number of possible" — it means the tree can always grow further. The address space is designed not for a known population but for indefinite proliferation.
 
-*Proof.* We must show that for any pair (p, d) satisfying B6 and any bound M ∈ ℕ, there exists a state Σ' with Σ →* Σ' (via baptisms) such that hwm(Σ'.B, p, d) ≥ M. The argument is constructive: we exhibit the required sequence of baptismal transitions.
+*Proof.* We must show that for any pair (p, d) satisfying B6 and any bound M ∈ ℕ, there exists a state s' with s →* s' (via baptisms) such that hwm(s'.B, p, d) ≥ M. The argument is constructive: we exhibit the required sequence of baptismal transitions.
 
-Let m = hwm(Σ.B, p, d) — the current count of children in namespace (p, d). If m ≥ M, set Σ' = Σ (the empty transition sequence witnesses Σ →* Σ via reflexivity) and the claim holds trivially. Otherwise m < M, and we construct a sequence of M − m baptismal transitions, each `baptize(p, d) ∈ Op` targeting namespace (p, d). We show by induction on k that k successive baptismal transitions Σ → Σ₁ → ... → Σₖ produce a state Σₖ with hwm(Σₖ.B, p, d) = m + k.
+Let m = hwm(s.B, p, d) — the current count of children in namespace (p, d). If m ≥ M, set s' = s (the empty transition sequence witnesses s →* s via reflexivity) and the claim holds trivially. Otherwise m < M, and we construct a sequence of M − m baptismal transitions, each `baptize(p, d) ∈ Σ` targeting namespace (p, d). We show by induction on k that k successive baptismal transitions s → s₁ → ... → sₖ produce a state sₖ with hwm(sₖ.B, p, d) = m + k.
 
-*Base case (k = 0).* Σ₀ = Σ with hwm(Σ.B, p, d) = m = m + 0. The claim holds by the reflexive case of →*.
+*Base case (k = 0).* s₀ = s with hwm(s.B, p, d) = m = m + 0. The claim holds by the reflexive case of →*.
 
-*Inductive step.* Assume Σₖ is a state reachable from Σ by k baptismal transitions in namespace (p, d), with hwm(Σₖ.B, p, d) = m + k < M. We perform the transition `Σₖ → Σₖ₊₁` induced by `baptize(p, d) ∈ Op` — that is, Σₖ₊₁ = baptize(p, d)(Σₖ). The preconditions of Bop are satisfied: B6(p, d) holds by hypothesis; B4 (Atomic Baptism) is an invariant of the operation vocabulary — each `baptize(p, d) ∈ Op` is a single edge of the transition graph, so the constructed sequence is a chain of M − m successive edges with no shared structure.
+*Inductive step.* Assume sₖ is a state reachable from s by k baptismal transitions in namespace (p, d), with hwm(sₖ.B, p, d) = m + k < M. We perform the transition `sₖ → sₖ₊₁` induced by `baptize(p, d) ∈ Σ` — that is, sₖ₊₁ = baptize(p, d)(sₖ). The preconditions of Bop are satisfied: B6(p, d) holds by hypothesis; by B4 (Atomic Baptism), each baptism is a single transition edge, so the constructed sequence is a chain of M − m successive edges.
 
-By Bop, the postcondition gives Σₖ₊₁.B = Σₖ.B ∪ {next(Σₖ.B, p, d)}. By B2 (High Water Mark Sufficiency), next(Σₖ.B, p, d) = c_{m+k+1}, the (m + k + 1)-th element of the sibling stream S(p, d). This element is well-defined: the stream S(p, d) produces cₙ for every n ≥ 1, since c₁ = inc(p, d) ∈ T by TA5(d), and each cₙ₊₁ = inc(cₙ, 0) ∈ T by TA5(c). The final component of cₙ equals n — a value that grows without bound. That no ceiling constrains this component is precisely T0(a) (UnboundedComponentValues): for any bound M' ∈ ℕ, there exists a tumbler in T whose value at that position exceeds M'. The stream never exhausts its namespace.
+By Bop, the postcondition gives sₖ₊₁.B = sₖ.B ∪ {next(sₖ.B, p, d)}. By B2 (High Water Mark Sufficiency), next(sₖ.B, p, d) = c_{m+k+1}, the (m + k + 1)-th element of the sibling stream S(p, d). This element is well-defined: the stream S(p, d) produces cₙ for every n ≥ 1, since c₁ = inc(p, d) ∈ T by TA5(d), and each cₙ₊₁ = inc(cₙ, 0) ∈ T by TA5(c). The final component of cₙ equals n — a value that grows without bound. That no ceiling constrains this component is precisely T0(a) (UnboundedComponentValues): for any bound M' ∈ ℕ, there exists a tumbler in T whose value at that position exceeds M'. The stream never exhausts its namespace.
 
-The new element c_{m+k+1} is fresh — by the freshness argument of Bop, it does not appear in Σₖ.B. The contiguous prefix property is preserved — by B1 preservation under Bop, children(Σₖ₊₁.B, p, d) = {c₁, ..., c_{m+k+1}}. Therefore hwm(Σₖ₊₁.B, p, d) = m + k + 1. The B0a frame on the other components of Σₖ — content, links, ownership, ASN-0034's Act and nₛ — is left unconstrained by the present claim; Σₖ₊₁ may differ from Σₖ in those components however the corresponding ASNs' specifications permit, since B9 ranges over witness states that need only satisfy the Σ.B-component bound.
+The new element c_{m+k+1} is fresh — by the freshness argument of Bop, it does not appear in sₖ.B. The contiguous prefix property is preserved — by B1 preservation under Bop, children(sₖ₊₁.B, p, d) = {c₁, ..., c_{m+k+1}}. Therefore hwm(sₖ₊₁.B, p, d) = m + k + 1.
 
-After M − m steps, hwm(Σ_{M−m}.B, p, d) = m + (M − m) = M. Setting Σ' = Σ_{M−m}, we have Σ →* Σ' via the M − m baptismal transitions, and hwm(Σ'.B, p, d) = M ≥ M. ∎
+After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_{M−m}, we have s →* s' via the M − m baptismal transitions, and hwm(s'.B, p, d) = M ≥ M. ∎
 
 *Formal Contract:*
-- *Preconditions:* (p, d) satisfying B6(p, d); M ∈ ℕ; current state Σ reachable from Σ_init.
-- *Postconditions:* There exists Σ' with Σ →* Σ' via a finite sequence of baptismal transitions such that hwm(Σ'.B, p, d) ≥ M.
+- *Preconditions:* (p, d) satisfying B6(p, d); M ∈ ℕ; current state s reachable from s_init.
+- *Postconditions:* There exists s' with s →* s' via a finite sequence of baptismal transitions such that hwm(s'.B, p, d) ≥ M.
 - *Axiom:* T0(a) — component values in T are unbounded; ℕ is closed under successor.
 
 
@@ -653,31 +645,30 @@ After M − m steps, hwm(Σ_{M−m}.B, p, d) = m + (M − m) = M. Setting Σ' = 
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| Σ.B | B ⊆ T — the set of baptized tumblers (baptismal registry) | introduced |
+| s.B | B ⊆ T — the set of baptized tumblers (baptismal registry) | introduced |
 | S(p,d) | Sibling stream: c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0) | from TA5(b), TA5(c), TA5(d) |
 | hwm(B,p,d) | High water mark: #children(B, p, d) — sufficient allocation statistic | from B1, S0 |
 | next(B,p,d) | Next address: if children = ∅ then inc(p, d) else inc(max(children), 0) | from TA5(c), TA5(d), T1 |
-| Bop | baptize(p, d): PRE B6; STRUCT B4 (invariant of Op, not per-call); POST Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}; FRAME constrains Σ.B only, silent on other components (incl. ASN-0034's Act, nₛ) | from B0, B1, B4, B6, B7, B0a, B10, TA5, TA5a |
+| Bop | baptize(p, d): PRE B6; STRUCT B4 (invariant of Σ, not per-call); POST s'.B = s.B ∪ {next(s.B, p, d)}; FRAME constrains s.B only, silent on other components (incl. ASN-0034's Act, nₛ) | from B0, B1, B4, B6, B7, B0a, B10, TA5, TA5a |
 | S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from ASN-0034 T10a.7 (EnumerationInjectivity) |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
 | S2 | `#p ≥ 2 ∧ p_{#p} = 0 ⟹ S(p, 1) = S(p′, 2)` (p′ = p without trailing zero) — trailing-zero stream identity | from TA5(d) |
-| B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | from B0a |
-| B0★ | `Σ.B ⊆ Σ'.B` for all Σ →* Σ' (reflexive-transitive closure of transitions) — multi-step irrevocability | labelled corollary of B0 |
-| B0a | Op partitions into baptismal operations (the `baptize(p, d)` for B6-valid (p, d), each acting on Σ.B as in Bop) and Σ.B-frame operations (every other op satisfies `op(Σ).B = Σ.B`) — registry grows only through baptism | design requirement |
+| B0 | `s.B ⊆ s'.B` for all transitions — irrevocability (extends T8) | from B0a |
+| B0★ | `s.B ⊆ s'.B` for all s →* s' (reflexive-transitive closure of transitions) — multi-step irrevocability | labelled corollary of B0 |
+| B0a | Σ partitions into baptismal operations (the `baptize(p, d)` for B6-valid (p, d), each acting on s.B as in Bop) and s.B-frame operations (every other op satisfies `op(s).B = s.B`) — registry grows only through baptism | design requirement |
 | B₀ conf. | B₀ is finite, `children(B₀, p, d)` is a contiguous prefix for all (p, d), and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | design requirement |
-| B_fin | `(A Σ reachable : Σ.B is finite)` — registry finiteness | from B₀ conf., B0a |
-| B_type | `(A Σ reachable : Σ.B ⊆ T)` — registry typing (every baptized address is a well-formed tumbler) | corollary of B10 |
+| B_fin | `(A s reachable : s.B is finite)` — registry finiteness | from B₀ conf., B0a |
 | B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix (requires conforming B₀) | from B₀ conf., B0, B0a, B4, B6, B7, B10, next def., S0, TA5(c); Bop correctness follows as corollary |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
-| B3 | Forward requirement on a future predicate `Occupied : T × 𝒮 → {⊤, ⊥}`: `(A Σ reachable, t ∈ T : Occupied(t, Σ) ⟹ t ∈ Σ.B)` — content permitted only at baptized addresses; ghost elements (`t ∈ Σ.B ∧ ¬Occupied(t, Σ)`) explicitly allowed | forward requirement on future ASN |
-| B4 | Each `baptize(p, d) ∈ Op` is a single atomic transition: `baptize(p, d)(Σ).B = Σ.B ∪ {next(Σ.B, p, d)}` is computed and committed in one step, with no intermediate observable state | design requirement |
+| B3 | Forward requirement on a future predicate `Occupied : T × 𝒮 → {⊤, ⊥}`: `(A s reachable, t ∈ T : Occupied(t, s) ⟹ t ∈ s.B)` — content permitted only at baptized addresses; ghost elements (`t ∈ s.B ∧ ¬Occupied(t, s)`) explicitly allowed | forward requirement on future ASN |
+| B4 | Each `baptize(p, d) ∈ Σ` is a single atomic transition: `baptize(p, d)(s).B = s.B ∪ {next(s.B, p, d)}` is computed and committed in one step, with no intermediate observable state | design requirement |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
 | B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from T3, T4, T10, S1, TA5(d), T10a.1 (uniform length), B6 |
 | B8 | Distinct baptisms produce distinct addresses — global uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
-| B9 | `(A p, d : B6(p, d) : (A M ∈ ℕ : (E Σ' : Σ →* Σ' via baptisms : hwm(Σ'.B, p, d) ≥ M)))` — unbounded extent | from T0(a), B1, B2, B4, B6, Bop, TA5(c), TA5(d) |
-| B10 | `(A t ∈ Σ.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
+| B9 | `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))` — unbounded extent | from T0(a), B1, B2, B4, B6, Bop, TA5(c), TA5(d) |
+| B10 | `(A t ∈ s.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
 
 
 ## Open Questions
