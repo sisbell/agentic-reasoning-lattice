@@ -31,11 +31,9 @@ For a level-uniform span σ = (s, ℓ) with #s = #ℓ, the reach has #reach(σ) 
 
 The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. Of the three quantities — start, width, reach — two of the three pairings determine the third: start and width determine reach (by definition of ⊕); start and reach determine width (by D2). But width and reach do not determine start: ⊕ is not right-cancellative (TA-RC, ASN-0034), and TA-MTO (ASN-0034) makes the precise statement — two starts agreeing through the action point k of the width yield the same reach, while positions k+1..#s are overwritten by the width's tail and unrecoverable. For instance, s₁ = [1, 3, 5] and s₂ = [1, 3, 7] with width [0, 2, 4] (action point k = 2) both yield reach [1, 5, 4]. Same width, same reach, different starts — and different denotations.
 
-The displacement round-trip is guaranteed by the foundation: for tumblers a, b ∈ T with a < b, divergence(a, b) ≤ #a, and #a ≤ #b, a ⊕ (b ⊖ a) = b (D1, ASN-0034).
+When a = b, no displacement is needed; the degenerate case is handled separately since b ⊖ a produces the zero tumbler and a ⊕ (b ⊖ a) is not well-formed (TA0 requires w > 0). D0 ensures the displacement is well-defined; D1 ensures the round-trip is faithful for a < b.
 
-When a = b, no displacement is needed; the degenerate case is handled separately since b ⊖ a produces the zero tumbler and a ⊕ (b ⊖ a) is not well-formed (TA0 requires w > 0). D0 ensures the displacement is well-defined; D1 ensures the round-trip is faithful for a < b. Every proof below that constructs a span γ = (s, r ⊖ s) and asserts ⟦γ⟧ = {t : s ≤ t < r} depends on D1: the span's reach is s ⊕ (r ⊖ s) = r.
-
-When #start > #width, the round-trip fails by D0's #a > #b postcondition (ASN-0034), applied to (a, b) = (start, reach) with #reach = #width < #start. For instance, σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2].
+A worked instance of the #start > #width failure (the #a > #b half of the dichotomy stated above): σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2].
 
 
 ## Convexity
@@ -253,7 +251,7 @@ Condition N2 uses strict inequality. If reach(σᵢ) = start(σᵢ₊₁), the s
 
 **S8** (*NormalizationExistence*). Every span-set Σ whose component spans are level-uniform and mutually level-compatible has a normalized equivalent Σ̂ with Σ̂ ≡ Σ.
 
-*Construction.* If n = 0, the result is the empty span-set ⟨⟩, which vacuously satisfies N1 and N2. For n ≥ 1, proceed as follows. Sort the component spans into non-decreasing order of start position; T1 totally orders tumblers, but distinct spans may share a start (SC cases (iv) and (v)), so any ties are broken arbitrarily. The construction below depends only on the non-decreasing order of starts, not on the tie-breaking choice — uniqueness of the emitted span-set is inherited from S9. Scan left to right, maintaining a current interval [s, r). For each span σᵢ in sorted order:
+*Construction.* If n = 0, the result is the empty span-set ⟨⟩, which vacuously satisfies N1 and N2. For n ≥ 1, proceed as follows. Sort the component spans into non-decreasing order of start position; T1 totally orders tumblers, but distinct spans may share a start (SC cases (iv) and (v)), so any ties are broken arbitrarily. The construction below depends only on the non-decreasing order of starts, not on the tie-breaking choice — uniqueness of the emitted span-set is inherited from S9. Seed the current interval [s, r) = [start(σ₁), reach(σ₁)) from the first span in sorted order, with the emitted set E = ∅. Then scan σ₂, ..., σₙ left to right. For each span σᵢ with i ≥ 2:
 
   — If start(σᵢ) ≤ r (overlap or adjacency): extend r to max(r, reach(σᵢ)).
   — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s). Level-uniformity and S6 ensure #s = #r, so by D1 the reach is faithful. We verify T12: since s < r (the current interval was initialized from a non-empty span and is only extended by the merge step), the divergence k satisfies k ≤ #s (type (i), as #s = #r excludes the prefix case), and the width r ⊖ s has a positive component at position k (rₖ − sₖ > 0 at the divergence point). The action point of the width is k ≤ #s, so the emitted span is well-formed and level-uniform: #(r ⊖ s) = max(#r, #s) = #s, giving #start = #width. Then start a new current interval at [start(σᵢ), reach(σᵢ)).
@@ -293,6 +291,8 @@ Result: Σ̂ = ⟨([1, 3], [0, 6]), ([1, 10], [0, 3])⟩. N1: [1, 3] < [1, 10]. 
 **S9** (*NormalizationUniqueness*). The normalized form is unique: if Σ̂₁ and Σ̂₂ are both normalized and Σ̂₁ ≡ Σ̂₂, then Σ̂₁ = Σ̂₂.
 
 *Proof.* Let Σ̂₁ = ⟨α₁, ..., αₘ⟩ and Σ̂₂ = ⟨β₁, ..., βₙ⟩, both normalized, with ⟦Σ̂₁⟧ = ⟦Σ̂₂⟧ = S. Suppose Σ̂₁ ≠ Σ̂₂. Let i be the smallest index where αᵢ ≠ βᵢ (if one sequence is shorter, take i past the shorter one's end). For j < i, αⱼ = βⱼ.
+
+The configuration start(αᵢ) = start(βᵢ) ∧ reach(αᵢ) = reach(βᵢ) cannot occur at a divergence index: two spans sharing start and reach share width, since start ⊕ w₁ = reach = start ⊕ w₂ forces w₁ = w₂ by left cancellation (TA-LC, ASN-0034), whence αᵢ = βᵢ — contradicting that i is a divergence index. The case split below is therefore exhaustive: any genuine divergence at i differs in start or in reach.
 
 *Case 1a:* Both αᵢ and βᵢ exist, with start(αᵢ) < start(βᵢ). Then start(αᵢ) ∈ S since start(αᵢ) ∈ ⟦αᵢ⟧. But start(αᵢ) ∉ ⟦βⱼ⟧ for any j. For j < i: αⱼ = βⱼ by minimality of i, so reach(βⱼ) = reach(αⱼ). N2 on Σ̂₁ gives reach(αⱼ) < start(αⱼ₊₁), and repeated N1 on Σ̂₁ gives start(αⱼ₊₁) ≤ start(αᵢ) (with equality when j+1 = i, strict otherwise); chaining, reach(βⱼ) < start(αᵢ), so start(αᵢ) ∉ ⟦βⱼ⟧. For j ≥ i: N1 on Σ̂₂ gives start(βⱼ) ≥ start(βᵢ), and the case hypothesis gives start(βᵢ) > start(αᵢ); so start(βⱼ) > start(αᵢ), and start(αᵢ) ∉ ⟦βⱼ⟧. So start(αᵢ) ∉ ⟦Σ̂₂⟧ = S. Contradiction.
 
