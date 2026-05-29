@@ -1,0 +1,25 @@
+# Review of ASN-0036
+
+## REVISE
+
+(none)
+
+## OUT_OF_SCOPE
+
+### Topic 1: Operation-level preservation of D-CTG / D-MIN / S2
+**Why out of scope**: How INSERT/DELETE/COPY/REARRANGE re-establish the contiguity invariants (and the insertion-at-occupied-position case) is operation-specific effect, explicitly excluded by Scope and already parked in Open Questions. The state-level invariants here are self-contained without it.
+
+### Topic 2: Contiguity for non-text subspaces (S ≠ 1)
+**Why out of scope**: D-CTG/D-MIN/D-SEQ are deliberately scoped to subspace 1 (links/other subspaces are out of scope). S8's partition correctly handles all subspaces generically, so no gap is introduced.
+
+---
+
+Assessment notes (no findings, recorded for the trail):
+
+- **S8 partition** is complete: coverage, within-subspace uniqueness (lemma, both `j<m` and `j=m` branches, with `m=2` routing handled), and cross-subspace uniqueness (T5 + T10) all discharged; empty-arrangement boundary handled vacuously.
+- **D-CTG-depth / D-SEQ** proofs are rigorous — the infinite-intermediate construction against S8-fin is sound, and the four-step D-SEQ assembly covers the `m=2` and `m≥3` cases distinctly rather than by "similarly."
+- **S0/S1/S3/S4/S5/S7** establish and then exercise their postconditions (append-only consequence, identity-vs-value asymmetry, sharing unboundedness via two explicit constructions, permanence of `origin`).
+- Worked example verifies S0, S3, S5, S7, S8, D-SEQ against concrete tumblers across four states, including both depth-2 and depth-3 contiguity violations.
+- Anti-bloat scan: the Nelson/Gregory citations are implementation evidence and "what the protocol does/does not do," not meta-prose; no downstream-consumer enumerations, no document-ordering justifications, no duplicated paragraphs, no precondition-excluded cases imagined.
+
+VERDICT: CONVERGED
