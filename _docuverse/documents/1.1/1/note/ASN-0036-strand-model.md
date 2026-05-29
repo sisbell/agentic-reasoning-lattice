@@ -46,26 +46,18 @@ We therefore require:
 
 Once content is stored at address `a`, both the address and its value are fixed for all future states. This is the central invariant of the two-stream architecture.
 
-S0 is a strong property. It asserts two things simultaneously: that `a` remains in the domain (the address persists), and that the value at `a` is unchanged (the content is immutable). In weakest-precondition terms, for any operation producing successor state `Σ'`:
-
-`wp(op, (A a : a ∈ dom(C) : a ∈ dom(C') ∧ C'(a) = C(a)))`
-
-must hold in every reachable state. This constrains every operation to either leave `C(a)` unchanged or to operate only on addresses not yet in `dom(C)` — that is, to create new content at fresh addresses.
+S0 is a strong property. It asserts two things simultaneously: that `a` remains in the domain (the address persists), and that the value at `a` is unchanged (the content is immutable). It constrains every operation to either leave `C(a)` unchanged or to operate only on addresses not yet in `dom(C)` — that is, to create new content at fresh addresses.
 
 *Formal Contract:*
 - *Axiom (design requirement):* For every state transition `Σ → Σ'`, `(A a : a ∈ dom(Σ.C) : a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))`.
 - *Postconditions:* (a) Domain persistence — `a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C)`. (b) Value preservation — `a ∈ dom(Σ.C) ⟹ Σ'.C(a) = Σ.C(a)`.
 - *Frame:* No condition on arrangements — the postcondition holds for arbitrary `Σ'.M(d)` and arbitrary changes to any document's arrangement.
 
-Read directionally, the frame is the two-stream separation: an arrangement-only transition (`Σ'.M(d) ≠ Σ.M(d)`) cannot alter `C`, since S0 holds unconditionally for every transition.
-
 **S1 (Store monotonicity).** `[dom(Σ.C) ⊆ dom(Σ'.C)]`
 
 S0 and S1 together establish `C` as an *append-only log*. New entries may be added — each at a fresh address guaranteed unique by T9 and T10 (ASN-0034) — but no existing entry may be modified or removed.
 
-Nelson states this as an explicit design commitment: "The true storage of text should be in a system that stores each change and fragment individually, assimilating each change as it arrives, but keeping the former changes." Gregory's implementation confirms the commitment. Of the seventeen FEBE commands Nelson specifies, none modifies existing Istream content. There is no MODIFY, UPDATE, or REPLACE operation. The absence is structural — the protocol provides no mechanism for mutating stored content.
-
-Gregory's evidence shows the reclamation machinery was built but deliberately deactivated — the reference-counted deletion call is commented out (`/*subtreefree(ptr);*/`) — so S0 and S1 are upheld by design choice rather than architectural impossibility.
+Nelson states this as an explicit design commitment: "The true storage of text should be in a system that stores each change and fragment individually, assimilating each change as it arrives, but keeping the former changes." Gregory's implementation confirms the commitment. Of the seventeen FEBE commands Nelson specifies, none modifies existing Istream content. There is no MODIFY, UPDATE, or REPLACE operation. The absence is structural — the protocol provides no mechanism for mutating stored content. (Gregory's reclamation machinery exists but is deactivated, consistent with this absence.)
 
 *Proof.* We wish to show that for every state transition `Σ → Σ'`, `dom(Σ.C) ⊆ dom(Σ'.C)`.
 
@@ -101,17 +93,13 @@ The bridge between the two state components is a well-formedness condition:
 
 Every V-reference resolves. If a document's arrangement says "at position `v`, display the content at I-address `a`," then `a` must be in `dom(C)`. There are no dangling references.
 
-The weakest precondition for S3 under any transition that establishes a V-mapping `M(d)(v) = a` constrains the post-state:
-
-`wp(op, S3) ⟹ a ∈ dom(Σ'.C)`
-
-The referenced I-address must be present in the post-state. S1 (store monotonicity) then guarantees that once `a` enters `dom(C)` it remains, so a valid reference cannot become dangling through any subsequent state transition.
+Any transition that establishes a V-mapping `M(d)(v) = a` must therefore have `a ∈ dom(Σ'.C)` in the post-state. S1 (store monotonicity) then guarantees that once `a` enters `dom(C)` it remains, so a valid reference cannot become dangling through any subsequent state transition.
 
 We observe a deliberate asymmetry. S3 says arrangement implies existence: `ran(M(d)) ⊆ dom(C)`. It does NOT say existence implies arrangement. Content can exist in Istream without being arranged in any current document — and since S0's antecedent is `a ∈ dom(Σ.C)` alone, not conditioned on whether `a` appears in any `ran(M(d))`, such unreferenced content is never reclaimed and persists. Nelson requires this for history — he calls such content "deleted bytes — not currently addressable, awaiting historical backtrack functions, may remain included in other versions," and version reconstruction depends on the availability of Istream fragments from prior arrangements. This persistence independence is the space the asymmetry opens.
 
 *Formal Contract (S3):*
 - *Axiom (well-formedness invariant):* In every state `Σ`, `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))` — equivalently, `ran(Σ.M(d)) ⊆ dom(Σ.C)`.
-- *Preservation across transitions:* For an operation that adds a V-mapping `M(d)(v) = a`, `wp(op, S3) ⟹ a ∈ dom(Σ'.C)` — the I-address must exist in the post-state.
+- *Preservation across transitions:* For an operation that adds a V-mapping `M(d)(v) = a`, the post-state must satisfy `a ∈ dom(Σ'.C)` — the I-address must exist in the post-state.
 - *Frame:* S3 is one-directional — content may exist in `dom(C)` without being referenced (orphaned content); existence does not entail arrangement.
 - *Depends:* S1 (store monotonicity) — once a reference is valid, S1 prevents the target from being removed.
 
@@ -309,6 +297,8 @@ S8-depth allows us to define "consecutive V-positions" precisely. Within a subsp
 
 For each V-position `v`, its *singleton interval* is the half-open tumbler interval `[v, shift(v, 1))`, where `shift(v, 1) = v ⊕ δ(1, #v)` per OrdinalShift (ASN-0034) is the next ordinal at the same depth.
 
+We record once the foundation consequence used repeatedly below. **Ordinal-shift prefix lemma.** For a V-position `v` of depth `m`, `δ(j, m)` has action point `m` (OrdinalDisplacement, ASN-0034), so by TumblerAdd's prefix rule (ASN-0034) `shift(v, j) = v ⊕ δ(j, m)` preserves every component at positions `1 ≤ i < m` (`shift(v, j)ᵢ = vᵢ`) and sets the last to `shift(v, j)_m = v_m + j`. In particular `shift(v, 1)` agrees with `v` on positions `1 ≤ i < m` and has `shift(v, 1)_m = v_m + 1`, and for `m ≥ 2` the first component (the subspace identifier `v₁`) is among the preserved positions.
+
 **S8 (Singleton span partition).** For each document `d`, the singleton intervals `{[vⱼ, shift(vⱼ, 1)) : vⱼ ∈ dom(Σ.M(d))}` — one per V-position, with `aⱼ = Σ.M(d)(vⱼ)` — partition the V-positions of `dom(Σ.M(d))`:
 
 (a) Every V-position falls in exactly one singleton interval — `(A v ∈ dom(Σ.M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, 1)))`
@@ -329,12 +319,12 @@ For each V-position `v`, its *singleton interval* is the half-open tumbler inter
 
 *Case j < m.* Then `tᵢ = vᵢ` for `i < j`. The lemma's hypothesis `t ≠ v` combined with `v ≤ t` (from `t ∈ [v, shift(v, 1))`) strengthens to `v < t` — the non-strict relation `v ≤ t` resolves to strict `<` once equality is ruled out. T1(i) applied to `v < t` with first divergence at component `j` (valid since `j ≤ m = min(m, m)`) then yields `tⱼ > vⱼ`. Since `shift(v, 1)ⱼ = vⱼ` (as `j < m`), and `tᵢ = vᵢ = shift(v, 1)ᵢ` for `i < j`, the first divergence between `t` and `shift(v, 1)` is at position `j` with `tⱼ > shift(v, 1)ⱼ`, giving `t > shift(v, 1)` by T1(i) — contradicting `t < shift(v, 1)`.
 
-*Case j = m.* Then `tᵢ = vᵢ` for `i < m`. Since `shift(v, 1)ᵢ = vᵢ` for `i < m` by TumblerAdd's prefix rule (the action point of `δ(1, m)` is `m`, so all components at positions `i < m` are copied from `v` unchanged), we get `tᵢ = shift(v, 1)ᵢ` for `i < m`, so the first divergence between `t` and `shift(v, 1)` is at position `m`. Since `tᵢ = vᵢ` for `i < m` and `t ≠ v` (with `#t = #v = m`), the divergence at `j = m` between `t` and `v` is also real: `t_m ≠ v_m`. Combined with `v ≤ t`, this gives `v < t`, and T1(i) applied to `v < t` with first divergence at `m` yields strict `t_m > v_m`; NAT-discrete (ASN-0034) at `(m, n) := (v_m, t_m)` promotes the strict inequality `v_m < t_m` to `v_m + 1 ≤ t_m`, i.e., `t_m ≥ v_m + 1`. From `t < shift(v, 1)` with first divergence at `m`: T1(i) gives `t_m < shift(v, 1)_m`, and the setup identity `shift(v, 1)_m = v_m + 1` (TumblerAdd at the action point; `v_m + 1 ∈ ℕ` by NAT-closure, ASN-0034) rewrites this to `t_m < v_m + 1`. But `t_m ≥ v_m + 1` and `t_m < v_m + 1` are incompatible by NAT-order's exactly-one trichotomy (ASN-0034), instantiated at `(t_m, v_m + 1)` — the clause `¬(a < b ∧ b ≤ a)` excludes the conjunction of the two inequalities. Contradiction. ∎ *(lemma)*
+*Case j = m.* Then `tᵢ = vᵢ` for `i < m`. By the ordinal-shift prefix lemma, `shift(v, 1)ᵢ = vᵢ` for `i < m`, so `tᵢ = shift(v, 1)ᵢ` for `i < m` and the first divergence between `t` and `shift(v, 1)` is at position `m`. Since `tᵢ = vᵢ` for `i < m` and `t ≠ v` (with `#t = #v = m`), the divergence at `j = m` between `t` and `v` is also real: `t_m ≠ v_m`. Combined with `v ≤ t`, this gives `v < t`, and T1(i) applied to `v < t` with first divergence at `m` yields strict `t_m > v_m`; NAT-discrete (ASN-0034) at `(m, n) := (v_m, t_m)` promotes the strict inequality `v_m < t_m` to `v_m + 1 ≤ t_m`, i.e., `t_m ≥ v_m + 1`. From `t < shift(v, 1)` with first divergence at `m`: T1(i) gives `t_m < shift(v, 1)_m`, and the lemma's identity `shift(v, 1)_m = v_m + 1` (`v_m + 1 ∈ ℕ` by NAT-closure, ASN-0034) rewrites this to `t_m < v_m + 1`. But `t_m ≥ v_m + 1` and `t_m < v_m + 1` are incompatible by NAT-order's exactly-one trichotomy (ASN-0034), instantiated at `(t_m, v_m + 1)` — the clause `¬(a < b ∧ b ≤ a)` excludes the conjunction of the two inequalities. Contradiction. ∎ *(lemma)*
 
 *Application to w.* The hypotheses `w₁ = v₁ = S`, `#w = m` (S8-depth), and `w ≠ v` are exactly the lemma's antecedents, so `w ∉ [v, shift(v, 1))`. Since all V-positions in subspace `S` share depth `m` (S8-depth) and the lemma applies to every such position distinct from `v`, no distinct V-position in the same subspace falls in `v`'s singleton interval.
 **Uniqueness across subspaces.** Let `v ∈ dom(M(d))` with `v₁ = S₁` and `w ∈ dom(M(d))` with `w₁ = S₂`, where `S₁ ≠ S₂`. By S8a, `v` and `w` extend the single-component prefixes `[S₁]` and `[S₂]` respectively, and both have depth `≥ 2`. These prefixes are non-nesting: `[S₁] ≼ [S₂]` would require `S₁ = S₂` (both length-1 tumblers, so equality requires componentwise agreement by T3), contradicting `S₁ ≠ S₂`; symmetrically `[S₂] ⋠ [S₁]`.
 
-For `m ≥ 2` (the only case under S8a), the successor `shift(v, 1)` also extends `[S₁]`: by OrdinalShift (ASN-0034), `shift(v, 1) = v ⊕ δ(1, m)`, and since `δ(1, m)` has action point `m`, TumblerAdd's prefix rule (ASN-0034) copies every component at positions `i < m` from `v` unchanged. Since `m ≥ 2`, this includes position 1, giving `shift(v, 1)₁ = v₁ = S₁`.
+For `m ≥ 2` (the only case under S8a), the successor `shift(v, 1)` also extends `[S₁]`: by the ordinal-shift prefix lemma, `shift(v, 1)` agrees with `v` on positions `i < m`, and since `m ≥ 2` this includes position 1, giving `shift(v, 1)₁ = v₁ = S₁`.
 
 Since `[S₁] ≼ v` and `[S₁] ≼ shift(v, 1)` and `v ≤ shift(v, 1)` by TS4 (ShiftStrictIncrease, ASN-0034), T5 (ContiguousSubtrees, ASN-0034) gives: for any `t` with `v ≤ t ≤ shift(v, 1)`, `[S₁] ≼ t`. Every element of `[v, shift(v, 1))` therefore extends `[S₁]`. By T10 (ASN-0034), since `[S₁]` and `[S₂]` are non-nesting prefixes, any tumbler extending `[S₁]` is distinct from any tumbler extending `[S₂]`. In particular, `w` (which extends `[S₂]`) cannot belong to `[v, shift(v, 1))`.
 
@@ -481,11 +471,11 @@ There are exactly `N + 1` valid insertion positions: the `N` positions coincidin
 
 **Definition (ValidFirstInsertionPosition, empty case).** For a document `d` with `V_1(d) = ∅`, the *ternary* predicate `ValidFirstInsertionPosition(d, v, m)` is satisfied when `m ∈ ℕ` with `m ≥ 2` and `v = [1, 1, ..., 1]` of depth `m`. Distinct values of `m` identify distinct valid positions; the strand model fixes only the lower bound `m ≥ 2`.
 
-For `m ≥ 2`, `δ(n, m)` has action point `m > 1`, so TumblerAdd copies component 1 unchanged and the subspace identifier is preserved. This is the canonical minimum position required by D-MIN.
+For `m ≥ 2`, the ordinal-shift prefix lemma preserves component 1, so the subspace identifier is preserved under shift. This is the canonical minimum position required by D-MIN.
 
 In both predicates, `v₁ = 1` is the text subspace identifier.
 
-By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fixed common depth in the non-empty case, or the chosen depth in the empty case). By OrdinalShift and TumblerAdd, `shift([1, 1, ..., 1], j) = [1, 1, ..., 1] ⊕ δ(j, m)`; since `δ(j, m)` has action point `m` and `m ≥ 2`, TumblerAdd copies components 1 through `m − 1` unchanged and sets the last component to `1 + j`. The explicit form for the non-empty case is `shift(min(V_1(d)), j) = [1, 1, ..., 1 + j]`. Distinctness of the `N + 1` valid positions is the one step worth spelling out: for `j, j' ∈ {0, ..., N}` with `j ≠ j'`, the last components `1 + j` and `1 + j'` differ (NAT-order, ASN-0034), so the two length-`m` tumblers diverge at position `m` and are distinct by T3 (CanonicalRepresentation, ASN-0034). Hence the predicate is satisfied by exactly `N + 1` distinct positions.
+By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fixed common depth in the non-empty case, or the chosen depth in the empty case). By the ordinal-shift prefix lemma, `shift([1, 1, ..., 1], j)` keeps components 1 through `m − 1` unchanged and sets the last to `1 + j`. The explicit form for the non-empty case is `shift(min(V_1(d)), j) = [1, 1, ..., 1 + j]`. Distinctness of the `N + 1` valid positions is the one step worth spelling out: for `j, j' ∈ {0, ..., N}` with `j ≠ j'`, the last components `1 + j` and `1 + j'` differ (NAT-order, ASN-0034), so the two length-`m` tumblers diverge at position `m` and are distinct by T3 (CanonicalRepresentation, ASN-0034). Hence the predicate is satisfied by exactly `N + 1` distinct positions.
 
 *Formal Contract (ValidInsertionPosition, non-empty case).*
 - *Signature:* `ValidInsertionPosition(d, v)` — a *binary* predicate on document `d` and V-position `v`. The common V-position depth `m` is determined by `d` via S8-depth and read from state.
@@ -541,7 +531,7 @@ The arrangement `M(d₁)` maps V-positions (in subspace 1, text) to these I-addr
 | `1.4` | `1.0.1.0.1.0.1.4` |
 | `1.5` | `1.0.1.0.1.0.1.5` |
 
-*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Verify S8 (singleton partition)*: each of the five V-positions is its own singleton. For `v = 1.1 = [1, 1]` (depth `m = 2`), the interval is `[1.1, shift(1.1, 1)) = [[1, 1], [1, 2])`, where `shift([1, 1], 1) = [1, 1] ⊕ δ(1, 2) = [1, 2]` (action point 2; component 1 copied unchanged, component 2 receives `1 + 1 = 2`). This interval contains exactly the V-position `1.1` — the next V-position `1.2 = [1, 2]` is excluded by the half-open upper bound. The five singletons `{[1.k, 1.(k+1)) : 1 ≤ k ≤ 5}` partition `V₁(d₁) = {1.1, …, 1.5}`, and conjunct (b) holds at each: `M(d₁)(1.k) = 1.0.1.0.1.0.1.k`.
+*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Verify S8 (singleton partition)*: each of the five V-positions is its own singleton. For `v = 1.1 = [1, 1]` (depth `m = 2`), the interval is `[1.1, shift(1.1, 1)) = [[1, 1], [1, 2])`, where `shift([1, 1], 1) = [1, 2]` by the ordinal-shift prefix lemma (component 1 preserved, last component `1 + 1 = 2`). This interval contains exactly the V-position `1.1` — the next V-position `1.2 = [1, 2]` is excluded by the half-open upper bound. The five singletons `{[1.k, 1.(k+1)) : 1 ≤ k ≤ 5}` partition `V₁(d₁) = {1.1, …, 1.5}`, and conjunct (b) holds at each: `M(d₁)(1.k) = 1.0.1.0.1.0.1.k`.
 
 *Check D-SEQ*: V₁(d₁) = {[1, k] : 1 ≤ k ≤ 5}, satisfying D-SEQ with n = 5. D-CTG holds (no gaps in the ordinal range 1..5) and D-MIN holds (min = [1, 1]).
 
