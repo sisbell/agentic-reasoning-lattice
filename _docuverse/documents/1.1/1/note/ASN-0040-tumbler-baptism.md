@@ -19,7 +19,7 @@ We formalize baptism as the growth law of the address space.
 
 We work within the foundation's transition framework (ASN-0034, AllocatedSet and NoDeallocation): a state space, a closed vocabulary of partial operations on it, and the reflexive-transitive closure of the induced transition relation as reachability. We do not re-derive it here, and we adopt the foundation's notation directly: an individual *state* is `s`, the *state space* is `𝒮` (the same Kripke space, here extended with the registry component this ASN introduces), and the *transition vocabulary* is `Σ`. The registry component is written `s.B`. Obligations of the form `(A s, s' : s → s' : …)` constrain every admissible transition; `(A s : s reachable from s_init : I(s))` is a state invariant.
 
-This ASN introduces one state component — the baptismal registry s.B (defined below) — and constrains Σ's treatment of it (B0, B0a, B4) without enumerating Σ exhaustively; content, link, and ownership operations are admitted subject to those constraints, and the frame at Bop keeps such extensions orthogonal to s.B. The initial state s_init has s_init.B = B₀, the seed set established at genesis; "reachable" without qualification means reachable from s_init.
+This ASN introduces one state component — the baptismal registry s.B (defined below). B0a partitions Σ into baptismal operations and s.B-frame operations and constrains both classes' action on s.B; Σ is not enumerated exhaustively. The initial state s_init has s_init.B = B₀, the seed set established at genesis; "reachable" without qualification means reachable from s_init.
 
 
 ## The baptismal registry
@@ -175,7 +175,7 @@ Equivalently: for every B6-valid namespace (p, d), children(B, p, d) = {c₁, ..
 
 When m = 0: children(B, p₀, d₀) = ∅, so a = next(B, p₀, d₀) = inc(p₀, d₀) = c₁, the first element of S(p₀, d₀) by the definition of the sibling stream. Therefore children(B', p₀, d₀) = {c₁}, a contiguous prefix of length 1.
 
-When m ≥ 1: the maximum of children(B, p₀, d₀) is cₘ, since the prefix {c₁, ..., cₘ} is strictly ordered by S0 (StreamOrdering). The definition of next gives a = inc(cₘ, 0). By TA5(c), this sibling increment advances only the last significant component of cₘ by 1, producing exactly c_{m+1} — the immediate successor in S(p₀, d₀). No element is skipped: the definition of next always selects the immediate successor via inc(cₘ, 0), which by TA5(c) cannot leap over any stream element. By B0 (Irrevocability), B ⊆ B', so {c₁, ..., cₘ} ⊆ B'. Together with the new element c_{m+1} ∈ B', we obtain children(B', p₀, d₀) = {c₁, ..., cₘ, c_{m+1}}, a contiguous prefix of length m + 1.
+When m ≥ 1: the maximum of children(B, p₀, d₀) is cₘ, since the prefix {c₁, ..., cₘ} is strictly ordered by S0 (StreamOrdering). The definition of next gives a = inc(cₘ, 0). By TA5(c), this sibling increment advances only the last significant component of cₘ by 1, producing exactly c_{m+1}, the immediate successor in S(p₀, d₀). By B0 (Irrevocability), B ⊆ B', so {c₁, ..., cₘ} ⊆ B'. Together with the new element c_{m+1} ∈ B', we obtain children(B', p₀, d₀) = {c₁, ..., cₘ, c_{m+1}}, a contiguous prefix of length m + 1.
 
 *All other B6-valid namespaces: (p, d) ≠ (p₀, d₀) with (p, d) satisfying B6.* Both (p₀, d₀) and (p, d) meet B7's preconditions, so B7 gives S(p₀, d₀) ∩ S(p, d) = ∅, hence a ∉ S(p, d). Therefore children(B', p, d) = children(B, p, d), a contiguous prefix by the inductive hypothesis.
 
@@ -280,9 +280,9 @@ A baptized position need not contain anything. Nelson names these *ghost element
 
 A ghost element is "virtually present in tumbler-space, since links may be made to them which embrace all the contents below them." The position is in s.B — it has been baptized, it is permanent, it anchors a namespace for children — but nothing is stored at that address.
 
-"Occupied" is not a predicate of this ASN. s in our state space carries a single component — s.B — and no notion of content is defined here. We record the relationship between baptism and content as a *forward requirement* on whichever future ASN introduces content storage.
+We record the relationship between baptism and content as a *forward requirement* on whichever future ASN introduces content storage.
 
-**B3 (Ghost Validity — forward requirement on content storage).** Let a future ASN introduce a predicate `Occupied : T × 𝒮 → {⊤, ⊥}` denoting "the address t carries content in state s". The present ASN does not define Occupied; the four-way classification below is therefore stated parametrically in Occupied. The forward requirement is that every future ASN introducing Occupied must arrange its operations so that
+**B3 (Ghost Validity — forward requirement on content storage).** Let a future ASN introduce a predicate `Occupied : T × 𝒮 → {⊤, ⊥}` denoting "the address t carries content in state s". Every future ASN introducing Occupied must arrange its operations so that
 
   `(A s : s reachable from s_init : (A t ∈ T : Occupied(t, s) ⟹ t ∈ s.B))`
 
@@ -302,7 +302,7 @@ Baptism reads the high water mark, computes the next address, and commits the re
 
   `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s' with s'.B = s.B ∪ {next(s.B, p, d)})`
 
-In the transition relation `→` of the state space 𝒮, the observation of the precondition state and the commitment of the postcondition state are not separable. There is no state s_mid with `s → s_mid → s'` representing an "intent to baptize" that some later step fulfills: `next(s.B, p, d)` is computed against s and committed to s' in the same step, and each `baptize(p, d) ∈ Σ` is a single edge in the transition graph. We record this as the *read-against-precondition-state semantics*: the value `next(s.B, p, d)` — and hence `children(s.B, p, d)` — used in the postcondition is read against the precondition state s that licenses the transition, and is the same value committed by that edge.
+The value `baptize(p, d)(s).B = s.B ∪ {next(s.B, p, d)}` is read against the precondition state s and committed on one edge of the transition relation `→`: there is no intermediate observable state s_mid with `s → s_mid → s'`.
 
 B0a guarantees that no other operation modifies s.B between any two transitions, so within a single Σ-transition the read of `s.B ∩ S(p, d)` is exact.
 
