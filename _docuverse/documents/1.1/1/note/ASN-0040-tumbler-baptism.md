@@ -32,8 +32,6 @@ A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed se
 
 The set-membership constraint `s.B ⊆ T` needs no separate induction: B10 (§B10) establishes that every t ∈ s.B satisfies T4, and T4-validity entails t ∈ T.
 
-*Relationship to ASN-0034's allocated set.* This ASN neither assumes nor establishes `allocated(s) ⊆ s.B`.
-
 We state the closure law directly on the operation vocabulary Σ rather than on an opaque predicate "produced by baptism":
 
 **B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
@@ -158,7 +156,7 @@ By B4 (Atomic Baptism, §B4 below), next(s.B, p, d) is evaluated against the pre
 
 *Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined and produces a fresh address. Invariant preservation (B0, B1, B10, B_fin) is established by the dedicated inductive proofs in §B1, §B10, and §B_fin, whose baptismal-branch cases handle exactly this operation.
 
-**Well-definedness.** The postcondition invokes next(s.B, p, d), which branches on whether children(s.B, p, d) is empty. If empty, the result is inc(p, d) — well-defined for any p ∈ T and d ≥ 1 by TA5's first postcondition (the unlabeled `t' ∈ T`). If non-empty, the result is inc(max(children(s.B, p, d)), 0). By B1 (§B1), children(s.B, p, d) = {c₁, ..., cₘ} for some m ≥ 1, a contiguous prefix, and B_fin (§B_fin) gives this set finite; max therefore exists and equals cₘ. B10 (§B10) gives registry-wide T4 validity, so cₘ ∈ s.B ⊆ T; TA5's first (unlabeled) postcondition then gives `inc(cₘ, 0) ∈ T`. In both branches, next produces an element of T.
+**Well-definedness.** The postcondition invokes next(s.B, p, d), whose Justification of well-definedness (NextAddress) already establishes next(s.B, p, d) ∈ T for any B ⊆ T finite, p ∈ T, and d ≥ 1 — the empty branch yielding inc(p, d) ∈ T and the non-empty branch yielding inc(max(children(s.B, p, d)), 0) ∈ T. B_fin (§B_fin) discharges the finiteness premise for B = s.B at any reachable s, so next(s.B, p, d) ∈ T here.
 
 **Freshness.** Let a = next(s.B, p, d) = c_{m+1} where m = hwm(s.B, p, d). We show a ∉ s.B. By construction, a = c_{m+1} ∈ S(p, d). Since children(s.B, p, d) = s.B ∩ S(p, d) by definition, if a ∈ s.B then a ∈ children(s.B, p, d). By B1, children(s.B, p, d) = {c₁, ..., cₘ}. By S0 (StreamOrdering), distinct stream indices produce distinct elements: since m + 1 > i for all 1 ≤ i ≤ m, we have c_{m+1} ≠ cᵢ for each such i. Therefore a ∉ {c₁, ..., cₘ} = children(s.B, p, d), contradicting the supposition. We conclude a ∉ s.B. By B4 (Atomic Baptism), children(s.B, p, d) is evaluated against the precondition state s of the same transition, so the value used here is exactly the value used in the postcondition of that edge. ∎
 
@@ -197,7 +195,7 @@ When m ≥ 1: the maximum of children(B, p₀, d₀) is cₘ, since the prefix {
 
 When (p, d) satisfies B6 (sub-case A): both (p₀, d₀) and (p, d) meet B7's preconditions, so B7 gives S(p₀, d₀) ∩ S(p, d) = ∅, hence a ∉ S(p, d). Therefore children(B', p, d) = children(B, p, d), a contiguous prefix by the inductive hypothesis.
 
-When (p, d) does not satisfy B6 and every element of S(p, d) violates T4 (sub-case B): since a satisfies T4, a ∉ S(p, d). Moreover, B10 for the current state ensures every element of B satisfies T4, so children(B, p, d) = ∅. Therefore children(B', p, d) = ∅, trivially a contiguous prefix. (The configurations covered by this sub-case each drive every stream element out of T4, by B6's necessity proof.)
+When (p, d) does not satisfy B6 and every element of S(p, d) violates T4 (sub-case B): since a satisfies T4, a ∉ S(p, d). Moreover, B10 for the current state ensures every element of B satisfies T4, so children(B, p, d) = ∅. (B10 and B_fin are each established by transition inductions that cite only B6, B0a, B₀ conf., and TA5 — never B1 — so they hold for every reachable state independently of this induction; B1 may therefore invoke them at its own precondition state without circularity, the two inductions being jointly well-founded.) Therefore children(B', p, d) = ∅, trivially a contiguous prefix. (The configurations covered by this sub-case each drive every stream element out of T4, by B6's necessity proof.)
 
 When (p, d) does not satisfy B6 but S(p, d) contains T4-valid elements (sub-case C): by the elimination established above, this occurs exactly when p ends in zero (with no other T4 defect) and d = 1. Let p' be p with its trailing zero removed, so #p' = #p − 1 and p'ᵢ = pᵢ for 1 ≤ i ≤ #p − 1, and let d' = 2. By S2 (Trailing-Zero Stream Identity), S(p, 1) = S(p', 2).
 
@@ -269,7 +267,7 @@ B1 yields a simplification: the entire allocation state of a namespace reduces t
 
 By B1 (Contiguous Prefix), children(B, p, d) = {c₁, ..., cₘ} — the first m elements of the sibling stream S(p, d) with no gaps. This contiguity is the load-bearing property: it means the set of children is determined entirely by its cardinality. Any set of m elements drawn from a contiguous prefix of a sequence is the prefix itself, so knowing m tells us children(B, p, d) = {c₁, ..., cₘ}.
 
-It follows that by S0 (StreamOrdering), the sibling stream is strictly increasing under T1, so max(children(B, p, d)) = cₘ — the last element of the prefix. No scan of the children set is needed; the count alone suffices. (The next-address derivation from m is carried by B2 below.) ∎
+It follows that the prefix's maximum is its last element cₘ — the identity max(children(B, p, d)) = cₘ derived once at B2 below, where the next-address derivation from m is carried. No scan of the children set is needed; the count alone suffices. ∎
 
 *Formal Contract:*
 - *Definition:* hwm(B, p, d) = #children(B, p, d) where children(B, p, d) = {cₙ ∈ S(p, d) : cₙ ∈ B}.
@@ -378,7 +376,7 @@ This deserves attention. The `.0.` that appears in addresses like `1.1.0.1.0.1` 
 
   (iii) zeros(p) + (d − 1) ≤ 3.
 
-Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy. Condition (i) serves a dual role: when the parent has adjacent zeros, the violation propagates to the stream; when the parent ends in zero, the stream may satisfy T4 but coincides with a valid stream from a different parent, collapsing namespace disjointness (B7). All three conditions are jointly necessary for the baptism system to maintain its invariants. Together:
+Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy. Condition (i) is necessary by two distinct mechanisms — defect propagation and namespace collapse — established in the necessity proof's sub-cases (a) and (b) below. All three conditions are jointly necessary for the baptism system to maintain its invariants. Together:
 
 | Parent level | d = 1 (same level) | d = 2 (level crossing) |
 |---|---|---|
@@ -428,7 +426,7 @@ Each parent-depth pair defines a namespace. Distinct namespaces must produce non
 
 provided both `(p, d)` and `(p', d')` satisfy B6.
 
-*Proof.* We prove disjointness directly from the canonical stream form (S(p,d), S1) and the field-segment constraint (T4), without presupposing that p, p', and their spawns are realized within one T10a-conforming allocator tree. By S(p, d), every element of S(p, d) has length #p + d, extends p as a prefix (S1), and carries d − 1 zero separators at positions #p + 1 … #p + d − 1; symmetrically for S(p', d'). Suppose for contradiction some address a ∈ S(p, d) ∩ S(p', d').
+*Proof.* We prove disjointness directly from the canonical stream form (S(p,d), S1) and the field-segment constraint (T4). By S(p, d), every element of S(p, d) has length #p + d, extends p as a prefix (S1), and carries d − 1 zero separators at positions #p + 1 … #p + d − 1; symmetrically for S(p', d'). Suppose for contradiction some address a ∈ S(p, d) ∩ S(p', d').
 
 *Length split.* If #p + d ≠ #p' + d', then a would have two distinct lengths — impossible by T3 (CanonicalRepresentation), since a tumbler has a single length. So #p + d = #p' + d' = L, and a has length L under both forms.
 
@@ -441,7 +439,7 @@ Every case yields a contradiction, so S(p, d) ∩ S(p', d') = ∅. ∎
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
 - *Postconditions:* `S(p, d) ∩ S(p', d') = ∅`.
-- *Depends:* S(p,d) (canonical stream form and length #p + d), S1 (every element extends p), T3 (CanonicalRepresentation — a tumbler has a single length, and componentwise prefix agreement forces parent equality), T4 / TA5-SigValid (valid addresses have a nonzero last component, via B6(i)), TA5(d) (child increment, fixing the separator positions). The proof is independent of T10a.6's allocator-tree framing.
+- *Depends:* S(p,d) (canonical stream form and length #p + d), S1 (every element extends p), T3 (CanonicalRepresentation — a tumbler has a single length, and componentwise prefix agreement forces parent equality), T4 / TA5-SigValid (valid addresses have a nonzero last component, via B6(i)), TA5(d) (child increment, fixing the separator positions).
 
 
 ## A baptism traced
