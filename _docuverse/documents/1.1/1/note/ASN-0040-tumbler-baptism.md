@@ -8,7 +8,7 @@ Nelson calls this transition *baptism*:
 
 > "Whoever owns a specific node, account, document or version may in turn designate (respectively) new nodes, accounts, documents and versions, by forking their integers. We often call this the 'baptism' of new numbers."
 
-Three observations are compressed into that sentence. Baptism is *hierarchical* — it descends level by level through the field structure. Baptism is *sequential* — Nelson elsewhere describes creation as "successive new digits to the right," emphasizing that positions arrive in order, not arbitrarily. And baptism is *permanent* — "Any address, once assigned, remains valid forever." We defer the authorization aspect (who may baptize) to a future ASN on Tumbler Ownership. Here we characterize the structural mechanism: how the set of baptized positions grows, and what it preserves as it grows.
+Three observations are compressed into that sentence. Baptism is *hierarchical* — it descends level by level through the field structure. Baptism is *sequential* — positions arrive in order, not arbitrarily. And baptism is *permanent* — "Any address, once assigned, remains valid forever." Authorization (who may baptize) is out of scope here; we characterize the structural mechanism: how the set of baptized positions grows, and what it preserves as it grows.
 
 Gregory's implementation reveals the operational anatomy. Baptism is a two-phase process: first, the system queries the existing address space for the highest allocated position under a given parent prefix and increments to produce a candidate; second, it writes that candidate into the persistent store. The write — not the query — is the moment of baptism. A candidate computed but never written does not exist; if the query were repeated without an intervening write, it would return the same candidate. The address becomes real at the instant of commitment.
 
@@ -17,9 +17,9 @@ We formalize baptism as the growth law of the address space.
 
 ## State space and transitions
 
-We work within the foundation's transition framework (ASN-0034, AllocatedSet and NoDeallocation): the *state space* `𝒮`, a closed *transition vocabulary* `Σ` of partial operations, and reachability `→*` as the reflexive-transitive closure of the induced transition relation. A *state* is `s`; this ASN extends each state with the registry component `s.B`. Obligations of the form `(A s, s' : s → s' : …)` constrain every admissible transition; `(A s : s reachable from s_init : I(s))` is a state invariant.
+We work within the foundation's transition framework (ASN-0034, AllocatedSet and NoDeallocation): the *state space* `𝒮`, a closed *transition vocabulary* `Σ` of partial operations, and reachability `→*` as the reflexive-transitive closure of the induced transition relation. A *state* is `s`. Obligations of the form `(A s, s' : s → s' : …)` constrain every admissible transition; `(A s : s reachable from s_init : I(s))` is a state invariant.
 
-This ASN introduces one state component — the baptismal registry s.B (defined below); the partition of Σ that governs its growth is fixed at B0a. The initial state s_init has s_init.B = B₀, the seed set established at genesis; "reachable" without qualification means reachable from s_init.
+The partition of Σ that governs registry growth is fixed at B0a. The initial state s_init has s_init.B = B₀, the seed set established at genesis; "reachable" without qualification means reachable from s_init.
 
 
 ## The baptismal registry
@@ -281,7 +281,7 @@ From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by in
 
 **B10 (T4ValidityInvariant).** `(A t ∈ s.B : t satisfies T4)`
 
-*Proof.* We must show that in every state reachable from a conforming seed B₀, every element of s.B satisfies T4 (FieldSeparatorConstraint, ASN-0034). The argument proceeds by induction on the number of state transitions from the initial state.
+*Proof.* We must show that in every state reachable from a conforming seed B₀, every element of s.B satisfies T4 (HierarchicalParsing, ASN-0034). The argument proceeds by induction on the number of state transitions from the initial state.
 
 *Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), every t ∈ B₀ satisfies T4. The invariant holds at genesis.
 
@@ -294,7 +294,7 @@ By the definition of next (NextAddress), a = next(B, p, d) is a stream element o
 So a satisfies T4. With every element of B satisfying T4 by the inductive hypothesis, every element of B' = B ∪ {a} satisfies T4; the s.B-frame case was dispatched above via B0a. By induction on the transition sequence, B10 holds in every reachable state. ∎
 
 *Formal Contract:*
-- *Invariant:* `(A t ∈ s.B : t satisfies T4)` — every baptized address satisfies FieldSeparatorConstraint. *Corollary:* `s.B ⊆ T`, since T4-validity entails t ∈ T.
+- *Invariant:* `(A t ∈ s.B : t satisfies T4)` — every baptized address satisfies T4 (HierarchicalParsing). *Corollary:* `s.B ⊆ T`, since T4-validity entails t ∈ T.
 - *Base:* B₀ conf. — every seed element satisfies T4.
 - *Preservation:* Each baptismal transition adds a = next(s.B, p, d) ∈ S(p, d); since (p, d) satisfies B6, B6's sufficiency result gives every element of S(p, d) — hence a — satisfies T4. B0a ensures no non-baptismal mechanism introduces elements that might violate T4.
 
@@ -336,13 +336,13 @@ In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. ∎
 
 ## Atomicity
 
-Baptism reads the high water mark, computes the next address, and commits the result as one indivisible step.
+Baptism reads the high water mark, computes the next address, and commits the result as one indivisible step. This indivisibility is not a fresh assumption: B0a places `baptize(p, d) ∈ Σ`, and the foundation's signature of Σ (ASN-0034, NoDeallocation) already fixes that each `op ∈ Σ` is a single partial function on 𝒮 whose transition `s → s'` is exactly the pair `(s, op(s))` — one edge, no intermediate state. Atomicity is therefore a corollary, not a separately imposed requirement.
 
-**B4 (Atomic Baptism).** Each baptismal operation is a single atomic transition. For every (p, d) satisfying B6:
+**B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each baptismal operation is a single atomic transition. For every (p, d) satisfying B6:
 
   `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s' with s'.B = s.B ∪ {next(s.B, p, d)})`
 
-The value `baptize(p, d)(s).B = s.B ∪ {next(s.B, p, d)}` is committed on one edge of the transition relation `→`: there is no intermediate observable state s_mid with `s → s_mid → s'`. This indivisibility is a primitive structural assumption on Σ — each element of Σ is a single partial function `op : 𝒮 ⇀ 𝒮` whose application is one transition.
+Because `baptize(p, d) ∈ Σ` (B0a) and the foundation fixes every `op ∈ Σ` as a single partial function on 𝒮, the value `s'.B = s.B ∪ {next(s.B, p, d)}` is committed on one edge of `→`: there is no intermediate observable state s_mid with `s → s_mid → s'`.
 
 
 ## The baptism operation
@@ -353,7 +353,7 @@ We now specify the baptism operation itself.
 
   PRE: B6(p, d) — depth validity; no parent-baptized prerequisite is imposed
   POST: s'.B = s.B ∪ {next(s.B, p, d)}; only s.B is modified
-  STRUCTURAL (on Σ): B4 (Atomic Baptism) — read-against-precondition-state semantics
+  ATOMIC: B4 (corollary of B0a and the foundation Σ signature) — committed on one edge of →
 
 *Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined and produces a fresh address.
 
@@ -369,7 +369,7 @@ In both branches a ∉ s.B. ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1; B6(p, d) holds. (B1, B10, B_fin are reachable-state invariants, not caller obligations.)
-- *Structural assumptions on Σ:* B4 (Atomic Baptism) — each `baptize(p, d) ∈ Σ` is a single atomic edge of the transition graph.
+- *Atomicity:* B4 (corollary of B0a and the foundation Σ signature) — each `baptize(p, d) ∈ Σ` is a single atomic edge of the transition graph.
 - *Postconditions:* s'.B = s.B ∪ {next(s.B, p, d)} with next(s.B, p, d) ∉ s.B; s'.B satisfies B0, B1, B10, and B_fin.
 - *Frame:* Only s.B is modified.
 
@@ -517,7 +517,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | S(p,d) | Sibling stream: c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0) | from TA5(b), TA5(c), TA5(d) |
 | hwm(B,p,d) | High water mark: #children(B, p, d) — sufficient allocation statistic | from B1, S0 |
 | next(B,p,d) | Next address: if children = ∅ then inc(p, d) else inc(max(children), 0) | from TA5(c), TA5(d), T1 |
-| Bop | baptize(p, d): PRE B6; STRUCT B4; POST s'.B = s.B ∪ {next(s.B, p, d)}; FRAME modifies only s.B | from B0a, B4, B6, B_fin, next def., S0, TA5(a) |
+| Bop | baptize(p, d): PRE B6; ATOMIC B4; POST s'.B = s.B ∪ {next(s.B, p, d)}; FRAME modifies only s.B | from B0a, B4, B6, B_fin, next def., S0, TA5(a) |
 | S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from TA5(a), T1 |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
 | B0 | `s.B ⊆ s'.B` for all transitions — irrevocability (analogous to T8 for the registry component) | from B0a |
@@ -528,7 +528,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B1 | `B6(p, d) ⟹ (cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))` — contiguous prefix over B6-valid namespaces (requires conforming B₀) | from B₀ conf., B0, B0a, B6, B7, next def., S0, TA5(c) |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
 | B3 | Forward requirement on a future predicate `Occupied : T × 𝒮 → {⊤, ⊥}`: `(A s reachable, t ∈ T : Occupied(t, s) ⟹ t ∈ s.B)` — content permitted only at baptized addresses; ghost elements (`t ∈ s.B ∧ ¬Occupied(t, s)`) explicitly allowed | forward requirement on future ASN |
-| B4 | Each `baptize(p, d) ∈ Σ` is a single atomic transition: `baptize(p, d)(s).B = s.B ∪ {next(s.B, p, d)}` is computed and committed in one step, with no intermediate observable state | design requirement |
+| B4 | Each `baptize(p, d) ∈ Σ` is a single atomic transition: `baptize(p, d)(s).B = s.B ∪ {next(s.B, p, d)}` is computed and committed in one step, with no intermediate observable state | corollary of B0a + foundation Σ signature |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
