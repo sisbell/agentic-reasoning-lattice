@@ -43,7 +43,7 @@ B0 is a single-step law. We extend it to finite transition sequences:
 
 **B0★ (Multi-step Irrevocability — corollary of B0).** `(A s, s' : s →* s' : s.B ⊆ s'.B)`, where s →* s' denotes the reflexive-transitive closure of the transition relation — that is, s' is reachable from s by a finite (possibly empty) sequence of transitions.
 
-*Proof.* By induction on the length k of the transition sequence witnessing s →* s'. *Base case (k = 0).* s' = s, so s.B ⊆ s'.B = s.B by reflexivity of ⊆. *Inductive step.* Suppose s →* sₖ is witnessed by a length-k sequence with s.B ⊆ sₖ.B (inductive hypothesis), and sₖ → sₖ₊₁ extends it to a length-(k+1) sequence s →* sₖ₊₁. By B0 applied to the single-step transition sₖ → sₖ₊₁, sₖ.B ⊆ sₖ₊₁.B. Transitivity of ⊆ gives s.B ⊆ sₖ.B ⊆ sₖ₊₁.B, so s.B ⊆ sₖ₊₁.B. By induction, s.B ⊆ s'.B for every s →* s'. ∎
+*Proof.* B0 makes `s ↦ s.B` monotone under single transitions, and monotonicity transfers to the reflexive-transitive closure by chaining ⊆ along the witnessing sequence. ∎
 
 **B0b (Transition Dichotomy — corollary of B0a).** Every transition `s → s'` has exactly one of two shapes: it is *s.B-frame*, with `s'.B = s.B`; or it is *baptismal*, induced by `baptize(p, d)` for some B6-valid (p, d), with `s'.B = s.B ∪ {next(s.B, p, d)}` — the addition of exactly one new element. This is immediate from B0a's partition of Σ.
 
@@ -100,12 +100,12 @@ One structural identity of the stream construction relates a depth-1 stream unde
 
 *Proof.* The first element of S(p, 1) is c₁ = inc(p, 1); by TA5(d) with d − 1 = 0 intermediate zeros, c₁ has length #p + 1 with positions 1 through #p preserved from p and position #p + 1 set to 1, so c₁ = [p₁, ..., p_{#p−1}, 0, 1] (using p_{#p} = 0). The first element of S(p′, 2) is c′₁ = inc(p′, 2); by TA5(d) with one intermediate zero, c′₁ has length #p′ + 2 = #p + 1 with positions 1 through #p′ = #p − 1 preserved from p′, position #p′ + 1 = #p set to 0 (the separator), and position #p′ + 2 = #p + 1 set to 1, so c′₁ = [p₁, ..., p_{#p−1}, 0, 1]. Component-by-component, c₁ = c′₁. Both streams share the deterministic recurrence cₙ₊₁ = inc(cₙ, 0), so they coincide: S(p, 1) = S(p′, 2). ∎
 
+A trailing-zero parent at d = 1 is the one case where S2 bites on the namespace: p = [1, 0] (T4-defective by its trailing zero alone) yields the fully T4-valid stream [1, 0, n], yet by S2 this is identical to S([1], 2), the stream of the B6-valid namespace ([1], 2). Admitting ([1, 0], 1) would give two distinct namespaces sharing their entire stream, so B6(i) excludes such parents to keep the namespace map injective — the one point where (i) is retained beyond what T4 alone forces.
+
 *Formal Contract:*
 - *Preconditions:* p ∈ T, #p ≥ 2, p_{#p} = 0; p′ = [p₁, ..., p_{#p−1}] (so p′ ∈ T).
 - *Postconditions:* S(p, 1) = S(p′, 2).
 - *Axiom:* TA5(d) (child structure), deterministic stream recurrence.
-
-**Remark (Namespace disjointness).** S2 has a direct consequence for the baptism namespace. Consider a parent p whose sole T4 defect is a trailing zero — p_{#p} = 0, p₁ > 0, no adjacent zeros — at d = 1. The resulting stream is fully T4-valid: with p = [1, 0], c₁ = inc([1, 0], 1) = [1, 0, 1] and every cₙ = [1, 0, n] satisfies T4. Yet by S2, S(p, 1) = S(p′, 2), where p′ is p without its trailing zero, and (p′, 2) is itself B6-valid (p′ satisfies T4, since the trailing zero was p's only defect, so p′₁ > 0, no adjacent zeros, p′_{#p′} > 0; d′ = 2 ∈ {1, 2}; zeros(p′) + 1 = zeros(p) ≤ 3). Admitting the malformed parent (p, 1) would create a namespace whose sibling stream coincides exactly with the distinct B6-valid namespace (p′, 2) — two distinct namespaces sharing their entire stream. Excluding trailing-zero parents at d = 1 (folded into B6 condition (i)) keeps the namespace map injective on B6-valid pairs. This is a design motivation for retaining condition (i) where T4 does not force it, not a T4-necessity step.
 
 
 ## The baptism operation
@@ -347,7 +347,7 @@ This deserves attention. The `.0.` that appears in addresses like `1.1.0.1.0.1` 
 
   (iii) zeros(p) + (d − 1) ≤ 3.
 
-Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy; it is independently necessary only at d = 2 (at d = 1 it reduces to zeros(p) ≤ 3 and is subsumed by condition (i)). Together:
+Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (i) is necessary for T4 except at the d = 1 trailing-zero case (S2), where it is retained to keep the namespace map injective. Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy; it is independently necessary only at d = 2 (at d = 1 it reduces to zeros(p) ≤ 3 and is subsumed by condition (i)). Together:
 
 | Parent level | d = 1 (same level) | d = 2 (level crossing) |
 |---|---|---|
@@ -437,7 +437,7 @@ State: B₂ = {[1], [1, 0, 1], [1, 0, 2]}.
 
   next(B₂, [1, 0, 1], 2) = inc([1, 0, 1], 2) = [1, 0, 1, 0, 1]
 
-B5: zeros([1, 0, 1, 0, 1]) = 2 = 1 + (2 − 1). B6: d = 2 and zeros([1, 0, 1]) + 1 = 2 ≤ 3. B1: children = {[1, 0, 1, 0, 1]}, a prefix of length 1. B7: S([1], 2) elements have length 3; S([1, 0, 1], 2) elements have length 5 — Case 1 disjointness.
+B5: zeros([1, 0, 1, 0, 1]) = 2 = 1 + (2 − 1). B6: d = 2 and zeros([1, 0, 1]) + 1 = 2 ≤ 3. B1: children = {[1, 0, 1, 0, 1]}, a prefix of length 1. B7: S([1], 2) elements have length 3; S([1, 0, 1], 2) elements have length 5 — the *Length split* case of B7 gives disjointness.
 
 State: B₃ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1]}.
 
