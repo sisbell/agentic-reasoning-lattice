@@ -27,8 +27,6 @@ with k = divergence(a, b). We write w = b ⊖ a and call it the *displacement fr
 
 D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). For equal-length endpoints with a < b and #a = #b, the divergence is of type (i) with k ≤ #a — equal length excludes the prefix case — so D0's domain condition holds, and #a ≤ #b lets D1 (ASN-0034) close the round-trip: a ⊕ (b ⊖ a) = b. The displacement from a to b is recovered faithfully whenever the two endpoints share a length.
 
-This equal-length condition recurs throughout the algebra, so we name it now.
-
 **S6** (*LevelConstraint*). Two tumblers t₁ and t₂ are *level-compatible*, written level_compat(t₁, t₂), when they have the same length:
 
   level_compat(t₁, t₂)  ≡  #t₁ = #t₂
@@ -41,7 +39,7 @@ Gregory confirms the implementation enforces this: the split operation requires 
 
 *Proof.* The reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), D2 (DisplacementUnique, ASN-0034) gives reach(σ) ⊖ start(σ) = ℓ = width(σ), provided its preconditions hold for (a, b, w) = (s, reach(σ), ℓ). We discharge them: s < reach(σ) by TA-strict on T12; ℓ > 0 and its action point k ≤ #s by T12; s ⊕ ℓ = reach(σ) by definition of reach (so TA0's preconditions hold, giving #(s ⊕ ℓ) = #ℓ = #s); the divergence between s and reach(σ) is of type (i) with k ≤ #s, since s < reach(σ) and #s = #reach(σ) excludes the prefix case, satisfying D0; #s ≤ #reach(σ) since both equal #s. Every D2 precondition is met, so reach(σ) ⊖ start(σ) = width(σ).  ∎
 
-The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. So start ⊕ width determines reach (by definition of ⊕), and start ⊕ reach determines width (by D2).
+The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. So start ⊕ width determines reach (by definition of ⊕), and start and reach determine width (by D2, via reach ⊖ start).
 
 A worked instance of the unequal-length failure: σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2] — when #start > #width the recovered displacement does not round-trip.
 
@@ -233,7 +231,7 @@ Two span-sets are *equivalent* when they denote the same set of positions: Σ₁
 
 *Proof.* For any tumbler t, define ℓ = [0, ..., 0, 1] with #ℓ = #t (all components zero except the last, which is 1). Then ℓ > 0 (the last component is nonzero) and the action point k = #t ≤ #t, so (t, ℓ) satisfies T12. By TA-strict, t ⊕ ℓ > t, so t ∈ [t, t ⊕ ℓ) = ⟦(t, ℓ)⟧ — the span covers t. Taking one such span per position in P gives Σ with |Σ| = |P| and ⟦Σ⟧ ⊇ P.
 
-*Why exact representation fails in general.* Every span denotes a subtree-convex interval (S0): a non-empty set closed under betweenness in T1. A span (t, ℓ) denotes the singleton {t} exactly when start(t, ℓ) = t and reach(t, ℓ) is the immediate T1-successor of t. That successor is t.0 — the zero-extension — by the prefix convention (T1 case (ii)): t.0 agrees with t on all positions 1..#t, appends a single 0, and nothing lies strictly between t and t.0. But no valid width yields reach = t.0. Let k = actionPoint(ℓ); by T12, k ≤ #t and ℓₖ ≠ 0 (k is the first nonzero position of ℓ). By TumblerAdd, reach(t, ℓ)ₖ = tₖ + ℓₖ > tₖ, whereas (t.0)ₖ = tₖ for every k ≤ #t. So reach(t, ℓ) ≠ t.0 for any valid ℓ, and the singleton is unrealizable. The minimal-width span [t, t ⊕ [0,...,0,1]) overshoots: by T0(b) it contains strictly deeper points — for instance t.0.1 lies between t and t ⊕ [0,...,0,1] under the prefix convention. Hence no span denotes the singleton {t}. For any P that is not itself a union of subtree-convex intervals (in particular any finite P containing an isolated position with deeper interior points), no span-set denotes P exactly; the inclusion ⟦Σ⟧ ⊇ P is the strongest finite guarantee available.
+*Why exact representation fails in general.* Every span denotes an *infinite* set, so no non-empty finite P can be denoted exactly. Fix a span (s, ℓ) and let k = actionPoint(ℓ); by T12, k ≤ #s and ℓₖ ≠ 0, and by TumblerAdd reach(s, ℓ)ₖ = sₖ + ℓₖ > sₖ while reach agrees with s on positions 1..k−1. Consider the proper deeper extensions s.0, s.0.0, s.0.0.0, … — each appends one or more trailing zeros to s. Every such extension e agrees with s on all positions 1..#s, so e > s by the prefix convention (T1 case (ii)), and at the divergence position k we have eₖ = sₖ < sₖ + ℓₖ = reach(s, ℓ)ₖ with agreement on positions 1..k−1, so e < reach(s, ℓ) by T1 case (i). Thus every extension lies in [s, reach(s, ℓ)) = ⟦(s, ℓ)⟧, and by T0(b) there are infinitely many of them. Hence ⟦σ⟧ is infinite for every span σ, and ⟦Σ⟧ is infinite for every non-empty span-set Σ. No non-empty finite P can satisfy ⟦Σ⟧ = P — the obstruction is the finite-vs-infinite mismatch, independent of P's internal shape. The inclusion ⟦Σ⟧ ⊇ P is therefore the strongest finite guarantee available.
 
 Nelson confirms the covering reach: "a tumbler-span may range in possible size from one byte to the whole docuverse" (LM 4/24, Q4).
 
@@ -455,7 +453,7 @@ The bound of 2 is tight: S11 shows containment achieves it. No SC case exceeds i
 | S5 | The widths of two split parts compose under ⊕ to the original width | introduced |
 | S4a | Split-merge inverse: splitting σ at a level-compatible interior point and merging recovers σ exactly | introduced |
 | S3b | Merge-split inverse: merging adjacent level-uniform spans and splitting at the original boundary recovers the unordered pair {α, β} exactly | introduced |
-| S7 | Every finite set of positions P admits a covering span-set Σ with |Σ| = |P| and ⟦Σ⟧ ⊇ P; exact representation of arbitrary finite P is impossible (spans are subtree-convex) | introduced |
+| S7 | Every finite set of positions P admits a covering span-set Σ with |Σ| = |P| and ⟦Σ⟧ ⊇ P; exact representation of any non-empty finite P is impossible (every span denotes an infinite set) | introduced |
 | S8 | Every level-compatible span-set has a normalized equivalent: sorted, non-overlapping, non-adjacent | introduced |
 | S9 | The normalized form of a span-set is unique | introduced |
 | S10 | For level-uniform, mutually level-compatible span-sets, union (as normalization) is commutative and associative | introduced |
