@@ -70,16 +70,16 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 - *Postconditions:* `(A n ≥ 1 : cₙ = [p₁, ..., p_{#p}, 0, ..., 0, n])` with d − 1 zeros, `#cₙ = #p + d`, `sig(cₙ) = #p + d`, and `cₙᵢ = pᵢ` for `1 ≤ i ≤ #p`.
 - *Depends:* TA5(b) (prefix preservation), TA5(c) (sibling structure), TA5(d) (child structure).
 
-When (p, d) is B6-valid (below), S(p, d) is not a fresh construction but the domain of a foundation child-allocator. B6 supplies a T4-valid parent p and a depth d ∈ {1, 2}, which is exactly a foundation child-spawning increment inc(p, d) (T10a permits child-spawning by inc(·, k') with k' ∈ {1, 2}), and B6(iii) is exactly T10a's zero-count side condition on that spawn (zeros(p) ≤ 3 at d = 1, zeros(p) ≤ 2 at d = 2). The sibling recurrence cₙ₊₁ = inc(cₙ, 0) is then T10a's enumeration of dom(A) for the allocator A whose base is inc(p, d). The per-allocator results of the foundation therefore apply to S(p, d) directly, and we discharge S0 and B7 from them rather than re-deriving.
+Every element of S(p, d) shares the invariant prefix [p₁, ..., p_{#p}, 0, ..., 0] across positions 1 through #p + d − 1, varying only in the ordinal at the last position #p + d.
 
 **S0 (StreamOrdering).** `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
 
-*Proof.* For B6-valid (p, d), S(p, d) is the domain dom(A) of the foundation child-allocator A spawned from p by inc(p, d) (per the identification above). T10a.7 (EnumerationInjectivity) states that this enumeration n ↦ cₙ is strictly increasing under T1 — precisely `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`. For an arbitrary p ∈ T, d ≥ 1 outside the discipline, the same conclusion follows from the foundation primitives the allocator result itself rests on: TA5(a) gives the per-step increase cₙ₊₁ = inc(cₙ, 0) > cₙ, and T1 transitivity lifts it across arbitrary gaps with irreflexivity keeping the inequalities strict. ∎
+*Proof.* By TA5(a), each sibling increment strictly advances its argument: cₙ₊₁ = inc(cₙ, 0) > cₙ. T1 transitivity lifts this per-step increase across arbitrary gaps, and T1 irreflexivity keeps the inequalities strict, giving `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`. ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ≥ 1. S(p, d) = c₁, c₂, ... defined by c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0).
 - *Postconditions:* `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — the sibling stream is strictly increasing.
-- *Depends:* T10a.7 (EnumerationInjectivity — for B6-valid (p, d), S(p, d) is a foundation allocator domain and its enumeration is strictly increasing under T1, discharging S0 directly); TA5(a)/T1 (the per-step strict increase and its transitive/irreflexive lifting, supplying the conclusion for arbitrary p ∈ T, d ≥ 1 outside the discipline); TA5(c)/TA5(d) (well-formedness of the operands cₙ ∈ T).
+- *Depends:* TA5(a)/T1 (the per-step strict increase and its transitive/irreflexive lifting); TA5(c)/TA5(d) (well-formedness of the operands cₙ ∈ T).
 
 **S1 (StreamPrefix).** `(A n : n ≥ 1 : p ≼ cₙ)` — every stream element extends p as a prefix.
 
@@ -177,24 +177,24 @@ Each parent-depth pair defines a namespace. Distinct namespaces must produce non
 
 provided both `(p, d)` and `(p', d')` satisfy B6.
 
-*Proof.* By the identification at S0, each B6-valid pair names a foundation child-allocator: A with base inc(p, d) and A' with base inc(p', d'), and S(p, d) = dom(A), S(p', d') = dom(A'). The foundation already supplies domain disjointness for *distinct* allocators: T10a.6 (DomainDisjointness) gives dom(A) ∩ dom(A') = ∅ whenever A ≠ A'. Two allocators differ exactly when their base addresses differ, so the only content B7 must establish — the part the foundation cannot supply over arbitrary parents — is that distinct B6-valid pairs yield distinct bases: `(p, d) ≠ (p', d') ⟹ inc(p, d) ≠ inc(p', d')`. We prove this by cases on the base lengths #p + d and #p' + d' (S(p, d)'s postconditions), recalling that inc(p, d) has the form `[p₁, …, p_{#p}, 0, …, 0, 1]` (length #p + d, with d − 1 separating zeros), and symmetrically for inc(p', d').
+*Proof.* Every element of S(p, d) has the canonical form `[p₁, …, p_{#p}, 0, …, 0, n]` (length #p + d, with d − 1 separating zeros, ordinal n at the last position), and sibling increments fix every position except the last (TA5(c)). So all elements of S(p, d) share the invariant prefix `[p₁, …, p_{#p}, 0, …, 0]` on positions 1 through #p + d − 1, and symmetrically all of S(p', d') share their own invariant prefix on positions 1 through #p' + d' − 1. To establish disjointness it suffices to exhibit a *fixed* position — one at or below #p + d − 1 in S(p, d) and at or below #p' + d' − 1 in S(p', d') — at which the two invariant prefixes carry different values: any such disagreement makes every element of one stream differ from every element of the other (T3). We argue by cases on the base lengths #p + d and #p' + d'.
 
-*Length split (unequal base length, #p + d ≠ #p' + d').* The two bases differ in length, so inc(p, d) ≠ inc(p', d') (T3, CanonicalRepresentation: equal tumblers have equal length). The allocators are distinct, disposing of every unequal-length pair.
+*Length split (unequal base length, #p + d ≠ #p' + d').* Every element of S(p, d) has length #p + d and every element of S(p', d') has length #p' + d'. With unequal lengths, no element of one can equal any element of the other (T3, CanonicalRepresentation: equal tumblers have equal length), so the streams are disjoint.
 
 *Equal base length (#p + d = #p' + d').* We examine the two ways the parents' lengths can relate.
 
-*Equal-length parents (#p = #p').* Then d = d'. Were inc(p, d) = inc(p', d'), the first #p components would equal both p and p', forcing p = p' by T3 and hence (p, d) = (p', d') — contradicting (p, d) ≠ (p', d'). So the bases differ.
+*Equal-length parents (#p = #p').* Then d = d', and since (p, d) ≠ (p', d') we have p ≠ p'. By T3 the parents differ at some position j with 1 ≤ j ≤ #p, so pⱼ ≠ p'ⱼ. Since d ≥ 1, j ≤ #p ≤ #p + d − 1, so position j lies in the invariant prefix of both streams (and equally below #p' + d' − 1, as #p' = #p). Every element of S(p, d) carries pⱼ at position j and every element of S(p', d') carries p'ⱼ ≠ pⱼ there, so the streams disagree at the fixed position j and are disjoint.
 
-*Unequal-length parents (#p ≠ #p').* With d, d' ∈ {1, 2} (B6(ii)) and #p + d = #p' + d', the parent lengths differ by at most 1, so WLOG #p' = #p + 1, d = 2, d' = 1. Read position #p + 1 of each base two ways. In inc(p, 2) it is the lone separating zero, value 0. In inc(p', 1) there are no separating zeros and positions 1 … #p' = 1 … #p + 1 are preserved from p', so this position equals p'_{#p'}, the last component of p'. Since (p', d') satisfies B6, p' satisfies T4, whose field-segment constraint forbids a zero final component (TA5-SigValid: p'_{#p'} ≠ 0). The two readings — 0 and a nonzero value — are incompatible, so the bases differ.
+*Unequal-length parents (#p ≠ #p').* With d, d' ∈ {1, 2} (B6(ii)) and #p + d = #p' + d', the parent lengths differ by at most 1, so WLOG #p' = #p + 1, d = 2, d' = 1. Consider the fixed position #p + 1. In S(p, 2) it is the lone separating zero, value 0, and #p + 1 = #p + 2 − 1 places it at the last invariant-prefix position. In S(p', 1) there are no separating zeros and positions 1 … #p' = 1 … #p + 1 are preserved from p', so position #p + 1 equals p'_{#p'}, the last component of p'; this is the last invariant-prefix position there too, since #p + 1 = #p' = (#p' + 1) − 1. Since (p', d') satisfies B6, p' satisfies T4, whose field-segment constraint forbids a zero final component (TA5-SigValid: p'_{#p'} ≠ 0). The two streams thus carry 0 and a nonzero value at the fixed position #p + 1, so they disagree there and are disjoint.
 
-In every case the bases differ, so A ≠ A', and T10a.6 gives `dom(A) ∩ dom(A') = S(p, d) ∩ S(p', d') = ∅`. ∎
+In every case the two streams disagree at a fixed position (or differ in length outright), so `S(p, d) ∩ S(p', d') = ∅`. ∎
 
 B6(i) is load-bearing: dropping it admits aliasing. A pure-trailing-zero parent and its truncation at the next depth produce the identical base, hence the identical stream — e.g. ([1, 0], 1) and ([1], 2) both yield base [1, 0, 1] and stream {[1, 0, n] : n ≥ 1}.
 
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
 - *Postconditions:* `S(p, d) ∩ S(p', d') = ∅`.
-- *Depends:* T10a.6 (DomainDisjointness — once distinct B6-valid pairs are shown to yield distinct allocator bases, supplies S(p, d) ∩ S(p', d') = ∅ directly, replacing a standalone disjointness re-derivation), S(p, d) postconditions (base form [p, 0^{d−1}, 1] and length #p + d, and the identification of S(p, d) with a foundation allocator domain for B6-valid (p, d)), B6 (T4-validity and d ∈ {1, 2} of both parents), TA5(d) (base-address length and component structure underlying the base form), T3 (CanonicalRepresentation — equal tumblers have equal length, driving the length split; equal-length parents share the base prefix, forcing parent equality), T4 / TA5-SigValid (valid parent has a nonzero last component, closing the unequal-length case).
+- *Depends:* S(p, d) postconditions (canonical form [p, 0^{d−1}, n], uniform length #p + d, and the invariant prefix across positions 1 … #p + d − 1), TA5(c) (sibling increments fix every position but the last, so the invariant prefix is shared across the stream), B6 (T4-validity and d ∈ {1, 2} of both parents), TA5(d) (base-address length and component structure underlying the canonical form), T3 (CanonicalRepresentation — unequal lengths give distinct tumblers, driving the length split; disagreement at a fixed position gives distinct tumblers, closing the equal-length cases), T4 / TA5-SigValid (valid parent has a nonzero last component, closing the unequal-length-parents case).
 
 
 ## Seed conformance and registry finiteness
@@ -371,11 +371,11 @@ A baptized position need not contain anything. Nelson names these *ghost element
 
 A ghost element is "virtually present in tumbler-space, since links may be made to them which embrace all the contents below them." The position is in s.B — it has been baptized, it is permanent, it anchors a namespace for children — but nothing is stored at that address.
 
-**B3 (Ghost Validity).** We introduce `Occupied : T × 𝒮 → {⊤, ⊥}` as an abstract predicate parameter of the baptism model — a placeholder for any future content-storage layer, read as "the address t carries content in state s". Content storage is out of scope here, so `Occupied` is left uninterpreted and no operation of this ASN reads or sets it. B3 is therefore an *introduced constraint* — a requirement imposed on any future content-storage operation — not an invariant established or preserved by the baptism model:
+**B3 (Ghost Validity).** We introduce `Occupied : T × 𝒮 → {⊤, ⊥}` as an abstract predicate parameter of the baptism model — a placeholder for any future content-storage layer, read as "the address t carries content in state s". Content storage is out of scope here, so `Occupied` is left uninterpreted and no operation of this ASN reads or sets it. B3 is an *introduced constraint* on any future content-storage operation:
 
   `(A s : s reachable from s_init : (A t ∈ T : Occupied(t, s) ⟹ t ∈ s.B))`
 
-— content is permitted only at baptized addresses. Because no operation in this ASN touches `Occupied`, B3 carries no preservation obligation here; unlike B1, B10, and B_fin, it is not discharged by an inductive argument over transitions, but stands as a constraint on the out-of-scope operations that will eventually set `Occupied`. Under this constraint, the permitted configurations of a tumbler t ∈ T in a reachable state s are:
+— content is permitted only at baptized addresses. Under this constraint, the permitted configurations of a tumbler t ∈ T in a reachable state s are:
 
   - t ∈ s.B ∧ Occupied(t, s): a populated position
   - t ∈ s.B ∧ ¬Occupied(t, s): a ghost element (permitted)
@@ -491,7 +491,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | hwm(B,p,d) | High water mark: #children(B, p, d) — sufficient allocation statistic | from B1, S0 |
 | next(B,p,d) | Next address: if children = ∅ then inc(p, d) else inc(max(children), 0) | from TA5(c), TA5(d), T1 |
 | Bop | baptize(p, d): PRE B6; ATOMIC B4; POST s'.B = s.B ∪ {next(s.B, p, d)}; FRAME modifies only s.B | from B0a, B4, B6, B_fin, next def., S0, TA5(a) |
-| S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from T10a.7 (B6-valid case); TA5(a), T1 (general case) |
+| S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from TA5(a), T1 |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
 | B0 | `s.B ⊆ s'.B` for all transitions — irrevocability (analogous to T8 for the registry component) | from B0a |
 | B0★ | `s.B ⊆ s'.B` for all s →* s' (reflexive-transitive closure of transitions) — multi-step irrevocability | labelled corollary of B0 |
@@ -505,7 +505,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
-| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from T10a.6 (distinct allocators ⟹ disjoint domains), S(p,d) structure, B6, TA5(d), T3, T4/TA5-SigValid |
+| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from S(p,d) structure, TA5(c), B6, TA5(d), T3, T4/TA5-SigValid |
 | B8 | Distinct co-reachable baptisms produce distinct addresses — co-reachable (single-path) uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))` — unbounded extent | from B1, B2, B4, B6, Bop, TA5(c), TA5(d), NAT-closure |
 | B10 | `(A t ∈ s.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
