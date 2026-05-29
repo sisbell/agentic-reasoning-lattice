@@ -4,7 +4,7 @@
 
 ASN-0034 gave us the tumbler space T with its total order (T1) and its arithmetic — the addition ⊕ that advances along the tumbler line, the subtraction ⊖ that recovers displacements. It defined a span σ = (s, ℓ) as a well-formed pair satisfying T12: ℓ is positive, the action point of ℓ falls within #s, and σ denotes the half-open interval ⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}. By TA-strict, every span is non-empty.
 
-But a single span is merely a building block. The system must compare spans — do they overlap? It must combine them — what do they jointly cover? It must decompose them — what results from splitting at a point? And it must reduce collections of them to canonical form — is there a unique minimal representation? We are looking for the laws this algebra satisfies. The question, as always, is: what must any implementation maintain?
+But a single span is merely a building block. This ASN formalizes the algebra over spans: comparing them, merging them, splitting them, normalizing collections to canonical form, and taking their difference.
 
 Nelson provides span-sets as the mechanism for arbitrary content designation: "if you want to designate a separated series of items exactly, including nothing else, you do this by a span-set, which is a series of spans" (LM 4/25). And he expects front-ends to manipulate them fluently: "The manipulation of request sets is an important aspect of what front-end functions do. Understanding spans is a key to appropriate software design for handling request-sets" (LM 4/37). Gregory confirms the implementation: two dedicated merge sites in the backend (the enfilade-level `isanextensionnd` and the output-level `putvspaninlist`) enforce precise adjacency and overlap conditions on spans.
 
@@ -199,8 +199,6 @@ TA-LC gives:
 **S4a** (*SplitMergeInverse*). For a level-uniform span σ = (s, ℓ) and an interior point p with level_compat(s, p), splitting σ at p (S4) and merging the two parts (S3) recovers σ exactly.
 
 *Proof.* The split produces λ = (s, d) with reach(λ) = p, and ρ = (p, d') with reach(ρ) = reach(σ). Since reach(λ) = start(ρ), the two parts are adjacent, and S3 applies. The merge constructs γ = (s_m, r_m ⊖ s_m) where s_m = min(s, p) = s (since s < p) and r_m = max(p, reach(σ)) = reach(σ) (since p < reach(σ)). The merged width is reach(σ) ⊖ s = reach(σ) ⊖ start(σ) = ℓ, by WR (σ is level-uniform). So γ = (s, ℓ) = σ — the original span is recovered exactly.  ∎
-
-Gregory confirms the implementation achieves this by computing the second width as a remainder rather than independently: "The split is exact precisely because the code aborts rather than proceeding when the arithmetic would be approximate" (Q15). Level-uniformity is what makes the recovery exact: it guarantees #s = #reach(σ), so WR recovers the merged width exactly as ℓ, and the split-then-merge round-trip returns σ rather than an approximation.
 
 **S3b** (*MergeSplitInverse*). For adjacent level-uniform spans α and β with level_compat(start(α), start(β)), merging α and β (S3) and splitting the result at the shared boundary (S4) recovers the unordered pair {α, β} exactly: the split yields a left part λ and a right part ρ with {λ, ρ} = {α, β}. The assignment of α and β to the left/right positions is determined by the adjacency direction: in Case A (reach(α) = start(β)), λ = α and ρ = β; in Case B (reach(β) = start(α)), λ = β and ρ = α.
 
