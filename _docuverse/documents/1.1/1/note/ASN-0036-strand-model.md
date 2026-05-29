@@ -210,7 +210,7 @@ This is a design requirement: content resides at the element level — the fines
 
 **S7a (Document-scoped allocation).** Every Istream address is allocated under the tumbler prefix of the document that created it. That is, for every `a ∈ dom(Σ.C)`, the document-level prefix of `a` — the tumbler `N(a).0.U(a).0.D(a)` obtained by truncating the element field, where `N(a)`, `U(a)`, `D(a)` are the partial projections supplied by T4b (UniqueParse, ASN-0034) — identifies the document whose owner performed the allocation that placed `a` into `dom(C)`.
 
-Nelson's baptism principle establishes it: "The owner of a given item controls the allocation of the numbers under it." A document owner baptises element addresses under that document's prefix — there is no mechanism for allocating I-addresses outside the creating document's subtree. The address IS the provenance: "You always know where you are, and can at once ascertain the home document of any specific word or character." Nelson says the home document can be ascertained directly from the address — not from a separate lookup table. The native/non-native distinction ("Native bytes of a document are those actually stored under its control") is computable only because I-addresses are scoped under their originating documents.
+Nelson's baptism principle establishes it: "The owner of a given item controls the allocation of the numbers under it." A document owner baptises element addresses under that document's prefix — there is no mechanism for allocating I-addresses outside the creating document's subtree. The address IS the provenance: "You always know where you are, and can at once ascertain the home document of any specific word or character." Nelson says the home document can be ascertained directly from the address — not from a separate lookup table. The native/non-native distinction ("Native bytes of a document are those actually stored under its control") is computable only because I-addresses are scoped under their originating documents. Gregory's implementation corroborates this: the I-address prefix itself encodes the originating document, used during allocation to scope the search range.
 
 *Formal Contract (S7a):*
 - *Axiom (design requirement):* `(A a : a ∈ dom(Σ.C) :: the document-level prefix N(a).0.U(a).0.D(a) is the tumbler of the document whose owner performed the allocation that placed a into dom(C))`. By S7b (stated above), every `a ∈ dom(Σ.C)` satisfies `zeros(a) = 3`, so T4b's projections `N(a)`, `U(a)`, `D(a)` are everywhere defined on the domain over which the axiom quantifies.
@@ -226,14 +226,7 @@ where `E(a)` is the element-field projection supplied by T4b (UniqueParse, ASN-0
 - *Axiom (design requirement):* `(A a ∈ dom(Σ.C) :: #E(a) ≥ 2)` — the element field has at least two components, so the subspace identifier `E(a)₁` and the content ordinal `[E(a)₂, ..., E(a)_{#E(a)}]` occupy distinct positions.
 - *Depends:* S7b (element-level I-addresses) — provides `E(a)`; T4b (UniqueParse, ASN-0034) — defines element-field projection.
 
-**subspace_I (I-address subspace identifier).** For any `a` with `zeros(a) = 3` and `#E(a) ≥ 2`, the subspace identifier of an I-address is the first component of its element field: `subspace_I(a) = E(a)₁`.
-
-*Formal Contract:*
-- *Signature:* `subspace_I : T → ℕ` — projects the first component of the element field of an I-address.
-- *Preconditions:* `a ∈ dom(Σ.C)` (so S7b's `zeros(a) = 3` holds, making T4b's element-field projection `E(a)` well-defined); S7c's `#E(a) ≥ 2` (so that `E(a)₁` is well-defined as the first component of a non-empty element field).
-- *Definition:* `subspace_I(a) = E(a)₁`.
-- *Postconditions:* (a) `subspace_I(a) ∈ ℕ` — the projected component inherits T0's ℕ-valued carrier (ASN-0034). (b) `subspace_I(a) ≥ 1` — by S7b's T4-validity, which makes every present-field component strictly positive.
-- *Depends:* T0 (ASN-0034) — ℕ-valued component carrier underwriting postcondition (a); T4b (UniqueParse, ASN-0034) — supplies `E(a)` once S7b holds; S7b — provides `E(a)` via `zeros(a) = 3` and the T4-validity from which `E(a)₁ ≥ 1` follows (postcondition (b)); S7c — provides `#E(a) ≥ 2`.
+We write `subspace_I(a) = E(a)₁` for the first component of an I-address element field — the subspace identifier, mirroring `subspace(v) = v₁` for V-positions. This is a notational convenience used in motivation and examples; it carries no proof obligation of its own (its well-definedness and positivity follow directly from S7b and S7c).
 
 **S7d (Document allocation discipline).** Every document is addressed by a document-level tumbler (`zeros = 2`) allocated via T10a's allocator discipline (ASN-0034) under the owning user's prefix. Distinct documents arise from distinct allocation events.
 
@@ -241,7 +234,7 @@ Nelson's baptism principle covers it directly: the user-level allocator baptises
 
 *Formal Contract (S7d):*
 - *Axiom (design requirement):* Every document tumbler `d` satisfies `zeros(d) = 2` and is the result of an allocation event under T10a; distinct documents arise from distinct allocation events.
-- *Postconditions:* By GlobalUniqueness (ASN-0034), distinct documents have distinct document-level tumblers — the cross-document uniqueness premise for S7's identification argument.
+- *Postconditions:* By GlobalUniqueness (ASN-0034), distinct documents have distinct document-level tumblers.
 - *Depends:* T10a (AllocatorDiscipline, ASN-0034) — allocation events; T10a.4 (T4PreservationUnderDiscipline, ASN-0034) — T4 preservation, here at `zeros = 2`; T4 (HierarchicalParsing, ASN-0034) — field correspondence at `zeros = 2`; GlobalUniqueness (ASN-0034) — uniqueness across allocation events.
 
 With S7a, S7b, and S7d established, we can state structural attribution.
@@ -255,8 +248,6 @@ This is the full document tumbler `N.0.U.0.D` — uniquely identifying the alloc
 Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
 
 We note a subtlety. S7 identifies the document that ALLOCATED the I-address — the document where the content was first created. This is distinct from the document where the content currently appears. When content is transcluded from document B into document A, the reader viewing A sees the content, but S7 traces it to B. The distinction between "where I am reading" (Vstream context, document A) and "where this came from" (Istream structure, document B) is precisely the two-stream separation made visible.
-
-Gregory's implementation corroborates S7a: the I-address prefix itself encodes the originating document, used during allocation to scope the search range.
 
 *Proof.* We wish to show that for every `a ∈ dom(Σ.C)`, the function `origin(a) = N(a).0.U(a).0.D(a)` is well-defined, uniquely identifies the document that allocated `a`, and that this identification is permanent and unseverable.
 
@@ -342,7 +333,7 @@ At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments b
 
 (b) Within each run: `Σ.M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for all `k` with `0 ≤ k < nⱼ`
 
-Conjunct (b) is what *defines* a correspondence run: when `nⱼ > 1` it asserts a non-trivial ordinal-displacement identity. The witness this theorem exhibits is the singleton decomposition — every V-position is its own run (`nⱼ = 1`), for which (b) reduces to the base case `M(d)(vⱼ) = aⱼ`.
+The content this theorem establishes is conjunct (a): a finite decomposition of `dom(Σ.M(d))` into per-position half-open intervals that are pairwise disjoint and cover the domain. This is where the within-subspace lemma, T5, and T10 do their work. Conjunct (b) is what *would* give a run with `nⱼ > 1` non-trivial meaning as an ordinal-displacement identity, but the witness exhibited here is the singleton decomposition — every V-position is its own run (`nⱼ = 1`) — under which (b) holds only at its base case `M(d)(vⱼ) = aⱼ` and is never exercised for `nⱼ > 1`. The existence of any maximal run with `nⱼ > 1` is not established here; see Open Questions.
 
 *Proof.* We construct a finite decomposition satisfying both conjuncts and prove it partitions `dom(M(d))`.
 
@@ -371,7 +362,7 @@ Since `[S₁] ≼ v` and `[S₁] ≼ shift(v, 1)` and `v ≤ shift(v, 1)` by TS4
 
 *Formal Contract:*
 - *Preconditions:* `dom(M(d))` finite (S8-fin); `M(d)` a function (S2); referential integrity (S3); `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` (S8a); within each subspace, all V-positions share a common depth (S8-depth).
-- *Postconditions:* (*Existence.*) There exists a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` satisfying (a) `(A v ∈ dom(M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, nⱼ)))` and (b) `(A j, k : 0 ≤ k < nⱼ : M(d)(shift(vⱼ, k)) = shift(aⱼ, k))`. The proof exhibits the singleton decomposition (every `nⱼ = 1`), for which conjunct (b) reduces to the base case `M(d)(vⱼ) = aⱼ` at `k = 0`.
+- *Postconditions:* (*Finite disjoint partition — the established content.*) There exists a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` whose half-open intervals are pairwise disjoint and cover `dom(M(d))`: (a) `(A v ∈ dom(M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, nⱼ)))`. (*Run identity — base case only.*) Conjunct (b) `(A j, k : 0 ≤ k < nⱼ : M(d)(shift(vⱼ, k)) = shift(aⱼ, k))` holds under the exhibited singleton witness (every `nⱼ = 1`) only at its base case `M(d)(vⱼ) = aⱼ` (`k = 0`). No run with `nⱼ > 1` is established here, so (b)'s `k > 0` content is not exercised; the existence and uniqueness of maximal runs is deferred to Open Questions.
 - *Depends:* (*Local properties*) S2 (ArrangementFunctionality) — each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`; S3 (referential integrity) — `M(d)(v) ∈ dom(Σ.C)`; S8a — `zeros(v) = 0`, `#v ≥ 2`, and componentwise positivity of V-positions; S8-depth — a common depth `m` for every V-position in a fixed subspace; S8-fin — finite `dom(M(d))`. (*Foundation claims, ASN-0034*) T1 (TumblerOrdering) case (i) — first-divergence comparison; T3 (CanonicalRepresentation) — equates tumblers with their canonical component sequences; T4 (HierarchicalParsing) — partitions tumblers into N/U/D/E fields; T5 (ContiguousSubtrees) — a prefix's extensions form a contiguous interval under T1; T10 — non-nesting prefixes generate disjoint tumbler subtrees; TS4 (ShiftStrictIncrease) — `v < shift(v, 1)`; TumblerAdd, OrdinalShift, OrdinalDisplacement — the action-point semantics of `δ(k, m)`, the three-region component formula, and the action-point identity `shift(v, 1)_m = v_m + 1`. NAT-discrete (NatDiscreteness) — the strict-to-`+1` promotion `m < n ⟹ m + 1 ≤ n`. NAT-closure (NatArithmeticClosureAndIdentity) — closure of ℕ under addition places `v_m + 1` in ℕ. NAT-order (NatStrictTotalOrder) — the exactly-one trichotomy clause `¬(a < b ∧ b ≤ a)`.
 
 ## Arrangement contiguity
@@ -510,7 +501,7 @@ When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as 
 
 There are exactly `N + 1` valid insertion positions: the `N` positions coinciding with existing V-positions `v₀` through `v_{N−1}`, plus the append position `shift(min(V_1(d)), N)`.
 
-**Definition (ValidFirstInsertionPosition, empty case).** For a document `d` with `V_1(d) = ∅`, the *ternary* predicate `ValidFirstInsertionPosition(d, v, m)` is satisfied when `m ∈ ℕ` with `m ≥ 2` and `v = [1, 1, ..., 1]` of depth `m`. Distinct values of `m` identify distinct valid positions; the strand model fixes only the lower bound `m ≥ 2` (the choice of specific value is deferred to the Open Questions).
+**Definition (ValidFirstInsertionPosition, empty case).** For a document `d` with `V_1(d) = ∅`, the *ternary* predicate `ValidFirstInsertionPosition(d, v, m)` is satisfied when `m ∈ ℕ` with `m ≥ 2` and `v = [1, 1, ..., 1]` of depth `m`. Distinct values of `m` identify distinct valid positions; the strand model fixes only the lower bound `m ≥ 2`.
 
 For `m ≥ 2`, `δ(n, m)` has action point `m > 1`, so TumblerAdd copies component 1 unchanged and the subspace identifier is preserved. This is the canonical minimum position required by D-MIN.
 
@@ -526,7 +517,7 @@ By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fi
 - *Depends:* D-MIN, D-CTG, D-CTG-depth, D-SEQ; S8a, S8-fin, S8-depth; OrdinalShift, TumblerAdd, T3 (ASN-0034).
 
 *Formal Contract (ValidFirstInsertionPosition, empty case).*
-- *Signature:* `ValidFirstInsertionPosition(d, v, m)` — a *ternary* predicate on document `d`, V-position `v`, and depth `m`. The strand model fixes only the lower bound `m ≥ 2`.
+- *Signature:* `ValidFirstInsertionPosition(d, v, m)` — a *ternary* predicate on document `d`, V-position `v`, and depth `m`.
 - *Preconditions:* Document `d` with `V_1(d) = ∅`; `m ∈ ℕ` with `m ≥ 2`.
 - *Definition:* `ValidFirstInsertionPosition(d, v, m)` holds iff `v = [1, 1, ..., 1]` of depth `m`.
 - *Postconditions:* (a) `subspace(v) = 1` and `#v = m`. (b) `v` satisfies S8a: `zeros(v) = 0` and all components positive. (c) For fixed `d` and `m`, exactly one value of `v` satisfies the predicate. (d) In any state where `V_1(d)` is non-empty at depth `m`, S8-depth fixes the text-subspace depth at `m`, and validity of further insertion positions is governed by `ValidInsertionPosition(d, v)`.
@@ -651,7 +642,6 @@ This has a formal consequence: document equality is not decidable by content com
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | design; uses T4, T4b, T10a.4, S0 (ASN-0034) |
 | S7c | Element-field depth: `(A a ∈ dom(C) :: #E(a) ≥ 2)` — subspace identifier and content ordinal occupy distinct components | design; uses T4b (ASN-0034), S7b |
 | S7d | Document allocation discipline: every document is addressed by a document-level tumbler (`zeros = 2`) allocated via T10a under the owning user's prefix; distinct documents arise from distinct allocation events | design; uses T10a, T10a.4, T4 (ASN-0034) |
-| subspace_I(a) | I-address subspace identifier: `subspace_I(a) = E(a)₁`; well-defined when S7c holds | introduced |
 | S7 | Structural attribution: `origin(a) = N(a).0.U(a).0.D(a)` — full document prefix | from S7a, S7b, S7d, S0, S4, T4, T4b, T3, T10a.4, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
 | S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — element-field tumblers of depth ≥ 2 with componentwise positive entries | definition (V-positions are isolated element fields of depth ≥ 2, paralleling S7c; `zeros(v) = 0` and `#v ≥ 2` are definitional); positivity derived from `zeros = 0` via T0, NAT-discrete (ASN-0034) |
