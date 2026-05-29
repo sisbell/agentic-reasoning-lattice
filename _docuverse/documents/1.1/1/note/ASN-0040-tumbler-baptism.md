@@ -32,7 +32,7 @@ A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed se
 
 The set-membership constraint `s.B ⊆ T` needs no separate induction: B10 (§B10) establishes that every t ∈ s.B satisfies T4, and T4-validity entails t ∈ T.
 
-*Relationship to ASN-0034's allocated set.* This ASN neither assumes nor establishes `allocated(s) ⊆ s.B`; the activation discipline that would force it is left open (see Open Questions).
+*Relationship to ASN-0034's allocated set.* This ASN neither assumes nor establishes `allocated(s) ⊆ s.B`.
 
 We state the closure law directly on the operation vocabulary Σ rather than on an opaque predicate "produced by baptism":
 
@@ -40,8 +40,6 @@ We state the closure law directly on the operation vocabulary Σ rather than on 
 
   - *Baptismal operations.* For each (p, d) satisfying B6, `baptize(p, d) ∈ Σ` is the operation specified by Bop below; its action on the registry is `op(s).B = s.B ∪ {next(s.B, p, d)}`.
   - *s.B-frame operations.* Every other `op ∈ Σ` preserves the registry: `(A op ∈ Σ \ {baptize(p, d) : B6(p, d)}, s ∈ dom(op) : op(s).B = s.B)`.
-
-Each `op ∈ Σ` is in exactly one class by its symbol: the baptismal class is the named family `{baptize(p, d) : B6(p, d)}`, and the s.B-frame class is its complement in Σ.
 
 Here "satisfying B6" means p satisfies T4, d ∈ {1, 2}, and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below.
 
@@ -152,22 +150,17 @@ In both cases, next(B, p, d) produces an element of T. The definition is total o
 
   PRE: B6(p, d) — depth validity (defined below); no parent-baptized prerequisite is imposed
   POST: s'.B = s.B ∪ {next(s.B, p, d)}
-  FRAME: s.B is modified as specified by POST; other components are left to the ASNs that introduce them (see the Formal Contract *Frame:* line).
   STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below). See the Formal Contract for its status as a Σ-invariant.
+
+The frame condition — only s.B is modified — is stated in the Formal Contract *Frame:* line below.
 
 By B4 (Atomic Baptism, §B4 below), next(s.B, p, d) is evaluated against the precondition state s of the same transition that produces s'.
 
-*Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined, produces a fresh address, and preserves the system invariants B0, B1, B10, and B_fin.
+*Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined and produces a fresh address. Invariant preservation (B0, B1, B10, B_fin) is established by the dedicated inductive proofs in §B1, §B10, and §B_fin, whose baptismal-branch cases handle exactly this operation.
 
 **Well-definedness.** The postcondition invokes next(s.B, p, d), which branches on whether children(s.B, p, d) is empty. If empty, the result is inc(p, d) — well-defined for any p ∈ T and d ≥ 1 by TA5's first postcondition (the unlabeled `t' ∈ T`). If non-empty, the result is inc(max(children(s.B, p, d)), 0). By B1 (§B1), children(s.B, p, d) = {c₁, ..., cₘ} for some m ≥ 1, a contiguous prefix, and B_fin (§B_fin) gives this set finite; max therefore exists and equals cₘ. B10 (§B10) gives registry-wide T4 validity, so cₘ ∈ s.B ⊆ T; TA5's first (unlabeled) postcondition then gives `inc(cₘ, 0) ∈ T`. In both branches, next produces an element of T.
 
-**Freshness.** Let a = next(s.B, p, d) = c_{m+1} where m = hwm(s.B, p, d). We show a ∉ s.B. By construction, a = c_{m+1} ∈ S(p, d). Since children(s.B, p, d) = s.B ∩ S(p, d) by definition, if a ∈ s.B then a ∈ children(s.B, p, d). By B1, children(s.B, p, d) = {c₁, ..., cₘ}. By S0 (StreamOrdering), distinct stream indices produce distinct elements: since m + 1 > i for all 1 ≤ i ≤ m, we have c_{m+1} ≠ cᵢ for each such i. Therefore a ∉ {c₁, ..., cₘ} = children(s.B, p, d), contradicting the supposition. We conclude a ∉ s.B. By B4 (Atomic Baptism), children(s.B, p, d) is evaluated against the precondition state s of the same transition, so the value used here is exactly the value used in the postcondition of that edge.
-
-**Monotonicity (B0).** s'.B = s.B ∪ {a} ⊇ s.B directly — the registry grows by one element and no element is removed.
-
-**B1 preservation.** In the target namespace, children(s'.B, p, d) = {c₁, ..., cₘ, c_{m+1}} — a contiguous prefix of length m + 1, since the new element is the immediate successor of the previous maximum. The registry-wide preservation across all namespaces (B6-valid namespaces via B7, non-B6 namespaces via T4-invalidity or the trailing-zero stream identity) is carried by §B1; B0a (Baptismal Closure) guarantees no non-baptismal mechanism introduces elements that could disrupt contiguity in any namespace.
-
-**B10 preservation.** By construction, a = next(s.B, p, d) ∈ S(p, d) — the first child c₁ when children are empty, the sibling c_{m+1} = inc(cₘ, 0) otherwise. Since (p, d) satisfies B6, B6's sufficiency result (§B6) gives that every element of S(p, d) satisfies T4; in particular a does. The registry-wide preservation is carried by §B10. ∎
+**Freshness.** Let a = next(s.B, p, d) = c_{m+1} where m = hwm(s.B, p, d). We show a ∉ s.B. By construction, a = c_{m+1} ∈ S(p, d). Since children(s.B, p, d) = s.B ∩ S(p, d) by definition, if a ∈ s.B then a ∈ children(s.B, p, d). By B1, children(s.B, p, d) = {c₁, ..., cₘ}. By S0 (StreamOrdering), distinct stream indices produce distinct elements: since m + 1 > i for all 1 ≤ i ≤ m, we have c_{m+1} ≠ cᵢ for each such i. Therefore a ∉ {c₁, ..., cₘ} = children(s.B, p, d), contradicting the supposition. We conclude a ∉ s.B. By B4 (Atomic Baptism), children(s.B, p, d) is evaluated against the precondition state s of the same transition, so the value used here is exactly the value used in the postcondition of that edge. ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1; B6(p, d) holds. (B1, B10, and B_fin are *state invariants*, not per-call obligations: they are established at genesis by B₀ conf. and preserved inductively by the proofs in §B1, §B10, and §B_fin, so they hold in every reachable state at which baptize(p, d) can be invoked. They are appealed to in the well-definedness and preservation arguments below but are not discharged by the caller.)
@@ -208,7 +201,7 @@ When (p, d) does not satisfy B6 and every element of S(p, d) violates T4 (sub-ca
 
 When (p, d) does not satisfy B6 but S(p, d) contains T4-valid elements (sub-case C): by the elimination established above, this occurs exactly when p ends in zero (with no other T4 defect) and d = 1. Let p' be p with its trailing zero removed, so #p' = #p − 1 and p'ᵢ = pᵢ for 1 ≤ i ≤ #p − 1, and let d' = 2. By S2 (Trailing-Zero Stream Identity), S(p, 1) = S(p', 2).
 
-We verify that p' satisfies T4 and (p', 2) satisfies B6. For T4: p₁ > 0 (inherited from p); no adjacent zeros (the trailing zero was the sole defect — if p had adjacent zeros or a leading zero, these would be additional T4 violations, contradicting the sole-defect hypothesis); p'_{#p'} = p_{#p−1} > 0 since the trailing zero was the sole defect. For the zero count: the sole-defect hypothesis gives zeros(p) ≤ 3 (a second violation — such as zeros(p) > 3 — would contradict sole defect). Removing the trailing zero yields zeros(p') = zeros(p) − 1 ≤ 2. B6(i): p' satisfies T4 as just shown. B6(ii): d' = 2 ∈ {1, 2}. B6(iii): zeros(p') + (d' − 1) = zeros(p') + 1 ≤ 3. Therefore (p', 2) satisfies B6. Two sub-cases arise. If (p', d') ≠ (p₀, d₀), B7 gives S(p₀, d₀) ∩ S(p', d') = ∅, hence a ∉ S(p', d') = S(p, d), and children(B', p, d) = children(B, p, d). If (p', d') = (p₀, d₀), then children(B', p, d) = children(B', p₀, d₀), whose contiguous prefix property was established in the target namespace case above. Because S(p, d) = S(p, 1) = S(p', 2) = S(p₀, d₀) by the stream-identity argument established above, a contiguous prefix of S(p₀, d₀) is the same finite sequence considered as a prefix of S(p, d) — the two namespaces share the same element set in the same order, so contiguity transfers across the rebadging.
+That p' satisfies T4 and (p', 2) satisfies B6 — when p's sole defect is the trailing zero — is established by B6's necessity argument, sub-case (b) (§B6); we use it here. Two sub-cases arise. If (p', d') ≠ (p₀, d₀), B7 gives S(p₀, d₀) ∩ S(p', d') = ∅, hence a ∉ S(p', d') = S(p, d), and children(B', p, d) = children(B, p, d). If (p', d') = (p₀, d₀), then children(B', p, d) = children(B', p₀, d₀), whose contiguous prefix property was established in the target namespace case above. Because S(p, d) = S(p, 1) = S(p', 2) = S(p₀, d₀) by the stream-identity argument established above, a contiguous prefix of S(p₀, d₀) is the same finite sequence considered as a prefix of S(p, d) — the two namespaces share the same element set in the same order, so contiguity transfers across the rebadging.
 
 In all sub-cases, children(B', p, d) is a contiguous prefix of S(p, d).
 
@@ -272,11 +265,11 @@ B1 yields a simplification: the entire allocation state of a namespace reduces t
 
 **hwm(B,p,d) (HighWaterMark).** hwm(B, p, d) = #children(B, p, d) — the *high water mark*.
 
-*Justification.* We must establish that the cardinality of children(B, p, d) is a sufficient statistic for the allocation state of the namespace (p, d) — that is, knowing only #children(B, p, d) determines both the maximum baptized address and the next address to allocate. Let m = #children(B, p, d).
+*Justification.* We must establish that the cardinality of children(B, p, d) is a sufficient statistic for the maximum baptized address in the namespace (p, d) — that is, knowing only #children(B, p, d) determines max(children(B, p, d)). Let m = #children(B, p, d).
 
 By B1 (Contiguous Prefix), children(B, p, d) = {c₁, ..., cₘ} — the first m elements of the sibling stream S(p, d) with no gaps. This contiguity is the load-bearing property: it means the set of children is determined entirely by its cardinality. Any set of m elements drawn from a contiguous prefix of a sequence is the prefix itself, so knowing m tells us children(B, p, d) = {c₁, ..., cₘ}.
 
-Two consequences follow. First, the maximum: by S0 (StreamOrdering), the sibling stream is strictly increasing under T1, so max(children(B, p, d)) = cₘ — the last element of the prefix. Second, the next allocation target: since children occupy exactly the first m positions of S(p, d), the next unoccupied position is c_{m+1}. No scan of the children set is needed; the count alone suffices. ∎
+It follows that by S0 (StreamOrdering), the sibling stream is strictly increasing under T1, so max(children(B, p, d)) = cₘ — the last element of the prefix. No scan of the children set is needed; the count alone suffices. (The next-address derivation from m is carried by B2 below.) ∎
 
 *Formal Contract:*
 - *Definition:* hwm(B, p, d) = #children(B, p, d) where children(B, p, d) = {cₙ ∈ S(p, d) : cₙ ∈ B}.
