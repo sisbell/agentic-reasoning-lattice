@@ -27,7 +27,7 @@ with k = divergence(a, b). We write w = b ⊖ a and call it the *displacement fr
 
 D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). For equal-length endpoints with a < b and #a = #b, the divergence is of type (i) with k ≤ #a — equal length excludes the prefix case — so D0's domain condition holds, and #a ≤ #b lets D1 (ASN-0034) close the round-trip: a ⊕ (b ⊖ a) = b. The displacement from a to b is recovered faithfully whenever the two endpoints share a length.
 
-This equal-length condition recurs throughout the algebra, so we name it now. Two tumblers are *level-compatible* when they have the same length, and a span σ = (s, ℓ) is *level-uniform* when its start and width share a length, #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity (#(s ⊕ ℓ) = #ℓ), so start, width, and reach all share one length. (S6 below states level-compatibility formally as the predicate level_compat.)
+This equal-length condition recurs throughout the algebra, so we name it now. Two tumblers are *level-compatible* when they have the same length, and a span σ = (s, ℓ) is *level-uniform* when its start and width share a length, #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity (#(s ⊕ ℓ) = #ℓ). (S6 below states level-compatibility formally as the predicate level_compat, where the consequence that start, width, and reach all share one length is recorded.)
 
 **WR** (*WidthRecovery*). For a level-uniform span σ = (s, ℓ): reach(σ) ⊖ start(σ) = width(σ).
 
