@@ -19,7 +19,7 @@ We formalize baptism as the growth law of the address space.
 
 We work within the foundation's transition framework (ASN-0034, AllocatedSet and NoDeallocation): a state space, a closed vocabulary of partial operations on it, and the reflexive-transitive closure of the induced transition relation as reachability. We do not re-derive it here, and we adopt the foundation's notation directly: an individual *state* is `s`, the *state space* is `𝒮` (the same Kripke space, here extended with the registry component this ASN introduces), and the *transition vocabulary* is `Σ`. The registry component is written `s.B`. Obligations of the form `(A s, s' : s → s' : …)` constrain every admissible transition; `(A s : s reachable from s_init : I(s))` is a state invariant.
 
-This ASN introduces one state component — the baptismal registry s.B (defined below) — and constrains Σ's treatment of it (B0, B0a, B4) without enumerating Σ exhaustively; content, link, and ownership operations are admitted subject to those constraints, and the frame at Bop keeps such extensions orthogonal to s.B. The initial state s_init has s_init.B = B₀, the seed set established at genesis; "reachable" without qualification means reachable from s_init. The relationship between s.B and ASN-0034's `allocated(s)` is articulated below at the introduction of s.B.
+This ASN introduces one state component — the baptismal registry s.B (defined below) — and constrains Σ's treatment of it (B0, B0a, B4) without enumerating Σ exhaustively; content, link, and ownership operations are admitted subject to those constraints, and the frame at Bop keeps such extensions orthogonal to s.B. The initial state s_init has s_init.B = B₀, the seed set established at genesis; "reachable" without qualification means reachable from s_init.
 
 
 ## The baptismal registry
@@ -32,7 +32,7 @@ A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed se
 
 The set-membership constraint `s.B ⊆ T` needs no separate induction: B10 (§B10) establishes that every t ∈ s.B satisfies T4, and T4-validity entails t ∈ T.
 
-*Relationship to ASN-0034's allocated set.* Whether `allocated(s) ⊆ s.B` holds is left to the activation-discipline ASN (see Open Questions); this ASN neither assumes nor establishes it.
+*Relationship to ASN-0034's allocated set.* This ASN neither assumes nor establishes `allocated(s) ⊆ s.B`; the activation discipline that would force it is left open (see Open Questions).
 
 We state the closure law directly on the operation vocabulary Σ rather than on an opaque predicate "produced by baptism":
 
@@ -155,7 +155,7 @@ In both cases, next(B, p, d) produces an element of T. The definition is total o
   FRAME: s.B is modified as specified by POST; other components are left to the ASNs that introduce them (see the Formal Contract *Frame:* line).
   STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below). See the Formal Contract for its status as a Σ-invariant.
 
-The frame condition's scope is essential. With respect to s.B, baptism is precise: `s'.B = s.B ∪ {next(s.B, p, d)}` and nothing more. Other state components — content storage, link structures, arrangement, and the allocator-side state of ASN-0034 — are not subjects of this ASN's specification; Bop makes no commitment about whether they are modified across the same transition. By B4 (Atomic Baptism, §B4 below), next(s.B, p, d) is evaluated against the precondition state s of the same transition that produces s'.
+By B4 (Atomic Baptism, §B4 below), next(s.B, p, d) is evaluated against the precondition state s of the same transition that produces s'.
 
 *Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined, produces a fresh address, and preserves the system invariants B0, B1, B10, and B_fin. We cite B_fin (§B_fin), B10 (§B10), and B1 (§B1) as the established invariants they are, holding at the precondition state s of any reachable transition.
 
@@ -223,7 +223,7 @@ The induction also requires a conforming base:
 
 **B₀ conf. (SeedConformance).** B₀ is finite, `(A p, d : children(B₀, p, d) is a contiguous prefix of S(p, d))`, and `(A t ∈ B₀ : t satisfies T4)`.
 
-The three conditions are the Base lines of B_fin (finiteness), B1 (genesis contiguity), and B10 (seed T4-validity) respectively. Non-emptiness is not among them; it is forced externally (see *Relationship to ASN-0034's allocated set* above).
+The three conditions are the Base lines of B_fin (finiteness), B1 (genesis contiguity), and B10 (seed T4-validity) respectively. Non-emptiness is not among them; this ASN neither requires nor establishes it.
 
 B₀ conformance fixes the seed as a finite set; B0a constrains every transition to add at most one element. The composition yields a registry-wide finiteness invariant:
 
@@ -414,15 +414,15 @@ For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states th
 
 *(a) Defect in p's preserved prefix: some T4 defect at positions 1 through #p − 1 of p, or p₁ = 0 (the leading-zero case, including the singleton p = [0] in which leading and trailing positions coincide).* By TA5(b), inc(p, d) preserves positions 1 through #p, so each defective position of p survives unchanged into c₁ at the same index. Each subsequent cₙ₊₁ = inc(cₙ, 0) modifies only position sig(cₙ) = #p + d > #p (since d ≥ 1), leaving positions 1 through #p untouched. By induction, every stream element carries the defect. For example, with p = [0, 1, 2] (leading zero, #p = 3): c₁ = inc([0, 1, 2], 1) = [0, 1, 2, 1], and (cₙ)₁ = 0 for all n ≥ 1, violating T4's t₁ ≠ 0 requirement. For the singleton p = [0] (in which p₁ = p_{#p} = 0): with d = 1, c₁ = inc([0], 1) = [0, 1] and each cₙ = [0, n] violates t₁ ≠ 0; with d = 2, c₁ = inc([0], 2) = [0, 0, 1] preserves (cₙ)₁ = 0 from p for every n (and additionally exhibits adjacent zeros at positions 1 and 2 within c₁).
 
-*(b) Pure trailing zero as the sole T4 defect: p_{#p} = 0, p₁ > 0, no adjacent zeros in p (which forces #p ≥ 2, since p₁ > 0 = p_{#p} requires the leading and trailing positions to be distinct).* This sub-case splits on the value of d. When d = 1, the stream may satisfy T4 without condition (i). Consider p = [1, 0] with d = 1. Then c₁ = inc([1, 0], 1) = [1, 0, 1] — one zero at position 2, positive first and last components, no adjacent zeros — and every cₙ = [1, 0, n] satisfies T4. However, S([1, 0], 1) is identical to S([1], 2): both produce the sequence [1, 0, 1], [1, 0, 2], [1, 0, 3], ... In general, let p' be p with the trailing zero removed; by S2 (Trailing-Zero Stream Identity), S(p, 1) = S(p', 2). The trailing zero of p merges with the stream structure to produce the same elements as a T4-valid namespace at greater depth. Permitting baptism under such a malformed parent creates a namespace whose sibling stream coincides with an existing valid namespace, collapsing global uniqueness: two distinct baptismal acts — one under invalid (p, 1), one under B6-valid (p', 2) — would produce the same stream element, giving distinct baptisms the same address.
+*(b) Pure trailing zero as the sole T4 defect: p_{#p} = 0, p₁ > 0, no adjacent zeros in p (which forces #p ≥ 2, since p₁ > 0 = p_{#p} requires the leading and trailing positions to be distinct).* This sub-case splits on the value of d. When d = 1, the stream may satisfy T4 without condition (i). Consider p = [1, 0] with d = 1. Then c₁ = inc([1, 0], 1) = [1, 0, 1] — one zero at position 2, positive first and last components, no adjacent zeros — and every cₙ = [1, 0, n] satisfies T4. However, S([1, 0], 1) is identical to S([1], 2): both produce the sequence [1, 0, 1], [1, 0, 2], [1, 0, 3], ... In general, let p' be p with the trailing zero removed; by S2 (Trailing-Zero Stream Identity), S(p, 1) = S(p', 2). The trailing zero of p merges with the stream structure to produce the same elements as a T4-valid namespace at greater depth. We verify (p', 2) is itself B6-valid: p' satisfies T4 (the trailing zero was p's sole defect, so p'₁ > 0, p' has no adjacent zeros, and p'_{#p'} > 0), d' = 2 ∈ {1, 2}, and zeros(p') + 1 = zeros(p) ≤ 3. Permitting baptism under the malformed parent (p, 1) therefore creates a namespace whose sibling stream coincides exactly with the *distinct* B6-valid namespace (p', 2). The two namespaces are distinct yet share their entire stream, so the namespace disjointness that B7 secures for B6-valid pairs cannot extend to admit (p, 1) alongside (p', 2). Excluding trailing-zero parents at d = 1 is precisely what prevents one namespace from duplicating another; the argument is self-contained in S2 and B7's disjointness target, with no appeal to the later B8.
 
 When d = 2, every stream element violates T4 — but by a propagation argument structurally distinct from sub-case (a). The defect does not preexist in p's interior; it arises within c₁ itself from the union of p's trailing zero and the separator TA5(d) inserts. By TA5(b), c₁ preserves positions 1 through #p of p, so (c₁)_{#p} = p_{#p} = 0. By TA5(d) with d = 2, c₁ has length #p + 2 and the intermediate position #p + 1 holds the field separator with value 0. Therefore (c₁)_{#p} = 0 and (c₁)_{#p+1} = 0 — adjacent zeros at positions #p and #p + 1 of c₁, violating T4's non-empty-field constraint (T4(ii) at i = #p). To propagate this to every cₙ, we show position #p + 1 is never modified by sibling increments. By S(p, 2), sig(cₙ) = #p + 2 for all n ≥ 1, and position #p + 1 satisfies #p + 1 < #p + 2 = sig(cₙ), so it is invariant across the stream (TA5(c) modifies only sig(cₙ)). Hence (cₙ)_{#p} = 0 and (cₙ)_{#p+1} = 0 for every n ≥ 1, and every stream element carries the same adjacent-zero violation as c₁.
 
-Condition (i) is therefore necessary: T4 defects in p's preserved prefix — interior, leading, or the singleton p = [0] — propagate to every stream element via TA5(b), and pure trailing-zero defects (where p's leading and interior positions are T4-valid) either propagate (when d = 2 creates adjacent zeros within c₁) or — when d = 1 — produce a stream identical to some valid S(p', 2), collapsing B8 (Global Uniqueness) by allowing two distinct baptisms (one under invalid (p, 1), one under B6-valid (p', 2)) to deliver the same address. ∎
+Condition (i) is therefore necessary: T4 defects in p's preserved prefix — interior, leading, or the singleton p = [0] — propagate to every stream element via TA5(b), and pure trailing-zero defects (where p's leading and interior positions are T4-valid) either propagate (when d = 2 creates adjacent zeros within c₁) or — when d = 1 — produce a stream identical (by S2) to that of the distinct B6-valid namespace (p', 2), so that admitting (p, 1) would duplicate an existing namespace and defeat the namespace disjointness B7 secures. ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1.
-- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: violating (ii) or (iii) produces T4 violations in S(p, d); violating (i) either propagates defects in p's preserved prefix (interior adjacent zeros, leading zero p₁ = 0, or the singleton case p = [0] in which leading and trailing positions coincide) to every stream element via TA5(b), or — when the sole defect is a pure trailing zero with p₁ > 0 and no other T4 violation in p — produces adjacent zeros within c₁ for d = 2 (the trailing zero of p at position #p adjacent to TA5(d)'s field separator at position #p + 1, propagated to every cₙ since sig(cₙ) = #p + 2 > #p + 1 leaves the adjacent pair untouched), or creates a stream identical to some valid S(p', d') for d = 1, collapsing B8 (Global Uniqueness): distinct baptisms in the coincident namespaces produce the same stream element.
+- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: violating (ii) or (iii) produces T4 violations in S(p, d); violating (i) either propagates defects in p's preserved prefix (interior adjacent zeros, leading zero p₁ = 0, or the singleton case p = [0] in which leading and trailing positions coincide) to every stream element via TA5(b), or — when the sole defect is a pure trailing zero with p₁ > 0 and no other T4 violation in p — produces adjacent zeros within c₁ for d = 2 (the trailing zero of p at position #p adjacent to TA5(d)'s field separator at position #p + 1, propagated to every cₙ since sig(cₙ) = #p + 2 > #p + 1 leaves the adjacent pair untouched), or creates a stream identical (by S2) to that of the distinct B6-valid namespace (p', 2) for d = 1, so that (p, 1) would duplicate an existing namespace and defeat the namespace disjointness B7 secures.
 
 
 ## Namespace disjointness
@@ -435,14 +435,20 @@ Each parent-depth pair defines a namespace. Distinct namespaces must produce non
 
 provided both `(p, d)` and `(p', d')` satisfy B6.
 
-*Proof.* Under B6, S(p, d) is exactly the domain of the child allocator that p spawns at depth d. Its base address is c₁ = inc(p, d) — a child-spawn in T10a's sense, since d ∈ {1, 2} is the deep increment inc(p, k') with k' = d > 0 — and its remaining elements cₙ₊₁ = inc(cₙ, 0) are produced by the shallow increment T10a reserves for within-allocator sibling enumeration. So S(p, d) coincides with dom(A_{p,d}) (T10a's domain definition, modulo the index shift c₁ = t₀).
+*Proof.* We prove disjointness directly from the canonical stream form (S(p,d), S1) and the field-segment constraint (T4), without presupposing that p, p', and their spawns are realized within one T10a-conforming allocator tree. By S(p, d), every element of S(p, d) has length #p + d, extends p as a prefix (S1), and carries d − 1 zero separators at positions #p + 1 … #p + d − 1; symmetrically for S(p', d'). Suppose for contradiction some address a ∈ S(p, d) ∩ S(p', d').
 
-Distinct B6-valid pairs name distinct allocators. If p ≠ p', the two child allocators are spawned from different sites. If p = p' with d ≠ d', then d = 1 and d = 2 are two different deep increments inc(p, k') from the same parent element; T10a permits at most one child per (t, k') pair, so these are two distinct child-spawning events and hence two distinct allocators. In either case A_{p,d} ≠ A_{p',d'}, and T10a.6 (DomainDisjointness) gives dom(A_{p,d}) ∩ dom(A_{p',d'}) = ∅ — that is, S(p, d) ∩ S(p', d') = ∅. ∎
+*Length split.* If #p + d ≠ #p' + d', then a would have two distinct lengths — impossible by T3 (CanonicalRepresentation), since a tumbler has a single length. So #p + d = #p' + d' = L, and a has length L under both forms.
+
+*Equal-length parents.* If #p = #p', then p ≼ a from S(p, d) (S1) and p' ≼ a from S(p', d') make both p and p' the length-#p prefix of a; by T3 they agree componentwise, so p = p'. With #p + d = #p' + d' this forces d = d', hence (p, d) = (p', d'), contradicting distinctness.
+
+*Unequal-length parents.* Otherwise #p ≠ #p'; from #p + d = #p' + d' with d, d' ∈ {1, 2} the lengths can differ by at most 1, so WLOG #p < #p' with #p' = #p + 1, d = 2, d' = 1. Read position #p + 1 of a two ways. From the S(p, 2) form, position #p + 1 is the lone zero separator: a_{#p+1} = 0. From the S(p', 1) form (d' = 1, no separator), positions 1 … #p' = 1 … #p + 1 are preserved from p', so a_{#p+1} = p'_{#p+1} = p'_{#p'} — the last component of p'. Since (p', d') satisfies B6, p' satisfies T4, whose field-segment constraint forbids a zero final component (TA5-SigValid: p'_{#p'} ≠ 0). Thus a_{#p+1} > 0, contradicting a_{#p+1} = 0.
+
+Every case yields a contradiction, so S(p, d) ∩ S(p', d') = ∅. ∎
 
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
 - *Postconditions:* `S(p, d) ∩ S(p', d') = ∅`.
-- *Depends:* T10a (child-spawn / sibling discipline identifying S(p, d) as an allocator domain), T10a.6 (DomainDisjointness — disjoint domains for distinct allocators), TA5(d) (child increment).
+- *Depends:* S(p,d) (canonical stream form and length #p + d), S1 (every element extends p), T3 (CanonicalRepresentation — a tumbler has a single length, and componentwise prefix agreement forces parent equality), T4 / TA5-SigValid (valid addresses have a nonzero last component, via B6(i)), TA5(d) (child increment, fixing the separator positions). The proof is independent of T10a.6's allocator-tree framing.
 
 
 ## A baptism traced
@@ -522,17 +528,19 @@ The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9
 
 ## Global uniqueness
 
-**B8 (Global Uniqueness).** Distinct baptisms produce distinct addresses:
+**B8 (Global Uniqueness).** Distinct *co-reachable* baptismal acts produce distinct addresses, where two acts are co-reachable iff both lie on a single transition path s_init →* s for some reachable state s:
 
-  `(A a, b : produced by distinct baptismal acts : a ≠ b)`.
+  `(A a, b : produced by distinct co-reachable baptismal acts : a ≠ b)`.
+
+The co-reachability scope is load-bearing, not cosmetic. Two `baptize(p, d)` edges leaving the same precondition state on *incomparable* branches of the reachability relation each evaluate next against the identical state and therefore compute the identical address c_{m+1}; an unconditional "distinct acts ⟹ distinct addresses" claim would be false for such a pair. But these acts are never jointly observed in any reachable state — no s is reachable through both — so within any single execution history the collision cannot be witnessed. Scoping the postcondition to co-reachable acts states exactly what the proof establishes: uniqueness along every realizable transition path.
 
 Within the same namespace, B4 makes each baptize(p, d) a single edge of the transition graph; distinct same-namespace baptismal transitions occupy distinct edges and therefore evaluate next against distinct precondition states with distinct hwm values, and B1 ensures sequential, gap-free allocation, so distinct baptisms produce distinct stream indices, which S0 maps to distinct addresses. Across namespaces, B7 ensures non-overlapping ranges. Together, no two baptisms in any reachable state produce the same tumbler.
 
 Across namespaces, B8 is ASN-0034's GlobalUniqueness specialized to allocator domains — discharged through B7, which is itself T10a.6. The genuinely new, registry-level content is the same-namespace clause: that distinct baptismal *acts* in one namespace advance the high water mark gap-free (B1) and so land on distinct stream indices. The foundation's per-allocator forward ordering relates indices to addresses; it does not by itself assert that distinct acts occupy distinct indices.
 
-*Proof.* We must show that for any two distinct baptismal acts β₁ and β₂, the addresses they produce are distinct. Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We proceed by case analysis on whether the two baptisms target the same or different namespaces.
+*Proof.* We must show that for any two distinct *co-reachable* baptismal acts β₁ and β₂ — both lying, by the co-reachability hypothesis, on a single transition path s_init →* s — the addresses they produce are distinct. (Acts on incomparable branches are excluded by the scope of B8: they share no reachable descendant, so their outputs are never jointly observed and the question does not arise.) Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We proceed by case analysis on whether the two baptisms target the same or different namespaces.
 
-*Case 1: same namespace — (p, d) = (p', d').* The uniqueness question is about addresses jointly observed in one reachable state, so we fix a reachable s in whose history both β₁ and β₂ lie — both are edges on a single transition path s_init →* s. (Two acts on incomparable branches share no reachable descendant; their outputs are never jointly observed, and the collision question does not arise.) Along that one path the edges are linearly ordered, so β₁ and β₂ are comparable; without loss of generality β₁ precedes β₂, the argument with roles exchanged being identical. By B4 (Atomic Baptism), each baptism is a single Σ-edge of this path. Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts. By the Bop postcondition, the successor state s₁' = β₁(s₁) has s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. Since β₁ precedes β₂, s₂ is reachable from s₁' through a (possibly empty) sequence of transitions — that is, s₁' →* s₂. B0★ (Multi-step Irrevocability), the labelled corollary of B0 covering finite transition sequences, gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
+*Case 1: same namespace — (p, d) = (p', d').* The co-reachability hypothesis gives a single transition path s_init →* s carrying both β₁ and β₂. Along that one path the edges are linearly ordered, so β₁ and β₂ are comparable; without loss of generality β₁ precedes β₂, the argument with roles exchanged being identical. By B4 (Atomic Baptism), each baptism is a single Σ-edge of this path. Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts. By the Bop postcondition, the successor state s₁' = β₁(s₁) has s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. Since β₁ precedes β₂, s₂ is reachable from s₁' through a (possibly empty) sequence of transitions — that is, s₁' →* s₂. B0★ (Multi-step Irrevocability), the labelled corollary of B0 covering finite transition sequences, gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
 
 Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mark Sufficiency), a = c_{m₁+1} and b = c_{m₂+1}, where cₙ denotes the n-th element of S(p, d). Since a = c_{m₁+1} ∈ s₂.B and B1 (Contiguous Prefix) holds for s₂, the children of (p, d) in s₂ include {c₁, ..., c_{m₁+1}}, so hwm(s₂.B, p, d) ≥ m₁ + 1. That is, m₂ ≥ m₁ + 1, hence m₂ + 1 ≥ m₁ + 2 > m₁ + 1. The indices m₁ + 1 and m₂ + 1 are distinct with m₁ + 1 < m₂ + 1. By S0 (StreamOrdering), c_{m₁+1} < c_{m₂+1} under the lexicographic order T1. By T1 irreflexivity, c_{m₁+1} ≠ c_{m₂+1}. Therefore a ≠ b.
 
@@ -541,8 +549,8 @@ Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mar
 In both cases a ≠ b. No two distinct baptisms, whether in the same namespace, across sibling namespaces, or at different hierarchical levels, can produce the same address. ∎
 
 *Formal Contract:*
-- *Preconditions:* β₁, β₂ are distinct baptismal acts in a system conforming to B0★ (which subsumes B0), B0a, B1, B4, and B7; β₁ produces a in namespace (p, d) and β₂ produces b in namespace (p', d'), where both (p, d) and (p', d') satisfy B6.
-- *Postconditions:* `a ≠ b`.
+- *Preconditions:* β₁, β₂ are distinct *co-reachable* baptismal acts — both lie on one transition path s_init →* s for some reachable s — in a system conforming to B0★ (which subsumes B0), B0a, B1, B4, and B7; β₁ produces a in namespace (p, d) and β₂ produces b in namespace (p', d'), where both (p, d) and (p', d') satisfy B6.
+- *Postconditions:* `a ≠ b`. (The claim is scoped to co-reachable acts: two baptisms on incomparable branches of the reachability relation may compute the same address, but are never jointly observed in any reachable state.)
 
 
 ## Unbounded growth
@@ -583,7 +591,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | S(p,d) | Sibling stream: c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0) | from TA5(b), TA5(c), TA5(d) |
 | hwm(B,p,d) | High water mark: #children(B, p, d) — sufficient allocation statistic | from B1, S0 |
 | next(B,p,d) | Next address: if children = ∅ then inc(p, d) else inc(max(children), 0) | from TA5(c), TA5(d), T1 |
-| Bop | baptize(p, d): PRE B6; STRUCT B4 (invariant of Σ, not per-call); POST s'.B = s.B ∪ {next(s.B, p, d)}; FRAME constrains s.B only, silent on other components (incl. ASN-0034's Act, nₛ) | from B0, B1, B4, B6, B7, B0a, B10, TA5, TA5a |
+| Bop | baptize(p, d): PRE B6; STRUCT B4 (invariant of Σ, not per-call); POST s'.B = s.B ∪ {next(s.B, p, d)}; FRAME modifies only s.B | from B0, B1, B4, B6, B7, B0a, B10, TA5, TA5a |
 | S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from TA5(a), T1 |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
 | S2 | `#p ≥ 2 ∧ p_{#p} = 0 ⟹ S(p, 1) = S(p′, 2)` (p′ = p without trailing zero) — trailing-zero stream identity | from TA5(d) |
@@ -599,7 +607,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
-| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from T10a, T10a.6 (S(p,d) is a child-allocator domain), TA5(d), B6 |
+| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from S(p,d), S1, T3, T4/TA5-SigValid, TA5(d), B6 |
 | B8 | Distinct baptisms produce distinct addresses — global uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))` — unbounded extent | from T0(a), B1, B2, B4, B6, Bop, TA5(c), TA5(d) |
 | B10 | `(A t ∈ s.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
