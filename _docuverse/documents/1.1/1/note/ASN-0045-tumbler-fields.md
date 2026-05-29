@@ -22,17 +22,17 @@ For any tumbler t, T4-valid(t) (T4, ASN-0034) means t parses as a well-formed ad
 
 **Element** — `Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3`.
 
-Each predicate is a one-place proposition on the tumbler carrier T (T0, ASN-0034). The definitions are total: for any t : T, T4-valid(t) is a well-formed proposition (T4, ASN-0034) and zeros(t) is a natural number (T4 + NAT-card, ASN-0034), so each conjunction is a well-formed proposition without precondition.
+Each predicate is a one-place proposition on the tumbler carrier T (T0, ASN-0034). The definitions are total: for any t : T, T4-valid(t) is a well-formed proposition (T4, ASN-0034) and zeros(t) is a natural number — the cardinality of a finite index set over T0's carrier ℕ, where T4 (ASN-0034) defines zeros(t) — so each conjunction is a well-formed proposition without precondition.
 
 ## Well-Definedness
 
-T4c carries two postconditions on the T4-valid subdomain: *Exhaustion* (zeros(t) ∈ {0, 1, 2, 3}) and *Pairwise extensional disjointness* of the four level cases. We derive Partition as a corollary in three steps.
+Two facts about the T4-valid subdomain drive the corollary: T4's axiom bounds zeros(t) ≤ 3 (T4, ASN-0034), and the map zeros(t) → level is a bijection (T4c, ASN-0034) that names each zeros-class as one of node/account/document/element. We derive Partition as a corollary in three steps.
 
 *Binding.* Fix t : T with T4-valid(t). By the definitions above, each of Node(t), Account(t), Document(t), Element(t) reduces to `zeros(t) = k` for k ∈ {0, 1, 2, 3} respectively.
 
-*At-least-one.* By T4c's Exhaustion, zeros(t) ∈ {0, 1, 2, 3}, so at least one of the four equalities zeros(t) = k holds, hence at least one of the four predicates holds at t.
+*At-least-one.* T4's axiom gives zeros(t) ≤ 3 (T4, ASN-0034), and zeros(t) ∈ ℕ (a cardinality over T0's carrier), so zeros(t) ∈ {0, 1, 2, 3}. Hence at least one of the four equalities zeros(t) = k holds, so at least one of the four predicates holds at t.
 
-*At-most-one.* T4c's *Definition* slot supplies the biconditional `(zeros(t) = k ↔ Lₖ(t))` at T4-valid t for each k ∈ {0, 1, 2, 3}, where L₀, L₁, L₂, L₃ name the label predicates *node address*, *user address*, *document address*, *element address*. Combined with the *Binding* step, this gives `Pₖ(t) ⟺ Lₖ(t)` at T4-valid t, where P₀, P₁, P₂, P₃ are Node, Account, Document, Element. By T4c's *Pairwise extensional disjointness*, for distinct i, j ∈ {0, 1, 2, 3} the conjunction `Lᵢ(t) ∧ Lⱼ(t)` fails. Chaining biconditionals, `Pᵢ(t) ∧ Pⱼ(t) ⟹ Lᵢ(t) ∧ Lⱼ(t)` — contradiction. So no two of Node(t), Account(t), Document(t), Element(t) hold simultaneously.
+*At-most-one.* zeros(t) is a single natural number, so it equals at most one of the distinct numerals 0, 1, 2, 3: by NAT-order's trichotomy (ASN-0034), distinct naturals are unequal, so e.g. `zeros(t) = 0` and `zeros(t) = 1` cannot both hold. Each of Node, Account, Document, Element is defined as `zeros(t) = k` for a distinct k, so no two hold simultaneously at t. The disjointness rests only on the functionality of zeros(t) and the distinctness of the numerals; T4c's bijection zeros(t) → level (ASN-0034) is what licenses reading the four zeros-classes as the node/account/document/element levels.
 
 Combining the two yields the Partition postcondition:
 
@@ -68,7 +68,7 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 
 - *Preconditions.* None (predicate is total on T).
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0 (carrier), T4 (T4-valid), T4c (zeros range), NAT-zero (the constant 0).
+- *Depends.* T0 (carrier ℕ; the constant 0 ∈ ℕ), T4 (T4-valid; axiom zeros(t) ≤ 3), T4c (level naming).
 - *Postcondition.* `(A t : T :: Node(t) ⟺ T4-valid(t) ∧ zeros(t) = 0)`.
 
 **Account** (`Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1`)
@@ -84,22 +84,22 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4 (T4-valid; *Numerals* clause defining `2 := 1 + 1`), T4c, NAT-closure (`1 ∈ ℕ` and addition closure grounding T4's numeral definition in ℕ).
+- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `2 := 1 + 1`).
 - *Postcondition.* `(A t : T :: Document(t) ⟺ T4-valid(t) ∧ zeros(t) = 2)`.
 
 **Element** (`Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3`)
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4 (T4-valid; *Numerals* clause defining `3 := 2 + 1`), T4c, NAT-closure (`1 ∈ ℕ` and addition closure grounding T4's numeral definitions in ℕ).
+- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `3 := 2 + 1`).
 - *Postcondition.* `(A t : T :: Element(t) ⟺ T4-valid(t) ∧ zeros(t) = 3)`.
 
 **Partition**
 
 - *Preconditions.* None.
 - *Definition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))`, where `exactly-one-of(P₁, P₂, P₃, P₄) ≡ (P₁ ∨ P₂ ∨ P₃ ∨ P₄) ∧ (A i, j : 1 ≤ i < j ≤ 4 :: ¬(Pᵢ ∧ Pⱼ))`.
-- *Depends.* Node, Account, Document, Element (definitions above), T4c (Exhaustion + Pairwise extensional disjointness).
-- *Postcondition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` — derived by combining T4c's *Exhaustion* (zeros(t) ∈ {0, 1, 2, 3}) for the at-least-one direction with T4c's *Pairwise extensional disjointness* for the at-most-one direction, per the *Well-Definedness* derivation above.
+- *Depends.* Node, Account, Document, Element (definitions above), T4 (axiom zeros(t) ≤ 3, for at-least-one), T4c (bijection zeros(t) → level, for the level naming), NAT-order (distinctness of the numerals, for at-most-one).
+- *Postcondition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` — derived by combining T4's axiom zeros(t) ≤ 3 with zeros(t) ∈ ℕ (giving zeros(t) ∈ {0, 1, 2, 3}) for the at-least-one direction, and the functionality of zeros(t) with NAT-order's distinctness of the numerals 0, 1, 2, 3 for the at-most-one direction, per the *Well-Definedness* derivation above. T4c's bijection zeros(t) → level supplies the level names.
 
 ## Summary
 
@@ -109,4 +109,4 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 | Account | `Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1` | derived from T4c; on T4-valid t, equivalent to T4c's *user address* |
 | Document | `Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2` | derived from T4c |
 | Element | `Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3` | derived from T4c |
-| Partition | `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` | derived from T4c (Exhaustion + Pairwise extensional disjointness) |
+| Partition | `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` | derived from T4 (zeros ≤ 3) + functionality of zeros + NAT-order; levels named via T4c |
