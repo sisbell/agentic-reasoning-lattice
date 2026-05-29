@@ -8,6 +8,9 @@ CLI scripts and a future daemon both invoke the runner; only the
 scope and termination policy differ.
 """
 
+from .dag_partition import (
+    build_dep_map, compute_active_ready_partition, has_fireable_trigger,
+)
 from .run import RunResult, run_force_pass, run_until_quiescent
 from .scope import Scope, asn, asn_note_addr, cone
 from .trigger import Trigger
@@ -18,7 +21,10 @@ __all__ = [
     "Trigger",
     "asn",
     "asn_note_addr",
+    "build_dep_map",
+    "compute_active_ready_partition",
     "cone",
+    "has_fireable_trigger",
     "run_force_pass",
     "run_until_quiescent",
 ]

@@ -36,7 +36,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib import triggers as triggers_module
-from lib.runner import Scope, Trigger, run_until_quiescent
+from lib.runner import (
+    Scope, Trigger, compute_active_ready_partition, run_until_quiescent,
+)
 
 
 NOTE_CYCLE_TRIGGER_NAMES = (
@@ -74,89 +76,10 @@ def _parse_asn(raw: str) -> str:
     return format_label(int(digits))
 
 
-def _has_fireable_trigger(session, asn_label: str, triggers: list) -> bool:
-    """True iff at least one (trigger, addr) pair in this ASN's scope has
-    an unsatisfied predicate — i.e., the runner would fire something on
-    this ASN. Early-exits on the first fire-able pair to keep the check
-    cheap.
-    """
-    scope = Scope(asn_label=asn_label)
-    for trig in triggers:
-        for addr in trig.scope_query(session, scope):
-            if not trig.predicate(session, addr):
-                return True
-    return False
-
-
-def _build_dep_map(session, asn_labels: list[str]) -> dict[str, set[str]]:
-    """Walk substrate `citation.depends` links and return a map from each
-    ASN to the set of ASNs it directly depends on, restricted to the
-    given asn_labels set.
-
-    Self-loops are excluded. Targets that map to ASNs outside the given
-    set are excluded (they don't block partition readiness).
-    """
-    from lib.backend.predicates import active_links
-    state = session.store
-    asn_set = set(asn_labels)
-    asn_pat = re.compile(r"(ASN-\d{4})")
-    deps: dict[str, set[str]] = {a: set() for a in asn_labels}
-    for link in active_links(state, "citation.depends"):
-        from_asns: set[str] = set()
-        to_asns: set[str] = set()
-        for a in link.from_set:
-            p = state.path_for_addr(a)
-            if p:
-                m = asn_pat.search(p)
-                if m and m.group(1) in asn_set:
-                    from_asns.add(m.group(1))
-        for a in link.to_set:
-            p = state.path_for_addr(a)
-            if p:
-                m = asn_pat.search(p)
-                if m and m.group(1) in asn_set:
-                    to_asns.add(m.group(1))
-        for f in from_asns:
-            for t in to_asns:
-                if f != t:
-                    deps[f].add(t)
-    return deps
-
-
-def _compute_active_ready_partition(
-    session, all_asn_labels: list[str], triggers: list,
-    partition_index: int, partition_total: int,
-) -> tuple[set[str], list[str], list[str]]:
-    """Two-pass filter for partition-time DAG-honoring scheduling.
-
-    Returns (active_set, ready_topo, partition_for_this_worker):
-      active_set       — every ASN that has at least one fire-able trigger
-      ready_topo       — active ASNs whose declared deps are all NOT in
-                         active_set (deps are stable), preserving the
-                         input topo order
-      partition_for_this_worker — round-robin slice of ready_topo
-
-    The two-clause filter is what makes the partition DAG-safe: a
-    downstream note enters ready only when every dep has settled.
-    Foundations therefore process first; dependents pick up on the
-    outer pass after their foundations drop out of the active set.
-    """
-    active_set = {
-        label for label in all_asn_labels
-        if _has_fireable_trigger(session, label, triggers)
-    }
-    if not active_set:
-        return active_set, [], []
-    deps = _build_dep_map(session, all_asn_labels)
-    ready_topo = [
-        a for a in all_asn_labels
-        if a in active_set and not (deps[a] & active_set)
-    ]
-    partition_slice = [
-        ready_topo[i] for i in range(len(ready_topo))
-        if i % partition_total == partition_index
-    ]
-    return active_set, ready_topo, partition_slice
+# DAG-honoring partition helpers (has_fireable_trigger, build_dep_map,
+# compute_active_ready_partition) live in lib/runner/dag_partition.py
+# and are re-exported via lib.runner so the dag_status diagnostic can
+# share the same logic.
 
 
 def _active_notes_topo_sorted() -> list[str]:
@@ -406,7 +329,7 @@ def main() -> int:
             from lib.shared.paths import LATTICE
             with open_session(LATTICE) as filter_session:
                 active_set, ready_topo, asn_labels = (
-                    _compute_active_ready_partition(
+                    compute_active_ready_partition(
                         filter_session, all_asn_labels, triggers,
                         partition_index, partition_total,
                     )

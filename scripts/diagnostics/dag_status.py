@@ -27,7 +27,7 @@ from lib import triggers as triggers_module
 from lib.backend.predicates import active_links
 from lib.predicates import is_retired
 from lib.protocols.febe.session import open_session
-from lib.runner import Trigger
+from lib.runner import Trigger, compute_active_ready_partition
 from lib.shared.paths import LATTICE
 
 
@@ -173,28 +173,59 @@ def _note_title_for(asn: str) -> str:
     return m.group(1).strip().strip('"').strip("'")
 
 
-def _print_partitions(order: list[str], states: dict[str, str], n_workers: int) -> None:
-    """Show how the topo-sorted ASN list would split across N workers
-    using a round-robin partition. Round-robin spreads workload across
-    workers regardless of pending/quiescent imbalance — the foundation
-    is in worker 0, layer-1 spread across workers, etc.
+def _print_partitions(
+    session, order: list[str], states: dict[str, str],
+    triggers: list, n_workers: int,
+) -> None:
+    """Show what each worker will actually do on the first outer pass
+    of the next scheduler run, using the same two-clause filter the
+    scheduler uses:
 
-    Per-partition: list ASNs in topo order with state summary.
+      active  = ASNs with at least one fire-able trigger
+      ready   = active ∧ no declared dep is also active
+      partition = round-robin slice of ready per worker
+
+    This is NOT a simple round-robin over the topo-sorted list — the
+    DAG-honoring filter excludes downstream ASNs whose foundations are
+    still active. Those dependents enter ready on a later outer pass
+    after the upstream settles.
     """
     if n_workers <= 0:
         return
     print()
-    print(f"  Partition preview ({n_workers} workers, round-robin):")
+
+    # Compute the same active/ready set the scheduler will see. Single
+    # filter call gives us the canonical sets; per-worker we slice.
+    active_set, ready_topo, _ = compute_active_ready_partition(
+        session, order, triggers, 0, n_workers,
+    )
+
+    if not active_set:
+        print(f"  Partition preview ({n_workers} workers): all ASNs "
+              f"quiescent — no work this pass.")
+        return
+
+    deferred = sorted(active_set - set(ready_topo))
+
+    print(f"  Partition preview ({n_workers} workers, DAG-honoring filter):")
+    print(f"    active total: {len(active_set)} ASNs")
+    print(f"    ready this pass: {len(ready_topo)} "
+          f"({', '.join(a.replace('ASN-', '') for a in ready_topo) or '(none)'})")
+    if deferred:
+        print(f"    deferred (dep active): {len(deferred)} "
+              f"({', '.join(a.replace('ASN-', '') for a in deferred)})")
     print()
     for w in range(n_workers):
-        partition = [order[i] for i in range(w, len(order), n_workers)]
+        partition = [
+            ready_topo[i] for i in range(len(ready_topo))
+            if i % n_workers == w
+        ]
         if not partition:
+            print(f"    worker {w}: empty this pass "
+                  f"(waiting on upstream)")
             continue
-        pending = sum(1 for a in partition if states.get(a) == "pending")
-        quiescent = sum(1 for a in partition if states.get(a) == "quiescent")
         asn_str = ", ".join(a.replace("ASN-", "") for a in partition)
-        print(f"    worker {w}: {len(partition)} ASNs "
-              f"({pending} pending, {quiescent} quiescent)")
+        print(f"    worker {w}: {len(partition)} ASN(s) ready")
         print(f"      {asn_str}")
         print()
 
@@ -289,7 +320,7 @@ def main() -> int:
     print(f"  {len(order)} active notes in DAG walk order.")
 
     if args.workers > 0:
-        _print_partitions(order, states, args.workers)
+        _print_partitions(session, order, states, triggers, args.workers)
 
     return 0
 
