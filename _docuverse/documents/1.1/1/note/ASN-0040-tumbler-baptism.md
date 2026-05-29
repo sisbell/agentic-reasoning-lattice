@@ -92,17 +92,6 @@ As a consequence, since every cₙ extends p, the entire stream lies within the 
 
 Nelson describes exactly this process: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right." The word "successive" is precise — positions arrive in order, c₁ before c₂ before c₃. "Items 2.1, 2.2, 2.3, 2.4... are successive items being placed under 2." The stream is traversed monotonically, not sampled.
 
-One structural identity of the stream construction relates a depth-1 stream under a trailing-zero parent to a depth-2 stream under its truncation: a parent ending in a trailing zero generates the same stream at depth 1 as its truncation does at depth 2.
-
-**S2 (Trailing-Zero Stream Identity).** Let p ∈ T with #p ≥ 2 and p_{#p} = 0, and let p′ be p with its final component removed (#p′ = #p − 1 ≥ 1, p′ᵢ = pᵢ for 1 ≤ i ≤ #p − 1). The length bound #p ≥ 2 guarantees p′ ∈ T (T0 requires #p′ ≥ 1); among trailing-zero parents the only length-1 case is [0]. Then S(p, 1) = S(p′, 2).
-
-*Proof.* The first element of S(p, 1) is c₁ = inc(p, 1); by TA5(d) with d − 1 = 0 intermediate zeros, c₁ has length #p + 1 with positions 1 through #p preserved from p and position #p + 1 set to 1, so c₁ = [p₁, ..., p_{#p−1}, 0, 1] (using p_{#p} = 0). The first element of S(p′, 2) is c′₁ = inc(p′, 2); by TA5(d) with one intermediate zero, c′₁ has length #p′ + 2 = #p + 1 with positions 1 through #p′ = #p − 1 preserved from p′, position #p′ + 1 = #p set to 0 (the separator), and position #p′ + 2 = #p + 1 set to 1, so c′₁ = [p₁, ..., p_{#p−1}, 0, 1]. Component-by-component, c₁ = c′₁. Both streams share the deterministic recurrence cₙ₊₁ = inc(cₙ, 0), so they coincide: S(p, 1) = S(p′, 2). ∎
-
-*Formal Contract:*
-- *Preconditions:* p ∈ T, #p ≥ 2, p_{#p} = 0; p′ = [p₁, ..., p_{#p−1}] (so p′ ∈ T).
-- *Postconditions:* S(p, 1) = S(p′, 2).
-- *Axiom:* TA5(d) (child structure), deterministic stream recurrence.
-
 
 ## Depth and field structure
 
@@ -161,7 +150,7 @@ Condition (i) supplies a T4-valid parent; given that, conditions (ii) and (iii) 
 
 At most three level crossings can occur in a valid address chain: node → user, user → document, document → element. This is the four-field structure of T4, now visible as a consequence of baptism depth arithmetic rather than an independent syntactic constraint.
 
-*Proof.* The theorem is: given a T4-valid parent (i), conditions (ii) and (iii) are necessary and sufficient for stream T4-preservation. We prove sufficiency (all three conditions imply T4 preservation) and then necessity of (ii) and (iii). We then record, for completeness, why a non-T4 parent breaks the stream — establishing that (i) too is required for stream validity, save for one boundary case (pure trailing zero at d = 1) where stream validity does not force it; that case is taken up in the design rationale following the proof.
+*Proof.* The theorem is: given a T4-valid parent (i), conditions (ii) and (iii) are necessary and sufficient for stream T4-preservation. We prove sufficiency (all three conditions imply T4 preservation) and then necessity of (ii) and (iii).
 
 **(⟸) Sufficiency.** Assume (i) p satisfies T4, (ii) d ∈ {1, 2}, and (iii) zeros(p) + (d − 1) ≤ 3. We show every element of S(p, d) satisfies T4.
 
@@ -169,25 +158,17 @@ For the first child c₁ = inc(p, d): TA5a (IncrementPreservesT4, ASN-0034) stat
 
 For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states that inc(t, 0) satisfies T4 for any T4-valid t with no further constraint — sibling increment modifies only position sig(t), advancing a positive value by one (TA5(c)), so no zeros are added and no new adjacencies are introduced. Since c₁ satisfies T4, and each sibling increment preserves T4, by induction every cₙ satisfies T4.
 
-**(⟹) Necessity (of (ii) and (iii), given (i)).** Violating condition (ii) or (iii) produces a T4 violation in the stream. After these, we record the necessity of (i) for stream validity: every non-T4 parent breaks the stream except the pure-trailing-zero parent at d = 1, which leaves the stream T4-valid and is deferred to the design rationale.
+**(⟹) Necessity (of (ii) and (iii), given (i)).** Violating condition (ii) or (iii) produces a T4 violation in the stream.
 
 *Condition (ii) is necessary for T4.* Let d ≥ 3. By TA5(d), inc(p, d) appends d − 1 ≥ 2 zeros followed by 1. Positions #p + 1 and #p + 2 are both zero — adjacent zeros that parse as two consecutive field separators enclosing an empty field, violating T4's non-empty-field constraint. No choice of p avoids this: the adjacent zeros lie in the appended suffix, independent of p's content.
 
-*Condition (iii) is necessary at d = 2.* Let zeros(p) + (d − 1) > 3 with p satisfying T4. By B5, zeros(c₁) = zeros(p) + (d − 1) > 3. But T4 requires zeros(t) ≤ 3 for any valid address — at most three field separators for the four-level hierarchy. The first child already exceeds the zero budget, so c₁ violates T4.
+*Condition (iii) is necessary at d = 2.* Let zeros(p) + (d − 1) > 3 with p satisfying T4. By B5, zeros(c₁) = zeros(p) + (d − 1) > 3. But T4 requires zeros(t) ≤ 3 for any valid address — at most three field separators for the four-level hierarchy. The first child already exceeds the zero budget, so c₁ violates T4. ∎
 
-*Condition (i) for stream validity: case split on p's defect.* Let p violate T4 with d ∈ {1, 2}. A T4 violation is the failure of at least one of T4's four clauses: the zero-count bound zeros(t) ≤ 3, the no-adjacent-zeros constraint, the leading-component constraint t₁ ≠ 0, and the trailing-component constraint t_{#t} ≠ 0. If p violates the count bound (zeros(p) > 3), or has a defect among the positions preserved into c₁ by TA5(b) — the leading position when p₁ = 0 (which coincides with the trailing position #p only in the singleton case p = [0]), or an interior adjacent-zero defect at positions 1 through #p − 1 — then the defect propagates into every stream element (case (a) below). Otherwise p's only defect is a clean trailing zero with p₁ > 0 and zeros(p) ≤ 3 (case (b)): at d = 2 this produces a stream violation, while at d = 1 the stream remains T4-valid, so stream validity alone does not force (i) — that boundary is taken up in the design rationale. These exhaust the four clauses: count failures and any leading or interior failure route to (a), and a trailing-only failure routes to (b).
-
-*(a) Count violation or defect in p's preserved prefix: zeros(p) > 3, or some T4 defect at positions 1 through #p − 1 of p, or p₁ = 0 (the leading-zero case, including the singleton p = [0] in which leading and trailing positions coincide).* By TA5(b), inc(p, d) preserves positions 1 through #p. For a positional defect (leading or interior), each defective position of p survives unchanged into c₁ at the same index. Each subsequent cₙ₊₁ = inc(cₙ, 0) modifies only position sig(cₙ) = #p + d > #p (since d ≥ 1), leaving positions 1 through #p untouched. By induction, every stream element carries the defect. For example, with p = [0, 1, 2] (leading zero, #p = 3): c₁ = inc([0, 1, 2], 1) = [0, 1, 2, 1], and (cₙ)₁ = 0 for all n ≥ 1, violating T4's t₁ ≠ 0 requirement; the singleton p = [0] is the same positional witness specialized to #p = 1. For a count violation (zeros(p) > 3, with no single position individually defective — e.g. p = [1, 0, 1, 0, 1, 0, 1, 0, 1], four non-adjacent interior zeros), the propagation is by zero count rather than by a fixed position: TA5(b) preserves all of p's positions into c₁, so c₁ carries every zero of p plus the d − 1 ≥ 0 separators TA5(d) inserts, giving zeros(c₁) = zeros(p) + (d − 1) ≥ zeros(p) > 3 (B5). Sibling increments add no zeros — by B5a, zeros(cₙ) = zeros(c₁) for every n ≥ 1, since sibling increment advances only the positive ordinal at sig(cₙ) — so every stream element has zeros(cₙ) > 3, violating T4's zeros(t) ≤ 3 clause throughout the stream.
-
-*(b) Pure trailing zero as the sole T4 defect: p_{#p} = 0, p₁ > 0, zeros(p) ≤ 3, no adjacent zeros in p (which forces #p ≥ 2, since p₁ > 0 = p_{#p} requires the leading and trailing positions to be distinct).* Here p fails only T4's t_{#t} ≠ 0 clause. When d = 2, every stream element violates T4 — by a propagation argument structurally distinct from sub-case (a). The defect does not preexist in p's interior; it arises within c₁ itself from the union of p's trailing zero and the separator TA5(d) inserts. By TA5(b), c₁ preserves positions 1 through #p of p, so (c₁)_{#p} = p_{#p} = 0. By TA5(d) with d = 2, c₁ has length #p + 2 and the intermediate position #p + 1 holds the field separator with value 0. Therefore (c₁)_{#p} = 0 and (c₁)_{#p+1} = 0 — adjacent zeros at positions #p and #p + 1 of c₁, violating T4's non-empty-field constraint (T4(ii) at i = #p). To propagate this to every cₙ, we show position #p + 1 is never modified by sibling increments. By S(p, 2), sig(cₙ) = #p + 2 for all n ≥ 1, and position #p + 1 satisfies #p + 1 < #p + 2 = sig(cₙ), so it is invariant across the stream (TA5(c) modifies only sig(cₙ)). Hence (cₙ)_{#p} = 0 and (cₙ)_{#p+1} = 0 for every n ≥ 1, and every stream element carries the same adjacent-zero violation as c₁.
-
-At d = 1, by contrast, the stream remains fully T4-valid: by S2, a pure-trailing-zero parent p at d = 1 generates the same stream as the namespace obtained by dropping p's trailing zero and incrementing the depth, e.g. S([1, 0], 1) = S([1], 2) = {[1, 0, n] : n ≥ 1}. Stream validity therefore does not force (i) in this boundary case; the design rationale below records why the validity definition excludes such parents nonetheless. ∎
-
-*Design rationale for condition (i) at the d = 1 boundary.* The theorem above leaves one gap: a pure-trailing-zero parent at d = 1 produces a T4-valid stream, so stream validity alone would admit it. We require (i) anyway to keep distinct B6-valid pairs from aliasing the same stream. Were (i) dropped, ([1, 0], 1) and ([1], 2) would be two distinct pairs both satisfying (ii) and (iii) yet, by S2, producing the identical stream {[1, 0, n] : n ≥ 1}. Condition (i) breaks the tie: of the two, S2's truncation ([1], 2) carries a T4-valid parent while ([1, 0], 1) does not, so (i) admits exactly one. This is what makes namespace disjointness (used downstream by B7 and B8) achievable; it is a definitional choice, not a consequence of stream T4-validity.
+Condition (i) is imposed by definition, not forced by stream validity: a pure-trailing-zero parent at d = 1 yields a T4-valid stream, yet we exclude it to break the aliasing whereby such a parent and its truncation at d = 2 generate the identical stream — e.g. ([1, 0], 1) and ([1], 2) both produce {[1, 0, n] : n ≥ 1}. Requiring (i) admits exactly one of each such pair, the disambiguation that makes namespace disjointness (B7) well-posed.
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1.
-- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity, given a T4-valid parent (i): violating (ii) or (iii) forces a stream T4 violation. A non-T4 parent also breaks stream validity, except the pure-trailing-zero parent at d = 1, which leaves the stream T4-valid (S2) and is excluded by design rather than by stream necessity.
+- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity, given a T4-valid parent (i): violating (ii) or (iii) forces a stream T4 violation. Condition (i) itself is imposed by definition, not forced by stream validity — it disambiguates the d = 1 / d = 2 stream aliasing.
 
 
 ## Namespace disjointness
@@ -539,7 +520,6 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | Bop | baptize(p, d): PRE B6; STRUCT B4; POST s'.B = s.B ∪ {next(s.B, p, d)}; FRAME modifies only s.B | from B0a, B4, B6, B_fin, next def., S0, TA5(a) |
 | S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from TA5(a), T1 |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
-| S2 | `#p ≥ 2 ∧ p_{#p} = 0 ⟹ S(p, 1) = S(p′, 2)` (p′ = p without trailing zero) — trailing-zero stream identity | from TA5(d) |
 | B0 | `s.B ⊆ s'.B` for all transitions — irrevocability (analogous to T8 for the registry component) | from B0a |
 | B0★ | `s.B ⊆ s'.B` for all s →* s' (reflexive-transitive closure of transitions) — multi-step irrevocability | labelled corollary of B0 |
 | B0a | Σ partitions into baptismal operations (the `baptize(p, d)` for B6-valid (p, d), each acting on s.B as in Bop) and s.B-frame operations (every other op satisfies `op(s).B = s.B`) — registry grows only through baptism | design requirement |
