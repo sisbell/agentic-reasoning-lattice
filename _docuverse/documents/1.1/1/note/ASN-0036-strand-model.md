@@ -144,32 +144,32 @@ Gregory confirms the unbounded nature at the implementation level. The global in
 
 S4 and S5 together make quotation a first-class structural relationship: any number of documents can quote the same passage, and the system knows they are all quoting — not independently writing — because they share I-addresses.
 
-*Proof.* We wish to show that for every `N ∈ ℕ`, there exists a state `Σ` satisfying S0–S3 in which some I-address has sharing multiplicity exceeding `N`. We give two constructions — one for cross-document sharing, one for within-document sharing — each succeeding for arbitrary `N`. In both, S0 and S1 are transition invariants (`Σ → Σ'`): they constrain transitions only and impose no condition on an isolated state. The existence claim is about an achievable state, so each construction need only verify the genuine state predicates S2 and S3 together with the multiplicity count.
+*Proof.* We wish to show that for every `N ∈ ℕ`, there exists a genuine strand state `Σ` in which some I-address has sharing multiplicity exceeding `N`. We give two constructions — one for cross-document sharing, one for within-document sharing — each succeeding for arbitrary `N`. S0 and S1 are transition invariants (`Σ → Σ'`): they constrain transitions only and impose no condition on an isolated state. The remaining requirements are state-level: the genuine state predicates S2 and S3, plus the always-on well-formedness invariants the model imposes on every state — S7b (`zeros(a) = 3` for every `a ∈ dom(Σ.C)`), the domain-restriction axiom on `Σ.M(d)` (`zeros(v) = 0 ∧ #v ≥ 2`, equivalently S8a), and S8-fin (finite arrangements). Each construction verifies all of these together with the multiplicity count, so the witnessing states are genuine strand states, not bare models of S0–S3.
 
 **Cross-document construction.** Fix `N ∈ ℕ`. Define state `Σ_N = (C_N, M_N)` by:
 
-- `C_N = {a ↦ w}` for a single I-address `a` and arbitrary value `w ∈ Val`.
-- `N + 1` documents `d₁, …, d_{N+1}` with explicit witnesses `dᵢ = [1, 0, 1, 0, i]` for `i = 1, …, N + 1`. The `dᵢ` are pairwise distinct by T3 (CanonicalRepresentation, ASN-0034) since they have distinct last components — all S5 requires of them, since S0–S3 treat `d` only as an index into `M`. Fix a single V-position `v = [1, 1]` shared across all `N + 1` documents, and define each arrangement as `M_N(dᵢ) = {v ↦ a}`. The pairs `(dᵢ, v)` are distinct since the `dᵢ` are distinct.
+- `C_N = {a ↦ w}` for the explicit element-level I-address `a = [1, 0, 1, 0, 1, 0, 1, 1]` and arbitrary value `w ∈ Val`.
+- `N + 1` documents `d₁, …, d_{N+1}` with explicit witnesses `dᵢ = [1, 0, 1, 0, i]` for `i = 1, …, N + 1`. The `dᵢ` are pairwise distinct by T3 (CanonicalRepresentation, ASN-0034) since they have distinct last components — all S5 requires of them, since the state predicates treat `d` only as an index into `M`. Fix a single V-position `v = [1, 1]` shared across all `N + 1` documents, and define each arrangement as `M_N(dᵢ) = {v ↦ a}`. The pairs `(dᵢ, v)` are distinct since the `dᵢ` are distinct.
 
-We verify each invariant. S2 (arrangement functionality): each `M_N(dᵢ)` contains a single entry `{v ↦ a}` — the domain has one element, so uniqueness of the image is immediate; `M_N(dᵢ)` is a function. S3 (referential integrity): the sole I-address referenced by any arrangement is `a`, and `a ∈ dom(C_N)` by construction.
+We verify each invariant. S2 (arrangement functionality): each `M_N(dᵢ)` contains a single entry `{v ↦ a}` — the domain has one element, so uniqueness of the image is immediate; `M_N(dᵢ)` is a function. S3 (referential integrity): the sole I-address referenced by any arrangement is `a`, and `a ∈ dom(C_N)` by construction. S7b (element-level I-addresses): `a = [1, 0, 1, 0, 1, 0, 1, 1]` has exactly three zero components (positions 2, 4, 6), so `zeros(a) = 3`, and `dom(C_N) = {a}` contains only this address. Domain-restriction axiom on `M_N(dᵢ)`: the sole active V-position `v = [1, 1]` satisfies `zeros(v) = 0` and `#v = 2 ≥ 2`; equivalently (S8a) both components are positive and `#v ≥ 2`. S8-fin: each `dom(M_N(dᵢ))` is the singleton `{v}` and `dom(C_N)` is the singleton `{a}`, all finite. Thus `Σ_N` is a genuine strand state.
 
 The sharing multiplicity of `a` in `Σ_N` is `|{(d, v) : v ∈ dom(M_N(d)) ∧ M_N(d)(v) = a}| = N + 1`, since each of the `N + 1` documents contributes exactly one pair `(dᵢ, v)` (with the same fixed `v = [1, 1]` across all `i`). Thus the multiplicity exceeds `N`.
 
 **Within-document construction.** Fix `N ∈ ℕ`. Define state `Σ'_N = (C'_N, M'_N)` by:
 
-- `C'_N = {a ↦ w}` for a single I-address `a` and arbitrary value `w ∈ Val`.
-- One document `d` with `M'_N(d) = {v₁ ↦ a, v₂ ↦ a, …, v_{N+1} ↦ a}` where `vₖ = [1, k]` for `k = 1, …, N + 1` — pairwise distinct V-positions (distinctness follows from distinct last components by T3, ASN-0034).
+- `C'_N = {a ↦ w}` for the explicit element-level I-address `a = [1, 0, 1, 0, 1, 0, 1, 1]` and arbitrary value `w ∈ Val`.
+- One document `d = [1, 0, 1, 0, 1]` with `M'_N(d) = {v₁ ↦ a, v₂ ↦ a, …, v_{N+1} ↦ a}` where `vₖ = [1, k]` for `k = 1, …, N + 1` — pairwise distinct V-positions (distinctness follows from distinct last components by T3, ASN-0034).
 
-We verify each invariant. S2 (arrangement functionality): the `vᵢ` are pairwise distinct by construction (distinct last components, T3 — CanonicalRepresentation, ASN-0034), so each V-position maps to exactly one I-address (namely `a`); `M'_N(d)` is a well-defined function. S3 (referential integrity): the sole referenced I-address `a` satisfies `a ∈ dom(C'_N)` by construction.
+We verify each invariant. S2 (arrangement functionality): the `vᵢ` are pairwise distinct by construction (distinct last components, T3 — CanonicalRepresentation, ASN-0034), so each V-position maps to exactly one I-address (namely `a`); `M'_N(d)` is a well-defined function. S3 (referential integrity): the sole referenced I-address `a` satisfies `a ∈ dom(C'_N)` by construction. S7b: `a = [1, 0, 1, 0, 1, 0, 1, 1]` has `zeros(a) = 3` and `dom(C'_N) = {a}`. Domain-restriction axiom on `M'_N(d)`: every `vₖ = [1, k]` with `k ≥ 1` has `zeros(vₖ) = 0` and `#vₖ = 2 ≥ 2` (equivalently S8a: both components positive, depth ≥ 2). S8-fin: `dom(M'_N(d)) = {v₁, …, v_{N+1}}` and `dom(C'_N) = {a}` are both finite. Thus `Σ'_N` is a genuine strand state.
 
 The within-document sharing multiplicity is `|{v : v ∈ dom(M'_N(d)) ∧ M'_N(d)(v) = a}| = N + 1 > N`.
 
-**Conclusion.** Since both constructions succeed for arbitrary `N ∈ ℕ`, the conjunction S0 ∧ S1 ∧ S2 ∧ S3 is consistent with sharing multiplicity exceeding any given finite bound. No finite cap on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|` is entailed by these invariants — neither across documents nor within a single document. ∎
+**Conclusion.** Since both constructions yield genuine strand states for arbitrary `N ∈ ℕ`, sharing multiplicity exceeding any given finite bound is consistent with the full state model — S0–S3 together with the always-on well-formedness invariants (S7b, the domain-restriction axiom, S8-fin). No finite cap on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|` is entailed by these invariants — neither across documents nor within a single document. ∎
 
 *Formal Contract:*
 - *Preconditions:* `N ∈ ℕ` arbitrary.
-- *Postconditions:* There exists a state `Σ` satisfying S0 (content immutability), S1 (store monotonicity), S2 (arrangement functionality), and S3 (referential integrity) such that for some `a ∈ dom(Σ.C)`, `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N`. The construction works both across documents (multiplicity `N + 1` over `N + 1` documents) and within a single document (multiplicity `N + 1` at `N + 1` distinct V-positions).
-- *Depends:* S0, S1, S2, S3, T0 (ASN-0034), T3 (ASN-0034).
+- *Postconditions:* There exists a genuine strand state `Σ` — satisfying S0 (content immutability), S1 (store monotonicity), S2 (arrangement functionality), S3 (referential integrity), S7b (element-level I-addresses), the domain-restriction axiom on `Σ.M(d)`, and S8-fin (finite arrangements) — such that for some `a ∈ dom(Σ.C)`, `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N`. The construction works both across documents (multiplicity `N + 1` over `N + 1` documents) and within a single document (multiplicity `N + 1` at `N + 1` distinct V-positions).
+- *Depends:* S0, S1, S2, S3, S7b, S8-fin, the domain-restriction axiom, S8a, T0 (ASN-0034), T3 (ASN-0034), T4 (ASN-0034).
 
 
 ## Structural attribution
@@ -239,7 +239,7 @@ The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(
 - *Postconditions:* `|dom(Σ.M(d))| < ∞` — the arrangement has finite cardinality. Consequently `ran(Σ.M(d))` is finite (image of a finite set under a function).
 - *Frame:* No constraint on the unbounded growth of `dom(C)`; only individual arrangements are required to be finite at any given state.
 
-**S8a (V-position componentwise positivity and depth).** Over ℕ (T0), `zeros(v)` (T4) counts the components equal to `0`, so `zeros(v) = 0` iff every component is positive. The domain-restriction axiom also fixes a depth floor `#v ≥ 2`, which S8a re-exports so downstream consumers cite a single carrier for both facts. Hence:
+**S8a (V-position componentwise positivity and depth).** This is the per-component form of the domain-restriction axiom. Over ℕ (T0), `zeros(v)` (T4) counts the components equal to `0`, so `zeros(v) = 0` iff every component is positive; combined with the axiom's depth floor `#v ≥ 2`, this gives:
 
 `(A v ∈ dom(Σ.M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
 
@@ -534,7 +534,7 @@ The lifecycle above exercises the contiguity constraints at depth 2 on every wel
 | S7 | Structural attribution: `origin(a) = N(a).0.U(a).0.D(a)` — full document prefix | from S7a, S7b, S7d, S0, S4, T4, T4b, T3, T10a.4, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
 | Σ.M(d) domain restriction | `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions | axiom (definitional) |
-| S8a | V-position componentwise positivity and depth: `(A v ∈ dom(M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — re-exporting the domain-restriction axiom's `zeros(v) = 0` (per-component form) and `#v ≥ 2` | from the domain-restriction axiom, T0 (ASN-0034) |
+| S8a | V-position componentwise positivity and depth: `(A v ∈ dom(M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — per-component form of the domain-restriction axiom, equivalent by T0 | from the domain-restriction axiom, T0 (ASN-0034) |
 | subspace(v) | V-position subspace identifier: `subspace(v) = v₁`; well-defined when `#v ≥ 1` | introduced; uses T0 (ASN-0034) |
 | S8-depth | Fixed-depth V-positions: `(A d, u, w : u ∈ dom(M(d)) ∧ w ∈ dom(M(d)) ∧ subspace(u) = subspace(w) : #u = #w)` | design; uses S8a |
 | S8 | Singleton span partition: the singleton intervals `[vⱼ, shift(vⱼ, 1))` partition the V-positions of `dom(M(d))` (a); labeling `vⱼ ↦ aⱼ = M(d)(vⱼ)` well-defined by S2, S3 (b), defining the labeled partition | theorem (a) from S2, S3, S8-fin, S8a, S8-depth, T1, T3, T5, T10, TumblerAdd, OrdinalShift, OrdinalDisplacement, TS4, NAT-discrete, NAT-closure, NAT-order (ASN-0034); (b) labeling by S2, S3 |
