@@ -30,7 +30,7 @@ We introduce the central state component:
 
 A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed set B₀ ⊆ T of root addresses established at system genesis, subject to the conformance requirement stated at B₀ conf. below. Thereafter it grows monotonically.
 
-**B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed; since a transition `s → s'` is exactly the pair `(s, op(s))` for some `op ∈ Σ`, every edge falls into one of these two classes:
+**B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
 
   - *Baptismal operations.* For each (p, d) satisfying B6 (Valid Depth, below), `baptize(p, d) ∈ Σ` is the operation specified by Bop below; its action on the registry is `op(s).B = s.B ∪ {next(s.B, p, d)}`, adding one new element.
   - *s.B-frame operations.* Every other `op ∈ Σ` preserves the registry: `(A op ∈ Σ \ {baptize(p, d) : B6(p, d)}, s ∈ dom(op) : op(s).B = s.B)`.
@@ -140,7 +140,7 @@ To apply B5a across the sibling stream S(p, d), we discharge its precondition: e
 
 All elements in a stream share the same hierarchical level.
 
-This deserves attention. The `.0.` that appears in addresses like `1.1.0.1.0.1` is not a syntactic convention imposed by a parser — it is a *consequence* of baptism at depth 2. When inc(p, 2) extends p by two components, the first is zero (the field separator, from TA5(d)'s d − 1 = 1 intermediate zero) and the second is 1 (the first child's ordinal). The field structure of tumblers is *produced* by baptism arithmetic.
+The `.0.` that appears in addresses like `1.1.0.1.0.1` is not a syntactic convention imposed by a parser — it is arithmetic output. When inc(p, 2) extends p by two components, the first is zero (the field separator, from TA5(d)'s d − 1 = 1 intermediate zero) and the second is 1 (the first child's ordinal). The depth-2 increment emits the separator and ordinal; the field structure of tumblers is *produced* by baptism arithmetic.
 
 **B6 (Valid Depth).** Baptism at depth d from parent p is valid when:
 
@@ -361,9 +361,7 @@ Baptism reads the high water mark, computes the next address, and commits the re
 
   `(A s ∈ dom(baptize(p, d)) : baptize(p, d)(s) = s' with s'.B = s.B ∪ {next(s.B, p, d)})`
 
-The value `baptize(p, d)(s).B = s.B ∪ {next(s.B, p, d)}` is read against the precondition state s and committed on one edge of the transition relation `→`: there is no intermediate observable state s_mid with `s → s_mid → s'`.
-
-B0a guarantees that no other operation modifies s.B between any two transitions, so within a single Σ-transition the read of `s.B ∩ S(p, d)` is exact. Atomicity is an invariant of the operation vocabulary Σ.
+The value `baptize(p, d)(s).B = s.B ∪ {next(s.B, p, d)}` is read against the precondition state s and committed on one edge of the transition relation `→`: there is no intermediate observable state s_mid with `s → s_mid → s'`. This indivisibility is a primitive structural assumption on Σ — each element of Σ is a single partial function `op : 𝒮 ⇀ 𝒮` whose application is one transition — not a property we derive. The read of `s.B ∩ S(p, d)` is exact because it consults the precondition state s by definition of the operation.
 
 
 ## The baptism operation
