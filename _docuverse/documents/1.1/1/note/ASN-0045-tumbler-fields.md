@@ -82,7 +82,7 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 - *Depends.* T0, T4, T4c, NAT-closure (the constant 1).
 - *Postconditions.*
   - `(A t : T :: Account(t) ⟺ T4-valid(t) ∧ zeros(t) = 1)`.
-  - *Rename equivalence:* `(A t : T : T4-valid(t) :: Account(t) ⟺ t is a user address per T4c)` — derived: fix t : T with T4-valid(t); the definition `Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1` collapses under the T4-valid antecedent to the biconditional `Account(t) ⟺ zeros(t) = 1`; T4c's *Postcondition* (the bijection clause) instantiated at t supplies `zeros(t) = 1 ⟺ t is a user address`; chaining the two biconditionals yields `Account(t) ⟺ t is a user address`. ASN-0045's *account* and T4c's *user address* denote the same predicate on the T4-valid subdomain.
+  - *Rename equivalence:* `(A t : T : T4-valid(t) :: Account(t) ⟺ t is a user address per T4c)` — derived: fix t : T with T4-valid(t); the definition `Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1` collapses under the T4-valid antecedent to the biconditional `Account(t) ⟺ zeros(t) = 1`. Before invoking T4c we discharge its applicability at t: T4c's preconditions are the T4 positional constraints together with T4b (UniqueParse). T4-valid(t) supplies the T4 positional constraints directly, and T3 (CanonicalRepresentation, universal) together with those same constraints supplies T4b at t, so T4c's bijection postcondition is licensed at t. T4c's *Postcondition* (the bijection clause) instantiated at t then supplies `zeros(t) = 1 ⟺ t is a user address`; chaining the two biconditionals yields `Account(t) ⟺ t is a user address`. ASN-0045's *account* and T4c's *user address* denote the same predicate on the T4-valid subdomain.
 
 **Document** (`Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2`)
 
@@ -109,8 +109,8 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| Node | `Node(t) ≡ T4-valid(t) ∧ zeros(t) = 0` | derived from T4c |
-| Account | `Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1` | derived from T4c; on T4-valid t, equivalent to T4c's *user address* |
-| Document | `Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2` | derived from T4c |
-| Element | `Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3` | derived from T4c |
+| Node | `Node(t) ≡ T4-valid(t) ∧ zeros(t) = 0` | definition coined by ASN-0045 (T4, T0); T4c supplies the *node* level name only |
+| Account | `Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1` | definition coined by ASN-0045 (T4, T0); T4c supplies the *account* level name only. Rename equivalence on T4-valid t is derived from T4c: equivalent to T4c's *user address* |
+| Document | `Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2` | definition coined by ASN-0045 (T4, T0); T4c supplies the *document* level name only |
+| Element | `Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3` | definition coined by ASN-0045 (T4, T0); T4c supplies the *element* level name only |
 | Partition | `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` | derived from T4 bound `zeros(t) ≤ 3` + T0 `zeros(t) ≥ 0` (at-least-one) and functionality of zeros (T4) + distinctness of 0,1,2,3 in ℕ (T0) (at-most-one); T4c supplies level names |
