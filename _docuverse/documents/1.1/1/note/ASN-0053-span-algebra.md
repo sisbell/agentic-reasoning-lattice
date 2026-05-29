@@ -245,7 +245,7 @@ A span-set is *normalized* when its components are sorted, non-overlapping, and 
 
 Condition N2 uses strict inequality. If reach(σᵢ) = start(σᵢ₊₁), the spans are adjacent and could be merged — so the form is not yet minimal. If reach(σᵢ) > start(σᵢ₊₁), the spans overlap and must be merged. The normalized form is the irreducible representation: every span is as large as it can be, and no two spans can be combined.
 
-**Definition** (*Mutually level-compatible*). A span-set Σ = ⟨σ₁, ..., σₙ⟩ is *mutually level-compatible* when level_compat(start(σᵢ), start(σⱼ)) holds for all 1 ≤ i, j ≤ n. By S6, this is equivalent to: there exists a single length L with #start(σᵢ) = L for every i. When each component σᵢ is also level-uniform, all boundary tumblers of every span — start(σᵢ), width(σᵢ), reach(σᵢ) — share the common length L, so any pair of distinct endpoints a < b drawn from any pair of spans has #a = #b: divergence is of type (i) with k ≤ #a, and D0 is satisfied.
+**Definition** (*Mutually level-compatible*). A span-set Σ = ⟨σ₁, ..., σₙ⟩ is *mutually level-compatible* when level_compat(start(σᵢ), start(σⱼ)) holds for all 1 ≤ i, j ≤ n. By S6, this is equivalent to: there exists a single length L with #start(σᵢ) = L for every i. When each component σᵢ is also level-uniform, all boundary tumblers of every span — start(σᵢ), width(σᵢ), reach(σᵢ) — share the common length L, so any pair of distinct endpoints a < b drawn from any pair of spans has #a = #b.
 
 **S8** (*NormalizationExistence*). Every span-set Σ whose component spans are level-uniform and mutually level-compatible has a normalized equivalent Σ̂ with Σ̂ ≡ Σ.
 
@@ -332,7 +332,7 @@ When one span contains another, the remainder is always bounded:
 
 **S11** (*DifferenceBound*). For level-uniform spans α and β with level_compat(start(α), start(β)) and ⟦β⟧ ⊆ ⟦α⟧, the set difference ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most two spans.
 
-*Proof.* We first derive the boundary characterization of containment: ⟦β⟧ ⊆ ⟦α⟧ implies start(α) ≤ start(β) and reach(β) ≤ reach(α). For the start: start(β) ∈ ⟦β⟧ ⊆ ⟦α⟧ gives start(α) ≤ start(β) (and, since start(β) ∈ ⟦α⟧, also start(β) < reach(α)). For the reach: suppose for contradiction reach(β) > reach(α). Then start(β) < reach(α) < reach(β), so reach(α) ∈ ⟦β⟧ ⊆ ⟦α⟧, whence reach(α) < reach(α) — contradiction. Hence reach(β) ≤ reach(α). (S11d below derives the symmetric reverse-containment boundary chars at the same rigor.) We now derive the decomposition by element-chasing. Let t ∈ ⟦α⟧, i.e., start(α) ≤ t < reach(α). The total order T1 splits this range into three sub-ranges relative to β's endpoints:
+*Proof.* We first derive the boundary characterization of containment: ⟦β⟧ ⊆ ⟦α⟧ implies start(α) ≤ start(β) and reach(β) ≤ reach(α). For the start: start(β) ∈ ⟦β⟧ ⊆ ⟦α⟧ gives start(α) ≤ start(β) (and, since start(β) ∈ ⟦α⟧, also start(β) < reach(α)). For the reach: suppose for contradiction reach(β) > reach(α). Then start(β) < reach(α) < reach(β), so reach(α) ∈ ⟦β⟧ ⊆ ⟦α⟧, whence reach(α) < reach(α) — contradiction. Hence reach(β) ≤ reach(α). We now derive the decomposition by element-chasing. Let t ∈ ⟦α⟧, i.e., start(α) ≤ t < reach(α). The total order T1 splits this range into three sub-ranges relative to β's endpoints:
 
   (L) start(α) ≤ t < start(β)
   (M) start(β) ≤ t < reach(β)
