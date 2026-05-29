@@ -27,13 +27,21 @@ with k = divergence(a, b). We write w = b ⊖ a and call it the *displacement fr
 
 D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). For equal-length endpoints with a < b and #a = #b, the divergence is of type (i) with k ≤ #a — equal length excludes the prefix case — so D0's domain condition holds, and #a ≤ #b lets D1 (ASN-0034) close the round-trip: a ⊕ (b ⊖ a) = b. The displacement from a to b is recovered faithfully whenever the two endpoints share a length.
 
-This equal-length condition recurs throughout the algebra, so we name it now. Two tumblers are *level-compatible* when they have the same length, and a span σ = (s, ℓ) is *level-uniform* when its start and width share a length, #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity (#(s ⊕ ℓ) = #ℓ). (S6 below states level-compatibility formally as the predicate level_compat, where the consequence that start, width, and reach all share one length is recorded.)
+This equal-length condition recurs throughout the algebra, so we name it now.
+
+**S6** (*LevelConstraint*). Two tumblers t₁ and t₂ are *level-compatible*, written level_compat(t₁, t₂), when they have the same length:
+
+  level_compat(t₁, t₂)  ≡  #t₁ = #t₂
+
+A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity (#(s ⊕ ℓ) = #ℓ), so start, width, and reach all share one tumbler length.
+
+Gregory confirms the implementation enforces this: the split operation requires the cut and the width to share a tumbler length and aborts when this invariant is violated (Q14, Q15).
 
 **WR** (*WidthRecovery*). For a level-uniform span σ = (s, ℓ): reach(σ) ⊖ start(σ) = width(σ).
 
 *Proof.* The reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), D2 (DisplacementUnique, ASN-0034) gives reach(σ) ⊖ start(σ) = ℓ = width(σ), provided its preconditions hold for (a, b, w) = (s, reach(σ), ℓ). We discharge them: s < reach(σ) by TA-strict on T12; ℓ > 0 and its action point k ≤ #s by T12; s ⊕ ℓ = reach(σ) by definition of reach (so TA0's preconditions hold, giving #(s ⊕ ℓ) = #ℓ = #s); the divergence between s and reach(σ) is of type (i) with k ≤ #s, since s < reach(σ) and #s = #reach(σ) excludes the prefix case, satisfying D0; #s ≤ #reach(σ) since both equal #s. Every D2 precondition is met, so reach(σ) ⊖ start(σ) = width(σ).  ∎
 
-The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. Of the three quantities — start, width, reach — two of the three pairings determine the third: start and width determine reach (by definition of ⊕); start and reach determine width (by D2). But width and reach do not determine start: ⊕ is not right-cancellative (TA-RC, ASN-0034), and TA-MTO (ASN-0034) makes the precise statement — two starts agreeing through the action point k of the width yield the same reach, while positions k+1..#s are overwritten by the width's tail and unrecoverable. For instance, s₁ = [1, 3, 5] and s₂ = [1, 3, 7] with width [0, 2, 4] (action point k = 2) both yield reach [1, 5, 4]. Same width, same reach, different starts — and different denotations.
+The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. So start ⊕ width determines reach (by definition of ⊕), and start ⊕ reach determines width (by D2).
 
 A worked instance of the unequal-length failure: σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2] — when #start > #width the recovered displacement does not round-trip.
 
@@ -68,15 +76,9 @@ Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cas
 *Exhaustiveness.* Assume without loss of generality that start(α) ≤ start(β); configurations with start(α) > start(β) yield the same case with α, β exchanged, since each case clause is either symmetric (cases (i), (ii), (v)) or carries an explicit "or symmetrically" rider (cases (iii), (iv)). Compare reach(α) with start(β): if reach(α) < start(β), case (i); if reach(α) = start(β), case (ii); if reach(α) > start(β), the spans share positions. In the sharing case, compare start(α) with start(β): if start(α) < start(β), compare reach(α) with reach(β) — reach(α) < reach(β) gives case (iii), reach(α) ≥ reach(β) gives case (iv). If start(α) = start(β), compare reaches — reach(α) = reach(β) gives case (v), otherwise case (iv). Every ordering of the four boundary points {start(α), reach(α), start(β), reach(β)}, subject to start < reach for each span, falls into exactly one case.
 
 
-## The level constraint
+## Well-formed spans from endpoints
 
-**S6** (*LevelConstraint*). Two tumblers t₁ and t₂ are *level-compatible*, written level_compat(t₁, t₂), when they have the same length:
-
-  level_compat(t₁, t₂)  ≡  #t₁ = #t₂
-
-A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ — equivalently, start, width, and reach all share one tumbler length. A level-uniform span automatically satisfies D0 for the (start(σ), reach(σ)) pair: by TA-strict, start(σ) < reach(σ); and since #start(σ) = #reach(σ), neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start(σ). The level_compat precondition is what excludes the troublesome case: a deeper-level point such as [1, 3, 0, 1] relative to start [1, 3] has divergence([1, 3], [1, 3, 0, 1]) = 3 (the prefix case, min + 1), exceeding #[1, 3] = 2, so D0 fails and no valid displacement exists.
-
-Gregory confirms the implementation enforces this: the split operation requires the cut and the width to share a tumbler length and aborts when this invariant is violated (Q14, Q15).
+The level_compat precondition is what excludes the troublesome cross-level case: a deeper-level point such as [1, 3, 0, 1] relative to start [1, 3] has divergence([1, 3], [1, 3, 0, 1]) = 3 (the prefix case, min + 1), exceeding #[1, 3] = 2, so D0 fails and no valid displacement exists. When start and reach are level-compatible this case cannot arise, and we can always recover a well-formed span from its endpoints.
 
 **WF** (*WellFormedSpanFromEndpoints*). For s, r ∈ T with s < r and #s = #r, the pair γ = (s, r ⊖ s) is a well-formed level-uniform span (satisfying T12) with reach(γ) = r.
 
@@ -310,7 +312,7 @@ The configuration start(αᵢ) = start(βᵢ) ∧ reach(αᵢ) = reach(βᵢ) ca
 
 All cases yield contradiction, so Σ̂₁ = Σ̂₂.  ∎
 
-Nelson confirms both existence and uniqueness: "The tumbler line is a total order... The contiguity relation partitions S into maximal contiguous components. Each run yields exactly one span... The minimal span-set is unique" (Q4). This uniqueness is fixed-instant: S8–S9 concern a fixed span-set's canonical decomposition, not its stability as new addresses are allocated into the ambient population — Open Question 1 poses that concern.
+Nelson confirms both existence and uniqueness: "The tumbler line is a total order... The contiguity relation partitions S into maximal contiguous components. Each run yields exactly one span... The minimal span-set is unique" (Q4).
 
 
 ## Union is order-independent
