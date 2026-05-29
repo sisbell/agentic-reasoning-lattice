@@ -147,16 +147,12 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 
 **S0 (StreamOrdering).** `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
 
-*Proof.* We must show that for every pair of indices i, j with 1 ≤ i < j, the i-th element of the sibling stream S(p, d) is strictly less than the j-th under the lexicographic order T1. The sibling stream is defined by c₁ = inc(p, d) and cₙ₊₁ = inc(cₙ, 0) for n ≥ 1. The argument proceeds by strong induction on the gap j − i.
-
-*Base case (j − i = 1).* Here j = i + 1, so cⱼ = c_{i+1} = inc(cᵢ, 0). By TA5(a) (ASN-0034), `inc(t, 0)` produces a tumbler strictly greater than t under T1 for any valid tumbler t. Instantiating with t := cᵢ yields cᵢ₊₁ > cᵢ, establishing cᵢ < cⱼ.
-
-*Inductive step (gap j − i = g + 1, assuming the result holds for all gaps ≤ g).* Since g + 1 ≥ 2, the index j − 1 satisfies i ≤ i < j − 1 < j, with gap (j − 1) − i = g ≥ 1. By the inductive hypothesis applied to the pair (i, j − 1), cᵢ < c_{j−1}. By the base case applied to the pair (j − 1, j), c_{j−1} < cⱼ. The lexicographic order T1 is a strict total order and therefore transitive: from cᵢ < c_{j−1} and c_{j−1} < cⱼ we conclude cᵢ < cⱼ. ∎
+*Proof.* The sibling stream is an inc(·, 0)-enumeration with base c₁ = inc(p, d): writing t₀ = c₁ and tₙ₊₁ = inc(tₙ, 0), the sequence {c₁, c₂, ...} is exactly the domain enumeration {t₀, t₁, ...} that ASN-0034's allocator discipline indexes. ASN-0034's T10a.7 (EnumerationInjectivity) establishes that every such enumeration is strictly increasing under T1 — `(A m, n ≥ 0 : m < n : tₘ < tₙ)` — and its proof rests only on TA5(a) (per-step strict increase of inc(·, 0)) and T1's transitivity (c) and irreflexivity (a), none of which appeal to T4-validity of the base. Re-indexing (cᵢ = t_{i−1}), the conclusion is exactly `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`. We cite T10a.7 rather than reprove the gap induction it already discharges. ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ≥ 1. S(p, d) = c₁, c₂, ... defined by c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0).
 - *Postconditions:* `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — the sibling stream is strictly increasing.
-- *Axiom:* TA5(a) (strict increase under inc), T1 (transitivity of lexicographic order).
+- *Axiom:* ASN-0034 T10a.7 (EnumerationInjectivity) — the strict-increase conclusion for an inc(·, 0)-enumeration, which itself packages TA5(a) and T1's transitivity and irreflexivity.
 
 **S1 (StreamPrefix).** `(A n : n ≥ 1 : p ≼ cₙ)` — every stream element extends p as a prefix.
 
@@ -560,7 +556,7 @@ provided both parents satisfy T4 and both depths satisfy B6.
 
 *Proof.* We must show that for distinct valid pairs (p, d) ≠ (p', d'), where both parents satisfy T4 and both depths satisfy B6, no tumbler belongs to both S(p, d) and S(p', d'). Let a ∈ S(p, d) and b ∈ S(p', d'). We show a ≠ b by exhaustive case analysis on the relationship between the two pairs.
 
-We first establish a uniform length property. Every element of S(p, d) has length #p + d: c₁ = inc(p, d) has length #p + d by TA5(d), and each cₙ₊₁ = inc(cₙ, 0) preserves length by TA5(c). By induction, #cₙ = #p + d for all n ≥ 1. Similarly, every element of S(p', d') has length #p' + d'.
+We first establish a uniform length property. The base c₁ = inc(p, d) has length #p + d by TA5(d), and the stream is an inc(·, 0)-enumeration with base c₁; ASN-0034's T10a.1 (UniformSiblingLength) gives that every sibling of such a stream shares the base length, so #cₙ = #p + d for all n ≥ 1, without re-running the length induction. Similarly, every element of S(p', d') has length #p' + d'.
 
 *Case 1: different element lengths.* Suppose #p + d ≠ #p' + d'. Then #a = #p + d ≠ #p' + d' = #b. By T3, tumblers of different lengths are never equal, so a ≠ b.
 
@@ -728,7 +724,7 @@ After M − m steps, hwm(Σ_{M−m}.B, p, d) = m + (M − m) = M. Setting Σ' = 
 | hwm(B,p,d) | High water mark: #children(B, p, d) — sufficient allocation statistic | from B1, S0 |
 | next(B,p,d) | Next address: if children = ∅ then inc(p, d) else inc(max(children), 0) | from TA5(c), TA5(d), T1 |
 | Bop | baptize(p, d): PRE B6; STRUCT B4 (invariant of Op, not per-call); POST Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}; FRAME constrains Σ.B only, silent on other components (incl. ASN-0034's Act, nₛ) | from B0, B1, B4, B6, B7, B0a, B10, TA5, TA5a |
-| S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from TA5(a), T1 |
+| S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from ASN-0034 T10a.7 (EnumerationInjectivity) |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
 | B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | primitive label (B0a-derivation is given as commentary preceding the B0 statement, not as a labelled corollary; cited by B1, B10) |
 | B0★ | `Σ.B ⊆ Σ'.B` for all Σ →* Σ' (reflexive-transitive closure of transitions) — multi-step irrevocability | labelled corollary of B0; cited by B8 (Case 1) and by the Bridge1 commentary and wp-analysis lift |
@@ -745,7 +741,7 @@ After M − m steps, hwm(Σ_{M−m}.B, p, d) = m + (M − m) = M. Setting Σ' = 
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
-| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from T3, T4, T10, S1, TA5(c), TA5(d), B6 |
+| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from T3, T4, T10, S1, TA5(d), T10a.1 (uniform length), B6 |
 | B8 | Distinct baptisms produce distinct addresses — global uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d, M : (E B' reachable : hwm(B', p, d) ≥ M))` — unbounded extent | from T0(a), B1, B2, B4, B6, Bop, TA5(c), TA5(d) |
 | B10 | `(A t ∈ Σ.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
