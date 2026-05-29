@@ -219,7 +219,7 @@ With S7a, S7b, and S7d established, we can state structural attribution.
 
 `origin(a) = N(a).0.U(a).0.D(a)`
 
-This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system. Since document creation is an allocation event within a system conforming to T10a, GlobalUniqueness (ASN-0034) directly guarantees that distinct documents have distinct tumblers, and therefore distinct document-level prefixes. It is not metadata that can be stripped or forged — it IS the address. To retrieve the content, the system must know its I-address; to know its I-address is to know its origin.
+This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system. Since document creation is an allocation event within a system conforming to T10a, GlobalUniqueness (ASN-0034) directly guarantees that distinct documents have distinct tumblers, and therefore distinct document-level prefixes. It is not metadata that can be stripped or forged — it IS the address.
 
 Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
 
@@ -295,9 +295,7 @@ Gregory's evidence supports it: V-addresses in the text subspace consistently us
 
 S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: position `s.x` is followed by `s.(x+1)`, where `+1` is NAT addition on the ordinal component. We reserve the symbol `+` for NAT addition on components and indices throughout this ASN; tumbler ordinal displacement is always written `shift(v, k)` (equivalently `v ⊕ δ(k, m)` per ASN-0034), never `v + k`.
 
-For each V-position `v`, its *singleton interval* is the half-open tumbler interval `[v, shift(v, 1))`, where `shift(v, 1) = v ⊕ δ(1, #v)` per OrdinalShift (ASN-0034) is the next ordinal at the same depth.
-
-We record once the foundation consequence used repeatedly below. **Ordinal-shift prefix lemma.** For a V-position `v` of depth `m`, `δ(j, m)` has action point `m` (OrdinalDisplacement, ASN-0034), so by TumblerAdd's prefix rule (ASN-0034) `shift(v, j) = v ⊕ δ(j, m)` preserves every component at positions `1 ≤ i < m` (`shift(v, j)ᵢ = vᵢ`) and sets the last to `shift(v, j)_m = v_m + j`. In particular `shift(v, 1)` agrees with `v` on positions `1 ≤ i < m` and has `shift(v, 1)_m = v_m + 1`, and for `m ≥ 2` the first component (the subspace identifier `v₁`) is among the preserved positions.
+For each V-position `v`, its *singleton interval* is the half-open tumbler interval `[v, shift(v, 1))`, where `shift(v, 1) = v ⊕ δ(1, #v)` per OrdinalShift (ASN-0034) is the next ordinal at the same depth. By OrdinalShift's postconditions, `shift(v, 1)` agrees with `v` on positions `1 ≤ i < m` and has `shift(v, 1)_m = v_m + 1`; for `m ≥ 2` the first component (the subspace identifier `v₁`) is therefore preserved.
 
 **S8 (Singleton span partition).** For each document `d`, the singleton intervals `{[vⱼ, shift(vⱼ, 1)) : vⱼ ∈ dom(Σ.M(d))}` — one per V-position, with `aⱼ = Σ.M(d)(vⱼ)` — partition the V-positions of `dom(Σ.M(d))`:
 
@@ -319,12 +317,12 @@ We record once the foundation consequence used repeatedly below. **Ordinal-shift
 
 *Case j < m.* Then `tᵢ = vᵢ` for `i < j`. The lemma's hypothesis `t ≠ v` combined with `v ≤ t` (from `t ∈ [v, shift(v, 1))`) strengthens to `v < t` — the non-strict relation `v ≤ t` resolves to strict `<` once equality is ruled out. T1(i) applied to `v < t` with first divergence at component `j` (valid since `j ≤ m = min(m, m)`) then yields `tⱼ > vⱼ`. Since `shift(v, 1)ⱼ = vⱼ` (as `j < m`), and `tᵢ = vᵢ = shift(v, 1)ᵢ` for `i < j`, the first divergence between `t` and `shift(v, 1)` is at position `j` with `tⱼ > shift(v, 1)ⱼ`, giving `t > shift(v, 1)` by T1(i) — contradicting `t < shift(v, 1)`.
 
-*Case j = m.* Then `tᵢ = vᵢ` for `i < m`. By the ordinal-shift prefix lemma, `shift(v, 1)ᵢ = vᵢ` for `i < m`, so `tᵢ = shift(v, 1)ᵢ` for `i < m` and the first divergence between `t` and `shift(v, 1)` is at position `m`. Since `tᵢ = vᵢ` for `i < m` and `t ≠ v` (with `#t = #v = m`), the divergence at `j = m` between `t` and `v` is also real: `t_m ≠ v_m`. Combined with `v ≤ t`, this gives `v < t`, and T1(i) applied to `v < t` with first divergence at `m` yields strict `t_m > v_m`; NAT-discrete (ASN-0034) at `(m, n) := (v_m, t_m)` promotes the strict inequality `v_m < t_m` to `v_m + 1 ≤ t_m`, i.e., `t_m ≥ v_m + 1`. From `t < shift(v, 1)` with first divergence at `m`: T1(i) gives `t_m < shift(v, 1)_m`, and the lemma's identity `shift(v, 1)_m = v_m + 1` (`v_m + 1 ∈ ℕ` by NAT-closure, ASN-0034) rewrites this to `t_m < v_m + 1`. But `t_m ≥ v_m + 1` and `t_m < v_m + 1` are incompatible by NAT-order's exactly-one trichotomy (ASN-0034), instantiated at `(t_m, v_m + 1)` — the clause `¬(a < b ∧ b ≤ a)` excludes the conjunction of the two inequalities. Contradiction. ∎ *(lemma)*
+*Case j = m.* Then `tᵢ = vᵢ` for `i < m`. By OrdinalShift (ASN-0034), `shift(v, 1)ᵢ = vᵢ` for `i < m`, so `tᵢ = shift(v, 1)ᵢ` for `i < m` and the first divergence between `t` and `shift(v, 1)` is at position `m`. Since `tᵢ = vᵢ` for `i < m` and `t ≠ v` (with `#t = #v = m`), the divergence at `j = m` between `t` and `v` is also real: `t_m ≠ v_m`. Combined with `v ≤ t`, this gives `v < t`, and T1(i) applied to `v < t` with first divergence at `m` yields strict `t_m > v_m`; NAT-discrete (ASN-0034) at `(m, n) := (v_m, t_m)` promotes the strict inequality `v_m < t_m` to `v_m + 1 ≤ t_m`, i.e., `t_m ≥ v_m + 1`. From `t < shift(v, 1)` with first divergence at `m`: T1(i) gives `t_m < shift(v, 1)_m`, and the identity `shift(v, 1)_m = v_m + 1` (OrdinalShift, ASN-0034; `v_m + 1 ∈ ℕ` by NAT-closure, ASN-0034) rewrites this to `t_m < v_m + 1`. But `t_m ≥ v_m + 1` and `t_m < v_m + 1` are incompatible by NAT-order's exactly-one trichotomy (ASN-0034), instantiated at `(t_m, v_m + 1)` — the clause `¬(a < b ∧ b ≤ a)` excludes the conjunction of the two inequalities. Contradiction. ∎ *(lemma)*
 
 *Application to w.* The hypotheses `w₁ = v₁ = S`, `#w = m` (S8-depth), and `w ≠ v` are exactly the lemma's antecedents, so `w ∉ [v, shift(v, 1))`. Since all V-positions in subspace `S` share depth `m` (S8-depth) and the lemma applies to every such position distinct from `v`, no distinct V-position in the same subspace falls in `v`'s singleton interval.
 **Uniqueness across subspaces.** Let `v ∈ dom(M(d))` with `v₁ = S₁` and `w ∈ dom(M(d))` with `w₁ = S₂`, where `S₁ ≠ S₂`. By S8a, `v` and `w` extend the single-component prefixes `[S₁]` and `[S₂]` respectively, and both have depth `≥ 2`. These prefixes are non-nesting: `[S₁] ≼ [S₂]` would require `S₁ = S₂` (both length-1 tumblers, so equality requires componentwise agreement by T3), contradicting `S₁ ≠ S₂`; symmetrically `[S₂] ⋠ [S₁]`.
 
-For `m ≥ 2` (the only case under S8a), the successor `shift(v, 1)` also extends `[S₁]`: by the ordinal-shift prefix lemma, `shift(v, 1)` agrees with `v` on positions `i < m`, and since `m ≥ 2` this includes position 1, giving `shift(v, 1)₁ = v₁ = S₁`.
+For `m ≥ 2` (the only case under S8a), the successor `shift(v, 1)` also extends `[S₁]`: by OrdinalShift (ASN-0034), `shift(v, 1)` agrees with `v` on positions `i < m`, and since `m ≥ 2` this includes position 1, giving `shift(v, 1)₁ = v₁ = S₁`.
 
 Since `[S₁] ≼ v` and `[S₁] ≼ shift(v, 1)` and `v ≤ shift(v, 1)` by TS4 (ShiftStrictIncrease, ASN-0034), T5 (ContiguousSubtrees, ASN-0034) gives: for any `t` with `v ≤ t ≤ shift(v, 1)`, `[S₁] ≼ t`. Every element of `[v, shift(v, 1))` therefore extends `[S₁]`. By T10 (ASN-0034), since `[S₁]` and `[S₂]` are non-nesting prefixes, any tumbler extending `[S₁]` is distinct from any tumbler extending `[S₂]`. In particular, `w` (which extends `[S₂]`) cannot belong to `[v, shift(v, 1))`.
 
@@ -343,12 +341,14 @@ Write `S = subspace(v) = v₁` for the subspace identifier (the first component 
 
 **D-CTG (VContiguity).** For each document d, V_1(d) (the text subspace) is either empty or occupies every intermediate position between its extremes:
 
-`(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ u < v < q : v ∈ V_1(d)))`
+`(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ zeros(v) = 0 ∧ u < v < q : v ∈ V_1(d)))`
+
+The guard `zeros(v) = 0` restricts the consequent to well-formed V-positions (those satisfying S8a). Without it, a straddling intermediate such as `v = [1, 2, 0]` between `u = [1, 1, 5]` and `q = [1, 2, 1]` would qualify by order and subspace alone, yet `zeros([1, 2, 0]) = 1` makes membership in `dom(M(d))` impossible by S8a — so the unrestricted form would demand membership of an ill-formed tumbler. D-CTG-depth and D-SEQ are unaffected: their constructed intermediates are already zero-free.
 
 In words: within the text subspace, V-positions form a contiguous ordinal range with no gaps. If positions [1, 3] and [1, 7] are occupied, then every position [1, k] with 3 < k < 7 must also be occupied.
 
 *Formal Contract:*
-- *Axiom (design requirement):* `(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ u < v < q : v ∈ V_1(d)))`.
+- *Axiom (design requirement):* `(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ zeros(v) = 0 ∧ u < v < q : v ∈ V_1(d)))`.
 - *Preconditions:* `subspace(v) = 1`; V-positions share a common depth (S8-depth).
 - *Postconditions:* V_1(d) is either empty or occupies every position strictly between its extremes (at the fixed depth).
 - *Frame:* D-CTG is a constraint on well-formed text-subspace arrangements.
@@ -471,7 +471,7 @@ There are exactly `N + 1` valid insertion positions: the `N` positions coincidin
 
 **Definition (ValidFirstInsertionPosition, empty case).** For a document `d` with `V_1(d) = ∅`, the *ternary* predicate `ValidFirstInsertionPosition(d, v, m)` is satisfied when `m ∈ ℕ` with `m ≥ 2` and `v = [1, 1, ..., 1]` of depth `m`. Distinct values of `m` identify distinct valid positions; the strand model fixes only the lower bound `m ≥ 2`.
 
-For `m ≥ 2`, the ordinal-shift prefix lemma preserves component 1, so the subspace identifier is preserved under shift. This is the canonical minimum position required by D-MIN.
+For `m ≥ 2`, OrdinalShift (ASN-0034) preserves component 1, so the subspace identifier is preserved under shift. This is the canonical minimum position required by D-MIN.
 
 In both predicates, `v₁ = 1` is the text subspace identifier.
 
