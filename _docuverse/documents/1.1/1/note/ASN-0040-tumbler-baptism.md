@@ -72,7 +72,9 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 
 **S0 (StreamOrdering).** `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
 
-*Proof.* We derive the strict ordering directly from the per-step increase of inc(·, 0). For each n ≥ 1, cₙ₊₁ = inc(cₙ, 0), and TA5(a) gives inc(cₙ, 0) > cₙ, so cₙ < cₙ₊₁. To extend this to arbitrary indices i < j, fix i and induct on j. *Base case (j = i + 1):* cᵢ < cᵢ₊₁ is the per-step increase just established. *Inductive step:* assume cᵢ < cⱼ; the per-step increase gives cⱼ < cⱼ₊₁, and T1's transitivity (c) gives cᵢ < cⱼ₊₁. By induction, cᵢ < cⱼ for every j > i. The base c₁ = inc(p, d) ∈ T (TA5(d)) and each cₙ ∈ T (TA5(c)) supply the well-formed operands these comparisons require. ∎
+The sibling stream S(p, d) — base c₁ = inc(p, d) with d ∈ {1, 2}, then cₙ₊₁ = inc(cₙ, 0) — has exactly the shape of a T10a child allocator domain: child-spawning by inc(·, k') with k' ∈ {1, 2}, followed by sibling production by inc(·, 0). S0's claim (strictly increasing under T1) is therefore an instance of T10a.7 (EnumerationInjectivity, ASN-0034), which establishes precisely this monotonicity from the same premises. We do not, however, *invoke* T10a.7 as a foundation citation, because identifying S(p, d) with an allocator domain presupposes the alignment of the baptismal registry with allocator discipline — the unresolved `allocated(s) ⊆ s.B` question (Open Questions). Pending that resolution, S(p, d) is treated as a baptism-layer construct and the ordering is re-derived here from the underlying TA5(a) per-step increase; the reasoning is verbatim T10a.7's and the overlap is deliberate, not an oversight.
+
+*Proof.* For each n ≥ 1, cₙ₊₁ = inc(cₙ, 0), and TA5(a) gives inc(cₙ, 0) > cₙ, so cₙ < cₙ₊₁. To extend this to arbitrary indices i < j, fix i and induct on j. *Base case (j = i + 1):* cᵢ < cᵢ₊₁ is the per-step increase just established. *Inductive step:* assume cᵢ < cⱼ; the per-step increase gives cⱼ < cⱼ₊₁, and T1's transitivity (c) gives cᵢ < cⱼ₊₁. By induction, cᵢ < cⱼ for every j > i. The base c₁ = inc(p, d) ∈ T (TA5(d)) and each cₙ ∈ T (TA5(c)) supply the well-formed operands these comparisons require. ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ≥ 1. S(p, d) = c₁, c₂, ... defined by c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0).
@@ -164,7 +166,7 @@ For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states th
 
 *Condition (iii) is necessary at d = 2.* Let zeros(p) + (d − 1) > 3 with p satisfying T4. By B5, zeros(c₁) = zeros(p) + (d − 1) > 3. But T4 requires zeros(t) ≤ 3 for any valid address — at most three field separators for the four-level hierarchy. The first child already exceeds the zero budget, so c₁ violates T4. ∎
 
-Condition (i) is imposed by definition, not forced by stream validity: a pure-trailing-zero parent at d = 1 yields a T4-valid stream, yet we exclude it to break the aliasing whereby such a parent and its truncation at d = 2 generate the identical stream — e.g. ([1, 0], 1) and ([1], 2) both produce {[1, 0, n] : n ≥ 1}. Requiring (i) admits exactly one of each such pair, the disambiguation that makes namespace disjointness (B7) well-posed.
+Condition (i) does more than supply a T4-valid parent: beyond its role in stream T4-preservation it also disambiguates parent-depth pairs, which is what makes namespace disjointness (B7) well-posed. We exhibit the aliasing it rules out at B7.
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1.
@@ -190,6 +192,10 @@ provided both `(p, d)` and `(p', d')` satisfy B6.
 *Unequal-length parents.* Otherwise #p ≠ #p'; from #p + d = #p' + d' with d, d' ∈ {1, 2} the lengths can differ by at most 1, so WLOG #p < #p' with #p' = #p + 1, d = 2, d' = 1. Read position #p + 1 of a two ways. From the S(p, 2) form, position #p + 1 is the lone zero separator: a_{#p+1} = 0. From the S(p', 1) form (d' = 1, no separator), positions 1 … #p' = 1 … #p + 1 are preserved from p', so a_{#p+1} = p'_{#p+1} = p'_{#p'} — the last component of p'. Since (p', d') satisfies B6, p' satisfies T4, whose field-segment constraint forbids a zero final component (TA5-SigValid: p'_{#p'} ≠ 0). Thus a_{#p+1} > 0, contradicting a_{#p+1} = 0.
 
 Every case yields a contradiction, so S(p, d) ∩ S(p', d') = ∅. ∎
+
+B6(i)'s role is visible in the unequal-length case: it is the T4-validity of p' (hence p'_{#p'} ≠ 0, via TA5-SigValid) that forces a_{#p+1} > 0 and closes the contradiction. Without it, a pure-trailing-zero parent and its truncation at the next depth would alias to the identical stream — e.g. ([1, 0], 1) and ([1], 2) both produce {[1, 0, n] : n ≥ 1} — so distinct pairs (p, d) ≠ (p', d') could share a stream and B7 would be false. Requiring (i) admits exactly one of each such pair, making the disjointness statement well-posed.
+
+This disjointness is related to T10a.5 (CrossAllocatorIncomparability) and T10a.6 (DomainDisjointness, ASN-0034), which establish disjoint domains for distinct allocators within one conforming allocator tree. B7 is not strictly subsumed by them: it quantifies over arbitrary B6-valid pairs (p, d), (p', d') — including nesting parents and the depth/parent aliasing that B6(i) rules out — rather than over allocators of a single tree, and it proves disjointness from the canonical stream form directly rather than from allocator-tree structure. We therefore prove B7 independently while noting the foundation overlap.
 
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
@@ -336,7 +342,7 @@ In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. ∎
 
 ## Atomicity
 
-Baptism reads the high water mark, computes the next address, and commits the result as one indivisible step. This indivisibility is not a fresh assumption: B0a places `baptize(p, d) ∈ Σ`, and the foundation's signature of Σ (ASN-0034, NoDeallocation) already fixes that each `op ∈ Σ` is a single partial function on 𝒮 whose transition `s → s'` is exactly the pair `(s, op(s))` — one edge, no intermediate state. Atomicity is therefore a corollary, not a separately imposed requirement.
+Baptism reads the high water mark, computes the next address, and commits the result as one indivisible step.
 
 **B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each baptismal operation is a single atomic transition. For every (p, d) satisfying B6:
 
@@ -353,7 +359,7 @@ We now specify the baptism operation itself.
 
   PRE: B6(p, d) — depth validity; no parent-baptized prerequisite is imposed
   POST: s'.B = s.B ∪ {next(s.B, p, d)}; only s.B is modified
-  ATOMIC: B4 (corollary of B0a and the foundation Σ signature) — committed on one edge of →
+  ATOMIC: B4 — committed on one edge of →
 
 *Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined and produces a fresh address.
 
@@ -369,7 +375,7 @@ In both branches a ∉ s.B. ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1; B6(p, d) holds. (B1, B10, B_fin are reachable-state invariants, not caller obligations.)
-- *Atomicity:* B4 (corollary of B0a and the foundation Σ signature) — each `baptize(p, d) ∈ Σ` is a single atomic edge of the transition graph.
+- *Atomicity:* B4 — each `baptize(p, d) ∈ Σ` is a single atomic edge of the transition graph.
 - *Postconditions:* s'.B = s.B ∪ {next(s.B, p, d)} with next(s.B, p, d) ∉ s.B; s'.B satisfies B0, B1, B10, and B_fin.
 - *Frame:* Only s.B is modified.
 
@@ -427,7 +433,7 @@ State: B₃ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1]}.
 
   next(B₃, [1, 0, 1, 0, 1], 1) = inc([1, 0, 1, 0, 1], 1) = [1, 0, 1, 0, 1, 1]
 
-TA5(d) with k = d − 1 = 0 intermediate zeros: no zero separator is inserted; the value 1 is appended at position #p + d = 6. B5: zeros([1, 0, 1, 0, 1, 1]) = 2 = zeros([1, 0, 1, 0, 1]) + (1 − 1) — d = 1 contributes no new zeros, so the parent's zero count is preserved. B6: p = [1, 0, 1, 0, 1] satisfies T4 (last component 1 is positive), d = 1 ∈ {1, 2}, and B6(iii) at d = 1 reduces to zeros(p) ≤ 3, which holds since zeros([1, 0, 1, 0, 1]) = 2 ≤ 3. B1: children(B₄, [1, 0, 1, 0, 1], 1) = {[1, 0, 1, 0, 1, 1]}, a contiguous prefix of length 1, witnessing prefix extension under a fresh namespace at d = 1.
+TA5(d) with d = 1: d − 1 = 0 intermediate zeros, so no zero separator is inserted; the value 1 is appended at position #p + d = 6. B5: zeros([1, 0, 1, 0, 1, 1]) = 2 = zeros([1, 0, 1, 0, 1]) + (1 − 1) — d = 1 contributes no new zeros, so the parent's zero count is preserved. B6: p = [1, 0, 1, 0, 1] satisfies T4 (last component 1 is positive), d = 1 ∈ {1, 2}, and B6(iii) at d = 1 reduces to zeros(p) ≤ 3, which holds since zeros([1, 0, 1, 0, 1]) = 2 ≤ 3. B1: children(B₄, [1, 0, 1, 0, 1], 1) = {[1, 0, 1, 0, 1, 1]}, a contiguous prefix of length 1, witnessing prefix extension under a fresh namespace at d = 1.
 
 State: B₄ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1]}.
 
