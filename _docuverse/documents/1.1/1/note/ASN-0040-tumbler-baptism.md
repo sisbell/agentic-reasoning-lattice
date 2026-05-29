@@ -70,8 +70,6 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 - *Postconditions:* `(A n ≥ 1 : cₙ = [p₁, ..., p_{#p}, 0, ..., 0, n])` with d − 1 zeros, `#cₙ = #p + d`, `sig(cₙ) = #p + d`, and `cₙᵢ = pᵢ` for `1 ≤ i ≤ #p`. (The sig identity holds because the ordinal n ≥ 1 occupies the final position #p + d, which is therefore the rightmost nonzero component.)
 - *Axiom:* TA5(b) (prefix preservation), TA5(c) (sibling structure), TA5(d) (child structure).
 
-The sibling stream S(p, d) corresponds to the domain of a foundation allocator (T10a, ASN-0034) — base c₁ = inc(p, d) followed by repeated inc(·, 0) — though we prove the stream properties we need below directly from the increment algebra.
-
 **S0 (StreamOrdering).** `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
 
 *Proof.* The operands are well-formed: c₁ = inc(p, d) ∈ T (TA5(d)) and, inductively, cₙ₊₁ = inc(cₙ, 0) ∈ T (TA5(c)), so every cₙ ∈ T. By TA5(a), each increment strictly advances its argument under T1: cₙ₊₁ = inc(cₙ, 0) > cₙ for every n ≥ 1. This is the single per-step fact. We lift it to arbitrary gaps by T1 transitivity (postcondition (c)): for 1 ≤ i < j, the chain cᵢ < cᵢ₊₁ < ⋯ < cⱼ composes to cᵢ < cⱼ. (Formally, induction on j − i ≥ 1: the base j = i + 1 is the per-step fact; the step composes cᵢ < c_{j−1} from the hypothesis with c_{j−1} < cⱼ from the per-step fact via transitivity.) T1 irreflexivity (postcondition (a)) guarantees the inequalities are strict throughout. Hence `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`. ∎
@@ -204,11 +202,7 @@ Dropping B6(i) admits aliasing: a pure-trailing-zero parent and its truncation a
 
 ## Seed conformance and registry finiteness
 
-The invariant proofs that follow induct over transition sequences from the initial state. They require a conforming seed and a finiteness guarantee that each transition preserves.
-
 **B₀ conf. (SeedConformance).** B₀ is finite, `(A p, d : B6(p, d) : children(B₀, p, d) is a contiguous prefix of S(p, d))`, and `(A t ∈ B₀ : t satisfies T4)`.
-
-Non-emptiness is not among them; this ASN neither requires nor establishes it.
 
 B₀ conformance fixes the seed as a finite set; B0a constrains every transition to add at most one element. The composition yields a registry-wide finiteness invariant:
 
@@ -302,9 +296,6 @@ So a satisfies T4. With every element of B satisfying T4 by the inductive hypoth
 - *Invariant:* `(A t ∈ s.B : t satisfies T4)` — every baptized address satisfies T4 (HierarchicalParsing). *Corollary:* `s.B ⊆ T`, since T4-validity entails t ∈ T.
 - *Base:* B₀ conf. — every seed element satisfies T4.
 - *Preservation:* Each baptismal transition adds a = next(s.B, p, d) ∈ S(p, d); since (p, d) satisfies B6, B6's sufficiency result gives every element of S(p, d) — hence a — satisfies T4. B0a ensures no non-baptismal mechanism introduces elements that might violate T4.
-
-The gap between T9 (ForwardAllocation) and B1 is the *no-skip property*: baptism always selects the immediate successor in the stream, never an arbitrary later value. T9 says addresses increase; B1 says they increase *contiguously*. The difference is the guarantee that every ordinal from 1 through m is represented, which T9 alone does not assert.
-
 
 ## The high water mark
 
