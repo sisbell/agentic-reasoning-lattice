@@ -29,6 +29,7 @@ A conventional system merges these — "the file" IS the content IS the arrangem
 
 *Formal Contract:*
 - *Axiom:* `Σ.M(d) : T ⇀ T` — the arrangement of document `d` is a partial function from V-position tumblers to I-address tumblers.
+- *Axiom (domain restriction):* `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions; every active key is a zero-free tumbler of depth at least 2 (a subspace identifier followed by a within-subspace ordinal). This is definitional, not derived: it fixes what kind of tumbler may serve as a V-position.
 - *Definition:* `dom(Σ.M(d)) = {v ∈ T : Σ.M(d)(v) is defined}` — the set of V-positions currently active in `d`.
 - *Definition:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` — the set of I-addresses that `d` currently references.
 
@@ -55,7 +56,7 @@ Once content is stored at address `a`, both the address and its value are fixed 
 
 S0 and S1 together establish `C` as an *append-only log*. New entries may be added — each at a fresh address guaranteed unique by T9 and T10 (ASN-0034) — but no existing entry may be modified or removed.
 
-Nelson states this as an explicit design commitment: "The true storage of text should be in a system that stores each change and fragment individually, assimilating each change as it arrives, but keeping the former changes." Gregory's implementation confirms the commitment. Of the seventeen FEBE commands Nelson specifies, none modifies existing Istream content. There is no MODIFY, UPDATE, or REPLACE operation. The absence is structural — the protocol provides no mechanism for mutating stored content. (Gregory's reclamation machinery exists but is deactivated, consistent with this absence.)
+Nelson states this as an explicit design commitment: "The true storage of text should be in a system that stores each change and fragment individually, assimilating each change as it arrives, but keeping the former changes." Gregory's implementation confirms the commitment. Of the seventeen FEBE commands Nelson specifies, none modifies existing Istream content. There is no MODIFY, UPDATE, or REPLACE operation. The absence is structural — the protocol provides no mechanism for mutating stored content.
 
 *Proof.* We wish to show that for every state transition `Σ → Σ'`, `dom(Σ.C) ⊆ dom(Σ'.C)`.
 
@@ -81,7 +82,6 @@ We note the phrase "regardless of their native origin." A document's Vstream pre
 *Formal Contract:*
 - *Axiom (definitional):* `Σ.M(d) : T ⇀ T` is a (partial) function — `(A d, v, a₁, a₂ : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a₁ ∧ Σ.M(d)(v) = a₂ : a₁ = a₂)`.
 - *Postconditions:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` is a well-defined set.
-- *Frame:* Distinct V-positions may map to the same I-address (sharing — S5); injectivity is *not* asserted.
 
 The bridge between the two state components is a well-formedness condition:
 
@@ -241,18 +241,17 @@ The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(
 - *Postconditions:* `|dom(Σ.M(d))| < ∞` — the arrangement has finite cardinality. Consequently `ran(Σ.M(d))` is finite (image of a finite set under a function).
 - *Frame:* No constraint on the unbounded growth of `dom(C)`; only individual arrangements are required to be finite at any given state.
 
-**S8a (V-position well-formedness).** From the definition of a V-position (Formal Contract below), the zero-count and componentwise-positivity conjuncts follow:
+**S8a (V-position componentwise positivity).** The domain-restriction axiom on `Σ.M(d)` already fixes `zeros(v) = 0 ∧ #v ≥ 2` for every `v ∈ dom(Σ.M(d))`. The remaining well-formedness fact — that every component is strictly positive — is derived from those two conjuncts together with T0's carrier:
 
-`(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
+`(A v ∈ dom(Σ.M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
 
-A V-position represents the element field of a full document-scoped address — the fourth field in the T4 field structure. Its first component `v₁` is the subspace identifier (1 for text, 2 for links); the `0` in full tumbler notation (e.g., `N.0.U.0.D.0.2.1`) is a field separator, not a subspace identifier. The depth constraint `#v ≥ 2` ensures the subspace identifier `v₁` and the within-subspace ordinal `[v₂, ..., v_m]` occupy distinct components. The domain and range of `M(d)` live in structurally different tumbler subsets: `dom(M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2 ∧ (A i : tᵢ > 0)}` (element-field tumblers of depth at least 2), while `ran(M(d)) ⊆ {t ∈ T : zeros(t) = 3}` (full element-level addresses, per S7b).
+A V-position represents the element field of a full document-scoped address — the fourth field in the T4 field structure. Its first component `v₁` is the subspace identifier (1 for text, 2 for links); the `0` in full tumbler notation (e.g., `N.0.U.0.D.0.2.1`) is a field separator, not a subspace identifier. The depth constraint `#v ≥ 2` (from the domain-restriction axiom) ensures the subspace identifier `v₁` and the within-subspace ordinal `[v₂, ..., v_m]` occupy distinct components. The domain and range of `M(d)` live in structurally different tumbler subsets: `dom(M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2 ∧ (A i : tᵢ > 0)}` (element-field tumblers of depth at least 2), while `ran(M(d)) ⊆ {t ∈ T : zeros(t) = 3}` (full element-level addresses, per S7b).
 
-*Proof.* From the Definition, `zeros(v) = 0` and `#v ≥ 2` hold directly. Componentwise positivity follows: every component of `v` lies in T0's carrier ℕ, and `zeros(v) = 0` forces each to be `≠ 0`, hence `≥ 1` by NAT-discrete (ASN-0034) instantiated at `m = 0` (no natural lies strictly between `0` and `1`); in particular the subspace identifier `v₁ ≥ 1`. ∎
+*Proof.* Let `v ∈ dom(Σ.M(d))`. By the domain-restriction axiom, `zeros(v) = 0` and `#v ≥ 2`. Componentwise positivity follows: every component of `v` lies in T0's carrier ℕ, and `zeros(v) = 0` forces each to be `≠ 0`, hence `≥ 1` by NAT-discrete (ASN-0034) instantiated at `m = 0` (no natural lies strictly between `0` and `1`); in particular the subspace identifier `v₁ ≥ 1`. ∎
 *Formal Contract:*
-- *Definition:* A V-position is a tumbler `v` with `zeros(v) = 0` and `#v ≥ 2`.
-- *Preconditions:* The V-position Definition above; T0 — components are natural numbers.
-- *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`.
-- *Depends:* T0 (ASN-0034) — supplies the ℕ-valued component carrier on which `vᵢ ∈ ℕ` for every component; NAT-discrete (NatDiscreteness, ASN-0034) — instantiated at `m = 0`, supplies the `n ≠ 0 ⟹ n ≥ 1` fact that discharges the positivity step: `vᵢ ≠ 0` (delivered by `zeros(v) = 0`) gives `vᵢ ≥ 1`, hence `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
+- *Preconditions:* The domain-restriction axiom on `Σ.M(d)` — every `v ∈ dom(Σ.M(d))` satisfies `zeros(v) = 0 ∧ #v ≥ 2`; T0 — components are natural numbers.
+- *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))`. Together with the domain-restriction axiom, every `v ∈ dom(Σ.M(d))` satisfies the full well-formedness conjunction `zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
+- *Depends:* `Σ.M(d)` domain-restriction axiom — supplies `zeros(v) = 0` and `#v ≥ 2` for every active V-position; T0 (ASN-0034) — supplies the ℕ-valued component carrier on which `vᵢ ∈ ℕ` for every component; NAT-discrete (NatDiscreteness, ASN-0034) — instantiated at `m = 0`, supplies the `n ≠ 0 ⟹ n ≥ 1` fact that discharges the positivity step: `vᵢ ≠ 0` (delivered by `zeros(v) = 0`) gives `vᵢ ≥ 1`, hence `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
 
 **subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
 
@@ -412,33 +411,6 @@ where the tuple has length m, the common V-position depth in the text subspace (
 
 D-CTG is a design constraint on well-formed document states. It constrains which arrangement modifications constitute well-formed editing operations. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_1(d) = ∅. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_1(d) non-empty).
 
-### Concrete example
-
-Consider document d at depth 2 in the text subspace (S = 1), with arrangement:
-
-M(d) = {[1,1] ↦ a₁,  [1,2] ↦ a₂,  [1,3] ↦ a₃}
-
-Then V₁(d) = {[1,1], [1,2], [1,3]}.
-
-**D-CTG check.** The extremes are [1,1] and [1,3]. The only intermediate with subspace 1 and depth 2 between them is [1,2], which is in V₁(d). For the adjacent pairs — ([1,1],[1,2]) and ([1,2],[1,3]) — there are no intermediates. D-CTG is satisfied. ✓
-
-**D-MIN check.** min(V₁(d)) = [1,1], whose last component is 1. ✓
-
-**Violation.** Consider V₁(d) = {[1,1], [1,3]}. Now [1,2] is an intermediate between [1,1] and [1,3] that is absent from V₁(d) — D-CTG is violated. Such a state, with a gap in the ordinal range between occupied extremes, is not a well-formed document arrangement.
-
-Now consider depth 3. Let document d' have arrangement:
-
-M(d') = {[1,1,1] ↦ a₁,  [1,1,2] ↦ a₂,  [1,1,3] ↦ a₃}
-
-Then V₁(d') = {[1,1,1], [1,1,2], [1,1,3]}.
-
-**D-CTG check.** The extremes are [1,1,1] and [1,1,3]. The only intermediate at subspace 1 and depth 3 between them is [1,1,2], which is in V₁(d'). ✓
-
-**D-MIN check.** min(V₁(d')) = [1,1,1] = [S, 1, 1], with all post-subspace components equal to 1. ✓
-
-**Violation (depth ≥ 3).** Suppose instead V₁(d') = {[1,1,1], [1,2,1]}. D-CTG requires every intermediate with subspace 1 and depth 3 between [1,1,1] and [1,2,1] to be present. But [1,1,2], [1,1,3], [1,1,4], ... are all intermediates — infinitely many, contradicting S8-fin. This is D-CTG-depth in action: positions differing before the last component cannot coexist in a finite arrangement.
-
-
 ## Valid insertion position
 
 We work with the arrangement M(d) and the contiguity constraint D-CTG from above, restricted to the text subspace `S = 1`. Write V_1(d) = {v ∈ dom(M(d)) : subspace(v) = 1} for the text-subspace V-positions of document d.
@@ -541,6 +513,14 @@ The arrangement `M(d₂)`:
 
 *Check S0*: all 7 entries in `dom(C)` remain. The I-addresses `1.0.1.0.1.0.1.3`–`.5` are no longer in `ran(M(d₁))` but persist in `dom(C)`; these three addresses are now "orphaned" from `d₁`'s perspective, but still referenced by `M(d₂)` — persistence is unconditional (S0). *Check two-stream separation (S0 frame)*: the deletion modified `M(d₁)` but `C` is unchanged — separation holds. *Verify S8 (singleton partition)*: the now-two V-positions `1.1` and `1.2` each form a singleton interval, partitioning the two-element `dom(M(d₁))`; `M(d₂)` is unchanged. *Check D-SEQ*: V₁(d₁) = {[1, k] : 1 ≤ k ≤ 2}, D-SEQ with n = 2. D-CTG holds (no gaps in 1..2) and D-MIN holds (min = [1, 1]). V₁(d₂) is unchanged — D-SEQ with n = 5.
 
+The lifecycle above exercises the contiguity constraints at depth 2 on every well-formed state (Σ₁–Σ₃: D-CTG, D-MIN, D-SEQ all hold). Two further cases — an ill-formed state and a higher depth — round out the picture.
+
+**Contiguity violation (depth 2).** Consider the candidate `V₁(d) = {[1,1], [1,3]}`. Now `[1,2]` is an intermediate between `[1,1]` and `[1,3]` that is absent — D-CTG is violated. A state with a gap in the ordinal range between occupied extremes is not a well-formed document arrangement.
+
+**Higher depth (depth 3).** Let document `d'` have `M(d') = {[1,1,1] ↦ a₁, [1,1,2] ↦ a₂, [1,1,3] ↦ a₃}`, so `V₁(d') = {[1,1,1], [1,1,2], [1,1,3]}`. *D-CTG check*: the only intermediate at subspace 1 and depth 3 between the extremes `[1,1,1]` and `[1,1,3]` is `[1,1,2]`, which is present. ✓ *D-MIN check*: `min(V₁(d')) = [1,1,1] = [S, 1, 1]`, all post-subspace components equal to 1. ✓
+
+**Contiguity violation (depth ≥ 3).** Suppose instead `V₁(d') = {[1,1,1], [1,2,1]}`. D-CTG requires every intermediate with subspace 1 and depth 3 between `[1,1,1]` and `[1,2,1]` to be present. But `[1,1,2], [1,1,3], [1,1,4], …` are all intermediates — infinitely many, contradicting S8-fin. This is D-CTG-depth in action: positions differing before the last component cannot coexist in a finite arrangement.
+
 
 ## The document as arrangement
 
@@ -566,7 +546,8 @@ Nelson: "There is thus no 'basic' version of a document set apart from other ver
 | S7d | Document allocation discipline: every document is addressed by a document-level tumbler (`zeros = 2`) allocated via T10a under the owning user's prefix; distinct documents arise from distinct allocation events | design; uses T10a, T10a.4, T4 (ASN-0034) |
 | S7 | Structural attribution: `origin(a) = N(a).0.U(a).0.D(a)` — full document prefix | from S7a, S7b, S7d, S0, S4, T4, T4b, T3, T10a.4, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
-| S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — element-field tumblers of depth ≥ 2 with componentwise positive entries | definition (a V-position is a tumbler with `zeros(v) = 0` and `#v ≥ 2`, both definitional); positivity derived from `zeros = 0` via T0, NAT-discrete (ASN-0034) |
+| Σ.M(d) domain restriction | `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions | axiom (definitional) |
+| S8a | V-position componentwise positivity: `(A v ∈ dom(M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — the depth/zero-count conjuncts are supplied by the `Σ.M(d)` domain-restriction axiom; only positivity is derived | derived from the domain-restriction axiom via T0, NAT-discrete (ASN-0034) |
 | subspace(v) | V-position subspace identifier: `subspace(v) = v₁`; well-defined when `#v ≥ 1` | introduced; uses T0 (ASN-0034), S8a |
 | S8-depth | Fixed-depth V-positions: `(A d, u, w : u ∈ dom(M(d)) ∧ w ∈ dom(M(d)) ∧ subspace(u) = subspace(w) : #u = #w)` | design; uses S8a |
 | S8 | Singleton span partition: the singleton intervals `[vⱼ, shift(vⱼ, 1))` partition the V-positions of `dom(M(d))` (a); labeling `vⱼ ↦ aⱼ = M(d)(vⱼ)` well-defined by S2, S3 (b), defining the labeled partition | theorem (a) from S2, S3, S8-fin, S8a, S8-depth, T1, T3, T5, T10, TumblerAdd, OrdinalShift, OrdinalDisplacement, TS4, NAT-discrete, NAT-closure, NAT-order (ASN-0034); (b) labeling by S2, S3 |
