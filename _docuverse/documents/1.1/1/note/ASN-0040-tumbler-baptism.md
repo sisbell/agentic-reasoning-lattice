@@ -30,7 +30,7 @@ We introduce the central state component:
 
 A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed set B₀ ⊆ T of root addresses established at system genesis, subject to the conformance requirement stated at B₀ conf. below. Thereafter it grows monotonically.
 
-We must situate s.B against the foundation's `allocated(s)` (AllocatedSet, ASN-0034), since both name "a position that has been assigned." They are not the same component: `allocated(s)` is the allocator's *realized domain* — the addresses an allocator chain has actually produced, the *query* phase of Gregory's two-phase anatomy — whereas s.B is the *committed registry*, the candidates written into the persistent store, the *write* phase that is the moment of baptism.
+We must situate s.B against the foundation's `allocated(s)` (AllocatedSet, ASN-0034), since both name "a position that has been assigned." s.B is a distinct state component: `allocated(s)` is the allocator's *realized domain* — the addresses an allocator chain has actually produced — whereas s.B is the *committed registry* of baptized positions.
 
 **B0a (Baptismal Closure).** Σ partitions into two classes whose treatment of the s.B component is fixed:
 
@@ -331,7 +331,7 @@ In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. ∎
 
 Baptism reads the high water mark, computes the next address, and commits the result as one indivisible step.
 
-**B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each `baptize(p, d) ∈ Σ` is one transition edge by the foundation Σ signature: its registry update is committed on a single edge of `→`, with no intermediate observable state s_mid satisfying `s → s_mid → s'`.
+**B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each `baptize(p, d) ∈ Σ` is a single edge of `→`. The baptism-specific content is that the operation's three internal steps — read the high water mark hwm(s.B, p, d), compute next(s.B, p, d) = c_{hwm+1}, and commit s'.B = s.B ∪ {next(s.B, p, d)} — collapse onto that one edge: no transition interposes between the read and the commit. In particular, no second baptism in the same namespace can interleave, which would let two acts read the same hwm and compute the same c_{hwm+1}. Atomicity is what forecloses that interleaving; it is the handle B8 and B9 cite.
 
 
 ## The baptism operation
@@ -517,7 +517,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B1 | `B6(p, d) ⟹ (cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))` — contiguous prefix over B6-valid namespaces (requires conforming B₀) | from B₀ conf., B0, B0a, B6, B7, next def., S0, TA5(c) |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
 | B3 | Forward requirement on a future predicate `Occupied : T × 𝒮 → {⊤, ⊥}`: `(A s reachable, t ∈ T : Occupied(t, s) ⟹ t ∈ s.B)` — content permitted only at baptized addresses; ghost elements (`t ∈ s.B ∧ ¬Occupied(t, s)`) explicitly allowed | forward requirement on future ASN |
-| B4 | Each `baptize(p, d) ∈ Σ` is a single atomic transition: the operation's registry update is committed on one edge of `→`, with no intermediate observable state | corollary of B0a + foundation Σ signature |
+| B4 | Each `baptize(p, d) ∈ Σ` is a single edge of `→`: read-hwm / compute-next / commit-union collapse onto one transition, foreclosing interleaved same-namespace allocation | corollary of B0a + foundation Σ signature |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
