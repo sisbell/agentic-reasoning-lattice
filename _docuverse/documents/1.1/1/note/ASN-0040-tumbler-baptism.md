@@ -10,7 +10,7 @@ Nelson calls this transition *baptism*:
 
 Three observations are compressed into that sentence. Baptism is *hierarchical* — it descends level by level through the field structure. Baptism is *sequential* — positions arrive in order, not arbitrarily. And baptism is *permanent* — "Any address, once assigned, remains valid forever." Authorization (who may baptize) is out of scope here; we characterize the structural mechanism: how the set of baptized positions grows, and what it preserves as it grows.
 
-Gregory's implementation reveals the operational anatomy. Baptism is a two-phase process: first, the system queries the existing address space for the highest allocated position under a given parent prefix and increments to produce a candidate; second, it writes that candidate into the persistent store. The write — not the query — is the moment of baptism. A candidate computed but never written does not exist; if the query were repeated without an intervening write, it would return the same candidate. The address becomes real at the instant of commitment.
+Gregory's implementation locates the moment of baptism precisely: an address becomes real only when it is committed to the persistent store. A candidate computed but never committed does not exist. We therefore take commitment — the entry of an address into the registry — as the defining event of baptism.
 
 We formalize baptism as the growth law of the address space.
 
@@ -37,6 +37,8 @@ s.B is the *committed registry* of baptized positions, distinct from the foundat
   - *Baptismal operations.* For each (p, d) satisfying B6 (Valid Depth, below), `baptize(p, d) ∈ Σ` adjoins a single element to the registry: `op(s).B = s.B ∪ {next(s.B, p, d)}`.
   - *s.B-frame operations.* Every other `op ∈ Σ` preserves the registry: `(A op ∈ Σ \ {baptize(p, d) : B6(p, d)}, s ∈ dom(op) : op(s).B = s.B)`.
 
+This partition fixes the shape of every inductive step over reachable states. We call it the *s.B-frame dispatch*: in an s.B-frame transition `op(s).B = s.B`, so any predicate on s.B carried by the inductive hypothesis transfers to the successor unchanged, leaving only the baptismal case to argue. The proofs of B_fin, B1, and B10 invoke this dispatch rather than reprinting it.
+
 Irrevocability follows immediately:
 
 **B0 (Irrevocability — corollary of B0a).** `(A s, s' : s → s' : s.B ⊆ s'.B)`. In the baptismal branch Bop adjoins a single element, giving `s.B ⊆ op(s).B`; in the s.B-frame branch B0a gives `op(s).B = s.B`. So `s.B ⊆ op(s).B` in both, hence `s.B ⊆ s'.B` for every transition. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid."
@@ -58,7 +60,7 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 
 **S(p,d) (SiblingStream).** We call the sequence c₁, c₂, c₃, ... the *sibling stream* of p at depth d, written S(p, d). By TA5(c), each sibling increment preserves the tumbler's length and advances only the last significant component by 1. Every element of S(p, d) has the form [p₁, ..., p_{#p}, 0, ..., 0, n] — the parent's components, then d − 1 zeros, then the ordinal n. We establish this canonical form and the uniform length #cₙ = #p + d by induction (the strict ordering is proved separately at S0 below):
 
-*Proof.* We must show that every element cₙ of S(p, d) has the form [p₁, ..., p_{#p}, 0, ..., 0, n] — the parent's first #p components, then d − 1 zeros, then ordinal n — with uniform length #cₙ = #p + d. The argument proceeds by induction on n.
+*Proof.* By induction on n.
 
 *Base case (n = 1).* c₁ = inc(p, d) with d ≥ 1. By TA5(d) (ASN-0034), c₁ has length #p + d: the first #p components are preserved from p (TA5(b)), the next d − 1 positions #p + 1 through #p + d − 1 are zero-valued field separators, and the final position #p + d has value 1. This is exactly [p₁, ..., p_{#p}, 0, ..., 0, 1] with d − 1 zeros and ordinal 1.
 
@@ -101,7 +103,7 @@ Baptism interacts with the field hierarchy through the depth parameter. Recall f
 
 For d = 1: zeros is preserved — the child is at the same hierarchical level. For d = 2: zeros advances by 1 — the child descends one level.
 
-*Proof.* We must show that for a tumbler p and depth d ≥ 1, the zero count of inc(p, d) equals zeros(p) + (d − 1). Let t' = inc(p, d). Since d ≥ 1, TA5(d) applies: t' has length #p + d, with the first #p components preserved from p (TA5(b)), d − 1 zero-valued components at positions #p + 1 through #p + d − 1, and a final component of value 1 at position #p + d.
+*Proof.* Let t' = inc(p, d). Since d ≥ 1, TA5(d) applies: t' has length #p + d, with the first #p components preserved from p (TA5(b)), d − 1 zero-valued components at positions #p + 1 through #p + d − 1, and a final component of value 1 at position #p + d.
 
 We partition the components of t' into three ranges and count zeros in each. Positions 1 through #p are identical to the corresponding components of p by TA5(b), contributing exactly zeros(p) zero-valued components. Positions #p + 1 through #p + d − 1 are the field separators introduced by the increment — there are d − 1 of them, each zero-valued, contributing d − 1 zeros. (When d = 1 this range is empty, contributing none; when d = 2 it contains exactly one zero.) Position #p + d holds value 1, contributing no zeros.
 
@@ -115,7 +117,7 @@ B5 establishes the zeros count for the *first* child c₁ of a stream. The sibli
 
 **B5a (Sibling Zeros Preservation).** `(A t : t_{sig(t)} > 0 : zeros(inc(t, 0)) = zeros(t))`
 
-*Proof.* We must show that for any tumbler t with t_{sig(t)} > 0, the zero count of inc(t, 0) equals zeros(t). Let t' = inc(t, 0). By TA5(c), t' has the same length as t (#t' = #t) and differs from t only at position sig(t), where t'_{sig(t)} = t_{sig(t)} + 1. At every other position, t'_i = t_i.
+*Proof.* Let t' = inc(t, 0). By TA5(c), t' has the same length as t (#t' = #t) and differs from t only at position sig(t), where t'_{sig(t)} = t_{sig(t)} + 1. At every other position, t'_i = t_i.
 
 We count zeros in t' by comparing each component with the corresponding component of t. At every position i ≠ sig(t), t'_i = t_i, so position i is zero-valued in t' exactly when it is zero-valued in t — these positions contribute identically to both zeros(t') and zeros(t). At position sig(t), the precondition gives t_{sig(t)} > 0, so this position contributes no zero to zeros(t). After the increment, t'_{sig(t)} = t_{sig(t)} + 1 ≥ 2 > 0, so this position contributes no zero to zeros(t') either. Since every position contributes identically to both zero counts, zeros(t') = zeros(t). ∎
 
@@ -209,7 +211,7 @@ B₀ conformance fixes the seed as a finite set; B0a constrains every transition
 
 *Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), B₀ is finite. The invariant holds at genesis.
 
-*Inductive step.* Assume s.B is finite for state s with registry B. By B0a, a transition s → s' either leaves B' = B (finite by the inductive hypothesis) or sets B' = B ∪ {a} for a single new element a — a finite set plus a singleton, hence finite. By induction, s.B is finite in every reachable state. ∎
+*Inductive step.* Assume s.B is finite for state s with registry B. By the s.B-frame dispatch (§B0a) the frame case carries finiteness unchanged; in the baptismal case B0a sets B' = B ∪ {a} for a single new element a — a finite set plus a singleton, hence finite. By induction, s.B is finite in every reachable state. ∎
 
 *Formal Contract:*
 - *Invariant:* `(A s : s reachable from s_init : s.B is finite)`.
@@ -248,11 +250,11 @@ We claim that children(B, p, d) is always a *prefix* of the sibling stream: the 
 
 Equivalently: for every B6-valid namespace (p, d), children(B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
 
-*Proof.* We must show that in every state reachable from a conforming seed B₀, for every B6-valid namespace (p, d), children(s.B, p, d) is a contiguous prefix of S(p, d). The argument proceeds by induction on the number of state transitions from the initial state.
+*Proof.* By induction on the number of state transitions from the initial state.
 
 *Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), children(B₀, p, d) is a contiguous prefix of S(p, d) for every B6-valid (p, d). B1 holds at genesis.
 
-*Inductive step.* Assume B1 holds for state s with registry B. By B0a, a transition s → s' is either s.B-frame — then B' = B and B1 holds at B' immediately by the inductive hypothesis — or baptismal, the case we now treat.
+*Inductive step.* Assume B1 holds for state s with registry B. By the s.B-frame dispatch (§B0a) the frame case carries B1 to s' unchanged; the baptismal case we now treat.
 
 *Baptismal transition.* By B0a, a baptismal transition sets B' = B ∪ {a} where a = next(B, p₀, d₀) for some (p₀, d₀) satisfying B6. We must show that children(B', p, d) is a contiguous prefix of S(p, d) for every B6-valid (p, d). Two cases exhaust the possibilities.
 
@@ -277,11 +279,11 @@ From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by in
 
 **B10 (T4ValidityInvariant).** `(A t ∈ s.B : t satisfies T4)`
 
-*Proof.* We must show that in every state reachable from a conforming seed B₀, every element of s.B satisfies T4 (HierarchicalParsing, ASN-0034). The argument proceeds by induction on the number of state transitions from the initial state.
+*Proof.* By induction on the number of state transitions from the initial state.
 
 *Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), every t ∈ B₀ satisfies T4. The invariant holds at genesis.
 
-*Inductive step.* Assume B10 holds for state s with registry B — every t ∈ B satisfies T4. By B0a, a transition s → s' is either s.B-frame — then B' = B and B10 holds at B' immediately by the inductive hypothesis — or baptismal, the case we now treat.
+*Inductive step.* Assume B10 holds for state s with registry B — every t ∈ B satisfies T4. By the s.B-frame dispatch (§B0a) the frame case carries B10 to s' unchanged; the baptismal case we now treat.
 
 *Baptismal transition.* By B0a, the transition sets B' = B ∪ {a} where a = next(B, p, d) for some (p, d) satisfying B6. We must show every t ∈ B' satisfies T4. For elements t ∈ B, the inductive hypothesis gives t satisfies T4 directly. It remains to show the new element a satisfies T4.
 
@@ -314,7 +316,7 @@ Because children(B, p, d) = {c₁, ..., cₘ} is a contiguous prefix (B1), the m
 
 Concretely: if hwm = 0, then next = inc(p, d) — the first child; if hwm = m > 0, then next = inc(cₘ, 0) — the next sibling. The cardinality of the existing children is a sufficient statistic for the next allocation.
 
-*Proof.* We must show that for any registry B satisfying B1 and any valid parent-depth pair (p, d), the operationally defined next address equals the (hwm + 1)-th element of the sibling stream S(p, d). Let m = hwm(B, p, d) = #children(B, p, d). By B1 (Contiguous Prefix), children(B, p, d) = {c₁, ..., cₘ} for this m — the first m elements of S(p, d) with no gaps. The argument splits into two cases exhausting the possible values of m.
+*Proof.* Let m = hwm(B, p, d) = #children(B, p, d). By B1 (Contiguous Prefix), children(B, p, d) = {c₁, ..., cₘ} for this m — the first m elements of S(p, d) with no gaps. The argument splits into two cases exhausting the possible values of m.
 
 *Case 1: m = 0.* The children set is empty: children(B, p, d) = ∅. By the definition of next (NextAddress), next(B, p, d) = inc(p, d). By the definition of the sibling stream, c₁ = inc(p, d). Since hwm + 1 = 0 + 1 = 1, the claim c_{hwm+1} = c₁ = inc(p, d) = next(B, p, d) holds.
 
@@ -329,9 +331,7 @@ In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. ∎
 
 ## Atomicity
 
-Baptism reads the high water mark, computes the next address, and commits the result as one indivisible step.
-
-**B4 (Atomic Baptism — corollary of B0a and the foundation Σ signature).** Each `baptize(p, d) ∈ Σ` is a single edge of `→`: the operation's three internal steps — read the high water mark, compute the next address, and commit the union (Bop) — collapse onto that one edge, with no transition interposing between the read and the commit.
+**B4 (Atomic Baptism — corollary of the foundation Σ signature).** Each `baptize(p, d) ∈ Σ` is a single edge of `→`: no transition interposes between evaluating `next(s.B, p, d)` and committing the union. This is the foundation's transition model (NoDeallocation: each `op ∈ Σ` is a partial function `𝒮 ⇀ 𝒮`, a transition being the pair `(s, op(s))`) read off for baptism.
 
 
 ## The baptism operation
@@ -344,7 +344,7 @@ We now specify the baptism operation itself.
   POST: s'.B = s.B ∪ {next(s.B, p, d)}; only s.B is modified
   ATOMIC: B4 — committed on one edge of →
 
-*Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined and produces a fresh address.
+*Proof of well-definedness and correctness.*
 
 **Well-definedness.** The postcondition invokes next(s.B, p, d), which NextAddress establishes lies in T for any finite B ⊆ T, p ∈ T, d ≥ 1; B_fin (§B_fin) discharges the finiteness premise for B = s.B at any reachable s, so next(s.B, p, d) ∈ T here.
 
@@ -435,7 +435,7 @@ At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 
 
 The proof splits two ways: distinct baptisms within the same namespace, and baptisms in different namespaces.
 
-*Proof.* We must show that for any two distinct *co-reachable* baptismal acts β₁ and β₂ — both lying, by the co-reachability hypothesis, on a single transition path s_init →* s — the addresses they produce are distinct. Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We proceed by case analysis on whether the two baptisms target the same or different namespaces.
+*Proof.* Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'); by the co-reachability hypothesis both acts lie on a single transition path s_init →* s. We proceed by case analysis on whether the two baptisms target the same or different namespaces.
 
 *Case 1: same namespace — (p, d) = (p', d').* The co-reachability hypothesis gives a single transition path s_init →* s carrying both β₁ and β₂. Along that one path the edges are linearly ordered, so β₁ and β₂ are comparable; without loss of generality β₁ precedes β₂, the argument with roles exchanged being identical. By B4 (Atomic Baptism), each baptism is a single Σ-edge of this path. Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts. By the Bop postcondition, the successor state s₁' = β₁(s₁) has s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. Since β₁ precedes β₂, s₂ is reachable from s₁' through a (possibly empty) sequence of transitions — that is, s₁' →* s₂. B0★ gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
 
@@ -460,7 +460,7 @@ Nelson insists that the address space imposes no capacity limits:
 
 No architectural limit constrains how many children a position may have.
 
-*Proof.* We must show that for any pair (p, d) satisfying B6 and any bound M ∈ ℕ, there exists a state s' with s →* s' (via baptisms) such that hwm(s'.B, p, d) ≥ M. The argument is constructive: we exhibit the required sequence of baptismal transitions.
+*Proof.* The argument is constructive: we exhibit the required sequence of baptismal transitions.
 
 Let m = hwm(s.B, p, d) — the current count of children in namespace (p, d). If m ≥ M, set s' = s (the empty transition sequence witnesses s →* s via reflexivity) and the claim holds trivially. Otherwise m < M, and we construct a sequence of M − m baptismal transitions, each `baptize(p, d) ∈ Σ` targeting namespace (p, d). We show by induction on k that k successive baptismal transitions s → s₁ → ... → sₖ produce a state sₖ with hwm(sₖ.B, p, d) = m + k.
 
@@ -499,7 +499,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B1 | `B6(p, d) ⟹ (cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))` — contiguous prefix over B6-valid namespaces (requires conforming B₀) | from B₀ conf., B0, B0a, B6, B7, next def., S0, TA5(c) |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
 | B3 | Baptism (`t ∈ s.B`) is independent of content: a baptized position may hold nothing — a ghost element — and content presupposes baptism | introduced |
-| B4 | Each `baptize(p, d) ∈ Σ` is a single edge of `→`: read-hwm / compute-next / commit-union collapse onto one transition | corollary of B0a + foundation Σ signature |
+| B4 | Each `baptize(p, d) ∈ Σ` is a single edge of `→` — no transition interposes between evaluating `next` and committing the union | corollary of foundation Σ signature |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
