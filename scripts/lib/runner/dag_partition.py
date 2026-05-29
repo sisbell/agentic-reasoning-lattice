@@ -32,19 +32,61 @@ from .trigger import Trigger
 _ASN_PAT = re.compile(r"(ASN-\d{4})")
 
 
+_INQUIRY_SCOPE_TRIGGERS = {"note-draft", "inquiry-consult"}
+
+
+def _resolve_note_addr(session: Session, asn_label: str) -> Address | None:
+    """Direct path→addr lookup for an ASN's note doc. O(N) over registered
+    paths today; the path map is in-memory so this is microseconds per
+    call. Returns None for inquiry-only ASNs (pre-draft).
+    """
+    state = session.store
+    for path, addr in state.path_to_addr.items():
+        if f"/note/{asn_label}-" in path and not path.endswith(".statements.md"):
+            return addr
+    return None
+
+
+def _resolve_inquiry_addr(session: Session, asn_label: str) -> Address | None:
+    """Direct path→addr lookup for an ASN's inquiry doc."""
+    state = session.store
+    rel = f"_docuverse/documents/1.1/1/inquiry/{asn_label}.md"
+    return state.path_to_addr.get(rel)
+
+
 def has_fireable_trigger(
     session: Session, asn_label: str, triggers: Iterable[Trigger],
 ) -> bool:
-    """True iff at least one (trigger, addr) pair in this ASN's scope has
-    an unsatisfied predicate — i.e., the runner would fire something on
-    this ASN. Early-exits on the first fire-able pair to keep the check
-    cheap.
+    """True iff at least one trigger would fire on this ASN — i.e., its
+    predicate returns False against the ASN's note or inquiry addr.
+
+    Fast path: resolves note_addr / inquiry_addr once per ASN and calls
+    each trigger's predicate directly, instead of going through
+    `scope_query` (which walks the substrate per trigger and dominates
+    cost when run across many ASNs). Matches the eval pattern used by
+    the dag_status diagnostic — sub-second per ASN instead of seconds.
+
+    Early-exits on the first fire-able predicate.
     """
-    scope = Scope(asn_label=asn_label)
+    note_addr = _resolve_note_addr(session, asn_label)
+    inquiry_addr = _resolve_inquiry_addr(session, asn_label)
+    if note_addr is None and inquiry_addr is None:
+        return False
     for trig in triggers:
-        for addr in trig.scope_query(session, scope):
-            if not trig.predicate(session, addr):
-                return True
+        if trig.name in _INQUIRY_SCOPE_TRIGGERS:
+            eval_addr = inquiry_addr
+        else:
+            eval_addr = note_addr
+        if eval_addr is None:
+            continue
+        try:
+            quiescent = trig.predicate(session, eval_addr)
+        except Exception:
+            # Treat predicate errors as quiescent for this check —
+            # surfacing them is the diagnostic's job, not the filter's.
+            continue
+        if not quiescent:
+            return True
     return False
 
 
