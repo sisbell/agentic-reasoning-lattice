@@ -56,7 +56,7 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 
   cₙ₊₁ = inc(cₙ, 0)    for n ≥ 1
 
-**S(p,d) (SiblingStream).** We call the sequence c₁, c₂, c₃, ... the *sibling stream* of p at depth d, written S(p, d). By TA5(c), each sibling increment preserves the tumbler's length and advances only the last significant component by 1. Every element of S(p, d) has the form [p₁, ..., p_{#p}, 0, ..., 0, n] — the parent's components, then d − 1 zeros, then the ordinal n. We establish this canonical form and the uniform length #cₙ = #p + d by induction (the strict ordering is proved separately at S0 below):
+**S(p,d) (SiblingStream).** We call the sequence c₁, c₂, c₃, ... the *sibling stream* of p at depth d, written S(p, d). Structurally this is the foundation's allocator domain `dom(A)` (T10a) with base `inc(p, d)`: the same `c₁ = inc(p, d)`, `cₙ₊₁ = inc(cₙ, 0)` recurrence. We deliberately derive the stream's properties (uniform length, strict ordering below) directly from the primitives TA5 and T1 rather than citing T10a.1 (UniformSiblingLength) and T10a.7 (EnumerationInjectivity), because identifying a baptismal stream with a T10a allocator domain presupposes that baptism *is* the T10a allocation discipline — which remains an open question of this ASN (under what activation discipline `allocated(s) ⊆ s.B` holds). Until that identification is established, the re-derivation is independent grounding, not redundant restatement. By TA5(c), each sibling increment preserves the tumbler's length and advances only the last significant component by 1. Every element of S(p, d) has the form [p₁, ..., p_{#p}, 0, ..., 0, n] — the parent's components, then d − 1 zeros, then the ordinal n. We establish this canonical form and the uniform length #cₙ = #p + d by induction (the strict ordering is proved separately at S0 below):
 
 *Proof.* We must show that every element cₙ of S(p, d) has the form [p₁, ..., p_{#p}, 0, ..., 0, n] — the parent's first #p components, then d − 1 zeros, then ordinal n — with uniform length #cₙ = #p + d. The argument proceeds by induction on n.
 
@@ -90,7 +90,7 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 
 As a consequence, since every cₙ extends p, the entire stream lies within the set {t ∈ T : p ≼ t}, which forms a contiguous interval under T1 by T5 (ContiguousSubtrees).
 
-Nelson describes exactly this process: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right." The word "successive" is precise — positions arrive in order, c₁ before c₂ before c₃. The stream is traversed monotonically, not sampled.
+Nelson describes exactly this process: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right."
 
 
 ## Depth and field structure
@@ -179,6 +179,8 @@ Each parent-depth pair defines a namespace. Distinct namespaces must produce non
 
 provided both `(p, d)` and `(p', d')` satisfy B6.
 
+The disjointness conclusion itself specializes the foundation's T10a.6 (DomainDisjointness), `dom(X) ∩ dom(Y) = ∅`, to baptismal namespaces: distinct B6-valid pairs map to distinct allocator bases, whose domains T10a.6 separates. What is ASN-local — and what the proof below supplies — is the case analysis (length-split / equal-parent / unequal-parent) that exhibits *where* the separation falls in terms of parent length and depth, together with the B6(i)/aliasing necessity argument showing that the T4-validity of the parent is exactly the hypothesis that prevents two distinct pairs from aliasing to one base.
+
 *Proof.* Suppose, for contradiction, some `x ∈ S(p, d) ∩ S(p', d')`. By S(p, d)'s postconditions, x is simultaneously
 `x = [p₁, …, p_{#p}, 0, …, 0, n]` of length #p + d (with d − 1 separating zeros and ordinal n ≥ 1) and
 `x = [p'₁, …, p'_{#p'}, 0, …, 0, m]` of length #p' + d' (with d' − 1 separating zeros and ordinal m ≥ 1).
@@ -197,7 +199,7 @@ Dropping B6(i) admits aliasing: a pure-trailing-zero parent and its truncation a
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
 - *Postconditions:* `S(p, d) ∩ S(p', d') = ∅`.
-- *Depends:* S(p, d) postconditions (stream-element form [p, 0^{d−1}, n] and length #p + d), B6 (T4-validity and d ∈ {1, 2} of both parents), TA5(d) (base-address length and component structure underlying the element form), T3 (CanonicalRepresentation — equal tumblers have equal length, driving the length split; equal-length parents share the base prefix, forcing parent equality), T4 / TA5-SigValid (valid parent has a nonzero last component, closing the unequal-length case).
+- *Depends:* S(p, d) postconditions (stream-element form [p, 0^{d−1}, n] and length #p + d), B6 (T4-validity and d ∈ {1, 2} of both parents), TA5(d) (base-address length and component structure underlying the element form), T3 (CanonicalRepresentation — equal tumblers have equal length, driving the length split; equal-length parents share the base prefix, forcing parent equality), T4 / TA5-SigValid (valid parent has a nonzero last component, closing the unequal-length case). The disjointness conclusion specializes T10a.6 (DomainDisjointness) to baptismal namespaces; the case analysis and the B6(i)/aliasing necessity argument are the ASN-local content.
 
 
 ## Seed conformance and registry finiteness
