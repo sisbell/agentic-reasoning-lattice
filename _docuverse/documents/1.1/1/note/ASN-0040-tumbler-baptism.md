@@ -48,7 +48,7 @@ s.B is the *committed registry* of baptized positions, distinct from the foundat
 
 We call it the *s.B-frame dispatch*.
 
-**B0a-frame (Frame Preservation — corollary of B0a).** Any state invariant `I(s)` that is a predicate on the registry component alone — `I(s) ≡ φ(s.B)` for some `φ` — is preserved by every s.B-frame transition: if `op` is an s.B-frame operation then `op(s).B = s.B` (B0a), so `φ(op(s).B) = φ(s.B)`. Consequently, in any inductive proof that such an `I` is invariant, the s.B-frame case is discharged here once and for all; only the baptismal case requires per-invariant treatment. The invariants B1, B10, and B_fin are each of this form (predicates on s.B), so each inherits frame preservation from B0a-frame.
+**B0a-frame (Frame Preservation — corollary of B0a).** Any state invariant `I(s)` that is a predicate on the registry component alone — `I(s) ≡ φ(s.B)` for some `φ` — is preserved by every s.B-frame transition: if `op` is an s.B-frame operation then `op(s).B = s.B` (B0a), so `φ(op(s).B) = φ(s.B)`.
 
 Irrevocability follows immediately:
 
@@ -69,7 +69,7 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 
   cₙ₊₁ = inc(cₙ, 0)    for n ≥ 1
 
-**S(p,d) (SiblingStream).** We call the sequence c₁, c₂, c₃, ... the *sibling stream* of p at depth d, written S(p, d). By TA5(c), each sibling increment preserves the tumbler's length and advances only the last significant component by 1. Every element of S(p, d) has the form [p₁, ..., p_{#p}, 0, ..., 0, n] — the parent's components, then d − 1 zeros, then the ordinal n. We establish this canonical form and the uniform length #cₙ = #p + d by induction (the strict ordering is proved separately at S0 below):
+**S(p,d) (SiblingStream).** We call the sequence c₁, c₂, c₃, ... the *sibling stream* of p at depth d, written S(p, d). By TA5(c), each sibling increment preserves the tumbler's length and advances only the last significant component by 1. Every element of S(p, d) has the form [p₁, ..., p_{#p}, 0, ..., 0, n] — the parent's components, then d − 1 zeros, then the ordinal n. We establish this canonical form and the uniform length #cₙ = #p + d by induction:
 
 *Proof.* By induction on n.
 
@@ -188,7 +188,7 @@ Each parent-depth pair defines a namespace. Distinct namespaces must produce non
 
 provided both `(p, d)` and `(p', d')` satisfy B6.
 
-The foundation's disjointness results (T10a.6 DomainDisjointness, GlobalUniqueness, and T10 PartitionIndependence) discharge the structurally identical fact for the domains of *allocators in a conforming allocator tree*. We cannot simply invoke them, because B7 quantifies over *every* B6-valid pair `(p, d)` with arbitrary `p ∈ T` — not only over the parent-depth pairs realized as allocators in some particular conforming tree. A reduction would require first exhibiting, for each such `(p, d)`, a conforming allocator whose domain is exactly S(p, d), and then ruling out the aliasing collision (distinct pairs yielding the same base) that B6(i) below forbids. We therefore re-derive disjointness directly from the canonical stream form, obtaining a result valid for all B6-valid pairs without reference to any allocator tree.
+Because B7 ranges over *every* B6-valid pair `(p, d)` with arbitrary `p ∈ T`, not only over the parent-depth pairs realized as allocators in some particular conforming tree, we derive disjointness directly from the canonical stream form.
 
 *Proof.* Every element of S(p, d) has the canonical form `[p₁, …, p_{#p}, 0, …, 0, n]` (length #p + d, with d − 1 separating zeros, ordinal n at the last position), and sibling increments fix every position except the last (TA5(c)). So all elements of S(p, d) share the invariant prefix `[p₁, …, p_{#p}, 0, …, 0]` on positions 1 through #p + d − 1, and symmetrically all of S(p', d') share their own invariant prefix on positions 1 through #p' + d' − 1. To establish disjointness it suffices to exhibit a *fixed* position — one at or below #p + d − 1 in S(p, d) and at or below #p' + d' − 1 in S(p', d') — at which the two invariant prefixes carry different values: any such disagreement makes every element of one stream differ from every element of the other (T3). We argue by cases on the base lengths #p + d and #p' + d'.
 
