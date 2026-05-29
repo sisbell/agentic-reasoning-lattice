@@ -100,7 +100,7 @@ We observe a deliberate asymmetry. S3 says arrangement implies existence: `ran(M
 *Formal Contract (S3):*
 - *Axiom (well-formedness invariant):* In every state `Σ`, `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))` — equivalently, `ran(Σ.M(d)) ⊆ dom(Σ.C)`.
 - *Preservation across transitions:* For an operation that adds a V-mapping `M(d)(v) = a`, the post-state must satisfy `a ∈ dom(Σ'.C)` — the I-address must exist in the post-state.
-- *Frame:* S3 is one-directional — content may exist in `dom(C)` without being referenced (orphaned content); existence does not entail arrangement.
+- *Frame:* S3 asserts `ran(M(d)) ⊆ dom(C)` only; the converse `dom(C) ⊆ ⋃_d ran(M(d))` is not asserted.
 - *Depends:* S1 (store monotonicity) — once a reference is valid, S1 prevents the target from being removed.
 
 
@@ -260,7 +260,7 @@ This is a design requirement on every reachable state: no document arrangement i
 
 `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
 
-A V-position represents the element field of a full document-scoped address — the fourth field in the T4 field structure. Its first component `v₁` is the subspace identifier (1 for text, 2 for links); the `0` in full tumbler notation (e.g., `N.0.U.0.D.0.2.1`) is a field separator, not a subspace identifier. The depth constraint `#v ≥ 2` ensures the subspace identifier `v₁` and the within-subspace ordinal `[v₂, ..., v_m]` occupy distinct components. The domain and range of `M(d)` live in structurally different tumbler subsets: `dom(M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2 ∧ (A i : tᵢ > 0)}` (element-field tumblers of depth at least 2), while `ran(M(d)) ⊆ {t ∈ T : zeros(t) = 3}` (full element-level addresses, per S7b). Since all V-positions in subspace `s` extend the single-component prefix `[s]`, T5 (ContiguousSubtrees, ASN-0034) guarantees they form a contiguous interval under T1 — grounding the application of tumbler ordering properties to V-positions and justifying S8-depth's reference to "within a subspace."
+A V-position represents the element field of a full document-scoped address — the fourth field in the T4 field structure. Its first component `v₁` is the subspace identifier (1 for text, 2 for links); the `0` in full tumbler notation (e.g., `N.0.U.0.D.0.2.1`) is a field separator, not a subspace identifier. The depth constraint `#v ≥ 2` ensures the subspace identifier `v₁` and the within-subspace ordinal `[v₂, ..., v_m]` occupy distinct components. The domain and range of `M(d)` live in structurally different tumbler subsets: `dom(M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2 ∧ (A i : tᵢ > 0)}` (element-field tumblers of depth at least 2), while `ran(M(d)) ⊆ {t ∈ T : zeros(t) = 3}` (full element-level addresses, per S7b). Since all V-positions in subspace `s` extend the single-component prefix `[s]`, T5 (ContiguousSubtrees, ASN-0034) guarantees they form a contiguous interval under T1.
 
 *Proof.* A V-position is, by definition, an isolated element field of depth at least 2, so `zeros(v) = 0` and `#v ≥ 2` hold by definition. Componentwise positivity follows: every component of `v` lies in T0's carrier ℕ, and `zeros(v) = 0` forces each to be `≠ 0`, hence `≥ 1` by NAT-discrete (ASN-0034) instantiated at `m = 0` (no natural lies strictly between `0` and `1`); in particular the subspace identifier `v₁ ≥ 1`. ∎
 *Formal Contract:*
@@ -305,7 +305,7 @@ For each V-position `v`, its *singleton interval* is the half-open tumbler inter
 
 *Proof.* We construct a finite decomposition satisfying both conjuncts and prove it partitions `dom(M(d))`.
 
-**Existence.** By S8-fin, `dom(M(d))` is finite. By S2 (ArrangementFunctionality), `M(d)` is a function, so each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`. By S3 (referential integrity), `a ∈ dom(Σ.C)`. For each such `v`, form the singleton `(v, a)` with interval `[v, shift(v, 1))`. Conjunct (b) is `M(d)(v) = a`, which holds by construction. Since `dom(M(d))` is finite, the collection of singletons is finite. The singleton decomposition witnesses existence.
+**Existence.** By S8-fin, `dom(M(d))` is finite. When `dom(M(d)) = ∅`, the singleton collection is empty — the empty partition — and conjuncts (a), (b) hold vacuously. Otherwise, by S2 (ArrangementFunctionality), `M(d)` is a function, so each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`. By S3 (referential integrity), `a ∈ dom(Σ.C)`. For each such `v`, form the singleton `(v, a)` with interval `[v, shift(v, 1))`. Conjunct (b) is `M(d)(v) = a`, which holds by construction. Since `dom(M(d))` is finite, the collection of singletons is finite. The singleton decomposition witnesses existence.
 
 **Coverage.** Each `v ∈ dom(M(d))` lies in its own singleton's interval: `v ≤ v < shift(v, 1)`, where the right inequality holds because `shift(v, 1) > v` by TS4 (ShiftStrictIncrease, ASN-0034). So every V-position falls in at least one singleton interval.
 
@@ -343,7 +343,7 @@ Write `S = subspace(v) = v₁` for the subspace identifier (the first component 
 
 `(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ zeros(v) = 0 ∧ u < v < q : v ∈ V_1(d)))`
 
-The guard `zeros(v) = 0` restricts the consequent to well-formed V-positions (those satisfying S8a). Without it, a straddling intermediate such as `v = [1, 2, 0]` between `u = [1, 1, 5]` and `q = [1, 2, 1]` would qualify by order and subspace alone, yet `zeros([1, 2, 0]) = 1` makes membership in `dom(M(d))` impossible by S8a — so the unrestricted form would demand membership of an ill-formed tumbler. D-CTG-depth and D-SEQ are unaffected: their constructed intermediates are already zero-free.
+The guard `zeros(v) = 0` restricts the consequent to well-formed V-positions (those satisfying S8a). Without it, a straddling intermediate such as `v = [1, 2, 0]` between `u = [1, 1, 5]` and `q = [1, 2, 1]` would qualify by order and subspace alone, yet `zeros([1, 2, 0]) = 1` makes membership in `dom(M(d))` impossible by S8a — so the unrestricted form would demand membership of an ill-formed tumbler.
 
 In words: within the text subspace, V-positions form a contiguous ordinal range with no gaps. If positions [1, 3] and [1, 7] are occupied, then every position [1, k] with 3 < k < 7 must also be occupied.
 
@@ -475,7 +475,7 @@ For `m ≥ 2`, OrdinalShift (ASN-0034) preserves component 1, so the subspace id
 
 In both predicates, `v₁ = 1` is the text subspace identifier.
 
-By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fixed common depth in the non-empty case, or the chosen depth in the empty case). By the ordinal-shift prefix lemma, `shift([1, 1, ..., 1], j)` keeps components 1 through `m − 1` unchanged and sets the last to `1 + j`. The explicit form for the non-empty case is `shift(min(V_1(d)), j) = [1, 1, ..., 1 + j]`. Distinctness of the `N + 1` valid positions is the one step worth spelling out: for `j, j' ∈ {0, ..., N}` with `j ≠ j'`, the last components `1 + j` and `1 + j'` differ (NAT-order, ASN-0034), so the two length-`m` tumblers diverge at position `m` and are distinct by T3 (CanonicalRepresentation, ASN-0034). Hence the predicate is satisfied by exactly `N + 1` distinct positions.
+By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fixed common depth in the non-empty case, or the chosen depth in the empty case). By OrdinalShift (ASN-0034), whose postconditions give `shift(v, n)ᵢ = vᵢ` for `i < m` and `shift(v, n)_m = v_m + n` for `n ≥ 1`, `shift([1, 1, ..., 1], j)` for `j ≥ 1` keeps components 1 through `m − 1` unchanged and sets the last to `1 + j`; for `j = 0` we adopt the local convention `shift(·, 0) = id` (OrdinalShift requires `n ≥ 1` and so does not cover this case), giving `shift([1, 1, ..., 1], 0) = [1, 1, ..., 1]`, which is the same prefix-preserving form with last component `1 + 0 = 1`. The explicit form for the non-empty case is `shift(min(V_1(d)), j) = [1, 1, ..., 1 + j]`. Distinctness of the `N + 1` valid positions is the one step worth spelling out: for `j, j' ∈ {0, ..., N}` with `j ≠ j'`, the last components `1 + j` and `1 + j'` differ (NAT-order, ASN-0034), so the two length-`m` tumblers diverge at position `m` and are distinct by T3 (CanonicalRepresentation, ASN-0034). Hence the predicate is satisfied by exactly `N + 1` distinct positions.
 
 *Formal Contract (ValidInsertionPosition, non-empty case).*
 - *Signature:* `ValidInsertionPosition(d, v)` — a *binary* predicate on document `d` and V-position `v`. The common V-position depth `m` is determined by `d` via S8-depth and read from state.
@@ -531,7 +531,7 @@ The arrangement `M(d₁)` maps V-positions (in subspace 1, text) to these I-addr
 | `1.4` | `1.0.1.0.1.0.1.4` |
 | `1.5` | `1.0.1.0.1.0.1.5` |
 
-*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Verify S8 (singleton partition)*: each of the five V-positions is its own singleton. For `v = 1.1 = [1, 1]` (depth `m = 2`), the interval is `[1.1, shift(1.1, 1)) = [[1, 1], [1, 2])`, where `shift([1, 1], 1) = [1, 2]` by the ordinal-shift prefix lemma (component 1 preserved, last component `1 + 1 = 2`). This interval contains exactly the V-position `1.1` — the next V-position `1.2 = [1, 2]` is excluded by the half-open upper bound. The five singletons `{[1.k, 1.(k+1)) : 1 ≤ k ≤ 5}` partition `V₁(d₁) = {1.1, …, 1.5}`, and conjunct (b) holds at each: `M(d₁)(1.k) = 1.0.1.0.1.0.1.k`.
+*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Verify S8 (singleton partition)*: each of the five V-positions is its own singleton. For `v = 1.1 = [1, 1]` (depth `m = 2`), the interval is `[1.1, shift(1.1, 1)) = [[1, 1], [1, 2])`, where `shift([1, 1], 1) = [1, 2]` by OrdinalShift (ASN-0034) with `n = 1` (component 1 preserved, last component `1 + 1 = 2`). This interval contains exactly the V-position `1.1` — the next V-position `1.2 = [1, 2]` is excluded by the half-open upper bound. The five singletons `{[1.k, 1.(k+1)) : 1 ≤ k ≤ 5}` partition `V₁(d₁) = {1.1, …, 1.5}`, and conjunct (b) holds at each: `M(d₁)(1.k) = 1.0.1.0.1.0.1.k`.
 
 *Check D-SEQ*: V₁(d₁) = {[1, k] : 1 ≤ k ≤ 5}, satisfying D-SEQ with n = 5. D-CTG holds (no gaps in the ordinal range 1..5) and D-MIN holds (min = [1, 1]).
 
