@@ -204,8 +204,6 @@ Nelson's baptism principle establishes it: "The owner of a given item controls t
 
 **S7d (Document allocation discipline).** Every document is addressed by a document-level tumbler (`zeros = 2`) allocated via T10a's allocator discipline (ASN-0034) under the owning user's prefix. Distinct documents arise from distinct allocation events.
 
-The same baptism principle grounded in S7a applies one hierarchy level up: the user-level allocator baptises documents under the user's prefix exactly as the document-level allocator baptises elements.
-
 *Formal Contract (S7d):*
 - *Axiom (design requirement):* Every document tumbler `d` satisfies `zeros(d) = 2` and is the result of an allocation event under T10a; distinct documents arise from distinct allocation events.
 - *Postconditions:* By GlobalUniqueness (ASN-0034), distinct documents have distinct document-level tumblers.
@@ -339,7 +337,7 @@ Write `S = subspace(v) = v₁` for the subspace identifier (the first component 
 
 `(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ zeros(v) = 0 ∧ u < v < q : v ∈ V_1(d)))`
 
-The guard `zeros(v) = 0` restricts the consequent to well-formed V-positions (those satisfying S8a). Without it, a straddling intermediate such as `v = [1, 2, 0]` between `u = [1, 1, 5]` and `q = [1, 2, 1]` would qualify by order and subspace alone, yet `zeros([1, 2, 0]) = 1` makes membership in `dom(M(d))` impossible by S8a — so the unrestricted form would demand membership of an ill-formed tumbler.
+The guard `zeros(v) = 0` restricts the consequent to S8a-conforming tumblers, so the contiguity demand ranges only over intermediates that could be V-positions.
 
 In words: within the text subspace, V-positions form a contiguous ordinal range with no gaps. If positions [1, 3] and [1, 7] are occupied, then every position [1, k] with 3 < k < 7 must also be occupied.
 
