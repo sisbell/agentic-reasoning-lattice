@@ -226,7 +226,7 @@ where `E(a)` is the element-field projection supplied by T4b (UniqueParse, ASN-0
 - *Axiom (design requirement):* `(A a ∈ dom(Σ.C) :: #E(a) ≥ 2)` — the element field has at least two components, so the subspace identifier `E(a)₁` and the content ordinal `[E(a)₂, ..., E(a)_{#E(a)}]` occupy distinct positions.
 - *Depends:* S7b (element-level I-addresses) — provides `E(a)`; T4b (UniqueParse, ASN-0034) — defines element-field projection.
 
-We write `subspace_I(a) = E(a)₁` for the first component of an I-address element field — the subspace identifier, mirroring `subspace(v) = v₁` for V-positions. This is a notational convenience used in motivation and examples; it carries no proof obligation of its own (its well-definedness and positivity follow directly from S7b and S7c).
+We write `subspace_I(a) = E(a)₁` for the first component of an I-address element field — the subspace identifier, mirroring `subspace(v) = v₁` for V-positions.
 
 **S7d (Document allocation discipline).** Every document is addressed by a document-level tumbler (`zeros = 2`) allocated via T10a's allocator discipline (ASN-0034) under the owning user's prefix. Distinct documents arise from distinct allocation events.
 
@@ -333,7 +333,7 @@ At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments b
 
 (b) Within each run: `Σ.M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for all `k` with `0 ≤ k < nⱼ`
 
-The content this theorem establishes is conjunct (a): a finite decomposition of `dom(Σ.M(d))` into per-position half-open intervals that are pairwise disjoint and cover the domain. This is where the within-subspace lemma, T5, and T10 do their work. Conjunct (b) is what *would* give a run with `nⱼ > 1` non-trivial meaning as an ordinal-displacement identity, but the witness exhibited here is the singleton decomposition — every V-position is its own run (`nⱼ = 1`) — under which (b) holds only at its base case `M(d)(vⱼ) = aⱼ` and is never exercised for `nⱼ > 1`. The existence of any maximal run with `nⱼ > 1` is not established here; see Open Questions.
+The content this theorem establishes is conjunct (a): a finite decomposition of `dom(Σ.M(d))` into per-position half-open intervals that are pairwise disjoint and cover the domain. This is where the within-subspace lemma, T5, and T10 do their work. The witness exhibited is the singleton decomposition — every V-position is its own run (`nⱼ = 1`) — under which conjunct (b) reduces to its base case `M(d)(vⱼ) = aⱼ`.
 
 *Proof.* We construct a finite decomposition satisfying both conjuncts and prove it partitions `dom(M(d))`.
 
@@ -574,7 +574,7 @@ The arrangement `M(d₁)` maps V-positions (in subspace 1, text) to these I-addr
 | `1.4` | `1.0.1.0.1.0.1.4` |
 | `1.5` | `1.0.1.0.1.0.1.5` |
 
-*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Check S8*: the arrangement admits a single maximal correspondence run `(v₁, a₁, n₁) = (1.1, 1.0.1.0.1.0.1.1, 5)`, exhibiting the index-arithmetic identity at every `k ∈ {0, 1, 2, 3, 4}`. We verify the identity explicitly at `k = 3`:
+*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Verify conjunct (b) by direct computation*: S8 itself establishes only the singleton decomposition. Here we go further and exhibit, by hand, a maximal correspondence run `(v, a, n) = (1.1, 1.0.1.0.1.0.1.1, 5)` whose ordinal-displacement identity (b) holds at every `k ∈ {0, 1, 2, 3, 4}` — a concrete instance, not a claim S8 proves in general. We verify the identity explicitly at `k = 3`:
 
 - *Left side: `M(d₁)(shift(1.1, 3))`.* The V-position `v = 1.1 = [1, 1]` has depth `m = 2`, so `shift(v, 3) = v ⊕ δ(3, 2) = [1, 1] ⊕ [0, 3] = [1, 4]` (action point 2; component 1 copied unchanged, component 2 receives `1 + 3 = 4`). Reading `M(d₁)([1, 4])` from the arrangement table: `M(d₁)(1.4) = 1.0.1.0.1.0.1.4`.
 
@@ -603,7 +603,7 @@ The arrangement `M(d₂)`:
 | `1.4` | `1.0.1.0.2.0.1.1` | `d₂` (native 'w') |
 | `1.5` | `1.0.1.0.2.0.1.2` | `d₂` (native 's') |
 
-*Check S0*: all 5 prior entries in `dom(C)` remain with unchanged values. The transition added 2 new entries. *Check S3*: every V-reference in `M(d₂)` resolves — positions `1.1`–`1.3` reference I-addresses from `d₁` (which exist by S1), positions `1.4`–`1.5` reference the newly allocated addresses. *Check S7*: for `a = 1.0.1.0.1.0.1.4` (the second 'l' in `d₂`), `origin(a) = 1.0.1.0.1 = d₁` — attribution traces to the originating document, not to `d₂` where the content currently appears. *Check S5*: the I-address `1.0.1.0.1.0.1.3` now appears in both `ran(M(d₁))` and `ran(M(d₂))` — sharing multiplicity is 2. *Check S8*: `M(d₂)` decomposes into two correspondence runs: `(1.1, 1.0.1.0.1.0.1.3, 3)` for the transclusion, and `(1.4, 1.0.1.0.2.0.1.1, 2)` for the native content. Two runs partition the five V-positions exactly. *Check D-SEQ*: V₁(d₁) is unchanged — {[1, k] : 1 ≤ k ≤ 5}, D-SEQ with n = 5. V₁(d₂) = {[1, k] : 1 ≤ k ≤ 5}, D-SEQ with n = 5. Both satisfy D-CTG and D-MIN.
+*Check S0*: all 5 prior entries in `dom(C)` remain with unchanged values. The transition added 2 new entries. *Check S3*: every V-reference in `M(d₂)` resolves — positions `1.1`–`1.3` reference I-addresses from `d₁` (which exist by S1), positions `1.4`–`1.5` reference the newly allocated addresses. *Check S7*: for `a = 1.0.1.0.1.0.1.4` (the second 'l' in `d₂`), `origin(a) = 1.0.1.0.1 = d₁` — attribution traces to the originating document, not to `d₂` where the content currently appears. *Check S5*: the I-address `1.0.1.0.1.0.1.3` now appears in both `ran(M(d₁))` and `ran(M(d₂))` — sharing multiplicity is 2. *Conjunct (b) by direct computation*: beyond S8's singleton existence guarantee, `M(d₂)` admits by hand a two-run maximal decomposition — `(1.1, 1.0.1.0.1.0.1.3, 3)` for the transclusion and `(1.4, 1.0.1.0.2.0.1.1, 2)` for the native content — whose runs partition the five V-positions exactly. This is a concrete instance verifying (b), not content S8 establishes. *Check D-SEQ*: V₁(d₁) is unchanged — {[1, k] : 1 ≤ k ≤ 5}, D-SEQ with n = 5. V₁(d₂) = {[1, k] : 1 ≤ k ≤ 5}, D-SEQ with n = 5. Both satisfy D-CTG and D-MIN.
 
 **After deleting "llo" from d₁** — state Σ₃. DELETE removes V-positions `1.3`–`1.5` from `M(d₁)`:
 
@@ -612,7 +612,7 @@ The arrangement `M(d₂)`:
 | `1.1` | `1.0.1.0.1.0.1.1` |
 | `1.2` | `1.0.1.0.1.0.1.2` |
 
-*Check S0*: all 7 entries in `dom(C)` remain. The I-addresses `1.0.1.0.1.0.1.3`–`.5` are no longer in `ran(M(d₁))` but persist in `dom(C)`; these three addresses are now "orphaned" from `d₁`'s perspective, but still referenced by `M(d₂)` — persistence is unconditional (S0). *Check S9*: the deletion modified `M(d₁)` but `C` is unchanged — separation holds. *Check S8*: `M(d₁)` is now a single run `(1.1, 1.0.1.0.1.0.1.1, 2)`. The prior 1-run decomposition became a 1-run decomposition (the deletion removed an entire suffix, not a middle segment). `M(d₂)` is unchanged — still two runs. *Check D-SEQ*: V₁(d₁) = {[1, k] : 1 ≤ k ≤ 2}, D-SEQ with n = 2. D-CTG holds (no gaps in 1..2) and D-MIN holds (min = [1, 1]). V₁(d₂) is unchanged — D-SEQ with n = 5.
+*Check S0*: all 7 entries in `dom(C)` remain. The I-addresses `1.0.1.0.1.0.1.3`–`.5` are no longer in `ran(M(d₁))` but persist in `dom(C)`; these three addresses are now "orphaned" from `d₁`'s perspective, but still referenced by `M(d₂)` — persistence is unconditional (S0). *Check S9*: the deletion modified `M(d₁)` but `C` is unchanged — separation holds. *Conjunct (b) by direct computation*: `M(d₁)` now admits the single maximal run `(1.1, 1.0.1.0.1.0.1.1, 2)` (the deletion removed an entire suffix, not a middle segment, so the by-hand decomposition stays a single run). `M(d₂)` is unchanged — still two runs. As above, these maximal runs are concrete instances verifying (b), distinct from S8's singleton existence claim. *Check D-SEQ*: V₁(d₁) = {[1, k] : 1 ≤ k ≤ 2}, D-SEQ with n = 2. D-CTG holds (no gaps in 1..2) and D-MIN holds (min = [1, 1]). V₁(d₂) is unchanged — D-SEQ with n = 5.
 
 
 ## The document as arrangement
