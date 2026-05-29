@@ -275,7 +275,7 @@ Gregory's evidence supports it: V-addresses in the text subspace consistently us
 - *Postconditions:* Within a subspace `s` of document `d`, there exists a common depth `m_s ≥ 2` (by S8a) such that every V-position with `v₁ = s` has length `m_s`. Distinct subspaces may have distinct depths.
 - *Depends:* S8a — for the lower bound `m_s ≥ 2`.
 
-S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: position `s.x` is followed by `s.(x+1)`, where `+1` is NAT addition on the ordinal component — distinct from tumbler ordinal displacement, which we always write `shift(v, k)` (equivalently `v ⊕ δ(k, m)` per ASN-0034), never `v + k`.
+S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: a position `v` is followed by `shift(v, 1)` (equivalently `v ⊕ δ(1, #v)` per OrdinalShift, ASN-0034), the next ordinal at the same depth.
 
 For each V-position `v`, its *singleton interval* is the half-open tumbler interval `[v, shift(v, 1))`, where `shift(v, 1) = v ⊕ δ(1, #v)` per OrdinalShift (ASN-0034) is the next ordinal at the same depth. By OrdinalShift's postconditions, for `m = #v ≥ 2`, `shift(v, 1)` agrees with `v` on positions `1 ≤ i < m` and sets `shift(v, 1)_m = v_m + 1`, so it preserves the subspace identifier `v₁` while incrementing only the ordinal component.
 
@@ -548,7 +548,7 @@ Nelson: "There is thus no 'basic' version of a document set apart from other ver
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
 | Σ.M(d) domain restriction | `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions | axiom (definitional) |
 | S8a | V-position componentwise positivity: `(A v ∈ dom(M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — the depth/zero-count conjuncts are supplied by the `Σ.M(d)` domain-restriction axiom; only positivity is derived | derived from the domain-restriction axiom via T0, NAT-discrete (ASN-0034) |
-| subspace(v) | V-position subspace identifier: `subspace(v) = v₁`; well-defined when `#v ≥ 1` | introduced; uses T0 (ASN-0034), S8a |
+| subspace(v) | V-position subspace identifier: `subspace(v) = v₁`; well-defined when `#v ≥ 1` | introduced; uses T0 (ASN-0034) |
 | S8-depth | Fixed-depth V-positions: `(A d, u, w : u ∈ dom(M(d)) ∧ w ∈ dom(M(d)) ∧ subspace(u) = subspace(w) : #u = #w)` | design; uses S8a |
 | S8 | Singleton span partition: the singleton intervals `[vⱼ, shift(vⱼ, 1))` partition the V-positions of `dom(M(d))` (a); labeling `vⱼ ↦ aⱼ = M(d)(vⱼ)` well-defined by S2, S3 (b), defining the labeled partition | theorem (a) from S2, S3, S8-fin, S8a, S8-depth, T1, T3, T5, T10, TumblerAdd, OrdinalShift, OrdinalDisplacement, TS4, NAT-discrete, NAT-closure, NAT-order (ASN-0034); (b) labeling by S2, S3 |
 | D-CTG | V-position contiguity: V_1(d) forms a contiguous ordinal range with no gaps — design constraint on well-formed document states | design; uses S8a, S8-depth, T1 (ASN-0034) |
