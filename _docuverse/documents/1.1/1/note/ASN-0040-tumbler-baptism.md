@@ -171,11 +171,11 @@ By B4 (Atomic Baptism, §B4 below), next(s.B, p, d) is evaluated against the pre
 
 We claim that children(B, p, d) is always a *prefix* of the sibling stream: the first m elements for some m ≥ 0, with no gaps.
 
-**B1 (Contiguous Prefix).** `(A p, d, n : n ≥ 1 ∧ cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))`.
+**B1 (Contiguous Prefix).** `(A p, d : B6(p, d) : (A n : n ≥ 1 ∧ cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)))`.
 
-Equivalently: children(B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
+Equivalently: for every B6-valid namespace (p, d), children(B, p, d) = {c₁, ..., cₘ} for some m ≥ 0. Nothing downstream needs contiguity for a namespace baptism can never target — every consumer (hwm, B2, Bop's freshness clause, B8 Case 1, B9) invokes B1 only for B6-valid (p, d) — so the invariant is scoped accordingly.
 
-*Proof.* We must show that in every state reachable from a conforming seed B₀, for every parent p and depth d, children(s.B, p, d) is a contiguous prefix of S(p, d). The argument proceeds by induction on the number of state transitions from the initial state.
+*Proof.* We must show that in every state reachable from a conforming seed B₀, for every B6-valid namespace (p, d), children(s.B, p, d) is a contiguous prefix of S(p, d). The argument proceeds by induction on the number of state transitions from the initial state.
 
 *Base case.* In the initial state, s.B = B₀. By B₀ conf. (SeedConformance), children(B₀, p, d) is a contiguous prefix of S(p, d) for every (p, d). B1 holds at genesis.
 
@@ -183,7 +183,7 @@ Equivalently: children(B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
 
 *s.B-frame transitions.* If the transition is induced by a s.B-frame operation, then s'.B = s.B — that is, B' = B. For every (p, d), children(B', p, d) = B' ∩ S(p, d) = B ∩ S(p, d) = children(B, p, d), a contiguous prefix of S(p, d) by the inductive hypothesis. B1 holds at B'.
 
-*Baptismal transitions.* Otherwise the transition is induced by a baptismal operation baptize(p₀, d₀) for some (p₀, d₀) satisfying B6, so B' = B ∪ {a} where a = next(B, p₀, d₀). We must show that children(B', p, d) is a contiguous prefix of S(p, d) for every (p, d). Two cases exhaust the possibilities.
+*Baptismal transitions.* Otherwise the transition is induced by a baptismal operation baptize(p₀, d₀) for some (p₀, d₀) satisfying B6, so B' = B ∪ {a} where a = next(B, p₀, d₀). We must show that children(B', p, d) is a contiguous prefix of S(p, d) for every B6-valid (p, d). Two cases exhaust the possibilities.
 
 *Target namespace: (p, d) = (p₀, d₀).* By B4 (Atomic Baptism), this baptism is a single Σ-transition acting on B; the value of children(B, p₀, d₀) appearing in the postcondition is computed from the same precondition state B that licenses the transition. By the inductive hypothesis, children(B, p₀, d₀) = {c₁, ..., cₘ} for some m ≥ 0. Two sub-cases arise from the definition of next (NextAddress).
 
@@ -191,24 +191,16 @@ When m = 0: children(B, p₀, d₀) = ∅, so a = next(B, p₀, d₀) = inc(p₀
 
 When m ≥ 1: the maximum of children(B, p₀, d₀) is cₘ, since the prefix {c₁, ..., cₘ} is strictly ordered by S0 (StreamOrdering). The definition of next gives a = inc(cₘ, 0). By TA5(c), this sibling increment advances only the last significant component of cₘ by 1, producing exactly c_{m+1} — the immediate successor in S(p₀, d₀). No element is skipped: the definition of next always selects the immediate successor via inc(cₘ, 0), which by TA5(c) cannot leap over any stream element. By B0 (Irrevocability), B ⊆ B', so {c₁, ..., cₘ} ⊆ B'. Together with the new element c_{m+1} ∈ B', we obtain children(B', p₀, d₀) = {c₁, ..., cₘ, c_{m+1}}, a contiguous prefix of length m + 1.
 
-*All other namespaces: (p, d) ≠ (p₀, d₀).* By construction, a ∈ S(p₀, d₀); since (p₀, d₀) satisfies B6 and a ∈ S(p₀, d₀), B6's sufficiency result (§B6) gives that a satisfies T4. We show children(B', p, d) is a contiguous prefix by case analysis on (p, d).
+*All other B6-valid namespaces: (p, d) ≠ (p₀, d₀) with (p, d) satisfying B6.* Both (p₀, d₀) and (p, d) meet B7's preconditions, so B7 gives S(p₀, d₀) ∩ S(p, d) = ∅, hence a ∉ S(p, d). Therefore children(B', p, d) = children(B, p, d), a contiguous prefix by the inductive hypothesis. Because B1 is scoped to B6-valid namespaces, no non-B6 pair need be considered: the target reduces to (p₀, d₀) and every other case to a distinct B6-valid pair handled by B7.
 
-When (p, d) satisfies B6 (sub-case A): both (p₀, d₀) and (p, d) meet B7's preconditions, so B7 gives S(p₀, d₀) ∩ S(p, d) = ∅, hence a ∉ S(p, d). Therefore children(B', p, d) = children(B, p, d), a contiguous prefix by the inductive hypothesis.
+In both the target namespace and every other B6-valid namespace, children(B', p, d) is a contiguous prefix of S(p, d).
 
-When (p, d) does not satisfy B6 and every element of S(p, d) violates T4 (sub-case B): since a satisfies T4, a ∉ S(p, d). Moreover, B10 for the current state ensures every element of B satisfies T4, so children(B, p, d) = ∅. (B10 and B_fin are each established by transition inductions that cite only B6, B0a, B₀ conf., and TA5 — never B1 — so they hold for every reachable state independently of this induction; B1 may therefore invoke them at its own precondition state without circularity, the two inductions being jointly well-founded.) Therefore children(B', p, d) = ∅, trivially a contiguous prefix. (The configurations covered by this sub-case each drive every stream element out of T4, by B6's necessity proof.)
-
-When (p, d) does not satisfy B6 but S(p, d) contains T4-valid elements (sub-case C): by the elimination established above, this occurs exactly when p ends in zero (with no other T4 defect) and d = 1. Let p' be p with its trailing zero removed, so #p' = #p − 1 and p'ᵢ = pᵢ for 1 ≤ i ≤ #p − 1, and let d' = 2. By S2 (Trailing-Zero Stream Identity), S(p, 1) = S(p', 2).
-
-That p' satisfies T4 and (p', 2) satisfies B6 — when p's sole defect is the trailing zero — is established by B6's necessity argument, sub-case (b) (§B6); we use it here. Two sub-cases arise. If (p', d') ≠ (p₀, d₀), B7 gives S(p₀, d₀) ∩ S(p', d') = ∅, hence a ∉ S(p', d') = S(p, d), and children(B', p, d) = children(B, p, d). If (p', d') = (p₀, d₀), then children(B', p, d) = children(B', p₀, d₀), whose contiguous prefix property was established in the target namespace case above. Because S(p, d) = S(p, 1) = S(p', 2) = S(p₀, d₀) by the stream-identity argument established above, a contiguous prefix of S(p₀, d₀) is the same finite sequence considered as a prefix of S(p, d) — the two namespaces share the same element set in the same order, so contiguity transfers across the rebadging.
-
-In all sub-cases, children(B', p, d) is a contiguous prefix of S(p, d).
-
-Since B1 is preserved in the target namespace and in every other namespace, B1 holds for B' under baptismal transitions. By the frame argument above, B1 also holds for B' under s.B-frame transitions. By induction on the transition sequence, B1 holds in every reachable state. ∎
+Since B1 is preserved in the target namespace and in every other B6-valid namespace, B1 holds for B' under baptismal transitions. By the frame argument above, B1 also holds for B' under s.B-frame transitions. By induction on the transition sequence, B1 holds in every reachable state. ∎
 
 *Formal Contract:*
-- *Invariant:* `(A p, d, n : n ≥ 1 ∧ cₙ ∈ s.B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ s.B))` — equivalently, children(s.B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
-- *Base:* B₀ conf. — seed set satisfies contiguous prefix for all (p, d).
-- *Preservation:* Each baptism preserves B1 in the target namespace (by Bop, B0, B4, S0, TA5(c)) and in all other namespaces (by B7 for B6-valid pairs; by B10 for non-B6 pairs whose streams are entirely T4-invalid; by stream identity S(p, 1) = S(p', 2) (S2) for non-B6 pairs where p ends in zero as its sole defect and d = 1).
+- *Invariant:* `(A p, d : B6(p, d) : (A n : n ≥ 1 ∧ cₙ ∈ s.B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ s.B)))` — equivalently, for every B6-valid (p, d), children(s.B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
+- *Base:* B₀ conf. — seed set satisfies contiguous prefix for all (p, d), a fortiori for every B6-valid (p, d).
+- *Preservation:* Each baptism preserves B1 in the target namespace (by Bop, B0, B4, S0, TA5(c)) and in every other B6-valid namespace (by B7).
 
 The induction also requires a conforming base:
 
@@ -290,7 +282,7 @@ Concretely: if hwm = 0, then next = inc(p, d) — the first child; if hwm = m > 
 In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. ∎
 
 *Formal Contract:*
-- *Preconditions:* B satisfies B1 for all (p, d); p ∈ T, d ≥ 1; S(p, d) = c₁, c₂, ... defined by c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0).
+- *Preconditions:* B satisfies B1 for all B6-valid (p, d); (p, d) satisfies B6; S(p, d) = c₁, c₂, ... defined by c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0).
 - *Postconditions:* `next(B, p, d) = c_{hwm(B,p,d) + 1}`.
 
 
@@ -317,7 +309,7 @@ A ghost element is "virtually present in tumbler-space, since links may be made 
 
 ## Atomicity
 
-Informally, the baptism process — read the high water mark, compute the next address, commit the result — must not be interleaved with another baptism in the same namespace. If two baptisms both read hwm = m before either commits, both compute c_{m+1} and both attempt to commit the same address — violating B8.
+Baptism reads the high water mark, computes the next address, and commits the result as one indivisible step.
 
 **B4 (Atomic Baptism).** Each baptismal operation is a single atomic transition. For every (p, d) satisfying B6:
 
@@ -413,7 +405,7 @@ Condition (i) is therefore necessary: T4 defects in p's preserved prefix — int
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1.
-- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: violating (ii) or (iii) produces T4 violations in S(p, d); violating (i) either propagates defects in p's preserved prefix (interior adjacent zeros, leading zero p₁ = 0, or the singleton case p = [0] in which leading and trailing positions coincide) to every stream element via TA5(b), or — when the sole defect is a pure trailing zero with p₁ > 0 and no other T4 violation in p — produces adjacent zeros within c₁ for d = 2 (the trailing zero of p at position #p adjacent to TA5(d)'s field separator at position #p + 1, propagated to every cₙ since sig(cₙ) = #p + 2 > #p + 1 leaves the adjacent pair untouched), or creates a stream identical (by S2) to that of the distinct B6-valid namespace (p', 2) for d = 1, so that (p, 1) would duplicate an existing namespace and defeat the namespace disjointness B7 secures.
+- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: conditions (i), (ii), (iii) are jointly necessary for T4 preservation of the sibling stream and namespace disjointness — violating any single one breaks an invariant (proof above).
 
 
 ## Namespace disjointness
@@ -587,7 +579,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B0a | Σ partitions into baptismal operations (the `baptize(p, d)` for B6-valid (p, d), each acting on s.B as in Bop) and s.B-frame operations (every other op satisfies `op(s).B = s.B`) — registry grows only through baptism | design requirement |
 | B₀ conf. | B₀ is finite, `children(B₀, p, d)` is a contiguous prefix for all (p, d), and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | design requirement |
 | B_fin | `(A s reachable : s.B is finite)` — registry finiteness | from B₀ conf., B0a |
-| B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix (requires conforming B₀) | from B₀ conf., B0, B0a, B4, B6, B7, B10, next def., S0, TA5(c); Bop correctness follows as corollary |
+| B1 | `B6(p, d) ⟹ (cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))` — contiguous prefix over B6-valid namespaces (requires conforming B₀) | from B₀ conf., B0, B0a, B4, B6, B7, next def., S0, TA5(c); Bop correctness follows as corollary |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
 | B3 | Forward requirement on a future predicate `Occupied : T × 𝒮 → {⊤, ⊥}`: `(A s reachable, t ∈ T : Occupied(t, s) ⟹ t ∈ s.B)` — content permitted only at baptized addresses; ghost elements (`t ∈ s.B ∧ ¬Occupied(t, s)`) explicitly allowed | forward requirement on future ASN |
 | B4 | Each `baptize(p, d) ∈ Σ` is a single atomic transition: `baptize(p, d)(s).B = s.B ∪ {next(s.B, p, d)}` is computed and committed in one step, with no intermediate observable state | design requirement |
