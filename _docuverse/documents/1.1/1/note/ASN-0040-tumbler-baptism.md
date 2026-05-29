@@ -17,7 +17,7 @@ We formalize baptism as the growth law of the address space.
 
 ## State space and transitions
 
-We work within the foundation's transition framework (ASN-0034, AllocatedSet and NoDeallocation): a state space, a closed vocabulary of partial operations on it, and the reflexive-transitive closure of the induced transition relation as reachability. We do not re-derive it here, and we adopt the foundation's notation directly: an individual *state* is `s`, the *state space* is `𝒮` (the same Kripke space, here extended with the registry component this ASN introduces), and the *transition vocabulary* is `Σ`. The registry component is written `s.B`. Obligations of the form `(A s, s' : s → s' : …)` constrain every admissible transition; `(A s : s reachable from s_init : I(s))` is a state invariant.
+We work within the foundation's transition framework (ASN-0034, AllocatedSet and NoDeallocation): the *state space* `𝒮`, a closed *transition vocabulary* `Σ` of partial operations, and reachability `→*` as the reflexive-transitive closure of the induced transition relation. A *state* is `s`; this ASN extends each state with the registry component `s.B`. Obligations of the form `(A s, s' : s → s' : …)` constrain every admissible transition; `(A s : s reachable from s_init : I(s))` is a state invariant.
 
 This ASN introduces one state component — the baptismal registry s.B (defined below); the partition of Σ that governs its growth is fixed at B0a. The initial state s_init has s_init.B = B₀, the seed set established at genesis; "reachable" without qualification means reachable from s_init.
 
@@ -100,8 +100,6 @@ One structural identity of the stream construction relates a depth-1 stream unde
 
 *Proof.* The first element of S(p, 1) is c₁ = inc(p, 1); by TA5(d) with d − 1 = 0 intermediate zeros, c₁ has length #p + 1 with positions 1 through #p preserved from p and position #p + 1 set to 1, so c₁ = [p₁, ..., p_{#p−1}, 0, 1] (using p_{#p} = 0). The first element of S(p′, 2) is c′₁ = inc(p′, 2); by TA5(d) with one intermediate zero, c′₁ has length #p′ + 2 = #p + 1 with positions 1 through #p′ = #p − 1 preserved from p′, position #p′ + 1 = #p set to 0 (the separator), and position #p′ + 2 = #p + 1 set to 1, so c′₁ = [p₁, ..., p_{#p−1}, 0, 1]. Component-by-component, c₁ = c′₁. Both streams share the deterministic recurrence cₙ₊₁ = inc(cₙ, 0), so they coincide: S(p, 1) = S(p′, 2). ∎
 
-A trailing-zero parent at d = 1 is the one case where S2 bites on the namespace: p = [1, 0] (T4-defective by its trailing zero alone) yields the fully T4-valid stream [1, 0, n], yet by S2 this is identical to S([1], 2), the stream of the B6-valid namespace ([1], 2). That is, S([1, 0], 1) = S([1], 2): two distinct namespaces would share their entire stream.
-
 *Formal Contract:*
 - *Preconditions:* p ∈ T, #p ≥ 2, p_{#p} = 0; p′ = [p₁, ..., p_{#p−1}] (so p′ ∈ T).
 - *Postconditions:* S(p, 1) = S(p′, 2).
@@ -169,7 +167,7 @@ Equivalently: for every B6-valid namespace (p, d), children(B, p, d) = {c₁, ..
 
 When m = 0: children(B, p₀, d₀) = ∅, so a = next(B, p₀, d₀) = inc(p₀, d₀) = c₁, the first element of S(p₀, d₀) by the definition of the sibling stream. Therefore children(B', p₀, d₀) = {c₁}, a contiguous prefix of length 1.
 
-When m ≥ 1: the maximum of children(B, p₀, d₀) is cₘ, since the prefix {c₁, ..., cₘ} is strictly ordered by S0 (StreamOrdering). The definition of next gives a = inc(cₘ, 0). By TA5(c), this sibling increment advances only the last significant component of cₘ by 1, producing exactly c_{m+1}, the immediate successor in S(p₀, d₀). By B0 (Irrevocability), B ⊆ B', so {c₁, ..., cₘ} ⊆ B'. Together with the new element c_{m+1} ∈ B', we obtain children(B', p₀, d₀) = {c₁, ..., cₘ, c_{m+1}}, a contiguous prefix of length m + 1.
+When m ≥ 1: the maximum of children(B, p₀, d₀) is cₘ, since the prefix {c₁, ..., cₘ} is strictly ordered by S0 (StreamOrdering). The definition of next gives a = inc(cₘ, 0), which is exactly c_{m+1} by the sibling-stream recurrence. By B0 (Irrevocability), B ⊆ B', so {c₁, ..., cₘ} ⊆ B'. Together with the new element c_{m+1} ∈ B', we obtain children(B', p₀, d₀) = {c₁, ..., cₘ, c_{m+1}}, a contiguous prefix of length m + 1.
 
 *All other B6-valid namespaces: (p, d) ≠ (p₀, d₀) with (p, d) satisfying B6.* Both (p₀, d₀) and (p, d) meet B7's preconditions, so B7 gives S(p₀, d₀) ∩ S(p, d) = ∅, hence a ∉ S(p, d). Therefore children(B', p, d) = children(B, p, d), a contiguous prefix by the inductive hypothesis.
 
@@ -339,7 +337,7 @@ This deserves attention. The `.0.` that appears in addresses like `1.1.0.1.0.1` 
 
   (iii) zeros(p) + (d − 1) ≤ 3.
 
-Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (i) is necessary for T4 except at the d = 1 trailing-zero case, where it is retained for the injectivity reason given at S2. Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy. Together:
+Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (i) is necessary for T4 except at the d = 1 trailing-zero case, where it is retained for injectivity rather than T4 (necessity sub-case (b) below). Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy. Together:
 
 | Parent level | d = 1 (same level) | d = 2 (level crossing) |
 |---|---|---|
@@ -461,7 +459,7 @@ At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 
 
   State: B₅ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1], [1, 0, 3]}. hwm(B₅, [1], 2) = 3.
 
-  And so on for the M − m = 2 further steps: each is a single inc(·, 0) on namespace ([1], 2) that advances the ordinal by one and (by B2) yields c_{hwm+1} — inc([1, 0, 3], 0) = [1, 0, 4] brings hwm to 4 (state B₆), then inc([1, 0, 4], 0) = [1, 0, 5] brings hwm to 5 = M (state B₇ = B₅ ∪ {[1, 0, 4], [1, 0, 5]}).
+  The remaining two baptisms in ([1], 2) follow the same pattern, reaching the final state B₇ = B₅ ∪ {[1, 0, 4], [1, 0, 5]} with hwm(B₇, [1], 2) = 5 = M.
 
 The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9 for the pair ((p, d), M) = (([1], 2), 5); for any target M' > 5, an additional M' − 5 baptisms in ([1], 2) extend B₇ to a registry with hwm = M' along the same pattern. Crucially, contiguity is maintained at every step — children(B₅, [1], 2) = {c₁, c₂, c₃}, children(B₆, [1], 2) = {c₁, ..., c₄}, and children(B₇, [1], 2) = {c₁, ..., c₅} — so the trace simultaneously witnesses B9 (unboundedness) and B1 (contiguity) under iteration.
 
@@ -534,7 +532,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B0 | `s.B ⊆ s'.B` for all transitions — irrevocability (extends T8) | from B0a |
 | B0★ | `s.B ⊆ s'.B` for all s →* s' (reflexive-transitive closure of transitions) — multi-step irrevocability | labelled corollary of B0 |
 | B0a | Σ partitions into baptismal operations (the `baptize(p, d)` for B6-valid (p, d), each acting on s.B as in Bop) and s.B-frame operations (every other op satisfies `op(s).B = s.B`) — registry grows only through baptism | design requirement |
-| B0b | Every transition is s.B-frame (`s'.B = s.B`) or baptismal (`s'.B = s.B ∪ {next(s.B, p, d)}`, one new element) — shared induction skeleton for B1, B_fin, B10 | corollary of B0a |
+| B0b | Every transition is s.B-frame (`s'.B = s.B`) or baptismal (`s'.B = s.B ∪ {next(s.B, p, d)}`, one new element) | corollary of B0a |
 | B₀ conf. | B₀ is finite, `children(B₀, p, d)` is a contiguous prefix for all (p, d), and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | design requirement |
 | B_fin | `(A s reachable : s.B is finite)` — registry finiteness | from B₀ conf., B0a |
 | B1 | `B6(p, d) ⟹ (cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))` — contiguous prefix over B6-valid namespaces (requires conforming B₀) | from B₀ conf., B0, B0a, B4, B6, B7, next def., S0, TA5(c); Bop correctness follows as corollary |
