@@ -484,7 +484,7 @@ By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fi
 - *Signature:* `ValidFirstInsertionPosition(d, v, m)` — a *ternary* predicate on document `d`, V-position `v`, and depth `m`.
 - *Preconditions:* Document `d` with `V_1(d) = ∅`; `m ∈ ℕ` with `m ≥ 2`.
 - *Definition:* `ValidFirstInsertionPosition(d, v, m)` holds iff `v = [1, 1, ..., 1]` of depth `m`.
-- *Postconditions:* (a) `subspace(v) = 1` and `#v = m`. (b) `v` satisfies S8a: `zeros(v) = 0` and all components positive. (c) For fixed `d` and `m`, exactly one value of `v` satisfies the predicate. (d) In any state where `V_1(d)` is non-empty at depth `m`, S8-depth fixes the text-subspace depth at `m`, and validity of further insertion positions is governed by `ValidInsertionPosition(d, v)`.
+- *Postconditions:* (a) `subspace(v) = 1` and `#v = m`. (b) `v` satisfies S8a: `zeros(v) = 0` and all components positive. (c) For fixed `d` and `m`, exactly one value of `v` satisfies the predicate.
 - *Depends:* D-MIN; S8a, S8-depth; OrdinalShift, TumblerAdd, T3 (ASN-0034).
 
 ### Valid insertion position examples
@@ -566,11 +566,11 @@ The arrangement `M(d₂)`:
 
 One consequence of the two-stream model deserves explicit statement. A document is not its content — it is its arrangement of content.
 
-Two documents `d₁ ≠ d₂` may render identically — displaying the same text in the same order — because their arrangements happen to map to the same I-addresses in the same sequence: `(A v ∈ dom(M(d₁)) :: M(d₁)(v) = M(d₂)(v))`. Yet they remain distinct documents with independent arrangements, independent ownership, and independent edit histories. Conversely, a single document's arrangement changes across versions while the underlying Istream content is unchanged — different mappings over the same stored material.
+Two documents `d₁ ≠ d₂` may render identically — displaying the same text in the same order — because their arrangements happen to map to the same I-addresses in the same sequence: `(A v ∈ dom(M(d₁)) :: M(d₁)(v) = M(d₂)(v))`. Yet they remain distinct documents with independent arrangements. Conversely, a single document's arrangement changes across versions while the underlying Istream content is unchanged — different mappings over the same stored material.
 
 Nelson: "There is thus no 'basic' version of a document set apart from other versions — 'alternative' versions — any more than one arrangement of the same materials is a priori better than other arrangements." The document is, in his metaphor, "an evolving ongoing braid." The braid is the arrangement; the strands are the Istream content. The braid is re-twisted when parts are rearranged, added, or subtracted — but the strands remain intact.
 
-*Remark.* This motivates a design stance the strand model adopts but does not formalize here: document equality is not approached by content comparison. Two documents that render identically may arise from different arrangements of different I-addresses that happen to carry identical values, so identity is taken to rest on document identifiers (tumblers, per T3) or arrangement functions, not on rendered content. A formal decidability statement would border on the out-of-scope document-creation-and-lifecycle cluster; we record the stance as motivation rather than a derived guarantee.
+*Remark.* Document identity does not rest on rendered content. Two documents that render identically may arise from different arrangements of different I-addresses that happen to carry identical values, so identity rests on document identifiers (tumblers, per T3) or arrangement functions, not on rendered content.
 
 
 ## Properties Introduced
