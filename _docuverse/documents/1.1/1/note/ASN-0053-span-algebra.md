@@ -25,7 +25,7 @@ ASN-0034 answers this directly: the unique width w with a ⊕ w = b is the Tumbl
 
 with k = divergence(a, b). We write w = b ⊖ a and call it the *displacement from a to b*. The displacement is well-defined when a < b and divergence(a, b) ≤ #a (D0, ASN-0034).
 
-D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). It does not guarantee round-trip faithfulness — the identity a ⊕ (b ⊖ a) = b additionally requires #a ≤ #b (D1, ASN-0034). For #a > #b, the foundation already settles the failure: D0's postcondition gives a ⊕ (b ⊖ a) ≠ b directly (ASN-0034). When #a < #b and a is a proper prefix of b, the divergence is k = #a + 1 > #a, violating D0's domain (divergence type (ii), ASN-0034) — no valid displacement exists. Since every span operation below uses level-uniform spans with #start = #reach, the equal-length case is all we need. We formalize the sufficient condition as level compatibility in S6.
+D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). For equal-length endpoints with a < b and #a = #b, the divergence is of type (i) with k ≤ #a — equal length excludes the prefix case — so D0's domain condition holds, and #a ≤ #b lets D1 (ASN-0034) close the round-trip: a ⊕ (b ⊖ a) = b. The displacement from a to b is recovered faithfully whenever the two endpoints share a length.
 
 For a level-uniform span σ = (s, ℓ) with #s = #ℓ, the reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), D2 (DisplacementUnique, ASN-0034) gives reach(σ) ⊖ start(σ) = ℓ = width(σ), provided its preconditions hold for (a, b, w) = (s, reach(σ), ℓ). We discharge them: s < reach(σ) by TA-strict on T12; ℓ > 0 and its action point k ≤ #s by T12; s ⊕ ℓ = reach(σ) by definition of reach (so TA0's preconditions hold, giving #(s ⊕ ℓ) = #ℓ = #s); the divergence between s and reach(σ) is of type (i) with k ≤ #s, since s < reach(σ) and #s = #reach(σ) excludes the prefix case, satisfying D0; #s ≤ #reach(σ) since both equal #s. Every D2 precondition is met, so reach(σ) ⊖ start(σ) = width(σ).
 
@@ -33,7 +33,7 @@ The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ)
 
 When a = b, b ⊖ a produces the zero tumbler and a ⊕ (b ⊖ a) is not well-formed (TA0 requires w > 0), so this degenerate case is handled separately.
 
-A worked instance of the #start > #width failure (the #a > #b half of the dichotomy stated above): σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2].
+A worked instance of the unequal-length failure: σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2] — when #start > #width the recovered displacement does not round-trip.
 
 
 ## Convexity
@@ -68,15 +68,11 @@ Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cas
 
 ## The level constraint
 
-The properties that follow — intersection, merge, split, normalization — require span operands to be *level-compatible*. We formalize this now, since every subsequent operation depends on it.
-
 **S6** (*LevelConstraint*). Two tumblers t₁ and t₂ are *level-compatible*, written level_compat(t₁, t₂), when they have the same length:
 
   level_compat(t₁, t₂)  ≡  #t₁ = #t₂
 
-A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity from TA0 (#(s ⊕ ℓ) = #ℓ), already established above. The start, width, and reach all share the same tumbler length. A level-uniform span automatically satisfies D0 for the (start(σ), reach(σ)) pair: by TA-strict, start(σ) < reach(σ); and since #start(σ) = #reach(σ), neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start(σ).
-
-The load-bearing fact is the one just stated: when #s = #ℓ, every endpoint pair drawn from the span has equal length, so divergence is of type (i) with k ≤ #start, and D0 is satisfied. An interior point at a deeper level, such as [1, 3, 0, 1] relative to start [1, 3], diverges at position 3 (after zero-padding), exceeding #[1, 3] = 2, and admits no valid displacement. (In a flat address space every interior point would admit a split; the tumbler space stratifies positions by depth, so arithmetic must respect that stratification.)
+A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s by the result-length identity from TA0 (#(s ⊕ ℓ) = #ℓ), already established above. The start, width, and reach all share the same tumbler length. A level-uniform span automatically satisfies D0 for the (start(σ), reach(σ)) pair: by TA-strict, start(σ) < reach(σ); and since #start(σ) = #reach(σ), neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start(σ). An interior point at a deeper level, such as [1, 3, 0, 1] relative to start [1, 3], diverges at position 3 (after zero-padding), exceeding #[1, 3] = 2, and admits no valid displacement. (In a flat address space every interior point would admit a split; the tumbler space stratifies positions by depth, so arithmetic must respect that stratification.)
 
 Gregory confirms the implementation enforces this: the split operation checks `tumblerlength(cut) = tumblerlength(width)` and aborts with a fatal error when the invariant is violated (Q14, Q15). The level constraint is load-bearing.
 
@@ -91,7 +87,7 @@ Formally: for level-uniform spans α and β with level_compat(start(α), start(�
 
   ⟦α⟧ ∩ ⟦β⟧ = {t : s' ≤ t < r'}
 
-This is a half-open interval. The set is non-empty (s' is a member since s' < r'). By level-uniformity and S6, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length. So #s' = #r', and by D1 the interval is representable as a span γ = (s', r' ⊖ s') with reach(γ) = s' ⊕ (r' ⊖ s') = r'. We verify T12 for γ: since s' < r', the divergence k satisfies k ≤ #s' (type (i) divergence, as #s' = #r' excludes the prefix case), and the width r' ⊖ s' has a positive component at position k (namely r'ₖ − s'ₖ > 0), so the width is positive and its action point k ≤ #s'. The constructed span is well-formed. Moreover, γ is level-uniform: #width(γ) = #(r' ⊖ s') = max(#r', #s') = #s' = #start(γ), since all boundary tumblers share the same length.  ∎
+We verify this equality by membership. Take any t ∈ ⟦α⟧ ∩ ⟦β⟧. Then start(α) ≤ t < reach(α) and start(β) ≤ t < reach(β), so t ≥ max(start(α), start(β)) = s' and t < min(reach(α), reach(β)) = r'; hence s' ≤ t < r'. Conversely, take any t with s' ≤ t < r'. Then t ≥ s' = max(start(α), start(β)) ≥ start(α) and t < r' = min(reach(α), reach(β)) ≤ reach(α), so t ∈ ⟦α⟧; symmetrically t ≥ start(β) and t < reach(β), so t ∈ ⟦β⟧; hence t ∈ ⟦α⟧ ∩ ⟦β⟧. The intersection is therefore the half-open interval [s', r'). The set is non-empty (s' is a member since s' < r'). By level-uniformity and S6, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length. So #s' = #r', and by D1 the interval is representable as a span γ = (s', r' ⊖ s') with reach(γ) = s' ⊕ (r' ⊖ s') = r'. We verify T12 for γ: since s' < r', the divergence k satisfies k ≤ #s' (type (i) divergence, as #s' = #r' excludes the prefix case), and the width r' ⊖ s' has a positive component at position k (namely r'ₖ − s'ₖ > 0), so the width is positive and its action point k ≤ #s'. The constructed span is well-formed. Moreover, γ is level-uniform: #width(γ) = #(r' ⊖ s') = max(#r', #s') = #s' = #start(γ), since all boundary tumblers share the same length.  ∎
 
 The significance is topological: convex sets in a total order have convex intersection. The tumbler space's hierarchical structure cannot fragment an intersection — there is no configuration where two contiguous regions share a disconnected collection of positions. Gregory confirms this from the implementation: the function `spanintersection` always produces at most one output span (Q10, `correspond.c:210-265`). Nelson confirms it from design intent: the system "knows precisely" what two regions share, "because correspondence is a structural relation derivable from I-addresses" (Q1).
 
