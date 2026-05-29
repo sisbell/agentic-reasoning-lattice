@@ -30,9 +30,9 @@ Two facts about the T4-valid subdomain drive the corollary: T4's axiom bounds ze
 
 *Binding.* Fix t : T with T4-valid(t). By the definitions above, each of Node(t), Account(t), Document(t), Element(t) reduces to `zeros(t) = k` for k ∈ {0, 1, 2, 3} respectively.
 
-*At-least-one.* T4's axiom gives zeros(t) ≤ 3 (T4, ASN-0034), and zeros(t) ∈ ℕ (a cardinality over T0's carrier), so zeros(t) ∈ {0, 1, 2, 3}. Hence at least one of the four equalities zeros(t) = k holds, so at least one of the four predicates holds at t.
+*At-least-one.* T4's axiom gives zeros(t) ≤ 3 (T4, ASN-0034), and zeros(t) ∈ ℕ (a cardinality over T0's carrier). We must conclude zeros(t) ∈ {0, 1, 2, 3}, i.e. that `{n ∈ ℕ : n ≤ 3} = {0, 1, 2, 3}`. Order plus the bound `≤ 3` does not suffice: a merely totally-ordered carrier (order-isomorphic to ℚ≥0) admits infinitely many elements ≤ 3. What excludes intermediate values is NAT-discrete (ASN-0034): no natural lies strictly between `m` and `m + 1`. Applied successively — no natural strictly between 0 and 1, between 1 and 2, between 2 and 3 — discreteness leaves exactly the four numerals 0, 1, 2, 3 in the interval `{n ∈ ℕ : n ≤ 3}`. Hence zeros(t) ∈ {0, 1, 2, 3}: at least one of the four equalities zeros(t) = k holds, so at least one of the four predicates holds at t.
 
-*At-most-one.* zeros(t) is a single natural number, so it equals at most one of the distinct numerals 0, 1, 2, 3: by NAT-order's trichotomy (ASN-0034), distinct naturals are unequal, so e.g. `zeros(t) = 0` and `zeros(t) = 1` cannot both hold. Each of Node, Account, Document, Element is defined as `zeros(t) = k` for a distinct k, so no two hold simultaneously at t. The disjointness rests only on the functionality of zeros(t) and the distinctness of the numerals; T4c's bijection zeros(t) → level (ASN-0034) is what licenses reading the four zeros-classes as the node/account/document/element levels.
+*At-most-one.* zeros(t) is a single natural number, so it equals at most one of the numerals 0, 1, 2, 3 — provided those four numerals are pairwise distinct. That distinctness is not delivered by trichotomy: trichotomy presupposes two values are given and resolves their order, but it does not establish `0 ≠ 1`. Indeed, were `zeros(t) = 0` and `zeros(t) = 1` both to hold, transitivity of equality would force `0 = 1`, so the at-most-one argument rests on the pairwise distinctness of the constructed numerals (`2 := 1 + 1`, `3 := 2 + 1`, via NAT-closure, ASN-0034). That distinctness comes from NAT-addcompat's strict successor inequality `n < n + 1` (ASN-0034): instantiating at n = 0, 1, 2 gives `0 < 1`, `1 < 2`, `2 < 3`, and NAT-order's transitivity (ASN-0034) composes these into `0 < 1 < 2 < 3`; NAT-order's irreflexivity then converts each strict inequality into an inequality of values (`0 ≠ 1`, `1 ≠ 2`, `2 ≠ 3`, and the composites `0 ≠ 2`, `0 ≠ 3`, `1 ≠ 3`). Each of Node, Account, Document, Element is defined as `zeros(t) = k` for a distinct k, so no two hold simultaneously at t. The disjointness rests only on the functionality of zeros(t) and this distinctness of the numerals; T4c's bijection zeros(t) → level (ASN-0034) is what licenses reading the four zeros-classes as the node/account/document/element levels.
 
 Combining the two yields the Partition postcondition:
 
@@ -84,22 +84,22 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `2 := 1 + 1`).
+- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `2 := 1 + 1`), NAT-addcompat (strict successor inequality `n < n + 1`, distinguishing the numeral 2 from 0, 1, 3 — used in Partition's at-most-one direction).
 - *Postcondition.* `(A t : T :: Document(t) ⟺ T4-valid(t) ∧ zeros(t) = 2)`.
 
 **Element** (`Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3`)
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `3 := 2 + 1`).
+- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `3 := 2 + 1`), NAT-addcompat (strict successor inequality `n < n + 1`, distinguishing the numeral 3 from 0, 1, 2 — used in Partition's at-most-one direction).
 - *Postcondition.* `(A t : T :: Element(t) ⟺ T4-valid(t) ∧ zeros(t) = 3)`.
 
 **Partition**
 
 - *Preconditions.* None.
 - *Definition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))`, where `exactly-one-of(P₁, P₂, P₃, P₄) ≡ (P₁ ∨ P₂ ∨ P₃ ∨ P₄) ∧ (A i, j : 1 ≤ i < j ≤ 4 :: ¬(Pᵢ ∧ Pⱼ))`.
-- *Depends.* Node, Account, Document, Element (definitions above), T4 (axiom zeros(t) ≤ 3, for at-least-one), T4c (bijection zeros(t) → level, for the level naming), NAT-order (distinctness of the numerals, for at-most-one).
-- *Postcondition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` — derived by combining T4's axiom zeros(t) ≤ 3 with zeros(t) ∈ ℕ (giving zeros(t) ∈ {0, 1, 2, 3}) for the at-least-one direction, and the functionality of zeros(t) with NAT-order's distinctness of the numerals 0, 1, 2, 3 for the at-most-one direction, per the *Well-Definedness* derivation above. T4c's bijection zeros(t) → level supplies the level names.
+- *Depends.* Node, Account, Document, Element (definitions above), T4 (axiom zeros(t) ≤ 3, for at-least-one), T4c (bijection zeros(t) → level, for the level naming), NAT-discrete (excludes naturals strictly between the numerals, collapsing `{n ∈ ℕ : n ≤ 3}` to `{0, 1, 2, 3}` for at-least-one), NAT-addcompat (strict successor inequality `n < n + 1`, supplying numeral distinctness for at-most-one), NAT-order (irreflexivity and transitivity, composing the successor inequalities into pairwise distinctness for at-most-one).
+- *Postcondition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` — derived by combining T4's axiom zeros(t) ≤ 3 with zeros(t) ∈ ℕ and NAT-discrete (the latter collapsing `{n ∈ ℕ : n ≤ 3}` to `{0, 1, 2, 3}`) for the at-least-one direction, and the functionality of zeros(t) with the pairwise distinctness of the numerals 0, 1, 2, 3 — grounded in NAT-addcompat's `n < n + 1` composed via NAT-order's transitivity and converted to inequality by NAT-order's irreflexivity — for the at-most-one direction, per the *Well-Definedness* derivation above. T4c's bijection zeros(t) → level supplies the level names.
 
 ## Summary
 
@@ -109,4 +109,4 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 | Account | `Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1` | derived from T4c; on T4-valid t, equivalent to T4c's *user address* |
 | Document | `Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2` | derived from T4c |
 | Element | `Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3` | derived from T4c |
-| Partition | `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` | derived from T4 (zeros ≤ 3) + functionality of zeros + NAT-order; levels named via T4c |
+| Partition | `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` | derived from T4 (zeros ≤ 3) + NAT-discrete (at-least-one) + functionality of zeros + NAT-addcompat/NAT-order (numeral distinctness, at-most-one); levels named via T4c |
