@@ -342,7 +342,7 @@ At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments b
 
 (b) Within each run: `Σ.M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for all `k` with `0 ≤ k < nⱼ`
 
-Conjunct (b) is what *defines* a correspondence run: when `nⱼ > 1` it asserts a non-trivial ordinal-displacement identity, exercised at `k ≥ 1` only on runs of length greater than one (the worked example below checks such a run at `k = 3`). The theorem proved here is the existence claim alone, and the witness it exhibits is the degenerate one — every V-position is its own singleton run (`nⱼ = 1`), for which (b) collapses to the base case `M(d)(vⱼ) = aⱼ`.
+Conjunct (b) is what *defines* a correspondence run: when `nⱼ > 1` it asserts a non-trivial ordinal-displacement identity. The witness this theorem exhibits is the singleton decomposition — every V-position is its own run (`nⱼ = 1`), for which (b) reduces to the base case `M(d)(vⱼ) = aⱼ`.
 
 *Proof.* We construct a finite decomposition satisfying both conjuncts and prove it partitions `dom(M(d))`.
 
@@ -395,7 +395,7 @@ In words: within the text subspace, V-positions form a contiguous ordinal range 
 
 For the text subspace at depth m = 2, this is a finite condition: the intermediates between [1, a] and [1, b] are the finitely many [1, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_1(d) occupies a single unbroken block of ordinals.
 
-At depth m ≥ 3, D-CTG combined with S8-fin forces a stronger restriction: all positions in V_1(d) must share components 2 through m − 1. The intuition — formalized as D-CTG-depth and proved below — is that if two positions diverged before the last component, then any choice of natural number n could be slotted into the next component to yield an intermediate; D-CTG would force all such intermediates into V_1(d), producing infinitely many positions and contradicting S8-fin.
+At depth m ≥ 3, D-CTG combined with S8-fin forces a stronger restriction: all positions in V_1(d) must share components 2 through m − 1 — see D-CTG-depth below.
 
 **D-CTG-depth (SharedPrefixReduction).** For depth m ≥ 3, all positions in a non-empty V_1(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
@@ -552,7 +552,7 @@ We can now state the property that Nelson calls "the architectural foundation of
 
 **S9 (Two-stream separation), corollary of S0.** S9 is S0 read directionally: arrangement-only transitions (`Σ'.M(d) ≠ Σ.M(d)`) cannot alter `C`, since S0 already holds for every transition unconditionally.
 
-This realises Nelson's design: "The integrity of each document is maintained by keeping the two aspects separate: derivative documents are permanently defined (and stored) in terms of the originals and the changes." The two state components are coupled only through S3 (referential integrity): arrangements depend on the content store — S3 requires every V-reference to resolve — but the content store is independent of all arrangements. Changes to any `M(d)` cannot break `C`; changes to `C` could break `M`, which is precisely why `C` is immutable.
+This realises Nelson's design: "The integrity of each document is maintained by keeping the two aspects separate: derivative documents are permanently defined (and stored) in terms of the originals and the changes."
 
 Gregory's implementation confirms the separation operationally: no command crosses the boundary in the dangerous direction — no arrangement operation modifies stored content, consistent with S0 holding unconditionally across every transition.
 
@@ -583,7 +583,7 @@ The arrangement `M(d₁)` maps V-positions (in subspace 1, text) to these I-addr
 | `1.4` | `1.0.1.0.1.0.1.4` |
 | `1.5` | `1.0.1.0.1.0.1.5` |
 
-*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Check S8*: the arrangement admits a single maximal correspondence run `(v₁, a₁, n₁) = (1.1, 1.0.1.0.1.0.1.1, 5)`, exhibiting the index-arithmetic identity at every `k ∈ {0, 1, 2, 3, 4}`. (This length-5 run illustrates the *definition* of a correspondence run — conjunct (b) at `nⱼ > 1` — not the output of S8's existence theorem, which guarantees only the singleton partition; the coalescing of singletons into maximal runs is the Open Question deferred below.) We verify the identity explicitly at `k = 3`:
+*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.3`, `origin(a) = 1.0.1.0.1 = d₁` — the document-level prefix directly identifies the allocating document. *Check S8*: the arrangement admits a single maximal correspondence run `(v₁, a₁, n₁) = (1.1, 1.0.1.0.1.0.1.1, 5)`, exhibiting the index-arithmetic identity at every `k ∈ {0, 1, 2, 3, 4}`. We verify the identity explicitly at `k = 3`:
 
 - *Left side: `M(d₁)(shift(1.1, 3))`.* The V-position `v = 1.1 = [1, 1]` has depth `m = 2`, so `shift(v, 3) = v ⊕ δ(3, 2) = [1, 1] ⊕ [0, 3] = [1, 4]` (action point 2; component 1 copied unchanged, component 2 receives `1 + 3 = 4`). Reading `M(d₁)([1, 4])` from the arrangement table: `M(d₁)(1.4) = 1.0.1.0.1.0.1.4`.
 
