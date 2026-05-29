@@ -37,7 +37,7 @@ s.B is the *committed registry* of baptized positions, distinct from the foundat
   - *Baptismal operations.* For each (p, d) satisfying B6 (Valid Depth, below), `baptize(p, d) ∈ Σ` adjoins a single element to the registry: `op(s).B = s.B ∪ {next(s.B, p, d)}`.
   - *s.B-frame operations.* Every other `op ∈ Σ` preserves the registry: `(A op ∈ Σ \ {baptize(p, d) : B6(p, d)}, s ∈ dom(op) : op(s).B = s.B)`.
 
-This partition fixes the shape of every inductive step over reachable states. We call it the *s.B-frame dispatch*: in an s.B-frame transition `op(s).B = s.B`, so any predicate on s.B carried by the inductive hypothesis transfers to the successor unchanged, leaving only the baptismal case to argue. The proofs of B_fin, B1, and B10 invoke this dispatch rather than reprinting it.
+This partition fixes the shape of every inductive step over reachable states. We call it the *s.B-frame dispatch*: in an s.B-frame transition `op(s).B = s.B`, so any predicate on s.B carried by the inductive hypothesis transfers to the successor unchanged, leaving only the baptismal case to argue.
 
 Irrevocability follows immediately:
 
@@ -141,7 +141,7 @@ The `.0.` that appears in addresses like `1.1.0.1.0.1` is not a syntactic conven
 
   (iii) zeros(p) + (d − 1) ≤ 3.
 
-Condition (i) supplies a T4-valid parent; given that, conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream. Condition (ii) follows from TA5a (IncrementPreservesT4): for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy; it is binding only at d = 2 (at d = 1 it reduces to T4's own zero bound on p). Together:
+Given a T4-valid parent (i), conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream (proved below). The valid combinations are:
 
 | Parent level | d = 1 (same level) | d = 2 (level crossing) |
 |---|---|---|
@@ -424,7 +424,7 @@ Nelson's "Items 2.1, 2.2, 2.3, 2.4" is exactly this mechanism — successive bap
 
 At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 2 is 0, the zero separator produced by TA5(d) with d − 1 = 1 intermediate zero. inc([1, 1], 1) = [1, 1, 1] — the value at position 2 is p'₂ = 1 > 0 (by T4, valid addresses do not end in zero, so the last component of [1, 1] is positive). Sibling increments inc(·, 0) modify only the last component (TA5(c)), so position 2 is invariant across both streams: always 0 in S([1], 2), always 1 in S([1, 1], 1). The streams disagree at a fixed position and are therefore disjoint.
 
-**B9 unbounded extent exhibited.** The trace stops at B₄ with hwm(B₄, [1], 2) = 2; B9's constructive proof instantiates here as three further sibling baptisms in ([1], 2) yielding [1, 0, 3], [1, 0, 4], [1, 0, 5] and reaching hwm = 5 for M = 5.
+**Unbounded extent exhibited.** The trace stops at B₄ with hwm(B₄, [1], 2) = 2. Three further sibling baptisms in ([1], 2) yield [1, 0, 3], [1, 0, 4], [1, 0, 5], advancing hwm to 5 — and nothing in the construction caps the count.
 
 
 ## Co-reachable uniqueness
