@@ -77,7 +77,7 @@ Vstream is where mutability lives. Each document's arrangement `M(d)` maps V-pos
 
 `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) is uniquely determined)`
 
-This is inherent in the concept of a "virtual byte stream." Nelson: "Logical addressing of the byte stream is in the form of virtual spans, or vspans. These are sequences of bytes in the document's virtual byte stream, regardless of their native origin." Each position in the stream shows exactly one piece of content, regardless of native origin — a V-position cannot simultaneously contain two different things, even when its I-addresses are scattered across multiple documents' Istreams (the load-bearing case for the sharing analysis of S5).
+This is inherent in the concept of a "virtual byte stream." Nelson: "Logical addressing of the byte stream is in the form of virtual spans, or vspans. These are sequences of bytes in the document's virtual byte stream, regardless of their native origin." Each position in the stream shows exactly one piece of content, regardless of native origin — a V-position cannot simultaneously contain two different things, even when the I-addresses appearing in a single arrangement are scattered across multiple documents' Istreams.
 
 *Formal Contract:*
 - *Axiom (definitional):* `Σ.M(d) : T ⇀ T` is a (partial) function — `(A d, v, a₁, a₂ : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a₁ ∧ Σ.M(d)(v) = a₂ : a₁ = a₂)`.
@@ -239,13 +239,13 @@ The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(
 - *Postconditions:* `|dom(Σ.M(d))| < ∞` — the arrangement has finite cardinality. Consequently `ran(Σ.M(d))` is finite (image of a finite set under a function).
 - *Frame:* No constraint on the unbounded growth of `dom(C)`; only individual arrangements are required to be finite at any given state.
 
-**S8a (V-position componentwise positivity).** Over the ℕ-carrier (T0), `zeros(v)` (T4) counts the components equal to `0`, so the domain-restriction axiom's conjunct `zeros(v) = 0 ⟺ (A i : 1 ≤ i ≤ #v : vᵢ > 0)`:
+**S8a (V-position componentwise positivity).** Over ℕ (T0), `zeros(v)` (T4) counts the components equal to `0`, so `zeros(v) = 0` iff every component is positive. Hence:
 
 `(A v ∈ dom(Σ.M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
 
 *Formal Contract:*
 - *Preconditions:* The domain-restriction axiom on `Σ.M(d)` — every `v ∈ dom(Σ.M(d))` satisfies `zeros(v) = 0 ∧ #v ≥ 2`; T0 — components are natural numbers.
-- *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))`. Together with the domain-restriction axiom, every `v ∈ dom(Σ.M(d))` satisfies `zeros(v) = 0 ∧ #v ≥ 2`.
+- *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))`. Downstream consumers needing `#v ≥ 2` cite the domain-restriction axiom directly.
 - *Depends:* `Σ.M(d)` domain-restriction axiom — supplies `zeros(v) = 0` and `#v ≥ 2` for every active V-position; T0 (ASN-0034) — supplies the ℕ-valued component carrier.
 
 **subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
