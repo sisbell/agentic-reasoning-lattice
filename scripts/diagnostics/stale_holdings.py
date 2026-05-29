@@ -19,8 +19,13 @@ Usage:
     # Retract a specific orphan holding
     python3 scripts/diagnostics/stale_holdings.py --retract <holding_addr>
 
+    # Retract every holding older than --threshold in one pass
+    python3 scripts/diagnostics/stale_holdings.py --retract-all
+
 Exits 0 in all observation modes (this is observability, not an error
 condition). `--retract` exits 1 if the target holding can't be found.
+`--retract-all` exits 0 always — per-holding errors are reported but
+don't fail the batch.
 """
 
 from __future__ import annotations
@@ -110,6 +115,56 @@ def _print_banner(session, stuck, threshold: int, now: int) -> None:
     print("", file=sys.stderr)
 
 
+def _retract_all(session, threshold: int) -> int:
+    """Batch-retract every active holding older than `threshold` seconds.
+
+    One emit_retraction per holding, single session.commit at the end.
+    Per-holding failures are reported but don't abort the batch — used
+    when the substrate has accumulated 100+ orphans from crashed worker
+    fires and per-addr CLI invocation isn't practical.
+    """
+    stuck = stale_holdings(session, threshold)
+    if not stuck:
+        print(
+            f"  [STALE-HOLDINGS] none open >{_format_age(threshold)} — "
+            f"nothing to retract",
+            file=sys.stderr,
+        )
+        return 0
+
+    print(
+        f"  [STALE-HOLDINGS] retracting {len(stuck)} stale holding(s)...",
+        file=sys.stderr,
+    )
+    retracted = 0
+    errors = 0
+    for link in stuck:
+        if not link.from_set:
+            print(
+                f"  [STALE-HOLDINGS] skip {link.addr}: no from_set "
+                f"(can't determine agent_doc)",
+                file=sys.stderr,
+            )
+            errors += 1
+            continue
+        try:
+            emit_retraction(session.store, link.from_set[0], link.addr)
+            retracted += 1
+        except Exception as exc:
+            print(
+                f"  [STALE-HOLDINGS] err on {link.addr}: {exc!r}",
+                file=sys.stderr,
+            )
+            errors += 1
+
+    session.commit()
+    print(
+        f"  [STALE-HOLDINGS] retracted={retracted} errors={errors}",
+        file=sys.stderr,
+    )
+    return 0
+
+
 def _retract(session, target_addr: Address) -> int:
     """Emit a retraction for a single holding. Returns exit code."""
     try:
@@ -165,11 +220,22 @@ def main() -> int:
         help="Retract the given holding address (manual recovery from "
              "an orphan). Skips threshold check — operator-authorized.",
     )
+    parser.add_argument(
+        "--retract-all", action="store_true",
+        help="Retract every active holding older than --threshold in "
+             "one pass. Used to clean up substrate after multiple "
+             "crashed worker fires accumulated orphan holdings.",
+    )
     args = parser.parse_args()
+
+    if args.retract and args.retract_all:
+        parser.error("--retract and --retract-all are mutually exclusive")
 
     with open_session(LATTICE) as session:
         if args.retract:
             return _retract(session, Address(args.retract))
+        if args.retract_all:
+            return _retract_all(session, args.threshold)
 
         now = int(time.time())
         stuck = stale_holdings(session, args.threshold)
