@@ -171,7 +171,7 @@ The within-document sharing multiplicity is `|{v : v ∈ dom(M'_N(d)) ∧ M'_N(d
 *Formal Contract:*
 - *Preconditions:* `N ∈ ℕ` arbitrary.
 - *Postconditions:* There exists a state `Σ` satisfying S0 (content immutability), S1 (store monotonicity), S2 (arrangement functionality), and S3 (referential integrity) such that for some `a ∈ dom(Σ.C)`, `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N`. The construction works both across documents (multiplicity `N + 1` over `N + 1` documents) and within a single document (multiplicity `N + 1` at `N + 1` distinct V-positions).
-- *Depends:* S0 (content immutability) — preserved vacuously by the single-state construction; S1 (store monotonicity) — preserved vacuously; S2 (arrangement functionality) — required to establish that the constructed `M(d)` is a well-defined function (pairwise-distinct keys map to single images); S3 (referential integrity) — established by construction since `ran(M(d)) = {a} ⊆ dom(C)`; T0 (ASN-0034) — supplies the ℕ-valued component carrier from which the explicit witness enumerations `dᵢ = [1, 0, 1, 0, i]` and `vₖ = [1, k]` are drawn; T3 (CanonicalRepresentation, ASN-0034) — used in the cross-document construction to establish distinctness of the explicit document witnesses `dᵢ` from distinct last components (the V-positions are identical `[1, 1]` across all documents); and in the within-document construction to establish distinctness of V-positions `[1, k]` for `k = 1, …, N + 1` from distinct last components (a single document is used).
+- *Depends:* S0, S1, S2, S3, T0 (ASN-0034), T3 (ASN-0034).
 
 
 ## Structural attribution
@@ -220,7 +220,7 @@ We note a subtlety. S7 identifies the document that ALLOCATED the I-address — 
 
 **Identification.** By S7a (document-scoped allocation), every I-address is allocated under the tumbler prefix of the document that created it. The document-level prefix of `a` — precisely `origin(a)`, the tumbler `N.0.U.0.D` obtained by truncating the element field — identifies the document whose owner performed the allocation that placed `a` into `dom(C)`. This is not a lookup or annotation: the address structurally encodes its provenance. S7a ensures that `origin(a)` IS the allocating document's tumbler.
 
-**Uniqueness across documents.** By S7d (document allocation discipline), every document tumbler is itself the product of an allocation event under T10a's discipline: a document is created by allocating a document-level address under the owning user's prefix, and distinct documents arise from distinct allocation events. For documents `d₁ ≠ d₂`, S7d supplies the required premise — distinct allocation events — and GlobalUniqueness (ASN-0034) then guarantees that the resulting document-level tumblers are distinct. By T3 (CanonicalRepresentation, ASN-0034), this distinctness is decidable by component-wise comparison. Therefore, for any `a₁, a₂ ∈ dom(Σ.C)` allocated under distinct documents: `origin(a₁) ≠ origin(a₂)`. The origin function discriminates allocating documents without ambiguity.
+**Uniqueness across documents.** By S7d's postcondition, distinct documents have distinct document-level tumblers. By T3 (CanonicalRepresentation, ASN-0034), this distinctness is decidable by component-wise comparison. Therefore, for any `a₁, a₂ ∈ dom(Σ.C)` allocated under distinct documents: `origin(a₁) ≠ origin(a₂)`. The origin function discriminates allocating documents without ambiguity.
 
 **Permanence.** By S0 (content immutability), once `a ∈ dom(Σ.C)`, then `a ∈ dom(Σ'.C)` for all successor states `Σ'` — the address persists. Since `a` is a tumbler — a fixed sequence of components, not a mutable reference — and `origin(a)` is computed from the components of `a` alone via T4's deterministic field decomposition, `origin(a)` yields the same result in every state in which `a` exists. By S4 (origin-based identity), distinct allocation events produce distinct addresses, so the address `a` itself is never reassigned or reused. ∎
 
@@ -520,14 +520,6 @@ The lifecycle above exercises the contiguity constraints at depth 2 on every wel
 **Higher depth (depth 3).** Let document `d'` have `M(d') = {[1,1,1] ↦ a₁, [1,1,2] ↦ a₂, [1,1,3] ↦ a₃}`, so `V₁(d') = {[1,1,1], [1,1,2], [1,1,3]}`. *D-CTG check*: the only intermediate at subspace 1 and depth 3 between the extremes `[1,1,1]` and `[1,1,3]` is `[1,1,2]`, which is present. ✓ *D-MIN check*: `min(V₁(d')) = [1,1,1] = [S, 1, 1]`, all post-subspace components equal to 1. ✓
 
 **Contiguity violation (depth ≥ 3).** Suppose instead `V₁(d') = {[1,1,1], [1,2,1]}`. D-CTG requires every intermediate with subspace 1 and depth 3 between `[1,1,1]` and `[1,2,1]` to be present. But `[1,1,2], [1,1,3], [1,1,4], …` are all intermediates — infinitely many, contradicting S8-fin. This is D-CTG-depth in action: positions differing before the last component cannot coexist in a finite arrangement.
-
-
-## The document as arrangement
-
-One consequence of the two-stream model deserves explicit statement. A document is not its content — it is its arrangement of content.
-
-Nelson: "There is thus no 'basic' version of a document set apart from other versions — 'alternative' versions — any more than one arrangement of the same materials is a priori better than other arrangements." The document is, in his metaphor, "an evolving ongoing braid." The braid is the arrangement; the strands are the Istream content. The braid is re-twisted when parts are rearranged, added, or subtracted — but the strands remain intact.
-
 
 ## Properties Introduced
 
