@@ -243,11 +243,9 @@ The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(
 - *Postconditions:* `|dom(Σ.M(d))| < ∞` — the arrangement has finite cardinality. Consequently `ran(Σ.M(d))` is finite (image of a finite set under a function).
 - *Frame:* No constraint on the unbounded growth of `dom(C)`; only individual arrangements are required to be finite at any given state.
 
-**S8a (V-position componentwise positivity).** Over the ℕ-carrier (T0), the domain-restriction axiom's conjunct `zeros(v) = 0` is definitionally the statement that every component is strictly positive — `zeros(v)` (T4) counts the components equal to `0`, so `zeros(v) = 0 ⟺ (A i : 1 ≤ i ≤ #v : vᵢ > 0)`. S8a names the per-component quantifier form, which is the shape the contiguity and partition arguments below (S8, D-CTG, D-SEQ) reason over directly:
+**S8a (V-position componentwise positivity).** Over the ℕ-carrier (T0), the domain-restriction axiom's conjunct `zeros(v) = 0` is definitionally componentwise positivity — `zeros(v)` (T4) counts the components equal to `0`, so `zeros(v) = 0 ⟺ (A i : 1 ≤ i ≤ #v : vᵢ > 0)`:
 
 `(A v ∈ dom(Σ.M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
-
-A V-position represents the element field of a full document-scoped address — the fourth field in the T4 field structure. Its first component `v₁` is the subspace identifier (1 for text, 2 for links); the `0` in full tumbler notation (e.g., `N.0.U.0.D.0.2.1`) is a field separator, not a subspace identifier. The depth constraint `#v ≥ 2` (from the domain-restriction axiom) ensures the subspace identifier `v₁` and the within-subspace ordinal `[v₂, ..., v_m]` occupy distinct components. The domain and range of `M(d)` live in structurally different tumbler subsets: `dom(M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2 ∧ (A i : tᵢ > 0)}` (element-field tumblers of depth at least 2), while `ran(M(d)) ⊆ {t ∈ T : zeros(t) = 3}` (full element-level addresses, per S7b).
 
 *Formal Contract:*
 - *Preconditions:* The domain-restriction axiom on `Σ.M(d)` — every `v ∈ dom(Σ.M(d))` satisfies `zeros(v) = 0 ∧ #v ≥ 2`; T0 — components are natural numbers.
@@ -318,7 +316,7 @@ Since `[S₁] ≼ v` and `[S₁] ≼ shift(v, 1)` and `v ≤ shift(v, 1)` by TS4
 
 ## Arrangement contiguity
 
-Nelson states that the Vstream is always a "dense, contiguous sequence" — after removal, "the v-stream addresses of any following characters in the document are [decreased] by the length of the [deleted] text" [LM 4/66]. The Vstream has no concept of empty positions: "if you have 100 bytes, you have addresses 1 through 100." This statement is specific to the text subspace (S = 1), where Nelson's "addresses 1 through 100" describes character positions. The properties below (D-CTG, D-MIN, D-CTG-depth, D-SEQ) bind `S = 1` in their formal statements.
+Nelson states that the Vstream is always a "dense, contiguous sequence" — after removal, "the v-stream addresses of any following characters in the document are [decreased] by the length of the [deleted] text" [LM 4/66]. The Vstream has no concept of empty positions: "if you have 100 bytes, you have addresses 1 through 100." This statement is specific to the text subspace (S = 1), where Nelson's "addresses 1 through 100" describes character positions. The contiguity properties below are stated for the text subspace (S = 1).
 
 Abbreviate `S = subspace(v) = v₁` (per S8a), and write `V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}` for the set of V-positions in subspace S of document d. The specialization to the text subspace is `V_1(d) = {v ∈ dom(M(d)) : subspace(v) = 1}`. All V-positions in a given subspace share the same tumbler depth (S8-depth).
 
