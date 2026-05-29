@@ -88,21 +88,21 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `2 := 1 + 1`), NAT-addcompat (strict successor inequality `n < n + 1`, distinguishing the numeral 2 from 0, 1, 3 — used in Partition's at-most-one direction).
+- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `2 := 1 + 1`).
 - *Postcondition.* `(A t : T :: Document(t) ⟺ T4-valid(t) ∧ zeros(t) = 2)`.
 
 **Element** (`Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3`)
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `3 := 2 + 1`), NAT-addcompat (strict successor inequality `n < n + 1`, distinguishing the numeral 3 from 0, 1, 2 — used in Partition's at-most-one direction).
+- *Depends.* T0, T4 (T4-valid), T4c, NAT-closure (successor and addition closure ground the numeral `3 := 2 + 1`).
 - *Postcondition.* `(A t : T :: Element(t) ⟺ T4-valid(t) ∧ zeros(t) = 3)`.
 
 **Partition**
 
 - *Preconditions.* None.
 - *Definition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))`, where `exactly-one-of(P₁, P₂, P₃, P₄) ≡ (P₁ ∨ P₂ ∨ P₃ ∨ P₄) ∧ (A i, j : 1 ≤ i < j ≤ 4 :: ¬(Pᵢ ∧ Pⱼ))`.
-- *Depends.* Node, Account, Document, Element (definitions above), Z0 (cardinality non-negativity premise, supplying the lower bound `0 ≤ zeros(t)` for at-least-one), T4 (axiom zeros(t) ≤ 3, for at-least-one), T4c (bijection zeros(t) → level, for the level naming), NAT-discrete (excludes naturals strictly between the numerals via `m ≤ n < m + 1 ⟹ n = m` and its derived form `m < n ⟹ m + 1 ≤ n`, collapsing `{n ∈ ℕ : 0 ≤ n ≤ 3}` to `{0, 1, 2, 3}` for at-least-one, anchored at the lower bound `0 ≤ zeros(t)` supplied by premise Z0), NAT-addcompat (strict successor inequality `n < n + 1`, supplying numeral distinctness for at-most-one), NAT-order (trichotomy driving the successive case split for at-least-one; irreflexivity and transitivity composing the successor inequalities into pairwise distinctness for at-most-one).
+- *Depends.* Node, Account, Document, Element (definitions above), Z0 (cardinality non-negativity premise, supplying the lower bound `0 ≤ zeros(t)` for at-least-one), T4 (axiom zeros(t) ≤ 3, for at-least-one), T4c (bijection zeros(t) → level, for the level naming), NAT-closure (additive identity `0 + 1 = 1` rewriting the bound in at-least-one's `zeros(t) < 1` branch, and successor closure constructing the numerals `2 := 1 + 1`, `3 := 2 + 1` for at-most-one and the `m + 1` term in NAT-discrete's derived form `m < n ⟹ m + 1 ≤ n`), NAT-discrete (excludes naturals strictly between the numerals via `m ≤ n < m + 1 ⟹ n = m` and its derived form `m < n ⟹ m + 1 ≤ n`, collapsing `{n ∈ ℕ : 0 ≤ n ≤ 3}` to `{0, 1, 2, 3}` for at-least-one, anchored at the lower bound `0 ≤ zeros(t)` supplied by premise Z0), NAT-addcompat (strict successor inequality `n < n + 1`, supplying numeral distinctness for at-most-one), NAT-order (trichotomy driving the successive case split for at-least-one; irreflexivity and transitivity composing the successor inequalities into pairwise distinctness for at-most-one).
 - *Postcondition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` — derived by combining T4's axiom zeros(t) ≤ 3 with the lower bound `0 ≤ zeros(t)` (premise Z0) and NAT-discrete (collapsing `{n ∈ ℕ : 0 ≤ n ≤ 3}` to `{0, 1, 2, 3}` via the anchored successive case split) for the at-least-one direction, and the functionality of zeros(t) with the pairwise distinctness of the numerals 0, 1, 2, 3 — grounded in NAT-addcompat's `n < n + 1` composed via NAT-order's transitivity and converted to inequality by NAT-order's irreflexivity — for the at-most-one direction, per the *Well-Definedness* derivation above. T4c's bijection zeros(t) → level supplies the level names.
 
 ## Summary
