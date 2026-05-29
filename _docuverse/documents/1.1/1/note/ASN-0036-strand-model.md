@@ -333,7 +333,7 @@ At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments b
 
 (b) Within each run: `Σ.M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for all `k` with `0 ≤ k < nⱼ`
 
-The content this theorem establishes is conjunct (a): a finite decomposition of `dom(Σ.M(d))` into per-position half-open intervals that are pairwise disjoint and cover the domain. This is where the within-subspace lemma, T5, and T10 do their work. The witness exhibited is the singleton decomposition — every V-position is its own run (`nⱼ = 1`) — under which conjunct (b) reduces to its base case `M(d)(vⱼ) = aⱼ`.
+S8 establishes conjunct (a) together with conjunct (b) under the singleton decomposition — every V-position is its own run (`nⱼ = 1`). The existence and uniqueness of maximal runs (`nⱼ > 1`) is left to Open Questions.
 
 *Proof.* We construct a finite decomposition satisfying both conjuncts and prove it partitions `dom(M(d))`.
 
@@ -362,7 +362,7 @@ Since `[S₁] ≼ v` and `[S₁] ≼ shift(v, 1)` and `v ≤ shift(v, 1)` by TS4
 
 *Formal Contract:*
 - *Preconditions:* `dom(M(d))` finite (S8-fin); `M(d)` a function (S2); referential integrity (S3); `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` (S8a); within each subspace, all V-positions share a common depth (S8-depth).
-- *Postconditions:* (*Finite disjoint partition — the established content.*) There exists a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` whose half-open intervals are pairwise disjoint and cover `dom(M(d))`: (a) `(A v ∈ dom(M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, nⱼ)))`. (*Run identity — base case only.*) Conjunct (b) `(A j, k : 0 ≤ k < nⱼ : M(d)(shift(vⱼ, k)) = shift(aⱼ, k))` holds under the exhibited singleton witness (every `nⱼ = 1`) only at its base case `M(d)(vⱼ) = aⱼ` (`k = 0`). No run with `nⱼ > 1` is established here, so (b)'s `k > 0` content is not exercised; the existence and uniqueness of maximal runs is deferred to Open Questions.
+- *Postconditions:* There exists a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` whose half-open intervals are pairwise disjoint and cover `dom(M(d))`: (a) `(A v ∈ dom(M(d)) :: (E! j :: vⱼ ≤ v < shift(vⱼ, nⱼ)))`; and (b) `(A j, k : 0 ≤ k < nⱼ : M(d)(shift(vⱼ, k)) = shift(aⱼ, k))`, which for the exhibited singleton witness (every `nⱼ = 1`) ranges over `k = 0` and gives `M(d)(vⱼ) = aⱼ`.
 - *Depends:* (*Local properties*) S2 (ArrangementFunctionality) — each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`; S3 (referential integrity) — `M(d)(v) ∈ dom(Σ.C)`; S8a — `zeros(v) = 0`, `#v ≥ 2`, and componentwise positivity of V-positions; S8-depth — a common depth `m` for every V-position in a fixed subspace; S8-fin — finite `dom(M(d))`. (*Foundation claims, ASN-0034*) T1 (TumblerOrdering) case (i) — first-divergence comparison; T3 (CanonicalRepresentation) — equates tumblers with their canonical component sequences; T4 (HierarchicalParsing) — partitions tumblers into N/U/D/E fields; T5 (ContiguousSubtrees) — a prefix's extensions form a contiguous interval under T1; T10 — non-nesting prefixes generate disjoint tumbler subtrees; TS4 (ShiftStrictIncrease) — `v < shift(v, 1)`; TumblerAdd, OrdinalShift, OrdinalDisplacement — the action-point semantics of `δ(k, m)`, the three-region component formula, and the action-point identity `shift(v, 1)_m = v_m + 1`. NAT-discrete (NatDiscreteness) — the strict-to-`+1` promotion `m < n ⟹ m + 1 ≤ n`. NAT-closure (NatArithmeticClosureAndIdentity) — closure of ℕ under addition places `v_m + 1` in ℕ. NAT-order (NatStrictTotalOrder) — the exactly-one trichotomy clause `¬(a < b ∧ b ≤ a)`.
 
 ## Arrangement contiguity
@@ -550,7 +550,7 @@ Gregory's implementation confirms the separation operationally: no command cross
 
 ## Worked example
 
-We instantiate the state model with specific tumblers to ground the abstractions. Consider two documents: document `d₁` at tumbler `1.0.1.0.1` and document `d₂` at tumbler `1.0.1.0.2`. The user creates `d₁` with the text "hello" (five characters), then creates `d₂` which transcludes three characters ("llo") from `d₁` and appends two new characters ("ws"). The maximal-run decompositions exhibited by hand below are concrete instances verifying conjunct (b); their existence and uniqueness in general is not what S8 proves (S8 establishes only the singleton decomposition — see its postcondition) and is deferred to Open Questions.
+We instantiate the state model with specific tumblers to ground the abstractions. Consider two documents: document `d₁` at tumbler `1.0.1.0.1` and document `d₂` at tumbler `1.0.1.0.2`. The user creates `d₁` with the text "hello" (five characters), then creates `d₂` which transcludes three characters ("llo") from `d₁` and appends two new characters ("ws"). The maximal-run decompositions exhibited by hand below are concrete instances verifying conjunct (b).
 
 **Initial state Σ₀**: empty. `dom(C) = ∅`, `dom(M(d₁)) = dom(M(d₂)) = ∅`.
 
