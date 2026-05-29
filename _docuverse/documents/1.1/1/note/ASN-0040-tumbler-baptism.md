@@ -168,7 +168,7 @@ Condition (i) is imposed by definition, not forced by stream validity: a pure-tr
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1.
-- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity, given a T4-valid parent (i): violating (ii) or (iii) forces a stream T4 violation. Condition (i) itself is imposed by definition, not forced by stream validity — it disambiguates the d = 1 / d = 2 stream aliasing.
+- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity, given a T4-valid parent (i): violating (ii) or (iii) forces a stream T4 violation.
 
 
 ## Namespace disjointness
