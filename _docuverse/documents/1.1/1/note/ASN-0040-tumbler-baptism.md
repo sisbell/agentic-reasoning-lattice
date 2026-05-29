@@ -148,8 +148,6 @@ Condition (i) supplies a T4-valid parent; given that, conditions (ii) and (iii) 
 | Document (zeros = 2) | sub-document / version | element child |
 | Element (zeros = 3) | sub-element | **invalid** |
 
-d = 2 crosses one level; the four-field cap follows from condition (iii).
-
 *Proof.* The theorem is: given a T4-valid parent (i), conditions (ii) and (iii) are necessary and sufficient for stream T4-preservation. We prove sufficiency (all three conditions imply T4 preservation) and then necessity of (ii) and (iii).
 
 **(⟸) Sufficiency.** Assume (i) p satisfies T4, (ii) d ∈ {1, 2}, and (iii) zeros(p) + (d − 1) ≤ 3. We show every element of S(p, d) satisfies T4.
@@ -197,7 +195,7 @@ Dropping B6(i) admits aliasing: a pure-trailing-zero parent and its truncation a
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
 - *Postconditions:* `S(p, d) ∩ S(p', d') = ∅`.
-- *Depends:* S(p, d) postconditions (stream-element form [p, 0^{d−1}, n] and length #p + d), B6 (T4-validity and d ∈ {1, 2} of both parents), TA5(d) (base-address length and component structure underlying the element form), T3 (CanonicalRepresentation — equal tumblers have equal length, driving the length split; equal-length parents share the base prefix, forcing parent equality), T4 / TA5-SigValid (valid parent has a nonzero last component, closing the unequal-length case). The disjointness conclusion specializes T10a.6 (DomainDisjointness) to baptismal namespaces; the case analysis and the B6(i)/aliasing necessity argument are the ASN-local content.
+- *Depends:* S(p, d) postconditions (stream-element form [p, 0^{d−1}, n] and length #p + d), B6 (T4-validity and d ∈ {1, 2} of both parents), TA5(d) (base-address length and component structure underlying the element form), T3 (CanonicalRepresentation — equal tumblers have equal length, driving the length split; equal-length parents share the base prefix, forcing parent equality), T4 / TA5-SigValid (valid parent has a nonzero last component, closing the unequal-length case).
 
 
 ## Seed conformance and registry finiteness
@@ -293,7 +291,7 @@ By the definition of next (NextAddress), a = next(B, p, d) is a stream element o
 So a satisfies T4. With every element of B satisfying T4 by the inductive hypothesis, every element of B' = B ∪ {a} satisfies T4; the s.B-frame case was dispatched above via B0a. By induction on the transition sequence, B10 holds in every reachable state. ∎
 
 *Formal Contract:*
-- *Invariant:* `(A t ∈ s.B : t satisfies T4)` — every baptized address satisfies T4 (HierarchicalParsing). *Corollary:* `s.B ⊆ T`, since T4-validity entails t ∈ T.
+- *Invariant:* `(A t ∈ s.B : t satisfies T4)` — every baptized address satisfies T4 (HierarchicalParsing).
 - *Base:* B₀ conf. — every seed element satisfies T4.
 - *Preservation:* Each baptismal transition adds a = next(s.B, p, d) ∈ S(p, d); since (p, d) satisfies B6, B6's sufficiency result gives every element of S(p, d) — hence a — satisfies T4. B0a ensures no non-baptismal mechanism introduces elements that might violate T4.
 
