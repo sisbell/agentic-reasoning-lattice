@@ -44,14 +44,31 @@ def _git(*args: str) -> subprocess.CompletedProcess:
     )
 
 
-def _git_with_lock_retry(*args: str) -> subprocess.CompletedProcess:
-    """Run a git command, retrying on `.git/index.lock` contention.
+# Error fragments that indicate transient parallel-git contention
+# rather than a real failure. Each is something git emits when two
+# processes race on a shared lock:
+#   - "index.lock"           : git add / git commit race on .git/index.lock
+#   - "another git process"  : older git wording for the same race
+#   - "cannot lock ref"      : commit race on HEAD ref update (one
+#                              process advanced HEAD between the loser's
+#                              ref read and ref write)
+#   - "reference already exists" : ref-lock race variant
+_GIT_LOCK_ERROR_FRAGMENTS = (
+    "index.lock",
+    "another git process",
+    "cannot lock ref",
+    "reference already exists",
+)
 
-    Multiple parallel runner processes can race on git's index lock
-    when their fires finish simultaneously. The losing process gets:
-        fatal: Unable to create '.git/index.lock': File exists
-    Retry with exponential backoff (capped at the configured count)
-    so transient contention doesn't drop a fire's commit.
+
+def _git_with_lock_retry(*args: str) -> subprocess.CompletedProcess:
+    """Run a git command, retrying on transient parallel-git contention.
+
+    Multiple parallel runner processes can race on git's locks when
+    their fires finish simultaneously. The losing process gets one of
+    the `_GIT_LOCK_ERROR_FRAGMENTS` patterns. Retry with exponential
+    backoff (capped at the configured count) so transient contention
+    doesn't drop a fire's commit.
 
     Returns the final CompletedProcess (success, non-lock error, or
     final attempt after retries exhausted).
@@ -62,7 +79,7 @@ def _git_with_lock_retry(*args: str) -> subprocess.CompletedProcess:
         if result.returncode == 0:
             return result
         stderr_lower = (result.stderr or "").lower()
-        if "index.lock" not in stderr_lower and "another git process" not in stderr_lower:
+        if not any(frag in stderr_lower for frag in _GIT_LOCK_ERROR_FRAGMENTS):
             return result  # non-lock error; let caller see it
         if attempt < _GIT_LOCK_RETRY_COUNT - 1:
             time.sleep(delay)
