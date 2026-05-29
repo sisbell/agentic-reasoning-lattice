@@ -148,19 +148,19 @@ In both cases, next(B, p, d) produces an element of T. The definition is total o
   POST: s'.B = s.B ∪ {next(s.B, p, d)}; only s.B is modified
   STRUCTURAL (on Σ): B4 (Atomic Baptism, §B4 below) — each baptize(p, d) is a single atomic Σ-edge
 
-By B4 (Atomic Baptism, §B4 below), next(s.B, p, d) is evaluated against the precondition state s of the same transition that produces s'.
+The read next(s.B, p, d) is against the precondition state s (by B4, §B4 below).
 
-*Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined and produces a fresh address. Invariant preservation (B0, B1, B10, B_fin) is established by the dedicated inductive proofs in §B1, §B10, and §B_fin, whose baptismal-branch cases handle exactly this operation.
+*Proof of well-definedness and correctness.* We must show that under the stated preconditions, baptize(p, d) is well-defined and produces a fresh address.
 
 **Well-definedness.** The postcondition invokes next(s.B, p, d), whose Justification of well-definedness (NextAddress) already establishes next(s.B, p, d) ∈ T for any B ⊆ T finite, p ∈ T, and d ≥ 1 — the empty branch yielding inc(p, d) ∈ T and the non-empty branch yielding inc(max(children(s.B, p, d)), 0) ∈ T. B_fin (§B_fin) discharges the finiteness premise for B = s.B at any reachable s, so next(s.B, p, d) ∈ T here.
 
-**Freshness.** Let a = next(s.B, p, d) = c_{m+1} where m = hwm(s.B, p, d). We show a ∉ s.B. By construction, a = c_{m+1} ∈ S(p, d). Since children(s.B, p, d) = s.B ∩ S(p, d) by definition, if a ∈ s.B then a ∈ children(s.B, p, d). By B1, children(s.B, p, d) = {c₁, ..., cₘ}. By S0 (StreamOrdering), distinct stream indices produce distinct elements: since m + 1 > i for all 1 ≤ i ≤ m, we have c_{m+1} ≠ cᵢ for each such i. Therefore a ∉ {c₁, ..., cₘ} = children(s.B, p, d), contradicting the supposition. We conclude a ∉ s.B. By B4 (Atomic Baptism), children(s.B, p, d) is evaluated against the precondition state s of the same transition, so the value used here is exactly the value used in the postcondition of that edge. ∎
+**Freshness.** Let a = next(s.B, p, d) = c_{m+1} where m = hwm(s.B, p, d). We show a ∉ s.B. By construction, a = c_{m+1} ∈ S(p, d). Since children(s.B, p, d) = s.B ∩ S(p, d) by definition, if a ∈ s.B then a ∈ children(s.B, p, d). By B1, children(s.B, p, d) = {c₁, ..., cₘ}. By S0 (StreamOrdering), distinct stream indices produce distinct elements: since m + 1 > i for all 1 ≤ i ≤ m, we have c_{m+1} ≠ cᵢ for each such i. Therefore a ∉ {c₁, ..., cₘ} = children(s.B, p, d), contradicting the supposition. We conclude a ∉ s.B. The value of children(s.B, p, d) used here is the same value committed by that edge (by B4). ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1; B6(p, d) holds. (B1, B10, and B_fin are *state invariants*, not per-call obligations: they are established at genesis by B₀ conf. and preserved inductively by the proofs in §B1, §B10, and §B_fin, so they hold in every reachable state at which baptize(p, d) can be invoked. They are appealed to in the well-definedness and preservation arguments below but are not discharged by the caller.)
 - *Structural assumptions on Σ:* B4 (Atomic Baptism) — each `baptize(p, d) ∈ Σ` is a single atomic edge of the transition graph; this is an invariant of the operation vocabulary, not a caller-checked precondition.
 - *Postconditions:* s'.B = s.B ∪ {next(s.B, p, d)} with next(s.B, p, d) ∉ s.B; s'.B satisfies B0, B1, B10, and B_fin.
-- *Frame:* Only s.B is modified, as specified by the postcondition above; this ASN makes no commitment about other components s carries (content, links, arrangement, ASN-0034's Act and nₛ), whose specification is left to the ASNs that introduce them.
+- *Frame:* Only s.B is modified.
 
 
 ## The contiguous prefix property
@@ -181,7 +181,7 @@ Equivalently: for every B6-valid namespace (p, d), children(B, p, d) = {c₁, ..
 
 *Baptismal transitions.* Otherwise the transition is induced by a baptismal operation baptize(p₀, d₀) for some (p₀, d₀) satisfying B6, so B' = B ∪ {a} where a = next(B, p₀, d₀). We must show that children(B', p, d) is a contiguous prefix of S(p, d) for every B6-valid (p, d). Two cases exhaust the possibilities.
 
-*Target namespace: (p, d) = (p₀, d₀).* By B4 (Atomic Baptism), this baptism is a single Σ-transition acting on B; the value of children(B, p₀, d₀) appearing in the postcondition is computed from the same precondition state B that licenses the transition. By the inductive hypothesis, children(B, p₀, d₀) = {c₁, ..., cₘ} for some m ≥ 0. Two sub-cases arise from the definition of next (NextAddress).
+*Target namespace: (p, d) = (p₀, d₀).* The value of children(B, p₀, d₀) appearing in the postcondition is read against the same precondition state B that licenses the transition (by B4). By the inductive hypothesis, children(B, p₀, d₀) = {c₁, ..., cₘ} for some m ≥ 0. Two sub-cases arise from the definition of next (NextAddress).
 
 When m = 0: children(B, p₀, d₀) = ∅, so a = next(B, p₀, d₀) = inc(p₀, d₀) = c₁, the first element of S(p₀, d₀) by the definition of the sibling stream. Therefore children(B', p₀, d₀) = {c₁}, a contiguous prefix of length 1.
 
@@ -296,12 +296,13 @@ A ghost element is "virtually present in tumbler-space, since links may be made 
 
   `(A s : s reachable from s_init : (A t ∈ T : Occupied(t, s) ⟹ t ∈ s.B))`
 
-— content is permitted only at baptized addresses. Under this requirement, the configurations of a tumbler t ∈ T in a reachable state s partition into:
+— content is permitted only at baptized addresses. Under this requirement, the permitted configurations of a tumbler t ∈ T in a reachable state s are:
 
   - t ∈ s.B ∧ Occupied(t, s): a populated position
   - t ∈ s.B ∧ ¬Occupied(t, s): a ghost element (permitted)
   - t ∉ s.B ∧ ¬Occupied(t, s): an unbaptized, unoccupied position (not addressable)
-  - t ∉ s.B ∧ Occupied(t, s): forbidden (excluded by the forward requirement above)
+
+The fourth quadrant — t ∉ s.B ∧ Occupied(t, s) — is precisely the negation of the requirement, hence forbidden.
 
 ## Atomicity
 
@@ -364,7 +365,7 @@ This deserves attention. The `.0.` that appears in addresses like `1.1.0.1.0.1` 
 
   (iii) zeros(p) + (d − 1) ≤ 3.
 
-Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy. Condition (i) is necessary by two distinct mechanisms — defect propagation and namespace collapse — established in the necessity proof's sub-cases (a) and (b) below. All three conditions are jointly necessary for the baptism system to maintain its invariants. Together:
+Conditions (ii) and (iii) are necessary and sufficient for T4 preservation of the sibling stream, given (i). Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy; it is independently necessary only at d = 2 (at d = 1 it reduces to zeros(p) ≤ 3 and is subsumed by condition (i)). Condition (i) is necessary by two distinct mechanisms — defect propagation and namespace collapse — established in the necessity proof's sub-cases (a) and (b) below. The three conditions together are necessary for the baptism system to maintain its invariants — each rules out a distinct failure, with (iii)'s independent contribution arising at d = 2. Together:
 
 | Parent level | d = 1 (same level) | d = 2 (level crossing) |
 |---|---|---|
@@ -387,7 +388,7 @@ For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states th
 
 *Condition (ii) is necessary for T4.* Let d ≥ 3. By TA5(d), inc(p, d) appends d − 1 ≥ 2 zeros followed by 1. Positions #p + 1 and #p + 2 are both zero — adjacent zeros that parse as two consecutive field separators enclosing an empty field, violating T4's non-empty-field constraint. No choice of p avoids this: the adjacent zeros lie in the appended suffix, independent of p's content.
 
-*Condition (iii) is necessary for T4.* Let zeros(p) + (d − 1) > 3 with d ∈ {1, 2} and p satisfying T4. By B5, zeros(c₁) = zeros(p) + (d − 1) > 3. But T4 requires zeros(t) ≤ 3 for any valid address — at most three field separators for the four-level hierarchy. The first child already exceeds the zero budget, so c₁ violates T4.
+*Condition (iii) is independently necessary at d = 2.* Let zeros(p) + (d − 1) > 3 with p satisfying T4. By B5, zeros(c₁) = zeros(p) + (d − 1) > 3. But T4 requires zeros(t) ≤ 3 for any valid address — at most three field separators for the four-level hierarchy. The first child already exceeds the zero budget, so c₁ violates T4. This bites independently only at d = 2, where condition (iii) reads zeros(p) ≤ 2 — a strictly stronger constraint than T4 alone permits for p (which allows zeros(p) ≤ 3). At d = 1, condition (iii) reduces to zeros(p) ≤ 3, which is already implied by condition (i) (T4-validity of p); there it adds nothing and is subsumed by (i) rather than independent.
 
 *Condition (i) is necessary for the system.* Let p violate T4 with d ∈ {1, 2} and zeros(p) + (d − 1) ≤ 3. Two structurally distinct situations arise, depending on whether p has a T4 defect among the positions whose values are preserved into c₁ by TA5(b) — interior positions 1 through #p − 1, or the leading position when p₁ = 0 (which coincides with the trailing position #p only in the singleton case p = [0]) — or whether p's sole defect is a clean trailing zero in a parent whose leading and interior positions are T4-valid. The two situations exhaust the configurations: if p violates T4 and the violation is not a pure trailing zero with p₁ > 0 and no other defect, then by elimination some defect lies at position 1 (leading zero) or at some interior position 1 < i < #p (adjacent zeros or other interior violation), placing p in sub-case (a) below; otherwise p falls in sub-case (b).
 
