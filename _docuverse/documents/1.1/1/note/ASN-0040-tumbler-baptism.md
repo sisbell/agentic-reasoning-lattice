@@ -32,7 +32,7 @@ A tumbler t is *baptized* iff t ∈ s.B. Initially s.B contains a finite seed se
 
 The set-membership constraint `s.B ⊆ T` needs no separate induction: B10 (§B10) establishes that every t ∈ s.B satisfies T4, and T4-validity entails t ∈ T.
 
-*Relationship to ASN-0034's allocated set.* The inclusion `allocated(s) ⊆ s.B` holds only conditionally on the activation-discipline ASN, which must align each allocator-extension transition with a unique baptismal operation adding the same address to s.B, and cover the genesis allocator domain with the seed (`allocated(s_init) ⊆ B₀`); both discharges belong to that ASN.
+*Relationship to ASN-0034's allocated set.* Whether `allocated(s) ⊆ s.B` holds is left to the activation-discipline ASN (see Open Questions); this ASN neither assumes nor establishes it.
 
 We state the closure law directly on the operation vocabulary Σ rather than on an opaque predicate "produced by baptism":
 
@@ -47,7 +47,7 @@ Here "satisfying B6" means p satisfies T4, d ∈ {1, 2}, and zeros(p) + (d − 1
 
 Irrevocability follows immediately:
 
-**B0 (Irrevocability — corollary of B0a).** `(A s, s' : s → s' : s.B ⊆ s'.B)`. In the baptismal branch `op(s).B = s.B ∪ {next(s.B, p, d)}` and in the s.B-frame branch `op(s).B = s.B`, so `s.B ⊆ op(s).B` in both, hence `s.B ⊆ s'.B` for every transition. This is the state-level reading of T8 (AllocationPermanence): T8 says the allocator never reclaims an address; B0 says the *registry* never shrinks — and because B0a quantifies over all of Σ, B0 forbids *any* mechanism, not just the allocator, from removing a baptized position. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid."
+**B0 (Irrevocability — corollary of B0a).** `(A s, s' : s → s' : s.B ⊆ s'.B)`. In the baptismal branch `op(s).B = s.B ∪ {next(s.B, p, d)}` and in the s.B-frame branch `op(s).B = s.B`, so `s.B ⊆ op(s).B` in both, hence `s.B ⊆ s'.B` for every transition. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid."
 
 B0 is a single-step law. We extend it to finite transition sequences:
 
@@ -202,8 +202,6 @@ When m ≥ 1: the maximum of children(B, p₀, d₀) is cₘ, since the prefix {
 
 *All other namespaces: (p, d) ≠ (p₀, d₀).* By construction, a ∈ S(p₀, d₀); since (p₀, d₀) satisfies B6 and a ∈ S(p₀, d₀), B6's sufficiency result (§B6) gives that a satisfies T4. We show children(B', p, d) is a contiguous prefix by case analysis on (p, d).
 
-The case analysis is exhaustive over arbitrary (p, d) ≠ (p₀, d₀). We split first on whether (p, d) satisfies B6, and within the non-B6 branch on whether S(p, d) contains any T4-valid element. This yields three sub-cases: (A) (p, d) satisfies B6; (B) (p, d) violates B6 and every element of S(p, d) violates T4; and (C) (p, d) violates B6 but S(p, d) contains T4-valid elements. Which configurations fall under (B) versus (C) is exactly B6's necessity result (§B6): every failure mode drives all of S(p, d) out of T4 except the sole-defect trailing-zero configuration with d = 1, which is sub-case (C).
-
 When (p, d) satisfies B6 (sub-case A): both (p₀, d₀) and (p, d) meet B7's preconditions, so B7 gives S(p₀, d₀) ∩ S(p, d) = ∅, hence a ∉ S(p, d). Therefore children(B', p, d) = children(B, p, d), a contiguous prefix by the inductive hypothesis.
 
 When (p, d) does not satisfy B6 and every element of S(p, d) violates T4 (sub-case B): since a satisfies T4, a ∉ S(p, d). Moreover, B10 for the current state ensures every element of B satisfies T4, so children(B, p, d) = ∅. Therefore children(B', p, d) = ∅, trivially a contiguous prefix. (The configurations covered by this sub-case each drive every stream element out of T4, by B6's necessity proof.)
@@ -221,13 +219,11 @@ Since B1 is preserved in the target namespace and in every other namespace, B1 h
 - *Base:* B₀ conf. — seed set satisfies contiguous prefix for all (p, d).
 - *Preservation:* Each baptism preserves B1 in the target namespace (by Bop, B0, B4, S0, TA5(c)) and in all other namespaces (by B7 for B6-valid pairs; by B10 for non-B6 pairs whose streams are entirely T4-invalid; by stream identity S(p, 1) = S(p', 2) (S2) for non-B6 pairs where p ends in zero as its sole defect and d = 1).
 
-Two dependencies bear emphasis. B7 (Namespace Disjointness) ensures no operation outside a namespace inserts an element into its stream. B0a (Baptismal Closure) ensures no mechanism other than baptism adds elements to B at all — without B0a, a non-baptismal operation could insert arbitrary elements into B, and the preservation argument would be ungrounded.
-
 The induction also requires a conforming base:
 
 **B₀ conf. (SeedConformance).** B₀ is finite, `(A p, d : children(B₀, p, d) is a contiguous prefix of S(p, d))`, and `(A t ∈ B₀ : t satisfies T4)`.
 
-B₀ must be finite, satisfy B1 for every namespace at genesis, and have every seed element be a valid address under T4. These three structural conditions are individually necessary. Finiteness is required because the next function's well-definedness depends on max(children(B, p, d)) existing, which requires children to be a finite set; since B starts as B₀ and grows by one element per baptism, B₀ finite implies B finite in every reachable state. Without the contiguity requirement, the seed set could contain {c₁, c₃} for some namespace — a gap that the inductive argument cannot repair, since baptism only appends the next sibling. Without the T4 requirement, a seed element could serve as a parent that violates B6(i), undermining B7's disjointness guarantee. Non-emptiness is not among these structural conditions; it is forced externally (see *Relationship to ASN-0034's allocated set* above).
+The three conditions are the Base lines of B_fin (finiteness), B1 (genesis contiguity), and B10 (seed T4-validity) respectively. Non-emptiness is not among them; it is forced externally (see *Relationship to ASN-0034's allocated set* above).
 
 B₀ conformance fixes the seed as a finite set; B0a constrains every transition to add at most one element. The composition yields a registry-wide finiteness invariant:
 
@@ -280,9 +276,7 @@ B1 yields a simplification: the entire allocation state of a namespace reduces t
 
 By B1 (Contiguous Prefix), children(B, p, d) = {c₁, ..., cₘ} — the first m elements of the sibling stream S(p, d) with no gaps. This contiguity is the load-bearing property: it means the set of children is determined entirely by its cardinality. Any set of m elements drawn from a contiguous prefix of a sequence is the prefix itself, so knowing m tells us children(B, p, d) = {c₁, ..., cₘ}.
 
-Two consequences follow. First, the maximum: by S0 (StreamOrdering), the sibling stream is strictly increasing under T1, so max(children(B, p, d)) = cₘ — the last element of the prefix. Second, the next allocation target: since children occupy exactly the first m positions of S(p, d), the next unoccupied position is c_{m+1}. No scan of the children set is needed; the count alone suffices.
-
-Without B1, the count would not determine the maximum — a set of m elements drawn non-contiguously from the stream could have its maximum anywhere. Without S0, even a contiguous prefix need not have its maximum at the last position. Both properties are required for the reduction from set to scalar. ∎
+Two consequences follow. First, the maximum: by S0 (StreamOrdering), the sibling stream is strictly increasing under T1, so max(children(B, p, d)) = cₘ — the last element of the prefix. Second, the next allocation target: since children occupy exactly the first m positions of S(p, d), the next unoccupied position is c_{m+1}. No scan of the children set is needed; the count alone suffices. ∎
 
 *Formal Contract:*
 - *Definition:* hwm(B, p, d) = #children(B, p, d) where children(B, p, d) = {cₙ ∈ S(p, d) : cₙ ∈ B}.
@@ -302,13 +296,11 @@ Concretely: if hwm = 0, then next = inc(p, d) — the first child; if hwm = m > 
 
 *Case 2: m ≥ 1.* The children set is non-empty: children(B, p, d) = {c₁, ..., cₘ}. We must identify max(children(B, p, d)). By S0 (StreamOrdering), the sibling stream is strictly increasing: c₁ < c₂ < ... < cₘ under the lexicographic order T1. The maximum of a finite strictly ordered set is its last element, so max(children(B, p, d)) = cₘ. By the definition of next, next(B, p, d) = inc(cₘ, 0). By the recursive clause of the sibling stream definition, c_{m+1} = inc(cₘ, 0). Since hwm + 1 = m + 1, the claim c_{hwm+1} = c_{m+1} = inc(cₘ, 0) = next(B, p, d) holds.
 
-In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. The proof depends on B1 to guarantee the contiguous prefix structure (without which the maximum of children need not be the m-th stream element) and on S0 to identify that maximum as cₘ (without which max could be some other element). ∎
+In both cases, next(B, p, d) = c_{hwm(B,p,d) + 1}. ∎
 
 *Formal Contract:*
 - *Preconditions:* B satisfies B1 for all (p, d); p ∈ T, d ≥ 1; S(p, d) = c₁, c₂, ... defined by c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0).
 - *Postconditions:* `next(B, p, d) = c_{hwm(B,p,d) + 1}`.
-
-Two systems beginning from the same B₀ and executing the same sequence of baptisms — same parents, same depths, same order — produce identical address spaces. The addresses are not identifiers assigned by fiat; they are the inevitable consequence of the baptism history.
 
 
 ## Ghost elements: baptism without content
@@ -443,27 +435,14 @@ Each parent-depth pair defines a namespace. Distinct namespaces must produce non
 
 provided both `(p, d)` and `(p', d')` satisfy B6.
 
-*Proof.* We must show that for distinct valid pairs (p, d) ≠ (p', d'), where both parents satisfy T4 and both depths satisfy B6, no tumbler belongs to both S(p, d) and S(p', d'). Let a ∈ S(p, d) and b ∈ S(p', d'). We show a ≠ b by exhaustive case analysis on the relationship between the two pairs.
+*Proof.* Under B6, S(p, d) is exactly the domain of the child allocator that p spawns at depth d. Its base address is c₁ = inc(p, d) — a child-spawn in T10a's sense, since d ∈ {1, 2} is the deep increment inc(p, k') with k' = d > 0 — and its remaining elements cₙ₊₁ = inc(cₙ, 0) are produced by the shallow increment T10a reserves for within-allocator sibling enumeration. So S(p, d) coincides with dom(A_{p,d}) (T10a's domain definition, modulo the index shift c₁ = t₀).
 
-We first recall the uniform length property. By S(p, d)'s postcondition, #cₙ = #p + d for all n ≥ 1. Similarly, by S(p', d')'s postcondition, every element of S(p', d') has length #p' + d'.
-
-*Case 1: different element lengths.* Suppose #p + d ≠ #p' + d'. Then #a = #p + d ≠ #p' + d' = #b. By T3, tumblers of different lengths are never equal, so a ≠ b.
-
-*Case 2: equal element lengths, non-nesting prefixes.* Suppose #p + d = #p' + d' and neither p ≼ p' nor p' ≼ p. By S1, p ≼ a and p' ≼ b. Since the prefixes are non-nesting, T10 gives a ≠ b.
-
-*Case 3: equal element lengths, nesting prefixes.* Suppose #p + d = #p' + d' and one prefix extends the other — say p ≼ p' without loss of generality (the argument for p' ≼ p is identical with the roles exchanged). Since (p, d) ≠ (p', d') and p ≼ p', either p = p' with d ≠ d', or p is a strict prefix of p'. If p = p' then #p = #p', so #p + d = #p' + d' gives d = d', contradicting d ≠ d'. Therefore p is a strict prefix of p': #p' > #p. From #p + d = #p' + d' we obtain d − d' = #p' − #p > 0, so d > d'. Since d, d' ∈ {1, 2} by B6(ii), the constraint d > d' forces d = 2 and d' = 1, whence #p' = #p + 1.
-
-We show the two streams disagree at position #p + 1 for every pair of elements. By S(p, 2), every cₙ ∈ S(p, 2) has canonical form [p₁, ..., p_{#p}, 0, n] — the single separator (TA5(d) with d − 1 = 1) sits at position #p + 1 — so (cₙ)_{#p+1} = 0 for all n ≥ 1.
-
-For an arbitrary c'ₘ ∈ S(p', 1): by S1, p' ≼ c'ₘ, so (c'ₘ)_i = p'_i for all 1 ≤ i ≤ #p'. In particular, (c'ₘ)_{#p+1} = p'_{#p+1}. Since #p + 1 = #p', this is the last component of p'. By T4, valid addresses do not end in zero, so p'_{#p'} > 0. Therefore (c'ₘ)_{#p+1} = p'_{#p+1} > 0 for all m ≥ 1.
-
-At position #p + 1, every element of S(p, 2) has value 0 and every element of S(p', 1) has a value greater than 0. By T3, tumblers that differ at any position are distinct, so a ≠ b.
-
-The three cases are exhaustive: for any two streams, the element lengths are either different (Case 1), equal with non-nesting prefixes (Case 2), or equal with nesting prefixes (Case 3). In every case a ≠ b, so S(p, d) ∩ S(p', d') = ∅. ∎
+Distinct B6-valid pairs name distinct allocators. If p ≠ p', the two child allocators are spawned from different sites. If p = p' with d ≠ d', then d = 1 and d = 2 are two different deep increments inc(p, k') from the same parent element; T10a permits at most one child per (t, k') pair, so these are two distinct child-spawning events and hence two distinct allocators. In either case A_{p,d} ≠ A_{p',d'}, and T10a.6 (DomainDisjointness) gives dom(A_{p,d}) ∩ dom(A_{p',d'}) = ∅ — that is, S(p, d) ∩ S(p', d') = ∅. ∎
 
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
 - *Postconditions:* `S(p, d) ∩ S(p', d') = ∅`.
+- *Depends:* T10a (child-spawn / sibling discipline identifying S(p, d) as an allocator domain), T10a.6 (DomainDisjointness — disjoint domains for distinct allocators), TA5(d) (child increment).
 
 
 ## A baptism traced
@@ -504,11 +483,11 @@ State: B₄ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1]}.
 
 Nelson's "Items 2.1, 2.2, 2.3, 2.4" is exactly this mechanism — successive baptisms under parent 2 at depth 1, yielding the sibling stream 2.1, 2.2, 2.3, 2.4 by repeated application of inc(·, 0). The sequence is determined, contiguous, and the ordinals carry no semantics beyond order.
 
-**B7 Case 2 verified.** The steps above exercise only Case 1 of B7 (different stream lengths). We now trace Case 2 — non-nesting prefixes with equal element lengths. From state B₂ above, the parents [1, 0, 1] and [1, 0, 2] are both length 3, distinct, and neither is a prefix of the other (they disagree at position 3). Consider S([1, 0, 1], 1) and S([1, 0, 2], 1). Both streams have element length 4: #[1, 0, 1] + 1 = #[1, 0, 2] + 1 = 4. The prefixes are non-nesting — neither [1, 0, 1] ≼ [1, 0, 2] nor [1, 0, 2] ≼ [1, 0, 1] — so this is Case 2 with p = [1, 0, 1], d = 1, p' = [1, 0, 2], d' = 1.
+**B7 illustrated — non-nesting prefixes.** The steps above produce streams of different lengths, the easiest disjointness witness. We now exhibit two namespaces whose elements share a length yet remain disjoint because their parents are non-nesting. From state B₂ above, the parents [1, 0, 1] and [1, 0, 2] are both length 3, distinct, and neither is a prefix of the other (they disagree at position 3). Consider S([1, 0, 1], 1) and S([1, 0, 2], 1). Both streams have element length 4: #[1, 0, 1] + 1 = #[1, 0, 2] + 1 = 4, with p = [1, 0, 1], d = 1, p' = [1, 0, 2], d' = 1.
 
 At position 3 of each stream: c₁ = inc([1, 0, 1], 1) = [1, 0, 1, 1] and c'₁ = inc([1, 0, 2], 1) = [1, 0, 2, 1]. By S1, every cₙ ∈ S([1, 0, 1], 1) preserves [1, 0, 1] as prefix and hence has value 1 at position 3, and every c'ₘ ∈ S([1, 0, 2], 1) has value 2 at position 3. Sibling increments inc(·, 0) modify only position sig(·) — namely position 4 in both streams (TA5(c)) — so position 3 is invariant across both streams: always 1 in S([1, 0, 1], 1), always 2 in S([1, 0, 2], 1). By T1's lexicographic comparison resolving at the first position of disagreement, every element of S([1, 0, 1], 1) is distinct from every element of S([1, 0, 2], 1). The streams are disjoint.
 
-**B7 Case 3 verified.** Case 3 — nesting prefixes with equal element lengths. Suppose node [1, 1] has been baptized via inc([1], 1) = [1, 1] (TA5(d) with k = 1: #t' = 2, zero intermediate zeros, position 2 set to 1). Consider S([1], 2) and S([1, 1], 1). Both streams have element length 3: #[1] + 2 = #[1, 1] + 1 = 3. The prefixes nest — [1] ≼ [1, 1] — so this is Case 3 with p = [1], d = 2, p' = [1, 1], d' = 1.
+**B7 illustrated — nesting prefixes.** A harder witness: two namespaces whose elements share a length and whose parents nest. Suppose node [1, 1] has been baptized via inc([1], 1) = [1, 1] (TA5(d) with k = 1: #t' = 2, zero intermediate zeros, position 2 set to 1). Consider S([1], 2) and S([1, 1], 1). Both streams have element length 3: #[1] + 2 = #[1, 1] + 1 = 3. The prefixes nest — [1] ≼ [1, 1] — with p = [1], d = 2, p' = [1, 1], d' = 1.
 
 At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 2 is 0, the zero separator produced by TA5(d) with d − 1 = 1 intermediate zero. inc([1, 1], 1) = [1, 1, 1] — the value at position 2 is p'₂ = 1 > 0 (by T4, valid addresses do not end in zero, so the last component of [1, 1] is positive). Sibling increments inc(·, 0) modify only the last component (TA5(c)), so position 2 is invariant across both streams: always 0 in S([1], 2), always 1 in S([1, 1], 1). The streams disagree at a fixed position and are therefore disjoint.
 
@@ -549,11 +528,11 @@ The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9
 
 Within the same namespace, B4 makes each baptize(p, d) a single edge of the transition graph; distinct same-namespace baptismal transitions occupy distinct edges and therefore evaluate next against distinct precondition states with distinct hwm values, and B1 ensures sequential, gap-free allocation, so distinct baptisms produce distinct stream indices, which S0 maps to distinct addresses. Across namespaces, B7 ensures non-overlapping ranges. Together, no two baptisms in any reachable state produce the same tumbler.
 
-B8 restates ASN-0034's GlobalUniqueness at the namespace level, via baptism namespaces and the contiguous prefix property.
+Across namespaces, B8 is ASN-0034's GlobalUniqueness specialized to allocator domains — discharged through B7, which is itself T10a.6. The genuinely new, registry-level content is the same-namespace clause: that distinct baptismal *acts* in one namespace advance the high water mark gap-free (B1) and so land on distinct stream indices. The foundation's per-allocator forward ordering relates indices to addresses; it does not by itself assert that distinct acts occupy distinct indices.
 
 *Proof.* We must show that for any two distinct baptismal acts β₁ and β₂, the addresses they produce are distinct. Let a be the address produced by β₁ in namespace (p, d), and b the address produced by β₂ in namespace (p', d'). We proceed by case analysis on whether the two baptisms target the same or different namespaces.
 
-*Case 1: same namespace — (p, d) = (p', d').* By B4 (Atomic Baptism), each baptism is a single Σ-transition, so β₁ and β₂ occupy distinct edges of the transition sequence. Without loss of generality, β₁ precedes β₂ in that sequence — the argument with roles exchanged is identical. Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts. By the Bop postcondition, the successor state s₁' = β₁(s₁) has s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. Since β₁ precedes β₂, s₂ is reachable from s₁' through a (possibly empty) sequence of transitions — that is, s₁' →* s₂. B0★ (Multi-step Irrevocability), the labelled corollary of B0 covering finite transition sequences, gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
+*Case 1: same namespace — (p, d) = (p', d').* The uniqueness question is about addresses jointly observed in one reachable state, so we fix a reachable s in whose history both β₁ and β₂ lie — both are edges on a single transition path s_init →* s. (Two acts on incomparable branches share no reachable descendant; their outputs are never jointly observed, and the collision question does not arise.) Along that one path the edges are linearly ordered, so β₁ and β₂ are comparable; without loss of generality β₁ precedes β₂, the argument with roles exchanged being identical. By B4 (Atomic Baptism), each baptism is a single Σ-edge of this path. Let s₁ be the state on which β₁ acts and s₂ the state on which β₂ acts. By the Bop postcondition, the successor state s₁' = β₁(s₁) has s₁'.B = s₁.B ∪ {a}, so a ∈ s₁'.B. Since β₁ precedes β₂, s₂ is reachable from s₁' through a (possibly empty) sequence of transitions — that is, s₁' →* s₂. B0★ (Multi-step Irrevocability), the labelled corollary of B0 covering finite transition sequences, gives s₁'.B ⊆ s₂.B, hence a ∈ s₂.B.
 
 Let m₁ = hwm(s₁.B, p, d) and m₂ = hwm(s₂.B, p, d). By B2 (High Water Mark Sufficiency), a = c_{m₁+1} and b = c_{m₂+1}, where cₙ denotes the n-th element of S(p, d). Since a = c_{m₁+1} ∈ s₂.B and B1 (Contiguous Prefix) holds for s₂, the children of (p, d) in s₂ include {c₁, ..., c_{m₁+1}}, so hwm(s₂.B, p, d) ≥ m₁ + 1. That is, m₂ ≥ m₁ + 1, hence m₂ + 1 ≥ m₁ + 2 > m₁ + 1. The indices m₁ + 1 and m₂ + 1 are distinct with m₁ + 1 < m₂ + 1. By S0 (StreamOrdering), c_{m₁+1} < c_{m₂+1} under the lexicographic order T1. By T1 irreflexivity, c_{m₁+1} ≠ c_{m₂+1}. Therefore a ≠ b.
 
@@ -620,7 +599,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | from TA5(b), TA5(d) |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | from TA5(c) |
 | B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | from T4, TA5, B5 |
-| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from T3, T4, T10, S1, TA5(d), S(p,d) (uniform length), B6 |
+| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from T10a, T10a.6 (S(p,d) is a child-allocator domain), TA5(d), B6 |
 | B8 | Distinct baptisms produce distinct addresses — global uniqueness | from B0★, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d : B6(p, d) : (A M ∈ ℕ : (E s' : s →* s' via baptisms : hwm(s'.B, p, d) ≥ M)))` — unbounded extent | from T0(a), B1, B2, B4, B6, Bop, TA5(c), TA5(d) |
 | B10 | `(A t ∈ s.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
@@ -629,6 +608,7 @@ After M − m steps, hwm(s_{M−m}.B, p, d) = m + (M − m) = M. Setting s' = s_
 ## Open Questions
 
 - Must a parent position be baptized before children can be baptized beneath it? Nelson's ownership model implies yes; Gregory's implementation does not check at structural levels. Resolution depends on the ownership model (Tumbler Ownership).
+- Under what activation discipline does `allocated(s) ⊆ s.B` hold — what must align each allocator-extension transition with a baptismal operation, and cover the genesis allocator domain with the seed?
 - What concrete seed sets B₀ are valid — which root configurations satisfy B₀ conformance while providing a viable system genesis?
 - Must the specification distinguish between a ghost element that could hold content and a structural position that cannot — or is this distinction derivable from the field structure alone?
 - Under what conditions may bulk allocation — baptizing a contiguous range of k positions in a single operation — satisfy B4's atomicity and B1's contiguity requirements?
