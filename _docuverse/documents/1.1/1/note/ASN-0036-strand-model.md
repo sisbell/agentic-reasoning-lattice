@@ -146,7 +146,7 @@ S4 and S5 together make quotation a first-class structural relationship: any num
 
 *Proof.* We wish to show that for every `N ∈ ℕ`, there exists a genuine strand state `Σ` in which some I-address has sharing multiplicity exceeding `N`. We first fix what *genuine strand state* means, then give two constructions — one for cross-document sharing, one for within-document sharing — each succeeding for arbitrary `N`.
 
-**Genuine strand state.** A state `Σ` is a genuine strand state when it satisfies every always-on requirement the model imposes on an isolated state. S0 and S1 are transition invariants (`Σ → Σ'`): they constrain transitions only and impose no condition on an isolated state, so a single witnessing state cannot violate them and they need not be checked. The always-on state-level requirements are: the functionality and integrity predicates S2 and S3; the content-side design requirements S7a (document-scoped allocation) and S7b (`zeros(a) = 3` for every `a ∈ dom(Σ.C)`); the document-side requirement S7d (every document tumbler has `zeros = 2`, distinct documents distinct); the domain-restriction axiom on `Σ.M(d)` (`zeros(v) = 0 ∧ #v ≥ 2`, equivalently S8a); the arrangement-side requirements S8-fin (finite arrangements), S8-depth (common depth per subspace), and the text-subspace contiguity constraints D-CTG and D-MIN.
+**Genuine strand state.** A state `Σ` is a genuine strand state when it satisfies the following always-on state-level requirements: the functionality and integrity predicates S2 and S3; the content-side requirements S7a (document-scoped allocation) and S7b (`zeros(a) = 3` for every `a ∈ dom(Σ.C)`); the document-side requirement S7d (every document tumbler has `zeros = 2`, distinct documents distinct); the domain-restriction axiom on `Σ.M(d)` (`zeros(v) = 0 ∧ #v ≥ 2`, equivalently S8a); and the arrangement-side requirements S8-fin (finite arrangements), S8-depth (common depth per subspace), and the text-subspace contiguity constraints D-CTG and D-MIN. The structural requirements S7*, S8-*, and D-* are stated in the later sections Structural attribution, Singleton span partition, and Arrangement contiguity; since none of their statements depends on S5, the forward references in the constructions below carry no circularity and may be discharged once those sections are reached.
 
 **Shared facts.** Both constructions use the same content store `C = {a ↦ w}` for the explicit element-level I-address `a = [1, 0, 1, 0, 1, 0, 1, 1]` and arbitrary `w ∈ Val`, and V-positions of the form `[1, k]` with `k ≥ 1`. The following hold identically in both. S7b (element-level I-addresses): `a` has exactly three zero components (positions 2, 4, 6), so `zeros(a) = 3`, and the content domain `{a}` contains only this address. S7a (document-scoped allocation): `a`'s document-level prefix is `origin(a) = 1.0.1.0.1`, and we stipulate `a` allocated under that document — the prefix names its allocating document, as S7a requires. S3 (referential integrity): the sole I-address referenced by any arrangement is `a`, which lies in the content domain by construction. Domain-restriction axiom: every active V-position `[1, k]` satisfies `zeros = 0` and `# = 2 ≥ 2` (equivalently S8a: both components positive, depth ≥ 2). S8-depth: every V-position is in subspace 1 at depth 2, so the common-depth condition holds. D-MIN: the V-position minimum is `[1, 1]`, the all-ones tumbler of depth 2. The content domain `{a}` is finite (the S8-fin obligation on `C`). The two constructions differ only in document/V-position multiplicity; we verify the remaining invariants (S2, S7d, D-CTG, S8-fin on arrangements) per construction.
 
@@ -247,8 +247,6 @@ The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(
 
 `(A v ∈ dom(Σ.M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
 
-We cite this per-component form as "S8a" where it is more convenient than the `zeros`-based form; the two are interchangeable by the equivalence above.
-
 **subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
 
 `subspace(v) = v₁`
@@ -268,7 +266,7 @@ Gregory's evidence supports it: V-addresses in the text subspace consistently us
 
 *Formal Contract:*
 - *Axiom (design requirement):* `(A d, u, w : u ∈ dom(Σ.M(d)) ∧ w ∈ dom(Σ.M(d)) ∧ subspace(u) = subspace(w) : #u = #w)`.
-- *Postconditions:* Within a subspace `s` of document `d`, there exists a common depth `m_s ≥ 2` (by S8a) such that every V-position with `v₁ = s` has length `m_s`. Distinct subspaces may have distinct depths.
+- *Postconditions:* Within a subspace `s` of document `d`, if `V_s(d) ≠ ∅` then there exists a common depth `m_s ≥ 2` (by S8a) such that every V-position with `v₁ = s` has length `m_s`. For empty `V_s(d)` no witness depth is asserted. Distinct subspaces may have distinct depths.
 - *Depends:* S8a — for the lower bound `m_s ≥ 2`.
 
 S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: a position `v` is followed by `shift(v, 1)` (equivalently `v ⊕ δ(1, #v)` per OrdinalShift, ASN-0034), the next ordinal at the same depth.
