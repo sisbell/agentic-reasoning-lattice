@@ -29,9 +29,11 @@ A conventional system merges these — "the file" IS the content IS the arrangem
 
 *Formal Contract:*
 - *Axiom:* `Σ.M(d) : T ⇀ T` — the arrangement of document `d` is a partial function from V-position tumblers to I-address tumblers.
-- *Axiom (domain restriction):* `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions; every active key is a zero-free tumbler of depth at least 2 (a subspace identifier followed by a within-subspace ordinal). This is definitional, not derived: it fixes what kind of tumbler may serve as a V-position.
+- *Axiom (domain restriction):* `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions; every active key is a zero-free tumbler of depth at least 2 (a subspace identifier followed by a within-subspace ordinal).
 - *Definition:* `dom(Σ.M(d)) = {v ∈ T : Σ.M(d)(v) is defined}` — the set of V-positions currently active in `d`.
 - *Definition:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` — the set of I-addresses that `d` currently references.
+
+We call this paired state the *strand*: the two-component object `(Σ.C, Σ.M)` — an immutable content store woven together with the family of mutable arrangements that reference it. The remainder of this ASN derives the invariants that govern a strand.
 
 ## The content store
 
@@ -241,7 +243,7 @@ The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(
 - *Postconditions:* `|dom(Σ.M(d))| < ∞` — the arrangement has finite cardinality. Consequently `ran(Σ.M(d))` is finite (image of a finite set under a function).
 - *Frame:* No constraint on the unbounded growth of `dom(C)`; only individual arrangements are required to be finite at any given state.
 
-**S8a (V-position componentwise positivity).** Over the ℕ-carrier (T0), the domain-restriction axiom's conjunct `zeros(v) = 0` is definitionally the statement that every component is strictly positive — `zeros(v)` (T4) counts the components equal to `0`, so `zeros(v) = 0 ⟺ (A i : 1 ≤ i ≤ #v : vᵢ > 0)`. S8a is a per-component alias for that conjunct, retained as a name for downstream citation:
+**S8a (V-position componentwise positivity).** Over the ℕ-carrier (T0), the domain-restriction axiom's conjunct `zeros(v) = 0` is definitionally the statement that every component is strictly positive — `zeros(v)` (T4) counts the components equal to `0`, so `zeros(v) = 0 ⟺ (A i : 1 ≤ i ≤ #v : vᵢ > 0)`. S8a names the per-component quantifier form, which is the shape the contiguity and partition arguments below (S8, D-CTG, D-SEQ) reason over directly:
 
 `(A v ∈ dom(Σ.M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
 
@@ -249,8 +251,8 @@ A V-position represents the element field of a full document-scoped address — 
 
 *Formal Contract:*
 - *Preconditions:* The domain-restriction axiom on `Σ.M(d)` — every `v ∈ dom(Σ.M(d))` satisfies `zeros(v) = 0 ∧ #v ≥ 2`; T0 — components are natural numbers.
-- *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — definitionally equivalent to the axiom's `zeros(v) = 0` over the ℕ-carrier. Together with the domain-restriction axiom, every `v ∈ dom(Σ.M(d))` satisfies the full well-formedness conjunction `zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
-- *Depends:* `Σ.M(d)` domain-restriction axiom — supplies `zeros(v) = 0` and `#v ≥ 2` for every active V-position; T0 (ASN-0034) — supplies the ℕ-valued component carrier, over which `zeros(v) = 0` and per-component positivity are the same statement.
+- *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))`. Together with the domain-restriction axiom, every `v ∈ dom(Σ.M(d))` satisfies `zeros(v) = 0 ∧ #v ≥ 2`.
+- *Depends:* `Σ.M(d)` domain-restriction axiom — supplies `zeros(v) = 0` and `#v ≥ 2` for every active V-position; T0 (ASN-0034) — supplies the ℕ-valued component carrier.
 
 **subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
 
@@ -538,7 +540,7 @@ The lifecycle above exercises the contiguity constraints at depth 2 on every wel
 | S7 | Structural attribution: `origin(a) = N(a).0.U(a).0.D(a)` — full document prefix | from S7a, S7b, S7d, S0, S4, T4, T4b, T3, T10a.4, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
 | Σ.M(d) domain restriction | `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions | axiom (definitional) |
-| S8a | V-position componentwise positivity: `(A v ∈ dom(M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — a per-component alias for the domain-restriction axiom's `zeros(v) = 0`, definitionally equivalent over the ℕ-carrier | alias of the domain-restriction axiom over T0 (ASN-0034) |
+| S8a | V-position componentwise positivity: `(A v ∈ dom(M(d)) :: (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — the per-component form of the domain-restriction axiom's `zeros(v) = 0` | from the domain-restriction axiom, T0 (ASN-0034) |
 | subspace(v) | V-position subspace identifier: `subspace(v) = v₁`; well-defined when `#v ≥ 1` | introduced; uses T0 (ASN-0034) |
 | S8-depth | Fixed-depth V-positions: `(A d, u, w : u ∈ dom(M(d)) ∧ w ∈ dom(M(d)) ∧ subspace(u) = subspace(w) : #u = #w)` | design; uses S8a |
 | S8 | Singleton span partition: the singleton intervals `[vⱼ, shift(vⱼ, 1))` partition the V-positions of `dom(M(d))` (a); labeling `vⱼ ↦ aⱼ = M(d)(vⱼ)` well-defined by S2, S3 (b), defining the labeled partition | theorem (a) from S2, S3, S8-fin, S8a, S8-depth, T1, T3, T5, T10, TumblerAdd, OrdinalShift, OrdinalDisplacement, TS4, NAT-discrete, NAT-closure, NAT-order (ASN-0034); (b) labeling by S2, S3 |
