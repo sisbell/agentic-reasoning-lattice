@@ -144,7 +144,7 @@ Gregory confirms the unbounded nature at the implementation level. The global in
 
 S4 and S5 together make quotation a first-class structural relationship: any number of documents can quote the same passage, and the system knows they are all quoting — not independently writing — because they share I-addresses.
 
-*Proof.* We wish to show that for every `N ∈ ℕ`, there exists a state `Σ` satisfying S0–S3 in which some I-address has sharing multiplicity exceeding `N`. We give two constructions — one for cross-document sharing, one for within-document sharing — each succeeding for arbitrary `N`. The claim is a non-entailment: it asks only for a model of S0–S3 with unbounded multiplicity, so we verify S0–S3 and nothing more. (That these witnesses also happen to satisfy the always-on invariants introduced later — S7*, S8-*, D-* — is immaterial to the claim and is not part of the argument.)
+*Proof.* We wish to show that for every `N ∈ ℕ`, there exists a state `Σ` satisfying S0–S3 in which some I-address has sharing multiplicity exceeding `N`. We give two constructions — one for cross-document sharing, one for within-document sharing — each succeeding for arbitrary `N`.
 
 **Shared facts.** Both constructions use the same content store `C = {a ↦ w}` for a single I-address `a` and arbitrary `w ∈ Val`, and V-positions of the form `[1, k]` with `k ≥ 1`. S0 (content immutability) and S1 (store monotonicity) are transition invariants; a single-state witness satisfies them vacuously under the identity transition `Σ → Σ`, which preserves `dom(C)` and every stored value. S3 (referential integrity) holds identically in both constructions: the sole I-address referenced by any arrangement is `a`, which lies in the content domain `dom(C) = {a}` by construction. The two constructions differ only in document/V-position multiplicity; we verify the remaining state-level invariant S2 (arrangement functionality) per construction.
 
@@ -352,7 +352,7 @@ Since u < w < x, subspace(w) = 1, #w = m = #u, and w satisfies S8a, D-CTG requir
 Therefore no two positions in V_1(d) can disagree at any component j with 2 ≤ j ≤ m − 1. All positions share components 2 through m − 1, and contiguity reduces to contiguity of the last component (component m) alone. ∎
 
 *Formal Contract:*
-- *Preconditions:* V_1(d) non-empty; common depth `m` (S8-depth); `m ≥ 3` (the lemma's non-triviality bound, additional to S8-depth — at `m = 2` the conclusion holds vacuously since the range of shared components 2 through `m − 1` is empty).
+- *Preconditions:* V_1(d) non-empty; common depth `m` (S8-depth); `m ≥ 3`.
 - *Postconditions:* `(A u, x ∈ V_1(d), j : 2 ≤ j ≤ m − 1 : uⱼ = xⱼ)`. Contiguity of V_1(d) reduces to contiguity of the m-th (last) component.
 - *Depends:* (*Local properties*) D-CTG (VContiguity) — any tumbler strictly between two positions in subspace 1 at depth `m` lies in `V_1(d)`; S8a — `m ≥ 2` and componentwise positivity of V-positions; S8-depth — common depth `#w = m`; S8-fin — finiteness of `V_1(d)`. (*Foundation claims, ASN-0034*) T0(a) (UnboundedComponentValues) — for any bound `M`, a natural-number witness `n > M`; T1 case (i) (TumblerOrdering) — first-divergence comparison; T3 (CanonicalRepresentation) — distinct component sequences yield distinct tumblers.
 
@@ -404,8 +404,6 @@ where the tuple has length m, the common V-position depth in the text subspace (
 D-CTG is a design constraint on well-formed document states. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_1(d) = ∅. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_1(d) non-empty).
 
 ## Valid insertion position
-
-We work with the arrangement M(d) and the contiguity constraint D-CTG from above, restricted to the text subspace `S = 1`, using `V_1(d)` as fixed at the abbreviation paragraph above.
 
 When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as v₀, v₁, ..., v_{N−1} where v₀ is the minimum (D-MIN) and v_{j+1} = shift(v_j, 1) for 0 ≤ j < N − 1 (D-SEQ).
 
