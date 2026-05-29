@@ -57,7 +57,7 @@ must hold in every reachable state. This constrains every operation to either le
 - *Postconditions:* (a) Domain persistence — `a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C)`. (b) Value preservation — `a ∈ dom(Σ.C) ⟹ Σ'.C(a) = Σ.C(a)`.
 - *Frame:* No condition on arrangements — the postcondition holds for arbitrary `Σ'.M(d)` and arbitrary changes to any document's arrangement.
 
-Read directionally, the frame is the two-stream separation: an arrangement-only transition (`Σ'.M(d) ≠ Σ.M(d)`) cannot alter `C`, since S0 holds unconditionally for every transition. Nelson emphasises this separation as "the architectural foundation of everything"; it carries no formal content beyond S0, so we do not give it a separate label.
+Read directionally, the frame is the two-stream separation: an arrangement-only transition (`Σ'.M(d) ≠ Σ.M(d)`) cannot alter `C`, since S0 holds unconditionally for every transition.
 
 **S1 (Store monotonicity).** `[dom(Σ.C) ⊆ dom(Σ'.C)]`
 
@@ -69,13 +69,13 @@ Gregory's evidence shows the reclamation machinery was built but deliberately de
 
 *Proof.* We wish to show that for every state transition `Σ → Σ'`, `dom(Σ.C) ⊆ dom(Σ'.C)`.
 
-Let `a ∈ dom(Σ.C)` be arbitrary. By S0 (content immutability), `a ∈ dom(Σ.C)` implies the conjunction `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The first conjunct yields `a ∈ dom(Σ'.C)` directly. Since `a` was chosen arbitrarily from `dom(Σ.C)`, we have established `(A a : a ∈ dom(Σ.C) : a ∈ dom(Σ'.C))`, which is `dom(Σ.C) ⊆ dom(Σ'.C)` by definition of subset inclusion.
-
-S1 is the domain conjunct of S0, and it specialises T8 (allocation permanence, ASN-0034) to the content store. T8 guarantees `allocated(s) ⊆ allocated(s')` for the address space as a whole; S1 guarantees `dom(Σ.C) ⊆ dom(Σ'.C)` for the content store specifically. The two properties have different scopes: T8 covers addresses that have been allocated but may carry no content, while S1 covers addresses at which content has actually been stored. ∎
+Let `a ∈ dom(Σ.C)` be arbitrary. By S0 (content immutability), `a ∈ dom(Σ.C)` implies the conjunction `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The first conjunct yields `a ∈ dom(Σ'.C)` directly. Since `a` was chosen arbitrarily from `dom(Σ.C)`, we have established `(A a : a ∈ dom(Σ.C) : a ∈ dom(Σ'.C))`, which is `dom(Σ.C) ⊆ dom(Σ'.C)` by definition of subset inclusion. ∎
 
 *Formal Contract:*
 - *Preconditions:* State transition `Σ → Σ'` in a system satisfying S0 (content immutability).
 - *Postconditions:* `dom(Σ.C) ⊆ dom(Σ'.C)`.
+
+*Remark.* S1 covers addresses at which content has actually been stored, a narrower scope than T8's allocation permanence, which covers any allocated address whether or not it carries content.
 
 
 ## The arrangement and referential integrity
@@ -138,8 +138,6 @@ Live content shares I-addresses. Dead copies create new ones. The difference is 
 
 GlobalUniqueness (ASN-0034) establishes the following invariant: for every pair of addresses `a, b` produced by distinct allocation events in any reachable system state, `a ≠ b`. The invariant's precondition requires only that `a₁` and `a₂` arise from distinct allocation events under T10a — it places no condition on the values `Σ.C(a₁)` and `Σ.C(a₂)`. Since `a₁` and `a₂` are produced by distinct allocation events by hypothesis, GlobalUniqueness yields `a₁ ≠ a₂` directly.
 
-The independence from content values deserves emphasis. GlobalUniqueness is a property of the tumbler addressing scheme: it derives from the structural interaction of T9 (forward allocation), T10 (partition independence), T10a (allocator discipline), and TA5 (hierarchical increment) — none of which reference the content store `C` or the value domain `Val`. The conclusion `a₁ ≠ a₂` is therefore invariant under any assignment of values to addresses. Whether `Σ.C(a₁) = Σ.C(a₂)` or `Σ.C(a₁) ≠ Σ.C(a₂)`, the addresses remain distinct.
-
 Finally, the distinctness `a₁ ≠ a₂` is decidable from the addresses alone by T3 (CanonicalRepresentation, ASN-0034): two tumblers are equal if and only if they have the same length and agree at every component. No value comparison is required — the structural test for shared identity is address equality, computable in time proportional to the shorter address. ∎
 
 *Formal Contract:*
@@ -173,7 +171,7 @@ We observe that the state `Σ = (C, M)` makes the sharing relation computable: g
 - `C_N = {a ↦ w}` for a single I-address `a` and arbitrary value `w ∈ Val`.
 - `N + 1` documents `d₁, …, d_{N+1}` with explicit witnesses `dᵢ = [1, 0, 1, 0, i]` for `i = 1, …, N + 1`. The `dᵢ` are pairwise distinct by T3 (CanonicalRepresentation, ASN-0034) since they have distinct last components — all S5 requires of them, since S0–S3 treat `d` only as an index into `M`. Fix a single V-position `v = [1, 1]` shared across all `N + 1` documents, and define each arrangement as `M_N(dᵢ) = {v ↦ a}`. The pairs `(dᵢ, v)` are pairwise distinct because the first coordinates `dᵢ` are pairwise distinct, which suffices for distinctness of pairs.
 
-We verify each invariant. S0 (content immutability) and S1 (store monotonicity) quantify over state transitions `Σ → Σ'`; we consider `Σ_N` as a single state with no transition, so both hold vacuously. S2 (arrangement functionality): each `M_N(dᵢ)` contains a single entry `{v ↦ a}` — the domain has one element, so uniqueness of the image is immediate; `M_N(dᵢ)` is a function. S3 (referential integrity): the sole I-address referenced by any arrangement is `a`, and `a ∈ dom(C_N)` by construction.
+We verify each invariant. A state `Σ` satisfies a transition invariant iff every transition incident to `Σ` does; we exhibit `Σ_N` as an isolated state with no incident transition, so the universal quantification is vacuous. S0 (content immutability) and S1 (store monotonicity) quantify over state transitions `Σ → Σ'` and therefore hold vacuously of `Σ_N`. S2 (arrangement functionality): each `M_N(dᵢ)` contains a single entry `{v ↦ a}` — the domain has one element, so uniqueness of the image is immediate; `M_N(dᵢ)` is a function. S3 (referential integrity): the sole I-address referenced by any arrangement is `a`, and `a ∈ dom(C_N)` by construction.
 
 The sharing multiplicity of `a` in `Σ_N` is `|{(d, v) : v ∈ dom(M_N(d)) ∧ M_N(d)(v) = a}| = N + 1`, since each of the `N + 1` documents contributes exactly one pair `(dᵢ, v)` (with the same fixed `v = [1, 1]` across all `i`). Thus the multiplicity exceeds `N`.
 
@@ -208,7 +206,7 @@ This is a design requirement: content resides at the element level — the fines
 *Formal Contract (S7b):*
 - *Axiom (design requirement):* `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
 - *Postconditions:* By T4's field correspondence, all four identifying fields — node, user, document, element — are present and the element field exists. The projections `N(a)`, `U(a)`, `D(a)`, `E(a)` supplied by T4b are all well-defined.
-- *Depends:* T4 (HierarchicalParsing, ASN-0034) — field correspondence; T4b (UniqueParse, ASN-0034) — projection definitions; T10a.4 (T4PreservationUnderDiscipline, ASN-0034) — supplies the surrounding T4-validity (no adjacent zeros, positive endpoint components `a₁ ≠ 0 ∧ a_{#a} ≠ 0`) on which T4b's projections in the postcondition rely, and supplies the bound `zeros ≤ 3` that S7b strengthens to the equality `zeros(a) = 3`.
+- *Depends:* T4 (HierarchicalParsing, ASN-0034) — field correspondence; T4b (UniqueParse, ASN-0034) — projection definitions; T10a.4 (T4PreservationUnderDiscipline, ASN-0034) — T4-validity (no adjacent zeros, `a₁ ≠ 0 ∧ a_{#a} ≠ 0`) and the bound `zeros(a) ≤ 3`.
 
 **S7a (Document-scoped allocation).** Every Istream address is allocated under the tumbler prefix of the document that created it. That is, for every `a ∈ dom(Σ.C)`, the document-level prefix of `a` — the tumbler `N(a).0.U(a).0.D(a)` obtained by truncating the element field, where `N(a)`, `U(a)`, `D(a)` are the partial projections supplied by T4b (UniqueParse, ASN-0034) — identifies the document whose owner performed the allocation that placed `a` into `dom(C)`.
 
