@@ -1,0 +1,20 @@
+# Review of ASN-0040
+
+## REVISE
+
+### Issue 1: B8 same-namespace — the step from comparability to `s₁' →* s₂` is skipped
+**ASN-0040, B8 proof, Case 1**: "By B-Seq, s₁ and s₂ are comparable under →*; since s₁ ≠ s₂ and a ≠ b is symmetric in the two acts, assume WLOG s₁' →* s₂."
+
+**Problem**: The WLOG bundles two distinct moves: (a) relabeling the acts so the earlier state is s₁ (legitimate by symmetry), and (b) advancing from `s₁ →* s₂` to `s₁' →* s₂`, where `s₁' = β₁(s₁)` is the *immediate successor*. Move (b) is asserted, not shown. B-Seq gives only total ordering of realized states by →*; it does not by itself license replacing s₁ with its successor s₁' in the relation to s₂. The actual argument needs B4: s₁' and s₂ are both realized, hence comparable, so `s₁' →* s₂` or `s₂ →* s₁'`; in the latter case `s₁ →* s₂ →* s₁'` together with B4 (s₁ → s₁' is a single edge with no interposed realized state) forces `s₂ ∈ {s₁, s₁'}`, and s₂ = s₁ is excluded, leaving s₂ = s₁' (so `s₁' →* s₂` reflexively). Either way `s₁' →* s₂` holds, but only after invoking B4. This is exactly the "X follows from Y" compression the rigor standard rejects — and it stands out because every other transition step in this ASN (and the B0★ induction immediately above it) spells out its reasoning.
+
+**Required**: Replace "assume WLOG s₁' →* s₂" with the explicit two-step argument: relabel by symmetry so `s₁ →* s₂` with `s₁ ≠ s₂`, then derive `s₁' →* s₂` from B-Seq comparability of s₁' and s₂ plus B4's no-interposition (ruling out `s₂ →* s₁'` except via s₂ = s₁'). The downstream chain (a ∈ s₁'.B ⊆ s₂.B, m₂ ≥ m₁+1, S0) is then sound as written.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Cross-replica ordering in a shared namespace outside B-Seq
+The same-namespace uniqueness clause of B8 is explicitly conditioned on a single baptismal authority, and the divergent-replica case is named in the Open Questions. This is correctly deferred — concurrency across replicas in a shared namespace is new territory, not a defect in B8.
+
+### Topic 2: Parent-baptized prerequisite (`allocated(s) ⊆ s.B`)
+Bop's PRE deliberately imposes no parent-baptized requirement, and the alignment of allocator-extension transitions with baptisms is listed as an open question dependent on the ownership model. Appropriately scoped out.
+
+VERDICT: REVISE
