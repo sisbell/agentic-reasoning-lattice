@@ -45,9 +45,7 @@ B0 is a single-step law. We extend it to finite transition sequences:
 
 *Proof.* By induction on the length k of the transition sequence witnessing s →* s'. *Base case (k = 0).* s' = s, so s.B ⊆ s'.B = s.B by reflexivity of ⊆. *Inductive step.* Suppose s →* sₖ is witnessed by a length-k sequence with s.B ⊆ sₖ.B (inductive hypothesis), and sₖ → sₖ₊₁ extends it to a length-(k+1) sequence s →* sₖ₊₁. By B0 applied to the single-step transition sₖ → sₖ₊₁, sₖ.B ⊆ sₖ₊₁.B. Transitivity of ⊆ gives s.B ⊆ sₖ.B ⊆ sₖ₊₁.B, so s.B ⊆ sₖ₊₁.B. By induction, s.B ⊆ s'.B for every s →* s'. ∎
 
-The registry-invariant proofs below — B1, B_fin, B10 — share an induction skeleton:
-
-**B0b (Transition Dichotomy — corollary of B0a).** Every transition `s → s'` has exactly one of two shapes: it is *s.B-frame*, with `s'.B = s.B`; or it is *baptismal*, induced by `baptize(p, d)` for some B6-valid (p, d), with `s'.B = s.B ∪ {next(s.B, p, d)}` — the addition of exactly one new element. This is immediate from B0a's partition of Σ. Consequently, to show that a registry invariant holds in every reachable state it suffices to (i) verify it at the seed B₀ and (ii) show it survives the single element next(s.B, p, d) added by a baptismal transition: the s.B-frame transitions preserve every such invariant trivially, since they leave s.B unchanged.
+**B0b (Transition Dichotomy — corollary of B0a).** Every transition `s → s'` has exactly one of two shapes: it is *s.B-frame*, with `s'.B = s.B`; or it is *baptismal*, induced by `baptize(p, d)` for some B6-valid (p, d), with `s'.B = s.B ∪ {next(s.B, p, d)}` — the addition of exactly one new element. This is immediate from B0a's partition of Σ.
 
 The binary character of this state is fundamental. Nelson's model has no third status between baptized and unbaptized: "the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A position is either conceptually assigned (in B) or not. Whether anything is *stored* at that position is a separate question, which we address below as the ghost validity property.
 
@@ -241,11 +239,7 @@ B1 yields a simplification: the entire allocation state of a namespace reduces t
 
 **hwm(B,p,d) (HighWaterMark).** hwm(B, p, d) = #children(B, p, d) — the *high water mark*.
 
-*Justification.* We must establish that the cardinality of children(B, p, d) is a sufficient statistic for the maximum baptized address in the namespace (p, d) — that is, knowing only #children(B, p, d) determines max(children(B, p, d)). Let m = #children(B, p, d).
-
-By B1 (Contiguous Prefix), children(B, p, d) = {c₁, ..., cₘ} — the first m elements of the sibling stream S(p, d) with no gaps. This contiguity is the load-bearing property: it means the set of children is determined entirely by its cardinality. Any set of m elements drawn from a contiguous prefix of a sequence is the prefix itself, so knowing m tells us children(B, p, d) = {c₁, ..., cₘ}.
-
-The count m therefore determines the entire children set: children(B, p, d) is a single-valued function of m. No scan is needed; the count alone is a sufficient statistic for the allocation state of the namespace. ∎
+*Justification.* Let m = #children(B, p, d). By B1 (Contiguous Prefix), children(B, p, d) = {c₁, ..., cₘ} — the first m elements of the sibling stream S(p, d) with no gaps. The count therefore determines the prefix: children(B, p, d) is a single-valued function of m, with max(children) = cₘ when m ≥ 1. ∎
 
 *Formal Contract:*
 - *Definition:* hwm(B, p, d) = #children(B, p, d) where children(B, p, d) = {cₙ ∈ S(p, d) : cₙ ∈ B}.
@@ -372,7 +366,7 @@ For the first child c₁ = inc(p, d): TA5a (IncrementPreservesT4, ASN-0034) stat
 
 For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states that inc(t, 0) satisfies T4 for any T4-valid t with no further constraint — sibling increment modifies only position sig(t), advancing a positive value by one (TA5(c)), so no zeros are added and no new adjacencies are introduced. Since c₁ satisfies T4, and each sibling increment preserves T4, by induction every cₙ satisfies T4.
 
-**(⟹) Necessity.** We show that violating condition (i), (ii), or (iii) produces a T4 violation in the stream, with one exception noted below: a pure trailing-zero parent at d = 1 yields a T4-valid stream, and condition (i) is retained there for the namespace-disjointness reason recorded in the S2 remark above.
+**(⟹) Necessity.** We show that violating condition (i), (ii), or (iii) produces a T4 violation in the stream, with one exception: the d = 1 trailing-zero case is the S2 exception.
 
 *Condition (ii) is necessary for T4.* Let d ≥ 3. By TA5(d), inc(p, d) appends d − 1 ≥ 2 zeros followed by 1. Positions #p + 1 and #p + 2 are both zero — adjacent zeros that parse as two consecutive field separators enclosing an empty field, violating T4's non-empty-field constraint. No choice of p avoids this: the adjacent zeros lie in the appended suffix, independent of p's content.
 
@@ -382,7 +376,7 @@ For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states th
 
 *(a) Count violation or defect in p's preserved prefix: zeros(p) > 3, or some T4 defect at positions 1 through #p − 1 of p, or p₁ = 0 (the leading-zero case, including the singleton p = [0] in which leading and trailing positions coincide).* By TA5(b), inc(p, d) preserves positions 1 through #p. For a positional defect (leading or interior), each defective position of p survives unchanged into c₁ at the same index. Each subsequent cₙ₊₁ = inc(cₙ, 0) modifies only position sig(cₙ) = #p + d > #p (since d ≥ 1), leaving positions 1 through #p untouched. By induction, every stream element carries the defect. For example, with p = [0, 1, 2] (leading zero, #p = 3): c₁ = inc([0, 1, 2], 1) = [0, 1, 2, 1], and (cₙ)₁ = 0 for all n ≥ 1, violating T4's t₁ ≠ 0 requirement. For the singleton p = [0] (in which p₁ = p_{#p} = 0): with d = 1, c₁ = inc([0], 1) = [0, 1] and each cₙ = [0, n] violates t₁ ≠ 0; with d = 2, c₁ = inc([0], 2) = [0, 0, 1] preserves (cₙ)₁ = 0 from p for every n (and additionally exhibits adjacent zeros at positions 1 and 2 within c₁). For a count violation (zeros(p) > 3, with no single position individually defective — e.g. p = [1, 0, 1, 0, 1, 0, 1, 0, 1], four non-adjacent interior zeros), the propagation is by zero count rather than by a fixed position: TA5(b) preserves all of p's positions into c₁, so c₁ carries every zero of p plus the d − 1 ≥ 0 separators TA5(d) inserts, giving zeros(c₁) = zeros(p) + (d − 1) ≥ zeros(p) > 3 (B5). Sibling increments add no zeros — by B5a, zeros(cₙ) = zeros(c₁) for every n ≥ 1, since sibling increment advances only the positive ordinal at sig(cₙ) — so every stream element has zeros(cₙ) > 3, violating T4's zeros(t) ≤ 3 clause throughout the stream.
 
-*(b) Pure trailing zero as the sole T4 defect: p_{#p} = 0, p₁ > 0, zeros(p) ≤ 3, no adjacent zeros in p (which forces #p ≥ 2, since p₁ > 0 = p_{#p} requires the leading and trailing positions to be distinct).* The load-bearing case for T4-necessity is d = 2; at d = 1 such a parent yields a T4-valid stream and is retained for the namespace-disjointness reason recorded in the S2 remark.
+*(b) Pure trailing zero as the sole T4 defect: p_{#p} = 0, p₁ > 0, zeros(p) ≤ 3, no adjacent zeros in p (which forces #p ≥ 2, since p₁ > 0 = p_{#p} requires the leading and trailing positions to be distinct).* The load-bearing case for T4-necessity is d = 2 (the d = 1 case is the S2 exception).
 
 When d = 2, every stream element violates T4 — by a propagation argument structurally distinct from sub-case (a). The defect does not preexist in p's interior; it arises within c₁ itself from the union of p's trailing zero and the separator TA5(d) inserts. By TA5(b), c₁ preserves positions 1 through #p of p, so (c₁)_{#p} = p_{#p} = 0. By TA5(d) with d = 2, c₁ has length #p + 2 and the intermediate position #p + 1 holds the field separator with value 0. Therefore (c₁)_{#p} = 0 and (c₁)_{#p+1} = 0 — adjacent zeros at positions #p and #p + 1 of c₁, violating T4's non-empty-field constraint (T4(ii) at i = #p). To propagate this to every cₙ, we show position #p + 1 is never modified by sibling increments. By S(p, 2), sig(cₙ) = #p + 2 for all n ≥ 1, and position #p + 1 satisfies #p + 1 < #p + 2 = sig(cₙ), so it is invariant across the stream (TA5(c) modifies only sig(cₙ)). Hence (cₙ)_{#p} = 0 and (cₙ)_{#p+1} = 0 for every n ≥ 1, and every stream element carries the same adjacent-zero violation as c₁.
 
@@ -390,7 +384,7 @@ Condition (i) is therefore necessary for T4 preservation: a count violation (zer
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1.
-- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: conditions (i), (ii), (iii) are jointly necessary for T4 preservation of the sibling stream — violating any single one forces a T4 violation, with one exception: a pure trailing-zero parent at d = 1 yields a T4-valid stream, and condition (i) is retained there for namespace disjointness (a design motivation, not a T4-necessity step; recorded in the S2 remark).
+- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: conditions (i), (ii), (iii) are jointly necessary for T4 preservation of the sibling stream — violating any single one forces a T4 violation, with one exception: the d = 1 trailing-zero case (the S2 exception).
 
 
 ## Namespace disjointness
@@ -491,7 +485,7 @@ At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 
 
   State: B₇ = B₆ ∪ {[1, 0, 5]}. hwm(B₇, [1], 2) = 5 = M.
 
-The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9 for the pair ((p, d), M) = (([1], 2), 5); for any target M' > 5, an additional M' − 5 baptisms in ([1], 2) extend B₇ to a registry with hwm = M' along the same pattern. (The general no-ceiling argument that licenses arbitrarily many such steps lives in B9's proof; the trace only instantiates it.) Crucially, contiguity is maintained at every step — children(B₄, [1], 2) = {c₁, c₂}, children(B₅, [1], 2) = {c₁, c₂, c₃}, children(B₆, [1], 2) = {c₁, ..., c₄}, and children(B₇, [1], 2) = {c₁, ..., c₅} — so the trace simultaneously witnesses B9 (unboundedness) and B1 (contiguity) under iteration.
+The target hwm = 5 is reached in exactly three baptisms from B₄, witnessing B9 for the pair ((p, d), M) = (([1], 2), 5); for any target M' > 5, an additional M' − 5 baptisms in ([1], 2) extend B₇ to a registry with hwm = M' along the same pattern. Crucially, contiguity is maintained at every step — children(B₄, [1], 2) = {c₁, c₂}, children(B₅, [1], 2) = {c₁, c₂, c₃}, children(B₆, [1], 2) = {c₁, ..., c₄}, and children(B₇, [1], 2) = {c₁, ..., c₅} — so the trace simultaneously witnesses B9 (unboundedness) and B1 (contiguity) under iteration.
 
 
 ## Global uniqueness
