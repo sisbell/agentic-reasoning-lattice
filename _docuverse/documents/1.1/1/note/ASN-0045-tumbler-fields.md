@@ -64,7 +64,7 @@ The quantifier ranges over the full carrier T; the antecedent T4-valid(t) restri
 | [7, 0] | trailing zero | T4-valid fails; each predicate's left conjunct is false |
 | [1, 0, 1, 0, 1, 0, 1, 0, 1] | zeros(t) = 4 > 3 violates the bound `zeros(t) ≤ 3` | T4-valid fails; each predicate's left conjunct is false |
 
-The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing: dropping it would force at-least-one to fail on every T4-invalid tumbler.
+The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing: dropping it would force at-least-one to fail on every T4-invalid tumbler. But the rows also expose a uniform consequence worth stating as a property rather than leaving to four examples. Each of the four predicates is a conjunction whose left conjunct is T4-valid(t); when ¬T4-valid(t), conjunction elimination falsifies all four at once, independently of zeros(t). This is the complement of Partition over the carrier — off the valid subdomain no predicate holds — and we record it as Off-Domain Vacuity below. Together with Partition it gives the full picture over T: exactly one predicate holds where T4-valid(t), and exactly zero where ¬T4-valid(t).
 
 ## Properties Introduced
 
@@ -72,8 +72,10 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 
 - *Preconditions.* None (predicate is total on T).
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0 (carrier ℕ; the constant 0 ∈ ℕ), T4 (T4-valid). T4c justifies the *node* level label only; it does no work in this biconditional and is not a proof dependency.
-- *Postcondition.* `(A t : T :: Node(t) ⟺ T4-valid(t) ∧ zeros(t) = 0)`.
+- *Depends.* T0 (carrier ℕ; the constant 0 ∈ ℕ), T4 (T4-valid) for the base biconditional. The level-correspondence postcondition alone depends additionally on T4c (LevelDetermination), T4b (UniqueParse), and T3 (CanonicalRepresentation): T4c supplies the *node address* ⟺ `zeros(t) = 0` bijection, and T4b and T3 discharge T4c's applicability at t — T4-valid(t) supplies the T4 positional constraints, and T3 together with those constraints supplies T4b at t, licensing T4c's bijection postcondition.
+- *Postconditions.*
+  - `(A t : T :: Node(t) ⟺ T4-valid(t) ∧ zeros(t) = 0)`.
+  - *Level correspondence:* `(A t : T : T4-valid(t) :: Node(t) ⟺ t is a node address per T4c)` — derived: fix t : T with T4-valid(t); the definition `Node(t) ≡ T4-valid(t) ∧ zeros(t) = 0` collapses under the T4-valid antecedent to `Node(t) ⟺ zeros(t) = 0`. T4c's preconditions (the T4 positional constraints together with T4b) are discharged at t by T4-valid(t) (supplying the T4 constraints) and T3 (CanonicalRepresentation, universal, supplying T4b at t), so T4c's bijection postcondition instantiated at t supplies `zeros(t) = 0 ⟺ t is a node address`; chaining the two biconditionals yields `Node(t) ⟺ t is a node address`.
 
 **Account** (`Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1`)
 
@@ -88,29 +90,41 @@ The counter-examples show why Partition's antecedent T4-valid(t) is load-bearing
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4 (T4-valid), NAT-closure (successor and addition closure ground the numeral `2 := 1 + 1`). T4c justifies the *document* level label only; it does no work in this biconditional and is not a proof dependency.
-- *Postcondition.* `(A t : T :: Document(t) ⟺ T4-valid(t) ∧ zeros(t) = 2)`.
+- *Depends.* T0, T4 (T4-valid), NAT-closure (successor and addition closure ground the numeral `2 := 1 + 1`) for the base biconditional. The level-correspondence postcondition alone depends additionally on T4c (LevelDetermination), T4b (UniqueParse), and T3 (CanonicalRepresentation): T4c supplies the *document address* ⟺ `zeros(t) = 2` bijection, and T4b and T3 discharge T4c's applicability at t — T4-valid(t) supplies the T4 positional constraints, and T3 together with those constraints supplies T4b at t, licensing T4c's bijection postcondition.
+- *Postconditions.*
+  - `(A t : T :: Document(t) ⟺ T4-valid(t) ∧ zeros(t) = 2)`.
+  - *Level correspondence:* `(A t : T : T4-valid(t) :: Document(t) ⟺ t is a document address per T4c)` — derived: fix t : T with T4-valid(t); the definition `Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2` collapses under the T4-valid antecedent to `Document(t) ⟺ zeros(t) = 2`. T4c's preconditions (the T4 positional constraints together with T4b) are discharged at t by T4-valid(t) (supplying the T4 constraints) and T3 (CanonicalRepresentation, universal, supplying T4b at t), so T4c's bijection postcondition instantiated at t supplies `zeros(t) = 2 ⟺ t is a document address`; chaining the two biconditionals yields `Document(t) ⟺ t is a document address`.
 
 **Element** (`Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3`)
 
 - *Preconditions.* None.
 - *Definition.* The two-place conjunction above.
-- *Depends.* T0, T4 (T4-valid), NAT-closure (successor and addition closure ground the numeral `3 := 2 + 1`). T4c justifies the *element* level label only; it does no work in this biconditional and is not a proof dependency.
-- *Postcondition.* `(A t : T :: Element(t) ⟺ T4-valid(t) ∧ zeros(t) = 3)`.
+- *Depends.* T0, T4 (T4-valid), NAT-closure (successor and addition closure ground the numeral `3 := 2 + 1`) for the base biconditional. The level-correspondence postcondition alone depends additionally on T4c (LevelDetermination), T4b (UniqueParse), and T3 (CanonicalRepresentation): T4c supplies the *element address* ⟺ `zeros(t) = 3` bijection, and T4b and T3 discharge T4c's applicability at t — T4-valid(t) supplies the T4 positional constraints, and T3 together with those constraints supplies T4b at t, licensing T4c's bijection postcondition.
+- *Postconditions.*
+  - `(A t : T :: Element(t) ⟺ T4-valid(t) ∧ zeros(t) = 3)`.
+  - *Level correspondence:* `(A t : T : T4-valid(t) :: Element(t) ⟺ t is an element address per T4c)` — derived: fix t : T with T4-valid(t); the definition `Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3` collapses under the T4-valid antecedent to `Element(t) ⟺ zeros(t) = 3`. T4c's preconditions (the T4 positional constraints together with T4b) are discharged at t by T4-valid(t) (supplying the T4 constraints) and T3 (CanonicalRepresentation, universal, supplying T4b at t), so T4c's bijection postcondition instantiated at t supplies `zeros(t) = 3 ⟺ t is an element address`; chaining the two biconditionals yields `Element(t) ⟺ t is an element address`.
 
 **Partition**
 
 - *Preconditions.* None.
 - *Definition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))`, where `exactly-one-of(P₁, P₂, P₃, P₄) ≡ (P₁ ∨ P₂ ∨ P₃ ∨ P₄) ∧ (A i, j : 1 ≤ i < j ≤ 4 :: ¬(Pᵢ ∧ Pⱼ))`.
-- *Depends.* Node, Account, Document, Element (definitions above), T4 (axiom `zeros(t) ≤ 3` supplies the upper bound for at-least-one; zeros(t) is the cardinality of a fixed finite index set, hence a single-valued function of t, for at-most-one), T0 (carrier ℕ supplies `zeros(t) ≥ 0` for at-least-one, and the pairwise distinctness of 0, 1, 2, 3 in ℕ for at-most-one), NAT-discrete, NAT-order, NAT-addcompat (jointly enumerate the bounded segment `0 ≤ n ≤ 3 ∧ n ∈ ℕ ⟹ n ∈ {0, 1, 2, 3}` for at-least-one: NAT-order's trichotomy supplies each case split against a numeral boundary, NAT-discrete pins the value once bracketed between consecutive numerals, and NAT-addcompat's `k < k + 1` makes the numerals 0 < 1 < 2 < 3 consecutive), NAT-closure (grounds the numerals 1, 2, 3 in the enumeration), T4c (level naming zeros(t) → level, attaching the four level names once `zeros(t) ∈ {0, 1, 2, 3}` is established).
-- *Postcondition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` — derived by confining the range to `zeros(t) ∈ {0, 1, 2, 3}` via T4's bound `zeros(t) ≤ 3` and T0's `zeros(t) ≥ 0` for the at-least-one direction, and combining the functionality of zeros(t) (T4) with the pairwise distinctness of 0, 1, 2, 3 in ℕ (T0) for the at-most-one direction, per the *Well-Definedness* derivation above. T4c supplies the level names.
+- *Depends.* Node, Account, Document, Element (definitions above), T4 (axiom `zeros(t) ≤ 3` supplies the upper bound for at-least-one; zeros(t) is the cardinality of a fixed finite index set, hence a single-valued function of t, for at-most-one), T0 (carrier ℕ supplies `zeros(t) ≥ 0` for at-least-one, and the pairwise distinctness of 0, 1, 2, 3 in ℕ for at-most-one), NAT-discrete, NAT-order, NAT-addcompat (jointly enumerate the bounded segment `0 ≤ n ≤ 3 ∧ n ∈ ℕ ⟹ n ∈ {0, 1, 2, 3}` for at-least-one: NAT-order's trichotomy supplies each case split against a numeral boundary, NAT-discrete pins the value once bracketed between consecutive numerals, and NAT-addcompat's `k < k + 1` makes the numerals 0 < 1 < 2 < 3 consecutive), NAT-closure (grounds the numerals 1, 2, 3 in the enumeration). T4c is **not** a premise of this exactly-one-of derivation: the postcondition asserts a relation among the four predicates, each defined as `zeros(t) = k`, so the derivation compares zero-counts and never routes through the level names. T4c contributes nomenclature only — the level names node/account/document/element for reporting — and the per-predicate level-correspondence postconditions discharge its applicability separately.
+- *Postcondition.* `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` — derived by confining the range to `zeros(t) ∈ {0, 1, 2, 3}` via T4's bound `zeros(t) ≤ 3` and T0's `zeros(t) ≥ 0` for the at-least-one direction, and combining the functionality of zeros(t) (T4) with the pairwise distinctness of 0, 1, 2, 3 in ℕ (T0) for the at-most-one direction, per the *Well-Definedness* derivation above. T4c plays no part in this derivation; the level names it supplies are nomenclature only.
+
+**Off-Domain Vacuity**
+
+- *Preconditions.* None.
+- *Definition.* `(A t : T : ¬T4-valid(t) :: ¬Node(t) ∧ ¬Account(t) ∧ ¬Document(t) ∧ ¬Element(t))`.
+- *Depends.* Node, Account, Document, Element (definitions above) — each predicate is a conjunction whose left conjunct is T4-valid(t); T4 (the source of T4-valid).
+- *Postcondition.* `(A t : T : ¬T4-valid(t) :: ¬Node(t) ∧ ¬Account(t) ∧ ¬Document(t) ∧ ¬Element(t))` — derived: fix t : T with ¬T4-valid(t). Each of the four predicates is `T4-valid(t) ∧ zeros(t) = k`; with the left conjunct false, conjunction elimination falsifies each conjunction regardless of zeros(t), so all four predicates are false at t. This is the off-domain complement of Partition: combined, `exactly-one-of` holds on the T4-valid subdomain and `exactly-zero` holds off it, so over the full carrier T every tumbler satisfies at most one of the four predicates.
 
 ## Summary
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| Node | `Node(t) ≡ T4-valid(t) ∧ zeros(t) = 0` | definition coined by ASN-0045 (T4, T0); T4c supplies the *node* level name only |
-| Account | `Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1` | definition coined by ASN-0045 (T4, T0); T4c supplies the *account* level name only. Rename equivalence on T4-valid t is derived from T4c: equivalent to T4c's *user address* |
-| Document | `Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2` | definition coined by ASN-0045 (T4, T0); T4c supplies the *document* level name only |
-| Element | `Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3` | definition coined by ASN-0045 (T4, T0); T4c supplies the *element* level name only |
-| Partition | `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` | derived from T4 bound `zeros(t) ≤ 3` + T0 `zeros(t) ≥ 0` (at-least-one) and functionality of zeros (T4) + distinctness of 0,1,2,3 in ℕ (T0) (at-most-one); T4c supplies level names |
+| Node | `Node(t) ≡ T4-valid(t) ∧ zeros(t) = 0` | definition coined by ASN-0045 (T4, T0); level correspondence on T4-valid t derived from T4c (via T4b, T3): equivalent to T4c's *node address* |
+| Account | `Account(t) ≡ T4-valid(t) ∧ zeros(t) = 1` | definition coined by ASN-0045 (T4, T0); rename/level correspondence on T4-valid t derived from T4c (via T4b, T3): equivalent to T4c's *user address* |
+| Document | `Document(t) ≡ T4-valid(t) ∧ zeros(t) = 2` | definition coined by ASN-0045 (T4, T0); level correspondence on T4-valid t derived from T4c (via T4b, T3): equivalent to T4c's *document address* |
+| Element | `Element(t) ≡ T4-valid(t) ∧ zeros(t) = 3` | definition coined by ASN-0045 (T4, T0); level correspondence on T4-valid t derived from T4c (via T4b, T3): equivalent to T4c's *element address* |
+| Partition | `(A t : T : T4-valid(t) :: exactly-one-of(Node(t), Account(t), Document(t), Element(t)))` | derived from T4 bound `zeros(t) ≤ 3` + T0 `zeros(t) ≥ 0` (at-least-one) and functionality of zeros (T4) + distinctness of 0,1,2,3 in ℕ (T0) (at-most-one); T4c not a premise — nomenclature only |
+| Off-Domain Vacuity | `(A t : T : ¬T4-valid(t) :: ¬Node(t) ∧ ¬Account(t) ∧ ¬Document(t) ∧ ¬Element(t))` | derived from the shared left conjunct T4-valid(t) by conjunction elimination; complement of Partition over T |
