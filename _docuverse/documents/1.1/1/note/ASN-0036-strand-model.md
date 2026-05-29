@@ -274,7 +274,7 @@ S7's uniqueness argument additionally requires that document tumblers themselves
 
 **S7d (Document allocation discipline).** Every document is addressed by a document-level tumbler (`zeros = 2`) allocated via T10a's allocator discipline (ASN-0034) under the owning user's prefix. Distinct documents arise from distinct allocation events.
 
-This is a design requirement parallel to S7a. Nelson's baptism principle covers it directly: the user-level allocator baptises documents under the user's prefix in the same way each document's allocator baptises elements under the document's prefix. Where S7a governs how I-addresses sit beneath their owning document's prefix, S7d governs how the document tumblers themselves are produced.
+This is a design requirement parallel to S7a. Nelson's baptism principle covers it directly: the user-level allocator baptises documents under the user's prefix in the same way each document's allocator baptises elements under the document's prefix.
 
 *Formal Contract (S7d):*
 - *Axiom (design requirement):* Every document tumbler `d` satisfies `zeros(d) = 2` and is the result of an allocation event under T10a; distinct documents arise from distinct allocation events.
@@ -394,19 +394,11 @@ Each run represents a contiguous block of content that entered the arrangement a
 
 **Existence.** By S8-fin, `dom(M(d))` is finite. By S2 (ArrangementFunctionality), `M(d)` is a function, so each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`. By S3 (referential integrity), `a ∈ dom(Σ.C)`. For each such `v`, form the singleton run `(v, a, 1)`. Conjunct (b) requires `M(d)(shift(v, k)) = shift(a, k)` for all `k` with `0 ≤ k < 1` — the only such `k` is `0`, where `shift(v, 0) = v` and `shift(a, 0) = a` by convention, so the identity reduces to `M(d)(v) = a`, which holds by construction. Since `dom(M(d))` is finite, the collection of singletons is finite.
 
-**Corollary (subspace and field-structure preservation across a correspondence run).** For any correspondence run `(vⱼ, aⱼ, nⱼ)` satisfying S8's conjunct (b), every image `shift(aⱼ, k)` with `0 ≤ k < nⱼ` preserves the structural properties of `aⱼ` established by ShiftPreservation (conclusions (i)–(iv) above).
-
-*Proof.* By S3 (referential integrity) applied to `vⱼ ∈ dom(M(d))`, the image `aⱼ = M(d)(vⱼ) ∈ dom(Σ.C)`, so ShiftPreservation applies to `aⱼ`. At `k = 0`, `shift(aⱼ, 0) = aⱼ` by convention. For each `k ≥ 1`, ShiftPreservation applied pointwise to `aⱼ` and `k` yields its conclusions; since they are independent of `k`, they hold across the whole run `0 ≤ k < nⱼ`. ∎
-
 *Non-canonicality.* This is the *trivial decomposition*: every arrangement admits it, since singletons satisfy (a) and (b) by construction. S8 asserts existence of *some* finite decomposition, not minimum cardinality — coarser decompositions exist whenever consecutive `(vⱼ, aⱼ)` pairs admit the index-arithmetic identity `M(d)(shift(v, k)) = shift(a, k)` for `k > 0`, but their occurrence and preservation are determined by operations-layer behavior (whether allocations are consecutive, whether operations coalesce adjacent runs). The architectural discussion of `#runs(d)` below addresses typical operational regimes; the invariant itself does not commit to a canonical run count.
 
 **Coverage.** Each `v ∈ dom(M(d))` lies in its own singleton's interval: `v ≤ v < shift(v, 1)`, where the right inequality holds because `shift(v, 1) > v` by TS4 (ShiftStrictIncrease, ASN-0034). So every V-position falls in at least one run.
 
 **Uniqueness within a subspace.** Let `v, w ∈ dom(M(d))` be distinct V-positions with `v₁ = w₁ = S`. By S8-depth, `#v = #w = m` for some common depth `m`. We show `w ∉ [v, shift(v, 1))` via a clean lemma that abstracts away from the specific pair `(v, w)`.
-
-*Setup for the lemma.* By S8a, `zeros(v) = 0`, so every component of `v` is nonzero. By definition, `shift(v, 1) = v ⊕ δ(1, m)`, where `δ(1, m)` is the unit displacement of depth `m` with action point at position `m` (OrdinalShift, ASN-0034). By TumblerAdd's length postcondition, `#shift(v, 1) = m`. By TumblerAdd's three-region component formula, components before the action point are copied from `v`: `shift(v, 1)ᵢ = vᵢ` for all `i < m`; at the action point, `shift(v, 1)_m = v_m + 1` (NAT addition on the last component, with `v_m + 1 ∈ ℕ` by NAT-closure; no carry, since tumbler addition is component-wise and the addition at position `m` does not propagate to other positions of the result).
-
-By S8a, every V-position has depth `#v ≥ 2`, so `m ≥ 2`.
 
 **Within-subspace incompatibility lemma.** Let `v` be as above (a V-position with `v₁ = S`, `#v = m ≥ 2`, satisfying S8a). For any tumbler `t` with `t₁ = S`, `#t = m`, and `t ≠ v`: `t ∉ [v, shift(v, 1))`.
 
@@ -417,9 +409,6 @@ By S8a, every V-position has depth `#v ≥ 2`, so `m ≥ 2`.
 *Case j = m.* Then `tᵢ = vᵢ` for `i < m`. Since `shift(v, 1)ᵢ = vᵢ` for `i < m` by TumblerAdd's prefix rule (the action point of `δ(1, m)` is `m`, so all components at positions `i < m` are copied from `v` unchanged), we get `tᵢ = shift(v, 1)ᵢ` for `i < m`, so the first divergence between `t` and `shift(v, 1)` is at position `m`. Since `tᵢ = vᵢ` for `i < m` and `t ≠ v` (with `#t = #v = m`), the divergence at `j = m` between `t` and `v` is also real: `t_m ≠ v_m`. Combined with `v ≤ t`, this gives `v < t`, and T1(i) applied to `v < t` with first divergence at `m` yields strict `t_m > v_m`; NAT-discrete (ASN-0034) at `(m, n) := (v_m, t_m)` promotes the strict inequality `v_m < t_m` to `v_m + 1 ≤ t_m`, i.e., `t_m ≥ v_m + 1`. From `t < shift(v, 1)` with first divergence at `m`: T1(i) gives `t_m < shift(v, 1)_m`, and the setup identity `shift(v, 1)_m = v_m + 1` (TumblerAdd at the action point; `v_m + 1 ∈ ℕ` by NAT-closure, ASN-0034) rewrites this to `t_m < v_m + 1`. But `t_m ≥ v_m + 1` and `t_m < v_m + 1` are incompatible by NAT-order's exactly-one trichotomy (ASN-0034), instantiated at `(t_m, v_m + 1)` — the clause `¬(a < b ∧ b ≤ a)` excludes the conjunction of the two inequalities. Contradiction. ∎ *(lemma)*
 
 *Application to w.* The hypotheses `w₁ = v₁ = S`, `#w = m` (S8-depth), and `w ≠ v` are exactly the lemma's antecedents, so `w ∉ [v, shift(v, 1))`. Since all V-positions in subspace `S` share depth `m` (S8-depth) and the lemma applies to every such position distinct from `v`, no distinct V-position in the same subspace falls in `v`'s singleton interval.
-
-*Remark.* S8-depth is essential. Without it, `dom(M(d))` could contain `s.3` (depth 2) and `s.3.1` (depth 3). By T1(ii), `s.3 < s.3.1` (prefix extension), and by T1(i) at position 2, `s.3.1 < s.4`. The position `s.3.1` would fall in the singleton interval of both `s.3` and `s.3.1` — violating unique partition.
-
 **Uniqueness across subspaces.** Let `v ∈ dom(M(d))` with `v₁ = S₁` and `w ∈ dom(M(d))` with `w₁ = S₂`, where `S₁ ≠ S₂`. By S8a, `v` and `w` extend the single-component prefixes `[S₁]` and `[S₂]` respectively, and both have depth `≥ 2`. These prefixes are non-nesting: `[S₁] ≼ [S₂]` would require `S₁ = S₂` (both length-1 tumblers, so equality requires componentwise agreement by T3), contradicting `S₁ ≠ S₂`; symmetrically `[S₂] ⋠ [S₁]`.
 
 For `m ≥ 2` (the only case under S8a), the successor `shift(v, 1)` also extends `[S₁]`: by OrdinalShift (ASN-0034), `shift(v, 1) = v ⊕ δ(1, m)`, and since `δ(1, m)` has action point `m`, TumblerAdd's prefix rule (ASN-0034) copies every component at positions `i < m` from `v` unchanged. Since `m ≥ 2`, this includes position 1, giving `shift(v, 1)₁ = v₁ = S₁`.
@@ -578,7 +567,7 @@ In words: within the text subspace, V-positions form a contiguous ordinal range 
 - *Axiom (design requirement):* `(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ u < v < q : v ∈ V_1(d)))`.
 - *Preconditions:* `subspace(v) = 1`; V-positions share a common depth (S8-depth).
 - *Postconditions:* V_1(d) is either empty or occupies every position strictly between its extremes (at the fixed depth).
-- *Frame:* D-CTG is a constraint on well-formed text-subspace arrangements; preservation across editing operations is each operation's verification obligation.
+- *Frame:* D-CTG is a constraint on well-formed text-subspace arrangements.
 - *Depends:* S8a (V-position well-formedness); S8-depth (common depth within subspace); T1 (TumblerOrdering, ASN-0034) — defines the order.
 
 For the text subspace at depth m = 2, this is a finite condition: the intermediates between [1, a] and [1, b] are the finitely many [1, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_1(d) occupies a single unbroken block of ordinals.
@@ -658,8 +647,6 @@ where the tuple has length m, the common V-position depth in the text subspace (
 
 D-CTG is a design constraint on well-formed document states. It constrains which arrangement modifications constitute well-formed editing operations. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_1(d) = ∅. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_1(d) non-empty). Observe that not all arrangement modifications preserve D-CTG: removing a single interior V-position from dom(M(d)) leaves the positions on either side no longer contiguous. D-CTG is therefore preserved only by those modifications that constitute well-formed editing operations — operations that restore contiguity after structural changes (e.g., by shifting subsequent positions).
 
-Whether DELETE, INSERT, COPY, and REARRANGE preserve D-CTG is a verification obligation for each operation's ASN.
-
 ### Concrete example
 
 Consider document d at depth 2 in the text subspace (S = 1), with arrangement:
@@ -706,15 +693,7 @@ The lower bound `m ≥ 2` is necessary: at `m = 1`, `v = [1]` and `shift([1], 1)
 
 In both predicates, `v₁ = 1` is the text subspace identifier.
 
-We verify the structural claims, which apply to both predicates. By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fixed common depth in the non-empty case, or the chosen depth in the empty case). By OrdinalShift and TumblerAdd, `shift([1, 1, ..., 1], j) = [1, 1, ..., 1] ⊕ δ(j, m)`; since `δ(j, m)` has action point `m` and `m ≥ 2`, TumblerAdd copies components 1 through `m − 1` unchanged and sets the last component to `1 + j`. The explicit form for the non-empty case is `shift(min(V_1(d)), j) = [1, 1, ..., 1 + j]`.
-
-*Distinctness.* In the non-empty case, the `N + 1` positions have last components `1` (for `j = 0`, where `v = min(V_1(d))`), `2`, `3`, ..., `N + 1` (for `j = 1, ..., N`). These are pairwise distinct natural numbers, so by T3 (CanonicalRepresentation, ASN-0034) the `N + 1` tumblers are pairwise distinct.
-
-*Depth preservation.* For `j ≥ 1` in the non-empty case, `#shift(v, j) = #v = m` by the result-length identity of OrdinalShift (ASN-0034). For `j = 0`, `#v = #min(V_1(d)) = m` by D-MIN. In the empty case, `#v = m` by construction. All valid positions have the common V-position depth required by S8-depth.
-
-*Subspace identity.* Since `δ(j, m)` has action point `m ≥ 2`, TumblerAdd copies component 1 unchanged: `shift(min, j)₁ = min₁ = 1` for all `j ≥ 1`. For `j = 0` in the non-empty case and for the empty case, `v₁ = 1` directly by construction.
-
-*S8a consistency.* Every valid position `[1, 1, ..., 1 + j]` (in the non-empty case) and `[1, 1, ..., 1]` (in the empty case) has all components strictly positive (subspace identifier is 1, intermediate components are 1, last component is `1 + j ≥ 1`), so `zeros(v) = 0` and `(A i : 1 ≤ i ≤ #v : vᵢ > 0)` — satisfying S8a.
+By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m` (where `m` is the state-fixed common depth in the non-empty case, or the chosen depth in the empty case). By OrdinalShift and TumblerAdd, `shift([1, 1, ..., 1], j) = [1, 1, ..., 1] ⊕ δ(j, m)`; since `δ(j, m)` has action point `m` and `m ≥ 2`, TumblerAdd copies components 1 through `m − 1` unchanged and sets the last component to `1 + j`. The explicit form for the non-empty case is `shift(min(V_1(d)), j) = [1, 1, ..., 1 + j]`. The structural postconditions of both predicates — distinctness of the valid positions, depth preservation, subspace identity, and S8a consistency — follow from this explicit form and are stated in the contracts below.
 
 *Formal Contract (ValidInsertionPosition, non-empty case).*
 - *Signature:* `ValidInsertionPosition(d, v)` — a *binary* predicate on document `d` and V-position `v`. The common V-position depth `m` is determined by `d` via S8-depth and read from state.
