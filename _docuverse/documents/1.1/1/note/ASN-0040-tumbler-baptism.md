@@ -72,7 +72,7 @@ Consider a parent address p ∈ T and a baptismal depth d ≥ 1. From TA5, `inc(
 
 **S0 (StreamOrdering).** `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
 
-The sibling stream S(p, d) — base c₁ = inc(p, d) with d ∈ {1, 2}, then cₙ₊₁ = inc(cₙ, 0) — has exactly the shape of a T10a child allocator domain: child-spawning by inc(·, k') with k' ∈ {1, 2}, followed by sibling production by inc(·, 0). S0's claim (strictly increasing under T1) is therefore an instance of T10a.7 (EnumerationInjectivity, ASN-0034), which establishes precisely this monotonicity from the same premises. We do not, however, *invoke* T10a.7 as a foundation citation, because identifying S(p, d) with an allocator domain presupposes the alignment of the baptismal registry with allocator discipline — the unresolved `allocated(s) ⊆ s.B` question (Open Questions). Pending that resolution, S(p, d) is treated as a baptism-layer construct and the ordering is re-derived here from the underlying TA5(a) per-step increase; the reasoning is verbatim T10a.7's and the overlap is deliberate, not an oversight.
+S0 mirrors T10a.7 (EnumerationInjectivity); it is re-derived here from TA5(a) pending the `allocated(s) ⊆ s.B` alignment (Open Questions).
 
 *Proof.* For each n ≥ 1, cₙ₊₁ = inc(cₙ, 0), and TA5(a) gives inc(cₙ, 0) > cₙ, so cₙ < cₙ₊₁. To extend this to arbitrary indices i < j, fix i and induct on j. *Base case (j = i + 1):* cᵢ < cᵢ₊₁ is the per-step increase just established. *Inductive step:* assume cᵢ < cⱼ; the per-step increase gives cⱼ < cⱼ₊₁, and T1's transitivity (c) gives cᵢ < cⱼ₊₁. By induction, cᵢ < cⱼ for every j > i. The base c₁ = inc(p, d) ∈ T (TA5(d)) and each cₙ ∈ T (TA5(c)) supply the well-formed operands these comparisons require. ∎
 
@@ -166,8 +166,6 @@ For subsequent siblings cₙ₊₁ = inc(cₙ, 0): TA5a's `k = 0` case states th
 
 *Condition (iii) is necessary at d = 2.* Let zeros(p) + (d − 1) > 3 with p satisfying T4. By B5, zeros(c₁) = zeros(p) + (d − 1) > 3. But T4 requires zeros(t) ≤ 3 for any valid address — at most three field separators for the four-level hierarchy. The first child already exceeds the zero budget, so c₁ violates T4. ∎
 
-Condition (i) does more than supply a T4-valid parent: beyond its role in stream T4-preservation it also disambiguates parent-depth pairs, which is what makes namespace disjointness (B7) well-posed. We exhibit the aliasing it rules out at B7.
-
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1.
 - *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity, given a T4-valid parent (i): violating (ii) or (iii) forces a stream T4 violation.
@@ -194,8 +192,6 @@ provided both `(p, d)` and `(p', d')` satisfy B6.
 Every case yields a contradiction, so S(p, d) ∩ S(p', d') = ∅. ∎
 
 B6(i)'s role is visible in the unequal-length case: it is the T4-validity of p' (hence p'_{#p'} ≠ 0, via TA5-SigValid) that forces a_{#p+1} > 0 and closes the contradiction. Without it, a pure-trailing-zero parent and its truncation at the next depth would alias to the identical stream — e.g. ([1, 0], 1) and ([1], 2) both produce {[1, 0, n] : n ≥ 1} — so distinct pairs (p, d) ≠ (p', d') could share a stream and B7 would be false. Requiring (i) admits exactly one of each such pair, making the disjointness statement well-posed.
-
-This disjointness is related to T10a.5 (CrossAllocatorIncomparability) and T10a.6 (DomainDisjointness, ASN-0034), which establish disjoint domains for distinct allocators within one conforming allocator tree. B7 is not strictly subsumed by them: it quantifies over arbitrary B6-valid pairs (p, d), (p', d') — including nesting parents and the depth/parent aliasing that B6(i) rules out — rather than over allocators of a single tree, and it proves disjointness from the canonical stream form directly rather than from allocator-tree structure. We therefore prove B7 independently while noting the foundation overlap.
 
 *Formal Contract:*
 - *Preconditions:* (p, d) and (p', d') both satisfy B6, with (p, d) ≠ (p', d').
