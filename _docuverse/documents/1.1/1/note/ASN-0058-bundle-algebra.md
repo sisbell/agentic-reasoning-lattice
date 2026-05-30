@@ -97,7 +97,7 @@ A document's full arrangement is a collection of mapping blocks that together de
 
 `(A j : 1 ≤ j ≤ m : (A k : 0 ≤ k < nⱼ : M(d)(vⱼ + k) = aⱼ + k))`
 
-B1 and B2 together assert that the V-extents partition `dom(M(d))`. B3 asserts that the mapping within each block agrees with the global arrangement. The empty arrangement `M(d) = ∅` has `B = ∅` as its unique decomposition.
+B1 and B2 together assert that the V-extents partition `dom(M(d))`. B3 asserts that the mapping within each block agrees with the global arrangement. The empty arrangement `M(d) = ∅` admits `B = ∅` as a decomposition (uniqueness for this case is discharged in M2).
 
 **M-int (TumblerIntervalCharacterization).** Let `x, y ∈ dom(M(d))` and `n ≥ 1`. If `x ≤ y < x + n`, then writing `m = #x`:
 
@@ -130,7 +130,7 @@ This is S8 (CorrespondenceRunPartition, ASN-0036) restated in our vocabulary. S8
 
 *S8(a) ⟺ B3.* S8's lockstep postcondition (a) asserts `M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for `0 ≤ k < nⱼ`. Reading `shift(vⱼ, k)` as `vⱼ + k` and `shift(aⱼ, k)` as `aⱼ + k` (OrdinalShift convention, ASN-0034) makes this `M(d)(vⱼ + k) = aⱼ + k`, which is B3 verbatim. At `k = 0`, S8(a) also gives `M(d)(vⱼ) = aⱼ`, so `vⱼ ∈ dom(M(d))`.
 
-*Partition claim ⟺ B1 ∧ B2.* S8's partition claim states that `dom(M(d))` is the disjoint union of the run V-extents, each given as `{shift(vⱼ, k) : 0 ≤ k < nⱼ}`. Reading `shift(vⱼ, k)` as `vⱼ + k` (OrdinalShift convention, ASN-0034, with `shift(vⱼ, 0) = vⱼ` by OrdinalShiftBase) identifies this set with our block V-extent `V(βⱼ) = {vⱼ + k : 0 ≤ k < nⱼ}`. Thus S8's disjoint union `⊎ⱼ V(βⱼ) = dom(M(d))` reads `(A v ∈ dom(M(d)) :: (E! j :: v ∈ V(βⱼ)))`: its *existence* half — every V-position lies in *some* block's V-extent — is B1 (Coverage), and its *uniqueness* half — no V-position lies in two blocks' V-extents — is B2 (Disjointness). The empty arrangement `M(d) = ∅` admits `B = ∅` (S8 produces zero runs; B1, B2, B3 are vacuously satisfied).
+*Partition claim ⟺ B1 ∧ B2.* S8's partition claim states that `dom(M(d))` is the disjoint union of the run V-extents, each given as `{shift(vⱼ, k) : 0 ≤ k < nⱼ}`. Reading `shift(vⱼ, k)` as `vⱼ + k` (OrdinalShift convention, ASN-0034, with `shift(vⱼ, 0) = vⱼ` by OrdinalShiftBase) identifies this set with our block V-extent `V(βⱼ) = {vⱼ + k : 0 ≤ k < nⱼ}`. Thus S8's disjoint union `⊎ⱼ V(βⱼ) = dom(M(d))` reads `(A v ∈ dom(M(d)) :: (E! j :: v ∈ V(βⱼ)))`: its *existence* half — every V-position lies in *some* block's V-extent — is B1 (Coverage), and its *uniqueness* half — no V-position lies in two blocks' V-extents — is B2 (Disjointness). The empty arrangement `M(d) = ∅` admits `B = ∅` (S8 produces zero runs; B1, B2, B3 are vacuously satisfied), and this is its *only* decomposition: any block `β = (v, a, n)` has `n ≥ 1`, hence a non-empty V-extent `V(β) ∋ v`, which by B3 forces `v ∈ dom(M(d)) = ∅` — a contradiction. So no decomposition of the empty arrangement can contain a block.
 
 Nelson tells us:
 
@@ -397,7 +397,11 @@ The same content can be included at multiple positions. Each occurrence is a sep
 
 *Verification.* The merge condition (M7) requires `a₂ = a₁ + n₁`. Here `a₂ = a₁ = a`, so the condition requires `a = a + n`. Since `n ≥ 1`, `a + n > a` by TA-strict (ASN-0034), so `a + n ≠ a`. The I-adjacency condition is unsatisfiable; the blocks cannot merge and are permanently distinct. ∎
 
-The same conclusion extends to any two distinct blocks `β₁ = (v₁, a₁, n₁)`, `β₂ = (v₂, a₂, n₂)` with `v₁ < v₂` whose I-extents share at least one position. Suppose `a₁ + i = a₂ + j` for some `0 ≤ i < n₁` and `0 ≤ j < n₂`. The merge premise `a₂ = a₁ + n₁` would give, via M-aux, `a₁ + i = (a₁ + n₁) + j = a₁ + (n₁ + j)`. Since `n₁ ≥ 1`, `n₁ + j ≥ 1`; by TS4 (ASN-0034) `a₁ + 0 = a₁ < a₁ + (n₁ + j)`, so `i ≠ 0`, and by TS5 (ASN-0034) ordinal shift is strictly monotone on positive displacements, so `a₁ + i = a₁ + (n₁ + j)` with `i, n₁ + j ≥ 1` forces `i = n₁ + j ≥ n₁` — contradicting `i < n₁`. The mapping block algebra does not conflate shared content — each occurrence is a separate representational entity.
+**M14a (SharedIExtentUnmergeable).** The same conclusion extends beyond the shared-I-start case: any two distinct blocks `β₁ = (v₁, a₁, n₁)`, `β₂ = (v₂, a₂, n₂)` whose I-extents share at least one position cannot satisfy I-adjacency.
+
+*Verification.* Suppose `a₁ + i = a₂ + j` for some `0 ≤ i < n₁` and `0 ≤ j < n₂`. The merge premise `a₂ = a₁ + n₁` would give, via M-aux, `a₁ + i = (a₁ + n₁) + j = a₁ + (n₁ + j)`. Since `n₁ ≥ 1`, `n₁ + j ≥ 1`; by TS4 (ASN-0034) `a₁ + 0 = a₁ < a₁ + (n₁ + j)`, so `i ≠ 0`, and by TS5 (ASN-0034) ordinal shift is strictly monotone on positive displacements, so `a₁ + i = a₁ + (n₁ + j)` with `i, n₁ + j ≥ 1` forces `i = n₁ + j ≥ n₁` — contradicting `i < n₁`. So I-adjacency is unsatisfiable whenever the I-extents overlap. ∎
+
+The mapping block algebra does not conflate shared content — each occurrence is a separate representational entity.
 
 ## Document Independence
 
@@ -586,7 +590,8 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | M12a | RunDisjointness: distinct maximal runs of `f = M(d)` have disjoint V-extents; via the partition corollary, the set of maximal runs partitions `dom(f)` and is uniquely determined by `f` | introduced |
 | M12b | NoExtensionInMaximallyMerged: every block in a maximally merged decomposition satisfies conditions 2 and 3 of being a maximal run — it cannot be left-extended or right-extended in `f` | introduced |
 | M13 | SharedContent: multiple V-positions may map to the same I-address within a single arrangement | introduced |
-| M14 | IndependentOccurrences: blocks sharing I-extent at distinct V-positions are independent and unmergeable | introduced |
+| M14 | IndependentOccurrences: blocks sharing I-start and width at distinct V-positions are independent and unmergeable | introduced |
+| M14a | SharedIExtentUnmergeable: any two distinct blocks whose I-extents share at least one position cannot satisfy I-adjacency | introduced |
 | M15 | MappingIndependence: (a) decompositions of `M(d_1)` and `M(d_2)` are definitionally independent (B-conditions quantify over only one arrangement); (b) frame condition — M6f and M7f, applied to a decomposition of `M(d_1)`, modify only that decomposition and leave every decomposition of `M(d_2)` unchanged | introduced |
 | M16 | CrossOriginMergeImpossibility: blocks whose I-addresses originate from different documents cannot satisfy I-adjacency | introduced |
 | M16a | OriginInvarianceUnderShift: for `a ∈ dom(C)` and `k ≥ 0` with `a + k ∈ dom(C)`, `origin(a + k) = origin(a)` — ordinal increment never crosses the document prefix | introduced |
