@@ -124,7 +124,7 @@ The first step seats the field-separating zero at position `#s + 1`, between the
 
 A link's *home document* is `home(a)` (Definition — home), well-defined on every link address by L1 (`zeros(a) = 3`) and L1c (T4-validity). We now develop its ownership semantics.
 
-The home document determines the link's owner. For the creating document `d`, L1c's `s = home(a)` postcondition gives `home(a) = s = d` directly. L1a (the membership invariant `home(a) ∈ dom(Σ.M)`) and that postcondition together deliver the link analog of S7 (StructuralAttribution, ASN-0036): `home(a)` uniquely identifies the creating document across the system, and is structurally guaranteed to *be* that document — not merely *some* allocated document in `dom(Σ.M)`. Address-level distinctness across distinct allocation events — including links allocated under distinct documents — is carried by L11a (LinkUniqueness). How this owning document is fixed — by the address alone, independent of what the link points to — is the content of L2.
+The home document determines the link's owner. For the creating document `d`, L1c's `s = home(a)` postcondition gives `home(a) = s = d` directly.
 
 The critical property — the one that distinguishes this design from systems where annotations are embedded in the annotated content:
 
@@ -261,7 +261,7 @@ Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite se
 - *L11a.* `a ∉ dom(Σ.L)` (h1), so the new allocation event produces an address distinct from every previously-allocated link address; existing pairwise distinctness carries over.
 - *L12 / L12a (transition).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since only the entry at `a` is added — this discharges L12 across `Σ → Σ'`, and `dom(Σ.L) ⊆ dom(Σ'.L)` discharges its corollary L12a.
 - *L14.* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`; disjointness over the `s_C`-slice holds since `a` is in `s_L` and `Σ'.C = Σ.C`.
-- *L14a.* For every `(d, v)` with `v ∈ dom(Σ'.M(d)) = dom(Σ.M(d))`: `Σ'.M(d)(v) ∈ dom(Σ.C)` by S3 on `Σ`; since `dom(Σ.C) ∩ dom(Σ'.L) = ∅` by L0 (above), `Σ'.M(d)(v) ∉ dom(Σ'.L)`.
+- *L14a.* For every `(d, v)` with `v ∈ dom(Σ'.M(d)) = dom(Σ.M(d))`: `Σ'.M(d)(v) ∈ dom(Σ.C)|_{s_C}` by S3 on `Σ` together with the `s_C`-residence of content; since `dom(Σ'.L) ∩ dom(Σ.C)|_{s_C} = ∅` by L0 (above), `Σ'.M(d)(v) ∉ dom(Σ'.L)`.
 - *L-fin.* `dom(Σ'.L) = dom(Σ.L) ∪ {a}` is finite, since `dom(Σ.L)` is finite.
 - *ASN-0036 invariants.* `Σ'.C = Σ.C` discharges S0, S1, S7a, S7b verbatim; `Σ'.M = Σ.M` discharges S2, S3, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ verbatim — every constraint on the content store and arrangement family is reproduced from `Σ`. ∎
 
@@ -358,7 +358,7 @@ Within-state single-valuedness (an address names at most one link) is immediate 
 
 **L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same endset sequence:
 
-`(A Σ satisfying the state-local L- and S-invariants, a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies the state-local L- and S-invariants))`
+`(A Σ satisfying the state-local L- and S-invariants with s_C-resident content ((A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)), a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies the state-local L- and S-invariants))`
 
 — where "the state-local L- and S-invariants" denotes the set named in *A Shared Conformance Lemma* above (preserved by FSP, FreshSiblingConformance).
 
@@ -372,7 +372,7 @@ By L-fin, `dom(Σ.L)` is finite, while the sibling stream `a⁽⁰⁾, a⁽¹⁾
 
 `a' ≠ a` since `i ≥ 1`, and `a' ∉ dom(Σ.L)` by choice, discharging the freshness requirement directly.
 
-*Conformance of `Σ'`.* This is another fresh-sibling extension, so we appeal to FSP (FreshSiblingConformance, *A Shared Conformance Lemma* above) for the shared invariant set, discharging its hypotheses for `a'` and payload `ℓ = (F, G, Θ) = Σ.L(a)`:
+*Conformance of `Σ'`.* This is another fresh-sibling extension, so we appeal to FSP (FreshSiblingConformance, *A Shared Conformance Lemma* above) for the shared invariant set. FSP's content-residence hypothesis is discharged by the L11b precondition (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`), which `Σ` satisfies by assumption. We then discharge FSP's remaining hypotheses for `a'` and payload `ℓ = (F, G, Θ) = Σ.L(a)`:
 
 - (h1) `a' ∉ dom(Σ.L)` by the choice of `a'` above;
 - (h2) `a'` is producible by the L1c chain for `a` extended by `i` sibling advances (each `k = 0`, unconditionally T4-preserving), with `home(a') = home(a) ∈ dom(Σ.M)` — sibling advance via `inc(·, 0)` preserves the document-level prefix (CPP with `t₀ = a`, `p = #home(a)`), and `home(a) ∈ dom(Σ.M)` by L1a on `Σ`;
@@ -683,7 +683,7 @@ The remaining state-local invariants at `Σ_4` (L0, L1, L1a–c, L3, L5, L6, L11
 | PrefixSpanCoverage | LEMMA | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`; derived from OrdinalShift (`x ⊕ δ(1, #x) = shift(x, 1)`), T12, T1 cases (i)/(ii), and T5 (ASN-0034) | introduced |
 | L10 | LEMMA | TypeHierarchyByContainment — `coverage({(p, δ(1, #p))}) = subtypes(p)` by PrefixSpanCoverage | introduced |
 | L11a | LEMMA | LinkUniqueness — distinct T10a-conforming allocation events produce distinct link addresses (corollary of L1c + GlobalUniqueness; derivation in body) | introduced |
-| L11b | LEMMA | NonInjectivity — every conforming state with a link can be extended to a non-injective conforming state | introduced |
+| L11b | LEMMA | NonInjectivity — every conforming state with a link and `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`) can be extended to a non-injective conforming state | introduced |
 | L12 | INV | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
 | L12a | LEMMA | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
 | L12b | LEMMA | HomeDocumentPersistence — `{home(a) : a ∈ dom(Σ.L)} ⊆ dom(Σ'.M)` for every state transition; joint consequence of L1a (at `Σ'`) and L12a | introduced |
