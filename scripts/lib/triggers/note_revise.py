@@ -17,6 +17,9 @@ from lib.backend.addressing import Address
 from lib.predicates import all_open_revises_consulted, is_doc_quiescent
 from lib.protocols.febe.protocol import Session
 from lib.runner import Trigger
+from lib.triggers._commit_paths import (
+    _asn_label_from_path, rationale_dir_for_asn,
+)
 from lib.triggers.scope import per_active_note
 
 
@@ -31,15 +34,20 @@ def _predicate(session: Session, addr: Address) -> bool:
 
 
 def _commit_paths(session: Session, note_addr: Address) -> list[str]:
-    """The note body file this fire owns.
+    """The note body file this fire owns, plus the per-ASN rationale
+    dir for any `resolution.py reject` calls the reviser made.
 
-    note_revise edits the note body in place. The reviser may also
-    invoke resolution.py via tools, which appends to substrate metadata
-    (links.jsonl) — that's handled by the commit machinery's always-
-    included substrate-metadata paths.
+    note_revise edits the note body in place and may also invoke
+    `resolution.py reject` per declined finding, writing rationale
+    docs into `<region>/rationale/<asn>/`. Both belong to the fire.
     """
     path = session.get_path_for_addr(note_addr)
-    return [path] if path else []
+    paths = [path] if path else []
+    asn_label = _asn_label_from_path(path) if path else None
+    rdir = rationale_dir_for_asn(path, asn_label)
+    if rdir:
+        paths.append(rdir)
+    return paths
 
 
 note_revise = Trigger(

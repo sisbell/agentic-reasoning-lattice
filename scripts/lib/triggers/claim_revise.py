@@ -23,7 +23,9 @@ from lib.backend.addressing import Address
 from lib.predicates import has_resolution
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, Trigger
-from lib.triggers._commit_paths import per_claim_commit_paths
+from lib.triggers._commit_paths import (
+    _asn_label_from_path, per_claim_commit_paths, rationale_dir_for_asn,
+)
 from lib.triggers.scope import _claim_set_for_scope
 
 
@@ -49,8 +51,8 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
 
 def _commit_paths(session: Session, comment_addr: Address) -> list[str]:
     """Resolve the comment's target claim and return that claim's
-    file family. The revise fire edits the claim doc; the commit
-    captures the claim + its sidecars.
+    file family, plus the per-ASN rationale dir for any
+    `resolution.py reject` calls the reviser made.
     """
     try:
         comment = session.get_link(comment_addr)
@@ -59,7 +61,13 @@ def _commit_paths(session: Session, comment_addr: Address) -> list[str]:
     if not comment.to_set:
         return []
     claim_addr = comment.to_set[0]
-    return per_claim_commit_paths(session, claim_addr)
+    paths = per_claim_commit_paths(session, claim_addr)
+    claim_path = session.get_path_for_addr(claim_addr)
+    asn_label = _asn_label_from_path(claim_path) if claim_path else None
+    rdir = rationale_dir_for_asn(claim_path, asn_label)
+    if rdir:
+        paths.append(rdir)
+    return paths
 
 
 claim_revise = Trigger(

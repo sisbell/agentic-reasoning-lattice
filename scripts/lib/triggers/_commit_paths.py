@@ -19,7 +19,7 @@ from lib.lattice.labels import label_pattern
 from lib.protocols.febe.protocol import Session
 from lib.shared.paths import (
     CLAIM_DIR, CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR,
-    NOTE_FINDINGS_DIR, NOTE_REVIEWS_DIR, WORKSPACE,
+    NOTE_FINDINGS_DIR, NOTE_REVIEWS_DIR, RATIONALE_DIR, WORKSPACE,
 )
 
 
@@ -163,6 +163,30 @@ def claims_aggregate_paths(
     agg_kind_dir = ClaimsStatementsRefreshAgent().claim_dir / asn_label
     asn_dir_rel = str(agg_kind_dir.relative_to(WORKSPACE))
     return [f"{asn_dir_rel}/_statements.md"]
+
+
+def rationale_dir_for_asn(
+    path: str | None, asn_label: str | None,
+) -> str | None:
+    """Per-ASN rationale subdir for revise fires that may call
+    `resolution.py reject`.
+
+    Each rejected finding writes a rationale doc to
+    `<region>/rationale/<asn_label>/<comment_addr>.md`. The substrate's
+    `resolution.reject` link lands in `links.jsonl` automatically, but
+    the rationale FILE belongs to the fire and must be in commit_paths
+    or it accumulates as untracked dirt.
+
+    Returns the WORKSPACE-relative dir path, or None when `asn_label`
+    is missing. Non-existent dirs are skipped by `_stage_dirty`.
+    """
+    if asn_label is None:
+        return None
+    nu = _parse_node_user_from_path(path) if path else None
+    if nu is None:
+        return str((RATIONALE_DIR / asn_label).relative_to(WORKSPACE))
+    node, user = nu
+    return f"_docuverse/documents/{node}/{user}/rationale/{asn_label}"
 
 
 def single_path(session: Session, addr: Address) -> list[str]:
