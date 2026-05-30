@@ -122,9 +122,7 @@ The first step seats the field-separating zero at position `#s + 1`, between the
 
 ## Home and Ownership
 
-A link's *home document* is `home(a)` (Definition — home), well-defined on every link address by L1 (`zeros(a) = 3`) and L1c (T4-validity). We now develop its ownership semantics.
-
-The home document determines the link's owner. For the creating document `d`, L1c's `s = home(a)` postcondition gives `home(a) = s = d` directly.
+The home document `home(a)` (Definition — home) determines the link's owner. For the creating document `d`, L1c's `s = home(a)` postcondition gives `home(a) = s = d` directly.
 
 The critical property — the one that distinguishes this design from systems where annotations are embedded in the annotated content:
 
@@ -202,7 +200,7 @@ The substantive content of L4 is not what the types require, but what they *omit
 
 `(A a, a' ∈ dom(Σ.L), i ∈ {1, ..., |Σ.L(a)|}, j ∈ {1, ..., |Σ.L(a')|} :: Σ.L(a).eᵢ = Σ.L(a').eⱼ ⟺ (A (s, ℓ) :: (s, ℓ) ∈ Σ.L(a).eᵢ ⟺ (s, ℓ) ∈ Σ.L(a').eⱼ))`
 
-The substantive content is two-fold: (i) endset equality reduces to extensional set equality over `Span`, and (ii) no operator in the model selects a span by position within an endset — span access is by membership only. By contrast, slot access *across* endsets is positional (L6, SlotDistinction).
+The substantive content is two-fold: (i) endset equality reduces to extensional set equality over `Span`, and (ii) no operator in the model selects a span by position within an endset — span access is by membership only.
 
 Gregory confirms exhaustively. During storage, spans receive sequential V-addresses within the link's own permutation matrix (an artifact of linked-list traversal order). Upon retrieval, spans come back ordered by I-address value, not by insertion sequence — the original ordering is not preserved or recoverable. No code path in the implementation treats any span as "primary" or consults positional index within an endset. All link-finding (`sporglset2linksetinrange`) and intersection (`intersectlinksets`) operations iterate uniformly, comparing addresses by value without regard to position. A planned `consolidatespanset` function — which might have imposed normalization — was never implemented.
 
