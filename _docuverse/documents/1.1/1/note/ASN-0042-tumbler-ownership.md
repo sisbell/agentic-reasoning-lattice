@@ -170,8 +170,6 @@ In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with
   `      (iv)   [top-down-order]  ¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))`
   `      (v)    [fresh-valid]     T4(pfx(π')) ∧ pfx(π') ∉ Σ.B ))`
 
-Condition (v) is stated as exactly the two facts the ownership theorems consume of a delegate prefix — that it is a valid address and that it is not yet baptized. It deliberately does *not* posit the baptism-stream form `pfx(π') = next(Σ.B, p, d)`. That form is determined instead by O17b (BaptismalRegistryCoupling), which is the primitive coupling between an ownership transition and an ASN-0040 baptism: O17b's principal-introduction clause forces the introducing transition onto the baptism branch with `Σ'.B = Σ.B ∪ {pfx(π')}`, and the general baptism branch has the shape `Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}`, so composing the two pins `pfx(π') = next(Σ.B, p, d)` for some B6-valid `(p, d)`. Earlier drafts asserted this next-reachable form in both (v) and O17b — an over-determination, since no ownership theorem (O1a, O1b, O2, O3, O8, NestingByDelegation) consumes the full `next`/`hwm` form; each routes through Freshness-(v), which needs only T4 and freshness. We therefore designate O17b as primitive for the baptism-stream form and (v) as primitive for validity and freshness.
-
 Nelson's design contains no concept of principals appearing outside the delegation hierarchy, and Gregory's codebase provides no mechanism for it.
 
 **Definition (delegated).** We name the conjunction of conditions (i)–(v) above the *delegation predicate*, with a four-place signature: `delegated(Σ, Σ', π, π')` holds iff `Σ → Σ'`, `π ∈ Π_Σ`, `π' ∈ Π_{Σ'} ∖ Π_Σ`, and conditions (i)–(v) hold for `(π, π')` at `Σ` (the subscript form `delegated_Σ(π, π')` abbreviates `delegated(Σ, Σ', π, π')` for the `Σ'` bound by the surrounding formula). Evaluation-state convention: the delegator prefix `pfx(π)` is read at `Σ`, the delegate prefix `pfx(π')` at `Σ'`.
@@ -231,7 +229,7 @@ The coupling is sharpened for principal-introducing transitions: every transitio
 
   `(A Σ, Σ', π' : Σ → Σ' ∧ π' ∈ Π_{Σ'} ∖ Π_Σ ⟹ Σ'.B = Σ.B ∪ {pfx(π')})`
 
-Composing this principal-introduction clause with the general baptism branch determines `pfx(π') = next(Σ.B, p, d)` for some B6-valid `(p, d)` — the next-reachable form. O17b is the *sole* primitive carrier of this form; delegation condition (v) no longer restates it (see *State Axioms*, condition (v)).
+Composing this principal-introduction clause with the general baptism branch determines `pfx(π') = next(Σ.B, p, d)` for some B6-valid `(p, d)` — the next-reachable form. O17b is the sole carrier of this form; delegation condition (v) gives only validity and freshness of `pfx(π')`.
 
 **RegistryReachability (derived).** In every reachable state the baptismal registry is an ASN-0040-reachable registry conforming to B₀ conf.:
 
@@ -245,9 +243,9 @@ Composing this principal-introduction clause with the general baptism branch det
 
   `(A Σ, a : a ∈ Σ.B ⟹ T4(a))`
 
-*Proof.* By RegistryReachability (derived above), in every reachable state `Σ` the registry `Σ.B` is an ASN-0040-reachable registry. ASN-0040's B10 (T4ValidityInvariant) holds over every such reachable registry — `(A t ∈ s.B : T4(t))` — so every address in `Σ.B` satisfies T4. The licensing step is RegistryReachability, not a bare import of B10: B10 is an invariant over ASN-0040-reachable registries, and RegistryReachability is precisely what certifies `Σ.B` to be one. RegistryReachability's own derivation uses only O14 and O17b, never O17, so there is no circularity. ∎
+*Proof.* By RegistryReachability (derived above), in every reachable state `Σ` the registry `Σ.B` is an ASN-0040-reachable registry. ASN-0040's B10 (T4ValidityInvariant) holds over every such reachable registry — `(A t ∈ s.B : T4(t))` — so every address in `Σ.B` satisfies T4. ∎
 
-**Freshness-(v) (derived).** Condition (v) states directly the two facts about the delegate prefix at `Σ` that the ownership theorems consume: (T4) it is a valid address — `T4(pfx(π'))` — and (fresh) it is unbaptized — `pfx(π') ∉ Σ.B`. Under the weakened (v) these are immediate (they *are* condition (v)); we retain the name Freshness-(v) as the handle by which downstream proofs cite the pair. The complementary baptism-stream form `pfx(π') = next(Σ.B, p, d)` for a B6-valid `(p, d)` is supplied separately by O17b (BaptismalRegistryCoupling), and is mutually consistent with (v): B6 sufficiency would in any case give `T4(next(Σ.B, p, d))` (every element of the stream `S(p, d)` satisfies T4 — no adjacent zeros, no leading or trailing zero), and ASN-0040's `Bop` postcondition `next(s.B, p, d) ∉ s.B` would in any case give freshness, so the two primitives never conflict.
+**Freshness-(v).** An alias for the pair `T4(pfx(π')) ∧ pfx(π') ∉ Σ.B` of condition (v), by which downstream proofs cite delegate-prefix validity and freshness.
 
 **Shared invariant induction (O1a / O1b / T4-validity).** O1a (AccountOwnershipBoundary), O1b (PrefixInjectivity), and T4-validity of every principal's prefix are reachable-state invariants, established here — after the axioms O12–O15, O14 and the derived fact Freshness-(v) on which the base and step cases depend — by a single induction on the reachability sequence with a common base case and non-delegation step and a per-invariant delegation step. *Base:* the corresponding conjunct of O14 holds on `Π₀` — O14.4 (AccountTier) for O1a (`zeros(pfx(π)) ≤ 1`), O14.5 (Injective) for O1b (`pfx` injective), O14.6 (Valid) for T4 (`T4(pfx(π))`). *Non-delegation step:* O15 admits no new principal and O13 (PrefixImmutability) fixes existing prefixes, so any property of the principal-to-prefix assignment carries unchanged from `Π_Σ` to `Π_{Σ'}`. *Delegation step:* in each case existing principals persist by O12 (PrincipalPersistence) with prefixes preserved by O13, so it remains to discharge the sole new principal `π'`:
 
