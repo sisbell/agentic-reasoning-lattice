@@ -69,8 +69,6 @@ Let M(d) : T ⇀ T denote the arrangement function for document d — a partial 
 - I3-CS (subspace S): `(A v : v ∈ dom(M'(d)) ∧ subspace(v) = S : (v < p ∧ v ∈ dom(M(d))) ∨ (E u : u ∈ dom(M(d)) ∧ subspace(u) = S ∧ u ≥ p : v = shift(u, n)))`
 - I3-CX (cross-subspace): `(A v : v ∈ dom(M'(d)) ∧ subspace(v) ≠ S : v ∈ dom(M(d)))`
 
-The domain closure clauses (I3-CS, I3-CX) pin dom(M'(d)) from above: no position enters the post-state domain except those explicitly placed by I3, I3-L, and I3-X.
-
 **Consistency.** Well-definedness of M'(d) rests on two facts about the shifted region within subspace S. *Injectivity*: TS2 (ASN-0034) guarantees distinct v's produce distinct shift(v, n)'s, so the assignment I3 is single-valued. *Strict advance past p*: for v ≥ p in subspace S, shift(v, n) > v ≥ p by TS4 (ASN-0034), so no shifted output coincides with a left-region position (u < p). The remaining clauses are disjoint by subspace partition (left and shifted regions lie in subspace S; I3-X in subspaces ≠ S) and by document partition (I3-D operates on d' ≠ d), and I3-V's vacated positions are exactly those I3-CS excludes. Hence M'(d) and C' are well-defined.
 
 **Structural preservation.**
@@ -218,7 +216,7 @@ For (⟸): the argument is symmetric. If ord(v₁) < ord(v₂), T1 places the di
 
 *Derivation from TumblerAdd.* Let `k = actionPoint(w)`. Since `w₁ = 0` and `Pos(w)`, the first (leftmost) nonzero of w sits at `k ≥ 2`, and `k ≤ #w = m = #p`, so `p ⊕ w` is well-defined (TA0, ASN-0034). By TumblerAdd's piecewise construction, `(p ⊕ w)ᵢ = pᵢ` for `i < k` (prefix copy), `(p ⊕ w)_k = p_k + w_k`, and `(p ⊕ w)ᵢ = wᵢ` for `i > k`; the result has length m (result-length identity). For (b): since `k ≥ 2 > 1`, position 1 lies in the prefix-copy region, so `(p ⊕ w)₁ = p₁`, i.e. `subspace(p ⊕ w) = subspace(p)`. For (a): stripping position 1 from both sides and reindexing by −1, ord(p ⊕ w) has at ord-position `j = i − 1` (for `2 ≤ i ≤ m`) the value `(p ⊕ w)ᵢ`. The pair (ord(p), w_ord) has lengths m − 1, with `ord(p)ⱼ = pⱼ₊₁`, `w_ordⱼ = wⱼ₊₁`, and `actionPoint(w_ord) = k − 1` (OrdinalDisplacementProjection). TumblerAdd applied to ord(p) ⊕ w_ord at action point `k − 1` gives prefix copy `ord(p)ⱼ` for `j < k − 1`, sum `ord(p)_{k−1} + w_ord_{k−1}` at `j = k − 1`, and tail `w_ordⱼ` for `j > k − 1` — exactly the index-shifted images of TumblerAdd's three regions on p ⊕ w. Componentwise agreement at every ord-position (T3) gives `ord(p ⊕ w) = ord(p) ⊕ w_ord`. For (c): by the ord/vpos inverse `vpos(subspace(p ⊕ w), ord(p ⊕ w)) = p ⊕ w`; substituting (b) and (a) yields `p ⊕ w = vpos(subspace(p), ord(p) ⊕ w_ord)`. ∎
 
-**Lemma — OrdinalExceedsDisplacement** (LEMMA, introduced). Fix the contraction parameters: `#p = 2`, `Pos(w)`, `w₁ = 0`, `p ∈ V_1(d)`, and `r = p ⊕ w`. For any V-position v with `subspace(v) = 1` and `v ≥ r` (so that `#v = #r` and OrdinalOrderEquivalence applies, giving `ord(v) ≥ ord(r)`):
+**Lemma — OrdinalExceedsDisplacement** (LEMMA, introduced). Fix the contraction parameters: `#p = 2`, `Pos(w)`, `w₁ = 0`, `p ∈ V_1(d)`, and `r = p ⊕ w`. For any V-position v with `subspace(v) = 1` and `v ≥ r` — where `#v = 2` by S8-depth (the depth axiom fixes every subspace-1 V-position of d at the common depth `#p = 2`) and `#r = 2` because `r = p ⊕ w` has length `#w = #p = 2` (result-length identity, TumblerAdd), so `#v = #r` independently of the order relation, which is what licenses OrdinalOrderEquivalence (precondition `#v₁ = #v₂`) to give `ord(v) ≥ ord(r)`:
 
 - (i) `ord(r) ≥ w_ord` and `ord(r) > w_ord`;
 - (ii) `ord(v) ≥ w_ord` and `ord(v) > w_ord`;
@@ -273,7 +271,7 @@ By trichotomy of the total order (T1, ASN-0034), every v ∈ V_1(d) falls in exa
 
 `(A v : v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))`
 
-The shift is well-defined. For any v ∈ R we have v ≥ r, so the subtraction `ord(v) ⊖ w_ord` is well-defined and the reconstructed V-position σ(v) = vpos(S, ord(v) ⊖ w_ord) satisfies S8a — both discharged by the S8a-post lemma (below; its Q₃ case proves exactly this from OrdinalExceedsDisplacement (ii), (iii) and vpos's S8a-closure postcondition).
+The shift is well-defined and S8a-preserving. For any v ∈ R we have v ≥ r, so OrdinalExceedsDisplacement (ii) gives `ord(v) ≥ w_ord` — the precondition of TA2 (WellDefinedSubtraction, ASN-0034) — whence `ord(v) ⊖ w_ord ∈ T` and σ(v) = vpos(1, ord(v) ⊖ w_ord) = [1, vₘ − c] exists as a tumbler. By OrdinalExceedsDisplacement (iii) the ordinal `ord(v) ⊖ w_ord = [vₘ − c]` is `Pos` with `vₘ − c ≥ p₂ ≥ 1`, and the subspace identifier 1 is positive, so by vpos's S8a-closure postcondition σ(v) is zero-free, of depth 2, and componentwise positive — full S8a.
 
 The contraction's effect on regions L and X, and on state outside subspace S and document d, must be stated explicitly.
 
@@ -285,7 +283,7 @@ The contraction's effect on regions L and X, and on state outside subspace S and
 
 `{v ∈ dom(M'(d)) : subspace(v) = S} = L ∪ Q₃`
 
-Combined with D-L and D-SHIFT, this fully characterizes M'(d) within subspace S: positions in L retain their original I-address mappings, positions in Q₃ hold shifted mappings from R, and no other subspace-S positions exist in dom(M'(d)) — D-DOM pins dom(M'(d)) ∩ subspace 1 from above to exactly L ∪ Q₃. The original X mappings are not preserved — any X address that reappears in Q₃ carries the shifted I-address from the corresponding R position, not its pre-contraction content.
+The original X mappings are not preserved — any X address that reappears in Q₃ carries the shifted I-address from the corresponding R position, not its pre-contraction content.
 
 **D-CS** — *CrossSubspaceFrame* (FRAME, introduced). Other subspaces are unchanged — their position sets are exactly the pre-state sets with the same mappings:
 
@@ -365,7 +363,7 @@ The boundary is tight. At depth 2 with contiguous allocation (D-CTG), L contains
 
 **S8a-post** — *WellFormednessPreservation* (LEMMA, introduced). The post-state satisfies S8a: all V-positions are zero-free, of depth at least 2, and componentwise positive.
 
-*Proof.* Positions in L satisfy S8a by the pre-state invariant and D-L (unchanged). Positions in Q₃: this is the single home for the well-definedness and S8a-satisfaction of σ(v) = vpos(1, ord(v) ⊖ w_ord) for v ∈ R that the assignment `M'(d)(σ(v)) := M(d)(v)` (D-SHIFT) requires. *Subtraction well-definedness:* from v ∈ R, v ≥ r, so OrdinalExceedsDisplacement (ii) gives ord(v) ≥ w_ord, the precise precondition of TA2 (WellDefinedSubtraction, ASN-0034); hence ord(v) ⊖ w_ord ∈ T and σ(v) exists as a tumbler (without it σ(v) would be undefined). *S8a:* σ(v) = [S, vₘ − c] with S = 1 ≥ 1 (subspace identifier, fixed by the scoping axiom; positive) and the ordinal ord(v) ⊖ w_ord = [vₘ − c] is Pos with vₘ − c ≥ p₂ ≥ 1 by OrdinalExceedsDisplacement (iii) (since vₘ ≥ p₂ + c for v ∈ R, and p₂ ≥ 1 by S8a on p). Both components are strictly positive, so by vpos's S8a-closure postcondition (local) zeros(σ(v)) = 0, #σ(v) = 2 ≥ 2, and σ(v) is componentwise positive — full S8a. ∎
+*Proof.* Positions in L satisfy S8a by the pre-state invariant and D-L (unchanged). Positions in Q₃: for each v ∈ R, σ(v) = vpos(1, ord(v) ⊖ w_ord) is well-defined and satisfies S8a, as established at D-SHIFT. ∎
 
 **D-CTG-post** — *VContiguityPreservation* (LEMMA, introduced). At S = 1 (subspace scoping axiom): the post-state V_1(d) is contiguous.
 
