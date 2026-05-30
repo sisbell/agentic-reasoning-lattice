@@ -485,7 +485,7 @@ Each conjunct is a pre-state obligation, read in order:
 
 1. *`1 > 0` — strict positivity of the subspace identifier.* Trivially true. The wp confirms that vpos(1, …) cannot fail S8a's componentwise-positivity conjunct at position 1; this discharges against the subspace scoping axiom `S = 1`, with no further structural assumption needed.
 2. *`v₂ − c > 0` — strict positivity of the shifted ordinal.* From `v ∈ R` (D-SHIFT's quantifier), `v ≥ r`, so OrdinalExceedsDisplacement (iii) gives that `ord(v) ⊖ w_ord = [v₂ − c]` is `Pos`, i.e. `v₂ − c ≥ 1 > 0`. The lemma's tumbler-level derivation (TumblerAdd's `a ⊕ w ≥ w` for ord(r) ≥ w_ord, TA4 for the strictness via the positive difference ord(r) ⊖ w_ord = ord(p), then T1 transitivity from `ord(v) ≥ ord(r)`) discharges this. The wp clarifies that the `v ∈ R` precondition combined with `p ∈ V_1(d)` (which delivers S8a on p, hence `p₂ ≥ 1`) is doing essential work: `v ∈ R` gives `v₂ ≥ p₂ + c`, and S8a on p gives `p₂ ≥ 1`, so `v₂ − c ≥ p₂ ≥ 1`. Both inputs are load-bearing — the R-membership supplies the lower bound `p₂ + c`, and S8a on p supplies `p₂ ≥ 1`.
-3. *`2 ≥ 2` — depth at least 2.* Trivially true. The wp confirms that vpos at the restricted depth produces a depth-2 result that satisfies S8a's depth conjunct. This is where the depth scoping axiom `#p = 2` enters: at depth #p > 2, vpos would produce a deeper tumbler and the wp would need to verify positivity at intermediate components 2..m − 1 (which it cannot, because TA4's zero-prefix precondition is incompatible with S8a's componentwise positivity at those positions — see the *Depth axiom* discussion above).
+3. *`2 ≥ 2` — depth at least 2.* Trivially true. The wp confirms that vpos at the restricted depth produces a depth-2 result that satisfies S8a's depth conjunct. This is where the depth scoping axiom `#p = 2` enters: at depth #p > 2, vpos would produce a deeper tumbler and the wp would need to verify positivity at intermediate components 2..m − 1 (which it cannot, because TA4's zero-prefix precondition is incompatible with S8a's componentwise positivity at those positions).
 4. *`ord(v) ≥ w_ord` — subtraction well-definedness.* Discharged by OrdinalExceedsDisplacement (ii): `v ≥ r` gives `ord(v) ≥ w_ord`. The wp surfaces TA2 (WellDefinedSubtraction, ASN-0034) as the precise foundation lemma that the assignment relies on; without TA2, `ord(v) ⊖ w_ord` would be undefined and σ(v) would not exist as a tumbler.
 
 As in the insertion half (I3-VP), the wp obligations map exactly onto the contract's preconditions with no slack: `v ∈ R` discharges conjuncts 2 and 4 (combined with S8a on p), `p ∈ V_1(d)` supplies S8a on p (hence `p₂ ≥ 1`), `#p = 2` discharges conjunct 3, and `S = 1` discharges conjunct 1.
@@ -518,7 +518,7 @@ Q₃ = {[1,2], [1,3]}.
 - *D-SEP:* ord(r) ⊖ w_ord = [4] ⊖ [2] = [2] = ord(p). ✓
 - *D-DP:* L ∩ Q₃ = ∅; min Q₃ ordinal = [2] = ord(p); all L ordinals < ord(p). ✓
 
-We observe that addresses [1,2] and [1,3] appear in both X and Q₃ but with different I-address mappings: M(d)([1,2]) = i₂ whereas M'(d)([1,2]) = i₄. The addresses are reused by the shift — D-DOM characterizes this correctly, where the former D-X ("positions in X are absent from dom(M'(d))") would have been contradicted.
+We observe that addresses [1,2] and [1,3] appear in both X and Q₃ but with different I-address mappings: M(d)([1,2]) = i₂ whereas M'(d)([1,2]) = i₄. The addresses are reused by the shift — D-DOM characterizes this correctly.
 
 **Boundary case: L = ∅.** Consider the same five-position arrangement but with contraction at the beginning: p = [1,1], w = [0,2], so c = 2 and r = p ⊕ w = [1,3].
 
@@ -670,8 +670,8 @@ where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* b
 |-------|------|-----------|--------|
 | M(d) | definition | M(d) : T ⇀ T — arrangement function mapping V-positions to I-addresses for document d | cited (ASN-0036) |
 | subspace(v) | definition | subspace(v) = v₁ — the first component of a V-position, identifying its subspace | cited (ASN-0036) |
-| ordinal-level | definition | A span σ = (s, ℓ) is ordinal-level when actionPoint(ℓ) = #ℓ (the width acts at the deepest component of ℓ); level-uniformity #s = #ℓ is a separate condition stated where invoked (e.g., I3-S and D-S) | introduced (local) |
-| NAT-CA | local axiom | ℕ addition is commutative (m + n = n + m) and associative ((m + n) + k = m + (n + k)); discharges the scalar reordering in I3-S(a) and D-S(a) | introduced (local) |
+| ordinal-level | definition | A span σ = (s, ℓ) is ordinal-level when actionPoint(ℓ) = #ℓ (the width acts at the deepest component of ℓ) | introduced (local) |
+| NAT-CA | local axiom | ℕ addition is commutative (m + n = n + m) and associative ((m + n) + k = m + (n + k)) | introduced (local) |
 | S8-depth | invariant | (A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂) — uniform V-position depth per subspace | cited (ASN-0036) |
 | S8a | axiom | (A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0)) — V-position well-formedness | cited (ASN-0036) |
 | I3 | postcondition | (A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v)) | introduced |
