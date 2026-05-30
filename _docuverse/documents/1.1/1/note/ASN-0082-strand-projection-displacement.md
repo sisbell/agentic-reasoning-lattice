@@ -224,7 +224,7 @@ We frequently need to separate a V-position into its subspace identifier and its
 
 **VPositionReconstruction** — *vpos(S, o)* (definition, local). For subspace identifier `S ≥ 1` and ordinal `o = [o₁, ..., oₖ]` with `#o ≥ 1`, `vpos(S, o) = [S, o₁, ..., oₖ]` — prepend S and reindex, so `vpos(S, o)₁ = S` and `vpos(S, o)ⱼ₊₁ = oⱼ`. These are inverses by construction (component identity, T3): `ord(vpos(S, o)) = o` and `vpos(subspace(v), ord(v)) = v`. *S8a-closure (local postcondition):* when `S ≥ 1` and o is componentwise positive, `vpos(S, o)` is zero-free with all components positive and depth `#o + 1 ≥ 2`, so it satisfies S8a.
 
-**OrdinalDisplacementProjection** — *w_ord* (definition, local). For a displacement w with `w₁ = 0` and `#w = m ≥ 2`, `w_ord = [w₂, ..., wₘ]` — the tumbler of length m − 1 obtained by stripping the (zero) first component, with `w_ordⱼ = wⱼ₊₁`. When `Pos(w)` (TA-Pos, ASN-0034), the witness for positivity sits at some position `i ≥ 2` (since `w₁ = 0`), so `Pos(w_ord)`; and the first (leftmost) nonzero of w, at position `actionPoint(w) ≥ 2`, maps to position `actionPoint(w) − 1` of w_ord, giving `actionPoint(w_ord) = actionPoint(w) − 1`. At the restricted depth m = 2 of the contraction operation, w = [0, c] for positive integer c, and w_ord = [c] with `Pos([c])`.
+**OrdinalDisplacementProjection** — *w_ord* (definition, local). For a displacement w with `w₁ = 0` and `#w = m ≥ 2`, `w_ord = [w₂, ..., wₘ]` — the tumbler of length m − 1 obtained by stripping the (zero) first component, with `w_ordⱼ = wⱼ₊₁`. When `Pos(w)` (TA-Pos, ASN-0034), the witness for positivity sits at some position `i ≥ 2` (since `w₁ = 0`), so `Pos(w_ord)`; and the first (leftmost) nonzero of w, at position `actionPoint(w) ≥ 2`, maps to position `actionPoint(w) − 1` of w_ord, giving `actionPoint(w_ord) = actionPoint(w) − 1`.
 
 **Lemma — OrdinalOrderEquivalence** (LEMMA, derived). For V-positions v₁, v₂ with subspace(v₁) = subspace(v₂) = S and #v₁ = #v₂ = m ≥ 2:
 
@@ -415,7 +415,7 @@ We verify D-CTG's quantifier directly against V_1(d') = L ∪ Q₃ = {[1, k] : 1
 
 **D-MIN-post** — *VMinimumPreservation* (LEMMA, introduced). At S = 1 (subspace scoping axiom): when the post-state V_1(d) is non-empty, min(V_1(d)) = [1, 1]. When the post-state V_1(d) is empty, D-MIN holds vacuously.
 
-*Proof.* Three cases for S = 1. When L ≠ ∅: the pre-state minimum is min(V_1(d)) = [1, 1] (D-MIN, ASN-0036, text subspace). L ≠ ∅ supplies some v ∈ V_1(d) with v < p, so min(V_1(d)) ≤ v < p by min's lower-bound property and T1's transitivity (the comparison is between tumblers, not natural numbers, so the transitive step is T1's, not NAT-order's); hence min(V_1(d)) ∈ L by L's definition L = {v ∈ V_1(d) : v < p}. D-L preserves min(V_1(d)) verbatim into V_1(d'), and since [1, 1] is the T1-minimum of V_1(d) ⊇ L it remains the T1-minimum of L: min(L) = [1, 1]. The closure step min(L ∪ Q₃) = min(L) is supplied by D-DP(b): when R ≠ ∅, D-DP(b) gives `(A v ∈ L : ord(v) < ord(p))` together with `min({ord(u) : u ∈ Q₃}) = ord(p)` (hence `ord(u) ≥ ord(p)` for every u ∈ Q₃), so for every v ∈ L and u ∈ Q₃ we have ord(v) < ord(p) ≤ ord(u), i.e., ord(v) < ord(u); by OrdinalOrderEquivalence (subspace 1 shared throughout V_1(d') by D-DOM, depth 2 shared by S8-depth-post) v < u, making every L element a strict T1-lower-bound for every Q₃ element and forcing min(L ∪ Q₃) = min(L). When R = ∅, Q₃ = ∅ and min(L ∪ Q₃) = min(L) trivially. In both subcases min(L ∪ Q₃) = min(L) = [1, 1]. When L = ∅ and R ≠ ∅: p = min(V_1(d)) = [1, 1] by D-MIN, so ord(p) = [1]. By D-SEP(b), min Q₃ has ordinal ord(p) = [1], giving min Q₃ = [1, 1]. When L = ∅ and R = ∅: V_1(d') = L ∪ Q₃ = ∅, so D-MIN holds vacuously. ∎
+*Proof.* Three cases for S = 1. When L ≠ ∅: the pre-state minimum is min(V_1(d)) = [1, 1] (D-MIN, ASN-0036, text subspace). L ≠ ∅ supplies some v ∈ V_1(d) with v < p, so min(V_1(d)) ≤ v < p by min's lower-bound property and T1's transitivity; hence min(V_1(d)) ∈ L by L's definition L = {v ∈ V_1(d) : v < p}. D-L preserves min(V_1(d)) verbatim into V_1(d'), and since [1, 1] is the T1-minimum of V_1(d) ⊇ L it remains the T1-minimum of L: min(L) = [1, 1]. The closure step min(L ∪ Q₃) = min(L) is supplied by D-DP(b): when R ≠ ∅, D-DP(b) gives `(A v ∈ L : ord(v) < ord(p))` together with `min({ord(u) : u ∈ Q₃}) = ord(p)` (hence `ord(u) ≥ ord(p)` for every u ∈ Q₃), so for every v ∈ L and u ∈ Q₃ we have ord(v) < ord(p) ≤ ord(u), i.e., ord(v) < ord(u); by OrdinalOrderEquivalence (subspace 1 shared throughout V_1(d') by D-DOM, depth 2 shared by S8-depth-post) v < u, making every L element a strict T1-lower-bound for every Q₃ element and forcing min(L ∪ Q₃) = min(L). When R = ∅, Q₃ = ∅ and min(L ∪ Q₃) = min(L) trivially. In both subcases min(L ∪ Q₃) = min(L) = [1, 1]. When L = ∅ and R ≠ ∅: p = min(V_1(d)) = [1, 1] by D-MIN, so ord(p) = [1]. By D-SEP(b), min Q₃ has ordinal ord(p) = [1], giving min Q₃ = [1, 1]. When L = ∅ and R = ∅: V_1(d') = L ∪ Q₃ = ∅, so D-MIN holds vacuously. ∎
 
 **D-SEQ-post** — *SequentialPositionsPreservation* (LEMMA, introduced). At S = 1 (subspace scoping axiom): when the post-state V_1(d) is non-empty, V_1(d) = {[1, k] : 1 ≤ k ≤ N − c}.
 
@@ -431,7 +431,7 @@ Replaying the derivation locally at depth m = 2: L ∪ Q₃ is a contiguous set 
 - |L ∪ Q₃| = |L| + |Q₃| (D-DP(a) disjointness L ∩ Q₃ = ∅)
 - = |L| + |R| (D-BJ's bijection σ : R → Q₃)
 - = N − |X| (trichotomy partition |V_1(d)| = |L| + |X| + |R| = N on the pre-state's contiguous range)
-- = N − c (|X| = c directly: by pre-state D-SEQ, V_1(d) = {[1, k] : 1 ≤ k ≤ N}, and the defining condition p ≤ v < r at depth 2 reduces — via OrdinalOrderEquivalence and ord(r) = [p₂ + c] — to p₂ ≤ k < p₂ + c; the containment precondition p₂ + w₂ − 1 ≤ N places all c indices p₂, …, p₂ + c − 1 within [1, N], so X = {[1, k] : p₂ ≤ k < p₂ + c} has exactly c elements. Both premises hold regardless of whether R is empty, so this does not invoke D-SEP(b)'s R ≠ ∅ guard)
+- = N − c (|X| = c directly: by pre-state D-SEQ, V_1(d) = {[1, k] : 1 ≤ k ≤ N}, and the defining condition p ≤ v < r at depth 2 reduces — via OrdinalOrderEquivalence and ord(r) = [p₂ + c] — to p₂ ≤ k < p₂ + c; the containment precondition p₂ + w₂ − 1 ≤ N places all c indices p₂, …, p₂ + c − 1 within [1, N], so X = {[1, k] : p₂ ≤ k < p₂ + c} has exactly c elements)
 
 Hence n = N − c, and V_1(d') = {[1, k] : 1 ≤ k ≤ N − c}. When V_1(d') is empty (N − c = 0, i.e., the entire text subspace was contracted), D-SEQ holds vacuously. ∎
 
@@ -451,28 +451,10 @@ Hence n = N − c, and V_1(d') = {[1, k] : 1 ≤ k ≤ N − c}. When V_1(d') is
 
 *Proof.* Identical to I3-S7 above, with the content-store invariant supplied by D-I (`Σ'.C = Σ.C`, so `dom(Σ'.C) = dom(Σ.C)`) in place of I3-C, and the document-set invariant by D-CD (documents other than d unchanged, and contraction creates no new document) in place of I3-D. S7a, S7b are predicates over the unchanged `dom(Σ.C)`; S7d is a predicate over the unchanged document set and allocator history; S7 follows as a corollary since its remaining dependencies — the foundation lemmas T4, T4a, T4b, T0, T10a, T10a.4 (ASN-0034) — are state-independent. ∎
 
-**Weakest-precondition analysis (S8a-post backwards through the shift).** Applying the same wp method as the insertion half (I3-VP above), we analyze the contraction's analogue — S8a-post — for the assignment `M'(d)(σ(v)) := M(d)(v)`, requiring S8a to hold of the assigned position `σ(v)`.
+**S8a-post for the shifted position.** The assignment `M'(d)(σ(v)) := M(d)(v)` requires S8a to hold of `σ(v) = vpos(1, ord(v) ⊖ w_ord)`. At depth `#p = 2` with `w_ord = [c]`, `σ(v) = [1, v₂ − c]` for v ∈ R, so two conjuncts of S8a — `σ(v)₁ = 1 > 0` (positivity of the subspace identifier, fixed by the scoping axiom S = 1) and `#σ(v) = 2 ≥ 2` (fixed by the depth axiom #p = 2) — are immediate. The load-bearing obligations are the strict positivity of the shifted ordinal and the well-definedness of the ordinal subtraction:
 
-The S8a postcondition on the shifted position σ(v) = vpos(1, ord(v) ⊖ w_ord) is the conjunction `zeros(σ(v)) = 0 ∧ #σ(v) ≥ 2 ∧ (A i : 1 ≤ i ≤ #σ(v) : σ(v)ᵢ > 0)`. At the restricted depth #p = 2 with w_ord = [c]: σ(v) = [1, v₂ − c] for v ∈ R. By construction:
-
-- `σ(v)₁ = 1` (subspace identifier from vpos, since the contraction is scoped to S = 1).
-- `σ(v)₂ = v₂ − c` (action-point reverse from TumblerSub at depth 1).
-- `#σ(v) = 2` (result-length identity of vpos applied to a depth-1 ordinal).
-
-The wp of S8a backwards through `(target := σ(v))` becomes a predicate over v:
-
-`wp(target := σ(v), S8a(target)) = (1 > 0) ∧ (v₂ − c > 0) ∧ (2 ≥ 2)`
-
-A separate well-definedness obligation on the ordinal subtraction additionally yields:
-
-`wp(target := σ(v), well-defined(σ(v))) = (ord(v) ≥ w_ord)`
-
-Each conjunct is a pre-state obligation, read in order:
-
-1. *`1 > 0` — strict positivity of the subspace identifier.* Trivially true. The wp confirms that vpos(1, …) cannot fail S8a's componentwise-positivity conjunct at position 1; this discharges against the subspace scoping axiom `S = 1`, with no further structural assumption needed.
-2. *`v₂ − c > 0` — strict positivity of the shifted ordinal.* From `v ∈ R` (D-SHIFT's quantifier), `v ≥ r`, so OrdinalExceedsDisplacement (iii) gives that `ord(v) ⊖ w_ord = [v₂ − c]` is `Pos`, i.e. `v₂ − c ≥ 1 > 0`. The lemma's tumbler-level derivation (TumblerAdd's `a ⊕ w ≥ w` for ord(r) ≥ w_ord, TA4 for the strictness via the positive difference ord(r) ⊖ w_ord = ord(p), then T1 transitivity from `ord(v) ≥ ord(r)`) discharges this. The wp clarifies that the `v ∈ R` precondition combined with `p ∈ V_1(d)` (which delivers S8a on p, hence `p₂ ≥ 1`) is doing essential work: `v ∈ R` gives `v₂ ≥ p₂ + c`, and S8a on p gives `p₂ ≥ 1`, so `v₂ − c ≥ p₂ ≥ 1`. Both inputs are load-bearing — the R-membership supplies the lower bound `p₂ + c`, and S8a on p supplies `p₂ ≥ 1`.
-3. *`2 ≥ 2` — depth at least 2.* Discharged by the depth scoping axiom `#p = 2`, which makes the result depth-2 and satisfies S8a's depth conjunct.
-4. *`ord(v) ≥ w_ord` — subtraction well-definedness.* Discharged by OrdinalExceedsDisplacement (ii): `v ≥ r` gives `ord(v) ≥ w_ord`. The wp surfaces TA2 (WellDefinedSubtraction, ASN-0034) as the precise foundation lemma that the assignment relies on; without TA2, `ord(v) ⊖ w_ord` would be undefined and σ(v) would not exist as a tumbler.
+- *`v₂ − c > 0` — strict positivity of the shifted ordinal.* From `v ∈ R` (D-SHIFT's quantifier), `v ≥ r`, so OrdinalExceedsDisplacement (iii) gives that `ord(v) ⊖ w_ord = [v₂ − c]` is `Pos`, i.e. `v₂ − c ≥ 1 > 0`. Two inputs are load-bearing: `v ∈ R` gives `v₂ ≥ p₂ + c`, and S8a on p (from `p ∈ V_1(d)`) gives `p₂ ≥ 1`, so `v₂ − c ≥ p₂ ≥ 1`.
+- *`ord(v) ≥ w_ord` — subtraction well-definedness.* Discharged by OrdinalExceedsDisplacement (ii): `v ≥ r` gives `ord(v) ≥ w_ord`. This is the precise precondition of TA2 (WellDefinedSubtraction, ASN-0034); without it `ord(v) ⊖ w_ord` would be undefined and σ(v) would not exist as a tumbler.
 
 ### Worked Example
 
