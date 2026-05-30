@@ -147,7 +147,7 @@ Adding the third endset achieves three things simultaneously:
 
 3. **Hierarchical classification.** Because tumbler prefix containment is decidable — `p ≼ t` requires only finite component-wise equality (PrefixRelation, ASN-0034), computable from the tumblers alone (T2, IntrinsicComparison) — type addresses support hierarchical relationships: a type at address `p` and a subtype at an address extending `p` are related by prefix ordering. A query matching `p` matches both (by T5, ContiguousSubtrees).
 
-But Nelson's design does not stop at three. We now define the components, admitting arity beyond three; the StandardTriple convention and L3 below fix the standard form and its formal invariant.
+But Nelson's design does not stop at three. We now define the components, admitting arity beyond three.
 
 **Definition — Endset.** An *endset* is a finite set of well-formed spans:
 
@@ -230,7 +230,7 @@ Nelson: "A link is typically directional. Thus it has a from-set, the bytes the 
 
 ## A Shared Conformance Lemma
 
-Several results below extend the store by appending a single fresh sibling link, carrying a given payload, while leaving content and arrangements untouched. We establish once that any such extension preserves conformance, parametric in the payload. Throughout, the *state-local L- and S-invariants* are L0, L1, L1a, L1b, L1c, L3, L5, L6, L11a, L14, L14a, L-fin, together with ASN-0036's S0–S3, S7a, S7b, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ.
+Several results below extend the store by appending a single fresh sibling link, carrying a given payload, while leaving content and arrangements untouched. We establish once that any such extension preserves conformance, parametric in the payload. Throughout, the *state-local L- and S-invariants* are L0, L1, L1a, L1b, L1c, L3, L5, L6, L14, L14a, L-fin, together with ASN-0036's S0–S3, S7a, S7b, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ.
 
 **FSP — FreshSiblingConformance (local lemma).** Let `Σ` satisfy the state-local L- and S-invariants with `s_C`-resident content. Suppose a tumbler `a` satisfies:
 
@@ -250,12 +250,13 @@ Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite se
 - *L3.* `|ℓ| = N ≥ 3`, each `eᵢ ∈ Endset`, `e₃ ≠ ∅` by the payload hypothesis (the non-emptiness conjunct constrains slot 3 alone, so empty slots `4..N` are admissible). Existing entries by L3 on `Σ`.
 - *L5.* Each endset of `ℓ` is a set under extensional membership; existing entries unchanged.
 - *L6.* `ℓ` is an `N`-tuple of endsets with well-defined positional accessors, conforming to the `Link` definition; existing entries unchanged.
-- *L11a.* `a ∉ dom(Σ.L)` (h1), so the new allocation event produces an address distinct from every previously-allocated link address; existing pairwise distinctness carries over.
 - *L12 / L12a (transition).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since only the entry at `a` is added — this discharges L12 across `Σ → Σ'`, and `dom(Σ.L) ⊆ dom(Σ'.L)` discharges its corollary L12a.
 - *L14.* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`; disjointness over the `s_C`-slice holds since `a` is in `s_L` and `Σ'.C = Σ.C`.
 - *L14a.* For every `(d, v)` with `v ∈ dom(Σ'.M(d)) = dom(Σ.M(d))`: `Σ'.M(d)(v) ∈ dom(Σ.C)|_{s_C}` by S3 on `Σ` together with the `s_C`-residence of content; since `dom(Σ'.L) ∩ dom(Σ.C)|_{s_C} = ∅` by L0 (above), `Σ'.M(d)(v) ∉ dom(Σ'.L)`.
 - *L-fin.* `dom(Σ'.L) = dom(Σ.L) ∪ {a}` is finite, since `dom(Σ.L)` is finite.
-- *ASN-0036 invariants.* `Σ'.C = Σ.C` discharges S0, S1, S7a, S7b verbatim; `Σ'.M = Σ.M` discharges S2, S3, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ verbatim — every constraint on the content store and arrangement family is reproduced from `Σ`. ∎
+- *ASN-0036 invariants.* `Σ'.C = Σ.C` discharges S0, S1, S7a, S7b verbatim; `Σ'.M = Σ.M` discharges S2, S3, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ verbatim — every constraint on the content store and arrangement family is reproduced from `Σ`.
+
+L11a is not a state-local invariant but a cross-event lemma (LinkUniqueness); it holds in `Σ'` automatically, since FSP preserves L1c and S7d, from which GlobalUniqueness (ASN-0034) re-derives address distinctness across the distinct allocation events of `dom(Σ'.L)`. ∎
 
 We also need the existence of such a fresh sibling:
 
@@ -530,7 +531,6 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L10 (TypeHierarchyByContainment).* For the ghost type at `g = 1.0.1.0.1.0.3.1`, define a parent type `p = 1.0.1.0.1.0.3` with displacement `δ(1, 7) = [0, 0, 0, 0, 0, 0, 1]` (action point `k = 7 = #p`). The coverage of `(p, δ(1, #p))` is `{t : p ≤ t < shift(p, 1)} = {t : 1.0.1.0.1.0.3 ≤ t < 1.0.1.0.1.0.4}`. Since `g = 1.0.1.0.1.0.3.1` and `p ≼ g`, by T1(ii) `g ≥ p`, and `g < 1.0.1.0.1.0.4` because `g` agrees with `p` at position 7 (both have value 3) while `inc(p, 0)` has value 4 there. So `g ∈ coverage({(p, δ(1, #p))})` — a single span query at `p` matches the subtype at `g`. ✓
 
-*L9 (TypeGhostPermission).* The type endset references `g = 1.0.1.0.1.0.3.1` with `subspace_I(g) = 3 = s_X`. *Direct enumeration.* `dom(Σ.C) = {c₁, c₂}` with `subspace_I(c₁) = subspace_I(c₂) = 1 = s_C`; since `s_X = 3 ≠ 1 = s_C`, T7 applied to each pair gives `g ≠ c₁` and `g ≠ c₂`, so `g ∉ dom(Σ.C)`. `dom(Σ.L) = {a}` with `subspace_I(a) = 2 = s_L`; since `s_X = 3 ≠ 2 = s_L`, T7 gives `g ≠ a`, so `g ∉ dom(Σ.L)`. Therefore `g ∉ dom(Σ.C) ∪ dom(Σ.L)` — verified by enumeration over the (finite) content and link stores of this state, with T7's hypotheses (T4-validity and equal zero counts) discharged for each pair via S7b on content addresses and L1 + L1c's T4-validity postcondition on the link address. The L9 lemma applies to this state because its `s_C`-residence precondition is satisfied (`subspace_I(c₁) = subspace_I(c₂) = s_C`), so this state lies within L9's scope. ✓
 
 *L8 (TypeByAddress) at `Σ` — reflexivity.* The single-link state admits a non-vacuous reflexivity check: `same_type(a, a) ⟺ coverage(Σ.L(a).type) = coverage(Σ.L(a).type)`. The right-hand side is a set-equality of identical sets, true by reflexivity. To exhibit the actual coverage concretely, `Σ.L(a).type = Θ = {(g, δ(1, 8))}`; since `#g = 8`, PrefixSpanCoverage applies, giving `coverage({(g, δ(1, 8))}) = {t ∈ T : g ≼ t}` — the set of all tumblers extending `g`. This is the address set against which any other link's type would be compared under L8's coverage-equality criterion. ✓
 
@@ -539,7 +539,6 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 *S7a (DocumentScopedAllocation, ASN-0036).* For each content address: `N(c₁).0.U(c₁).0.D(c₁) = 1.0.1.0.1 = d ∈ dom(Σ.M)`, and identically for `c₂`. Both content addresses sit under their allocated home document. ✓
 
 *S7b (ElementLevelIAddresses, ASN-0036).* `zeros(c₁) = zeros(1.0.1.0.1.0.1.1) = 3` and `zeros(c₂) = zeros(1.0.1.0.1.0.1.2) = 3`; both T4-valid (no adjacent zeros, every non-separator component positive). T4b's projections `N, U, D, E` are therefore well-defined on each. ✓
-
 *S7d (DocumentAllocationDiscipline, ASN-0036).* `dom(Σ.M) = {d}` with `d = 1.0.1.0.1`; `zeros(d) = 2`, T4-valid; `d` is producible by a single `inc(r, 2)` allocation event from a user-level root `r = 1.0.1` (`zeros(r) = 1 ≤ 2`, satisfying TA5a's side condition for `k' = 2`): `inc(1.0.1, 2)` appends one separator zero and a final `1`, yielding `1.0.1.0.1 = d` (or `d` is reached along a T10a-conforming chain from 𝒯's `zeros = 0` node root), so `d` is a T10a-allocated node in 𝒯. ✓
 
 *S8a (VPositionWellFormedness, ASN-0036).* The V-positions of `Σ.M(d)` are `{[1.1], [1.2]}`; each V-position is an element-field tumbler whose subspace component is `1 = s_C`, restricting `Σ.M(d)` to the content subspace's V-position slice. ✓
@@ -548,7 +547,6 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *D-CTG (VContiguity, ASN-0036).* The V-position set `V_1(d) = dom(Σ.M(d)) = {[1, 1], [1, 2]}` is contiguous along its second component at fixed subspace `1`: positions `[1, 1]` and `[1, 2]` cover `{[1, k] : 1 ≤ k ≤ 2}` with no gaps. ✓
 
-*D-MIN (VMinimumPosition, ASN-0036).* `min(V_1(d)) = [1, 1]` — the lexicographically least V-position in `V_1(d)` is the canonical start position `[1, 1]`. ✓
 
 *D-SEQ (SequentialPositions, ASN-0036).* `V_1(d) = {[1, k] : 1 ≤ k ≤ 2}` is a contiguous arithmetic sequence of element-field tumblers at depth 2, starting at the D-MIN witness `[1, 1]` and advancing by `inc(·, 0)` to `[1, 2]`. ✓
 
@@ -557,8 +555,7 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 We extend the state in six steps, naming each intermediate state, to verify L11b, L12, L13, the higher-arity/discrimination behavior of L3/L6/L8, and the multi-span content of L5/L8 non-vacuously.
 
 *Each added link is a fresh sibling.* Each of `a'`, `a₂`, `a₃`, `a₄`, `a₅`, `a₆` is the next `inc(·, 0)` sibling of the previous link; FSP applies, so only the new check per step is shown below.
-
-*Step 1: adding `a'`.* Define `a' = 1.0.1.0.1.0.2.2` with `Σ_1.L(a') = (F, G, Θ)` — same endsets as `a`. The intermediate state is `Σ_1` with `Σ_1.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ)}`, `Σ_1.C = Σ.C`, `Σ_1.M = Σ.M`. The state-local invariants hold by the fresh-sibling argument above.
+*Step 1: adding `a'`.* Define `a' = 1.0.1.0.1.0.2.2` with `Σ_1.L(a') = (F, G, Θ)` — same endsets as `a`. The intermediate state is `Σ_1` with `Σ_1.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ)}`, `Σ_1.C = Σ.C`, `Σ_1.M = Σ.M`.
 
 *L11b non-injectivity in `Σ_1`.* `|dom(Σ_1.L)| = 2`, `a ≠ a'`, and `Σ_1.L(a) = Σ_1.L(a') = (F, G, Θ)`. The link store is non-injective — two distinct addresses map to the same triple. This is the witness for L11b applied to `Σ` with `a`. ✓
 
@@ -566,7 +563,6 @@ We extend the state in six steps, naming each intermediate state, to verify L11b
 
 *L12a across `Σ → Σ_1` (transition).* `dom(Σ.L) = {a} ⊆ {a, a'} = dom(Σ_1.L)`. ✓
 
-*Step 2: adding the meta-link `a₂`.* Define `a₂ = 1.0.1.0.1.0.2.3` — a meta-link whose from-endset references the first link `a`.
 
 Define the span targeting `a`: `δ(1, 8) = [0, 0, 0, 0, 0, 0, 0, 1]` has action point `k = 8 = #a`, and `k ≤ #a` holds, so `(a, δ(1, 8))` is well-formed by T12. ✓
 
@@ -575,7 +571,6 @@ Define the meta-link:
 - From-endset: `F₂ = {(a, δ(1, 8))}` — pointing at the first link
 - To-endset: `G₂ = {(c₂, δ(1, 8))}` — pointing at content
 - Type-endset: `Θ₂ = {(g, δ(1, 8))}` — same ghost type
-
 The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),\; a₂ ↦ (F₂, G₂, Θ₂)}`, `Σ_2.C = Σ_1.C`, `Σ_2.M = Σ_1.M`.
 
 *L13 (ReflexiveAddressing).* The from-endset of `a₂` contains the span `(a, δ(1, 8))` where `a ∈ dom(Σ_2.L)`. This is a concrete link-to-link reference — `a₂`'s from-endset targets the link entity at `a`. ✓
@@ -583,8 +578,6 @@ The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),
 *L0 for `a₂`.* `subspace_I(a₂) = 2 = s_L`. The from-endset span `(a, δ(1, 8))` references `a` with `subspace_I(a) = 2 = s_L` — a same-subspace reference from `s_L` to `s_L`, permitted by L4. ✓
 
 *L4 for `a₂`.* The span `(a, δ(1, 8))` has `a ∈ T` and satisfies T12 (verified above). No constraint prevents the span from referencing a link-subspace address. ✓
-
-The remaining state-local invariants at `Σ_2` (L0, L1, L1a–c, L3, L5, L6, L11a, L14, L14a, L-fin) hold for the new entry `a₂` by the fresh-sibling argument above (`a₂ = 1.0.1.0.1.0.2.3` is the next sibling after `a'`), and for the pre-existing entries `a, a'` by L12.
 
 *L12 across `Σ_1 → Σ_2` (transition).* `dom(Σ_1.L) = {a, a'}`. For `a`: `a ∈ dom(Σ_2.L)` and `Σ_2.L(a) = (F, G, Θ) = Σ_1.L(a)`. For `a'`: `a' ∈ dom(Σ_2.L)` and `Σ_2.L(a') = (F, G, Θ) = Σ_1.L(a')`. Both pre-existing links are preserved. ✓
 
@@ -606,8 +599,6 @@ The final state is `Σ_3` with `Σ_3.L = Σ_2.L ∪ {a₃ ↦ (F₃, G₃, Θ₃
 *L6 (SlotDistinction) at arity 4.* `Σ_3.L(a₃) = (F₃, G₃, Θ₃, R₃)` is a 4-tuple of endsets with positional accessors `Σ_3.L(a₃).eᵢ` well-defined for `i ∈ {1, 2, 3, 4}`. The four entries have pairwise-distinct start addresses across slots (`c₁`, `c₂`, `g`, `a₂` are four distinct tumblers), so the transposition `π = (1 2)` yields `(G₃, F₃, Θ₃, R₃) ≠ (F₃, G₃, Θ₃, R₃)` (slot 1 differs) and `π = (1 4)` yields `(R₃, G₃, Θ₃, F₃) ≠ (F₃, G₃, Θ₃, R₃)` (slot 1 differs) — slot positions are addressable distinctly at arity 4. ✓
 
 *L8 (TypeByAddress) at arity 4.* `Σ_3.L(a₃).type = Σ_3.L(a₃).e₃ = Θ₃ = {(g, δ(1, 8))}` — the `.type` accessor resolves to slot 3 unambiguously under the StandardTriple convention extended to arity 4 by L3. For the existing arity-3 link `a` with `Σ_3.L(a).type = Σ_3.L(a).e₃ = Θ = {(g, δ(1, 8))}`, coverage-based matching gives `same_type(a, a₃) ⟺ coverage(Σ_3.L(a).e₃) = coverage(Σ_3.L(a₃).e₃)`. Both endsets are `{(g, δ(1, 8))}` (a unit-depth span at `g`), so by PrefixSpanCoverage each has coverage `{t ∈ T : g ≼ t}` — the two coverage sets are identical. The arity-3 and arity-4 links share a type without any need to inspect content at `g`. ✓
-
-The remaining state-local invariants at `Σ_3` (L0, L1, L1a–c, L5, L11a, L14, L14a, L-fin; L3 and L6 verified above at arity 4) hold for the new entry `a₃` by the fresh-sibling argument above (`a₃ = 1.0.1.0.1.0.2.4` is the next sibling after `a₂`, payload arity 4 with non-empty slot 3), and for the pre-existing entries by L12.
 
 *L12 across `Σ_2 → Σ_3` (transition).* All three prior entries `Σ_2.L(a), Σ_2.L(a'), Σ_2.L(a₂)` are unchanged in `Σ_3`; only the new entry at `a₃` is added. ✓
 
@@ -634,8 +625,6 @@ These two prefix sets are disjoint. Suppose `t` extends both: `g ≼ t` and `g' 
 
 The discrimination is structural: `g` and `g'` differ only at the tail (position 8), but that single divergence forces their prefix-cone coverages to be disjoint — sibling ghost addresses generate sibling type cones, neither containing the other.
 
-The remaining state-local invariants at `Σ_4` (L0, L1, L1a–c, L3, L5, L6, L11a, L14, L14a, L-fin) hold for the new entry `a₄` by the fresh-sibling argument above (`a₄ = 1.0.1.0.1.0.2.5` is the next sibling after `a₃`), and for the pre-existing entries by L12.
-
 *L12 across `Σ_3 → Σ_4` (transition).* All four prior entries `Σ_3.L(a), Σ_3.L(a'), Σ_3.L(a₂), Σ_3.L(a₃)` are unchanged in `Σ_4`; only the new entry at `a₄` is added. ✓
 
 *L12a across `Σ_3 → Σ_4` (transition).* `dom(Σ_3.L) = {a, a', a₂, a₃} ⊆ {a, a', a₂, a₃, a₄} = dom(Σ_4.L)`. ✓
@@ -651,8 +640,6 @@ together with `F₅ = {(c₁, δ(1, 8))}`, `G₅ = {(c₂, δ(1, 8))}`, `Θ₅ =
 *L5 (EndsetSetSemantics) at `Σ_5` — order-irrelevance across a 2-span endset.* `Θ_split` has two distinct members, `(g, δ(1, 8))` and `(g', δ(1, 8))` (distinct since `g ≠ g'`). By L5's biconditional, `Θ_split = {(g', δ(1, 8)), (g, δ(1, 8))}` — the reordered presentation has the same membership set, so the two are equal as endsets; the textual order in which the spans are written carries no semantic weight, and the model exposes no accessor that could distinguish the two presentations. Extensional equality: an endset `e` satisfies `e = Θ_split` iff `e` has exactly the members `{(g, δ(1, 8)), (g', δ(1, 8))}` — for instance the three-term presentation `{(g, δ(1, 8)), (g', δ(1, 8)), (g, δ(1, 8))}` denotes the same set `Θ_split` (membership is idempotent), while any endset that omits a member or adds a distinct span is unequal. This is the L5 content a singleton endset cannot exhibit. ✓
 
 *L3 (NEndsetStructure) at `Σ_5`.* `|Σ_5.L(a₅)| = 3 ≥ 3` and slot 3 `Θ_split ≠ ∅` (two members); each endset is a finite set of T12-well-formed spans. The non-emptiness requirement on slot 3 is met by a multi-span endset exactly as by a singleton. ✓
-
-The remaining state-local invariants at `Σ_5` (L0, L1, L1a–c, L6, L11a, L14, L14a, L-fin) hold for the new entry `a₅` by the fresh-sibling argument (FSP; `a₅ = 1.0.1.0.1.0.2.6` is the next sibling after `a₄`, payload arity 3 with non-empty slot 3 — FSP's payload hypothesis admits any L3-conforming endset, multi-span included), and for the pre-existing entries by L12.
 
 *L12, L12a across `Σ_4 → Σ_5` (transition).* All five prior entries are unchanged in `Σ_5`; only the new entry at `a₅` is added, and `dom(Σ_4.L) ⊆ dom(Σ_5.L)`. ✓
 
@@ -672,8 +659,6 @@ where `δ(2, 8) = [0, 0, 0, 0, 0, 0, 0, 2]` is the width-2 displacement at the t
 The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared boundary `g'` (and `g < g' < h` under T1), so their union is exactly `[g, h) = {t : g ≤ t < h}`: any `t` with `g ≤ t < h` satisfies either `t < g'` (first interval) or `g' ≤ t` (second), and no `t` outside `[g, h)` is captured. Hence `coverage(Θ_split) = coverage(Θ_single)`, even though `Θ_split ≠ Θ_single` as endsets — the single span `(g, δ(2, 8))` is not a member of `Θ_split`, and neither member of `Θ_split` equals `(g, δ(2, 8))` (different widths), so by L5 the two are distinct span collections. This instantiates the lossy-projection case flagged in the Coverage definition.
 
 *L8 (TypeByAddress) at `Σ_6` — coverage match across distinct decompositions.* `Σ_6.L(a₅).type = Θ_split` and `Σ_6.L(a₆).type = Θ_single`. By the defining biconditional, `same_type(a₅, a₆) ⟺ coverage(Σ_6.L(a₅).type) = coverage(Σ_6.L(a₆).type)`, and the right-hand side holds by the coverage equality just established. Therefore `same_type(a₅, a₆) = true` — the two links share a type despite holding *different span decompositions* in their type endsets, with no span-set equality between them. This is precisely the case that distinguishes L8's coverage criterion from a span-set-identity criterion: a span-set test would (wrongly) report these as different types, since `Θ_split ≠ Θ_single`. ✓
-
-The remaining state-local invariants at `Σ_6` (L0, L1, L1a–c, L3, L5, L6, L11a, L14, L14a, L-fin) hold for the new entry `a₆` by the fresh-sibling argument (FSP), and for the pre-existing entries by L12.
 
 *L12, L12a across `Σ_5 → Σ_6` (transition).* All six prior entries are unchanged in `Σ_6`; only the new entry at `a₆` is added, and `dom(Σ_5.L) ⊆ dom(Σ_6.L)`. ✓
 
