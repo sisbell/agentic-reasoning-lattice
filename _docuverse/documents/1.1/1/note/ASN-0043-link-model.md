@@ -107,11 +107,9 @@ Depth ≥ 2 keeps `subspace_I(a) = E(a)₁` stable under `inc(·, 0)`: with the 
 
 Each step is locally T10a-admissible: `kᵢ ∈ {0, 1, 2}` (the allowed T10a step types — `0` for sibling advance, `1` or `2` for child-spawn), and TA5a's side condition (ASN-0034) is discharged whenever `kᵢ = 2` by the explicit `zeros(tᵢ₋₁) ≤ 2` clause; for `kᵢ ∈ {0, 1}` TA5a is unconditional.
 
-The seed `s` is constrained as a T4-valid tumbler with `zeros(s) = 2` — the structural shape `N.0.U.0.D` of every document-level address; the first step `k₁ = 2` lifts depth strictly above `#s`, seating the field-separating zero between the document prefix and the element field at the first step itself; every subsequent intermediate state has length strictly greater than `#s`. This length premise is exactly what the following local lemma requires.
+The seed `s` is constrained as a T4-valid tumbler with `zeros(s) = 2` — the structural shape `N.0.U.0.D` of every document-level address; the first step `k₁ = 2` lifts depth strictly above `#s`, seating the field-separating zero between the document prefix and the element field at the first step itself; every subsequent intermediate state has length strictly greater than `#s`.
 
 **CPP — ChainPrefixPreservation (local lemma).** Let `t₀, t₁, ..., tₙ` be a T10a-conforming chain of T4-valid tumblers (T4-validity propagated along the chain by T10a.4), and let `p` be a fixed length with `p ≤ #t₀`. Suppose every step modifies only positions strictly beyond `p`: each child-spawn `inc(·, k')` (`k' ≥ 1`) agrees with its input on positions `1..#tᵢ₋₁` (TA5(b)), and each sibling advance `inc(·, 0)` modifies only the `sig` position (TA5(c)), which for the T4-valid input is the terminal position `#tᵢ₋₁` (TA5-SigValid) — so whenever `#tᵢ₋₁ > p` the advance leaves positions `1..p` fixed. Then by induction on chain length every `tᵢ`, and in particular the terminus `tₙ`, agrees with `t₀` on positions `1..p`. Applied to the L1c chain with `t₀ = s` and `p = #s`: the opening child-spawn agrees on positions `1..#s`, and every later step operates at length `> #s`, so CPP yields that `a` agrees with `s` on positions `1..#s`.
-
-The single `k₁ = 2` step seats the field-separating zero at position `#s + 1`, which is what the `s = h(a)` postcondition below records; no further `kⱼ = 2` is admissible thereafter, since `zeros(tᵢ) = 3` for every `i ≥ 1` foreclosing TA5a's `zeros(tⱼ₋₁) ≤ 2` precondition.
 
 *Postcondition: T4-validity of `a`.* By T10a.4 (T4PreservationUnderDiscipline, ASN-0034), every output of a T10a-conforming allocator step is T4-valid given a T4-valid input. The chain begins at the T4-valid seed `s` and proceeds entirely by T10a steps, so by induction on chain length, `tₙ = a` is T4-valid. With T4-validity of `a` established and L1's `zeros(a) = 3` placing `a` at element level, T4b's projections `N(a)`, `U(a)`, `D(a)`, `E(a)` are well-defined; in particular, `h(a) = N(a).0.U(a).0.D(a)` denotes the document-level prefix of `a`.
 
@@ -292,7 +290,7 @@ We verify that `Σ'` is conforming. Both this construction and the one for L11b 
 - (h2) *Producibility:* `a` is the terminus of a T10a-conforming chain seeded at a T4-valid document-level tumbler `home(a) ∈ dom(Σ.M)`;
 - (h3) *Shape:* `subspace_I(a) = s_L`, `zeros(a) = 3`, `#E(a) ≥ 2`, and `a` is T4-valid.
 
-Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite set of T12-well-formed spans), and `e₃ ≠ ∅`. Define `Σ'` by `Σ'.L = Σ.L ∪ {a ↦ ℓ}`, `Σ'.C = Σ.C`, `Σ'.M = Σ.M`. Then `Σ'` satisfies every state-local L-invariant (L0, L1, L1a, L1b, L1c, L3, L5, L6, L11a, L12, L14, L14a, L-fin) and every state-local ASN-0036 invariant (S0–S3, S7a, S7b, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ). FSP places no constraint on the endset *targets* of `ℓ` — in particular `coverage(ℓ.type)` is left free, which is exactly the freedom L9 exploits.
+Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite set of T12-well-formed spans), and `e₃ ≠ ∅`. Define `Σ'` by `Σ'.L = Σ.L ∪ {a ↦ ℓ}`, `Σ'.C = Σ.C`, `Σ'.M = Σ.M`. Then `Σ'` satisfies every state-local L-invariant (L0, L1, L1a, L1b, L1c, L3, L5, L6, L11a, L12, L14, L14a, L-fin) and every state-local ASN-0036 invariant (S0–S3, S7a, S7b, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ). FSP places no constraint on the endset *targets* of `ℓ`; in particular `coverage(ℓ.type)` is unconstrained.
 
 *Proof.* The construction adds one link-store entry at `a`; `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. We treat the new entry and the carry-over of existing entries.
 
@@ -367,7 +365,7 @@ We now establish the identity semantics of links. The three requirements we bega
 
 *Derivation.* We do not re-prove uniqueness here; it is exactly GlobalUniqueness (ASN-0034) instantiated at link addresses. GlobalUniqueness's sole precondition is T10a-conformance of the events. L1c (LinkAllocatorConformance) discharges precisely that precondition for link addresses: every `a ∈ dom(Σ.L)` is the terminus of a T10a-conforming chain. Instantiating GlobalUniqueness at the link-address events therefore yields `a₁ ≠ a₂` for distinct events.
 
-*Consequence — identification within a state.* Within any single state `Σ.L` is a partial function, so an address names at most one link; the substantive content of L11a is that this within-state identification extends across allocation events.
+Within-state single-valuedness (an address names at most one link) is immediate from the partial-function typing `Σ.L : T ⇀ Link`; L11a is the cross-event strengthening.
 
 **L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same endset sequence:
 
@@ -379,19 +377,19 @@ That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `�
 
 *Construction of fresh `a'`.* By L1c on `Σ`, the existing link `a` is structurally producible from `home(a)`'s document-level prefix by a T10a-conforming chain. From `a`, enumerate the sibling stream `a⁽⁰⁾ = a, a⁽¹⁾ = inc(a⁽⁰⁾, 0), a⁽²⁾ = inc(a⁽¹⁾, 0), …` in `home(a)`'s link subspace at element field depth `#E(a) ≥ 2`. Each `inc(·, 0)` step is unconditionally T4-preserving (TA5a is unconditional for `k = 0`), so every `a⁽ⁱ⁾` is T4-valid. By L1b, the rightmost component is the ordinal (not the subspace identifier), so successive `inc(·, 0)` steps advance the ordinal while keeping `subspace_I(a⁽ⁱ⁾) = s_L`. By T0(a), the ordinal stream is unbounded.
 
-By L-fin, `dom(Σ.L)` is finite, so there exists a least `i ≥ 1` with `a⁽ⁱ⁾ ∉ dom(Σ.L)`. Set `a' = a⁽ⁱ⁾` and define `Σ'` by:
+By L-fin, `dom(Σ.L)` is finite, while the sibling stream `a⁽⁰⁾, a⁽¹⁾, a⁽²⁾, …` is infinite (T10a.7: the `inc(·, 0)` enumeration is injective). Hence some `a⁽ⁱ⁾` with `i ≥ 1` satisfies `a⁽ⁱ⁾ ∉ dom(Σ.L)`; take it. Set `a' = a⁽ⁱ⁾` and define `Σ'` by:
 
 `Σ'.L = Σ.L ∪ {a' ↦ (F, G, Θ)}`, `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
 
-The least-`i` choice ensures that the structural sibling chain `a⁽⁰⁾, a⁽¹⁾, …, a⁽ⁱ⁾` satisfies `a⁽ʲ⁾ ∈ dom(Σ.L)` for `0 ≤ j < i` and `a⁽ⁱ⁾ ∉ dom(Σ.L)`, extending `dom(Σ.L)` to `dom(Σ'.L)` by a single sibling step beyond the existing initial segment of occupied siblings. This is precisely the shape that AllocatedSet's domain-embedding clause (ASN-0034) admits: for any allocator `A`, the realized domain `domₛ(A)` is an initial segment of T10a's `inc(·, 0)` enumeration of `dom(A)`. The least-`i` choice therefore preserves the initial-segment structure of the sibling stream in `Σ'`. `a' ≠ a` since `i ≥ 1`, and `a' ∉ dom(Σ.L)` by choice, so the address-disjointness `a' ∉ dom(Σ.L)` discharges the freshness requirement directly without appeal to allocation events.
+`a' ≠ a` since `i ≥ 1`, and `a' ∉ dom(Σ.L)` by choice, discharging the freshness requirement directly.
 
 *Conformance of `Σ'`.* This is another fresh-sibling extension, so we appeal to FSP (FreshSiblingConformance, stated under L9) for the shared invariant set, discharging its hypotheses for `a'` and payload `ℓ = (F, G, Θ) = Σ.L(a)`:
 
-- (h1) `a' ∉ dom(Σ.L)` by the least-`i` choice above;
+- (h1) `a' ∉ dom(Σ.L)` by the choice of `a'` above;
 - (h2) `a'` is producible by the L1c chain for `a` extended by `i` sibling advances (each `k = 0`, unconditionally T4-preserving), with `home(a') = home(a) ∈ dom(Σ.M)` — sibling advance via `inc(·, 0)` preserves the document-level prefix (CPP with `t₀ = a`, `p = #h(a)`), and `home(a) ∈ dom(Σ.M)` by L1a on `Σ`;
 - (h3) `subspace_I(a') = s_L` (L1b: the ordinal, not the subspace identifier, is the rightmost component, so `inc(·, 0)` fixes the subspace); `zeros(a') = zeros(a) = 3` (each `inc(·, 0)` modifies only the terminal `sig` position by TA5(c)/TA5-SigValid, adding no separator zero); `#E(a') = #E(a) ≥ 2` (by `#a' = #a` from T10a.1 UniformSiblingLength, `#h(a') = #h(a)` from CPP, and L1b on `Σ`); T4-valid by T10a.4.
 
-The payload `ℓ = (F, G, Θ) = Σ.L(a)` has T12-well-formed spans (inherited from the conforming link `a` by L4 on `Σ`) and satisfies L3 (arity ≥ 3, slot 3 the non-empty type endset, by L3 on `Σ`). By FSP, `Σ'` satisfies every state-local L- and S-invariant, and the non-state-local items (L2, L4, L7, L8, L10, L13) and transition corollaries (L12a from L12) hold by their own proofs. The L11b-specific delta is the *endset equality* `Σ'.L(a') = (F, G, Θ) = Σ.L(a)`, which holds by construction — this is the non-injectivity witness, not an invariant.
+The payload `ℓ = (F, G, Θ) = Σ.L(a)` has T12-well-formed spans (inherited from the conforming link `a` by L4 on `Σ`) and satisfies L3 (arity ≥ 3, slot 3 the non-empty type endset, by L3 on `Σ`). By FSP, `Σ'` satisfies every state-local L- and S-invariant, and the non-state-local items enumerated at FSP, together with the transition corollary L12a (from L12), hold by their own proofs. The L11b-specific delta is the *endset equality* `Σ'.L(a') = (F, G, Θ) = Σ.L(a)`, which holds by construction — this is the non-injectivity witness, not an invariant.
 
 Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links.
 
