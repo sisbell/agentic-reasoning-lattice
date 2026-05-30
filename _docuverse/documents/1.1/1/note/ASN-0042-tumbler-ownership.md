@@ -155,7 +155,7 @@ The prefix is a tumbler, and addresses are permanent (T8): no operation of the t
 
   **O14.9 (Registry):** `Σ₀.B is an ASN-0040-reachable registry conforming to B₀ conf.`
 
-In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with a node-level prefix (`zeros = 0 ≤ 1`); non-nesting holds vacuously (a singleton set has no distinct pairs), and all other base-case clauses hold trivially — a single-component positive tumbler like `[1]` satisfies T4 (no zeros, no adjacency or boundary violations). In a multi-node system, `Π₀` contains one initial principal per node (e.g., principals at `[1]` and `[2]`), each independently covering its node's allocatable addresses. These are node-level prefixes (satisfying O14.4 (AccountTier)), distinct node addresses are distinct tumblers (satisfying O14.5 (Injective) by T3), each is a positive single-component tumbler satisfying T4 (satisfying O14.6 (Valid)), and no single-component positive tumbler is a prefix of another single-component positive tumbler with a different value (satisfying O14.7 (NonNesting)).
+In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with a node-level prefix (`zeros = 0 ≤ 1`); non-nesting holds vacuously (a singleton set has no distinct pairs), and all other base-case clauses hold trivially — a single-component positive tumbler like `[1]` satisfies T4 (no zeros, no adjacency or boundary violations). This single-node case witnesses satisfiability of O14; the multi-node instance is verified clause-by-clause in the Worked Example below.
 
 **O15 (PrincipalClosure).** Principals enter Π exclusively through bootstrap (in Π₀) or through a delegation act of an existing principal subject to five structural conditions, named the *delegation predicate* `delegated_Σ(π, π')`; no other mechanism introduces principals. Each state transition introduces at most one new principal, and any newly introduced principal `π'` traces back to a delegating predecessor `π` whose prefix is a strict ancestor of `pfx(π')`:
 
@@ -496,8 +496,6 @@ Now, when `acct(a) = acct(b)`, substitution gives `pfx(π) ≼ acct(a) ≡ pfx(�
 - *Invariant:* `pfx(ω(a)) ≼ acct(a)` for all `a ∈ Σ.B`.
 
 Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character" (LM 2/40).
-
-By O6's biconditional, `ω` is a function of `acct(a)` alone — the account field of an address determines its effective owner, with no lookup beyond the address itself.
 
 Gregory confirms: the User field in the tumbler `Node.0.User.0.Doc.0.Element` is a permanent structural component, read directly by `tumbleraccounteq`. There is no indirection, no lookup, no level of abstraction that could mask the origin.
 
