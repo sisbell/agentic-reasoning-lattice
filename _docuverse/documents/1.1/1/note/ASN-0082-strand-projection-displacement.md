@@ -51,7 +51,7 @@ Additionally, shift preserves structural properties, and both facts are establis
 
 Let M(d) : T ⇀ T denote the arrangement function for document d — a partial map from V-positions (element-field tumblers in the Vstream) to I-addresses (element-field tumblers in the Istream).
 
-**Scope.** This ASN characterizes the *shift sub-operation* of INSERT — the arrangement transformation that opens a gap of n positions at p by relocating existing content forward — not the full INSERT operation. The frame I3-C below holds for the shift sub-operation in isolation: shifting existing content does not by itself add or modify any content-store entries.
+**Scope.** This ASN characterizes the *shift sub-operation* of INSERT — the arrangement transformation that opens a gap of n positions at p by relocating existing content forward. It modifies M(d) only; the content store is unchanged (frame I3-C): shifting existing content does not by itself add or modify any content-store entries.
 
 Within this scoped sub-operation, the shift relocates existing content at or beyond p in subspace S = subspace(p) = p₁ (with S ≥ 1) by n ≥ 1 ordinal positions, producing M'(d) from M(d) without touching C.
 
@@ -77,7 +77,7 @@ Within this scoped sub-operation, the shift relocates existing content at or bey
 - I3-CS (subspace S): `(A v : v ∈ dom(M'(d)) ∧ subspace(v) = S : (v < p ∧ v ∈ dom(M(d))) ∨ (E u : u ∈ dom(M(d)) ∧ subspace(u) = S ∧ u ≥ p : v = shift(u, n)))`
 - I3-CX (cross-subspace): `(A v : v ∈ dom(M'(d)) ∧ subspace(v) ≠ S : v ∈ dom(M(d)))`
 
-The I-address is unchanged — only the V-position moves. This is Nelson's central guarantee (Q1, Q5): the permanent identity of every existing byte is invariant under insertion. "Since the links are to the bytes themselves, any links to those bytes remain stably attached to them" [LM 4/30]. The shift moves content in the document's arrangement without touching the content's identity in the store. The left-region frame (I3-L) ensures that content before the insertion point is undisturbed. The cross-subspace frame (I3-X) ensures that link subspaces and other subspaces are unaffected by a text-subspace insertion. The cross-document frame (I3-D) ensures that other documents are unchanged. The content-store frame (I3-C) makes explicit that the shift is arrangement-only; its clause records the dom(C') = dom(C) justification. I3-V (the vacating clause) is a one-line corollary of I3-CS: any pre-state v with subspace(v) = S and v ≥ p that is not a shifted image satisfies neither I3-CS disjunct — it is not a left-region position (v ≥ p excludes v < p) and not a shifted image (by hypothesis) — so v ∉ dom(M'(d)). The domain closure clauses (I3-CS, I3-CX) pin dom(M'(d)) from above: no position enters the post-state domain except those explicitly placed by I3, I3-L, and I3-X.
+I3 grounds Nelson's central guarantee (Q1, Q5) that the permanent identity of every existing byte is invariant under insertion: "Since the links are to the bytes themselves, any links to those bytes remain stably attached to them" [LM 4/30]. The shift moves content in the document's arrangement without touching the content's identity in the store. The left-region frame (I3-L) ensures that content before the insertion point is undisturbed. The cross-subspace frame (I3-X) ensures that link subspaces and other subspaces are unaffected by a text-subspace insertion. The cross-document frame (I3-D) ensures that other documents are unchanged. The content-store frame (I3-C) makes explicit that the shift is arrangement-only; its clause records the dom(C') = dom(C) justification. I3-V (the vacating clause) is a one-line corollary of I3-CS: any pre-state v with subspace(v) = S and v ≥ p that is not a shifted image satisfies neither I3-CS disjunct — it is not a left-region position (v ≥ p excludes v < p) and not a shifted image (by hypothesis) — so v ∉ dom(M'(d)). The domain closure clauses (I3-CS, I3-CX) pin dom(M'(d)) from above: no position enters the post-state domain except those explicitly placed by I3, I3-L, and I3-X.
 
 **Consistency.** Well-definedness of M'(d) rests on two facts about the shifted region within subspace S. *Injectivity*: TS2 (ASN-0034) guarantees distinct v's produce distinct shift(v, n)'s, so the assignment I3 is single-valued. *Strict advance past p*: for v ≥ p in subspace S, shift(v, n) > v ≥ p by TS4 (ASN-0034), so no shifted output coincides with a left-region position (u < p). The remaining clauses are disjoint by subspace partition (left and shifted regions lie in subspace S; I3-X in subspaces ≠ S) and by document partition (I3-D operates on d' ≠ d), and I3-V's vacated positions are exactly those I3-CS excludes. Hence M'(d) and C' are well-defined.
 
@@ -115,7 +115,7 @@ The wp of S8a backwards through `(target := shift(v, n))` becomes a predicate ov
 
 Each conjunct is a pre-state obligation, read in order:
 
-1. *`(A i : 1 ≤ i ≤ m − 1 : vᵢ > 0)` — componentwise positivity on positions 1..m−1.* This is exactly S8a's componentwise-positivity conjunct applied to v, supplied by `v ∈ dom(M(d))` and the pre-state S8a invariant. The wp pinpoints why I3 needs `v ∈ dom(M(d))` (already given by the quantifier in I3): without that membership we would have no S8a hypothesis on v and the wp obligation would be open.
+1. *`(A i : 1 ≤ i ≤ m − 1 : vᵢ > 0)` — componentwise positivity on positions 1..m−1.* This is S8a on v, supplied by `v ∈ dom(M(d))` (the quantifier of I3) together with the pre-state S8a invariant.
 2. *`vₘ + n > 0` — strict positivity of the advanced ordinal.* Since `n ≥ 1` (I3 precondition) and `vₘ ≥ 1` (S8a on v at position m), `vₘ + n ≥ 1 + 1 = 2 > 0` by NAT-addcompat (ASN-0034). The wp pinpoints where the `n ≥ 1` precondition is consumed: composed with S8a's `vₘ ≥ 1`, it discharges this conjunct directly.
 3. *`m ≥ 2` — depth at least 2.* This is the I3 precondition `#p ≥ 2` (or equivalently the S8-depth common-depth value `m ≥ 2`), justified by S8a on the pre-state requiring `#v ≥ 2` for every `v ∈ dom(M(d))`.
 
@@ -257,7 +257,7 @@ In words: addition commutes with ordinal extraction when the displacement has a 
 
 ## Post-Contraction Shift
 
-**Scope.** Unlike the insertion shift sub-operation — which opens a gap that a composing INSERT must later fill — contraction is a *complete V-arrangement transformation* of DELETE: it removes the deleted range, slides the right region back, re-establishes the foundation's contiguity invariants, and requires no composing operation. The content store is exactly unchanged (recorded at D-I).
+**Scope.** Contraction is the V-arrangement transformation of DELETE: it removes the deleted range, slides the right region back, and re-establishes the foundation's contiguity invariants. It modifies M(d) only; the content store is exactly unchanged (recorded at D-I).
 
 We work with V-positions in the text subspace of a document's arrangement. Let M(d) : T ⇀ T denote the arrangement function for document d — a partial map from V-positions to I-addresses. The text-subspace identifier is `S = 1`, and V_1(d) = {v ∈ dom(M(d)) : subspace(v) = 1} is the set of text-subspace V-positions of document d. Throughout this section we write `V_1(d)` consistently — the contraction operation is scoped to the text subspace by the scoping axioms below, and any reference to a non-text subspace V_S(d) with S ≠ 1 is explicitly qualified. All V-positions in a given subspace share the same tumbler depth (S8-depth).
 
@@ -303,7 +303,7 @@ By trichotomy of the total order (T1, ASN-0034), every v ∈ V_1(d) falls in exa
 
 The shift is well-defined. For any v ∈ R we have v ≥ r, so OrdinalExceedsDisplacement applies directly: clause (ii) gives `ord(v) ≥ w_ord`, so by TA2 (WellDefinedSubtraction, ASN-0034) the subtraction `ord(v) ⊖ w_ord` is well-defined, and clause (iii) gives that it is `Pos`. At depth `#p = 2` this reads `ord(v) = [v₂]`, `w_ord = [c]` with `c = w₂ ≥ 1`, and `[v₂] ⊖ [c] = [v₂ − c]` with `v₂ − c ≥ 1`. The reconstructed V-position σ(v) = vpos(S, ord(v) ⊖ w_ord) then satisfies S8a by vpos's S8a-closure postcondition (local): S = 1 ≥ 1 and the ordinal is componentwise positive.
 
-What the shift preserves and changes: D-SHIFT changes the V-ordinal of each right-region position but preserves the I-address. The position in the permanent content store is unchanged; the position in the document's arrangement shifts to close the gap. This is the two-space separation in action: the arrangement (Vstream) is modified while the content (Istream) remains invariant. Nelson: "The address of a byte in its native document is of no concern to the user or to the front end; indeed, it may be constantly changing" [LM 4/11].
+D-SHIFT grounds Nelson's two-space separation: "The address of a byte in its native document is of no concern to the user or to the front end; indeed, it may be constantly changing" [LM 4/11].
 
 The contraction's effect on regions L and X, and on state outside subspace S and document d, must be stated explicitly.
 
@@ -364,7 +364,7 @@ By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥
 *Postconditions:*
 
 - (a) Algebraic identity: `ord(r) ⊖ w_ord = ord(p)`.
-- (b) When R ≠ ∅: by D-CTG, r = min(R) — the last element of X and some v ∈ R bracket r in V_1(d), so contiguity forces r ∈ V_1(d). Then σ(r) is well-defined and ord(σ(r)) = ord(p), i.e., min({ord(u) : u ∈ Q₃}) = ord(p).
+- (b) When R ≠ ∅: r ∈ V_1(d), r = min(R), and ord(σ(r)) = ord(p), i.e., min({ord(u) : u ∈ Q₃}) = ord(p).
 
 *Proof of (a).* Since r = p ⊕ w, OrdAddHom (a) gives ord(r) = ord(p) ⊕ w_ord, so the claim ord(r) ⊖ w_ord = ord(p) reduces to `(ord(p) ⊕ w_ord) ⊖ w_ord = ord(p)`, an instance of TA4 (PartialInverse, ASN-0034): `(a ⊕ w) ⊖ w = a` when Pos(w), the action point `k = #a`, `#w = k`, and `(A i : 1 ≤ i < k : aᵢ = 0)`. Here a = ord(p), w = w_ord. The preconditions discharge at depth 1: Pos(w_ord) holds by OrdinalDisplacementProjection (Pos(w) and w₁ = 0 imply Pos(w_ord)); `k = actionPoint(w_ord) = 1 = #ord(p)`; `#w_ord = 1 = k`; and the zero-prefix quantifier `1 ≤ i < 1` is vacuous. TA4 fires, giving ord(r) ⊖ w_ord = ord(p) directly. ✓
 
@@ -485,7 +485,7 @@ Each conjunct is a pre-state obligation, read in order:
 
 1. *`1 > 0` — strict positivity of the subspace identifier.* Trivially true. The wp confirms that vpos(1, …) cannot fail S8a's componentwise-positivity conjunct at position 1; this discharges against the subspace scoping axiom `S = 1`, with no further structural assumption needed.
 2. *`v₂ − c > 0` — strict positivity of the shifted ordinal.* From `v ∈ R` (D-SHIFT's quantifier), `v ≥ r`, so OrdinalExceedsDisplacement (iii) gives that `ord(v) ⊖ w_ord = [v₂ − c]` is `Pos`, i.e. `v₂ − c ≥ 1 > 0`. The lemma's tumbler-level derivation (TumblerAdd's `a ⊕ w ≥ w` for ord(r) ≥ w_ord, TA4 for the strictness via the positive difference ord(r) ⊖ w_ord = ord(p), then T1 transitivity from `ord(v) ≥ ord(r)`) discharges this. The wp clarifies that the `v ∈ R` precondition combined with `p ∈ V_1(d)` (which delivers S8a on p, hence `p₂ ≥ 1`) is doing essential work: `v ∈ R` gives `v₂ ≥ p₂ + c`, and S8a on p gives `p₂ ≥ 1`, so `v₂ − c ≥ p₂ ≥ 1`. Both inputs are load-bearing — the R-membership supplies the lower bound `p₂ + c`, and S8a on p supplies `p₂ ≥ 1`.
-3. *`2 ≥ 2` — depth at least 2.* Trivially true. The wp confirms that vpos at the restricted depth produces a depth-2 result that satisfies S8a's depth conjunct. This is where the depth scoping axiom `#p = 2` enters: at depth #p > 2, vpos would produce a deeper tumbler and the wp would need to verify positivity at intermediate components 2..m − 1 (which it cannot, because TA4's zero-prefix precondition is incompatible with S8a's componentwise positivity at those positions).
+3. *`2 ≥ 2` — depth at least 2.* Discharged by the depth scoping axiom `#p = 2`, which makes the result depth-2 and satisfies S8a's depth conjunct.
 4. *`ord(v) ≥ w_ord` — subtraction well-definedness.* Discharged by OrdinalExceedsDisplacement (ii): `v ≥ r` gives `ord(v) ≥ w_ord`. The wp surfaces TA2 (WellDefinedSubtraction, ASN-0034) as the precise foundation lemma that the assignment relies on; without TA2, `ord(v) ⊖ w_ord` would be undefined and σ(v) would not exist as a tumbler.
 
 As in the insertion half (I3-VP), the wp obligations map exactly onto the contract's preconditions with no slack: `v ∈ R` discharges conjuncts 2 and 4 (combined with S8a on p), `p ∈ V_1(d)` supplies S8a on p (hence `p₂ ≥ 1`), `#p = 2` discharges conjunct 3, and `S = 1` discharges conjunct 1.
@@ -638,7 +638,7 @@ Q₃ = {[1,2], [1,3]}.
 - *S8-depth-post:* All seven post-state V-positions have depth 2 — text positions by D-L and shift's depth preservation, link positions by D-CS retaining pre-state depths. ✓
 - *S8a-post:* All post-state V-positions are zero-free, depth 2, componentwise positive. ✓
 
-The link-subspace positions, having subspace identifier 2 ≠ 1, lie outside the quantifier ranges of D-SHIFT and D-L; D-CS pins both their position set and their I-address mappings to the pre-state. The contrast is visible in the post-state: the text subspace V_1(d') = {[1,1], [1,2], [1,3]} is contiguous and reindexed, while the link subspace V_2(d') = {[2,5], [2,9]} remains sparse and tombstone-bearing — one subspace shifts to close gaps, the other carries gaps as durable structure. ∎
+∎
 
 
 ## Span Width Preservation Under Contraction
@@ -751,3 +751,4 @@ where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* b
 
 - When external state records a V-position, what must the system provide to allow that reference to be updated after a shift repositions it?
 - Can the gap-closure formula (D-SEP) and dense partition (D-DP) be generalized to ordinals of depth greater than one while preserving the round-trip property (ord(p) ⊕ w_ord) ⊖ w_ord = ord(p) and the commutativity of shift with ordinal increment?
+- At depth greater than one, TA4's zero-prefix precondition collides with S8a's componentwise positivity at the intermediate components 2..m − 1: what weaker inverse law could replace TA4 so that the projection round-trip survives at deeper ordinals?
