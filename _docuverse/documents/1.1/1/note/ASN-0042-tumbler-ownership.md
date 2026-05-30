@@ -160,13 +160,11 @@ In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with
   `(A Σ, Σ' : Σ → Σ' ⟹ |Π_{Σ'} ∖ Π_Σ| ≤ 1)`
 
   `(A π' ∈ Π_{Σ'} ∖ Π_Σ : (E π ∈ Π_Σ :`
-  `      (i)    pfx(π) ≺ pfx(π')`
-  `      (ii)   (A π'' ∈ Π_Σ : pfx(π'') ≼ pfx(π') ⟹ #pfx(π'') ≤ #pfx(π))`
-  `      (iii)  zeros(pfx(π')) ≤ 1`
-  `      (iv)   ¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))`
-  `      (v)    (E p, d : B6(p, d) : pfx(π') = next(Σ.B, p, d) = c_{hwm(Σ.B,p,d)+1}) ))`
-
-Condition (ii) is the *authorization* clause — the delegator `π` must be the most-specific covering principal of `pfx(π')` in `Π_Σ`, so no principal may delegate within a sub-domain it has already delegated away. Condition (iv) enforces *top-down delegation order* — a parent prefix must be delegated before any child prefix strictly within it, so the delegate has full authority over its domain from the moment of creation. Condition (v) is the *next-reachability* gate — `pfx(π') = next(Σ.B, p, d)` for some B6-valid namespace `(p, d)`; equivalently, the delegate prefix is `c_{hwm(Σ.B,p,d)+1}`, the next element of the sibling stream `S(p, d)`.
+  `      (i)    [ancestry]        pfx(π) ≺ pfx(π')`
+  `      (ii)   [authorization]   (A π'' ∈ Π_Σ : pfx(π'') ≼ pfx(π') ⟹ #pfx(π'') ≤ #pfx(π))`
+  `      (iii)  [structural-tier] zeros(pfx(π')) ≤ 1`
+  `      (iv)   [top-down-order]  ¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))`
+  `      (v)    [next-reachable]  (E p, d : B6(p, d) : pfx(π') = next(Σ.B, p, d) = c_{hwm(Σ.B,p,d)+1}) ))`
 
 Nelson's design contains no concept of principals appearing outside the delegation hierarchy, and Gregory's codebase provides no mechanism for it.
 
@@ -384,7 +382,7 @@ We conclude: `ω_{Σ'}(a) ≠ ω_Σ(a)` implies `(E π_d ∈ Π_Σ, π' ∈ Π_{
 
   `(A π ∈ Π_Σ, Σ, Σ' : Σ → Σ' ∧ (E a ∈ odom(π) ∩ Σ.B : ω_{Σ'}(a) ≠ ω_Σ(a))  ⟹  (E π_d ∈ Π_Σ : pfx(π) ≼ pfx(π_d) ∧ covers_Σ*(π, π_d) ∧ (E π' ∈ Π_{Σ'} ∖ Π_Σ : delegated_Σ(π_d, π'))))`
 
-That is: if any address in `odom(π)` changes effective owner across a single transition, the delegator `π_d` responsible for that transition has a prefix extending `pfx(π)` and is reached from `π` along the delegation cover-chain — formally `covers_Σ*(π, π_d)`, the relation of the *Principal Registry* section. In words, `π_d` is `π` itself or a sub-delegate of `π`. This is the formal consumer of NestingByDelegation: the "sub-delegate" reading is not informal commentary but the `covers_Σ*` conjunct, discharged in Step 4 below.
+That is: if any address in `odom(π)` changes effective owner across a single transition, the delegator `π_d` responsible for that transition has a prefix extending `pfx(π)` and is reached from `π` along the delegation cover-chain — formally `covers_Σ*(π, π_d)`, the relation of the *Principal Registry* section. In words, `π_d` is `π` itself or a sub-delegate of `π`.
 
 We prove this directly for a single transition `Σ → Σ'`. The formal statement quantifies over one transition; we make no induction on transition count.
 
@@ -524,7 +522,7 @@ Only the third case is consistent. Every pre-existing covering principal `π'' �
 
 *Postcondition (b): O5 applies to `π'`.*
 
-O5 (SubdivisionAuthority) requires that the allocator of a new address be the most-specific covering principal. By postcondition (a), `ω_{Σ'}(a) = π'` for every `a ∈ odom(π') ∩ Σ'.B` — `π'` has the longest matching prefix in its domain. For any new address `a` allocated within `odom(π')` in a successor transition `Σ' → Σ''`, O5's two conjuncts are: `pfx(π') ≼ a` (which holds by `a ∈ odom(π')`) and `(A π'' ∈ Π_{Σ'} : pfx(π'') ≼ a ⟹ #pfx(π'') ≤ #pfx(π'))` (which holds because postcondition (a) established that no principal in `Π_{Σ'}` has a longer matching prefix within `odom(π')` than `π'`). Hence `π'` satisfies O5's authorization condition for allocating within `odom(π')`.
+O5 (SubdivisionAuthority) constrains the allocator of any newly baptized address to be a most-specific covering principal; we show that an allocation within `odom(π')` is performed by `π'`. A fresh address may be baptized within `odom(π')` — for instance via `Bop(pfx(π'), 2)`, applicable because B6 (ValidDepth, ASN-0040) holds for `(pfx(π'), 2)`: `T4(pfx(π'))` by Freshness-(v), `d = 2`, and `zeros(pfx(π')) + 1 ∈ {1, 2}` by O1a, all within B6's bounds. Let `a ∈ Σ''.B ∖ Σ'.B` be such an address allocated within `odom(π')` in a successor transition `Σ' → Σ''`, so `pfx(π') ≼ a`. By O16 (AllocationClosure), `a` has some allocator `π''' ∈ Π_{Σ'}`. By O5, `pfx(π''') ≼ a` and `π'''` is a most-specific covering principal of `a` in `Π_{Σ'}`. By postcondition (a), no principal in `Π_{Σ'}` covering an address of `odom(π')` has a prefix longer than `pfx(π')`, so `#pfx(π''') ≤ #pfx(π')`; and since `π'` itself covers `a`, the most-specific cover has length at least `#pfx(π')`, forcing `#pfx(π''') = #pfx(π')`. By O1b (PrefixInjectivity), at most one principal carries that prefix, so `π''' = π'`. The allocation is therefore performed by `π'` itself — `allocated_by_{Σ''}(π', a)` — establishing that `π'` holds subdivision authority over `odom(π')`.
 
 *Postcondition (c): recursive delegation (conditional on remaining most-specific).*
 
@@ -536,7 +534,7 @@ Nelson: "Whoever owns a specific node, account, document or version may in turn 
 
 *Formal Contract:*
 - *Preconditions:* `delegated_Σ(π, π')`, `Σ → Σ'`.
-- *Postconditions:* (a) `(A a ∈ odom(π') ∩ Σ'.B : ω_{Σ'}(a) = π')`; (b) `π'` satisfies O5 for allocations within `odom(π')`; (c) the delegation relation is satisfiable with `π'` as delegator for a sub-prefix `p''` (with `pfx(π') ≺ p''`) at every prospective delegation state at which O15 conditions (ii), (iv), and (v) hold for `p''` (the entry-state versus per-state discharge of these conditions is established in the proof of postcondition (c) above).
+- *Postconditions:* (a) `(A a ∈ odom(π') ∩ Σ'.B : ω_{Σ'}(a) = π')`; (b) `π'` satisfies O5 for allocations within `odom(π')`; (c) `π'` may delegate a sub-prefix `p''` (with `pfx(π') ≺ p''`) to a new principal whenever O15 conditions (ii), (iv), and (v) hold for `p''` at the prospective delegation state; by (v) the admitted `p''` is a `next`-reachable single-step stream extension `p'' = next(Σ.B, p, d)` of an already-baptized prefix, not an arbitrary strict descendant.
 - *Invariant:* Delegation confers full sovereignty — the delegate becomes the effective owner of its entire domain immediately upon delegation, and acquires the rights to allocate and sub-delegate within that domain.
 
 The delegation is irrevocable:
@@ -645,7 +643,7 @@ We must establish that such an `a'` exists in every reachable state — that `π
 
 In both `zeros(pfx(π)) = 0` and `zeros(pfx(π)) = 1` cases, no sub-delegate of `π` covers `a'`. To conclude that `π` itself achieves the unique longest match, we must also rule out competition from non-sub-delegate covering principals. Let `π'' ∈ Π_Σ` be any covering principal of `a'` with `π'' ≠ π` — i.e., `pfx(π'') ≼ a'`. Both `pfx(π'')` and `pfx(π)` are prefixes of `a'`; by the covering-chain lemma (O2's Step 2 — any two prefixes of the same address are `≼`-comparable), they are linearly ordered. Three cases exhaust the comparison: (1) `pfx(π'') = pfx(π)` is excluded by O1b (PrefixInjectivity) given `π'' ≠ π`; (2) `pfx(π) ≺ pfx(π'')` makes `π''` a sub-delegate of `π`, ruled out by the Form A/B analysis above; (3) `pfx(π'') ≺ pfx(π)`, which forces `#pfx(π'') < #pfx(π)`. Only case (3) remains, so every non-`π` covering principal in `Π_Σ` has prefix length strictly less than `#pfx(π)`. Hence `π` achieves the unique longest matching prefix in `Π_Σ` for `a'`, and `ω_{Σ'}(a') = π` (where `Σ'` is the post-baptism state; `Π_{Σ'} = Π_Σ` by O15, since baptism introduces no principals).
 
-*Per-baptism authorization.* The single baptism is performed by `π`, the most-specific covering principal of `a'` at `Σ` (by the non-coverage analysis). O5 (SubdivisionAuthority) is satisfied. B6 holds (verified above). The baptism is authorized.
+*Per-baptism authorization.* By O16 (AllocationClosure), the freshly baptized `a' ∈ Σ'.B ∖ Σ.B` has some allocator `π''' ∈ Π_Σ`; by O5 (SubdivisionAuthority) that allocator is a most-specific covering principal of `a'`. The non-coverage analysis established that `π` is the unique longest-match — hence most-specific — covering principal of `a'` in `Π_Σ`, and O1b (PrefixInjectivity) makes the principal of that prefix unique, so `π''' = π`. The single baptism is therefore performed by `π` itself — `allocated_by_{Σ'}(π, a')` — and with B6 verified above, the baptism is authorized.
 
 *Trajectory closure.* The baptism does not modify `Π` (by O15) or remove any pre-existing baptized address from the registry (by B0 Irrevocability of ASN-0040: `Σ.B ⊆ Σ'.B`). The original address `a` remains in `Σ'.B` with its ownership unchanged: `ω_{Σ'}(a) = ω_Σ(a) ≠ π`. The fork postcondition is satisfied: `a' ∈ odom(π) ∩ Σ'.B ∧ ω_{Σ'}(a') = π`, with `a ∈ Σ'.B` unchanged. ∎
 
