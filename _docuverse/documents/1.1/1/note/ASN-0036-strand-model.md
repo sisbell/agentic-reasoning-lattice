@@ -283,11 +283,9 @@ Gregory's evidence supports it: V-addresses in the text subspace consistently us
 
 S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: a position `v` is followed by `shift(v, 1)` (equivalently `v ⊕ δ(1, #v)` per OrdinalShift, ASN-0034), the next ordinal at the same depth.
 
-The successor `shift(v, 1) = v ⊕ δ(1, #v)` per OrdinalShift (ASN-0034) is the next ordinal at the same depth. By OrdinalShift's postconditions, for `m = #v ≥ 2`, `shift(v, 1)` agrees with `v` on positions `1 ≤ i < m` and sets `shift(v, 1)_m = v_m + 1`, so it preserves the subspace identifier `v₁` while incrementing only the ordinal component.
-
 ### Shift preservation for V-positions
 
-S8a establishes V-positions as element-field tumblers whose first component is the subspace identifier (`subspace(v) = v₁`). The lockstep partition of S8 advances a V-position by `shift(v, n) = v ⊕ δ(n, m)` (OrdinalShift, ASN-0034), where `δ(n, m) = [0, ..., 0, n]` of length `m` (OrdinalDisplacement, ASN-0034). We need exactly two facts about this advance: it preserves the subspace identifier, and it preserves S8a well-formedness. Both follow directly from TumblerAdd's component formula applied to `δ(n, m)`, whose single nonzero component sits at the action point with no tail beyond.
+The lockstep partition of S8 advances a V-position by `shift(v, n) = v ⊕ δ(n, m)` (OrdinalShift, ASN-0034), where `δ(n, m) = [0, ..., 0, n]` of length `m` (OrdinalDisplacement, ASN-0034); the following lemma records the two facts we use about this advance.
 
 **OrdShiftHom** — *OrdinalShiftPreservation* (LEMMA). For a V-position `v` with `#v = m ≥ 2` and `n ≥ 1`:
 
@@ -306,7 +304,7 @@ S8a establishes V-positions as element-field tumblers whose first component is t
 *Formal Contract:*
 - *Preconditions:* `v ∈ T`, `#v = m ≥ 2`, `n ≥ 1`.
 - *Postconditions:* (a) `subspace(shift(v, n)) = subspace(v)`. (b) When `v` satisfies S8a, `shift(v, n)` satisfies S8a.
-- *Depends:* OrdinalShift (ASN-0034) — `shift(v, n) = v ⊕ δ(n, m)`; OrdinalDisplacement (ASN-0034) — `δ(n, m) = [0, ..., 0, n]` with action point `m`; TumblerAdd (PositionAdvance, ASN-0034) — the component formula copying positions before the action point; TA0 (length preservation, ASN-0034) — `#shift(v, n) = m`; S8a (V-position well-formedness) — supplies `vᵢ ≥ 1` for part (c).
+- *Depends:* OrdinalShift (ASN-0034) — `shift(v, n) = v ⊕ δ(n, m)`; OrdinalDisplacement (ASN-0034) — `δ(n, m) = [0, ..., 0, n]` with action point `m`; TumblerAdd (PositionAdvance, ASN-0034) — the component formula copying positions before the action point; TA0 (length preservation, ASN-0034) — `#shift(v, n) = m`; S8a (V-position well-formedness) — supplies `vᵢ ≥ 1` for part (b).
 
 **S8 (Correspondence-run partition).** For each document `d`, the active V-positions `dom(Σ.M(d))` decompose into finitely many *correspondence runs*. Under the convention `shift(t, 0) := t`, a correspondence run is a triple `(v, a, n)` with `v ∈ dom(M(d))`, `a = M(d)(v)`, and `n ≥ 1`, such that for every `k` with `0 ≤ k < n`:
 
