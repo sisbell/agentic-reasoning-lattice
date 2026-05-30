@@ -30,7 +30,7 @@ A conventional system merges these — "the file" IS the content IS the arrangem
 *Formal Contract:*
 - *Axiom:* `Σ.M(d) : T ⇀ T` — the arrangement of document `d` is a partial function from V-position tumblers to I-address tumblers.
 - *Axiom (domain restriction):* `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions; every active key is a zero-free tumbler of depth at least 2 (a subspace identifier followed by a within-subspace ordinal).
-- *Postcondition (per-component form):* By T0 (ASN-0034), `zeros(t) = 0` holds exactly when every component is positive, so the domain restriction is equivalently `(A v ∈ dom(Σ.M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`. Call this per-component form "S8a".
+- *Definition (S8a — V-position well-formedness):* The per-component form of the domain restriction. By T0 (ASN-0034), `zeros(t) = 0` holds exactly when every component is positive, so the domain restriction above is equivalently `S8a ≡ (A v ∈ dom(Σ.M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`. This named property — every active V-position is a zero-free tumbler of depth at least 2 with all components positive — is the premise that S8, OrdShiftHom, D-CTG, D-CTG-depth, D-SEQ, and the insertion-position predicates cite as `S8a`.
 - *Definition:* `dom(Σ.M(d)) = {v ∈ T : Σ.M(d)(v) is defined}` — the set of V-positions currently active in `d`.
 - *Definition:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` — the set of I-addresses that `d` currently references.
 
@@ -134,7 +134,7 @@ The arrangement function `M(d)` need not be injective. This is not a deficiency 
 
 **S5 (Unrestricted sharing).** The same I-address may appear in the ranges of multiple arrangements, and at multiple V-positions within a single arrangement. S0–S3 are consistent with any finite sharing multiplicity — they place no constraint on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|`:
 
-`(A N ∈ ℕ :: (E Σ :: Σ satisfies the state-level invariants S2, S3 ∧ (E a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N)))`
+`(A N ∈ ℕ :: (E Σ :: Σ is the initial state of a model of S0–S3 ∧ (E a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N)))`
 
 In any particular state, the sharing multiplicity of each address is a definite finite number — possibly zero for orphaned content — but no invariant imposes a uniform bound that holds across all states.
 
@@ -142,9 +142,9 @@ Nelson: "The virtual byte stream of a document may include bytes from any other 
 
 S4 and S5 together make quotation a first-class structural relationship: any number of documents can quote the same passage, and the system knows they are all quoting — not independently writing — because they share I-addresses.
 
-*Proof.* We wish to show that for every `N ∈ ℕ`, there exists a state `Σ` satisfying the state-level invariants S2, S3 in which some I-address has sharing multiplicity exceeding `N`. We give two constructions — one for cross-document sharing, one for within-document sharing — each succeeding for arbitrary `N`.
+*Proof.* We wish to show that for every `N ∈ ℕ`, there exists a state `Σ` that is the initial state of a model of S0–S3 (S0, S1 holding vacuously, S2, S3 holding on the state) in which some I-address has sharing multiplicity exceeding `N`. We give two constructions — one for cross-document sharing, one for within-document sharing — each succeeding for arbitrary `N`.
 
-**Shared facts.** Both constructions use the same content store `C = {a ↦ w}` for a single I-address `a` and arbitrary `w ∈ Val`, and V-positions of the form `[1, k]` with `k ≥ 1`. S0 (content immutability) and S1 (store monotonicity) are transition-level invariants — quantified over transitions `Σ → Σ'`, not over a single state — so they impose no constraint on the standalone witness `Σ_N`; the only invariants to discharge on a single state are the state-level S2 and S3. S3 (referential integrity) holds identically in both constructions: the sole I-address referenced by any arrangement is `a`, which lies in the content domain `dom(C) = {a}` by construction. The two constructions differ only in document/V-position multiplicity; we verify the remaining state-level invariant S2 (arrangement functionality) per construction.
+**Shared facts.** Both constructions use the same content store `C = {a ↦ w}` for a single I-address `a` and arbitrary `w ∈ Val`, and V-positions of the form `[1, k]` with `k ≥ 1`. S0 (content immutability) and S1 (store monotonicity) are transition-level invariants — quantified over transitions `Σ → Σ'`. To exhibit each witness as a genuine model of S0–S3 (not merely of the state-level fragment), we take it as the *initial state of the trivial transition system whose transition relation is empty*: with no transition `Σ → Σ'` to range over, the universally quantified S0 and S1 hold vacuously, so the witness models S0 and S1. The only invariants that constrain the single state itself are the state-level S2 and S3, which we discharge per construction. S3 (referential integrity) holds identically in both constructions: the sole I-address referenced by any arrangement is `a`, which lies in the content domain `dom(C) = {a}` by construction. The two constructions differ only in document/V-position multiplicity; we verify the remaining state-level invariant S2 (arrangement functionality) per construction.
 
 **Cross-document construction.** Fix `N ∈ ℕ`. Define state `Σ_N = (C_N, M_N)` by:
 
@@ -164,11 +164,11 @@ We verify the construction-specific invariant. S2 (arrangement functionality): t
 
 The within-document sharing multiplicity is `|{v : v ∈ dom(M'_N(d)) ∧ M'_N(d)(v) = a}| = N + 1 > N`.
 
-**Conclusion.** Since both constructions yield states satisfying the state-level invariants S2, S3 for arbitrary `N ∈ ℕ`, sharing multiplicity exceeding any given finite bound is consistent with S0–S3 alone. No finite cap on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|` is entailed by S0–S3 — neither across documents nor within a single document. ∎
+**Conclusion.** Each construction yields, for arbitrary `N ∈ ℕ`, the initial state of a model of S0–S3 — S0 and S1 vacuously satisfied by the empty transition relation, S2 and S3 verified on the state — in which the sharing multiplicity exceeds `N`. Since each witness is a genuine model of the full invariant set S0–S3, sharing multiplicity exceeding any given finite bound is consistent with S0–S3 alone. No finite cap on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|` is entailed by S0–S3 — neither across documents nor within a single document. ∎
 
 *Formal Contract:*
 - *Preconditions:* `N ∈ ℕ` arbitrary.
-- *Postconditions:* There exists a state `Σ` satisfying the state-level invariants S2, S3 such that for some `a ∈ dom(Σ.C)`, `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N`. The construction works both across documents (multiplicity `N + 1` over `N + 1` documents) and within a single document (multiplicity `N + 1` at `N + 1` distinct V-positions).
+- *Postconditions:* There exists a state `Σ` — the initial state of a model of S0–S3, with S0, S1 vacuously satisfied by the empty transition relation and S2, S3 verified on the state — such that for some `a ∈ dom(Σ.C)`, `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N`. The construction works both across documents (multiplicity `N + 1` over `N + 1` documents) and within a single document (multiplicity `N + 1` at `N + 1` distinct V-positions).
 - *Depends:* S0, S1, S2, S3, T3 (ASN-0034).
 
 
@@ -288,7 +288,7 @@ Ordinal shift `shift(v, n)` (OrdinalShift, ASN-0034) preserves a V-position's su
 
 (a) **Lockstep displacement** — `shift(v, k) ∈ dom(M(d))` and `M(d)(shift(v, k)) = shift(a, k)`: the V-positions and their images advance in lockstep under ordinal displacement.
 
-(b) The run carries a well-defined label `a = M(d)(v) ∈ dom(Σ.C)` — the label exists and is unique because `M(d)` is a function (S2), and `a ∈ dom(Σ.C)` by referential integrity (S3). Each lockstep image `shift(a, k)` lies in `dom(Σ.C)` because the lockstep equality gives `shift(a, k) = M(d)(shift(v, k))` with `shift(v, k) ∈ dom(M(d))`, whence `shift(a, k) ∈ ran(M(d)) ⊆ dom(Σ.C)` by S3.
+(b) The run carries a well-defined label `a = M(d)(v) ∈ dom(Σ.C)` — the label exists and is unique because `M(d)` is a function (S2), and `a ∈ dom(Σ.C)` by referential integrity (S3). First, `shift(a, k)` is itself a well-defined tumbler: `a` is an element-level I-address (`zeros(a) = 3`, S7b), and although OrdShiftHom does not license a shift on `a` (it is proved only for S8a-positive V-positions), `shift(a, k) = a ⊕ δ(k, #a)` is well-defined directly by OrdinalShift (ASN-0034) — its displacement `δ(k, #a)` has action point `#a`, so TumblerAdd's precondition `actionPoint(δ(k, #a)) = #a ≤ #a` holds, and the operation merely increments `a`'s last component by `k`, leaving the internal zeros untouched. Each such lockstep image `shift(a, k)` then lies in `dom(Σ.C)` because the lockstep equality gives `shift(a, k) = M(d)(shift(v, k))` with `shift(v, k) ∈ dom(M(d))`, whence `shift(a, k) ∈ ran(M(d)) ⊆ dom(Σ.C)` by S3.
 
 A run is *maximal* when it admits neither forward extension (no run `(v, a, n+1)`) nor backward extension (no lockstep predecessor `u` with `shift(u, 1) = v`, `u ∈ dom(M(d))`, `shift(M(d)(u), 1) = a`). The maximal runs partition `dom(Σ.M(d))`, and the maximal-run decomposition is unique.
 
