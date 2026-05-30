@@ -87,7 +87,7 @@ Links and `s_C`-resident content cannot share an address. They are peers in the 
 
 This parallels S7b for content (ASN-0036). A link address carries all four tumbler fields (node, user, document, element), enabling the same structural attribution that content addresses enjoy. Gregory confirms: link addresses are allocated by `findisatoinsertmolecule` with the `LINKATOM` hint, producing full element-level tumblers.
 
-**L1a — LinkScopedAllocation.** Every link address is allocated under the tumbler prefix of the document whose owner created it. By L1 (above), `zeros(a) = 3` for every `a ∈ dom(Σ.L)`, placing the address at element level with all four tumbler fields present. By L1c's T4-validity postcondition (below), every link address is T4-valid, so T4b's projections `N(a)`, `U(a)`, `D(a)` (UniqueParse, ASN-0034) are well-defined on every `a ∈ dom(Σ.L)`. The document-level prefix is therefore extractable as `N(a).0.U(a).0.D(a)`, and we state the invariant in terms of this field-extraction formula directly:
+**L1a — LinkScopedAllocation.** Every link address is allocated under the tumbler prefix of the document whose owner created it. By L1 (above), `zeros(a) = 3` for every `a ∈ dom(Σ.L)`, placing the address at element level with all four tumbler fields present. By L1c's T4-validity postcondition (below), T4b's projections `N(a)`, `U(a)`, `D(a)` (UniqueParse, ASN-0034) are well-defined on every `a ∈ dom(Σ.L)`. The document-level prefix is therefore extractable as `N(a).0.U(a).0.D(a)`, and we state the invariant in terms of this field-extraction formula directly:
 
 `(A a ∈ dom(Σ.L) :: N(a).0.U(a).0.D(a) ∈ dom(Σ.M))`
 
@@ -120,13 +120,13 @@ The single `k₁ = 2` step seats the field-separating zero at position `#s + 1`,
 
 ## Home and Ownership
 
-Because link addresses are element-level tumblers (L1) allocated under their creating document's prefix (L1a), the same field-extraction formula that ASN-0036 uses to define `origin` on `dom(Σ.C)` is well-defined for link addresses: by L1c's T4-validity postcondition together with L1's `zeros(a) = 3`, T4b's projections `N(a)`, `U(a)`, `D(a)`, `E(a)` are well-defined on every link address. We define the link analog directly.
+Because link addresses are element-level tumblers (L1) allocated under their creating document's prefix (L1a), the same field-extraction formula that ASN-0036 uses to define `origin` on `dom(Σ.C)` applies to link addresses. We define the link analog directly.
 
 **Definition — LinkHome.** For a link at address `a ∈ dom(Σ.L)`, its *home document* is:
 
 `home(a) = N(a).0.U(a).0.D(a)`
 
-This is the same formula as `origin` (ASN-0036), applied here to link addresses rather than content addresses, and it is the same quantity that L1c denotes `h(a)`: `h(a) ≡ home(a)`. The domain extension is justified: by L1c's T4-validity postcondition link addresses are T4-valid; L1 establishes `zeros(a) = 3`, placing them at element level with all four fields present; therefore T4b's projections `N`, `U`, `D` are well-defined and the formula computes correctly.
+This is the same formula as `origin` (ASN-0036), applied here to link addresses rather than content addresses, and it is the same quantity that L1c denotes `h(a)`: `h(a) ≡ home(a)`. The formula is well-defined on every link address: by L1c's T4-validity postcondition link addresses are T4-valid, and L1's `zeros(a) = 3` places them at element level with all four fields present, so T4b's projections `N`, `U`, `D` are well-defined.
 
 By GlobalUniqueness (ASN-0034), no two allocation events produce the same address. Link addresses are produced by allocation events conforming to T10a (L1c). Therefore each link receives a globally unique address.
 
@@ -278,7 +278,7 @@ This is a profound design choice. It decouples classification from content retri
 
 *Selection of `d'` (a T10a-allocated document under 𝒯).* L1a requires `home(a) ∈ dom(Σ'.M)`, and S7d requires every entry of `dom(Σ'.M)` to be a node in the system's allocator tree 𝒯 produced by a T10a allocation event. By the L9 precondition `dom(Σ.M) ≠ ∅`, pick any `d ∈ dom(Σ.M)` and set `d' = d`. By S7d on `Σ`, `d` is the terminus of a T10a-conforming allocator chain from 𝒯's root: the root is T4-valid by T10a's root-of-allocator-tree axiom, and T10a.4 (T4PreservationUnderDiscipline) propagates T4-validity along each chain step, so `d` is T4-valid. Reusing the existing arrangement keeps `Σ'.M = Σ.M`, so no new document allocation event is introduced. `d'` is therefore a T4-valid document-level tumbler (`zeros(d') = 2`, by S7d) with `d' ∈ dom(Σ.M) = dom(Σ'.M)`. Only `zeros(d') = 2` and T4-validity are load-bearing for the steps that follow; `d'`'s concrete value depends on which document of `Σ` is reused.
 
-*Construction of `g` (T4-valid ghost address in subspace `s_X`).* Build `g = d'.0.s_X.1` — concatenate `[0, s_X, 1]` to `d'`. T4-validity: `d'` is T4-valid with `zeros(d') = 2`; appending `0` introduces one new zero (so `zeros(g) = 3`); the last component of `d'` is strictly positive by T4-validity of `d'`, so the new `0` does not create adjacent zeros, and `s_X ≥ 1` separates the new `0` from the trailing `1`; the first component of `g` (inherited from `d'`) and the last (`1`) are strictly positive; every non-separator component is strictly positive (inherited components by T4-validity of `d'`; `s_X ≥ 1` by construction; `1 > 0` at the tail). T4b's projections therefore apply: `E(g) = [s_X, 1]`, giving `subspace_I(g) = s_X` and `#E(g) = 2`. By L0 applied to `Σ`, `dom(Σ.L) ⊆ {t : subspace_I(t) = s_L}`; by the L9 precondition (`s_C`-residence of content), `dom(Σ.C) ⊆ {t : subspace_I(t) = s_C}`. T7's full precondition is discharged: T4-validity of `g` is direct from construction; T4-validity of `b ∈ dom(Σ.C)` follows from S7b's well-definedness of T4b's projections on `b` together with T4b's domain (UniqueParse, ASN-0034) being the T4-valid subset of `T`; T4-validity of `b ∈ dom(Σ.L)` follows from L1c's T4-validity postcondition (derived via T10a.4 from the chain); the zero counts match (`zeros(g) = 3`, and `zeros(b) = 3` by S7b and L1). Since `s_X ≠ s_C` and `s_X ≠ s_L`, T7 gives `g ∉ dom(Σ.C) ∪ dom(Σ.L)` — by subspace separation under L0 and the L9 precondition, regardless of the size of these domains.
+*Construction of `g` (T4-valid ghost address in subspace `s_X`).* Build `g = d'.0.s_X.1` — concatenate `[0, s_X, 1]` to `d'`. T4-validity: `d'` is T4-valid with `zeros(d') = 2`; appending `0` introduces one new zero (so `zeros(g) = 3`); the last component of `d'` is strictly positive by T4-validity of `d'`, so the new `0` does not create adjacent zeros, and `s_X ≥ 1` separates the new `0` from the trailing `1`; the first component of `g` (inherited from `d'`) and the last (`1`) are strictly positive; every non-separator component is strictly positive (inherited components by T4-validity of `d'`; `s_X ≥ 1` by construction; `1 > 0` at the tail). T4b's projections therefore apply: `E(g) = [s_X, 1]`, giving `subspace_I(g) = s_X` and `#E(g) = 2`. By L0 applied to `Σ`, `dom(Σ.L) ⊆ {t : subspace_I(t) = s_L}`; by the L9 precondition (`s_C`-residence of content), `dom(Σ.C) ⊆ {t : subspace_I(t) = s_C}`. T7's full precondition is discharged: T4-validity of `g` is direct from construction; T4-validity of `b ∈ dom(Σ.C)` is the content-address T4-validity established in L0a above; T4-validity of `b ∈ dom(Σ.L)` follows from L1c's T4-validity postcondition (derived via T10a.4 from the chain); the zero counts match (`zeros(g) = 3`, and `zeros(b) = 3` by S7b and L1). Since `s_X ≠ s_C` and `s_X ≠ s_L`, T7 gives `g ∉ dom(Σ.C) ∪ dom(Σ.L)` — by subspace separation under L0 and the L9 precondition, regardless of the size of these domains.
 
 *Choice of `a` (fresh link address under `d'`).* By L-fin, `dom(Σ.L)` is finite. By T0(a), element-field component values are unbounded, so infinitely many element-level tumblers with `subspace_I(·) = s_L` and `#E(·) ≥ 2` exist within `d'`'s link subspace. The concrete construction of `a` and the freshness argument `a ∉ dom(Σ.L)` are case-split per `d'`'s prior link-allocation state and discharged in the L1c verification below; both the structural producibility chain (for L1c) and the disjointness from `dom(Σ.L)` (for L11a) are exhibited there by direct chain-prefix and case-hypothesis reasoning.
 
@@ -328,10 +328,6 @@ A consequence of L8 and L9 together: new link types can be defined by choosing a
 **Axiom — PrefixSpanCoverage (span/tumbler algebra).** For any tumbler `x` with `#x ≥ 1`, the unit-depth displacement `δ(1, #x)` (OrdinalDisplacement, ASN-0034) is `[0, ..., 0, 1]` of length `#x`, with action point `k = #x`; the span `(x, δ(1, #x))` is well-formed by T12; and:
 
 `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`
-
-(note `x ⊕ δ(1, #x) = shift(x, 1)` by OrdinalShift, ASN-0034 — a supporting identity, not an equivalent form).
-
-This identity is a property of spans and tumblers, with no link-specific content: it speaks only of `coverage`, `δ`, `shift`, and `≼`, all defined in ASN-0034 (tumbler algebra) and the span-algebra layer. It is a span/tumbler-algebra fact, adopted here as an axiom pending a span-algebra ASN.
 
 **L10 — TypeHierarchyByContainment.** For type addresses `p, c ∈ T` where `p ≼ c` (p is a prefix of c), define `subtypes(p) = {c ∈ T : p ≼ c}`. By T5 (ContiguousSubtrees, ASN-0034), `subtypes(p)` is a contiguous interval under T1. By PrefixSpanCoverage:
 
@@ -472,13 +468,13 @@ The two primitives are peers. Both have permanent tumbler addresses. Both are st
 
 Content identity is *shareable*: the same I-address can appear in the arrangements of multiple documents via transclusion, and this sharing is the mechanism for content reuse (S5, ASN-0036). Link identity is *non-transcludable*: no arrangement may map a V-position to a link address. We state this as an explicit invariant:
 
-**L14a — NonTranscludability.**
+**L14a — NonTranscludability.** In any system whose content is `s_C`-resident (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`):
 
 `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∉ dom(Σ.L))`
 
 A connection is an assertion by a specific principal about specific content, and assertions are not transferable by reference. A link at address `a` is homed in `home(a)` and owned by the principal of `home(a)` — period. It cannot be transcluded into another owner's authority.
 
-Under the current model, S3 together with L0+L0a satisfies L14a in the `s_C`-resident regime: S3 (ReferentialIntegrity, ASN-0036) requires `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`, and L0+L0a establish `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`, so no `s_C`-resident V-position image can be a link address.
+This is discharged by S3 together with L0+L0a: S3 (ReferentialIntegrity, ASN-0036) requires `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`; the `s_C`-residence hypothesis places `Σ.M(d)(v)` in `dom(Σ.C)|_{s_C}`; and L0+L0a establish `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`, so no V-position image can be a link address. The `s_C`-residence hypothesis is load-bearing: without it, S3 alone places the image only in `dom(Σ.C)`, and subspace separation does not exclude a non-`s_C`-resident content address from `dom(Σ.L)`. The first Open Question records the ASN-0036 strengthening that would lift this hypothesis.
 
 
 ## Summary of the Link Model
@@ -714,7 +710,7 @@ The discrimination is structural: `g` and `g'` differ only at the tail (position
 | L12b | LEMMA | HomeDocumentPersistence — `{home(a) : a ∈ dom(Σ.L)} ⊆ dom(Σ'.M)` for every state transition; joint consequence of L1a (at `Σ'`) and L12a | introduced |
 | L13 | LEMMA | ReflexiveAddressing — link addresses are valid endset span targets; canonical span coverage by PrefixSpanCoverage | introduced |
 | L14 | INV | DualPrimitive — stored entities partition into content (`dom(Σ.C)`) and links (`dom(Σ.L)`) with no third category | introduced |
-| L14a | INV | NonTranscludability — `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∉ dom(Σ.L))`; independent of S3 formulation | introduced |
+| L14a | INV | NonTranscludability (under `s_C`-resident content) — `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∉ dom(Σ.L))` | introduced |
 | coverage(e) | DEF | the union of address sets denoted by the spans in endset e | introduced |
 | home(a) | DEF | document-level prefix extracted from a link address via T4 field parsing — the document under whose prefix the link resides | introduced |
 | Endset | DEF | `𝒫_fin(Span)` — a finite set of well-formed spans | introduced |
