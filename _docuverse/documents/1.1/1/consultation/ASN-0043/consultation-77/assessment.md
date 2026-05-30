@@ -3,25 +3,25 @@
 **Date:** 2026-05-30 09:04
 
 ## Issue 1: L1a justifies the L1a/L1c division of labor
-Reason: Pure editorial deletion of document-organization rationale; no design intent or implementation evidence bears on whether to remove a sentence explaining the split. Internal.
+Reason: Pure editorial deletion of document-organization rationale; the fix removes a clause without touching the invariant's content. Derivable from the ASN alone.
 
 ## Issue 2: Properties table re-proves L1c and L11a
-Reason: Collapsing duplicated proof bodies in the summary table to one-line statements is a mechanical editing fix using content already in the ASN body. Internal.
+Reason: Collapsing duplicated proof bodies in summary rows to one-line statements is a mechanical editorial fix; the proofs already live in the body. No channel needed.
 
 ## Issue 3: L12b states its conclusion twice
-Reason: Deleting a redundant restatement paragraph while keeping the derivation is purely internal; nothing depends on Nelson or Gregory. Internal.
+Reason: Deleting a redundant restatement paragraph while keeping the derivation is internal; no design intent or implementation evidence is at issue.
 
 ## Issue 4: L3's non-emptiness paragraph is why-needed essay plus forward consequence
-Reason: Removing rationale/use-site notes and relocating the coverage equivalence to its use site is a structural edit fully determined by the ASN's own content. Internal.
+Reason: Removing rationale, use-site notes, and downstream anticipation is editorial cleanup; the conjunct itself and the coverage equivalence already exist in the ASN.
 
 ## Issue 5: L9 preconditions get load-bearing essays
-Reason: The constructive proof already exercises both preconditions; dropping the standalone justification paragraphs requires no external input. Internal.
+Reason: The preconditions are already exercised constructively in the proof, so dropping the standalone justifications is internal pruning that loses no derivational content.
 
 ## Issue 6: StateExtension definition enumerates its downstream consumers
-Reason: Trimming a use-site clause from a definition is purely editorial. Internal.
+Reason: Trimming a use-site clause from a definition is purely editorial; the definition's extension condition stands on its own.
 
 ## Issue 7: L0 explains why L0a is stated separately
-Reason: Deleting meta-prose about property placement is internal document hygiene. Internal.
+Reason: Deleting meta-prose about property placement requires no external evidence; it is document-ordering apologetic with no invariant content.
 
 ## Issue 8: L11a body "Derivation" is itself a re-narration
-Reason: Consolidating the triple-told instantiation into one home and ensuring the "Consequence" paragraph adds new content is an internal restructuring of existing material. Internal.
+Reason: Consolidating the triplicated GlobalUniqueness instantiation into one home and ensuring the "Consequence" paragraph adds new content is an internal editorial restructuring.
