@@ -243,7 +243,7 @@ The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(
 
 `(A v ∈ dom(Σ.M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
 
-S8a is a notational alias of the domain-restriction axiom — its per-component unfolding via T0, not an independent obligation. The `S8a` label names this unfolded reading for downstream citation; a reviser cannot tighten one form without the other, since the two are equivalent by T0.
+S8a is the per-component unfolding of the domain-restriction axiom via T0, not an independent obligation.
 
 **subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
 
@@ -331,13 +331,11 @@ Abbreviate `S = subspace(v) = v₁` (per S8a), and write `V_S(d) = {v ∈ dom(M(
 
 `(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ zeros(v) = 0 ∧ u < v < q : v ∈ V_1(d)))`
 
-The guard `zeros(v) = 0` restricts the consequent to S8a-conforming tumblers, so the contiguity demand ranges only over intermediates that could be V-positions.
-
 In words: within the text subspace, V-positions form a contiguous ordinal range with no gaps. If positions [1, 3] and [1, 7] are occupied, then every position [1, k] with 3 < k < 7 must also be occupied.
 
 *Formal Contract:*
 - *Axiom (design requirement):* `(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ zeros(v) = 0 ∧ u < v < q : v ∈ V_1(d)))`.
-- *Preconditions:* `subspace(v) = 1`; V-positions share a common depth (S8-depth).
+- *Preconditions:* `subspace(v) = 1`; `zeros(v) = 0` ⟺ S8a positivity, by T0; V-positions share a common depth (S8-depth).
 - *Postconditions:* V_1(d) is either empty or occupies every position strictly between its extremes (at the fixed depth).
 - *Frame:* D-CTG is a constraint on well-formed text-subspace arrangements.
 - *Depends:* S8a (V-position well-formedness); S8-depth (common depth within subspace); T1 (LexicographicOrder, ASN-0034) — defines the order.
@@ -543,14 +541,14 @@ The lifecycle above exercises the contiguity constraints at depth 2 on every wel
 | S7 | Structural attribution: `origin(a) = N(a).0.U(a).0.D(a)` — full document prefix | from S7a, S7b, S7d, S0, S4, T4, T4b, T3, T10a.4, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
 | Σ.M(d) domain restriction | `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions | axiom (definitional) |
-| S8a | V-position componentwise positivity and depth: `(A v ∈ dom(M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — notational alias of the domain-restriction axiom (not an independent obligation), equivalent by T0 | alias of the domain-restriction axiom, T0 (ASN-0034) |
+| S8a | V-position componentwise positivity and depth: `(A v ∈ dom(M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — per-component unfolding of the domain-restriction axiom, T0 | alias of the domain-restriction axiom, T0 (ASN-0034) |
 | subspace(v) | V-position subspace identifier: `subspace(v) = v₁`; well-defined when `#v ≥ 1` | introduced; uses T0 (ASN-0034) |
 | S8-depth | Fixed-depth V-positions: `(A d, u, w : u ∈ dom(M(d)) ∧ w ∈ dom(M(d)) ∧ subspace(u) = subspace(w) : #u = #w)` | design; uses S8a |
 | OrdShiftHom | Ordinal shift preservation: (a) `subspace(shift(v, n)) = subspace(v)`; (b) `shift(v, n)` preserves S8a — both from TumblerAdd on `δ(n, m)` | lemma; uses OrdinalShift, OrdinalDisplacement, TumblerAdd, TA0 (ASN-0034), S8a |
 | S8 | Correspondence-run partition: `dom(M(d))` is the disjoint union of finitely many maximal runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for `0 ≤ k < nⱼ`; maximal decomposition is unique | theorem from S2, S3, S8-fin, S8a, S8-depth, OrdShiftHom, T1, TS2, TS3, TS4, OrdinalShift, OrdinalDisplacement (ASN-0034) |
 | D-CTG | V-position contiguity: V_1(d) forms a contiguous ordinal range with no gaps — design constraint on well-formed document states | design; uses S8a, S8-depth, T1 (ASN-0034) |
 | D-MIN | V-position minimum: non-empty V_1(d) has minimum [1, 1, ..., 1] with every component equal to 1 — design constraint | design requirement |
-| D-CTG-depth | Shared prefix reduction (applies wherever D-CTG holds): at depth m ≥ 3, all positions in V_1(d) share components 2 through m − 1, so contiguity reduces to the last component | corollary of D-CTG, S8a, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
+| D-CTG-depth | Shared prefix reduction: at depth m ≥ 3, all positions in V_1(d) share components 2 through m − 1, so contiguity reduces to the last component | corollary of D-CTG, S8a, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
 | D-SEQ | Sequential positions: non-empty V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | from D-CTG, D-CTG-depth, D-MIN, S8a, S8-fin, S8-depth, T1 (ASN-0034) |
 | ValidInsertionPosition | Binary predicate `ValidInsertionPosition(d, v)` (non-empty case): when V_1(d) ≠ ∅, m is the common depth of V_1(d) (state-determined via S8-depth), and v = min(V_1(d)) or v = shift(min(V_1(d)), j) for j ∈ {1, ..., N} where N = |V_1(d)| | introduced |
 | ValidFirstInsertionPosition | Ternary predicate `ValidFirstInsertionPosition(d, v, m)` (empty case): when V_1(d) = ∅, m ≥ 2, and v = [1, 1, ..., 1] of depth m | introduced |
