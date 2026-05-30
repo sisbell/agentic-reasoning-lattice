@@ -99,7 +99,7 @@ The membership clause is the substantive tightening: the document-level prefix `
 
 Depth ≥ 2 keeps `subspace_I(a) = E(a)₁` stable under `inc(·, 0)`: with the subspace identifier in a non-terminal position, sibling allocation advances the rightmost ordinal and leaves the subspace component fixed.
 
-**L1c — LinkAllocatorConformance.** Link allocation operates within a system conforming to T10a (AllocatorDiscipline, ASN-0034): link addresses are produced by allocators that use `inc(·, 0)` for sibling allocation and `inc(·, k')` with `k' ∈ {1, 2}` (within the TA5a bounds) for child-spawning. This is the same system-wide allocation discipline that ASN-0034 establishes for all address allocation — link allocation is not exempt. L1a (LinkScopedAllocation) constrains where link addresses end up (under the creating document's prefix); L1c constrains how they are produced (by T10a-conforming allocators).
+**L1c — LinkAllocatorConformance.** Link allocation operates within a system conforming to T10a (AllocatorDiscipline, ASN-0034): link addresses are produced by allocators that use `inc(·, 0)` for sibling allocation and `inc(·, k')` with `k' ∈ {1, 2}` (within the TA5a bounds) for child-spawning.
 
 *Chain.* There exists a T4-valid document-level seed `s` and a T10a-conforming step sequence terminating at `a`:
 
@@ -134,7 +134,7 @@ The home document determines the link's owner. This is not metadata attached to 
 
 The critical property — the one that distinguishes this design from systems where annotations are embedded in the annotated content:
 
-**L2 — OwnershipEndsetIndependence.** The home document of a link is determined entirely by the link's address and is independent of the link's endsets. This is an immediate consequence of the `home` definition: `home(a) = N(a).0.U(a).0.D(a)` is computed by T4 field extraction from the address `a` alone, so the endset content `Σ.L(a)` never enters the computation — for any two states `Σ`, `Σ'` with `a ∈ dom(Σ.L) ∩ dom(Σ'.L)` and `Σ.L(a) ≠ Σ'.L(a)`, the home document of `a` is identical in both.
+**L2 — OwnershipEndsetIndependence.** The home document of a link is determined entirely by the link's address and is independent of the link's endsets. This is an immediate consequence of the `home` definition: `home(a) = N(a).0.U(a).0.D(a)` is computed by T4 field extraction from the address `a` alone. The endset content `Σ.L(a)` never appears as an argument to this computation — `home` is a function of the address, not of the link value. Whatever endsets a link carries, its home document is fixed by its address.
 
 Nelson makes this a first principle: "A link need not point anywhere in its home document. Its home document indicates who owns it, and not what it points to. Conversely, links connecting parts of a document need not reside in that document." This separation of residence from reference is what permits annotation without modification. Your link lives in your document, under your authority, even though its endsets reach into someone else's content. The annotated document is untouched — no byte added, no structure modified, no permission required.
 
@@ -284,50 +284,63 @@ This is a profound design choice. It decouples classification from content retri
 
 Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))}, ∅, ..., ∅)` (`N − 3` empty endsets at slots `4..N`, vacuous when `N = 3`), `Σ'.C = Σ.C`, and `Σ'.M = Σ.M` (the arrangement store is unchanged, since `d' ∈ dom(Σ.M)` is reused). The arity-3 case `(∅, ∅, {(g, δ(1, #g))})` is the canonical witness; for arbitrary `N ≥ 3`, padding with empty endsets at slots `4..N` is sound: each `∅ ∈ Endset` (since `Endset = 𝒫_fin(Span)` and the empty set is finite), L3's slot-3 non-emptiness clause constrains slot 3 alone (slots `4..N` may be empty by the per-slot `eᵢ ∈ Endset` conjunct's admission of `∅`), and the conformance verification below operates uniformly on the type endset (slot 3) and the address `a`, so adding empty endsets at slots `4..N` preserves every state-local invariant established for the arity-3 witness.
 
-We verify that `Σ'` is conforming. Conformance reduces to checking the *state-local invariants* — those whose truth at a given `Σ'` depends on `Σ'`'s contents (its stores and arrangements). The remaining items — non-state-local invariants: theorems, definitions, and meta-lemmas — are proven once over all conforming states and require no per-state re-verification.
+We verify that `Σ'` is conforming. Both this construction and the one for L11b (NonInjectivity, below) append a single fresh sibling link to the store while leaving content and arrangements untouched; the conformance argument is identical in both cases except for the payload. We isolate the shared argument as a lemma and then supply only the L9-specific delta.
 
-*State-local L-invariants verified at `Σ'`.*
+**FSP — FreshSiblingConformance (local lemma).** Let `Σ` satisfy all L- and S-invariants (L0–L14, L-fin, and ASN-0036's S0–S3, S7a, S7b, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ) with `s_C`-resident content. Suppose a tumbler `a` satisfies:
 
-- *L0 (SubspacePartition).* The address `a` is constructed with `subspace_I(a) = s_L`. Since `subspace_I(a) = s_L ≠ s_C` and `dom(Σ.C) ⊆ {t : subspace_I(t) = s_C}` by the L9 precondition, T7 gives `a ∉ dom(Σ.C) = dom(Σ'.C)`, preserving disjointness.
-- *L1 (LinkElementLevel).* The address `a` is an element-level tumbler by construction: allocated under a document prefix with all four fields, giving `zeros(a) = 3`.
-- *L1a (LinkScopedAllocation).* For the new link `a`: `home(a) = d'` by construction (the allocator chain emanates from `d'`), and `d' ∈ dom(Σ.M) = dom(Σ'.M)` by the L9 precondition and the d'-selection above — the home document is allocated and owned. For every existing link `b ∈ dom(Σ.L)`: `home(b)` depends only on `b`'s field structure (unchanged in `Σ'`), and `home(b) ∈ dom(Σ.M) = dom(Σ'.M)` by L1a on `Σ`.
-- *L1b (LinkElementFieldDepth).* The address `a` is constructed with `#E(a) ≥ 2` (at minimum `E(a) = [s_L, 1]`).
-- *L1c (LinkAllocatorConformance).* The address `a` is producible by a T10a-conforming allocator from `d'`. Two cases, according to whether `d'` has any prior link allocations:
+- (h1) *Freshness:* `a ∉ dom(Σ.L)`;
+- (h2) *Producibility:* `a` is the terminus of a T10a-conforming chain seeded at a T4-valid document-level tumbler `home(a) ∈ dom(Σ.M)`;
+- (h3) *Shape:* `subspace_I(a) = s_L`, `zeros(a) = 3`, `#E(a) ≥ 2`, and `a` is T4-valid.
 
-  *Case A — `d'` has no prior link allocations under `Σ` (`{b ∈ dom(Σ.L) : home(b) = d'} = ∅`).* Set `a = d'.0.s_L.1`. The producer chain from `d'` to `a`: (i) `inc(d', 2)` → `d'.0.1` — element field depth 1, subspace 1 (`k' = 2`, requiring `zeros(d') ≤ 2` by TA5a; satisfied since `zeros(d') = 2`); (ii) sibling sweep `inc(·, 0)` from subspace 1 across to subspace `s_L` at element field depth 1, applied `s_L − 1` times — each step a `k = 0` sibling advance, unconditionally T4-preserving (each intermediate `d'.0.j` for `j ∈ [2, s_L]` is T4-valid: `zeros = 3`, every non-separator component positive since `j ≥ 1`, no adjacent zeros); (iii) `inc(d'.0.s_L, 1)` → `d'.0.s_L.1` = `a` — child-spawn to element field depth 2 (`k' = 1`; TA5a is unconditional for `k ∈ {0, 1}`, so T4 is preserved with no zero-count side-condition; the output has `zeros(a) = 3`). Each step conforms to T10a, with TA5a discharged at every `k' > 0` step. *Freshness:* every step from `t₁ = d'.0.1` onward operates at length `> #d'`, so CPP (with `t₀ = d'`, `p = #d'`) gives that `a` agrees with `d'` on positions `1..#d'`; the third zero of `a` first appears at position `#d' + 1`, so `home(a) = d'`. The case hypothesis `{b ∈ dom(Σ.L) : home(b) = d'} = ∅` then directly yields `a ∉ dom(Σ.L)`: any putative `b ∈ dom(Σ.L)` with `b = a` would have `home(b) = home(a) = d'`, contradicting the empty-set hypothesis. No appeal to GlobalUniqueness or to the allocator's event history is needed.
+Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite set of T12-well-formed spans), and `e₃ ≠ ∅`. Define `Σ'` by `Σ'.L = Σ.L ∪ {a ↦ ℓ}`, `Σ'.C = Σ.C`, `Σ'.M = Σ.M`. Then `Σ'` satisfies every state-local L-invariant (L0, L1, L1a, L1b, L1c, L3, L5, L6, L11a, L12, L14, L14a, L-fin) and every state-local ASN-0036 invariant (S0–S3, S7a, S7b, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ). FSP places no constraint on the endset *targets* of `ℓ` — in particular `coverage(ℓ.type)` is left free, which is exactly the freedom L9 exploits.
 
-  *Case B — `d'` has prior link allocations under `Σ` (`{b ∈ dom(Σ.L) : home(b) = d'} ≠ ∅`).* Pick any existing link `b ∈ dom(Σ.L)` with `home(b) = d'`. By L-fin (`dom(Σ.L)` finite) and T10a.7 (the sibling chain `b, inc(b, 0), inc²(b, 0), …` is injective and hence infinite), the least `i ≥ 1` with `incⁱ(b, 0) ∉ dom(Σ.L)` exists; set `a = incⁱ(b, 0)`. *Freshness:* `a ∉ dom(Σ.L)` is immediate from the least-`i` choice. Each `inc(·, 0)` step modifies only the `sig` position (TA5(c)), which for the T4-valid `b` (and its T4-valid `inc(·, 0)` outputs, by T10a.4) is the terminal position `#·` (TA5-SigValid), incrementing a nonzero component to a nonzero component — no separator zero is added or removed — so `zeros(a) = zeros(b) = 3`; by CPP (with `t₀ = b`, `p = #h(b)`) `home(a) = home(b) = d'`; L1c follows by extending `b`'s L1c chain (which exists by L1c on `Σ`) with `i` sibling advances, each unconditionally T4-preserving (`k = 0` is unconditional in TA5a).
-- *L3 (NEndsetStructure).* The new entry has arity `|Σ'.L(a)| = N ≥ 3`; each endset is in `Endset` (`∅ ∈ Endset` by `Endset = 𝒫_fin(Span)` since the empty set is finite, and `{(g, δ(1, #g))}` is a finite set of T12-well-formed spans, with T12 discharged below); slot 3 is `{(g, δ(1, #g))} ≠ ∅`, satisfying the non-emptiness conjunct. The non-emptiness conjunct constrains slot 3 alone, so the empty endsets at slots `4..N` are admissible. For every pre-existing `b ∈ dom(Σ.L)`, `Σ'.L(b) = Σ.L(b)` carries L3 over from `Σ`.
-- *L5 (EndsetSetSemantics).* Each endset of `Σ'.L(a)` is a set, with equality reduced to extensional membership; trivially satisfied. Existing entries unchanged.
-- *L6 (SlotDistinction).* `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))}, ∅, ..., ∅)` is an `N`-tuple of endsets with positional accessors well-defined: `Σ'.L(a).e₁ = ∅`, `Σ'.L(a).e₂ = ∅`, `Σ'.L(a).e₃ = {(g, δ(1, #g))}`, and `Σ'.L(a).eᵢ = ∅` for `4 ≤ i ≤ N` (vacuous when `N = 3`). The tuple conforms to the `Link` definition. For every existing `b`, `Σ'.L(b) = Σ.L(b)` carries L6 over from `Σ`.
-- *T12 well-formedness of `(g, δ(1, #g))`.* By the construction of `g` above, `#g = #d' + 3 ≥ #d' + 1 ≥ 1`, so `δ(1, #g)` is the unit-depth displacement with action point `k = #g`, and T12's conditions `δ > 0` and `k ≤ #g` are discharged directly.
-- *L11a (LinkUniqueness).* The new allocation event producing `a` does not collide with any prior allocation event. `a ∉ dom(Σ.L)` by the case-specific freshness argument established in the L1c step above (Case A: case-hypothesis disjointness via `home(a) = d'` and `{b ∈ dom(Σ.L) : home(b) = d'} = ∅`; Case B: least-`i` choice along the sibling stream). For every existing `b ∈ dom(Σ.L)`, `b ≠ a` therefore holds as tumbler inequality, so the new event produces an address distinct from every previously-allocated link address — L11a's cross-event content (distinct events ⟹ distinct addresses) is preserved. Existing pairwise distinctness among entries in `Σ` carries over to `Σ'` unchanged.
-- *L12 (LinkImmutability).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since `Σ'` only adds the new entry at `a`.
-- *L14 (DualPrimitive).* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`. Disjointness holds since `a` is in subspace `s_L` and `dom(Σ'.C) = dom(Σ.C) ⊆ {t : subspace_I(t) = s_C}` by the L9 precondition (preserved at `Σ'` since `Σ'.C = Σ.C`).
-- *L14a (NonTranscludability).* For every `(d, v)` with `v ∈ dom(Σ'.M(d)) = dom(Σ.M(d))`: `Σ'.M(d)(v) ∈ dom(Σ.C)` by S3 on `Σ`. Since `dom(Σ.C) ∩ dom(Σ'.L) = ∅` by L0 (verified above), `Σ'.M(d)(v) ∉ dom(Σ'.L)`.
-- *L-fin (LinkStoreFiniteness).* `dom(Σ'.L) = dom(Σ.L) ∪ {a}`; since `dom(Σ.L)` is finite by L-fin on `Σ`, `dom(Σ'.L)` is finite.
+*Proof.* The construction adds one link-store entry at `a`; `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. We treat the new entry and the carry-over of existing entries.
 
-*State-local ASN-0036 invariants verified at `Σ'`.* Content store is unchanged (`Σ'.C = Σ.C`); the arrangement store is unchanged (`Σ'.M = Σ.M`). We verify each:
+- *L0.* `subspace_I(a) = s_L ≠ s_C` (h3); since `dom(Σ'.C) = dom(Σ.C) ⊆ {t : subspace_I(t) = s_C}` (`s_C`-residence), T7 gives `a ∉ dom(Σ'.C)`, preserving `dom(Σ'.L) ∩ dom(Σ'.C)|_{s_C} = ∅`. Existing addresses unchanged.
+- *L1.* `zeros(a) = 3` (h3); existing entries by L1 on `Σ`.
+- *L1a.* `home(a) ∈ dom(Σ.M) = dom(Σ'.M)` (h2). For existing `b`, `home(b)` depends only on `b`'s fields (unchanged) and `home(b) ∈ dom(Σ.M)` by L1a on `Σ`.
+- *L1b.* `#E(a) ≥ 2` (h3); existing entries by L1b on `Σ`.
+- *L1c.* `a` is the terminus of a T10a-conforming chain (h2); existing entries by L1c on `Σ`.
+- *L3.* `|ℓ| = N ≥ 3`, each `eᵢ ∈ Endset`, `e₃ ≠ ∅` by the payload hypothesis (the non-emptiness conjunct constrains slot 3 alone, so empty slots `4..N` are admissible). Existing entries by L3 on `Σ`.
+- *L5.* Each endset of `ℓ` is a set under extensional membership; existing entries unchanged.
+- *L6.* `ℓ` is an `N`-tuple of endsets with well-defined positional accessors, conforming to the `Link` definition; existing entries unchanged.
+- *L11a.* `a ∉ dom(Σ.L)` (h1), so the new allocation event produces an address distinct from every previously-allocated link address; existing pairwise distinctness carries over.
+- *L12.* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since only the entry at `a` is added.
+- *L14.* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`; disjointness over the `s_C`-slice holds since `a` is in `s_L` and `Σ'.C = Σ.C`.
+- *L14a.* For every `(d, v)` with `v ∈ dom(Σ'.M(d)) = dom(Σ.M(d))`: `Σ'.M(d)(v) ∈ dom(Σ.C)` by S3 on `Σ`; since `dom(Σ.C) ∩ dom(Σ'.L) = ∅` by L0 (above), `Σ'.M(d)(v) ∉ dom(Σ'.L)`.
+- *L-fin.* `dom(Σ'.L) = dom(Σ.L) ∪ {a}` is finite, since `dom(Σ.L)` is finite.
+- *ASN-0036 invariants.* `Σ'.C = Σ.C` discharges S0, S1, S7a, S7b verbatim; `Σ'.M = Σ.M` discharges S2, S3, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ verbatim — every constraint on the content store and arrangement family is reproduced from `Σ`. ∎
 
-- *S0 (ContentImmutability), S1 (StoreMonotonicity).* `Σ'.C = Σ.C` discharges both content-store invariants verbatim.
-- *S2 (ArrangementFunctionality).* `Σ'.M = Σ.M`, so every entry-by-entry functional condition on the arrangement family carries over from `Σ`. (S2 is an arrangement-store invariant, preserved by `Σ'.M = Σ.M` rather than by content-store equality.)
-- *S3 (ReferentialIntegrity).* Arrangement entries unchanged; S3 carries over from `Σ`.
-- *S7a (DocumentScopedAllocation).* Content addresses unchanged from `Σ`; S7a carries over.
-- *S7b (ElementLevelIAddresses).* Content addresses unchanged; S7b carries over.
-- *S7d (DocumentAllocationDiscipline).* `dom(Σ'.M) = dom(Σ.M)`, so S7d on `Σ` is preserved verbatim.
-- *S8-fin (FiniteArrangement).* `|dom(Σ'.M)| = |dom(Σ.M)|`, finite by S8-fin on `Σ`.
-- *S8a (VPositionWellFormedness), S8-depth.* Arrangement entries unchanged from `Σ`; both carry over.
-- *D-CTG, D-MIN, D-SEQ.* Arrangements unchanged from `Σ`; all three carry over.
+The remaining items — non-state-local invariants: theorems, definitions, and meta-lemmas (L2, L4, L7, L8, L10, L13) — are proven once over all conforming states and require no per-state re-verification.
 
-No property of L0–L14, L-fin, or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. The disjointness `g ∉ dom(Σ.C) ∪ dom(Σ.L)` established above transfers unchanged to `Σ'`: `Σ'.C = Σ.C`, and the sole new link address `a ≠ g` lies in subspace `s_L ≠ s_X`, so `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. ∎
+*Application to L9.* We discharge FSP's hypotheses for the address `a` and payload `ℓ = (∅, ∅, {(g, δ(1, #g))}, ∅, ..., ∅)`.
+
+- (h3) *Shape:* `a` is constructed under `d'` with `subspace_I(a) = s_L`, `zeros(a) = 3`, `#E(a) ≥ 2` (at minimum `E(a) = [s_L, 1]`), and T4-valid (T10a.4 along the producer chain below).
+- (h1)/(h2) *Freshness and producibility:* split per `d'`'s prior link-allocation state.
+
+  *Case A — `d'` has no prior link allocations under `Σ` (`{b ∈ dom(Σ.L) : home(b) = d'} = ∅`).* Set `a = d'.0.s_L.1`. The producer chain from `d'` to `a`: (i) `inc(d', 2)` → `d'.0.1` — element field depth 1, subspace 1 (`k' = 2`, requiring `zeros(d') ≤ 2` by TA5a; satisfied since `zeros(d') = 2`); (ii) sibling sweep `inc(·, 0)` from subspace 1 across to subspace `s_L` at element field depth 1, applied `s_L − 1` times — each step a `k = 0` sibling advance, unconditionally T4-preserving (each intermediate `d'.0.j` for `j ∈ [2, s_L]` is T4-valid: `zeros = 3`, every non-separator component positive since `j ≥ 1`, no adjacent zeros); (iii) `inc(d'.0.s_L, 1)` → `d'.0.s_L.1` = `a` — child-spawn to element field depth 2 (`k' = 1`; TA5a is unconditional for `k ∈ {0, 1}`; the output has `zeros(a) = 3`). Each step conforms to T10a. *Freshness:* every step from `t₁ = d'.0.1` onward operates at length `> #d'`, so CPP (with `t₀ = d'`, `p = #d'`) gives that `a` agrees with `d'` on positions `1..#d'`; the third zero of `a` first appears at position `#d' + 1`, so `home(a) = d'`. The case hypothesis then directly yields `a ∉ dom(Σ.L)`: any `b ∈ dom(Σ.L)` with `b = a` would have `home(b) = home(a) = d'`, contradicting the empty-set hypothesis. No appeal to GlobalUniqueness is needed.
+
+  *Case B — `d'` has prior link allocations under `Σ` (`{b ∈ dom(Σ.L) : home(b) = d'} ≠ ∅`).* Pick any existing link `b ∈ dom(Σ.L)` with `home(b) = d'`. By L-fin (`dom(Σ.L)` finite) and T10a.7 (the sibling chain `b, inc(b, 0), inc²(b, 0), …` is injective and hence infinite), the least `i ≥ 1` with `incⁱ(b, 0) ∉ dom(Σ.L)` exists; set `a = incⁱ(b, 0)`. *Freshness:* `a ∉ dom(Σ.L)` is immediate. Each `inc(·, 0)` step modifies only the `sig` position (TA5(c)), which for the T4-valid `b` (and its T4-valid outputs, by T10a.4) is the terminal position `#·` (TA5-SigValid), incrementing a nonzero component — no separator zero added or removed — so `zeros(a) = zeros(b) = 3`; by CPP (with `t₀ = b`, `p = #h(b)`) `home(a) = home(b) = d'`; producibility follows by extending `b`'s L1c chain with `i` sibling advances, each unconditionally T4-preserving.
+
+- *Payload:* each `∅ ∈ Endset` (the empty set is finite); `{(g, δ(1, #g))}` is a finite set whose single span is T12-well-formed — by the construction of `g`, `#g = #d' + 3 ≥ 1`, so `δ(1, #g) > 0` has action point `k = #g ≤ #g`; slot 3 `= {(g, δ(1, #g))} ≠ ∅`. So `ℓ` satisfies FSP's payload hypothesis at every arity `N ≥ 3`.
+
+By FSP, `Σ'` satisfies every state-local L- and S-invariant. It remains to establish the L9-specific conclusion that FSP leaves open: the ghost-type disjointness `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. The disjointness `g ∉ dom(Σ.C) ∪ dom(Σ.L)` established above transfers to `Σ'` unchanged: `Σ'.C = Σ.C`, and the sole new link address `a ≠ g` lies in subspace `s_L ≠ s_X`, so `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. ∎
 
 No property of L0–L14 or L-fin constrains type endset targets to content addresses. Nelson: "Indeed, there is no need for the presence of elements at the addresses specified. Link types may be ghost elements." The type address is a pure name — a position chosen by convention, not a pointer to content that must be dereferenced.
 
 A consequence of L8 and L9 together: new link types can be defined by choosing a fresh tumbler address and using it as a type endset. No content needs to be created at that address. No registry needs to be updated. No schema needs to change. The type exists as soon as someone uses it. This is what makes the type system "open-ended" — any user can extend it without coordination or system modification.
 
-**Axiom — PrefixSpanCoverage (span/tumbler algebra).** For any tumbler `x` with `#x ≥ 1`, the unit-depth displacement `δ(1, #x)` (OrdinalDisplacement, ASN-0034) is `[0, ..., 0, 1]` of length `#x`, with action point `k = #x`; the span `(x, δ(1, #x))` is well-formed by T12; and:
+**PrefixSpanCoverage (local lemma, span/tumbler algebra).** For any tumbler `x` with `#x ≥ 1`, the unit-depth displacement `δ(1, #x)` (OrdinalDisplacement, ASN-0034) is `[0, ..., 0, 1]` of length `m = #x`, with action point `k = m`; the span `(x, δ(1, m))` is well-formed by T12; and:
 
 `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`
+
+*Derivation.* By OrdinalShift (ASN-0034), `shift(x, 1) = x ⊕ δ(1, #x) = x ⊕ δ(1, m)` — the tumbler of length `m` agreeing with `x` on positions `1..m−1` and with last component `x_m + 1`. By T12 (SpanWellDefinedness, ASN-0034), with `δ(1, m) > 0` and action point `m ≤ #x`, the span is well-formed and `coverage({(x, δ(1, m))}) = {t ∈ T : x ≤ t < x ⊕ δ(1, m)} = {t ∈ T : x ≤ t < shift(x, 1)}`. We show this half-open interval equals `subtree(x) = {t : x ≼ t}` by mutual inclusion.
+
+(⊇) Suppose `x ≼ t`. Then `t` agrees with `x` on positions `1..m`. If `#t = m` then `t = x` (T3, CanonicalRepresentation), so `x ≤ t`; if `#t > m` then `x` is a proper prefix of `t` and T1 case (ii) gives `x < t` — either way `x ≤ t`. For the upper bound, `t` and `shift(x, 1)` agree on positions `1..m−1` (both equal `x` there) and at position `m` satisfy `t_m = x_m < x_m + 1 = shift(x, 1)_m`; T1 case (i) at the divergence position `m` gives `t < shift(x, 1)`. Hence `t ∈ {t : x ≤ t < shift(x, 1)}`.
+
+(⊆) Suppose `x ≤ t < shift(x, 1)`; we show `x ≼ t`. If `x = t`, done. Otherwise `x < t`, so by T1 either (ii) `x` is a proper prefix of `t` — giving `x ≼ t` directly — or (i) `x` and `t` first diverge at some `k ≤ m` with `x_k < t_k`. In case (i) we derive a contradiction with `t < shift(x, 1)`. Since `shift(x, 1)` agrees with `x` on positions `1..m−1`, and `t` agrees with `x` on positions `1..k−1`, `t` and `shift(x, 1)` agree on positions `1..k−1`. If `k < m`: at position `k`, `t_k > x_k = shift(x, 1)_k`, so T1 case (i) gives `shift(x, 1) < t`, contradicting `t < shift(x, 1)`. If `k = m`: `t_m > x_m` forces `t_m ≥ x_m + 1 = shift(x, 1)_m`; if `t_m > shift(x, 1)_m`, T1 case (i) gives `shift(x, 1) < t` (contradiction); if `t_m = shift(x, 1)_m`, then `t` agrees with `shift(x, 1)` on positions `1..m`, so either `t = shift(x, 1)` (when `#t = m`) or `shift(x, 1)` is a proper prefix of `t` (T1 case (ii), `shift(x, 1) < t`) — both contradict `t < shift(x, 1)`. Thus case (i) is impossible, and `x ≼ t`.
+
+By T5 (ContiguousSubtrees, ASN-0034), `subtree(x)` is order-convex, confirming that the matched set is exactly the contiguous prefix interval and contains no extraneous tumblers. ∎
 
 **L10 — TypeHierarchyByContainment.** For type addresses `p, c ∈ T` where `p ≼ c` (p is a prefix of c), define `subtypes(p) = {c ∈ T : p ≼ c}`. By T5 (ContiguousSubtrees, ASN-0034), `subtypes(p)` is a contiguous interval under T1. By PrefixSpanCoverage:
 
@@ -372,23 +385,13 @@ By L-fin, `dom(Σ.L)` is finite, so there exists a least `i ≥ 1` with `a⁽ⁱ
 
 The least-`i` choice ensures that the structural sibling chain `a⁽⁰⁾, a⁽¹⁾, …, a⁽ⁱ⁾` satisfies `a⁽ʲ⁾ ∈ dom(Σ.L)` for `0 ≤ j < i` and `a⁽ⁱ⁾ ∉ dom(Σ.L)`, extending `dom(Σ.L)` to `dom(Σ'.L)` by a single sibling step beyond the existing initial segment of occupied siblings. This is precisely the shape that AllocatedSet's domain-embedding clause (ASN-0034) admits: for any allocator `A`, the realized domain `domₛ(A)` is an initial segment of T10a's `inc(·, 0)` enumeration of `dom(A)`. The least-`i` choice therefore preserves the initial-segment structure of the sibling stream in `Σ'`. `a' ≠ a` since `i ≥ 1`, and `a' ∉ dom(Σ.L)` by choice, so the address-disjointness `a' ∉ dom(Σ.L)` discharges the freshness requirement directly without appeal to allocation events.
 
-*Conformance of `Σ'`.* All L- and S-invariants are preserved:
+*Conformance of `Σ'`.* This is another fresh-sibling extension, so we appeal to FSP (FreshSiblingConformance, stated under L9) for the shared invariant set, discharging its hypotheses for `a'` and payload `ℓ = (F, G, Θ) = Σ.L(a)`:
 
-- L0 by subspace (`a'` is in `s_L`);
-- L1 because the chain consists of `inc(·, 0)` sibling advances from `a`, so `zeros(a) = 3` (L1 on Σ); each `inc(·, 0)` step modifies only the `sig` position (TA5(c)), which for the T4-valid `a` (and its T4-valid `inc(·, 0)` outputs, by T10a.4) is the terminal position `#·` (TA5-SigValid), incrementing a nonzero component to a nonzero component — adding no separator zero — so `zeros(a') = zeros(a) = 3`; L1b by a structural argument: since `a'` is a sibling of `a` produced by `inc(·, 0)`, positions `1..#a − 1` are preserved by CPP (with `t₀ = a`, `p = #a − 1`, the single sibling step having `sig = #a > p`), hence `h(a') = h(a)` and `#h(a') = #h(a)`; combined with `#a' = #a` (T10a.1, UniformSiblingLength, ASN-0034), this yields `#E(a') = #a' − (#h(a') + 1) = #a − (#h(a) + 1) = #E(a) ≥ 2` (using L1b on Σ for the final inequality); T4-validity of `a'` (underwriting well-definedness of the `E` projection used here, via T4b) follows from T10a.4 (T4PreservationUnderDiscipline, ASN-0034);
-- L1a because `home(a') = home(a)` (sibling advance via `inc(·, 0)` preserves the document-level prefix), and `home(a) ∈ dom(Σ.M) = dom(Σ'.M)` by L1a on `Σ`;
-- L1c — the producibility chain for `a'` is the L1c chain for `a` extended by `i` sibling advances, all T10a-conforming;
-- L2 structurally (home is field extraction from the address);
-- L3–L5 by construction (same endset sequence as the existing link, which has arity ≥ 3 by L3 on `Σ`, with slot 3 the type endset);
-- L6 because the new entry `Σ'.L(a') = (F, G, Θ)` is a 3-tuple of endsets copied from `Σ.L(a)`, with the same positional-accessor structure;
-- L11a is preserved by `Σ'`: the new allocation event producing `a'` is structurally fresh (`a' ∉ dom(Σ.L)` by least-`i` choice along the sibling stream), so distinct from every prior event in the system; the L1c chain for `a'` (next bullet) extends `a`'s chain by `inc(·, 0)` sibling steps, so T10a's per-(t, k') discipline along the shared chain prefix is satisfied by reusing the same chain;
-- L12 because existing entries are unchanged;
-- L12a follows from L12;
-- L-fin because `dom(Σ'.L) = dom(Σ.L) ∪ {a'}` is finite;
-- L14 because `a'` is in subspace `s_L`, preserving disjointness with `dom(Σ'.C)`;
-- L14a by S3 (arrangements unchanged, so all V-position targets remain in `dom(Σ.C)`) and L0 (verified above, `dom(Σ.C) ∩ dom(Σ'.L) = ∅`);
-- L8, L10, L13 are lemmas that do not constrain states;
-- ASN-0036 invariants S0–S3, S7a, S7b, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ all hold trivially in `Σ'`: `Σ'.C = Σ.C` and `Σ'.M = Σ.M`, so every constraint on the content store and the arrangement family is reproduced verbatim from `Σ`.
+- (h1) `a' ∉ dom(Σ.L)` by the least-`i` choice above;
+- (h2) `a'` is producible by the L1c chain for `a` extended by `i` sibling advances (each `k = 0`, unconditionally T4-preserving), with `home(a') = home(a) ∈ dom(Σ.M)` — sibling advance via `inc(·, 0)` preserves the document-level prefix (CPP with `t₀ = a`, `p = #h(a)`), and `home(a) ∈ dom(Σ.M)` by L1a on `Σ`;
+- (h3) `subspace_I(a') = s_L` (L1b: the ordinal, not the subspace identifier, is the rightmost component, so `inc(·, 0)` fixes the subspace); `zeros(a') = zeros(a) = 3` (each `inc(·, 0)` modifies only the terminal `sig` position by TA5(c)/TA5-SigValid, adding no separator zero); `#E(a') = #E(a) ≥ 2` (by `#a' = #a` from T10a.1 UniformSiblingLength, `#h(a') = #h(a)` from CPP, and L1b on `Σ`); T4-valid by T10a.4.
+
+The payload `ℓ = (F, G, Θ) = Σ.L(a)` has T12-well-formed spans (inherited from the conforming link `a` by L4 on `Σ`) and satisfies L3 (arity ≥ 3, slot 3 the non-empty type endset, by L3 on `Σ`). By FSP, `Σ'` satisfies every state-local L- and S-invariant, and the non-state-local items (L2, L4, L7, L8, L10, L13) and transition corollaries (L12a from L12) hold by their own proofs. The L11b-specific delta is the *endset equality* `Σ'.L(a') = (F, G, Θ) = Σ.L(a)`, which holds by construction — this is the non-injectivity witness, not an invariant.
 
 Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links.
 
@@ -585,15 +588,13 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 **Extension: L11b non-injectivity, L13, and transition verification.**
 
-We extend the state in two steps, naming each intermediate state, to verify L11b, L12, and L13 non-vacuously.
+We extend the state in four steps, naming each intermediate state, to verify L11b, L12, L13, and the higher-arity/discrimination behavior of L3/L6/L8 non-vacuously.
 
-*Step 1: adding `a'`.* Define `a' = 1.0.1.0.1.0.2.2` with `Σ_1.L(a') = (F, G, Θ)` — same endsets as `a`. The intermediate state is `Σ_1` with `Σ_1.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ)}`, `Σ_1.C = Σ.C`, `Σ_1.M = Σ.M`.
+*Each added link is a fresh sibling.* Every link added below — `a'`, `a₂`, `a₃`, `a₄` — is the next sibling of `a` in `d`'s link subspace, reached by successive `inc(·, 0)` advances (`a → a' → a₂ → a₃ → a₄`, element field ordinals `2.1, 2.2, 2.3, 2.4, 2.5`), with `Σ_n.C = Σ.C` and `Σ_n.M = Σ.M` left unchanged. Each such addition is an instance of FSP (FreshSiblingConformance): its FSP hypotheses are discharged by the same argument given for `a'` — (h1) freshness, since the new ordinal exceeds every occupied sibling; (h2) producibility, by extending `a`'s L1c chain with the requisite `inc(·, 0)` sibling steps (each `k = 0`, unconditionally T4-preserving), preserving `home(·) = d ∈ dom(Σ.M)` (CPP) and seeding at `s = d` with `k₁ = 2` above `#s = 5`; (h3) shape, since `inc(·, 0)` fixes the subspace (`subspace_I = 2 = s_L`, L1b), preserves `zeros = 3` (TA5(c)/TA5-SigValid, no separator zero added) and `#E = 2 ≥ 2` (T10a.1 + CPP), and keeps the address T4-valid (T10a.4). Each payload below is a tuple of singleton endsets of T12-well-formed spans with a non-empty slot 3, satisfying FSP's payload hypothesis. Therefore each added sibling preserves L0, L1, L1a–c, L3, L5, L6, L11a, L12, L14, L14a, L-fin and all state-local ASN-0036 invariants by the same argument as `a'`. We record per step only the *substantive* new checks: the L11b non-injectivity witness (Step 1), the link-to-link reference L13 (Step 2), arity-4 L3/L6/L8 (Step 3), and L8 type discrimination (Step 4), together with the transition checks L12/L12a.
+
+*Step 1: adding `a'`.* Define `a' = 1.0.1.0.1.0.2.2` with `Σ_1.L(a') = (F, G, Θ)` — same endsets as `a`. The intermediate state is `Σ_1` with `Σ_1.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ)}`, `Σ_1.C = Σ.C`, `Σ_1.M = Σ.M`. The state-local invariants hold by the fresh-sibling argument above.
 
 *L11b non-injectivity in `Σ_1`.* `|dom(Σ_1.L)| = 2`, `a ≠ a'`, and `Σ_1.L(a) = Σ_1.L(a') = (F, G, Θ)`. The link store is non-injective — two distinct addresses map to the same triple. This is the witness for L11b applied to `Σ` with `a`. ✓
-
-*L-fin at `Σ_1` (state-local).* `|dom(Σ_1.L)| = 2`, which is finite. L-fin is a per-state invariant, verified at each state independently. ✓
-
-*State-local L-invariants at `Σ_1` (one-line confirmations for the new entry `a'`; pre-existing entries at `a` carry over by Σ-verification above plus L12).* L0: `subspace_I(a') = 2 = s_L ≠ s_C`, so `a' ∉ dom(Σ_1.C)` (preserving disjointness). L1: `zeros(a') = zeros(1.0.1.0.1.0.2.2) = 3`. L1a: `home(a') = 1.0.1.0.1 = d ∈ dom(Σ_1.M) = dom(Σ.M)`. L1b: `E(a') = [2, 2]`, so `#E(a') = 2 ≥ 2`. L1c: extend `a`'s L1c chain with one sibling step `inc(a, 0) → a'` (`k = 0`, unconditionally T4-preserving by TA5a; `zeros(a') = zeros(a) = 3` since `inc(·, 0)` modifies only the terminal `sig` position (TA5(c), TA5-SigValid), adding no separator zero); the resulting chain seeds at `s = d`, has `k₁ = 2`, and every intermediate position lies above `#s = 5`. L3: `Σ_1.L(a') = (F, G, Θ)`, arity 3, slot 3 = `Θ ≠ ∅`, each endset finite. L5: each endset of `Σ_1.L(a')` is a singleton set. L6: `Σ_1.L(a') = (F, G, Θ)` is a 3-tuple with positional accessors well-defined. L11a: `a' = 1.0.1.0.1.0.2.2 ≠ 1.0.1.0.1.0.2.1 = a` (differ at position 8); injectivity of the sibling chain (T10a.7) extended through one step produces a fresh address. L14: `dom(Σ_1.C) ∪ dom(Σ_1.L) = {c₁, c₂, a, a'}`, with `dom(Σ_1.C) ∩ dom(Σ_1.L) = ∅` by L0 applied across the four addresses. L14a: `dom(Σ_1.M) = dom(Σ.M)` and entries unchanged, so `ran(Σ_1.M(d)) = {c₁, c₂} ⊆ dom(Σ_1.C)`; combined with `dom(Σ_1.L) ∩ dom(Σ_1.C) = ∅` (L0 above), no V-position maps into the link store. ✓
 
 *L12 across `Σ → Σ_1` (transition).* `dom(Σ.L) = {a}`. We verify: `a ∈ dom(Σ_1.L)` and `Σ_1.L(a) = (F, G, Θ) = Σ.L(a)`. The sole pre-existing link is preserved. ✓
 
@@ -617,9 +618,7 @@ The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),
 
 *L4 for `a₂`.* The span `(a, δ(1, 8))` has `a ∈ T` and satisfies T12 (verified above). No constraint prevents the span from referencing a link-subspace address. ✓
 
-*L-fin at `Σ_2` (state-local).* `|dom(Σ_2.L)| = 3`, which is finite. ✓
-
-*State-local L-invariants at `Σ_2` (one-line confirmations for the new entry `a₂`; pre-existing entries at `a, a'` carry over via L12).* L0: `subspace_I(a₂) = 2 = s_L ≠ s_C`. L1: `zeros(a₂) = zeros(1.0.1.0.1.0.2.3) = 3`. L1a: `home(a₂) = 1.0.1.0.1 = d ∈ dom(Σ_2.M)`. L1b: `E(a₂) = [2, 3]`, `#E(a₂) = 2 ≥ 2`. L1c: extend `a`'s chain with two sibling steps (`inc(a, 0) → a'`, `inc(a', 0) → a₂`), each `k = 0` and T4-preserving. L3: `|Σ_2.L(a₂)| = 3`, slot 3 = `Θ₂ ≠ ∅`, each endset finite. L5: each endset of `Σ_2.L(a₂)` is a singleton set. L6: 3-tuple with positional accessors well-defined. L11a: `a₂ = 1.0.1.0.1.0.2.3` differs from `a` and `a'` at position 8; sibling-chain injectivity (T10a.7) extended through two steps preserves freshness. L14: `dom(Σ_2.C) ∪ dom(Σ_2.L) = {c₁, c₂, a, a', a₂}`, disjoint by L0. L14a: `dom(Σ_2.M) = dom(Σ.M)`, entries unchanged, link-store still disjoint from content store. ✓
+The remaining state-local invariants at `Σ_2` (L0, L1, L1a–c, L3, L5, L6, L11a, L14, L14a, L-fin) hold for the new entry `a₂` by the fresh-sibling argument above (`a₂ = 1.0.1.0.1.0.2.3` is the next sibling after `a'`), and for the pre-existing entries `a, a'` by L12.
 
 *L12 across `Σ_1 → Σ_2` (transition).* `dom(Σ_1.L) = {a, a'}`. For `a`: `a ∈ dom(Σ_2.L)` and `Σ_2.L(a) = (F, G, Θ) = Σ_1.L(a)`. For `a'`: `a' ∈ dom(Σ_2.L)` and `Σ_2.L(a') = (F, G, Θ) = Σ_1.L(a')`. Both pre-existing links are preserved. ✓
 
@@ -642,9 +641,7 @@ The final state is `Σ_3` with `Σ_3.L = Σ_2.L ∪ {a₃ ↦ (F₃, G₃, Θ₃
 
 *L8 (TypeByAddress) at arity 4.* `Σ_3.L(a₃).type = Σ_3.L(a₃).e₃ = Θ₃ = {(g, δ(1, 8))}` — the `.type` accessor resolves to slot 3 unambiguously under the StandardTriple convention extended to arity 4 by L3. For the existing arity-3 link `a` with `Σ_3.L(a).type = Σ_3.L(a).e₃ = Θ = {(g, δ(1, 8))}`, coverage-based matching gives `same_type(a, a₃) ⟺ coverage(Σ_3.L(a).e₃) = coverage(Σ_3.L(a₃).e₃)`. Both endsets are `{(g, δ(1, 8))}` (a unit-depth span at `g`), so by PrefixSpanCoverage each has coverage `{t ∈ T : g ≼ t}` — the two coverage sets are identical. The arity-3 and arity-4 links share a type without any need to inspect content at `g`. ✓
 
-*L-fin at `Σ_3` (state-local).* `|dom(Σ_3.L)| = 4`, which is finite. ✓
-
-*State-local L-invariants at `Σ_3` (one-line confirmations for the new entry `a₃`; L3 and L6 verified above at arity 4; pre-existing entries carry over via L12).* L0: `subspace_I(a₃) = 2 = s_L ≠ s_C`. L1: `zeros(a₃) = zeros(1.0.1.0.1.0.2.4) = 3`. L1a: `home(a₃) = 1.0.1.0.1 = d ∈ dom(Σ_3.M)`. L1b: `E(a₃) = [2, 4]`, `#E(a₃) = 2 ≥ 2`. L1c: extend `a`'s chain with three sibling steps (`a → a' → a₂ → a₃`), each `k = 0` and unconditionally T4-preserving. L5: each endset of `Σ_3.L(a₃)` is a singleton set. L11a: `a₃` differs from `a, a', a₂` at position 8 (values `1, 2, 3, 4` respectively); sibling-chain injectivity (T10a.7) extended through three steps preserves freshness. L14: `dom(Σ_3.C) ∪ dom(Σ_3.L) = {c₁, c₂, a, a', a₂, a₃}`, disjoint by L0. L14a: arrangement entries unchanged from Σ; link store still disjoint from content store. ✓
+The remaining state-local invariants at `Σ_3` (L0, L1, L1a–c, L5, L11a, L14, L14a, L-fin; L3 and L6 verified above at arity 4) hold for the new entry `a₃` by the fresh-sibling argument above (`a₃ = 1.0.1.0.1.0.2.4` is the next sibling after `a₂`, payload arity 4 with non-empty slot 3), and for the pre-existing entries by L12.
 
 *L12 across `Σ_2 → Σ_3` (transition).* All three prior entries `Σ_2.L(a), Σ_2.L(a'), Σ_2.L(a₂)` are unchanged in `Σ_3`; only the new entry at `a₃` is added. ✓
 
@@ -671,9 +668,7 @@ These two prefix sets are disjoint. Suppose `t` extends both: `g ≼ t` and `g' 
 
 The discrimination is structural: `g` and `g'` differ only at the tail (position 8), but that single divergence forces their prefix-cone coverages to be disjoint — sibling ghost addresses generate sibling type cones, neither containing the other. This is the structural counterpart to the earlier reflexivity check: same-coverage links match (e.g., `a ↦ Θ` and `a' ↦ Θ` with identical `Θ` give `same_type(a, a') = true`); disjoint-coverage links discriminate (e.g., `a ↦ Θ` and `a₄ ↦ Θ₄` give `same_type(a, a₄) = false`).
 
-*L-fin at `Σ_4` (state-local).* `|dom(Σ_4.L)| = 5`, which is finite. ✓
-
-*State-local L-invariants at `Σ_4` (one-line confirmations for the new entry `a₄`; pre-existing entries carry over via L12).* L0: `subspace_I(a₄) = 2 = s_L`. L1: `zeros(a₄) = zeros(1.0.1.0.1.0.2.5) = 3`. L1a: `home(a₄) = 1.0.1.0.1 = d ∈ dom(Σ_4.M)`. L1b: `E(a₄) = [2, 5]`, `#E(a₄) = 2 ≥ 2`. L1c: extend `a`'s chain with four sibling steps (`a → a' → a₂ → a₃ → a₄`), each `k = 0`. L3: `|Σ_4.L(a₄)| = 3`, slot 3 = `Θ₄ ≠ ∅`. L5: each endset of `Σ_4.L(a₄)` is a singleton. L6: 3-tuple with positional accessors well-defined. L11a: `a₄` differs from `a, a', a₂, a₃` at position 8 (values `1, 2, 3, 4, 5`). L14: `dom(Σ_4.C) ∪ dom(Σ_4.L) = {c₁, c₂, a, a', a₂, a₃, a₄}`, disjoint by L0. L14a: arrangement entries unchanged from Σ; link store still disjoint from content store. ✓
+The remaining state-local invariants at `Σ_4` (L0, L1, L1a–c, L3, L5, L6, L11a, L14, L14a, L-fin) hold for the new entry `a₄` by the fresh-sibling argument above (`a₄ = 1.0.1.0.1.0.2.5` is the next sibling after `a₃`), and for the pre-existing entries by L12.
 
 *L12 across `Σ_3 → Σ_4` (transition).* All four prior entries `Σ_3.L(a), Σ_3.L(a'), Σ_3.L(a₂), Σ_3.L(a₃)` are unchanged in `Σ_4`; only the new entry at `a₄` is added. ✓
 
@@ -693,6 +688,7 @@ The discrimination is structural: `g` and `g'` differ only at the tail (position
 | L1b | INV | LinkElementFieldDepth — every link address has element field depth ≥ 2: `(A a ∈ dom(Σ.L) :: #E(a) ≥ 2)` | introduced |
 | L1c | AXIOM | LinkAllocatorConformance — link allocation conforms to T10a (AllocatorDiscipline, ASN-0034); every link address is the T4-valid terminus of a T10a-conforming chain seeded at its document-level prefix (full statement and postconditions in body) | introduced |
 | CPP | LEMMA | ChainPrefixPreservation (local) — along a T10a-conforming chain of T4-valid tumblers whose every step modifies only positions beyond a fixed length `p ≤ #t₀`, the terminus agrees with `t₀` on positions `1..p` | introduced |
+| FSP | LEMMA | FreshSiblingConformance (local) — appending one fresh sibling link `a` (h1 freshness, h2 producibility, h3 shape) carrying any L3-conforming payload, with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`, preserves every state-local L- and S-invariant; leaves `coverage(ℓ.type)` unconstrained | introduced |
 | L2 | LEMMA | OwnershipEndsetIndependence — `home(a)` depends only on `a`, not on the link's endsets | introduced |
 | L3 | INV | NEndsetStructure — every link has at least three endsets, with slot 3 a non-empty type endset: `\|Σ.L(a)\| ≥ 3 ∧ Σ.L(a).e₃ ≠ ∅`; arity 3 `(F, G, Θ)` is the standard triple, higher arity admitted | introduced |
 | L4 | META | EndsetGenerality — the model imposes no constraint on endset spans beyond T12 well-formedness (definitional from L3): no single-document, content-only, or existence restriction | introduced |
@@ -701,7 +697,7 @@ The discrimination is structural: `g` and `g'` differ only at the tail (position
 | L7 | META | DirectionalFlexibility — L0–L14 and L-fin impose no constraint on directional significance of from/to slots | introduced |
 | L8 | DEF | TypeByAddress — type matching is by address coverage: `same_type(a₁, a₂) ⟺ coverage(Σ.L(a₁).type) = coverage(Σ.L(a₂).type)`; `.type` is slot 3, well-defined by L3 | introduced |
 | L9 | LEMMA | TypeGhostPermission — any conforming state with `dom(Σ.M) ≠ ∅` and `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`) can be extended, for every arity `N ≥ 3`, with a link of arity `N` whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)`; arity-3 witness `(∅, ∅, {(g, δ(1, #g))})` extends to higher arities by padding empty endsets at slots `4..N` (admissible by L3's slot-3-only non-emptiness conjunct) | introduced |
-| PrefixSpanCoverage | AXIOM | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}` (with supporting identity `x ⊕ δ(1, #x) = shift(x, 1)` from OrdinalShift, ASN-0034) | introduced |
+| PrefixSpanCoverage | LEMMA | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`; derived from OrdinalShift (`x ⊕ δ(1, #x) = shift(x, 1)`), T12, T1 cases (i)/(ii), and T5 (ASN-0034) | introduced |
 | L10 | LEMMA | TypeHierarchyByContainment — `coverage({(p, δ(1, #p))}) = subtypes(p)` by PrefixSpanCoverage | introduced |
 | L11a | LEMMA | LinkUniqueness — distinct T10a-conforming allocation events produce distinct link addresses (corollary of L1c + GlobalUniqueness; derivation in body) | introduced |
 | L11b | LEMMA | NonInjectivity — every conforming state with a link can be extended to a non-injective conforming state | introduced |
