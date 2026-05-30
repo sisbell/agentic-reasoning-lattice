@@ -334,13 +334,15 @@ This completes the discharge of Q under the stated precondition. ∎
 
 *Remark.* The sufficiency derivation makes explicit that R-BLK is the constructive witness for S8 on the post-state; R-PRE supplies cut-coverage (so Phase 1 is well-defined) and non-empty regions (so Phases 2–3 do not degenerate); pre-state S8 supplies the initial partition B that Phases 1 and 3 transform; pre-state ASN-0036 invariants supply the foundation S0–S3, S7, D-CTG, D-MIN, S8-fin, S8-depth that the post-state inherits via the transport arguments above. A stronger post-condition — that B' is the *canonical* (maximal) partition of M'(d) — is not derivable from R-PRE alone, and this gap is the source of post-rearrangement merges (R-BLK).
 
-*Necessity sketch (R-PRE(iv) coverage).* We exhibit one concrete pre-state demonstrating that R-PRE(iv) is not gratuitous: dropping the coverage conjunct admits a configuration on which Q fails *even when the pre-state satisfies every ASN-0036 invariant*. The counterexample isolates R-PRE(iv) as a constraint on the cut sequence relative to V_S(d), distinct from the structural invariants D-CTG and D-SEQ that the foundation already supplies. *Pre-state.* Let V_S(d) = {[1, 1], [1, 2], [1, 3], [1, 4], [1, 5]} — a sequential V-position set satisfying D-CTG (no gaps), D-SEQ (contiguous ordinals starting at 1), and S8a (positive ordinals at depth 2) of ASN-0036. Take any arrangement M(d) defined on these five positions (the specific I-addresses are irrelevant to the analysis below); the pre-state run partition B exists and is valid by S8. Take the 3-cut sequence K = ([1, 2], [1, 4], [1, 100]) — satisfying CS1 (n = 3), CS2 ([1, 2] < [1, 4] < [1, 100] under T1's strict ordering on tumblers), CS3 (all subspace 1), and CS4 (all depth 2). *R-PRE(i)–(iii) hold; (iv) fails.* Clauses (i) and (ii) are immediate. Clause (iii) is just CS1–CS4, verified above. With w_α = ord(c₁) − ord(c₀) = 4 − 2 = 2 and w_β = ord(c₂) − ord(c₁) = 100 − 4 = 96 (each width derived from the cut ordinals alone), both are ≥ 1, but this is irrelevant to the analysis below — the failure does not depend on width arithmetic. The affected range [c₀, c_{n−1}) at depth 2 in subspace 1 covers ordinals {2, 3, ..., 99}, and positions [1, 6], [1, 7], ..., [1, 99] are absent from V_S(d) (which extends only to [1, 5]); the universal "(A v : subspace(v) = 1 ∧ #v = 2 ∧ c₀ ≤ v < c₂ : v ∈ V_S(d))" of R-PRE(iv) is therefore falsified at any such witness — e.g., at v = [1, 6]. *Q fails.* R-P1 with j = 2 demands M'(d)(c₀ + 2) = M(d)(c₁ + 2), i.e., M'(d)([1, 4]) = M(d)([1, 6]). The left-hand side is well-typed ([1, 4] ∈ V_S(d) ⊆ dom(M(d)) = dom(M'(d))), but [1, 6] ∉ dom(M(d)), so the right-hand side is undefined and the postcondition equation cannot be satisfied for any candidate M'(d). Equivalently, the well-definedness step (b) of R-PIV fails: R-P1's reference to M(d)(c₁ + j) for 0 ≤ j < w_β requires the source position to lie in dom(M(d)), and at j = 2 the source is [1, 6] ∉ dom(M(d)). The failure compounds at j = 3, 4, ..., 95 — both as missing source references (M(d)([1, 7]), ..., M(d)([1, 99])) and, beyond j = 3, as missing destination V-positions (M'(d)([1, 6]), ..., M'(d)([1, 97]) lie outside dom(M'(d)) = dom(M(d))) — but a single witness at j = 2 already refutes Q. The R-BLK partition witness clause of Q inherits the failure: Phases 1–2 still complete (c₀ and c₁ classify against B by the interior/boundary dispatch on V_S(d); c₂ = [1, 100] falls outside ⋃_k V(b_k) and is admitted by the "Outside ⋃_k V(b_k)" clause as the last cut), but Phase 3 has no valid M'(d) to reassemble against, since M'(d) is the very object whose well-definedness R-P1 just disqualified. *Why R-PRE(iv) is structural.* No ASN-0036 invariant is violated by the pre-state above; the only failure is R-PRE(iv). This isolates R-PRE(iv) as a constraint *on the cut sequence relative to V_S(d)* — specifically bounding c_{n−1} ≤ [S, N + 1] where N = max{ord(v) : v ∈ V_S(d)} (under the D-SEQ characterization V_S(d) = {[S, 1], ..., [S, N]}), and analogously bounding each non-last cut into V_S(d) by CS2 — rather than as a redundant restatement of D-CTG or D-SEQ. *Conclusion.* R-PRE(iv) is load-bearing: even with a well-formed pre-state arrangement, dropping it admits cut sequences on which R-P1 (and hence Q) cannot be satisfied.
+**R-CS3 — SubspaceConfinementNecessity (LEMMA, supporting).** Dropping CS3 (the same-subspace clause of R-PRE(iii)) leaves the precondition R-PRE(iv) ill-posed, so that Q has no well-formed instance. This is the one necessity result we retain; we make no claim of exhaustiveness for the other conjuncts.
 
-*Well-typedness argument (R-PRE(iii) — CS3).* CS3 — the same-subspace clause of R-PRE(iii) — is a *well-typedness guard* on the postcondition: dropping it leaves the region widths and the β-extent untyped, so Q has no well-formed instance to evaluate. *Pre-state.* Let V_S(d) = {[1, 1], ..., [1, 5]} as before, and additionally suppose subspace 2 contains [2, 1] ∈ dom(M(d)) (S5 admits multi-subspace domains; the pre-state ASN-0036 invariants hold across both subspaces). Take the 3-cut sequence K = ([1, 2], [1, 5], [2, 1]). CS1 (n = 3), CS2 ([1, 2] < [1, 5] < [2, 1] under T1, the subspace coordinate 1 < 2 dominating at the last cut), and CS4 (all depth 2) hold; CS3 is *violated* — c₂ = [2, 1] is in subspace 2 while c₀, c₁ are in subspace 1. R-PRE(iv), which quantifies over *the* subspace S of the cuts, presupposes CS3 and is vacuous in its absence, so CS3 is the unique load-bearing failure. *Q is ill-typed.* Region β — the V-positions at depth 2 in subspace S with ordinal in [ord(c₁), ord(c₂)) — has no well-typed extent when its bounding cuts straddle subspaces: the cross-subspace interval [c₁, c₂) under T1 does not correspond to a region width in either subspace, so the iteration bound w_β in R-P1's reference M(d)(c₁ + j) is undefined and the rearrangement equation has no well-typed instances. The frame condition compounds this: R-FRAME-P(a) demands M'(d)([2, 1]) = M(d)([2, 1]) (treating subspace 2 as inert frame), yet c₂ = [2, 1] is simultaneously named as an arithmetic cut endpoint — a type-level mismatch. *Why CS3 is load-bearing.* No ASN-0036 invariant is violated by the pre-state; CS3 alone isolates the cut sequence to a single subspace so that the region widths w_α, w_β are well-typed and R-FRAME-P/S(a) is consistent with the cut-induced region partition.
+*Pre-state.* Let V_S(d) = {[1, 1], ..., [1, 5]} (satisfying D-CTG, D-SEQ, S8a of ASN-0036), and additionally let [2, 1] ∈ dom(M(d)) in subspace 2 (S5 admits multi-subspace domains; the pre-state ASN-0036 invariants hold across both subspaces). Take K = ([1, 2], [1, 5], [2, 1]), which satisfies CS1 (n = 3), CS2 ([1, 2] < [1, 5] < [2, 1] under T1, the subspace coordinate 1 < 2 dominating at the last cut), and CS4 (all depth 2), but *violates* CS3 — c₂ = [2, 1] lies in subspace 2 while c₀, c₁ lie in subspace 1.
 
-*Remaining conjuncts (R-PRE(i), R-PRE(ii)).* R-PRE(i) — M(d) is well-defined — gates the source-side references M(d)(c_i + j) on the right-hand sides of R-P1/R-P2/R-S1/R-S2/R-S3; with M(d) undefined, no postcondition equation can be evaluated. R-PRE(ii) — V_S(d) ≠ ∅ — gates the existence of any cut position in subspace S (cuts have subspace S by CS3 and depth 2 by CS4, so under D-SEQ they are drawn from V_S(d) ∪ {[S, N + 1]}; with V_S(d) = ∅ the cut sequence cannot be formed at all). Both are guards on the well-typedness of the postcondition rather than on the body of the rearrangement, and we omit detailed counterexample constructions for them — the failure mode in each case is immediate from the postcondition definition rather than from a derived contradiction with the ASN-0036 invariants.
+*The failure is at "the subspace S," not at a region width.* We argue from the actual definitions, not from an ordinal-difference width. Under the stated (cardinality) definition of region width, β = {v ∈ V_S(d) : c₁ ≤ v < c₂} = {v ∈ V_S(d) : [1, 5] ≤ v < [2, 1]} = {[1, 5]} is a perfectly well-defined set with |β| = 1, so the region extent is *not* untyped. The genuine load-bearing role of CS3 is that it is the sole clause fixing the single subspace S that R-PRE(iv) quantifies over. R-PRE(iv) reads `(A v : subspace(v) = S ∧ #v = 2 ∧ c₀ ≤ v < c_{n−1} : v ∈ V_S(d))`; the symbol S is the common subspace of the cuts, supplied by CS3. With the cuts split across subspaces 1 and 2 there is no single S. Reading S = 1 (the subspace of c₀, c₁), the exclusive bound c_{n−1} = c₂ = [2, 1] exceeds every subspace-1 depth-2 position under T1 (the subspace coordinate 1 < 2 dominates), so the range `subspace(v) = 1 ∧ #v = 2 ∧ [1, 2] ≤ v < [2, 1]` contains *every* [1, k] with k ≥ 2 — infinitely many positions, while V_S(d) is finite (S8-fin). R-PRE(iv) then demands [1, 6] ∈ V_S(d), which fails. The precondition is unsatisfiable as posed, so Q has no instance to evaluate.
 
-The arguments above establish the qualitative claim that R-PRE is non-redundant at its three load-bearing conjuncts (R-PRE(i), R-PRE(iii), R-PRE(iv)), with two distinct modes of indispensability: R-PRE(iv) is a *semantic* precondition (its negation admits a well-typed instance of Q that no M'(d) can satisfy), while R-PRE(i) and R-PRE(iii) are *well-typedness guards* (their negation makes Q unevaluable rather than unsatisfiable). A full necessity proof — characterizing the weakest precondition exhaustively, with the well-typedness/semantic distinction made formal — is left as the open question recorded above.
+*Frame interplay.* The incoherence also surfaces in the frame condition: R-FRAME-P(a) treats every position with subspace ≠ S as inert (M'(d)(v) = M(d)(v)), yet the cut c₂ = [2, 1] — a structural parameter of the operation — names a subspace-2 position that the frame holds fixed. CS3 keeps the cut subspace disjoint from the inert frame subspaces, so a cut never names a position the frame treats as untouchable.
+
+*Conclusion.* CS3 is load-bearing not as a width guard but as the clause that makes "the subspace S" of R-PRE(iv) well-defined and keeps the cut sequence disjoint from the inert frame; without it the precondition cannot be posed coherently. A full weakest-precondition characterization of REARRANGE_K — including the precise role of R-PRE(iv) beyond what D-SEQ already supplies (D-SEQ makes every region a well-defined cardinality and keeps source references c_i + j within V_S(d), so R-PRE(iv) adds a bound on the cuts relative to V_S(d) rather than a well-definedness guard) — is left as an open question.
 
 
 ## Displacement Analysis
@@ -475,10 +477,10 @@ M'(d)([1,5]) = E     (exterior, unchanged)
 
 *Phase 3 (Reassemble):* Apply each run's region displacement to its V-start. The per-region displacements (3-cut pivot) are: exterior-left fixed, α forward by w_β = 1, β backward by w_α = 2, exterior-right fixed.
 
-- ([1,1], A, 1) → ([1,1], A, 1) (exterior left, Δ = 0, V-start unchanged).
-- ([1,2], B, 2) → ([1,3], B, 2) (α, Δ = +1; V-start shifted from [1,2] to [1,3], width and I-start preserved).
-- ([1,4], D, 1) → ([1,2], D, 1) (β, Δ = −2; V-start shifted from [1,4] to [1,2], width and I-start preserved).
-- ([1,5], E, 1) → ([1,5], E, 1) (exterior right, Δ = 0, V-start unchanged).
+- ([1,1], A, 1) → ([1,1], A, 1) (exterior left, fixed, V-start unchanged).
+- ([1,2], B, 2) → ([1,3], B, 2) (α, forward 1; V-start shifted from [1,2] to [1,3], width and I-start preserved).
+- ([1,4], D, 1) → ([1,2], D, 1) (β, backward 2; V-start shifted from [1,4] to [1,2], width and I-start preserved).
+- ([1,5], E, 1) → ([1,5], E, 1) (exterior right, fixed, V-start unchanged).
 
 Sorted by V-start: {([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1)}. *S8-cons verification on reassembled runs:* ([1,3], B, 2): M'(d)([1,3]) = B, M'(d)([1,4]) = C = B + 1 ✓. The width-1 runs ([1,1], A, 1), ([1,2], D, 1), ([1,5], E, 1) satisfy S8-cons trivially at their lone offset k = 0.
 
@@ -575,7 +577,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 
 ## Worked Example: 4-Cut Swap with Equal Region Widths (w_α = w_β)
 
-The two preceding examples leave the μ-displacement sub-case w_α = w_β untraced. We trace a 4-cut swap with w_α = w_β to verify the Δ_μ = 0 branch — μ is fixed pointwise by π, even though the surrounding α and β regions exchange places. Let document d have subspace S = 1 with V_S(d) = {[1,1], ..., [1,7]}, and let the arrangement be:
+The two preceding examples leave the μ-displacement sub-case w_α = w_β untraced. We trace a 4-cut swap with w_α = w_β to verify the fixed-μ branch — μ is fixed pointwise by π, even though the surrounding α and β regions exchange places. Let document d have subspace S = 1 with V_S(d) = {[1,1], ..., [1,7]}, and let the arrangement be:
 
 ```
 M(d)([1,1]) = 3.0.1.0.1.0.1.1    (I-address A)
@@ -589,7 +591,7 @@ M(d)([1,7]) = 9.0.1.0.1.0.1.1    (I-address G)
 
 Content A–C originates from document 3.0.1.0.1; D from 7.0.1.0.1; E–F from 5.0.2.0.1; G from 9.0.1.0.1. The canonical run partition has four runs: b₁ = ([1,1], A, 3), b₂ = ([1,4], D, 1), b₃ = ([1,5], E, 2), b₄ = ([1,7], G, 1).
 
-We apply a 4-cut swap with K = ([1,2], [1,4], [1,5], [1,7]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5], c₃ = [1,7]. The affected range is [c₀, c₃) = {[1,2], ..., [1,6]}. Region α = {[1,2], [1,3]} (w_α = 2), middle μ = {[1,4]} (w_μ = 1), region β = {[1,5], [1,6]} (w_β = 2). Since w_α = w_β = 2, the μ-branch displacement w_β − w_α vanishes and the Δ_μ = 0 sub-case applies.
+We apply a 4-cut swap with K = ([1,2], [1,4], [1,5], [1,7]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5], c₃ = [1,7]. The affected range is [c₀, c₃) = {[1,2], ..., [1,6]}. Region α = {[1,2], [1,3]} (w_α = 2), middle μ = {[1,4]} (w_μ = 1), region β = {[1,5], [1,6]} (w_β = 2). Since w_α = w_β = 2, the μ-branch displacement w_β − w_α vanishes and the fixed-μ sub-case applies.
 
 **R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 4; CS2: [1,2] < [1,4] < [1,5] < [1,7]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,7)) are in V_S(d). Width positivity: w_α = 2 ≥ 1, w_β = 2 ≥ 1, w_μ = 1 ≥ 1 (consequence). ✓
 
@@ -613,7 +615,7 @@ R-S3 (j = 1): M'(d)(c₀ + w_β + w_μ + 1) = M'(d)([1,6]) = M(d)(c₀ + 1) = M(
 M'(d)([1,1]) = A     (exterior, unchanged)
 M'(d)([1,2]) = E     (from β via R-S1)
 M'(d)([1,3]) = F     (from β via R-S1)
-M'(d)([1,4]) = D     (from μ via R-S2 — *fixed in place* by Δ_μ = 0)
+M'(d)([1,4]) = D     (from μ via R-S2 — *fixed in place*, μ displacement zero when w_β = w_α)
 M'(d)([1,5]) = B     (from α via R-S3)
 M'(d)([1,6]) = C     (from α via R-S3)
 M'(d)([1,7]) = G     (exterior, unchanged)
@@ -655,12 +657,12 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 2), ([1,4], D, 1), ([1,5], B, 2), 
 
 *Merge check:* No V-adjacent, I-adjacent pair: ([1,1], A, 1) and ([1,2], E, 2) differ in origin (3.0.1.0.1 vs 5.0.2.0.1); ([1,2], E, 2) and ([1,4], D, 1) differ in origin (5.0.2.0.1 vs 7.0.1.0.1); ([1,4], D, 1) and ([1,5], B, 2) differ in origin (7.0.1.0.1 vs 3.0.1.0.1); ([1,5], B, 2) and ([1,7], G, 1) differ in origin (3.0.1.0.1 vs 9.0.1.0.1).
 
-**Canonical partition:** {([1,1], A, 1), ([1,2], E, 2), ([1,4], D, 1), ([1,5], B, 2), ([1,7], G, 1)}. The rearrangement exchanges the α- and β-runs across a fixed μ-run; the canonical partition is reached without further merges because each region's I-address origin differs from its neighbours'. The example confirms the Δ_μ = 0 sub-case: the μ-run is structurally invariant under R-BLK's Phase 3 reassembly when w_α = w_β.
+**Canonical partition:** {([1,1], A, 1), ([1,2], E, 2), ([1,4], D, 1), ([1,5], B, 2), ([1,7], G, 1)}. The rearrangement exchanges the α- and β-runs across a fixed μ-run; the canonical partition is reached without further merges because each region's I-address origin differs from its neighbours'. The example confirms the fixed-μ sub-case: the μ-run is structurally invariant under R-BLK's Phase 3 reassembly when w_α = w_β.
 
 
-## Worked Example: 4-Cut Swap with w_β < w_α (Negative Δ_μ Sub-Case)
+## Worked Example: 4-Cut Swap with w_β < w_α (Backward μ Sub-Case)
 
-The preceding 4-cut examples exercise the Δ_μ branches in the w_β > w_α case (the 8-position swap with w_α = 2, w_β = 3) and the w_β = w_α case (the equal-widths swap with w_α = w_β = 2). The third μ-branch sub-case — w_β < w_α, in which the μ-region shifts *backward* by w_α − w_β — has so far gone untraced. We exhibit it here with w_α = 3, w_β = 1, w_μ = 2. The asymmetry w_α > w_β reverses the direction of Δ_μ: the middle region moves earlier in the V-position ordering, into the slot vacated by the (now-narrower) β-region, while α stretches across the right end of the affected range.
+The preceding 4-cut examples exercise the μ-displacement branches in the w_β > w_α case (the 8-position swap with w_α = 2, w_β = 3) and the w_β = w_α case (the equal-widths swap with w_α = w_β = 2). The third μ-branch sub-case — w_β < w_α, in which the μ-region shifts *backward* by w_α − w_β — has so far gone untraced. We exhibit it here with w_α = 3, w_β = 1, w_μ = 2. The asymmetry w_α > w_β reverses the direction of the μ-displacement: the middle region moves earlier in the V-position ordering, into the slot vacated by the (now-narrower) β-region, while α stretches across the right end of the affected range.
 
 Let document d have subspace S = 1 with V_S(d) = {[1,1], ..., [1,8]}, and let the arrangement be:
 
@@ -677,7 +679,7 @@ M(d)([1,8]) = 9.0.1.0.1.0.1.1    (I-address H)
 
 Content A–D originates from document 3.0.1.0.1; E–F from 5.0.2.0.1; G from 7.0.1.0.1; H from 9.0.1.0.1. The canonical run partition has four runs: b₁ = ([1,1], A, 4), b₂ = ([1,5], E, 2), b₃ = ([1,7], G, 1), b₄ = ([1,8], H, 1).
 
-We apply a 4-cut swap with K = ([1,2], [1,5], [1,7], [1,8]): c₀ = [1,2], c₁ = [1,5], c₂ = [1,7], c₃ = [1,8]. The affected range is [c₀, c₃) = {[1,2], ..., [1,7]}. Region α = {[1,2], [1,3], [1,4]} (w_α = 3), middle μ = {[1,5], [1,6]} (w_μ = 2), region β = {[1,7]} (w_β = 1). Since w_β = 1 < w_α = 3, the μ-branch invokes Δ_μ = −(w_α − w_β) = −2, the negative sub-case.
+We apply a 4-cut swap with K = ([1,2], [1,5], [1,7], [1,8]): c₀ = [1,2], c₁ = [1,5], c₂ = [1,7], c₃ = [1,8]. The affected range is [c₀, c₃) = {[1,2], ..., [1,7]}. Region α = {[1,2], [1,3], [1,4]} (w_α = 3), middle μ = {[1,5], [1,6]} (w_μ = 2), region β = {[1,7]} (w_β = 1). Since w_β = 1 < w_α = 3, the μ-region shifts backward by w_α − w_β = 2, the backward sub-case.
 
 **R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 4; CS2: [1,2] < [1,5] < [1,7] < [1,8]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,8)) are in V_S(d). Width positivity: w_α = 3 ≥ 1, w_β = 1 ≥ 1, w_μ = 2 ≥ 1 (consequence). ✓
 
@@ -727,7 +729,7 @@ The μ-region positions [1,5] and [1,6] map *backward* to [1,3] and [1,4] respec
 
 **R-RI verification.** ran(M'(d)) = {A, B, C, D, E, F, G, H} = ran(M(d)). Since ran(M(d)) ⊆ dom(C) by S3 of the pre-state and C' = C, ran(M'(d)) ⊆ dom(C'). ✓
 
-**Displacement verification.** Reading Δ as a signed magnitude: Δ([1,2]) = +(5 − 2) = +3 = +(w_β + w_μ) ✓. Δ([1,3]) = +(6 − 3) = +3 ✓. Δ([1,4]) = +(7 − 4) = +3 ✓. Δ([1,5]) = −(5 − 3) = −2 = −(w_α − w_β), the μ-branch with w_β < w_α ✓. Δ([1,6]) = −(6 − 4) = −2 ✓. Δ([1,7]) = −(7 − 2) = −5 = −(w_α + w_μ) ✓. The middle-region displacement is uniformly −2, confirming the negative Δ_μ sub-case and matching R-DISP's prediction at every offset.
+**Displacement verification.** Reading each position's displacement as (direction, ordinal distance) from ord(π(v)) − ord(v): [1,2] forward 5 − 2 = 3 = w_β + w_μ ✓; [1,3] forward 6 − 3 = 3 ✓; [1,4] forward 7 − 4 = 3 ✓; [1,5] backward 5 − 3 = 2 = w_α − w_β, the μ sub-case with w_β < w_α ✓; [1,6] backward 6 − 4 = 2 ✓; [1,7] backward 7 − 2 = 5 = w_α + w_μ ✓. The middle-region displacement is uniformly backward by 2, confirming the backward μ sub-case at every offset.
 
 **Run decomposition via R-BLK.** *Phase 1 (Split):* c₀ = [1,2] is interior to b₁ = ([1,1], A, 4) at offset 1. Split: ([1,1], A, 1) and ([1,2], B, 3). The remaining cuts c₁ = [1,5], c₂ = [1,7], c₃ = [1,8] coincide with run boundaries (c₁ = b₂'s start, c₂ = b₃'s start, c₃ = b₄'s start), so no further splits. Post-split partition: {([1,1], A, 1), ([1,2], B, 3), ([1,5], E, 2), ([1,7], G, 1), ([1,8], H, 1)}.
 
@@ -747,7 +749,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], G, 1), ([1,3], E, 2), ([1,5], B, 3), 
 
 *Merge check:* ([1,1], A, 1) and ([1,2], G, 1) are V-adjacent (1 + 1 = 2) but not I-adjacent (origin(A) = 3.0.1.0.1 ≠ origin(G) = 7.0.1.0.1, so A + 1 ≠ G). ([1,2], G, 1) and ([1,3], E, 2) are V-adjacent (2 + 1 = 3) but differ in origin (G vs E). ([1,3], E, 2) and ([1,5], B, 3) are V-adjacent (3 + 2 = 5) but differ in origin (E vs B). ([1,5], B, 3) and ([1,8], H, 1) are V-adjacent (5 + 3 = 8); checking I-adjacency: B + 3 = 3.0.1.0.1.0.1.5 ≠ H = 9.0.1.0.1.0.1.1. No mergeable pair.
 
-**Canonical partition:** {([1,1], A, 1), ([1,2], G, 1), ([1,3], E, 2), ([1,5], B, 3), ([1,8], H, 1)}. The rearrangement extracts G into the slot vacated by α's leftward content (originally B at [1,2]), places the μ-content (E, F) one step earlier in the V-ordering (Δ_μ = −2), and pushes B, C, D to the right end of the affected range. The example confirms the negative Δ_μ sub-case: the μ-region moves earlier when the narrower β cannot accommodate α's full width, with the displacement magnitude w_α − w_β exposed cleanly in both the explicit π formula and the post-reassembly V-start of the μ-run.
+**Canonical partition:** {([1,1], A, 1), ([1,2], G, 1), ([1,3], E, 2), ([1,5], B, 3), ([1,8], H, 1)}. The rearrangement extracts G into the slot vacated by α's leftward content (originally B at [1,2]), places the μ-content (E, F) one step earlier in the V-ordering (backward by 2), and pushes B, C, D to the right end of the affected range. The example confirms the backward μ sub-case: the μ-region moves earlier when the narrower β cannot accommodate α's full width, with the displacement magnitude w_α − w_β exposed cleanly in both the explicit π formula and the post-reassembly V-start of the μ-run.
 
 
 ## Worked Example: 3-Cut Pivot at the Boundary (Minimum V_S(d), Empty Right Exterior)
@@ -817,7 +819,7 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1)}. *S8-cons verification:* both 
 | ArrangementRearrangement | DEF | State transition with dom(M'(d)) = dom(M(d)), C' = C, M'(d') = M(d') for d' ≠ d, and bijection π with M'(d)(π(v)) = M(d)(v) | introduced |
 | Split | DEF | Correspondence run (v, a, n) at interior offset c yields (v, a, c) and (v + c, a + c, n − c) | introduced |
 | Merge | DEF | V-adjacent and I-adjacent correspondence runs (v₁, a₁, n₁), (v₂, a₂, n₂) combine to (v₁, a₁, n₁ + n₂) | introduced |
-| CanonicalRunDecomposition | DEF | Unique partition of dom(M(d)) into maximal correspondence runs — no two V-adjacent, I-adjacent runs remain unmerged | introduced |
+| CanonicalRunDecomposition | DEF | Names the S8-unique (ASN-0036) maximal-run partition; Split/Merge relate a valid partition to it, with operational reduction deferred to a future ASN | introduced |
 | R-PIV | LEMMA | Pivot postcondition is a total function on dom(M(d)) | supporting |
 | R-SWP | LEMMA | Swap postcondition is a total function on dom(M(d)) | supporting |
 | R-PPERM | LEMMA | Bijection π for 3-cut pivot: α shifts forward by w_β, β shifts backward by w_α | introduced |
@@ -829,6 +831,7 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1)}. *S8-cons verification:* both 
 | R-COMM | LEMMA | π(v + k) = π(v) + k when v and v + k lie in the same region: cut-point permutation commutes with ordinal shift | introduced |
 | R-BLK | LEMMA | Run partition transforms by split-at-cuts then displace-per-region, preserving S8-uniq/S8-cons under M'(d) | introduced |
 | R-SP | LEMMA | R-PRE(K) ∧ pre-state ASN-0036 invariants ∧ pre-state run partition B is sufficient for REARRANGE_K to establish ASN-0036 invariants on M'(d) with B' = R-BLK(B) as the constructive S8 witness (sufficiency only; necessity not claimed) | introduced |
+| R-CS3 | LEMMA | Dropping CS3 leaves "the subspace S" of R-PRE(iv) undefined, so the precondition is unsatisfiable and Q has no instance; the single retained necessity result | supporting |
 
 
 ## Open Questions
@@ -840,3 +843,7 @@ What must a well-formed editing sequence guarantee about the composition of mult
 Under what conditions can a rearrangement cause the number of correspondence runs in the canonical partition to increase, and is there an upper bound on the increase relative to the number of cut points?
 
 What constraints, if any, must cut points satisfy relative to the run boundaries of the canonical partition, or are arbitrary cut positions within the V-span always valid?
+
+What is the weakest precondition for REARRANGE_K to establish the post-state invariant suite Q, and in particular what does R-PRE(iv) guarantee beyond what D-SEQ already supplies — given that D-SEQ alone makes every region a well-defined cardinality and keeps source references within V_S(d)?
+
+By what operational process is the S8-unique maximal (canonical) run partition recovered from the valid partition B' that R-BLK produces, and is that process confluent independently of merge order?
