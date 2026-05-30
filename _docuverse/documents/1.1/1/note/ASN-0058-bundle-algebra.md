@@ -71,7 +71,7 @@ A span on the tumbler line is defined by its endpoints. The internal ordering fo
 
 M0 and M1 together characterize the mapping block: it is a *width-preserving monotone injection* from a contiguous V-range to a contiguous I-range. The word "injection" is precise — within a single block, distinct V-positions map to distinct I-addresses. Across blocks, the same I-address may appear at multiple V-positions; we return to this below.
 
-**Remark (Span Algebra Analogy).** A mapping block `β = (v, a, n)` is naturally analogous to a paired V-span and I-span in the sense of ASN-0053 — the obvious candidates are `(v, δ(n, #v))` and `(a, δ(n, #a))`. The analogy is not an identity: the ASN-0053 denotation `⟦(v, δ(n, #v))⟧ = {t : v ≤ t < v + n}` includes tumblers at depths other than `#v`, whereas `V(β) = {v + k : 0 ≤ k < n}` is exactly the depth-`#v` shift orbit; so `V(β)` corresponds to the depth-`#v` projection of the ASN-0053 span's denotation, not the denotation itself. Similarly, the block's split (M4 below) is analogous to applying S4 (SplitPartition, ASN-0053) to both spans at the cut point, and the block's merge (M7 below) is analogous to S3 (MergeEquivalence, ASN-0053) — but only S3's adjacent-only sub-case, since M7 forbids the overlap that S3 admits in general. Width coupling (M0) ensures the cut point in V-space determines the cut point in I-space, so the two-span analogy stays synchronized throughout. We treat the connection as an aid to intuition; the block algebra below is developed on its own primitives.
+**Remark (Span Algebra Analogy).** A mapping block `β = (v, a, n)` is naturally analogous to a paired V-span and I-span in the sense of ASN-0053 — the obvious candidates are `(v, δ(n, #v))` and `(a, δ(n, #a))`. The analogy is not an identity: the ASN-0053 denotation `⟦(v, δ(n, #v))⟧ = {t : v ≤ t < v + n}` includes tumblers at depths other than `#v`, whereas `V(β) = {v + k : 0 ≤ k < n}` is exactly the depth-`#v` shift orbit; so `V(β)` corresponds to the depth-`#v` projection of the ASN-0053 span's denotation, not the denotation itself. Similarly, the block's split (M4 below) is analogous to applying S4 (SplitPartition, ASN-0053) to both spans at the cut point, and the block's merge (M7 below) is analogous to S3 (MergeEquivalence, ASN-0053) — but only S3's adjacent-only sub-case, since M7 forbids the overlap that S3 admits in general. Width coupling (M0) ensures the cut point in V-space determines the cut point in I-space, so the two-span analogy stays synchronized throughout.
 
 **M-aux (OrdinalIncrementAssociativity).** For any tumbler `v` and natural numbers `c, j ≥ 0`:
 
@@ -136,7 +136,7 @@ The forward inclusion `V(βⱼ) ⊆ [vⱼ, shift(vⱼ, nⱼ))` is direct. At `k 
 
 The reverse inclusion `[vⱼ, shift(vⱼ, nⱼ)) ∩ dom(M(d)) ⊆ V(βⱼ)` follows from M-int (TumblerIntervalCharacterization). Suppose `v ∈ dom(M(d))` satisfies `vⱼ ≤ v < shift(vⱼ, nⱼ)`; S8(a) places `vⱼ ∈ dom(M(d))` (`M(d)(vⱼ) = aⱼ`). Reading `shift(vⱼ, nⱼ)` as `vⱼ + nⱼ` (OrdinalShift convention, ASN-0034), the premises of M-int hold with `x = vⱼ`, `y = v`, `n = nⱼ`: `vⱼ, v ∈ dom(M(d))`, `vⱼ ≤ v < vⱼ + nⱼ`, and `nⱼ ≥ 1` from S8's correspondence-run width. M-int yields `v = vⱼ + k` for some `0 ≤ k < nⱼ`, hence `v ∈ V(βⱼ)`.
 
-With the V-extent translation in hand, S8's partition claim — `dom(M(d))` is the disjoint union of the `V(βⱼ)` — reads `(A v ∈ dom(M(d)) :: (E! j :: v ∈ V(βⱼ)))`: its *existence* half — every V-position lies in *some* block's V-extent — is B1 (Coverage), and its *uniqueness* half — no V-position lies in two blocks' V-extents — is B2 (Disjointness); uniqueness of the maximal-run decomposition is S8(c). The empty arrangement `M(d) = ∅` admits `B = ∅` (S8 produces zero runs; B1, B2, B3 are vacuously satisfied). The question that S8 leaves open is: given that at least one decomposition exists, how many are there, and what relates them?
+With the V-extent translation in hand, S8's partition claim — `dom(M(d))` is the disjoint union of the `V(βⱼ)` — reads `(A v ∈ dom(M(d)) :: (E! j :: v ∈ V(βⱼ)))`: its *existence* half — every V-position lies in *some* block's V-extent — is B1 (Coverage), and its *uniqueness* half — no V-position lies in two blocks' V-extents — is B2 (Disjointness); uniqueness of the maximal-run decomposition is S8(c). The empty arrangement `M(d) = ∅` admits `B = ∅` (S8 produces zero runs; B1, B2, B3 are vacuously satisfied).
 
 Nelson tells us:
 
@@ -305,8 +305,6 @@ Define a *maximal run* of `f = M(d)` as a triple `(v, a, n)` such that:
 1. `(A k : 0 ≤ k < n : f(v + k) = a + k)` — it is a correspondence run
 2. `¬(E v' :: v' + 1 = v ∧ v' ∈ dom(f) ∧ f(v') + 1 = a)` — it cannot be extended left
 3. `v + n ∉ dom(f)  ∨  f(v + n) ≠ a + n` — it cannot be extended right
-
-(Condition 2 uses only TumblerAdd, avoiding TumblerSub which is not well-defined for ordinal decrement at arbitrary tumbler depth. Leftward extension terminates because `dom(f)` is finite — the run cannot be extended beyond the leftmost position in `dom(f)`.)
 
 The proof factors into two sub-lemmas: M12a (maximal runs partition `dom(f)`) and M12b (every block of a maximally merged decomposition is a maximal run). M12a's "Equal starts" leans on M-int (TumblerIntervalCharacterization) for the structural reduction; M12b uses TumblerAdd's prefix-copy and unit-shift inversion directly.
 
@@ -477,7 +475,7 @@ The block algebra characterizes how arrangements decompose into contiguous runs.
 
 By C0a (below), prefix confinement gives tⱼ = uⱼ for all j < m for every t ∈ ⟦σ⟧; in particular t₁ = u₁, so dom(M(d_s)) ∩ ⟦σ⟧ ⊆ V_{u₁}(d_s). By S8-depth, all V-positions in V_{u₁}(d_s) have depth m, and reach(σ) has depth m (S6), so the depth-m restriction is structurally guaranteed.
 
-The common depth satisfies `m ≥ 2`, a consequence of the preconditions rather than a separate assertion. Precondition (i) is what makes `m` well-defined at all — S8-depth (ASN-0036) is vacuously true for an empty subspace and determines no common depth. Given (i), some `v ∈ V_{u₁}(d_s)` exists, so S8a (VPositionWellFormedness, ASN-0036) gives `#v ≥ 2` and S8-depth gives `m = #v ≥ 2`. Downstream claims (C0a, C1a) that hypothesize `m ≥ 2` draw it from here.
+The common depth satisfies `m ≥ 2`. Precondition (i) is what makes `m` well-defined at all — S8-depth (ASN-0036) is vacuously true for an empty subspace and determines no common depth. Given (i), some `v ∈ V_{u₁}(d_s)` exists, so S8a (VPositionWellFormedness, ASN-0036) gives `#v ≥ 2` and S8-depth gives `m = #v ≥ 2`.
 
 **C0 (OrdinalDisplacementNecessity).** For a well-formed content reference (d_s, σ) with σ = (u, ℓ), common depth m, and action point k of ℓ: k = m. Equivalently, ℓ = δ(ℓₘ, m) — an ordinal displacement.
 
