@@ -845,8 +845,6 @@ Under what conditions can a rearrangement cause the number of correspondence run
 
 What constraints, if any, must cut points satisfy relative to the run boundaries of the canonical partition, or are arbitrary cut positions within the V-span always valid?
 
-By what operational process is the S8-unique maximal (canonical) run partition recovered from the valid but non-maximal partition B' that R-BLK produces, and under what conditions does iterated merging of V-adjacent, I-adjacent runs terminate at it?
+By what operational process is the S8-unique maximal (canonical) run partition recovered from the valid but non-maximal partition B' that R-BLK produces — does iterated merging of V-adjacent, I-adjacent runs always terminate at it, and is the result confluent independently of merge order?
 
 What is the weakest precondition for REARRANGE_K to establish the post-state invariant suite Q, and in particular what does R-PRE(iv) guarantee beyond what D-SEQ already supplies — given that D-SEQ alone makes every region a well-defined cardinality and keeps source references within V_S(d)?
-
-By what operational process is the S8-unique maximal (canonical) run partition recovered from the valid partition B' that R-BLK produces, and is that process confluent independently of merge order?
