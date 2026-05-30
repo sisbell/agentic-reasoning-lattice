@@ -102,7 +102,7 @@ Clause (iv) ensures that the affected range is covered: no gap exists within [c�
 
 **Consequences of R-PRE.** *Subspace confinement.* All cuts lie in subspace S by CS3, and every V-position in the affected range [c₀, c_{n−1}) ∩ V_S(d) has subspace S by membership in V_S(d). Any cut-relative shift `c_i + j` retains subspace S: by CS3, subspace(c_i) = S, and OrdShiftHom (a) of ASN-0036 — extended to j = 0 by the identity convention, as recorded under Extended Associativity — gives subspace(c_i + j) = subspace(c_i) = S. The rearrangement constructions in this ASN (PivotPostcondition, SwapPostcondition) only assign new I-addresses to V-positions in V_S(d) and leave all other positions fixed (R-FRAME-P, R-FRAME-S), so no position outside subspace S is ever produced.
 
-*Width positivity.* Under R-PRE(iii) and R-PRE(iv), all region widths are positive: w_α ≥ 1 and w_β ≥ 1 in both forms, and additionally w_μ ≥ 1 when n = 4. The derivation has two steps for each adjacent cut pair (c_i, c_{i+1}). *Step 1 (cut-ordinal inequality from R-PRE(iii)).* Under CS3 and CS4, the singleton-tumbler identification reduces CS2's strict tumbler ordering c_i < c_{i+1} to ord(c_i) < ord(c_{i+1}), so ord(c_{i+1}) − ord(c_i) ≥ 1 by the truncated subtraction defined above (whose right-inverse identity, grounded in OrdinalShift, gives ord(c_i) + (ord(c_{i+1}) − ord(c_i)) = ord(c_{i+1}) > ord(c_i)). *Step 2 (region width = count of V-positions, via R-PRE(iv) and D-SEQ).* D-SEQ (ASN-0036) gives V_S(d) = {[S, k] : 1 ≤ k ≤ N} for some N, and R-PRE(iv) places every depth-2 subspace-S position with ordinal in [ord(c_i), ord(c_{i+1})) into V_S(d); the count of V-positions in [c_i, c_{i+1}) therefore equals ord(c_{i+1}) − ord(c_i) ≥ 1. *Concrete witnesses.* For each adjacent cut pair (c_i, c_{i+1}), the position c_i itself witnesses [c_i, c_{i+1}) ∩ V_S(d) ≠ ∅: by CS3, subspace(c_i) = S; by CS4, #c_i = 2; CS2 gives c₀ ≤ c_i < c_{n−1} (for i ≤ n − 2), placing c_i in [c₀, c_{n−1}) and hence in V_S(d) by R-PRE(iv); and c_i ∈ [c_i, c_{i+1}) by CS2's c_i < c_{i+1}. Instantiating at i = 0 yields w_α ≥ 1; at i = 1 (n = 4) yields w_μ ≥ 1; at i = n − 2 yields w_β ≥ 1.
+*Width positivity.* Under R-PRE(iii) and R-PRE(iv), all region widths are positive: w_α ≥ 1 and w_β ≥ 1 in both forms, and additionally w_μ ≥ 1 when n = 4. The derivation has two steps for each adjacent cut pair (c_i, c_{i+1}). *Step 1 (cut-ordinal inequality).* The Width-ordinal identities above already establish ord(c_{i+1}) − ord(c_i) ≥ 1 from CS2 via the singleton-tumbler identification and the truncated subtraction. *Step 2 (region width = count of V-positions, via R-PRE(iv) and D-SEQ).* D-SEQ (ASN-0036) gives V_S(d) = {[S, k] : 1 ≤ k ≤ N} for some N, and R-PRE(iv) places every depth-2 subspace-S position with ordinal in [ord(c_i), ord(c_{i+1})) into V_S(d); the count of V-positions in [c_i, c_{i+1}) therefore equals ord(c_{i+1}) − ord(c_i) ≥ 1. *Concrete witnesses.* For each adjacent cut pair (c_i, c_{i+1}), the position c_i itself witnesses [c_i, c_{i+1}) ∩ V_S(d) ≠ ∅: by CS3, subspace(c_i) = S; by CS4, #c_i = 2; CS2 gives c₀ ≤ c_i < c_{n−1} (for i ≤ n − 2), placing c_i in [c₀, c_{n−1}) and hence in V_S(d) by R-PRE(iv); and c_i ∈ [c_i, c_{i+1}) by CS2's c_i < c_{i+1}. Instantiating at i = 0 yields w_α ≥ 1; at i = 1 (n = 4) yields w_μ ≥ 1; at i = n − 2 yields w_β ≥ 1.
 
 *Empty-exterior boundary cases.* R-EXT in both PivotPostcondition and SwapPostcondition quantifies over {v ∈ V_S(d) : v < c₀ or v ≥ c_{n−1}}, and either subset may be empty for boundary configurations of the cut sequence. When ord(c₀) = 1, no V-position satisfies v < c₀ (V-position ordinals are ≥ 1 by S8a, ASN-0036), so the left-exterior subset is empty and R-EXT is vacuously satisfied on the left. When V_S(d) = {[S, 1], ..., [S, N]} and ord(c_{n−1}) = N + 1 (i.e., c_{n−1} sits one past the last V-position), no V-position satisfies v ≥ c_{n−1}, so the right-exterior subset is empty and R-EXT is vacuously satisfied on the right; R-PRE(iv) is unaffected because it constrains only [c₀, c_{n−1}), which excludes c_{n−1} itself. Both boundary configurations are admissible: R-PRE(iv) covers the entire affected range, R-EXT degenerates to a vacuous quantification on the empty side, and the well-definedness arguments (R-PIV, R-SWP) — which partition V_S(d) into the affected range and the exterior — proceed unchanged when one exterior subset is empty.
 
@@ -295,7 +295,7 @@ The two forms are distinct primitives: the 3-cut pivot transposes two *adjacent*
 
 ## Sufficient Precondition
 
-**R-SP — RearrangeSufficientPrecondition (LEMMA).** This lemma establishes sufficiency only (the ⇐ direction): the conjunction below suffices for the post-state predicate Q. It does not characterize the weakest precondition. The proof uses R-BLK (RunDecompositionTransformation), which describes how the pre-state runs transform under the rearrangement and exhibits *a* valid (non-maximal) run partition B', and R-COMM (PermutationShiftCommutativity), the within-region shift-commutativity of π.
+**R-SP — RearrangeSufficientPrecondition (LEMMA).** This lemma establishes sufficiency only (the ⇐ direction): the conjunction below suffices for the post-state predicate Q. The proof uses R-BLK (RunDecompositionTransformation), which describes how the pre-state runs transform under the rearrangement and exhibits *a* valid (non-maximal) run partition B', and R-COMM (PermutationShiftCommutativity), the within-region shift-commutativity of π.
 
 Let Q be the post-condition
 
@@ -356,7 +356,7 @@ Both pieces inherit S8-cons (consistency under A). For the first piece (v, a, c)
 
 **Merge.** Two runs (v₁, a₁, n₁) and (v₂, a₂, n₂) under arrangement A are *mergeable* when v₂ = v₁ + n₁ (V-adjacent) and a₂ = a₁ + n₁ (I-adjacent). The merged run is (v₁, a₁, n₁ + n₂). We verify S8-cons for the merged run — that A(v₁ + k) = a₁ + k for 0 ≤ k < n₁ + n₂ — by two cases. For 0 ≤ k < n₁: this is S8-cons of the first run directly. For n₁ ≤ k < n₁ + n₂: write k = n₁ + k' with 0 ≤ k' < n₂. By Extended Associativity (above), v₁ + k = v₁ + (n₁ + k') = (v₁ + n₁) + k' = v₂ + k' (using v₂ = v₁ + n₁ from the adjacency condition). By S8-cons of the second run, A(v₂ + k') = a₂ + k'. Extended Associativity likewise gives a₁ + k = a₁ + (n₁ + k') = (a₁ + n₁) + k' = a₂ + k', so A(v₁ + k) = a₂ + k' = a₁ + k. As with Split, this proof is arrangement-parametric: it depends only on S8-cons of the two constituents and Extended Associativity. In particular, when R-BLK applies Merge to the post-rearrangement arrangement M'(d), the verification holds because the reassembled runs already satisfy S8-cons for M'(d) (established in Phase 3).
 
-**Canonical decomposition.** The *canonical run decomposition* of an arrangement is the partition of its V-positions into *maximal* runs — runs that cannot be extended by merging with a V-adjacent, I-adjacent neighbor. Existence and uniqueness of this maximal-run partition are exported directly by the foundation: S8 (CorrespondenceRunPartition, ASN-0036) states that the maximal runs partition dom(Σ.M(d)) and that the maximal-run decomposition is unique. No postcondition of this ASN requires the operational *exhaustive-Merge process* (repeated application of the Merge operation to a fixpoint) or its confluence. R-BLK's output B' is shown below to be a *valid* run partition of M'(d) — discharging S8's existence/uniqueness-of-containing-run obligations — but not necessarily the maximal one; whenever the worked examples report a "canonical partition," they name the S8-unique maximal-run decomposition of M'(d), which the foundation guarantees exists and is unique. The Merge operation above relates a valid partition to its maximal refinement (each merge strictly reduces the run count, and V_S(d) is finite by S8-fin, so iterated merging terminates). Here we use only the foundation's uniqueness when naming a canonical partition.
+**Canonical decomposition.** The *canonical run decomposition* of an arrangement is the partition of its V-positions into *maximal* runs — runs that cannot be extended by merging with a V-adjacent, I-adjacent neighbor. Existence and uniqueness of this maximal-run partition are exported directly by the foundation: S8 (CorrespondenceRunPartition, ASN-0036) states that the maximal runs partition dom(Σ.M(d)) and that the maximal-run decomposition is unique. R-BLK's output B' is shown below to be a *valid* run partition of M'(d) — discharging S8's existence/uniqueness-of-containing-run obligations — but not necessarily the maximal one; whenever the worked examples report a "canonical partition," they name the S8-unique maximal-run decomposition of M'(d), which the foundation guarantees exists and is unique. The Merge operation above relates a valid partition to its maximal refinement (each merge strictly reduces the run count, and V_S(d) is finite by S8-fin, so iterated merging terminates). Here we use only the foundation's uniqueness when naming a canonical partition.
 
 **R-COMM — PermutationShiftCommutativity (LEMMA).** Let π be a cut-point permutation (R-PPERM or R-SPERM) for a cut sequence K satisfying R-PRE. For any V-position v ∈ dom(M(d)) and offset k ≥ 0 such that v + k ∈ dom(M(d)) and v, v + k lie in the same region — where the regions are the non-S subspace ({v ∈ dom(M(d)) : subspace(v) ≠ S}), the subspace-S exterior, α, μ, or β:
 
@@ -381,8 +381,6 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 *4-cut β:* v = c₂ + j' for some 0 ≤ j' < w_β. The same-region hypothesis "v + k ∈ β" gives 0 ≤ j' + k < w_β, discharging R-SPERM's β-branch precondition. Then v + k = c₂ + (j' + k), and by R-SPERM: π(v + k) = c₀ + (j' + k). Also π(v) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity. ∎
 
 **R-BLK — RunDecompositionTransformation (LEMMA).** R-BLK names both the lemma below and the constructive transformation (B, C, M(d), M'(d)) ↦ B' it specifies; R-SP invokes the latter via R-BLK(B). Let B = {b₁, ..., bₘ} be a run partition of M(d) (per S8) — including runs whose V-extents lie in V_S(d) and runs whose V-extents lie in subspaces other than S. Let the cut sequence K have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a run partition B' obtained by:
-
-*Scope note on non-S runs.* The non-S behaviour through all three Phases is supplied by R-NS(NS-run): for any run b ∈ B with V-extent in some subspace S' ≠ S, Phase 1 performs no split (cuts have subspace S by CS3, disjoint from S'), Phase 2 classifies b into the dedicated non-S region, and Phase 3 carries the triple (v_b, a_b, n_b) through unchanged into B'. The Phase clauses below state explicitly where this dispatch fires, but the substantive verification — V-extent confinement to S' by OrdShiftHom (a) of ASN-0036, post-state S8-cons consistency under M'(d) via R-NS(NS-π), and pairwise disjointness from subspace-S runs by T10 of ASN-0034 — is recorded once in R-NS and not repeated.
 
 *Phase 1: Split.* Process cut positions in index order (c₀, c₁, ..., c_{n−1}), maintaining the partition as it is progressively refined. For each cut position cᵢ, classify by whether cᵢ falls within some run's V-extent:
 
@@ -494,7 +492,7 @@ Content A–C originates from document 3.0.1.0.1; D from document 7.0.1.0.1; E�
 
 We apply a 4-cut swap with K = ([1,2], [1,4], [1,5], [1,8]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5], c₃ = [1,8]. The affected range is [c₀, c₃) = {[1,2], ..., [1,7]}. Region α = {[1,2], [1,3]} (w_α = 2), middle μ = {[1,4]} (w_μ = 1), region β = {[1,5], [1,6], [1,7]} (w_β = 3). Since w_α = 2 ≠ w_β = 3, the middle displacement w_β − w_α = 1 is nonzero.
 
-**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 4; CS2: [1,2] < [1,4] < [1,5] < [1,8]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,8)) are in V_S(d). Width positivity: w_α = 2 ≥ 1, w_β = 3 ≥ 1, w_μ = 1 ≥ 1 (consequence). ✓
+**R-PRE verification.** As in the first example (only the values differ). ✓
 
 **Applying the postconditions.** We compute M'(d) position by position:
 
@@ -538,7 +536,7 @@ The three swap clauses tile [c₀, c₃) = [[1,2], [1,8]) exactly: R-S1 covers o
 - π([1,7]) = c₀ + 2 = [1,4] (β: j = 2). Check: M'(d)([1,4]) = G = M(d)([1,7]) ✓.
 - π([1,8]) = [1,8] (exterior).
 
-**R-RI verification.** ran(M'(d)) = {A, B, C, D, E, F, G, H} = ran(M(d)) (the same eight I-addresses, only their V-position assignments rearranged). Since ran(M(d)) ⊆ dom(C) by S3 of the pre-state and C' = C, ran(M'(d)) ⊆ dom(C'). ✓
+**R-RI verification.** As in the first example (only the values differ). ✓
 
 **Displacement verification.** Reading each position's displacement as (direction, ordinal distance) from ord(π(v)) − ord(v): [1,2] forward 6 − 2 = 4 = w_β + w_μ ✓; [1,3] forward 7 − 3 = 4 ✓; [1,4] forward 5 − 4 = 1 = w_β − w_α, the μ sub-case with w_β > w_α ✓; [1,5] backward 5 − 2 = 3 = w_α + w_μ ✓; [1,6] backward 6 − 3 = 3 ✓; [1,7] backward 7 − 4 = 3 ✓. The middle-region displacement is forward by 1, confirming the asymmetric structure when w_α ≠ w_β.
 
@@ -579,7 +577,7 @@ Content A–C originates from document 3.0.1.0.1; D from 7.0.1.0.1; E–F from 5
 
 We apply a 4-cut swap with K = ([1,2], [1,4], [1,5], [1,7]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5], c₃ = [1,7]. The affected range is [c₀, c₃) = {[1,2], ..., [1,6]}. Region α = {[1,2], [1,3]} (w_α = 2), middle μ = {[1,4]} (w_μ = 1), region β = {[1,5], [1,6]} (w_β = 2). Since w_α = w_β = 2, the μ-branch displacement w_β − w_α vanishes and the fixed-μ sub-case applies.
 
-**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 4; CS2: [1,2] < [1,4] < [1,5] < [1,7]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,7)) are in V_S(d). Width positivity: w_α = 2 ≥ 1, w_β = 2 ≥ 1, w_μ = 1 ≥ 1 (consequence). ✓
+**R-PRE verification.** As in the first example (only the values differ). ✓
 
 **Applying the postconditions.** We compute M'(d) position by position:
 
@@ -621,7 +619,7 @@ The R-S2 clause exhibits the structural property of the w_α = w_β branch: M'(d
 
 Note π([1,4]) = [1,4]: μ is the single position fixed by π via the μ-branch (as distinct from the exterior, which is fixed via R-FRAME-S(a)). The rearrangement is still a genuine swap — α and β positions move — but the middle region holds in place pointwise.
 
-**R-RI verification.** ran(M'(d)) = {A, B, C, D, E, F, G} = ran(M(d)). Since ran(M(d)) ⊆ dom(C) by S3 of the pre-state and C' = C, ran(M'(d)) ⊆ dom(C'). ✓
+**R-RI verification.** As in the first example (only the values differ). ✓
 
 **Displacement verification.** Reading each position's displacement as (direction, ordinal distance) from ord(π(v)) − ord(v): [1,2] forward 5 − 2 = 3 = w_β + w_μ ✓; [1,3] forward 6 − 3 = 3 ✓; [1,4] fixed — the μ sub-case with w_β = w_α ✓; [1,5] backward 5 − 2 = 3 = w_α + w_μ ✓; [1,6] backward 6 − 3 = 3 ✓. The middle-region displacement vanishes, confirming the structural symmetry of the w_β = w_α sub-case.
 
@@ -667,7 +665,7 @@ Content A–D originates from document 3.0.1.0.1; E–F from 5.0.2.0.1; G from 7
 
 We apply a 4-cut swap with K = ([1,2], [1,5], [1,7], [1,8]): c₀ = [1,2], c₁ = [1,5], c₂ = [1,7], c₃ = [1,8]. The affected range is [c₀, c₃) = {[1,2], ..., [1,7]}. Region α = {[1,2], [1,3], [1,4]} (w_α = 3), middle μ = {[1,5], [1,6]} (w_μ = 2), region β = {[1,7]} (w_β = 1). Since w_β = 1 < w_α = 3, the μ-region shifts backward by w_α − w_β = 2, the backward sub-case.
 
-**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 4; CS2: [1,2] < [1,5] < [1,7] < [1,8]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,8)) are in V_S(d). Width positivity: w_α = 3 ≥ 1, w_β = 1 ≥ 1, w_μ = 2 ≥ 1 (consequence). ✓
+**R-PRE verification.** As in the first example (only the values differ). ✓
 
 **Applying the postconditions.** We compute M'(d) position by position:
 
@@ -713,7 +711,7 @@ The three swap clauses tile [c₀, c₃) = [[1,2], [1,8)) exactly: R-S1 covers o
 
 The μ-region positions [1,5] and [1,6] map *backward* to [1,3] and [1,4] respectively — a uniform backward shift of w_α − w_β = 3 − 1 = 2, the μ sub-case with w_β < w_α recorded in the Displacement Analysis remark.
 
-**R-RI verification.** ran(M'(d)) = {A, B, C, D, E, F, G, H} = ran(M(d)). Since ran(M(d)) ⊆ dom(C) by S3 of the pre-state and C' = C, ran(M'(d)) ⊆ dom(C'). ✓
+**R-RI verification.** As in the first example (only the values differ). ✓
 
 **Displacement verification.** Reading each position's displacement as (direction, ordinal distance) from ord(π(v)) − ord(v): [1,2] forward 5 − 2 = 3 = w_β + w_μ ✓; [1,3] forward 6 − 3 = 3 ✓; [1,4] forward 7 − 4 = 3 ✓; [1,5] backward 5 − 3 = 2 = w_α − w_β, the μ sub-case with w_β < w_α ✓; [1,6] backward 6 − 4 = 2 ✓; [1,7] backward 7 − 2 = 5 = w_α + w_μ ✓. The middle-region displacement is uniformly backward by 2, confirming the backward μ sub-case at every offset.
 
@@ -753,7 +751,7 @@ Content A originates from document 3.0.1.0.1; B from document 5.0.2.0.1. The can
 
 We apply a 3-cut pivot with K = ([1,1], [1,2], [1,3]): c₀ = [1,1], c₁ = [1,2], c₂ = [1,3] = [S, N + 1]. The affected range [c₀, c₂) at depth 2 in subspace 1 covers ordinals {1, 2}; under D-SEQ (V_S(d) = {[1,1], [1,2]}), this is exactly V_S(d). Region α = {[1,1]} (w_α = 1), region β = {[1,2]} (w_β = 1). Both exteriors are *empty*: the left exterior {v ∈ V_S(d) : v < c₀} is empty because ord(c₀) = 1 = min{ord(v) : v ∈ V_S(d)}; the right exterior {v ∈ V_S(d) : v ≥ c₂} is empty because ord(c₂) = 3 > N = 2.
 
-**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) = {[1,1], [1,2]} ≠ ∅. (iii) CS1: n = 3; CS2: [1,1] < [1,2] < [1,3]; CS3: all subspace 1; CS4: all depth 2. (iv) The positions with subspace 1, depth 2, and ordinal in [1, 3) are exactly [1,1] and [1,2], both in V_S(d); the bound v < c₂ is exclusive, so c₂ = [1,3] is not required to be in V_S(d) — and indeed it is not. Width positivity: w_α = 1 ≥ 1, w_β = 1 ≥ 1 (consequence). ✓
+**R-PRE verification.** As in the first example (only the values differ), with one boundary-specific point: R-PRE(iv)'s bound v < c₂ is exclusive, so c₂ = [1,3] need not lie in V_S(d) — and here it does not (ord(c₂) = 3 > N = 2). ✓
 
 **Applying the postconditions.** Both exteriors are empty, so R-EXT contributes no equations; the entire V_S(d) is covered by R-P1 and R-P2.
 
@@ -772,7 +770,7 @@ The pivot reduces to a transposition of the two V-positions. No position is fixe
 
 **R-PPERM verification.** The permutation π: π([1,1]) = c₀ + w_β + 0 = [1,2] (α: j = 0). π([1,2]) = c₀ + 0 = [1,1] (β: j = 0). Bijectivity: π is an involution ((π ∘ π)([1,1]) = π([1,2]) = [1,1], symmetrically for [1,2]). Check: M'(d)(π([1,1])) = M'(d)([1,2]) = A = M(d)([1,1]) ✓. M'(d)(π([1,2])) = M'(d)([1,1]) = B = M(d)([1,2]) ✓.
 
-**R-RI verification.** ran(M'(d)) = {B, A} = {A, B} = ran(M(d)) ⊆ dom(C) = dom(C'). ✓
+**R-RI verification.** As in the first example (only the values differ). ✓
 
 **Displacement verification.** Reading each position's displacement as (direction, ordinal distance): [1,1] forward 2 − 1 = 1 = w_β (α, j = 0); [1,2] backward 2 − 1 = 1 = w_α (β, j = 0). The displacement is uniformly forward by 1 on α and uniformly backward by 1 on β, confirming per-region displacement uniformity at minimum width. No position is fixed — both exterior regions are empty, so the fixed (distance-0) case arises nowhere on V_S(d).
 
