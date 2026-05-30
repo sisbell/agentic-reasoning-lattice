@@ -176,7 +176,7 @@ We name a *parent relation* `R_Σ` on `Π_Σ` and write `covers_Σ*` for its ref
 
 **Delegation edges are cover edges (bridge).** A real delegation event and a structural cover step coincide on the edge they introduce: whenever `delegated_Σ(π_d, π')` holds along `Σ → Σ'`, condition (ii) makes `π_d` the most-specific principal of `Π_Σ` covering `pfx(π')`. Evaluating `R_{Σ'}` over `Π_{Σ'} = Π_Σ ∪ {π'}`, the only candidate not already in `Π_Σ` is `π'` itself, and `π'` cannot be a strict cover of its own prefix (`pfx(π') ⊀ pfx(π')`); so the most-specific strict cover of `pfx(π')` in `Π_{Σ'}` coincides with that in `Π_Σ`, namely `π_d`, and `R_{Σ'}(π_d, π')` holds. This edge persists into every later state by O13 (PrefixImmutability), which fixes `pfx(π')` against subsequent transitions. Hence every chain of delegation events is a `covers`-chain.
 
-**StrictLongestCover (lemma).** The same covering-chain three-case contradiction recurs whenever we ask which principal achieves the longest matching prefix of a covered address. We isolate it once. *General form:* let `χ ∈ Π_{Σ'}` cover an address `a` (`pfx(χ) ≼ a`), and suppose no principal of `Π_{Σ'}` covers `a` with a prefix strictly extending `pfx(χ)` (the *no-strict-extension* hypothesis). Then every covering principal `π'' ∈ Π_{Σ'}` with `π'' ≠ χ` satisfies `#pfx(π'') < #pfx(χ)`; hence `χ` is the unique coverer of `a` of maximal prefix length in `Π_{Σ'}`.
+**StrictLongestCover (lemma).** *General form:* let `χ ∈ Π_{Σ'}` cover an address `a` (`pfx(χ) ≼ a`), and suppose no principal of `Π_{Σ'}` covers `a` with a prefix strictly extending `pfx(χ)` (the *no-strict-extension* hypothesis). Then every covering principal `π'' ∈ Π_{Σ'}` with `π'' ≠ χ` satisfies `#pfx(π'') < #pfx(χ)`; hence `χ` is the unique coverer of `a` of maximal prefix length in `Π_{Σ'}`.
 
 *Proof.* The prefixes `pfx(π'')` and `pfx(χ)` are both prefixes of the common address `a`, so by the covering-chain lemma they are `≼`-comparable. Three cases exhaust the comparison. If `pfx(π'') = pfx(χ)`, then O1b (PrefixInjectivity) forces `π'' = χ`, excluded since `π'' ≠ χ`. If `pfx(χ) ≺ pfx(π'')`, then `π''` covers `a` with a prefix strictly extending `pfx(χ)`, excluded by the no-strict-extension hypothesis. The only consistent case is `pfx(π'') ≺ pfx(χ)`, which gives `#pfx(π'') < #pfx(χ)`. Since `χ` itself covers `a`, it is the unique coverer of maximal prefix length. ∎
 
@@ -246,7 +246,7 @@ The coupling is sharpened for principal-introducing transitions: every transitio
 
 **O17 (AllocatedAddressValidity, derived).** Every allocated address is a valid tumbler:
 
-  `(A Σ, a : a ∈ Σ.B ⟹ T4(a))`
+  `(A Σ reachable from Σ₀, a : a ∈ Σ.B ⟹ T4(a))`
 
 *Proof.* By RegistryReachability (derived above), in every reachable state `Σ` the registry `Σ.B` is an ASN-0040-reachable registry. ASN-0040's B10 (T4ValidityInvariant) holds over every such reachable registry — `(A t ∈ s.B : T4(t))` — so every address in `Σ.B` satisfies T4. ∎
 
@@ -638,7 +638,7 @@ Condition (a) entails a structural consequence: since `ω(a') = π` gives `pfx(�
 
 Nelson: "Thus users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate — without damaging the originals. This is done by inclusion links" (LM 2/45). Gregory confirms the structural mechanism: `docreatenewversion`, when invoked on a document belonging to a different account, routes the allocation through `makehint(ACCOUNT, DOCUMENT, 0, wheretoputit, &hint)` — placing the fork under the requesting principal's account, not under the source document.
 
-The forked address lives entirely within `odom(π)`. It satisfies O2 (π is its exclusive owner), O3 corollary (π's account-level ownership is permanent), O5 (π may further subdivide it), and O6 (its provenance records π as the creator). From the ownership model's perspective, the fork is a new independent address that happens to share content identity with the original — a relationship that belongs to the content model, not the ownership model.
+The forked address lives entirely within `odom(π)`. It satisfies O2 (π is its exclusive owner), O3 corollary (π's account-level ownership is permanent), O5 (π may further subdivide it), and O6 (its provenance records π as the creator). From the ownership model's perspective, the fork is a new independent address that happens to share content identity with the original.
 
 We must establish that such an `a'` exists in every reachable state — that `π` can always find an address within `odom(π)` where it remains the effective owner. A single baptism by `π` produces such an address in every reachable state, for both `zeros(pfx(π)) = 0` and `zeros(pfx(π)) = 1`.
 
@@ -769,7 +769,7 @@ Should `π_B` fork against content it does not own — say `a₃ = [1, 0, 7, 0, 
 
 *Node-level fork.* The structurally distinct node-level case — `zeros(pfx(π)) = 0`, where the Form-A sub-analysis (node-field-extending sub-delegates) becomes live — is witnessed by the node operator `π_N` (`pfx(π_N) = [1]`, `zeros = 0`). Suppose `π_N` requires modification of `a₅` under node `[2]`, where `ω(a₅) = π_M ≠ π_N`; `π_N` forks within `odom(π_N)`. The namespace is `S([1], 2)`: its elements are `c_1 = inc([1], 2) = [1, 0, 1]` and `c_2 = inc([1, 0, 1], 0) = [1, 0, 2]`, and both lie in `Σ.B` (`[1, 0, 1]` seeded; `[1, 0, 2] = pfx(π_A)` entered by PrefixBaptismCoupling at the delegation). Hence `children(Σ.B, [1], 2) = {[1, 0, 1], [1, 0, 2]}` — contiguous, so `hwm_0 = 2`. The single baptism takes the sibling-advance branch: `a' = next(Σ.B, [1], 2) = inc([1, 0, 2], 0) = [1, 0, 3]`. We verify O10(c): `zeros(a') = zeros([1, 0, 3]) = 1 = zeros(pfx(π_N)) + 1` — a user-level namespace slot exactly one tier below the node field. *Ownership.* The covering principals of `[1, 0, 3]` in `Π = {π_N, π_M, π_A}` reduce to `π_N` alone (`[1] ≼ [1, 0, 3]`); `π_M`'s `[2]` does not cover, and `π_A`'s `[1, 0, 2]` fails at position 3 (`2 ≠ 3`). So `ω(a') = π_N`. *Form-A exclusion.* A node-field-extending sub-delegate of `π_N` would be Form A — strictly positive at position `#pfx(π_N) + 1 = 2` — but `a'` carries `0` at position 2, so no Form-A sub-delegate can cover it; concretely none exists in `Π` (`π_A` is Form B, with its zero separator at position 2). The lone Form-B sub-delegate `π_A = [1, 0, 2]` has first user-field component `U_1 = 2 = hwm_0`, hence `U_1 ≠ hwm_0 + 1 = 3`, so it too fails to cover `a'`. The node-level branch of the O10 construction is thereby exhibited on a concrete address.
 
-The fork transforms the ownership boundary into a creative act: `π_A` now has a fully owned address `a'` whose content identity may relate to `a₃`'s content (through the content model), but whose ownership is entirely independent.
+The fork transforms the ownership boundary into a creative act: `π_A` now has a fully owned address `a'` whose ownership is entirely independent.
 
 
 ## Properties Introduced
@@ -799,7 +799,7 @@ The fork transforms the ownership boundary into a creative act: `π_A` now has a
 | StrictLongestCover | A coverer `χ` of `a` with no strictly-longer coverer in `Π_{Σ'}` is the unique maximal-prefix coverer; newly-delegated corollary: a `π'` from `delegated_Σ(π, π')` satisfying (i),(ii),(iv) is the unique strict longest-match coverer of any `a` it covers | from covering-chain lemma, O1b, O15, delegation conditions (i),(ii),(iv) |
 | NestingByDelegation | `(A Σ reachable, π₁ ≠ π₂ ∈ Π_Σ : pfx(π₁), pfx(π₂) non-nesting ∨ covers_Σ*(π₁, π₂) ∨ covers_Σ*(π₂, π₁))` — distinct principals are either non-nesting or related by a cover-chain (`R_Σ`-closure), which by the delegation-edges-are-cover-edges bridge is a chain of delegation events | from O1b, O12, O13, O14.7, O15, delegation condition (iv), covering-chain lemma, StrictLongestCover |
 | O16 | `(A a ∈ Σ'.B ∖ Σ.B : (E π ∈ Π_Σ : allocated_by_{Σ'}(π, a)))` — allocation closure | axiom |
-| O17 | `(A Σ, a : a ∈ Σ.B ⟹ T4(a))` — every allocated address is a valid tumbler | derived via RegistryReachability from ASN-0040 B10 |
+| O17 | `(A Σ reachable from Σ₀, a : a ∈ Σ.B ⟹ T4(a))` — every allocated address is a valid tumbler | derived via RegistryReachability from ASN-0040 B10 |
 | O17b | Every registry-changing ownership transition is an ASN-0040 baptism: `Σ'.B = Σ.B ∨ Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}` for some B6-valid `(p, d)`; principal-introducing transitions take the baptism branch, baptizing `pfx(π')` (`Σ'.B = Σ.B ∪ {pfx(π')}`) | axiom (coupling) |
 | O17c | `Σ → Σ' ∧ π' ∈ Π_{Σ'} ∖ Π_Σ ⟹ (E p, d : B6(p, d) : pfx(π') = next(Σ.B, p, d))` — every introduced principal's prefix has next-reachable form | derived by composing O17b's principal-introduction clause with its general baptism branch |
 | O18 | `Σ → Σ' ∧ π' ∈ Π_{Σ'} ∖ Π_Σ ⟹ pfx(π') ∈ Σ'.B ∖ Σ.B` — delegation materially baptizes the delegate's prefix as a fresh registration | derived from O17b coupling (baptism branch) and Freshness-(v) |
