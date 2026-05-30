@@ -565,7 +565,7 @@ Let `Σ_d` denote the state in which `delegated(Σ_d, Σ_d^{post}, π, π')` hol
 
 *The delegate persists with an unchanged prefix.* The precondition fixes the introducing transition `Σ_d → Σ_d^{post}` (at which `π'` enters `Π`) together with `Σ_d^{post} →* Σ'`. By O13 (PrefixImmutability) iterated along `Σ_d^{post} →* Σ'`, `pfx_{Σ'}(π') = pfx_{Σ_d^{post}}(π')`. The delegate is present at `Σ'` with the prefix it received at the delegation transition.
 
-*The delegate covers the address.* Since `a ∈ odom(π')`, the definition of domain gives `pfx(π') ≼ a`. This relation depends only on the components of `pfx(π')` and `a`. By O13, `pfx(π')` is immutable. By B0★ (MultiStepIrrevocability) of ASN-0040 applied along the sub-trajectory `Σ_d^post →* Σ'`, `a` — being baptized — persists in the baptismal registry with unchanged components. Therefore `pfx_{Σ'}(π') ≼ a` holds in `Σ'`.
+*The delegate covers the address.* The precondition `a ∈ odom(π') = {t : pfx(π') ≼ t}` gives `pfx(π') ≼ a` directly; by O13 (PrefixImmutability) `pfx_{Σ'}(π') = pfx(π')`, so `pfx_{Σ'}(π') ≼ a` holds in `Σ'`.
 
 *The delegate's prefix is strictly longer than the parent's.* By condition (i) of the delegation relation, `pfx_{Σ_d}(π) ≺ pfx_{Σ_d^{post}}(π')` — the delegator's prefix at the delegation transition's source strictly extends to the delegate's prefix at the transition's target — which gives `#pfx_{Σ_d}(π) < #pfx_{Σ_d^{post}}(π')`. By O13 iterated along `Σ_d →^* Σ'` (and using O12 to carry `π` from `Π_{Σ_d}` into `Π_{Σ'}`), both prefixes are immutable: `pfx_{Σ'}(π) = pfx_{Σ_d}(π)` and `pfx_{Σ'}(π') = pfx_{Σ_d^{post}}(π')`. The strict length inequality `#pfx_{Σ'}(π) < #pfx_{Σ'}(π')` holds at every `Σ'` with `π' ∈ Π_{Σ'}`.
 
