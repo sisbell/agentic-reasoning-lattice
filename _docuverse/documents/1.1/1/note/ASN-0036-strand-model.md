@@ -134,7 +134,7 @@ The arrangement function `M(d)` need not be injective. This is not a deficiency 
 
 **S5 (Unrestricted sharing).** The same I-address may appear in the ranges of multiple arrangements, and at multiple V-positions within a single arrangement. S0–S3 are consistent with any finite sharing multiplicity — they place no constraint on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|`:
 
-`(A N ∈ ℕ :: (E Σ :: Σ satisfies S0–S3 ∧ (E a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N)))`
+`(A N ∈ ℕ :: (E Σ :: Σ satisfies the state-level invariants S2, S3 ∧ (E a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N)))`
 
 In any particular state, the sharing multiplicity of each address is a definite finite number — possibly zero for orphaned content — but no invariant imposes a uniform bound that holds across all states.
 
@@ -142,16 +142,16 @@ Nelson: "The virtual byte stream of a document may include bytes from any other 
 
 S4 and S5 together make quotation a first-class structural relationship: any number of documents can quote the same passage, and the system knows they are all quoting — not independently writing — because they share I-addresses.
 
-*Proof.* We wish to show that for every `N ∈ ℕ`, there exists a state `Σ` satisfying S0–S3 in which some I-address has sharing multiplicity exceeding `N`. We give two constructions — one for cross-document sharing, one for within-document sharing — each succeeding for arbitrary `N`.
+*Proof.* We wish to show that for every `N ∈ ℕ`, there exists a state `Σ` satisfying the state-level invariants S2, S3 in which some I-address has sharing multiplicity exceeding `N`. We give two constructions — one for cross-document sharing, one for within-document sharing — each succeeding for arbitrary `N`.
 
-**Shared facts.** Both constructions use the same content store `C = {a ↦ w}` for a single I-address `a` and arbitrary `w ∈ Val`, and V-positions of the form `[1, k]` with `k ≥ 1`. S0 (content immutability) and S1 (store monotonicity) are transition invariants; a single-state witness satisfies them vacuously under the identity transition `Σ → Σ`, which preserves `dom(C)` and every stored value. S3 (referential integrity) holds identically in both constructions: the sole I-address referenced by any arrangement is `a`, which lies in the content domain `dom(C) = {a}` by construction. The two constructions differ only in document/V-position multiplicity; we verify the remaining state-level invariant S2 (arrangement functionality) per construction.
+**Shared facts.** Both constructions use the same content store `C = {a ↦ w}` for a single I-address `a` and arbitrary `w ∈ Val`, and V-positions of the form `[1, k]` with `k ≥ 1`. S0 (content immutability) and S1 (store monotonicity) are transition-level invariants — quantified over transitions `Σ → Σ'`, not over a single state — so they impose no constraint on the standalone witness `Σ_N`; the only invariants to discharge on a single state are the state-level S2 and S3. S3 (referential integrity) holds identically in both constructions: the sole I-address referenced by any arrangement is `a`, which lies in the content domain `dom(C) = {a}` by construction. The two constructions differ only in document/V-position multiplicity; we verify the remaining state-level invariant S2 (arrangement functionality) per construction.
 
 **Cross-document construction.** Fix `N ∈ ℕ`. Define state `Σ_N = (C_N, M_N)` by:
 
 - `C_N = {a ↦ w}` for a single I-address `a` and arbitrary value `w ∈ Val`.
 - `N + 1` documents `d₁, …, d_{N+1}` with explicit witnesses `dᵢ = [1, 0, 1, 0, i]` for `i = 1, …, N + 1`. The `dᵢ` are pairwise distinct by T3 (CanonicalRepresentation, ASN-0034) since they have distinct last components. Fix a single V-position `v = [1, 1]` shared across all `N + 1` documents, and define each arrangement as `M_N(dᵢ) = {v ↦ a}`. The pairs `(dᵢ, v)` are distinct since the `dᵢ` are distinct.
 
-We verify the construction-specific invariant. S2 (arrangement functionality): each `M_N(dᵢ)` contains a single entry `{v ↦ a}` — the domain has one element, so `M_N(dᵢ)` is a function. With the shared facts, `Σ_N` satisfies S0–S3.
+We verify the construction-specific invariant. S2 (arrangement functionality): each `M_N(dᵢ)` contains a single entry `{v ↦ a}` — the domain has one element, so `M_N(dᵢ)` is a function. With the shared facts, `Σ_N` satisfies the state-level invariants S2, S3.
 
 The sharing multiplicity of `a` in `Σ_N` is `|{(d, v) : v ∈ dom(M_N(d)) ∧ M_N(d)(v) = a}| = N + 1`, since each of the `N + 1` documents contributes exactly one pair `(dᵢ, v)` (with the same fixed `v = [1, 1]` across all `i`). Thus the multiplicity exceeds `N`.
 
@@ -164,11 +164,11 @@ We verify the construction-specific invariant. S2 (arrangement functionality): t
 
 The within-document sharing multiplicity is `|{v : v ∈ dom(M'_N(d)) ∧ M'_N(d)(v) = a}| = N + 1 > N`.
 
-**Conclusion.** Since both constructions yield states satisfying S0–S3 for arbitrary `N ∈ ℕ`, sharing multiplicity exceeding any given finite bound is consistent with S0–S3 alone. No finite cap on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|` is entailed by S0–S3 — neither across documents nor within a single document. ∎
+**Conclusion.** Since both constructions yield states satisfying the state-level invariants S2, S3 for arbitrary `N ∈ ℕ`, sharing multiplicity exceeding any given finite bound is consistent with S0–S3 alone — S0 and S1, being transition-level, impose no constraint on a standalone state. No finite cap on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|` is entailed by S0–S3 — neither across documents nor within a single document. ∎
 
 *Formal Contract:*
 - *Preconditions:* `N ∈ ℕ` arbitrary.
-- *Postconditions:* There exists a state `Σ` satisfying S0–S3 such that for some `a ∈ dom(Σ.C)`, `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N`. The construction works both across documents (multiplicity `N + 1` over `N + 1` documents) and within a single document (multiplicity `N + 1` at `N + 1` distinct V-positions).
+- *Postconditions:* There exists a state `Σ` satisfying the state-level invariants S2, S3 such that for some `a ∈ dom(Σ.C)`, `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N`. The construction works both across documents (multiplicity `N + 1` over `N + 1` documents) and within a single document (multiplicity `N + 1` at `N + 1` distinct V-positions).
 - *Depends:* S0, S1, S2, S3, T3 (ASN-0034).
 
 
@@ -180,7 +180,7 @@ The projection `D(a)` is well-defined only when `zeros(a) ≥ 2` (per T4's field
 
 **S7b (Element-level I-addresses).** We require that every address in `dom(Σ.C)` is an element-level tumbler: `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
 
-This is a design requirement: content resides at the element level — the finest level of the four-level tumbler hierarchy. Node, user, and document-level tumblers identify containers, not content. By T4's field correspondence, `zeros(a) = 3` means all four identifying fields — node, user, document, element — are present, and the element field contains the content-level address.
+By T4's field correspondence, `zeros(a) = 3` means all four identifying fields — node, user, document, element — are present, and the element field contains the content-level address.
 
 *Formal Contract (S7b):*
 - *Axiom (design requirement):* `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
