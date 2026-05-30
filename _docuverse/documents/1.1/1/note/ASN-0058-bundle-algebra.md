@@ -97,7 +97,7 @@ A document's full arrangement is a collection of mapping blocks that together de
 
 `(A j : 1 ≤ j ≤ m : (A k : 0 ≤ k < nⱼ : M(d)(vⱼ + k) = aⱼ + k))`
 
-B1 and B2 together assert that the V-extents partition `dom(M(d))`. B3 asserts that the mapping within each block agrees with the global arrangement. The empty arrangement `M(d) = ∅` has `B = ∅` as its unique decomposition. B1's quantifier ranges over every V-position in `dom(M(d))`, regardless of subspace; the apparent guard `v₁ ≥ 1` that one might expect is redundant — S8a (VPositionWellFormedness, ASN-0036) gives `v₁ ≥ 1` for every `v ∈ dom(M(d))` unconditionally, so no V-position is excluded.
+B1 and B2 together assert that the V-extents partition `dom(M(d))`. B3 asserts that the mapping within each block agrees with the global arrangement. The empty arrangement `M(d) = ∅` has `B = ∅` as its unique decomposition.
 
 **M-int (TumblerIntervalCharacterization).** Let `x, y ∈ dom(M(d))` and `n ≥ 1`. If `x ≤ y < x + n`, then writing `m = #x`:
 
@@ -471,7 +471,7 @@ The consequence is that the canonical decomposition naturally preserves origin b
 
 The block algebra characterizes how arrangements decompose into contiguous runs. We now define content references — a mechanism for identifying a span of positions within a document's arrangement — and resolution, which extracts the I-address runs from the block decomposition restricted to that span. The canonical decomposition (M11, M12) applies to any restriction of an arrangement satisfying the structural preconditions, and every resolved I-address satisfies referential integrity. We work with the content store C : T ⇀ Val and per-document arrangement M(d) : T ⇀ T from ASN-0036, both state-indexed by the ambient state Σ. Define the state-indexed *document set* `D(Σ) = {d : M(Σ, d) is defined}` — the documents for which an arrangement is defined in state Σ. As with the abbreviation `M(d)` for `M(Σ, d)`, we write `D` for `D(Σ)` when the ambient state is clear from context; downstream usage `d_s ∈ D` should be read as `d_s ∈ D(Σ)` against the same Σ that underlies `M(d_s)`. For a subspace identifier S and a document d ∈ D, write `V_S(d) := {v ∈ dom(M(d)) : subspace(v) = S}` — the V-positions of M(d) in subspace S. This generalizes ASN-0036's `V_1(d)` (the text-subspace projection) to arbitrary subspace identifiers; in particular, `V_{u₁}(d)` denotes the projection in the subspace indexed by the first component of a span-start `u`. The definitions below reference: S2 (ArrangementFunctionality), S3 (ReferentialIntegrity), S8-fin (FiniteArrangement), S8-depth (FixedDepthVPositions) from ASN-0036; T12 (SpanWellDefinedness) from ASN-0034; S6 (LevelConstraint) and ⟦σ⟧ (SpanDenotation) from ASN-0053.
 
-**Definition (ContentReference).** A *content reference* is a pair (d_s, σ) where d_s ∈ D and σ = (u, ℓ) is a level-uniform V-span satisfying: (i) V_{u₁}(d_s) ≠ ∅ — the subspace contains at least one V-position; (ii) T12 (ASN-0034) holds (equivalently: Pos(ℓ) and actionPoint(ℓ) ≤ #u, the preconditions T12 names); and (iii) `#ℓ = #u = m`, where m is the common V-position depth in subspace u₁ of d_s (S8-depth, ASN-0036). Precondition (i) is necessary: S8-depth is vacuously true for an empty subspace and does not determine a common depth, so m is well-defined only when at least one V-position exists. The bound `m ≥ 2` is a derived consequence of (i), not an independent precondition: by (i) some `v ∈ V_{u₁}(d_s)` exists; S8a (VPositionWellFormedness, ASN-0036) gives `#v ≥ 2`; S8-depth then gives `m = #v ≥ 2`. Subspace confinement — that ⟦σ⟧ does not cross subspace boundaries — follows from C0a below; C0a's argument uses the derived `m ≥ 2` (not an independent precondition) together with the action-point analysis. The level-uniformity requirement ensures reach(σ) has depth m (S6, ASN-0053), so the position range is well-bounded and the span algebra (S1–S11, ASN-0053) applies. The content reference is well-formed when every depth-m position in the span's range belongs to d_s's arrangement:
+**Definition (ContentReference).** A *content reference* is a pair (d_s, σ) where d_s ∈ D and σ = (u, ℓ) is a level-uniform V-span satisfying: (i) V_{u₁}(d_s) ≠ ∅ — the subspace contains at least one V-position; (ii) T12 (ASN-0034) holds (equivalently: Pos(ℓ) and actionPoint(ℓ) ≤ #u, the preconditions T12 names); and (iii) `#ℓ = #u = m`, where m is the common V-position depth in subspace u₁ of d_s (S8-depth, ASN-0036). The level-uniformity requirement ensures reach(σ) has depth m (S6, ASN-0053), so the position range is well-bounded and the span algebra (S1–S11, ASN-0053) applies. The content reference is well-formed when every depth-m position in the span's range belongs to d_s's arrangement:
 
 `{v ∈ T : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d_s))`
 
@@ -483,7 +483,9 @@ By C0a (below), prefix confinement gives tⱼ = uⱼ for all j < m for every t �
 
 **C0a (PrefixConfinement).** For a well-formed content reference (d_s, σ) with σ = (u, ℓ) and m ≥ 2: every t ∈ ⟦σ⟧ satisfies tⱼ = uⱼ for all 1 ≤ j < m.
 
-*Derivation.* By C0, the action point of ℓ is m. Since m ≥ 2, TumblerAdd gives reach(σ)ⱼ = uⱼ for all j < m. Let `p = [u₁, ..., u_{m−1}]`; since m ≥ 2, `#p = m − 1 ≥ 1`. Then `p ≼ u` trivially, and `p ≼ reach(σ)` since reach(σ)ⱼ = uⱼ for all j < m and `#reach(σ) = m` (S6, ASN-0053). Fix any t ∈ ⟦σ⟧, so u ≤ t < reach(σ), hence u ≤ t ≤ reach(σ). By T5 (ContiguousSubtrees, ASN-0034) applied to `p ≼ u`, `p ≼ reach(σ)`, and `u ≤ t ≤ reach(σ)`, we obtain `p ≼ t`, i.e. tⱼ = uⱼ for all 1 ≤ j < m. In particular, t₁ = u₁ (subspace confinement). (At m = 1, the vacuous range 1 ≤ j < 1 yields no confinement; indeed the action point would be 1, giving reach(σ)₁ = u₁ + ℓ₁ ≠ u₁, and ⟦σ⟧ would span multiple subspaces.) ∎
+*Derivation.* By C0, the action point of ℓ is m. Since m ≥ 2, TumblerAdd gives reach(σ)ⱼ = uⱼ for all j < m. Let `p = [u₁, ..., u_{m−1}]`; since m ≥ 2, `#p = m − 1 ≥ 1`. Then `p ≼ u` trivially, and `p ≼ reach(σ)` since reach(σ)ⱼ = uⱼ for all j < m and `#reach(σ) = m` (S6, ASN-0053). Fix any t ∈ ⟦σ⟧, so u ≤ t < reach(σ), hence u ≤ t ≤ reach(σ). By T5 (ContiguousSubtrees, ASN-0034) applied to `p ≼ u`, `p ≼ reach(σ)`, and `u ≤ t ≤ reach(σ)`, we obtain `p ≼ t`, i.e. tⱼ = uⱼ for all 1 ≤ j < m. In particular, t₁ = u₁ (subspace confinement). ∎
+
+C0a's derivation rests on `m ≥ 2`, which the content reference preconditions supply rather than assert: precondition (i) makes `m` well-defined — S8-depth (ASN-0036) is vacuously true for an empty subspace and determines no common depth — and given (i), some `v ∈ V_{u₁}(d_s)` exists, so S8a (VPositionWellFormedness, ASN-0036) gives `#v ≥ 2` and S8-depth gives `m = #v ≥ 2`.
 
 **Definition (ContentReferenceSequence).** A *content reference sequence* is an ordered list R = ⟨r₁, ..., rₚ⟩ of content references with p ≥ 1. Different references may name different source documents.
 
@@ -579,7 +581,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | OrdinalShiftBase | `t + k` denotes `shift(t, k)` for `k ≥ 1`, extended by `t + 0 = t` (identity) — convention in force throughout | introduced |
 | M-aux | OrdinalIncrementAssociativity: `(v + c) + j = v + (c + j)` for `c, j ≥ 0` — from TS3 (ShiftComposition, ASN-0034) plus OrdinalShiftBase | introduced |
 | M-int | TumblerIntervalCharacterization: for `x, y ∈ dom(M(d))` and `n ≥ 1`, `x ≤ y < x + n` entails `subspace(y) = subspace(x)`, `#y = #x = m`, prefix agreement to depth `m − 1`, and `y = x + k` for `k = (y)_m − (x)_m` with `0 ≤ k < n` | introduced |
-| M2 | DecompositionExistence: under S8's preconditions (S8-fin, S2, S3, S8a, S8-depth — ASN-0036), every arrangement `M(d)` admits a block decomposition covering every V-position in `dom(M(d))`, all subspaces | introduced |
+| M2 | DecompositionExistence: under S8's preconditions (S8-fin, S2, S3, S8a, S8-depth — ASN-0036), every arrangement `M(d)` admits a block decomposition | introduced |
 | M3 | RepresentationInvariance: equivalent decompositions determine the same arrangement function | introduced |
 | M4 | SplitDefinition: split at interior `c` produces `β_L = (v, a, c)` and `β_R = (v+c, a+c, n−c)` | introduced |
 | M5 | SplitPartition: `⟦β_L⟧ ∪ ⟦β_R⟧ = ⟦β⟧` and `⟦β_L⟧ ∩ ⟦β_R⟧ = ∅` | introduced |
@@ -601,10 +603,10 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | M16 | CrossOriginMergeImpossibility: blocks whose I-addresses originate from different documents cannot satisfy I-adjacency | introduced |
 | M16a | OriginInvarianceUnderShift: for `a ∈ dom(C)` and `k ≥ 0` with `a + k ∈ dom(C)`, `origin(a + k) = origin(a)` — ordinal increment never crosses the document prefix | introduced |
 | M16b | SplitOriginTraceability: when `β = (v, a, n)` belongs to a decomposition of `M(d)`, `origin(a + k) = origin(a)` for `0 ≤ k < n` (corollary of M16a discharged by B3 + S3); consequently `β_L` and `β_R` independently identify the home document of their content | introduced |
-| B1 | Coverage: blocks in a decomposition partition `dom(M(d))` (every V-position in every subspace) | introduced |
+| B1 | Coverage: blocks in a decomposition partition `dom(M(d))` | introduced |
 | B2 | Disjointness: no two blocks share a V-position | introduced |
 | B3 | Consistency: each block correctly describes `M(d)` | introduced |
-| ContentReference | (d_s, σ) with d_s ∈ D, V_{u₁}(d_s) ≠ ∅ (whence `m ≥ 2` as a derived consequence via S8a and S8-depth, ASN-0036); σ level-uniform with #u = #ℓ = m; depth-m V-positions in span range ⊆ dom(M(d_s)) | introduced |
+| ContentReference | (d_s, σ) with d_s ∈ D, V_{u₁}(d_s) ≠ ∅; σ level-uniform with #u = #ℓ = m; depth-m V-positions in span range ⊆ dom(M(d_s)) | introduced |
 | C0 | OrdinalDisplacementNecessity: well-formed content references have ordinal displacements — action point of ℓ equals m | introduced |
 | C0a | PrefixConfinement: every t ∈ ⟦σ⟧ satisfies tⱼ = uⱼ for all 1 ≤ j < m when m ≥ 2 (subspace confinement t₁ = u₁ is the j = 1 case) | introduced |
 | ContentReferenceSequence | ordered list ⟨r₁, ..., rₚ⟩ with p ≥ 1 | introduced |
