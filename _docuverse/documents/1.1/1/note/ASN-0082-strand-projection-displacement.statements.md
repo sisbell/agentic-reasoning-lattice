@@ -1,64 +1,38 @@
 # ASN-0082 Claim Statements
 
-*Source: ASN-0082-strand-projection-displacement.md (revised 2026-04-09) — Extracted: 2026-05-15*
+*Source: ASN-0082-strand-projection-displacement.md (revised 2026-04-09) — Extracted: 2026-05-30*
 
 ## Definition — ArrangementFunction
 
 M(d) : T ⇀ T — arrangement function mapping V-positions to I-addresses for document d
 
-## Definition — SubspaceOf
+## Definition — Subspace
 
 subspace(v) = v₁ — the first component of a V-position, identifying its subspace
 
 ## Definition — OrdinalLevel
 
-A span σ = (s, ℓ) is ordinal-level when actionPoint(ℓ) = #ℓ (the width acts at the deepest component of ℓ); level-uniformity #s = #ℓ is a separate condition stated where invoked (e.g., I3-S and D-S)
-
-## Definition — OrdinalDisplacement
-
-δ(n, m) = [0, 0, ..., 0, n] of length m — zero at positions 1 through m − 1, and n at position m, with action point m.
-
-When the depth is determined by context (typically m = #p for insertion position p), written δₙ.
-
-## Definition — OrdinalShift
-
-shift(v, n) = v ⊕ δ(n, #v)
-
-By TumblerAdd: shift(v, n)ᵢ = vᵢ for i < m, and shift(v, n)ₘ = vₘ + n. Precondition: n ≥ 1, #v = m.
-
-## Definition — TumblerAdd
-
-a ⊕ w: copy prefix, advance at action point, copy tail from w.
-
-Explicitly: (a ⊕ w)ᵢ = aᵢ for i < actionPoint(w); (a ⊕ w)_{actionPoint(w)} = a_{actionPoint(w)} + w_{actionPoint(w)}; result length = #w.
-
-## Definition — TumblerSub
-
-a ⊖ w: zero prefix, reverse at divergence, copy tail from a.
-
-Explicitly: result has zero prefix up to the point of divergence, (a ⊖ w)_{div} = a_{div} − w_{div} at the divergence position, and copies of a at positions after the action point.
-
-## Definition — SpanReach
-
-reach(σ) = start(σ) ⊕ width(σ)
+A span σ = (s, ℓ) is ordinal-level when actionPoint(ℓ) = #ℓ (the width acts at the deepest component of ℓ)
 
 ## Definition — OrdinalExtraction
 
-For a V-position v with #v = m ≥ 2: ord(v) = [v₂, ..., vₘ] — the tumbler of length m − 1 obtained by stripping the subspace identifier.
+For a V-position v with `#v = m ≥ 2`, `ord(v) = [v₂, ..., vₘ]` — the tumbler of length m − 1 obtained by stripping the subspace identifier (component 1) and reindexing, so `ord(v)ⱼ = vⱼ₊₁` for `1 ≤ j ≤ m − 1`.
 
-Postcondition: when v satisfies S8a, every component of ord(v) is positive.
+When v satisfies S8a (every component positive), every component of ord(v) is positive, since ord(v) drops only position 1.
 
 ## Definition — VPositionReconstruction
 
-For subspace identifier S ≥ 1 and ordinal o = [o₁, ..., oₖ] with #o ≥ 1: vpos(S, o) = [S, o₁, ..., oₖ].
+For subspace identifier `S ≥ 1` and ordinal `o = [o₁, ..., oₖ]` with `#o ≥ 1`, `vpos(S, o) = [S, o₁, ..., oₖ]` — prepend S and reindex, so `vpos(S, o)₁ = S` and `vpos(S, o)ⱼ₊₁ = oⱼ`.
 
-Inverses: ord(vpos(S, o)) = o and vpos(subspace(v), ord(v)) = v.
+Inverses by construction (component identity, T3): `ord(vpos(S, o)) = o` and `vpos(subspace(v), ord(v)) = v`.
+
+*S8a-closure (local postcondition):* when `S ≥ 1` and o is componentwise positive, `vpos(S, o)` is zero-free with all components positive and depth `#o + 1 ≥ 2`, so it satisfies S8a.
 
 ## Definition — OrdinalDisplacementProjection
 
-For a displacement w with w₁ = 0 and #w = m ≥ 2: w_ord = [w₂, ..., wₘ] — the tumbler of length m − 1 obtained by stripping the (zero) first component.
+For a displacement w with `w₁ = 0` and `#w = m ≥ 2`, `w_ord = [w₂, ..., wₘ]` — the tumbler of length m − 1 obtained by stripping the (zero) first component, with `w_ordⱼ = wⱼ₊₁`.
 
-When Pos(w): Pos(w_ord) and actionPoint(w_ord) = actionPoint(w) − 1. At depth m = 2: w = [0, c] for positive integer c, and w_ord = [c] with Pos([c]).
+When `Pos(w)` (TA-Pos, ASN-0034), the witness for positivity sits at some position `i ≥ 2` (since `w₁ = 0`), so `Pos(w_ord)`; and the first (leftmost) nonzero of w, at position `actionPoint(w) ≥ 2`, maps to position `actionPoint(w) − 1` of w_ord, giving `actionPoint(w_ord) = actionPoint(w) − 1`.
 
 ## Definition — ThreeRegions
 
@@ -68,383 +42,364 @@ X = {v ∈ V_1(d) : p ≤ v < r}        — the contracted interval
 R = {v ∈ V_1(d) : v ≥ r}            — right of contraction
 ```
 
-By trichotomy of the total order (T1), every v ∈ V_1(d) falls in exactly one region.
+By trichotomy of the total order (T1, ASN-0034), every v ∈ V_1(d) falls in exactly one region.
 
 ## Definition — ShiftedRightRegion
 
-Q₃ = {σ(v) : v ∈ R} — the set of shifted right-region positions in the post-state.
+Q₃ = {σ(v) : v ∈ R} — the set of shifted right-region positions in the post-state
 
----
+## Definition — OrdinalDisplacement
 
-## S8-depth — FixedDepthVPositions (invariant, INVARIANT)
+δ(n, m) = [0, 0, ..., 0, n] of length m — zero at positions 1 through m − 1, and n at position m, with action point m
 
-`(A d, v₁, v₂ : v₁ ∈ dom(Σ.M(d)) ∧ v₂ ∈ dom(Σ.M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)`
+## Definition — OrdinalShift
 
-All V-positions within a given subspace of a document share the same tumbler depth.
+shift(v, n) = v ⊕ δ(n, #v)
 
-## S8a — VPositionWellFormedness (axiom, AXIOM)
+By TumblerAdd: shift(v, n)ᵢ = vᵢ for i < m, and shift(v, n)ₘ = vₘ + n.
 
-`(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
+## Definition — TumblerAdd
 
-V-positions are zero-free, have depth at least 2, and have every component strictly positive. Specializations: v₁ ≥ 1 (positive subspace identifier) and v > 0 (positive as a tumbler under lexicographic order).
+a ⊕ w: copy prefix, advance at action point, copy tail from w
 
-## S0 — ContentImmutability (invariant, INVARIANT)
+## Definition — TumblerSub
 
-`a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`
+a ⊖ w: zero prefix, reverse at divergence, copy tail from a
 
-## S2 — ArrangementFunctionality (axiom, AXIOM)
+## Definition — SpanReach
 
-`(A d, v : v ∈ dom(M(d)) : M(d)(v) is uniquely determined)` — each V-position in dom(M(d)) has a uniquely determined I-address.
+reach(σ) = start(σ) ⊕ width(σ)
 
-## S3 — ReferentialIntegrity (invariant, INVARIANT)
+## Definition — Contraction
 
-`(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` — equivalently `ran(M(d)) ⊆ dom(Σ.C)`
+Remove span (p, w) from the text subspace of document d (S = 1)
 
-## S8-fin — FiniteArrangement (invariant, INVARIANT)
-
-For each document d, dom(M(d)) is finite.
-
-## S9 — TwoStreamSeparation (lemma, LEMMA)
-
-Arrangement changes preserve content store (preservation direction): dom(C) ⊆ dom(C') and values unchanged.
-
-## D-CTG — VContiguity (invariant, INVARIANT)
-
-`(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ u < v < q : v ∈ V_1(d)))`
-
-Text subspace only; the link subspace V_2(d) is exempt — sparse with tombstones is permitted.
-
-## D-MIN — VMinimumPosition (invariant, INVARIANT)
-
-When V_1(d) is non-empty, min(V_1(d)) = [1, 1, ..., 1] of length m.
-
-Text subspace only; link positions need not begin at [2, 1, ..., 1].
-
-NOT preserved by shift when p = min(V_1(d)).
-
-## D-SEQ — SequentialPositions (lemma, LEMMA)
-
-When V_1(d) is non-empty with common depth m ≥ 2, there exists n ≥ 1 such that V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n}.
-
-Text subspace only. NOT preserved by shift alone.
-
-## T1 — LexicographicOrder (axiom, AXIOM)
-
-Lexicographic total order on tumblers: for tumblers a, b of equal length, a < b at the leftmost position where they differ.
-
-## T4 — AddressTumblerStructure (axiom, AXIOM)
-
-Address tumblers have ≤ 3 zeros as field separators; every field component strictly positive.
-
-## T12 — SpanWellFormed (precondition, PRE)
-
-span(s, ℓ) well-formed when ℓ > 0 and actionPoint(ℓ) ≤ #s.
-
-## TS1 — ShiftOrderPreservation (lemma, LEMMA)
-
-shift preserves strict order: for v₁, v₂ with #v₁ = #v₂ = m and v₁ < v₂,
-
-`shift(v₁, n) < shift(v₂, n)`
-
-## TS2 — ShiftInjectivity (lemma, LEMMA)
-
-shift is injective: for v₁, v₂ with #v₁ = #v₂ = m,
-
-`shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂`
-
-## TS4 — ShiftStrictIncrease (lemma, LEMMA)
-
-`shift(v, n) > v` for n ≥ 1.
-
-## TA-assoc — TumblerAddAssoc (lemma, LEMMA)
-
-`(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)` when both sides are well-defined.
-
-## TA2 — SubtractionWellDefined (lemma, LEMMA)
-
-Subtraction a ⊖ w is well-defined when a ≥ w.
-
-## TA3-strict — OrderPreservationSubtractionStrict (lemma, LEMMA)
-
-`a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b ⟹ a ⊖ w < b ⊖ w`
-
-## TA4 — PartialInverse (lemma, LEMMA)
-
-`(a ⊕ w) ⊖ w = a`
-
-Preconditions: Pos(w), actionPoint(w) = k = #a, #w = k, and (A i : 1 ≤ i < k : aᵢ = 0).
-
-## D2 — WidthRecovery (lemma, LEMMA)
-
-For level-uniform σ: `reach(σ) ⊖ start(σ) = width(σ)`
-
-## S6 — LevelConstraint (lemma, LEMMA)
-
-For level-uniform σ: `#reach(σ) = #s`
-
----
-
-## OrdinalOrderEquivalence — OrdinalOrderEquivalence (lemma, LEMMA)
-
-For V-positions v₁, v₂ with subspace(v₁) = subspace(v₂) = S and #v₁ = #v₂ = m ≥ 2:
-
-`v₁ < v₂ ⟺ ord(v₁) < ord(v₂)`
-
-## OrdAddHom — OrdinalAdditionHomomorphism (lemma, LEMMA)
-
-For a V-position p with #p = m ≥ 2 and a displacement w with w₁ = 0, #w = m, and Pos(w):
-
-- (a) `ord(p ⊕ w) = ord(p) ⊕ w_ord`
-- (b) `subspace(p ⊕ w) = subspace(p)`
-- (c) `p ⊕ w = vpos(subspace(p), ord(p) ⊕ w_ord)`
-
-## PositiveOffsetExceeds — PositiveOffsetExceeds (lemma, LEMMA)
-
-For natural numbers a, b ∈ ℕ with a ≥ 1:
-
-`a + b > b` and `b + a > b`
-
----
-
-## I3 — PostInsertionShift (postcondition, POSTCONDITION)
-
-*Preconditions:* d is a document; M(d) : T ⇀ T; p ∈ T with #p ≥ 2 and subspace(p) = S ≥ 1; depth-compatible: if {v ∈ dom(M(d)) : subspace(v) = S} ≠ ∅ then #p = #v for any such v; n ≥ 1; M'(d) is the post-insertion arrangement.
-
-*Statement:*
-
-`(A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v))`
-
-## I3-V — PostInsertionVacating (postcondition, POSTCONDITION)
-
-`(A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p ∧ v ∉ {shift(u, n) : u ∈ dom(M(d)) ∧ subspace(u) = S ∧ u ≥ p} : v ∉ dom(M'(d)))`
-
-## I3-CS — PostInsertionDomainClosureSubspace (postcondition, POSTCONDITION)
-
-`(A v : v ∈ dom(M'(d)) ∧ subspace(v) = S : (v < p ∧ v ∈ dom(M(d))) ∨ (E u : u ∈ dom(M(d)) ∧ subspace(u) = S ∧ u ≥ p : v = shift(u, n)))`
-
-— domain closure within subspace S.
-
-## I3-CX — PostInsertionDomainClosureCross (postcondition, POSTCONDITION)
-
-`(A v : v ∈ dom(M'(d)) ∧ subspace(v) ≠ S : v ∈ dom(M(d)))`
-
-— domain closure across subspaces.
-
-## I3-L — PostInsertionLeftFrame (frame, FRAME)
-
-`(A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v < p : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`
-
-## I3-X — PostInsertionCrossSubspaceFrame (frame, FRAME)
-
-`(A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`
-
-## I3-D — PostInsertionCrossDocumentFrame (frame, FRAME)
-
-`(A d' ≠ d : M'(d') = M(d'))`
-
-## I3-C — PostInsertionContentFrame (frame, FRAME)
-
-`dom(C') = dom(C) ∧ (A a ∈ dom(C) : C'(a) = C(a))`
-
-— content store unchanged.
-
-## I3-VD — PostInsertionDepthUniformity (lemma, LEMMA)
-
-S8-depth holds for the post-state M'(d) across all subspaces.
-
-For subspace S: `(A v₁, v₂ ∈ dom(M'(d)) : subspace(v₁) = subspace(v₂) = S ⟹ #v₁ = #v₂ = m)`
-
-For any subspace S' ≠ S: positions in dom(M'(d)) with subspace S' are exactly the positions in dom(M(d)) with subspace S', on which S8-depth holds by hypothesis.
-
-## I3-VP — PostInsertionWellFormedness (lemma, LEMMA)
-
-`(A v ∈ dom(M'(d)) : zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
-
-— S8a preserved post-insertion.
-
-## I3-S3 — PostInsertionReferentialIntegrity (lemma, LEMMA)
-
-`(A v : v ∈ dom(M'(d)) : M'(d)(v) ∈ dom(C'))`
-
-— referential integrity preserved post-insertion.
-
-## I3-S2 — PostInsertionFunctionality (lemma, LEMMA)
-
-M'(d) is a function — S2 (ArrangementFunctionality) holds for the post-state.
-
-Pairwise disjointness of assignment regions (shifted, left, cross-subspace) ensures no double-assignment: each region assigns exactly one value per position.
-
-## I3-fin — PostInsertionFiniteness (lemma, LEMMA)
-
-dom(M'(d)) is finite — S8-fin (FiniteArrangement) holds for the post-state.
-
-By I3-CS and I3-CX, every position in dom(M'(d)) either belongs to dom(M(d)) directly or is shift(v, n) for some v ∈ dom(M(d)) with subspace(v) = S and v ≥ p. The shifted-image set is at most as large as the source set by injectivity (TS2).
-
-## I3-S7 — PostInsertionAllocationInvariants (lemma, LEMMA)
-
-The post-state satisfies S7a (DocumentScopedAllocation), S7b (ElementLevelIAddresses), S7c (ElementFieldDepth), S7d (DocumentAllocationDiscipline), and the derived theorem S7 (StructuralAttribution).
-
-Trivially by I3-C (dom(C') = dom(C), per-address values unchanged) and I3-D (document set unchanged): S7a, S7b, S7c are predicates over dom(C) which is unchanged; S7d is a predicate over the document set which is unchanged; S7 follows as a corollary.
-
-## I3-S — SpanShiftPreservation (lemma, LEMMA)
-
-*Preconditions:* level-uniform span σ = (s, ℓ) with s ≥ p, subspace(s) = S, #s = #ℓ = m, and actionPoint(ℓ) = m. Define shifted span σ' = (shift(s, n), ℓ).
-
-*Postconditions:*
-
-- (a) `reach(σ') = shift(reach(σ), n)`
-- (b) `width(σ') = ℓ`
-
----
-
-## Contraction — Contraction (operation, OPERATION)
-
-Remove span (p, w) from the text subspace of document d.
-
-*Preconditions:*
-- `S = 1` (subspace scoping axiom)
-- `p ∈ V_1(d)`
-- `Pos(w)`
-- `#w = #p`
-- `w₁ = 0`
-- `#p = 2` (depth scoping axiom)
-- Containment: with D-SEQ giving V_1(d) = {[1, k] : 1 ≤ k ≤ N}, `p₂ + w₂ − 1 ≤ N`
+*Preconditions:* S = 1, p ∈ V_1(d), Pos(w), #w = #p, w₁ = 0, #p = 2, containment (p₂ + w₂ − 1 ≤ N)
 
 *Postconditions:* D-SHIFT, D-DOM
 
 *Frame:* D-L, D-CS, D-CD, D-I
 
-## D-SHIFT — RightShift (postcondition, POSTCONDITION)
+---
 
-*Preconditions:* as stated in the contraction formal contract; r = p ⊕ w; R = {v ∈ V_1(d) : v ≥ r}; M'(d) is the post-contraction arrangement.
+## S8-depth — FixedDepthVPositions (invariant, cited)
 
-*Shift function:* for v ∈ R, σ(v) = vpos(S, ord(v) ⊖ w_ord)
+`(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` — uniform V-position depth per subspace
 
-*Statement:*
+## S8a — VPositionWellFormedness (axiom, cited)
 
-`(A v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))`
+`(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — V-position well-formedness
 
-## D-DOM — DomainCharacterization (postcondition, POSTCONDITION)
+## S2 — ArrangementFunctionality (axiom, cited)
+
+`(A d, v : v ∈ dom(M(d)) : M(d)(v) is uniquely determined)` — arrangement functionality
+
+## S3 — ReferentialIntegrity (invariant, cited)
+
+`(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` — referential integrity
+
+## S8-fin — FiniteArrangement (invariant, cited)
+
+For each document d, dom(M(d)) is finite
+
+## S0 — ContentImmutability (invariant, cited)
+
+`a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)` — content immutability
+
+## D-CTG — VContiguity (invariant, cited)
+
+`(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ zeros(v) = 0 ∧ u < v < q : v ∈ V_1(d)))` (text subspace only; V_2(d) exempt)
+
+## D-MIN — VMinimumPosition (invariant, cited)
+
+min(V_1(d)) = [1, 1, ..., 1] (text subspace only)
+
+## D-SEQ — SequentialPositions (lemma, cited)
+
+V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n} (text subspace only)
+
+## T1 — LexicographicOrder (axiom, cited)
+
+Lexicographic total order on tumblers
+
+## T4 — AddressTumblerStructure (axiom, cited)
+
+Address tumblers have ≤ 3 zeros as field separators; every field component strictly positive
+
+## T12 — SpanWellFormedness (precondition, cited)
+
+span(s, ℓ) well-formed when ℓ > 0 and actionPoint(ℓ) ≤ #s
+
+## TS1 — ShiftOrderPreservation (lemma, cited)
+
+shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n)
+
+## TS2 — ShiftInjectivity (lemma, cited)
+
+shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂
+
+## TS3 — ShiftComposition (lemma, cited)
+
+shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂) — shift amounts compose additively
+
+## TS4 — ShiftStrictAdvance (lemma, cited)
+
+shift(v, n) > v for n ≥ 1
+
+## OrdShiftHom — OrdinalShiftPreservation (lemma, cited)
+
+For #v = m ≥ 2, n ≥ 1:
+
+(a) subspace(shift(v, n)) = subspace(v)
+
+(b) v satisfies S8a ⟹ shift(v, n) satisfies S8a
+
+## TA2 — WellDefinedSubtraction (lemma, cited)
+
+Subtraction well-defined when a ≥ w
+
+## TA3-strict — OrderPreservationSubtractionStrict (lemma, cited)
+
+a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b ⟹ a ⊖ w < b ⊖ w — strict order preservation under subtraction
+
+## TA4 — PartialInverse (lemma, cited)
+
+(a ⊕ w) ⊖ w = a — partial inverse of addition by subtraction
+
+## TA6 — ZeroTumblerMinimality (lemma, cited)
+
+every zero tumbler is strictly less than every positive tumbler
+
+## TA-assoc — TumblerAddAssociativity (lemma, cited)
+
+(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) when both sides are well-defined
+
+## ReverseInverse — ReversePartialInverse (lemma, cited)
+
+(a ⊖ w) ⊕ w = a under equal-length, zero-prefix, positivity conditions — reverse partial inverse
+
+## WR — WidthRecovery (lemma, cited)
+
+For level-uniform σ: reach(σ) ⊖ start(σ) = width(σ)
+
+## S6 — ReachDepth (lemma, cited)
+
+For level-uniform σ: #reach(σ) = #s
+
+---
+
+## I3 — PostInsertionShift (postcondition, introduced)
+
+*Preconditions:* d is a document; M(d) : T ⇀ T is its arrangement; p ∈ T with #p ≥ 2 and subspace(p) = S ≥ 1; depth-compatible: if {v ∈ dom(M(d)) : subspace(v) = S} ≠ ∅ then #p = #v for any such v (unique depth by S8-depth, ASN-0036); n ≥ 1; M'(d) is the post-insertion arrangement.
+
+*Postcondition:*
+
+`(A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v))`
+
+## I3-V — PostInsertionVacating (postcondition, introduced)
+
+`(A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p ∧ v ∉ {shift(u, n) : u ∈ dom(M(d)) ∧ subspace(u) = S ∧ u ≥ p} : v ∉ dom(M'(d)))`
+
+## I3-L — PostInsertionLeftFrame (frame, introduced)
+
+`(A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v < p : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`
+
+## I3-X — PostInsertionCrossSubspaceFrame (frame, introduced)
+
+`(A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`
+
+## I3-D — PostInsertionCrossDocumentFrame (frame, introduced)
+
+`(A d' ≠ d : M'(d') = M(d'))`
+
+## I3-C — PostInsertionContentFrame (frame, introduced)
+
+`dom(C') = dom(C) ∧ (A a ∈ dom(C) : C'(a) = C(a))` — content store unchanged
+
+## I3-CS — PostInsertionSubspaceClosure (postcondition, introduced)
+
+`(A v : v ∈ dom(M'(d)) ∧ subspace(v) = S : (v < p ∧ v ∈ dom(M(d))) ∨ (E u : u ∈ dom(M(d)) ∧ subspace(u) = S ∧ u ≥ p : v = shift(u, n)))` — domain closure within subspace S
+
+## I3-CX — PostInsertionCrossSubspaceClosure (postcondition, introduced)
+
+`(A v : v ∈ dom(M'(d)) ∧ subspace(v) ≠ S : v ∈ dom(M(d)))` — domain closure across subspaces
+
+## I3-VD — PostInsertionDepthUniformity (lemma, derived)
+
+S8-depth preserved post-insertion across all subspaces.
+
+For subspace S: `(A v₁, v₂ ∈ dom(M'(d)) : subspace(v₁) = subspace(v₂) = S ⟹ #v₁ = #v₂ = m)`.
+
+By I3-CS, every v ∈ dom(M'(d)) with subspace(v) = S falls into exactly one of two regions:
+- *Left region* (I3-L): v ∈ dom(M(d)) with subspace(v) = S and v < p; these have depth m by S8-depth on M(d).
+- *Shifted region* (I3): shift(v, n) for v ∈ dom(M(d)) with subspace(v) = S and v ≥ p; #shift(v, n) = #δₙ = m by the result-length identity of TumblerAdd, and #v = m by S8-depth on M(d).
+
+For any subspace S' ≠ S: by I3-X and I3-CX, the positions in dom(M'(d)) with subspace S' are exactly the positions in dom(M(d)) with subspace S', on which S8-depth holds by hypothesis.
+
+## I3-VP — PostInsertionWellFormedness (lemma, derived)
+
+`(A v ∈ dom(M'(d)) : zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — S8a preserved post-insertion
+
+## I3-S3 — PostInsertionReferentialIntegrity (lemma, derived)
+
+`(A v : v ∈ dom(M'(d)) : M'(d)(v) ∈ dom(C'))` — referential integrity preserved post-insertion
+
+## I3-S2 — PostInsertionFunctionality (lemma, derived)
+
+M'(d) is a function — S2 preserved post-insertion; pairwise disjointness of assignment regions ensures no double-assignment
+
+## I3-fin — PostInsertionFiniteness (lemma, derived)
+
+dom(M'(d)) is finite — S8-fin preserved post-insertion; domain closure (I3-CS, I3-CX) and injectivity (TS2) bound M'(d) by pre-state
+
+## I3-S7 — PostInsertionAllocationInvariants (lemma, derived)
+
+S7a, S7b, S7d preserved post-insertion (and S7 as a corollary) — trivially by I3-C (dom(C') = dom(C), per-address values unchanged) and I3-D (document set unchanged)
+
+## I3-S — SpanShiftPreservation (lemma, introduced)
+
+For a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m, and a shift amount n ≥ 1, the shifted span σ' = (shift(s, n), ℓ) satisfies:
+
+(a) reach(σ') = shift(reach(σ), n)
+
+(b) width(σ') = ℓ
+
+---
+
+## OrdinalOrderEquivalence — OrdinalOrderEquivalence (lemma, introduced)
+
+For V-positions v₁, v₂ with subspace(v₁) = subspace(v₂) = S and #v₁ = #v₂ = m ≥ 2:
+
+`v₁ < v₂ ⟺ ord(v₁) < ord(v₂)`
+
+## OrdAddHom — OrdinalAdditionHomomorphism (lemma, introduced)
+
+For a V-position p with `#p = m ≥ 2` and a displacement w with `w₁ = 0`, `#w = m`, and `Pos(w)`:
+
+(a) `ord(p ⊕ w) = ord(p) ⊕ w_ord` — whole-tumbler addition commutes with ordinal extraction when the displacement has a zero first component.
+
+(b) `subspace(p ⊕ w) = subspace(p)` — the subspace identifier is preserved under any ordinal-zero-prefixed displacement.
+
+(c) `p ⊕ w = vpos(subspace(p), ord(p) ⊕ w_ord)` — the addition lifts cleanly through ord/vpos.
+
+## OrdinalExceedsDisplacement — OrdinalExceedsDisplacement (lemma, introduced)
+
+Fix the contraction parameters: `#p = 2`, `Pos(w)`, `w₁ = 0`, `p ∈ V_1(d)`, and `r = p ⊕ w`. For any tumbler v with `subspace(v) = 1`, `#v = 2`, and `v ≥ r`:
+
+(i) `ord(r) ≥ w_ord` and `ord(r) > w_ord`
+
+(ii) `ord(v) ≥ w_ord` and `ord(v) > w_ord`
+
+(iii) `ord(v) ⊖ w_ord` is well-defined and `Pos`, equal to `ord(p)` when `v = r` and strictly greater than `ord(p)` (under T1) when `v > r`.
+
+---
+
+## D-SHIFT — RightShift (postcondition, introduced)
+
+*Preconditions:* p ∈ V_1(d), #p = 2, Pos(w), #w = #p, w₁ = 0, containment satisfied. r = p ⊕ w; R = {v ∈ V_1(d) : v ≥ r}; M'(d) is the post-contraction arrangement.
+
+`(A v : v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))`
+
+where σ(v) = vpos(S, ord(v) ⊖ w_ord)
+
+## D-L — LeftPreservation (frame, introduced)
+
+`(A v : v ∈ L : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`
+
+## D-DOM — DomainCharacterization (postcondition, introduced)
 
 `{v ∈ dom(M'(d)) : subspace(v) = S} = L ∪ Q₃`
 
-## D-L — LeftPreservation (frame, FRAME)
-
-`(A v ∈ L : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`
-
-## D-CS — CrossSubspaceFrame (frame, FRAME)
+## D-CS — CrossSubspaceFrame (frame, introduced)
 
 `(A S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} = {v ∈ dom(M(d)) : subspace(v) = S'})`
 
 `∧ (A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : M'(d)(v) = M(d)(v))`
 
-## D-CD — CrossDocumentFrame (frame, FRAME)
+## D-CD — CrossDocumentFrame (frame, introduced)
 
 `(A d' ≠ d : M'(d') = M(d'))`
 
-## D-I — ContentStoreFrame (frame, FRAME)
+## D-I — ContentStoreFrame (frame, introduced)
 
 `Σ'.C = Σ.C`
 
-That is, `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`.
+That is, `dom(Σ'.C) = dom(Σ.C)` and `(A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`.
 
-Exact equality, strictly stronger than S0.
+## D-BJ — ShiftBijectivity (lemma, introduced)
 
-## D-BJ — ShiftBijectivity (lemma, LEMMA)
+*Preconditions:* #p = 2; v₁, v₂ ∈ R with v₁ ≠ v₂ (for injectivity) or v₁ < v₂ (for order-preservation).
 
-σ : R → Q₃ is an order-preserving bijection.
+σ : R → Q₃ is an order-preserving injection (hence a bijection onto its image Q₃):
 
-*Preconditions:* #p = 2; v₁, v₂ ∈ R.
+(a) Order-preservation: `v₁ < v₂ ⟹ σ(v₁) < σ(v₂)`
 
-*Postconditions:*
+(b) Injectivity: `v₁ ≠ v₂ ⟹ σ(v₁) ≠ σ(v₂)`
 
-- (a) Order-preservation: `v₁ < v₂ ⟹ σ(v₁) < σ(v₂)`
-- (b) Injectivity: `v₁ ≠ v₂ ⟹ σ(v₁) ≠ σ(v₂)`
-- (c) Surjectivity: `Q₃ = {σ(v) : v ∈ R}`
-
-## D-SEP — GapClosure (lemma, LEMMA)
+## D-SEP — GapClosure (lemma, introduced)
 
 *Preconditions:* #p = 2; r = p ⊕ w.
 
-*Postconditions:*
+(a) Algebraic identity: `ord(r) ⊖ w_ord = ord(p)`.
 
-- (a) Algebraic identity: `ord(r) ⊖ w_ord = ord(p)`
-- (b) When R ≠ ∅: r = min(R), σ(r) is well-defined, and `min({ord(u) : u ∈ Q₃}) = ord(p)`
+(b) When R ≠ ∅: r ∈ V_1(d), r = min(R), and ord(σ(r)) = ord(p), i.e., min({ord(u) : u ∈ Q₃}) = ord(p).
 
-## D-DP — DensePartition (lemma, LEMMA)
+## D-DP — DensePartition (lemma, introduced)
 
 *Preconditions:* #p = 2; L, X, R as defined by ThreeRegions; D-L, D-DOM, D-SHIFT, D-SEP, and D-CTG hold.
 
-*Postconditions:*
+(a) No overlap: `L ∩ Q₃ = ∅`
 
-- (a) No overlap: `L ∩ Q₃ = ∅`
-- (b) Boundary adjacency: when R ≠ ∅, `min({ord(u) : u ∈ Q₃}) = ord(p)` and `(A v ∈ L : ord(v) < ord(p))`
+(b) Boundary adjacency: when R ≠ ∅, `min({ord(u) : u ∈ Q₃}) = ord(p)`, and `(A v ∈ L : ord(v) < ord(p))`
 
-## S8-depth-post — FixedDepthPreservation (lemma, LEMMA)
+## S8-depth-post — FixedDepthPreservation (lemma, introduced)
 
-Post-state V-positions in subspace S share depth 2.
+Post-state V-positions in subspace S share depth 2:
 
 `(A v₁, v₂ ∈ dom(M'(d)) : subspace(v₁) = subspace(v₂) = S ⟹ #v₁ = #v₂ = 2)`
 
-Positions in L retain depth 2 (unchanged by D-L). Positions in Q₃: σ(v) = [S, vₘ − c] has depth 2. By D-CS, other subspaces unchanged; by D-CD, other documents unchanged.
+## S8a-post — WellFormednessPreservation (lemma, introduced)
 
-## S8a-post — WellFormednessPreservation (lemma, LEMMA)
-
-Post-state V-positions are zero-free, of depth at least 2, and componentwise positive.
+Post-state V-positions are zero-free, of depth at least 2, and componentwise positive:
 
 `(A v ∈ dom(M'(d)) : zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
 
-For positions in Q₃: σ(v) = [S, vₘ − c] with S ≥ 1 and vₘ − c ≥ p₂ ≥ 1 (since vₘ ≥ p₂ + c for v ∈ R, and p₂ ≥ 1 by S8a on p).
+## D-CTG-post — VContiguityPreservation (lemma, introduced)
 
-## D-CTG-post — VContiguityPreservation (lemma, LEMMA)
+At S = 1: post-state V_1(d) is contiguous; non-text subspaces preserved verbatim by D-CS.
 
-At S = 1: the post-state V_1(d) is contiguous; non-text subspaces preserved verbatim by D-CS.
+V_1(d') = L ∪ Q₃ = {[1, k] : 1 ≤ k ≤ N − c}
 
-Derived form: `L ∪ Q₃ = {[1, k] : 1 ≤ k ≤ N − c}` — contiguous by direct verification of D-CTG's quantifier.
+Satisfies D-CTG's quantifier: for any u, q ∈ V_1(d') with u < q and any v with subspace(v) = 1, #v = 2, u < v < q: v ∈ V_1(d').
 
-## D-MIN-post — VMinimumPreservation (lemma, LEMMA)
+## D-MIN-post — VMinimumPreservation (lemma, introduced)
 
-At S = 1: when the post-state V_1(d) is non-empty, `min(V_1(d)) = [1, 1]`; when empty, D-MIN holds vacuously.
+At S = 1: when the post-state V_1(d) is non-empty, min(V_1(d)) = [1, 1]; when the post-state V_1(d) is empty, D-MIN holds vacuously. Non-text subspaces preserved verbatim by D-CS.
 
-Non-text subspaces preserved verbatim by D-CS (foundation imposes no D-MIN obligation on V_S(d) with S ≠ 1).
+## D-SEQ-post — SequentialPositionsPreservation (lemma, introduced)
 
-## D-SEQ-post — SequentialPositionsPreservation (lemma, LEMMA)
+At S = 1: when post-state V_1(d) non-empty, V_1(d) = {[1, k] : 1 ≤ k ≤ N − c}; non-text subspaces preserved verbatim by D-CS.
 
-At S = 1: when the post-state V_1(d) is non-empty, `V_1(d) = {[1, k] : 1 ≤ k ≤ N − c}`.
-
-When V_1(d') is empty (N − c = 0), D-SEQ holds vacuously. Non-text subspaces preserved verbatim by D-CS.
-
-## S8-fin-post — FiniteArrangementPreservation (lemma, LEMMA)
+## S8-fin-post — FiniteArrangementPreservation (lemma, introduced)
 
 Post-state dom(M'(d)) is finite.
 
-By D-DOM: subspace-1 positions L ∪ Q₃ with |L ∪ Q₃| ≤ |V_1(d)|, finite by S8-fin on the pre-state. By D-CS: other subspaces retain finite pre-state domains. By D-CD: other documents unchanged.
-
-## S2-post — ArrangementFunctionalityPost (lemma, LEMMA)
+## S2-post — ArrangementFunctionalityPost (lemma, introduced)
 
 Post-state M'(d) is a function.
 
-By D-DOM: dom(M'(d)) within subspace S is L ∪ Q₃. By D-DP(a): L ∩ Q₃ = ∅. For v ∈ L, M'(d)(v) uniquely determined by D-L. For v ∈ Q₃, v = σ(u) for unique u ∈ R (D-BJ injectivity), M'(d)(v) = M(d)(u) uniquely determined by D-SHIFT and pre-state S2.
-
-## S3-post — ReferentialIntegrityPost (lemma, LEMMA)
+## S3-post — ReferentialIntegrityPost (lemma, introduced)
 
 Post-state `ran(M'(d)) ⊆ dom(Σ'.C)`.
 
-Every I-address in ran(M'(d)) was an I-address in ran(M(d)) (L-positions via D-L, Q₃-positions via D-SHIFT from R). By pre-state S3: ran(M(d)) ⊆ dom(Σ.C). By D-I: dom(Σ.C) = dom(Σ'.C).
+## S7-post — AllocationInvariantsPreservation (lemma, introduced)
 
-## S7-post — AllocationInvariantsPreservation (lemma, LEMMA)
+Post-state satisfies S7a, S7b, S7d (and S7 as a corollary) — trivially by D-I (Σ'.C = Σ.C) and D-CD (other documents unchanged).
 
-Post-state satisfies S7a (DocumentScopedAllocation), S7b (ElementLevelIAddresses), S7c (ElementFieldDepth), S7d (DocumentAllocationDiscipline), and the derived theorem S7 (StructuralAttribution).
+## D-S — SpanContractionPreservation (lemma, introduced)
 
-Trivially by D-I (Σ'.C = Σ.C, so dom(Σ'.C) = dom(Σ.C), preserving S7a, S7b, S7c pointwise) and D-CD (other documents unchanged, preserving S7d and the document set). S7 follows as a corollary since all its dependencies hold of the post-state.
+For a level-uniform span σₛ = (s, ℓ) with s ∈ R, subspace(s) = 1, #s = #ℓ = 2, and actionPoint(ℓ) = 2, the contracted span σ'ₛ = (σ(s), ℓ) satisfies:
 
-## D-S — SpanContractionPreservation (lemma, LEMMA)
+(a) reach(σ'ₛ) = σ(reach(σₛ))
 
-*Preconditions:* level-uniform span σₛ = (s, ℓ) with s ∈ R, subspace(s) = 1, #s = #ℓ = 2, actionPoint(ℓ) = 2. Define contracted span σ'ₛ = (σ(s), ℓ).
-
-*Postconditions:*
-
-- (a) `reach(σ'ₛ) = σ(reach(σₛ))`
-- (b) `width(σ'ₛ) = ℓ`
-
-Span-level dual of I3-S for contraction.
+(b) width(σ'ₛ) = ℓ
