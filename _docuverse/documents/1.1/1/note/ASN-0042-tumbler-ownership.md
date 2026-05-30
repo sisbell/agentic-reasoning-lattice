@@ -158,11 +158,11 @@ The prefix is a tumbler, and the tumbler algebra provides no operation that muta
 
   `(A π ∈ Π₀ : pfx(π) ∈ Σ₀.B)`
 
-The second clause asserts bootstrap finiteness: the system starts with finitely many principals. This is the base case for the finiteness invariant `|Π_Σ| < ∞` (FiniteRegistry, derived below), on which NestingByDelegation's `R_Σ` relies for the existence of a single maximal-length covering principal. The third clause is the base case for O1a: every initial principal has a node-level or account-level prefix. The fourth clause is the base case for O1b: no two initial principals share a prefix. The fifth clause is the base case for T4: every initial principal's prefix is a valid tumbler address. The sixth clause requires pairwise non-nesting: no bootstrap principal's prefix extends another's. Without this, a bootstrapped principal could nest within another's domain — modifying `ω` for addresses in that domain through delegation acts the covering principal never authorized — and the Account-level permanence Corollary would fail. The seventh clause is the base case for O18 (DelegationBaptizes): every bootstrap principal's prefix is itself baptized at `Σ₀`. This is independent of the coverage conjunct of the first clause, which runs in the opposite direction — every initially allocated address is *covered* by some initial principal, which does not imply that each initial principal's *own* prefix is among the initially baptized addresses. The seventh clause closes that gap. Together with the inductive steps — delegation preserves O1a via condition (iv), O1b via the length contradiction (shown below), T4 via condition (v), and O18 via its inductive clause — these clauses establish that O1a, O1b, T4, and O18 hold in every reachable state.
+The second clause asserts bootstrap finiteness: the system starts with finitely many principals. The third clause requires every initial principal to have a node-level or account-level prefix. The fourth clause requires that no two initial principals share a prefix. The fifth clause requires every initial principal's prefix to be a valid tumbler address. The sixth clause requires pairwise non-nesting: no bootstrap principal's prefix extends another's. Without this, a bootstrapped principal could nest within another's domain — modifying `ω` for addresses in that domain through delegation acts the covering principal never authorized — and the Account-level permanence Corollary would fail. The seventh clause requires every bootstrap principal's prefix to be itself baptized at `Σ₀`. This is independent of the coverage conjunct of the first clause, which runs in the opposite direction — every initially allocated address is *covered* by some initial principal, which does not imply that each initial principal's *own* prefix is among the initially baptized addresses. The seventh clause closes that gap.
 
 In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with a node-level prefix (`zeros = 0 ≤ 1`); non-nesting holds vacuously (a singleton set has no distinct pairs), and all other base-case clauses hold trivially — a single-component positive tumbler like `[1]` satisfies T4 (no zeros, no adjacency or boundary violations). In a multi-node system, `Π₀` contains one initial principal per node (e.g., principals at `[1]` and `[2]`), each independently covering its node's allocatable addresses. These are node-level prefixes (satisfying the third clause), distinct node addresses are distinct tumblers (satisfying the fourth clause by T3), each is a positive single-component tumbler satisfying T4 (satisfying the fifth clause), and no single-component positive tumbler is a prefix of another single-component positive tumbler with a different value (satisfying the sixth clause). The formalization permits both cases: the existential quantifier ranges over all of `Π₀`, not a single distinguished element. Without these base cases, the inductive arguments for O1a, O1b, T4, and O4 cannot begin.
 
-**O15 (PrincipalClosure).** Principals enter Π exclusively through bootstrap (in Π₀) or through a delegation act of an existing principal subject to six structural conditions, named the *delegation predicate* `delegated_Σ(π, π')` (formally defined immediately following the inline statement of the conditions); no other mechanism introduces principals. The conditions are labelled (i)–(vi) so that subsequent proofs may cite them by number. Each state transition introduces at most one new principal, and any newly introduced principal `π'` traces back to a delegating predecessor `π` whose prefix is a strict ancestor of `pfx(π')`:
+**O15 (PrincipalClosure).** Principals enter Π exclusively through bootstrap (in Π₀) or through a delegation act of an existing principal subject to six structural conditions, named the *delegation predicate* `delegated_Σ(π, π')` (formally defined immediately following the inline statement of the conditions); no other mechanism introduces principals. Each state transition introduces at most one new principal, and any newly introduced principal `π'` traces back to a delegating predecessor `π` whose prefix is a strict ancestor of `pfx(π')`:
 
   `(A Σ, Σ' : Σ → Σ' ⟹ |Π_{Σ'} ∖ Π_Σ| ≤ 1)`
 
@@ -217,7 +217,7 @@ NestingByDelegation makes the structural geometry of `Π_Σ` explicit: principal
 
 **allocated_by_Σ(π, a) (AllocatedBy).**
 
-We take `allocated_by_Σ(π, a)` — "address `a` was allocated by principal `π` in the transition producing state `Σ`" — as a primitive relation of the ownership model. Its mechanism (the baptism procedure that generates addresses and enters them into `Σ.B`) is out of scope; what the ownership model constrains is its signature and the properties it must satisfy (O5, O16). The signature:
+We take `allocated_by_Σ(π, a)` — "address `a` was allocated by principal `π` in the transition producing state `Σ`" — as a primitive relation of the ownership model. What the ownership model constrains is its signature and the properties it must satisfy (O5, O16); the baptism procedure that generates addresses and enters them into `Σ.B` is the mechanism placed out of scope in the contract below. The signature:
 
   `allocated_by_Σ : Principal × Tumbler → Bool`
 
@@ -567,7 +567,7 @@ The Prefix (PrefixRelation) definition of ASN-0034 requires two conditions: `#a 
 - *Definition:* `acct(a) = a` when `zeros(a) = 0`; `acct(a) = N(a) ++ [0] ++ U(a)` when `zeros(a) ≥ 1`.
 - *Postconditions:* `acct(a) ≼ a`. When `zeros(a) ≤ 1`: `acct(a) = a` (equality). When `zeros(a) ≥ 2`: `acct(a) ≺ a` (strict prefix).
 
-The proof of O6 proceeds in two directions. *Forward:* we must show that for any principal `π` — by O1a (AccountOwnershipBoundary), every principal satisfies `zeros(pfx(π)) ≤ 1` — the relation `pfx(π) ≼ a` implies `pfx(π) ≼ acct(a)`. Two cases arise from the zero count.
+The proof of O6 proceeds in two directions, under the precondition that `Σ` is reachable from `Σ₀` — the condition that licenses the appeal to O1a, which is a derived invariant established by induction over reachable states, not an axiom. *Forward:* we must show that for any principal `π` — by O1a (AccountOwnershipBoundary), which holds because `Σ` is reachable, every principal satisfies `zeros(pfx(π)) ≤ 1` — the relation `pfx(π) ≼ a` implies `pfx(π) ≼ acct(a)`. Two cases arise from the zero count.
 
 When `zeros(pfx(π)) = 0`: the prefix contains no zero separators, so every component of `pfx(π)` is nonzero. Since `pfx(π) ≼ a`, the first `#pfx(π)` components of `a` all equal the corresponding components of `pfx(π)`, and are therefore all nonzero. Two sub-cases arise from the zero count of `a`.
 
@@ -588,7 +588,7 @@ Now, when `acct(a) = acct(b)`, substitution gives `pfx(π) ≼ acct(a) ≡ pfx(�
 *Corollary (owner prefix containment).* The effective owner's prefix is always embedded within the account field: `pfx(ω(a)) ≼ acct(a)`. We derive this in four steps. (1) By O1a, `zeros(pfx(ω(a))) ≤ 1`. By T4c (LevelDetermination), a valid tumbler with at most one zero separator is at most an account-level address — it contains no document-field or element-field components. (2) By definition of `ω`, `pfx(ω(a)) ≼ a`, so the components of `pfx(ω(a))` match `a`'s leading components. (3) Two cases arise from the zero count. When `zeros(pfx(ω(a))) = 0`: the prefix contains no zero separators, so every component is nonzero; since `pfx(ω(a)) ≼ a`, the first `#pfx(ω(a))` components of `a` are all nonzero, which places them entirely within `a`'s node field; hence `pfx(ω(a)) ≼ N(a) ≼ acct(a)`. When `zeros(pfx(ω(a))) = 1`: the prefix has the form `N.0.U`, and the zero separator at position `α + 1` in the prefix forces — via the prefix relation — a zero at the same position in `a`, aligning `a`'s node-user field boundary with the prefix's; the prefix's user-field components then match `a`'s user-field prefix; since `acct(a)` captures `a` through its full user field, `pfx(ω(a)) ≼ acct(a)`. (4) Hence `#pfx(ω(a)) ≤ #acct(a)` and `pfx(ω(a)) ≼ acct(a)`. The containment may be strict when the address occupies a sub-account position that the effective owner controls but has not delegated. Nelson permits this: "Numbers are owned by individuals or companies, and subnumbers under them are bestowed on other individuals and companies on whatever basis the owners choose" (LM 4/17). An account-level principal may create sub-account positions as organizational namespaces, ghost elements, or internal partitions without introducing a new ownership principal — the owner decides what sub-numbering means. Equality `pfx(ω(a)) = acct(a)` holds when no intermediate sub-account structure extends beyond the owner's prefix; this is the common case for addresses allocated directly at the principal's own account level.
 
 *Formal Contract:*
-- *Preconditions:* `a, b ∈ Σ.B`, `acct(a) = acct(b)`.
+- *Preconditions:* `Σ` reachable from `Σ₀`, `a, b ∈ Σ.B`, `acct(a) = acct(b)`.
 - *Postconditions:* `ω(a) = ω(b)`.
 - *Invariant:* `pfx(ω(a)) ≼ acct(a)` for all `a ∈ Σ.B`.
 
@@ -619,8 +619,6 @@ O5 interacts with O2. Because ownership is exclusive, exactly one principal may 
 Ownership is not held at a single level — it flows downward through the hierarchy. Nelson calls this "baptism," but we must separate two concepts: *ownership delegation*, which introduces a new principal into `Π`, and *allocation*, which creates addresses within an existing principal's domain. The allocation mechanism is uniform at all levels (T10a); the ownership consequences differ.
 
 We first recall the delegation relation. We use the *strict prefix* relation throughout: `p ≺ a  ≡  p ≼ a ∧ p ≠ a` (equivalently, `p ≼ a ∧ #p < #a` — the equivalence holds because `p ≼ a ∧ #p = #a` gives `p = a` by T3).
-
-The delegation predicate `delegated(Σ, Σ', π, π')` and its six conditions (i)–(vi) were defined normatively in *State Axioms* alongside O15 (PrincipalClosure), with `delegated_Σ(π, π')` as the abbreviation used when `Σ'` is fixed by the surrounding formula. We cite those conditions by number below rather than restate them.
 
 Condition (ii) is the authorization constraint — delegation requires O5's subdivision authority. A principal cannot delegate within a sub-domain that has already been delegated to someone else. This grounds the distinction between direct delegation (`π → π'`) and transitive delegation (`π → π' → π''`): when `π` delegates to `π'` and `π'` later delegates to `π''`, we have `delegated(π, π')` and `delegated(π', π'')` but not `delegated(π, π'')`.
 
@@ -730,11 +728,11 @@ The combination of O3 (OwnershipRefinement), O8 (IrrevocableDelegation), O12 (Pr
 
 Ownership authority does not propagate across node boundaries. A principal's effective ownership is bounded by its node prefix.
 
-**O9 (NodeLocalOwnership).** For a principal `π`, the ownership predicate `owns(π, a)` can hold only for allocated addresses `a` whose node field extends the principal's node field:
+**O9 (NodeLocalOwnership).** In any state `Σ` reachable from `Σ₀`, for a principal `π`, the ownership predicate `owns(π, a)` can hold only for allocated addresses `a` whose node field extends the principal's node field:
 
-  `(A π ∈ Π, a ∈ Σ.B : owns(π, a)  ⟹  N(pfx(π)) ≼ N(a))`
+  `(A Σ reachable from Σ₀, π ∈ Π, a ∈ Σ.B : owns(π, a)  ⟹  N(pfx(π)) ≼ N(a))`
 
-We must show that if `owns(π, a)` holds for an allocated address `a`, then `N(pfx(π)) ≼ N(a)` — the principal's node field is a prefix of the address's node field. By O1 (PrefixDetermination), `owns(π, a) ≡ pfx(π) ≼ a`, so the hypothesis gives `pfx(π) ≼ a`: by the Prefix (PrefixRelation) definition of ASN-0034, the components of `pfx(π)` match the leading components of `a`, that is, `#a ≥ #pfx(π)` and `aᵢ = pfx(π)ᵢ` for all `1 ≤ i ≤ #pfx(π)`. By O1a (AccountOwnershipBoundary), `zeros(pfx(π)) ≤ 1`. Two cases exhaust the possibilities.
+We must show that if `owns(π, a)` holds for an allocated address `a` in a reachable `Σ`, then `N(pfx(π)) ≼ N(a)` — the principal's node field is a prefix of the address's node field. By O1 (PrefixDetermination), `owns(π, a) ≡ pfx(π) ≼ a`, so the hypothesis gives `pfx(π) ≼ a`: by the Prefix (PrefixRelation) definition of ASN-0034, the components of `pfx(π)` match the leading components of `a`, that is, `#a ≥ #pfx(π)` and `aᵢ = pfx(π)ᵢ` for all `1 ≤ i ≤ #pfx(π)`. By O1a (AccountOwnershipBoundary), which holds because `Σ` is reachable (O1a is a derived invariant established by induction over reachable states, not an axiom), `zeros(pfx(π)) ≤ 1`. Two cases exhaust the possibilities.
 
 *Case 1: `zeros(pfx(π)) = 0` (node-level principal).* Every component of `pfx(π)` is strictly positive — T4's positive-component constraint requires that every non-separator component be positive, and the absence of zeros means every component is a non-separator. By T4c (LevelDetermination), a tumbler with no zeros is a node-level address, and by T4b (UniqueParse) its node field is the tumbler itself: `N(pfx(π)) = pfx(π)`, with `#N(pfx(π)) = #pfx(π)`.
 
@@ -760,7 +758,7 @@ The same human being would therefore hold *separate, independent* ownership root
 Gregory's implementation has no cross-node communication, no remote ownership lookup, and no federation of identity. The account tumbler is per-session, per-node. But the abstract property does not depend on these implementation choices — it follows from the prefix geometry of T4 and the structural ownership predicate of O1.
 
 *Formal Contract:*
-- *Preconditions:* `π ∈ Π`, `a ∈ Σ.B`, `owns(π, a)`.
+- *Preconditions:* `Σ` reachable from `Σ₀`, `π ∈ Π`, `a ∈ Σ.B`, `owns(π, a)`.
 - *Postconditions:* `N(pfx(π)) ≼ N(a)`. When `zeros(pfx(π)) = 1`: `N(pfx(π)) = N(a)` (equality). When `zeros(pfx(π)) = 0`: `N(pfx(π)) ≼ N(a)` (proper prefix permitted).
 
 
@@ -891,10 +889,9 @@ The design philosophy is clear: minimize the authorization model to the point wh
 
 ## Open Questions
 
-- Must the system provide a mechanism for ownership transfer, and if so, what invariants must it preserve given that structural provenance (O6) is inalienable?
+- If ownership transfer is permitted, what invariants must it preserve and what formal relationship must hold between the inalienable provenance recorded in an address (O6) and the effective owner (O2) once the two diverge?
 - Must the system enforce that no principal can claim an ownership prefix that overlaps an existing principal's domain, and what are the invariants of this enforcement?
 - What formal guarantees must the system provide about content accessibility when the effective owner ceases to exist as a principal?
 - Must ownership domains be dense (every address in the domain is reachable) or can gaps exist between baptized siblings within a domain?
 - What invariants must a cross-node identity federation satisfy to remain consistent with O9, if such federation is introduced?
-- What formal relationship must hold between the provenance recorded in an address (O6) and the effective owner (O2) if ownership transfer is permitted?
 - Must delegation events be recorded, or is the structural evidence of the address hierarchy sufficient to reconstruct the delegation history?
