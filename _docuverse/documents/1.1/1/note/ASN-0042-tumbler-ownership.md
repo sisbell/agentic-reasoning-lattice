@@ -17,7 +17,9 @@ Nelson gives a striking answer. Ownership is not recorded in a registry external
 
 > "The basic principle is that of owned numbers. Numbers are owned by individuals or companies, and subnumbers under them are bestowed on other individuals and companies on whatever basis the owners choose." (LM 4/17)
 
-Gregory's implementation confirms this with unusual force. The sole ownership predicate in udanax-green — `isthisusersdocument` — delegates entirely to `tumbleraccounteq`, a function that decides prefix containment of its two tumbler arguments. No table is consulted. No file is opened. No registry is queried. The function receives two tumblers, performs arithmetic on their components, and returns a boolean. If we removed the function and replaced it with any other function that performs the same comparison, the system's ownership behavior would be identical. Ownership *is* the comparison.
+Gregory's implementation confirms this with unusual force. The sole ownership predicate in udanax-green — `isthisusersdocument` — delegates entirely to `tumbleraccounteq`, a function that decides prefix containment of its two tumbler arguments. No table is consulted. No file is opened. No registry is queried. The function receives two tumblers, performs arithmetic on their components, and returns a boolean.
+
+We must be precise about *what* this comparison realizes. `tumbleraccounteq` decides the *non-exclusive* containment predicate `owns(π, a)` (O1 below) at the account level: it tests whether a single account prefix contains an address, returning true or false. It is invoked exactly once, against the one account of the currently connected session — udanax-green carries one account per connection and contains no list of candidate principals, no ranking, and no longest-prefix selection loop anywhere in the ownership or allocation paths. So the implementation realizes `owns`, and `owns` alone. It does *not* realize the longest-match selector `ω` (O2) on which the load-bearing guarantees — exclusivity (O2), refinement (O3), irrevocable delegation (O8) — all rest, because `ω` requires arbitrating among multiple covering principals and the system never does so. Those guarantees are therefore abstract obligations that any faithful implementation must discharge, not properties the existing `tumbleraccounteq` already secures; the absence of any `ω`-realizing mechanism in udanax-green is a conformance gap, recorded in the Open Questions. With this scope fixed: at the account level, where exactly one account is ever in play, ownership *is* the containment comparison.
 
 **pfx(π) (OwnershipPrefix).**
 
@@ -516,7 +518,7 @@ We use the *strict prefix* relation throughout: `p ≺ a  ≡  p ≼ a ∧ p ≠
 
   (b) `π'` may allocate new addresses within `odom(π')` (O5 applies to `π'`)
 
-  (c) `π'` may delegate a sub-prefix `p''` with `pfx(π') ≺ p''` to a new principal `π''` whenever `delegated` is satisfiable with `π'` as delegator at the prospective delegation state. The right is recursive: the same five-condition gate applies, but conditions (ii), (iv), and (v) are re-evaluated against the delegation state, so the admissible `p''` is state-dependent
+  (c) immediately upon entry at `Σ'`, `π'` may delegate a sub-prefix `p''` with `pfx(π') ≺ p''` to a new principal `π''`: the same five-condition gate applies, of which (i), (ii), and (iv) are discharged at `Σ'` for any such `p''` (independent of the choice), leaving (iii) [structural-tier] and (v) [next-reachable] as the binding obligations that constrain the choice of `p''`. The recursive right is thus established for the entry state `Σ'`; we do not establish it at an arbitrary later delegation state, where an intervening delegation may interpose a more-specific cover of `p''` and falsify (ii)
 
 We prove each postcondition under the hypothesis that `delegated_Σ(π, π')` holds for a transition `Σ → Σ'`, with `π ∈ Π_Σ` and `π' ∈ Π_{Σ'} ∖ Π_Σ`.
 
@@ -550,7 +552,7 @@ Nelson: "Whoever owns a specific node, account, document or version may in turn 
 
 *Formal Contract:*
 - *Preconditions:* `delegated_Σ(π, π')`, `Σ → Σ'`.
-- *Postconditions:* (a) `(A a ∈ odom(π') ∩ Σ'.B : ω_{Σ'}(a) = π')`; (b) `π'` satisfies O5 for allocations within `odom(π')`; (c) `π'` may delegate a sub-prefix `p''` (with `pfx(π') ≺ p''`) to a new principal whenever the binding obligations of `delegated` hold for `p''` at the prospective delegation state. The admitted `p''` is thus a `next`-reachable single-step stream extension `p'' = next(Σ.B, p, d)` of an already-baptized prefix, not an arbitrary strict descendant.
+- *Postconditions:* (a) `(A a ∈ odom(π') ∩ Σ'.B : ω_{Σ'}(a) = π')`; (b) `π'` satisfies O5 for allocations within `odom(π')`; (c) immediately upon entry at `Σ'`, `π'` may delegate a sub-prefix `p''` (with `pfx(π') ≺ p''`) to a new principal: conditions (i), (ii), (iv) are discharged at `Σ'` for any such `p''`, and the binding obligations are (iii) [structural-tier] and (v) [next-reachable]. The admitted `p''` is thus a `next`-reachable single-step stream extension `p'' = next(Σ.B, p, d)` of an already-baptized prefix, not an arbitrary strict descendant. The claim is restricted to the entry state `Σ'`; satisfiability at an arbitrary later delegation state is not asserted.
 - *Invariant:* Delegation confers full sovereignty — the delegate becomes the effective owner of its entire domain immediately upon delegation, and acquires the rights to allocate and sub-delegate within that domain.
 
 The delegation is irrevocable:
@@ -577,7 +579,7 @@ Let `Σ_d` denote the state in which `delegated(Σ_d, Σ_d^{post}, π, π')` hol
 
 To see this last step precisely: suppose for contradiction that `ω_{Σ'}(a) = π`. Then by the definition of `ω`, `π` would need to satisfy `(A π'' ∈ Π_{Σ'} : π'' ≠ π ∧ pfx_{Σ'}(π'') ≼ a ⟹ #pfx_{Σ'}(π) > #pfx_{Σ'}(π''))`. But `π' ∈ Π_{Σ'}` with `π' ≠ π` (they are distinct — `π` was already in `Π` before delegation while `π'` was newly introduced, and their prefixes differ in length) and `pfx_{Σ'}(π') ≼ a`, yet `#pfx_{Σ'}(π) < #pfx_{Σ'}(π')` — contradicting the requirement. Therefore `ω_{Σ'}(a) ≠ π`. ∎
 
-*Design confirmation.* O8 instantiates O3's refinement-only regime at the parent–delegate boundary. The implementation provides no revocation path — no revocation command, no forced reclamation. The irrevocability O8 establishes rests on the longest-match rule: the delegate's strictly longer prefix permanently outranks the parent's.
+*Design confirmation.* The implementation provides no revocation path — no revocation command, no forced reclamation.
 
 *Formal Contract:*
 - *Preconditions:* `Σ_d` reachable from `Σ₀`, `delegated(Σ_d, Σ_d^{post}, π, π')` (with `Σ_d → Σ_d^{post}` the introducing edge), `Σ_d^{post} →* Σ'`, `π' ∈ Π_{Σ'}`, `a ∈ odom(π') ∩ Σ'.B`.
@@ -661,7 +663,7 @@ In both `zeros(pfx(π)) = 0` and `zeros(pfx(π)) = 1` cases, no sub-delegate of 
 
 *Trajectory closure.* The baptism does not modify `Π` (by O15) or remove any pre-existing baptized address from the registry (by B0 Irrevocability of ASN-0040: `Σ.B ⊆ Σ'.B`). The original address `a` remains in `Σ'.B` with its ownership unchanged: `ω_{Σ'}(a) = ω_Σ(a) ≠ π`. The fork postcondition is satisfied: `a' ∈ odom(π) ∩ Σ'.B ∧ ω_{Σ'}(a') = π`, with `a ∈ Σ'.B` unchanged. ∎
 
-The construction exhibits the refinement-only regime established at O8: the parent's fork at `hwm_0 + 1` is structurally outside every sub-delegate's authority and structurally inside `π`'s.
+The parent's fork at `hwm_0 + 1` is structurally outside every sub-delegate's authority and structurally inside `π`'s.
 
 *Formal Contract:*
 - *Preconditions:* `Σ` reachable from `Σ₀`, `π ∈ Π_Σ`, `a ∈ Σ.B`, `ω(a) ≠ π`.
@@ -820,3 +822,4 @@ The fork transforms the ownership boundary into a creative act: `π_A` now has a
 - Must ownership domains be dense (every address in the domain is reachable) or can gaps exist between baptized siblings within a domain?
 - What invariants must a cross-node identity federation satisfy to remain consistent with O9, if such federation is introduced?
 - Must delegation events be recorded, or is the structural evidence of the address hierarchy sufficient to reconstruct the delegation history?
+- What must an implementation guarantee to realize the longest-match effective-owner selection `ω` (O2) on which exclusivity, refinement, and irrevocable delegation depend, given that account-level containment decides only single-principal coverage and never arbitrates among multiple covering principals?
