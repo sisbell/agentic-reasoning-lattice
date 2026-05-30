@@ -194,7 +194,15 @@ When the link subspace is itself the active (shifted-into) region, a shifted ima
 
 The point-level shift I3 lifts to a span-level property connecting this ASN to the span algebra framework of ASN-0053.
 
-Commutativity and associativity of ℕ addition are standard arithmetic facts about the carrier ℕ, cited from T0 (CarrierSetDefinition, ASN-0034). T0 fixes the carrier as the standard natural numbers and states the convention that "the standard arithmetic facts about ℕ that proofs need are separated into their own axioms so each proof cites only what it actually uses"; on that basis we use, for all m, n, k ∈ ℕ, `m + n = n + m` (commutativity) and `(m + n) + k = m + (n + k)` (associativity). These are properties of the substrate carrier, not of system state, so they are cited as foundation facts rather than posited as a fresh universal axiom here.
+Two width-preservation derivations below (I3-S(a) and D-S(a)) need associativity and commutativity of ℕ addition. We source each precisely rather than attribute both to T0, whose axiom fixes only the carrier, length, and projection and states no arithmetic law.
+
+**Associativity** is supplied by TA-assoc (AdditionAssociative, ASN-0034). Specialized to depth-1 single-component tumblers, where `[a] ⊕ [b] = [a + b]`, TA-assoc's `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)` (for `Pos(b)`, `Pos(c)`) reads as `(a + b) + k = a + (b + k)` on ℕ for positive `b, k` — exactly the regrouping the proofs invoke, on operands that are positive in every use below.
+
+**Commutativity** (`m + n = n + m`) is *not* supplied by any foundation statement. ASN-0034's arithmetic extraction names NAT-addcompat (order-compatibility, strict successor), NAT-closure (closure, additive identity), NAT-discrete, NAT-order, and NAT-wellorder, and none of these asserts commutativity; nor is it derivable from them, since `+` is given as a primitive binary operation with no successor-recursive characterization (the extraction supplies `0 + n = n` but not `n + 0 = n`, and no `n + (m + 1) = (n + m) + 1`). We therefore posit it explicitly as a local arithmetic axiom:
+
+> **NAT-comm** (local axiom). For all `m, n ∈ ℕ`, `m + n = n + m`.
+
+This is a standard property of the standard natural numbers that T0 (ASN-0034) fixes as the carrier; we introduce it here as a clearly-labeled local axiom rather than cite a foundation statement that does not assert it.
 
 Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m. We call a span *ordinal-level* when its width acts purely at the deepest component: actionPoint(ℓ) = m. Define the shifted span σ' = (shift(s, n), ℓ). We verify that σ' is a well-formed span (T12, ASN-0034): ℓ > 0 is inherited from σ, and actionPoint(ℓ) = m ≤ #shift(s, n) = m (by TumblerAdd's result-length identity: #shift(s, n) = #δₙ = m).
 
@@ -209,7 +217,7 @@ Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(�
 - reach(σ') = shift(s, n) ⊕ ℓ = shift(shift(s, n), ℓₘ) = shift(s, n + ℓₘ);
 - shift(reach(σ), n) = shift(s ⊕ ℓ, n) = shift(shift(s, ℓₘ), n) = shift(s, ℓₘ + n).
 
-Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by commutativity of ℕ addition (a standard property of T0's carrier ℕ, ASN-0034). With n + ℓₘ = ℓₘ + n, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
+Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by NAT-comm (the local commutativity axiom stated above): n + ℓₘ = ℓₘ + n. With this identity, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
 
 *Derivation of (b).* The span σ' = (shift(s, n), ℓ) is level-uniform: #shift(s, n) = m = #ℓ by the result-length identity of TumblerAdd. Its width is by definition its second component ℓ; consistently, by D2 (WidthRecovery, ASN-0053), width(σ') = reach(σ') ⊖ start(σ') = (shift(s, n) ⊕ ℓ) ⊖ shift(s, n) = ℓ. ∎
 
@@ -368,21 +376,9 @@ By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥
 
 *Proof of (a).* Since r = p ⊕ w, OrdAddHom (a) gives ord(r) = ord(p) ⊕ w_ord, so the claim ord(r) ⊖ w_ord = ord(p) reduces to `(ord(p) ⊕ w_ord) ⊖ w_ord = ord(p)`, an instance of TA4 (PartialInverse, ASN-0034): `(a ⊕ w) ⊖ w = a` when Pos(w), the action point `k = #a`, `#w = k`, and `(A i : 1 ≤ i < k : aᵢ = 0)`. Here a = ord(p), w = w_ord. The preconditions discharge at depth 1: Pos(w_ord) holds by OrdinalDisplacementProjection (Pos(w) and w₁ = 0 imply Pos(w_ord)); `k = actionPoint(w_ord) = 1 = #ord(p)`; `#w_ord = 1 = k`; and the zero-prefix quantifier `1 ≤ i < 1` is vacuous. TA4 fires, giving ord(r) ⊖ w_ord = ord(p) directly. ✓
 
-*Proof of (b).* Suppose R ≠ ∅, so there exists v ∈ V_1(d) with v ≥ r. Two cases on the comparison of v with r.
+*Proof of (b).* Suppose R ≠ ∅, so there exists v ∈ V_1(d) with v ≥ r. The contraction operates under the precondition that D-SEQ holds on the pre-state, giving V_1(d) = {[1, k] : 1 ≤ k ≤ N}; hence v = [1, k_v] with 1 ≤ k_v ≤ N. Since r = p ⊕ w with p = [1, p₂], w₁ = 0, and w₂ = c ≥ 1, TumblerAdd gives r = [1, p₂ + c]. From v ≥ r, T1 at position 2 yields k_v ≥ p₂ + c, so p₂ + c ≤ k_v ≤ N. With the lower bound p₂ + c ≥ 2 ≥ 1 (from p₂ ≥ 1 by S8a on p and c ≥ 1), the ordinal p₂ + c lies in [1, N], so by D-SEQ the position r = [1, p₂ + c] ∈ V_1(d), hence r ∈ R.
 
-*Case 1: v = r.* Then r = v ∈ V_1(d) directly.
-
-*Case 2: v > r.* We establish r ∈ V_1(d) via D-CTG, using the last element of X as the lower bracket.
-
-First, X is non-empty. Trivially p ≥ p, and p < r since r = p ⊕ w with Pos(w): by TumblerAdd, r differs from p only at position m where rₘ = pₘ + wₘ, and Pos(w) with w₁ = 0 forces wₘ ≥ 1 (the action point of w is at position m), so rₘ > pₘ, giving r > p (T1, divergence at position m). Hence p ∈ X, and X is non-empty.
-
-Second, X has the explicit form `X = {[1, k] : p₂ ≤ k < p₂ + c}`, with c = w₂ ≥ 1. By D-SEQ on the pre-state V_1(d) (text subspace, ASN-0036), V_1(d) = {[1, k] : 1 ≤ k ≤ N}. The defining condition `p ≤ v < r` at depth 2 is, via OrdinalOrderEquivalence and T1 at depth 1, the natural-number condition `p₂ ≤ v₂ < p₂ + c` (since ord(r) = ord(p) ⊕ w_ord = [p₂ + c]). Intersecting with V_1(d) yields X = {[1, k] : p₂ ≤ k < p₂ + c, 1 ≤ k ≤ N}. The containment precondition `p₂ + w₂ − 1 ≤ N` ensures that all c values from p₂ through p₂ + c − 1 lie within [1, N], so X = {[1, k] : p₂ ≤ k < p₂ + c}.
-
-Third, X has a last element under T1. Since c ≥ 1, the natural-number range [p₂, p₂ + c) is non-empty with maximum p₂ + c − 1, so the last element of X is [1, p₂ + c − 1]. We have [1, p₂ + c − 1] < r = [1, p₂ + c] by T1 at position 2 (p₂ + c − 1 < p₂ + c).
-
-Fourth, applying D-CTG (text subspace, ASN-0036): we use u = [1, p₂ + c − 1] and q = v. Membership u ∈ V_1(d) is direct from the containment precondition `p₂ + w₂ − 1 ≤ N`, i.e., `p₂ + c − 1 ≤ N`, combined with the lower bound `p₂ + c − 1 ≥ p₂ ≥ 1` (from c ≥ 1 and S8a on p): the natural number `p₂ + c − 1` lies in `[1, N]`, so by D-SEQ on the pre-state V_1(d) = {[1, k] : 1 ≤ k ≤ N}, the position [1, p₂ + c − 1] is in V_1(d). Membership q = v ∈ V_1(d) holds by definition of R ⊆ V_1(d). The bracket `u < r < v` holds with the first inequality just shown (Third) and the second by Case 2. D-CTG quantifies over all V-positions strictly between u and q with the same depth and no zero component, demanding their membership in V_1(d). Since #r = 2 = #u and u < r < v = q with subspace(r) = 1 and zeros(r) = 0 (r = [1, p₂ + c] is a depth-2 tumbler with both components positive, discharging D-CTG's `zeros(v) = 0` guard), D-CTG gives r ∈ V_1(d).
-
-In both cases r ∈ R and r = min(R) (since r ≤ v for all v ∈ R by definition). By D-BJ, σ is order-preserving, so σ(r) = min(Q₃). By part (a), ord(σ(r)) = ord(p). ∎
+Moreover r = min(R): r ≤ v for every v ∈ R by the defining condition v ≥ r of R. By D-BJ, σ is order-preserving, so σ(r) = min(Q₃). By part (a), ord(σ(r)) = ord(p). ∎
 
 **D-DP** — *DensePartition* (LEMMA, lemma). The post-state arrangement in subspace S is exactly the union of the preserved left region and the shifted right region, with no overlap and no gap at the contraction boundary.
 
@@ -655,7 +651,7 @@ Now reach(σ'ₛ) = σ(s) ⊕ ℓ = [1, s₂ − c] ⊕ [0, c'] = [1, (s₂ − 
 
 `(s₂ + c') − c = (s₂ − c) + c'`   for `s₂ ≥ c`,
 
-where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* by the depth-1 tumbler difference (`[a] ⊖ [c] = [a − c]` for `a ≥ c`). Because ASN-0034's NAT-* extraction supplies no ℕ-subtraction law, we discharge this single-component identity through the depth-1 tumbler lemmas. Write `x = s₂ − c`, i.e. `[x] = [s₂] ⊖ [c]`. ReverseInverse at depth 1 (ASN-0034) gives `[s₂ − c] ⊕ [c] = [s₂]`, which is the ℕ fact `x + c = s₂`. Substituting and regrouping: `(s₂ + c') − c = ((x + c) + c') − c = ((x + c') + c) − c` (regrouping by commutativity and associativity of ℕ addition, standard properties of T0's carrier ℕ, ASN-0034), and the depth-1 partial inverse TA4 (`(y + c) − c = y`, with `y = x + c'`) cancels `c` to leave `x + c' = (s₂ − c) + c'`. The two tumblers therefore agree componentwise, so σ(reach(σₛ)) = reach(σ'ₛ). ✓ ∎
+where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* by the depth-1 tumbler difference (`[a] ⊖ [c] = [a − c]` for `a ≥ c`). Because ASN-0034's NAT-* extraction supplies no ℕ-subtraction law, we discharge this single-component identity through the depth-1 tumbler lemmas. Write `x = s₂ − c`, i.e. `[x] = [s₂] ⊖ [c]`. ReverseInverse at depth 1 (ASN-0034) gives `[s₂ − c] ⊕ [c] = [s₂]`, which is the ℕ fact `x + c = s₂`. Substituting and regrouping: `(s₂ + c') − c = ((x + c) + c') − c = ((x + c') + c) − c`, where the inner regrouping `(x + c) + c' = x + (c + c') = x + (c' + c) = (x + c') + c` uses associativity twice via TA-assoc (ASN-0034, at depth 1 where `[a] ⊕ [b] = [a + b]`, with the positive operands `c, c' ≥ 1`) and the swap `c + c' = c' + c` via the local NAT-comm axiom. The depth-1 partial inverse TA4 (`(y + c) − c = y`, with `y = x + c'`) then cancels `c` to leave `x + c' = (s₂ − c) + c'`. The two tumblers therefore agree componentwise, so σ(reach(σₛ)) = reach(σ'ₛ). ✓ ∎
 
 *Derivation of (b).* The span σ'ₛ = (σ(s), ℓ) is level-uniform: #σ(s) = 2 = #ℓ by vpos's result-length identity. Its width is by definition its second component ℓ; consistently, by D2 (WidthRecovery, ASN-0053), width(σ'ₛ) = reach(σ'ₛ) ⊖ start(σ'ₛ) = (σ(s) ⊕ ℓ) ⊖ σ(s) = ℓ. ✓ ∎
 
@@ -669,7 +665,8 @@ where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* b
 | M(d) | definition | M(d) : T ⇀ T — arrangement function mapping V-positions to I-addresses for document d | cited (ASN-0036) |
 | subspace(v) | definition | subspace(v) = v₁ — the first component of a V-position, identifying its subspace | cited (ASN-0036) |
 | ordinal-level | definition | A span σ = (s, ℓ) is ordinal-level when actionPoint(ℓ) = #ℓ (the width acts at the deepest component of ℓ) | introduced (local) |
-| ℕ comm/assoc | standard ℕ fact | ℕ addition is commutative (m + n = n + m) and associative ((m + n) + k = m + (n + k)) — standard arithmetic facts about T0's carrier ℕ | cited (ASN-0034, T0) |
+| NAT-comm | local axiom | ℕ addition is commutative: m + n = n + m for all m, n ∈ ℕ — posited locally; not supplied by ASN-0034's NAT-* extraction nor derivable from it | introduced (local) |
+| ℕ assoc | derived | ℕ addition associativity (a + b) + k = a + (b + k) for positive b, k — supplied by TA-assoc specialized to depth-1 tumblers | cited (ASN-0034, TA-assoc) |
 | S8-depth | invariant | (A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂) — uniform V-position depth per subspace | cited (ASN-0036) |
 | S8a | axiom | (A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0)) — V-position well-formedness | cited (ASN-0036) |
 | I3 | postcondition | (A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v)) | introduced |
