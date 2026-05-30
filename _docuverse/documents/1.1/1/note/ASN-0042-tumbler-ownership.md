@@ -72,7 +72,7 @@ We formalize this asymmetry:
 
 Sub-account allocation — creating documents, versions, elements — does not introduce new ownership principals. It exercises the allocator's rights within an existing principal's domain.
 
-O1a, O1b (PrefixInjectivity), and T4-validity of prefixes are reachable-state invariants, proved in *State Axioms* under *Shared invariant induction*. Its conclusion: every principal in every reachable state satisfies all three, so `ω` (O2) yields a unique principal at a valid hierarchy level with `fields(·)` well-defined (T4b UniqueParse).
+O1a, O1b (PrefixInjectivity), and T4-validity of prefixes are reachable-state invariants, proved in *State Axioms* under *Shared invariant induction*, where the joint conclusion for `ω` (O2) is stated.
 
 **acct(a) (AccountField).**
 
@@ -229,7 +229,7 @@ The coupling is sharpened for principal-introducing transitions: every transitio
 
   `(A Σ, Σ', π' : Σ → Σ' ∧ π' ∈ Π_{Σ'} ∖ Π_Σ ⟹ Σ'.B = Σ.B ∪ {pfx(π')})`
 
-Composing this principal-introduction clause with the general baptism branch determines `pfx(π') = next(Σ.B, p, d)` for some B6-valid `(p, d)` — the next-reachable form. O17b is the sole carrier of this form; delegation condition (v) gives only validity and freshness of `pfx(π')`.
+Composing this principal-introduction clause with the general baptism branch determines `pfx(π') = next(Σ.B, p, d)` for some B6-valid `(p, d)` — the next-reachable form.
 
 **RegistryReachability (derived).** In every reachable state the baptismal registry is an ASN-0040-reachable registry conforming to B₀ conf.:
 
@@ -245,7 +245,7 @@ Composing this principal-introduction clause with the general baptism branch det
 
 *Proof.* By RegistryReachability (derived above), in every reachable state `Σ` the registry `Σ.B` is an ASN-0040-reachable registry. ASN-0040's B10 (T4ValidityInvariant) holds over every such reachable registry — `(A t ∈ s.B : T4(t))` — so every address in `Σ.B` satisfies T4. ∎
 
-**Freshness-(v).** An alias for the pair `T4(pfx(π')) ∧ pfx(π') ∉ Σ.B` of condition (v), by which downstream proofs cite delegate-prefix validity and freshness.
+**Freshness-(v).** An alias for the pair `T4(pfx(π')) ∧ pfx(π') ∉ Σ.B` of condition (v).
 
 **Shared invariant induction (O1a / O1b / T4-validity).** O1a (AccountOwnershipBoundary), O1b (PrefixInjectivity), and T4-validity of every principal's prefix are reachable-state invariants, established here by a single induction on the reachability sequence with a common base case and non-delegation step and a per-invariant delegation step. *Base:* the corresponding conjunct of O14 holds on `Π₀` — O14.4 (AccountTier) for O1a (`zeros(pfx(π)) ≤ 1`), O14.5 (Injective) for O1b (`pfx` injective), O14.6 (Valid) for T4 (`T4(pfx(π))`). *Non-delegation step:* O15 admits no new principal and O13 (PrefixImmutability) fixes existing prefixes, so any property of the principal-to-prefix assignment carries unchanged from `Π_Σ` to `Π_{Σ'}`. *Delegation step:* in each case existing principals persist by O12 (PrincipalPersistence) with prefixes preserved by O13, so it remains to discharge the sole new principal `π'`:
 
@@ -810,7 +810,7 @@ The fork transforms the ownership boundary into a creative act: `π_A` now has a
 | O18 | `Σ → Σ' ∧ π' ∈ Π_{Σ'} ∖ Π_Σ ⟹ pfx(π') ∈ Σ'.B ∖ Σ.B` — delegation materially baptizes the delegate's prefix as a fresh registration | derived from O17b coupling (baptism branch) and Freshness-(v) |
 | RegistryReachability | `(A Σ reachable : Σ.B is an ASN-0040-reachable registry conforming to B₀ conf.)` — discharges the `next`/`hwm`/B1/B6 preconditions wherever they are invoked | derived invariant; base case O14.9 (Registry), step O17b (`Bop` edge, ASN-0040-closed) |
 | PrefixBaptismCoupling | `(A Σ reachable, π ∈ Π_Σ : pfx(π) ∈ Σ.B)` — every principal's prefix is itself baptized in every reachable state | from O13, O14.8, O15, O18, B0 (ASN-0040) |
-| `ω_Σ(a)` | `ω_Σ : Σ.B → Π_Σ` — the state-relativized effective owner function (defined only for allocated addresses; both input and output are state-indexed) | from O4, O1b, Prefix, T3 |
+| `ω_Σ(a)` | `ω_Σ : Σ.B → Π_Σ` — the state-relativized effective owner function | from O4, O1b, Prefix, T3 |
 | OwnershipDomain | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
 | `acct(a)` | the node-and-user account field of `a`, with `zeros(acct(a)) ≤ 1` — case definition in AccountField (*The Account-Level Boundary*) | from T4b, T3 |
 | `allocated_by_Σ(π, a)` | Primitive relation: `a` was allocated by `π` in transition producing `Σ`; mechanism out of scope, constrained by O5 and O16 | axiom |
