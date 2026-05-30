@@ -303,136 +303,36 @@ S8-depth allows us to define "consecutive V-positions" precisely. Within a subsp
 
 The successor `shift(v, 1) = v ⊕ δ(1, #v)` per OrdinalShift (ASN-0034) is the next ordinal at the same depth. By OrdinalShift's postconditions, for `m = #v ≥ 2`, `shift(v, 1)` agrees with `v` on positions `1 ≤ i < m` and sets `shift(v, 1)_m = v_m + 1`, so it preserves the subspace identifier `v₁` while incrementing only the ordinal component.
 
-### V-position ordinal decomposition
+### Shift preservation for V-positions
 
-S8a establishes V-positions as element-field tumblers whose first component is the subspace identifier (subspace(v) = v₁), and the ordinal-only formulation of TA7a (ASN-0034) establishes that within-subspace arithmetic passes only the ordinal to the operations while holding the subspace identifier as structural context. We now formalize this decomposition with concrete extraction and reconstruction functions: separating a V-position into its subspace identifier and its within-subspace ordinal, reconstructing a V-position from these components, and projecting a displacement onto its ordinal component. We then establish the central property: tumbler addition commutes with the decomposition, and derive from this that TA7a's closure guarantees on S govern the S-membership of the result.
+S8a establishes V-positions as element-field tumblers whose first component is the subspace identifier (`subspace(v) = v₁`). The lockstep partition of S8 advances a V-position by `shift(v, n) = v ⊕ δ(n, m)` (OrdinalShift, ASN-0034), where `δ(n, m) = [0, ..., 0, n]` of length `m` (OrdinalDisplacement, ASN-0034). We need exactly two facts about this advance: it preserves the subspace identifier, and it preserves S8a well-formedness. Both follow directly from TumblerAdd's component formula applied to `δ(n, m)`, whose single nonzero component sits at the action point with no tail beyond.
 
-**ord(v)** — *OrdinalExtraction* (DEF, function). For a V-position v with #v = m and subspace(v) = v₁, the *ordinal* is:
+**OrdShiftHom** — *OrdinalShiftPreservation* (LEMMA). For a V-position `v` with `#v = m ≥ 2` and `n ≥ 1`:
 
-`ord(v) = [v₂, ..., vₘ]`
+(b) `subspace(shift(v, n)) = subspace(v)`.
 
-— the tumbler of length m − 1 obtained by stripping the subspace identifier. When v satisfies S8a, every component of v is positive, so every component of [v₂, ..., vₘ] is positive — placing ord(v) in TA7a's domain S = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)}.
+(c) When `v` satisfies S8a, `shift(v, n)` satisfies S8a.
 
-*Instance.* For `v = [1, 3, 5]` (text-subspace identifier `v₁ = 1`, depth `m = 3`, satisfying S8a), `ord(v) = [3, 5]`. The leading subspace identifier 1 is stripped; the remaining length-2 tumbler `[3, 5]` has both components positive, so `ord(v) ∈ S`.
+*Proof.* Write `shift(v, n) = v ⊕ δ(n, m)` with `δ(n, m) = [0, ..., 0, n]` of length `m` (OrdinalShift, OrdinalDisplacement, ASN-0034). By OrdinalDisplacement, `actionPoint(δ(n, m)) = m`, so the addition is well-defined since `actionPoint(δ(n, m)) = m ≤ #v`. By TumblerAdd, the result `r = v ⊕ δ(n, m)` is built component-wise: for `1 ≤ i < m`, `rᵢ = vᵢ` (these positions precede the action point and are copied from `v`); at `i = m`, `rₘ = vₘ + n`. There are no positions beyond the action point, and `#r = m` (TA0, ASN-0034).
 
-*Formal Contract:*
-- *Preconditions:* `v ∈ T`, `#v ≥ 2`.
-- *Definition:* `ord(v) = [v₂, ..., vₘ]` where `m = #v`.
-- *Postconditions:* `ord(v) ∈ T` (length `m - 1 ≥ 1`, satisfying T0). `#ord(v) = #v - 1`. When `v` satisfies S8a, `ord(v) ∈ S` — every component of `[v₂, ..., vₘ]` is positive since every component of `v` is positive by S8a's componentwise positivity conjunct `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
-- *Depends:* T0 (ℕ-valued carrier, ASN-0034); TA7a (ordinal-only formulation, ASN-0034) — defines the codomain S; S8a (V-position well-formedness) — for the S-membership postcondition.
-- *Frame:* Pure function on the component sequence of `v` — no state is read or modified.
+*Part (b).* Since `m ≥ 2`, position 1 lies in the copy-from-`v` region, so `r₁ = v₁`. By definition `subspace(r) = r₁ = v₁ = subspace(v)`.
 
-**vpos(S, o)** — *VPositionReconstruction* (DEF, function). For subspace identifier S and ordinal o = [o₁, ..., oₖ]:
+*Part (c).* Assume `v` satisfies S8a: `zeros(v) = 0`, `#v = m ≥ 2`, and `vᵢ ≥ 1` for every `i`. For `1 ≤ i < m`, `rᵢ = vᵢ ≥ 1`; at `i = m`, `rₘ = vₘ + n ≥ 1 + 1 > 0`. Every component of `r` is positive, so `zeros(r) = 0` and `(A i : 1 ≤ i ≤ #r : rᵢ > 0)`, with `#r = m ≥ 2`. Hence `shift(v, n)` satisfies S8a. ∎
 
-`vpos(S, o) = [S, o₁, ..., oₖ]`
-
-with #vpos(S, o) = k + 1. These are inverses: ord(vpos(S, o)) = o and vpos(subspace(v), ord(v)) = v.
-
-*Instance.* Continuing the example above with `v = [1, 3, 5]`, `ord(v) = [3, 5]`. Reconstructing with the text-subspace identifier: `vpos(subspace(v), ord(v)) = vpos(1, [3, 5]) = [1, 3, 5] = v`. The inverse property (b) is exhibited concretely on this instance.
-
-*Formal Contract:*
-- *Preconditions:* `S ∈ ℕ`, `o ∈ T`, `#o ≥ 1`.
-- *Definition:* `vpos(S, o) = [S, o₁, ..., oₖ]` where `k = #o`.
-- *Postconditions:* `vpos(S, o) ∈ T`, `#vpos(S, o) = #o + 1`, `vpos(S, o)₁ = S`. (a) `ord(vpos(S, o)) = o` — since `vpos(S, o) = [S, o₁, ..., oₖ]`, stripping the first component recovers `[o₁, ..., oₖ] = o`. (b) For any `v ∈ T` with `#v ≥ 2`: `vpos(subspace(v), ord(v)) = v` — since `subspace(v) = v₁` and `ord(v) = [v₂, ..., vₘ]`, reconstruction gives `[v₁, v₂, ..., vₘ] = v`. Both inverse properties are pure sequence identities that hold unconditionally on T. When `S ≥ 1` and `(A i : 1 ≤ i ≤ #o : oᵢ > 0)`, the result satisfies S8a: `zeros(vpos(S, o)) = 0` (no component is zero — `S ≥ 1` covers component 1 and each `oᵢ > 0` covers components 2 through `k + 1`), `#vpos(S, o) = k + 1 ≥ 2` (since `k = #o ≥ 1`), and `(A i : 1 ≤ i ≤ #vpos(S, o) : vpos(S, o)ᵢ > 0)` (componentwise positivity, by the same component-by-component argument).
-- *Depends:* T0 (ℕ-valued carrier, ASN-0034); ord (definition above) — for the inverse property (a); S8a — for the satisfies-S8a postcondition.
-- *Frame:* Pure function on `S` and the component sequence of `o` — no state is read or modified.
-
-**w_ord** — *OrdinalDisplacementProjection* (DEF, function). For a displacement w with `w₁ = 0` and `#w = m ≥ 2`, the *ordinal projection* is:
-
-`w_ord = [w₂, ..., wₘ]`
-
-of length m − 1. The condition `w₁ = 0` is structurally necessary: it ensures `actionPoint(w) ≥ 2`, so by TumblerAdd all positions before the action point are copied from the operand — position 1 (the subspace identifier) is preserved by any addition `v ⊕ w`. This is the mechanism by which arithmetic stays within a subspace. At the restricted depth m = 2, w = [0, c] for positive integer c, and w_ord = [c].
-
-*Formal Contract:*
-- *Preconditions:* `w ∈ T`, `#w ≥ 2`, `w₁ = 0`.
-- *Definition:* `w_ord = [w₂, ..., wₘ]` where `m = #w`.
-- *Postconditions:* `w_ord ∈ T` (length `m - 1 ≥ 1`, satisfying T0). `#w_ord = #w - 1`. When `Pos(w)` (TA-Pos, ASN-0034), `Pos(w_ord)` — since `w₁ = 0`, the witness `wᵢ ≠ 0` required by `Pos(w)` must have `i ≥ 2`, and this component appears in `w_ord`. When `Pos(w)`: `actionPoint(w_ord) = actionPoint(w) - 1`.
-- *Depends:* T0 (ℕ-valued carrier, ASN-0034); ActionPoint (ASN-0034) — the postcondition `actionPoint(w_ord) = actionPoint(w) − 1` follows from ActionPoint's definition applied to the index-shifted sequence `(w_ord)ⱼ = w_{j+1}`.
-- *Frame:* Pure function on the component sequence of `w` — no state is read or modified.
-
-The definitions above decompose V-positions into subspace context and ordinal operand. We now show that `ord` and `⊕` commute.
-
-**OrdAddHom** — *OrdinalAdditionHomomorphism* (LEMMA). For a V-position `v` with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, and `Pos(w)` (TA-Pos, ASN-0034):
-
-`ord(v ⊕ w) = ord(v) ⊕ w_ord`
-
-*Proof.* Let `k = actionPoint(w)`. Since `w₁ = 0`, we have `k ≥ 2`. By TumblerAdd, the result `r = v ⊕ w` is built component-wise in three regions:
-
-- For `1 ≤ i < k`: `rᵢ = vᵢ` (copy from start).
-- At `i = k`: `rₖ = vₖ + wₖ` (single-component advance).
-- For `k < i ≤ m`: `rᵢ = wᵢ` (copy from displacement).
-
-*Part (a) — ordinal homomorphism.* So `ord(v ⊕ w) = [r₂, ..., rₘ] = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`.
-
-For the right-hand side, `w_ord = [w₂, ..., wₘ]` has `actionPoint(w_ord) = k - 1`, since `(w_ord)ⱼ = w_{j+1}` and the first nonzero `w_{j+1}` occurs at `j + 1 = k`, i.e. `j = k - 1`. The application is well-defined: `actionPoint(w_ord) = k − 1 ≤ m − 1 = #ord(v)`, since `k ≤ m` by precondition. By TumblerAdd for `ord(v) ⊕ w_ord`:
-
-- For `1 ≤ j < k-1`: `(ord(v) ⊕ w_ord)ⱼ = ord(v)ⱼ = v_{j+1}`.
-- At `j = k-1`: `(ord(v) ⊕ w_ord)_{k-1} = ord(v)_{k-1} + (w_ord)_{k-1} = vₖ + wₖ`.
-- For `k-1 < j ≤ m-1`: `(ord(v) ⊕ w_ord)ⱼ = (w_ord)ⱼ = w_{j+1}`.
-
-The boundary regimes of `k` collapse one or both copy regions to the empty range: at `k = 2`, the first range `1 ≤ j < k-1` reduces to `1 ≤ j < 1` and is empty (no prefix copy); at `k = m`, the third range `k-1 < j ≤ m-1` reduces to `m-1 < j ≤ m-1` and is empty (no tail copy). The two-sided enumeration above is vacuously correct in either boundary case — the non-empty regions still match component by component, and the empty range contributes nothing on either side.
-
-So `ord(v) ⊕ w_ord = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`. The two sequences are identical component by component, establishing `ord(v ⊕ w) = ord(v) ⊕ w_ord`.
-
-*Part (b) — subspace preservation.* Since `k ≥ 2`, the copy-from-start region `1 ≤ i < k` includes position `i = 1`, giving `r₁ = v₁`. By definition `subspace(r) = r₁` and `subspace(v) = v₁`, so `subspace(v ⊕ w) = r₁ = v₁ = subspace(v)`.
-
-*Part (c) — full decomposition.* By TA0 (ASN-0034), `#r = #w = m ≥ 2`, so the generalized inverse property of vpos (vpos contract (b)) applies to `r`: `vpos(subspace(r), ord(r)) = r`. Substituting `subspace(r) = subspace(v)` from part (b) and `ord(r) = ord(v) ⊕ w_ord` from part (a) gives `r = vpos(subspace(v), ord(v) ⊕ w_ord)`, i.e. `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)`. Note that `ord(v) ⊕ w_ord` need not lie in S — the definition and inverse properties of vpos are pure sequence operations holding for any `o ∈ T`. ∎
-
-*Instance (a).* Let `v = [1, 3, 5]`, `w = [0, 0, 2]` (action point 3). Then `v ⊕ w = [1, 3, 7]` and `ord([1, 3, 7]) = [3, 7]`. On the right, `ord(v) = [3, 5]` and `w_ord = [0, 2]`, giving `[3, 5] ⊕ [0, 2] = [3, 7]`. Both sides agree.
-
-*Instance (b).* Let `v = [1, 3, 5]`, `w = [0, 4, 0]` (action point 2). Then `v ⊕ w = [1, 7, 0]` and `ord([1, 7, 0]) = [7, 0]`. On the right, `ord(v) = [3, 5]` and `w_ord = [4, 0]`, giving `[3, 5] ⊕ [4, 0] = [7, 0]`. Both sides agree. Note that `[7, 0] ∉ S` — the zero in the tail component after the action point places the result outside TA7a's domain S, illustrating the S-membership boundary.
-
-*Formal Contract:*
-- *Preconditions:* `v ∈ T`, `#v = m ≥ 2`; `w ∈ T`, `Pos(w)` (TA-Pos, ASN-0034), `#w = m`, `w₁ = 0`.
-- *Postconditions:* (a) `ord(v ⊕ w) = ord(v) ⊕ w_ord`. (b) `subspace(v ⊕ w) = subspace(v)`. (c) `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)`. (Derivations of (b) and (c) are given in the proof body above.)
-- *Depends:* ord, w_ord, vpos (definitions above); TumblerAdd (PositionAdvance, ASN-0034) — the three-region component formula; TA0 (length preservation, ASN-0034) — for part (c); ActionPoint (ASN-0034) — for the implicit `actionPoint(w) ≤ m` bound.
-- *Frame:* Both sides are computed from `v` and `w` alone — no state is consulted.
-
-**OrdAddS8a** — *AdditionPreservesS8a* (LEMMA). For a V-position `v` satisfying S8a with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, `Pos(w)` (TA-Pos, ASN-0034): `v ⊕ w` satisfies S8a if and only if all components of `w_ord` after its action point are positive.
-
-*Proof.* Let `r = v ⊕ w` with `k = actionPoint(w) ≥ 2`. By TumblerAdd, the components of `r` partition into three regions:
-
-- `r₁ = v₁ ≥ 1` (by S8a on `v`, and `w₁ = 0` so `1 < k` and TumblerAdd copies from `v`).
-- For `2 ≤ i < k`: `rᵢ = vᵢ ≥ 1` (by S8a on `v`).
-- At `i = k`: `rₖ = vₖ + wₖ ≥ 1 > 0`, from `vₖ ≥ 1` (S8a on `v`) and `wₖ ∈ ℕ`.
-- For `k < i ≤ m`: `rᵢ = wᵢ` (copied from the displacement).
-
-As established for OrdAddHom's three-region enumeration, the boundary regimes of `k` collapse one or both side regions to the empty range (here the middle range `2 ≤ i < k` at `k = 2`, the trailing range `k < i ≤ m` at `k = m`); the case analysis remains correct under these collapses, since empty ranges contribute nothing and the unconditionally positive components stay positive.
-
-Components `r₁` through `rₖ` are unconditionally positive. S8a requires `zeros(r) = 0` and `(A i : 1 ≤ i ≤ #r : rᵢ > 0)`, which reduces to: every component is positive. The only components that can fail are `r_{k+1}, ..., r_m = w_{k+1}, ..., w_m` — exactly the tail components of `w`, which are the tail components of `w_ord` (since `(w_ord)_j = w_{j+1}` and the action point of `w_ord` is `k - 1`). Therefore:
-
-`v ⊕ w satisfies S8a ⟺ (A i : k < i ≤ m : wᵢ > 0) ⟺ all tail components of w_ord are positive`
-
-The second postcondition form follows by connecting through OrdAddHom: `ord(v ⊕ w) = ord(v) ⊕ w_ord`, and since `ord(v) ∈ S` (componentwise positive by S8a on `v`), `ord(v ⊕ w) ∈ S` reduces to whether `w_ord`'s tail past its action point is positive — exactly the condition `(A i : k < i ≤ m : wᵢ > 0)` derived above. Hence `ord(v ⊕ w) ∈ S ⟺ v ⊕ w satisfies S8a`. Instance (b) above confirms the boundary: `w_ord = [4, 0]` has a zero after the action point, and `v ⊕ w = [1, 7, 0]` fails S8a. ∎
-
-*Formal Contract:*
-- *Preconditions:* `v ∈ T` satisfying S8a, `#v = m ≥ 2`; `w ∈ T`, `Pos(w)` (TA-Pos, ASN-0034), `#w = m`, `w₁ = 0`.
-- *Postconditions:* `v ⊕ w satisfies S8a ⟺ (A i : actionPoint(w) < i ≤ m : wᵢ > 0)`. Equivalently, `ord(v ⊕ w) ∈ S ⟺ v ⊕ w satisfies S8a`.
-- *Depends:* OrdAddHom (lemma above); TumblerAdd (PositionAdvance, ASN-0034) — three-region component formula; ActionPoint (ASN-0034) — for the implicit `actionPoint(w) ≤ m` bound; S8a (V-position well-formedness) — supplies `vₖ ≥ 1` at the action-point component.
-
-**OrdShiftHom** — *OrdinalShiftHomomorphism* (COROLLARY). For a V-position `v` with `#v = m ≥ 2` and `n ≥ 1`:
-
-`ord(shift(v, n)) = shift(ord(v), n)`
-
-Since `shift(v, n) = v ⊕ δ(n, m)` and `δ(n, m) = [0, ..., 0, n]` has `δ(n, m)₁ = 0` (well-defined since `#δ(n, m) = m ≥ 2`), OrdAddHom applies. Its part (a) gives the ordinal identity: the ordinal projection `(δ(n, m))_ord = [0, ..., 0, n]` of length `m - 1` is `δ(n, m-1)`, so `ord(v ⊕ δ(n, m)) = ord(v) ⊕ δ(n, m-1) = shift(ord(v), n)`. Its part (b), instantiated at `w = δ(n, m)`, gives `subspace(v ⊕ δ(n, m)) = subspace(v)`, i.e. `subspace(shift(v, n)) = subspace(v)` — the shift operation preserves the subspace identifier. ∎
-
-*Instance.* Let `v = [1, 3, 5]` (satisfying S8a, depth `m = 3`) and `n = 2`. The shift is computed left-to-right: `shift(v, 2) = v ⊕ δ(2, 3) = [1, 3, 5] ⊕ [0, 0, 2] = [1, 3, 7]` (TumblerAdd's action point is 3, so components 1 and 2 are copied from `v`, and component 3 receives `5 + 2 = 7`). All three postconditions exhibit on this instance:
-- *(a) Ordinal homomorphism.* `ord(shift(v, 2)) = ord([1, 3, 7]) = [3, 7]`; on the right, `ord(v) = [3, 5]` and `shift(ord(v), 2) = [3, 5] ⊕ δ(2, 2) = [3, 5] ⊕ [0, 2] = [3, 7]` (action point 2, component 1 copied, component 2 receives `5 + 2 = 7`). Both sides equal `[3, 7]`.
-- *(b) Subspace preservation.* `subspace(shift(v, 2)) = [1, 3, 7]₁ = 1 = v₁ = subspace(v)`.
-- *(c) S8a preservation.* `[1, 3, 7]` has `zeros = 0` and every component positive (`1, 3, 7 ≥ 1`), with depth `3 ≥ 2`, so S8a holds on `shift(v, 2)` — unconditionally, since `δ(2, 3)` has its only nonzero component at the last position with no tail beyond.
+*Instance.* Let `v = [1, 3, 5]` (text subspace `v₁ = 1`, depth `m = 3`, satisfying S8a) and `n = 2`. Then `shift(v, 2) = v ⊕ δ(2, 3) = [1, 3, 5] ⊕ [0, 0, 2] = [1, 3, 7]` (action point 3; components 1 and 2 copied from `v`, component 3 receives `5 + 2 = 7`). (b) `subspace(shift(v, 2)) = [1, 3, 7]₁ = 1 = v₁ = subspace(v)`. (c) `[1, 3, 7]` has `zeros = 0`, every component positive (`1, 3, 7 ≥ 1`), and depth `3 ≥ 2`, so S8a holds on `shift(v, 2)`.
 
 *Formal Contract:*
 - *Preconditions:* `v ∈ T`, `#v = m ≥ 2`, `n ≥ 1`.
-- *Postconditions:* (a) `ord(shift(v, n)) = shift(ord(v), n)`. (b) `subspace(shift(v, n)) = subspace(v)` — derived from OrdAddHom (b) at `w = δ(n, m)`, whose `w₁ = 0` holds because `#δ(n, m) = m ≥ 2`. (c) When `v` satisfies S8a, `shift(v, n)` satisfies S8a unconditionally — since `δ(n, m) = [0, ..., 0, n]` has action point `m` with no tail components beyond, the OrdAddS8a condition is vacuously satisfied.
-- *Depends:* OrdAddHom (lemma above), OrdAddS8a (lemma above), OrdinalShift (ASN-0034), OrdinalDisplacement (ASN-0034).
+- *Postconditions:* (b) `subspace(shift(v, n)) = subspace(v)`. (c) When `v` satisfies S8a, `shift(v, n)` satisfies S8a.
+- *Depends:* OrdinalShift (ASN-0034) — `shift(v, n) = v ⊕ δ(n, m)`; OrdinalDisplacement (ASN-0034) — `δ(n, m) = [0, ..., 0, n]` with action point `m`; TumblerAdd (PositionAdvance, ASN-0034) — the component formula copying positions before the action point; TA0 (length preservation, ASN-0034) — `#shift(v, n) = m`; S8a (V-position well-formedness) — supplies `vᵢ ≥ 1` for part (c).
 
 **S8 (Correspondence-run partition).** For each document `d`, the active V-positions `dom(Σ.M(d))` decompose into finitely many *correspondence runs*. Under the convention `shift(t, 0) := t`, a correspondence run is a triple `(v, a, n)` with `v ∈ dom(M(d))`, `a = M(d)(v)`, and `n ≥ 1`, such that for every `k` with `0 ≤ k < n`:
 
 (a) **Lockstep displacement** — `shift(v, k) ∈ dom(M(d))` and `M(d)(shift(v, k)) = shift(a, k)`: the V-positions and their images advance in lockstep under ordinal displacement.
 
-(b) The run carries a well-defined label `a = M(d)(v) ∈ dom(Σ.C)` — the label exists and is unique because `M(d)` is a function (S2), and `a ∈ dom(Σ.C)` by referential integrity (S3); ShiftPreservation then places every lockstep image `shift(a, k)` in `dom(Σ.C)` as a structurally valid element-level I-address.
+(b) The run carries a well-defined label `a = M(d)(v) ∈ dom(Σ.C)` — the label exists and is unique because `M(d)` is a function (S2), and `a ∈ dom(Σ.C)` by referential integrity (S3). Each lockstep image `shift(a, k)` lies in `dom(Σ.C)` because the lockstep equality gives `shift(a, k) = M(d)(shift(v, k))` with `shift(v, k) ∈ dom(M(d))`, whence `shift(a, k) ∈ ran(M(d)) ⊆ dom(Σ.C)` by S3; ShiftPreservation supplies only its structural shape as an element-level I-address.
 
-A run is *maximal* when it admits neither forward extension (no run `(v, a, n+1)`) nor backward extension (no lockstep predecessor `u` with `shift(u, 1) = v`, `u ∈ dom(M(d))`, `shift(M(d)(u), 1) = a`). The maximal runs partition `dom(Σ.M(d))`, and the maximal-run decomposition is unique. This run structure — not a position-by-position listing — is what S8 establishes.
+A run is *maximal* when it admits neither forward extension (no run `(v, a, n+1)`) nor backward extension (no lockstep predecessor `u` with `shift(u, 1) = v`, `u ∈ dom(M(d))`, `shift(M(d)(u), 1) = a`). The maximal runs partition `dom(Σ.M(d))`, and the maximal-run decomposition is unique.
 
 *Proof.* We partition `dom(M(d))` by constructing the maximal correspondence runs explicitly, then derive their existence, uniqueness, and the displacement identity from a single combinatorial structure: the lockstep-successor partial function.
 
@@ -444,7 +344,7 @@ A run is *maximal* when it admits neither forward extension (no run `(v, a, n+1)
 
 **Chain decomposition.** An injective acyclic partial function on a finite set partitions that set into disjoint maximal chains. Concretely, for each `v ∈ dom(M(d))` form its orbit: follow `succ` forward — `v, succ(v), succ(succ(v)), …` — until `succ` is undefined (the forward walk terminates because `dom(M(d))` is finite by S8-fin and acyclicity forbids revisiting), and follow the inverse `succ⁻¹` (single-valued by injectivity) backward until undefined. The concatenated walk is a finite sequence `v⁰, v¹, …, v^{n−1}` with `vⁱ⁺¹ = succ(vⁱ)`, in which `v⁰` has no lockstep predecessor (the *head*) and `v^{n−1}` has no lockstep successor (the *tail*). Membership in the same orbit is an equivalence relation, so the orbits partition `dom(M(d))`; each is a *maximal chain*.
 
-**Chains are runs, and the displacement identity holds at every `k`.** Let `v⁰, …, v^{n−1}` be a maximal chain. Put `v = v⁰`, `a = M(d)(v⁰)`, length `n`. We show by induction on `i` that `vⁱ = shift(v, i)` and `M(d)(vⁱ) = shift(a, i)` for `0 ≤ i < n`. The base `i = 0` is the convention `shift(v, 0) = v` and `shift(a, 0) = a`. For the step, assume `vⁱ = shift(v, i)` and `M(d)(vⁱ) = shift(a, i)`. Since `vⁱ⁺¹ = succ(vⁱ)` is defined, `vⁱ⁺¹ = shift(vⁱ, 1) = shift(shift(v, i), 1) = shift(v, i+1)` by TS3 (ShiftComposition, ASN-0034), and `M(d)(vⁱ⁺¹) = shift(M(d)(vⁱ), 1) = shift(shift(a, i), 1) = shift(a, i+1)` again by TS3. By OrdShiftHom, each `shift(v, i)` is a well-formed V-position of the same subspace and depth; by ShiftPreservation (using `a ∈ dom(Σ.C)` from S3), each `shift(a, i)` is a structurally valid element-level I-address, and `shift(a, i) = M(d)(vⁱ) ∈ ran(M(d)) ⊆ dom(Σ.C)` by S3. So `(v, a, n)` is a correspondence run and conjunct (a)'s displacement identity holds at every `0 ≤ k < n` with both sides well-formed. Conjunct (b) holds by S2 and S3 as above.
+**Chains are runs, and the displacement identity holds at every `k`.** Let `v⁰, …, v^{n−1}` be a maximal chain. Put `v = v⁰`, `a = M(d)(v⁰)`, length `n`. We show by induction on `i` that `vⁱ = shift(v, i)` and `M(d)(vⁱ) = shift(a, i)` for `0 ≤ i < n`. The base `i = 0` is the convention `shift(v, 0) = v` and `shift(a, 0) = a`. For the step, assume `vⁱ = shift(v, i)` and `M(d)(vⁱ) = shift(a, i)`; since `vⁱ⁺¹ = succ(vⁱ)` is defined, `vⁱ⁺¹ = shift(vⁱ, 1) = shift(shift(v, i), 1)` and `M(d)(vⁱ⁺¹) = shift(M(d)(vⁱ), 1) = shift(shift(a, i), 1)`. We collapse the inner-then-outer shift to `shift(·, i+1)` by cases on `i`. At `i = 0` the inner shift amount is 0, outside TS3's preconditions (`n₁ ≥ 1`); here `shift(shift(v, 0), 1) = shift(v, 1)` and `shift(shift(a, 0), 1) = shift(a, 1)` by the convention `shift(t, 0) := t`. For `i ≥ 1` both shift amounts are `≥ 1`, so TS3 (ShiftComposition, ASN-0034) applies and gives `shift(shift(v, i), 1) = shift(v, i+1)` and `shift(shift(a, i), 1) = shift(a, i+1)`. Either way `vⁱ⁺¹ = shift(v, i+1)` and `M(d)(vⁱ⁺¹) = shift(a, i+1)`. By OrdShiftHom, each `shift(v, i)` is a well-formed V-position of the same subspace and depth; by ShiftPreservation (using `a ∈ dom(Σ.C)` from S3), each `shift(a, i)` is a structurally valid element-level I-address, and `shift(a, i) = M(d)(vⁱ) ∈ ran(M(d)) ⊆ dom(Σ.C)` by S3. So `(v, a, n)` is a correspondence run and conjunct (a)'s displacement identity holds at every `0 ≤ k < n` with both sides well-formed. Conjunct (b) holds by S2 and S3 as above.
 
 **Maximality and uniqueness.** The run `(v, a, n)` built from a maximal chain is itself maximal: its head `v⁰` has no lockstep predecessor (no backward extension) and its tail `v^{n−1}` has no lockstep successor (no forward extension). Conversely any maximal run is a maximal chain. Because the orbit of every element under an injective acyclic partial function is uniquely determined — the forward and backward walks are forced at each step — the decomposition into maximal chains is unique; hence the maximal-run decomposition is unique.
 
@@ -453,7 +353,7 @@ A run is *maximal* when it admits neither forward extension (no run `(v, a, n+1)
 *Formal Contract:*
 - *Preconditions:* `dom(M(d))` finite (S8-fin); `M(d)` a function (S2); referential integrity (S3); `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` (S8a); within each subspace, all V-positions share a common depth (S8-depth). Convention: `shift(t, 0) := t`.
 - *Postconditions:* `dom(M(d))` is the disjoint union of finitely many maximal correspondence runs `(vⱼ, aⱼ, nⱼ)`: (a) within each run, `shift(vⱼ, k) ∈ dom(M(d))` and `M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for `0 ≤ k < nⱼ`, with `shift(vⱼ, k)` a well-formed V-position (OrdShiftHom) and `shift(aⱼ, k)` a structurally valid element-level I-address in `dom(Σ.C)` (ShiftPreservation, S3); (b) the label `aⱼ = M(d)(vⱼ)` is well-defined by S2 and lies in `dom(Σ.C)` by S3; (c) the maximal-run decomposition is unique.
-- *Depends:* (*Local properties*) S2 (ArrangementFunctionality) — uniquely determined image `a = M(d)(v)` and the labels; S3 (referential integrity) — `M(d)(v) ∈ dom(Σ.C)`, placing every lockstep image in the content domain; S8a — well-formed V-positions; S8-depth — common depth within a subspace, used for the equal-depth TS2 application; S8-fin — finite `dom(M(d))`, bounding chains; OrdShiftHom (OrdinalShiftHomomorphism) — subspace and S8a preservation under shift, confining each chain to one subspace; ShiftPreservation — structural validity of each lockstep image `shift(aⱼ, k)` as an element-level I-address. (*Foundation claims, ASN-0034*) T1 (TumblerOrdering) — irreflexivity, ruling out lockstep cycles; TS2 (ShiftInjectivity) — injectivity of `succ` at common depth; TS3 (ShiftComposition) — `shift(shift(·, i), 1) = shift(·, i+1)`, lifting lockstep edges to the displacement identity at general `k`; TS4 (ShiftStrictIncrease) — `shift(v, 1) > v`, supplying acyclicity; OrdinalShift, OrdinalDisplacement — the shift operation and its action-point semantics.
+- *Depends:* (*Local properties*) S2 (ArrangementFunctionality) — uniquely determined image `a = M(d)(v)` and the labels; S3 (referential integrity) — `M(d)(v) ∈ dom(Σ.C)`, placing every lockstep image in the content domain; S8a — well-formed V-positions; S8-depth — common depth within a subspace, used for the equal-depth TS2 application; S8-fin — finite `dom(M(d))`, bounding chains; OrdShiftHom (OrdinalShiftPreservation) — subspace and S8a preservation under shift, confining each chain to one subspace; ShiftPreservation — structural validity of each lockstep image `shift(aⱼ, k)` as an element-level I-address. (*Foundation claims, ASN-0034*) T1 (TumblerOrdering) — irreflexivity, ruling out lockstep cycles; TS2 (ShiftInjectivity) — injectivity of `succ` at common depth; TS3 (ShiftComposition) — `shift(shift(·, i), 1) = shift(·, i+1)`, lifting lockstep edges to the displacement identity at general `k`; TS4 (ShiftStrictIncrease) — `shift(v, 1) > v`, supplying acyclicity; OrdinalShift, OrdinalDisplacement — the shift operation and its action-point semantics.
 
 ## Arrangement contiguity
 
@@ -683,12 +583,7 @@ The lifecycle above exercises the contiguity constraints at depth 2 on every wel
 | S8a | V-position componentwise positivity and depth: `(A v ∈ dom(M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — per-component form of the domain-restriction axiom, equivalent by T0 | from the domain-restriction axiom, T0 (ASN-0034) |
 | subspace(v) | V-position subspace identifier: `subspace(v) = v₁`; well-defined when `#v ≥ 1` | introduced; uses T0 (ASN-0034) |
 | S8-depth | Fixed-depth V-positions: `(A d, u, w : u ∈ dom(M(d)) ∧ w ∈ dom(M(d)) ∧ subspace(u) = subspace(w) : #u = #w)` | design; uses S8a |
-| ord(v) | Ordinal extraction: `ord(v) = [v₂, ..., vₘ]` — strips the subspace identifier; lands in TA7a's domain S when `v` satisfies S8a | def; uses T0, TA7a (ASN-0034), S8a |
-| vpos(S, o) | V-position reconstruction: `vpos(S, o) = [S, o₁, ..., oₖ]` — inverse of `(subspace, ord)` | def; uses T0 (ASN-0034), ord |
-| w_ord | Ordinal displacement projection: `w_ord = [w₂, ..., wₘ]` for `w₁ = 0` — projects a displacement onto its ordinal component | def; uses T0, ActionPoint (ASN-0034) |
-| OrdAddHom | Ordinal addition homomorphism: `ord(v ⊕ w) = ord(v) ⊕ w_ord` and `subspace(v ⊕ w) = subspace(v)` for `w₁ = 0` | lemma; uses ord, vpos, w_ord, TumblerAdd, TA0, ActionPoint (ASN-0034) |
-| OrdAddS8a | Addition preserves S8a: `v ⊕ w` satisfies S8a iff all components of `w_ord` past its action point are positive | lemma; uses OrdAddHom, TumblerAdd, ActionPoint, S8a (ASN-0034) |
-| OrdShiftHom | Ordinal shift homomorphism: `ord(shift(v, n)) = shift(ord(v), n)`, `subspace(shift(v, n)) = subspace(v)`; S8a preserved unconditionally | corollary; uses OrdAddHom, OrdAddS8a, OrdinalShift, OrdinalDisplacement (ASN-0034) |
+| OrdShiftHom | Ordinal shift preservation: (b) `subspace(shift(v, n)) = subspace(v)`; (c) `shift(v, n)` preserves S8a — both from TumblerAdd on `δ(n, m)` | lemma; uses OrdinalShift, OrdinalDisplacement, TumblerAdd, TA0 (ASN-0034), S8a |
 | S8 | Correspondence-run partition: `dom(M(d))` is the disjoint union of finitely many maximal runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for `0 ≤ k < nⱼ`; maximal decomposition is unique | theorem from S2, S3, S8-fin, S8a, S8-depth, OrdShiftHom, ShiftPreservation, T1, TS2, TS3, TS4, OrdinalShift, OrdinalDisplacement (ASN-0034) |
 | D-CTG | V-position contiguity: V_1(d) forms a contiguous ordinal range with no gaps — design constraint on well-formed document states | design; uses S8a, S8-depth, T1 (ASN-0034) |
 | D-MIN | V-position minimum: non-empty V_1(d) has minimum [1, 1, ..., 1] with every component equal to 1 — design constraint | design requirement |
