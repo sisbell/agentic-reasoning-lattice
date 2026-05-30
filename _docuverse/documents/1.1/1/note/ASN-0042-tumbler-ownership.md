@@ -32,7 +32,7 @@ The mapping `pfx : Π → T` is a primitive of the ownership model, with codomai
 - *Preconditions:* `π ∈ Π`.
 - *Postconditions:* (a) `pfx(π) ∈ T`. (b) `T4(pfx(π))` — the prefix is a valid tumbler satisfying HierarchicalParsing.
 
-**O1b (PrefixInjectivity).** Distinct principals have distinct prefixes in every reachable state — a derived reachable-state invariant: `(A Σ reachable, π₁, π₂ ∈ Π_Σ : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`. It is proved by the shared induction in *State Axioms* (*Shared invariant induction*), jointly with O1a and T4-validity.
+**O1b (PrefixInjectivity).** Distinct principals have distinct prefixes in every reachable state — a derived reachable-state invariant: `(A Σ reachable, π₁, π₂ ∈ Π_Σ : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`.
 
 The ownership question "does `π` own `a`?" is answered by examining these two tumblers alone, by prefix containment:
 
@@ -704,7 +704,7 @@ The delegated prefix `[1, 0, 2]` is not in the seed registry, so it satisfies O1
 - **Membership** `π_A ∈ Π_{Σ₁} ∖ Π_{Σ₀}`: newly introduced (the binder's freshness clause). ✓
 - **(iii)** `zeros(pfx(π_A)) = 1 ≤ 1`: account-level prefix. ✓
 - **(iv)** `¬(E π'' ∈ Π_{Σ₀} : pfx(π_A) ≺ pfx(π''))`: the only principals are `π_N` (prefix `[1]`, shorter than `[1, 0, 2]`, cannot be strict extension) and `π_M` (prefix `[2]`, not even a covering relation). No existing principal has a prefix strictly extending `[1, 0, 2]`. ✓
-- **(v)** [fresh-valid] `T4([1, 0, 2])` (single zero at position 2, flanked by positives — no adjacent zeros, no leading or trailing zero) and `[1, 0, 2] ∉ Σ₀.B`. The admitting transition takes O17b's baptism branch, which fixes `pfx(π_A) = [1, 0, 2] = next(Σ₀.B, [1], 2)` with `(p, d) = ([1], 2)` B6-valid (`[1]` satisfies T4, `d = 2 ∈ {1, 2}`, `zeros([1]) + (2 − 1) = 1 ≤ 3`): the stream `S([1], 2)` has `c₁ = inc([1], 2) = [1, 0, 1]` and `c₂ = inc([1, 0, 1], 0) = [1, 0, 2]`. The seed `[1, 0, 1] ∈ Σ₀.B` is `c₁`, so `children(Σ₀.B, [1], 2) = {[1, 0, 1]}`, `hwm = 1`, and `next = inc(c₁, 0) = [1, 0, 2] = c₂`. The bootstrap deliberately seeds `[1, 0, 1]` precisely so `[1, 0, 2]` is the next-reachable baptism; without it the stream-predecessor would be missing and O17b's branch could not register `[1, 0, 2]`. Freshness then follows from ASN-0040's `Bop` postcondition `next(s.B, p, d) ∉ s.B`. ✓
+- **(v)** [fresh-valid] `T4([1, 0, 2])` (single zero at position 2, flanked by positives — no adjacent zeros, no leading or trailing zero) and `[1, 0, 2] ∉ Σ₀.B`. The admitting transition takes O17b's baptism branch, which fixes `pfx(π_A) = [1, 0, 2] = next(Σ₀.B, [1], 2)` with `(p, d) = ([1], 2)` B6-valid (`[1]` satisfies T4, `d = 2 ∈ {1, 2}`, `zeros([1]) + (2 − 1) = 1 ≤ 3`): the stream `S([1], 2)` has `c₁ = inc([1], 2) = [1, 0, 1]` and `c₂ = inc([1, 0, 1], 0) = [1, 0, 2]`. The seed `[1, 0, 1] ∈ Σ₀.B` is `c₁`, so `children(Σ₀.B, [1], 2) = {[1, 0, 1]}`, `hwm = 1`, and `next = inc(c₁, 0) = [1, 0, 2] = c₂`. Freshness then follows from ASN-0040's `Bop` postcondition `next(s.B, p, d) ∉ s.B`. ✓
 
 *Verifying O7's postconditions for `π_A`:*
 
