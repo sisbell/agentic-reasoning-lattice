@@ -194,7 +194,7 @@ When the link subspace is itself the active (shifted-into) region, a shifted ima
 
 The point-level shift I3 lifts to a span-level property connecting this ASN to the span algebra framework of ASN-0053.
 
-**NAT-CA** — *CarrierAdditionCommutativityAssociativity* (introduced locally). For all m, n, k ∈ ℕ: `m + n = n + m` (commutativity) and `(m + n) + k = m + (n + k)` (associativity).
+Commutativity and associativity of ℕ addition are standard arithmetic facts about the carrier ℕ, cited from T0 (CarrierSetDefinition, ASN-0034). T0 fixes the carrier as the standard natural numbers and states the convention that "the standard arithmetic facts about ℕ that proofs need are separated into their own axioms so each proof cites only what it actually uses"; on that basis we use, for all m, n, k ∈ ℕ, `m + n = n + m` (commutativity) and `(m + n) + k = m + (n + k)` (associativity). These are properties of the substrate carrier, not of system state, so they are cited as foundation facts rather than posited as a fresh universal axiom here.
 
 Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m. We call a span *ordinal-level* when its width acts purely at the deepest component: actionPoint(ℓ) = m. Define the shifted span σ' = (shift(s, n), ℓ). We verify that σ' is a well-formed span (T12, ASN-0034): ℓ > 0 is inherited from σ, and actionPoint(ℓ) = m ≤ #shift(s, n) = m (by TumblerAdd's result-length identity: #shift(s, n) = #δₙ = m).
 
@@ -209,7 +209,7 @@ Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(�
 - reach(σ') = shift(s, n) ⊕ ℓ = shift(shift(s, n), ℓₘ) = shift(s, n + ℓₘ);
 - shift(reach(σ), n) = shift(s ⊕ ℓ, n) = shift(shift(s, ℓₘ), n) = shift(s, ℓₘ + n).
 
-Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by NAT-CA (commutativity of ℕ addition, introduced just above). With n + ℓₘ = ℓₘ + n, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
+Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by commutativity of ℕ addition (a standard property of T0's carrier ℕ, ASN-0034). With n + ℓₘ = ℓₘ + n, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
 
 *Derivation of (b).* The span σ' = (shift(s, n), ℓ) is level-uniform: #shift(s, n) = m = #ℓ by the result-length identity of TumblerAdd. Its width is by definition its second component ℓ; consistently, by D2 (WidthRecovery, ASN-0053), width(σ') = reach(σ') ⊖ start(σ') = (shift(s, n) ⊕ ℓ) ⊖ shift(s, n) = ℓ. ∎
 
@@ -463,7 +463,7 @@ Hence n = N − c, and V_1(d') = {[1, k] : 1 ≤ k ≤ N − c}. When V_1(d') is
 
 **S7-post** — *AllocationInvariantsPreservation* (LEMMA, introduced). The post-state satisfies S7a (DocumentScopedAllocation), S7b (ElementLevelIAddresses), S7d (DocumentAllocationDiscipline), and the derived theorem S7 (StructuralAttribution).
 
-*Proof.* Identical to I3-S7 above, with the content-store invariant supplied by D-I (`Σ'.C = Σ.C`, so `dom(Σ'.C) = dom(Σ.C)`) in place of I3-C, and the document-set invariant by D-CD (documents other than d unchanged, and contraction creates no new document) in place of I3-D. S7a, S7b are predicates over the unchanged `dom(Σ.C)`; S7d is a predicate over the unchanged document set and allocator history; S7 follows as a corollary since its remaining dependencies — the foundation lemmas T4, T4a, T4b, T0, T10a, T10a.4 (ASN-0036) — are state-independent. ∎
+*Proof.* Identical to I3-S7 above, with the content-store invariant supplied by D-I (`Σ'.C = Σ.C`, so `dom(Σ'.C) = dom(Σ.C)`) in place of I3-C, and the document-set invariant by D-CD (documents other than d unchanged, and contraction creates no new document) in place of I3-D. S7a, S7b are predicates over the unchanged `dom(Σ.C)`; S7d is a predicate over the unchanged document set and allocator history; S7 follows as a corollary since its remaining dependencies — the foundation lemmas T4, T4a, T4b, T0, T10a, T10a.4 (ASN-0034) — are state-independent. ∎
 
 **Weakest-precondition analysis (S8a-post backwards through the shift).** Applying the same wp method as the insertion half (I3-VP above), we analyze the contraction's analogue — S8a-post — for the assignment `M'(d)(σ(v)) := M(d)(v)`, requiring S8a to hold of the assigned position `σ(v)`.
 
@@ -655,7 +655,7 @@ Now reach(σ'ₛ) = σ(s) ⊕ ℓ = [1, s₂ − c] ⊕ [0, c'] = [1, (s₂ − 
 
 `(s₂ + c') − c = (s₂ − c) + c'`   for `s₂ ≥ c`,
 
-where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* by the depth-1 tumbler difference (`[a] ⊖ [c] = [a − c]` for `a ≥ c`). Because ASN-0034's NAT-* extraction supplies no ℕ-subtraction law, we discharge this single-component identity through the depth-1 tumbler lemmas. Write `x = s₂ − c`, i.e. `[x] = [s₂] ⊖ [c]`. ReverseInverse at depth 1 (ASN-0034) gives `[s₂ − c] ⊕ [c] = [s₂]`, which is the ℕ fact `x + c = s₂`. Substituting and regrouping: `(s₂ + c') − c = ((x + c) + c') − c = ((x + c') + c) − c` (regrouping by NAT-CA), and the depth-1 partial inverse TA4 (`(y + c) − c = y`, with `y = x + c'`) cancels `c` to leave `x + c' = (s₂ − c) + c'`. The two tumblers therefore agree componentwise, so σ(reach(σₛ)) = reach(σ'ₛ). ✓ ∎
+where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* by the depth-1 tumbler difference (`[a] ⊖ [c] = [a − c]` for `a ≥ c`). Because ASN-0034's NAT-* extraction supplies no ℕ-subtraction law, we discharge this single-component identity through the depth-1 tumbler lemmas. Write `x = s₂ − c`, i.e. `[x] = [s₂] ⊖ [c]`. ReverseInverse at depth 1 (ASN-0034) gives `[s₂ − c] ⊕ [c] = [s₂]`, which is the ℕ fact `x + c = s₂`. Substituting and regrouping: `(s₂ + c') − c = ((x + c) + c') − c = ((x + c') + c) − c` (regrouping by commutativity and associativity of ℕ addition, standard properties of T0's carrier ℕ, ASN-0034), and the depth-1 partial inverse TA4 (`(y + c) − c = y`, with `y = x + c'`) cancels `c` to leave `x + c' = (s₂ − c) + c'`. The two tumblers therefore agree componentwise, so σ(reach(σₛ)) = reach(σ'ₛ). ✓ ∎
 
 *Derivation of (b).* The span σ'ₛ = (σ(s), ℓ) is level-uniform: #σ(s) = 2 = #ℓ by vpos's result-length identity. Its width is by definition its second component ℓ; consistently, by D2 (WidthRecovery, ASN-0053), width(σ'ₛ) = reach(σ'ₛ) ⊖ start(σ'ₛ) = (σ(s) ⊕ ℓ) ⊖ σ(s) = ℓ. ✓ ∎
 
@@ -669,7 +669,7 @@ where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* b
 | M(d) | definition | M(d) : T ⇀ T — arrangement function mapping V-positions to I-addresses for document d | cited (ASN-0036) |
 | subspace(v) | definition | subspace(v) = v₁ — the first component of a V-position, identifying its subspace | cited (ASN-0036) |
 | ordinal-level | definition | A span σ = (s, ℓ) is ordinal-level when actionPoint(ℓ) = #ℓ (the width acts at the deepest component of ℓ) | introduced (local) |
-| NAT-CA | local axiom | ℕ addition is commutative (m + n = n + m) and associative ((m + n) + k = m + (n + k)) | introduced (local) |
+| ℕ comm/assoc | standard ℕ fact | ℕ addition is commutative (m + n = n + m) and associative ((m + n) + k = m + (n + k)) — standard arithmetic facts about T0's carrier ℕ | cited (ASN-0034, T0) |
 | S8-depth | invariant | (A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂) — uniform V-position depth per subspace | cited (ASN-0036) |
 | S8a | axiom | (A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0)) — V-position well-formedness | cited (ASN-0036) |
 | I3 | postcondition | (A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v)) | introduced |
