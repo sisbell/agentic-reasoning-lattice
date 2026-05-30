@@ -30,7 +30,7 @@ A conventional system merges these — "the file" IS the content IS the arrangem
 *Formal Contract:*
 - *Axiom:* `Σ.M(d) : T ⇀ T` — the arrangement of document `d` is a partial function from V-position tumblers to I-address tumblers.
 - *Axiom (domain restriction):* `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions; every active key is a zero-free tumbler of depth at least 2 (a subspace identifier followed by a within-subspace ordinal).
-- *Definition (S8a — V-position well-formedness):* The per-component form of the domain restriction. By T0 (ASN-0034), `zeros(t) = 0` holds exactly when every component is positive, so the domain restriction above is equivalently `S8a ≡ (A v ∈ dom(Σ.M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`. This named property — every active V-position is a zero-free tumbler of depth at least 2 with all components positive — is the premise that S8, OrdShiftHom, D-CTG, D-CTG-depth, D-SEQ, and the insertion-position predicates cite as `S8a`.
+- *Definition (S8a — V-position well-formedness):* We name the domain restriction above `S8a`. By T0 (ASN-0034), `zeros(t) = 0` holds exactly when every component is positive, so `S8a` reads equivalently in per-component form: every active V-position is a zero-free tumbler of depth at least 2 with all components positive.
 - *Definition:* `dom(Σ.M(d)) = {v ∈ T : Σ.M(d)(v) is defined}` — the set of V-positions currently active in `d`.
 - *Definition:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` — the set of I-addresses that `d` currently references.
 
@@ -288,7 +288,7 @@ Ordinal shift `shift(v, n)` (OrdinalShift, ASN-0034) preserves a V-position's su
 
 (a) **Lockstep displacement** — `shift(v, k) ∈ dom(M(d))` and `M(d)(shift(v, k)) = shift(a, k)`: the V-positions and their images advance in lockstep under ordinal displacement.
 
-(b) The run carries a well-defined label `a = M(d)(v) ∈ dom(Σ.C)` — the label exists and is unique because `M(d)` is a function (S2), and `a ∈ dom(Σ.C)` by referential integrity (S3). First, `shift(a, k)` is itself a well-defined tumbler: `a` is an element-level I-address (`zeros(a) = 3`, S7b), and although OrdShiftHom does not license a shift on `a` (it is proved only for S8a-positive V-positions), `shift(a, k) = a ⊕ δ(k, #a)` is well-defined directly by OrdinalShift (ASN-0034) — its displacement `δ(k, #a)` has action point `#a`, so TumblerAdd's precondition `actionPoint(δ(k, #a)) = #a ≤ #a` holds, and the operation merely increments `a`'s last component by `k`, leaving the internal zeros untouched. Each such lockstep image `shift(a, k)` then lies in `dom(Σ.C)` because the lockstep equality gives `shift(a, k) = M(d)(shift(v, k))` with `shift(v, k) ∈ dom(M(d))`, whence `shift(a, k) ∈ ran(M(d)) ⊆ dom(Σ.C)` by S3.
+(b) **Well-defined label** — `a = M(d)(v)` exists and is unique because `M(d)` is a function (S2), and `a ∈ dom(Σ.C)` by referential integrity (S3). Each lockstep image `shift(a, k)` (for `0 ≤ k < n`, with the convention `shift(a, 0) := a`) likewise lies in `dom(Σ.C)`. The well-definedness of `shift(a, k)` as a tumbler and its membership in `dom(Σ.C)` are established in the proof, where the `k = 0` and `k ≥ 1` cases are handled separately.
 
 A run is *maximal* when it admits neither forward extension (no run `(v, a, n+1)`) nor backward extension (no lockstep predecessor `u` with `shift(u, 1) = v`, `u ∈ dom(M(d))`, `shift(M(d)(u), 1) = a`). The maximal runs partition `dom(Σ.M(d))`, and the maximal-run decomposition is unique.
 
