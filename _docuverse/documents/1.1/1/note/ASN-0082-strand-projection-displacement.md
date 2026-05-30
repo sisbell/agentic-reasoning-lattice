@@ -203,7 +203,7 @@ Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(�
 - reach(σ') = shift(s, n) ⊕ ℓ = shift(shift(s, n), ℓₘ) = shift(s, n + ℓₘ);
 - shift(reach(σ), n) = shift(s ⊕ ℓ, n) = shift(shift(s, ℓₘ), n) = shift(s, ℓₘ + n).
 
-Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by NAT-comm (ASN-0034): n + ℓₘ = ℓₘ + n. With this identity, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
+Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by ℕ-addition commutativity (`n + ℓₘ = ℓₘ + n`, a standard property of the carrier set ℕ). With this identity, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
 
 *Derivation of (b).* The span σ' = (shift(s, n), ℓ) is level-uniform: #shift(s, n) = m = #ℓ by the result-length identity of TumblerAdd. Its width is by definition its second component ℓ; consistently, by WR (WidthRecovery, ASN-0053), width(σ') = reach(σ') ⊖ start(σ') = (shift(s, n) ⊕ ℓ) ⊖ shift(s, n) = ℓ. ∎
 
@@ -602,7 +602,7 @@ Now reach(σ'ₛ) = σ(s) ⊕ ℓ = [1, s₂ − c] ⊕ [0, c'] = [1, (s₂ − 
 
 `(s₂ + c') − c = (s₂ − c) + c'`   for `s₂ ≥ c`,
 
-where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* by the depth-1 tumbler difference (`[a] ⊖ [c] = [a − c]` for `a ≥ c`). Write `x = s₂ − c`, i.e. `[x] = [s₂] ⊖ [c]`. ReverseInverse at depth 1 (ASN-0034) gives `[s₂ − c] ⊕ [c] = [s₂]`, which is the ℕ fact `x + c = s₂`. Substituting and regrouping: `(s₂ + c') − c = ((x + c) + c') − c = ((x + c') + c) − c`, where the inner regrouping `(x + c) + c' = x + (c + c') = x + (c' + c) = (x + c') + c` uses associativity twice via TA-assoc (ASN-0034, at depth 1 where `[a] ⊕ [b] = [a + b]`, with the positive operands `c, c' ≥ 1`) and the swap `c + c' = c' + c` via NAT-comm (ASN-0034). The depth-1 partial inverse TA4 (`(y + c) − c = y`, with `y = x + c'`) then cancels `c` to leave `x + c' = (s₂ − c) + c'`. The two tumblers therefore agree componentwise, so σ(reach(σₛ)) = reach(σ'ₛ). ✓ ∎
+where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* by the depth-1 tumbler difference (`[a] ⊖ [c] = [a − c]` for `a ≥ c`). Write `x = s₂ − c`, i.e. `[x] = [s₂] ⊖ [c]`. ReverseInverse at depth 1 (ASN-0034) gives `[s₂ − c] ⊕ [c] = [s₂]`, which is the ℕ fact `x + c = s₂`. Substituting and regrouping: `(s₂ + c') − c = ((x + c) + c') − c = ((x + c') + c) − c`, where the inner regrouping `(x + c) + c' = x + (c + c') = x + (c' + c) = (x + c') + c` uses associativity twice via TA-assoc (ASN-0034, at depth 1 where `[a] ⊕ [b] = [a + b]`, with the positive operands `c, c' ≥ 1`) and the swap `c + c' = c' + c` by ℕ-addition commutativity (a standard property of the carrier set ℕ). The depth-1 partial inverse TA4 (`(y + c) − c = y`, with `y = x + c'`) then cancels `c` to leave `x + c' = (s₂ − c) + c'`. The two tumblers therefore agree componentwise, so σ(reach(σₛ)) = reach(σ'ₛ). ✓ ∎
 
 *Derivation of (b).* The span σ'ₛ = (σ(s), ℓ) is level-uniform: #σ(s) = 2 = #ℓ by vpos's result-length identity. Its width is by definition its second component ℓ; consistently, by WR (WidthRecovery, ASN-0053), width(σ'ₛ) = reach(σ'ₛ) ⊖ start(σ'ₛ) = (σ(s) ⊕ ℓ) ⊖ σ(s) = ℓ. ✓ ∎
 
