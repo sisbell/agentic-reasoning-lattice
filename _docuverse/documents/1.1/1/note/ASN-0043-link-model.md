@@ -198,7 +198,7 @@ The substantive content of L4 is not what the types require, but what they *omit
 
 (b) *Intra-document links.* Nothing prevents a link's endsets from referencing content within the link's own home document. Nelson: "links connecting parts of a document need not reside in that document" — the converse, that they *may* reside in the document they connect, is equally valid. Heading links, paragraph markers, and footnote links are standard examples of intra-document connections.
 
-(c) *Cross-subspace endsets.* Endset spans may reference addresses in the link subspace — that is, addresses of other links. This is L4's most consequential implication; we develop it fully under Reflexive Addressing below.
+(c) *Cross-subspace endsets.* Endset spans may reference addresses in the link subspace — that is, addresses of other links.
 
 **L5 — EndsetSetSemantics.** An endset is an *unordered* set; the ordering of spans within an endset carries no semantic meaning. Two endsets are equal iff they have the same span members, and the model exposes no positional accessor within an endset:
 
@@ -308,12 +308,7 @@ This is a profound design choice. It decouples classification from content retri
 
 Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))}, ∅, ..., ∅)` (`N − 3` empty endsets at slots `4..N`, vacuous when `N = 3`), `Σ'.C = Σ.C`, and `Σ'.M = Σ.M` (the arrangement store is unchanged, since `d' ∈ dom(Σ.M)` is reused). The arity-3 case `(∅, ∅, {(g, δ(1, #g))})` is the canonical witness; for arbitrary `N ≥ 3`, padding with empty endsets at slots `4..N` is sound: each `∅ ∈ Endset` (since `Endset = 𝒫_fin(Span)` and the empty set is finite), empty slots `4..N` are admissible (FSP's L3 case), and the conformance verification below operates uniformly on the type endset (slot 3) and the address `a`, so adding empty endsets at slots `4..N` preserves every state-local invariant established for the arity-3 witness.
 
-*Application to L9.* We discharge FSP's hypotheses for the address `a` constructed above and payload `ℓ = (∅, ∅, {(g, δ(1, #g))}, ∅, ..., ∅)`.
-
-- (h3) *Shape:* in both cases `a` has `subspace_I(a) = s_L`, `zeros(a) = 3`, `#E(a) ≥ 2` (at minimum `E(a) = [s_L, 1]`), and is T4-valid (T10a.4 along the producer chain given above).
-- (h1)/(h2) *Freshness and producibility:* established by the Case A / Case B construction above — `a ∉ dom(Σ.L)`, and `a` is the terminus of a T10a-conforming chain seeded at `home(a) = d' ∈ dom(Σ.M)`.
-
-- *Payload:* each `∅ ∈ Endset` (the empty set is finite); `{(g, δ(1, #g))}` is a finite set whose single span is T12-well-formed — by the construction of `g`, `#g = #d' + 3 ≥ 1`, so `δ(1, #g) > 0` has action point `k = #g ≤ #g`; slot 3 `= {(g, δ(1, #g))} ≠ ∅`. So `ℓ` satisfies FSP's payload hypothesis at every arity `N ≥ 3`.
+*Application to L9.* FSP's address hypotheses h1–h3 (freshness, producibility, shape) for `a` are established by the Case A / Case B construction above. For the payload `ℓ = (∅, ∅, {(g, δ(1, #g))}, ∅, ..., ∅)`, each `∅ ∈ Endset` and the single span is T12-well-formed since `#g = #d' + 3 ≥ 1` gives `δ(1, #g) > 0` with action point `#g`; slot 3 is non-empty, so `ℓ` satisfies FSP's payload hypothesis at every arity `N ≥ 3`. Apply FSP.
 
 By FSP, `Σ'` satisfies every state-local L- and S-invariant. It remains to establish the L9-specific conclusion that FSP leaves open: the ghost-type disjointness `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. The disjointness `g ∉ dom(Σ.C) ∪ dom(Σ.L)` established above transfers to `Σ'` unchanged: `Σ'.C = Σ.C`, and the sole new link address `a ≠ g` lies in subspace `s_L ≠ s_X`, so `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. ∎
 
@@ -390,7 +385,7 @@ for every state transition `Σ → Σ'`. This parallels S0 (ContentImmutability,
 
 The evidence is unambiguous. Nelson's FEBE protocol defines exactly five link operations: MAKELINK (create), FINDLINKSFROMTOTHREE (search), FINDNUMOFLINKSFROMTOTHREE (count), FINDNEXTNLINKSFROMTOTHREE (paginate), and RETRIEVEENDSETS (read). There is no MODIFYLINK, UPDATELINK, or EDITENDSETS. The only write operation is creation; the rest are queries. Gregory confirms at the implementation level: `insertendsetsinorgl` and `insertendsetsinspanf` are called exclusively from `docreatelink`; no other code path writes to the link's orgl or spanfilade entries. The link orgl is written once by `createorglingranf` and never touched again.
 
-Link immutability follows from the same principle that makes content immutable: others may have linked to it. Since links are first-class objects with tumbler addresses, other links can point to them (L13). Modifying a link's endsets after creation would silently change the meaning of every meta-link pointing to it — violating the permanence guarantee. To effectively change a connection, the owner creates a new link via MAKELINK with the desired endsets. The old link persists in `Σ.L` by L12; the new link gets a fresh address in creation order. Immutability is not removal: how an old link ceases to be discoverable or resolvable is a question about operations, deferred to Open Questions.
+Link immutability follows from the same principle that makes content immutable: others may have linked to it. Since links are first-class objects with tumbler addresses, other links can point to them (L13). Modifying a link's endsets after creation would silently change the meaning of every meta-link pointing to it — violating the permanence guarantee. A changed connection is structurally a new link at a fresh address; the old link persists in `Σ.L` by L12.
 
 **L12a — LinkStoreMonotonicity.** The domain of the link store is monotonically non-decreasing:
 
