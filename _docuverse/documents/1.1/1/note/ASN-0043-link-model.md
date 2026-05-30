@@ -40,7 +40,7 @@ where `Σ.C` is the content store (ASN-0036), `Σ.M` is the family of arrangemen
 
 *Notation from ASN-0036.* ASN-0036 introduces `Σ.M(d) : T ⇀ T` as the arrangement of document `d`. We treat `Σ.M` itself as a partial function over the tumbler space — `Σ.M : T ⇀ (T ⇀ T)` — and write `dom(Σ.M) = {d ∈ T : Σ.M(d) is defined}` for *the set of allocated documents* in state `Σ`. This is the set that S7d (DocumentAllocationDiscipline, ASN-0036) presupposes when asserting that every `d ∈ dom(Σ.M)` is a T10a-allocated node in the system's allocator tree 𝒯.
 
-**Definition — StateExtension.** A state `Σ'` *extends* `Σ`, written `Σ' ⊒ Σ`, iff all three stores grow monotonically and agree on the shared domain: `dom(Σ.C) ⊆ dom(Σ'.C)` with `Σ'.C(a) = Σ.C(a)` for every `a ∈ dom(Σ.C)`; `dom(Σ.M) ⊆ dom(Σ'.M)` with `Σ'.M(d) = Σ.M(d)` for every `d ∈ dom(Σ.M)`; and `dom(Σ.L) ⊆ dom(Σ'.L)` with `Σ'.L(a) = Σ.L(a)` for every `a ∈ dom(Σ.L)`. Extension permits each store to acquire new entries but forbids any change to or removal of an existing one; the special case `Σ'.C = Σ.C`, `Σ'.M = Σ.M` (only `Σ.L` grows) is the form used by the existential lemmas below.
+**Definition — StateExtension.** A state `Σ'` *extends* `Σ`, written `Σ' ⊒ Σ`, iff all three stores grow monotonically and agree on the shared domain: `dom(Σ.C) ⊆ dom(Σ'.C)` with `Σ'.C(a) = Σ.C(a)` for every `a ∈ dom(Σ.C)`; `dom(Σ.M) ⊆ dom(Σ'.M)` with `Σ'.M(d) = Σ.M(d)` for every `d ∈ dom(Σ.M)`; and `dom(Σ.L) ⊆ dom(Σ'.L)` with `Σ'.L(a) = Σ.L(a)` for every `a ∈ dom(Σ.L)`. Extension permits each store to acquire new entries but forbids any change to or removal of an existing one.
 
 **L-fin — LinkStoreFiniteness.** For each reachable system state, `dom(Σ.L)` is finite:
 
@@ -63,7 +63,7 @@ The system designates at least two subspaces within each document's element fiel
 
 `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`
 
-`s_L` is the link subspace identifier introduced by this ASN, and L0 pins every link address to it. The companion content-side universal is stated separately as L0a below, since its derivational status differs.
+`s_L` is the link subspace identifier introduced by this ASN, and L0 pins every link address to it.
 
 **L0a — ContentSubspaceScope.** This ASN scopes its content-side disjointness guarantee to the `s_C`-resident portion of the content store. Define:
 
@@ -91,7 +91,7 @@ This parallels S7b for content (ASN-0036). A link address carries all four tumbl
 
 `(A a ∈ dom(Σ.L) :: N(a).0.U(a).0.D(a) ∈ dom(Σ.M))`
 
-The membership clause is the substantive tightening: the document-level prefix `N(a).0.U(a).0.D(a)` must be an allocated, owned document in the current state — not a mere structural prefix that happens to be T4-valid. The producibility of `a` from this prefix by a finite chain of T10a-conforming `inc` steps is the separate content of L1c (below); separating membership and producibility places the state-level constraint here and the allocator-discipline constraint there. Once `home(a)` is defined under Home and Ownership below, the invariant reads `home(a) ∈ dom(Σ.M)`. Nelson is explicit on this point — a link's home document is "the document under which the link is filed," presupposing an actual document with an owner; ghost addresses are admitted only for endset targets (notably the type endset, L9), not for the home prefix. This parallels S7a (DocumentScopedAllocation, ASN-0036) for content. Gregory confirms: `docreatelink` allocates the link address within the creating document's address space via `findisatoinsertmolecule`, which extends the document's I-stream. The allocation prefix is determined by the document parameter — a document that must already exist for `docreatelink` to be called — not by the endsets; a link whose endsets reference entirely foreign content is still allocated under the creating document's prefix.
+The membership clause is the substantive tightening: the document-level prefix `N(a).0.U(a).0.D(a)` must be an allocated, owned document in the current state — not a mere structural prefix that happens to be T4-valid. Once `home(a)` is defined under Home and Ownership below, the invariant reads `home(a) ∈ dom(Σ.M)`. Nelson is explicit on this point — a link's home document is "the document under which the link is filed," presupposing an actual document with an owner; ghost addresses are admitted only for endset targets (notably the type endset, L9), not for the home prefix. This parallels S7a (DocumentScopedAllocation, ASN-0036) for content. Gregory confirms: `docreatelink` allocates the link address within the creating document's address space via `findisatoinsertmolecule`, which extends the document's I-stream. The allocation prefix is determined by the document parameter — a document that must already exist for `docreatelink` to be called — not by the endsets; a link whose endsets reference entirely foreign content is still allocated under the creating document's prefix.
 
 **L1b — LinkElementFieldDepth.** Every link address has element field depth at least 2:
 
@@ -187,7 +187,7 @@ We write `|L|` for the *arity* of a link — the number of endsets in the sequen
 
 Nelson [LM 4/79] explicitly calls for N-endset support beyond three: "4-sets, 5-sets ... n-sets supported in link storage and search." Gregory's implementation fixes N = 3 — the V-subspace assignment function `setlinkvsas` hardcodes three V-addresses, the query function `intersectlinksets` takes exactly three input lists, and the wire protocol (`FINDLINKSFROMTOTHREE`) encodes three endset parameters. The integer namespace for a fourth endset type is already consumed (`DOCISPAN = 4`), blocking extension without renumbering. The design commitment: every link carries the standard triple (from, to, type) as its floor, with higher arity admitted for relational roles that need more slots. Arity-2 "untyped" links are not part of the design — where Gregory's implementation can store such links via empty-type-specset short-circuit, the resulting state lies outside this ASN's conforming link store.
 
-The non-emptiness conjunct `Σ.L(a).e₃ ≠ ∅` rules out the same family of malformed states from a second angle: an arity-3 link `(F, G, ∅)` whose type slot is structurally present but vacuously inhabited carries no classifying address, defeating the purpose of slot 3. Because every well-formed span has positive length (T12, SpanWellDefinedness, ASN-0034), `Σ.L(a).e₃ ≠ ∅ ⟺ coverage(Σ.L(a).e₃) ≠ ∅` — the spelling chosen is the more direct, but the coverage formulation is equivalent and may be invoked interchangeably below. Under this conjunct, L8's `same_type` equivalence relation has only non-degenerate classes: no two links share a type by both having empty type coverage, since the conforming link store excludes empty-type links outright.
+The non-emptiness conjunct `Σ.L(a).e₃ ≠ ∅` excludes arity-3 links `(F, G, ∅)` whose type slot is structurally present but vacuously inhabited: such a link carries no classifying address.
 
 
 ## Endset Properties
@@ -278,10 +278,6 @@ This is a profound design choice. It decouples classification from content retri
 
 `(A Σ : Σ satisfies all L- and S-invariants ∧ dom(Σ.M) ≠ ∅ ∧ (A b ∈ dom(Σ.C) :: subspace_I(b) = s_C) : (A N ≥ 3 :: (E Σ' extending Σ, a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: |Σ'.L(a)| = N ∧ coverage({(s, ℓ)}) ⊄ dom(Σ'.C) ∪ dom(Σ'.L))))`
 
-The precondition `dom(Σ.M) ≠ ∅` is the natural scope of L9: any state in which a link already exists has `dom(Σ.M) ≠ ∅` by L1a, and any state from which a link can be added must reach `dom(Σ'.M) ≠ ∅` (the new link's home must be allocated by L1a).
-
-The `s_C`-residence precondition is load-bearing for content-side disjointness `g ∉ dom(Σ.C)`: L0 constrains `dom(Σ.L)` to subspace `s_L` but does not pin `dom(Σ.C)` to any subspace constant (content-side residence is scoped to the `s_C`-resident slice `dom(Σ.C)|_{s_C}`, per L0a). The construction below chooses `s_X ∉ {s_C, s_L}` and excludes `g` from `dom(Σ.C)` via T7 applied under the precondition's universal residence claim; without the precondition, `dom(Σ.C)` might contain addresses in the chosen `s_X` and the disjointness would fail. The precondition is satisfied by Gregory's implementation (every content I-address sits at element field `[1, k]` for `k ≥ 1`, so `subspace_I(·) = 1 = s_C` throughout). Downstream uses of L9 (worked-example verification; the L8/L9 type-extensibility consequence) operate in this regime.
-
 *Witness.* Take any conforming `Σ`. By T4's positive-component constraint on present fields, both `s_C ≥ 1` and `s_L ≥ 1` (each is the first component of some element field, hence non-separator and strictly positive). Choose a subspace identifier `s_X ∈ ℕ` with `s_X ≥ 1`, `s_X ≠ s_C`, and `s_X ≠ s_L` (such `s_X` exists by T0(a)'s unbounded positive component values: infinitely many naturals differ from any two given values).
 
 *Selection of `d'` (a T10a-allocated document under 𝒯).* L1a requires `home(a) ∈ dom(Σ'.M)`, and S7d requires every entry of `dom(Σ'.M)` to be a node in the system's allocator tree 𝒯 produced by a T10a allocation event. By the L9 precondition `dom(Σ.M) ≠ ∅`, pick any `d ∈ dom(Σ.M)` and set `d' = d`. By S7d on `Σ`, `d` is the terminus of a T10a-conforming allocator chain from 𝒯's root: the root is T4-valid by T10a's root-of-allocator-tree axiom, and T10a.4 (T4PreservationUnderDiscipline) propagates T4-validity along each chain step, so `d` is T4-valid. Reusing the existing arrangement keeps `Σ'.M = Σ.M`, so no new document allocation event is introduced. `d'` is therefore a T4-valid document-level tumbler (`zeros(d') = 2`, by S7d) with `d' ∈ dom(Σ.M) = dom(Σ'.M)`. Only `zeros(d') = 2` and T4-validity are load-bearing for the steps that follow; `d'`'s concrete value depends on which document of `Σ` is reused.
@@ -366,7 +362,7 @@ We now establish the identity semantics of links. The three requirements we bega
 
 *Derivation.* We do not re-prove uniqueness here; it is exactly GlobalUniqueness (ASN-0034) instantiated at link addresses. GlobalUniqueness's sole precondition is T10a-conformance of the events. L1c (LinkAllocatorConformance) discharges precisely that precondition for link addresses: every `a ∈ dom(Σ.L)` is the terminus of a T10a-conforming chain. Instantiating GlobalUniqueness at the link-address events therefore yields `a₁ ≠ a₂` for distinct events.
 
-*Consequence — identification within a state.* Distinct firings cannot collide on an address, so the address-to-event correspondence is one-to-one across the system's allocation history.
+*Consequence — identification within a state.* Within any single state `Σ.L` is a partial function, so an address names at most one link; the substantive content of L11a is that this within-state identification extends across allocation events. Persistence of the address-to-link binding across transitions is L12, not L11a.
 
 **L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same endset sequence:
 
@@ -428,7 +424,7 @@ for every state transition `Σ → Σ'`. This is the direct corollary of L12, pa
 
 *Derivation.* Let `a ∈ dom(Σ.L)`. By L12a, `a ∈ dom(Σ'.L)`. Applying L1a (LinkScopedAllocation) to `Σ'`: `home(a) ∈ dom(Σ'.M)`. The inclusion `{home(a) : a ∈ dom(Σ.L)} ⊆ dom(Σ'.M)` follows by set-builder closure over `dom(Σ.L) ⊆ dom(Σ'.L)`.
 
-L12b is the joint consequence of L1a (applied at every reachable state) and L12 (which forces persistence of `dom(Σ.L)` across transitions): once a link exists, its home document cannot be removed from the arrangement store without violating L1a at the post-transition state. This is the link-side dual of S7a's persistence guarantee for content-bearing documents — the content store's L1a-analog at `Σ'`, lifted across L12a's monotonicity to constrain the arrangement store's evolution.
+This is the link-side dual of S7a's persistence guarantee for content-bearing documents.
 
 
 ## Reflexive Addressing
@@ -703,7 +699,7 @@ The discrimination is structural: `g` and `g'` differ only at the tail (position
 | L1 | INV | LinkElementLevel — every link address is an element-level tumbler: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` | introduced |
 | L1a | INV | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
 | L1b | INV | LinkElementFieldDepth — every link address has element field depth ≥ 2: `(A a ∈ dom(Σ.L) :: #E(a) ≥ 2)` | introduced |
-| L1c | AXIOM | LinkAllocatorConformance — link allocation conforms to T10a (AllocatorDiscipline, ASN-0034); single chain-existential clause: producer chain seeds at a T4-valid document-level tumbler `s` with `zeros(s) = 2`, first step `k₁ = 2` (the only `kᵢ = 2` step admissible — TA5a's `zeros ≤ 2` precondition fires only once before zeros reaches the element-level value 3), and subsequent intermediate states at length > `#s`; T4-validity of every link address and `s = h(a)` follow as postconditions (T4-validity via T10a.4 — T4PreservationUnderDiscipline; the equality via CPP) | introduced |
+| L1c | AXIOM | LinkAllocatorConformance — link allocation conforms to T10a (AllocatorDiscipline, ASN-0034); every link address is the T4-valid terminus of a T10a-conforming chain seeded at its document-level prefix (full statement and postconditions in body) | introduced |
 | CPP | LEMMA | ChainPrefixPreservation (local) — along a T10a-conforming chain of T4-valid tumblers whose every step modifies only positions beyond a fixed length `p ≤ #t₀`, the terminus agrees with `t₀` on positions `1..p`; cited by L1c, Home/Ownership, L9, and L11b | introduced |
 | L2 | LEMMA | OwnershipEndsetIndependence — `home(a)` depends only on `a`, not on the link's endsets | introduced |
 | L3 | INV | NEndsetStructure — every link has at least three endsets, with slot 3 a non-empty type endset: `\|Σ.L(a)\| ≥ 3 ∧ Σ.L(a).e₃ ≠ ∅`; arity 3 `(F, G, Θ)` is the standard triple, higher arity admitted | introduced |
@@ -715,7 +711,7 @@ The discrimination is structural: `g` and `g'` differ only at the tail (position
 | L9 | LEMMA | TypeGhostPermission — any conforming state with `dom(Σ.M) ≠ ∅` and `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`) can be extended, for every arity `N ≥ 3`, with a link of arity `N` whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)`; arity-3 witness `(∅, ∅, {(g, δ(1, #g))})` extends to higher arities by padding empty endsets at slots `4..N` (admissible by L3's slot-3-only non-emptiness conjunct) | introduced |
 | PrefixSpanCoverage | AXIOM | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`; equivalently `x ⊕ δ(1, #x) = shift(x, 1)` | introduced |
 | L10 | LEMMA | TypeHierarchyByContainment — `coverage({(p, δ(1, #p))}) = subtypes(p)` by PrefixSpanCoverage | introduced |
-| L11a | LEMMA | LinkUniqueness — distinct T10a-conforming allocation events produce distinct link addresses, a corollary of L1c plus T10a's GlobalUniqueness (ASN-0034): L1c discharges GlobalUniqueness's sole precondition (T10a-conformance) for link addresses, and instantiating GlobalUniqueness at the link-address events yields `a₁ ≠ a₂` for distinct events. Within a single state, identification by tumbler equality follows from `Σ.L`'s partial-function structure; the substantive content is that this identification extends across allocation events. Persistence of the address-to-link binding across state transitions is L12, not L11a | introduced |
+| L11a | LEMMA | LinkUniqueness — distinct T10a-conforming allocation events produce distinct link addresses (corollary of L1c + GlobalUniqueness; derivation in body) | introduced |
 | L11b | LEMMA | NonInjectivity — every conforming state with a link can be extended to a non-injective conforming state | introduced |
 | L12 | INV | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
 | L12a | LEMMA | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
