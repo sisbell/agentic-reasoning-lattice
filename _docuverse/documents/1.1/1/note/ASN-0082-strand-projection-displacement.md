@@ -49,9 +49,7 @@ Subspace preservation and S8a preservation are exactly OrdShiftHom (OrdinalShift
 
 Let M(d) : T ⇀ T denote the arrangement function for document d — a partial map from V-positions (element-field tumblers in the Vstream) to I-addresses (element-field tumblers in the Istream).
 
-**Scope.** This ASN characterizes the *shift sub-operation* of INSERT — the arrangement transformation that opens a gap of n positions at p by relocating existing content forward. It modifies M(d) only; the content store is unchanged (frame I3-C): shifting existing content does not by itself add or modify any content-store entries.
-
-Within this scoped sub-operation, the shift relocates existing content at or beyond p in subspace S = subspace(p) = p₁ (with S ≥ 1) by n ≥ 1 ordinal positions, producing M'(d) from M(d) without touching C.
+**Scope.** This ASN characterizes the *shift sub-operation* of INSERT — the arrangement transformation that opens a gap of n positions at p by relocating existing content at or beyond p in subspace S = subspace(p) = p₁ (with S ≥ 1) forward by n ≥ 1 ordinal positions, producing M'(d) from M(d). It modifies M(d) only and leaves C unchanged (frame I3-C): shifting existing content does not by itself add or modify any content-store entries.
 
 **I3** — *PostInsertionShift* (POSTCONDITION, introduced). Content at or beyond p shifts forward by n ordinal positions.
 
@@ -99,7 +97,7 @@ I3 grounds Nelson's central guarantee (Q1, Q5) that the permanent identity of ev
 
 *Case S ≠ 1 (non-text subspace; in particular S = 2, link).* The foundation does not impose D-CTG, D-MIN, or D-SEQ on V_S(d), so the shift creates no foundation-level violation: a post-state V_2(d) with a tombstone gap at the vacated positions is well-formed under ASN-0036's frame notes.
 
-**Gap region.** After accounting for all eight clauses, the positions in the gap [p, shift(p, n)) remain the only region not assigned a value by any postcondition — and I3-CS explicitly excludes them from dom(M'(d)), since they are neither left-region positions nor shifted images: p is not < p (so I3-L excludes it), and no shifted image lands in the gap — two cases establish this: (1) when v = p, shift(p, n) equals the exclusive upper bound of [p, shift(p, n)) and so is not in the gap; (2) when v > p with #v = #p = m, TS1 (ShiftOrderPreservation, ASN-0034) gives shift(v, n) > shift(p, n), placing the image strictly past the gap's upper bound. These n gap positions are exactly the region I3-CS excludes from dom(M'(d)).
+**Gap region.** I3-CS excludes the positions in the gap [p, shift(p, n)) from dom(M'(d)), since they are neither left-region positions nor shifted images: p is not < p (so I3-L excludes it), and no shifted image lands in the gap — two cases establish this: (1) when v = p, shift(p, n) equals the exclusive upper bound of [p, shift(p, n)) and so is not in the gap; (2) when v > p with #v = #p = m, TS1 (ShiftOrderPreservation, ASN-0034) gives shift(v, n) > shift(p, n), placing the image strictly past the gap's upper bound. These n gap positions are exactly the region I3-CS excludes from dom(M'(d)).
 
 
 ### Worked Example
@@ -187,7 +185,7 @@ Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(�
 - reach(σ') = shift(s, n) ⊕ ℓ = shift(shift(s, n), ℓₘ) = shift(s, n + ℓₘ);
 - shift(reach(σ), n) = shift(s ⊕ ℓ, n) = shift(shift(s, ℓₘ), n) = shift(s, ℓₘ + n).
 
-Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by NAT-comm (local axiom: `m + n = n + m` for all `m, n ∈ ℕ`): n + ℓₘ = ℓₘ + n. With this identity, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
+Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by NAT-comm (ASN-0034): n + ℓₘ = ℓₘ + n. With this identity, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
 
 *Derivation of (b).* The span σ' = (shift(s, n), ℓ) is level-uniform: #shift(s, n) = m = #ℓ by the result-length identity of TumblerAdd. Its width is by definition its second component ℓ; consistently, by WR (WidthRecovery, ASN-0053), width(σ') = reach(σ') ⊖ start(σ') = (shift(s, n) ⊕ ℓ) ⊖ shift(s, n) = ℓ. ∎
 
@@ -279,7 +277,7 @@ By trichotomy of the total order (T1, ASN-0034), every v ∈ V_1(d) falls in exa
 
 `(A v : v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))`
 
-The shift is well-defined. For any v ∈ R we have v ≥ r, so OrdinalExceedsDisplacement applies directly: clause (ii) gives `ord(v) ≥ w_ord`, so by TA2 (WellDefinedSubtraction, ASN-0034) the subtraction `ord(v) ⊖ w_ord` is well-defined, and clause (iii) gives that it is `Pos`. At depth `#p = 2` this reads `ord(v) = [v₂]`, `w_ord = [c]` with `c = w₂ ≥ 1`, and `[v₂] ⊖ [c] = [v₂ − c]` with `v₂ − c ≥ 1`. The reconstructed V-position σ(v) = vpos(S, ord(v) ⊖ w_ord) then satisfies S8a by vpos's S8a-closure postcondition (local): S = 1 ≥ 1 and the ordinal is componentwise positive.
+The shift is well-defined. For any v ∈ R we have v ≥ r, so the subtraction `ord(v) ⊖ w_ord` is well-defined and the reconstructed V-position σ(v) = vpos(S, ord(v) ⊖ w_ord) satisfies S8a — both discharged by the S8a-post lemma (below; its Q₃ case proves exactly this from OrdinalExceedsDisplacement (ii), (iii) and vpos's S8a-closure postcondition).
 
 D-SHIFT grounds Nelson's two-space separation: "The address of a byte in its native document is of no concern to the user or to the front end; indeed, it may be constantly changing" [LM 4/11].
 
@@ -344,7 +342,7 @@ By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥
 - (a) Algebraic identity: `ord(r) ⊖ w_ord = ord(p)`.
 - (b) When R ≠ ∅: r ∈ V_1(d), r = min(R), and ord(σ(r)) = ord(p), i.e., min({ord(u) : u ∈ Q₃}) = ord(p).
 
-*Proof of (a).* Since r = p ⊕ w, OrdAddHom (a) gives ord(r) = ord(p) ⊕ w_ord, so the claim ord(r) ⊖ w_ord = ord(p) reduces to `(ord(p) ⊕ w_ord) ⊖ w_ord = ord(p)`, an instance of TA4 (PartialInverse, ASN-0034): `(a ⊕ w) ⊖ w = a` when Pos(w), the action point `k = #a`, `#w = k`, and `(A i : 1 ≤ i < k : aᵢ = 0)`. Here a = ord(p), w = w_ord. The preconditions discharge at depth 1: Pos(w_ord) holds by OrdinalDisplacementProjection (Pos(w) and w₁ = 0 imply Pos(w_ord)); `k = actionPoint(w_ord) = 1 = #ord(p)`; `#w_ord = 1 = k`; and the zero-prefix quantifier `1 ≤ i < 1` is vacuous. TA4 fires, giving ord(r) ⊖ w_ord = ord(p) directly. ✓
+*Proof of (a).* The identity `ord(r) ⊖ w_ord = ord(p)` is established as a load-bearing intermediate in OrdinalExceedsDisplacement (i) (where it is discharged via TA4 (PartialInverse, ASN-0034) on `(ord(p) ⊕ w_ord) ⊖ w_ord = ord(p)`, using ord(r) = ord(p) ⊕ w_ord from OrdAddHom (a)); we cite it here directly. ✓
 
 *Proof of (b).* Suppose R ≠ ∅, so there exists v ∈ V_1(d) with v ≥ r. The contraction operates under the precondition that D-SEQ holds on the pre-state, giving V_1(d) = {[1, k] : 1 ≤ k ≤ N}; hence v = [1, k_v] with 1 ≤ k_v ≤ N. Since r = p ⊕ w with p = [1, p₂], w₁ = 0, and w₂ = c ≥ 1, TumblerAdd gives r = [1, p₂ + c]. From v ≥ r, T1 at position 2 yields k_v ≥ p₂ + c, so p₂ + c ≤ k_v ≤ N. With the lower bound p₂ + c ≥ 2 ≥ 1 (from p₂ ≥ 1 by S8a on p and c ≥ 1), the ordinal p₂ + c lies in [1, N], so by D-SEQ the position r = [1, p₂ + c] ∈ V_1(d), hence r ∈ R.
 
@@ -373,7 +371,7 @@ The boundary is tight. At depth 2 with contiguous allocation (D-CTG), L contains
 
 **S8a-post** — *WellFormednessPreservation* (LEMMA, introduced). The post-state satisfies S8a: all V-positions are zero-free, of depth at least 2, and componentwise positive.
 
-*Proof.* Positions in L satisfy S8a by the pre-state invariant and D-L (unchanged). Positions in Q₃: σ(v) = [S, vₘ − c] with S ≥ 1 (subspace identifier, S8a's componentwise positivity on v) and vₘ − c ≥ p₂ ≥ 1 (since vₘ ≥ p₂ + c for v ∈ R, and p₂ ≥ 1 by S8a on p). Both components are strictly positive, so zeros(σ(v)) = 0, #σ(v) = 2, and σ(v) is componentwise positive — full S8a. ∎
+*Proof.* Positions in L satisfy S8a by the pre-state invariant and D-L (unchanged). Positions in Q₃: this is the single home for the well-definedness and S8a-satisfaction of σ(v) = vpos(1, ord(v) ⊖ w_ord) for v ∈ R that the assignment `M'(d)(σ(v)) := M(d)(v)` (D-SHIFT) requires. *Subtraction well-definedness:* from v ∈ R, v ≥ r, so OrdinalExceedsDisplacement (ii) gives ord(v) ≥ w_ord, the precise precondition of TA2 (WellDefinedSubtraction, ASN-0034); hence ord(v) ⊖ w_ord ∈ T and σ(v) exists as a tumbler (without it σ(v) would be undefined). *S8a:* σ(v) = [S, vₘ − c] with S = 1 ≥ 1 (subspace identifier, fixed by the scoping axiom; positive) and the ordinal ord(v) ⊖ w_ord = [vₘ − c] is Pos with vₘ − c ≥ p₂ ≥ 1 by OrdinalExceedsDisplacement (iii) (since vₘ ≥ p₂ + c for v ∈ R, and p₂ ≥ 1 by S8a on p). Both components are strictly positive, so by vpos's S8a-closure postcondition (local) zeros(σ(v)) = 0, #σ(v) = 2 ≥ 2, and σ(v) is componentwise positive — full S8a. ∎
 
 **D-CTG-post** — *VContiguityPreservation* (LEMMA, introduced). At S = 1 (subspace scoping axiom): the post-state V_1(d) is contiguous.
 
@@ -428,11 +426,6 @@ Hence n = N − c, and V_1(d') = {[1, k] : 1 ≤ k ≤ N − c}. When V_1(d') is
 *Proof.* Every I-address in ran(M'(d)) was an I-address in ran(M(d)): positions in L map to the same I-addresses as before (D-L), and positions in Q₃ map to I-addresses from R (D-SHIFT). By S3 on the pre-state, ran(M(d)) ⊆ dom(Σ.C). By D-I (content store frame), dom(Σ.C) ⊆ dom(Σ'.C). Hence the subspace-S contribution to ran(M'(d)) is contained in dom(Σ'.C); the off-subspace contributions are contained in dom(Σ'.C) by S3 on the pre-state via D-CS (per the dispatch convention). ∎
 
 **S7-post** — *AllocationInvariantsPreservation* (LEMMA, introduced). As with I3-S7, the dom(C)- and document-set-scoped invariants S7a, S7b, S7d, and the derived theorem S7 carry trivially: D-I fixes Σ.C (so dom(Σ.C) and its values are unchanged), D-CD fixes the document set, and these invariants are functions solely of those unchanged sets. ∎
-
-**S8a-post for the shifted position.** The assignment `M'(d)(σ(v)) := M(d)(v)` requires S8a to hold of `σ(v) = vpos(1, ord(v) ⊖ w_ord)`. At depth `#p = 2` with `w_ord = [c]`, `σ(v) = [1, v₂ − c]` for v ∈ R, so two conjuncts of S8a — `σ(v)₁ = 1 > 0` (positivity of the subspace identifier, fixed by the scoping axiom S = 1) and `#σ(v) = 2 ≥ 2` (fixed by the depth axiom #p = 2) — are immediate. The load-bearing obligations are the strict positivity of the shifted ordinal and the well-definedness of the ordinal subtraction:
-
-- *`v₂ − c > 0` — strict positivity of the shifted ordinal.* From `v ∈ R` (D-SHIFT's quantifier), `v ≥ r`, so OrdinalExceedsDisplacement (iii) gives that `ord(v) ⊖ w_ord = [v₂ − c]` is `Pos`, i.e. `v₂ − c ≥ 1 > 0`. Two inputs are load-bearing: `v ∈ R` gives `v₂ ≥ p₂ + c`, and S8a on p (from `p ∈ V_1(d)`) gives `p₂ ≥ 1`, so `v₂ − c ≥ p₂ ≥ 1`.
-- *`ord(v) ≥ w_ord` — subtraction well-definedness.* Discharged by OrdinalExceedsDisplacement (ii): `v ≥ r` gives `ord(v) ≥ w_ord`. This is the precise precondition of TA2 (WellDefinedSubtraction, ASN-0034); without it `ord(v) ⊖ w_ord` would be undefined and σ(v) would not exist as a tumbler.
 
 ### Worked Example
 
@@ -601,7 +594,7 @@ Now reach(σ'ₛ) = σ(s) ⊕ ℓ = [1, s₂ − c] ⊕ [0, c'] = [1, (s₂ − 
 
 `(s₂ + c') − c = (s₂ − c) + c'`   for `s₂ ≥ c`,
 
-where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* by the depth-1 tumbler difference (`[a] ⊖ [c] = [a − c]` for `a ≥ c`). Because ASN-0034's NAT-* extraction supplies no ℕ-subtraction law, we discharge this single-component identity through the depth-1 tumbler lemmas. Write `x = s₂ − c`, i.e. `[x] = [s₂] ⊖ [c]`. ReverseInverse at depth 1 (ASN-0034) gives `[s₂ − c] ⊕ [c] = [s₂]`, which is the ℕ fact `x + c = s₂`. Substituting and regrouping: `(s₂ + c') − c = ((x + c) + c') − c = ((x + c') + c) − c`, where the inner regrouping `(x + c) + c' = x + (c + c') = x + (c' + c) = (x + c') + c` uses associativity twice via TA-assoc (ASN-0034, at depth 1 where `[a] ⊕ [b] = [a + b]`, with the positive operands `c, c' ≥ 1`) and the swap `c + c' = c' + c` via the local NAT-comm axiom. The depth-1 partial inverse TA4 (`(y + c) − c = y`, with `y = x + c'`) then cancels `c` to leave `x + c' = (s₂ − c) + c'`. The two tumblers therefore agree componentwise, so σ(reach(σₛ)) = reach(σ'ₛ). ✓ ∎
+where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* by the depth-1 tumbler difference (`[a] ⊖ [c] = [a − c]` for `a ≥ c`). Because ASN-0034's NAT-* extraction supplies no ℕ-subtraction law, we discharge this single-component identity through the depth-1 tumbler lemmas. Write `x = s₂ − c`, i.e. `[x] = [s₂] ⊖ [c]`. ReverseInverse at depth 1 (ASN-0034) gives `[s₂ − c] ⊕ [c] = [s₂]`, which is the ℕ fact `x + c = s₂`. Substituting and regrouping: `(s₂ + c') − c = ((x + c) + c') − c = ((x + c') + c) − c`, where the inner regrouping `(x + c) + c' = x + (c + c') = x + (c' + c) = (x + c') + c` uses associativity twice via TA-assoc (ASN-0034, at depth 1 where `[a] ⊕ [b] = [a + b]`, with the positive operands `c, c' ≥ 1`) and the swap `c + c' = c' + c` via NAT-comm (ASN-0034). The depth-1 partial inverse TA4 (`(y + c) − c = y`, with `y = x + c'`) then cancels `c` to leave `x + c' = (s₂ − c) + c'`. The two tumblers therefore agree componentwise, so σ(reach(σₛ)) = reach(σ'ₛ). ✓ ∎
 
 *Derivation of (b).* The span σ'ₛ = (σ(s), ℓ) is level-uniform: #σ(s) = 2 = #ℓ by vpos's result-length identity. Its width is by definition its second component ℓ; consistently, by WR (WidthRecovery, ASN-0053), width(σ'ₛ) = reach(σ'ₛ) ⊖ start(σ'ₛ) = (σ(s) ⊕ ℓ) ⊖ σ(s) = ℓ. ✓ ∎
 
@@ -615,7 +608,6 @@ where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* b
 | M(d) | definition | M(d) : T ⇀ T — arrangement function mapping V-positions to I-addresses for document d | cited (ASN-0036) |
 | subspace(v) | definition | subspace(v) = v₁ — the first component of a V-position, identifying its subspace | cited (ASN-0036) |
 | ordinal-level | definition | A span σ = (s, ℓ) is ordinal-level when actionPoint(ℓ) = #ℓ (the width acts at the deepest component of ℓ) | introduced (local) |
-| NAT-comm | local axiom | ℕ addition is commutative: m + n = n + m for all m, n ∈ ℕ | introduced (local) |
 | ℕ assoc | derived | ℕ addition associativity (a + b) + k = a + (b + k) for positive b, k — supplied by TA-assoc specialized to depth-1 tumblers | cited (ASN-0034, TA-assoc) |
 | S8-depth | invariant | (A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂) — uniform V-position depth per subspace | cited (ASN-0036) |
 | S8a | axiom | (A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0)) — V-position well-formedness | cited (ASN-0036) |
