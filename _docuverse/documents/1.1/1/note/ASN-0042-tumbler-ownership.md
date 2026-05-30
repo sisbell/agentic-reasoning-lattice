@@ -21,7 +21,7 @@ Gregory's implementation confirms this with unusual force. The sole ownership pr
 
 **pfx(π) (OwnershipPrefix).**
 
-We introduce the principals. Let `Π` denote the set of *principals* — the ownership subjects. Each principal `π ∈ Π` is associated with an *ownership prefix* `pfx(π) ∈ T`, a valid tumbler (satisfying T4) that serves as the root of their namespace. The mapping `pfx` is injective — distinct principals have distinct prefixes (formalized as O1b below).
+We introduce the principals. Let `Π` denote the set of *principals* — the ownership subjects. Each principal `π ∈ Π` is associated with an *ownership prefix* `pfx(π) ∈ T`, a valid tumbler (satisfying T4) that serves as the root of their namespace.
 
 The mapping `pfx : Π → T` is a primitive of the ownership model, with codomain constrained to valid tumblers — `pfx(π) ∈ T` with `T4(pfx(π))`.
 
@@ -30,7 +30,7 @@ The mapping `pfx : Π → T` is a primitive of the ownership model, with codomai
 - *Preconditions:* `π ∈ Π`.
 - *Postconditions:* (a) `pfx(π) ∈ T`. (b) `T4(pfx(π))` — the prefix is a valid tumbler satisfying HierarchicalParsing.
 
-**O1b (PrefixInjectivity).** `(A π₁, π₂ ∈ Π : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`
+**O1b (PrefixInjectivity).** Distinct principals have distinct prefixes in every reachable state — a derived reachable-state invariant (base case O14(iv); established by the shared induction of *The Account-Level Boundary* and the delegation-step argument of *Delegation*): `(A Σ reachable, π₁, π₂ ∈ Π_Σ : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`.
 
 The ownership question "does `π` own `a`?" is answered by examining these two tumblers alone, by prefix containment:
 
@@ -70,7 +70,7 @@ We formalize this asymmetry:
 
 Sub-account allocation — creating documents, versions, elements — does not introduce new ownership principals. It exercises the allocator's rights within an existing principal's domain.
 
-O1a is a reachable-state invariant, proved by induction on the reachability sequence. *Base:* O14's third clause gives `(A π ∈ Π₀ : zeros(pfx(π)) ≤ 1)`. *Non-delegation step:* O15 admits no new principal and O13 (PrefixImmutability) fixes existing prefixes, so the bound carries unchanged. *Delegation step:* the sole new principal `π'` satisfies `zeros(pfx(π')) ≤ 1` by condition (iii) of the delegation predicate (O15), and existing principals' values are unchanged by O13. Hence every principal in every reachable state satisfies the bound.
+O1a, O1b (PrefixInjectivity), and T4-validity of prefixes are all reachable-state invariants, proved by one induction on the reachability sequence that shares a common base case and non-delegation step; only the delegation step differs per invariant. *Base:* the corresponding clause of O14 holds on `Π₀` — third clause for O1a (`zeros(pfx(π)) ≤ 1`), fourth clause for O1b (`pfx` injective), fifth clause for T4 (`T4(pfx(π))`). *Non-delegation step:* O15 admits no new principal and O13 (PrefixImmutability) fixes existing prefixes, so any property of the principal-to-prefix assignment carries unchanged from `Π_Σ` to `Π_{Σ'}`. *Delegation step:* discharged per invariant — O1a's here, T4's and O1b's in the *Delegation* section, where in each case existing principals persist by O12 (PrincipalPersistence) with prefixes preserved by O13. For O1a, the sole new principal `π'` satisfies `zeros(pfx(π')) ≤ 1` by condition (iii) of the delegation predicate (O15). Hence every principal in every reachable state satisfies the bound.
 
 **acct(a) (AccountField).**
 
@@ -294,7 +294,7 @@ We resolve nesting by specificity. Before stating exclusivity we name the princi
 
   `ω_Σ(a) = π  ≡  π ∈ Π_Σ  ∧  pfx(π) ≼ a  ∧  (A π' ∈ Π_Σ : π' ≠ π ∧ pfx(π') ≼ a : #pfx(π) > #pfx(π'))`
 
-The domain restriction `ω_Σ : Σ.B → Π_Σ` state-relativizes both the address `a` (input) and the selected principal (output): the quantifier ranges over the state-relativized principal registry `Π_Σ` rather than a global `Π`. This is a partial definition until we show that the right-hand side picks out exactly one principal in every reachable state. That is the content of O2.
+The domain restriction `ω_Σ : Σ.B → Π_Σ` state-relativizes both the address `a` (input) and the selected principal (output): the quantifier ranges over the state-relativized principal registry `Π_Σ` rather than a global `Π`.
 
 *Notation.* We write bare `ω(a)` and `Π` for `ω_Σ(a)` and `Π_Σ` when the state is fixed by context, supplying the subscript whenever states must be disambiguated.
 
@@ -486,7 +486,7 @@ Ownership is not held at a single level — it flows downward through the hierar
 
 We use the *strict prefix* relation throughout: `p ≺ a  ≡  p ≼ a ∧ p ≠ a` (equivalently, `p ≼ a ∧ #p < #a` — the equivalence holds because `p ≼ a ∧ #p = #a` gives `p = a` by T3).
 
-O1a was established as a reachable-state invariant where it was stipulated. T4 and O1b are reachable-state invariants proved by the same induction on the reachability sequence: the base case is the corresponding clause of O14 (seed conformance on `Π₀`); non-delegation transitions preserve it trivially, since O15 admits no new principal and O13 (PrefixImmutability) fixes existing prefixes, carrying the inductive hypothesis on `Π_Σ` unchanged to `Π_{Σ'}`. It remains to discharge the delegation step for each, where existing principals persist by O12 (PrincipalPersistence) with prefixes preserved by O13.
+O1a, T4-validity, and O1b (PrefixInjectivity) share the single reachable-state-invariance induction whose base case and non-delegation step were given in *The Account-Level Boundary*. It remains to discharge the delegation step for T4 and O1b, where existing principals persist by O12 (PrincipalPersistence) with prefixes preserved by O13.
 
 Delegation preserves T4 (ValidAddress) — base: O14's fifth clause (`(A π ∈ Π₀ : T4(pfx(π)))`). For the new principal, Freshness-(v) supplies `T4(pfx(π'))` directly. Existing principals' prefixes preserve `T4(pfx(π))` at `Σ'`.
 
@@ -526,7 +526,7 @@ O5 (SubdivisionAuthority) constrains the allocator of any newly baptized address
 
 *Postcondition (c): recursive delegation (conditional on remaining most-specific).*
 
-Since `π' ∈ Π_{Σ'}`, the delegation relation's conditions are satisfiable with `π'` as delegator for a sub-prefix `p''` with `pfx(π') ≺ p''` *immediately upon entry* — that is, at `Σ'`. Condition (i) holds by the choice of `p''`. Condition (ii) requires that `π'` be the most-specific covering principal of `p''` in `Π_{Σ'}` — equivalently, no `π'' ∈ Π_{Σ'}` with `pfx(π'') ≼ p''` has `#pfx(π'') > #pfx(π')`. We derive this directly from condition (iv) of the original delegation `delegated_Σ(π, π')`: `¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))` — no principal in `Π_Σ` has a prefix strictly extending `pfx(π')`. By O15, `Π_{Σ'} ∖ Π_Σ = {π'}`, and `pfx(π')` does not strictly extend itself, so the same non-existence carries over: no `π'' ∈ Π_{Σ'}` has `pfx(π') ≺ pfx(π'')`. Hence no covering principal of `p''` in `Π_{Σ'}` has prefix length exceeding `#pfx(π')`; `π'` achieves the maximum, satisfying condition (ii). Condition (iii) (`zeros(p'') ≤ 1`) genuinely constrains the target prefix `p''` and is an obligation on the choice of delegate prefix. Condition (iv) — `¬(E π'' ∈ Π_{Σ'} : p'' ≺ pfx(π''))` — is, by contrast, discharged at `Σ'` independent of the choice of `p''`: any `π'' ∈ Π_Σ` with `p'' ≺ pfx(π'')` would, since `pfx(π') ≺ p''`, also satisfy `pfx(π') ≺ pfx(π'')`, contradicting the original delegation's condition (iv); and the sole new principal `π'` (by O15) does not extend `p''`, since `pfx(π') ≺ p''`. So no principal in `Π_{Σ'}` strictly extends `p''`, regardless of how `p''` is chosen. Thus at the entry state `Σ'` conditions (i), (ii), and (iv) are discharged for `π'` as delegator independent of the choice of `p''`. This discharge rests on `Π_{Σ'} ∖ Π_Σ = {π'}`, which holds only at `Σ'`: at any later prospective delegation state `Σ''` where `π'` has itself sub-delegated some `p''' ≺ p''`, that sub-delegate is the most-specific cover of `p''`, so `π'` no longer satisfies condition (ii) for `p''` there. Condition (v) (next-reachability, `p'' = next(Σ.B, p, d)` for some B6-valid `(p, d)`; freshness `p'' ∉ Σ.B` by Freshness-(v)) is likewise per-state: the delegation that admits `π'` baptizes only `pfx(π')` (O18), leaving the freshness and stream-position of any strict descendant `p''` undetermined. Postcondition (c) thus asserts the *right* to delegate sub-prefixes admitted by condition (v); it does not assert an absolute right to an arbitrary strict descendant `p''`, nor a right against subsequent sub-delegations or namespace baptisms by `π'` itself.
+Since `π' ∈ Π_{Σ'}`, the delegation relation's conditions are satisfiable with `π'` as delegator for a sub-prefix `p''` with `pfx(π') ≺ p''` *immediately upon entry* — that is, at `Σ'`. Condition (i) holds by the choice of `p''`. Condition (ii) requires that `π'` be the most-specific covering principal of `p''` in `Π_{Σ'}` — equivalently, no `π'' ∈ Π_{Σ'}` with `pfx(π'') ≼ p''` has `#pfx(π'') > #pfx(π')`. We derive this directly from condition (iv) of the original delegation `delegated_Σ(π, π')`: `¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))` — no principal in `Π_Σ` has a prefix strictly extending `pfx(π')`. By O15, `Π_{Σ'} ∖ Π_Σ = {π'}`, and `pfx(π')` does not strictly extend itself, so the same non-existence carries over: no `π'' ∈ Π_{Σ'}` has `pfx(π') ≺ pfx(π'')`. Hence no covering principal of `p''` in `Π_{Σ'}` has prefix length exceeding `#pfx(π')`; `π'` achieves the maximum, satisfying condition (ii). Condition (iii) (`zeros(p'') ≤ 1`) genuinely constrains the target prefix `p''` and is an obligation on the choice of delegate prefix. Condition (iv) — `¬(E π'' ∈ Π_{Σ'} : p'' ≺ pfx(π''))` — is, by contrast, discharged at `Σ'` independent of the choice of `p''`: any `π'' ∈ Π_Σ` with `p'' ≺ pfx(π'')` would, since `pfx(π') ≺ p''`, also satisfy `pfx(π') ≺ pfx(π'')`, contradicting the original delegation's condition (iv); and the sole new principal `π'` (by O15) does not extend `p''`, since `pfx(π') ≺ p''`. So no principal in `Π_{Σ'}` strictly extends `p''`, regardless of how `p''` is chosen. Thus at the entry state `Σ'` conditions (i), (ii), and (iv) are discharged for `π'` as delegator independent of the choice of `p''`. Condition (v) (next-reachability, `p'' = next(Σ.B, p, d)` for some B6-valid `(p, d)`; freshness `p'' ∉ Σ.B` by Freshness-(v)) constrains `p''` to a single-step stream extension of an already-baptized prefix, and its per-state next-reachability requirement carries the per-state scope of the asserted right.
 
 The authorization constraint is carried by the `delegated` relation — condition (ii) requires `π` to be the most-specific covering principal. This prevents a grandparent from delegating within a sub-domain it has already handed off: if `π₁` delegates `[1, 0, 2, 3]` to `π₂`, then `π₁` cannot subsequently delegate `[1, 0, 2, 3, 5]` to `π₃`, because `π₂` — not `π₁` — is the most-specific covering principal for that prefix.
 
@@ -559,9 +559,7 @@ Let `Σ_d` denote the state in which `delegated(Σ_d, Σ_d^{post}, π, π')` hol
 
 *The parent cannot be the longest match.* The effective owner `ω_{Σ'}(a)` is defined (O2) as the principal in `Π_{Σ'}` with the longest matching prefix for `a`. We have established that `π' ∈ Π_{Σ'}` with `pfx_{Σ'}(π') ≼ a` and `#pfx_{Σ'}(π') > #pfx_{Σ'}(π)`. Therefore `π'` (or some other principal with a still-longer prefix) achieves a longer match than `π`. The longest-match principal must have a prefix at least as long as `pfx(π')`, which is strictly longer than `pfx(π)`. Hence `ω_{Σ'}(a) ≠ π`.
 
-To see this last step precisely: suppose for contradiction that `ω_{Σ'}(a) = π`. Then by the definition of `ω`, `π` would need to satisfy `(A π'' ∈ Π_{Σ'} : π'' ≠ π ∧ pfx_{Σ'}(π'') ≼ a ⟹ #pfx_{Σ'}(π) > #pfx_{Σ'}(π''))`. But `π' ∈ Π_{Σ'}` with `π' ≠ π` (they are distinct — `π` was already in `Π` before delegation while `π'` was newly introduced, and their prefixes differ in length) and `pfx_{Σ'}(π') ≼ a`, yet `#pfx_{Σ'}(π) < #pfx_{Σ'}(π')` — contradicting the requirement. Therefore `ω_{Σ'}(a) ≠ π`.
-
-Note that the proof makes no claim about *who* the effective owner is — only that it is not `π`. The effective owner may be `π'` itself, or it may be a sub-delegate `π''` introduced by `π'` with `pfx(π') ≺ pfx(π'')`. In the latter case, `ω_{Σ'}(a) = π''` for `a ∈ odom(π'')` — the address leaves `π'`'s effective ownership but does not return to `π`, because `#pfx(π'') > #pfx(π') > #pfx(π)` and the argument above applies equally to `π''`. ∎
+To see this last step precisely: suppose for contradiction that `ω_{Σ'}(a) = π`. Then by the definition of `ω`, `π` would need to satisfy `(A π'' ∈ Π_{Σ'} : π'' ≠ π ∧ pfx_{Σ'}(π'') ≼ a ⟹ #pfx_{Σ'}(π) > #pfx_{Σ'}(π''))`. But `π' ∈ Π_{Σ'}` with `π' ≠ π` (they are distinct — `π` was already in `Π` before delegation while `π'` was newly introduced, and their prefixes differ in length) and `pfx_{Σ'}(π') ≼ a`, yet `#pfx_{Σ'}(π) < #pfx_{Σ'}(π')` — contradicting the requirement. Therefore `ω_{Σ'}(a) ≠ π`. ∎
 
 *Design confirmation.* O8 instantiates O3's refinement-only regime at the parent–delegate boundary. There is no revocation command, no forced reclamation: Gregory's `validaccount` is a stub that unconditionally returns TRUE, confirming only the *absence of any revocation mechanism* — the premise that no transition removes a principal or shortens a prefix — not the exclusivity conclusion itself. The irrevocability O8 establishes rests on the longest-match rule: the delegate's strictly longer prefix permanently outranks the parent's, a model theorem the stub neither computes nor witnesses.
 
@@ -587,14 +585,14 @@ Since `pfx(π) ≼ a`, the first `#pfx(π)` components of `a` match those of `pf
 
 Note that the inequality may be strict: TA5(d) permits `inc([1, 2], 1) = [1, 2, 1]` with `zeros = 0`, so addresses with node fields strictly extending the principal's node field exist. In such cases `N(pfx(π)) ≺ N(a)` — the address belongs to a longer node path that shares the principal's node prefix.
 
-*Case 2: `zeros(pfx(π)) = 1` (account-level principal).* By T4b (UniqueParse), T4a (SyntacticEquivalence), and T4's positive-component constraint, the prefix has the form `N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ` with `α ≥ 1` and `β ≥ 1` (non-empty field constraint from T4a), where every `Nᵢ > 0` (positive-component constraint from T4) and every `Uⱼ > 0`. The node field is `N(pfx(π)) = [N₁, ..., Nₐ]`, and the single zero sits at position `α + 1`.
+*Case 2: `zeros(pfx(π)) = 1` (account-level principal).* By FieldStructure applied to `pfx(π)` (which has `zeros = 1`), the prefix decomposes uniquely as `N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ` with node and user segments non-empty (`α ≥ 1`, `β ≥ 1`) and all field components positive (`Nᵢ > 0`, `Uⱼ > 0`). The node field is `N(pfx(π)) = [N₁, ..., Nₐ]`, and the single separator sits at position `α + 1`.
 
 Since `pfx(π) ≼ a`, the first `α + 1 + β` components of `a` match those of `pfx(π)`:
 - Positions `1` through `α`: `aᵢ = Nᵢ > 0` for each `1 ≤ i ≤ α`.
 - Position `α + 1`: `a_{α+1} = 0`, matching the zero separator of `pfx(π)`.
 - Positions `α + 2` through `α + 1 + β`: `a_{α+1+j} = Uⱼ > 0` for each `1 ≤ j ≤ β`.
 
-By T4b (UniqueParse), the node field `N(a)` consists of the components of `a` before `a`'s first zero. Since positions `1` through `α` are all positive and position `α + 1` is zero, the first zero of `a` is at position `α + 1`. Hence `N(a) = [a₁, ..., aₐ] = [N₁, ..., Nₐ] = N(pfx(π))`. The prefix relation holds with equality: `N(pfx(π)) = N(a)`, which implies `N(pfx(π)) ≼ N(a)`.
+By FieldStructure, `N(a)` is the segment of `a` before its first separator. Positions `1` through `α` of `a` are positive and position `α + 1` is zero (matching `pfx(π)`'s separator), so FieldStructure locates `a`'s first separator at position `α + 1` and gives `N(a) = [a₁, ..., aₐ] = [N₁, ..., Nₐ] = N(pfx(π))`. The prefix relation holds with equality: `N(pfx(π)) = N(a)`, which implies `N(pfx(π)) ≼ N(a)`.
 
 In both cases `N(pfx(π)) ≼ N(a)`. The case distinction is exhaustive by O1a. ∎
 
@@ -775,7 +773,7 @@ The fork transforms the ownership boundary into a creative act: `π_A` now has a
 | Covering-chain lemma (PrefixesOfCommonAddressAreComparable) | `(A x, p, q ∈ T : p ≼ x ∧ q ≼ x ⟹ p ≼ q ∨ q ≼ p)` — any two tumbler prefixes of a common address are `≼`-comparable | from Prefix, T3 |
 | SelfOwnershipAtPrefix | `(A Σ reachable, π ∈ Π_Σ : ω_Σ(pfx(π)) = π)` — every principal effectively owns its own prefix | from O1b, O2, PrefixBaptismCoupling |
 | O3 | `ω(a)` changes only through a delegation act introducing a new principal with a strictly longer matching prefix; the postcondition exhibits both the delegator `π_d` and the delegate `π'` — monotonic refinement | from B0 (ASN-0040), O12, O13, O1b, O14, O15 |
-| OwnershipDomainPermanence | No external delegation can alter effective ownership within `odom(π)` — changes to `ω(a)` inside a principal's domain are induced only by a delegator `π_d` with `covers_Σ*(π, π_d)` (`π` itself or a sub-delegate of `π`) | from Delegation, O1b, O3, O14, O15, NestingByDelegation, Prefix; multi-step corollary OwnershipDomainPermanence★ additionally from B0★ (ASN-0040) |
+| OwnershipDomainPermanence | No external delegation can alter effective ownership within `odom(π)` — changes to `ω(a)` inside a principal's domain are induced only by a delegator `π_d` with `covers_Σ*(π, π_d)` | from Delegation, O1b, O3, O14, O15, NestingByDelegation, Prefix; multi-step corollary OwnershipDomainPermanence★ additionally from B0★ (ASN-0040) |
 | O4 | `(A a ∈ Σ.B : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | from O14, O16, O5, O12, O13 |
 | O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | axiom |
 | AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | from T3, T4, Prefix, AccountField |
