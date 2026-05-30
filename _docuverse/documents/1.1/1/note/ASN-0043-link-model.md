@@ -169,7 +169,7 @@ We write `|L|` for the *arity* of a link — the number of endsets in the sequen
 
 `(A a ∈ dom(Σ.L) :: |Σ.L(a)| ≥ 3 ∧ (A i : 1 ≤ i ≤ |Σ.L(a)| : Σ.L(a).eᵢ ∈ Endset) ∧ Σ.L(a).e₃ ≠ ∅)`
 
-Nelson [LM 4/79] explicitly calls for N-endset support beyond three: "4-sets, 5-sets ... n-sets supported in link storage and search." Gregory's implementation fixes N = 3 — the V-subspace assignment function `setlinkvsas` hardcodes three V-addresses, the query function `intersectlinksets` takes exactly three input lists, and the wire protocol (`FINDLINKSFROMTOTHREE`) encodes three endset parameters. The integer namespace for a fourth endset type is already consumed (`DOCISPAN = 4`), blocking extension without renumbering. The implementation can store sub-arity links (arity-2, or arity-3 with an empty type slot); such states lie outside this ASN's conforming link store. The non-emptiness conjunct `Σ.L(a).e₃ ≠ ∅` is precisely this exclusion: a conforming link's type slot guarantees a classifying address.
+Nelson [LM 4/79] explicitly calls for N-endset support beyond three: "4-sets, 5-sets ... n-sets supported in link storage and search." Gregory's implementation fixes N = 3, while this model admits N ≥ 3. The implementation can store sub-arity links (arity-2, or arity-3 with an empty type slot); such states lie outside this ASN's conforming link store. The non-emptiness conjunct `Σ.L(a).e₃ ≠ ∅` requires a conforming link's type slot to provide a classifying address.
 
 
 ## Endset Properties
@@ -280,7 +280,7 @@ Nelson: "What the 'type' designation points to is completely arbitrary. This is 
 
 The design choice — coverage rather than span-set identity — falls out of Nelson's search semantics. He frames matching at the request-against-link level: "A link satisfies a search request if one span of each endset satisfies a corresponding part of the request." [LM 4/58] The criterion is *address overlap* between request and stored endset, not equality of span decompositions; since type-equivalence is what makes two links indistinguishable to any search request, two type endsets with the same coverage are interchangeable under search and therefore the same type. Gregory confirms at the implementation level: `sporglset2linksetinrange` performs range-overlap matching via `crumqualifies2d` (a half-open interval intersection test), and `intersectlinksets` compares only link ISAs across the three endset queries — there is no span-equality test at any stage of retrieval. The query architecture is built on I-address coverage intersection, not on span-set comparison.
 
-This is a profound design choice. It decouples classification from content retrieval entirely. A search for "all links of type X" never fetches the bytes at address X — it only matches the address. This means:
+Type matching decouples classification from content retrieval: a search for type X never fetches the bytes at address X — it only matches the address. This means:
 
 **L9 — TypeGhostPermission.** Ghost types are permitted. For any state `Σ` satisfying the state-local L- and S-invariants (preserved by FSP, FreshSiblingConformance, stated in *A Shared Conformance Lemma* above), with `dom(Σ.M) ≠ ∅`, and with `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`), there exists for every arity `N ≥ 3` a conforming state `Σ'` extending `Σ` (`Σ' ⊒ Σ`, StateExtension) with a link of arity `N` whose type endset references an address outside `dom(Σ'.C) ∪ dom(Σ'.L)`:
 
@@ -416,7 +416,7 @@ From L13, arbitrary relational structures can be composed:
 
 > "Complex relational structures, such as the faceted link, may be constructed with links to links. These use the two-sided link structure much like the CONS cell in LISP, and may be built into arbitrary compound links."
 
-The link plays the same role for structured connections that the cons cell plays for structured data: a universal building block from which compound relational structures of arbitrary complexity are assembled by chaining. Nelson framed the faceted link this way — built from a chain of links glued by link-to-link references (the quote above). This model takes the other route admitted by its own n-set provision (L3, NEndsetStructure): a faceted link relating more than three roles is realized directly as a single link of arity `N`, its roles occupying slots `1..N`. Link-to-link composition (L13) remains available for compound structures that a flat endset sequence cannot express, but it is not how this model expresses the faceted link. Nelson's chain construction is thus historical design intent, not the model's structural commitment for the faceted link.
+The link plays the same role for structured connections that the cons cell plays for structured data: a universal building block from which compound relational structures of arbitrary complexity are assembled by chaining. Nelson framed the faceted link this way — built from a chain of links glued by link-to-link references (the quote above). This model admits both realizations: a faceted link may be built by chaining links via link-to-link references (L13), or realized directly as a single link of arity `N` (L3).
 
 
 ## The Dual-Primitive Architecture
