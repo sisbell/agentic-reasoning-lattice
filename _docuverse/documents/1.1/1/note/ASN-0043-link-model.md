@@ -700,7 +700,7 @@ The remaining state-local invariants at `Σ_4` (L0, L1, L1a–c, L3, L5, L6, L11
 
 ## Open Questions
 
-- *Scope of content-side disjointness.* L0a (ContentSubspaceScope) scopes content-side disjointness to the `s_C`-resident slice because no ASN-0036 S-invariant fixes a global content-subspace constant; conforming systems may, in principle, place content in subspaces other than `s_C`, and any such residue lies outside this ASN's disjointness scope. Conforming systems whose content is entirely `s_C`-resident — Gregory's implementation among them, by the granfilade discriminator's exhaustive assignment of `TEXTATOM = 1` (i.e., `s_C`) to all stored content — enjoy the global disjointness `dom(Σ.L) ∩ dom(Σ.C) = ∅` as a corollary. A future ASN-0036 revision that absorbs a global content-subspace constant would lift L0a's scope from "`s_C`-resident slice" to "all of `dom(Σ.C)`".
+- Should a content-side invariant fix a global content-subspace constant, so that content-side disjointness extends from the `s_C`-resident slice to all of `dom(Σ.C)`?
 - What invariants must hold between the link store and the content store when the same I-address appears in multiple arrangements via transclusion?
 - What well-formedness constraints, if any, govern compound link structures where links reference other links through endsets?
 - Under what conditions should two endsets with different span decompositions but identical coverage be treated as equivalent for query purposes?
