@@ -99,22 +99,6 @@ I3 grounds Nelson's central guarantee (Q1, Q5) that the permanent identity of ev
 
 *Case S ≠ 1 (non-text subspace; in particular S = 2, link).* The foundation does not impose D-CTG, D-MIN, or D-SEQ on V_S(d), so the shift creates no foundation-level violation: a post-state V_2(d) with a tombstone gap at the vacated positions is well-formed under ASN-0036's frame notes.
 
-**Weakest-precondition analysis (I3-VP backwards through the shift).** The S8a postcondition on the shifted position is the conjunction `zeros(shift(v, n)) = 0 ∧ #shift(v, n) ≥ 2 ∧ (A i : 1 ≤ i ≤ #shift(v, n) : shift(v, n)ᵢ > 0)`. Substituting `shift(v, n) = v ⊕ δₙ` and using TumblerAdd's prefix-copy / action-point-advance / tail-copy behavior:
-
-- `shift(v, n)ᵢ = vᵢ` for `1 ≤ i ≤ m − 1` (prefix copy, since actionPoint(δₙ) = m).
-- `shift(v, n)ₘ = vₘ + n` (action-point advance).
-- `#shift(v, n) = m` (result-length identity).
-
-The wp of S8a backwards through `(target := shift(v, n))` becomes a predicate over v:
-
-`wp(target := shift(v, n), S8a(target)) = (A i : 1 ≤ i ≤ m − 1 : vᵢ > 0) ∧ (vₘ + n > 0) ∧ (m ≥ 2)`
-
-Each conjunct is a pre-state obligation, read in order:
-
-1. *`(A i : 1 ≤ i ≤ m − 1 : vᵢ > 0)` — componentwise positivity on positions 1..m−1.* This is S8a on v, supplied by `v ∈ dom(M(d))` (the quantifier of I3) together with the pre-state S8a invariant.
-2. *`vₘ + n > 0` — strict positivity of the advanced ordinal.* From `n ≥ 1` (I3 precondition), the order-compatibility of ℕ addition (NAT-addcompat, ASN-0034) — monotone in the *right* operand with the *left* operand `vₘ` held fixed — gives `vₘ + n ≥ vₘ + 1`; the strict successor inequality `vₘ < vₘ + 1` (also NAT-addcompat) with `vₘ ≥ 0` (the carrier ℕ) gives `vₘ + 1 > 0`, whence `vₘ + n > 0` by transitivity of the order (NAT-order, ASN-0034). The obligation is strict positivity only, so `n ≥ 1` discharges it on its own; S8a's `vₘ ≥ 1` is not consumed here, and no left-operand comparison (`vₘ` versus `1`, which would require commutativity) is invoked.
-3. *`m ≥ 2` — depth at least 2.* This is the I3 precondition `#p ≥ 2` (or equivalently the S8-depth common-depth value `m ≥ 2`), justified by S8a on the pre-state requiring `#v ≥ 2` for every `v ∈ dom(M(d))`.
-
 **Gap region.** After accounting for all eight clauses, the positions in the gap [p, shift(p, n)) remain the only region not assigned a value by any postcondition — and I3-CS explicitly excludes them from dom(M'(d)), since they are neither left-region positions nor shifted images: p is not < p (so I3-L excludes it), and no shifted image lands in the gap — two cases establish this: (1) when v = p, shift(p, n) equals the exclusive upper bound of [p, shift(p, n)) and so is not in the gap; (2) when v > p with #v = #p = m, TS1 (ShiftOrderPreservation, ASN-0034) gives shift(v, n) > shift(p, n), placing the image strictly past the gap's upper bound. These n gap positions are exactly the region I3-CS excludes from dom(M'(d)).
 
 
