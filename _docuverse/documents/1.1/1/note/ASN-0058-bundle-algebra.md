@@ -221,7 +221,7 @@ When both conditions hold, the merged block is:
 
 (We write `⊞` for block merge to distinguish it from tumbler addition `⊕` of ASN-0034.)
 
-Both conditions are necessary, and a fourth case — V-overlap — is impossible by M7-cov below.
+Both conditions are necessary; V-overlap is treated separately below.
 
 *V-adjacency alone is insufficient.* If the I-extents are not contiguous, the merged block `(v₁, a₁, n₁ + n₂)` would predict `M(d)(v₁ + n₁) = a₁ + n₁`, but the arrangement maps that position to `a₂ ≠ a₁ + n₁`, violating B3.
 
@@ -285,7 +285,7 @@ split(β₁ ⊞ β₂, n₁)
   = (β₁, β₂)  ∎
 ```
 
-M9 and M10 together establish a bijection between `{block with interior cut point}` and `{pair of mergeable blocks}`. The algebra is clean — it works precisely because width coupling forces both dimensions to split and merge at the same ordinal count.
+M9 and M10 together establish a bijection between `{block with interior cut point}` and `{pair of mergeable blocks}`.
 
 ## The Canonical Decomposition
 
