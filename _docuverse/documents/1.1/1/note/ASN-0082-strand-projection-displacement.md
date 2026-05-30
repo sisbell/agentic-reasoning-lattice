@@ -222,7 +222,7 @@ For (⟸): the argument is symmetric. If ord(v₁) < ord(v₂), T1 places the di
 - (ii) `ord(v) ≥ w_ord` and `ord(v) > w_ord`;
 - (iii) `ord(v) ⊖ w_ord` is well-defined and `Pos`, equal to `ord(p)` when `v = r` and strictly greater than `ord(p)` (under T1) when `v > r`.
 
-The `#v = 2` hypothesis is discharged at every application site: for `v ∈ R ⊆ V_1(d)` (D-BJ, D-SHIFT, D-SEP) S8-depth fixes the common subspace-1 depth at `#p = 2`; for the endpoint instantiation `v = r` — where `r` need not lie in `dom(M(d))` — the result-length identity gives `#r = #w = #p = 2` directly. The lemma is stated over tumblers of fixed depth 2 so that neither defense need be re-argued in its body.
+The `#v = 2` hypothesis stands as a precondition; consumers discharge it at their own sites. For the endpoint instantiation `v = r` — where `r` need not lie in `dom(M(d))` — the result-length identity gives `#r = #w = #p = 2` directly.
 
 *Derivation.* By OrdAddHom (a), `ord(r) = ord(p) ⊕ w_ord`. TumblerAdd's postcondition `a ⊕ w ≥ w` (ASN-0034) gives directly `ord(r) = ord(p) ⊕ w_ord ≥ w_ord` — the weak half of (i). For the strict half: TA4 (PartialInverse, ASN-0034) gives `(ord(p) ⊕ w_ord) ⊖ w_ord = ord(p)`, its preconditions discharged at depth 1 — `Pos(w_ord)` (OrdinalDisplacementProjection), action point `k = actionPoint(w_ord) = 1 = #ord(p)`, `#w_ord = 1 = k`, and the zero-prefix quantifier `1 ≤ i < 1` vacuous. So `ord(r) ⊖ w_ord = ord(p)`. Since `p ∈ V_1(d)`, S8a gives `p₂ ≥ 1`, so `ord(p) = [p₂]` is `Pos` — a non-zero tumbler — whence `ord(r) ≠ w_ord` (else the difference would be the zero tumbler). With `ord(r) ≥ w_ord` and T1 trichotomy, `ord(r) > w_ord`, completing (i). For (ii): the hypothesis `#v = 2` together with `#r = #w = #p = 2` (result-length identity, TumblerAdd) gives `#v = #r` independently of the order relation, which is what licenses OrdinalOrderEquivalence (precondition `#v₁ = #v₂`); from `v ≥ r` it then yields `ord(v) ≥ ord(r)`, and T1 transitivity with (i) gives `ord(v) ≥ w_ord` and `ord(v) > w_ord`. For (iii): TA2 (WellDefinedSubtraction, ASN-0034) applies since `ord(v) ≥ w_ord`, giving `ord(v) ⊖ w_ord ∈ T`. Positivity: when `v = r`, `ord(v) ⊖ w_ord = ord(p)`, which is `Pos`; when `v > r`, OrdinalOrderEquivalence (again licensed by `#v = #r = 2`) gives `ord(v) > ord(r)` with `#ord(v) = #ord(r) = 1`, so TA3-strict (ASN-0034) gives `ord(v) ⊖ w_ord > ord(r) ⊖ w_ord = ord(p)`, and `ord(p)` exceeds the zero tumbler (TA6, ASN-0034), so `ord(v) ⊖ w_ord` is `Pos`. ∎
 
@@ -319,9 +319,9 @@ That is, `dom(Σ'.C) = dom(Σ.C)` and `(A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`
 
 *Proof of (a).* All ordinals in R share the same depth (S8-depth), giving #ord(v₁) = #ord(v₂). For any v₁ < v₂ in R, we have ord(v₁) < ord(v₂) (by OrdinalOrderEquivalence — both share subspace S = 1 and depth m = 2).
 
-For every v ∈ R we have v ≥ r, so OrdinalExceedsDisplacement (ii) gives `ord(v) ≥ w_ord` directly (and the strict `ord(v) > w_ord`). At depth #p = 2 this reads `ord(v) = [v₂] ≥ [c] = w_ord` with `c = w₂ ≥ 1`. ∎(derivation of `ord(v) ≥ w_ord`)
+For every v ∈ R we have v ≥ r, so OrdinalExceedsDisplacement (ii) gives `ord(v) ≥ w_ord`.
 
-By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b ⟹ a ⊖ w < b ⊖ w — with a = ord(v₁), b = ord(v₂), w = w_ord, and both `ord(v₁) ≥ w_ord` and `ord(v₂) ≥ w_ord` established by the derivation above, we conclude ord(v₁) ⊖ w_ord < ord(v₂) ⊖ w_ord. Now σ(v₁) and σ(v₂) share subspace S = 1 and depth m = 2, and ord(σ(v₁)) = ord(v₁) ⊖ w_ord < ord(v₂) ⊖ w_ord = ord(σ(v₂)); by the reverse direction of OrdinalOrderEquivalence, σ(v₁) < σ(v₂). ∎
+By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b ⟹ a ⊖ w < b ⊖ w — with a = ord(v₁), b = ord(v₂), w = w_ord, and both `ord(v₁) ≥ w_ord` and `ord(v₂) ≥ w_ord` from OrdinalExceedsDisplacement (ii), we conclude ord(v₁) ⊖ w_ord < ord(v₂) ⊖ w_ord. Now σ(v₁) and σ(v₂) share subspace S = 1 and depth m = 2, and ord(σ(v₁)) = ord(v₁) ⊖ w_ord < ord(v₂) ⊖ w_ord = ord(σ(v₂)); by the reverse direction of OrdinalOrderEquivalence, σ(v₁) < σ(v₂). ∎
 
 *Proof of (b).* For v₁ ≠ v₂ in R, trichotomy (T1) gives v₁ < v₂ or v₂ < v₁. In either case, part (a) yields σ(v₁) < σ(v₂) or σ(v₂) < σ(v₁), so σ(v₁) ≠ σ(v₂). ∎
 
@@ -336,7 +336,7 @@ By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥
 - (a) Algebraic identity: `ord(r) ⊖ w_ord = ord(p)`.
 - (b) When R ≠ ∅: r ∈ V_1(d), r = min(R), and ord(σ(r)) = ord(p), i.e., min({ord(u) : u ∈ Q₃}) = ord(p).
 
-*Proof of (a).* The identity `ord(r) ⊖ w_ord = ord(p)` is established as a load-bearing intermediate in OrdinalExceedsDisplacement (i) (where it is discharged via TA4 (PartialInverse, ASN-0034) on `(ord(p) ⊕ w_ord) ⊖ w_ord = ord(p)`, using ord(r) = ord(p) ⊕ w_ord from OrdAddHom (a)); we cite it here directly. ✓
+*Proof of (a).* By OrdinalExceedsDisplacement (i), `ord(r) ⊖ w_ord = ord(p)`. ✓
 
 *Proof of (b).* Suppose R ≠ ∅, so there exists v ∈ V_1(d) with v ≥ r. The contraction operates under the precondition that D-SEQ holds on the pre-state, giving V_1(d) = {[1, k] : 1 ≤ k ≤ N}; hence v = [1, k_v] with 1 ≤ k_v ≤ N. Since r = p ⊕ w with p = [1, p₂], w₁ = 0, and w₂ = c ≥ 1, TumblerAdd gives r = [1, p₂ + c]. From v ≥ r, T1 at position 2 yields k_v ≥ p₂ + c, so p₂ + c ≤ k_v ≤ N. With the lower bound p₂ + c ≥ 2 ≥ 1 (from p₂ ≥ 1 by S8a on p and c ≥ 1), the ordinal p₂ + c lies in [1, N], so by D-SEQ the position r = [1, p₂ + c] ∈ V_1(d), hence r ∈ R.
 
