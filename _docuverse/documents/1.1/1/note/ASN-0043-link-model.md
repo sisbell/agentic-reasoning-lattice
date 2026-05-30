@@ -229,11 +229,9 @@ But the slot distinction is *structural*, not *semantic*. Whether "from" means "
 
 **L7 — DirectionalFlexibility.** The invariants L0–L14 and L-fin impose no constraint on which of the from/to slots carries directional significance; any directional interpretation is determined by the link type, outside the link structure.
 
-*Structurally.* The invariants of L0–L14 and L-fin quantify only over addresses, endset membership, and slot position; not one of them predicates on which slot is source and which is target. They constrain slot identity solely up to positional distinctness — and a position carries no inherent orientation. L6 establishes that slots are positionally addressable, but that is sequence-position, not direction — it asserts only that slot 1 and slot 2 are different positions, not that one is "from" and the other "to." The F/G labels in the standard triple `(F, G, Θ)` are nominal conveniences for prose, not constraints carried by the invariants.
+*Structurally.* The invariants of L0–L14 and L-fin quantify only over addresses, endset membership, and slot position; not one of them predicates on which slot is source and which is target.
 
 Nelson: "A link is typically directional. Thus it has a from-set, the bytes the link is 'from,' and a to-set, the bytes the link is 'to.' (What 'from' and 'to' mean depend on the specific case.)" The word "typically" is deliberate. A citation link is directional — it goes *from* citing text *to* cited source. A counterpart link marking equivalence has no meaningful direction. A heading link populates only one content endset — Nelson calls it "inane" to label that one endset "from." The structure provides two slots; the type defines whether the distinction carries directional weight.
-
-The consequence: any system that determines a link's directionality from slot position alone — treating "from" as inherently "source" and "to" as inherently "target" without consulting the type — is misinterpreting the design. The slots provide structural asymmetry sufficient for indexing and query; the type provides semantic interpretation.
 
 
 ## A Shared Conformance Lemma
@@ -347,7 +345,9 @@ Gregory documents this in the bootstrap document's type registry: `MARGIN` at ad
 
 We now establish the identity semantics of links. The three requirements we began with — distinguishability, ownership, referenceability — crystallize into two derived properties.
 
-**L11a — LinkUniqueness.** Distinct T10a-conforming allocation events produce distinct link addresses. Formally, for any pair of allocation events producing link addresses `a₁` and `a₂` in the system, if the events are distinct then `a₁ ≠ a₂` as tumblers. This is GlobalUniqueness (ASN-0034) instantiated at link addresses: its sole precondition is T10a-conformance of the events, and L1c (LinkAllocatorConformance) discharges precisely that — every `a ∈ dom(Σ.L)` is the terminus of a T10a-conforming chain.
+**L11a — LinkUniqueness.** Distinct T10a-conforming allocation events produce distinct link addresses. Formally, for any pair of allocation events producing link addresses `a₁` and `a₂` in the system, if the events are distinct then `a₁ ≠ a₂` as tumblers. This is GlobalUniqueness (ASN-0034) instantiated at link addresses. Its precondition is not merely per-event T10a-conformance but that the events are distinct allocation events *within a single system conforming to T10a* — its proof inducts on one allocator tree, with base case "sole root allocator" and step routing pairs through a lowest common ancestor. We discharge this by exhibiting one global tree 𝒯 of which every link chain is a subtree.
+
+L1c (LinkAllocatorConformance) gives, for each `a ∈ dom(Σ.L)`, a T10a-conforming chain seeded at its document-level prefix `home(a) ∈ dom(Σ.M)`. Per-chain conformance alone leaves the seeds unrelated — two links homed in different documents would otherwise yield two chains from two seeds that need not share a root. S7d (DocumentAllocationDiscipline, ASN-0036) closes this gap: every entry of `dom(Σ.M)` is a node of the system's single allocator tree 𝒯, the terminus of a T10a-conforming chain from 𝒯's root (T4-valid by T10a's root axiom; T10a.4 propagates T4-validity along each step). Each seed `home(a)` is therefore a node of 𝒯, so each link chain — seeded at that node and extending by T10a-conforming steps — is a subtree of 𝒯. Both `a₁` and `a₂` thus arise as distinct allocation events within the one tree 𝒯, discharging GlobalUniqueness's single-tree precondition even when the two links are homed in different documents.
 
 Within-state single-valuedness (an address names at most one link) is immediate from the partial-function typing `Σ.L : T ⇀ Link`; L11a is the cross-event strengthening.
 
@@ -532,9 +532,7 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L11b (NonInjectivity).* The clause applies: `a ∈ dom(Σ.L)` satisfies the universal quantifier's precondition. The extension `Σ'` witnessing the existential is constructed in Step 1 below, where `a'` is allocated with `Σ_1.L(a') = Σ.L(a)`. ✓
 
-*L12 (LinkImmutability).* L12 constrains state transitions, not individual states. In this single-state example, no transition is under consideration, so L12 is vacuously satisfied. Verified non-vacuously below across two transitions. ✓ (vacuous)
-
-*L12a (LinkStoreMonotonicity).* Similarly a transition invariant, vacuously satisfied here. Verified non-vacuously below. ✓ (vacuous)
+*L12, L12a (transition invariants).* These constrain state transitions, not individual states; they are checked non-vacuously across the four `Σ_i → Σ_{i+1}` transitions in the extension below.
 
 *L14 (DualPrimitive).* `dom(Σ.C) ∪ dom(Σ.L) = {c₁, c₂, a}`. All stored entities. `dom(Σ.C) ∩ dom(Σ.L) = ∅`. ✓
 
@@ -677,7 +675,7 @@ The remaining state-local invariants at `Σ_4` (L0, L1, L1a–c, L3, L5, L6, L11
 | L9 | LEMMA | TypeGhostPermission — any conforming state with `dom(Σ.M) ≠ ∅` and `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`) can be extended, for every arity `N ≥ 3`, with a link of arity `N` whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)`; arity-3 witness `(∅, ∅, {(g, δ(1, #g))})` extends to higher arities by padding empty endsets at slots `4..N` | introduced |
 | PrefixSpanCoverage | LEMMA | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`; derived from OrdinalShift (`x ⊕ δ(1, #x) = shift(x, 1)`), T12, T1 cases (i)/(ii), and T5 (ASN-0034) | introduced |
 | L10 | LEMMA | TypeHierarchyByContainment — `coverage({(p, δ(1, #p))}) = subtypes(p)` by PrefixSpanCoverage | introduced |
-| L11a | LEMMA | LinkUniqueness — distinct T10a-conforming allocation events produce distinct link addresses (corollary of L1c + GlobalUniqueness; derivation in body) | introduced |
+| L11a | LEMMA | LinkUniqueness — distinct T10a-conforming allocation events produce distinct link addresses (corollary of L1c + S7d + GlobalUniqueness over the single tree 𝒯; derivation in body) | introduced |
 | L11b | LEMMA | NonInjectivity — every conforming state with a link and `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`) can be extended to a non-injective conforming state | introduced |
 | L12 | INV | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
 | L12a | LEMMA | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
