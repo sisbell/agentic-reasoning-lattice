@@ -50,6 +50,21 @@ _FINDING_FIELD_RE = re.compile(
     re.MULTILINE,
 )
 
+# Phantom rejection: the original finding quoted phrases that don't
+# exist in the note (reviewer hallucination). The reviser's rationale
+# typically says "is not present" / "is absent" / "already resolved" /
+# "no longer contains" / "does not appear". Carrying these forward into
+# the next reviewer's prompt poisons it — the reviewer pattern-matches
+# on the fabricated-quote shape and produces a fresh fabrication. Skip
+# them so only substantive rejections (where the reviser argued the
+# finding was wrong on the merits) influence subsequent reviews.
+_PHANTOM_RATIONALE_RE = re.compile(
+    r"\b(not present|is absent|are absent|already resolved"
+    r"|no longer contains?|do(?:es)? not appear"
+    r"|is not in the current|are not in the current)\b",
+    re.IGNORECASE,
+)
+
 
 def parse_verdict(text: str) -> str:
     """Return 'CONVERGED' | 'OBSERVE' | 'REVISE' from the reviewer's
@@ -210,6 +225,11 @@ def previously_declined_findings(
             rationale_text = read_doc(session, rationale_addr).strip()
         except (KeyError, FileNotFoundError):
             rationale_text = "(rationale missing)"
+
+        if _PHANTOM_RATIONALE_RE.search(rationale_text):
+            # Reviewer hallucinated the original quote — skip to avoid
+            # priming the next reviewer with the fabricated-quote shape.
+            continue
 
         blocks.append(
             f"### Declined\n\n"
