@@ -32,7 +32,7 @@ The mapping `pfx : Π → T` is a primitive of the ownership model, with codomai
 - *Preconditions:* `π ∈ Π`.
 - *Postconditions:* (a) `pfx(π) ∈ T`. (b) `T4(pfx(π))` — the prefix is a valid tumbler satisfying HierarchicalParsing.
 
-**O1b (PrefixInjectivity).** Distinct principals have distinct prefixes in every reachable state — a derived reachable-state invariant: `(A Σ reachable, π₁, π₂ ∈ Π_Σ : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`. It is established by the shared induction in *State Axioms*, sited there so that the axioms it depends on precede it.
+**O1b (PrefixInjectivity).** Distinct principals have distinct prefixes in every reachable state — a derived reachable-state invariant: `(A Σ reachable, π₁, π₂ ∈ Π_Σ : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`. It is proved by the shared induction in *State Axioms* (*Shared invariant induction*), jointly with O1a and T4-validity.
 
 The ownership question "does `π` own `a`?" is answered by examining these two tumblers alone, by prefix containment:
 
@@ -72,7 +72,7 @@ We formalize this asymmetry:
 
 Sub-account allocation — creating documents, versions, elements — does not introduce new ownership principals. It exercises the allocator's rights within an existing principal's domain.
 
-O1a, O1b (PrefixInjectivity), and T4-validity of prefixes are all reachable-state invariants, established by a single shared induction on the reachability sequence. That induction cites O12–O15, O14, Freshness-(v), and the delegation conditions (i)–(iii); since all of these are introduced in *State Axioms*, the induction is sited there (under *Shared invariant induction*) so that it reads in dependency order rather than forward-referencing premises defined two sections later. Its conclusion is that every principal in every reachable state satisfies all three invariants. Together they ensure `ω` (O2) yields a unique principal at a valid hierarchy level with `fields(·)` well-defined (T4b UniqueParse).
+O1a, O1b (PrefixInjectivity), and T4-validity of prefixes are reachable-state invariants. They share one induction, proved together in *State Axioms* under *Shared invariant induction* — sited after the axioms O12–O15, O14, and Freshness-(v) it consumes. Its conclusion: every principal in every reachable state satisfies all three, so `ω` (O2) yields a unique principal at a valid hierarchy level with `fields(·)` well-defined (T4b UniqueParse).
 
 **acct(a) (AccountField).**
 
@@ -137,25 +137,27 @@ Nelson's architecture contains no concept of account revocation, and Gregory's c
 
 The prefix is a tumbler, and addresses are permanent (T8): no operation of the tumbler algebra mutates an existing tumbler in place.
 
-**O14 (BootstrapPrincipal).** The initial principal set satisfies the following conjuncts:
+**O14 (BootstrapPrincipal).** The initial principal set satisfies the following labeled conjuncts (cited individually by label throughout this ASN; the formerly bundled "first clause" is split into O14.1 and O14.2):
 
-  `Π₀ ≠ ∅  ∧  (A a ∈ Σ₀.B : (E π ∈ Π₀ : pfx(π) ≼ a))`
+  **O14.1 (Nonempty):** `Π₀ ≠ ∅`
 
-  `|Π₀| < ∞`
+  **O14.2 (Coverage):** `(A a ∈ Σ₀.B : (E π ∈ Π₀ : pfx(π) ≼ a))`
 
-  `(A π ∈ Π₀ : zeros(pfx(π)) ≤ 1)`
+  **O14.3 (Finite):** `|Π₀| < ∞`
 
-  `(A π₁, π₂ ∈ Π₀ : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`
+  **O14.4 (AccountTier):** `(A π ∈ Π₀ : zeros(pfx(π)) ≤ 1)`
 
-  `(A π ∈ Π₀ : T4(pfx(π)))`
+  **O14.5 (Injective):** `(A π₁, π₂ ∈ Π₀ : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`
 
-  `(A π₁, π₂ ∈ Π₀ : π₁ ≠ π₂ ⟹ pfx(π₁) ⋠ pfx(π₂) ∧ pfx(π₂) ⋠ pfx(π₁))`
+  **O14.6 (Valid):** `(A π ∈ Π₀ : T4(pfx(π)))`
 
-  `(A π ∈ Π₀ : pfx(π) ∈ Σ₀.B)`
+  **O14.7 (NonNesting):** `(A π₁, π₂ ∈ Π₀ : π₁ ≠ π₂ ⟹ pfx(π₁) ⋠ pfx(π₂) ∧ pfx(π₂) ⋠ pfx(π₁))`
 
-  `Σ₀.B is an ASN-0040-reachable registry conforming to B₀ conf.`
+  **O14.8 (Baptized):** `(A π ∈ Π₀ : pfx(π) ∈ Σ₀.B)`
 
-In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with a node-level prefix (`zeros = 0 ≤ 1`); non-nesting holds vacuously (a singleton set has no distinct pairs), and all other base-case clauses hold trivially — a single-component positive tumbler like `[1]` satisfies T4 (no zeros, no adjacency or boundary violations). In a multi-node system, `Π₀` contains one initial principal per node (e.g., principals at `[1]` and `[2]`), each independently covering its node's allocatable addresses. These are node-level prefixes (satisfying the third clause), distinct node addresses are distinct tumblers (satisfying the fourth clause by T3), each is a positive single-component tumbler satisfying T4 (satisfying the fifth clause), and no single-component positive tumbler is a prefix of another single-component positive tumbler with a different value (satisfying the sixth clause).
+  **O14.9 (Registry):** `Σ₀.B is an ASN-0040-reachable registry conforming to B₀ conf.`
+
+In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with a node-level prefix (`zeros = 0 ≤ 1`); non-nesting holds vacuously (a singleton set has no distinct pairs), and all other base-case clauses hold trivially — a single-component positive tumbler like `[1]` satisfies T4 (no zeros, no adjacency or boundary violations). In a multi-node system, `Π₀` contains one initial principal per node (e.g., principals at `[1]` and `[2]`), each independently covering its node's allocatable addresses. These are node-level prefixes (satisfying O14.4 (AccountTier)), distinct node addresses are distinct tumblers (satisfying O14.5 (Injective) by T3), each is a positive single-component tumbler satisfying T4 (satisfying O14.6 (Valid)), and no single-component positive tumbler is a prefix of another single-component positive tumbler with a different value (satisfying O14.7 (NonNesting)).
 
 **O15 (PrincipalClosure).** Principals enter Π exclusively through bootstrap (in Π₀) or through a delegation act of an existing principal subject to five structural conditions, named the *delegation predicate* `delegated_Σ(π, π')`; no other mechanism introduces principals. Each state transition introduces at most one new principal, and any newly introduced principal `π'` traces back to a delegating predecessor `π` whose prefix is a strict ancestor of `pfx(π')`:
 
@@ -176,7 +178,7 @@ Nelson's design contains no concept of principals appearing outside the delegati
 
 We name a *parent relation* `R_Σ` on `Π_Σ` and write `covers_Σ*` for its reflexive-transitive closure. For a non-bootstrap principal `π' ∈ Π_Σ`, `R_Σ(π, π')` holds iff `π` is the most-specific covering principal of `pfx(π')` in `Π_Σ` — the unique `π ∈ Π_Σ` with `pfx(π) ≺ pfx(π')` of maximal prefix length. This `π` is unique: the covering principals of the common tumbler `pfx(π')` are `≼`-comparable (covering-chain lemma, Ownership Domains section) and have pairwise distinct prefixes (O1b), so their prefix lengths are distinct and a single maximal-length one exists. Then `covers_Σ* = ∪_{m ≥ 0} R_Σ^m`, where `R_Σ^0` is the identity relation on `Π_Σ` and `R_Σ^{m+1} = R_Σ^m ∘ R_Σ`. Equivalently, `covers_Σ*(π, π')` iff `π = π'` or there is a finite chain `π = π^{(0)}, π^{(1)}, ..., π^{(m)} = π'` (`m ≥ 1`) of principals in `Π_Σ` with each consecutive pair `(π^{(j)}, π^{(j+1)})` related by `R_Σ`.
 
-**Delegation edges are cover edges (bridge).** A real delegation event and a structural cover step coincide on the edge they introduce: whenever `delegated_Σ(π_d, π')` holds along `Σ → Σ'`, condition (ii) makes `π_d` the most-specific principal of `Π_Σ` covering `pfx(π')`. Evaluating `R_{Σ'}` over `Π_{Σ'} = Π_Σ ∪ {π'}`, the only candidate not already in `Π_Σ` is `π'` itself, and `π'` cannot be a strict cover of its own prefix (`pfx(π') ⊀ pfx(π')`); so the most-specific strict cover of `pfx(π')` in `Π_{Σ'}` coincides with that in `Π_Σ`, namely `π_d`, and `R_{Σ'}(π_d, π')` holds. (Persistence of this edge into states beyond `Σ'` follows separately from O13 (PrefixImmutability), which fixes `pfx(π')` against later transitions.) Hence every chain of delegation events is a `covers`-chain.
+**Delegation edges are cover edges (bridge).** A real delegation event and a structural cover step coincide on the edge they introduce: whenever `delegated_Σ(π_d, π')` holds along `Σ → Σ'`, condition (ii) makes `π_d` the most-specific principal of `Π_Σ` covering `pfx(π')`. Evaluating `R_{Σ'}` over `Π_{Σ'} = Π_Σ ∪ {π'}`, the only candidate not already in `Π_Σ` is `π'` itself, and `π'` cannot be a strict cover of its own prefix (`pfx(π') ⊀ pfx(π')`); so the most-specific strict cover of `pfx(π')` in `Π_{Σ'}` coincides with that in `Π_Σ`, namely `π_d`, and `R_{Σ'}(π_d, π')` holds. This edge persists into every later state by O13 (PrefixImmutability), which fixes `pfx(π')` against subsequent transitions. Hence every chain of delegation events is a `covers`-chain.
 
 **NestingByDelegation (derived).** In every reachable state `Σ`, any two distinct principals are either non-nesting in their prefixes, or one strictly extends the other and the extending principal was introduced into `Π` via a chain of delegations originating at the shorter-prefix principal:
 
@@ -189,7 +191,7 @@ where `covers_Σ*` is the reflexive-transitive closure of the parent relation `R
 
 We derive this by induction on the transition sequence `Σ₀ → Σ_1 → ... → Σ`.
 
-*Base case:* By O14's sixth clause, all initial principals in `Π_{Σ_0}` have pairwise non-nesting prefixes. So the first disjunct holds directly for every pair `π₁, π₂ ∈ Π_{Σ_0}` with `π₁ ≠ π₂`.
+*Base case:* By O14.7 (NonNesting), all initial principals in `Π_{Σ_0}` have pairwise non-nesting prefixes. So the first disjunct holds directly for every pair `π₁, π₂ ∈ Π_{Σ_0}` with `π₁ ≠ π₂`.
 
 *Inductive step:* Suppose the invariant holds at `Σ_n` and `Σ_n → Σ_{n+1}` via some delegation `delegated_{Σ_n}(π_d, π')` introducing `π'` (by O15, at most one new principal per step; if none is introduced, the invariant is preserved trivially — every disjunct at `Σ_n` lifts to `Σ_{n+1}` by the witness-preservation argument given immediately below). Consider any pair `π₁, π₂ ∈ Π_{Σ_{n+1}}` with `π₁ ≠ π₂`. If both lie in `Π_{Σ_n}`, the IH applies at `Σ_n` and each disjunct lifts to `Σ_{n+1}`. *Witness preservation:* the non-nesting disjunct depends only on the two prefixes, which are preserved across `Σ_n → Σ_{n+1}` by O13 (PrefixImmutability) — `pfx_{Σ_{n+1}}(π_j) = pfx_{Σ_n}(π_j)` for `j ∈ {1, 2}`, since both lie in `Π_{Σ_n}` — so non-nesting at `Σ_n` carries over to `Σ_{n+1}`. The strict-extension disjuncts have the form `covers_{Σ_n}*(π_a, π_b)`, a chain of `R_{Σ_n}`-steps; since `R` is monotone — `R_{Σ_n} ⊆ R_{Σ_{n+1}}`, because prefixes are immutable (O13) and the most-specific covering principal of any prefix is preserved as `Π` grows — the same chain witnesses `covers_{Σ_{n+1}}*(π_a, π_b)`. The preservation is by condition (iv): if `π'` (the one newcomer admitted by `Σ_n → Σ_{n+1}`) had a prefix strictly between `pfx(π)` and some `pfx(π_b)` already covered by `π` in `Π_{Σ_n}`, then `pfx(π') ≺ pfx(π_b)` with `π_b ∈ Π_{Σ_n} ⊆ Π_{Σ_{n+1}}`, violating condition (iv) — `¬(E π'' ∈ Π_{Σ_n} : pfx(π') ≺ pfx(π''))` — at `π'`'s own introducing step. So no newcomer can interpose itself as a more-specific cover, and `R_{Σ_n}`-edges persist into `Σ_{n+1}`. Otherwise one of `π₁, π₂` is `π'`; without loss of generality let `π₂ = π'` and `π₁ ∈ Π_{Σ_n}` (`π₁ = π'` would force `π₁ = π₂`). Compare `pfx(π₁)` and `pfx(π')`:
 
@@ -235,7 +237,7 @@ Composing this principal-introduction clause with the general baptism branch det
 
   `(A Σ : Σ reachable from Σ₀ : Σ.B is an ASN-0040-reachable registry conforming to B₀ conf.)`
 
-*Base case.* `Σ₀.B` is an ASN-0040-reachable registry conforming to B₀ conf., by O14's bootstrap-registry clause.
+*Base case.* `Σ₀.B` is an ASN-0040-reachable registry conforming to B₀ conf., by O14.9 (Registry).
 
 *Inductive step.* By O17b (BaptismalRegistryCoupling), each transition `Σ → Σ'` either leaves the registry untouched (`Σ'.B = Σ.B`, preserving reachability trivially) or restricts to a single `Bop(p, d)` edge with `(p, d)` B6-valid (`Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}`). ASN-0040's transition relation is closed over reachable registries — a `Bop(p, d)` step from an ASN-0040-reachable registry yields an ASN-0040-reachable registry — so `Σ'.B` is reachable whenever `Σ.B` is. ∎
 
@@ -247,7 +249,7 @@ Composing this principal-introduction clause with the general baptism branch det
 
 **Freshness-(v) (derived).** Condition (v) states directly the two facts about the delegate prefix at `Σ` that the ownership theorems consume: (T4) it is a valid address — `T4(pfx(π'))` — and (fresh) it is unbaptized — `pfx(π') ∉ Σ.B`. Under the weakened (v) these are immediate (they *are* condition (v)); we retain the name Freshness-(v) as the handle by which downstream proofs cite the pair. The complementary baptism-stream form `pfx(π') = next(Σ.B, p, d)` for a B6-valid `(p, d)` is supplied separately by O17b (BaptismalRegistryCoupling), and is mutually consistent with (v): B6 sufficiency would in any case give `T4(next(Σ.B, p, d))` (every element of the stream `S(p, d)` satisfies T4 — no adjacent zeros, no leading or trailing zero), and ASN-0040's `Bop` postcondition `next(s.B, p, d) ∉ s.B` would in any case give freshness, so the two primitives never conflict.
 
-**Shared invariant induction (O1a / O1b / T4-validity).** O1a (AccountOwnershipBoundary), O1b (PrefixInjectivity), and T4-validity of every principal's prefix are reachable-state invariants, established here — after the axioms O12–O15, O14 and the derived fact Freshness-(v) on which the base and step cases depend — by a single induction on the reachability sequence with a common base case and non-delegation step and a per-invariant delegation step. *Base:* the corresponding clause of O14 holds on `Π₀` — third clause for O1a (`zeros(pfx(π)) ≤ 1`), fourth clause for O1b (`pfx` injective), fifth clause for T4 (`T4(pfx(π))`). *Non-delegation step:* O15 admits no new principal and O13 (PrefixImmutability) fixes existing prefixes, so any property of the principal-to-prefix assignment carries unchanged from `Π_Σ` to `Π_{Σ'}`. *Delegation step:* in each case existing principals persist by O12 (PrincipalPersistence) with prefixes preserved by O13, so it remains to discharge the sole new principal `π'`:
+**Shared invariant induction (O1a / O1b / T4-validity).** O1a (AccountOwnershipBoundary), O1b (PrefixInjectivity), and T4-validity of every principal's prefix are reachable-state invariants, established here — after the axioms O12–O15, O14 and the derived fact Freshness-(v) on which the base and step cases depend — by a single induction on the reachability sequence with a common base case and non-delegation step and a per-invariant delegation step. *Base:* the corresponding conjunct of O14 holds on `Π₀` — O14.4 (AccountTier) for O1a (`zeros(pfx(π)) ≤ 1`), O14.5 (Injective) for O1b (`pfx` injective), O14.6 (Valid) for T4 (`T4(pfx(π))`). *Non-delegation step:* O15 admits no new principal and O13 (PrefixImmutability) fixes existing prefixes, so any property of the principal-to-prefix assignment carries unchanged from `Π_Σ` to `Π_{Σ'}`. *Delegation step:* in each case existing principals persist by O12 (PrincipalPersistence) with prefixes preserved by O13, so it remains to discharge the sole new principal `π'`:
 
 - *O1a:* `π'` satisfies `zeros(pfx(π')) ≤ 1` by condition (iii).
 - *T4:* Freshness-(v) supplies `T4(pfx(π'))` directly.
@@ -269,7 +271,7 @@ Hence every principal in every reachable state satisfies all three invariants. T
 
 We derive this by induction on the transition sequence `Σ₀ → Σ_1 → ... → Σ`.
 
-*Base case.* In the initial state `Σ₀`, the claim is `(A π ∈ Π_{Σ_0} : pfx(π) ∈ Σ_0.B)`. This is O14's seventh clause directly.
+*Base case.* In the initial state `Σ₀`, the claim is `(A π ∈ Π_{Σ_0} : pfx(π) ∈ Σ_0.B)`. This is O14.8 (Baptized) directly.
 
 *Inductive step.* Assume every `π ∈ Π_{Σ_n}` satisfies `pfx_{Σ_n}(π) ∈ Σ_n.B`, and consider a transition `Σ_n → Σ_{n+1}`. By O15 (PrincipalClosure), every principal in `Π_{Σ_{n+1}}` either was already present in `Π_{Σ_n}` or is the unique newcomer admitted by the delegation conditions (since `|Π_{Σ_{n+1}} ∖ Π_{Σ_n}| ≤ 1`). Let `π ∈ Π_{Σ_{n+1}}` be arbitrary; two cases exhaust its membership.
 
@@ -301,7 +303,7 @@ We first state a coverage requirement — every allocated address falls within s
 
 The reachability quantifier is essential: the proof is by induction on the length of the transition sequence leading to `Σ`, and the induction operates along the witnessing path. We prove that in every reachable state `Σ`, every allocated address is covered by at least one principal's prefix.
 
-*Base case.* In the initial state `Σ₀`, the claim is `(A a ∈ Σ₀.B : (E π ∈ Π₀ : pfx(π) ≼ a))`. This is the coverage conjunct of O14's first clause (BootstrapPrincipal), which asserts exactly that the initial principals cover all initially allocated addresses. The base case holds.
+*Base case.* In the initial state `Σ₀`, the claim is `(A a ∈ Σ₀.B : (E π ∈ Π₀ : pfx(π) ≼ a))`. This is O14.2 (Coverage), which asserts exactly that the initial principals cover all initially allocated addresses. The base case holds.
 
 *Inductive step.* Assume the claim holds in state `Σ`: every `a ∈ Σ.B` has a covering principal in `Π_Σ`. We must show it holds in any successor state `Σ'` with `Σ → Σ'`. Let `a ∈ Σ'.B` be an arbitrary allocated address. Two cases arise, exhausting `Σ'.B = Σ.B ∪ (Σ'.B ∖ Σ.B)`.
 
@@ -548,7 +550,7 @@ O5 (SubdivisionAuthority) constrains the allocator of any newly baptized address
 
 *Postcondition (c): recursive delegation (conditional on remaining most-specific).*
 
-Since `π' ∈ Π_{Σ'}`, the delegation relation's conditions are satisfiable with `π'` as delegator for a sub-prefix `p''` with `pfx(π') ≺ p''` *immediately upon entry* — that is, at `Σ'`. Condition (i) holds by the choice of `p''`. Condition (ii) requires that `π'` be the most-specific covering principal of `p''` in `Π_{Σ'}` — equivalently, no `π'' ∈ Π_{Σ'}` with `pfx(π'') ≼ p''` has `#pfx(π'') > #pfx(π')`. We derive this directly from condition (iv) of the original delegation `delegated_Σ(π, π')`: `¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))` — no principal in `Π_Σ` has a prefix strictly extending `pfx(π')`. By O15, `Π_{Σ'} ∖ Π_Σ = {π'}`, and `pfx(π')` does not strictly extend itself, so the same non-existence carries over: no `π'' ∈ Π_{Σ'}` has `pfx(π') ≺ pfx(π'')`. Hence no covering principal of `p''` in `Π_{Σ'}` has prefix length exceeding `#pfx(π')`; `π'` achieves the maximum, satisfying condition (ii). Condition (iii) (`zeros(p'') ≤ 1`) genuinely constrains the target prefix `p''` and is an obligation on the choice of delegate prefix. Condition (iv) — `¬(E π'' ∈ Π_{Σ'} : p'' ≺ pfx(π''))` — is, by contrast, discharged at `Σ'` independent of the choice of `p''`: any `π'' ∈ Π_Σ` with `p'' ≺ pfx(π'')` would, since `pfx(π') ≺ p''`, also satisfy `pfx(π') ≺ pfx(π'')`, contradicting the original delegation's condition (iv); and the sole new principal `π'` (by O15) does not extend `p''`, since `pfx(π') ≺ p''`. So no principal in `Π_{Σ'}` strictly extends `p''`, regardless of how `p''` is chosen. The remaining obligations on `p''` are (iii) [structural-tier] and (v) [fresh-valid: `T4(p'') ∧ p'' ∉ Σ'.B`]. The admissible delegate prefixes are further constrained by O17b: the transition admitting `π''` must take the baptism branch, so `p''` is a next-reachable stream extension — `p'' = next(Σ'.B, p, d)` for some B6-valid `(p, d)` — the high-water-mark successor of an already-baptized prefix, not an arbitrary strict descendant of `pfx(π')`. This recursive right is established only for the entry state `Σ'`: at an arbitrary later delegation state an intervening delegation may interpose a more-specific cover of `p''` and falsify (ii), so we do not assert satisfiability there.
+Since `π' ∈ Π_{Σ'}`, the delegation relation's conditions are satisfiable with `π'` as delegator for a sub-prefix `p''` with `pfx(π') ≺ p''` *immediately upon entry* — that is, at `Σ'`. Condition (i) holds by the choice of `p''`. Condition (ii) requires that `π'` be the most-specific covering principal of `p''` in `Π_{Σ'}` — equivalently, no `π'' ∈ Π_{Σ'}` with `pfx(π'') ≼ p''` has `#pfx(π'') > #pfx(π')`. We derive this directly from condition (iv) of the original delegation `delegated_Σ(π, π')`: `¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))` — no principal in `Π_Σ` has a prefix strictly extending `pfx(π')`. By O15, `Π_{Σ'} ∖ Π_Σ = {π'}`, and `pfx(π')` does not strictly extend itself, so the same non-existence carries over: no `π'' ∈ Π_{Σ'}` has `pfx(π') ≺ pfx(π'')`. Hence no covering principal of `p''` in `Π_{Σ'}` has prefix length exceeding `#pfx(π')`; `π'` achieves the maximum, satisfying condition (ii). Condition (iv) — `¬(E π'' ∈ Π_{Σ'} : p'' ≺ pfx(π''))` — holds independent of the choice of `p''`: any `π'' ∈ Π_Σ` with `p'' ≺ pfx(π'')` would, since `pfx(π') ≺ p''`, also satisfy `pfx(π') ≺ pfx(π'')`, contradicting the original delegation's (iv); and the sole new principal `π'` (by O15) does not extend `p''`, since `pfx(π') ≺ p''`. Conditions (i), (ii), and (iv) are thus automatic at `Σ'`. The binding obligations on `p''` are exactly (iii) [structural-tier: `zeros(p'') ≤ 1`] and (v) [fresh-valid: `T4(p'') ∧ p'' ∉ Σ'.B`]. O17b further fixes the form: the admitting transition takes the baptism branch, so `p'' = next(Σ'.B, p, d)` for some B6-valid `(p, d)` — a next-reachable stream extension of an already-baptized prefix, not an arbitrary strict descendant of `pfx(π')`. The claim is asserted only at the entry state `Σ'` (postcondition (c)).
 
 The authorization constraint is carried by the `delegated` relation — condition (ii) requires `π` to be the most-specific covering principal. This prevents a grandparent from delegating within a sub-domain it has already handed off: if `π₁` delegates `[1, 0, 2, 3]` to `π₂`, then `π₁` cannot subsequently delegate `[1, 0, 2, 3, 5]` to `π₃`, because `π₂` — not `π₁` — is the most-specific covering principal for that prefix.
 
@@ -651,7 +653,7 @@ We must establish that such an `a'` exists in every reachable state — that `π
 
 *Construction.* By RegistryReachability, every reachable `Σ.B` is an ASN-0040-reachable registry, so `hwm` and `next` are well-defined on it (their B1 and finiteness preconditions hold). Set `a' = next(Σ.B, pfx(π), 2)`, the single baptism in the stream `S(pfx(π), 2)`. Every element of `S(pfx(π), 2)` has the form `pfx(π).0.k` for `k ≥ 1` (ASN-0040 SiblingStream), so `pfx(π) ≼ a'` (the first `#pfx(π)` components of `a'` reproduce `pfx(π)`), hence `a' ∈ odom(π)`. The depth-2 increment opens exactly one zero separator beyond `pfx(π)` (B5) and sibling advance preserves the zero count (B5a), so `zeros(a') = zeros(pfx(π)) + 1`: the resulting `a'` is at user level (`zeros(a') = 1`) when `zeros(pfx(π)) = 0`, and at document level (`zeros(a') = 2`) when `zeros(pfx(π)) = 1`.
 
-*B6 verification.* The single baptism invokes `Bop(pfx(π), 2)`. ASN-0040's B6 (ValidDepth) requires (i) `T4(pfx(π))`, (ii) `d ∈ {1, 2}`, and (iii) `zeros(pfx(π)) + (d − 1) ≤ 3`. With `d = 2`: by O1a, `zeros(pfx(π)) ∈ {0, 1}`, so `zeros(pfx(π)) + (d − 1) = zeros(pfx(π)) + 1 ∈ {1, 2}`, both bounded by `3`. `T4(pfx(π))` holds via O14's fifth clause for bootstrap principals and, for subsequently introduced principals, via Freshness-(v) (preserved by O13). B6 is satisfied; the baptism is a well-defined operation of ASN-0040.
+*B6 verification.* The single baptism invokes `Bop(pfx(π), 2)`. ASN-0040's B6 (ValidDepth) requires (i) `T4(pfx(π))`, (ii) `d ∈ {1, 2}`, and (iii) `zeros(pfx(π)) + (d − 1) ≤ 3`. With `d = 2`: by O1a, `zeros(pfx(π)) ∈ {0, 1}`, so `zeros(pfx(π)) + (d − 1) = zeros(pfx(π)) + 1 ∈ {1, 2}`, both bounded by `3`. `T4(pfx(π))` holds via O14.6 (Valid) for bootstrap principals and, for subsequently introduced principals, via Freshness-(v) (preserved by O13). B6 is satisfied; the baptism is a well-defined operation of ASN-0040.
 
 *Non-coverage analysis.* We show `ω_{Σ'}(a') = π` by ruling out sub-delegate coverage of `a'`. Every sub-delegate `π_i` of `π` (i.e., `π_i ∈ Π_Σ` with `pfx(π) ≺ pfx(π_i)`) satisfies `zeros(pfx(π_i)) ≤ 1` by O1a. Classify by the component of `pfx(π_i)` at position `#pfx(π) + 1`:
 
@@ -680,9 +682,9 @@ We verify the properties against a concrete scenario. Let principals `π_N` and 
 
 *Convention.* Subscript labels `Σ_0, Σ_1, Σ_2, …` denote trajectory milestones, not single transitions; each segment may comprise multiple `Bop` calls whose cumulative `Σ.B` is recorded at the next milestone (order-immaterial by B0 Irrevocability of ASN-0040).
 
-We check that O14's bootstrap clauses are satisfied: `Π₀ ≠ ∅`; each `pfx` has `zeros ≤ 1` (both have `zeros = 0`); `pfx` is injective on `Π₀` (`[1] ≠ [2]`); each prefix satisfies T4 (HierarchicalParsing — single positive component, zero-count `0 ≤ 3`) and T4a (SyntacticEquivalence — no adjacent zeros, no leading or trailing zero — vacuously, since there are no zeros); the pair is non-nesting (`[1] ⋠ [2]` and `[2] ⋠ [1]`, since component 1 differs); and each principal's prefix lies in `Σ₀.B` (we assume the bootstrap state was seeded with `[1], [2] ∈ Σ₀.B`, satisfying O14's seventh clause; additional seeds required for downstream B1 obligations are tabulated below). `|Π₀| = 2 < ∞`. ✓
+We check that O14's bootstrap clauses are satisfied: `Π₀ ≠ ∅`; each `pfx` has `zeros ≤ 1` (both have `zeros = 0`); `pfx` is injective on `Π₀` (`[1] ≠ [2]`); each prefix satisfies T4 (HierarchicalParsing — single positive component, zero-count `0 ≤ 3`) and T4a (SyntacticEquivalence — no adjacent zeros, no leading or trailing zero — vacuously, since there are no zeros); the pair is non-nesting (`[1] ⋠ [2]` and `[2] ⋠ [1]`, since component 1 differs); and each principal's prefix lies in `Σ₀.B` (we assume the bootstrap state was seeded with `[1], [2] ∈ Σ₀.B`, satisfying O14.8 (Baptized); additional seeds required for downstream B1 obligations are tabulated below). `|Π₀| = 2 < ∞`. ✓
 
-**Bootstrap seeds.** `Σ_0`'s baptismal registry is a single bootstrap snapshot whose well-formedness (B1 contiguity, B6 depth) is ASN-0040's responsibility. From the ownership perspective only two facts matter: which addresses are in `Σ_0.B`, and who covers them. Beyond `[1], [2]` (O14's seventh clause), we seed four positions, all covered by `π_N` (since `[1] ≼ ·` and `[2] ⋠ ·` for each):
+**Bootstrap seeds.** `Σ_0`'s baptismal registry is a single bootstrap snapshot whose well-formedness (B1 contiguity, B6 depth) is ASN-0040's responsibility. From the ownership perspective only two facts matter: which addresses are in `Σ_0.B`, and who covers them. Beyond `[1], [2]` (O14.8 (Baptized)), we seed four positions, all covered by `π_N` (since `[1] ≼ ·` and `[2] ⋠ ·` for each):
 
 | Seed | Coverage in `Π_0` |
 |------|-------------------|
@@ -784,8 +786,8 @@ The fork transforms the ownership boundary into a creative act: `π_A` now has a
 | Label | Statement | Status |
 |-------|-----------|--------|
 | O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment; decidability postcondition: decidable from `pfx(π)` and `a` alone, without mutable state | definition (decidability via Prefix, T3) |
-| O1a | `(A Σ reachable from Σ₀, π ∈ Π_Σ : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | derived invariant; base case O14(iii), preserved by Delegation cond. (iii), O13, O15 |
-| O1b | `pfx` is injective — distinct principals have distinct prefixes | derived invariant; base case O14(iv), preserved by Delegation length contradiction, O13, O15 |
+| O1a | `(A Σ reachable from Σ₀, π ∈ Π_Σ : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | derived invariant; base case O14.4, preserved by Delegation cond. (iii), O13, O15 |
+| O1b | `pfx` is injective — distinct principals have distinct prefixes | derived invariant; base case O14.5, preserved by Delegation length contradiction, O13, O15 |
 | O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | from O4, O1b, Prefix, T3, Covering-chain lemma |
 | Covering-chain lemma (PrefixesOfCommonAddressAreComparable) | `(A x, p, q ∈ T : p ≼ x ∧ q ≼ x ⟹ p ≼ q ∨ q ≼ p)` — any two tumbler prefixes of a common address are `≼`-comparable | from Prefix, T3 |
 | SelfOwnershipAtPrefix | `(A Σ reachable, π ∈ Π_Σ : ω_Σ(pfx(π)) = π)` — every principal effectively owns its own prefix | from O1b, O2, PrefixBaptismCoupling |
@@ -803,13 +805,13 @@ The fork transforms the ownership boundary into a creative act: `π_A` now has a
 | O13 | `pfx_{Σ'}(π) = pfx_Σ(π)` for all transitions — prefix immutability | axiom |
 | O14 | `Π₀ ≠ ∅`, initial principals cover all initially allocated addresses, `\|Π₀\| < ∞`, `zeros ≤ 1`, `pfx` injective on `Π₀`, `T4(pfx(π))`, pairwise non-nesting, and every initial principal's prefix lies in `Σ₀.B` — bootstrap with finiteness/O1a/O1b/T4/non-nesting/O18 base cases | axiom |
 | O15 | Principals enter Π exclusively through bootstrap or delegation; `\|Π_{Σ'} ∖ Π_Σ\| ≤ 1` per transition | axiom |
-| NestingByDelegation | `(A Σ reachable, π₁ ≠ π₂ ∈ Π_Σ : pfx(π₁), pfx(π₂) non-nesting ∨ covers_Σ*(π₁, π₂) ∨ covers_Σ*(π₂, π₁))` — distinct principals are either non-nesting or related by a cover-chain (`R_Σ`-closure), which by the delegation-edges-are-cover-edges bridge is a chain of delegation events | from O1b, O12, O13, O14(vi), O15, delegation condition (iv), covering-chain lemma |
+| NestingByDelegation | `(A Σ reachable, π₁ ≠ π₂ ∈ Π_Σ : pfx(π₁), pfx(π₂) non-nesting ∨ covers_Σ*(π₁, π₂) ∨ covers_Σ*(π₂, π₁))` — distinct principals are either non-nesting or related by a cover-chain (`R_Σ`-closure), which by the delegation-edges-are-cover-edges bridge is a chain of delegation events | from O1b, O12, O13, O14.7, O15, delegation condition (iv), covering-chain lemma |
 | O16 | `(A a ∈ Σ'.B ∖ Σ.B : (E π ∈ Π_Σ : allocated_by_{Σ'}(π, a)))` — allocation closure | axiom |
 | O17 | `(A Σ, a : a ∈ Σ.B ⟹ T4(a))` — every allocated address is a valid tumbler | derived via RegistryReachability from ASN-0040 B10 |
 | O17b | Every registry-changing ownership transition is an ASN-0040 baptism: `Σ'.B = Σ.B ∨ Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}` for some B6-valid `(p, d)`; principal-introducing transitions take the baptism branch, baptizing `pfx(π')` (`Σ'.B = Σ.B ∪ {pfx(π')}`) | axiom (coupling) |
 | O18 | `Σ → Σ' ∧ π' ∈ Π_{Σ'} ∖ Π_Σ ⟹ pfx(π') ∈ Σ'.B ∖ Σ.B` — delegation materially baptizes the delegate's prefix as a fresh registration | derived from O17b coupling (baptism branch) and Freshness-(v) |
-| RegistryReachability | `(A Σ reachable : Σ.B is an ASN-0040-reachable registry conforming to B₀ conf.)` — discharges the `next`/`hwm`/B1/B6 preconditions wherever they are invoked | derived invariant; base case O14 bootstrap-registry clause, step O17b (`Bop` edge, ASN-0040-closed) |
-| PrefixBaptismCoupling | `(A Σ reachable, π ∈ Π_Σ : pfx(π) ∈ Σ.B)` — every principal's prefix is itself baptized in every reachable state | from O13, O14(vii), O15, O18, B0 (ASN-0040) |
+| RegistryReachability | `(A Σ reachable : Σ.B is an ASN-0040-reachable registry conforming to B₀ conf.)` — discharges the `next`/`hwm`/B1/B6 preconditions wherever they are invoked | derived invariant; base case O14.9 (Registry), step O17b (`Bop` edge, ASN-0040-closed) |
+| PrefixBaptismCoupling | `(A Σ reachable, π ∈ Π_Σ : pfx(π) ∈ Σ.B)` — every principal's prefix is itself baptized in every reachable state | from O13, O14.8, O15, O18, B0 (ASN-0040) |
 | `ω_Σ(a)` | `ω_Σ : Σ.B → Π_Σ` — the state-relativized effective owner function (defined only for allocated addresses; both input and output are state-indexed) | from O4, O1b, Prefix, T3 |
 | OwnershipDomain | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
 | `acct(a)` | the node-and-user account field of `a`, with `zeros(acct(a)) ≤ 1` — case definition in AccountField (*The Account-Level Boundary*) | from T4b, T3 |
