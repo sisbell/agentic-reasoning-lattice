@@ -237,8 +237,6 @@ Gregory's implementation corroborates the coupling: every registry write in udan
 
   `(A Σ, Σ', π' : Σ → Σ' ∧ π' ∈ Π_{Σ'} ∖ Π_Σ ⟹ pfx(π') ∈ Σ'.B ∖ Σ.B)`
 
-The single allocation point corroborated at O17b never re-purposes a previously baptized tumbler as a new principal's prefix, confirming the freshness conjunct.
-
 **NamespacePrincipalExclusivity (derived).** For any prefix `p`, namespace baptism and principal baptism are mutually exclusive futures: once `p ∈ Σ.B` (baptized as an organizational namespace by a non-delegating baptism, or already consumed by a prior delegation), no later transition can adopt `p` as a new principal's prefix. Proof: delegation of `p` requires freshness `p ∉ Σ.B` — discharged by Freshness-(v) — and, by O18, materially baptizes `p` at the introducing transition. Since `Σ.B` only grows (B0 of ASN-0040), `p ∈ Σ.B` makes the freshness requirement fail permanently — so `p` can never become a principal's prefix, and a delegation that does adopt `p` consumes it against any second adoption.
 
 **PrefixBaptismCoupling (derived).** In every reachable state, every principal's prefix is itself baptized:
@@ -397,9 +395,9 @@ Assume `Σ` reachable from `Σ₀`, `π ∈ Π_Σ`, `a ∈ odom(π) ∩ Σ.B`, `
 
 *Step 1 — a new principal with a strictly longer matching prefix witnesses the change.* By O3 (OwnershipRefinement) (whose reachability precondition is satisfied by the present hypothesis), `ω_{Σ'}(a) ≠ ω_Σ(a)` implies the existence of `π' ∈ Π_{Σ'} ∖ Π_Σ` with `pfx(π') ≼ a` and `#pfx(π') > #pfx(ω_Σ(a))`. By O15 (PrincipalClosure), `π'` entered `Π` either through bootstrap (`π' ∈ Π₀`) or through delegation. By BootstrapContainment, `Π₀ ⊆ Π_Σ`; combined with `π' ∉ Π_Σ`, this excludes `π' ∈ Π₀`, ruling out the bootstrap case. The remaining clause of O15 applies: there exists `π_d ∈ Π_Σ` with `delegated_Σ(π_d, π')`.
 
-*Step 2 — the new principal's prefix strictly extends `pfx(π)`.* Since `a ∈ odom(π)`, we have `pfx(π) ≼ a`. The chain `#pfx(π') > #pfx(ω_Σ(a)) ≥ #pfx(π)` holds: the second inequality follows because `π ∈ Π_Σ` covers `a`, and `ω_Σ(a)` is by O2 the longest-prefix covering principal in `Π_Σ`. Hence `#pfx(π') > #pfx(π)`. Both `pfx(π)` and `pfx(π')` are prefixes of `a`. From the definition of the prefix relation — `p ≼ a` iff `#a ≥ #p ∧ (A i : 1 ≤ i ≤ #p : pᵢ = aᵢ)` — we have `pfx(π)ᵢ = aᵢ` for `1 ≤ i ≤ #pfx(π)` and `pfx(π')ᵢ = aᵢ` for `1 ≤ i ≤ #pfx(π')`. Taking WLOG the shorter `#pfx(π)` ≤ `#pfx(π')` (established above), for each `i ≤ #pfx(π)` both equalities give `pfx(π)ᵢ = aᵢ = pfx(π')ᵢ`. Hence `pfx(π) ≼ pfx(π')` by the same definition. Combined with the strict length inequality, `pfx(π) ≺ pfx(π')`.
+*Step 2 — the new principal's prefix strictly extends `pfx(π)`.* Since `a ∈ odom(π)`, we have `pfx(π) ≼ a`. The chain `#pfx(π') > #pfx(ω_Σ(a)) ≥ #pfx(π)` holds: the second inequality follows because `π ∈ Π_Σ` covers `a`, and `ω_Σ(a)` is by O2 the longest-prefix covering principal in `Π_Σ`. Hence `#pfx(π') > #pfx(π)`. Both `pfx(π)` and `pfx(π')` are prefixes of the common address `a`, so by the covering-chain lemma (PrefixesOfCommonAddressAreComparable, *Ownership Domains* section) they are `≼`-comparable; the strict length inequality `#pfx(π) < #pfx(π')` fixes the direction, giving `pfx(π) ≼ pfx(π')` and hence `pfx(π) ≺ pfx(π')`.
 
-*Step 3 — the delegator's prefix extends `pfx(π)`.* By condition (i) of the `delegated` relation, `pfx(π_d) ≺ pfx(π')`. By condition (ii), `π_d` is the most-specific covering principal of `pfx(π')` in `Π_Σ`: `(A π'' ∈ Π_Σ : pfx(π'') ≼ pfx(π') ⟹ #pfx(π'') ≤ #pfx(π_d))`. From Step 2, `pfx(π) ≼ pfx(π')` and `π ∈ Π_Σ`, so taking `π'' = π` gives `#pfx(π) ≤ #pfx(π_d)`. Both `pfx(π)` and `pfx(π_d)` are prefixes of `pfx(π')` (the former by Step 2; the latter by condition (i)). Applying the definition of `≼` to `pfx(π')` as the common extending tumbler: `pfx(π)ᵢ = pfx(π')ᵢ` for `1 ≤ i ≤ #pfx(π)` and `pfx(π_d)ᵢ = pfx(π')ᵢ` for `1 ≤ i ≤ #pfx(π_d)`. For each `i ≤ #pfx(π)` (which is `≤ #pfx(π_d)`) both equalities hold, giving `pfx(π)ᵢ = pfx(π_d)ᵢ`. Hence `pfx(π) ≼ pfx(π_d)`.
+*Step 3 — the delegator's prefix extends `pfx(π)`.* By condition (i) of the `delegated` relation, `pfx(π_d) ≺ pfx(π')`. By condition (ii), `π_d` is the most-specific covering principal of `pfx(π')` in `Π_Σ`: `(A π'' ∈ Π_Σ : pfx(π'') ≼ pfx(π') ⟹ #pfx(π'') ≤ #pfx(π_d))`. From Step 2, `pfx(π) ≼ pfx(π')` and `π ∈ Π_Σ`, so taking `π'' = π` gives `#pfx(π) ≤ #pfx(π_d)`. Both `pfx(π)` and `pfx(π_d)` are prefixes of the common tumbler `pfx(π')` (the former by Step 2; the latter by condition (i)), so by the covering-chain lemma (PrefixesOfCommonAddressAreComparable, *Ownership Domains* section) they are `≼`-comparable; the length inequality `#pfx(π) ≤ #pfx(π_d)` fixes the direction, giving `pfx(π) ≼ pfx(π_d)`.
 
 Steps 1–3 establish the postcondition for a single transition: `(E π_d ∈ Π_Σ : pfx(π) ≼ pfx(π_d) ∧ (E π' ∈ Π_{Σ'} ∖ Π_Σ : delegated_Σ(π_d, π')))`. ∎
 
@@ -511,8 +509,6 @@ We derive this from Freshness-(v), O18 (DelegationBaptizes), O16 (AllocationClos
 - *Preconditions:* `Σ` reachable from `Σ₀`, `delegated_Σ(π_d, π')`, `Σ → Σ'`.
 - *Postconditions:* `allocated_by_{Σ'}(π_d, pfx(π'))` — the delegator is the allocator of the delegate's prefix in the delegation transition.
 - *Invariant:* The same `π_d` whose authority condition (ii) admits `π'` into `Π` is the allocator whose O5 authority enters `pfx(π')` into `B`.
-
-The single allocation point corroborated at O17b runs under the session's own account-tumbler authority, so in udanax-green the delegator and the allocator are necessarily the same process.
 
 **O7 (OwnershipDelegation).** A principal `π` may delegate a sub-prefix to a new principal `π'`, provided the `delegated` relation is satisfied (which entails `zeros(pfx(π')) ≤ 1` by condition (iii)) and `π` holds subdivision authority over `pfx(π')`. Upon delegation:
 
@@ -671,7 +667,7 @@ In both `zeros(pfx(π)) = 0` and `zeros(pfx(π)) = 1` cases, no sub-delegate of 
 
 *Trajectory closure.* The baptism does not modify `Π` (by O15) or remove any pre-existing baptized address from the registry (by B0 Irrevocability of ASN-0040: `Σ.B ⊆ Σ'.B`). The original address `a` remains in `Σ'.B` with its ownership unchanged: `ω_{Σ'}(a) = ω_Σ(a) ≠ π`. The fork postcondition is satisfied: `a' ∈ odom(π) ∩ Σ'.B ∧ ω_{Σ'}(a') = π`, with `a ∈ Σ'.B` unchanged. ∎
 
-The construction instantiates the refinement-only regime of O3 and the irrevocability of O8: the parent's fork at `hwm_0 + 1` is structurally outside every sub-delegate's authority and structurally inside `π`'s. This is exactly the abstract image of the single allocation point corroborated at O17b, which advances unilaterally past delegated slots.
+The construction instantiates the refinement-only regime of O3 and the irrevocability of O8: the parent's fork at `hwm_0 + 1` is structurally outside every sub-delegate's authority and structurally inside `π`'s.
 
 *Forking at greater depth.* The minimum witness produces an address at user level (`zeros(a') = 1` when `zeros(pfx(π)) = 0`) or document level (`zeros(a') = 2` when `zeros(pfx(π)) = 1`) — one structural tier below `pfx(π)`. The fork postcondition imposes no minimum depth; the minimum witness produces exactly the document-level address `pfx(π).0.N` (depth=2, account.0.N form) in one allocation call. Descending further to content-bearing depth follows O10(c).
 
