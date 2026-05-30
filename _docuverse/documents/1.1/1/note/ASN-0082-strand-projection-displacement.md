@@ -159,7 +159,7 @@ The link-subspace positions [2, 5] and [2, 9] have subspace 2 ≠ S, so they fal
 
 The link-subspace positions, having subspace identifier 2 ≠ 1, lie outside the quantifier ranges of I3 and I3-V, so the sparse V_2(d) with its tombstone gap is unaffected by the text-subspace insertion. ∎
 
-**Cross-subspace insertion into the link subspace: a shifted image lands in a former tombstone slot.** The text-subspace examples above never exercise the surprising consequence of I3 for S ≥ 1: when the link subspace is itself the active (shifted-into) region, a shifted image may land in a slot that was a tombstone (an absent V-position) in the pre-state. We confirm this raises no S2/S3 conflict. Consider document d with a sparse link subspace containing a tombstone gap at [2, 3]:
+**Cross-subspace insertion into the link subspace: a shifted image lands in a former tombstone slot.** When S = 2 is the shifted-into region, a shifted image may land in a slot that was a tombstone (an absent V-position) in the pre-state; we verify S2 and S3 still hold. Consider document d with a sparse link subspace containing a tombstone gap at [2, 3]:
 
 M(d) = {[2, 1] → ℓ₁, [2, 2] → ℓ₂, [2, 4] → ℓ₃}
 
@@ -309,7 +309,7 @@ The original X mappings are not preserved — any X address that reappears in Q�
 
 `∧ (A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : M'(d)(v) = M(d)(v))`
 
-The first conjunct establishes domain equality per non-S subspace (no positions added or removed); the second establishes mapping equality (no values changed). Together they give the biconditional that the invariant proofs (D-CTG-post, D-MIN-post, S8-depth-post, S8a-post) require when citing D-CS for "unchanged" non-S subspaces.
+The first conjunct establishes domain equality per non-S subspace (no positions added or removed); the second establishes mapping equality (no values changed).
 
 **D-CD** — *CrossDocumentFrame* (FRAME, introduced). Other documents are unchanged:
 
@@ -323,7 +323,7 @@ That is, `dom(Σ'.C) = dom(Σ.C)` and `(A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`
 
 **Shift correctness.** We verify that the shift σ defined by D-SHIFT is well-behaved: order-preserving, injective, and gap-closing.
 
-**D-BJ** — *ShiftBijectivity* (LEMMA, lemma). The map σ : R → Q₃ is an order-preserving injection. Since Q₃ is *defined* as the image {σ(v) : v ∈ R}, σ is surjective onto Q₃ by construction, so σ : R → Q₃ is a bijection — we record this once here to license the "bijection" phrasing used downstream (D-DP, S2-post, D-SEQ-post). The proof obligations are order-preservation and injectivity.
+**D-BJ** — *ShiftBijectivity* (LEMMA, lemma). The map σ : R → Q₃ is an order-preserving injection. Since Q₃ is *defined* as the image {σ(v) : v ∈ R}, σ is surjective onto Q₃ by definition; the proof obligations are order-preservation and injectivity.
 
 *Preconditions:* #p = 2; v₁, v₂ ∈ R with v₁ ≠ v₂ (for injectivity) or v₁ < v₂ (for order-preservation).
 
