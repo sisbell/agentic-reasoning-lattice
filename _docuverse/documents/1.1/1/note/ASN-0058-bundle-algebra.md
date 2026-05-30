@@ -136,7 +136,7 @@ The forward inclusion `V(βⱼ) ⊆ [vⱼ, shift(vⱼ, nⱼ))` is direct. At `k 
 
 The reverse inclusion `[vⱼ, shift(vⱼ, nⱼ)) ∩ dom(M(d)) ⊆ V(βⱼ)` follows from M-int (TumblerIntervalCharacterization). Suppose `v ∈ dom(M(d))` satisfies `vⱼ ≤ v < shift(vⱼ, nⱼ)`; S8(a) places `vⱼ ∈ dom(M(d))` (`M(d)(vⱼ) = aⱼ`). Reading `shift(vⱼ, nⱼ)` as `vⱼ + nⱼ` (OrdinalShift convention, ASN-0034), the premises of M-int hold with `x = vⱼ`, `y = v`, `n = nⱼ`: `vⱼ, v ∈ dom(M(d))`, `vⱼ ≤ v < vⱼ + nⱼ`, and `nⱼ ≥ 1` from S8's correspondence-run width. M-int yields `v = vⱼ + k` for some `0 ≤ k < nⱼ`, hence `v ∈ V(βⱼ)`.
 
-With the V-extent translation in hand, S8's partition claim — `dom(M(d))` is the disjoint union of the `V(βⱼ)` — reads `(A v ∈ dom(M(d)) :: (E! j :: v ∈ V(βⱼ)))`: its *existence* half — every V-position lies in *some* block's V-extent — is B1 (Coverage), and its *uniqueness* half — no V-position lies in two blocks' V-extents — is B2 (Disjointness); uniqueness of the maximal-run decomposition is S8(c). The empty arrangement `M(d) = ∅` admits `B = ∅` (S8 produces zero runs; B1, B2, B3 are vacuously satisfied).
+With the V-extent translation in hand, S8's partition claim — `dom(M(d))` is the disjoint union of the `V(βⱼ)` — reads `(A v ∈ dom(M(d)) :: (E! j :: v ∈ V(βⱼ)))`: its *existence* half — every V-position lies in *some* block's V-extent — is B1 (Coverage), and its *uniqueness* half — no V-position lies in two blocks' V-extents — is B2 (Disjointness). The empty arrangement `M(d) = ∅` admits `B = ∅` (S8 produces zero runs; B1, B2, B3 are vacuously satisfied).
 
 Nelson tells us:
 
