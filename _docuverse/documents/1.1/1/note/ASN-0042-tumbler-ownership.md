@@ -117,7 +117,7 @@ As a corollary, when the nesting is cross-level — `zeros(pfx(π₁)) < zeros(p
 
 ## State Axioms
 
-*Notation.* Throughout this ASN, `Σ.B` denotes ASN-0040's baptismal registry `s.B` (`Σ.B ⊆ T`), carried as a component of the richer ownership state `Σ`. It is the set of tumblers brought into existence by the baptism procedure. We say "allocated address" and "address in `Σ.B`" interchangeably; from the ownership model's perspective, every address requiring an effective owner is one that the system has baptized. The monotonicity the proofs below invoke is baptismal-registry monotonicity `Σ.B ⊆ Σ'.B` (B0 of ASN-0040).
+*Notation.* Throughout this ASN, `Σ.B` denotes ASN-0040's baptismal registry `s.B` (`Σ.B ⊆ T`), carried as a component of the richer ownership state `Σ`. It is the set of tumblers brought into existence by the baptism procedure. We say "allocated address" and "address in `Σ.B`" interchangeably. The registry grows monotonically: `Σ.B ⊆ Σ'.B` whenever `Σ → Σ'` (B0 of ASN-0040).
 
 *Reachability convention.* All states `Σ` discussed in this ASN are assumed to be *reachable from the bootstrap state* `Σ₀` — that is, there exists a finite sequence `Σ₀ → Σ_1 → ... → Σ` of state transitions producing `Σ`.
 
@@ -135,7 +135,7 @@ Nelson's architecture contains no concept of account revocation, and Gregory's c
 
 The prefix is a tumbler, and addresses are permanent (T8): no operation of the tumbler algebra mutates an existing tumbler in place.
 
-**O14 (BootstrapPrincipal).** The initial principal set satisfies the following labeled conjuncts (cited individually by label throughout this ASN; the formerly bundled "first clause" is split into O14.1 and O14.2):
+**O14 (BootstrapPrincipal).** The initial principal set satisfies the following labeled conjuncts:
 
   **O14.1 (Nonempty):** `Π₀ ≠ ∅`
 
@@ -544,7 +544,7 @@ Only the third case is consistent. Every pre-existing covering principal `π'' �
 
 *Postcondition (b): O5 applies to `π'`.*
 
-O5 (SubdivisionAuthority) constrains the allocator of any newly baptized address to be a most-specific covering principal; we show that an allocation within `odom(π')` is performed by `π'`. A fresh address may be baptized within `odom(π')` — for instance via `Bop(pfx(π'), 2)`, applicable because B6 (ValidDepth, ASN-0040) holds for `(pfx(π'), 2)`: `T4(pfx(π'))` by Freshness-(v), `d = 2`, and `zeros(pfx(π')) + 1 ∈ {1, 2}` by O1a, all within B6's bounds. Let `a ∈ Σ''.B ∖ Σ'.B` be such an address allocated within `odom(π')` in a successor transition `Σ' → Σ''`, so `pfx(π') ≼ a`. By O16 (AllocationClosure), `a` has some allocator `π''' ∈ Π_{Σ'}`. By O5, `pfx(π''') ≼ a` and `π'''` is a most-specific covering principal of `a` in `Π_{Σ'}`. By postcondition (a), no principal in `Π_{Σ'}` covering an address of `odom(π')` has a prefix longer than `pfx(π')`, so `#pfx(π''') ≤ #pfx(π')`; and since `π'` itself covers `a`, the most-specific cover has length at least `#pfx(π')`, forcing `#pfx(π''') = #pfx(π')`. By O1b (PrefixInjectivity), at most one principal carries that prefix, so `π''' = π'`. The allocation is therefore performed by `π'` itself — `allocated_by_{Σ''}(π', a)` — establishing that `π'` holds subdivision authority over `odom(π')`.
+O5 (SubdivisionAuthority) constrains the allocator of any newly baptized address to be a most-specific covering principal; we show that an allocation within `odom(π')` is performed by `π'`. A fresh address may be baptized within `odom(π')` — for instance via `Bop(pfx(π'), 2)`, applicable because B6 (ValidDepth, ASN-0040) holds for `(pfx(π'), 2)`: `T4(pfx(π'))` by Freshness-(v), `d = 2`, and `zeros(pfx(π')) + 1 ∈ {1, 2}` by O1a, all within B6's bounds. Let `a ∈ Σ''.B ∖ Σ'.B` be such an address allocated within `odom(π')` in a successor transition `Σ' → Σ''`, so `pfx(π') ≼ a`. By O16 (AllocationClosure), `a` has some allocator `π''' ∈ Π_{Σ'}`. By O5, `pfx(π''') ≼ a` and `π'''` is a most-specific covering principal of `a` in `Π_{Σ'}`. The three-case analysis in postcondition (a) consulted no `Σ'.B` membership: for *any* `a` with `pfx(π') ≼ a`, every pre-existing covering principal `π'' ∈ Π_Σ` (one with `pfx(π'') ≼ a`) satisfies `#pfx(π'') < #pfx(π')`. Our `a` satisfies `pfx(π') ≼ a`, so applying that sub-fact — together with `Π_{Σ'} = Π_Σ ∪ {π'}` (O15) — every covering principal of `a` in `Π_{Σ'}` other than `π'` has prefix strictly shorter than `pfx(π')`; hence `#pfx(π''') ≤ #pfx(π')`. Since `π'` itself covers `a`, the most-specific cover has length at least `#pfx(π')`, forcing `#pfx(π''') = #pfx(π')`. By O1b (PrefixInjectivity), at most one principal carries that prefix, so `π''' = π'`. The allocation is therefore performed by `π'` itself — `allocated_by_{Σ''}(π', a)` — establishing that `π'` holds subdivision authority over `odom(π')`.
 
 *Postcondition (c): recursive delegation (conditional on remaining most-specific).*
 
@@ -579,9 +579,7 @@ Let `Σ_d` denote the state in which `delegated(Σ_d, Σ_d^{post}, π, π')` hol
 
 *The delegate's prefix is strictly longer than the parent's.* By condition (i) of the delegation relation, `pfx_{Σ_d}(π) ≺ pfx_{Σ_d^{post}}(π')` — the delegator's prefix at the delegation transition's source strictly extends to the delegate's prefix at the transition's target — which gives `#pfx_{Σ_d}(π) < #pfx_{Σ_d^{post}}(π')`. By O13 iterated along `Σ_d →^* Σ'` (and using O12 to carry `π` from `Π_{Σ_d}` into `Π_{Σ'}`), both prefixes are immutable: `pfx_{Σ'}(π) = pfx_{Σ_d}(π)` and `pfx_{Σ'}(π') = pfx_{Σ_d^{post}}(π')`. The strict length inequality `#pfx_{Σ'}(π) < #pfx_{Σ'}(π')` holds at every `Σ'` with `π' ∈ Π_{Σ'}`.
 
-*The parent cannot be the longest match.* The effective owner `ω_{Σ'}(a)` is defined (O2) as the principal in `Π_{Σ'}` with the longest matching prefix for `a`. We have established that `π' ∈ Π_{Σ'}` with `pfx_{Σ'}(π') ≼ a` and `#pfx_{Σ'}(π') > #pfx_{Σ'}(π)`. Therefore `π'` (or some other principal with a still-longer prefix) achieves a longer match than `π`. The longest-match principal must have a prefix at least as long as `pfx(π')`, which is strictly longer than `pfx(π)`. Hence `ω_{Σ'}(a) ≠ π`.
-
-To see this last step precisely: suppose for contradiction that `ω_{Σ'}(a) = π`. Then by the definition of `ω`, `π` would need to satisfy `(A π'' ∈ Π_{Σ'} : π'' ≠ π ∧ pfx_{Σ'}(π'') ≼ a ⟹ #pfx_{Σ'}(π) > #pfx_{Σ'}(π''))`. But `π' ∈ Π_{Σ'}` with `π' ≠ π` (they are distinct — `π` was already in `Π` before delegation while `π'` was newly introduced, and their prefixes differ in length) and `pfx_{Σ'}(π') ≼ a`, yet `#pfx_{Σ'}(π) < #pfx_{Σ'}(π')` — contradicting the requirement. Therefore `ω_{Σ'}(a) ≠ π`. ∎
+*The parent cannot be the longest match.* The effective owner `ω_{Σ'}(a)` is defined (O2) as the principal in `Π_{Σ'}` with the longest matching prefix for `a`. Suppose for contradiction that `ω_{Σ'}(a) = π`. Then by the definition of `ω`, `π` would need to satisfy `(A π'' ∈ Π_{Σ'} : π'' ≠ π ∧ pfx_{Σ'}(π'') ≼ a ⟹ #pfx_{Σ'}(π) > #pfx_{Σ'}(π''))`. But `π' ∈ Π_{Σ'}` with `π' ≠ π` (they are distinct — `π` was already in `Π` before delegation while `π'` was newly introduced, and their prefixes differ in length) and `pfx_{Σ'}(π') ≼ a`, yet `#pfx_{Σ'}(π) < #pfx_{Σ'}(π')` — contradicting the requirement. Therefore `ω_{Σ'}(a) ≠ π`. ∎
 
 *Design confirmation.* The implementation provides no revocation path — no revocation command, no forced reclamation.
 
