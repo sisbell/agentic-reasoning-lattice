@@ -361,7 +361,18 @@ def commit_after_fire(
         # commits ALL staged work, which sweeps any operator-staged
         # files outside the runner's scope into the auto-message.
         # Explicit `-- <paths>` restricts the commit to scope.
-        commit = _git_with_lock_retry("commit", "-m", msg, "--", *scope_paths)
+        #
+        # Filter scope_paths to those that exist on disk — a trigger
+        # may declare a path (e.g., the per-ASN rationale dir) that
+        # this particular fire didn't write to, in which case the
+        # path doesn't exist and `git commit -- <path>` errors with
+        # "pathspec did not match any file(s) known to git".
+        commit_scope = [p for p in scope_paths if Path(p).exists()]
+        if not commit_scope:
+            return
+        commit = _git_with_lock_retry(
+            "commit", "-m", msg, "--", *commit_scope,
+        )
         if commit.returncode != 0:
             print(
                 f"  [AUTO-COMMIT] commit failed: {commit.stderr.strip()[:200]}",
