@@ -44,7 +44,7 @@ Injectivity ensures the shift creates no collisions: distinct V-positions remain
 
 Additionally, shift preserves structural properties, and both facts are established in the foundation rather than re-derived here. Subspace preservation and S8a preservation are exactly OrdShiftHom (OrdinalShiftPreservation, ASN-0036): for a V-position v with #v = m ≥ 2 and n ≥ 1, (a) subspace(shift(v, n)) = subspace(v), and (b) when v satisfies S8a, shift(v, n) satisfies S8a. Both clauses require m ≥ 2 — the m = 1 case shift([S], n) = [S + n] would change the subspace identifier — so we exclude it by requiring #p ≥ 2 as an operation precondition. By S8-depth (ASN-0036), all V-positions in subspace S share a uniform depth d; the depth-compatibility precondition on I3 requires d = #p when such V-positions exist, so m = d = #p ≥ 2 holds for every V-position in the shifted region, discharging OrdShiftHom's m ≥ 2 precondition. This also ensures that the comparison v ≥ p in I3's quantifier is between equal-length tumblers, giving it the clean "at or to the right of p" semantics without prefix-case ambiguity. Furthermore, #shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd (ASN-0034).
 
-**NAT-CA** — *CarrierAdditionCommutativityAssociativity* (introduced locally). For all m, n, k ∈ ℕ: `m + n = n + m` (commutativity) and `(m + n) + k = m + (n + k)` (associativity) — carrier facts of ℕ addition, the finite cardinals over which T0 (ASN-0034) builds T, supplied locally because ASN-0034's NAT-* extraction omits them. ASN-0034's NAT-* extraction likewise supplies no left-summand dominance law (no `a + b ≥ b` over ℕ); consequently the ordinal-dominance arguments below (OrdinalExceedsDisplacement, D-SEP, the wp analyses) route entirely through tumbler arithmetic — TumblerAdd's `a ⊕ w ≥ w` postcondition and the partial inverse TA4 — rather than ℕ-level subtraction or summand dominance. We state this constraint once here and do not repeat it at each use site.
+**NAT-CA** — *CarrierAdditionCommutativityAssociativity* (introduced locally). For all m, n, k ∈ ℕ: `m + n = n + m` (commutativity) and `(m + n) + k = m + (n + k)` (associativity) — carrier facts of ℕ addition, the finite cardinals over which T0 (ASN-0034) builds T, supplied locally because ASN-0034's NAT-* extraction omits them. ℕ-subtraction laws, likewise absent from that extraction, are routed through tumbler arithmetic (TumblerAdd's `a ⊕ w ≥ w` and the partial inverse TA4).
 
 
 ## Post-Insertion Shift
@@ -99,7 +99,7 @@ The I-address is unchanged — only the V-position moves. This is Nelson's centr
 
 *Case S = 1 (text subspace).* The gap created by the shift — n vacated positions between the left region and the shifted region — violates D-CTG: the post-state V_1(d) is not contiguous, as the worked example confirms ({[1,1], [1,2], [1,5], [1,6], [1,7]} has a gap between [1,2] and [1,5]). D-SEQ is likewise violated, since V_1(d) is no longer {[1, k] : 1 ≤ k ≤ n} for any n. When p = min(V_1(d)), the shift vacates the minimum position, additionally violating D-MIN. These violations are inherent to the shift's purpose: it opens a gap for new content, which the composing INSERT operation fills and re-validates.
 
-*Case S ≠ 1 (non-text subspace; in particular S = 2, link).* The foundation does not impose D-CTG, D-MIN, or D-SEQ on V_S(d), so the shift creates no foundation-level violation: a post-state V_2(d) with a tombstone gap at the vacated positions is well-formed under ASN-0036's frame notes. The arrangement-typing invariants — S8-depth, S8a, S2, S3, S8-fin — are preserved (I3-VD, I3-VP, I3-S2, I3-S3, I3-fin), and that is the full obligation on the post-state. A composing operation on the link subspace (e.g., MAKELINK, which allocates fresh I-addresses for the gap positions) has no contiguity invariants to re-establish; it need only place the new content and re-derive S8a for the freshly populated positions.
+*Case S ≠ 1 (non-text subspace; in particular S = 2, link).* The foundation does not impose D-CTG, D-MIN, or D-SEQ on V_S(d), so the shift creates no foundation-level violation: a post-state V_2(d) with a tombstone gap at the vacated positions is well-formed under ASN-0036's frame notes. The arrangement-typing invariants — S8-depth, S8a, S2, S3, S8-fin — are preserved (I3-VD, I3-VP, I3-S2, I3-S3, I3-fin), and that is the full obligation on the post-state.
 
 **Weakest-precondition analysis (I3-VP backwards through the shift).** We illustrate the wp method on one of the preservation lemmas — I3-VP, which asserts S8a for the post-state — to expose the constraints that the assignment statement `M'(d)(shift(v, n)) := M(d)(v)` imposes on the pre-state when we require S8a to hold of the assigned position `shift(v, n)`. The wp computation propagates the post-state predicate backwards through the assignment to yield the pre-state obligation. Reading these obligations against the I3 contract makes explicit which preconditions the contract supplies and which it does not need to state because they are entailed by foundation invariants.
 
@@ -191,32 +191,7 @@ The link-subspace positions [2, 5] and [2, 9] have subspace 2 ≠ S, so they fal
 
 The link-subspace positions, having subspace identifier 2 ≠ 1, lie outside the quantifier ranges of I3 and I3-V, so the sparse V_2(d) with its tombstone gap is unaffected by the text-subspace insertion. ∎
 
-**Link-subspace insertion: shift into a sparse, tombstone-bearing pre-state.** I3 is stated for any subspace S ≥ 1, and its derivation routes through S8a (well-formedness) and S8-depth (uniform depth) without invoking D-CTG. The cross-subspace example above exercises I3-X over V_2(d) but leaves V_2(d) unchanged. We now exercise I3 itself against the link subspace as the *active* subspace — the region into which the shift operates — with a sparse, tombstone-bearing pre-state V_2(d) that does not satisfy D-CTG.
-
-Consider document d with text subspace and a sparse link subspace:
-
-M(d) = {[1, 1] → b, [1, 2] → b + 1, [2, 3] → ℓ₁, [2, 7] → ℓ₂, [2, 10] → ℓ₃}
-
-V_2(d) = {[2, 3], [2, 7], [2, 10]} is sparse (the foundation's D-CTG-frame allows arbitrary tombstone gaps in non-text subspaces). All positions have depth 2.
-
-Insert two link positions at p = [2, 5]. Parameters: n = 2, S = subspace(p) = 2, m = #p = 2, δ₂ = [0, 2]. Comparison v ≥ p between equal-length tumblers in subspace S = 2 (depth-compatibility precondition on I3 carried at depth 2 by S8-depth, ASN-0036).
-
-For v ∈ V_2(d): [2, 3] < p, so I3-L preserves it; [2, 7] ≥ p and [2, 10] ≥ p, so I3 shifts them.
-
-- shift([2, 7], 2) = [2, 7] ⊕ [0, 2] = [2, 9]
-- shift([2, 10], 2) = [2, 10] ⊕ [0, 2] = [2, 12]
-
-The text-subspace positions [1, 1] and [1, 2] have subspace 1 ≠ S = 2, so I3-X preserves them verbatim:
-
-| V (before) | I (before) | V (after) | I (after) | Region |
-|---|---|---|---|---|
-| [1, 1] | b | [1, 1] | b | cross-subspace (I3-X) |
-| [1, 2] | b + 1 | [1, 2] | b + 1 | cross-subspace (I3-X) |
-| [2, 3] | ℓ₁ | [2, 3] | ℓ₁ | left (I3-L) |
-| [2, 7] | ℓ₂ | [2, 9] | ℓ₂ | shifted (I3) |
-| [2, 10] | ℓ₃ | [2, 12] | ℓ₃ | shifted (I3) |
-
-**Verification.** The pre-state gaps at [2, 1], [2, 2], [2, 4], [2, 5], [2, 6], [2, 8] are durable tombstone structure, not foundation violations (D-CTG is text-subspace only). For the shifted positions {[2, 9], [2, 12]}, S8a-post holds via OrdShiftHom (b) (ASN-0036) — each is zero-free with positive components (7 + 2 = 9 and 10 + 2 = 12 at position 2) — with no appeal to D-CTG. The shifted image [2, 9] occupies a former tombstone gap; this is permitted, since a link-side insertion preserves only the subspace's sparsity discipline, not its gap structure. ∎
+**Link-subspace insertion: shift into a former tombstone slot.** I3's derivation routes through S8a (well-formedness) and S8-depth (uniform depth) without invoking D-CTG, so it is subspace-agnostic and applies verbatim with the link subspace as the *active* (shifted-into) region — the cross-subspace example above already established this for the passive direction. The one effect not visible there is that a shifted image may legitimately land in what was a tombstone gap. Take a sparse V_2(d) = {[2, 3] → ℓ₁, [2, 7] → ℓ₂, [2, 10] → ℓ₃} with gaps at [2, 8] and [2, 9] (permitted: D-CTG is text-subspace only). Inserting two link positions at p = [2, 5] (n = 2, m = 2): [2, 3] < p is preserved (I3-L), while I3 shifts shift([2, 7], 2) = [2, 9] and shift([2, 10], 2) = [2, 12], each retaining its I-address. The image [2, 9] occupies a former tombstone slot — permitted, since a link-side insertion preserves the subspace's sparsity discipline, not its gap structure. S8a-post holds for both images via OrdShiftHom (b) (ASN-0036), with no appeal to D-CTG. ∎
 
 
 ## Span Width Preservation
@@ -682,13 +657,15 @@ The point-level shift σ (D-SHIFT) lifts to a span-level property dual to I3-S, 
 
 *Derivation of (a).* Both endpoints lie in subspace 1 at depth 2, so we work through the ordinal. Since actionPoint(ℓ) = 2 and Pos(ℓ), ℓ = [0, c'] with c' ≥ 1, and ℓ_ord = [c']. From s ∈ R, OrdinalExceedsDisplacement gives ord(s) ≥ w_ord (so σ(s) is well-defined and Pos); at depth 1, ord(s) = [s₂], w_ord = [c], and σ(s) = vpos(1, [s₂] ⊖ [c]) = [1, s₂ − c] (TumblerSub at depth 1). The far endpoint's ordinal is ord(reach(σₛ)) = ord(s) ⊕ ℓ_ord = [s₂] ⊕ [c'] = [s₂ + c'] (OrdAddHom (a), then TumblerAdd); it dominates w_ord, since TumblerAdd's `a ⊕ w > a` gives [s₂ + c'] > [s₂] = ord(s) ≥ w_ord (clause (i)–(ii) of OrdinalExceedsDisplacement), so by TA2 (ASN-0034) σ(reach(σₛ)) = vpos(1, [s₂ + c'] ⊖ [c]) = [1, (s₂ + c') − c] is well-defined.
 
-Now reach(σ'ₛ) = σ(s) ⊕ ℓ = [1, s₂ − c] ⊕ [0, c'] = [1, (s₂ − c) + c'] (TumblerAdd at action point 2). Componentwise equality of σ(reach(σₛ)) = [1, (s₂ + c') − c] and reach(σ'ₛ) = [1, (s₂ − c) + c'] holds at position 1 (both 1) and, at position 2, requires the identity `(s₂ + c') − c = (s₂ − c) + c'` for s₂ ≥ c. Set x = s₂ − c; the partial-inverse law `(s₂ ⊖ c) ⊕ c = s₂` at depth 1 (ReverseInverse, ASN-0034) gives `x + c = s₂`. Then `(s₂ + c') − c = ((x + c) + c') − c = ((x + c') + c) − c` — the regrouping `(x + c) + c' = (x + c') + c` is exactly an application of NAT-CA (associativity and commutativity, introduced locally above) — and the depth-1 partial inverse `(y + c) − c = y` (TA4, ASN-0034, with y = x + c') cancels c to leave `x + c' = (s₂ − c) + c'`. The two tumblers therefore agree componentwise, so σ(reach(σₛ)) = reach(σ'ₛ). ✓ ∎
+Now reach(σ'ₛ) = σ(s) ⊕ ℓ = [1, s₂ − c] ⊕ [0, c'] = [1, (s₂ − c) + c'] (TumblerAdd at action point 2). Both σ(reach(σₛ)) = [1, (s₂ + c') − c] and reach(σ'ₛ) = [1, (s₂ − c) + c'] agree at position 1 (both 1), so the whole claim collapses to a single depth-1 (position-2) natural-number identity:
+
+`(s₂ + c') − c = (s₂ − c) + c'`   for `s₂ ≥ c`,
+
+where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* by the depth-1 tumbler difference (`[a] ⊖ [c] = [a − c]` for `a ≥ c`). Because ASN-0034's NAT-* extraction supplies no ℕ-subtraction law, we discharge this single-component identity through the depth-1 tumbler lemmas. Write `x = s₂ − c`, i.e. `[x] = [s₂] ⊖ [c]`. ReverseInverse at depth 1 (ASN-0034) gives `[s₂ − c] ⊕ [c] = [s₂]`, which is the ℕ fact `x + c = s₂`. Substituting and regrouping: `(s₂ + c') − c = ((x + c) + c') − c = ((x + c') + c) − c` (regrouping by NAT-CA), and the depth-1 partial inverse TA4 (`(y + c) − c = y`, with `y = x + c'`) cancels `c` to leave `x + c' = (s₂ − c) + c'`. The two tumblers therefore agree componentwise, so σ(reach(σₛ)) = reach(σ'ₛ). ✓ ∎
 
 *Derivation of (b).* The span σ'ₛ = (σ(s), ℓ) is level-uniform: #σ(s) = 2 = #ℓ by vpos's result-length identity. Its width is by definition its second component ℓ; consistently, by D2 (WidthRecovery, ASN-0053), width(σ'ₛ) = reach(σ'ₛ) ⊖ start(σ'ₛ) = (σ(s) ⊕ ℓ) ⊖ σ(s) = ℓ. ✓ ∎
 
 *Verification against worked example.* From the contraction example above (p = [1,2], w = [0,2], c = 2), take the span σₛ = ([1, 4], [0, 1]) covering the single pre-contraction position [1, 4]. Then reach(σₛ) = [1, 4] ⊕ [0, 1] = [1, 5], and σ'ₛ = (σ([1, 4]), [0, 1]) = ([1, 2], [0, 1]). For (a): reach(σ'ₛ) = [1, 2] ⊕ [0, 1] = [1, 3], and σ(reach(σₛ)) = σ([1, 5]) = [1, 3]. ✓ For (b): width(σ'ₛ) = [0, 1] = ℓ. ✓
-
-Both endpoints of an in-right-region span shift by the same displacement w_ord, so the width is invariant — the same commutativity-with-shift conclusion stated at I3-S above, now realized for the contraction direction.
 
 
 ## Statement Registry
