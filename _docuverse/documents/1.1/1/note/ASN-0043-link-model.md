@@ -111,7 +111,7 @@ This mirrors S8a's `#t ≥ 2` for V-positions (ASN-0036). A link address must ca
 
 The first step seats the field-separating zero at position `#s + 1`, between the document prefix and the element field.
 
-**CPP — ChainPrefixPreservation (local lemma).** Let `t₀, t₁, ..., tₙ` be a T10a-conforming chain of T4-valid tumblers (T4-validity propagated along the chain by T10a.4), let `p` be a fixed length with `p ≤ #t₀`, and assume the *sibling-advance length precondition*: every sibling-advance step (`kᵢ = 0`) acts on an input strictly longer than `p`, i.e. `#tᵢ₋₁ > p`. Under these hypotheses every step leaves positions `1..p` fixed. A child-spawn `inc(·, k')` (`k' ≥ 1`) agrees with its input on positions `1..#tᵢ₋₁` (TA5(b)); chain lengths are non-decreasing (each step preserves or increases length, by TA5(c)/TA5(d)), so `#tᵢ₋₁ ≥ #t₀ ≥ p` and this agreement covers `1..p`. A sibling advance `inc(·, 0)` modifies only the `sig` position (TA5(c)), which for the T4-valid input is the terminal position `#tᵢ₋₁` (TA5-SigValid); the precondition `#tᵢ₋₁ > p` places that position strictly beyond `p`, so positions `1..p` are again untouched. Note the precondition is load-bearing: a sibling advance at `#tᵢ₋₁ = p` would modify the terminal position `p` itself, which is *not* strictly beyond `p`. Then by induction on chain length every `tᵢ`, and in particular the terminus `tₙ`, agrees with `t₀` on positions `1..p`.
+**CPP — ChainPrefixPreservation (local lemma).** Let `t₀, t₁, ..., tₙ` be a T10a-conforming chain of T4-valid tumblers (T4-validity propagated along the chain by T10a.4), let `p` be a fixed length with `p ≤ #t₀`, and assume the *sibling-advance length precondition*: every sibling-advance step (`kᵢ = 0`) acts on an input strictly longer than `p`, i.e. `#tᵢ₋₁ > p`. Under these hypotheses every step leaves positions `1..p` fixed. A child-spawn `inc(·, k')` (`k' ≥ 1`) agrees with its input on positions `1..#tᵢ₋₁` (TA5(b)); chain lengths are non-decreasing (each step preserves or increases length, by TA5(c)/TA5(d)), so `#tᵢ₋₁ ≥ #t₀ ≥ p` and this agreement covers `1..p`. A sibling advance `inc(·, 0)` modifies only the `sig` position (TA5(c)), which for the T4-valid input is the terminal position `#tᵢ₋₁` (TA5-SigValid); the precondition `#tᵢ₋₁ > p` places that position strictly beyond `p`, so positions `1..p` are again untouched. Then by induction on chain length every `tᵢ`, and in particular the terminus `tₙ`, agrees with `t₀` on positions `1..p`.
 
 *Postcondition: T4-validity of `a`.* By T10a.4 (T4PreservationUnderDiscipline, ASN-0034), every output of a T10a-conforming allocator step is T4-valid given a T4-valid input. The chain begins at the T4-valid seed `s` and proceeds entirely by T10a steps, so by induction on chain length, `tₙ = a` is T4-valid. With T4-validity of `a` established and L1's `zeros(a) = 3` placing `a` at element level, T4b's projections `N(a)`, `U(a)`, `D(a)`, `E(a)` are well-defined; in particular, the document-level prefix `home(a)` (Definition — home) is well-defined.
 
@@ -257,7 +257,7 @@ Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite se
 - *L-fin.* `dom(Σ'.L) = dom(Σ.L) ∪ {a}` is finite, since `dom(Σ.L)` is finite.
 - *ASN-0036 invariants.* `Σ'.C = Σ.C` discharges S0, S1, S7a, S7b verbatim; `Σ'.M = Σ.M` discharges S2, S3, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ verbatim — every constraint on the content store and arrangement family is reproduced from `Σ`. ∎
 
-FSP factors out the *conformance* half of a fresh-sibling extension but takes freshness (h1) and producibility (h2) as hypotheses. Several results below must also *exhibit* such a fresh sibling of an existing link. We establish that existence once.
+We also need the existence of such a fresh sibling:
 
 **FSE — FreshSiblingExistence (local lemma).** Let `Σ` satisfy L-fin, and let `a ∈ dom(Σ.L)` be a conforming link address (T4-valid, `subspace_I(a) = s_L`, `zeros(a) = 3`, `home(a) ∈ dom(Σ.M)`, producible by an L1c chain). Then there exists `i ≥ 1` with `a' = incⁱ(a, 0) ∉ dom(Σ.L)`, and this `a'` satisfies: `home(a') = home(a)`, `subspace_I(a') = s_L`, `zeros(a') = 3`, `#E(a') = #E(a)`, `a'` T4-valid, and `a'` producible by an L1c chain (the chain for `a` extended by `i` sibling advances).
 
@@ -288,7 +288,7 @@ The design choice — coverage rather than span-set identity — falls out of Ne
 
 Type matching decouples classification from content retrieval: a search for type X never fetches the bytes at address X — it only matches the address. This means:
 
-**L9 — TypeGhostPermission.** Ghost types are permitted. For any state `Σ` satisfying the state-local L- and S-invariants (preserved by FSP, FreshSiblingConformance, stated in *A Shared Conformance Lemma* above), with `dom(Σ.M) ≠ ∅`, and with `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`), there exists for every arity `N ≥ 3` a conforming state `Σ'` extending `Σ` (`Σ' ⊒ Σ`, StateExtension) with a link of arity `N` whose type endset references an address outside `dom(Σ'.C) ∪ dom(Σ'.L)`:
+**L9 — TypeGhostPermission.** Ghost types are permitted. For any state `Σ` satisfying the state-local L- and S-invariants, with `dom(Σ.M) ≠ ∅`, and with `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`), there exists for every arity `N ≥ 3` a conforming state `Σ'` extending `Σ` (`Σ' ⊒ Σ`, StateExtension) with a link of arity `N` whose type endset references an address outside `dom(Σ'.C) ∪ dom(Σ'.L)`:
 
 `(A Σ : Σ satisfies the state-local L- and S-invariants ∧ dom(Σ.M) ≠ ∅ ∧ (A b ∈ dom(Σ.C) :: subspace_I(b) = s_C) : (A N ≥ 3 :: (E Σ' extending Σ, a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: |Σ'.L(a)| = N ∧ s ∉ dom(Σ'.C) ∪ dom(Σ'.L))))`
 
@@ -302,7 +302,7 @@ Type matching decouples classification from content retrieval: a search for type
 
 *Case A — `d'` has no prior link allocations under `Σ` (`{b ∈ dom(Σ.L) : home(b) = d'} = ∅`).* Set `a = d'.0.s_L.1`. The producer chain from `d'` to `a`: (i) `inc(d', 2)` → `d'.0.1` — element field depth 1, subspace 1 (`k' = 2`, requiring `zeros(d') ≤ 2` by TA5a; satisfied since `zeros(d') = 2`); (ii) sibling sweep `inc(·, 0)` from subspace 1 across to subspace `s_L` at element field depth 1, applied `s_L − 1` times — each step a `k = 0` sibling advance, unconditionally T4-preserving (each intermediate `d'.0.j` for `j ∈ [2, s_L]` is T4-valid: `zeros = 3`, every non-separator component positive since `j ≥ 1`, no adjacent zeros); (iii) `inc(d'.0.s_L, 1)` → `d'.0.s_L.1` = `a` — child-spawn to element field depth 2 (`k' = 1`, requiring `zeros(d'.0.s_L) ≤ 3` by TA5a; satisfied since `zeros(d'.0.s_L) = 3`; the output has `zeros(a) = 3`). Each step conforms to T10a. *Freshness:* every step from `t₁ = d'.0.1` onward operates at length `> #d'`, so CPP (with `t₀ = d'`, `p = #d'`) gives that `a` agrees with `d'` on positions `1..#d'`; the third zero of `a` first appears at position `#d' + 1`, so `home(a) = d'`. The case hypothesis then directly yields `a ∉ dom(Σ.L)`: any `b ∈ dom(Σ.L)` with `b = a` would have `home(b) = home(a) = d'`, contradicting the empty-set hypothesis.
 
-*Case B — `d'` has prior link allocations under `Σ` (`{b ∈ dom(Σ.L) : home(b) = d'} ≠ ∅`).* Pick any existing link `b ∈ dom(Σ.L)` with `home(b) = d'`. By FreshSiblingExistence (FSE, *A Shared Conformance Lemma* above) applied to `b`, there is a fresh `a = incⁱ(b, 0) ∉ dom(Σ.L)` with `home(a) = home(b) = d'`, `subspace_I(a) = s_L`, `zeros(a) = 3`, `#E(a) = #E(b) ≥ 2`, `a` T4-valid and producible by an L1c chain.
+*Case B — `d'` has prior link allocations under `Σ` (`{b ∈ dom(Σ.L) : home(b) = d'} ≠ ∅`).* Pick any existing link `b ∈ dom(Σ.L)` with `home(b) = d'`. By FSE applied to `b`, there is a fresh `a = incⁱ(b, 0) ∉ dom(Σ.L)` with `home(a) = home(b) = d'`, `subspace_I(a) = s_L`, `zeros(a) = 3`, `#E(a) = #E(b) ≥ 2`, `a` T4-valid and producible by an L1c chain.
 
 Define `Σ'` as `Σ` extended with the padded payload `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))}, ∅, ..., ∅)` (`N − 3` empty endsets at slots `4..N`, vacuous when `N = 3`), `Σ'.C = Σ.C`, and `Σ'.M = Σ.M` (the arrangement store is unchanged, since `d' ∈ dom(Σ.M)` is reused).
 
@@ -355,11 +355,11 @@ Within-state single-valuedness (an address names at most one link) is immediate 
 
 `(A Σ satisfying the state-local L- and S-invariants with s_C-resident content ((A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)), a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies the state-local L- and S-invariants))`
 
-— where "the state-local L- and S-invariants" denotes the set named in *A Shared Conformance Lemma* above (preserved by FSP, FreshSiblingConformance).
+— where "the state-local L- and S-invariants" denotes the set named in *A Shared Conformance Lemma* above (preserved by FSP).
 
 The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it.
 
-*Construction of fresh `a'`.* By FreshSiblingExistence (FSE, *A Shared Conformance Lemma* above) applied to the conforming link `a ∈ dom(Σ.L)`, there is a fresh `a' = incⁱ(a, 0) ∉ dom(Σ.L)` with `i ≥ 1` (so `a' ≠ a`), `home(a') = home(a) ∈ dom(Σ.M)`, `subspace_I(a') = s_L`, `zeros(a') = 3`, `#E(a') = #E(a) ≥ 2`, `a'` T4-valid, and `a'` producible by `a`'s L1c chain extended with `i` sibling advances. Define `Σ'` by:
+*Construction of fresh `a'`.* By FSE applied to the conforming link `a ∈ dom(Σ.L)`, there is a fresh `a' = incⁱ(a, 0) ∉ dom(Σ.L)` with `i ≥ 1` (so `a' ≠ a`), `home(a') = home(a) ∈ dom(Σ.M)`, `subspace_I(a') = s_L`, `zeros(a') = 3`, `#E(a') = #E(a) ≥ 2`, `a'` T4-valid, and `a'` producible by `a`'s L1c chain extended with `i` sibling advances. Define `Σ'` by:
 
 `Σ'.L = Σ.L ∪ {a' ↦ (F, G, Θ)}`, `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
 
@@ -632,7 +632,7 @@ The final state is `Σ_4` with `Σ_4.L = Σ_3.L ∪ {a₄ ↦ (F₄, G₄, Θ₄
 
 These two prefix sets are disjoint. Suppose `t` extends both: `g ≼ t` and `g' ≼ t`. Then `t` agrees with `g` and with `g'` at all positions `1..8`, so `t_8 = g_8 = 1` and simultaneously `t_8 = g'_8 = 2` — contradiction. Hence `coverage(Θ) ∩ coverage(Θ₄) = ∅`, and a fortiori `coverage(Θ) ≠ coverage(Θ₄)`. By L8's defining biconditional, `same_type(a, a₄) ⟺ coverage(Σ_4.L(a).type) = coverage(Σ_4.L(a₄).type)`, and the right-hand side is false; therefore `same_type(a, a₄) = false`. ✓
 
-The discrimination is structural: `g` and `g'` differ only at the tail (position 8), but that single divergence forces their prefix-cone coverages to be disjoint — sibling ghost addresses generate sibling type cones, neither containing the other. This is the structural counterpart to the earlier reflexivity check: same-coverage links match (e.g., `a ↦ Θ` and `a' ↦ Θ` with identical `Θ` give `same_type(a, a') = true`); disjoint-coverage links discriminate (e.g., `a ↦ Θ` and `a₄ ↦ Θ₄` give `same_type(a, a₄) = false`).
+The discrimination is structural: `g` and `g'` differ only at the tail (position 8), but that single divergence forces their prefix-cone coverages to be disjoint — sibling ghost addresses generate sibling type cones, neither containing the other.
 
 The remaining state-local invariants at `Σ_4` (L0, L1, L1a–c, L3, L5, L6, L11a, L14, L14a, L-fin) hold for the new entry `a₄` by the fresh-sibling argument above (`a₄ = 1.0.1.0.1.0.2.5` is the next sibling after `a₃`), and for the pre-existing entries by L12.
 
