@@ -105,7 +105,7 @@ Depth ≥ 2 keeps `subspace_I(a) = E(a)₁` stable under `inc(·, 0)`: with the 
 
 `(A a ∈ dom(Σ.L) :: (E s ∈ T, n ≥ 1, t₀, t₁, ..., tₙ, k₁, ..., kₙ :: T4-valid(s) ∧ zeros(s) = 2 ∧ t₀ = s ∧ tₙ = a ∧ (A i : 1 ≤ i ≤ n : tᵢ = inc(tᵢ₋₁, kᵢ) ∧ kᵢ ∈ {0, 1, 2} ∧ (kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2)) ∧ k₁ = 2 ∧ (A i : 1 ≤ i ≤ n : #tᵢ > #s)))`
 
-The existential binds the seed `s` alongside the spawning parameters `k₁, ..., kₙ` and the intermediate tumblers `t₀, ..., tₙ`: the chain identifies the seed, the path, and the specific T10a steps that traverse it. Each step is locally T10a-admissible: `kᵢ ∈ {0, 1, 2}` (the allowed T10a step types — `0` for sibling advance, `1` or `2` for child-spawn), and TA5a's side condition (ASN-0034) is discharged whenever `kᵢ = 2` by the explicit `zeros(tᵢ₋₁) ≤ 2` clause; for `kᵢ ∈ {0, 1}` TA5a is unconditional.
+Each step is locally T10a-admissible: `kᵢ ∈ {0, 1, 2}` (the allowed T10a step types — `0` for sibling advance, `1` or `2` for child-spawn), and TA5a's side condition (ASN-0034) is discharged whenever `kᵢ = 2` by the explicit `zeros(tᵢ₋₁) ≤ 2` clause; for `kᵢ ∈ {0, 1}` TA5a is unconditional.
 
 The seed `s` is constrained as a T4-valid tumbler with `zeros(s) = 2` — the structural shape `N.0.U.0.D` of every document-level address; the first step `k₁ = 2` lifts depth strictly above `#s`, seating the field-separating zero between the document prefix and the element field at the first step itself; every subsequent intermediate state has length strictly greater than `#s`. This length premise is exactly what the following local lemma requires.
 
@@ -319,7 +319,7 @@ We verify that `Σ'` is conforming. Conformance reduces to checking the *state-l
 - *S8a (VPositionWellFormedness), S8-depth.* Arrangement entries unchanged from `Σ`; both carry over.
 - *D-CTG, D-MIN, D-SEQ.* Arrangements unchanged from `Σ`; all three carry over.
 
-No property of L0–L14, L-fin, or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. The ghost address `g` has `subspace_I(g) = s_X`. Since `subspace_I(g) = s_X ≠ s_C` and `dom(Σ'.C) = dom(Σ.C) ⊆ {t : subspace_I(t) = s_C}` by the L9 precondition (preserved at `Σ'` since `Σ'.C = Σ.C`), T7 gives `g ∉ dom(Σ'.C)`. Since `subspace_I(g) = s_X ≠ s_L`, L0 applied to `Σ'` gives `g ∉ dom(Σ'.L)`. Therefore `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)` — by subspace separation under L0 and the L9 precondition. ∎
+No property of L0–L14, L-fin, or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. The disjointness `g ∉ dom(Σ.C) ∪ dom(Σ.L)` established above transfers unchanged to `Σ'`: `Σ'.C = Σ.C`, and the sole new link address `a ≠ g` lies in subspace `s_L ≠ s_X`, so `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. ∎
 
 No property of L0–L14 or L-fin constrains type endset targets to content addresses. Nelson: "Indeed, there is no need for the presence of elements at the addresses specified. Link types may be ghost elements." The type address is a pure name — a position chosen by convention, not a pointer to content that must be dereferenced.
 
@@ -329,7 +329,7 @@ A consequence of L8 and L9 together: new link types can be defined by choosing a
 
 `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`
 
-equivalently `x ⊕ δ(1, #x) = shift(x, 1)`.
+(note `x ⊕ δ(1, #x) = shift(x, 1)` by OrdinalShift, ASN-0034 — a supporting identity, not an equivalent form).
 
 This identity is a property of spans and tumblers, with no link-specific content: it speaks only of `coverage`, `δ`, `shift`, and `≼`, all defined in ASN-0034 (tumbler algebra) and the span-algebra layer. It is a span/tumbler-algebra fact, adopted here as an axiom pending a span-algebra ASN.
 
@@ -404,7 +404,7 @@ for every state transition `Σ → Σ'`. This parallels S0 (ContentImmutability,
 
 The evidence is unambiguous. Nelson's FEBE protocol defines exactly five link operations: MAKELINK (create), FINDLINKSFROMTOTHREE (search), FINDNUMOFLINKSFROMTOTHREE (count), FINDNEXTNLINKSFROMTOTHREE (paginate), and RETRIEVEENDSETS (read). There is no MODIFYLINK, UPDATELINK, or EDITENDSETS. The only write operation is creation; the rest are queries. Gregory confirms at the implementation level: `insertendsetsinorgl` and `insertendsetsinspanf` are called exclusively from `docreatelink`; no other code path writes to the link's orgl or spanfilade entries. The link orgl is written once by `createorglingranf` and never touched again.
 
-Link immutability follows from the same principle that makes content immutable: others may have linked to it. Since links are first-class objects with tumbler addresses, other links can point to them (L13). Modifying a link's endsets after creation would silently change the meaning of every meta-link pointing to it — violating the permanence guarantee. To effectively change a connection, the owner creates a new link via MAKELINK with the desired endsets. The old link persists in `Σ.L` by L12; the new link gets a fresh address in creation order. The mechanism by which the old link ceases to be discoverable — whether through an arrangement-layer operation analogous to content deletion, or through some other visibility mechanism — is outside this ASN's scope. (Gregory's implementation reveals that links do occupy V-positions in a dedicated subspace of the document's permutation matrix, and that `deletevspan` removes only the POOM entry while leaving the link's own orgl and spanfilade entries intact — the link remains permanently discoverable through index traversal even after removal from the document's arrangement. Accommodating this in the abstract model would require extending the arrangement semantics beyond S3, which restricts `Σ.M(d)` to content addresses.)
+Link immutability follows from the same principle that makes content immutable: others may have linked to it. Since links are first-class objects with tumbler addresses, other links can point to them (L13). Modifying a link's endsets after creation would silently change the meaning of every meta-link pointing to it — violating the permanence guarantee. To effectively change a connection, the owner creates a new link via MAKELINK with the desired endsets. The old link persists in `Σ.L` by L12; the new link gets a fresh address in creation order. The mechanism by which the old link ceases to be discoverable — whether through an arrangement-layer operation analogous to content deletion, or through some other visibility mechanism — is outside this ASN's scope.
 
 Note what L12 does not address. Whether a link remains *discoverable* through indexing, whether its endsets remain *resolvable* to visible content, and what it means for a link to be "removed" while its address and value persist — these are questions about operations and their effects, outside this ASN's scope.
 
@@ -478,7 +478,7 @@ Content identity is *shareable*: the same I-address can appear in the arrangemen
 
 A connection is an assertion by a specific principal about specific content, and assertions are not transferable by reference. A link at address `a` is homed in `home(a)` and owned by the principal of `home(a)` — period. It cannot be transcluded into another owner's authority.
 
-Under the current model, S3 together with L0+L0a satisfies L14a in the `s_C`-resident regime: S3 (ReferentialIntegrity, ASN-0036) requires `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`, and L0+L0a establish `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`, so no `s_C`-resident V-position image can be a link address. L14a stands as an independent design requirement — if S3 is later extended to accommodate link V-positions in the arrangement layer (as Gregory's implementation evidence suggests may be necessary), non-transcludability of links must still hold by its own force, not merely as a side effect of referential integrity.
+Under the current model, S3 together with L0+L0a satisfies L14a in the `s_C`-resident regime: S3 (ReferentialIntegrity, ASN-0036) requires `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`, and L0+L0a establish `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`, so no `s_C`-resident V-position image can be a link address.
 
 
 ## Summary of the Link Model
@@ -705,7 +705,7 @@ The discrimination is structural: `g` and `g'` differ only at the tail (position
 | L7 | META | DirectionalFlexibility — L0–L14 and L-fin impose no constraint on directional significance of from/to slots | introduced |
 | L8 | DEF | TypeByAddress — type matching is by address coverage: `same_type(a₁, a₂) ⟺ coverage(Σ.L(a₁).type) = coverage(Σ.L(a₂).type)`; `.type` is slot 3, well-defined by L3 | introduced |
 | L9 | LEMMA | TypeGhostPermission — any conforming state with `dom(Σ.M) ≠ ∅` and `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`) can be extended, for every arity `N ≥ 3`, with a link of arity `N` whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)`; arity-3 witness `(∅, ∅, {(g, δ(1, #g))})` extends to higher arities by padding empty endsets at slots `4..N` (admissible by L3's slot-3-only non-emptiness conjunct) | introduced |
-| PrefixSpanCoverage | AXIOM | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`; equivalently `x ⊕ δ(1, #x) = shift(x, 1)` | introduced |
+| PrefixSpanCoverage | AXIOM | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}` (with supporting identity `x ⊕ δ(1, #x) = shift(x, 1)` from OrdinalShift, ASN-0034) | introduced |
 | L10 | LEMMA | TypeHierarchyByContainment — `coverage({(p, δ(1, #p))}) = subtypes(p)` by PrefixSpanCoverage | introduced |
 | L11a | LEMMA | LinkUniqueness — distinct T10a-conforming allocation events produce distinct link addresses (corollary of L1c + GlobalUniqueness; derivation in body) | introduced |
 | L11b | LEMMA | NonInjectivity — every conforming state with a link can be extended to a non-injective conforming state | introduced |
@@ -730,3 +730,4 @@ The discrimination is structural: `g` and `g'` differ only at the tail (position
 - What constraints govern the allocation ordering of link addresses relative to content addresses within the same document?
 - What must a conforming type address hierarchy satisfy beyond tumbler prefix containment?
 - Must the link store maintain consistency with the arrangements `Σ.M`, or are the two components independently mutable?
+- If links are permitted V-positions in the arrangement layer, what must S3 (ReferentialIntegrity) guarantee so that non-transcludability (L14a) is preserved?
