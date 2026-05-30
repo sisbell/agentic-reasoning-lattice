@@ -105,7 +105,7 @@ Depth ≥ 2 keeps `subspace_I(a) = E(a)₁` stable under `inc(·, 0)`: with the 
 
 `(A a ∈ dom(Σ.L) :: (E s ∈ T, n ≥ 1, t₀, t₁, ..., tₙ, k₁, ..., kₙ :: T4-valid(s) ∧ zeros(s) = 2 ∧ t₀ = s ∧ tₙ = a ∧ (A i : 1 ≤ i ≤ n : tᵢ = inc(tᵢ₋₁, kᵢ) ∧ kᵢ ∈ {0, 1, 2} ∧ (kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2)) ∧ k₁ = 2 ∧ (A i : 1 ≤ i ≤ n : #tᵢ > #s)))`
 
-The existential binds the seed `s` alongside the spawning parameters `k₁, ..., kₙ` and the intermediate tumblers `t₀, ..., tₙ`: the chain identifies the seed, the path, and the specific T10a steps that traverse it. Each step is locally T10a-admissible: `kᵢ ∈ {0, 1, 2}` (the allowed T10a step types — `0` for sibling advance, `1` or `2` for child-spawn), and TA5a's side condition (ASN-0034) is discharged whenever `kᵢ = 2` by the explicit `zeros(tᵢ₋₁) ≤ 2` clause; for `kᵢ ∈ {0, 1}` TA5a is unconditional. Per-(t, k') uniqueness across distinct allocator events anywhere in the system is the GlobalUniqueness (ASN-0034) consequence of T10a-conformance, applied at the level of (input, k') pairs — it is a cross-chain global property of the allocator landscape, not a within-chain local constraint, so it does not appear inside the existential here.
+The existential binds the seed `s` alongside the spawning parameters `k₁, ..., kₙ` and the intermediate tumblers `t₀, ..., tₙ`: the chain identifies the seed, the path, and the specific T10a steps that traverse it. Each step is locally T10a-admissible: `kᵢ ∈ {0, 1, 2}` (the allowed T10a step types — `0` for sibling advance, `1` or `2` for child-spawn), and TA5a's side condition (ASN-0034) is discharged whenever `kᵢ = 2` by the explicit `zeros(tᵢ₋₁) ≤ 2` clause; for `kᵢ ∈ {0, 1}` TA5a is unconditional.
 
 The seed `s` is constrained as a T4-valid tumbler with `zeros(s) = 2` — the structural shape `N.0.U.0.D` of every document-level address; the first step `k₁ = 2` lifts depth strictly above `#s`, seating the field-separating zero between the document prefix and the element field at the first step itself; every subsequent intermediate state has length strictly greater than `#s`. This length premise is exactly what the following local lemma requires.
 
@@ -126,7 +126,7 @@ Because link addresses are element-level tumblers (L1) allocated under their cre
 
 `home(a) = N(a).0.U(a).0.D(a)`
 
-This is the same formula as `origin` (ASN-0036), applied here to link addresses rather than content addresses. The domain extension is justified: by L1c's T4-validity postcondition link addresses are T4-valid; L1 establishes `zeros(a) = 3`, placing them at element level with all four fields present; therefore T4b's projections `N`, `U`, `D` are well-defined and the formula computes correctly.
+This is the same formula as `origin` (ASN-0036), applied here to link addresses rather than content addresses, and it is the same quantity that L1c denotes `h(a)`: `h(a) ≡ home(a)`. The domain extension is justified: by L1c's T4-validity postcondition link addresses are T4-valid; L1 establishes `zeros(a) = 3`, placing them at element level with all four fields present; therefore T4b's projections `N`, `U`, `D` are well-defined and the formula computes correctly.
 
 By GlobalUniqueness (ASN-0034), no two allocation events produce the same address. Link addresses are produced by allocation events conforming to T10a (L1c). Therefore each link receives a globally unique address.
 
@@ -157,7 +157,7 @@ Adding the third endset achieves three things simultaneously:
 
 3. **Hierarchical classification.** Because tumbler prefix containment is decidable — `p ≼ t` requires only finite component-wise equality (PrefixRelation, ASN-0034), computable from the tumblers alone (T2, IntrinsicComparison) — type addresses support hierarchical relationships: a type at address `p` and a subtype at an address extending `p` are related by prefix ordering. A query matching `p` matches both (by T5, ContiguousSubtrees).
 
-But Nelson's design does not stop at three. He explicitly lists support for higher-arity links as a desired feature: "4-sets, 5-sets ... n-sets supported in link storage and search" [LM 4/79]. The three-endset case — from, to, type — is the standard convention, not a structural ceiling. A faceted link relating content across more than three roles need not be decomposed into chains of ternary links; it can be expressed directly as a single link with the required number of endsets.
+But Nelson's design does not stop at three. The three-endset case — from, to, type — is the standard convention, not a structural ceiling; higher-arity links are admitted directly (the normative statement is L3 below). A faceted link relating content across more than three roles need not be decomposed into chains of ternary links; it can be expressed directly as a single link with the required number of endsets.
 
 We now define the components.
 
@@ -316,7 +316,7 @@ We verify that `Σ'` is conforming. Conformance reduces to checking the *state-l
 - *S7b (ElementLevelIAddresses).* Content addresses unchanged; S7b carries over.
 - *S7d (DocumentAllocationDiscipline).* `dom(Σ'.M) = dom(Σ.M)`, so S7d on `Σ` is preserved verbatim.
 - *S8-fin (FiniteArrangement).* `|dom(Σ'.M)| = |dom(Σ.M)|`, finite by S8-fin on `Σ`.
-- *S8a (ArrangementVPositions), S8-depth.* Arrangement entries unchanged from `Σ`; both carry over.
+- *S8a (VPositionWellFormedness), S8-depth.* Arrangement entries unchanged from `Σ`; both carry over.
 - *D-CTG, D-MIN, D-SEQ.* Arrangements unchanged from `Σ`; all three carry over.
 
 No property of L0–L14, L-fin, or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. The ghost address `g` has `subspace_I(g) = s_X`. Since `subspace_I(g) = s_X ≠ s_C` and `dom(Σ'.C) = dom(Σ.C) ⊆ {t : subspace_I(t) = s_C}` by the L9 precondition (preserved at `Σ'` since `Σ'.C = Σ.C`), T7 gives `g ∉ dom(Σ'.C)`. Since `subspace_I(g) = s_X ≠ s_L`, L0 applied to `Σ'` gives `g ∉ dom(Σ'.L)`. Therefore `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)` — by subspace separation under L0 and the L9 precondition. ∎
@@ -358,7 +358,7 @@ We now establish the identity semantics of links. The three requirements we bega
 
 *Derivation.* We do not re-prove uniqueness here; it is exactly GlobalUniqueness (ASN-0034) instantiated at link addresses. GlobalUniqueness's sole precondition is T10a-conformance of the events. L1c (LinkAllocatorConformance) discharges precisely that precondition for link addresses: every `a ∈ dom(Σ.L)` is the terminus of a T10a-conforming chain. Instantiating GlobalUniqueness at the link-address events therefore yields `a₁ ≠ a₂` for distinct events.
 
-*Consequence — identification within a state.* Within any single state `Σ.L` is a partial function, so an address names at most one link; the substantive content of L11a is that this within-state identification extends across allocation events. Persistence of the address-to-link binding across transitions is L12, not L11a.
+*Consequence — identification within a state.* Within any single state `Σ.L` is a partial function, so an address names at most one link; the substantive content of L11a is that this within-state identification extends across allocation events.
 
 **L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same endset sequence:
 
@@ -573,19 +573,19 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *S7a (DocumentScopedAllocation, ASN-0036).* For each content address: `N(c₁).0.U(c₁).0.D(c₁) = 1.0.1.0.1 = d ∈ dom(Σ.M)`, and identically for `c₂`. Both content addresses sit under their allocated home document. ✓
 
-*S7b (ContentElementLevel, ASN-0036).* `zeros(c₁) = zeros(1.0.1.0.1.0.1.1) = 3` and `zeros(c₂) = zeros(1.0.1.0.1.0.1.2) = 3`; both T4-valid (no adjacent zeros, every non-separator component positive). T4b's projections `N, U, D, E` are therefore well-defined on each. ✓
+*S7b (ElementLevelIAddresses, ASN-0036).* `zeros(c₁) = zeros(1.0.1.0.1.0.1.1) = 3` and `zeros(c₂) = zeros(1.0.1.0.1.0.1.2) = 3`; both T4-valid (no adjacent zeros, every non-separator component positive). T4b's projections `N, U, D, E` are therefore well-defined on each. ✓
 
-*S7d (ArrangementDocumentScope, ASN-0036).* `dom(Σ.M) = {d}` with `d = 1.0.1.0.1`; `zeros(d) = 2`, T4-valid; `d` is producible by a single `inc(r, 2)` allocation event from a user-level root `r = 1.0.1` (`zeros(r) = 1 ≤ 2`, satisfying TA5a's side condition for `k' = 2`): `inc(1.0.1, 2)` appends one separator zero and a final `1`, yielding `1.0.1.0.1 = d` (or `d` is reached along a T10a-conforming chain from 𝒯's `zeros = 0` node root), so `d` is a T10a-allocated node in 𝒯. ✓
+*S7d (DocumentAllocationDiscipline, ASN-0036).* `dom(Σ.M) = {d}` with `d = 1.0.1.0.1`; `zeros(d) = 2`, T4-valid; `d` is producible by a single `inc(r, 2)` allocation event from a user-level root `r = 1.0.1` (`zeros(r) = 1 ≤ 2`, satisfying TA5a's side condition for `k' = 2`): `inc(1.0.1, 2)` appends one separator zero and a final `1`, yielding `1.0.1.0.1 = d` (or `d` is reached along a T10a-conforming chain from 𝒯's `zeros = 0` node root), so `d` is a T10a-allocated node in 𝒯. ✓
 
-*S8a (ArrangementSubspaceScope, ASN-0036).* The V-positions of `Σ.M(d)` are `{[1.1], [1.2]}`; each V-position is an element-field tumbler whose subspace component is `1 = s_C`, restricting `Σ.M(d)` to the content subspace's V-position slice. ✓
+*S8a (VPositionWellFormedness, ASN-0036).* The V-positions of `Σ.M(d)` are `{[1.1], [1.2]}`; each V-position is an element-field tumbler whose subspace component is `1 = s_C`, restricting `Σ.M(d)` to the content subspace's V-position slice. ✓
 
-*S8-depth (VPositionDepth, ASN-0036).* Each V-position of `Σ.M(d)` has element-field depth `2`: `#[1.1] = #[1.2] = 2 ≥ 2`. ✓
+*S8-depth (FixedDepthVPositions, ASN-0036).* Each V-position of `Σ.M(d)` has element-field depth `2`: `#[1.1] = #[1.2] = 2 ≥ 2`. ✓
 
-*D-CTG (Contiguity, ASN-0036).* The V-position set `V_1(d) = dom(Σ.M(d)) = {[1, 1], [1, 2]}` is contiguous along its second component at fixed subspace `1`: positions `[1, 1]` and `[1, 2]` cover `{[1, k] : 1 ≤ k ≤ 2}` with no gaps. ✓
+*D-CTG (VContiguity, ASN-0036).* The V-position set `V_1(d) = dom(Σ.M(d)) = {[1, 1], [1, 2]}` is contiguous along its second component at fixed subspace `1`: positions `[1, 1]` and `[1, 2]` cover `{[1, k] : 1 ≤ k ≤ 2}` with no gaps. ✓
 
-*D-MIN (Minimum, ASN-0036).* `min(V_1(d)) = [1, 1]` — the lexicographically least V-position in `V_1(d)` is the canonical start position `[1, 1]`. ✓
+*D-MIN (VMinimumPosition, ASN-0036).* `min(V_1(d)) = [1, 1]` — the lexicographically least V-position in `V_1(d)` is the canonical start position `[1, 1]`. ✓
 
-*D-SEQ (Sequentiality, ASN-0036).* `V_1(d) = {[1, k] : 1 ≤ k ≤ 2}` is a contiguous arithmetic sequence of element-field tumblers at depth 2, starting at the D-MIN witness `[1, 1]` and advancing by `inc(·, 0)` to `[1, 2]`. ✓
+*D-SEQ (SequentialPositions, ASN-0036).* `V_1(d) = {[1, k] : 1 ≤ k ≤ 2}` is a contiguous arithmetic sequence of element-field tumblers at depth 2, starting at the D-MIN witness `[1, 1]` and advancing by `inc(·, 0)` to `[1, 2]`. ✓
 
 **Extension: L11b non-injectivity, L13, and transition verification.**
 
@@ -696,7 +696,7 @@ The discrimination is structural: `g` and `g'` differ only at the tail (position
 | L1a | INV | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
 | L1b | INV | LinkElementFieldDepth — every link address has element field depth ≥ 2: `(A a ∈ dom(Σ.L) :: #E(a) ≥ 2)` | introduced |
 | L1c | AXIOM | LinkAllocatorConformance — link allocation conforms to T10a (AllocatorDiscipline, ASN-0034); every link address is the T4-valid terminus of a T10a-conforming chain seeded at its document-level prefix (full statement and postconditions in body) | introduced |
-| CPP | LEMMA | ChainPrefixPreservation (local) — along a T10a-conforming chain of T4-valid tumblers whose every step modifies only positions beyond a fixed length `p ≤ #t₀`, the terminus agrees with `t₀` on positions `1..p`; cited by L1c, Home/Ownership, L9, and L11b | introduced |
+| CPP | LEMMA | ChainPrefixPreservation (local) — along a T10a-conforming chain of T4-valid tumblers whose every step modifies only positions beyond a fixed length `p ≤ #t₀`, the terminus agrees with `t₀` on positions `1..p` | introduced |
 | L2 | LEMMA | OwnershipEndsetIndependence — `home(a)` depends only on `a`, not on the link's endsets | introduced |
 | L3 | INV | NEndsetStructure — every link has at least three endsets, with slot 3 a non-empty type endset: `\|Σ.L(a)\| ≥ 3 ∧ Σ.L(a).e₃ ≠ ∅`; arity 3 `(F, G, Θ)` is the standard triple, higher arity admitted | introduced |
 | L4 | META | EndsetGenerality — the model imposes no constraint on endset spans beyond T12 well-formedness (definitional from L3): no single-document, content-only, or existence restriction | introduced |
