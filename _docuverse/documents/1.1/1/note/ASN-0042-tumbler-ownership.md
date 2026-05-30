@@ -35,13 +35,7 @@ The mapping `pfx : Π → T` is a primitive of the ownership model. Its codomain
 
 Without injectivity, two principals sharing a prefix could both claim longest-match, and the effective owner function `ω` (defined in O2 below) would not yield a unique result.
 
-The ownership question "does `π` own `a`?" is answered by examining these two tumblers alone:
-
-**O0 (StructuralOwnership).** The ownership predicate `owns(π, a)` is decidable from `pfx(π)` and `a` alone, without consulting any mutable system state. The decision procedure inspects only two tumblers; no registry, table, or transition history is required.
-
-O0 governs the two-place predicate `owns(π, a)`, not the one-place effective-owner function `ω(a)`. The latter ranges over the principal registry to select the longest matching prefix, so its evaluation requires `(a, Π_Σ, pfx)` — the registry is consulted to enumerate candidates. Deciding `owns(π, a)` requires only the tumbler pair `(pfx(π), a)`; this is why `tumbleraccounteq` accepts both tumblers as arguments and not just the address.
-
-The decision procedure is prefix containment:
+The ownership question "does `π` own `a`?" is answered by examining these two tumblers alone, by prefix containment:
 
 **O1 (PrefixDetermination).** Principal `π` owns address `a` iff `pfx(π)` is a prefix of `a`:
 
@@ -49,11 +43,13 @@ The decision procedure is prefix containment:
 
 where `p ≼ a` denotes that `p` is a prefix of `a` in the sense of Prefix (PrefixRelation) — the components of `p` match the leading components of `a`. T5 (ContiguousSubtrees) is the structural property of the address space that `≼` partitions the space into contiguous subtrees; the relation itself is supplied by Prefix.
 
-O1 is a definition: we define the ownership predicate `owns(π, a)` to be identical with prefix containment `pfx(π) ≼ a`. We verify that the definition is well-formed and that it satisfies the decidability requirement O0.
+The definition governs the two-place predicate `owns(π, a)`, not the one-place effective-owner function `ω(a)`. The latter ranges over the principal registry to select the longest matching prefix, so its evaluation requires `(a, Π_Σ, pfx)` — the registry is consulted to enumerate candidates. Deciding `owns(π, a)` requires only the tumbler pair `(pfx(π), a)`; this is why `tumbleraccounteq` accepts both tumblers as arguments and not just the address.
+
+O1 is a definition: we define the ownership predicate `owns(π, a)` to be identical with prefix containment `pfx(π) ≼ a`. We verify that the definition is well-formed and that it satisfies the **decidability** postcondition: `owns(π, a)` is decidable from `pfx(π)` and `a` alone, without consulting any mutable system state — no registry, table, or transition history is required.
 
 *Well-formedness.* The prefix relation `≼` is defined by Prefix (PrefixRelation): `p ≼ a ⟺ #a ≥ #p ∧ (A i : 1 ≤ i ≤ #p : pᵢ = aᵢ)`. For `owns(π, a)` to be well-defined, two conditions must hold. First, `pfx(π)` must be a valid tumbler — this holds by the definition of `pfx`, which requires every principal's prefix to satisfy T4 (HierarchicalParsing). Second, the component-wise comparison must be determinate — by T3 (CanonicalRepresentation), each component `pᵢ` and `aᵢ` is a uniquely determined natural number, so equality at each position is decidable.
 
-*Decidability.* The prefix check `pfx(π) ≼ a` requires one length comparison `#a ≥ #pfx(π)` followed by at most `#pfx(π)` component comparisons, each a comparison of natural numbers. The entire computation uses `pfx(π)` and `a` alone, consulting no mutable system state. This satisfies the design requirement O0 (StructuralOwnership): ownership is decidable from the prefix and the address without external state.
+*Decidability.* The prefix check `pfx(π) ≼ a` requires one length comparison `#a ≥ #pfx(π)` followed by at most `#pfx(π)` component comparisons, each a comparison of natural numbers. The entire computation uses `pfx(π)` and `a` alone, consulting no mutable system state — so `owns(π, a)` is decidable from the prefix and the address without external state, discharging the decidability postcondition.
 
 *Design justification.* Nelson states that "numbers are owned by individuals or companies, and subnumbers under them are bestowed on other individuals and companies" (LM 4/17) — ownership is legible from the address itself. Gregory's `tumbleraccounteq` confirms the decision procedure: it walks the mantissa arrays of two tumblers in lockstep, comparing components. The definition `owns(π, a) ≡ pfx(π) ≼ a` formalizes this structural containment exactly. ∎
 
@@ -87,8 +83,6 @@ The consequence: sub-account allocation (creating documents, versions, elements)
 
 O1a permits nesting *within* the account level. T4 allows multi-component user fields: `pfx(π₁) = [1, 0, 2]` and `pfx(π₂) = [1, 0, 2, 3]` both satisfy `zeros ≤ 1`, and `pfx(π₁) ≺ pfx(π₂)`. Nelson designed this deliberately: "accounts can spin off accounts" (LM 4/19). The User field is a tree, not a flat namespace — a principal may delegate a sub-account by forking a longer user field within its own prefix. Gregory confirms: `tumbleraccounteq` applied to account `[1, 0, 2, 3]` checks positions 0, 2, and 3, while account `[1, 0, 2]` checks only positions 0 and 2 — the child account is a strict refinement. What O1a prevents is *document-level* or *element-level* principals: no principal has `zeros(pfx(π)) ≥ 2`. The floor of ownership is the account level, but within that floor, the user-field tree can grow arbitrarily deep.
 
-We record once the field-structure facts that both the well-formedness of `acct(a)` and the prefix relation `acct(a) ≼ a` (AccountPrefix, *Structural Provenance* below) rely on.
-
 **FieldStructure.** For a valid tumbler `a` satisfying T4 with `zeros(a) = z`, T4b (UniqueParse) decomposes `a` uniquely into `z + 1` fields — node, then (for `z ≥ 1`) user, (for `z ≥ 2`) document, (for `z = 3`) element — each a contiguous segment with a single zero between consecutive segments. By T4a (SyntacticEquivalence) every segment is non-empty (node length `α ≥ 1`, user length `β ≥ 1` when present, and so on), and by T4's positive-component constraint every non-separator component is strictly positive; the separators occupy exactly the zero-valued positions, the first at position `α + 1`, the second (if present) at `α + 1 + β + 1`, and so on. Component-wise access is decidable from T3 (CanonicalRepresentation), so the decomposition is computable from `a` alone. The case distinction `z ∈ {0, 1, 2, 3}` is exhaustive by T4's zero-count clause.
 
 Well-formedness of `acct(a)` follows from FieldStructure. When `zeros(a) = 0`, `a` is node-level, `acct(a) = a`, and `zeros(acct(a)) = 0`. When `zeros(a) = 1`, `a = N(a) ++ [0] ++ U(a)` with no further components, so `acct(a) = N(a) ++ [0] ++ U(a) = a` and `zeros(acct(a)) = 1`. When `zeros(a) ≥ 2`, the construction `acct(a) = N(a) ++ [0] ++ U(a)` depends only on the node and user segments, which by FieldStructure have `α ≥ 1` and `β ≥ 1` strictly positive components: the result has length `α + 1 + β`, exactly one zero (at position `α + 1`, flanked by the positive last node component and first user component, so no adjacent zeros and no leading or trailing zero), hence satisfies T4 with `zeros(acct(a)) = 1`. In every case `acct(a)` is a valid tumbler satisfying T4 with `zeros(acct(a)) ≤ 1`. ∎
@@ -107,7 +101,7 @@ Each principal's prefix determines a set of addresses — their *domain*:
 
 *Notation.* `dom(π)` applies to a principal (the prefix-defined subset of `T`), distinct from `dom(A)` of T10a (ASN-0034), which enumerates an allocator's per-stream chain `{tₙ : n ≥ 0}`; argument kind disambiguates.
 
-Before developing ownership domains' nesting structure, we extract a structural fact about the prefix relation `≼` that the subsequent proofs invoke repeatedly. The fact is a direct consequence of Prefix (PrefixRelation) of ASN-0034 and is independent of T5 (ContiguousSubtrees); we state it once as a named lemma:
+The prefix relation `≼` satisfies a comparability property that is a direct consequence of Prefix (PrefixRelation) of ASN-0034 and is independent of T5 (ContiguousSubtrees):
 
 **Covering-chain lemma (PrefixesOfCommonAddressAreComparable).** Any two tumbler prefixes of a common address are `≼`-comparable:
 
@@ -182,7 +176,7 @@ In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with
 
 The reading of the conjuncts: (i) the delegate's prefix strictly extends the delegator's, (ii) the delegator is the most-specific covering principal of `pfx(π')` in `Π_Σ` (the authorization clause — delegation requires subdivision authority), (iii) the delegate is newly introduced, (iv) the delegate's prefix is at node or account level, (v) the delegate's prefix is a valid tumbler, and (vi) no existing principal already occupies a sub-domain of `pfx(π')` (enforcing top-down delegation order). Nelson's design contains no concept of principals appearing outside the delegation hierarchy, and Gregory's codebase provides no mechanism for it.
 
-**Definition (delegated).** We name the conjunction of conditions (i)–(vi) above the *delegation predicate*, with a four-place signature: `delegated(Σ, Σ', π, π')` holds iff `Σ → Σ'`, `π ∈ Π_Σ`, `π' ∈ Π_{Σ'} ∖ Π_Σ` (condition (iii)), and conditions (i), (ii), (iv), (v), (vi) hold for `(π, π')` at `Σ`. Both transition endpoints are explicit parameters; condition (iii) pins which successor `Σ'` introduces `π'`, so the predicate's meaning never depends on a contextually-supplied successor. Where a formula already binds a transition `Σ → Σ'`, we write `delegated_Σ(π, π')` as an abbreviation for `delegated(Σ, Σ', π, π')` with that same `Σ'`; the subscript form is used only when `Σ'` is named in the surrounding formula. The reflexive-transitive closure `delegated_Σ*` is a separate relation, built from the structural parent relation `R_Σ` on the single state `Σ` defined alongside NestingByDelegation below.
+**Definition (delegated).** We name the conjunction of conditions (i)–(vi) above the *delegation predicate*, with a four-place signature: `delegated(Σ, Σ', π, π')` holds iff `Σ → Σ'`, `π ∈ Π_Σ`, `π' ∈ Π_{Σ'} ∖ Π_Σ` (condition (iii)), and conditions (i), (ii), (iv), (v), (vi) hold for `(π, π')` at `Σ`. Where a formula already binds a transition `Σ → Σ'`, we write `delegated_Σ(π, π')` as an abbreviation for `delegated(Σ, Σ', π, π')` with that same `Σ'`; the subscript form is used only when `Σ'` is named in the surrounding formula. The reflexive-transitive closure `delegated_Σ*` is a separate relation, built from the structural parent relation `R_Σ` on the single state `Σ` defined alongside NestingByDelegation below.
 
 **FiniteRegistry (FiniteRegistry, derived).** In every reachable state, the principal registry is finite:
 
@@ -219,7 +213,7 @@ We derive this by induction on the transition sequence `Σ₀ → Σ_1 → ... �
 
 In every sub-case, one of the three disjuncts holds for `(π₁, π')`. By symmetry, the same holds for `(π', π₂)` when `π₁ = π'`. Induction completes the derivation. ∎
 
-NestingByDelegation makes the structural geometry of `Π_Σ` explicit: principals form a forest under the strict-extension order, with the roots being the bootstrap principals of `Π_{Σ_0}`, and parent-child edges supplied by delegation events. The proofs of O10 (sub-delegate prefix maxima) and OwnershipDomainPermanence★ (sub-delegate inheritance) tacitly rely on this geometry — sub-delegates of a principal `π` are precisely the descendants of `π` in the forest, and any other principal in `Π_Σ` has a non-nesting prefix.
+NestingByDelegation makes the structural geometry of `Π_Σ` explicit: principals form a forest under the strict-extension order, with the roots being the bootstrap principals of `Π_{Σ_0}`, and parent-child edges supplied by delegation events. Sub-delegates of a principal `π` are precisely the descendants of `π` in the forest, and any other principal in `Π_Σ` has a non-nesting prefix.
 
 **allocated_by_Σ(π, a) (AllocatedBy).**
 
@@ -366,7 +360,7 @@ Nelson is emphatic: ownership does not expire.
 
 > "Once assigned a User account, the user will have full control over its subdivision forevermore." (LM 4/29)
 
-"Forevermore" is strong language in a technical specification. But the naive reading — that `ω(a)` never changes — is too strong. Consider a node operator `π₁` with `pfx(π₁) = [1]`. Before any delegation, `ω(a) = π₁` for every address `a` with node field `1`. When `π₁` delegates account prefix `[1, 0, 2]` to principal `π₂`, the effective owner of every address under `[1, 0, 2]` changes from `π₁` to `π₂` — the longer prefix wins. Nelson's "forevermore" does not mean `ω` never changes; it means the *account holder's* sovereignty is permanent — changes to `ω` within an account holder's domain can arise only from the account holder's own delegation acts (see the Corollary below).
+"Forevermore" is strong language in a technical specification. But the naive reading — that `ω(a)` never changes — is too strong. Consider a node operator `π₁` with `pfx(π₁) = [1]`. Before any delegation, `ω(a) = π₁` for every address `a` with node field `1`. When `π₁` delegates account prefix `[1, 0, 2]` to principal `π₂`, the effective owner of every address under `[1, 0, 2]` changes from `π₁` to `π₂` — the longer prefix wins. So "forevermore" cannot mean `ω` is static; its precise reading — refinement-only, alterable by no act external to a principal's domain — is anchored at OwnershipDomainPermanence below.
 
 The correct invariant is monotonic refinement — `ω(a)` can change only through delegation, and only by becoming more specific:
 
@@ -431,7 +425,7 @@ We prove this by induction on the path length `n`. The reachability of each inte
 
 *Inductive step.* Assume the corollary holds for sequences of length `n`; consider a sequence of length `n + 1`: `Σ → Σ_1 → ... → Σ_n → Σ_{n+1}`. By the induction hypothesis applied to the prefix `Σ →⁺ Σ_n`, the chain conclusion holds for every transition with index `0 ≤ i < n` along that prefix. It remains to handle the final transition `Σ_n → Σ_{n+1}`. The single-transition OwnershipDomainPermanence applies provided `Σ_n` reachable from `Σ₀` (discharged above) and `a ∈ dom(π) ∩ Σ_n.B` — we discharge the latter from the original hypotheses. The persistence of `a` follows from B0★ (MultiStepIrrevocability) of ASN-0040 applied along the path `Σ →⁺ Σ_n`: `a ∈ Σ.B ⊆ Σ_n.B` since the baptismal registry is monotone under the reflexive-transitive closure of `→`. The persistence of `π ∈ Π_{Σ_n}` follows from iterated O12: `Π_Σ ⊆ Π_{Σ_1} ⊆ ... ⊆ Π_{Σ_n}`, so `π ∈ Π_{Σ_n}`. The persistence of `a ∈ dom(π)` is structural — `dom(π) = {a : pfx(π) ≼ a}` depends only on `pfx(π)` and `a`, both of which are fixed as values (O13 immutability for the prefix; tumbler addresses are immutable values in `Σ.B` under B0 of ASN-0040). With premises discharged, the single-transition statement yields the required `π_d^{(n)}` with `pfx(π) ≼ pfx(π_d^{(n)})` whenever `ω_{Σ_{n+1}}(a) ≠ ω_{Σ_n}(a)`. Combined with the inductive conclusion for the earlier transitions, the chain conclusion holds for all `0 ≤ i ≤ n`. ∎
 
-The corollary's content is Nelson's "forevermore": every delegator that participates in a chain of changes to `ω(a)` within `dom(π)` has a prefix extending `pfx(π)`, so the chain always begins with `π`'s own delegation act and no delegator outside `dom(π)` can induce a change. When `π` has not yet exercised delegation authority at `Σ` — for instance, the state at which `π` itself was introduced — NestingByDelegation places every link of the inducing chain strictly between `Σ` and the state of the change (each intermediate principal strictly extends `pfx(π)` by condition (i), so by O12 monotonicity it is introduced only after `Σ`).
+The corollary's content: every delegator that participates in a chain of changes to `ω(a)` within `dom(π)` has a prefix extending `pfx(π)`, so the chain always begins with `π`'s own delegation act and no delegator outside `dom(π)` can induce a change. When `π` has not yet exercised delegation authority at `Σ` — for instance, the state at which `π` itself was introduced — NestingByDelegation places every link of the inducing chain strictly between `Σ` and the state of the change (each intermediate principal strictly extends `pfx(π)` by condition (i), so by O12 monotonicity it is introduced only after `Σ`).
 
 Nelson confirms: "User 3 controls allocation of children directly under 3. User 3.2 controls everything under 3.2. User 3 cannot modify User 3.2's documents" (consultation, LM 4/20, 4/29, 2/29). The parent controls baptism; the child controls content. Changes to `ω` within `dom(π)` arise only from `π`'s own delegation choices, or recursively from sub-delegates' choices within their own sub-domains. This is Nelson's "forevermore": not that `ω` is static within `dom(π)`, but that no external act can alter it. The addresses `π` has not sub-delegated remain permanently under `π`'s effective ownership.
 
@@ -483,8 +477,7 @@ The delegated prefix `[1, 0, 2]` is deliberately *not* seeded — it is baptized
 
 **State Σ₁.** The address `a₁ = [1, 0, 2, 0, 3, 0, 1]` (a document element under account `[1, 0, 2]`) is seeded in `Σ_0.B` under `π_N`'s coverage per the bootstrap snapshot table above — `a₁` enters the baptismal registry at genesis with no preceding transition, and `π_N` is its most-specific covering principal in `Π_0` (since only `pfx(π_N) = [1] ≼ a₁`, and `pfx(π_M) = [2] ⋠ a₁`). Bootstrap seeding is a property of `Σ_0` itself, not the product of an allocation by `π_N`; we therefore reserve the verb "allocate" for transition-induced entries (the post-`Σ_0` baptisms enumerated in the *Trajectory* paragraph below) and use "seed" / "is in `Σ_0.B`" / "under `π_N`'s coverage" for the genesis-state contents recorded in the bootstrap snapshot. Following the delegation `delegated_{Σ_0}(π_N, π_A)` introducing `π_A` with `pfx(π_A) = [1, 0, 2]`, both principals' prefixes cover `a₁`: `[1] ≼ a₁` and `[1, 0, 2] ≼ a₁`. The longer match is `[1, 0, 2]`, so `ω_{Σ_1}(a₁) = π_A`. We verify:
 
-- **O0**: `owns(π_A, a₁)` is decidable from `pfx(π_A) = [1, 0, 2]` and `a₁ = [1, 0, 2, 0, 3, 0, 1]` alone. ✓
-- **O1**: `pfx(π_A) ≼ a₁` — the first three components match. ✓
+- **O1**: `pfx(π_A) ≼ a₁` — the first three components match; `owns(π_A, a₁)` is decidable from `pfx(π_A) = [1, 0, 2]` and `a₁ = [1, 0, 2, 0, 3, 0, 1]` alone. ✓
 - **O1a**: `zeros(pfx(π_A)) = 1 ≤ 1`. ✓
 - **O1b**: `pfx(π_N) = [1] ≠ [1, 0, 2] = pfx(π_A)`, so injectivity holds. ✓
 - **O2**: `ω(a₁) = π_A` — unique longest match. `π_N` also matches but `#[1, 0, 2] > #[1]`. ✓
@@ -703,7 +696,7 @@ The delegation is irrevocable:
 
   `(A π, π', a, Σ_d, Σ_d^{post}, Σ' : Σ_d reachable from Σ₀ ∧ delegated(Σ_d, Σ_d^{post}, π, π') ∧ Σ_d^{post} →* Σ' ∧ π' ∈ Π_{Σ'} ∧ a ∈ dom(π') ∩ Σ'.B : ω_{Σ'}(a) ≠ π)`
 
-We state O8 with the four-place `delegated(Σ_d, Σ_d^{post}, π, π')`, naming the single introducing edge `Σ_d → Σ_d^{post}` explicitly, because the reachability quantifier `Σ_d^{post} →* Σ'` ranges over multi-step trajectories: the subscript abbreviation `delegated_{Σ_d}(π, π')` resolves only against a single named successor, so it would be malformed under a `→*` binder where `Σ'` is the path endpoint rather than the introducing successor. The full trajectory is `Σ_d → Σ_d^{post} →* Σ'`.
+The full trajectory is `Σ_d → Σ_d^{post} →* Σ'`.
 
 The formulation captures irrevocability without overclaiming. It says the *parent* can never recover the addresses, while permitting the delegate `π'` to sub-delegate (via O7(c)): if `π'` delegates to `π''` with `pfx(π') ≺ pfx(π'')`, then `ω(a) = π''` for `a ∈ dom(π'')` — the address leaves `π'`'s effective ownership but does not return to `π`. The domain restriction `dom(π') ∩ Σ'.B` ensures `ω` is applied only to addresses where it is defined (grounded by O4). The hypothesis `π' ∈ Π_{Σ'}` forces the trajectory `Σ_d →⁺ Σ'` to pass through `π'`'s introducing delegation transition `Σ_d → Σ_d^{post}` (by O15, principals enter only via bootstrap or delegation).
 
@@ -832,20 +825,16 @@ One question remains: how does the system know which principal it is speaking to
 
 Nelson is silent on authentication mechanisms. Gregory's implementation reveals that the trust boundary lies *outside* the ownership model. The backend's `getxaccount` reads whatever tumbler the client sends over the wire and stores it as the session's account — `validaccount` returns TRUE unconditionally in all build configurations. The backend does not verify that the claimed account tumbler corresponds to a legitimate delegation. It trusts the assertion.
 
-This is not a deficiency in the ownership *model* — it is a gap in the ownership *enforcement*. The model itself is clean: O0 through O10 hold regardless of how principal identity is established. The structural predicate `tumbleraccounteq` gives the correct answer for any two tumblers. The question of whether the *right* tumblers are being compared — whether the session's claimed account tumbler is the one the principal is actually entitled to — is a separate concern.
+This is not a deficiency in the ownership *model* — it is a gap in the ownership *enforcement*. The model itself is clean: O1 through O10 hold regardless of how principal identity is established. The structural predicate `tumbleraccounteq` gives the correct answer for any two tumblers. The question of whether the *right* tumblers are being compared — whether the session's claimed account tumbler is the one the principal is actually entitled to — is a separate concern.
 
-We record this as a scope boundary of the ownership model, not as a property.
-
-*Scope note (Identity is exogenous).* The ownership model treats principal identity as given — it assumes the system has established which principal holds which prefix. The mechanism by which this establishment occurs (authentication, delegation verification, cryptographic binding) is external to the ownership model: the binding `session.account = pfx(π)` is an axiom of the session, not a theorem derivable within O0–O10. Any conforming implementation must provide *some* mechanism for binding sessions to principals, but the ownership properties O0–O10 are independent of which mechanism is chosen. The properties hold for any mapping from sessions to account tumblers, provided the mapping is consistent with the delegation structure.
-
-This scope note records a boundary the model does not cross; it makes no verifiable claim about reachable states and so is not listed among the model's axioms or derived properties.
+*Scope note (Identity is exogenous).* The ownership model treats principal identity as given — it assumes the system has established which principal holds which prefix. The mechanism by which this establishment occurs (authentication, delegation verification, cryptographic binding) is external to the ownership model: the binding `session.account = pfx(π)` is an axiom of the session, not a theorem derivable within O1–O10. Any conforming implementation must provide *some* mechanism for binding sessions to principals, but the ownership properties O1–O10 are independent of which mechanism is chosen. The properties hold for any mapping from sessions to account tumblers, provided the mapping is consistent with the delegation structure.
 
 
 ## Summary of the Model
 
 The ownership model we have derived is spare. It has one predicate (prefix containment), one resolution rule (longest match), and one structural invariant (exclusivity). Everything else follows. Ownership is:
 
-1. *Structural* — computed from the address, not stored (O0, O1)
+1. *Structural* — computed from the address, not stored (O1)
 2. *Account-bounded* — the field structure fixes the granularity (O1a)
 3. *Exclusive* — exactly one effective owner per address (O2)
 4. *Monotonically refined* — changes only through delegation, never reverses (O3)
@@ -856,7 +845,7 @@ The ownership model we have derived is spare. It has one predicate (prefix conta
 9. *Node-local* — authority is bounded by node prefix (O9)
 10. *Fork-inducing at boundaries* — non-ownership produces new ownership (O10)
 
-Principal identity (the binding of a session to a tumbler prefix) is exogenous to this model — see the Scope note in the *Principal Identity and the Trust Boundary* section. The ownership properties O0–O10 hold for any identity-binding mechanism the system chooses.
+Principal identity (the binding of a session to a tumbler prefix) is exogenous to this model — see the Scope note in the *Principal Identity and the Trust Boundary* section. The ownership properties O1–O10 hold for any identity-binding mechanism the system chooses.
 
 The design philosophy is clear: minimize the authorization model to the point where the only permission concept needed is prefix containment. The tumbler is not just a name — it is a title deed.
 
@@ -865,8 +854,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| O0 | Ownership of `a` by `π` is decidable from `pfx(π)` and `a` alone, without mutable state | from O1, Prefix, T3 (verification target of O1's definition) |
-| O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment | definition |
+| O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment; decidability postcondition: decidable from `pfx(π)` and `a` alone, without mutable state | definition (decidability via Prefix, T3) |
 | O1a | `(A π ∈ Π : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | derived invariant; base case O14(iii), preserved by Delegation cond. (iv), O13, O15 |
 | O1b | `pfx` is injective — distinct principals have distinct prefixes | derived invariant; base case O14(iv), preserved by Delegation length contradiction, O13, O15 |
 | O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | from O4, O1b, Prefix, T3, Covering-chain lemma |
