@@ -783,7 +783,7 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1)}. *S8-cons verification:* both 
 | R-RI | LEMMA | Rearrangement preserves S3 (referential integrity): ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
 | R-COMM | LEMMA | π(v + k) = π(v) + k when v and v + k lie in the same region: cut-point permutation commutes with ordinal shift | introduced |
 | R-BLK | LEMMA | Run partition transforms by split-at-cuts then displace-per-region, preserving S8-uniq/S8-cons under M'(d) | introduced |
-| R-CS3 | LEMMA | Dropping CS3 leaves "the subspace S" of R-PRE(iv) undefined, so the precondition is unsatisfiable and REARRANGE_K has no instance | supporting |
+| R-CS3 | LEMMA | Dropping CS3 admits a cut sequence for which "the subspace S" of R-PRE(iv) is undefined (ill-posed), so CS3 is necessary for R-PRE(iv) to be well-posed | supporting |
 
 
 ## Open Questions
