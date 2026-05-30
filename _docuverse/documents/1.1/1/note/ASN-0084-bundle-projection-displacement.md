@@ -19,7 +19,7 @@ We recall D-CTG (VContiguity, ASN-0036): within each subspace, V-positions form 
 
 **Definition — ArrangementRearrangement.** An *arrangement rearrangement* is a state transition Σ → Σ' in which dom(M'(d)) = dom(M(d)), C' = C (S0, ASN-0036), M'(d') = M(d') for all d' ≠ d, and there exists a bijection π : dom(M(d)) → dom(M'(d)) such that M'(d)(π(v)) = M(d)(v) for all v ∈ dom(M(d)).
 
-We derive that the I-address range is invariant and that multiplicities are preserved. Since π is a bijection from dom(M(d)) to dom(M'(d)) = dom(M(d)), every u ∈ dom(M'(d)) has the form u = π(v) for exactly one v ∈ dom(M(d)). Therefore: ran(M'(d)) = {M'(d)(u) : u ∈ dom(M'(d))} = {M'(d)(π(v)) : v ∈ dom(M(d))} = {M(d)(v) : v ∈ dom(M(d))} = ran(M(d)). The second equality uses surjectivity of π; the third uses the defining property M'(d)(π(v)) = M(d)(v). The multiset of I-addresses is also preserved: since π is a bijection, for each I-address a, the preimage {v : M(d)(v) = a} is in bijection (via π) with {π(v) : M(d)(v) = a}; we now show this latter set equals {u : M'(d)(u) = a} by establishing both inclusions. *Forward inclusion ({π(v) : M(d)(v) = a} ⊆ {u : M'(d)(u) = a}):* for v with M(d)(v) = a, the defining property M'(d)(π(v)) = M(d)(v) = a places π(v) in {u : M'(d)(u) = a}. *Backward inclusion ({u : M'(d)(u) = a} ⊆ {π(v) : M(d)(v) = a}):* for u with M'(d)(u) = a, surjectivity of π gives u = π(v) for some v ∈ dom(M(d)), and the defining property gives M(d)(v) = M'(d)(π(v)) = M'(d)(u) = a, so v lies in {v : M(d)(v) = a} and hence u = π(v) lies in {π(v) : M(d)(v) = a}. Both inclusions follow from the defining property M'(d)(π(v)) = M(d)(v) combined with bijectivity of π. The multiplicity of a is therefore identical in M(d) and M'(d).
+We derive that the I-address range is invariant. Since π is a bijection from dom(M(d)) to dom(M'(d)) = dom(M(d)), every u ∈ dom(M'(d)) has the form u = π(v) for exactly one v ∈ dom(M(d)). Therefore: ran(M'(d)) = {M'(d)(u) : u ∈ dom(M'(d))} = {M'(d)(π(v)) : v ∈ dom(M(d))} = {M(d)(v) : v ∈ dom(M(d))} = ran(M(d)). The second equality uses surjectivity of π; the third uses the defining property M'(d)(π(v)) = M(d)(v).
 
 **R-RI — RearrangementReferentialIntegrity (LEMMA).**
 
@@ -31,7 +31,7 @@ We derive that the I-address range is invariant and that multiplicities are pres
 
 *Proof.* By the I-address range invariance shown above, ran(M'(d)) = ran(M(d)). By S3 of the pre-state, ran(M(d)) ⊆ dom(C). By C' = C, dom(C) = dom(C'). Chaining: ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C'). ∎
 
-**Invariant preservation.** The following ASN-0036 invariants depend only on `dom(M(d))` and are preserved because `dom(M'(d)) = dom(M(d))`: D-CTG, D-CTG-depth (vacuous under the depth-2 scope of this ASN), D-MIN, D-SEQ, S8-fin, S8a, S8-depth. S2 (arrangement functionality) holds because each u ∈ dom(M'(d)) has u = π(v) for exactly one v (bijectivity), so M'(d)(u) = M(d)(v) is uniquely determined. S3 (referential integrity) is precisely the postcondition of R-RI above — ran(M'(d)) ⊆ dom(C') — so R-RI is the S3-preservation step of this invariant audit. **C-transport.** C' = C by the rearrangement definition, so every invariant stated on Σ.C alone transports by identity: S0 (content immutability), S1 (store monotonicity), S4 (origin-based identity), S7 (structural attribution — origin(a) = N(a).0.U(a).0.D(a) is a function of the address a and of dom(C) alone; since a's component fields are unchanged and dom(C) = dom(C'), the postconditions S7(a)–(d), including S7(c) distinctness and S7(d) cross-state invariance, transport by identity), S7a (document-scoped allocation), S7b (element-level I-addresses — which by zeros(a) = 3 asserts the element field is present), and S7d (document allocation discipline). **S5-multiplicity.** S5 (unrestricted sharing) is a permission rather than an obligation; the multiset-of-I-addresses preservation derived above — each I-address has identical multiplicity in M(d) and M'(d) by bijectivity of π — preserves any pre-existing sharing pattern. Every ASN-0036 invariant except S8 (CorrespondenceRunPartition) is therefore maintained directly by an arrangement rearrangement; post-state S8 is established where it is consumed, in R-BLK below.
+**Invariant preservation.** The following ASN-0036 invariants depend only on `dom(M(d))` and are preserved because `dom(M'(d)) = dom(M(d))`: D-CTG, D-CTG-depth (vacuous under the depth-2 scope of this ASN), D-MIN, D-SEQ, S8-fin, S8a, S8-depth. S2 (arrangement functionality) holds because each u ∈ dom(M'(d)) has u = π(v) for exactly one v (bijectivity), so M'(d)(u) = M(d)(v) is uniquely determined. S3 (referential integrity) is precisely the postcondition of R-RI above — ran(M'(d)) ⊆ dom(C') — so R-RI is the S3-preservation step of this invariant audit. **C-transport.** C' = C by the rearrangement definition, so every invariant stated on Σ.C alone transports by identity: S0, S1, S4, S7, S7a, S7b, S7d. S5 (unrestricted sharing) is a permission rather than an obligation; bijectivity of π preserves any pre-existing sharing pattern. Every ASN-0036 invariant except S8 (CorrespondenceRunPartition) is therefore maintained directly by an arrangement rearrangement; post-state S8 is established where it is consumed, in R-BLK below.
 
 Any bijection qualifies; a rearrangement determined by cut points is one where the regions to exchange are identified by a tuple of cut positions. The properties in this ASN characterize this specific class of permutations.
 
@@ -183,7 +183,7 @@ REARRANGE_K affects only the subspace-S portion of M(d); positions in any other 
 
 **R-NS — NonSubspaceInvariance (LEMMA).** Let π be the cut-point-induced bijection on dom(M(d)) (R-PPERM for n = 3, R-SPERM for n = 4). *(NS-π) Pointwise identity on non-S.* For every v ∈ dom(M(d)) with subspace(v) ≠ S: π(v) = v and M'(d)(v) = M(d)(v). Consequently, since dom(M'(d)) = dom(M(d)) (rearrangement postcondition), every ASN-0036 invariant that depends only on dom and on M restricted to non-S positions is preserved unchanged on M'(d).
 
-*Proof.* For v ∈ dom(M(d)) with subspace(v) ≠ S, the frame condition R-FRAME-P(a) (n = 3) or R-FRAME-S(a) (n = 4) gives M'(d)(v) = M(d)(v) directly. The non-S clause of the bijection definition (the first clause of R-PPERM's piecewise definition, mirrored as the first clause of R-SPERM's) stipulates π(v) = v on this domain; combined with the frame condition, this stipulation is consistent with the rearrangement defining equation M'(d)(π(v)) = M(d)(v) — substituting π(v) = v yields M'(d)(v) = M(d)(v), already supplied by the frame condition. Hence π fixes every non-S V-position pointwise, and M'(d) agrees with M(d) on every such position. ∎
+*Proof.* For v ∈ dom(M(d)) with subspace(v) ≠ S, the frame condition R-FRAME-P(a) (n = 3) or R-FRAME-S(a) (n = 4) gives M'(d)(v) = M(d)(v) directly. The non-S clause of the bijection definition (the first clause of R-PPERM's piecewise definition, mirrored as the first clause of R-SPERM's) stipulates π(v) = v on this domain. Hence π fixes every non-S V-position pointwise, and M'(d) agrees with M(d) on every such position. ∎
 
 
 ## Postcondition Well-Definedness
@@ -242,8 +242,6 @@ The subspace-S exterior, α, and β branches partition V_S(d), so the four-case 
 
 Injectivity: within each case, the mapping is injective (the exterior is the identity; the α case maps distinct j to distinct c₀ + w_β + j; the β case maps distinct j to distinct c₀ + j). Across cases: the four image sets — {v ∈ dom(M(d)) : subspace(v) ≠ S}, V_S(d) \ [c₀, c₂), {c₀ + w_β + j : 0 ≤ j < w_α}, {c₀ + j : 0 ≤ j < w_β} — are pairwise disjoint (the first is disjoint from the rest by subspace separation; the remaining three are pairwise disjoint as shown in R-PIV). Surjectivity: π is an injection from dom(M(d)) into itself, and dom(M(d)) is finite (S8-fin of ASN-0036); on a finite set, every self-injection is a bijection, so π is surjective. ∎
 
-*Remark (uniqueness scope).* When the pre-state arrangement M(d) is injective on V_S(d) (every I-address appears at most once as a value of M(d)), π is the unique bijection satisfying M'(d)(π(v)) = M(d)(v) on V_S(d). When M(d) has repeated I-addresses (S5, ASN-0036 — unrestricted sharing), bijections that permute positions within each fibre {v : M(d)(v) = a} all satisfy the defining equation; π is then unique only up to that equivalence class of fibre-permutations. The cut-point-induced choice singled out here is the canonical representative whose action is determined purely by the cut sequence and its regions, independent of the I-address fibre structure. This scope depends only on the fibre structure of M(d), not on the cut count.
-
 The pivot postcondition preserves dom(M(d)) (R-PIV), preserves C (R-FRAME-P(c)), and admits the bijection π satisfying M'(d)(π(v)) = M(d)(v) (R-PPERM); it therefore constitutes an arrangement rearrangement, and the invariant preservation established above applies.
 
 
@@ -281,8 +279,6 @@ The two forms are distinct primitives: the 3-cut pivot transposes two *adjacent*
 
 
 ## Necessity of CS3
-
-The same-subspace clause CS3 is *load-bearing*: it cannot be derived from the other precondition clauses. There exist cut sequences that violate CS3 yet satisfy CS1, CS2, CS4, and the whole of R-PRE except CS3 itself — so CS3 is the only clause that rejects them. The discriminating case is a cut sequence whose *first* cut c₀ already lies above the entire subspace-1 range: then R-PRE(iv) is satisfied vacuously rather than violated, and nothing but CS3 stands in the way.
 
 **R-CS3 — SubspaceConfinementNecessity (LEMMA, supporting).** With S fixed to 1 (State and Vocabulary), CS3 is not redundant with CS2 + R-PRE(iv): a cut sequence whose every cut lies in a subspace S'' > 1 satisfies CS1, CS2, CS4, and R-PRE(i), (ii), (iv), while violating CS3. R-PRE(iv) holds *vacuously* for such a sequence — its quantification range is empty — so CS3 is the sole clause that excludes it.
 
@@ -748,6 +744,68 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1)}. *S8-cons verification:* both 
 *Merge check:* ([1,1], B, 1) and ([1,2], A, 1) are V-adjacent (1 + 1 = 2) but not I-adjacent (origin(B) = 5.0.2.0.1 ≠ origin(A) = 3.0.1.0.1, so B + 1 ≠ A). No mergeable pair.
 
 **Canonical partition:** {([1,1], B, 1), ([1,2], A, 1)}. The rearrangement exchanges the two positions across the cut sequence; both runs remain width-1, no merges arise, and the canonical decomposition of M'(d) coincides with the post-Phase-3 partition. The example confirms three structural edges of R-BLK simultaneously: (a) the minimum w_α = w_β = 1 still admits valid Phase-2 classification (α and β each receive exactly one run); (b) the empty-right-exterior dispatch in Phase 1 fires correctly at c₂ = [S, N + 1] (the "Outside ⋃_k V(b_k)" sub-case), with no run bisected and no right-exterior classification; (c) Phase 3 reassembles via π alone at minimum size, with the I-start and width of each run preserved verbatim and the V-starts transposed by the explicit R-PPERM formulas.
+
+
+## Worked Example: 3-Cut Pivot with a Non-S (Link-Subspace) Position
+
+The five preceding examples all have `dom(M(d))` confined to the text subspace, so they never exercise the non-S pass-through machinery — R-NS(NS-π), R-FRAME-P(a), R-BLK's verbatim carry of non-S runs, and the cross-group S8-uniq disjointness invoking T10 (ASN-0034). We trace a 3-cut pivot on a document whose arrangement also references the *link* subspace (subspace 2), to pin down that a non-S position is fixed by π and its run is carried through untouched while the text subspace is rearranged.
+
+Let document d have text positions V_1(d) = {[1,1], [1,2], [1,3]} and a single link position [2,1] (subspace 2, depth 2), so dom(M(d)) = {[1,1], [1,2], [1,3], [2,1]}. The arrangement is:
+
+```
+M(d)([1,1]) = 3.0.1.0.1.0.1.1    (I-address A, text content)
+M(d)([1,2]) = 3.0.1.0.1.0.1.2    (I-address B, text content)
+M(d)([1,3]) = 3.0.1.0.1.0.1.3    (I-address C, text content)
+M(d)([2,1]) = 3.0.1.0.1.0.2.1    (I-address L, link content)
+```
+
+The text I-addresses A–C lie in element subspace 1 (the `...0.1.k` tail); the link I-address L lies in element subspace 2 (the `...0.2.1` tail), satisfying zeros(L) = 3 (element-level, S7b of ASN-0036). The canonical run partition has two runs in distinct V-subspaces: the text run b₁ = ([1,1], 3.0.1.0.1.0.1.1, 3) and the link run b₂ = ([2,1], 3.0.1.0.1.0.2.1, 1). No run spans both subspaces — by OrdShiftHom (a) of ASN-0036 every shift within a run preserves the subspace.
+
+We apply a 3-cut pivot with K = ([1,1], [1,2], [1,3]): c₀ = [1,1], c₁ = [1,2], c₂ = [1,3]. All cuts lie in subspace 1 (CS3) at depth 2 (CS4). The affected range is [c₀, c₂) = {[1,1], [1,2]}. Region α = {[1,1]} (w_α = 1), region β = {[1,2]} (w_β = 1). The text position [1,3] is the right exterior (ord ≥ ord(c₂) = 3), and the link position [2,1] lies entirely outside subspace S.
+
+**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 3; CS2: [1,1] < [1,2] < [1,3]; CS3: all cuts subspace 1; CS4: all depth 2. (iv) Every subspace-1 depth-2 position in [[1,1], [1,3)) — namely [1,1], [1,2] — lies in V_1(d); the link position [2,1] is *not* quantified over (its subspace is 2 ≠ S). Width positivity: w_α = 1 ≥ 1, w_β = 1 ≥ 1. ✓
+
+**Applying the postconditions.** We compute M'(d) position by position:
+
+R-P1 (j = 0): M'(d)(c₀ + 0) = M'(d)([1,1]) = M(d)(c₁ + 0) = M(d)([1,2]) = B.
+
+R-P2 (j = 0): M'(d)(c₀ + 1 + 0) = M'(d)([1,2]) = M(d)(c₀ + 0) = M(d)([1,1]) = A.
+
+R-EXT: M'(d)([1,3]) = M(d)([1,3]) = C (text right exterior).
+
+R-FRAME-P(a): M'(d)([2,1]) = M(d)([2,1]) = L (subspace 2 ≠ S, so the non-S frame condition applies — the link position is untouched).
+
+**Result:**
+
+```
+M'(d)([1,1]) = B     (was β, pivoted to start)
+M'(d)([1,2]) = A     (was α, pivoted past β)
+M'(d)([1,3]) = C     (text exterior, unchanged)
+M'(d)([2,1]) = L     (link subspace, unchanged — non-S pass-through)
+```
+
+**R-PPERM verification.** The permutation π: π([1,1]) = c₀ + w_β + 0 = [1,2] (α); π([1,2]) = c₀ + 0 = [1,1] (β); π([1,3]) = [1,3] (subspace-S exterior); π([2,1]) = [2,1] (non-S branch — *fixed pointwise by R-NS(NS-π)*). Check: M'(d)(π([1,1])) = M'(d)([1,2]) = A = M(d)([1,1]) ✓; M'(d)(π([2,1])) = M'(d)([2,1]) = L = M(d)([2,1]) ✓ (the non-S defining equation holds with π the identity).
+
+**R-RI verification.** ran(M'(d)) = {B, A, C, L} = ran(M(d)); since ran(M(d)) ⊆ dom(C) and C' = C, ran(M'(d)) ⊆ dom(C'). ✓
+
+**Run decomposition via R-BLK.** *Phase 1 (Split):* the cuts c₀ = [1,1], c₁ = [1,2], c₂ = [1,3] all lie in subspace 1. c₀ coincides with b₁'s V-start (boundary, no split). c₁ = [1,2] is interior to b₁ = ([1,1], A, 3) at offset 1; split into ([1,1], A, 1) and ([1,2], B, 2). c₂ = [1,3] is interior to ([1,2], B, 2) at offset 1; split into ([1,2], B, 1) and ([1,3], C, 1). The link run b₂ = ([2,1], L, 1) is never touched: by CS3 every cut is in subspace 1, so no cut falls in V(b₂) ⊆ subspace 2. Post-split partition: {([1,1], A, 1), ([1,2], B, 1), ([1,3], C, 1), ([2,1], L, 1)}.
+
+*Phase 2 (Classify):* ([1,1], A, 1) → α (ord 1 ∈ [1, 2)). ([1,2], B, 1) → β (ord 2 ∈ [2, 3)). ([1,3], C, 1) → exterior right (ord 3 ≥ 3). ([2,1], L, 1) → *non-S region* (subspace 2 ≠ S).
+
+*Phase 3 (Reassemble):* Apply each run's region displacement (α forward by w_β = 1, β backward by w_α = 1, exterior fixed, non-S fixed):
+
+- ([1,1], A, 1) → ([1,2], A, 1) (α, forward 1)
+- ([1,2], B, 1) → ([1,1], B, 1) (β, backward 1)
+- ([1,3], C, 1) → ([1,3], C, 1) (exterior, fixed)
+- ([2,1], L, 1) → ([2,1], L, 1) (non-S, carried verbatim — π is the identity by R-NS(NS-π))
+
+Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}. All width 1, so S8-cons holds trivially.
+
+*Disjointness and coverage (S8-uniq).* The three reassembled subspace-1 runs cover V_1(d) = {[1,1], [1,2], [1,3]}; the carried-over link run covers dom(M(d)) \ V_1(d) = {[2,1]}. The two groups are disjoint because subspace-1 and subspace-2 V-extents lie under non-nesting prefixes ([1,…] and [2,…]), which generate disjoint subtrees by T10 (ASN-0034). Their union is dom(M'(d)), so the maximal-run decomposition of M'(d) is well-defined.
+
+*Merge check:* No mergeable pair. The text runs ([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1) are pairwise V-adjacent but not I-adjacent (B + 1 = 3.0.1.0.1.0.1.3 = C ≠ A; A + 1 = B ≠ C). The link run ([2,1], L, 1) is not V-adjacent to any text run — its subspace differs — so no cross-subspace merge can arise.
+
+**Canonical partition:** {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}. The text subspace is rearranged (A and B transpose, C anchored at the exterior), while the link position [2,1] passes through entirely untouched — fixed by π, carried verbatim by R-BLK, and kept disjoint from the rearranged text runs by subspace separation. This example exercises the non-S machinery (R-NS, R-FRAME-P(a), R-BLK's verbatim carry, and the T10 cross-group disjointness) that the text-only examples leave latent.
 
 
 ## Properties Introduced
