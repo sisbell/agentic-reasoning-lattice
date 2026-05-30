@@ -512,7 +512,7 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L4 (EndsetGenerality).* Each span is well-formed by T12: for `(c₁, δ(1, 8))`, `δ(1, 8) > 0` and the action point `k = 8 ≤ #c₁ = 8`. Similarly for the other spans. Start addresses are in `T`. ✓
 
-*L5 (EndsetSetSemantics).* Each endset is a singleton set — set semantics hold trivially. ✓
+*L5 (EndsetSetSemantics) at `Σ` — singleton case.* Each endset at `Σ` is a singleton set, so set semantics hold trivially here. L5's substantive content — order-irrelevance and extensional equality across a `≥ 2`-span endset — has no singleton witness; it is exercised non-vacuously at Step 5 below. ✓
 
 *L6 (SlotDistinction).* `Σ.L(a) = (F, G, Θ)` is a 3-tuple of endsets, with positional accessors `Σ.L(a).e₁ = F`, `Σ.L(a).e₂ = G`, `Σ.L(a).e₃ = Θ` well-defined. Standard-triple consequence: since `F ≠ G`, `(F, G, Θ) ≠ (G, F, Θ)` by component-wise tuple inequality at slot 1. ✓
 
@@ -554,9 +554,9 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 **Extension: L11b non-injectivity, L13, and transition verification.**
 
-We extend the state in four steps, naming each intermediate state, to verify L11b, L12, L13, and the higher-arity/discrimination behavior of L3/L6/L8 non-vacuously.
+We extend the state in six steps, naming each intermediate state, to verify L11b, L12, L13, the higher-arity/discrimination behavior of L3/L6/L8, and the multi-span content of L5/L8 non-vacuously.
 
-*Each added link is a fresh sibling.* Each of `a'`, `a₂`, `a₃`, `a₄` is the next `inc(·, 0)` sibling of the previous link; FSP applies, so only the new check per step is shown below.
+*Each added link is a fresh sibling.* Each of `a'`, `a₂`, `a₃`, `a₄`, `a₅`, `a₆` is the next `inc(·, 0)` sibling of the previous link; FSP applies, so only the new check per step is shown below.
 
 *Step 1: adding `a'`.* Define `a' = 1.0.1.0.1.0.2.2` with `Σ_1.L(a') = (F, G, Θ)` — same endsets as `a`. The intermediate state is `Σ_1` with `Σ_1.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ)}`, `Σ_1.C = Σ.C`, `Σ_1.M = Σ.M`. The state-local invariants hold by the fresh-sibling argument above.
 
@@ -639,6 +639,45 @@ The remaining state-local invariants at `Σ_4` (L0, L1, L1a–c, L3, L5, L6, L11
 *L12 across `Σ_3 → Σ_4` (transition).* All four prior entries `Σ_3.L(a), Σ_3.L(a'), Σ_3.L(a₂), Σ_3.L(a₃)` are unchanged in `Σ_4`; only the new entry at `a₄` is added. ✓
 
 *L12a across `Σ_3 → Σ_4` (transition).* `dom(Σ_3.L) = {a, a', a₂, a₃} ⊆ {a, a', a₂, a₃, a₄} = dom(Σ_4.L)`. ✓
+
+*Step 5: adding `a₅` with a multi-span type endset — exercising L5 order-irrelevance and extensional equality.* Steps 1–4 use only singleton endsets, so L5 holds there only in its trivial form. We add a link `a₅` whose type endset contains two spans, and verify L5's substantive content: span order within an endset is irrelevant, and endset equality is extensional set equality over `Span`.
+
+Define `a₅ = 1.0.1.0.1.0.2.6` — the next sibling in the link subspace after `a₄`, by `inc(a₄, 0)`. Recall `g = 1.0.1.0.1.0.3.1` and its sibling `g' = 1.0.1.0.1.0.3.2` (Step 4), both ghosts in subspace `s_X` and outside `dom(Σ_4.C) ∪ dom(Σ_4.L)`; note `g ⊕ δ(1, 8) = g'`, so `g' = shift(g, 1)`. Define the two-span type endset
+
+`Θ_split = {(g, δ(1, 8)), (g', δ(1, 8))}`
+
+together with `F₅ = {(c₁, δ(1, 8))}`, `G₅ = {(c₂, δ(1, 8))}`, `Θ₅ = Θ_split`. Both type spans are T12-well-formed: `δ(1, 8) > 0` with action point `8 = #g = #g'`. The final state is `Σ_5` with `Σ_5.L = Σ_4.L ∪ {a₅ ↦ (F₅, G₅, Θ_split)}`, `Σ_5.C = Σ_4.C`, `Σ_5.M = Σ_4.M`.
+
+*L5 (EndsetSetSemantics) at `Σ_5` — order-irrelevance across a 2-span endset.* `Θ_split` has two distinct members, `(g, δ(1, 8))` and `(g', δ(1, 8))` (distinct since `g ≠ g'`). By L5's biconditional, `Θ_split = {(g', δ(1, 8)), (g, δ(1, 8))}` — the reordered presentation has the same membership set, so the two are equal as endsets; the textual order in which the spans are written carries no semantic weight, and the model exposes no accessor that could distinguish the two presentations. Extensional equality: an endset `e` satisfies `e = Θ_split` iff `e` has exactly the members `{(g, δ(1, 8)), (g', δ(1, 8))}` — for instance the three-term presentation `{(g, δ(1, 8)), (g', δ(1, 8)), (g, δ(1, 8))}` denotes the same set `Θ_split` (membership is idempotent), while any endset that omits a member or adds a distinct span is unequal. This is the L5 content a singleton endset cannot exhibit. ✓
+
+*L3 (NEndsetStructure) at `Σ_5`.* `|Σ_5.L(a₅)| = 3 ≥ 3` and slot 3 `Θ_split ≠ ∅` (two members); each endset is a finite set of T12-well-formed spans. The non-emptiness requirement on slot 3 is met by a multi-span endset exactly as by a singleton. ✓
+
+The remaining state-local invariants at `Σ_5` (L0, L1, L1a–c, L6, L11a, L14, L14a, L-fin) hold for the new entry `a₅` by the fresh-sibling argument (FSP; `a₅ = 1.0.1.0.1.0.2.6` is the next sibling after `a₄`, payload arity 3 with non-empty slot 3 — FSP's payload hypothesis admits any L3-conforming endset, multi-span included), and for the pre-existing entries by L12.
+
+*L12, L12a across `Σ_4 → Σ_5` (transition).* All five prior entries are unchanged in `Σ_5`; only the new entry at `a₅` is added, and `dom(Σ_4.L) ⊆ dom(Σ_5.L)`. ✓
+
+*Step 6: adding `a₆` with a single-span type endset of identical coverage — exercising L8 coverage-vs-decomposition.* L8 is defined on *coverage*, not span-set identity; its distinctive content is that two type endsets with different span decompositions but identical address coverage denote the same type. Steps 1–4 compare only same-singleton (match) and disjoint-singleton (no match) endsets, never the crux case. We add `a₆` whose type endset is a single span covering exactly the addresses that `Θ_split` covers as two spans, and verify `same_type(a₅, a₆) = true` without any `Θ` span-set equality.
+
+Define `a₆ = 1.0.1.0.1.0.2.7` — the next sibling after `a₅`. Define the single-span type endset
+
+`Θ_single = {(g, δ(2, 8))}`
+
+where `δ(2, 8) = [0, 0, 0, 0, 0, 0, 0, 2]` is the width-2 displacement at the tail (`Pos`, action point `8 ≤ #g = 8`), so `(g, δ(2, 8))` is T12-well-formed. With `F₆ = {(c₁, δ(1, 8))}`, `G₆ = {(c₂, δ(1, 8))}`, `Θ₆ = Θ_single`, the final state is `Σ_6` with `Σ_6.L = Σ_5.L ∪ {a₆ ↦ (F₆, G₆, Θ_single)}`, `Σ_6.C = Σ_5.C`, `Σ_6.M = Σ_5.M`.
+
+*Coverage equality of `Θ_split` and `Θ_single`.* By TumblerAdd at action point `8 = #g`: `g ⊕ δ(1, 8) = g'` (last component `1 → 2`) and `g ⊕ δ(2, 8) = 1.0.1.0.1.0.3.3` (last component `1 → 3`); write `h = 1.0.1.0.1.0.3.3`, and note `g' ⊕ δ(1, 8) = h` likewise (last component `2 → 3`). Then, directly from the Coverage definition:
+
+- `coverage(Θ_single) = {t : g ≤ t < g ⊕ δ(2, 8)} = {t : g ≤ t < h}` (one span).
+- `coverage(Θ_split) = {t : g ≤ t < g'} ∪ {t : g' ≤ t < h}` (two spans).
+
+The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared boundary `g'` (and `g < g' < h` under T1), so their union is exactly `[g, h) = {t : g ≤ t < h}`: any `t` with `g ≤ t < h` satisfies either `t < g'` (first interval) or `g' ≤ t` (second), and no `t` outside `[g, h)` is captured. Hence `coverage(Θ_split) = coverage(Θ_single)`, even though `Θ_split ≠ Θ_single` as endsets — the single span `(g, δ(2, 8))` is not a member of `Θ_split`, and neither member of `Θ_split` equals `(g, δ(2, 8))` (different widths), so by L5 the two are distinct span collections. This instantiates the lossy-projection case flagged in the Coverage definition.
+
+*L8 (TypeByAddress) at `Σ_6` — coverage match across distinct decompositions.* `Σ_6.L(a₅).type = Θ_split` and `Σ_6.L(a₆).type = Θ_single`. By the defining biconditional, `same_type(a₅, a₆) ⟺ coverage(Σ_6.L(a₅).type) = coverage(Σ_6.L(a₆).type)`, and the right-hand side holds by the coverage equality just established. Therefore `same_type(a₅, a₆) = true` — the two links share a type despite holding *different span decompositions* in their type endsets, with no span-set equality between them. This is precisely the case that distinguishes L8's coverage criterion from a span-set-identity criterion: a span-set test would (wrongly) report these as different types, since `Θ_split ≠ Θ_single`. ✓
+
+The remaining state-local invariants at `Σ_6` (L0, L1, L1a–c, L3, L5, L6, L11a, L14, L14a, L-fin) hold for the new entry `a₆` by the fresh-sibling argument (FSP), and for the pre-existing entries by L12.
+
+*L12, L12a across `Σ_5 → Σ_6` (transition).* All six prior entries are unchanged in `Σ_6`; only the new entry at `a₆` is added, and `dom(Σ_5.L) ⊆ dom(Σ_6.L)`. ✓
+
+Together, Steps 4 and 6 exercise L8 in both discriminating directions: disjoint coverage forces distinct types (`same_type(a, a₄) = false`), and identical coverage under distinct span decompositions forces a shared type (`same_type(a₅, a₆) = true`) — the latter confirming that L8 matches on coverage, not on span-set identity.
 
 
 ## Properties Introduced
