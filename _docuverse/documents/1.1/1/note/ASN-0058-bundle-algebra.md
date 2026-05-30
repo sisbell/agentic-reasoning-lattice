@@ -118,7 +118,7 @@ B1 and B2 together assert that the V-extents partition `dom(M(d))`. B3 asserts t
 
 *Upper bound from `y < x + n`:* TumblerAdd (ASN-0034) at action point `m` ≤ `#x = m` produces a tumbler of length `#x = m`, so `#(x + n) = m`; combined with `#y = m`, T1 case (ii) is excluded by equal depth, and T1 case (i) supplies a least divergence index `j''` with `(y)_{j''} < (x + n)_{j''}` and `(y)_i = (x + n)_i` for `i < j''`. We pin `j''` via transitively-established prefix agreement: prefix agreement gives `(y)_i = (x)_i` for `i < m`, and TumblerAdd's prefix-copy clause (action point `m`) gives `(x + n)_i = (x)_i` for `i < m`; chaining the two, `(y)_i = (x + n)_i` for all `i < m`, hence `j'' ≥ m`. Equal depth `m` forces `j'' ≤ m`; hence `j'' = m`. TumblerAdd's action-point clause gives `(x + n)_m = (x)_m + n`, and T1(i) at `j'' = m` yields `(y)_m < (x + n)_m = (x)_m + n`.
 
-Combining the two derivations: `(x)_m ≤ (y)_m < (x)_m + n`. Set `k = (y)_m − (x)_m`; then `0 ≤ k < n`. We split on `k` because TumblerAdd is defined for ordinal displacements `δ(k, m)` only when `k ≥ 1`; the boundary case `k = 0` is governed by OrdinalShiftBase instead.
+Combining the two derivations: `(x)_m ≤ (y)_m < (x)_m + n`. Set `k = (y)_m − (x)_m`; then `0 ≤ k < n`.
 
 *Case `k = 0`.* Then `(y)_m = (x)_m`, so `y` and `x` agree on all components 1..m (prefix agreement gives 1..m−1, the `k = 0` assignment gives component `m`) and share depth `m`. T3 (CanonicalRepresentation, ASN-0034) — componentwise agreement of equal-depth tumblers gives equality — yields `y = x`. By OrdinalShiftBase, `x + 0 = x`, hence `y = x = x + 0 = x + k`.
 
@@ -377,7 +377,7 @@ The boundary at V-position `[1, 6]` persists because V-adjacency holds but I-adj
 
 ## Shared Content
 
-We have been careful to call the V→I function a "mapping" rather than a "permutation" in the strict algebraic sense. The function `M(d)` is not necessarily injective — the same I-address can appear at multiple V-positions.
+The function `M(d)` is not necessarily injective — the same I-address can appear at multiple V-positions.
 
 **M13 (SharedContent).** The arrangement `M(d)` permits multiple V-positions to share the same I-address:
 
@@ -420,8 +420,6 @@ Neither transformation reads, names, or writes to any other decomposition. Since
 Nelson states the principle at the arrangement level:
 
 > "Note that the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included." [LM 4/11]
-
-Deletion is an *arrangement* operation — it modifies `M(d_1)` — and it does not propagate to `M(d_2)`. The frame condition on split and merge is sharper still: split and merge are *representation* operations that do not modify `M(d_1)` at all (M6f and M7f assert the arrangement is unchanged), let alone `M(d_2)`. Two documents may reference the same I-addresses (by transclusion), but their mapping blocks are separate objects in separate decompositions.
 
 ## Cross-Origin Merge Impossibility
 
