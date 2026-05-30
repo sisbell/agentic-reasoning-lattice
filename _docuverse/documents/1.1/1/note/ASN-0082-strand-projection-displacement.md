@@ -229,7 +229,7 @@ For (⟸): the argument is symmetric. If ord(v₁) < ord(v₂), T1 places the di
 
 **Scope.** Contraction is the V-arrangement transformation of DELETE: it removes the deleted range, slides the right region back, and re-establishes the foundation's contiguity invariants. It modifies M(d) only; the content store is exactly unchanged (recorded at D-I).
 
-We work with V-positions in the text subspace of a document's arrangement. Let M(d) : T ⇀ T denote the arrangement function for document d — a partial map from V-positions to I-addresses. The text-subspace identifier is `S = 1`, and V_1(d) = {v ∈ dom(M(d)) : subspace(v) = 1} is the set of text-subspace V-positions of document d. Throughout this section we write `V_1(d)` consistently — the contraction operation is scoped to the text subspace by the scoping axioms below, and any reference to a non-text subspace V_S(d) with S ≠ 1 is explicitly qualified. All V-positions in a given subspace share the same tumbler depth (S8-depth). The restriction to S = 1 is what lets us invoke the foundation's contiguity invariants D-CTG, D-MIN, and D-SEQ, which are stated for V_1(d).
+Write V_1(d) = {v ∈ dom(M(d)) : subspace(v) = 1} for the text-subspace V-positions of document d; all V-positions in a given subspace share the same tumbler depth (S8-depth).
 
 **Scoping axioms.** Throughout this section, two restrictions apply.
 
