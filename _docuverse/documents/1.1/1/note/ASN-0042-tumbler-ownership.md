@@ -132,11 +132,9 @@ As a corollary, when the nesting is cross-level — `zeros(pfx(π₁)) < zeros(p
 
 The transition-discipline axioms below constrain transition-induced changes; the initial state `Σ₀` is governed by O14 (for the principal registry `Π₀`) and by ASN-0040's bootstrap clause B₀ conf. (for the baptismal registry `Σ₀.B`). The constraints O5 (SubdivisionAuthority) and O16 (AllocationClosure) apply to transition-induced allocations only — addresses entering `Σ.B` via a `→` step — and not to bootstrap-seeded addresses, whose well-formedness is the responsibility of ASN-0040.
 
-*Notation.* Throughout this ASN, `Σ.B` denotes the baptismal registry (`Σ.B ⊆ T`) introduced in ASN-0040 — the set of tumblers that have been brought into existence by the baptism procedure. We say "allocated address" and "address in `Σ.B`" interchangeably; from the ownership model's perspective, every address requiring an effective owner is one that the system has baptized. We adopt the foundation's notation rather than introducing a separate `Σ.B` symbol.
+*Notation.* Throughout this ASN, `Σ.B` denotes the baptismal registry (`Σ.B ⊆ T`) introduced in ASN-0040 — the set of tumblers that have been brought into existence by the baptism procedure. We say "allocated address" and "address in `Σ.B`" interchangeably; from the ownership model's perspective, every address requiring an effective owner is one that the system has baptized. We adopt the foundation's notation rather than introducing a separate `Σ.B` symbol. The monotonicity the proofs below invoke is baptismal-registry monotonicity `Σ.B ⊆ Σ'.B` (B0 of ASN-0040), distinct from T8's allocator-domain monotonicity `allocated(s) ⊆ allocated(s')`.
 
-*On registry monotonicity.* The monotonicity the proofs below require is baptismal-registry monotonicity `Σ.B ⊆ Σ'.B`, supplied by B0 (Irrevocability) of ASN-0040. This is formally distinct from T8 of ASN-0034, which establishes allocator-domain monotonicity `allocated(s) ⊆ allocated(s')`.
-
-*Reachability convention.* All states `Σ` discussed in this ASN are assumed to be *reachable from the bootstrap state* `Σ₀` — that is, there exists a finite sequence `Σ₀ → Σ_1 → ... → Σ` of state transitions producing `Σ`. The convention licenses iterated application of O12 (PrincipalPersistence) to conclude `Π₀ ⊆ Π_Σ` from a finite-length transition sequence. Each property's formal contract restates the reachability precondition explicitly whenever the proof relies on it; properties whose derivations are entirely state-local (e.g., the AccountField, AccountPrefix, and PrefixDetermination definitions, which constrain a single tumbler or principal without quantifying over transitions) need no reachability hypothesis.
+*Reachability convention.* All states `Σ` discussed in this ASN are assumed to be *reachable from the bootstrap state* `Σ₀` — that is, there exists a finite sequence `Σ₀ → Σ_1 → ... → Σ` of state transitions producing `Σ`. The convention licenses iterated application of O12 (PrincipalPersistence) to conclude `Π₀ ⊆ Π_Σ` from a finite-length transition sequence.
 
 **O12 (PrincipalPersistence).** Once a principal joins Π, no operation removes it:
 
@@ -182,7 +180,7 @@ In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with
   `      (v)   T4(pfx(π'))`
   `      (vi)  ¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π'')) ))`
 
-Condition (iii) — `π' ∈ Π_{Σ'} ∖ Π_Σ`, the delegate is newly introduced — restates the outer binder as an explicit conjunct so the labels are contiguous. The reading of the conjuncts: (i) the delegate's prefix strictly extends the delegator's, (ii) the delegator is the most-specific covering principal of `pfx(π')` in `Π_Σ` (the authorization clause — delegation requires subdivision authority), (iii) the delegate is newly introduced, (iv) the delegate's prefix is at node or account level, (v) the delegate's prefix is a valid tumbler, and (vi) no existing principal already occupies a sub-domain of `pfx(π')` (enforcing top-down delegation order). Nelson's design contains no concept of principals appearing outside the delegation hierarchy, and Gregory's codebase provides no mechanism for it.
+The reading of the conjuncts: (i) the delegate's prefix strictly extends the delegator's, (ii) the delegator is the most-specific covering principal of `pfx(π')` in `Π_Σ` (the authorization clause — delegation requires subdivision authority), (iii) the delegate is newly introduced, (iv) the delegate's prefix is at node or account level, (v) the delegate's prefix is a valid tumbler, and (vi) no existing principal already occupies a sub-domain of `pfx(π')` (enforcing top-down delegation order). Nelson's design contains no concept of principals appearing outside the delegation hierarchy, and Gregory's codebase provides no mechanism for it.
 
 **Definition (delegated).** We name the conjunction of conditions (i)–(vi) above the *delegation predicate*, with a four-place signature: `delegated(Σ, Σ', π, π')` holds iff `Σ → Σ'`, `π ∈ Π_Σ`, `π' ∈ Π_{Σ'} ∖ Π_Σ` (condition (iii)), and conditions (i), (ii), (iv), (v), (vi) hold for `(π, π')` at `Σ`. Both transition endpoints are explicit parameters; condition (iii) pins which successor `Σ'` introduces `π'`, so the predicate's meaning never depends on a contextually-supplied successor. Where a formula already binds a transition `Σ → Σ'`, we write `delegated_Σ(π, π')` as an abbreviation for `delegated(Σ, Σ', π, π')` with that same `Σ'`; the subscript form is used only when `Σ'` is named in the surrounding formula. The reflexive-transitive closure `delegated_Σ*` is a separate relation, built from the structural parent relation `R_Σ` on the single state `Σ` defined alongside NestingByDelegation below.
 
@@ -253,7 +251,7 @@ This is the address-side counterpart of O15: just as principals enter Π exclusi
 
   `(A Σ, a : a ∈ Σ.B ⟹ T4(a))`
 
-This is ASN-0040's B10 (T4ValidityInvariant), imported as a load-bearing fact of the ownership model. B10 is established in ASN-0040 as a derived invariant of `Σ.B` from B₀ conf. (the bootstrap clause: every seed element satisfies T4) and B6 (ValidDepth, the precondition of `Bop` ensuring TA5a IncrementPreservesT4 applies). We cite B10 directly rather than reaxiomatize: the foundation produces no addresses outside `Σ.B` satisfying T4. The property is load-bearing because `acct(a)` and `N(a)` depend on T4b (UniqueParse) of ASN-0034, whose well-definedness of `fields(t)` requires T4 validity; without it, O6's proof (via AccountPrefix) and O9's proof (via `N(a)`) have gaps.
+This is ASN-0040's B10 (T4ValidityInvariant), imported as a load-bearing fact of the ownership model. B10 is established in ASN-0040 as a derived invariant of `Σ.B` from B₀ conf. (the bootstrap clause: every seed element satisfies T4) and B6 (ValidDepth, the precondition of `Bop` ensuring TA5a IncrementPreservesT4 applies). We cite B10 directly rather than reaxiomatize: the foundation produces no addresses outside `Σ.B` satisfying T4.
 
 **O18 (DelegationBaptizes).** Delegation materially baptizes the delegate's prefix freshly — the transition that introduces a new principal into `Π` enters its prefix into `Σ.B` as a newly registered tumbler, not previously present:
 
@@ -276,8 +274,6 @@ We derive this by induction on the transition sequence `Σ₀ → Σ_1 → ... �
 *Case 2 — `π ∈ Π_{Σ_{n+1}} ∖ Π_{Σ_n}` (newly introduced).* By O18 (DelegationBaptizes), `pfx(π) ∈ Σ_{n+1}.B` directly.
 
 In both cases, `pfx(π) ∈ Σ_{n+1}.B`. Induction on the transition sequence carries the property to every reachable state. ∎
-
-The named derived property collects the four foundation steps — O14's seventh clause (bootstrap base case), O15 (closure of `Π` by bootstrap or delegation, which makes the case split exhaustive), O18 (the delegation-step inductive case), and B0 of ASN-0040 (Irrevocability, carrying baptized prefixes forward across transitions via `Σ_n.B ⊆ Σ_{n+1}.B`).
 
 *Formal Contract:*
 - *Preconditions:* `Σ` reachable from `Σ₀`, `π ∈ Π_Σ`.
@@ -336,7 +332,7 @@ We prove that for every `a ∈ Σ.B` exactly one principal `π` satisfies the de
 
 *Step 2: Total ordering of covering prefixes.* By the covering-chain lemma (PrefixesOfCommonAddressAreComparable, established above), any two tumbler prefixes of a common address are `≼`-comparable. Applied to `pfx(π₁), pfx(π₂)` for any `π₁, π₂ ∈ C(a)` — both prefixes of the common address `a` — the prefixes are comparable. Since `π₁, π₂` were arbitrary members of `C(a)`, `{pfx(π) : π ∈ C(a)}` is a chain under `≼`.
 
-*Step 3: Finiteness.* Each covering prefix `p ≼ a` is uniquely determined by its length: since `p ≼ a` requires `pᵢ = aᵢ` for all `1 ≤ i ≤ #p`, the prefix of length `k` covering `a` can only be `[a₁, …, a_k]`. By T3 (CanonicalRepresentation), each component `aᵢ` is a uniquely determined natural number, so this prefix is unique. There are at most `#a` possible lengths (from `1` to `#a`), so `|C(a)| ≤ #a`. The covering set is finite.
+*Step 3: Finiteness.* Each covering prefix `p ≼ a` is uniquely determined by its length: since `p ≼ a` requires `pᵢ = aᵢ` for all `1 ≤ i ≤ #p`, the prefix of length `k` covering `a` can only be `[a₁, …, a_k]`. By T3 (CanonicalRepresentation), each component `aᵢ` is a uniquely determined natural number, so this prefix is unique. There are at most `#a` possible lengths (from `1` to `#a`), so at most `#a` distinct covering prefixes exist; and by O1b (PrefixInjectivity), each such prefix is held by at most one principal, so `|C(a)| ≤ #a`. The covering set is finite.
 
 *Step 4: Existence and uniqueness of the maximum.* A non-empty finite chain has a unique maximum. Therefore there exists a unique maximal length `ℓ* = max{#pfx(π) : π ∈ C(a)}`, and by Step 3 the covering prefix of length `ℓ*` is uniquely determined as `[a₁, …, a_{ℓ*}]`. It remains to show that exactly one principal holds this prefix. Suppose `π₁, π₂ ∈ C(a)` both satisfy `#pfx(π₁) = #pfx(π₂) = ℓ*`. By Step 3, `pfx(π₁) = [a₁, …, a_{ℓ*}] = pfx(π₂)`. By O1b (PrefixInjectivity), equal prefixes imply `π₁ = π₂`. Hence there is exactly one principal `π* ∈ C(a)` achieving the maximal prefix length, and `π*` satisfies the defining equivalence: `pfx(π*) ≼ a` and for every `π' ≠ π*` with `pfx(π') ≼ a`, `#pfx(π*) > #pfx(π')`.
 
@@ -483,7 +479,7 @@ The delegated prefix `[1, 0, 2]` is deliberately *not* seeded — it is baptized
 
 - **O7(a)**: For every `a ∈ dom(π_A) ∩ Σ₁.B`, `ω_{Σ₁}(a) = π_A`. Any such `a` has `pfx(π_A) = [1, 0, 2] ≼ a`. Pre-existing covering principals from `Π_{Σ₀}`: only `π_N` (since `π_M`'s `[2]` cannot cover an address starting with `1`), and `#pfx(π_N) = 1 < 3 = #pfx(π_A)`. By O2, `ω_{Σ₁}(a) = π_A`. ✓
 - **O7(b)**: `π_A` may allocate within `dom(π_A)` per O5. The most-specific covering check now ranges over `Π_{Σ₁}`; for `a` strictly extending `[1, 0, 2]`, `π_A` is the unique principal with longest matching prefix. ✓
-- **O7(c)**: `π_A` may further delegate sub-prefixes such as `[1, 0, 2, 3]` to a new principal `π_B`; conditions (i)–(vi) of the delegation relation become satisfiable with `π_A` in the role of delegator. (This sub-delegation is exercised in *Verifying O8* below.) ✓
+- **O7(c)**: `π_A` may further delegate sub-prefixes such as `[1, 0, 2, 3]` to a new principal `π_B`; conditions (i)–(vi) of the delegation relation become satisfiable with `π_A` in the role of delegator. ✓
 
 **State Σ₁.** The address `a₁ = [1, 0, 2, 0, 3, 0, 1]` (a document element under account `[1, 0, 2]`) is seeded in `Σ_0.B` under `π_N`'s coverage per the bootstrap snapshot table above — `a₁` enters the baptismal registry at genesis with no preceding transition, and `π_N` is its most-specific covering principal in `Π_0` (since only `pfx(π_N) = [1] ≼ a₁`, and `pfx(π_M) = [2] ⋠ a₁`). Bootstrap seeding is a property of `Σ_0` itself, not the product of an allocation by `π_N`; we therefore reserve the verb "allocate" for transition-induced entries (the post-`Σ_0` baptisms enumerated in the *Trajectory* paragraph below) and use "seed" / "is in `Σ_0.B`" / "under `π_N`'s coverage" for the genesis-state contents recorded in the bootstrap snapshot. Following the delegation `delegated_{Σ_0}(π_N, π_A)` introducing `π_A` with `pfx(π_A) = [1, 0, 2]`, both principals' prefixes cover `a₁`: `[1] ≼ a₁` and `[1, 0, 2] ≼ a₁`. The longer match is `[1, 0, 2]`, so `ω_{Σ_1}(a₁) = π_A`. We verify:
 
@@ -510,7 +506,7 @@ We verify the ownership properties under one of the namespaces. Address `a₄ = 
 - **O6**: `acct(a₄) = [1, 0, 2, 1]` and `pfx(ω(a₄)) = [1, 0, 2]`. The containment `pfx(ω(a₄)) ≼ acct(a₄)` holds but equality does not — the account field extends beyond the owner's prefix because `[1, 0, 2, 1]` has not been delegated. The provenance invariant holds: any address with `acct = [1, 0, 2, 1]` has effective owner `π_A`. ✓
 - **O5**: Only `π_A` may allocate within either namespace sub-account — the most-specific covering principal. ✓
 
-O18 (DelegationBaptizes) makes each namespace baptism a permanent commitment: since `[1, 0, 2, 1], [1, 0, 2, 2] ∈ Σ_2.B`, no future delegation transition can use either as a new principal's prefix — delegated prefixes must be drawn from `Σ'.B ∖ Σ.B`, but these slots are now occupied. Namespace baptism and principal baptism are mutually exclusive futures for the same prefix, so provenance under `acct = [1, 0, 2, 1]` (and likewise `[1, 0, 2, 2]`) remains `π_A` forever. The next available slot in the stream, `[1, 0, 2, 3] = c_3`, is correspondingly free for either continuation; the running trajectory takes the *delegation* branch in *Verifying O8* below, baptizing `[1, 0, 2, 3]` as `pfx(π_B)` at `Σ_2 → Σ_3`, where the freshness conjunct of O18 is satisfied because `[1, 0, 2, 3] ∉ Σ_2.B`. (Symmetrically, had `π_A` instead chosen to baptize `[1, 0, 2, 3]` as a third namespace, O18 would foreclose any later delegation of `[1, 0, 2, 3]`, and `π_A` would advance to `c_4 = [1, 0, 2, 4]` to introduce a new principal. The two branches are mutually exclusive: the worked example pursues the delegation branch from here on.)
+O18 (DelegationBaptizes) makes each namespace baptism a permanent commitment: since `[1, 0, 2, 1], [1, 0, 2, 2] ∈ Σ_2.B`, no future delegation transition can use either as a new principal's prefix — delegated prefixes must be drawn from `Σ'.B ∖ Σ.B`, but these slots are now occupied. Namespace baptism and principal baptism are mutually exclusive futures for the same prefix, so provenance under `acct = [1, 0, 2, 1]` (and likewise `[1, 0, 2, 2]`) remains `π_A` forever. The next available slot in the stream, `[1, 0, 2, 3] = c_3`, is correspondingly free for either continuation; the running trajectory takes the *delegation* branch, baptizing `[1, 0, 2, 3]` as `pfx(π_B)` at `Σ_2 → Σ_3`, where the freshness conjunct of O18 is satisfied because `[1, 0, 2, 3] ∉ Σ_2.B`. (Symmetrically, had `π_A` instead chosen to baptize `[1, 0, 2, 3]` as a third namespace, O18 would foreclose any later delegation of `[1, 0, 2, 3]`, and `π_A` would advance to `c_4 = [1, 0, 2, 4]` to introduce a new principal. The two branches are mutually exclusive: the worked example pursues the delegation branch from here on.)
 
 **Account-level permanence.** By condition (ii) of the delegation relation, only `π_A` (the most-specific covering principal for any prefix extending `[1, 0, 2]` in `Π_{Σ_1}`) can delegate sub-accounts extending `[1, 0, 2]`. The node operator `π_N` cannot introduce such a principal — `π_N`'s effective ownership of addresses under `[1, 0, 2]` was superseded when `π_A` was delegated. Addresses `a₁` and `a₂` will remain under `ω = π_A` unless `π_A` itself delegates a sub-account covering them. If `π_A` were to delegate sub-account `[1, 0, 2, 3]` to `π_B`, addresses extending `[1, 0, 2, 3, ...]` would have `ω = π_B` — but addresses `a₁ = [1, 0, 2, 0, ...]` and `a₂ = [1, 0, 2, 0, ...]` are not in `dom(π_B)` (the fourth component `0 ≠ 3`), so they remain under `π_A`. Nelson's "forevermore": sovereignty against external interference.
 
@@ -631,19 +627,7 @@ Ownership is not held at a single level — it flows downward through the hierar
 
 We first recall the delegation relation. We use the *strict prefix* relation throughout: `p ≺ a  ≡  p ≼ a ∧ p ≠ a` (equivalently, `p ≼ a ∧ #p < #a` — the equivalence holds because `p ≼ a ∧ #p = #a` gives `p = a` by T3).
 
-The delegation predicate `delegated(Σ, Σ', π, π')` was defined in *State Axioms* alongside O15 (PrincipalClosure), with `delegated_Σ(π, π')` as the abbreviation used when `Σ'` is fixed by the surrounding formula. We restate the six conditions here for ready reference:
-
-  (i) `pfx(π) ≺ pfx(π')` — the delegate's prefix strictly extends the delegator's
-
-  (ii) `π` is the most-specific covering principal for `pfx(π')` at the time of delegation: `(A π'' ∈ Π_Σ : pfx(π'') ≼ pfx(π') ⟹ #pfx(π'') ≤ #pfx(π))`
-
-  (iii) `π' ∈ Π_{Σ'} ∖ Π_Σ` — the delegate is newly introduced
-
-  (iv) `zeros(pfx(π')) ≤ 1` — the delegate's prefix is at node or account level
-
-  (v) `T4(pfx(π'))` — the delegate's prefix is a valid tumbler address
-
-  (vi) `¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))` — no existing principal has a prefix strictly extending the new delegate's prefix
+The delegation predicate `delegated(Σ, Σ', π, π')` and its six conditions (i)–(vi) were defined normatively in *State Axioms* alongside O15 (PrincipalClosure), with `delegated_Σ(π, π')` as the abbreviation used when `Σ'` is fixed by the surrounding formula. We cite those conditions by number below rather than restate them.
 
 Condition (ii) is the authorization constraint — delegation requires O5's subdivision authority. A principal cannot delegate within a sub-domain that has already been delegated to someone else. This grounds the distinction between direct delegation (`π → π'`) and transitive delegation (`π → π' → π''`): when `π` delegates to `π'` and `π'` later delegates to `π''`, we have `delegated(π, π')` and `delegated(π', π'')` but not `delegated(π, π'')`.
 
@@ -664,7 +648,7 @@ We derive this from O18 (DelegationBaptizes), O16 (AllocationClosure), O5 (Subdi
 *Formal Contract:*
 - *Preconditions:* `Σ` reachable from `Σ₀`, `delegated_Σ(π_d, π')`, `Σ → Σ'`.
 - *Postconditions:* `allocated_by_{Σ'}(π_d, pfx(π'))` — the delegator is the allocator of the delegate's prefix in the delegation transition.
-- *Invariant:* The same `π_d` whose authority condition (ii) admits `π'` into `Π` is the allocator whose O5 authority enters `pfx(π')` into `B`. The two-views-of-one-act coupling between the principal and baptismal registries is O18's content; this property locates the single allocator.
+- *Invariant:* The same `π_d` whose authority condition (ii) admits `π'` into `Π` is the allocator whose O5 authority enters `pfx(π')` into `B`.
 
 The derived property states a coupling: when a delegation transition fires, the delegator is the unique principal whose O5 authority underwrites the baptism of the new prefix. Gregory's implementation realizes this coupling concretely — `findpreviousisagr` enters the new account slot into the granfilade under the session's own account-tumbler authority, so the delegator and the allocator are necessarily the same process.
 
@@ -717,13 +701,15 @@ The delegation is irrevocable:
 
 **O8 (IrrevocableDelegation).** Once principal `π` delegates to `π'`, the delegating parent never regains effective ownership of addresses in the delegate's domain:
 
-  `(A π, π', a, Σ_d, Σ' : Σ_d reachable from Σ₀ ∧ delegated_{Σ_d}(π, π') ∧ Σ_d →⁺ Σ' ∧ π' ∈ Π_{Σ'} ∧ a ∈ dom(π') ∩ Σ'.B : ω_{Σ'}(a) ≠ π)`
+  `(A π, π', a, Σ_d, Σ_d^{post}, Σ' : Σ_d reachable from Σ₀ ∧ delegated(Σ_d, Σ_d^{post}, π, π') ∧ Σ_d^{post} →* Σ' ∧ π' ∈ Π_{Σ'} ∧ a ∈ dom(π') ∩ Σ'.B : ω_{Σ'}(a) ≠ π)`
+
+We state O8 with the four-place `delegated(Σ_d, Σ_d^{post}, π, π')`, naming the single introducing edge `Σ_d → Σ_d^{post}` explicitly, because the reachability quantifier `Σ_d^{post} →* Σ'` ranges over multi-step trajectories: the subscript abbreviation `delegated_{Σ_d}(π, π')` resolves only against a single named successor, so it would be malformed under a `→*` binder where `Σ'` is the path endpoint rather than the introducing successor. The full trajectory is `Σ_d → Σ_d^{post} →* Σ'`.
 
 The formulation captures irrevocability without overclaiming. It says the *parent* can never recover the addresses, while permitting the delegate `π'` to sub-delegate (via O7(c)): if `π'` delegates to `π''` with `pfx(π') ≺ pfx(π'')`, then `ω(a) = π''` for `a ∈ dom(π'')` — the address leaves `π'`'s effective ownership but does not return to `π`. The domain restriction `dom(π') ∩ Σ'.B` ensures `ω` is applied only to addresses where it is defined (grounded by O4). The hypothesis `π' ∈ Π_{Σ'}` forces the trajectory `Σ_d →⁺ Σ'` to pass through `π'`'s introducing delegation transition `Σ_d → Σ_d^{post}` (by O15, principals enter only via bootstrap or delegation).
 
 We prove that in every state `Σ'` reachable from the delegation state, the delegating parent `π` is never the effective owner of any address in the delegate's domain. The argument is direct: we show that the longest-match computation in `Σ'` always finds a principal with a strictly longer prefix than `π`, so `π` cannot be `ω_{Σ'}(a)`.
 
-Let `Σ_d` denote the state in which `delegated_{Σ_d}(π, π')` holds (with `Σ_d` reachable from `Σ₀` by hypothesis), and let `Σ'` be any state with `Σ_d →⁺ Σ'` (`Σ'` is then also reachable from `Σ₀`, by composing the witnessing sequence to `Σ_d` with the transitions to `Σ'`). Let `a ∈ dom(π') ∩ Σ'.B` be arbitrary.
+Let `Σ_d` denote the state in which `delegated(Σ_d, Σ_d^{post}, π, π')` holds along the introducing edge `Σ_d → Σ_d^{post}` (with `Σ_d` reachable from `Σ₀` by hypothesis), and let `Σ'` be any state with `Σ_d^{post} →* Σ'` (`Σ'` is then also reachable from `Σ₀`, by composing the witnessing sequence to `Σ_d^{post}` with the transitions to `Σ'`). Let `a ∈ dom(π') ∩ Σ'.B` be arbitrary.
 
 *The delegate persists with an unchanged prefix.* Let `Σ_d^{post}` be the target of the introducing transition `Σ_d → Σ_d^{post}` at which `π'` enters `Π`. Since O12 (PrincipalPersistence) forbids re-introduction and O15 (PrincipalClosure) admits `π'` only via this delegation (condition (iii) gives `π' ∉ Π_{Σ_d}`, excluding bootstrap), `π'` has a unique introduction event, so the hypothesis `π' ∈ Π_{Σ'}` forces the trajectory `Σ_d →⁺ Σ'` to pass through `Σ_d^{post}`. By O13 (PrefixImmutability) iterated along `Σ_d^{post} →^* Σ'`, `pfx_{Σ'}(π') = pfx_{Σ_d^{post}}(π')`. The delegate is present at `Σ'` with the prefix it received at the delegation transition.
 
@@ -740,7 +726,7 @@ Note that the proof makes no claim about *who* the effective owner is — only t
 *Design confirmation.* Nelson: "once assigned a User account, the user will have full control over its subdivision forevermore" (LM 4/29). There is no revocation command, no forced reclamation. Gregory confirms: `validaccount` is a stub that unconditionally returns TRUE — the system has no machinery for checking or revoking delegation. Once the sub-prefix exists, the delegate owns it permanently.
 
 *Formal Contract:*
-- *Preconditions:* `Σ_d` reachable from `Σ₀`, `delegated_{Σ_d}(π, π')`, `Σ_d →⁺ Σ'`, `π' ∈ Π_{Σ'}`, `a ∈ dom(π') ∩ Σ'.B`.
+- *Preconditions:* `Σ_d` reachable from `Σ₀`, `delegated(Σ_d, Σ_d^{post}, π, π')` (with `Σ_d → Σ_d^{post}` the introducing edge), `Σ_d^{post} →* Σ'`, `π' ∈ Π_{Σ'}`, `a ∈ dom(π') ∩ Σ'.B`.
 - *Postconditions:* `ω_{Σ'}(a) ≠ π`.
 - *Invariant:* Once delegation occurs, the parent's prefix is permanently shorter than the delegate's, so the parent can never regain longest-match status for any address in the delegate's domain.
 
@@ -797,7 +783,7 @@ When a principal seeks to modify content it does not own, the system's response 
 
   (c) `zeros(a') = zeros(pfx(π)) + 1` — the fork sits exactly one structural tier below the principal's prefix (user level when `π` is node-level, document level when `π` is account-level), reflecting the namespace-vs-content split that the construction `a' = pfx(π).0.{hwm_0 + 1}` produces in a single baptism. Content-bearing depth (element level, `zeros = 3`) is not guaranteed by O10 itself; it requires further organizational baptisms within `dom(a')`, conducted under the same sovereignty.
 
-Condition (a) entails a structural consequence: since `ω(a') = π` gives `pfx(π) ≼ a'`, and the O6 biconditional (`pfx(π) ≼ a' ≡ pfx(π) ≼ acct(a')`, holding for all principals with `zeros(pfx(π)) ≤ 1` — i.e., all principals by O1a) yields `pfx(π) ≼ acct(a')`. The address structure necessarily records the fork within the requesting principal's account domain. This holds for both `zeros = 0` and `zeros = 1`; no case distinction is needed. Condition (c) is enforced by the construction `a' = pfx(π).0.{hwm_0 + 1}` (verified below), not by an additional axiom: the single zero appended in `next(Σ.B, pfx(π), 2)` adds exactly one zero separator to `pfx(π)`, raising the zero count by one regardless of branch (field-opening or sibling-advance). The clause makes formal the namespace-vs-content distinction that the *Forking at greater depth* discussion below develops in prose: O10 guarantees the next structural tier (user from node, document from account), and no more.
+Condition (a) entails a structural consequence: since `ω(a') = π` gives `pfx(π) ≼ a'`, and the O6 biconditional (`pfx(π) ≼ a' ≡ pfx(π) ≼ acct(a')`, holding for all principals with `zeros(pfx(π)) ≤ 1` — i.e., all principals by O1a) yields `pfx(π) ≼ acct(a')`. The address structure necessarily records the fork within the requesting principal's account domain. This holds for both `zeros = 0` and `zeros = 1`; no case distinction is needed. Condition (c) is enforced by the construction `a' = pfx(π).0.{hwm_0 + 1}` (verified below), not by an additional axiom: the single zero appended in `next(Σ.B, pfx(π), 2)` adds exactly one zero separator to `pfx(π)`, raising the zero count by one regardless of branch (field-opening or sibling-advance). The clause makes formal the namespace-vs-content distinction: O10 guarantees the next structural tier (user from node, document from account), and no more.
 
 Nelson: "Thus users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate — without damaging the originals. This is done by inclusion links" (LM 2/45). Gregory confirms the structural mechanism: `docreatenewversion`, when invoked on a document belonging to a different account, routes the allocation through `makehint(ACCOUNT, DOCUMENT, 0, wheretoputit, &hint)` — placing the fork under the requesting principal's account, not under the source document.
 
@@ -893,7 +879,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | from T3, T4, Prefix, AccountField |
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | from O1a, O2, O17, AccountPrefix |
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | from Delegation, O2, O5, O15 |
-| O8 | `Σ_d reachable ∧ delegated_{Σ_d}(π, π') ∧ Σ_d →⁺ Σ' ∧ π' ∈ Π_{Σ'} ∧ a ∈ dom(π') ∩ Σ'.B ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | from Delegation, O2, O12, O13, O15, B0★ (ASN-0040) |
+| O8 | `Σ_d reachable ∧ delegated(Σ_d, Σ_d^{post}, π, π') ∧ Σ_d^{post} →* Σ' ∧ π' ∈ Π_{Σ'} ∧ a ∈ dom(π') ∩ Σ'.B ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | from Delegation, O2, O12, O13, O15, B0★ (ASN-0040) |
 | O9 | `(A π ∈ Π, a ∈ Σ.B : owns(π, a) ⟹ N(pfx(π)) ≼ N(a))` — ownership bounded by node field | from O1, O1a, T4, Prefix |
 | O10 | Non-ownership of target yields a fork: new address `a'` in `dom(π)` with `ω(a') = π`, `zeros(a') = zeros(pfx(π)) + 1` (one structural tier below `pfx(π)`), and original `a` unmodified | from O1a, O1b, O6, PrefixBaptismCoupling, TA5(c), TA5(d), ASN-0040 `next`, ASN-0040 `hwm`, ASN-0040 B6, B0 (ASN-0040) |
 | O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | axiom |
