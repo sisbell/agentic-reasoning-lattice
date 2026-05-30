@@ -473,8 +473,6 @@ The block algebra characterizes how arrangements decompose into contiguous runs.
 
 `{v ∈ T : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d_s))`
 
-By C0a (below), prefix confinement gives tⱼ = uⱼ for all j < m for every t ∈ ⟦σ⟧; in particular t₁ = u₁, so dom(M(d_s)) ∩ ⟦σ⟧ ⊆ V_{u₁}(d_s). By S8-depth, all V-positions in V_{u₁}(d_s) have depth m, and reach(σ) has depth m (S6), so the depth-m restriction is structurally guaranteed.
-
 The common depth satisfies `m ≥ 2`. Given (i), some `v ∈ V_{u₁}(d_s)` exists, so S8a (VPositionWellFormedness, ASN-0036) gives `#v ≥ 2` and S8-depth gives `m = #v ≥ 2`.
 
 **C0 (OrdinalDisplacementNecessity).** For a well-formed content reference (d_s, σ) with σ = (u, ℓ), common depth m, and action point k of ℓ: k = m. Equivalently, ℓ = δ(ℓₘ, m) — an ordinal displacement.
@@ -587,7 +585,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | M6f | SplitFrame: the arrangement `M(d)` is unchanged; only the decomposition changes | introduced |
 | M7 | MergeCondition: merge requires V-adjacency (`v₂ = v₁ + n₁`) AND I-adjacency (`a₂ = a₁ + n₁`); result is `(v₁, a₁, n₁ + n₂)` | introduced |
 | M7f | MergeFrame: the arrangement `M(d)` is unchanged; only the decomposition changes | introduced |
-| M7-cov | NonOverlap: distinct blocks in any decomposition of `M(d)` cannot V-overlap — for `β₁, β₂ ∈ B` with `v₁ < v₂`, `v₂ ≥ v₁ + n₁`; proof reduces to M-int (TumblerIntervalCharacterization) plus the strict-`v₁ < v₂` exclusion of `k = 0` | introduced |
+| M7-cov | NonOverlap: distinct blocks in any decomposition of `M(d)` cannot V-overlap — for `β₁, β₂ ∈ B` with `v₁ < v₂`, `v₂ ≥ v₁ + n₁` | introduced |
 | M8 | MergeInformationLoss: the internal boundary is irrecoverably lost; merged block is indistinguishable from one never split | introduced |
 | M9 | SplitMergeInverse: splitting then merging recovers the original block | introduced |
 | M10 | MergeSplitInverse: merging then splitting at the boundary recovers both original blocks | introduced |
@@ -609,8 +607,8 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 | C0a | PrefixConfinement: every t ∈ ⟦σ⟧ satisfies tⱼ = uⱼ for all 1 ≤ j < m when m ≥ 2 (subspace confinement t₁ = u₁ is the j = 1 case) | introduced |
 | ContentReferenceSequence | ordered list ⟨r₁, ..., rₚ⟩ with p ≥ 1 | introduced |
 | resolve(d_s, σ) | Resolution: maximally merged I-address runs from `M(d_s)\|⟦σ⟧`, V-ordered | introduced |
-| C1a | RestrictionDecomposition: M11/M12 hold for any restriction `M(d_s)\|X` of an arrangement whose induced domain lies in a single subspace; in particular `M(d_s)\|⟦σ⟧` admits a unique maximally merged decomposition, since `dom(f) ⊆ dom(M(d_s))` lets it inherit S2, S8-fin, S8a, and S8-depth (m ≥ 2 via C0a and content reference well-formedness) directly | introduced |
-| C1b | ResolutionSequenceOrder: list-position index i < j in resolve(d_s, σ) iff the underlying blocks satisfy vᵢ < vⱼ; claim is about list positions, not I-address values | introduced |
+| C1a | RestrictionDecomposition: M11/M12 hold for any restriction `M(d_s)\|X` of an arrangement whose induced domain lies in a single subspace; in particular `M(d_s)\|⟦σ⟧` admits a unique maximally merged decomposition | introduced |
+| C1b | ResolutionSequenceOrder: list-position index i < j in resolve(d_s, σ) iff the underlying blocks satisfy vᵢ < vⱼ | introduced |
 | C1 | ResolutionIntegrity: every resolved I-address is in dom(C) | introduced |
 | C2 | ResolutionWidthPreservation: total resolved width equals ordinal displacement — w(resolve(d_s, σ)) = ℓₘ | introduced |
 
