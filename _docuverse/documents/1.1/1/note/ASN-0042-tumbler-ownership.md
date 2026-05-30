@@ -631,7 +631,7 @@ When a principal seeks to modify content it does not own, the system's response 
 
   (a) `ω(a') = π` — the new address is fully owned by the requesting principal
 
-  (b) the original address `a` is unchanged — no ownership is transferred, no content is modified
+  (b) the original address `a` persists in the registry (`a ∈ Σ'.B`, by B0) with its effective ownership unchanged (`ω_{Σ'}(a) = ω_Σ(a) ≠ π`) — no ownership is transferred. The fork allocates a fresh `a'` and invokes no operation on `a`; any content effects are governed by the content model, which lies outside this ASN's ownership state `Σ`
 
   (c) `zeros(a') = zeros(pfx(π)) + 1` — the fork sits exactly one structural tier below the principal's prefix (user level when `π` is node-level, document level when `π` is account-level). Content-bearing depth (element level, `zeros = 3`) is not guaranteed by O10 itself; it requires further organizational baptisms within the prefix-subtree `{t : a' ≼ t}`, conducted under the same sovereignty.
 
@@ -775,8 +775,6 @@ The fork transforms the ownership boundary into a creative act: `π_A` now has a
 
 ## Properties Introduced
 
-*In this table, a bare `Π` (and a bare `ω`) abbreviates the state-relativized `Π_Σ` (resp. `ω_Σ`); the bare form names the principal set (resp. effective-owner function) as a generic concept, not a fixed-state value.*
-
 | Label | Statement | Status |
 |-------|-----------|--------|
 | O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment; decidability postcondition: decidable from `pfx(π)` and `a` alone, without mutable state | definition (decidability via Prefix, T3) |
@@ -794,7 +792,7 @@ The fork transforms the ownership boundary into a creative act: `π_A` now has a
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | from Delegation, O2, O5, O15 |
 | O8 | `Σ_d reachable ∧ delegated(Σ_d, Σ_d^{post}, π, π') ∧ Σ_d^{post} →* Σ' ∧ π' ∈ Π_{Σ'} ∧ a ∈ odom(π') ∩ Σ'.B ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | from Delegation, O2, O12, O13, O15, B0★ (ASN-0040) |
 | O9 | `(A π ∈ Π_Σ, a ∈ Σ.B : owns(π, a) ⟹ N(pfx(π)) ≼ N(a))` — ownership bounded by node field | from O1, O1a, T4, Prefix |
-| O10 | Non-ownership of target yields a fork: new address `a'` in `odom(π)` with `ω(a') = π`, `zeros(a') = zeros(pfx(π)) + 1` (one structural tier below `pfx(π)`), and original `a` unmodified | from O1a, O1b, O6, O17b, PrefixBaptismCoupling, TA5(c), TA5(d), ASN-0040 `next`, ASN-0040 `hwm`, ASN-0040 B1/B6, B0 (ASN-0040) |
+| O10 | Non-ownership of target yields a fork: new address `a'` in `odom(π)` with `ω(a') = π`, `zeros(a') = zeros(pfx(π)) + 1` (one structural tier below `pfx(π)`), and original `a` retained in the registry with ownership unchanged | from O1a, O1b, O6, O17b, PrefixBaptismCoupling, TA5(c), TA5(d), ASN-0040 `next`, ASN-0040 `hwm`, ASN-0040 B1/B6, B0 (ASN-0040) |
 | O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | axiom |
 | O13 | `pfx_{Σ'}(π) = pfx_Σ(π)` for all transitions — prefix immutability | axiom |
 | O14 | `Π₀ ≠ ∅`, initial principals cover all initially allocated addresses, `\|Π₀\| < ∞`, `zeros ≤ 1`, `pfx` injective on `Π₀`, `T4(pfx(π))`, pairwise non-nesting, and every initial principal's prefix lies in `Σ₀.B` — bootstrap with finiteness/O1a/O1b/T4/non-nesting/O18 base cases | axiom |
