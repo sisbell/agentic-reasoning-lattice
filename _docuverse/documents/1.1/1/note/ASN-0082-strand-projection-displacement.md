@@ -194,15 +194,13 @@ When the link subspace is itself the active (shifted-into) region, a shifted ima
 
 The point-level shift I3 lifts to a span-level property connecting this ASN to the span algebra framework of ASN-0053.
 
-Two width-preservation derivations below (I3-S(a) and D-S(a)) need associativity and commutativity of ℕ addition. We source each precisely rather than attribute both to T0, whose axiom fixes only the carrier, length, and projection and states no arithmetic law.
+Two width-preservation derivations below (I3-S(a) and D-S(a)) need associativity and commutativity of ℕ addition.
 
 **Associativity** is supplied by TA-assoc (AdditionAssociative, ASN-0034). Specialized to depth-1 single-component tumblers, where `[a] ⊕ [b] = [a + b]`, TA-assoc's `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)` (for `Pos(b)`, `Pos(c)`) reads as `(a + b) + k = a + (b + k)` on ℕ for positive `b, k` — exactly the regrouping the proofs invoke, on operands that are positive in every use below.
 
-**Commutativity** (`m + n = n + m`) is *not* supplied by any foundation statement. ASN-0034's arithmetic extraction names NAT-addcompat (order-compatibility, strict successor), NAT-closure (closure, additive identity), NAT-discrete, NAT-order, and NAT-wellorder, and none of these asserts commutativity; nor is it derivable from them, since `+` is given as a primitive binary operation with no successor-recursive characterization (the extraction supplies `0 + n = n` but not `n + 0 = n`, and no `n + (m + 1) = (n + m) + 1`). We therefore posit it explicitly as a local arithmetic axiom:
+**Commutativity** is not among ASN-0034's NAT-* axioms, so we posit it locally:
 
 > **NAT-comm** (local axiom). For all `m, n ∈ ℕ`, `m + n = n + m`.
-
-This is a standard property of the standard natural numbers that T0 (ASN-0034) fixes as the carrier; we introduce it here as a clearly-labeled local axiom rather than cite a foundation statement that does not assert it.
 
 Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m. We call a span *ordinal-level* when its width acts purely at the deepest component: actionPoint(ℓ) = m. Define the shifted span σ' = (shift(s, n), ℓ). We verify that σ' is a well-formed span (T12, ASN-0034): ℓ > 0 is inherited from σ, and actionPoint(ℓ) = m ≤ #shift(s, n) = m (by TumblerAdd's result-length identity: #shift(s, n) = #δₙ = m).
 
