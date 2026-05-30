@@ -111,7 +111,7 @@ This mirrors S8a's `#t ≥ 2` for V-positions (ASN-0036). A link address must ca
 
 `(A a ∈ dom(Σ.L) :: (E s ∈ T, n ≥ 1, t₀, t₁, ..., tₙ, k₁, ..., kₙ :: T4-valid(s) ∧ zeros(s) = 2 ∧ t₀ = s ∧ tₙ = a ∧ (A i : 1 ≤ i ≤ n : tᵢ = inc(tᵢ₋₁, kᵢ) ∧ kᵢ ∈ {0, 1, 2} ∧ (kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2)) ∧ k₁ = 2 ∧ (A i : 1 ≤ i ≤ n : #tᵢ > #s)))`
 
-Each step is locally T10a-admissible: `kᵢ ∈ {0, 1, 2}` (the allowed T10a step types — `0` for sibling advance, `1` or `2` for child-spawn), and TA5a's side condition (ASN-0034) is discharged whenever `kᵢ = 2` by the explicit `zeros(tᵢ₋₁) ≤ 2` clause; for `kᵢ ∈ {0, 1}` TA5a is unconditional. The first step seats the field-separating zero at position `#s + 1`, between the document prefix and the element field.
+The first step seats the field-separating zero at position `#s + 1`, between the document prefix and the element field.
 
 **CPP — ChainPrefixPreservation (local lemma).** Let `t₀, t₁, ..., tₙ` be a T10a-conforming chain of T4-valid tumblers (T4-validity propagated along the chain by T10a.4), and let `p` be a fixed length with `p ≤ #t₀`. Suppose every step modifies only positions strictly beyond `p`: each child-spawn `inc(·, k')` (`k' ≥ 1`) agrees with its input on positions `1..#tᵢ₋₁` (TA5(b)), and each sibling advance `inc(·, 0)` modifies only the `sig` position (TA5(c)), which for the T4-valid input is the terminal position `#tᵢ₋₁` (TA5-SigValid) — so whenever `#tᵢ₋₁ > p` the advance leaves positions `1..p` fixed. Then by induction on chain length every `tᵢ`, and in particular the terminus `tₙ`, agrees with `t₀` on positions `1..p`.
 
@@ -124,9 +124,7 @@ Each step is locally T10a-admissible: `kᵢ ∈ {0, 1, 2}` (the allowed T10a ste
 
 A link's *home document* is `home(a)` (Definition — home), well-defined on every link address by L1 (`zeros(a) = 3`) and L1c (T4-validity). We now develop its ownership semantics.
 
-By GlobalUniqueness (ASN-0034), no two allocation events produce the same address. Link addresses are produced by allocation events conforming to T10a (L1c). Therefore each link receives a globally unique address.
-
-The home document determines the link's owner. For the creating document `d`, L1c's `s = home(a)` postcondition gives `home(a) = s = d` directly. L1a (the membership invariant `home(a) ∈ dom(Σ.M)`) and that postcondition together deliver the link analog of S7 (StructuralAttribution, ASN-0036): `home(a)` uniquely identifies the creating document across the system, and is structurally guaranteed to *be* that document — not merely *some* allocated document in `dom(Σ.M)`. For links `a₁, a₂` allocated under distinct documents `d₁ ≠ d₂`, the same postcondition gives `home(a₁) = d₁` and `home(a₂) = d₂`; since `d₁ ≠ d₂` as document-level tumblers (by T3, CanonicalRepresentation — tumbler equality is sequence equality), `home(a₁) ≠ home(a₂)`. How this owning document is fixed — by the address alone, independent of what the link points to — is the content of L2.
+The home document determines the link's owner. For the creating document `d`, L1c's `s = home(a)` postcondition gives `home(a) = s = d` directly. L1a (the membership invariant `home(a) ∈ dom(Σ.M)`) and that postcondition together deliver the link analog of S7 (StructuralAttribution, ASN-0036): `home(a)` uniquely identifies the creating document across the system, and is structurally guaranteed to *be* that document — not merely *some* allocated document in `dom(Σ.M)`. Address-level distinctness across distinct allocation events — including links allocated under distinct documents — is carried by L11a (LinkUniqueness). How this owning document is fixed — by the address alone, independent of what the link points to — is the content of L2.
 
 The critical property — the one that distinguishes this design from systems where annotations are embedded in the annotated content:
 
@@ -171,7 +169,7 @@ We write `|L|` for the *arity* of a link — the number of endsets in the sequen
 
 **Convention — StandardTriple.** The standard link form has arity 3, with slot 1 as the *from-endset*, slot 2 as the *to-endset*, and slot 3 as the *type-endset*. We write `(F, G, Θ)` for a link following this convention. Nelson's MAKELINK operation takes these three endsets plus a home document, and Gregory's implementation hardcodes three V-addresses (1.1, 2.1, 3.1) and three spanfilade index constants (`LINKFROMSPAN = 1`, `LINKTOSPAN = 2`, `LINKTHREESPAN = 3`). The standard triple is the dominant case — but it is a convention, not a structural limit.
 
-*Named accessor.* Conditional on `|Σ.L(a)| ≥ 3`, we introduce the abbreviation `Σ.L(a).type ≡ Σ.L(a).e₃` as a synonym for the indexed accessor of slot 3. The side condition `|Σ.L(a)| ≥ 3` that makes the abbreviation well-defined is discharged for every conforming link by L3. The two forms are interchangeable in all formal statements.
+*Named accessor.* Conditional on `|Σ.L(a)| ≥ 3`, we introduce the abbreviation `Σ.L(a).type ≡ Σ.L(a).e₃` as a synonym for the indexed accessor of slot 3.
 
 **L3 — NEndsetStructure.** Every link in the link store is a sequence of at least three endsets, each in `Endset`, with slot 3 a non-empty type endset:
 
@@ -248,7 +246,7 @@ Several results below extend the store by appending a single fresh sibling link,
 - (h2) *Producibility:* `a` is the terminus of a T10a-conforming chain seeded at a T4-valid document-level tumbler `home(a) ∈ dom(Σ.M)`;
 - (h3) *Shape:* `subspace_I(a) = s_L`, `zeros(a) = 3`, `#E(a) ≥ 2`, and `a` is T4-valid.
 
-Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite set of T12-well-formed spans), and `e₃ ≠ ∅`. Define `Σ'` by `Σ'.L = Σ.L ∪ {a ↦ ℓ}`, `Σ'.C = Σ.C`, `Σ'.M = Σ.M`. Then `Σ'` satisfies every state-local L- and S-invariant (the L- and S-invariants of this ASN and ASN-0036); and the `Σ → Σ'` transition satisfies the transition invariants L12 (LinkImmutability) and L12a (LinkStoreMonotonicity). (L11a is discharged as a per-event distinctness obligation: the address `a` added by `Σ → Σ'` is distinct from every link address allocated in `Σ`, as the L11a bullet below shows.) FSP places no constraint on the endset *targets* of `ℓ`; in particular `coverage(ℓ.type)` is unconstrained.
+Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite set of T12-well-formed spans), and `e₃ ≠ ∅`. Define `Σ'` by `Σ'.L = Σ.L ∪ {a ↦ ℓ}`, `Σ'.C = Σ.C`, `Σ'.M = Σ.M`. Then `Σ'` satisfies every state-local L- and S-invariant (the L- and S-invariants of this ASN and ASN-0036); and the `Σ → Σ'` transition satisfies the transition invariants L12 (LinkImmutability) and L12a (LinkStoreMonotonicity).
 
 *Proof.* The construction adds one link-store entry at `a`; `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. We treat the new entry and the carry-over of existing entries.
 
