@@ -136,6 +136,16 @@ mkdir -p _workspace/logs
 # suspect (failed fire) and we start fresh.
 rm -f _workspace/links.worker-*.jsonl
 
+# One-time startup cleanup: retract every stale holding from prior
+# runner sessions. Crashes / kills / commit-path errors all leave
+# orphans that block fires until cleared. The threshold (135m
+# default) is safely above the 120m subprocess timeout, so this
+# never touches an in-flight legitimate holding. The per-cycle
+# --quiet check below still surfaces fresh orphans as banners so
+# the operator notices new bugs.
+echo "  [run-notes-continuous] cleaning stale holdings from prior runs..." >&2
+python scripts/diagnostics/stale_holdings.py --retract-all || true
+
 while true; do
     # Honor the file-based shutdown sentinel. If the operator placed
     # `_workspace/runner.shutdown` (e.g., via `scripts/runner-stop.sh`),
