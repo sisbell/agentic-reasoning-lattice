@@ -79,7 +79,7 @@ Vstream is where mutability lives. Each document's arrangement `M(d)` maps V-pos
 
 *Formal Contract:*
 - *Derivation:* The `Σ.M(d) : T ⇀ T` partial-function declaration yields the single-image property by unfolding the meaning of "partial function": a function relates each domain element to at most one image, so two images of a common argument coincide.
-- *Postconditions:* (single image) `(A d, v, a₁, a₂ : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a₁ ∧ Σ.M(d)(v) = a₂ : a₁ = a₂)` — each V-position has at most one I-address image; downstream sites cite this quantified form as (S2).
+- *Postconditions:* (single image) `(A d, v, a₁, a₂ : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a₁ ∧ Σ.M(d)(v) = a₂ : a₁ = a₂)` — each V-position has at most one I-address image.
 - *Depends:* the `Σ.M(d) : T ⇀ T` axiom (this ASN) — the partial-function declaration from which the single-image property is unfolded.
 
 The bridge between the two state components is a well-formedness condition:
@@ -193,7 +193,7 @@ This is a design requirement: content resides at the element level — the fines
 Nelson's baptism principle establishes it: "The owner of a given item controls the allocation of the numbers under it." A document owner baptises element addresses under that document's prefix, so the home document is ascertainable from the address alone — not from a separate lookup table.
 
 *Formal Contract (S7a):*
-- *Axiom (design requirement):* `(A a : a ∈ dom(Σ.C) :: the document-level prefix N(a).0.U(a).0.D(a) is the tumbler of the document whose owner performed the allocation that placed a into dom(C))`. By S7b (stated above), every `a ∈ dom(Σ.C)` satisfies `zeros(a) = 3`, so T4b's projections `N(a)`, `U(a)`, `D(a)` are everywhere defined on the domain over which the axiom quantifies.
+- *Axiom (design requirement):* `(A a : a ∈ dom(Σ.C) :: the document-level prefix N(a).0.U(a).0.D(a) is the tumbler of the document whose owner performed the allocation that placed a into dom(C))`.
 - *Depends:* T4 (HierarchicalParsing, ASN-0034) — defines the prefix structure; T4b (UniqueParse, ASN-0034) — defines projections `N`, `U`, `D`; S7b (Element-level I-addresses) — supplies `zeros(a) = 3` for every `a ∈ dom(Σ.C)`; T10a (AllocatorDiscipline, ASN-0034) — establishes the baptism principle; T10a.4 (T4PreservationUnderDiscipline, ASN-0034) — T4 preservation.
 
 **S7d (Document allocation discipline).** Every document is addressed by a document-level tumbler (`zeros = 2`) arising from an allocation event under T10a's allocator discipline (ASN-0034). Distinct documents arise from distinct allocation events.
@@ -541,7 +541,7 @@ The lifecycle above exercises the contiguity constraints at depth 2 on every wel
 | S7 | Structural attribution: `origin(a) = N(a).0.U(a).0.D(a)` — full document prefix | from S7a, S7b, S7d, S0, S4, T4, T4b, T3, T10a.4, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
 | Σ.M(d) domain restriction | `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions | axiom (definitional) |
-| S8a | V-position componentwise positivity and depth: `(A v ∈ dom(M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — per-component form of the domain-restriction axiom, equivalent by T0 | from the domain-restriction axiom, T0 (ASN-0034) |
+| S8a | V-position componentwise positivity and depth: `(A v ∈ dom(M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` — notational alias of the domain-restriction axiom (not an independent obligation), equivalent by T0 | alias of the domain-restriction axiom, T0 (ASN-0034) |
 | subspace(v) | V-position subspace identifier: `subspace(v) = v₁`; well-defined when `#v ≥ 1` | introduced; uses T0 (ASN-0034) |
 | S8-depth | Fixed-depth V-positions: `(A d, u, w : u ∈ dom(M(d)) ∧ w ∈ dom(M(d)) ∧ subspace(u) = subspace(w) : #u = #w)` | design; uses S8a |
 | OrdShiftHom | Ordinal shift preservation: (a) `subspace(shift(v, n)) = subspace(v)`; (b) `shift(v, n)` preserves S8a — both from TumblerAdd on `δ(n, m)` | lemma; uses OrdinalShift, OrdinalDisplacement, TumblerAdd, TA0 (ASN-0034), S8a |
