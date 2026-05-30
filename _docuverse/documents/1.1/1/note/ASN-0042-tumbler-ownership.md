@@ -29,7 +29,6 @@ The mapping `pfx : Π → T` is a primitive of the ownership model. Its codomain
 - *Axiom:* `pfx : Π → T` is a total mapping assigning each principal its ownership prefix.
 - *Preconditions:* `π ∈ Π`.
 - *Postconditions:* (a) `pfx(π) ∈ T`. (b) `T4(pfx(π))` — the prefix is a valid tumbler satisfying HierarchicalParsing.
-- *Related properties (derived invariants, stated separately):* injectivity is O1b; the account-level boundary (`zeros(pfx(π)) ≤ 1`) is O1a.
 
 **O1b (PrefixInjectivity).** `(A π₁, π₂ ∈ Π : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`
 
@@ -175,7 +174,9 @@ In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with
 
 Condition (ii) is the *authorization* clause — the delegator `π` must be the most-specific covering principal of `pfx(π')` in `Π_Σ`, so no principal may delegate within a sub-domain it has already delegated away. Condition (vi) enforces *top-down delegation order* — a parent prefix must be delegated before any child prefix strictly within it, so the delegate has full authority over its domain from the moment of creation. Condition (vii) is the *freshness* gate — the delegate's prefix must not already be baptized, so a prefix consumed as a namespace address (entered into `Σ.B` by an earlier non-delegating baptism) can never be re-purposed as a new principal's prefix. Nelson's design contains no concept of principals appearing outside the delegation hierarchy, and Gregory's codebase provides no mechanism for it.
 
-**Definition (delegated).** We name the conjunction of conditions (i)–(vii) above the *delegation predicate*, with a four-place signature: `delegated(Σ, Σ', π, π')` holds iff `Σ → Σ'`, `π ∈ Π_Σ`, `π' ∈ Π_{Σ'} ∖ Π_Σ` (condition (iii)), and conditions (i), (ii), (iv), (v), (vi), (vii) hold for `(π, π')` at `Σ`. Condition (vii) asserts the pre-state freshness `pfx(π') ∉ Σ.B`; its post-state counterpart `pfx(π') ∈ Σ'.B ∖ Σ.B` is O18. Where a formula already binds a transition `Σ → Σ'`, we write `delegated_Σ(π, π')` as an abbreviation for `delegated(Σ, Σ', π, π')` with that same `Σ'`; the subscript form is used only when `Σ'` is named in the surrounding formula. The reflexive-transitive closure `delegated_Σ*` is a separate relation, built from the structural parent relation `R_Σ` on the single state `Σ` defined alongside NestingByDelegation below.
+**Definition (delegated).** We name the conjunction of conditions (i)–(vii) above the *delegation predicate*, with a four-place signature: `delegated(Σ, Σ', π, π')` holds iff `Σ → Σ'`, `π ∈ Π_Σ`, `π' ∈ Π_{Σ'} ∖ Π_Σ` (condition (iii)), and conditions (i), (ii), (iv), (v), (vi), (vii) hold for `(π, π')` at `Σ`. Condition (vii) asserts the pre-state freshness `pfx(π') ∉ Σ.B`; its post-state counterpart `pfx(π') ∈ Σ'.B ∖ Σ.B` is O18. Where a formula already binds a transition `Σ → Σ'`, we write `delegated_Σ(π, π')` as an abbreviation for `delegated(Σ, Σ', π, π')` with that same `Σ'`; the subscript form is used only when `Σ'` is named in the surrounding formula.
+
+The reflexive-transitive closure `delegated_Σ*` is built from a *parent relation* `R_Σ` defined purely on the single state `Σ`, with no reference to a witnessing path. For a non-bootstrap principal `π' ∈ Π_Σ`, let `R_Σ(π, π')` hold iff `π` is the most-specific covering principal of `pfx(π')` in `Π_Σ` — the unique `π ∈ Π_Σ` with `pfx(π) ≺ pfx(π')` of maximal prefix length. This `π` is unique: the covering principals of the common tumbler `pfx(π')` are `≼`-comparable (covering-chain lemma, Ownership Domains section) and have pairwise distinct prefixes (O1b), so their prefix lengths are distinct and a single maximal-length one exists. Then `delegated_Σ* = ∪_{m ≥ 0} R_Σ^m`, where `R_Σ^0` is the identity relation on `Π_Σ` and `R_Σ^{m+1} = R_Σ^m ∘ R_Σ`. Equivalently, `delegated_Σ*(π, π')` iff `π = π'` or there is a finite chain `π = π^{(0)}, π^{(1)}, ..., π^{(m)} = π'` (`m ≥ 1`) of principals in `Π_Σ` with each consecutive pair `(π^{(j)}, π^{(j+1)})` related by `R_Σ`.
 
 **FiniteRegistry (FiniteRegistry, derived).** In every reachable state, the principal registry is finite:
 
@@ -192,15 +193,13 @@ The reachability premise itself is structural: states are reached by composing f
   `      (pfx(π₁) ≺ pfx(π₂) ∧ delegated_Σ*(π₁, π₂)) ∨`
   `      (pfx(π₂) ≺ pfx(π₁) ∧ delegated_Σ*(π₂, π₁)) ))`
 
-where `delegated_Σ*(π, π')` is the reflexive-transitive closure of a *parent relation* `R_Σ` defined purely on the final state `Σ`, with no reference to a witnessing path. For a non-bootstrap principal `π' ∈ Π_Σ`, let `R_Σ(π, π')` hold iff `π` is the most-specific covering principal of `pfx(π')` in `Π_Σ` — the unique `π ∈ Π_Σ` with `pfx(π) ≺ pfx(π')` of maximal prefix length. This `π` is unique: the covering principals of the common tumbler `pfx(π')` are `≼`-comparable (covering-chain lemma, Ownership Domains section) and have pairwise distinct prefixes (O1b), so their prefix lengths are distinct and a single maximal-length one exists. Then `delegated_Σ* = ∪_{m ≥ 0} R_Σ^m`, where `R_Σ^0` is the identity relation on `Π_Σ` and `R_Σ^{m+1} = R_Σ^m ∘ R_Σ`. Equivalently, `delegated_Σ*(π, π')` iff `π = π'` or there is a finite chain `π = π^{(0)}, π^{(1)}, ..., π^{(m)} = π'` (`m ≥ 1`) of principals in `Π_Σ` with each consecutive pair `(π^{(j)}, π^{(j+1)})` related by `R_Σ`.
-
-This structural `R_Σ` coincides with the introducing-delegation relation, and the coincidence is path-independent. When O15 introduces `π'` at some state `Σ_k`, condition (ii) names its delegator as the most-specific covering principal of `pfx(π')` in `Π_{Σ_k}`. No principal whose prefix lies strictly between `pfx(π)` and `pfx(π')` can enter `Π` after `Σ_k`: such a `π*` would have `pfx(π*) ≺ pfx(π')`, yet at its own introducing state `π'` is already present, so condition (vi) — `¬(E π'' : pfx(π*) ≺ pfx(π''))` — would be violated by `π'' = π'`. Hence the most-specific covering principal of `pfx(π')` is identical in `Π_{Σ_k}` and in the larger `Π_Σ`, so `R_Σ(π, π')` holds for exactly the introducing delegator `π`, independent of which witnessing path reached `Σ`. Equality `pfx(π₁) = pfx(π₂)` is excluded by O1b (preserved across transitions; see the Delegation section).
+where `delegated_Σ*` is the reflexive-transitive closure of the parent relation `R_Σ` defined above. Equality `pfx(π₁) = pfx(π₂)` is excluded by O1b (preserved across transitions; see the Delegation section).
 
 We derive this by induction on the transition sequence `Σ₀ → Σ_1 → ... → Σ`.
 
 *Base case:* By O14's sixth clause, all initial principals in `Π_{Σ_0}` have pairwise non-nesting prefixes. So the first disjunct holds directly for every pair `π₁, π₂ ∈ Π_{Σ_0}` with `π₁ ≠ π₂`.
 
-*Inductive step:* Suppose the invariant holds at `Σ_n` and `Σ_n → Σ_{n+1}` via some delegation `delegated_{Σ_n}(π_d, π')` introducing `π'` (by O15, at most one new principal per step; if none is introduced, the invariant is preserved trivially — every disjunct at `Σ_n` lifts to `Σ_{n+1}` by the witness-preservation argument given immediately below). Consider any pair `π₁, π₂ ∈ Π_{Σ_{n+1}}` with `π₁ ≠ π₂`. If both lie in `Π_{Σ_n}`, the IH applies at `Σ_n` and each disjunct lifts to `Σ_{n+1}`. *Witness preservation:* the non-nesting disjunct depends only on the two prefixes, which are preserved across `Σ_n → Σ_{n+1}` by O13 (PrefixImmutability) — `pfx_{Σ_{n+1}}(π_j) = pfx_{Σ_n}(π_j)` for `j ∈ {1, 2}`, since both lie in `Π_{Σ_n}` — so non-nesting at `Σ_n` carries over to `Σ_{n+1}`. The strict-extension disjuncts have the form `delegated_{Σ_n}^*(π_a, π_b)`, a chain of `R_{Σ_n}`-steps; since `R` is monotone — `R_{Σ_n} ⊆ R_{Σ_{n+1}}`, because prefixes are immutable (O13) and (as shown at the definition) the most-specific covering principal of any prefix is preserved as `Π` grows — the same chain witnesses `delegated_{Σ_{n+1}}^*(π_a, π_b)`. Otherwise one of `π₁, π₂` is `π'`; without loss of generality let `π₂ = π'` and `π₁ ∈ Π_{Σ_n}` (`π₁ = π'` would force `π₁ = π₂`). Compare `pfx(π₁)` and `pfx(π')`:
+*Inductive step:* Suppose the invariant holds at `Σ_n` and `Σ_n → Σ_{n+1}` via some delegation `delegated_{Σ_n}(π_d, π')` introducing `π'` (by O15, at most one new principal per step; if none is introduced, the invariant is preserved trivially — every disjunct at `Σ_n` lifts to `Σ_{n+1}` by the witness-preservation argument given immediately below). Consider any pair `π₁, π₂ ∈ Π_{Σ_{n+1}}` with `π₁ ≠ π₂`. If both lie in `Π_{Σ_n}`, the IH applies at `Σ_n` and each disjunct lifts to `Σ_{n+1}`. *Witness preservation:* the non-nesting disjunct depends only on the two prefixes, which are preserved across `Σ_n → Σ_{n+1}` by O13 (PrefixImmutability) — `pfx_{Σ_{n+1}}(π_j) = pfx_{Σ_n}(π_j)` for `j ∈ {1, 2}`, since both lie in `Π_{Σ_n}` — so non-nesting at `Σ_n` carries over to `Σ_{n+1}`. The strict-extension disjuncts have the form `delegated_{Σ_n}^*(π_a, π_b)`, a chain of `R_{Σ_n}`-steps; since `R` is monotone — `R_{Σ_n} ⊆ R_{Σ_{n+1}}`, because prefixes are immutable (O13) and the most-specific covering principal of any prefix is preserved as `Π` grows — the same chain witnesses `delegated_{Σ_{n+1}}^*(π_a, π_b)`. The preservation is by condition (vi): if `π'` (the one newcomer admitted by `Σ_n → Σ_{n+1}`) had a prefix strictly between `pfx(π)` and some `pfx(π_b)` already covered by `π` in `Π_{Σ_n}`, then `pfx(π') ≺ pfx(π_b)` with `π_b ∈ Π_{Σ_n} ⊆ Π_{Σ_{n+1}}`, violating condition (vi) — `¬(E π'' ∈ Π_{Σ_n} : pfx(π') ≺ pfx(π''))` — at `π'`'s own introducing step. So no newcomer can interpose itself as a more-specific cover, and `R_{Σ_n}`-edges persist into `Σ_{n+1}`. Otherwise one of `π₁, π₂` is `π'`; without loss of generality let `π₂ = π'` and `π₁ ∈ Π_{Σ_n}` (`π₁ = π'` would force `π₁ = π₂`). Compare `pfx(π₁)` and `pfx(π')`:
 
 - *Non-nesting:* The first disjunct holds. ✓
 - *`pfx(π') ≺ pfx(π₁)`:* Forbidden by condition (vi) of `delegated_Σ` (stated with O15 above), which requires `¬(E π'' ∈ Π_{Σ_n} : pfx(π') ≺ pfx(π''))`. Since `π₁ ∈ Π_{Σ_n}` witnesses such a `π''`, this case is impossible.
@@ -215,10 +214,6 @@ In every sub-case, one of the three disjuncts holds for `(π₁, π')`. By symme
 NestingByDelegation makes the structural geometry of `Π_Σ` explicit: principals form a forest under the strict-extension order, with the roots being the bootstrap principals of `Π_{Σ_0}`, and parent-child edges supplied by delegation events. Sub-delegates of a principal `π` are precisely the descendants of `π` in the forest, and any other principal in `Π_Σ` has a non-nesting prefix.
 
 **allocated_by_Σ(π, a) (AllocatedBy).**
-
-We take `allocated_by_Σ(π, a)` — "address `a` was allocated by principal `π` in the transition producing state `Σ`" — as a primitive relation of the ownership model. The relation records that the baptism procedure, executing on behalf of `π`, produced `a`; the procedure itself is the mechanism placed out of scope. The signature:
-
-  `allocated_by_Σ : Principal × Tumbler → Bool`
 
 *Axiom:* `allocated_by_Σ(π, a)` is a primitive relation of the ownership model.
 - *Signature:* `allocated_by_Σ : Principal × Tumbler → Bool`
@@ -247,7 +242,7 @@ This is ASN-0040's B10 (T4ValidityInvariant), imported as a load-bearing fact of
 
   `(A Σ, Σ', π' : Σ → Σ' ∧ π' ∈ Π_{Σ'} ∖ Π_Σ ⟹ pfx(π') ∈ Σ'.B ∖ Σ.B)`
 
-O18 asserts only this per-transition fact: each transition introducing a new principal records that principal's prefix into the baptismal registry as a tumbler not present immediately prior. It carries no base case of its own; the bootstrap state's prefix membership is supplied separately by O14's seventh clause, and the two are combined by the induction in PrefixBaptismCoupling below. Gregory's `findpreviousisagr` issues every account slot as a fresh entry in the granfilade tree, never re-purposing a previously baptized tumbler as a new principal's prefix.
+Gregory's `findpreviousisagr` issues every account slot as a fresh entry in the granfilade tree, never re-purposing a previously baptized tumbler as a new principal's prefix.
 
 **PrefixBaptismCoupling (derived).** In every reachable state, every principal's prefix is itself baptized:
 
@@ -789,9 +784,7 @@ In both `zeros(pfx(π)) = 0` and `zeros(pfx(π)) = 1` cases, no sub-delegate of 
 
 *Trajectory closure.* The baptism does not modify `Π` (by O15) or remove any pre-existing baptized address from the registry (by B0 Irrevocability of ASN-0040: `Σ.B ⊆ Σ'.B`). The original address `a` remains in `Σ'.B` with its ownership unchanged: `ω_{Σ'}(a) = ω_Σ(a) ≠ π`. The fork postcondition is satisfied: `a' ∈ dom(π) ∩ Σ'.B ∧ ω_{Σ'}(a') = π`, with `a ∈ Σ'.B` unchanged. ∎
 
-> *Unilateral O10★.* In every reachable state `Σ` and for every `π ∈ Π_Σ`, there exists `Σ → Σ'` — a single baptism by `π` alone — witnessing the fork postcondition with `a' = pfx(π).0.{hwm_0 + 1}` ∈ `dom(π) ∩ Σ'.B` and `ω_{Σ'}(a') = π`, where `hwm_0 = hwm(Σ.B, pfx(π), 2)`.
-
-The single-baptism witness is unconditional: PrefixBaptismCoupling ensures every sub-delegate's prefix lies in `Σ.B`, so `hwm_0` already reflects all pre-claimed user-field slots, and `hwm_0 + 1` is never one of them. `π`'s sibling-advance (or field-opening, when `hwm_0 = 0`) lands on a slot it is O5-authorized for and B6-bounded for. This matches Nelson's design intent: "once assigned a User account, the user will have full control over its subdivision forevermore" (LM 4/29). The "forevermore" clause forbids ongoing cooperative roles across the parent/sub-delegate boundary; the parent's fork at `hwm_0 + 1` is structurally outside every sub-delegate's authority and structurally inside `π`'s. Gregory's allocator behaves identically: `findpreviousisagr` advances unilaterally past delegated slots, treating the granfilade as the sole source of truth — no inter-session signaling, no shared counter, no lock. The abstract baptismal coupling captures exactly this implementation property.
+The single-baptism witness is thus unconditional (the construction and its non-coverage argument above hold in every reachable state; the result is recorded as the *Unilateral postcondition* in the Formal Contract below). This matches Nelson's design intent: "once assigned a User account, the user will have full control over its subdivision forevermore" (LM 4/29). The "forevermore" clause forbids ongoing cooperative roles across the parent/sub-delegate boundary; the parent's fork at `hwm_0 + 1` is structurally outside every sub-delegate's authority and structurally inside `π`'s. Gregory's allocator behaves identically: `findpreviousisagr` advances unilaterally past delegated slots, treating the granfilade as the sole source of truth — no inter-session signaling, no shared counter, no lock. The abstract baptismal coupling captures exactly this implementation property.
 
 *Forking at greater depth.* The minimum witness produces an address at user level (`zeros(a') = 1` when `zeros(pfx(π)) = 0`) or document level (`zeros(a') = 2` when `zeros(pfx(π)) = 1`) — one structural tier below `pfx(π)`. The fork postcondition imposes no minimum depth; the consultation confirms that `docreatenewversion`'s unowned-version path through `makehint(ACCOUNT, DOCUMENT, 0, wheretoputit, &hint)` produces exactly the document-level address `pfx(π).0.N` (depth=2, account.0.N form) in one allocation call. A principal may continue baptizing within `dom(a')` to descend further — to document level from user, or to element level for inclusion-link content placement — by repeated O5-authorized field-openings on freshly baptized parents; the descent is `π`'s organizational choice within its sovereignty, not a requirement of O10.
 
@@ -817,18 +810,7 @@ This is not a deficiency in the ownership *model* — it is a gap in the ownersh
 
 ## Summary of the Model
 
-The ownership model we have derived is spare. It has one predicate (prefix containment), one resolution rule (longest match), and one structural invariant (exclusivity). Everything else follows. Ownership is:
-
-1. *Structural* — computed from the address, not stored (O1)
-2. *Account-bounded* — the field structure fixes the granularity (O1a)
-3. *Exclusive* — exactly one effective owner per address (O2)
-4. *Monotonically refined* — changes only through delegation, never reverses (O3)
-5. *Provenance-encoding* — the address records origin inalienably (O6)
-6. *Subdivision-gating* — only the owner may create sub-addresses (O5)
-7. *Recursively delegable* — delegates receive the same rights (O7)
-8. *Irrevocably delegated* — delegation is permanent (O8)
-9. *Node-local* — authority is bounded by node prefix (O9)
-10. *Fork-inducing at boundaries* — non-ownership produces new ownership (O10)
+The ownership model we have derived is spare. It has one predicate (prefix containment), one resolution rule (longest match), and one structural invariant (exclusivity); the properties O1–O10 catalogued in the table below all follow.
 
 Principal identity (the binding of a session to a tumbler prefix) is exogenous to this model: the ownership properties O1–O10 hold for any identity-binding mechanism the system chooses.
 
