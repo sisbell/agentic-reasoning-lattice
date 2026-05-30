@@ -1,0 +1,22 @@
+# Review of ASN-0043
+
+## REVISE
+
+### Issue 1: The worked example verifies L5 and L8 only in their degenerate singleton form, never exercising the multi-span semantics that is their actual content
+
+**ASN-0043, Worked Example — L5 and L8 checks**: "*L5 (EndsetSetSemantics).* Each endset is a singleton set — set semantics hold trivially. ✓" and the L8 checks, which compare only singleton type endsets (`a`/`a'` with identical `Θ`; `a`/`a₄` with disjoint `Θ`,`Θ₄`).
+
+**Problem**: Every endset in the entire worked example (Σ through Σ₄) is a singleton. This makes the L5 and L8 verifications trivial in precisely the dimension that constitutes their substantive content:
+
+- **L5's** distinctive claim is that span *ordering within an endset carries no meaning* and that endset equality is extensional set equality over `Span`. A singleton set has no ordering to be irrelevant about — the note itself concedes the check holds "trivially." The non-trivial content (two endsets equal iff same members, with ≥2 spans) is never demonstrated.
+- **L8's** entire reason for being defined on *coverage* rather than *span-set identity* is the case the note flags twice: in the Coverage definition ("`{(1, [3])}` and `{(1, [1]), (2, [2])}` cover the same addresses but are distinct endsets") and in L8 itself ("two type endsets with different span decompositions but identical coverage denote the same type"). The worked example exercises only same-singleton (match) and disjoint-singleton (no match). It never instantiates the crux case — *different decompositions, identical coverage → `same_type` true* — so the postcondition that motivates the whole `coverage`-vs-span-set design choice is asserted but never verified against a concrete scenario.
+
+Per the depth standard, a key postcondition checked only where "the answer is trivially true" is not analysis. L5 and L8 are checked exactly where they are trivial.
+
+**Required**: Extend the worked example with at least one multi-span endset, and verify (i) L5's order-irrelevance / extensional equality across a ≥2-span endset, and (ii) L8's coverage-based matching for two type endsets with *different span decompositions but identical coverage*, confirming `same_type = true` without span-set equality — the case that distinguishes L8 from a span-set criterion.
+
+## OUT_OF_SCOPE
+
+None. The note stays within link state, invariants, and the conformance lemmas; the Open Questions and Scope list correctly defer operations, transclusion consistency, and compound-link well-formedness to future ASNs.
+
+VERDICT: REVISE
