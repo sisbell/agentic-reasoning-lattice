@@ -192,13 +192,13 @@ When the link subspace is itself the active (shifted-into) region, a shifted ima
 
 ## Span Width Preservation
 
-The point-level shift I3 lifts to a span-level property connecting this ASN to the span algebra framework of ASN-0053. The reach derivation below turns on the commutativity of ℕ addition, which we record as a local axiom.
+The point-level shift I3 lifts to a span-level property connecting this ASN to the span algebra framework of ASN-0053.
 
 **NAT-CA** — *CarrierAdditionCommutativityAssociativity* (introduced locally). For all m, n, k ∈ ℕ: `m + n = n + m` (commutativity) and `(m + n) + k = m + (n + k)` (associativity).
 
 Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m. We call a span *ordinal-level* when its width acts purely at the deepest component: actionPoint(ℓ) = m. Define the shifted span σ' = (shift(s, n), ℓ). We verify that σ' is a well-formed span (T12, ASN-0034): ℓ > 0 is inherited from σ, and actionPoint(ℓ) = m ≤ #shift(s, n) = m (by TumblerAdd's result-length identity: #shift(s, n) = #δₙ = m).
 
-**I3-S** — *SpanShiftPreservation* (LEMMA, introduced). For a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m, the shifted span σ' = (shift(s, n), ℓ) satisfies:
+**I3-S** — *SpanShiftPreservation* (LEMMA, introduced). For a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m, and a shift amount n ≥ 1, the shifted span σ' = (shift(s, n), ℓ) satisfies:
 
 (a) reach(σ') = shift(reach(σ), n)
 
@@ -246,9 +246,7 @@ For (⟸): the argument is symmetric. If ord(v₁) < ord(v₂), T1 places the di
 
 *Derivation from TumblerAdd.* Let `k = actionPoint(w)`. Since `w₁ = 0` and `Pos(w)`, the first (leftmost) nonzero of w sits at `k ≥ 2`, and `k ≤ #w = m = #p`, so `p ⊕ w` is well-defined (TA0, ASN-0034). By TumblerAdd's piecewise construction, `(p ⊕ w)ᵢ = pᵢ` for `i < k` (prefix copy), `(p ⊕ w)_k = p_k + w_k`, and `(p ⊕ w)ᵢ = wᵢ` for `i > k`; the result has length m (result-length identity). For (b): since `k ≥ 2 > 1`, position 1 lies in the prefix-copy region, so `(p ⊕ w)₁ = p₁`, i.e. `subspace(p ⊕ w) = subspace(p)`. For (a): stripping position 1 from both sides and reindexing by −1, ord(p ⊕ w) has at ord-position `j = i − 1` (for `2 ≤ i ≤ m`) the value `(p ⊕ w)ᵢ`. The pair (ord(p), w_ord) has lengths m − 1, with `ord(p)ⱼ = pⱼ₊₁`, `w_ordⱼ = wⱼ₊₁`, and `actionPoint(w_ord) = k − 1` (OrdinalDisplacementProjection). TumblerAdd applied to ord(p) ⊕ w_ord at action point `k − 1` gives prefix copy `ord(p)ⱼ` for `j < k − 1`, sum `ord(p)_{k−1} + w_ord_{k−1}` at `j = k − 1`, and tail `w_ordⱼ` for `j > k − 1` — exactly the index-shifted images of TumblerAdd's three regions on p ⊕ w. Componentwise agreement at every ord-position (T3) gives `ord(p ⊕ w) = ord(p) ⊕ w_ord`. For (c): by the ord/vpos inverse `vpos(subspace(p ⊕ w), ord(p ⊕ w)) = p ⊕ w`; substituting (b) and (a) yields `p ⊕ w = vpos(subspace(p), ord(p) ⊕ w_ord)`. ∎
 
-In words: addition commutes with ordinal extraction when the displacement has a zero first component.
-
-**Lemma — OrdinalExceedsDisplacement** (LEMMA, introduced). Fix the contraction parameters: `#p = 2`, `Pos(w)`, `w₁ = 0`, `p ∈ V_1(d)`, and `r = p ⊕ w`. For any V-position v with `v ≥ r` (equivalently `ord(v) ≥ ord(r)`):
+**Lemma — OrdinalExceedsDisplacement** (LEMMA, introduced). Fix the contraction parameters: `#p = 2`, `Pos(w)`, `w₁ = 0`, `p ∈ V_1(d)`, and `r = p ⊕ w`. For any V-position v with `subspace(v) = 1` and `v ≥ r` (so that `#v = #r` and OrdinalOrderEquivalence applies, giving `ord(v) ≥ ord(r)`):
 
 - (i) `ord(r) ≥ w_ord` and `ord(r) > w_ord`;
 - (ii) `ord(v) ≥ w_ord` and `ord(v) > w_ord`;
@@ -688,7 +686,7 @@ where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* b
 | I3-S2 | lemma | M'(d) is a function — S2 preserved post-insertion; pairwise disjointness of assignment regions ensures no double-assignment | derived |
 | I3-fin | lemma | dom(M'(d)) is finite — S8-fin preserved post-insertion; domain closure (I3-CS, I3-CX) and injectivity (TS2) bound M'(d) by pre-state | derived |
 | I3-S7 | lemma | S7a, S7b, S7d preserved post-insertion (and S7 as a corollary) — trivially by I3-C (dom(C') = dom(C), per-address values unchanged) and I3-D (document set unchanged) | derived |
-| I3-S | lemma | For level-uniform σ = (s, ℓ) with actionPoint(ℓ) = m: reach((shift(s, n), ℓ)) = shift(reach(σ), n) and width preserved | introduced |
+| I3-S | lemma | For level-uniform σ = (s, ℓ) with actionPoint(ℓ) = m and n ≥ 1: reach((shift(s, n), ℓ)) = shift(reach(σ), n) and width preserved | introduced |
 | OrdinalDisplacement | definition | δ(n, m) = [0, ..., 0, n] of length m, action point m | cited (ASN-0034) |
 | OrdinalShift | definition | shift(v, n) = v ⊕ δ(n, #v) | cited (ASN-0034) |
 | TS1 | lemma | shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n) | cited (ASN-0034) |
