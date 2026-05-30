@@ -65,11 +65,11 @@ The system designates at least two subspaces within each document's element fiel
 
 `s_L` is the link subspace identifier introduced by this ASN, and L0 pins every link address to it.
 
-**L0a — ContentSubspaceScope.** This ASN scopes its content-side disjointness guarantee to the `s_C`-resident portion of the content store. Define:
+**L0a — ContentSubspaceScope.** This ASN scopes its content-side disjointness guarantee to the `s_C`-resident portion of the content store. *Content-side T4-validity.* By ASN-0036's S7b, every `b ∈ dom(Σ.C)` has `zeros(b) = 3` and well-defined T4b projections; since T4b's definitional domain (UniqueParse, ASN-0034) is precisely the T4-valid subset of `T`, every `b ∈ dom(Σ.C)` is T4-valid. Define:
 
 `dom(Σ.C)|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}`
 
-— the slice of `dom(Σ.C)` whose addresses occupy subspace `s_C`. *Content-side T4-validity.* By ASN-0036's S7b, every `b ∈ dom(Σ.C)` has `zeros(b) = 3` and well-defined T4b projections `N(b), U(b), D(b), E(b)`; since T4b's definitional domain (UniqueParse, ASN-0034) is precisely the T4-valid subset of `T`, every such `b` lies in `dom(N) ∩ dom(U) ∩ dom(D) ∩ dom(E)`, hence is T4-valid. This single discharge serves both uses below. First, it makes `subspace_I(·)` well-defined on every `a ∈ dom(Σ.C)`: with `zeros(a) = 3` and T4's field-segment constraint giving `#E(a) ≥ 1`, the component `E(a)₁` exists. Second, it discharges T7's T4-validity precondition on the content side (used in the disjointness derivation below). The disjointness this ASN derives is:
+— the slice of `dom(Σ.C)` whose addresses occupy subspace `s_C`; `subspace_I` is well-defined here because every such address is T4-valid with `zeros = 3`, so `#E ≥ 1` by T4's field-segment constraint and `E(·)₁` exists. The disjointness this ASN derives is:
 
 `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`
 
