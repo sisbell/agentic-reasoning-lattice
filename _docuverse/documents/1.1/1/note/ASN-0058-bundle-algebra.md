@@ -367,7 +367,7 @@ We start with a three-block decomposition `B = {β₁, β₂, β₃}`:
 - `β₂ = ([1, 4], [1, 13], 2)` — V: `[1, 4]..[1, 5]`, I: `[1, 13]..[1, 14]`
 - `β₃ = ([1, 6], [1, 40], 3)` — V: `[1, 6]..[1, 8]`, I: `[1, 40]..[1, 42]`
 
-Assume all eight I-addresses originate from a single source document, so the elided prefix `N.0.U.0.D.0.` is the same for every address shown; the I-adjacency comparisons below operate within that common prefix (M16's cross-origin obstruction does not arise here).
+Assume all eight I-addresses originate from a single source document, so the elided prefix `N.0.U.0.D.0.` is the same for every address shown; the I-adjacency comparisons below operate within that common prefix.
 
 The V-extents partition `{[1, k] : 1 ≤ k ≤ 8}`, and each block correctly describes `M(d)` — B1–B3 are satisfied.
 
@@ -437,8 +437,6 @@ The merge condition (M7) interacts naturally with the tumbler address structure.
 
 `origin(a + k) = origin(a)`
 
-The precondition `a + k ∈ dom(C)` is what places `a + k` in `origin`'s domain — S7 (ASN-0036) defines `origin` on `dom(C)` exactly.
-
 *Proof.* At `k = 0`, `a + 0 = a` by OrdinalShiftBase, so the equality is immediate.
 
 For `k ≥ 1`: under the standing precondition that the content store `C` is populated by a system conforming to T10a (ASN-0034), T10a.4 (T4PreservationUnderDiscipline, ASN-0034) gives T4-validity of every `a ∈ dom(C)`, and S7b (ElementLevelIAddresses, ASN-0036) applied to `a ∈ dom(C)` gives `zeros(a) = 3`. Together — T4-validity ensures the three separator zeros occupy structurally well-defined positions, and `zeros(a) = 3` fixes their count — they structurally decompose `a` into a document prefix `N(a).0.U(a).0.D(a)` followed by the separator zero and the element field `E(a)`, with `#a = #(N(a).0.U(a).0.D(a)) + 1 + #E(a)` (the `+1` accounts for the separator zero between `D` and `E`). T4a (SyntacticEquivalence, ASN-0034) makes every field segment of a T4-valid address non-empty, so `#E(a) ≥ 1`, whence `#(N(a).0.U(a).0.D(a)) = #a − #E(a) − 1 ≤ #a − 2` — every index of the document prefix lies strictly below the action point `#a`.
@@ -455,7 +453,7 @@ Consequently, after splitting `β` at any interior point `c` (M4) into `β_L = (
 
 *Derivation.* Fix `0 ≤ k < n`. B3 (Consistency) applied to `β ∈ B` gives `M(d)(v + k) = a + k`, so `v + k ∈ dom(M(d))`. S3 (ReferentialIntegrity, ASN-0036) applied to `v + k` yields `M(d)(v + k) ∈ dom(C)`, hence `a + k ∈ dom(C)`. This discharges M16a's precondition at `(a, k)`, and M16a delivers `origin(a + k) = origin(a)`. The conclusion for `β_L` and `β_R` follows: `I(β_L) = {a + k : 0 ≤ k < c} ⊆ I(β)` and `I(β_R) = {a + c + j : 0 ≤ j < n − c} = {a + k : c ≤ k < n} ⊆ I(β)` (the second equality is M-aux), so each piece's I-addresses inherit the common origin. ∎
 
-**M16 (CrossOriginMergeImpossibility).** Let `β₁ = (v₁, a₁, n₁)` and `β₂ = (v₂, a₂, n₂)` be blocks with `a₁, a₂ ∈ dom(C)` — which holds, in particular, whenever both blocks belong to a decomposition of some `M(d)`, by B3 (Consistency) and S3 (ReferentialIntegrity, ASN-0036). If `origin(a₁) ≠ origin(a₂)` — the I-addresses were allocated by different documents — then the blocks cannot satisfy I-adjacency:
+**M16 (CrossOriginMergeImpossibility).** Let `β₁ = (v₁, a₁, n₁)` and `β₂ = (v₂, a₂, n₂)` be blocks with `a₁, a₂ ∈ dom(C)`. If `origin(a₁) ≠ origin(a₂)` — the I-addresses were allocated by different documents — then the blocks cannot satisfy I-adjacency:
 
 `(A β₁, β₂ : a₁, a₂ ∈ dom(C) ∧ origin(a₁) ≠ origin(a₂) : ¬(a₂ = a₁ + n₁))`
 
