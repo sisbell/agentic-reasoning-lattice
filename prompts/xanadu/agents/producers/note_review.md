@@ -116,6 +116,14 @@ Output the META and VERDICT lines as plain text, exactly as shown — no markdow
 
 **VERDICT** is mandatory. Use CONVERGED only when there are zero REVISE items. Use REVISE when any issue remains — correctness, missing cases, prose clarity, all of it. If you have something to say under REVISE, the verdict is REVISE.
 
+## Previously Declined Findings
+
+The findings below were raised on prior reviews of this ASN and **declined as invalid by the reviser**. Each is paired with the reviser's rationale explaining why it was refused.
+
+These are not bugs to surface again. The reviser deliberated and concluded each was not a real issue. **Do not pattern-match on them** — surfacing variants of these findings will produce the same outcome (refusal). If a candidate finding has the same shape as one of these, it is almost certainly the same false positive recurring; do not surface it.
+
+{{previous_findings}}
+
 ## ASN to Review
 
 {{asn_content}}

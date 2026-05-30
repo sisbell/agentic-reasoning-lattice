@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import ClassVar, List, Tuple
 
 from lib.agents.base import Agent, AgentResult
+from lib.agents.producers.review_helpers import previously_declined_findings
 from lib.backend.addressing import Address
 from lib.backend.emit import (
     emit_citation_bundle, emit_review_content, emit_review_coverage,
@@ -98,11 +99,17 @@ def _load_out_of_scope(asn_number: int) -> str:
 def _build_prompt(
     asn_content: str, vocabulary: str, out_of_scope: str = "",
     foundation: str = "", anti_bloat: bool = False,
+    previous_findings: str = "",
 ) -> str:
     """Assemble review prompt from template + injected content.
 
     Caller supplies `foundation` directly. The template's foundation
     slot can be empty if the ASN has no upstream deps.
+
+    `previous_findings` is the substantive-rejection carry-forward from
+    `previously_declined_findings`. Empty string means no prior
+    declines to surface (or the template lacks the slot, in which case
+    the substitution is a no-op).
 
     `anti_bloat=True` appends the forward-reference accretion patterns
     from `note_review_anti_bloat.md` (used when the note carries the
@@ -137,6 +144,8 @@ def _build_prompt(
         "{{vocabulary}}", vocabulary
     ).replace(
         "{{foundation_statements}}", foundation
+    ).replace(
+        "{{previous_findings}}", previous_findings or "(none)",
     ) + scope_note + anti_bloat_section
 
 
@@ -244,11 +253,15 @@ class NoteReviewAgent(Agent):
                 f"  [NOTE-REVIEW] anti-bloat mode enabled for {asn_label}",
                 file=sys.stderr,
             )
+        previous_findings = previously_declined_findings(
+            session, [note_addr],
+        )
         prompt = _build_prompt(
             asn_content, vocabulary,
             out_of_scope=out_of_scope,
             foundation=foundation,
             anti_bloat=anti_bloat,
+            previous_findings=previous_findings,
         )
         response = invoke_claude(
             prompt, model=self.model, effort=self.effort,
