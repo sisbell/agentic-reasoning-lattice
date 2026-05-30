@@ -4,8 +4,6 @@
 
 This ASN layers a class of arrangement rearrangements over the Strand Model (ASN-0036). The arrangement function M(d) is mutated by transposing regions of V-positions delimited by cut points: three cuts define two adjacent regions that exchange places (the *pivot*); four cuts define two outer regions exchanging across a fixed middle (the *swap*). REARRANGE is confined to the text subspace (S = 1, depth 2); cross-subspace transposition is outside the scope of this ASN. The induced bijection π : dom(M(d)) → dom(M(d)) has a uniform displacement structure on each region, determined by region widths alone. The correspondence-run decomposition guaranteed by S8 (ASN-0036) transforms by splitting at cuts, classifying each run into a region, and reassembling with the per-region displacement. The proofs draw directly on ASN-0036 (Strand Model — correspondence runs S8, contiguity D-CTG, sequential positions D-SEQ) and ASN-0034 (Tumbler Algebra — ordinal shift OrdinalShift, shift composition TS3, lexicographic order T1).
 
-**Dependency audit.** The inquiry declares `depends: {34, 36, 53}`. ASN-0034 and ASN-0036 are load-bearing throughout: every region/interval argument, displacement computation, and run-decomposition step below cites one or both (T1, OrdinalShift, TS2–TS5, TA5, and the NAT-* arithmetic axioms from ASN-0034; S0–S8, D-CTG, D-SEQ, D-MIN, and OrdShiftHom from ASN-0036). No property of ASN-0053 (Span Algebra) is invoked anywhere in the body. The region/interval reasoning that span algebra would otherwise supply — disjointness, coverage, split, and merge of spans (ASN-0053 SC, S1, S3, S4) — is instead grounded in ASN-0036's D-SEQ, which enumerates V_S(d) as the concrete sequential set {[S, 1], ..., [S, N]}; under this enumeration all interval reasoning reduces to elementary natural-number arithmetic over the ordinals, never to span-algebra claims about (start, width) pairs. ASN-0053 therefore has no use site and is flagged for removal from the inquiry's `depends:` set.
-
 
 ## State and Vocabulary
 
@@ -349,71 +347,15 @@ The arguments above establish the qualitative claim that R-PRE is non-redundant 
 
 ## Displacement Analysis
 
-The permutations R-PPERM and R-SPERM can be characterized by ordinal displacements — how far each position moves within its subspace. These displacements illuminate the structure and connect to the correspondence-run decomposition transformation.
+The permutations R-PPERM and R-SPERM can be characterized by ordinal displacements — how far each position moves within its subspace. These magnitudes are *descriptive*: they illuminate the structure of π and provide a numerical cross-check in the worked examples below, but they drive no postcondition of this ASN. The operational within-region commutation that Phase 3 of R-BLK consumes is supplied by R-COMM, not by the displacement values. Accordingly we record the displacement structure as a remark rather than elevating it to a lemma, and we introduce no signed-magnitude carrier: each magnitude is reported as a *direction* (forward, backward, or fixed) together with a natural-number ordinal distance, read off the explicit R-PPERM/R-SPERM formulas. The truncated subtraction (defined above) supplies the distances, all on its defined domain of single-component depth-2 ordinals.
 
-**Definition — PermutationDisplacement.** For a position v ∈ dom(M(d)), define Δ(v) as a signed magnitude `(σ, n) ∈ {+, −, 0} × ℕ` capturing the ordinal shift induced by π. The carrier is a pair to avoid relying on a signed integer type that the foundation does not provide; the truncated subtraction defined above suffices once direction is recorded by σ and the operands are restricted to a domain on which it is well-typed. The cases are:
+*Remark (per-region displacement uniformity).* Read off the explicit R-PPERM and R-SPERM formulas, the offset j within a region cancels, so every position in a region moves by the same direction and distance — the displacement depends only on the region widths, not on the position's location within the region. Writing the displacement as (direction, distance):
 
-```
-Δ(v) = (0, 0)                               if subspace(v) ≠ S                                (non-S convention)
-Δ(v) = (0, 0)                               if v ∈ V_S(d) and π(v) = v                       (S-exterior / fixed)
-Δ(v) = (+, ord(π(v)) − ord(v))              if v ∈ V_S(d) and ord(π(v)) > ord(v)             (S, forward shift)
-Δ(v) = (−, ord(v) − ord(π(v)))              if v ∈ V_S(d) and ord(π(v)) < ord(v)             (S, backward shift)
-```
+- *Non-S domain and subspace-S exterior:* π(v) = v (R-NS(NS-π), and the exterior clause of R-PPERM/R-SPERM), so the displacement is *fixed* (distance 0).
+- *3-cut.* On α, v = c₀ + j (0 ≤ j < w_α) maps to c₀ + w_β + j, so ord(π(v)) − ord(v) = w_β: *forward by w_β*. On β, v = c₁ + j (0 ≤ j < w_β) maps to c₀ + j, with ord(v) − ord(π(v)) = w_α: *backward by w_α*. In each case j cancels.
+- *4-cut.* On α, v = c₀ + j maps to c₀ + w_β + w_μ + j: *forward by w_β + w_μ*. On β, v = c₂ + j maps to c₀ + j, with ord(v) − ord(π(v)) = w_α + w_μ: *backward by w_α + w_μ*. On μ, v = c₁ + j maps to c₀ + w_β + j; comparing ord(π(v)) = ord(c₀) + w_β + j against ord(v) = ord(c₀) + w_α + j reduces to comparing w_β and w_α: *forward by w_β − w_α* when w_β > w_α, *backward by w_α − w_β* when w_β < w_α, and *fixed* when w_β = w_α. In every case j cancels.
 
-The explicit `v ∈ V_S(d)` guard on the (+) and (−) branches is the domain condition that keeps the truncated subtraction (defined above) well-typed: on V_S(d), depth-2 ordinals are singleton tumblers (identified with positive naturals under the singleton-tumbler identification introduced above), so the strict T1 ordering `ord(π(v)) > ord(v)` or `ord(π(v)) < ord(v)` reduces to strict ordering on positive naturals, and the corresponding `ord(π(v)) − ord(v)` and `ord(v) − ord(π(v))` are truncated-subtraction applications on naturals (its defined domain). The non-S convention `Δ(v) = (0, 0)` on `subspace(v) ≠ S` is consistent with the (S-exterior / fixed) clause because R-PPERM and R-SPERM both fix every non-S position (R-NS(NS-π)). We write `+n` for `(+, n)`, `−n` for `(−, n)`, and `0` for `(0, 0)` when no ambiguity arises.
-
-*Canonical form.* The only values produced by the case analysis are (0, 0), (+, n) with n ≥ 1, and (−, n) with n ≥ 1. The (+) branch fires only when ord(π(v)) > ord(v), so n = ord(π(v)) − ord(v) ≥ 1; the (−) branch fires only when ord(v) > ord(π(v)), so n = ord(v) − ord(π(v)) ≥ 1; the (0, 0) branch fires when subspace(v) ≠ S or when π(v) = v. We say Δ(v₁) = Δ(v₂) when their canonical forms are componentwise equal (same σ and same n); the canonical-form restriction makes equality unambiguous (no two distinct case-analysis outputs share a carrier representation).
-
-*Exhaustiveness and mutual exclusivity.* For non-S positions (subspace(v) ≠ S), the non-S clause fires uniquely; the (S-exterior / fixed) and (+)/(−) clauses are excluded by their `v ∈ V_S(d)` guard. For V_S(d) positions, ord is a single-component tumbler, so T1 trichotomy on (ord(π(v)), ord(v)) yields exactly one of ord(π(v)) = ord(v), ord(π(v)) > ord(v), or ord(π(v)) < ord(v) — discharging exactly one of the three V_S(d) clauses and excluding the other two. The four clauses are therefore exhaustive and mutually exclusive across dom(M(d)). (R-PPERM/R-SPERM additionally guarantee that for non-S v, π(v) = v, so the value Δ(v) = (0, 0) supplied by the non-S clause agrees with what the (S-exterior / fixed) clause would yield if its guard were relaxed; the two clauses agree on their overlap and the definition is consistent.)
-
-We do *not* define addition, multiplication, or an ordering on the signed-magnitude carrier in this ASN; Δ-values are compared only by equality, never by summation or comparison.
-
-On the exterior, π(v) = v, so Δ(v) = 0.
-
-For the 3-cut pivot, from R-PPERM:
-
-```
-Δ(v) = +w_β      if v ∈ α     (shifts forward by width of β)
-Δ(v) = −w_α      if v ∈ β     (shifts backward by width of α)
-Δ(v) = 0         otherwise
-```
-
-For the 4-cut swap, from R-SPERM:
-
-```
-Δ(v) = +(w_β + w_μ)        if v ∈ α   (shifts forward past middle and β)
-Δ(v) on μ                              if v ∈ μ   (determined by case analysis on w_β vs w_α; see formal cases below)
-Δ(v) = −(w_α + w_μ)        if v ∈ β   (shifts backward past middle and α)
-Δ(v) = 0                   otherwise
-```
-
-The μ case splits on the comparison of w_β and w_α (both ∈ ℕ⁺): when w_β > w_α, Δ(v) = +(w_β − w_α); when w_β < w_α, Δ(v) = −(w_α − w_β); when w_β = w_α, Δ(v) = 0. Each branch invokes the truncated subtraction on its defined domain.
-
-The displacement formulation makes it clear that every position in the affected range shifts by a value determined solely by the region widths — the displacement does not depend on the position's location within its region. All positions in α shift by the same amount; all positions in β shift by the same amount. We state this formally:
-
-**R-DISP — DisplacementUniformity (LEMMA).** Let C be a cut sequence satisfying R-PRE, and let π be the permutation from R-PPERM (3-cut) or R-SPERM (4-cut). For all v₁, v₂ in the same region — where the regions partition dom(M(d)) into the non-S domain {v ∈ dom(M(d)) : subspace(v) ≠ S}, the subspace-S exterior {v ∈ V_S(d) : v < c₀ or v ≥ c_{n−1}}, α, β, and (for 4-cut) μ:
-
-`Δ(v₁) = Δ(v₂)`
-
-with the common value given by: Δ = 0 on the non-S domain (π is the identity off V_S(d) by R-PPERM/R-SPERM); for 3-cut, Δ = +w_β on α, Δ = −w_α on β, Δ = 0 on the subspace-S exterior; for 4-cut, Δ = +(w_β + w_μ) on α, Δ = −(w_α + w_μ) on β, Δ = 0 on the subspace-S exterior, and on μ the three sub-cases are Δ = +(w_β − w_α) when w_β > w_α, Δ = −(w_α − w_β) when w_β < w_α, and Δ = 0 when w_β = w_α.
-
-*Proof.* The result follows from the explicit R-PPERM and R-SPERM formulas, in which the offset j within a region cancels. We show each region; each case identifies the sign of ord(π(v)) − ord(v) before applying the truncated subtraction on its defined domain.
-
-*Non-S domain (both forms):* For v ∈ dom(M(d)) with subspace(v) ≠ S, Δ(v) = 0 directly by the non-S clause of the definition. (R-NS(NS-π) additionally gives π(v) = v, which is consistent with — but not required for — the value.)
-
-*Subspace-S exterior (both forms):* v ∈ V_S(d) and π(v) = v, so the (S-exterior / fixed) clause applies and Δ(v) = 0.
-
-*3-cut α:* For v = c₀ + j with 0 ≤ j < w_α: π(v) = c₀ + w_β + j, so ord(π(v)) = ord(c₀) + w_β + j and ord(v) = ord(c₀) + j. Since w_β ≥ 1, ord(π(v)) > ord(v); the (+) branch applies, giving Δ(v) = +((ord(c₀) + w_β + j) − (ord(c₀) + j)) = +w_β.
-
-*3-cut β:* For v = c₁ + j with 0 ≤ j < w_β: π(v) = c₀ + j, so ord(π(v)) = ord(c₀) + j and ord(v) = ord(c₁) + j = ord(c₀) + w_α + j. Since w_α ≥ 1, ord(v) > ord(π(v)); the (−) branch applies, giving Δ(v) = −((ord(c₀) + w_α + j) − (ord(c₀) + j)) = −w_α.
-
-*4-cut α:* For v = c₀ + j with 0 ≤ j < w_α: π(v) = c₀ + w_β + w_μ + j, so ord(π(v)) = ord(c₀) + w_β + w_μ + j and ord(v) = ord(c₀) + j. Since w_β + w_μ ≥ 2, ord(π(v)) > ord(v); the (+) branch applies, giving Δ(v) = +(w_β + w_μ).
-
-*4-cut μ:* For v = c₁ + j with 0 ≤ j < w_μ: π(v) = c₀ + w_β + j, so ord(π(v)) = ord(c₀) + w_β + j and ord(v) = ord(c₁) + j = ord(c₀) + w_α + j. The comparison of ord(π(v)) and ord(v) reduces to the comparison of w_β and w_α. When w_β > w_α: (+) branch, Δ(v) = +(w_β − w_α). When w_β < w_α: (−) branch, Δ(v) = −(w_α − w_β). When w_β = w_α: ord(π(v)) = ord(v), Δ(v) = 0. In all three sub-cases, j cancels.
-
-*4-cut β:* For v = c₂ + j with 0 ≤ j < w_β: π(v) = c₀ + j, so ord(π(v)) = ord(c₀) + j and ord(v) = ord(c₂) + j = ord(c₀) + w_α + w_μ + j. Since w_α + w_μ ≥ 2, ord(v) > ord(π(v)); the (−) branch applies, giving Δ(v) = −(w_α + w_μ).
-
-In every case, j cancels and the common value depends only on region widths. ∎
+The per-region uniformity recorded here is exactly the same-region commutation that R-COMM (below) establishes operationally and that Phase 3 of R-BLK consumes; the displacement magnitudes add no proof obligation beyond R-COMM and are used in the worked examples only as a numerical confirmation that the commutation holds.
 
 
 ## Correspondence-Run Decomposition Transformation
@@ -508,7 +450,7 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 
 The I-start and width of each run are preserved because the rearrangement modifies no I-addresses (M'(d) and M(d) share the same value set, only repositioned) and because, by R-COMM, π commutes with ordinal shift within each region — so the consecutive V-positions vₖ, vₖ + 1, ..., vₖ + (nₖ − 1) of a run map to consecutive V-positions π(vₖ), π(vₖ) + 1, ..., π(vₖ) + (nₖ − 1), keeping the width intact.
 
-*Per-region displacement (commentary).* Phase 3 is formulated entirely in terms of π; the displacement Δ plays no operational role. R-DISP records the ordinal-level magnitudes for each region — Δ is constant on each region, taking values 0 on the non-S and exterior regions, +w_β (3-cut) or +(w_β + w_μ) (4-cut) on α, −w_α (3-cut) or −(w_α + w_μ) (4-cut) on β, and (for 4-cut) +(w_β − w_α), −(w_α − w_β), or 0 on μ per the three sub-cases of the comparison of w_β and w_α. These magnitudes are *descriptive*: R-DISP is consumed below only as an equality predicate ("two positions in the same region have equal Δ") and never via arithmetic on the signed-magnitude carrier, which supports no addition, summation, or comparison in this ASN. The worked examples display Δ-values as a numerical cross-check that per-region uniformity holds, not as an operational replacement for π.
+*Per-region displacement (commentary).* Phase 3 is formulated entirely in terms of π; the per-region displacement magnitudes recorded in the Displacement Analysis remark play no operational role. Each region's positions move by a single direction and distance — fixed on the non-S and exterior regions, forward by w_β (3-cut) or w_β + w_μ (4-cut) on α, backward by w_α (3-cut) or w_α + w_μ (4-cut) on β, and (for 4-cut) forward by w_β − w_α, backward by w_α − w_β, or fixed on μ per the comparison of w_β and w_α. These magnitudes are *descriptive*: the operational content Phase 3 consumes is the same-region commutation π(vⱼ + k) = π(vⱼ) + k supplied by R-COMM, not any arithmetic on the displacement magnitudes. The worked examples display the magnitudes as a numerical cross-check that per-region uniformity holds, not as an operational replacement for π.
 
 *Contiguity of reassembled runs.* Within each region, π applies a uniform ordinal displacement. After Phase 1, every run lies entirely in a single region, so for each run (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region: for subspace-S runs this is by Phase 1's split-at-cuts construction; for non-S runs this is the V-extent confinement clause of R-NS(NS-run). By R-COMM applied with the same-region precondition discharged (π(vⱼ + k) = π(vⱼ) + k), consecutive V-positions in the original run map to consecutive V-positions, so each reassembled run (π(vⱼ), aⱼ, nⱼ) occupies a contiguous V-position range and is therefore a valid run. For non-S runs π is the identity (R-NS(NS-π)) and the run passes through unchanged (R-NS(NS-run)) — contiguity is immediate.
 
@@ -561,13 +503,13 @@ M'(d)([1,5]) = E     (exterior, unchanged)
 
 **R-RI verification.** ran(M'(d)) = {A, D, B, C, E} = ran(M(d)) (the same five I-addresses, only their V-position assignments rearranged). Since ran(M(d)) ⊆ dom(C) by S3 of the pre-state and C' = C, ran(M'(d)) ⊆ dom(C'). ✓
 
-**Displacement verification.** Reading Δ as a signed magnitude: Δ([1,1]) = 0 (exterior left, unchanged). Δ([1,2]) = +(3 − 2) = +1 = +w_β = +1 (α-branch, j = 0). Δ([1,3]) = +(4 − 3) = +1 = +w_β (α-branch, j = 1). Δ([1,4]) = −(4 − 2) = −2 = −w_α (β-branch, j = 0). Δ([1,5]) = 0 (exterior right). The α-region displacement is uniformly +1, the β-region displacement is uniformly −2, and the two exterior positions are fixed — confirming R-DISP for this example.
+**Displacement verification.** Reading each position's displacement as (direction, ordinal distance), computed from ord(π(v)) − ord(v): [1,1] fixed (exterior left); [1,2] forward 3 − 2 = 1 = w_β (α, j = 0); [1,3] forward 4 − 3 = 1 = w_β (α, j = 1); [1,4] backward 4 − 2 = 2 = w_α (β, j = 0); [1,5] fixed (exterior right). The α-region displacement is uniformly forward by 1, the β-region displacement uniformly backward by 2, and the two exterior positions are fixed — confirming per-region displacement uniformity for this example.
 
 **Run decomposition via R-BLK.** *Phase 1 (Split):* c₀ = [1,2] is interior to b₁ = ([1,1], A, 3) at offset ord(c₀) − ord(b₁.v) = 2 − 1 = 1; split b₁ into ([1,1], A, 1) and ([1,2], B, 2). c₁ = [1,4] coincides with b₂'s V-start ([1,4]), so no split is performed at c₁ (boundary case). c₂ = [1,5] is interior to b₂ = ([1,4], D, 2) at offset ord(c₂) − ord(b₂.v) = 5 − 4 = 1; split b₂ into ([1,4], D, 1) and ([1,5], E, 1), separating the β-content D from the exterior-right content E. Post-split partition: {([1,1], A, 1), ([1,2], B, 2), ([1,4], D, 1), ([1,5], E, 1)}.
 
 *Phase 2 (Classify):* Each post-split run lies entirely within one region. ([1,1], A, 1) has V-extent {[1,1]} with ord = 1 < ord(c₀) = 2, so it lies in the *exterior left* region. ([1,2], B, 2) has V-extent {[1,2], [1,3]} with ordinals in [ord(c₀), ord(c₁)) = [2, 4), so it lies in *α*. ([1,4], D, 1) has V-extent {[1,4]} with ordinal in [ord(c₁), ord(c₂)) = [4, 5), so it lies in *β*. ([1,5], E, 1) has V-extent {[1,5]} with ord = 5 ≥ ord(c₂) = 5, so it lies in the *exterior right* region. No run is classified into the non-S region because every V-position in this example has subspace 1 = S; the non-S region is empty here.
 
-*Phase 3 (Reassemble):* Apply each run's region displacement to its V-start. Region displacements are Δ_exterior-left = 0, Δ_α = +w_β = +1, Δ_β = −w_α = −2, Δ_exterior-right = 0 (per R-DISP for the 3-cut pivot).
+*Phase 3 (Reassemble):* Apply each run's region displacement to its V-start. The per-region displacements (3-cut pivot) are: exterior-left fixed, α forward by w_β = 1, β backward by w_α = 2, exterior-right fixed.
 
 - ([1,1], A, 1) → ([1,1], A, 1) (exterior left, Δ = 0, V-start unchanged).
 - ([1,2], B, 2) → ([1,3], B, 2) (α, Δ = +1; V-start shifted from [1,2] to [1,3], width and I-start preserved).
@@ -646,7 +588,7 @@ The three swap clauses tile [c₀, c₃) = [[1,2], [1,8]) exactly: R-S1 covers o
 
 **R-RI verification.** ran(M'(d)) = {A, B, C, D, E, F, G, H} = ran(M(d)) (the same eight I-addresses, only their V-position assignments rearranged). Since ran(M(d)) ⊆ dom(C) by S3 of the pre-state and C' = C, ran(M'(d)) ⊆ dom(C'). ✓
 
-**Displacement verification.** Reading Δ as a signed magnitude: Δ([1,2]) = +(6 − 2) = +4 = +(w_β + w_μ) ✓. Δ([1,3]) = +(7 − 3) = +4 ✓. Δ([1,4]) = +(5 − 4) = +1 = +(w_β − w_α), the μ-branch with w_β > w_α ✓. Δ([1,5]) = −(5 − 2) = −3 = −(w_α + w_μ) ✓. Δ([1,6]) = −(6 − 3) = −3 ✓. Δ([1,7]) = −(7 − 4) = −3 ✓. The middle-region displacement is +1, confirming the asymmetric structure when w_α ≠ w_β.
+**Displacement verification.** Reading each position's displacement as (direction, ordinal distance) from ord(π(v)) − ord(v): [1,2] forward 6 − 2 = 4 = w_β + w_μ ✓; [1,3] forward 7 − 3 = 4 ✓; [1,4] forward 5 − 4 = 1 = w_β − w_α, the μ sub-case with w_β > w_α ✓; [1,5] backward 5 − 2 = 3 = w_α + w_μ ✓; [1,6] backward 6 − 3 = 3 ✓; [1,7] backward 7 − 4 = 3 ✓. The middle-region displacement is forward by 1, confirming the asymmetric structure when w_α ≠ w_β.
 
 **Run decomposition via R-BLK.** *Phase 1 (Split):* c₀ = [1,2] is interior to b₁ = ([1,1], A, 3) at offset 1. Split: ([1,1], A, 1) and ([1,2], B, 2). The remaining cuts c₁ = [1,4], c₂ = [1,5], c₃ = [1,8] coincide with run boundaries (c₁ = b₂'s start, c₂ = b₃'s start, c₃ = b₄'s start), so no further splits. Post-split partition: {([1,1], A, 1), ([1,2], B, 2), ([1,4], D, 1), ([1,5], E, 3), ([1,8], H, 1)}.
 
@@ -654,11 +596,11 @@ The three swap clauses tile [c₀, c₃) = [[1,2], [1,8]) exactly: R-S1 covers o
 
 *Phase 3 (Reassemble):* Apply region displacements:
 
-- ([1,1], A, 1) → ([1,1], A, 1) (exterior, Δ = 0)
-- ([1,2], B, 2) → ([1,6], B, 2) (α, Δ = +4)
-- ([1,4], D, 1) → ([1,5], D, 1) (μ, Δ = +1)
-- ([1,5], E, 3) → ([1,2], E, 3) (β, Δ = −3)
-- ([1,8], H, 1) → ([1,8], H, 1) (exterior, Δ = 0)
+- ([1,1], A, 1) → ([1,1], A, 1) (exterior, fixed)
+- ([1,2], B, 2) → ([1,6], B, 2) (α, forward 4)
+- ([1,4], D, 1) → ([1,5], D, 1) (μ, forward 1)
+- ([1,5], E, 3) → ([1,2], E, 3) (β, backward 3)
+- ([1,8], H, 1) → ([1,8], H, 1) (exterior, fixed)
 
 Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), ([1,8], H, 1)}. Checking S8-cons: for run ([1,2], E, 3), M'(d)([1,2]) = E, M'(d)([1,3]) = F = E + 1, M'(d)([1,4]) = G = E + 2 ✓.
 
@@ -729,18 +671,18 @@ Note π([1,4]) = [1,4]: μ is the single position fixed by π via the μ-branch 
 
 **R-RI verification.** ran(M'(d)) = {A, B, C, D, E, F, G} = ran(M(d)). Since ran(M(d)) ⊆ dom(C) by S3 of the pre-state and C' = C, ran(M'(d)) ⊆ dom(C'). ✓
 
-**Displacement verification.** Reading Δ as a signed magnitude: Δ([1,2]) = +(5 − 2) = +3 = +(w_β + w_μ) ✓. Δ([1,3]) = +(6 − 3) = +3 ✓. Δ([1,4]) = 0 — the μ-branch with w_β = w_α ✓. Δ([1,5]) = −(5 − 2) = −3 = −(w_α + w_μ) ✓. Δ([1,6]) = −(6 − 3) = −3 ✓. The middle-region displacement vanishes, confirming the structural symmetry of the Δ_μ = 0 sub-case.
+**Displacement verification.** Reading each position's displacement as (direction, ordinal distance) from ord(π(v)) − ord(v): [1,2] forward 5 − 2 = 3 = w_β + w_μ ✓; [1,3] forward 6 − 3 = 3 ✓; [1,4] fixed — the μ sub-case with w_β = w_α ✓; [1,5] backward 5 − 2 = 3 = w_α + w_μ ✓; [1,6] backward 6 − 3 = 3 ✓. The middle-region displacement vanishes, confirming the structural symmetry of the w_β = w_α sub-case.
 
 **Run decomposition via R-BLK.** *Phase 1 (Split):* c₀ = [1,2] is interior to b₁ = ([1,1], A, 3) at offset 1. Split: ([1,1], A, 1) and ([1,2], B, 2). The remaining cuts c₁ = [1,4], c₂ = [1,5], c₃ = [1,7] coincide with run boundaries (c₁ = b₂'s start, c₂ = b₃'s start, c₃ = b₄'s start), so no further splits. Post-split partition: {([1,1], A, 1), ([1,2], B, 2), ([1,4], D, 1), ([1,5], E, 2), ([1,7], G, 1)}.
 
 *Phase 2 (Classify):* ([1,1], A, 1) → exterior left. ([1,2], B, 2) → α. ([1,4], D, 1) → μ. ([1,5], E, 2) → β. ([1,7], G, 1) → exterior right.
 
-*Phase 3 (Reassemble):* Apply region displacements (α: Δ = +3, μ: Δ = 0, β: Δ = −3, exteriors: Δ = 0):
+*Phase 3 (Reassemble):* Apply region displacements (α: forward 3, μ: fixed, β: backward 3, exteriors: fixed):
 
 - ([1,1], A, 1) → ([1,1], A, 1) (exterior)
-- ([1,2], B, 2) → ([1,5], B, 2) (α, V-start shifted +3)
-- ([1,4], D, 1) → ([1,4], D, 1) (μ, V-start unchanged — Δ = 0)
-- ([1,5], E, 2) → ([1,2], E, 2) (β, V-start shifted −3)
+- ([1,2], B, 2) → ([1,5], B, 2) (α, V-start shifted forward 3)
+- ([1,4], D, 1) → ([1,4], D, 1) (μ, V-start unchanged — fixed)
+- ([1,5], E, 2) → ([1,2], E, 2) (β, V-start shifted backward 3)
 - ([1,7], G, 1) → ([1,7], G, 1) (exterior)
 
 Sorted by V-start: {([1,1], A, 1), ([1,2], E, 2), ([1,4], D, 1), ([1,5], B, 2), ([1,7], G, 1)}. The μ-run ([1,4], D, 1) carries through Phase 3 untouched because its assigned displacement is zero; the α- and β-runs exchange positions across this fixed centre.
@@ -817,7 +759,7 @@ The three swap clauses tile [c₀, c₃) = [[1,2], [1,8)) exactly: R-S1 covers o
 - π([1,7]) = c₀ + 0 = [1,2] (β: j = 0). Check: M'(d)([1,2]) = G = M(d)([1,7]) ✓.
 - π([1,8]) = [1,8] (exterior).
 
-The μ-region positions [1,5] and [1,6] map *backward* to [1,3] and [1,4] respectively — a uniform shift of −2, equal to −(w_α − w_β) = −(3 − 1) per R-DISP's μ-branch with w_β < w_α.
+The μ-region positions [1,5] and [1,6] map *backward* to [1,3] and [1,4] respectively — a uniform backward shift of w_α − w_β = 3 − 1 = 2, the μ sub-case with w_β < w_α recorded in the Displacement Analysis remark.
 
 **R-RI verification.** ran(M'(d)) = {A, B, C, D, E, F, G, H} = ran(M(d)). Since ran(M(d)) ⊆ dom(C) by S3 of the pre-state and C' = C, ran(M'(d)) ⊆ dom(C'). ✓
 
@@ -827,12 +769,12 @@ The μ-region positions [1,5] and [1,6] map *backward* to [1,3] and [1,4] respec
 
 *Phase 2 (Classify):* ([1,1], A, 1) → exterior left. ([1,2], B, 3) → α (ordinals 2, 3, 4 ∈ [ord(c₀), ord(c₁)) = [2, 5)). ([1,5], E, 2) → μ (ordinals 5, 6 ∈ [ord(c₁), ord(c₂)) = [5, 7)). ([1,7], G, 1) → β (ordinal 7 ∈ [ord(c₂), ord(c₃)) = [7, 8)). ([1,8], H, 1) → exterior right.
 
-*Phase 3 (Reassemble):* Apply region displacements (α: Δ = +3, μ: Δ = −2, β: Δ = −5, exteriors: Δ = 0):
+*Phase 3 (Reassemble):* Apply region displacements (α: forward 3, μ: backward 2, β: backward 5, exteriors: fixed):
 
 - ([1,1], A, 1) → ([1,1], A, 1) (exterior)
-- ([1,2], B, 3) → ([1,5], B, 3) (α, V-start shifted +3)
-- ([1,5], E, 2) → ([1,3], E, 2) (μ, V-start shifted −2 — the negative Δ_μ sub-case in action)
-- ([1,7], G, 1) → ([1,2], G, 1) (β, V-start shifted −5)
+- ([1,2], B, 3) → ([1,5], B, 3) (α, V-start shifted forward 3)
+- ([1,5], E, 2) → ([1,3], E, 2) (μ, V-start shifted backward 2 — the backward μ sub-case in action)
+- ([1,7], G, 1) → ([1,2], G, 1) (β, V-start shifted backward 5)
 - ([1,8], H, 1) → ([1,8], H, 1) (exterior)
 
 Sorted by V-start: {([1,1], A, 1), ([1,2], G, 1), ([1,3], E, 2), ([1,5], B, 3), ([1,8], H, 1)}.
@@ -880,7 +822,7 @@ The pivot reduces to a transposition of the two V-positions. No position is fixe
 
 **R-RI verification.** ran(M'(d)) = {B, A} = {A, B} = ran(M(d)) ⊆ dom(C) = dom(C'). ✓
 
-**Displacement verification.** Δ([1,1]) = +(2 − 1) = +1 = +w_β (α-branch, j = 0). Δ([1,2]) = −(2 − 1) = −1 = −w_α (β-branch, j = 0). Δ is uniformly +1 on α and uniformly −1 on β, confirming R-DISP at minimum width. No position receives Δ = 0 — both exterior regions are empty, so the (0, 0) branch fires nowhere on V_S(d).
+**Displacement verification.** Reading each position's displacement as (direction, ordinal distance): [1,1] forward 2 − 1 = 1 = w_β (α, j = 0); [1,2] backward 2 − 1 = 1 = w_α (β, j = 0). The displacement is uniformly forward by 1 on α and uniformly backward by 1 on β, confirming per-region displacement uniformity at minimum width. No position is fixed — both exterior regions are empty, so the fixed (distance-0) case arises nowhere on V_S(d).
 
 **Run decomposition via R-BLK.** *Phase 1 (Split):* c₀ = [1,1] coincides with b₁'s V-start ([1,1]) — boundary case, no split. c₁ = [1,2] coincides with b₂'s V-start ([1,2]) — boundary case, no split. c₂ = [1,3] = [S, N + 1] falls *outside* ⋃_k V(b_k): every run b_k in the partition of V_S(d) has V-extent V(b_k) ⊆ V_S(d) = {[1,1], [1,2]}, so max{ord(v) : v ∈ V(b_k)} ≤ 2 < 3 = ord(c₂), hence c₂ ∉ V(b_k) for every k. This is the *empty right exterior* sub-case described in Phase 1 ("Outside ⋃_k V(b_k)"); no split occurs at c₂, no run is bisected by c₂, and the right-exterior region {v ∈ V_S(d) : v ≥ c₂} contains zero V-positions. Post-split partition: {([1,1], A, 1), ([1,2], B, 1)} — identical to the pre-state partition, since every cut fell at a run boundary or outside V_S(d).
 
@@ -909,8 +851,6 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1)}. *S8-cons verification:* both 
 | SwapPostcondition | DEF | 4-cut rearrangement: β at c₀, then μ, then α, exterior unchanged (R-EXT, R-S1, R-S2, R-S3) | introduced |
 | REARRANGE_K | OPERATION | State transition Σ → Σ' parameterized by cut sequence K and document d; precondition R-PRE(K); postcondition PivotPostcondition (n=3) or SwapPostcondition (n=4) plus frame conditions R-FRAME-P or R-FRAME-S | introduced |
 | ArrangementRearrangement | DEF | State transition with dom(M'(d)) = dom(M(d)), C' = C, M'(d') = M(d') for d' ≠ d, and bijection π with M'(d)(π(v)) = M(d)(v) | introduced |
-| PermutationDisplacement | DEF | Signed magnitude Δ(v) ∈ {+, −, 0} × ℕ recording the ordinal shift from v to π(v); (+)/(−) branches restricted to v ∈ V_S(d) so the truncated subtraction operates on single-component depth-2 ordinals, non-S positions fixed to (0, 0) by convention | introduced |
-| R-DISP | LEMMA | For all v₁, v₂ in the same region, Δ(v₁) = Δ(v₂); common value determined by region widths alone | introduced |
 | Split | DEF | Correspondence run (v, a, n) at interior offset c yields (v, a, c) and (v + c, a + c, n − c) | introduced |
 | Merge | DEF | V-adjacent and I-adjacent correspondence runs (v₁, a₁, n₁), (v₂, a₂, n₂) combine to (v₁, a₁, n₁ + n₂) | introduced |
 | CanonicalRunDecomposition | DEF | Unique partition of dom(M(d)) into maximal correspondence runs — no two V-adjacent, I-adjacent runs remain unmerged | introduced |
