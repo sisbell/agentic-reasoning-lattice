@@ -527,7 +527,7 @@ We use the *strict prefix* relation throughout: `p ≺ a  ≡  p ≼ a ∧ p ≠
 
   (b) `π'` may allocate new addresses within `odom(π')` (O5 applies to `π'`)
 
-  (c) immediately upon entry at `Σ'`, `π'` may delegate to a new principal `π''` whose prefix is a next-reachable first child `p'' = next(Σ'.B, p, d)` of an already-baptized prefix (for some B6-valid `(p, d)`) — the only admissible delegate prefixes, by O17c — subject to obligations (iii) [structural-tier] and (v) [fresh-valid] on the choice of `p''`
+  (c) immediately upon entry at `Σ'`, `π'` may delegate to a new principal `π''` whose prefix is a next-reachable first child `p'' = next(Σ'.B, p, d)` of an already-baptized prefix (for some B6-valid `(p, d)`) — the only admissible delegate prefixes, by O17c — subject to obligations (i) [ancestry: `pfx(π') ≺ p''`], (iii) [structural-tier], and (v) [fresh-valid] on the choice of `p''` (conditions (ii) and (iv) being automatic given (i) and the original delegation's condition (iv))
 
 We prove each postcondition under the hypothesis that `delegated_Σ(π, π')` holds for a transition `Σ → Σ'`, with `π ∈ Π_Σ` and `π' ∈ Π_{Σ'} ∖ Π_Σ`.
 
