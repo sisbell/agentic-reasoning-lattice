@@ -204,6 +204,14 @@ def main() -> int:
         help="Cap on outer fixed-point iterations (default 20)",
     )
     parser.add_argument(
+        "--empty-partition-wait", type=int, default=300,
+        help=(
+            "Seconds to sleep when this worker's partition is empty but "
+            "peer workers have ready ASNs. Doesn't count toward "
+            "--max-outer (default 300)."
+        ),
+    )
+    parser.add_argument(
         "--max-inner", type=int, default=100,
         help="Cap on per-ASN runner passes (default 100)",
     )
@@ -315,15 +323,14 @@ def main() -> int:
     # pass when --partition is active.
     all_asn_labels = list(asn_labels)
 
-    for outer in range(args.max_outer):
-        print(
-            f"\n  [NOTE-SCHED] outer pass {outer + 1}",
-            file=sys.stderr,
-        )
-
+    outer_pass = 0           # productive passes — counts toward max_outer
+    empty_waits = 0          # observability: empty-partition naps
+    while outer_pass < args.max_outer:
         # Per-outer-pass DAG-honoring filter (only when partitioned).
         # Single-worker walks the full topo list unchanged — its sequential
-        # topo order already honors the DAG.
+        # topo order already honors the DAG. Compute the partition BEFORE
+        # the pass header so empty-partition waits don't pollute the
+        # productive-pass counter.
         if partition_index is not None:
             from lib.protocols.febe.session import open_session
             from lib.shared.paths import LATTICE
@@ -338,16 +345,40 @@ def main() -> int:
                 elapsed = time.time() - overall_start
                 print(
                     f"  [NOTE-SCHED] global active set empty — full "
-                    f"quiescence reached, exiting after {outer + 1} "
-                    f"outer pass(es); total_fires={total_fires} "
+                    f"quiescence reached, exiting after {outer_pass} "
+                    f"productive outer pass(es) ({empty_waits} empty "
+                    f"waits); total_fires={total_fires} "
                     f"errors={len(total_errors)} ({elapsed:.0f}s)",
                     file=sys.stderr,
                 )
                 return 0 if not total_errors else 1
+            if not asn_labels:
+                # Peer worker holds the only ready slot(s) (ready_topo
+                # smaller than partition_total). Sleep and re-eval —
+                # DON'T count this against max_outer, or this worker
+                # will exit while peers still have work.
+                empty_waits += 1
+                print(
+                    f"  [NOTE-SCHED] partition empty "
+                    f"(active={len(active_set)} ready={len(ready_topo)} "
+                    f"< workers={partition_total}); sleeping "
+                    f"{args.empty_partition_wait}s "
+                    f"(empty-wait #{empty_waits})",
+                    file=sys.stderr,
+                )
+                time.sleep(args.empty_partition_wait)
+                continue
+
+        outer_pass += 1
+        print(
+            f"\n  [NOTE-SCHED] outer pass {outer_pass}",
+            file=sys.stderr,
+        )
+        if partition_index is not None:
             print(
                 f"  [NOTE-SCHED] active={len(active_set)} "
                 f"ready={len(ready_topo)} partition={len(asn_labels)}: "
-                f"{', '.join(asn_labels) if asn_labels else '(empty this pass)'}",
+                f"{', '.join(asn_labels)}",
                 file=sys.stderr,
             )
 
@@ -387,18 +418,15 @@ def main() -> int:
                     file=sys.stderr,
                 )
                 return 0 if not total_errors else 1
-        # Early-break on partition-empty fired_any: keep iterating outer
-        # passes when --partition is active. The partition may be empty
-        # this pass because downstream deps are waiting for an upstream
-        # ASN currently active on another worker; once that upstream
-        # settles, the next outer pass will pull the dependent into
-        # ready. The global-quiescence check at the top of the next outer
-        # pass (active_set empty) is the correct exit point.
+        # Early-break only when running unpartitioned. With --partition,
+        # exit is driven by the global-quiescence check at the top of
+        # the next pass (active_set empty); fired_any can be false on
+        # this worker while peer workers still hold ready slots.
         if not fired_any and partition_index is None:
             elapsed = time.time() - overall_start
             print(
                 f"\n  [NOTE-SCHED] quiescent across all ASNs after "
-                f"{outer + 1} outer passes; total_fires={total_fires} "
+                f"{outer_pass} outer passes; total_fires={total_fires} "
                 f"errors={len(total_errors)} ({elapsed:.0f}s)",
                 file=sys.stderr,
             )
@@ -408,8 +436,8 @@ def main() -> int:
     print(
         f"\n  [NOTE-SCHED] hit max-outer={args.max_outer} without "
         f"fixed-point quiescence; total_fires={total_fires} "
-        f"errors={len(total_errors)} inner_capped={sorted(inner_capped)} "
-        f"({elapsed:.0f}s)",
+        f"empty_waits={empty_waits} errors={len(total_errors)} "
+        f"inner_capped={sorted(inner_capped)} ({elapsed:.0f}s)",
         file=sys.stderr,
     )
     return 1
