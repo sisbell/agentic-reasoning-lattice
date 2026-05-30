@@ -295,13 +295,13 @@ The two forms are distinct primitives: the 3-cut pivot transposes two *adjacent*
 
 ## Sufficient Precondition
 
-That R-PRE on the cut sequence K, together with the full ASN-0036 invariant suite on the pre-state, suffices to establish the invariant suite on the post-state M'(d) is exactly the content of the *Invariant preservation* paragraph above (with post-state S8 established in R-BLK). This section records a complementary necessity result: that one clause of R-PRE — the same-subspace clause CS3 — cannot be dropped without leaving the precondition unsatisfiable.
+This section records a complementary necessity result: that one clause of R-PRE — the same-subspace clause CS3 — cannot be dropped without leaving the precondition unsatisfiable.
 
-**R-CS3 — SubspaceConfinementNecessity (LEMMA, supporting).** Dropping CS3 (the same-subspace clause of R-PRE(iii)) leaves the precondition R-PRE(iv) ill-posed, so that REARRANGE_K has no well-formed instance.
+**R-CS3 — SubspaceConfinementNecessity (LEMMA, supporting).** With S fixed to 1 (State and Vocabulary), dropping CS3 (the same-subspace clause of R-PRE(iii)) admits a cut sequence whose exclusive bound c_{n−1} lies in subspace 2, forcing R-PRE(iv) to quantify over infinitely many subspace-1 positions against a finite V_S(d); the precondition is then unsatisfiable, so REARRANGE_K has no well-formed instance.
 
 *Pre-state.* Let V_S(d) = {[1, 1], ..., [1, 5]} (satisfying D-CTG, D-SEQ, S8a of ASN-0036), and additionally let [2, 1] ∈ dom(M(d)) in subspace 2 (S5 admits multi-subspace domains; the pre-state ASN-0036 invariants hold across both subspaces). Take K = ([1, 2], [1, 5], [2, 1]), which satisfies CS1 (n = 3), CS2 ([1, 2] < [1, 5] < [2, 1] under T1, the subspace coordinate 1 < 2 dominating at the last cut), and CS4 (all depth 2), but *violates* CS3 — c₂ = [2, 1] lies in subspace 2 while c₀, c₁ lie in subspace 1.
 
-*Unsatisfiability of R-PRE(iv).* CS3 is the sole clause fixing the single subspace S that R-PRE(iv) quantifies over. R-PRE(iv) reads `(A v : subspace(v) = S ∧ #v = 2 ∧ c₀ ≤ v < c_{n−1} : v ∈ V_S(d))`; the symbol S is the common subspace of the cuts, supplied by CS3. With the cuts split across subspaces 1 and 2 there is no single S. Reading S = 1 (the subspace of c₀, c₁), the exclusive bound c_{n−1} = c₂ = [2, 1] exceeds every subspace-1 depth-2 position under T1 (the subspace coordinate 1 < 2 dominates), so the range `subspace(v) = 1 ∧ #v = 2 ∧ [1, 2] ≤ v < [2, 1]` contains *every* [1, k] with k ≥ 2 — infinitely many positions, while V_S(d) is finite (S8-fin). R-PRE(iv) then demands [1, 6] ∈ V_S(d), which fails. The precondition is unsatisfiable as posed, so REARRANGE_K has no instance to evaluate.
+*Unsatisfiability of R-PRE(iv).* S is fixed globally to 1 (State and Vocabulary), so R-PRE(iv) reads `(A v : subspace(v) = 1 ∧ #v = 2 ∧ c₀ ≤ v < c_{n−1} : v ∈ V_S(d))`. CS3 does not supply S — S is the constant 1; CS3 merely requires subspace(cᵢ) = 1 for every cut. Dropping CS3 admits the exclusive bound c_{n−1} = c₂ = [2, 1] in subspace 2. That bound exceeds every subspace-1 depth-2 position under T1 (the subspace coordinate 1 < 2 dominates), so the range `subspace(v) = 1 ∧ #v = 2 ∧ [1, 2] ≤ v < [2, 1]` contains *every* [1, k] with k ≥ 2 — infinitely many positions, while V_S(d) is finite (S8-fin). R-PRE(iv) then demands membership of infinitely many positions in the finite set V_S(d) — e.g. [1, 6] ∈ V_S(d), which fails. The precondition is unsatisfiable, so REARRANGE_K has no instance to evaluate.
 
 
 ## Displacement Analysis
@@ -783,7 +783,7 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1)}. *S8-cons verification:* both 
 | R-RI | LEMMA | Rearrangement preserves S3 (referential integrity): ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
 | R-COMM | LEMMA | π(v + k) = π(v) + k when v and v + k lie in the same region: cut-point permutation commutes with ordinal shift | introduced |
 | R-BLK | LEMMA | Run partition transforms by split-at-cuts then displace-per-region, preserving S8-uniq/S8-cons under M'(d) | introduced |
-| R-CS3 | LEMMA | Dropping CS3 admits a cut sequence for which "the subspace S" of R-PRE(iv) is undefined (ill-posed), so CS3 is necessary for R-PRE(iv) to be well-posed | supporting |
+| R-CS3 | LEMMA | With S fixed to 1, dropping CS3 admits a cut sequence whose exclusive bound lies in subspace 2, forcing R-PRE(iv) to quantify over infinitely many subspace-1 positions against a finite V_S(d); the precondition is then unsatisfiable | supporting |
 
 
 ## Open Questions
