@@ -36,11 +36,7 @@ We need two properties of this shift.
 
 shift is order-preserving: for v₁, v₂ with #v₁ = #v₂ = m and v₁ < v₂, shift(v₁, n) < shift(v₂, n) (TS1, ASN-0034).
 
-The relative ordering of content is preserved through the shift. What was before other content remains before it after insertion — Nelson's guarantee that content appears "in its original relative order on either side" (Q2).
-
 shift is injective: for v₁, v₂ with #v₁ = #v₂ = m, shift(v₁, n) = shift(v₂, n) implies v₁ = v₂ (TS2, ASN-0034).
-
-Injectivity ensures the shift creates no collisions: distinct V-positions remain distinct after shifting.
 
 Subspace preservation and S8a preservation are exactly OrdShiftHom (OrdinalShiftPreservation, ASN-0036): for a V-position v with #v = m ≥ 2 and n ≥ 1, (a) subspace(shift(v, n)) = subspace(v), and (b) when v satisfies S8a, shift(v, n) satisfies S8a. Both clauses require m ≥ 2 — the m = 1 case shift([S], n) = [S + n] would change the subspace identifier — so we exclude it by requiring #p ≥ 2 as an operation precondition. By S8-depth (ASN-0036), all V-positions in subspace S share a uniform depth d; the depth-compatibility precondition on I3 requires d = #p when such V-positions exist, so m = d = #p ≥ 2 holds for every V-position in the shifted region, discharging OrdShiftHom's m ≥ 2 precondition. This also ensures that the comparison v ≥ p in I3's quantifier is between equal-length tumblers, giving it the clean "at or to the right of p" semantics without prefix-case ambiguity. Furthermore, #shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd (ASN-0034).
 
@@ -73,7 +69,7 @@ Let M(d) : T ⇀ T denote the arrangement function for document d — a partial 
 - I3-CS (subspace S): `(A v : v ∈ dom(M'(d)) ∧ subspace(v) = S : (v < p ∧ v ∈ dom(M(d))) ∨ (E u : u ∈ dom(M(d)) ∧ subspace(u) = S ∧ u ≥ p : v = shift(u, n)))`
 - I3-CX (cross-subspace): `(A v : v ∈ dom(M'(d)) ∧ subspace(v) ≠ S : v ∈ dom(M(d)))`
 
-I3 grounds Nelson's central guarantee (Q1, Q5) that the permanent identity of every existing byte is invariant under insertion: "Since the links are to the bytes themselves, any links to those bytes remain stably attached to them" [LM 4/30]. The shift moves content in the document's arrangement without touching the content's identity in the store. The domain closure clauses (I3-CS, I3-CX) pin dom(M'(d)) from above: no position enters the post-state domain except those explicitly placed by I3, I3-L, and I3-X.
+The domain closure clauses (I3-CS, I3-CX) pin dom(M'(d)) from above: no position enters the post-state domain except those explicitly placed by I3, I3-L, and I3-X.
 
 **Consistency.** Well-definedness of M'(d) rests on two facts about the shifted region within subspace S. *Injectivity*: TS2 (ASN-0034) guarantees distinct v's produce distinct shift(v, n)'s, so the assignment I3 is single-valued. *Strict advance past p*: for v ≥ p in subspace S, shift(v, n) > v ≥ p by TS4 (ASN-0034), so no shifted output coincides with a left-region position (u < p). The remaining clauses are disjoint by subspace partition (left and shifted regions lie in subspace S; I3-X in subspaces ≠ S) and by document partition (I3-D operates on d' ≠ d), and I3-V's vacated positions are exactly those I3-CS excludes. Hence M'(d) and C' are well-defined.
 
@@ -278,8 +274,6 @@ By trichotomy of the total order (T1, ASN-0034), every v ∈ V_1(d) falls in exa
 `(A v : v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))`
 
 The shift is well-defined. For any v ∈ R we have v ≥ r, so the subtraction `ord(v) ⊖ w_ord` is well-defined and the reconstructed V-position σ(v) = vpos(S, ord(v) ⊖ w_ord) satisfies S8a — both discharged by the S8a-post lemma (below; its Q₃ case proves exactly this from OrdinalExceedsDisplacement (ii), (iii) and vpos's S8a-closure postcondition).
-
-D-SHIFT grounds Nelson's two-space separation: "The address of a byte in its native document is of no concern to the user or to the front end; indeed, it may be constantly changing" [LM 4/11].
 
 The contraction's effect on regions L and X, and on state outside subspace S and document d, must be stated explicitly.
 
@@ -527,7 +521,7 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 - *S2-post:* No subspace-1 positions exist. ✓
 - *S3-post:* No subspace-1 I-addresses to check. ✓
 
-**Cross-subspace preservation: text contraction leaves link subspace untouched.** Consider document d with both text and link subspaces populated. The text subspace S = 1 has five contiguous positions; the link subspace S = 2 has two sparse positions (allowed by the foundation's frame note on D-CTG for V_2 — link positions may carry tombstones and need not be contiguous). All positions have depth 2.
+**Cross-subspace preservation: text contraction leaves link subspace untouched.** The setup mirrors the insertion cross-subspace example, now with five contiguous text positions alongside the sparse link subspace.
 
 M(d) = {[1,1] → i₁, [1,2] → i₂, [1,3] → i₃, [1,4] → i₄, [1,5] → i₅,  [2,5] → ℓ₁, [2,9] → ℓ₂}
 
