@@ -762,7 +762,7 @@ The single baptism: `b_1 = next(Σ_pre.B, [1, 0, 2], 2) = [1, 0, 2, 0, 6]` (sibl
 
 - **O10(a)**: `pfx(π_A) = [1, 0, 2] ≼ [1, 0, 2, 0, 6] = a'`, and `π_A` has the longest matching prefix in `Π_{Σ'}`, so `ω_{Σ'}(a') = π_A`. ✓
 - **O10(a) corollary**: by (a), `pfx(π_A) = [1, 0, 2] ≼ a'`; the O6 biconditional gives `pfx(π_A) ≼ acct(a') = [1, 0, 2]`. ✓
-- **O10(b)**: `a₃ ∈ Σ_pre.B ⊆ Σ'.B` (by B0 Irrevocability of ASN-0040 — the baptismal registry is monotone under `→`). `Π_{Σ'} = Π_{Σ_pre}` (baptism introduces no principals by O15). Hence `ω_{Σ'}(a₃) = ω_{Σ_pre}(a₃) = π_N` as before — no content modified, no ownership transferred. ✓
+- **O10(b)**: `a₃ ∈ Σ_pre.B ⊆ Σ'.B` (by B0 Irrevocability of ASN-0040 — the baptismal registry is monotone under `→`). `Π_{Σ'} = Π_{Σ_pre}` (baptism introduces no principals by O15). Hence `ω_{Σ'}(a₃) = ω_{Σ_pre}(a₃) = π_N` as before — ownership unchanged, none transferred. ✓
 
 *Field-opening boundary case.* The `π_A` fork above exhibits the sibling-advance branch (`hwm_0 = 5`) on concrete addresses. The complementary field-opening branch (`hwm_0 = 0`) is witnessed by the *Sub-delegation* milestone (state `Σ_3`), where `hwm(Σ_3.B, [1, 0, 2, 3], 2) = 0`.
 
