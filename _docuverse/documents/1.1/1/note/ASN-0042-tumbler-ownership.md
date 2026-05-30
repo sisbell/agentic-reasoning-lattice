@@ -127,7 +127,7 @@ As a corollary, when the nesting is cross-level — `zeros(pfx(π₁)) < zeros(p
 
 *Notation.* Throughout this ASN, `Σ.B` denotes ASN-0040's baptismal registry `s.B` (`Σ.B ⊆ T`), carried as a component of the richer ownership state `Σ`. It is the set of tumblers brought into existence by the baptism procedure. We say "allocated address" and "address in `Σ.B`" interchangeably; from the ownership model's perspective, every address requiring an effective owner is one that the system has baptized. The monotonicity the proofs below invoke is baptismal-registry monotonicity `Σ.B ⊆ Σ'.B` (B0 of ASN-0040).
 
-*Reachability convention.* All states `Σ` discussed in this ASN are assumed to be *reachable from the bootstrap state* `Σ₀` — that is, there exists a finite sequence `Σ₀ → Σ_1 → ... → Σ` of state transitions producing `Σ`. The convention licenses iterated application of O12 (PrincipalPersistence) to conclude `Π₀ ⊆ Π_Σ` from a finite-length transition sequence.
+*Reachability convention.* All states `Σ` discussed in this ASN are assumed to be *reachable from the bootstrap state* `Σ₀` — that is, there exists a finite sequence `Σ₀ → Σ_1 → ... → Σ` of state transitions producing `Σ`.
 
 **BootstrapContainment (derived).** `Σ` reachable from `Σ₀` ⟹ `Π₀ ⊆ Π_Σ`. Proof: iterate O12 along the witnessing sequence `Σ₀ → ... → Σ`.
 
@@ -143,7 +143,7 @@ Nelson's architecture contains no concept of account revocation, and Gregory's c
 
 The prefix is a tumbler, and addresses are permanent (T8): no operation of the tumbler algebra mutates an existing tumbler in place.
 
-**O14 (BootstrapPrincipal).** The initial principal set is non-empty and finite, every initially allocated address is covered by at least one initial principal, every initial principal's prefix is itself initially baptized, the bootstrap registry `Σ₀.B` is itself an ASN-0040-reachable registry conforming to B₀ conf., and the initial principals satisfy the structural constraints that O1a, O1b, T4, and pairwise non-nesting require of all bootstrap principals:
+**O14 (BootstrapPrincipal).** The initial principal set satisfies the following conjuncts:
 
   `Π₀ ≠ ∅  ∧  (A a ∈ Σ₀.B : (E π ∈ Π₀ : pfx(π) ≼ a))`
 
@@ -180,7 +180,7 @@ Nelson's design contains no concept of principals appearing outside the delegati
 
 We name a *parent relation* `R_Σ` on `Π_Σ` and write `covers_Σ*` for its reflexive-transitive closure. For a non-bootstrap principal `π' ∈ Π_Σ`, `R_Σ(π, π')` holds iff `π` is the most-specific covering principal of `pfx(π')` in `Π_Σ` — the unique `π ∈ Π_Σ` with `pfx(π) ≺ pfx(π')` of maximal prefix length. This `π` is unique: the covering principals of the common tumbler `pfx(π')` are `≼`-comparable (covering-chain lemma, Ownership Domains section) and have pairwise distinct prefixes (O1b), so their prefix lengths are distinct and a single maximal-length one exists. Then `covers_Σ* = ∪_{m ≥ 0} R_Σ^m`, where `R_Σ^0` is the identity relation on `Π_Σ` and `R_Σ^{m+1} = R_Σ^m ∘ R_Σ`. Equivalently, `covers_Σ*(π, π')` iff `π = π'` or there is a finite chain `π = π^{(0)}, π^{(1)}, ..., π^{(m)} = π'` (`m ≥ 1`) of principals in `Π_Σ` with each consecutive pair `(π^{(j)}, π^{(j+1)})` related by `R_Σ`.
 
-**Delegation edges are cover edges (bridge).** A real delegation event and a structural cover step coincide on the edge they introduce: whenever `delegated_Σ(π_d, π')` holds along `Σ → Σ'`, condition (ii) makes `π_d` the most-specific principal of `Π_Σ` covering `pfx(π')`, and by O13 (PrefixImmutability) no later transition alters that fact, so `R_{Σ'}(π_d, π')` holds. Hence every chain of delegation events is a `covers`-chain.
+**Delegation edges are cover edges (bridge).** A real delegation event and a structural cover step coincide on the edge they introduce: whenever `delegated_Σ(π_d, π')` holds along `Σ → Σ'`, condition (ii) makes `π_d` the most-specific principal of `Π_Σ` covering `pfx(π')`. Evaluating `R_{Σ'}` over `Π_{Σ'} = Π_Σ ∪ {π'}`, the only candidate not already in `Π_Σ` is `π'` itself, and `π'` cannot be a strict cover of its own prefix (`pfx(π') ⊀ pfx(π')`); so the most-specific strict cover of `pfx(π')` in `Π_{Σ'}` coincides with that in `Π_Σ`, namely `π_d`, and `R_{Σ'}(π_d, π')` holds. (Persistence of this edge into states beyond `Σ'` follows separately from O13 (PrefixImmutability), which fixes `pfx(π')` against later transitions.) Hence every chain of delegation events is a `covers`-chain.
 
 **NestingByDelegation (derived).** In every reachable state `Σ`, any two distinct principals are either non-nesting in their prefixes, or one strictly extends the other and the extending principal was introduced into `Π` via a chain of delegations originating at the shorter-prefix principal:
 
@@ -245,9 +245,7 @@ The coupling is sharpened for principal-introducing transitions: every transitio
 
 *Base case.* `Σ₀.B` is an ASN-0040-reachable registry conforming to B₀ conf., by O14's bootstrap-registry clause.
 
-*Inductive step.* By O17b (BaptismalRegistryCoupling), each transition `Σ → Σ'` either leaves the registry untouched (`Σ'.B = Σ.B`, preserving reachability trivially) or restricts to a single `Bop(p, d)` edge with `(p, d)` B6-valid (`Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}`). ASN-0040's transition relation is closed over reachable registries — a `Bop(p, d)` step from an ASN-0040-reachable registry yields an ASN-0040-reachable registry — so `Σ'.B` is reachable whenever `Σ.B` is.
-
-*Corollary.* On any reachable `Σ.B`, ASN-0040's `next` (whose precondition requires `Σ.B ⊆ T` finite) and `hwm` (whose precondition requires B1 to hold for the queried `(p, d)`) are well-defined, and the invariants B1 (ContiguousPrefix) and B6 (ValidDepth) are available. ∎
+*Inductive step.* By O17b (BaptismalRegistryCoupling), each transition `Σ → Σ'` either leaves the registry untouched (`Σ'.B = Σ.B`, preserving reachability trivially) or restricts to a single `Bop(p, d)` edge with `(p, d)` B6-valid (`Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}`). ASN-0040's transition relation is closed over reachable registries — a `Bop(p, d)` step from an ASN-0040-reachable registry yields an ASN-0040-reachable registry — so `Σ'.B` is reachable whenever `Σ.B` is. ∎
 
 **Freshness-(v) (derived).** Condition (v) entails two facts about the delegate prefix at `Σ`: (T4) it is a valid address — `T4(pfx(π'))` — and (fresh) it is unbaptized — `pfx(π') ∉ Σ.B`. Condition (v) fixes `pfx(π') = c_{hwm(Σ.B,p,d)+1} = next(Σ.B, p, d)` for a B6-valid `(p, d)`. For (T4): B6 (ValidDepth, ASN-0040) sufficiency gives that every element of the stream `S(p, d)` — hence `pfx(π')` — satisfies T4 (no adjacent zeros, no leading or trailing zero, every present field non-empty). For (fresh): ASN-0040's `Bop` postcondition `next(s.B, p, d) ∉ s.B` gives `pfx(π') ∉ Σ.B`.
 
