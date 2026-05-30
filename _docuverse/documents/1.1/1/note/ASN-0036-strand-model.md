@@ -243,6 +243,8 @@ The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(
 
 `(A v ∈ dom(Σ.M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`
 
+S8a is a notational alias of the domain-restriction axiom — its per-component unfolding via T0, not an independent obligation. The `S8a` label names this unfolded reading for downstream citation; a reviser cannot tighten one form without the other, since the two are equivalent by T0.
+
 **subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
 
 `subspace(v) = v₁`
