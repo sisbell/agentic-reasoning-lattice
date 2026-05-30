@@ -139,7 +139,7 @@ What internal structure must a link have? We seek the minimal structure sufficie
 
 A connection has at least two sides — a *source* and a *target*. Without two sides there is no connection. But two sides alone do not suffice: we cannot distinguish a citation from a comment from a refutation by structure alone. If all links are structurally uniform two-endset connections, one cannot ask "find all citations" without also retrieving every comment and footnote. Classification is required.
 
-Nelson's design resolves this not by adding a metadata field — a type tag bolted onto a binary link — but by adding a *third endset*, structurally identical to the first two, pointing into the address space. The type endset is part of every link's identity: Nelson treats it as symmetrical with from and to ["A link's type is specified by yet another end-set, pointing anywhere in the docuverse. This is symmetrical with the other endsets." LM 4/44]. The standard triple — from, to, type — is the design floor.
+Nelson's design resolves this not by adding a metadata field — a type tag bolted onto a binary link — but by adding a *third endset*, structurally identical to the first two, pointing into the address space. The type endset is part of every link's identity: Nelson treats it as symmetrical with from and to ["A link's type is specified by yet another end-set, pointing anywhere in the docuverse. This is symmetrical with the other endsets." LM 4/44].
 
 Per Nelson, every link carries a *non-empty* type endset — the type is the link's classifying address and must reference at least one tumbler.
 
@@ -151,9 +151,7 @@ Adding the third endset achieves three things simultaneously:
 
 3. **Hierarchical classification.** Because tumbler prefix containment is decidable — `p ≼ t` requires only finite component-wise equality (PrefixRelation, ASN-0034), computable from the tumblers alone (T2, IntrinsicComparison) — type addresses support hierarchical relationships: a type at address `p` and a subtype at an address extending `p` are related by prefix ordering. A query matching `p` matches both (by T5, ContiguousSubtrees).
 
-But Nelson's design does not stop at three. The three-endset case — from, to, type — is the standard convention, not a structural ceiling; higher-arity links are admitted directly. A faceted link relating content across more than three roles need not be decomposed into chains of ternary links; it can be expressed directly as a single link with the required number of endsets.
-
-We now define the components.
+But Nelson's design does not stop at three. We now define the components, admitting arity beyond three; the StandardTriple convention and L3 below fix the standard form and its formal invariant.
 
 **Definition — Endset.** An *endset* is a finite set of well-formed spans:
 
@@ -175,7 +173,7 @@ We write `|L|` for the *arity* of a link — the number of endsets in the sequen
 
 `(A a ∈ dom(Σ.L) :: |Σ.L(a)| ≥ 3 ∧ (A i : 1 ≤ i ≤ |Σ.L(a)| : Σ.L(a).eᵢ ∈ Endset) ∧ Σ.L(a).e₃ ≠ ∅)`
 
-Nelson [LM 4/79] explicitly calls for N-endset support beyond three: "4-sets, 5-sets ... n-sets supported in link storage and search." Gregory's implementation fixes N = 3 — the V-subspace assignment function `setlinkvsas` hardcodes three V-addresses, the query function `intersectlinksets` takes exactly three input lists, and the wire protocol (`FINDLINKSFROMTOTHREE`) encodes three endset parameters. The integer namespace for a fourth endset type is already consumed (`DOCISPAN = 4`), blocking extension without renumbering. The design commitment: every link carries the standard triple (from, to, type) as its floor, with higher arity admitted for relational roles that need more slots. The implementation can store sub-arity links (arity-2, or arity-3 with an empty type slot); such states lie outside this ASN's conforming link store. The non-emptiness conjunct `Σ.L(a).e₃ ≠ ∅` is precisely this exclusion: a conforming link's type slot guarantees a classifying address.
+Nelson [LM 4/79] explicitly calls for N-endset support beyond three: "4-sets, 5-sets ... n-sets supported in link storage and search." Gregory's implementation fixes N = 3 — the V-subspace assignment function `setlinkvsas` hardcodes three V-addresses, the query function `intersectlinksets` takes exactly three input lists, and the wire protocol (`FINDLINKSFROMTOTHREE`) encodes three endset parameters. The integer namespace for a fourth endset type is already consumed (`DOCISPAN = 4`), blocking extension without renumbering. The implementation can store sub-arity links (arity-2, or arity-3 with an empty type slot); such states lie outside this ASN's conforming link store. The non-emptiness conjunct `Σ.L(a).e₃ ≠ ∅` is precisely this exclusion: a conforming link's type slot guarantees a classifying address.
 
 
 ## Endset Properties
@@ -304,7 +302,7 @@ This is a profound design choice. It decouples classification from content retri
 
 *Case B — `d'` has prior link allocations under `Σ` (`{b ∈ dom(Σ.L) : home(b) = d'} ≠ ∅`).* Pick any existing link `b ∈ dom(Σ.L)` with `home(b) = d'`. By L-fin (`dom(Σ.L)` finite) and T10a.7 (the sibling chain `b, inc(b, 0), inc²(b, 0), …` is injective and hence infinite), the least `i ≥ 1` with `incⁱ(b, 0) ∉ dom(Σ.L)` exists; set `a = incⁱ(b, 0)`. *Freshness:* `a ∉ dom(Σ.L)` is immediate. Each `inc(·, 0)` step modifies only the `sig` position (TA5(c)), which for the T4-valid `b` (and its T4-valid outputs, by T10a.4) is the terminal position `#·` (TA5-SigValid), incrementing a nonzero component — no separator zero added or removed — so `zeros(a) = zeros(b) = 3`; by CPP (with `t₀ = b`, `p = #home(b)`) `home(a) = home(b) = d'`; producibility follows by extending `b`'s L1c chain with `i` sibling advances, each unconditionally T4-preserving.
 
-Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))}, ∅, ..., ∅)` (`N − 3` empty endsets at slots `4..N`, vacuous when `N = 3`), `Σ'.C = Σ.C`, and `Σ'.M = Σ.M` (the arrangement store is unchanged, since `d' ∈ dom(Σ.M)` is reused). The arity-3 case `(∅, ∅, {(g, δ(1, #g))})` is the canonical witness; for arbitrary `N ≥ 3`, padding with empty endsets at slots `4..N` is sound: each `∅ ∈ Endset` (since `Endset = 𝒫_fin(Span)` and the empty set is finite), empty slots `4..N` are admissible (FSP's L3 case), and the conformance verification below operates uniformly on the type endset (slot 3) and the address `a`, so adding empty endsets at slots `4..N` preserves every state-local invariant established for the arity-3 witness.
+Define `Σ'` as `Σ` extended with the padded payload `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))}, ∅, ..., ∅)` (`N − 3` empty endsets at slots `4..N`, vacuous when `N = 3`), `Σ'.C = Σ.C`, and `Σ'.M = Σ.M` (the arrangement store is unchanged, since `d' ∈ dom(Σ.M)` is reused). The soundness of this padded construction is exactly FSP's payload hypothesis, discharged once in the application below rather than re-argued here.
 
 *Application to L9.* FSP's address hypotheses h1–h3 (freshness, producibility, shape) for `a` are established by the Case A / Case B construction above. For the payload `ℓ = (∅, ∅, {(g, δ(1, #g))}, ∅, ..., ∅)`, each `∅ ∈ Endset` and the single span is T12-well-formed since `#g = #d' + 3 ≥ 1` gives `δ(1, #g) > 0` with action point `#g`; slot 3 is non-empty, so `ℓ` satisfies FSP's payload hypothesis at every arity `N ≥ 3`. Apply FSP.
 
@@ -422,7 +420,7 @@ From L13, arbitrary relational structures can be composed:
 
 > "Complex relational structures, such as the faceted link, may be constructed with links to links. These use the two-sided link structure much like the CONS cell in LISP, and may be built into arbitrary compound links."
 
-The three-endset link plays the same role for structured connections that the cons cell plays for structured data: a universal building block from which compound forms of arbitrary complexity are assembled. A faceted link — one that relates multiple distinct groups of spans in more than three roles — is built from a chain of links, each contributing its three endset slots, with link-to-link references providing the composition glue.
+The link plays the same role for structured connections that the cons cell plays for structured data: a universal building block from which compound relational structures of arbitrary complexity are assembled by chaining. Nelson framed the faceted link this way — built from a chain of links glued by link-to-link references (the quote above). This model takes the other route admitted by its own n-set provision (L3, NEndsetStructure): a faceted link relating more than three roles is realized directly as a single link of arity `N`, its roles occupying slots `1..N`. Link-to-link composition (L13) remains available for compound structures that a flat endset sequence cannot express, but it is not how this model expresses the faceted link. Nelson's chain construction is thus historical design intent, not the model's structural commitment for the faceted link.
 
 
 ## The Dual-Primitive Architecture
