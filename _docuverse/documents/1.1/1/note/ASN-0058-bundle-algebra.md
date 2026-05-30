@@ -461,7 +461,7 @@ Consequently, after splitting `β` at any interior point `c` (M4) into `β_L = (
 
 *Proof.* The mapping block definition requires `n ≥ 1` as part of well-formedness, so `n₁ ≥ 1`. Suppose for contradiction `a₂ = a₁ + n₁`. Then `a₁ + n₁ = a₂ ∈ dom(C)` (by hypothesis on `β₂`), discharging M16a's precondition. M16a applied to `a₁` with `k = n₁` gives `origin(a₁ + n₁) = origin(a₁)`, hence `origin(a₂) = origin(a₁)` — contradicting the hypothesis `origin(a₁) ≠ origin(a₂)`. So `a₂ ≠ a₁ + n₁`. ∎
 
-The cross-origin merge impossibility above is not an additional constraint imposed on the merge — it is a consequence of I-adjacency and the invariance of document origin under ordinal increment. Gregory's implementation includes an explicit `homedoc` guard as the first check in `isanextensionnd` — a cheap discriminant that avoids full I-address comparison. At the abstract level, the guard is redundant: the contrapositive of origin equality already prevents cross-origin I-adjacency. But its presence in the implementation reflects the abstract property and provides an efficient short-circuit.
+Gregory's implementation includes an explicit `homedoc` guard as the first check in `isanextensionnd`, short-circuiting full I-address comparison when the two blocks have distinct document origins.
 
 The consequence is that the canonical decomposition naturally preserves origin boundaries. In a maximally merged decomposition, every block maps to a contiguous I-range under a single document prefix. Blocks spanning multiple origins cannot arise, because the I-addresses of distinct origins are never adjacent on the tumbler line.
 
@@ -475,7 +475,7 @@ The block algebra characterizes how arrangements decompose into contiguous runs.
 
 By C0a (below), prefix confinement gives tⱼ = uⱼ for all j < m for every t ∈ ⟦σ⟧; in particular t₁ = u₁, so dom(M(d_s)) ∩ ⟦σ⟧ ⊆ V_{u₁}(d_s). By S8-depth, all V-positions in V_{u₁}(d_s) have depth m, and reach(σ) has depth m (S6), so the depth-m restriction is structurally guaranteed.
 
-The common depth satisfies `m ≥ 2`. Precondition (i) is what makes `m` well-defined at all — S8-depth (ASN-0036) is vacuously true for an empty subspace and determines no common depth. Given (i), some `v ∈ V_{u₁}(d_s)` exists, so S8a (VPositionWellFormedness, ASN-0036) gives `#v ≥ 2` and S8-depth gives `m = #v ≥ 2`.
+The common depth satisfies `m ≥ 2`. Given (i), some `v ∈ V_{u₁}(d_s)` exists, so S8a (VPositionWellFormedness, ASN-0036) gives `#v ≥ 2` and S8-depth gives `m = #v ≥ 2`.
 
 **C0 (OrdinalDisplacementNecessity).** For a well-formed content reference (d_s, σ) with σ = (u, ℓ), common depth m, and action point k of ℓ: k = m. Equivalently, ℓ = δ(ℓₘ, m) — an ordinal displacement.
 
