@@ -237,9 +237,6 @@ The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(
 - *Axiom (design requirement):* For every state `Σ` and document `d`, `dom(Σ.M(d))` is a finite set.
 - *Postconditions:* `|dom(Σ.M(d))| < ∞` — the arrangement has finite cardinality. Consequently `ran(Σ.M(d))` is finite (image of a finite set under a function).
 - *Frame:* No constraint on the unbounded growth of `dom(C)`; only individual arrangements are required to be finite at any given state.
-
-*Notation.* Throughout, "S8a" abbreviates the per-component form of the domain-restriction axiom, established as a postcondition of the `Σ.M(d)` contract above: `(A v ∈ dom(Σ.M(d)) :: #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))`. It is not a separate property; every citation of S8a below is a citation of the domain-restriction axiom in this unfolded shape.
-
 **subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
 
 `subspace(v) = v₁`
@@ -434,7 +431,7 @@ When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as 
 - *Preconditions:* Document `d` with `V_1(d) = ∅`; `m ∈ ℕ` with `m ≥ 2`.
 - *Definition:* `ValidFirstInsertionPosition(d, v, m)` holds iff `v = [1, 1, ..., 1]` of depth `m`.
 - *Postconditions:* (a) `subspace(v) = 1` and `#v = m`. (b) `v` satisfies S8a: `zeros(v) = 0` and all components positive. (c) For fixed `d` and `m`, exactly one value of `v` satisfies the predicate.
-- *Depends:* D-MIN; S8a, S8-depth; OrdinalShift, TumblerAdd, T3 (ASN-0034).
+- *Depends:* S8a — for the lower bound `m ≥ 2`; T0 (ASN-0034) — for componentwise positivity of the constant tuple. (D-MIN is not consumed here: its antecedent `V_1(d) ≠ ∅` is false in the empty case. The choice `v = [1, ..., 1]` is made only so that it matches the minimum D-MIN will demand once the subspace becomes non-empty.)
 
 ### Valid insertion position examples
 
