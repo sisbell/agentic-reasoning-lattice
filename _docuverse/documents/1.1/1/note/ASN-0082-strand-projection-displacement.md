@@ -44,8 +44,6 @@ Injectivity ensures the shift creates no collisions: distinct V-positions remain
 
 Additionally, shift preserves structural properties, and both facts are established in the foundation rather than re-derived here. Subspace preservation and S8a preservation are exactly OrdShiftHom (OrdinalShiftPreservation, ASN-0036): for a V-position v with #v = m ≥ 2 and n ≥ 1, (a) subspace(shift(v, n)) = subspace(v), and (b) when v satisfies S8a, shift(v, n) satisfies S8a. Both clauses require m ≥ 2 — the m = 1 case shift([S], n) = [S + n] would change the subspace identifier — so we exclude it by requiring #p ≥ 2 as an operation precondition. By S8-depth (ASN-0036), all V-positions in subspace S share a uniform depth d; the depth-compatibility precondition on I3 requires d = #p when such V-positions exist, so m = d = #p ≥ 2 holds for every V-position in the shifted region, discharging OrdShiftHom's m ≥ 2 precondition. This also ensures that the comparison v ≥ p in I3's quantifier is between equal-length tumblers, giving it the clean "at or to the right of p" semantics without prefix-case ambiguity. Furthermore, #shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd (ASN-0034).
 
-**NAT-CA** — *CarrierAdditionCommutativityAssociativity* (introduced locally). For all m, n, k ∈ ℕ: `m + n = n + m` (commutativity) and `(m + n) + k = m + (n + k)` (associativity).
-
 
 ## Post-Insertion Shift
 
@@ -77,7 +75,7 @@ Within this scoped sub-operation, the shift relocates existing content at or bey
 - I3-CS (subspace S): `(A v : v ∈ dom(M'(d)) ∧ subspace(v) = S : (v < p ∧ v ∈ dom(M(d))) ∨ (E u : u ∈ dom(M(d)) ∧ subspace(u) = S ∧ u ≥ p : v = shift(u, n)))`
 - I3-CX (cross-subspace): `(A v : v ∈ dom(M'(d)) ∧ subspace(v) ≠ S : v ∈ dom(M(d)))`
 
-I3 grounds Nelson's central guarantee (Q1, Q5) that the permanent identity of every existing byte is invariant under insertion: "Since the links are to the bytes themselves, any links to those bytes remain stably attached to them" [LM 4/30]. The shift moves content in the document's arrangement without touching the content's identity in the store. The left-region frame (I3-L) ensures that content before the insertion point is undisturbed. The cross-subspace frame (I3-X) ensures that link subspaces and other subspaces are unaffected by a text-subspace insertion. The cross-document frame (I3-D) ensures that other documents are unchanged. The content-store frame (I3-C) makes explicit that the shift is arrangement-only; its clause records the dom(C') = dom(C) justification. I3-V (the vacating clause) is a one-line corollary of I3-CS: any pre-state v with subspace(v) = S and v ≥ p that is not a shifted image satisfies neither I3-CS disjunct — it is not a left-region position (v ≥ p excludes v < p) and not a shifted image (by hypothesis) — so v ∉ dom(M'(d)). The domain closure clauses (I3-CS, I3-CX) pin dom(M'(d)) from above: no position enters the post-state domain except those explicitly placed by I3, I3-L, and I3-X.
+I3 grounds Nelson's central guarantee (Q1, Q5) that the permanent identity of every existing byte is invariant under insertion: "Since the links are to the bytes themselves, any links to those bytes remain stably attached to them" [LM 4/30]. The shift moves content in the document's arrangement without touching the content's identity in the store. I3-V (the vacating clause) is a one-line corollary of I3-CS: any pre-state v with subspace(v) = S and v ≥ p that is not a shifted image satisfies neither I3-CS disjunct — it is not a left-region position (v ≥ p excludes v < p) and not a shifted image (by hypothesis) — so v ∉ dom(M'(d)). The domain closure clauses (I3-CS, I3-CX) pin dom(M'(d)) from above: no position enters the post-state domain except those explicitly placed by I3, I3-L, and I3-X.
 
 **Consistency.** Well-definedness of M'(d) rests on two facts about the shifted region within subspace S. *Injectivity*: TS2 (ASN-0034) guarantees distinct v's produce distinct shift(v, n)'s, so the assignment I3 is single-valued. *Strict advance past p*: for v ≥ p in subspace S, shift(v, n) > v ≥ p by TS4 (ASN-0034), so no shifted output coincides with a left-region position (u < p). The remaining clauses are disjoint by subspace partition (left and shifted regions lie in subspace S; I3-X in subspaces ≠ S) and by document partition (I3-D operates on d' ≠ d), and I3-V's vacated positions are exactly those I3-CS excludes. Hence M'(d) and C' are well-defined.
 
@@ -194,7 +192,11 @@ When the link subspace is itself the active (shifted-into) region, a shifted ima
 
 ## Span Width Preservation
 
-The point-level shift I3 lifts to a span-level property connecting this ASN to the span algebra framework of ASN-0053. Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m. We call a span *ordinal-level* when its width acts purely at the deepest component: actionPoint(ℓ) = m. Define the shifted span σ' = (shift(s, n), ℓ). We verify that σ' is a well-formed span (T12, ASN-0034): ℓ > 0 is inherited from σ, and actionPoint(ℓ) = m ≤ #shift(s, n) = m (by TumblerAdd's result-length identity: #shift(s, n) = #δₙ = m).
+The point-level shift I3 lifts to a span-level property connecting this ASN to the span algebra framework of ASN-0053. The reach derivation below turns on the commutativity of ℕ addition, which ASN-0034's NAT-* family (addcompat, closure, discrete, order, wellorder) does not supply; we record it as a local axiom adjacent to its sole uses here and in D-S (foundation gap: commutativity/associativity of ℕ addition belongs in ASN-0034's NAT-* family).
+
+**NAT-CA** — *CarrierAdditionCommutativityAssociativity* (introduced locally). For all m, n, k ∈ ℕ: `m + n = n + m` (commutativity) and `(m + n) + k = m + (n + k)` (associativity).
+
+Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m. We call a span *ordinal-level* when its width acts purely at the deepest component: actionPoint(ℓ) = m. Define the shifted span σ' = (shift(s, n), ℓ). We verify that σ' is a well-formed span (T12, ASN-0034): ℓ > 0 is inherited from σ, and actionPoint(ℓ) = m ≤ #shift(s, n) = m (by TumblerAdd's result-length identity: #shift(s, n) = #δₙ = m).
 
 **I3-S** — *SpanShiftPreservation* (LEMMA, introduced). For a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m, the shifted span σ' = (shift(s, n), ℓ) satisfies:
 
@@ -207,7 +209,7 @@ The point-level shift I3 lifts to a span-level property connecting this ASN to t
 - reach(σ') = shift(s, n) ⊕ ℓ = shift(shift(s, n), ℓₘ) = shift(s, n + ℓₘ);
 - shift(reach(σ), n) = shift(s ⊕ ℓ, n) = shift(shift(s, ℓₘ), n) = shift(s, ℓₘ + n).
 
-Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by NAT-CA (commutativity of ℕ addition, introduced locally above). With n + ℓₘ = ℓₘ + n, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
+Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by NAT-CA (commutativity of ℕ addition, introduced just above). With n + ℓₘ = ℓₘ + n, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
 
 *Derivation of (b).* The span σ' = (shift(s, n), ℓ) is level-uniform: #shift(s, n) = m = #ℓ by the result-length identity of TumblerAdd. Its width is by definition its second component ℓ; consistently, by D2 (WidthRecovery, ASN-0053), width(σ') = reach(σ') ⊖ start(σ') = (shift(s, n) ⊕ ℓ) ⊖ shift(s, n) = ℓ. ∎
 
@@ -465,7 +467,7 @@ Hence n = N − c, and V_1(d') = {[1, k] : 1 ≤ k ≤ N − c}. When V_1(d') is
 
 *Proof.* Identical to I3-S7 above, with the content-store invariant supplied by D-I (`Σ'.C = Σ.C`, so `dom(Σ'.C) = dom(Σ.C)`) in place of I3-C, and the document-set invariant by D-CD (documents other than d unchanged, and contraction creates no new document) in place of I3-D. S7a, S7b are predicates over the unchanged `dom(Σ.C)`; S7d is a predicate over the unchanged document set and allocator history; S7 follows as a corollary since its remaining dependencies — the foundation lemmas T4, T4a, T4b, T0, T10a, T10a.4 (ASN-0036) — are state-independent. ∎
 
-**Weakest-precondition analysis (S8a-post backwards through the shift).** We illustrate the wp method on the contraction's analogue of I3-VP — S8a-post, which asserts S8a for the post-state — to expose the constraints that the assignment statement `M'(d)(σ(v)) := M(d)(v)` imposes on the pre-state when we require S8a to hold of the assigned position `σ(v)`. The wp computation propagates the post-state predicate backwards through the assignment to yield the pre-state obligation. Reading these obligations against the contraction contract makes explicit which preconditions the contract supplies and which it does not need to state because they are entailed by foundation invariants.
+**Weakest-precondition analysis (S8a-post backwards through the shift).** Applying the same wp method as the insertion half (I3-VP above), we analyze the contraction's analogue — S8a-post — for the assignment `M'(d)(σ(v)) := M(d)(v)`, requiring S8a to hold of the assigned position `σ(v)`.
 
 The S8a postcondition on the shifted position σ(v) = vpos(1, ord(v) ⊖ w_ord) is the conjunction `zeros(σ(v)) = 0 ∧ #σ(v) ≥ 2 ∧ (A i : 1 ≤ i ≤ #σ(v) : σ(v)ᵢ > 0)`. At the restricted depth #p = 2 with w_ord = [c]: σ(v) = [1, v₂ − c] for v ∈ R. By construction:
 
@@ -487,8 +489,6 @@ Each conjunct is a pre-state obligation, read in order:
 2. *`v₂ − c > 0` — strict positivity of the shifted ordinal.* From `v ∈ R` (D-SHIFT's quantifier), `v ≥ r`, so OrdinalExceedsDisplacement (iii) gives that `ord(v) ⊖ w_ord = [v₂ − c]` is `Pos`, i.e. `v₂ − c ≥ 1 > 0`. The lemma's tumbler-level derivation (TumblerAdd's `a ⊕ w ≥ w` for ord(r) ≥ w_ord, TA4 for the strictness via the positive difference ord(r) ⊖ w_ord = ord(p), then T1 transitivity from `ord(v) ≥ ord(r)`) discharges this. The wp clarifies that the `v ∈ R` precondition combined with `p ∈ V_1(d)` (which delivers S8a on p, hence `p₂ ≥ 1`) is doing essential work: `v ∈ R` gives `v₂ ≥ p₂ + c`, and S8a on p gives `p₂ ≥ 1`, so `v₂ − c ≥ p₂ ≥ 1`. Both inputs are load-bearing — the R-membership supplies the lower bound `p₂ + c`, and S8a on p supplies `p₂ ≥ 1`.
 3. *`2 ≥ 2` — depth at least 2.* Discharged by the depth scoping axiom `#p = 2`, which makes the result depth-2 and satisfies S8a's depth conjunct.
 4. *`ord(v) ≥ w_ord` — subtraction well-definedness.* Discharged by OrdinalExceedsDisplacement (ii): `v ≥ r` gives `ord(v) ≥ w_ord`. The wp surfaces TA2 (WellDefinedSubtraction, ASN-0034) as the precise foundation lemma that the assignment relies on; without TA2, `ord(v) ⊖ w_ord` would be undefined and σ(v) would not exist as a tumbler.
-
-As in the insertion half (I3-VP), the wp obligations map exactly onto the contract's preconditions with no slack: `v ∈ R` discharges conjuncts 2 and 4 (combined with S8a on p), `p ∈ V_1(d)` supplies S8a on p (hence `p₂ ≥ 1`), `#p = 2` discharges conjunct 3, and `S = 1` discharges conjunct 1.
 
 ### Worked Example
 
