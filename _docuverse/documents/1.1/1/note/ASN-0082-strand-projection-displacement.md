@@ -194,14 +194,6 @@ When the link subspace is itself the active (shifted-into) region, a shifted ima
 
 The point-level shift I3 lifts to a span-level property connecting this ASN to the span algebra framework of ASN-0053.
 
-Two width-preservation derivations below (I3-S(a) and D-S(a)) need associativity and commutativity of ℕ addition.
-
-**Associativity** is supplied by TA-assoc (AdditionAssociative, ASN-0034). Specialized to depth-1 single-component tumblers, where `[a] ⊕ [b] = [a + b]`, TA-assoc's `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)` (for `Pos(b)`, `Pos(c)`) reads as `(a + b) + k = a + (b + k)` on ℕ for positive `b, k` — exactly the regrouping the proofs invoke, on operands that are positive in every use below.
-
-**Commutativity** is not among ASN-0034's NAT-* axioms, so we posit it locally:
-
-> **NAT-comm** (local axiom). For all `m, n ∈ ℕ`, `m + n = n + m`.
-
 Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m. We call a span *ordinal-level* when its width acts purely at the deepest component: actionPoint(ℓ) = m. Define the shifted span σ' = (shift(s, n), ℓ). We verify that σ' is a well-formed span (T12, ASN-0034): ℓ > 0 is inherited from σ, and actionPoint(ℓ) = m ≤ #shift(s, n) = m (by TumblerAdd's result-length identity: #shift(s, n) = #δₙ = m).
 
 **I3-S** — *SpanShiftPreservation* (LEMMA, introduced). For a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(ℓ) = m, and a shift amount n ≥ 1, the shifted span σ' = (shift(s, n), ℓ) satisfies:
@@ -215,9 +207,9 @@ Consider a level-uniform span σ = (s, ℓ) with #s = #ℓ = m and actionPoint(�
 - reach(σ') = shift(s, n) ⊕ ℓ = shift(shift(s, n), ℓₘ) = shift(s, n + ℓₘ);
 - shift(reach(σ), n) = shift(s ⊕ ℓ, n) = shift(shift(s, ℓₘ), n) = shift(s, ℓₘ + n).
 
-Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by NAT-comm (the local commutativity axiom stated above): n + ℓₘ = ℓₘ + n. With this identity, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
+Both are shifts of s, differing only in the scalar shift amount: n + ℓₘ versus ℓₘ + n. These denote the same natural number by NAT-comm (local axiom: `m + n = n + m` for all `m, n ∈ ℕ`): n + ℓₘ = ℓₘ + n. With this identity, the two TS3 compositions coincide: reach(σ') = shift(s, n + ℓₘ) = shift(s, ℓₘ + n) = shift(reach(σ), n). ∎
 
-*Derivation of (b).* The span σ' = (shift(s, n), ℓ) is level-uniform: #shift(s, n) = m = #ℓ by the result-length identity of TumblerAdd. Its width is by definition its second component ℓ; consistently, by D2 (WidthRecovery, ASN-0053), width(σ') = reach(σ') ⊖ start(σ') = (shift(s, n) ⊕ ℓ) ⊖ shift(s, n) = ℓ. ∎
+*Derivation of (b).* The span σ' = (shift(s, n), ℓ) is level-uniform: #shift(s, n) = m = #ℓ by the result-length identity of TumblerAdd. Its width is by definition its second component ℓ; consistently, by WR (WidthRecovery, ASN-0053), width(σ') = reach(σ') ⊖ start(σ') = (shift(s, n) ⊕ ℓ) ⊖ shift(s, n) = ℓ. ∎
 
 *Verification against worked example.* From the insertion example above (p = [1, 3], n = 2, m = 2), take the span σ = ([1, 3], [0, 3]) covering the three pre-insertion positions [1, 3] through [1, 5]. Then reach(σ) = [1, 3] ⊕ [0, 3] = [1, 6], and the shifted span is σ' = (shift([1, 3], 2), [0, 3]) = ([1, 5], [0, 3]). For (a): reach(σ') = [1, 5] ⊕ [0, 3] = [1, 8], and shift(reach(σ), 2) = shift([1, 6], 2) = [1, 6] ⊕ [0, 2] = [1, 8]. ✓ For (b): width(σ') = [0, 3] = ℓ. ✓
 
@@ -651,7 +643,7 @@ Now reach(σ'ₛ) = σ(s) ⊕ ℓ = [1, s₂ − c] ⊕ [0, c'] = [1, (s₂ − 
 
 where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* by the depth-1 tumbler difference (`[a] ⊖ [c] = [a − c]` for `a ≥ c`). Because ASN-0034's NAT-* extraction supplies no ℕ-subtraction law, we discharge this single-component identity through the depth-1 tumbler lemmas. Write `x = s₂ − c`, i.e. `[x] = [s₂] ⊖ [c]`. ReverseInverse at depth 1 (ASN-0034) gives `[s₂ − c] ⊕ [c] = [s₂]`, which is the ℕ fact `x + c = s₂`. Substituting and regrouping: `(s₂ + c') − c = ((x + c) + c') − c = ((x + c') + c) − c`, where the inner regrouping `(x + c) + c' = x + (c + c') = x + (c' + c) = (x + c') + c` uses associativity twice via TA-assoc (ASN-0034, at depth 1 where `[a] ⊕ [b] = [a + b]`, with the positive operands `c, c' ≥ 1`) and the swap `c + c' = c' + c` via the local NAT-comm axiom. The depth-1 partial inverse TA4 (`(y + c) − c = y`, with `y = x + c'`) then cancels `c` to leave `x + c' = (s₂ − c) + c'`. The two tumblers therefore agree componentwise, so σ(reach(σₛ)) = reach(σ'ₛ). ✓ ∎
 
-*Derivation of (b).* The span σ'ₛ = (σ(s), ℓ) is level-uniform: #σ(s) = 2 = #ℓ by vpos's result-length identity. Its width is by definition its second component ℓ; consistently, by D2 (WidthRecovery, ASN-0053), width(σ'ₛ) = reach(σ'ₛ) ⊖ start(σ'ₛ) = (σ(s) ⊕ ℓ) ⊖ σ(s) = ℓ. ✓ ∎
+*Derivation of (b).* The span σ'ₛ = (σ(s), ℓ) is level-uniform: #σ(s) = 2 = #ℓ by vpos's result-length identity. Its width is by definition its second component ℓ; consistently, by WR (WidthRecovery, ASN-0053), width(σ'ₛ) = reach(σ'ₛ) ⊖ start(σ'ₛ) = (σ(s) ⊕ ℓ) ⊖ σ(s) = ℓ. ✓ ∎
 
 *Verification against worked example.* From the contraction example above (p = [1,2], w = [0,2], c = 2), take the span σₛ = ([1, 4], [0, 1]) covering the single pre-contraction position [1, 4]. Then reach(σₛ) = [1, 4] ⊕ [0, 1] = [1, 5], and σ'ₛ = (σ([1, 4]), [0, 1]) = ([1, 2], [0, 1]). For (a): reach(σ'ₛ) = [1, 2] ⊕ [0, 1] = [1, 3], and σ(reach(σₛ)) = σ([1, 5]) = [1, 3]. ✓ For (b): width(σ'ₛ) = [0, 1] = ℓ. ✓
 
@@ -663,7 +655,7 @@ where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* b
 | M(d) | definition | M(d) : T ⇀ T — arrangement function mapping V-positions to I-addresses for document d | cited (ASN-0036) |
 | subspace(v) | definition | subspace(v) = v₁ — the first component of a V-position, identifying its subspace | cited (ASN-0036) |
 | ordinal-level | definition | A span σ = (s, ℓ) is ordinal-level when actionPoint(ℓ) = #ℓ (the width acts at the deepest component of ℓ) | introduced (local) |
-| NAT-comm | local axiom | ℕ addition is commutative: m + n = n + m for all m, n ∈ ℕ — posited locally; not supplied by ASN-0034's NAT-* extraction nor derivable from it | introduced (local) |
+| NAT-comm | local axiom | ℕ addition is commutative: m + n = n + m for all m, n ∈ ℕ | introduced (local) |
 | ℕ assoc | derived | ℕ addition associativity (a + b) + k = a + (b + k) for positive b, k — supplied by TA-assoc specialized to depth-1 tumblers | cited (ASN-0034, TA-assoc) |
 | S8-depth | invariant | (A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂) — uniform V-position depth per subspace | cited (ASN-0036) |
 | S8a | axiom | (A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0)) — V-position well-formedness | cited (ASN-0036) |
@@ -693,7 +685,7 @@ where each `+` is ℕ addition and each `−` is the ℕ subtraction *induced* b
 | TA-assoc | lemma | (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) when both sides are well-defined | cited (ASN-0034) |
 | TumblerAdd | definition | a ⊕ w: copy prefix, advance at action point, copy tail from w | cited (ASN-0034) |
 | TumblerSub | definition | a ⊖ w: zero prefix, reverse at divergence, copy tail from a | cited (ASN-0034) |
-| D2 | lemma | For level-uniform σ: reach(σ) ⊖ start(σ) = width(σ) | cited (ASN-0053) |
+| WR | lemma | For level-uniform σ: reach(σ) ⊖ start(σ) = width(σ) | cited (ASN-0053) |
 | S6 | lemma | For level-uniform σ: #reach(σ) = #s | cited (ASN-0053) |
 | T12 | precondition | span(s, ℓ) well-formed when ℓ > 0 and actionPoint(ℓ) ≤ #s | cited (ASN-0034) |
 | S2 | axiom | (A d, v : v ∈ dom(M(d)) : M(d)(v) is uniquely determined) — arrangement functionality | cited (ASN-0036) |
