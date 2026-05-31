@@ -533,6 +533,12 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *D-SEQ (SequentialPositions, ASN-0036).* `V_1(d) = {[1, k] : 1 ≤ k ≤ 2}` is a contiguous arithmetic sequence of element-field tumblers at depth 2, starting at the D-MIN witness `[1, 1]` and advancing by `inc(·, 0)` to `[1, 2]`. ✓
 
+*D-MIN (VMinimumPosition, ASN-0036).* `V_1(d) = {[1, 1], [1, 2]} ≠ ∅`, and its T1-least element is `min(V_1(d)) = [1, 1] = [1, 1, ..., 1]` of length `m_1 = 2` — the all-ones tumbler at the common text-subspace depth. This is the witness the D-SEQ check above invokes. ✓
+
+*S2 (ArrangementFunctionality, ASN-0036).* `Σ.M(d) = {[1.1] ↦ c₁, [1.2] ↦ c₂}` assigns each V-position a single image: `[1.1] ↦ c₁` and `[1.2] ↦ c₂`, with no V-position mapped to two distinct I-addresses. ✓
+
+*S8-fin (FiniteArrangement, ASN-0036).* `dom(Σ.M(d)) = {[1.1], [1.2]}`, so `|dom(Σ.M(d))| = 2 < ∞`; consequently `ran(Σ.M(d)) = {c₁, c₂}` is finite. ✓
+
 **Extension: L11b non-injectivity, L13, and transition verification.**
 
 We extend the state in six steps, naming each intermediate state, to verify L11b, L12, L13, the higher-arity/discrimination behavior of L3/L6/L8, and the multi-span content of L5/L8 non-vacuously.
