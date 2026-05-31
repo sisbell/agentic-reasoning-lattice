@@ -75,7 +75,9 @@ extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034). This is t
 
 *Chain.* There exists a T4-valid document-level seed `s` and a T10a-conforming step sequence terminating at `a`:
 
-`(A a ∈ dom(Σ.L) :: (E s ∈ T, n ≥ 1, t₀, t₁, ..., tₙ, k₁, ..., kₙ :: T4-valid(s) ∧ zeros(s) = 2 ∧ t₀ = s ∧ tₙ = a ∧ (A i : 1 ≤ i ≤ n : tᵢ = inc(tᵢ₋₁, kᵢ) ∧ kᵢ ∈ {0, 1, 2} ∧ (kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2)) ∧ k₁ = 2 ∧ (A i : 1 ≤ i ≤ n : #tᵢ > #s)))`
+`(A a ∈ dom(Σ.L) :: (E s ∈ T, n ≥ 1, t₀, t₁, ..., tₙ, k₁, ..., kₙ :: T4-valid(s) ∧ zeros(s) = 2 ∧ t₀ = s ∧ tₙ = a ∧ (A i : 1 ≤ i ≤ n : tᵢ = inc(tᵢ₋₁, kᵢ) ∧ kᵢ ∈ {0, 1, 2} ∧ (kᵢ = 1 ⟹ zeros(tᵢ₋₁) ≤ 3) ∧ (kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2)) ∧ k₁ = 2 ∧ (A i : 1 ≤ i ≤ n : #tᵢ > #s)))`
+
+Both child-spawn guards appear, mirroring TA5a's two cases (`k' = 1 ⟹ zeros ≤ 3` and `k' = 2 ⟹ zeros ≤ 2`), so the chain condition literally states T10a-conformance rather than leaving one conjunct for the reader to reconstruct. The two guards are not symmetric in force, however: on a T4-valid input `zeros(tᵢ₋₁) ≤ 3` holds unconditionally, so the `k = 1` guard is discharged automatically and never excludes a step — the chain's inductively-maintained T4-validity (the seed is T4-valid and each T10a step preserves T4 by T10a.4) keeps `zeros ≤ 3` throughout. The `k = 2` guard is the only child-spawn constraint that can actually fail on a T4-valid input, namely at `zeros = 3`. We encode both for fidelity to T10a while noting that only the latter is binding here.
 
 The first step seats the field-separating zero at position `#s + 1`, between the document prefix and the element field.
 
