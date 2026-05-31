@@ -54,6 +54,8 @@ A *cut sequence* specifies the boundaries of regions to transpose. We formalize 
 
 (CS4) #cᵢ = 2 for all i — depth-2 positions.
 
+CS3 is not implied by CS2 + R-PRE(iv): an all-higher-subspace cut sequence passes R-PRE(iv) vacuously (its quantification range is empty) while collapsing the regions, so CS3 is the clause that rejects it.
+
 The cut positions partition the V-positions of the affected range into regions. For n = 3 (the *pivot*), the cuts define two adjacent regions. For n = 4 (the *swap*), the cuts define two outer regions separated by a middle region.
 
 **Definition — RegionPartition.** Given a cut sequence K for document d in subspace S with V_S(d) ≠ ∅:
@@ -274,17 +276,6 @@ The swap postcondition preserves dom(M(d)) (R-SWP), preserves C (R-FRAME-S(c)), 
 The two forms are distinct primitives: the 3-cut pivot transposes two *adjacent* regions, while the 4-cut swap transposes two regions separated by at least one middle position (R-PRE(iv) together with CS2–CS4 forces w_μ ≥ 1, by the Width positivity consequence).
 
 
-## Necessity of CS3
-
-**R-CS3 — SubspaceConfinementNecessity (LEMMA, supporting).** With S fixed to 1 (State and Vocabulary), CS3 is not redundant with CS2 + R-PRE(iv): a cut sequence whose every cut lies in a subspace S'' > 1 satisfies CS1, CS2, CS4, and R-PRE(i), (ii), (iv), while violating CS3. R-PRE(iv) holds *vacuously* for such a sequence — its quantification range is empty — so CS3 is the sole clause that excludes it.
-
-*Pre-state.* Let V_1(d) = {[1, 1], ..., [1, 5]} (satisfying D-CTG, D-SEQ, S8a of ASN-0036).
-
-*Counterexample.* Take K = ([2, 1], [2, 2], [2, 3]), which satisfies CS1 (n = 3), CS2 ([2, 1] < [2, 2] < [2, 3] under T1), and CS4 (all depth 2), but *violates* CS3 — every cut lies in subspace 2 while S = 1.
-
-*R-PRE is satisfied except for CS3.* (i) and (ii) hold by the pre-state. With S fixed globally to 1 (State and Vocabulary), R-PRE(iv) reads `(A v : subspace(v) = 1 ∧ #v = 2 ∧ [2, 1] ≤ v < [2, 3] : v ∈ V_1(d))`. Every subspace-1 depth-2 position [1, k] satisfies [1, k] < [2, 1] under T1 (the leading subspace coordinate 1 < 2 dominates), so no v meets the lower bound [2, 1] ≤ v. The range is empty and the quantification holds *vacuously*. Hence R-PRE(i), (ii), (iv) are all satisfied; the sequence fails only CS3. With c₀ = [2, 1] above every subspace-1 position, the regions collapse — α = {v ∈ V_1(d) : [2, 1] ≤ v < [2, 2]} = ∅ and β = ∅, so w_α = w_β = 0 and region non-degeneracy fails. CS3 is thus load-bearing: it is the only clause excluding all-higher-subspace cut sequences. ∎
-
-
 ## Displacement Analysis
 
 The permutations R-PPERM and R-SPERM can be characterized by ordinal displacements — how far each position moves within its subspace. Each magnitude is reported as a *direction* (forward, backward, or fixed) together with a natural-number ordinal distance, read off the explicit R-PPERM/R-SPERM formulas. The truncated subtraction (defined above) supplies the distances, all on its defined domain of single-component depth-2 ordinals.
@@ -338,7 +329,7 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 - *Boundary of a run:* if cᵢ ∈ V(bₖ) and cᵢ = vₖ, no split is needed — the cut already coincides with a run boundary.
 - *Outside ⋃_k V(bₖ):* no split is performed. By CS2–CS4 and R-PRE(iv), c₀, …, c_{n−2} ∈ V_S(d) ⊆ ⋃_k V(bₖ); only c_{n−1} may fall outside, and EXT-VAC then gives c_{n−1} ∉ dom(M(d)) with empty right exterior, so no run straddles it.
 
-*Interaction between successive cuts.* By CS2, ord(c_j) > ord(cᵢ) for j > i. When an earlier cut cᵢ splits some run at offset c = ord(cᵢ) − ord(vₖ), the left piece has V-extent [ord(vₖ), ord(cᵢ)); since ord(c_j) > ord(cᵢ), a later cut c_j never lands in that left piece. Splitting is therefore order-independent: the final partition is the common refinement of B by the cut set, with boundary positions exactly the union of B's run boundaries and {c₀, ..., c_{n−1}}. After all cuts are processed, no run straddles any cut position cᵢ for 0 ≤ i ≤ n − 1, since Phase 1 splits at every cut.
+*Interaction between successive cuts.* After all cuts are processed, no run straddles any cut position cᵢ for 0 ≤ i ≤ n − 1, since Phase 1 splits at every cut interior to a run.
 
 *Non-S runs are carried verbatim.* Let b = (v_b, a_b, n_b) ∈ B with subspace(v_b) = S' ≠ S. By OrdShiftHom (a) of ASN-0036, every V-position v_b + k satisfies subspace(v_b + k) = S' ≠ S, so V(b) ⊆ dom(M(d)) \ V_S(d). By CS3 every cut position lies in subspace S, so no cut falls in V(b) and Phase 1 never splits b. Since π is the identity on V(b) (the non-S clause of R-PPERM/R-SPERM), Phase 3 carries b through unchanged as (v_b, a_b, n_b), which inherits S8-cons under M'(d): for 0 ≤ k < n_b, M'(d)(v_b + k) = M(d)(v_b + k) = a_b + k.
 
@@ -828,7 +819,6 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}.
 | R-RI | LEMMA | Rearrangement preserves S3 (referential integrity): ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
 | R-COMM | LEMMA | π(v + k) = π(v) + k when v and v + k lie in the same region: cut-point permutation commutes with ordinal shift | introduced |
 | R-BLK | LEMMA | Run partition transforms by split-at-cuts then displace-per-region, preserving S8-uniq/S8-cons under M'(d) | introduced |
-| R-CS3 | LEMMA | With S fixed to 1, CS3 is load-bearing, not redundant: an all-higher-subspace cut sequence satisfies CS1, CS2, CS4 and R-PRE(i),(ii),(iv) (the latter vacuously), so CS3 is the only clause that rejects it | supporting |
 
 
 ## Open Questions
