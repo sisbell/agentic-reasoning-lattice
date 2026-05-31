@@ -196,8 +196,6 @@ This establishes the T4-validity of `[d.0.s_C.1]` (resp. `[d.0.s_L.1]`) and the 
 
 - **ChainEnumerationInjectivity.** The enumeration of `A_C(d)` (resp. `A_L(d)`) is strictly increasing under T1, `m < n ⟹ t_m < t_n`; hence `n ↦ t_n` is injective and (by T1 trichotomy) order-preserving in both directions, `m < n ⟺ t_m < t_n`. *Source: ASN-0040 S0 (StreamOrdering)* — `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
 
-- **ChainUniformZeroCount.** Every element of `A_C(d)` (resp. `A_L(d)`) has `zeros = 3`. *Source: ASN-0040 SiblingStream postcondition* (`cₙ = [p₁ … p_{#p}, 0…0, n]` with `d − 1 = 0` interior zeros at depth `1` and `n ≥ 1` positive): `zeros(cₙ) = zeros(b_·(d)) = 3` for every `n`.
-
 - **DisjointSubAllocatorChains.** `A_C(d)` and `A_L(d)` are disjoint as address sets, and addresses produced by `A_C(d)` (resp. `A_L(d)`) carry `E(·)₁ = s_C` (resp. `s_L`). *Source: ASN-0040 B7 (NamespaceDisjointness)* — `S(b_C(d), 1) ∩ S(b_L(d), 1) = ∅`, since `(b_C(d), 1) ≠ (b_L(d), 1)` (the anchors disagree at position `#d + 2`, `s_C` vs `s_L`, by SC-NEQ) and both parents are `B6`-valid. The subspace-identifier reading follows from ChainPrefixExtension: every element of `A_C(d)` agrees with `b_C(d)` at position `#d + 2`, where the value is `s_C` (resp. `s_L` for `A_L(d)`).
 
 - **ChainPrefixExtension.** Every element of an active sub-allocator chain extends its anchor under the prefix relation:
