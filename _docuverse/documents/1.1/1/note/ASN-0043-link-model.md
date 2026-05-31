@@ -77,7 +77,7 @@ extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034). This is t
 
 `(A a ∈ dom(Σ.L) :: (E s ∈ T, n ≥ 1, t₀, t₁, ..., tₙ, k₁, ..., kₙ :: T4-valid(s) ∧ zeros(s) = 2 ∧ t₀ = s ∧ tₙ = a ∧ (A i : 1 ≤ i ≤ n : tᵢ = inc(tᵢ₋₁, kᵢ) ∧ kᵢ ∈ {0, 1, 2} ∧ (kᵢ = 1 ⟹ zeros(tᵢ₋₁) ≤ 3) ∧ (kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2)) ∧ k₁ = 2 ∧ (A i : 1 ≤ i ≤ n : #tᵢ > #s)))`
 
-Both child-spawn guards appear, mirroring TA5a's two cases (`k' = 1 ⟹ zeros ≤ 3` and `k' = 2 ⟹ zeros ≤ 2`), so the chain condition literally states T10a-conformance rather than leaving one conjunct for the reader to reconstruct. The two guards are not symmetric in force, however: on a T4-valid input `zeros(tᵢ₋₁) ≤ 3` holds unconditionally, so the `k = 1` guard is discharged automatically and never excludes a step — the chain's inductively-maintained T4-validity (the seed is T4-valid and each T10a step preserves T4 by T10a.4) keeps `zeros ≤ 3` throughout. The `k = 2` guard is the only child-spawn constraint that can actually fail on a T4-valid input, namely at `zeros = 3`. We encode both for fidelity to T10a while noting that only the latter is binding here.
+On a T4-valid input the `k = 1` guard `zeros(tᵢ₋₁) ≤ 3` holds unconditionally (T4-validity propagates along the chain by T10a.4), so only the `k = 2` guard — failing at `zeros = 3` — can actually constrain a step.
 
 The first step seats the field-separating zero at position `#s + 1`, between the document prefix and the element field.
 
@@ -212,7 +212,7 @@ Gregory confirms exhaustively. During storage, spans receive sequential V-addres
 
 `coverage(e) = (∪ (s, ℓ) : (s, ℓ) ∈ e : {t ∈ T : s ≤ t < s ⊕ ℓ})`
 
-This is the set of all tumbler addresses referenced by the endset. Note that coverage is a lossy projection: two endsets with different span decompositions may have identical coverage. Coverage tells us *which addresses* an endset references, abstracting away the particular decomposition into spans, but it does not determine endset identity.
+This is the set of all tumbler addresses referenced by the endset. Note that coverage is a lossy projection: two endsets with different span decompositions may have identical coverage.
 
 
 ## Slot Distinction and Directionality
