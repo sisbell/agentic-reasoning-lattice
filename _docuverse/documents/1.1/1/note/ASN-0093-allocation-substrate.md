@@ -296,7 +296,7 @@ Extends `dom(C)` with a fresh content address scoped to an allocated document.
 
 *Effect:* `C' = C ∪ {a ↦ v}`
 
-*Frame:* `L' = L; M' = M` (so C2 at `Σ` transfers to `Σ'`: `origin(·) ∈ dom(M)` implies `origin(·) ∈ dom(M')`).
+*Frame:* `L' = L; M' = M`.
 
 ### K.λ (LinkAllocation)
 
@@ -313,7 +313,7 @@ Signature: `K.λ(d, ℓ, (e₁, …, eₙ))` where the link value is a finite se
 
 *Effect:* `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}`
 
-*Frame:* `C' = C; M' = M` (so L1a at `Σ` transfers to `Σ'`: `origin(·) ∈ dom(M)` implies `origin(·) ∈ dom(M')`).
+*Frame:* `C' = C; M' = M`.
 
 
 ## Worked example
@@ -395,7 +395,7 @@ Effect: `dom(M₉) = {d, d', d_alt}`, with `M₉(d_alt) = ∅` and `M₉(d) = M�
 
 ## Discharge of stated invariants
 
-**Simultaneous-induction framing.** The stated invariants, together with the ChainMembershipForOrigin lemma and the StoreT4Validity corollary, are proved by *simultaneous induction* over transition sequences from `Σ₀`: the inductive hypothesis at each step is the *conjunction* of every such property at the current state `Σ`, and the inductive step exhibits each holding at `Σ'` using the conjoined IH. The inductive step for the stated invariants is recorded as a per-(invariant, transition) matrix; entries describe how each transition kind preserves or discharges each invariant. The inductive step for the two derived results — ChainMembershipForOrigin and StoreT4Validity — is carried by their standalone proofs (Lemma and Corollary, above).
+**Simultaneous-induction framing.** The stated invariants, together with the ChainMembershipForOrigin lemma and the StoreT4Validity corollary, are proved by *simultaneous induction* over transition sequences from `Σ₀`: the inductive hypothesis at each step is the *conjunction* of every such property at the current state `Σ`, and the inductive step exhibits each holding at `Σ'` using the conjoined IH. The inductive step for the stated invariants is recorded as a per-(invariant, transition) matrix. The inductive step for the two derived results — ChainMembershipForOrigin and StoreT4Validity — is carried by their standalone proofs (Lemma and Corollary, above).
 
 **Base case verification (at `Σ₀ = (∅, ∅, ∅)`).** Most invariants are vacuously satisfied: M0/M2/C1/C1b/C1c/C2/L0/L1/L1a/L1b/L1c/L3 quantify over `dom(C)`, `dom(L)`, or `dom(M)`, all empty at `Σ₀`. C0, M1, and L12 quantify over transitions `Σ → Σ'`, vacuous at `Σ₀` until the first transition fires. Three invariants are non-vacuous but trivially satisfied at `Σ₀`:
 
