@@ -67,7 +67,7 @@ The system designates at least two subspaces within each document's element fiel
 
 `(A a ∈ dom(Σ.L) :: T4-valid(a))`
 
-This is the T4-validity postcondition of L1c (LinkAllocatorConformance, below), derived there along the allocation chain; we cite that single derivation rather than repeat it.
+Derived from L1c's chain (LinkAllocatorConformance, below) via T10a.4 (ASN-0034).
 
 **L0a — ContentSubspaceScope.** This ASN scopes its content-side disjointness guarantee to the `s_C`-resident portion of the content store. *Content-side T4-validity.* By ASN-0036's S7b, every `b ∈ dom(Σ.C)` has `zeros(b) = 3` and well-defined T4b projections; since T4b's definitional domain (UniqueParse, ASN-0034) is precisely the T4-valid subset of `T`, every `b ∈ dom(Σ.C)` is T4-valid. Define:
 
