@@ -77,7 +77,7 @@ Derived from L1c's chain (LinkAllocatorConformance, below) via T10a.4 (ASN-0034)
 
 `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`
 
-— no link address shares an address with any `s_C`-resident content. Call a state `Σ` *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` — every stored content address occupies subspace `s_C`. Several results below carry this hypothesis; we name it here and reference it by name rather than restating the quantifier.
+— no link address shares an address with any `s_C`-resident content. Call a state `Σ` *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` — every stored content address occupies subspace `s_C`.
 
 By L1 (below), `zeros(a) = 3` for all `a ∈ dom(Σ.L)`; by S7b (ElementLevelIAddresses, ASN-0036), `zeros(b) = 3` for all `b ∈ dom(Σ.C)` (and a fortiori for `b ∈ dom(Σ.C)|_{s_C}`). T7's precondition requires both T4-validity and equal zero counts. T4-validity is discharged on each side: for `a ∈ dom(Σ.L)`, by L0b (LinkAddressValidity); for `b ∈ dom(Σ.C)`, by the content-side T4-validity above. With T4-validity discharged and `zeros(a) = zeros(b) = 3` on each side, T7 applies pairwise: for every `a ∈ dom(Σ.L)` and every `b ∈ dom(Σ.C)|_{s_C}`, L0 gives `subspace_I(a) = s_L` and the `s_C`-residence restriction gives `subspace_I(b) = s_C`; together with `s_L ≠ s_C` this yields `subspace_I(a) ≠ subspace_I(b)`, so T7's postcondition gives `a ≠ b`. Universally instantiating over the product `dom(Σ.L) × dom(Σ.C)|_{s_C}` lifts this pairwise distinctness to the scoped set disjointness:
 
@@ -236,7 +236,7 @@ Nelson: "A link is typically directional. Thus it has a from-set, the bytes the 
 
 ## A Shared Conformance Lemma
 
-Several results below extend the store by appending a single fresh sibling link, carrying a given payload, while leaving content and arrangements untouched. We establish once that any such extension preserves conformance, parametric in the payload. Throughout, the *state-local L- and S-invariants* are L0, L1, L1a, L1b, L1c, L3, L5, L6, L14, L14a, L-fin, together with ASN-0036's S0–S3, S7a, S7b, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ.
+The *state-local L- and S-invariants* are L0, L1, L1a, L1b, L1c, L3, L5, L6, L14, L14a, L-fin, together with ASN-0036's S0–S3, S7a, S7b, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ.
 
 **FSP — FreshSiblingConformance (local lemma).** Let `Σ` satisfy the state-local L- and S-invariants with `s_C`-resident content. Suppose a tumbler `a` satisfies:
 
@@ -301,7 +301,7 @@ Type matching decouples classification from content retrieval: a search for type
 
 *Selection of `d`.* Pick any `d ∈ dom(Σ.M)` (nonempty by the L9 precondition); `d` is T4-valid with `zeros(d) = 2` by DocVal, and `d ∈ dom(Σ'.M)` since `Σ'.M = Σ.M`.
 
-*Construction of `g` (T4-valid ghost address in subspace `s_X`).* Build `g = d.0.s_X.1` — concatenate `[0, s_X, 1]` to `d`. T4-validity: `d` is T4-valid with `zeros(d) = 2`; appending `0` introduces one new zero (so `zeros(g) = 3`); the last component of `d` is strictly positive by T4-validity of `d`, so the new `0` does not create adjacent zeros, and `s_X ≥ 1` separates the new `0` from the trailing `1`; the first component of `g` (inherited from `d`) and the last (`1`) are strictly positive; every non-separator component is strictly positive (inherited components by T4-validity of `d`; `s_X ≥ 1` by construction; `1 > 0` at the tail). T4b's projections therefore apply: `E(g) = [s_X, 1]`, giving `subspace_I(g) = s_X` and `#E(g) = 2`. By L0 applied to `Σ`, `dom(Σ.L) ⊆ {t : subspace_I(t) = s_L}`; by the L9 precondition (`s_C`-residence of content), `dom(Σ.C) ⊆ {t : subspace_I(t) = s_C}`. By the L0a discharge (with `zeros = 3` per side — `g` by construction, content by S7b, links by L1 — and `s_X` distinct from both `s_C` and `s_L`), `g ∉ dom(Σ.C) ∪ dom(Σ.L)`, regardless of the size of these domains.
+*Construction of `g` (T4-valid ghost address in subspace `s_X`).* Build `g = d.0.s_X.1` — concatenate `[0, s_X, 1]` to `d`. T4-validity: `d` is T4-valid with `zeros(d) = 2`; appending `0` introduces one new zero (so `zeros(g) = 3`); the last component of `d` is strictly positive by T4-validity of `d`, so the new `0` does not create adjacent zeros, and `s_X ≥ 1` separates the new `0` from the trailing `1`; the first component of `g` (inherited from `d`) and the last (`1`) are strictly positive; every non-separator component is strictly positive (inherited components by T4-validity of `d`; `s_X ≥ 1` by construction; `1 > 0` at the tail). T4b's projections therefore apply: `E(g) = [s_X, 1]`, giving `subspace_I(g) = s_X` and `#E(g) = 2`. By L0 applied to `Σ`, `dom(Σ.L) ⊆ {t : subspace_I(t) = s_L}`; by the L9 precondition (`s_C`-residence of content), `dom(Σ.C) ⊆ {t : subspace_I(t) = s_C}`. By the L0a discharge (with `zeros = 3` per side — `g` by construction, content by S7b, links by L1 — and `s_X` distinct from both `s_C` and `s_L`), `g ∉ dom(Σ.C) ∪ dom(Σ.L)`.
 
 *Choice of `a` (fresh link address under `d`).* By L-fin, `dom(Σ.L)` is finite. By T0(a), element-field component values are unbounded, so infinitely many element-level tumblers with `subspace_I(·) = s_L` and `#E(·) ≥ 2` exist within `d`'s link subspace. We construct `a` explicitly by case analysis on `d`'s prior link-allocation state; the construction yields the freshness `a ∉ dom(Σ.L)` and the producibility chain.
 
@@ -483,7 +483,7 @@ So `Σ.C = {c₁ ↦ v₁, c₂ ↦ v₂}` for some values `v₁, v₂ ∈ Val`.
 
 - `a = 1.0.1.0.1.0.2.1` — element field `2.1` (subspace 2, ordinal 1)
 
-Choose a ghost type address `g = 1.0.1.0.1.0.3.1` — an element-level tumbler in the same document `d` as the link, with element field `[s_X, 1] = [3, 1]`, so `subspace_I(g) = 3 = s_X`. We verify `g ∉ dom(Σ.C) ∪ dom(Σ.L)` by direct enumeration in the L9 (TypeGhostPermission) step below — `Σ`'s content store and link store are each enumerable as small finite sets in this state, so the verification proceeds by T7 against each entry. Define:
+Choose a ghost type address `g = 1.0.1.0.1.0.3.1` — an element-level tumbler in the same document `d` as the link, with element field `[s_X, 1] = [3, 1]`, so `subspace_I(g) = 3 = s_X`. Define:
 
 All addresses here have depth 8, so the unit-depth displacement is `δ(1, 8) = [0, 0, 0, 0, 0, 0, 0, 1]`.
 
