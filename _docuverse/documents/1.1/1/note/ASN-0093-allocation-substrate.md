@@ -144,7 +144,7 @@ Once allocated, a link's address persists in `dom(L)` and its value is permanent
 
   `dom(C) ∩ dom(L) = ∅`
 
-Derived from L0 + SC-NEQ + T7 (SubspaceDisjointness, ASN-0034): every content address has `E(·)₁ = s_C`, every link address has `E(·)₁ = s_L`, and `s_C ≠ s_L`, so the domains are disjoint.
+Derived from L0 + SC-NEQ + StoreT4Validity + T7 (SubspaceDisjointness, ASN-0034). T7's preconditions are discharged on each side: `zeros(·) = 3` from C1 (content) and L1 (links), and T4-validity from StoreT4Validity (below). With both premises met, every content address has `E(·)₁ = s_C` and every link address has `E(·)₁ = s_L` (L0), and `s_C ≠ s_L` (SC-NEQ), so T7 gives pairwise distinctness across the two stores — the domains are disjoint.
 
 **L-fin (LinkStoreFiniteness).**
 
@@ -162,7 +162,7 @@ The content and link subspaces are organised as sibling element-field sub-alloca
 
 These anchors are *structurally producible* by T10a `inc` steps from `d`: `b_C(d) = inc(d, 2)` (TA5(d), `k = 2`, whose result `[d.0.1]` equals `[d.0.s_C]` only because `s_C = 1` by SubspaceConventionAxiom) and `b_L(d) = inc(b_C(d), 0)` (TA5(c), depending substantively on `s_L = s_C + 1` by SubspaceConventionAxiom). The anchors themselves are *not* in `dom(C) ∪ dom(L)` — content and link addresses have `#E ≥ 2` (C1; L1b above), and the anchors have `#E = 1` — so they inhabit the foundation carrier set `T` as structural witnesses without occupying any state component.
 
-**Active sub-allocator chains.** Define: a sub-allocator chain `A_C(d)` (resp. `A_L(d)`) is *active at state* `Σ` iff `d ∈ dom(M)` at `Σ`. Permanence of activation — once `d ∈ dom(M)`, the chain stays active at every successor state — follows from M1 (ArrangementMonotonicity).
+**Active sub-allocator chains.** Define: a sub-allocator chain `A_C(d)` (resp. `A_L(d)`) is *active at state* `Σ` iff `d ∈ dom(M)` at `Σ`.
 
 **Sub-allocator chains are ASN-0040 sibling streams (ChainDiscipline).** Each sub-allocator chain is an instance of ASN-0040's `SiblingStream`. Writing `S(p, k)` for the stream `c₁ = inc(p, k)`, `cₙ₊₁ = inc(cₙ, 0)` (SiblingStream, ASN-0040):
 
@@ -170,7 +170,7 @@ These anchors are *structurally producible* by T10a `inc` steps from `d`: `b_C(d
 
 since each chain's first emission is `inc(anchor, 1)` and successive elements advance by `inc(·, 0)`, coinciding by construction with the SiblingStream recurrence at `p = b_·(d)`, `k = 1`. The depth parameter is `1` in both cases, so the streams append no interior zero; each chain is thereby closed under `inc(·, 0)`, exactly the SiblingStream recurrence. We refer to this derived identity as **ChainDiscipline**.
 
-Both anchors satisfy ASN-0040's `B6` (ValidDepth) at depth `1`: `b_C(d)` and `b_L(d)` are T4-valid with `zeros = 3` (one separator inserted at position `#d + 1` under M0's T4-valid, `zeros = 2` document `d`), depth `1 ∈ {1, 2}`, and `zeros(b_·(d)) + (1 − 1) = 3 ≤ 3`. Consequently every ASN-0040 result whose precondition is `B6(p, d)` — `B6(a)`'s stream-T4-validity conclusion, the `SiblingStream` postconditions, `S0` (StreamOrdering), `S1` (StreamPrefix), `B5a` (SiblingZerosPreservation), `B7` (NamespaceDisjointness), `B1` (ContiguousPrefix), and `B9` (UnboundedExtent) — applies to `A_C(d)` and `A_L(d)` directly.
+Both anchors satisfy ASN-0040's `B6` (ValidDepth) at depth `1`: `b_C(d)` and `b_L(d)` are T4-valid with `zeros = 3` (one separator inserted at position `#d + 1` under M0's T4-valid, `zeros = 2` document `d`), depth `1 ∈ {1, 2}`, and `zeros(b_·(d)) + (1 − 1) = 3 ≤ 3`. Consequently the ASN-0040 results this note consumes — `B6(a)`'s stream-T4-validity conclusion, the `SiblingStream` postconditions, `S0` (StreamOrdering), `S1` (StreamPrefix), `B5a` (SiblingZerosPreservation), and `B7` (NamespaceDisjointness) — apply to `A_C(d)` and `A_L(d)` directly.
 
 **Lemma (FirstEmission).** The first emission of each chain has a determinate structural form:
   - *Content chain first-emit:* `t_1^C(d) = inc(b_C(d), 1) = [d.0.s_C.1]` — `E(·)₁ = s_C`, `origin(·) = d`, `#E(·) = 2`, `zeros(·) = 3`, and T4-valid.
@@ -189,8 +189,6 @@ This establishes the T4-validity of `[d.0.s_C.1]` (resp. `[d.0.s_L.1]`) and the 
 **Per-chain disciplines (ASN-0040 citations).** Each discipline below is named for the substrate's local reference and discharged by the cited ASN-0040 result applied to the sibling stream `A_C(d) = S(b_C(d), 1)` (resp. `A_L(d) = S(b_L(d), 1)`), whose parent `(b_·(d), 1)` is `B6`-valid (verified above).
 
 - **ChainElementT4Validity.** Every element of `A_C(d)` (resp. `A_L(d)`) is T4-valid. *Source: ASN-0040 B6(a) (ValidDepth sufficiency)* — for `B6`-valid `(p, d)`, every `cₙ ∈ S(p, d)` satisfies T4.
-
-- **ChainUniformLength.** For each `d ∈ dom(M)`, all elements of `A_C(d)` (resp. `A_L(d)`) have length `#d + 3`. *Source: ASN-0040 SiblingStream postcondition* `#cₙ = #p + d` — with `p = b_·(d)` (`#p = #d + 2`) and depth `1`, `#cₙ = #d + 3` for every `n`.
 
 - **ChainEnumerationInjectivity.** The enumeration of `A_C(d)` (resp. `A_L(d)`) is strictly increasing under T1, `m < n ⟹ t_m < t_n`; hence `n ↦ t_n` is injective and (by T1 trichotomy) order-preserving in both directions, `m < n ⟺ t_m < t_n`. *Source: ASN-0040 S0 (StreamOrdering)* — `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
 
@@ -260,7 +258,7 @@ This corollary discharges the T4-validity precondition of T7 (SubspaceDisjointne
 
 The chain-level corollary — `A_L(d₁) ∩ A_L(d₂) = ∅` and `A_C(d₁) ∩ A_C(d₂) = ∅` — is ASN-0040's B7 (NamespaceDisjointness) directly, cited once here; the T10 any-extension claim above is the strictly stronger form.
 
-*Proof.* By M0, both `d₁, d₂` are T4-valid with `zeros = 2`, so (as established under *Sub-allocator chains are ASN-0040 sibling streams*) each anchor `p_i = b_·(d_i)` is T4-valid with `zeros = 3` and is a length-`+2` extension of `d_i` (positions `1..#d_i` reproduce `d_i`, position `#d_i + 1` is the separator `0`, position `#d_i + 2` is `s_·`). They are prefix-incomparable: when `d₁`, `d₂` are themselves prefix-incomparable, a document-level divergence position `k ≤ min(#d₁, #d₂)` lifts unchanged to the anchors; when one properly prefixes the other (WLOG `d₁ ≺ d₂`), the anchors diverge at the separator position `k = #d₁ + 1`, where `p₁[k] = 0` while `p₂[k] = d₂[k] ≠ 0` (by M0, `d₂` carries `d₁`'s two zeros at the shared positions and, having `zeros(d₂) = 2`, no further zero, so position `#d₁ + 1 ≤ #d₂` is nonzero). Either way `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (Prefix, ASN-0034), and T10 gives `a ≠ b` for any `a` extending `p₁`, `b` extending `p₂` — the strictly stronger any-extension claim. Chain-level disjointness of `A_·(d_i) = S(p_i, 1)` is ASN-0040's B7 (NamespaceDisjointness), not re-derived here. ∎
+*Proof.* By M0, both `d₁, d₂` are T4-valid with `zeros = 2`, so (as established under *Sub-allocator chains are ASN-0040 sibling streams*) each anchor `p_i = b_·(d_i)` is T4-valid with `zeros = 3` and is a length-`+2` extension of `d_i` (positions `1..#d_i` reproduce `d_i`, position `#d_i + 1` is the separator `0`, position `#d_i + 2` is `s_·`). They are prefix-incomparable: when `d₁`, `d₂` are themselves prefix-incomparable, a document-level divergence position `k ≤ min(#d₁, #d₂)` lifts unchanged to the anchors; when one properly prefixes the other (WLOG `d₁ ≺ d₂`), the anchors diverge at the separator position `k = #d₁ + 1`, where `p₁[k] = 0` while `p₂[k] = d₂[k] ≠ 0` (by M0, `d₂` carries `d₁`'s two zeros at the shared positions and, having `zeros(d₂) = 2`, no further zero, so position `#d₁ + 1 ≤ #d₂` is nonzero). Either way `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (Prefix, ASN-0034), and T10 gives `a ≠ b` for any `a` extending `p₁`, `b` extending `p₂` — the strictly stronger any-extension claim. ∎
 
 Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by L14 (StoreDisjointness, above).
 
@@ -504,7 +502,6 @@ L1c's strengthened clauses: `k₁ = 2` by construction (step 1 above); `n = 3 �
 | ChainDiscipline | ContentLinkSubAllocatorChainDiscipline | LEMMA (derived) | Premises: ASN-0040 SiblingStream; B6-validity of each parent `(b_·(d), 1)`; the K.α/K.λ emission rules. |
 | FirstEmission | FirstEmission | LEMMA (derived) | Premises: ChainDiscipline; ASN-0040 SiblingStream postcondition; TA5a; M0. |
 | ChainElementT4Validity | ChainElementT4Validity | CITATION | Every element of `A_C(d)` (resp. `A_L(d)`) is T4-valid. Cites ASN-0040 B6(a) (ValidDepth sufficiency) at `B6(b_·(d), 1)`. |
-| ChainUniformLength | ChainUniformLength | CITATION | All elements of `A_C(d)` (resp. `A_L(d)`) have length `#d + 3`. Cites ASN-0040's SiblingStream postcondition `#cₙ = #p + d` at `p = b_·(d)`, depth `1`. |
 | ChainEnumerationInjectivity | ChainEnumerationInjectivity | CITATION | The enumeration of `A_C(d)` (resp. `A_L(d)`) is strictly increasing under T1; hence injective and (by T1 trichotomy) order-preserving in both directions. Cites ASN-0040 S0 (StreamOrdering). |
 | ChainUniformZeroCount | ChainUniformZeroCount | CITATION | Every element of `A_C(d)` (resp. `A_L(d)`) has `zeros = 3`. Cites ASN-0040's SiblingStream postcondition (`d − 1 = 0` interior zeros at depth `1`) / B5a (SiblingZerosPreservation). |
 | DisjointSubAllocatorChains | DisjointSubAllocatorChains | CITATION | `A_C(d) ∩ A_L(d) = ∅`, with addresses of `A_C(d)` (resp. `A_L(d)`) carrying `E(·)₁ = s_C` (resp. `s_L`). Cites ASN-0040 B7 (NamespaceDisjointness) at the distinct `B6`-valid parents `(b_C(d), 1)`, `(b_L(d), 1)` (anchors disagree at position `#d + 2`, `s_C` vs `s_L`, by SC-NEQ). |
