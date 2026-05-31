@@ -85,7 +85,7 @@ extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034), well-defi
 
 `(A a ∈ dom(Σ.L) :: home(a) ∈ dom(Σ.M))`
 
-The membership clause requires that `home(a)` be an allocated, owned document in the current state. Nelson is explicit on this point — a link's home document is "the document under which the link is filed," presupposing an actual document with an owner. This parallels S7a (DocumentScopedAllocation, ASN-0036) for content. Gregory confirms: `docreatelink` allocates the link address within the creating document's address space via `findisatoinsertmolecule`, which extends the document's I-stream. The allocation prefix is determined by the document parameter — a document that must already exist for `docreatelink` to be called — not by the endsets; a link whose endsets reference entirely foreign content is still allocated under the creating document's prefix.
+The membership clause requires that `home(a)` be an allocated, owned document in the current state. Nelson is explicit on this point — a link's home document is "the document under which the link is filed," presupposing an actual document with an owner. This parallels S7a (DocumentScopedAllocation, ASN-0036) for content. Gregory confirms: `docreatelink` allocates the link address within the creating document's address space via `findisatoinsertmolecule`, which extends the document's I-stream. The allocation prefix is determined by the document parameter — a document that must already exist for `docreatelink` to be called.
 
 **L1b — LinkElementFieldDepth.** Every link address has element field depth at least 2:
 
@@ -486,8 +486,6 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L1c (LinkAllocatorConformance).* The link address `a = 1.0.1.0.1.0.2.1` is producible by a T10a-conforming allocator from the document prefix `d = 1.0.1.0.1` (taken as the L1c seed `s = d`; T4-valid with `zeros(s) = 2`): (i) `inc(s, 2)` → `1.0.1.0.1.0.1` — element depth 1, subspace 1 (`k₁ = 2` with `zeros(s) = 2`, satisfying TA5a: `k = 2` requires `zeros ≤ 2`); (ii) `inc(1.0.1.0.1.0.1, 0)` → `1.0.1.0.1.0.2` — sibling advance to subspace 2 (`k₂ = 0`, unconditionally T4-preserving, zero count preserved at 3); (iii) `inc(1.0.1.0.1.0.2, 1)` → `1.0.1.0.1.0.2.1` = `a` — child at depth 2 (`k₃ = 1`, requiring `zeros(1.0.1.0.1.0.2) ≤ 3` by TA5a; satisfied since `zeros(1.0.1.0.1.0.2) = 3`; the output has `zeros(a) = 3`). Each step conforms to T10a; only the first step is `kᵢ = 2` (TA5a's `zeros ≤ 2` precondition fires once at `k₁ = 2` and cannot fire again, since `zeros(t₁) = 3` thereafter). Chain shape: `t₀ = s = d` (the T4-valid document-level seed); `k₁ = 2`; intermediate lengths are `#t₁ = #t₂ = 7 > 5 = #s` and `#t₃ = #a = 8 > 5` — every step after the seed operates above `#s`. Postconditions: T4-validity of `a` follows from T10a.4 along the chain; `s = home(a) = 1.0.1.0.1` follows from CPP (the third zero of `a` first appears at position `#s + 1 = 6`, the one seated by `k₁ = 2`). ✓
 
-*L-fin (LinkStoreFiniteness) at `Σ` (state-local).* `|dom(Σ.L)| = 1`, which is finite. ✓
-
 *L2 (OwnershipEndsetIndependence).* `home(a) = 1.0.1.0.1`, computed from the field structure of `a` alone. The endsets `(F, G, Θ)` are not consulted. ✓
 
 *L3 (NEndsetStructure).* `|Σ.L(a)| = 3 ≥ 3`, slot 3 is the type endset `Θ = {(g, δ(1, 8))} ≠ ∅`, and each endset is in `𝒫_fin(Span)`. ✓
@@ -500,6 +498,12 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L7 (DirectionalFlexibility) — illustration.* L6 distinguishes the link `(F, G, Θ)` from its slot-swap `(G, F, Θ)` as structurally distinct values, but no L-invariant determines whether `F` carries the "source" role and `G` the "target" role. The labels `F`, `G` in the standard triple are nominal — chosen above for prose convenience because the link was introduced as "a citation from `c₁` to `c₂`," but the structural part of that introduction is only that slot 1 holds `{(c₁, δ(1, 8))}` and slot 2 holds `{(c₂, δ(1, 8))}`. Whether reading slot 1 as "source" matches Nelson's directional convention depends entirely on the type at `g`; under a counterpart or equivalence type, the same `(F, G, Θ)` carries no directional weight at all (per L7). ✓
 
+*L8 (TypeByAddress) at `Σ` — reflexivity.* The single-link state admits a non-vacuous reflexivity check: `same_type(a, a) ⟺ coverage(Σ.L(a).type) = coverage(Σ.L(a).type)`. The right-hand side is a set-equality of identical sets, true by reflexivity. To exhibit the actual coverage concretely, `Σ.L(a).type = Θ = {(g, δ(1, 8))}`; since `#g = 8`, PrefixSpanCoverage applies, giving `coverage({(g, δ(1, 8))}) = {t ∈ T : g ≼ t}` — the set of all tumblers extending `g`. This is the address set against which any other link's type would be compared under L8's coverage-equality criterion. ✓
+
+*L9 (TypeGhostPermission) at `Σ` — ghost-type disjointness.* The ghost type address `g = 1.0.1.0.1.0.3.1` is disjoint from every stored address, verified by direct enumeration. The stores are `dom(Σ.C) = {c₁, c₂}` and `dom(Σ.L) = {a}`, so `dom(Σ.C) ∪ dom(Σ.L) = {c₁, c₂, a}` — three entries to check. Each address here is element-level (`zeros = 3`), so T7 (SubspaceDisjointness, ASN-0034) applies: two element-level tumblers differing in the first element-field component are distinct. `subspace_I(g) = 3`, while `subspace_I(c₁) = subspace_I(c₂) = 1` and `subspace_I(a) = 2`; since `3 ∉ {1, 2}`, T7 gives `g ≠ c₁`, `g ≠ c₂`, and `g ≠ a`. Hence `g ∉ dom(Σ.C) ∪ dom(Σ.L)`. The link `a` itself is the arity-3 witness for L9's existential: its type endset `Θ = {(g, δ(1, 8))}` references `g`, an address outside `dom(Σ.C) ∪ dom(Σ.L)`. ✓
+
+*L10 (TypeHierarchyByContainment).* For the ghost type at `g = 1.0.1.0.1.0.3.1`, define a parent type `p = 1.0.1.0.1.0.3` with displacement `δ(1, 7) = [0, 0, 0, 0, 0, 0, 1]` (action point `k = 7 = #p`). The coverage of `(p, δ(1, #p))` is `{t : p ≤ t < shift(p, 1)} = {t : 1.0.1.0.1.0.3 ≤ t < 1.0.1.0.1.0.4}`. Since `g = 1.0.1.0.1.0.3.1` and `p ≼ g`, by T1(ii) `g ≥ p`, and `g < 1.0.1.0.1.0.4` because `g` agrees with `p` at position 7 (both have value 3) while `inc(p, 0)` has value 4 there. So `g ∈ coverage({(p, δ(1, #p))})` — a single span query at `p` matches the subtype at `g`. ✓
+
 *L11a (LinkUniqueness).* `a` was produced by forward allocation. With `|dom(Σ.L)| = 1`, no collision is possible. ✓
 
 *L11b (NonInjectivity).* `a ∈ dom(Σ.L)` satisfies the universal quantifier's precondition; the single-link state `Σ` trivially admits the permission, with no distinct addresses to collide. ✓
@@ -510,34 +514,29 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L14a (NonTranscludability).* `ran(Σ.M(d)) = {c₁, c₂}`. For each `v ∈ dom(Σ.M(d))`: `Σ.M(d)(v) ∈ {c₁, c₂} ⊆ dom(Σ.C)`, and `dom(Σ.L) = {a}` with `a ∉ {c₁, c₂}` (by L0). So `Σ.M(d)(v) ∉ dom(Σ.L)`. ✓
 
-*L10 (TypeHierarchyByContainment).* For the ghost type at `g = 1.0.1.0.1.0.3.1`, define a parent type `p = 1.0.1.0.1.0.3` with displacement `δ(1, 7) = [0, 0, 0, 0, 0, 0, 1]` (action point `k = 7 = #p`). The coverage of `(p, δ(1, #p))` is `{t : p ≤ t < shift(p, 1)} = {t : 1.0.1.0.1.0.3 ≤ t < 1.0.1.0.1.0.4}`. Since `g = 1.0.1.0.1.0.3.1` and `p ≼ g`, by T1(ii) `g ≥ p`, and `g < 1.0.1.0.1.0.4` because `g` agrees with `p` at position 7 (both have value 3) while `inc(p, 0)` has value 4 there. So `g ∈ coverage({(p, δ(1, #p))})` — a single span query at `p` matches the subtype at `g`. ✓
+*L-fin (LinkStoreFiniteness) at `Σ` (state-local).* `|dom(Σ.L)| = 1`, which is finite. ✓
 
-
-*L8 (TypeByAddress) at `Σ` — reflexivity.* The single-link state admits a non-vacuous reflexivity check: `same_type(a, a) ⟺ coverage(Σ.L(a).type) = coverage(Σ.L(a).type)`. The right-hand side is a set-equality of identical sets, true by reflexivity. To exhibit the actual coverage concretely, `Σ.L(a).type = Θ = {(g, δ(1, 8))}`; since `#g = 8`, PrefixSpanCoverage applies, giving `coverage({(g, δ(1, 8))}) = {t ∈ T : g ≼ t}` — the set of all tumblers extending `g`. This is the address set against which any other link's type would be compared under L8's coverage-equality criterion. ✓
-
-*L9 (TypeGhostPermission) at `Σ` — ghost-type disjointness.* The ghost type address `g = 1.0.1.0.1.0.3.1` is disjoint from every stored address, verified by direct enumeration. The stores are `dom(Σ.C) = {c₁, c₂}` and `dom(Σ.L) = {a}`, so `dom(Σ.C) ∪ dom(Σ.L) = {c₁, c₂, a}` — three entries to check. Each address here is element-level (`zeros = 3`), so T7 (SubspaceDisjointness, ASN-0034) applies: two element-level tumblers differing in the first element-field component are distinct. `subspace_I(g) = 3`, while `subspace_I(c₁) = subspace_I(c₂) = 1` and `subspace_I(a) = 2`; since `3 ∉ {1, 2}`, T7 gives `g ≠ c₁`, `g ≠ c₂`, and `g ≠ a`. Hence `g ∉ dom(Σ.C) ∪ dom(Σ.L)`. The link `a` itself is the arity-3 witness for L9's existential: its type endset `Θ = {(g, δ(1, 8))}` references `g`, an address outside `dom(Σ.C) ∪ dom(Σ.L)`. ✓
+*S2 (ArrangementFunctionality, ASN-0036).* `Σ.M(d) = {[1.1] ↦ c₁, [1.2] ↦ c₂}` assigns each V-position a single image: `[1.1] ↦ c₁` and `[1.2] ↦ c₂`, with no V-position mapped to two distinct I-addresses. ✓
 
 *S3 (ReferentialIntegrity, ASN-0036).* `ran(Σ.M(d)) = {c₁, c₂} ⊆ dom(Σ.C)`. ✓
 
 *S7a (DocumentScopedAllocation, ASN-0036).* For each content address: `N(c₁).0.U(c₁).0.D(c₁) = 1.0.1.0.1 = d ∈ dom(Σ.M)`, and identically for `c₂`. Both content addresses sit under their allocated home document. ✓
 
 *S7b (ElementLevelIAddresses, ASN-0036).* `zeros(c₁) = zeros(1.0.1.0.1.0.1.1) = 3` and `zeros(c₂) = zeros(1.0.1.0.1.0.1.2) = 3`; both T4-valid (no adjacent zeros, every non-separator component positive). T4b's projections `N, U, D, E` are therefore well-defined on each. ✓
+
 *S7d (DocumentAllocationDiscipline, ASN-0036).* `dom(Σ.M) = {d}` with `d = 1.0.1.0.1`; `zeros(d) = 2`, T4-valid by DocVal; `d` is producible by a single `inc(r, 2)` allocation event from a user-level root `r = 1.0.1` (`zeros(r) = 1 ≤ 2`, satisfying TA5a's side condition for `k' = 2`): `inc(1.0.1, 2)` appends one separator zero and a final `1`, yielding `1.0.1.0.1 = d`, so `d` is a T10a-allocated node in 𝒯. ✓
 
 *S8a (VPositionWellFormedness, ASN-0036).* The V-positions of `Σ.M(d)` are `{[1.1], [1.2]}`; each V-position is an element-field tumbler whose subspace component is `1 = s_C`, restricting `Σ.M(d)` to the content subspace's V-position slice. ✓
 
 *S8-depth (FixedDepthVPositions, ASN-0036).* Each V-position of `Σ.M(d)` has element-field depth `2`: `#[1.1] = #[1.2] = 2 ≥ 2`. ✓
 
+*S8-fin (FiniteArrangement, ASN-0036).* `dom(Σ.M(d)) = {[1.1], [1.2]}`, so `|dom(Σ.M(d))| = 2 < ∞`; consequently `ran(Σ.M(d)) = {c₁, c₂}` is finite. ✓
+
 *D-CTG (VContiguity, ASN-0036).* The V-position set `V_1(d) = dom(Σ.M(d)) = {[1, 1], [1, 2]}` is contiguous along its second component at fixed subspace `1`: positions `[1, 1]` and `[1, 2]` cover `{[1, k] : 1 ≤ k ≤ 2}` with no gaps. ✓
 
+*D-MIN (VMinimumPosition, ASN-0036).* `V_1(d) = {[1, 1], [1, 2]} ≠ ∅`, and its T1-least element is `min(V_1(d)) = [1, 1] = [1, 1, ..., 1]` of length `m_1 = 2` — the all-ones tumbler at the common text-subspace depth. This is the witness the D-SEQ check below invokes. ✓
 
 *D-SEQ (SequentialPositions, ASN-0036).* `V_1(d) = {[1, k] : 1 ≤ k ≤ 2}` is a contiguous arithmetic sequence of element-field tumblers at depth 2, starting at the D-MIN witness `[1, 1]` and advancing by `inc(·, 0)` to `[1, 2]`. ✓
-
-*D-MIN (VMinimumPosition, ASN-0036).* `V_1(d) = {[1, 1], [1, 2]} ≠ ∅`, and its T1-least element is `min(V_1(d)) = [1, 1] = [1, 1, ..., 1]` of length `m_1 = 2` — the all-ones tumbler at the common text-subspace depth. This is the witness the D-SEQ check above invokes. ✓
-
-*S2 (ArrangementFunctionality, ASN-0036).* `Σ.M(d) = {[1.1] ↦ c₁, [1.2] ↦ c₂}` assigns each V-position a single image: `[1.1] ↦ c₁` and `[1.2] ↦ c₂`, with no V-position mapped to two distinct I-addresses. ✓
-
-*S8-fin (FiniteArrangement, ASN-0036).* `dom(Σ.M(d)) = {[1.1], [1.2]}`, so `|dom(Σ.M(d))| = 2 < ∞`; consequently `ran(Σ.M(d)) = {c₁, c₂}` is finite. ✓
 
 **Extension: L11b non-injectivity, L13, and transition verification.**
 
