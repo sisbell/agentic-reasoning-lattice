@@ -107,7 +107,7 @@ The first step seats the field-separating zero at position `#s + 1`, between the
 
 *Postcondition: `s = home(a)`.* Apply CPP to this chain with `t₀ = s` and `p = #s`. The sibling-advance length precondition holds: the opening step is the child-spawn `k₁ = 2`, which lifts length to `#s + 2` before any sibling advance, and lengths never decrease, so every sibling advance acts on an input of length `≥ #s + 2 > #s = p`. CPP then yields that `a` agrees with `s` on positions `1..#s`. The third zero of `a` first appears at position `#s + 1` — the one seated by `k₁ = 2` — and `s` ends at position `#s` with a positive component (T4-validity of `s`). The prefix of `a` ending just before the third zero is therefore exactly the length-`#s` prefix `s`, which by definition is `home(a)`. Hence `s = home(a)`.
 
-**DocVal — document T4-validity (consequence of S7d + T10a.4).** Every `d ∈ dom(Σ.M)` is T4-valid, with `zeros(d) = 2`. By S7d (DocumentAllocationDiscipline, ASN-0036) such a `d` is the terminus of a T10a-conforming allocator chain from the system tree 𝒯's root (T4-valid by T10a's root-of-allocator-tree axiom), and T10a.4 (T4PreservationUnderDiscipline, ASN-0034) propagates T4-validity along each chain step.
+**DocVal — document T4-validity (consequence of S7d + T10a.4).** Let `𝒯` denote the system's single T10a allocator tree, rooted at the T4-valid root allocator that T10a's discipline posits. Every `d ∈ dom(Σ.M)` is T4-valid, with `zeros(d) = 2`. By S7d (DocumentAllocationDiscipline, ASN-0036) such a `d` is the terminus of a T10a-conforming allocator chain from `𝒯`'s root (T4-valid by T10a's root-of-allocator-tree axiom), and T10a.4 (T4PreservationUnderDiscipline, ASN-0034) propagates T4-validity along each chain step.
 
 **L0b — LinkAddressValidity.** Every link address is T4-valid:
 
@@ -281,11 +281,11 @@ where `coverage(·)` is the address-set projection defined above. The relation i
 - *Symmetric.* `(A a₁, a₂ ∈ dom(Σ.L) :: same_type(a₁, a₂) ⟹ same_type(a₂, a₁))` — by symmetry of set equality.
 - *Transitive.* `(A a₁, a₂, a₃ ∈ dom(Σ.L) :: same_type(a₁, a₂) ∧ same_type(a₂, a₃) ⟹ same_type(a₁, a₃))` — by transitivity of set equality.
 
-`same_type` is therefore an equivalence relation on `dom(Σ.L)`, partitioning the link store into type-equivalence classes; under search semantics, every member of a class is indistinguishable from every other by type matching.
+`same_type` is therefore an equivalence relation on `dom(Σ.L)`, partitioning the link store into type-equivalence classes.
 
 Nelson: "What the 'type' designation points to is completely arbitrary. This is because of the way we will be searching for links. The search mechanism does not actually look at what is stored under the 'type' it is searching for; it merely considers the type's address."
 
-The design choice — coverage rather than span-set identity — falls out of Nelson's search semantics. He frames matching at the request-against-link level: "A link satisfies a search request if one span of each endset satisfies a corresponding part of the request." [LM 4/58] The criterion is *address overlap* between request and stored endset, not equality of span decompositions; since type-equivalence is what makes two links indistinguishable to any search request, two type endsets with the same coverage are interchangeable under search and therefore the same type. Gregory confirms at the implementation level: `sporglset2linksetinrange` performs range-overlap matching via `crumqualifies2d` (a half-open interval intersection test), and `intersectlinksets` compares only link ISAs across the three endset queries — there is no span-equality test at any stage of retrieval. The query architecture is built on I-address coverage intersection, not on span-set comparison.
+The design choice — coverage rather than span-set identity — is a modeling commitment grounded in Nelson's account above: the type designation is consulted by address, not by what is stored there. We make `coverage` the criterion because coverage is exactly the address-set projection of an endset (per the Coverage definition above); two type endsets that reference the same address set are taken to be the same type regardless of how their spans are decomposed. Gregory confirms at the implementation level: `sporglset2linksetinrange` performs range-overlap matching via `crumqualifies2d` (a half-open interval intersection test), and `intersectlinksets` compares only link ISAs across the three endset queries — there is no span-equality test at any stage of retrieval. The implementation thus indexes by I-address coverage, not by span-set comparison.
 
 Type matching decouples classification from content retrieval: a search for type X never fetches the bytes at address X — it only matches the address. This means:
 
@@ -350,7 +350,7 @@ We now establish the identity semantics of links. The three requirements we bega
 
 By S7d (DocumentAllocationDiscipline, ASN-0036) each home `home(a) ∈ dom(Σ.M)` is a node of the system's single allocator tree 𝒯 (T4-valid by DocVal). By L1c each link's allocation chain is seeded at that document node and proceeds by T10a steps, so it never leaves 𝒯. Hence both link-producing events are distinct allocation events within the single T10a system 𝒯, which is exactly GlobalUniqueness's precondition; GlobalUniqueness then yields `a₁ ≠ a₂` directly. Gregory confirms the coordination concretely: all links homed in a document are placed by a single stateless query-and-increment over the `home.0.2.*` subtree of the one global granfilade, guarded by a `homedoc` equality check against cross-document bleed.
 
-Within-state single-valuedness (an address names at most one link) is immediate from the partial-function typing `Σ.L : T ⇀ Link`; L11a is the cross-event strengthening.
+L11a is the cross-event strengthening of the within-state single-valuedness already given by the partial-function typing `Σ.L : T ⇀ Link`.
 
 **L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same endset sequence:
 
