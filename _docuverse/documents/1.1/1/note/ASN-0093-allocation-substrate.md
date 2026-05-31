@@ -246,6 +246,14 @@ This corollary discharges the T4-validity precondition of T7 (SubspaceDisjointne
 
 *Link case.* Identical to the content case above under the content↔link substitution (`ℓ`, `A_L(d)`, `b_L(d)`, `s_L`, L1a, C1 ↦ `a`, `A_C(d)`, `b_C(d)`, `s_C`, C2, L1): the against-`dom(L)` argument transposes the content against-`dom(C)` argument (ChainPrefixExtension + ChainMembershipForOrigin + Cross-document disjointness + T10, closing `ℓ ≠ ℓ'`), and the against-`dom(C)` argument transposes the content against-`dom(L)` argument (StoreT4Validity + ChainElementT4Validity for T4-validity, subspace-identifier split by SC-NEQ, then T7, closing `ℓ ≠ a`). ∎
 
+**Lemma (SubsequentEmissionFreshness).** At every reachable state `Σ`, the subsequent emission of an active sub-allocator chain — the address `a = inc(a_prev, 0)` that K.α commits when its subsequent-emit predicate fires, with `a_prev = max{a' ∈ dom(C) : origin(a') = d}` (resp. `ℓ = inc(ℓ_prev, 0)` for K.λ, with `ℓ_prev = max{ℓ' ∈ dom(L) : origin(ℓ') = d}`) — is fresh against `dom(C) ∪ dom(L)`. Freshness splits three ways:
+
+  - *Within-document* (against `{a' ∈ dom(C) : origin(a') = d}`): `a = inc(a_prev, 0) ∈ A_C(d)` by ChainDiscipline's closure under `inc(·, 0)`, with `a_prev ∈ A_C(d)` by ChainMembershipForOrigin; ChainEnumerationInjectivity applied to `(a_prev, a)` gives strict advance past every prior same-chain sibling, so `a ∉ dom(C)` at `d`.
+  - *Cross-document* (against `{a' ∈ dom(C) : origin(a') ≠ d}`): Cross-document disjointness applied to `(d, origin(a'))` plus T10 (PartitionIndependence, ASN-0034) gives `a ≠ a'`, exactly as in the FirstEmissionFreshness content-against-`dom(C)` case.
+  - *Cross-subspace* (against `dom(L)`): `E(a)₁ = s_C` (read along `A_C(d)` via L0 / DisjointSubAllocatorChains) while `E(ℓ)₁ = s_L` for every `ℓ ∈ dom(L)` (L0); SC-NEQ and T7 (SubspaceDisjointness, ASN-0034) close `a ≠ ℓ`, exactly as in the FirstEmissionFreshness content-against-`dom(L)` case.
+
+The link subsequent emission is symmetric under the content↔link substitution. ∎
+
 
 
 ## Cross-document disjointness chain
@@ -254,8 +262,6 @@ This corollary discharges the T4-validity precondition of T7 (SubspaceDisjointne
 
   `a ≠ b`  for every `a` with `p₁ ≼ a` and every `b` with `p₂ ≼ b`.
 
-The chain-level corollary — `A_L(d₁) ∩ A_L(d₂) = ∅` and `A_C(d₁) ∩ A_C(d₂) = ∅` — is ASN-0040's B7 (NamespaceDisjointness) directly, cited once here; the T10 any-extension claim above is the strictly stronger form.
-
 *Proof.* By M0, both `d₁, d₂` are T4-valid with `zeros = 2`, so (as established under *Sub-allocator chains are ASN-0040 sibling streams*) each anchor `p_i = b_·(d_i)` is T4-valid with `zeros = 3` and is a length-`+2` extension of `d_i` (positions `1..#d_i` reproduce `d_i`, position `#d_i + 1` is the separator `0`, position `#d_i + 2` is `s_·`). They are prefix-incomparable: when `d₁`, `d₂` are themselves prefix-incomparable, a document-level divergence position `k ≤ min(#d₁, #d₂)` lifts unchanged to the anchors; when one properly prefixes the other (WLOG `d₁ ≺ d₂`), the anchors diverge at the separator position `k = #d₁ + 1`, where `p₁[k] = 0` while `p₂[k] = d₂[k] ≠ 0` (by M0, `d₂` carries `d₁`'s two zeros at the shared positions and, having `zeros(d₂) = 2`, no further zero, so position `#d₁ + 1 ≤ #d₂` is nonzero). Either way `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (Prefix, ASN-0034), and T10 gives `a ≠ b` for any `a` extending `p₁`, `b` extending `p₂` — the strictly stronger any-extension claim. ∎
 
 Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by L14 (StoreDisjointness, above).
@@ -263,7 +269,7 @@ Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by L14 (St
 
 ## Substrate primitive operations
 
-The substrate admits three primitive transitions, one per state component. Each is atomic — its precondition is evaluated against `Σ` and its effect committed to `Σ'` in a single indivisible step; no intermediate state with the transition partially applied is admitted.
+The substrate admits three primitive transitions, one per state component. Each is atomic and sequential by SequentialTransitionAxiom (SequentialAtomicTransitions, above).
 
 *Parameter semantics.* For `K.α(d, a, v)` and `K.λ(d, ℓ, (e₁, …, eₙ))`, the address parameters `a` and `ℓ` appear in the operation signatures but are not free choices of the caller: `(d, Σ)` determines them uniquely via the binding preconditions below.
 
@@ -289,7 +295,7 @@ Extends `dom(C)` with a fresh content address scoped to an allocated document.
 - `d ∈ dom(M)` (home document exists)
 - `a` is produced by `d`'s content sub-allocator `A_C(d)`:
   - *First emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} = ∅`): `a = [d.0.s_C.1]`. Freshness against `dom(C) ∪ dom(L)` is supplied by FirstEmissionFreshness.
-  - *Subsequent emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`): `a = inc(a_prev, 0)` (TA5(c)) where `a_prev := max{a' ∈ dom(C) : origin(a') = d}`, the next sibling on `A_C(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (C-fin restricted by `origin(·) = d`). Freshness of `a` against `dom(C) ∪ dom(L)` is discharged in the inductive step (see the C1c subsequent-emit exhibition and the L14 / ChainMembershipForOrigin rows of the discharge matrix).
+  - *Subsequent emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`): `a = inc(a_prev, 0)` (TA5(c)) where `a_prev := max{a' ∈ dom(C) : origin(a') = d}`, the next sibling on `A_C(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (C-fin restricted by `origin(·) = d`). Freshness of `a` against `dom(C) ∪ dom(L)` is supplied by SubsequentEmissionFreshness (the within-document / cross-document / cross-subspace split, above).
 - `v ∈ Val` (well-formed content value)
 
 *Effect:* `C' = C ∪ {a ↦ v}`
@@ -308,7 +314,7 @@ Signature: `K.λ(d, ℓ, (e₁, …, eₙ))` where the link value is a finite se
 - `d ∈ dom(M)` (home document exists)
 - `ℓ` is produced by `d`'s link sub-allocator `A_L(d)`:
   - *First emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`): `ℓ = [d.0.s_L.1]`, the determinate first emission of `A_L(d)`. Freshness against `dom(L) ∪ dom(C)` is supplied by FirstEmissionFreshness.
-  - *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(ℓ_prev, 0)` (TA5(c)) where `ℓ_prev := max{ℓ' ∈ dom(L) : origin(ℓ') = d}`, the next sibling on `A_L(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (L-fin restricted by `origin(·) = d`). Freshness of `ℓ` against `dom(L) ∪ dom(C)` is discharged in the inductive step (see the L1c subsequent-emit exhibition and the L14 / ChainMembershipForOrigin rows of the discharge matrix).
+  - *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(ℓ_prev, 0)` (TA5(c)) where `ℓ_prev := max{ℓ' ∈ dom(L) : origin(ℓ') = d}`, the next sibling on `A_L(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (L-fin restricted by `origin(·) = d`). Freshness of `ℓ` against `dom(L) ∪ dom(C)` is supplied by SubsequentEmissionFreshness (the within-document / cross-document / cross-subspace split, above).
 - `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` (well-formed link value with mandatory non-empty type endset at slot 3 — L3).
 
 *Effect:* `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}`
@@ -507,6 +513,7 @@ L1c's strengthened clauses: `k₁ = 2` by construction (step 1 above); `n = 3 �
 | ChainMembershipForOrigin | ChainMembershipForOrigin | LEMMA | Premises: FirstEmission; ChainDiscipline; ChainEnumerationInjectivity; C2/L1a; SequentialTransitionAxiom. (Contiguous-prefix form mirrors ASN-0040 B1.) |
 | StoreT4Validity | StoreT4Validity | LEMMA (derived) | Derived from ChainMembershipForOrigin + ChainElementT4Validity: every entry of `dom(C) ∪ dom(L)` inhabits a sub-allocator chain whose every element is T4-valid. |
 | FirstEmissionFreshness | FirstEmissionFreshness | LEMMA (derived) | Premises: first-emit predicate; L0; SC-NEQ; ChainPrefixExtension; ChainMembershipForOrigin; Cross-document disjointness; StoreT4Validity; ChainElementT4Validity; T7; T10. |
+| SubsequentEmissionFreshness | SubsequentEmissionFreshness | LEMMA (derived) | Premises: subsequent-emit predicate; ChainDiscipline; ChainMembershipForOrigin; ChainEnumerationInjectivity; Cross-document disjointness; L0; DisjointSubAllocatorChains; SC-NEQ; T7; T10. Single-site freshness for K.α/K.λ subsequent emissions. |
 | Cross-doc disjointness | Cross-document disjointness lemma | LEMMA | Premises: M0; T4 + Prefix (ASN-0034); T10 (PartitionIndependence); ASN-0040 B7 (NamespaceDisjointness, stream-level corollary). |
 | SubspaceConventionAxiom | FixedSubspaceIdentifiers | AXIOM | Substrate commitment: `s_C = 1 ∧ s_L = 2`; pinned by Nelson (LM 4/30–4/31) and Gregory (`xanadu.h:144–146`, `granf2.c:162`, `do2.c:94`). |
 | SequentialTransitionAxiom | SequentialAtomicTransitions | AXIOM | Substrate commitment: `Σ → Σ'` is atomic, uninterruptible, totally ordered. |
