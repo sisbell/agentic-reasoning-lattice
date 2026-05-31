@@ -72,33 +72,33 @@ Every allocated document carries the empty arrangement. The substrate fixes `M(d
 
   `(A Σ → Σ' :: dom(C) ⊆ dom(C') ∧ (A a : a ∈ dom(C) : C'(a) = C(a)))`
 
-Append-only with immutable values: `dom(C)` is non-decreasing, and no transition alters the value bound to an existing key. This is ASN-0036's S0/S1 restated for the substrate.
+Append-only with immutable values: `dom(C)` is non-decreasing, and no transition alters the value bound to an existing key.
 
 **C1 (ContentElementLevel).**
 
   `(A a ∈ dom(C) :: zeros(a) = 3)`
 
-Every content address is an element-level tumbler. This is ASN-0036's S7b restated for the substrate. Discharged from `K.α`'s precondition.
+Every content address is an element-level tumbler. Discharged from `K.α`'s precondition.
 
 **C1b (ContentElementFieldDepth).**
 
   `(A a ∈ dom(C) :: #E(a) ≥ 2)`
 
-Every content address has at least two element-field components — the content-side analog of L1b. Discharged from `K.α`'s precondition.
+Every content address has at least two element-field components. Discharged from `K.α`'s precondition.
 
-**C1c (ContentAllocatorConformance).** Every content address `a ∈ dom(C)` has a T10a-conforming step sequence from its home document to `a`: a finite sequence `(t₀, t₁, …, tₙ)` with `n ≥ 1`, `t₀ = origin(a)`, and `tₙ = a`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints (T4-validity preservation, including the `kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2` zero-count side condition); additionally, `k₁ = 2` (the first step is a depth-2 increment off the document seed) and `(A i : 1 ≤ i ≤ n : #tᵢ > #origin(a))` (every intermediate length strictly exceeds the seed's). The chain witnesses `a`'s structural producibility from its home document via the content sub-allocator chain. This is the content-side analog of L1c, stated in parallel form.
+**C1c (ContentAllocatorConformance).** Every content address `a ∈ dom(C)` has a T10a-conforming step sequence from its home document to `a`: a finite sequence `(t₀, t₁, …, tₙ)` with `n ≥ 1`, `t₀ = origin(a)`, and `tₙ = a`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints (T4-validity preservation, including the `kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2` zero-count side condition); additionally, `k₁ = 2` (the first step is a depth-2 increment off the document seed) and `(A i : 1 ≤ i ≤ n : #tᵢ > #origin(a))` (every intermediate length strictly exceeds the seed's). The chain witnesses `a`'s structural producibility from its home document via the content sub-allocator chain.
 
 **C2 (ContentScopedAllocation).**
 
   `(A a ∈ dom(C) :: origin(a) ∈ dom(M))`
 
-Every content address has its home document allocated — the content-side analog of L1a. Discharged from `K.α`'s precondition and M1.
+Every content address has its home document allocated. Discharged from `K.α`'s precondition and M1.
 
 **C-fin (ContentStoreFiniteness).**
 
   `|dom(C)| < ∞`
 
-The content store is finite at every reachable state — the content-side analog of L-fin. Discharged inductively from `Σ₀.C = ∅` and `K.α`'s singleton extension.
+The content store is finite at every reachable state. Discharged inductively from `Σ₀.C = ∅` and `K.α`'s singleton extension.
 
 
 ## Link store invariants
@@ -110,7 +110,7 @@ All invariants below are stated against the reachable-state quantifier — they 
   `(A a ∈ dom(L) :: E(a)₁ = s_L)`
   `(A a ∈ dom(C) :: E(a)₁ = s_C)`
 
-Every link address has subspace identifier `s_L`; every content address has subspace identifier `s_C`. The L-clause is inherited from ASN-0043; the C-clause is a new substrate commitment, pinned as a joint precondition of the sub-allocator discipline.
+Every link address has subspace identifier `s_L`; every content address has subspace identifier `s_C`. The L-clause is inherited from ASN-0043; the C-clause is a derived substrate invariant, proved at the new content key by FirstEmission / DisjointSubAllocatorChains — the sub-allocator discipline (`b_C(d) = inc(d, 2)` landing at `s_C`) yields `E(a)₁ = s_C`.
 
 **L1 (LinkElementLevel).**
 
@@ -122,7 +122,7 @@ Every link address is an element-level tumbler.
 
   `(A a ∈ dom(L) :: origin(a) ∈ dom(M))`
 
-Every link address has its home document allocated. This is ASN-0043's L1a.
+Every link address has its home document allocated.
 
 **L1b (LinkElementFieldDepth).**
 
@@ -130,13 +130,13 @@ Every link address has its home document allocated. This is ASN-0043's L1a.
 
 Every link address has at least two element-field components.
 
-**L1c (LinkAllocatorConformance).** Every link address `ℓ ∈ dom(L)` has a *T10a-conforming step sequence* from its home document to `ℓ`: a finite sequence `(t₀, t₁, …, tₙ)` with `n ≥ 1`, `t₀ = origin(ℓ)`, and `tₙ = ℓ`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints (T4-validity preservation, including the `kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2` zero-count side condition); additionally, `k₁ = 2` (the first step is a depth-2 increment off the document seed) and `(A i : 1 ≤ i ≤ n : #tᵢ > #origin(ℓ))` (every intermediate length strictly exceeds the seed's). The chain witnesses `ℓ`'s structural producibility from its home document via the link sub-allocator. This is ASN-0043's L1c restated for the substrate.
+**L1c (LinkAllocatorConformance).** Every link address `ℓ ∈ dom(L)` has a *T10a-conforming step sequence* from its home document to `ℓ`: a finite sequence `(t₀, t₁, …, tₙ)` with `n ≥ 1`, `t₀ = origin(ℓ)`, and `tₙ = ℓ`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints (T4-validity preservation, including the `kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2` zero-count side condition); additionally, `k₁ = 2` (the first step is a depth-2 increment off the document seed) and `(A i : 1 ≤ i ≤ n : #tᵢ > #origin(ℓ))` (every intermediate length strictly exceeds the seed's). The chain witnesses `ℓ`'s structural producibility from its home document via the link sub-allocator.
 
 **L3 (NEndsetStructure).**
 
   `(A a ∈ dom(L) :: |L(a)| ≥ 3 ∧ (A i : 1 ≤ i ≤ |L(a)| : L(a).eᵢ ∈ Endset) ∧ L(a).e₃ ≠ ∅)`
 
-Every link is a sequence of at least three endsets, with the type endset (slot 3) non-empty. This is ASN-0043's L3 restated for the substrate. The StandardTriple default is retained for worked examples and notational convenience but not enforced structurally — the substrate admits arbitrary arity `N ≥ 3`.
+Every link is a sequence of at least three endsets, with the type endset (slot 3) non-empty. The StandardTriple default is retained for worked examples and notational convenience but not enforced structurally — the substrate admits arbitrary arity `N ≥ 3`.
 
 **L12 (LinkImmutability).**
 
@@ -148,7 +148,7 @@ Once allocated, a link's address persists in `dom(L)` and its value is permanent
 
   `dom(C) ∩ dom(L) = ∅`
 
-Derived from L0 + SC-NEQ + StoreT4Validity + T7 (SubspaceDisjointness, ASN-0034). T7's preconditions are discharged on each side: `zeros(·) = 3` from C1 (content) and L1 (links), and T4-validity from StoreT4Validity (below). With both premises met, every content address has `E(·)₁ = s_C` and every link address has `E(·)₁ = s_L` (L0), and `s_C ≠ s_L` (SC-NEQ), so T7 gives pairwise distinctness across the two stores — the domains are disjoint. The full union `dom(C) ∩ dom(L) = ∅` is justified because every content address resides in subspace `s_C` (C1 + L0's C-clause). Here SD coincides with ASN-0043's L14 (DualPrimitive): L0's C-clause forces `dom(C) = dom(C)|_{s_C}`, so the unsliced `dom(C) ∩ dom(L) = ∅` and L14's `s_C`-sliced `dom(L) ∩ dom(C)|_{s_C} = ∅` are the same statement.
+Derived from L0 + SC-NEQ + StoreT4Validity + T7 (SubspaceDisjointness, ASN-0034). T7's preconditions are discharged on each side: `zeros(·) = 3` from C1 (content) and L1 (links), and T4-validity from StoreT4Validity (below). With both premises met, every content address has `E(·)₁ = s_C` and every link address has `E(·)₁ = s_L` (L0), and `s_C ≠ s_L` (SC-NEQ), so T7 gives pairwise distinctness across the two stores — the domains are disjoint. The full union `dom(C) ∩ dom(L) = ∅` is justified because every content address resides in subspace `s_C` (C1 + L0's C-clause, which forces `dom(C) = dom(C)|_{s_C}`, making SD identical to ASN-0043's L14).
 
 **L-fin (LinkStoreFiniteness).**
 
@@ -412,7 +412,7 @@ The example exercises both the first-emit and subsequent-emit branches of K.α a
 
 ## Discharge of stated invariants
 
-**Simultaneous-induction framing.** The stated invariants, together with the ChainMembershipForOrigin lemma and the StoreT4Validity corollary, are proved by *simultaneous induction* over transition sequences from `Σ₀`: the inductive hypothesis at each step is the *conjunction* of every such property at the current state `Σ`, and the inductive step exhibits each holding at `Σ'` using the conjoined IH. The FirstEmissionFreshness and SubsequentEmissionFreshness lemmas are *event-local*: each is a one-shot freshness obligation discharged at the K.α/K.λ binding precondition that commits the emission, not a state property carried in the per-state IH conjunction.
+**Simultaneous-induction framing.** The stated invariants, together with the ChainMembershipForOrigin lemma and the StoreT4Validity corollary, are proved by *simultaneous induction* over transition sequences from `Σ₀`: the inductive hypothesis at each step is the *conjunction* of every such property at the current state `Σ`, and the inductive step exhibits each holding at `Σ'` using the conjoined IH.
 
 Each transition-indexed invariant is discharged by induction on transition sequences from `Σ₀`. The inductive step is recorded as a per-(invariant, transition) matrix; entries describe how each transition kind preserves or discharges each invariant.
 
