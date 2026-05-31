@@ -1,0 +1,18 @@
+# Review of ASN-0043
+
+## REVISE
+
+### Issue 1: L0 and L1a assert projection values before the T4-validity that makes those projections well-defined
+**ASN-0043, L1a (LinkScopedAllocation)**: "By the home definition above, `home(a)` is well-defined on every `a ∈ dom(Σ.L)`, and we state the invariant in terms of it directly: `(A a ∈ dom(Σ.L) :: home(a) ∈ dom(Σ.M))`."
+
+**Problem**: The `home` definition is explicitly conditional — "for any *T4-valid* element-level tumbler `a`," with the projections `N(a), U(a), D(a)` supplied by T4b. T4b's domain (UniqueParse, ASN-0034) is the *fully* T4-valid subset of T: it requires not only `zeros(a) = 3` but the no-adjacent-zeros and nonzero-boundary clauses. At the point L1a is stated, the only established fact about link addresses is L1's `zeros(a) = 3`, which is insufficient — a tumbler with `zeros = 3` and adjacent zeros (e.g. `[1,0,0,1,0,1]`) is element-level by zero count yet has no well-defined field parse. The fact that closes the gap, `T4-valid(a)` for all `a ∈ dom(Σ.L)`, is **L0b**, derived from the axiom **L1c** — both presented *after* L1a. So L1a's "by the home definition above, `home(a)` is well-defined on every `a ∈ dom(Σ.L)`" cites a justification that is not yet available; the actual licensing fact (L0b/L1c) goes uncited.
+
+The same defect appears one property earlier: **L0** states `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`, and `subspace_I(a) = E(a)₁` is, by the Notational convention, defined only "across every tumbler on which T4b's `E` projection is well-defined — i.e., every T4-valid tumbler." L0's statement therefore presumes link addresses are T4-valid (again L0b/L1c), but L0 is the first link invariant stated and cites nothing for it.
+
+**Required**: At L0 and L1a, cite L0b (LinkAddressValidity) — and through it the axiom L1c — as the source of T4-validity that makes `subspace_I` and `home` well-defined on `dom(Σ.L)`, or note explicitly that L0b is logically prior to these invariants despite its later presentation. As written, the two projection-based invariants rest on `zeros(a) = 3` alone, which does not discharge T4b's domain condition.
+
+## OUT_OF_SCOPE
+
+None beyond what the ASN already defers to its Open Questions (global content-subspace constant, transclusion/link-store consistency, compound-link well-formedness, allocation ordering). These are correctly scoped as future work, not errors here.
+
+VERDICT: REVISE
