@@ -2,8 +2,6 @@
 
 A Xanadu-style substrate maintains three address-keyed stores: the content store, the link store, and the document-arrangement function. Each store is grown by an allocation primitive that extends the store's domain at a fresh key with structural invariants on the new entry. ASN-0043 introduced the link store and its structural invariants (L0/L1/L1a/L1b/L1c/L3/L12), of which this note restates those listed; ASN-0036 introduced the content store and arrangement function. The substrate state is `Σ = (C, L, M)`, where `dom(M)` is the set of allocated documents. The substrate adds three content-side invariants that the inherited models do not carry — C1b (content element-field depth), the C-clause of L0 (content subspace partition), and C1c (content allocator conformance) — proved within this note.
 
-This note extracts the *allocation-substrate* layer: the three allocation primitives (K.σ, K.α, K.λ) and the structural invariants on `(Σ.C, Σ.L, Σ.M)` they preserve. The substrate requires no commitment to `Σ.E` (the entity set) or `Σ.R` (the provenance relation).
-
 
 ## Scope
 
