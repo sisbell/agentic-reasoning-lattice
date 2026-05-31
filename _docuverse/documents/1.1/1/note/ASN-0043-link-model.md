@@ -21,7 +21,7 @@ Second, connections must be *owned*. Alice’s annotation is hers; Bob’s is hi
 
 Third, connections should be *referenceable*. One connection should be able to point to another, enabling compound relational structures — which requires a link to be addressable content that other links can reach.
 
-These three requirements — distinguishability, ownership, referenceability — force connections to be first-class addressed objects in the tumbler space. A connection that lacked its own address could not be distinguished from another connection with the same endpoints, could not be independently owned, and could not be pointed to by other connections. We are compelled to give connections their own permanent tumbler addresses.
+These three requirements — distinguishability, ownership, referenceability — force connections to be first-class addressed objects in the tumbler space. We are compelled to give connections their own permanent tumbler addresses.
 
 We call these addressed connections *links*.
 
@@ -372,7 +372,7 @@ for every state transition `Σ → Σ'`. This parallels S0 (ContentImmutability,
 
 The evidence is unambiguous. Nelson's FEBE protocol defines exactly five link operations: MAKELINK (create), FINDLINKSFROMTOTHREE (search), FINDNUMOFLINKSFROMTOTHREE (count), FINDNEXTNLINKSFROMTOTHREE (paginate), and RETRIEVEENDSETS (read). There is no MODIFYLINK, UPDATELINK, or EDITENDSETS. The only write operation is creation; the rest are queries. Gregory confirms at the implementation level: `insertendsetsinorgl` and `insertendsetsinspanf` are called exclusively from `docreatelink`; no other code path writes to the link's orgl or spanfilade entries. The link orgl is written once by `createorglingranf` and never touched again.
 
-Link immutability follows from the same principle that makes content immutable: others may have linked to it. Since links are first-class objects with tumbler addresses, other links can point to them (L13). Modifying a link's endsets after creation would silently change the meaning of every meta-link pointing to it — violating the permanence guarantee. A changed connection is structurally a new link at a fresh address; the old link persists in `Σ.L` by L12.
+Link permanence protects meta-link references: since links are addressable by L13, a link that persists in `Σ.L` keeps every meta-link pointing to it well-defined.
 
 **L12a — LinkStoreMonotonicity.** The domain of the link store is monotonically non-decreasing:
 
