@@ -159,7 +159,7 @@ But Nelson's design does not stop at three. We now define the components, admitt
 
 where `Span` is the set of well-formed span pairs `(s, ℓ)` satisfying T12 (SpanWellDefinedness, ASN-0034): `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s`. The empty set `∅` is a valid endset — a link may have an endset that references nothing.
 
-**Definition — Link.** A *link value* is a finite sequence of N ≥ 3 endsets, with the third slot designated as the type endset for every arity N ≥ 3 — the slot-3-as-type designation being carried by L3 (which requires the type endset non-empty at every arity) and the Named accessor L8 (which fixes `.type ≡ .e₃`), of which the arity-3 case is the standard triple (StandardTriple, below):
+**Definition — Link.** A *link value* is a finite sequence of N ≥ 3 endsets:
 
 `Link = {(e₁, e₂, ..., eₙ) : N ≥ 3, each eᵢ ∈ Endset}`
 
@@ -198,11 +198,7 @@ Beyond T12 well-formedness, the model imposes no constraint on endset spans. The
 
 (c) *Cross-subspace endsets.* Endset spans may reference addresses in the link subspace — that is, addresses of other links.
 
-**L5 — EndsetSetSemantics.** An endset is an *unordered* set; the ordering of spans within an endset carries no semantic meaning. Two endsets are equal iff they have the same span members, and the model exposes no positional accessor within an endset:
-
-`(A a, a' ∈ dom(Σ.L), i ∈ {1, ..., |Σ.L(a)|}, j ∈ {1, ..., |Σ.L(a')|} :: Σ.L(a).eᵢ = Σ.L(a').eⱼ ⟺ (A (s, ℓ) :: (s, ℓ) ∈ Σ.L(a).eᵢ ⟺ (s, ℓ) ∈ Σ.L(a').eⱼ))`
-
-Two consequences: (i) endset equality reduces to extensional set equality over `Span`, and (ii) no operator in the model selects a span by position within an endset — span access is by membership only.
+**L5 — EndsetSetSemantics.** An endset is an *unordered* set; the ordering of spans within an endset carries no semantic meaning. The substantive commitment is structural, about the operators the model provides, not a fact about sets: the model exposes **no span-positional accessor** within an endset. There is no operator `e.spanⱼ` selecting the j-th span of an endset; span access is by membership `(s, ℓ) ∈ e` only. Equality of endsets is not stipulated by this invariant — it is inherited from `𝒫_fin(Span)`: since `Endset = 𝒫_fin(Span)`, two endsets are equal exactly when they have the same span members, by extensionality of finite sets. L5 adds to that inherited equality the structural restriction that no operation can distinguish two presentations of the same span collection, because no operation consults span position in the first place.
 
 Gregory confirms exhaustively. During storage, spans receive sequential V-addresses within the link's own permutation matrix (an artifact of linked-list traversal order). Upon retrieval, spans come back ordered by I-address value, not by insertion sequence — the original ordering is not preserved or recoverable. No code path in the implementation treats any span as "primary" or consults positional index within an endset. All link-finding (`sporglset2linksetinrange`) and intersection (`intersectlinksets`) operations iterate uniformly, comparing addresses by value without regard to position. A planned `consolidatespanset` function — which might have imposed normalization — was never implemented.
 
