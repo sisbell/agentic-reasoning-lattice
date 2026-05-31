@@ -291,7 +291,7 @@ Type matching decouples classification from content retrieval: a search for type
 
 `(A Σ : Σ satisfies the state-local L- and S-invariants ∧ dom(Σ.M) ≠ ∅ ∧ Σ s_C-resident : (A N ≥ 3 :: (E Σ' extending Σ, a ∈ dom(Σ'.L) :: |Σ'.L(a)| = N ∧ (E (t, len) ∈ Σ'.L(a).type :: t ∉ dom(Σ'.C) ∪ dom(Σ'.L)))))`
 
-*Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X ∈ ℕ` with `s_X ≥ 1`, `s_X ≠ s_C`, and `s_X ≠ s_L` (such `s_X` exists because ℕ contains more than two values `≥ 1`: NAT-closure's successor closure yields the three distinct naturals `1`, `1 + 1`, `1 + 1 + 1`, all `≥ 1`, distinct by NAT-addcompat's `n < n + 1` together with NAT-order's irreflexivity and transitivity; at least one of the three avoids the two fixed constants `s_C`, `s_L`).
+*Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X ∈ ℕ` with `s_X ≥ 1`, `s_X ≠ s_C`, and `s_X ≠ s_L` (such `s_X` exists since ℕ is unbounded and `s_C`, `s_L` are only two values).
 
 *Selection of `d`.* Pick any `d ∈ dom(Σ.M)` (nonempty by the L9 precondition); `d` is T4-valid with `zeros(d) = 2` by DocVal, and `d ∈ dom(Σ'.M)` since `Σ'.M = Σ.M`.
 
