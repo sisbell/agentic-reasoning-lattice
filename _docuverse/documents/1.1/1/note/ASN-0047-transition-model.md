@@ -125,12 +125,7 @@ This ASN uses properties of the link store. For self-containment, we restate the
 
 **SubspaceConventionAxiom (Axiom, FixedSubspaceIdentifiers; per ASN-0093).** `s_C = 1 ∧ s_L = 2`. The distinctness consequence `s_C ≠ s_L` is abbreviated **SC-NEQ**. The axiom is taken from ASN-0093 directly.
 
-The derivation of L14 (StoreDisjointness, dom(C) ∩ dom(L) = ∅) is a two-premise chain:
-
-  - **L0 (SubspacePartition, per ASN-0093).** Every a ∈ dom(C) has subspace_I(a) = s_C; every a ∈ dom(L) has subspace_I(a) = s_L. Both clauses are foundation invariants in ASN-0093.
-  - **SC-NEQ (consequence of SubspaceConventionAxiom).** s_C ≠ s_L.
-
-  Chaining: suppose a ∈ dom(C) ∩ dom(L). By L0's C-clause, subspace_I(a) = s_C; by L0's L-clause, subspace_I(a) = s_L. Since subspace_I(a) is a single value for a single tumbler (well-definedness of subspace_I as a function on T_elem — both `a ∈ dom(C)` and `a ∈ dom(L)` place `a ∈ T_elem` via S7b (`zeros(a) = 3`) and L1 (`zeros(a) = 3`) respectively, putting `subspace_I(a) = E(a)₁` in T4b's parse domain), s_C = s_L, contradicting SC-NEQ. Therefore dom(C) ∩ dom(L) = ∅, i.e., L14 holds. T7 (FirstElementFieldDistinction, ASN-0034) is *not* a load-bearing premise of this derivation — the contradiction follows from L0's two clauses being incompatible at a single tumbler under SC-NEQ, not from T7's distinct-tumbler conclusion. T7's contrapositive "identical tumblers have identical E₁" is universal function-evaluation, not specific to the disjointness argument.
+The unscoped disjointness `dom(C) ∩ dom(L) = ∅` is established in the foundation as **SD (StoreDisjointness, ASN-0093)**, which ASN-0093 derives from L0 + SC-NEQ + StoreT4Validity + T7 (SubspaceDisjointness, ASN-0034). We restate it here as L14 for narrative continuity and cite ASN-0093 SD for its derivation rather than re-proving it; the premises SD rests on are all available in the extended state — L0's two clauses (per ASN-0093) supply `subspace_I(a) = s_C` for `a ∈ dom(C)` and `subspace_I(a) = s_L` for `a ∈ dom(L)`, SC-NEQ supplies `s_C ≠ s_L`, and StoreT4Validity is discharged on each side by `zeros(a) = 3` (S7b for content, L1 for links) placing every store address in T4b's parse domain.
 
 We note that `s_C ≥ 1` follows from S7b and T4: content I-addresses are element-level by S7b (`zeros(a) = 3`), and T4 requires every element-field component to be strictly positive, so `subspace_I(a) = s_C > 0`. The same derivation gives `s_L ≥ 1`: link I-addresses are element-level by L1 below (`zeros(ℓ) = 3`), so by T4, `subspace_I(ℓ) = s_L > 0`.
 
@@ -172,7 +167,7 @@ Once created, a link's address persists in dom(L) and its value is permanently f
 
   `dom(Σ.C) ∩ dom(Σ.L) = ∅`
 
-Derived from L0 and SC-NEQ (chain detailed above): if `a ∈ dom(C)` then `subspace_I(a) = s_C`, and if `a ∈ dom(L)` then `subspace_I(a) = s_L`; since `s_C ≠ s_L`, no single tumbler can inhabit both domains.
+This is ASN-0093's SD (StoreDisjointness) restated; its derivation (L0 + SC-NEQ + StoreT4Validity + T7) is cited from ASN-0093, not re-proved here.
 
 **L-fin (LinkStoreFiniteness).** `|dom(Σ.L)| < ∞`. Holds at Σ₀ (|∅| = 0); preserved by K.λ (single-element extension) and by L-frame in all other transitions.
 
@@ -488,7 +483,7 @@ T10 (PartitionIndependence) then closes the lemma in both cases: every `a` exten
 
 Downstream sites cite this lemma as **CrossDocDisjoint** (or "the Cross-document disjointness chain lemma"). The lemma is stated for any sub-allocator prefix pair of the form `[e₁.0.s₁]`, `[e₂.0.s₂]` with `e₁, e₂` distinct same-level entities and `s₁, s₂ ≥ 1` (possibly distinct). At the document level this covers all four anchor pairings between `b_C(d) = [d.0.s_C]` and `b_L(d') = [d'.0.s_L]` — same-subspace (`s₁ = s₂`) and cross-subspace (`s₁ ≠ s₂`) alike, dispatched by the same proof; at the account level the document sub-allocator's first emission `inc(A, 2) = [A.0.1]` is a similar prefix (the difference between minted-direct and minted-via-anchor is in the activation discharge, not in the cross-entity disjointness analysis).
 
-Cross-subspace collisions are further prevented by L14 (StoreDisjointness), itself derived from L0 and SC-NEQ (per the L14 derivation chain at *Link store and extended system state* above): every content address has `subspace_I(a) = s_C`, every link address has `subspace_I(ℓ) = s_L`, and `s_C ≠ s_L`, so no allocation in one subspace can produce an address inhabiting the other.
+Cross-subspace collisions are further prevented by L14 (StoreDisjointness) — ASN-0093's SD (StoreDisjointness), restated at *Link store and extended system state* above: every content address has `subspace_I(a) = s_C`, every link address has `subspace_I(ℓ) = s_L`, and `s_C ≠ s_L`, so no allocation in one subspace can produce an address inhabiting the other.
 
 
 ## Link allocation
@@ -1417,7 +1412,7 @@ The matrix is a navigational index; each cell summarises the load-bearing argume
 
 *L3 (NEndsetStructure).* K.λ precondition `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` establishes L3 at the new entry; L12 preserves it pointwise for existing entries; Σ₀ has `dom(L₀) = ∅` so L3 holds vacuously at the base. All other transitions hold L in frame.
 
-*L14 (StoreDisjointness).* Derived at each state from L0 + SC-NEQ per the *Link store and extended system state* section.
+*L14 (StoreDisjointness).* ASN-0093's SD (StoreDisjointness) restated; its derivation (L0 + SC-NEQ + StoreT4Validity + T7) is cited from ASN-0093 per the *Link store and extended system state* section.
 
 *L-fin (Link store finiteness).* `|dom(L)| < ∞`: base `|dom(L₀)| = 0`; K.λ extends dom(L) by exactly one address (finite extension preserves finiteness); all other transitions hold L in frame.
 
@@ -1541,13 +1536,13 @@ These properties are foundation invariants of ASN-0093 (or earlier foundation AS
 | L3 | NEndsetStructure: `(A a ∈ dom(Σ.L) :: |Σ.L(a)| ≥ 3 ∧ (A i : 1 ≤ i ≤ |Σ.L(a)| : Σ.L(a).eᵢ ∈ Endset) ∧ Σ.L(a).e₃ ≠ ∅)` — every link is a sequence of at least three endsets with the type endset (slot 3) non-empty. Inherited verbatim from ASN-0093's L3 (which itself inherits from ASN-0043's `Link` definition admitting arity `N ≥ 3`). | ASN-0093 (NEndsetStructure) |
 | C-fin | ContentStoreFiniteness: `|dom(Σ.C)| < ∞`. Load-bearing for K.α's subsequent-emission case formula `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` — the indexed set is a subset of the finite `dom(C)`, so `max` is well-defined whenever non-empty. Inherited as a per-state invariant of the extended state; established at Σ₀ (`|dom(C₀)| = 0`) and preserved by K.α (extends by one) with frame on all other transitions. | ASN-0093 (ContentStoreFiniteness) |
 | L1c | LinkAllocatorConformance: every `ℓ ∈ dom(L)` has a structural inc-chain from its home document to `ℓ` — a finite sequence `(t₀, …, tₙ)` with `t₀ = origin(ℓ)`, `tₙ = ℓ`, each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfying T10a's per-step admissibility (T4-validity preservation, zero-count side condition at `kᵢ = 2`), `k₁ = 2`, and `#tᵢ > #origin(ℓ)` at every step. Originated in ASN-0093 as the structural-inc-chain form (weakened from ASN-0043's "operates within a system conforming to T10a"); ASN-0047 inherits this form unchanged. The anchor traversal `d → b_C(d) → b_L(d) → [d.0.s_L.1]` and the first link emission inhabit no T10a-tracked allocator domain — their activation discharge goes through SubAllocatorAxiom rather than T10a's T2 spawning rule, as already captured by ASN-0093's L1c. | ASN-0093 (LinkAllocatorConformance) — itself weakened from ASN-0043's L1c |
+| L14 | StoreDisjointness: `dom(C) ∩ dom(L) = ∅` — unscoped store disjointness. ASN-0093's SD restated under the local name L14; its derivation (L0 + SC-NEQ + StoreT4Validity + T7, SubspaceDisjointness ASN-0034) is cited from ASN-0093, not re-proved here. SD's unscoped form already supersedes ASN-0043's scoped L14 (DualPrimitive, `dom(L) ∩ dom(C)\|_{s_C} = ∅`), the unscoping being available because ASN-0093's K.α `E(a)₁ = s_C` precondition forces every `a ∈ dom(C)` to be `s_C`-resident. | ASN-0093 (SD, StoreDisjointness) |
 
 ### Local extensions and strengthenings of foundation properties
 
 | Label | Statement | Foundation source |
 |-------|-----------|--------------------|
 | P0 | Content store is append-only with immutable values: dom(C) ⊆ dom(C') ∧ C'(a) = C(a) for a ∈ dom(C) | Subsumes ASN-0036's S0 (ContentImmutability) and S1 (StoreMonotonicity) into a single unified statement |
-| L14 | StoreDisjointness: `dom(C) ∩ dom(L) = ∅` — unscoped store disjointness derived from L0 (with the C-clause introduced here) and SC-NEQ (see L14 derivation chain in *Link store and extended system state*) | Strengthens ASN-0043's L14 (DualPrimitive, scoped under `s_C`-resident content as `dom(L) ∩ dom(C)\|_{s_C} = ∅`) to the unscoped form, made available by ASN-0093's K.α `E(a)₁ = s_C` precondition which forces every `a ∈ dom(C)` to be `s_C`-resident |
 | L14a | Superseded by S3★ + CL-OWN in the extended state: S3★ routes every link-subspace V→I mapping to dom(L), and CL-OWN forces home-document ownership at each such mapping | ASN-0043's L14a (NonTranscludability — `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∉ dom(Σ.L))`, forbidding any V-position from mapping to a link) is *superseded by* (replaced by, not implied by) S3★ + CL-OWN in the extended state. S3★ permits link-subspace V→I mappings (forbidden by L14a) by routing them into dom(L), and CL-OWN constrains such mappings to the home document; in the link-subspace-permitting state, S3★ + CL-OWN ⟹ ¬L14a, so the replacement is genuine rather than derivational |
 | S3★ | Subspace-conditional referential integrity: text → dom(C), link → dom(L); supersedes S3 | ASN-0036's S3 (ReferentialIntegrity) is single-store; this ASN partitions the target by subspace |
 | D-CTG★ | Per-subspace contiguity: `(A d, S : V_S(d) ≠ ∅ : V_S(d) is contiguous under the V-ordering on subspace S)` — local strengthening of ASN-0036's D-CTG dropping the link-subspace exemption; supersedes D-CTG within the extended state | ASN-0036's D-CTG (Contiguity) had a link-subspace exemption |
