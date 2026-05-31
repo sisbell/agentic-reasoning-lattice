@@ -1,0 +1,36 @@
+# Review of ASN-0043
+
+## REVISE
+
+### Issue 1: L11a's shared-home embedding misstates the allocator structure, ignoring the second child-spawn that L1b forces
+**ASN-0043, L11a — LinkUniqueness, shared-home case**: "Both chains open with the *same* `inc(d, 2)`... so 𝒯 contains exactly one `inc(d, 2)` child-spawn, seating a single link-ordinal allocator rooted there. ... they must *share* this one child-spawn edge of 𝒯 and thereafter diverge only by `inc(·, 0)` sibling advances within that single allocator's domain. Hence `a₁` and `a₂` are distinct siblings of one allocator."
+
+**Problem**: This is structurally false given L1b (`#E(a) ≥ 2`) and the ASN's own chain construction (L9 Case A, worked-example L1c). Reaching a link address from a document-level seed `d` (`zeros = 2`) requires **two** child-spawns, not one:
+1. `inc(d, 2)` → `d.0.1` (element field `[1]`, depth 1) — seats the third zero;
+2. an `inc(·, 0)` sibling sweep to `d.0.s_L` (still depth 1);
+3. `inc(d.0.s_L, 1)` → `d.0.s_L.1` (element field `[s_L, 1]`, depth 2) — the *second* child-spawn that L1b demands.
+
+The allocator rooted at the `inc(d, 2)` spawn is the **subspace-level** allocator (its siblings are `d.0.1, d.0.2, …`, advancing the subspace identifier), not "the link-ordinal allocator." The actual link siblings `a₁, a₂` are siblings of the **grandchild** allocator rooted at `inc(d.0.s_L, 1)`. So "thereafter diverge only by `inc(·, 0)` sibling advances within that single allocator's domain" skips both the sibling sweep and the second child-spawn, and "distinct siblings of one allocator" attributes the pair to the wrong allocator. Sharing the structure additionally requires invoking T10a's at-most-once constraint on the pair `(d.0.s_L, 1)`, which the argument never does — it cites at-most-once only for `(d, 2)`.
+
+**Required**: Either (a) correct the derivation to trace both child-spawns — at-most-once on `(d, 2)` forces the shared subspace-level base `d.0.1`, the sibling sweep to `d.0.s_L` is deterministic, and at-most-once on `(d.0.s_L, 1)` forces the shared grandchild allocator whose `inc(·, 0)` siblings are the link ordinals — or (b) since GlobalUniqueness needs only that `a₁, a₂` are distinct allocation events of the one tree 𝒯, drop the over-specific "distinct siblings of one allocator" claim and rest the discharge on tree membership alone.
+
+### Issue 2: L0b carries forward-reference meta-prose justifying non-repetition
+**ASN-0043, L0b — LinkAddressValidity**: "This is the T4-validity postcondition of L1c (LinkAllocatorConformance, below), derived there along the allocation chain; we cite that single derivation rather than repeat it."
+
+**Problem**: The clause "we cite that single derivation rather than repeat it" advances no reasoning — it justifies the citation choice rather than stating content, the forward-reference-accretion pattern this review mode targets. The substantive content is only "derived from L1c's chain via T10a.4."
+
+**Required**: Trim to the bare attribution, e.g. "Derived from L1c's chain (T10a.4, ASN-0034)."
+
+### Issue 3: L9's "Selection of d'" introduces a vestigial rename `d' = d`
+**ASN-0043, L9 proof, "Selection of d'"**: "Pick any `d ∈ dom(Σ.M)` (nonempty by the L9 precondition) and set `d' = d`; ..." followed by uniform use of `d'` thereafter.
+
+**Problem**: `d'` is defined to be identical to `d` and then used everywhere in place of `d`. The rename adds an indirection with no role — it reads as residue from a prior version where `d'` may have differed from `d`. This is reviser-drift residue (content relocated/renamed rather than removed).
+
+**Required**: Drop the `d'` rename and use `d` throughout the L9 construction.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Global content-subspace constant
+The ASN scopes disjointness to the `s_C`-resident slice and lists, as an open question, whether a content-side invariant should fix a global content-subspace constant so disjointness extends to all of `dom(Σ.C)`. This is correctly deferred — it is a content-model strengthening (ASN-0036 territory), not a defect in the link model.
+
+VERDICT: REVISE
