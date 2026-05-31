@@ -117,7 +117,7 @@ The first step seats the field-separating zero at position `#s + 1`, between the
 
 *Postcondition: `s = home(a)`.* Apply CPP to this chain with `t₀ = s` and `p = #s`. The sibling-advance length precondition holds: the opening step is the child-spawn `k₁ = 2`, which lifts length to `#s + 2` before any sibling advance, and lengths never decrease, so every sibling advance acts on an input of length `≥ #s + 2 > #s = p`. CPP then yields that `a` agrees with `s` on positions `1..#s`. The third zero of `a` first appears at position `#s + 1` — the one seated by `k₁ = 2` — and `s` ends at position `#s` with a positive component (T4-validity of `s`). The prefix of `a` ending just before the third zero is therefore exactly the length-`#s` prefix `s`, which by definition is `home(a)`. Hence `s = home(a)`.
 
-**DocVal — document T4-validity (consequence of S7d + T10a.4).** Every `d ∈ dom(Σ.M)` is T4-valid, with `zeros(d) = 2`. By S7d (DocumentAllocationDiscipline, ASN-0036) such a `d` is the terminus of a T10a-conforming allocator chain from the system tree 𝒯's root (T4-valid by T10a's root-of-allocator-tree axiom), and T10a.4 (T4PreservationUnderDiscipline, ASN-0034) propagates T4-validity along each chain step. This is a standing fact about every document in `dom(Σ.M)`, cited where a document tumbler's T4-validity is needed below.
+**DocVal — document T4-validity (consequence of S7d + T10a.4).** Every `d ∈ dom(Σ.M)` is T4-valid, with `zeros(d) = 2`. By S7d (DocumentAllocationDiscipline, ASN-0036) such a `d` is the terminus of a T10a-conforming allocator chain from the system tree 𝒯's root (T4-valid by T10a's root-of-allocator-tree axiom), and T10a.4 (T4PreservationUnderDiscipline, ASN-0034) propagates T4-validity along each chain step.
 
 
 ## Home and Ownership
@@ -477,7 +477,7 @@ So `Σ.C = {c₁ ↦ v₁, c₂ ↦ v₂}` for some values `v₁, v₂ ∈ Val`.
 
 - `a = 1.0.1.0.1.0.2.1` — element field `2.1` (subspace 2, ordinal 1)
 
-Choose a ghost type address `g = 1.0.1.0.1.0.3.1` — an element-level tumbler in the same document `d` as the link, with element field `[s_X, 1] = [3, 1]`, so `subspace_I(g) = 3 = s_X`. We verify `g ∉ dom(Σ.C) ∪ dom(Σ.L)` by direct enumeration in the L9 step below — `Σ`'s content store and link store are each enumerable as small finite sets in this state, so the verification proceeds by T7 against each entry. Define:
+Choose a ghost type address `g = 1.0.1.0.1.0.3.1` — an element-level tumbler in the same document `d` as the link, with element field `[s_X, 1] = [3, 1]`, so `subspace_I(g) = 3 = s_X`. We verify `g ∉ dom(Σ.C) ∪ dom(Σ.L)` by direct enumeration in the L9 (TypeGhostPermission) step below — `Σ`'s content store and link store are each enumerable as small finite sets in this state, so the verification proceeds by T7 against each entry. Define:
 
 All addresses here have depth 8, so the unit-depth displacement is `δ(1, 8) = [0, 0, 0, 0, 0, 0, 0, 1]`.
 
@@ -527,6 +527,8 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 
 *L8 (TypeByAddress) at `Σ` — reflexivity.* The single-link state admits a non-vacuous reflexivity check: `same_type(a, a) ⟺ coverage(Σ.L(a).type) = coverage(Σ.L(a).type)`. The right-hand side is a set-equality of identical sets, true by reflexivity. To exhibit the actual coverage concretely, `Σ.L(a).type = Θ = {(g, δ(1, 8))}`; since `#g = 8`, PrefixSpanCoverage applies, giving `coverage({(g, δ(1, 8))}) = {t ∈ T : g ≼ t}` — the set of all tumblers extending `g`. This is the address set against which any other link's type would be compared under L8's coverage-equality criterion. ✓
+
+*L9 (TypeGhostPermission) at `Σ` — ghost-type disjointness.* The ghost type address `g = 1.0.1.0.1.0.3.1` is disjoint from every stored address, verified by direct enumeration. The stores are `dom(Σ.C) = {c₁, c₂}` and `dom(Σ.L) = {a}`, so `dom(Σ.C) ∪ dom(Σ.L) = {c₁, c₂, a}` — three entries to check. Each address here is element-level (`zeros = 3`), so T7 (SubspaceDisjointness, ASN-0034) applies: two element-level tumblers differing in the first element-field component are distinct. `subspace_I(g) = 3`, while `subspace_I(c₁) = subspace_I(c₂) = 1` and `subspace_I(a) = 2`; since `3 ∉ {1, 2}`, T7 gives `g ≠ c₁`, `g ≠ c₂`, and `g ≠ a`. Hence `g ∉ dom(Σ.C) ∪ dom(Σ.L)`. The link `a` itself is the arity-3 witness for L9's existential: its type endset `Θ = {(g, δ(1, 8))}` references `g`, an address outside `dom(Σ.C) ∪ dom(Σ.L)`. ✓
 
 *S3 (ReferentialIntegrity, ASN-0036).* `ran(Σ.M(d)) = {c₁, c₂} ⊆ dom(Σ.C)`. ✓
 
