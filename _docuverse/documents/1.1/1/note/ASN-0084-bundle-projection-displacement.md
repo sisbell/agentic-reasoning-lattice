@@ -329,7 +329,7 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 
 *Non-S runs are not split.* Let b = (v_b, a_b, n_b) ∈ B with subspace(v_b) = S' ≠ S. By SUBCONF, every V-position v_b + k satisfies subspace(v_b + k) = subspace(v_b) = S' ≠ S, so V(b) ⊆ dom(M(d)) \ V_S(d). By CS3 every cut position lies in subspace S, so no cut falls in V(b) and Phase 1 never splits b.
 
-*Phase 2: Classify.* Each run in the post-split partition lies entirely within one region — non-S (V-extent in some subspace S' ≠ S), exterior left, α, μ if 4-cut, β, or exterior right — because no run crosses a cut boundary (subspace-S runs are split at S-subspace cuts, and non-S runs are entirely contained in their subspace, shown above).
+*Phase 2: Classify.* Each run in the post-split partition lies entirely within one of R-COMM's regions — the non-S subspace (V-extent in some subspace S' ≠ S), the subspace-S exterior (`v < c₀` or `v ≥ c_{n−1}`, a single region as in the R-PPERM/R-SPERM formulas and R-COMM), α, μ if 4-cut, or β — because no run crosses a cut boundary (subspace-S runs are split at S-subspace cuts, and non-S runs are entirely contained in their subspace, shown above).
 
 *Phase 3: Reassemble.* Apply the permutation π to each run's V-start. Each run (vₖ, aₖ, nₖ) in the post-split, post-classify partition becomes (π(vₖ), aₖ, nₖ): the V-start is replaced by π(vₖ); the I-start aₖ and width nₖ are preserved verbatim. Per region:
 
@@ -339,7 +339,7 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 - β runs: π(vₖ) is computed by the β-branch of R-PPERM (3-cut) or R-SPERM (4-cut).
 - μ runs (4-cut only): π(vₖ) is computed by the μ-branch of R-SPERM.
 
-*Same-region discharge of the commutation identity.* After Phase 1, every post-split run lies entirely within a single region — subspace-S runs by the split-at-cuts construction, non-S runs by the subspace confinement shown above — so each run (vⱼ, aⱼ, nⱼ) satisfies the same-region precondition of the commutation identity π(vⱼ + k) = π(vⱼ) + k for every 0 ≤ k < nⱼ. On non-S and exterior runs the identity holds trivially (π is the identity there, so both sides equal vⱼ + k); on the displaced α/μ/β runs it is supplied by R-COMM.
+*Same-region discharge of the commutation identity.* By Phase 2, every post-split run lies entirely within a single region, so each run (vⱼ, aⱼ, nⱼ) satisfies the same-region precondition of the commutation identity π(vⱼ + k) = π(vⱼ) + k for every 0 ≤ k < nⱼ. On non-S and subspace-S exterior runs the identity holds trivially (π is the identity there, so both sides equal vⱼ + k); on the displaced α/μ/β runs it is supplied by R-COMM.
 
 *I-start, width, and contiguity of reassembled runs.* The commutation identity carries the consecutive V-positions vⱼ, vⱼ + 1, ..., vⱼ + (nⱼ − 1) to the consecutive V-positions π(vⱼ), π(vⱼ) + 1, ..., π(vⱼ) + (nⱼ − 1): each reassembled run (π(vⱼ), aⱼ, nⱼ) therefore occupies a contiguous V-position range with its width intact. Its I-start is aⱼ by the permutation defining property M'(d)(π(vⱼ)) = M(d)(vⱼ) = aⱼ. Each reassembled run is thus a valid run.
 
