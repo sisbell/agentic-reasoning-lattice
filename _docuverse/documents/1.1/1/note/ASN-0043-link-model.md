@@ -309,7 +309,7 @@ By FSP, `Σ'` satisfies every state-local L- and S-invariant. It remains to esta
 
 No property of L0–L14 or L-fin constrains type endset targets to content addresses. Nelson: "Indeed, there is no need for the presence of elements at the addresses specified. Link types may be ghost elements." The type address is a pure name — a position chosen by convention, not a pointer to content that must be dereferenced.
 
-A consequence of L8 and L9 together: new link types can be defined by choosing a fresh tumbler address and using it as a type endset. No content needs to be created at that address. No registry needs to be updated. No schema needs to change. The type exists as soon as someone uses it. This is what makes the type system "open-ended" — any user can extend it without coordination or system modification.
+The load-bearing consequence of L8 and L9 together: a type address need contain no stored content at the moment a link names it. The act of choosing the address *is* the act of defining the type, and that act stores nothing at the address it names — the type exists as soon as someone uses it.
 
 **PrefixSpanCoverage (local lemma, span/tumbler algebra).** For any tumbler `x` with `#x ≥ 1`, the unit-depth displacement `δ(1, #x)` (OrdinalDisplacement, ASN-0034) is `[0, ..., 0, 1]` of length `m = #x`, with action point `k = m`; the span `(x, δ(1, m))` is well-formed by T12; and:
 
@@ -407,7 +407,7 @@ From L13, arbitrary relational structures can be composed:
 
 > "Complex relational structures, such as the faceted link, may be constructed with links to links. These use the two-sided link structure much like the CONS cell in LISP, and may be built into arbitrary compound links."
 
-The link plays the same role for structured connections that the cons cell plays for structured data: a universal building block from which compound relational structures of arbitrary complexity are assembled by chaining. Nelson framed the faceted link this way — built from a chain of links glued by link-to-link references (the quote above). This model admits both realizations: a faceted link may be built by chaining links via link-to-link references (L13), or realized directly as a single link of arity `N` (L3).
+The link plays the same role for structured connections that the cons cell plays for structured data: a universal building block from which compound relational structures of arbitrary complexity are assembled by chaining. This model admits both realizations: a faceted link may be built by chaining links via link-to-link references (L13), or realized directly as a single link of arity `N` (L3).
 
 
 ## The Dual-Primitive Architecture
