@@ -349,6 +349,22 @@ Run-partition (disjointness and coverage) for M'(d): π is a bijection on dom(M(
 
 This completes R-BLK: B' is a valid run partition of M'(d). The 4-cut worked example below exhibits a B' containing a mergeable pair (B and H, merging into a width-3 run).
 
+R-BLK delivers a partition that is disjoint, covering, and consistent, but explicitly *not* claimed maximal. The worked examples below each finish by exhibiting a partition with no mergeable adjacent pair and naming it the *canonical* (S8-maximal) decomposition. That step needs justification: a partition built from R-BLK and then closed under Merge is mergeable-pair-free, but mergeable-pair-freeness is a *local* property of adjacent pairs, whereas canonicity is the *global* maximality of S8. We supply the bridge.
+
+**R-CANON — CanonicalityOfMergeNormalForm (LEMMA).** *Let B′ be a pairwise-disjoint, covering partition of dom(M'(d)) into valid runs — each (v, a, n) ∈ B′ has n ≥ 1 and satisfies S8-cons under M'(d). Suppose B′ contains no mergeable pair: there is no ordered pair of runs (v, a, n), (v′, a′, n′) ∈ B′ with v′ = v + n (V-adjacent) and a′ = a + n (I-adjacent). Then B′ is the canonical run decomposition of M'(d) — the unique maximal-run partition guaranteed by S8 (ASN-0036).*
+
+We must reconcile two notions of "no more structure to extract." Merge (above) is a local rewrite: it fuses one V-adjacent, I-adjacent pair. S8's maximality is a global property of a run — it admits no forward extension (no continuation of its lockstep past its last position) and no backward extension (no lockstep predecessor of its first position). The lemma asserts these coincide on a covering partition: the only candidate for a run's forward extension is the *start* of the neighbouring run, so a non-maximal run would expose a mergeable pair.
+
+We first record a fact used twice: at the fixed depth of V_S(d), each V-position has a unique immediate ordinal predecessor and successor, and shift is strictly increasing and injective in its amount (TS4, TS2, ASN-0034). Consequently any two runs of B′ that share a V-position coincide, by the disjointness of B′.
+
+*No run admits a forward extension.* Take r = (v, a, n) ∈ B′ and suppose, for contradiction, it admits a forward extension: w = v + n satisfies w ∈ dom(M'(d)) and M'(d)(w) = a + n. Since B′ covers dom(M'(d)), w lies in some run r′ = (v′, a′, n′) ∈ B′ at offset i, w = v′ + i with 0 ≤ i < n′. Suppose i ≥ 1. Then v′ + (i − 1) ∈ V(r′) has ordinal ord(w) − 1 = ord(v) + n − 1 = ord(v + (n − 1)); by uniqueness of the immediate predecessor, v′ + (i − 1) = v + (n − 1), the last V-position of r (offset n − 1, valid as n ≥ 1). This position lies in both r and r′, so r = r′; but then w = v + i with i < n′ = n contradicts w = v + n by injectivity of shift in its amount. Hence i = 0: w = v′ is the *start* of r′, and a′ = M'(d)(v′) = M'(d)(w) = a + n. Thus v′ = v + n and a′ = a + n — the pair (r, r′) is mergeable (and r ≠ r′ since v′ = v + n > v by TS4), contradicting the hypothesis. So r admits no forward extension.
+
+*No run admits a backward extension.* Symmetrically, suppose r = (v, a, n) ∈ B′ admits a backward extension: some u ∈ dom(M'(d)) satisfies u + 1 = v (v is the immediate ordinal successor of u, ord(u) = ord(v) − 1) and M'(d)(u) + 1 = a. The covering partition places u in some run r″ = (v″, a″, n″) at offset j, u = v″ + j. Suppose j < n″ − 1. Then v″ + (j + 1) ∈ V(r″) has ordinal ord(u) + 1 = ord(v), so v″ + (j + 1) = v ∈ r ∩ r″ and r = r″; but then u, of ordinal ord(v) − 1, would lie below r's least ordinal ord(v) — impossible inside r. Hence j = n″ − 1: u is the *last* position of r″, so by S8-cons M'(d)(u) = a″ + (n″ − 1). The predecessor conditions then give v = u + 1 = (v″ + (n″ − 1)) + 1 = v″ + n″ and a = M'(d)(u) + 1 = (a″ + (n″ − 1)) + 1 = a″ + n″. Thus the pair (r″, r) is mergeable, contradicting the hypothesis. So r admits no backward extension.
+
+*Conclusion.* Every run of B′ is maximal in S8's sense, so B′ is a partition of dom(M'(d)) into maximal runs. S8 (ASN-0036) guarantees that the partition into maximal runs is unique — it is, by definition, the canonical decomposition. Hence B′ equals the canonical decomposition. ∎
+
+*Termination and confluence of merging.* R-CANON resolves the operational question left open by R-BLK. Each application of Merge replaces two runs by one, strictly decreasing the (finite, ≥ 1) run count, so every sequence of merges terminates. Merge preserves the partition hypotheses — coverage and disjointness survive because the fused V-extents union exactly, and the merged run satisfies S8-cons (Merge, above) — so the terminal partition, which by construction admits no mergeable pair, satisfies R-CANON's hypotheses and is therefore the canonical decomposition. Because that decomposition is unique (S8), the terminal result is independent of the order in which mergeable pairs are fused: iterated merging is confluent, and the canonical partition is its unique normal form. Each worked example below verifies the R-CANON hypothesis by its *merge check* — exhibiting that the displayed partition has no mergeable adjacent pair — and the resulting partition is canonical by R-CANON.
+
 
 ## Worked Example: 3-Cut Pivot on a 5-Position Document
 
@@ -409,7 +425,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1)}.
 
 *Merge check:* No V-adjacent, I-adjacent pair. ([1,1], A, 1) and ([1,2], D, 1) are V-adjacent (1 + 1 = 2) but not I-adjacent (origin(A) = 3.0.1.0.1 ≠ origin(D) = 5.0.2.0.1, so A + 1 ≠ D). ([1,2], D, 1) and ([1,3], B, 2) are V-adjacent (2 + 1 = 3) but not I-adjacent (origin(D) ≠ origin(B), so D + 1 ≠ B). ([1,3], B, 2) and ([1,5], E, 1) are V-adjacent (3 + 2 = 5) but not I-adjacent (B + 2 = 3.0.1.0.1.0.1.4 ≠ E = 5.0.2.0.1.0.1.2, different origins).
 
-**Canonical partition:** {([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1)}. The rearrangement preserved one run's interior structure ([1,3], B, 2) — B and C remained adjacent — while isolating A from B/C and pulling D into the position between A and B. No new merges arose because the pre-state I-address origins differ across the boundaries created by the pivot.
+**Canonical partition** (canonical by R-CANON, since the merge check above found no mergeable pair)**:** {([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1)}. The rearrangement preserved one run's interior structure ([1,3], B, 2) — B and C remained adjacent — while isolating A from B/C and pulling D into the position between A and B. No new merges arose because the pre-state I-address origins differ across the boundaries created by the pivot.
 
 
 ## Worked Example: 4-Cut Swap on an 8-Position Document
@@ -495,7 +511,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 
 *Merge check:* ([1,6], B, 2) and ([1,8], H, 1) are V-adjacent (6 + 2 = 8) and I-adjacent (B + 2 = 3.0.1.0.1.0.1.4 = H). Merge: ([1,6], B, 3). No other pair satisfies both conditions — ([1,1], A, 1) and ([1,2], E, 3) differ in origin; ([1,2], E, 3) and ([1,5], D, 1) differ in origin; ([1,5], D, 1) and ([1,6], B, 2) differ in origin.
 
-**Canonical partition:** {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 3)}. The rearrangement brought B, C (formerly at [1,2]–[1,3]) adjacent to H (at [1,8]), and since B + 2 = H, they merge into a single run of width 3. Meanwhile A, formerly part of a width-3 run with B and C, is now isolated.
+**Canonical partition** (canonical by R-CANON: after the merge of B and H, the merge check leaves no mergeable pair)**:** {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 3)}. The rearrangement brought B, C (formerly at [1,2]–[1,3]) adjacent to H (at [1,8]), and since B + 2 = H, they merge into a single run of width 3. Meanwhile A, formerly part of a width-3 run with B and C, is now isolated.
 
 
 ## Worked Example: 4-Cut Swap with Equal Region Widths (w_α = w_β)
@@ -580,7 +596,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 2), ([1,4], D, 1), ([1,5], B, 2), 
 
 *Merge check:* No V-adjacent, I-adjacent pair: ([1,1], A, 1) and ([1,2], E, 2) differ in origin (3.0.1.0.1 vs 5.0.2.0.1); ([1,2], E, 2) and ([1,4], D, 1) differ in origin (5.0.2.0.1 vs 7.0.1.0.1); ([1,4], D, 1) and ([1,5], B, 2) differ in origin (7.0.1.0.1 vs 3.0.1.0.1); ([1,5], B, 2) and ([1,7], G, 1) differ in origin (3.0.1.0.1 vs 9.0.1.0.1).
 
-**Canonical partition:** {([1,1], A, 1), ([1,2], E, 2), ([1,4], D, 1), ([1,5], B, 2), ([1,7], G, 1)}. The rearrangement exchanges the α- and β-runs across a fixed μ-run; the canonical partition is reached without further merges because each region's I-address origin differs from its neighbours'. The example confirms the fixed-μ sub-case: the μ-run is structurally invariant under R-BLK's Phase 3 reassembly when w_α = w_β.
+**Canonical partition** (canonical by R-CANON, since the merge check above found no mergeable pair)**:** {([1,1], A, 1), ([1,2], E, 2), ([1,4], D, 1), ([1,5], B, 2), ([1,7], G, 1)}. The rearrangement exchanges the α- and β-runs across a fixed μ-run; the canonical partition is reached without further merges because each region's I-address origin differs from its neighbours'. The example confirms the fixed-μ sub-case: the μ-run is structurally invariant under R-BLK's Phase 3 reassembly when w_α = w_β.
 
 
 ## Worked Example: 4-Cut Swap with w_β < w_α (Backward μ Sub-Case)
@@ -672,7 +688,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], G, 1), ([1,3], E, 2), ([1,5], B, 3), 
 
 *Merge check:* ([1,1], A, 1) and ([1,2], G, 1) are V-adjacent (1 + 1 = 2) but not I-adjacent (origin(A) = 3.0.1.0.1 ≠ origin(G) = 7.0.1.0.1, so A + 1 ≠ G). ([1,2], G, 1) and ([1,3], E, 2) are V-adjacent (2 + 1 = 3) but differ in origin (G vs E). ([1,3], E, 2) and ([1,5], B, 3) are V-adjacent (3 + 2 = 5) but differ in origin (E vs B). ([1,5], B, 3) and ([1,8], H, 1) are V-adjacent (5 + 3 = 8); checking I-adjacency: B + 3 = 3.0.1.0.1.0.1.5 ≠ H = 9.0.1.0.1.0.1.1. No mergeable pair.
 
-**Canonical partition:** {([1,1], A, 1), ([1,2], G, 1), ([1,3], E, 2), ([1,5], B, 3), ([1,8], H, 1)}. The rearrangement extracts G into the slot vacated by α's leftward content (originally B at [1,2]), places the μ-content (E, F) one step earlier in the V-ordering (backward by 2), and pushes B, C, D to the right end of the affected range. The example confirms the backward μ sub-case: the μ-region moves earlier when the narrower β cannot accommodate α's full width, with the displacement magnitude w_α − w_β exposed cleanly in both the explicit π formula and the post-reassembly V-start of the μ-run.
+**Canonical partition** (canonical by R-CANON, since the merge check above found no mergeable pair)**:** {([1,1], A, 1), ([1,2], G, 1), ([1,3], E, 2), ([1,5], B, 3), ([1,8], H, 1)}. The rearrangement extracts G into the slot vacated by α's leftward content (originally B at [1,2]), places the μ-content (E, F) one step earlier in the V-ordering (backward by 2), and pushes B, C, D to the right end of the affected range. The example confirms the backward μ sub-case: the μ-region moves earlier when the narrower β cannot accommodate α's full width, with the displacement magnitude w_α − w_β exposed cleanly in both the explicit π formula and the post-reassembly V-start of the μ-run.
 
 
 ## Worked Example: 3-Cut Pivot at the Boundary (Minimum V_S(d), Empty Right Exterior)
@@ -726,7 +742,7 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1)}. *S8-cons verification:* both 
 
 *Merge check:* ([1,1], B, 1) and ([1,2], A, 1) are V-adjacent (1 + 1 = 2) but not I-adjacent (origin(B) = 5.0.2.0.1 ≠ origin(A) = 3.0.1.0.1, so B + 1 ≠ A). No mergeable pair.
 
-**Canonical partition:** {([1,1], B, 1), ([1,2], A, 1)}. The rearrangement exchanges the two positions across the cut sequence; both runs remain width-1, no merges arise, and the canonical decomposition of M'(d) coincides with the post-Phase-3 partition. The example confirms three structural edges of R-BLK simultaneously: (a) the minimum w_α = w_β = 1 still admits valid Phase-2 classification (α and β each receive exactly one run); (b) the empty-right-exterior dispatch in Phase 1 fires correctly at c₂ = [S, N + 1] (the "Outside ⋃_k V(b_k)" sub-case), with no run bisected and no right-exterior classification; (c) Phase 3 reassembles via π alone at minimum size, with the I-start and width of each run preserved verbatim and the V-starts transposed by the explicit R-PPERM formulas.
+**Canonical partition** (canonical by R-CANON, since the merge check above found no mergeable pair)**:** {([1,1], B, 1), ([1,2], A, 1)}. The rearrangement exchanges the two positions across the cut sequence; both runs remain width-1, no merges arise, and the canonical decomposition of M'(d) coincides with the post-Phase-3 partition. The example confirms three structural edges of R-BLK simultaneously: (a) the minimum w_α = w_β = 1 still admits valid Phase-2 classification (α and β each receive exactly one run); (b) the empty-right-exterior dispatch in Phase 1 fires correctly at c₂ = [S, N + 1] (the "Outside ⋃_k V(b_k)" sub-case), with no run bisected and no right-exterior classification; (c) Phase 3 reassembles via π alone at minimum size, with the I-start and width of each run preserved verbatim and the V-starts transposed by the explicit R-PPERM formulas.
 
 
 ## Worked Example: 3-Cut Pivot with a Non-S (Link-Subspace) Position
@@ -788,7 +804,7 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}.
 
 *Merge check:* No mergeable pair. The text runs ([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1) are pairwise V-adjacent but not I-adjacent (B + 1 = 3.0.1.0.1.0.1.3 = C ≠ A; A + 1 = B ≠ C). The link run ([2,1], L, 1) is not V-adjacent to any text run — its subspace differs — so no cross-subspace merge can arise.
 
-**Canonical partition:** {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}. The text subspace is rearranged (A and B transpose, C anchored at the exterior), while the link position [2,1] passes through entirely untouched — fixed by π, carried verbatim by R-BLK, and kept disjoint from the rearranged text runs by subspace separation. This example exercises the non-S machinery (R-NS, R-FRAME-P(a), R-BLK's verbatim carry, and the T10 cross-group disjointness) that the text-only examples leave latent.
+**Canonical partition** (canonical by R-CANON, since the merge check above found no mergeable pair)**:** {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}. The text subspace is rearranged (A and B transpose, C anchored at the exterior), while the link position [2,1] passes through entirely untouched — fixed by π, carried verbatim by R-BLK, and kept disjoint from the rearranged text runs by subspace separation. This example exercises the non-S machinery (R-NS, R-FRAME-P(a), R-BLK's verbatim carry, and the T10 cross-group disjointness) that the text-only examples leave latent.
 
 
 ## Properties Introduced
@@ -797,7 +813,7 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}.
 |-------|------|-----------|--------|
 | CutSequence | DEF | Tuple (c₀, ..., c_{n−1}) with n ∈ {3,4}, strictly ordered, same subspace, depth 2 (CS1–CS4) | introduced |
 | RegionPartition | DEF | Partition of affected range into regions α, β (3-cut) or α, μ, β (4-cut) by cut positions | introduced |
-| R-PRE | DEF | Precondition: M(d) exists, V_S(d) non-empty, cuts satisfy CS1–CS4, affected range covered, every region non-empty (w_α, w_β ≥ 1 in both forms; w_μ ≥ 1 when n = 4) | introduced |
+| R-PRE | DEF | Precondition clauses (i)–(iv): M(d) exists, V_S(d) non-empty, cuts satisfy CS1–CS4, affected range covered. (Region non-emptiness — w_α, w_β ≥ 1 in both forms, w_μ ≥ 1 when n = 4 — is *derived*, the Width-positivity consequence of (iii)+(iv)+CS2, not an assumed clause.) | introduced |
 | PivotPostcondition | DEF | 3-cut rearrangement: β content placed at c₀, then α content, exterior unchanged (R-EXT, R-P1, R-P2) | introduced |
 | SwapPostcondition | DEF | 4-cut rearrangement: β at c₀, then μ, then α, exterior unchanged (R-EXT, R-S1, R-S2, R-S3) | introduced |
 | REARRANGE_K | OPERATION | State transition Σ → Σ' parameterized by cut sequence K and document d; precondition R-PRE(K); postcondition PivotPostcondition (n=3) or SwapPostcondition (n=4) plus frame conditions R-FRAME-P or R-FRAME-S | introduced |
@@ -815,6 +831,7 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}.
 | R-RI | LEMMA | Rearrangement preserves S3 (referential integrity): ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
 | R-COMM | LEMMA | π(v + k) = π(v) + k when v and v + k lie in the same region: cut-point permutation commutes with ordinal shift | introduced |
 | R-BLK | LEMMA | Run partition transforms by split-at-cuts then displace-per-region, yielding a run partition B′ (run-partition disjointness/coverage + S8-cons) under M'(d); maximality not claimed | introduced |
+| R-CANON | LEMMA | A covering, disjoint partition into valid runs with no mergeable pair is the S8-unique maximal (canonical) decomposition; hence iterated merging terminates at it and is confluent | introduced |
 
 
 ## Open Questions
@@ -826,7 +843,5 @@ What must a well-formed editing sequence guarantee about the composition of mult
 Under what conditions can a rearrangement cause the number of correspondence runs in the canonical partition to increase, and is there an upper bound on the increase relative to the number of cut points?
 
 What constraints, if any, must cut points satisfy relative to the run boundaries of the canonical partition, or are arbitrary cut positions within the V-span always valid?
-
-By what operational process is the S8-unique maximal (canonical) run partition recovered from the valid but non-maximal partition B' that R-BLK produces — does iterated merging of V-adjacent, I-adjacent runs always terminate at it, and is the result confluent independently of merge order?
 
 What is the weakest precondition for REARRANGE_K to establish the post-state invariant suite Q, and in particular what does R-PRE(iv) guarantee beyond what D-SEQ already supplies — given that D-SEQ alone makes every region a well-defined cardinality and keeps source references within V_S(d)?
