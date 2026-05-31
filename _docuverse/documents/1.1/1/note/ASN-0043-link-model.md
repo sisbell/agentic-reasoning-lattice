@@ -240,7 +240,7 @@ The *state-local L- and S-invariants* are L0, L1, L1a, L1b, L1c, L3, L5, L6, L14
 - (h2) *Producibility:* `a` is the terminus of a T10a-conforming chain seeded at a T4-valid document-level tumbler `home(a) ∈ dom(Σ.M)`;
 - (h3) *Shape:* `subspace_I(a) = s_L`, `zeros(a) = 3`, `#E(a) ≥ 2`, and `a` is T4-valid.
 
-Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite set of T12-well-formed spans), and `e₃ ≠ ∅`. Define `Σ'` by `Σ'.L = Σ.L ∪ {a ↦ ℓ}`, `Σ'.C = Σ.C`, `Σ'.M = Σ.M`. Then `Σ'` satisfies every state-local L- and S-invariant; and the `Σ → Σ'` transition satisfies the transition invariants L12 (LinkImmutability) and L12a (LinkStoreMonotonicity).
+Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite set of T12-well-formed spans), and `e₃ ≠ ∅`. Define `Σ'` by `Σ'.L = Σ.L ∪ {a ↦ ℓ}`, `Σ'.C = Σ.C`, `Σ'.M = Σ.M`. Then `Σ'` satisfies every state-local L- and S-invariant; the `Σ → Σ'` transition satisfies the transition invariants L12 (LinkImmutability) and L12a (LinkStoreMonotonicity); and `Σ' ⊒ Σ` (StateExtension).
 
 *Proof.* The construction adds one link-store entry at `a`; `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. We treat the new entry and the carry-over of existing entries.
 
@@ -253,6 +253,7 @@ Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite se
 - *L5.* Each endset of `ℓ` is a set under extensional membership; existing entries unchanged.
 - *L6.* `ℓ` is an `N`-tuple of endsets with well-defined positional accessors, conforming to the `Link` definition; existing entries unchanged.
 - *L12 / L12a (transition).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since only the entry at `a` is added — this discharges L12 across `Σ → Σ'`, and `dom(Σ.L) ⊆ dom(Σ'.L)` discharges its corollary L12a.
+- *`Σ' ⊒ Σ` (StateExtension).* All three conjuncts hold: `Σ'.C = Σ.C` and `Σ'.M = Σ.M` give equality — hence trivially monotone growth with agreement — on the shared domains of `C` and `M`; and `Σ'.L = Σ.L ∪ {a ↦ ℓ}` with `a ∉ dom(Σ.L)` (h1) grows `L` only at the fresh address, so `dom(Σ.L) ⊆ dom(Σ'.L)` with `Σ'.L(b) = Σ.L(b)` for every `b ∈ dom(Σ.L)` (the L12 conjunct just established). Hence `Σ' ⊒ Σ`.
 - *L14.* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`; disjointness over the `s_C`-slice holds since `a` is in `s_L` and `Σ'.C = Σ.C`.
 - *L14a.* For every `(d, v)` with `v ∈ dom(Σ'.M(d)) = dom(Σ.M(d))`: `Σ'.M(d)(v) ∈ dom(Σ.C)|_{s_C}` by S3 on `Σ` together with the `s_C`-residence of content; since `dom(Σ'.L) ∩ dom(Σ.C)|_{s_C} = ∅` by L0 (above), `Σ'.M(d)(v) ∉ dom(Σ'.L)`.
 - *L-fin.* `dom(Σ'.L) = dom(Σ.L) ∪ {a}` is finite, since `dom(Σ.L)` is finite.
@@ -275,13 +276,7 @@ The type endset deserves extended treatment. It is structurally an endset — a 
 
 where `coverage(·)` is the address-set projection defined above. The relation is on coverage (the address set referenced by the endset), not on span-set identity: two type endsets with different span decompositions but identical address coverage denote the same type.
 
-*Consequences.* The defining biconditional is set-equality on coverage, so `same_type` inherits the three closure properties of `=` on sets immediately:
-
-- *Reflexive.* `(A a ∈ dom(Σ.L) :: same_type(a, a))` — `coverage(Σ.L(a).type) = coverage(Σ.L(a).type)` by reflexivity of set equality.
-- *Symmetric.* `(A a₁, a₂ ∈ dom(Σ.L) :: same_type(a₁, a₂) ⟹ same_type(a₂, a₁))` — by symmetry of set equality.
-- *Transitive.* `(A a₁, a₂, a₃ ∈ dom(Σ.L) :: same_type(a₁, a₂) ∧ same_type(a₂, a₃) ⟹ same_type(a₁, a₃))` — by transitivity of set equality.
-
-`same_type` is therefore an equivalence relation on `dom(Σ.L)`, partitioning the link store into type-equivalence classes.
+*Consequences.* Since the defining criterion is set equality on coverage, `same_type` inherits reflexivity, symmetry, and transitivity directly from `=` on sets, hence is an equivalence relation on `dom(Σ.L)`, partitioning the link store into type-equivalence classes.
 
 Nelson: "What the 'type' designation points to is completely arbitrary. This is because of the way we will be searching for links. The search mechanism does not actually look at what is stored under the 'type' it is searching for; it merely considers the type's address."
 
@@ -309,7 +304,7 @@ Define `Σ'` as `Σ` extended with the padded payload `Σ'.L(a) = (∅, ∅, {(g
 
 *Application to L9.* FSP's address hypotheses h1–h3 (freshness, producibility, shape) for `a` are established by the Case A / Case B construction above. For the payload `ℓ = (∅, ∅, {(g, δ(1, #g))}, ∅, ..., ∅)`, each `∅ ∈ Endset` and the single span is T12-well-formed since `#g = #d + 3 ≥ 1` gives `δ(1, #g) > 0` with action point `#g`; slot 3 is non-empty, so `ℓ` satisfies FSP's payload hypothesis at every arity `N ≥ 3`. Apply FSP.
 
-By FSP, `Σ'` satisfies every state-local L- and S-invariant. *Discharge of `Σ' ⊒ Σ` (StateExtension).* `Σ'.C = Σ.C` and `Σ'.M = Σ.M` give equality — hence trivially monotone growth with agreement — on the shared domains of `C` and `M`; `Σ'.L = Σ.L ∪ {a ↦ ℓ}` with `a ∉ dom(Σ.L)` grows `L` only at the fresh address, so `dom(Σ.L) ⊆ dom(Σ'.L)` with `Σ'.L(b) = Σ.L(b)` for every `b ∈ dom(Σ.L)`. All three conjuncts hold, hence `Σ' ⊒ Σ`. It remains to establish the L9-specific conclusion that FSP leaves open: the ghost-type disjointness `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. The disjointness `g ∉ dom(Σ.C) ∪ dom(Σ.L)` established above transfers to `Σ'` unchanged: `Σ'.C = Σ.C`, and the sole new link address `a ≠ g` lies in subspace `s_L ≠ s_X`, so `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. ∎
+By FSP, `Σ'` satisfies every state-local L- and S-invariant, and `Σ' ⊒ Σ` (StateExtension). It remains to establish the L9-specific conclusion that FSP leaves open: the ghost-type disjointness `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. The disjointness `g ∉ dom(Σ.C) ∪ dom(Σ.L)` established above transfers to `Σ'` unchanged: `Σ'.C = Σ.C`, and the sole new link address `a ≠ g` lies in subspace `s_L ≠ s_X`, so `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. ∎
 
 No property of L0–L14 or L-fin constrains type endset targets to content addresses. Nelson: "Indeed, there is no need for the presence of elements at the addresses specified. Link types may be ghost elements." The type address is a pure name — a position chosen by convention, not a pointer to content that must be dereferenced.
 
@@ -360,7 +355,7 @@ The invariants *permit* non-injectivity — every state with a link can be exten
 
 `Σ'.L = Σ.L ∪ {a' ↦ Σ.L(a)}`, `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
 
-*Conformance of `Σ'`.* This is a fresh-sibling extension, so we appeal to FSP (FreshSiblingConformance, *A Shared Conformance Lemma* above). FSP's content-residence hypothesis is discharged by the L11b precondition (`Σ` is `s_C`-resident), which `Σ` satisfies by assumption. FSP's address hypotheses h1 (freshness), h2 (producibility), h3 (shape) for `a'` are exactly the outputs of FreshSiblingExistence above. The payload `ℓ = Σ.L(a)`, an `N`-tuple with `N ≥ 3`, has T12-well-formed spans (inherited from the conforming link `a` by L4 on `Σ`) and satisfies L3 (arity ≥ 3, slot 3 the non-empty type endset, by L3 on `Σ`). By FSP, `Σ'` satisfies every state-local L- and S-invariant, and the `Σ → Σ'` transition satisfies L12 and L12a. *Discharge of `Σ' ⊒ Σ` (StateExtension).* `Σ'.C = Σ.C` and `Σ'.M = Σ.M` give equality — hence trivially monotone growth with agreement — on the shared domains of `C` and `M`; `Σ'.L = Σ.L ∪ {a' ↦ Σ.L(a)}` with `a' ∉ dom(Σ.L)` grows `L` only at the fresh address, so `dom(Σ.L) ⊆ dom(Σ'.L)` with `Σ'.L(b) = Σ.L(b)` for every `b ∈ dom(Σ.L)`. All three conjuncts hold, hence `Σ' ⊒ Σ`. The L11b-specific delta is the *endset equality* `Σ'.L(a') = Σ.L(a)`, which holds by construction — this is the non-injectivity witness, not an invariant.
+*Conformance of `Σ'`.* This is a fresh-sibling extension, so we appeal to FSP (FreshSiblingConformance, *A Shared Conformance Lemma* above). FSP's content-residence hypothesis is discharged by the L11b precondition (`Σ` is `s_C`-resident), which `Σ` satisfies by assumption. FSP's address hypotheses h1 (freshness), h2 (producibility), h3 (shape) for `a'` are exactly the outputs of FreshSiblingExistence above. The payload `ℓ = Σ.L(a)`, an `N`-tuple with `N ≥ 3`, has T12-well-formed spans (inherited from the conforming link `a` by L4 on `Σ`) and satisfies L3 (arity ≥ 3, slot 3 the non-empty type endset, by L3 on `Σ`). By FSP, `Σ'` satisfies every state-local L- and S-invariant, the `Σ → Σ'` transition satisfies L12 and L12a, and `Σ' ⊒ Σ` (StateExtension). The L11b-specific delta is the *endset equality* `Σ'.L(a') = Σ.L(a)`, which holds by construction — this is the non-injectivity witness, not an invariant.
 
 Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links.
 
@@ -641,7 +636,7 @@ The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared b
 | L1d | LEMMA | SubspaceDisjointness (local) — (a) T4-valid element-level tumblers in distinct subspaces are distinct (T7 in `subspace_I` notation); (b) `dom(Σ.L) ∩ dom(Σ.C)\|_{s_C} = ∅` | introduced |
 | L1c | AXIOM | LinkAllocatorConformance — link allocation conforms to T10a (AllocatorDiscipline, ASN-0034); every link address is the T4-valid terminus of a T10a-conforming chain seeded at its document-level prefix (full statement and postconditions in body) | introduced |
 | CPP | LEMMA | ChainPrefixPreservation (local) — along a T10a-conforming chain of T4-valid tumblers with `p ≤ #t₀`, if every sibling-advance step acts on an input of length `> p`, the terminus agrees with `t₀` on positions `1..p` | introduced |
-| FSP | LEMMA | FreshSiblingConformance (local) — appending one fresh sibling link `a` (h1 freshness, h2 producibility, h3 shape) carrying any L3-conforming payload, with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`, preserves every state-local L- and S-invariant and satisfies the `Σ → Σ'` transition invariants L12/L12a | introduced |
+| FSP | LEMMA | FreshSiblingConformance (local) — appending one fresh sibling link `a` (h1 freshness, h2 producibility, h3 shape) carrying any L3-conforming payload, with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`, preserves every state-local L- and S-invariant, satisfies the `Σ → Σ'` transition invariants L12/L12a, and yields `Σ' ⊒ Σ` (StateExtension) | introduced |
 | FSE | LEMMA | FreshSiblingExistence (local) — for a conforming link `a ∈ dom(Σ.L)` under L-fin, there exists `i ≥ 1` with `a' = incⁱ(a, 0) ∉ dom(Σ.L)` satisfying `home(a') = home(a)`, `subspace_I(a') = s_L`, `zeros(a') = 3`, `#E(a') = #E(a)`, T4-valid and L1c-producible | introduced |
 | L2 | LEMMA | OwnershipEndsetIndependence — `home(a)` depends only on `a`, not on the link's endsets | introduced |
 | L3 | INV | NEndsetStructure — every link has at least three endsets, with slot 3 a non-empty type endset: `\|Σ.L(a)\| ≥ 3 ∧ Σ.L(a).e₃ ≠ ∅`; arity 3 `(F, G, Θ)` is the standard triple, higher arity admitted | introduced |
