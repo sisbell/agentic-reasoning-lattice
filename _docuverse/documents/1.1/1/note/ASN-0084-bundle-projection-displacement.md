@@ -327,11 +327,9 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 - *Boundary of a run:* if cᵢ ∈ V(bₖ) and cᵢ = vₖ, no split is needed — the cut already coincides with a run boundary.
 - *Outside ⋃_k V(bₖ):* no split is performed. By CS2–CS4 and R-PRE(iv), c₀, …, c_{n−2} ∈ V_S(d) ⊆ ⋃_k V(bₖ); only c_{n−1} may fall outside, and EXT-VAC then gives c_{n−1} ∉ dom(M(d)) with empty right exterior, so no run straddles it.
 
-*Interaction between successive cuts.* After all cuts are processed, no run straddles any cut position cᵢ for 0 ≤ i ≤ n − 1, since Phase 1 splits at every cut interior to a run.
-
 *Non-S runs are not split.* Let b = (v_b, a_b, n_b) ∈ B with subspace(v_b) = S' ≠ S. By OrdShiftHom (a) of ASN-0036, every V-position v_b + k satisfies subspace(v_b + k) = S' ≠ S, so V(b) ⊆ dom(M(d)) \ V_S(d). By CS3 every cut position lies in subspace S, so no cut falls in V(b) and Phase 1 never splits b.
 
-*Phase 2: Classify.* Each run in the post-split partition lies entirely within one region — non-S (V-extent in some subspace S' ≠ S), exterior left, α, μ if 4-cut, β, or exterior right — because no run crosses a cut boundary (subspace-S runs are split at S-subspace cuts, and non-S runs are entirely contained in their subspace, shown above). The classification by Phase 1 of the remaining cuts together with the subspace separation of non-S runs covers all runs.
+*Phase 2: Classify.* Each run in the post-split partition lies entirely within one region — non-S (V-extent in some subspace S' ≠ S), exterior left, α, μ if 4-cut, β, or exterior right — because no run crosses a cut boundary (subspace-S runs are split at S-subspace cuts, and non-S runs are entirely contained in their subspace, shown above).
 
 *Phase 3: Reassemble.* Apply the permutation π to each run's V-start. Each run (vₖ, aₖ, nₖ) in the post-split, post-classify partition becomes (π(vₖ), aₖ, nₖ): the V-start is replaced by π(vₖ); the I-start aₖ and width nₖ are preserved verbatim. Per region:
 
@@ -341,7 +339,7 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 - β runs: π(vₖ) is computed by the β-branch of R-PPERM (3-cut) or R-SPERM (4-cut).
 - μ runs (4-cut only): π(vₖ) is computed by the μ-branch of R-SPERM.
 
-The non-S and exterior runs carry through with their widths intact because π is the identity on them (the non-S and exterior clauses of R-PPERM/R-SPERM), so π(vₖ + k) = vₖ + k = π(vₖ) + k holds trivially. On the displaced α/μ/β runs the same identity-commutation π(vₖ + k) = π(vₖ) + k is supplied by R-COMM.
+The commutation π(vₖ + k) = π(vₖ) + k holds trivially on non-S and exterior runs (π is the identity there, so both sides equal vₖ + k), and on the displaced α/μ/β runs it is supplied by R-COMM.
 
 *I-start, width, and contiguity of reassembled runs.* After Phase 1, every run lies entirely in a single region — for subspace-S runs by Phase 1's split-at-cuts construction, for non-S runs by the subspace confinement shown above — so the same-region precondition of the identity π(vⱼ + k) = π(vⱼ) + k (established above) is discharged for each run (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ. That identity carries the consecutive V-positions vⱼ, vⱼ + 1, ..., vⱼ + (nⱼ − 1) to the consecutive V-positions π(vⱼ), π(vⱼ) + 1, ..., π(vⱼ) + (nⱼ − 1): each reassembled run (π(vⱼ), aⱼ, nⱼ) therefore occupies a contiguous V-position range with its width intact, and its I-start is preserved because the rearrangement modifies no I-addresses (M'(d) and M(d) share the same value set, only repositioned). Each reassembled run is thus a valid run.
 
