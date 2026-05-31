@@ -67,7 +67,7 @@ The system designates at least two subspaces within each document's element fiel
 
 `dom(Σ.C)|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}`
 
-— the slice of `dom(Σ.C)` whose addresses occupy subspace `s_C`; `subspace_I` is well-defined here because every such address is T4-valid with `zeros = 3`, so `#E ≥ 1` by T4's field-segment constraint and `E(·)₁` exists. Call a state `Σ` *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` — every stored content address occupies subspace `s_C`.
+— the slice of `dom(Σ.C)` whose addresses occupy subspace `s_C` (`subspace_I` is well-defined on these element-level addresses by the Notational convention's uniform definition). Call a state `Σ` *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` — every stored content address occupies subspace `s_C`.
 
 **L1 — LinkElementLevel.** Every link address is an element-level tumbler:
 
@@ -200,7 +200,7 @@ Beyond T12 well-formedness, the model imposes no constraint on endset spans. The
 
 **L5 — EndsetSetSemantics.** An endset is an *unordered* set; the ordering of spans within an endset carries no semantic meaning. The substantive commitment is structural, about the operators the model provides, not a fact about sets: the model exposes **no span-positional accessor** within an endset. There is no operator `e.spanⱼ` selecting the j-th span of an endset; span access is by membership `(s, ℓ) ∈ e` only.
 
-Gregory confirms exhaustively. During storage, spans receive sequential V-addresses within the link's own permutation matrix (an artifact of linked-list traversal order). Upon retrieval, spans come back ordered by I-address value, not by insertion sequence — the original ordering is not preserved or recoverable. No code path in the implementation treats any span as "primary" or consults positional index within an endset. All link-finding (`sporglset2linksetinrange`) and intersection (`intersectlinksets`) operations iterate uniformly, comparing addresses by value without regard to position. A planned `consolidatespanset` function — which might have imposed normalization — was never implemented.
+Gregory confirms exhaustively. During storage, spans receive sequential V-addresses within the link's own permutation matrix (an artifact of linked-list traversal order). Upon retrieval, spans come back ordered by I-address value, not by insertion sequence — the original ordering is not preserved or recoverable. No code path in the implementation treats any span as "primary" or consults positional index within an endset. All link-finding (`sporglset2linksetinrange`) and intersection (`intersectlinksets`) operations iterate uniformly, comparing addresses by value without regard to position.
 
 **Definition — Coverage.** For an endset `e`, define the *coverage* as the union of the sets denoted by its spans:
 
@@ -342,7 +342,7 @@ Gregory documents this in the bootstrap document's type registry: `MARGIN` at ad
 
 We now establish the identity semantics of links. The three requirements we began with — distinguishability, ownership, referenceability — crystallize into two derived properties.
 
-**L11a — LinkUniqueness.** Distinct T10a-conforming allocation events produce distinct link addresses. Formally, for any pair of allocation events producing link addresses `a₁` and `a₂` in the system, if the events are distinct then `a₁ ≠ a₂` as tumblers. This is GlobalUniqueness (ASN-0034) instantiated at link addresses. Its precondition is not merely per-event T10a-conformance but that the events are distinct allocation events *within a single system conforming to T10a*.
+**L11a — LinkUniqueness.** Distinct T10a-conforming allocation events produce distinct link addresses. Formally, for any pair of allocation events producing link addresses `a₁` and `a₂` in the system, if the events are distinct then `a₁ ≠ a₂` as tumblers. This is GlobalUniqueness (ASN-0034) instantiated at link addresses.
 
 By S7d (DocumentAllocationDiscipline, ASN-0036) each home `home(a) ∈ dom(Σ.M)` is a node of the system's single allocator tree 𝒯 (T4-valid by DocVal). By L1c each link's allocation chain is seeded at that document node and proceeds by T10a steps, so it never leaves 𝒯. Hence both link-producing events are distinct allocation events within the single T10a system 𝒯, which is exactly GlobalUniqueness's precondition; GlobalUniqueness then yields `a₁ ≠ a₂` directly. Gregory confirms the coordination concretely: all links homed in a document are placed by a single stateless query-and-increment over the `home.0.2.*` subtree of the one global granfilade, guarded by a `homedoc` equality check against cross-document bleed.
 
