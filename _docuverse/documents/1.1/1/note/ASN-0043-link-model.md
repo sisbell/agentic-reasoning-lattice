@@ -293,7 +293,7 @@ Type matching decouples classification from content retrieval: a search for type
 
 **L9 — TypeGhostPermission.** Ghost types are permitted. For any state `Σ` satisfying the state-local L- and S-invariants, with `dom(Σ.M) ≠ ∅`, and with `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`), there exists for every arity `N ≥ 3` a conforming state `Σ'` extending `Σ` (`Σ' ⊒ Σ`, StateExtension) with a link of arity `N` whose type endset references an address outside `dom(Σ'.C) ∪ dom(Σ'.L)`:
 
-`(A Σ : Σ satisfies the state-local L- and S-invariants ∧ dom(Σ.M) ≠ ∅ ∧ (A b ∈ dom(Σ.C) :: subspace_I(b) = s_C) : (A N ≥ 3 :: (E Σ' extending Σ, a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: |Σ'.L(a)| = N ∧ s ∉ dom(Σ'.C) ∪ dom(Σ'.L))))`
+`(A Σ : Σ satisfies the state-local L- and S-invariants ∧ dom(Σ.M) ≠ ∅ ∧ (A b ∈ dom(Σ.C) :: subspace_I(b) = s_C) : (A N ≥ 3 :: (E Σ' extending Σ, a ∈ dom(Σ'.L) :: |Σ'.L(a)| = N ∧ (E (t, len) ∈ Σ'.L(a).type :: t ∉ dom(Σ'.C) ∪ dom(Σ'.L)))))`
 
 *Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X ∈ ℕ` with `s_X ≥ 1`, `s_X ≠ s_C`, and `s_X ≠ s_L` (such `s_X` exists by T0(a)'s unbounded positive component values: infinitely many naturals differ from the two fixed constants `s_C`, `s_L`).
 
