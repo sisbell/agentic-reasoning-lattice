@@ -162,7 +162,7 @@ The content and link subspaces are organised as sibling element-field sub-alloca
 - `b_C(d) := [d.0.s_C]` — the **content sub-allocator anchor** (one-component element field with `E₁ = s_C`, `zeros = 3`, `#E = 1`)
 - `b_L(d) := [d.0.s_L]` — the **link sub-allocator anchor** (one-component element field with `E₁ = s_L`, `zeros = 3`, `#E = 1`)
 
-These anchors are *structurally producible* by T10a `inc` steps from `d`: `b_C(d) = inc(d, 2)` appends `[0, 1]` (TA5(d), `k = 2`), yielding `[d.0.1] = [d.0.s_C]` once `s_C = 1` is supplied by SubspaceConventionAxiom; and `b_L(d) = inc(b_C(d), 0)` increments the `sig` component of `[d.0.s_C]` to `s_C + 1` (TA5(c)), yielding `[d.0.(s_C+1)] = [d.0.s_L]` once `s_L = s_C + 1` is supplied by SubspaceConventionAxiom. The anchors themselves are *not* in `dom(C) ∪ dom(L)` — content and link addresses have `#E ≥ 2` (C1; L1b above), and the anchors have `#E = 1`.
+These anchors are *structurally producible* by T10a `inc` steps from `d`: `b_C(d) = inc(d, 2)` appends `[0, 1]` (TA5(d), `k = 2`), yielding `[d.0.1] = [d.0.s_C]` once `s_C = 1` is supplied by SubspaceConventionAxiom; and `b_L(d) = inc(b_C(d), 0)` increments the `sig` component of `[d.0.s_C]` to `s_C + 1` (TA5(c)), yielding `[d.0.(s_C+1)] = [d.0.s_L]` once `s_L = s_C + 1` is supplied by SubspaceConventionAxiom. The anchors themselves are *not* in `dom(C) ∪ dom(L)` — content and link addresses have `#E ≥ 2` (C1b; L1b above), and the anchors have `#E = 1`.
 
 **Active sub-allocator chains.** Define: a sub-allocator chain `A_C(d)` (resp. `A_L(d)`) is *active at state* `Σ` iff `d ∈ dom(M)` at `Σ`.
 
@@ -408,7 +408,7 @@ The example exercises both the first-emit and subsequent-emit branches of K.α a
 
 **Simultaneous-induction framing.** The stated invariants, together with the ChainMembershipForOrigin lemma and the StoreT4Validity corollary, are proved by *simultaneous induction* over transition sequences from `Σ₀`: the inductive hypothesis at each step is the *conjunction* of every such property at the current state `Σ`, and the inductive step exhibits each holding at `Σ'` using the conjoined IH. The inductive step is recorded as a per-(invariant, transition) matrix; entries describe how each transition kind preserves or discharges each invariant.
 
-**Base case verification (at `Σ₀ = (∅, ∅, ∅)`).** Most invariants are vacuously satisfied: M0/M1/M2/C1/C1b/C1c/C2/L0/L1/L1a/L1b/L1c/L3 quantify over `dom(C)`, `dom(L)`, or `dom(M)`, all empty at `Σ₀`. C0 and L12 quantify over transitions `Σ → Σ'`, vacuous at `Σ₀` until the first transition fires. Three invariants are non-vacuous but trivially satisfied at `Σ₀`:
+**Base case verification (at `Σ₀ = (∅, ∅, ∅)`).** Most invariants are vacuously satisfied: M0/M2/C1/C1b/C1c/C2/L0/L1/L1a/L1b/L1c/L3 quantify over `dom(C)`, `dom(L)`, or `dom(M)`, all empty at `Σ₀`. C0, M1, and L12 quantify over transitions `Σ → Σ'`, vacuous at `Σ₀` until the first transition fires. Three invariants are non-vacuous but trivially satisfied at `Σ₀`:
 
 - **SD** (`dom(C) ∩ dom(L) = ∅`): at `Σ₀`, both stores empty, so `∅ ∩ ∅ = ∅` — trivially true.
 - **L-fin** (`|dom(L)| < ∞`): `|∅| = 0 < ∞` — trivially true.
