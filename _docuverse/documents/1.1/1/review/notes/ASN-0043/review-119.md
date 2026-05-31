@@ -1,0 +1,26 @@
+# Review of ASN-0043
+
+## REVISE
+
+### Issue 1: L11a's embedding of link chains into the single tree 𝒯 is asserted in one sentence, but it is load-bearing for GlobalUniqueness's single-system precondition
+
+**ASN-0043, L11a — LinkUniqueness**: "Each seed `home(a)` is therefore a node of 𝒯, so each link chain — seeded at that node and extending by T10a-conforming steps — is a subtree of 𝒯. Both `a₁` and `a₂` thus arise as distinct allocation events within the one tree 𝒯..."
+
+**Problem**: L1c gives, per link, the *existence* of *some* T10a-conforming chain from `home(a)` to `a`. GlobalUniqueness (ASN-0034) requires that `a₁` and `a₂` be "distinct allocation events within a single system conforming to T10a" — i.e., actual events of one coherent tree respecting the at-most-once-per-`(t, k')` child-spawning constraint. The step from "reachable by *a* conforming chain from a 𝒯-node" to "*is* a subtree of the specific tree 𝒯" is exactly the nontrivial content, and it is asserted, not derived. The reconciliation is concretely visible for two links homed in the same document: each L1c chain opens with `inc(home, 2)`, but T10a forbids two distinct `inc(home, 2)` child-spawns from the same node, so the two chains must *share* that prefix edge in 𝒯. L1c supplies only independent per-link existence, no such coordination. S7d places only *documents* in 𝒯; it does not place link element-addresses there. "Is a subtree of 𝒯" papers over precisely the obligation GlobalUniqueness's precondition demands.
+
+**Required**: Show that the link allocations are genuine events of the one tree 𝒯 — that the independently-existential L1c chains embed as actual 𝒯 edges consistent with at-most-once (in particular that same-document link chains share the single `inc(home, 2)` child-spawn and diverge only at sibling advances within one link-ordinal allocator) — rather than asserting subtree membership from per-chain conformance alone.
+
+### Issue 2: L0b carries a downstream-consumer inventory and re-derives a fact L1c already proves
+
+**ASN-0043, L0b — LinkAddressValidity**: "This is the terminal postcondition of the T10a-conforming allocation chain established in L1c (below)... We record it here, once, so that its consumers below — L0a's disjointness discharge, the `home` definition, and L1a — cite this single result rather than each forward-referencing L1c independently."
+
+**Problem**: Two flagged accretion patterns. (i) The second sentence enumerates downstream consumers (L0a, `home`, L1a) and justifies the claim's placement, rather than advancing what the claim states — the "a definition's introduction enumerates downstream consumers" pattern. (ii) The fact "`a` is T4-valid, by T10a.4 along the L1c chain" is derived a second time inside L1c's body under the paragraph "*Postcondition: T4-validity of `a`.*" ("The chain begins at the T4-valid seed `s` and proceeds entirely by T10a steps, so by induction... `tₙ = a` is T4-valid"). The same one-line argument appears in two places — the "two paragraphs say the same thing in different words" pattern.
+
+**Required**: State L0b's claim with a bare citation to L1c's T4-validity postcondition (or, conversely, delete L1c's postcondition paragraph and let it cite L0b) so the fact is derived once; drop the consumer-inventory/placement sentence — citing sites need no advance announcement.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Global content-subspace invariant lifting disjointness from the `s_C`-slice to all of `dom(Σ.C)`
+**Why out of scope**: The first Open Question already records that closing the gap between scoped (`s_C`-resident) and unconditional content-side disjointness needs a *content-side* invariant. That belongs in a content/arrangement ASN revision, not here; L0a's scoped guarantee is internally complete.
+
+VERDICT: REVISE
