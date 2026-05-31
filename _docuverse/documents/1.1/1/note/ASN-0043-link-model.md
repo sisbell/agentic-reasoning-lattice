@@ -167,7 +167,7 @@ We write `|L|` for the *arity* of a link — the number of endsets in the sequen
 
 **Convention — StandardTriple.** The standard link form has arity 3, with slot 1 as the *from-endset*, slot 2 as the *to-endset*, and slot 3 as the *type-endset*. We write `(F, G, Θ)` for a link following this convention. Nelson's MAKELINK operation takes these three endsets plus a home document, and Gregory's implementation hardcodes three V-addresses (1.1, 2.1, 3.1) and three spanfilade index constants (`LINKFROMSPAN = 1`, `LINKTOSPAN = 2`, `LINKTHREESPAN = 3`). The standard triple is the dominant case — but it is a convention, not a structural limit.
 
-*Named accessor.* Conditional on `|Σ.L(a)| ≥ 3`, we introduce the abbreviation `Σ.L(a).type ≡ Σ.L(a).e₃` as a synonym for the indexed accessor of slot 3.
+*Named accessor.* We introduce the abbreviation `Σ.L(a).type ≡ Σ.L(a).e₃` as a synonym for the indexed accessor of slot 3; its well-definedness follows from L3, which guarantees `|Σ.L(a)| ≥ 3` for every `a ∈ dom(Σ.L)` in a conforming store.
 
 **L3 — NEndsetStructure.** Every link in the link store is a sequence of at least three endsets, each in `Endset`, with slot 3 a non-empty type endset:
 
@@ -345,8 +345,6 @@ We now establish the identity semantics of links. The three requirements we bega
 **L11a — LinkUniqueness.** Distinct T10a-conforming allocation events produce distinct link addresses. Formally, for any pair of allocation events producing link addresses `a₁` and `a₂` in the system, if the events are distinct then `a₁ ≠ a₂` as tumblers. This is GlobalUniqueness (ASN-0034) instantiated at link addresses. Its precondition is not merely per-event T10a-conformance but that the events are distinct allocation events *within a single system conforming to T10a*.
 
 By S7d (DocumentAllocationDiscipline, ASN-0036) each home `home(a) ∈ dom(Σ.M)` is a node of the system's single allocator tree 𝒯 (T4-valid by DocVal). By L1c each link's allocation chain is seeded at that document node and proceeds by T10a steps, so it never leaves 𝒯. Hence both link-producing events are distinct allocation events within the single T10a system 𝒯, which is exactly GlobalUniqueness's precondition; GlobalUniqueness then yields `a₁ ≠ a₂` directly. Gregory confirms the coordination concretely: all links homed in a document are placed by a single stateless query-and-increment over the `home.0.2.*` subtree of the one global granfilade, guarded by a `homedoc` equality check against cross-document bleed.
-
-L11a is the cross-event strengthening of the within-state single-valuedness already given by the partial-function typing `Σ.L : T ⇀ Link`.
 
 **L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same endset sequence:
 
