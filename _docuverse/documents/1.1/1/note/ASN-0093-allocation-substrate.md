@@ -86,7 +86,7 @@ Every content address is an element-level tumbler. Discharged from `K.α`'s prec
 
 Every content address has at least two element-field components. Discharged from `K.α`'s precondition.
 
-**C1c (ContentAllocatorConformance).** Every content address `a ∈ dom(C)` has a T10a-conforming step sequence from its home document to `a`: a finite sequence `(t₀, t₁, …, tₙ)` with `n ≥ 1`, `t₀ = origin(a)`, and `tₙ = a`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints (T4-validity preservation, including the `kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2` zero-count side condition); additionally, `k₁ = 2` (the first step is a depth-2 increment off the document seed) and `(A i : 1 ≤ i ≤ n : #tᵢ > #origin(a))` (every intermediate length strictly exceeds the seed's). The chain witnesses `a`'s structural producibility from its home document via the content sub-allocator chain.
+**C1c (ContentAllocatorConformance).** Every content address `a ∈ dom(C)` has a T10a-conforming step sequence from its home document to `a`: a finite sequence `(t₀, t₁, …, tₙ)` with `n ≥ 1`, `t₀ = origin(a)`, and `tₙ = a`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints (T4-validity preservation, including the `kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2` zero-count side condition); additionally, `k₁ = 2` (the first step is a depth-2 increment off the document seed) and `(A i : 1 ≤ i ≤ n : #tᵢ > #origin(a))` (every intermediate length strictly exceeds the seed's).
 
 **C2 (ContentScopedAllocation).**
 
@@ -110,7 +110,7 @@ All invariants below are stated against the reachable-state quantifier — they 
   `(A a ∈ dom(L) :: E(a)₁ = s_L)`
   `(A a ∈ dom(C) :: E(a)₁ = s_C)`
 
-Every link address has subspace identifier `s_L`; every content address has subspace identifier `s_C`. The L-clause is inherited from ASN-0043; the C-clause is a derived substrate invariant, proved at the new content key by FirstEmission / DisjointSubAllocatorChains — the sub-allocator discipline (`b_C(d) = inc(d, 2)` landing at `s_C`) yields `E(a)₁ = s_C`.
+Every link address has subspace identifier `s_L`; every content address has subspace identifier `s_C`. The L-clause is inherited from ASN-0043; the C-clause is a derived substrate invariant, discharged at the new content key by the inductive-step matrix (L0 / K.α row).
 
 **L1 (LinkElementLevel).**
 
@@ -130,7 +130,7 @@ Every link address has its home document allocated.
 
 Every link address has at least two element-field components.
 
-**L1c (LinkAllocatorConformance).** Every link address `ℓ ∈ dom(L)` has a *T10a-conforming step sequence* from its home document to `ℓ`: a finite sequence `(t₀, t₁, …, tₙ)` with `n ≥ 1`, `t₀ = origin(ℓ)`, and `tₙ = ℓ`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints (T4-validity preservation, including the `kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2` zero-count side condition); additionally, `k₁ = 2` (the first step is a depth-2 increment off the document seed) and `(A i : 1 ≤ i ≤ n : #tᵢ > #origin(ℓ))` (every intermediate length strictly exceeds the seed's). The chain witnesses `ℓ`'s structural producibility from its home document via the link sub-allocator.
+**L1c (LinkAllocatorConformance).** Every link address `ℓ ∈ dom(L)` has a *T10a-conforming step sequence* from its home document to `ℓ`: a finite sequence `(t₀, t₁, …, tₙ)` with `n ≥ 1`, `t₀ = origin(ℓ)`, and `tₙ = ℓ`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints (T4-validity preservation, including the `kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2` zero-count side condition); additionally, `k₁ = 2` (the first step is a depth-2 increment off the document seed) and `(A i : 1 ≤ i ≤ n : #tᵢ > #origin(ℓ))` (every intermediate length strictly exceeds the seed's).
 
 **L3 (NEndsetStructure).**
 
