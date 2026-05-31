@@ -69,7 +69,7 @@ This parallels S7b for content (ASN-0036). A link address carries all four tumbl
 
 `home(a) = N(a).0.U(a).0.D(a)`
 
-extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034). The definition presupposes its stated domain condition — `a` T4-valid and element-level — which L0b (below) discharges for every link address. This is the same field-extraction formula ASN-0036 uses to define `origin` on content addresses, applied here to link addresses.
+extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034). This is the same field-extraction formula ASN-0036 uses to define `origin` on content addresses, applied here to link addresses.
 
 **L1c — LinkAllocatorConformance.** Every link address is a T10a-conforming allocator output (AllocatorDiscipline, ASN-0034) — the T4-valid terminus of an allocation chain seeded at its document-level prefix.
 
@@ -91,13 +91,11 @@ The first step seats the field-separating zero at position `#s + 1`, between the
 
 `(A a ∈ dom(Σ.L) :: T4-valid(a))`
 
-This is the T4-validity postcondition established by L1c's chain, and it is the *single* licensing fact this ASN uses for the field projections on link addresses: with every link address T4-valid and element-level (L1, `zeros(a) = 3`), T4b's `E`, `N`, `U`, `D` projections (UniqueParse, ASN-0034) are well-defined on all of `dom(Σ.L)`, so `subspace_I(a) = E(a)₁` and `home(a)` exist for every `a ∈ dom(Σ.L)`. T4-validity is load-bearing here, and `zeros(a) = 3` alone (L1) would not suffice: a tumbler with three zeros but adjacent zeros or a zero boundary has no well-defined field parse.
+This is the T4-validity postcondition established by L1c's chain. With every link address T4-valid and element-level (L1, `zeros(a) = 3`), T4b's `E`, `N`, `U`, `D` projections (UniqueParse, ASN-0034) are well-defined on all of `dom(Σ.L)`, so `subspace_I(a) = E(a)₁` and `home(a)` exist for every `a ∈ dom(Σ.L)`.
 
 **L0 — SubspacePartition.** Every link address has subspace identifier `s_L`:
 
 `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`
-
-The projection `subspace_I(a) = E(a)₁` is well-defined on every `a ∈ dom(Σ.L)` by L0b.
 
 **L0a — ContentSubspaceScope.** This ASN scopes its content-side disjointness guarantee to the `s_C`-resident portion of the content store. *Content-side T4-validity.* By ASN-0036's S7b, every `b ∈ dom(Σ.C)` has `zeros(b) = 3` and well-defined T4b projections; since T4b's definitional domain (UniqueParse, ASN-0034) is precisely the T4-valid subset of `T`, every `b ∈ dom(Σ.C)` is T4-valid. Define:
 
@@ -121,7 +119,7 @@ This mirrors S8a's `#t ≥ 2` for V-positions (ASN-0036). A link address must ca
 
 (a) *Pairwise separation.* For T4-valid `x, y` with `zeros(x) = zeros(y) = 3` and `subspace_I(x) ≠ subspace_I(y)`: `x ≠ y`. This is T7 (FirstElementFieldDistinction, ASN-0034) in the `subspace_I` notation — T7's precondition (T4-validity and `zeros = 3` on each side) is met, `subspace_I(x) = E(x)₁ ≠ E(y)₁ = subspace_I(y)`, so T7's postcondition gives `x ≠ y`.
 
-(b) *Scoped store disjointness.* `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`. T4-validity holds on each side — for `a ∈ dom(Σ.L)` by L0b, for `b ∈ dom(Σ.C)` by the content-side T4-validity established in L0a — and `zeros(a) = 3` (L1), `zeros(b) = 3` (S7b, ElementLevelIAddresses, ASN-0036, a fortiori for `b ∈ dom(Σ.C)|_{s_C}`). For every `a ∈ dom(Σ.L)` and every `b ∈ dom(Σ.C)|_{s_C}`, L0 gives `subspace_I(a) = s_L`, the `s_C`-residence restriction gives `subspace_I(b) = s_C`, and `s_L ≠ s_C`; part (a) then yields `a ≠ b`. Universally instantiating over the product `dom(Σ.L) × dom(Σ.C)|_{s_C}` lifts this pairwise distinctness to the scoped set disjointness `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`.
+(b) *Scoped store disjointness.* `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`. Every `a ∈ dom(Σ.L)` is T4-valid (L0b) with `zeros(a) = 3` (L1); every `b ∈ dom(Σ.C)` is T4-valid (L0a) with `zeros(b) = 3` (S7b, ElementLevelIAddresses, ASN-0036, a fortiori for `b ∈ dom(Σ.C)|_{s_C}`). For every `a ∈ dom(Σ.L)` and every `b ∈ dom(Σ.C)|_{s_C}`, L0 gives `subspace_I(a) = s_L`, the `s_C`-residence restriction gives `subspace_I(b) = s_C`, and `s_L ≠ s_C`; part (a) then yields `a ≠ b`. Universally instantiating over the product `dom(Σ.L) × dom(Σ.C)|_{s_C}` lifts this pairwise distinctness to the scoped set disjointness `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`.
 
 Links and `s_C`-resident content cannot share an address. They are peers in the tumbler space — both first-class, both permanent, both addressable — but they are different kinds of entity occupying different regions. Gregory confirms this at the implementation level: the granfilade has exactly two leaf types (`GRANTEXT = 1` and `GRANORGL = 2`), distinguished by an `infotype` discriminator in the bottom crum. Content stores byte sequences; links store pointers to nested enfilades encoding the endset structure. Runtime predicates (`istextcrum`, `islinkcrum`) explicitly test for and separate these two categories.
 
@@ -646,11 +644,11 @@ The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared b
 | L1 | INV | LinkElementLevel — every link address is an element-level tumbler: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` | introduced |
 | L1a | INV | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
 | L1b | INV | LinkElementFieldDepth — every link address has element field depth ≥ 2: `(A a ∈ dom(Σ.L) :: #E(a) ≥ 2)` | introduced |
-| L1d | LEMMA | SubspaceDisjointness (local) — (a) T4-valid element-level tumblers in distinct subspaces are distinct (T7 in `subspace_I` notation); (b) `dom(Σ.L) ∩ dom(Σ.C)\|_{s_C} = ∅`; consumed by FSP's L0 bullet, L9, L14, L14a, and the worked example | introduced |
+| L1d | LEMMA | SubspaceDisjointness (local) — (a) T4-valid element-level tumblers in distinct subspaces are distinct (T7 in `subspace_I` notation); (b) `dom(Σ.L) ∩ dom(Σ.C)\|_{s_C} = ∅` | introduced |
 | L1c | AXIOM | LinkAllocatorConformance — link allocation conforms to T10a (AllocatorDiscipline, ASN-0034); every link address is the T4-valid terminus of a T10a-conforming chain seeded at its document-level prefix (full statement and postconditions in body) | introduced |
 | CPP | LEMMA | ChainPrefixPreservation (local) — along a T10a-conforming chain of T4-valid tumblers with `p ≤ #t₀`, if every sibling-advance step acts on an input of length `> p`, the terminus agrees with `t₀` on positions `1..p` | introduced |
-| FSP | LEMMA | FreshSiblingConformance (local) — appending one fresh sibling link `a` (h1 freshness, h2 producibility, h3 shape) carrying any L3-conforming payload, with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`, preserves every state-local L- and S-invariant and satisfies the `Σ → Σ'` transition invariants L12/L12a; leaves `coverage(ℓ.type)` unconstrained | introduced |
-| FSE | LEMMA | FreshSiblingExistence (local) — for a conforming link `a ∈ dom(Σ.L)` under L-fin, there exists `i ≥ 1` with `a' = incⁱ(a, 0) ∉ dom(Σ.L)` satisfying `home(a') = home(a)`, `subspace_I(a') = s_L`, `zeros(a') = 3`, `#E(a') = #E(a)`, T4-valid and L1c-producible; discharges FSP's h1–h3 | introduced |
+| FSP | LEMMA | FreshSiblingConformance (local) — appending one fresh sibling link `a` (h1 freshness, h2 producibility, h3 shape) carrying any L3-conforming payload, with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`, preserves every state-local L- and S-invariant and satisfies the `Σ → Σ'` transition invariants L12/L12a | introduced |
+| FSE | LEMMA | FreshSiblingExistence (local) — for a conforming link `a ∈ dom(Σ.L)` under L-fin, there exists `i ≥ 1` with `a' = incⁱ(a, 0) ∉ dom(Σ.L)` satisfying `home(a') = home(a)`, `subspace_I(a') = s_L`, `zeros(a') = 3`, `#E(a') = #E(a)`, T4-valid and L1c-producible | introduced |
 | L2 | LEMMA | OwnershipEndsetIndependence — `home(a)` depends only on `a`, not on the link's endsets | introduced |
 | L3 | INV | NEndsetStructure — every link has at least three endsets, with slot 3 a non-empty type endset: `\|Σ.L(a)\| ≥ 3 ∧ Σ.L(a).e₃ ≠ ∅`; arity 3 `(F, G, Θ)` is the standard triple, higher arity admitted | introduced |
 | L4 | META | EndsetGenerality — the model imposes no constraint on endset spans beyond T12 well-formedness (definitional from L3): no single-document, content-only, or existence restriction | introduced |
