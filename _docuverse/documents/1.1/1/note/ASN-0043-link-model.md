@@ -225,8 +225,6 @@ But the slot distinction is *structural*, not *semantic*. Whether "from" means "
 
 **L7 — DirectionalFlexibility.** The invariants L0–L14 and L-fin impose no constraint on which of the from/to slots carries directional significance; any directional interpretation is determined by the link type, outside the link structure.
 
-*Structurally.* The invariants of L0–L14 and L-fin quantify only over addresses, endset membership, and slot position; not one of them predicates on which slot is source and which is target.
-
 Nelson: "A link is typically directional. Thus it has a from-set, the bytes the link is 'from,' and a to-set, the bytes the link is 'to.' (What 'from' and 'to' mean depend on the specific case.)" The word "typically" is deliberate. A citation link is directional — it goes *from* citing text *to* cited source. A counterpart link marking equivalence has no meaningful direction. A heading link populates only one content endset — Nelson calls it "inane" to label that one endset "from." The structure provides two slots; the type defines whether the distinction carries directional weight.
 
 
@@ -256,9 +254,7 @@ Let `ℓ = (e₁, ..., e_N)` with `N ≥ 3`, each `eᵢ ∈ Endset` (a finite se
 - *L14.* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`; disjointness over the `s_C`-slice holds since `a` is in `s_L` and `Σ'.C = Σ.C`.
 - *L14a.* For every `(d, v)` with `v ∈ dom(Σ'.M(d)) = dom(Σ.M(d))`: `Σ'.M(d)(v) ∈ dom(Σ.C)|_{s_C}` by S3 on `Σ` together with the `s_C`-residence of content; since `dom(Σ'.L) ∩ dom(Σ.C)|_{s_C} = ∅` by L0 (above), `Σ'.M(d)(v) ∉ dom(Σ'.L)`.
 - *L-fin.* `dom(Σ'.L) = dom(Σ.L) ∪ {a}` is finite, since `dom(Σ.L)` is finite.
-- *ASN-0036 invariants.* `Σ'.C = Σ.C` discharges S0, S1, S7a, S7b verbatim; `Σ'.M = Σ.M` discharges S2, S3, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ verbatim — every constraint on the content store and arrangement family is reproduced from `Σ`.
-
-L11a is not a state-local invariant but a cross-event lemma (LinkUniqueness); it holds in `Σ'` automatically, since FSP preserves L1c and S7d, from which GlobalUniqueness (ASN-0034) re-derives address distinctness across the distinct allocation events of `dom(Σ'.L)`. ∎
+- *ASN-0036 invariants.* `Σ'.C = Σ.C` discharges S0, S1, S7a, S7b verbatim; `Σ'.M = Σ.M` discharges S2, S3, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ verbatim — every constraint on the content store and arrangement family is reproduced from `Σ`. ∎
 
 We also need the existence of such a fresh sibling:
 
@@ -297,7 +293,7 @@ Type matching decouples classification from content retrieval: a search for type
 
 *Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X ∈ ℕ` with `s_X ≥ 1`, `s_X ≠ s_C`, and `s_X ≠ s_L` (such `s_X` exists by T0(a)'s unbounded positive component values: infinitely many naturals differ from the two fixed constants `s_C`, `s_L`).
 
-*Selection of `d'` (a T10a-allocated document under 𝒯).* L1a requires `home(a) ∈ dom(Σ'.M)`, and S7d requires every entry of `dom(Σ'.M)` to be a node in the system's allocator tree 𝒯 produced by a T10a allocation event. By the L9 precondition `dom(Σ.M) ≠ ∅`, pick any `d ∈ dom(Σ.M)` and set `d' = d`. By DocVal, `d` is T4-valid. Reusing the existing arrangement keeps `Σ'.M = Σ.M`, so no new document allocation event is introduced. `d'` is therefore a T4-valid document-level tumbler (`zeros(d') = 2`, by S7d) with `d' ∈ dom(Σ.M) = dom(Σ'.M)`.
+*Selection of `d'`.* Pick any `d ∈ dom(Σ.M)` (nonempty by the L9 precondition) and set `d' = d`; `d'` is T4-valid with `zeros(d') = 2` by DocVal, and `d' ∈ dom(Σ'.M)` since `Σ'.M = Σ.M`.
 
 *Construction of `g` (T4-valid ghost address in subspace `s_X`).* Build `g = d'.0.s_X.1` — concatenate `[0, s_X, 1]` to `d'`. T4-validity: `d'` is T4-valid with `zeros(d') = 2`; appending `0` introduces one new zero (so `zeros(g) = 3`); the last component of `d'` is strictly positive by T4-validity of `d'`, so the new `0` does not create adjacent zeros, and `s_X ≥ 1` separates the new `0` from the trailing `1`; the first component of `g` (inherited from `d'`) and the last (`1`) are strictly positive; every non-separator component is strictly positive (inherited components by T4-validity of `d'`; `s_X ≥ 1` by construction; `1 > 0` at the tail). T4b's projections therefore apply: `E(g) = [s_X, 1]`, giving `subspace_I(g) = s_X` and `#E(g) = 2`. By L0 applied to `Σ`, `dom(Σ.L) ⊆ {t : subspace_I(t) = s_L}`; by the L9 precondition (`s_C`-residence of content), `dom(Σ.C) ⊆ {t : subspace_I(t) = s_C}`. By the L0a discharge (with `zeros = 3` per side — `g` by construction, content by S7b, links by L1 — and `s_X` distinct from both `s_C` and `s_L`), `g ∉ dom(Σ.C) ∪ dom(Σ.L)`, regardless of the size of these domains.
 
@@ -352,7 +348,7 @@ We now establish the identity semantics of links. The three requirements we bega
 
 L1c (LinkAllocatorConformance) gives, for each `a ∈ dom(Σ.L)`, a T10a-conforming chain seeded at its document-level prefix `home(a) ∈ dom(Σ.M)`. By S7d (DocumentAllocationDiscipline, ASN-0036), every entry of `dom(Σ.M)` is a node of the system's single allocator tree 𝒯, the terminus of a T10a-conforming chain from 𝒯's root (T4-valid by DocVal). Each seed `home(a)` is therefore a node of 𝒯, so each link chain — seeded at that node and extending by T10a-conforming steps — is a subtree of 𝒯. Both `a₁` and `a₂` thus arise as distinct allocation events within the one tree 𝒯, discharging GlobalUniqueness's single-tree precondition even when the two links are homed in different documents.
 
-Within-state single-valuedness (an address names at most one link) is immediate from the partial-function typing `Σ.L : T ⇀ Link`; L11a is the cross-event strengthening.
+Within-state single-valuedness (an address names at most one link) is immediate from the partial-function typing `Σ.L : T ⇀ Link`; L11a is the cross-event strengthening. Fresh-sibling extensions (FSP) preserve L1c and S7d, so L11a's premises — and hence its conclusion — carry to any FSP-extended state automatically.
 
 **L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same endset sequence:
 
