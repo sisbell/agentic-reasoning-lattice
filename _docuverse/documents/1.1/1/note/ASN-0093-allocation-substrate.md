@@ -1,8 +1,8 @@
 # ASN-0093: Allocation Substrate
 
-A Xanadu-style substrate maintains three address-keyed stores: the content store, the link store, and the document-arrangement function. Each store is grown by an allocation primitive that extends the store's domain at a fresh key with structural invariants on the new entry. ASN-0043 introduced the link store and its structural invariants (L0/L1/L1a/L1b/L1c/L3/L12/L14); ASN-0036 introduced the content store and arrangement function. The factoring is downward from a fuller transition model: the central rewrite is one notational substitution — `E_doc` (the set of entities classified `IsDocument`) is replaced by `dom(M)` (the set of allocated documents in the arrangement function), so the substrate-layer claims can be stated without reference to the entity set. Beyond that substitution, the substrate adds content-side commitments absent from the inherited models — C1b (content element-field depth, with no ASN-0036 counterpart), the C-clause of L0 (content subspace partition), and C1c (content allocator conformance) — stated here as substrate-level invariants rather than inherited from ASN-0036/0043. Inherited link-side and arrangement-side claims discharge from their counterparts; the added content-side invariants are proved within this note. Higher-layer transition models fold both into a larger state model that also tracks entity allocation and arrangement provenance — `Σ = (C, L, E, M, R)` — and supply the operational primitives for the full state.
+A Xanadu-style substrate maintains three address-keyed stores: the content store, the link store, and the document-arrangement function. Each store is grown by an allocation primitive that extends the store's domain at a fresh key with structural invariants on the new entry. ASN-0043 introduced the link store and its structural invariants (L0/L1/L1a/L1b/L1c/L3/L12/L14); ASN-0036 introduced the content store and arrangement function. The substrate state is `Σ = (C, L, M)`, where `dom(M)` is the set of allocated documents. The substrate adds three content-side invariants that the inherited models do not carry — C1b (content element-field depth), the C-clause of L0 (content subspace partition), and C1c (content allocator conformance) — proved within this note.
 
-This note extracts the *allocation-substrate* layer: the three allocation primitives (K.σ, K.α, K.λ) and the structural invariants on `(Σ.C, Σ.L, Σ.M)` they preserve. The substrate requires no commitment to `Σ.E` (the entity set) or `Σ.R` (the provenance relation). Higher-layer concerns — arrangement mutation, entity stratification, provenance recording — are deferred to higher-layer ASNs that compose this substrate's primitives with additional disciplines.
+This note extracts the *allocation-substrate* layer: the three allocation primitives (K.σ, K.α, K.λ) and the structural invariants on `(Σ.C, Σ.L, Σ.M)` they preserve. The substrate requires no commitment to `Σ.E` (the entity set) or `Σ.R` (the provenance relation); deferred higher-layer concerns are enumerated under *Deferred to higher-layer ASNs* in Scope.
 
 
 ## Scope
@@ -62,7 +62,7 @@ The initial state is `Σ₀ = (∅, ∅, ∅)` — no content, no links, no docu
 
 Every allocated document address is a T4-valid tumbler with exactly two zero components (i.e., a document-level address per S7d of ASN-0036). Discharged from `K.σ`'s precondition (below) and inductively across transitions.
 
-**Definitional identification.** Throughout this substrate, `ValidAddress(d) ≡ d satisfies T4 (HierarchicalParsing, ASN-0034)` — the two terms are interchangeable. T4's four conjuncts are: `zeros(d) ≤ 3`, no adjacent zero components, `d[1] ≠ 0`, and `d[#d] ≠ 0`. The substrate uses `ValidAddress(d)` in operation preconditions and invariants for readability; any foundation claim whose precondition names T4-validity discharges that precondition directly via this identification.
+**Definitional identification.** Throughout this substrate, `ValidAddress(d) ≡ d satisfies T4 (HierarchicalParsing, ASN-0034)` — the two terms are interchangeable. T4's four conjuncts are: `zeros(d) ≤ 3`, no adjacent zero components, `d[1] ≠ 0`, and `d[#d] ≠ 0`.
 
 **M1 (ArrangementMonotonicity).**
 
@@ -77,7 +77,7 @@ Every allocated document address is a T4-valid tumbler with exactly two zero com
 
   `(A Σ → Σ' :: dom(C) ⊆ dom(C') ∧ (A a : a ∈ dom(C) : C'(a) = C(a)))`
 
-Append-only with immutable values: `dom(C)` is non-decreasing, and no transition alters the value bound to an existing key. This is ASN-0036's S0/S1 restated for the substrate. Restated here (rather than inherited silently) so the substrate is self-contained — symmetric to L12 on the link side.
+Append-only with immutable values: `dom(C)` is non-decreasing, and no transition alters the value bound to an existing key. This is ASN-0036's S0/S1 restated for the substrate.
 
 **C1 (ContentElementLevel).**
 
@@ -89,7 +89,7 @@ Every content address is an element-level tumbler. This is ASN-0036's S7b restat
 
   `(A a ∈ dom(C) :: #E(a) ≥ 2)`
 
-Every content address has at least two element-field components — the content-side analog of L1b. ASN-0036 carries no content-side `#E(a) ≥ 2` invariant, so this is added here as a substrate-level commitment (parallel to the L0 C-clause). Discharged from `K.α`'s precondition. Because `E(·)` is T4b's structural projection on the address alone (ASN-0034), depending on no state component, any transition that holds the store in frame leaves the keys unchanged and so transfers each prior key's `#E ≥ 2` unchanged; the same holds for L1b on the link side.
+Every content address has at least two element-field components — the content-side analog of L1b. Discharged from `K.α`'s precondition. Because `E(·)` is T4b's structural projection on the address alone (ASN-0034), depending on no state component, any transition that holds the store in frame leaves the keys unchanged and so transfers each prior key's `#E ≥ 2` unchanged; the same holds for L1b on the link side.
 
 **C1c (ContentAllocatorConformance).** Every content address `a ∈ dom(C)` has a T10a-conforming step sequence from its home document to `a`: a finite sequence `(t₀, t₁, …, tₙ)` with `n ≥ 1`, `t₀ = origin(a)`, and `tₙ = a`, where each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfies T10a's per-step admissibility constraints (T4-validity preservation, including the `kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2` zero-count side condition); additionally, `k₁ = 2` (the first step is a depth-2 increment off the document seed) and `(A i : 1 ≤ i ≤ n : #tᵢ > #origin(a))` (every intermediate length strictly exceeds the seed's). The chain witnesses `a`'s structural producibility from its home document via the content sub-allocator chain. This is the content-side analog of L1c, stated in parallel form.
 
@@ -127,7 +127,7 @@ Every link address is an element-level tumbler.
 
   `(A a ∈ dom(L) :: origin(a) ∈ dom(M))`
 
-Every link address has its home document allocated — the substrate form of the higher-layer `origin(a) ∈ E_doc` invariant under the intro's `E_doc` → `dom(M)` substitution.
+Every link address has its home document allocated. This is ASN-0043's L1a.
 
 **L1b (LinkElementFieldDepth).**
 
@@ -297,7 +297,7 @@ Extends `dom(M)` by registering a new document address with an empty arrangement
 
 K.σ opens the content and link sub-allocator frontiers `A_C(d)` and `A_L(d)` under `d` — available once `d ∈ dom(M)` (see *Active sub-allocator chains* above) — for subsequent K.α and K.λ emissions.
 
-*K.σ admissibility scope.* K.σ's precondition is structural-only: it makes no commitment about *which* document addresses are admissible beyond T4-validity and `zeros(d) = 2`. The discipline that constrains which tumblers are introduced (Nelson's hierarchical baptism, T10a allocator conformance for the document allocator, etc.) is a higher-layer commitment; the substrate's only commitment is that whatever `d` is introduced satisfies M0 going forward. In particular, K.σ admits configurations broader than Nelson's hierarchical baptism — a tumbler `d` with `zeros(d) = 2` whose prefix corresponds to no allocated node or account is structurally admissible at this layer. Downstream ASNs that lift entity-hierarchy discipline (entity stratification, lineage, version-allocator activation — see Scope, *Entity allocation*) tighten K.σ's precondition accordingly.
+*K.σ admissibility scope.* K.σ's precondition is structural-only: it makes no commitment about *which* document addresses are admissible beyond T4-validity and `zeros(d) = 2`.
 
 ### K.α (ContentAllocation)
 
@@ -529,13 +529,13 @@ Note that the C1c first-emit chain has *two* inc steps (`d → b_C(d) → a`) wh
 | C0 | ContentImmutability | INV | Substrate, restated from ASN-0036's S0/S1; established at K.α (effect extends `dom(C)` with new pair and leaves existing values unchanged); preserved at K.σ/K.λ by frame on `C` |
 | C1 | ContentElementLevel | INV | Substrate, restated from ASN-0036's S7b; established at K.α (precondition pins `zeros(a) = 3` at the new key); preserved at K.σ/K.λ by frame on `C` |
 | C1b | ContentElementFieldDepth | INV | Substrate-level commitment (content-side analog of L1b; ASN-0036 carries no content-side `#E(a) ≥ 2` invariant); established at K.α (precondition pins `#E(a) ≥ 2` at the new key); preserved at K.σ/K.λ by frame on `C` |
-| C1c | ContentAllocatorConformance | INV | Substrate, content-side analog of L1c, stated in parallel form (including `k₁ = 2` and `#tᵢ > #origin(a)` clauses); established at K.α via the C1c chain exhibition (first-emit chain has two steps `(d → b_C(d) → a)` with `k₁ = 2`, `k₂ = 1` and lengths `#d → #d + 2 → #d + 3`, all strictly exceeding `#d`; subsequent-emit extends a length-monotone chain by `inc(·, 0)` and inherits `k₁ = 2`). The first-emit gap is closed by the FirstEmission lemma, subsequent-emit by ChainDiscipline (ChainEnumerationInjectivity); preserved at K.σ/K.λ by frame on `C` |
+| C1c | ContentAllocatorConformance | INV | Substrate, content-side analog of L1c. Established at K.α; see *C1c chain exhibition*. Preserved at K.σ/K.λ by frame on `C` |
 | C2 | ContentScopedAllocation | INV | Substrate, content-side analog of L1a; established at K.α (precondition pins `origin(a) = d ∧ d ∈ dom(M)` at the new key); preserved at K.σ/K.λ by frame on `C` and M1's monotonicity of `dom(M)` |
 | L0 | SubspacePartition | INV | L-clause from ASN-0043; C-clause added here. Established at K.α (C-clause, via `E(a)₁ = s_C` precondition) and K.λ (L-clause, via `E(ℓ)₁ = s_L` precondition); preserved at K.σ by frame on both `C` and `L` |
 | L1 | LinkElementLevel | INV | ASN-0043; established at K.λ (precondition pins `zeros(ℓ) = 3` at the new key); preserved at K.σ/K.α by frame on `L` |
 | L1a | LinkScopedAllocation | INV | ASN-0043 (refactored: `E_doc` → `dom(M)`); established at K.λ (precondition pins `origin(ℓ) = d ∧ d ∈ dom(M)` at the new key); preserved at K.σ/K.α by frame on `L` and M1's monotonicity of `dom(M)` |
 | L1b | LinkElementFieldDepth | INV | ASN-0043; established at K.λ (precondition pins `#E(ℓ) ≥ 2` at the new key); preserved at K.σ/K.α by frame on `L` |
-| L1c | LinkAllocatorConformance | INV | ASN-0043, restated verbatim including the `k₁ = 2` and `#tᵢ > #origin(ℓ)` clauses. Established at K.λ via the L1c chain exhibition (first-emit chain has three steps `(d → b_C(d) → b_L(d) → ℓ)` with `k₁ = 2`, `k₂ = 0`, `k₃ = 1` and monotonically increasing lengths `#d → #d + 2 → #d + 2 → #d + 3`, all strictly exceeding `#d`; subsequent-emit extends a length-monotone chain by `inc(·, 0)` and inherits `k₁ = 2` from the prior chain). The first-emit gap is closed by the FirstEmission lemma, subsequent-emit by ChainDiscipline (ChainEnumerationInjectivity); preserved at K.σ/K.α by frame on `L` |
+| L1c | LinkAllocatorConformance | INV | ASN-0043. Established at K.λ; see *L1c chain exhibition*. Preserved at K.σ/K.α by frame on `L` |
 | L3 | NEndsetStructure | INV | ASN-0043; established at K.λ (precondition pins `|L(ℓ)| ≥ 3 ∧ (e₃) ≠ ∅`); preserved at K.σ/K.α by frame on `L` |
 | L12 | LinkImmutability | INV | ASN-0043; established at K.λ (effect extends `dom(L)` with new pair and leaves existing values unchanged); preserved at K.σ/K.α by frame on `L` |
 | L14 | StoreDisjointness | INV (derived) | L0 + SC-NEQ + StoreT4Validity + T7 |
@@ -562,7 +562,7 @@ Note that the C1c first-emit chain has *two* inc steps (`d → b_C(d) → a`) wh
 
 ## Open Questions
 
-- *Link withdrawal — which invariant must a withdrawal mechanism revisit?* A withdrawal mechanism (deferred per Scope) admits at least three formulations: (a) a *value transition* that mutates `L(a)`, (b) an *arrangement-side* retraction that leaves `L(a)` intact, and (c) an *embedded-marker* (tombstone) scheme. The load-bearing constraint is L12's value-equality clause `L'(a) = L(a)`: formulation (a) must restate L12 (its domain-persistence clause may stand), while (b) and (c) leave L12 intact. Which of the three to adopt — and whether L12 must be weakened — is the design decision the withdrawal ASN must make.
+- *Link withdrawal — which invariant must a withdrawal mechanism revisit?* The load-bearing constraint is L12's value-equality clause `L'(a) = L(a)`; any withdrawal mechanism that mutates a link's value must revisit it.
 
 - *Higher-arity link discipline.* L3 admits arbitrary `N ≥ 3`. Should a higher layer impose an upper bound on arity, or constrain slot interpretation or relations between slots — for example, fixing the StandardTriple convention as a structural commitment rather than a notational default?
 
