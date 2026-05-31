@@ -63,6 +63,8 @@ The system designates at least two subspaces within each document's element fiel
 
 `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`
 
+The projection `subspace_I(a) = E(a)₁` is well-defined on `dom(Σ.L)` only on T4-valid addresses (Notational convention): `zeros(a) = 3` alone (L1) does not discharge T4b's domain condition, since a tumbler with three zeros but adjacent zeros or a zero boundary has no well-defined field parse. The licensing fact is **L0b** (LinkAddressValidity), itself a postcondition of the axiom **L1c** (LinkAllocatorConformance). Although L0b and L1c are stated below for expository reasons, they are logically prior to L0: every link address is T4-valid, so `E(a)₁` exists and `subspace_I(a)` is well-defined on all of `dom(Σ.L)`.
+
 **L0a — ContentSubspaceScope.** This ASN scopes its content-side disjointness guarantee to the `s_C`-resident portion of the content store. *Content-side T4-validity.* By ASN-0036's S7b, every `b ∈ dom(Σ.C)` has `zeros(b) = 3` and well-defined T4b projections; since T4b's definitional domain (UniqueParse, ASN-0034) is precisely the T4-valid subset of `T`, every `b ∈ dom(Σ.C)` is T4-valid. Define:
 
 `dom(Σ.C)|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}`
@@ -81,7 +83,7 @@ This parallels S7b for content (ASN-0036). A link address carries all four tumbl
 
 extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034), well-defined precisely because `a` is T4-valid and element-level. This is the same field-extraction formula ASN-0036 uses to define `origin` on content addresses, applied here to link addresses.
 
-**L1a — LinkScopedAllocation.** Every link address is allocated under the tumbler prefix of the document whose owner created it. By the home definition above, `home(a)` is well-defined on every `a ∈ dom(Σ.L)`, and we state the invariant in terms of it directly:
+**L1a — LinkScopedAllocation.** Every link address is allocated under the tumbler prefix of the document whose owner created it. The home definition above is conditional on T4-validity — it supplies `home(a)` only "for any T4-valid element-level tumbler `a`," since the projections `N(a), U(a), D(a)` live in T4b's domain (UniqueParse, ASN-0034), the *fully* T4-valid subset of `T`. The fact that closes this on `dom(Σ.L)` is **L0b** (LinkAddressValidity) — every link address is T4-valid — derived from the axiom **L1c** (LinkAllocatorConformance); both are logically prior to L1a despite their later presentation. Citing L0b/L1c, `home(a)` is well-defined on every `a ∈ dom(Σ.L)`, and we state the invariant in terms of it directly:
 
 `(A a ∈ dom(Σ.L) :: home(a) ∈ dom(Σ.M))`
 
