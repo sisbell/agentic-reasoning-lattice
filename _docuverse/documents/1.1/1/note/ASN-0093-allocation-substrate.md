@@ -63,7 +63,7 @@ Every allocated document address is a T4-valid tumbler (per T4, HierarchicalPars
 
   `(A d ∈ dom(M) :: M(d) = ∅)`
 
-Every allocated document carries the empty arrangement. The substrate fixes `M(d) = ∅` at registration and admits no arrangement-mutation transition, so no document's arrangement value is ever populated. Base case `Σ₀.M = ∅`; discharged at the new key by `K.σ`'s effect clause `M'(d) = ∅`; preserved by `K.α`/`K.λ`, which hold `M` in frame. M2 is the explicit ground on which the arrangement-side invariants of ASN-0036 (S2, S3, S8a, S8-depth, S8-fin, D-CTG, D-MIN) hold vacuously in the substrate.
+Every allocated document carries the empty arrangement. The substrate fixes `M(d) = ∅` at registration and admits no arrangement-mutation transition, so no document's arrangement value is ever populated. Base case `Σ₀.M = ∅`; discharged at the new key by `K.σ`'s effect clause `M'(d) = ∅`; preserved by `K.α`/`K.λ`, which hold `M` in frame.
 
 
 ## Content store invariants
@@ -389,7 +389,7 @@ Effect: `L₇ = L₆ ∪ {ℓ'' ↦ (F'', G'', Θ'')}`; `C₇ = C₆`; `M₇ = M
 
 *Step 8 — `K.λ(d, ℓ_new, F_new, G_new, Θ_new)` (second link emission under `d`, subsequent-emit branch).* Pinning the address from `Σ₇`: `{ℓ''' ∈ dom(L₇) : origin(ℓ''') = d} = {ℓ}` (note `origin(ℓ'') = d' ≠ d`), so the subsequent-emit branch fires with `ℓ_new = inc(max{ℓ}, 0) = inc(ℓ, 0)`. By ChainMembershipForOrigin's contiguous-prefix form at `Σ₇`, `dom(L₇) ∩ {ℓ''' : origin(ℓ''') = d} = {s₁}` with `ℓ = s₁`, so the lex-order max is `s₁` and `ℓ_new = s₂`. Since `sig(ℓ) = 8` with value `1`, TA5(c) gives `ℓ_new = [1, 0, 2, 0, 5, 0, 2, 2]`. The L1c chain extends `ℓ`'s chain by one step: `(t₀, t₁, t₂, t₃, t₄)` with `t₀ = d`, `t₁ = b_C(d)`, `t₂ = b_L(d)`, `t₃ = ℓ`, `t₄ = inc(ℓ, 0) = ℓ_new`. Admissibility of the new step: TA5a at `k = 0` is unconditionally T4-preserving (no side condition), so `ℓ_new` is T4-valid given `ℓ` T4-valid (the latter from Step 3's chain exhibition); TA5(c) gives the structural form.
 
-Verifying preconditions: freshness `ℓ_new ∉ dom(L₇) ∪ dom(C₇) = {ℓ, ℓ'', a, a', a''}` is discharged as in the SD / ChainMembershipForOrigin matrix rows: within-document freshness against `dom(L)` (ChainEnumerationInjectivity + ChainMembershipForOrigin, separating `ℓ_new = s₂` from `ℓ = s₁`), cross-document freshness against `dom(L)` (ChainPrefixExtension + Cross-document disjointness + T10, separating `ℓ_new` under `b_L(d)` from `ℓ''` under `b_L(d')`), and cross-subspace freshness against `dom(C)` (fresh key `ℓ_new ∈ A_L(d)` reading `E(ℓ_new)₁ = s_L` from DisjointSubAllocatorChains, each peer `a ∈ dom(C)` carrying `E(a)₁ = s_C` by L0, then SC-NEQ + T7 with T4-validity from ChainElementT4Validity).
+Verifying preconditions: freshness `ℓ_new = [1, 0, 2, 0, 5, 0, 2, 2] ∉ dom(L₇) ∪ dom(C₇) = {ℓ, ℓ'', a, a', a''}` by position-wise distinctness. Against `ℓ = [1, 0, 2, 0, 5, 0, 2, 1]`: disagreement at position 8 (`ℓ_new₈ = 2 ≠ 1 = ℓ₈`) gives `ℓ_new ≠ ℓ`. Against `ℓ'' = [1, 0, 2, 0, 5, 3, 0, 2, 1]`: disagreement at position 6 (`ℓ_new₆ = 0 ≠ 3 = ℓ''₆`) gives `ℓ_new ≠ ℓ''`. Against each content address (`a₇ = a'₇ = 1`, `a''₇ = 0`): disagreement at position 7 (`ℓ_new₇ = 2`) gives `ℓ_new ≠ a, a', a''`.
 
 Other preconditions: `zeros(ℓ_new) = 3` (ChainUniformZeroCount — preserved under `inc(·, 0)` per ChainDiscipline, anchored at FirstEmission's `zeros = 3`) ✓; `E(ℓ_new) = [2, 2]`, `E(ℓ_new)₁ = 2 = s_L` ✓; `#E(ℓ_new) = 2` ✓; `origin(ℓ_new) = d` (`inc(ℓ, 0)` modifies only position `sig(ℓ) = #ℓ = 8` by TA5(c) and TA5-SigValid placing `sig` at the T4-valid `ℓ`'s terminal position, so positions `1..7` are fixed, including the document-level prefix and the field-separator structure that origin's truncation depends on; hence `origin(ℓ_new) = origin(ℓ) = d`) ✓.
 
@@ -503,7 +503,7 @@ Per-step admissibility of all three steps is the *anchor-construction admissibil
 | FirstEmissionFreshness | FirstEmissionFreshness | LEMMA (derived) | Substrate; cross-document (T10) + cross-subspace (T7) freshness — premises inline at the lemma above. |
 | SubsequentEmissionFreshness | SubsequentEmissionFreshness | LEMMA (derived) | Substrate; within-/cross-document + cross-subspace freshness — premises inline at the lemma above. |
 | Cross-doc disjointness | Cross-document disjointness lemma | LEMMA | Premises: M0; T4 + Prefix (ASN-0034); T10 (PartitionIndependence); ASN-0040 B7 (NamespaceDisjointness, stream-level corollary). |
-| SubspaceConventionAxiom | FixedSubspaceIdentifiers | AXIOM | Substrate commitment: `s_C = 1 ∧ s_L = 2`; pinned by Nelson (LM 4/30–4/31) and Gregory (`xanadu.h:144–146`, `granf2.c:162`, `do2.c:94`). |
+| SubspaceConventionAxiom | FixedSubspaceIdentifiers | AXIOM | Substrate commitment; see State model. |
 | SequentialTransitionAxiom | SequentialAtomicTransitions | AXIOM | Substrate commitment: `Σ → Σ'` is atomic, uninterruptible, totally ordered. |
 | K.σ | DocumentRegistration | OP | Substrate-level document introduction into `dom(M)` |
 | K.α | ContentAllocation | OP | Substrate-level content emission |
