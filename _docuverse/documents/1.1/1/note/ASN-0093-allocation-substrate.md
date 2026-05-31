@@ -435,6 +435,7 @@ The base case holds.
 | **L1c** (LinkAllocatorConformance) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key via the T10a-conforming step sequence (see *L1c chain exhibition* below — first-emit and subsequent-emit cases) |
 | **L3** (NEndsetStructure) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `|L(ℓ)| ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` |
 | **L12** (LinkImmutability) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: effect extends `dom(L)` at fresh `ℓ`; value at existing keys unaltered (definitional) |
+| **SD** (StoreDisjointness) | Preserved: `C`, `L` both in frame, so `dom(C') = dom(C)`, `dom(L') = dom(L)`, IH transfers | Preserved as a standing consequence of L0/C1/L1/StoreT4Validity at `Σ'`: the new content key `a` has `E(a)₁ = s_C` (L0 C-clause, discharged this step), while every `ℓ ∈ dom(L)` has `E(ℓ)₁ = s_L` (L0 L-clause); SC-NEQ + T7 give `a ∉ dom(L)`, and `dom(L)` is unchanged, so `dom(C') ∩ dom(L') = ∅` | Symmetric to K.α under content↔link: the new link key `ℓ` has `E(ℓ)₁ = s_L`, every `a ∈ dom(C)` has `E(a)₁ = s_C`; SC-NEQ + T7 give `ℓ ∉ dom(C)`, and `dom(C)` is unchanged, so `dom(C') ∩ dom(L') = ∅` |
 | **L-fin** (LinkStoreFiniteness) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: `|dom(L')| = |dom(L)| + 1`; finiteness closed under +1 |
 | **C-fin** (ContentStoreFiniteness) | Preserved: `C` in frame | Discharged: `|dom(C')| = |dom(C)| + 1`; finiteness closed under +1 | Preserved: `C` in frame |
 
@@ -490,6 +491,10 @@ Per-step admissibility of all three steps is the *anchor-construction admissibil
 | L-fin | LinkStoreFiniteness | INV (derived) | Inductively from `Σ₀.L = ∅` + K.λ |
 | C-fin | ContentStoreFiniteness | INV (derived) | Inductively from `Σ₀.C = ∅` + K.α |
 | ChainDiscipline | ContentLinkSubAllocatorChainDiscipline | LEMMA (derived) | Premises: ASN-0040 SiblingStream; B6-validity of each parent `(b_·(d), 1)`; the K.α/K.λ emission rules. |
+| ChainElementT4Validity | ChainElementT4Validity | LEMMA (derived) | Source: ASN-0040 B6(a) (ValidDepth sufficiency), applied to `A_C(d) = S(b_C(d), 1)` / `A_L(d) = S(b_L(d), 1)`. |
+| ChainEnumerationInjectivity | ChainEnumerationInjectivity | LEMMA (derived) | Source: ASN-0040 S0 (StreamOrdering), applied to `A_C(d)` / `A_L(d)`. |
+| DisjointSubAllocatorChains | DisjointSubAllocatorChains | LEMMA (derived) | Source: ASN-0040 B7 (NamespaceDisjointness) + ChainPrefixExtension; `(b_C(d), 1) ≠ (b_L(d), 1)` by SC-NEQ. |
+| ChainPrefixExtension | ChainPrefixExtension | LEMMA (derived) | Source: ASN-0040 S1 (StreamPrefix), applied at `p = b_C(d)` / `b_L(d)`. |
 | FirstEmission | FirstEmission | LEMMA (derived) | Premises: ChainDiscipline; ASN-0040 SiblingStream postcondition; TA5a; M0. |
 | ChainMembershipForOrigin | ChainMembershipForOrigin | LEMMA | Premises: FirstEmission; ChainDiscipline; ChainEnumerationInjectivity; C2/L1a; SequentialTransitionAxiom. (Contiguous-prefix form mirrors ASN-0040 B1.) |
 | StoreT4Validity | StoreT4Validity | LEMMA (derived) | Derived from C1c/L1c + T10a.4: each store entry is the terminus of a T10a-conforming chain from its T4-valid document seed, so T4-validity propagates to the terminus. |
