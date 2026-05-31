@@ -13,7 +13,7 @@ This note extracts the *allocation-substrate* layer: the three allocation primit
 
 **Deferred to higher-layer ASNs:**
 
-- **Arrangement mutation.** `K.μ⁺`, `K.μ⁻`, `K.μ~`, `K.μ⁺_L` — operations that modify `M(d)` for an existing `d ∈ dom(M)`. The substrate fixes `M(d)` at `∅` on registration and leaves it unmodified thereafter (M2, EmptyArrangement, below), so the arrangement-side invariants of ASN-0036 hold vacuously; the arrangement-extension primitives that would make them non-trivial are deferred to a higher-layer ASN.
+- **Arrangement mutation.** `K.μ⁺`, `K.μ⁻`, `K.μ~`, `K.μ⁺_L` — operations that modify `M(d)` for an existing `d ∈ dom(M)`. The substrate fixes `M(d)` at `∅` on registration (M2, EmptyArrangement, below); these arrangement-extension primitives are deferred to a higher-layer ASN.
 - **Entity allocation.** The substrate's `K.σ` is the document-registration primitive without the entity-hierarchy machinery; that machinery, layered on `K.σ`, is deferred to a higher-layer ASN.
 - **Provenance recording.** A provenance-emission primitive and the provenance relation `R`. The substrate has no `R` component.
 - **Coupling constraints.** Higher-layer coupling invariants binding K.α to K.μ⁺ etc. are out of scope; the substrate's `K.α` and `K.λ` stand independently.
@@ -34,7 +34,7 @@ where
 
 `dom(M)` is the set of tumblers committed by `K.σ` events (defined below). A document is *allocated* iff `d ∈ dom(M)`; content addresses with `origin(a) = d` and link addresses with `origin(ℓ) = d` may be emitted only when `d ∈ dom(M)`. The `origin(·)` function is the tumbler-projection defined in ASN-0036 (truncation to the `zeros = 2` prefix).
 
-**Terminology.** "Document" in this substrate means "element of `dom(M)`" — a purely structural notion (a T4-valid tumbler with `zeros = 2` registered into the arrangement function's domain).
+**Terminology.** "Document" in this substrate means "element of `dom(M)`" — a purely structural notion; M0 (below) carries the well-formedness conditions.
 
 The initial state is `Σ₀ = (∅, ∅, ∅)` — no content, no links, no documents.
 
@@ -164,7 +164,7 @@ The content and link subspaces are organised as sibling element-field sub-alloca
 - `b_C(d) := [d.0.s_C]` — the **content sub-allocator anchor** (one-component element field with `E₁ = s_C`, `zeros = 3`, `#E = 1`)
 - `b_L(d) := [d.0.s_L]` — the **link sub-allocator anchor** (one-component element field with `E₁ = s_L`, `zeros = 3`, `#E = 1`)
 
-These anchors are *structurally producible* by T10a `inc` steps from `d`: `b_C(d) = inc(d, 2)` appends `[0, 1]` (TA5(d), `k = 2`), yielding `[d.0.1] = [d.0.s_C]` once `s_C = 1` is supplied by SubspaceConventionAxiom; and `b_L(d) = inc(b_C(d), 0)` increments the `sig` component of `[d.0.s_C]` to `s_C + 1` (TA5(c)), yielding `[d.0.(s_C+1)] = [d.0.s_L]` once `s_L = s_C + 1` is supplied by SubspaceConventionAxiom. Both value identifications consume SubspaceConventionAxiom — the link anchor in particular is producible by a sibling `inc(·, 0)` off `b_C(d)` *only because* the two subspace identifiers are consecutive. The anchors themselves are *not* in `dom(C) ∪ dom(L)` — content and link addresses have `#E ≥ 2` (C1; L1b above), and the anchors have `#E = 1`.
+These anchors are *structurally producible* by T10a `inc` steps from `d`: `b_C(d) = inc(d, 2)` appends `[0, 1]` (TA5(d), `k = 2`), yielding `[d.0.1] = [d.0.s_C]` once `s_C = 1` is supplied by SubspaceConventionAxiom; and `b_L(d) = inc(b_C(d), 0)` increments the `sig` component of `[d.0.s_C]` to `s_C + 1` (TA5(c)), yielding `[d.0.(s_C+1)] = [d.0.s_L]` once `s_L = s_C + 1` is supplied by SubspaceConventionAxiom. The anchors themselves are *not* in `dom(C) ∪ dom(L)` — content and link addresses have `#E ≥ 2` (C1; L1b above), and the anchors have `#E = 1`.
 
 **Active sub-allocator chains.** Define: a sub-allocator chain `A_C(d)` (resp. `A_L(d)`) is *active at state* `Σ` iff `d ∈ dom(M)` at `Σ`.
 
@@ -180,7 +180,7 @@ Both anchors satisfy ASN-0040's `B6` (ValidDepth) at depth `1`: `b_C(d)` and `b_
   - *Content chain first-emit:* `t_1^C(d) = inc(b_C(d), 1) = [d.0.s_C.1]` — `E(·)₁ = s_C`, `origin(·) = d`, `#E(·) = 2`, `zeros(·) = 3`, and T4-valid.
   - *Link chain first-emit:* `t_1^L(d) = inc(b_L(d), 1) = [d.0.s_L.1]` — structurally analogous, with `s_L` in place of `s_C`.
 
-*Proof.* By ChainDiscipline, `A_C(d) = S(b_C(d), 1)` with first element `c₁ = inc(b_C(d), 1)`. ASN-0040's SiblingStream postcondition `cₙ = [p₁, …, p_{#p}, 0…0, n]` (with `d − 1 = 0` interior zeros at depth `1`) gives `c₁ = [b_C(d)₁, …, b_C(d)_{#b_C(d)}, 1]`; since `b_C(d) = [d.0.s_C]`, this is `[d.0.s_C.1]`, whence `E(·)₁ = s_C`, `#E(·) = 2`, `origin(·) = d`, and `zeros(·) = 3`. The link case runs the same SiblingStream argument at `p = b_L(d)`, but is *not* a pure content↔link relabelling: reaching the link anchor `b_L(d) = inc(b_C(d), 0) = [d.0.s_L]` consumes `s_L = s_C + 1` (SubspaceConventionAxiom), where the content anchor reaches `b_C(d)` directly by `inc(d, 2)`. With `b_L(d) = [d.0.s_L]` in hand, `c₁ = inc(b_L(d), 1) = [d.0.s_L.1]` gives `E(·)₁ = s_L`, `#E(·) = 2`, `origin(·) = d`, `zeros(·) = 3`.
+*Proof.* By ChainDiscipline, `A_C(d) = S(b_C(d), 1)` with first element `c₁ = inc(b_C(d), 1)`. ASN-0040's SiblingStream postcondition `cₙ = [p₁, …, p_{#p}, 0…0, n]` (with `d − 1 = 0` interior zeros at depth `1`) gives `c₁ = [b_C(d)₁, …, b_C(d)_{#b_C(d)}, 1]`; since `b_C(d) = [d.0.s_C]`, this is `[d.0.s_C.1]`, whence `E(·)₁ = s_C`, `#E(·) = 2`, `origin(·) = d`, and `zeros(·) = 3`. The link case runs the same SiblingStream argument at `p = b_L(d) = [d.0.s_L]` (anchor construction above): `c₁ = inc(b_L(d), 1) = [d.0.s_L.1]` gives `E(·)₁ = s_L`, `#E(·) = 2`, `origin(·) = d`, `zeros(·) = 3`.
 
 *Anchor-construction admissibility.* The increment steps that build the anchors and first emissions from a T4-valid, `zeros = 2` document `d` are each TA5a-admissible, T4-validity propagating along the chain:
 
@@ -412,7 +412,7 @@ The example exercises both the first-emit and subsequent-emit branches of K.α a
 
 ## Discharge of stated invariants
 
-**Simultaneous-induction framing.** The stated invariants, together with the ChainMembershipForOrigin lemma and the StoreT4Validity corollary, are proved by *simultaneous induction* over transition sequences from `Σ₀`: the inductive hypothesis at each step is the *conjunction* of every such property at the current state `Σ`, and the inductive step exhibits each holding at `Σ'` using the conjoined IH. The FirstEmissionFreshness and SubsequentEmissionFreshness lemmas are *event-local*: each is a one-shot freshness obligation discharged at the K.α/K.λ binding precondition that commits the emission (and reused in the SD matrix row), not a state property carried in the per-state IH conjunction.
+**Simultaneous-induction framing.** The stated invariants, together with the ChainMembershipForOrigin lemma and the StoreT4Validity corollary, are proved by *simultaneous induction* over transition sequences from `Σ₀`: the inductive hypothesis at each step is the *conjunction* of every such property at the current state `Σ`, and the inductive step exhibits each holding at `Σ'` using the conjoined IH. The FirstEmissionFreshness and SubsequentEmissionFreshness lemmas are *event-local*: each is a one-shot freshness obligation discharged at the K.α/K.λ binding precondition that commits the emission, not a state property carried in the per-state IH conjunction.
 
 Each transition-indexed invariant is discharged by induction on transition sequences from `Σ₀`. The inductive step is recorded as a per-(invariant, transition) matrix; entries describe how each transition kind preserves or discharges each invariant.
 
