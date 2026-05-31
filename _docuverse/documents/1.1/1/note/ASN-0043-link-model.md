@@ -130,7 +130,7 @@ The home document `home(a)` (Definition — home) determines the link's owner. F
 
 The critical property — the one that distinguishes this design from systems where annotations are embedded in the annotated content:
 
-**L2 — OwnershipEndsetIndependence.** The home document of a link is determined entirely by the link's address and is independent of the link's endsets. This is an immediate consequence of the `home` definition: `home(a) = N(a).0.U(a).0.D(a)` is computed by T4 field extraction from the address `a` alone. The endset content `Σ.L(a)` never appears as an argument to this computation — `home` is a function of the address, not of the link value. Whatever endsets a link carries, its home document is fixed by its address.
+**L2 — OwnershipEndsetIndependence.** The home document of a link is determined entirely by the link's address and is independent of the link's endsets. This is an immediate consequence of the `home` definition: `home(a) = N(a).0.U(a).0.D(a)` is computed by T4 field extraction from the address `a` alone, with the endset content `Σ.L(a)` never appearing as an argument.
 
 Nelson makes this a first principle: "A link need not point anywhere in its home document. Its home document indicates who owns it, and not what it points to. Conversely, links connecting parts of a document need not reside in that document." This separation of residence from reference is what permits annotation without modification. Your link lives in your document, under your authority, even though its endsets reach into someone else's content. The annotated document is untouched — no byte added, no structure modified, no permission required.
 
@@ -476,7 +476,7 @@ All addresses here have depth 8, so the unit-depth displacement is `δ(1, 8) = [
 
 So `Σ.L = {a ↦ (F, G, Θ)}`.
 
-**Verification.**
+**Verification.** (L7, a META property imposing no constraint on any state, carries no per-state check and is omitted.)
 
 *L0 (SubspacePartition).* `subspace_I(a) = 2 = s_L`, `subspace_I(c₁) = subspace_I(c₂) = 1 = s_C`; by L1d(a) (pairwise separation, with `zeros = 3` per side and distinct subspaces), `a ≠ c₁` and `a ≠ c₂`, so `dom(Σ.L) ∩ dom(Σ.C) = ∅`. ✓
 
@@ -497,8 +497,6 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 *L5 (EndsetSetSemantics) at `Σ` — singleton case.* Each endset at `Σ` is a singleton set, so set semantics hold trivially here. L5's substantive content — order-irrelevance and extensional equality across a `≥ 2`-span endset — has no singleton witness. ✓
 
 *L6 (SlotDistinction).* `Σ.L(a) = (F, G, Θ)` is a 3-tuple of endsets, with positional accessors `Σ.L(a).e₁ = F`, `Σ.L(a).e₂ = G`, `Σ.L(a).e₃ = Θ` well-defined. Standard-triple consequence: since `F ≠ G`, `(F, G, Θ) ≠ (G, F, Θ)` by component-wise tuple inequality at slot 1. ✓
-
-*L7 (DirectionalFlexibility).* A META property imposing no constraint on any state; nothing about `Σ` is checkable against it. (No ✓.)
 
 *L8 (TypeByAddress) at `Σ` — reflexivity.* The single-link state admits a non-vacuous reflexivity check: `same_type(a, a) ⟺ coverage(Σ.L(a).type) = coverage(Σ.L(a).type)`. The right-hand side is a set-equality of identical sets, true by reflexivity. To exhibit the actual coverage concretely, `Σ.L(a).type = Θ = {(g, δ(1, 8))}`; since `#g = 8`, PrefixSpanCoverage applies, giving `coverage({(g, δ(1, 8))}) = {t ∈ T : g ≼ t}` — the set of all tumblers extending `g`. This is the address set against which any other link's type would be compared under L8's coverage-equality criterion. ✓
 
@@ -544,7 +542,7 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 We extend the state in six steps, naming each intermediate state, to verify L11b, L12, L13, the higher-arity/discrimination behavior of L3/L6/L8, and the multi-span content of L5/L8 non-vacuously.
 
-*Each added link is a fresh sibling.* Each of `a'`, `a₂`, `a₃`, `a₄`, `a₅`, `a₆` is the next `inc(·, 0)` sibling of the previous link; FSP applies, so only the new check per step is shown below. Each `Σ_i → Σ_{i+1}` adds exactly one fresh link entry and leaves every prior entry fixed, discharging L12 (LinkImmutability) and L12a (LinkStoreMonotonicity) uniformly across all six transitions; these are not repeated per step.
+*Each added link is a fresh sibling.* Each of `a'`, `a₂`, `a₃`, `a₄`, `a₅`, `a₆` is the next `inc(·, 0)` sibling of the previous link, so each step is a fresh-sibling FSP extension, discharging L12 (LinkImmutability) and L12a (LinkStoreMonotonicity).
 *Step 1: adding `a'`.* Define `a' = 1.0.1.0.1.0.2.2` with `Σ_1.L(a') = (F, G, Θ)` — same endsets as `a`. The intermediate state is `Σ_1` with `Σ_1.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ)}`, `Σ_1.C = Σ.C`, `Σ_1.M = Σ.M`.
 
 *L11b non-injectivity in `Σ_1`.* `|dom(Σ_1.L)| = 2`, `a ≠ a'`, and `Σ_1.L(a) = Σ_1.L(a') = (F, G, Θ)`. The link store is non-injective — two distinct addresses map to the same triple. This is the witness for L11b applied to `Σ` with `a`. ✓
