@@ -192,7 +192,7 @@ REARRANGE_K affects only the subspace-S portion of M(d); positions in any other 
 
 *Proof.* We must show: (a) every v ∈ dom(M(d)) falls under exactly one clause, and (b) the right-hand sides are well-defined.
 
-For v ∈ dom(M(d)) with subspace(v) ≠ S: R-NS(NS-π) (equivalently R-FRAME-P(a)) assigns M'(d)(v) = M(d)(v), and no other clause applies (R-EXT, R-P1, R-P2 operate only on subspace S positions).
+For v ∈ dom(M(d)) with subspace(v) ≠ S: R-FRAME-P(a) assigns M'(d)(v) = M(d)(v), and no other clause applies (R-EXT, R-P1, R-P2 operate only on subspace S positions). Only the value fact M'(d)(v) = M(d)(v) is needed here — well-definedness of M'(d) is logically prior to the cut-point-induced bijection π, so we cite the frame condition directly rather than R-NS.
 
 It remains to show that every v ∈ V_S(d) falls under exactly one of R-EXT, R-P1, R-P2.
 
@@ -207,7 +207,7 @@ For (b): the right-hand sides reference M(d)(c₁ + j) for j < w_β and M(d)(c�
 
 *Proof.* We must show: (a) every v ∈ dom(M(d)) falls under exactly one clause, and (b) the right-hand sides are well-defined.
 
-For v ∈ dom(M(d)) with subspace(v) ≠ S: R-NS(NS-π) (equivalently R-FRAME-S(a)) assigns M'(d)(v) = M(d)(v), and no other clause applies.
+For v ∈ dom(M(d)) with subspace(v) ≠ S: R-FRAME-S(a) assigns M'(d)(v) = M(d)(v), and no other clause applies. Only the value fact M'(d)(v) = M(d)(v) is needed here — well-definedness of M'(d) is logically prior to the cut-point-induced bijection π, so we cite the frame condition directly rather than R-NS.
 
 It remains to show that every v ∈ V_S(d) falls under exactly one of R-EXT, R-S1, R-S2, R-S3.
 
@@ -355,6 +355,8 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 - α runs: π(vₖ) is computed by the α-branch of R-PPERM (3-cut) or R-SPERM (4-cut).
 - β runs: π(vₖ) is computed by the β-branch of R-PPERM (3-cut) or R-SPERM (4-cut).
 - μ runs (4-cut only): π(vₖ) is computed by the μ-branch of R-SPERM.
+
+The non-S and exterior runs carry through with their widths intact because R-COMM's non-S and subspace-S exterior cases license the same identity-commutation π(vₖ + k) = vₖ + k = π(vₖ) + k there that its α/μ/β cases supply on the displaced regions; this is where those two fixed-region cases of R-COMM are consumed.
 
 The I-start and width of each run are preserved because the rearrangement modifies no I-addresses (M'(d) and M(d) share the same value set, only repositioned) and because, by R-COMM, π commutes with ordinal shift within each region — so the consecutive V-positions vₖ, vₖ + 1, ..., vₖ + (nₖ − 1) of a run map to consecutive V-positions π(vₖ), π(vₖ) + 1, ..., π(vₖ) + (nₖ − 1), keeping the width intact.
 
