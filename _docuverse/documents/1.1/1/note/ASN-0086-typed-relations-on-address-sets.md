@@ -25,7 +25,7 @@ In what follows we sometimes refer to the three classes as *class (i)*, *class (
 
 *Arrangement modification is out of scope.* ASN-0093's M2 (EmptyArrangement) is an invariant of the foundation we adopt: `(A d ∈ dom(M) :: M(d) = ∅)`. Under M2 every document's arrangement is empty at every reachable state, so the substrate admits no arrangement-modifying transition — `→` is the complete dom-extending vocabulary, and persistence claims (R6c) are stated and proved against `→` alone. (In Nelson's design a document's arrangement is inherently mutable, and M2 reads as a temporary scaffolding restriction in the current allocation-substrate layer; wiring arrangement mutation in underneath is left to the substrate ASN that relaxes M2. This note does not rely on any transition M2 forbids.)
 
-*Categorical transition relation `↝`.* We write `↝` for the *categorical* state-transition relation: the union of `→` with every state-transition relation any higher-layer operation may admit over `(Σ.C, Σ.M, Σ.L)`. Every `→`-step is an `↝`-step; `Σ ↝ Σ'` holds iff some admissible operation in some layer carries Σ to Σ'. R7a quantifies over `↝` so its claim is categorical across the class of substrate-conforming layers (those preserving the conformance catalogs of the Definition below).
+*Categorical transition relation `↝`.* We write `↝` for the *categorical* state-transition relation: the union of `→` with every state-transition relation any higher-layer operation may admit over `(Σ.C, Σ.M, Σ.L)`. Every `→`-step is an `↝`-step; `Σ ↝ Σ'` holds iff some admissible operation in some layer carries Σ to Σ'.
 
 **Definition — Extension.** `Σ' extends Σ`, written `Σ ⊑ Σ'`, is the reflexive-transitive closure of `→`:
 
@@ -117,7 +117,7 @@ In either branch, K.λ's effect is `Σ'.L = Σ.L ⊕ {a ↦ (F, G, K)}` with `Σ
 
 *L-invariant preservation across the K.λ-step.* The K.λ-step is a primitive ASN-0093 transition and so preserves the full L/S/M/C invariant catalog (ASN-0036, ASN-0043, ASN-0093) by its own contract: K.λ's Frame fixes `(Σ.C, Σ.M)` pointwise, discharging every S-, M-, and C-invariant by input-substitution, and its first/subsequent emission rule together with ASN-0093's chain-discipline lemmas discharge the L-invariants at the fresh key `a`. The L14/L14a fresh-key obligation is the FreshLinkKeyDisjointness sub-lemma above (`E(a)₁ = s_L` excluded from content and arrangement-image by SC-NEQ).
 
-*Content-uniformity remark.* This verification inspects only L3 among the endset-content-dependent invariants; every other L-invariant discharges on the emitter address `a` alone (L0/L1/L1a/L1b/L1c on `a`'s tumbler structure, L2 on `home(a)`, L11a on `a`'s freshness, L12/L12a/L12b/L-fin as K.λ frame consequences, L5/L6 as construction-time tuple properties, L8/L13 structurally, L14/L14a by SC-NEQ exclusion of `a`). Consequently R0's emission argument is uniform over *any* L3-conforming `(F, G, K)` — `F, G ∈ Endset`, `K ∈ T_admissible` non-empty — regardless of `coverage(F)`, `coverage(G)`, or `coverage(K)`, including endsets built from L13-admissible canonical spans, L4(c)-licensed cross-subspace spans, and self-targeting witnesses. R5 invokes R0 at this uniformity directly.
+*Content-uniformity remark.* Among the endset-content-dependent invariants, this verification inspects only L3; every other L-invariant discharges on the emitter address `a` alone by K.λ's contract, with the L14/L14a fresh-key obligation discharged by the FreshLinkKeyDisjointness sub-lemma above. Consequently R0's emission argument is uniform over *any* L3-conforming `(F, G, K)` — `F, G ∈ Endset`, `K ∈ T_admissible` non-empty — regardless of `coverage(F)`, `coverage(G)`, or `coverage(K)`, including endsets built from L13-admissible canonical spans, L4(c)-licensed cross-subspace spans, and self-targeting witnesses. R5 invokes R0 at this uniformity directly.
 
 The only obligation R0's specialization adds beyond K.λ's generic value-precondition is the standard-triple value shape: `Σ'.L(a) = (F, G, K)` has arity 3 with `F, G ∈ Endset` and `K ∈ T_admissible` non-empty — exactly L3 at `a`, which K.λ's `N ≥ 3 ∧ e₃ ≠ ∅` precondition discharges at `N = 3`, `e₃ = K`. ∎
 
@@ -137,9 +137,7 @@ Under the K.λ contract of ASN-0093, R0a is unconditional: K.λ's first/subseque
 
 Either way, neither `a ≼ a'` nor `a' ≼ a` holds when `home(a) ≠ home(a')`, so the R0a implication `a ≼ a' ⟹ a = a'` holds vacuously in this case.
 
-*Case 2 — Same-home (`home(a) = home(a') = d`).* By ASN-0093's ChainMembershipForOrigin lemma, the set `{a'' ∈ dom(Σ.L) : origin(a'') = d}` is a contiguous initial segment of `A_L(d)`'s chain enumeration `(t_1, t_2, t_3, …)` with `t_1 = [d.0.s_L.1]` and `t_{n+1} = inc(t_n, 0)`. Hence both `a` and `a'` are chain elements: `a = t_i` and `a' = t_j` for some `i, j ≥ 1`. By (UL), `#a = #t_i = #t_1 = #a'` — all chain elements have equal length. If `a ≼ a'`, then by the prefix definition (positions `1..#a` of `a'` agree with `a`) combined with `#a = #a'`, `a` and `a'` coincide pointwise, so `a = a'` by T3 (CanonicalRepresentation, ASN-0034).
-
-(Equivalent argument via T10a.2: same-home chain elements are siblings of the link sub-allocator `A_L(d)` by ChainDiscipline (ASN-0093) + T10a.7; T10a.2 (NonNestingSiblingPrefixes, ASN-0034) then forces prefix-incomparability for distinct siblings, equivalently `a ≼ a' ⟹ a = a'`.)
+*Case 2 — Same-home (`home(a) = home(a') = d`).* By ASN-0093's ChainMembershipForOrigin lemma, the set `{a'' ∈ dom(Σ.L) : origin(a'') = d}` is a contiguous initial segment of `A_L(d)`'s chain enumeration `(t_1, t_2, t_3, …)` with `t_1 = [d.0.s_L.1]` and `t_{n+1} = inc(t_n, 0)`. Hence both `a` and `a'` are chain elements: `a = t_i` and `a' = t_j` for some `i, j ≥ 1`. By (UL), `#a = #t_i = #t_1 = #a'` — all chain elements have equal length. If `a ≼ a'`, then by the prefix definition (positions `1..#a` of `a'` agree with `a`) combined with `#a = #a'`, `a` and `a'` coincide pointwise, so `a = a'` by T3 (CanonicalRepresentation, ASN-0034). (Equivalently, by T10a.2 applied to the distinct siblings `a`, `a'` of `A_L(d)`.)
 
 Combining Cases 1 and 2, `a ≼ a' ⟹ a = a'` at every reachable Σ. ∎
 
@@ -238,7 +236,7 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 ## Self-Reference (R5)
 
-**R5 — TupleSelfTargeting.** A tuple's from-set or to-set may reference tuple addresses. Specifically, for any state Σ and any `a ∈ A_rel^Σ`, the unit-depth span `(a, δ(1, #a))` is well-formed and may appear in the from-set or to-set of an emitted tuple, with `a` in its coverage. (The Worked Sketch below, Step 1, instantiates R5: the retraction tuple's to-set references the link address `a₁` directly.)
+**R5 — TupleSelfTargeting.** A tuple's from-set or to-set may reference tuple addresses. Specifically, for any state Σ and any `a ∈ A_rel^Σ`, the unit-depth span `(a, δ(1, #a))` is well-formed and may appear in the from-set or to-set of an emitted tuple, with `a` in its coverage.
 
 *Proof.* Fix any `a ∈ A_rel^Σ` at any state Σ. By L1a (LinkScopedAllocation, ASN-0043) applied at `a`, `home(a) ∈ dom(Σ.M)`, so `dom(Σ.M) ≠ ∅` — discharging R0's `dom(Σ.M) ≠ ∅` precondition for the home `d` chosen below. (Equivalently, "may appear in the from-set or to-set of an emitted tuple" presupposes a state with at least one document allocated, which `a ∈ A_rel^Σ` itself supplies.)
 
@@ -283,7 +281,7 @@ The existential checks `coverage(G')` only — the to-set's coverage — and doe
 
 `A_K^Σ = {(a, F, G) ∈ L_K^Σ : a ∉ nullified(Σ)}`
 
-`A_K^Σ` is computable from `Σ.L` alone: `L_K^Σ` is a slice of `Σ.L`, and `nullified(Σ)` is fixed by `L_R^Σ`, itself a slice of `Σ.L`.
+`A_K^Σ` is computable from `Σ.L` alone: `L_K^Σ` is a slice of `Σ.L`, and `nullified(Σ)` is a finite, computable set. Although a single span's `coverage(G')` may be infinite (a prefix span covers an entire subtree), the set-builder `nullified(Σ) = {a ∈ A_rel^Σ : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))}` ranges over the finite domain `A_rel^Σ = dom(Σ.L)` (L-fin); `L_R^Σ` is a finite slice of `Σ.L` (L-fin), so each tuple's `G'` carries finitely many spans; and for each candidate `a` and each such span `(s, ℓ)`, the membership test `s ≤ a < s ⊕ ℓ` underlying `a ∈ coverage(G')` is decidable by T2 (IntrinsicComparison, ASN-0034). Hence `nullified(Σ)` is a finite intersection-and-union of decidable per-address tests, and `A_K^Σ` is computed by excluding it from the finite slice `L_K^Σ`.
 
 **R6a — RetractionStability.** Once a tuple's address is nullified, it stays nullified across all future state transitions:
 
@@ -295,7 +293,7 @@ Suppose `a ∈ nullified(Σ)`. By Definition of `nullified(Σ)`, this entails `a
 
 **R6b — SingleDepthRetraction (Consequence of Definition `nullified`).** Retraction-of-retraction is not a fixpoint operation: an `Emit_R` call whose to-coverage targets a retractor `b` does not "undo" `b`'s nullifying effect on its prior targets. The decision procedure for `a ∈ nullified(Σ)` is *flat* — a single set-membership test independent of any retraction-chain depth in `L_R^Σ`, and unaffected by whether any witnessing retractor `b` is itself nullified. Operationally, attempting to "un-nullify" `a` by emitting `Nullify(b)` only adds further audit-trail entries; it cannot return `(a, F, G)` to any active subset.
 
-*Justification.* The Definition of `nullified` quantifies its existential over the audit slice `L_R^Σ`, not the active subset `A_R^Σ`: `a ∈ nullified(Σ) ⟺ (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))`. Membership is therefore a flat single-pass test — enumerate `L_R^Σ` and test `a ∈ coverage(G')` for each tuple — that never consults the witness `b`'s own status. (Had the Definition quantified over `A_R^Σ` instead, deciding `a ∈ nullified(Σ)` would require first deciding `b ∉ nullified(Σ)`, recursing into a fixpoint over the retraction-of-retraction graph; that reading is not adopted.) Consequently, "un-nullifying" `a` by emitting `Nullify(b)` for the retractor `b` has no effect: `b` may itself become nullified, but the original tuple `(b, F', G')` persists in `L_R^Σ ⊆ L_R^{Σ'}` (by R3), and `a ∈ coverage(G')` still witnesses `a ∈ nullified(Σ')`. Restoration must proceed by fresh emission at a distinct address (Worked Sketch Step 2; R6c formalizes it). ∎
+*Justification.* The Definition of `nullified` quantifies its existential over the audit slice `L_R^Σ`, not the active subset `A_R^Σ`: `a ∈ nullified(Σ) ⟺ (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))`. Membership is therefore a flat single-pass test — enumerate `L_R^Σ` and test `a ∈ coverage(G')` for each tuple — that never consults the witness `b`'s own status. (Had the Definition quantified over `A_R^Σ` instead, deciding `a ∈ nullified(Σ)` would require first deciding `b ∉ nullified(Σ)`, recursing into a fixpoint over the retraction-of-retraction graph; that reading is not adopted.) Consequently, "un-nullifying" `a` by emitting `Nullify(b)` for the retractor `b` has no effect: `b` may itself become nullified, but the original tuple `(b, F', G')` persists in `L_R^Σ ⊆ L_R^{Σ'}` (by R3), and `a ∈ coverage(G')` still witnesses `a ∈ nullified(Σ')`. Restoration must proceed by fresh emission at a distinct address. ∎
 
 **R6c — RestorationByReemission.** Once retracted, a tuple stays out of every active subset at any state reachable from Σ:
 
@@ -324,7 +322,7 @@ The six properties yield three operations that suffice to span all visible subst
 
 `Emit_K : Σ × dom(Σ.M) × Endset × Endset → Σ' × A_rel^{Σ'}`
 
-(Equivalently: writing the family as a single operation, `Emit : T_admissible × Σ × dom(Σ.M) × Endset × Endset → Σ' × A_rel^{Σ'}` with `Emit_K(·) := Emit(K, ·)`. The subscripted form is used throughout this note for parallelism with `L_K`, `A_K`, and `Observe_K`.) Where Σ is the substrate's state space (every state reachable from `Σ_init`); ASN-0093's K.λ contract enforces the sibling-frontier discipline as part of the substrate's primitive emission, so `Emit_K` is a function over the full domain — no auxiliary discipline restriction is required.
+Where Σ is the substrate's state space (every state reachable from `Σ_init`); ASN-0093's K.λ contract enforces the sibling-frontier discipline as part of the substrate's primitive emission, so `Emit_K` is a function over the full domain — no auxiliary discipline restriction is required.
 
 `Emit_K` is operationally `K.λ` of ASN-0093, restricted to the standard-triple link value `(F, G, K)`. K.λ accepts a value `(e₁, …, e_N)` with `N ≥ 3` and `e₃ ≠ ∅`; `Emit_K` specializes to `N = 3` and `e₃ = K`, so K.λ's contract carries over directly.
 
