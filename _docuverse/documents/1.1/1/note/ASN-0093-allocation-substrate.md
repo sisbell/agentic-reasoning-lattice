@@ -30,7 +30,7 @@ where
 - `L : T ⇀ Link` is the link store (per ASN-0043): a partial function from element-level tumblers to link values, each a sequence of `N ≥ 3` endsets `(e₁, e₂, …, eₙ) ∈ Endset^N`. `Link` and `Endset` are defined in ASN-0043; the StandardTriple convention (slot 1 = from, slot 2 = to, slot 3 = type, written `(F, G, Θ)` for the arity-3 default; ASN-0043) is preserved.
 - `M : T ⇀ (T ⇀ T)` is the arrangement function (per ASN-0036): a partial function whose domain `dom(M)` is the set of allocated document addresses, mapping each to its V-position-to-I-address arrangement
 
-`dom(M)` is the set of tumblers committed by `K.σ` events (defined below). A document is *allocated* iff `d ∈ dom(M)`. The `origin(·)` function is the tumbler-projection defined in ASN-0036 (truncation to the `zeros = 2` prefix).
+`dom(M)` is the set of tumblers committed by `K.σ` events (defined below). A document is *allocated* iff `d ∈ dom(M)`. The `origin(·)` function is the document-level field projection `origin(a) = N(a).0.U(a).0.D(a)`, well-defined on every T4-valid element-level tumbler (`zeros(a) = 3`) via T4b's `N`, `U`, `D` projections (ASN-0034). On content addresses this is ASN-0036's `origin` (S7); on link addresses it is the identical formula ASN-0043 names `home` (L1c). Since `origin` and `home` are the same field-extraction projection — differing only in which store's addresses ASN-0036 versus ASN-0043 happen to scope them to — we have `origin ≡ home` wherever both are defined, and this note adopts `origin` uniformly across both the content and link stores.
 
 **Terminology.** "Document" in this substrate means "element of `dom(M)`" — a purely structural notion; M0 (below) carries the well-formedness conditions.
 
