@@ -67,11 +67,7 @@ The system designates at least two subspaces within each document's element fiel
 
 `dom(Σ.C)|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}`
 
-— the slice of `dom(Σ.C)` whose addresses occupy subspace `s_C`; `subspace_I` is well-defined here because every such address is T4-valid with `zeros = 3`, so `#E ≥ 1` by T4's field-segment constraint and `E(·)₁` exists. The disjointness this ASN derives is:
-
-`dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`
-
-— no link address shares an address with any `s_C`-resident content. Call a state `Σ` *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` — every stored content address occupies subspace `s_C`. The derivation of this disjointness rests on two link-allocation invariants developed below — L1 (link addresses are element-level, `zeros(a) = 3`) and L1c (allocator conformance, which yields link-address T4-validity) — and is given as L0b, after L1c.
+— the slice of `dom(Σ.C)` whose addresses occupy subspace `s_C`; `subspace_I` is well-defined here because every such address is T4-valid with `zeros = 3`, so `#E ≥ 1` by T4's field-segment constraint and `E(·)₁` exists. Call a state `Σ` *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` — every stored content address occupies subspace `s_C`.
 
 **L1 — LinkElementLevel.** Every link address is an element-level tumbler:
 
@@ -651,8 +647,8 @@ The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared b
 | Σ.L | DEF | `Σ.L : T ⇀ Link` — the link store, mapping addresses to link values | introduced |
 | L-fin | INV | LinkStoreFiniteness — `|dom(Σ.L)| < ∞` for each reachable state; parallels S8-fin (ASN-0036) | introduced |
 | L0 | INV | SubspacePartition — link addresses occupy subspace `s_L`: `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`; together with L0a yields the scoped disjointness `dom(Σ.L) ∩ dom(Σ.C)\|_{s_C} = ∅` via T7 | introduced |
-| L0b | THM | LinkAddressValidity — every link address is T4-valid: `(A a ∈ dom(Σ.L) :: T4-valid(a))`; T4-validity postcondition of L1c, derived there | introduced |
-| L0a | DEF | ContentSubspaceScope — `dom(Σ.C)\|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}` is the `s_C`-resident slice of content; the disjointness `dom(Σ.L) ∩ dom(Σ.C)\|_{s_C} = ∅` is derived after L1c via L0 + L0b + T7 (the L0a discharge); a state is *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` | introduced |
+| L0b | THM | LinkAddressValidity — every link address is T4-valid: `(A a ∈ dom(Σ.L) :: T4-valid(a))`; T4-validity postcondition of L1c, derived there; with L0 + T7 yields the scoped disjointness `dom(Σ.L) ∩ dom(Σ.C)\|_{s_C} = ∅` (the *L0a discharge*) | introduced |
+| L0a | DEF | ContentSubspaceScope — `dom(Σ.C)\|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}` is the `s_C`-resident slice of content; a state is *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` | introduced |
 | L1 | INV | LinkElementLevel — every link address is an element-level tumbler: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` | introduced |
 | L1a | INV | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
 | L1b | INV | LinkElementFieldDepth — every link address has element field depth ≥ 2: `(A a ∈ dom(Σ.L) :: #E(a) ≥ 2)` | introduced |
