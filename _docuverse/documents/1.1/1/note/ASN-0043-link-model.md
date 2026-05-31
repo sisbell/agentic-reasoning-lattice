@@ -526,7 +526,7 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *S7d (DocumentAllocationDiscipline, ASN-0036).* `dom(Σ.M) = {d}` with `d = 1.0.1.0.1`; `zeros(d) = 2`, T4-valid by DocVal; `d` is producible by a single `inc(r, 2)` allocation event from a user-level root `r = 1.0.1` (`zeros(r) = 1 ≤ 2`, satisfying TA5a's side condition for `k' = 2`): `inc(1.0.1, 2)` appends one separator zero and a final `1`, yielding `1.0.1.0.1 = d`, so `d` is a T10a-allocated node in 𝒯. ✓
 
-*S8a (VPositionWellFormedness, ASN-0036).* The V-positions of `Σ.M(d)` are `{[1.1], [1.2]}`; each V-position is an element-field tumbler whose subspace component is `1 = s_C`, restricting `Σ.M(d)` to the content subspace's V-position slice. ✓
+*S8a (VPositionWellFormedness, ASN-0036).* S8a requires `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` with every component positive. The V-positions of `Σ.M(d)` are `{[1, 1], [1, 2]}`. For each: `zeros([1, 1]) = zeros([1, 2]) = 0` (no component is zero); `#[1, 1] = #[1, 2] = 2 ≥ 2`; and every component of each is positive (`1 > 0` throughout). All three conjuncts hold for both V-positions. ✓
 
 *S8-depth (FixedDepthVPositions, ASN-0036).* Each V-position of `Σ.M(d)` has element-field depth `2`: `#[1.1] = #[1.2] = 2 ≥ 2`. ✓
 
