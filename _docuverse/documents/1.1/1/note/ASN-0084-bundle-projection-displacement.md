@@ -44,7 +44,7 @@ Notation: at depth 2, V-positions have the form [S, p]. We write `c₀ + j` for 
 
 ## Cut Points and the Region Partition
 
-A *cut sequence* specifies the boundaries of regions to transpose. We formalize this as a tuple of tumblers within a single subspace. The cut positions are tumblers satisfying CS1–CS4 below; the last cut c_{n−1} serves as an exclusive upper bound and need not belong to V_S(d).
+A *cut sequence* specifies the boundaries of regions to transpose. We formalize this as a tuple of tumblers within a single subspace. The cut positions are tumblers satisfying CS1–CS5 below; the last cut c_{n−1} serves as an exclusive upper bound and need not belong to V_S(d).
 
 **Definition — CutSequence.** A *cut sequence* for document d in subspace S is a tuple K = (c₀, c₁, ..., c_{n−1}) of tumblers satisfying:
 
@@ -55,6 +55,8 @@ A *cut sequence* specifies the boundaries of regions to transpose. We formalize 
 (CS3) subspace(cᵢ) = S = 1 for all i — all cuts in the text subspace.
 
 (CS4) #cᵢ = 2 for all i — depth-2 positions.
+
+(CS5) ord(cᵢ) ≥ 1 for all i — the second component is positive (zero-free, matching the S8a form [S, q] with q ∈ ℕ⁺). This makes each cut cᵢ = [1, ord(cᵢ)] a singleton-identifiable positive ordinal, so ord(cᵢ) ∈ ℕ⁺ and the truncated subtraction on cut ordinals (introduced above) is well-defined on every adjacent cut pair.
 
 The cut positions partition the V-positions of the affected range into regions. For n = 3 (the *pivot*), the cuts define two adjacent regions. For n = 4 (the *swap*), the cuts define two outer regions separated by a middle region.
 
@@ -92,7 +94,7 @@ The following precondition and postcondition clauses define the rearrangement op
 
 (ii) V_S(d) ≠ ∅ (the subspace is non-empty — one cannot rearrange nothing).
 
-(iii) The cut sequence K = (c₀, ..., c_{n−1}) satisfies CS1–CS4.
+(iii) The cut sequence K = (c₀, ..., c_{n−1}) satisfies CS1–CS5.
 
 (iv) The affected range lies entirely within the current arrangement:
 
@@ -100,9 +102,7 @@ The following precondition and postcondition clauses define the rearrangement op
 
 Clause (iv) ensures that the affected range is covered: no gap exists within [c₀, c_{n−1}). Combined with D-CTG, this says the entire inter-cut range consists of valid V-positions in V_S(d).
 
-**Consequences of R-PRE.** *Subspace confinement.* All cuts lie in subspace S by CS3, and every V-position in the affected range [c₀, c_{n−1}) ∩ V_S(d) has subspace S by membership in V_S(d). Any cut-relative shift `c_i + j` retains subspace S: by CS3, subspace(c_i) = S, and SUBCONF gives subspace(c_i + j) = subspace(c_i) = S.
-
-*Width positivity.* Under R-PRE(iii) and R-PRE(iv), each region width equals a cut-ordinal difference and is a positive natural number: w_α ≥ 1 and w_β ≥ 1 in both forms, and additionally w_μ ≥ 1 when n = 4. By R-PRE(iv) and D-SEQ (ASN-0036), the widths are computable from the cut-point ordinals: w_α = ord(c₁) − ord(c₀); w_β = ord(c₂) − ord(c₁) for n = 3 and ord(c₃) − ord(c₂) for n = 4; w_μ = ord(c₂) − ord(c₁) for n = 4. For each adjacent cut pair (c_i, c_{i+1}): by CS2 and T1, c_i < c_{i+1}, and under the identification of singleton tumblers with natural numbers (introduced above) this coincides with ord(c_i) < ord(c_{i+1}) ∈ ℕ⁺, so ord(c_{i+1}) ≥ ord(c_i) + 1 and the difference ord(c_{i+1}) − ord(c_i) ≥ 1 is a well-defined positive natural (discharging the m ≥ n precondition of the truncated subtraction defined above). D-SEQ gives V_S(d) = {[S, k] : 1 ≤ k ≤ N} for some N. Because each cut and each affected V-position is subspace-S (CS3) at depth 2 (CS4) of the form [S, ord(·)], the shared leading component S cancels and the singleton-ordinal coincidence established above gives `c_i ≤ v < c_{i+1} ⟺ ord(c_i) ≤ ord(v) < ord(c_{i+1})`. R-PRE(iv) then places every depth-2 subspace-S position with ordinal in [ord(c_i), ord(c_{i+1})) into V_S(d), so the count of V-positions in [c_i, c_{i+1}) equals ord(c_{i+1}) − ord(c_i) ≥ 1. Instantiating at i = 0 yields w_α ≥ 1; at i = 1 (n = 4) yields w_μ ≥ 1; at i = n − 2 yields w_β ≥ 1.
+**Consequences of R-PRE.** *Width positivity.* Under R-PRE(iii) and R-PRE(iv), each region width equals a cut-ordinal difference and is a positive natural number: w_α ≥ 1 and w_β ≥ 1 in both forms, and additionally w_μ ≥ 1 when n = 4. By R-PRE(iv) and D-SEQ (ASN-0036), the widths are computable from the cut-point ordinals: w_α = ord(c₁) − ord(c₀); w_β = ord(c₂) − ord(c₁) for n = 3 and ord(c₃) − ord(c₂) for n = 4; w_μ = ord(c₂) − ord(c₁) for n = 4. For each adjacent cut pair (c_i, c_{i+1}): by CS5, ord(c_i), ord(c_{i+1}) ∈ ℕ⁺, so both cut ordinals lie in the domain of the singleton-tumbler identification; by CS2 and T1, c_i < c_{i+1}, which under that identification coincides with ord(c_i) < ord(c_{i+1}), so ord(c_{i+1}) ≥ ord(c_i) + 1 and the difference ord(c_{i+1}) − ord(c_i) ≥ 1 is a well-defined positive natural (discharging the m ≥ n precondition of the truncated subtraction defined above). The positivity ord(c_i) ≥ 1 is what makes the count-equals-ordinal-difference identity exact: the V-positions in [c_i, c_{i+1}) are exactly those with ordinal in [ord(c_i), ord(c_{i+1})), and since the lower bound is ≥ 1 no zero-ordinal phantom position is admitted (V-positions are zero-free by S8a). D-SEQ gives V_S(d) = {[S, k] : 1 ≤ k ≤ N} for some N. Because each cut and each affected V-position is subspace-S (CS3) at depth 2 (CS4) of the form [S, ord(·)], the shared leading component S cancels and the singleton-ordinal coincidence established above gives `c_i ≤ v < c_{i+1} ⟺ ord(c_i) ≤ ord(v) < ord(c_{i+1})`. R-PRE(iv) then places every depth-2 subspace-S position with ordinal in [ord(c_i), ord(c_{i+1})) into V_S(d), so the count of V-positions in [c_i, c_{i+1}) equals ord(c_{i+1}) − ord(c_i) ≥ 1. Instantiating at i = 0 yields w_α ≥ 1; at i = 1 (n = 4) yields w_μ ≥ 1; at i = n − 2 yields w_β ≥ 1.
 
 *Empty right-exterior boundary case (EXT-VAC).* When c_{n−1} ∉ V_S(d), c_{n−1} ∉ dom(M(d)): by D-SEQ (ASN-0036), V_S(d) = {[S, 1], ..., [S, N]}, and any depth-2 subspace-S cut [S, q] with 1 ≤ q ≤ N would lie in V_S(d), so c_{n−1} ∉ V_S(d) lies strictly above the maximum [S, N]; the right-exterior set {v ∈ V_S(d) : v ≥ c_{n−1}} is therefore empty, and since every subspace-S depth-2 element of dom(M(d)) belongs to V_S(d), c_{n−1} ∉ dom(M(d)).
 
@@ -380,7 +380,7 @@ Content A–C originates from document 3.0.1.0.1 (origin 3.0.1.0.1); D–E from 
 
 We apply a 3-cut pivot with K = ([1,2], [1,4], [1,5]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5]. The affected range is [c₀, c₂) = {[1,2], [1,3], [1,4]}. Region α = {[1,2], [1,3]} (w_α = 2), region β = {[1,4]} (w_β = 1).
 
-**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 3; CS2: [1,2] < [1,4] < [1,5]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,5)) are in V_S(d). Width positivity: w_α = 2 ≥ 1, w_β = 1 ≥ 1 (consequence). ✓
+**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 3; CS2: [1,2] < [1,4] < [1,5]; CS3: all subspace 1; CS4: all depth 2; CS5: ordinals 2, 4, 5 ≥ 1. (iv) All positions in [[1,2], [1,5)) are in V_S(d). Width positivity: w_α = 2 ≥ 1, w_β = 1 ≥ 1 (consequence). ✓
 
 **Applying the postconditions.** We compute M'(d) position by position:
 
@@ -760,7 +760,7 @@ The text I-addresses A–C lie in element subspace 1 (the `...0.1.k` tail); the 
 
 We apply a 3-cut pivot with K = ([1,1], [1,2], [1,3]): c₀ = [1,1], c₁ = [1,2], c₂ = [1,3]. All cuts lie in subspace 1 (CS3) at depth 2 (CS4). The affected range is [c₀, c₂) = {[1,1], [1,2]}. Region α = {[1,1]} (w_α = 1), region β = {[1,2]} (w_β = 1). The text position [1,3] is the right exterior (ord ≥ ord(c₂) = 3), and the link position [2,1] lies entirely outside subspace S.
 
-**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 3; CS2: [1,1] < [1,2] < [1,3]; CS3: all cuts subspace 1; CS4: all depth 2. (iv) Every subspace-1 depth-2 position in [[1,1], [1,3)) — namely [1,1], [1,2] — lies in V_1(d); the link position [2,1] is *not* quantified over (its subspace is 2 ≠ S). Width positivity: w_α = 1 ≥ 1, w_β = 1 ≥ 1. ✓
+**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 3; CS2: [1,1] < [1,2] < [1,3]; CS3: all cuts subspace 1; CS4: all depth 2; CS5: ordinals 1, 2, 3 ≥ 1. (iv) Every subspace-1 depth-2 position in [[1,1], [1,3)) — namely [1,1], [1,2] — lies in V_1(d); the link position [2,1] is *not* quantified over (its subspace is 2 ≠ S). Width positivity: w_α = 1 ≥ 1, w_β = 1 ≥ 1. ✓
 
 **Applying the postconditions.** We compute M'(d) position by position:
 
@@ -809,9 +809,9 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}.
 
 | Label | Type | Statement | Status |
 |-------|------|-----------|--------|
-| CutSequence | DEF | Tuple (c₀, ..., c_{n−1}) with n ∈ {3,4}, strictly ordered, same subspace, depth 2 (CS1–CS4) | introduced |
+| CutSequence | DEF | Tuple (c₀, ..., c_{n−1}) with n ∈ {3,4}, strictly ordered, same subspace, depth 2, positive ordinal (CS1–CS5) | introduced |
 | RegionPartition | DEF | Partition of affected range into regions α, β (3-cut) or α, μ, β (4-cut) by cut positions | introduced |
-| R-PRE | DEF | Precondition clauses (i)–(iv): M(d) exists, V_S(d) non-empty, cuts satisfy CS1–CS4, affected range covered | introduced |
+| R-PRE | DEF | Precondition clauses (i)–(iv): M(d) exists, V_S(d) non-empty, cuts satisfy CS1–CS5, affected range covered | introduced |
 | PivotPostcondition | DEF | 3-cut rearrangement: β content placed at c₀, then α content, exterior unchanged (R-EXT, R-P1, R-P2) | introduced |
 | SwapPostcondition | DEF | 4-cut rearrangement: β at c₀, then μ, then α, exterior unchanged (R-EXT, R-S1, R-S2, R-S3) | introduced |
 | REARRANGE_K | OPERATION | State transition Σ → Σ' parameterized by cut sequence K and document d; precondition R-PRE(K); postcondition PivotPostcondition (n=3) or SwapPostcondition (n=4) plus frame conditions R-FRAME-P or R-FRAME-S | introduced |
