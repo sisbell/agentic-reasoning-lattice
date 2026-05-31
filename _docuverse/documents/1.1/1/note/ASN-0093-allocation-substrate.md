@@ -13,8 +13,8 @@ This note extracts the *allocation-substrate* layer: the three allocation primit
 
 **Deferred to higher-layer ASNs:**
 
-- **Arrangement mutation.** `K.μ⁺`, `K.μ⁻`, `K.μ~`, `K.μ⁺_L` — operations that modify `M(d)` for an existing `d ∈ dom(M)`. The substrate fixes `M(d)` at `∅` on registration and leaves it unmodified thereafter. Consequently, arrangement-side invariants from ASN-0036 (S2, S3, S8a, S8-depth, S8-fin, D-CTG, D-MIN) hold vacuously here since `M(d) = ∅` for every `d ∈ dom(M)`; arrangement-extension primitives that would make them non-trivial are deferred to a higher-layer ASN.
-- **Entity allocation.** The substrate's `K.σ` is the document-registration primitive without the entity-hierarchy machinery. A higher-layer document-introduction primitive rebuilds itself as `K.σ` plus entity-set tracking, lineage discipline, and version-allocator activation.
+- **Arrangement mutation.** `K.μ⁺`, `K.μ⁻`, `K.μ~`, `K.μ⁺_L` — operations that modify `M(d)` for an existing `d ∈ dom(M)`. The substrate fixes `M(d)` at `∅` on registration and leaves it unmodified thereafter. Consequently, arrangement-side invariants from ASN-0036 (S2, S3, S8a, S8-depth, S8-fin, D-CTG, D-MIN) hold vacuously here, since by M2 (EmptyArrangement, below) `M(d) = ∅` for every `d ∈ dom(M)`; arrangement-extension primitives that would make them non-trivial are deferred to a higher-layer ASN.
+- **Entity allocation.** The substrate's `K.σ` is the document-registration primitive without the entity-hierarchy machinery; that machinery, layered on `K.σ`, is deferred to a higher-layer ASN.
 - **Provenance recording.** A provenance-emission primitive and the provenance relation `R`. The substrate has no `R` component.
 - **Coupling constraints.** Higher-layer coupling invariants binding K.α to K.μ⁺ etc. are out of scope; the substrate's `K.α` and `K.λ` stand independently.
 - **Link withdrawal.** Nelson's tombstone-style withdrawal (LM 4/9) is deferred to a higher-layer retraction mechanism.
@@ -58,6 +58,12 @@ Every allocated document address is a T4-valid tumbler (per T4, HierarchicalPars
   `(A Σ → Σ' :: dom(M) ⊆ dom(M'))`
 
 `dom(M)` is non-decreasing across all transitions. The substrate admits no transition that removes a document from `dom(M)`. Discharged from the frame conditions of every transition kind: `K.σ` extends `dom(M)` by one element; `K.α` and `K.λ` hold `M` in frame.
+
+**M2 (EmptyArrangement).**
+
+  `(A d ∈ dom(M) :: M(d) = ∅)`
+
+Every allocated document carries the empty arrangement. The substrate fixes `M(d) = ∅` at registration and admits no arrangement-mutation transition, so no document's arrangement value is ever populated. Base case `Σ₀.M = ∅`; discharged at the new key by `K.σ`'s effect clause `M'(d) = ∅`; preserved by `K.α`/`K.λ`, which hold `M` in frame. M2 is the explicit ground on which the arrangement-side invariants of ASN-0036 (S2, S3, S8a, S8-depth, S8-fin, D-CTG, D-MIN) hold vacuously in the substrate.
 
 
 ## Content store invariants
@@ -142,7 +148,7 @@ Once allocated, a link's address persists in `dom(L)` and its value is permanent
 
   `dom(C) ∩ dom(L) = ∅`
 
-Derived from L0 + SC-NEQ + StoreT4Validity + T7 (SubspaceDisjointness, ASN-0034). T7's preconditions are discharged on each side: `zeros(·) = 3` from C1 (content) and L1 (links), and T4-validity from StoreT4Validity (below). With both premises met, every content address has `E(·)₁ = s_C` and every link address has `E(·)₁ = s_L` (L0), and `s_C ≠ s_L` (SC-NEQ), so T7 gives pairwise distinctness across the two stores — the domains are disjoint. We use the fresh ID `SD` rather than reusing ASN-0043's `L14` (DualPrimitive), which the foundation binds to a different invariant: SD strengthens DualPrimitive's disjointness clause from the `s_C`-sliced `dom(L) ∩ dom(C)|_{s_C} = ∅` to the full `dom(C) ∩ dom(L) = ∅`, justified here because every content address resides in subspace `s_C` (C1 + L0's C-clause).
+Derived from L0 + SC-NEQ + StoreT4Validity + T7 (SubspaceDisjointness, ASN-0034). T7's preconditions are discharged on each side: `zeros(·) = 3` from C1 (content) and L1 (links), and T4-validity from StoreT4Validity (below). With both premises met, every content address has `E(·)₁ = s_C` and every link address has `E(·)₁ = s_L` (L0), and `s_C ≠ s_L` (SC-NEQ), so T7 gives pairwise distinctness across the two stores — the domains are disjoint. The full union `dom(C) ∩ dom(L) = ∅` is justified because every content address resides in subspace `s_C` (C1 + L0's C-clause); SD is thereby strictly stronger than ASN-0043's L14 (DualPrimitive), whose disjointness clause is the `s_C`-sliced `dom(L) ∩ dom(C)|_{s_C} = ∅`.
 
 **L-fin (LinkStoreFiniteness).**
 
@@ -406,11 +412,11 @@ The example exercises both the first-emit and subsequent-emit branches of K.α a
 
 ## Discharge of stated invariants
 
-**Simultaneous-induction framing.** The stated invariants, together with the ChainMembershipForOrigin lemma, the StoreT4Validity corollary, the FirstEmissionFreshness lemma, and the SubsequentEmissionFreshness lemma, are proved by *simultaneous induction* over transition sequences from `Σ₀`: the inductive hypothesis at each step is the *conjunction* of every such property at the current state `Σ`, and the inductive step exhibits each holding at `Σ'` using the conjoined IH.
+**Simultaneous-induction framing.** The stated invariants, together with the ChainMembershipForOrigin lemma and the StoreT4Validity corollary, are proved by *simultaneous induction* over transition sequences from `Σ₀`: the inductive hypothesis at each step is the *conjunction* of every such property at the current state `Σ`, and the inductive step exhibits each holding at `Σ'` using the conjoined IH. The FirstEmissionFreshness and SubsequentEmissionFreshness lemmas are *event-local*: each is a one-shot freshness obligation discharged at the K.α/K.λ binding precondition that commits the emission (and reused in the SD matrix row), not a state property carried in the per-state IH conjunction.
 
 Each transition-indexed invariant is discharged by induction on transition sequences from `Σ₀`. The inductive step is recorded as a per-(invariant, transition) matrix; entries describe how each transition kind preserves or discharges each invariant.
 
-**Base case verification (at `Σ₀ = (∅, ∅, ∅)`).** Most invariants are vacuously satisfied: M0/M1/C1/C1b/C1c/C2/L0/L1/L1a/L1b/L1c/L3 quantify over `dom(C)`, `dom(L)`, or `dom(M)`, all empty at `Σ₀`. C0 and L12 quantify over transitions `Σ → Σ'`, vacuous at `Σ₀` until the first transition fires. Three invariants are non-vacuous but trivially satisfied at `Σ₀`:
+**Base case verification (at `Σ₀ = (∅, ∅, ∅)`).** Most invariants are vacuously satisfied: M0/M1/M2/C1/C1b/C1c/C2/L0/L1/L1a/L1b/L1c/L3 quantify over `dom(C)`, `dom(L)`, or `dom(M)`, all empty at `Σ₀`. C0 and L12 quantify over transitions `Σ → Σ'`, vacuous at `Σ₀` until the first transition fires. Three invariants are non-vacuous but trivially satisfied at `Σ₀`:
 
 - **SD** (`dom(C) ∩ dom(L) = ∅`): at `Σ₀`, both stores empty, so `∅ ∩ ∅ = ∅` — trivially true.
 - **L-fin** (`|dom(L)| < ∞`): `|∅| = 0 < ∞` — trivially true.
@@ -426,6 +432,7 @@ The base case holds.
 |---|---|---|---|
 | **M0** (DocumentTumblerWellFormed) | Discharged at new key: precondition pins `T4-valid(d) ∧ zeros(d) = 2` | Preserved: `M` in frame | Preserved: `M` in frame |
 | **M1** (ArrangementMonotonicity) | Discharged: effect extends `dom(M)` by union | Preserved: `M` in frame | Preserved: `M` in frame |
+| **M2** (EmptyArrangement) | Discharged at new key: effect clause pins `M'(d) = ∅`; prior keys preserved by frame on existing `M` entries | Preserved: `M` in frame | Preserved: `M` in frame |
 | **C0** (ContentImmutability) | Preserved: `C` in frame | Discharged: effect extends `dom(C)` at fresh `a` with value `v`; value at existing keys unaltered (definitional in effect clause) | Preserved: `C` in frame |
 | **C1** (ContentElementLevel) | Preserved: `C` in frame | Discharged at new key: first-emit branch pins `a = [d.0.s_C.1]`, whose form gives `zeros(a) = 3`; subsequent-emit branch has `a = inc(a_prev, 0)`, where `zeros(a) = zeros(a_prev) = 3` by B5a (ChainUniformZeroCount) and the IH on `a_prev` | Preserved: `C` in frame |
 | **C1b** (ContentElementFieldDepth) | Preserved: `C` in frame — `dom(C)` unchanged, IH transfers | Discharged at new key: first-emit branch pins `a = [d.0.s_C.1]`, whose form gives `#E(a) = 2`; subsequent-emit branch has `a = inc(a_prev, 0)`: by TA5(b) the step preserves every position except `sig(a_prev)`, and for the T4-valid `a_prev`, TA5-SigValid places `sig(a_prev) = #a_prev` in the element field, so the third separator's position is untouched and `zeros(a) = zeros(a_prev)` by B5a (ChainUniformZeroCount); the element-field boundary is therefore invariant, giving `#E(a) = #E(a_prev) ≥ 2` by the IH on `a_prev` | Preserved: `C` in frame |
@@ -448,8 +455,6 @@ The base case holds.
 |---|---|---|---|
 | **ChainMembershipForOrigin** | Preserved: `C`, `L` in frame; for the freshly registered `d_new`, both intersection sets `dom(C') ∩ {a' : origin(a') = d_new}` and `dom(L') ∩ {ℓ' : origin(ℓ') = d_new}` are `∅`, witnessing `m_{d_new} = n_{d_new} = 0` (see lemma proof above) | Preserved at `d' ≠ d` by frame on `dom(C)|_{d'}`; at `d` extended at chain index `m_d + 1` (first-emit by FirstEmission, subsequent-emit by ChainDiscipline + ChainEnumerationInjectivity placing `a = t_{m_d + 1}`); link clause unchanged by frame on `dom(L)` | Symmetric to K.α (content↔link); see lemma proof above |
 | **StoreT4Validity** | Preserved: `C`, `L` in frame, so the existing T4-validity of every entry transfers; no new key | Preserved at prior keys (`C` in frame); at the new key `a`, T4-validity from ChainElementT4Validity applied to `A_C(d)` (every chain element is T4-valid by chain induction grounded at FirstEmission's T4-valid first emission, covering both first-emit and subsequent-emit branches) | Symmetric (content↔link); at the new key `ℓ`, ChainElementT4Validity applied to `A_L(d)` (every chain element is T4-valid by chain induction grounded at FirstEmission's T4-valid first emission, covering both first-emit and subsequent-emit branches) |
-| **FirstEmissionFreshness** | No firing context: K.σ does not commit a content/link first emission | Discharged at the K.α event when the first-emit predicate fires, by FirstEmissionFreshness (lemma above) | Symmetric to K.λ (content↔link) |
-| **SubsequentEmissionFreshness** | No firing context: K.σ does not commit a content/link subsequent emission | Discharged at the K.α event when the subsequent-emit predicate fires, by SubsequentEmissionFreshness (lemma above); its within-document and cross-subspace clauses consume the IH-at-`Σ` of ChainMembershipForOrigin (placing `a_prev, a ∈ A_C(d)`) and L0 (each peer `ℓ ∈ dom(L)` carrying `E(ℓ)₁ = s_L`) | Symmetric to K.λ (content↔link) |
 
 
 *C1c chain exhibition.* The substrate's C1c is "every content address has a T10a-conforming step sequence from its home document." For `K.α`'s discharge, two sub-cases:
@@ -479,6 +484,7 @@ Per-step admissibility of all three steps is the *anchor-construction admissibil
 |---|---|---|---|
 | M0 | DocumentTumblerWellFormed | INV | Substrate |
 | M1 | ArrangementMonotonicity | INV | Substrate |
+| M2 | EmptyArrangement | INV | Substrate |
 | C0 | ContentImmutability | INV | Substrate; restated from ASN-0036 S0/S1 |
 | C1 | ContentElementLevel | INV | Substrate; restated from ASN-0036 S7b |
 | C1b | ContentElementFieldDepth | INV | Substrate; content-side analog of L1b (ASN-0036 carries no content-side `#E(a) ≥ 2`) |
