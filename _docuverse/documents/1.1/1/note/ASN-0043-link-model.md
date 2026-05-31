@@ -77,8 +77,6 @@ extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034). This is t
 
 `(A a ∈ dom(Σ.L) :: (E s ∈ T, n ≥ 1, t₀, t₁, ..., tₙ, k₁, ..., kₙ :: T4-valid(s) ∧ zeros(s) = 2 ∧ t₀ = s ∧ tₙ = a ∧ (A i : 1 ≤ i ≤ n : tᵢ = inc(tᵢ₋₁, kᵢ) ∧ kᵢ ∈ {0, 1, 2} ∧ (kᵢ = 1 ⟹ zeros(tᵢ₋₁) ≤ 3) ∧ (kᵢ = 2 ⟹ zeros(tᵢ₋₁) ≤ 2)) ∧ k₁ = 2 ∧ (A i : 1 ≤ i ≤ n : #tᵢ > #s)))`
 
-On a T4-valid input the `k = 1` guard `zeros(tᵢ₋₁) ≤ 3` holds unconditionally (T4-validity propagates along the chain by T10a.4), so only the `k = 2` guard — failing at `zeros = 3` — can actually constrain a step.
-
 The first step seats the field-separating zero at position `#s + 1`, between the document prefix and the element field.
 
 **CPP — ChainPrefixPreservation (local lemma).** Let `t₀, t₁, ..., tₙ` be a T10a-conforming chain of T4-valid tumblers (T4-validity propagated along the chain by T10a.4), let `p` be a fixed length with `p ≤ #t₀`, and assume the *sibling-advance length precondition*: every sibling-advance step (`kᵢ = 0`) acts on an input strictly longer than `p`, i.e. `#tᵢ₋₁ > p`. Under these hypotheses every step leaves positions `1..p` fixed. A child-spawn `inc(·, k')` (`k' ≥ 1`) agrees with its input on positions `1..#tᵢ₋₁` (TA5(b)); chain lengths are non-decreasing (each step preserves or increases length, by TA5(c)/TA5(d)), so `#tᵢ₋₁ ≥ #t₀ ≥ p` and this agreement covers `1..p`. A sibling advance `inc(·, 0)` modifies only the `sig` position (TA5(c)), which for the T4-valid input is the terminal position `#tᵢ₋₁` (TA5-SigValid); the precondition `#tᵢ₋₁ > p` places that position strictly beyond `p`, so positions `1..p` are again untouched. Then by induction on chain length every `tᵢ`, and in particular the terminus `tₙ`, agrees with `t₀` on positions `1..p`.
@@ -101,7 +99,7 @@ This lifts the per-address T4-validity of L1c's chain terminus to a universal in
 
 `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`
 
-**L0a — ContentSubspaceScope.** This ASN scopes its content-side disjointness guarantee to the `s_C`-resident portion of the content store. *Content-side T4-validity.* By ASN-0036's S7b, every `b ∈ dom(Σ.C)` has `zeros(b) = 3` and well-defined T4b projections; since T4b's definitional domain (UniqueParse, ASN-0034) is precisely the T4-valid subset of `T`, every `b ∈ dom(Σ.C)` is T4-valid. Define:
+**L0a — ContentSubspaceScope.** *Content-side T4-validity.* By ASN-0036's S7b, every `b ∈ dom(Σ.C)` has `zeros(b) = 3` and well-defined T4b projections; since T4b's definitional domain (UniqueParse, ASN-0034) is precisely the T4-valid subset of `T`, every `b ∈ dom(Σ.C)` is T4-valid. Define:
 
 `dom(Σ.C)|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}`
 
