@@ -562,7 +562,7 @@ Allocate `a₂ = 1.0.1.0.1.0.2.3` — the next link-subspace sibling after `a'` 
 
 *L4 for `a₂`.* The span `(a, δ(1, 8))` has `a ∈ T` and satisfies T12 (verified above). No constraint prevents the span from referencing a link-subspace address. ✓
 
-*Step 3: adding the arity-4 faceted link `a₃`.* The standard triple (from, to, type) suffices for binary relational connections, but L3 admits `N ≥ 3` to support Nelson's 4-sets, 5-sets, and n-sets [LM 4/79]. We construct an arity-4 link to exercise L3, L6, and L8 in the higher-arity regime. Define `a₃ = 1.0.1.0.1.0.2.4` — the next sibling in the link subspace after `a₂` (sibling advance from `a₂ = 1.0.1.0.1.0.2.3` via `inc(·, 0)` to `1.0.1.0.1.0.2.4`, unconditionally T4-preserving).
+*Step 3: adding the arity-4 faceted link `a₃`.* Construct an arity-4 link `a₃` to exercise L3, L6, and L8 in the higher-arity regime. Define `a₃ = 1.0.1.0.1.0.2.4` — the next sibling in the link subspace after `a₂` (sibling advance from `a₂ = 1.0.1.0.1.0.2.3` via `inc(·, 0)` to `1.0.1.0.1.0.2.4`, unconditionally T4-preserving).
 
 Suppose `a₃` connects an annotated passage (`c₁`) to a discussion (`c₂`), under a ghost type (`g`), with a fourth endset recording a supporting reference back to the original meta-link (`a₂`). Define the four endsets:
 
@@ -579,7 +579,7 @@ The final state is `Σ_3` with `Σ_3.L = Σ_2.L ∪ {a₃ ↦ (F₃, G₃, Θ₃
 
 *L8 (TypeByAddress) at arity 4.* `Σ_3.L(a₃).type = Σ_3.L(a₃).e₃ = Θ₃ = {(g, δ(1, 8))}`. For the existing arity-3 link `a` with `Σ_3.L(a).type = Σ_3.L(a).e₃ = Θ = {(g, δ(1, 8))}`, coverage-based matching gives `same_type(a, a₃) ⟺ coverage(Σ_3.L(a).e₃) = coverage(Σ_3.L(a₃).e₃)`. Both endsets are `{(g, δ(1, 8))}` (a unit-depth span at `g`), so by PrefixSpanCoverage each has coverage `{t ∈ T : g ≼ t}` — the two coverage sets are identical. The arity-3 and arity-4 links share a type without any need to inspect content at `g`. ✓
 
-*Step 4: adding `a₄` with a distinct ghost type — exercising L8 discrimination.* Steps 1-3 share a single ghost type at `g`, so the only L8 check available across that history is the reflexive one (`same_type(a, a)` and the `coverage(Θ) = coverage(Θ')` illustration at Σ — both equality cases). L8's substantive content is *discrimination*: distinguishing same-type from different-type links by address coverage. We add a fifth link `a₄` whose type endset targets a *different* ghost type `g'`, and verify `same_type(a, a₄) = false`.
+*Step 4: adding `a₄` with a distinct ghost type — exercising L8 discrimination.* Steps 1-3 share a single ghost type at `g`, so the only L8 check available across that history is the reflexive one (`same_type(a, a)` and the `coverage(Θ) = coverage(Θ')` illustration at Σ — both equality cases). We add a fifth link `a₄` whose type endset targets a *different* ghost type `g'`, and verify `same_type(a, a₄) = false`.
 
 Define `g' = 1.0.1.0.1.0.3.2` — a sibling of `g = 1.0.1.0.1.0.3.1` in subspace `s_X`. By construction: `subspace_I(g') = 3 = s_X` (so `g' ∉ dom(Σ_3.C) ∪ dom(Σ_3.L)` by L0, since `s_X ∉ {s_C, s_L}` — the ghost is structurally outside the stored entities, by the same subspace-separation argument that placed `g` outside `Σ`'s stores); T4-validity holds (`zeros(g') = 3`, no adjacent zeros at the appended `[0, 3, 2]` tail since the inherited last component of `d = 1.0.1.0.1` is `1 > 0`, and the trailing component `2 > 0`); `#g' = 8`. The sibling step `g → g'` is `inc(g, 0)` (`k = 0`, unconditionally T4-preserving by TA5a), so `g'` is a structurally well-formed ghost address in `s_X`.
 
@@ -612,7 +612,7 @@ together with `F₅ = {(c₁, δ(1, 8))}`, `G₅ = {(c₂, δ(1, 8))}`, `Θ₅ =
 
 *L3 (NEndsetStructure) at `Σ_5`.* `|Σ_5.L(a₅)| = 3 ≥ 3` and slot 3 `Θ_split ≠ ∅` (two members); each endset is a finite set of T12-well-formed spans. The non-emptiness requirement on slot 3 is met by a multi-span endset exactly as by a singleton. ✓
 
-*Step 6: adding `a₆` with a single-span type endset of identical coverage — exercising L8 coverage-vs-decomposition.* L8 is defined on *coverage*, not span-set identity; its distinctive content is that two type endsets with different span decompositions but identical address coverage denote the same type. Steps 1–4 compare only same-singleton (match) and disjoint-singleton (no match) endsets, never the crux case. We add `a₆` whose type endset is a single span covering exactly the addresses that `Θ_split` covers as two spans, and verify `same_type(a₅, a₆) = true` without any `Θ` span-set equality.
+*Step 6: adding `a₆` with a single-span type endset of identical coverage — exercising L8 coverage-vs-decomposition.* Steps 1–4 compare only same-singleton (match) and disjoint-singleton (no match) endsets, never the crux case. We add `a₆` whose type endset is a single span covering exactly the addresses that `Θ_split` covers as two spans, and verify `same_type(a₅, a₆) = true` without any `Θ` span-set equality.
 
 Define `a₆ = 1.0.1.0.1.0.2.7` — the next sibling after `a₅`. Define the single-span type endset
 
