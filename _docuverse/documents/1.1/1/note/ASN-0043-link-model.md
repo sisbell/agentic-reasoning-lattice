@@ -91,7 +91,7 @@ The first step seats the field-separating zero at position `#s + 1`, between the
 
 `(A a ∈ dom(Σ.L) :: T4-valid(a))`
 
-This is the T4-validity postcondition established by L1c's chain. With every link address T4-valid and element-level (L1, `zeros(a) = 3`), T4b's `E`, `N`, `U`, `D` projections (UniqueParse, ASN-0034) are well-defined on all of `dom(Σ.L)`, so `subspace_I(a) = E(a)₁` and `home(a)` exist for every `a ∈ dom(Σ.L)`.
+This is the T4-validity postcondition of L1c's chain, quantified over `dom(Σ.L)`; that same postcondition already delivers well-definedness of the T4b projections (and hence of `home` and `subspace_I`) on every link address.
 
 **L0 — SubspacePartition.** Every link address has subspace identifier `s_L`:
 
