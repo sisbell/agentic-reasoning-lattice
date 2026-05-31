@@ -32,7 +32,7 @@ where
 - `L : T ⇀ Link` is the link store (per ASN-0043): a partial function from element-level tumblers to link values, each a sequence of `N ≥ 3` endsets `(e₁, e₂, …, eₙ) ∈ Endset^N`. `Link` and `Endset` are defined in ASN-0043; the StandardTriple convention (slot 1 = from, slot 2 = to, slot 3 = type, written `(F, G, Θ)` for the arity-3 default; ASN-0043) is preserved.
 - `M : T ⇀ (T ⇀ T)` is the arrangement function (per ASN-0036): a partial function whose domain `dom(M)` is the set of allocated document addresses, mapping each to its V-position-to-I-address arrangement
 
-`dom(M)` is the set of tumblers committed by `K.σ` events (defined below). A document is *allocated* iff `d ∈ dom(M)`; content addresses with `origin(a) = d` and link addresses with `origin(ℓ) = d` may be emitted only when `d ∈ dom(M)`. The `origin(·)` function is the tumbler-projection defined in ASN-0036 (truncation to the `zeros = 2` prefix).
+`dom(M)` is the set of tumblers committed by `K.σ` events (defined below). A document is *allocated* iff `d ∈ dom(M)`. The `origin(·)` function is the tumbler-projection defined in ASN-0036 (truncation to the `zeros = 2` prefix).
 
 **Terminology.** "Document" in this substrate means "element of `dom(M)`" — a purely structural notion; M0 (below) carries the well-formedness conditions.
 
@@ -148,7 +148,7 @@ Once allocated, a link's address persists in `dom(L)` and its value is permanent
 
   `dom(C) ∩ dom(L) = ∅`
 
-Derived from L0 + SC-NEQ + StoreT4Validity + T7 (SubspaceDisjointness, ASN-0034). T7's preconditions are discharged on each side: `zeros(·) = 3` from C1 (content) and L1 (links), and T4-validity from StoreT4Validity (below). With both premises met, every content address has `E(·)₁ = s_C` and every link address has `E(·)₁ = s_L` (L0), and `s_C ≠ s_L` (SC-NEQ), so T7 gives pairwise distinctness across the two stores — the domains are disjoint. The full union `dom(C) ∩ dom(L) = ∅` is justified because every content address resides in subspace `s_C` (C1 + L0's C-clause, which forces `dom(C) = dom(C)|_{s_C}`, making SD identical to ASN-0043's L14).
+Derived from L0 + SC-NEQ + StoreT4Validity + T7 (SubspaceDisjointness, ASN-0034). T7's preconditions are discharged on each side: `zeros(·) = 3` from C1 (content) and L1 (links), and T4-validity from StoreT4Validity (below). With both premises met, every content address has `E(·)₁ = s_C` and every link address has `E(·)₁ = s_L` (L0), and `s_C ≠ s_L` (SC-NEQ), so T7 gives, for every `a ∈ dom(C)` and every `ℓ ∈ dom(L)`, `a ≠ ℓ` — which is exactly `dom(C) ∩ dom(L) = ∅`.
 
 **L-fin (LinkStoreFiniteness).**
 
@@ -274,8 +274,6 @@ Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by SD (Sto
 ## Substrate primitive operations
 
 The substrate admits three primitive transitions, one per state component. Each is atomic and sequential by SequentialTransitionAxiom (SequentialAtomicTransitions, above).
-
-*Parameter semantics.* For `K.α(d, a, v)` and `K.λ(d, ℓ, (e₁, …, eₙ))`, the address parameters `a` and `ℓ` appear in the operation signatures but are not free choices of the caller: `(d, Σ)` determines them uniquely via the binding preconditions below.
 
 ### K.σ (DocumentRegistration)
 
@@ -412,9 +410,7 @@ The example exercises both the first-emit and subsequent-emit branches of K.α a
 
 ## Discharge of stated invariants
 
-**Simultaneous-induction framing.** The stated invariants, together with the ChainMembershipForOrigin lemma and the StoreT4Validity corollary, are proved by *simultaneous induction* over transition sequences from `Σ₀`: the inductive hypothesis at each step is the *conjunction* of every such property at the current state `Σ`, and the inductive step exhibits each holding at `Σ'` using the conjoined IH.
-
-Each transition-indexed invariant is discharged by induction on transition sequences from `Σ₀`. The inductive step is recorded as a per-(invariant, transition) matrix; entries describe how each transition kind preserves or discharges each invariant.
+**Simultaneous-induction framing.** The stated invariants, together with the ChainMembershipForOrigin lemma and the StoreT4Validity corollary, are proved by *simultaneous induction* over transition sequences from `Σ₀`: the inductive hypothesis at each step is the *conjunction* of every such property at the current state `Σ`, and the inductive step exhibits each holding at `Σ'` using the conjoined IH. The inductive step is recorded as a per-(invariant, transition) matrix; entries describe how each transition kind preserves or discharges each invariant.
 
 **Base case verification (at `Σ₀ = (∅, ∅, ∅)`).** Most invariants are vacuously satisfied: M0/M1/M2/C1/C1b/C1c/C2/L0/L1/L1a/L1b/L1c/L3 quantify over `dom(C)`, `dom(L)`, or `dom(M)`, all empty at `Σ₀`. C0 and L12 quantify over transitions `Σ → Σ'`, vacuous at `Σ₀` until the first transition fires. Three invariants are non-vacuous but trivially satisfied at `Σ₀`:
 
