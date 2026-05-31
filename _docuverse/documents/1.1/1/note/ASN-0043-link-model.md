@@ -348,7 +348,7 @@ We now establish the identity semantics of links. The three requirements we bega
 
 **L11a — LinkUniqueness.** Distinct T10a-conforming allocation events produce distinct link addresses. Formally, for any pair of allocation events producing link addresses `a₁` and `a₂` in the system, if the events are distinct then `a₁ ≠ a₂` as tumblers. This is GlobalUniqueness (ASN-0034) instantiated at link addresses. Its precondition is not merely per-event T10a-conformance but that the events are distinct allocation events *within a single system conforming to T10a*.
 
-L1c (LinkAllocatorConformance) gives, for each `a ∈ dom(Σ.L)`, a T10a-conforming chain seeded at its document-level prefix `home(a) ∈ dom(Σ.M)`, opening (by L1c's `k₁ = 2`) with the child-spawn `inc(home(a), 2)`. By S7d (DocumentAllocationDiscipline, ASN-0036), every entry of `dom(Σ.M)` is a node of the system's single allocator tree 𝒯 — the terminus of a T10a-conforming chain from 𝒯's root (T4-valid by DocVal). Each seed `home(a)` is therefore a node of 𝒯. What L1c supplies, however, is only the *existence* of some conforming chain per link; GlobalUniqueness needs the stronger fact that `a₁` and `a₂` are genuine allocation events of the *one* tree 𝒯, respecting T10a's at-most-once-per-`(t, k')` child-spawning constraint.
+By S7d (DocumentAllocationDiscipline, ASN-0036) each home `home(a) ∈ dom(Σ.M)` is a node of the system's single allocator tree 𝒯 (T4-valid by DocVal) seeding the link's L1c chain, so GlobalUniqueness's single-system precondition reduces to showing both events lie in the one tree 𝒯 — which the two cases establish via T10a's at-most-once-per-`(t, k')` constraint.
 
 *Distinct homes (`home(a₁) ≠ home(a₂)`).* The two opening child-spawns are `inc(home(a₁), 2)` and `inc(home(a₂), 2)`, governed by distinct `(t, k')` pairs (the `t`-components `home(a₁)`, `home(a₂)` differ). T10a's at-most-once constraint binds each `(t, k')` pair separately, so both spawns coexist in 𝒯 without conflict. The two link chains hang off distinct document nodes of the one tree 𝒯, and are thereby distinct allocation events of 𝒯.
 
@@ -646,8 +646,8 @@ The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared b
 |-------|------|-----------|--------|
 | Σ.L | DEF | `Σ.L : T ⇀ Link` — the link store, mapping addresses to link values | introduced |
 | L-fin | INV | LinkStoreFiniteness — `|dom(Σ.L)| < ∞` for each reachable state; parallels S8-fin (ASN-0036) | introduced |
-| L0 | INV | SubspacePartition — link addresses occupy subspace `s_L`: `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`; together with L0a yields the scoped disjointness `dom(Σ.L) ∩ dom(Σ.C)\|_{s_C} = ∅` via T7 | introduced |
-| L0b | THM | LinkAddressValidity — every link address is T4-valid: `(A a ∈ dom(Σ.L) :: T4-valid(a))`; T4-validity postcondition of L1c, derived there; with L0 + T7 yields the scoped disjointness `dom(Σ.L) ∩ dom(Σ.C)\|_{s_C} = ∅` (the *L0a discharge*) | introduced |
+| L0 | INV | SubspacePartition — link addresses occupy subspace `s_L`: `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`; see L0a, L0b | introduced |
+| L0b | THM | LinkAddressValidity — every link address is T4-valid: `(A a ∈ dom(Σ.L) :: T4-valid(a))`; see L1c | introduced |
 | L0a | DEF | ContentSubspaceScope — `dom(Σ.C)\|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}` is the `s_C`-resident slice of content; a state is *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` | introduced |
 | L1 | INV | LinkElementLevel — every link address is an element-level tumbler: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` | introduced |
 | L1a | INV | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
@@ -660,13 +660,13 @@ The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared b
 | L3 | INV | NEndsetStructure — every link has at least three endsets, with slot 3 a non-empty type endset: `\|Σ.L(a)\| ≥ 3 ∧ Σ.L(a).e₃ ≠ ∅`; arity 3 `(F, G, Θ)` is the standard triple, higher arity admitted | introduced |
 | L4 | META | EndsetGenerality — the model imposes no constraint on endset spans beyond T12 well-formedness (definitional from L3): no single-document, content-only, or existence restriction | introduced |
 | L5 | INV | EndsetSetSemantics — an endset is an unordered set; only span membership matters | introduced |
-| L6 | INV | SlotDistinction — endsets within a link are addressable by positional accessor `Σ.L(a).eᵢ`; dual to L5 (no positional accessor within an endset); link equality is component-wise tuple equality; standard-triple consequence: `F ≠ G ⟹ (F, G, Θ) ≠ (G, F, Θ)` | introduced |
+| L6 | INV | SlotDistinction — endsets within a link are addressable by positional accessor `Σ.L(a).eᵢ`; dual to L5 (no positional accessor within an endset); link equality is component-wise tuple equality | introduced |
 | L7 | META | DirectionalFlexibility — L0–L14 and L-fin impose no constraint on directional significance of from/to slots | introduced |
 | L8 | DEF | TypeByAddress — type matching is by address coverage: `same_type(a₁, a₂) ⟺ coverage(Σ.L(a₁).type) = coverage(Σ.L(a₂).type)`; `.type` is slot 3, well-defined by L3 | introduced |
 | L9 | LEMMA | TypeGhostPermission — any conforming, `s_C`-resident (L0a) state with `dom(Σ.M) ≠ ∅` can be extended, for every arity `N ≥ 3`, with a link of arity `N` whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)`; arity-3 witness `(∅, ∅, {(g, δ(1, #g))})` extends to higher arities by padding empty endsets at slots `4..N` | introduced |
 | PrefixSpanCoverage | LEMMA | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`; derived from OrdinalShift (`x ⊕ δ(1, #x) = shift(x, 1)`), T12, T1 cases (i)/(ii), and T5 (ASN-0034) | introduced |
 | L10 | LEMMA | TypeHierarchyByContainment — `coverage({(p, δ(1, #p))}) = subtypes(p)` by PrefixSpanCoverage | introduced |
-| L11a | LEMMA | LinkUniqueness — distinct T10a allocation events yield distinct link addresses; single-system precondition discharged by embedding the L1c link chains in the one tree 𝒯 | introduced |
+| L11a | LEMMA | LinkUniqueness — distinct T10a allocation events yield distinct link addresses; see GlobalUniqueness (ASN-0034) | introduced |
 | L11b | LEMMA | NonInjectivity — every conforming, `s_C`-resident (L0a) state with a link can be extended to a non-injective conforming state | introduced |
 | L12 | INV | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
 | L12a | LEMMA | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
