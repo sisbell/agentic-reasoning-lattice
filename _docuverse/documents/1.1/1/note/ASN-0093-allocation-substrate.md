@@ -362,20 +362,13 @@ Thus `p₁[6] = 0 ≠ 3 = p₂[6]`, witnessing `b_L(d) ⋠ b_L(d') ∧ b_L(d') �
 
 *Verifying invariants at Σ₅.* M0 holds: `d` and `d'` both satisfy `T4-valid ∧ zeros = 2`. M1 holds: `{d} ⊆ {d, d'}`. C0/C1/C1b/C1c/C2/C-fin hold by frame on `C` (unchanged from `Σ₄`); in particular, C2 carries the prior content keys `a, a'` whose `origin = d ∈ dom(M₅)`, preserved by M1's extension. L0/L1/L1a/L1b/L1c/L3/L12/L-fin hold by frame on `L` (unchanged from `Σ₄`); L1a holds for `ℓ` since `origin(ℓ) = d ∈ dom(M₅)`. SD: `dom(C₅) ∩ dom(L₅) = {a, a'} ∩ {ℓ} = ∅` (verified by `E(a)₁ = E(a')₁ = s_C ≠ s_L = E(ℓ)₁`). ChainMembershipForOrigin transfers: `dom(C₅) ∩ {a'' : origin(a'') = d} = {a, a'} ⊆ A_C(d)` (per Steps 2 and 4); `dom(C₅) ∩ {a'' : origin(a'') = d'} = ∅ ⊆ A_C(d')` (vacuous, first emission still pending); similarly for `L`.
 
-*Step 6 — `K.α(d', a'', v'')` (first content emission under `d'`).* Pinning the address from `Σ₅`: `{a''' ∈ dom(C₅) : origin(a''') = d'} = ∅` (the content keys `a, a'` have `origin = d ≠ d'`), so the first-emit branch fires with `a'' = [d'.0.s_C.1] = [1, 0, 2, 0, 5, 3, 0, 1, 1]` (length 9). The C1c chain `(t₀, t₁, t₂)`:
-- `t₀ = d' = [1, 0, 2, 0, 5, 3]`
-- `t₁ = inc(d', 2)`: TA5(d) at `k = 2` gives the structural form, appending `[0, 1]` to yield `[1, 0, 2, 0, 5, 3, 0, 1] = b_C(d')` with `zeros = 3`. Admissibility: TA5a at `k = 2` requires `zeros(d') ≤ 2`; M0 gives `zeros(d') = 2 ≤ 2`, satisfied — hence `t₁` is T4-valid.
-- `t₂ = inc(b_C(d'), 1)`: TA5(d) at `k = 1` gives the structural form, appending `1` to yield `a'' = [1, 0, 2, 0, 5, 3, 0, 1, 1]`. Admissibility: TA5a at `k = 1` requires `zeros(t₁) ≤ 3`, discharged by `t₁`'s T4-validity (T4 forces `zeros ≤ 3`), so `a''` is T4-valid given `t₁` T4-valid. `zeros(a'') = 3`, `#E(a'') = 2`.
+*Step 6 — `K.α(d', a'', v'')` (first content emission under `d'`).* Pinning the address from `Σ₅`: `{a''' ∈ dom(C₅) : origin(a''') = d'} = ∅` (the content keys `a, a'` have `origin = d ≠ d'`), so the first-emit branch fires with `a'' = [d'.0.s_C.1] = [1, 0, 2, 0, 5, 3, 0, 1, 1]` (length 9). The C1c chain is `(t₀, t₁, t₂)` with `t₀ = d'`, `t₁ = inc(d', 2) = [1, 0, 2, 0, 5, 3, 0, 1] = b_C(d')` (`zeros = 3`), `t₂ = inc(b_C(d'), 1) = a''` (`zeros(a'') = 3`, `#E(a'') = 2`). The per-step TA5a admissibility — `k = 2` discharged by `zeros(d') = 2 ≤ 2` (M0), `k = 1` discharged by `t₁`'s T4-validity — is identical to Step 2 under `d → d'`. The new material here is the multi-component document field: `D(d') = [5, 3]` (against `D(d) = [5]`), so `a''` carries `d'` over positions `1..6` and diverges from the `d`-rooted content key `a = [1, 0, 2, 0, 5, 0, 1, 1]` already at position 6 (`a''₆ = 3 ≠ 0 = a₆`).
 
 Verifying preconditions: freshness `a'' ∉ dom(C₅) ∪ dom(L₅) = {a, a', ℓ}` is supplied by FirstEmissionFreshness applied to `A_C(d')` (first-emit). Other preconditions: `zeros(a'') = 3` ✓; `E(a'') = [1, 1]`, `E(a'')₁ = s_C` ✓; `#E(a'') = 2` ✓; `origin(a'') = N(a'').0.U(a'').0.D(a'') = [1].0.[2].0.[5, 3] = d'` ✓.
 
 Effect: `C₆ = C₅ ∪ {a'' ↦ v''} = {a ↦ v, a' ↦ v', a'' ↦ v''}`; `L₆ = L₅`; `M₆ = M₅`. Invariants at `Σ₆`: C0 (existing values unchanged), C1 (`zeros(a'') = 3`), C1b (`#E(a'') = 2`), C1c (chain exhibited above), C2 (`origin(a'') = d' ∈ dom(M₆)`), C-fin (`|C₆| = 3 < ∞`); ChainMembershipForOrigin extends: `{a''} ⊆ A_C(d')` by FirstEmission.
 
-*Step 7 — `K.λ(d', ℓ'', F'', G'', Θ'')` (first link emission under `d'`).* Pinning from `Σ₆`: `{ℓ''' ∈ dom(L₆) : origin(ℓ''') = d'} = ∅` (`origin(ℓ) = d ≠ d'`), so the first-emit branch fires with `ℓ'' = [d'.0.s_L.1] = [1, 0, 2, 0, 5, 3, 0, 2, 1]` (length 9). The L1c chain `(t₀, t₁, t₂, t₃)`:
-- `t₀ = d'`
-- `t₁ = inc(d', 2) = b_C(d')` (admissibility as in Step 6)
-- `t₂ = inc(b_C(d'), 0) = [1, 0, 2, 0, 5, 3, 0, 2] = b_L(d')` (TA5(c) gives the structural form, advancing `sig(b_C(d')) = 8` from `s_C = 1` to `s_L = 2`; SubspaceConventionAxiom gives `s_L = s_C + 1`. TA5a at `k = 0` is unconditionally T4-preserving, so `t₂` is T4-valid given `b_C(d')` T4-valid.)
-- `t₃ = inc(b_L(d'), 1) = ℓ''` (TA5(d) at `k = 1` gives the structural form, appending `1`. TA5a at `k = 1` requires `zeros(b_L(d')) ≤ 3`, discharged by `b_L(d')`'s T4-validity (T4 forces `zeros ≤ 3`), so `ℓ''` is T4-valid given `b_L(d')` T4-valid. `zeros(ℓ'') = 3`, `#E(ℓ'') = 2`.)
+*Step 7 — `K.λ(d', ℓ'', F'', G'', Θ'')` (first link emission under `d'`).* Pinning from `Σ₆`: `{ℓ''' ∈ dom(L₆) : origin(ℓ''') = d'} = ∅` (`origin(ℓ) = d ≠ d'`), so the first-emit branch fires with `ℓ'' = [d'.0.s_L.1] = [1, 0, 2, 0, 5, 3, 0, 2, 1]` (length 9). The L1c chain is `(t₀, t₁, t₂, t₃)` with `t₀ = d'`, `t₁ = inc(d', 2) = b_C(d')`, `t₂ = inc(b_C(d'), 0) = [1, 0, 2, 0, 5, 3, 0, 2] = b_L(d')` (`sig` at position 8 advances from `s_C = 1` to `s_L = 2`, with `s_L = s_C + 1` by SubspaceConventionAxiom), `t₃ = inc(b_L(d'), 1) = ℓ''` (`zeros(ℓ'') = 3`, `#E(ℓ'') = 2`). The per-step TA5a admissibility — `k = 2` by `zeros(d') = 2 ≤ 2` (M0), `k = 0` unconditional, `k = 1` by `b_L(d')`'s T4-validity — is identical to Step 3 under `d → d'`.
 
 Verifying preconditions: `ℓ'' ∉ dom(L₆) ∪ dom(C₆) = {ℓ, a, a', a''}`. *Cross-document freshness* against `{ℓ}` (origin = d ≠ d'): by Cross-document disjointness at Step 5, `b_L(d) ⋠ b_L(d') ∧ b_L(d') ⋠ b_L(d)`; `ℓ` extends `b_L(d)` (Step 3) while `ℓ''` extends `b_L(d')`, so by T10, `ℓ'' ≠ ℓ`. *Sub-space freshness* against `{a, a', a''}`: each content address has `E(·)₁ = s_C = 1 ≠ 2 = s_L = E(ℓ'')₁`, so `ℓ'' ≠ a, a', a''`. Other preconditions: `zeros(ℓ'') = 3` ✓; `E(ℓ'') = [2, 1]`, `E(ℓ'')₁ = s_L` ✓; `#E(ℓ'') = 2` ✓; `origin(ℓ'') = d'` ✓.
 
@@ -477,7 +470,7 @@ Per-step admissibility of all three steps is the *anchor-construction admissibil
 | M2 | EmptyArrangement | INV | Substrate |
 | C0 | ContentImmutability | INV | Substrate; restated from ASN-0036 S0/S1 |
 | C1 | ContentElementLevel | INV | Substrate; restated from ASN-0036 S7b |
-| C1b | ContentElementFieldDepth | INV | Substrate; content-side analog of L1b (ASN-0036 carries no content-side `#E(a) ≥ 2`) |
+| C1b | ContentElementFieldDepth | INV | Substrate; content-side analog of L1b |
 | C1c | ContentAllocatorConformance | INV | Substrate; content-side analog of L1c |
 | C2 | ContentScopedAllocation | INV | Substrate; content-side analog of L1a |
 | L0 | SubspacePartition | INV | ASN-0043 (L-clause); C-clause added here |
