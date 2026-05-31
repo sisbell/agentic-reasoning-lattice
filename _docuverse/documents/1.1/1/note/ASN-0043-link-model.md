@@ -17,9 +17,9 @@ We begin with a guarantee: the system must support connections between arbitrary
 
 First, connections must be *distinguishable*. If Alice asserts that paragraph P is a commentary on paragraph Q, and Bob independently makes the same assertion, these are two assertions, not one. Two connections between identical content must coexist as separate objects. Nelson confirms this forcefully: MAKELINK "always creates and always returns a fresh ID" — there is no find-or-create. Gregory's implementation confirms: each call to `docreatelink` allocates a new sequential address; there is no deduplication, no uniqueness constraint, no identity-by-endset.
 
-Second, connections must be *owned*. Alice's annotation is hers; Bob's is his. The system must record who made each connection, independently of what it connects. Nelson: "A link need not point anywhere in its home document. Its home document indicates who owns it, and not what it points to."
+Second, connections must be *owned*. Alice’s annotation is hers; Bob’s is his. The system must record who made each connection, independently of what it connects — a link’s home document records ownership, not destination. (Nelson’s formulation of this principle is quoted at L2.)
 
-Third, connections should be *referenceable*. One connection should be able to point to another, enabling compound relational structures. Nelson: links to links "use the two-sided link structure much like the CONS cell in LISP, and may be built into arbitrary compound links."
+Third, connections should be *referenceable*. One connection should be able to point to another, enabling compound relational structures — which requires a link to be addressable content that other links can reach. (Nelson’s CONS-cell formulation is quoted at L13.)
 
 These three requirements — distinguishability, ownership, referenceability — force connections to be first-class addressed objects in the tumbler space. A connection that lacked its own address could not be distinguished from another connection with the same endpoints, could not be independently owned, and could not be pointed to by other connections. We are compelled to give connections their own permanent tumbler addresses.
 
@@ -159,7 +159,7 @@ But Nelson's design does not stop at three. We now define the components, admitt
 
 where `Span` is the set of well-formed span pairs `(s, ℓ)` satisfying T12 (SpanWellDefinedness, ASN-0034): `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s`. The empty set `∅` is a valid endset — a link may have an endset that references nothing.
 
-**Definition — Link.** A *link value* is a finite sequence of N ≥ 3 endsets, with the third slot designated as the type endset by the StandardTriple convention (below):
+**Definition — Link.** A *link value* is a finite sequence of N ≥ 3 endsets, with the third slot designated as the type endset for every arity N ≥ 3 — the slot-3-as-type designation being carried by L3 (which requires the type endset non-empty at every arity) and the Named accessor L8 (which fixes `.type ≡ .e₃`), of which the arity-3 case is the standard triple (StandardTriple, below):
 
 `Link = {(e₁, e₂, ..., eₙ) : N ≥ 3, each eᵢ ∈ Endset}`
 
