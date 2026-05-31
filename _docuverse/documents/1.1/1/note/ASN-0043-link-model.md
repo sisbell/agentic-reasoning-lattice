@@ -63,6 +63,12 @@ The system designates at least two subspaces within each document's element fiel
 
 `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`
 
+**L0b — LinkAddressValidity.** Every link address is T4-valid:
+
+`(A a ∈ dom(Σ.L) :: T4-valid(a))`
+
+This is the terminal postcondition of the T10a-conforming allocation chain established in L1c (below): the chain begins at a T4-valid document-level seed and T10a.4 (T4PreservationUnderDiscipline, ASN-0034) propagates T4-validity along every step, so the terminus `a` is T4-valid. We record it here, once, so that its consumers below — L0a's disjointness discharge, the `home` definition, and L1a — cite this single result rather than each forward-referencing L1c independently.
+
 **L0a — ContentSubspaceScope.** This ASN scopes its content-side disjointness guarantee to the `s_C`-resident portion of the content store. *Content-side T4-validity.* By ASN-0036's S7b, every `b ∈ dom(Σ.C)` has `zeros(b) = 3` and well-defined T4b projections; since T4b's definitional domain (UniqueParse, ASN-0034) is precisely the T4-valid subset of `T`, every `b ∈ dom(Σ.C)` is T4-valid. Define:
 
 `dom(Σ.C)|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}`
@@ -71,9 +77,9 @@ The system designates at least two subspaces within each document's element fiel
 
 `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`
 
-— no link address shares an address with any `s_C`-resident content.
+— no link address shares an address with any `s_C`-resident content. Call a state `Σ` *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` — every stored content address occupies subspace `s_C`. Several results below carry this hypothesis; we name it here and reference it by name rather than restating the quantifier.
 
-By L1 (below), `zeros(a) = 3` for all `a ∈ dom(Σ.L)`; by S7b (ElementLevelIAddresses, ASN-0036), `zeros(b) = 3` for all `b ∈ dom(Σ.C)` (and a fortiori for `b ∈ dom(Σ.C)|_{s_C}`). T7's precondition requires both T4-validity and equal zero counts. T4-validity is discharged on each side: for `a ∈ dom(Σ.L)`, by L1c's T4-validity postcondition; for `b ∈ dom(Σ.C)`, by the content-side T4-validity discharge established in L0a above. With T4-validity discharged and `zeros(a) = zeros(b) = 3` on each side, T7 applies pairwise: for every `a ∈ dom(Σ.L)` and every `b ∈ dom(Σ.C)|_{s_C}`, L0 gives `subspace_I(a) = s_L` and the `s_C`-residence restriction gives `subspace_I(b) = s_C`; together with `s_L ≠ s_C` this yields `subspace_I(a) ≠ subspace_I(b)`, so T7's postcondition gives `a ≠ b`. Universally instantiating over the product `dom(Σ.L) × dom(Σ.C)|_{s_C}` lifts this pairwise distinctness to the scoped set disjointness:
+By L1 (below), `zeros(a) = 3` for all `a ∈ dom(Σ.L)`; by S7b (ElementLevelIAddresses, ASN-0036), `zeros(b) = 3` for all `b ∈ dom(Σ.C)` (and a fortiori for `b ∈ dom(Σ.C)|_{s_C}`). T7's precondition requires both T4-validity and equal zero counts. T4-validity is discharged on each side: for `a ∈ dom(Σ.L)`, by L0b (LinkAddressValidity); for `b ∈ dom(Σ.C)`, by the content-side T4-validity established two sentences above (S7b gives `zeros(b) = 3` with well-defined T4b projections, and T4b's domain is precisely the T4-valid subset of `T`). With T4-validity discharged and `zeros(a) = zeros(b) = 3` on each side, T7 applies pairwise: for every `a ∈ dom(Σ.L)` and every `b ∈ dom(Σ.C)|_{s_C}`, L0 gives `subspace_I(a) = s_L` and the `s_C`-residence restriction gives `subspace_I(b) = s_C`; together with `s_L ≠ s_C` this yields `subspace_I(a) ≠ subspace_I(b)`, so T7's postcondition gives `a ≠ b`. Universally instantiating over the product `dom(Σ.L) × dom(Σ.C)|_{s_C}` lifts this pairwise distinctness to the scoped set disjointness:
 
 `dom(Σ.L) ∩ dom(Σ.C)|_{s_C} = ∅`
 
@@ -89,7 +95,7 @@ This parallels S7b for content (ASN-0036). A link address carries all four tumbl
 
 `home(a) = N(a).0.U(a).0.D(a)`
 
-extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034), well-defined precisely because `a` is T4-valid and element-level. This is the same field-extraction formula ASN-0036 uses to define `origin` on content addresses, applied here to link addresses. Every link address meets the precondition: `zeros(a) = 3` by L1, and T4-validity by L1c (LinkAllocatorConformance).
+extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034), well-defined precisely because `a` is T4-valid and element-level. This is the same field-extraction formula ASN-0036 uses to define `origin` on content addresses, applied here to link addresses. Every link address meets the precondition: `zeros(a) = 3` by L1, and T4-validity by L0b (LinkAddressValidity).
 
 **L1a — LinkScopedAllocation.** Every link address is allocated under the tumbler prefix of the document whose owner created it. By the home definition above, `home(a)` is well-defined on every `a ∈ dom(Σ.L)`, and we state the invariant in terms of it directly:
 
@@ -287,9 +293,9 @@ The design choice — coverage rather than span-set identity — falls out of Ne
 
 Type matching decouples classification from content retrieval: a search for type X never fetches the bytes at address X — it only matches the address. This means:
 
-**L9 — TypeGhostPermission.** Ghost types are permitted. For any state `Σ` satisfying the state-local L- and S-invariants, with `dom(Σ.M) ≠ ∅`, and with `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`), there exists for every arity `N ≥ 3` a conforming state `Σ'` extending `Σ` (`Σ' ⊒ Σ`, StateExtension) with a link of arity `N` whose type endset references an address outside `dom(Σ'.C) ∪ dom(Σ'.L)`:
+**L9 — TypeGhostPermission.** Ghost types are permitted. For any state `Σ` satisfying the state-local L- and S-invariants, with `dom(Σ.M) ≠ ∅`, and `s_C`-resident (L0a), there exists for every arity `N ≥ 3` a conforming state `Σ'` extending `Σ` (`Σ' ⊒ Σ`, StateExtension) with a link of arity `N` whose type endset references an address outside `dom(Σ'.C) ∪ dom(Σ'.L)`:
 
-`(A Σ : Σ satisfies the state-local L- and S-invariants ∧ dom(Σ.M) ≠ ∅ ∧ (A b ∈ dom(Σ.C) :: subspace_I(b) = s_C) : (A N ≥ 3 :: (E Σ' extending Σ, a ∈ dom(Σ'.L) :: |Σ'.L(a)| = N ∧ (E (t, len) ∈ Σ'.L(a).type :: t ∉ dom(Σ'.C) ∪ dom(Σ'.L)))))`
+`(A Σ : Σ satisfies the state-local L- and S-invariants ∧ dom(Σ.M) ≠ ∅ ∧ Σ s_C-resident : (A N ≥ 3 :: (E Σ' extending Σ, a ∈ dom(Σ'.L) :: |Σ'.L(a)| = N ∧ (E (t, len) ∈ Σ'.L(a).type :: t ∉ dom(Σ'.C) ∪ dom(Σ'.L)))))`
 
 *Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X ∈ ℕ` with `s_X ≥ 1`, `s_X ≠ s_C`, and `s_X ≠ s_L` (such `s_X` exists by T0(a)'s unbounded positive component values: infinitely many naturals differ from the two fixed constants `s_C`, `s_L`).
 
@@ -348,11 +354,11 @@ We now establish the identity semantics of links. The three requirements we bega
 
 L1c (LinkAllocatorConformance) gives, for each `a ∈ dom(Σ.L)`, a T10a-conforming chain seeded at its document-level prefix `home(a) ∈ dom(Σ.M)`. By S7d (DocumentAllocationDiscipline, ASN-0036), every entry of `dom(Σ.M)` is a node of the system's single allocator tree 𝒯, the terminus of a T10a-conforming chain from 𝒯's root (T4-valid by DocVal). Each seed `home(a)` is therefore a node of 𝒯, so each link chain — seeded at that node and extending by T10a-conforming steps — is a subtree of 𝒯. Both `a₁` and `a₂` thus arise as distinct allocation events within the one tree 𝒯, discharging GlobalUniqueness's single-tree precondition even when the two links are homed in different documents.
 
-Within-state single-valuedness (an address names at most one link) is immediate from the partial-function typing `Σ.L : T ⇀ Link`; L11a is the cross-event strengthening. Fresh-sibling extensions (FSP) preserve L1c and S7d, so L11a's premises — and hence its conclusion — carry to any FSP-extended state automatically.
+Within-state single-valuedness (an address names at most one link) is immediate from the partial-function typing `Σ.L : T ⇀ Link`; L11a is the cross-event strengthening.
 
 **L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same endset sequence:
 
-`(A Σ satisfying the state-local L- and S-invariants with s_C-resident content ((A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)), a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies the state-local L- and S-invariants))`
+`(A Σ satisfying the state-local L- and S-invariants and s_C-resident (L0a), a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies the state-local L- and S-invariants))`
 
 — where "the state-local L- and S-invariants" denotes the set named in *A Shared Conformance Lemma* above (preserved by FSP).
 
@@ -362,7 +368,7 @@ The invariants *permit* non-injectivity — every state with a link can be exten
 
 `Σ'.L = Σ.L ∪ {a' ↦ (F, G, Θ)}`, `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
 
-*Conformance of `Σ'`.* This is a fresh-sibling extension, so we appeal to FSP (FreshSiblingConformance, *A Shared Conformance Lemma* above). FSP's content-residence hypothesis is discharged by the L11b precondition (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`), which `Σ` satisfies by assumption. FSP's address hypotheses h1 (freshness), h2 (producibility), h3 (shape) for `a'` are exactly the outputs of FreshSiblingExistence above. The payload `ℓ = (F, G, Θ) = Σ.L(a)` has T12-well-formed spans (inherited from the conforming link `a` by L4 on `Σ`) and satisfies L3 (arity ≥ 3, slot 3 the non-empty type endset, by L3 on `Σ`). By FSP, `Σ'` satisfies every state-local L- and S-invariant, and the `Σ → Σ'` transition satisfies L12 and L12a. The L11b-specific delta is the *endset equality* `Σ'.L(a') = (F, G, Θ) = Σ.L(a)`, which holds by construction — this is the non-injectivity witness, not an invariant.
+*Conformance of `Σ'`.* This is a fresh-sibling extension, so we appeal to FSP (FreshSiblingConformance, *A Shared Conformance Lemma* above). FSP's content-residence hypothesis is discharged by the L11b precondition (`Σ` is `s_C`-resident), which `Σ` satisfies by assumption. FSP's address hypotheses h1 (freshness), h2 (producibility), h3 (shape) for `a'` are exactly the outputs of FreshSiblingExistence above. The payload `ℓ = (F, G, Θ) = Σ.L(a)` has T12-well-formed spans (inherited from the conforming link `a` by L4 on `Σ`) and satisfies L3 (arity ≥ 3, slot 3 the non-empty type endset, by L3 on `Σ`). By FSP, `Σ'` satisfies every state-local L- and S-invariant, and the `Σ → Σ'` transition satisfies L12 and L12a. The L11b-specific delta is the *endset equality* `Σ'.L(a') = (F, G, Θ) = Σ.L(a)`, which holds by construction — this is the non-injectivity witness, not an invariant.
 
 Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links.
 
@@ -438,7 +444,7 @@ The two primitives are peers. Both have permanent tumbler addresses. Both are st
 
 Content identity is *shareable*: the same I-address can appear in the arrangements of multiple documents via transclusion, and this sharing is the mechanism for content reuse (S5, ASN-0036). Link identity is *non-transcludable*: no arrangement may map a V-position to a link address. We state this as an explicit invariant:
 
-**L14a — NonTranscludability.** In any system whose content is `s_C`-resident (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`):
+**L14a — NonTranscludability.** In any `s_C`-resident system (L0a):
 
 `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∉ dom(Σ.L))`
 
@@ -641,7 +647,8 @@ The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared b
 | Σ.L | DEF | `Σ.L : T ⇀ Link` — the link store, mapping addresses to link values | introduced |
 | L-fin | INV | LinkStoreFiniteness — `|dom(Σ.L)| < ∞` for each reachable state; parallels S8-fin (ASN-0036) | introduced |
 | L0 | INV | SubspacePartition — link addresses occupy subspace `s_L`: `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`; together with L0a yields the scoped disjointness `dom(Σ.L) ∩ dom(Σ.C)\|_{s_C} = ∅` via T7 | introduced |
-| L0a | DEF | ContentSubspaceScope — `dom(Σ.C)\|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}` is the `s_C`-resident slice of content; the disjointness `dom(Σ.L) ∩ dom(Σ.C)\|_{s_C} = ∅` is derived in-place via L0 + T7 (the L0a discharge) | introduced |
+| L0b | THM | LinkAddressValidity — every link address is T4-valid: `(A a ∈ dom(Σ.L) :: T4-valid(a))`; terminal postcondition of L1c's chain via T10a.4, stated once so L0a, `home`, and L1a cite it rather than forward-referencing L1c | introduced |
+| L0a | DEF | ContentSubspaceScope — `dom(Σ.C)\|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}` is the `s_C`-resident slice of content; the disjointness `dom(Σ.L) ∩ dom(Σ.C)\|_{s_C} = ∅` is derived in-place via L0 + T7 (the L0a discharge); a state is *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` | introduced |
 | L1 | INV | LinkElementLevel — every link address is an element-level tumbler: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` | introduced |
 | L1a | INV | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
 | L1b | INV | LinkElementFieldDepth — every link address has element field depth ≥ 2: `(A a ∈ dom(Σ.L) :: #E(a) ≥ 2)` | introduced |
@@ -656,11 +663,11 @@ The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared b
 | L6 | INV | SlotDistinction — endsets within a link are addressable by positional accessor `Σ.L(a).eᵢ`; dual to L5 (no positional accessor within an endset); link equality is component-wise tuple equality; standard-triple consequence: `F ≠ G ⟹ (F, G, Θ) ≠ (G, F, Θ)` | introduced |
 | L7 | META | DirectionalFlexibility — L0–L14 and L-fin impose no constraint on directional significance of from/to slots | introduced |
 | L8 | DEF | TypeByAddress — type matching is by address coverage: `same_type(a₁, a₂) ⟺ coverage(Σ.L(a₁).type) = coverage(Σ.L(a₂).type)`; `.type` is slot 3, well-defined by L3 | introduced |
-| L9 | LEMMA | TypeGhostPermission — any conforming state with `dom(Σ.M) ≠ ∅` and `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`) can be extended, for every arity `N ≥ 3`, with a link of arity `N` whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)`; arity-3 witness `(∅, ∅, {(g, δ(1, #g))})` extends to higher arities by padding empty endsets at slots `4..N` | introduced |
+| L9 | LEMMA | TypeGhostPermission — any conforming, `s_C`-resident (L0a) state with `dom(Σ.M) ≠ ∅` can be extended, for every arity `N ≥ 3`, with a link of arity `N` whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)`; arity-3 witness `(∅, ∅, {(g, δ(1, #g))})` extends to higher arities by padding empty endsets at slots `4..N` | introduced |
 | PrefixSpanCoverage | LEMMA | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`; derived from OrdinalShift (`x ⊕ δ(1, #x) = shift(x, 1)`), T12, T1 cases (i)/(ii), and T5 (ASN-0034) | introduced |
 | L10 | LEMMA | TypeHierarchyByContainment — `coverage({(p, δ(1, #p))}) = subtypes(p)` by PrefixSpanCoverage | introduced |
 | L11a | LEMMA | LinkUniqueness — distinct T10a-conforming allocation events produce distinct link addresses (corollary of L1c + S7d + GlobalUniqueness over the single tree 𝒯; derivation in body) | introduced |
-| L11b | LEMMA | NonInjectivity — every conforming state with a link and `s_C`-resident content (`(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)`) can be extended to a non-injective conforming state | introduced |
+| L11b | LEMMA | NonInjectivity — every conforming, `s_C`-resident (L0a) state with a link can be extended to a non-injective conforming state | introduced |
 | L12 | INV | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
 | L12a | LEMMA | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
 | L12b | LEMMA | HomeDocumentPersistence — `{home(a) : a ∈ dom(Σ.L)} ⊆ dom(Σ'.M)` for every state transition; joint consequence of L1a (at `Σ'`) and L12a | introduced |
