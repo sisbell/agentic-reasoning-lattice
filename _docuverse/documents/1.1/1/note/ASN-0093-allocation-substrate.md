@@ -42,7 +42,7 @@ The initial state is `Σ₀ = (∅, ∅, ∅)` — no content, no links, no docu
 
 - **SubspaceConventionAxiom (FixedSubspaceIdentifiers).** `s_C = 1 ∧ s_L = 2`. The distinctness `s_C ≠ s_L` (abbreviated **SC-NEQ**) and the sibling relation `s_L = s_C + 1` are immediate consequences. Pinned by Nelson's design (LM 4/30–4/31) and Gregory's `xanadu.h:144–146` / `granf2.c:162` / `do2.c:94`.
 
-- **SequentialTransitionAxiom (SequentialAtomicTransitions).** Transitions `Σ → Σ'` are atomic, uninterruptible, and totally ordered: each transition evaluates its precondition against `Σ` and commits its effect to `Σ'` in one indivisible step, with no intermediate state in which a transition has begun but not committed.
+- **SequentialTransitionAxiom (SequentialAtomicTransitions).** Transitions `Σ → Σ'` are atomic, uninterruptible, and totally ordered: each transition evaluates its precondition against `Σ` and commits its effect to `Σ'` in one indivisible step.
 
 
 ## Arrangement-function invariants
@@ -148,7 +148,7 @@ Once allocated, a link's address persists in `dom(L)` and its value is permanent
 
   `dom(C) ∩ dom(L) = ∅`
 
-Derived from L0 + SC-NEQ + StoreT4Validity + T7 (SubspaceDisjointness, ASN-0034). T7's preconditions are discharged on each side: `zeros(·) = 3` from C1 (content) and L1 (links), and T4-validity from StoreT4Validity (below). With both premises met, every content address has `E(·)₁ = s_C` and every link address has `E(·)₁ = s_L` (L0), and `s_C ≠ s_L` (SC-NEQ), so T7 gives pairwise distinctness across the two stores — the domains are disjoint. The full union `dom(C) ∩ dom(L) = ∅` is justified because every content address resides in subspace `s_C` (C1 + L0's C-clause); SD is thereby strictly stronger than ASN-0043's L14 (DualPrimitive), whose disjointness clause is the `s_C`-sliced `dom(L) ∩ dom(C)|_{s_C} = ∅`.
+Derived from L0 + SC-NEQ + StoreT4Validity + T7 (SubspaceDisjointness, ASN-0034). T7's preconditions are discharged on each side: `zeros(·) = 3` from C1 (content) and L1 (links), and T4-validity from StoreT4Validity (below). With both premises met, every content address has `E(·)₁ = s_C` and every link address has `E(·)₁ = s_L` (L0), and `s_C ≠ s_L` (SC-NEQ), so T7 gives pairwise distinctness across the two stores — the domains are disjoint. The full union `dom(C) ∩ dom(L) = ∅` is justified because every content address resides in subspace `s_C` (C1 + L0's C-clause). Here SD coincides with ASN-0043's L14 (DualPrimitive): L0's C-clause forces `dom(C) = dom(C)|_{s_C}`, so the unsliced `dom(C) ∩ dom(L) = ∅` and L14's `s_C`-sliced `dom(L) ∩ dom(C)|_{s_C} = ∅` are the same statement.
 
 **L-fin (LinkStoreFiniteness).**
 
@@ -266,7 +266,7 @@ The link subsequent emission is symmetric under the content↔link substitution.
 
   `a ≠ b`  for every `a` with `p₁ ≼ a` and every `b` with `p₂ ≼ b`.
 
-*Proof.* By M0, both `d₁, d₂` are T4-valid with `zeros = 2`, so (as established under *Sub-allocator chains are ASN-0040 sibling streams*) each anchor `p_i = b_·(d_i)` is T4-valid with `zeros = 3` and is a length-`+2` extension of `d_i` (positions `1..#d_i` reproduce `d_i`, position `#d_i + 1` is the separator `0`, position `#d_i + 2` is `s_·`). They are prefix-incomparable: when `d₁`, `d₂` are themselves prefix-incomparable, a document-level divergence position `k ≤ min(#d₁, #d₂)` lifts unchanged to the anchors; when one properly prefixes the other (WLOG `d₁ ≺ d₂`), the anchors diverge at the separator position `k = #d₁ + 1`, where `p₁[k] = 0` while `p₂[k] = d₂[k] ≠ 0` (by M0, `d₂` carries `d₁`'s two zeros at the shared positions and, having `zeros(d₂) = 2`, no further zero, so position `#d₁ + 1 ≤ #d₂` is nonzero). Either way `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (Prefix, ASN-0034), and T10 gives `a ≠ b` for any `a` extending `p₁`, `b` extending `p₂` — the strictly stronger any-extension claim. ∎
+*Proof.* By M0, both `d₁, d₂` are T4-valid with `zeros = 2`, so (as established under *Sub-allocator chains are ASN-0040 sibling streams*) each anchor `p_i = b_·(d_i)` is T4-valid with `zeros = 3` and is a length-`+2` extension of `d_i` (positions `1..#d_i` reproduce `d_i`, position `#d_i + 1` is the separator `0`, position `#d_i + 2` is `s_·`). They are prefix-incomparable: when `d₁`, `d₂` are themselves prefix-incomparable, a document-level divergence position `k ≤ min(#d₁, #d₂)` lifts unchanged to the anchors; when one properly prefixes the other (WLOG `d₁ ≺ d₂`), the anchors diverge at the separator position `k = #d₁ + 1`, where `p₁[k] = 0` while `p₂[k] = d₂[k] ≠ 0` (by M0, `d₂` carries `d₁`'s two zeros at the shared positions and, having `zeros(d₂) = 2`, no further zero, so position `#d₁ + 1 ≤ #d₂` is nonzero). Either way `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (Prefix, ASN-0034), and T10 gives `a ≠ b` for any `a` extending `p₁`, `b` extending `p₂`. ∎
 
 Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by SD (StoreDisjointness, above).
 
@@ -422,7 +422,7 @@ Each transition-indexed invariant is discharged by induction on transition seque
 - **L-fin** (`|dom(L)| < ∞`): `|∅| = 0 < ∞` — trivially true.
 - **C-fin** (`|dom(C)| < ∞`): `|∅| = 0 < ∞` — trivially true.
 
-*Derived lemmas at Σ₀.* All derived lemmas hold vacuously at `Σ₀` because `dom(C₀)`, `dom(L₀)`, `dom(M₀)` are empty (the chain-indexed ASN-0040 disciplines — ChainElementT4Validity, ChainEnumerationInjectivity, ChainUniformZeroCount, DisjointSubAllocatorChains — hold regardless, being state-independent citations).
+*Derived lemmas at Σ₀.* All derived lemmas hold vacuously at `Σ₀` because `dom(C₀)`, `dom(L₀)`, `dom(M₀)` are empty.
 
 The base case holds.
 
