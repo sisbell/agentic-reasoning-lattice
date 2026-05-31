@@ -2,7 +2,7 @@
 
 *2026-04-10*
 
-This ASN layers a class of arrangement rearrangements over the Strand Model (ASN-0036). The arrangement function M(d) is mutated by transposing regions of V-positions delimited by cut points: three cuts define two adjacent regions that exchange places (the *pivot*); four cuts define two outer regions exchanging across a fixed middle (the *swap*). REARRANGE is confined to the text subspace (S = 1, depth 2); cross-subspace transposition is outside the scope of this ASN. The induced bijection π : dom(M(d)) → dom(M(d)) has a uniform displacement structure on each region, determined by region widths alone. The correspondence-run decomposition guaranteed by S8 (ASN-0036) transforms by splitting at cuts, classifying each run into a region, and reassembling with the per-region displacement. The proofs draw directly on ASN-0036 (Strand Model — correspondence runs S8, contiguity D-CTG, sequential positions D-SEQ) and ASN-0034 (Tumbler Algebra — ordinal shift OrdinalShift, shift composition TS3, lexicographic order T1).
+This ASN layers a class of arrangement rearrangements over the Strand Model (ASN-0036). The arrangement function M(d) is mutated by transposing regions of V-positions delimited by cut points: three cuts define two adjacent regions that exchange places (the *pivot*); four cuts define two outer regions exchanging across a fixed middle (the *swap*). REARRANGE is confined to the text subspace (S = 1, depth 2); cross-subspace transposition is outside the scope of this ASN. The induced bijection π : dom(M(d)) → dom(M(d)) has a uniform displacement structure on each region, determined by region widths alone. The correspondence-run decomposition guaranteed by S8 (ASN-0036) transforms by splitting at cuts, classifying each run into a region, and reassembling with the per-region displacement.
 
 
 ## State and Vocabulary
@@ -100,7 +100,7 @@ Clause (iv) ensures that the affected range is covered: no gap exists within [c�
 
 **Consequences of R-PRE.** *Subspace confinement.* All cuts lie in subspace S by CS3, and every V-position in the affected range [c₀, c_{n−1}) ∩ V_S(d) has subspace S by membership in V_S(d). Any cut-relative shift `c_i + j` retains subspace S: by CS3, subspace(c_i) = S, and OrdShiftHom (a) of ASN-0036 — extended to j = 0 by the identity convention, as recorded under Extended Associativity — gives subspace(c_i + j) = subspace(c_i) = S.
 
-*Width positivity.* Under R-PRE(iii) and R-PRE(iv), each region width equals a cut-ordinal difference and is a positive natural number: w_α ≥ 1 and w_β ≥ 1 in both forms, and additionally w_μ ≥ 1 when n = 4. By R-PRE(iv) and D-SEQ (ASN-0036), the widths are computable from the cut-point ordinals: w_α = ord(c₁) − ord(c₀); w_β = ord(c₂) − ord(c₁) for n = 3 and ord(c₃) − ord(c₂) for n = 4; w_μ = ord(c₂) − ord(c₁) for n = 4. For each adjacent cut pair (c_i, c_{i+1}): by CS2 and T1, c_i < c_{i+1}, and under the identification of singleton tumblers with natural numbers (introduced above) this coincides with ord(c_i) < ord(c_{i+1}) ∈ ℕ⁺, so ord(c_{i+1}) ≥ ord(c_i) + 1 and the difference ord(c_{i+1}) − ord(c_i) ≥ 1 is a well-defined positive natural (discharging the m ≥ n precondition of the truncated subtraction defined above). D-SEQ gives V_S(d) = {[S, k] : 1 ≤ k ≤ N} for some N. The alignment between T1-membership in the interval [c_i, c_{i+1}) and ordinal-membership in [ord(c_i), ord(c_{i+1})) is what CS3 and CS4 carry: because each cut c_i is itself subspace-S (CS3) at depth 2 (CS4), it has the form [S, ord(c_i)], so for any subspace-S depth-2 position v = [S, ord(v)] the T1 comparison of v against c_i reduces to the ordinal comparison of ord(v) against ord(c_i) (the shared leading component S cancels and the single remaining component decides T1). Hence `c_i ≤ v < c_{i+1} ⟺ ord(c_i) ≤ ord(v) < ord(c_{i+1})`. With the alignment in hand, R-PRE(iv) places every depth-2 subspace-S position with ordinal in [ord(c_i), ord(c_{i+1})) into V_S(d), so the count of V-positions in [c_i, c_{i+1}) equals ord(c_{i+1}) − ord(c_i) ≥ 1. Instantiating at i = 0 yields w_α ≥ 1; at i = 1 (n = 4) yields w_μ ≥ 1; at i = n − 2 yields w_β ≥ 1.
+*Width positivity.* Under R-PRE(iii) and R-PRE(iv), each region width equals a cut-ordinal difference and is a positive natural number: w_α ≥ 1 and w_β ≥ 1 in both forms, and additionally w_μ ≥ 1 when n = 4. By R-PRE(iv) and D-SEQ (ASN-0036), the widths are computable from the cut-point ordinals: w_α = ord(c₁) − ord(c₀); w_β = ord(c₂) − ord(c₁) for n = 3 and ord(c₃) − ord(c₂) for n = 4; w_μ = ord(c₂) − ord(c₁) for n = 4. For each adjacent cut pair (c_i, c_{i+1}): by CS2 and T1, c_i < c_{i+1}, and under the identification of singleton tumblers with natural numbers (introduced above) this coincides with ord(c_i) < ord(c_{i+1}) ∈ ℕ⁺, so ord(c_{i+1}) ≥ ord(c_i) + 1 and the difference ord(c_{i+1}) − ord(c_i) ≥ 1 is a well-defined positive natural (discharging the m ≥ n precondition of the truncated subtraction defined above). D-SEQ gives V_S(d) = {[S, k] : 1 ≤ k ≤ N} for some N. Because each cut and each affected V-position is subspace-S (CS3) at depth 2 (CS4) of the form [S, ord(·)], the shared leading component S cancels and the singleton-ordinal coincidence established above gives `c_i ≤ v < c_{i+1} ⟺ ord(c_i) ≤ ord(v) < ord(c_{i+1})`. R-PRE(iv) then places every depth-2 subspace-S position with ordinal in [ord(c_i), ord(c_{i+1})) into V_S(d), so the count of V-positions in [c_i, c_{i+1}) equals ord(c_{i+1}) − ord(c_i) ≥ 1. Instantiating at i = 0 yields w_α ≥ 1; at i = 1 (n = 4) yields w_μ ≥ 1; at i = n − 2 yields w_β ≥ 1.
 
 *Empty-exterior boundary cases (EXT-VAC).* R-EXT in both PivotPostcondition and SwapPostcondition quantifies over {v ∈ V_S(d) : v < c₀ or v ≥ c_{n−1}}, and either subset may be empty for boundary configurations of the cut sequence. When ord(c₀) = 1, no V-position satisfies v < c₀ (V-position ordinals are ≥ 1 by S8a, ASN-0036), so the left-exterior subset is empty and R-EXT is vacuously satisfied on the left. Writing V_S(d) = {[S, 1], ..., [S, N]} (D-SEQ, ASN-0036), R-PRE(iv) itself bounds c_{n−1} from above: were ord(c_{n−1}) > N + 1, the position v = [S, N + 1] would satisfy subspace(v) = S ∧ #v = 2 ∧ c₀ ≤ v < c_{n−1} — the upper conjunct v < c_{n−1} holds since N + 1 < ord(c_{n−1}), and the lower conjunct c₀ ≤ v, i.e. ord(c₀) ≤ N + 1, follows from Width positivity above: w_α = ord(c₁) − ord(c₀) ≥ 1 makes α ∩ V_S(d) non-empty, so its leftmost member has ordinal ord(c₀), forcing ord(c₀) ≤ N < N + 1 — yet fail v ∈ V_S(d) (as N + 1 > N), contradicting R-PRE(iv)'s universal. Hence R-PRE forces ord(c_{n−1}) ≤ N + 1, and the only R-PRE-admissible empty-right-exterior configuration is the single value ord(c_{n−1}) = N + 1 — equivalently c_{n−1} = [S, N + 1], one past the last V-position. At that value no V-position satisfies v ≥ c_{n−1}, so the right-exterior subset {v ∈ V_S(d) : v ≥ c_{n−1}} is empty and R-EXT is vacuously satisfied on the right. In particular c_{n−1} ∉ V_S(d) in this case, so c_{n−1} ∉ dom(M(d)). R-PRE(iv) is unaffected because it constrains only [c₀, c_{n−1}), which excludes c_{n−1} itself.
 
@@ -177,9 +177,11 @@ The arrangement is: region β content starting at c₀ (clause R-S1), then middl
 
 REARRANGE_K affects only the subspace-S portion of M(d); positions in any other subspace pass through unchanged. We record the pointwise consequence of this structural fact here.
 
-**R-NS — NonSubspaceInvariance (LEMMA).** Let π be the cut-point-induced bijection on dom(M(d)) (R-PPERM for n = 3, R-SPERM for n = 4). *(NS-π) Pointwise identity on non-S.* For every v ∈ dom(M(d)) with subspace(v) ≠ S: π(v) = v and M'(d)(v) = M(d)(v).
+**R-NS — NonSubspaceInvariance (LEMMA).** *(NS-M) Pointwise identity on non-S.* For every v ∈ dom(M(d)) with subspace(v) ≠ S: M'(d)(v) = M(d)(v).
 
-*Proof.* For v ∈ dom(M(d)) with subspace(v) ≠ S, the frame condition R-FRAME-P(a) (n = 3) or R-FRAME-S(a) (n = 4) gives M'(d)(v) = M(d)(v) directly. The non-S clause of the bijection definition (the first clause of R-PPERM's piecewise definition, mirrored as the first clause of R-SPERM's) stipulates π(v) = v on this domain. Hence π fixes every non-S V-position pointwise, and M'(d) agrees with M(d) on every such position. ∎
+*Proof.* The frame condition R-FRAME-P(a) (n = 3) or R-FRAME-S(a) (n = 4) gives M'(d)(v) = M(d)(v) directly for every v ∈ dom(M(d)) with subspace(v) ≠ S. ∎
+
+*Remark.* The cut-point-induced bijection π defined below (R-PPERM for n = 3, R-SPERM for n = 4) fixes every non-S position pointwise — π(v) = v — by the first clause of its piecewise definition. Combined with NS-M, this gives M'(d)(π(v)) = M'(d)(v) = M(d)(v) on the non-S domain.
 
 
 ## Postcondition Well-Definedness
@@ -234,7 +236,7 @@ For (b): the right-hand sides reference M(d)(c₂ + j) for j < w_β (ordinals of
 
 The subspace-S exterior, α, and β branches partition V_S(d), so the four-case piecewise definition is total on dom(M(d)).
 
-*Proof.* We verify M'(d)(π(v)) = M(d)(v) in each case. For v ∈ dom(M(d)) with subspace(v) ≠ S: π(v) = v and M'(d)(v) = M(d)(v), both by R-NS(NS-π). For v ∈ V_S(d) with v < c₀ or v ≥ c₂: π(v) = v, and M'(d)(v) = M(d)(v) by R-EXT. For v = c₀ + j in α: π(v) = c₀ + w_β + j, and M'(d)(c₀ + w_β + j) = M(d)(c₀ + j) = M(d)(v) by R-P2. For v = c₁ + j in β: π(v) = c₀ + j, and M'(d)(c₀ + j) = M(d)(c₁ + j) = M(d)(v) by R-P1.
+*Proof.* We verify M'(d)(π(v)) = M(d)(v) in each case. For v ∈ dom(M(d)) with subspace(v) ≠ S: π(v) = v by the non-S clause of the definition above, and M'(d)(v) = M(d)(v) by R-NS(NS-M). For v ∈ V_S(d) with v < c₀ or v ≥ c₂: π(v) = v, and M'(d)(v) = M(d)(v) by R-EXT. For v = c₀ + j in α: π(v) = c₀ + w_β + j, and M'(d)(c₀ + w_β + j) = M(d)(c₀ + j) = M(d)(v) by R-P2. For v = c₁ + j in β: π(v) = c₀ + j, and M'(d)(c₀ + j) = M(d)(c₁ + j) = M(d)(v) by R-P1.
 
 Injectivity: within each case, the mapping is injective (the exterior is the identity; the α case maps distinct j to distinct c₀ + w_β + j; the β case maps distinct j to distinct c₀ + j). Across cases: the four image sets — {v ∈ dom(M(d)) : subspace(v) ≠ S}, V_S(d) \ [c₀, c₂), {c₀ + w_β + j : 0 ≤ j < w_α}, {c₀ + j : 0 ≤ j < w_β} — are pairwise disjoint (the first is disjoint from the rest by subspace separation; the remaining three are pairwise disjoint as shown in R-PIV). Surjectivity: π is an injection from dom(M(d)) into itself, and dom(M(d)) is finite (S8-fin of ASN-0036); on a finite set, every self-injection is a bijection, so π is surjective. ∎
 
@@ -257,7 +259,7 @@ The subspace-S exterior, α, μ, and β branches partition V_S(d), so the five-c
 
 *Proof.* We verify M'(d)(π(v)) = M(d)(v) in each case.
 
-For v ∈ dom(M(d)) with subspace(v) ≠ S: π(v) = v and M'(d)(v) = M(d)(v), both by R-NS(NS-π).
+For v ∈ dom(M(d)) with subspace(v) ≠ S: π(v) = v by the non-S clause of the definition above, and M'(d)(v) = M(d)(v) by R-NS(NS-M).
 
 For v ∈ V_S(d) with v < c₀ or v ≥ c₃: π(v) = v, and M'(d)(v) = M(d)(v) by R-EXT.
 
@@ -291,7 +293,7 @@ The permutations R-PPERM and R-SPERM can be characterized by ordinal displacemen
 
 *Remark (per-region displacement uniformity).* Read off the explicit R-PPERM and R-SPERM formulas, the offset j within a region cancels, so every position in a region moves by the same direction and distance — the displacement depends only on the region widths, not on the position's location within the region. Writing the displacement as (direction, distance):
 
-- *Non-S domain and subspace-S exterior:* π(v) = v (R-NS(NS-π), and the exterior clause of R-PPERM/R-SPERM), so the displacement is *fixed* (distance 0).
+- *Non-S domain and subspace-S exterior:* π(v) = v (the non-S clause of R-PPERM/R-SPERM on the non-S domain, the exterior clause on the subspace-S exterior), so the displacement is *fixed* (distance 0).
 - *3-cut.* On α, v = c₀ + j (0 ≤ j < w_α) maps to c₀ + w_β + j, so ord(π(v)) − ord(v) = w_β: *forward by w_β*. On β, v = c₁ + j (0 ≤ j < w_β) maps to c₀ + j, with ord(v) − ord(π(v)) = w_α: *backward by w_α*. In each case j cancels.
 - *4-cut.* On α, v = c₀ + j maps to c₀ + w_β + w_μ + j: *forward by w_β + w_μ*. On β, v = c₂ + j maps to c₀ + j, with ord(v) − ord(π(v)) = w_α + w_μ: *backward by w_α + w_μ*. On μ, v = c₁ + j maps to c₀ + w_β + j; comparing ord(π(v)) = ord(c₀) + w_β + j against ord(v) = ord(c₀) + w_α + j reduces to comparing w_β and w_α: *forward by w_β − w_α* when w_β > w_α, *backward by w_α − w_β* when w_β < w_α, and *fixed* when w_β = w_α. In every case j cancels.
 
@@ -316,7 +318,7 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 
 *Proof.* We verify each region case using the explicit R-PPERM and R-SPERM formulas, with associativity of natural-number addition at the ordinal level as the sole algebraic tool. In each subspace-S case, the same-region hypothesis bounds the shifted offset j' + k inside the region's width, justifying application of the corresponding R-PPERM or R-SPERM branch.
 
-*Non-S subspace (both forms):* For v with subspace(v) ≠ S, the same-region hypothesis places v + k in the non-S subspace as well — by OrdShiftHom (a) of ASN-0036, subspace(v + k) = subspace(v) ≠ S, so v + k automatically inherits the non-S region. By R-NS(NS-π) applied at v and at v + k, π(v) = v and π(v + k) = v + k, so π(v + k) = v + k = π(v) + k.
+*Non-S subspace (both forms):* By the hypothesis, v and v + k are both non-S; the non-S clause of R-PPERM/R-SPERM gives π(v) = v and π(v + k) = v + k, hence π(v + k) = v + k = π(v) + k.
 
 *Subspace-S exterior (both forms):* π(v + k) = v + k = π(v) + k, since π is the identity on the exterior.
 
@@ -340,25 +342,25 @@ In words: the cut-point permutation commutes with ordinal shift within each regi
 
 *Interaction between successive cuts.* By CS2, ord(c_j) > ord(cᵢ) for j > i. When an earlier cut cᵢ splits some run at offset c = ord(cᵢ) − ord(vₖ), the left piece has V-extent [ord(vₖ), ord(cᵢ)); since ord(c_j) > ord(cᵢ), a later cut c_j never lands in that left piece. Processing cuts in index order against the progressively refined partition therefore agrees with processing each cut against the original B. After all cuts are processed, no run straddles any cut position c_i for 0 ≤ i ≤ n − 1.
 
-*Non-S runs are carried verbatim.* Let b = (v_b, a_b, n_b) ∈ B with subspace(v_b) = S' ≠ S. By OrdShiftHom (a) of ASN-0036 (extended to k = 0 by the identity convention), every V-position v_b + k satisfies subspace(v_b + k) = S' ≠ S, so V(b) ⊆ dom(M(d)) \ V_S(d). By CS3 every cut position lies in subspace S, so no cut falls in V(b) and Phase 1 never splits b. Since π is the identity on V(b) (R-NS(NS-π)), Phase 3 carries b through unchanged as (v_b, a_b, n_b), which inherits S8-cons under M'(d): for 0 ≤ k < n_b, M'(d)(v_b + k) = M(d)(v_b + k) = a_b + k.
+*Non-S runs are carried verbatim.* Let b = (v_b, a_b, n_b) ∈ B with subspace(v_b) = S' ≠ S. By OrdShiftHom (a) of ASN-0036 (extended to k = 0 by the identity convention), every V-position v_b + k satisfies subspace(v_b + k) = S' ≠ S, so V(b) ⊆ dom(M(d)) \ V_S(d). By CS3 every cut position lies in subspace S, so no cut falls in V(b) and Phase 1 never splits b. Since π is the identity on V(b) (the non-S clause of R-PPERM/R-SPERM), Phase 3 carries b through unchanged as (v_b, a_b, n_b), which inherits S8-cons under M'(d): for 0 ≤ k < n_b, M'(d)(v_b + k) = M(d)(v_b + k) = a_b + k.
 
 *Phase 2: Classify.* Each run in the post-split partition lies entirely within one region — non-S (V-extent in some subspace S' ≠ S), exterior left, α, μ if 4-cut, β, or exterior right — because no run crosses a cut boundary (subspace-S runs are split at S-subspace cuts, and non-S runs are entirely contained in their subspace, shown above). When c_{n−1} > max(V_S(d)), the exterior-right region is empty and no run is classified there; the non-S region is empty when dom(M(d)) ⊆ V_S(d), and either condition may hold independently. The classification by Phase 1 of the remaining cuts together with the subspace separation of non-S runs covers all runs.
 
 *Phase 3: Reassemble.* Apply the permutation π to each run's V-start. Each run (vₖ, aₖ, nₖ) in the post-split, post-classify partition becomes (π(vₖ), aₖ, nₖ): the V-start is replaced by π(vₖ); the I-start aₖ and width nₖ are preserved verbatim. Per region:
 
-- Non-S runs: π(vₖ) = vₖ by R-NS(NS-π); the triple (vₖ, aₖ, nₖ) carries through unchanged.
+- Non-S runs: π(vₖ) = vₖ by the non-S clause of R-PPERM/R-SPERM; the triple (vₖ, aₖ, nₖ) carries through unchanged.
 - Exterior runs: π(vₖ) = vₖ by the subspace-S exterior clause of R-PPERM/R-SPERM; the triple carries through unchanged.
 - α runs: π(vₖ) is computed by the α-branch of R-PPERM (3-cut) or R-SPERM (4-cut).
 - β runs: π(vₖ) is computed by the β-branch of R-PPERM (3-cut) or R-SPERM (4-cut).
 - μ runs (4-cut only): π(vₖ) is computed by the μ-branch of R-SPERM.
 
-The non-S and exterior runs carry through with their widths intact because π is the identity on them (R-NS(NS-π)), so π(vₖ + k) = vₖ + k = π(vₖ) + k holds trivially. On the displaced α/μ/β runs the same identity-commutation π(vₖ + k) = π(vₖ) + k is supplied by R-COMM.
+The non-S and exterior runs carry through with their widths intact because π is the identity on them (the non-S and exterior clauses of R-PPERM/R-SPERM), so π(vₖ + k) = vₖ + k = π(vₖ) + k holds trivially. On the displaced α/μ/β runs the same identity-commutation π(vₖ + k) = π(vₖ) + k is supplied by R-COMM.
 
-*I-start, width, and contiguity of reassembled runs.* After Phase 1, every run lies entirely in a single region — for subspace-S runs by Phase 1's split-at-cuts construction, for non-S runs by the subspace confinement shown above — so the same-region precondition of the identity π(vⱼ + k) = π(vⱼ) + k (established above) is discharged for each run (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ. That identity carries the consecutive V-positions vⱼ, vⱼ + 1, ..., vⱼ + (nⱼ − 1) to the consecutive V-positions π(vⱼ), π(vⱼ) + 1, ..., π(vⱼ) + (nⱼ − 1): each reassembled run (π(vⱼ), aⱼ, nⱼ) therefore occupies a contiguous V-position range with its width intact, and its I-start is preserved because the rearrangement modifies no I-addresses (M'(d) and M(d) share the same value set, only repositioned). Each reassembled run is thus a valid run. For non-S runs π is the identity (R-NS(NS-π)) and the run passes through unchanged.
+*I-start, width, and contiguity of reassembled runs.* After Phase 1, every run lies entirely in a single region — for subspace-S runs by Phase 1's split-at-cuts construction, for non-S runs by the subspace confinement shown above — so the same-region precondition of the identity π(vⱼ + k) = π(vⱼ) + k (established above) is discharged for each run (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ. That identity carries the consecutive V-positions vⱼ, vⱼ + 1, ..., vⱼ + (nⱼ − 1) to the consecutive V-positions π(vⱼ), π(vⱼ) + 1, ..., π(vⱼ) + (nⱼ − 1): each reassembled run (π(vⱼ), aⱼ, nⱼ) therefore occupies a contiguous V-position range with its width intact, and its I-start is preserved because the rearrangement modifies no I-addresses (M'(d) and M(d) share the same value set, only repositioned). Each reassembled run is thus a valid run. For non-S runs π is the identity (the non-S clause of R-PPERM/R-SPERM) and the run passes through unchanged.
 
 The resulting runs satisfy S8-cons (consistency under M'(d)). *Subspace-S runs:* for each reassembled run (π(vⱼ), aⱼ, nⱼ) and 0 ≤ k < nⱼ: M'(d)(π(vⱼ) + k) = M'(d)(π(vⱼ + k)) = M(d)(vⱼ + k) = aⱼ + k. The second equality uses the permutation defining property M'(d)(π(v)) = M(d)(v); the first uses R-COMM. *Non-S runs:* shown above — π is the identity, so M'(d)(vⱼ + k) = M(d)(vⱼ + k) = aⱼ + k for 0 ≤ k < nⱼ.
 
-Uniqueness of the containing run (S8-uniq) for M'(d): π is a bijection on dom(M(d)) = dom(M'(d)), and π restricts to the identity on the non-S part of dom(M(d)) (R-NS(NS-π)) and to a bijection on V_S(d) (R-PPERM/R-SPERM). The V-extents of the reassembled subspace-S runs are pairwise disjoint and cover V_S(d) (from the partition property of the pre-reassembly subspace-S partition and bijectivity of π|_{V_S(d)}); the V-extents of the carried-over non-S runs are pairwise disjoint and cover dom(M(d)) \ V_S(d) (inherited from the pre-state partition, since non-S runs carry through unchanged). Pairwise disjointness across the two groups holds because subspace-S and non-S V-extents lie in distinct subspaces (T10 of ASN-0034: non-nesting prefixes generate disjoint subtrees). Together these yield the E! quantification of S8-uniq on dom(M'(d)).
+Uniqueness of the containing run (S8-uniq) for M'(d): π is a bijection on dom(M(d)) = dom(M'(d)), and π restricts to the identity on the non-S part of dom(M(d)) (the non-S clause of R-PPERM/R-SPERM) and to a bijection on V_S(d) (R-PPERM/R-SPERM). The V-extents of the reassembled subspace-S runs are pairwise disjoint and cover V_S(d) (from the partition property of the pre-reassembly subspace-S partition and bijectivity of π|_{V_S(d)}); the V-extents of the carried-over non-S runs are pairwise disjoint and cover dom(M(d)) \ V_S(d) (inherited from the pre-state partition, since non-S runs carry through unchanged). Pairwise disjointness across the two groups holds because subspace-S and non-S V-extents lie in distinct subspaces (T10 of ASN-0034: non-nesting prefixes generate disjoint subtrees). Together these yield the E! quantification of S8-uniq on dom(M'(d)).
 
 This completes R-BLK: B' is a valid run partition of M'(d). B' need not itself coincide with the maximal (canonical) partition — the 4-cut worked example below exhibits a B' containing a mergeable pair (B and H, merging into a width-3 run).
 
@@ -780,7 +782,7 @@ M'(d)([1,3]) = C     (text exterior, unchanged)
 M'(d)([2,1]) = L     (link subspace, unchanged — non-S pass-through)
 ```
 
-**R-PPERM verification.** The permutation π: π([1,1]) = c₀ + w_β + 0 = [1,2] (α); π([1,2]) = c₀ + 0 = [1,1] (β); π([1,3]) = [1,3] (subspace-S exterior); π([2,1]) = [2,1] (non-S branch — *fixed pointwise by R-NS(NS-π)*). Check: M'(d)(π([1,1])) = M'(d)([1,2]) = A = M(d)([1,1]) ✓; M'(d)(π([2,1])) = M'(d)([2,1]) = L = M(d)([2,1]) ✓ (the non-S defining equation holds with π the identity).
+**R-PPERM verification.** The permutation π: π([1,1]) = c₀ + w_β + 0 = [1,2] (α); π([1,2]) = c₀ + 0 = [1,1] (β); π([1,3]) = [1,3] (subspace-S exterior); π([2,1]) = [2,1] (non-S branch — *fixed pointwise by the non-S clause of R-PPERM*). Check: M'(d)(π([1,1])) = M'(d)([1,2]) = A = M(d)([1,1]) ✓; M'(d)(π([2,1])) = M'(d)([2,1]) = L = M(d)([2,1]) ✓ (the non-S defining equation holds with π the identity).
 
 **R-RI verification.** ran(M'(d)) = {B, A, C, L} = ran(M(d)); since ran(M(d)) ⊆ dom(C) and C' = C, ran(M'(d)) ⊆ dom(C'). ✓
 
@@ -793,7 +795,7 @@ M'(d)([2,1]) = L     (link subspace, unchanged — non-S pass-through)
 - ([1,1], A, 1) → ([1,2], A, 1) (α, forward 1)
 - ([1,2], B, 1) → ([1,1], B, 1) (β, backward 1)
 - ([1,3], C, 1) → ([1,3], C, 1) (exterior, fixed)
-- ([2,1], L, 1) → ([2,1], L, 1) (non-S, carried verbatim — π is the identity by R-NS(NS-π))
+- ([2,1], L, 1) → ([2,1], L, 1) (non-S, carried verbatim — π is the identity by the non-S clause of R-PPERM)
 
 Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}. All width 1, so S8-cons holds trivially.
 
@@ -824,7 +826,7 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}.
 | R-SPERM | LEMMA | Bijection π for 4-cut swap: α shifts forward by w_β + w_μ, μ shifts by w_β − w_α, β shifts backward by w_α + w_μ | introduced |
 | R-FRAME-P | FRAME | Pivot: other subspaces, other documents, and content store are preserved | introduced |
 | R-FRAME-S | FRAME | Swap: other subspaces, other documents, and content store are preserved | introduced |
-| R-NS | LEMMA | REARRANGE_K is the identity on dom(M(d)) \ V_S(d): π fixes non-S positions pointwise (NS-π) | introduced |
+| R-NS | LEMMA | M'(d) = M(d) on non-S positions (NS-M); π fixes them pointwise by its definition | introduced |
 | R-RI | LEMMA | Rearrangement preserves S3 (referential integrity): ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
 | R-COMM | LEMMA | π(v + k) = π(v) + k when v and v + k lie in the same region: cut-point permutation commutes with ordinal shift | introduced |
 | R-BLK | LEMMA | Run partition transforms by split-at-cuts then displace-per-region, preserving S8-uniq/S8-cons under M'(d) | introduced |
