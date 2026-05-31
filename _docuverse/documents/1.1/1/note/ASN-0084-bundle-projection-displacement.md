@@ -106,6 +106,8 @@ Clause (iv) ensures that the affected range is covered: no gap exists within [c�
 
 *Empty right-exterior boundary case (EXT-VAC).* When c_{n−1} ∉ V_S(d), c_{n−1} ∉ dom(M(d)): by D-SEQ (ASN-0036), V_S(d) = {[S, 1], ..., [S, N]}, and any depth-2 subspace-S cut [S, q] with 1 ≤ q ≤ N would lie in V_S(d), so c_{n−1} ∉ V_S(d) lies strictly above the maximum [S, N]; the right-exterior set {v ∈ V_S(d) : v ≥ c_{n−1}} is therefore empty, and since every subspace-S depth-2 element of dom(M(d)) belongs to V_S(d), c_{n−1} ∉ dom(M(d)).
 
+*Collapse of R-PRE(iv) to a single ordinal bound.* Under D-SEQ, R-PRE(iv) carries no content beyond one inequality on the rightmost cut. D-SEQ gives V_S(d) = {[S, k] : 1 ≤ k ≤ N}, so the depth-2 subspace-S positions with ordinal in [ord(c₀), ord(c_{n−1})) — exactly those R-PRE(iv) quantifies over — all lie in V_S(d) iff every such ordinal is ≤ N, i.e. iff `ord(c_{n−1}) − 1 ≤ N`, which (since CS5 gives ordinals in ℕ⁺ and CS2 gives ord(c₀) ≥ 1) is equivalent to the single bound `ord(c_{n−1}) ≤ N + 1`. Thus R-PRE(iv) adds precisely the requirement that the affected range not exceed the existing content by more than one position; the EXT-VAC case (where ord(c_{n−1}) = N + 1, so c_{n−1} = [S, N+1] ∉ V_S(d)) is its boundary.
+
 
 ### 3-Cut Pivot Postcondition
 
@@ -283,8 +285,8 @@ The permutations R-PPERM and R-SPERM can be characterized by ordinal displacemen
 *Remark (per-region displacement uniformity).* Read off the explicit R-PPERM and R-SPERM formulas, the offset j within a region cancels, so every position in a region moves by the same direction and distance — the displacement depends only on the region widths, not on the position's location within the region. Writing the displacement as (direction, distance):
 
 - *Non-S domain and subspace-S exterior:* π(v) = v (the non-S clause of R-PPERM/R-SPERM on the non-S domain, the exterior clause on the subspace-S exterior), so the displacement is *fixed* (distance 0).
-- *3-cut.* On α, v = c₀ + j (0 ≤ j < w_α) maps to c₀ + w_β + j, so ord(π(v)) − ord(v) = w_β: *forward by w_β*. On β, v = c₁ + j (0 ≤ j < w_β) maps to c₀ + j, with ord(v) − ord(π(v)) = w_α: *backward by w_α*. In each case j cancels.
-- *4-cut.* On α, v = c₀ + j maps to c₀ + w_β + w_μ + j: *forward by w_β + w_μ*. On β, v = c₂ + j maps to c₀ + j, with ord(v) − ord(π(v)) = w_α + w_μ: *backward by w_α + w_μ*. On μ, v = c₁ + j maps to c₀ + w_β + j; comparing ord(π(v)) = ord(c₀) + w_β + j against ord(v) = ord(c₀) + w_α + j reduces to comparing w_β and w_α: *forward by w_β − w_α* when w_β > w_α, *backward by w_α − w_β* when w_β < w_α, and *fixed* when w_β = w_α. In every case j cancels.
+- *3-cut.* On α, v = c₀ + j (0 ≤ j < w_α) maps to c₀ + w_β + j, so ord(π(v)) − ord(v) = w_β: *forward by w_β*. On β, v = c₁ + j (0 ≤ j < w_β) maps to c₀ + j, with ord(v) − ord(π(v)) = w_α: *backward by w_α*.
+- *4-cut.* On α, v = c₀ + j maps to c₀ + w_β + w_μ + j: *forward by w_β + w_μ*. On β, v = c₂ + j maps to c₀ + j, with ord(v) − ord(π(v)) = w_α + w_μ: *backward by w_α + w_μ*. On μ, v = c₁ + j maps to c₀ + w_β + j; comparing ord(π(v)) = ord(c₀) + w_β + j against ord(v) = ord(c₀) + w_α + j reduces to comparing w_β and w_α: *forward by w_β − w_α* when w_β > w_α, *backward by w_α − w_β* when w_β < w_α, and *fixed* when w_β = w_α.
 
 
 ## Correspondence-Run Decomposition Transformation
@@ -842,4 +844,4 @@ Under what conditions can a rearrangement cause the number of correspondence run
 
 What constraints, if any, must cut points satisfy relative to the run boundaries of the canonical partition, or are arbitrary cut positions within the V-span always valid?
 
-What is the weakest precondition for REARRANGE_K to establish the post-state invariant suite Q, and in particular what does R-PRE(iv) guarantee beyond what D-SEQ already supplies — given that D-SEQ alone makes every region a well-defined cardinality and keeps source references within V_S(d)?
+What is the weakest precondition for REARRANGE_K to establish the post-state invariant suite Q?
