@@ -326,7 +326,7 @@ Cross-document disjointness for link allocations is supplied by the Cross-docume
 
 To make the substrate's operation concrete, we trace a small scenario step-by-step starting from `Σ₀ = (∅, ∅, ∅)`.
 
-*Arity convention.* The K.λ invocations below use the StandardTriple default for notational compactness. This is one admissible instance of K.λ's general signature `K.λ(d, ℓ, (e₁, …, eₙ))` with `N = 3`; the substrate admits arbitrary `N ≥ 3` per L3, and any higher-arity link value satisfying the precondition would be equally well-formed.
+*Arity convention.* The K.λ invocations below use StandardTriple `N = 3` instances; L3 admits arbitrary `N ≥ 3`.
 
 *Fix a document address.* Let `d = [1, 0, 2, 0, 5]` — `#d = 5`, with zeros at positions 2 and 4 so `zeros(d) = 2`, with positive first and last components (1 and 5) and no adjacent zeros, hence T4-valid. By T4b, its projections are `N(d) = [1]`, `U(d) = [2]`, `D(d) = [5]`. By SubspaceConventionAxiom, `s_C = 1` and `s_L = 2`.
 
@@ -506,8 +506,8 @@ L1c's strengthened clauses: `k₁ = 2` by construction (step 1 above); `n = 3 �
 | FirstEmission | FirstEmission | LEMMA (derived) | Premises: ChainDiscipline; ASN-0040 SiblingStream postcondition; TA5a; M0. |
 | ChainMembershipForOrigin | ChainMembershipForOrigin | LEMMA | Premises: FirstEmission; ChainDiscipline; ChainEnumerationInjectivity; C2/L1a; SequentialTransitionAxiom. (Contiguous-prefix form mirrors ASN-0040 B1.) |
 | StoreT4Validity | StoreT4Validity | LEMMA (derived) | Derived from ChainMembershipForOrigin + ChainElementT4Validity: every entry of `dom(C) ∪ dom(L)` inhabits a sub-allocator chain whose every element is T4-valid. |
-| FirstEmissionFreshness | FirstEmissionFreshness | LEMMA (derived) | Premises: first-emit predicate; L0; SC-NEQ; ChainPrefixExtension; ChainMembershipForOrigin; Cross-document disjointness; StoreT4Validity; ChainElementT4Validity; T7; T10. |
-| SubsequentEmissionFreshness | SubsequentEmissionFreshness | LEMMA (derived) | Premises: subsequent-emit predicate; ChainDiscipline; ChainMembershipForOrigin; ChainEnumerationInjectivity; Cross-document disjointness; L0; DisjointSubAllocatorChains; SC-NEQ; T7; T10. Single-site freshness for K.α/K.λ subsequent emissions. |
+| FirstEmissionFreshness | FirstEmissionFreshness | LEMMA (derived) | Premises: first-emit predicate; FirstEmission structural form; L0; L1; SC-NEQ; ChainPrefixExtension; ChainMembershipForOrigin; ChainUniformZeroCount; ChainElementT4Validity; StoreT4Validity; Cross-document disjointness; T7; T10. |
+| SubsequentEmissionFreshness | SubsequentEmissionFreshness | LEMMA (derived) | Premises: subsequent-emit predicate; ChainDiscipline; ChainPrefixExtension; ChainMembershipForOrigin; ChainEnumerationInjectivity; ChainUniformZeroCount; ChainElementT4Validity; StoreT4Validity; L0; L1; DisjointSubAllocatorChains; SC-NEQ; Cross-document disjointness; T7; T10. Single-site freshness for K.α/K.λ subsequent emissions. |
 | Cross-doc disjointness | Cross-document disjointness lemma | LEMMA | Premises: M0; T4 + Prefix (ASN-0034); T10 (PartitionIndependence); ASN-0040 B7 (NamespaceDisjointness, stream-level corollary). |
 | SubspaceConventionAxiom | FixedSubspaceIdentifiers | AXIOM | Substrate commitment: `s_C = 1 ∧ s_L = 2`; pinned by Nelson (LM 4/30–4/31) and Gregory (`xanadu.h:144–146`, `granf2.c:162`, `do2.c:94`). |
 | SequentialTransitionAxiom | SequentialAtomicTransitions | AXIOM | Substrate commitment: `Σ → Σ'` is atomic, uninterruptible, totally ordered. |
