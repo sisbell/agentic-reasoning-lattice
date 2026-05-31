@@ -264,8 +264,6 @@ The link subsequent emission is symmetric under the content↔link substitution.
 
 *Proof.* By M0, both `d₁, d₂` are T4-valid with `zeros = 2`, so (as established under *Sub-allocator chains are ASN-0040 sibling streams*) each anchor `p_i = b_·(d_i)` is T4-valid with `zeros = 3` and is a length-`+2` extension of `d_i` (positions `1..#d_i` reproduce `d_i`, position `#d_i + 1` is the separator `0`, position `#d_i + 2` is `s_·`). They are prefix-incomparable: when `d₁`, `d₂` are themselves prefix-incomparable, a document-level divergence position `k ≤ min(#d₁, #d₂)` lifts unchanged to the anchors; when one properly prefixes the other (WLOG `d₁ ≺ d₂`), the anchors diverge at the separator position `k = #d₁ + 1`, where `p₁[k] = 0` while `p₂[k] = d₂[k] ≠ 0` (by M0, `d₂` carries `d₁`'s two zeros at the shared positions and, having `zeros(d₂) = 2`, no further zero, so position `#d₁ + 1 ≤ #d₂` is nonzero). Either way `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (Prefix, ASN-0034), and T10 gives `a ≠ b` for any `a` extending `p₁`, `b` extending `p₂`. ∎
 
-Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by SD (StoreDisjointness, above).
-
 
 ## Substrate primitive operations
 
