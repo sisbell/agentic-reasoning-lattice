@@ -34,7 +34,7 @@ where
 - `L : T ⇀ Link` is the link store (per ASN-0043): a partial function from element-level tumblers to link values, each a sequence of `N ≥ 3` endsets `(e₁, e₂, …, eₙ) ∈ Endset^N`. `Link` and `Endset` are defined in ASN-0043; the StandardTriple convention (slot 1 = from, slot 2 = to, slot 3 = type, written `(F, G, Θ)` for the arity-3 default; ASN-0043) is preserved.
 - `M : T ⇀ (T ⇀ T)` is the arrangement function (per ASN-0036): a partial function whose domain `dom(M)` is the set of allocated document addresses, mapping each to its V-position-to-I-address arrangement
 
-`dom(M)` is the set of tumblers committed by `K.σ` events (defined below). A document is *allocated* iff `d ∈ dom(M)`; content addresses with `origin(a) = d` and link addresses with `origin(ℓ) = d` may be emitted only when `d ∈ dom(M)`. The `origin(·)` function is the tumbler-projection defined in ASN-0036 (truncation to the `zeros = 2` prefix). Throughout, the tumbler projections — `origin(·)` and T4b's field projection `E(·)` — are *state-independent*: each is computed from its address argument alone and reads no state component. Consequently, whenever a store is held in frame, every prior key's value under these projections (its `origin`, its `#E`) transfers unchanged; the frame rows below cite this without re-deriving it.
+`dom(M)` is the set of tumblers committed by `K.σ` events (defined below). A document is *allocated* iff `d ∈ dom(M)`; content addresses with `origin(a) = d` and link addresses with `origin(ℓ) = d` may be emitted only when `d ∈ dom(M)`. The `origin(·)` function is the tumbler-projection defined in ASN-0036 (truncation to the `zeros = 2` prefix). Throughout, the tumbler projections — `origin(·)` and T4b's field projection `E(·)` — are *state-independent*: each is computed from its address argument alone and reads no state component. Consequently, whenever a store is held in frame, every prior key's value under these projections (its `origin`, its `#E`) transfers unchanged.
 
 **Terminology.** "Document" in this substrate means "element of `dom(M)`" — a purely structural notion (a T4-valid tumbler with `zeros = 2` registered into the arrangement function's domain).
 
@@ -94,7 +94,7 @@ Every content address has its home document allocated — the content-side analo
 
   `|dom(C)| < ∞`
 
-The content store is finite at every reachable state — the content-side analog of L-fin. Discharged inductively from `Σ₀.C = ∅` and `K.α`'s singleton extension. C-fin is what makes the set `{a' ∈ dom(C) : origin(a') = d}` finite at every reachable state, in turn making the `max` invoked in `K.α`'s subsequent-emission precondition well-defined.
+The content store is finite at every reachable state — the content-side analog of L-fin. Discharged inductively from `Σ₀.C = ∅` and `K.α`'s singleton extension.
 
 
 ## Link store invariants
@@ -144,7 +144,7 @@ Once allocated, a link's address persists in `dom(L)` and its value is permanent
 
   `dom(C) ∩ dom(L) = ∅`
 
-Derived from L0 + SC-NEQ + T7 (SubspaceDisjointness, ASN-0034): every content address has `E(·)₁ = s_C`, every link address has `E(·)₁ = s_L`, and `s_C ≠ s_L`, so the domains are disjoint. (The discharge matrix records the StoreT4Validity dependency that supplies T7's T4-validity precondition.)
+Derived from L0 + SC-NEQ + T7 (SubspaceDisjointness, ASN-0034): every content address has `E(·)₁ = s_C`, every link address has `E(·)₁ = s_L`, and `s_C ≠ s_L`, so the domains are disjoint.
 
 **L-fin (LinkStoreFiniteness).**
 
@@ -210,7 +210,7 @@ This establishes the T4-validity of `[d.0.s_C.1]` (resp. `[d.0.s_L.1]`) and the 
 - `(A d ∈ dom(M) :: (E m_d ≥ 0 :: dom(C) ∩ {a' ∈ T : origin(a') = d} = {t_1, …, t_{m_d}}))` (content contiguous prefix; `{t_1, …, t_0} = ∅` by convention)
 - `(A d ∈ dom(M) :: (E n_d ≥ 0 :: dom(L) ∩ {ℓ' ∈ T : origin(ℓ') = d} = {s_1, …, s_{n_d}}))` (link contiguous prefix)
 
-The weaker subset inclusion `dom(C) ∩ {a' : origin(a') = d} ⊆ A_C(d)` (and its link analogue) is the immediate corollary of the contiguous-prefix form; downstream consumers cite either form as needed. The contiguity matches ASN-0040's B1 (ContiguousPrefix) for the baptismal registry: the content and link sub-allocator chains have the same "always-extend-by-one-from-the-current-frontier" discipline as Nelson's baptism.
+The weaker subset inclusion `dom(C) ∩ {a' : origin(a') = d} ⊆ A_C(d)` (and its link analogue) is the immediate corollary of the contiguous-prefix form. The contiguity matches ASN-0040's B1 (ContiguousPrefix) for the baptismal registry: the content and link sub-allocator chains have the same "always-extend-by-one-from-the-current-frontier" discipline as Nelson's baptism.
 
 *Proof.* Induction on transition sequences from `Σ₀`, taken in the atomic total order of SequentialTransitionAxiom (SequentialAtomicTransitions, above).
 
@@ -262,7 +262,7 @@ The chain-level corollary — `A_L(d₁) ∩ A_L(d₂) = ∅` and `A_C(d₁) ∩
 
 *Proof.* By M0, both `d₁, d₂` are T4-valid with `zeros = 2`, so (as established under *Sub-allocator chains are ASN-0040 sibling streams*) each anchor `p_i = b_·(d_i)` is T4-valid with `zeros = 3` and is a length-`+2` extension of `d_i` (positions `1..#d_i` reproduce `d_i`, position `#d_i + 1` is the separator `0`, position `#d_i + 2` is `s_·`). They are prefix-incomparable: when `d₁`, `d₂` are themselves prefix-incomparable, a document-level divergence position `k ≤ min(#d₁, #d₂)` lifts unchanged to the anchors; when one properly prefixes the other (WLOG `d₁ ≺ d₂`), the anchors diverge at the separator position `k = #d₁ + 1`, where `p₁[k] = 0` while `p₂[k] = d₂[k] ≠ 0` (by M0, `d₂` carries `d₁`'s two zeros at the shared positions and, having `zeros(d₂) = 2`, no further zero, so position `#d₁ + 1 ≤ #d₂` is nonzero). Either way `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (Prefix, ASN-0034), and T10 gives `a ≠ b` for any `a` extending `p₁`, `b` extending `p₂` — the strictly stronger any-extension claim. Chain-level disjointness of `A_·(d_i) = S(p_i, 1)` is ASN-0040's B7 (NamespaceDisjointness), not re-derived here. ∎
 
-Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by L14 (StoreDisjointness, above), itself derived from L0 + SC-NEQ + T7.
+Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by L14 (StoreDisjointness, above).
 
 
 ## Substrate primitive operations
@@ -493,7 +493,7 @@ L1c's strengthened clauses: `k₁ = 2` by construction (step 1 above); `n = 3 �
 | C2 | ContentScopedAllocation | INV | Substrate; content-side analog of L1a |
 | L0 | SubspacePartition | INV | ASN-0043 (L-clause); C-clause added here |
 | L1 | LinkElementLevel | INV | ASN-0043 |
-| L1a | LinkScopedAllocation | INV | ASN-0043 (refactored: `E_doc` → `dom(M)`) |
+| L1a | LinkScopedAllocation | INV | ASN-0043 |
 | L1b | LinkElementFieldDepth | INV | ASN-0043 |
 | L1c | LinkAllocatorConformance | INV | ASN-0043 (see *L1c chain exhibition*) |
 | L3 | NEndsetStructure | INV | ASN-0043 |
