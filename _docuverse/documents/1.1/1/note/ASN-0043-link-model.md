@@ -117,6 +117,8 @@ The first step seats the field-separating zero at position `#s + 1`, between the
 
 *Postcondition: `s = home(a)`.* Apply CPP to this chain with `t₀ = s` and `p = #s`. The sibling-advance length precondition holds: the opening step is the child-spawn `k₁ = 2`, which lifts length to `#s + 2` before any sibling advance, and lengths never decrease, so every sibling advance acts on an input of length `≥ #s + 2 > #s = p`. CPP then yields that `a` agrees with `s` on positions `1..#s`. The third zero of `a` first appears at position `#s + 1` — the one seated by `k₁ = 2` — and `s` ends at position `#s` with a positive component (T4-validity of `s`). The prefix of `a` ending just before the third zero is therefore exactly the length-`#s` prefix `s`, which by definition is `home(a)`. Hence `s = home(a)`.
 
+**DocVal — document T4-validity (consequence of S7d + T10a.4).** Every `d ∈ dom(Σ.M)` is T4-valid, with `zeros(d) = 2`. By S7d (DocumentAllocationDiscipline, ASN-0036) such a `d` is the terminus of a T10a-conforming allocator chain from the system tree 𝒯's root (T4-valid by T10a's root-of-allocator-tree axiom), and T10a.4 (T4PreservationUnderDiscipline, ASN-0034) propagates T4-validity along each chain step. This is a standing fact about every document in `dom(Σ.M)`, cited where a document tumbler's T4-validity is needed below.
+
 
 ## Home and Ownership
 
@@ -295,11 +297,7 @@ Type matching decouples classification from content retrieval: a search for type
 
 *Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X ∈ ℕ` with `s_X ≥ 1`, `s_X ≠ s_C`, and `s_X ≠ s_L` (such `s_X` exists by T0(a)'s unbounded positive component values: infinitely many naturals differ from the two fixed constants `s_C`, `s_L`).
 
-*Selection of `d'` (a T10a-allocated document under 𝒯).* L1a requires `home(a) ∈ dom(Σ'.M)`, and S7d requires every entry of `dom(Σ'.M)` to be a node in the system's allocator tree 𝒯 produced by a T10a allocation event. By the L9 precondition `dom(Σ.M) ≠ ∅`, pick any `d ∈ dom(Σ.M)` and set `d' = d`. We record the fact used at several sites below:
-
-**DocVal (document T4-validity).** Every `d ∈ dom(Σ.M)` is T4-valid: by S7d it is the terminus of a T10a-conforming allocator chain from 𝒯's root (T4-valid by T10a's root-of-allocator-tree axiom), and T10a.4 (T4PreservationUnderDiscipline) propagates T4-validity along each chain step.
-
-So `d` is T4-valid by DocVal. Reusing the existing arrangement keeps `Σ'.M = Σ.M`, so no new document allocation event is introduced. `d'` is therefore a T4-valid document-level tumbler (`zeros(d') = 2`, by S7d) with `d' ∈ dom(Σ.M) = dom(Σ'.M)`.
+*Selection of `d'` (a T10a-allocated document under 𝒯).* L1a requires `home(a) ∈ dom(Σ'.M)`, and S7d requires every entry of `dom(Σ'.M)` to be a node in the system's allocator tree 𝒯 produced by a T10a allocation event. By the L9 precondition `dom(Σ.M) ≠ ∅`, pick any `d ∈ dom(Σ.M)` and set `d' = d`. By DocVal, `d` is T4-valid. Reusing the existing arrangement keeps `Σ'.M = Σ.M`, so no new document allocation event is introduced. `d'` is therefore a T4-valid document-level tumbler (`zeros(d') = 2`, by S7d) with `d' ∈ dom(Σ.M) = dom(Σ'.M)`.
 
 *Construction of `g` (T4-valid ghost address in subspace `s_X`).* Build `g = d'.0.s_X.1` — concatenate `[0, s_X, 1]` to `d'`. T4-validity: `d'` is T4-valid with `zeros(d') = 2`; appending `0` introduces one new zero (so `zeros(g) = 3`); the last component of `d'` is strictly positive by T4-validity of `d'`, so the new `0` does not create adjacent zeros, and `s_X ≥ 1` separates the new `0` from the trailing `1`; the first component of `g` (inherited from `d'`) and the last (`1`) are strictly positive; every non-separator component is strictly positive (inherited components by T4-validity of `d'`; `s_X ≥ 1` by construction; `1 > 0` at the tail). T4b's projections therefore apply: `E(g) = [s_X, 1]`, giving `subspace_I(g) = s_X` and `#E(g) = 2`. By L0 applied to `Σ`, `dom(Σ.L) ⊆ {t : subspace_I(t) = s_L}`; by the L9 precondition (`s_C`-residence of content), `dom(Σ.C) ⊆ {t : subspace_I(t) = s_C}`. By the L0a discharge (with `zeros = 3` per side — `g` by construction, content by S7b, links by L1 — and `s_X` distinct from both `s_C` and `s_L`), `g ∉ dom(Σ.C) ∪ dom(Σ.L)`, regardless of the size of these domains.
 
@@ -352,7 +350,7 @@ We now establish the identity semantics of links. The three requirements we bega
 
 **L11a — LinkUniqueness.** Distinct T10a-conforming allocation events produce distinct link addresses. Formally, for any pair of allocation events producing link addresses `a₁` and `a₂` in the system, if the events are distinct then `a₁ ≠ a₂` as tumblers. This is GlobalUniqueness (ASN-0034) instantiated at link addresses. Its precondition is not merely per-event T10a-conformance but that the events are distinct allocation events *within a single system conforming to T10a*. We discharge this by exhibiting one global tree 𝒯 of which every link chain is a subtree.
 
-L1c (LinkAllocatorConformance) gives, for each `a ∈ dom(Σ.L)`, a T10a-conforming chain seeded at its document-level prefix `home(a) ∈ dom(Σ.M)`. By S7d (DocumentAllocationDiscipline, ASN-0036), every entry of `dom(Σ.M)` is a node of the system's single allocator tree 𝒯, the terminus of a T10a-conforming chain from 𝒯's root (T4-valid by DocVal, above). Each seed `home(a)` is therefore a node of 𝒯, so each link chain — seeded at that node and extending by T10a-conforming steps — is a subtree of 𝒯. Both `a₁` and `a₂` thus arise as distinct allocation events within the one tree 𝒯, discharging GlobalUniqueness's single-tree precondition even when the two links are homed in different documents.
+L1c (LinkAllocatorConformance) gives, for each `a ∈ dom(Σ.L)`, a T10a-conforming chain seeded at its document-level prefix `home(a) ∈ dom(Σ.M)`. By S7d (DocumentAllocationDiscipline, ASN-0036), every entry of `dom(Σ.M)` is a node of the system's single allocator tree 𝒯, the terminus of a T10a-conforming chain from 𝒯's root (T4-valid by DocVal). Each seed `home(a)` is therefore a node of 𝒯, so each link chain — seeded at that node and extending by T10a-conforming steps — is a subtree of 𝒯. Both `a₁` and `a₂` thus arise as distinct allocation events within the one tree 𝒯, discharging GlobalUniqueness's single-tree precondition even when the two links are homed in different documents.
 
 Within-state single-valuedness (an address names at most one link) is immediate from the partial-function typing `Σ.L : T ⇀ Link`; L11a is the cross-event strengthening.
 
@@ -455,7 +453,7 @@ This is discharged by S3 together with L0+L0a: S3 (ReferentialIntegrity, ASN-003
 
 ## Summary of the Link Model
 
-A link is an addressed, owned, typed, bidirectional connection between arbitrary spans of content in the tumbler space. The synthesizing observations the Properties Introduced table does not carry: the address *is* the link's identity, and home is determined by that address alone, independent of the endsets — so ownership is fixed by where a link lives, never by what it connects. Classification is likewise decoupled from content: the type endset is matched by address coverage, never by dereferencing the address, which is what makes types open-ended and ghost types admissible.
+A link is an addressed, owned, typed, bidirectional connection between arbitrary spans of content in the tumbler space. The address *is* the link's identity, and home is determined by that address alone, independent of the endsets — so ownership is fixed by where a link lives, never by what it connects. Classification is likewise decoupled from content: the type endset is matched by address coverage, never by dereferencing the address, which is what makes types open-ended and ghost types admissible.
 
 
 ## Worked Example
@@ -509,7 +507,7 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L4 (EndsetGenerality).* Each span is well-formed by T12: for `(c₁, δ(1, 8))`, `δ(1, 8) > 0` and the action point `k = 8 ≤ #c₁ = 8`. Similarly for the other spans. Start addresses are in `T`. ✓
 
-*L5 (EndsetSetSemantics) at `Σ` — singleton case.* Each endset at `Σ` is a singleton set, so set semantics hold trivially here. L5's substantive content — order-irrelevance and extensional equality across a `≥ 2`-span endset — has no singleton witness; it is exercised non-vacuously at Step 5 below. ✓
+*L5 (EndsetSetSemantics) at `Σ` — singleton case.* Each endset at `Σ` is a singleton set, so set semantics hold trivially here. L5's substantive content — order-irrelevance and extensional equality across a `≥ 2`-span endset — has no singleton witness. ✓
 
 *L6 (SlotDistinction).* `Σ.L(a) = (F, G, Θ)` is a 3-tuple of endsets, with positional accessors `Σ.L(a).e₁ = F`, `Σ.L(a).e₂ = G`, `Σ.L(a).e₃ = Θ` well-defined. Standard-triple consequence: since `F ≠ G`, `(F, G, Θ) ≠ (G, F, Θ)` by component-wise tuple inequality at slot 1. ✓
 
@@ -517,9 +515,9 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L11a (LinkUniqueness).* `a` was produced by forward allocation. With `|dom(Σ.L)| = 1`, no collision is possible. ✓
 
-*L11b (NonInjectivity).* The clause applies: `a ∈ dom(Σ.L)` satisfies the universal quantifier's precondition. The extension `Σ'` witnessing the existential is constructed in Step 1 below, where `a'` is allocated with `Σ_1.L(a') = Σ.L(a)`. ✓
+*L11b (NonInjectivity).* `a ∈ dom(Σ.L)` satisfies the universal quantifier's precondition; the single-link state `Σ` trivially admits the permission, with no distinct addresses to collide. ✓
 
-*L12, L12a (transition invariants).* These constrain state transitions, not individual states; they are discharged uniformly across the six `Σ_i → Σ_{i+1}` transitions in the extension below (each adds one fresh entry and fixes all prior entries).
+*L12, L12a (transition invariants).* These constrain state transitions, not individual states, so they impose no condition on `Σ` in isolation. ✓
 
 *L14 (DualPrimitive).* `dom(Σ.C) ∪ dom(Σ.L) = {c₁, c₂, a}`. All stored entities. `dom(Σ.C) ∩ dom(Σ.L) = ∅`. ✓
 
@@ -636,8 +634,6 @@ where `δ(2, 8) = [0, 0, 0, 0, 0, 0, 0, 2]` is the width-2 displacement at the t
 The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared boundary `g'` (and `g < g' < h` under T1), so their union is exactly `[g, h) = {t : g ≤ t < h}`: any `t` with `g ≤ t < h` satisfies either `t < g'` (first interval) or `g' ≤ t` (second), and no `t` outside `[g, h)` is captured. Hence `coverage(Θ_split) = coverage(Θ_single)`, even though `Θ_split ≠ Θ_single` as endsets — the single span `(g, δ(2, 8))` is not a member of `Θ_split`, and neither member of `Θ_split` equals `(g, δ(2, 8))` (different widths), so by L5 the two are distinct span collections. This instantiates the lossy-projection case flagged in the Coverage definition.
 
 *L8 (TypeByAddress) at `Σ_6` — coverage match across distinct decompositions.* `Σ_6.L(a₅).type = Θ_split` and `Σ_6.L(a₆).type = Θ_single`. By the defining biconditional, `same_type(a₅, a₆) ⟺ coverage(Σ_6.L(a₅).type) = coverage(Σ_6.L(a₆).type)`, and the right-hand side holds by the coverage equality just established. Therefore `same_type(a₅, a₆) = true` — the two links share a type despite holding *different span decompositions* in their type endsets, with no span-set equality between them. This is precisely the case that distinguishes L8's coverage criterion from a span-set-identity criterion: a span-set test would (wrongly) report these as different types, since `Θ_split ≠ Θ_single`. ✓
-
-Together, Steps 4 and 6 exercise L8 in both discriminating directions: disjoint coverage forces distinct types (`same_type(a, a₄) = false`), and identical coverage under distinct span decompositions forces a shared type (`same_type(a₅, a₆) = true`) — the latter confirming that L8 matches on coverage, not on span-set identity.
 
 
 ## Properties Introduced
