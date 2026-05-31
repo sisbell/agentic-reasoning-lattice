@@ -59,18 +59,6 @@ Recall from ASN-0034 (T4, HierarchicalParsing) that every element-level tumbler 
 
 The system designates at least two subspaces within each document's element field: one for content, one for links. Let `s_C` and `s_L` be the subspace identifiers for content and links respectively, with `s_C ≠ s_L`; `s_L` is the link subspace identifier introduced by this ASN.
 
-**L0 — SubspacePartition.** Every link address has subspace identifier `s_L`:
-
-`(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`
-
-The projection `subspace_I(a) = E(a)₁` is well-defined on `dom(Σ.L)` only on T4-valid addresses (Notational convention): `zeros(a) = 3` alone (L1) does not discharge T4b's domain condition, since a tumbler with three zeros but adjacent zeros or a zero boundary has no well-defined field parse. The licensing fact is **L0b** (LinkAddressValidity), itself a postcondition of the axiom **L1c** (LinkAllocatorConformance). Although L0b and L1c are stated below for expository reasons, they are logically prior to L0: every link address is T4-valid, so `E(a)₁` exists and `subspace_I(a)` is well-defined on all of `dom(Σ.L)`.
-
-**L0a — ContentSubspaceScope.** This ASN scopes its content-side disjointness guarantee to the `s_C`-resident portion of the content store. *Content-side T4-validity.* By ASN-0036's S7b, every `b ∈ dom(Σ.C)` has `zeros(b) = 3` and well-defined T4b projections; since T4b's definitional domain (UniqueParse, ASN-0034) is precisely the T4-valid subset of `T`, every `b ∈ dom(Σ.C)` is T4-valid. Define:
-
-`dom(Σ.C)|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}`
-
-— the slice of `dom(Σ.C)` whose addresses occupy subspace `s_C` (`subspace_I` is well-defined on these element-level addresses by the Notational convention's uniform definition). Call a state `Σ` *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` — every stored content address occupies subspace `s_C`.
-
 **L1 — LinkElementLevel.** Every link address is an element-level tumbler:
 
 `(A a ∈ dom(Σ.L) :: zeros(a) = 3)`
@@ -82,18 +70,6 @@ This parallels S7b for content (ASN-0036). A link address carries all four tumbl
 `home(a) = N(a).0.U(a).0.D(a)`
 
 extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034), well-defined precisely because `a` is T4-valid and element-level. This is the same field-extraction formula ASN-0036 uses to define `origin` on content addresses, applied here to link addresses.
-
-**L1a — LinkScopedAllocation.** Every link address is allocated under the tumbler prefix of the document whose owner created it. The home definition above is conditional on T4-validity — it supplies `home(a)` only "for any T4-valid element-level tumbler `a`," since the projections `N(a), U(a), D(a)` live in T4b's domain (UniqueParse, ASN-0034), the *fully* T4-valid subset of `T`. The fact that closes this on `dom(Σ.L)` is **L0b** (LinkAddressValidity) — every link address is T4-valid — derived from the axiom **L1c** (LinkAllocatorConformance); both are logically prior to L1a despite their later presentation. Citing L0b/L1c, `home(a)` is well-defined on every `a ∈ dom(Σ.L)`, and we state the invariant in terms of it directly:
-
-`(A a ∈ dom(Σ.L) :: home(a) ∈ dom(Σ.M))`
-
-The membership clause requires that `home(a)` be an allocated, owned document in the current state. Nelson is explicit on this point — a link's home document is "the document under which the link is filed," presupposing an actual document with an owner. This parallels S7a (DocumentScopedAllocation, ASN-0036) for content. Gregory confirms: `docreatelink` allocates the link address within the creating document's address space via `findisatoinsertmolecule`, which extends the document's I-stream. The allocation prefix is determined by the document parameter — a document that must already exist for `docreatelink` to be called.
-
-**L1b — LinkElementFieldDepth.** Every link address has element field depth at least 2:
-
-`(A a ∈ dom(Σ.L) :: #E(a) ≥ 2)`
-
-This mirrors S8a's `#t ≥ 2` for V-positions (ASN-0036). A link address must carry two distinct element-field components: a *subspace identifier* — the first component `E(a)₁ = s_L`, fixed by L0 — and a *within-subspace ordinal* that follows it. The subspace identifier alone cannot address a link, since L0 assigns the same `s_L` to every link in a document; distinguishing siblings (L11a, LinkUniqueness) requires a further ordinal component, so the element field needs at least these two. Gregory confirms: under the `LINKATOM` hint, `findisatoinsertmolecule` allocates the element portion as a fixed subspace digit (`2`, the link subspace) followed by a separately-incremented ordinal digit — the link element field carries exactly these two components, never one.
 
 **L1c — LinkAllocatorConformance.** Every link address is a T10a-conforming allocator output (AllocatorDiscipline, ASN-0034) — the T4-valid terminus of an allocation chain seeded at its document-level prefix.
 
@@ -115,7 +91,31 @@ The first step seats the field-separating zero at position `#s + 1`, between the
 
 `(A a ∈ dom(Σ.L) :: T4-valid(a))`
 
-This is the T4-validity postcondition established by L1c's chain.
+This is the T4-validity postcondition established by L1c's chain. It is the licensing fact for the projections `subspace_I` and `home`: with every link address T4-valid and element-level (L1, `zeros(a) = 3`), T4b's `E`, `N`, `U`, `D` projections (UniqueParse, ASN-0034) are well-defined on all of `dom(Σ.L)`, so `subspace_I(a) = E(a)₁` and `home(a)` exist for every `a ∈ dom(Σ.L)`.
+
+**L0 — SubspacePartition.** Every link address has subspace identifier `s_L`:
+
+`(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`
+
+The projection `subspace_I(a) = E(a)₁` is well-defined on every `a ∈ dom(Σ.L)` by L0b: T4-validity discharges T4b's domain condition (UniqueParse, ASN-0034), which `zeros(a) = 3` alone (L1) does not, since a tumbler with three zeros but adjacent zeros or a zero boundary has no well-defined field parse.
+
+**L0a — ContentSubspaceScope.** This ASN scopes its content-side disjointness guarantee to the `s_C`-resident portion of the content store. *Content-side T4-validity.* By ASN-0036's S7b, every `b ∈ dom(Σ.C)` has `zeros(b) = 3` and well-defined T4b projections; since T4b's definitional domain (UniqueParse, ASN-0034) is precisely the T4-valid subset of `T`, every `b ∈ dom(Σ.C)` is T4-valid. Define:
+
+`dom(Σ.C)|_{s_C} = {a ∈ dom(Σ.C) : subspace_I(a) = s_C}`
+
+— the slice of `dom(Σ.C)` whose addresses occupy subspace `s_C` (`subspace_I` is well-defined on these element-level addresses by the Notational convention's uniform definition). Call a state `Σ` *`s_C`-resident* iff `(A b ∈ dom(Σ.C) :: subspace_I(b) = s_C)` — every stored content address occupies subspace `s_C`.
+
+**L1a — LinkScopedAllocation.** Every link address is allocated under the tumbler prefix of the document whose owner created it. By L0b, `home(a)` is well-defined on every `a ∈ dom(Σ.L)` (the projections `N(a), U(a), D(a)` live in T4b's domain, the T4-valid subset of `T`), so we state the invariant in terms of it directly:
+
+`(A a ∈ dom(Σ.L) :: home(a) ∈ dom(Σ.M))`
+
+The membership clause requires that `home(a)` be an allocated, owned document in the current state. Nelson is explicit on this point — a link's home document is "the document under which the link is filed," presupposing an actual document with an owner. This parallels S7a (DocumentScopedAllocation, ASN-0036) for content. Gregory confirms: `docreatelink` allocates the link address within the creating document's address space via `findisatoinsertmolecule`, which extends the document's I-stream. The allocation prefix is determined by the document parameter — a document that must already exist for `docreatelink` to be called.
+
+**L1b — LinkElementFieldDepth.** Every link address has element field depth at least 2:
+
+`(A a ∈ dom(Σ.L) :: #E(a) ≥ 2)`
+
+This mirrors S8a's `#t ≥ 2` for V-positions (ASN-0036). A link address must carry two distinct element-field components: a *subspace identifier* — the first component `E(a)₁ = s_L`, fixed by L0 — and a *within-subspace ordinal* that follows it. The subspace identifier alone cannot address a link, since L0 assigns the same `s_L` to every link in a document; distinguishing siblings (L11a, LinkUniqueness) requires a further ordinal component, so the element field needs at least these two. Gregory confirms: under the `LINKATOM` hint, `findisatoinsertmolecule` allocates the element portion as a fixed subspace digit (`2`, the link subspace) followed by a separately-incremented ordinal digit — the link element field carries exactly these two components, never one.
 
 *The subspace-disjointness discharge.* By L1, `zeros(a) = 3` for all `a ∈ dom(Σ.L)`; by S7b (ElementLevelIAddresses, ASN-0036), `zeros(b) = 3` for all `b ∈ dom(Σ.C)` (and a fortiori for `b ∈ dom(Σ.C)|_{s_C}`). T7's precondition requires both T4-validity and equal zero counts. T4-validity is discharged on each side: for `a ∈ dom(Σ.L)`, by L0b; for `b ∈ dom(Σ.C)`, by the content-side T4-validity established in L0a. With T4-validity discharged and `zeros(a) = zeros(b) = 3` on each side, T7 applies pairwise: for every `a ∈ dom(Σ.L)` and every `b ∈ dom(Σ.C)|_{s_C}`, L0 gives `subspace_I(a) = s_L` and the `s_C`-residence restriction gives `subspace_I(b) = s_C`; together with `s_L ≠ s_C` this yields `subspace_I(a) ≠ subspace_I(b)`, so T7's postcondition gives `a ≠ b`. Universally instantiating over the product `dom(Σ.L) × dom(Σ.C)|_{s_C}` lifts this pairwise distinctness to the scoped set disjointness:
 
