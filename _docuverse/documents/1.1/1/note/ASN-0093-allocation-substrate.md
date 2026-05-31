@@ -175,7 +175,7 @@ These anchors are *structurally producible* by T10a `inc` steps from `d`: `b_C(d
 
   `A_C(d) = S(b_C(d), 1)`  and  `A_L(d) = S(b_L(d), 1)`,
 
-since each chain's first emission is `inc(anchor, 1)` — `t_1^C(d) = inc(b_C(d), 1) = [d.0.s_C.1]`, `t_1^L(d) = inc(b_L(d), 1) = [d.0.s_L.1]` — and successive elements advance by `inc(·, 0)`, coinciding by construction with the SiblingStream recurrence at `p = b_·(d)`, `k = 1`. The depth parameter is `1` in both cases, so the streams append no interior zero. In particular, each chain's closure under `inc(·, 0)` — used downstream to place a freshly emitted sibling `inc(a_prev, 0)` (resp. `inc(ℓ_prev, 0)`) onto the chain — is exactly the SiblingStream recurrence. We refer to this derived identity as **ChainDiscipline**.
+since each chain's first emission is `inc(anchor, 1)` and successive elements advance by `inc(·, 0)`, coinciding by construction with the SiblingStream recurrence at `p = b_·(d)`, `k = 1`. The depth parameter is `1` in both cases, so the streams append no interior zero; each chain is thereby closed under `inc(·, 0)`, exactly the SiblingStream recurrence. We refer to this derived identity as **ChainDiscipline**.
 
 Both anchors satisfy ASN-0040's `B6` (ValidDepth) at depth `1`: `b_C(d)` and `b_L(d)` are T4-valid with `zeros = 3` (one separator inserted at position `#d + 1` under M0's T4-valid, `zeros = 2` document `d`), depth `1 ∈ {1, 2}`, and `zeros(b_·(d)) + (1 − 1) = 3 ≤ 3`. Consequently every ASN-0040 result whose precondition is `B6(p, d)` — `B6(a)`'s stream-T4-validity conclusion, the `SiblingStream` postconditions, `S0` (StreamOrdering), `S1` (StreamPrefix), `B5a` (SiblingZerosPreservation), `B7` (NamespaceDisjointness), `B1` (ContiguousPrefix), and `B9` (UnboundedExtent) — applies to `A_C(d)` and `A_L(d)` directly. ASN-0040's `SiblingStream` is infinite, defined for every `n ≥ 1`, so a chain element exists at every index for the emission rule's pinning step to land on.
 
@@ -183,7 +183,15 @@ Both anchors satisfy ASN-0040's `B6` (ValidDepth) at depth `1`: `b_C(d)` and `b_
   - *Content chain first-emit:* `t_1^C(d) = inc(b_C(d), 1) = [d.0.s_C.1]` — `E(·)₁ = s_C`, `origin(·) = d`, `#E(·) = 2`, `zeros(·) = 3`, and T4-valid.
   - *Link chain first-emit:* `t_1^L(d) = inc(b_L(d), 1) = [d.0.s_L.1]` — structurally analogous, with `s_L` in place of `s_C`.
 
-*Proof.* By ChainDiscipline, `A_C(d) = S(b_C(d), 1)` with first element `c₁ = inc(b_C(d), 1)`. ASN-0040's SiblingStream postcondition `cₙ = [p₁, …, p_{#p}, 0…0, n]` (with `d − 1 = 0` interior zeros at depth `1`) gives `c₁ = [b_C(d)₁, …, b_C(d)_{#b_C(d)}, 1]`; since `b_C(d) = [d.0.s_C]`, this is `[d.0.s_C.1]`, whence `E(·)₁ = s_C`, `#E(·) = 2`, `origin(·) = d`, and `zeros(·) = 3`. T4-validity is TA5a's `k = 1` case, whose side condition `zeros(b_C(d)) ≤ 3` is discharged by `b_C(d)`'s T4-validity (T4 forces `zeros ≤ 3`) — here `b_C(d) = inc(d, 2)` is T4-valid by TA5a's `k = 2` case, whose side condition `zeros(d) ≤ 2` is discharged by M0's `zeros(d) = 2` (verified under *Sub-allocator chains are ASN-0040 sibling streams* above). The link case is symmetric, with `b_L(d) = inc(b_C(d), 0)` T4-valid by TA5a's unconditionally-preserving `k = 0` case. ∎
+*Proof.* By ChainDiscipline, `A_C(d) = S(b_C(d), 1)` with first element `c₁ = inc(b_C(d), 1)`. ASN-0040's SiblingStream postcondition `cₙ = [p₁, …, p_{#p}, 0…0, n]` (with `d − 1 = 0` interior zeros at depth `1`) gives `c₁ = [b_C(d)₁, …, b_C(d)_{#b_C(d)}, 1]`; since `b_C(d) = [d.0.s_C]`, this is `[d.0.s_C.1]`, whence `E(·)₁ = s_C`, `#E(·) = 2`, `origin(·) = d`, and `zeros(·) = 3`. The link case is symmetric.
+
+*Anchor-construction admissibility (cited downstream).* The increment steps that build the anchors and first emissions from a T4-valid, `zeros = 2` document `d` are each TA5a-admissible, T4-validity propagating along the chain:
+
+- `b_C(d) = inc(d, 2)`: TA5a's `k = 2` case, side condition `zeros(d) ≤ 2` discharged by M0's `zeros(d) = 2`. Hence `b_C(d)` is T4-valid with `zeros = 3`.
+- `b_L(d) = inc(b_C(d), 0)`: TA5a's unconditionally-preserving `k = 0` case, so `b_L(d)` is T4-valid given `b_C(d)` T4-valid.
+- `inc(b_·(d), 1)` (the first emission): TA5a's `k = 1` case, side condition `zeros(b_·(d)) ≤ 3` discharged by the anchor's T4-validity (T4 forces `zeros ≤ 3`).
+
+This establishes the T4-validity of `[d.0.s_C.1]` (resp. `[d.0.s_L.1]`) and supplies the per-step admissibility that the C1c and L1c chain exhibitions cite. ∎
 
 **Per-chain disciplines (ASN-0040 citations).** Each discipline below is named for the substrate's local reference and discharged by the cited ASN-0040 result applied to the sibling stream `A_C(d) = S(b_C(d), 1)` (resp. `A_L(d) = S(b_L(d), 1)`), whose parent `(b_·(d), 1)` is `B6`-valid (verified above).
 
@@ -241,8 +249,6 @@ This corollary discharges the T4-validity precondition of T7 (FirstElementFieldD
   - *Content first-emit:* Under the K.α first-emit predicate `{a' ∈ dom(C) : origin(a') = d} = ∅`, the first emission `a = [d.0.s_C.1]` of `A_C(d)` satisfies `a ∉ dom(C) ∪ dom(L)` at the K.α event that commits `a`.
   - *Link first-emit:* Under the K.λ first-emit predicate `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`, the first emission `ℓ = [d.0.s_L.1]` of `A_L(d)` satisfies `ℓ ∉ dom(L) ∪ dom(C)` at the K.λ event that commits `ℓ`.
 
-The proof below derives freshness from L0, SC-NEQ, ChainPrefixExtension, ChainMembershipForOrigin, Cross-document disjointness, StoreT4Validity, ChainElementT4Validity, and T7, all consumed at the pre-state `Σ`. ChainMembershipForOrigin, StoreT4Validity, and Cross-document disjointness are established under the same simultaneous-induction discipline.
-
 *Proof.*
 
 *Content case, against `dom(C)`.* Under the first-emit predicate at the pre-state `Σ`, every `a' ∈ dom(C)` has `origin(a') ≠ d`. (i) `a = [d.0.s_C.1]` is the first emission of `A_C(d)`, so by ChainPrefixExtension (base case), `b_C(d) ≼ a`. (ii) For every `a' ∈ dom(C)` with `origin(a') ≠ d`: ChainMembershipForOrigin at `Σ` places `a' ∈ A_C(origin(a'))` (well-defined since `origin(a') ∈ dom(M)` by C2), and ChainPrefixExtension gives `b_C(origin(a')) ≼ a'`. (iii) Cross-document disjointness applied to `(d, origin(a'))` gives `b_C(d) ⋠ b_C(origin(a')) ∧ b_C(origin(a')) ⋠ b_C(d)`. (iv) T10 (PartitionIndependence, ASN-0034) closes: `a ≠ a'`.
@@ -272,7 +278,7 @@ Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by L14 (St
 
 The substrate admits three primitive transitions, one per state component. Each is atomic — its precondition is evaluated against `Σ` and its effect committed to `Σ'` in a single indivisible step; no intermediate state with the transition partially applied is admitted.
 
-*Parameter semantics.* For `K.α(d, a, v)` and `K.λ(d, ℓ, (e₁, …, eₙ))`, the address parameters `a` and `ℓ` appear in the operation signatures but their values are not free choices of the caller: the preconditions deterministically pin them from `(d, Σ)`. Specifically, the first-emit predicate forces `a = [d.0.s_C.1]` (resp. `ℓ = [d.0.s_L.1]`); the subsequent-emit predicate forces `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` (resp. `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)`). The pinning is total: `(d, Σ)` determines the conforming address uniquely.
+*Parameter semantics.* For `K.α(d, a, v)` and `K.λ(d, ℓ, (e₁, …, eₙ))`, the address parameters `a` and `ℓ` appear in the operation signatures but are not free choices of the caller: `(d, Σ)` determines them uniquely via the binding preconditions below.
 
 ### K.σ (DocumentRegistration)
 
@@ -289,8 +295,6 @@ Extends `dom(M)` by registering a new document address with an empty arrangement
 *Freshness from `zeros`.* K.σ needs no explicit `d ∉ dom(C) ∪ dom(L)` clause and no anchor-disjointness clause, because both follow from a single `zeros` gap. C1 forces `zeros(a) = 3` for every `a ∈ dom(C)`, L1 forces `zeros(ℓ) = 3` for every `ℓ ∈ dom(L)`, and every sub-allocator anchor `b_C(d') = [d'.0.s_C]`, `b_L(d') = [d'.0.s_L]` likewise has `zeros = 3` (inheriting each of `d'`'s two zeros plus the separator inserted at position `#d' + 1`). K.σ's precondition pins `zeros(d) = 2`. Since no address can simultaneously satisfy `zeros = 2` and `zeros = 3`, `d` collides with neither store entry nor anchor: `d ∉ dom(C) ∪ dom(L)` and `d ≠ b_C(d'), b_L(d')` for every `d' ∈ dom(M)` are both forced by the precondition list together with C1/L1.
 
 K.σ opens the content and link sub-allocator frontiers `A_C(d)` and `A_L(d)` under `d` — available once `d ∈ dom(M)` (see *Active sub-allocator chains* above) — for subsequent K.α and K.λ emissions.
-
-*K.σ admissibility scope.* K.σ's precondition is structural-only: it makes no commitment about *which* document addresses are admissible beyond T4-validity and `zeros(d) = 2`.
 
 ### K.α (ContentAllocation)
 
@@ -425,7 +429,7 @@ The example exercises both the first-emit and subsequent-emit branches of K.α a
 
 **Simultaneous-induction framing.** The properties this note establishes decompose into two groups by their quantification structure:
 
-- *Chain-indexed properties (state-independent, once chains are fixed).* ChainElementT4Validity, ChainUniformLength, ChainEnumerationInjectivity, ChainUniformZeroCount, DisjointSubAllocatorChains, and ChainPrefixExtension all quantify over the sub-allocator chains supplied by ChainDiscipline; their conclusions are determined per-chain. Each is a direct ASN-0040 citation (B6(a), the SiblingStream postconditions, S0, B5a, S1, B7) applied to the sibling stream `S(b_·(d), 1)`, as recorded in the *Address sub-allocators under documents* section. No induction over substrate-level transitions is required.
+- *Chain-indexed properties (state-independent, once chains are fixed).* ChainElementT4Validity, ChainUniformLength, ChainEnumerationInjectivity, ChainUniformZeroCount, DisjointSubAllocatorChains, and ChainPrefixExtension all quantify over the sub-allocator chains supplied by ChainDiscipline; their conclusions are determined per-chain. Their once-and-for-all status as ASN-0040 citations requiring no per-transition discharge is recorded after the discharge matrix below.
 - *Transition-indexed properties (state-dependent).* The stated invariants (M0, M1, C0, C1, C1b, C1c, C2, C-fin, L0, L1, L1a, L1b, L1c, L3, L12, L14, L-fin) together with the ChainMembershipForOrigin lemma, the StoreT4Validity corollary, and the FirstEmissionFreshness lemma are proved by *simultaneous induction* over transition sequences from `Σ₀`. The inductive hypothesis at each step is the *conjunction* of every transition-indexed property at the current state `Σ`; the inductive step exhibits each holding at `Σ'` using the conjoined IH. The per-transition discharges are recorded in the discharge matrix below and in the ChainMembershipForOrigin proof above.
 
 Each transition-indexed invariant is discharged by induction on transition sequences from `Σ₀`. The inductive step is recorded as a per-(invariant, transition) matrix; entries describe how each transition kind preserves or discharges each invariant.
@@ -478,10 +482,7 @@ The chain-indexed disciplines (ChainElementT4Validity, ChainUniformLength, Chain
 
   `(t₀, t₁, t₂)` where `t₀ = d`, `t₁ = inc(d, 2) = b_C(d)`, `t₂ = inc(b_C(d), 1) = [d.0.s_C.1] = a`
 
-Per-step admissibility:
-
-- `t₁ = inc(d, 2)`: TA5a (IncrementPreservesT4, ASN-0034) at `k = 2` requires `zeros(d) ≤ 2`; by M0, `zeros(d) = 2`, satisfied — hence `t₁` is T4-valid. TA5(d) at `k = 2` gives the structural form: `zeros(t₁) = 2 + (2 − 1) = 3` and `#t₁ = #d + 2`. The value at position `#d + 2` is `1 = s_C` (per SubspaceConventionAxiom), establishing `E(t₁)₁ = s_C` and `#E(t₁) = 1`.
-- `t₂ = inc(b_C(d), 1)`: TA5a at `k = 1` requires `zeros(t₁) ≤ 3`, discharged by `t₁`'s T4-validity (T4 forces `zeros ≤ 3`), so `t₂` is T4-valid given `t₁` T4-valid. TA5(d) at `k = 1` gives the structural form: the new component appended at position `#b_C(d) + 1` is `1`, so `zeros(t₂) = 3 + 0 = 3` (k = 1 introduces no new zero), with `#E(t₂) = 2` and `E(t₂)₁ = s_C` inherited from `t₁` per TA5(b).
+Per-step admissibility of both steps `t₁ = inc(d, 2)` and `t₂ = inc(b_C(d), 1)` is the *anchor-construction admissibility* established in the FirstEmission lemma. The structural forms follow: TA5(d) at `k = 2` gives `zeros(t₁) = 3`, `#t₁ = #d + 2`, with position `#d + 2` holding `s_C` (so `E(t₁)₁ = s_C`, `#E(t₁) = 1`); TA5(d) at `k = 1` gives `zeros(t₂) = 3`, `#E(t₂) = 2`, `E(t₂)₁ = s_C` (inherited per TA5(b)).
 
 C1c's strengthened clauses: `k₁ = 2` by construction (step 1 above); `n = 2 ≥ 1` ✓; `#t₁ = #d + 2 > #d` and `#t₂ = #d + 3 > #d`, so `(A i : 1 ≤ i ≤ 2 : #tᵢ > #origin(a))` holds.
 
@@ -493,11 +494,7 @@ C1c's strengthened clauses: `k₁ = 2` by construction (step 1 above); `n = 2 �
 
   `(t₀, t₁, t₂, t₃)` where `t₀ = d`, `t₁ = inc(d, 2) = b_C(d)`, `t₂ = inc(b_C(d), 0) = b_L(d)`, `t₃ = inc(b_L(d), 1) = [d.0.s_L.1] = ℓ`
 
-Per-step admissibility:
-
-- `t₁ = inc(d, 2)`: TA5a (IncrementPreservesT4, ASN-0034) at `k = 2` requires `zeros(d) ≤ 2`; by M0, `zeros(d) = 2`, satisfied — hence `t₁` is T4-valid. TA5(d) at `k = 2` gives the structural form: `zeros(t₁) = 2 + (2 − 1) = 3`.
-- `t₂ = inc(b_C(d), 0)`: TA5a at `k = 0` is unconditionally T4-preserving (no side condition), so `t₂` is T4-valid given `b_C(d)` T4-valid. TA5(c) at `k = 0` gives the structural form: length is preserved and the sibling component is advanced from `s_C` to `s_L`. By SubspaceConventionAxiom, `s_C = 1` and `s_L = 2`, so `inc([d.0.1], 0) = [d.0.2] = b_L(d)`. This step's correctness depends substantively on `s_L = s_C + 1`; the SubspaceConventionAxiom underwrites it.
-- `t₃ = inc(b_L(d), 1)`: TA5a at `k = 1` requires `zeros(b_L(d)) ≤ 3`, discharged by `b_L(d)`'s T4-validity (T4 forces `zeros ≤ 3`), so `t₃` is T4-valid given `b_L(d)` T4-valid. TA5(d) at `k = 1` gives the structural form: `zeros(t₃) = 3 + 0 = 3` (k = 1 introduces no new zero), with `#E(t₃) = 2`.
+Per-step admissibility of all three steps `t₁ = inc(d, 2)`, `t₂ = inc(b_C(d), 0)`, and `t₃ = inc(b_L(d), 1)` is the *anchor-construction admissibility* established in the FirstEmission lemma (the link chain instantiates the full anchor construction `d → b_C(d) → b_L(d)` plus the `k = 1` first emission). Chain-specific to L1c is the middle `inc(b_C(d), 0) = b_L(d)` step: TA5(c) at `k = 0` preserves length and advances the sibling component from `s_C` to `s_L`, which depends substantively on `s_L = s_C + 1` (`inc([d.0.1], 0) = [d.0.2] = b_L(d)`), underwritten by SubspaceConventionAxiom. The structural forms follow: TA5(d) at `k = 2` gives `zeros(t₁) = 3`; TA5(d) at `k = 1` gives `zeros(t₃) = 3`, `#E(t₃) = 2`.
 
 L1c's strengthened clauses: `k₁ = 2` by construction (step 1 above); `n = 3 ≥ 1` ✓; `#t₁ = #d + 2 > #d`, `#t₂ = #d + 2 > #d`, `#t₃ = #d + 3 > #d`, so `(A i : 1 ≤ i ≤ 3 : #tᵢ > #origin(ℓ))` holds.
 
@@ -527,18 +524,18 @@ Note that the C1c first-emit chain has *two* inc steps (`d → b_C(d) → a`) wh
 | L14 | StoreDisjointness | INV (derived) | L0 + SC-NEQ + StoreT4Validity + T7 |
 | L-fin | LinkStoreFiniteness | INV (derived) | Inductively from `Σ₀.L = ∅` + K.λ |
 | C-fin | ContentStoreFiniteness | INV (derived) | Inductively from `Σ₀.C = ∅` + K.α |
-| ChainDiscipline | ContentLinkSubAllocatorChainDiscipline | LEMMA (derived) | The content/link sub-allocator chains are the ASN-0040 sibling streams `A_C(d) = S(b_C(d), 1)`, `A_L(d) = S(b_L(d), 1)` (SiblingStream, ASN-0040): `c₁ = inc(anchor, 1)` (first emission), `cₙ₊₁ = inc(cₙ, 0)`, coinciding by construction with the K.α/K.λ emission rules. Each parent `(b_·(d), 1)` is `B6`-valid (T4-valid anchor, `zeros = 3`, depth `1`, `zeros + (1−1) = 3 ≤ 3`), so all `B6`-preconditioned ASN-0040 results apply. |
-| FirstEmission | FirstEmission | LEMMA (derived) | The first emission of `A_C(d)` (resp. `A_L(d)`) is `[d.0.s_C.1]` (resp. `[d.0.s_L.1]`), T4-valid. Discharged by ChainDiscipline + ASN-0040's SiblingStream postcondition `cₙ = [p₁,…,p_{#p},0…0,n]` + TA5a (`k = 1` preserves T4 on a T4-valid input). |
+| ChainDiscipline | ContentLinkSubAllocatorChainDiscipline | LEMMA (derived) | Premises: ASN-0040 SiblingStream; B6-validity of each parent `(b_·(d), 1)`; the K.α/K.λ emission rules. |
+| FirstEmission | FirstEmission | LEMMA (derived) | Premises: ChainDiscipline; ASN-0040 SiblingStream postcondition; TA5a; M0. |
 | ChainElementT4Validity | ChainElementT4Validity | CITATION | Every element of `A_C(d)` (resp. `A_L(d)`) is T4-valid. Cites ASN-0040 B6(a) (ValidDepth sufficiency) at `B6(b_·(d), 1)`. |
 | ChainUniformLength | ChainUniformLength | CITATION | All elements of `A_C(d)` (resp. `A_L(d)`) have length `#d + 3`. Cites ASN-0040's SiblingStream postcondition `#cₙ = #p + d` at `p = b_·(d)`, depth `1`. |
 | ChainEnumerationInjectivity | ChainEnumerationInjectivity | CITATION | The enumeration of `A_C(d)` (resp. `A_L(d)`) is strictly increasing under T1; hence injective and (by T1 trichotomy) order-preserving in both directions. Cites ASN-0040 S0 (StreamOrdering). |
 | ChainUniformZeroCount | ChainUniformZeroCount | CITATION | Every element of `A_C(d)` (resp. `A_L(d)`) has `zeros = 3`. Cites ASN-0040's SiblingStream postcondition (`d − 1 = 0` interior zeros at depth `1`) / B5a (SiblingZerosPreservation). |
 | DisjointSubAllocatorChains | DisjointSubAllocatorChains | CITATION | `A_C(d) ∩ A_L(d) = ∅`, with addresses of `A_C(d)` (resp. `A_L(d)`) carrying `E(·)₁ = s_C` (resp. `s_L`). Cites ASN-0040 B7 (NamespaceDisjointness) at the distinct `B6`-valid parents `(b_C(d), 1)`, `(b_L(d), 1)` (anchors disagree at position `#d + 2`, `s_C` vs `s_L`, by SC-NEQ). |
 | ChainPrefixExtension | ChainPrefixExtension | CITATION | Every chain element extends its anchor under Prefix: `b_C(d) ≼ t` for `t ∈ A_C(d)`, `b_L(d) ≼ t` for `t ∈ A_L(d)`. Cites ASN-0040 S1 (StreamPrefix) at `p = b_·(d)`; the abstract-stream quantifier covers chain elements not yet committed. |
-| ChainMembershipForOrigin | ChainMembershipForOrigin | LEMMA | Inductive invariant in *contiguous-prefix form* at every reachable state: `dom(C) ∩ {a' : origin(a') = d} = {t₁, …, t_{m_d}}` is a contiguous initial segment of `A_C(d)` (mirror for `L`). The subset inclusion `dom(C) ∩ {a' : origin(a') = d} ⊆ A_C(d)` is the weaker corollary. Proved by induction over transitions using the FirstEmission lemma (first-emit branches placing `t₁`) and ChainDiscipline + ChainEnumerationInjectivity (subsequent-emit branches placing `t_{m_d + 1} = inc(t_{m_d}, 0)`). Licenses application of ChainEnumerationInjectivity to `(a_prev, a)` and `(ℓ_prev, ℓ)` in K.α/K.λ subsequent-emit cases; the contiguous-prefix form matches ASN-0040's B1 (ContiguousPrefix). |
+| ChainMembershipForOrigin | ChainMembershipForOrigin | LEMMA | Premises: FirstEmission; ChainDiscipline; ChainEnumerationInjectivity; C2/L1a; SequentialTransitionAxiom. (Contiguous-prefix form mirrors ASN-0040 B1.) |
 | StoreT4Validity | StoreT4Validity | LEMMA (derived) | Derived from ChainMembershipForOrigin + ChainElementT4Validity: every entry of `dom(C) ∪ dom(L)` inhabits a sub-allocator chain whose every element is T4-valid. |
-| FirstEmissionFreshness | FirstEmissionFreshness | LEMMA (derived) | Derived from the first-emit predicate + L0 + ChainPrefixExtension + ChainMembershipForOrigin + StoreT4Validity + Cross-document disjointness + SC-NEQ + T7 + ChainElementT4Validity. At every K.α (resp. K.λ) event firing the first-emit predicate, the first emission `[d.0.s_C.1]` (resp. `[d.0.s_L.1]`) is fresh against `dom(C) ∪ dom(L)`. |
-| Cross-doc disjointness | Cross-document disjointness lemma | LEMMA | For distinct `d₁, d₂ ∈ dom(M)`, the anchors are prefix-incomparable `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (M0 + T4 + Prefix, ASN-0034), so T10 (PartitionIndependence) gives extension-disjointness `a ≠ b` for `p₁ ≼ a`, `p₂ ≼ b`; the stream-level corollary `A_·(d₁) ∩ A_·(d₂) = ∅` is ASN-0040 B7 (NamespaceDisjointness). |
+| FirstEmissionFreshness | FirstEmissionFreshness | LEMMA (derived) | Premises: first-emit predicate; L0; SC-NEQ; ChainPrefixExtension; ChainMembershipForOrigin; Cross-document disjointness; StoreT4Validity; ChainElementT4Validity; T7; T10. |
+| Cross-doc disjointness | Cross-document disjointness lemma | LEMMA | Premises: M0; T4 + Prefix (ASN-0034); T10 (PartitionIndependence); ASN-0040 B7 (NamespaceDisjointness, stream-level corollary). |
 | SubspaceConventionAxiom | FixedSubspaceIdentifiers | AXIOM | Substrate commitment: `s_C = 1 ∧ s_L = 2`; pinned by Nelson (LM 4/30–4/31) and Gregory (`xanadu.h:144–146`, `granf2.c:162`, `do2.c:94`). |
 | SequentialTransitionAxiom | SequentialAtomicTransitions | AXIOM | Substrate commitment: `Σ → Σ'` is atomic, uninterruptible, totally ordered. |
 | K.σ | DocumentRegistration | OP | Substrate-level document introduction into `dom(M)` |
