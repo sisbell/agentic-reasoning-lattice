@@ -26,7 +26,7 @@ Downstream ASNs that operate on the link store without needing arrangement mutat
 - **Entity allocation.** The substrate's `K.σ` is the document-registration primitive without the entity-hierarchy machinery. A higher-layer document-introduction primitive rebuilds itself as `K.σ` plus entity-set tracking, lineage discipline, and version-allocator activation.
 - **Provenance recording.** A provenance-emission primitive and the provenance relation `R`. The substrate has no `R` component.
 - **Coupling constraints.** Higher-layer coupling invariants binding K.α to K.μ⁺ etc. are out of scope; the substrate's `K.α` and `K.λ` stand independently.
-- **Link withdrawal.** Nelson's tombstone-style withdrawal (LM 4/9) is not expressible at this layer. Closing the gap is deferred to a higher-layer ASN that may extend the substrate with an explicit retraction mechanism — e.g., a future tombstoning ASN.
+- **Link withdrawal.** Nelson's tombstone-style withdrawal (LM 4/9) is deferred to a higher-layer retraction mechanism (see Open Questions for the invariant it must revisit).
 
 
 ## State model
@@ -38,7 +38,7 @@ The substrate-level state is
 where
 
 - `C : T ⇀ Val` is the content store (per ASN-0036): a partial function from element-level tumblers to content values. `Val` is the content value type defined in ASN-0036.
-- `L : T ⇀ Link` is the link store (per ASN-0043): a partial function from element-level tumblers to link values, each a sequence of `N ≥ 3` endsets `(e₁, e₂, …, eₙ) ∈ Endset^N`. `Link` and `Endset` are defined in ASN-0043; the StandardTriple convention (slot 1 = from, slot 2 = to, slot 3 = type, written `(F, G, Θ)` for the arity-3 default) is preserved.
+- `L : T ⇀ Link` is the link store (per ASN-0043): a partial function from element-level tumblers to link values, each a sequence of `N ≥ 3` endsets `(e₁, e₂, …, eₙ) ∈ Endset^N`. `Link` and `Endset` are defined in ASN-0043; the StandardTriple convention (slot 1 = from, slot 2 = to, slot 3 = type, written `(F, G, Θ)` for the arity-3 default; ASN-0043) is preserved.
 - `M : T ⇀ (T ⇀ T)` is the arrangement function (per ASN-0036): a partial function whose domain `dom(M)` is the set of allocated document addresses, mapping each to its V-position-to-I-address arrangement
 
 `dom(M)` is the set of tumblers committed by `K.σ` events (defined below). A document is *allocated* iff `d ∈ dom(M)`; content addresses with `origin(a) = d` and link addresses with `origin(ℓ) = d` may be emitted only when `d ∈ dom(M)`. The `origin(·)` function is the tumbler-projection defined in ASN-0036 (truncation to the `zeros = 2` prefix); it is a pure structural projection on tumblers and depends on no state component.
@@ -139,7 +139,7 @@ Every link address has at least two element-field components.
 
   `(A a ∈ dom(L) :: |L(a)| ≥ 3 ∧ (A i : 1 ≤ i ≤ |L(a)| : L(a).eᵢ ∈ Endset) ∧ L(a).e₃ ≠ ∅)`
 
-Every link is a sequence of at least three endsets, with the type endset (slot 3) non-empty. This is ASN-0043's L3 restated for the substrate. The three-endset convention (slot 1 = from, slot 2 = to, slot 3 = type, written `(F, G, Θ)`) is preserved as the default form for worked examples and notational convenience but not enforced structurally — the substrate admits arbitrary arity `N ≥ 3`.
+Every link is a sequence of at least three endsets, with the type endset (slot 3) non-empty. This is ASN-0043's L3 restated for the substrate. The StandardTriple default is retained for worked examples and notational convenience but not enforced structurally — the substrate admits arbitrary arity `N ≥ 3`.
 
 **L12 (LinkImmutability).**
 
@@ -211,7 +211,7 @@ Both anchors satisfy ASN-0040's `B6` (ValidDepth) at depth `1`: `b_C(d)` and `b_
 
 The weaker subset inclusion `dom(C) ∩ {a' : origin(a') = d} ⊆ A_C(d)` (and its link analogue) is the immediate corollary of the contiguous-prefix form; downstream consumers cite either form as needed. The contiguity matches ASN-0040's B1 (ContiguousPrefix) for the baptismal registry: the content and link sub-allocator chains have the same "always-extend-by-one-from-the-current-frontier" discipline as Nelson's baptism.
 
-*Proof.* Induction on transition sequences from `Σ₀`. The induction is well-defined precisely because SequentialTransitionAxiom (SequentialAtomicTransitions, above) commits transitions to be atomic and totally ordered: every reachable `Σ` is the terminus of a linear sequence of atomic transitions, with no concurrent emission able to interpose between a frontier element and its successor, so the contiguous-prefix postcondition advances one element per step. This axiom scopes the entire induction below.
+*Proof.* Induction on transition sequences from `Σ₀`, taken in the atomic total order of SequentialTransitionAxiom (SequentialAtomicTransitions, above).
 
 *Base.* At `Σ₀`, both `dom(C)` and `dom(L)` are empty, so both inclusions hold vacuously for every `d`.
 
@@ -253,9 +253,6 @@ The proof below derives freshness from L0, SC-NEQ, ChainPrefixExtension, ChainMe
 
 *Link case, against `dom(C)`.* StoreT4Validity at `Σ` gives T4-validity of every `a ∈ dom(C)`; `ℓ` is T4-valid by ChainElementT4Validity applied to `A_L(d)` (whose first emission `[d.0.s_L.1]` is T4-valid by the FirstEmission lemma). The subspace identifiers split by source: by L0 at `Σ`, `E(a)₁ = s_C` for the pre-existing peer `a ∈ dom(C)`; for the new key `ℓ` we read `E(ℓ)₁ = s_L` from the FirstEmission lemma's structural form `ℓ = [d.0.s_L.1]`. By SC-NEQ, `s_C ≠ s_L`; `zeros(ℓ) = zeros(a) = 3` by FirstEmission's structural form and C1. T7 (FirstElementFieldDistinction, ASN-0034) closes: `ℓ ≠ a`. ∎
 
-**Note (L0 discharge / subspace auto-conformance).** At a K.α (resp. K.λ) event, L0's content-subspace precondition `E(a)₁ = s_C` (resp. link-subspace `E(ℓ)₁ = s_L`) is automatically satisfied by the pinned emission, requiring no caller choice. *First-emit branch:* the FirstEmission lemma pins `a = [d.0.s_C.1]` (resp. `ℓ = [d.0.s_L.1]`), so `E(·)₁` is read by inspection. *Subsequent-emit branch:* `a = inc(a_prev, 0) ∈ A_C(d)` by ChainDiscipline's closure under `inc(·, 0)` applied to `a_prev ∈ A_C(d)` (ChainMembershipForOrigin at `Σ`), and DisjointSubAllocatorChains gives `E(·)₁ = s_C` for every element of `A_C(d)` (resp. `s_L` for `A_L(d)`).
-
-**Note (L14 new-key discharge).** When K.α commits a fresh `a` (resp. K.λ commits a fresh `ℓ`), disjointness from each committed peer in the opposite store follows from L0 + SC-NEQ + StoreT4Validity + T7: the new key carries `E(·)₁ = s_C` (resp. `s_L`) by the L0 discharge note, each opposite-store peer carries the complementary identifier by IH-L0, `s_C ≠ s_L` by SC-NEQ, and StoreT4Validity discharges T7's T4-validity precondition (new key via ChainElementT4Validity on its chain, peer via IH). T7 then closes `a ≠ ℓ`. At prior keys IH-L14 transfers by frame on the opposite store.
 
 
 ## Cross-document disjointness chain
@@ -306,8 +303,6 @@ Extends `dom(C)` with a fresh content address scoped to an allocated document.
   - *Subsequent emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`): `a = inc(a_prev, 0)` (TA5(c)) where `a_prev := max{a' ∈ dom(C) : origin(a') = d}`, the next sibling on `A_C(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (C-fin restricted by `origin(·) = d`). Freshness of `a` against `dom(C) ∪ dom(L)` is discharged by three governing results: within-document freshness against `dom(C)` via ChainEnumerationInjectivity + ChainMembershipForOrigin (the strictly increasing chain order separates `a = t_{n_prev + 1}` from every prior `t_m`); cross-document freshness against `dom(C)` via ChainPrefixExtension + Cross-document disjointness + T10; cross-subspace freshness against `dom(L)` via the same machinery that derives L14, applied to the fresh key `a` against each committed peer `ℓ ∈ dom(L)` (ChainElementT4Validity + L0 + SC-NEQ + T7).
 - `v ∈ Val` (well-formed content value)
 
-*Derived structural facts.* The chain-emission clause pins `a` uniquely from `(d, Σ)`, and the following are its consequences, not independent constraints: `zeros(a) = 3` (ChainUniformZeroCount), `E(a)₁ = s_C` (DisjointSubAllocatorChains, see L0 discharge note), `#E(a) ≥ 2` (FirstEmission / ChainUniformLength), `origin(a) = d` (chain rooted at `b_C(d)` via ChainPrefixExtension), and `a ∉ dom(C) ∪ dom(L)` (the freshness conclusions above).
-
 *Effect:* `C' = C ∪ {a ↦ v}`
 
 *Frame:* `L' = L; dom(M') = dom(M); (A d' ∈ dom(M) :: M'(d') = M(d'))`
@@ -327,9 +322,7 @@ Signature: `K.λ(d, ℓ, (e₁, …, eₙ))` where the link value is a finite se
 - `ℓ` is produced by `d`'s link sub-allocator `A_L(d)`:
   - *First emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`): `ℓ = [d.0.s_L.1]`, the determinate first emission of `A_L(d)`. Freshness against `dom(L) ∪ dom(C)` is supplied by FirstEmissionFreshness.
   - *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(ℓ_prev, 0)` (TA5(c)) where `ℓ_prev := max{ℓ' ∈ dom(L) : origin(ℓ') = d}`, the next sibling on `A_L(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (L-fin restricted by `origin(·) = d`). Freshness of `ℓ` against `dom(L) ∪ dom(C)` is discharged by three governing results: within-document freshness against `dom(L)` via ChainEnumerationInjectivity + ChainMembershipForOrigin (the strictly increasing chain order separates `ℓ = s_{n_prev + 1}` from every prior `s_m`); cross-document freshness against `dom(L)` via ChainPrefixExtension + Cross-document disjointness + T10; cross-subspace freshness against `dom(C)` via the same machinery that derives L14, applied to the fresh key `ℓ` against each committed peer `a ∈ dom(C)` (ChainElementT4Validity + L0 + SC-NEQ + T7).
-- `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` (well-formed link value with mandatory non-empty type endset at slot 3 — L3). The arity-3 default `(F, G, Θ)` (slot 1 = from, slot 2 = to, slot 3 = type) is the StandardTriple convention retained for worked examples and notational compactness; the substrate admits arbitrary arity `N ≥ 3`.
-
-*Derived structural facts.* As in K.α, the chain-emission clause pins `ℓ` uniquely from `(d, Σ)`, and the following are its consequences, not independent constraints: `zeros(ℓ) = 3` (ChainUniformZeroCount), `E(ℓ)₁ = s_L` (DisjointSubAllocatorChains, see L0 discharge note), `#E(ℓ) ≥ 2` (FirstEmission / ChainUniformLength), `origin(ℓ) = d` (chain rooted at `b_L(d)`), and `ℓ ∉ dom(L) ∪ dom(C)` (the freshness conclusions above).
+- `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` (well-formed link value with mandatory non-empty type endset at slot 3 — L3). The StandardTriple default is retained for worked examples and notational compactness; the substrate admits arbitrary arity `N ≥ 3`.
 
 *Effect:* `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}`
 
@@ -346,7 +339,7 @@ Cross-document disjointness for link allocations is supplied by the Cross-docume
 
 To make the substrate's operation concrete, we trace a small scenario step-by-step starting from `Σ₀ = (∅, ∅, ∅)`.
 
-*Arity convention.* The K.λ invocations below use the arity-3 default `(F, G, Θ)` (StandardTriple — slot 1 from, slot 2 to, slot 3 type) for notational compactness. This is one admissible instance of K.λ's general signature `K.λ(d, ℓ, (e₁, …, eₙ))` with `N = 3`; the substrate admits arbitrary `N ≥ 3` per L3, and any higher-arity link value satisfying the precondition would be equally well-formed.
+*Arity convention.* The K.λ invocations below use the StandardTriple default for notational compactness. This is one admissible instance of K.λ's general signature `K.λ(d, ℓ, (e₁, …, eₙ))` with `N = 3`; the substrate admits arbitrary `N ≥ 3` per L3, and any higher-arity link value satisfying the precondition would be equally well-formed.
 
 *Fix a document address.* Let `d = [1, 0, 2, 0, 5]` — `#d = 5`, with zeros at positions 2 and 4 so `zeros(d) = 2`, with positive first and last components (1 and 5) and no adjacent zeros, hence T4-valid. By T4b, its projections are `N(d) = [1]`, `U(d) = [2]`, `D(d) = [5]`. By SubspaceConventionAxiom, `s_C = 1` and `s_L = 2`.
 
@@ -393,7 +386,7 @@ Thus `p₁[6] = 0 ≠ 3 = p₂[6]`, witnessing `b_L(d) ⋠ b_L(d') ∧ b_L(d') �
 - `t₁ = inc(d', 2)`: TA5(d) at `k = 2` gives the structural form, appending `[0, 1]` to yield `[1, 0, 2, 0, 5, 3, 0, 1] = b_C(d')` with `zeros = 3`. Admissibility: TA5a at `k = 2` requires `zeros(d') ≤ 2`; M0 gives `zeros(d') = 2 ≤ 2`, satisfied — hence `t₁` is T4-valid.
 - `t₂ = inc(b_C(d'), 1)`: TA5(d) at `k = 1` gives the structural form, appending `1` to yield `a'' = [1, 0, 2, 0, 5, 3, 0, 1, 1]`. Admissibility: TA5a at `k = 1` requires `zeros(t₁) ≤ 3`, discharged by `t₁`'s T4-validity (T4 forces `zeros ≤ 3`), so `a''` is T4-valid given `t₁` T4-valid. `zeros(a'') = 3`, `#E(a'') = 2`.
 
-Verifying preconditions: `a'' ∉ dom(C₅) ∪ dom(L₅) = {a, a', ℓ}`. *Cross-document freshness* against `{a, a'}` (both with `origin = d ≠ d'`): by Cross-document disjointness at Step 5, `b_C(d) ⋠ b_C(d') ∧ b_C(d') ⋠ b_C(d)`; `a, a'` extend `b_C(d)` (Steps 2, 4) while `a''` extends `b_C(d')`, so by T10, `a'' ≠ a` and `a'' ≠ a'`. *Sub-space freshness* against `ℓ`: `E(a'')₁ = 1 = s_C ≠ 2 = s_L = E(ℓ)₁` by L0 + SC-NEQ, so `a'' ≠ ℓ`. Other preconditions: `zeros(a'') = 3` ✓; `E(a'') = [1, 1]`, `E(a'')₁ = s_C` ✓; `#E(a'') = 2` ✓; `origin(a'') = N(a'').0.U(a'').0.D(a'') = [1].0.[2].0.[5, 3] = d'` ✓. (FirstEmissionFreshness applied to `A_C(d')` supplies the same conclusion compactly; the derivation above exhibits the underlying mechanism it bundles.)
+Verifying preconditions: freshness `a'' ∉ dom(C₅) ∪ dom(L₅) = {a, a', ℓ}` is supplied by FirstEmissionFreshness applied to `A_C(d')` (first-emit). Other preconditions: `zeros(a'') = 3` ✓; `E(a'') = [1, 1]`, `E(a'')₁ = s_C` ✓; `#E(a'') = 2` ✓; `origin(a'') = N(a'').0.U(a'').0.D(a'') = [1].0.[2].0.[5, 3] = d'` ✓.
 
 Effect: `C₆ = C₅ ∪ {a'' ↦ v''} = {a ↦ v, a' ↦ v', a'' ↦ v''}`; `L₆ = L₅`; `M₆ = M₅`. Invariants at `Σ₆`: C0 (existing values unchanged), C1 (`zeros(a'') = 3`), C1b (`#E(a'') = 2`), C1c (chain exhibited above), C2 (`origin(a'') = d' ∈ dom(M₆)`), C-fin (`|C₆| = 3 < ∞`); ChainMembershipForOrigin extends: `{a''} ⊆ A_C(d')` by FirstEmission.
 
@@ -409,10 +402,7 @@ Effect: `L₇ = L₆ ∪ {ℓ'' ↦ (F'', G'', Θ'')}`; `C₇ = C₆`; `M₇ = M
 
 *Step 8 — `K.λ(d, ℓ_new, F_new, G_new, Θ_new)` (second link emission under `d`, subsequent-emit branch).* Pinning the address from `Σ₇`: `{ℓ''' ∈ dom(L₇) : origin(ℓ''') = d} = {ℓ}` (note `origin(ℓ'') = d' ≠ d`), so the subsequent-emit branch fires with `ℓ_new = inc(max{ℓ}, 0) = inc(ℓ, 0)`. By ChainMembershipForOrigin's contiguous-prefix form at `Σ₇`, `dom(L₇) ∩ {ℓ''' : origin(ℓ''') = d} = {s₁}` with `ℓ = s₁`, so the lex-order max is `s₁` and `ℓ_new = s₂`. Since `sig(ℓ) = 8` with value `1`, TA5(c) gives `ℓ_new = [1, 0, 2, 0, 5, 0, 2, 2]`. The L1c chain extends `ℓ`'s chain by one step: `(t₀, t₁, t₂, t₃, t₄)` with `t₀ = d`, `t₁ = b_C(d)`, `t₂ = b_L(d)`, `t₃ = ℓ`, `t₄ = inc(ℓ, 0) = ℓ_new`. Admissibility of the new step: TA5a at `k = 0` is unconditionally T4-preserving (no side condition), so `ℓ_new` is T4-valid given `ℓ` T4-valid (the latter from Step 3's chain exhibition); TA5(c) gives the structural form.
 
-Verifying preconditions: `ℓ_new ∉ dom(L₇) ∪ dom(C₇) = {ℓ, ℓ'', a, a', a''}`.
-- *Within-chain freshness against `ℓ`:* by ChainMembershipForOrigin at `Σ₇`, `ℓ ∈ A_L(d)` at chain index 1. By ChainDiscipline, `ℓ_new = inc(ℓ, 0) ∈ A_L(d)` at chain index 2. ChainEnumerationInjectivity gives `s₁ < s₂`, hence `ℓ ≠ ℓ_new`. (Concrete check: `ℓ_new` differs from `ℓ` at position 8, where `ℓ[8] = 1 ≠ 2 = ℓ_new[8]`.)
-- *Cross-document freshness against `ℓ''`:* (a) `ℓ_new = inc(ℓ, 0)` extends `b_L(d)` — by IH on ChainMembershipForOrigin at `Σ₇`, `ℓ ∈ A_L(d)`; by ChainDiscipline's closure under `inc(·, 0)`, `ℓ_new = inc(ℓ, 0) ∈ A_L(d)` as a chain element; ChainPrefixExtension at `Σ₇` gives `b_L(d) ≼ ℓ_new` (concrete check: positions `1..7` of `ℓ_new = [1, 0, 2, 0, 5, 0, 2, 2]` are `[1, 0, 2, 0, 5, 0, 2] = b_L(d)`). (b) `ℓ'' ∈ A_L(d')` by ChainMembershipForOrigin at `Σ₇`, and `b_L(d') ≼ ℓ''` by ChainPrefixExtension. (c) Cross-document disjointness at `(d, d')` (verified in Step 5) gives `b_L(d) ⋠ b_L(d') ∧ b_L(d') ⋠ b_L(d)`. T10 (PartitionIndependence, ASN-0034) closes: `ℓ_new ≠ ℓ''`.
-- *Sub-space freshness against `{a, a', a''}`:* StoreT4Validity at `Σ₇` gives T4-validity of `a, a', a''`; `ℓ_new` is T4-valid by chain-element T4-validity (TA5a-propagation along `A_L(d)`'s chain from FirstEmission's T4-valid output). L0 supplies `E(·)₁ = s_C = 1` for content and `E(ℓ_new)₁ = s_L = 2` (preserved from `ℓ` by TA5(c) since position 7 of `ℓ_new` carries `2`); `zeros(ℓ_new) = zeros(a) = 3` by L1/C1. SC-NEQ + T7 (FirstElementFieldDistinction, ASN-0034) closes: `ℓ_new ≠ a, a', a''`.
+Verifying preconditions: freshness `ℓ_new ∉ dom(L₇) ∪ dom(C₇) = {ℓ, ℓ'', a, a', a''}` is supplied by K.λ's subsequent-emit freshness discharges: within-document freshness against `dom(L)` (ChainEnumerationInjectivity + ChainMembershipForOrigin, separating `ℓ_new = s₂` from `ℓ = s₁`), cross-document freshness against `dom(L)` (ChainPrefixExtension + Cross-document disjointness + T10, separating `ℓ_new` under `b_L(d)` from `ℓ''` under `b_L(d')`), and cross-subspace freshness against `dom(C)` (ChainElementT4Validity + L0 + SC-NEQ + T7).
 
 Other preconditions: `zeros(ℓ_new) = 3` (ChainUniformZeroCount — preserved under `inc(·, 0)` per ChainDiscipline, anchored at FirstEmission's `zeros = 3`) ✓; `E(ℓ_new) = [2, 2]`, `E(ℓ_new)₁ = 2 = s_L` ✓; `#E(ℓ_new) = 2` ✓; `origin(ℓ_new) = d` (TA5(b) preserves positions `1..7`, including the document-level prefix and the field-separator structure that origin's truncation depends on) ✓.
 
@@ -461,14 +451,14 @@ The base case holds.
 | **C1b** (ContentElementFieldDepth) | Preserved: `C` in frame (`E(·)` structural — see C1b) | Discharged at new key: precondition pins `#E(a) ≥ 2` | Preserved: `C` in frame |
 | **C1c** (ContentAllocatorConformance) | Preserved: `C` in frame | Discharged at new key via the T10a-conforming step sequence (see *C1c chain exhibition* below — first-emit and subsequent-emit cases) | Preserved: `C` in frame |
 | **C2** (ContentScopedAllocation) | Preserved: vacuously (no new content); for prior keys `a ∈ dom(C)`, `origin(a) ∈ dom(M) ⊆ dom(M')` (`C` in frame, M1 extends `dom(M)`) | Discharged at new key: precondition pins `origin(a) = d ∧ d ∈ dom(M)`; preserved at prior keys (`origin(·)` is structural, M1 extends `dom(M)`) | Preserved: `C` in frame; prior keys preserved by M1 |
-| **L0** (SubspacePartition) | Preserved: `L`, `C` in frame | Preserved on L-clause (`L` in frame); discharged at new key on C-clause via `E(a)₁ = s_C` precondition — auto-satisfied (see L0 discharge note) | Discharged at new key on L-clause via `E(ℓ)₁ = s_L` precondition — auto-satisfied (see L0 discharge note); preserved on C-clause (`C` in frame) |
+| **L0** (SubspacePartition) | Preserved: `L`, `C` in frame | Preserved on L-clause (`L` in frame); discharged at new key on C-clause: `E(a)₁ = s_C` read from the pinned emission — FirstEmission (first-emit) / DisjointSubAllocatorChains (subsequent-emit, `a = inc(a_prev, 0) ∈ A_C(d)`) | Discharged at new key on L-clause: `E(ℓ)₁ = s_L` read from the pinned emission — FirstEmission (first-emit) / DisjointSubAllocatorChains (subsequent-emit); preserved on C-clause (`C` in frame) |
 | **L1** (LinkElementLevel) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `zeros(ℓ) = 3` |
 | **L1a** (LinkScopedAllocation) | Preserved: vacuously (no new link); for prior keys `ℓ ∈ dom(L)`, `origin(ℓ) ∈ dom(M) ⊆ dom(M')` (M1 extends `dom(M)`) | Preserved: `L` in frame; prior keys preserved by M1 | Discharged at new key: precondition pins `origin(ℓ) = d ∧ d ∈ dom(M)`; prior keys preserved by M1 |
 | **L1b** (LinkElementFieldDepth) | Preserved: `L` in frame (`E(·)` structural — see C1b) | Preserved: `L` in frame (see C1b) | Discharged at new key: precondition pins `#E(ℓ) ≥ 2` |
 | **L1c** (LinkAllocatorConformance) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key via the T10a-conforming step sequence (see *L1c chain exhibition* below — first-emit and subsequent-emit cases) |
 | **L3** (NEndsetStructure) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `|L(ℓ)| ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` |
 | **L12** (LinkImmutability) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: effect extends `dom(L)` at fresh `ℓ`; value at existing keys unaltered (definitional) |
-| **L14** (StoreDisjointness) | Preserved by frame: `C`, `L` both in frame, so IH-L14 (`dom(C) ∩ dom(L) = ∅`) transfers directly | Discharged at the new key `a` (see L14 new-key discharge note); prior keys by IH-L14 + frame on `L` | Discharged at the new key `ℓ`, symmetric (see L14 new-key discharge note); prior keys by IH-L14 + frame on `C` |
+| **L14** (StoreDisjointness) | Preserved by frame: `C`, `L` both in frame, so IH-L14 (`dom(C) ∩ dom(L) = ∅`) transfers directly | Discharged at the new key `a` by the `E(·)₁`-partition + T7 derivation: FirstEmissionFreshness (content case against `dom(L)`, first-emit) / K.α's cross-subspace freshness clause (subsequent-emit); prior keys by IH-L14 + frame on `L` | Discharged at the new key `ℓ`, symmetric: FirstEmissionFreshness (link case against `dom(C)`, first-emit) / K.λ's cross-subspace freshness clause (subsequent-emit); prior keys by IH-L14 + frame on `C` |
 | **L-fin** (LinkStoreFiniteness) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: `|dom(L')| = |dom(L)| + 1`; finiteness closed under +1 |
 | **C-fin** (ContentStoreFiniteness) | Preserved: `C` in frame | Discharged: `|dom(C')| = |dom(C)| + 1`; finiteness closed under +1 | Preserved: `C` in frame |
 
