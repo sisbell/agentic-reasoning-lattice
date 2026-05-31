@@ -58,11 +58,9 @@ The initial state is `Σ₀ = (∅, ∅, ∅)` — no content, no links, no docu
 
 **M0 (DocumentTumblerWellFormed).**
 
-  `(A d ∈ dom(M) :: ValidAddress(d) ∧ zeros(d) = 2)`
+  `(A d ∈ dom(M) :: T4-valid(d) ∧ zeros(d) = 2)`
 
-Every allocated document address is a T4-valid tumbler with exactly two zero components (i.e., a document-level address per S7d of ASN-0036). Discharged from `K.σ`'s precondition (below) and inductively across transitions.
-
-**Definitional identification.** Throughout this substrate, `ValidAddress(d) ≡ d satisfies T4 (HierarchicalParsing, ASN-0034)` — the two terms are interchangeable. T4's four conjuncts are: `zeros(d) ≤ 3`, no adjacent zero components, `d[1] ≠ 0`, and `d[#d] ≠ 0`.
+Every allocated document address is a T4-valid tumbler (per T4, HierarchicalParsing, ASN-0034) with exactly two zero components (i.e., a document-level address per S7d of ASN-0036). Discharged from `K.σ`'s precondition (below) and inductively across transitions.
 
 **M1 (ArrangementMonotonicity).**
 
@@ -213,7 +211,7 @@ Both anchors satisfy ASN-0040's `B6` (ValidDepth) at depth `1`: `b_C(d)` and `b_
 
 The weaker subset inclusion `dom(C) ∩ {a' : origin(a') = d} ⊆ A_C(d)` (and its link analogue) is the immediate corollary of the contiguous-prefix form; downstream consumers cite either form as needed. The contiguity matches ASN-0040's B1 (ContiguousPrefix) for the baptismal registry: the content and link sub-allocator chains have the same "always-extend-by-one-from-the-current-frontier" discipline as Nelson's baptism.
 
-*Proof.* Induction on transition sequences from `Σ₀`.
+*Proof.* Induction on transition sequences from `Σ₀`. The induction is well-defined precisely because SequentialTransitionAxiom (SequentialAtomicTransitions, above) commits transitions to be atomic and totally ordered: every reachable `Σ` is the terminus of a linear sequence of atomic transitions, with no concurrent emission able to interpose between a frontier element and its successor, so the contiguous-prefix postcondition advances one element per step. This axiom scopes the entire induction below.
 
 *Base.* At `Σ₀`, both `dom(C)` and `dom(L)` are empty, so both inclusions hold vacuously for every `d`.
 
@@ -231,8 +229,8 @@ The weaker subset inclusion `dom(C) ∩ {a' : origin(a') = d} ⊆ A_C(d)` (and i
 
 **Corollary (StoreT4Validity).** At every reachable state `Σ`, every entry of `dom(C) ∪ dom(L)` is a T4-valid tumbler:
 
-  `(A a ∈ dom(C) :: ValidAddress(a))`
-  `(A ℓ ∈ dom(L) :: ValidAddress(ℓ))`
+  `(A a ∈ dom(C) :: T4-valid(a))`
+  `(A ℓ ∈ dom(L) :: T4-valid(ℓ))`
 
 *Proof.* For any `a ∈ dom(C)`, ChainMembershipForOrigin places `a ∈ A_C(origin(a))` (well-defined since `origin(a) ∈ dom(M)` by C2). By ChainElementT4Validity, every element of `A_C(origin(a))` is T4-valid; hence `a` is T4-valid. The link case is symmetric: `ℓ ∈ dom(L)` lies in `A_L(origin(ℓ))` by ChainMembershipForOrigin, and ChainElementT4Validity gives T4-validity of every element. ∎
 
@@ -243,7 +241,7 @@ This corollary discharges the T4-validity precondition of T7 (FirstElementFieldD
   - *Content first-emit:* Under the K.α first-emit predicate `{a' ∈ dom(C) : origin(a') = d} = ∅`, the first emission `a = [d.0.s_C.1]` of `A_C(d)` satisfies `a ∉ dom(C) ∪ dom(L)` at the K.α event that commits `a`.
   - *Link first-emit:* Under the K.λ first-emit predicate `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`, the first emission `ℓ = [d.0.s_L.1]` of `A_L(d)` satisfies `ℓ ∉ dom(L) ∪ dom(C)` at the K.λ event that commits `ℓ`.
 
-The proof below derives freshness from L0, SC-NEQ, ChainPrefixExtension, ChainMembershipForOrigin, Cross-document disjointness, StoreT4Validity, ChainElementT4Validity, and T7, all consumed at the pre-state `Σ`. ChainMembershipForOrigin, StoreT4Validity, and Cross-document disjointness are established under the same simultaneous-induction discipline. Throughout this proof, the new key's subspace identifier is read from FirstEmission's structural form, not from L0 at `Σ'`, which would be circular under the simultaneous induction (L0 at `Σ'` itself depends on FirstEmissionFreshness).
+The proof below derives freshness from L0, SC-NEQ, ChainPrefixExtension, ChainMembershipForOrigin, Cross-document disjointness, StoreT4Validity, ChainElementT4Validity, and T7, all consumed at the pre-state `Σ`. ChainMembershipForOrigin, StoreT4Validity, and Cross-document disjointness are established under the same simultaneous-induction discipline.
 
 *Proof.*
 
@@ -262,15 +260,13 @@ The proof below derives freshness from L0, SC-NEQ, ChainPrefixExtension, ChainMe
 
 ## Cross-document disjointness chain
 
-**Lemma (Cross-document disjointness; ASN-0040 B7).** For any two distinct documents `d₁, d₂ ∈ dom(M)` with `d₁ ≠ d₂`, the link sub-allocator chains `A_L(d₁) = S(b_L(d₁), 1)` and `A_L(d₂) = S(b_L(d₂), 1)` are disjoint, and likewise the content chains:
+**Lemma (Cross-document disjointness).** For any two distinct documents `d₁, d₂ ∈ dom(M)` with `d₁ ≠ d₂`, the anchors `p_i := b_·(d_i)` (for `· ∈ {L, C}`) are prefix-incomparable, `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`, so by T10 (PartitionIndependence, ASN-0034) every address extending one anchor differs from every address extending the other:
 
-  `A_L(d₁) ∩ A_L(d₂) = ∅`  and  `A_C(d₁) ∩ A_C(d₂) = ∅`.
+  `a ≠ b`  for every `a` with `p₁ ≼ a` and every `b` with `p₂ ≼ b`.
 
-Hence no link (resp. content) address allocated under `d₁` coincides with any allocated under `d₂`. Equivalently, the anchors are prefix-incomparable, `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` for `p_i := b_L(d_i)` (resp. `b_C(d_i)`), so T10 (PartitionIndependence, ASN-0034) closes extension-disjointness directly; consumers may cite either the B7 form or the T10 form.
+In particular the sub-allocator chains `A_·(d_i) = S(p_i, 1)` are disjoint — `A_L(d₁) ∩ A_L(d₂) = ∅` and `A_C(d₁) ∩ A_C(d₂) = ∅` — the stream-level statement being ASN-0040's B7 (NamespaceDisjointness).
 
-*Proof.* By M0, both `d₁, d₂` are T4-valid with `zeros = 2`, so (as established under *Sub-allocator chains are ASN-0040 sibling streams*) `b_L(d₁), b_L(d₂)` are T4-valid with `zeros = 3` and `(b_L(d₁), 1)`, `(b_L(d₂), 1)` satisfy `B6`. They are distinct: `d₁ ≠ d₂` forces `b_L(d₁) ≠ b_L(d₂)` — each anchor reproduces its document on positions `1..#d_i` — so `(b_L(d₁), 1) ≠ (b_L(d₂), 1)`. ASN-0040's B7 (NamespaceDisjointness) then gives `S(b_L(d₁), 1) ∩ S(b_L(d₂), 1) = ∅`. The same argument with `b_C` in place of `b_L` gives content disjointness.
-
-*Anchor prefix-incomparability (T10 form).* The anchors `p_i = b_·(d_i)` are length-`+2` extensions of `d_i` (positions `1..#d_i` reproduce `d_i`, position `#d_i + 1` is the separator `0`, position `#d_i + 2` is `s_·`). When `d₁`, `d₂` are prefix-incomparable, a document-level divergence position `k ≤ min(#d₁, #d₂)` lifts unchanged to the anchors. When one properly prefixes the other (WLOG `d₁ ≺ d₂`), the anchors still diverge at the separator position `k = #d₁ + 1`: `p₁[k] = 0` while `p₂[k] = d₂[k] ≠ 0` (by M0 at both documents, `d₂` carries `d₁`'s two zeros at the shared positions and, having `zeros(d₂) = 2`, no further zero, so position `#d₁ + 1 ≤ #d₂` is nonzero). Either way `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (Prefix, ASN-0034), and T10 gives `a ≠ b` for any `a` extending `p₁`, `b` extending `p₂`. ∎
+*Proof.* By M0, both `d₁, d₂` are T4-valid with `zeros = 2`, so (as established under *Sub-allocator chains are ASN-0040 sibling streams*) each anchor `p_i = b_·(d_i)` is T4-valid with `zeros = 3` and is a length-`+2` extension of `d_i` (positions `1..#d_i` reproduce `d_i`, position `#d_i + 1` is the separator `0`, position `#d_i + 2` is `s_·`). They are prefix-incomparable: when `d₁`, `d₂` are themselves prefix-incomparable, a document-level divergence position `k ≤ min(#d₁, #d₂)` lifts unchanged to the anchors; when one properly prefixes the other (WLOG `d₁ ≺ d₂`), the anchors diverge at the separator position `k = #d₁ + 1`, where `p₁[k] = 0` while `p₂[k] = d₂[k] ≠ 0` (by M0, `d₂` carries `d₁`'s two zeros at the shared positions and, having `zeros(d₂) = 2`, no further zero, so position `#d₁ + 1 ≤ #d₂` is nonzero). Either way `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (Prefix, ASN-0034), and T10 gives `a ≠ b` for any `a` extending `p₁`, `b` extending `p₂`. The chains `A_·(d_i) = S(p_i, 1)` are particular sets of such extensions, hence disjoint. ∎
 
 Cross-subspace collisions between `dom(C)` and `dom(L)` are prevented by L14 (StoreDisjointness, above), itself derived from L0 + SC-NEQ + T7.
 
@@ -287,7 +283,7 @@ Extends `dom(M)` by registering a new document address with an empty arrangement
 
 *Precondition:*
 - `d ∉ dom(M)` (fresh document address)
-- `ValidAddress(d) ∧ zeros(d) = 2` (T4-valid, document-level — discharges M0 at the new key)
+- `T4-valid(d) ∧ zeros(d) = 2` (document-level — discharges M0 at the new key)
 
 *Effect:* `dom(M') = dom(M) ∪ {d}`, with `M'(d) = ∅` and `M'(d') = M(d')` for every `d' ∈ dom(M)`.
 
@@ -354,7 +350,7 @@ To make the substrate's operation concrete, we trace a small scenario step-by-st
 
 *Fix a document address.* Let `d = [1, 0, 2, 0, 5]` — `#d = 5`, with zeros at positions 2 and 4 so `zeros(d) = 2`, with positive first and last components (1 and 5) and no adjacent zeros, hence T4-valid. By T4b, its projections are `N(d) = [1]`, `U(d) = [2]`, `D(d) = [5]`. By SubspaceConventionAxiom, `s_C = 1` and `s_L = 2`.
 
-*Step 1 — `K.σ(d)` (document registration).* Precondition: `d ∉ dom(M₀) = ∅` ✓; `ValidAddress(d) ∧ zeros(d) = 2` ✓. Effect commits `dom(M₁) = {d}` with `M₁(d) = ∅`; `C₁ = ∅`, `L₁ = ∅`. Both `A_C(d)` and `A_L(d)` are active under `d` (since `d ∈ dom(M₁)`; see *Active sub-allocator chains* above). Verifying invariants at `Σ₁ = (∅, ∅, {d ↦ ∅})`: M0 holds (the single key `d` satisfies `zeros = 2`); M1 holds (`∅ ⊆ {d}`); all C-/L-invariants and L14, L-fin, C-fin are vacuous or trivial on empty stores.
+*Step 1 — `K.σ(d)` (document registration).* Precondition: `d ∉ dom(M₀) = ∅` ✓; `T4-valid(d) ∧ zeros(d) = 2` ✓. Effect commits `dom(M₁) = {d}` with `M₁(d) = ∅`; `C₁ = ∅`, `L₁ = ∅`. Both `A_C(d)` and `A_L(d)` are active under `d` (since `d ∈ dom(M₁)`; see *Active sub-allocator chains* above). Verifying invariants at `Σ₁ = (∅, ∅, {d ↦ ∅})`: M0 holds (the single key `d` satisfies `zeros = 2`); M1 holds (`∅ ⊆ {d}`); all C-/L-invariants and L14, L-fin, C-fin are vacuous or trivial on empty stores.
 
 *Step 2 — `K.α(d, a, v)` (first content emission).* Pinning the address from `Σ₁`: the predicate `{a' ∈ dom(C₁) : origin(a') = d} = ∅` selects the first-emit case, so `a = [d.0.s_C.1] = [1, 0, 2, 0, 5, 0, 1, 1]`. Witness it via the C1c chain `(t₀, t₁, t₂)`:
 - `t₀ = d = [1, 0, 2, 0, 5]`
@@ -381,7 +377,7 @@ Verifying preconditions: `a' ∉ dom(C₃) ∪ dom(L₃) = {a, ℓ}` ✓ (since 
 
 Effect: `C₄ = {a ↦ v, a' ↦ v'}`; `L₄ = L₃`; `M₄ = M₃`. All invariants continue to hold at `Σ₄`.
 
-*Step 5 — `K.σ(d')` (second document registration).* Fix a second document address `d' = [1, 0, 2, 0, 5, 3]`. Verifying T4-validity: `#d' = 6`, zeros at positions 2 and 4 only (`zeros(d') = 2`), no adjacent zeros (positions (2,3) = (0,2) and (4,5) = (0,5)), first component `d'[1] = 1 ≠ 0`, last component `d'[6] = 3 ≠ 0`. By T4b, `N(d') = [1]`, `U(d') = [2]`, `D(d') = [5, 3]`. Precondition: `d' ∉ dom(M₄) = {d}` ✓ (distinct since `#d = 5 ≠ 6 = #d'`); `ValidAddress(d') ∧ zeros(d') = 2` ✓. Effect: `dom(M₅) = {d, d'}`, with `M₅(d') = ∅` and `M₅(d) = M₄(d) = ∅`. `A_C(d')` and `A_L(d')` become active at `Σ₅` (per the *Active sub-allocator chains* definition: `d' ∈ dom(M₅)`), alongside the already-active `A_C(d)` and `A_L(d)`.
+*Step 5 — `K.σ(d')` (second document registration).* Fix a second document address `d' = [1, 0, 2, 0, 5, 3]`. Verifying T4-validity: `#d' = 6`, zeros at positions 2 and 4 only (`zeros(d') = 2`), no adjacent zeros (positions (2,3) = (0,2) and (4,5) = (0,5)), first component `d'[1] = 1 ≠ 0`, last component `d'[6] = 3 ≠ 0`. By T4b, `N(d') = [1]`, `U(d') = [2]`, `D(d') = [5, 3]`. Precondition: `d' ∉ dom(M₄) = {d}` ✓ (distinct since `#d = 5 ≠ 6 = #d'`); `T4-valid(d') ∧ zeros(d') = 2` ✓. Effect: `dom(M₅) = {d, d'}`, with `M₅(d') = ∅` and `M₅(d) = M₄(d) = ∅`. `A_C(d')` and `A_L(d')` become active at `Σ₅` (per the *Active sub-allocator chains* definition: `d' ∈ dom(M₅)`), alongside the already-active `A_C(d)` and `A_L(d)`.
 
 *Verifying the Cross-document disjointness lemma at Σ₅.* Apply with `d₁ = d`, `d₂ = d'`. Since `d ≠ d'` and both anchors are `B6`-valid, ASN-0040's B7 gives `A_·(d) ∩ A_·(d') = ∅` directly. Illustrating the equivalent anchor-incomparability (T10 form): component-by-component, `d'[1..5] = [1, 0, 2, 0, 5] = d` with `#d < #d'`, so `d ≺ d'` (the properly-prefixing case). The anchors are `p₁ = b_L(d) = [1, 0, 2, 0, 5, 0, 2]` (length 7) and `p₂ = b_L(d') = [1, 0, 2, 0, 5, 3, 0, 2]` (length 8). At the separator index `k = #d + 1 = 6`:
 - `p₁[6] = 0` (the zero separator inserted by the `b_L` construction at position `#d + 1`)
@@ -390,7 +386,7 @@ Effect: `C₄ = {a ↦ v, a' ↦ v'}`; `L₄ = L₃`; `M₄ = M₃`. All invaria
 
 Thus `p₁[6] = 0 ≠ 3 = p₂[6]`, witnessing `b_L(d) ⋠ b_L(d') ∧ b_L(d') ⋠ b_L(d)`. The same divergence holds at position 6 for the content anchors `b_C(d) = [1, 0, 2, 0, 5, 0, 1]` and `b_C(d') = [1, 0, 2, 0, 5, 3, 0, 1]`. By T10, every link allocated under `d` (extending `b_L(d)`) differs from every link allocated under `d'` (extending `b_L(d')`); same for content.
 
-*Verifying invariants at Σ₅.* M0 holds: `d` and `d'` both satisfy `ValidAddress ∧ zeros = 2`. M1 holds: `{d} ⊆ {d, d'}`. C0/C1/C1b/C1c/C2/C-fin hold by frame on `C` (unchanged from `Σ₄`); in particular, C2 carries the prior content keys `a, a'` whose `origin = d ∈ dom(M₅)`, preserved by M1's extension. L0/L1/L1a/L1b/L1c/L3/L12/L-fin hold by frame on `L` (unchanged from `Σ₄`); L1a holds for `ℓ` since `origin(ℓ) = d ∈ dom(M₅)`. L14: `dom(C₅) ∩ dom(L₅) = {a, a'} ∩ {ℓ} = ∅` (verified by `E(a)₁ = E(a')₁ = s_C ≠ s_L = E(ℓ)₁`). ChainMembershipForOrigin transfers: `dom(C₅) ∩ {a'' : origin(a'') = d} = {a, a'} ⊆ A_C(d)` (per Steps 2 and 4); `dom(C₅) ∩ {a'' : origin(a'') = d'} = ∅ ⊆ A_C(d')` (vacuous, first emission still pending); similarly for `L`.
+*Verifying invariants at Σ₅.* M0 holds: `d` and `d'` both satisfy `T4-valid ∧ zeros = 2`. M1 holds: `{d} ⊆ {d, d'}`. C0/C1/C1b/C1c/C2/C-fin hold by frame on `C` (unchanged from `Σ₄`); in particular, C2 carries the prior content keys `a, a'` whose `origin = d ∈ dom(M₅)`, preserved by M1's extension. L0/L1/L1a/L1b/L1c/L3/L12/L-fin hold by frame on `L` (unchanged from `Σ₄`); L1a holds for `ℓ` since `origin(ℓ) = d ∈ dom(M₅)`. L14: `dom(C₅) ∩ dom(L₅) = {a, a'} ∩ {ℓ} = ∅` (verified by `E(a)₁ = E(a')₁ = s_C ≠ s_L = E(ℓ)₁`). ChainMembershipForOrigin transfers: `dom(C₅) ∩ {a'' : origin(a'') = d} = {a, a'} ⊆ A_C(d)` (per Steps 2 and 4); `dom(C₅) ∩ {a'' : origin(a'') = d'} = ∅ ⊆ A_C(d')` (vacuous, first emission still pending); similarly for `L`.
 
 *Step 6 — `K.α(d', a'', v'')` (first content emission under `d'`).* Pinning the address from `Σ₅`: `{a''' ∈ dom(C₅) : origin(a''') = d'} = ∅` (the content keys `a, a'` have `origin = d ≠ d'`), so the first-emit branch fires with `a'' = [d'.0.s_C.1] = [1, 0, 2, 0, 5, 3, 0, 1, 1]` (length 9). The C1c chain `(t₀, t₁, t₂)`:
 - `t₀ = d' = [1, 0, 2, 0, 5, 3]`
@@ -424,23 +420,23 @@ Effect: `L₈ = L₇ ∪ {ℓ_new ↦ (F_new, G_new, Θ_new)} = {ℓ ↦ (F, G, 
 
 *Step 9 — `K.σ(d_alt)` (third document registration, prefix-incomparable with prior documents).* Fix `d_alt = [1, 0, 3, 0, 7]` — `#d_alt = 5`, with zeros at positions 2 and 4 (`zeros(d_alt) = 2`), no adjacent zeros (positions (2,3) = (0,3) and (4,5) = (0,7)), `d_alt[1] = 1 ≠ 0` and `d_alt[5] = 7 ≠ 0`, hence T4-valid. By T4b, `N(d_alt) = [1]`, `U(d_alt) = [3]`, `D(d_alt) = [7]`.
 
-Verify `d_alt ∉ dom(M₈) = {d, d'}`. Compare with `d = [1, 0, 2, 0, 5]`: position 3 disagrees (`d[3] = 2 ≠ 3 = d_alt[3]`), so `d_alt ≠ d`. Compare with `d' = [1, 0, 2, 0, 5, 3]`: position 3 disagrees similarly, so `d_alt ≠ d'`. The other K.σ precondition `ValidAddress(d_alt) ∧ zeros(d_alt) = 2` ✓.
+Verify `d_alt ∉ dom(M₈) = {d, d'}`. Compare with `d = [1, 0, 2, 0, 5]`: position 3 disagrees (`d[3] = 2 ≠ 3 = d_alt[3]`), so `d_alt ≠ d`. Compare with `d' = [1, 0, 2, 0, 5, 3]`: position 3 disagrees similarly, so `d_alt ≠ d'`. The other K.σ precondition `T4-valid(d_alt) ∧ zeros(d_alt) = 2` ✓.
 
 Effect: `dom(M₉) = {d, d', d_alt}`, with `M₉(d_alt) = ∅` and `M₉(d) = M₉(d') = ∅` unchanged. `C₉ = C₈`, `L₉ = L₈`. Once `d_alt ∈ dom(M₉)`, the chains `A_C(d_alt)` and `A_L(d_alt)` are available (see *Active sub-allocator chains* above), alongside those already available for `d` and `d'`.
 
 *Verifying the Cross-document disjointness lemma at `Σ₉` for the prefix-incomparable pair `(d, d_alt)`.* Since `d ≠ d_alt` and both anchors are `B6`-valid, ASN-0040's B7 gives `A_·(d) ∩ A_·(d_alt) = ∅`. Illustrating the anchor-incomparability (T10 form): `d` and `d_alt` are prefix-incomparable — position 3 of `d = [1, 0, 2, 0, 5]` is `2`, of `d_alt = [1, 0, 3, 0, 7]` is `3`, both within native domains, so neither prefixes the other. This document-level divergence at `k = 3` lifts to the anchors `p₁ = b_L(d) = [1, 0, 2, 0, 5, 0, 2]` and `p₂ = b_L(d_alt) = [1, 0, 3, 0, 7, 0, 2]`: `p₁[3] = 2 ≠ 3 = p₂[3]` at `k = 3 ≤ min(#p₁, #p₂) = 7`, witnessing `b_L(d) ⋠ b_L(d_alt) ∧ b_L(d_alt) ⋠ b_L(d)` (Prefix, ASN-0034); the same divergence holds for the content anchors `b_C(d)`, `b_C(d_alt)`. By T10, every link (resp. content) allocated under `d_alt` differs from every one allocated under `d`. The pair `(d', d_alt)` is analogous: `d'[3] = 2 ≠ 3 = d_alt[3]` gives the same position-3 divergence.
 
-*Verifying invariants at `Σ₉`.* M0 holds at `d_alt`: precondition pins `ValidAddress(d_alt) ∧ zeros(d_alt) = 2`; M0 at the prior keys `d, d'` transfers by frame on those entries. M1: `{d, d'} ⊆ {d, d', d_alt}`. C0/C1/C1b/C1c/C2/C-fin hold by frame on `C`; C2 carries the prior content keys' origins `d` (for `a, a'`) and `d'` (for `a''`), all preserved by M1's extension. L0/L1/L1a/L1b/L1c/L3/L12/L-fin hold by frame on `L`; L1a carries `origin(ℓ) = origin(ℓ_new) = d` and `origin(ℓ'') = d'`, preserved by M1. L14: `dom(C₉) ∩ dom(L₉) = {a, a', a''} ∩ {ℓ, ℓ'', ℓ_new} = ∅` (verified by L0's `E(·)₁` partition and StoreT4Validity + T7). ChainMembershipForOrigin transfers at `Σ₉`: under `d`, content gives `{a, a'} = {t₁, t₂}` with `m_d = 2` and link gives `{ℓ, ℓ_new} = {s₁, s₂}` with `n_d = 2`; under `d'`, content gives `{a''} = {t₁}` with `m_{d'} = 1` and link gives `{ℓ''} = {s₁}` with `n_{d'} = 1`; under `d_alt`, both intersections are `∅` with `m_{d_alt} = n_{d_alt} = 0` (vacuous, first emissions under `d_alt` still pending). StoreT4Validity transfers by frame on `C` and `L` together with M1's monotonicity preserving the chain-membership witnesses.
+*Verifying invariants at `Σ₉`.* M0 holds at `d_alt`: precondition pins `T4-valid(d_alt) ∧ zeros(d_alt) = 2`; M0 at the prior keys `d, d'` transfers by frame on those entries. M1: `{d, d'} ⊆ {d, d', d_alt}`. C0/C1/C1b/C1c/C2/C-fin hold by frame on `C`; C2 carries the prior content keys' origins `d` (for `a, a'`) and `d'` (for `a''`), all preserved by M1's extension. L0/L1/L1a/L1b/L1c/L3/L12/L-fin hold by frame on `L`; L1a carries `origin(ℓ) = origin(ℓ_new) = d` and `origin(ℓ'') = d'`, preserved by M1. L14: `dom(C₉) ∩ dom(L₉) = {a, a', a''} ∩ {ℓ, ℓ'', ℓ_new} = ∅` (verified by L0's `E(·)₁` partition and StoreT4Validity + T7). ChainMembershipForOrigin transfers at `Σ₉`: under `d`, content gives `{a, a'} = {t₁, t₂}` with `m_d = 2` and link gives `{ℓ, ℓ_new} = {s₁, s₂}` with `n_d = 2`; under `d'`, content gives `{a''} = {t₁}` with `m_{d'} = 1` and link gives `{ℓ''} = {s₁}` with `n_{d'} = 1`; under `d_alt`, both intersections are `∅` with `m_{d_alt} = n_{d_alt} = 0` (vacuous, first emissions under `d_alt` still pending). StoreT4Validity transfers by frame on `C` and `L` together with M1's monotonicity preserving the chain-membership witnesses.
 
-The extended example confirms invariants M0, M1, C0–C2, C-fin, L0–L14, L-fin at each successor state across three documents, exercises both first-emit and subsequent-emit branches of K.α (Steps 2, 4, 6) and K.λ (Steps 3, 7, 8), verifies the Cross-document disjointness lemma (ASN-0040 B7) for both a prefix-comparable document pair (Step 5, `d ≺ d'`) and a prefix-incomparable pair (Step 9, `(d, d_alt)` and `(d', d_alt)`), underwrites cross-document freshness at Steps 6, 7, and 8, and exhibits the ChainMembershipForOrigin lemma's contiguous-prefix postcondition together with the ChainPrefixExtension lemma at every emission past the first.
+The example exercises both the first-emit and subsequent-emit branches of K.α and K.λ, and both the prefix-comparable (`d ≺ d'`) and prefix-incomparable cross-document cases.
 
 
 ## Discharge of stated invariants
 
 **Simultaneous-induction framing.** The properties this note establishes decompose into two groups by their quantification structure:
 
-- *Chain-indexed properties (state-independent, once chains are fixed).* ChainElementT4Validity, ChainUniformLength, ChainEnumerationInjectivity, ChainUniformZeroCount, DisjointSubAllocatorChains, and ChainPrefixExtension all quantify over the sub-allocator chains supplied by ChainDiscipline; their conclusions are determined per-chain (once the chain is fixed at `d`'s K.σ-time activation, the conclusion holds once-and-for-all for every chain index `n ≥ 1`). Each is a direct ASN-0040 citation (B6(a), the SiblingStream postconditions, S0, B5a, S1, B7) applied to the sibling stream `S(b_·(d), 1)`, as recorded in the *Address sub-allocators under documents* section. No induction over substrate-level transitions is required.
-- *Transition-indexed properties (state-dependent).* The stated invariants (M0, M1, C0, C1, C1b, C1c, C2, C-fin, L0, L1, L1a, L1b, L1c, L3, L12, L14, L-fin) together with the ChainMembershipForOrigin lemma, the StoreT4Validity corollary, and the FirstEmissionFreshness lemma are proved by *simultaneous induction* over transition sequences from `Σ₀`. The inductive hypothesis at each step is the *conjunction* of every transition-indexed property at the current state `Σ`; the inductive step exhibits each holding at `Σ'` using the conjoined IH. No inductive step uses a conclusion derived in the same step. The per-transition discharges are recorded in the discharge matrix below and in the ChainMembershipForOrigin proof above.
+- *Chain-indexed properties (state-independent, once chains are fixed).* ChainElementT4Validity, ChainUniformLength, ChainEnumerationInjectivity, ChainUniformZeroCount, DisjointSubAllocatorChains, and ChainPrefixExtension all quantify over the sub-allocator chains supplied by ChainDiscipline; their conclusions are determined per-chain. Each is a direct ASN-0040 citation (B6(a), the SiblingStream postconditions, S0, B5a, S1, B7) applied to the sibling stream `S(b_·(d), 1)`, as recorded in the *Address sub-allocators under documents* section. No induction over substrate-level transitions is required.
+- *Transition-indexed properties (state-dependent).* The stated invariants (M0, M1, C0, C1, C1b, C1c, C2, C-fin, L0, L1, L1a, L1b, L1c, L3, L12, L14, L-fin) together with the ChainMembershipForOrigin lemma, the StoreT4Validity corollary, and the FirstEmissionFreshness lemma are proved by *simultaneous induction* over transition sequences from `Σ₀`. The inductive hypothesis at each step is the *conjunction* of every transition-indexed property at the current state `Σ`; the inductive step exhibits each holding at `Σ'` using the conjoined IH. The per-transition discharges are recorded in the discharge matrix below and in the ChainMembershipForOrigin proof above.
 
 Each transition-indexed invariant is discharged by induction on transition sequences from `Σ₀`. The inductive step is recorded as a per-(invariant, transition) matrix; entries describe how each transition kind preserves or discharges each invariant.
 
@@ -458,7 +454,7 @@ The base case holds.
 
 | Invariant | K.σ | K.α | K.λ |
 |---|---|---|---|
-| **M0** (DocumentTumblerWellFormed) | Discharged at new key: precondition pins `ValidAddress(d) ∧ zeros(d) = 2` | Preserved: `M` in frame | Preserved: `M` in frame |
+| **M0** (DocumentTumblerWellFormed) | Discharged at new key: precondition pins `T4-valid(d) ∧ zeros(d) = 2` | Preserved: `M` in frame | Preserved: `M` in frame |
 | **M1** (ArrangementMonotonicity) | Discharged: effect extends `dom(M)` by union | Preserved: `M` in frame | Preserved: `M` in frame |
 | **C0** (ContentImmutability) | Preserved: `C` in frame | Discharged: effect extends `dom(C)` at fresh `a` with value `v`; value at existing keys unaltered (definitional in effect clause) | Preserved: `C` in frame |
 | **C1** (ContentElementLevel) | Preserved: `C` in frame | Discharged at new key: precondition pins `zeros(a) = 3` | Preserved: `C` in frame |
@@ -524,20 +520,20 @@ Note that the C1c first-emit chain has *two* inc steps (`d → b_C(d) → a`) wh
 
 | ID | Name | Status | Source |
 |---|---|---|---|
-| M0 | DocumentTumblerWellFormed | INV | Substrate, established at K.σ (precondition pins `ValidAddress(d) ∧ zeros(d) = 2` at the new key); preserved at K.α/K.λ by frame on `M` |
-| M1 | ArrangementMonotonicity | INV | Substrate, established at K.σ by union extension `dom(M') = dom(M) ∪ {d}`; preserved at K.α/K.λ by frame on `M` |
-| C0 | ContentImmutability | INV | Substrate, restated from ASN-0036's S0/S1; established at K.α (effect extends `dom(C)` with new pair and leaves existing values unchanged); preserved at K.σ/K.λ by frame on `C` |
-| C1 | ContentElementLevel | INV | Substrate, restated from ASN-0036's S7b; established at K.α (precondition pins `zeros(a) = 3` at the new key); preserved at K.σ/K.λ by frame on `C` |
-| C1b | ContentElementFieldDepth | INV | Substrate-level commitment (content-side analog of L1b; ASN-0036 carries no content-side `#E(a) ≥ 2` invariant); established at K.α (precondition pins `#E(a) ≥ 2` at the new key); preserved at K.σ/K.λ by frame on `C` |
-| C1c | ContentAllocatorConformance | INV | Substrate, content-side analog of L1c. Established at K.α; see *C1c chain exhibition*. Preserved at K.σ/K.λ by frame on `C` |
-| C2 | ContentScopedAllocation | INV | Substrate, content-side analog of L1a; established at K.α (precondition pins `origin(a) = d ∧ d ∈ dom(M)` at the new key); preserved at K.σ/K.λ by frame on `C` and M1's monotonicity of `dom(M)` |
-| L0 | SubspacePartition | INV | L-clause from ASN-0043; C-clause added here. Established at K.α (C-clause, via `E(a)₁ = s_C` precondition) and K.λ (L-clause, via `E(ℓ)₁ = s_L` precondition); preserved at K.σ by frame on both `C` and `L` |
-| L1 | LinkElementLevel | INV | ASN-0043; established at K.λ (precondition pins `zeros(ℓ) = 3` at the new key); preserved at K.σ/K.α by frame on `L` |
-| L1a | LinkScopedAllocation | INV | ASN-0043 (refactored: `E_doc` → `dom(M)`); established at K.λ (precondition pins `origin(ℓ) = d ∧ d ∈ dom(M)` at the new key); preserved at K.σ/K.α by frame on `L` and M1's monotonicity of `dom(M)` |
-| L1b | LinkElementFieldDepth | INV | ASN-0043; established at K.λ (precondition pins `#E(ℓ) ≥ 2` at the new key); preserved at K.σ/K.α by frame on `L` |
-| L1c | LinkAllocatorConformance | INV | ASN-0043. Established at K.λ; see *L1c chain exhibition*. Preserved at K.σ/K.α by frame on `L` |
-| L3 | NEndsetStructure | INV | ASN-0043; established at K.λ (precondition pins `|L(ℓ)| ≥ 3 ∧ (e₃) ≠ ∅`); preserved at K.σ/K.α by frame on `L` |
-| L12 | LinkImmutability | INV | ASN-0043; established at K.λ (effect extends `dom(L)` with new pair and leaves existing values unchanged); preserved at K.σ/K.α by frame on `L` |
+| M0 | DocumentTumblerWellFormed | INV | Substrate |
+| M1 | ArrangementMonotonicity | INV | Substrate |
+| C0 | ContentImmutability | INV | Substrate; restated from ASN-0036 S0/S1 |
+| C1 | ContentElementLevel | INV | Substrate; restated from ASN-0036 S7b |
+| C1b | ContentElementFieldDepth | INV | Substrate; content-side analog of L1b (ASN-0036 carries no content-side `#E(a) ≥ 2`) |
+| C1c | ContentAllocatorConformance | INV | Substrate; content-side analog of L1c (see *C1c chain exhibition*) |
+| C2 | ContentScopedAllocation | INV | Substrate; content-side analog of L1a |
+| L0 | SubspacePartition | INV | ASN-0043 (L-clause); C-clause added here |
+| L1 | LinkElementLevel | INV | ASN-0043 |
+| L1a | LinkScopedAllocation | INV | ASN-0043 (refactored: `E_doc` → `dom(M)`) |
+| L1b | LinkElementFieldDepth | INV | ASN-0043 |
+| L1c | LinkAllocatorConformance | INV | ASN-0043 (see *L1c chain exhibition*) |
+| L3 | NEndsetStructure | INV | ASN-0043 |
+| L12 | LinkImmutability | INV | ASN-0043 |
 | L14 | StoreDisjointness | INV (derived) | L0 + SC-NEQ + StoreT4Validity + T7 |
 | L-fin | LinkStoreFiniteness | INV (derived) | Inductively from `Σ₀.L = ∅` + K.λ |
 | C-fin | ContentStoreFiniteness | INV (derived) | Inductively from `Σ₀.C = ∅` + K.α |
@@ -552,8 +548,8 @@ Note that the C1c first-emit chain has *two* inc steps (`d → b_C(d) → a`) wh
 | ChainMembershipForOrigin | ChainMembershipForOrigin | LEMMA | Inductive invariant in *contiguous-prefix form* at every reachable state: `dom(C) ∩ {a' : origin(a') = d} = {t₁, …, t_{m_d}}` is a contiguous initial segment of `A_C(d)` (mirror for `L`). The subset inclusion `dom(C) ∩ {a' : origin(a') = d} ⊆ A_C(d)` is the weaker corollary. Proved by induction over transitions using the FirstEmission lemma (first-emit branches placing `t₁`) and ChainDiscipline + ChainEnumerationInjectivity (subsequent-emit branches placing `t_{m_d + 1} = inc(t_{m_d}, 0)`). Licenses application of ChainEnumerationInjectivity to `(a_prev, a)` and `(ℓ_prev, ℓ)` in K.α/K.λ subsequent-emit cases; the contiguous-prefix form matches ASN-0040's B1 (ContiguousPrefix). |
 | StoreT4Validity | StoreT4Validity | LEMMA (derived) | Derived from ChainMembershipForOrigin + ChainElementT4Validity: every entry of `dom(C) ∪ dom(L)` inhabits a sub-allocator chain whose every element is T4-valid. |
 | FirstEmissionFreshness | FirstEmissionFreshness | LEMMA (derived) | Derived from the first-emit predicate + L0 + ChainPrefixExtension + ChainMembershipForOrigin + StoreT4Validity + Cross-document disjointness + SC-NEQ + T7 + ChainElementT4Validity. At every K.α (resp. K.λ) event firing the first-emit predicate, the first emission `[d.0.s_C.1]` (resp. `[d.0.s_L.1]`) is fresh against `dom(C) ∪ dom(L)`. |
-| Cross-doc disjointness | ASN-0040 B7 lemma | CITATION | `A_·(d₁) ∩ A_·(d₂) = ∅` for distinct `d₁, d₂ ∈ dom(M)`. Cites ASN-0040 B7 (NamespaceDisjointness) at the distinct `B6`-valid parents `(b_·(d₁), 1)`, `(b_·(d₂), 1)` (distinct since `d₁ ≠ d₂` forces `b_·(d₁) ≠ b_·(d₂)`). The equivalent anchor prefix-incomparability `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (from M0 + T4 + Prefix, ASN-0034) plus T10 (PartitionIndependence) gives the alternative T10 form consumers may cite. |
-| SubspaceConventionAxiom | FixedSubspaceIdentifiers | AXIOM | Substrate commitment: `s_C = 1 ∧ s_L = 2`; pinned by Nelson (LM 4/30–4/31) and Gregory (`xanadu.h:144–146`, `granf2.c:162`, `do2.c:94`). Underwrites L14 derivation and the L1c chain exhibition. |
+| Cross-doc disjointness | Cross-document disjointness lemma | LEMMA | For distinct `d₁, d₂ ∈ dom(M)`, the anchors are prefix-incomparable `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (M0 + T4 + Prefix, ASN-0034), so T10 (PartitionIndependence) gives extension-disjointness `a ≠ b` for `p₁ ≼ a`, `p₂ ≼ b`; the stream-level corollary `A_·(d₁) ∩ A_·(d₂) = ∅` is ASN-0040 B7 (NamespaceDisjointness). |
+| SubspaceConventionAxiom | FixedSubspaceIdentifiers | AXIOM | Substrate commitment: `s_C = 1 ∧ s_L = 2`; pinned by Nelson (LM 4/30–4/31) and Gregory (`xanadu.h:144–146`, `granf2.c:162`, `do2.c:94`). |
 | SequentialTransitionAxiom | SequentialAtomicTransitions | AXIOM | Substrate commitment: `Σ → Σ'` is atomic, uninterruptible, totally ordered. |
 | K.σ | DocumentRegistration | OP | Substrate-level document introduction into `dom(M)` |
 | K.α | ContentAllocation | OP | Substrate-level content emission |
