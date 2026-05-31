@@ -37,9 +37,9 @@ Any bijection qualifies; a rearrangement determined by cut points is one where t
 
 Notation: at depth 2, V-positions have the form [S, p]. We write `c₀ + j` for the V-position [S, ord(c₀) + j] — that is, ordinal shift via OrdinalShift (ASN-0034): `c₀ + j = shift(c₀, j)`, consistent with the correspondence-run convention of ASN-0036. By convention, `c₀ + 0 = c₀` (identity). This extends OrdinalShift's domain from ℕ⁺ (the foundation's domain) to ℕ.
 
-**Extended Associativity.** For all j, k ∈ ℕ, `(c + j) + k = c + (j + k)`: the j, k ≥ 1 case is TS3 (ShiftComposition, ASN-0034), `shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂)`, and the cases with j = 0 or k = 0 hold by the identity convention. We cite this identity below as *Extended Associativity*. The same identity convention extends OrdShiftHom (a) — `subspace(shift(v, n)) = subspace(v)` (ASN-0036) — to n = 0, since shift(v, 0) = v.
+**Extended Associativity.** For all j, k ∈ ℕ, `(c + j) + k = c + (j + k)`: the j, k ≥ 1 case is TS3 (ShiftComposition, ASN-0034), `shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂)`, and the cases with j = 0 or k = 0 hold by the identity convention. We name this identity *Extended Associativity*. The same identity convention extends OrdShiftHom (a) — `subspace(shift(v, n)) = subspace(v)` (ASN-0036) — to n = 0, since shift(v, 0) = v.
 
-**SUBCONF — Subspace confinement.** For any V-position v with #v = m ≥ 2 and any n ∈ ℕ, `subspace(v + n) = subspace(v)`: an in-region ordinal shift preserves the subspace, by OrdShiftHom (a) of ASN-0036 (extended to n = 0 above). Consequently every correspondence run lies within a single subspace — each of its positions is a shift v + k (0 ≤ k < n) of its V-start v, so all share subspace(v). We cite this fact below as *SUBCONF* wherever a run, or a cut-relative shift, is shown to stay within one subspace.
+**SUBCONF — Subspace confinement.** For any V-position v with #v = m ≥ 2 and any n ∈ ℕ, `subspace(v + n) = subspace(v)`: an in-region ordinal shift preserves the subspace, by OrdShiftHom (a) of ASN-0036 (extended to n = 0 above). Consequently every correspondence run lies within a single subspace — each of its positions is a shift v + k (0 ≤ k < n) of its V-start v, so all share subspace(v).
 
 
 ## Cut Points and the Region Partition
@@ -825,7 +825,7 @@ Sorted by V-start: {([1,1], B, 1), ([1,2], A, 1), ([1,3], C, 1), ([2,1], L, 1)}.
 | R-SPERM | LEMMA | Bijection π for 4-cut swap: α shifts forward by w_β + w_μ, μ shifts by w_β − w_α, β shifts backward by w_α + w_μ | introduced |
 | R-FRAME-P | FRAME | Pivot: other subspaces, other documents, and content store are preserved | introduced |
 | R-FRAME-S | FRAME | Swap: other subspaces, other documents, and content store are preserved | introduced |
-| R-NS | LEMMA | M'(d) = M(d) on non-S positions (NS-M); π fixes them pointwise by its definition | introduced |
+| R-NS | LEMMA | M'(d) = M(d) on non-S positions (NS-M) | introduced |
 | R-RI | LEMMA | Rearrangement preserves S3 (referential integrity): ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
 | R-COMM | LEMMA | π(v + k) = π(v) + k when v and v + k lie in the same region: cut-point permutation commutes with ordinal shift | introduced |
 | R-BLK | LEMMA | Run partition transforms by split-at-cuts then displace-per-region, yielding a run partition B′ (run-partition disjointness/coverage + S8-cons) under M'(d); maximality not claimed | introduced |
