@@ -416,8 +416,6 @@ The example exercises both the first-emit and subsequent-emit branches of K.α a
 
 The base case holds.
 
-**Static discharge of SD.** SD (StoreDisjointness) is not transition-indexed: at any `Σ'` satisfying L0 and StoreT4Validity, SD follows pointwise via T7 (see the SD definition), independent of which transition produced `Σ'`. It is therefore discharged once, statically, rather than per transition, and is omitted from the matrix below.
-
 **Inductive step.** Per (invariant, transition):
 
 | Invariant | K.σ | K.α | K.λ |
