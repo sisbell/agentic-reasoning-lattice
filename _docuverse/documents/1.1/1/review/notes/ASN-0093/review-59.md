@@ -1,0 +1,19 @@
+# Review of ASN-0093
+
+## REVISE
+
+### Issue 1: ChainUniformZeroCount is an introduced-but-unconsumed per-chain discipline
+**ASN-0093, "Per-chain disciplines (ASN-0040 citations)"**: "**ChainUniformZeroCount.** Every element of `A_C(d)` (resp. `A_L(d)`) has `zeros = 3`. *Source: ASN-0040 SiblingStream postcondition* …"
+
+**Problem**: This discipline has no consumer anywhere in the note. The `zeros = 3` obligation for stored addresses is discharged elsewhere by a *different* mechanism:
+- C1 / L1 discharge it via the first-emit structural form plus the per-step **B5a (SiblingZerosPreservation)** (`zeros(inc(·,0)) = zeros(·)`), not via this whole-chain discipline.
+- FirstEmissionFreshness's T7 argument reads `zeros = 3` from FirstEmission's structural form and from C1/L1.
+- Cross-document disjointness uses M0's `zeros = 2` and the anchors' `zeros = 3` (from the anchor construction), not this discipline.
+
+The remaining four disciplines are each consumed (ChainElementT4Validity → StoreT4Validity/FirstEmissionFreshness; ChainEnumerationInjectivity → ChainMembershipForOrigin/SubsequentEmissionFreshness/C1c-subsequent; DisjointSubAllocatorChains → L0/SubsequentEmissionFreshness; ChainPrefixExtension → FirstEmissionFreshness). ChainUniformZeroCount alone is stranded — consistent with its consumers in the invariant table having been switched to B5a, which left the discipline definition orphaned. In a note carrying the anti-bloat classifier, an introduced discipline with zero downstream uses is exactly the noise the precise reader must skip.
+
+**Required**: Remove the ChainUniformZeroCount bullet, or, if a whole-chain `zeros = 3` statement is genuinely wanted, cite the concrete discharge that consumes it (and drop the redundant B5a route in C1/L1 so there is a single source).
+
+META: not applicable — the ASN defines state, three allocation operations, and the invariants they preserve at the right level of abstraction; this is a stray discipline, not drift.
+
+VERDICT: REVISE
