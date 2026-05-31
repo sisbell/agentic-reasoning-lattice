@@ -91,7 +91,7 @@ The first step seats the field-separating zero at position `#s + 1`, between the
 
 `(A a ∈ dom(Σ.L) :: T4-valid(a))`
 
-This is the T4-validity postcondition established by L1c's chain, and it is the *single* licensing fact this ASN uses for the field projections on link addresses: with every link address T4-valid and element-level (L1, `zeros(a) = 3`), T4b's `E`, `N`, `U`, `D` projections (UniqueParse, ASN-0034) are well-defined on all of `dom(Σ.L)`, so `subspace_I(a) = E(a)₁` and `home(a)` exist for every `a ∈ dom(Σ.L)`. T4-validity is load-bearing here, and `zeros(a) = 3` alone (L1) would not suffice: a tumbler with three zeros but adjacent zeros or a zero boundary has no well-defined field parse. Every subsequent claim that needs these projections on `dom(Σ.L)` — L0, L1a, and the link-address instances of Definition — home — invokes this fact by citing L0b rather than re-deriving the T4b domain argument.
+This is the T4-validity postcondition established by L1c's chain, and it is the *single* licensing fact this ASN uses for the field projections on link addresses: with every link address T4-valid and element-level (L1, `zeros(a) = 3`), T4b's `E`, `N`, `U`, `D` projections (UniqueParse, ASN-0034) are well-defined on all of `dom(Σ.L)`, so `subspace_I(a) = E(a)₁` and `home(a)` exist for every `a ∈ dom(Σ.L)`. T4-validity is load-bearing here, and `zeros(a) = 3` alone (L1) would not suffice: a tumbler with three zeros but adjacent zeros or a zero boundary has no well-defined field parse.
 
 **L0 — SubspacePartition.** Every link address has subspace identifier `s_L`:
 
@@ -117,7 +117,7 @@ The membership clause requires that `home(a)` be an allocated, owned document in
 
 This mirrors S8a's `#t ≥ 2` for V-positions (ASN-0036). A link address must carry two distinct element-field components: a *subspace identifier* — the first component `E(a)₁ = s_L`, fixed by L0 — and a *within-subspace ordinal* that follows it. The subspace identifier alone cannot address a link, since L0 assigns the same `s_L` to every link in a document; distinguishing siblings (L11a, LinkUniqueness) requires a further ordinal component, so the element field needs at least these two. Gregory confirms: under the `LINKATOM` hint, `findisatoinsertmolecule` allocates the element portion as a fixed subspace digit (`2`, the link subspace) followed by a separately-incremented ordinal digit — the link element field carries exactly these two components, never one.
 
-**L1d — SubspaceDisjointness (local lemma).** Two T4-valid element-level tumblers residing in distinct subspaces are distinct, and consequently links and `s_C`-resident content occupy disjoint address sets. This lemma is sited here because its discharge requires L0, L0a, L0b, and L1; it is consumed downstream by L0's preservation argument (FSP), L9, L14, L14a, and the worked example — none of which is L1b — so it is stated as a free-standing result rather than threaded through the element-field-depth claim.
+**L1d — SubspaceDisjointness (local lemma).** Two T4-valid element-level tumblers residing in distinct subspaces are distinct, and consequently links and `s_C`-resident content occupy disjoint address sets.
 
 (a) *Pairwise separation.* For T4-valid `x, y` with `zeros(x) = zeros(y) = 3` and `subspace_I(x) ≠ subspace_I(y)`: `x ≠ y`. This is T7 (FirstElementFieldDistinction, ASN-0034) in the `subspace_I` notation — T7's precondition (T4-validity and `zeros = 3` on each side) is met, `subspace_I(x) = E(x)₁ ≠ E(y)₁ = subspace_I(y)`, so T7's postcondition gives `x ≠ y`.
 
@@ -169,7 +169,7 @@ where `Span` is the set of well-formed span pairs `(s, ℓ)` satisfying T12 (Spa
 
 We write `|L|` for the *arity* of a link — the number of endsets in the sequence.
 
-**Convention — StandardTriple.** The standard link form has arity 3, with slot 1 as the *from-endset*, slot 2 as the *to-endset*, and slot 3 as the *type-endset*. We write `(F, G, Θ)` for a link following this convention. Nelson's MAKELINK operation takes these three endsets plus a home document, and Gregory's implementation hardcodes three V-addresses (1.1, 2.1, 3.1) and three spanfilade index constants (`LINKFROMSPAN = 1`, `LINKTOSPAN = 2`, `LINKTHREESPAN = 3`). The standard triple is the dominant case — but it is a convention, not a structural limit.
+**Convention — StandardTriple.** The standard link form has arity 3, with slot 1 as the *from-endset*, slot 2 as the *to-endset*, and slot 3 as the *type-endset*. We write `(F, G, Θ)` for a link following this convention. Nelson's MAKELINK operation takes these three endsets plus a home document, and Gregory's implementation fixes the arity at 3. The standard triple is the dominant case — but it is a convention, not a structural limit.
 
 *Named accessor.* We introduce the abbreviation `Σ.L(a).type ≡ Σ.L(a).e₃` as a synonym for the indexed accessor of slot 3.
 
