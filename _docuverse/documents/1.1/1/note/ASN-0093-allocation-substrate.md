@@ -184,7 +184,7 @@ Both anchors satisfy ASN-0040's `B6` (ValidDepth) at depth `1`: `b_C(d)` and `b_
 
 This establishes the T4-validity of `[d.0.s_C.1]` (resp. `[d.0.s_L.1]`) and the per-step admissibility of the first `inc(·, 1)` step. ∎
 
-**Per-chain disciplines (ASN-0040 citations).** Each discipline below is named for the substrate's local reference and discharged by the cited ASN-0040 result applied to the sibling stream `A_C(d) = S(b_C(d), 1)` (resp. `A_L(d) = S(b_L(d), 1)`), whose parent `(b_·(d), 1)` is `B6`-valid (verified above).
+**Per-chain disciplines (ASN-0040 citations).** Each discipline is the cited ASN-0040 result applied to the sibling stream `A_C(d) = S(b_C(d), 1)` (resp. `A_L(d) = S(b_L(d), 1)`), whose parent `(b_·(d), 1)` is `B6`-valid (verified above).
 
 - **ChainElementT4Validity.** Every element of `A_C(d)` (resp. `A_L(d)`) is T4-valid. *Source: ASN-0040 B6(a) (ValidDepth sufficiency)* — for `B6`-valid `(p, d)`, every `cₙ ∈ S(p, d)` satisfies T4.
 
@@ -420,7 +420,7 @@ Each transition-indexed invariant is discharged by induction on transition seque
 - **L-fin** (`|dom(L)| < ∞`): `|∅| = 0 < ∞` — trivially true.
 - **C-fin** (`|dom(C)| < ∞`): `|∅| = 0 < ∞` — trivially true.
 
-*Derived lemmas at Σ₀.* ChainPrefixExtension (transition-independent in conclusion, but quantified over `d ∈ dom(M)`) holds vacuously at `Σ₀` since `dom(M₀) = ∅`. ChainMembershipForOrigin holds vacuously: for every `d` (vacuous since `dom(M₀) = ∅`), both `dom(C₀) ∩ {a' : origin(a') = d} = ∅ ∩ … = ∅ = {t_1, …, t_0}` witnessing `m_d = 0` and similarly `n_d = 0` for the link clause. StoreT4Validity holds vacuously over the empty stores. FirstEmissionFreshness and SubsequentEmissionFreshness have no firing context at `Σ₀` (no K.α or K.λ event has fired), so their predicates range over no events. The other chain-indexed disciplines (ChainElementT4Validity, ChainEnumerationInjectivity, ChainUniformZeroCount, DisjointSubAllocatorChains) are state-independent ASN-0040 citations holding for every sibling stream `S(b_·(d), 1)` — including the vacuously empty family of sub-allocator chains at `Σ₀`.
+*Derived lemmas at Σ₀.* All derived lemmas hold vacuously at `Σ₀` because `dom(C₀)`, `dom(L₀)`, `dom(M₀)` are empty (the chain-indexed ASN-0040 disciplines — ChainElementT4Validity, ChainEnumerationInjectivity, ChainUniformZeroCount, DisjointSubAllocatorChains — hold regardless, being state-independent citations).
 
 The base case holds.
 
@@ -442,7 +442,7 @@ The base case holds.
 | **L1c** (LinkAllocatorConformance) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key via the T10a-conforming step sequence (see *L1c chain exhibition* below — first-emit and subsequent-emit cases) |
 | **L3** (NEndsetStructure) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `|L(ℓ)| ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` |
 | **L12** (LinkImmutability) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: effect extends `dom(L)` at fresh `ℓ`; value at existing keys unaltered (definitional) |
-| **L14** (StoreDisjointness) | Preserved by frame: `C`, `L` both in frame, so IH-L14 (`dom(C) ∩ dom(L) = ∅`) transfers directly | Discharged at the new key `a` by the `E(·)₁`-partition + T7 derivation: first-emit by FirstEmissionFreshness (content case against `dom(L)`); subsequent-emit at the fresh key `a = inc(a_prev, 0) ∈ A_C(d)` reading `E(a)₁ = s_C` from DisjointSubAllocatorChains, each peer `ℓ ∈ dom(L)` carrying `E(ℓ)₁ = s_L` by IH-L0, then SC-NEQ + T7 (T4-validity from StoreT4Validity); prior keys by IH-L14 + frame on `L` | Discharged at the new key `ℓ`, symmetric: first-emit by FirstEmissionFreshness (link case against `dom(C)`); subsequent-emit at the fresh key `ℓ = inc(ℓ_prev, 0) ∈ A_L(d)` reading `E(ℓ)₁ = s_L` from DisjointSubAllocatorChains, each peer `a ∈ dom(C)` carrying `E(a)₁ = s_C` by IH-L0, then SC-NEQ + T7; prior keys by IH-L14 + frame on `C` |
+| **L14** (StoreDisjointness) | Preserved by frame: `C`, `L` both in frame, so IH-L14 (`dom(C) ∩ dom(L) = ∅`) transfers directly | Discharged at the new key `a`: the only new obligation is `a ∉ dom(L)`, given by FirstEmissionFreshness (first-emit) / SubsequentEmissionFreshness (subsequent-emit), cross-subspace clause; prior keys by IH-L14 + frame on `L` | Discharged at the new key `ℓ`, symmetric: the only new obligation is `ℓ ∉ dom(C)`, given by FirstEmissionFreshness (first-emit) / SubsequentEmissionFreshness (subsequent-emit), cross-subspace clause; prior keys by IH-L14 + frame on `C` |
 | **L-fin** (LinkStoreFiniteness) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: `|dom(L')| = |dom(L)| + 1`; finiteness closed under +1 |
 | **C-fin** (ContentStoreFiniteness) | Preserved: `C` in frame | Discharged: `|dom(C')| = |dom(C)| + 1`; finiteness closed under +1 | Preserved: `C` in frame |
 
