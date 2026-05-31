@@ -7,8 +7,6 @@ This note extracts the *allocation-substrate* layer: the three allocation primit
 
 ## Scope
 
-Downstream ASNs that operate on the link store without needing arrangement mutation, entity stratification, or provenance recording can cite this substrate directly. Downstream ASNs that need any of the deferred machinery cite a higher-layer transition model that itself depends on this substrate.
-
 **Provided.** Three primitive operations (`K.σ`, `K.α`, `K.λ`) and the structural invariants, sub-allocator chains, chain disciplines, and transition-indexed lemmas they preserve — enumerated, with sources, in the *Properties Introduced* table.
 
 **Substrate axioms:** SubspaceConventionAxiom pinning `s_C = 1 ∧ s_L = 2`; SequentialTransitionAxiom committing transitions to atomic and sequential.
@@ -311,7 +309,7 @@ Signature: `K.λ(d, ℓ, (e₁, …, eₙ))` where the link value is a finite se
 - `ℓ` is produced by `d`'s link sub-allocator `A_L(d)`:
   - *First emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`): `ℓ = [d.0.s_L.1]`, the determinate first emission of `A_L(d)`. Freshness against `dom(L) ∪ dom(C)` is supplied by FirstEmissionFreshness.
   - *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(ℓ_prev, 0)` (TA5(c)) where `ℓ_prev := max{ℓ' ∈ dom(L) : origin(ℓ') = d}`, the next sibling on `A_L(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (L-fin restricted by `origin(·) = d`). Freshness of `ℓ` against `dom(L) ∪ dom(C)` is discharged in the inductive step (see the L1c subsequent-emit exhibition and the L14 / ChainMembershipForOrigin rows of the discharge matrix).
-- `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` (well-formed link value with mandatory non-empty type endset at slot 3 — L3). The StandardTriple default is retained for worked examples and notational compactness; the substrate admits arbitrary arity `N ≥ 3`.
+- `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` (well-formed link value with mandatory non-empty type endset at slot 3 — L3).
 
 *Effect:* `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}`
 
@@ -418,7 +416,7 @@ Each transition-indexed invariant is discharged by induction on transition seque
 - **L-fin** (`|dom(L)| < ∞`): `|∅| = 0 < ∞` — trivially true.
 - **C-fin** (`|dom(C)| < ∞`): `|∅| = 0 < ∞` — trivially true.
 
-*Derived lemmas at Σ₀.* ChainPrefixExtension (transition-independent in conclusion, but quantified over `d ∈ dom(M)`) holds vacuously at `Σ₀` since `dom(M₀) = ∅`. ChainMembershipForOrigin holds vacuously: for every `d` (vacuous since `dom(M₀) = ∅`), both `dom(C₀) ∩ {a' : origin(a') = d} = ∅ ∩ … = ∅ = {t_1, …, t_0}` witnessing `m_d = 0` and similarly `n_d = 0` for the link clause. StoreT4Validity holds vacuously over the empty stores. FirstEmissionFreshness has no firing context at `Σ₀` (no K.α or K.λ event has fired), so the predicate ranges over no events. The other chain-indexed disciplines (ChainElementT4Validity, ChainUniformLength, ChainEnumerationInjectivity, ChainUniformZeroCount, DisjointSubAllocatorChains) are state-independent ASN-0040 citations holding for every sibling stream `S(b_·(d), 1)` — including the vacuously empty family of sub-allocator chains at `Σ₀`.
+*Derived lemmas at Σ₀.* ChainPrefixExtension (transition-independent in conclusion, but quantified over `d ∈ dom(M)`) holds vacuously at `Σ₀` since `dom(M₀) = ∅`. ChainMembershipForOrigin holds vacuously: for every `d` (vacuous since `dom(M₀) = ∅`), both `dom(C₀) ∩ {a' : origin(a') = d} = ∅ ∩ … = ∅ = {t_1, …, t_0}` witnessing `m_d = 0` and similarly `n_d = 0` for the link clause. StoreT4Validity holds vacuously over the empty stores. FirstEmissionFreshness has no firing context at `Σ₀` (no K.α or K.λ event has fired), so the predicate ranges over no events. The other chain-indexed disciplines (ChainElementT4Validity, ChainEnumerationInjectivity, ChainUniformZeroCount, DisjointSubAllocatorChains) are state-independent ASN-0040 citations holding for every sibling stream `S(b_·(d), 1)` — including the vacuously empty family of sub-allocator chains at `Σ₀`.
 
 The base case holds.
 
@@ -501,11 +499,11 @@ L1c's strengthened clauses: `k₁ = 2` by construction (step 1 above); `n = 3 �
 | C-fin | ContentStoreFiniteness | INV (derived) | Inductively from `Σ₀.C = ∅` + K.α |
 | ChainDiscipline | ContentLinkSubAllocatorChainDiscipline | LEMMA (derived) | Premises: ASN-0040 SiblingStream; B6-validity of each parent `(b_·(d), 1)`; the K.α/K.λ emission rules. |
 | FirstEmission | FirstEmission | LEMMA (derived) | Premises: ChainDiscipline; ASN-0040 SiblingStream postcondition; TA5a; M0. |
-| ChainElementT4Validity | ChainElementT4Validity | CITATION | Every element of `A_C(d)` (resp. `A_L(d)`) is T4-valid. Cites ASN-0040 B6(a) (ValidDepth sufficiency) at `B6(b_·(d), 1)`. |
-| ChainEnumerationInjectivity | ChainEnumerationInjectivity | CITATION | The enumeration of `A_C(d)` (resp. `A_L(d)`) is strictly increasing under T1; hence injective and (by T1 trichotomy) order-preserving in both directions. Cites ASN-0040 S0 (StreamOrdering). |
-| ChainUniformZeroCount | ChainUniformZeroCount | CITATION | Every element of `A_C(d)` (resp. `A_L(d)`) has `zeros = 3`. Cites ASN-0040's SiblingStream postcondition (`d − 1 = 0` interior zeros at depth `1`) / B5a (SiblingZerosPreservation). |
-| DisjointSubAllocatorChains | DisjointSubAllocatorChains | CITATION | `A_C(d) ∩ A_L(d) = ∅`, with addresses of `A_C(d)` (resp. `A_L(d)`) carrying `E(·)₁ = s_C` (resp. `s_L`). Cites ASN-0040 B7 (NamespaceDisjointness) at the distinct `B6`-valid parents `(b_C(d), 1)`, `(b_L(d), 1)` (anchors disagree at position `#d + 2`, `s_C` vs `s_L`, by SC-NEQ). |
-| ChainPrefixExtension | ChainPrefixExtension | CITATION | Every chain element extends its anchor under Prefix: `b_C(d) ≼ t` for `t ∈ A_C(d)`, `b_L(d) ≼ t` for `t ∈ A_L(d)`. Cites ASN-0040 S1 (StreamPrefix) at `p = b_·(d)`; the abstract-stream quantifier covers chain elements not yet committed. |
+| ChainElementT4Validity | ChainElementT4Validity | CITATION | See *Per-chain disciplines*. Cites ASN-0040 B6(a). |
+| ChainEnumerationInjectivity | ChainEnumerationInjectivity | CITATION | See *Per-chain disciplines*. Cites ASN-0040 S0 (StreamOrdering). |
+| ChainUniformZeroCount | ChainUniformZeroCount | CITATION | See *Per-chain disciplines*. Cites ASN-0040 SiblingStream postcondition / B5a. |
+| DisjointSubAllocatorChains | DisjointSubAllocatorChains | CITATION | See *Per-chain disciplines*. Cites ASN-0040 B7 (NamespaceDisjointness). |
+| ChainPrefixExtension | ChainPrefixExtension | CITATION | See *Per-chain disciplines*. Cites ASN-0040 S1 (StreamPrefix). |
 | ChainMembershipForOrigin | ChainMembershipForOrigin | LEMMA | Premises: FirstEmission; ChainDiscipline; ChainEnumerationInjectivity; C2/L1a; SequentialTransitionAxiom. (Contiguous-prefix form mirrors ASN-0040 B1.) |
 | StoreT4Validity | StoreT4Validity | LEMMA (derived) | Derived from ChainMembershipForOrigin + ChainElementT4Validity: every entry of `dom(C) ∪ dom(L)` inhabits a sub-allocator chain whose every element is T4-valid. |
 | FirstEmissionFreshness | FirstEmissionFreshness | LEMMA (derived) | Premises: first-emit predicate; L0; SC-NEQ; ChainPrefixExtension; ChainMembershipForOrigin; Cross-document disjointness; StoreT4Validity; ChainElementT4Validity; T7; T10. |
