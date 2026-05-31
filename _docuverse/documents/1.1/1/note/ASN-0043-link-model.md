@@ -283,7 +283,7 @@ where `coverage(·)` is the address-set projection defined above. The relation i
 
 Nelson: "What the 'type' designation points to is completely arbitrary. This is because of the way we will be searching for links. The search mechanism does not actually look at what is stored under the 'type' it is searching for; it merely considers the type's address."
 
-Nelson's account grounds the choice: the type designation is consulted by address, not by what is stored there. Gregory confirms at the implementation level: `sporglset2linksetinrange` performs range-overlap matching via `crumqualifies2d` (a half-open interval intersection test), and `intersectlinksets` compares only link ISAs across the three endset queries — there is no span-equality test at any stage of retrieval. The implementation thus indexes by I-address coverage, not by span-set comparison.
+Gregory confirms at the implementation level: `sporglset2linksetinrange` performs range-overlap matching via `crumqualifies2d` (a half-open interval intersection test), and `intersectlinksets` compares only link ISAs across the three endset queries — there is no span-equality test at any stage of retrieval. The implementation thus indexes by I-address coverage, not by span-set comparison.
 
 Type matching decouples classification from content retrieval: a search for type X never fetches the bytes at address X — it only matches the address. This means:
 
@@ -549,7 +549,7 @@ We extend the state in six steps, naming each intermediate state, to verify L11b
 
 *L11b non-injectivity in `Σ_1`.* `|dom(Σ_1.L)| = 2`, `a ≠ a'`, and `Σ_1.L(a) = Σ_1.L(a') = (F, G, Θ)`. The link store is non-injective — two distinct addresses map to the same triple. This is the witness for L11b applied to `Σ` with `a`. ✓
 
-Define the span targeting `a`: `δ(1, 8) = [0, 0, 0, 0, 0, 0, 0, 1]` has action point `k = 8 = #a`, and `k ≤ #a` holds, so `(a, δ(1, 8))` is well-formed by T12. ✓
+*Step 2: adding the meta-link `a₂`.* Define the span targeting `a`: `δ(1, 8) = [0, 0, 0, 0, 0, 0, 0, 1]` has action point `k = 8 = #a`, and `k ≤ #a` holds, so `(a, δ(1, 8))` is well-formed by T12. ✓
 
 Define the meta-link:
 
