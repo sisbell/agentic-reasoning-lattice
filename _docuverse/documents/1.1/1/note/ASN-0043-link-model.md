@@ -17,9 +17,9 @@ We begin with a guarantee: the system must support connections between arbitrary
 
 First, connections must be *distinguishable*. If Alice asserts that paragraph P is a commentary on paragraph Q, and Bob independently makes the same assertion, these are two assertions, not one. Two connections between identical content must coexist as separate objects. Nelson confirms this forcefully: MAKELINK "always creates and always returns a fresh ID" — there is no find-or-create. Gregory's implementation confirms: each call to `docreatelink` allocates a new sequential address; there is no deduplication, no uniqueness constraint, no identity-by-endset.
 
-Second, connections must be *owned*. Alice’s annotation is hers; Bob’s is his. The system must record who made each connection, independently of what it connects — a link’s home document records ownership, not destination. (Nelson’s formulation of this principle is quoted at L2.)
+Second, connections must be *owned*. Alice’s annotation is hers; Bob’s is his. The system must record who made each connection, independently of what it connects — a link’s home document records ownership, not destination.
 
-Third, connections should be *referenceable*. One connection should be able to point to another, enabling compound relational structures — which requires a link to be addressable content that other links can reach. (Nelson’s CONS-cell formulation is quoted at L13.)
+Third, connections should be *referenceable*. One connection should be able to point to another, enabling compound relational structures — which requires a link to be addressable content that other links can reach.
 
 These three requirements — distinguishability, ownership, referenceability — force connections to be first-class addressed objects in the tumbler space. A connection that lacked its own address could not be distinguished from another connection with the same endpoints, could not be independently owned, and could not be pointed to by other connections. We are compelled to give connections their own permanent tumbler addresses.
 
@@ -167,7 +167,7 @@ We write `|L|` for the *arity* of a link — the number of endsets in the sequen
 
 **Convention — StandardTriple.** The standard link form has arity 3, with slot 1 as the *from-endset*, slot 2 as the *to-endset*, and slot 3 as the *type-endset*. We write `(F, G, Θ)` for a link following this convention. Nelson's MAKELINK operation takes these three endsets plus a home document, and Gregory's implementation hardcodes three V-addresses (1.1, 2.1, 3.1) and three spanfilade index constants (`LINKFROMSPAN = 1`, `LINKTOSPAN = 2`, `LINKTHREESPAN = 3`). The standard triple is the dominant case — but it is a convention, not a structural limit.
 
-*Named accessor.* We introduce the abbreviation `Σ.L(a).type ≡ Σ.L(a).e₃` as a synonym for the indexed accessor of slot 3; its well-definedness follows from L3, which guarantees `|Σ.L(a)| ≥ 3` for every `a ∈ dom(Σ.L)` in a conforming store.
+*Named accessor.* We introduce the abbreviation `Σ.L(a).type ≡ Σ.L(a).e₃` as a synonym for the indexed accessor of slot 3.
 
 **L3 — NEndsetStructure.** Every link in the link store is a sequence of at least three endsets, each in `Endset`, with slot 3 a non-empty type endset:
 
@@ -281,7 +281,7 @@ where `coverage(·)` is the address-set projection defined above. The relation i
 
 Nelson: "What the 'type' designation points to is completely arbitrary. This is because of the way we will be searching for links. The search mechanism does not actually look at what is stored under the 'type' it is searching for; it merely considers the type's address."
 
-The design choice — coverage rather than span-set identity — is a modeling commitment grounded in Nelson's account above: the type designation is consulted by address, not by what is stored there. We make `coverage` the criterion because coverage is exactly the address-set projection of an endset (per the Coverage definition above); two type endsets that reference the same address set are taken to be the same type regardless of how their spans are decomposed. Gregory confirms at the implementation level: `sporglset2linksetinrange` performs range-overlap matching via `crumqualifies2d` (a half-open interval intersection test), and `intersectlinksets` compares only link ISAs across the three endset queries — there is no span-equality test at any stage of retrieval. The implementation thus indexes by I-address coverage, not by span-set comparison.
+Nelson's account grounds the choice: the type designation is consulted by address, not by what is stored there. Gregory confirms at the implementation level: `sporglset2linksetinrange` performs range-overlap matching via `crumqualifies2d` (a half-open interval intersection test), and `intersectlinksets` compares only link ISAs across the three endset queries — there is no span-equality test at any stage of retrieval. The implementation thus indexes by I-address coverage, not by span-set comparison.
 
 Type matching decouples classification from content retrieval: a search for type X never fetches the bytes at address X — it only matches the address. This means:
 
