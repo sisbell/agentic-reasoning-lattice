@@ -290,8 +290,8 @@ Extends `dom(C)` with a fresh content address scoped to an allocated document.
 *Binding precondition:*
 - `d ∈ dom(M)` (home document exists)
 - `a` is produced by `d`'s content sub-allocator `A_C(d)`:
-  - *First emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} = ∅`): `a = [d.0.s_C.1]`. Freshness against `dom(C) ∪ dom(L)` is supplied by FirstEmissionFreshness.
-  - *Subsequent emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`): `a = inc(a_prev, 0)` (TA5(c)) where `a_prev := max{a' ∈ dom(C) : origin(a') = d}`, the next sibling on `A_C(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (C-fin restricted by `origin(·) = d`). Freshness of `a` against `dom(C) ∪ dom(L)` is supplied by SubsequentEmissionFreshness (the within-document / cross-document / cross-subspace split, above).
+  - *First emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} = ∅`): `a = [d.0.s_C.1]`.
+  - *Subsequent emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`): `a = inc(a_prev, 0)` (TA5(c)) where `a_prev := max{a' ∈ dom(C) : origin(a') = d}`, the next sibling on `A_C(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (C-fin restricted by `origin(·) = d`).
 - `v ∈ Val` (well-formed content value)
 
 *Effect:* `C' = C ∪ {a ↦ v}`
@@ -307,8 +307,8 @@ Signature: `K.λ(d, ℓ, (e₁, …, eₙ))` where the link value is a finite se
 *Binding precondition:*
 - `d ∈ dom(M)` (home document exists)
 - `ℓ` is produced by `d`'s link sub-allocator `A_L(d)`:
-  - *First emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`): `ℓ = [d.0.s_L.1]`, the determinate first emission of `A_L(d)`. Freshness against `dom(L) ∪ dom(C)` is supplied by FirstEmissionFreshness.
-  - *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(ℓ_prev, 0)` (TA5(c)) where `ℓ_prev := max{ℓ' ∈ dom(L) : origin(ℓ') = d}`, the next sibling on `A_L(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (L-fin restricted by `origin(·) = d`). Freshness of `ℓ` against `dom(L) ∪ dom(C)` is supplied by SubsequentEmissionFreshness (the within-document / cross-document / cross-subspace split, above).
+  - *First emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`): `ℓ = [d.0.s_L.1]`, the determinate first emission of `A_L(d)`.
+  - *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(ℓ_prev, 0)` (TA5(c)) where `ℓ_prev := max{ℓ' ∈ dom(L) : origin(ℓ') = d}`, the next sibling on `A_L(d)`'s `inc(·, 0)` chain. The `max` is well-defined because the set is finite (L-fin restricted by `origin(·) = d`).
 - `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` (well-formed link value with mandatory non-empty type endset at slot 3 — L3).
 
 *Effect:* `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}`
@@ -416,7 +416,7 @@ The base case holds.
 | **M0** (DocumentTumblerWellFormed) | Discharged at new key: precondition pins `T4-valid(d) ∧ zeros(d) = 2` | Preserved: `M` in frame | Preserved: `M` in frame |
 | **M1** (ArrangementMonotonicity) | Discharged: effect extends `dom(M)` by union | Preserved: `M` in frame | Preserved: `M` in frame |
 | **M2** (EmptyArrangement) | Discharged at new key: effect clause pins `M'(d) = ∅`; prior keys preserved by frame on existing `M` entries | Preserved: `M` in frame | Preserved: `M` in frame |
-| **C0** (ContentImmutability) | Preserved: `C` in frame | Discharged: effect extends `dom(C)` at fresh `a` with value `v`; value at existing keys unaltered (definitional in effect clause) | Preserved: `C` in frame |
+| **C0** (ContentImmutability) | Preserved: `C` in frame | Discharged: effect extends `dom(C)` at fresh `a` with value `v`; value at existing keys unaltered (definitional in effect clause). The freshness `a ∉ dom(C) ∪ dom(L)` that the "fresh `a`" extension consumes is supplied by FirstEmissionFreshness (first-emit branch) / SubsequentEmissionFreshness (subsequent-emit branch) | Preserved: `C` in frame |
 | **C1** (ContentElementLevel) | Preserved: `C` in frame | Discharged at new key: first-emit branch pins `a = [d.0.s_C.1]`, whose form gives `zeros(a) = 3`; subsequent-emit branch has `a = inc(a_prev, 0)`, where `zeros(a) = zeros(a_prev) = 3` by B5a (SiblingZerosPreservation, the per-step `zeros(inc(·, 0)) = zeros(·)`) and the IH on `a_prev` | Preserved: `C` in frame |
 | **C1b** (ContentElementFieldDepth) | Preserved: `C` in frame — `dom(C)` unchanged, IH transfers | Discharged at new key: first-emit branch pins `a = [d.0.s_C.1]`, whose form gives `#E(a) = 2`; subsequent-emit branch has `a = inc(a_prev, 0)`: by TA5(b) the step preserves every position except `sig(a_prev)`, and for the T4-valid `a_prev`, TA5-SigValid places `sig(a_prev) = #a_prev` in the element field, so the third separator's position is untouched and `zeros(a) = zeros(a_prev)` by B5a (SiblingZerosPreservation); the element-field boundary is therefore invariant, giving `#E(a) = #E(a_prev) ≥ 2` by the IH on `a_prev` | Preserved: `C` in frame |
 | **C1c** (ContentAllocatorConformance) | Preserved: `C` in frame | Discharged at new key via the T10a-conforming step sequence (see *C1c chain exhibition* below — first-emit and subsequent-emit cases) | Preserved: `C` in frame |
@@ -427,7 +427,7 @@ The base case holds.
 | **L1b** (LinkElementFieldDepth) | Preserved: `L` in frame — `dom(L)` unchanged, IH transfers | Preserved: `L` in frame — `dom(L)` unchanged, IH transfers | Discharged at new key: identical to the C1b K.α discharge above under the content↔link substitution (`ℓ`, `ℓ_prev`, `A_L(d)` for `a`, `a_prev`, `A_C(d)`) |
 | **L1c** (LinkAllocatorConformance) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key via the T10a-conforming step sequence (see *L1c chain exhibition* below — first-emit and subsequent-emit cases) |
 | **L3** (NEndsetStructure) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `|L(ℓ)| ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` |
-| **L12** (LinkImmutability) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: effect extends `dom(L)` at fresh `ℓ`; value at existing keys unaltered (definitional) |
+| **L12** (LinkImmutability) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: effect extends `dom(L)` at fresh `ℓ`; value at existing keys unaltered (definitional). The freshness `ℓ ∉ dom(L) ∪ dom(C)` that the "fresh `ℓ`" extension consumes is supplied by FirstEmissionFreshness (first-emit branch) / SubsequentEmissionFreshness (subsequent-emit branch) |
 | **SD** (StoreDisjointness) | Preserved: `C`, `L` both in frame, so `dom(C') = dom(C)`, `dom(L') = dom(L)`, IH transfers | Preserved as a standing consequence of L0/C1/L1/StoreT4Validity at `Σ'`: the new content key `a` has `E(a)₁ = s_C` (L0 C-clause, discharged this step), while every `ℓ ∈ dom(L)` has `E(ℓ)₁ = s_L` (L0 L-clause); SC-NEQ + T7 give `a ∉ dom(L)`, and `dom(L)` is unchanged, so `dom(C') ∩ dom(L') = ∅` | Symmetric to K.α under content↔link: the new link key `ℓ` has `E(ℓ)₁ = s_L`, every `a ∈ dom(C)` has `E(a)₁ = s_C`; SC-NEQ + T7 give `ℓ ∉ dom(C)`, and `dom(C)` is unchanged, so `dom(C') ∩ dom(L') = ∅` |
 | **L-fin** (LinkStoreFiniteness) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: `|dom(L')| = |dom(L)| + 1`; finiteness closed under +1 |
 | **C-fin** (ContentStoreFiniteness) | Preserved: `C` in frame | Discharged: `|dom(C')| = |dom(C)| + 1`; finiteness closed under +1 | Preserved: `C` in frame |
@@ -483,17 +483,17 @@ Per-step admissibility of all three steps is the *anchor-construction admissibil
 | SD | StoreDisjointness | INV (derived) | L0 + SC-NEQ + StoreT4Validity + T7 |
 | L-fin | LinkStoreFiniteness | INV (derived) | Inductively from `Σ₀.L = ∅` + K.λ |
 | C-fin | ContentStoreFiniteness | INV (derived) | Inductively from `Σ₀.C = ∅` + K.α |
-| ChainDiscipline | ContentLinkSubAllocatorChainDiscipline | LEMMA (derived) | Premises: ASN-0040 SiblingStream; B6-validity of each parent `(b_·(d), 1)`; the K.α/K.λ emission rules. |
+| ChainDiscipline | ContentLinkSubAllocatorChainDiscipline | LEMMA (derived) | ASN-0040 SiblingStream |
 | ChainElementT4Validity | ChainElementT4Validity | LEMMA (derived) | Source: ASN-0040 B6(a) (ValidDepth sufficiency), applied to `A_C(d) = S(b_C(d), 1)` / `A_L(d) = S(b_L(d), 1)`. |
 | ChainEnumerationInjectivity | ChainEnumerationInjectivity | LEMMA (derived) | Source: ASN-0040 S0 (StreamOrdering), applied to `A_C(d)` / `A_L(d)`. |
 | DisjointSubAllocatorChains | DisjointSubAllocatorChains | LEMMA (derived) | Source: ASN-0040 B7 (NamespaceDisjointness) + ChainPrefixExtension; `(b_C(d), 1) ≠ (b_L(d), 1)` by SC-NEQ. |
 | ChainPrefixExtension | ChainPrefixExtension | LEMMA (derived) | Source: ASN-0040 S1 (StreamPrefix), applied at `p = b_C(d)` / `b_L(d)`. |
-| FirstEmission | FirstEmission | LEMMA (derived) | Premises: ChainDiscipline; ASN-0040 SiblingStream postcondition; TA5a; M0. |
-| ChainMembershipForOrigin | ChainMembershipForOrigin | LEMMA | Premises: FirstEmission; ChainDiscipline; ChainEnumerationInjectivity; C2/L1a; SequentialTransitionAxiom. (Contiguous-prefix form mirrors ASN-0040 B1.) |
+| FirstEmission | FirstEmission | LEMMA (derived) | Substrate |
+| ChainMembershipForOrigin | ChainMembershipForOrigin | LEMMA | Substrate |
 | StoreT4Validity | StoreT4Validity | LEMMA (derived) | Derived from C1c/L1c + T10a.4: each store entry is the terminus of a T10a-conforming chain from its T4-valid document seed, so T4-validity propagates to the terminus. |
 | FirstEmissionFreshness | FirstEmissionFreshness | LEMMA (derived) | Substrate; cross-document (T10) + cross-subspace (T7) freshness — premises inline at the lemma above. |
 | SubsequentEmissionFreshness | SubsequentEmissionFreshness | LEMMA (derived) | Substrate; within-/cross-document + cross-subspace freshness — premises inline at the lemma above. |
-| Cross-doc disjointness | Cross-document disjointness lemma | LEMMA | Premises: M0; T4 + Prefix (ASN-0034); T10 (PartitionIndependence); ASN-0040 B7 (NamespaceDisjointness, stream-level corollary). |
+| Cross-doc disjointness | Cross-document disjointness lemma | LEMMA | T10 (PartitionIndependence, ASN-0034) |
 | SubspaceConventionAxiom | FixedSubspaceIdentifiers | AXIOM | Substrate commitment; see State model. |
 | SequentialTransitionAxiom | SequentialAtomicTransitions | AXIOM | Substrate commitment: `Σ → Σ'` is atomic, uninterruptible, totally ordered. |
 | K.σ | DocumentRegistration | OP | Substrate-level document introduction into `dom(M)` |
