@@ -79,7 +79,7 @@ This parallels S7b for content (ASN-0036). A link address carries all four tumbl
 
 `home(a) = N(a).0.U(a).0.D(a)`
 
-extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034), well-defined precisely because `a` is T4-valid and element-level. This is the same field-extraction formula ASN-0036 uses to define `origin` on content addresses, applied here to link addresses. Every link address meets the precondition: `zeros(a) = 3` by L1, and T4-validity from L1c's chain (LinkAllocatorConformance, below) via T10a.4.
+extracted via T4b's projections `N`, `U`, `D` (UniqueParse, ASN-0034), well-defined precisely because `a` is T4-valid and element-level. This is the same field-extraction formula ASN-0036 uses to define `origin` on content addresses, applied here to link addresses.
 
 **L1a — LinkScopedAllocation.** Every link address is allocated under the tumbler prefix of the document whose owner created it. By the home definition above, `home(a)` is well-defined on every `a ∈ dom(Σ.L)`, and we state the invariant in terms of it directly:
 
@@ -113,7 +113,7 @@ The first step seats the field-separating zero at position `#s + 1`, between the
 
 `(A a ∈ dom(Σ.L) :: T4-valid(a))`
 
-This is the T4-validity postcondition of L1c's chain: each `a ∈ dom(Σ.L)` is the terminus `tₙ` of a T10a-conforming chain from a T4-valid seed, and T10a.4 (T4PreservationUnderDiscipline, ASN-0034) propagates T4-validity along every step.
+This is the T4-validity postcondition established by L1c's chain.
 
 *The L0a discharge.* By L1, `zeros(a) = 3` for all `a ∈ dom(Σ.L)`; by S7b (ElementLevelIAddresses, ASN-0036), `zeros(b) = 3` for all `b ∈ dom(Σ.C)` (and a fortiori for `b ∈ dom(Σ.C)|_{s_C}`). T7's precondition requires both T4-validity and equal zero counts. T4-validity is discharged on each side: for `a ∈ dom(Σ.L)`, by L0b; for `b ∈ dom(Σ.C)`, by the content-side T4-validity established in L0a. With T4-validity discharged and `zeros(a) = zeros(b) = 3` on each side, T7 applies pairwise: for every `a ∈ dom(Σ.L)` and every `b ∈ dom(Σ.C)|_{s_C}`, L0 gives `subspace_I(a) = s_L` and the `s_C`-residence restriction gives `subspace_I(b) = s_C`; together with `s_L ≠ s_C` this yields `subspace_I(a) ≠ subspace_I(b)`, so T7's postcondition gives `a ≠ b`. Universally instantiating over the product `dom(Σ.L) × dom(Σ.C)|_{s_C}` lifts this pairwise distinctness to the scoped set disjointness:
 
