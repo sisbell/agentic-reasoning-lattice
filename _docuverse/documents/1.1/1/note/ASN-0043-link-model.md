@@ -208,7 +208,7 @@ Gregory confirms exhaustively. During storage, spans receive sequential V-addres
 
 `coverage(e) = (∪ (s, ℓ) : (s, ℓ) ∈ e : {t ∈ T : s ≤ t < s ⊕ ℓ})`
 
-This is the set of all tumbler addresses referenced by the endset. Note that coverage is a lossy projection: two endsets with different span decompositions may have identical coverage. For instance, `{(1, [3])}` and `{(1, [1]), (2, [2])}` cover the same addresses but are distinct endsets — they contain different spans, and by L5 (which collapses only reorderings of the same span collection, not distinct collections) they are not equal. Coverage tells us *which addresses* an endset references, abstracting away the particular decomposition into spans, but it does not determine endset identity.
+This is the set of all tumbler addresses referenced by the endset. Note that coverage is a lossy projection: two endsets with different span decompositions may have identical coverage. Coverage tells us *which addresses* an endset references, abstracting away the particular decomposition into spans, but it does not determine endset identity.
 
 
 ## Slot Distinction and Directionality
@@ -289,7 +289,7 @@ Type matching decouples classification from content retrieval: a search for type
 
 **L9 — TypeGhostPermission.** Ghost types are permitted. For any state `Σ` satisfying the state-local L- and S-invariants, with `dom(Σ.M) ≠ ∅`, and `s_C`-resident (L0a), there exists for every arity `N ≥ 3` a conforming state `Σ'` extending `Σ` (`Σ' ⊒ Σ`, StateExtension) with a link of arity `N` whose type endset references an address outside `dom(Σ'.C) ∪ dom(Σ'.L)`:
 
-`(A Σ : Σ satisfies the state-local L- and S-invariants ∧ dom(Σ.M) ≠ ∅ ∧ Σ s_C-resident : (A N ≥ 3 :: (E Σ' extending Σ, a ∈ dom(Σ'.L) :: |Σ'.L(a)| = N ∧ (E (t, len) ∈ Σ'.L(a).type :: t ∉ dom(Σ'.C) ∪ dom(Σ'.L)))))`
+`(A Σ : Σ satisfies the state-local L- and S-invariants ∧ dom(Σ.M) ≠ ∅ ∧ Σ s_C-resident : (A N ≥ 3 :: (E Σ' extending Σ, a ∈ dom(Σ'.L) :: |Σ'.L(a)| = N ∧ (E (t, len) ∈ Σ'.L(a).type :: t ∉ dom(Σ'.C) ∪ dom(Σ'.L)) ∧ Σ' satisfies the state-local L- and S-invariants)))`
 
 *Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X ∈ ℕ` with `s_X ≥ 1`, `s_X ≠ s_C`, and `s_X ≠ s_L` (such `s_X` exists since ℕ is unbounded and `s_C`, `s_L` are only two values).
 
@@ -498,7 +498,7 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L6 (SlotDistinction).* `Σ.L(a) = (F, G, Θ)` is a 3-tuple of endsets, with positional accessors `Σ.L(a).e₁ = F`, `Σ.L(a).e₂ = G`, `Σ.L(a).e₃ = Θ` well-defined. Standard-triple consequence: since `F ≠ G`, `(F, G, Θ) ≠ (G, F, Θ)` by component-wise tuple inequality at slot 1. ✓
 
-*L7 (DirectionalFlexibility) — illustration.* L6 distinguishes the link `(F, G, Θ)` from its slot-swap `(G, F, Θ)` as structurally distinct values, but no L-invariant determines whether `F` carries the "source" role and `G` the "target" role. The labels `F`, `G` in the standard triple are nominal — chosen above for prose convenience because the link was introduced as "a citation from `c₁` to `c₂`," but the structural part of that introduction is only that slot 1 holds `{(c₁, δ(1, 8))}` and slot 2 holds `{(c₂, δ(1, 8))}`. Whether reading slot 1 as "source" matches Nelson's directional convention depends entirely on the type at `g`; under a counterpart or equivalence type, the same `(F, G, Θ)` carries no directional weight at all (per L7). ✓
+*L7 (DirectionalFlexibility).* A META property imposing no constraint on any state; nothing about `Σ` is checkable against it. (No ✓.)
 
 *L8 (TypeByAddress) at `Σ` — reflexivity.* The single-link state admits a non-vacuous reflexivity check: `same_type(a, a) ⟺ coverage(Σ.L(a).type) = coverage(Σ.L(a).type)`. The right-hand side is a set-equality of identical sets, true by reflexivity. To exhibit the actual coverage concretely, `Σ.L(a).type = Θ = {(g, δ(1, 8))}`; since `#g = 8`, PrefixSpanCoverage applies, giving `coverage({(g, δ(1, 8))}) = {t ∈ T : g ≼ t}` — the set of all tumblers extending `g`. This is the address set against which any other link's type would be compared under L8's coverage-equality criterion. ✓
 
@@ -627,7 +627,7 @@ where `δ(2, 8) = [0, 0, 0, 0, 0, 0, 0, 2]` is the width-2 displacement at the t
 - `coverage(Θ_single) = {t : g ≤ t < g ⊕ δ(2, 8)} = {t : g ≤ t < h}` (one span).
 - `coverage(Θ_split) = {t : g ≤ t < g'} ∪ {t : g' ≤ t < h}` (two spans).
 
-The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared boundary `g'` (and `g < g' < h` under T1), so their union is exactly `[g, h) = {t : g ≤ t < h}`: any `t` with `g ≤ t < h` satisfies either `t < g'` (first interval) or `g' ≤ t` (second), and no `t` outside `[g, h)` is captured. Hence `coverage(Θ_split) = coverage(Θ_single)`, even though `Θ_split ≠ Θ_single` as endsets — the single span `(g, δ(2, 8))` is not a member of `Θ_split`, and neither member of `Θ_split` equals `(g, δ(2, 8))` (different widths), so by L5 the two are distinct span collections. This instantiates the lossy-projection case flagged in the Coverage definition.
+The two half-open intervals `[g, g')` and `[g', h)` are adjacent at the shared boundary `g'` (and `g < g' < h` under T1), so their union is exactly `[g, h) = {t : g ≤ t < h}`: any `t` with `g ≤ t < h` satisfies either `t < g'` (first interval) or `g' ≤ t` (second), and no `t` outside `[g, h)` is captured. Hence `coverage(Θ_split) = coverage(Θ_single)`, even though `Θ_split ≠ Θ_single` as endsets — the single span `(g, δ(2, 8))` is not a member of `Θ_split`, and neither member of `Θ_split` equals `(g, δ(2, 8))` (different widths), so by L5 the two are distinct span collections.
 
 *L8 (TypeByAddress) at `Σ_6` — coverage match across distinct decompositions.* `Σ_6.L(a₅).type = Θ_split` and `Σ_6.L(a₆).type = Θ_single`. By the defining biconditional, `same_type(a₅, a₆) ⟺ coverage(Σ_6.L(a₅).type) = coverage(Σ_6.L(a₆).type)`, and the right-hand side holds by the coverage equality just established. Therefore `same_type(a₅, a₆) = true` — the two links share a type despite holding *different span decompositions* in their type endsets, with no span-set equality between them. This is precisely the case that distinguishes L8's coverage criterion from a span-set-identity criterion: a span-set test would (wrongly) report these as different types, since `Θ_split ≠ Θ_single`. ✓
 
