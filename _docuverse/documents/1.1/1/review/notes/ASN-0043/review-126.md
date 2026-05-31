@@ -1,0 +1,17 @@
+# Review of ASN-0043
+
+## REVISE
+
+### Issue 1: L11a shared-home case asserts the second child-spawn is `inc(d.0.s_L, 1)` without showing `k' = 1` is forced
+
+**ASN-0043, L11a (LinkUniqueness), shared-home case, "Third…"**: "Third, from `d.0.s_L` both chains perform the second child-spawn `inc(d.0.s_L, 1)`. T10a's at-most-once constraint binds the pair `(d.0.s_L, 1)` just as it bound `(d, 2)`, so 𝒯 contains exactly one such spawn, seating a single *link-ordinal* allocator with base `d.0.s_L.1`."
+
+**Problem**: The whole shared-home argument turns on both chains sharing *this exact edge* `(d.0.s_L, 1)`, since the at-most-once constraint is per `(t, k')` pair. The proof carefully justifies the two preceding forced steps — the opening `inc(d, 2)` (from L1c's `k₁ = 2`) and the forced depth-1 sweep `d.0.1 → … → d.0.s_L` (position `#d + 2` can only be raised by depth-1 sibling advances, frozen by any descent) — but then simply asserts that the descent from `d.0.s_L` uses `k' = 1`. It never excludes the alternatives. A descent with `k' = 2` from `d.0.s_L` (which has `zeros = 3`) would seat a fourth zero, violating TA5a's `zeros ≤ 2` bound for `k' = 2` and producing a non-T4 output — barred because every link address is T4-valid (L0b); and any further depth-1 sibling advance would move the subspace identifier past `s_L`, contradicting L0. So `k' = 1` is the *unique* admissible second child-spawn — but that is exactly the load-bearing step left implicit. As written, "both chains perform `inc(d.0.s_L, 1)`" is the conclusion the paragraph needs, stated as if it were a premise.
+
+**Required**: Add the one-line justification that, from `d.0.s_L` (`zeros = 3`, subspace identifier `s_L` at the terminal position), the only T10a step that yields a T4-valid (L0b) link address at element-field depth `≥ 2` (L1b) is `inc(d.0.s_L, 1)` — `k' = 2` violates T4 (TA5a, `zeros(d.0.s_L) = 3`) and a further `inc(·, 0)` advances the subspace identifier off `s_L` (L0). Then the at-most-once appeal to `(d.0.s_L, 1)` is sound.
+
+## OUT_OF_SCOPE
+
+None.
+
+VERDICT: REVISE
