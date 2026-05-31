@@ -168,7 +168,7 @@ These anchors are *structurally producible* by T10a `inc` steps from `d`: `b_C(d
 
 since each chain's first emission is `inc(anchor, 1)` and successive elements advance by `inc(·, 0)`, coinciding by construction with the SiblingStream recurrence at `p = b_·(d)`, `k = 1`. The depth parameter is `1` in both cases, so the streams append no interior zero; each chain is thereby closed under `inc(·, 0)`, exactly the SiblingStream recurrence. We refer to this derived identity as **ChainDiscipline**.
 
-Both anchors satisfy ASN-0040's `B6` (ValidDepth) at depth `1`: `b_C(d)` and `b_L(d)` are T4-valid with `zeros = 3` (one separator inserted at position `#d + 1` under M0's T4-valid, `zeros = 2` document `d`), depth `1 ∈ {1, 2}`, and `zeros(b_·(d)) + (1 − 1) = 3 ≤ 3`. Consequently the ASN-0040 results this note consumes — `B6(a)`'s stream-T4-validity conclusion, the `SiblingStream` postconditions, `S0` (StreamOrdering), `S1` (StreamPrefix), `B5a` (SiblingZerosPreservation), and `B7` (NamespaceDisjointness) — apply to `A_C(d)` and `A_L(d)` directly.
+Both anchors satisfy ASN-0040's `B6` (ValidDepth) at depth `1`: `b_C(d)` and `b_L(d)` are T4-valid with `zeros = 3` (one separator inserted at position `#d + 1` under M0's T4-valid, `zeros = 2` document `d`), depth `1 ∈ {1, 2}`, and `zeros(b_·(d)) + (1 − 1) = 3 ≤ 3`. Each chain's parent `(b_·(d), 1)` is therefore B6-valid.
 
 **Lemma (FirstEmission).** The first emission of each chain has a determinate structural form:
   - *Content chain first-emit:* `t_1^C(d) = inc(b_C(d), 1) = [d.0.s_C.1]` — `E(·)₁ = s_C`, `origin(·) = d`, `#E(·) = 2`, `zeros(·) = 3`, and T4-valid.
@@ -250,7 +250,7 @@ This corollary discharges the T4-validity precondition of T7 (SubspaceDisjointne
 
   - *Within-document* (against `{a' ∈ dom(C) : origin(a') = d}`): `a = inc(a_prev, 0) ∈ A_C(d)` by ChainDiscipline's closure under `inc(·, 0)`, with `a_prev ∈ A_C(d)` by ChainMembershipForOrigin; ChainEnumerationInjectivity applied to `(a_prev, a)` gives strict advance past every prior same-chain sibling, so `a ∉ dom(C)` at `d`.
   - *Cross-document* (against `{a' ∈ dom(C) : origin(a') ≠ d}`): Cross-document disjointness applied to `(d, origin(a'))` plus T10 (PartitionIndependence, ASN-0034) gives `a ≠ a'`, exactly as in the FirstEmissionFreshness content-against-`dom(C)` case.
-  - *Cross-subspace* (against `dom(L)`): `E(a)₁ = s_C` (read along `A_C(d)` via L0 / DisjointSubAllocatorChains) while `E(ℓ)₁ = s_L` for every `ℓ ∈ dom(L)` (L0); SC-NEQ and T7 (SubspaceDisjointness, ASN-0034) close `a ≠ ℓ`, exactly as in the FirstEmissionFreshness content-against-`dom(L)` case.
+  - *Cross-subspace* (against `dom(L)`): `E(a)₁ = s_C` (read along `A_C(d)` via DisjointSubAllocatorChains — structural, since `a ∈ A_C(d)`; L0's C-clause cannot supply this, as `a ∉ dom(C)` at the freshness-check point) while `E(ℓ)₁ = s_L` for every pre-existing peer `ℓ ∈ dom(L)` (L0); SC-NEQ and T7 (SubspaceDisjointness, ASN-0034) close `a ≠ ℓ`, exactly as in the FirstEmissionFreshness content-against-`dom(L)` case.
 
 The link subsequent emission is symmetric under the content↔link substitution. ∎
 
@@ -434,13 +434,13 @@ The base case holds.
 | **M1** (ArrangementMonotonicity) | Discharged: effect extends `dom(M)` by union | Preserved: `M` in frame | Preserved: `M` in frame |
 | **C0** (ContentImmutability) | Preserved: `C` in frame | Discharged: effect extends `dom(C)` at fresh `a` with value `v`; value at existing keys unaltered (definitional in effect clause) | Preserved: `C` in frame |
 | **C1** (ContentElementLevel) | Preserved: `C` in frame | Discharged at new key: first-emit branch pins `a = [d.0.s_C.1]`, whose form gives `zeros(a) = 3`; subsequent-emit branch has `a = inc(a_prev, 0)`, where `zeros(a) = zeros(a_prev) = 3` by B5a (ChainUniformZeroCount) and the IH on `a_prev` | Preserved: `C` in frame |
-| **C1b** (ContentElementFieldDepth) | Preserved: `C` in frame — each prior key's `#E ≥ 2` transfers by the state-independence of `E(·)` (State model) | Discharged at new key: first-emit branch pins `a = [d.0.s_C.1]`, whose form gives `#E(a) = 2`; subsequent-emit branch has `a = inc(a_prev, 0)`, where `#a = #a_prev` by length preservation (TA5(c)), so `#E(a) = #E(a_prev) ≥ 2` by the IH on `a_prev` | Preserved: `C` in frame |
+| **C1b** (ContentElementFieldDepth) | Preserved: `C` in frame — `dom(C)` unchanged, IH transfers | Discharged at new key: first-emit branch pins `a = [d.0.s_C.1]`, whose form gives `#E(a) = 2`; subsequent-emit branch has `a = inc(a_prev, 0)`, where `#a = #a_prev` by length preservation (TA5(c)), so `#E(a) = #E(a_prev) ≥ 2` by the IH on `a_prev` | Preserved: `C` in frame |
 | **C1c** (ContentAllocatorConformance) | Preserved: `C` in frame | Discharged at new key via the T10a-conforming step sequence (see *C1c chain exhibition* below — first-emit and subsequent-emit cases) | Preserved: `C` in frame |
 | **C2** (ContentScopedAllocation) | Preserved: vacuously (no new content); for prior keys `a ∈ dom(C)`, `origin(a) ∈ dom(M) ⊆ dom(M')` (`C` in frame, M1 extends `dom(M)`) | Discharged at new key: precondition pins `origin(a) = d ∧ d ∈ dom(M)`; preserved at prior keys (`origin(·)` state-independent per State model, M1 extends `dom(M)`) | Preserved: `C` in frame; prior keys preserved by M1 |
 | **L0** (SubspacePartition) | Preserved: `L`, `C` in frame | Preserved on L-clause (`L` in frame); discharged at new key on C-clause: `E(a)₁ = s_C` read from the pinned emission — FirstEmission (first-emit) / DisjointSubAllocatorChains (subsequent-emit, `a = inc(a_prev, 0) ∈ A_C(d)`) | Discharged at new key on L-clause: `E(ℓ)₁ = s_L` read from the pinned emission — FirstEmission (first-emit) / DisjointSubAllocatorChains (subsequent-emit); preserved on C-clause (`C` in frame) |
 | **L1** (LinkElementLevel) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: first-emit branch pins `ℓ = [d.0.s_L.1]`, whose form gives `zeros(ℓ) = 3`; subsequent-emit branch has `ℓ = inc(ℓ_prev, 0)`, where `zeros(ℓ) = zeros(ℓ_prev) = 3` by B5a (ChainUniformZeroCount) and the IH on `ℓ_prev` |
 | **L1a** (LinkScopedAllocation) | Preserved: vacuously (no new link); for prior keys `ℓ ∈ dom(L)`, `origin(ℓ) ∈ dom(M) ⊆ dom(M')` (M1 extends `dom(M)`) | Preserved: `L` in frame; prior keys preserved by M1 | Discharged at new key: precondition pins `origin(ℓ) = d ∧ d ∈ dom(M)`; prior keys preserved by M1 |
-| **L1b** (LinkElementFieldDepth) | Preserved: `L` in frame (each prior key's `#E ≥ 2` transfers by the state-independence of `E(·)`, State model) | Preserved: `L` in frame (same) | Discharged at new key: first-emit branch pins `ℓ = [d.0.s_L.1]`, whose form gives `#E(ℓ) = 2`; subsequent-emit branch has `ℓ = inc(ℓ_prev, 0)`, where `#ℓ = #ℓ_prev` by length preservation (TA5(c)), so `#E(ℓ) = #E(ℓ_prev) ≥ 2` by the IH on `ℓ_prev` |
+| **L1b** (LinkElementFieldDepth) | Preserved: `L` in frame — `dom(L)` unchanged, IH transfers | Preserved: `L` in frame — `dom(L)` unchanged, IH transfers | Discharged at new key: first-emit branch pins `ℓ = [d.0.s_L.1]`, whose form gives `#E(ℓ) = 2`; subsequent-emit branch has `ℓ = inc(ℓ_prev, 0)`, where `#ℓ = #ℓ_prev` by length preservation (TA5(c)), so `#E(ℓ) = #E(ℓ_prev) ≥ 2` by the IH on `ℓ_prev` |
 | **L1c** (LinkAllocatorConformance) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key via the T10a-conforming step sequence (see *L1c chain exhibition* below — first-emit and subsequent-emit cases) |
 | **L3** (NEndsetStructure) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged at new key: precondition pins `|L(ℓ)| ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` |
 | **L12** (LinkImmutability) | Preserved: `L` in frame | Preserved: `L` in frame | Discharged: effect extends `dom(L)` at fresh `ℓ`; value at existing keys unaltered (definitional) |
@@ -491,13 +491,13 @@ L1c's strengthened clauses: `k₁ = 2` by construction (step 1 above); `n = 3 �
 | C0 | ContentImmutability | INV | Substrate; restated from ASN-0036 S0/S1 |
 | C1 | ContentElementLevel | INV | Substrate; restated from ASN-0036 S7b |
 | C1b | ContentElementFieldDepth | INV | Substrate; content-side analog of L1b (ASN-0036 carries no content-side `#E(a) ≥ 2`) |
-| C1c | ContentAllocatorConformance | INV | Substrate; content-side analog of L1c (see *C1c chain exhibition*) |
+| C1c | ContentAllocatorConformance | INV | Substrate; content-side analog of L1c |
 | C2 | ContentScopedAllocation | INV | Substrate; content-side analog of L1a |
 | L0 | SubspacePartition | INV | ASN-0043 (L-clause); C-clause added here |
 | L1 | LinkElementLevel | INV | ASN-0043 |
 | L1a | LinkScopedAllocation | INV | ASN-0043 |
 | L1b | LinkElementFieldDepth | INV | ASN-0043 |
-| L1c | LinkAllocatorConformance | INV | ASN-0043 (see *L1c chain exhibition*) |
+| L1c | LinkAllocatorConformance | INV | ASN-0043 |
 | L3 | NEndsetStructure | INV | ASN-0043 |
 | L12 | LinkImmutability | INV | ASN-0043 |
 | L14 | StoreDisjointness | INV (derived) | L0 + SC-NEQ + StoreT4Validity + T7 |
