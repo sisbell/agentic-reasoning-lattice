@@ -34,7 +34,7 @@ This ASN draws on projection functions and predicates established in the foundat
 
 *Content/link domain notation.* `dom_C(M(d)) := V_{s_C}(d) := {v ∈ dom(M(d)) : subspace(v) = s_C}`; symmetrically `dom_L(M(d)) := V_{s_L}(d) := {v ∈ dom(M(d)) : subspace(v) = s_L}`. The `V_S(d)` form generalises to any subspace S; both spellings appear in this ASN denotationally identically.
 
-*Entity-level allocator.* A T10a-tracked sub-allocator whose output addresses satisfy `zeros(·) ≤ 2`: node, account, document, and version sub-allocators.
+*Entity-level allocator.* A *tracked* sub-allocator whose output addresses satisfy `zeros(·) ≤ 2`: node, account, document, and version sub-allocators. Throughout this ASN *tracked* abbreviates ASN-0034's *activated* (AllocatedSet): a sub-allocator is tracked once an allocation event has activated it, and its *tracked domain* is the realized domain `domₛ(A)` — the finite prefix of `dom(A)` enumerated at state `s`. *Tracked-domain monotonicity* is ASN-0034's `domₛ(A) ⊆ dom_{s'}(A)` under NoDeallocation.
 
 *Set-inclusion notation.* Throughout this ASN, `⊂` and `⊃` denote *proper* (strict) subset and superset respectively — `A ⊂ B ≡ A ⊆ B ∧ A ≠ B`, and `A ⊃ B ≡ B ⊂ A`. The non-strict relations are written `⊆` and `⊇`.
 
@@ -723,7 +723,7 @@ ValidComposite★ is the sole definition of validity for the extended state: it 
 
 ## Orphan links and coupling flexibility
 
-The coupling constraints do not require K.λ to be paired with K.μ⁺_L. A composite consisting of K.λ alone is valid: J0 is vacuous (no content allocated), J1★ is vacuous (no content-subspace extension), and J1'★ is vacuous (no provenance change). The result is a link in dom(L) with no placement in any document's arrangement — an *orphan link*. This is a valid system state, not an error condition. State invariants are preserved: M, C, E, R are all in K.λ's frame (unchanged), so all arrangement, content, entity, and provenance invariants hold identically. L grows by one entry: dom(L') = dom(L) ∪ {ℓ}. K.λ's preconditions guarantee L0 (ℓ has subspace s_L, and ℓ ∉ dom(C) ensures dom(L') ∩ dom(C) = ∅), L1 (zeros(ℓ) = 3), L1a (origin(ℓ) ∈ E_doc), L3 (K.λ requires `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅`, so L3 is established for the new entry; L12 preserves all existing entries), L12 (existing entries unchanged: L'(ℓ') = L(ℓ') for all ℓ' ∈ dom(L)), and L14 (disjointness: ℓ ∉ dom(C), so dom(L') ∩ dom(C') = ∅). Nelson explicitly diagrams "deleted links" as a category of document content (LM 4/9): links that exist in permanent storage but are "not currently addressable, awaiting historical backtrack functions."
+The coupling constraints do not require K.λ to be paired with K.μ⁺_L. A composite consisting of K.λ alone satisfies ValidComposite★ vacuously: J0 is vacuous (no content allocated), J1★ is vacuous (no content-subspace extension), and J1'★ is vacuous (no provenance change). The orphan state is therefore a valid composite endpoint, not an error condition: the result is a link in dom(L) with no placement in any document's arrangement — an *orphan link*. The per-state invariants are preserved by K.λ's frame (M, C, E, R unchanged) and its preconditions (L growing by the single conforming entry ℓ), exactly as established by the Class (a) verification for K.λ; we do not restate those preservation facts here. Nelson explicitly diagrams "deleted links" as a category of document content (LM 4/9): links that exist in permanent storage but are "not currently addressable, awaiting historical backtrack functions."
 
 We do not add a J0 analog for links — the orphan state is architecturally intentional, satisfying both the permanence guarantee (L12: links are immutable once created) and the owner's right to withdraw (Nelson, LM 2/29).
 
@@ -1348,7 +1348,7 @@ The four structural identities `K.δ-ID.zeros-0/1`, `K.δ-ID.zeros-2`, `K.δ-ID.
 
 ### Inherited from foundation (restated for narrative continuity)
 
-These properties are foundation invariants of ASN-0093 (or earlier foundation ASNs). They are restated in the body of this ASN purely for narrative continuity — every statement and every preservation argument is supplied by the cited foundation, not by local derivation.
+These properties are foundation invariants of ASN-0093 (or earlier foundation ASNs): the foundation supplies each *statement* and its preservation under the foundation's own transitions. Because this ASN introduces a new transition (K.μ⁺_L) and amends others (K.λ, K.μ⁺, K.μ⁻, K.μ~), preservation under those new and amended transitions cannot be supplied by the foundation — the foundation never reasoned over them — and is instead established *locally* in the Class (a) verification (e.g. the L0/L1c link-preservation arguments there). The restatements here record the foundation statements for narrative continuity; the local preservation arguments live with the per-transition verification.
 
 | Label | Statement | Foundation source |
 |-------|-----------|--------------------|
