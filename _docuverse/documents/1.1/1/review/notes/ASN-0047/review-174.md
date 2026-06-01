@@ -1,0 +1,25 @@
+# Review of ASN-0047
+
+## REVISE
+
+### Issue 1: Three-step replacement worked example uses a concrete address whose origin contradicts the variant's premise
+
+**ASN-0047, *Worked example: prior-provenance and first-time-transcluded replacements***: The "Common pre-state Σ_a" fixes a single literal for both variants — "The address `aₓ = 1.0.1.0.1.0.1.5` is already in `dom(C)` — its allocation history and `R` status differ between the two variants below." The three-step variant then asserts: "Σ_a has `(aₓ, d) ∉ R` instead — aₓ was allocated by another document `d_src ≠ d` (its origin)".
+
+**Problem**: With `d = 1.0.1.0.1`, the chosen `aₓ = 1.0.1.0.1.0.1.5` has tumbler `[1,0,1,0,1,0,1,5]` (zeros at positions 2,4,6), so `origin(aₓ) = N.0.U.0.D = 1.0.1.0.1 = d`. The literal's origin is `d`, directly contradicting the three-step variant's stated `origin(aₓ) = d_src ≠ d`. This is not merely a labeling slip: the three-step form requires `(aₓ, d) ∉ R`, and for a `d`-origin address that condition is *structurally unreachable* — K.α is coupled by J0 to placement and by J1★ to provenance recording, so any content allocated under `d` and arranged in `d` immediately yields `(aₓ, d) ∈ R`. The first-time-transcluded case therefore genuinely demands a foreign-origin address. The two-step variant, by contrast, *does* require `origin(aₓ) = d` (it is d's own previously-arranged-then-removed content), so the single shared literal cannot serve both variants.
+
+**Required**: Give the three-step variant a distinct foreign-origin address (e.g., `aₓ = 1.0.1.0.2.0.1.k` with `d_src = 1.0.1.0.2 ≠ d`), and keep the `d`-origin literal only for the two-step variant. Split the "Common pre-state" accordingly, or state explicitly that the two variants take different `aₓ` because their origin requirements differ.
+
+### Issue 2: The K.δ k=0 freshness discharge is forward-deferred three times to the same section
+
+**ASN-0047, K.δ case (ii)**: The fact that `inc(t, 0) ∉ E` is discharged via FrontierEquivalence in §*K.δ case (ii) discharge and parent-allocator activation* is announced three separate times before that section: (a) in the case-(ii) intro ("discharged per sub-case by the discharge route detailed in §… below: … FrontierEquivalence … at k = 0"), (b) in the k=0 sub-case bullet ("the operational frontier check, discharged below"), and (c) in *Rationale (k = 0 conjuncts)* ("its discharge as the frontier identification (via FrontierEquivalence) is detailed in §… below").
+
+**Problem**: This matches the flagged accretion pattern — multiple paragraphs deferring to the same downstream location for a single fact. The reader must skip three near-identical forward pointers to reach the one site that actually does the work, and the restated "via FrontierEquivalence … below" prose advances no reasoning at its three sites.
+
+**Required**: Keep one forward pointer (the case-(ii) intro is the natural site, since it already routes all three sub-cases), and drop the duplicated deferral clauses from the k=0 bullet and the *Rationale* paragraph — leaving only the local statement of the conjunct itself.
+
+## OUT_OF_SCOPE
+
+None. The Open Questions correctly defer fork-arrangement invariants, link-withdrawal/tombstoning mechanisms, concurrency, and address-space exhaustion to future ASNs.
+
+VERDICT: REVISE
