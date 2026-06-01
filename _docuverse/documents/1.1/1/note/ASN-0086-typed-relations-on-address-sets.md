@@ -13,11 +13,7 @@ We are looking for what a relation algebra over the link store affords. The answ
 
 **Assumption — EmptyInitialLinkStore.** This note takes the system's initial state `Σ_init` to be the *fresh-system root*, with all three stores empty: `dom(Σ_init.C) = ∅`, `dom(Σ_init.M) = ∅`, and in particular `dom(Σ_init.L) = ∅`. This is the fresh-system boot condition: Gregory's `initmagicktricks` constructs both the content (granf) and link (spanf) enfilades empty via `createenf` whenever no persistent store exists, so no link address is allocated before the first link emission.
 
-**State transition relation.** We write `Σ → Σ'` for the substrate's *dom-extending* one-step transition relation, which we identify exactly with the union of ASN-0093's three K-operations: `→ ≡ K.σ ∪ K.α ∪ K.λ`. Concretely, each `→`-step is one of:
-
-- a *K.σ-step* extends `dom(Σ.M)`, a *K.α-step* extends `dom(Σ.C)`, and a *K.λ-step* extends `dom(Σ.L)`, each at a fresh key per its ASN-0093 contract (K.σ registers `M'(d) = ∅` at a document-level `d`).
-
-ASN-0093's frame conditions on each K-op leave the other two components unchanged. Every dom-extending transition in `→` is one of the three K-ops; the substrate exposes no removal, replacement, or in-place mutation transition that touches `(dom(Σ.C), dom(Σ.M), dom(Σ.L))`.
+**State transition relation.** We write `Σ → Σ'` for the substrate's *dom-extending* one-step transition relation, which we identify exactly with the union of ASN-0093's three K-operations: `→ ≡ K.σ ∪ K.α ∪ K.λ`. A K.σ-step extends `dom(Σ.M)` (registering `M'(d) = ∅` at a document-level `d`), a K.α-step extends `dom(Σ.C)`, and a K.λ-step extends `dom(Σ.L)`, each at a fresh key per its ASN-0093 contract; ASN-0093's frame conditions leave the other two components unchanged, and the substrate exposes no removal, replacement, or in-place mutation transition that touches `(dom(Σ.C), dom(Σ.M), dom(Σ.L))`.
 
 *Arrangement modification is out of scope.* None of the three K-operations modifies any document's arrangement `M(d)` beyond K.σ's empty-initialization `M'(d) = ∅`. Hence the substrate admits no arrangement-modifying transition; persistence claims (R6c) are stated and proved against `→` alone. ASN-0093's M2 (EmptyArrangement) — `(A d ∈ dom(M) :: M(d) = ∅)` — is the invariant that results: empty initialization plus the absence of any arrangement-modifying operation keeps every arrangement empty at every reachable state.
 
@@ -500,9 +496,9 @@ The retraction of the retractor leaves `A_K^{Σ_3}` unchanged (R6b): restoring `
 | A_K^Σ | DEF | Active subset: `{(a, F, G) ∈ L_K^Σ : a ∉ nullified(Σ)}` |
 | → | DEF | Dom-extending state transition relation `→ ≡ K.σ ∪ K.α ∪ K.λ`. The complete dom-extending vocabulary of the substrate relation `→` under M2 (`↝` admits further dom-extensions, e.g. nesting, outside the K-op set) |
 | Unit-depth retraction discipline | COMMITMENT | (Three Operations) Layer-level convention: every `L_R^Σ` tuple has to-endset of the form `{(b, δ(1, #b))}` for some target `b ∈ A_rel^Σ` — i.e., every retraction came from a `Nullify` call. The substrate (K.λ) does not enforce this; the relational layer does, by definition of Nullify |
-| R0 | LEMMA | TupleAddressFreshness — under precondition `dom(Σ.M) ≠ ∅`, every emission allocates an address fresh against `dom(Σ.L)`, in both the first- and subsequent-emission branches, and yields a state-local-conforming post-state Σ' (full state-local L/S-invariant catalog re-derived conjunct-by-conjunct at the fresh key) |
-| L-ContiguousPrefix | LEMMA | ContiguousPrefix — `{a ∈ dom(Σ.L) : home(a) = d} = {incʲ(d.0.s_L.1, 0) : 0 ≤ j ≤ J_d^Σ}` for some `J_d^Σ ∈ ℤ_{≥-1}`, with unique T1-maximum at chain index `J_d^Σ` when non-empty; the reachable case is ChainMembershipForOrigin (ASN-0093), and L-ContiguousPrefix extends it to all substrate-conforming states; proof independent of R0a |
-| R0a | LEMMA | FlatLinkDomain — `dom(Σ.L)` is an antichain in `≼` at every substrate-conforming state (= L1 + L1a; same-home via L-ContiguousPrefix) |
+| R0 | LEMMA | TupleAddressFreshness — under precondition `dom(Σ.M) ≠ ∅`, every emission allocates an address fresh against `dom(Σ.L)`, in both the first- and subsequent-emission branches, and yields a state-local-conforming post-state Σ' |
+| L-ContiguousPrefix | LEMMA | ContiguousPrefix — `{a ∈ dom(Σ.L) : home(a) = d} = {incʲ(d.0.s_L.1, 0) : 0 ≤ j ≤ J_d^Σ}` for some `J_d^Σ ∈ ℤ_{≥-1}`, with unique T1-maximum at chain index `J_d^Σ` when non-empty |
+| R0a | LEMMA | FlatLinkDomain — `dom(Σ.L)` is an antichain in `≼` at every substrate-conforming state |
 | L-ContiguousPrefix-Cor1 | LEMMA | DepthTwoLinkAddresses — `#E(a) = 2` strictly for every `a ∈ dom(Σ.L)` (corollary of L-ContiguousPrefix) |
 | R1 | LEMMA | AddressInjectivity — `addr` is an injection (= function property of `Σ.L`) |
 | R2 | ALIAS | TupleAddressPermanence — addresses persist with values intact (definitional alias of L12) |
