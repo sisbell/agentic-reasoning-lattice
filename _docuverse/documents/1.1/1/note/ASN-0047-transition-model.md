@@ -125,7 +125,7 @@ This ASN uses properties of the link store. For self-containment, we restate the
 
 **SubspaceConventionAxiom (Axiom, FixedSubspaceIdentifiers; per ASN-0093).** `s_C = 1 ∧ s_L = 2`. The distinctness consequence `s_C ≠ s_L` is abbreviated **SC-NEQ**. The axiom is taken from ASN-0093 directly.
 
-The unscoped disjointness `dom(C) ∩ dom(L) = ∅` is established in the foundation as **SD (StoreDisjointness, ASN-0093)**, which ASN-0093 derives from L0 + SC-NEQ + StoreT4Validity + T7 (SubspaceDisjointness, ASN-0034). We restate it here as L14 for narrative continuity and cite ASN-0093 SD for its derivation rather than re-proving it; the premises SD rests on are all available in the extended state — L0's two clauses (per ASN-0093) supply `subspace_I(a) = s_C` for `a ∈ dom(C)` and `subspace_I(a) = s_L` for `a ∈ dom(L)`, SC-NEQ supplies `s_C ≠ s_L`, and StoreT4Validity is discharged on each side by `zeros(a) = 3` (S7b for content, L1 for links) placing every store address in T4b's parse domain.
+The unscoped disjointness `dom(C) ∩ dom(L) = ∅` is established in the foundation as **SD (StoreDisjointness, ASN-0093)**. It is restated as L14 below, with its derivation cited from ASN-0093.
 
 We note that `s_C ≥ 1` follows from S7b and T4: content I-addresses are element-level by S7b (`zeros(a) = 3`), and T4 requires every element-field component to be strictly positive, so `subspace_I(a) = s_C > 0`. The same derivation gives `s_L ≥ 1`: link I-addresses are element-level by L1 below (`zeros(ℓ) = 3`), so by T4, `subspace_I(ℓ) = s_L > 0`.
 
@@ -171,7 +171,7 @@ This is ASN-0093's SD (StoreDisjointness) restated; its derivation (L0 + SC-NEQ 
 
 **L-fin (LinkStoreFiniteness).** `|dom(Σ.L)| < ∞`. Holds at Σ₀ (|∅| = 0); preserved by K.λ (single-element extension) and by L-frame in all other transitions.
 
-All existing elementary transitions from ASN-0047 — K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.ρ — hold L in their extended-state frame: `L' = L`. Only K.λ (introduced below) extends L. L12 (LinkImmutability) follows trivially from this split: `L' = L` preserves dom(L) and values pointwise, and K.λ appends a fresh entry without altering existing ones.
+All existing elementary transitions from ASN-0047 — K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.ρ — hold L in their extended-state frame: `L' = L`. Only K.λ extends L. L12 (LinkImmutability) follows trivially from this split: `L' = L` preserves dom(L) and values pointwise, and K.λ appends a fresh entry without altering existing ones.
 
 
 ## Permanence
@@ -219,6 +219,8 @@ We seek the elementary modifications — the state changes from which all system
 
 **Convention.** A transition with unsatisfied preconditions does not fire.
 
+**Frame convention for inherited transitions.** Inherited K.* transitions extend ASN-0093's frame with `E' = E ∧ R' = R`, since ASN-0093 has no E or R components.
+
 **K.α (Content allocation).** Per ASN-0093 (foundation K.α, ContentAllocation): a fresh I-address is bound to a value in the content store. The precondition structure — `d ∈ E_doc` (home document exists; ASN-0093 writes this as `d ∈ dom(M)`, but under ASN-0047's totality framing where `M` is total with `M(d) = ∅` for `d ∉ E_doc`, `dom(M) = T` trivially and `d ∈ E_doc` is the substantive predicate), `a ∉ dom(C) ∪ dom(L)` (fresh address), `zeros(a) = 3 ∧ E(a)₁ = s_C` (element-level, content subspace), `#E(a) ≥ 2`, `origin(a) = d`, the first/subsequent emission cases producing `a` via d's content sub-allocator `A_C(d)`, and `v ∈ Val` — follows ASN-0093's K.α. The emission cases:
 
 - *First emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} = ∅`): `a = [d.0.s_C.1]`, the determinate first emission of `A_C(d)`. Freshness against `dom(C) ∪ dom(L)` is pinned by SubAllocatorAxiom.FirstEmission (ASN-0093) directly.
@@ -226,7 +228,7 @@ We seek the elementary modifications — the state changes from which all system
 
 *Effect:* `C' = C ∪ {a ↦ v}`.
 
-*Frame:* `L' = L; E' = E; (A d :: M'(d) = M(d)); R' = R`. The `E' = E` and `R' = R` conjuncts are local additions: ASN-0093 has no E or R components, so K.α's frame is extended here to record that it modifies neither.
+*Frame:* `L' = L; E' = E; (A d :: M'(d) = M(d)); R' = R`.
 
 **NodeLineage (Derived invariant, NodeDescentFromBootstrap).** `(A e ∈ E : IsNode(e) : n₀ ≼ e)`, where `≼` is the prefix order on tumblers (ASN-0034).
 
@@ -346,7 +348,7 @@ We observe that neither split nor merge appears as an elementary transition. Nel
 
 *Frame (extended state).* `C' = C; L' = L; E' = E; (A d :: M'(d) = M(d))`.
 
-**K.μ⁺ amendment (ContentSubspaceRestriction).** K.μ⁺ is amended with a content-subspace restriction: new V-positions must satisfy `subspace(v) = s_C`. This complements K.μ⁺_L (defined below), which handles link-subspace extensions exclusively. The restriction is necessary — without it, K.μ⁺ could create a link-subspace V-position mapping to dom(C), violating S3★. With this amendment, the two transitions partition arrangement extensions by subspace. The amended K.μ⁺ precondition is correspondingly strengthened: where the elementary definition required the resulting `M'(d)` to satisfy D-CTG and D-MIN on the content subspace `V_1(d)`, the extended-state precondition requires `M'(d)` to satisfy D-CTG★ and D-MIN★ (defined immediately below) restricted to the content subspace `S = s_C` — i.e. `V_{s_C}(d)` is contiguous under the V-ordering with `min(V_{s_C}(d)) = [s_C, 1, ..., 1]` when non-empty. The link subspace is preserved by the frame (`M'(d')` unchanged for `d' ≠ d`, and within `d` the link-subspace V-positions are untouched since K.μ⁺ adds only content-subspace positions), so the D-CTG★/D-MIN★ obligations on `V_{s_L}(d)` carry over from the pre-state unchanged. K.μ⁺_L (defined below) discharges the parallel contiguity and minimum-position obligations when the link subspace is the one extended.
+**K.μ⁺ amendment (ContentSubspaceRestriction).** K.μ⁺ is amended with a content-subspace restriction: new V-positions must satisfy `subspace(v) = s_C`. This complements K.μ⁺_L, which handles link-subspace extensions exclusively. The restriction is necessary — without it, K.μ⁺ could create a link-subspace V-position mapping to dom(C), violating S3★. With this amendment, the two transitions partition arrangement extensions by subspace. The amended K.μ⁺ precondition is correspondingly strengthened: where the elementary definition required the resulting `M'(d)` to satisfy D-CTG and D-MIN on the content subspace `V_1(d)`, the extended-state precondition requires `M'(d)` to satisfy D-CTG★ and D-MIN★ (defined immediately below) restricted to the content subspace `S = s_C` — i.e. `V_{s_C}(d)` is contiguous under the V-ordering with `min(V_{s_C}(d)) = [s_C, 1, ..., 1]` when non-empty. The link subspace is preserved by the frame (`M'(d')` unchanged for `d' ≠ d`, and within `d` the link-subspace V-positions are untouched since K.μ⁺ adds only content-subspace positions), so the D-CTG★/D-MIN★ obligations on `V_{s_L}(d)` carry over from the pre-state unchanged. K.μ⁺_L discharges the parallel contiguity and minimum-position obligations when the link subspace is the one extended.
 
 *Frame (extended state).* `C' = C; L' = L; E' = E; (A d' : d' ≠ d : M'(d') = M(d')); R' = R`.
 
@@ -485,7 +487,7 @@ In addition, the forward-allocation conjunct `(A ℓ' : ℓ' ∈ dom(L) ∧ orig
 
 *Effect:* `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}`.
 
-*Frame:* `C' = C; E' = E; (A d' :: M'(d') = M(d')); R' = R`. The `E' = E` and `R' = R` conjuncts are local additions: ASN-0093 has no E or R components, so K.λ's frame is extended here to record that it modifies neither.
+*Frame:* `C' = C; E' = E; (A d' :: M'(d') = M(d')); R' = R`.
 
 Cross-document disjointness is supplied by the Cross-document disjointness chain lemma (T10a.{2,5} → T10) above, applied with `p₁ := b_L(d)` and `p₂ := b_L(d')`.
 
@@ -529,6 +531,8 @@ Existing transitions preserve S3★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ c
 ## Link-subspace extension
 
 **LinkVPositionDepthAxiom (Axiom, FixedLinkVPositionDepth).** Each document `d ∈ E_doc` has a fixed link-subspace V-position depth `m_L(d) ≥ 2`, determined at the first link-subspace insertion into `d` and unchanged thereafter: `(A d ∈ E_doc, v : v ∈ dom(M(d)) ∧ subspace(v) = s_L : #v = m_L(d))`. The lower bound `m_L(d) ≥ 2` is the S8a requirement `#v ≥ 2` (ASN-0036) specialised to link-subspace V-positions; above it the axiom fixes no particular value.
+
+**Asymmetry with content-subspace depth (intentional).** No content-side analog of LinkVPositionDepthAxiom is imposed: a document's content-subspace V-position depth is *not* fixed per-document and may legitimately differ across re-populations. After a full content-subspace clearance (K.μ⁻ with `n'_{s_C} = 0`) leaves `V_{s_C}(d) = ∅`, S8-depth is vacuous, and a subsequent K.μ⁺ re-insertion may pin the first content V-position at any depth `m ≥ 2` admitted by `ValidFirstInsertionPosition(d, v, m)` (ASN-0036) — not necessarily the depth used before clearance. The link subspace is denied this freedom by LinkVPositionDepthAxiom's "unchanged thereafter"; the content subspace permits it. The distinction is the V/I separation applied consistently: stable identity must reside somewhere. A content byte's permanent identity lives in its I-address (Istream), so its V-position is a disposable rendering coordinate free to churn — "the address of a byte in its native document … may be constantly changing" (Nelson, LM 4/11), and links to that byte ride the I-address, not the V-position. A link, by contrast, has no separate I-space identity to fall back on: its address *is* its identity, the anchor other links and type-searches reference. The link-subspace V-position structure must therefore be pinned so that a link's arrangement coordinate does not drift out from under the references to it, whereas content depth carries no such referential load and is left free.
 
 **K.μ⁺_L (LinkSubspaceExtension).** Extends a document's arrangement in the link subspace.
 
@@ -736,7 +740,7 @@ and no other elementary steps. Step (ii) must produce a content-subspace arrange
 
 *Discharge of coupling constraints under the amended K.μ⁺.* J1★ is satisfied because step (ii)'s K.μ⁺ creates only content-subspace V-positions (by the amendment) and step (iii)'s K.ρ records provenance for each `a ∈ ran(M'(d_new))`, covering every content-subspace extension. J1'★ is satisfied because each new `(a, d_new) ∈ R' \ R` has `a ∈ ran(M'(d_new))` from a content-subspace extension — S3★'s content clause gives `M'(d_new)(v) ∈ dom(C)` for each such v, so `ran(M'(d_new)) ⊆ dom(C)` and P7 compatibility is maintained. Link-subspace mappings from the source document are not copied — the forked document's link subspace starts empty. This is consistent with Nelson's design: each document owns only its home links, and links from the source remain discoverable through the shared I-addresses via refractive following — "a link to one version of a Prismatic Document is a link to all versions" (Nelson). A mechanism for link inheritance under forking, if desired, would require K.μ⁺_L steps in the fork composite and is outside this ASN's scope.
 
-Since none of K.δ, K.μ⁺, K.ρ modify C (each has C' = C in its frame), a fork satisfies dom(C') = dom(C) — no new content is created. The provenance conclusion — that (a, d_new) ∈ R' for every a ∈ ran(M'(d_new)) — follows from J1 applied to the fresh-document case: the convention M(d_new) = ∅ gives ran(M'(d_new)) \ ran(M(d_new)) = ran(M'(d_new)), and J1 directly requires provenance recording for each such address. No additional constraint beyond J1 is needed.
+Since none of K.δ, K.μ⁺, K.ρ modify C (each has C' = C in its frame), a fork satisfies dom(C') = dom(C) — no new content is created. The provenance conclusion — that (a, d_new) ∈ R' for every a ∈ ran(M'(d_new)) — follows from J1★ (the extended-state coupling that supersedes J1) applied to the fresh-document case: the convention M(d_new) = ∅ gives that every content-subspace mapping in M'(d_new) is new to d_new's content-subspace range, and J1★ directly requires provenance recording for each such address. No additional constraint beyond J1★ is needed.
 
 The new document d_new is created empty (K.δ), its arrangement extended with mappings to the source's I-addresses (K.μ⁺, with `ran(M'(d_new)) ⊆ ran(M(d_src)|_{V_{s_C}(d_src)})`), and the new associations recorded (K.ρ). The precondition V_{s_C}(d_src) ≠ ∅ ensures K.μ⁺ is well-formed. Since K.μ⁺ (amended) creates only content-subspace V-positions, the I-addresses it maps to must lie in dom(C) (by S3★'s content clause). Only content-subspace V-positions in d_src have I-addresses in dom(C) — link-subspace V-positions map to dom(L), and dom(L) ∩ dom(C) = ∅ (L14). With V_{s_C}(d_src) ≠ ∅, there is at least one content I-address to transclude, so the strict domain extension dom(M'(d_new)) ⊃ dom(M(d_new)) = ∅ is satisfiable. The weaker condition M(d_src) ≠ ∅ is insufficient: a document with only link-subspace positions (reachable via K.δ + K.λ + K.μ⁺_L with no intervening K.μ⁺) has ran(M(d_src)) ⊆ dom(L), and no address in dom(L) can serve as the target of a content-subspace V-position. When the source's content subspace is empty — whether because M(d_src) = ∅ or because dom_C(M(d_src)) = ∅ — the fork definition does not apply; creation from such a source is ex nihilo (K.δ alone), not a fork. Nelson: "the new document's id will indicate its ancestry."
 
@@ -1341,7 +1345,7 @@ The matrix is a navigational index; each cell summarises the load-bearing argume
 
 *L3 (NEndsetStructure).* K.λ precondition `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` establishes L3 at the new entry; L12 preserves it pointwise for existing entries; Σ₀ has `dom(L₀) = ∅` so L3 holds vacuously at the base. All other transitions hold L in frame.
 
-*L14 (StoreDisjointness).* ASN-0093's SD (StoreDisjointness) restated; its derivation (L0 + SC-NEQ + StoreT4Validity + T7) is cited from ASN-0093 per the *Link store and extended system state* section.
+*L14 (StoreDisjointness).* ASN-0093's SD restated; cited from ASN-0093 (see L14 at *Link store and extended system state*).
 
 *L-fin (Link store finiteness).* `|dom(L)| < ∞`: base `|dom(L₀)| = 0`; K.λ extends dom(L) by exactly one address (finite extension preserves finiteness); all other transitions hold L in frame.
 
@@ -1420,7 +1424,7 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 | J1' | (a, d) ∈ R' \ R only when a ∈ ran(M'(d)) \ ran(M(d)) — new provenance requires new containment; *superseded by J1'★ in the extended state* (range-based content-subspace scoping) |
 | J2 | K.μ⁻ as elementary transition requires no coupling: C' = C ∧ L' = L ∧ E' = E ∧ R' = R |
 | J3 | K.μ~ as named composite requires no coupling: C' = C ∧ L' = L ∧ E' = E ∧ R' = R |
-| J4 | Fork composite: K.δ + K.μ⁺ + K.ρ (no other steps); precondition V_{s_C}(d_src) ≠ ∅; dom(C') = dom(C) follows from frames; provenance from J1; content-subspace-empty source is ex nihilo (K.δ), not fork |
+| J4 | Fork composite: K.δ + K.μ⁺ + K.ρ (no other steps); precondition V_{s_C}(d_src) ≠ ∅; dom(C') = dom(C) follows from frames; provenance from J1★/J1'★ (extended-state couplings); content-subspace-empty source is ex nihilo (K.δ), not fork |
 | P1 | Entity set is monotonically growing: E ⊆ E' for every transition, uniformly across levels |
 | P2 | Provenance relation is monotonically growing: R ⊆ R' for every transition |
 | P4 | Provenance bounds: Contains(Σ) ⊆ R, with stale entries possible from prior states |
@@ -1465,7 +1469,7 @@ These properties are foundation invariants of ASN-0093 (or earlier foundation AS
 | L3 | NEndsetStructure: `(A a ∈ dom(Σ.L) :: |Σ.L(a)| ≥ 3 ∧ (A i : 1 ≤ i ≤ |Σ.L(a)| : Σ.L(a).eᵢ ∈ Endset) ∧ Σ.L(a).e₃ ≠ ∅)` — every link is a sequence of at least three endsets with the type endset (slot 3) non-empty. Inherited verbatim from ASN-0093's L3 (which itself inherits from ASN-0043's `Link` definition admitting arity `N ≥ 3`). | ASN-0093 (NEndsetStructure) |
 | C-fin | ContentStoreFiniteness: `|dom(Σ.C)| < ∞`. Load-bearing for K.α's subsequent-emission case formula `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` — the indexed set is a subset of the finite `dom(C)`, so `max` is well-defined whenever non-empty. Inherited as a per-state invariant of the extended state; established at Σ₀ (`|dom(C₀)| = 0`) and preserved by K.α (extends by one) with frame on all other transitions. | ASN-0093 (ContentStoreFiniteness) |
 | L1c | LinkAllocatorConformance: every `ℓ ∈ dom(L)` has a structural inc-chain from its home document to `ℓ` — a finite sequence `(t₀, …, tₙ)` with `t₀ = origin(ℓ)`, `tₙ = ℓ`, each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfying T10a's per-step admissibility (T4-validity preservation, zero-count side condition at `kᵢ = 2`), `k₁ = 2`, and `#tᵢ > #origin(ℓ)` at every step. Originated in ASN-0093 as the structural-inc-chain form (weakened from ASN-0043's "operates within a system conforming to T10a"); ASN-0047 inherits this form unchanged. The anchor traversal `d → b_C(d) → b_L(d) → [d.0.s_L.1]` and the first link emission inhabit no T10a-tracked allocator domain — their activation discharge goes through SubAllocatorAxiom rather than T10a's T2 spawning rule, as already captured by ASN-0093's L1c. | ASN-0093 (LinkAllocatorConformance) — itself weakened from ASN-0043's L1c |
-| L14 | StoreDisjointness: `dom(C) ∩ dom(L) = ∅` — unscoped store disjointness. ASN-0093's SD restated under the local name L14; its derivation (L0 + SC-NEQ + StoreT4Validity + T7, SubspaceDisjointness ASN-0034) is cited from ASN-0093, not re-proved here. SD's unscoped form already supersedes ASN-0043's scoped L14 (DualPrimitive, `dom(L) ∩ dom(C)\|_{s_C} = ∅`), the unscoping being available because ASN-0093's K.α `E(a)₁ = s_C` precondition forces every `a ∈ dom(C)` to be `s_C`-resident. | ASN-0093 (SD, StoreDisjointness) |
+| L14 | StoreDisjointness: `dom(C) ∩ dom(L) = ∅` — unscoped store disjointness. ASN-0093's SD restated under the local name L14, cited from ASN-0093. SD's unscoped form already supersedes ASN-0043's scoped L14 (DualPrimitive, `dom(L) ∩ dom(C)\|_{s_C} = ∅`), the unscoping being available because ASN-0093's K.α `E(a)₁ = s_C` precondition forces every `a ∈ dom(C)` to be `s_C`-resident. | ASN-0093 (SD, StoreDisjointness) |
 
 ### Local extensions and strengthenings of foundation properties
 
