@@ -145,7 +145,7 @@ The address-structural L-invariants at `a` — L0 (`E(a)₁ = s_L`), L1 (`zeros(
 The one conjunct that needs a per-address chain argument is **L1c (LinkAllocatorConformance)** — that `a` is the T4-valid terminus of a T10a-conforming allocation chain seeded at its document-level prefix `home(a) = d`. We exhibit that chain explicitly in each branch, using only the per-address chain recurrence (state-independent), never store-wide contiguity:
 
 - *Subsequent branch.* `ℓ_prev` satisfies L1c at Σ (a state-local invariant), so there is a T10a-conforming chain `d = t_0, t_1, …, t_N = ℓ_prev` with each `t_i = inc(t_{i-1}, k_i)`, `k_1 = 2`, satisfying T10a's per-step admissibility. Append one sibling step `t_{N+1} = inc(ℓ_prev, 0) = a` (`k_{N+1} = 0`). A `k = 0` step is unconditionally T10a-admissible and preserves T4 (TA5a at `k = 0`, ASN-0034), so the extended sequence is a T10a-conforming chain from `d` to `a`; hence `a` satisfies L1c, with `home(a) = d` as its seed. The argument consults only `ℓ_prev`'s *own* L1c chain — not the contiguity of the homed-set around `ℓ_prev`.
-- *First branch.* `a = [d.0.s_L.1]` is the terminus of the anchor chain `d, inc(d, 2), inc(inc(d, 2), 0), inc(·, 1)`: the `k = 2` step seats the field-separating zero and content anchor `b_C(d) = inc(d, 2) = [d.0.s_C]`; the `k = 0` sibling step advances to the link anchor `b_L(d) = [d.0.s_L]` (`s_L = s_C + 1`); and the final `k = 1` child step yields `[d.0.s_L.1] = a` (FirstEmission's anchor construction, ASN-0093). Each step satisfies T10a's per-step admissibility, with each `k > 0` step discharged against its *own* input's zero-count: the `k = 2` step acts on `d` (`zeros(d) = 2 ≤ 2`, TA5a's tight bound for `k = 2`), and the `k = 1` step acts on `b_L(d)`, where `zeros(b_L(d)) = 3` (B5: `zeros(inc(d, 2)) = 2 + 1 = 3`, preserved by the intervening `inc(·, 0)`) so `zeros(b_L(d)) = 3 ≤ 3`, TA5a's tight bound for `k = 1`; T4 is preserved step-by-step by TA5a itself (`inc(·, 0)` unconditionally; `inc(·, k')` for `k' ∈ {1, 2}` within those same bounds, ASN-0034) — a per-step fact, not the store-wide T10a.4; hence `a` satisfies L1c, again with seed `d`.
+- *First branch.* `a = [d.0.s_L.1]` is the first emission of `A_L(d)`, and ASN-0093 already delivers the conforming chain and its T4-validity directly: FirstEmission (ASN-0093) constructs `a` as the anchor-chain terminus `d, inc(d, 2), inc(inc(d, 2), 0), inc(·, 1)` — the `k = 2` step seats the field-separating zero and content anchor `b_C(d) = inc(d, 2) = [d.0.s_C]`; the `k = 0` sibling step advances to the link anchor `b_L(d) = [d.0.s_L]` (`s_L = s_C + 1`); and the final `k = 1` child step yields `[d.0.s_L.1] = a` — and ChainElementT4Validity (ASN-0093) gives that every element of `A_L(d)`, hence `a`, is T4-valid. Both lemmas have as their standing precondition that `d` is a well-formed document address; M0 (DocumentTumblerWellFormed, ASN-0093) — equivalently S7d (DocumentAllocationDiscipline, ASN-0036) — supplies `zeros(d) = 2` from `d ∈ dom(Σ.M)`, which is exactly the zero-count that makes the anchoring `k = 2` step T4-preserving (`zeros(d) = 2 ≤ 2`, TA5a's tight bound for `k = 2`, ASN-0034) and propagates to `zeros(b_L(d)) = 3` (B5: `zeros(inc(d, 2)) = 2 + 1 = 3`, preserved by the intervening `inc(·, 0)`) for the final `k = 1` step (`zeros(b_L(d)) = 3 ≤ 3`, TA5a's tight bound for `k = 1`). Hence `a` satisfies L1c, with seed `d`.
 
 In both branches the chain is reconstructed from `a` and `d` alone — its existence does not depend on which other addresses populate `dom(Σ.L)`.
 
@@ -169,7 +169,7 @@ is exactly this contiguity at the terminal Σ, with `s_1 = [d.0.s_L.1]` by First
 
 `(A Σ : Σ substrate-conforming :: (A a, a' ∈ dom(Σ.L) :: a ≼ a' ⟹ a = a'))`
 
-*Proof.* The argument decomposes into two cases on `home(a)` vs. `home(a')`, both discharged by ASN-0093's chain machinery (or, equivalently, by T10a's allocator-disjointness lemmas):
+*Proof.* The argument decomposes into two cases on `home(a)` vs. `home(a')`, and the two cases rest on *different* premise sets. Case 1 (cross-home) uses only L1 + L1a — a zero-counting argument over the NUDE-prefix `home` projection, with no appeal to chain machinery. Case 2 (same-home) uses L-ContiguousPrefix + (UL) + T3 — the contiguous-chain structure that the substrate's allocator discipline supplies.
 
 *Case 1 — Cross-home (`home(a) ≠ home(a')`).* We show this case directly from L1's element-level constraint plus L1a's NUDE-prefix `home` projection — no chain machinery is required. Let `d = home(a)` and `d' = home(a')` with `d ≠ d'`.
 
@@ -199,7 +199,7 @@ T4b's element field `E(·)` is the suffix following the third zero. Since the th
 
 *Proof.* `Σ.L` is a partial function `T ⇀ Link` (ASN-0043, Definition of LinkStore). Function-ness gives uniqueness of value: if `a = a'`, then `Σ.L(a) = Σ.L(a')`, and that single value determines the triple `(F, G, K'')` stored at `a`. Therefore `F = F'`, `G = G'`, and the third endset `K''` is unique. Since `coverage(·)` is a pure function on endset values, `coverage(K'')` is a single fixed address set, so the coverage class `[K'']` is unique — whence both members of `L` lie in the same `L_{[K'']}`. ∎
 
-**R2 — TupleAddressPermanence** *(definitional alias of L12, not a result requiring verification).* Once allocated, a tuple address resolves permanently to the same relational content — `(A Σ → Σ', a ∈ dom(Σ.L), (F, G, K) = Σ.L(a) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = (F, G, K))`. This is L12 (LinkImmutability, ASN-0043) restated in tuple vocabulary; the alias holds by L12 verbatim, with no separate obligation.
+**R2 — TupleAddressPermanence** is L12 (LinkImmutability, ASN-0043) in tuple vocabulary: an allocated tuple address resolves permanently to the same relational content. It is a definitional alias, recorded in the Properties table; no separate obligation.
 
 *Consequence.* *Distinct emissions are distinguishable even when content matches.* Two agents independently filing tuples with identical `(F, G)` under identical `K` produce distinct addresses (R0 produces a fresh address regardless of value). By L11b (NonInjectivity, ASN-0043), value-level coincidence is permitted; by R1, address-level identity nevertheless distinguishes them. The substrate does not silently merge them.
 
@@ -217,7 +217,7 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 ## Subspace Disjointness (R4)
 
-**R4 — TupleAddressDisjointness** *(definitional alias of SD, not a result requiring verification).* Tuple addresses and document-content addresses are disjoint — `A_doc^Σ ∩ A_rel^Σ = ∅`. This is SD (StoreDisjointness, ASN-0093: `dom(Σ.C) ∩ dom(Σ.L) = ∅`) under the partition aliases `A_doc^Σ = dom(Σ.C)`, `A_rel^Σ = dom(Σ.L)`; the alias holds by SD verbatim, with no separate obligation.
+**R4 — TupleAddressDisjointness** is SD (StoreDisjointness, ASN-0093: `dom(Σ.C) ∩ dom(Σ.L) = ∅`) under the partition aliases `A_doc^Σ = dom(Σ.C)`, `A_rel^Σ = dom(Σ.L)`, giving `A_doc^Σ ∩ A_rel^Σ = ∅`. It is a definitional alias, recorded in the Properties table; no separate obligation.
 
 
 ## Self-Reference (R5)
