@@ -163,8 +163,6 @@ By ChainDiscipline (ASN-0093), each `t_{n+1} = inc(t_n, 0)`. By TA5(c) (Hierarch
 
 T4b's element field `E(·)` is the suffix following the third zero. Since the three zero positions of every `t_n` coincide with those of `t_1`, the third zero sits at position `#d + 1` in every chain element, and the element field's length is `#E(t_n) = #t_n − (#d + 1) = (#d + 3) − (#d + 1) = 2 = #E(t_1)`. Hence `#E(a) = 2`. ∎
 
-R0a-Cor2 tightens L1b's substrate admission `#E ≥ 2` to `#E = 2` — establishing depth-2 strictly as a structural consequence of the K.λ contract and the link sub-allocator chain axioms.
-
 **R1 — AddressInjectivity.** The map `addr : L → A_rel` is an injection:
 
 `(A (a, F, G), (a', F', G') ∈ L : a = a' :: F = F' ∧ G = G' ∧ both belong to the same coverage-class slice L_{[K]})`
@@ -314,9 +312,7 @@ That is, emit a tuple into the retraction relation with empty from-set and a uni
 
 The arity-3 restriction matches this note's scope. `A_K^Σ` is defined only over standard-triple links (Definition of `L_K^Σ`), so the active-subset effect of Nullify is meaningful only on arity-3 addresses. Nullifying a higher-arity address (`|Σ.L(a)| > 3`) would be a well-formed Emit_R, and would deposit `a` into `nullified(Σ')`, but no `A_K^{Σ'}` would feel the effect under the present definitions.
 
-**Definition — Unit-depth retraction discipline.** A layer satisfies the *unit-depth retraction discipline* iff every `L_R^Σ` tuple, in every state Σ the layer reaches, has a to-endset of the form `{(b, δ(1, #b))}` for some target `b ∈ A_rel^Σ` — equivalently, every `L_R^Σ` tuple was produced by a `Nullify(Σ, d_retr, b)` call.
-
-*Scope.* K.λ binds every emission *address* to the sibling-frontier chain but does not constrain the *shape* of a link's endsets, so the substrate does not enforce unit-depth retraction (a crafted broader-coverage retraction such as `Emit_R(Σ, d_retr, ∅, {(d, δ(1, #d))})` is L-invariant-conforming yet violates it); a layer that adopts the discipline must do so by definitional commitment of its retraction operation.
+**Definition — Unit-depth retraction discipline.** A layer satisfies the *unit-depth retraction discipline* iff every `L_R^Σ` tuple, in every state Σ the layer reaches, has a to-endset of the form `{(b, δ(1, #b))}` for some target `b ∈ A_rel^Σ` — equivalently, every `L_R^Σ` tuple was produced by a `Nullify(Σ, d_retr, b)` call. Because K.λ constrains every emission *address* to the sibling-frontier chain but leaves the *shape* of a link's endsets unconstrained, the discipline is a layer commitment, not a substrate guarantee — a crafted broader-coverage retraction such as `Emit_R(Σ, d_retr, ∅, {(d, δ(1, #d))})` is L-invariant-conforming yet violates it.
 
 **Definition — substrate-conforming layer.** A layer is *substrate-conforming* iff every operation it publishes over `(Σ.C, Σ.M, Σ.L)` satisfies both of the following at every step. Clause (a) enumerates the propositional invariants it must preserve; clause (b) is a step-local emission condition on each fresh link key.
 
