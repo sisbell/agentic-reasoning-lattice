@@ -21,7 +21,7 @@ We are looking for what a relation algebra over the link store affords. The answ
 
 ASN-0093's frame conditions on each K-op ensure that each primitive transition extends exactly one of `Σ.C`, `Σ.M`, `Σ.L` at a fresh key and leaves the other two components unchanged. Every dom-extending transition in `→` is one of the three K-ops; the substrate exposes no removal, replacement, or in-place mutation transition that touches `(dom(Σ.C), dom(Σ.M), dom(Σ.L))`.
 
-*Arrangement modification is out of scope.* ASN-0093's transition vocabulary consists of exactly the three K-operations K.σ, K.α, K.λ; none of them modifies any document's arrangement `M(d)` beyond K.σ's empty-initialization `M'(d) = ∅`. Hence the substrate admits no arrangement-modifying transition, and `→ ≡ K.σ ∪ K.α ∪ K.λ` is the complete dom-extending vocabulary; persistence claims (R6c) are stated and proved against `→` alone. ASN-0093's M2 (EmptyArrangement) — `(A d ∈ dom(M) :: M(d) = ∅)` — is the invariant that results: empty initialization plus the absence of any arrangement-modifying operation keeps every arrangement empty at every reachable state.
+*Arrangement modification is out of scope.* None of the three K-operations modifies any document's arrangement `M(d)` beyond K.σ's empty-initialization `M'(d) = ∅`. Hence the substrate admits no arrangement-modifying transition; persistence claims (R6c) are stated and proved against `→` alone. ASN-0093's M2 (EmptyArrangement) — `(A d ∈ dom(M) :: M(d) = ∅)` — is the invariant that results: empty initialization plus the absence of any arrangement-modifying operation keeps every arrangement empty at every reachable state.
 
 *Categorical transition relation `↝`.* We write `↝` for the *categorical* state-transition relation: the union of `→` with every state-transition relation any higher-layer operation may admit over `(Σ.C, Σ.M, Σ.L)`. Every `→`-step is an `↝`-step; `Σ ↝ Σ'` holds iff some admissible operation in some layer carries Σ to Σ'.
 
@@ -117,7 +117,7 @@ Each tuple emission allocates a fresh address (R0), the address-to-pair binding 
 
 *Proof.* R0 is a near-direct consequence of ASN-0093's K.λ contract. Pick any `d ∈ dom(Σ.M)` (precondition `dom(Σ.M) ≠ ∅` is given). We invoke K.λ at home `d` with value `(F, G, K)` ∈ Endset × Endset × T_admissible (which satisfies K.λ's L3-discharge precondition by L3-conformance of the triple: `|·| = 3`, `F, G ∈ Endset`, `K ∈ T_admissible` non-empty).
 
-K.λ's contract supplies the fresh address `a` directly via its first/subsequent emission rule. Throughout this proof — both the freshness discharge here and the post-state invariant discharge below — we use only ASN-0093's *per-address* chain facts, each characterizing a single address's own allocation chain, and never its store-wide, reachability-restricted lemmas (FirstEmissionFreshness, ChainMembershipForOrigin, SubsequentEmissionFreshness, R0a-Cor1), which assert store-wide contiguity and hold only at `→*`-reachable conforming states. The argument therefore carries over to every state-local-conforming state in the operations' domain (Definition — state-local-conforming state), not merely the `→*`-reachable ones; we do not restate this scope below.
+K.λ's contract supplies the fresh address `a` directly via its first/subsequent emission rule. Throughout this proof — both the freshness discharge here and the post-state invariant discharge below — we use per-address chain facts only, each characterizing a single address's own allocation chain. The argument therefore carries over to every state-local-conforming state in the operations' domain (Definition — state-local-conforming state), not merely the `→*`-reachable ones; we do not restate this scope below.
 
 In both branches, freshness against `dom(Σ.C)` is shared and immediate: once `E(a)₁ = s_L` and T4-validity of `a` are established (per branch, below), every `b ∈ dom(Σ.C)` has `E(b)₁ = s_C` (L0, ASN-0093) with `s_L ≠ s_C` (SC-NEQ, ASN-0093), and both `a` and `b` are element-level (`zeros = 3`) and T4-valid, so T7 (SubspaceDisjointness, ASN-0034) gives `a ≠ b`, hence `a ∉ dom(Σ.C)`. It remains, in each branch, to discharge freshness against `dom(Σ.L)`:
 
@@ -130,7 +130,7 @@ In both branches, freshness against `dom(Σ.C)` is shared and immediate: once `E
 
 In either branch, K.λ's effect is `Σ'.L = Σ.L ∪ {a ↦ (F, G, K)}` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M` per K.λ's Frame, witnessing R0's existential conclusion.
 
-*L-invariant preservation across the K.λ-step.* We discharge the post-state invariants at the fresh key `a` conjunct-by-conjunct, paralleling the freshness discharge above and — under the same per-address scope fixed there — using only state-independent, single-address chain facts.
+*L-invariant preservation across the K.λ-step.* We discharge the post-state invariants at the fresh key `a` conjunct-by-conjunct, paralleling the freshness discharge above.
 
 The frame-fixed and transition-shape invariants are immediate. K.λ's Frame fixes `(Σ.C, Σ.M)` pointwise, so every S-, M-, and C-invariant transfers by input-substitution; L-fin holds because `dom(Σ'.L) = dom(Σ.L) ∪ {a}` is a finite set adjoined a single key; L12/L12a hold because the step only *adjoins* `a` and alters no existing entry (the freshness bullets gave `a ∉ dom(Σ.L)`). The L14/L14a fresh-key obligation is the FreshLinkKeyDisjointness sub-lemma above (`E(a)₁ = s_L` excluded from content and arrangement-image by SC-NEQ).
 
@@ -373,9 +373,9 @@ The operations' postconditions admit explicit precondition analyses in two opera
 
 `P0(Σ, d_retr) ∧ P1(Σ, a) ∧ PC(Σ)`
 
-— where P0: `d_retr ∈ dom(Σ.M)`, P1: `a ∈ A_rel^Σ`, and PC: `Σ substrate-conforming` — is a *sufficient* precondition for the postcondition, with each conjunct load-bearing. It is **not** the weakest precondition (see *Non-weakestness* below): PC is a *global* conformance condition, while the postcondition is *local* to `a`'s prefix-subtree, so PC is strictly stronger than the postcondition requires. We state the stronger PC because it is exactly what the relational layer's usage discipline supplies — full substrate-conformance, not merely a local antichain on `a`'s subtree.
+— where P0: `d_retr ∈ dom(Σ.M)`, P1: `a ∈ A_rel^Σ`, and PC: `Σ substrate-conforming` — is a *sufficient* precondition for the postcondition, with each conjunct load-bearing. It is **not** the weakest precondition (see *Non-weakestness* below): PC is a *global* conformance condition, while the postcondition is *local* to `a`'s prefix-subtree, so PC is strictly stronger than the postcondition requires.
 
-*Domain of quantification.* This analysis ranges over the state-local-conforming sub-space (Definition — Emit_K). The "both pre- and post-state are substrate-conforming" claim in the Definition of Nullify describes the *relational layer's usage discipline*, which guarantees PC at every layer-issued call — not the operation's executable domain. For layer-initiated calls PC holds for free and the effective precondition collapses to `P0 ∧ P1`.
+*Domain of quantification.* This analysis ranges over the state-local-conforming sub-space (Definition — Emit_K). The "both pre- and post-state are substrate-conforming" claim in the Definition of Nullify describes the *relational layer's usage discipline*, which guarantees PC at every layer-issued call — not the operation's executable domain.
 
 *Sufficiency:* P1 combined with L12a discharges `a ∈ A_rel^{Σ'}`. The only other requirement — that no other link address fall within `{t : a ≼ t}` at Σ' — is exactly the result proved under R0a in the Definition of Nullify (paragraph *Single-tuple scope under R0a*): `{t : a ≼ t} ∩ A_rel^{Σ'} = {a}`. That derivation invokes R0a's antichain at both Σ and Σ', and R0a holds only at substrate-conforming states; PC supplies the hypothesis at Σ, and the conformance-preserving K.λ `→`-step carries it to Σ' (Definition — substrate-conforming layer).
 
@@ -511,22 +511,22 @@ The Δ-enumeration is `a_1 = a_A, a_2 = a_B` (or, equivalently, `a_1 = a_B, a_2 
 | → | DEF | Dom-extending state transition relation `→ ≡ K.σ ∪ K.α ∪ K.λ`. The complete dom-extending vocabulary under M2 |
 | Unit-depth retraction discipline | COMMITMENT | (Three Operations) Layer-level convention: every `L_R^Σ` tuple has to-endset of the form `{(b, δ(1, #b))}` for some target `b ∈ A_rel^Σ` — i.e., every retraction came from a `Nullify` call. The substrate (K.λ) does not enforce this; the relational layer does, by definition of Nullify |
 | R0 | LEMMA | TupleAddressFreshness — under precondition `dom(Σ.M) ≠ ∅`, every emission allocates a fresh address (see proof for the per-branch freshness discharge) |
-| R0a | LEMMA | FlatLinkDomain — `dom(Σ.L)` is an antichain in `≼` at every substrate-conforming state. Case 1 cross-home via L1 + L1a; Case 2 same-home via R0a-Cor1 (ContiguousPrefix) + (UL) + T3, equivalently via T10a.2 |
-| R0a-Cor1 | LEMMA | ContiguousPrefix — `{a ∈ dom(Σ.L) : home(a) = d} = {incʲ(d.0.s_L.1, 0) : 0 ≤ j ≤ J_d^Σ}` for some `J_d^Σ ∈ ℤ_{≥-1}`, with unique T1-maximum at chain index `J_d^Σ` when non-empty. Single-key contiguity induction on the at-most-one-key-per-home discipline (clause (b), Definition — substrate-conforming state) |
-| R0a-Cor2 | LEMMA | DepthTwoLinkAddresses — `#E(a) = 2` strictly for every `a ∈ dom(Σ.L)` (= R0a-Cor1 + (UL) + (UZ) + zero-position stability via TA5(c) + TA5-SigValid + ChainElementT4Validity (ASN-0093)) |
+| R0a | LEMMA | FlatLinkDomain — `dom(Σ.L)` is an antichain in `≼` at every substrate-conforming state (= L1 + L1a; same-home via R0a-Cor1) |
+| R0a-Cor1 | LEMMA | ContiguousPrefix — `{a ∈ dom(Σ.L) : home(a) = d} = {incʲ(d.0.s_L.1, 0) : 0 ≤ j ≤ J_d^Σ}` for some `J_d^Σ ∈ ℤ_{≥-1}`, with unique T1-maximum at chain index `J_d^Σ` when non-empty |
+| R0a-Cor2 | LEMMA | DepthTwoLinkAddresses — `#E(a) = 2` strictly for every `a ∈ dom(Σ.L)` (= R0a-Cor1) |
 | R1 | LEMMA | AddressInjectivity — `addr` is an injection (= function property of `Σ.L`) |
 | R2 | LEMMA | TupleAddressPermanence — addresses persist with values intact (= L12) |
 | R3 | LEMMA | TypedSliceMonotonicity — each `L_K^Σ` is monotone (= L12a + R2) |
-| R4 | LEMMA | TupleAddressDisjointness — `A_doc^Σ ∩ A_rel^Σ = ∅` (= SD (StoreDisjointness, ASN-0093), whose underlying derivation is ASN-0093 L0 + SC-NEQ + T7 (SubspaceDisjointness, ASN-0034)) |
-| R5 | LEMMA | TupleSelfTargeting — for any `a ∈ A_rel^Σ`, the span `(a, δ(1, #a))` is admissible as an endset member (= L4(c) + L13 + R0's invariant-preservation argument, which imposes no restriction on endset target content) |
-| R6a | LEMMA | RetractionStability — once nullified, always nullified (= R3 + R2 + purity of coverage) |
+| R4 | LEMMA | TupleAddressDisjointness — `A_doc^Σ ∩ A_rel^Σ = ∅` (= SD, StoreDisjointness, ASN-0093) |
+| R5 | LEMMA | TupleSelfTargeting — for any `a ∈ A_rel^Σ`, the span `(a, δ(1, #a))` is admissible as an endset member (= L4(c) + L13) |
+| R6a | LEMMA | RetractionStability — once nullified, always nullified (= R3 + R2) |
 | R6b | DEF-Consequence | SingleDepthRetraction — within-state claim: `a ∈ nullified(Σ)` holds even when its witnessing retractor `b ∈ nullified(Σ)`, because the existential in `nullified` ranges over the audit slice `L_R^Σ`, not the active subset `A_R^Σ` (definitional). Cross-`→` persistence is R6a |
-| R6c | LEMMA | RestorationByReemission — formal claim on `→*` (reflexive-transitive closure of dom-extending `→`): restoration is fresh emission, never retraction-of-retraction (= R6a + Reachability definition) |
+| R6c | LEMMA | RestorationByReemission — formal claim on `→*` (reflexive-transitive closure of dom-extending `→`): restoration is fresh emission, never retraction-of-retraction (= R6a) |
 | R7a | LEMMA | NoExtraClassAffectsL — for any state-affecting `Σ ↝ Σ'` issued by a substrate-conforming layer with `Σ.L ≠ Σ'.L`, the `Σ.L`-affecting effect decomposes into K.λ-steps interleaved with K.σ-setup steps for L1a's home-precondition: `Σ = Σ_0 → Σ_1 → … → Σ_m` (`m ≥ 1`) with `Σ_m.L = Σ'.L`, `dom(Σ_m.M) ⊆ dom(Σ'.M)`, `dom(Σ_m.C) = dom(Σ.C) ⊆ dom(Σ'.C)` (see proof for the premise list and per-step discharge) |
 | Relational layer | COMMITMENT | Operation set `{Emit_K, Observe_K, Nullify}` + reduction corollary; see Definition — relational layer |
 | Emit_K | OP | State-transforming: `Σ × dom(Σ.M) × Endset × Endset → Σ' × A_rel^{Σ'}`, operationally K.λ specialized to value `(F, G, K)`. Function-ness over the state-local-conforming sub-space follows from K.λ's deterministic first/subsequent emission rule (L-fin fixes the unique max element under T1). Caller-supplied home document `d ∈ dom(Σ.M)` and `K ∈ T_admissible`; the `dom(Σ.M) ≠ ∅` precondition of R0 is enforced by parameter typing |
 | Observe_K | OP | Pure read: `Σ × ℘_fin(T) × ℘_fin(T) × View → ℘_fin(L_K^Σ)`, selecting `L_K^Σ` or `A_K^Σ`. Patterns range over the full tumbler space `T` (not `A^Σ`) to admit ghost-targeting queries per L9 + L4 |
-| Nullify | OP | `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` for caller-supplied `d_retr ∈ dom(Σ.M)` and `a ∈ A_rel^Σ` with `|Σ.L(a)| = 3`. Single-tuple scope is proved in Definition — Nullify (*Single-tuple scope under R0a*); its sufficient-not-weakest precondition is analyzed at WP Case 1 (= R5 + R0 + R0a + R6a + L12) |
+| Nullify | OP | `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` for caller-supplied `d_retr ∈ dom(Σ.M)` and `a ∈ A_rel^Σ` with `|Σ.L(a)| = 3`. Single-tuple scope is proved in Definition — Nullify (*Single-tuple scope under R0a*); its sufficient-not-weakest precondition is analyzed at WP Case 1 |
 
 ## Open Questions
 
