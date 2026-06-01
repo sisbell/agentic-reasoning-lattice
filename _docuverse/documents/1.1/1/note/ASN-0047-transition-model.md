@@ -18,7 +18,7 @@ This ASN draws on projection functions and predicates established in the foundat
 - `E(a)` (ASN-0034, T4b): the element-field projection — the sequence of components after the last zero separator. `E(a)` is itself a positive-component tumbler with `#E(a) ≥ 1`.
 - `subspace_I(a)` (ASN-0036): the I-address subspace identifier, equal to `E(a)₁`.
 - `origin(a)` (ASN-0036, S7a): the document address `d ∈ E_doc` under whose allocator a was minted. For each `a ∈ dom(C)`, `origin(a) ∈ E_doc`; for each `ℓ ∈ dom(L)`, `origin(ℓ) ∈ E_doc` (L1a). origin is recovered by truncating a to the document prefix (zeros = 2).
-- `IsElement(a)`, `IsNode(a)`, `IsAccount(a)`, `IsDocument(a)`: pure abbreviations for ASN-0045's level predicates `Element(a)`, `Node(a)`, `Account(a)`, `Document(a)` respectively, parameterised by `zeros(a)` ∈ {0, 1, 2, 3}. Likewise `ValidAddress(t) := T4-valid(t)` (ASN-0045) throughout this ASN; the two spellings are synonyms.
+- `Element(a)`, `Node(a)`, `Account(a)`, `Document(a)` (ASN-0045): the level predicates, holding when `zeros(a)` is 3, 0, 1, 2 respectively. Address validity is `T4-valid(t)` (ASN-0045).
 - `#E(a)` (ASN-0034): the depth (component count) of the element-field projection `E(a)` supplied by T4b — i.e. `#a` minus the length of the node/user/document prefix together with its three zero separators.
 
 *V-position (arrangement-domain) projections.* For each `v ∈ dom(M(d))`:
@@ -28,7 +28,7 @@ This ASN draws on projection functions and predicates established in the foundat
 
 *Entity-hierarchy projections.* For each non-node entity `e ∈ E`:
 
-- `parent(e)` (introduced here, §The state model): the tumbler obtained by truncating e's last field together with its preceding zero separator. `parent(e)` is the entity-hierarchy spine — defined only for non-node entities (`¬IsNode(e)`), and producing a valid address at the next-higher level: `zeros(parent(e)) = zeros(e) − 1`.
+- `parent(e)` (introduced here, §The state model): the tumbler obtained by truncating e's last field together with its preceding zero separator. `parent(e)` is the entity-hierarchy spine — defined only for non-node entities (`¬Node(e)`), and producing a valid address at the next-higher level: `zeros(parent(e)) = zeros(e) − 1`.
 
 *Subspace-position correspondence.* For `v ∈ dom(M(d))` with `M(d)(v) = a`, `subspace(v) = subspace_I(a)`; see S3★ + L0 (*Generalized referential integrity*). The two projections apply at different state-component levels — `subspace(v)` projects V-positions, `subspace_I(a)` projects I-addresses.
 
@@ -45,30 +45,30 @@ ASN-0036 gave us C and M(d). Two phenomena require additional state components.
 
 First, entities come into existence. Nelson describes exactly two document creation modes: ex nihilo (a fresh empty document) and forking (a new document derived from an existing one). Gregory confirms both use the same allocation mechanism, differing only in whether the new arrangement starts empty or populated. We need an explicit record of which entities exist.
 
-**Definition (Entity set).** **Σ.E ⊆ T** — the set of allocated entity addresses. Every e ∈ E satisfies ValidAddress(e) (T4, ASN-0034). Entities are organisational — nodes, accounts, documents — not content; element-level addresses live in dom(C), not E:
+**Definition (Entity set).** **Σ.E ⊆ T** — the set of allocated entity addresses. Every e ∈ E satisfies T4-valid(e) (T4, ASN-0034). Entities are organisational — nodes, accounts, documents — not content; element-level addresses live in dom(C), not E:
 
-`(A e ∈ E :: ¬IsElement(e))`
+`(A e ∈ E :: ¬Element(e))`
 
-Equivalently, E ⊆ {t : ValidAddress(t) ∧ zeros(t) ≤ 2}.
+Equivalently, E ⊆ {t : T4-valid(t) ∧ zeros(t) ≤ 2}.
 
 *Consequence (Stratification).* By T4c (ASN-0045) and the exclusion clause above, Σ.E partitions into exactly three strata:
 
-- E_node = {e ∈ E : IsNode(e)} — server nodes
-- E_account = {e ∈ E : IsAccount(e)} — user accounts
-- E_doc = {e ∈ E : IsDocument(e)} — documents (zeros = 2)
+- E_node = {e ∈ E : Node(e)} — server nodes
+- E_account = {e ∈ E : Account(e)} — user accounts
+- E_doc = {e ∈ E : Document(e)} — documents (zeros = 2)
 
-For a non-node entity e (where ¬IsNode(e)), define **parent(e)** using T4b's (UniqueParse, ASN-0034) partial projections N, U, D, E:
+For a non-node entity e (where ¬Node(e)), define **parent(e)** using T4b's (UniqueParse, ASN-0034) partial projections N, U, D, E:
 
-- *Account case (IsAccount(e)).* `parent(e) = N(e)` — the node-prefix projection. Since `IsAccount(e)` requires `zeros(e) = 1`, T4b's parse `e = N(e).0.U(e)` is defined with `zeros(N(e)) = 0`, giving `zeros(parent(e)) = 0 = zeros(e) − 1`.
-- *Document case (IsDocument(e)).* `parent(e) = N(e).0.U(e)` — the account-prefix projection. Since `IsDocument(e)` requires `zeros(e) = 2`, T4b's parse `e = N(e).0.U(e).0.D(e)` is defined with `zeros(N(e).0.U(e)) = 1`, giving `zeros(parent(e)) = 1 = zeros(e) − 1`.
+- *Account case (Account(e)).* `parent(e) = N(e)` — the node-prefix projection. Since `Account(e)` requires `zeros(e) = 1`, T4b's parse `e = N(e).0.U(e)` is defined with `zeros(N(e)) = 0`, giving `zeros(parent(e)) = 0 = zeros(e) − 1`.
+- *Document case (Document(e)).* `parent(e) = N(e).0.U(e)` — the account-prefix projection. Since `Document(e)` requires `zeros(e) = 2`, T4b's parse `e = N(e).0.U(e).0.D(e)` is defined with `zeros(N(e).0.U(e)) = 1`, giving `zeros(parent(e)) = 1 = zeros(e) − 1`.
 
-In each case parent(e) is a valid address at the next higher level: `zeros(parent(e)) = zeros(e) − 1` is a derivable property of T4b's projections, not a stipulation. The two cases together define parent uniformly on non-node entities (the IsNode case is excluded by the precondition `¬IsNode(e)`, since nodes have no parent in the entity-hierarchy spine).
+In each case parent(e) is a valid address at the next higher level: `zeros(parent(e)) = zeros(e) − 1` is a derivable property of T4b's projections, not a stipulation. The two cases together define parent uniformly on non-node entities (the Node case is excluded by the precondition `¬Node(e)`, since nodes have no parent in the entity-hierarchy spine).
 
-By the default-value convention (Bridging lemma (M–E_doc)), `M(d) = ∅` when `d ∉ dom(M) = E_doc`; non-empty arrangements arise only for document entities. Links are owned by documents (`origin(ℓ) ∈ E_doc`, by L1a) but inhabit a separate state component L, not E_doc: L1 (ASN-0043) requires `zeros(ℓ) = 3` for every link address, and IsDocument (ASN-0045) requires `zeros(t) = 2`, so `IsDocument(ℓ)` is false and `ℓ ∉ E`. Nelson describes links as owned entities with internal structure ("a package of connecting or marking information... owned by a user... thereafter maintained by the back end"); the link store L gives them their own first-class state component, distinct from the entity set E.
+By the default-value convention (Bridging lemma (M–E_doc)), `M(d) = ∅` when `d ∉ dom(M) = E_doc`; non-empty arrangements arise only for document entities. Links are owned by documents (`origin(ℓ) ∈ E_doc`, by L1a) but inhabit a separate state component L, not E_doc: L1 (ASN-0043) requires `zeros(ℓ) = 3` for every link address, and Document (ASN-0045) requires `zeros(t) = 2`, so `Document(ℓ)` is false and `ℓ ∉ E`. Nelson describes links as owned entities with internal structure ("a package of connecting or marking information... owned by a user... thereafter maintained by the back end"); the link store L gives them their own first-class state component, distinct from the entity set E.
 
 Second, removal of content from an arrangement does not erase the historical fact of prior containment. Gregory: the reverse index "accumulates entries from every content addition but is never trimmed." Nelson: "every previous arrangement remains reconstructable." The system must answer "which documents have ever contained content with origin *a*?" — a question about history, not about current state.
 
-**Definition (Provenance relation).** **Σ.R ⊆ T_elem × E_doc** — where T_elem = {a ∈ T : IsElement(a)} (ASN-0045). The pair (a, d) ∈ R records that document d contained I-address a in its arrangement at the composite boundary at which the entry was made.
+**Definition (Provenance relation).** **Σ.R ⊆ T_elem × E_doc** — where T_elem = {a ∈ T : Element(a)} (ASN-0045). The pair (a, d) ∈ R records that document d contained I-address a in its arrangement at the composite boundary at which the entry was made.
 
 The full system state is:
 
@@ -80,13 +80,13 @@ where C : T ⇀ Val is the content store (per ASN-0036), L : T ⇀ Link is the l
 
   `dom(M) = E_doc`   (†)
 
-— every allocated document is a document entity (K.δ's `IsDocument` registration places it in `E_doc` and initialises `M(d) = ∅`), and conversely every `d ∈ E_doc` is an allocated document. Inherited `dom(M)`-phrased foundation results apply under (†), with `E_doc` naming the document set.
+— every allocated document is a document entity (K.δ's `Document` registration places it in `E_doc` and initialises `M(d) = ∅`), and conversely every `d ∈ E_doc` is an allocated document. Inherited `dom(M)`-phrased foundation results apply under (†), with `E_doc` naming the document set.
 
 (†) holds by the lockstep K.δ effect (which grows `dom(M)` and `E_doc` together by `{e}`) and the default-value convention (`M(d) = ∅` for every `d ∉ E_doc`).
 
 *Notational convention (default value).* For a tumbler `d ∉ dom(M)`, the expression `M(d)` abbreviates the empty partial function `∅`, keeping range expressions such as `ran(M(d))` defined on all of `T` (yielding `∅` off `E_doc`). `M(d) = ∅` does not signal allocation status — a freshly registered document also has `M(d) = ∅` — so `E_doc`-membership, not the test `M(d) = ∅`, is the discriminating predicate for allocation.
 
-The sole exception is ASN-0093 M2 (EmptyArrangement), `(A d ∈ dom(M) :: M(d) = ∅)`, which is *not* inherited: ASN-0047 populates arrangements via K.μ⁺/K.μ⁺_L. M2 holds at registration (the K.δ `IsDocument(e)` effect sets `M'(e) = ∅`) but is superseded by K.μ⁺/K.μ⁺_L.
+The sole exception is ASN-0093 M2 (EmptyArrangement), `(A d ∈ dom(M) :: M(d) = ∅)`, which is *not* inherited: ASN-0047 populates arrangements via K.μ⁺/K.μ⁺_L. M2 holds at registration (the K.δ `Document(e)` effect sets `M'(e) = ∅`) but is superseded by K.μ⁺/K.μ⁺_L.
 
 **Definition (Initial state).** The initial state Σ₀ = (C₀, L₀, E₀, M₀, R₀) is:
 
@@ -96,13 +96,13 @@ The sole exception is ASN-0093 M2 (EmptyArrangement), `(A d ∈ dom(M) :: M(d) =
 - M₀(d) = ∅ for all d — (E₀)_doc = ∅, so every arrangement is the empty partial function
 - R₀ = ∅ (no provenance recorded)
 
-**Structural form of n₀.** The bootstrap node is fixed as `[1]` — a one-element tumbler with `zeros(n₀) = 0`, satisfying `IsNode(n₀)` and `ValidAddress(n₀)`. The NodeLineage invariant (`n₀ ≼ e`) constrains every node address to extend `[1]` by prefix, ruling out disconnected-forest allocations.
+**Structural form of n₀.** The bootstrap node is fixed as `[1]` — a one-element tumbler with `zeros(n₀) = 0`, satisfying `Node(n₀)` and `T4-valid(n₀)`. The NodeLineage invariant (`n₀ ≼ e`) constrains every node address to extend `[1]` by prefix, ruling out disconnected-forest allocations.
 
 **Initial state invariant verification.** Each Class (a) per-state invariant of ExtendedReachableStateInvariants holds at Σ₀, most vacuously. We enumerate the verifications to make the base case of the inductive proof explicit:
 
-- *Entity invariants.* `E₀ = {n₀}` with `IsNode(n₀)`, `ValidAddress(n₀)` (`[1]` is T4-valid), and `zeros(n₀) = 0` (no separators). The exclusion `(A e ∈ E :: ¬IsElement(e))` holds since `zeros(n₀) = 0 ≠ 3`.
-- *NodeLineage* `(A e ∈ E₀ : IsNode(e) : n₀ ≼ e)`: instantiates at `e = n₀`, requiring `n₀ ≼ n₀`, which holds by reflexivity of the tumbler-prefix order.
-- *P8 (Entity hierarchy)* `(A e ∈ E₀ : ¬IsNode(e) : parent(e) ∈ E₀)`: vacuously satisfied — `n₀` is the only entity in `E₀` and `IsNode(n₀)`, so the quantifier scope is empty.
+- *Entity invariants.* `E₀ = {n₀}` with `Node(n₀)`, `T4-valid(n₀)` (`[1]` is T4-valid), and `zeros(n₀) = 0` (no separators). The exclusion `(A e ∈ E :: ¬Element(e))` holds since `zeros(n₀) = 0 ≠ 3`.
+- *NodeLineage* `(A e ∈ E₀ : Node(e) : n₀ ≼ e)`: instantiates at `e = n₀`, requiring `n₀ ≼ n₀`, which holds by reflexivity of the tumbler-prefix order.
+- *P8 (Entity hierarchy)* `(A e ∈ E₀ : ¬Node(e) : parent(e) ∈ E₀)`: vacuously satisfied — `n₀` is the only entity in `E₀` and `Node(n₀)`, so the quantifier scope is empty.
 - *S7d (Document allocation discipline)*: `(E₀)_doc = ∅`, vacuous.
 - *S2, S3★, S3★-aux, S8a, S8-depth, S8-fin, S8★, D-CTG★, D-MIN★, D-SEQ★*: `M₀(d) = ∅` for all `d`, so `dom(M₀(d)) = ∅` and `V_S(d) = ∅` for every subspace `S`. Each invariant holds vacuously over the empty arrangement domain.
 - *S4, S7a, S7b, C1b (content invariants)*: `dom(C₀) = ∅`, vacuous.
@@ -166,19 +166,19 @@ This is S0 of ASN-0036, restated for the full state model. C is *append-only wit
 
 No transition removes an entity. This specialises T8 (AllocationPermanence, ASN-0034) to the entity set. P1 holds uniformly across levels:
 
-`[e ∈ E ∧ IsNode(e) ⟹ e ∈ E']`
-`[e ∈ E ∧ IsAccount(e) ⟹ e ∈ E']`
-`[e ∈ E ∧ IsDocument(e) ⟹ e ∈ E']`
+`[e ∈ E ∧ Node(e) ⟹ e ∈ E']`
+`[e ∈ E ∧ Account(e) ⟹ e ∈ E']`
+`[e ∈ E ∧ Document(e) ⟹ e ∈ E']`
 
 Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid." The address space is a growing tree; entities are born but never die.
 
 **P8 (Entity hierarchy).** Every non-node entity has its parent in E:
 
-`(A e ∈ E : ¬IsNode(e) : parent(e) ∈ E)`
+`(A e ∈ E : ¬Node(e) : parent(e) ∈ E)`
 
 This ensures the entity set is hierarchically well-formed: every account has its node in E, every document has its account in E. Combined with P1, the hierarchy only grows — once an entity's parent chain is established, it persists.
 
-*Derivation.* K.δ for non-root entities requires parent(e) ∈ E as a precondition (below). P1 preserves the parent's membership across subsequent transitions. Base case: E₀ = {n₀} with IsNode(n₀), so the quantifier is vacuously satisfied. Inductive step: K.δ adds e with parent(e) ∈ E ⊆ E' (by precondition and P1); all other transitions have E' ⊇ E, preserving existing parent relationships. ∎
+*Derivation.* K.δ for non-root entities requires parent(e) ∈ E as a precondition (below). P1 preserves the parent's membership across subsequent transitions. Base case: E₀ = {n₀} with Node(n₀), so the quantifier is vacuously satisfied. Inductive step: K.δ adds e with parent(e) ∈ E ⊆ E' (by precondition and P1); all other transitions have E' ⊇ E, preserving existing parent relationships. ∎
 
 **P2 (Provenance permanence).** The provenance relation admits only extensions:
 
@@ -208,9 +208,9 @@ Freshness `a ∉ dom(C) ∪ dom(L)` in both cases is SubAllocFresh at `x = C` (l
 
 *Frame:* `L' = L; E' = E; (A d :: M'(d) = M(d)); R' = R`.
 
-**NodeLineage (Derived invariant, NodeDescentFromBootstrap).** `(A e ∈ E : IsNode(e) : n₀ ≼ e)`, where `≼` is the prefix order on tumblers (ASN-0034).
+**NodeLineage (Derived invariant, NodeDescentFromBootstrap).** `(A e ∈ E : Node(e) : n₀ ≼ e)`, where `≼` is the prefix order on tumblers (ASN-0034).
 
-**NodeBaptism (Axiom, boundary input — node provisioning).** No docuverse transition mints a node address. At every K.δ node-allocation event — every elementary K.δ transition placing an entity `e` with `IsNode(e)` into E:
+**NodeBaptism (Axiom, boundary input — node provisioning).** No docuverse transition mints a node address. At every K.δ node-allocation event — every elementary K.δ transition placing an entity `e` with `Node(e)` into E:
 
 - (a) *Freshness:* `e ∉ Σ.E` at the state Σ of allocation;
 - (b) *Bootstrap lineage:* `n₀ ≼ e` under the tumbler-prefix order.
@@ -219,11 +219,11 @@ The bootstrap node `n₀ ∈ E₀` is itself baptised at `Σ₀`.
 
 **TrackedEmission (Per-state invariant, EntityEmissionTracking).** Every non-node entity is an emission of a tracked entity-level sub-allocator:
 
-  `(A e ∈ Σ.E : ¬IsNode(e) : (E A : A a tracked entity-level sub-allocator : e ∈ dom(A)))`
+  `(A e ∈ Σ.E : ¬Node(e) : (E A : A a tracked entity-level sub-allocator : e ∈ dom(A)))`
 
-*Preservation.* At Σ₀ the property holds vacuously — `E₀ = {n₀}` with `IsNode(n₀)`, so the quantifier scope is empty. K.δ admits a non-node entity `e` into E only via an `inc`-step `e = inc(t, k)` that is a T10a transition on a tracked entity-level sub-allocator (established by K.δ case (ii)), so `e` enters that allocator's tracked domain at the very event that places it into E. P1 preserves both `e ∈ E` and the allocator's tracked status across all subsequent transitions; every non-K.δ transition holds E in frame.
+*Preservation.* At Σ₀ the property holds vacuously — `E₀ = {n₀}` with `Node(n₀)`, so the quantifier scope is empty. K.δ admits a non-node entity `e` into E only via an `inc`-step `e = inc(t, k)` that is a T10a transition on a tracked entity-level sub-allocator (established by K.δ case (ii)), so `e` enters that allocator's tracked domain at the very event that places it into E. P1 preserves both `e ∈ E` and the allocator's tracked status across all subsequent transitions; every non-K.δ transition holds E in frame.
 
-**FrontierEquivalence (Lemma).** For every reachable state `Σ` and every operand `t ∈ Σ.E` with `¬IsNode(t)`, TrackedEmission supplies a tracked entity-level sub-allocator whose domain contains `t` — establishing existence — and `A` denotes that allocator, unique by T10a.6 (DomainDisjointness, ASN-0034). Then:
+**FrontierEquivalence (Lemma).** For every reachable state `Σ` and every operand `t ∈ Σ.E` with `¬Node(t)`, TrackedEmission supplies a tracked entity-level sub-allocator whose domain contains `t` — establishing existence — and `A` denotes that allocator, unique by T10a.6 (DomainDisjointness, ASN-0034). Then:
 
   `inc(t, 0) ∉ Σ.E ⟺ t is the frontier of A's (t, 0)-branch`
 
@@ -239,15 +239,15 @@ Together, the two implications yield the biconditional `inc(t, 0) ∉ Σ.E ⟺ t
 
 **K.δ (Entity creation).** A fresh entity address enters E with initial state:
 
-`E' = E ∪ {e}` where `e ∉ E ∧ ValidAddress(e) ∧ ¬IsElement(e)`
+`E' = E ∪ {e}` where `e ∉ E ∧ T4-valid(e) ∧ ¬Element(e)`
 
-*Precondition.* The precondition splits on `IsNode(e)`, reflecting two distinct allocation disciplines — protocol-established node baptism versus T10a-conforming inc-allocation under a parent entity.
+*Precondition.* The precondition splits on `Node(e)`, reflecting two distinct allocation disciplines — protocol-established node baptism versus T10a-conforming inc-allocation under a parent entity.
 
-- **Case (i) IsNode(e).** No operand `t` is consumed (`e` is supplied by the node-provisioning boundary, not by inc). Required: `ValidAddress(e) ∧ IsNode(e) ∧ e ∉ E ∧ n₀ ≼ e`. Both the freshness conjunct `e ∉ E` and the bootstrap-lineage conjunct `n₀ ≼ e` are discharged by NodeBaptism (a) and (b) respectively — the boundary axiom — directly, outside T10a's standard discharge layer.
-- **Case (ii) ¬IsNode(e).** `e = inc(t, k)` for some operand `t` and `k ∈ {0, 1, 2}`. The case-level "where"-clause conjuncts `e ∉ E ∧ ValidAddress(e) ∧ ¬IsElement(e)` apply uniformly to all three sub-cases, with the freshness conjunct taking the form `inc(t, 0) ∉ E` at k = 0 and `e ∉ E` at k ∈ {1, 2}. For all three sub-cases k ∈ {0, 1, 2}, the parent entity-level sub-allocator on which each step acts and the allocator-discipline properties the guard maintains are discharged in §*K.δ case (ii) discharge and parent-allocator activation*. Required uniformly: `parent(e) ∈ E`. Per-sub-case additional requirements:
-  - *k = 0 (sibling):* `t ∈ E ∧ ¬IsNode(t) ∧ inc(t, 0) ∉ E`. The operand-admissibility conjuncts are `t ∈ E` (the operand must be an allocated entity), `¬IsNode(t)` (so `parent(t)` is well-defined under T4b), and `inc(t, 0) ∉ E` (the operational frontier check, discharged by FrontierEquivalence). The structural identities `parent(t) = parent(e)` and `zeros(t) = zeros(e)` hold by TA5(c) on `e = inc(t, 0)` (K.δ-ID.parent-0/1, K.δ-ID.zeros-0/1).
-  - *k = 1 (version):* `t ∈ E_doc`. The operand must be an allocated document — only an existing document can be versioned. Nelson's CREATENEWVERSION operates on `<doc id>`, an allocated document (LM 4/66); Gregory's `docreatenewversion` retrieves the source's vspan via `doretrievedocvspanfoo`, which fails on a source not present in the granfilade. (`IsDocument(t)` follows from `t ∈ E_doc` by the definition of E_doc.) The operation is uniform across operand provenance — only the surface predicate `t ∈ E_doc` is checked at firing time.
-  - *k = 2 (descent):* `t ∈ E ∧ zeros(t) ≤ 1` (equivalently, `IsNode(t) ∨ IsAccount(t)`). The zeros bound follows from the case-level precondition `¬IsElement(e)` (`zeros(e) ≤ 2`) combined with the structural identity `zeros(e) = zeros(t) + 1` (K.δ-ID.zeros-2). The structural identity `parent(e) = t` holds by TA5(d) on `e = inc(t, 2)` together with T4b's parent projection (K.δ-ID.parent-2).
+- **Case (i) Node(e).** No operand `t` is consumed (`e` is supplied by the node-provisioning boundary, not by inc). Required: `T4-valid(e) ∧ Node(e) ∧ e ∉ E ∧ n₀ ≼ e`. Both the freshness conjunct `e ∉ E` and the bootstrap-lineage conjunct `n₀ ≼ e` are discharged by NodeBaptism (a) and (b) respectively — the boundary axiom — directly, outside T10a's standard discharge layer.
+- **Case (ii) ¬Node(e).** `e = inc(t, k)` for some operand `t` and `k ∈ {0, 1, 2}`. The case-level "where"-clause conjuncts `e ∉ E ∧ T4-valid(e) ∧ ¬Element(e)` apply uniformly to all three sub-cases, with the freshness conjunct taking the form `inc(t, 0) ∉ E` at k = 0 and `e ∉ E` at k ∈ {1, 2}. For all three sub-cases k ∈ {0, 1, 2}, the parent entity-level sub-allocator on which each step acts and the allocator-discipline properties the guard maintains are discharged in §*K.δ case (ii) discharge and parent-allocator activation*. Required uniformly: `parent(e) ∈ E`. Per-sub-case additional requirements:
+  - *k = 0 (sibling):* `t ∈ E ∧ ¬Node(t) ∧ inc(t, 0) ∉ E`. The operand-admissibility conjuncts are `t ∈ E` (the operand must be an allocated entity), `¬Node(t)` (so `parent(t)` is well-defined under T4b), and `inc(t, 0) ∉ E` (the operational frontier check, discharged by FrontierEquivalence). The structural identities `parent(t) = parent(e)` and `zeros(t) = zeros(e)` hold by TA5(c) on `e = inc(t, 0)` (K.δ-ID.parent-0/1, K.δ-ID.zeros-0/1).
+  - *k = 1 (version):* `t ∈ E_doc`. The operand must be an allocated document — only an existing document can be versioned. Nelson's CREATENEWVERSION operates on `<doc id>`, an allocated document (LM 4/66); Gregory's `docreatenewversion` retrieves the source's vspan via `doretrievedocvspanfoo`, which fails on a source not present in the granfilade. (`Document(t)` follows from `t ∈ E_doc` by the definition of E_doc.)
+  - *k = 2 (descent):* `t ∈ E ∧ zeros(t) ≤ 1` (equivalently, `Node(t) ∨ Account(t)`). The zeros bound follows from the case-level precondition `¬Element(e)` (`zeros(e) ≤ 2`) combined with the structural identity `zeros(e) = zeros(t) + 1` (K.δ-ID.zeros-2). The structural identity `parent(e) = t` holds by TA5(d) on `e = inc(t, 2)` together with T4b's parent projection (K.δ-ID.parent-2).
   - Structural identities on `e = inc(t, k)` (consequences of TA5 + T4b's parent projection):
     - **K.δ-ID.zeros-0/1.** `zeros(e) = zeros(t)` for k ∈ {0, 1}. *Derivation:* TA5(c) preserves zeros for k = 0; TA5(d) at k = 1 appends a final `1` with no new zero, so zeros is preserved.
     - **K.δ-ID.zeros-2.** `zeros(e) = zeros(t) + 1` for k = 2. *Derivation:* TA5(d) at k = 2 appends one zero separator and a final `1`.
@@ -256,14 +256,14 @@ Together, the two implications yield the biconditional `inc(t, 0) ∉ Σ.E ⟺ t
 
     These four identities discharge the case-level requirement `parent(e) ∈ E` against the operand's own membership: combined with P8 at `t` for the k ∈ {0, 1} cases (giving `parent(e) = parent(t) ∈ E` by K.δ-ID.parent-0/1), and directly from `t ∈ E` for the k = 2 case (giving `parent(e) = t ∈ E` by K.δ-ID.parent-2).
 
-*Subsumption of ASN-0093's K.σ.* ASN-0047 has no separate K.σ primitive: when `IsDocument(e)`, K.δ subsumes ASN-0093's K.σ (DocumentRegistration) by entering `e` into `E_doc` with `M'(e) = ∅` (the totality convention).
+*Subsumption of ASN-0093's K.σ.* ASN-0047 has no separate K.σ primitive: when `Document(e)`, K.δ subsumes ASN-0093's K.σ (DocumentRegistration) by entering `e` into `E_doc` with `M'(e) = ∅` (the totality convention).
 
 Nelson identifies two document-creation modes — ex nihilo and forking. At the elementary level, both begin with K.δ producing an empty document. When the source's content subspace is non-empty, forking is compound: K.δ followed by arrangement extension and provenance recording (J4 below). When the source's content subspace is empty, fork reduces to K.δ alone.
 
 *Frame:* C' = C; L' = L; R' = R. The entity effect `E' = E ∪ {e}` is uniform across all cases. The arrangement frame splits on the level of `e`:
 
-- *IsNode(e) or IsAccount(e):* `M' = M` — `e ∉ E_doc`, so `dom(M) = E_doc` is unchanged and the arrangement family is untouched.
-- *IsDocument(e):* `dom(M') = dom(M) ∪ {e}` with `M'(e) = ∅` and `M'(d') = M(d')` for every `d' ∈ dom(M)`. Since `dom(M) = E_doc` (Bridging lemma (M–E_doc)), entering `e` into `E_doc` *is* growing `dom(M)` by `{e}`. The registered `M'(e) = ∅` is the *allocated-empty* arrangement (`e ∈ dom(M')`), discriminated from the unallocated default `M(e) = ∅` by `E_doc`-membership per the *Notational convention (default value)* above.
+- *Node(e) or Account(e):* `M' = M` — `e ∉ E_doc`, so `dom(M) = E_doc` is unchanged and the arrangement family is untouched.
+- *Document(e):* `dom(M') = dom(M) ∪ {e}` with `M'(e) = ∅` and `M'(d') = M(d')` for every `d' ∈ dom(M)`. Since `dom(M) = E_doc` (Bridging lemma (M–E_doc)), entering `e` into `E_doc` *is* growing `dom(M)` by `{e}`. The registered `M'(e) = ∅` is the *allocated-empty* arrangement (`e ∈ dom(M')`), discriminated from the unallocated default `M(e) = ∅` by `E_doc`-membership per the *Notational convention (default value)* above.
 
 **V-position depth (operational).** For a subspace `S ∈ {s_C, s_L}`, we write `m_S(d)` for the depth of document `d`'s *current* `S`-subspace arrangement — the common depth that S8-depth (uniform depth within a subspace, ASN-0036) fixes on `V_S(d)` whenever that set is non-empty, bounded below by the S8a lower bound `m_S(d) ≥ 2`. We write `m_C(d)` and `m_L(d)` for the content- and link-subspace instances. This live-depth rule governs both subspaces uniformly. `m_S(d)` is well-defined only while `V_S(d) ≠ ∅`; it is constant within a contiguous non-empty stretch but is *not* a permanent per-document constant. K.μ⁻ admits full clearance of either subspace (`V_S(d) = ∅`), after which S8-depth is again vacuous and the next insertion into that subspace (K.μ⁺ for `s_C`, K.μ⁺_L for `s_L`) re-pins `m_S(d)` from scratch — at any value `≥ 2` by S8a, not necessarily the prior depth. The depth therefore tracks the live arrangement, not a value fixed at first-ever insertion.
 
@@ -304,13 +304,11 @@ The constructive precondition is *equivalent* to "post-state satisfies D-CTG★/
 
 `R' = R ∪ {(a, d)}` where `a ∈ dom(C) ∧ d ∈ E_doc`
 
-*Precondition:* `a ∈ dom(C)` ∧ `d ∈ E_doc`. The level constraint IsElement(a) follows from S7b (every a ∈ dom(C) satisfies IsElement(a)).
+*Precondition:* `a ∈ dom(C)` ∧ `d ∈ E_doc`. The level constraint Element(a) follows from S7b (every a ∈ dom(C) satisfies Element(a)).
 
 *Frame (extended state):* C' = C; L' = L; E' = E; (A d :: M'(d) = M(d)).
 
 The seven elementary kinds — K.α, K.δ, K.λ (introduced later under *Link allocation*), K.μ⁺, K.μ⁺_L (introduced later under *Link-subspace extension*), K.μ⁻, K.ρ — plus the named composite K.μ~ are *structurally sufficient* for the *catalogued* modification modes of this ASN, enumerated per component as follows. (i) *Existential components C, L, E and historical component R* admit only extension (P3): the elementary set covers each via K.α, K.λ, K.δ, K.ρ respectively, with no contraction or value rewriting on any of them. (ii) *Presentational component M* admits three modes — *extension* (K.μ⁺ for content-subspace, K.μ⁺_L for link-subspace), *contraction* (K.μ⁻, with per-subspace suffix-removal patterns forced by D-CTG★ + D-MIN★ + D-SEQ★ at the post-state), and *bijection-preserving reordering* (K.μ~, the named composite of K.μ⁻ + K.μ⁺ with subspace preservation and link-subspace fixity). (iii) *Replacement* — changing which I-address a V-position maps to — takes three forms by composite shape, all sharing the K.μ⁻ + K.μ⁺ skeleton of K.μ~; the exhaustive case split and the per-form composite traces are given in *Worked example: prior-provenance and first-time-transcluded replacements* (Contrast paragraph) and *Worked example: interior content replacement* (fresh-content).
-
-K.μ~ — *arrangement reordering* — is detailed at its defining site, §*Decomposition of K.μ~* below (analogous to the J4 fork composite).
 
 We observe that neither split nor merge appears as an elementary transition. Nelson addresses this explicitly: the effect of splitting a document is achieved by creating two new documents and transcluding different portions of the original into each. Merging is creating a new document and transcluding from multiple sources. Both compose from K.δ, K.μ⁺, and K.ρ — the elementary transitions suffice.
 
@@ -413,8 +411,8 @@ These anchors are structurally producible via T10a inc steps from `d`. Under Sub
 
 **ParentAllocatorDispatch (sub-lemma).** For any entity `t` produced by a tracked allocator, the unique allocator `A` whose tracked domain contains `t` is determined by T10a.6 (DomainDisjointness, ASN-0034) — every `t` inhabits exactly one allocator's tracked domain — and that membership is preserved across every subsequent transition by AllocatedSet's tracked-domain monotonicity (ASN-0034). T10a.6 supplies *uniqueness* of the owning allocator; the per-level analysis below supplies its *identification*. The identification rests on a structural fact of the K.δ construction: the level of an entity address — its zero count, hence its T4c stratum (ASN-0045) — is fixed by the sub-allocator family that can emit it, because the spawn parameter `k` of the activating K.δ step determines the resulting zero count.
 
-- **Account level (`IsAccount(t)`, `zeros(t) = 1`).** `t`'s unique owning allocator is `A_account(parent(t))`, and `t ∈ dom(A_account(parent(t)))`.
-- **Document level (`IsDocument(t)`, `zeros(t) = 2`).** Exactly one of two cases holds, mutually exclusive and exhaustive by T10a.6: **(a')** `t ∈ dom(A_doc(parent(t)))` — ex nihilo, and `A_v(t)` (when spawned) is a child of `A_doc(parent(t))`, with spawnPt `t`, spawnParam `1`; or **(b')** `t ∈ dom(A_v(d'))` for some `d' ∈ E_doc` — fork, and `A_v(t)` is a child of `A_v(d')`, with spawnPt `t`, spawnParam `1`. Applied to the version sub-allocator `A_v(d)` for `d ∈ E_doc`, these two cases identify its parent allocator as `d`'s owning allocator.
+- **Account level (`Account(t)`, `zeros(t) = 1`).** `t`'s unique owning allocator is `A_account(parent(t))`, and `t ∈ dom(A_account(parent(t)))`.
+- **Document level (`Document(t)`, `zeros(t) = 2`).** Exactly one of two cases holds, mutually exclusive and exhaustive by T10a.6: **(a')** `t ∈ dom(A_doc(parent(t)))` — ex nihilo, and `A_v(t)` (when spawned) is a child of `A_doc(parent(t))`, with spawnPt `t`, spawnParam `1`; or **(b')** `t ∈ dom(A_v(d'))` for some `d' ∈ E_doc` — fork, and `A_v(t)` is a child of `A_v(d')`, with spawnPt `t`, spawnParam `1`. Applied to the version sub-allocator `A_v(d)` for `d ∈ E_doc`, these two cases identify its parent allocator as `d`'s owning allocator.
 
 *Proof.* By T4c (ASN-0045) the zero count fixes the level: `zeros = 1` for accounts, `zeros = 2` for documents. For each level we identify the sub-allocator families that emit addresses at that level under the K.δ construction, then recover the allocator base from the address prefix.
 
@@ -572,7 +570,7 @@ Equivalently, `M(d)|_{dom_L}` is a partial injection from V-positions to link ad
 
 ## Decomposition of K.μ~
 
-This section is the defining site for K.μ~ — *arrangement reordering* — fixing its status as a **named composite** of K.μ⁻ + K.μ⁺ (not a primitive transition) together with its realisation. Every other mention refers to K.μ~ by name on the strength of this section, without re-establishing its compositional status.
+K.μ~ — *arrangement reordering* — is a **named composite** of K.μ⁻ + K.μ⁺ (not a primitive transition). This section gives its preconditions and realisation.
 
 *Preconditions of K.μ~.* The operation has two explicit preconditions:
 - `d ∈ E_doc`
@@ -582,7 +580,7 @@ For `d ∈ E_doc` with `M(d)|_{dom_C}` taking at least two distinct values, K.μ
 
   `(E π : π is a bijection dom(M(d)) → dom(M'(d)) : (A v ∈ dom(M(d)) :: M'(d)(π(v)) = M(d)(v)))`
 
-π is admissible iff (i) the induced post-state `M'(d)` would satisfy the arrangement-*shape* invariant package on `M'(d)` — S8a, S8-depth, S8-fin, D-CTG★, D-MIN★, S3★, and S3★-aux, from which the derived D-SEQ★ follows (D-CTG★ + D-MIN★ + S8-depth + S8-fin + S8a) — (ii) the net effect is non-trivial, `M'(d) ≠ M(d)`; and (iii) π is *length-preserving*: `(A v ∈ dom(M(d)) :: #π(v) = #v)`. The enumerated clause-(i) set is the arrangement-*shape* package only; the remaining per-state arrangement invariants on `M'(d)` — CL-OWN, CL-UNIQ, S2, and S8★ — are *not* admissibility hypotheses but derived consequences of fixity and the bijection equation (per the *Composite-boundary verification matrix* below): the matrix discharges CL-OWN/CL-UNIQ from link-subspace fixity (Steps (C)–(D)), S2 from the π-bijection, and S8★ from the rebuild. Clause (iii) confines K.μ~ to a permutation of the document's existing V-positions *at fixed depth*: REARRANGE transposes contiguous regions within a document's flat, dense V-stream (Nelson 4/67), reordering byte positions the document already holds rather than relocating content to a new structural depth — the V-stream has no internal depth levels for content to be moved into. Without clause (iii), a bijection meeting clauses (i)–(ii) could carry a subspace's canonical sequence onto one of greater depth (e.g. depth-2 `{[1,1],[1,2]}` onto depth-3 `{[1,1,1],[1,1,2]}`, which satisfies S8a, S8-depth, D-CTG★, D-MIN★, D-SEQ★, and S3★ at the post-state yet changes the V-position domain), and the Domain-fixity result below would fail. Clause (ii) makes K.μ~ a real reordering: a permutation whose net effect is the identity arrangement is not a K.μ~ transition (the system simply does not change). Note that `M'(d) ≠ M(d)` is strictly stronger than the map-level `π ≠ id`: under S5 (UnrestrictedSharing, ASN-0036) two distinct content V-positions may carry the same I-address (transclusion), so the swap of two such equal-valued positions is a non-identity *map* with net-identity *effect* — clause (ii)'s net-effect form excludes it. The admissibility filter (clause (i)) is a hypothesis on the candidate π, non-vacuous and witnessed by the transposition `π_swap` in *Necessity and sufficiency of the precondition* below, which verifies clause (i) — including `S3★` at the post-state — directly from its swap-within-`dom_C` structure.
+π is admissible iff (i) the induced post-state `M'(d)` would satisfy the arrangement-*shape* invariant package on `M'(d)` — S8a, S8-depth, S8-fin, D-CTG★, D-MIN★, S3★, and S3★-aux, from which the derived D-SEQ★ follows (D-CTG★ + D-MIN★ + S8-depth + S8-fin + S8a) — (ii) the net effect is non-trivial, `M'(d) ≠ M(d)`; and (iii) π is *length-preserving*: `(A v ∈ dom(M(d)) :: #π(v) = #v)`. The enumerated clause-(i) set is the arrangement-*shape* package only; the remaining per-state arrangement invariants on `M'(d)` — CL-OWN, CL-UNIQ, S2, and S8★ — are *not* admissibility hypotheses but derived consequences of fixity and the bijection equation (per the *Composite-boundary verification matrix* below): the matrix discharges CL-OWN/CL-UNIQ from link-subspace fixity (Steps (C)–(D)), S2 from the π-bijection, and S8★ from the rebuild. Clause (iii) confines K.μ~ to a permutation of the document's existing V-positions *at fixed depth*: REARRANGE transposes contiguous regions within a document's flat, dense V-stream (Nelson 4/67), reordering byte positions the document already holds rather than relocating content to a new structural depth — the V-stream has no internal depth levels for content to be moved into. Clause (iii) thus yields per-subspace depth fixity, from which K.μ~-FIX (Domain fixity) below follows. Clause (ii) makes K.μ~ a real reordering: a permutation whose net effect is the identity arrangement is not a K.μ~ transition (the system simply does not change). Note that `M'(d) ≠ M(d)` is strictly stronger than the map-level `π ≠ id`: under S5 (UnrestrictedSharing, ASN-0036) two distinct content V-positions may carry the same I-address (transclusion), so the swap of two such equal-valued positions is a non-identity *map* with net-identity *effect* — clause (ii)'s net-effect form excludes it. The admissibility filter (clause (i)) is a hypothesis on the candidate π, non-vacuous and witnessed by the transposition `π_swap` in *Necessity and sufficiency of the precondition* below, which verifies clause (i) — including `S3★` at the post-state — directly from its swap-within-`dom_C` structure.
 
 *Step (A) — Subspace preservation under π.* We show `(A v ∈ dom(M(d)) :: subspace(π(v)) = subspace(v))` for every *realisable* π — every π that the K.μ⁻ + K.μ⁺ decomposition (full-clearance form, §*Decomposition* below) produces — drawing only on the decomposition's own preconditions. The full-clearance decomposition clears the content subspace with K.μ⁻ (content-only removal) and rebuilds it with K.μ⁺, while every link-subspace position is retained by K.μ⁻ and framed by K.μ⁺. S3★-aux(Σ) confines every source subspace to `{s_C, s_L}`, so the two cases below are exhaustive.
 
@@ -663,7 +661,7 @@ With link-subspace mappings, `Contains(Σ)` includes `(ℓ, d)` for every link �
 
   `Contains_C(Σ) ⊆ R`
 
-P4★ supersedes P4 for the extended state. In pre-extension states (no link-subspace mappings), `Contains_C(Σ) = Contains(Σ)`, so P4★ reduces to P4. P4★ is a Class (b) composite-boundary property: K.μ⁺ alone may transiently violate it (it adds to Contains_C but does not extend R), with restoration at the composite boundary governed by J1★ (stated below).
+P4★ supersedes P4 for the extended state. In pre-extension states (no link-subspace mappings), `Contains_C(Σ) = Contains(Σ)`, so P4★ reduces to P4. P4★ is a Class (b) composite-boundary property: K.μ⁺ alone may transiently violate it (it adds to Contains_C but does not extend R), with restoration at the composite boundary governed by J1★.
 
 Validity of a composite transition `Σ →* Σ'` is defined as **ValidComposite★** in *Scoped coupling constraints*: a finite sequence of atomic transitions whose every step satisfies its elementary precondition (clause 1) and whose net effect between Σ and Σ' satisfies the coupling constraints J0, J1★, and J1'★ (clause 2).
 
@@ -677,13 +675,13 @@ For freshly created documents d ∈ E'_doc \ E_doc, the pre-state has d ∉ E_do
 
 Every freshly allocated I-address appears in some arrangement in the post-state — the containing document may itself have been freshly created by K.δ in the same composite transition. J0 is an axiom of the state transition model: in Nelson's model content enters the docuverse only by being placed in a document, so there is no orphan content in Istream that no document displays.
 
-The operative provenance couplings — J1★ (arrangement extension K.μ⁺ co-occurs with provenance recording K.ρ) and its converse J1'★ (every new provenance entry corresponds to a content-subspace range change) — are stated in their operative content-subspace form in *Scoped coupling constraints* below. For a freshly created document `M(d) = ∅` by totality, so J1★ fires on every I-address placed, and J1'★ records `(a, d)` only within a composite where K.μ⁺ introduces `a` into the content-subspace range with `(a, d) ∉ R` (a re-introduction of an already-recorded `a` requires no new K.ρ, since P2 persists the prior entry).
+The provenance couplings J1★ (arrangement extension K.μ⁺ co-occurs with provenance recording K.ρ) and its converse J1'★ (every new provenance entry corresponds to a content-subspace range change) are content-subspace–scoped. For a freshly created document `M(d) = ∅` by totality, so J1★ fires on every I-address placed, and J1'★ records `(a, d)` only within a composite where K.μ⁺ introduces `a` into the content-subspace range with `(a, d) ∉ R` (a re-introduction of an already-recorded `a` requires no new K.ρ, since P2 persists the prior entry).
 
 **P4a (Trace witnessing — trace property).** P4a is *not* a state-local invariant: its witness need not inhabit the current arrangement, so it cannot be evaluated from a state Σ in isolation. We classify it explicitly as a *trace property* — a property of a valid transition trace reaching Σ — and make the witnessing domain formal. A *valid transition trace to Σ* is a finite sequence of composite boundaries `Σ₀ →* Σ₁ →* ... →* Σ_n = Σ` in which each `Σ_j →* Σ_{j+1}` is a valid composite transition (ValidComposite★); the finite set of states `{Σ₀, ..., Σ_n}` is the *transition history* of Σ along that trace, and `M_k` denotes the arrangement family of trace state `Σ_k`. P4a asserts that every `(a, d) ∈ R` had a *content-subspace* containment witness in *some* trace state — the content `a` was arranged in `d` at some point in the document's history, not necessarily at the moment the entry was recorded:
 
 `(A valid trace Σ₀ →* ... →* Σ_n = Σ :: (A (a, d) ∈ R :: (E Σ_k ∈ {Σ₀, ..., Σ_n} : (E v ∈ dom(M_k(d)) : subspace(v) = s_C ∧ M_k(d)(v) = a))))`
 
-The witnessing existential ranges over the finite set `{Σ₀, ..., Σ_n}` of trace states — the previously-undefined "transition history" reference — so the property is well-typed as a trace property even though it is not well-typed as a per-state invariant. This trace-existential reading is the design-correct one: provenance rides on the permanent I-address and survives deletion from the current arrangement, so the witness is whatever historical version contained the content, not a live moment-of-recording check (Nelson, LM 4/9, 4/11 — included content "may remain included in other versions" after deletion from the current one). The content-subspace qualification is essential: J1'★ scopes provenance recording to content-subspace range changes (link-subspace mappings target `dom(L)`, which is disjoint from `dom(C)` by L14, so no link-subspace V-position can witness provenance under P7's `a ∈ dom(C)` requirement). P4a therefore reads as "every provenance entry corresponds to a content-subspace arrangement in some trace state," consistent with both P7's grounding in `dom(C)` and J1'★'s content-scoped coupling. *Discharge mechanism.* P4a is discharged by induction along the witnessing trace, not by a per-state check: a freshly recorded entry `(a, d) ∈ R' \ R` is witnessed by the post-state Σ' itself (the co-occurring K.μ⁺ places a content-subspace V-position `v` with `M'(d)(v) = a`), and a persisted entry `(a, d) ∈ R` inherits a witnessing trace state from the inductive hypothesis, carried forward by P2. The discharge sites below cite this mechanism rather than restate it.
+The witnessing existential ranges over the finite set `{Σ₀, ..., Σ_n}` of trace states — the previously-undefined "transition history" reference — so the property is well-typed as a trace property even though it is not well-typed as a per-state invariant. This trace-existential reading is the design-correct one: provenance rides on the permanent I-address and survives deletion from the current arrangement, so the witness is whatever historical version contained the content, not a live moment-of-recording check (Nelson, LM 4/9, 4/11 — included content "may remain included in other versions" after deletion from the current one). The content-subspace qualification is essential: J1'★ scopes provenance recording to content-subspace range changes (link-subspace mappings target `dom(L)`, which is disjoint from `dom(C)` by L14, so no link-subspace V-position can witness provenance under P7's `a ∈ dom(C)` requirement). P4a therefore reads as "every provenance entry corresponds to a content-subspace arrangement in some trace state," consistent with both P7's grounding in `dom(C)` and J1'★'s content-scoped coupling. *Discharge mechanism.* P4a is discharged by induction along the witnessing trace, not by a per-state check: a freshly recorded entry `(a, d) ∈ R' \ R` is witnessed by the post-state Σ' itself (the co-occurring K.μ⁺ places a content-subspace V-position `v` with `M'(d)(v) = a`), and a persisted entry `(a, d) ∈ R` inherits a witnessing trace state from the inductive hypothesis, carried forward by P2.
 
 **J2 (Contraction isolation).** The elementary transition K.μ⁻ requires no coupling — it is self-sufficient with respect to P0–P2, L12, and the operative provenance bound P4★ (defined above). As an elementary transition, K.μ⁻ satisfies:
 
@@ -791,7 +789,7 @@ P3 makes the confinement vivid. Every destructive state change — every removal
 
 We exercise the four K.δ patterns — case (i) node baptism, case (ii) k = 2 account descent, case (ii) k = 2 document descent, case (ii) k = 0 sibling document allocation — by building the chain `n₀ = 1 → 1.2 → 1.2.0.1 → 1.2.0.1.0.1 → 1.2.0.1.0.2` from Σ₀ (with E₀ = {1}).
 
-**Step 1: K.δ case (i) — baptise node `1.2`.** Address `1.2` is supplied by the node-provisioning boundary, not by inc. Preconditions: `ValidAddress(1.2)`, `IsNode(1.2)` (zeros = 0), `1.2 ∉ E₀` (discharged by NodeBaptism (a)), `n₀ ≼ 1.2` (`[1] ≼ [1, 2]`, discharged by NodeBaptism (b)). Effect: `E₁ = {1, 1.2}`, all other components frame.
+**Step 1: K.δ case (i) — baptise node `1.2`.** Address `1.2` is supplied by the node-provisioning boundary, not by inc. Preconditions: `T4-valid(1.2)`, `Node(1.2)` (zeros = 0), `1.2 ∉ E₀` (discharged by NodeBaptism (a)), `n₀ ≼ 1.2` (`[1] ≼ [1, 2]`, discharged by NodeBaptism (b)). Effect: `E₁ = {1, 1.2}`, all other components frame.
 
 **Step 2: K.δ case (ii) k = 2 — allocate account `1.2.0.1 = inc(1.2, 2)`.** TA5(d) gives `zeros = 1`, `parent = 1.2`. Preconditions: `parent(e) = 1.2 ∈ E₁`; `zeros(1.2) = 0 ≤ 2`; `1.2.0.1 ∉ E₁` discharged by GlobalUniqueness (ASN-0034) at the account sub-allocator under node `1.2` (child-spawning at the live operand `t = 1.2`). Effect: `E₂ = E₁ ∪ {1.2.0.1}`.
 
@@ -805,14 +803,14 @@ We exercise the four K.δ patterns — case (i) node baptism, case (ii) k = 2 ac
 
 *Precondition discharge.*
 - `t = 1.2.0.1.0.1 ∈ E₃` (placed by Step 3 into `E₃`, preserved by P1).
-- `¬IsNode(t)`: `zeros(t) = 2 ≥ 1`, so `t` is not a node. T4b's parent projection is therefore defined at `t`.
+- `¬Node(t)`: `zeros(t) = 2 ≥ 1`, so `t` is not a node. T4b's parent projection is therefore defined at `t`.
 - `inc(t, 0) = 1.2.0.1.0.2 ∉ E₃`: at `Σ₃ = (C₃, L₃, E₃, M₃, R₃)`, `t = 1.2.0.1.0.1` is the frontier of `A_doc(1.2.0.1)`'s chain (placed as its first emission by Step 3, with no later sibling-advance), so FrontierEquivalence gives `inc(t, 0) ∉ E₃`.
 
 *Owning allocator via ParentAllocatorDispatch.* The K.δ k = 0 operation is allocator-agnostic in its precondition, but dispatches to a determinate parent allocator via ParentAllocatorDispatch (*Sub-allocator names*) at firing time. For `t = 1.2.0.1.0.1`: Step 3 placed `t` into `dom(A_doc(1.2.0.1))`, so case (a') applies (`A_doc(parent(t)) = A_doc(1.2.0.1)`), and the K.δ k = 0 event produces a sibling-advance on `A_doc(1.2.0.1)`'s frontier, yielding `e = inc(t, 0) = 1.2.0.1.0.2` as the second emission of that chain.
 
-*Effect.* `E₄ = E₃ ∪ {1.2.0.1.0.2}`, with `M₄(1.2.0.1.0.2) = ∅` (the K.δ `IsDocument(e)` case effect) and SubAllocatorBundle activating the content and link sub-allocators for the new sibling document (anchors `b_C(1.2.0.1.0.2) = [1.2.0.1.0.2.0.1]`, `b_L(1.2.0.1.0.2) = [1.2.0.1.0.2.0.2]`).
+*Effect.* `E₄ = E₃ ∪ {1.2.0.1.0.2}`, with `M₄(1.2.0.1.0.2) = ∅` (the K.δ `Document(e)` case effect) and SubAllocatorBundle activating the content and link sub-allocators for the new sibling document (anchors `b_C(1.2.0.1.0.2) = [1.2.0.1.0.2.0.1]`, `b_L(1.2.0.1.0.2) = [1.2.0.1.0.2.0.2]`).
 
-The zero-count progression `0 → 1 → 2` (Steps 1–3) exhausts the entity stratum at the document level: a hypothetical fourth k = 2 descent would produce `zeros = 3`, which is the IsElement stratum and falls outside E. Step 4's k = 0 sibling-increment preserves the document-level stratum (`zeros = 2`) while extending the population of `E_doc` under the same account.
+The zero-count progression `0 → 1 → 2` (Steps 1–3) exhausts the entity stratum at the document level: a hypothetical fourth k = 2 descent would produce `zeros = 3`, which is the Element stratum and falls outside E. Step 4's k = 0 sibling-increment preserves the document-level stratum (`zeros = 2`) while extending the population of `E_doc` under the same account.
 
 After Step 4 fires, `1.2.0.1.0.2 ∈ E₄`, so the next K.δ k = 0 dispatch on `A_doc(1.2.0.1)`'s frontier operates on the *new* frontier `1.2.0.1.0.2`, producing `inc(1.2.0.1.0.2, 0) = 1.2.0.1.0.3` — a third sibling document.
 
@@ -937,7 +935,7 @@ Since `dom(M(d)) ≠ ∅` (precondition (b)) and the chosen contraction shape pr
 
 **Step 2: K.α — allocate the replacement address `a₂'`.** Allocate `a₂' = 1.0.1.0.1.0.1.5 = inc(a₄, 0)` (the next sibling on d's content sub-allocator's frontier under TA5(c)) with `C'(a₂') = char₂'` for some new content value. Effect: `C' = C ∪ {a₂' ↦ char₂'}`. Frame: L, E, M (= M_int), R unchanged.
 
-Preconditions: IsElement(a₂') (zeros = 3, element-field `[1, 5]`); origin(a₂') = `1.0.1.0.1` = d ∈ E_doc; `subspace_I(a₂') = 1 = s_C`; `a₂' ∉ dom(C)` by GlobalUniqueness (ASN-0034) on the content sub-allocator's inc chain; `a₂' ∉ dom(L) = ∅` vacuously. ✓
+Preconditions: Element(a₂') (zeros = 3, element-field `[1, 5]`); origin(a₂') = `1.0.1.0.1` = d ∈ E_doc; `subspace_I(a₂') = 1 = s_C`; `a₂' ∉ dom(C)` by GlobalUniqueness (ASN-0034) on the content sub-allocator's inc chain; `a₂' ∉ dom(L) = ∅` vacuously. ✓
 
 **Step 3: K.μ⁺ — rebuild the suffix `{[1,2] ↦ a₂', [1,3] ↦ a₃, [1,4] ↦ a₄}`.** Effect: `M_post(d) = {[1,1] ↦ a₁, [1,2] ↦ a₂', [1,3] ↦ a₃, [1,4] ↦ a₄}`. Frame: C', L, E, R unchanged.
 
@@ -1137,7 +1135,7 @@ An attempt to remove `[2,1]` while retaining `[2,2]` is excluded by D-MIN★ (th
 
 *Derivation.* The three components are discharged separately.
 
-*(i) Entities.* `(A e ∈ E :: n₀ ≼ e)`. For `IsNode(e)`, NodeLineage gives `n₀ ≼ e` directly. For `¬IsNode(e)`, P8 supplies `parent(e) ∈ E` with `zeros(parent(e)) = zeros(e) − 1` (T4b's parent projection). By the parent definition — `parent(e)` is obtained by truncating e's last field and the preceding zero separator — we have `parent(e) ≼ e` under the tumbler-prefix order (ASN-0034). Recursive descent through parent chains terminates at a node (since each step strictly decreases `zeros`, and entities satisfy `zeros ∈ {0, 1, 2}` by the entity-set definition, the chain reaches `zeros = 0` in at most two steps — the longest case being a document with `zeros = 2`, whose parent is an account with `zeros = 1`, whose parent is a node with `zeros = 0`), where NodeLineage applies. Transitivity of ≼ over the parent chain `e ≽ parent(e) ≽ parent(parent(e)) ≽ ... ≽ node` together with NodeLineage at the node gives `n₀ ≼ e`.
+*(i) Entities.* `(A e ∈ E :: n₀ ≼ e)`. For `Node(e)`, NodeLineage gives `n₀ ≼ e` directly. For `¬Node(e)`, P8 supplies `parent(e) ∈ E` with `zeros(parent(e)) = zeros(e) − 1` (T4b's parent projection). By the parent definition — `parent(e)` is obtained by truncating e's last field and the preceding zero separator — we have `parent(e) ≼ e` under the tumbler-prefix order (ASN-0034). Recursive descent through parent chains terminates at a node (since each step strictly decreases `zeros`, and entities satisfy `zeros ∈ {0, 1, 2}` by the entity-set definition, the chain reaches `zeros = 0` in at most two steps — the longest case being a document with `zeros = 2`, whose parent is an account with `zeros = 1`, whose parent is a node with `zeros = 0`), where NodeLineage applies. Transitivity of ≼ over the parent chain `e ≽ parent(e) ≽ parent(parent(e)) ≽ ... ≽ node` together with NodeLineage at the node gives `n₀ ≼ e`.
 
 *(ii) Content addresses.* `(A a ∈ dom(C) :: n₀ ≼ a)`. By P6, `origin(a) ∈ E_doc ⊆ E`, so (i) gives `n₀ ≼ origin(a)`. By S7a, `a` is allocated under `origin(a)`'s prefix — formally, `origin(a) ≼ a` (origin recovers the document-level prefix of a by truncating to `zeros = 2`). Transitivity of ≼ closes: `n₀ ≼ origin(a) ≼ a`.
 
@@ -1199,8 +1197,8 @@ P3 (defined in *Destruction confinement*, where its synthesis from P0 ∧ P1 ∧
 | D-SEQ★ | frame | frame | frame | derived from D-CTG★ + D-MIN★ + S8-depth + S8-fin + S8a | derived | derived | see *D-SEQ★* prose below | frame |
 | P6 | precondition: origin(a)∈E_doc; preserved by P0/P1 | frame (does not add to dom(C)) | frame | frame | frame | frame | frame | frame |
 | P7 | frame (does not add to R) | frame | frame | frame | frame | frame | frame | precondition: a∈dom(C); preserved by P0 |
-| P8 | frame | parent(e)∈E precondition for ¬IsNode(e); vacuous for IsNode | frame | frame | frame | frame | frame | frame |
-| NodeLineage | frame | K.δ case (i): n₀≼e from NodeBaptism (b); case (ii): outside IsNode scope | frame | frame | frame | frame | frame | frame |
+| P8 | frame | parent(e)∈E precondition for ¬Node(e); vacuous for Node | frame | frame | frame | frame | frame | frame |
+| NodeLineage | frame | K.δ case (i): n₀≼e from NodeBaptism (b); case (ii): outside Node scope | frame | frame | frame | frame | frame | frame |
 | L0 (C-clause) | K.α's `E(a)₁ = s_C` precondition (per ASN-0093): subspace_I(a)=s_C; preserved by P0 | frame | frame | frame | frame | frame | frame | frame |
 | L0 (L-clause) | frame | frame | precondition: subspace_I(ℓ)=s_L; preserved by L12 | frame | frame | frame | frame | frame |
 | L1, L1a, L1b | frame | frame | preconditions (zeros(ℓ)=3, origin(ℓ)∈E_doc, #E(ℓ)≥2); preserved by L12 | frame | frame | frame | frame | frame |
@@ -1212,7 +1210,7 @@ P3 (defined in *Destruction confinement*, where its synthesis from P0 ∧ P1 ∧
 | CL-OWN | frame | frame | frame | frame (no link-subspace V-positions added) | precondition: origin(ℓ)=d | frame (survivors retain origin) | link-subspace fixity (pointwise pre-state values preserved) | frame |
 | CL-UNIQ | frame | frame | frame | frame (no link-subspace V-positions added; M(d)\|_{dom_L} unchanged) | precondition: ℓ∉ran(M(d)) ensures unique placement | restriction of an injection remains injective | M'(d)\|_{dom_L} = M(d)\|_{dom_L} (Link-subspace fixity), so injectivity carries forward | frame |
 
-The matrix is a navigational index; each cell summarises the load-bearing argument. The link-row "frame" cells under K.α, K.μ⁺, and K.μ⁻ are covered uniformly by the matrix note above; the prose below does not repeat that justification per row.
+The matrix is a navigational index; each cell summarises the load-bearing argument. The link-row "frame" cells under K.α, K.μ⁺, and K.μ⁻ are covered uniformly by the matrix note above.
 
 *S2 (ArrangementFunctionality).* K.μ⁺ adds at V-positions disjoint from dom(M(d)) (the K.μ⁺ definition's value-preservation clause forces new mappings to disjoint positions, so extending a partial function at disjoint elements preserves single-valuedness); K.μ⁺_L adds at `v_ℓ ∉ dom(M(d))` (verified in *Link-subspace extension*); K.μ⁻ restricts M(d) (restriction of a function is a function); K.μ~ inherits via the K.μ⁻ + K.μ⁺ decomposition; all others hold M in frame.
 
@@ -1243,9 +1241,9 @@ Preserved by P1.
 
 *P6 (Existential coherence), P7 (Provenance grounding).* Derivations in the *Cross-layer invariants* section above. P6: K.α precondition `origin(a) ∈ E_doc`; preserved by P0/P1. P7: K.ρ precondition `a ∈ dom(C)`; preserved by P0; all other transitions hold R in frame.
 
-*P8 (Entity hierarchy).* K.δ adds one entity `e` to E. (i) `IsNode(e)`: the universal quantifies over non-node entities, so `e` is outside its scope; existing non-nodes retain `parent(e') ∈ E ⊆ E'` by inductive hypothesis. (ii) `¬IsNode(e)`: K.δ's case-(ii) precondition requires `parent(e) ∈ E ⊆ E'`; existing non-nodes carry forward by inductive hypothesis. All other transitions hold E in frame.
+*P8 (Entity hierarchy).* K.δ adds one entity `e` to E. (i) `Node(e)`: the universal quantifies over non-node entities, so `e` is outside its scope; existing non-nodes retain `parent(e') ∈ E ⊆ E'` by inductive hypothesis. (ii) `¬Node(e)`: K.δ's case-(ii) precondition requires `parent(e) ∈ E ⊆ E'`; existing non-nodes carry forward by inductive hypothesis. All other transitions hold E in frame.
 
-*NodeLineage* `(A e ∈ E : IsNode(e) : n₀ ≼ e)`. Base: `E₀ = {n₀}` with `n₀ ≼ n₀` by reflexivity of the tumbler-prefix order. K.δ case (i) — `IsNode(e)` — has `n₀ ≼ e` as an explicit precondition, discharged by NodeBaptism (b) (the boundary's bootstrap-lineage commitment supplies `n₀ ≼ e` directly at every node-allocation event); the inductive hypothesis carries `n₀ ≼ e'` for every prior node. K.δ case (ii) — `¬IsNode(e)` — adds a non-node, outside the IsNode quantifier; existing nodes unchanged. All other transitions hold E in frame.
+*NodeLineage* `(A e ∈ E : Node(e) : n₀ ≼ e)`. Base: `E₀ = {n₀}` with `n₀ ≼ n₀` by reflexivity of the tumbler-prefix order. K.δ case (i) — `Node(e)` — has `n₀ ≼ e` as an explicit precondition, discharged by NodeBaptism (b) (the boundary's bootstrap-lineage commitment supplies `n₀ ≼ e` directly at every node-allocation event); the inductive hypothesis carries `n₀ ≼ e'` for every prior node. K.δ case (ii) — `¬Node(e)` — adds a non-node, outside the Node quantifier; existing nodes unchanged. All other transitions hold E in frame.
 
 *L0 (SubspacePartition).* L-clause from K.λ's precondition `subspace_I(ℓ) = s_L`; preserved by L12. C-clause from K.α's `E(a)₁ = s_C` precondition (per ASN-0093) — equivalently `subspace_I(a) = s_C`; preserved by P0.
 
@@ -1309,20 +1307,20 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 
 | Label | Statement |
 |-------|-----------|
-| Σ.E | E ⊆ {t : ValidAddress(t) ∧ zeros(t) ≤ 2} — entity addresses, partitioned by IsNode / IsAccount / IsDocument |
+| Σ.E | E ⊆ {t : T4-valid(t) ∧ zeros(t) ≤ 2} — entity addresses, partitioned by Node / Account / Document |
 | Σ.R | R ⊆ T_elem × E_doc — provenance relation recording historical content associations |
 | Σ₀ | Initial state: C₀ = ∅, E₀ = {n₀} (bootstrap node), M₀(d) = ∅ for all d, R₀ = ∅ |
-| parent(e) | For ¬IsNode(e): tumbler obtained by truncating last field and preceding separator |
+| parent(e) | For ¬Node(e): tumbler obtained by truncating last field and preceding separator |
 | Contains(Σ) | {(a, d) : d ∈ E_doc ∧ a ∈ ran(M(d))} — current containment, derived quantity of state |
 | Contains_C(Σ) | `{(a, d) : d ∈ E_doc ∧ (E v : v ∈ dom(M(d)) ∧ subspace(v) = s_C : M(d)(v) = a)}` — content-scoped containment |
 | Valid composite | Σ →* Σ' valid iff: (1) elementary preconditions at each intermediate state, (2) J0/J1★/J1'★ for the composite; P0/P1/P2 derived as lemma |
-| K.α | Content allocation — extend dom(C) with fresh address a at value v; precondition: IsElement(a), origin(a) ∈ E_doc, a ∉ dom(C), a ∉ dom(L), a produced by origin(a)'s content sub-allocator; effect C' = C ∪ {a ↦ v}; frame holds L, E, M, R |
-| K.δ | Entity creation — extend E with fresh entity; precondition: parent(e) ∈ E when ¬IsNode(e); empty arrangement if IsDocument; frame holds C, L, R, other documents in M (new entity gets M'(e) = ∅ by the default-value convention) |
+| K.α | Content allocation — extend dom(C) with fresh address a at value v; precondition: Element(a), origin(a) ∈ E_doc, a ∉ dom(C), a ∉ dom(L), a produced by origin(a)'s content sub-allocator; effect C' = C ∪ {a ↦ v}; frame holds L, E, M, R |
+| K.δ | Entity creation — extend E with fresh entity; precondition: parent(e) ∈ E when ¬Node(e); empty arrangement if Document; frame holds C, L, R, other documents in M (new entity gets M'(e) = ∅ by the default-value convention) |
 | K.μ⁺ | Arrangement extension — extend dom(M(d)) for d ∈ E_doc with new V→I mappings, preserving existing values; co-amended with content-subspace partitioning at the extended-state introduction (see Local extensions block); frame holds C, L, E, R, other documents |
 | K.μ⁻ | Arrangement contraction — remove existing V→I mappings from some d ∈ E_doc, with surviving mappings unchanged: dom(M'(d)) ⊂ dom(M(d)) ∧ (A v ∈ dom(M'(d)) : M'(d)(v) = M(d)(v)); per-subspace admissible removal pattern is suffix truncation (empty, proper, or full), with at least one subspace contracting strictly; frame holds C, L, E, R, other documents |
 | K.μ~ | Arrangement reordering — named composite K.μ⁻ + K.μ⁺ realising a bijection π : dom(M(d)) → dom(M'(d)) with M'(d)(π(v)) = M(d)(v); subspace-preserving with link-subspace fixity (π(v) = v for v ∈ dom_L); derived frame holds C, L, E, R, other documents |
 | K.λ | Link allocation — extend dom(L) with fresh address ℓ at value (e₁, …, eₙ); precondition: d ∈ E_doc, ℓ ∉ dom(L) ∪ dom(C), zeros(ℓ) = 3, subspace_I(ℓ) = s_L, #E(ℓ) ≥ 2, origin(ℓ) = d, ℓ is produced by d's link sub-allocator (first emission [d.0.s_L.1] via SubAllocatorBundle; subsequent inc(·, 0) on the frontier via TA5(c)), N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅; effect L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}; frame holds C, E, M, R |
-| K.ρ | Provenance recording — extend R with (a, d) pair where IsElement(a) ∧ a ∈ dom(C); frame holds C, L, E, M |
+| K.ρ | Provenance recording — extend R with (a, d) pair where Element(a) ∧ a ∈ dom(C); frame holds C, L, E, M |
 | K.μ⁺_L | Elementary transition: link-subspace arrangement extension, M'(d) = M(d) ∪ {v_ℓ ↦ ℓ}, origin(ℓ) = d, ℓ ∉ ran(M(d)) (first-arrangement); frame holds C, L, E, R, other documents |
 | K.μ~-FIX | Domain fixity under K.μ~: dom(M'(d)) = dom(M(d)), making π a permutation of a fixed domain — from D-SEQ + bijection cardinality (n'_S = n_S) + subspace preservation + length preservation (admissibility (iii)) fixing per-subspace depth |
 | J0 | Content allocation (K.α) always co-occurs with arrangement extension (K.μ⁺). **Axiomatic** — not derived from foundation |
@@ -1335,12 +1333,12 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 | P6 | Existential coherence: origin(a) ∈ E_doc for all a ∈ dom(C) |
 | P7 | Provenance grounding: a ∈ dom(C) for all (a, d) ∈ R |
 | P7a | Provenance coverage: (E d :: (a, d) ∈ R) for all a ∈ dom(C) — every I-address has provenance |
-| P8 | Entity hierarchy: (A e ∈ E : ¬IsNode(e) : parent(e) ∈ E) — no orphan accounts or documents |
+| P8 | Entity hierarchy: (A e ∈ E : ¬Node(e) : parent(e) ∈ E) — no orphan accounts or documents |
 | m_L(d) | Depth of d's *current* link-subspace arrangement; see *Link-subspace extension* |
 | NodeBaptism | Axiom (boundary input — node provisioning): node addresses are baptised at the network-provisioning boundary, not by any docuverse transition; every K.δ node-allocation event commits, over Σ alone, (a) e ∉ Σ.E (freshness) and (b) n₀ ≼ e (bootstrap lineage); n₀ ∈ E₀ is the boundary baptism of Σ₀. |
-| FrontierEquivalence | Derived lemma: `inc(t, 0) ∉ Σ.E ⟺ t is the frontier of A's (t, 0)-branch` (where A is the allocator whose tracked chain contains t, unique by T10a.6), for every reachable Σ and every `t ∈ Σ.E` with `¬IsNode(t)`; "frontier" is well-defined by T10a.7 |
-| TrackedEmission | Per-state invariant (EntityEmissionTracking): `(A e ∈ Σ.E : ¬IsNode(e) : (E A : A a tracked entity-level sub-allocator : e ∈ dom(A)))` — every non-node entity inhabits some tracked sub-allocator domain. Holds vacuously at Σ₀; preserved by K.δ (each non-node entity enters E only via a T10a inc-step on a tracked sub-allocator, per K.δ case (ii)) and frame on all other transitions |
-| NodeLineage | Derived per-state invariant: `(A e ∈ E : IsNode(e) : n₀ ≼ e)` — every node in E descends structurally from the bootstrap node n₀ by tumbler-prefix relation. Discharged inductively from the base case `E₀ = {n₀}` (reflexivity) and the K.δ case (i) precondition `n₀ ≼ e` |
+| FrontierEquivalence | Derived lemma: `inc(t, 0) ∉ Σ.E ⟺ t is the frontier of A's (t, 0)-branch` (where A is the allocator whose tracked chain contains t, unique by T10a.6), for every reachable Σ and every `t ∈ Σ.E` with `¬Node(t)`; "frontier" is well-defined by T10a.7 |
+| TrackedEmission | Per-state invariant (EntityEmissionTracking): `(A e ∈ Σ.E : ¬Node(e) : (E A : A a tracked entity-level sub-allocator : e ∈ dom(A)))` — every non-node entity inhabits some tracked sub-allocator domain. Holds vacuously at Σ₀; preserved by K.δ (each non-node entity enters E only via a T10a inc-step on a tracked sub-allocator, per K.δ case (ii)) and frame on all other transitions |
+| NodeLineage | Derived per-state invariant: `(A e ∈ E : Node(e) : n₀ ≼ e)` — every node in E descends structurally from the bootstrap node n₀ by tumbler-prefix relation. Discharged inductively from the base case `E₀ = {n₀}` (reflexivity) and the K.δ case (i) precondition `n₀ ≼ e` |
 | GlobalLineage | Derived corollary: `(A x ∈ E ∪ dom(C) ∪ dom(L) :: n₀ ≼ x)` — every entity, content address, and link address descends from n₀ under tumbler-prefix order. Promotes NodeLineage to the full docuverse via P8 + P6 + L1a + L1c + transitivity of ≼ |
 | b_C(d), b_L(d) | Virtual sub-allocator anchors under d: `b_C(d) = [d.0.s_C]`, `b_L(d) = [d.0.s_L]` — single-component element-field bases, not in dom(C) ∪ dom(L), serving as formal starting points for the content and link allocator chains under d |
 | Allocator hierarchy | Content and link sub-allocators are sibling element-field allocators under d, sharing prefix `[d.0]`; T10a-conformance applies to each frontier separately; cross-document collisions prevented by T10, cross-subspace by L14 (= L0 + SC-NEQ) |
@@ -1403,4 +1401,4 @@ These properties are foundation invariants of ASN-0093 (or earlier foundation AS
 - What must the node-provisioning boundary guarantee about freshness and lineage for NodeBaptism to hold, given that node baptism sits outside the docuverse transition model as a network-level provisioning act rather than a transition over stored components?
 - What invariants must a separate link-withdrawal mechanism (status flag, tombstone marker, or explicit retraction link) maintain in order to reconcile Nelson's tombstoning design (LM 4/9) with D-CTG★ / D-MIN★? Under D-CTG★/D-MIN★ this ASN's K.μ⁻ admits only link-subspace suffix truncations, so withdrawing an interior link requires withdrawing every link allocated after it; tombstoning would require a mechanism outside K.μ⁻'s presentational-removal contract.
 - Should K.λ require `e₁ ∪ e₂ ≠ ∅` to exclude type-only links, or admit them as valid markers per Nelson's one-sided link case (LM 4/48)? If admitted, do one-sided links (exactly one of e₁, e₂ empty) and type-only markers (both empty) carry distinguishable semantics in endset-iterating consumers like L8's `same_type` and the discovery-set unions?
-- Should the entity-allocation discipline admit account-level depth-1 extension (K.δ with `k = 1` and `IsAccount(t)`) for future use cases such as account renaming or multi-account user identity, rather than reserving versioning to documents?
+- Should the entity-allocation discipline admit account-level depth-1 extension (K.δ with `k = 1` and `Account(t)`) for future use cases such as account renaming or multi-account user identity, rather than reserving versioning to documents?
