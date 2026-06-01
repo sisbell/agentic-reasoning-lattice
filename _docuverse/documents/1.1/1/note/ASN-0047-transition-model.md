@@ -352,8 +352,6 @@ The two cases together cover every reachable state under S8a + S8-depth. The can
 
 *Per-subspace consequence of the strict-contraction clause.* `(E S ∈ {s_C, s_L} : V_S(d) ≠ ∅ : n'_S < n_S)` — at least one subspace shrinks strictly.
 
-*Locus of contraction.* A one-line consequence of the strict-contraction clause: an empty subspace admits only the trivial empty removal, so whenever exactly one of `V_{s_C}(d)`, `V_{s_L}(d)` is non-empty, that subspace is the sole locus of contraction and must shrink strictly; when both are non-empty, the strict-subset requirement may be met by contracting either or both.
-
 *Frame (extended state).* `C' = C; L' = L; E' = E; R' = R; (A d' : d' ≠ d : M'(d') = M(d'))`.
 
 **K.μ⁻ admissible contraction shape (equivalence of constructive and post-state characterizations).** K.μ⁻'s precondition specifies the post-state constructively via the per-subspace retention count `n'_S`. We show this is *equivalent* to the post-state characterization "M'(d) satisfies D-CTG★ + D-MIN★ + D-SEQ★ and dom(M'(d)) ⊆ dom(M(d)) with value preservation on survivors," justifying the constructive precondition as fully general — every contraction admissible under the post-state invariants takes the per-subspace suffix-prefix retention form.
@@ -590,7 +588,7 @@ Hence every realisable π preserves subspace; combined with clause (iv) (every a
     - *Clause (iv) (subspace-preserving).* `v₁, v₂ ∈ dom_C(M(d))`, so `subspace(v₁) = subspace(v₂) = s_C`, and `π_swap` maps `v₁ ↔ v₂` within `dom_C` and fixes every position elsewhere (including all of `dom_L`) — every V-position retains its pre-state subspace.
     - *Clause (iii) (length-preserving).* `π_swap` maps every position of `dom(M(d))` to a position of `dom(M(d))`; in particular `v₁ ↔ v₂` with `subspace(v₁) = subspace(v₂) = s_C`, so by S8-depth at Σ both share the content-subspace depth `m_{s_C}`, giving `#π_swap(v₁) = #v₂ = m_{s_C} = #v₁` and symmetrically at `v₂`, while every fixed position trivially preserves its length. Hence `#π_swap(v) = #v` for all `v`.
     - *Clause (i) (post-state invariants on `M'(d)`).* Domain fixity holds *by construction*: `π_swap` is a permutation of `dom(M(d))` (a transposition fixing all but `v₁, v₂`), so the bijection equation gives `dom(M'(d)) = π_swap(dom(M(d))) = dom(M(d))` directly, independent of any post-state invariant. With the V-position domain thus fixed, `S8a`, `S8-depth`, `S8-fin`, `D-CTG★`, `D-MIN★`, `D-SEQ★` at the post-state inherit unchanged from the pre-state's per-state hypothesis. `S3★` at the post-state: at every `v ∈ dom(M(d))`, `M'(d)(π_swap(v)) = M(d)(v)` by the bijection equation; subspace preservation routes content-subspace mappings to `dom(C')` and link-subspace mappings to `dom(L')` exactly as at the pre-state, so `S3★` carries forward.
-    Hence `π_swap` is admissible, and the full-clearance form (`n'_{s_C} = 0`) of the K.μ⁻ + K.μ⁺ decomposition realises it. **Full-clearance form (canonical statement).** K.μ⁻ clears the entire content subspace — content-only removal — while retaining every link-subspace position, and K.μ⁺ rebuilds the content subspace at fresh positions, framing the retained link positions. This form is admissible for *every* admissible π without per-π precondition checks, since K.μ⁻'s suffix-removal precondition holds vacuously at the full-subspace suffix and K.μ⁺ writes at fresh positions; it is the realisation invoked wherever a K.μ~ argument needs to realise an arbitrary admissible π. The transposition witness is the simplest one; many other admissible π exist, but a single witness suffices for the sufficiency obligation.
+    Hence `π_swap` is admissible, and the full-clearance form (`n'_{s_C} = 0`) of the K.μ⁻ + K.μ⁺ decomposition — stated in §*Decomposition of K.μ~* below — realises it. The transposition witness is the simplest one; many other admissible π exist, but a single witness suffices for the sufficiency obligation.
 
   The precondition is caller-checked: a transition whose `M(d)|_{dom_C}` is constant-valued (in particular when `|dom_C(M(d))| ≤ 1`, but also any state in which every content V-position shares a single I-address by transclusion) does not fire, and the caller is responsible for verifying this condition before invoking K.μ~.
 
@@ -598,9 +596,7 @@ Hence every realisable π preserves subspace; combined with clause (iv) (every a
 
 **Decomposition.** When `M(d)|_{dom_C(M(d))}` takes at least two distinct values (the operation's precondition), K.μ~ is realised as *any* valid K.μ⁻ + K.μ⁺ pair on `V_{s_C}(d)` whose net effect achieves the bijection equation for π, subject to K.μ⁻'s admissibility (per-subspace suffix removal under D-CTG★/D-MIN★) and K.μ⁺'s preconditions at the intermediate state. The verification arguments realise every admissible π by the *full content-subspace clearance and rebuild* (`n'_{s_C} = 0`):
 
-- *Full content-subspace clearance and rebuild* at `n'_{s_C} = 0`: K.μ⁻ removes V_{s_C}(d) entirely (maximal-suffix removal, with link-subspace retained) and K.μ⁺ then adds `{π(v) ↦ M(d)(v) : v ∈ V_{s_C}(d)}` in one step — the full-clearance form whose canonical statement and no-per-π-check property are given in §*Necessity and sufficiency of the precondition* above. It is the form invoked by every K.μ~ verification argument below, which therefore needs to name no cut point.
-
-  (Other cut points `n'_{s_C} = k₀ − 1` with `1 ≤ k₀ ≤ n_{s_C}` realise π when π preserves M(d)-values below the cut, but the verification arguments use only the always-available full-clearance form.)
+- *Full content-subspace clearance and rebuild* at `n'_{s_C} = 0`: K.μ⁻ removes V_{s_C}(d) entirely (maximal-suffix removal, with link-subspace retained) and K.μ⁺ then adds `{π(v) ↦ M(d)(v) : v ∈ V_{s_C}(d)}` in one step. **Full-clearance form (canonical statement).** K.μ⁻ clears the entire content subspace — content-only removal — while retaining every link-subspace position, and K.μ⁺ rebuilds the content subspace at fresh positions, framing the retained link positions. This form is admissible for *every* admissible π without per-π precondition checks, since K.μ⁻'s suffix-removal precondition holds vacuously at the full-subspace suffix and K.μ⁺ writes at fresh positions.
 
 K.μ⁻ must retain link-subspace mappings under the clearance — K.μ⁺ (amended) is content-only and K.μ⁺_L only places at the contiguous min or max, so any removed link-subspace position could not be restored.
 
@@ -625,7 +621,7 @@ This is a derived quantity of the state — it captures what each document curre
 
   `Contains(Σ) ⊆ R`
 
-P4 is the unscoped provenance bound: every current containment is recorded in R. With link-subspace mappings, `Contains(Σ)` includes `(ℓ, d)` for every link ℓ mapped in d's arrangement, but provenance entries satisfy P7 (ProvenanceGrounding, stated below): `(A (a, d) ∈ R :: a ∈ dom(C))`. Since `ℓ ∈ dom(L)` and `dom(L) ∩ dom(C) = ∅` (L14), `(ℓ, d) ∉ R` — P4 is unsatisfiable for the unscoped relation once any link-subspace mapping exists. The provenance bound must therefore be stated against the content-subspace restriction of containment; we retain the P4 label only to name the unscoped bound that P4★ below refines.
+P4 is the unscoped provenance bound: every current containment is recorded in R. With link-subspace mappings, `Contains(Σ)` includes `(ℓ, d)` for every link ℓ mapped in d's arrangement, but provenance entries satisfy P7 (ProvenanceGrounding, stated below): `(A (a, d) ∈ R :: a ∈ dom(C))`. Since `ℓ ∈ dom(L)` and `dom(L) ∩ dom(C) = ∅` (L14), `(ℓ, d) ∉ R` — P4 is unsatisfiable for the unscoped relation once any link-subspace mapping exists. The provenance bound must therefore be stated against the content-subspace restriction of containment, which P4★ below supplies.
 
 **Contains_C(Σ) (ContentContainment).**
 
@@ -698,7 +694,7 @@ Every I-address currently in some arrangement is recorded in R. But the converse
 
 ## Scoped coupling constraints
 
-Provenance coupling must be scoped to content-subspace arrangement extensions: an unscoped coupling and P7 are mutually unsatisfiable once any link-subspace mapping exists, by the same L14/P7 disjointness argument that makes the unscoped P4 unsatisfiable (see *Definition (Current containment)* above). This motivates the content-subspace forms J1★ and J1'★ below.
+Provenance coupling must be scoped to content-subspace arrangement extensions, for the same reason the unscoped P4 fails against P7 (*P4 box* above): an unscoped coupling cannot coexist with P7 once any link-subspace mapping exists. This motivates the content-subspace forms J1★ and J1'★ below.
 
 **J1★ (ExtensionRecordsProvenance, content-subspace).**
 
@@ -874,7 +870,7 @@ Reordering is the simplest transition to verify: it touches nothing beyond the V
 
 ## Worked example: interior content replacement
 
-We trace the interior-position case of the content-replacement composite — the *separate, range-changing* K.μ⁻ + K.μ⁺ pair identified in the *Elementary transitions* section (the form excluded from K.μ~ by its range-preservation clause). To parameterise the contraction depth we reuse the cut-point notation defined for K.μ~ permutations in the *Decomposition of K.μ~* section (`n'_{s_C} = k₀ − 1` with `1 ≤ k₀ ≤ n_{s_C}`), applying it here to the distinct range-changing replacement composite: the interior case takes `n'_{s_C} = k₀ − 1` rather than the single-position pair at `k₀ = n_{s_C}`.
+We trace the interior-position case of the content-replacement composite — the *separate, range-changing* K.μ⁻ + K.μ⁺ pair identified in the *Elementary transitions* section (the form excluded from K.μ~ by its range-preservation clause). To parameterise the contraction depth we write `n'_{s_C} = k₀ − 1` for the post-contraction content-subspace count, where `1 ≤ k₀ ≤ n_{s_C}` is the lowest cut position (the K.μ⁻ removes the suffix from position `k₀` upward): the interior case takes a cut below the top, `n'_{s_C} = k₀ − 1` with `k₀ < n_{s_C}`, rather than the single-position pair at `k₀ = n_{s_C}`.
 
 *Initial state.* Let document `d = 1.0.1.0.1` have four content-subspace mappings, with `aₖ := 1.0.1.0.1.0.1.k` for `k ∈ {1, 2, 3, 4}`:
 
