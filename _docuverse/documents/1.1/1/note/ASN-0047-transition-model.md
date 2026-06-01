@@ -68,7 +68,7 @@ M is a total function with M(d) = ∅ (the empty partial function) when d ∉ E_
 
 Second, removal of content from an arrangement does not erase the historical fact of prior containment. Gregory: the reverse index "accumulates entries from every content addition but is never trimmed." Nelson: "every previous arrangement remains reconstructable." The system must answer "which documents have ever contained content with origin *a*?" — a question about history, not about current state.
 
-**Definition (Provenance relation).** **Σ.R ⊆ T_elem × E_doc** — where T_elem = {a ∈ T : IsElement(a)} (ASN-0045). The pair (a, d) ∈ R records that document d contained I-address a in its arrangement at the composite boundary at which the entry was made. That every entry has an actual content-subspace containment witness at its recording boundary — not merely eligibility — is not assumed by the definition alone; it is established as P4a below, by induction over J1'★, P2, and P0.
+**Definition (Provenance relation).** **Σ.R ⊆ T_elem × E_doc** — where T_elem = {a ∈ T : IsElement(a)} (ASN-0045). The pair (a, d) ∈ R records that document d contained I-address a in its arrangement at the composite boundary at which the entry was made.
 
 The full system state is:
 
@@ -503,7 +503,7 @@ Cross-document disjointness is supplied by the Cross-document disjointness chain
 
 ## K.δ case (ii) discharge and parent-allocator activation
 
-Each non-node K.δ event observes the freshness conjunct `e ∉ E` before firing: it is a caller-checked guard, a precondition observed before the event fires, not a conclusion derived afterward. Once the guard has been applied, GlobalUniqueness (ASN-0034) preserves the distinctness invariant that always applying it maintains — GlobalUniqueness preserves distinctness, it does not supply the guard. We state this guard-vs-conclusion distinction and the GlobalUniqueness-preserves-distinctness fact once, here; each sub-case below carries only its distinguishing content — the operand, the parent entity-level sub-allocator on which the step `e = inc(t, k)` acts, and the applicable allocator-discipline clause. The regime differs by k:
+Each non-node K.δ event observes the freshness conjunct `e ∉ E` before firing: it is a caller-checked guard, a precondition observed before the event fires, not a conclusion derived afterward. Once the guard has been applied, GlobalUniqueness (ASN-0034) preserves the distinctness invariant that always applying it maintains — GlobalUniqueness preserves distinctness, it does not supply the guard. The regime differs by k in its operand, the parent entity-level sub-allocator on which the step `e = inc(t, k)` acts, and the applicable allocator-discipline clause:
 
 - *k = 0 (sibling under existing allocator):* operand `t ∈ E` already inhabits the parent's tracked domain by K.δ's `parent(t) = parent(e)` precondition; the step `e = inc(t, 0)` is a T10a sibling-advance on the activated parent allocator. The guard `inc(t, 0) ∉ E` is logically equivalent, by FrontierEquivalence, to the frontier conjunct on `t` (the maximality clause in K.δ k = 0's precondition) — two checkable forms of the same precondition, neither derived from the other.
 
@@ -537,7 +537,7 @@ Existing transitions preserve S3★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ c
 
 ## Link-subspace extension
 
-**Link-subspace V-position depth (operational).** We write `m_L(d)` for the link-subspace V-position depth of document `d ∈ E_doc`. The depth is chosen at the first link-subspace insertion into `d` (K.μ⁺_L's precondition below), constrained by the S8a lower bound `m_L(d) ≥ 2`, and held constant thereafter by S8-depth (uniform depth within a subspace, ASN-0036). On a non-empty link subspace `m_L(d)` is the common depth S8-depth fixes; on an empty link subspace S8-depth is vacuous and K.μ⁺_L pins the depth at first insertion.
+**Link-subspace V-position depth (operational).** We write `m_L(d)` for the depth of document `d`'s *current* link-subspace arrangement — the common depth that S8-depth (uniform depth within a subspace, ASN-0036) fixes on `V_{s_L}(d)` whenever that set is non-empty, bounded below by the S8a lower bound `m_L(d) ≥ 2`. `m_L(d)` is well-defined only while `V_{s_L}(d) ≠ ∅`; it is constant within a contiguous non-empty stretch but is *not* a permanent per-document constant. K.μ⁻ admits full link-subspace clearance (`V_{s_L}(d) = ∅`), after which S8-depth is again vacuous and the next K.μ⁺_L re-pins `m_L(d)` from scratch — at any value `≥ 2` by S8a, not necessarily the prior depth. The depth therefore tracks the live arrangement, not a value fixed at first-ever insertion. (This matches the implementation: after a document's link subspace is fully cleared, the next link insertion re-derives its V-position from the current arrangement, floored at the `s_L` minimum, with no stored prior depth to reuse.)
 
 **K.μ⁺_L (LinkSubspaceExtension).** Extends a document's arrangement in the link subspace.
 
@@ -548,7 +548,7 @@ Existing transitions preserve S3★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ c
 - ℓ ∉ ran(M(d))  (the link is not already arranged at any V-position in d's arrangement — first-arrangement constraint)
 - V-position v_ℓ satisfies:
   - subspace(v_ℓ) = s_L
-  - depth m_L(d) (the per-document link-subspace depth defined above). When V_{s_L}(d) ≠ ∅, m_L(d) is the common depth fixed by S8-depth on existing link-subspace positions; when V_{s_L}(d) = ∅, S8-depth is vacuous and this first insertion pins m_L(d) — any value ≥ 2 by S8a, the choice mirroring K.μ⁺'s realisation of `ValidFirstInsertionPosition` for the empty content subspace.
+  - depth m_L(d) (the current link-subspace depth defined above). When V_{s_L}(d) ≠ ∅, m_L(d) is the common depth fixed by S8-depth on existing link-subspace positions; when V_{s_L}(d) = ∅, S8-depth is vacuous and this insertion re-pins m_L(d) for the new non-empty stretch — any value ≥ 2 by S8a, the choice mirroring K.μ⁺'s realisation of `ValidFirstInsertionPosition` for the empty content subspace.
   - If V_{s_L}(d) = ∅: v_ℓ is the minimum position `[s_L, 1, ..., 1]` of depth m_L(d) (D-MIN★)
   - If V_{s_L}(d) ≠ ∅: v_ℓ = shift(max(V_{s_L}(d)), 1), extending the contiguous range (D-CTG★). OrdShiftHom (ASN-0036, clause (a) subspace preservation under shift and clause (b) S8a preservation under shift) is subspace-parametric in v₁, so it applies to v_ℓ at v₁ = s_L exactly as at v₁ = s_C; clause (a) supplies subspace(v_ℓ) = s_L, clause (b) supplies S8a preservation, and the TS-family shift lemmas (TS1–TS5, ASN-0034) together with S8-depth supply S8-depth preservation.
   - #v_ℓ = m_L(d) (S8-depth within the link subspace)
@@ -667,7 +667,7 @@ A clarification on scope. The frame conditions stated above describe individual 
 
 This is a derived quantity of the state — it captures what each document currently displays. The unscoped relation is used below only in the reordering-isolation argument (J3) and the staleness discussion; the provenance bound is carried not by `Contains(Σ)` but by its content-subspace restriction `Contains_C`, defined next, which P4★ constrains.
 
-With link-subspace mappings, `Contains(Σ)` includes `(ℓ, d)` for every link ℓ mapped in d's arrangement. P4 would require `Contains(Σ) ⊆ R`, but provenance entries satisfy P7 (ProvenanceGrounding, stated below): `(A (a, d) ∈ R :: a ∈ dom(C))`. Since `ℓ ∈ dom(L)` and `dom(L) ∩ dom(C) = ∅` (L14), `(ℓ, d) ∉ R` — P4 is unsatisfiable for the unscoped relation once any link-subspace mapping exists. The provenance bound must therefore be stated against the content-subspace restriction of containment. This is the single site at which the unsatisfiability of the unscoped bound is argued; later sections cite P4★ by name.
+With link-subspace mappings, `Contains(Σ)` includes `(ℓ, d)` for every link ℓ mapped in d's arrangement. P4 would require `Contains(Σ) ⊆ R`, but provenance entries satisfy P7 (ProvenanceGrounding, stated below): `(A (a, d) ∈ R :: a ∈ dom(C))`. Since `ℓ ∈ dom(L)` and `dom(L) ∩ dom(C) = ∅` (L14), `(ℓ, d) ∉ R` — P4 is unsatisfiable for the unscoped relation once any link-subspace mapping exists. The provenance bound must therefore be stated against the content-subspace restriction of containment.
 
 **Contains_C(Σ) (ContentContainment).**
 
@@ -679,11 +679,7 @@ With link-subspace mappings, `Contains(Σ)` includes `(ℓ, d)` for every link �
 
 P4★ supersedes P4 for the extended state. In pre-extension states (no link-subspace mappings), `Contains_C(Σ) = Contains(Σ)`, so P4★ reduces to P4. P4★ is a Class (b) composite-boundary property: K.μ⁺ alone may transiently violate it (it adds to Contains_C but does not extend R), with restoration at the composite boundary governed by J1★ (stated below).
 
-**Definition (Valid composite transition).** A composite transition `Σ →* Σ'` is *valid* iff it is a finite sequence of atomic transitions Σ = Σ₀ → Σ₁ → ... → Σₙ = Σ' satisfying two conditions:
-
-(1) *Elementary preconditions:* each step Σᵢ → Σᵢ₊₁ satisfies the precondition of its elementary transition kind, evaluated at the intermediate state Σᵢ.
-
-(2) *Coupling constraints:* J0 and the content-subspace provenance couplings J1★, J1'★ (*Scoped coupling constraints* below) hold for the composite — evaluated between the initial state Σ and the final state Σ'. In states with no link subspace (`dom(L) = ∅`, every V-position content-subspace) J1★ and J1'★ reduce to the unscoped readings: arrangement extension K.μ⁺ co-occurring with provenance recording K.ρ, `(A Σ →* Σ', d ∈ E'_doc, a : a ∈ ran(M'(d)) \ ran(M(d)) : (a, d) ∈ R')`, and its converse. The explicit elementary-transition enumeration for the extended state is given by ValidComposite★.
+Validity of a composite transition `Σ →* Σ'` is defined once, as **ValidComposite★** in *Scoped coupling constraints* below: a finite sequence of atomic transitions whose every step satisfies its elementary precondition (clause 1) and whose net effect between Σ and Σ' satisfies the coupling constraints J0, J1★, and J1'★ (clause 2). The single definition is deferred to that section because clause 2 consumes J1★ and J1'★, which are stated there. The reasoning that follows — on transition ordering and on freshly created documents — bears on that definition.
 
 Intermediate states need not satisfy all system invariants; only the final state is required to. The ordering matters: J0 couples K.α with K.μ⁺, and S3 requires the I-address to exist before the V→I mapping is created, so K.α precedes K.μ⁺. Similarly, J4's fork compounds K.δ + K.μ⁺ + K.ρ, and K.μ⁺ requires d ∈ E_doc, which K.δ establishes — so K.δ precedes K.μ⁺. The net effect of a composite transition is the composition of its elementary effects.
 
@@ -695,7 +691,7 @@ For freshly created documents d ∈ E'_doc \ E_doc, the pre-state has d ∉ E_do
 
 Every freshly allocated I-address appears in some arrangement in the post-state — the containing document may itself have been freshly created by K.δ in the same composite transition. J0 is an axiom of the state transition model: in Nelson's model content enters the docuverse only by being placed in a document, so there is no orphan content in Istream that no document displays.
 
-The operative provenance couplings — J1★ (arrangement extension K.μ⁺ co-occurs with provenance recording K.ρ) and its converse J1'★ (every new provenance entry corresponds to a content-subspace range change) — are stated in their operative content-subspace form in *Scoped coupling constraints* below; their link-free readings appear inline in the Valid composite definition above. For a freshly created document `M(d) = ∅` by totality, so J1★ fires on every I-address placed, and J1'★ records `(a, d)` only within a composite where K.μ⁺ introduces `a` into the content-subspace range with `(a, d) ∉ R` (a re-introduction of an already-recorded `a` requires no new K.ρ, since P2 persists the prior entry).
+The operative provenance couplings — J1★ (arrangement extension K.μ⁺ co-occurs with provenance recording K.ρ) and its converse J1'★ (every new provenance entry corresponds to a content-subspace range change) — are stated in their operative content-subspace form in *Scoped coupling constraints* below. For a freshly created document `M(d) = ∅` by totality, so J1★ fires on every I-address placed, and J1'★ records `(a, d)` only within a composite where K.μ⁺ introduces `a` into the content-subspace range with `(a, d) ∉ R` (a re-introduction of an already-recorded `a` requires no new K.ρ, since P2 persists the prior entry).
 
 **P4a (Recorded-boundary witnessing).** Every entry in R has a *content-subspace* containment witness at the composite boundary at which it was recorded:
 
@@ -777,7 +773,7 @@ Link-subspace extensions (K.μ⁺_L) do not trigger provenance recording: the li
 1. *Transition preconditions (intra-composite sequencing).* Each step `Σᵢ → Σᵢ₊₁` satisfies the *elementary* precondition of its transition kind, evaluated at the *intermediate* state `Σᵢ`. K.μ~ appearing in the sequence is shorthand for its K.μ⁻ + K.μ⁺ decomposition (per its definition above): admissibility clause (ii) requires a non-trivial net effect `M'(d) ≠ M(d)`, whose necessary-and-sufficient existence condition is derived at *Necessity and sufficiency of the precondition* above. When the existence condition holds, K.μ~ always expands into two consecutive elementary steps, each satisfying its own precondition at the respective intermediate state. This clause is what enforces intra-composite ordering — e.g., that K.α precedes K.μ⁺ when the latter places a freshly allocated I-address `a`, since K.μ⁺'s referential-integrity precondition `a ∈ dom(C)` would fail at the pre-K.α intermediate state otherwise. Step preconditions are *local* to the elementary transition; they say nothing about the composite's endpoints.
 2. *Coupling constraints (initial-to-final).* J0, J1★, and J1'★ hold for the composite as a whole — evaluated *only* between the initial state Σ and the final state Σ'. The coupling predicates quantify over the *net* change between Σ and Σ' (e.g., `a ∈ dom(C') \ dom(C)`); they do not constrain the order or shape of intermediate steps, only that the *aggregate* effect of the composite must satisfy them. A composite that satisfies clause (1) but violates clause (2) — for instance, K.α alone without an accompanying K.μ⁺ and K.ρ — is not a valid composite even though every elementary precondition holds at every intermediate state.
 
-This makes the Valid composite definition explicit for the extended state by enumerating the elementary transition set — adding K.λ and K.μ⁺_L. The coupling constraints are exactly those of that definition: J0, together with the content-subspace provenance couplings J1★ and J1'★. J0 (AllocationRequiresPlacement) constrains content allocation (K.α), which remains content-subspace only.
+ValidComposite★ is the sole definition of validity for the extended state: it enumerates the elementary transition set — including K.λ and K.μ⁺_L — and imposes the coupling constraints J0 together with the content-subspace provenance couplings J1★ and J1'★. J0 (AllocationRequiresPlacement) constrains content allocation (K.α), which remains content-subspace only.
 
 ## Orphan links and coupling flexibility
 
@@ -800,7 +796,7 @@ The only component that can lose information is M.
 
 *Proof.* By case analysis on the seven elementary transitions. K.α extends dom(C) preserving existing entries, with L, E, and R in its frame. K.δ extends E, with C, L, and R in its frame. K.λ extends dom(L) preserving existing entries, with C, E, and R in its frame. K.μ⁺ (amended), K.μ⁺_L, and K.μ⁻ have C, L, E, and R in their frames. K.ρ extends R, with C, L, and E in its frame. Each preserves every conjunct. The named composite K.μ~ decomposes into K.μ⁻ followed by K.μ⁺, both of which preserve the conjuncts, so K.μ~ does as well. General composite transitions, being finite sequences of elementary ones, preserve the conjuncts by transitivity of ⊆ and equality. ∎
 
-P3 is the synthesis of P0 ∧ P1 ∧ P2 ∧ L12 — one named per-transition predicate over `Σ → Σ'` covering every component except M. This is its canonical statement; later sites refer to P3 by name.
+P3 is the synthesis of P0 ∧ P1 ∧ P2 ∧ L12 — one named per-transition predicate over `Σ → Σ'` covering every component except M.
 
 P3 makes the confinement vivid. Every destructive state change — every removal, every reordering — is confined to the presentational layer. The permanent record (what content exists, what links exist, which entities have been created, what provenance has been recorded) can only grow.
 
@@ -1376,7 +1372,7 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 | P7 | Provenance grounding: a ∈ dom(C) for all (a, d) ∈ R |
 | P7a | Provenance coverage: (E d :: (a, d) ∈ R) for all a ∈ dom(C) — every I-address has provenance |
 | P8 | Entity hierarchy: (A e ∈ E : ¬IsNode(e) : parent(e) ∈ E) — no orphan accounts or documents |
-| m_L(d) | Per-document link-subspace V-position depth — pinned operationally at first link-subspace insertion (K.μ⁺_L precondition), bounded below by S8a (`≥ 2`) and held constant by S8-depth; not a separate axiom |
+| m_L(d) | Depth of d's *current* link-subspace arrangement — fixed by S8-depth while `V_{s_L}(d) ≠ ∅`, bounded below by S8a (`≥ 2`); constant only within a contiguous non-empty stretch and re-pinned from scratch after full clearance, not a permanent per-document constant; not a separate axiom |
 | NodeUniqueAllocation | Axiom: every K.δ node-allocation event produces (a) e ∉ E (freshness); (b) n₀ ≼ e (bootstrap lineage); and (c) registry tracking — every `t ∈ Σ.E_node` inhabits the external registry's tracked domain at every reachable state |
 | NodeRegistryBootstrap | Axiom (BootstrapRegistrySeeding): at Σ₀, n₀ inhabits the external node-allocation registry's tracked domain; supplies the child-spawn spawnPt premise for n₀'s bootstrap account allocation (K.δ case (ii) sub-case C) |
 | FrontierEquivalence | Derived lemma: `inc(t, 0) ∉ Σ.E ⟺ t is the frontier of A's (t, 0)-branch` (where A is the allocator whose tracked chain contains t, unique by T10a.6), for every reachable Σ and every `t ∈ Σ.E` with `¬IsNode(t)`. Proved from TA5(c) functional determinism and P1 E-monotonicity (forward direction) and GlobalUniqueness (ASN-0034) via T10a.6 (reverse direction), each cited at the consuming step; "frontier" is well-defined by T10a.7 |
