@@ -139,7 +139,7 @@ Combining Cases 1 and 2, `a ≼ a' ⟹ a = a'` at every reachable Σ. ∎
 
 (with `J_d^Σ = -1` denoting the empty set when no link is homed at `d`).
 
-*Substantive postconditions.* Beyond the index re-translation `J_d^Σ := n_d − 1`, R0a-Cor1 carries two derived consequences absorbed at this site for downstream use:
+*Substantive postconditions.* Beyond the index re-translation `J_d^Σ := n_d − 1`, R0a-Cor1 carries two derived consequences:
 
 (a) *Unique T1-maximum on non-empty homed-sets.* When `J_d^Σ ≥ 0` (equivalently, the homed-set is non-empty), `max{a ∈ dom(Σ.L) : home(a) = d}` under T1 (LexicographicOrder, ASN-0034) is well-defined and equals `inc^{J_d^Σ}(d.0.s_L.1, 0)`, the chain element at chain index `J_d^Σ`. *Derivation:* ChainEnumerationInjectivity (ASN-0093) is stated in the strict-order form `(A m, n ≥ 1 : m < n : t_m < t_n)`, which forces the contiguous chain prefix `{t_1, …, t_{n_d}}` to admit `t_{n_d}` as its unique maximum; under the index re-translation, `t_{n_d} = inc^{J_d^Σ}(d.0.s_L.1, 0)`.
 
@@ -149,7 +149,7 @@ Combining Cases 1 and 2, `a ≼ a' ⟹ a = a'` at every reachable Σ. ∎
 
 `{a ∈ dom(Σ.L) : home(a) = d} = {s_1, …, s_{n_d}} = {incʲ([d.0.s_L.1], 0) : 0 ≤ j ≤ J_d^Σ}`
 
-with `J_d^Σ = -1` corresponding to `n_d = 0` (empty homed set). Under ASN-0036, `origin(a)` and `home(a)` coincide on every `a ∈ dom(Σ.L)` because L1 + L1a's NUDE-prefix projection is exactly the `origin(·) = N(·).0.U(·).0.D(·)` projection. The substantive postcondition (a) follows from ChainEnumerationInjectivity's strict-order form chained over the contiguous prefix; postcondition (b) is the integer-extension convention applied at `n_d = 0`. ∎
+with `J_d^Σ = -1` corresponding to `n_d = 0` (empty homed set). Under ASN-0036, `origin(a)` and `home(a)` coincide on every `a ∈ dom(Σ.L)` because L1 + L1a's NUDE-prefix projection is exactly the `origin(·) = N(·).0.U(·).0.D(·)` projection. Substantive postcondition (a) is derived above; postcondition (b) is the integer-extension convention applied at `n_d = 0`. ∎
 
 **R0a-Cor2 — DepthTwoLinkAddresses.** At every reachable state Σ, every link address in `dom(Σ.L)` has an element field (T4b's `E` projection) of length exactly 2:
 
@@ -300,9 +300,9 @@ with `view = L_K^Σ` if `View = hist` and `view = A_K^Σ` if `View = oper`. Obse
 
 The match relation is `F̂ ⊆ coverage(F)` (and `Ĝ ⊆ coverage(G)`), decidable in `℘_fin(T)` by the finiteness of `F̂` and per-span intrinsic containment.
 
-**Definition — Nullify.** Nullify has three preconditions: (P0) `d_retr ∈ dom(Σ.M)` — the caller-supplied home document for the retraction tuple itself; (P1) `a ∈ A_rel^Σ` — the target tuple's address; (P2) `|Σ.L(a)| = 3` — `a` is the address of a standard-triple link.
+**Definition — Nullify.** Nullify has two *executing preconditions* that gate the underlying Emit_R — (P0) `d_retr ∈ dom(Σ.M)` — the caller-supplied home document for the retraction tuple itself; and (P1) `a ∈ A_rel^Σ` — the target tuple's address — together with one *scope condition* (P2) `|Σ.L(a)| = 3` — `a` is the address of a standard-triple link. P2 does not gate emission: a call with `|Σ.L(a)| ≠ 3` still executes as a well-formed Emit_R. It restricts the operation to the standard-triple addresses on which Nullify's downstream active-subset effect is meaningful (only arity-3 addresses populate some `A_K`), placing higher-arity targets outside Nullify's intended scope rather than making the operation undefined.
 
-Under these preconditions, Nullify is the composition
+Under the executing preconditions P0 and P1, Nullify is the composition
 
 `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})`
 
@@ -379,7 +379,7 @@ where P0: `d_retr ∈ dom(Σ.M)` and P1: `a ∈ A_rel^Σ`. *Sufficiency:* P1 com
 
 *Necessity (each conjunct is load-bearing):* dropping P1 admits `a ∉ A_rel^Σ`; the only new key at Σ' is the fresh emitter `b ≠ a`, so by L12a's pointwise agreement `a ∉ dom(Σ'.L) = A_rel^{Σ'}`, whence `a ∉ {t : a ≼ t} ∩ A_rel^{Σ'}` and the intersection cannot equal `{a}`. Dropping P0 admits `d_retr ∉ dom(Σ.M)`, leaving the internal `Emit_R`'s K.λ home-precondition undischarged: Nullify does not execute, no post-state Σ' is produced, and the postcondition is unreachable. Hence `P0 ∧ P1` is weakest, not merely sufficient.
 
-Single-tuple scope is therefore *arity-independent*: nullifying an arity-4 address would establish `{t : a ≼ t} ∩ A_rel^{Σ'} = {a}` identically, since the argument consults only `a`'s tumbler prefix and the antichain, never `|Σ.L(a)|`. Nullify's third precondition P2: `|Σ.L(a)| = 3` is carried only because Nullify's contract restricts the operation to standard-triple addresses — a *meaningfulness* guard for the downstream active-subset effect (only arity-3 addresses populate some `A_K`), not a correctness obligation for this postcondition. Accordingly P2 is absent from the wp above. The wp likewise does *not* include any conjunct on whether the internal emitter `b` is itself nullified — that is a property of `A_R^{Σ'}`, not of single-tuple scope on `a`, and is outside this wp's postcondition.
+Single-tuple scope is therefore *arity-independent*: nullifying an arity-4 address would establish `{t : a ≼ t} ∩ A_rel^{Σ'} = {a}` identically, since the argument consults only `a`'s tumbler prefix and the antichain, never `|Σ.L(a)|`. The wp above lists only P0 and P1 — Nullify's two *executing* preconditions (Definition of Nullify) — because those are the conditions whose violation aborts the underlying Emit_R and leaves the postcondition unreachable, the same abort-reasoning Case 2 applies uniformly to each Emit_K guard. Nullify's *scope condition* P2: `|Σ.L(a)| = 3` is not an executing precondition: it does not gate the underlying Emit_R (a higher-arity target still produces a well-formed emission and a post-state Σ'), so its violation does not render the postcondition unreachable. It restricts the operation to standard-triple addresses for downstream meaningfulness (only arity-3 addresses populate some `A_K`), not for correctness of this postcondition. Its exclusion from the wp is therefore principled — P2 is not a guard of the wp's kind — rather than a silent demotion. The wp likewise does *not* include any conjunct on whether the internal emitter `b` is itself nullified — that is a property of `A_R^{Σ'}`, not of single-tuple scope on `a`, and is outside this wp's postcondition.
 
 *Case 2 — wp(Emit_K(Σ, d, F, G), "(a, F, G) ∈ A_K^{Σ'}").* The Definition of `Emit_K` guarantees `(a, F, G) ∈ L_K^{Σ'}` for the fresh emission unconditionally (K.λ deposits `(F, G, K)` at the chain-deterministic address `a`, which is then a member of `L_K^{Σ'}` by coverage-equivalence membership), but is silent on `(a, F, G) ∈ A_K^{Σ'}`, which turns on whether `a ∈ nullified(Σ')`. The post-state retraction slice depends on the K-relation: `L_R^{Σ'} = L_R^Σ ∪ {(a, F, G)}` when `K ~ R`, and `L_R^{Σ'} = L_R^Σ` when `K ≁ R`. We compute the wp for a *direct K.λ caller* — the most permissive scope, in which the substrate imposes no shape constraint on retraction to-spans and no restriction on the type index. Under this scope all three regimes below are live; the relational layer's specialization is noted afterward. Three regimes are operationally relevant — two characterize the pre-state retraction landscape, and a third orthogonal one handles self-nullification under `K ~ R`:
 
