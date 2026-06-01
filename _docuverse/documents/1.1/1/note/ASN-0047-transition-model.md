@@ -1359,10 +1359,10 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 | P7 | Provenance grounding: a ∈ dom(C) for all (a, d) ∈ R |
 | P7a | Provenance coverage: (E d :: (a, d) ∈ R) for all a ∈ dom(C) — every I-address has provenance |
 | P8 | Entity hierarchy: (A e ∈ E : ¬IsNode(e) : parent(e) ∈ E) — no orphan accounts or documents |
-| m_L(d) | Depth of d's *current* link-subspace arrangement — fixed by S8-depth while `V_{s_L}(d) ≠ ∅`, bounded below by S8a (`≥ 2`); constant only within a contiguous non-empty stretch and re-pinned from scratch after full clearance, not a permanent per-document constant; not a separate axiom |
+| m_L(d) | Depth of d's *current* link-subspace arrangement; see *Link-subspace extension* |
 | NodeUniqueAllocation | Axiom: every K.δ node-allocation event produces (a) e ∉ E (freshness); (b) n₀ ≼ e (bootstrap lineage); and (c) registry tracking — every `t ∈ Σ.E_node` inhabits the external registry's tracked domain at every reachable state |
-| NodeRegistryBootstrap | Axiom (BootstrapRegistrySeeding): at Σ₀, n₀ inhabits the external node-allocation registry's tracked domain; supplies the child-spawn spawnPt premise for n₀'s bootstrap account allocation (K.δ case (ii) sub-case C) |
-| FrontierEquivalence | Derived lemma: `inc(t, 0) ∉ Σ.E ⟺ t is the frontier of A's (t, 0)-branch` (where A is the allocator whose tracked chain contains t, unique by T10a.6), for every reachable Σ and every `t ∈ Σ.E` with `¬IsNode(t)`. Proved from TA5(c) functional determinism and P1 E-monotonicity (forward direction) and GlobalUniqueness (ASN-0034) via T10a.6 (reverse direction), each cited at the consuming step; "frontier" is well-defined by T10a.7 |
+| NodeRegistryBootstrap | Axiom (BootstrapRegistrySeeding): at Σ₀, n₀ inhabits the external node-allocation registry's tracked domain |
+| FrontierEquivalence | Derived lemma: `inc(t, 0) ∉ Σ.E ⟺ t is the frontier of A's (t, 0)-branch` (where A is the allocator whose tracked chain contains t, unique by T10a.6), for every reachable Σ and every `t ∈ Σ.E` with `¬IsNode(t)`; "frontier" is well-defined by T10a.7 |
 | TrackedEmission | Per-state invariant (EntityEmissionTracking): `(A e ∈ Σ.E : ¬IsNode(e) : (E A : A a tracked entity-level sub-allocator : e ∈ dom(A)))` — every non-node entity inhabits some tracked sub-allocator domain. Holds vacuously at Σ₀; preserved by K.δ (each non-node entity enters E only via a T10a inc-step on a tracked sub-allocator, per §K.δ case (ii) discharge) and frame on all other transitions |
 | NodeLineage | Derived per-state invariant: `(A e ∈ E : IsNode(e) : n₀ ≼ e)` — every node in E descends structurally from the bootstrap node n₀ by tumbler-prefix relation. Discharged inductively from the base case `E₀ = {n₀}` (reflexivity) and the K.δ case (i) precondition `n₀ ≼ e` |
 | GlobalLineage | Derived corollary: `(A x ∈ E ∪ dom(C) ∪ dom(L) :: n₀ ≼ x)` — every entity, content address, and link address descends from n₀ under tumbler-prefix order. Promotes NodeLineage to the full docuverse via P8 + P6 + L1a + L1c + transitivity of ≼ |
@@ -1370,7 +1370,7 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 | Allocator hierarchy | Content and link sub-allocators are sibling element-field allocators under d, sharing prefix `[d.0]`; T10a-conformance applies to each frontier separately; cross-document collisions prevented by T10, cross-subspace by L14 (= L0 + SC-NEQ) |
 | S3★-aux | Subspace exhaustiveness: `(A d, v : v ∈ dom(M(d)) : subspace(v) = s_C ∨ subspace(v) = s_L)` in every reachable state |
 | CL-OWN | LinkSubspaceOwnership: `(A d, v : v ∈ dom(M(d)) ∧ subspace(v) = s_L : origin(M(d)(v)) = d)` — every document's link subspace contains only its own links |
-| CL-UNIQ | LinkSubspacePositionUniqueness: `(A d, v₁, v₂ ∈ dom(M(d)) : subspace(v₁) = subspace(v₂) = s_L ∧ M(d)(v₁) = M(d)(v₂) : v₁ = v₂)` — each link occupies exactly one V-position in its home document's link subspace; injectivity of M(d)\|_{dom_L}. Closes the K.μ~ link-subspace identity precondition derivation |
+| CL-UNIQ | LinkSubspacePositionUniqueness: `(A d, v₁, v₂ ∈ dom(M(d)) : subspace(v₁) = subspace(v₂) = s_L ∧ M(d)(v₁) = M(d)(v₂) : v₁ = v₂)` — each link occupies exactly one V-position in its home document's link subspace; injectivity of M(d)\|_{dom_L} |
 
 ### Derived structural identities
 
