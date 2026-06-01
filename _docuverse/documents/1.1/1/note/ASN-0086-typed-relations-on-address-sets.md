@@ -52,7 +52,7 @@ By L9 (TypeGhostPermission, ASN-0043), ghost addresses may appear in endset span
 
 — non-empty endsets, eligible to serve as a link's type endset by L3 (NEndsetStructure, ASN-0043).
 
-By L4 (EndsetGenerality, ASN-0043) and L9 (TypeGhostPermission, ASN-0043), `T_admissible` is unconstrained by content existence: type endsets may reference any tumbler addresses, including ghosts. We require only that type-equality is decidable by endset comparison: L8 (TypeByAddress, ASN-0043) supplies the *criterion* — same-type iff equal coverage — and Lemma CoverageEqualityDecidable (below) supplies its decidability, as a finite comparison of half-open T1-intervals. (L8 itself speaks only to the equivalence relation, not to its decidability.) Type indices in what follows range over `T_admissible`; membership in a given coverage class `[K]` is then determined per-tuple by `L_K^Σ`'s coverage-equivalence criterion (below).
+By L4 (EndsetGenerality, ASN-0043) and L9 (TypeGhostPermission, ASN-0043), `T_admissible` is unconstrained by content existence: type endsets may reference any tumbler addresses, including ghosts. Type-equivalence is coverage equality, written `~` (Definition — TypeEquivalence): two admissible types are the same iff their endsets cover the same address set — L8's (TypeByAddress, ASN-0043) `same_type` criterion. Type indices in what follows range over `T_admissible`.
 
 For the rest of this development we restrict attention to standard-triple links — those with `|Σ.L(a)| = 3`. Higher-arity links (L3, NEndsetStructure, ASN-0043) exist in `dom(Σ.L)` but are not members of any `L_K`; they admit an analogous construction with additional slot positions, which we do not pursue here.
 
@@ -96,7 +96,7 @@ The union is disjoint in place: `Σ.L` is a partial function `T ⇀ Link` (ASN-0
 
 *Notation — subscript read modulo `~`.* Since the slot-3 criterion tests `coverage(Σ.L(a).e₃) = coverage(K)`, any `K ~ K'` induces `L_K^Σ = L_{K'}^Σ`; the subscript is a *coverage-class* index, depending only on `[K]`.
 
-**Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`. The map is *into but not onto*: its image is exactly the standard-triple subset `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}` of the codomain `A_rel^Σ = dom(Σ.L)`, which omits any higher-arity link address (`|Σ.L(a)| > 3`, admitted by L3). We declare the codomain as the full `A_rel^Σ` for uniformity with the partition above, noting that surjectivity holds only onto the arity-3 slice. The address component `a` is what distinguishes this structure from the set-theoretic typed relation (a subset of `℘(A) × ℘(A)`, distinguished only by content): each tuple carries an address that participates in the relation's identity, which the content-only projection `(a, F, G) ↦ (coverage(F), coverage(G))` discards.
+**Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`. The map is *into but not onto*: its image is exactly the standard-triple subset `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}` of the codomain `A_rel^Σ = dom(Σ.L)`. The address component `a` is what distinguishes this structure from the set-theoretic typed relation (a subset of `℘(A) × ℘(A)`, distinguished only by content): each tuple carries an address that participates in the relation's identity, which the content-only projection `(a, F, G) ↦ (coverage(F), coverage(G))` discards.
 
 
 ## Tuple Identity (R0, R1, R2)
@@ -223,7 +223,7 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 `nullified(Σ) = {a ∈ A_rel^Σ : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))}`
 
-The existential checks `coverage(G')` only — the to-set's coverage — and does not inspect `coverage(F')`, per Convention RetractionDirectionality; an `Emit_R` call whose to-span coverage misses `a` does not nullify `a`, regardless of what its from-set covers. The set-builder restriction `a ∈ A_rel^Σ` confines `nullified(Σ)` to link-store addresses: ghost, content, and document addresses in `coverage(G')` — which by R5/L9 may include link, content, document, or ghost addresses — are not collected. Both `nullified(Σ)` and `A_K^Σ`'s exclusion are arity-restricted by their carriers: `nullified(Σ)` ranges over `A_rel^Σ = dom(Σ.L)` while `A_K^Σ` ranges only over the arity-3 `L_K^Σ`, so any higher-arity entry in `nullified(Σ)` is unreachable by the active-subset exclusion.
+The existential checks `coverage(G')` only — the to-set's coverage — and does not inspect `coverage(F')`, per Convention RetractionDirectionality; an `Emit_R` call whose to-span coverage misses `a` does not nullify `a`, regardless of what its from-set covers. The set-builder restriction `a ∈ A_rel^Σ` confines `nullified(Σ)` to link-store addresses: ghost, content, and document addresses in `coverage(G')` — which by R5/L9 may include link, content, document, or ghost addresses — are not collected.
 
 **Definition — ActiveSubset.** For each `K ∈ T_admissible`, the *active subset of type K at state Σ* is
 
@@ -426,7 +426,7 @@ Thus the fresh tuple lies in `L_R^{Σ_4}` (audit) but not in `A_R^{Σ_4}` (opera
 | Label | Type | Statement |
 |-------|------|-----------|
 | A^Σ | DEF | Address universe at state Σ: `dom(Σ.C) ∪ dom(Σ.L)` |
-| A_doc^Σ, A_rel^Σ | DEF | Partition of `A^Σ` into content addresses (`dom(Σ.C)`) and link-store addresses (`dom(Σ.L)`) — the latter holds all link addresses, including higher-arity ones in no `L_K` |
+| A_doc^Σ, A_rel^Σ | DEF | Partition of `A^Σ` into content addresses (`dom(Σ.C)`) and link-store addresses (`dom(Σ.L)`) |
 | T_ghost^Σ | DEF | Ghost addresses at Σ: `T \ (dom(Σ.C) ∪ dom(Σ.L))` — tumblers outside the stored-entity universe, admissible in endset spans by L9 |
 | T_admissible | DEF | Admissible types: `{K ∈ Endset : K ≠ ∅}` — the indexing domain for typed relations |
 | ~ | DEF | TypeEquivalence: `K ~ K' ≡ coverage(K) = coverage(K')` — coverage-equivalence on admissible types (= L8 lifted) |
