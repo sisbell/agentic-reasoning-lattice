@@ -9,13 +9,13 @@ We are looking for what a relation algebra over the link store affords. The answ
 
 ## The Two Foundational Sets
 
-**Foundation.** We work in systems satisfying ASN-0093 (and therefore ASN-0043, ASN-0036, ASN-0034). ASN-0093 owns the K-operation contract — the three primitive emissions K.σ (DocumentRegistration), K.α (ContentAllocation), K.λ (LinkAllocation) — together with the sub-allocator chain lemmas making T10a's runtime activation chain explicit, and the SubspaceConventionAxiom fixing `s_C = 1 ∧ s_L = 2` with named consequence `SC-NEQ: s_C ≠ s_L`. Each chain lemma (ChainDiscipline, FirstEmission, ChainMembershipForOrigin, ChainEnumerationInjectivity) is cited at its use site below.
+**Foundation.** We work in systems satisfying ASN-0093 (and therefore ASN-0043, ASN-0036, ASN-0034). ASN-0093 owns the K-operation contract — the three primitive emissions K.σ (DocumentRegistration), K.α (ContentAllocation), K.λ (LinkAllocation) — together with the sub-allocator chain lemmas making T10a's runtime activation chain explicit, and the SubspaceConventionAxiom fixing `s_C = 1 ∧ s_L = 2` with named consequence `SC-NEQ: s_C ≠ s_L`.
 
 **Assumption — EmptyInitialLinkStore.** This note takes the system's initial state `Σ_init` to be the *fresh-system root*, with all three stores empty: `dom(Σ_init.C) = ∅`, `dom(Σ_init.M) = ∅`, and in particular `dom(Σ_init.L) = ∅`. This is the fresh-system boot condition: Gregory's `initmagicktricks` constructs both the content (granf) and link (spanf) enfilades empty via `createenf` whenever no persistent store exists, so no link address is allocated before the first link emission. (A restart from a persisted store inherits whatever was last flushed; we root the state space at the fresh system, from which every persisted configuration is `→*`-reachable.)
 
 **State transition relation.** We write `Σ → Σ'` for the substrate's *dom-extending* one-step transition relation, which we identify exactly with the union of ASN-0093's three K-operations: `→ ≡ K.σ ∪ K.α ∪ K.λ`. Concretely, each `→`-step is one of:
 
-- a *K.σ-step* extends `dom(Σ.M)`, a *K.α-step* extends `dom(Σ.C)`, and a *K.λ-step* extends `dom(Σ.L)`, each at a fresh key per its ASN-0093 contract (K.σ registers `M'(d) = ∅` at a document-level `d`; the K.α/K.λ emission forms are recalled where needed, e.g. in R0 and `a_emit`).
+- a *K.σ-step* extends `dom(Σ.M)`, a *K.α-step* extends `dom(Σ.C)`, and a *K.λ-step* extends `dom(Σ.L)`, each at a fresh key per its ASN-0093 contract (K.σ registers `M'(d) = ∅` at a document-level `d`).
 
 ASN-0093's frame conditions on each K-op ensure that each primitive transition extends exactly one of `Σ.C`, `Σ.M`, `Σ.L` at a fresh key and leaves the other two components unchanged. Every dom-extending transition in `→` is one of the three K-ops; the substrate exposes no removal, replacement, or in-place mutation transition that touches `(dom(Σ.C), dom(Σ.M), dom(Σ.L))`.
 
@@ -199,7 +199,7 @@ T4b's element field `E(·)` is the suffix following the third zero. Since the th
 
 *Proof.* `Σ.L` is a partial function `T ⇀ Link` (ASN-0043, Definition of LinkStore). Function-ness gives uniqueness of value: if `a = a'`, then `Σ.L(a) = Σ.L(a')`, and that single value determines the triple `(F, G, K'')` stored at `a`. Therefore `F = F'`, `G = G'`, and the third endset `K''` is unique. Since `coverage(·)` is a pure function on endset values, `coverage(K'')` is a single fixed address set, so the coverage class `[K'']` is unique — whence both members of `L` lie in the same `L_{[K'']}`. ∎
 
-**R2 — TupleAddressPermanence.** Once allocated, a tuple address resolves permanently to the same relational content — `(A Σ → Σ', a ∈ dom(Σ.L), (F, G, K) = Σ.L(a) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = (F, G, K))` — which is L12 (LinkImmutability, ASN-0043) in tuple vocabulary.
+**R2 — TupleAddressPermanence** *(definitional alias of L12, not a result requiring verification).* Once allocated, a tuple address resolves permanently to the same relational content — `(A Σ → Σ', a ∈ dom(Σ.L), (F, G, K) = Σ.L(a) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = (F, G, K))`. This is L12 (LinkImmutability, ASN-0043) restated in tuple vocabulary; the alias holds by L12 verbatim, with no separate obligation.
 
 *Consequence.* *Distinct emissions are distinguishable even when content matches.* Two agents independently filing tuples with identical `(F, G)` under identical `K` produce distinct addresses (R0 produces a fresh address regardless of value). By L11b (NonInjectivity, ASN-0043), value-level coincidence is permitted; by R1, address-level identity nevertheless distinguishes them. The substrate does not silently merge them.
 
@@ -217,7 +217,7 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 ## Subspace Disjointness (R4)
 
-**R4 — TupleAddressDisjointness.** Tuple addresses and document-content addresses are disjoint — `A_doc^Σ ∩ A_rel^Σ = ∅` — which is SD (StoreDisjointness, ASN-0093: `dom(Σ.C) ∩ dom(Σ.L) = ∅`) under the partition aliases.
+**R4 — TupleAddressDisjointness** *(definitional alias of SD, not a result requiring verification).* Tuple addresses and document-content addresses are disjoint — `A_doc^Σ ∩ A_rel^Σ = ∅`. This is SD (StoreDisjointness, ASN-0093: `dom(Σ.C) ∩ dom(Σ.L) = ∅`) under the partition aliases `A_doc^Σ = dom(Σ.C)`, `A_rel^Σ = dom(Σ.L)`; the alias holds by SD verbatim, with no separate obligation.
 
 
 ## Self-Reference (R5)
@@ -269,11 +269,11 @@ Suppose `a ∈ nullified(Σ)`. By Definition of `nullified(Σ)`, this entails `a
 
 **R6b — SingleDepthRetraction.** Retraction-of-retraction is not a fixpoint operation: nullifying a retractor `b` does not "undo" `b`'s nullifying effect on its prior targets. This is the consequence of the audit-slice quantification fixed in the Definition of `nullified`: a retractor's tuple still nullifies its targets *even when the retractor is itself nullified*:
 
-`(A Σ, a, b, F', G' : a ∈ A_rel^Σ ∧ (b, F', G') ∈ L_R^Σ ∧ a ∈ coverage(G') : a ∈ nullified(Σ))`
+`(A Σ, a, b, F', G' : a ∈ A_rel^Σ ∧ (b, F', G') ∈ L_R^Σ ∧ a ∈ coverage(G') ∧ b ∈ nullified(Σ) : a ∈ nullified(Σ))`
 
-Both sides are evaluated at the single state Σ.
+All clauses are evaluated at the single state Σ. The fourth hypothesis `b ∈ nullified(Σ)` is the substantive case: it posits that the witnessing retractor `b` is *itself* nullified, and the conclusion asserts `a` stays nullified anyway — exactly "a retractor nullifies its targets even while itself nullified."
 
-*Proof.* By Definition of `nullified`, `a ∈ nullified(Σ) ⟺ a ∈ A_rel^Σ ∧ (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))`. The three hypotheses `a ∈ A_rel^Σ`, `(b, F', G') ∈ L_R^Σ`, and `a ∈ coverage(G')` discharge this biconditional's right-hand side directly, with `(b, F', G')` as the witness. Because `L_R^Σ` retains `b`'s tuple regardless of `b`'s active-subset status, the conclusion `a ∈ nullified(Σ)` is insensitive to whether `b ∈ nullified(Σ)`: it holds with or without it. Operationally, restoration of `b`'s prior targets must therefore proceed by fresh emission at a distinct address, not by retraction-of-retraction. ∎
+*Proof.* By Definition of `nullified`, `a ∈ nullified(Σ) ⟺ a ∈ A_rel^Σ ∧ (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))`. The first three hypotheses `a ∈ A_rel^Σ`, `(b, F', G') ∈ L_R^Σ`, and `a ∈ coverage(G')` discharge this biconditional's right-hand side directly, with `(b, F', G')` as the witness. The membership test consults the audit slice `L_R^Σ`, which retains `b`'s tuple regardless of `b`'s active-subset status; the fourth hypothesis `b ∈ nullified(Σ)` therefore does not disturb the witness, and the conclusion `a ∈ nullified(Σ)` follows with it in force. (The conclusion holds equally without the fourth hypothesis — but stating it with `b ∈ nullified(Σ)` is what makes the lemma express the non-fixpoint property rather than the bare `⟸` of the definition.) Operationally, restoration of `b`'s prior targets must therefore proceed by fresh emission at a distinct address, not by retraction-of-retraction. ∎
 
 **R6c — RestorationByReemission.** Once retracted, a tuple stays out of every active subset at any state reachable from Σ:
 
@@ -397,7 +397,7 @@ The third conjunct is a *disjunction*, and it constrains the *call* — its type
 
 *Domain restriction.* This wp is asserted only over pre-states Σ that are both (i) substrate-conforming and (ii) satisfy the unit-depth retraction discipline (Definition — Unit-depth retraction discipline) — equivalently, Σ reached using only the relational layer's operations. Both restrictions are load-bearing, and the `a ∉ nullified(Σ')` step of the derivation below consumes both: (i) substrate-conformance, via R0a's antichain; (ii) the unit-depth retraction discipline (Definition — Unit-depth retraction discipline). Neither restriction alone suffices, and the two failure modes are distinct. A direct K.λ caller voids both disciplines — it can craft a non-unit-depth retraction span and reach an antichain-violating state — so the result does not extend to such callers.
 
-*Substrate-conformance alone is insufficient (discipline necessary).* K.λ constrains every emission *address* to the sibling frontier but leaves a link's endset *shape* unconstrained, so a substrate-conforming Σ may still carry a crafted (non-unit-depth) retraction span emitted by a direct K.λ caller — a retraction that is L-invariant-conforming yet violates the unit-depth discipline. A crafted span `(s, ℓ)` has coverage the lexicographic interval `{t : s ≤ t < s ⊕ ℓ}` (T12, SpanWellDefinedness, ASN-0034), *not* a prefix-subtree, so prefix-incomparability of the fresh `a` against `s` does not exclude `a`: a wide span rooted near `d`'s link chain can satisfy `s ≤ a < s ⊕ ℓ`, putting `a ∈ coverage(G')` and hence `a ∈ nullified(Σ')`, while `d ∈ dom(Σ.M) ∧ K ∈ T_admissible` both hold. This is exactly the case the unit-depth discipline excludes.
+*Substrate-conformance alone is insufficient (discipline necessary).* By the address-vs-shape gap noted at the *Definition — Unit-depth retraction discipline* (K.λ fixes emission address but not endset shape), a substrate-conforming Σ may still carry a crafted (non-unit-depth) retraction span emitted by a direct K.λ caller — a retraction that is L-invariant-conforming yet violates the unit-depth discipline. A crafted span `(s, ℓ)` has coverage the lexicographic interval `{t : s ≤ t < s ⊕ ℓ}` (T12, SpanWellDefinedness, ASN-0034), *not* a prefix-subtree, so prefix-incomparability of the fresh `a` against `s` does not exclude `a`: a wide span rooted near `d`'s link chain can satisfy `s ≤ a < s ⊕ ℓ`, putting `a ∈ coverage(G')` and hence `a ∈ nullified(Σ')`, while `d ∈ dom(Σ.M) ∧ K ∈ T_admissible` both hold. This is exactly the case the unit-depth discipline excludes.
 
 *The discipline alone is insufficient (substrate-conformance necessary).* Over the broader state-local-conforming domain of Emit_K (Definition — Emit_K, which admits antichain-violating non-conforming states), the two operation-preconditions again fail to suffice even when every retraction is unit-depth. Witness a state-local-conforming but non-substrate-conforming Σ of the kind Remark — NestedLinkWitness constructs — a nested link pair `b' ≼ ℓ_prev` at home `d`, with `b'` the target of a pre-existing unit-depth retraction. The subsequent-branch emission `a = a_emit(Σ, d) = inc(ℓ_prev, 0)` preserves positions `1..#ℓ_prev − 1`, so `b' ≼ a`, whence `a ∈ coverage({(b', δ(1, #b'))})` and `a ∈ nullified(Σ')`; then `(a, F, G) ∉ A_K^{Σ'}` though `d ∈ dom(Σ.M) ∧ K ∈ T_admissible` both hold. The two restrictions together exclude exactly these two failure modes.
 
@@ -435,7 +435,7 @@ Emit the retraction: `Σ_1.L = Σ_0.L ∪ {b₁ ↦ (∅, {(a₁, δ(1, 8))}, R)
 - `coverage({(a₁, δ(1, 8))})`: by PrefixSpanCoverage with `#a₁ = 8`, `= {t : a₁ ≼ t}`. Membership: `a₁ ∈ coverage` by reflexivity of `≼`; `b₁ ∉ coverage` since `a₁` and `b₁` agree on positions `1..7` (both `1.0.1.0.1.0.2`) but differ at position `8` (`1` vs `2`) at equal length — neither is a prefix of the other. ✓
 - `L_K^{Σ_1} = {(a₁, F₁, G₁)}` — unchanged. Witnesses *R3* (TypedSliceMonotonicity): `L_K^{Σ_0} = {(a₁, F₁, G₁)} ⊆ L_K^{Σ_1}` since the emission targets `L_R`, not `L_K`. Also witnesses *R2* (TupleAddressPermanence): `Σ_1.L(a₁) = Σ_0.L(a₁) = (F₁, G₁, K)`. ✓
 - `L_R^{Σ_1} = {(b₁, ∅, {(a₁, δ(1, 8))})}` — the only retraction tuple; no other tuple has type slot coverage-equivalent to `R` (the tuple at `a₁` has type `K` with `coverage(K) ≠ coverage(R)`). Also witnesses *R3* applied to the `R` coverage class: `L_R^{Σ_0} = ∅ ⊆ L_R^{Σ_1}`. ✓
-- `nullified(Σ_1) = {a ∈ {a₁, b₁} : a ∈ coverage({(a₁, δ(1, 8))})} = {a₁}`. By Definition of `nullified`, the existential ranges over `L_R^{Σ_1}` (audit slice), so the test is whether `(b₁, ∅, {(a₁, δ(1, 8))}) ∈ L_R^{Σ_1}` directly witnesses `a₁ ∈ coverage(G')` — yes — without recursive evaluation of `b₁`'s status. Witnesses *R6b* (SingleDepthRetraction). ✓
+- `nullified(Σ_1) = {a ∈ {a₁, b₁} : a ∈ coverage({(a₁, δ(1, 8))})} = {a₁}`. By Definition of `nullified`, the existential ranges over `L_R^{Σ_1}` (audit slice), so the test is whether `(b₁, ∅, {(a₁, δ(1, 8))}) ∈ L_R^{Σ_1}` directly witnesses `a₁ ∈ coverage(G')` — yes — without recursive evaluation of `b₁`'s status. This exercises the audit-slice quantification (Definition of `nullified`) on which R6b rests; `b₁` is not yet nullified here, so the full non-fixpoint case of R6b is deferred to Step 3. ✓
 - `A_K^{Σ_1} = L_K^{Σ_1} \ {(a, F, G) : a ∈ nullified(Σ_1)} = ∅`. ✓
 
 The audit predicate `(a₁, F₁, G₁) ∈ L_K` remains true forever (witnessing *R3*); the operational predicate `(a₁, F₁, G₁) ∈ A_K` flips to false at `Σ_1`.
@@ -445,7 +445,7 @@ The audit predicate `(a₁, F₁, G₁) ∈ L_K` remains true forever (witnessin
 Then `Σ_2.L = Σ_1.L ∪ {a₂ ↦ (F₁, G₁, K)}` and:
 
 - `L_K^{Σ_2} = {(a₁, F₁, G₁), (a₂, F₁, G₁)}` — two coverage-class members with identical `(F, G)` at distinct addresses. Witnesses *R3* (monotone extension `L_K^{Σ_1} ⊆ L_K^{Σ_2}`), *R1* (distinct addresses for the two tuples), and *L11b/R2 Consequence* (distinct emissions distinguishable even when content matches). ✓
-- `nullified(Σ_2) = {a₁}` — unchanged. Witnesses *R6a* (RetractionStability): `a₁ ∈ nullified(Σ_1) ⟹ a₁ ∈ nullified(Σ_2)`. The only `L_R` tuple is still at `b₁`, whose `coverage(G')` contains `a₁` but not `a₂` since `a₁` and `a₂` are distinct siblings in `A_L(d)`. *R6b* witnessed again: deciding `a₂ ∈ nullified(Σ_2)` requires only the single-pass check over `L_R^{Σ_2}`, which finds no witnessing tuple. ✓
+- `nullified(Σ_2) = {a₁}` — unchanged. Witnesses *R6a* (RetractionStability): `a₁ ∈ nullified(Σ_1) ⟹ a₁ ∈ nullified(Σ_2)`. The only `L_R` tuple is still at `b₁`, whose `coverage(G')` contains `a₁` but not `a₂` since `a₁` and `a₂` are distinct siblings in `A_L(d)`. Deciding `a₂ ∈ nullified(Σ_2)` again requires only the single-pass audit-slice check over `L_R^{Σ_2}` (Definition of `nullified`), which finds no witnessing tuple; `b₁` remains active here, so this is not yet R6b's non-fixpoint case. ✓
 - `A_K^{Σ_2} = {(a₂, F₁, G₁)}` — the new tuple is active; `a₁` remains in `L_K` but excluded from `A_K` by *R6c* (RestorationByReemission: `(a₁, F₁, G₁) ∈ L_K^{Σ_2} \ A_K^{Σ_2}` for the retracted historical record, and the restoration is the fresh `(a₂, F₁, G₁) ∈ A_K^{Σ_2}` at a different address). ✓
 
 The relational content `(F₁, G₁)` is again present in `A_K`, but at a different tuple address. Provenance and audit cleanly distinguish the two emissions: `a₁` is the historical record, `a₂` is the current assertion.
@@ -493,9 +493,9 @@ The retraction of the retractor leaves `A_K^{Σ_3}` unchanged (R6b): restoring `
 | R0a | LEMMA | FlatLinkDomain — `dom(Σ.L)` is an antichain in `≼` at every substrate-conforming state (= L1 + L1a; same-home via L-ContiguousPrefix) |
 | R0a-Cor1 | LEMMA | DepthTwoLinkAddresses — `#E(a) = 2` strictly for every `a ∈ dom(Σ.L)` (= L-ContiguousPrefix) |
 | R1 | LEMMA | AddressInjectivity — `addr` is an injection (= function property of `Σ.L`) |
-| R2 | LEMMA | TupleAddressPermanence — addresses persist with values intact (= L12) |
+| R2 | ALIAS | TupleAddressPermanence — addresses persist with values intact (definitional alias of L12) |
 | R3 | LEMMA | TypedSliceMonotonicity — each `L_K^Σ` is monotone (= L12a + R2) |
-| R4 | LEMMA | TupleAddressDisjointness — `A_doc^Σ ∩ A_rel^Σ = ∅` (= SD, StoreDisjointness, ASN-0093) |
+| R4 | ALIAS | TupleAddressDisjointness — `A_doc^Σ ∩ A_rel^Σ = ∅` (definitional alias of SD, StoreDisjointness, ASN-0093) |
 | R5 | LEMMA | TupleSelfTargeting — for any `a ∈ A_rel^Σ`, the span `(a, δ(1, #a))` is admissible as an endset member (= L4(c) + L13) |
 | R6a | LEMMA | RetractionStability — once nullified, always nullified (= R3 + R2) |
 | R6b | DEF-Consequence | SingleDepthRetraction — within-state claim: `a ∈ nullified(Σ)` holds even when its witnessing retractor `b ∈ nullified(Σ)`, because `nullified` quantifies over the audit slice `L_R^Σ`, not the active subset `A_R^Σ` |
