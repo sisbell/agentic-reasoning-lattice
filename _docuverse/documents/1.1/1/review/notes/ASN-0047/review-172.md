@@ -1,0 +1,23 @@
+# Review of ASN-0047
+
+I read the full ASN, checked the elementary-transition frames against the invariant matrix, traced the K.μ~ decomposition and link-subspace fixity proof, and verified the worked examples against concrete tumbler values. The technical content is sound — I found no correctness gap in the proofs, the boundary cases (empty arrangement, full clearance, first/interior/suffix insertion, orphan links, transient P7a failure) are covered, and the per-state vs composite-boundary distinction is handled carefully. One anti-bloat finding remains.
+
+## REVISE
+
+### Issue 1: The K.δ k=0 frontier-identification mechanism is stated three times, two of them near-verbatim
+**ASN-0047, K.δ "Rationale (k = 0 conjuncts)" vs. "K.δ case (ii) discharge and parent-allocator activation" (k = 0 bullet)**:
+
+- Rationale paragraph: "Operationally, the conjunction `t ∈ E ∧ inc(t, 0) ∉ E` IS the frontier identification, by FrontierEquivalence. The frontier identification is therefore *derived* from the precondition pair, not an independent obligation..."
+- Discharge section, k = 0: "The frontier conjunct on `t`... ensures `t` is the parent allocator's current frontier... T10a chain-advancement uniqueness at `(t, 0)` (FrontierEquivalence) then forces `e = inc(t, 0) ∉ E`."
+
+Plus the FrontierEquivalence lemma itself, plus the inline case-(ii) summary ("the freshness conjunct `e ∉ E` is discharged per sub-case by the discharge route detailed in §... below: T10a chain-advancement uniqueness at `(t, 0)` (FrontierEquivalence) at k = 0...") which both summarises and forward-references the same content.
+
+**Problem**: This is the flagged accretion pattern — the same claim ("the precondition pair `t ∈ E ∧ inc(t,0) ∉ E` is the frontier check, via FrontierEquivalence") restated in different words across the K.δ definition, the Rationale sub-paragraph, and the dedicated discharge section. A reader following the k=0 precondition has to read the mechanism three times. The FrontierEquivalence lemma states and proves it; the discharge section applies it; the Rationale paragraph adds nothing the other two don't already carry.
+
+**Required**: Collapse to two sites — the FrontierEquivalence lemma (statement/proof) and the discharge section (application). Reduce the "Rationale (k = 0 conjuncts)" paragraph to the one genuinely local point it makes (that `¬IsNode(t)` is required for `parent(t)` to be defined under T4b), and drop its restatement of the frontier-identification derivation, replacing it with a pointer to the discharge section.
+
+## OUT_OF_SCOPE
+
+None beyond the ASN's own Open Questions, which already defer link discoverability under contraction, link-withdrawal/tombstoning, transclusion-chain provenance, and account-level depth-1 extension to future ASNs.
+
+VERDICT: REVISE
