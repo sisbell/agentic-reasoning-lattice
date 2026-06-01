@@ -273,9 +273,7 @@ Suppose `a ∈ nullified(Σ)`. By Definition of `nullified(Σ)`, this entails `a
 
 All clauses are evaluated at the single state Σ.
 
-*Proof.* By Definition of `nullified`, `a ∈ nullified(Σ) ⟺ a ∈ A_rel^Σ ∧ (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))`. The three hypotheses `a ∈ A_rel^Σ`, `(b, F', G') ∈ L_R^Σ`, and `a ∈ coverage(G')` discharge this biconditional's right-hand side directly, with `(b, F', G')` as the witness. The membership test consults the audit slice `L_R^Σ`, which retains `b`'s tuple regardless of `b`'s active-subset status. ∎
-
-*Remark (non-fixpoint interpretation).* In particular this holds when `b` is itself nullified: retraction-of-retraction is not a fixpoint operation — nullifying a retractor `b` does not "undo" `b`'s nullifying effect on its prior targets, because `nullified` ranges over the audit slice `L_R^Σ`, which retains `b`'s tuple.
+*Proof.* By Definition of `nullified`, `a ∈ nullified(Σ) ⟺ a ∈ A_rel^Σ ∧ (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))`. The three hypotheses `a ∈ A_rel^Σ`, `(b, F', G') ∈ L_R^Σ`, and `a ∈ coverage(G')` discharge this biconditional's right-hand side directly, with `(b, F', G')` as the witness. The membership test consults the audit slice `L_R^Σ`, which retains `b`'s tuple regardless of `b`'s active-subset status — so the result holds even when `b` is itself nullified, making retraction-of-retraction a non-fixpoint operation: nullifying a retractor `b` does not "undo" `b`'s nullifying effect on its prior targets. ∎
 
 **R6c — RestorationByReemission.** Once retracted, a tuple stays out of every active subset at any state reachable from Σ:
 
@@ -438,7 +436,7 @@ After Step 0: `L_K^{Σ_0} = {(a₁, F₁, G₁)}` (witnessing R3 over the empty 
 
 Emit_R invokes K.λ at home `d`. The first/subsequent emission predicate fires *subsequent* (since `{ℓ' ∈ dom(Σ_0.L) : origin(ℓ') = d} = {a₁} ≠ ∅`); `ℓ_prev := max{ℓ' ∈ dom(Σ_0.L) : origin(ℓ') = d} = a₁`; K.λ deposits at `inc(a₁, 0) = 1.0.1.0.1.0.2.2`. Set `b₁ = 1.0.1.0.1.0.2.2` — by ChainEnumerationInjectivity (ASN-0093), `b₁` is the second chain element of `A_L(d)` (the first being `a₁ = t_1^L(d)`). By T10a.2 (NonNestingSiblingPrefixes, ASN-0034), `a₁` and `b₁` are distinct siblings of `A_L(d)` and are therefore prefix-incomparable; in particular `a₁ ⊀ b₁` — witnessing *R0* (TupleAddressFreshness): `b₁ ∉ dom(Σ_0.L)` is fresh by SubsequentEmissionFreshness (ASN-0093), the subsequent-emission branch the realized prefix `{a₁}` at Σ_0 selects (matching R0's own subsequent-branch discharge).
 
-*L-invariant verification at `b₁`.* R0 verifies each L-invariant against an arbitrary K.λ-emitted address; the concrete `b₁ = 1.0.1.0.1.0.2.2` admits the same checks by direct inspection: L0 (`E(b₁)₁ = 2 = s_L`), L1 (`zeros(b₁) = 3` by (UZ)), L1a (`origin(b₁) = home(b₁) = d`), L1b (`#E(b₁) = 2` by (UL)), L1c (the structural chain from `d` through `b_L(d)` through `a₁` to `b₁` exists by ChainDiscipline + FirstEmission, ASN-0093). ✓ The remaining L-invariants (L2, L3, L4(c), L11a, L12, L12a, L12b, L14, L14a, L-fin) discharge by R0's generic argument applied with the concrete `b₁`.
+*L-invariant verification at `b₁`.* R0 verifies each L-invariant against an arbitrary K.λ-emitted address; the concrete `b₁ = 1.0.1.0.1.0.2.2` admits the same checks by direct inspection: L0 (`E(b₁)₁ = 2 = s_L`), L1 (`zeros(b₁) = 3` by (UZ)), L1a (`origin(b₁) = home(b₁) = d`), L1b (`#E(b₁) = 2` by (UL)), L1c (the structural chain from `d` through `b_L(d)` through `a₁` to `b₁` exists by ChainDiscipline + FirstEmission, ASN-0093). ✓ The remaining state-local L-invariants (L3, L4(c), L12, L12a, L14, L14a, L-fin) discharge by R0's generic argument applied with the concrete `b₁`. The lemma-consequences L2, L11a, L12b are not step-preserved state-local invariants and so lie outside R0's preservation argument; they hold automatically — L2 from the `home` definition, L11a as GlobalUniqueness (ASN-0034) instantiated at `b₁`, L12b from L12a together with L1a.
 
 Emit the retraction: `Σ_1.L = Σ_0.L ∪ {b₁ ↦ (∅, {(a₁, δ(1, 8))}, R)}`. Now compute:
 
@@ -526,7 +524,7 @@ Thus the fresh tuple lies in `L_R^{Σ_4}` (audit) but not in `A_R^{Σ_4}` (opera
 | Relational layer | COMMITMENT | Operation set `{Emit_K, Observe_K, Nullify}` + reduction corollary; see Definition — relational layer |
 | Emit_K | OP | State-transforming: `Σ × dom(Σ.M) × Endset × Endset → Σ' × A_rel^{Σ'}`, operationally K.λ specialized to value `(F, G, K)`; caller-supplied home `d ∈ dom(Σ.M)` and `K ∈ T_admissible` (Three Operations) |
 | Observe_K | OP | Pure read: `Σ × ℘_fin(T) × ℘_fin(T) × View → ℘_fin(L_K^Σ)`, selecting `L_K^Σ` or `A_K^Σ` (Three Operations) |
-| Nullify | OP | `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` for caller-supplied `d_retr ∈ dom(Σ.M)` and `a ∈ A_rel^Σ` with `|Σ.L(a)| = 3` |
+| Nullify | OP | `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})`; the only gating precondition is P0 (`d_retr ∈ dom(Σ.M)`), while P1 (`a ∈ A_rel^Σ`) establishes the postcondition `a ∈ nullified(Σ')` and P2 (`|Σ.L(a)| = 3`) is a scope label (see Definition — Nullify) |
 
 ## Open Questions
 
