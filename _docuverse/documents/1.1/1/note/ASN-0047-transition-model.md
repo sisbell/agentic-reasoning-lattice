@@ -839,6 +839,8 @@ A second K.δ case (i) attempting to re-baptise `1.2` is excluded by `e ∉ E`; 
 
 ## Worked example: fork with subsequent insertion
 
+**Vacuity conventions for the worked traces (stated once).** To keep each step's verification to its substantive checks, we fix three conventions that hold throughout every worked example below and omit their per-step repetition. (1) *J1'★ on R-framing steps.* Any elementary step that holds R in frame has `R' \ R = ∅`, so J1'★ is vacuously satisfied at that step. (2) *Link-side vacuity under an empty link store.* At any state with `dom(L) = ∅`, the link invariants L0 (L-clause), L1, L1a, L1b, L1c, L3, L-fin, CL-OWN, and CL-UNIQ hold vacuously, S3★'s link clause is vacuous, and L14 reduces to `dom(C) ∩ ∅ = ∅`. (3) *Carry-forward of unlisted per-state invariants.* Any Class (a) per-state invariant not explicitly verified at a step is inherited from the prior state by the relevant frame or restriction. Each step below lists only its non-vacuous checks.
+
 We trace a concrete scenario to ground the abstract definitions. Let the starting state Σ₁ contain node 1, account 1.0.1, and document d₁ = 1.0.1.0.1 with two characters:
 
 > C₁ = {1.0.1.0.1.0.1.1 ↦ 'H', 1.0.1.0.1.0.1.2 ↦ 'i'}
@@ -865,7 +867,7 @@ Verification against the resulting state Σ₂:
 - *J1'★:* `R₂ \ R₁ = {(a₁, d₂), (a₂, d₂)}` — both are new provenance entries from the K.ρ step. For each, the address must be new to d₂'s content-subspace range: `a₁ ∈ ran(M₂(d₂)|_{s_C}) = {a₁, a₂}` and `a₁ ∉ ran(M₁(d₂)|_{s_C}) = ∅` (M₁(d₂) = ∅), and symmetrically for a₂. Both entries are anchored in content-subspace range extensions introduced by the K.μ⁺ step of this composite. ✓
 - *J4:* d₂ ∈ E₂_doc \ E₁_doc, ran(M₂(d₂)) = {a₁, a₂} ⊆ ran(M₁(d₁)). ✓
 - *S2 (Arrangement functionality) on d₂:* the K.μ⁺ step adds the mappings {[1,1] ↦ a₁, [1,2] ↦ a₂} at V-positions disjoint from `dom(M₂_int(d₂)) = ∅` (the K.δ step initialised `M₂_int(d₂) = ∅`); since the extension occurs at fresh positions, single-valuedness is preserved trivially. ✓
-- *S3★:* every V-position in M₂(d₂) has `subspace(v) = s_C` (the K.μ⁺ amendment supplies this at every step that adds positions; the K.δ step initialised `M₂(d₂) = ∅`), and each maps to `a₁, a₂ ∈ dom(C₂)` by S3★'s content clause. S3★'s link clause is vacuous since `dom(L₂) = ∅`. ✓
+- *S3★:* every V-position in M₂(d₂) has `subspace(v) = s_C` (the K.μ⁺ amendment supplies this at every step that adds positions; the K.δ step initialised `M₂(d₂) = ∅`), and each maps to `a₁, a₂ ∈ dom(C₂)` by S3★'s content clause. ✓
 - *S4 (Content distinctness, per ASN-0036) on d₂'s range:* a₁ ≠ a₂ as content addresses — both inhabit dom(C₁), and the inductive hypothesis at Σ₁ (S4 over dom(C₁)) supplies the distinctness from the pre-state. The K.δ + K.μ⁺ + K.ρ fork composite holds C in frame (no new K.α event), so the dom(C) population — and therefore S4 — is preserved exactly across the composite. ✓
 - *D-CTG★ on V_{s_C}(d₂) = {[1,1], [1,2]}:* under the V-ordering on s_C (lex order on depth-2 positive tuples with first component 1), the only depth-2 positive tuple with first component 1 lex-between [1,1] and [1,2] is the bounds themselves — there is no third position to check; contiguity holds. ✓
 - *D-MIN★ on V_{s_C}(d₂):* `min(V_{s_C}(d₂)) = [1,1] = [s_C, 1]` of depth m_{s_C} = 2 — matching the D-MIN★ canonical form `[S, 1, ..., 1]` (with zero intermediate 1s at m = 2). ✓
@@ -873,7 +875,6 @@ Verification against the resulting state Σ₂:
 - *P4★:* Contains_C(Σ₂) = {(a₁, d₁), (a₂, d₁), (a₁, d₂), (a₂, d₂)} ⊆ R₂. ✓
 - *P7a:* dom(C₂) = dom(C₁) = {a₁, a₂}; both a₁ and a₂ have provenance entries (a₁, d₁), (a₂, d₁) ∈ R₁ ⊆ R₂. ✓
 - *P8:* parent(d₂) = parent(1.0.1.0.1.1) = 1.0.1 ∈ E₁ ⊆ E₂ (k = 1 preserves parent(d_new) = parent(d_src), so parent(d₂) = parent(d₁) = 1.0.1). The existing non-node entity 1.0.1 (account) retains parent(1.0.1) = 1 ∈ E₂. ✓
-- *L-invariants vacuously satisfied:* `dom(L₂) = dom(L₁) = ∅` (K.δ, K.μ⁺, K.ρ each hold L in frame), so L0 (L-clause), L1, L1a, L1b, L1c, L3, L-fin, CL-OWN, and CL-UNIQ are vacuous at Σ₂; L14 is `dom(C₂) ∩ dom(L₂) = dom(C₂) ∩ ∅ = ∅`. L0 (C-clause) and the remaining per-state invariants (S3★-aux, S7a–S7d, S8a, S8-fin, S8-depth, S8★, C-fin, P6, P7, NodeLineage) are inherited unchanged from Σ₁ across the K.δ + K.μ⁺ + K.ρ frame, with the exceptions noted in the explicit rows above (J4-specific reasoning for the new document; S2/S4/S3★/D-CTG★/D-MIN★/D-SEQ★ verified explicitly for d₂; P4★/P7a/P8 above). ✓
 
 **Insert new content into d₂.** Compound K.α + K.μ⁺ + K.ρ.
 
@@ -888,12 +889,12 @@ Verification:
 - *J0:* a₃ ∈ dom(C₃) \ dom(C₂), and d₂ ∈ E₃_doc with M₃(d₂)([1,3]) = a₃. ✓
 - *J1★:* ran(M₃(d₂)|_{s_C}) \ ran(M₂(d₂)|_{s_C}) = {a₃}, and (a₃, d₂) ∈ R₃. ✓
 - *J1'★:* `R₃ \ R₂ = {(a₃, d₂)}` — the K.ρ step adds exactly this entry. The address `a₃` is new to d₂'s content-subspace range: `a₃ ∈ ran(M₃(d₂)|_{s_C}) = {a₁, a₂, a₃}` and `a₃ ∉ ran(M₂(d₂)|_{s_C}) = {a₁, a₂}`. The new provenance is anchored in the K.μ⁺ step's content-subspace range extension. ✓
-- *S3★:* the new V-position [1,3] has `subspace([1,3]) = s_C` (K.μ⁺ amendment) and maps to `a₃ ∈ dom(C₃)`; existing V-positions retain their mappings into dom(C₂) ⊆ dom(C₃) by frame and P0. S3★'s link clause is vacuous since `dom(L₃) = ∅`. ✓
+- *S3★:* the new V-position [1,3] has `subspace([1,3]) = s_C` (K.μ⁺ amendment) and maps to `a₃ ∈ dom(C₃)`; existing V-positions retain their mappings into dom(C₂) ⊆ dom(C₃) by frame and P0. ✓
 - *P4★:* Contains_C(Σ₃) adds (a₃, d₂); this pair is in R₃. ✓
 - *P6:* origin(a₃) = d₂ = 1.0.1.0.1.1 ∈ E₃_doc. ✓
 - *P7:* (a₃, d₂) ∈ R₃ and a₃ ∈ dom(C₃). ✓
 - *P7a:* dom(C₃) = {a₁, a₂, a₃}; a₁ and a₂ retain provenance from R₂ ⊆ R₃, and a₃ has new provenance (a₃, d₂) ∈ R₃. Every a ∈ dom(C₃) has at least one provenance entry. ✓
-- *L-invariants vacuously satisfied:* `dom(L₃) = dom(L₂) = ∅` (K.α, K.μ⁺, K.ρ each hold L in frame), so L0 (L-clause), L1, L1a, L1b, L1c, L3, L-fin, CL-OWN, and CL-UNIQ are vacuous at Σ₃; L14 is `dom(C₃) ∩ dom(L₃) = ∅`. L0 (C-clause) carries forward from Σ₂ and is reaffirmed for a₃ by K.α's `E(a₃)₁ = s_C` precondition. Remaining per-state invariants (S2, S3★-aux, S4, S7a–S7d, S8a, S8-fin, S8-depth, S8★, C-fin, D-CTG★, D-MIN★, D-SEQ★, P8, NodeLineage) are inherited from Σ₂ or established by the elementary preconditions per the verification matrix; C-fin is preserved by single-element extension. ✓
+- *L0 (C-clause):* reaffirmed for the new address a₃ by K.α's `E(a₃)₁ = s_C` precondition; prior addresses carry forward from Σ₂. ✓
 
 **Delete a₃ from d₂'s arrangement (K.μ⁻).** Remove the mapping at V-position [1,3] — the maximum end of V_{s_C}(d₂), satisfying the K.μ⁻ amendment's D-CTG★/D-MIN★ postcondition.
 
@@ -902,12 +903,10 @@ Verification:
 Verification:
 
 - *J2:* C₄ = C₃; E₄ = E₃; R₄ = R₃. All permanent and historical state unchanged. ✓
-- *J1'★ (vacuous):* `R₄ \ R₃ = ∅` since K.μ⁻ holds R in frame. There are no new provenance entries to check; J1'★ is vacuously satisfied. ✓
 - *P4★:* Contains_C(Σ₄) = {(a₁, d₁), (a₂, d₁), (a₁, d₂), (a₂, d₂)}. The pair (a₃, d₂) is no longer in Contains_C — d₂ no longer displays a₃. Yet (a₃, d₂) ∈ R₄: the stale entry persists. Contains_C(Σ₄) ⊂ Contains_C(Σ₃), while R₄ = R₃. ✓
 - *P7a:* dom(C₄) = dom(C₃) and R₄ = R₃ (frame); every a ∈ dom(C₄) retains its provenance entry from R₃. ✓
-- *S3★:* surviving mappings retain their content-subspace V-positions and dom(C₄) = dom(C₃) targets by restriction; the removed mapping at [1,3] no longer participates. S3★'s link clause is vacuous since `dom(L₄) = ∅`. ✓
+- *S3★:* surviving mappings retain their content-subspace V-positions and dom(C₄) = dom(C₃) targets by restriction; the removed mapping at [1,3] no longer participates. ✓
 - *D-CTG★ / D-MIN★ / D-SEQ★ at Σ₄:* `V_{s_C}(d₂) = {[1,1], [1,2]}` is the contiguous prefix `{[s_C, k] : 1 ≤ k ≤ 2}` with minimum [1,1] = [s_C, 1] — the suffix-removal shape required by K.μ⁻ at the post-state. ✓
-- *L-invariants vacuously satisfied:* `dom(L₄) = dom(L₃) = ∅` (K.μ⁻ holds L in frame), so L0 (L-clause), L1, L1a, L1b, L1c, L3, L-fin, CL-OWN, and CL-UNIQ are vacuous at Σ₄; L14 is `dom(C₄) ∩ dom(L₄) = ∅`. The remaining per-state invariants (S2, S3★-aux, S4, S7a–S7d, S8a, S8-fin, S8-depth, S8★, C-fin, P6, P7, P8, NodeLineage, L0's C-clause) carry forward from Σ₃ by restriction or frame. ✓
 
 The divergence is now concrete: R₄ records that d₂ once contained a₃, while the current arrangement does not. This is the historical memory that J2 preserves — deletion is purely presentational.
 
@@ -918,12 +917,10 @@ The divergence is now concrete: R₄ records that d₂ once contained a₃, whil
 Verification:
 
 - *J3:* C₅ = C₄; E₅ = E₄; R₅ = R₄. All permanent and historical state unchanged. ✓
-- *J1'★ (vacuous):* `R₅ \ R₄ = ∅` since K.μ~ holds R in frame. There are no new provenance entries to check; J1'★ is vacuously satisfied. ✓
 - *ran preservation:* ran(M₅(d₂)) = {a₁, a₂} = ran(M₄(d₂)). The multiset of referenced I-addresses is identical; only V-positions changed. ✓
 - *P4★:* Contains_C(Σ₅) = Contains_C(Σ₄) ⊆ R₄ = R₅. Since ran is preserved for d₂ and no other arrangement changed, the current containment set is unchanged. ✓
 - *P7a:* dom(C₅) = dom(C₄) and R₅ = R₄ (frame); every a ∈ dom(C₅) retains its provenance entry. ✓
-- *S3★:* both V-positions retain `subspace(v) = s_C` (the swap permutes content-subspace positions only) and map into dom(C₅) = dom(C₄). S3★'s link clause is vacuous since `dom(L₅) = ∅`. ✓
-- *L-invariants vacuously satisfied:* `dom(L₅) = dom(L₄) = ∅` (K.μ~ holds L in frame, equivalently both K.μ⁻ and K.μ⁺ in its decomposition do), so L0 (L-clause), L1, L1a, L1b, L1c, L3, L-fin, CL-OWN, and CL-UNIQ are vacuous at Σ₅; L14 is `dom(C₅) ∩ dom(L₅) = ∅`. The remaining per-state invariants (S2, S3★-aux, S4, S7a–S7d, S8a, S8-fin, S8-depth, S8★, C-fin, D-CTG★, D-MIN★, D-SEQ★, P6, P7, P8, NodeLineage, L0's C-clause) carry forward from Σ₄ via the K.μ⁻ + K.μ⁺ decomposition (each step preserves them individually, with K.μ~-FIX establishing dom(M₅(d₂)) = dom(M₄(d₂)) for the per-subspace shape invariants). ✓
+- *S3★:* both V-positions retain `subspace(v) = s_C` (the swap permutes content-subspace positions only) and map into dom(C₅) = dom(C₄). ✓
 
 Reordering is the simplest transition to verify: it touches nothing beyond the V-position mapping, and all invariants hold by the frame conditions alone.
 
@@ -1069,7 +1066,6 @@ Post-state verification:
 - *L11a (Link distinctness for this K.λ event)*: this is the *first-link case* for `d` — the K.λ precondition predicate `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅` holds because `dom(L) = ∅` at the pre-state, so the first-emission path of K.λ applies. The emitted address `ℓ = [d.0.s_L.1] = 1.0.1.0.1.0.2.1` is the first emission of d's link sub-allocator `A_L(d)`, and **SubAllocatorAxiom.FirstEmission** (per ASN-0093) directly supplies `ℓ ∉ dom(Σ.L) ∪ dom(Σ.C)` at the state of allocation — discharging both the freshness conjunct of K.λ's precondition and the L11a obligation that distinct K.λ events produce distinct link addresses. GlobalUniqueness (ASN-0034) is *not* invoked for the first emission (the FirstEmission axiom is the load-bearing route here); GlobalUniqueness applies from the second emission onward, when the inc chain `A_L(d)` is in T10a's domain. ✓
 - S3★, CL-OWN: M unchanged, hold from pre-state
 - *P7a:* dom(C) is unchanged; every a ∈ dom(C) retains its provenance entry from R. ✓
-- *J1'★ (vacuous):* K.λ holds R in frame, so `R' \ R = ∅`. No new provenance entries to check; J1'★ is vacuously satisfied. ✓
 
 **Step 2: K.μ⁺_L — arrange the link in d.** Map the newly allocated `ℓ` into d's link subspace at the minimum link V-position.
 
@@ -1092,7 +1088,6 @@ Post-state verification:
 - L14: subspace identifiers 1 and 2 are distinct (SC-NEQ), so dom(C) ∩ dom(L') = ∅
 - L-fin: dom(L') = {ℓ} is unchanged from Step 1; still finite. ✓
 - *P7a:* dom(C) is unchanged; every a ∈ dom(C) retains its provenance entry from R. ✓
-- *J1'★ (vacuous):* K.μ⁺_L holds R in frame, so `R' \ R = ∅`. The new M extension is link-subspace only (`subspace(v_ℓ) = s_L`), so the content-subspace range `ran(M'(d)|_{s_C})` is unchanged — no provenance coupling is triggered, consistent with J1'★'s content-subspace scoping. ✓
 
 **Step 3: K.μ~ — reorder text, verify link fixity.** Swap text: `π([1,1]) = [1,2]`, `π([1,2]) = [1,1]`. Link-subspace fixity (proved in the K.μ~ section above) forces `π([2,1]) = [2,1]`.
 
@@ -1107,11 +1102,10 @@ Post-state verification:
 - *D-CTG★/D-MIN★:* V_{s_C}(d) = {[1,1], [1,2]} and V_{s_L}(d) = {[2,1]} are both unchanged from Step 2 (K.μ~ preserves dom by K.μ~-FIX); contiguity and minima are inherited.
 - *CL-OWN:* the link-subspace mapping is fixed pointwise, so origin(M''(d)([2,1])) = origin(ℓ) = d remains satisfied. ✓
 - *P7a:* dom(C) is unchanged and R is unchanged; every a ∈ dom(C) retains its provenance entry. ✓
-- *J1'★ (vacuous):* K.μ~ holds R in frame, so `R' \ R = ∅`. No new provenance entries to check; J1'★ is vacuously satisfied. (Note: K.μ~ also preserves the content-subspace range `ran(M'(d)|_{s_C}) = ran(M(d)|_{s_C})` exactly — π is a bijection on dom(M(d)) and the multiset of values is preserved — so even if a provenance entry were added it would have no new content-subspace range entry to anchor against.) ✓
 
 **Step 4: K.λ + K.μ⁺_L — allocate and arrange a second link.** To exercise link-subspace contraction below we need a non-singleton link subspace. Allocate `ℓ₂ = 1.0.1.0.1.0.2.2 = inc(ℓ, 0)` (the next sibling on d's link frontier under TA5(c), per K.λ's subsequent-link case) with some value `(F', G', Θ')`; then arrange `ℓ₂` at `v_{ℓ₂} = shift(max(V_{s_L}(d)), 1) = shift([2,1], 1) = [2,2]` (D-CTG★ case of K.μ⁺_L).
 
-Effect after both transitions: `L = {ℓ ↦ (F, G, Θ), ℓ₂ ↦ (F', G', Θ')}`, `M''(d) = {[1,1] ↦ a₂, [1,2] ↦ a₁, [2,1] ↦ ℓ, [2,2] ↦ ℓ₂}`. Link-subspace V-positions: `V_{s_L}(d) = {[2,1], [2,2]}` — contiguous (D-CTG★), minimum at `[2,1] = [s_L, 1]` (D-MIN★), depth 2 (S8-depth), structural form `{[s_L, k] : 1 ≤ k ≤ 2}` (D-SEQ★ with `n_{s_L} = 2`, `m_{s_L} = 2`; the general form `{[s_L, 1, ..., 1, k]}` has zero intermediate 1s). *J1'★ (vacuous):* both K.λ and K.μ⁺_L hold R in frame, so `R' \ R = ∅` for the composite — no new provenance entries are introduced, and J1'★ is vacuously satisfied. The K.μ⁺_L step adds only link-subspace V-positions, so the content-subspace range of M''(d) is unchanged across the composite, consistent with J1'★'s content-subspace scoping. ✓
+Effect after both transitions: `L = {ℓ ↦ (F, G, Θ), ℓ₂ ↦ (F', G', Θ')}`, `M''(d) = {[1,1] ↦ a₂, [1,2] ↦ a₁, [2,1] ↦ ℓ, [2,2] ↦ ℓ₂}`. Link-subspace V-positions: `V_{s_L}(d) = {[2,1], [2,2]}` — contiguous (D-CTG★), minimum at `[2,1] = [s_L, 1]` (D-MIN★), depth 2 (S8-depth), structural form `{[s_L, k] : 1 ≤ k ≤ 2}` (D-SEQ★ with `n_{s_L} = 2`, `m_{s_L} = 2`; the general form `{[s_L, 1, ..., 1, k]}` has zero intermediate 1s).
 
 Post-state verification (for the K.λ + K.μ⁺_L composite):
 - *L11a (Link distinctness for this K.λ event)*: this is the *subsequent-link case* for `d` — the K.λ precondition predicate `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅` holds because Step 1's `ℓ ∈ dom(L)` has `origin(ℓ) = d`, so the subsequent-emission path of K.λ applies. The emitted address `ℓ₂ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0) = inc(ℓ, 0) = 1.0.1.0.1.0.2.2` advances `A_L(d)`'s frontier by one sibling-increment via TA5(c). Freshness `ℓ₂ ∉ dom(L) ∪ dom(C)` is SubAllocFresh at `x = L` (frontier-advance part against `dom(L)`, cross-subspace part against `dom(C)`), giving `ℓ₂ ≠ ℓ` — the L11a obligation that this K.λ event produce an address distinct from every prior K.λ event under d (here, the single prior event at Step 1 producing ℓ). ✓
@@ -1143,7 +1137,6 @@ Post-state invariant verification:
 - *CL-OWN:* `origin(M'''(d)([2,1])) = origin(ℓ) = d` (preserved from pre-state by frame on the surviving mapping). ✓
 - *CL-UNIQ:* the surviving link-subspace mapping is the singleton `{[2,1] ↦ ℓ}`; vacuously injective. ✓
 - *L12:* `dom(L)` unchanged — `ℓ₂` remains in `dom(L)` despite no longer being arranged. ✓ This is the *orphan link* state Nelson identifies (LM 4/9): `ℓ₂ ∈ dom(L)` but `ℓ₂ ∉ ran(M'''(d))` for any d.
-- *J1'★ (vacuous):* K.μ⁻ holds R in frame, so `R' \ R = ∅`. No new provenance entries to check; J1'★ is vacuously satisfied. (J1'★ is range-based: the content-subspace range `ran(M'''(d)|_{s_C}) = ran(M''(d)|_{s_C}) = {a₁, a₂}` is unchanged across this link-subspace contraction — the link-subspace range loses ℓ₂, but the link subspace is outside J1'★'s scope.) ✓
 
 An attempt to remove `[2,1]` while retaining `[2,2]` is excluded by D-MIN★ (the missing-minimum shape); an attempt to remove an interior position while retaining both endpoints is excluded by D-CTG★ (the interior-hole shape).
 
@@ -1192,17 +1185,6 @@ The atomicity guarantee of SequentialTransitionAxiom commits *elementary* transi
 
 This distinction reflects Nelson's design: at the docuverse layer, compound user actions decompose into sequences of elementary commands whose intermediate states are conceptually observable to other agents (LM 4/63 — FEBE commands return acknowledgments individually, with no transaction wrapper around compound flows). Only CREATENEWVERSION is atomic at the protocol level; other compound flows expose intermediate states by design. Composite-boundary properties capture the design intent that *valid composites* must restore them — not that the system never observes states violating them.
 
-*Concrete trace illustrating transient failure and restoration.* Consider a fresh-content insertion composite K.α → K.μ⁺ → K.ρ targeting document `d ∈ E_doc` and allocating new address `a` with value `v`. The trace exhibits P7a (every `a ∈ dom(C)` has at least one provenance entry) transitioning through its transient failure and restoration:
-
-| Step | State after step | P7a status at `a` |
-|------|------------------|------------------|
-| (initial Σ) | `a ∉ dom(C)`, `(·, d) ∉ R` for any `·` involving `a` | vacuously satisfied — `a` not yet in dom(C) |
-| K.α fires | `a ∈ dom(C')`, no `(a, ·) ∈ R` | **transient failure**: `a ∈ dom(C)` but no provenance entry exists |
-| K.μ⁺ fires | `a ∈ dom(C)`, `v_a ∈ dom(M(d))` with `M(d)(v_a) = a`, still no `(a, ·) ∈ R` | still failing — K.μ⁺ holds R in frame |
-| K.ρ fires (composite boundary Σ') | `a ∈ dom(C')`, `(a, d) ∈ R'` | **restored** — P7a satisfied with witness `(a, d) ∈ R'` |
-
-Per-state invariants (e.g., S2, S3★, C-fin, L14) hold at every row, including the K.α and K.μ⁺ rows — these are elementary-preserved. P7a is a composite-boundary property and need hold only at the initial Σ and the final Σ'; the two interior rows admit it as transiently false. ValidComposite★'s J0 coupling forces the composite to end with K.μ⁺ followed by K.ρ (in some order, but both must fire), so the boundary-restoration is guaranteed by construction.
-
 **ExtendedReachableStateInvariants.** Every state reachable from Σ₀ by a finite sequence of valid composite transitions satisfies the *per-state invariants* below; every state at a composite boundary (Σ or Σ' of a valid composite) additionally satisfies the *composite-boundary properties* below.
 
   *Per-state invariants* (Class (a) of the proof below — preserved step-by-step by each elementary transition):
@@ -1213,7 +1195,7 @@ Per-state invariants (e.g., S2, S3★, C-fin, L14) hold at every row, including 
 
   P4★ ∧ P4a ∧ P7a
 
-  The Class (b) properties may transiently fail at intermediate states; in particular, a composite that allocates fresh content (K.α) violates P7a at the post-K.α intermediate state (the new I-address is in dom(C') but no (·, d) entry yet sits in R'), with restoration by the composite-trailing K.ρ.
+The Class (b) properties may transiently fail at intermediate states; the elementary step at which each fails, and the coupling that restores it at the composite boundary, are recorded once in the *Composite-boundary verification matrix* below.
 
 ASN-0036's S7d (document allocation discipline) is preserved unchanged: every `d ∈ E_doc` is T4-valid with `zeros(d) = 2`, placed in E_doc by a K.δ event satisfying `e ∉ E` discharged by GlobalUniqueness (ASN-0034) on the parent allocator's tracked domain.
 
@@ -1388,14 +1370,11 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 | K.μ⁺_L | Elementary transition: link-subspace arrangement extension, M'(d) = M(d) ∪ {v_ℓ ↦ ℓ}, origin(ℓ) = d, ℓ ∉ ran(M(d)) (first-arrangement); frame holds C, L, E, R, other documents |
 | K.μ~-FIX | Domain fixity under K.μ~: dom(M'(d)) = dom(M(d)), making π a permutation of a fixed domain — from D-SEQ + bijection cardinality + subspace preservation |
 | J0 | Content allocation (K.α) always co-occurs with arrangement extension (K.μ⁺). **Axiomatic** — not derived from foundation |
-| J1 | Link-free (`dom(L) = ∅`) reading of the operative coupling J1★ (catalogued under *Local extensions*); not a separate property |
-| J1' | Link-free (`dom(L) = ∅`) reading of the operative converse J1'★ (catalogued under *Local extensions*); not a separate property |
 | J2 | K.μ⁻ as elementary transition requires no coupling: C' = C ∧ L' = L ∧ E' = E ∧ R' = R |
 | J3 | K.μ~ as named composite requires no coupling: C' = C ∧ L' = L ∧ E' = E ∧ R' = R |
 | J4 | Fork composite: K.δ + K.μ⁺ + K.ρ (no other steps); precondition V_{s_C}(d_src) ≠ ∅; dom(C') = dom(C) follows from frames; provenance from J1★/J1'★ (extended-state couplings); content-subspace-empty source is ex nihilo (K.δ), not fork |
 | P1 | Entity set is monotonically growing: E ⊆ E' for every transition, uniformly across levels |
 | P2 | Provenance relation is monotonically growing: R ⊆ R' for every transition |
-| P4 | Link-free (`dom(L) = ∅`) reading of the operative bound P4★ (`Contains_C(Σ) ⊆ R`, catalogued under *Local extensions*); not a separate property |
 | P4a | Historical fidelity: every (a, d) ∈ R has a witnessing state where a ∈ ran(M(d)) |
 | P6 | Existential coherence: origin(a) ∈ E_doc for all a ∈ dom(C) |
 | P7 | Provenance grounding: a ∈ dom(C) for all (a, d) ∈ R |
