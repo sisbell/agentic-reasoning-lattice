@@ -35,8 +35,6 @@ By the K.σ/K.α/K.λ frame conditions stated above, `Σ →* Σ'` entails `dom(
 - (b) **at-most-one-key-per-home** — deposit at most one fresh link key per home: each K.λ primitive emits a single key, and a composite `↝`-step may touch several homes but contributes at most one fresh key to any single home;
 - (c) **frontier-landing** — a step that adds a fresh link key at home `d` adds exactly the key `inc(ℓ_prev, 0)`, where `ℓ_prev` is the prior T1-maximum of `d`'s homed-set `{a ∈ dom(Σ.L) : home(a) = d}` (well-defined and finite by L-fin), or the key `[d.0.s_L.1]` if that homed-set is empty.
 
-The closure of substrate-conformance under conformance-preserving steps — and the consequent relationship to `→*`-reachability — is recorded in Lemma — K-Step Conformance Preservation below.
-
 **Lemma — K-Step Conformance Preservation.** If Σ is substrate-conforming and Σ → Σ' (or Σ ↝ Σ') is a *conformance-preserving step* — one satisfying clauses (a)–(c) above — then Σ' is substrate-conforming; and by induction, every state reached from a substrate-conforming state by conformance-preserving steps is substrate-conforming. Every K-op `→`-step (K.σ, K.α, K.λ) is conformance-preserving, by its ASN-0093 contract; in particular, since `Σ_init` is substrate-conforming, every `→*`-reachable state is substrate-conforming, and the converse fails.
 
 *Proof.* Substrate-conformance of Σ is witnessed by a trajectory `Σ_init →* Σ` of conformance-witnessing steps; appending the conformance-preserving step Σ → Σ' (resp. Σ ↝ Σ') extends that trajectory, so Σ' too is reached by conformance-witnessing steps and is therefore substrate-conforming. The K-op claim holds by the lemma statement's cited ASN-0093 contracts. ∎
@@ -52,7 +50,7 @@ By SD (StoreDisjointness, ASN-0093) — equivalently ASN-0043 L14 (DualPrimitive
 `A_doc^Σ = dom(Σ.C)` &nbsp; — content addresses
 `A_rel^Σ = dom(Σ.L)` &nbsp; — relation-tuple addresses
 
-We claim `A^Σ = A_doc^Σ ⊔ A_rel^Σ` (disjoint union); the disjointness is `dom(Σ.C) ∩ dom(Σ.L) = ∅`, i.e. SD (StoreDisjointness, ASN-0093), recorded as R4 below.
+We claim `A^Σ = A_doc^Σ ⊔ A_rel^Σ` (disjoint union); the disjointness is `dom(Σ.C) ∩ dom(Σ.L) = ∅`, i.e. SD (StoreDisjointness, ASN-0093).
 
 **Definition — GhostAddresses.** The *ghost addresses* at state Σ are the tumblers outside the stored-entity universe:
 
@@ -245,7 +243,7 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 *Corollary R5.1 — SelfTargetingEmission.* For any `a ∈ A_rel^Σ`, any slot position, and any caller-supplied home `d ∈ dom(Σ.M)`, R0 emits at a fresh `A_rel` address a triple carrying the unit-depth span `(a, δ(1, #a))` in the chosen slot (by Steps 2–3: the span is an admissible endset member, and the Step 3 uniformity — R0's emission argument inspecting neither slot nor coverage — discharges the chosen-slot placement).
 
-*Consequence.* The substantive consequence is that self-targeting enables retraction without mutation: a tuple in a designated relation `L_R` whose to-set contains the address of the tuple being nullified. By Corollary R5.1, the retraction triple `(∅, {(a, δ(1, #a))}, R)` is emitted at a fresh `A_rel` address homed at a caller-supplied `d_retr ∈ dom(Σ.M)`; mutation becomes Emit, and `L_K` is never modified (R3). This is formalized as the Nullify operation below.
+*Consequence.* The substantive consequence is that self-targeting enables retraction without mutation: a tuple in a designated relation `L_R` whose to-set contains the address of the tuple being nullified. By Corollary R5.1, the retraction triple `(∅, {(a, δ(1, #a))}, R)` is emitted at a fresh `A_rel` address homed at a caller-supplied `d_retr ∈ dom(Σ.M)`; mutation becomes Emit, and `L_K` is never modified (R3).
 
 
 ## The Active Subset (R6a, R6b, R6c)
@@ -337,8 +335,6 @@ That is, emit a tuple into the retraction relation with empty from-set and a uni
 
 The arity-3 restriction P2 matches this note's scope. `A_K^Σ` is defined only over standard-triple links (Definition of `L_K^Σ`), so the active-subset effect of Nullify is meaningful only on arity-3 addresses. Nullifying a higher-arity address (`|Σ.L(a)| > 3`) is a well-formed Emit_R that deposits `a` into `nullified(Σ')`, but no `A_K^{Σ'}` feels the effect under the present definitions.
 
-The single-tuple scope of this `→` step — that it contributes exactly `a` to `nullified(Σ')` and never a sub-tree of `A_rel`, regardless of `|Σ.L(a)|` — is the lemma R-Scope.
-
 **R-Scope — SingleTupleScope.** At every substrate-conforming state Σ, for any `a ∈ A_rel^Σ` and any caller-supplied `d_retr ∈ dom(Σ.M)`, the `→`-step taken by `Nullify(Σ, d_retr, a) = Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` contributes exactly `a` to the nullified set:
 
 `{t : a ≼ t} ∩ A_rel^{Σ'} = {a}`
@@ -375,15 +371,13 @@ Discharges (1)–(4) cover each replay step's preconditions; each replay step is
 
 After all `n` iterations (interleaved with at most `n` K.σ-prefixes when home documents were not already in `dom(Σ.M)`), the running `Σ_m.L = Σ.L ∪ {a_1 ↦ (F_1, G_1, K_1), …, a_n ↦ (F_n, G_n, K_n)} = Σ'.L`, and `dom(Σ_m.M) ⊆ dom(Σ'.M)` because each K.σ-prefix introduced only a `d_k ∈ dom(Σ'.M)`. The construction introduces no K.α content-emission steps: L1a's precondition on each K.λ-emission depends only on `home(a_k) ∈ dom(Σ_{prev}.M)`, not on any content address, so `dom(Σ_m.C) = dom(Σ.C)` throughout, and `dom(Σ.C) ⊆ dom(Σ'.C)` follows from S1 on the original `↝`-step. ∎
 
-*Load-bearing thesis.* R7a is the note's completeness result for the K-vocabulary, and its quantifier is what carries the weight: it ranges over the `Σ.L`-affecting step of *any* substrate-conforming layer — not merely the relational layer of this note, but any future multi-operation layer published over `(Σ.C, Σ.M, Σ.L)` whose composite operations mutate the link store in a single `↝`-step. For every such layer the mutation reduces to a finite `{K.σ, K.λ}` sequence. This is the claim that underwrites the headline of *Three Operations* (`span all visible substrate change`): the guarantee is not that the relational layer happens to confine itself to K-steps, but that no substrate-conforming layer can escape them. The proof carries its full decomposition machinery (the `m`-step replay, the four K.λ-precondition discharges, the K.σ interleaving) precisely because the `↝`-step it decomposes is arbitrary and may bundle several fresh keys; the relational layer is only the degenerate `m = 1` instance.
-
 **Definition — relational layer.** The relational layer's operations are `{Emit_K, Observe_K, Nullify}`, with `Nullify` a definitional alias for `Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` — `Emit_K` instantiated at three argument positions: `K := R`, `F := ∅`, `G := {(a, δ(1, #a))}`. The layer commits to `Emit_K` (operationally K.λ specialized to standard-triple value `(F, G, K)`) as its sole state-affecting K.λ emission, and admits no composites that touch `Σ.L` indirectly. *Nullify-as-sole-`R`-producer discipline:* the layer further commits that callers may invoke `Emit_K` only at type indices `K` satisfying `K ≁ R` (i.e., `coverage(K) ≠ coverage(R)`); every `R`-typed emission is routed through the `Nullify` alias, whose argument shape is fixed to the unit-depth retraction form `(∅, {(a, δ(1, #a))})` by Definition of `Nullify`. *P1-confinement of Nullify targets:* the layer further commits that every `Nullify(Σ, d_retr, a)` call it issues satisfies P1 (`a ∈ A_rel^Σ`) — the layer never retracts a content, document, or ghost address. This meets the target-membership requirement that the *unit-depth retraction discipline* imposes on `R`-typed emissions (Definition — Unit-depth retraction discipline). Together these three commitments make the layer satisfy that discipline, so every state reached using only the relational layer's operations satisfies it. `Observe_K` is state-preserving, taking no `→`-step.
 
 *Corollary (reduction to Emit_K).* The relational layer's state-affecting operations reduce to `{Emit_K}` (with `Nullify` as alias).
 
 *Proof.* We first check the relational layer against the *Definition — substrate-conforming layer*: each published operation is either a K.λ `→`-step (`Emit_K` and its alias `Nullify`) or the read-only `Observe_K`, where the K.λ steps preserve substrate-conformance by their ASN-0093 contract and `Observe_K` takes no transition. The layer is therefore substrate-conforming. R7a's pre-state hypothesis is then met from the outset: `Σ_init` is substrate-conforming by definition (reachable from itself by the empty trajectory), so by K-Step Conformance Preservation every state the layer reaches from `Σ_init` is substrate-conforming. Hence each relational-layer-issued transition `Σ ↝ Σ'` departs from a substrate-conforming Σ, satisfying R7a's added hypothesis.
 
-The relational layer's own reduction follows directly from its *Definition*, without invoking R7a: its only state-affecting operations are `Emit_K` and its alias `Nullify`, each *already* a single K.λ `→`-step specialized to a standard-triple value, while `Observe_K` takes no transition. So every `Σ.L`-affecting step the layer takes simply *is* an `Emit_K` call — at `m = 1`, with nothing to decompose. R7a's contribution is not to this trivial case but to its converse generality: it certifies that the same `{Emit_K, Observe_K, Nullify}` exhaustiveness survives any substrate-conforming *extension* of the layer with composite operations, since every such operation's `Σ.L`-effect still decomposes into K-steps (R7a, Load-bearing thesis). The relational layer is thus the `m = 1` instance of a guarantee R7a establishes for arbitrary `m`. ∎
+The relational layer's own reduction follows directly from its *Definition*, without invoking R7a: its only state-affecting operations are `Emit_K` and its alias `Nullify`, each *already* a single K.λ `→`-step specialized to a standard-triple value, while `Observe_K` takes no transition. So every `Σ.L`-affecting step the layer takes simply *is* an `Emit_K` call — at `m = 1`, with nothing to decompose. R7a's contribution is not to this trivial case but to its converse generality: it certifies that the same `{Emit_K, Observe_K, Nullify}` exhaustiveness survives any substrate-conforming *extension* of the layer with composite operations, since every such operation's `Σ.L`-effect still decomposes into K-steps (R7a). The relational layer is thus the `m = 1` instance of a guarantee R7a establishes for arbitrary `m`. ∎
 
 
 ## Weakest-Precondition Analysis
