@@ -82,15 +82,9 @@ where C : T ⇀ Val is the content store (per ASN-0036), L : T ⇀ Link is the l
 
 where, under the total typing, `dom(M)` is read as the set of documents with a *registered* arrangement — `{d : d ∈ E_doc}` — not the trivial set `{d : M(d) defined}`, which is all of T. The distinction the partial typing carried by domain-membership — "d unallocated" versus "d allocated with empty arrangement" — is preserved verbatim by E_doc-membership and *not* by the test `M(d) = ∅`: a freshly registered document also has `M(d) = ∅`, so emptiness no longer signals non-allocation; membership in E_doc is the discriminating predicate.
 
-The claim that (†) suffices is not blanket — we enumerate the inherited foundation results phrased over `dom(M)` and verify each survives the substitution:
+Every `dom(M)`-phrased foundation result reads under (†) with `dom(M) ↦ E_doc`: ASN-0093 M0 (DocumentTumblerWellFormed) and M1 (ArrangementMonotonicity), the K.α/K.λ binding precondition `d ∈ dom(M)`, the K.σ effect `dom(M') = dom(M) ∪ {d}`, and SubAllocatorAxiom activation all carry verbatim under the substitution — M1 becomes P1 restricted to the document stratum, and the K.σ effect becomes the entry of `d` into E_doc (see *Subsumption of ASN-0093's K.σ*, K.δ definition).
 
-- *ASN-0093 M0 (DocumentTumblerWellFormed), `(A d ∈ dom(M) :: T4-valid(d) ∧ zeros(d) = 2)`.* Translates to `(A d ∈ E_doc :: T4-valid(d) ∧ zeros(d) = 2)`, which holds by `E_doc = {e ∈ E : IsDocument(e)}` and IsDocument's requirement `T4-valid ∧ zeros = 2` (ASN-0045). Survives.
-- *ASN-0093 M1 (ArrangementMonotonicity), `dom(M) ⊆ dom(M')`.* Translates to `E_doc ⊆ E'_doc`. IsDocument is a per-address predicate and P1 gives `E ⊆ E'`, so every `d ∈ E_doc` satisfies `d ∈ E ⊆ E'` and IsDocument(d), whence `d ∈ E'_doc`. Survives — it is P1 restricted to the document stratum.
-- *ASN-0093 K.α / K.λ binding precondition `d ∈ dom(M)`.* Read as `d ∈ E_doc` (home document exists); used with this reading in K.α (*Content allocation*) and K.λ (*Link allocation*).
-- *ASN-0093 K.σ effect `dom(M') = dom(M) ∪ {d}`.* Read as the entry of `d` into E_doc; see *Subsumption of ASN-0093's K.σ* (K.δ definition).
-- *ASN-0093 SubAllocatorAxiom activation, tied to "the event placing d into dom(M)".* Read as the event placing `d` into E_doc — the K.δ `IsDocument(e)` event, which is exactly the joint child-spawn step activating `A_C(d)` and `A_L(d)`.
-
-The one foundation invariant *not* inherited is ASN-0093 M2 (EmptyArrangement), `(A d ∈ dom(M) :: M(d) = ∅)`: ASN-0093 is an allocation substrate in which every registered document carries the empty arrangement, whereas ASN-0047 populates arrangements via K.μ⁺/K.μ⁺_L. In ASN-0047 M2 holds only at the registration event (the K.δ `IsDocument(e)` effect sets `M'(e) = ∅`), not as a standing per-state invariant; it is deliberately superseded by the arrangement-extension transitions and is unused in the transfer.
+The sole exception is ASN-0093 M2 (EmptyArrangement), `(A d ∈ dom(M) :: M(d) = ∅)`, which is *not* inherited: ASN-0093 is an allocation substrate in which every registered document carries the empty arrangement, whereas ASN-0047 populates arrangements via K.μ⁺/K.μ⁺_L. In ASN-0047 M2 holds only at the registration event (the K.δ `IsDocument(e)` effect sets `M'(e) = ∅`), not as a standing per-state invariant; it is deliberately superseded by the arrangement-extension transitions.
 
 **Definition (Initial state).** The initial state Σ₀ = (C₀, L₀, E₀, M₀, R₀) is:
 
@@ -556,7 +550,7 @@ Existing transitions preserve S3★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ c
 - d ∈ E_doc
 - ℓ ∈ dom(L)  (the target link must already exist in dom(L) — placed there by some prior K.λ)
 - origin(ℓ) = d  (only home-document links may be arranged)
-- ℓ ∉ ran(M(d))  (the link is not already arranged at any V-position in d's arrangement — first-arrangement constraint). With `ℓ ∉ ran(M(d))` and `v_ℓ ∉ dom(M(d))` (verified below), the post-state arrangement maps `v_ℓ` to a value absent from `ran(M(d))`, so no two V-positions share the image `ℓ` and CL-UNIQ holds at the post-state. Combined with CL-OWN (which restricts the link-subspace range of M(d) to links with `origin(·) = d`), the freshness condition `ℓ ∉ ran(M(d))` is equivalent — under the precondition `origin(ℓ) = d` — to `ℓ ∉ ran(M(d)|_{dom_L})`: a link can appear in M(d)'s range only as the value of a link-subspace V-position (by S3★, since `ℓ ∈ dom(L)` and `dom(L) ∩ dom(C) = ∅` by L14), so the unrestricted `ℓ ∉ ran(M(d))` clause suffices.
+- ℓ ∉ ran(M(d))  (the link is not already arranged at any V-position in d's arrangement — first-arrangement constraint)
 - V-position v_ℓ satisfies:
   - subspace(v_ℓ) = s_L
   - depth m_L(d) (the per-document link-subspace depth defined above). When V_{s_L}(d) ≠ ∅, m_L(d) is the common depth fixed by S8-depth on existing link-subspace positions; when V_{s_L}(d) = ∅, S8-depth is vacuous and this first insertion pins m_L(d) — any value ≥ 2 by S8a, the choice mirroring K.μ⁺'s realisation of `ValidFirstInsertionPosition` for the empty content subspace.
