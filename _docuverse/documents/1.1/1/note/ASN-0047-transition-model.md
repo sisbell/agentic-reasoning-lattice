@@ -621,7 +621,11 @@ The K.ρ/K.μ⁺ coupling trigger is range-based, not unconditional; the precise
 
 This is a derived quantity of the state — it captures what each document currently displays.
 
-With link-subspace mappings, `Contains(Σ)` includes `(ℓ, d)` for every link ℓ mapped in d's arrangement. P4 would require `Contains(Σ) ⊆ R`, but provenance entries satisfy P7 (ProvenanceGrounding, stated below): `(A (a, d) ∈ R :: a ∈ dom(C))`. Since `ℓ ∈ dom(L)` and `dom(L) ∩ dom(C) = ∅` (L14), `(ℓ, d) ∉ R` — P4 is unsatisfiable for the unscoped relation once any link-subspace mapping exists. The provenance bound must therefore be stated against the content-subspace restriction of containment.
+**P4 (ProvenanceBounds — introduced and immediately superseded).**
+
+  `Contains(Σ) ⊆ R`
+
+P4 is the unscoped provenance bound: every current containment is recorded in R. With link-subspace mappings, `Contains(Σ)` includes `(ℓ, d)` for every link ℓ mapped in d's arrangement, but provenance entries satisfy P7 (ProvenanceGrounding, stated below): `(A (a, d) ∈ R :: a ∈ dom(C))`. Since `ℓ ∈ dom(L)` and `dom(L) ∩ dom(C) = ∅` (L14), `(ℓ, d) ∉ R` — P4 is unsatisfiable for the unscoped relation once any link-subspace mapping exists. The provenance bound must therefore be stated against the content-subspace restriction of containment; we retain the P4 label only to name the unscoped bound that P4★ below refines.
 
 **Contains_C(Σ) (ContentContainment).**
 
@@ -870,7 +874,7 @@ Reordering is the simplest transition to verify: it touches nothing beyond the V
 
 ## Worked example: interior content replacement
 
-We trace the interior-position case of the content-replacement decomposition (K.μ⁻ + K.μ⁺ with `n'_{s_C} = k₀ − 1` rather than the single-position pair at `k₀ = n_{s_C}`) introduced in the *Elementary transitions* section.
+We trace the interior-position case of the content-replacement composite — the *separate, range-changing* K.μ⁻ + K.μ⁺ pair identified in the *Elementary transitions* section (the form excluded from K.μ~ by its range-preservation clause). To parameterise the contraction depth we reuse the cut-point notation defined for K.μ~ permutations in the *Decomposition of K.μ~* section (`n'_{s_C} = k₀ − 1` with `1 ≤ k₀ ≤ n_{s_C}`), applying it here to the distinct range-changing replacement composite: the interior case takes `n'_{s_C} = k₀ − 1` rather than the single-position pair at `k₀ = n_{s_C}`.
 
 *Initial state.* Let document `d = 1.0.1.0.1` have four content-subspace mappings, with `aₖ := 1.0.1.0.1.0.1.k` for `k ∈ {1, 2, 3, 4}`:
 
@@ -1127,7 +1131,7 @@ The atomicity guarantee of SequentialTransitionAxiom commits *elementary* transi
 
   P4★ ∧ P4a ∧ P7a
 
-The Class (b) properties may transiently fail at intermediate states; the elementary step at which each fails, and the coupling that restores it at the composite boundary, are recorded once in the *Composite-boundary verification matrix* below. P4★ and P7a are per-state properties holding at boundaries; P4a is a *trace property* (defined and discharged in its definition box), grouped here because, like the other two, it is established by the boundary couplings rather than preserved step-by-step.
+Per the temporal-scope distinction stated in the preamble above, the elementary step at which each Class (b) property fails and the coupling that restores it at the composite boundary are recorded once in the *Composite-boundary verification matrix* below. P4★ and P7a are per-state properties holding at boundaries; P4a is a *trace property* (defined and discharged in its definition box), grouped here because, like the other two, it is established by the boundary couplings rather than preserved step-by-step.
 
 *TrackedEmission.* Established by the self-contained induction in its definition box (the *Preservation* paragraph under TrackedEmission): vacuous at Σ₀, preserved by K.δ case (ii) (each non-node entity enters E only by a T10a inc-step on a tracked sub-allocator, joining that allocator's tracked domain at the placing event), and held in frame by every non-K.δ transition.
 
@@ -1139,11 +1143,11 @@ ASN-0036's S7d (document allocation discipline) is preserved unchanged: every `d
 
 P3 (defined in *Destruction confinement*, where its synthesis from P0 ∧ P1 ∧ P2 ∧ L12 and the content-store-invariance derivation are given) covers every per-transition monotonicity obligation, so naming P3 alone suffices here.
 
-*Proof.* The proof proceeds by induction on the number of valid composite transitions from Σ₀. The reachable-state property set partitions into two classes by temporal scope: *per-state invariants* preserved by each elementary transition individually, and *composite-boundary properties* that may be violated at intermediate states within a composite but hold at every composite boundary. The per-transition invariants are addressed last, in a single elementary-case check.
+*Proof.* The proof proceeds by induction on the number of valid composite transitions from Σ₀, following the two temporal-scope classes of the preamble above — Class (a) per-state invariants and Class (b) composite-boundary properties. The per-transition invariants are addressed last, in a single elementary-case check.
 
 **Base.** The extended initial state Σ₀ satisfies every per-state invariant (verified in the Link store and extended system state section — L₀ = ∅ satisfies link invariants vacuously, including L3; S3★ and P4★ reduce to S3 and P4; S3★-aux holds vacuously since M₀(d) = ∅ for all d; D-CTG and D-MIN hold vacuously since V_S(d) = ∅ for every subspace S). The per-transition invariants have no base case — they are vacuous before any transition has occurred — and enter the induction at the first step.
 
-**Class (a): Per-state invariants** — preserved by each elementary transition individually, holding at every reachable state including intermediate states within composites. These are all per-state properties except P4★, P4a, and P7a: S2, S3★, S3★-aux, S4, S7a, S7b, C1b, S7d, S8a, S8-fin, S8-depth, S8★, C-fin, D-CTG★, D-MIN★, D-SEQ★, P6, P7, P8, NodeLineage, L0, L1, L1a, L1b, L1c, L3, L14, L-fin, CL-OWN, CL-UNIQ.
+**Class (a): Per-state invariants** (per the preamble's temporal-scope distinction). These are all reachable-state properties except P4★, P4a, and P7a: S2, S3★, S3★-aux, S4, S7a, S7b, C1b, S7d, S8a, S8-fin, S8-depth, S8★, C-fin, D-CTG★, D-MIN★, D-SEQ★, P6, P7, P8, NodeLineage, L0, L1, L1a, L1b, L1c, L3, L14, L-fin, CL-OWN, CL-UNIQ.
 
 *Verification matrix.* Each cell names the load-bearing discharge for that (invariant, transition) pair; `frame` indicates the transition holds the relevant state component unchanged and so trivially preserves the invariant; `n/a` indicates the invariant's scope does not intersect the transition's effect (e.g., L0's L-clause is `n/a` for transitions that frame both L and C). For link-store invariant rows (L0, L1, L1a, L1b, L1c, L3, L14, L-fin, CL-OWN, CL-UNIQ), `frame` under K.α, K.μ⁺, K.μ⁻ rests on the amended forms of *Amendments to existing transitions* above, which add the explicit `L' = L` conjunct (or, for K.α, ASN-0093's frame supplying it directly), not on the original pre-link transitions, which made no commitment about L. K.μ~ cells invoke the full-clearance form (`n'_{s_C} = 0`) of the K.μ⁻ + K.μ⁺ decomposition per the convention fixed at *Decomposition of K.μ~* (any cell not naming a cut point reads as full-clearance, which is admissible for every admissible π).
 
@@ -1225,9 +1229,9 @@ Preserved by P1.
 
 *CL-UNIQ (LinkSubspacePositionUniqueness).* K.μ⁺_L's first-arrangement precondition `ℓ ∉ ran(M(d))` ensures each newly arranged link occupies a unique V-position. K.μ⁻ restriction of an injective function remains injective. K.μ⁺ confines its additions to subspace `s_C` (the amendment's `subspace(v) = s_C` restriction), adding no link-subspace V-positions and leaving `M(d)|_{dom_L}` unchanged, so link-subspace injectivity is preserved — matching the CL-OWN/K.μ⁺ treatment. K.μ~ preservation: established by the post-state CL-UNIQ clause of sub-step (4) in the link-subspace fixity proof (*Decomposition of K.μ~* section above). All other transitions hold M in frame.
 
-**Class (b): Composite-boundary properties** — discharged at composite boundaries by the J0/J1★/J1'★ couplings of ValidComposite★, not preserved by each elementary transition. These are: P4★, P4a, and P7a.
+**Class (b): Composite-boundary properties** (per the preamble's temporal-scope distinction), discharged at composite boundaries by the J0/J1★/J1'★ couplings of ValidComposite★. These are: P4★, P4a, and P7a.
 
-*Composite-boundary verification matrix.* For each Class (b) property, the matrix records the discharge mechanism at composite boundaries. Cells flagged "may transiently fail" identify the elementary steps that violate the property in isolation; restoration is supplied by the named coupling at the composite boundary.
+*Composite-boundary verification matrix.* For each Class (b) property, the matrix records the discharge mechanism at composite boundaries and identifies the elementary steps at which the property transiently fails in isolation; restoration is supplied by the named coupling at the boundary.
 
 | Property | Discharge at composite boundary | Transient failure within composite |
 |----------|--------------------------------|------------------------------------|
