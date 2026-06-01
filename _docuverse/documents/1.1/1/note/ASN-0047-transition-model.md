@@ -198,7 +198,7 @@ We seek the elementary modifications — the state changes from which all system
 **K.α (Content allocation).** Per ASN-0093 (foundation K.α, ContentAllocation): a fresh I-address is bound to a value in the content store. The precondition structure — `d ∈ E_doc` (home document exists), `a ∉ dom(C) ∪ dom(L)` (fresh address), `zeros(a) = 3 ∧ E(a)₁ = s_C` (element-level, content subspace), `#E(a) ≥ 2`, `origin(a) = d`, the first/subsequent emission cases producing `a` via d's content sub-allocator `A_C(d)`, and `v ∈ Val` — follows ASN-0093's K.α. The emission cases:
 
 - *First emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} = ∅`): `a = [d.0.s_C.1]`, the determinate first emission of `A_C(d)`.
-- *Subsequent emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`): `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` (TA5(c)), the next sibling on `A_C(d)`'s inc chain.
+- *Subsequent emission* (predicate: `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`): `a = inc(max{a' ∈ dom(C) : origin(a') = d}, 0)` (TA5(c)), the next sibling on `A_C(d)`'s inc chain. The `max` is well-defined: the set `{a' ∈ dom(C) : origin(a') = d}` is non-empty by the subsequent-emission predicate, finite as a subset of `dom(C)` by C-fin (ASN-0093), and totally ordered by T1 (ASN-0034), so it has a unique greatest element.
 
 Freshness `a ∉ dom(C) ∪ dom(L)` in both cases is SubAllocFresh at `x = C` (lemma stated below, at *Allocator hierarchy under documents*).
 
@@ -273,7 +273,7 @@ Extension is pure addition — the domain grows, and no existing value is altere
 
 The two conjuncts together force new mappings at positions disjoint from dom(M(d)). For any v ∈ dom(M'(d)) \ dom(M(d)), v is a new position by construction. For any v ∈ dom(M(d)), the value-preservation clause pins M'(d)(v) = M(d)(v), so that position cannot be the site of a "new" mapping carrying a different value. Hence dom(M'(d)) \ dom(M(d)) — the set of newly-mapped positions — is exactly the set of positions disjoint from dom(M(d)) that K.μ⁺ adds.
 
-*Precondition:* `d ∈ E_doc`; for every new mapping M'(d)(v) = a, `a ∈ dom(C)` (S3, ASN-0036 — since K.μ⁺'s frame holds C' = C, referential integrity reduces to membership in the pre-state content store); new V-positions satisfy S8a (all components strictly positive), and the resulting arrangement M'(d) satisfies S8-depth (uniform depth within each subspace); dom(M'(d)) is finite (S8-fin); the resulting arrangement satisfies D-CTG (contiguity of the content subspace `V_1(d)`, ASN-0036) and D-MIN (minimum position of the non-empty content subspace, ASN-0036); the per-subspace strengthening to D-CTG★/D-MIN★ is adopted at the K.μ⁺ amendment — see *Amendments to existing transitions*. *First content insertion:* when `V_{s_C}(d) = ∅`, the depth of the first content V-position is pinned by `ValidFirstInsertionPosition(d, v, m)` (ASN-0036), which for any chosen `m ≥ 2` fixes the unique well-formed first content V-position `v` at that depth; K.μ⁺ realises this predicate directly for the content subspace. The content-subspace depth `m_C(d)` is governed by the live-depth rule stated above under *V-position depth (operational)*. *Pairwise V-position distinctness on new mappings:* the newly added V-positions `{v_1, …, v_k} := dom(M'(d)) ∖ dom(M(d))` are pairwise distinct — this is S2 (ArrangementFunctionality, ASN-0036) preservation made explicit for K.μ⁺'s multi-position semantics, ensuring each new mapping `(vᵢ ↦ aᵢ)` adds a fresh V-position. Together with the disjointness-from-dom(M(d)) consequence below, this forces every two distinct new mappings to inhabit distinct V-positions, making `M'(d)` a partial function (S2) by construction rather than by accident.
+*Precondition:* `d ∈ E_doc`; for every new mapping M'(d)(v) = a, `a ∈ dom(C)` (S3, ASN-0036 — since K.μ⁺'s frame holds C' = C, referential integrity reduces to membership in the pre-state content store); new V-positions satisfy S8a (all components strictly positive), and the resulting arrangement M'(d) satisfies S8-depth (uniform depth within each subspace); dom(M'(d)) is finite (S8-fin); the resulting arrangement satisfies D-CTG (contiguity of the content subspace `V_1(d)`, ASN-0036) and D-MIN (minimum position of the non-empty content subspace, ASN-0036); the per-subspace strengthening to D-CTG★/D-MIN★ is adopted at the K.μ⁺ amendment — see *Amendments to existing transitions*. *First content insertion:* when `V_{s_C}(d) = ∅`, the depth of the first content V-position is pinned by `ValidFirstInsertionPosition(d, v, m)` (ASN-0036), which for any chosen `m ≥ 2` fixes the unique well-formed first content V-position `v` at that depth; K.μ⁺ realises this predicate directly for the content subspace. *Pairwise V-position distinctness on new mappings:* the newly added V-positions `{v_1, …, v_k} := dom(M'(d)) ∖ dom(M(d))` are pairwise distinct — this is S2 (ArrangementFunctionality, ASN-0036) preservation made explicit for K.μ⁺'s multi-position semantics, ensuring each new mapping `(vᵢ ↦ aᵢ)` adds a fresh V-position. Together with the disjointness-from-dom(M(d)) consequence below, this forces every two distinct new mappings to inhabit distinct V-positions, making `M'(d)` a partial function (S2) by construction rather than by accident.
 
 In a composite transition, K.α may precede K.μ⁺, extending dom(C) before K.μ⁺ executes. At that intermediate state the freshly allocated address is already in the content store, satisfying the precondition. From the composite perspective, the I-address in a new mapping falls into one of two cases:
 
@@ -306,7 +306,7 @@ The constructive precondition is *equivalent* to "post-state satisfies D-CTG★/
 
 *Frame (extended state):* C' = C; L' = L; E' = E; (A d :: M'(d) = M(d)).
 
-The seven elementary kinds — K.α, K.δ, K.λ (introduced later under *Link allocation*), K.μ⁺, K.μ⁺_L (introduced later under *Link-subspace extension*), K.μ⁻, K.ρ — plus the named composite K.μ~ map to the modification modes per component as follows. (i) *Existential components C, L, E and historical component R* admit only extension (P3): K.α, K.λ, K.δ, K.ρ respectively, with no contraction or value rewriting on any of them. (ii) *Presentational component M* admits three modes — *extension* (K.μ⁺ for content-subspace, K.μ⁺_L for link-subspace), *contraction* (K.μ⁻, with per-subspace suffix-removal patterns forced by D-CTG★ + D-MIN★ + D-SEQ★ at the post-state), and *bijection-preserving reordering* (K.μ~, the named composite of K.μ⁻ + K.μ⁺ with subspace preservation and link-subspace fixity). Replacement — changing which I-address a V-position maps to — also rides the K.μ⁻ + K.μ⁺ skeleton of K.μ~; the replacement worked examples below develop its forms at the point of use.
+The seven elementary kinds — K.α, K.δ, K.λ (introduced later under *Link allocation*), K.μ⁺, K.μ⁺_L (introduced later under *Link-subspace extension*), K.μ⁻, K.ρ — plus the named composite K.μ~ map to the modification modes per component as follows. (i) *Existential components C, L, E and historical component R* admit only extension (P3): K.α, K.λ, K.δ, K.ρ respectively, with no contraction or value rewriting on any of them. (ii) *Presentational component M* admits three modes — *extension* (K.μ⁺ for content-subspace, K.μ⁺_L for link-subspace), *contraction* (K.μ⁻, with per-subspace suffix-removal patterns forced by D-CTG★ + D-MIN★ + D-SEQ★ at the post-state), and *bijection-preserving reordering* (K.μ~, the named composite of K.μ⁻ + K.μ⁺ with subspace preservation and link-subspace fixity). Replacement — changing which I-address a V-position maps to — is a *separate, range-changing* K.μ⁻ + K.μ⁺ composite: it uses the same elementary K.μ⁻ + K.μ⁺ pair that K.μ~ uses, but without K.μ~'s bijection/range-preservation constraint. Because it alters `ran(M(d)|_{s_C})` (the replacement worked examples below change the I-address set, e.g. `{a₁, a₂} → {a₁, aₓ}` or add a fresh `a₂'`), it violates K.μ~'s admissibility clause and is therefore not a K.μ~ instance; the replacement worked examples below develop its forms at the point of use.
 
 We observe that neither split nor merge appears as an elementary transition. Nelson addresses this explicitly: the effect of splitting a document is achieved by creating two new documents and transcluding different portions of the original into each. Merging is creating a new document and transcluding from multiple sources. Both compose from K.δ, K.μ⁺, and K.ρ — the elementary transitions suffice.
 
@@ -461,7 +461,7 @@ We abbreviate this **SubAllocFresh**.
 **K.λ (LinkAllocation).** Per ASN-0093 (foundation K.λ, LinkAllocation): a new entry is created in the link store. The precondition structure — `d ∈ E_doc` (home document exists), `ℓ ∉ dom(L) ∪ dom(C)` (fresh address), `zeros(ℓ) = 3 ∧ E(ℓ)₁ = s_L` (element-level, link subspace), `#E(ℓ) ≥ 2`, `origin(ℓ) = d`, the first/subsequent emission cases producing `ℓ` via d's link sub-allocator `A_L(d)`, and `N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` — follows ASN-0093's K.λ. The emission cases:
 
 - *First emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅`): `ℓ = [d.0.s_L.1]`, the determinate first emission of `A_L(d)`.
-- *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)` (TA5(c)), the next sibling on `A_L(d)`'s inc chain.
+- *Subsequent emission* (predicate: `{ℓ' ∈ dom(L) : origin(ℓ') = d} ≠ ∅`): `ℓ = inc(max{ℓ' ∈ dom(L) : origin(ℓ') = d}, 0)` (TA5(c)), the next sibling on `A_L(d)`'s inc chain. The `max` is well-defined: the set `{ℓ' ∈ dom(L) : origin(ℓ') = d}` is non-empty by the subsequent-emission predicate, finite as a subset of `dom(L)` by L-fin (ASN-0093), and totally ordered by T1 (ASN-0034), so it has a unique greatest element.
 
 Freshness `ℓ ∉ dom(L) ∪ dom(C)` in both cases is SubAllocFresh at `x = L`.
 
@@ -516,8 +516,6 @@ Existing transitions preserve S3★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ c
 
 ## Link-subspace extension
 
-The live-depth rule `m_S(d)` governing both subspaces is stated under *Elementary transitions* (*V-position depth (operational)*); we apply it here at `S = s_L`.
-
 **K.μ⁺_L (LinkSubspaceExtension).** Extends a document's arrangement in the link subspace.
 
 *Precondition:*
@@ -527,7 +525,7 @@ The live-depth rule `m_S(d)` governing both subspaces is stated under *Elementar
 - ℓ ∉ ran(M(d))  (the link is not already arranged at any V-position in d's arrangement — first-arrangement constraint)
 - V-position v_ℓ satisfies:
   - subspace(v_ℓ) = s_L
-  - depth m_L(d), the current link-subspace depth (defined under *Elementary transitions*, *V-position depth (operational)*); when V_{s_L}(d) = ∅ this insertion re-pins m_L(d) at any value ≥ 2 (S8a).
+  - depth m_L(d), the current link-subspace depth; when V_{s_L}(d) = ∅ this insertion re-pins m_L(d) at any value ≥ 2 (S8a).
   - If V_{s_L}(d) = ∅: v_ℓ is the minimum position `[s_L, 1, ..., 1]` of depth m_L(d) (D-MIN★)
   - If V_{s_L}(d) ≠ ∅: v_ℓ = shift(max(V_{s_L}(d)), 1), extending the contiguous range (D-CTG★). OrdShiftHom (ASN-0036, clause (a) subspace preservation under shift and clause (b) S8a preservation under shift) is subspace-parametric in v₁, so it applies to v_ℓ at v₁ = s_L exactly as at v₁ = s_C; clause (a) supplies subspace(v_ℓ) = s_L, clause (b) supplies S8a preservation, and the TS-family shift lemmas (TS1–TS5, ASN-0034) together with S8-depth supply S8-depth preservation.
   - #v_ℓ = m_L(d) (S8-depth within the link subspace)
@@ -1249,7 +1247,7 @@ Preserved by P1.
 
 *L14 (StoreDisjointness).* ASN-0093's SD restated; cited from ASN-0093 (see L14 at *Link store and extended system state*).
 
-*C-fin (Content store finiteness).* Matrix-cell discharge: finite extension by K.α, frame elsewhere. Its load-bearing role in K.α's subsequent-emission `max`-well-definedness is stated once in the inherited-foundation table entry (see C-fin at *Inherited from foundation*).
+*C-fin (Content store finiteness).* Matrix-cell discharge: finite extension by K.α, frame elsewhere. Its load-bearing role in K.α's subsequent-emission `max`-well-definedness is discharged on-site at the K.α emission cases (see *Subsequent emission* under K.α), where finiteness (C-fin), non-emptiness (the subsequent-emission predicate), and the T1 total order jointly establish the greatest element.
 
 *CL-OWN (LinkSubspaceOwnership).* K.μ⁺_L precondition `origin(ℓ) = d` at every new link-subspace mapping; K.μ⁻ frame on surviving mappings; K.μ~ via link-subspace fixity (`M'(d)|_{dom_L} = M(d)|_{dom_L}` as functions); all others hold M in frame.
 
