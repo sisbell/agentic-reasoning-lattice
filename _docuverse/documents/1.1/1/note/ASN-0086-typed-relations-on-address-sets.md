@@ -282,7 +282,7 @@ Where Σ is the substrate's state space (every state reachable from `Σ_init`); 
 
 **Lemma — Emit_K function-ness.** `Emit_K` is a function: given `(Σ, d, F, G, K)`, the output `(Σ', a)` is uniquely determined.
 
-*Proof.* K.λ's first/subsequent emission rule is deterministic in `(Σ, d)`: the first/subsequent predicate is itself a function of `Σ` and `d` (it checks whether `{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` is empty), and each branch produces a unique `a`. In the first-emission branch, `a = [d.0.s_L.1]` is a deterministic projection of `d`. In the subsequent-emission branch, `ℓ_prev` is `max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` — a unique extremum because, by R0a-Cor1, the homed set is a contiguous prefix of `A_L(d)`'s chain enumeration and so admits a unique maximum under T1 (LexicographicOrder, ASN-0034). The value `Σ'.L(a) = (F, G, K)` is fixed by the caller-supplied arguments, and K.λ's Frame fixes the rest of Σ'. ∎
+*Proof.* K.λ's first/subsequent emission rule is deterministic in `(Σ, d)`: the first/subsequent predicate is itself a function of `Σ` and `d` (it checks whether `{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` is empty), and each branch produces a unique `a`. In the first-emission branch, `a = [d.0.s_L.1]` is a deterministic projection of `d`. In the subsequent-emission branch, `ℓ_prev` is `max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` — a unique extremum because the homed set `{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` is finite (L-fin restricted to `origin(·) = d`) and non-empty (the subsequent branch's negated predicate), and every finite non-empty subset of a strictly totally ordered set admits a unique maximum by T1 (LexicographicOrder, ASN-0034) trichotomy alone. No conformance hypothesis is consumed: the max is well-defined at every state in Σ, contiguity of the homed-set notwithstanding, so this Lemma holds over the full state space rather than only at substrate-conforming states. The value `Σ'.L(a) = (F, G, K)` is fixed by the caller-supplied arguments, and K.λ's Frame fixes the rest of Σ'. ∎
 
 **Definition — Observe_K.** For `K ∈ T_admissible`, a pattern `(F̂, Ĝ) ∈ ℘_fin(T) × ℘_fin(T)`, and a view selector, Observe is a pure read with signature
 
@@ -312,7 +312,7 @@ The arity-3 restriction matches this note's scope. `A_K^Σ` is defined only over
 
 **Definition — substrate-conforming layer.** A layer is *substrate-conforming* iff every operation it publishes over `(Σ.C, Σ.M, Σ.L)` satisfies both of the following at every step. Clause (a) enumerates the propositional invariants it must preserve; clause (b) is a step-local emission condition on each fresh link key.
 
-*(a) Invariant Catalog.* The full L/S/M/C invariant list of ASN-0036, ASN-0043, and ASN-0093, together with the `Link`-record value-shape commitments L5 (EndsetSetSemantics), L6 (SlotDistinction), and L8 (TypeByAddress).
+*(a) Invariant Catalog.* The full L/S/M/C invariant catalog of ASN-0036, ASN-0043, and ASN-0093 — the same catalog named in clause (a) of the Definition — substrate-conforming state, with no additional condition imposed at the layer level. This catalog already subsumes the `Link`-record value-shape commitments: L5 (EndsetSetSemantics) and L6 (SlotDistinction) are themselves ASN-0043 invariants, and L8 (TypeByAddress) is the ASN-0043 link-model definition every conforming state obeys; they are listed here only to make the value-shape content of the catalog explicit, not as a strengthening of it.
 
 *(b) Chain Discipline Catalog.* The layer preserves contiguity of homed-sets on the link store: at every state the layer reaches, the homed-set `{a ∈ dom(Σ.L) : home(a) = d}` is a contiguous initial segment of `A_L(d)`'s sibling-frontier chain enumeration — the conclusion of ASN-0093's ChainMembershipForOrigin lemma, here imposed as a layer obligation. A layer discharges the obligation by emitting every fresh link key at its home document's sibling frontier.
 
@@ -392,7 +392,7 @@ To back the postcondition through Emit_K's behavior we name the fresh address th
 *Definition — `a_emit(Σ, d)`.* For `d ∈ dom(Σ.M)`, the *fresh emission address* `a_emit(Σ, d)` is the address K.λ would deposit at home `d` in state Σ, per K.λ's first/subsequent emission rule:
 
 `a_emit(Σ, d) = [d.0.s_L.1]` when `{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = ∅` (first-emission branch);
-`a_emit(Σ, d) = inc(ℓ_prev, 0)` otherwise, where `ℓ_prev := max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` (subsequent-emission branch).
+`a_emit(Σ, d) = inc(ℓ_prev, 0)` otherwise, where `ℓ_prev := max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` (subsequent-emission branch) — the max is the unique T1-extremum of a finite (L-fin) non-empty set, by T1 trichotomy alone, with no contiguity or conformance appeal.
 
 By the Lemma — Emit_K function-ness, the rule's outcome is uniquely determined by `(Σ, d)`, so `a_emit` is a function. The address `a` that `Emit_K(Σ, d, F, G)` deposits is exactly `a_emit(Σ, d)` (the type-index `K` parameterizes the slot-3 value, not the address selection).
 
