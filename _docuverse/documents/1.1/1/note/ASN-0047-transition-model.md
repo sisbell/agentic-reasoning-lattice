@@ -534,8 +534,6 @@ Existing transitions preserve S3★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ c
 
 **Asymmetry with content-subspace depth (intentional).** No content-side analog of LinkVPositionDepthAxiom is imposed: a document's content-subspace V-position depth is *not* fixed per-document and may legitimately differ across re-populations. After a full content-subspace clearance (K.μ⁻ with `n'_{s_C} = 0`) leaves `V_{s_C}(d) = ∅`, S8-depth is vacuous, and a subsequent K.μ⁺ re-insertion may pin the first content V-position at any depth `m ≥ 2` admitted by `ValidFirstInsertionPosition(d, v, m)` (ASN-0036) — not necessarily the depth used before clearance. The link subspace is denied this freedom by LinkVPositionDepthAxiom's "unchanged thereafter"; the content subspace permits it.
 
-*Remark (non-normative).* The asymmetry tracks the V/I separation: content identity lives in the I-address, leaving the V-position depth free to churn, whereas a link's address is its own identity, so its arrangement depth is pinned to keep references to it stable.
-
 **K.μ⁺_L (LinkSubspaceExtension).** Extends a document's arrangement in the link subspace.
 
 *Precondition:*
@@ -638,7 +636,7 @@ Both cases close by the same L14-driven disjointness, and S3★-aux's two-subspa
 
 *Frame (derived).* C' = C; E' = E; R' = R; L' = L; (A d' : d' ≠ d : M'(d') = M(d')) — by composition of K.μ⁻ and K.μ⁺ frames.
 
-**Decomposition.** The necessary-and-sufficient existence condition — `M(d)|_{dom_C}` takes at least two distinct values — is established by the *Necessity* and *Sufficiency* arguments at *Necessity and sufficiency of the precondition* above (the necessity direction consuming K.μ~-FIX, Step (C), and Step (D), all derived in this section). Here we give the realisation of K.μ~ when the condition holds.
+**Decomposition.** The necessary-and-sufficient existence condition is established at *Necessity and sufficiency of the precondition* above. Here we give the realisation of K.μ~ when the condition holds.
 
 *Realisation of K.μ~ when the existence condition holds.* When `|dom_C(M(d))| ≥ 2`, K.μ~ is realised as *any* valid K.μ⁻ + K.μ⁺ pair on `V_{s_C}(d)` whose net effect achieves the bijection equation for π, subject to K.μ⁻'s admissibility (per-subspace suffix removal under D-CTG★/D-MIN★) and K.μ⁺'s preconditions at the intermediate state. The cardinality of the K.μ⁻ removal — equivalently, the choice of `n'_{s_C} ∈ {0, 1, ..., n_{s_C} − 1}` — depends on which content-subspace positions π actually moves:
 
@@ -683,6 +681,8 @@ Every freshly allocated I-address appears in some arrangement in the post-state 
 **J1 (Extension records provenance).** Arrangement extension K.μ⁺ must co-occur with provenance recording K.ρ:
 
 `(A Σ →* Σ', d ∈ E'_doc, a : a ∈ ran(M'(d)) \ ran(M(d)) : (a, d) ∈ R')`
+
+This J1/P4 pairing is the link-free scaffold form; in the extended state Σ = (C, L, E, M, R) the operative coupling is J1★, derived to preserve P4★ (range-scoped to content-subspace arrangement changes), which supersedes both J1 and P4. The scaffold derivation below should not be read as the operative extended-state result.
 
 J1 does not fall out of the calculus alone; the wp computation reveals what coupling is needed *to preserve a design choice* — namely the invariant `Contains(Σ) ⊆ R` (P4 below), which declares that every current containment is recorded in R. The design choice is P4 itself: Nelson's docuverse commits to recording every document-content association into a permanent reverse index, and Gregory confirms the implementation accumulates entries "from every content addition." The wp computation then asks: given that K.μ⁺ frames R, can K.μ⁺ alone preserve P4 across `Σ → Σ'`?
 
@@ -817,7 +817,7 @@ Link-subspace extensions (K.μ⁺_L) do not trigger provenance recording: the li
 
 **ValidComposite★ (ValidComposite, amended).** A composite transition `Σ →* Σ'` in the extended state Σ = (C, L, E, M, R) is *valid* iff it is a finite sequence of atomic transitions `Σ = Σ₀ → Σ₁ → ... → Σₙ = Σ'` — drawn from K.α (amended), K.δ, K.λ, K.μ⁺ (amended), K.μ⁺_L, K.μ⁻ (amended), K.μ~, and K.ρ — satisfying:
 
-1. *Transition preconditions (intra-composite sequencing).* Each step `Σᵢ → Σᵢ₊₁` satisfies the *elementary* precondition of its transition kind, evaluated at the *intermediate* state `Σᵢ`. K.μ~ appearing in the sequence is shorthand for its K.μ⁻ + K.μ⁺ decomposition (per its definition above): admissibility clause (ii) requires a non-trivial net effect `M'(d) ≠ M(d)`, whose necessary-and-sufficient existence condition — that `M(d)|_{dom_C}` take at least two distinct values, with its sufficiency caveat — is stated and derived at *Preconditions of K.μ~* above. When the existence condition holds, K.μ~ always expands into two consecutive elementary steps, each satisfying its own precondition at the respective intermediate state. This clause is what enforces intra-composite ordering — e.g., that K.α precedes K.μ⁺ when the latter places a freshly allocated I-address `a`, since K.μ⁺'s referential-integrity precondition `a ∈ dom(C)` would fail at the pre-K.α intermediate state otherwise. Step preconditions are *local* to the elementary transition; they say nothing about the composite's endpoints.
+1. *Transition preconditions (intra-composite sequencing).* Each step `Σᵢ → Σᵢ₊₁` satisfies the *elementary* precondition of its transition kind, evaluated at the *intermediate* state `Σᵢ`. K.μ~ appearing in the sequence is shorthand for its K.μ⁻ + K.μ⁺ decomposition (per its definition above): admissibility clause (ii) requires a non-trivial net effect `M'(d) ≠ M(d)`, whose necessary-and-sufficient existence condition is stated at *Preconditions of K.μ~* and derived at *Necessity and sufficiency of the precondition* above. When the existence condition holds, K.μ~ always expands into two consecutive elementary steps, each satisfying its own precondition at the respective intermediate state. This clause is what enforces intra-composite ordering — e.g., that K.α precedes K.μ⁺ when the latter places a freshly allocated I-address `a`, since K.μ⁺'s referential-integrity precondition `a ∈ dom(C)` would fail at the pre-K.α intermediate state otherwise. Step preconditions are *local* to the elementary transition; they say nothing about the composite's endpoints.
 2. *Coupling constraints (initial-to-final).* J0, J1★, and J1'★ hold for the composite as a whole — evaluated *only* between the initial state Σ and the final state Σ'. The coupling predicates quantify over the *net* change between Σ and Σ' (e.g., `a ∈ dom(C') \ dom(C)`); they do not constrain the order or shape of intermediate steps, only that the *aggregate* effect of the composite must satisfy them. A composite that satisfies clause (1) but violates clause (2) — for instance, K.α alone without an accompanying K.μ⁺ and K.ρ — is not a valid composite even though every elementary precondition holds at every intermediate state.
 
 This supersedes the earlier ValidComposite definition by extending the elementary transition set with K.λ and K.μ⁺_L, and replacing J1/J1' with J1★/J1'★ — scoping provenance coupling to content-subspace arrangement changes. J0 (AllocationRequiresPlacement) is unchanged — it constrains content allocation (K.α), which remains content-subspace only.
@@ -1423,7 +1423,7 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 | K.ρ | Provenance recording — extend R with (a, d) pair where IsElement(a) ∧ a ∈ dom(C); frame holds C, L, E, M |
 | K.μ⁺_L | Elementary transition: link-subspace arrangement extension, M'(d) = M(d) ∪ {v_ℓ ↦ ℓ}, origin(ℓ) = d, ℓ ∉ ran(M(d)) (first-arrangement); frame holds C, L, E, R, other documents |
 | K.μ~-FIX | Domain fixity under K.μ~: dom(M'(d)) = dom(M(d)), making π a permutation of a fixed domain — from D-SEQ + bijection cardinality + subspace preservation |
-| J0 | **Axiomatic** (alongside SubspaceConventionAxiom, NodeUniqueAllocation, SubAllocatorAxiom, NoDeallocation, S0): content allocation (K.α) always co-occurs with arrangement extension (K.μ⁺); not derived from foundation. P7a depends on it. J0 and J1 are independent couplings — J0 couples K.α with K.μ⁺ (placement requirement); J1 is *derived* by wp from the requirement to preserve P4 (`Contains(Σ) ⊆ R`), not from J0 |
+| J0 | Content allocation (K.α) always co-occurs with arrangement extension (K.μ⁺). **Axiomatic** — not derived from foundation |
 | J1 | Arrangement extension (K.μ⁺) must co-occur with provenance recording (K.ρ), derived by wp; *superseded by J1★ in the extended state* (range-based content-subspace scoping) |
 | J1' | (a, d) ∈ R' \ R only when a ∈ ran(M'(d)) \ ran(M(d)) — new provenance requires new containment; *superseded by J1'★ in the extended state* (range-based content-subspace scoping) |
 | J2 | K.μ⁻ as elementary transition requires no coupling: C' = C ∧ L' = L ∧ E' = E ∧ R' = R |
