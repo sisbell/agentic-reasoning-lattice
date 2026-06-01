@@ -141,45 +141,9 @@ The unscoped disjointness `dom(C) ∩ dom(L) = ∅` is established in the founda
 
 We note that `s_C ≥ 1` follows from S7b and T4: content I-addresses are element-level by S7b (`zeros(a) = 3`), and T4 requires every element-field component to be strictly positive, so `subspace_I(a) = s_C > 0`. The same derivation gives `s_L ≥ 1`: link I-addresses are element-level by L1 below (`zeros(ℓ) = 3`), so by T4, `subspace_I(ℓ) = s_L > 0`.
 
-**L0 (SubspacePartition, per ASN-0093).** Both clauses are foundation invariants:
+L0, L1, L1a, L3, L12, and L14 are inherited unchanged from ASN-0093; their formal statements and ASN-0093 sources are collected once in the *Inherited from foundation* table below. The only content not present in the foundation is the local empty-endset reading of L3:
 
-  `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)`
-
-  `(A a ∈ dom(Σ.C) :: subspace_I(a) = s_C)`
-
-The L-clause is the original ASN-0043 form; the C-clause was added in ASN-0093 (foundation L0) and is supplied at allocation time by ASN-0093's K.α precondition `E(a)₁ = s_C`. No "introduced here" claim — both clauses are inherited.
-
-**L1 (LinkElementLevel).**
-
-  `(A a ∈ dom(Σ.L) :: zeros(a) = 3)`
-
-Every link address is an element-level tumbler.
-
-**L1a (LinkScopedAllocation).**
-
-  `(A a ∈ dom(Σ.L) :: origin(a) ∈ E_doc)`
-
-Every link address is allocated under the tumbler prefix of a document in E_doc.
-
-**L3 (NEndsetStructure, per ASN-0093).**
-
-  `(A a ∈ dom(Σ.L) :: |Σ.L(a)| ≥ 3 ∧ (A i : 1 ≤ i ≤ |Σ.L(a)| : Σ.L(a).eᵢ ∈ Endset) ∧ Σ.L(a).e₃ ≠ ∅)`
-
-Every link is a sequence of at least three endsets, with the type endset (slot 3) non-empty. This is ASN-0093's L3 (itself inherited from ASN-0043's `Link` definition admitting arity `N ≥ 3`) restated for narrative continuity. Under the StandardTriple convention applied in worked examples, an arity-3 link is written `(F, G, Θ)` with `e₃ = Θ` the type endset.
-
-*Semantics of empty endsets at slots 1 and 2.* L3 admits `e₁ = ∅` and `e₂ = ∅` independently — only `e₃` (the type endset) is required non-empty. Exactly one of `e₁`, `e₂` empty is Nelson's one-sided link case (LM 4/48); both empty is admissible as a type-only marker. Endset-iterating consumers (L8's `same_type`, discovery-set unions) treat an empty endset as contributing ∅ by the natural inductive form.
-
-**L12 (LinkImmutability).**
-
-  `(A Σ → Σ' : (A a : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)))`
-
-Once created, a link's address persists in dom(L) and its value is permanently fixed.
-
-**L14 (StoreDisjointness).**
-
-  `dom(Σ.C) ∩ dom(Σ.L) = ∅`
-
-This is ASN-0093's SD (StoreDisjointness) restated; its derivation (L0 + SC-NEQ + StoreT4Validity + T7) is cited from ASN-0093, not re-proved here.
+*Semantics of empty endsets at slots 1 and 2.* L3 admits `e₁ = ∅` and `e₂ = ∅` independently — only `e₃` (the type endset) is required non-empty. Exactly one of `e₁`, `e₂` empty is Nelson's one-sided link case (LM 4/48); both empty is admissible as a type-only marker. Endset-iterating consumers (L8's `same_type`, discovery-set unions) treat an empty endset as contributing ∅ by the natural inductive form. Under the StandardTriple convention applied in worked examples, an arity-3 link is written `(F, G, Θ)` with `e₃ = Θ` the type endset.
 
 **L-fin (LinkStoreFiniteness).** `|dom(Σ.L)| < ∞`. Holds at Σ₀ (|∅| = 0); preserved by K.λ (single-element extension) and by L-frame in all other transitions.
 
@@ -263,7 +227,7 @@ The bootstrap node `n₀ ∈ E₀` is itself the boundary baptism performed at `
 
   `inc(t, 0) ∉ Σ.E ⟺ t is the frontier of A's (t, 0)-branch`
 
-— i.e., the operational predicate "the `(t, 0)` increment has not yet been consumed" is logically equivalent to "no prior K.δ event has fired `(t, 0)` on `A`'s chain" (the next sibling-increment of `t` on `A`). The term "frontier" is well-defined because, by T10a.7 (EnumerationInjectivity, ASN-0034), the chain map `n ↦ tₙ` is injective, so each chain index names a distinct address. The biconditional licenses K.δ's k = 0 guard `inc(t, 0) ∉ E` — which is itself the frontier-maximality condition on `t`, not a separate precondition clause — to be read either operationally ("the `(t, 0)` increment has not yet been consumed") or structurally ("`t` is the frontier of `A`'s chain").
+— i.e., the operational predicate "the `(t, 0)` increment has not yet been consumed" is logically equivalent to "no prior K.δ event has fired `(t, 0)` on `A`'s chain" (the next sibling-increment of `t` on `A`). The term "frontier" is well-defined because, by T10a.7 (EnumerationInjectivity, ASN-0034), the chain map `n ↦ tₙ` is injective, so each chain index names a distinct address. The biconditional licenses K.δ's k = 0 guard `inc(t, 0) ∉ E` to be read either operationally ("the `(t, 0)` increment has not yet been consumed") or structurally ("`t` is the frontier of `A`'s chain").
 
 *Proof.* The biconditional decomposes into two implications, each proved separately.
 
@@ -282,7 +246,7 @@ Together, the two implications yield the biconditional `inc(t, 0) ∉ Σ.E ⟺ t
 - **Case (i) IsNode(e).** No operand `t` is consumed (`e` is supplied by the node-provisioning boundary, not by inc). Required: `ValidAddress(e) ∧ IsNode(e) ∧ e ∉ E ∧ n₀ ≼ e`. Both the freshness conjunct `e ∉ E` and the bootstrap-lineage conjunct `n₀ ≼ e` are discharged by NodeBaptism (a) and (b) respectively — the boundary axiom — directly, outside T10a's standard discharge layer.
 - **Case (ii) ¬IsNode(e).** `e = inc(t, k)` for some operand `t` and `k ∈ {0, 1, 2}`. The case-level "where"-clause conjuncts `e ∉ E ∧ ValidAddress(e) ∧ ¬IsElement(e)` apply uniformly to all three sub-cases, with the freshness conjunct taking the form `inc(t, 0) ∉ E` at k = 0 and `e ∉ E` at k ∈ {1, 2}. For all three sub-cases k ∈ {0, 1, 2}, the parent entity-level sub-allocator on which each step acts and the allocator-discipline properties the guard maintains are discharged in §*K.δ case (ii) discharge and parent-allocator activation*. Required uniformly: `parent(e) ∈ E`. Per-sub-case additional requirements:
   - *k = 0 (sibling):* `t ∈ E ∧ ¬IsNode(t) ∧ inc(t, 0) ∉ E`. The operand-admissibility conjuncts are `t ∈ E` (the operand must be an allocated entity), `¬IsNode(t)` (so `parent(t)` is well-defined under T4b), and `inc(t, 0) ∉ E` (the operational frontier check, discharged by FrontierEquivalence). The structural identities `parent(t) = parent(e)` and `zeros(t) = zeros(e)` hold by TA5(c) on `e = inc(t, 0)` (K.δ-ID.parent-0/1, K.δ-ID.zeros-0/1).
-  - *k = 1 (version):* `t ∈ E_doc`. The operand must be an allocated document — only an existing document can be versioned. Nelson's CREATENEWVERSION operates on `<doc id>`, an allocated document (LM 4/66); Gregory's `docreatenewversion` retrieves the source's vspan via `doretrievedocvspanfoo`, which fails on a source not present in the granfilade. (`IsDocument(t)` follows from `t ∈ E_doc` by the definition of E_doc.) The operation is uniform across operand provenance — only the surface predicate `t ∈ E_doc` is checked at firing time, and the (a')/(b') dispatch on t's parent allocator (*Sub-allocator names* above) surfaces only in the child-spawn verification, not in the operation itself.
+  - *k = 1 (version):* `t ∈ E_doc`. The operand must be an allocated document — only an existing document can be versioned. Nelson's CREATENEWVERSION operates on `<doc id>`, an allocated document (LM 4/66); Gregory's `docreatenewversion` retrieves the source's vspan via `doretrievedocvspanfoo`, which fails on a source not present in the granfilade. (`IsDocument(t)` follows from `t ∈ E_doc` by the definition of E_doc.) The operation is uniform across operand provenance — only the surface predicate `t ∈ E_doc` is checked at firing time.
   - *k = 2 (descent):* `t ∈ E ∧ zeros(t) ≤ 1` (equivalently, `IsNode(t) ∨ IsAccount(t)`). The zeros bound follows from the case-level precondition `¬IsElement(e)` (`zeros(e) ≤ 2`) combined with the structural identity `zeros(e) = zeros(t) + 1` (K.δ-ID.zeros-2). The structural identity `parent(e) = t` holds by TA5(d) on `e = inc(t, 2)` together with T4b's parent projection (K.δ-ID.parent-2).
   - Structural identities on `e = inc(t, k)` (consequences of TA5 + T4b's parent projection):
     - **K.δ-ID.zeros-0/1.** `zeros(e) = zeros(t)` for k ∈ {0, 1}. *Derivation:* TA5(c) preserves zeros for k = 0; TA5(d) at k = 1 appends a final `1` with no new zero, so zeros is preserved.
@@ -860,7 +824,7 @@ After Step 4 fires, `1.2.0.1.0.2 ∈ E₄`, so the next K.δ k = 0 dispatch on `
 
 ## Worked example: fork with subsequent insertion
 
-**Vacuity conventions for the worked traces (stated once).** To keep each step's verification to its substantive checks, we fix three conventions that hold throughout every worked example below and omit their per-step repetition. (1) *J1'★ on R-framing steps.* Any elementary step that holds R in frame has `R' \ R = ∅`, so J1'★ is vacuously satisfied at that step. (2) *Link-side vacuity under an empty link store.* At any state with `dom(L) = ∅`, the link invariants L0 (L-clause), L1, L1a, L1b, L1c, L3, L-fin, CL-OWN, and CL-UNIQ hold vacuously, S3★'s link clause is vacuous, and L14 reduces to `dom(C) ∩ ∅ = ∅`. (3) *Carry-forward of unlisted per-state invariants.* Any Class (a) per-state invariant not explicitly verified at a step is inherited from the prior state by the relevant frame or restriction. Each step below lists only its non-vacuous checks.
+**Vacuity conventions for the worked traces (stated once).** To keep each step's verification to its substantive checks, we fix three conventions that hold throughout every worked example below and omit their per-step repetition. (1) *J1'★ on R-framing steps.* Any elementary step that holds R in frame has `R' \ R = ∅`, so J1'★ is vacuously satisfied at that step. (2) *Link-side vacuity under an empty link store.* At any state with `dom(L) = ∅`, the link invariants L0 (L-clause), L1, L1a, L1b, L1c, L3, L-fin, CL-OWN, and CL-UNIQ hold vacuously, S3★'s link clause is vacuous, and L14 reduces to `dom(C) ∩ ∅ = ∅`. (3) *Carry-forward of unlisted invariants.* Any Class (a) per-state invariant not explicitly verified at a step is inherited from the prior state by the relevant frame or restriction. The composite-boundary property P7a likewise carries forward across any step holding both `dom(C)` and `R` in frame — its witnessing provenance entries are unchanged — so such steps omit it; P7a is listed only at steps where `dom(C)` grows. Each step below lists only its non-vacuous checks.
 
 We trace a concrete scenario to ground the abstract definitions. Let the starting state Σ₁ contain node 1, account 1.0.1, and document d₁ = 1.0.1.0.1 with two characters:
 
@@ -894,7 +858,6 @@ Verification against the resulting state Σ₂:
 - *D-MIN★ on V_{s_C}(d₂):* `min(V_{s_C}(d₂)) = [1,1] = [s_C, 1]` of depth m_{s_C} = 2 — matching the D-MIN★ canonical form `[S, 1, ..., 1]`. ✓
 - *D-SEQ★ on V_{s_C}(d₂):* `V_{s_C}(d₂) = {[1,1], [1,2]}` matches the canonical form `{[s_C, k] : 1 ≤ k ≤ 2}` at `n_{s_C} = 2` and `m_{s_C} = 2`. ✓
 - *P4★:* Contains_C(Σ₂) = {(a₁, d₁), (a₂, d₁), (a₁, d₂), (a₂, d₂)} ⊆ R₂. ✓
-- *P7a:* dom(C₂) = dom(C₁) = {a₁, a₂}; both a₁ and a₂ have provenance entries (a₁, d₁), (a₂, d₁) ∈ R₁ ⊆ R₂. ✓
 - *P8:* parent(d₂) = parent(1.0.1.0.1.1) = 1.0.1 ∈ E₁ ⊆ E₂ (k = 1 preserves parent(d_new) = parent(d_src), so parent(d₂) = parent(d₁) = 1.0.1). The existing non-node entity 1.0.1 (account) retains parent(1.0.1) = 1 ∈ E₂. ✓
 
 **Insert new content into d₂.** Compound K.α + K.μ⁺ + K.ρ.
@@ -925,7 +888,6 @@ Verification:
 
 - *J2:* C₄ = C₃; E₄ = E₃; R₄ = R₃. All permanent and historical state unchanged. ✓
 - *P4★:* Contains_C(Σ₄) = {(a₁, d₁), (a₂, d₁), (a₁, d₂), (a₂, d₂)}. The pair (a₃, d₂) is no longer in Contains_C — d₂ no longer displays a₃. Yet (a₃, d₂) ∈ R₄: the stale entry persists. Contains_C(Σ₄) ⊂ Contains_C(Σ₃), while R₄ = R₃. ✓
-- *P7a:* dom(C₄) = dom(C₃) and R₄ = R₃ (frame); every a ∈ dom(C₄) retains its provenance entry from R₃. ✓
 - *S3★:* surviving mappings retain their content-subspace V-positions and dom(C₄) = dom(C₃) targets by restriction; the removed mapping at [1,3] no longer participates. ✓
 - *D-CTG★ / D-MIN★ / D-SEQ★ at Σ₄:* `V_{s_C}(d₂) = {[1,1], [1,2]}` is the contiguous prefix `{[s_C, k] : 1 ≤ k ≤ 2}` with minimum [1,1] = [s_C, 1] — the suffix-removal shape required by K.μ⁻ at the post-state. ✓
 
@@ -940,7 +902,6 @@ Verification:
 - *J3:* C₅ = C₄; E₅ = E₄; R₅ = R₄. All permanent and historical state unchanged. ✓
 - *ran preservation:* ran(M₅(d₂)) = {a₁, a₂} = ran(M₄(d₂)). The multiset of referenced I-addresses is identical; only V-positions changed. ✓
 - *P4★:* Contains_C(Σ₅) = Contains_C(Σ₄) ⊆ R₄ = R₅. Since ran is preserved for d₂ and no other arrangement changed, the current containment set is unchanged. ✓
-- *P7a:* dom(C₅) = dom(C₄) and R₅ = R₄ (frame); every a ∈ dom(C₅) retains its provenance entry. ✓
 - *S3★:* both V-positions retain `subspace(v) = s_C` (the swap permutes content-subspace positions only) and map into dom(C₅) = dom(C₄). ✓
 
 Reordering is the simplest transition to verify: it touches nothing beyond the V-position mapping, and all invariants hold by the frame conditions alone.
@@ -1086,7 +1047,6 @@ Post-state verification:
 - L-fin: `dom(L') = {ℓ}` is a singleton, hence finite. ✓
 - *L11a (Link distinctness for this K.λ event)*: this is the *first-link case* for `d` — the K.λ precondition predicate `{ℓ' ∈ dom(L) : origin(ℓ') = d} = ∅` holds because `dom(L) = ∅` at the pre-state, so the first-emission path of K.λ applies. The emitted address `ℓ = [d.0.s_L.1] = 1.0.1.0.1.0.2.1` is the first emission of d's link sub-allocator `A_L(d)`, and **SubAllocatorBundle.FirstEmission** (discharged by FirstEmissionFreshness, ASN-0093) directly supplies `ℓ ∉ dom(Σ.L) ∪ dom(Σ.C)` at the state of allocation — discharging both the freshness conjunct of K.λ's precondition and the L11a obligation that distinct K.λ events produce distinct link addresses. GlobalUniqueness (ASN-0034) is *not* invoked for the first emission (the FirstEmission clause is the load-bearing route here); GlobalUniqueness applies from the second emission onward, when the inc chain `A_L(d)` is in T10a's domain. ✓
 - S3★, CL-OWN: M unchanged, hold from pre-state
-- *P7a:* dom(C) is unchanged; every a ∈ dom(C) retains its provenance entry from R. ✓
 
 **Step 2: K.μ⁺_L — arrange the link in d.** Map the newly allocated `ℓ` into d's link subspace at the minimum link V-position.
 
@@ -1108,7 +1068,6 @@ Post-state verification:
 - D-MIN★: `min(V_1(d)) = [1,1] = [s_C, 1]`; `min(V_2(d)) = [2,1] = [s_L, 1]`
 - L14: subspace identifiers 1 and 2 are distinct (SC-NEQ), so dom(C) ∩ dom(L') = ∅
 - L-fin: dom(L') = {ℓ} is unchanged from Step 1; still finite. ✓
-- *P7a:* dom(C) is unchanged; every a ∈ dom(C) retains its provenance entry from R. ✓
 
 **Step 3: K.μ~ — reorder text, verify link fixity.** Swap text: `π([1,1]) = [1,2]`, `π([1,2]) = [1,1]`. Link-subspace fixity (proved in the K.μ~ section above) forces `π([2,1]) = [2,1]`.
 
@@ -1122,7 +1081,6 @@ Post-state verification:
 - *L-fin:* dom(L') = {ℓ} unchanged; still finite. ✓
 - *D-CTG★/D-MIN★:* V_{s_C}(d) = {[1,1], [1,2]} and V_{s_L}(d) = {[2,1]} are both unchanged from Step 2 (K.μ~ preserves dom by K.μ~-FIX); contiguity and minima are inherited.
 - *CL-OWN:* the link-subspace mapping is fixed pointwise, so origin(M''(d)([2,1])) = origin(ℓ) = d remains satisfied. ✓
-- *P7a:* dom(C) is unchanged and R is unchanged; every a ∈ dom(C) retains its provenance entry. ✓
 
 **Step 4: K.λ + K.μ⁺_L — allocate and arrange a second link.** To exercise link-subspace contraction below we need a non-singleton link subspace. Allocate `ℓ₂ = 1.0.1.0.1.0.2.2 = inc(ℓ, 0)` (the next sibling on d's link frontier under TA5(c), per K.λ's subsequent-link case) with some value `(F', G', Θ')`; then arrange `ℓ₂` at `v_{ℓ₂} = shift(max(V_{s_L}(d)), 1) = shift([2,1], 1) = [2,2]` (D-CTG★ case of K.μ⁺_L).
 
@@ -1199,8 +1157,6 @@ The atomicity guarantee of SequentialTransitionAxiom commits *elementary* transi
 
 - *Per-state invariants* hold at **every** reachable state — every initial state, every elementary-transition target state, every intermediate state within a composite. Each elementary transition preserves these individually, so they are true invariants of the elementary transition system.
 - *Composite-boundary properties* hold only at *composite boundaries* (the initial Σ and final Σ' of any valid composite) and may transiently fail at intermediate states within a composite. They are not invariants of the elementary transition system — they are properties guaranteed by the J0/J1★/J1'★ couplings of ValidComposite★, restored at the close of each valid composite rather than preserved by each elementary step. Calling them "invariants" would be misleading in the strict state-machine sense; we name them *composite-boundary properties* throughout.
-
-This distinction reflects Nelson's design: at the docuverse layer, compound user actions decompose into sequences of elementary commands whose intermediate states are conceptually observable to other agents (LM 4/63 — FEBE commands return acknowledgments individually, with no transaction wrapper around compound flows). Only CREATENEWVERSION is atomic at the protocol level; other compound flows expose intermediate states by design. Composite-boundary properties capture the design intent that *valid composites* must restore them — not that the system never observes states violating them.
 
 **ExtendedReachableStateInvariants.** Every state reachable from Σ₀ by a finite sequence of valid composite transitions satisfies the *per-state invariants* below; every state at a composite boundary (Σ or Σ' of a valid composite) additionally satisfies the *composite-boundary properties* below.
 
@@ -1418,7 +1374,10 @@ These properties are foundation invariants of ASN-0093 (or earlier foundation AS
 | SubspaceConventionAxiom | Axiom: fixed subspace identifiers `s_C = 1 ∧ s_L = 2`, consequence `SC-NEQ` (full statement in §Link store and extended system state). | ASN-0093 (FixedSubspaceIdentifiers) |
 | SubAllocatorBundle | Bundling lemma (introduced here): for each d ∈ E_doc, the entity-allocation event placing d into E_doc activates two disjoint sub-allocators under d — content anchor `b_C(d) = [d.0.s_C]`, link anchor `b_L(d) = [d.0.s_L]` — with the five sub-clauses (Subspace, FirstEmission, Namespace, T10aConformance, Disjointness) each proved from a named ASN-0093 lemma | derived (FirstEmission, FirstEmissionFreshness, DisjointSubAllocatorChains, ChainDiscipline, ChainElementT4Validity, ChainEnumerationInjectivity, CrossDocumentDisjointness — all ASN-0093) |
 | L0 | SubspacePartition: `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)` and `(A a ∈ dom(Σ.C) :: subspace_I(a) = s_C)` — both clauses are foundation invariants of ASN-0093. (The L-clause appears in ASN-0043's original L0; the C-clause was added in ASN-0093's foundation L0 and is supplied at allocation time by ASN-0093's K.α precondition `E(a)₁ = s_C`.) | ASN-0093 (SubspacePartition) |
+| L1 | LinkElementLevel: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` — every link address is an element-level tumbler. | ASN-0093 (LinkElementLevel) |
+| L1a | LinkScopedAllocation: `(A a ∈ dom(Σ.L) :: origin(a) ∈ E_doc)` — every link address is allocated under the tumbler prefix of a document (`E_doc = dom(M)` by the Bridging lemma). | ASN-0093 (LinkScopedAllocation) |
 | L3 | NEndsetStructure: `(A a ∈ dom(Σ.L) :: |Σ.L(a)| ≥ 3 ∧ (A i : 1 ≤ i ≤ |Σ.L(a)| : Σ.L(a).eᵢ ∈ Endset) ∧ Σ.L(a).e₃ ≠ ∅)` — every link is a sequence of at least three endsets with the type endset (slot 3) non-empty. Inherited verbatim from ASN-0093's L3 (which itself inherits from ASN-0043's `Link` definition admitting arity `N ≥ 3`). | ASN-0093 (NEndsetStructure) |
+| L12 | LinkImmutability: `(A Σ → Σ' : (A a : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)))` — once created, a link's address persists in `dom(L)` and its value is permanently fixed. | ASN-0093 (LinkImmutability) |
 | C-fin | ContentStoreFiniteness: `|dom(Σ.C)| < ∞`. Inherited as a per-state invariant of the extended state; established at Σ₀ (`|dom(C₀)| = 0`) and preserved by K.α (extends by one) with frame on all other transitions. | ASN-0093 (ContentStoreFiniteness) |
 | L1c | LinkAllocatorConformance: every `ℓ ∈ dom(L)` has a structural inc-chain from its home document to `ℓ` — a finite sequence `(t₀, …, tₙ)` with `t₀ = origin(ℓ)`, `tₙ = ℓ`, each step `tᵢ = inc(tᵢ₋₁, kᵢ)` with `kᵢ ∈ {0, 1, 2}` satisfying T10a's per-step admissibility (T4-validity preservation, zero-count side condition at `kᵢ = 2`), `k₁ = 2`, and `#tᵢ > #origin(ℓ)` at every step. The anchor traversal `d → b_C(d) → b_L(d) → [d.0.s_L.1]` and the first link emission inhabit no T10a-tracked allocator domain — their activation discharge goes through SubAllocatorBundle rather than T10a's child-spawning rule. | ASN-0093 (LinkAllocatorConformance) |
 | L14 | StoreDisjointness: `dom(C) ∩ dom(L) = ∅` — unscoped store disjointness. | ASN-0093 (SD, StoreDisjointness) |
