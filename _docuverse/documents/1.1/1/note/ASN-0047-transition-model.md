@@ -179,7 +179,7 @@ We seek the elementary modifications — the state changes from which all system
 
 *Effect:* `C' = C ∪ {a ↦ v}`.
 
-*Frame:* `L' = L; E' = E; (A d :: M'(d) = M(d)); R' = R`.
+*Frame:* `L' = L; (A d :: M'(d) = M(d))` (E and R held in frame per the opening clause).
 
 **NodeLineage (Derived invariant, NodeDescentFromBootstrap).** `(A e ∈ E : Node(e) : n₀ ≼ e)`, where `≼` is the prefix order on tumblers (ASN-0034).
 
@@ -190,9 +190,9 @@ We seek the elementary modifications — the state changes from which all system
 
 The bootstrap node `n₀ ∈ E₀` is itself baptised at `Σ₀`.
 
-**NodeRootedForest (Derived structure).** Nodes enter E *only* via NodeBaptism, never as `inc`-outputs; NodeBaptism admits repeatedly baptising distinct nodes. The `inc`-allocator structure is therefore a *forest*, not a single tree: each baptised node `N` roots an independent allocator subtree whose every member is an `inc`-descendant of `N` — accounts `inc(N, 2)`, then documents, versions, and element-field sub-allocators beneath. Within one such subtree `N` is the *sole root*, and T10a's discipline holds with `N` as the base address, so ASN-0034's GlobalUniqueness applies with `N` discharging its strong-induction base case (the "sole root allocator" at depth 0). Cross-node distinctness (addresses under distinct baptised nodes `N₁ ≠ N₂`) is not a within-subtree GlobalUniqueness consequence; it rests on T10 (PartitionIndependence, ASN-0034), discharged through CrossNodeAccountBase, since distinct node bases are prefix-incomparable (or nest, the case handled there). Prefix-nesting (NodeLineage's `n₀ ≼ e`) is not `inc`-descent, so prefix-nested node bases remain independent `inc`-roots.
+**NodeRootedForest (Derived structure).** Nodes enter E *only* via NodeBaptism, never as `inc`-outputs; NodeBaptism admits repeatedly baptising distinct nodes. The `inc`-allocator structure is therefore a *forest*, not a single tree: each baptised node `N` roots an independent allocator subtree whose every member is an `inc`-descendant of `N` — accounts `inc(N, 2)`, then documents, versions, and element-field sub-allocators beneath. Within one such subtree `N` is the *sole root*, and T10a's discipline holds with `N` as the base address, so ASN-0034's GlobalUniqueness applies with `N` discharging its strong-induction base case (the "sole root allocator" at depth 0). Cross-node distinctness — addresses under distinct baptised nodes `N₁ ≠ N₂`, including prefix-nested ones — is not a within-subtree GlobalUniqueness consequence; it is discharged by SSGU below.
 
-*Subtree-scoped GlobalUniqueness (SSGU).* For any `inc`-output `a` with `N ≼ a` for a baptised node `N`: because the `inc`-allocator structure is a forest, GlobalUniqueness cannot be applied unscoped — cross-node distinctness (T10, ASN-0034, discharged through CrossNodeAccountBase) first excludes every event under a distinct baptised node `N' ≠ N`, including a nested node `N'` with `N ≼ N'` or `N' ≼ N` (NodeLineage), whose base is prefix-incomparable to or nests with `N`'s. Scoped to the single node-rooted subtree at `N`, GlobalUniqueness (ASN-0034, via T10a.6 cross-allocator domain-disjointness, with `N` discharging the strong-induction base case) then assigns `a` to exactly one allocation event within that subtree.
+*Subtree-scoped GlobalUniqueness (SSGU).* For any `inc`-output `a` with `N ≼ a` for a baptised node `N`: because the `inc`-allocator structure is a forest, GlobalUniqueness cannot be applied unscoped — cross-node distinctness (T10, ASN-0034, discharged through CrossNodeAccountBase) first excludes every event under a distinct baptised node `N' ≠ N`, including a nested node `N'` with `N ≼ N'` or `N' ≼ N` (NodeLineage), whose base is prefix-incomparable to or nests with `N`'s — prefix-nesting (NodeLineage) is not `inc`-descent, so a prefix-nested node base remains an independent `inc`-root. Scoped to the single node-rooted subtree at `N`, GlobalUniqueness (ASN-0034, via T10a.6 cross-allocator domain-disjointness, with `N` discharging the strong-induction base case) then assigns `a` to exactly one allocation event within that subtree.
 
 **TrackedEmission (Per-state invariant, EntityEmissionTracking).** Every non-node entity is an emission of a tracked entity-level sub-allocator:
 
@@ -454,7 +454,7 @@ We abbreviate this **SubAllocFresh**.
 
 *Effect:* `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}`.
 
-*Frame:* `C' = C; E' = E; (A d' :: M'(d') = M(d')); R' = R`.
+*Frame:* `C' = C; (A d' :: M'(d') = M(d'))` (E and R held in frame per the opening clause).
 
 Cross-document disjointness for distinct home documents is CrossDocumentDisjointness (ASN-0093), applied at anchor pair `(b_L(d), b_L(d'))`.
 
@@ -1256,7 +1256,7 @@ The matrix is a navigational index; each cell summarises the load-bearing argume
 
 Preserved by P1.
 
-*K.μ~ discharge for the arrangement-shape invariants (detailed backing for the heterogeneous matrix cells above).* This paragraph elaborates the K.μ~ cells whose one-line discharges appear above. The invariants are *not* a single uniform package; they split into three groupings with distinct discharge mechanisms: the admissibility-(i) shape stipulations (S8a, S8-depth, D-CTG★, D-MIN★), the decomposition-established S8★, and the derived members (S8-fin and D-SEQ★). The first group (S8a, S8-depth, D-CTG★, D-MIN★, and the derived D-SEQ★) is stipulated on `M'(d)` by K.μ~ admissibility (i); S8★ falls outside clause (i)'s scope but is established at Σ' by the K.μ⁻ + K.μ⁺ decomposition — ASN-0036's S8 on the rebuilt content-subspace projection. In both cases the K.μ⁻ (full-clearance) + K.μ⁺ decomposition mechanically realises the invariant — K.μ⁻ restriction preserves it on the link-subspace survivors (the trivial length-1 decomposition preserved pointwise, `M'(d)|_{dom_L} = M(d)|_{dom_L}` from Steps 1–3 of the link-subspace fixity proof), and K.μ⁺'s preconditions re-establish it on the rebuilt content arrangement (for S8★, ASN-0036's S8 on the rebuilt content-subspace projection; for the contiguity/minimum forms, the K.μ⁺ D-CTG★/D-MIN★ preconditions at Σ'). Two members carry a rider beyond this uniform argument. **S8-fin(Σ')** — bundled in the matrix with S8a/S8-depth but *not* part of the shape package — is discharged independently of admissibility (i) and K.μ~-FIX: K.μ⁻ restricts dom(M(d)) (a subset of a finite set is finite) and K.μ⁺ adds finitely many positions (finite + finite = finite). **D-SEQ★** is then derived at Σ' from its constituents D-CTG★ + D-MIN★ + S8-depth + S8a (above) together with that S8-fin(Σ'), via the standard D-SEQ★ derivation.
+*K.μ~ discharge for the arrangement-shape invariants.* The shape stipulations (S8a, S8-depth, D-CTG★, D-MIN★) are stipulated on `M'(d)` by K.μ~ admissibility (i), and S8★ is established at Σ' by the K.μ⁻ + K.μ⁺ decomposition (*Decomposition of K.μ~*). Two members carry a rider beyond that decomposition. **S8-fin(Σ')** — bundled in the matrix with S8a/S8-depth but *not* part of the shape package — is discharged independently of admissibility (i) and K.μ~-FIX: K.μ⁻ restricts dom(M(d)) (a subset of a finite set is finite) and K.μ⁺ adds finitely many positions (finite + finite = finite). **D-SEQ★** is then derived at Σ' from its constituents D-CTG★ + D-MIN★ + S8-depth + S8a together with that S8-fin(Σ'), via the standard D-SEQ★ derivation.
 
 *S8a, S8-depth, S8-fin.* Established at arrangement-extending transitions: K.μ⁺ amendment's preconditions on new V-positions (positivity, depth, finiteness preserved by finite extension); K.μ⁺_L preconditions (positivity, fixed per-document depth `m_L(d)`, finite extension); K.μ⁻ restriction preserves all three; all others hold M in frame.
 
