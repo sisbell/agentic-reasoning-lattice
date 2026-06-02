@@ -130,9 +130,7 @@ project(e, d, Σ') = project(e, d, Σ)
 ```
 for every endset `e` and every such `d`, whenever `Σ → Σ'` is a K.α transition.
 
-Newly allocated I-addresses are invisible to projection until some subsequent K.μ⁺ adds an arrangement entry referencing them. This is the precise sense in which "insertion at the boundary of a linked passage" cannot extend the link's reach: insertion as a composite (allocate + arrange) splits into a K.α step (no projection effect) and a K.μ⁺ step. The K.μ⁺ step might add a V-position to the projection, but only if the new V-position's I-address is in `coverage(e)`. By T10a (AllocatorDiscipline, ASN-0034), each new K.α-allocated I-address is structurally distinct from all prior allocations. Whether that new I-address can enter `coverage(e)` — and hence whether the subsequent K.μ⁺ can grow the projection — turns on the endset's construction discipline, settled by LP19/LP19a below: under tight construction it cannot. The precise condition under which boundary insertion is excluded is therefore tightness, not allocator behaviour alone.
-
-The abstract guarantee is sharper than the "outside the strap" metaphor: the projection depends on coverage and arrangement alone, and content allocation alone (K.α) affects neither.
+Newly allocated I-addresses are invisible to projection until some subsequent K.μ⁺ adds an arrangement entry referencing them. This is the precise sense in which "insertion at the boundary of a linked passage" cannot extend the link's reach: insertion as a composite (allocate + arrange) splits into a K.α step (no projection effect) and a K.μ⁺ step. The K.μ⁺ step might add a V-position to the projection, but only if the new V-position's I-address is in `coverage(e)`. By T10a (AllocatorDiscipline, ASN-0034), each new K.α-allocated I-address is structurally distinct from all prior allocations.
 
 **LP7 — Link-Allocation Invariance**: The K.λ operation modifies only `Σ.L`; its frame is `(A d :: M'(d) = M(d))`, and K.λ preserves `dom(Σ.M)`. By LP4 applied to every `d ∈ dom(Σ.M) = dom(Σ'.M)`, `project(e, d, Σ') = project(e, d, Σ)` for every endset `e` and every such `d`. Creating a new link cannot retroactively affect the projection of any other link.
 
@@ -359,7 +357,7 @@ Every `a ∈ F` has `#a = #d + 3`, `zeros(a) = 3`, and `#E(a) = 2` by direct ins
 
 `F` is countably infinite. By T0(a) and T0(b) of ASN-0034, the set of T4-valid document tumblers is itself infinite (component values are unbounded and tumbler length is unbounded), and each contributes a countably infinite chain in each of the two subspaces. The universal quantifier `(A t ∈ F : s ≤ t < s ⊕ ℓ : …)` in the tightness predicate therefore ranges over an infinite domain. Decidability of this quantifier rests on a finitude lemma about the interval's interaction with `F`'s structural form — *a finitude that holds for canonical spans*, established by LP-Fin below; non-canonical spans are excluded from the tightness domain at the type level (see below), so the lemma need only cover the canonical case.
 
-**LP-Fin — IntervalFinitude for Canonical Spans**: For every *canonical* span `(s, ℓ)` — meaning `s ∈ F` (so `s = [d_0, 0, s', k_s]` for some T4-valid `d_0` with `zeros(d_0) = 2`, subspace `s' ∈ {s_C, s_L}`, chain index `k_s ≥ 1`) and `ℓ = δ(n, #s)` for some `n ≥ 1` (equivalently `#ℓ = #s` with `ℓ` an ordinal displacement, OrdinalDisplacement of ASN-0034) — the set `F ∩ [s, s ⊕ ℓ)` is finite.
+**LP-Fin — IntervalFinitude for Canonical Spans**: For every *canonical* span `(s, ℓ)` — meaning `s ∈ F` (so `s = [d_0, 0, s', k_s]` for some T4-valid `d_0` with `zeros(d_0) = 2`, subspace `s' ∈ {s_C, s_L}`, chain index `k_s ≥ 1`) and `ℓ = δ(n, #s)` for some `n ≥ 1` (canonical form, per the tight definition below) — the set `F ∩ [s, s ⊕ ℓ)` is finite.
 
 Compute `s ⊕ ℓ` first. By OrdinalDisplacement (ASN-0034), `actionPoint(ℓ) = #s = #d_0 + 3`. By TumblerAdd's piecewise rule (ASN-0034), positions `1..#s - 1` of `s ⊕ ℓ` are prefix-copied from `s` and position `#s` becomes `s_{#s} + ℓ_{#s} = k_s + n`. Hence `s ⊕ ℓ = [d_0, 0, s', k_s + n]` with `#(s ⊕ ℓ) = #s = #d_0 + 3`.
 
@@ -424,11 +422,9 @@ An endset `e` is *tight at state `Σ_e`* iff every span `(s, ℓ) ∈ e` is *can
 s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)  ∧  (A t ∈ F : s ≤ t < s ⊕ ℓ : t ∈ dom(Σ_e.C) ∪ dom(Σ_e.L))
 ```
 
-The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. The canonical-span requirement ensures the universal quantifier ranges over a finite set (LP-Fin, below), so the predicate is decidable at every state. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state.
+The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. The canonical-span requirement is *definitional*: a non-canonical span is fixed at false before any quantifier evaluation, so no state can render it tight. It also confines LP-Fin's universal quantifier to a finite set (LP-Fin, below), so the predicate is decidable at every state. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state.
 
-*Non-canonical spans are unconditionally non-tight.* The tightness predicate's domain is *defined* to require canonical form `ℓ = δ(n, #s)`; any non-canonical span is rejected at the type level and fixed at false before any quantifier evaluation, so no state can render it tight. The canonical-form requirement is what confines LP-Fin's universal quantifier to a finite set (`actionPoint(ℓ) = #s`, OrdinalDisplacement of ASN-0034), making the predicate decidable at every state.
-
-*Achievability (under canonical-ℓ assumption).* **The analysis below restricts to canonical spans** — those with `ℓ = δ(n, #s)` for some `n ≥ 1`, equivalently `#ℓ = #s` with `ℓ` an ordinal displacement (OrdinalDisplacement, ASN-0034). Non-canonical spans — any `ℓ ≠ δ(n, #s)` — fall outside the tight-endset domain by the structural non-tightness result just established above, so achievability of tight construction addresses only canonical spans.
+*Achievability (under canonical-ℓ assumption).* **The analysis below restricts to canonical spans** (the canonical form `ℓ = δ(n, #s)` of the tight definition above); non-canonical spans fall outside the tight-endset domain, so achievability of tight construction addresses only canonical spans.
 
 The non-empty case is reached by the canonical construction. Span endpoints are drawn from currently-allocated content, and the displacement is the canonical ordinal displacement `ℓ = δ(n, #s)`; by OrdinalDisplacement's postcondition, `actionPoint(ℓ) = #s`. The action-point identification `k_ℓ = #s` is therefore a *consequence of the construction's specification* (the canonical construction picks ordinal-displacement spans), not a property of arbitrary endset spans — for which no foundation invariant pins the action point to `#s`, and additional preconditions not in force here would be needed. The reach is set at or before the relevant chain's next emission point. By LP-Fin (in its canonical form), only finitely many `F`-candidates can interfere with any such span; LP-Fin Corollary identifies exactly which.
 
@@ -510,33 +506,13 @@ The projection depends only on coverage, not on the span decomposition of the en
 
 ## What the Link Holder Can Rely On
 
-We have established a catalogue of guarantees. We now consolidate them into a holder-facing summary.
+The holder-facing guarantees established above are catalogued by operative lemma:
 
-The holder owns the link `a` and possesses, at minimum, knowledge of its address and the endsets at each slot. Across any state evolution `Σ →* Σ'`:
-
-- The address `a` remains in `dom(Σ'.L)` (Store Monotonicity★).
-- The endsets `Σ'.L(a).eᵢ` are byte-identical to `Σ.L(a).eᵢ` for every slot (LP2★).
-- The slot ordering is preserved — what was at slot 1 is still at slot 1, the type endset is still at slot 3 (LP2★).
-- The coverage of each endset is fixed — `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` (LP3★).
-- The I-addresses in coverage all remain in `dom(Σ'.C)` if they were ever in `dom(Σ.C)` (Store Monotonicity★), with their content values unchanged (S0, applied step-wise across the sequence).
-
-What can vary:
-
-- Which documents the link can be discovered from. This depends on which documents currently arrange any I-address in any endset's coverage (LP12). Documents may transclude the linked content (gaining discoverability — LP9, LP16), or delete it (losing discoverability — LP10), at any time.
-- The specific V-positions of any projection. These reflect the document's current arrangement and shift as the document is edited (LP9, LP10, LP11).
-- The shape of any projection — contiguous, fragmented, partial — depends on the arrangement, not on the link.
-
-What is *not* possible:
-
-- The link cannot have its endsets rewritten (L12, ASN-0043).
-- The link cannot have its slots permuted (LP2).
-- The link cannot have its coverage altered by any external party (LP3).
-- The link cannot fail to be discoverable from a document whose arrangement maps to any I-address in any of its endsets' coverage (LP12). LP12 is a per-state biconditional, not a temporal invariant; discoverability is determined afresh at each state by `coverage ∩ ran`.
-- At any state, the link is not discoverable from a document whose arrangement contains no entry mapping to any I-address in coverage (LP12, contrapositive). The same per-state reading applies — a subsequent K.μ⁺ or K.μ⁺_L can re-establish discoverability (LP18), and a subsequent K.μ⁻ can withdraw it (LP10, LP12a).
-- The link's discoverability cannot be made to depend on which document created it or which document allocated its linked content (LP12 references only coverage and range, indifferent to provenance).
-- Boundary insertion of newly allocated content into a tightly constructed link's reach cannot grow that reach (LP19).
-
-The trust relationship between the link holder and the system is asymmetric. The system commits unconditionally to LP2, LP3, and S0 (together with L12 of ASN-0043) — to the permanence of every stored object. The system commits conditionally to LP9–LP18 — to the discoverability of the link, contingent on what the document holders choose to do with their arrangements. The holder cannot prevent another document holder from deleting the linked content from their own arrangement (subject to their own ownership rules). The holder can rely on the content persisting somewhere in `dom(Σ.C)` permanently, but cannot rely on it persisting in any particular `ran(Σ.M(d))` indefinitely. Survival of discoverability requires only that *somewhere* in the system, *some* document still arranges *some* of the linked content. This is the strongest guarantee the architecture provides, and it is sufficient for the holder's purpose: the link's content can be re-introduced via transclusion at any time, and the link will then be re-projected at the new V-positions automatically and without any action by the holder.
+- *Fixed under all transitions:* address persistence and value permanence (LP2★, LP3★, with L12 and S0 of ASN-0043/0036).
+- *Per-document discoverability:* governed afresh at each state by `coverage ∩ ran` (LP12); gained by transclusion (LP9, LP16, LP18), lost by deletion (LP10, LP12a).
+- *Projection shape and V-positions:* determined by the document's current arrangement (LP9, LP10, LP11).
+- *Provenance indifference:* discoverability never depends on which document created the link or allocated its content (LP12).
+- *Tight construction:* boundary insertion of newly allocated content cannot grow a tightly constructed link's reach (LP19).
 
 ## A Worked Trace
 
