@@ -1,0 +1,22 @@
+# Review of ASN-0070
+
+## REVISE
+
+### Issue 1: No worked example exercises the cross-subspace straddling case (both result components non-empty)
+
+**ASN-0070, F0 / F-subspace consequence / "The Setting"**: The prose claims, of F0's partition `R(d, e) = R(d, e)|_{s_C} ⊎ R(d, e)|_{s_L}`, that "An endset whose coverage straddles both I-subspaces (admissible by L4, ASN-0043) contributes to both result components." The joint V-restricted denotation is defined as `⟦Σ_V⟧_V := ⟦Σ_V^{s_C}⟧_V ⊎ ⟦Σ_V^{s_L}⟧_V`, and its disjointness is asserted.
+
+**Problem**: The straddling case — a single endset whose coverage meets `dom(C)` *and* `dom(L)`, resolving to a result with `Σ_V^{s_C} ≠ ⟨⟩` *and* `Σ_V^{s_L} ≠ ⟨⟩` — is the central novelty that motivates the per-subspace family (it is why the result is a *pair* rather than a single span-set, and the only case in which the `⊎` disjointness of `⟦Σ_V⟧_V` is non-trivially exercised). Yet none of the six configurations produces a two-component result:
+- Configs 1, 2, 6: `Σ_V^{s_C}` non-empty, `Σ_V^{s_L} = ⟨⟩`.
+- Configs 3, 4: both empty.
+- Config 5: `Σ_V^{s_L}` non-empty, `Σ_V^{s_C} = ⟨⟩`.
+
+Configs 1 and 5 verify the two branches *separately*. Showing each branch works in isolation does not concretely establish the simultaneous case, which is exactly where F0's `⊎`, F-subspace's two-way decomposition (`R|_{s_C} = M(d)⁻¹(coverage ∩ dom(C))`, `R|_{s_L} = M(d)⁻¹(coverage ∩ dom(L))`), and the joint-denotation disjointness all act together with both parts populated.
+
+**Required**: Add a worked configuration with a single endset carrying both a content span and a link span — e.g. `L(ℓ).e₁ = {(a, δ(1, m_a)), (ℓ₀, δ(1, m_a))}` where `d` arranges `a` at a `s_C`-position and `ℓ₀` at a `s_L`-position — and verify the resulting `(d, (Σ_V^{s_C}, Σ_V^{s_L}))` with both components non-empty against F-sound, F-complete, F-subspace (both branches), and the joint-denotation disjointness.
+
+## OUT_OF_SCOPE
+
+(none — the eight Open Questions are appropriately framed as future-ASN territory, not gaps in this one.)
+
+VERDICT: REVISE
