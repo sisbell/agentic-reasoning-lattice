@@ -126,15 +126,9 @@ The projection function depends on exactly two inputs: `coverage(e)` and `Σ.M(d
 
 A link's projection through one document is unaffected by editing operations on a different document. Projections are *per-document* facts. The link itself is a single global object, but the V-positions it reaches in any given document depend only on that document's local state.
 
-**LP6 — Content-Allocation Invariance**: The K.α operation (ASN-0093) modifies only `Σ.C` and has frame `(A d :: M'(d) = M(d))`; K.α also preserves `dom(Σ.M)`, so `dom(Σ.M) = dom(Σ'.M)`. By LP4 applied to every `d ∈ dom(Σ.M) = dom(Σ'.M)`:
-```
-project(e, d, Σ') = project(e, d, Σ)
-```
-for every endset `e` and every such `d`, whenever `Σ → Σ'` is a K.α transition.
+**Projection invariance under arrangement-fixing transitions.** Any transition whose frame fixes every `M(d)` and preserves `dom(Σ.M)` leaves every projection fixed: it gives `dom(Σ.M) = dom(Σ'.M)` and `Σ'.M(d) = Σ.M(d)` for every `d`, so by LP4 applied to each such `d`, `project(e, d, Σ') = project(e, d, Σ)` for every endset `e`. Three operations instantiate this template directly — **LP6 (Content-Allocation Invariance)** at K.α (which modifies only `Σ.C`; ASN-0093), **LP7 (Link-Allocation Invariance)** at K.λ (which modifies only `Σ.L`), and **LP14 (ProvenanceRecording Invariance)** at K.ρ (which only adds a pair to `Σ.R`; ASN-0047). Hence none of content allocation, link allocation, or provenance recording can displace any projection; in particular, creating a new link cannot retroactively affect the projection of any other link, and provenance bookkeeping displaces nothing.
 
 Newly allocated I-addresses are invisible to projection until some subsequent K.μ⁺ adds an arrangement entry referencing them. This is the precise sense in which "insertion at the boundary of a linked passage" cannot extend the link's reach: insertion as a composite (allocate + arrange) splits into a K.α step (no projection effect) and a K.μ⁺ step. The K.μ⁺ step might add a V-position to the projection, but only if the new V-position's I-address is in `coverage(e)`. By T10a (AllocatorDiscipline, ASN-0034), each new K.α-allocated I-address is structurally distinct from all prior allocations.
-
-**LP7 — Link-Allocation Invariance**: The K.λ operation modifies only `Σ.L`; its frame is `(A d :: M'(d) = M(d))`, and K.λ preserves `dom(Σ.M)`. By LP4 applied to every `d ∈ dom(Σ.M) = dom(Σ'.M)`, `project(e, d, Σ') = project(e, d, Σ)` for every endset `e` and every such `d`. Creating a new link cannot retroactively affect the projection of any other link.
 
 **LP8 — Document-Registration Invariance**: For any document-registration transition `Σ → Σ'` — either K.σ (ASN-0093) or K.δ in the IsDocument case (ASN-0047) — registering a fresh document `d_new` (with `d_new ∉ dom(Σ.M)`, `dom(Σ'.M) = dom(Σ.M) ∪ {d_new}`, `Σ'.M(d_new) = ∅`, and `Σ'.M(d) = Σ.M(d)` for every `d ∈ dom(Σ.M)`) and any endset `e`, both:
 
@@ -148,7 +142,7 @@ Postcondition (a) follows by LP4 applied to each `d ∈ dom(Σ.M)`: the document
 
 *Remark on K.δ.* K.δ-IsNode and K.δ-IsAccount have frame `M' = M`, so LP4 covers them; K.δ-IsDocument is the document-registration case of LP8.
 
-**LP14 — ProvenanceRecording Invariance**: The K.ρ operation (ASN-0047), which records provenance by adding a pair to `Σ.R`, has frame `(A d :: M'(d) = M(d))` — it leaves every document's arrangement intact — and preserves `dom(Σ.M)`. By LP4 applied to every `d ∈ dom(Σ.M) = dom(Σ'.M)`, `project(e, d, Σ') = project(e, d, Σ)` for every endset `e` and every such `d`, whenever `Σ → Σ'` is a K.ρ transition. Provenance bookkeeping does not displace any projection.
+(LP14, the K.ρ instance, is established above alongside LP6 and LP7 under the arrangement-fixing template.)
 
 ## Operation Effects on Projection
 
@@ -336,13 +330,11 @@ A link can pass through arbitrarily many states of orphanage and resurrection wi
 
 We address two further questions about the structural behaviour of projection under specific operation patterns.
 
-The set `F` of *substrate-emittable addresses* is the domain against which the "boundary insertion does not extend the link" property is formalised — the addresses the substrate could K.α/K.λ-emit within a span's reach, excluding the T4-invalid zero-extensions `s.0`, `s.0.0`, … that a raw span includes but no allocator chain can emit (T10a.4, ASN-0034).
-
-By ASN-0093, every K.α/K.λ-allocated address is a chain element of some sub-allocator `A_C(d)` or `A_L(d)`, with structural form `[d, 0, s_C, k]` (resp. `[d, 0, s_L, k]`) for some T4-valid document tumbler `d` (i.e., `d ∈ T` with `zeros(d) = 2`) and some `k ≥ 1`. The set of *substrate-emittable addresses* is the union of all such chain elements across all T4-valid document tumblers — including those not yet registered, since future K.σ transitions can activate their chains — and both subspaces, defined formally as:
+By ASN-0093, every K.α/K.λ-allocated address is a chain element of some sub-allocator `A_C(d)` or `A_L(d)`, with structural form `[d, 0, s_C, k]` (resp. `[d, 0, s_L, k]`) for some T4-valid document tumbler `d` (i.e., `d ∈ T` with `zeros(d) = 2`) and some `k ≥ 1`. The set `F` of *substrate-emittable addresses* is the union of all such chain elements across all T4-valid document tumblers — including those not yet registered, since future K.σ transitions can activate their chains — and both subspaces. It is exactly the addresses the substrate could K.α/K.λ-emit within a span's reach, excluding the T4-invalid zero-extensions `s.0`, `s.0.0`, … that a raw span includes but no allocator chain can emit (T10a.4, ASN-0034). Formally:
 ```
 F = {a ∈ T : (E d ∈ T, s ∈ {s_C, s_L}, k ≥ 1 :: zeros(d) = 2 ∧ d satisfies T4 ∧ a = [d, 0, s, k])}
 ```
-Every `a ∈ F` has `#a = #d + 3`, `zeros(a) = 3`, and `#E(a) = 2` by direct inspection of the structural form. Moreover, every `a ∈ F` satisfies T4 (HierarchicalParsing, ASN-0034). An address of the form `[d, 0, s, k]` with `d` T4-valid, `zeros(d) = 2`, `s ∈ {s_C, s_L}`, and `k ≥ 1` is exactly the structural form FirstEmission and ChainDiscipline (ASN-0093) fix for a chain element of the sub-allocator `A_C(d)` (resp. `A_L(d)`), so its T4-validity is delivered directly by ChainElementT4Validity (ASN-0093). An address outside `F` cannot be the target of any K.α/K.λ emission. In particular, the sub-allocator anchors `b_C(d) = [d, 0, s_C]` and `b_L(d) = [d, 0, s_L]` of ASN-0093 have `#E = 1` and so lie outside `F`; they are anchors of chains, not chain elements.
+Every `a ∈ F` has `#a = #d + 3`, `zeros(a) = 3`, and `#E(a) = 2` by direct inspection of the structural form. Moreover, every `a ∈ F` satisfies T4 (HierarchicalParsing, ASN-0034) directly from its structural form, independent of whether `d` is registered. For `a = [d, 0, s, k]` with `d` T4-valid, `zeros(d) = 2`, `s ∈ {s_C, s_L}`, and `k ≥ 1`, all four T4 clauses hold: `d` contributes exactly two non-adjacent zeros, neither at its first nor last position; the appended separator `0` sits at position `#d + 1`, flanked by the non-zero `d_{#d}` (T4 endpoint clause on `d`) and the non-zero `s` (a subspace identifier `≥ 1`), so it introduces no adjacent-zero pair and keeps the total at `zeros(a) = 3 ≤ 3`; the first component `a_1 = d_1 ≠ 0` (T4 endpoint clause on `d`); and the last component `a_{#a} = k ≥ 1 ≠ 0`. This direct check covers registered and unregistered `d` uniformly, since it appeals only to the form `[d, 0, s, k]` and not to any active chain. An address outside `F` cannot be the target of any K.α/K.λ emission. In particular, the sub-allocator anchors `b_C(d) = [d, 0, s_C]` and `b_L(d) = [d, 0, s_L]` of ASN-0093 have `#E = 1` and so lie outside `F`; they are anchors of chains, not chain elements.
 
 Conversely, every allocated address belongs to `F`:
 
