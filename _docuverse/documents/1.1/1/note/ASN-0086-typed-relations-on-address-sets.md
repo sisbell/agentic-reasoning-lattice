@@ -25,7 +25,7 @@ By the K.σ/K.α/K.λ frame conditions stated above, `Σ →* Σ'` entails `dom(
 
 `A^Σ = dom(Σ.C) ∪ dom(Σ.L)`
 
-By SD (StoreDisjointness, ASN-0093), `A^Σ` is the entirety of stored-entity addresses at Σ; no third category exists.
+By L14 (DualPrimitive, ASN-0043), `A^Σ` is the entirety of stored-entity addresses at Σ — no state component maps an address outside `dom(Σ.C) ∪ dom(Σ.L)` to an entity value, so no third category exists. (SD, StoreDisjointness, ASN-0093, supplies only the disjointness of the two categories, used below.)
 
 **Definition — Partition.** Define:
 
@@ -196,7 +196,7 @@ The existential checks `coverage(G')` only, per Convention RetractionDirectional
 
 `A_K^Σ = {(a, F, G) ∈ L_K^Σ : a ∉ nullified(Σ)}`
 
-`A_K^Σ` is a finite, computable set: `L_K^Σ` is selected by CoverageEqualityDecidable, `nullified(Σ)` by CoverageEqualityDecidable and T2 (IntrinsicComparison, ASN-0034) span-membership, and `A_K^Σ = L_K^Σ \ nullified(Σ)`.
+`A_K^Σ` is a finite, computable set: `L_K^Σ` is selected by CoverageEqualityDecidable, `nullified(Σ)` by CoverageEqualityDecidable and T2 (IntrinsicComparison, ASN-0034) span-membership, and `A_K^Σ = L_K^Σ \ {(a, F, G) ∈ L_K^Σ : a ∈ nullified(Σ)}`.
 
 **R6a — RetractionStability.** Once a tuple's address is nullified, it stays nullified across all future state transitions:
 
@@ -298,7 +298,7 @@ The wp does not constrain `|Σ.L(a)|`, by R-Scope's arity-independence (SingleTu
 
 *Case 2 — wp(Emit_K(Σ, d, F, G), "(a, F, G) ∈ A_K^{Σ'}").* The Definition of `Emit_K` guarantees `(a, F, G) ∈ L_K^{Σ'}` for the fresh emission unconditionally (K.λ deposits `(F, G, K)` at the chain-deterministic address `a`, which is then a member of `L_K^{Σ'}` by coverage-equivalence membership), but is silent on `(a, F, G) ∈ A_K^{Σ'}`, which turns on whether `a ∈ nullified(Σ')`. The post-state retraction slice depends on the K-relation: `L_R^{Σ'} = L_R^Σ ∪ {(a, F, G)}` when `K ~ R`, and `L_R^{Σ'} = L_R^Σ` when `K ≁ R`. The address `a` that `Emit_K(Σ, d, F, G)` deposits is exactly `a_emit(Σ, d)` (Definition — `a_emit`, Allocator Structure).
 
-*Result.* Over the layer-reachable states (Definition — layer-reachable) — required because the derivation below invokes the unit-depth retraction discipline (Definition — relational layer discharge) to rule out a pre-existing retraction covering the fresh emission address, which mere `→*`-reachability does not supply (in contrast to Case 1, whose derivation runs over the weaker `→*`-reachable domain, needing only R0a's antichain) — the weakest precondition is
+*Result.* Over the layer-reachable states (Definition — layer-reachable), the weakest precondition is
 
 `wp(Emit_K(Σ, d, F, G), (a, F, G) ∈ A_K^{Σ'}) ≡ d ∈ dom(Σ.M) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))`   (over layer-reachable Σ; `K` is an index, not a free wp variable)
 
