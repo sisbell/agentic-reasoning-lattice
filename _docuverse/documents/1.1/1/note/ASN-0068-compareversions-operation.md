@@ -162,7 +162,7 @@ so `R²` is shifted from `R¹` by a common signed offset `δ` on both sides. WLO
 
 *Case δ > 0.* From `k¹ − k² = δ` and `k¹ < n¹` we get `k² + δ = k¹ < n¹`, hence `δ − 1 < n¹ − k² ≤ n¹`. Since `δ > 0` and `δ ∈ ℤ` (as `δ = j²_a − j¹_a` is a difference of natural numbers), `δ ≥ 1`, so `δ − 1 ≥ 0`. Therefore `0 ≤ δ − 1 < n¹`. Consider position `v²_a − 1 = v¹_a + (δ − 1)`, the V-predecessor of `v²_a` at depth `m_a` (D-SEQ★ guarantees `v²_a = [S, 1, ..., 1, j²_a]` with `j²_a = j¹_a + δ ≥ 1 + δ ≥ 2`, so a predecessor exists). Since `0 ≤ δ − 1 < n¹`, `R¹`'s run conditions at offset `δ − 1` yield `v²_a − 1 ∈ ⟦R_a⟧ ∩ dom(M(d_a))`, `v²_b − 1 ∈ ⟦R_b⟧ ∩ dom(M(d_b))`, and `M(d_a)(v²_a − 1) = M(d_b)(v²_b − 1)` — a valid left-extension of `R²`, contradicting `R²`'s left-maximality. So `δ > 0` is impossible.
 
-Both cases combined: `δ = 0` and `n¹ = n²`, so `R¹ = R²`. ∎
+Both cases combined: `δ = 0` and `n¹ = n²`, so `R¹ = R²`. *Offset uniqueness.* It remains to discharge the second conjunct of the claim — that the offset within the unique run `R = (v'_a, v'_b, n)` is itself unique. Suppose `v_a = v'_a + k = v'_a + k'` with `0 ≤ k, k' < n`. By S8-depth (ASN-0036) and D-SEQ★ (ASN-0047), `v'_a = [S, 1, ..., 1, j'_a]` at depth `m_a`, and OrdinalShift's last-component formula (ASN-0034) gives `(v'_a + k)_{m_a} = j'_a + k` and `(v'_a + k')_{m_a} = j'_a + k'`. By T3 (ASN-0034), `v'_a + k = v'_a + k'` forces `j'_a + k = j'_a + k'`, hence `k = k'` — this is exactly the last-component reduction already deployed in the *Lockstep offset* step. So both the run and the offset are unique. ∎
 
 > **CV-EMPTY** (*empty boundary*): When `⟦R_a⟧ ∩ dom(M(d_a)) = ∅` or `⟦R_b⟧ ∩ dom(M(d_b)) = ∅`, `MaxRuns(d_a, R_a, d_b, R_b) = ∅`.
 
