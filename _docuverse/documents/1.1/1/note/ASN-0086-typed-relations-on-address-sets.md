@@ -84,7 +84,7 @@ The union is disjoint by Lemma — SliceUniqueness, stated next. Where ambient s
 
 **Lemma — SliceUniqueness.** Each tuple address `a ∈ dom(Σ.L)` indexes exactly one slice `L_K^Σ`. *Proof.* `Σ.L` is a partial function `T ⇀ Link` (ASN-0043, Definition of LinkStore), so `a` carries a single value `Σ.L(a)`, hence a single slot-3 endset `Σ.L(a).e₃` and a single coverage class `[Σ.L(a).e₃]`; thus `a` lies in no two slices. ∎
 
-**Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`. The map is an *injection into* the codomain `A_rel^Σ = dom(Σ.L)`, with image `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}`, onto iff `Σ.L` holds no higher-arity link.
+**Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`. The map is an *injection into* the codomain `A_rel^Σ = dom(Σ.L)`, with image the arity-3 slice `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}`; onto-ness is governed by the higher-arity carve-out of *Definition — TypedRelation* (onto exactly when that carve-out is empty).
 
 
 ## Tuple Identity (R0, R1, R2)
@@ -182,7 +182,7 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 ## The Active Subset (R6a, R6b, R6c)
 
-**Definition — RetractionType.** Fix a designated coverage class `[R]` reserved for retraction, represented by any `R ∈ T_admissible` whose coverage selects the conventional retraction address set. The corresponding typed relation `L_R^Σ` is the *retraction relation at state Σ*. By L9 (TypeGhostPermission, ASN-0043), `R` need not refer to anything stored — its coverage is an address set, chosen by convention — and `L_R^Σ` is well-defined as a coverage-class slice regardless of whether any literal representative endset has yet been stored. By coverage-equivalence, any emission with a type endset `R'` satisfying `coverage(R') = coverage(R)` contributes to `L_R^Σ` and to `nullified(Σ)` — callers are not required to use a canonical span structure for `R`, only its canonical coverage.
+**Definition — RetractionType.** Fix a designated coverage class `[R]` reserved for retraction, represented by any `R ∈ T_admissible` whose coverage selects the conventional retraction address set. The corresponding typed relation `L_R^Σ` is the *retraction relation at state Σ*. By L9 (TypeGhostPermission, ASN-0043), `R` need not refer to anything stored — its coverage is an address set, chosen by convention — and `L_R^Σ` is well-defined as a coverage-class slice regardless of whether any literal representative endset has yet been stored.
 
 **Convention — RetractionDirectionality.** For the retraction coverage class `[R]`, the to-set carries the retraction's targets — addresses whose tuples are being withdrawn from the active subset — and the from-set is reserved for attribution-bearing endset content (e.g., the retractor's own address, a self-targeting emission by Corollary R5.1) or is left empty for unattributed retractions. L7 (DirectionalFlexibility, ASN-0043) permits this layer-level naming choice.
 
@@ -190,7 +190,7 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 `nullified(Σ) = {a ∈ A_rel^Σ : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))}`
 
-The existential checks `coverage(G')` only, per Convention RetractionDirectionality, and ranges over the triple-restricted `L_R^Σ` (the `|Σ.L(a)| = 3` conjunct of *Definition — TypedRelation*) — so only standard-triple links can retract (StandardTriple, ASN-0043). The set-builder restriction `a ∈ A_rel^Σ` confines `nullified(Σ)` to link-store addresses: ghost, content, and document addresses in `coverage(G')` — which by R5/L9 may include link, content, document, or ghost addresses — are not collected.
+The existential checks `coverage(G')` only, per Convention RetractionDirectionality, and ranges over the triple-restricted `L_R^Σ` (the `|Σ.L(a)| = 3` conjunct of *Definition — TypedRelation*) — so only standard-triple links can retract (StandardTriple, ASN-0043). The set-builder restriction `a ∈ A_rel^Σ` confines `nullified(Σ)` to link-store addresses: content, document, and ghost addresses in `coverage(G')` are not collected.
 
 **Definition — ActiveSubset.** For each `K ∈ T_admissible`, the *active subset of type K at state Σ* is
 
@@ -401,7 +401,7 @@ Thus the fresh tuple lies in `L_R^{Σ_4}` (audit) but not in `A_R^{Σ_4}` (opera
 | ~ | DEF | TypeEquivalence: `K ~ K' ≡ coverage(K) = coverage(K')` — coverage-equivalence on admissible types (= L8 lifted) |
 | L_K^Σ | DEF | Typed relation (coverage-class slice): `{(a, F, G) : a ∈ dom(Σ.L) ∧ |Σ.L(a)| = 3 ∧ Σ.L(a).e₁ = F ∧ Σ.L(a).e₂ = G ∧ coverage(Σ.L(a).e₃) = coverage(K)}` |
 | L^Σ | DEF | Standard-triple link store: `⨆_{[K] ∈ T_admissible / ~} L_K^Σ` |
-| addr | DEF | Map `(a, F, G) ↦ a : L^Σ → A_rel^Σ`, injection into codomain — image is the arity-3 slice `{a : |Σ.L(a)| = 3}`; onto exactly when no higher-arity link is present |
+| addr | DEF | Map `(a, F, G) ↦ a : L^Σ → A_rel^Σ`, injection into codomain — image is the arity-3 slice `{a : |Σ.L(a)| = 3}`; onto-ness per the TypedRelation higher-arity carve-out |
 | nullified(Σ) | DEF | Tuple addresses targeted by some `L_R^Σ` to-set |
 | A_K^Σ | DEF | Active subset: `{(a, F, G) ∈ L_K^Σ : a ∉ nullified(Σ)}` |
 | → | DEF | Dom-extending state transition relation `→ ≡ K.σ ∪ K.α ∪ K.λ` |
