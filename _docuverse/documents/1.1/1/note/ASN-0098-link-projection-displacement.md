@@ -79,7 +79,11 @@ L12 (ASN-0043) supplies two conclusions on the hypothesis `a ∈ dom(Σ.L)`: add
 a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ
 ```
 
-This is the reflexive-transitive closure of LP2. Proof by induction on the length of the transition sequence. The empty sequence (`Σ = Σ'`) gives the conjunction by reflexivity. For the inductive step, suppose `Σ →* Σ_n → Σ'` with `Σ_n.L(a).eᵢ = Σ.L(a).eᵢ` and `a ∈ dom(Σ_n.L)` by induction hypothesis. The single step `Σ_n → Σ'` gives `a ∈ dom(Σ'.L)` and `Σ'.L(a).eᵢ = Σ_n.L(a).eᵢ` by LP2, so by transitivity of equality the full chain holds.
+This is the reflexive-transitive closure of LP2 under the following schema, which we state once and reuse.
+
+*Closure schema (★).* Let `P(Σ, Σ')` be a finite conjunction of membership-persistence clauses (`x ∈ dom(Σ.X) ⟹ x ∈ dom(Σ'.X)`) and value-preservation clauses (`f(Σ') = f(Σ)`, each accessor `f` well-defined once its accompanying membership clause holds). If the single-step guarantee `Σ → Σ' ⟹ P(Σ, Σ')` holds, then so does its closure `Σ →* Σ' ⟹ P(Σ, Σ')`. Proof by induction on the length of the transition sequence: the empty sequence (`Σ = Σ'`) discharges every clause — memberships by reflexivity of `∈`, equalities by reflexivity of `=`; the inductive step `Σ →* Σ_n → Σ'` composes the induction hypothesis `P(Σ, Σ_n)` with the single step `P(Σ_n, Σ')` — memberships chain through `Σ_n`, value-equalities by transitivity of `=`.
+
+LP2★ is schema (★) applied to LP2, with `P(Σ, Σ') ≡ a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ`.
 
 **LP3 — CoverageInvariance**: For every transition `Σ → Σ'`, every link `a ∈ dom(Σ.L)`, and every slot `i`:
 ```
@@ -93,14 +97,14 @@ LP2 supplies both conjuncts: `a ∈ dom(Σ'.L)` directly (so the slot accessor o
 a ∈ dom(Σ'.L) ∧ coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)
 ```
 
-This is the reflexive-transitive closure of LP3. Proof by induction on the length of the transition sequence. The empty sequence (`Σ = Σ'`) gives equality trivially. For the inductive step, suppose `Σ →* Σ_n → Σ'` with `coverage(Σ_n.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` and `a ∈ dom(Σ_n.L)` by induction hypothesis. The single step `Σ_n → Σ'` gives `a ∈ dom(Σ'.L)` and `coverage(Σ'.L(a).eᵢ) = coverage(Σ_n.L(a).eᵢ)` by LP3, so by transitivity of equality the full chain holds.
+Schema (★) of LP2★ applied to LP3, with `P(Σ, Σ') ≡ a ∈ dom(Σ'.L) ∧ coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`.
 
 **Store Monotonicity★**: For every reachable state sequence `Σ →* Σ'`:
 ```
 dom(Σ.C) ⊆ dom(Σ'.C)  ∧  dom(Σ.L) ⊆ dom(Σ'.L)
 ```
 
-Each is the reflexive-transitive closure of the corresponding single-step monotonicity guarantee (C0 of ASN-0093 for content; L12 of ASN-0093 for links, in its membership-persistence consequence). The base case is the empty sequence (reflexive containment); the inductive step composes containments transitively.
+Schema (★) of LP2★ applied to the single-step monotonicity guarantees C0 of ASN-0093 (content) and L12 of ASN-0093 (links, in its membership-persistence consequence), with `P(Σ, Σ') ≡ dom(Σ.C) ⊆ dom(Σ'.C) ∧ dom(Σ.L) ⊆ dom(Σ'.L)` (the containment clauses are the set-valued instance of the schema's membership-persistence form).
 
 These invariants pin down what a link holder owns. Subsequent operations by any party — even the holder, even the original creator — cannot rewrite the endsets. The link is, in this strict sense, a permanent record.
 
@@ -115,7 +119,7 @@ A projection moves only if its inputs move. Since the endset (and therefore its 
 
 The projection function depends on exactly two inputs: `coverage(e)` and `Σ.M(d)`. The first is a pure function of the endset `e`, which appears unchanged on both sides of the equality — `coverage(e)` is therefore identical between the two projections. The second is the arrangement, equal by hypothesis. Both inputs agree pointwise, so the set comprehension produces identical results. The projection cannot displace without `Σ.M(d)` displacing.
 
-*Frame note.* LP4 quantifies `d` over `dom(Σ.M) ∩ dom(Σ'.M)` so that both sides of the hypothesis and conclusion are well-defined under the same membership obligation. Downstream uses instantiate `d ∈ dom(Σ.M)` and lift to the intersection via M1 (ASN-0093), `dom(Σ.M) ⊆ dom(Σ'.M)`.
+*Frame note.* LP4 quantifies `d` over `dom(Σ.M) ∩ dom(Σ'.M)` so that both sides of the hypothesis and conclusion are well-defined under the same membership obligation.
 
 **LP5 — Cross-Document Independence**: Every operation in the K.μ family (K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~) has frame `(A d' : d' ≠ d : M'(d') = M(d'))` — it modifies at most one document's arrangement per transition. By LP4 applied to each unmodified document:
 ```
@@ -142,7 +146,7 @@ Newly allocated I-addresses are invisible to projection until some subsequent K.
 
 Both K.σ (ASN-0093) and K.δ-IsDocument (ASN-0047) satisfy the document-registration form named in the hypothesis: both extend `dom(M)` by one fresh document, initialise the new document's arrangement to `∅`, and preserve every pre-existing arrangement pointwise. Their effects on the `Σ.M` component are structurally identical for the purposes of projection.
 
-Postcondition (a) follows by LP4 applied to each `d ∈ dom(Σ.M)`: the document-registration frame holds `Σ'.M(d) = Σ.M(d)` for every such `d`. Postcondition (b) follows from the definition of `project`: with `d_new ∈ dom(Σ'.M)` (so the projection is defined) and `dom(Σ'.M(d_new)) = ∅`, the set comprehension `{v ∈ dom(Σ'.M(d_new)) : Σ'.M(d_new)(v) ∈ coverage(e)}` ranges over the empty domain and is empty. Both postconditions are commitments — LP18 (resurrection) requires the well-defined empty projection through a newly-registered document until a K.μ⁺ or K.μ⁺_L fires; (a) and (b) together establish that no displacement occurs at registration time, neither at pre-existing documents nor at the new one.
+Postcondition (a) follows by LP4 applied to each `d ∈ dom(Σ.M)`: the document-registration frame holds `Σ'.M(d) = Σ.M(d)` for every such `d`. Postcondition (b) follows from the definition of `project`: with `d_new ∈ dom(Σ'.M)` (so the projection is defined) and `dom(Σ'.M(d_new)) = ∅`, the set comprehension `{v ∈ dom(Σ'.M(d_new)) : Σ'.M(d_new)(v) ∈ coverage(e)}` ranges over the empty domain and is empty.
 
 *Remark on K.δ.* K.δ-IsNode and K.δ-IsAccount have frame `M' = M`, so LP4 covers them; K.δ-IsDocument is the document-registration case of LP8.
 
@@ -163,9 +167,7 @@ The proof relies on exactly two structural facts about the post-state arrangemen
 
 Both K.μ⁺ and K.μ⁺_L (ASN-0047) supply (E1) and (E2) directly in their effect clauses, so the projection-level argument is identical for both: for any `v ∈ project(e, d, Σ)`, `v ∈ dom(Σ.M(d)) ⊆ dom(Σ'.M(d))` by (E1), and `Σ'.M(d)(v) = Σ.M(d)(v) ∈ coverage(e)` by (E2) and the definition of `project`, so `v ∈ project(e, d, Σ')`. The projection can only grow.
 
-*K.μ⁺_L's additional constraints leave (E1) and (E2) intact.* K.μ⁺_L imposes three constraints absent from K.μ⁺: (a) the target `ℓ` is a link address that must satisfy `ℓ ∉ ran(Σ.M(d))` (first-arrangement), (b) the new V-position has link-subspace depth `m_L(d) ≥ 2` — chosen at the value the subspace re-pins to (ASN-0047's `m_L(d)` definition), not fixed — and (c) the new V-position is link-subspace (`subspace(v_ℓ) = s_L`) rather than content-subspace. Each constraint *restricts* the set of admissible extensions but does not alter the structural form of any extension that is admitted.
-
-K.μ⁺_L's effect clause (ASN-0047) asserts `dom(Σ'.M(d)) = dom(Σ.M(d)) ∪ {v_ℓ} ⊃ dom(Σ.M(d))` — strict containment is part of the effect clause as stated by ASN-0047, so (E1) follows directly. The agreement clause `(A v ∈ dom(Σ.M(d)) : Σ'.M(d)(v) = Σ.M(d)(v))` follows from the same effect clause `M'(d) = M(d) ∪ {v_ℓ ↦ ℓ}`: the operation adds a new mapping at `v_ℓ` without disturbing existing entries, so (E2) holds. The constraints (a)–(c) affect which `ℓ` and which `v_ℓ` may appear in any specific K.μ⁺_L event, but they do not modify the way `Σ'.M(d)` relates to `Σ.M(d)` on the prior domain or how the domain grows. LP9's argument consumes only (E1) and (E2); it is invariant under these constraint-level differences.
+K.μ⁺_L's effect clause `M'(d) = M(d) ∪ {v_ℓ ↦ ℓ}` with `dom(Σ'.M(d)) ⊃ dom(Σ.M(d))` supplies (E1) and (E2) directly, so the argument above applies unchanged.
 
 The new V-positions that enter the projection are exactly the new arrangement entries whose I-addresses fall in the coverage:
 ```
@@ -286,7 +288,7 @@ The phrase "anything is left at each end" can now be stated formally: discoverab
 a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)
 ```
 
-The conclusion holds independently of `Σ.M`, `Σ'.M`, `dom(Σ.M)`, `dom(Σ'.M)`, and any document's range. By L12 (ASN-0043) applied step-wise along the sequence, the link's address persists and its endset sequence is byte-identical at every intermediate state. The hypothesis `a ∈ dom(Σ.L)` is the only requirement; the conclusion never consults whether `a` is discoverable from any document.
+LP2★ gives `a ∈ dom(Σ'.L)` and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` for every slot `i ∈ {1, …, |Σ.L(a)|}`, and fixes the arity `|Σ'.L(a)| = |Σ.L(a)|` (value preservation under L12 forces equal-length sequences). Slot-wise equality at every position of a common arity is full value equality, so `Σ'.L(a) = Σ.L(a)`. The conclusion holds independently of `Σ.M`, `Σ'.M`, `dom(Σ.M)`, `dom(Σ'.M)`, and any document's range; the hypothesis `a ∈ dom(Σ.L)` is the only requirement, and the conclusion never consults whether `a` is discoverable from any document.
 
 The architectural separation LP13 commits to is that *storage* and *navigability* are independently regulated. LP12 characterises when a link is discoverable (a property of `coverage ∩ ran`); LP13 says the link's stored object persists regardless (a property of `Σ.L` alone). In particular: an orphaned link (LP17, having empty coverage-range intersection in every document at `Σ'`) and a discoverable link are stored identically in `Σ'.L`; the architecture distinguishes them only at the navigability layer. The "anything is left at each end" condition characterises navigability from `d`, not the link's existence. A link holder can rely on the stored object permanently; the holder cannot rely on discoverability from any particular document without further conditions on that document's arrangement (LP9–LP11 govern how those conditions evolve).
 
@@ -417,7 +419,7 @@ s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)  ∧  (A t ∈ F : s ≤ t < s ⊕ ℓ : t ∈
 
 The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. The canonical-span requirement is *definitional*: a non-canonical span is fixed at false before any quantifier evaluation, so no state can render it tight. The first conjunct gives `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)`, whence `s ∈ F` by LP-Sub; together with the canonical shape `ℓ = δ(n, #s)` this discharges LP-Fin's hypotheses, so LP-Fin confines the universal quantifier to the finite set `F ∩ [s, s ⊕ ℓ)` and the predicate is decidable at every state. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state.
 
-*Achievability (under canonical-ℓ assumption).* **The analysis below restricts to canonical spans** (the canonical form `ℓ = δ(n, #s)` of the tight definition above); non-canonical spans fall outside the tight-endset domain, so achievability of tight construction addresses only canonical spans.
+*Achievability.* The analysis below restricts to canonical spans, per the tight definition's canonical-form requirement above.
 
 The non-empty case is reached by the canonical construction. Span endpoints are drawn from currently-allocated content, and the displacement is the canonical ordinal displacement `ℓ = δ(n, #s)`; by OrdinalDisplacement's postcondition, `actionPoint(ℓ) = #s`. The reach is set at or before the relevant chain's next emission point. By LP-Fin (in its canonical form), only finitely many `F`-candidates can interfere with any such span; LP-Fin Corollary identifies exactly which.
 
@@ -496,16 +498,6 @@ project(e₁, d, Σ) = project(e₂, d, Σ)
 ```
 
 The projection depends only on coverage, not on the span decomposition of the endset. Two endsets with the same coverage are interchangeable for projection purposes. This is a direct corollary of the definition: the set comprehension references `coverage(e)`, not the spans within `e`.
-
-## What the Link Holder Can Rely On
-
-The holder-facing guarantees established above are catalogued by operative lemma:
-
-- *Fixed under all transitions:* address persistence and value permanence (LP2★, LP3★, with L12 and S0 of ASN-0043/0036).
-- *Per-document discoverability:* governed afresh at each state by `coverage ∩ ran` (LP12); gained by transclusion (LP9, LP16, LP18), lost by deletion (LP10, LP12a).
-- *Projection shape and V-positions:* determined by the document's current arrangement (LP9, LP10, LP11).
-- *Provenance indifference:* discoverability never depends on which document created the link or allocated its content (LP12).
-- *Tight construction:* boundary insertion of newly allocated content cannot grow a tightly constructed link's reach (LP19).
 
 ## A Worked Trace
 
@@ -588,7 +580,7 @@ At no point during either branch of this trace did the link itself change. The l
 | LP18 | Resurrection: re-introducing a coverage I-address via K.μ⁺ or K.μ⁺_L restores discoverability | introduced |
 | tight | `tight(e, Σ_e)` ≡ every span `(s, ℓ) ∈ e` is canonical (`ℓ = δ(n, #s)` for some `n ≥ 1`), `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)`, and every substrate-emittable address in `[s, s ⊕ ℓ)` is allocated at `Σ_e`. Non-canonical spans are unconditionally non-tight at every state. | introduced |
 | LP-Sub | Substrate containment: `dom(Σ.C) ∪ dom(Σ.L) ⊆ F` at every reachable state — every allocated address is a sub-allocator chain element of structural form `[d, 0, s, k]`, hence in `F`. | introduced |
-| LP-Fin | Interval finitude (canonical): `(A s, ℓ : s ∈ F ∧ ℓ = δ(n, #s) for some n ≥ 1 : |F ∩ [s, s ⊕ ℓ)| < ∞)` — only finitely many `F`-candidates fall within any canonical span's reach. Non-canonical spans (any `ℓ ≠ δ(n, #s)`) are excluded from the tightness domain by its *definitional* canonical-form requirement, so the lemma covers only the canonical case. | introduced |
+| LP-Fin | Interval finitude (canonical): `(A s, ℓ : s ∈ F ∧ ℓ = δ(n, #s) for some n ≥ 1 : |F ∩ [s, s ⊕ ℓ)| < ∞)` — only finitely many `F`-candidates fall within any canonical span's reach. Covers only the canonical case (the tightness domain, per the tight definition's canonical-form requirement). | introduced |
 | LP-Fin Corollary | Canonical interval characterisation: for canonical `(s, ℓ)` with `s = [d_0, 0, X, k_s]` and `ℓ = δ(n, #s)`, `F ∩ [s, s ⊕ ℓ) = {[d_0, 0, X, k] : k_s ≤ k < k_s + n}` — every F-candidate in the interval inherits the span's subspace identifier `X` and origin `d_0`. | introduced |
 | LP19a | Tight freshness: under tight construction, K.α/K.λ-allocated addresses fall outside `coverage(e)` | introduced |
 | LP19 | Tight endset boundary exclusion: K.μ⁺/K.μ⁺_L mapping to such an address cannot grow `project(e, d, ·)` | introduced |
