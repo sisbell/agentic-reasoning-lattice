@@ -84,7 +84,7 @@ The union is disjoint by Lemma — SliceUniqueness, stated next. Where ambient s
 
 **Lemma — SliceUniqueness.** Each tuple address `a ∈ dom(Σ.L)` indexes exactly one slice `L_K^Σ`. *Proof.* `Σ.L` is a partial function `T ⇀ Link` (ASN-0043, Definition of LinkStore), so `a` carries a single value `Σ.L(a)`, hence a single slot-3 endset `Σ.L(a).e₃` and a single coverage class `[Σ.L(a).e₃]`; thus `a` lies in no two slices. ∎
 
-**Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`. The map is *into but not onto*: its image is exactly the standard-triple subset `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}` of the codomain `A_rel^Σ = dom(Σ.L)`.
+**Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`. The map is an *injection into* the codomain `A_rel^Σ = dom(Σ.L)`, with image exactly the standard-triple subset `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}`; it is *onto exactly when the store holds no higher-arity link* (when `dom(Σ.L)` contains no `a` with `|Σ.L(a)| > 3`, the image equals the whole codomain), and not necessarily onto otherwise.
 
 The address component `a` is what distinguishes this structure from the set-theoretic typed relation (a subset of `℘(A) × ℘(A)`, distinguished only by content): each tuple carries an address that participates in the relation's identity, which the content-only projection `(a, F, G) ↦ (coverage(F), coverage(G))` discards.
 
@@ -272,7 +272,7 @@ Nullify is the composition
 
 `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})`
 
-That is, emit a tuple into the retraction relation with empty from-set and a unit-depth to-span targeting `a`, homed at the caller-supplied `d_retr ∈ dom(Σ.M)` (P0). The to-span `(a, δ(1, #a))` is T12-well-formed for *any* tumbler `a` (`#a ≥ 1` by T0, `actionPoint(δ(1, #a)) = #a ≤ #a`), so R0 at `d_retr` emits the retraction triple `(∅, {(a, δ(1, #a))}, R)`, depositing a fresh emitter address `b` with `Σ'.L(b) = (∅, {(a, δ(1, #a))}, R)`. On the P1 path (`a ∈ A_rel^Σ`) this emission is exactly the instance of Corollary R5.1 at slot 2. *Effect:* when `P1 ∨ (a = a_emit(Σ, d_retr))` holds, `a ∈ nullified(Σ')`, persisting thereafter by R6a. This conditioned effect is the weakest precondition derived once in wp Case 1 (single-tuple scope), covering both the P1 case and the self-emit case `a = a_emit(Σ, d_retr)`; it is not re-derived here.
+That is, emit a tuple into the retraction relation with empty from-set and a unit-depth to-span targeting `a`, homed at the caller-supplied `d_retr ∈ dom(Σ.M)` (P0). The to-span `(a, δ(1, #a))` is T12-well-formed for *any* tumbler `a` (`#a ≥ 1` by T0, `actionPoint(δ(1, #a)) = #a ≤ #a`), so R0 at `d_retr` emits the retraction triple `(∅, {(a, δ(1, #a))}, R)`, depositing a fresh emitter address `b` with `Σ'.L(b) = (∅, {(a, δ(1, #a))}, R)`. *Effect:* the retractor `b` is added to `dom(Σ'.L)`; and when `a` lies in the to-coverage and in `A_rel^{Σ'}` — i.e. when `P1 ∨ (a = a_emit(Σ, d_retr))` holds — then `a ∈ nullified(Σ')`, persisting thereafter by R6a.
 
 **R-Scope — SingleTupleScope.** At every →*-reachable state Σ, for any `a ∈ A_rel^Σ` and any caller-supplied `d_retr ∈ dom(Σ.M)`, the `→`-step taken by `Nullify(Σ, d_retr, a) = Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` contributes exactly `a` to the nullified set:
 
@@ -284,9 +284,9 @@ where `(Σ', _) = Nullify(Σ, d_retr, a)`. The result is *arity-independent*: it
 
 **Definition — Unit-depth retraction discipline.** A state Σ is *unit-depth-disciplined* iff every `(b, F', G') ∈ L_R^Σ` has to-endset `G' = {(t, δ(1, #t))}` for some target `t ∈ A_rel^Σ`. Membership `t ∈ A_rel^Σ` is evaluated at the state Σ in question, not at any producing call's pre-state. A *layer* satisfies the *unit-depth retraction discipline* iff every state it reaches is unit-depth-disciplined.
 
-**Definition — relational layer.** The relational layer's link-store operations are `{Emit_K, Observe_K, Nullify}`, freely interleaved with the substrate's document- and content-allocation steps `K.σ` and `K.α` (which the layer does not itself rename but does not exclude — documents and content must be allocatable for any `Emit_K` to have a home). Its one discipline commitment governs only `Σ.L`-growing steps: the layer emits type-`R` tuples only via `Nullify` — it never invokes `Emit_K` at a type index `K ~ R` except through the `Nullify` alias.
+**Definition — relational layer.** The relational layer's link-store operations are `{Emit_K, Observe_K, Nullify}`. Its one *discipline commitment* constrains only the type-`R` growth of `Σ.L`: every `L_R`-growing step is a `Nullify` — the layer never invokes `Emit_K` at a type index `K ~ R` except through the `Nullify` alias. Everything else is unconstrained: the substrate's document- and content-allocation steps `K.σ` and `K.α` (which the layer does not rename but does not exclude — documents and content must be allocatable for any `Emit_K` to have a home) and non-`R` `Emit_K` steps may be freely interleaved.
 
-**Definition — layer-reachable.** A state is *layer-reachable* iff it is `→*`-reachable from `Σ_init` (Definition — Reachability) by a finite sequence of `→`-steps in which every `L_R`-growing K.λ step obeys the discipline commitment — i.e. is a `Nullify`. K.σ and K.α substrate steps, and non-`R` `Emit_K` steps, may be freely interleaved; only the type-`R` growth of `Σ.L` is constrained.
+**Definition — layer-reachable.** A state is *layer-reachable* iff it is `→*`-reachable from `Σ_init` (Definition — Reachability) by a finite sequence of `→`-steps each obeying the discipline commitment (Definition — relational layer).
 
 We discharge the *unit-depth retraction discipline* (Definition — Unit-depth retraction discipline) for every layer-reachable state by induction over such sequences. *Base:* `Σ_init.L = ∅`, so `L_R^{Σ_init} = ∅` and `Σ_init` is unit-depth-disciplined vacuously. *Step:* consider a transition `Σ → Σ'` from a unit-depth-disciplined layer-reachable Σ, split by the kind of step. A substrate step `K.σ` or `K.α` does not touch `Σ.L` (its K-operation frame leaves `Σ.L` fixed), so `L_R^{Σ'} = L_R^Σ` and the discipline carries over verbatim. A non-relational emission `Emit_K` at `K ≁ R` leaves the retraction slice unchanged, `L_R^{Σ'} = L_R^Σ`, and `Observe_K` is state-preserving — either way the discipline carries over. By the commitment, every transition that grows `L_R` is a `Nullify`, which adds the single tuple `(b, ∅, {(a, δ(1, #a))})`; its to-span is unit-depth with target `a ∈ A_rel^{Σ'}` (the retractor is deposited at `a` in the self-emit case, or `a` pre-exists in `A_rel^Σ ⊆ A_rel^{Σ'}` in the P1 case — per the Membership clause, target-residency is read at Σ'). L12a (LinkStoreMonotonicity, ASN-0043) keeps `a ∈ A_rel` at every later state, so the added tuple stays unit-depth-disciplined thereafter. Hence every layer-reachable state is unit-depth-disciplined.
 
@@ -315,7 +315,7 @@ The scope condition P2 (`|Σ.L(a)| = 3`) is consequently absent from the wp, by 
 
 *Case 2 — wp(Emit_K(Σ, d, F, G), "(a, F, G) ∈ A_K^{Σ'}").* The Definition of `Emit_K` guarantees `(a, F, G) ∈ L_K^{Σ'}` for the fresh emission unconditionally (K.λ deposits `(F, G, K)` at the chain-deterministic address `a`, which is then a member of `L_K^{Σ'}` by coverage-equivalence membership), but is silent on `(a, F, G) ∈ A_K^{Σ'}`, which turns on whether `a ∈ nullified(Σ')`. The post-state retraction slice depends on the K-relation: `L_R^{Σ'} = L_R^Σ ∪ {(a, F, G)}` when `K ~ R`, and `L_R^{Σ'} = L_R^Σ` when `K ≁ R`. The address `a` that `Emit_K(Σ, d, F, G)` deposits is exactly `a_emit(Σ, d)` (Definition — `a_emit`, Allocator Structure).
 
-*Result.* Over the layer-reachable states (Definition — layer-reachable: `→*`-reachable from `Σ_init` with K.σ/K.α/non-`R` substrate steps freely interleaved and every `L_R`-growing step a `Nullify`) — so document and content allocation that enable `Emit_K`'s home are in scope — the weakest precondition is
+*Result.* Over the layer-reachable states (Definition — layer-reachable) — so document and content allocation that enable `Emit_K`'s home are in scope — the weakest precondition is
 
 `wp(Emit_K(Σ, d, F, G), (a, F, G) ∈ A_K^{Σ'}) ≡ d ∈ dom(Σ.M) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))`   (over layer-reachable Σ; `K` is an index, not a free wp variable)
 
@@ -420,7 +420,7 @@ Thus the fresh tuple lies in `L_R^{Σ_4}` (audit) but not in `A_R^{Σ_4}` (opera
 | ~ | DEF | TypeEquivalence: `K ~ K' ≡ coverage(K) = coverage(K')` — coverage-equivalence on admissible types (= L8 lifted) |
 | L_K^Σ | DEF | Typed relation (coverage-class slice): `{(a, F, G) : a ∈ dom(Σ.L) ∧ |Σ.L(a)| = 3 ∧ Σ.L(a).e₁ = F ∧ Σ.L(a).e₂ = G ∧ coverage(Σ.L(a).e₃) = coverage(K)}` |
 | L^Σ | DEF | Standard-triple link store: `⨆_{[K] ∈ T_admissible / ~} L_K^Σ` |
-| addr | DEF | Map `(a, F, G) ↦ a : L^Σ → A_rel^Σ`, into but not onto — image is the arity-3 slice `{a : |Σ.L(a)| = 3}` |
+| addr | DEF | Map `(a, F, G) ↦ a : L^Σ → A_rel^Σ`, injection into codomain — image is the arity-3 slice `{a : |Σ.L(a)| = 3}`; onto exactly when no higher-arity link is present |
 | nullified(Σ) | DEF | Tuple addresses targeted by some `L_R^Σ` to-set |
 | A_K^Σ | DEF | Active subset: `{(a, F, G) ∈ L_K^Σ : a ∉ nullified(Σ)}` |
 | → | DEF | Dom-extending state transition relation `→ ≡ K.σ ∪ K.α ∪ K.λ` |
