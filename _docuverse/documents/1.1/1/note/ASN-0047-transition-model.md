@@ -355,7 +355,7 @@ Therefore no v ∈ V_S(d) has an inner position ≥ 2: every v has `v_j = 1` for
 
 The two cases together cover every reachable state under S8a + S8-depth. The canonical form for D-SEQ★ thus reads `{[S, k] : 1 ≤ k ≤ n_S}` at m = 2 and `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S}` at m ≥ 3 (with the inner "1, ..., 1" segment of length `m - 2`); the consolidated statement at the head of this definition uses the m ≥ 3 spelling and silently degenerates to the m = 2 form when the inner segment has length zero.
 
-**K.μ⁻ amendment (PerSubspaceScope).** In the extended state, K.μ⁻'s D-CTG / D-MIN postconditions read as the per-subspace forms D-CTG★ / D-MIN★; the contraction shape and its per-subspace strict-contraction clause are as stated at K.μ⁻'s definition.
+**K.μ⁻ amendment (PerSubspaceScope).** The extended state adds the link-store frame clause `L' = L`; K.μ⁻'s contraction shape and per-subspace postconditions are unchanged from its elementary definition.
 
 *Frame (extended state).* `C' = C; L' = L; E' = E; R' = R; (A d' : d' ≠ d : M'(d') = M(d'))`.
 
@@ -532,8 +532,6 @@ Every document's link-subspace arrangement contains only its own links. K.μ⁺_
   `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ subspace(v₁) = s_L ∧ subspace(v₂) = s_L ∧ M(d)(v₁) = M(d)(v₂) : v₁ = v₂)`
 
 Equivalently, `M(d)|_{dom_L}` is a partial injection from V-positions to link addresses.
-
-**Link V-position permanence.** K.μ~ clause (v)'s link-subspace fixity binds a single K.μ~ transition only and is not a lifetime guarantee; link *identity* permanence — the address and value of an existing link — is discharged independently of arrangement order on `dom(L)` by L12.
 
 
 ## Decomposition of K.μ~
