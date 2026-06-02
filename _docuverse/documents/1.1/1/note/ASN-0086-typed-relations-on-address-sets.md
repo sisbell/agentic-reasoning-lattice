@@ -78,13 +78,13 @@ Each member is a triple of (tuple-address, from-endset, to-endset). The pair `(F
 
 `L^Σ = ⨆_{[K] ∈ T_admissible / ~} L_K^Σ`
 
-The union is disjoint by Lemma — SliceUniqueness, stated next. Where ambient state is clear we drop the superscript and write `L_K`, `L`. Coverage-equivalence at the type slot aligns `L_K` with L8's same-type relation, which also projects through coverage.
+The union is disjoint by Lemma — SliceUniqueness, stated next. Where ambient state is clear we drop the superscript and write `L_K`, `L`.
 
 *Notation — subscript read modulo `~`.* Since the slot-3 criterion tests `coverage(Σ.L(a).e₃) = coverage(K)`, any `K ~ K'` induces `L_K^Σ = L_{K'}^Σ`; the subscript is a *coverage-class* index, depending only on `[K]`.
 
 **Lemma — SliceUniqueness.** Each tuple address `a ∈ dom(Σ.L)` indexes *at most one* slice `L_K^Σ`. *Proof.* `Σ.L` is a partial function `T ⇀ Link` (ASN-0043, Definition of LinkStore), so `a` carries a single value `Σ.L(a)`, hence a single slot-3 endset `Σ.L(a).e₃` and a single coverage class `[Σ.L(a).e₃]`; thus `a` lies in no two slices. ∎
 
-**Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`. The map is an injection, with image the arity-3 slice `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}` of the codomain `A_rel^Σ = dom(Σ.L)`.
+**Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`, with codomain `A_rel^Σ = dom(Σ.L)` and image the arity-3 slice `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}`. That `addr` is an injection is R1 (AddressInjectivity), below.
 
 
 ## Tuple Identity (R0, R1, R2)
@@ -175,7 +175,7 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 *(Step 4 — From-set case by parallel emission.)* The from-set case is symmetric. The triple `(G_self, ∅, K)` is L3-conforming (Value-shape consequence, R0), as in Step 3 with the content slots swapped. R0 applied at home `d` yields a fresh emitter address `a''` with conforming post-state Σ'' satisfying `Σ''.L(a'') = (G_self, ∅, K)` and `a ∈ coverage(Σ''.L(a'').e₁)` — the from-set case. ∎
 
-*Corollary R5.1 — SelfTargetingEmission.* For any `a ∈ A_rel^Σ`, either *content slot* — from-set (slot 1) or to-set (slot 2) — and any caller-supplied home `d ∈ dom(Σ.M)`, R0 emits at a fresh `A_rel` address a triple carrying the unit-depth span `(a, δ(1, #a))` in the chosen content slot (by Steps 3–4: Step 3 places the span in the to-set, Step 4 in the from-set, each via R0's emission at the L3-conforming triple). The type slot (slot 3) is excluded: R5 proves only the content slots, and placing `(a, δ(1, #a))` in slot 3 would alter the link's type endset — hence its coverage class — a materially different claim outside R5's scope.
+*Corollary R5.1 — SelfTargetingEmission (content slots only).* For any `a ∈ A_rel^Σ`, either *content slot* — from-set (slot 1) or to-set (slot 2) — and any caller-supplied home `d ∈ dom(Σ.M)`, R0 emits at a fresh `A_rel` address a triple carrying the unit-depth span `(a, δ(1, #a))` in the chosen content slot (by Steps 3–4: Step 3 places the span in the to-set, Step 4 in the from-set, each via R0's emission at the L3-conforming triple).
 
 *Consequence.* Self-targeting is what makes the Nullify operation of *Three Operations* possible — a tuple that names another tuple's address in an endset slot, emitted without mutating any existing entry.
 
