@@ -569,7 +569,7 @@ There is no exception, no error, no fallback. The empty per-subspace family (V-r
 
 **Postcondition.** By F-subspace, `subspace(v₁) = subspace_I(M(d)(v₁)) = subspace_I(a)` and `subspace(v₂) = subspace_I(M(d)(v₂)) = subspace_I(a)`, so `subspace(v₁) = subspace(v₂) = subspace_I(a)` — both V-positions inhabit the same subspace. Writing `S := subspace_I(a)`, both `v₁ ∈ ⟦Σ_V^S⟧_V` and `v₂ ∈ ⟦Σ_V^S⟧_V`.
 
-**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-subspace (this ASN); S3★-aux (SubspaceExhaustiveness, ASN-0047).
+**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-subspace (this ASN); S3★-aux (SubspaceExhaustiveness, ASN-0047); S5 (UnrestrictedSharing, ASN-0036) — premise of the structural-admissibility half of the claim.
 
 **Frame.** No state modification.
 
@@ -697,7 +697,7 @@ What concurrency semantics, if any, must `follow` guarantee when the document be
 
 Under what conditions, if any, must the result of `follow(ℓ, d, i)` and `follow(ℓ, d', i)` be related when `d` and `d'` share transclusion lineage — that is, when significant portions of their arrangements reference the same I-addresses?
 
-What must the system promise about ordering of the returned canonical span-set — is the canonical V-tumbler order under T1 required, or is any equivalent denotation admissible?
+The operation itself promises only denotational equivalence (any `Σ_V` with `⟦Σ_V^S⟧_V = R(d, e)|_S`), leaving canonical T1-sorted form optional — but must a downstream system-level contract that consumes a `follow` result, such as a citation or a stable archival reference, mandate canonical form so that the same query yields a bit-identical externally-quotable artifact?
 
 When `coverage(L(ℓ).eᵢ)` is unbounded in cardinality (an endset spanning a very long region of I-space), what must the system guarantee about the result's representational compactness — must the per-subspace family be in canonical form, or is any finite representation admissible regardless of redundancy?
 
