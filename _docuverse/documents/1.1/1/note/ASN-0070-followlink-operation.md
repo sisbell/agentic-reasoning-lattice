@@ -446,6 +446,40 @@ The V-restricted denotation is `⟦Σ_V^{s_C}⟧_V = {[1,2], [1,3], [1,6], [1,7]
 
 This configuration exercises fragmentation end-to-end: one contiguous endset I-span resolving to two disjoint, non-adjacent V-spans, with F-contig's offset machinery instantiated at `j > 0, c < n` on `β_P` and again at `j = 0, c < n` on `β_R`. No fragmentation-specific logic is invoked; the two-run result is a direct consequence of the per-block decomposition meeting a coverage that skips the intervening block `β_Q`.
 
+**Seventh configuration — cross-subspace straddle (both result components non-empty).** The six configurations above each yield a *single*-component result: configs 1, 2, 6 populate only `Σ_V^{s_C}` (with `Σ_V^{s_L} = ⟨⟩`), config 5 populates only `Σ_V^{s_L}` (with `Σ_V^{s_C} = ⟨⟩`), and configs 3, 4 leave both empty. None exercises the case in which a single endset's coverage straddles *both* I-subspaces — meeting `dom(C)` and `dom(L)` at once — so that the result is a genuine *pair* with `Σ_V^{s_C} ≠ ⟨⟩` *and* `Σ_V^{s_L} ≠ ⟨⟩`. This is the configuration in which F0's `⊎` partition, F-subspace's two-way decomposition (`R|_{s_C} = M(d)⁻¹(coverage ∩ dom(C))`, `R|_{s_L} = M(d)⁻¹(coverage ∩ dom(L))`), and the joint-denotation disjointness `⟦Σ_V⟧_V := ⟦Σ_V^{s_C}⟧_V ⊎ ⟦Σ_V^{s_L}⟧_V` are all non-trivially exercised with *both* parts populated. We construct it here.
+
+Return to the pre-state arrangement `M(d)` of Configuration 1 — in which the content address `a₀` is arranged at the two content-subspace V-positions `[1, 1]` and `[1, 6]` (blocks `β₂`, `β₃`), and the link address `ℓ₀` is arranged at the link-subspace V-position `[2, 1]` (block `β_L`). By L4 (ASN-0043), a *single* endset may carry both a content span and a link span; let the followed endset reference `a₀` through a content span and `ℓ₀` through a link span:
+
+```
+L(ℓ).e₁ = {(a₀, δ(1, m_a)), (ℓ₀, δ(1, m_a))}
+```
+
+so that `coverage(L(ℓ).e₁) = {a₀} ∪ {ℓ₀} = {a₀, ℓ₀}`, with `a₀ ∈ dom(C)` and `ℓ₀ ∈ dom(L)` (the cross-subspace endset admitted by L4(c), ASN-0043). The two-way split of coverage is `coverage ∩ dom(C) = {a₀}` and `coverage ∩ dom(L) = {ℓ₀}` (disjoint by L14, StoreDisjointness, ASN-0047) — both non-empty, which is exactly what forces both result components.
+
+Process each block against the endset:
+
+- `β₁ = ([1, 4], a₁ + 1, 2)`: `I(β₁) = {a₁ + 1, a₁ + 2}`, disjoint from `{a₀, ℓ₀}` (distinct allocators per GlobalUniqueness; `dom(C)`/`dom(L)` separation by L14). No contribution.
+- `β₂ = ([1, 1], a₀, 3)`: `I(β₂) = {a₀, a₀ + 1, a₀ + 2}`. Intersection with `{a₀, ℓ₀}` is `{a₀}` — index 0 of `β₂`. Offset `j = 0`, width `c = 1`. V-run: `[1, 1]`, recorded as the content-subspace V-span `([1, 1], δ(1, 2))`.
+- `β₃ = ([1, 6], a₀, 1)`: `I(β₃) = {a₀}`. Intersection with `{a₀, ℓ₀}` is `{a₀}` — index 0. Offset `j = 0`, width `c = 1`. V-run: `[1, 6]`, recorded as the content-subspace V-span `([1, 6], δ(1, 2))`.
+- `β_L = ([2, 1], ℓ₀, 1)`: `I(β_L) = {ℓ₀}`. Intersection with `{a₀, ℓ₀}` is `{ℓ₀}` — index 0. Offset `j = 0`, width `c = 1`. V-run: `[2, 1]`, recorded as the link-subspace V-span `([2, 1], δ(1, 2))`.
+
+**Result.** `Σ_V^{s_C} = ⟨([1, 1], δ(1, 2)), ([1, 6], δ(1, 2))⟩` (two spans, in sorted order); `Σ_V^{s_L} = ⟨([2, 1], δ(1, 2))⟩` (one span). Both components non-empty:
+
+```
+follow(ℓ, d, 1) = (d, (⟨([1, 1], δ(1, 2)), ([1, 6], δ(1, 2))⟩, ⟨([2, 1], δ(1, 2))⟩))
+```
+
+The V-restricted denotations are `⟦Σ_V^{s_C}⟧_V = {[1, 1], [1, 6]}` at content-subspace depth 2 and `⟦Σ_V^{s_L}⟧_V = {[2, 1]}` at link-subspace depth 2.
+
+- *F-sound.* All three resolved V-positions are in `dom(M(d))`. `M(d)([1, 1]) = a₀ ∈ coverage`, `M(d)([1, 6]) = a₀ ∈ coverage`, `M(d)([2, 1]) = ℓ₀ ∈ coverage`. No spurious V-position appears in either component. ✓
+- *F-complete.* The V-positions `v ∈ dom(M(d))` with `M(d)(v) ∈ {a₀, ℓ₀}` are exactly `[1, 1] (→ a₀)`, `[1, 6] (→ a₀)`, and `[2, 1] (→ ℓ₀)`. The non-qualifying positions map outside coverage: `[1, 2] → a₀ + 1`, `[1, 3] → a₀ + 2`, `[1, 4] → a₁ + 1`, `[1, 5] → a₁ + 2`. All three qualifying positions appear in the appropriate component; none is omitted. ✓
+- *F-subspace (content branch).* `R(d, e)|_{s_C} = M(d)⁻¹(coverage ∩ dom(C)) = M(d)⁻¹({a₀}) = {[1, 1], [1, 6]} = ⟦Σ_V^{s_C}⟧_V`. Each `M(d)([1, 1]) = M(d)([1, 6]) = a₀ ∈ dom(C)`, so `subspace_I(a₀) = s_C` (L0, ASN-0047) — matching `subspace([1, 1]) = subspace([1, 6]) = 1 = s_C`. ✓
+- *F-subspace (link branch).* `R(d, e)|_{s_L} = M(d)⁻¹(coverage ∩ dom(L)) = M(d)⁻¹({ℓ₀}) = {[2, 1]} = ⟦Σ_V^{s_L}⟧_V`. `M(d)([2, 1]) = ℓ₀ ∈ dom(L)`, so `subspace_I(ℓ₀) = s_L` — matching `subspace([2, 1]) = 2 = s_L`. The reverse direction (S3★-aux + L14) places `[2, 1]` in the `s_L`-component, not the `s_C`-component. ✓
+- *Joint-denotation disjointness.* `⟦Σ_V⟧_V = ⟦Σ_V^{s_C}⟧_V ⊎ ⟦Σ_V^{s_L}⟧_V = {[1, 1], [1, 6]} ⊎ {[2, 1]}`. With *both* parts populated, the `⊎` is non-trivially exercised: the disjointness is witnessed by the subspace clause of the V-restriction (every element of the first set has first component `1`, every element of the second has first component `2`; `s_C ≠ s_L` by SC-NEQ), so no V-position lies in both. This matches F0's own partition `R(d, e) = R(d, e)|_{s_C} ⊎ R(d, e)|_{s_L} = {[1, 1], [1, 6]} ⊎ {[2, 1]}`. ✓
+- *F-multi.* Also exercised on the content branch: the single I-address `a₀` resolves to the two distinct V-positions `[1, 1]` and `[1, 6]`, both included. ✓
+
+This configuration confirms the central novelty of the per-subspace family: a single endset straddling both I-subspaces resolves to a pair whose two components are simultaneously non-empty, with F0's `⊎`, F-subspace's two-way decomposition, and the joint-denotation disjointness all acting together with both parts populated — none of which the single-component configurations 1 and 5 establish jointly.
+
 ## Sub-cases as One Phenomenon
 
 The three results commonly distinguished — *multiple occurrences*, *fragmentation*, and *empty resolution* — are not three separate cases requiring distinct handling. They are the same definition observed under different arrangement configurations.
