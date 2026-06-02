@@ -2,7 +2,7 @@
 
 *Source: ASN-0070-followlink-operation.md (revised 2026-05-25) — Extracted: 2026-06-02*
 
-## Definition — EndsetCoverage
+## Definition — Coverage
 
 ```
 coverage(e) = ⋃_{σ ∈ e} ⟦σ⟧
@@ -10,27 +10,21 @@ coverage(e) = ⋃_{σ ∈ e} ⟦σ⟧
 
 where `⟦σ⟧` is the I-coverage of span `σ` (T12, ASN-0034). The coverage is a subset of `T`, fixed at link creation and immutable thereafter.
 
----
-
 ## Definition — SubspaceProjection
 
-For `R(d, e)`, the per-subspace restriction:
+For `S ∈ {s_C, s_L}`:
 
 ```
-R(d, e)|_S := {v ∈ R(d, e) : subspace(v) = S}    for S ∈ {s_C, s_L}
+R(d, e)|_S := {v ∈ R(d, e) : subspace(v) = S}
 ```
-
----
 
 ## Definition — VRestrictedDenotation
 
-When `m_S(d)` is defined (subspace `S` non-empty), for a span-set `Σ_V^S` whose components are level-uniform at V-position depth `m_S(d)` in subspace `S`:
+When `m_S(d)` is defined, for a span-set `Σ_V^S` whose components are level-uniform at V-position depth `m_S(d)` in subspace `S`:
 
 ```
 ⟦Σ_V^S⟧_V := { t ∈ ⟦Σ_V^S⟧ : subspace(t) = S ∧ #t = m_S(d) ∧ (A i : 1 ≤ i ≤ m_S(d) : t_i ≥ 1) }
 ```
-
-When `m_S(d)` is undefined (`V_S(d) = ∅`), `⟦⟨⟩⟧_V := ∅`.
 
 For the full family `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})`:
 
@@ -38,25 +32,23 @@ For the full family `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})`:
 ⟦Σ_V⟧_V := ⟦Σ_V^{s_C}⟧_V ⊎ ⟦Σ_V^{s_L}⟧_V
 ```
 
----
+When `m_S(d)` is undefined (i.e., `V_S(d) = ∅`): `Σ_V^S = ⟨⟩` and `⟦⟨⟩⟧_V := ∅`.
 
 ## Definition — ConsecutiveTumblers
 
 For depth-`m_S(d)` subspace-`S` tumblers `t < t'`, `t` and `t'` are *consecutive* iff no depth-`m_S(d)` subspace-`S` tumbler `t''` satisfies `t < t'' < t'` under T1.
 
-Characterisation: consecutivity holds iff `t_i = t'_i` for `1 ≤ i < m_S(d)` and `t'_m = t_m + 1`.
-
----
+**Characterisation.** For depth-`m_S(d)` subspace-`S` tumblers `t < t'`, consecutivity holds iff `t_i = t'_i` for `1 ≤ i < m_S(d)` and `t'_m = t_m + 1`.
 
 ## Definition — MaximalRun
 
-A *maximal run* in a set `X` of depth-`m_S(d)` subspace-`S` tumblers is a maximal subset of `X` whose elements can be ordered `t_0 < t_1 < ... < t_{c-1}` with each `t_i` consecutive to `t_{i+1}`. Every element of `X` lies in exactly one maximal run (the consecutivity relation decomposes `X` into disjoint chains).
+A *maximal run* in a set `X` of depth-`m_S(d)` subspace-`S` tumblers is a maximal subset of `X` that forms a chain under the consecutivity relation — its elements can be ordered `t_0 < t_1 < ... < t_{c-1}` with each `t_i` consecutive to `t_{i+1}`.
 
 ---
 
 ## F0 — InverseImageRelation (DEF)
 
-**Domain.** `d ∈ E_doc`; `e` is an endset — a finite set of well-formed I-spans (L3, ASN-0043). `coverage(e) ⊆ T` is the union of span coverages.
+**Domain.** `d ∈ E_doc`; `e` is an endset — a finite set of well-formed I-spans. `coverage(e) ⊆ T` is the union of span coverages.
 
 **Definition.**
 
@@ -90,6 +82,12 @@ The partition is disjoint (subspace is single-valued per the first-component pro
 ⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S    for each S ∈ {s_C, s_L}
 ```
 
+**V-restricted denotation.**
+
+```
+⟦Σ_V^S⟧_V := {t ∈ ⟦Σ_V^S⟧ : subspace(t) = S ∧ #t = m_S(d) ∧ (A i : 1 ≤ i ≤ m_S(d) : t_i ≥ 1)}
+```
+
 **Frame.** `Σ' = Σ`. No component of state is modified.
 
 ---
@@ -102,16 +100,16 @@ The partition is disjoint (subspace is single-valued per the first-component pro
 - `subspace(v) = s_C ⟹ subspace_I(M(d)(v)) = s_C`
 - `subspace(v) = s_L ⟹ subspace_I(M(d)(v)) = s_L`
 
-**Consequence.**
+**Consequence.** The subspace projection of `R` decomposes by I-subspace:
 
 ```
 R(d, e)|_{s_C} = M(d)⁻¹(coverage(e) ∩ dom(C))
 R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))
 ```
 
-The biconditional `subspace(v) = s_C ⟺ M(d)(v) ∈ dom(C)` holds for `v ∈ dom(M(d))`:
-- Forward (`subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`): direct from S3★ (GeneralizedReferentialIntegrity, ASN-0047).
-- Reverse (`M(d)(v) ∈ dom(C) ⟹ subspace(v) = s_C`): by S3★-aux + L14 (StoreDisjointness, ASN-0047): `dom(C) ∩ dom(L) = ∅`.
+The biconditional `subspace(v) = s_C ⟺ M(d)(v) ∈ dom(C)` for `v ∈ dom(M(d))` holds by case analysis:
+- *Forward* (`subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`): direct from S3★ (GeneralizedReferentialIntegrity, ASN-0047).
+- *Reverse* (`M(d)(v) ∈ dom(C) ⟹ subspace(v) = s_C`): by S3★-aux, `subspace(v) ∈ {s_C, s_L}`; if `subspace(v) = s_L` then by S3★, `M(d)(v) ∈ dom(L)`, contradicting `M(d)(v) ∈ dom(C)` via L14 (StoreDisjointness: `dom(C) ∩ dom(L) = ∅`).
 
 **Frame.** State-pure.
 
@@ -121,32 +119,31 @@ The biconditional `subspace(v) = s_C ⟺ M(d)(v) ∈ dom(C)` holds for `v ∈ do
 
 The canonical form of `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` is the per-subspace family in which:
 
-(i) Each component span in each `Σ_V^S` has start `s` with `#s = m_S(d)`, `subspace(s) = S`, and `(A i : 1 ≤ i ≤ m_S(d) : s_i ≥ 1)` (so `s` is an admissible V-position by S8a), and width of the form `δ(c, m_S(d)) = [0, ..., 0, c]` — an *ordinal displacement* of depth `m_S(d)`.
+(i) Each component span in each `Σ_V^S` has start `s` with `#s = m_S(d)`, `subspace(s) = S`, and `(A i : 1 ≤ i ≤ m_S(d) : s_i ≥ 1)` (so `s` is an admissible V-position by S8a), and width of the form `δ(c, m_S(d))` — an *ordinal displacement* of depth `m_S(d)`.
 
 (ii) Each component `Σ_V^S` is in the unique normalised form guaranteed by S9 (NormalizationUniqueness, ASN-0053) — sorted by V-start under T1, with no overlapping or adjacent spans.
 
 (iii) The two components are presented in a fixed external order: `s_C`-component first, `s_L`-component second.
 
-When `m_S(d)` is undefined (either subspace `S ∈ {s_C, s_L}` with `V_S(d) = ∅`), the canonical form is `Σ_V^S = ⟨⟩`.
+When `m_S(d)` is undefined (either subspace `S ∈ {s_C, s_L}` with `V_S(d) = ∅`), the canonical form is `Σ_V^S = ⟨⟩` by the V-restricted denotation convention.
 
 ---
 
 ## F-canonical — CanonicalUniqueness (THM)
 
-**Statement.** Given `R(d, e)`, there exists exactly one per-subspace family satisfying the canonical-form shape of F-canon-form.
+Given `R(d, e)`, there exists exactly one per-subspace family satisfying the canonical-form shape of F-canon-form.
 
-**Step 1 — Level-uniformity and ordinal-displacement widths.** Component widths are restricted to ordinal displacements `δ(c, m_S(d))`. The restriction is forced by finiteness and subspace-confinement of `⟦σ⟧_V` for each component `σ = (s, ℓ)` with `#s = #ℓ = m_S(d)`, `subspace(s) = S`, and `s` positive, by case analysis on `k = actionPoint(ℓ)`:
+**Existence.** Each subspace component is built by partitioning `R(d, e)|_S` into maximal runs of consecutive tumblers and mapping each run to an ordinal-displacement span; the normalised existence of which S8 (NormalizationExistence, ASN-0053) underwrites.
 
-- Case `1 ≤ k < m_S(d)`: `⟦σ⟧_V` is infinite (unbounded last component), excluded by finiteness.
-- Case `k = m_S(d)`: `ℓ = δ(ℓ_m, m_S(d))`, and `⟦σ⟧_V = {[s_1, ..., s_{m-1}, s_m + j] : 0 ≤ j < ℓ_m}` — finite, cardinality `ℓ_m`.
+**Uniqueness.** Ordinal-displacement widths are forced by finite V-restricted denotation + subspace confinement (case analysis on `actionPoint(ℓ)`: only `k = m_S(d)` produces finite `⟦σ⟧_V`); the bridge `⟦·⟧_V` determines `⟦·⟧` (for canonical-form spans, `s = min(⟦σ⟧_V)` and `c = |⟦σ⟧_V|` are recoverable), lifting S9 to V-restricted equivalence; fixed external ordering (`s_C` first, `s_L` second) pins down family form.
 
-**Step 2 — Uniqueness via V-restricted ↔ full bridge.** For a component span `σ = (s, δ(c, m_S(d)))` with positive-component start, `s = min(⟦σ⟧_V)` (by T12(b)) and `|⟦σ⟧_V| = c`, so `(s, c)` is recoverable from `⟦σ⟧_V`. Hence same `⟦·⟧_V` implies same `⟦·⟧`, and S9 (NormalizationUniqueness, ASN-0053) lifts to V-restricted equivalence. The normalised span-set per subspace is unique.
+**Ordinal displacement characterisation.** For `σ = (s, δ(c, m_S(d)))` with `#s = m_S(d)`, `subspace(s) = S`, and `s` positive:
 
-**Step 2a — Existence.** Partition `R(d, e)|_S` into maximal runs of consecutive tumblers. Each run `{[w_1, ..., w_{m-1}, b + i] : 0 ≤ i < c}` maps to span `σ := (t_0, δ(c, m))` with `t_0 = min(run)`. The resulting `Σ_0` is normalised (N1 by construction; N2 by maximality of runs and run-disjointness). Hence a canonical form exists.
+```
+⟦σ⟧_V = {[s_1, ..., s_{m-1}, s_m + j] : 0 ≤ j < c}
+```
 
-**Step 3 — Family-level ordering.** The fixed external convention (`s_C`-component first, then `s_L`-component) removes remaining ambiguity at the family level.
-
-**Conclusion.** Given `R(d, e)`, the canonical form is uniquely determined.
+with `|⟦σ⟧_V| = c` (finite), and `s = min(⟦σ⟧_V)`.
 
 ---
 
@@ -178,7 +175,9 @@ The V-restricted denotation is uniquely determined by `Σ`, `ℓ`, `d`, `i`. The
 v ∈ dom(M(d))  ∧  M(d)(v) ∈ coverage(L(ℓ).eᵢ)
 ```
 
-**Depends.** The postcondition of `follow` (F1); the definition of `R(d, e)` (F0).
+Equivalently: `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S`.
+
+**Depends.** Postcondition of `follow` (F1); definition of `R(d, e)` (F0).
 
 **Frame.** No state modification.
 
@@ -194,7 +193,9 @@ v ∈ dom(M(d))  ∧  M(d)(v) ∈ coverage(L(ℓ).eᵢ)
 v ∈ ⟦Σ_V^S⟧_V    for S = subspace(v)
 ```
 
-**Depends.** The postcondition of `follow` (F1); the definition of `R(d, e)` (F0).
+Equivalently: `R(d, L(ℓ).eᵢ)|_S ⊆ ⟦Σ_V^S⟧_V`.
+
+**Depends.** Postcondition of `follow` (F1); definition of `R(d, e)` (F0).
 
 **Frame.** No state modification.
 
@@ -218,7 +219,7 @@ Under canonical form, both components are the empty span-set:
 
 The operation succeeds and returns `(d, (Σ_V^{s_C}, Σ_V^{s_L}))` with both V-restricted denotations empty.
 
-**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1). For the representational conclusion under canonical form: F-canonical and S9 (NormalizationUniqueness, ASN-0053).
+**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-canonical; S9 (NormalizationUniqueness, ASN-0053).
 
 **Frame.** No state modification.
 
@@ -228,19 +229,20 @@ The operation succeeds and returns `(d, (Σ_V^{s_C}, Σ_V^{s_L}))` with both V-r
 
 **Preconditions.** As `follow`; additionally `v₁, v₂ ∈ dom(M(d))` with `v₁ ≠ v₂` and `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)`.
 
-**Postcondition.** By F-subspace, `subspace(v₁) = subspace_I(M(d)(v₁)) = subspace_I(a)` and `subspace(v₂) = subspace_I(M(d)(v₂)) = subspace_I(a)`, so:
+**Postcondition.** By F-subspace:
 
 ```
-subspace(v₁) = subspace(v₂) = subspace_I(a) =: S
+subspace(v₁) = subspace_I(M(d)(v₁)) = subspace_I(a)
+subspace(v₂) = subspace_I(M(d)(v₂)) = subspace_I(a)
 ```
 
-Writing `S := subspace_I(a)`:
+so `subspace(v₁) = subspace(v₂) = subspace_I(a)`. Writing `S := subspace_I(a)`:
 
 ```
 v₁ ∈ ⟦Σ_V^S⟧_V  ∧  v₂ ∈ ⟦Σ_V^S⟧_V
 ```
 
-**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-subspace; S3★-aux (SubspaceExhaustiveness, ASN-0047); K.μ⁺ (ArrangementExtension, ASN-0047) — content-side non-injectivity underwrites reachability of the hypothesis; S5 (UnrestrictedSharing, ASN-0036) — abstract-cardinality point only.
+**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-subspace; S3★-aux (SubspaceExhaustiveness, ASN-0047); K.μ⁺ (ArrangementExtension, ASN-0047) — content-side non-injectivity ensures hypothesis is reachable; S5 (UnrestrictedSharing, ASN-0036) — abstract-cardinality point only.
 
 **Frame.** No state modification.
 
@@ -250,15 +252,15 @@ v₁ ∈ ⟦Σ_V^S⟧_V  ∧  v₂ ∈ ⟦Σ_V^S⟧_V
 
 **Preconditions.** As `follow`.
 
-**Postcondition.**
+**Postcondition.** `Σ' = Σ`. Specifically:
 
 ```
-Σ' = Σ
+C' = C  ∧  M' = M  ∧  L' = L  ∧  E' = E  ∧  R' = R
 ```
-
-Specifically: `C' = C`, `M' = M`, `L' = L`, `E' = E`, `R' = R`.
 
 **Depends.** Definition of `follow` as a query (no effect clause).
+
+**Frame.** The frame condition itself.
 
 ---
 
@@ -273,7 +275,7 @@ Specifically: `C' = C`, `M' = M`, `L' = L`, `E' = E`, `R' = R`.
 ⟦Σ_V'^S⟧_V = R(d, L(ℓ).eᵢ')|_S
 ```
 
-The resolution mechanism applies identically across slots; differing results reflect differing endsets, not differing routing.
+respectively for each `S ∈ {s_C, s_L}`. The resolution mechanism applies identically across slots; differing results reflect differing endsets, not differing routing.
 
 **Depends.** Slot accessor L6 (SlotDistinction, ASN-0043). L3's asymmetric well-formedness (`e₃ ≠ ∅` required, others may be empty) constrains link construction, not resolution.
 
@@ -313,7 +315,7 @@ regardless of any reach condition on `coverage(L(ℓ).eᵢ)` versus `ran(M(d))`.
 
 **Depends.** L12 (LinkImmutability, ASN-0043) — the link store is monotonic and value-preserving. L12a (LinkStoreMonotonicity, ASN-0043).
 
-**Frame.** No state modification by `follow` itself; the persistence is a property of `Σ.L` across transitions.
+**Frame.** No state modification by `follow` itself; the persistence is a property of `Σ.L` across transitions, observed via `follow`.
 
 ---
 
@@ -321,19 +323,15 @@ regardless of any reach condition on `coverage(L(ℓ).eᵢ)` versus `ran(M(d))`.
 
 **Preconditions.** `Σ → Σ'` reachable.
 
-**Postcondition.** `R_Σ(d, L(ℓ).eᵢ)` and `R_{Σ'}(d, L(ℓ).eᵢ)` may differ even though:
+**Postcondition.**
 
 ```
-L_Σ(ℓ) = L_{Σ'}(ℓ)    (by L12)
+R_Σ(d, L(ℓ).eᵢ)  and  R_{Σ'}(d, L(ℓ).eᵢ)  may differ
 ```
 
-The difference, when present, originates entirely in:
+even though `L_Σ(ℓ) = L_{Σ'}(ℓ)` (by L12). The difference, when present, originates entirely in `M_Σ(d) ≠ M_{Σ'}(d)`.
 
-```
-M_Σ(d) ≠ M_{Σ'}(d)
-```
-
-**Depends.** L12 (link state-invariance); the transition semantics of ASN-0047 that admit `M(d)` to vary across transitions.
+**Depends.** L12 (link state-invariance); the transition semantics of ASN-0047 that admit `M(d)` to vary across transitions (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L).
 
 **Frame.** No state modification.
 
@@ -343,7 +341,14 @@ M_Σ(d) ≠ M_{Σ'}(d)
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d, d' ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
 
-**Postcondition.** `follow(ℓ, d, i)` and `follow(ℓ, d', i)` are well-defined and computed by the same mechanism. The home document `home(ℓ)` (Definition Home, ASN-0043) plays no privileged role. No precondition of `follow` references `home(ℓ)`.
+**Postcondition.** `follow(ℓ, d, i)` and `follow(ℓ, d', i)` are well-defined and computed by the same mechanism:
+
+```
+⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S
+⟦Σ_V'^S⟧_V = R(d', L(ℓ).eᵢ)|_S
+```
+
+The home document `home(ℓ)` (Definition Home, ASN-0043) plays no privileged role; no precondition of `follow` references `home(ℓ)`.
 
 **Frame.** No state modification.
 
@@ -359,8 +364,8 @@ M_Σ(d) ≠ M_{Σ'}(d)
 {a + j + k : 0 ≤ k < c}
 ```
 
-of `I(β)`, for some offset `j` and width `c`; the corresponding V-positions `v + j, ..., v + j + c − 1` form a single contiguous V-run within `β`.
+of `I(β)`, for some offset `j` and width `c`. The corresponding V-positions `v + j, ..., v + j + c − 1` form a single contiguous V-run within `β`, recorded as the V-span `(v + j, δ(c, m_S))` where `m_S` is the V-depth of `v`.
 
-**Depends.** M1 (OrderPreservation, ASN-0058) — strict monotonicity of the I-extent map `k ↦ a + k`; T12 (SpanWellDefinedness, ASN-0034) — order-convexity of `⟦σ⟧` under T1 (postcondition (c)).
+**Depends.** M1 (OrderPreservation, ASN-0058) — strict monotonicity of `k ↦ a + k` for `0 ≤ k₁ < k₂ < n`: `a + k₁ < a + k₂`; T12 (SpanWellDefinedness, ASN-0034) — order-convexity of `⟦σ⟧` under T1 (postcondition (c)): for any `t₁, t₂ ∈ ⟦σ⟧` and `t₁ ≤ t' ≤ t₂`, we have `t' ∈ ⟦σ⟧`.
 
 **Frame.** No state modification.
