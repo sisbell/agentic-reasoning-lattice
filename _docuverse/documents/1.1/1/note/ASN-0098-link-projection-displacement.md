@@ -57,9 +57,7 @@ The definition reads from two inputs:
 - The endset, fixed once and for all by the link's creation (and immune to subsequent transitions, by L12).
 - The arrangement `Σ.M(d)`, mutable and reflecting whatever edits `d` has undergone.
 
-Every guarantee in this ASN follows from one observation: of the two inputs, only the arrangement varies. The endset stands still. Therefore every change in projection must be attributable to a change in `Σ.M(d)` — and we can characterise the change by examining what each editing operation does to `Σ.M(d)`.
-
-The definition does not separately consult `Σ.C` or `Σ.L`: the projection is sensitive only to its two inputs, and only one of them moves.
+Every guarantee in this ASN follows from one observation: of the two inputs, only the arrangement varies. The endset stands still — and the definition consults neither `Σ.C` nor `Σ.L` separately. Therefore every change in projection must be attributable to a change in `Σ.M(d)` — and we can characterise the change by examining what each editing operation does to `Σ.M(d)`.
 
 Three degenerate configurations follow directly from the definition and require no separate treatment in subsequent claims. The projection of the empty endset is uniformly empty: `project(∅, d, Σ) = ∅` for every `d ∈ dom(Σ.M), Σ` (i.e., wherever `project` is defined), since `coverage(∅)` is the empty union over an empty index set. The projection through an empty arrangement is uniformly empty: `project(e, d, Σ) = ∅` for every `d ∈ dom(Σ.M), Σ` with `dom(Σ.M(d)) = ∅`, since the set comprehension ranges over the empty domain. A link with empty from/to endsets but a non-empty type endset (admitted by L3 of ASN-0043, which requires only the type slot to be non-empty) has empty projections at slots 1 and 2 regardless of any document's state; only the type slot's projection can be non-empty.
 
@@ -166,8 +164,6 @@ The proof relies on exactly two structural facts about the post-state arrangemen
 - (E2) *Prior-domain agreement:* `(A v : v ∈ dom(Σ.M(d)) : Σ'.M(d)(v) = Σ.M(d)(v))`.
 
 Both K.μ⁺ and K.μ⁺_L (ASN-0047) supply (E1) and (E2) directly in their effect clauses, so the projection-level argument is identical for both: for any `v ∈ project(e, d, Σ)`, `v ∈ dom(Σ.M(d)) ⊆ dom(Σ'.M(d))` by (E1), and `Σ'.M(d)(v) = Σ.M(d)(v) ∈ coverage(e)` by (E2) and the definition of `project`, so `v ∈ project(e, d, Σ')`. The projection can only grow.
-
-K.μ⁺_L's effect clause `M'(d) = M(d) ∪ {v_ℓ ↦ ℓ}` with `dom(Σ'.M(d)) ⊃ dom(Σ.M(d))` supplies (E1) and (E2) directly, so the argument above applies unchanged.
 
 The new V-positions that enter the projection are exactly the new arrangement entries whose I-addresses fall in the coverage:
 ```
@@ -340,7 +336,7 @@ A link can pass through arbitrarily many states of orphanage and resurrection wi
 
 We address two further questions about the structural behaviour of projection under specific operation patterns.
 
-We formalise the "boundary insertion does not extend the link" property against the *substrate-emittable* addresses within a span's reach rather than against raw coverage: a span includes T4-invalid zero-extensions `s.0`, `s.0.0`, … (T1 case (ii), ASN-0034) that no allocator chain can ever emit (T10a.4, ASN-0034), so the property we want is that every address the substrate *could* K.α/K.λ-emit within the reach is already allocated. This motivates the set `F` of substrate-emittable addresses.
+The set `F` of *substrate-emittable addresses* is the domain against which the "boundary insertion does not extend the link" property is formalised — the addresses the substrate could K.α/K.λ-emit within a span's reach, excluding the T4-invalid zero-extensions `s.0`, `s.0.0`, … that a raw span includes but no allocator chain can emit (T10a.4, ASN-0034).
 
 By ASN-0093, every K.α/K.λ-allocated address is a chain element of some sub-allocator `A_C(d)` or `A_L(d)`, with structural form `[d, 0, s_C, k]` (resp. `[d, 0, s_L, k]`) for some T4-valid document tumbler `d` (i.e., `d ∈ T` with `zeros(d) = 2`) and some `k ≥ 1`. The set of *substrate-emittable addresses* is the union of all such chain elements across all T4-valid document tumblers — including those not yet registered, since future K.σ transitions can activate their chains — and both subspaces, defined formally as:
 ```
@@ -413,9 +409,7 @@ s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)  ∧  (A t ∈ F : s ≤ t < s ⊕ ℓ : t ∈
 
 The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. The canonical-span requirement is *definitional*: a non-canonical span is fixed at false before any quantifier evaluation, so no state can render it tight. The first conjunct gives `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)`, whence `s ∈ F` by LP-Sub; together with the canonical shape `ℓ = δ(n, #s)` this discharges LP-Fin's hypotheses, so LP-Fin confines the universal quantifier to the finite set `F ∩ [s, s ⊕ ℓ)` and the predicate is decidable at every state. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state.
 
-*Achievability.* The analysis below restricts to canonical spans, per the tight definition's canonical-form requirement above.
-
-The non-empty case is reached by the canonical construction. Span endpoints are drawn from currently-allocated content, and the displacement is the canonical ordinal displacement `ℓ = δ(n, #s)`; by OrdinalDisplacement's postcondition, `actionPoint(ℓ) = #s`. The reach is set at or before the relevant chain's next emission point. By LP-Fin (in its canonical form), only finitely many `F`-candidates can interfere with any such span; LP-Fin Corollary identifies exactly which.
+*Achievability.* The non-empty case is reached by the canonical construction. Span endpoints are drawn from currently-allocated content, and the displacement is the canonical ordinal displacement `ℓ = δ(n, #s)`; by OrdinalDisplacement's postcondition, `actionPoint(ℓ) = #s`. The reach is set at or before the relevant chain's next emission point. By LP-Fin (in its canonical form), only finitely many `F`-candidates can interfere with any such span; LP-Fin Corollary identifies exactly which.
 
 Cross-chain interference is excluded by LP-Fin Corollary, which already establishes `F ∩ [s, s ⊕ ℓ) = {[d_0, 0, X, k] : k_s ≤ k < k_s + n}` — every F-candidate in a canonical span's reach shares the span's subspace identifier `X` and origin `d_0`, so no chain other than `A_X(d_0)` (whether same-document cross-subspace or cross-document) contributes a candidate. What remains, and is not implied by the corollary, is tightness against `A_X(d_0)`'s own *future* emissions: the corollary characterises interval membership but does not say which of those chain indices are allocated at `Σ_e`. The emission-frontier choice below supplies that.
 
