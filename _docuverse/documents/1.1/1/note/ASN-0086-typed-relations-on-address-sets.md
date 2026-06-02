@@ -127,7 +127,7 @@ In both branches, freshness against `dom(Σ.C)` is shared and immediate: once `E
 
 In either branch, K.λ's effect is `Σ'.L = Σ.L ∪ {a ↦ (F, G, K)}` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M` per K.λ's Frame, witnessing R0's existential conclusion.
 
-*L-invariant preservation across the K.λ-step.* The emission above is a valid K.λ `→`-step from the `→*`-reachable pre-state Σ — its on-chain gating and freshness preconditions discharged in the freshness bullets. By RT-closure, Σ' is therefore `→*`-reachable, and RT-closure's preservation clause carries the full L/S/M/C invariant catalog to Σ' (with L14/L14a at the fresh key supplied by the FreshLinkKeyDisjointness sub-lemma, since ASN-0093's K.λ contract does not itself publish them). This completes the final conjunct of R0's conclusion. ∎
+*L-invariant preservation across the K.λ-step.* The emission above is a valid K.λ `→`-step from the `→*`-reachable pre-state Σ — its on-chain gating and freshness preconditions discharged in the freshness bullets. By RT-closure, Σ' is therefore `→*`-reachable, and RT-closure's preservation clause carries the full L/S/M/C invariant catalog to Σ' (with L14/L14a at the fresh key supplied by FreshLinkKeyDisjointness). This completes the final conjunct of R0's conclusion. ∎
 
 **R0a — FlatLinkDomain.** At every →*-reachable state Σ, `dom(Σ.L)` is a tumbler-prefix antichain:
 
