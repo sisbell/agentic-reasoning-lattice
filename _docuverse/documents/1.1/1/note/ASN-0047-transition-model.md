@@ -941,7 +941,7 @@ Verification against Σ':
 - *D-CTG★ / D-MIN★ / D-SEQ★ on V_{s_C}(d_new) = {[1,1], [1,2]}:* contiguous at depth 2, minimum `[1,1] = [s_C, 1]`, shape `{[s_C, k] : 1 ≤ k ≤ 2}` at `n_{s_C} = 2`. The shape invariants constrain the *V-positions*, which remain two and sequential regardless of the collision in their images. ✓
 - *S3★:* both content-subspace V-positions map to `a ∈ dom(C') = dom(C)`; content is frame-preserved (no K.α). ✓
 
-The fork of a duplicate source thus produces a *non-injective* `M'(d_new)` — two V-positions, one I-address — which S2 permits but does not require, and which the φ-bijection forces. A faithful version copy reproduces the source's sharing structure exactly; a deduplicating range copy would silently drop a position and undercount the contents. Gregory's `docreatenewversion` re-seats each content piece at a fresh sequential V-position, "retaining duplicate I-addresses at distinct V-positions as separate entries" — exactly this count-preserving behaviour.
+The fork of a duplicate source thus produces a *non-injective* `M'(d_new)` — two V-positions, one I-address — which S2 permits but does not require, and which the φ-bijection forces. A faithful version copy reproduces the source's sharing structure exactly; a deduplicating range copy would silently drop a position and undercount the contents. The φ-injectivity postcondition checked above (`|dom(M'(d_new))| = 2 = |V_{s_C}(d_op)|`) is what rules the deduplicating copy out; the implementation behaviour grounding this is stated once at J4 step (ii).
 
 
 ## Worked example: interior content replacement
@@ -1342,7 +1342,7 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 | K.ρ | Provenance recording — extend R with (a, d) pair where Element(a) ∧ a ∈ dom(C); frame holds C, L, E, M |
 | K.μ⁺_L | Elementary transition: link-subspace arrangement extension, M'(d) = M(d) ∪ {v_ℓ ↦ ℓ}, origin(ℓ) = d, ℓ ∉ ran(M(d)) (first-arrangement); frame holds C, L, E, R, other documents |
 | K.μ~-FIX | Domain fixity under K.μ~: dom(M'(d)) = dom(M(d)), making π a permutation of a fixed domain — from D-SEQ★ + bijection cardinality (n'_S = n_S) + subspace preservation + length preservation (admissibility (iii)) fixing per-subspace depth |
-| J0 | Content allocation (K.α) always co-occurs with arrangement extension (K.μ⁺). **Imposed (not derived)** — a clause-(2) validity constraint of ValidComposite★, motivated by Nelson's design intent, not an axiom of the elementary transition system |
+| J0 | Content allocation (K.α) always co-occurs with arrangement extension (K.μ⁺). A clause-(2) validity constraint of ValidComposite★ (see ValidComposite★ clause (2) for its imposed/derived status) |
 | J2 | K.μ⁻ as elementary transition requires no coupling: C' = C ∧ L' = L ∧ E' = E ∧ R' = R |
 | J3 | K.μ~ as named composite requires no coupling: C' = C ∧ L' = L ∧ E' = E ∧ R' = R |
 | J4 | Fork composite: K.δ + K.μ⁺ + K.ρ (no other steps); content source is the K.δ operand d_op (d_src for k=1, prev_version for k=0); precondition V_{s_C}(d_op) ≠ ∅; content-subspace copy characterized by the unique order-preserving bijection φ: V_{s_C}(d_op) → V_{s_C}(d_new) with M'(d_new)(φ(v)) = M(d_op)(v) (order- and multiplicity-preserving, per CREATENEWVERSION full-copy semantics; range equality ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)}) is a derived consequence); dom(C') = dom(C) follows from frames; provenance from J1★/J1'★ (extended-state couplings) |
