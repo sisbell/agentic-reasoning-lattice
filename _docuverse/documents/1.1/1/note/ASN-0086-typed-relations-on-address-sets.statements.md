@@ -1,319 +1,164 @@
 # ASN-0086 Claim Statements
 
-*Source: ASN-0086-typed-relations-on-address-sets.md (revised unknown) — Extracted: 2026-05-19*
+*Source: ASN-0086-typed-relations-on-address-sets.md (revised unknown) — Extracted: 2026-06-02*
 
----
-
-## Definition — ZeroCountDepth
-
-The *zero-count depth* of a tumbler `t` relative to its prefix `s ≼ t` is `zeros(t) − zeros(s)`. A child-spawn `(d, k')` with `k' ≥ 1` produces a child whose zero count exceeds `zeros(d)` by `k' − 1` (TA5 postcondition (d)), so the zero-count depth of the spawn relative to `d` is exactly `k' − 1`.
-
----
-
-## Definition — AllocatorTreeDepth
-
-The *allocator-tree depth* of an allocator A relative to a document `d ∈ dom(Σ.M)` is the number of T10a child-spawn pairs `(·, k')` with `k' ∈ {1, 2}` on ASN-0093's structural chain from `d` to A's base address (i.e., to A's first emission). A `(·, 1)` child-spawn opens a new allocator without introducing a new zero (TA5 with `k' = 1` gives `zeros` unchanged), so it advances the allocator hierarchy by one level without advancing zero-count depth.
-
----
-
-## Definition — Extension
-
-`Σ' extends Σ`, written `Σ ⊑ Σ'`, is the reflexive-transitive closure of `→`:
-
-`Σ ⊑ Σ' ≡ Σ →* Σ'`
-
-`Σ ⊑ Σ'` entails `dom(Σ.C) ⊆ dom(Σ'.C)`, `dom(Σ.M) ⊆ dom(Σ'.M)`, `dom(Σ.L) ⊆ dom(Σ'.L)`, with `Σ'.C|_{dom(Σ.C)} = Σ.C`, `Σ'.M|_{dom(Σ.M)} = Σ.M`, `Σ'.L|_{dom(Σ.L)} = Σ.L`.
-
----
-
-## Definition — BroadExtension
-
-`Σ ⊑̂ Σ'` is the reflexive-transitive closure of `↦` (the broader transition relation including arrangement modifications):
-
-`Σ ⊑̂ Σ' ≡ Σ ↦* Σ'`
-
-Every `Σ ⊑ Σ'` entails `Σ ⊑̂ Σ'` (since `→ ⊆ ↦`). Every arrangement-modifying step holds `Σ.C` and `Σ.L` identical and changes only `Σ.M`'s pointwise values.
-
----
-
-## Definition — RetractionType
-
-Fix a designated coverage class `[R]` reserved for retraction, represented by any `R ∈ T_admissible` whose coverage selects the conventional retraction address set. The corresponding typed relation `L_R^Σ` is the *retraction relation at state Σ*. Before the first retraction emission, `L_R^Σ = ∅`. By coverage-equivalence, any emission with a type endset `R'` satisfying `coverage(R') = coverage(R)` contributes to `L_R^Σ` and to `nullified(Σ)`.
-
----
-
-## Definition — RetractionDirectionality
-
-For the retraction coverage class `[R]`, the to-set carries the retraction's targets — addresses whose tuples are being withdrawn from the active subset — and the from-set is reserved for attribution-bearing endset content or is left empty for unattributed retractions.
-
----
-
-## Definition — SubstrateConformingLayer
-
-A layer is *substrate-conforming* iff every operation it publishes over `(Σ.C, Σ.M, Σ.L)` preserves both of the following catalogs at every step.
-
-*(a) Invariant Catalog.* The full L/S/M/C invariant list of ASN-0036, ASN-0043, and ASN-0093:
-- *ASN-0043 link-store invariants:* L0, L1, L1a, L1b, L1c, L2, L3, L5, L6, L8, L11a, L12, L12a, L12b, L13, L14, L14a, L-fin.
-- *ASN-0036 content/arrangement invariants:* S0, S1, S2, S3, S7a, S7b, S7c, S7d, S8-fin, S8a, S8-depth, D-CTG, D-MIN, D-SEQ.
-- *ASN-0093 substrate invariants:* M0, M1, C0, C1, C1b, C1c, C-fin.
-
-*(b) Chain Discipline Catalog.* SubAllocatorAxiom, ChainMembershipForOrigin, ChainEnumerationInjectivity, ChainUniformLength, ChainUniformZeroCount, ChainPrefixExtension, ChainElementT4Validity, DisjointSubAllocatorChains, StoreT4Validity, FirstEmissionFreshness, CrossDocDisjointness.
-
-Catalog (b) is *strictly stronger* than catalog (a): L1c admits non-chain T10a-conforming chains (e.g., `a* = [d.0.s_L.1.1]`, which is L1c-admissible but off `A_L(d)`'s sibling-frontier chain); without catalog (b), a layer could publish an L-invariant-conforming non-chain emission that has no K.λ-replay.
-
----
-
-## Definition — EmitKFunctionNess
-
-`Emit_K` is a function: given `(Σ, d, F, G, K)`, the output `(Σ', a)` is uniquely determined.
-
-K.λ's first/subsequent emission rule is deterministic in `(Σ, d)`:
-- First-emission branch: `a = [d.0.s_L.1]` (deterministic projection of `d`).
-- Subsequent-emission branch: `ℓ_prev = max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` — a unique extremum because, by R0a-Cor1, the homed set is a contiguous prefix of `A_L(d)`'s chain enumeration and so admits a unique maximum under T1 (LexicographicOrder, ASN-0034). Then `a = inc(ℓ_prev, 0)`.
-
----
-
-## Definition — FreshEmissionAddress
-
-For `d ∈ dom(Σ.M)`, the *fresh emission address* `a_emit(Σ, d)` is the address K.λ would deposit at home `d` in state Σ:
-
-`a_emit(Σ, d) = [d.0.s_L.1]` when `{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = ∅` (first-emission branch);
-
-`a_emit(Σ, d) = inc(ℓ_prev, 0)` otherwise, where `ℓ_prev := max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` (subsequent-emission branch).
-
-The address that `Emit_K(Σ, d, F, G)` deposits is exactly `a_emit(Σ, d)`; the type-index `K` parameterizes the slot-3 value, not the address selection.
-
----
-
-## Definition — NoCraftedSpanReachesD
-
-`NoCraftedSpanReachesD(Σ, d) ≡ (A (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∉ coverage(G'))`
-
----
-
-## Definition — WeakestPreconditionNullify
-
-`wp(Nullify(Σ, d_retr, a), single-tuple scope at Σ') ≡ P0(Σ, d_retr) ∧ P1(Σ, a) ∧ P2(Σ, a)`
-
-where:
-- P0: `d_retr ∈ dom(Σ.M)`
-- P1: `a ∈ A_rel^Σ`
-- P2: `|Σ.L(a)| = 3`
-
-Single-tuple scope postcondition: `{t : a ≼ t} ∩ A_rel^{Σ'} = {a}`.
-
----
-
-## Definition — WeakestPreconditionEmitK
-
-`wp(Emit_K(Σ, d, F, G), (a, F, G) ∈ A_K^{Σ'}) ≡ d ∈ dom(Σ.M) ∧ K ∈ T_admissible ∧ NoCraftedSpanReachesD(Σ, d) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))`
-
-Under the unit-depth retraction discipline (regime (i)), `NoCraftedSpanReachesD` is automatic, and the wp simplifies to:
-
-`d ∈ dom(Σ.M) ∧ K ∈ T_admissible ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))`
-
-Under the relational layer's committed operations, both regime (ii) and (iii) are structurally impossible, and the wp simplifies definitionally to:
-
-`d ∈ dom(Σ.M) ∧ K ∈ T_admissible`
-
----
-
-## SharedDepthOneAllocator — SharedDepthOneAllocator (LEMMA, lemma)
-
-Under each document address `d ∈ dom(Σ.M)`, T10a admits at most one allocator at allocator-tree depth 1 below `d` whose outputs sit at zero-count depth 1 relative to `d` — written `A_{d.0.1}` and opened by the `(d, 2)` child-spawn. When opened, this allocator is shared across all subspaces: its enumeration `d.0.1, d.0.2, d.0.3, …` indexes subspace identifiers, with position `s_C` landing in the content subspace and position `s_L` in the link subspace by ASN-0093 L0 (SubspacePartition). The subspace-specific sub-allocators ASN-0093 names — `A_C(d) = A_{d.0.s_C.1}` (anchored at `b_C(d)`) and `A_L(d) = A_{d.0.s_L.1}` (anchored at `b_L(d)`) — sit at allocator-tree depth 2, opened by `(d.0.s_C, 1)` and `(d.0.s_L, 1)` respectively.
-
-Sub-claims:
-*(a)* The only T10a-admissible child-spawns from `d` are `(d, 1)` and `(d, 2)`. Document addresses have `zeros(d) = 2` by S7d and M0. By TA5 postcondition (d), `zeros(inc(d, k')) = 2 + (k' - 1)` for `k' ≥ 1`; T4's cap `zeros ≤ 3` forces `k' ∈ {1, 2}`.
-
-*(b)* Only `(d, 2)` opens an allocator at zero-count depth 1. By TA5(d), `(d, 1)` yields `zeros = 2` — zero-count depth 0 relative to `d`. `(d, 2)` yields `zeros = 3` — zero-count depth 1, the unique spawn introducing a new zero.
-
-*(c)* Uniqueness via T10a at-most-once. T10a's at-most-once axiom on `(d, 2)` makes the allocator opened by `(d, 2)`, if opened at all, unique under `d`.
-
----
-
-## A^Σ — AddressUniverse (DEF, definition)
-
-The substrate's address universe at state Σ is
+## Definition — AddressUniverse
 
 `A^Σ = dom(Σ.C) ∪ dom(Σ.L)`
 
----
+By L14 (DualPrimitive, ASN-0043), `A^Σ` is the entirety of stored-entity addresses at Σ — no state component maps an address outside `dom(Σ.C) ∪ dom(Σ.L)` to an entity value.
 
-## A_doc^Σ, A_rel^Σ — AddressPartition (DEF, definition)
+## Definition — AddressPartition
 
 `A_doc^Σ = dom(Σ.C)` — content addresses
+`A_rel^Σ = dom(Σ.L)` — link-store addresses
 
-`A_rel^Σ = dom(Σ.L)` — relation-tuple addresses
+`A^Σ = A_doc^Σ ⊔ A_rel^Σ` (disjoint union); disjointness is `dom(Σ.C) ∩ dom(Σ.L) = ∅` (SD, StoreDisjointness, ASN-0093).
 
-Claim: `A^Σ = A_doc^Σ ⊔ A_rel^Σ` (disjoint union). The disjointness is R4.
+All three sets grow monotonically as the substrate evolves (by S1 and L12a).
 
----
-
-## T_ghost^Σ — GhostAddresses (DEF, definition)
-
-The *ghost addresses* at state Σ are the tumblers outside the stored-entity universe:
-
-`T_ghost^Σ = T \ (dom(Σ.C) ∪ dom(Σ.L))`
-
-By L9 (TypeGhostPermission, ASN-0043), ghost addresses may appear in endset spans (including type-endset coverage) without contradiction.
-
----
-
-## T_admissible — AdmissibleTypes (DEF, definition)
-
-The set of *admissible types* is
+## Definition — AdmissibleTypes
 
 `T_admissible = {K ∈ Endset : K ≠ ∅}`
 
-— non-empty endsets, eligible to serve as a link's type endset by L3 (NEndsetStructure, ASN-0043).
+Non-empty endsets, eligible to serve as a link's type endset by L3 (NEndsetStructure, ASN-0043). By L4 (EndsetGenerality, ASN-0043) and L9 (TypeGhostPermission, ASN-0043), `T_admissible` is unconstrained by content existence: type endsets may reference any tumbler addresses, including ghost addresses.
 
----
-
-## ~ — TypeEquivalence (DEF, definition)
-
-Two admissible types are *type-equivalent* iff they cover the same address set:
+## Definition — TypeEquivalence
 
 `K ~ K' ≡ coverage(K) = coverage(K')`
 
-The quotient `T_admissible / ~` is the set of *coverage classes*; the equivalence class of `K` is written `[K]`. Two `K, K' ∈ T_admissible` with `K ~ K'` induce the same slice: `L_K^Σ = L_{K'}^Σ` as sets.
+This is L8's (TypeByAddress, ASN-0043) notion of `same_type`, lifted from links to type endsets themselves. The quotient `T_admissible / ~` is the set of *coverage classes*; the equivalence class of `K` is written `[K]`.
 
----
+## Definition — StateTransition
 
-## L_K^Σ — TypedRelation (DEF, definition)
+`→ ≡ K.σ ∪ K.α ∪ K.λ`
+
+The substrate's *dom-extending* one-step transition relation. A K.σ-step extends `dom(Σ.M)`, a K.α-step extends `dom(Σ.C)`, and a K.λ-step extends `dom(Σ.L)`, each at a fresh key per its ASN-0093 contract; frame conditions leave the other two components unchanged.
+
+**Definition — Reachability.** `Σ' is →-reachable from Σ`, written `Σ →* Σ'`, is the reflexive-transitive closure of `→`.
+
+`Σ →* Σ'` entails `dom(Σ.C) ⊆ dom(Σ'.C)`, `dom(Σ.M) ⊆ dom(Σ'.M)`, `dom(Σ.L) ⊆ dom(Σ'.L)`, with `Σ'.C|_{dom(Σ.C)} = Σ.C`, `Σ'.M|_{dom(Σ.M)} = Σ.M`, `Σ'.L|_{dom(Σ.L)} = Σ.L`.
+
+## Definition — EmitAddress
+
+For any `d ∈ dom(Σ.M)`, the *fresh emission address* `a_emit(Σ, d)` is:
+
+`a_emit(Σ, d) = [d.0.s_L.1]` when `{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = ∅` (*first-emission* branch);
+`a_emit(Σ, d) = inc(ℓ_prev, 0)` otherwise, where `ℓ_prev := max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` (*subsequent-emission* branch).
+
+`a_emit` is a *total* function of `(Σ, d ∈ dom(Σ.M))`.
+
+## Definition — TypedRelation
 
 For each `K ∈ T_admissible` and state Σ, the *typed relation of type K at Σ* is
 
 `L_K^Σ = {(a, F, G) : a ∈ dom(Σ.L) ∧ |Σ.L(a)| = 3 ∧ Σ.L(a).e₁ = F ∧ Σ.L(a).e₂ = G ∧ coverage(Σ.L(a).e₃) = coverage(K)}`
 
-Each member is a triple of (tuple-address, from-endset, to-endset). The pair `(F, G)` is the *relational content* of the tuple; `a` is the *tuple address*. The subscript `K` is a coverage-class index: `L_K^Σ = L_{K'}^Σ` whenever `K ~ K'`.
+Each member is a triple of (tuple-address, from-endset, to-endset). The `|Σ.L(a)| = 3` conjunct restricts every `L_K` to standard-triple links.
 
----
-
-## L^Σ — StandardTripleLinkStore (DEF, definition)
-
-The substrate's standard-triple link store at state Σ is the disjoint union over coverage classes:
+## Definition — StandardTripleLinkStore
 
 `L^Σ = ⨆_{[K] ∈ T_admissible / ~} L_K^Σ`
 
-`L^Σ` collects only the arity-3 links; higher-arity links in `dom(Σ.L)` are outside its scope.
+The substrate's standard-triple link store at state Σ is the disjoint union over coverage classes. The union is disjoint by Lemma — SliceUniqueness.
 
----
+*Notation — subscript read modulo `~`.* Since the slot-3 criterion tests `coverage(Σ.L(a).e₃) = coverage(K)`, any `K ~ K'` induces `L_K^Σ = L_{K'}^Σ`; the subscript is a *coverage-class* index.
 
-## addr — TupleAddress (DEF, definition)
+## Definition — TupleAddressMap
 
-Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`.
+`addr : L^Σ → A_rel^Σ` defined by `addr(a, F, G) = a`, with codomain `A_rel^Σ = dom(Σ.L)` and image the arity-3 slice `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}`.
 
----
+## Definition — RetractionType
 
-## nullified(Σ) — NullifiedSet (DEF, definition)
+Fix a designated coverage class `[R]` reserved for retraction, represented by any `R ∈ T_admissible` whose coverage selects the conventional retraction address set. The corresponding typed relation `L_R^Σ` is the *retraction relation at state Σ*.
 
-The set of *nullified* tuple addresses at state `Σ` is
+**Convention — RetractionDirectionality.** For the retraction coverage class `[R]`, the to-set carries the retraction's targets — addresses whose tuples are being withdrawn from the active subset — and the from-set is reserved for attribution-bearing endset content or is left empty for unattributed retractions.
+
+## Definition — Nullified
 
 `nullified(Σ) = {a ∈ A_rel^Σ : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))}`
 
-The existential checks `coverage(G')` only — the to-set's coverage — and does not inspect `coverage(F')`. The quantification ranges over `L_R^Σ` (audit slice), not `A_R^Σ` (active subset).
+The existential checks `coverage(G')` only (per Convention RetractionDirectionality), ranges over `L_R^Σ` (triple-restricted by construction), and the set-builder restriction `a ∈ A_rel^Σ` confines `nullified(Σ)` to link-store addresses.
 
----
-
-## A_K^Σ — ActiveSubset (DEF, definition)
+## Definition — ActiveSubset
 
 For each `K ∈ T_admissible`, the *active subset of type K at state Σ* is
 
 `A_K^Σ = {(a, F, G) ∈ L_K^Σ : a ∉ nullified(Σ)}`
 
-`A_K^Σ` is computable from `Σ.L` alone.
+`A_K^Σ` is a finite, computable set: `L_K^Σ` is selected by CoverageEqualityDecidable, `nullified(Σ)` by CoverageEqualityDecidable and T2 span-membership.
+
+## Definition — UnitDepthRetractionDiscipline
+
+A state Σ is *unit-depth-disciplined* iff every `(b, F', G') ∈ L_R^Σ` has to-endset `G' = {(t, δ(1, #t))}` for some target `t ∈ A_rel^Σ`. Membership `t ∈ A_rel^Σ` is evaluated at the state Σ in question.
+
+A *layer* satisfies the *unit-depth retraction discipline* iff every state it reaches is unit-depth-disciplined.
+
+## Definition — RelationalLayer
+
+The relational layer's link-store operations are `{Emit_K, Observe_K, Nullify}`. Its one *discipline commitment* is a single predicate over `→`-steps: every `→`-step `Σ → Σ'` that grows the retraction slice — i.e. with `L_R^Σ ⊊ L_R^{Σ'}` — is a `Nullify`.
+
+## Definition — LayerReachable
+
+A state is *layer-reachable* iff it is `→*`-reachable from `Σ_init` (Definition — Reachability) by a finite sequence of `→`-steps each obeying the discipline commitment (Definition — relational layer).
 
 ---
 
-## → — DomExtendingTransition (DEF, definition)
+## Lemma — CoverageEqualityDecidable
 
-`→ ≡ K.σ ∪ K.α ∪ K.λ`
+For any two endsets `e, e' ∈ Endset`, the predicate `coverage(e) = coverage(e')` is decidable using only T2 comparisons and TumblerAdd.
 
-Each `→`-step is one of:
-- *K.σ-step* (class (i)): document registration, extending `dom(Σ.M)` with a fresh document address `d` satisfying `T4-valid(d) ∧ zeros(d) = 2` and registering `M'(d) = ∅`.
-- *K.α-step* (class (ii)): content allocation, extending `dom(Σ.C)` with a fresh content address `a` produced by `d`'s content sub-allocator `A_C(d)` for some `d ∈ dom(Σ.M)` (first-emission `a = [d.0.s_C.1]` or subsequent-emission `a = inc(a_prev, 0)`).
-- *K.λ-step* (class (iii)): link allocation, extending `dom(Σ.L)` with a fresh link address `ℓ` produced by `d`'s link sub-allocator `A_L(d)` for some `d ∈ dom(Σ.M)` (first-emission `ℓ = [d.0.s_L.1]` or subsequent-emission `ℓ = inc(ℓ_prev, 0)`).
+**Procedure:** By `Endset = 𝒫_fin(Span)` (ASN-0043), `e ∪ e'` is finite, so `coverage(e)` and `coverage(e')` are finite unions of half-open T1-intervals `[s, s ⊕ ℓ)`. Construct endpoint set `P = {s : (s, ℓ) ∈ e ∪ e'} ∪ {s ⊕ ℓ : (s, ℓ) ∈ e ∪ e'}`, sorted under T1 into distinct values `c₁ < … < c_m`. Each coverage is constant on every cell between endpoints. A gap cell `(c_k, c_{k+1})` is nonempty iff `c_k.0 ≠ c_{k+1}`. Two finite unions of intervals are equal iff they assign the same membership to every tumbler; since each coverage is constant on every cell, compare membership at one representative per nonempty cell.
 
-ASN-0093's frame conditions on each K-op ensure the two non-affected stores are preserved pointwise, and the affected store is extended by exactly one fresh key per step.
+## Lemma — SliceUniqueness
 
----
+Each tuple address `a ∈ dom(Σ.L)` indexes *at most one* slice `L_K^Σ`.
 
-## Unit-depth retraction discipline — UnitDepthRetractionDiscipline (COMMITMENT, commitment)
+`Σ.L` is a partial function `T ⇀ Link` (ASN-0043), so `a` carries a single value `Σ.L(a)`, hence a single slot-3 endset `Σ.L(a).e₃` and a single coverage class `[Σ.L(a).e₃]`; thus `a` lies in no two slices.
 
-A layer satisfies the *unit-depth retraction discipline* iff every `L_R^Σ` tuple, in every state Σ the layer reaches, has a to-endset of the form `{(b, δ(1, #b))}` for some target `b ∈ A_rel^Σ` — equivalently, every `L_R^Σ` tuple was produced by a `Nullify(Σ, d_retr, b)` call.
+## Fact — HomeOriginCoincidence
 
-Under this discipline, `NoCraftedSpanReachesD(Σ, d)` holds automatically at every `Emit_K` call site, by R0a's antichain on `dom(Σ'.L)`.
+On link addresses, `home` and `origin` coincide: both are the NUDE-prefix projection `N(·).0.U(·).0.D(·)`.
 
----
-
-## R0 — TupleAddressFreshness (LEMMA, lemma)
-
-For any state Σ with `dom(Σ.M) ≠ ∅` and any `(F, G, K) ∈ Endset × Endset × T_admissible`, there exists a state Σ' with Σ → Σ' that emits a tuple with content (F, G) of type K at a fresh address:
-
-`(A Σ : dom(Σ.M) ≠ ∅ :: (A F, G ∈ Endset, K ∈ T_admissible :: (E Σ' extending Σ, a : a ∉ dom(Σ.L) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = (F, G, K))))`
-
-Freshness against same-home chain elements, cross-home links, and content addresses decomposes into three sub-claims:
-*(a)* Distinctness from same-home chain elements: by ChainEnumerationInjectivity at chain indices of `A_L(d)`, `a = inc(ℓ_prev, 0)` is strictly greater than every prior chain element.
-*(b)* Distinctness from `dom(Σ.L)` elements homed at `d' ≠ d`: by CrossDocDisjointness, link sub-allocator anchors `b_L(d)` and `b_L(d')` are prefix-incomparable, so by T10 every address extending `b_L(d)` differs from every address extending `b_L(d')`.
-*(c)* Distinctness from `dom(Σ.C)`: by DisjointSubAllocatorChains, `A_L(d)`'s outputs satisfy `E(·)₁ = s_L`; by ASN-0093 L0, every `a' ∈ dom(Σ.C)` has `E(a')₁ = s_C`; by SC-NEQ, `s_C ≠ s_L`.
+`{a ∈ dom(Σ.L) : home(a) = d} = dom(Σ.L) ∩ {ℓ' : origin(ℓ') = d}` for any document `d`.
 
 ---
 
-## R0a — FlatLinkDomain (LEMMA, lemma)
+## L-ContiguousPrefix — ContiguousPrefix (LEMMA, lemma)
 
-At every reachable state Σ, `dom(Σ.L)` is a tumbler-prefix antichain:
+At every `→*`-reachable state Σ, for every `d ∈ dom(Σ.M)` there exists `J_d^Σ ∈ ℤ_{≥-1}` such that the homed-set is a contiguous initial segment of `A_L(d)`'s chain enumeration, and (when non-empty) admits a unique T1-maximum at chain index `J_d^Σ`:
 
-`(A Σ : Σ reachable from Σ_init :: (A a, a' ∈ dom(Σ.L) :: a ≼ a' ⟹ a = a'))`
-
-Under the K.λ contract of ASN-0093, R0a is unconditional: K.λ's first/subsequent emission rule, together with ASN-0093's sub-allocator chain axioms, enforce the sibling-frontier discipline as part of the substrate's class-(iii) primitive.
-
-Proof decomposes by case:
-
-*Case 1 — Cross-home (`home(a) ≠ home(a')`).* Suppose `a ≼ a'`; then `a' = a · w` for suffix `w`. By L1, `zeros(a) = zeros(a') = 3`, so `zeros(w) = 0`. By L1a's NUDE-prefix projection, the three zeros of `a'` sit at positions `≤ #a` coinciding with those of `a`, hence `home(a') = home(a)` — contradiction. Symmetric argument for `a' ≼ a`. Both directions excluded, so `a ≼ a' ⟹ a = a'` holds vacuously.
-
-*Case 2 — Same-home (`home(a) = home(a') = d`).* By ChainMembershipForOrigin (ASN-0093), both `a` and `a'` are chain elements of `A_L(d)`. By ChainUniformLength, `#a = #a'`. If `a ≼ a'`, then `a` and `a'` coincide pointwise, so `a = a'` by T3.
-
----
-
-## R0a-Cor1 — ContiguousPrefix (LEMMA, lemma)
-
-At every reachable state Σ, for every `d ∈ dom(Σ.M)` there exists `J_d^Σ ∈ ℤ_{≥-1}` such that:
-
-`(A Σ : Σ reachable from Σ_init :: (A d ∈ dom(Σ.M) :: (E J_d^Σ ∈ ℤ_{≥-1} :: {a ∈ dom(Σ.L) : home(a) = d} = {incʲ(d.0.s_L.1, 0) : 0 ≤ j ≤ J_d^Σ})))`
+`(A Σ : Σ →*-reachable :: (A d ∈ dom(Σ.M) :: (E J_d^Σ ∈ ℤ_{≥-1} :: {a ∈ dom(Σ.L) : home(a) = d} = {incʲ(d.0.s_L.1, 0) : 0 ≤ j ≤ J_d^Σ})))`
 
 (with `J_d^Σ = -1` denoting the empty set when no link is homed at `d`).
 
-Substantive postconditions:
-*(a)* When `J_d^Σ ≥ 0` (non-empty homed-set), `max{a ∈ dom(Σ.L) : home(a) = d}` under T1 is well-defined and equals `inc^{J_d^Σ}(d.0.s_L.1, 0)`, the chain element at chain index `J_d^Σ`.
-*(b)* `J_d^Σ = -1` absorbs the empty case; downstream consumers may reference `J_d^Σ + 1` as "next chain index" uniformly without case-splitting on emptiness.
+*Unique T1-maximum on non-empty homed-sets.* When `J_d^Σ ≥ 0`, `max{a ∈ dom(Σ.L) : home(a) = d}` under T1 is well-defined and equals `inc^{J_d^Σ}(d.0.s_L.1, 0)`.
 
----
+## R0 — TupleAddressFreshness (LEMMA, lemma)
 
-## R0a-Cor2 — DepthTwoLinkAddresses (LEMMA, lemma)
+For any →*-reachable state Σ, any caller-supplied home `d ∈ dom(Σ.M)`, and any `(F, G, K) ∈ Endset × Endset × T_admissible`, there exists a state Σ' with Σ → Σ' that emits a tuple with content (F, G) of type K at an address `a` that is *fresh* against `dom(Σ.L)` and *on-chain* in `A_L(d)`, homed at `d`, with Σ' itself →*-reachable:
 
-At every reachable state Σ, every link address in `dom(Σ.L)` has an element field (T4b's `E` projection) of length exactly 2:
+`(A Σ : Σ →*-reachable :: (A d ∈ dom(Σ.M), F, G ∈ Endset, K ∈ T_admissible :: (E Σ', a : Σ → Σ' ∧ a ∉ dom(Σ.L) ∧ a ∈ A_L(d) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = (F, G, K) ∧ home(a) = d ∧ Σ' →*-reachable)))`
 
-`(A Σ : Σ reachable from Σ_init :: (A a ∈ dom(Σ.L) :: #E(a) = 2))`
+*Value-shape consequence.* The standard triple `(F, G, K)` discharges K.λ's L3 precondition directly — arity is 3, both content slots `F, G ∈ Endset`, and `K ∈ T_admissible` forces a non-empty type slot.
 
-(This tightens L1b's substrate-level admission `#E ≥ 2` to `#E = 2` strictly.)
+## R0a — FlatLinkDomain (LEMMA, lemma)
 
----
+At every →*-reachable state Σ, `dom(Σ.L)` is a tumbler-prefix antichain:
+
+`(A Σ : Σ →*-reachable :: (A a, a' ∈ dom(Σ.L) :: a ≼ a' ⟹ a = a'))`
 
 ## R1 — AddressInjectivity (LEMMA, lemma)
 
 The map `addr : L → A_rel` is an injection:
 
-`(A (a, F, G), (a', F', G') ∈ L : a = a' :: F = F' ∧ G = G' ∧ both belong to the same coverage-class slice L_{[K]})`
+`(A (a, F, G), (a', F', G') ∈ L : a = a' :: F = F' ∧ G = G')`
 
----
+## R2 — TupleAddressPermanence (ALIAS, lemma)
 
-## R2 — TupleAddressPermanence (LEMMA, lemma)
+TupleAddressPermanence is L12 (LinkImmutability, ASN-0043) in tuple vocabulary: an allocated tuple address resolves permanently to the same relational content.
 
-Once allocated, a tuple address resolves permanently to the same relational content:
-
-`(A Σ → Σ', a ∈ dom(Σ.L), (F, G, K) = Σ.L(a) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = (F, G, K))`
-
----
+*Consequence.* Two agents independently filing tuples with identical `(F, G)` under identical `K` produce distinct addresses (R0 produces a fresh address regardless of value). By L11b (NonInjectivity, ASN-0043), value-level coincidence is permitted; by R1, address-level identity nevertheless distinguishes them.
 
 ## R3 — TypedSliceMonotonicity (LEMMA, lemma)
 
@@ -321,176 +166,142 @@ Each typed relation grows monotonically:
 
 `(A Σ → Σ', K ∈ T_admissible :: L_K^Σ ⊆ L_K^{Σ'})`
 
----
+where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
-## R4 — TupleAddressDisjointness (LEMMA, lemma)
+## R4 — TupleAddressDisjointness (ALIAS, predicate)
 
-Tuple addresses and document-content addresses are disjoint:
+TupleAddressDisjointness is SD (StoreDisjointness, ASN-0093: `dom(Σ.C) ∩ dom(Σ.L) = ∅`) under the partition aliases `A_doc^Σ = dom(Σ.C)`, `A_rel^Σ = dom(Σ.L)`:
 
 `A_doc^Σ ∩ A_rel^Σ = ∅`
 
----
-
 ## R5 — TupleSelfTargeting (LEMMA, lemma)
 
-For any state Σ and any `a ∈ A_rel^Σ`, the unit-depth span `(a, δ(1, #a))` is well-formed and may appear in the from-set or to-set of an emitted tuple, with `a` in its coverage.
+A tuple's from-set or to-set may reference tuple addresses. For any →*-reachable state Σ and any `a ∈ A_rel^Σ`, the unit-depth span `(a, δ(1, #a))` is well-formed and may appear in the from-set or to-set of an emitted tuple, with `a` in its coverage.
 
-*(Step 1 — Span well-formedness.)* By L1, `zeros(a) = 3`; by L1b, `#E(a) ≥ 2`, so `#a ≥ 1`. By OrdinalDisplacement (ASN-0034), `δ(1, #a) = [0, …, 0, 1]` is a positive tumbler of length `#a` with action point `#a`. The span `(a, δ(1, #a))` satisfies T12 (SpanWellDefinedness). `actionPoint(δ(1, #a)) = #a ≤ #a`. By PrefixSpanCoverage, `coverage({(a, δ(1, #a))}) = {t : a ≼ t}`, which contains `a` by reflexivity of `≼`.
+Sub-claims:
 
-*(Step 2 — Endset admissibility.)* By L4(c), endset spans may reference link-subspace addresses. By L13 (ReflexiveAddressing) applied at `b = a`, the unit-depth span `(a, δ(1, #a))` is the canonical reference span for `a`. The singleton endset `G_self = {(a, δ(1, #a))}` is an admissible `Endset` member at any slot of an emitted link.
+(a) *Span well-formedness.* `zeros(a) = 3`; `#E(a) ≥ 2` so `#a ≥ 1`. The span `(a, δ(1, #a))` satisfies T12 (SpanWellDefinedness, ASN-0034) — action point `#a ≤ #a`. By PrefixSpanCoverage (ASN-0043), `coverage({(a, δ(1, #a))}) = {t : a ≼ t}`, which contains `a` by reflexivity of `≼`.
 
-*(Step 3 — To-set case.)* The triple `(∅, G_self, K)` is L3-conforming: arity 3, `∅ ∈ Endset`, `G_self ∈ Endset` (from Step 2), `K ∈ T_admissible` non-empty. By R5-Cor at home `d ∈ dom(Σ.M)`, R0 emits at a fresh `a'` with `Σ'.L(a') = (∅, G_self, K)` and `a ∈ coverage(Σ'.L(a').e₂)`.
+(b) *Endset admissibility.* By L4(c) (EndsetGenerality, ASN-0043), endset spans may reference link-subspace addresses. The singleton endset `G_self = {(a, δ(1, #a))}` is an admissible `Endset` member at any slot of an emitted link.
 
-*(Step 4 — From-set case.)* The triple `(G_self, ∅, K)` is L3-conforming by the same checks. R5-Cor yields fresh `a''` with `a ∈ coverage(Σ''.L(a'').e₁)`.
+(c) *Self-targeting emission (to-set case).* For any `d ∈ dom(Σ.M)` and `K ∈ T_admissible`, R0 at triple `(∅, G_self, K)` and home `d` produces a fresh emitter `a' ∉ dom(Σ.L)` with `Σ'.L(a') = (∅, G_self, K)` and `a ∈ coverage(Σ'.L(a').e₂)`.
 
----
+(d) *From-set case.* Symmetric: the triple `(G_self, ∅, K)` is L3-conforming. R0 yields fresh `a''` with `Σ''.L(a'') = (G_self, ∅, K)` and `a ∈ coverage(Σ''.L(a'').e₁)`.
 
-## R5-Cor — EmitContentUniformity (LEMMA, lemma)
+## R-Scope — SingleTupleScope (LEMMA, lemma)
 
-For any state Σ with `dom(Σ.M) ≠ ∅`, any `d ∈ dom(Σ.M)`, and any L3-conforming triple `(F, G, K)` — i.e., `F, G ∈ Endset` and `K ∈ T_admissible` (non-empty) — R0's emission and L-invariant verification proceed identically regardless of what addresses the endset spans target:
+At every →*-reachable state Σ, for any caller-supplied `d_retr ∈ dom(Σ.M)` and any target `a` admissible under Nullify's precondition P-tgt — that is, `a ∈ A_rel^Σ` (P1) *or* `a = a_emit(Σ, d_retr)` (self-emit) — the `→`-step taken by `Nullify(Σ, d_retr, a) = Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` contributes exactly `a` to the nullified set:
 
-`(A Σ : dom(Σ.M) ≠ ∅ :: (A d ∈ dom(Σ.M), F, G ∈ Endset, K ∈ T_admissible :: (E Σ' extending Σ, a : a ∉ dom(Σ.L) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = (F, G, K))))`
+`{t : a ≼ t} ∩ A_rel^{Σ'} = {a}`
 
-with no constraint on `coverage(F)`, `coverage(G)`, or `coverage(K)` beyond L3's well-formedness.
-
----
+where `(Σ', _) = Nullify(Σ, d_retr, a)`. The result is *arity-independent*: it holds regardless of `|Σ.L(a)|`.
 
 ## R6a — RetractionStability (LEMMA, lemma)
 
 Once a tuple's address is nullified, it stays nullified across all future state transitions:
 
-`(A Σ → Σ', a ∈ A_rel^Σ : a ∈ nullified(Σ) :: a ∈ nullified(Σ'))`
+`(A Σ → Σ', a : a ∈ nullified(Σ) :: a ∈ nullified(Σ'))`
 
-Note: `coverage : Endset → ℘(T)` is a pure function on endset values, fixed by the substrate model; `coverage(E)` does not depend on the state Σ in which `E` is evaluated.
+## R6b — SingleDepthRetraction (DEF-Consequence, predicate)
 
----
+A retractor's tuple nullifies its targets through a single-pass check over the audit slice, with no regard to the retractor's own status:
 
-## R6b — SingleDepthRetraction (DEF-Consequence, def-consequence)
+`(A Σ, a, b, F', G' : a ∈ A_rel^Σ ∧ (b, F', G') ∈ L_R^Σ ∧ a ∈ coverage(G') : a ∈ nullified(Σ))`
 
-Retraction-of-retraction is not a fixpoint operation: an `Emit_R` call whose to-coverage targets a retractor `b` does not "undo" `b`'s nullifying effect on its prior targets. The decision procedure for `a ∈ nullified(Σ)` is *flat* — a single set-membership test independent of any retraction-chain depth in `L_R^Σ`, and unaffected by whether any witnessing retractor `b` is itself nullified:
-
-`a ∈ nullified(Σ) ⟺ (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))`
-
-The two possible readings:
-*(i) Audit-slice reading (adopted):* the existential ranges over `L_R^Σ`. Witness `b`'s own status is never consulted. Decidable in time proportional to `|L_R^Σ|`.
-*(ii) Active-subset reading (not adopted):* the existential would range over `A_R^Σ`, making deciding `a ∈ nullified(Σ)` depend recursively on `b ∉ nullified(Σ)` — a fixpoint computation with no fixed bound.
-
-Consequence: attempting to "un-nullify" `a` by emitting `Nullify(b)` for retractor `b` has no effect on `a ∈ nullified(Σ')`: the original retraction tuple `(b, F', G') ∈ L_R^Σ ⊆ L_R^{Σ'}` (by R3), and `a ∈ coverage(G')` still witnesses `a ∈ nullified(Σ')` regardless of `b`'s status.
-
----
+All clauses are evaluated at the single state Σ. The membership test consults the audit slice `L_R^Σ`, not the active subset `A_R^Σ` — retraction-of-retraction is a non-fixpoint operation: nullifying a retractor `b` does not "undo" `b`'s nullifying effect on its prior targets.
 
 ## R6c — RestorationByReemission (LEMMA, lemma)
 
 Once retracted, a tuple stays out of every active subset at any state reachable from Σ:
 
-`(A Σ, K, (a, F, G) ∈ L_K^Σ : a ∈ nullified(Σ) : (A Σ' : Σ ⊑ Σ' :: (a, F, G) ∉ A_K^{Σ'}))`
+`(A Σ, K, (a, F, G) ∈ L_K^Σ : a ∈ nullified(Σ) : (A Σ' : Σ →* Σ' :: (a, F, G) ∉ A_K^{Σ'}))`
+
+*Consequence — `A_K` is not monotone, though `L_K` is.* R3 (lifted along `→*`) makes the audit slice monotone (`Σ →* Σ' ⟹ L_K^Σ ⊆ L_K^{Σ'}`); the active subset is not. To "restore" content, emit a fresh tuple with the desired value (R0); the new tuple receives a fresh address.
 
 ---
 
-## LinkStoreInvarianceUnderArrangement — LinkStoreInvarianceUnderArrangement (LEMMA, lemma)
+## Unit-depth retraction discipline — UnitDepthRetractionDiscipline (COMMITMENT, predicate)
 
-Under any arrangement-modifying transition `Σ ↦ Σ'` in `↦ \ →`, `Σ'.L = Σ.L` pointwise. Consequently, for every `K ∈ T_admissible`:
+Layer-level convention: every `L_R^Σ` tuple has to-endset of the form `{(b, δ(1, #b))}` for some target `b ∈ A_rel^Σ`.
 
-`L_K^{Σ'} = L_K^Σ`
+Discharged for every layer-reachable state by induction:
 
-`L_R^{Σ'} = L_R^Σ`
+- *Base:* `Σ_init.L = ∅`, so `L_R^{Σ_init} = ∅` and `Σ_init` is unit-depth-disciplined vacuously.
+- *Step:* K.σ and K.α do not touch `Σ.L`; `Emit_K` at `K ≁ R` leaves the retraction slice unchanged; a higher-arity K.λ at `K ~ R` enters `dom(Σ'.L)` but not `L_R` (triple-restricted). The only `L_R`-growing step kind is a raw arity-3 K.λ at `K ~ R`, which by the discipline commitment is a `Nullify`, adding `(b, ∅, {(a, δ(1, #a))})` with `a ∈ A_rel^{Σ'}` by P-tgt.
 
-`nullified(Σ') = nullified(Σ)`
+## Relational layer — RelationalLayer (COMMITMENT, predicate)
 
-`A_K^{Σ'} = A_K^Σ`
+Operation set `{Emit_K, Observe_K, Nullify}`; layer invokes `Emit_K` at `K ~ R` only via the `Nullify` alias, satisfying the unit-depth retraction discipline.
 
-Iterating along any `↦*`-chain composed entirely of arrangement-modifying steps yields the same pointwise equalities at the endpoint.
-
----
-
-## R6c-Corollary — RestorationByReemissionBroad (LEMMA, lemma)
-
-R6c's conclusion extends from `⊑` to `⊑̂`:
-
-`(A Σ, K, (a, F, G) ∈ L_K^Σ : a ∈ nullified(Σ) : (A Σ' : Σ ⊑̂ Σ' :: (a, F, G) ∉ A_K^{Σ'}))`
+One *discipline commitment*: every `→`-step `Σ → Σ'` with `L_R^Σ ⊊ L_R^{Σ'}` is a `Nullify`. This quantifies over *all* `→`-steps that `→ ≡ K.σ ∪ K.α ∪ K.λ` admits.
 
 ---
 
-## R7a — NoExtraClassAffectsL (LEMMA, lemma)
-
-For any state-affecting transition `Σ ↝ Σ'` issued by a substrate-conforming layer with `Σ.L ≠ Σ'.L`, there exists a finite sequence `Σ = Σ_0 → Σ_1 → … → Σ_m` (`m ≥ 1`) of `→`-steps, each of class (i) or (iii), with:
-
-`Σ_m.L = Σ'.L`
-
-`dom(Σ_m.M) ⊆ dom(Σ'.M)`
-
-`dom(Σ_m.C) = dom(Σ.C) ⊆ dom(Σ'.C)`
-
-(no class-(ii) content-emission steps are introduced).
-
-Precondition: the layer is substrate-conforming per the Definition of *substrate-conforming layer*, comprising catalogs (a) and (b).
-
-Construction: Let `Δ := dom(Σ'.L) \ dom(Σ.L)` (finite, non-empty by L-fin + L12 + L12a). Enumerate `Δ = {a_1, …, a_n}` re-ordered so that fresh addresses homed at the same `d_k` appear in chain-order by R0a-Cor1. For each `k ∈ {1, …, n}`, set `d_k := home(a_k)` and `(F_k, G_k, K_k) := Σ'.L(a_k)`. If `d_k ∉ dom(Σ_{prev}.M)`, prefix a K.σ-step (Frame: `Σ_{prev}'.L = Σ_{prev}.L`, `Σ_{prev}'.C = Σ_{prev}.C`). Then issue a K.λ-step emitting `(F_k, G_k, K_k)` at `a_k`.
-
-K.λ precondition discharge at each iteration:
-*(1)* Freshness `a_k ∉ dom(Σ_{prev}'.L)`: K.σ-prefix held `Σ_{prev}'.L = Σ_{prev}.L = Σ.L ∪ {a_1, …, a_{k-1}}`; `a_k` is distinct from each by Δ-enumeration.
-*(2)* L0/L1/L1b at `a_k`: state-independent structural predicates over `a_k`, inherited from Σ'.
-*(2/3)* L1a at `a_k`: `home(a_k) = d_k ∈ dom(Σ_{prev}'.M)` by K.σ-prefix (if needed) or case hypothesis.
-*(4)* First/subsequent emission rule selects `a_k`:
-- *(i)* Chain-order existence: by catalog (b) preserved to Σ', R0a-Cor1 gives the homed set at `d_k` as a contiguous initial segment of `A_L(d_k)`'s chain enumeration.
-- *(ii)* Cross-home iteration order is immaterial: K.λ's predicate is origin-scoped to `d_k`.
-- *(iii)* Iteration in chain-order at each home selects `a_k`:
-  - *Case A (fresh `d_k`):* first-emission branch fires; `a = [d_k.0.s_L.1]` equals `a_k` at chain index 0.
-  - *Case B (existing `d_k`), sub-case B1 (`J_{d_k}^Σ = -1`):* first-emission branch fires identically to Case A.
-  - *Case B, sub-case B2 (`J_{d_k}^Σ ≥ 0`):* subsequent-emission branch fires with `ℓ_prev = inc^{J_{d_k}^Σ}(d_k.0.s_L.1, 0)` (T1-max by ChainEnumerationInjectivity); `inc(ℓ_prev, 0)` lands at chain index `J_{d_k}^Σ + 1`, which R0a-Cor1 at Σ' assigns to `a_k`.
-
----
-
-## Relational layer — RelationalLayer (COMMITMENT, commitment)
-
-The relational layer's operations are `{Emit_K, Observe_K, Nullify}`, with `Nullify` a definitional alias for `Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` — `Emit_K` instantiated at `K := R`, `F := ∅`, `G := {(a, δ(1, #a))}`. The layer commits to `Emit_K` as its sole state-affecting class-(iii) emission, and admits no composites that touch `Σ.L` indirectly.
-
-*Nullify-as-sole-`R`-producer discipline:* callers may invoke `Emit_K` only at type indices `K` satisfying `K ≁ R`; every `R`-typed emission is routed through the `Nullify` alias.
-
-*Corollary (reduction to `Emit_K`):* The relational layer's state-affecting operations reduce to `{Emit_K}` (with `Nullify` as alias). Each relational-layer state-affecting operation is a single-step class-(iii) `→`-step by R7a with no K.σ-prefix (callers establish `d ∈ dom(Σ.M)` before calling).
-
----
-
-## Emit_K — EmitK (OP, operation)
+## Emit_K — EmitK (OP, method)
 
 `Emit_K : Σ × dom(Σ.M) × Endset × Endset → Σ' × A_rel^{Σ'}`
 
-Equivalently: `Emit : T_admissible × Σ × dom(Σ.M) × Endset × Endset → Σ' × A_rel^{Σ'}` with `Emit_K(·) := Emit(K, ·)`.
+where Σ ranges over the `→*`-reachable states.
 
-Precondition: `K ∈ T_admissible` (at type-index); `d ∈ dom(Σ.M)` (enforces `dom(Σ.M) ≠ ∅`); `F, G ∈ Endset`.
+*Precondition.* `K ∈ T_admissible`, `d ∈ dom(Σ.M)`.
 
-Effect: invokes K.λ at home `d` with value `(F, G, K)`. Fresh address `a` fixed by K.λ's first/subsequent emission rule:
-- first emission (`{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = ∅`): `a = [d.0.s_L.1]`
-- subsequent emission (predicate negated): `a = inc(ℓ_prev, 0)` where `ℓ_prev := max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}`
+*Effect.* Given input state Σ, caller-supplied home document `d ∈ dom(Σ.M)`, and finite endsets `F, G ∈ Endset`, `Emit_K(Σ, d, F, G)` invokes K.λ at home `d` with value `(F, G, K)`. The fresh address is `a = a_emit(Σ, d)`. The returned `(Σ', a)` satisfies:
 
-Postcondition: `a ∉ dom(Σ.L)`, `a ∈ dom(Σ'.L)`, `home(a) = d`, `Σ'.L(a) = (F, G, K)`. By R2, this binding is permanent.
+- `a ∉ dom(Σ.L)`
+- `a ∈ dom(Σ'.L)`
+- `home(a) = d`
+- `Σ'.L(a) = (F, G, K)` (permanent by R2)
 
-Frame: `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
+*Frame.* `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
 
----
+## Observe_K — ObserveK (OP, function)
 
-## Observe_K — ObserveK (OP, operation)
-
-For `K ∈ T_admissible`, pattern `(F̂, Ĝ) ∈ ℘_fin(T) × ℘_fin(T)`, and view selector `View ∈ {hist, oper}`:
+For `K ∈ T_admissible`, a pattern `(F̂, Ĝ) ∈ ℘_fin(T) × ℘_fin(T)`, and a view selector:
 
 `Observe_K : Σ × ℘_fin(T) × ℘_fin(T) × View → ℘_fin(L_K^Σ)`
 
-Returns:
+where `View ∈ {hist, oper}`.
 
-`{(a, F, G) ∈ view : F̂ ⊆ coverage(F) ∧ Ĝ ⊆ coverage(G)}`
+Returns `{(a, F, G) ∈ view : F̂ ⊆ coverage(F) ∧ Ĝ ⊆ coverage(G)}`
 
-where `view = L_K^Σ` if `View = hist` and `view = A_K^Σ` if `View = oper`. `Observe_K` leaves Σ unchanged.
+with `view = L_K^Σ` if `View = hist` and `view = A_K^Σ` if `View = oper`. Observe leaves Σ unchanged.
 
-Pattern domain: patterns range over the full tumbler space `T` (not `A^Σ`), to admit ghost-targeting queries per L9 + L4. The match relation `F̂ ⊆ coverage(F)` is decidable because `coverage(F)` is a finite subset of `T` for every finite endset `F` (T12 + finiteness of `F`).
+*Pattern domain — `T`, not `A^Σ`.* Patterns range over `T` so a pattern may target ghost addresses. The match relation `F̂ ⊆ coverage(F)` is decidable because `F̂` is finite and each per-span membership test `t ∈ coverage(F)` is decidable by T2 (IntrinsicComparison, ASN-0034).
 
----
+## Nullify — Nullify (OP, method)
 
-## Nullify — Nullify (OP, operation)
-
-Preconditions: (P0) `d_retr ∈ dom(Σ.M)`; (P1) `a ∈ A_rel^Σ`; (P2) `|Σ.L(a)| = 3`.
+*Preconditions:*
+- **P0**: `d_retr ∈ dom(Σ.M)`
+- **P-tgt**: `a ∈ A_rel^Σ` (P1) *or* `a = a_emit(Σ, d_retr)` (self-emit)
 
 `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})`
 
-By PrefixSpanCoverage, `coverage({(a, δ(1, #a))}) = {t : a ≼ t}`, which contains `a`. Let `(Σ', _) = Nullify(Σ, d_retr, a)`. By Definition of `nullified`, `a ∈ nullified(Σ')`. By R6a, `a` remains nullified thereafter.
+*Effect.* Emits a tuple into the retraction relation with empty from-set and a unit-depth to-span targeting `a`, homed at `d_retr`. R0 at `d_retr` emits the retraction triple `(∅, {(a, δ(1, #a))}, R)`, depositing a fresh emitter address `b` with `Σ'.L(b) = (∅, {(a, δ(1, #a))}, R)`. Under P-tgt, `a ∈ nullified(Σ')`, persisting thereafter by R6a.
 
-*Single-tuple scope (absolute under R0a):* R0a's unconditional antichain gives `{a' ∈ dom(Σ.L) : a ≼ a'} = {a}`. The fresh emitter `b = a_emit(Σ, d_retr)` produced by K.λ satisfies `b ≠ a` (by K.λ freshness, `a ∈ dom(Σ.L)`) and `a ⊀ b` (by R0a on `dom(Σ'.L)`). Therefore `{t : a ≼ t} ∩ A_rel^{Σ'} = {a}`: Nullify contributes exactly `a` to `nullified(Σ')`, never a prefix-subtree.
+The to-span `(a, δ(1, #a))` is T12-well-formed for *any* tumbler `a` (`#a ≥ 1` by T0, `actionPoint(δ(1, #a)) = #a ≤ #a`).
+
+---
+
+## wp Case 1 — NullifyWeakestPrecondition (DERIVED, predicate)
+
+`wp(Nullify(Σ, d_retr, a), "{t : a ≼ t} ∩ A_rel^{Σ'} = {a}") ≡ P0(Σ, d_retr) ∧ (P1(Σ, a) ∨ a = a_emit(Σ, d_retr))`
+
+where P0: `d_retr ∈ dom(Σ.M)` and P1: `a ∈ A_rel^Σ`, over the ambient `→*`-reachable domain. The weakest precondition *coincides* with the operation's own precondition `P0 ∧ P-tgt`: every legal Nullify call attains single-tuple scope.
+
+The wp does not constrain `|Σ.L(a)|`, by R-Scope's arity-independence.
+
+## wp Case 2 — EmitKWeakestPrecondition (DERIVED, predicate)
+
+Over the `→*`-reachable working domain:
+
+`wp(Emit_K(Σ, d, F, G), (a, F, G) ∈ A_K^{Σ'}) ≡ d ∈ dom(Σ.M) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G)) ∧ ¬(E (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∈ coverage(G'))`
+
+(over `→*`-reachable Σ; `K` is an index, not a free wp variable)
+
+The third conjunct asserts that no pre-existing retraction tuple in `L_R^Σ` already covers `a_emit(Σ, d)`.
+
+*Disciplined-domain simplification.* At a layer-reachable state the third conjunct holds vacuously (unit-depth retraction discipline + R0a give `a_emit(Σ, d) ∉ coverage(G')` for any pre-existing `(_, _, G') ∈ L_R^Σ`), so the wp reduces to:
+
+`d ∈ dom(Σ.M) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))`
+
+The `a_emit(Σ, d) ∉ coverage(G)` escape branch is non-redundant: a `K ~ R` call with `G = ∅` leaves `a ∉ nullified(Σ')`, so the postcondition holds where a bare `K ≁ R` would wrongly reject it.
