@@ -533,7 +533,7 @@ Every document's link-subspace arrangement contains only its own links. K.μ⁺_
 
 Equivalently, `M(d)|_{dom_L}` is a partial injection from V-positions to link addresses.
 
-**Link V-position permanence.** A withdraw-and-re-add composite — full link-subspace clearance by K.μ⁻ followed by two re-appends via K.μ⁺_L — re-seats a link without violating any invariant. Re-seating uses K.μ⁻ + K.μ⁺_L, not the K.μ~ named composite of *Decomposition of K.μ~*. K.μ⁻ removes a link's V-position (suffix-only, so removing `[s_L, …, 1]` forces removal of `[s_L, …, 2]` as well), and two subsequent K.μ⁺_L steps re-append the two links in the opposite order, yielding a genuine re-seating (`ℓ₂ ↦ [s_L, …, 1]`, `ℓ₁ ↦ [s_L, …, 2]`) that preserves both CL-OWN and CL-UNIQ. The K.μ⁺_L first-arrangement guard `ℓ ∉ ran(M(d))` tests only the *current* arrangement, not history, so a previously-withdrawn link passes it. Hence the presentational order of arrival in the arrangement layer is mutable (P3): the model permits link re-positioning and does not detect it — clause (v)'s single-K.μ~ fixity does not extend to a lifetime guarantee. Link *identity* permanence — the address and value of an existing link — is already discharged on `dom(L)` by L12.
+**Link V-position permanence.** K.μ~ clause (v)'s link-subspace fixity binds a single K.μ~ transition only and is not a lifetime guarantee; link *identity* permanence — the address and value of an existing link — is discharged independently of arrangement order on `dom(L)` by L12.
 
 
 ## Decomposition of K.μ~
@@ -602,7 +602,7 @@ Thus the realised π preserves subspace and fixes the link subspace pointwise �
 
 The elementary transitions do not all occur independently. Some must co-occur to maintain invariants (coupling); some must leave other components unchanged (isolation). The weakest-precondition calculus makes the coupling constraints visible.
 
-The K.ρ/K.μ⁺ coupling trigger is range-based, not unconditional: K.ρ must co-occur with K.μ⁺ exactly when K.μ⁺ adds an I-address `a` that is *new to the content-subspace range* of the document — `a ∈ ran(M'(d)|_{s_C}) \ ran(M(d)|_{s_C})` — and not when it merely reuses a V-position or re-adds an already-ranged address. This is the coupling J1★.
+The K.ρ/K.μ⁺ coupling is range-based, not unconditional — it triggers only when K.μ⁺ adds an I-address new to the document's content-subspace range; see J1★ in *Scoped coupling constraints* below.
 
 **Definition (Current containment).** The *current containment* of state Σ is the set of all document-content pairs where the content is presently in the document's arrangement:
 
@@ -705,7 +705,7 @@ The right-hand side collapses to R because K.μ⁺ frames R, and the difference 
 `= {K.ρ frames M, so M'(d) = M(d)}`
 `(A (a, d) ∈ R' \ R :: (E v ∈ dom(M(d)) : subspace(v) = s_C ∧ M(d)(v) = a))`
 
-The right-hand side requires every entry K.ρ adds to already inhabit the content-subspace range of M(d) at the K.ρ pre-state. K.ρ in isolation cannot guarantee this for a freshly recorded provenance entry; therefore, to maintain P4a, the matching K.μ⁺ must co-occur within the composite, placing `a` into the content-subspace range. The aggregate composite obligation is that every new entry in `R' \ R` corresponds to a content-subspace range change. We *impose* this as the composite-scoped coupling J1'★ below, evaluated at the composite boundary (`Σ → Σ'`) as a ValidComposite★ clause-(2) constraint, with the witness required at the composite endpoint Σ' (imposition motivated in the preamble above).
+The right-hand side requires every entry K.ρ adds to already inhabit the content-subspace range of M(d) at the K.ρ pre-state. K.ρ in isolation cannot guarantee this for a freshly recorded provenance entry; therefore, to maintain P4a, the matching K.μ⁺ must co-occur within the composite, placing `a` into the content-subspace range. The aggregate composite obligation — every new entry in `R' \ R` corresponds to a content-subspace range change — is the coupling J1'★ below, evaluated at the composite boundary (`Σ → Σ'`) with the witness required at the composite endpoint Σ'.
 
 **J1'★ (ProvenanceRequiresExtension, content-subspace).**
 
