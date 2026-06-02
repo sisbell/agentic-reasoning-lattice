@@ -1,15 +1,15 @@
-# Channel Assignment — ASN-0051 review-41
+# Channel Assignment — ASN-0098 review-41
 
-**Date:** 2026-05-16 03:26
+**Date:** 2026-06-02 14:49
 
-## Issue 1: NoStaleResolutionState relies on un-enumerated transition inspection
-Reason: The fix is purely mechanical enumeration of the 8 elementary transitions' write-targets, each of which is already documented in ASN-0047 (cited in the existing paragraph). The required per-transition lines can be composed from schema knowledge already in scope.
+## Issue 1: Defensive prose imagining the case the canonical precondition already excludes
+Reason: Pure deletion of scaffolding prose; the canonical hypothesis and OrdinalDisplacement (already cited in the ASN) settle `actionPoint(ℓ) = #s`, and LP19's use-site can carry the half-open citation itself. No external facts needed.
 
-## Issue 2: SV6 sub-lemma — implicit T1 index bound at j ≤ #(s⊕ℓ)
-Reason: The fix is a one-sentence citation chain combining ActionPoint codomain (ASN-0034) and TumblerAdd result-length identity (TA0), both already used elsewhere in the SV6 proof. Fully internal.
+## Issue 2: "Scope restriction" essay embedded inside LP12b
+Reason: Removing the mid-proof scope block and relocating one line to Open Questions is fully internal; the inversion rationale (LP-Fin Corollary at `X=s_L`, L0 non-disjointness) is already stated within the ASN.
 
-## Issue 3: SV11 worked example exhibits only mechanism (b) of the strictness biconditional
-Reason: The fix is construction of a concrete tumbler scenario where a third span's denotation is disjoint from both block I-extents. This is internal construction work using the existing tumbler/span machinery; no design intent or implementation evidence is at stake.
+## Issue 3: Split boundary-case discussion with document-ordering justification
+Reason: Dropping the deferral apology and consolidating the boundary result into LP12b is an internal reorganization; both LP12a and LP12b content already exist in the ASN.
 
-## Issue 4: SV11 maximal-fragment count proof — the upper bound on fragment-per-term assumed without statement
-Reason: The fix is a parenthetical citation of the S0-convexity argument already present in the same section. Purely internal cross-reference.
+## Issue 4: Redundant K.δ routing remark
+Reason: Compressing the remark to one sentence restates the case decomposition LP8's hypothesis and the K.δ frame clauses already fix; entirely derivable from the ASN.
