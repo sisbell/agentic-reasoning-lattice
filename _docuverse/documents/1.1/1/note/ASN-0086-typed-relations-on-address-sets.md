@@ -17,7 +17,7 @@ We are looking for what a relation algebra over the link store affords. The answ
 
 **Definition — Reachability.** `Σ' is →-reachable from Σ`, written `Σ →* Σ'`, is the reflexive-transitive closure of `→`.
 
-By the K.σ/K.α/K.λ frame conditions stated above, `Σ →* Σ'` entails `dom(Σ.C) ⊆ dom(Σ'.C)`, `dom(Σ.M) ⊆ dom(Σ'.M)`, `dom(Σ.L) ⊆ dom(Σ'.L)`, with `Σ'.C|_{dom(Σ.C)} = Σ.C`, `Σ'.M|_{dom(Σ.M)} = Σ.M`, `Σ'.L|_{dom(Σ.L)} = Σ.L`. Equivalently, `Σ →* Σ'` implies `Σ' ⊒ Σ` in ASN-0043's sense; the converse need not hold.
+By the K.σ/K.α/K.λ frame conditions stated above, `Σ →* Σ'` entails `dom(Σ.C) ⊆ dom(Σ'.C)`, `dom(Σ.M) ⊆ dom(Σ'.M)`, `dom(Σ.L) ⊆ dom(Σ'.L)`, with `Σ'.C|_{dom(Σ.C)} = Σ.C`, `Σ'.M|_{dom(Σ.M)} = Σ.M`, `Σ'.L|_{dom(Σ.L)} = Σ.L`.
 
 **Working domain — `→*`-reachable states.** All results below are stated over states `→*`-reachable from `Σ_init`. **RT-closure**: the class is closed under `→`. Each `→`-step is a single K.σ/K.α/K.λ primitive, which preserves the invariant catalog *published by ASN-0093's K-operation contracts* (the S/M/C invariants of ASN-0036 and ASN-0093, together with the L-invariants those contracts carry). For K.λ, the step lands its single fresh link key at `a_emit(Σ, d)` (Definition — `a_emit`).
 
@@ -25,7 +25,7 @@ By the K.σ/K.α/K.λ frame conditions stated above, `Σ →* Σ'` entails `dom(
 
 `A^Σ = dom(Σ.C) ∪ dom(Σ.L)`
 
-By SD (StoreDisjointness, ASN-0093) — equivalently ASN-0043 L14 (DualPrimitive) together with ASN-0093 L0 supplying global `s_C`-residency of content — `A^Σ` is the entirety of stored-entity addresses at Σ; no third category exists.
+By SD (StoreDisjointness, ASN-0093), `A^Σ` is the entirety of stored-entity addresses at Σ; no third category exists.
 
 **Definition — Partition.** Define:
 
@@ -99,7 +99,7 @@ Each tuple emission allocates a fresh address (R0), the address-to-pair binding 
 
 (with `J_d^Σ = -1` denoting the empty set when no link is homed at `d`).
 
-*Proof.* This is ChainMembershipForOrigin (ASN-0093, link half) restated at `→*`-reachable states in the `home`/`J_d^Σ` notation; we cite the foundation rather than re-derive it. ChainMembershipForOrigin gives, at every reachable state, `dom(Σ.L) ∩ {ℓ' : origin(ℓ') = d} = {s_1, …, s_{n_d}}`, a contiguous initial segment of the link sub-allocator chain `A_L(d)` (anchor `[d.0.s_L.1]` by FirstEmission, sibling recurrence `inc(·, 0)`). The translation to the stated form uses two identifications. First, by HomeOriginCoincidence, `{a ∈ dom(Σ.L) : home(a) = d} = dom(Σ.L) ∩ {ℓ' : origin(ℓ') = d}`. Second, re-index the chain by `j = (chain position) − 1` so that `s_{j+1} = incʲ(d.0.s_L.1, 0)`; then the segment `{s_1, …, s_{n_d}}` is `{incʲ(d.0.s_L.1, 0) : 0 ≤ j ≤ J_d^Σ}` with `J_d^Σ = n_d − 1 ∈ ℤ_{≥-1}` (the empty case `n_d = 0` giving `J_d^Σ = -1`).
+*Proof.* ChainMembershipForOrigin (ASN-0093, link half) gives, at every reachable state, `dom(Σ.L) ∩ {ℓ' : origin(ℓ') = d} = {s_1, …, s_{n_d}}`, a contiguous initial segment of the link sub-allocator chain `A_L(d)` (anchor `[d.0.s_L.1]` by FirstEmission, sibling recurrence `inc(·, 0)`). The translation to the stated form uses two identifications. First, by HomeOriginCoincidence, `{a ∈ dom(Σ.L) : home(a) = d} = dom(Σ.L) ∩ {ℓ' : origin(ℓ') = d}`. Second, re-index the chain by `j = (chain position) − 1` so that `s_{j+1} = incʲ(d.0.s_L.1, 0)`; then the segment `{s_1, …, s_{n_d}}` is `{incʲ(d.0.s_L.1, 0) : 0 ≤ j ≤ J_d^Σ}` with `J_d^Σ = n_d − 1 ∈ ℤ_{≥-1}` (the empty case `n_d = 0` giving `J_d^Σ = -1`).
 
 *Unique T1-maximum on non-empty homed-sets.* When `J_d^Σ ≥ 0` (the homed-set is non-empty), `max{a ∈ dom(Σ.L) : home(a) = d}` under T1 (LexicographicOrder, ASN-0034) is well-defined and equals `inc^{J_d^Σ}(d.0.s_L.1, 0)`, the chain element at index `J_d^Σ`. By ChainEnumerationInjectivity (ASN-0093) in its strict-order form `(A m, n ≥ 1 : m < n : t_m < t_n)`, the contiguous prefix `{t_1, …, t_{n_d}}` admits `t_{n_d}` as its unique maximum; under the re-indexing, `t_{n_d} = inc^{J_d^Σ}(d.0.s_L.1, 0)`. ∎
 
@@ -109,9 +109,7 @@ Each tuple emission allocates a fresh address (R0), the address-to-pair binding 
 
 *Value-shape consequence.* The standard triple `(F, G, K)` discharges K.λ's L3 precondition directly from R0's typed hypotheses — arity is 3, both content slots `F, G ∈ Endset`, and `K ∈ T_admissible` forces a non-empty type slot — so the caller discharges no separate value requirement.
 
-*Proof.* R0 is a near-direct consequence of ASN-0093's K.λ contract. Fix the caller-supplied `d ∈ dom(Σ.M)` bound by the universal. We invoke K.λ at home `d` with value `(F, G, K)` ∈ Endset × Endset × T_admissible, which satisfies K.λ's L3-discharge precondition by its typed signature (Value-shape consequence above).
-
-K.λ's contract supplies the fresh address `a` via its first/subsequent emission rule, in the branch selected by `a_emit` (Allocator Structure). R0 contributes only the structural postconditions — `home(a) = d`, on-chain membership `a ∈ A_L(d)`, and the element-level shape — and cites ASN-0093's FirstEmissionFreshness and SubsequentEmissionFreshness for the `dom(Σ.L) ∪ dom(Σ.C)` exclusion.
+*Proof.* Fix the caller-supplied `d ∈ dom(Σ.M)` bound by the universal. We invoke K.λ at home `d` with value `(F, G, K)` ∈ Endset × Endset × T_admissible, which satisfies K.λ's L3-discharge precondition by its typed signature (Value-shape consequence above). K.λ's contract supplies the fresh address `a` via its first/subsequent emission rule, in the branch selected by `a_emit` (Allocator Structure).
 
 - *First emission* (`a_emit`'s first-emission branch fires, under the predicate `{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = ∅`): `a = a_emit(Σ, d) = [d.0.s_L.1]`. By FirstEmission (ASN-0093), `E(a)₁ = s_L`, `origin(a) = d` (hence `home(a) = d`), `#E(a) = 2`, `zeros(a) = 3`, and `a` is T4-valid. By ChainDiscipline + FirstEmission (ASN-0093), `A_L(d)` is active at every state with `d ∈ dom(Σ.M)` and `a = t₁^L(d)` is its first emission, so `a ∈ A_L(d)` — discharging the *on-chain admissibility* postcondition. Freshness is FirstEmissionFreshness (ASN-0093), whose link first-emit case (gated by exactly this predicate) gives `a ∉ dom(Σ.L) ∪ dom(Σ.C)` at the committing K.λ-event.
 - *Subsequent emission* (`a_emit`'s subsequent-emission branch fires, under `{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} ≠ ∅`): `a = a_emit(Σ, d) = inc(ℓ_prev, 0)` with `ℓ_prev := max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` (Definition — `a_emit`, well-defined there). *On-chain admissibility (K.λ's "produced by `A_L(d)`" gating precondition).* By ChainMembershipForOrigin (ASN-0093), the homed-set is a contiguous initial segment of `A_L(d)`'s chain enumeration, so its T1-maximum `ℓ_prev` is a chain element and the emission `a = inc(ℓ_prev, 0)` is the next element of `A_L(d)` — so `a ∈ A_L(d)`, discharging the gating precondition. *Shape.* `ℓ_prev ∈ dom(Σ.L)` is T4-valid (L1c, ASN-0043, with T10a.4, ASN-0034); by TA5-SigValid and TA5(c) (ASN-0034), `inc(ℓ_prev, 0)` advances only the terminal component, so `origin(a) = d` (hence `home(a) = d`), `E(a)₁ = s_L`, `zeros(a) = 3`, `#E(a) = #E(ℓ_prev) ≥ 2`, and `a` is T4-valid (TA5a at `k = 0`, ASN-0034). Freshness is SubsequentEmissionFreshness (ASN-0093), whose within-document, cross-document (T10), and cross-subspace (T7) cases jointly give `a ∉ dom(Σ.L) ∪ dom(Σ.C)` at the committing K.λ-event.
