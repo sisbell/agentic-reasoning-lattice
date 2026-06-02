@@ -91,8 +91,6 @@ The union is disjoint in place: `Σ.L` is a partial function `T ⇀ Link` (ASN-0
 
 Each tuple emission allocates a fresh address (R0), the address-to-pair binding is a function (R1), and the binding is permanent (R2).
 
-**Sub-lemma — FreshLinkKeyDisjointness (L14/L14a fresh-key discharge).** L14 (DualPrimitive) and L14a (NonTranscludability) of ASN-0043 are *not* published by ASN-0093's K.λ contract, so this note carries them across each K.λ-step itself, via this sub-lemma. Let `Σ → Σ'` extend the link store by one fresh key `a` with `E(a)₁ = s_L`, leaving `Σ'.C = Σ.C` and `Σ'.M = Σ.M` (the value-preserving single-key form of every K.λ-step). If L14 and L14a hold at Σ, they hold at Σ'. *Proof.* The only new key to check is `a`. By ASN-0093 L0 (SubspacePartition) and SC-NEQ, `E(a)₁ = s_L ≠ s_C` while every content address has `E(·)₁ = s_C`, so `a ∉ dom(Σ.C)|_{s_C}` — discharging L14 at the new key. For L14a, by S3 (ReferentialIntegrity, ASN-0036) `ran(Σ.M) ⊆ dom(Σ.C)`, so every arrangement image carries `E(·)₁ = s_C`, and the same exclusion gives `a ∉ ran(Σ.M) = ran(Σ'.M)`. ∎
-
 **L-ContiguousPrefix — ContiguousPrefix.** At every `→*`-reachable state Σ, for every `d ∈ dom(Σ.M)` there exists `J_d^Σ ∈ ℤ_{≥-1}` such that the homed-set is a contiguous initial segment of `A_L(d)`'s chain enumeration, and (when non-empty) admits a unique T1-maximum at chain index `J_d^Σ`:
 
 `(A Σ : Σ →*-reachable :: (A d ∈ dom(Σ.M) :: (E J_d^Σ ∈ ℤ_{≥-1} :: {a ∈ dom(Σ.L) : home(a) = d} = {incʲ(d.0.s_L.1, 0) : 0 ≤ j ≤ J_d^Σ})))`
@@ -107,7 +105,7 @@ Each tuple emission allocates a fresh address (R0), the address-to-pair binding 
 
 `(A Σ : Σ →*-reachable ∧ dom(Σ.M) ≠ ∅ :: (A F, G ∈ Endset, K ∈ T_admissible :: (E Σ' reached by one →-step from Σ, a : a ∉ dom(Σ.L) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = (F, G, K) ∧ Σ' →*-reachable)))`
 
-*Value-shape consequence.* Every L-invariant at the fresh emitter key is value-independent given `Endset`-typed inputs: the L/S/M/C catalog is discharged structurally by the single K.λ-step via RT-closure, and L14/L14a by FreshLinkKeyDisjointness, neither consulting the triple's content. L3-conformance of `(F, G, K)` holds by the typed signature itself — arity is 3, both content slots are `Endset` members, and `K ∈ T_admissible` forces a non-empty type slot — so the caller discharges no separate value requirement.
+*Value-shape consequence.* Every L-invariant at the fresh emitter key is value-independent given `Endset`-typed inputs: the L/S/M/C catalog is discharged structurally by the single K.λ-step via RT-closure, not consulting the triple's content. L3-conformance of `(F, G, K)` holds by the typed signature itself — arity is 3, both content slots are `Endset` members, and `K ∈ T_admissible` forces a non-empty type slot — so the caller discharges no separate value requirement.
 
 *Proof.* R0 is a near-direct consequence of ASN-0093's K.λ contract. Pick any `d ∈ dom(Σ.M)` (precondition `dom(Σ.M) ≠ ∅` is given). We invoke K.λ at home `d` with value `(F, G, K)` ∈ Endset × Endset × T_admissible (which satisfies K.λ's L3-discharge precondition by L3-conformance of the triple: `|·| = 3`, `F, G ∈ Endset`, `K ∈ T_admissible` non-empty).
 
@@ -127,7 +125,7 @@ In both branches, freshness against `dom(Σ.C)` is shared and immediate: once `E
 
 In either branch, K.λ's effect is `Σ'.L = Σ.L ∪ {a ↦ (F, G, K)}` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M` per K.λ's Frame, witnessing R0's existential conclusion.
 
-*L-invariant preservation across the K.λ-step.* The emission above is a valid K.λ `→`-step from the `→*`-reachable pre-state Σ — its on-chain gating and freshness preconditions discharged in the freshness bullets. By RT-closure, Σ' is therefore `→*`-reachable, and RT-closure's preservation clause carries the full L/S/M/C invariant catalog to Σ' (with L14/L14a at the fresh key supplied by FreshLinkKeyDisjointness). This completes the final conjunct of R0's conclusion. ∎
+*L-invariant preservation across the K.λ-step.* The emission above is a valid K.λ `→`-step from the `→*`-reachable pre-state Σ — its on-chain gating and freshness preconditions discharged in the freshness bullets. By RT-closure, Σ' is therefore `→*`-reachable, and RT-closure's preservation clause carries the full L/S/M/C invariant catalog to Σ'. This completes the final conjunct of R0's conclusion. ∎
 
 **R0a — FlatLinkDomain.** At every →*-reachable state Σ, `dom(Σ.L)` is a tumbler-prefix antichain:
 
@@ -201,7 +199,7 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 `nullified(Σ) = {a ∈ A_rel^Σ : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))}`
 
-The existential checks `coverage(G')` only — the to-set's coverage — and does not inspect `coverage(F')`, per Convention RetractionDirectionality; an `Emit_R` call whose to-span coverage misses `a` does not nullify `a`, regardless of what its from-set covers. The set-builder restriction `a ∈ A_rel^Σ` confines `nullified(Σ)` to link-store addresses: ghost, content, and document addresses in `coverage(G')` — which by R5/L9 may include link, content, document, or ghost addresses — are not collected.
+The existential checks `coverage(G')` only, per Convention RetractionDirectionality. The set-builder restriction `a ∈ A_rel^Σ` confines `nullified(Σ)` to link-store addresses: ghost, content, and document addresses in `coverage(G')` — which by R5/L9 may include link, content, document, or ghost addresses — are not collected.
 
 **Definition — ActiveSubset.** For each `K ∈ T_admissible`, the *active subset of type K at state Σ* is
 
@@ -293,7 +291,7 @@ The operations' postconditions admit explicit precondition analyses in two opera
 
 `P0(Σ, d_retr) ∧ P1(Σ, a)`
 
-— where P0: `d_retr ∈ dom(Σ.M)` and P1: `a ∈ A_rel^Σ`, asserted over the ambient `→*`-reachable domain — is a *sufficient* precondition for the postcondition, with each conjunct load-bearing. The `→*`-reachability of Σ is the ambient domain assumption — it supplies R0a's antichain, on which R-Scope rests — not a separately droppable conjunct. This conjunction is **not** the weakest precondition: `→*`-reachability holds *globally* over the whole store, while the postcondition is *local* to `a`'s prefix-subtree, so it is strictly stronger than the postcondition requires.
+— where P0: `d_retr ∈ dom(Σ.M)` and P1: `a ∈ A_rel^Σ`, asserted over the ambient `→*`-reachable domain — is a *sufficient* precondition for the postcondition, with each conjunct load-bearing. The `→*`-reachability of Σ is the ambient domain assumption — it supplies R0a's antichain, on which R-Scope rests — not a separately droppable conjunct.
 
 *Sufficiency:* P1 combined with L12a discharges `a ∈ A_rel^{Σ'}`. The only other requirement — that no other link address fall within `{t : a ≼ t}` at Σ' — is exactly R-Scope (SingleTupleScope): `{t : a ≼ t} ∩ A_rel^{Σ'} = {a}`. That result is conditioned on `→*`-reachability at Σ and Σ'; the ambient domain supplies it at Σ, and the K.λ `→`-step carries it to Σ' (RT-closure).
 
@@ -342,7 +340,7 @@ After Step 0: `L_K^{Σ_0} = {(a₁, F₁, G₁)}` (witnessing R3 over the empty 
 
 Emit_R invokes K.λ at home `d`. The first/subsequent emission predicate fires *subsequent* (since `{ℓ' ∈ dom(Σ_0.L) : origin(ℓ') = d} = {a₁} ≠ ∅`); `ℓ_prev := max{ℓ' ∈ dom(Σ_0.L) : origin(ℓ') = d} = a₁`; K.λ deposits at `inc(a₁, 0) = 1.0.1.0.1.0.2.2`. Set `b₁ = 1.0.1.0.1.0.2.2` — by ChainEnumerationInjectivity (ASN-0093), `b₁` is the second chain element of `A_L(d)` (the first being `a₁ = t_1^L(d)`). By T10a.2 (NonNestingSiblingPrefixes, ASN-0034), `a₁` and `b₁` are distinct siblings of `A_L(d)` and are therefore prefix-incomparable; in particular `a₁ ⊀ b₁` — witnessing *R0* (TupleAddressFreshness): `b₁ ∉ dom(Σ_0.L)` is fresh by SubsequentEmissionFreshness (ASN-0093), the subsequent-emission branch the realized prefix `{a₁}` at Σ_0 selects (matching R0's own subsequent-branch discharge).
 
-*L-invariant verification at `b₁`.* R0 verifies each L-invariant against an arbitrary K.λ-emitted address; the concrete `b₁ = 1.0.1.0.1.0.2.2` admits the same checks by direct inspection: L0 (`E(b₁)₁ = 2 = s_L`), L1 (`zeros(b₁) = 3` by (UZ)), L1a (`origin(b₁) = home(b₁) = d`), L1b (`#E(b₁) = 2` by (UL)), L1c (the structural chain from `d` through `b_L(d)` through `a₁` to `b₁` exists by ChainDiscipline + FirstEmission, ASN-0093). ✓ The remaining state-local L-invariants (L3, L4(c), L12, L12a, L14, L14a, L-fin) discharge by R0's generic argument applied with the concrete `b₁`. The later fresh emissions in this sketch (`a₂`, `b₂`, `a₃`) are all siblings of `b₁` on `A_L(d)`'s `inc(·, 0)` chain, sharing the prefix `1.0.1.0.1.0.2` and differing only in the element-field ordinal (the last component); their L-invariant discharge is identical in form to this one, so below we record only that varying ordinal.
+*L-invariant verification at `b₁`.* R0 verifies each L-invariant against an arbitrary K.λ-emitted address; the concrete `b₁ = 1.0.1.0.1.0.2.2` admits the same checks by direct inspection: L0 (`E(b₁)₁ = 2 = s_L`), L1 (`zeros(b₁) = 3` by (UZ)), L1a (`origin(b₁) = home(b₁) = d`), L1b (`#E(b₁) = 2` by (UL)), L1c (the structural chain from `d` through `b_L(d)` through `a₁` to `b₁` exists by ChainDiscipline + FirstEmission, ASN-0093). ✓ The remaining state-local L-invariants (L3, L4(c), L12, L12a, L-fin) discharge by R0's generic argument applied with the concrete `b₁`. The later fresh emissions in this sketch (`a₂`, `b₂`, `a₃`) are all siblings of `b₁` on `A_L(d)`'s `inc(·, 0)` chain, sharing the prefix `1.0.1.0.1.0.2` and differing only in the element-field ordinal (the last component); their L-invariant discharge is identical in form to this one, so below we record only that varying ordinal.
 
 Emit the retraction: `Σ_1.L = Σ_0.L ∪ {b₁ ↦ (∅, {(a₁, δ(1, 8))}, R)}`. Now compute:
 
