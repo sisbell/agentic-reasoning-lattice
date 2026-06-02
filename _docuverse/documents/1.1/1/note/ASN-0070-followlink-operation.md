@@ -570,11 +570,23 @@ The operation requires no write-locking and no exclusive access. Concurrent quer
 
 **Frame.** No state modification.
 
+### F-contig — Contiguity (LEMMA)
+
+**Preconditions.** A mapping block `β = (v, a, n)` of `M(d)` (ASN-0058) and an endset I-span `σ = (s, ℓ_σ)` satisfying T12 (SpanWellDefinedness, ASN-0034).
+
+**Postcondition.** `I(β) ∩ ⟦σ⟧` is either empty or a contiguous sub-progression `{a + j + k : 0 ≤ k < c}` of `I(β)`, for some offset `j` and width `c`; the corresponding V-positions `v + j, ..., v + j + c − 1` form a single contiguous V-run within `β`.
+
+**Depends.** M1 (OrderPreservation, ASN-0058) — strict monotonicity of the I-extent map `k ↦ a + k`; T12 (SpanWellDefinedness, ASN-0034) — order-convexity of `⟦σ⟧` under T1 (postcondition (c)).
+
+**Frame.** No state modification.
+
+**Derivation.** Proved inline in "Computation via Decomposition" above (the Contiguity claim): strict monotonicity of `k ↦ a + k` (M1) places any index between two qualifying indices into an order-interval whose endpoints lie in `⟦σ⟧`, and T12's order-convexity then places that index in `⟦σ⟧`; the intersection therefore contains every index between its minimum and maximum. ∎
+
 ### F-origin — OriginSymmetry (LEMMA)
 
 **Preconditions.** `v ∈ R(d, L(ℓ).eᵢ)`.
 
-**Postcondition.** Membership of `v` in `R(d, L(ℓ).eᵢ)` is determined by `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` alone. The home of `M(d)(v)` — `origin(M(d)(v))` for content addresses (S7, ASN-0036), `home(M(d)(v))` for link addresses (Definition LinkHome, ASN-0043) — does not appear in the membership condition.
+**Postcondition.** Membership of `v` in `R(d, L(ℓ).eᵢ)` is determined by `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` alone. The home of `M(d)(v)` — `origin(M(d)(v))` for content addresses (S7, ASN-0036), `home(M(d)(v))` for link addresses (Definition Home, ASN-0043) — does not appear in the membership condition.
 
 **Depends.** Definition of `R(d, e)`.
 
@@ -610,7 +622,7 @@ This is not a property of `follow` per se; it is the composition of L12 (link in
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d, d' ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
 
-**Postcondition.** `follow(ℓ, d, i)` and `follow(ℓ, d', i)` are well-defined and computed by the same mechanism. The home document `home(ℓ)` (Definition LinkHome, ASN-0043) plays no privileged role.
+**Postcondition.** `follow(ℓ, d, i)` and `follow(ℓ, d', i)` are well-defined and computed by the same mechanism. The home document `home(ℓ)` (Definition Home, ASN-0043) plays no privileged role.
 
 **Depends.** No precondition of `follow` references `home(ℓ)`.
 
