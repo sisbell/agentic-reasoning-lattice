@@ -1,23 +1,15 @@
-# Channel Assignment — ASN-0051 review-52
+# Channel Assignment — ASN-0098 review-52
 
-**Date:** 2026-05-16 06:34
+**Date:** 2026-06-02 16:22
 
-```
-## Issue 1: SV5 proof notation conflates state-dependent and state-independent readings of the endset
-Reason: Fix is purely notational — the ASN already defines `π(e, d) = coverage(e) ∩ ran(M(d))` with `e` as a state-independent endset value, and L12 is already in the lattice and cited elsewhere in this ASN. Tightening the unfolding to either anchor a link address or drop the redundant state subscript is derivable from existing definitions.
-```
+## Issue 1: Achievability paragraph is meta-framing wrapped around a forward reference
+Reason: Purely editorial — deleting meta-framing and leading with the existing construction argument is derivable from the ASN's own content; no design-intent or implementation evidence is needed.
 
-```
-## Issue 2: SV9 monotonicity proof's "L-frame transition" enumeration depends on L being implicitly framed in ASN-0047, but the cited frame conditions do not say so
-Reason: Citation-routing fix internal to the lattice — L12 (LinkImmutability) and L12a (LinkStoreMonotonicity) in ASN-0043 are the proper sources for entry preservation and domain non-growth, both already cited elsewhere in this ASN. No design or implementation input required.
-```
+## Issue 2: Cross-chain interference paragraph defers downstream
+Reason: Internal restructuring — merging the LP-Fin Corollary exclusion with the emission-frontier discharge reorders arguments already present in the ASN, requiring no external channel.
 
-```
-## Issue 3: SV11 attainment witness shows only the single-block case
-Reason: Constructing a p ≥ 2 attainment witness (or characterising the topological obstruction) is a pure mathematical exercise over the ASN's own block-decomposition and span-coverage machinery — no design intent or udanax behaviour informs whether m · p is tight for p ≥ 2.
-```
+## Issue 3: LP12a enabledness justification explains why the conjunct exists rather than stating it
+Reason: Self-contained prose trim — the enabledness definition already in LP12a is sufficient, so dropping the rationale sentence is derivable from the claim itself.
 
-```
-## Issue 4: SV6 informal statement omits the structural restriction k > p₃
-Reason: Editorial alignment — the formal Precondition list and SV13(f) already carry the k > p₃ qualifier; updating the informal headline to match is internal to the ASN.
-```
+## Issue 4: LP4 frame note is defensive scaffolding rendered moot by M1
+Reason: Derivable from cited foundation — M1 (ASN-0093) gives `dom(Σ.M) ⊆ dom(Σ'.M)`, which the ASN already records, so removing the redundant note needs no external input.
