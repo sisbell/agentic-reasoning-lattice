@@ -1,13 +1,12 @@
-# Channel Assignment — ASN-0051 review-48
+# Channel Assignment — ASN-0098 review-48
 
-**Date:** 2026-05-16 05:32
+**Date:** 2026-06-02 15:53
 
-```
-## Issue 1: SV14 does not address K.λ
-Reason: The fix is internal — the ASN already establishes SV9 (DiscoveryMonotonicity under K.λ) and that K.λ holds M in frame. The required K.λ clause for SV14 follows directly by composing these two existing results; no design-intent or implementation evidence is needed.
-```
+## Issue 1: T4-validity of `F`-members is justified by a lemma that does not cover the unregistered documents `F` explicitly includes
+Reason: The fix swaps a chain-lemma citation for a direct structural T4 check on the form `[d, 0, s, k]`; the review itself spells out the four-clause argument, and the T4 clauses live in ASN-0034, a foundation the ASN already cites. No design intent or implementation evidence is required.
 
-```
-## Issue 2: SV11 biconditional asserts m·p attainability without an attaining witness
-Reason: The fix is internal — constructing an attainment witness (or weakening the biconditional) uses tumbler arithmetic already cited in the ASN. The child-depth tumbler mechanism (inc(a, 1) producing c with a < c < a+1) discussed in the Content Allocation section gives precisely the reach values needed to create non-adjacent decomposition terms within a single block's I-extent; no design-intent or implementation evidence is needed beyond what the ASN already cites from ASN-0034/ASN-0058.
-```
+## Issue 2: `F`'s informal introduction names its downstream consumer instead of advancing the definition
+Reason: Pure prose restructuring — fold the zero-extension exclusion intuition into the formal definition paragraph and drop the use-site preview. Entirely internal to the ASN.
+
+## Issue 3: LP6, LP7, LP14 triplicate one frame-template
+Reason: The three paragraphs are the same LP4-based one-step argument at K.α/K.λ/K.ρ; collapsing them into one template plus a labeled instance list is internal editing with no new claim.
