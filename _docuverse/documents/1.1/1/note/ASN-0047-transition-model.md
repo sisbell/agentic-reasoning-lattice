@@ -608,7 +608,7 @@ Thus the realised π preserves subspace and fixes the link subspace pointwise �
 
 The elementary transitions do not all occur independently. Some must co-occur to maintain invariants (coupling); some must leave other components unchanged (isolation). The weakest-precondition calculus makes the coupling constraints visible.
 
-The K.ρ/K.μ⁺ coupling trigger is range-based, not unconditional: K.ρ must co-occur with K.μ⁺ exactly when K.μ⁺ adds an I-address `a` that is *new to the content-subspace range* of the document — `a ∈ ran(M'(d)|_{s_C}) \ ran(M(d)|_{s_C})` — and not when it merely reuses a V-position or re-adds an already-ranged address. This is the coupling J1★. The couplings named in this and the following statements — J0, J1★, J1'★ — and the composite-validity predicate ValidComposite★ that aggregates them are all defined in *Scoped coupling constraints* below; we name them here at first use and do not repeat the forward pointer.
+The K.ρ/K.μ⁺ coupling trigger is range-based, not unconditional: K.ρ must co-occur with K.μ⁺ exactly when K.μ⁺ adds an I-address `a` that is *new to the content-subspace range* of the document — `a ∈ ran(M'(d)|_{s_C}) \ ran(M(d)|_{s_C})` — and not when it merely reuses a V-position or re-adds an already-ranged address. This is the coupling J1★.
 
 **Definition (Current containment).** The *current containment* of state Σ is the set of all document-content pairs where the content is presently in the document's arrangement:
 
@@ -636,7 +636,7 @@ For freshly created documents d ∈ E'_doc \ E_doc, the pre-state has d ∉ E_do
 
 `(A Σ →* Σ', a : a ∈ dom(C') \ dom(C) : (E d, v : d ∈ E'_doc ∧ v ∈ dom(M'(d)) : M'(d)(v) = a))`
 
-Every freshly allocated I-address appears in some arrangement in the post-state — the containing document may itself have been freshly created by K.δ in the same composite transition. J0 is an imposed coupling constraint (not derived): it is a clause-(2) validity condition of ValidComposite★, whose imposed-not-an-elementary-axiom status and the K.α-alone counterexample are stated once at ValidComposite★ clause (2) below. The motivation is Nelson's design intent (LM: content enters the docuverse only by placement in a document), which justifies imposing J0 rather than establishing it as ground truth of the transition vocabulary.
+Every freshly allocated I-address appears in some arrangement in the post-state — the containing document may itself have been freshly created by K.δ in the same composite transition. The motivation is Nelson's design intent (LM: content enters the docuverse only by placement in a document), which justifies imposing J0 rather than establishing it as ground truth of the transition vocabulary.
 
 **P4a (Trace witnessing — trace property).** P4a is a composite-boundary property whose witness need not inhabit the current arrangement (temporal-scope classification per the *Extended reachable-state invariants* preamble); here we make its witnessing domain formal. A *valid transition trace to Σ* is a finite sequence of composite boundaries `Σ₀ →* Σ₁ →* ... →* Σ_n = Σ` in which each `Σ_j →* Σ_{j+1}` is a valid composite transition (ValidComposite★); the finite set of states `{Σ₀, ..., Σ_n}` is the *transition history* of Σ along that trace, and `M_k` denotes the arrangement family of trace state `Σ_k`. P4a asserts that every `(a, d) ∈ R` had a *content-subspace* containment witness in *some* trace state — the content `a` was arranged in `d` at some point in the document's history, not necessarily at the moment the entry was recorded:
 
@@ -694,8 +694,6 @@ Every I-address currently in some arrangement is recorded in R. But the converse
 
 
 ## Scoped coupling constraints
-
-J1★ and J1'★ are imposed (not derived); the wp derivations below give the motivating obligation.
 
 **J1★ (ExtensionRecordsProvenance, content-subspace).**
 
@@ -1149,7 +1147,7 @@ The atomicity guarantee of SequentialTransitionAxiom commits *elementary* transi
 
   S2 ∧ S3★ ∧ S3★-aux ∧ S4 ∧ S7a ∧ S7b ∧ C1b ∧ C1c ∧ S7d ∧ S8a ∧ S8-fin ∧ S8-depth ∧ S8★ ∧ C-fin ∧ D-CTG★ ∧ D-MIN★ ∧ D-SEQ★ ∧ P6 ∧ P7 ∧ P8 ∧ NodeLineage ∧ TrackedEmission ∧ L0 ∧ L1 ∧ L1a ∧ L1b ∧ L1c ∧ L3 ∧ L14 ∧ L-fin ∧ CL-OWN ∧ CL-UNIQ
 
-  All per-state invariants except TrackedEmission are discharged cell-by-cell in the Class (a) verification matrix below; TrackedEmission is the one per-state invariant discharged separately, by the self-contained induction in its definition box (restated in the *TrackedEmission* paragraph below).
+  All per-state invariants except TrackedEmission are discharged cell-by-cell in the Class (a) verification matrix below; TrackedEmission is the one per-state invariant discharged separately, by the self-contained induction in its definition box.
 
   *Composite-boundary properties* (Class (b) of the proof below — discharged at boundaries by J0/J1★/J1'★):
 
@@ -1157,7 +1155,7 @@ The atomicity guarantee of SequentialTransitionAxiom commits *elementary* transi
 
 The *Composite-boundary verification matrix* below records, for each Class (b) property, where it transiently fails and the coupling that restores it (per the preamble's temporal-scope distinction). P4★ and P7a are per-state properties holding at boundaries; P4a is grouped with them as a trace property, classified per this preamble, with its witnessing domain made formal in its definition box.
 
-*TrackedEmission.* Established by the self-contained induction in its definition box (the *Preservation* paragraph under TrackedEmission): vacuous at Σ₀, preserved by K.δ case (ii) (each non-node entity enters E only by a T10a inc-step on a tracked sub-allocator, joining that allocator's tracked domain at the placing event), and held in frame by every non-K.δ transition.
+*TrackedEmission:* see its definition-box induction.
 
 ASN-0036's S7d (document allocation discipline) is preserved unchanged: every `d ∈ E_doc` is T4-valid with `zeros(d) = 2`, placed in E_doc by a K.δ event whose freshness guard `e ∉ E` and GlobalUniqueness distinctness preservation are the case-(ii) preconditions discharged at the K.δ definition.
 
@@ -1171,7 +1169,7 @@ P3 (defined in *Destruction confinement*) covers every per-transition monotonici
 
 **Base.** The extended initial state Σ₀ satisfies every per-state invariant (verified in the Link store and extended system state section — L₀ = ∅ satisfies link invariants vacuously, including L3; S3★ reduces to S3, and P4★ reduces to the unscoped bound `Contains(Σ) ⊆ R` (over the link-free initial fragment `Contains = Contains_C`, per the *Scoped coupling constraints* discussion); S3★-aux holds vacuously since M₀(d) = ∅ for all d; D-CTG★, D-MIN★ (and the derived D-SEQ★) hold vacuously since V_S(d) = ∅ for every subspace S). The per-transition invariants have no base case — they are vacuous before any transition has occurred — and enter the induction at the first step.
 
-**Class (a): Per-state invariants.** These are the *per-state invariants* enumerated in the ExtendedReachableStateInvariants definition above — every reachable-state property except the Class (b) composite-boundary triple P4★, P4a, P7a and TrackedEmission (discharged separately in its definition box, restated above).
+**Class (a): Per-state invariants.** These are the *per-state invariants* enumerated in the ExtendedReachableStateInvariants definition above — every reachable-state property except the Class (b) composite-boundary triple P4★, P4a, P7a and TrackedEmission (discharged separately in its definition box).
 
 *Verification matrix.* Each cell names the load-bearing discharge for that (invariant, transition) pair; `frame` indicates the transition holds the relevant state component unchanged and so trivially preserves the invariant; `n/a` indicates the invariant's scope does not intersect the transition's effect (e.g., L0's L-clause is `n/a` for transitions that frame both L and C). K.μ~ cells invoke the full-clearance form (`n'_{s_C} = 0`) of the K.μ⁻ + K.μ⁺ decomposition (any cell not naming a cut point reads as full-clearance, which is admissible for every admissible π).
 
