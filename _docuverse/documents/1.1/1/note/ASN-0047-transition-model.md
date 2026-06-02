@@ -124,7 +124,7 @@ This closes the inductive base for ExtendedReachableStateInvariants; the inducti
 
 ## Permanence
 
-We classify each component by the transitions it admits. The five-component state `Σ = (C, L, E, M, R)` exhibits three distinct permanence contracts: append-only stores with immutable values (C via P0, L via L12), extension-only sets and relations (E via P1/P8, R via P2), and the arrangement family M — the sole mutable component, admitting extension, contraction, and reordering.
+We classify each component of the five-component state `Σ = (C, L, E, M, R)` by the transitions it admits. The named per-component predicates below — P0, L12, P1/P8, P2 — fix what each component permits; the resulting partition into permanence contracts is collected once, with its cross-layer bridges, in the *Temporal decomposition* table at the end of this note.
 
 **P0 (Content permanence).** The content store admits only extensions, and existing entries are immutable:
 
