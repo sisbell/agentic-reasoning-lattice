@@ -51,7 +51,7 @@ project(e, d, Σ)
   ≡             {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(e)}
 ```
 
-The precondition `d ∈ dom(Σ.M)` is what makes `Σ.M(d)` well-defined; we adopt the convention that `project(e, d, Σ)` is left undefined when `d ∉ dom(Σ.M)`, rather than assigning it a default value, so that every appeal to `project` carries the membership obligation explicitly. For a link `a ∈ dom(Σ.L)` with slot `i ∈ {1, …, |Σ.L(a)|}`, write `project(a, i, d, Σ) ≡ project(Σ.L(a).eᵢ, d, Σ)`, defined when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`.
+The precondition `d ∈ dom(Σ.M)` is what makes `Σ.M(d)` well-defined; `project(e, d, Σ)` is left undefined when `d ∉ dom(Σ.M)`. For a link `a ∈ dom(Σ.L)` with slot `i ∈ {1, …, |Σ.L(a)|}`, write `project(a, i, d, Σ) ≡ project(Σ.L(a).eᵢ, d, Σ)`, defined when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`.
 
 The definition reads from two inputs:
 - The endset, fixed once and for all by the link's creation (and immune to subsequent transitions, by L12).
@@ -140,7 +140,7 @@ Newly allocated I-addresses are invisible to projection until some subsequent K.
 
 (b) Newly-registered emptiness: `project(e, d_new, Σ') = ∅`.
 
-Both K.σ (ASN-0093) and K.δ-IsDocument (ASN-0047) satisfy the document-registration form named in the hypothesis: both extend `dom(M)` by one fresh document, initialise the new document's arrangement to `∅`, and preserve every pre-existing arrangement pointwise. Their effects on the `Σ.M` component are structurally identical for the purposes of projection. The two operations are therefore covered by a single claim under the hypothesis above, without requiring a separate displacement claim per operation.
+Both K.σ (ASN-0093) and K.δ-IsDocument (ASN-0047) satisfy the document-registration form named in the hypothesis: both extend `dom(M)` by one fresh document, initialise the new document's arrangement to `∅`, and preserve every pre-existing arrangement pointwise. Their effects on the `Σ.M` component are structurally identical for the purposes of projection.
 
 Postcondition (a) follows by LP4 applied to each `d ∈ dom(Σ.M)`: the document-registration frame holds `Σ'.M(d) = Σ.M(d)` for every such `d`. Postcondition (b) follows from the definition of `project`: with `d_new ∈ dom(Σ'.M)` (so the projection is defined) and `dom(Σ'.M(d_new)) = ∅`, the set comprehension `{v ∈ dom(Σ'.M(d_new)) : Σ'.M(d_new)(v) ∈ coverage(e)}` ranges over the empty domain and is empty. Both postconditions are commitments — LP18 (resurrection) requires the well-defined empty projection through a newly-registered document until a K.μ⁺ or K.μ⁺_L fires; (a) and (b) together establish that no displacement occurs at registration time, neither at pre-existing documents nor at the new one.
 
@@ -222,7 +222,7 @@ The second postcondition `ran(Σ'.M(d)) = ran(Σ.M(d))` is derived by taking ima
 
 The displacement under K.μ~ is therefore a *rebinding*: same I-addresses, same number of V-positions, but at new locations in V-space. A projection that was contiguous in V-order before the reordering may become fragmented after; conversely, a fragmented projection may become contiguous. The shape of the projection is a property of the current arrangement, not of the link.
 
-The per-step lemmas LP4 through LP14 cover every operation kind of the working frame. Since reachable sequences `Σ →* Σ'` decompose into finite chains of atomic transitions (SequentialTransitionAxiom of ASN-0093), any multi-step argument is analysed step-by-step, each step governed by one of these lemmas.
+The atomic per-step lemmas LP4–LP10 and LP14 cover every *atomic* operation kind of the working frame. Since reachable sequences `Σ →* Σ'` decompose into finite chains of atomic transitions (SequentialTransitionAxiom of ASN-0093), any multi-step argument is analysed step-by-step, each atomic step governed by one of these lemmas. LP11 is a *composite-level* lemma, separate from the atomic set: K.μ~ is not atomic but a named composite of K.μ⁻ + K.μ⁺ (ASN-0047). When a reachable sequence is decomposed into atomic transitions, a reordering on `d` appears as a K.μ⁻ step (governed by LP10, shrink) followed by a K.μ⁺ step (governed by LP9, grow), passing through a contracted intermediate state. LP11 governs neither atomic step; it reasons about the composite directly via ASN-0047's bijection equation, supplying the net-effect characterisation `project' = π(project)` that the LP10-then-LP9 atomic path realises but does not by itself express. A K.μ~ occurrence in a sequence is therefore analysed via its K.μ⁻ + K.μ⁺ decomposition for the per-step coverage, with LP11 supplying the composite net effect.
 
 ## Discoverability and Survival
 
@@ -253,8 +253,9 @@ R := ⋃ {[S, 1, ..., 1, k] : S ∈ {s_C, s_L} ∧ 1 ≤ k ≤ n'_S}
 denote the resulting retention set — determined by the parameters and the per-subspace V-position depths, fixed before the transition fires. For every link `a ∈ dom(Σ.L)`, the weakest precondition on the pre-state `Σ` under which `discoverable_from(a, d, Σ')` holds in the post-state `Σ' = K.μ⁻[d, R](Σ)` is:
 ```
 wp(K.μ⁻[d, R], discoverable_from(a, d, ·))
-  ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : project(a, i, d, Σ) ∩ R ≠ ∅)
+  ≡ enabled(K.μ⁻[d, R]) ∧ (E i : 1 ≤ i ≤ |Σ.L(a)| : project(a, i, d, Σ) ∩ R ≠ ∅)
 ```
+where `enabled(K.μ⁻[d, R])` is K.μ⁻'s applicability predicate — `d ∈ E_doc`, `dom(Σ.M(d)) ≠ ∅`, the strict-shrink admissibility `(E S :: n'_S < n_S)`, and `R` a valid D-SEQ★ prefix set — under which the post-state `Σ' = K.μ⁻[d, R](Σ)` exists. The enabledness conjunct is required for total correctness: at a state where K.μ⁻ is not applicable, no post-state exists, so the second conjunct (the postcondition pullback derived below) can hold vacuously while `discoverable_from(a, d, Σ')` is unrealisable. The derivation below establishes the pullback conjunct under the standing assumption that K.μ⁻ is enabled at `Σ`.
 
 Derivation. We work backward from the postcondition. By the discoverable_from definition applied at `Σ'`, and using LP2 (which fixes both `a ∈ dom(Σ'.L)` and `|Σ'.L(a)| = |Σ.L(a)|`) to keep the slot index range stable:
 ```
@@ -270,15 +271,7 @@ Since `project(a, i, d, Σ) ⊆ dom(Σ.M(d))` by the projection definition, the 
 ```
 project(a, i, d, Σ') = project(a, i, d, Σ) ∩ R
 ```
-The per-slot non-emptiness biconditional `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ∩ R ≠ ∅` then lifts existentially over slots — preserving the biconditional because the slot range is unchanged — to produce the wp statement.
-
-Equivalently, via LP12's coverage-range characterisation applied to `Σ'`, and using LP3's coverage equation `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`:
-```
-discoverable_from(a, d, Σ')
-  ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
-  ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ {Σ.M(d)(v) : v ∈ R} ≠ ∅)
-```
-where `ran(Σ'.M(d)) = {Σ.M(d)(v) : v ∈ R}` by the K.μ⁻ agreement clause. This is the same wp predicate expressed by intersecting coverage with the V-restricted range, rather than the projection with `R` — the two forms are interchangeable.
+The per-slot non-emptiness biconditional `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ∩ R ≠ ∅` then lifts existentially over slots — preserving the biconditional because the slot range is unchanged — to produce the pullback conjunct of the wp statement.
 
 *Boundary case — empty retention.* K.μ⁻ admits maximal contraction with `n'_{s_C} = n'_{s_L} = 0`, producing `R = ∅`, provided the pre-state has at least one position so that the strict-shrink clause `(E S :: n'_S < n_S)` is discharged. At `R = ∅` the wp specialises:
 ```
@@ -353,7 +346,7 @@ F = {a ∈ T : (E d ∈ T, s ∈ {s_C, s_L}, k ≥ 1 :: zeros(d) = 2 ∧ d satis
 ```
 Every `a ∈ F` has `#a = #d + 3`, `zeros(a) = 3`, and `#E(a) = 2` by direct inspection of the structural form. Moreover, every `a ∈ F` satisfies T4 (HierarchicalParsing, ASN-0034). An address of the form `[d, 0, s, k]` with `d` T4-valid, `zeros(d) = 2`, `s ∈ {s_C, s_L}`, and `k ≥ 1` is exactly the structural form FirstEmission and ChainDiscipline (ASN-0093) fix for a chain element of the sub-allocator `A_C(d)` (resp. `A_L(d)`), so its T4-validity is delivered directly by ChainElementT4Validity (ASN-0093) — we do not re-discharge T4's conjuncts here. An address outside `F` cannot be the target of any K.α/K.λ emission. In particular, the sub-allocator anchors `b_C(d) = [d, 0, s_C]` and `b_L(d) = [d, 0, s_L]` of ASN-0093 have `#E = 1` and so lie outside `F`; they are anchors of chains, not chain elements.
 
-`F` is countably infinite. By T0(a) and T0(b) of ASN-0034, the set of T4-valid document tumblers is itself infinite (component values are unbounded and tumbler length is unbounded), and each contributes a countably infinite chain in each of the two subspaces. The universal quantifier `(A t ∈ F : s ≤ t < s ⊕ ℓ : …)` in the tightness predicate therefore ranges over an infinite domain. Decidability of this quantifier rests on a finitude lemma about the interval's interaction with `F`'s structural form — *a finitude that holds for canonical spans*, established by LP-Fin below; non-canonical spans are excluded from the tightness domain at the type level (see below), so the lemma need only cover the canonical case.
+`F` is countably infinite. By T0(a) and T0(b) of ASN-0034, the set of T4-valid document tumblers is itself infinite (component values are unbounded and tumbler length is unbounded), and each contributes a countably infinite chain in each of the two subspaces. The universal quantifier `(A t ∈ F : s ≤ t < s ⊕ ℓ : …)` in the tightness predicate therefore ranges over an infinite domain. LP-Fin establishes that for a canonical span — `s ∈ F` and `ℓ = δ(n, #s)` — the set `F ∩ [s, s ⊕ ℓ)` is finite, which renders the quantifier decidable. Tightness admits only canonical spans, so the canonical case is all the lemma must cover.
 
 **LP-Fin — IntervalFinitude for Canonical Spans**: For every *canonical* span `(s, ℓ)` — meaning `s ∈ F` (so `s = [d_0, 0, s', k_s]` for some T4-valid `d_0` with `zeros(d_0) = 2`, subspace `s' ∈ {s_C, s_L}`, chain index `k_s ≥ 1`) and `ℓ = δ(n, #s)` for some `n ≥ 1` (canonical form, per the tight definition below) — the set `F ∩ [s, s ⊕ ℓ)` is finite.
 
@@ -584,7 +577,7 @@ At no point during either branch of this trace did the link itself change. The l
 | discoverable_from | `discoverable_from(a, d, Σ) ≡ (E i : project(a, i, d, Σ) ≠ ∅)` (defined when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`) | introduced |
 | LP12 | `discoverable_from(a, d, Σ) ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)` | introduced |
 | LP12a | Contraction discoverability wp: `wp(K.μ⁻[d, R], discoverable_from(a, d, ·)) ≡ (E i : project(a, i, d, Σ) ∩ R ≠ ∅)`, where `R` is the K.μ⁻ retention set; reduces to `false` at `R = ∅` | introduced |
-| LP12b | Discharges LP12a's content-canonical-link-subspace boundary case: for `a ∈ dom(Σ.L)` whose every span is canonical with `s = [d_s, 0, s_C, k_s]`, and any K.μ⁻ retention parameters `n'_{s_C} = 0, n'_{s_L} > 0`, the wp evaluates to `false` — derived via LP-Fin Corollary applied at `X = s_C` to give `coverage(Σ.L(a).eᵢ) ∩ dom(Σ.L) = ∅`. The symmetric link-canonical class (every span canonical with `s = [d_s, 0, s_L, k_s]` under the same retention pattern) is explicitly *OUT_OF_SCOPE* for this ASN — left to future work. | introduced |
+| LP12b | Discharges LP12a's content-canonical-link-subspace boundary case: for `a ∈ dom(Σ.L)` whose every span is canonical with `s = [d_s, 0, s_C, k_s]`, and any K.μ⁻ retention parameters `n'_{s_C} = 0, n'_{s_L} > 0`, the wp evaluates to `false` — derived via LP-Fin Corollary applied at `X = s_C` to give `coverage(Σ.L(a).eᵢ) ∩ dom(Σ.L) = ∅`. | introduced |
 | LP13 | Unconditional link persistence: `Σ →* Σ' ∧ a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)` — independent of any discoverability | introduced |
 | LP16 | Transclusion confers discoverability: shared I-addresses transfer discoverability across documents | introduced |
 | LP17 | Ghost projection: orphaned links persist in `dom(Σ.L)` with empty projections everywhere | introduced |
