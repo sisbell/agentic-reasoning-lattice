@@ -82,7 +82,7 @@ The union is disjoint by Lemma — SliceUniqueness, stated next. Where ambient s
 
 *Notation — subscript read modulo `~`.* Since the slot-3 criterion tests `coverage(Σ.L(a).e₃) = coverage(K)`, any `K ~ K'` induces `L_K^Σ = L_{K'}^Σ`; the subscript is a *coverage-class* index, depending only on `[K]`.
 
-**Lemma — SliceUniqueness.** Each tuple address `a ∈ dom(Σ.L)` indexes *at most one* slice `L_K^Σ`. *Proof.* `Σ.L` is a partial function `T ⇀ Link` (ASN-0043, Definition of LinkStore), so `a` carries a single value `Σ.L(a)`, hence a single slot-3 endset `Σ.L(a).e₃` and a single coverage class `[Σ.L(a).e₃]`; thus `a` lies in no two slices. (At-most-one, not exactly-one: a higher-arity address with `|Σ.L(a)| ≠ 3` fails every slice's `|Σ.L(a)| = 3` conjunct and indexes *zero* slices, consistent with *Definition — TupleAddress* and the higher-arity remark above. At-most-one is exactly what the disjoint union requires.) ∎
+**Lemma — SliceUniqueness.** Each tuple address `a ∈ dom(Σ.L)` indexes *at most one* slice `L_K^Σ`. *Proof.* `Σ.L` is a partial function `T ⇀ Link` (ASN-0043, Definition of LinkStore), so `a` carries a single value `Σ.L(a)`, hence a single slot-3 endset `Σ.L(a).e₃` and a single coverage class `[Σ.L(a).e₃]`; thus `a` lies in no two slices. ∎
 
 **Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`. The map is an injection, with image the arity-3 slice `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}` of the codomain `A_rel^Σ = dom(Σ.L)`.
 
@@ -286,7 +286,7 @@ We analyze the weakest preconditions of two postconditions: Nullify's single-tup
 
 `P0(Σ, d_retr) ∧ (P1(Σ, a) ∨ a = a_emit(Σ, d_retr))`
 
-— where P0: `d_retr ∈ dom(Σ.M)` and P1: `a ∈ A_rel^Σ`. The `→*`-reachability of Σ is the ambient domain assumption — it supplies R0a's antichain. The disjunct `a = a_emit(Σ, d_retr)` is the *self-emit branch*: it is reached precisely when the caller asks to nullify the very address at which the internal `Emit_R` will deposit its retractor. It is the slack that separates the weakest precondition from the merely sufficient `P0 ∧ P1`, which excludes this branch.
+— where P0: `d_retr ∈ dom(Σ.M)` and P1: `a ∈ A_rel^Σ`. The `→*`-reachability of Σ is the ambient domain assumption — it supplies R0a's antichain.
 
 *Reduction of the postcondition.* P0 is what executes Nullify and produces a post-state, so it is a conjunct of every precondition that can guarantee the postcondition: dropping P0 admits `d_retr ∉ dom(Σ.M)`, leaving the internal `Emit_R`'s K.λ home-precondition undischarged — Nullify does not execute, no post-state Σ' is produced, and the postcondition is unreachable. Assume P0 henceforth. Write `e = a_emit(Σ, d_retr)` for the fresh emitter address. The internal `Emit_R`'s K.λ `→`-step deposits its retractor tuple at `e` (a fresh key, `e ∉ dom(Σ.L)` by K.λ's freshness postcondition), and modifies no existing entry (L12a pointwise agreement), so `A_rel^{Σ'} = dom(Σ'.L) = dom(Σ.L) ∪ {e} = A_rel^Σ ∪ {e}`.
 
