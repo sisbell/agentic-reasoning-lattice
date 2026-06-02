@@ -1,0 +1,22 @@
+# Review of ASN-0047
+
+I reviewed the proofs (K.δ discharge, K.μ~ decomposition, fork/J4, the J1★/J1'★ couplings, D-SEQ★ derivation, and the Class (a)/(b) verification), checked the boundary cases (empty arrangement, full clearance, interior replacement, duplicate-I-address fork, orphan links, multi-component nodes), and traced the worked examples. The mathematics is sound: edge cases are handled, the per-state/composite-boundary temporal split is principled, and the φ-bijection multiplicity argument is correctly load-bearing. My findings are confined to residual forward-reference/meta-prose accretion in the freshly-edited K.μ⁻ region — the patterns the note's `review-mode.anti-bloat` classifier flags. These do not match the declined sprawl/splitting findings (I am not asking for a split).
+
+## REVISE
+
+### Issue 1: K.μ⁻ "derived consequences" stated twice — precondition prose duplicates the downstream forward-direction proof
+**ASN-0047, K.μ⁻ (Elementary transitions) and *K.μ⁻ admissible contraction shape***: The precondition block states "The per-state arrangement invariants S2, S3★, S8a, S8-depth, S8-fin, D-CTG★, D-MIN★, and D-SEQ★ at M'(d) are *derived consequences* of this constructive form... restriction of a function preserves single-valuedness (S2) and referential integrity (S3★); restriction to a subset... preserves componentwise positivity (S8a), uniform depth per subspace (S8-depth), and finiteness (S8-fin); the suffix-prefix shape... directly satisfies the canonical D-CTG★, D-MIN★, and D-SEQ★ forms." The *Forward direction* of *K.μ⁻ admissible contraction shape* then re-proves exactly this: "satisfies D-CTG★ at Σ'... D-MIN★ at Σ'... D-SEQ★ at Σ'... Restriction preserves single-valuedness (S2), referential integrity (S3★), componentwise positivity (S8a), uniform depth (S8-depth), and finiteness (S8-fin)."
+**Problem**: Two paragraphs in different sections say the same thing in different words. The precondition both enumerates the derived consequences in full *and* forward-references the proof that re-enumerates them — "two paragraphs in the same document say the same thing," compounded by a forward reference to the very proof that duplicates it.
+**Required**: Collapse the precondition's per-invariant restating to a one-line pointer ("the per-state arrangement invariants at M'(d) are derived consequences of the restriction form, established in *K.μ⁻ admissible contraction shape*"), letting the downstream forward direction carry the enumeration.
+
+### Issue 2: Defensive editorializing in the K.μ⁻ equivalence-lemma statement
+**ASN-0047, *K.μ⁻ admissible contraction shape* (statement)**: "...justifying the constructive precondition as fully general — every strict contraction admissible under the post-state invariants takes the per-subspace suffix-prefix retention form with at least one subspace shrinking. The strict-subset conjunct on the post-state side matches the strict-contraction clause on the constructive side, so the two characterizations are equinumerous in firing conditions, not merely in arrangement shape."
+**Problem**: This is defensive justification of what the proof achieves, placed before the proof — meta-prose in a structural (lemma-statement) slot. The "equinumerous in firing conditions, not merely in arrangement shape" clause restates, in essay form, the strict-subset⟺strict-contraction match that the *reverse direction* already discharges explicitly ("the strict-subset hypothesis... is a proper containment... recovering the constructive precondition's strict-contraction clause"). The reader must skip this to reach the actual biconditional being proved.
+**Required**: Reduce the statement to the biconditional itself (constructive form ⟺ post-state characterization, strictness included); drop the "fully general"/"equinumerous" editorial gloss, which the reverse direction substantiates without it.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Renumbering-aware interior link contraction; transitive-transclusion provenance; concurrent allocation
+**Why out of scope**: The Open Questions correctly defer these — interior `DELETEVSPAN`-style compaction (vs. the modeled suffix-only K.μ⁻), provenance under transclusion chains, and serialization of concurrent same-document allocation are new territory, not defects in the present transition taxonomy. The ASN's suffix-only K.μ⁻ is internally complete for what it claims.
+
+VERDICT: REVISE
