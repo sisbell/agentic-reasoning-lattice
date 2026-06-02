@@ -1,21 +1,30 @@
-# Channel Assignment — ASN-0051 review-36
+# Channel Assignment — ASN-0098 review-36
 
-**Date:** 2026-05-16 01:37
+**Date:** 2026-06-02 13:35
 
-## Issue 1: SV6 proof's citation of S7b is misleading
-Reason: The fix is purely editorial — the ASN already quotes S7b's statement ("`(A a ∈ dom(Σ.C) :: zeros(a) = 3)`") and the SV6 precondition independently supplies `zeros(b) = 3`. Whether to drop or rephrase the parenthetical is derivable from the ASN's own logic.
+## Issue 1: Fabricated citation and incorrect depth claim in LP9
+Reason: The review already supplies the correct ASN-0047 content (depth `m_L(d) ≥ 2`, chosen not fixed, no `LinkVPositionDepthAxiom`); the fix is a citation/text correction against a sibling ASN, which is neither design intent nor implementation evidence.
 
-## Issue 2: SV5 proof's subspace preservation of ψ is implicit
-Reason: The reviewer already identifies that K.μ~-FIX (ASN-0047) carries subspace preservation as a derivation premise, and notes the alternative reading (locate is pointwise on dom(M(d))). Both fix options are derivable from the cited foundation and the existing proof structure.
+## Issue 2: Fabricated citation `ChainUniformLength` (ASN-0093)
+Reason: The review specifies the actual supporting lemmas (`FirstEmission` + `ChainDiscipline` + TA5(c)); replacing the fabricated name with the real derivation is internal to the spec corpus.
 
-## Issue 3: SV10 witness omits G and Θ specification
-Reason: L3 (ASN-0043) requirements are already cited in the ASN, K.λ's preconditions are enumerable from ASN-0047, and L9 (already cited) permits ghost type references. Specifying G, Θ, and a link address is mechanical — no design intent or implementation evidence is needed.
+## Issue 3: Fabricated namespacing `SubAllocatorAxiom.*` in LP12b
+Reason: The review names the real lemmas (`FirstEmission`, `ChainDiscipline`, `ChainMembershipForOrigin` + `L1a` + `M0`); de-namespacing the citations is a mechanical correction needing no channel.
 
-## Issue 4: Cross-document decoupling chain depends on SV10 ground-state allocations not enumerated
-Reason: The reviewer already states what ASN-0047's `InitialState` provides (`E₀ = {n₀}` with designated bootstrap node) and what K.δ requires for node-1 admissibility. Pinning `n₀ = 1` or noting its allocation is editorial.
+## Issue 4: Verbatim duplicated conclusion across LP12a and LP12b
+Reason: Pure deletion of a duplicated sentence; fully internal.
 
-## Issue 5: SV11's iff-attainment direction stated but not proved
-Reason: This is pure logical bookkeeping — the strict-inequality criterion in the proof body is contrapositive-equivalent to the forward iff direction. Stating both directions explicitly requires no external input.
+## Issue 5: Forward-reference accretion in "Working reference frame"
+Reason: Cutting the frame-descent inventory and stating only the operating frame is an editorial trim derivable from the ASN's own scope.
 
-## Issue 6: SV6 element-level proof argues for arbitrary b, but precondition's k > p₃ scope-restriction not mirrored in SV13(f)
-Reason: SV6's body already establishes `k > p₃` as the precise condition and the ASN itself discusses the `k ≤ p₃` broader-level-span case in detail. Tightening SV13(f)'s phrasing to mirror this is editorial.
+## Issue 6: LP-Comp is a use-site inventory, not a claim
+Reason: Removing the operation→lemma roster from the claims slot and optionally folding one line into prose is internal restructuring.
+
+## Issue 7: Defensive justification + retained redundant sub-cases in achievability
+Reason: The LP-Fin Corollary (already proved in-ASN) subsumes the cross-chain sub-proofs; deleting them plus the two-reason defense while keeping the emission-frontier argument is derivable from the ASN's own content.
+
+## Issue 8: Numbering note is a revision-history essay
+Reason: Reducing to the absent-label facts (LP1, LP15 unused; LP14 reclaimed) is an internal edit; the rotting rationale is removed, not relocated within the spec.
+
+## Issue 9: Triangular deferral to the same downstream discharge
+Reason: Collapsing three deferral pointers to a single LP12a→LP12b reference is an internal cross-reference cleanup.
