@@ -1,14 +1,18 @@
-# Channel Assignment — ASN-0051 review-37
+# Channel Assignment — ASN-0098 review-37
 
-**Date:** 2026-05-16 02:03
+**Date:** 2026-06-02 13:47
 
-## Issue 1: SV10 witness violates J0 (AllocationRequiresPlacement)
-Reason: Fix is fully derivable from the ASN — drop K.α(i₁) and K.α(i₃) per the reviewer's prescription; span well-formedness under T12 (ASN-0034) and coverage definition do not require i₁, i₃ ∈ dom(C). Pure internal consistency repair.
+## Issue 1: LP4 Frame note is a use-site inventory plus hypothetical-frame justification
+Reason: Pure editorial trim — delete consumer roster and future-frame paragraph, keep the load-bearing M1-lift fact. Derivable from the ASN alone; no design intent or implementation evidence at stake.
 
-## Issue 2: CrossDocumentDecoupling inherits SV10's J0 violation
-Reason: Mechanical propagation of Issue 1's fix to the inherited witness chain. No new design or implementation question; fully derivable from the ASN.
+## Issue 2: "Numbering note" is document-history meta-prose
+Reason: Deletion of label-history narration. Internal to the document; no channel needed.
 
-## Issue 3: discover_s domain restriction A ⊆ dom(Σ.C) is unjustifiably narrow
-Reason: Choice between (a) relax to A ⊆ T and (b) justify content-only restriction depends on whether discovery was *designed* as a general I-space query and whether the *implementation* admits link-address queries. Both channels inform the scope decision.
-Nelson question: Was link discovery intended to operate over content addresses only, or as a general I-space query admitting link-address queries (reverse-link traversal, type-hierarchy lookup)?
-Gregory question: Does udanax-green's link-discovery mechanism (the index/lookup structures querying link endsets) admit link addresses as query inputs, or is the query domain restricted to content addresses?
+## Issue 3: Meta-prose labeling an argument "motivational rather than load-bearing"
+Reason: Reword to state the decidability fact directly and drop the editorializing framing. The substantive grounds (i)/(ii)/(iii) already exist in the ASN; purely internal.
+
+## Issue 4: LP12b scope-restriction closes with defensive justification of the act of flagging
+Reason: Delete the visibility-to-readers sentence; the technical asymmetry is already stated. Internal editorial fix.
+
+## Issue 5: Citation chain restated redundantly in the claims table
+Reason: Trim the table row to LP-Fin Corollary's statement; the citation chain is already in prose at all three claims. Internal to the document.
