@@ -396,13 +396,63 @@ The V-restricted denotation of `Σ_V^{s_L} = ⟨([2, 1], δ(1, 2))⟩` at link-s
 
 This configuration confirms the link-subspace branch end-to-end: a link address covered by the followed endset, arranged at a link-subspace V-position, resolves to a non-empty `Σ_V^{s_L}` while `Σ_V^{s_C}` stays empty.
 
+**Sixth configuration — fragmentation (one I-span, two non-adjacent V-runs).** The five configurations above never exercise fragmentation: in each, every contributing intersection is the *full* I-extent of a single block at offset `j = 0` (C1: `j = 0, c = n = 2`), so F-contig's offset machinery — the contiguous sub-progression `{a + j + k : 0 ≤ k < c}` with `j > 0` or `c < n` — is never instantiated, and the disjoint-V-runs phenomenon the "delivered automatically" claim rests on is never witnessed. We construct a configuration in which one endset I-span intersects two non-adjacent same-subspace mapping blocks, with at least one block hit at a non-zero offset.
+
+Consider a document `d_f` (content-subspace depth `m_{s_C} = 2`) whose content subspace arranges six consecutive I-addresses `a, a+1, ..., a+5` (one content allocation run, hence a single origin and a contiguous progression under OrdinalShift) interleaved with two I-addresses `b, b+1` of a *different* origin (`origin(b) ≠ origin(a)`, so `b ∉ {a, ..., a+5}` and the two progressions are I-disjoint by GlobalUniqueness):
+
+```
+M(d_f):
+  V-position  → I-address
+  [1, 1]      → a            (β_P below)
+  [1, 2]      → a + 1        (β_P)
+  [1, 3]      → a + 2        (β_P)
+  [1, 4]      → b            (β_Q, unrelated origin)
+  [1, 5]      → b + 1        (β_Q)
+  [1, 6]      → a + 3        (β_R)
+  [1, 7]      → a + 4        (β_R)
+  [1, 8]      → a + 5        (β_R)
+```
+
+The content V-positions `[1,1]..[1,8]` are contiguous with `min = [1,1]` — D-CTG, D-MIN, D-SEQ (ASN-0036) all hold. The mapping-block decomposition is:
+
+- `β_P = ([1, 1], a, 3)` — `I(β_P) = {a, a+1, a+2}`
+- `β_Q = ([1, 4], b, 2)` — `I(β_Q) = {b, b+1}`, intervening block of unrelated origin
+- `β_R = ([1, 6], a+3, 3)` — `I(β_R) = {a+3, a+4, a+5}`
+
+`β_P` and `β_R` are *non-adjacent in V-space*: the V-positions `[1,4], [1,5]` of `β_Q` separate them. The lockstep break at `[1,4]` is forced because `origin(b) ≠ origin(a+2)` blocks any merge of `β_P` with what follows (M16, CrossOriginMergeImpossibility, ASN-0058), and again at `[1,6]` by the same reasoning.
+
+**Link.** Take `L(ℓ).e₁ = {(a+1, δ(4, m_a))}` — a single I-span of width 4 starting at `a+1`, whose coverage `{t ∈ T : a+1 ≤ t < (a+1) ⊕ δ(4, m_a)}` has depth-`m_a` members `{a+1, a+2, a+3, a+4}` (the only members met by the depth-`m_a` block I-extents). This I-coverage is *contiguous* in I-space, yet it straddles the two non-adjacent blocks `β_P` and `β_R` while skipping the intervening `β_Q` (whose I-extent `{b, b+1}` is disjoint from the coverage).
+
+**Computing `follow(ℓ, d_f, 1)`.** Process each block against the endset span `σ = (a+1, δ(4, m_a))`:
+
+- `β_P = ([1, 1], a, 3)`: `I(β_P) ∩ ⟦σ⟧ = {a, a+1, a+2} ∩ {a+1, a+2, a+3, a+4} = {a+1, a+2}`. The minimum qualifying index is `a+1`, which is index 1 of `β_P` (since `β_P` starts at `a`); the maximum is `a+2` at index 2. Offset `j = 1`, width `c = 2`. **This block is hit at a non-zero offset (`j = 1 > 0`), and `c = 2 < n = 3`** — a strict partial intersection that omits both the block's first I-address `a` (below the coverage) and trailing index 3 (the block has only indices 0–2). V-run: `v + j = [1,1] + 1 = [1,2]`, through `[1,3]`, recorded as the V-span `([1, 2], δ(2, 2))`.
+- `β_Q = ([1, 4], b, 2)`: `I(β_Q) ∩ ⟦σ⟧ = {b, b+1} ∩ {a+1, a+2, a+3, a+4} = ∅` (distinct origins, I-disjoint). No contribution.
+- `β_R = ([1, 6], a+3, 3)`: `I(β_R) ∩ ⟦σ⟧ = {a+3, a+4, a+5} ∩ {a+1, a+2, a+3, a+4} = {a+3, a+4}`. The minimum qualifying index is `a+3` at index 0 of `β_R`; the maximum is `a+4` at index 1. Offset `j = 0`, width `c = 2` — again `c = 2 < n = 3`, a strict partial intersection (the block's trailing I-address `a+5` lies above the coverage). V-run: `[1,6]` through `[1,7]`, recorded as the V-span `([1, 6], δ(2, 2))`.
+
+**Result.** `Σ_V^{s_C} = ⟨([1, 2], δ(2, 2)), ([1, 6], δ(2, 2))⟩` (two spans, in sorted order); `Σ_V^{s_L} = ⟨⟩` (empty). So:
+
+```
+follow(ℓ, d_f, 1) = (d_f, (⟨([1, 2], δ(2, 2)), ([1, 6], δ(2, 2))⟩, ⟨⟩))
+```
+
+The two component spans are *disjoint and non-adjacent*: `reach(([1,2], δ(2,2))) = [1,2] ⊕ δ(2,2) = [1,4]`, while `start(([1,6], δ(2,2))) = [1,6]`, so `reach(σ₁) = [1,4] < [1,6] = start(σ₂)` — strict separation (N2, ASN-0053), confirming the two V-runs are non-adjacent. A single contiguous I-coverage `{a+1, a+2, a+3, a+4}` has fragmented into two non-adjacent V-runs, delivered automatically by the per-block intersection with no fragmentation-specific logic; the fragmentation traces entirely to the intervening `β_Q` separating `β_P` from `β_R` in V-space.
+
+The V-restricted denotation is `⟦Σ_V^{s_C}⟧_V = {[1,2], [1,3], [1,6], [1,7]}` at content-subspace depth 2.
+
+- *F-sound.* Each of `[1,2], [1,3], [1,6], [1,7]` is in `dom(M(d_f))`, and `M(d_f)([1,2]) = a+1`, `M(d_f)([1,3]) = a+2`, `M(d_f)([1,6]) = a+3`, `M(d_f)([1,7]) = a+4`, all in `coverage(L(ℓ).e₁) = {a+1, a+2, a+3, a+4}`. No spurious V-position is present. ✓
+- *F-complete.* The V-positions `v ∈ dom(M(d_f))` with `M(d_f)(v) ∈ {a+1, a+2, a+3, a+4}` are exactly `[1,2] (→a+1), [1,3] (→a+2), [1,6] (→a+3), [1,7] (→a+4)`. The non-qualifying positions map outside the coverage: `[1,1] → a`, `[1,4] → b`, `[1,5] → b+1`, `[1,8] → a+5`. All four qualifying positions appear in `⟦Σ_V^{s_C}⟧_V`; none is omitted — including the two split across the fragment boundary. ✓
+- *F-contig (β_P, non-zero offset).* `I(β_P) ∩ ⟦σ⟧ = {a + 1 + k : 0 ≤ k < 2}`, the contiguous sub-progression with offset `j = 1` and width `c = 2`. The V-run start is `v + j = [1,1] + 1 = [1,2]` and the run is `[1,2], [1,3]` — a single contiguous V-run of width `c = 2 < n = 3` within `β_P`, exactly as F-contig predicts at non-zero offset. ✓
+- *F-contig (β_R, right-partial).* `I(β_R) ∩ ⟦σ⟧ = {(a+3) + k : 0 ≤ k < 2}`, the contiguous sub-progression with offset `j = 0` and width `c = 2`. The V-run start is `v + j = [1,6]` and the run is `[1,6], [1,7]` — width `c = 2 < n = 3`, partial on the right. ✓
+
+This configuration exercises fragmentation end-to-end: one contiguous endset I-span resolving to two disjoint, non-adjacent V-spans, with F-contig's offset machinery instantiated at `j > 0, c < n` on `β_P` and again at `j = 0, c < n` on `β_R`. No fragmentation-specific logic is invoked; the two-run result is a direct consequence of the per-block decomposition meeting a coverage that skips the intervening block `β_Q`.
+
 ## Sub-cases as One Phenomenon
 
 The three results commonly distinguished — *multiple occurrences*, *fragmentation*, and *empty resolution* — are not three separate cases requiring distinct handling. They are the same definition observed under different arrangement configurations.
 
 **Multiple occurrences.** When `d` arranges a single I-address at multiple V-positions (a within-document transclusion), every such V-position resolves. The inverse image of a singleton may have any cardinality consistent with S5.
 
-**Fragmentation.** When an endset's I-coverage is contiguous but the corresponding V-positions are non-contiguous (because the arrangement has placed the content non-contiguously, or has been rearranged), the result has multiple disjoint V-spans. The single endset becomes multiple V-spans in the result — not because the link changed but because the arrangement did.
+**Fragmentation.** When an endset's I-coverage is contiguous but the corresponding V-positions are non-contiguous (because the arrangement has placed the content non-contiguously, or has been rearranged), the result has multiple disjoint V-spans. The single endset becomes multiple V-spans in the result — not because the link changed but because the arrangement did. The sixth worked configuration above exhibits this concretely: a single contiguous endset I-span straddling two non-adjacent mapping blocks (separated in V-space by an intervening block of unrelated origin) resolves to two disjoint, non-adjacent V-spans.
 
 **Empty result.** When no I-address in `coverage(e)` appears in `ran(M(d))`, the inverse image of `coverage(e)` is empty. The result is `(d, (⟨⟩, ⟨⟩))`.
 
