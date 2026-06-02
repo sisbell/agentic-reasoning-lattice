@@ -1,18 +1,18 @@
-# Channel Assignment — ASN-0051 review-46
+# Channel Assignment — ASN-0098 review-46
 
-**Date:** 2026-05-16 04:55
+**Date:** 2026-06-02 15:37
 
-## Issue 1: SV5's π-invariance claim is asserted, not derived
-Reason: Pure editorial fix — the derivation uses L12 (coverage invariance) and K.μ~'s ran-preservation, both already established in the ASN. No external input needed.
+## Issue 1: LP12a summary table drops the enabledness conjunct the body insists on
+Reason: Pure internal consistency fix — restore `enabled(K.μ⁻[d, R]) ∧ …` in the table to match the body's own total-correctness derivation. No design intent or implementation evidence required.
 
-## Issue 2: `discover_s(A)` state-dependency notation is inconsistent
-Reason: Notation convention choice internal to the ASN. Picking one form and applying uniformly is a mechanical edit; no design intent or implementation evidence bears on the choice.
+## Issue 2: LP20's "partition" of the projection range is asserted without the disjointness premise
+Reason: The fix cites an existing foundational invariant (store-disjointness SD/L14) already named in the dependency frame; both alternatives (cite or downgrade to "exhaustive union") are derivable from the ASN and its foundations alone.
 
-## Issue 3: TransclusionCouplingAbsence headline overstates the absence
-Reason: The K.ρ coupling requirement comes from ASN-0047's J1★, already cited in the body's closing paragraph. Lifting it into the headline is internal restructuring.
+## Issue 3: Forward-referencing meta-prose explaining LP-Fin's significance before LP-Fin is stated
+Reason: Deletion of a redundant pre-justification paragraph whose decidability point already lives at the tight definition's use-site. Purely internal editorial action.
 
-## Issue 4: SV13(g) is missing the state-dependence qualifier in the headline
-Reason: SV11's body already contains the "m · p is state-dependent" caveat; SV13(g) just needs the qualifier propagated into its headline. Pure synthesis-consistency edit.
+## Issue 4: LP19 hypothesis carries a scope-disclaimer that imagines an excluded case and defers to LP9
+Reason: Drop a disclaimer sentence narrating a case the per-V-position hypothesis already excludes. Internal scoping cleanup, no external input.
 
-## Issue 5: SV6's scope not summarised in SV13(f)
-Reason: SV6's body already carefully delimits scope to element-level b with deferral of broader-level spans to ASN-0034. The fix is to mirror that scope in SV13(f)'s headline — internal cross-reference cleanup.
+## Issue 5: LP-Fin restates the same divergence argument twice
+Reason: Proof refactor — establish "`d` is a length-`#d` prefix of `d_0`" once and reuse it. Entirely derivable from the ASN's own proof structure.
