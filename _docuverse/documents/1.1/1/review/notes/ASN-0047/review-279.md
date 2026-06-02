@@ -1,0 +1,26 @@
+# Review of ASN-0047
+
+## REVISE
+
+### Issue 1: "Links not rearrangeable" is asserted but not enforced by the invariants
+
+**ASN-0047, *Decomposition of K.μ~* (clause (v) rationale) and *Link-subspace extension*:** "reflecting the design intent that links carry permanent order of arrival in their home document and are not rearrangeable (Nelson, LM 4/12)." K.μ⁺_L's first-arrangement guard is stated as `ℓ ∉ ran(M(d))`.
+
+**Problem**: Clause (v) only constrains a *single* K.μ~ reordering. Nothing in the invariant set prevents a composite from re-seating a link at a different V-position. Concretely: K.μ⁻ is admissible on the link subspace (Step 5 of the link worked example removes `[2,2]`, orphaning `ℓ₂`). Because removal is suffix-only, removing `[2,1]` forces removal of `[2,2]` as well; the two links can then be re-added by two K.μ⁺_L steps (each appending at the current link-subspace max) in the *opposite* order, yielding `ℓ₂ ↦ [2,1]`, `ℓ₁ ↦ [2,2]` — a genuine re-seating. The guard `ℓ ∉ ran(M(d))` checks only the current arrangement, not history, so a previously-removed link passes it. CL-OWN and CL-UNIQ are both preserved by this composite, so no invariant detects the rearrangement. The model therefore does not establish the "not rearrangeable" guarantee it claims; P3 (presentational layer freely mutable) in fact permits link re-positioning.
+
+**Required**: Either (a) qualify the narrative to state only what is enforced (links may be withdrawn and re-arranged, with no preserved order-of-arrival guarantee in the arrangement layer), or (b) add an invariant that pins a link's V-position once arranged (e.g., scope the K.μ⁺_L freshness guard to history rather than the current `ran(M(d))`, or forbid link-subspace K.μ⁻). As written the claim is stronger than the proof.
+
+### Issue 2: J4 intro duplicates the fork/sibling discriminator that Definition (Fork) claims to state "once"
+
+**ASN-0047, *Coupling and isolation* (J4 intro) vs *Definition (Fork)*:** Definition (Fork) asserts "This is the sole statement of both the allocation discipline and the operand-tracking rule; the J4 intro above and steps (i)–(ii) below invoke it by reference rather than re-derive the k-split." Yet the J4 intro already states the discriminator: "The discriminating fact is which allocator's frontier the k=0 operand sits on — `A_v(d_src)`'s frontier (a version of d_src, a fork) versus `A_doc(parent(d_src))`'s frontier (an independent sibling document, not a fork)." Definition (Fork) then restates the same content: "This conjunct is the checkable discriminator: a k=0 fork requires `d_op ∈ dom(A_v(d_src))`, whereas an independent sibling-document allocation takes its k=0 operand from `A_doc(parent(d_src))`'s frontier ... and is not a fork."
+
+**Problem**: The two passages say the same thing in different words; the "sole statement" disclaimer is contradicted by the intro it disclaims. This is the relocated/duplicated-prose pattern flagged for this note's anti-bloat classifier.
+
+**Required**: Either remove the discriminator discussion from the J4 intro (leaving only the forward pointer to Definition (Fork)), or drop the "sole statement" disclaimer and let Definition (Fork) cite the intro. One location should carry the discriminator.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Renumbering-aware interior link/content withdrawal
+**Why out of scope**: The implementation's interior `DELETEVSPAN` (compact-and-renumber) is already deferred to an open question and to named-operation territory; the suffix-only K.μ⁻ is a deliberate modeling restriction, not an error in this ASN.
+
+VERDICT: REVISE
