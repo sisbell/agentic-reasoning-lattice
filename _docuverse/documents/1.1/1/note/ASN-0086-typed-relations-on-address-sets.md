@@ -4,7 +4,7 @@
 
 ASN-0043 establishes the link as a primitive: an addressed, owned, typed connection between spans of content. ASN-0093 wraps that primitive (along with content and document allocation) in three K-operations — K.σ, K.α, K.λ — that fix the sibling-frontier emission discipline and the sub-allocator chain structure. This note layers on top of ASN-0093's K-operations, adopting a different vocabulary for the link store: where ASN-0043 speaks of *links* and *endsets*, we speak of *tuples* and *typed relations*. The two vocabularies describe one object — a standard-triple link `(F, G, Θ)` at address `a ∈ dom(Σ.L)` is a tuple in a typed relation indexed by `Θ`.
 
-We are looking for what a relation algebra over the link store affords. The answer is that predicates compose more cleanly over typed relations than over endsets, and several substrate-level guarantees — most centrally the *active/audit distinction* between the audit trail and the operational currently-in-effect set — become easier to state and prove in this form.
+We are looking for what a relation algebra over the link store affords. The answer is that predicates compose more cleanly over typed relations than over endsets, and several substrate-level guarantees — most centrally the *active/audit distinction* between the audit trail and the operational currently-in-effect set — become easier to state and prove in this form. The structure here is not the set-theoretic typed relation (a subset of `℘(A) × ℘(A)`, distinguished only by content): each tuple carries an address that participates in the relation's identity, which the content-only projection `(a, F, G) ↦ (coverage(F), coverage(G))` discards. That address is what we exploit throughout.
 
 
 ## The Two Foundational Sets
@@ -13,7 +13,7 @@ We are looking for what a relation algebra over the link store affords. The answ
 
 **Assumption — EmptyInitialLinkStore.** This note takes the system's initial state `Σ_init` to be the *fresh-system root*, with all three stores empty: `dom(Σ_init.C) = ∅`, `dom(Σ_init.M) = ∅`, and in particular `dom(Σ_init.L) = ∅` (the fresh-system boot condition).
 
-**State transition relation.** We write `Σ → Σ'` for the substrate's *dom-extending* one-step transition relation, which we identify exactly with the union of ASN-0093's three K-operations: `→ ≡ K.σ ∪ K.α ∪ K.λ`. A K.σ-step extends `dom(Σ.M)` (registering `M'(d) = ∅` at a document-level `d`), a K.α-step extends `dom(Σ.C)`, and a K.λ-step extends `dom(Σ.L)`, each at a fresh key per its ASN-0093 contract; ASN-0093's frame conditions leave the other two components unchanged, and the substrate exposes no removal, replacement, or in-place mutation transition that touches `(dom(Σ.C), dom(Σ.M), dom(Σ.L))`.
+**State transition relation.** We write `Σ → Σ'` for the substrate's *dom-extending* one-step transition relation, which we identify exactly with the union of ASN-0093's three K-operations: `→ ≡ K.σ ∪ K.α ∪ K.λ`. A K.σ-step extends `dom(Σ.M)` (registering `M'(d) = ∅` at a document-level `d`), a K.α-step extends `dom(Σ.C)`, and a K.λ-step extends `dom(Σ.L)`, each at a fresh key per its ASN-0093 contract; ASN-0093's frame conditions leave the other two components unchanged.
 
 **Definition — Reachability.** `Σ' is →-reachable from Σ`, written `Σ →* Σ'`, is the reflexive-transitive closure of `→`.
 
@@ -85,8 +85,6 @@ The union is disjoint by Lemma — SliceUniqueness, stated next. Where ambient s
 **Lemma — SliceUniqueness.** Each tuple address `a ∈ dom(Σ.L)` indexes exactly one slice `L_K^Σ`. *Proof.* `Σ.L` is a partial function `T ⇀ Link` (ASN-0043, Definition of LinkStore), so `a` carries a single value `Σ.L(a)`, hence a single slot-3 endset `Σ.L(a).e₃` and a single coverage class `[Σ.L(a).e₃]`; thus `a` lies in no two slices. ∎
 
 **Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`. The map is an *injection into* the codomain `A_rel^Σ = dom(Σ.L)`, with image exactly the standard-triple subset `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}`; it is *onto exactly when the store holds no higher-arity link* (when `dom(Σ.L)` contains no `a` with `|Σ.L(a)| > 3`, the image equals the whole codomain), and not necessarily onto otherwise.
-
-The address component `a` is what distinguishes this structure from the set-theoretic typed relation (a subset of `℘(A) × ℘(A)`, distinguished only by content): each tuple carries an address that participates in the relation's identity, which the content-only projection `(a, F, G) ↦ (coverage(F), coverage(G))` discards.
 
 
 ## Tuple Identity (R0, R1, R2)
@@ -335,7 +333,7 @@ After Step 0: `L_K^{Σ_0} = {(a₁, F₁, G₁)}` (witnessing R3 over the empty 
 
 Emit_R invokes K.λ at home `d`. The first/subsequent emission predicate fires *subsequent* (since `{ℓ' ∈ dom(Σ_0.L) : origin(ℓ') = d} = {a₁} ≠ ∅`); `ℓ_prev := max{ℓ' ∈ dom(Σ_0.L) : origin(ℓ') = d} = a₁`; K.λ deposits at `inc(a₁, 0) = 1.0.1.0.1.0.2.2`. Set `b₁ = 1.0.1.0.1.0.2.2` — by ChainEnumerationInjectivity (ASN-0093), `b₁` is the second chain element of `A_L(d)` (the first being `a₁ = t_1^L(d)`). By T10a.2 (NonNestingSiblingPrefixes, ASN-0034), `a₁` and `b₁` are distinct siblings of `A_L(d)` and are therefore prefix-incomparable; in particular `a₁ ⊀ b₁` — witnessing *R0* (TupleAddressFreshness): `b₁ ∉ dom(Σ_0.L)` is fresh by SubsequentEmissionFreshness (ASN-0093), the subsequent-emission branch the realized prefix `{a₁}` at Σ_0 selects (matching R0's own subsequent-branch discharge).
 
-*L-invariant verification at `b₁`.* R0 verifies each L-invariant against an arbitrary K.λ-emitted address; the concrete `b₁ = 1.0.1.0.1.0.2.2` admits the same checks by direct inspection: L0 (`E(b₁)₁ = 2 = s_L`), L1 (`zeros(b₁) = 3` by (UZ)), L1a (`origin(b₁) = home(b₁) = d`), L1b (`#E(b₁) = 2` by (UL)), L1c (the structural chain from `d` through `b_L(d)` through `a₁` to `b₁` exists by ChainDiscipline + FirstEmission, ASN-0093). ✓ The remaining state-local L-invariants (L3, L4(c), L12, L12a, L-fin) discharge by R0's generic argument applied with the concrete `b₁`. The later fresh emissions in this sketch (`a₂`, `b₂`, `a₃`) are all siblings of `b₁` on `A_L(d)`'s `inc(·, 0)` chain, sharing the prefix `1.0.1.0.1.0.2` and differing only in the element-field ordinal (the last component); their L-invariant discharge is identical in form to this one.
+Each emission's L-invariants hold by R0. ✓
 
 Emit the retraction: `Σ_1.L = Σ_0.L ∪ {b₁ ↦ (∅, {(a₁, δ(1, 8))}, R)}`. Now compute:
 
