@@ -1182,6 +1182,8 @@ An attempt to remove `[2,1]` while retaining `[2,2]` is excluded by D-MIN★ (th
 
 **P7a (Provenance coverage).** Every I-address in the content store has at least one provenance record, `(A a ∈ dom(C) :: (E d :: (a, d) ∈ R))`.
 
+*Derivation.* P7a is a composite-boundary property, not an elementary invariant: between a K.α event and its coupled K.μ⁺/K.ρ it transiently fails. It is discharged at composite boundaries in the *Class (b)* proof below (see the P7a row of the *Composite-boundary verification matrix*), where J0 supplies the witnessing `v ∈ dom(M'(d))` with `M'(d)(v) = a`, S3★ + L14 + S3★-aux force `subspace(v) = s_C`, and J1★ then supplies `(a, d) ∈ R'`. ∎
+
 
 ## Extended reachable-state invariants
 
@@ -1345,14 +1347,14 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 | Contains(Σ) | {(a, d) : d ∈ E_doc ∧ a ∈ ran(M(d))} — current containment, derived quantity of state |
 | Contains_C(Σ) | `{(a, d) : d ∈ E_doc ∧ (E v : v ∈ dom(M(d)) ∧ subspace(v) = s_C : M(d)(v) = a)}` — content-scoped containment |
 | Valid composite | Σ →* Σ' valid iff: (1) elementary preconditions at each intermediate state, (2) J0/J1★/J1'★ for the composite |
-| K.α | Content allocation — extend dom(C) with fresh address a at value v; precondition: Element(a), origin(a) ∈ E_doc, a ∉ dom(C), a ∉ dom(L), a produced by origin(a)'s content sub-allocator; effect C' = C ∪ {a ↦ v}; frame holds L, E, M, R |
-| K.δ | Entity creation — extend E with fresh entity; precondition: parent(e) ∈ E when ¬Node(e); empty arrangement if Document; frame holds C, L, R, other documents in M (new entity gets M'(e) = ∅ by the default-value convention) |
-| K.μ⁺ | Arrangement extension — extend dom(M(d)) for d ∈ E_doc with new V→I mappings, preserving existing values; co-amended with content-subspace partitioning at the extended-state introduction (see Local extensions block); frame holds C, L, E, R, other documents |
-| K.μ⁻ | Arrangement contraction — remove existing V→I mappings from some d ∈ E_doc, with surviving mappings unchanged: dom(M'(d)) ⊂ dom(M(d)) ∧ (A v ∈ dom(M'(d)) : M'(d)(v) = M(d)(v)); per-subspace admissible removal pattern is suffix truncation (empty, proper, or full), with at least one subspace contracting strictly; frame holds C, L, E, R, other documents |
-| K.μ~ | Arrangement reordering — named composite K.μ⁻ + K.μ⁺ realising a bijection π : dom(M(d)) → dom(M'(d)) with M'(d)(π(v)) = M(d)(v); subspace-preserving with link-subspace fixity (π(v) = v for v ∈ dom_L); derived frame holds C, L, E, R, other documents |
-| K.λ | Link allocation — extend dom(L) with fresh address ℓ at value (e₁, …, eₙ); precondition: d ∈ E_doc, ℓ ∉ dom(L) ∪ dom(C), zeros(ℓ) = 3, subspace_I(ℓ) = s_L, #E(ℓ) ≥ 2, origin(ℓ) = d, ℓ is produced by d's link sub-allocator (first emission [d.0.s_L.1] via SubAllocatorBundle; subsequent inc(·, 0) on the frontier via TA5(c)), N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅; effect L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}; frame holds C, E, M, R |
-| K.ρ | Provenance recording — extend R with (a, d) pair where Element(a) ∧ a ∈ dom(C); frame holds C, L, E, M |
-| K.μ⁺_L | Elementary transition: link-subspace arrangement extension, M'(d) = M(d) ∪ {v_ℓ ↦ ℓ}, origin(ℓ) = d, ℓ ∉ ran(M(d)) (first-arrangement); frame holds C, L, E, R, other documents |
+| K.α | Content allocation — extends dom(C) with a fresh content address. Normative contract: *Elementary transitions*. |
+| K.δ | Entity creation — extends E with a fresh entity (node/account/document). Normative contract: *Elementary transitions*. |
+| K.μ⁺ | Arrangement extension — extends a document's content-subspace arrangement dom(M(d)). Normative contract: *Elementary transitions*. |
+| K.μ⁻ | Arrangement contraction — removes V→I mappings from a document's arrangement. Normative contract: *Elementary transitions*. |
+| K.μ~ | Arrangement reordering — named composite (K.μ⁻ + K.μ⁺) permuting a document's arrangement. Normative contract: *Elementary transitions*. |
+| K.λ | Link allocation — extends dom(L) with a fresh link address. Normative contract: *Link allocation*. |
+| K.ρ | Provenance recording — extends R with a content↔document association. Normative contract: *Elementary transitions*. |
+| K.μ⁺_L | Link-subspace arrangement extension — maps a fresh link-subspace V-position to a link. Normative contract: *Link-subspace extension*. |
 | K.μ~-FIX | Domain fixity under K.μ~: dom(M'(d)) = dom(M(d)), making π a permutation of a fixed domain — from D-SEQ★ + bijection cardinality (n'_S = n_S) + subspace preservation + length preservation (admissibility (iii)) fixing per-subspace depth |
 | J0 | Content allocation (K.α) always co-occurs with arrangement extension (K.μ⁺). A clause-(2) validity constraint of ValidComposite★ (see ValidComposite★ clause (2) for its imposed/derived status) |
 | J2 | K.μ⁻ as elementary transition requires no coupling: C' = C ∧ L' = L ∧ E' = E ∧ R' = R |
@@ -1373,6 +1375,7 @@ The state Σ = (C, L, E, M, R) decomposes into three temporal layers: an *existe
 | NodeLineage | Derived per-state invariant: `(A e ∈ E : Node(e) : n₀ ≼ e)` — every node in E descends structurally from the bootstrap node n₀ by tumbler-prefix relation. Discharged inductively from the base case `E₀ = {n₀}` (reflexivity) and the K.δ case (i) precondition `n₀ ≼ e` |
 | b_C(d), b_L(d) | Virtual sub-allocator anchors under d: `b_C(d) = [d.0.s_C]`, `b_L(d) = [d.0.s_L]` — single-component element-field bases, not in dom(C) ∪ dom(L), serving as formal starting points for the content and link allocator chains under d |
 | Allocator hierarchy | Content and link sub-allocators are sibling element-field allocators under d, sharing prefix `[d.0]`; T10a-conformance applies to each frontier separately; cross-document collisions prevented by T10, cross-subspace by L14 (= L0 + SC-NEQ) |
+| SubAllocatorBundle | Bundling lemma (introduced here): for each d ∈ E_doc, the entity-allocation event placing d into E_doc activates two disjoint sub-allocators under d — content anchor `b_C(d) = [d.0.s_C]`, link anchor `b_L(d) = [d.0.s_L]`. The standing chain properties (inc-discipline, determinate fresh first emission, every-element T4-validity and subspace inhabitation) are inherited verbatim from the named ASN-0093 lemmas (FirstEmission, FirstEmissionFreshness, DisjointSubAllocatorChains, ChainDiscipline, ChainElementT4Validity, ChainEnumerationInjectivity); the one obligation discharged *beyond* them by this ASN is the cross-subspace disjointness delta `dom(A_C(d)) ∩ dom(A_L(d')) = ∅`, dispatched by CrossDocumentDisjointness (ASN-0093). |
 | S3★-aux | Subspace exhaustiveness: `(A d, v : v ∈ dom(M(d)) : subspace(v) = s_C ∨ subspace(v) = s_L)` in every reachable state |
 | CL-OWN | LinkSubspaceOwnership: `(A d, v : v ∈ dom(M(d)) ∧ subspace(v) = s_L : origin(M(d)(v)) = d)` — every document's link subspace contains only its own links |
 | CL-UNIQ | LinkSubspacePositionUniqueness: `(A d, v₁, v₂ ∈ dom(M(d)) : subspace(v₁) = subspace(v₂) = s_L ∧ M(d)(v₁) = M(d)(v₂) : v₁ = v₂)` — each link occupies exactly one V-position in its home document's link subspace; injectivity of M(d)\|_{dom_L} |
@@ -1390,7 +1393,6 @@ These properties are foundation invariants of ASN-0093 (or earlier foundation AS
 | Endset | `Endset = 𝒫_fin(Span)` — a finite set of well-formed spans `(s, ℓ)` satisfying T12 (ASN-0034); the empty set ∅ is a valid endset. | ASN-0043 (Endset) |
 | Link | `Link = {(e₁, ..., eₙ) : N ≥ 3, each eᵢ ∈ Endset}`; `|L|` is the arity. StandardTriple convention (arity 3, `(F, G, Θ)`) is applied in worked examples only, not as a structural restriction. | ASN-0043 (Link, StandardTriple) |
 | L-fin | LinkStoreFiniteness: `|dom(Σ.L)| < ∞`. Holds at Σ₀ (`|∅| = 0`); preserved by K.λ (single-element extension) and L-frame elsewhere. | ASN-0043 (LinkStoreFiniteness) |
-| SubAllocatorBundle | Bundling lemma (introduced here): for each d ∈ E_doc, the entity-allocation event placing d into E_doc activates two disjoint sub-allocators under d — content anchor `b_C(d) = [d.0.s_C]`, link anchor `b_L(d) = [d.0.s_L]`. The standing chain properties (inc-discipline, determinate fresh first emission, every-element T4-validity and subspace inhabitation) are foundation facts inherited from the named ASN-0093 lemmas; the one obligation discharged beyond them is the cross-subspace disjointness delta `dom(A_C(d)) ∩ dom(A_L(d')) = ∅`, dispatched by CrossDocDisjoint | derived (FirstEmission, FirstEmissionFreshness, DisjointSubAllocatorChains, ChainDiscipline, ChainElementT4Validity, ChainEnumerationInjectivity, CrossDocumentDisjointness — all ASN-0093) |
 | L0 | SubspacePartition: `(A a ∈ dom(Σ.L) :: subspace_I(a) = s_L)` and `(A a ∈ dom(Σ.C) :: subspace_I(a) = s_C)` — both clauses are foundation invariants of ASN-0093. (The L-clause appears in ASN-0043's original L0; the C-clause was added in ASN-0093's foundation L0 and is supplied at allocation time by ASN-0093's K.α precondition `E(a)₁ = s_C`.) | ASN-0093 (SubspacePartition) |
 | L1 | LinkElementLevel: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` — every link address is an element-level tumbler. | ASN-0093 (LinkElementLevel) |
 | L1a | LinkScopedAllocation: `(A a ∈ dom(Σ.L) :: origin(a) ∈ E_doc)` — every link address is allocated under the tumbler prefix of a document (`E_doc = dom(M)` by the Bridging lemma). | ASN-0093 (LinkScopedAllocation) |
