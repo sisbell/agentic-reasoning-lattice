@@ -188,7 +188,7 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 `nullified(Σ) = {a ∈ A_rel^Σ : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))}`
 
-The existential checks `coverage(G')` only, per Convention RetractionDirectionality, and ranges over the triple-restricted `L_R^Σ` (the `|Σ.L(a)| = 3` conjunct of *Definition — TypedRelation*) — so only standard-triple links can retract (StandardTriple, ASN-0043). The set-builder restriction `a ∈ A_rel^Σ` confines `nullified(Σ)` to link-store addresses: content, document, and ghost addresses in `coverage(G')` are not collected.
+The existential checks `coverage(G')` only, per Convention RetractionDirectionality, and ranges over `L_R^Σ`, which is triple-restricted by construction (Definition — TypedRelation). The set-builder restriction `a ∈ A_rel^Σ` confines `nullified(Σ)` to link-store addresses: content, document, and ghost addresses in `coverage(G')` are not collected.
 
 **Definition — ActiveSubset.** For each `K ∈ T_admissible`, the *active subset of type K at state Σ* is
 
@@ -300,9 +300,9 @@ The wp does not constrain `|Σ.L(a)|`, by R-Scope's arity-independence (SingleTu
 
 `wp(Emit_K(Σ, d, F, G), (a, F, G) ∈ A_K^{Σ'}) ≡ d ∈ dom(Σ.M) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G)) ∧ ¬(E (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∈ coverage(G'))`   (over `→*`-reachable Σ; `K` is an index, not a free wp variable)
 
-The third conjunct is a *state predicate*, not a trajectory property: it asserts that no pre-existing retraction tuple in `L_R^Σ` already covers the fresh emission address `a_emit(Σ, d)`, and is finitely checkable over the finite slice `L_R^Σ` (L-fin, ASN-0043) by CoverageEqualityDecidable and T2 span-membership. Delivering it explicitly lets the wp be stated over the ASN's declared `→*`-reachable working domain, with no recourse to a trajectory-bound "layer-reachable" restriction.
+The third conjunct is a *state predicate*, not a trajectory property: it asserts that no pre-existing retraction tuple in `L_R^Σ` already covers the fresh emission address `a_emit(Σ, d)`, and is finitely checkable over the finite slice `L_R^Σ` (L-fin, ASN-0043) by CoverageEqualityDecidable and T2 span-membership.
 
-*Disciplined-domain simplification.* At a layer-reachable state (Definition — layer-reachable) the third conjunct holds vacuously, so the wp reduces to `d ∈ dom(Σ.M) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))`. The unit-depth retraction discipline gives every pre-existing `L_R^Σ` tuple a unit-depth to-span `{(b, δ(1, #b))}` with coverage `{t : b ≼ t}` for some `b ∈ A_rel^Σ`; the fresh `a = a_emit(Σ, d)` is prefix-incomparable with every such `b` by K.λ's emission rule together with R0a, so `a ∉ coverage(G')` for any pre-existing retraction `(_, _, G') ∈ L_R^Σ`, discharging the third conjunct. The simplification is a property of the sub-domain, not a re-statement of the wp.
+*Disciplined-domain simplification.* At a layer-reachable state (Definition — layer-reachable) the third conjunct holds vacuously, so the wp reduces to `d ∈ dom(Σ.M) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))`. The unit-depth retraction discipline gives every pre-existing `L_R^Σ` tuple a unit-depth to-span `{(b, δ(1, #b))}` with coverage `{t : b ≼ t}` for some `b ∈ A_rel^Σ`; the fresh `a = a_emit(Σ, d)` is prefix-incomparable with every such `b` by K.λ's emission rule together with R0a, so `a ∉ coverage(G')` for any pre-existing retraction `(_, _, G') ∈ L_R^Σ`, discharging the third conjunct.
 
 *Derivation (both directions).* `d ∈ dom(Σ.M)` is Emit_K's home-precondition; it is a conjunct of every guaranteeing precondition for the same execution-necessity reason given for P0 in Case 1 (without it K.λ does not execute and no post-state Σ' is produced). With the home-precondition established and the index admissible (per the Result statement above), Σ' exists and `(a, F, G) ∈ L_K^{Σ'}` holds unconditionally (Definition of Emit_K), so the postcondition `(a, F, G) ∈ A_K^{Σ'}` is equivalent to `a ∉ nullified(Σ')`. It therefore suffices to show, over the `→*`-reachable working domain, that `a ∉ nullified(Σ')` is equivalent to the conjunction of the second and third conjuncts of the Result.
 
