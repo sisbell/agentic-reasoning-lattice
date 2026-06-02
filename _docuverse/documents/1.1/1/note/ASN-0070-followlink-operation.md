@@ -173,7 +173,9 @@ The postcondition fixes the *V-restricted denotation* of each component but not 
 
 When `m_S(d)` is undefined (either subspace `S ∈ {s_C, s_L}` with `V_S(d) = ∅`), the canonical form is `Σ_V^S = ⟨⟩` by the V-restricted denotation convention.
 
-**Derivation of uniqueness.** Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`. We show each subspace component admits exactly one canonical representation.
+The clauses (i)–(iii) above are the *definitional content* — the shape an admissible canonical form must take. We catalogue them as F-canon-form (DEF). That a canonical form of this shape *exists and is unique* for a given `R(d, e)` is a separate proof obligation, established next as a theorem (F-canonical, THM); F-det and F-empty lean on this uniqueness result, not on the shape alone.
+
+**Theorem (F-canonical — CanonicalUniqueness).** Given `R(d, e)`, there exists exactly one per-subspace family satisfying the canonical-form shape of F-canon-form. Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`. We show each subspace component admits exactly one canonical representation.
 
 *Step 1 — Level-uniformity and ordinal-displacement widths.* By S8-depth (ASN-0036), and `m_L(d)` (ASN-0047) for the link subspace, all V-positions in `R(d, e)|_S` share the common depth `m_S(d)` (well-defined here since the subspace is non-empty). We must restrict component widths to ordinal displacements `δ(c, m_S(d))`. The restriction is forced by the finiteness and subspace-confinement requirements on `⟦σ⟧_V` for each component `σ = (s, ℓ)` with `#s = #ℓ = m_S(d)`, `subspace(s) = S`, and `s` positive in every component (clause (i) of CanonicalForm), by case analysis on `k = actionPoint(ℓ)`:
 
@@ -360,6 +362,33 @@ follow(ℓ, d, 1) at Σ' = (d, (⟨⟩, ⟨⟩))
 ```
 
 The same link, the same endset, the same document, but a different result. F-state is exercised: the variation traces entirely to `M(d) ≠ M'(d)`, since `L(ℓ).e₁` is L12-invariant. The link is preserved across the transition; its resolution against `d` now reflects the contracted arrangement. F-persist is also visible: `ℓ` remains in `dom(Σ'.L)` despite resolving to the empty per-subspace family. ✓
+
+**Fifth configuration — link-subspace resolution (non-empty `Σ_V^{s_L}`).** The four configurations above all yield `Σ_V^{s_L} = ⟨⟩`; none exercises the link-subspace branch of the postcondition `⟦Σ_V^{s_L}⟧_V = R(d, L(ℓ).eᵢ)|_{s_L}`. That branch is the distinctive contribution of the two-subspace partition (F0), and it rests on the non-trivial reverse direction of F-subspace (S3★-aux + L14 ruling out `subspace(v) = s_C` when `M(d)(v) ∈ dom(L)`). We exercise it here. By L4 (ASN-0043), an endset's spans may reference link I-addresses, so let the followed link `ℓ` carry an endset whose coverage is a *link* address that `d` arranges in its link subspace. Return to the pre-state arrangement `M(d)` of Configuration 1 — in which `[2, 1] → ℓ₀` with block `β_L = ([2, 1], ℓ₀, 1)` in `s_L` — and modify the endset to
+
+```
+L(ℓ).e₁ = {(ℓ₀, δ(1, m_a))}
+```
+
+so that `coverage(L(ℓ).e₁) = {ℓ₀} ⊂ dom(L)` (`ℓ₀` is a distinct link I-address, not `ℓ` itself; this is the cross-subspace endset admitted by L4(c) of ASN-0043).
+
+Process each block against the endset span:
+
+- `β₁ = ([1, 4], a₁ + 1, 2)`, `β₂ = ([1, 1], a₀, 3)`, `β₃ = ([1, 6], a₀, 1)`: each has `I(β) ⊂ dom(C)`, disjoint from `coverage(L(ℓ).e₁) = {ℓ₀} ⊂ dom(L)` by L14 (StoreDisjointness, ASN-0047). No contribution.
+- `β_L = ([2, 1], ℓ₀, 1)`: `I(β_L) = {ℓ₀}`. Intersection with `{ℓ₀}` is `{ℓ₀}` — the full I-extent. Offset `j = 0`, width `c = 1`. V-run: `[2, 1]`, recorded as the link-subspace V-span `([2, 1], δ(1, 2))`.
+
+**Result.** `Σ_V^{s_C} = ⟨⟩` (empty); `Σ_V^{s_L} = ⟨([2, 1], δ(1, 2))⟩` (one span). So:
+
+```
+follow(ℓ, d, 1) = (d, (⟨⟩, ⟨([2, 1], δ(1, 2))⟩))
+```
+
+The V-restricted denotation of `Σ_V^{s_L} = ⟨([2, 1], δ(1, 2))⟩` at link-subspace depth `m_L = 2` is `⟦Σ_V^{s_L}⟧_V = {[2, 1]}`.
+
+- *F-sound.* `[2, 1] ∈ dom(M(d))`, and `M(d)([2, 1]) = ℓ₀ ∈ coverage(L(ℓ).e₁)`. ✓
+- *F-complete.* The only `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).e₁) = {ℓ₀}` is `[2, 1]` (the content blocks map into `dom(C)`, which is disjoint from `{ℓ₀}`). It is in `⟦Σ_V^{s_L}⟧_V`. ✓
+- *F-subspace (link branch).* `M(d)([2, 1]) = ℓ₀ ∈ dom(L)`, so `subspace_I(ℓ₀) = s_L` (L0, ASN-0047) — matching `subspace([2, 1]) = 2 = s_L`. The reverse direction of F-subspace is what places `[2, 1]` in the `s_L`-component rather than the `s_C`-component: `M(d)([2, 1]) ∈ dom(L)`, so S3★-aux + L14 exclude `subspace([2, 1]) = s_C`. ✓
+
+This configuration confirms the link-subspace branch end-to-end: a link address covered by the followed endset, arranged at a link-subspace V-position, resolves to a non-empty `Σ_V^{s_L}` while `Σ_V^{s_C}` stays empty.
 
 ## Sub-cases as One Phenomenon
 
@@ -637,7 +666,8 @@ These properties are not independent axioms requiring separate verification. The
 | F0 | `R(d, e) := M(d)⁻¹(coverage(e))` is the V-position set of endset `e` in document `d`; partitions as `R(d, e) = R(d, e)|_{s_C} ⊎ R(d, e)|_{s_L}` | DEF | introduced |
 | F1 | `follow : (ℓ, d, i) → (d, (Σ_V^{s_C}, Σ_V^{s_L}))` with `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` per subspace; `Σ' = Σ`. V-restricted denotation: `⟦Σ_V^S⟧_V := {t ∈ ⟦Σ_V^S⟧ : subspace(t) = S ∧ #t = m_S(d) ∧ (A i : 1 ≤ i ≤ m_S(d) : t_i ≥ 1)}` | DEF | introduced |
 | F-subspace | IOSubspaceCorrespondence — for `v ∈ dom(M(d))`, `subspace(v) = subspace_I(M(d)(v))` (via S3★ + L0); hence `R(d, e)|_{s_C} = M(d)⁻¹(coverage(e) ∩ dom(C))` and `R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))`, where the biconditional `subspace(v) = S ⟺ M(d)(v) ∈ dom(·)` is proved by case analysis (forward: S3★; reverse: S3★-aux + L14) | LEMMA | introduced |
-| F-canonical | The canonical form of `Σ_V` has component widths in ordinal-displacement form `δ(c, m_S(d))`, each `Σ_V^S` normalised per S9, and family ordered (`s_C`, then `s_L`); a given `R(d, e)` admits exactly one canonical form (ordinal-displacement widths forced by finite V-restricted denotation + subspace confinement; bridge from `⟦·⟧_V` to `⟦·⟧` lifts S9 to V-restricted equivalence; fixed external ordering pins down family form). When `m_S(d)` is undefined, `Σ_V^S = ⟨⟩` is the unique canonical representative by V-restricted convention. | DEF | introduced |
+| F-canon-form | The canonical-form *shape*: each component width is an ordinal displacement `δ(c, m_S(d))` with positive-component start, each `Σ_V^S` is normalised per S9, and the family is ordered (`s_C`, then `s_L`). When `m_S(d)` is undefined, `Σ_V^S = ⟨⟩` by V-restricted convention. | DEF | introduced |
+| F-canonical | CanonicalUniqueness — a given `R(d, e)` admits exactly one canonical form of the F-canon-form shape (ordinal-displacement widths forced by finite V-restricted denotation + subspace confinement; bridge from `⟦·⟧_V` to `⟦·⟧` lifts S9 to V-restricted equivalence; fixed external ordering pins down family form). Supplies the representational-uniqueness result that F-det and F-empty depend on. | THM | introduced |
 | F-det | DenotationalDeterminism — same `Σ` produces the same `R(d, e)|_S` per subspace, hence the same canonical form; chain S2 → unique inverse image → unique partition (S3★-aux) → unique V-restricted denotation → unique canonical form (F-canonical/S9) | LEMMA | introduced |
 | F-sound | Soundness — `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S`: every `v ∈ ⟦Σ_V^S⟧_V` satisfies `v ∈ dom(M(d))` and `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`; ⊆ half of the postcondition's set equality | LEMMA | introduced |
 | F-complete | Completeness — `R(d, L(ℓ).eᵢ)|_S ⊆ ⟦Σ_V^S⟧_V`: every qualifying `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` is in `⟦Σ_V^S⟧_V` for `S = subspace(v)`; ⊇ half of the postcondition's set equality | LEMMA | introduced |
