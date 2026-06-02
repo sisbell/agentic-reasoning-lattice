@@ -449,8 +449,6 @@ We abbreviate this **SubAllocFresh**.
 
 **K.λ (LinkAllocation).** ASN-0093's K.λ (LinkAllocation), with frame extended by `E' = E ∧ R' = R` (Frame convention for inherited transitions). Freshness `ℓ ∉ dom(L) ∪ dom(C)` is SubAllocFresh at `x = L` (Lemma SubAllocatorFreshness, *Allocator hierarchy under documents*).
 
-In addition, the forward-allocation conjunct `(A ℓ' : ℓ' ∈ dom(L) ∧ origin(ℓ') = d : ℓ' < ℓ)` (T9) holds: it is a consequence of `inc(·, 0)` on the frontier in the subsequent case, and is vacuous in the first-link case (the antecedent is empty).
-
 *Effect:* `L' = L ∪ {ℓ ↦ (e₁, …, eₙ)}`.
 
 *Frame:* `C' = C; E' = E; (A d' :: M'(d') = M(d')); R' = R`.
@@ -907,6 +905,43 @@ Verification against the resulting state Σ':
 - *P8:* parent(d₃) = parent(1.0.1.0.1.2) = 1.0.1 ∈ E₃ ⊆ E' (k = 0 preserves parent(d_new) = parent(prev_version) = parent(d₁) = 1.0.1). ✓
 
 The k = 0 fork inherits a₃ — the prior version's edit — because the transclusion source is the operand d₂ (the chain frontier), not the base d₁, instantiating the operand-tracking rule of J4 step (ii). The address allocation, by contrast, is uniform with the k = 1 case — a frontier-advance on `A_v(d₁)` — so the two sub-cases share an allocation discipline while differing only in which document supplies the transcluded content.
+
+
+## Worked example: fork of a duplicate-I-address source
+
+The three forks above all transclude sources whose content V-positions carry *pairwise-distinct* I-addresses, so they exercise J4 step (ii)'s order-preservation clause but leave its *multiplicity-preservation* clause — the load-bearing distinction between the φ-copy characterization and mere range equality — unchecked against the scenario that separates the two. We supply that scenario here: a source in which two content V-positions carry the *same* I-address, as S5 (UnrestrictedSharing, ASN-0036) permits.
+
+*Source state.* Let document `d_op = 1.0.1.0.3 ∈ E_doc` carry a single content address `a = 1.0.1.0.3.0.1.1` transcluded at two distinct content V-positions:
+
+> C ⊇ {a ↦ 'x'},  a = 1.0.1.0.3.0.1.1
+> M(d_op) = {[1,1] ↦ a, [1,2] ↦ a}
+> R ⊇ {(a, d_op)}
+
+The duplicate arises by two K.μ⁺ transclusions of the *same* pre-existing `a` (case (ii), no new content): `[1,1] ↦ a` then `[1,2] ↦ a`. This is consistent with S2 (each V-position has at most one image — both positions do) and exhibits the multiplicity S5 permits (`|{(d_op, v) : M(d_op)(v) = a}| = 2`). Content-subspace V-positions: `V_{s_C}(d_op) = {[1,1], [1,2]}` — contiguous (D-CTG★), minimum `[1,1] = [s_C, 1]` (D-MIN★), shape `{[s_C, k] : 1 ≤ k ≤ 2}` (D-SEQ★ at `n_{s_C} = 2`, `m_{s_C} = 2`).
+
+**Fork d_op to d_new = 1.0.1.0.3.1.** This is J4's k = 1 sub-case (first version on `A_v(d_op)`). Precondition: `d_src = d_op ∈ E_doc`, `d_op ∈ E_doc`, `V_{s_C}(d_op) = {[1,1], [1,2]} ≠ ∅`.
+
+*K.δ (k = 1):* `d_new = inc(d_op, 1) = 1.0.1.0.3.1`. E' = E ∪ {d_new}, M'(d_new) = ∅. d_op ≼ d_new carries the ancestry-by-address indication.
+
+*K.μ⁺:* The order-preserving bijection `φ : V_{s_C}(d_op) → V_{s_C}(d_new)` sends `φ([1,k]) = [1,k]` (identical last component; d_new's content subspace re-pins at depth `m_new = 2`). Step (ii) establishes `M'(d_new)(φ(v)) = M(d_op)(v)` for each `v`:
+
+> M'(d_new)([1,1]) = M(d_op)([1,1]) = a
+> M'(d_new)([1,2]) = M(d_op)([1,2]) = a
+
+so `M'(d_new) = {[1,1] ↦ a, [1,2] ↦ a}` — **two** target positions, **one** I-address. No new content enters C (C' = C).
+
+*K.ρ:* R' = R ∪ {(a, d_new)} — one provenance entry, since `a` is the sole distinct content address.
+
+Verification against Σ':
+
+- *J4 (multiplicity preservation, the distinctive postcondition):* φ is injective, so the two distinct source positions `[1,1] ≠ [1,2]` map to two distinct target positions `[1,1] ≠ [1,2]`, each retaining `a`. The duplicate is **not** collapsed: `|dom(M'(d_new))| = 2 = |V_{s_C}(d_op)|`, so the document's content count is preserved. The deduplicating outcome `M'(d_new) = {[1,1] ↦ a}` — count 1 — is *not* produced, even though it satisfies the same derived range equality (see next item). This is exactly the case the φ-bijection characterization rules out and range equality alone cannot. ✓
+- *Derived range equality (lossy, hence non-discriminating):* `ran(M'(d_new)) = {a} = ran(M(d_op)|_{V_{s_C}(d_op)})`. The range projection collapses the two positions to the single address `{a}`, so it holds equally of the correct count-2 arrangement and the wrong count-1 deduplication — confirming that range equality is a *consequence* of the φ-copy, never its characterization. ✓
+- *S2 (Arrangement functionality) on d_new despite non-injectivity:* S2 constrains single-valuedness — each V-position has at most one image — not injectivity. Here `[1,1] ↦ a` and `[1,2] ↦ a` give each of the two distinct positions exactly one image, so S2 holds; the two positions sharing the image `a` is permitted (S2 does not require distinct positions to carry distinct addresses). The K.μ⁺ adds both mappings at positions disjoint from `dom(M'_int(d_new)) = ∅`. ✓
+- *J1★:* `ran(M'(d_new)|_{s_C}) \ ran(M(d_new)|_{s_C}) = {a} \ ∅ = {a}` (M(d_new) = ∅ since d_new ∉ E_doc pre-fork); `(a, d_new) ∈ R'`. A single new range entry, hence a single provenance entry, even though two V-positions carry it. ✓
+- *D-CTG★ / D-MIN★ / D-SEQ★ on V_{s_C}(d_new) = {[1,1], [1,2]}:* contiguous at depth 2, minimum `[1,1] = [s_C, 1]`, shape `{[s_C, k] : 1 ≤ k ≤ 2}` at `n_{s_C} = 2`. The shape invariants constrain the *V-positions*, which remain two and sequential regardless of the collision in their images. ✓
+- *S3★:* both content-subspace V-positions map to `a ∈ dom(C') = dom(C)`; content is frame-preserved (no K.α). ✓
+
+The fork of a duplicate source thus produces a *non-injective* `M'(d_new)` — two V-positions, one I-address — which S2 permits but does not require, and which the φ-bijection forces. A faithful version copy reproduces the source's sharing structure exactly; a deduplicating range copy would silently drop a position and undercount the contents. Gregory's `docreatenewversion` re-seats each content piece at a fresh sequential V-position, "retaining duplicate I-addresses at distinct V-positions as separate entries" — exactly this count-preserving behaviour.
 
 
 ## Worked example: interior content replacement
