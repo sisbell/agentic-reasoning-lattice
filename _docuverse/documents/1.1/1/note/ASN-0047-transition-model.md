@@ -276,9 +276,9 @@ In a composite transition, K.α may precede K.μ⁺, extending dom(C) before K.�
 
 *Precondition:*
 - `d ∈ E_doc`.
-- *Per-subspace suffix-prefix retention (constructive specification, pre-state checkable).* Under D-SEQ★ at Σ, each non-empty `V_S(d)` has canonical shape `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S}` for `S ∈ {s_C, s_L}`. The caller selects, for each S, a *retention count* `n'_S ∈ {0, 1, ..., n_S}` (with `n'_S = 0` when `V_S(d) = ∅`), with at least one S admitting strict contraction `n'_S < n_S`. The contracted arrangement is then determined constructively as the restriction `M'(d) = M(d) ↾ R` to the retained domain `R := ∪_{S ∈ {s_C, s_L}} {[S, 1, ..., 1, k] : 1 ≤ k ≤ n'_S}`. The choice of `(n'_{s_C}, n'_{s_L})` is the operation's degree of freedom, subject to the strict-contraction constraint, and is verifiable at the pre-state without computing M'(d) explicitly: D-SEQ★ at Σ supplies `(n_{s_C}, n_{s_L})`, and the caller commits to a per-subspace retention count.
+- *Suffix-prefix retention (constructive specification, pre-state checkable).* At the elementary level only the content subspace is populated, so by ASN-0036's D-SEQ (D-MIN fixing the minimum, D-CTG fixing contiguity) the content-subspace positions `V_1(d)`, when non-empty, have canonical shape `{[1, 1, ..., 1, k] : 1 ≤ k ≤ n}`. The caller selects a *retention count* `n' ∈ {0, 1, ..., n}` (with `n' = 0` clearing the subspace), subject to the strict-contraction constraint `n' < n`. The contracted arrangement is then determined constructively as the restriction `M'(d) = M(d) ↾ R` to the retained domain `R := {[1, 1, ..., 1, k] : 1 ≤ k ≤ n'}`. The choice of `n'` is the operation's degree of freedom, verifiable at the pre-state without computing M'(d) explicitly: ASN-0036's D-SEQ at Σ supplies `n`, and the caller commits to a retention count. (The per-subspace generalization to the extended state — independent retention counts for `s_C` and `s_L` governed by D-SEQ★ — is given in *K.μ⁻ amendment (PerSubspaceScope)* below.)
 
-The per-state arrangement invariants (S2, S3★, S8a, S8-depth, S8-fin, D-CTG★, D-MIN★, D-SEQ★ at M'(d)) and the equivalence of this constructive precondition with the post-state characterization are derived consequences of the restriction form `M'(d) = M(d) ↾ R`, proved in *K.μ⁻ admissible contraction shape* below.
+The per-state arrangement invariants (S2, S3, S8a, S8-depth, S8-fin, D-CTG, D-MIN, D-SEQ of ASN-0036 at M'(d)) and the equivalence of this constructive precondition with the post-state characterization are derived consequences of the restriction form `M'(d) = M(d) ↾ R`; the per-subspace generalization and its full equivalence proof are given in *K.μ⁻ admissible contraction shape* below.
 
 *Frame:* C' = C; E' = E; R' = R; (A d' : d' ≠ d : M'(d') = M(d')).
 
@@ -351,7 +351,7 @@ Therefore no v ∈ V_S(d) has an inner position ≥ 2: every v has `v_j = 1` for
 
 The two cases together cover every reachable state under S8a + S8-depth. The canonical form for D-SEQ★ thus reads `{[S, k] : 1 ≤ k ≤ n_S}` at m = 2 and `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S}` at m ≥ 3 (with the inner "1, ..., 1" segment of length `m - 2`); the consolidated statement at the head of this definition uses the m ≥ 3 spelling and silently degenerates to the m = 2 form when the inner segment has length zero.
 
-**K.μ⁻ amendment (PerSubspaceScope).** The only extended-state change is the added link-store frame clause `L' = L`; K.μ⁻'s effect, precondition, contraction shape, and per-subspace postconditions carry over unchanged from its elementary definition.
+**K.μ⁻ amendment (PerSubspaceScope).** The extended state adds the link subspace, so two changes apply over the elementary definition. First, the link-store frame clause `L' = L` is added. Second, the elementary single-content-subspace retention count `n'` generalizes to a *per-subspace* retention count: under D-SEQ★ at Σ each non-empty `V_S(d)` has canonical shape `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S}` for `S ∈ {s_C, s_L}`, and the caller selects, for each S, a retention count `n'_S ∈ {0, 1, ..., n_S}` (with `n'_S = 0` when `V_S(d) = ∅`), subject to at least one S admitting strict contraction `n'_S < n_S`. The contracted arrangement is the restriction `M'(d) = M(d) ↾ R` to `R := ∪_{S ∈ {s_C, s_L}} {[S, 1, ..., 1, k] : 1 ≤ k ≤ n'_S}`; D-SEQ★ at Σ supplies `(n_{s_C}, n_{s_L})`, keeping the precondition pre-state checkable. The effect, contraction shape, and per-subspace postconditions otherwise carry over from the elementary definition; the constructive/post-state equivalence is proved next.
 
 *Frame (extended state).* `C' = C; L' = L; E' = E; R' = R; (A d' : d' ≠ d : M'(d') = M(d'))`.
 
@@ -450,15 +450,15 @@ Cross-document disjointness for distinct home documents is CrossDocumentDisjoint
 
 ## K.δ case (ii) discharge and parent-allocator activation
 
-A non-node K.δ event's step `e = inc(t, k)` acts on a parent entity-level sub-allocator that depends on k. By k, the parent-allocator activation:
+A non-node K.δ event's step `e = inc(t, k)` acts on a parent entity-level sub-allocator that depends on k. The operand-admissibility and freshness conditions for each sub-case are fixed at the K.δ box (case (ii), k = 0/1/2) and are not restated here; this section records only the *parent-allocator activation* each k induces, and the discharge of the T10a child-spawn premise.
 
-- *k = 0 (sibling under existing allocator):* no new allocator is activated. The step `e = inc(t, 0)` is a T10a sibling-advance on the allocator already tracking `t` — the same allocator carrying `parent(e)` by the definition's `parent(t) = parent(e)` identity.
+- *k = 0:* no new allocator is activated — `e = inc(t, 0)` is a T10a sibling-advance on the allocator already tracking `t` (the same allocator carrying `parent(e)` by the `parent(t) = parent(e)` identity).
 
-- *k = 1 (version under existing document allocator):* the step `e = inc(t, 1)` is the T10a child-spawn that activates `A_v(t)`, t's version sub-allocator. The unique parent allocator of `A_v(t)` is identified by ParentAllocatorDispatch (*Sub-allocator names*) from t's owning allocator at the present state — case (a') if t is a document under its account, case (b') if t is a version. The spawnPt premise (`t` in its parent allocator's realized domain) is supplied by the minting K.δ event that placed t into its owning allocator and preserved by P1; the definition's `t ∈ E_doc` conjunct furnishes the membership.
+- *k = 1:* `e = inc(t, 1)` is the T10a child-spawn that activates `A_v(t)`, t's version sub-allocator. Its unique parent allocator is identified by ParentAllocatorDispatch (*Sub-allocator names*) from t's owning allocator at the present state — case (a') if t is a document under its account, case (b') if t is a version. Its spawnPt premise (`t` in its parent allocator's realized domain) is supplied by the minting K.δ event that placed t into its owning allocator, preserved by P1, with the K.δ box's `t ∈ E_doc` conjunct furnishing the membership.
 
-- *k = 2 (descent producing the first child under a node or account):* the activation case. Let `t` be the K.δ operand (a node when creating an account; an account when creating a document) and `e = inc(t, 2)` the spawn output. The K.δ event spawns a *new entity-level sub-allocator* under `t`: when t is a node, `A_account(t)` (t's *account sub-allocator*, catalogued in *Sub-allocator names* above); when t is an account, `A_doc(t)` (t's *document sub-allocator*, also catalogued above). The K.δ event is the T10a child-spawn step that *creates* the spawned allocator, with `t` as spawnPt and `e` as the first emission.
+- *k = 2:* the activation case. `e = inc(t, 2)` spawns a *new entity-level sub-allocator* under `t` — `A_account(t)` (t's *account sub-allocator*) when t is a node, `A_doc(t)` (t's *document sub-allocator*) when t is an account, both catalogued in *Sub-allocator names* above — with `t` as spawnPt and `e` as the first emission.
 
-  T10a child-spawn admissibility requires the spawnPt `t` to inhabit `dom(parent_allocator)` at the spawn event — t must already lie in the realized domain of whatever sits *above* the newly-spawned allocator in the allocator tree, namely the source that minted `t`. The spawnPt premise `t ∈ dom(parent_allocator)` is supplied by one of three sources according to `t`'s level; the remainder of the discharge is uniform across all three:
+  T10a child-spawn admissibility for this k = 2 descent requires the spawnPt `t` to inhabit `dom(parent_allocator)` at the spawn event — t must already lie in the realized domain of whatever sits *above* the newly-spawned allocator in the allocator tree, namely the source that minted `t`. The spawnPt premise `t ∈ dom(parent_allocator)` is supplied by one of three sources according to `t`'s level; the remainder of the discharge is uniform across all three:
 
   | `t`'s level | spawned allocator (parent above) | spawnPt-premise source |
   |-------------|----------------------------------|------------------------|
@@ -926,6 +926,42 @@ Verification against Σ':
 - *S3★:* both content-subspace V-positions map to `a ∈ dom(C') = dom(C)`; content is frame-preserved (no K.α). ✓
 
 The fork of a duplicate source thus produces a *non-injective* `M'(d_new)` — two V-positions, one I-address — which S2 permits but does not require, and which the φ-bijection forces. A faithful version copy reproduces the source's sharing structure exactly; a deduplicating range copy would silently drop a position and undercount the contents. The φ-injectivity postcondition checked above (`|dom(M'(d_new))| = 2 = |V_{s_C}(d_op)|`) is what rules the deduplicating copy out.
+
+
+## Worked example: fork with depth rebasing (m_new ≠ m_old)
+
+The three forks above all re-pin d_new's content subspace at the *same* depth as the source (`m_new = m_old = 2`), so `φ([1, k]) = [1, k]` is the identity on V-position values and the depth-*rebasing* half of J4 step (ii)'s characterization is never exercised. Yet `m_new` is a free caller choice (`≥ 2` by S8a) at d_new's first content insertion — d_new starts empty (`V_{s_C}(d_new) = ∅`), so ValidFirstInsertionPosition (ASN-0036) admits any depth `m ≥ 2`, and `m_new = m_old` is *not* forced. We exercise a fork with `m_new = 3 ≠ 2 = m_old`, the case where φ is genuinely non-identity, to verify it remains an order- and multiplicity-preserving bijection and that D-SEQ★/D-CTG★/D-MIN★ hold at the rebased depth.
+
+*Source state.* Let document `d_op = 1.0.1.0.5 ∈ E_doc` carry two distinct content addresses transcluded at content depth `m_old = 2`:
+
+> C ⊇ {a₁ ↦ 'p', a₂ ↦ 'q'},  a₁ = 1.0.1.0.5.0.1.1,  a₂ = 1.0.1.0.5.0.1.2
+> M(d_op) = {[1,1] ↦ a₁, [1,2] ↦ a₂}
+> R ⊇ {(a₁, d_op), (a₂, d_op)}
+
+Content-subspace V-positions: `V_{s_C}(d_op) = {[1,1], [1,2]}` — contiguous (D-CTG★), minimum `[1,1] = [s_C, 1]` (D-MIN★), shape `{[s_C, k] : 1 ≤ k ≤ 2}` (D-SEQ★ at `n_{s_C} = 2`, `m_old = 2`).
+
+**Fork d_op to d_new = 1.0.1.0.5.1.** This is J4's k = 1 sub-case (first version on `A_v(d_op)`). Precondition: `d_src = d_op ∈ E_doc`, `d_op ∈ E_doc`, `V_{s_C}(d_op) = {[1,1], [1,2]} ≠ ∅`.
+
+*K.δ (k = 1):* `d_new = inc(d_op, 1) = 1.0.1.0.5.1`. E' = E ∪ {d_new}, M'(d_new) = ∅. d_op ≼ d_new carries the ancestry-by-address indication.
+
+*K.μ⁺ (depth rebased to `m_new = 3`):* the caller's first content insertion into the empty `V_{s_C}(d_new)` pins `m_new = 3`. The order-preserving bijection `φ : V_{s_C}(d_op) → V_{s_C}(d_new)` therefore maps the depth-2 source position `[s_C, 1, ..., 1, k]` (here `[1, k]`) to the depth-3 target position `[s_C, 1, ..., 1, k]` (here `[1, 1, k]`): `φ([1, k]) = [1, 1, k]` — *non-identity* on V-position values, a genuine depth rebasing. Step (ii) establishes `M'(d_new)(φ(v)) = M(d_op)(v)`:
+
+> M'(d_new)([1,1,1]) = M(d_op)([1,1]) = a₁
+> M'(d_new)([1,1,2]) = M(d_op)([1,2]) = a₂
+
+so `M'(d_new) = {[1,1,1] ↦ a₁, [1,1,2] ↦ a₂}` at depth 3. No new content enters C (C' = C).
+
+*K.ρ:* R' = R ∪ {(a₁, d_new), (a₂, d_new)}.
+
+Verification against Σ':
+
+- *J4 order preservation under non-identity φ:* the source order `[1,1] < [1,2]` maps to `[1,1,1] < [1,1,2]` (both compare by their last component, equal in positions 1..2). φ is order-preserving across the depth change — the relative content order survives rebasing from depth 2 to depth 3. ✓
+- *J4 multiplicity preservation:* φ is injective, so the two distinct source positions map to two distinct target positions, each retaining its I-address (`a₁ ≠ a₂`); `|dom(M'(d_new))| = 2 = |V_{s_C}(d_op)|`. Had the source carried a duplicate I-address, injectivity of φ would preserve it identically across the rebasing, as the duplicate-source example showed at equal depth. ✓
+- *D-SEQ★ / D-CTG★ / D-MIN★ on `V_{s_C}(d_new) = {[1,1,1], [1,1,2]}` at the rebased depth 3:* contiguous (D-CTG★, the last component runs 1, 2 with no gap — D-CTG-depth reduces contiguity to the last component since positions 2..m−1 are the constant 1), minimum `[1,1,1] = [s_C, 1, 1]` (D-MIN★, all-ones tuple of length 3), shape `{[s_C, 1, k] : 1 ≤ k ≤ 2}` (D-SEQ★ at `n_{s_C} = 2`, `m_new = 3`). Each target is a zero-free length-3 tumbler with all components positive (S8a), and all share depth 3 (S8-depth). ✓
+- *Derived range equality:* `ran(M'(d_new)) = {a₁, a₂} = ran(M(d_op)|_{V_{s_C}(d_op)})` — every source I-address inherited at a corresponding rebased position, no new content. ✓
+- *S3★:* both V-positions map to addresses in `dom(C') = dom(C)`; content frame-preserved. ✓
+
+The depth rebasing thus changes only the numeric V-values (the depth-3 re-derivation of φ), never the order, multiplicity, or range of the transcluded content — confirming J4 step (ii)'s characterization in its non-degenerate `m_new ≠ m_old` case, which the equal-depth examples could not reach.
 
 
 ## Worked example: interior content replacement
