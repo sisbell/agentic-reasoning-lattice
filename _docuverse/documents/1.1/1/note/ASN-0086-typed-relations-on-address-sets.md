@@ -188,7 +188,7 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 
 *Corollary R5.1 — SelfTargetingEmission.* For any `a ∈ A_rel^Σ`, any slot position, and any caller-supplied home `d ∈ dom(Σ.M)`, R0 emits at a fresh `A_rel` address a triple carrying the unit-depth span `(a, δ(1, #a))` in the chosen slot (by Steps 2–3: the span is an admissible endset member, and R0's emission at the L3-conforming triple discharges the chosen-slot placement).
 
-*Consequence.* The substantive consequence is that self-targeting enables retraction without mutation: a tuple in a designated relation `L_R` whose to-set contains the address of the tuple being nullified. By Corollary R5.1, the retraction triple `(∅, {(a, δ(1, #a))}, R)` is emitted at a fresh `A_rel` address homed at a caller-supplied `d_retr ∈ dom(Σ.M)`; mutation becomes Emit, and `L_K` is never modified (R3).
+*Consequence.* Self-targeting is what makes the Nullify operation of *Three Operations* possible — a tuple that names another tuple's address in an endset slot, emitted without mutating any existing entry.
 
 
 ## The Active Subset (R6a, R6b, R6c)
@@ -202,6 +202,8 @@ where `L_K^Σ` denotes the typed relation evaluated at state `Σ`.
 `nullified(Σ) = {a ∈ A_rel^Σ : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))}`
 
 The existential checks `coverage(G')` only, per Convention RetractionDirectionality. The set-builder restriction `a ∈ A_rel^Σ` confines `nullified(Σ)` to link-store addresses: ghost, content, and document addresses in `coverage(G')` — which by R5/L9 may include link, content, document, or ghost addresses — are not collected.
+
+*Scope — retractors are standard-triple links only.* The witnessing tuple `(b, F', G')` ranges over `L_R^Σ`, which carries the `|Σ.L(a)| = 3` conjunct of *Definition — TypedRelation*. A retractor must therefore be a standard-triple link; a higher-arity link (`|Σ.L(b)| > 3`) whose slot-3 coverage equals `coverage(R)` and whose slot-2 covers a target address has *no* nullifying effect. This exclusion is deliberate, not an oversight: the to-set/from-set reading on which `nullified` depends is the convention-fixed slot assignment of the standard triple (StandardTriple, ASN-0043; Convention RetractionDirectionality), and the relational layer `L^Σ` of this note is by construction the standard-triple slice (`L^Σ = ⨆_{[K]} L_K^Σ`, each `L_K` triple-restricted). For `N > 3` links the model fixes no canonical to-slot, so `coverage(G')` is undefined for them and they cannot serve as retractors within this layer. We record that this scoping is *narrower than Nelson's design intent*: Nelson attaches no behavioral semantics to link types and keys type-matching on the type endset's *address* alone, applying uniformly regardless of arity [LM 4/44]; a model that fixed a to-slot convention for higher arities could extend `nullified` to range over retraction-typed links of every `N ≥ 3`. The present note does not, confining retraction to the triple layer it formalizes.
 
 **Definition — ActiveSubset.** For each `K ∈ T_admissible`, the *active subset of type K at state Σ* is
 
@@ -303,7 +305,7 @@ We claim that, under P0 and R0a at Σ', the postcondition is equivalent to `a �
 
 — *P1 branch* (`a ∈ A_rel^Σ`, the standard case): the target already exists, `a ≠ e`, and `A_rel^{Σ'} = A_rel^Σ ∪ {e}` contains `a`; the scope conclusion is exactly R-Scope (SingleTupleScope), whose domain `a ∈ A_rel^Σ` is met here. Dropping P1 *while also forbidding the self-emit branch* admits a counterexample: choose `a ∉ A_rel^Σ` with `a ≠ e` — such an `a` exists because `A_rel^Σ ∪ {e}` is finite while `T` is infinite (T0(b), ASN-0034) — and then `a ∉ A_rel^{Σ'} = A_rel^Σ ∪ {e}`, so `a ∉ {t : a ≼ t} ∩ A_rel^{Σ'}` and the intersection cannot equal `{a}`. So `P1` cannot simply be dropped; what the weakest precondition does is *widen* it by the self-emit disjunct rather than strengthen the precondition to exclude that disjunct.
 
-— *Self-emit branch* (`a = e`, hence `a ∉ A_rel^Σ`): R-Scope's domain `a ∈ A_rel^Σ` does *not* cover this `a`, but the conclusion does, via R0a directly. The internal `Emit_R` deposits `(∅, {(a, δ(1, #a))}, R)` at `e = a`, so `a ∈ A_rel^{Σ'}`; R0a's antichain at Σ' then gives `{a' ∈ A_rel^{Σ'} : a ≼ a'} = {a}`, i.e. the scope postcondition — even though `a ∉ A_rel^Σ` and P1 is false. This is the same self-emit configuration constructed in Worked Sketch Step 4 (`a₃ = a_emit(Σ_3, d)`). Omitting this disjunct would wrongly reject a pre-state under which the postcondition holds.
+— *Self-emit branch* (`a = e`, hence `a ∉ A_rel^Σ`): R-Scope's domain `a ∈ A_rel^Σ` does *not* cover this `a`, but the conclusion does, via R0a directly. The internal `Emit_R` deposits `(∅, {(a, δ(1, #a))}, R)` at `e = a`, so `a ∈ A_rel^{Σ'}`; R0a's antichain at Σ' then gives `{a' ∈ A_rel^{Σ'} : a ≼ a'} = {a}`, i.e. the scope postcondition — even though `a ∉ A_rel^Σ` and P1 is false. Omitting this disjunct would wrongly reject a pre-state under which the postcondition holds.
 
 The scope condition P2 (`|Σ.L(a)| = 3`) is consequently absent from the wp, by R-Scope's arity-independence (SingleTupleScope), which the self-emit branch inherits because R0a's antichain — the sole ingredient of that branch's conclusion — never consults `|Σ.L(a)|`.
 
