@@ -1,0 +1,28 @@
+# Review of ASN-0047
+
+## REVISE
+
+### Issue 1: ChildSpawnFreshness reverse direction skips the cross-node exclusion that its sibling lemma FrontierEquivalence performs
+
+**ASN-0047, ChildSpawnFreshness, *Proof*, reverse direction (⟸)**: "Since `inc(t, k')` is non-node (above), NodeBaptism — which places only node addresses — is excluded, so the placing event was a T10a `inc`-event. By GlobalUniqueness (ASN-0034, via T10a.6 cross-allocator domain-disjointness), the determinate address `inc(t, k')` is produced by exactly one allocation event — the `(t, k')` child-spawn..."
+
+**Problem**: This invokes GlobalUniqueness across the entire allocator structure to conclude `inc(t, k')` has a unique producing event. But this ASN's own **NodeRootedForest** explicitly states the `inc`-allocator structure is a *forest*, not a single tree, and that "Cross-node distinctness... is **not** a within-subtree GlobalUniqueness consequence; it rests on T10 (PartitionIndependence)." GlobalUniqueness (ASN-0034) is proved by strong induction over a *single* tree with a *sole root*. The parallel lemma **FrontierEquivalence** gets this right — its reverse direction first scopes to "`t`'s own node-rooted subtree (NodeRootedForest); cross-node distinctness (T10, ASN-0034) excludes any event under a distinct baptised node from producing it. Scoped to that single subtree, GlobalUniqueness... applies." ChildSpawnFreshness omits exactly this T10 cross-node step before applying GlobalUniqueness.
+
+This matters concretely: NodeLineage permits nested baptised nodes (`n₀ ≼ N₁ ≼ N₂`), and for a child-spawn `inc(t, k')` (`k' ≥ 1`, so `t ≼ inc(t, k')`) the address extends `t`'s node `N`; a distinct nested node `N'` can also prefix it. Excluding such cross-node production is precisely what T10/CrossNodeAccountBase reasoning exists to do, and it cannot be assumed away by an unscoped appeal to GlobalUniqueness. The gap propagates into the K.δ `k = 1` and `k = 2` freshness discharges (and the Step-2/Step-3 node/account descents in the entity-hierarchy worked example), all of which cite ChildSpawnFreshness.
+
+**Required**: Insert the cross-node T10 scoping step into ChildSpawnFreshness's reverse direction, matching FrontierEquivalence: exclude production by any distinct baptised node via T10 (PartitionIndependence), then apply GlobalUniqueness scoped to the single node-rooted subtree. Note the `k' = 2`-off-a-node case (account creation) is the one where multiple baptised nodes are most directly in play, so the step is load-bearing, not cosmetic.
+
+### Issue 2: Revision-state meta-prose in the S8★/K.μ~ discharge elaboration
+
+**ASN-0047, *Class (a)* discharge prose, "K.μ~ discharge for the arrangement-shape invariants"**: "This paragraph elaborates the K.μ~ cells whose one-line discharges appear above; the invariants are *not* a single uniform package, and **the cells now name their distinct mechanisms directly**."
+
+**Problem**: The phrase "the cells now name their distinct mechanisms directly" describes the document's *revision history* (a prior state had a uniform-package treatment that has since been corrected), not the claim being discharged. This is the revision-drift pattern the note's anti-bloat classifier flags — prose that narrates edits rather than advancing the argument. A reader following the K.μ~ invariant discharge must skip past the self-referential commentary to reach the substantive groupings (admissibility-(i) shape stipulations vs. decomposition-established S8★ vs. derived S8-fin/D-SEQ★).
+
+**Required**: Drop the "the cells now name..." clause; state the grouping directly (the substantive distinction among the three invariant families is the real content and should stand on its own without reference to what the matrix cells "now" do).
+
+## OUT_OF_SCOPE
+
+### Topic 1: Renumbering-aware interior link/content withdrawal
+**Why out of scope**: The ASN's own open question already identifies that K.μ⁻ models only suffix removal, while the implementation's interior `DELETEVSPAN` compacts-and-renumbers. Interior-deletion-by-renumbering is named-operation mechanics (DELETE/DELETEVSPAN), explicitly out of scope; raising it as a defect would be territory for a future ASN, not a revision here.
+
+VERDICT: REVISE
