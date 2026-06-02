@@ -250,12 +250,7 @@ For each endset I-span `σ = (s, ℓ_σ)` with coverage `⟦σ⟧`:
 
 The I-extent `I(β) = {a + k : 0 ≤ k < n}` is an arithmetic progression under OrdinalShift (ASN-0034), interpreted via the OrdinalShiftBase convention (ASN-0058): `a + k = shift(a, k)` for `k ≥ 1`, and `a + 0 = a` by definition.
 
-We first establish that the index-to-tumbler map `k ↦ a + k` is strictly monotone over `0 ≤ k < n`. Two cases on the smaller index:
-
-- *Case `1 ≤ k₁ < k₂`.* TS5 (ShiftAmountMonotonicity, ASN-0034) gives `shift(a, k₁) < shift(a, k₂)`, hence `a + k₁ < a + k₂`.
-- *Case `k₁ = 0, k₂ ≥ 1`.* By OrdinalShiftBase, `a + 0 = a`. By TS4 (ShiftStrictIncrease, ASN-0034), `a < shift(a, k₂) = a + k₂`. Hence `a + 0 < a + k₂`.
-
-Combining the two cases: `0 ≤ k₁ < k₂ < n ⟹ a + k₁ < a + k₂`. The map is therefore strictly monotone over `0 ≤ k < n`.
+The index-to-tumbler map `k ↦ a + k` is strictly monotone over `0 ≤ k < n`. Since `β = (v, a, n)` is a mapping block, this is exactly the I-component of M1 (OrderPreservation, ASN-0058): `a + k₁ < a + k₂` for all `0 ≤ k₁ < k₂ < n`. We cite M1 directly rather than re-deriving the monotonicity from the underlying shift lemmas.
 
 The span coverage `⟦σ⟧ = {t : s ≤ t < s ⊕ ℓ_σ}` is convex under T1 by T12 (SpanWellDefinedness, ASN-0034) — its order-convexity postcondition (c) states that for any `t₁, t₂ ∈ ⟦σ⟧` and `t₁ ≤ t' ≤ t₂`, we have `t' ∈ ⟦σ⟧`.
 
@@ -642,7 +637,7 @@ These properties are not independent axioms requiring separate verification. The
 | F-persist | LinkPersistence — `ℓ` remains in `dom(Σ.L)` regardless of reach (by L12) | LEMMA | introduced |
 | F-state | StateDependenceCorollary — across transitions, denotation may differ via `M(d)` variation though `L(ℓ)` is L12-invariant | COROLLARY | introduced |
 | F-multidoc | NoPreferredDocument — `home(ℓ)` plays no privileged role; any `d ∈ E_doc` is admissible | LEMMA | introduced |
-| F-contig | Contiguity — for any mapping block `β = (v, a, n)` and endset I-span `σ`, `I(β) ∩ ⟦σ⟧` is either empty or a contiguous sub-progression `{a + j + k : 0 ≤ k < c}`; proved via TS5 (ShiftAmountMonotonicity) plus TS4 + OrdinalShiftBase for `k = 0`, and T12 (SpanWellDefinedness order-convexity) | LEMMA | introduced |
+| F-contig | Contiguity — for any mapping block `β = (v, a, n)` and endset I-span `σ`, `I(β) ∩ ⟦σ⟧` is either empty or a contiguous sub-progression `{a + j + k : 0 ≤ k < c}`; proved via M1 (OrderPreservation, ASN-0058) for I-extent monotonicity and T12 (SpanWellDefinedness order-convexity) | LEMMA | introduced |
 
 ## Open Questions
 
