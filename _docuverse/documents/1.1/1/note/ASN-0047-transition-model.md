@@ -724,7 +724,7 @@ J1'★ is likewise range-based: every new provenance entry `(a, d) ∈ R' \ R` m
 **ValidComposite★ (ValidComposite, amended).** A composite transition `Σ →* Σ'` in the extended state Σ = (C, L, E, M, R) is *valid* iff it is a finite sequence of atomic transitions `Σ = Σ₀ → Σ₁ → ... → Σₙ = Σ'` — drawn from K.α (amended), K.δ, K.λ, K.μ⁺ (amended), K.μ⁺_L, K.μ⁻ (amended), K.μ~, and K.ρ — satisfying:
 
 1. *Transition preconditions (intra-composite sequencing).* Each step `Σᵢ → Σᵢ₊₁` satisfies the *elementary* precondition of its transition kind, evaluated at the *intermediate* state `Σᵢ`. K.μ~ appearing in the sequence is shorthand for its K.μ⁻ + K.μ⁺ decomposition (per its definition above): admissibility clause (ii) requires a non-trivial net effect `M'(d) ≠ M(d)`, whose necessary-and-sufficient existence condition is the K.μ~ precondition stated at its definition above. When the existence condition holds, K.μ~ always expands into two consecutive elementary steps, each satisfying its own precondition at the respective intermediate state. This clause is what enforces intra-composite ordering — e.g., that K.α precedes K.μ⁺ when the latter places a freshly allocated I-address `a`, since K.μ⁺'s referential-integrity precondition `a ∈ dom(C)` would fail at the pre-K.α intermediate state otherwise. Step preconditions are *local* to the elementary transition; they say nothing about the composite's endpoints.
-2. *Coupling constraints (initial-to-final).* J0, J1★, and J1'★ hold for the composite as a whole — evaluated *only* between the initial state Σ and the final state Σ'. The coupling predicates quantify over the *net* change between Σ and Σ' (e.g., `a ∈ dom(C') \ dom(C)`); they do not constrain the order or shape of intermediate steps, only that the *aggregate* effect of the composite must satisfy them. The couplings J0, J1★, and J1'★ are *imposed* validity conditions, not axioms of the elementary transition system: a composite that satisfies clause (1) but violates clause (2) — for instance, K.α alone without an accompanying K.μ⁺ and K.ρ, every elementary precondition holding at each intermediate state — is not a valid composite. This K.α-alone elementary sequence does exist; clause (2) is precisely what excludes it from the *valid* composites.
+2. *Coupling constraints (initial-to-final).* J0, J1★, and J1'★ hold for the composite as a whole — evaluated *only* between the initial state Σ and the final state Σ'. The coupling predicates quantify over the *net* change between Σ and Σ' (e.g., `a ∈ dom(C') \ dom(C)`); they do not constrain the order or shape of intermediate steps, only that the *aggregate* effect of the composite must satisfy them. The couplings J0, J1★, and J1'★ are *imposed* validity conditions, not axioms of the elementary transition system: a composite that satisfies clause (1) but violates clause (2) — for instance, K.α alone without an accompanying K.μ⁺ and K.ρ, every elementary precondition holding at each intermediate state — is not a valid composite.
 
 ## Orphan links and coupling flexibility
 
@@ -1012,7 +1012,7 @@ We trace the *two-step* and *three-step* replacement composite variants — dist
 - *J1★:* `ran(M'(d)|_{s_C}) \ ran(M(d)|_{s_C}) = {aₓ}`. J1★ requires `(aₓ, d) ∈ R'`. Pre-state has `(aₓ, d) ∉ R`. K.ρ at Step 3 supplies `(aₓ, d) ∈ R'`. ✓ — *the K.ρ step is required*; without it, J1★ would fail at the composite boundary, invalidating the composite under ValidComposite★. The substantive precondition `(aₓ, d) ∉ R` at the pre-state is what forces the third K.ρ step versus the two-step form's pre-state membership.
 - *J1'★:* `R' \ R = {(aₓ, d)}`. For the entry `(aₓ, d)`, the witnessing content-subspace V-position is `[1,2]` at the post-state: `aₓ ∈ ran(M'(d)|_{s_C})` (since `M'(d)([1,2]) = aₓ` with `subspace([1,2]) = s_C`) and `aₓ ∉ ran(M(d)|_{s_C}) = {a₁, a₂}`. The K.ρ entry is anchored in the K.μ⁺ extension. ✓
 
-*Post-state invariants:* S2, S3★, P4★ (now restored), D-CTG★/D-MIN★/D-SEQ★ — all discharged analogously to the two-step variant. The notable difference at the historical layer: `R' = R ∪ {(aₓ, d)}` introduces a fresh provenance pair (`d` is now historically recorded as having contained aₓ for the first time), whereas the two-step variant added no new entry to R. ∎
+*Post-state invariants:* S2, S3★, D-CTG★/D-MIN★/D-SEQ★ discharged analogously to the two-step variant; P4★ differs — it transiently fails at `Σ_post-K.μ⁺` (Step 2) and is restored only by the trailing K.ρ at Step 3, as noted above, whereas in the two-step variant `(aₓ, d) ∈ R` pre-exists and P4★ holds at every intermediate state. The notable difference at the historical layer: `R' = R ∪ {(aₓ, d)}` introduces a fresh provenance pair (`d` is now historically recorded as having contained aₓ for the first time), whereas the two-step variant added no new entry to R. ∎
 
 
 ## Worked example: link allocation and arrangement
@@ -1274,14 +1274,7 @@ P7a (`(A a ∈ dom(C) :: (E d :: (a, d) ∈ R))`): For `a ∈ dom(C') \ dom(C)`,
 
 Coupling constraints J0, J1★, J1'★ hold for all valid composites by the analysis in the Scoped coupling constraints section.
 
-**Per-transition invariant** (ExtendedTransitionInvariants: P3). We discharge each conjunct of P3 (defined in *Destruction confinement*); discharging all four discharges P3.
-
-- *P0.* K.α extends dom(C) at `a ∉ dom(C)` without modifying existing entries; all other elementary transitions hold C in frame.
-- *P1.* K.δ extends E; all others hold E in frame.
-- *P2.* K.ρ extends R; all others hold R in frame.
-- *L12.* K.λ extends dom(L) at `ℓ ∉ dom(L)` without modifying existing entries; all other elementary transitions hold L in frame.
-
-Each conjunct therefore holds across every elementary step; transitivity of inclusion and equality over a finite composite sequence gives P3 at the composite boundary. ∎
+**Per-transition invariant** (ExtendedTransitionInvariants: P3). P3 is proved by the seven-transition case analysis in *Destruction confinement*; transitivity of ⊆ and = over a finite composite lifts it to the composite boundary. ∎
 
 
 ## Temporal decomposition
