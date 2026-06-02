@@ -1,12 +1,21 @@
-# Channel Assignment — ASN-0051 review-44
+# Channel Assignment — ASN-0098 review-44
 
-**Date:** 2026-05-16 04:23
+**Date:** 2026-06-02 15:18
 
-## Issue 1: SV14(d) witness construction is implicit on two fronts
-Reason: Both gaps are formal cleanup derivable from the ASN's own content — the link-construction pattern follows the existing SV10 and CrossDocumentDecoupling witnesses (K.λ with explicit span), and identifying the elementary K.μ⁻ step within K.μ~'s expansion uses the intermediate state Σ_int already described in SV5's composite-level scope note. No design intent or implementation evidence required.
+## Issue 1: LP9's K.μ⁺_L paragraphs are defensive justification, not reasoning
+Reason: Pure editorial collapse — the required single-sentence replacement is already supplied verbatim in the review, and the load-bearing fact (K.μ⁺_L's effect clause supplies E1/E2) is present in the ASN. No design intent or implementation evidence needed.
 
-## Issue 2: SV6 precondition list omits T12
-Reason: T12 (SpanWellDefinedness, ASN-0034) is the well-formedness property the proof tacitly relies on; the fix is to add it to the precondition list or note its implicit availability via L4 + Definition — Endset (ASN-0043). Both citations are already foundation properties the ASN references, so the fix is internal.
+## Issue 2: LP8 closing sentence is a forward-reference justification of its own postconditions
+Reason: Deletion of a redundant trailer whose claim is already proved in the two preceding sentences of LP8. Internal to the ASN.
 
-## Issue 3: CrossDocumentDecoupling witness — Step 1's prefix-existence precondition
-Reason: The fix requires citing P1 (EntityPermanence) — a foundation property — to explicitly justify that the account at 1.0.1 persists from its SV10-chain allocation through Step 1. This is a citation-completeness fix derivable from the existing ASN-0036 foundation; no design intent or implementation evidence needed.
+## Issue 3: "What the Link Holder Can Rely On" duplicates the Claims-Introduced table
+Reason: Removing a recap section and optionally folding its one synthetic point (storage vs. navigability) into LP13, where it is already made. Entirely derivable from existing ASN content.
+
+## Issue 4: The canonical-span caveat is restated four-plus times
+Reason: Deduplication — the canonical restriction is definitional in the tight definition; consolidating the redundant restatements is a self-contained editorial change.
+
+## Issue 5: LP4 frame note enumerates downstream use-pattern
+Reason: Dropping a use-site inventory sentence; the well-definedness rationale and the M1 citation already exist at the point of use (LP5/LP6). Internal.
+
+## Issue 6: Four near-identical multi-step closure inductions
+Reason: Consolidating identical induction boilerplate into a single schema and deriving LP13 from LP2★ — a mechanical restructuring using lemmas already present in the ASN. No external channel needed.
