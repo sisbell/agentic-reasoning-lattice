@@ -84,7 +84,9 @@ The union is disjoint by Lemma — SliceUniqueness, stated next. Where ambient s
 
 **Lemma — SliceUniqueness.** Each tuple address `a ∈ dom(Σ.L)` indexes exactly one slice `L_K^Σ`. *Proof.* `Σ.L` is a partial function `T ⇀ Link` (ASN-0043, Definition of LinkStore), so `a` carries a single value `Σ.L(a)`, hence a single slot-3 endset `Σ.L(a).e₃` and a single coverage class `[Σ.L(a).e₃]`; thus `a` lies in no two slices. ∎
 
-**Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`. The map is *into but not onto*: its image is exactly the standard-triple subset `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}` of the codomain `A_rel^Σ = dom(Σ.L)`. The address component `a` is what distinguishes this structure from the set-theoretic typed relation (a subset of `℘(A) × ℘(A)`, distinguished only by content): each tuple carries an address that participates in the relation's identity, which the content-only projection `(a, F, G) ↦ (coverage(F), coverage(G))` discards.
+**Definition — TupleAddress.** Define `addr : L^Σ → A_rel^Σ` by `addr(a, F, G) = a`. The map is *into but not onto*: its image is exactly the standard-triple subset `{a ∈ dom(Σ.L) : |Σ.L(a)| = 3}` of the codomain `A_rel^Σ = dom(Σ.L)`.
+
+The address component `a` is what distinguishes this structure from the set-theoretic typed relation (a subset of `℘(A) × ℘(A)`, distinguished only by content): each tuple carries an address that participates in the relation's identity, which the content-only projection `(a, F, G) ↦ (coverage(F), coverage(G))` discards.
 
 
 ## Tuple Identity (R0, R1, R2)
@@ -264,13 +266,13 @@ with `view = L_K^Σ` if `View = hist` and `view = A_K^Σ` if `View = oper`. Obse
 
 *Pattern domain — `T`, not `A^Σ`.* Patterns range over `T` (not `A^Σ`) so a pattern may target ghost addresses (L9 (TypeGhostPermission, ASN-0043), L4 (EndsetGenerality, ASN-0043)). The match relation `F̂ ⊆ coverage(F)` (and `Ĝ ⊆ coverage(G)`) is decidable because `F̂` is finite and each per-span membership test `t ∈ coverage(F)` is decidable by T2 (IntrinsicComparison, ASN-0034).
 
-**Definition — Nullify.** Nullify is the composition stated below, with one precondition and two scope assumptions. The *precondition* is **P0**: `d_retr ∈ dom(Σ.M)` (the home document must be allocated, discharging the internal `Emit_R`'s K.λ home-precondition); P0 alone gates execution. The *scope assumptions* are **P1**: `a ∈ A_rel^Σ` and **PC**: Σ →*-reachable; they do not gate execution but condition the single-tuple-scope postcondition R-Scope. P1 in particular is not required for the operation to run and nullify its target — the self-emit branch (`a = a_emit(Σ, d_retr)`) runs Nullify with P1 false (R-Scope; wp Case 1, self-emit branch). (Under PC and P0, R0 — applied at the caller-supplied home `d_retr` — guarantees the internal `Emit_R`'s emission lands on a genuine chain sibling of `A_L(d_retr)` via its *on-chain admissibility* postcondition.)
+**Definition — Nullify.** *Precondition* **P0**: `d_retr ∈ dom(Σ.M)` (the home document must be allocated, discharging the internal `Emit_R`'s K.λ home-precondition). Write **P1** for the scope condition `a ∈ A_rel^Σ`.
 
 Nullify is the composition
 
 `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})`
 
-That is, emit a tuple into the retraction relation with empty from-set and a unit-depth to-span targeting `a`, homed at the caller-supplied `d_retr ∈ dom(Σ.M)` (P0). The to-span `(a, δ(1, #a))` is T12-well-formed for *any* tumbler `a` (`#a ≥ 1` by T0, `actionPoint(δ(1, #a)) = #a ≤ #a`), so R0 at `d_retr` emits the retraction triple `(∅, {(a, δ(1, #a))}, R)`, depositing a fresh emitter address `b` with `Σ'.L(b) = (∅, {(a, δ(1, #a))}, R)`. On the P1 path (`a ∈ A_rel^Σ`) this emission is exactly the instance of Corollary R5.1 at slot 2. *Effect:* `a ∈ nullified(Σ')`, persisting thereafter by R6a — discharged on the P1 path by R-Scope (SingleTupleScope) and on the self-emit path (`a = a_emit(Σ, d_retr)`) by wp Case 1's self-emit branch; neither argument is re-derived here.
+That is, emit a tuple into the retraction relation with empty from-set and a unit-depth to-span targeting `a`, homed at the caller-supplied `d_retr ∈ dom(Σ.M)` (P0). The to-span `(a, δ(1, #a))` is T12-well-formed for *any* tumbler `a` (`#a ≥ 1` by T0, `actionPoint(δ(1, #a)) = #a ≤ #a`), so R0 at `d_retr` emits the retraction triple `(∅, {(a, δ(1, #a))}, R)`, depositing a fresh emitter address `b` with `Σ'.L(b) = (∅, {(a, δ(1, #a))}, R)`. On the P1 path (`a ∈ A_rel^Σ`) this emission is exactly the instance of Corollary R5.1 at slot 2. *Effect:* when `P1 ∨ (a = a_emit(Σ, d_retr))` holds, `a ∈ nullified(Σ')`, persisting thereafter by R6a. This conditioned effect is the weakest precondition derived once in wp Case 1 (single-tuple scope), covering both the P1 case and the self-emit case `a = a_emit(Σ, d_retr)`; it is not re-derived here.
 
 **R-Scope — SingleTupleScope.** At every →*-reachable state Σ, for any `a ∈ A_rel^Σ` and any caller-supplied `d_retr ∈ dom(Σ.M)`, the `→`-step taken by `Nullify(Σ, d_retr, a) = Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` contributes exactly `a` to the nullified set:
 
