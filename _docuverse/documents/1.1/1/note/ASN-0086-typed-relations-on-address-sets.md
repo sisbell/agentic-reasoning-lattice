@@ -15,13 +15,13 @@ We are looking for what a relation algebra over the link store affords. The answ
 
 **State transition relation.** We write `Σ → Σ'` for the substrate's *dom-extending* one-step transition relation, which we identify exactly with the union of ASN-0093's three K-operations: `→ ≡ K.σ ∪ K.α ∪ K.λ`. A K.σ-step extends `dom(Σ.M)` (registering `M'(d) = ∅` at a document-level `d`), a K.α-step extends `dom(Σ.C)`, and a K.λ-step extends `dom(Σ.L)`, each at a fresh key per its ASN-0093 contract; ASN-0093's frame conditions leave the other two components unchanged, and the substrate exposes no removal, replacement, or in-place mutation transition that touches `(dom(Σ.C), dom(Σ.M), dom(Σ.L))`.
 
-*Arrangement modification is out of scope.* None of the three K-operations modifies any document's arrangement `M(d)` beyond K.σ's empty-initialization `M'(d) = ∅`. Hence the substrate admits no arrangement-modifying transition; persistence claims (R6c) are stated and proved against `→` alone. ASN-0093's M2 (EmptyArrangement) — `(A d ∈ dom(M) :: M(d) = ∅)` — is the invariant that results: empty initialization plus the absence of any arrangement-modifying operation keeps every arrangement empty at every reachable state.
+*Arrangement modification is out of scope.* None of the three K-operations modifies any document's arrangement `M(d)` beyond K.σ's empty-initialization `M'(d) = ∅`. Hence the substrate admits no arrangement-modifying transition; persistence claims (R6c) are stated and proved against `→` alone.
 
 **Definition — Reachability.** `Σ' is →-reachable from Σ`, written `Σ →* Σ'`, is the reflexive-transitive closure of `→`.
 
 By the K.σ/K.α/K.λ frame conditions stated above, `Σ →* Σ'` entails `dom(Σ.C) ⊆ dom(Σ'.C)`, `dom(Σ.M) ⊆ dom(Σ'.M)`, `dom(Σ.L) ⊆ dom(Σ'.L)`, with `Σ'.C|_{dom(Σ.C)} = Σ.C`, `Σ'.M|_{dom(Σ.M)} = Σ.M`, `Σ'.L|_{dom(Σ.L)} = Σ.L`. Equivalently, `Σ →* Σ'` implies `Σ' ⊒ Σ` in ASN-0043's sense; the converse need not hold.
 
-**Working domain — `→*`-reachable states.** All results below are stated over states `→*`-reachable from `Σ_init`. This class is closed under `→` by construction — the reflexive-transitive closure absorbs each further `→`-step — so every emission from a `→*`-reachable state lands again in the class. We name this fact **RT-closure** and cite it below by name, without restating the reasoning. Each `→`-step is a single K.σ/K.α/K.λ primitive, which preserves the invariant catalog *published by ASN-0093's K-operation contracts* (the S/M/C invariants of ASN-0036 and ASN-0093, together with the L-invariants those contracts carry). Two ASN-0043 invariants — L14 (DualPrimitive) and L14a (NonTranscludability) — are *not* published by ASN-0093's K.λ contract; this note carries them across each K.λ-step separately via the FreshLinkKeyDisjointness sub-lemma. For K.λ, the step lands its single fresh link key at its home's sibling frontier (`[d.0.s_L.1]` for an empty homed-set, else `inc(ℓ_prev, 0)` at the prior T1-maximum).
+**Working domain — `→*`-reachable states.** All results below are stated over states `→*`-reachable from `Σ_init`. This class is closed under `→` by construction — the reflexive-transitive closure absorbs each further `→`-step — so every emission from a `→*`-reachable state lands again in the class. We name this fact **RT-closure** and cite it below by name, without restating the reasoning. Each `→`-step is a single K.σ/K.α/K.λ primitive, which preserves the invariant catalog *published by ASN-0093's K-operation contracts* (the S/M/C invariants of ASN-0036 and ASN-0093, together with the L-invariants those contracts carry). Two ASN-0043 invariants — L14 (DualPrimitive) and L14a (NonTranscludability) — are *not* published by ASN-0093's K.λ contract; this note carries them across each K.λ-step separately via the FreshLinkKeyDisjointness sub-lemma. For K.λ, the step lands its single fresh link key at `a_emit(Σ, d)` (Definition — `a_emit`).
 
 **Definition — AddressUniverse.** The substrate's address universe at state Σ is
 
@@ -36,13 +36,7 @@ By SD (StoreDisjointness, ASN-0093) — equivalently ASN-0043 L14 (DualPrimitive
 
 We claim `A^Σ = A_doc^Σ ⊔ A_rel^Σ` (disjoint union); the disjointness is `dom(Σ.C) ∩ dom(Σ.L) = ∅`, i.e. SD (StoreDisjointness, ASN-0093).
 
-**Definition — GhostAddresses.** The *ghost addresses* at state Σ are the tumblers outside the stored-entity universe:
-
-`T_ghost^Σ = T \ (dom(Σ.C) ∪ dom(Σ.L))`
-
-By L9 (TypeGhostPermission, ASN-0043), ghost addresses may appear in endset spans (including type-endset coverage) without contradiction; they reference tumbler positions that are well-formed under the addressing scheme but carry no stored entity at Σ.
-
-*Notation.* All four sets are state-dependent — `A^Σ`, `A_doc^Σ`, `A_rel^Σ`, and `T_ghost^Σ` grow or shrink as the substrate evolves (the first three monotonically by S1 and L12a; `T_ghost^Σ` shrinks as content and link emissions populate previously-ghost addresses). Where the ambient state is unambiguous, we drop the superscript and write `A`, `A_doc`, `A_rel`, `T_ghost`.
+*Notation.* All three sets are state-dependent — `A^Σ`, `A_doc^Σ`, and `A_rel^Σ` grow monotonically as the substrate evolves (by S1 and L12a). Where the ambient state is unambiguous, we drop the superscript and write `A`, `A_doc`, `A_rel`.
 
 **Definition — AdmissibleTypes.** The set of *admissible types* is
 
@@ -50,7 +44,7 @@ By L9 (TypeGhostPermission, ASN-0043), ghost addresses may appear in endset span
 
 — non-empty endsets, eligible to serve as a link's type endset by L3 (NEndsetStructure, ASN-0043).
 
-By L4 (EndsetGenerality, ASN-0043) and L9 (TypeGhostPermission, ASN-0043), `T_admissible` is unconstrained by content existence: type endsets may reference any tumbler addresses, including ghosts. Type-equivalence is coverage equality, written `~` (Definition — TypeEquivalence): two admissible types are the same iff their endsets cover the same address set — L8's (TypeByAddress, ASN-0043) `same_type` criterion. Type indices in what follows range over `T_admissible`.
+By L4 (EndsetGenerality, ASN-0043) and L9 (TypeGhostPermission, ASN-0043), `T_admissible` is unconstrained by content existence: type endsets may reference any tumbler addresses, including ghost addresses that carry no stored entity at Σ. Type indices in what follows range over `T_admissible`.
 
 ## Allocator Structure
 
@@ -84,7 +78,7 @@ Over the non-empty cells — every point `{c_k}`, and every gap with `c_{k+1} �
 
 `L_K^Σ = {(a, F, G) : a ∈ dom(Σ.L) ∧ |Σ.L(a)| = 3 ∧ Σ.L(a).e₁ = F ∧ Σ.L(a).e₂ = G ∧ coverage(Σ.L(a).e₃) = coverage(K)}`
 
-Each member is a triple of (tuple-address, from-endset, to-endset). The pair `(F, G)` is the *relational content* of the tuple; `a` is the *tuple address*. The `|Σ.L(a)| = 3` conjunct restricts every `L_K` to standard-triple links; by L3 (NEndsetStructure, ASN-0043) the store may also hold higher-arity links (`|Σ.L(a)| > 3`), which then inhabit `A_rel^Σ = dom(Σ.L)` but index no tuple of any `L_K` — their analogous construction with additional slot positions is not pursued here (Open Questions). The substrate's standard-triple link store at state Σ is therefore the disjoint union over coverage classes:
+Each member is a triple of (tuple-address, from-endset, to-endset). The pair `(F, G)` is the *relational content* of the tuple; `a` is the *tuple address*. The `|Σ.L(a)| = 3` conjunct restricts every `L_K` to standard-triple links; by L3 (NEndsetStructure, ASN-0043) the store may also hold higher-arity links (`|Σ.L(a)| > 3`), which then inhabit `A_rel^Σ = dom(Σ.L)` but index no tuple of any `L_K`. The substrate's standard-triple link store at state Σ is therefore the disjoint union over coverage classes:
 
 `L^Σ = ⨆_{[K] ∈ T_admissible / ~} L_K^Σ`
 
@@ -418,7 +412,6 @@ Thus the fresh tuple lies in `L_R^{Σ_4}` (audit) but not in `A_R^{Σ_4}` (opera
 |-------|------|-----------|
 | A^Σ | DEF | Address universe at state Σ: `dom(Σ.C) ∪ dom(Σ.L)` |
 | A_doc^Σ, A_rel^Σ | DEF | Partition of `A^Σ` into content addresses (`dom(Σ.C)`) and link-store addresses (`dom(Σ.L)`) |
-| T_ghost^Σ | DEF | Ghost addresses at Σ: `T \ (dom(Σ.C) ∪ dom(Σ.L))` — tumblers outside the stored-entity universe, admissible in endset spans by L9 |
 | T_admissible | DEF | Admissible types: `{K ∈ Endset : K ≠ ∅}` — the indexing domain for typed relations |
 | ~ | DEF | TypeEquivalence: `K ~ K' ≡ coverage(K) = coverage(K')` — coverage-equivalence on admissible types (= L8 lifted) |
 | L_K^Σ | DEF | Typed relation (coverage-class slice): `{(a, F, G) : a ∈ dom(Σ.L) ∧ |Σ.L(a)| = 3 ∧ Σ.L(a).e₁ = F ∧ Σ.L(a).e₂ = G ∧ coverage(Σ.L(a).e₃) = coverage(K)}` |
