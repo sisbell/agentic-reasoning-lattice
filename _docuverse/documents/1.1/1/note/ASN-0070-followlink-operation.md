@@ -21,10 +21,10 @@ By L4 (ASN-0043), endset spans may reference any addresses in tumbler space, inc
 Documents arrange I-addresses into V-positions. The arrangement of document `d` is the partial function `M(d) : T ⇀ T` from V-positions to I-addresses (ASN-0036, generalised by S3★ of ASN-0047). For any `v ∈ dom(M(d))`, `M(d)(v)` is the I-address that `d` currently places at V-position `v`. V-positions occupy two subspaces, distinguished by their first component: `subspace(v) = s_C` for content-subspace V-positions and `subspace(v) = s_L` for link-subspace V-positions.
 
 Within each subspace `S` of document `d`, V-positions share a common depth, written `m_S(d)`:
-- For `S = s_L`: `m_{s_L}(d) = 2` always, fixed by LinkVPositionDepthAxiom (ASN-0047).
-- For `S = s_C`: `m_{s_C}(d)` is defined when `V_{s_C}(d) ≠ ∅` (S8-depth, ASN-0036), pinned by the first content insertion (ValidFirstInsertionPosition) and held thereafter. When `V_{s_C}(d) = ∅`, `m_{s_C}(d)` is undefined and the content subspace of `d` is vacuous.
+- For `S = s_L`: `m_{s_L}(d) ≥ 2`, fixed when `V_{s_L}(d) ≠ ∅` (S8-depth, ASN-0036; `m_L(d)`, ASN-0047), pinned by the first link insertion (`ValidFirstLinkPosition` of K.μ⁺_L, for any chosen `m ≥ 2`) and held thereafter. When `V_{s_L}(d) = ∅`, `m_{s_L}(d)` is undefined and the link subspace of `d` is vacuous; the next insertion re-pins it from scratch at any value `≥ 2`.
+- For `S = s_C`: `m_{s_C}(d) ≥ 2` is defined when `V_{s_C}(d) ≠ ∅` (S8-depth, ASN-0036), pinned by the first content insertion (ValidFirstInsertionPosition) and held thereafter. When `V_{s_C}(d) = ∅`, `m_{s_C}(d)` is undefined and the content subspace of `d` is vacuous.
 
-The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide.
+The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide. Neither is a fixed constant: each is `≥ 2`, pinned per document while its subspace is non-empty and undefined otherwise.
 
 What lies in `dom(Σ.C) ∪ dom(Σ.L)` but not in `ran(M(d))` is content or link material stored in the system but not arranged in `d`. By the permanence invariants (P0, P1, L12 of ASN-0047), the stored material persists; only the arrangement varies. The arrangement is the variable; storage is the constant.
 
@@ -58,7 +58,7 @@ The partition is disjoint (subspace is single-valued per the first-component pro
 
 The definition is *abstract*. It does not depend on how `M(d)` is stored, decomposed, or accessed. It does not depend on the order or structure of spans within `e`. Two endsets with the same coverage produce the same `R(d, e)`. Resolution is a function of coverage and arrangement — nothing more.
 
-Within each subspace component, V-positions share common depth (S8-depth of ASN-0036 for `s_C`; LinkVPositionDepthAxiom of ASN-0047 for `s_L`), so each component is level-uniform and amenable to span-set representation.
+Within each subspace component, V-positions share common depth (S8-depth of ASN-0036; `m_L(d)` of ASN-0047 for the link subspace), so each component is level-uniform and amenable to span-set representation.
 
 ### F-subspace — IOSubspaceCorrespondence (LEMMA)
 
@@ -111,7 +111,7 @@ In particular, the link `ℓ` itself remains in `dom(Σ.L)` regardless of any re
 
 `R(d, e)` is a set of V-positions. For transmission, storage, and presentation we require a finite representation. The natural representation is a per-subspace family of span-sets in V-space (ASN-0053).
 
-The per-subspace decomposition is structurally required, not a stylistic choice. Within a single V-subspace `S` of `d`, all V-positions share a common depth (S8-depth, ASN-0036; LinkVPositionDepthAxiom, ASN-0047), so the level-uniformity required by S6 (ASN-0053) for normalisation is structurally available within each subspace. Across subspaces the depths may differ, so no single level-uniform span-set can hold a multi-subspace `R(d, e)`. The result must be indexed by subspace.
+The per-subspace decomposition is structurally required, not a stylistic choice. Within a single V-subspace `S` of `d`, all V-positions share a common depth (S8-depth, ASN-0036; `m_L(d)`, ASN-0047, for the link subspace), so the level-uniformity required by S6 (ASN-0053) for normalisation is structurally available within each subspace. Across subspaces the depths may differ, so no single level-uniform span-set can hold a multi-subspace `R(d, e)`. The result must be indexed by subspace.
 
 The representation choice is *natural and compact*, not derived from a stronger constraint. An alternative such as an explicit enumeration of V-positions would also satisfy a denotational postcondition; we adopt the span-set family because (i) the per-subspace decomposition of `M(d)` (S8★, ASN-0047) and the existence of finite mapping-block decompositions (M2, ASN-0058) ensure that `M(d)⁻¹(X)` for any finite union of I-spans `X` corresponds to a finite collection of contiguous V-runs, and (ii) finite V-runs are exactly what a span-set encodes compactly. The size of the resulting span-set is bounded by the number of (block, endset-span) intersections, which is finite.
 
@@ -127,7 +127,7 @@ The span-set denotation `⟦Σ⟧` of ASN-0053 is taken over all of `T`: by T12 
 
 — the projection of the raw span-set denotation onto V-positions of subspace `S` at the document's common depth. The positivity clause `(A i : 1 ≤ i ≤ m_S(d) : t_i ≥ 1)` is what makes the filter an *admissible-V-position* filter rather than a bare depth-and-subspace filter: by S8a (ASN-0036), every `v ∈ dom(M(d))` has all components positive, so `R(d, e)|_S ⊆ dom(M(d))` consists only of positive-component tumblers. Without the positivity clause, the raw lexicographic interval `[s, s ⊕ ℓ)` could contribute depth-`m_S(d)` subspace-`S` tumblers with a zero component (e.g., a span with start `s` having `s_m = 0`) — these are not V-positions of `d` and the postcondition equality `⟦Σ_V^S⟧_V = R(d, e)|_S` would force them to be excluded anyway. The positivity clause makes this exclusion explicit at the level of the V-restricted denotation, so the postcondition equality directly determines (and is determined by) the admissible V-positions.
 
-When `m_S(d)` is undefined (occurs only for `S = s_C` when `V_{s_C}(d) = ∅`), no depth-`m_S(d)` predicate is available against which to restrict, and no V-position in subspace `S` exists in `dom(M(d))`; hence `R(d, e)|_S = ∅` unconditionally. We adopt the convention that the only admissible span-set in this vacuous case is the empty sequence `Σ_V^S = ⟨⟩`, and `⟦⟨⟩⟧_V := ∅`. The postcondition `⟦Σ_V^S⟧_V = R(d, e)|_S = ∅` is then satisfied uniquely by `⟨⟩`, preserving canonical-form uniqueness when the subspace is vacuous.
+When `m_S(d)` is undefined — which occurs for either subspace `S ∈ {s_C, s_L}` when `V_S(d) = ∅` — no depth-`m_S(d)` predicate is available against which to restrict, and no V-position in subspace `S` exists in `dom(M(d))`; hence `R(d, e)|_S = ∅` unconditionally. We adopt the convention that the only admissible span-set in this vacuous case is the empty sequence `Σ_V^S = ⟨⟩`, and `⟦⟨⟩⟧_V := ∅`. The postcondition `⟦Σ_V^S⟧_V = R(d, e)|_S = ∅` is then satisfied uniquely by `⟨⟩`, preserving canonical-form uniqueness when the subspace is vacuous.
 
 For the full family `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})`, define the joint V-restricted denotation:
 
@@ -171,11 +171,11 @@ The postcondition fixes the *V-restricted denotation* of each component but not 
 
 (iii) The two components are presented in a fixed external order: `s_C`-component first, `s_L`-component second. (This convention pins down the family-level ordering, which S9 alone does not address since it operates within a single level-uniform span-set.)
 
-When `m_S(d)` is undefined (only `S = s_C` with `V_{s_C}(d) = ∅`), the canonical form is `Σ_V^S = ⟨⟩` by the V-restricted denotation convention.
+When `m_S(d)` is undefined (either subspace `S ∈ {s_C, s_L}` with `V_S(d) = ∅`), the canonical form is `Σ_V^S = ⟨⟩` by the V-restricted denotation convention.
 
 **Derivation of uniqueness.** Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`. We show each subspace component admits exactly one canonical representation.
 
-*Step 1 — Level-uniformity and ordinal-displacement widths.* By S8-depth (ASN-0036) for the content subspace and LinkVPositionDepthAxiom (ASN-0047) for the link subspace, all V-positions in `R(d, e)|_S` share the common depth `m_S(d)`. We must restrict component widths to ordinal displacements `δ(c, m_S(d))`. The restriction is forced by the finiteness and subspace-confinement requirements on `⟦σ⟧_V` for each component `σ = (s, ℓ)` with `#s = #ℓ = m_S(d)`, `subspace(s) = S`, and `s` positive in every component (clause (i) of CanonicalForm), by case analysis on `k = actionPoint(ℓ)`:
+*Step 1 — Level-uniformity and ordinal-displacement widths.* By S8-depth (ASN-0036), and `m_L(d)` (ASN-0047) for the link subspace, all V-positions in `R(d, e)|_S` share the common depth `m_S(d)` (well-defined here since the subspace is non-empty). We must restrict component widths to ordinal displacements `δ(c, m_S(d))`. The restriction is forced by the finiteness and subspace-confinement requirements on `⟦σ⟧_V` for each component `σ = (s, ℓ)` with `#s = #ℓ = m_S(d)`, `subspace(s) = S`, and `s` positive in every component (clause (i) of CanonicalForm), by case analysis on `k = actionPoint(ℓ)`:
 
 — *Case `1 ≤ k < m_S(d)`.* By TumblerAdd, `(s ⊕ ℓ)_i = s_i` for `i < k`, `(s ⊕ ℓ)_k = s_k + ℓ_k > s_k`, and `(s ⊕ ℓ)_i = ℓ_i` for `i > k`. Consider depth-`m_S(d)` tumblers `t` of the explicit form `t_i = s_i` for `1 ≤ i ≤ m_S(d) - 1` and `t_m ∈ {s_m, s_m + 1, s_m + 2, …}`. Comparing `t` with `s` component-wise: agreement on positions `1, ..., m_S(d) - 1` and `t_m ≥ s_m` give `t ≥ s`. Comparing `t` with `s ⊕ ℓ`: they agree on positions `1, ..., k - 1` (since `t_i = s_i = (s ⊕ ℓ)_i` for `i < k`; vacuous when `k = 1`), and at position `k`, `t_k = s_k < s_k + ℓ_k = (s ⊕ ℓ)_k` because `ℓ_k ≥ 1`. By T1 case (i) with divergence at position `k`, `t < s ⊕ ℓ` is settled regardless of trailing positions. The tumbler `t` has `#t = m_S(d)` and `subspace(t) = S` (since `t_1 = s_1 = S`), so `t ∈ ⟦σ⟧_V`. As `t_m` ranges over `ℕ_{≥ s_m}` — unbounded by T0(a) — infinitely many such `t` arise, so `⟦σ⟧_V` is infinite. The canonical form requires finite component denotations (`⟦Σ_V^S⟧_V = R(d, e)|_S ⊆ dom(M(d))`, finite by S8-fin), so every `k < m_S(d)` is excluded by the same finiteness criterion.
 
@@ -239,7 +239,7 @@ The preconditions are therefore minimal.
 
 The mapping-block decomposition view of `M(d)` makes the computation of `follow` concrete.
 
-Each block `β = (v, a, n)` describes a contiguous mapping run: V-positions `v, v+1, ..., v+n−1` map to I-addresses `a, a+1, ..., a+n−1` (ASN-0058). The I-extent `I(β) = {a + k : 0 ≤ k < n}` is the contribution of this block to `ran(M(d))`. By M-sub (SubspaceConfinement, ASN-0058), every V-position of `β` shares the V-subspace of `v`, so each block lives in exactly one V-subspace; the block decomposition therefore partitions cleanly by subspace.
+Each block `β = (v, a, n)` describes a contiguous mapping run: V-positions `v, v+1, ..., v+n−1` map to I-addresses `a, a+1, ..., a+n−1` (ASN-0058). The I-extent `I(β) = {a + k : 0 ≤ k < n}` is the contribution of this block to `ran(M(d))`. By M-int (TumblerIntervalCharacterization, ASN-0058), whose subspace-agreement postcondition gives `subspace(y) = subspace(v)` for every `y` with `v ≤ y < v + n`, every V-position of `β` shares the V-subspace of `v`, so each block lives in exactly one V-subspace; the block decomposition therefore partitions cleanly by subspace.
 
 For each endset I-span `σ = (s, ℓ_σ)` with coverage `⟦σ⟧`:
 
@@ -291,7 +291,7 @@ The mapping-block decomposition is:
 
 Note that `β₂` and `β₃` both contain `a₀` in their I-extent, witnessing within-document sharing (S5).
 
-**Link.** Consider link `ℓ` with `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` — an endset whose single span starts at `a₁` and has width 3 in depth `m_a` (the I-address depth). The coverage is `coverage(L(ℓ).e₁) = {a₁, a₁ + 1, a₁ + 2}`.
+**Link.** Consider link `ℓ` with `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` — an endset whose single span starts at `a₁` and has width 3 in depth `m_a` (the I-address depth). The coverage is the half-open lexicographic interval `coverage(L(ℓ).e₁) = {t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` (T12, ASN-0034), which contains the three depth-`m_a` addresses `a₁, a₁ + 1, a₁ + 2` together with deeper-depth tumblers of the interval (e.g. `a₁.x`, `(a₁ + 1).y`). The block I-extents below are themselves depth-`m_a`, so only the three depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` of the coverage are ever met by an intersection; we write that finite set where the intersections are computed.
 
 **Computing `follow(ℓ, d, 1)`.**
 
@@ -328,7 +328,7 @@ follow(ℓ, d, 1) = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
 
 **Fourth configuration — state-dependence (F-state).** The previous three configurations vary the endset to exercise F0's dependence on coverage. This configuration fixes the link and varies the state to exercise F-state's claim that resolution differs across states even though `L(ℓ)` is fixed.
 
-Take `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` as in Configuration 1, with `coverage(L(ℓ).e₁) = {a₁, a₁ + 1, a₁ + 2}`. In the pre-state `Σ`:
+Take `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` as in Configuration 1, whose coverage is the half-open interval `{t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` with depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` (the only members met by the depth-`m_a` block I-extents). In the pre-state `Σ`:
 
 ```
 follow(ℓ, d, 1) at Σ = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
@@ -623,7 +623,7 @@ These properties are not independent axioms requiring separate verification. The
 | Label | Statement | Kind | Status |
 |-------|-----------|------|--------|
 | F0 | `R(d, e) := M(d)⁻¹(coverage(e))` is the V-position set of endset `e` in document `d`; partitions as `R(d, e) = R(d, e)|_{s_C} ⊎ R(d, e)|_{s_L}` | DEF | introduced |
-| F1 | `follow : (ℓ, d, i) → (d, (Σ_V^{s_C}, Σ_V^{s_L}))` with `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` per subspace; `Σ' = Σ`. V-restricted denotation: `⟦Σ_V^S⟧_V := {t ∈ ⟦Σ_V^S⟧ : subspace(t) = S ∧ #t = m_S(d)}` | DEF | introduced |
+| F1 | `follow : (ℓ, d, i) → (d, (Σ_V^{s_C}, Σ_V^{s_L}))` with `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` per subspace; `Σ' = Σ`. V-restricted denotation: `⟦Σ_V^S⟧_V := {t ∈ ⟦Σ_V^S⟧ : subspace(t) = S ∧ #t = m_S(d) ∧ (A i : 1 ≤ i ≤ m_S(d) : t_i ≥ 1)}` | DEF | introduced |
 | F-subspace | IOSubspaceCorrespondence — for `v ∈ dom(M(d))`, `subspace(v) = subspace_I(M(d)(v))` (via S3★ + L0); hence `R(d, e)|_{s_C} = M(d)⁻¹(coverage(e) ∩ dom(C))` and `R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))`, where the biconditional `subspace(v) = S ⟺ M(d)(v) ∈ dom(·)` is proved by case analysis (forward: S3★; reverse: S3★-aux + L14) | LEMMA | introduced |
 | F-canonical | The canonical form of `Σ_V` has component widths in ordinal-displacement form `δ(c, m_S(d))`, each `Σ_V^S` normalised per S9, and family ordered (`s_C`, then `s_L`); a given `R(d, e)` admits exactly one canonical form (ordinal-displacement widths forced by finite V-restricted denotation + subspace confinement; bridge from `⟦·⟧_V` to `⟦·⟧` lifts S9 to V-restricted equivalence; fixed external ordering pins down family form). When `m_S(d)` is undefined, `Σ_V^S = ⟨⟩` is the unique canonical representative by V-restricted convention. | DEF | introduced |
 | F-det | DenotationalDeterminism — same `Σ` produces the same `R(d, e)|_S` per subspace, hence the same canonical form; chain S2 → unique inverse image → unique partition (S3★-aux) → unique V-restricted denotation → unique canonical form (F-canonical/S9) | LEMMA | introduced |
