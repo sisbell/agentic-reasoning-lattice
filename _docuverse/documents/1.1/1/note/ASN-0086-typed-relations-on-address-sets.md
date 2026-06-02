@@ -19,7 +19,7 @@ We are looking for what a relation algebra over the link store affords. The answ
 
 By the K.σ/K.α/K.λ frame conditions stated above, `Σ →* Σ'` entails `dom(Σ.C) ⊆ dom(Σ'.C)`, `dom(Σ.M) ⊆ dom(Σ'.M)`, `dom(Σ.L) ⊆ dom(Σ'.L)`, with `Σ'.C|_{dom(Σ.C)} = Σ.C`, `Σ'.M|_{dom(Σ.M)} = Σ.M`, `Σ'.L|_{dom(Σ.L)} = Σ.L`. Equivalently, `Σ →* Σ'` implies `Σ' ⊒ Σ` in ASN-0043's sense; the converse need not hold.
 
-**Working domain — `→*`-reachable states.** All results below are stated over states `→*`-reachable from `Σ_init`. This class is closed under `→` by construction — the reflexive-transitive closure absorbs each further `→`-step — so every emission from a `→*`-reachable state lands again in the class. We name this fact **RT-closure**. Each `→`-step is a single K.σ/K.α/K.λ primitive, which preserves the invariant catalog *published by ASN-0093's K-operation contracts* (the S/M/C invariants of ASN-0036 and ASN-0093, together with the L-invariants those contracts carry). For K.λ, the step lands its single fresh link key at `a_emit(Σ, d)` (Definition — `a_emit`).
+**Working domain — `→*`-reachable states.** All results below are stated over states `→*`-reachable from `Σ_init`. **RT-closure**: the class is closed under `→`. Each `→`-step is a single K.σ/K.α/K.λ primitive, which preserves the invariant catalog *published by ASN-0093's K-operation contracts* (the S/M/C invariants of ASN-0036 and ASN-0093, together with the L-invariants those contracts carry). For K.λ, the step lands its single fresh link key at `a_emit(Σ, d)` (Definition — `a_emit`).
 
 **Definition — AddressUniverse.** The substrate's address universe at state Σ is
 
@@ -233,9 +233,7 @@ The six properties yield three operations that span every `Σ.L` change the rela
 
 `Emit_K : Σ × dom(Σ.M) × Endset × Endset → Σ' × A_rel^{Σ'}`
 
-Where Σ ranges over the `→*`-reachable states. `Emit_K` is total over `→*`-reachable Σ: R0, restated universally in the home, guarantees for the caller-supplied `d ∈ dom(Σ.M)` an emission whose address `a_emit(Σ, d)` is on-chain in `A_L(d)` (R0's *on-chain admissibility* postcondition) and fresh against `dom(Σ.L)`, so the emission is admissible. `Emit_K` is a function: the address is `a = a_emit(Σ, d)` (a function of `(Σ, d)` by Definition — `a_emit`), the value `Σ'.L(a) = (F, G, K)` is fixed by the caller-supplied arguments, and K.λ's Frame fixes the rest of Σ'.
-
-`Emit_K` is operationally `K.λ` of ASN-0093, specialized to the standard-triple link value `(F, G, K)` (its L3 precondition is discharged by R0's *Value-shape consequence*).
+Where Σ ranges over the `→*`-reachable states. `Emit_K` is `K.λ` of ASN-0093 specialized to value `(F, G, K)`; the address `a_emit` and the function/totality properties follow from R0 (its L3 precondition is discharged by R0's *Value-shape consequence*).
 
 *Precondition.* `K ∈ T_admissible`, `d ∈ dom(Σ.M)`.
 
@@ -312,7 +310,7 @@ Layer-reachability of Σ gives `→*`-reachability, so R0a's antichain holds at 
 
 ## Worked Sketch
 
-We illustrate the structure of a retraction cycle in the relational vocabulary, building on the ASN-0043 worked example. Concrete tumbler values are fixed up front; the cycle proceeds in five steps: first, a first-emission step establishing the initial state `Σ_0` from a link-empty precursor `Σ_{-1}` (Step 0); then a retraction (Step 1), a restoration (Step 2), a retraction-of-the-retractor exhibiting R6b's non-fixpoint semantics (Step 3), and a self-nullifying emission exhibiting the wp Case 2 false branch (Step 4). Step 0 exercises K.λ's first-emission branch (predicate `{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = ∅`); Steps 1, 2, 3, and 4 each exercise the subsequent-emission branch (predicate negated).
+We illustrate the structure of a retraction cycle in the relational vocabulary, building on the ASN-0043 worked example. Concrete tumbler values are fixed up front; the cycle proceeds in five steps (Step 0 through Step 4), each step's header naming what it exercises.
 
 *Setup.* Fix:
 
