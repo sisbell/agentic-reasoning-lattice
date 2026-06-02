@@ -25,7 +25,7 @@ By the K.σ/K.α/K.λ frame conditions stated above, `Σ →* Σ'` entails `dom(
 
 `A^Σ = dom(Σ.C) ∪ dom(Σ.L)`
 
-By L14 (DualPrimitive, ASN-0043), `A^Σ` is the entirety of stored-entity addresses at Σ — no state component maps an address outside `dom(Σ.C) ∪ dom(Σ.L)` to an entity value, so no third category exists. (SD, StoreDisjointness, ASN-0093, supplies only the disjointness of the two categories, used below.)
+By L14 (DualPrimitive, ASN-0043), `A^Σ` is the entirety of stored-entity addresses at Σ — no state component maps an address outside `dom(Σ.C) ∪ dom(Σ.L)` to an entity value, so no third category exists. (SD, StoreDisjointness, ASN-0093, supplies the disjointness `dom(Σ.C) ∩ dom(Σ.L) = ∅`.)
 
 **Definition — Partition.** Define:
 
@@ -271,7 +271,7 @@ where `(Σ', _) = Nullify(Σ, d_retr, a)`. The result is *arity-independent*: it
 
 **Definition — Unit-depth retraction discipline.** A state Σ is *unit-depth-disciplined* iff every `(b, F', G') ∈ L_R^Σ` has to-endset `G' = {(t, δ(1, #t))}` for some target `t ∈ A_rel^Σ`. Membership `t ∈ A_rel^Σ` is evaluated at the state Σ in question, not at any producing call's pre-state. A *layer* satisfies the *unit-depth retraction discipline* iff every state it reaches is unit-depth-disciplined.
 
-**Definition — relational layer.** The relational layer's link-store operations are `{Emit_K, Observe_K, Nullify}`. Its one *discipline commitment* is a single predicate over `→`-steps: every `→`-step `Σ → Σ'` that grows the retraction slice — i.e. with `L_R^Σ ⊊ L_R^{Σ'}` — is a `Nullify`. This quantifies over *all* `→`-steps that `→ ≡ K.σ ∪ K.α ∪ K.λ` admits, raw `K.λ` included; in particular no raw arity-3 `K.λ` at a type index `K ~ R` may enlarge `L_R` outside the `Nullify` alias.
+**Definition — relational layer.** The relational layer's link-store operations are `{Emit_K, Observe_K, Nullify}`. Its one *discipline commitment* is a single predicate over `→`-steps: every `→`-step `Σ → Σ'` that grows the retraction slice — i.e. with `L_R^Σ ⊊ L_R^{Σ'}` — is a `Nullify`. This quantifies over *all* `→`-steps that `→ ≡ K.σ ∪ K.α ∪ K.λ` admits (raw `K.λ`, not just the layer aliases).
 
 **Definition — layer-reachable.** A state is *layer-reachable* iff it is `→*`-reachable from `Σ_init` (Definition — Reachability) by a finite sequence of `→`-steps each obeying the discipline commitment (Definition — relational layer).
 
