@@ -70,7 +70,7 @@ Before we can reason about how projection displaces, we must pin down what does 
 a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ
 ```
 
-L12 (ASN-0043) supplies two conclusions on the hypothesis `a ∈ dom(Σ.L)`: address persistence `a ∈ dom(Σ'.L)` (which makes the slot accessor on the left-hand side well-defined) and value preservation `Σ'.L(a) = Σ.L(a)`. The slot equation then follows by component projection on the sequence: equal sequences have equal entries at every position. In particular, the slot-position assignment fixed at link creation — from-set at slot 1, to-set at slot 2, type-set at slot 3, and any additional slots — is structurally preserved. No editing operation can swap, relabel, or alter which slot carries which endset. The directionality of a standard triple (which end is "from", which is "to") is encoded in slot position alone, and slot position is immutable.
+L12 (ASN-0043) supplies two conclusions on the hypothesis `a ∈ dom(Σ.L)`: address persistence `a ∈ dom(Σ'.L)` (which makes the slot accessor on the left-hand side well-defined) and value preservation `Σ'.L(a) = Σ.L(a)`. The slot equation then follows by component projection on the sequence: equal sequences have equal entries at every position. In particular, the slot-position assignment fixed at link creation — from-set at slot 1, to-set at slot 2, type-set at slot 3, and any additional slots — is structurally preserved. No editing operation can swap, relabel, or alter which slot carries which endset.
 
 **LP2★ — MultiStepSlotInvariance**: For every reachable state sequence `Σ →* Σ'`, every link `a ∈ dom(Σ.L)`, and every slot index `i ∈ {1, …, |Σ.L(a)|}`:
 ```
@@ -108,8 +108,6 @@ These invariants pin down what a link holder owns. Subsequent operations by any 
 
 ## Frame Conditions: When Projection Does Not Move
 
-A projection moves only if its inputs move. Since the endset (and therefore its coverage) is fixed by LP3, the projection through a document moves only if that document's arrangement is modified — and even then, only if the modification affects V-positions whose I-addresses lie in the endset's coverage.
-
 **LP4 — ArrangementSpecificity**: For every transition `Σ → Σ'`, every endset `e`, and every document `d ∈ dom(Σ.M) ∩ dom(Σ'.M)`:
 ```
 Σ'.M(d) = Σ.M(d) ⟹ project(e, d, Σ') = project(e, d, Σ)
@@ -139,10 +137,6 @@ Newly allocated I-addresses are invisible to projection until some subsequent K.
 K.δ-IsDocument (ASN-0047) satisfies the document-registration form named in the hypothesis: it extends `dom(M)` by one fresh document, initialises the new document's arrangement to `∅`, and preserves every pre-existing arrangement pointwise.
 
 Postcondition (a) follows by LP4 applied to each `d ∈ dom(Σ.M)`: the document-registration frame holds `Σ'.M(d) = Σ.M(d)` for every such `d`. Postcondition (b) follows from the definition of `project`: with `d_new ∈ dom(Σ'.M)` (so the projection is defined) and `dom(Σ'.M(d_new)) = ∅`, the set comprehension `{v ∈ dom(Σ'.M(d_new)) : Σ'.M(d_new)(v) ∈ coverage(e)}` ranges over the empty domain and is empty.
-
-*Remark on K.δ.* K.δ-IsNode and K.δ-IsAccount have frame `M' = M`, so LP4 covers them; K.δ-IsDocument is the document-registration case of LP8.
-
-(LP14, the K.ρ instance, is established above alongside LP6 and LP7 under the arrangement-fixing template.)
 
 ## Operation Effects on Projection
 
@@ -214,7 +208,7 @@ The second postcondition `ran(Σ'.M(d)) = ran(Σ.M(d))` is derived by taking ima
 
 The displacement under K.μ~ is therefore a *rebinding*: same I-addresses, same number of V-positions, but at new locations in V-space. A projection that was contiguous in V-order before the reordering may become fragmented after; conversely, a fragmented projection may become contiguous. The shape of the projection is a property of the current arrangement, not of the link.
 
-The atomic per-step lemmas LP4–LP10 and LP14 cover every *atomic* operation kind of the working frame. Since reachable sequences `Σ →* Σ'` decompose into finite chains of atomic transitions (SequentialTransitionAxiom of ASN-0093), any multi-step argument is analysed step-by-step, each atomic step governed by one of these lemmas. LP11 is composite-level (K.μ~ = K.μ⁻ + K.μ⁺ per ASN-0047); the atomic decomposition is governed by LP10 then LP9, and LP11 supplies the net effect `project' = π(project)`.
+The atomic per-step lemmas LP4–LP10 and LP14 cover every *atomic* operation kind of the working frame; K.δ's node and account cases have frame `M' = M` and so fall under LP4, while its document case is LP8. Since reachable sequences `Σ →* Σ'` decompose into finite chains of atomic transitions (SequentialTransitionAxiom of ASN-0093), any multi-step argument is analysed step-by-step, each atomic step governed by one of these lemmas. LP11 is composite-level (K.μ~ = K.μ⁻ + K.μ⁺ per ASN-0047); the atomic decomposition is governed by LP10 then LP9, and LP11 supplies the net effect `project' = π(project)`.
 
 ## Discoverability and Survival
 
@@ -278,9 +272,7 @@ The phrase "anything is left at each end" can now be stated formally: discoverab
 a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)
 ```
 
-LP2★ gives `a ∈ dom(Σ'.L)` and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` for every slot `i ∈ {1, …, |Σ.L(a)|}`, and fixes the arity `|Σ'.L(a)| = |Σ.L(a)|` (value preservation under L12 forces equal-length sequences). Slot-wise equality at every position of a common arity is full value equality, so `Σ'.L(a) = Σ.L(a)`. The conclusion holds independently of `Σ.M`, `Σ'.M`, `dom(Σ.M)`, `dom(Σ'.M)`, and any document's range; the hypothesis `a ∈ dom(Σ.L)` is the only requirement, and the conclusion never consults whether `a` is discoverable from any document.
-
-LP13 is independent of every `Σ.M` term, so a link's persistence does not depend on its discoverability from any document: a holder can rely on the stored object permanently, but not on discoverability from any particular document without further conditions on that document's arrangement (LP9–LP11 govern how those conditions evolve).
+LP2★ gives `a ∈ dom(Σ'.L)` and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` for every slot `i ∈ {1, …, |Σ.L(a)|}`, and fixes the arity `|Σ'.L(a)| = |Σ.L(a)|` (value preservation under L12 forces equal-length sequences). Slot-wise equality at every position of a common arity is full value equality, so `Σ'.L(a) = Σ.L(a)`. The conclusion holds independently of `Σ.M`, `Σ'.M`, `dom(Σ.M)`, `dom(Σ'.M)`, and any document's range; the hypothesis `a ∈ dom(Σ.L)` is the only requirement, and the conclusion never consults whether `a` is discoverable from any document. A holder can therefore rely on the stored object permanently, but not on discoverability from any particular document without further conditions on that document's arrangement (LP9–LP11 govern how those conditions evolve).
 
 ## Discovery Independence of Origin
 
@@ -330,7 +322,7 @@ A link can pass through arbitrarily many states of orphanage and resurrection wi
 
 We address two further questions about the structural behaviour of projection under specific operation patterns.
 
-By ASN-0093, every K.α/K.λ-allocated address is a chain element of some sub-allocator `A_C(d)` or `A_L(d)`, with structural form `[d, 0, s_C, k]` (resp. `[d, 0, s_L, k]`) for some T4-valid document tumbler `d` (i.e., `d ∈ T` with `zeros(d) = 2`) and some `k ≥ 1`. The set `F` of *substrate-emittable addresses* is the union of all such chain elements across all T4-valid document tumblers — including those not yet registered, since future document registrations can activate their chains — and both subspaces, excluding the T4-invalid zero-extensions `s.0`, `s.0.0`, … that a raw span includes but no allocator chain can emit (T10a.4, ASN-0034). Formally:
+By ASN-0093, every K.α/K.λ-allocated address is a chain element of some sub-allocator `A_C(d)` or `A_L(d)`, with structural form `[d, 0, s_C, k]` (resp. `[d, 0, s_L, k]`) for some T4-valid document tumbler `d` (i.e., `d ∈ T` with `zeros(d) = 2`) and some `k ≥ 1`. The set `F` of *substrate-emittable addresses* is the union of all such chain elements across all T4-valid document tumblers and both subspaces, excluding the T4-invalid zero-extensions `s.0`, `s.0.0`, … that a raw span includes but no allocator chain can emit (T10a.4, ASN-0034). Formally:
 ```
 F = {a ∈ T : (E d ∈ T, s ∈ {s_C, s_L}, k ≥ 1 :: zeros(d) = 2 ∧ d satisfies T4 ∧ a = [d, 0, s, k])}
 ```
@@ -401,11 +393,11 @@ s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)  ∧  (A t ∈ F : s ≤ t < s ⊕ ℓ : t ∈
 
 The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. The canonical-span requirement is *definitional*: a non-canonical span is fixed at false before any quantifier evaluation, so no state can render it tight. The first conjunct gives `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)`, whence `s ∈ F` by LP-Sub; together with the canonical shape `ℓ = δ(n, #s)` this discharges LP-Fin's hypotheses, so LP-Fin confines the universal quantifier to the finite set `F ∩ [s, s ⊕ ℓ)` and the predicate is decidable at every state. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state.
 
-*Achievability.* The non-empty case is reached by the canonical construction. Span endpoints are drawn from currently-allocated content, and the displacement is the canonical ordinal displacement `ℓ = δ(n, #s)`; by OrdinalDisplacement's postcondition, `actionPoint(ℓ) = #s`. The reach is set at or before the relevant chain's next emission point. By LP-Fin (in its canonical form), only finitely many `F`-candidates can interfere with any such span; LP-Fin Corollary identifies exactly which.
+*Achievability.* The tight case is reached by the canonical construction, instantiated concretely in the worked example below; the one fact that construction turns on but the example shows only by instance is that the emission-frontier bound `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` is what discharges tightness against the relevant chain's *own future* emissions.
 
 Cross-chain interference is excluded by LP-Fin Corollary, which already establishes `F ∩ [s, s ⊕ ℓ) = {[d_0, 0, X, k] : k_s ≤ k < k_s + n}` — every F-candidate in a canonical span's reach shares the span's subspace identifier `X` and origin `d_0`, so no chain other than `A_X(d_0)` (whether same-document cross-subspace or cross-document) contributes a candidate. What remains, and is not implied by the corollary, is tightness against `A_X(d_0)`'s own *future* emissions: the corollary characterises interval membership but does not say which of those chain indices are allocated at `Σ_e`. The emission-frontier choice below supplies that.
 
-Choose `ℓ = δ(n, #s)` with `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` where `X ∈ {C, L}` is the span's subspace and `m` is `A_X(d_0)`'s currently-allocated chain-index maximum at `Σ_e`. The constraint `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` ensures every F-candidate from `A_X(d_0)` in `[s, s ⊕ ℓ)` is at chain index `≤ m`, hence already in `dom(Σ_e.C) ∪ dom(Σ_e.L)` at `Σ_e` — discharging tightness against this chain at `Σ_e`.
+Choose `ℓ = δ(n, #s)` with `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` where `X ∈ {C, L}` is the span's subspace and `m` is `A_X(d_0)`'s currently-allocated chain-index maximum at `Σ_e`. The constraint `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` confines every F-candidate from `A_X(d_0)` in `[s, s ⊕ ℓ)` to chain index `≤ m`. By ChainMembershipForOrigin (ASN-0093), the allocated addresses of origin `d_0` form a *contiguous initial segment* of `A_X(d_0)`'s chain; since `m` is the allocated maximum, indices `1..m` are all allocated, so the candidate indices `k_s, …, k_s + n − 1 ⊆ {1, …, m}` are all resident in `dom(Σ_e.C) ∪ dom(Σ_e.L)` at `Σ_e` — discharging tightness against this chain at `Σ_e`.
 
 *Worked numerical example.* Let `d` be a T4-valid document with `s_C = 1`, and write `m = #d + 3` for the common length of `A_C(d)`'s chain-element addresses (so for every span `s = [d.0.1.k_s]` rooted on this chain, `#s = m`). Suppose `A_C(d)` has emitted three chain elements at the current state `Σ_e`:
 ```
@@ -424,7 +416,7 @@ We separate two claims: first, that fresh allocations cannot enter a tight endse
 a_new ∉ coverage(e)
 ```
 
-The K.α step emits `a_new` from sub-allocator `A_C(d_alloc)` for some `d_alloc ∈ dom(Σ.M)`; symmetrically K.λ emits from `A_L(d_alloc)`. By the chain structure of ASN-0093, `a_new` is a chain element of `A_C(d_alloc)` (resp. `A_L(d_alloc)`), so `a_new ∈ F`. K.α's precondition (ASN-0093) requires `a_new ∉ dom(Σ.C) ∪ dom(Σ.L)`; K.λ's precondition requires `ℓ ∉ dom(Σ.L) ∪ dom(Σ.C)` — the same freshness condition with operand order swapped. By Store Monotonicity★ applied to `Σ_e →* Σ`, `dom(Σ.C) ⊇ dom(Σ_e.C)` and `dom(Σ.L) ⊇ dom(Σ_e.L)`. So `a_new ∉ dom(Σ_e.C) ∪ dom(Σ_e.L)`.
+The K.α step emits `a_new` from sub-allocator `A_C(d_alloc)` for some `d_alloc ∈ dom(Σ.M)`; symmetrically K.λ emits from `A_L(d_alloc)`. By the chain structure of ASN-0093, `a_new` is a chain element of `A_C(d_alloc)` (resp. `A_L(d_alloc)`), so `a_new ∈ F`. F's quantification over *all* T4-valid document tumblers — including those registered only after `Σ_e` — is what makes this membership hold even when `d_alloc` was registered later along the sequence `Σ_e →* Σ`. K.α's precondition (ASN-0093) requires `a_new ∉ dom(Σ.C) ∪ dom(Σ.L)`; K.λ's precondition requires `ℓ ∉ dom(Σ.L) ∪ dom(Σ.C)` — the same freshness condition with operand order swapped. By Store Monotonicity★ applied to `Σ_e →* Σ`, `dom(Σ.C) ⊇ dom(Σ_e.C)` and `dom(Σ.L) ⊇ dom(Σ_e.L)`. So `a_new ∉ dom(Σ_e.C) ∪ dom(Σ_e.L)`.
 
 Suppose for contradiction `a_new ∈ coverage(e)`. Then `a_new ∈ [s, s ⊕ ℓ)` for some span `(s, ℓ) ∈ e`. The tightness condition at `Σ_e`, applied with the substrate-emittable `a_new ∈ F` lying in `[s, s ⊕ ℓ)`, yields `a_new ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)` — contradicting the freshness conclusion. Therefore `a_new ∉ coverage(e)`.
 
