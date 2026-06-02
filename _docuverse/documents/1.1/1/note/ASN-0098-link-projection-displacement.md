@@ -130,13 +130,13 @@ A link's projection through one document is unaffected by editing operations on 
 
 Newly allocated I-addresses are invisible to projection until some subsequent K.μ⁺ adds an arrangement entry referencing them. This is the precise sense in which "insertion at the boundary of a linked passage" cannot extend the link's reach: insertion as a composite (allocate + arrange) splits into a K.α step (no projection effect) and a K.μ⁺ step. The K.μ⁺ step might add a V-position to the projection, but only if the new V-position's I-address is in `coverage(e)`. By T10a (AllocatorDiscipline, ASN-0034), each new K.α-allocated I-address is structurally distinct from all prior allocations.
 
-**LP8 — Document-Registration Invariance**: For any document-registration transition `Σ → Σ'` — either K.σ (ASN-0093) or K.δ in the IsDocument case (ASN-0047) — registering a fresh document `d_new` (with `d_new ∉ dom(Σ.M)`, `dom(Σ'.M) = dom(Σ.M) ∪ {d_new}`, `Σ'.M(d_new) = ∅`, and `Σ'.M(d) = Σ.M(d)` for every `d ∈ dom(Σ.M)`) and any endset `e`, both:
+**LP8 — Document-Registration Invariance**: For any document-registration transition `Σ → Σ'` — K.δ in the IsDocument case (ASN-0047), the working frame's document-creation operation — registering a fresh document `d_new` (with `d_new ∉ dom(Σ.M)`, `dom(Σ'.M) = dom(Σ.M) ∪ {d_new}`, `Σ'.M(d_new) = ∅`, and `Σ'.M(d) = Σ.M(d)` for every `d ∈ dom(Σ.M)`) and any endset `e`, both:
 
 (a) Pre-state preservation: `(A d ∈ dom(Σ.M) :: project(e, d, Σ') = project(e, d, Σ))`.
 
 (b) Newly-registered emptiness: `project(e, d_new, Σ') = ∅`.
 
-Both K.σ (ASN-0093) and K.δ-IsDocument (ASN-0047) satisfy the document-registration form named in the hypothesis: both extend `dom(M)` by one fresh document, initialise the new document's arrangement to `∅`, and preserve every pre-existing arrangement pointwise. Their effects on the `Σ.M` component are structurally identical for the purposes of projection.
+K.δ-IsDocument (ASN-0047) satisfies the document-registration form named in the hypothesis: it extends `dom(M)` by one fresh document, initialises the new document's arrangement to `∅`, and preserves every pre-existing arrangement pointwise.
 
 Postcondition (a) follows by LP4 applied to each `d ∈ dom(Σ.M)`: the document-registration frame holds `Σ'.M(d) = Σ.M(d)` for every such `d`. Postcondition (b) follows from the definition of `project`: with `d_new ∈ dom(Σ'.M)` (so the projection is defined) and `dom(Σ'.M(d_new)) = ∅`, the set comprehension `{v ∈ dom(Σ'.M(d_new)) : Σ'.M(d_new)(v) ∈ coverage(e)}` ranges over the empty domain and is empty.
 
@@ -291,7 +291,7 @@ Three documents may be in play for any given link reference:
 - The *origin document* of each I-address in coverage, `origin(a*)` — the document under whose tumbler prefix `a*` was allocated.
 - The *navigating document* `d` from which the holder follows the link.
 
-These three may be the same, all different, or any combination. The discoverability of a link from `d` depends on none of them — only on the I-address content of `d`'s arrangement. This is visible by inspection of LP12: the right-hand side references `coverage(Σ.L(a).eᵢ)` and `ran(Σ.M(d))` and nothing else. The characterisation contains no reference to `home(a)` or to the origin documents of coverage I-addresses. The home document is a metadata property of the link's address (recoverable by tumbler projection — S7 of ASN-0036), not a constraint on where the link can be reached from. Similarly, origin is a metadata property of each coverage I-address, indifferent to whether `d` was the document that allocated the address or some unrelated document that has since transcluded it. A link can therefore be discovered from any document whose arrangement currently maps to any I-address in any of the link's endsets' coverage, regardless of provenance. The system commits to indifference of provenance at the point of discovery.
+These three may be the same, all different, or any combination. The discoverability of a link from `d` depends on none of them — only on the I-address content of `d`'s arrangement. This is visible by inspection of LP12: the right-hand side references `coverage(Σ.L(a).eᵢ)` and `ran(Σ.M(d))` and nothing else. The characterisation contains no reference to `home(a)` or to the origin documents of coverage I-addresses. The home document is a metadata property of the link's address (recoverable by tumbler projection — S7 of ASN-0036), not a constraint on where the link can be reached from. Similarly, origin is a metadata property of each coverage I-address, indifferent to whether `d` was the document that allocated the address or some unrelated document that has since transcluded it — so discovery is indifferent to provenance.
 
 The transclusion mechanism is the architectural lever that activates this provenance-indifference.
 
@@ -320,7 +320,7 @@ Then by LP12, `project(a, i, d, Σ) = ∅` for every `d, i`. The link is *orphan
 
 **LP18 — Resurrection**: If `a` is orphaned at `Σ` and a subsequent transition sequence `Σ →* Σ'` introduces an arrangement entry `Σ'.M(d)(v) = a*` for some `d, v, a*` with `a* ∈ coverage(Σ.L(a).eᵢ)`, then `a` is discoverable from `d` at `Σ'`.
 
-The transition sequence may include any document-registration operation (K.σ of ASN-0093 or K.δ in the IsDocument case of ASN-0047 — unified by LP8 as having structurally identical effects on `Σ.M`), K.μ⁺ or K.μ⁺_L (extending an existing arrangement, possibly via fork), or any other combination of operations that preserves the link store. The orphan premise supplies `a ∈ dom(Σ.L)`. Store Monotonicity★ applied to `Σ →* Σ'` lifts this to `a ∈ dom(Σ'.L)`, making the slot accessor `Σ'.L(a).eᵢ` well-defined at the post-state. Because LP3★ keeps the link's coverage fixed across the entire sequence, `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`, so the membership `a* ∈ coverage(Σ.L(a).eᵢ)` carries through to `a* ∈ coverage(Σ'.L(a).eᵢ)`. By the definition of `project`, `v ∈ project(a, i, d, Σ')` since `v ∈ dom(Σ'.M(d))` and `Σ'.M(d)(v) = a* ∈ coverage(Σ'.L(a).eᵢ)`. The link is resurrected.
+The transition sequence may include document registration (K.δ in the IsDocument case of ASN-0047, governed by LP8), K.μ⁺ or K.μ⁺_L (extending an existing arrangement, possibly via fork), or any other combination of operations that preserves the link store. The orphan premise supplies `a ∈ dom(Σ.L)`. Store Monotonicity★ applied to `Σ →* Σ'` lifts this to `a ∈ dom(Σ'.L)`, making the slot accessor `Σ'.L(a).eᵢ` well-defined at the post-state. Because LP3★ keeps the link's coverage fixed across the entire sequence, `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`, so the membership `a* ∈ coverage(Σ.L(a).eᵢ)` carries through to `a* ∈ coverage(Σ'.L(a).eᵢ)`. By the definition of `project`, `v ∈ project(a, i, d, Σ')` since `v ∈ dom(Σ'.M(d))` and `Σ'.M(d)(v) = a* ∈ coverage(Σ'.L(a).eᵢ)`. The link is resurrected.
 
 This is the formal expression of Nelson's "reaching back through to a superseding version" mechanism. The system architecture admits resurrection because (i) the link's stored state is permanent (L12 of ASN-0043), (ii) the I-addresses it references are permanent (S0), (iii) the projection is a live computation that consults the current arrangement at the moment of query, and (iv) discovery is purely I-address-based, indifferent to provenance (LP12 references only coverage and range).
 
@@ -330,7 +330,7 @@ A link can pass through arbitrarily many states of orphanage and resurrection wi
 
 We address two further questions about the structural behaviour of projection under specific operation patterns.
 
-By ASN-0093, every K.α/K.λ-allocated address is a chain element of some sub-allocator `A_C(d)` or `A_L(d)`, with structural form `[d, 0, s_C, k]` (resp. `[d, 0, s_L, k]`) for some T4-valid document tumbler `d` (i.e., `d ∈ T` with `zeros(d) = 2`) and some `k ≥ 1`. The set `F` of *substrate-emittable addresses* is the union of all such chain elements across all T4-valid document tumblers — including those not yet registered, since future K.σ transitions can activate their chains — and both subspaces. It is exactly the addresses the substrate could K.α/K.λ-emit within a span's reach, excluding the T4-invalid zero-extensions `s.0`, `s.0.0`, … that a raw span includes but no allocator chain can emit (T10a.4, ASN-0034). Formally:
+By ASN-0093, every K.α/K.λ-allocated address is a chain element of some sub-allocator `A_C(d)` or `A_L(d)`, with structural form `[d, 0, s_C, k]` (resp. `[d, 0, s_L, k]`) for some T4-valid document tumbler `d` (i.e., `d ∈ T` with `zeros(d) = 2`) and some `k ≥ 1`. The set `F` of *substrate-emittable addresses* is the union of all such chain elements across all T4-valid document tumblers — including those not yet registered, since future document registrations can activate their chains — and both subspaces, excluding the T4-invalid zero-extensions `s.0`, `s.0.0`, … that a raw span includes but no allocator chain can emit (T10a.4, ASN-0034). Formally:
 ```
 F = {a ∈ T : (E d ∈ T, s ∈ {s_C, s_L}, k ≥ 1 :: zeros(d) = 2 ∧ d satisfies T4 ∧ a = [d, 0, s, k])}
 ```
@@ -405,7 +405,7 @@ The first conjunct says the span starts at an allocated address; the second says
 
 Cross-chain interference is excluded by LP-Fin Corollary, which already establishes `F ∩ [s, s ⊕ ℓ) = {[d_0, 0, X, k] : k_s ≤ k < k_s + n}` — every F-candidate in a canonical span's reach shares the span's subspace identifier `X` and origin `d_0`, so no chain other than `A_X(d_0)` (whether same-document cross-subspace or cross-document) contributes a candidate. What remains, and is not implied by the corollary, is tightness against `A_X(d_0)`'s own *future* emissions: the corollary characterises interval membership but does not say which of those chain indices are allocated at `Σ_e`. The emission-frontier choice below supplies that.
 
-Choose `ℓ = δ(n, #s)` with `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` where `X ∈ {C, L}` is the span's subspace and `m` is `A_X(d_0)`'s currently-allocated chain-index maximum at `Σ_e`. The constraint `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` ensures every F-candidate from `A_X(d_0)` in `[s, s ⊕ ℓ)` is at chain index `≤ m`, hence already emitted at `Σ_e` — discharging tightness against this chain at `Σ_e`. Tightness is a state-relative predicate evaluated at `Σ_e`; what it requires here is that every F-candidate from `A_X(d_0)` lying in `[s, s ⊕ ℓ)` is already in `dom(Σ_e.C) ∪ dom(Σ_e.L)`, and the constraint just stated discharges exactly that obligation.
+Choose `ℓ = δ(n, #s)` with `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` where `X ∈ {C, L}` is the span's subspace and `m` is `A_X(d_0)`'s currently-allocated chain-index maximum at `Σ_e`. The constraint `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` ensures every F-candidate from `A_X(d_0)` in `[s, s ⊕ ℓ)` is at chain index `≤ m`, hence already in `dom(Σ_e.C) ∪ dom(Σ_e.L)` at `Σ_e` — discharging tightness against this chain at `Σ_e`.
 
 *Worked numerical example.* Let `d` be a T4-valid document with `s_C = 1`, and write `m = #d + 3` for the common length of `A_C(d)`'s chain-element addresses (so for every span `s = [d.0.1.k_s]` rooted on this chain, `#s = m`). Suppose `A_C(d)` has emitted three chain elements at the current state `Σ_e`:
 ```
@@ -498,7 +498,7 @@ project(a, 1, d₁, Σ_1) = {v₁, v₂, v₃}
 
 The projection has shrunk by `{v₄}` (per LP10's exact characterisation), and the retained set `{v₁, v₂, v₃}` is the D-SEQ★-admissible prefix permitted by K.μ⁻. The I-address `i₄` is still in `dom(Σ.C)` by S0, but no longer in `ran(Σ_1.M(d₁))`. The link's coverage is unchanged — still the half-open interval `{t ∈ T : i₁ ≤ t < shift(i₁, 5)}`, of which `{i₁, i₂, i₃, i₄}` remain the traced members.
 
-Now suppose another document `d₂` is registered and transcludes `i₄` via K.σ followed by K.μ⁺ (the accompanying K.ρ step required by ValidComposite★'s J1★ coupling, which records `(i₄, d₂) ∈ R`, is elided from the displayed arrangement since projection does not consult `R`), producing state `Σ_2`:
+Now suppose another document `d₂` is registered and transcludes `i₄` via K.δ-IsDocument followed by K.μ⁺ (the accompanying K.ρ step required by ValidComposite★'s J1★ coupling, which records `(i₄, d₂) ∈ R`, is elided from the displayed arrangement since projection does not consult `R`), producing state `Σ_2`:
 ```
 Σ_2.M(d₂) = {w₁ ↦ i₄}
 project(a, 1, d₂, Σ_2) = {w₁}
@@ -544,7 +544,7 @@ At no point during either branch of this trace did the link itself change. The l
 | LP5 | Cross-document independence: projection through `d` unaffected by edits to `d' ≠ d` (frames over K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~) | introduced |
 | LP6 | K.α (content allocation) does not displace any projection | introduced |
 | LP7 | K.λ (link allocation) does not displace existing projections | introduced |
-| LP8 | Document-registration invariance (K.σ of ASN-0093 or K.δ-IsDocument of ASN-0047): (a) `(A d ∈ dom(Σ.M) : project(e, d, Σ') = project(e, d, Σ))`; (b) `project(e, d_new, Σ') = ∅` | introduced |
+| LP8 | Document-registration invariance (K.δ-IsDocument of ASN-0047): (a) `(A d ∈ dom(Σ.M) : project(e, d, Σ') = project(e, d, Σ))`; (b) `project(e, d_new, Σ') = ∅` | introduced |
 | LP14 | K.ρ (provenance recording) does not displace any projection | introduced |
 | LP9 | K.μ⁺ and K.μ⁺_L can only enlarge projection; new V-positions come from new arrangement entries | introduced |
 | LP10 | K.μ⁻ can only shrink projection; lost V-positions come from removed arrangement entries | introduced |
