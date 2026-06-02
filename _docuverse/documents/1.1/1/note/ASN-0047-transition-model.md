@@ -192,9 +192,7 @@ We seek the elementary modifications — the state changes from which all system
 
 The bootstrap node `n₀ ∈ E₀` is itself baptised at `Σ₀`.
 
-**NodeRootedForest (Derived structure).** Nodes enter E *only* via NodeBaptism, never as `inc`-outputs; NodeBaptism admits repeatedly baptising distinct nodes, including nodes that nest as T4-legal multi-component tumblers (e.g. `[1,2] ≼ [1,2,3]`, CrossNodeAccountBase). The `inc`-allocator structure is therefore a *forest*, not a single tree: each baptised node `N` roots an independent allocator subtree whose every member is an `inc`-descendant of `N` — accounts `inc(N, 2)`, then documents, versions, and element-field sub-allocators beneath. Within one such subtree `N` is the *sole root*, and T10a's discipline holds with `N` as the base address, so ASN-0034's GlobalUniqueness applies with `N` discharging its strong-induction base case (the "sole root allocator" at depth 0). Cross-node distinctness (addresses under distinct baptised nodes `N₁ ≠ N₂`) is not a within-subtree GlobalUniqueness consequence; it rests on T10 (PartitionIndependence, ASN-0034), discharged through CrossNodeAccountBase, since distinct node bases are prefix-incomparable (or nest, the case handled there).
-
-The "forest" framing is consistent with NodeLineage's single prefix-root `n₀ ≼ e`: prefix-nesting is not `inc`-descent. Nodes are baptised rather than `inc`-emitted, so even where one node base prefix-nests under another (or under `n₀`), neither is the other's `inc`-descendant — each remains an independent `inc`-root. A common prefix-ancestor and multiple independent `inc`-roots coexist without conflict.
+**NodeRootedForest (Derived structure).** Nodes enter E *only* via NodeBaptism, never as `inc`-outputs; NodeBaptism admits repeatedly baptising distinct nodes, including nodes that nest as T4-legal multi-component tumblers (e.g. `[1,2] ≼ [1,2,3]`, CrossNodeAccountBase). The `inc`-allocator structure is therefore a *forest*, not a single tree: each baptised node `N` roots an independent allocator subtree whose every member is an `inc`-descendant of `N` — accounts `inc(N, 2)`, then documents, versions, and element-field sub-allocators beneath. Within one such subtree `N` is the *sole root*, and T10a's discipline holds with `N` as the base address, so ASN-0034's GlobalUniqueness applies with `N` discharging its strong-induction base case (the "sole root allocator" at depth 0). Cross-node distinctness (addresses under distinct baptised nodes `N₁ ≠ N₂`) is not a within-subtree GlobalUniqueness consequence; it rests on T10 (PartitionIndependence, ASN-0034), discharged through CrossNodeAccountBase, since distinct node bases are prefix-incomparable (or nest, the case handled there). Prefix-nesting (NodeLineage's `n₀ ≼ e`) is not `inc`-descent, so prefix-nested node bases remain independent `inc`-roots.
 
 **TrackedEmission (Per-state invariant, EntityEmissionTracking).** Every non-node entity is an emission of a tracked entity-level sub-allocator:
 
@@ -691,7 +689,7 @@ Every I-address currently in some arrangement is recorded in R. But the converse
 
 ## Scoped coupling constraints
 
-Provenance coupling must be scoped to content-subspace arrangement extensions, scoped per P4★ above, and is *imposed* rather than derived: Nelson's commitment to a permanent reverse index — accumulating an entry from every content addition, as Gregory's implementation confirms — is what fixes both directions, while the wp derivations below motivate the couplings without compelling them. This motivates the content-subspace forms J1★ and J1'★ below.
+J1★ and J1'★ are imposed (not derived); the wp derivations below give the motivating obligation.
 
 **J1★ (ExtensionRecordsProvenance, content-subspace).**
 
@@ -853,6 +851,8 @@ Verification:
 The divergence is now concrete: R₄ records that d₂ once contained a₃, while the current arrangement does not. This is the historical memory that J2 preserves — deletion is purely presentational.
 
 **Reorder d₂'s arrangement (K.μ~).** Swap V-positions [1,1] and [1,2].
+
+*K.μ~ firing precondition:* M₄(d₂)|_{dom_C} = {[1,1] ↦ a₁, [1,2] ↦ a₂} with a₁ ≠ a₂ — two distinct values, so K.μ~ fires.
 
 *K.μ~:* The bijection π : {[1,1], [1,2]} → {[1,1], [1,2]} with π([1,1]) = [1,2] and π([1,2]) = [1,1]. The definition requires M₅(d₂)(π(v)) = M₄(d₂)(v) for all v ∈ dom(M₄(d₂)), giving M₅(d₂) = {[1,1] ↦ a₂, [1,2] ↦ a₁}. Both target V-positions satisfy S8a (all components strictly positive) and S8-depth (uniform depth 2 within subspace s_C), with subspace(v) = 1 for both positions.
 
@@ -1067,7 +1067,7 @@ Post-state verification:
 
 **Step 3: K.μ~ — reorder text, verify link fixity.** Swap text: `π([1,1]) = [1,2]`, `π([1,2]) = [1,1]`. Clause (v) link-subspace fixity (realised via **LRP** + CL-UNIQ) forces `π([2,1]) = [2,1]`.
 
-Let `a₁ = 1.0.1.0.1.0.1.1` and `a₂ = 1.0.1.0.1.0.1.2`. Pre-state: `M'(d) = {[1,1] ↦ a₁, [1,2] ↦ a₂, [2,1] ↦ ℓ}`. K.μ~ decomposes as K.μ⁻ (full content-subspace clearance, retaining `[2,1]`) followed by K.μ⁺ (re-adding `{[1,1] ↦ a₂, [1,2] ↦ a₁}`). Intermediate-state admissibility discharges from the K.μ~ Decomposition section's checks.
+Let `a₁ = 1.0.1.0.1.0.1.1` and `a₂ = 1.0.1.0.1.0.1.2`. Pre-state: `M'(d) = {[1,1] ↦ a₁, [1,2] ↦ a₂, [2,1] ↦ ℓ}`. Firing precondition: `M'(d)|_{dom_C} = {[1,1] ↦ a₁, [1,2] ↦ a₂}` with a₁ ≠ a₂ — two distinct values, so K.μ~ fires. K.μ~ decomposes as K.μ⁻ (full content-subspace clearance, retaining `[2,1]`) followed by K.μ⁺ (re-adding `{[1,1] ↦ a₂, [1,2] ↦ a₁}`). Intermediate-state admissibility discharges from the K.μ~ Decomposition section's checks.
 
 Post-state: `M''(d) = {[1,1] ↦ a₂, [1,2] ↦ a₁, [2,1] ↦ ℓ}`.
 
@@ -1266,7 +1266,7 @@ The matrix corresponds to the per-property arguments below.
 
 P4★ (`Contains_C(Σ) ⊆ R`): For each `(a, d) ∈ Contains_C(Σ') \ Contains_C(Σ)`, J1★ at the composite boundary requires `(a, d) ∈ R'`. K.α, K.δ, K.ρ hold M in frame; K.μ⁺_L adds only link-subspace V-positions (excluded from Contains_C); K.μ⁻ can only shrink Contains_C; K.μ~ preserves Contains_C exactly by **K.μ~-RANGE** (`Contains_C(Σ') = Contains_C(Σ)`). Only K.μ⁺ may transiently violate P4★ (it adds a new content-subspace containment to Contains_C while framing R); J1★ supplies the co-occurring K.ρ that places `(a, d) ∈ R'`, restoring the bound at the composite boundary.
 
-P4a (`(A (a, d) ∈ R :: (E Σ_k ∈ {Σ₀, ..., Σ_n} : (E v ∈ dom(M_k(d)) : subspace(v) = s_C ∧ M_k(d)(v) = a)))`, where `{Σ₀, ..., Σ_n}` is the transition history of the trace reaching Σ', as defined in the P4a definition box): discharged by the induction-along-the-witnessing-trace mechanism of its definition box (all other transitions hold R in frame).
+P4a (`(A (a, d) ∈ R :: (E Σ_k ∈ {Σ₀, ..., Σ_n} : (E v ∈ dom(M_k(d)) : subspace(v) = s_C ∧ M_k(d)(v) = a)))`, where `{Σ₀, ..., Σ_n}` is the transition history of the trace reaching Σ', as defined in the P4a definition box): discharged by its definition box (all other transitions hold R in frame).
 
 P7a (`(A a ∈ dom(C) :: (E d :: (a, d) ∈ R))`): For `a ∈ dom(C') \ dom(C)`, J0 supplies `d ∈ E'_doc` and `v ∈ dom(M'(d))` with `M'(d)(v) = a`. We show the V-position `v` must be content-subspace, evaluated at the composite endpoint Σ' where both `v` and `a` co-exist. Suppose for contradiction `subspace(v) = s_L`. Then by S3★ at Σ' (link clause), `M'(d)(v) ∈ dom(L')`, i.e., `a ∈ dom(L')`. But `a ∈ dom(C')` (J0's defining membership) and L14 at Σ' gives `dom(C') ∩ dom(L') = ∅`, contradiction. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`, so `subspace(v) = s_C`. *Range-new discharge for J1★.* J1★'s trigger predicate has two conjuncts — `a ∈ ran(M'(d)|_{s_C})` (the post-state range contains `a`) and `a ∉ ran(M(d)|_{s_C})` (the pre-state range did not contain `a`). The first conjunct follows directly: `subspace(v) = s_C` and `M'(d)(v) = a` place `v ∈ V_{s_C}(d')` with `M'(d)(v) = a`, hence `a ∈ ran(M'(d)|_{s_C})`. The second conjunct chains in one inference step: `a ∈ dom(C') \ dom(C)` forces `a ∉ dom(C)`; by S3★'s content clause at the pre-state Σ — `(A u : u ∈ dom(M(d)) ∧ subspace(u) = s_C : M(d)(u) ∈ dom(C))` — we have `ran(M(d)|_{s_C}) ⊆ dom(C)`; combining, `a ∉ ran(M(d)|_{s_C})`. With both J1★ trigger conjuncts discharged, J1★ supplies `(a, d) ∈ R'`. No transition removes from dom(C) (P0) or from R (P2), so P7a, once established, persists.
 
