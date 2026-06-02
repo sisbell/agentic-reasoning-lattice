@@ -1,0 +1,28 @@
+# Review of ASN-0069
+
+## REVISE
+
+### Issue 1: V5a (and V8b) classify the named composite K.μ~ as an elementary transition
+
+**ASN-0069, V5a**: "Let `K_M = {K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L}` denote the four arrangement-modifying *elementary* transition kinds of ASN-0047."
+
+**Problem**: ASN-0047 is explicit that K.μ~ is *not* elementary. Its definition states "K.μ~ — arrangement reordering — is a **named composite** of K.μ⁻ + K.μ⁺," and ValidComposite★ states "The named composite K.μ~ is not atomic; it may appear in the sequence as shorthand for its K.μ⁻ + K.μ⁺ decomposition." V5a's clause (a) is framed as a *per-single-elementary-transition* frame ("For any single elementary transition `Σ → Σ'` … each of K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L … carries the frame condition …"). A composite cannot be a single elementary transition, so clause (a) as derived does not actually cover K.μ~ — it skips the decomposition step. The lemma's conclusion happens to remain true (K.μ~ carries a *derived* per-target frame), but the derivation is structurally invalid for that member. The same loose treatment recurs in V8b's non-monotonicity paragraph, where "third-document K.μ⁻/K.μ⁺/K.μ~" and "K.μ⁻, K.μ⁺, or K.μ~ acting on `d_src` or `d_new`" are reasoned about at the elementary-step level.
+
+**Required**: Either (a) remove K.μ~ from the elementary set `K_M` and handle it only at the composite/clause-(b) level (it decomposes into two elementary K.μ⁻ + K.μ⁺ steps, each M-targeted at the same `d_target`), or (b) explicitly decompose K.μ~ in clause (a)'s derivation and apply the elementary frame to each of its two constituent steps. As written, "four arrangement-modifying elementary transition kinds" is false for one of the four.
+
+### Issue 2: V12(d) applies P4★ at the pre-fork state without establishing it is a composite boundary
+
+**ASN-0069, V12(d) derivation**: "P4★ (ProvenanceBoundsContentSubspace, ASN-0047) applied at the pre-fork state gives `(a, d_src) ∈ R` for every such `a`."
+
+**Problem**: In ASN-0047's ExtendedReachableStateInvariants, P4★ is *not* a per-state invariant — it is listed among the *composite-boundary properties* ("Every state at a composite boundary additionally satisfies … P4★ ∧ P4a ∧ P7a"). The per-state invariant list omits it. The derivation invokes P4★ "at the pre-fork state Σ" without establishing that Σ is a composite boundary; at an arbitrary intermediate state P4★ is not guaranteed. Every other foundation citation in this ASN names a per-state invariant (P0, P1, P2, S3★, CL-OWN, etc.), so this is the one place the boundary/per-state distinction is load-bearing and unstated.
+
+**Required**: State the assumption that the fork's pre-state Σ is a composite boundary (forks begin at boundaries), so P4★ applies; or derive `(a, d_src) ∈ R` from a per-state invariant instead. The one-line citation currently elides whether the premise (P4★ at Σ) is actually in force.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Snapshot vs. living forks, concurrent modification, descendant enumeration
+**Why out of scope**: These are correctly deferred in the Open Questions section. They concern future operations and system-level guarantees beyond the single-fork transition this ASN derives; they are not errors in the present claims.
+
+META: The ASN stays firmly at the state/operation/invariant level — V0–V12 are abstract guarantees an alternative implementation must satisfy, with implementation evidence cited only as motivation, so it has not drifted.
+
+VERDICT: REVISE
