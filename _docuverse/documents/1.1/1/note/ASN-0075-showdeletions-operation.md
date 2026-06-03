@@ -267,8 +267,6 @@ A naive set-difference of current ranges — `ran(M(d_A)) \ ran(M(d_B))` — wou
 
 Our definition forces the disambiguation by requiring `(a, d_A) ∈ R` for content reported as deleted-from-A. This says: `a` must have been in `d_A`'s arrangement at some point. Content that was only ever in `d_B`'s arrangement satisfies `NEVER_INCLUDED(a, d_A)` rather than `DELETED(a, d_A)`, and is correctly excluded from the deletion report.
 
-The same set-theoretic difference computed without `R` would mislabel additions as deletions.
-
 ## Restriction to the Content Subspace
 
 Confining the operation to the content subspace — which the restriction to `dom(C)` already enforces, since every `a ∈ dom(C)` has `subspace_I(a) = s_C` — is essential rather than incidental.
@@ -332,7 +330,7 @@ The content-level guarantee — the union of both halves as a set of I-addresses
 
 **Claim D-ACT.** The output is in a form usable as input to any operation that consumes I-addresses to produce arrangement extensions.
 
-*Justification.* Each output element is an I-address in `dom(C)` (D-IDENT). Any operation whose input type accepts I-addresses (or spans thereof) can consume the output directly. The abstract specification fixes only the set of I-addresses; because each address retains its identity (D-IDENT), an implementation may package the output more compactly — for instance grouping contiguous same-origin runs into spans — without changing what is specified. Any such packaging is a representation choice, not part of the operation's contract.
+*Justification.* Each output element is an I-address in `dom(C)` (D-IDENT). Any operation whose input type accepts I-addresses (or spans thereof) can consume the output directly. The abstract specification fixes only the set of I-addresses; because each address retains its identity (D-IDENT), the output is directly consumable by any I-address-based operation.
 
 ## Observational Frame
 
