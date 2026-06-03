@@ -73,9 +73,7 @@ R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))
 
 *Derivation.* We establish the biconditional `subspace(v) = s_C ⟺ M(d)(v) ∈ dom(C)` for `v ∈ dom(M(d))`. The forward direction is S3★ directly: `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`. For the reverse, L0 gives `M(d)(v) ∈ dom(C) ⟹ subspace_I(M(d)(v)) = s_C`, and the postcondition equality `subspace(v) = subspace_I(M(d)(v))` then yields `subspace(v) = s_C`.
 
-Therefore `v ∈ R(d, e)|_{s_C}` iff `M(d)(v) ∈ coverage(e) ∧ subspace(v) = s_C` iff `M(d)(v) ∈ coverage(e) ∩ dom(C)` iff `v ∈ M(d)⁻¹(coverage(e) ∩ dom(C))`. The `s_L` case is symmetric, with the roles of `dom(C)` and `dom(L)` swapped.
-
-The `s_C`-component of the result picks out the content-subspace portion of coverage; the `s_L`-component picks out the link-subspace portion. An endset whose coverage straddles both I-subspaces (admissible by L4, ASN-0043) contributes to both result components; an endset confined to one I-subspace contributes only to that component.
+Therefore `v ∈ R(d, e)|_{s_C}` iff `M(d)(v) ∈ coverage(e) ∧ subspace(v) = s_C` iff `M(d)(v) ∈ coverage(e) ∩ dom(C)` iff `v ∈ M(d)⁻¹(coverage(e) ∩ dom(C))`. The `s_L` case is symmetric, with the roles of `dom(C)` and `dom(L)` swapped. An endset whose coverage straddles both I-subspaces is admissible (L4, ASN-0043) and contributes to both result components.
 
 ## Result Form and the Operation
 
@@ -133,7 +131,7 @@ The postcondition fixes the *V-restricted denotation* of each component but not 
 
 **Definition (F-canon-form — CanonicalForm).** The canonical form of `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` is the per-subspace family in which:
 
-(i) Each component span in each `Σ_V^S` is a level-uniform span `σ = (s, ℓ)` at depth `m_S(d)` (`#s = #ℓ = m_S(d)`) whose start `s` satisfies `subspace(s) = S` and `(A i : 1 ≤ i ≤ m_S(d) : s_i ≥ 1)` (so `s` is an admissible V-position by S8a). The width is *not* pre-stipulated: F-canonical Step 1 derives that the finiteness and subspace-confinement of `⟦σ⟧_V` force each width to be an ordinal displacement `δ(c, m_S(d)) = [0, ..., 0, c]` of depth `m_S(d)`.
+(i) Each component span in each `Σ_V^S` is a level-uniform span `σ = (s, δ(c, m_S(d)))` whose start `s` is a depth-`m_S(d)` tumbler satisfying `subspace(s) = S` and `(A i : 1 ≤ i ≤ m_S(d) : s_i ≥ 1)` (so `s` is an admissible V-position by S8a), and whose width is an ordinal displacement `δ(c, m_S(d)) = [0, ..., 0, c]` of depth `m_S(d)` with `c ≥ 1`. (F-canonical Step 1 shows no other level-uniform span has a finite, subspace-confined `⟦σ⟧_V` matching a component of `R(d, e)|_S`.)
 
 (ii) Each component `Σ_V^S` is in the unique normalised form guaranteed by S9 (NormalizationUniqueness, ASN-0053) — sorted by V-start under T1, with no overlapping or adjacent spans.
 
@@ -575,7 +573,7 @@ Empty resolution does not destroy the link.
 | F0 | `R(d, e) := M(d)⁻¹(coverage(e))` is the V-position set of endset `e` in document `d`; partitions as `R(d, e) = R(d, e)|_{s_C} ⊎ R(d, e)|_{s_L}` | DEF | introduced |
 | F1 | `follow : (ℓ, d, i) → (d, (Σ_V^{s_C}, Σ_V^{s_L}))` with `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` per subspace; `Σ' = Σ`. V-restricted denotation: `⟦Σ_V^S⟧_V := {t ∈ ⟦Σ_V^S⟧ : subspace(t) = S ∧ #t = m_S(d) ∧ (A i : 1 ≤ i ≤ m_S(d) : t_i ≥ 1)}` | DEF | introduced |
 | F-subspace | IOSubspaceCorrespondence — for `v ∈ dom(M(d))`, `subspace(v) = subspace_I(M(d)(v))`; hence `R(d, e)|_{s_C} = M(d)⁻¹(coverage(e) ∩ dom(C))` and `R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))` | LEMMA | introduced |
-| F-canon-form | The canonical-form *shape*: each component is a level-uniform span at depth `m_S(d)` with positive-component start (its width is *not* stipulated — F-canonical Step 1 derives it must be an ordinal displacement `δ(c, m_S(d))`), each `Σ_V^S` is normalised per S9, and the family is ordered (`s_C`, then `s_L`). When `m_S(d)` is undefined, `Σ_V^S = ⟨⟩` by V-restricted convention. | DEF | introduced |
+| F-canon-form | The canonical-form *shape*: each component is a level-uniform span at depth `m_S(d)` with positive-component start and ordinal-displacement width `δ(c, m_S(d))` (`c ≥ 1`), each `Σ_V^S` is normalised per S9, and the family is ordered (`s_C`, then `s_L`). When `m_S(d)` is undefined, `Σ_V^S = ⟨⟩` by V-restricted convention. | DEF | introduced |
 | F-canonical | CanonicalExistenceAndUniqueness — a given `R(d, e)` admits *exactly one* canonical form of the F-canon-form shape | THM | introduced |
 | F-det | DenotationalDeterminism — same `Σ` produces the same `R(d, e)|_S` per subspace, hence the same canonical form | LEMMA | introduced |
 | F-sound | Soundness — `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S`: every `v ∈ ⟦Σ_V^S⟧_V` satisfies `v ∈ dom(M(d))` and `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`; ⊆ half of the postcondition's set equality | LEMMA | introduced |
