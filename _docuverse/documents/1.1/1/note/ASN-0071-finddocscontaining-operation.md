@@ -27,7 +27,11 @@ We name the claim we need *prefix confinement* (PC): every `t ∈ ⟦σ⟧` agre
 
 ## Resolution
 
-For a single vspec `(d_s, σ)`, the resolved I-addresses are those that `d_s`'s current arrangement assigns to positions within the span. Throughout this section we evaluate at a state `Σ` where each named arrangement `Σ.M(d_s)` is defined — the semantic precondition `wp-defined` established in *The operation*:
+For a single vspec `(d_s, σ)`, the resolved I-addresses are those that `d_s`'s current arrangement assigns to positions within the span. Resolution consults `Σ.M(d_s)` for each source `d_s`, so it is meaningful only at a state `Σ` where each named arrangement is defined — i.e. where each source is an allocated document. We name this semantic precondition
+
+  `wp-defined:  (A (d_s, σ) ∈ Q :: d_s ∈ Σ.E_doc)`
+
+and evaluate throughout this section at a state `Σ` satisfying it (*The operation* shows it is exactly the domain of the partial function `find`):
 
   `iaddrs_one(d_s, σ)(Σ) := { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }`
 
@@ -55,9 +59,9 @@ PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given t
 
 where the depth guard `#v ≥ #u` is what makes the remaining conjuncts well-typed.
 
-We name this **PC-RANGE**. The captured set is parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it is the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}` and captures the single subtree under the prefix `u`. PC-RANGE's range condition at component `#u` couples to the arrangement's content-subspace depth `m_C` (S8-depth, which fixes `#v = m_C` for every `v ∈ dom(M(d_s))`): the comparison `u_{#u} ≤ v_{#u} < r_{#u}` is well-typed exactly when `#u ≤ m_C`.
+We name this **PC-RANGE**. The captured set is `⟦σ⟧ ∩ dom(M(d_s))`, parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it *lies within* the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. Actual membership is determined by the intersection `∩ dom(M(d_s))`, and within each such subtree by D-SEQ★, which pins the intermediate components `2 ≤ j < #v` of every arrangement position to `1`: most of those geometric subtrees hold no arrangement positions, and if some `u_j ≠ 1` for `2 ≤ j < #u` the intersection is empty even when `#u ≤ m_C`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}`, confining the capture to the single subtree under the prefix `u`. PC-RANGE's range condition at component `#u` couples to the arrangement's content-subspace depth `m_C` (S8-depth, which fixes `#v = m_C` for every `v ∈ dom(M(d_s))`): the comparison `u_{#u} ≤ v_{#u} < r_{#u}` is well-typed exactly when `#u ≤ m_C`.
 
-When `#u > m_C` the anchor is finer than every arrangement position. By S8-depth every `v ∈ dom(M(d_s))` has `#v = m_C < #u`, so the depth-`#v < #u` case of the characterisation excludes each such `v` from `⟦σ⟧`; the intersection is empty and `iaddrs_one(d_s, σ)(Σ) = ∅`. We record this dual boundary of F-FILT as **F-DEEP**: a vspec whose anchor is deeper than the source's arrangement depth resolves to nothing.
+When `#u > m_C` the anchor is finer than every arrangement position. By S8-depth every `v ∈ dom(M(d_s))` has `#v = m_C < #u`, so the depth-`#v < #u` case of the characterisation excludes each such `v` from `⟦σ⟧`; the intersection is empty and `iaddrs_one(d_s, σ)(Σ) = ∅`. We record this as **F-DEEP**: `#u > m_C ⟹ iaddrs_one(d_s, σ)(Σ) = ∅` — a vspec whose anchor is deeper than the source's arrangement depth resolves to nothing.
 
 The resolution of `Q` is the union of independent per-source resolutions, each `iaddrs_one(d_s, σ)(Σ)` depending only on `Σ.M(d_s)`.
 
@@ -69,11 +73,7 @@ Given resolved I-addresses, FINDDOCSCONTAINING returns the documents whose arran
 
 This biconditional is its own completeness and soundness statement: its (⟸) direction — every `d ∈ Σ.E_doc` satisfying the predicate is returned — is recorded as **F-COMP**, and its (⟹) direction — every returned `d` satisfies the predicate — as **F-SOUND**. The `P(E_doc)` codomain likewise makes `find(Q)(Σ)` a set, so each document appears at most once (**F-DIST**) — a document transcluding ten queried passages is reported once, not ten times. The result enumerates documents, not occurrences.
 
-*Well-definedness precondition.* The type signature presents `Q` and `Σ` as independent arguments, but `iaddrs(Q)(Σ)` consults `Σ.M(d_s)` for each source `(d_s, σ) ∈ Q`, and `dom(Σ.M) = Σ.E_doc` (M1, ASN-0047). The expression `⟦σ⟧ ∩ dom(Σ.M(d_s))` is therefore meaningful only when `d_s ∈ Σ.E_doc`. We make this explicit as the domain of the partial function `find`:
-
-  `wp-defined:  (A (d_s, σ) ∈ Q :: d_s ∈ Σ.E_doc)`
-
-`find(Q)(Σ)` is defined exactly when `wp-defined` holds at the evaluation state `Σ`. When it holds, every `Σ.M(d_s)` named in `iaddrs(Q)(Σ)` is a defined arrangement and the resolution of the previous section applies unchanged.
+*Well-definedness precondition.* The type signature presents `Q` and `Σ` as independent arguments, but `iaddrs(Q)(Σ)` consults `Σ.M(d_s)` for each source `(d_s, σ) ∈ Q`, and `dom(Σ.M) = Σ.E_doc` (M1, ASN-0047). The expression `⟦σ⟧ ∩ dom(Σ.M(d_s))` is therefore meaningful only when `d_s ∈ Σ.E_doc` — exactly the precondition `wp-defined` named in *Resolution*. It is the domain of the partial function `find`: `find(Q)(Σ)` is defined exactly when `wp-defined` holds at the evaluation state `Σ`. When it holds, every `Σ.M(d_s)` named in `iaddrs(Q)(Σ)` is a defined arrangement and the resolution of the previous section applies unchanged.
 
 *Only content sharing can satisfy the predicate.* The range `ran(Σ.M(d))` carries both content-subspace and link-subspace images: by S3★, a content-subspace V-position routes into `dom(Σ.C)` and a link-subspace V-position into `dom(Σ.L)`. By S3★ ∧ S3★-aux (SubspaceExhaustiveness, ASN-0047), `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)`. The link-subspace portion can never contribute a match. We discharged the source side already — `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` by subspace confinement — and the target side is its dual: the link-subspace images lie in `dom(Σ.L)`, which is disjoint from `dom(Σ.C)` (ASN-0047 L14, StoreDisjointness: `dom(C) ∩ dom(L) = ∅`). Therefore `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ (dom(Σ.C) ∪ dom(Σ.L)) ∩ dom(Σ.C) = dom(Σ.C)`, where the left factor `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)` is S3★ ∧ S3★-aux and the right factor `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` is the subspace-confinement subset claim above; the product set evaluates to `dom(Σ.C)` since `dom(Σ.C) ⊆ dom(Σ.C) ∪ dom(Σ.L)`. We record this as **F-CONTENT**: every shared address witnessing a match lies in `dom(Σ.C)` — `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. A document is returned because it shares *byte content*, never because it shares a *link* address.
 
