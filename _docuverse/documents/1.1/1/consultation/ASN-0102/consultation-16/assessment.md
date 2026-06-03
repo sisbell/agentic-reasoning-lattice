@@ -1,7 +1,9 @@
-# Revision Categorization — ASN-0067 review-16
+# Channel Assignment — ASN-0102 review-16
 
-**Date:** 2026-03-22 23:58
+**Date:** 2026-06-03 16:29
 
-## Issue 1: Worked example I-addresses violate L0 under ordinal shift
-Category: INTERNAL
-Reason: The fix is entirely derivable from existing definitions — L0, ordinal shift, and TA7a are all defined in prior ASNs. The author needs to choose between option (a) using deeper element fields or option (b) adding an explicit notational convention statement; no external design intent or implementation evidence is needed.
+## Issue 1: COPY invokes ValidComposite★'s coupling machinery without admitting COPY into its closed atomic vocabulary
+Reason: The fix is internal — the ASN already cites ValidComposite★'s enumeration (ASN-0047) and the required move is a formal bookkeeping amendment (add COPY to the atomic vocabulary with an "(amended)" tag, declare its pre/post-states composite boundaries to ground the P4★ appeal). No design intent or implementation evidence is needed; the reasoning for the discharge is already present and only the explicit vocabulary-extension step is missing.
+
+## Issue 2: No worked example exercises the genuinely distinct boundary cases
+Reason: The fix is purely mechanical — instantiate the existing definition, X16 tiling/density, and the X14 J1★/J1'★ split at specific boundary values (`n_S = 0, p = 1` and `p = n_S + 1`). Everything needed is already derived in the ASN's own theorems; no external channel is required.
