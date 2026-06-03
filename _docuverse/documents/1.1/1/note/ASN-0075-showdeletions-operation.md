@@ -151,9 +151,9 @@ SHOWDELETIONS(d_A, d_B)
 
 The two halves are necessarily disjoint. Membership in `DeletedFromAWithB` requires `CURRENT(a, d_B)`, i.e. `a ∈ ran(M(d_B))`; membership in `DeletedFromBWithA` requires `DELETED(a, d_B)`, whose second conjunct is `a ∉ ran(M(d_B))`. The two range-membership conditions on `M(d_B)` are directly contradictory, so no `a` can belong to both halves.
 
-**Boundary precondition (D-BOUND).** SHOWDELETIONS is invoked at a composite boundary: the pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047). D-WIT and D-EXH carry this composite-boundary condition as an explicit hypothesis; D-BOUND is the operation precondition that supplies it.
+**Boundary precondition (D-BOUND).** The pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047), so SHOWDELETIONS is invoked at a composite boundary.
 
-The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state`, the last conjunct being D-BOUND. Its postcondition characterises the result set-theoretically. We capture this in wp form. Let `q` abbreviate the predicate:
+The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state`. Its postcondition characterises the result set-theoretically. We capture this in wp form. Let `q` abbreviate the predicate:
 
 ```
 Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
@@ -176,7 +176,7 @@ wp(SHOWDELETIONS(d_A, d_B), Q1)
 
 So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement. The last conjunct (presence in `d_B`) is what makes the report *recoverable* — every reported deletion has a concrete witness in the partner document.
 
-*Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. Since SHOWDELETIONS modifies no state component (D-OBS) and `Q0` depends only on `Σ`'s components `M`, `R`, `dom(C)` — each evaluable at any state `Σ` — the wp formula is the precondition conjoined with `Q0` unpacked at the pre-state:
+*Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. `Q0` is a state-level predicate over `M`, `R`, `dom(C)`, so by the general rule above the wp formula is the precondition conjoined with `Q0` unpacked at the pre-state:
 
 ```
 wp(SHOWDELETIONS(d_A, d_B), Q0)
@@ -271,13 +271,13 @@ Our definition forces the disambiguation by requiring `(a, d_A) ∈ R` for conte
 
 ## Restriction to the Content Subspace
 
-Confining the operation to the content subspace — which the restriction to `dom(C)` already enforces, as established in *The Three States of Content* — is essential rather than incidental.
+Confining the operation to the content subspace is enforced by the restriction to `dom(C)`, as established in *The Three States of Content*.
 
 **Claim D-SUBSP.** SHOWDELETIONS operates only over the content subspace (`s_C`).
 
 *Justification.* Both output sets are subsets of `dom(C)`. Every `a ∈ dom(C)` has `subspace_I(a) = s_C` (ContentAllocationSubspacePrecondition; equivalently L0), and `dom(C) ∩ dom(L) = ∅` by L14, so no link address can ever appear in an output. The restriction to the content subspace is thus immediate from `output ⊆ dom(C)`.
 
-This restriction is not incidental: the content/link asymmetry is what makes cross-document deletion comparison meaningful only over `s_C`. Content-subspace addresses can be shared between documents, so one document can serve as the still-current witness for another's deletion. Link material cannot — by CL-OWN (ASN-0047), `subspace(v) = s_L ∧ M(d)(v) = a` forces `origin(a) = d`, so a document's link-subspace V-positions reference only its own link addresses and no comparison document ever holds another's link as witness.
+The content/link asymmetry is what makes cross-document deletion comparison meaningful only over `s_C`. Content-subspace addresses can be shared between documents, so one document can serve as the still-current witness for another's deletion. Link material cannot — by CL-OWN (ASN-0047), `subspace(v) = s_L ∧ M(d)(v) = a` forces `origin(a) = d`, so a document's link-subspace V-positions reference only its own link addresses and no comparison document ever holds another's link as witness.
 
 ## Identity Preservation
 
