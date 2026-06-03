@@ -1,12 +1,15 @@
-# Channel Assignment — ASN-0051 review-66
+# Channel Assignment — ASN-0098 review-66
 
-**Date:** 2026-05-17 18:46
+**Date:** 2026-06-03 06:10
 
-## Issue 1: Structural identity formula incorrect in general
-Reason: Pure derivation error from the ASN's own definitions of decomposition terms, coverage, and projection. The correct formula `Σ_a (s_a · m_a − 1)` follows directly from counting (span, block) pairs each I-address inhabits; no design intent or implementation evidence is needed.
+## Issue 1: LP12a attributes arity invariance to the wrong lemma
+Reason: Internal fix — the correct citation (L12's full value equality, as LP13 already uses it) is present in the ASN; this is a within-document re-attribution.
 
-## Issue 2: Conflation of term-cardinality inflation with term-vs-fragment count gap
-Reason: Internal definitional issue — the ASN already distinguishes decomposition terms from maximal fragments, and the gap formula `(m·p) − fragment_count` versus inflation `Σ|term| − |π_text|` is computable from those existing definitions. No external channel required.
+## Issue 2: "Architectural significance / lever" essay prose in structural slots
+Reason: Internal editorial deletion — removing interpretive framing sentences requires no design intent or implementation evidence.
 
-## Issue 3: Informal hedge for (m ≥ 4, p = 2) and (m = 2, p ≥ 4) attainment
-Reason: The ASN already supplies explicit base witnesses W(2,2), W(3,2), W(2,3) and formal lift schemata (α), (β); extending the schema's stated coverage is a packaging fix internal to the existing proof apparatus. No design intent or implementation evidence is needed.
+## Issue 3: LP12a re-enumerates K.μ⁻'s precondition (foundation content)
+Reason: Internal fix — replacing the inline enumeration with the bare `enabled(K.μ⁻[d, R])` symbol referencing ASN-0047 is mechanical; the precondition lives in the foundation already.
+
+## Issue 4: Redundant "Working reference frame" and Nelson-correspondence framing
+Reason: Internal editorial — dropping the duplicate frame line and compressing the recap paragraph is removal of redundant orientation, derivable from the ASN's own structure.
