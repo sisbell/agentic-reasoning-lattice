@@ -145,8 +145,6 @@ SHOWDELETIONS(d_A, d_B)
 
 The two halves are necessarily disjoint. Membership in `DeletedFromAWithB` requires `CURRENT(a, d_B)`, i.e. `a ∈ ran(M(d_B))`; membership in `DeletedFromBWithA` requires `DELETED(a, d_B)`, whose second conjunct is `a ∉ ran(M(d_B))`. The two range-membership conditions on `M(d_B)` are directly contradictory, so no `a` can belong to both halves.
 
-The definition reads `M(d_A)`, `M(d_B)`, and `R` to compute the two output sets and returns them.
-
 **Boundary precondition (D-BOUND).** The pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047), so SHOWDELETIONS is invoked at a composite boundary.
 
 The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state`. Its postcondition characterises the result set-theoretically. We capture this in wp form. Let `q` abbreviate the predicate:
@@ -219,9 +217,7 @@ The content/link asymmetry is what makes cross-document deletion comparison mean
 
 **Claim D-ORIG.** For every `a` in either output set, `origin(a)` is determined and identifies a unique document — the originating allocator of `a`.
 
-*Justification.* By S7 (ASN-0036), `origin(a)` is defined for every `a ∈ dom(C)` and is invariant across all states in which `a ∈ dom(C)`. The output sets are subsets of `dom(C)`, so `origin` is well-defined on every output element.
-
-The user-facing meaning: any returned address self-identifies its home document. When `d_A` and `d_B` were derived from a common ancestor `d_C`, content inherited from `d_C` and later deleted from `d_A` carries `origin(a) = d_C`. Content originally allocated by some other document and transcluded into `d_A` before deletion carries that other document's address as origin. The output need carry no extra "origin annotation" beyond the address itself — origin is derived structurally from the address.
+*Justification.* By S7 (ASN-0036), `origin(a)` is defined for every `a ∈ dom(C)` and is invariant across all states in which `a ∈ dom(C)`. The output sets are subsets of `dom(C)`, so `origin` is well-defined on every output element. The output need carry no extra "origin annotation" beyond the address itself — origin is derived structurally from the address.
 
 ## Order Availability
 
