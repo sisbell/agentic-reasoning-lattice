@@ -13,7 +13,7 @@ We work within the strand model as extended by ASN-0047. State `Σ` carries the 
 
 Content can be named in two registers. By I-address — "the content at addresses `A`" — purely structural. By V-position with source — "the content of document `d` at positions `σ`" — referenced from where the user encountered it.
 
-We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s ∈ Σ.E_doc` names a source document and `σ = (u, ℓ)` is a level-uniform V-span confined to the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) = #u`, `#ℓ = #u` (level-uniformity, ASN-0053 S6), and `actionPoint(ℓ) ≥ 2` (equivalently `ℓ₁ = 0`: the displacement does not perturb the subspace identifier at position 1; together with `actionPoint(ℓ) = #u` this also forces `#u ≥ 2`). Its denotation `⟦σ⟧` and reach `u ⊕ ℓ` used throughout are ASN-0053's (σ.denotation: `⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}`; σ.reach: `reach(σ) = start(σ) ⊕ width(σ)`); we apply those definitions rather than restate them below. A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
+We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s` is a document address naming a source document and `σ = (u, ℓ)` is a level-uniform V-span confined to the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) = #u`, `#ℓ = #u` (level-uniformity, ASN-0053 S6), and `actionPoint(ℓ) ≥ 2` (equivalently `ℓ₁ = 0`: the displacement does not perturb the subspace identifier at position 1; together with `actionPoint(ℓ) = #u` this also forces `#u ≥ 2`). Its denotation `⟦σ⟧` and reach `u ⊕ ℓ` used throughout are ASN-0053's (σ.denotation: `⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}`; σ.reach: `reach(σ) = start(σ) ⊕ width(σ)`); we apply those definitions rather than restate them below. A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
 
 We name the claim we need *prefix confinement* (PC): every `t ∈ ⟦σ⟧` agrees with `u` on all components `1 ≤ j < #u`. This is the relaxed analogue of ASN-0058's C0a; we derive it below from the vspec preconditions `subspace(u) = s_C` and `actionPoint(ℓ) = #u ≥ 2`.
 
@@ -25,7 +25,7 @@ We name the claim we need *prefix confinement* (PC): every `t ∈ ⟦σ⟧` agre
 
 ## Resolution
 
-For a single vspec `(d_s, σ)`, the resolved I-addresses are those that `d_s`'s current arrangement assigns to positions within the span. For `Σ.M(d_s)` to be a defined arrangement — `dom(Σ.M) = Σ.E_doc` (M1, ASN-0047) — we require `d_s ∈ Σ.E_doc`; under that condition:
+For a single vspec `(d_s, σ)`, the resolved I-addresses are those that `d_s`'s current arrangement assigns to positions within the span. Throughout this section we evaluate at a state `Σ` where each named arrangement `Σ.M(d_s)` is defined — the semantic precondition `wp-defined` established in *The operation*:
 
   `iaddrs_one(d_s, σ)(Σ) := { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }`
 
@@ -33,7 +33,7 @@ For a vspec-set `Q`:
 
   `iaddrs(Q)(Σ) := ⋃_{(d_s, σ) ∈ Q} iaddrs_one(d_s, σ)(Σ)`
 
-Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. With each `d_s ∈ Σ.E_doc` (the gating condition under which `iaddrs_one` is defined above), every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(Σ.C)` rather than `dom(Σ.L)`. We show subspace confinement first, then apply S3★.
+Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. With each `d_s ∈ Σ.E_doc` (by `wp-defined`), every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(Σ.C)` rather than `dom(Σ.L)`. We show subspace confinement first, then apply S3★.
 
 *Subspace confinement.* For every `t ∈ ⟦σ⟧`, PC's position-1 instance (proven in *The query*) gives `t₁ = u₁ = s_C`, hence `subspace(t) = s_C`.
 
@@ -52,7 +52,7 @@ Given resolved I-addresses, FINDDOCSCONTAINING returns the documents whose arran
 
   `find(Q)(Σ) := { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }`
 
-This biconditional is its own completeness and soundness statement: its (⟸) direction — every `d ∈ Σ.E_doc` satisfying the predicate is returned — is recorded as **F-COMP**, and its (⟹) direction — every returned `d` satisfies the predicate — as **F-SOUND**. Neither is a result beyond the definition; the labels name the halves of the iff for downstream reference. The `P(E_doc)` codomain likewise makes `find(Q)(Σ)` a set, so each document appears at most once (**F-DIST**) — a document transcluding ten queried passages is reported once, not ten times. The result enumerates documents, not occurrences.
+This biconditional is its own completeness and soundness statement: its (⟸) direction — every `d ∈ Σ.E_doc` satisfying the predicate is returned — is recorded as **F-COMP**, and its (⟹) direction — every returned `d` satisfies the predicate — as **F-SOUND**. The `P(E_doc)` codomain likewise makes `find(Q)(Σ)` a set, so each document appears at most once (**F-DIST**) — a document transcluding ten queried passages is reported once, not ten times. The result enumerates documents, not occurrences.
 
 *Well-definedness precondition.* The type signature presents `Q` and `Σ` as independent arguments, but `iaddrs(Q)(Σ)` consults `Σ.M(d_s)` for each source `(d_s, σ) ∈ Q`, and `dom(Σ.M) = Σ.E_doc` (M1, ASN-0047). The expression `⟦σ⟧ ∩ dom(Σ.M(d_s))` is therefore meaningful only when `d_s ∈ Σ.E_doc`. We make this explicit as the domain of the partial function `find`:
 
@@ -152,7 +152,7 @@ Now submit the *shallow* vspec `Q_E = {(d_E, σ_E)}` with `σ_E = ([s_C, 1], δ(
 
   `⟦σ_E⟧ ∩ dom(M(d_E)) = {[s_C,1,1], [s_C,1,2], [s_C,1,3]}`
 
-— the *entire* depth-3 subtree hanging under the depth-2 anchor `[s_C, 1]`, captured by a span the user anchored at a single coarse coordinate. These positions *are* current arrangement entries, so F-FILT offers no defense; collecting them is the intended semantics. This is the *width-1* instance of cross-depth capture (PC-RANGE, derived below): the span has `#u = 2 < m_C = 3` and unit width `ℓ_{#u} = 1` at its action point, so its denotation reaches every deeper arrangement position whose first two components are `[s_C, 1]` — exactly one sibling subtree. The behaviour is a property of span addressing, not of this operation: naming a coarse coordinate reaches everything beneath it, which Nelson builds into the address convention — *"A digit of 'one' may be used to designate all of a given version, all versions of a given document, all works of a given author ... or the entire docuverse"* (LM 4/38). The width dependence is essential: a width-2 span (`δ(2, 2)`) at the same anchor would denote `v_{#u} ∈ {1, 2}`, capturing *two* sibling subtrees, not "the" subtree. PC-RANGE makes the dependence explicit. Resolving:
+— the *entire* depth-3 subtree hanging under the depth-2 anchor `[s_C, 1]`, captured by a span the user anchored at a single coarse coordinate. These positions *are* current arrangement entries, so F-FILT offers no defense; collecting them is the intended semantics. The span has `#u = 2 < m_C = 3` and unit width at its action point, so its denotation reaches every deeper arrangement position whose first two components are `[s_C, 1]` — exactly one sibling subtree. The behaviour is a property of span addressing, not of this operation: naming a coarse coordinate reaches everything beneath it, which Nelson builds into the address convention — *"A digit of 'one' may be used to designate all of a given version, all versions of a given document, all works of a given author ... or the entire docuverse"* (LM 4/38). Resolving:
 
   `iaddrs(Q_E)(Σ⁺) = { M(d_E)(v) : v ∈ {[s_C,1,1], [s_C,1,2], [s_C,1,3]} } = {a₁, a₂}`
 
@@ -170,7 +170,7 @@ PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given t
 
   `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }`
 
-We name this **PC-RANGE**. The captured set is parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it is the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}` and so captures the single subtree under the prefix `u` — the case made concrete above. There is no blanket "prefix names subtree" guarantee: the subtree reading is exactly the width-1 specialisation of PC-RANGE.
+We name this **PC-RANGE**. The captured set is parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it is the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. The width dependence is essential: the width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}` and captures the single subtree under the prefix `u` — the case made concrete above — whereas a width-2 span (`δ(2, 2)`) at the same anchor would denote `v_{#u} ∈ {1, 2}`, capturing *two* sibling subtrees. There is no blanket "prefix names subtree" guarantee: the subtree reading is exactly the width-1 specialisation of PC-RANGE.
 
 ## Partial overlap suffices
 
@@ -184,9 +184,7 @@ This is the operative reading of Nelson's promise to *"retrieve any portion of t
 
 ## Home versus transcluding documents
 
-Partial overlap (F-PART) already makes a single shared `a ∈ ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)` sufficient for `d`'s inclusion, so a query resolving to `a` discovers every document referencing `a` at once: `a`'s home document `origin(a)` (a function of `a`'s tumbler alone, grounded in `E_doc` by ASN-0047 P6) — if it itself still references `a` — and every transcluding document, all reported as equally-qualifying members of the result.
-
-The find operation does not distinguish home from transcluding document: both reference `a`, both satisfy the predicate. The mechanism is structural — the I-address `a` is the same `a` everywhere it appears, because content has permanent identity (P0); sharing of content corresponds to identity of I-address, and identity of I-address is what `find` tests for. The distinction is nonetheless recoverable from the address structure already returned, so `find` need not tag its results: for each `a ∈ iaddrs(Q)`, `origin(a)` names `a`'s home document, and comparing it against each `d ∈ find(Q)` recovers the relationship — `d = origin(a)` means `d` authored `a`, `d ≠ origin(a)` means `d` transcludes `a`.
+Partial overlap (F-PART) already makes a single shared `a ∈ ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)` sufficient for `d`'s inclusion, so a query resolving to `a` discovers every document referencing `a` at once: `a`'s home document `origin(a)` (a function of `a`'s tumbler alone, grounded in `E_doc` by ASN-0047 P6) — if it itself still references `a` — and every transcluding document, all reported as equally-qualifying members of the result. The mechanism is structural — the I-address `a` is the same `a` everywhere it appears, because content has permanent identity (P0); sharing of content corresponds to identity of I-address, and identity of I-address is what `find` tests for. The home/transcluding distinction is recoverable from `origin(a)` (F-ORIGIN), so `find` need not tag its results.
 
 ## Currency: state dependence
 
