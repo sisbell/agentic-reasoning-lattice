@@ -113,7 +113,7 @@ In particular, the link `ℓ` itself remains in `dom(Σ.L)` regardless of any re
 
 The per-subspace decomposition is structurally required, not a stylistic choice. Within a single V-subspace `S` of `d`, all V-positions share a common depth (S8-depth, ASN-0036; `m_L(d)`, ASN-0047, for the link subspace), so the level-uniformity required by S6 (ASN-0053) for normalisation is structurally available within each subspace. Across subspaces the depths may differ, so no single level-uniform span-set can hold a multi-subspace `R(d, e)`. The result must be indexed by subspace.
 
-The representation choice is *natural and compact*, not derived from a stronger constraint. An alternative such as an explicit enumeration of V-positions would also satisfy a denotational postcondition; we adopt the span-set family because (i) the per-subspace decomposition of `M(d)` (S8★, ASN-0047) and the existence of finite mapping-block decompositions (M2, ASN-0058) ensure that `M(d)⁻¹(X)` for any finite union of I-spans `X` corresponds to a finite collection of contiguous V-runs, and (ii) finite V-runs are exactly what a span-set encodes compactly. The size of the resulting span-set is bounded by the number of (block, endset-span) intersections, which is finite.
+A span-set suffices because the per-subspace decomposition of `M(d)` (S8★, ASN-0047) and the finite mapping-block decompositions (M2, ASN-0058) make `M(d)⁻¹(X)`, for any finite union of I-spans `X`, a finite collection of contiguous V-runs — exactly what a span-set encodes.
 
 ### V-Restricted Denotation
 
@@ -268,7 +268,7 @@ Therefore the intersection, when non-empty, contains every index between its min
 
 Aggregating across all blocks and all endset spans, partitioning by V-subspace, then normalising each subspace component via S8, yields `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` in canonical form.
 
-This is *one* admissible computation. The abstract specification does not mandate the decomposition strategy. Any procedure that produces a per-subspace family with V-restricted denotation `R(d, e)|_S` per subspace satisfies the postcondition. The decomposition view simply confirms that the computation is finite and well-structured: linear in the number of (block, endset-span) pairs whose I-extents intersect.
+This is *one* admissible computation (the postcondition fixes denotation, not decomposition strategy — see Canonical Form). The decomposition view confirms the computation is finite and well-structured: linear in the number of (block, endset-span) pairs whose I-extents intersect.
 
 The decomposition also clarifies why fragmentation appears naturally. If a single endset I-span `σ` intersects two non-adjacent mapping blocks of `d` in the same subspace, it produces two non-adjacent V-runs in the result — exactly because the blocks themselves are non-adjacent in V-space. No special logic handles fragmentation; the decomposition delivers it automatically. The same observation explains multiplicity: if multiple blocks each have the same `a` as their I-start with the same width, each block independently contributes a V-run, and the result contains all of them.
 
@@ -480,18 +480,6 @@ The V-restricted denotations are `⟦Σ_V^{s_C}⟧_V = {[1, 1], [1, 6]}` at cont
 
 This configuration confirms the central novelty of the per-subspace family: a single endset straddling both I-subspaces resolves to a pair whose two components are simultaneously non-empty, with F0's `⊎`, F-subspace's two-way decomposition, and the joint-denotation disjointness all acting together with both parts populated — none of which the single-component configurations 1 and 5 establish jointly.
 
-## Sub-cases as One Phenomenon
-
-The three results commonly distinguished — *multiple occurrences*, *fragmentation*, and *empty resolution* — are not three separate cases requiring distinct handling. They are the same definition observed under different arrangement configurations.
-
-**Multiple occurrences.** When `d` arranges a single I-address at multiple V-positions (a within-document transclusion), every such V-position resolves. The inverse image of a singleton may have any cardinality consistent with S5.
-
-**Fragmentation.** When an endset's I-coverage is contiguous but the corresponding V-positions are non-contiguous (because the arrangement has placed the content non-contiguously, or has been rearranged), the result has multiple disjoint V-spans. The single endset becomes multiple V-spans in the result — not because the link changed but because the arrangement did. The sixth worked configuration above exhibits this concretely: a single contiguous endset I-span straddling two non-adjacent mapping blocks (separated in V-space by an intervening block of unrelated origin) resolves to two disjoint, non-adjacent V-spans.
-
-**Empty result.** When no I-address in `coverage(e)` appears in `ran(M(d))`, the inverse image of `coverage(e)` is empty. The result is `(d, (⟨⟩, ⟨⟩))`.
-
-All three arise without special logic from the inverse-image definition. They are observable distinctions in the result, not architectural distinctions in the operation.
-
 ## Slot Uniformity
 
 A link `L(ℓ) = (e₁, ..., eₙ)` has multiple endset slots, including the designated type endset `e₃` (StandardTriple convention, ASN-0043). The operation `follow` treats every slot identically. For any `i ∈ {1, ..., |L(ℓ)|}`:
@@ -557,18 +545,6 @@ This is the structural reading of Nelson's "a link to one version is a link to a
 
 A particular consequence: when a document `d'` is derived from `d` by some derivation that preserves content references (i.e., when `ran(M(d'))` intersects `ran(M(d))` significantly), then links that resolved against `d` will resolve, possibly with different V-position structure, against `d'`. The resolution follows the content, not the document.
 
-## Result Stability
-
-For fixed `Σ`, repeated queries return identical denotations — by F-det below. After canonical-form derivation, repeated queries also return identical representations. This is what makes `follow` suitable as the basis for downstream operations whose correctness depends on result identity: citation, archival reference, comparison across queries, and the entire programme of stable referential integrity.
-
-The stability is a property of three things together:
-
-1. The state `Σ` is fixed.
-2. The inverse image `R(d, e)` is uniquely determined by `M(d)` and `coverage(e)`.
-3. The canonical form (per-subspace family, each component normalised by S9, fixed external ordering) is unique.
-
-Were any of these relaxed, repeatability would fail. With all three in place, `follow`'s denotation is the bedrock query: ask the same question of the same state, receive the same answer. Nelson's "the part you want comes when you ask for it" is the foundational guarantee, and `follow` is the operation that delivers it for the link-resolution case.
-
 ## Derived Properties
 
 Each of the following is a consequence of the inverse-image definition combined with the foundations. We catalogue them as F-det, F-sound, etc., and present each with explicit preconditions, postconditions, dependencies, and frame.
@@ -595,7 +571,7 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 
 The representations `Σ_V` and `Σ_V'` may differ at the representational level (e.g., non-canonical decompositions of the same V-restricted point set), but their V-restricted denotations coincide. ∎
 
-Nelson's commitment — "a given part of a given version at a given time" yields the same answer — is the structural consequence of working with functions and a canonical normal form. Without it, citation would be impossible. Note: the operation's postcondition fixes V-restricted denotation, not representation; downstream callers needing representational identity must apply canonical-form derivation.
+Nelson's commitment — "a given part of a given version at a given time" yields the same answer — is the structural consequence of working with functions and a canonical normal form. Without it, citation would be impossible.
 
 ### F-sound — Soundness (LEMMA)
 
@@ -643,7 +619,7 @@ This is the `R(d, L(ℓ).eᵢ)|_S ⊆ ⟦Σ_V^S⟧_V` direction of the postcondi
 4. *Project per subspace.* `R(d, L(ℓ).eᵢ)|_S = R(d, L(ℓ).eᵢ) ∩ {v : subspace(v) = S} = ∅` for each `S ∈ {s_C, s_L}`.
 5. *Apply F1.* By the postcondition of `follow`, `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S = ∅` for each `S`.
 
-This establishes the V-restricted denotational conclusion unconditionally. The representational conclusion `Σ_V^S = ⟨⟩` requires canonical form: by F-canonical, the canonical form is the unique normalised span-set whose V-restricted denotation equals the target set. For the empty target set, the unique canonical representative is the empty sequence `⟨⟩`. We argue that no non-empty canonical-form span-set has empty V-restricted denotation: by F-canonical, every component span `σ = (s, δ(c, m_S(d)))` of a canonical-form span-set has start `s` with `#s = m_S(d)`, `subspace(s) = S`, and (per clause (i)'s canonical-form positivity convention) every component of `s` positive. By T12(b) (SpanWellDefinedness postcondition (b), ASN-0034), `s ∈ ⟦σ⟧` (the start is always in its own span's denotation). Since `s` is a depth-`m_S(d)` subspace-`S` tumbler with positive components in `⟦σ⟧`, `s ∈ ⟦σ⟧_V`, so `⟦σ⟧_V` is non-empty. The full `⟦Σ_V^S⟧_V = ⋃_j ⟦σ_j⟧_V` is therefore non-empty whenever any component exists. By contrapositive, empty V-restricted denotation forces the empty span-set as the only canonical representative. An implementation may return any representation with empty V-restricted denotation; the canonical-form conclusion follows only after canonicalisation. ∎
+This establishes the V-restricted denotational conclusion unconditionally. The representational conclusion `Σ_V^S = ⟨⟩` requires canonical form: by F-canonical, the canonical form is the unique normalised span-set whose V-restricted denotation equals the target set. For the empty target set, the unique canonical representative is the empty sequence `⟨⟩`. We argue that no non-empty canonical-form span-set has empty V-restricted denotation: by F-canonical, every component span `σ = (s, δ(c, m_S(d)))` of a canonical-form span-set has start `s` with `#s = m_S(d)`, `subspace(s) = S`, and (per clause (i)'s canonical-form positivity convention) every component of `s` positive. By T12(b) (SpanWellDefinedness postcondition (b), ASN-0034), `s ∈ ⟦σ⟧` (the start is always in its own span's denotation). Since `s` is a depth-`m_S(d)` subspace-`S` tumbler with positive components in `⟦σ⟧`, `s ∈ ⟦σ⟧_V`, so `⟦σ⟧_V` is non-empty. The full `⟦Σ_V^S⟧_V = ⋃_j ⟦σ_j⟧_V` is therefore non-empty whenever any component exists. By contrapositive, empty V-restricted denotation forces the empty span-set as the only canonical representative. ∎
 
 There is no exception, no error, no fallback. The empty per-subspace family (V-restricted) is a regular outcome of the operation.
 
@@ -779,10 +755,6 @@ What concurrency semantics, if any, must `follow` guarantee when the document be
 
 Under what conditions, if any, must the result of `follow(ℓ, d, i)` and `follow(ℓ, d', i)` be related when `d` and `d'` share transclusion lineage — that is, when significant portions of their arrangements reference the same I-addresses?
 
-The operation itself promises only denotational equivalence (any `Σ_V` with `⟦Σ_V^S⟧_V = R(d, e)|_S`), leaving canonical T1-sorted form optional — but must a downstream system-level contract that consumes a `follow` result, such as a citation or a stable archival reference, mandate canonical form so that the same query yields a bit-identical externally-quotable artifact?
-
-When `coverage(L(ℓ).eᵢ)` is unbounded in cardinality (an endset spanning a very long region of I-space), what must the system guarantee about the result's representational compactness — must the per-subspace family be in canonical form, or is any finite representation admissible regardless of redundancy?
+Where must responsibility for canonicalisation lie — must a downstream contract that consumes a `follow` result (a citation, a stable archival reference, or a compact representation of an unbounded-cardinality coverage) mandate canonical form and expose a canonicalisation procedure so the same query yields a bit-identical externally-quotable artifact, or may any finite representation be admissible with callers required to derive canonical form independently?
 
 What must the system guarantee about the relationship between resolution and content retrieval — must `R(d, e)` always yield V-positions whose subsequent content lookup via `M(d)` and `C` succeeds, or may resolution succeed where content access would fail?
-
-What must the system guarantee about the relationship between an implementation's representational choice (any `Σ_V` with `⟦Σ_V^S⟧_V = R(d, e)|_S`) and the canonical form — must the implementation expose a canonicalisation procedure, or may callers be required to derive it independently?
