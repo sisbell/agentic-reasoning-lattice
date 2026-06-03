@@ -72,7 +72,7 @@ We now show that the four foundation state components `(C, L, E, M)` together ar
 
 *Argument.* We exhibit two reachable states `Σ_1` and `Σ_2` for which `(Σ.C, Σ.L, Σ.E, Σ.M)` agree across every document but `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` disagree.
 
-*Notational convention.* In the histories below, each `→*` arrow denotes one valid composite under ValidComposite★ (ASN-0047); line breaks are visual aids only. K.α must be bundled with a K.μ⁺/K.ρ pair in the same composite: K.α's frame leaves `M` unchanged, so a standalone-K.α composite would produce `a ∈ dom(C') \ dom(C)` without placing `a` in any arrangement, violating J0 (AllocationPlacementCoupling, ASN-0047). The bundling pattern is exhibited in Histories 1 and 2 below.
+*Notational convention.* In the histories below, each `→*` arrow denotes one valid composite under ValidComposite★ (ASN-0047); line breaks are visual aids only.
 
 A second bundling concerns document creation. K.δ case (ii) with `k = 2` (descent) requires `t ∈ E ∧ zeros(t) ≤ 1`. From `Σ_0` (where the only entity is the bootstrap node `n_0` with `zeros(n_0) = 0`), a single elementary K.δ step produces at most an account (`zeros = 1`); producing a document (`zeros = 2`) requires a precursor account-creation step. We therefore write `K.δ(d) ≡ K.δ(A); K.δ(d)` as shorthand, where `A = inc(n_0, 2)` is the account and `d = inc(A, 2)` is the document. The same convention applies to `K.δ(d_A)` and `K.δ(d_B)` in the worked example below.
 
@@ -172,7 +172,7 @@ wp(SHOWDELETIONS(d_A, d_B), Q1)
                        ∧ a ∈ ran(M(d_B)))
 ```
 
-So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement. The last conjunct (presence in `d_B`) is what makes the report *recoverable* in the sense of D-IDENT — every reported deletion has a concrete witness in the partner document.
+So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement. The last conjunct (presence in `d_B`) is what makes the report *recoverable* — every reported deletion has a concrete witness in the partner document.
 
 *Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. Since SHOWDELETIONS only reads state (established above) and `Q0` depends only on `Σ`'s components `M`, `R`, `dom(C)` — each evaluable at any state `Σ` — the wp formula is the precondition conjoined with `Q0` unpacked at the pre-state:
 
@@ -263,7 +263,7 @@ The example also illustrates the structural significance of the witness: `b` is 
 
 ## Distinguishing Deletions from Additions
 
-A naive set-difference of current ranges — `ran(M(d_A)) \ ran(M(d_B))` — would conflate two distinct phenomena: content `d_A` had that `d_B` deleted, and content `d_A` acquired (e.g., through insertion or transclusion) that `d_B` never received. The "show deletions" name and intent target only the former.
+A naive set-difference of current ranges — `ran(M(d_B)) \ ran(M(d_A))` — would conflate two distinct phenomena: content that `d_A` once held and deleted (still current in `d_B`), and content that `d_B` acquired (e.g., through insertion or transclusion) that `d_A` never received. The "show deletions" name and intent target only the former.
 
 Our definition forces the disambiguation by requiring `(a, d_A) ∈ R` for content reported as deleted-from-A. This says: `a` must have been in `d_A`'s arrangement at some point. Content that was only ever in `d_B`'s arrangement satisfies `NEVER_INCLUDED(a, d_A)` rather than `DELETED(a, d_A)`, and is correctly excluded from the deletion report.
 
@@ -330,7 +330,7 @@ The content-level guarantee — the union of both halves as a set of I-addresses
 
 **Claim D-ACT.** The output is in a form usable as input to any operation that consumes I-addresses to produce arrangement extensions.
 
-*Justification.* Each output element is an I-address in `dom(C)` (D-IDENT). Any operation whose input type accepts I-addresses (or spans thereof) can consume the output directly. The abstract specification fixes only the set of I-addresses; because each address retains its identity (D-IDENT), the output is directly consumable by any I-address-based operation.
+*Justification.* Each output element is an I-address in `dom(C)` retaining its identity (D-IDENT), hence directly consumable by any I-address-based operation.
 
 ## Observational Frame
 
