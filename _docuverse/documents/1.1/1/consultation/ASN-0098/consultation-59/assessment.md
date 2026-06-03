@@ -1,16 +1,15 @@
 # Channel Assignment — ASN-0098 review-59
 
-**Date:** 2026-06-03 05:39
+**Date:** 2026-06-03 05:40
 
 ## Issue 1: Repeated forward-deferral to the tightness/LP19 discussion
-Reason: Purely editorial. The conditional-growth fact is already proven locally in LP9's exact-difference formula; the fix only removes redundant "depends on construction discipline … established as LP19" pointers. No external evidence needed.
+Reason: Pure editorial deduplication. The local fact (K.μ⁺ growth is conditional on coverage membership) is already proven in LP9's exact-difference formula within the ASN; removing the repeated deferral pointers requires no external evidence.
 
 ## Issue 2: Placement-rationale prose in the LP12 introduction
-Reason: Internal. The substantive premise (only K.μ⁻ can shrink a projection to empty) is already established by LP9/LP10/LP11 within the ASN; removing the "natural site" document-structure justification requires no external input.
+Reason: Internal. Removing document-structure justification ("natural site for a wp derivation") and the redundant re-cite of LP9/LP11 conclusions is a prose trim derivable entirely from the ASN's own established claims.
 
 ## Issue 3: Recap restatement in LP18's closing
-Reason: Internal. The four recapped facts (L12, S0, live projection, I-address-based discovery) are all proven elsewhere in the note; compressing or dropping the enumeration is a self-contained edit.
+Reason: Internal. The (i)–(iv) enumeration restates facts (L12, S0, projection liveness, LP12) already proven in this note; compressing or dropping the recap is a self-contained editorial fix.
 
 ## Issue 4: Operation enumeration omits K.δ Node/Account cases
-Reason: The fix needs the actual frame of K.δ in the Node(e) and Account(e) cases — whether they truly leave every M(d) fixed and add no document. This is the operational definition in ASN-0047, an implementation/semantics fact best confirmed against the code rather than assumed from the reviewer's assertion.
-Gregory question: In the udanax-green K.δ operation, do the Node and Account creation cases leave every document arrangement M(d) unchanged and add no entry to dom(M), so that ran/dom of every arrangement is untouched?
+Reason: Internal. The frame fact (`M' = M` for K.δ Node/Account, adding no document) comes from ASN-0047, a dependency this ASN already cites for the Document(e) case; folding Node/Account into the arrangement-fixing template is derivable from that dependency's frame condition without new evidence.
