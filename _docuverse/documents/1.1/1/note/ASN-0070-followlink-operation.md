@@ -145,7 +145,7 @@ The postcondition fixes the *V-restricted denotation* of each component but not 
 
 In the vacuous case (`V_S(d) = ∅`), `Σ_V^S = ⟨⟩` (V-Restricted Denotation).
 
-**Theorem (F-canonical — CanonicalExistenceAndUniqueness).** Given `R(d, e)`, there exists exactly one per-subspace family satisfying the canonical-form shape of F-canon-form. Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`. We show each subspace component admits exactly one canonical representation: Step 2 develops the shared contiguity infrastructure, Step 3 exhibits a canonical form (existence), and Step 4 shows it is unique.
+**Theorem (F-canonical — CanonicalExistenceAndUniqueness).** Given `R(d, e)`, there exists exactly one per-subspace family satisfying the canonical-form shape of F-canon-form. Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`; we show each subspace component admits exactly one canonical representation.
 
 *Step 1 — Level-uniformity and ordinal-displacement widths.* By S8-depth (ASN-0036), and `m_L(d)` (ASN-0047) for the link subspace, all V-positions in `R(d, e)|_S` share the common depth `m_S(d)` (well-defined here since the subspace is non-empty). We must restrict component widths to ordinal displacements `δ(c, m_S(d))`. The restriction is forced by the finiteness and subspace-confinement requirements on `⟦σ⟧_V` for each component `σ = (s, ℓ)` with `#s = #ℓ = m_S(d)`, `subspace(s) = S`, and `s` positive in every component (clause (i) of CanonicalForm), by case analysis on `k = actionPoint(ℓ)`. Since `actionPoint(ℓ) ∈ [1, #ℓ]` (ActionPoint postcondition, ASN-0034) and `#ℓ = m_S(d)`, the cases `1 ≤ k < m_S(d)` and `k = m_S(d)` are jointly exhaustive.
 
@@ -161,7 +161,7 @@ By mutual inclusion, `⟦σ⟧_V = E`. The elements of `E` are pairwise distinct
 
 Only `k = m_S(d)` produces a component span suitable for the canonical form. Hence component widths are ordinal displacements `δ(c, m_S(d))` with `c ≥ 1`. The components are then level-uniform at length `m_S(d)` — the hypothesis of S6 (LevelConstraint, ASN-0053) — and mutually level-compatible.
 
-*Step 2 — Contiguity infrastructure.* Both the existence construction (Step 3) and the uniqueness argument (Step 4) rest on a precise notion of contiguity on depth-`m_S(d)` subspace-`S` tumblers; we develop it once here.
+*Step 2 — Contiguity infrastructure.* We define contiguity on depth-`m_S(d)` subspace-`S` tumblers.
 
 *Definition (consecutive tumblers).* For depth-`m_S(d)` subspace-`S` tumblers `t < t'`, we say `t, t'` are *consecutive* iff no depth-`m_S(d)` subspace-`S` tumbler `t''` satisfies `t < t'' < t'` under T1. A *maximal run* in a set `X` of such tumblers is a maximal subset of `X` that forms a chain under the consecutivity relation — i.e. its elements can be ordered `t_0 < t_1 < ... < t_{c-1}` with each `t_i` consecutive to its successor `t_{i+1}` (not pairwise consecutive: in such a chain `(t_0, t_2)` are *not* consecutive, since `t_1` lies strictly between them). Equivalently, a maximal run is a connected component of the consecutivity successor-relation restricted to `X`.
 
@@ -468,7 +468,7 @@ There is no exception, no error, no fallback. The empty per-subspace family (V-r
 
 **Preconditions.** As `follow`; additionally `v₁, v₂ ∈ dom(M(d))` with `v₁ ≠ v₂` and `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)`.
 
-**Postcondition.** By F-subspace, `subspace(v₁) = subspace_I(M(d)(v₁)) = subspace_I(a)` and `subspace(v₂) = subspace_I(M(d)(v₂)) = subspace_I(a)`, so `subspace(v₁) = subspace(v₂) = subspace_I(a)` — both V-positions inhabit the same subspace. Writing `S := subspace_I(a)`, both `v₁ ∈ ⟦Σ_V^S⟧_V` and `v₂ ∈ ⟦Σ_V^S⟧_V`.
+**Postcondition.** Writing `S := subspace_I(a)`, both `v₁ ∈ ⟦Σ_V^S⟧_V` and `v₂ ∈ ⟦Σ_V^S⟧_V` — the two distinct V-positions inhabit the same subspace component `S` and both appear in the result.
 
 **Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-subspace (this ASN); S3★-aux (SubspaceExhaustiveness, ASN-0047).
 
