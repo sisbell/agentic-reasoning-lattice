@@ -58,6 +58,8 @@ Given resolved I-addresses, FINDDOCSCONTAINING returns the documents whose arran
 
 The definition is brief. Everything FINDDOCSCONTAINING claims is contained in the predicate `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅`. The remainder of this ASN unpacks what that predicate guarantees.
 
+*Only content sharing can satisfy the predicate.* The range `ran(Σ.M(d))` carries both content-subspace and link-subspace images: by S3★, a content-subspace V-position routes into `dom(Σ.C)` and a link-subspace V-position into `dom(Σ.L)` (and by CL-OWN, ASN-0047, the latter are exactly `d`'s own links). The link-subspace portion can never contribute a match. We discharged the source side already — `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` by subspace confinement — and the target side is its dual: the link-subspace images lie in `dom(Σ.L)`, which is disjoint from `dom(Σ.C)` (ASN-0047 L14, StoreDisjointness: `dom(C) ∩ dom(L) = ∅`). Therefore `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.L) ∩ dom(Σ.C) ∪ dom(Σ.C) = dom(Σ.C)` — more precisely, any `a` in the intersection lies in `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`, so it cannot be a link image of `d`, and the witness `a ∈ ran(Σ.M(d))` must come from a content-subspace V-position. A document is returned because it shares *byte content*, never because it shares a *link* address. This is what justifies calling the operation content-transclusion discovery.
+
 The empty query is the boundary case. When `Q = ∅`, the union `iaddrs(∅)(Σ) = ⋃_{(d_s, σ) ∈ ∅} ...` is the empty set, so for every `d ∈ Σ.E_doc` the intersection `ran(Σ.M(d)) ∩ ∅ = ∅` is empty. Therefore `find(∅)(Σ) = ∅`. The operation is total on the empty input — no special case is needed in the definition.
 
 ## A worked scenario
@@ -73,10 +75,13 @@ Start from `Σ₀` and apply the following transitions of ASN-0047 (each precond
 5. K.δ creates document `d_B ∈ E_doc`.
 6. K.μ⁺ binds `M(d_B)(v_B) = a₁`, where `v_B = [s_C, 1]` is the minimum content-subspace V-position of `d_B`. This is transclusion: the I-address `a₁` allocated under `d_A` is now also referenced from `d_B`'s arrangement, *without* a new K.α emission. The bind is licensed by S3★ since `a₁ ∈ dom(C)`.
 7. K.ρ records provenance: `(a₁, d_B) ∈ R`. The composite (steps 5–7) discharges J1★ (ASN-0047): the content-subspace range of `M(d_B)` gains a new entry `a₁`, which forces `(a₁, d_B) ∈ R'`. The converse coupling J1'★ holds symmetrically — the new provenance entry corresponds to a range-new I-address.
+8. K.δ creates a third document `d_C ∈ E_doc` (a fresh document address; activates `A_C(d_C)`).
+9. K.α emits one content I-address `a₂` under `d_C`: `a₂ = [d_C.0.s_C.1]`, `Σ.C(a₂) = val_C` for some value `val_C ∈ Val`, `origin(a₂) = d_C`. Since `a₂` is allocated under `d_C`'s own sub-allocator while `a₁` is allocated under `d_A`'s, the two are distinct I-addresses: `a₂ ≠ a₁` (their tumbler prefixes differ at the document field).
+10. K.μ⁺ binds `M(d_C)(v_C) = a₂`, where `v_C = [s_C, 1]` is the minimum content-subspace V-position of `d_C`. K.ρ records `(a₂, d_C) ∈ R`. Document `d_C` references only its own native content `a₂`; it does not transclude `a₁`.
 
 The resulting state `Σ` has:
 
-  `Σ.E_doc ⊇ {d_A, d_B}`,   `Σ.C ⊇ {a₁ ↦ val_A}`,   `Σ.M(d_A) = {v_A ↦ a₁}`,   `Σ.M(d_B) = {v_B ↦ a₁}`,   `origin(a₁) = d_A`
+  `Σ.E_doc ⊇ {d_A, d_B, d_C}`,   `Σ.C ⊇ {a₁ ↦ val_A, a₂ ↦ val_C}`,   `Σ.M(d_A) = {v_A ↦ a₁}`,   `Σ.M(d_B) = {v_B ↦ a₁}`,   `Σ.M(d_C) = {v_C ↦ a₂}`,   `origin(a₁) = d_A`,   `origin(a₂) = d_C`
 
 Construct the query `Q = {(d_A, σ_A)}` with `σ_A = (v_A, δ(1, 2))` — a single-position level-uniform span starting at `v_A` with width 1 in the content subspace.
 
@@ -98,15 +103,17 @@ Positions in `⟦σ_A⟧ \ dom(M(d_A))` are silently dropped (F-FILT). Hence:
 
   `d = d_A`: `ran(M(d_A)) ∩ {a₁} = {a₁} ∩ {a₁} = {a₁} ≠ ∅`, so `d_A ∈ find(Q)(Σ)`.
   `d = d_B`: `ran(M(d_B)) ∩ {a₁} = {a₁} ∩ {a₁} = {a₁} ≠ ∅`, so `d_B ∈ find(Q)(Σ)`.
+  `d = d_C`: `ran(M(d_C)) ∩ {a₁} = {a₂} ∩ {a₁} = ∅` (since `a₂ ≠ a₁`), so `d_C ∉ find(Q)(Σ)`. This is the exclusion direction against a concrete non-containing document: `d_C` is a present member of `E_doc` with a non-empty arrangement, yet its range shares no I-address with `iaddrs(Q)(Σ)`, so the membership predicate evaluates to *false*.
   All other `d ∈ E_doc`: `a₁ ∉ ran(M(d))` (those documents reference no I-addresses), so `d ∉ find(Q)(Σ)`.
 
-Therefore `find(Q)(Σ) = {d_A, d_B}`.
+Therefore `find(Q)(Σ) = {d_A, d_B}` — `d_C` excluded.
 
 **What this verifies.**
 
 - *F-SHARE.* Both `d_A` and `d_B` are discovered by the same query, demonstrating cross-document discovery through shared I-address. The query named `(d_A, σ_A)` — `d_B` was not mentioned — yet `d_B` appears in the result because its arrangement references the resolved I-address.
 - *F-DIST.* Each document appears exactly once in `find(Q)(Σ) = {d_A, d_B}`, despite both satisfying the predicate. The result is a set; `d_A` is not duplicated even though it is both the source-document of `Q` and a member of the result.
 - *F-PART.* A single shared I-address (`a₁`) is sufficient for inclusion. The result does not require a document to reference any particular portion of the queried span.
+- *F-SOUND (exclusion).* `d_C` references content (`a₂`) but shares no I-address with `iaddrs(Q)(Σ) = {a₁}`, so the membership predicate evaluates to *false* and `d_C ∉ find(Q)(Σ)`. The biconditional is exercised in its harder, negative direction against a concrete non-containing document — membership is not merely an absence of mention but a tested empty intersection.
 - *F-FILT.* The span `⟦σ_A⟧` is an infinite subset of `T`, but the intersection with `dom(M(d_A)) = {v_A}` reduces it to a single position. The operation does not reject `σ_A` for naming positions outside `d_A`'s arrangement — unresolvable positions contribute nothing and the query reads charitably over what is currently bound.
 - *F-CUR.* The result depends only on `Σ.M(d_A)` and `Σ.M(d_B)`. Were a later K.μ⁻ to contract `M(d_B)` to remove `v_B`, the query would return `{d_A}` only — `d_B` would no longer be currently containing, even though `(a₁, d_B) ∈ R` would persist (P2).
 - *Home/transcluding recovery.* `origin(a₁) = d_A`, the home document of the content I-address `a₁` (grounded in `E_doc` by ASN-0047 P6, ExistentialCoherence), so the requester can distinguish: `d_A` is the home document of `a₁`, and `d_B` transcludes it. The operation itself does not tag the result; the tagging is a function the requester computes from each `a ∈ iaddrs(Q)` and each `d ∈ find(Q)`.
