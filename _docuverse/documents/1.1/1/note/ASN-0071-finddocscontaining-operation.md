@@ -17,7 +17,7 @@ Content can be named in two registers. By I-address — "the content at addresse
 
 We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s` is a document address naming a source document and `σ = (u, ℓ)` is a level-uniform V-span confined to the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) = #u`, `#ℓ = #u` (level-uniformity, ASN-0053 S6), and `actionPoint(ℓ) ≥ 2` (equivalently `ℓ₁ = 0`: the displacement does not perturb the subspace identifier at position 1; together with `actionPoint(ℓ) = #u` this also forces `#u ≥ 2`). Its denotation `⟦σ⟧` and reach `u ⊕ ℓ` used throughout are ASN-0053's (σ.denotation: `⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}`; σ.reach: `reach(σ) = start(σ) ⊕ width(σ)`); we apply those definitions rather than restate them below. A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
 
-A vspec relaxes ASN-0058's `ContentReference (d_s, σ)`, retaining only its T12 condition on `ℓ` and dropping that definition's subspace-non-emptiness, depth-match `#ℓ = #u = m_C`, and full-coverage demands — exactly the cases search must tolerate, since a query is posed against a source whose arrangement the requester does not control.
+A vspec is neither a pure relaxation nor a pure strengthening of ASN-0058's `ContentReference (d_s, σ)`; relative to that definition's conjuncts it *keeps* one, *strengthens* one, *retains* one, and *drops* three. It **keeps** `Pos(ℓ)` (the positivity half of T12). It **strengthens** T12's `actionPoint(ℓ) ≤ #u` to the equality `actionPoint(ℓ) = #u`, and adds the floor `actionPoint(ℓ) ≥ 2` — a stronger demand than T12 alone. It **retains** the level-uniformity equality `#ℓ = #u` (ASN-0053 S6) — the surviving half of `ContentReference`'s clause (iii) `#ℓ = #u = m_C`. It **drops** three demands that search cannot guarantee: the subspace-non-emptiness `V_{u₁}(d_s) ≠ ∅` (clause i), the depth-match `#u = m_C` (the `= m_C` half of clause iii), and the full-coverage requirement (well-formedness). These three are exactly the cases search must tolerate, since a query is posed against a source whose arrangement the requester does not control.
 
 We name the claim we need *prefix confinement* (PC): every `t ∈ ⟦σ⟧` agrees with `u` on all components `1 ≤ j < #u`. This is the relaxed analogue of ASN-0058's C0a; we derive it below from the vspec preconditions `subspace(u) = s_C` and `actionPoint(ℓ) = #u ≥ 2`.
 
@@ -41,11 +41,11 @@ For a vspec-set `Q`:
 
   `iaddrs(Q)(Σ) := ⋃_{(d_s, σ) ∈ Q} iaddrs_one(d_s, σ)(Σ)`
 
-`iaddrs_one` is the set-valued, deduplicating, coverage-tolerant counterpart of ASN-0058's `resolve(d_s, σ)`. Where `resolve` presumes the well-formed `ContentReference` of that foundation and yields an *ordered* sequence of run/width pairs `⟨(a₁, n₁), ..., (a_k, n_k)⟩` covering the whole span, `iaddrs_one` discards V-order and run structure, deduplicates, and quietly omits any span position absent from `dom(M(d_s))` (F-FILT). Where a vspec happens to be a well-formed `ContentReference`, the two coincide: `iaddrs_one(d_s, σ)(Σ)` is exactly the set of I-addresses appearing in `resolve(d_s, σ)`.
+`iaddrs_one` is the set-valued, deduplicating, coverage-tolerant counterpart of ASN-0058's `resolve(d_s, σ)`. Where `resolve` presumes the well-formed `ContentReference` of that foundation and yields an *ordered* sequence of run/width pairs `⟨(a₁, n₁), ..., (a_k, n_k)⟩` covering the whole span, `iaddrs_one` discards V-order and run structure, deduplicates, and quietly omits any span position absent from `dom(M(d_s))` (F-FILT). Where a vspec happens to be a well-formed `ContentReference`, the two coincide *as sets*: `resolve` decomposes `f = M(d_s)|⟦σ⟧` into maximally-merged runs (ASN-0058 C1a) whose coverage and consistency conditions (B1, B3) are exact, so every I-address `aⱼ + i` appearing in a run equals `f(v) = M(d_s)(v)` for some covered `v ∈ ⟦σ⟧ ∩ dom(M(d_s))`, and conversely every such `M(d_s)(v)` appears in exactly one run; the set of run I-addresses is therefore exactly `{ M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(M(d_s)) } = iaddrs_one(d_s, σ)(Σ)`.
 
 Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. With each `d_s ∈ Σ.E_doc` (by `wp-defined`), every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(Σ.C)` rather than `dom(Σ.L)`. We show subspace confinement first, then apply S3★.
 
-*Subspace confinement.* For every `t ∈ ⟦σ⟧`, PC's position-1 instance (proven in *The query*) gives `t₁ = u₁ = s_C`, hence `subspace(t) = s_C`.
+*Subspace confinement.* Every `t ∈ ⟦σ⟧` has `subspace(t) = s_C` — the subspace-confinement corollary already established in *The query* as PC's position-1 instance. We reuse that result rather than re-derive it.
 
 *Routing.* Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`.
 
@@ -159,6 +159,22 @@ Hence `iaddrs(Q_D)(Σ) = {a₁, a₂}`.
   `d = d_D`: `{a₁, a₂} ∩ {a₁, a₂} = {a₁, a₂} ≠ ∅`, so `d_D ∈ find(Q_D)(Σ)`. The whole resolved set.
 
 Therefore `find(Q_D)(Σ) = {d_A, d_B, d_C, d_D}`. Here `d_A` (sharing only `a₁`) and `d_C` (sharing only `a₂`) each qualify on one address out of two, sharing *disjoint* fragments of the query, yet both belong.
+
+**A multi-source query — cross-source deduplication.** Every query so far has been a singleton vspec-set, so `iaddrs`'s defining feature — the union *over several vspecs*, including dedup of an address resolved by more than one source — has not yet been traced. Take `Q_G = {(d_A, σ_A), (d_B, σ_B)}` with `σ_A = (v_A, δ(1, 2))` as before and `σ_B = (v_B, δ(1, 2))`, `v_B = [s_C, 1]`. The two vspecs name *distinct* source documents `d_A ≠ d_B`, yet both resolve the transcluded `a₁`:
+
+  `iaddrs_one(d_A, σ_A)(Σ) = {a₁}`,   `iaddrs_one(d_B, σ_B)(Σ) = {M(d_B)(v_B)} = {a₁}`
+
+The defining union collapses the two contributions to a single address — set union is idempotent on the shared `a₁` regardless of which source produced it:
+
+  `iaddrs(Q_G)(Σ) = {a₁} ∪ {a₁} = {a₁}`
+
+This is cross-source deduplication: two independent per-source resolutions both naming `a₁` yield `a₁` once, not twice.
+
+*Find.* Evaluate `ran(M(d)) ∩ {a₁} ≠ ∅`: it holds at `d_A` (`{a₁}`), `d_B` (`{a₁}`), and `d_D` (`{a₁, a₂}`), and fails at `d_C` (`{a₂}`). Therefore
+
+  `find(Q_G)(Σ) = {d_A, d_B, d_D}`
+
+Each document is reported exactly once (F-DIST). `d_D` references `a₁` at two non-adjacent positions (`w₁`, `w₃`) and is named by neither vspec of `Q_G`, yet appears a single time; `d_A` and `d_B` are each simultaneously a query *source* and a *result*, again listed once. Both layers of deduplication act here: the cross-source union folds the doubly-resolved `a₁`, and the `P(E_doc)` codomain folds the multiply-referencing document.
 
 **A cross-depth query.** We extend the construction with one depth-3 document, reaching a state `Σ⁺` that adds `d_E` to `Σ`:
 
