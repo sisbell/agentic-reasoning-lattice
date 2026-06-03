@@ -139,7 +139,7 @@ In the vacuous case (`V_S(d) = ∅`), `Σ_V^S = ⟨⟩` (V-Restricted Denotation
 
 **Theorem (F-canonical — CanonicalExistenceAndUniqueness).** Given `R(d, e)`, there exists exactly one per-subspace family satisfying the canonical-form shape of F-canon-form. Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`; we show each subspace component admits exactly one canonical representation. We dispatch the vacuous subspace first (Step 0), then treat the non-empty case (Steps 1–5).
 
-*Step 0 — Vacuous subspace base case.* When `V_S(d) = ∅`, the depth `m_S(d)` is undefined and `S` is vacuous in `d` (Setting). Since `R(d, e) ⊆ dom(M(d))` (F0), the projection satisfies `R(d, e)|_S = R(d, e) ∩ {v : subspace(v) = S} ⊆ dom(M(d)) ∩ {v : subspace(v) = S} = V_S(d) = ∅` unconditionally. The canonical-form shape (F-canon-form clause (i)) requires every component span to be a level-uniform span at depth `m_S(d)`; with `m_S(d)` undefined, no non-empty span-set is admissible, so the only candidate representative is the empty span-set `⟨⟩`. The V-restricted convention `⟦⟨⟩⟧_V := ∅` (F-canon-form, vacuous case) makes `⟨⟩` admissible — `⟦⟨⟩⟧_V = ∅ = R(d, e)|_S` — discharging existence; and since `⟨⟩` is the *only* admissible candidate, uniqueness holds by the convention.
+*Step 0 — Vacuous subspace base case.* When `V_S(d) = ∅`, the Vacuous-subspace convention already gives `R(d, e)|_S = ∅` unconditionally (with `m_S(d)` undefined). It remains to fix the canonical representative. The canonical-form shape (F-canon-form clause (i)) requires every component span to be a level-uniform span at depth `m_S(d)`; with `m_S(d)` undefined, no non-empty span-set is admissible, so the only candidate representative is the empty span-set `⟨⟩`. The V-restricted convention `⟦⟨⟩⟧_V := ∅` (F-canon-form, vacuous case) makes `⟨⟩` admissible — `⟦⟨⟩⟧_V = ∅ = R(d, e)|_S` — discharging existence; and since `⟨⟩` is the *only* admissible candidate, uniqueness holds by the convention.
 
 *Step 1 — Level-uniformity and ordinal-displacement widths.* By S8-depth (ASN-0036), and `m_L(d)` (ASN-0047) for the link subspace, all V-positions in `R(d, e)|_S` share the common depth `m_S(d)` (well-defined here since the subspace is non-empty). We must restrict component widths to ordinal displacements `δ(c, m_S(d))`. The restriction is forced by the finiteness and subspace-confinement requirements on `⟦σ⟧_V` for each component `σ = (s, ℓ)` with `#s = #ℓ = m_S(d)`, `subspace(s) = S`, and `s` positive in every component (clause (i) of CanonicalForm), by case analysis on `k = actionPoint(ℓ)`. Since `actionPoint(ℓ) ∈ [1, #ℓ]` (ActionPoint postcondition, ASN-0034) and `#ℓ = m_S(d)`, the cases `1 ≤ k < m_S(d)` and `k = m_S(d)` are jointly exhaustive.
 
@@ -427,7 +427,7 @@ follow(ℓ, d', 3) = (d', (⟨([1, 2], δ(1, 2))⟩, ⟨⟩))
 
 - *F-slot.* Slots 1 and 3 route through the identical inverse-image mechanism `R(d', L(ℓ).eᵢ)|_S`; the differing results (`[1, 1]` vs `[1, 2]`) trace entirely to the differing endsets (`e₁` reaches `a₀`, `e₃` reaches `a₀ + 1`), not to differing routing. The type endset `e₃` resolves by the same definition as the from-endset `e₁`. ✓
 
-*F-multidoc.* Follow the *same* `ℓ` and slot 1 against `d` (Configuration 1's arrangement). Coverage `subtree(a₀)` meets `β₂` and `β₃` — both holding `a₀` in their I-extent — at index 0, and misses `β₁` (P-alloc) and `β_L` (L14): `follow(ℓ, d, 1) = (d, (⟨([1, 1], δ(1, 2)), ([1, 6], δ(1, 2))⟩, ⟨⟩))`. Against `d'` the same link and slot give `follow(ℓ, d', 1) = (d', (⟨([1, 1], δ(1, 2))⟩, ⟨⟩))`. One link resolved against two distinct documents `d ≠ d'` by one mechanism, each result paired with its own document; `home(ℓ)` — in general neither `d` nor `d'` — plays no privileged role, since resolution reads only the respective `M(d)`/`M(d')` and `coverage(L(ℓ).e₁)`. The two empty `s_L`-components arise differently: in `d` from a populated link subspace coverage misses, in `d'` from a vacuous one by convention. ✓
+*F-multidoc.* Follow the *same* `ℓ` and slot 1 against `d` (Configuration 1's arrangement). Coverage `subtree(a₀)` meets `β₂` and `β₃` — both holding `a₀` in their I-extent — at index 0, and misses `β₁` (P-alloc) and `β_L` (L14): `follow(ℓ, d, 1) = (d, (⟨([1, 1], δ(1, 2)), ([1, 6], δ(1, 2))⟩, ⟨⟩))`. Against `d'` the same link and slot give `follow(ℓ, d', 1) = (d', (⟨([1, 1], δ(1, 2))⟩, ⟨⟩))`. One link resolved against two distinct documents `d ≠ d'` by one mechanism, each result paired with its own document; `home(ℓ)` — in general neither `d` nor `d'` — plays no privileged role, since resolution reads only the respective `M(d)`/`M(d')` and `coverage(L(ℓ).e₁)`. ✓
 
 ## Derived Properties
 
@@ -486,7 +486,7 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 4. *Project per subspace.* `R(d, L(ℓ).eᵢ)|_S = R(d, L(ℓ).eᵢ) ∩ {v : subspace(v) = S} = ∅` for each `S ∈ {s_C, s_L}`.
 5. *Apply F1.* By the postcondition of `follow`, `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S = ∅` for each `S`.
 
-This establishes the V-restricted denotational conclusion unconditionally. With `R(d, e)|_S = ∅` fixed (step 4), F-canonical's uniqueness clause gives `⟨⟩` as the sole canonical representative of `∅`, so `Σ_V^S = ⟨⟩` for each `S`. (An empty component can arise two ways — a vacuous subspace where `m_S(d)` is undefined, or a populated subspace whose coverage missed all link material — but F-canonical's uniqueness covers both alike.) ∎
+This establishes the V-restricted denotational conclusion unconditionally. With `R(d, e)|_S = ∅` fixed (step 4), F-canonical's uniqueness clause gives `⟨⟩` as the sole canonical representative of `∅`, so `Σ_V^S = ⟨⟩` for each `S` — F-canonical's uniqueness covers the empty case regardless of cause. ∎
 
 ### F-multi — MultiplicityPreservation (LEMMA)
 
@@ -542,8 +542,6 @@ This is the structural form of Nelson's commitment that "non-native bytes are as
 
 **Depends.** L12 (LinkImmutability, ASN-0043) — the link store is monotonic and value-preserving. L12a (LinkStoreMonotonicity, ASN-0043).
 
-**Frame.** The persistence is a property of `Σ.L` across transitions, observed via `follow`.
-
 Empty resolution does not destroy the link.
 
 ### F-state — StateDependenceCorollary (COROLLARY)
@@ -553,8 +551,6 @@ Empty resolution does not destroy the link.
 **Postcondition.** `R_Σ(d, L(ℓ).eᵢ)` and `R_{Σ'}(d, L(ℓ).eᵢ)` may differ even though `L_Σ(ℓ) = L_{Σ'}(ℓ)` (by L12). The difference, when present, originates entirely in `M_Σ(d) ≠ M_{Σ'}(d)`.
 
 **Depends.** L12 (link state-invariance); the transition semantics of ASN-0047 (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L) that admit `M(d)` — the only state component `R` reads — to vary across transitions.
-
-**Frame.** The variation observed here is in `M(d)` across the transition `Σ → Σ'`.
 
 ### F-multidoc — NoPreferredDocument (LEMMA)
 
