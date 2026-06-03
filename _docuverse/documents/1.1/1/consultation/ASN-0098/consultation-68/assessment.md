@@ -1,8 +1,12 @@
-# Channel Assignment — ASN-0051 review-68
+# Channel Assignment — ASN-0098 review-68
 
-**Date:** 2026-05-17 19:36
+**Date:** 2026-06-03 06:22
 
-```
-## Issue 1: Case (IV) bound in the four-case structural lemma is too strict
-Reason: Pure proof-correctness fix derivable from T1 (LexicographicOrder, ASN-0034) already cited in the ASN; the reviewer supplies a concrete counterexample and the corrected bound `p ≤ min(#y, #e − 1)`. No design intent or implementation evidence is at stake — only the algebraic statement of the divergence-position bound and the gloss that accompanies it.
-```
+## Issue 1: LP3 proof closes with a redundant English restatement
+Reason: Pure deletion of a redundant prose sentence; the formal discharge already present in the ASN makes the fix internal, requiring no design intent or implementation evidence.
+
+## Issue 2: Roadmap meta-prose at the projection definition duplicates LP4
+Reason: Removing duplicated roadmap sentences whose content is already load-bearing inside LP4's proof; entirely derivable from the ASN's own structure.
+
+## Issue 3: Closing tightness paragraph restates the worked numerical contrast
+Reason: Trimming conceptual prose that re-states the preceding worked "Non-tight contrast" example; the retained one-sentence point and the fix are internal to the ASN.
