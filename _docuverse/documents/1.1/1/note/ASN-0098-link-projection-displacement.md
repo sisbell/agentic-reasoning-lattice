@@ -68,16 +68,9 @@ a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ
 
 L12 (ASN-0043) supplies two conclusions on the hypothesis `a ∈ dom(Σ.L)`: address persistence `a ∈ dom(Σ'.L)` (which makes the slot accessor on the left-hand side well-defined) and value preservation `Σ'.L(a) = Σ.L(a)`. The slot equation then follows by component projection on the sequence: equal sequences have equal entries at every position.
 
-**LP2★ — MultiStepSlotInvariance**: For every reachable state sequence `Σ →* Σ'`, every link `a ∈ dom(Σ.L)`, and every slot index `i ∈ {1, …, |Σ.L(a)|}`:
-```
-a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ
-```
-
-This is the reflexive-transitive closure of LP2 under the following schema, which we state once and reuse.
+We will repeatedly need to lift single-step preservation guarantees to multi-step reachability. We state the closure principle once and reuse it.
 
 *Closure schema (★).* Let `P(Σ, Σ')` be a finite conjunction of membership-persistence clauses (`x ∈ dom(Σ.X) ⟹ x ∈ dom(Σ'.X)`) and value-preservation clauses (`f(Σ') = f(Σ)`, each accessor `f` well-defined once its accompanying membership clause holds). If the single-step guarantee `Σ → Σ' ⟹ P(Σ, Σ')` holds, then so does its closure `Σ →* Σ' ⟹ P(Σ, Σ')`. Proof by induction on the length of the transition sequence: the empty sequence (`Σ = Σ'`) discharges every clause — memberships by reflexivity of `∈`, equalities by reflexivity of `=`; the inductive step `Σ →* Σ_n → Σ'` composes the induction hypothesis `P(Σ, Σ_n)` with the single step `P(Σ_n, Σ')` — memberships chain through `Σ_n`, value-equalities by transitivity of `=`.
-
-LP2★ is schema (★) applied to LP2, with `P(Σ, Σ') ≡ a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ`.
 
 **LP3 — CoverageInvariance**: For every transition `Σ → Σ'`, every link `a ∈ dom(Σ.L)`, and every slot `i`:
 ```
@@ -91,14 +84,14 @@ LP2 supplies both conjuncts: `a ∈ dom(Σ'.L)` directly (so the slot accessor o
 a ∈ dom(Σ'.L) ∧ coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)
 ```
 
-Schema (★) of LP2★ applied to LP3, with `P(Σ, Σ') ≡ a ∈ dom(Σ'.L) ∧ coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`.
+Schema (★) applied to LP3, with `P(Σ, Σ') ≡ a ∈ dom(Σ'.L) ∧ coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`.
 
 **Store Monotonicity★**: For every reachable state sequence `Σ →* Σ'`:
 ```
 dom(Σ.C) ⊆ dom(Σ'.C)  ∧  dom(Σ.L) ⊆ dom(Σ'.L)
 ```
 
-Schema (★) of LP2★ applied to the single-step monotonicity guarantees C0 of ASN-0093 (content) and L12 of ASN-0093 (links, in its membership-persistence consequence), with `P(Σ, Σ') ≡ dom(Σ.C) ⊆ dom(Σ'.C) ∧ dom(Σ.L) ⊆ dom(Σ'.L)` (the containment clauses are the set-valued instance of the schema's membership-persistence form).
+Schema (★) applied to the single-step monotonicity guarantees C0 of ASN-0093 (content) and L12 of ASN-0093 (links, in its membership-persistence consequence), with `P(Σ, Σ') ≡ dom(Σ.C) ⊆ dom(Σ'.C) ∧ dom(Σ.L) ⊆ dom(Σ'.L)` (the containment clauses are the set-valued instance of the schema's membership-persistence form).
 
 ## Frame Conditions: When Projection Does Not Move
 
@@ -260,7 +253,7 @@ The phrase "anything is left at each end" can now be stated formally: discoverab
 a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)
 ```
 
-L12 (ASN-0043) is the single-step guarantee `Σ → Σ' ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)` — full value equality of the stored link object, arity included, with no recourse to slot decomposition. This is a membership-persistence clause together with a value-preservation clause on the accessor `f(Σ) = Σ.L(a)`, so schema (★) applies with `P(Σ, Σ') ≡ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`, yielding the multi-step closure `Σ →* Σ' ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`. Persistence requires only `a ∈ dom(Σ.L)` and is independent of arrangement state, whereas discoverability is arrangement-conditional (LP9–LP11). A holder can therefore rely on the stored object permanently, but not on discoverability from any particular document without further conditions on that document's arrangement.
+L12 (ASN-0043) is the single-step guarantee `Σ → Σ' ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)` — full value equality of the stored link object, arity included, with no recourse to slot decomposition. This is a membership-persistence clause together with a value-preservation clause on the accessor `f(Σ) = Σ.L(a)`, so schema (★) applies with `P(Σ, Σ') ≡ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`, yielding the multi-step closure `Σ →* Σ' ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`. Persistence requires only `a ∈ dom(Σ.L)` and is independent of arrangement state, so a holder can rely on the stored object permanently — whereas discoverability is arrangement-conditional (LP9–LP11) and cannot be assumed from any particular document without further conditions on that document's arrangement.
 
 ## Discovery Independence of Origin
 
@@ -492,7 +485,7 @@ Throughout both branches the link itself stays byte-identical (LP13, LP2); only 
 | Label | Statement | Status |
 |-------|-----------|--------|
 | LP2 | `(A Σ → Σ', a ∈ dom(Σ.L), i : 1 ≤ i ≤ |Σ.L(a)| : Σ'.L(a).eᵢ = Σ.L(a).eᵢ)` — slot invariance | introduced |
-| LP2★ | Multi-step slot invariance: for `Σ →* Σ'`, `a ∈ dom(Σ.L)`, slot `i`, `a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ` | introduced |
+| Closure schema (★) | Single-step preservation `Σ → Σ' ⟹ P(Σ, Σ')` (membership-persistence and value-preservation clauses) lifts to `Σ →* Σ' ⟹ P(Σ, Σ')` | introduced |
 | LP3 | `(A Σ → Σ', a, i : a ∈ dom(Σ.L) : coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ))` — coverage invariance | introduced |
 | LP3★ | Multi-step coverage invariance: for `Σ →* Σ'`, `a ∈ dom(Σ.L)`, slot `i`, `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` | introduced |
 | Store Monotonicity★ | `Σ →* Σ' ⟹ dom(Σ.C) ⊆ dom(Σ'.C) ∧ dom(Σ.L) ⊆ dom(Σ'.L)` | introduced |
