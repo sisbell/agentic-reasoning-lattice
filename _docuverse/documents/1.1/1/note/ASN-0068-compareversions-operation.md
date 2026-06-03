@@ -222,35 +222,24 @@ The result is therefore:
 
 The identity diagonal aggregates into a single width-2 run (because consecutive offsets share I-addresses pointwise under the identity map), while the off-diagonal self-transclusion correspondences each remain as their own width-1 run (because adjacent offsets do not preserve the off-diagonal alignment — extending an off-diagonal width-1 run would require the next a-side and b-side V-positions to also share an I-address at the same cross-side offset, which would require additional self-transclusion structure that this `M(d)` does not exhibit). CV-MAX's unique-witness property is observable concretely: the four pairs in `corr_{a,a}` are partitioned across the three runs as (2, 1, 1), each pair witnessed at exactly one offset of exactly one run.
 
-This example also shows why CV-FIN's product bound, not the smaller `min(|dom(M(d_a))|, |dom(M(d_b))|)`, is the correct upper bound on `|MaxRuns|`: here `|MaxRuns| = 3 > 2 = min(|dom(M(d))|, |dom(M(d))|)`, so the interior minimum is not in general a bound. The product bound `|dom(M(d_a))| · |dom(M(d_b))|` is itself not always tight — Example 1 achieves `|MaxRuns| = 1` against a product bound of `3 · 4 = 12` — but it is the smallest bound expressible from cardinalities of `dom(M)` alone.
+This example also shows that `|MaxRuns|` can exceed `min(|dom(M(d_a))|, |dom(M(d_b))|)`: here `|MaxRuns| = 3 > 2 = min(|dom(M(d))|, |dom(M(d))|)`.
 
 The set of maximal correspondence runs admits a natural presentational view as a pair of V-spans per run.
 
-> **CV-SPAN-VIEW** (*span-pair projection*): For admissible input `(d_a, R_a, d_b, R_b)` with `V_S(d_a) ≠ ∅` and `V_S(d_b) ≠ ∅` (so `m_a, m_b` are supplied by S8-depth, ASN-0036), the per-run projection
+> **CV-SPAN-VIEW** (*span-pair projection*): For admissible input `(d_a, R_a, d_b, R_b)` with `V_S(d_a) ≠ ∅` and `V_S(d_b) ≠ ∅` (so the induced depths `m_a, m_b` are supplied by S8-depth, ASN-0036), the per-run projection
 >
 >     `π_{m_a, m_b} : MaxRuns → Span × Span`
 >     `π_{m_a, m_b}(v_a, v_b, n) = ((v_a, δ(n, m_a)), (v_b, δ(n, m_b)))`
 >
-> sends each maximal correspondence run to a single pair of level-uniform V-spans (an element of `Span × Span`, not a set). Lifting per-run to set-level via the standard image construction
->
->     `π*_{m_a, m_b} : Result → P(Span × Span)`
->     `π*_{m_a, m_b}(M) = { π_{m_a, m_b}(r) : r ∈ M }`
->
-> yields the set-level projection that takes a `MaxRuns` value to the set of its constituent span-pairs.
->
-> The per-run map and its set-level lift satisfy three postconditions:
+> sends each maximal correspondence run to a single pair of level-uniform V-spans (an element of `Span × Span`, not a set), and satisfies two postconditions:
 >
 > (a) *Well-formedness.* For each `(v_a, v_b, n) ∈ MaxRuns`, the output pair `(σ_a, σ_b) = π_{m_a, m_b}(v_a, v_b, n)` consists of two level-uniform V-spans (S6, ASN-0053) satisfying T12 (ASN-0034) at their respective document depths.
 >
-> (b) *Injectivity.* `π_{m_a, m_b}` is injective on `MaxRuns` — distinct runs project to distinct span-pairs. The set-level lift `π*_{m_a, m_b}` is correspondingly injective on `Result`, so `π*_{m_a, m_b}` is a bijection between `Result` and its image `π*_{m_a, m_b}(Result) ⊆ P(Span × Span)`.
->
-> (c) *Input parameterization.* `π_{m_a, m_b}` (and hence `π*_{m_a, m_b}`) depends on the input `(d_a, R_a, d_b, R_b)` only through the induced depths `(m_a, m_b)`. For fixed depths, the bijection between `MaxRuns` and `π_{m_a, m_b}(MaxRuns)` is determinate. This is an *input-dependent* presentational equivalence: the same triple `(v_a, v_b, n)` projects to different span-pairs at different depth pairs.
+> (b) *Injectivity.* `π_{m_a, m_b}` is injective on `MaxRuns` — distinct runs project to distinct span-pairs — hence the run-set is recoverable from its span-pair image.
 
 *Verification.* (a) By OrdinalDisplacement (ASN-0034), `δ(n, m_a) ∈ T`, `Pos(δ(n, m_a))` (since `n ≥ 1`), and `actionPoint(δ(n, m_a)) = m_a`. By S8-depth (ASN-0036), `v_a` (a V-position in subspace `S` of `d_a`) has length `#v_a = m_a`, so `actionPoint(δ(n, m_a)) = m_a ≤ #v_a` discharges the T12 precondition for span well-formedness of `σ_a`. Level-uniformity (S6, ASN-0053) follows from `#δ(n, m_a) = m_a = #v_a`. The same chain with `m_b` in place of `m_a` establishes well-formedness and level-uniformity of `σ_b`.
 
-(b) Suppose `π_{m_a, m_b}(v¹_a, v¹_b, n¹) = π_{m_a, m_b}(v²_a, v²_b, n²)`. Equality of pairs gives `v¹_a = v²_a`, `v¹_b = v²_b`, `δ(n¹, m_a) = δ(n², m_a)`, and `δ(n¹, m_b) = δ(n², m_b)`. By OrdinalDisplacement's defining form `δ(n, m) = [0, ..., 0, n]` and T3 (ASN-0034), the third equation forces `n¹ = n²`. Therefore `(v¹_a, v¹_b, n¹) = (v²_a, v²_b, n²)` — `π_{m_a, m_b}` is injective. The set-level lift `π*_{m_a, m_b}` inherits injectivity, since an injection induces an injection on the powerset.
-
-(c) Immediate from the definition: `π_{m_a, m_b}` consults `(m_a, m_b)` and the run components, but no other features of the inputs.
+(b) Suppose `π_{m_a, m_b}(v¹_a, v¹_b, n¹) = π_{m_a, m_b}(v²_a, v²_b, n²)`. Equality of pairs gives `v¹_a = v²_a`, `v¹_b = v²_b`, `δ(n¹, m_a) = δ(n², m_a)`, and `δ(n¹, m_b) = δ(n², m_b)`. By OrdinalDisplacement's defining form `δ(n, m) = [0, ..., 0, n]` and T3 (ASN-0034), the third equation forces `n¹ = n²`. Therefore `(v¹_a, v¹_b, n¹) = (v²_a, v²_b, n²)` — `π_{m_a, m_b}` is injective.
 
 *Example 4 (differing depths).* Let `d_a` have V-position depth `m_a = 2` and `d_b` have V-position depth `m_b = 3` in the content subspace `S = s_C`. Let `a₁, a₂` be distinct I-addresses in `dom(C)`. Suppose
 
@@ -373,7 +362,7 @@ This is a separation of concerns. The version-graph structure makes any historic
 | CV-MAX | `MaxRuns(d_a, R_a, d_b, R_b)` is uniquely determined; every pair in `corr_{a,b}` is witnessed by exactly one maximal run | introduced |
 | CV-EMPTY | When `⟦R_a⟧ ∩ dom(M(d_a)) = ∅` or `⟦R_b⟧ ∩ dom(M(d_b)) = ∅`, `MaxRuns(d_a, R_a, d_b, R_b) = ∅` | introduced |
 | CV-FIN | The result is finite, with `|MaxRuns| ≤ |corr_{a,b}| ≤ |dom(M(d_a))| · |dom(M(d_b))| < ∞` (by S8-fin, ASN-0036) | introduced |
-| CV-SPAN-VIEW | Per-run span-pair projection `π_{m_a, m_b} : MaxRuns → Span × Span` sending `(v_a, v_b, n)` to `((v_a, δ(n, m_a)), (v_b, δ(n, m_b)))` is well-formed (level-uniform spans satisfying T12), injective, and input-parameterized by the induced depths; its set-level image lift `π*_{m_a, m_b} : Result → P(Span × Span)` inherits injectivity, placing `Result` in bijection with `π*_{m_a, m_b}(Result) ⊆ P(Span × Span)` | introduced |
+| CV-SPAN-VIEW | Per-run span-pair projection `π_{m_a, m_b} : MaxRuns → Span × Span` sending `(v_a, v_b, n)` to `((v_a, δ(n, m_a)), (v_b, δ(n, m_b)))` is well-formed (level-uniform spans satisfying T12) and injective | introduced |
 | CV-ATOM | Byte-granular construction: width-1 runs are admissible and preserved by CV-MAX's existence + uniqueness; aggregation into wider runs is forced by uniqueness, not chosen; no quotation-length cutoff, merge window, or block-alignment offset is consulted | introduced |
 | CV-SYM | Operand-swap symmetry: there is a bijection swapping each run `(v_a, v_b, n)` with `(v_b, v_a, n)` between the two orderings of the operation | introduced |
 | CV-RO | The operation is read-only — no component of `Σ` is modified by its invocation; it is not an element of the transition vocabulary | introduced |
