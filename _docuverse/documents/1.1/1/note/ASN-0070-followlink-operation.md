@@ -21,10 +21,10 @@ By L4 (ASN-0043), endset spans may reference any addresses in tumbler space, inc
 Documents arrange I-addresses into V-positions. The arrangement of document `d` is the partial function `M(d) : T ⇀ T` from V-positions to I-addresses (ASN-0036, generalised by S3★ of ASN-0047). For any `v ∈ dom(M(d))`, `M(d)(v)` is the I-address that `d` currently places at V-position `v`. V-positions occupy two subspaces, distinguished by their first component: `subspace(v) = s_C` for content-subspace V-positions and `subspace(v) = s_L` for link-subspace V-positions.
 
 Within each subspace `S` of document `d`, V-positions share a common depth, written `m_S(d)`:
-- For `S = s_L`: `m_{s_L}(d) ≥ 2`, fixed when `V_{s_L}(d) ≠ ∅` (S8-depth, ASN-0036; `m_L(d)`, ASN-0047), pinned by the first link insertion (`ValidFirstLinkPosition` of K.μ⁺_L, for any chosen `m ≥ 2`) and held thereafter. When `V_{s_L}(d) = ∅`, `m_{s_L}(d)` is undefined and the link subspace of `d` is vacuous; the next insertion re-pins it from scratch at any value `≥ 2`.
-- For `S = s_C`: `m_{s_C}(d) ≥ 2` is defined when `V_{s_C}(d) ≠ ∅` (S8-depth, ASN-0036), pinned by the first content insertion (ValidFirstInsertionPosition) and held thereafter. When `V_{s_C}(d) = ∅`, `m_{s_C}(d)` is undefined and the content subspace of `d` is vacuous.
+- For `S = s_L`: `m_{s_L}(d) ≥ 2`, fixed when `V_{s_L}(d) ≠ ∅` (S8-depth, ASN-0036; `m_L(d)`, ASN-0047), pinned by the first link insertion (`ValidFirstLinkPosition` of K.μ⁺_L, for any chosen `m ≥ 2`) and held thereafter.
+- For `S = s_C`: `m_{s_C}(d) ≥ 2` is defined when `V_{s_C}(d) ≠ ∅` (S8-depth, ASN-0036), pinned by the first content insertion (ValidFirstInsertionPosition) and held thereafter.
 
-The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide.
+For either subspace, when `V_S(d) = ∅` the depth `m_S(d)` is undefined and `S` is vacuous in `d`; the next insertion re-pins it from scratch at any value `≥ 2`. The resolution consequence — that a vacuous subspace forces `Σ_V^S = ⟨⟩` — is fixed once as the *vacuous-subspace convention* (V-Restricted Denotation, below); passages downstream cite it rather than re-derive it. The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide.
 
 What lies in `dom(Σ.C) ∪ dom(Σ.L)` but not in `ran(M(d))` is content or link material stored in the system but not arranged in `d`. By the permanence invariants (P0, P1, L12 of ASN-0047), the stored material persists; only the arrangement varies. The arrangement is the variable; storage is the constant.
 
@@ -56,7 +56,7 @@ The partition is disjoint (subspace is single-valued per the first-component pro
 
 **Frame.** State-pure: `R` reads `M(d)` and `coverage(e)`; modifies nothing.
 
-The definition is *abstract*. It does not depend on how `M(d)` is stored, decomposed, or accessed. It does not depend on the order or structure of spans within `e`. Two endsets with the same coverage produce the same `R(d, e)`. Resolution is a function of coverage and arrangement — nothing more. Coverage may reach the arrangement fully, partially, or not at all; the inverse image handles all three uniformly, the empty set among them (formalised as F-empty).
+The definition is *abstract*. It does not depend on how `M(d)` is stored, decomposed, or accessed. It does not depend on the order or structure of spans within `e`. Two endsets with the same coverage produce the same `R(d, e)`. Resolution is a function of coverage and arrangement — nothing more. The intersection `coverage(e) ∩ ran(M(d))` may be any subset of `ran(M(d))`, including `∅`; `R(d, e)` is defined uniformly regardless.
 
 Within each subspace component, V-positions share common depth (S8-depth of ASN-0036; `m_L(d)` of ASN-0047 for the link subspace), so each component is level-uniform and amenable to span-set representation.
 
@@ -93,8 +93,6 @@ The `s_C`-component of the result picks out the content-subspace portion of cove
 
 **Derived guarantee (lookup totality).** Resolution never yields a V-position whose subsequent store access fails. For every `v ∈ R(d, e)|_{s_C}`, the content lookup `M(d)(v) ∈ dom(C)` always succeeds, by S3★ (GeneralizedReferentialIntegrity, ASN-0047). For every `v ∈ R(d, e)|_{s_L}`, the image `M(d)(v) ∈ dom(L)`, disjoint from `dom(C)` by L14 (StoreDisjointness, ASN-0047), so a `C`-lookup does not apply by design — the appropriate access is the link store. Both branches are determined by the foundations; there is no resolution outcome that references absent content.
 
-From this single relation, the entire specification of FOLLOWLINK follows.
-
 ## Result Form and the Operation
 
 `R(d, e)` is a set of V-positions. For transmission, storage, and presentation we require a finite representation. The natural representation is a per-subspace family of span-sets in V-space (ASN-0053).
@@ -115,7 +113,7 @@ The span-set denotation `⟦Σ⟧` of ASN-0053 is taken over all of `T`: by T12 
 
 — the projection of the raw span-set denotation onto V-positions of subspace `S` at the document's common depth. The positivity clause `(A i : 1 ≤ i ≤ m_S(d) : t_i ≥ 1)` is justified by S8a (ASN-0036): every `v ∈ dom(M(d))` has all components positive, so `R(d, e)|_S ⊆ dom(M(d))` consists only of positive-component tumblers.
 
-When `m_S(d)` is undefined — which occurs for either subspace `S ∈ {s_C, s_L}` when `V_S(d) = ∅` — no depth-`m_S(d)` predicate is available against which to restrict, and no V-position in subspace `S` exists in `dom(M(d))`; hence `R(d, e)|_S = ∅` unconditionally. We adopt the convention that the only admissible span-set in this vacuous case is the empty sequence `Σ_V^S = ⟨⟩`, and `⟦⟨⟩⟧_V := ∅`. The postcondition `⟦Σ_V^S⟧_V = R(d, e)|_S = ∅` is then satisfied uniquely by `⟨⟩`, preserving canonical-form uniqueness when the subspace is vacuous.
+**Vacuous-subspace convention.** When `m_S(d)` is undefined — which occurs for either subspace `S ∈ {s_C, s_L}` when `V_S(d) = ∅` — no depth-`m_S(d)` predicate is available against which to restrict, and no V-position in subspace `S` exists in `dom(M(d))`; hence `R(d, e)|_S = ∅` unconditionally. We adopt the convention that the only admissible span-set in this vacuous case is the empty sequence `Σ_V^S = ⟨⟩`, and `⟦⟨⟩⟧_V := ∅`. The postcondition `⟦Σ_V^S⟧_V = R(d, e)|_S = ∅` is then satisfied uniquely by `⟨⟩`, preserving canonical-form uniqueness when the subspace is vacuous. This is the single statement of the vacuous case; The Setting, F1, and F-canon-form cite it.
 
 For the full family `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})`, define the joint V-restricted denotation:
 
@@ -133,7 +131,7 @@ Concretely, the operation FOLLOWLINK has the following form:
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
 
-**Postcondition.** `follow(ℓ, d, i) = (d, (Σ_V^{s_C}, Σ_V^{s_L}))` where each `Σ_V^S` is a finite V-span-set whose components are spans in subspace `S` of depth `m_S(d)` when `V_S(d) ≠ ∅`; when `V_S(d) = ∅` (so `m_S(d)` is undefined), `Σ_V^S = ⟨⟩` by the V-restricted denotation convention. In either case:
+**Postcondition.** `follow(ℓ, d, i) = (d, (Σ_V^{s_C}, Σ_V^{s_L}))` where each `Σ_V^S` is a finite V-span-set whose components are spans in subspace `S` of depth `m_S(d)` when `V_S(d) ≠ ∅`; when `V_S(d) = ∅` (so `m_S(d)` is undefined), `Σ_V^S = ⟨⟩` by the vacuous-subspace convention (V-Restricted Denotation). In either case:
 
 ```
 ⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S    for each S ∈ {s_C, s_L}
@@ -157,7 +155,7 @@ The postcondition fixes the *V-restricted denotation* of each component but not 
 
 (iii) The two components are presented in a fixed external order: `s_C`-component first, `s_L`-component second. (This convention pins down the family-level ordering, which S9 alone does not address since it operates within a single level-uniform span-set.)
 
-When `m_S(d)` is undefined (either subspace `S ∈ {s_C, s_L}` with `V_S(d) = ∅`), the canonical form is `Σ_V^S = ⟨⟩` by the V-restricted denotation convention.
+When `m_S(d)` is undefined (either subspace `S ∈ {s_C, s_L}` with `V_S(d) = ∅`), the canonical form is `Σ_V^S = ⟨⟩` by the vacuous-subspace convention (V-Restricted Denotation).
 
 **Theorem (F-canonical — CanonicalUniqueness).** Given `R(d, e)`, there exists exactly one per-subspace family satisfying the canonical-form shape of F-canon-form. Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`. We show each subspace component admits exactly one canonical representation.
 
@@ -552,7 +550,7 @@ Empty resolution does not destroy the link.
 
 ## Discussion: System Guarantees
 
-The derived properties above each carry a system-level reading in Nelson's terms; we collect those readings here rather than appending one to each lemma body.
+Each derived property above carries a system-level reading in Nelson's terms.
 
 *Determinism (F-det).* Nelson's commitment — "a given part of a given version at a given time" yields the same answer — is the structural consequence of working with functions and a canonical normal form. Without it, citation would be impossible.
 
