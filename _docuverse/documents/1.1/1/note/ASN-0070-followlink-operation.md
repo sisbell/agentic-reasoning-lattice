@@ -173,11 +173,9 @@ The postcondition fixes the *V-restricted denotation* of each component but not 
 
 When `m_S(d)` is undefined (either subspace `S ∈ {s_C, s_L}` with `V_S(d) = ∅`), the canonical form is `Σ_V^S = ⟨⟩` by the V-restricted denotation convention.
 
-The clauses (i)–(iii) above are the *definitional content* — the shape an admissible canonical form must take. We catalogue them as F-canon-form (DEF). That a canonical form of this shape *exists and is unique* for a given `R(d, e)` is a separate proof obligation, established next as a theorem (F-canonical, THM).
-
 **Theorem (F-canonical — CanonicalUniqueness).** Given `R(d, e)`, there exists exactly one per-subspace family satisfying the canonical-form shape of F-canon-form. Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`. We show each subspace component admits exactly one canonical representation.
 
-*Step 1 — Level-uniformity and ordinal-displacement widths.* By S8-depth (ASN-0036), and `m_L(d)` (ASN-0047) for the link subspace, all V-positions in `R(d, e)|_S` share the common depth `m_S(d)` (well-defined here since the subspace is non-empty). We must restrict component widths to ordinal displacements `δ(c, m_S(d))`. The restriction is forced by the finiteness and subspace-confinement requirements on `⟦σ⟧_V` for each component `σ = (s, ℓ)` with `#s = #ℓ = m_S(d)`, `subspace(s) = S`, and `s` positive in every component (clause (i) of CanonicalForm), by case analysis on `k = actionPoint(ℓ)`:
+*Step 1 — Level-uniformity and ordinal-displacement widths.* By S8-depth (ASN-0036), and `m_L(d)` (ASN-0047) for the link subspace, all V-positions in `R(d, e)|_S` share the common depth `m_S(d)` (well-defined here since the subspace is non-empty). We must restrict component widths to ordinal displacements `δ(c, m_S(d))`. The restriction is forced by the finiteness and subspace-confinement requirements on `⟦σ⟧_V` for each component `σ = (s, ℓ)` with `#s = #ℓ = m_S(d)`, `subspace(s) = S`, and `s` positive in every component (clause (i) of CanonicalForm), by case analysis on `k = actionPoint(ℓ)`. Since `actionPoint(ℓ) ∈ [1, #ℓ]` (ActionPoint postcondition, ASN-0034) and `#ℓ = m_S(d)`, the cases `1 ≤ k < m_S(d)` and `k = m_S(d)` are jointly exhaustive, and `k > m_S(d)` cannot arise.
 
 — *Case `1 ≤ k < m_S(d)`.* By TumblerAdd, `(s ⊕ ℓ)_i = s_i` for `i < k`, `(s ⊕ ℓ)_k = s_k + ℓ_k > s_k`, and `(s ⊕ ℓ)_i = ℓ_i` for `i > k`. Consider depth-`m_S(d)` tumblers `t` of the explicit form `t_i = s_i` for `1 ≤ i ≤ m_S(d) - 1` and `t_m ∈ {s_m, s_m + 1, s_m + 2, …}`. Comparing `t` with `s` component-wise: agreement on positions `1, ..., m_S(d) - 1` and `t_m ≥ s_m` give `t ≥ s`. Comparing `t` with `s ⊕ ℓ`: they agree on positions `1, ..., k - 1` (since `t_i = s_i = (s ⊕ ℓ)_i` for `i < k`; vacuous when `k = 1`), and at position `k`, `t_k = s_k < s_k + ℓ_k = (s ⊕ ℓ)_k` because `ℓ_k ≥ 1`. By T1 case (i) with divergence at position `k`, `t < s ⊕ ℓ` is settled regardless of trailing positions. The tumbler `t` has `#t = m_S(d)` and `subspace(t) = S` (since `t_1 = s_1 = S`), so `t ∈ ⟦σ⟧_V`. As `t_m` ranges over `ℕ_{≥ s_m}` — unbounded by T0(a) — infinitely many such `t` arise, so `⟦σ⟧_V` is infinite. The canonical form requires finite component denotations (`⟦Σ_V^S⟧_V = R(d, e)|_S ⊆ dom(M(d))`, finite by S8-fin), so every `k < m_S(d)` is excluded by the same finiteness criterion.
 
@@ -527,7 +525,7 @@ The link `L(ℓ)` is state-invariant (L12). The coverage `coverage(L(ℓ).eᵢ)`
 
 Consequently, `follow(ℓ, d, i)` evaluated at state `Σ` and at state `Σ'` (with `Σ'` reachable from `Σ`) may produce different denotations. This is not a violation of denotational determinism. Denotational determinism is "same state, same denotation." Across different states, the result reflects the different arrangements.
 
-This is not a derived property of the operation but a structural consequence of two facts already established: (i) `L(ℓ)` is fixed across transitions by L12; (ii) `M(d)` is the only state component that the operation reads, and it varies across transitions per the transition semantics of ASN-0047 (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L). The operation itself contributes nothing new; it is a window through which arrangement variability becomes observable.
+F-state follows because `L(ℓ)` is L12-invariant while `M(d)` — the only state component `R` reads — varies across transitions per the transition semantics of ASN-0047 (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L).
 
 Two observations follow.
 
@@ -629,7 +627,7 @@ There is no exception, no error, no fallback. The empty per-subspace family (V-r
 
 **Postcondition.** By F-subspace, `subspace(v₁) = subspace_I(M(d)(v₁)) = subspace_I(a)` and `subspace(v₂) = subspace_I(M(d)(v₂)) = subspace_I(a)`, so `subspace(v₁) = subspace(v₂) = subspace_I(a)` — both V-positions inhabit the same subspace. Writing `S := subspace_I(a)`, both `v₁ ∈ ⟦Σ_V^S⟧_V` and `v₂ ∈ ⟦Σ_V^S⟧_V`.
 
-**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-subspace (this ASN); S3★-aux (SubspaceExhaustiveness, ASN-0047); K.μ⁺ (ArrangementExtension, ASN-0047) — its absence of a content-side injectivity constraint underwrites the structural-admissibility half of the claim (contrast CL-UNIQ, ASN-0047, which constrains only the link subspace); S5 (UnrestrictedSharing, ASN-0036) — cited only for the abstract-cardinality (model-existence) point, not for reachability.
+**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-subspace (this ASN); S3★-aux (SubspaceExhaustiveness, ASN-0047); K.μ⁺ (ArrangementExtension, ASN-0047) — its lack of content-side injectivity makes the shared-I-address hypothesis reachable; S5 (UnrestrictedSharing, ASN-0036) — supplies the abstract-cardinality witness.
 
 **Frame.** No state modification.
 
