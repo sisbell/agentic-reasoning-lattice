@@ -166,7 +166,7 @@ The result does not, on its own, distinguish *how* each reported document refere
 
 ## Currency: state dependence
 
-`find(Q)(Σ)` is a function of `Σ`. It depends only on the current state — specifically on `Σ.E_doc` and `Σ.M` (and through `M`'s range, on `dom(Σ.C)` via S3★):
+`find(Q)(Σ)` is a function of `Σ`. It depends only on the current state — specifically on `Σ.E_doc` and `Σ.M`. (It reads neither `dom(Σ.C)` nor any content value: `iaddrs(Q)(Σ)` is computed purely as images of `Σ.M(d_s)`, and the membership predicate intersects those images against `ran(Σ.M(d))`. S3★ supplies the standing context that `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)`, but `find` does not consult the content store to evaluate it.)
 
   `(Σ.E_doc = Σ'.E_doc) ∧ (A d ∈ Σ.E_doc : Σ.M(d) = Σ'.M(d))  ⟹  find(Q)(Σ) = find(Q)(Σ')`
 
@@ -198,9 +198,9 @@ The completeness guarantee of `find` is over *currency*. The completeness guaran
 
 The argument is three-step:
 
-(a) The initial state has `|Σ₀.E_doc| = 0`. ASN-0047 gives `E₀ = {n₀}` with `IsNode(n₀)`, so `n₀ ∉ E_doc` and `(E₀)_doc = ∅`.
+(a) The initial state has `|Σ₀.E_doc| = 0`. ASN-0047 gives `E₀ = {n₀}` with `Node(n₀)`, so `n₀ ∉ E_doc` and `(E₀)_doc = ∅`.
 
-(b) Each elementary transition adds at most one entity to `E_doc`. Among ASN-0047's *elementary* transitions, only K.δ modifies `E` (its effect is `E' = E ∪ {e}` for a single `e`); the other elementary transitions (K.α, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ) leave `E` unchanged by their frame clauses. The named composite K.μ~ is not atomic; it decomposes into K.μ⁻ + K.μ⁺ (ValidCompositeAmended), both of which appear in the elementary list and fix `E`, so the induction over elementary steps need not enumerate it separately. K.δ adds `e` to `E_doc` only when `IsDocument(e)`, otherwise to `E_node` or `E_account`. Either way, `|E_doc|` grows by at most one per transition.
+(b) Each elementary transition adds at most one entity to `E_doc`. Among ASN-0047's *elementary* transitions, only K.δ modifies `E` (its effect is `E' = E ∪ {e}` for a single `e`); the other elementary transitions (K.α, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ) leave `E` unchanged by their frame clauses. The named composite K.μ~ is not atomic; it decomposes into K.μ⁻ + K.μ⁺ (ValidCompositeAmended), both of which appear in the elementary list and fix `E`, so the induction over elementary steps need not enumerate it separately. K.δ adds `e` to `E_doc` only when `Document(e)`, otherwise to `E_node` or `E_account`. Either way, `|E_doc|` grows by at most one per transition.
 
 (c) A reachable state is reached by finitely many *elementary* transitions. ASN-0047's ExtendedReachableStateInvariants characterises every reachable state as "reachable from `Σ₀` by a finite sequence of valid composite transitions" — finite ancestry is by definition of reachability, not a consequence of any single axiom. Each composite is itself, by ValidCompositeAmended, a finite sequence of atomic transitions; a finite concatenation of finite sequences is finite, so the total count `n_elem` of elementary transitions producing any reachable `Σ` is a finite natural number. SequentialTransitionAxiom (ASN-0047) supplies the orthogonal property that each transition is atomic, uninterruptible, and totally ordered, which makes individual elementary transitions countable within such a sequence.
 
