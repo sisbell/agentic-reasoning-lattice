@@ -154,13 +154,9 @@ Both cases combined: `δ = 0` and `n¹ = n²`, so `R¹ = R²`. *Offset uniquenes
 
 *Justification.* The definition of `corr_{a,b}` requires `v_a ∈ ⟦R_a⟧ ∩ dom(M(d_a))` and `v_b ∈ ⟦R_b⟧ ∩ dom(M(d_b))`. When either set is empty, no pair `(v_a, v_b)` satisfies the membership conjuncts, so `corr_{a,b} = ∅`. By CV-MAX, every maximal run witnesses at least one pair in `corr_{a,b}` (at offset `k = 0`, the pair `(v_a, v_b) ∈ corr_{a,b}`), so an empty relation forces an empty set of maximal runs.
 
-The empty input arises either by an explicit `R_a = ⟨⟩` from the caller or by CV-IN's empty-subspace clause forcing `R_a = ⟨⟩` when `V_S(d_a) = ∅` (and symmetrically on the b-side); in both cases `⟦R_a⟧ = ∅` and the first paragraph applies directly.
-
 > **CV-FIN** (*finite result*): For admissible input, the result is finite, with `|MaxRuns(d_a, R_a, d_b, R_b)| ≤ |corr_{a,b}| ≤ |dom(M(d_a))| · |dom(M(d_b))| < ∞`.
 
 *Justification.* By S8-fin (ASN-0036), `dom(M(d_a))` and `dom(M(d_b))` are finite. The relation `corr_{a,b}` is a subset of `(⟦R_a⟧ ∩ dom(M(d_a))) × (⟦R_b⟧ ∩ dom(M(d_b))) ⊆ dom(M(d_a)) × dom(M(d_b))`, so `|corr_{a,b}| ≤ |dom(M(d_a))| · |dom(M(d_b))| < ∞`. To bound `|MaxRuns|`, consider the map `R = (v_a, v_b, n) ↦ (v_a, v_b)` sending each run to its starting pair. By CV-MAX, the starting pair of `R` is witnessed by `R` at offset 0; CV-MAX's "exactly one run, exactly one offset" property forces two distinct runs to have distinct starting pairs (else the same pair would be witnessed at offset 0 by both, contradicting uniqueness). The map is therefore injective from `MaxRuns` into `corr_{a,b}`, yielding `|MaxRuns| ≤ |corr_{a,b}|`. Finiteness underwrites termination of the walks in CV-MAX's existence proof and makes the result enumerable for any caller — `MaxRuns` is a concrete finite set, not a schema for one.
-
-The interior bound `min(|dom(M(d_a))|, |dom(M(d_b))|)` is not in general an upper bound on `|MaxRuns|`: a self-comparison configuration with two V-positions sharing one I-address (Example 3 below) achieves `|MaxRuns| = 3 > 2 = min(|dom(M(d_a))|, |dom(M(d_b))|)`, so the tighter Cartesian-product bound is the correct one. The product bound is itself not always tight — Example 1 below achieves `|MaxRuns| = 1` against a product bound of `3 · 4 = 12` — but it is the smallest bound expressible from cardinalities of `dom(M)` alone.
 
 ## Worked Examples
 
@@ -221,6 +217,8 @@ The result is therefore:
 > `MaxRuns = { ([1,1], [1,1], 2),  ([1,1], [1,2], 1),  ([1,2], [1,1], 1) }`
 
 The identity diagonal aggregates into a single width-2 run (because consecutive offsets share I-addresses pointwise under the identity map), while the off-diagonal self-transclusion correspondences each remain as their own width-1 run (because adjacent offsets do not preserve the off-diagonal alignment — extending an off-diagonal width-1 run would require the next a-side and b-side V-positions to also share an I-address at the same cross-side offset, which would require additional self-transclusion structure that this `M(d)` does not exhibit). CV-MAX's unique-witness property is observable concretely: the four pairs in `corr_{a,a}` are partitioned across the three runs as (2, 1, 1), each pair witnessed at exactly one offset of exactly one run.
+
+This example also shows why CV-FIN's product bound, not the smaller `min(|dom(M(d_a))|, |dom(M(d_b))|)`, is the correct upper bound on `|MaxRuns|`: here `|MaxRuns| = 3 > 2 = min(|dom(M(d))|, |dom(M(d))|)`, so the interior minimum is not in general a bound. The product bound `|dom(M(d_a))| · |dom(M(d_b))|` is itself not always tight — Example 1 achieves `|MaxRuns| = 1` against a product bound of `3 · 4 = 12` — but it is the smallest bound expressible from cardinalities of `dom(M)` alone.
 
 The set of maximal correspondence runs admits a natural presentational view as a pair of V-spans per run, which we record as a labeled corollary before the example that exercises it.
 
@@ -348,7 +346,7 @@ By construction, the operation cannot:
 
 (iii) *Witness derivation lineage*. Per CV-PROV-FORGOTTEN, the result reports correspondence without explaining how the shared I-address came to be referenced by both documents.
 
-These omissions are not deficiencies of the operation; they are consequences of grounding correspondence in I-address identity. The same grounding is what makes attribution, royalty flow, and link survival work uniformly across the docuverse. Every operation that consumes I-addresses inherits exactness from the addressing scheme. The comparison operation is no exception — and the things it cannot express are precisely the things that would require a different grounding.
+These omissions are not deficiencies of the operation; they are consequences of grounding correspondence in I-address identity. Every operation that consumes I-addresses inherits exactness from the addressing scheme. The comparison operation is no exception — and the things it cannot express are precisely the things that would require a different grounding.
 
 ## Claims Introduced
 
