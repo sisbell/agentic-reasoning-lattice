@@ -1,0 +1,26 @@
+# Review of ASN-0071
+
+## REVISE
+
+### Issue 1: Range-union containment is attributed to S3★ alone, but requires SubspaceExhaustiveness (S3★-aux)
+
+**ASN-0071, "The operation" (Only content sharing can satisfy the predicate) and "Currency: state dependence"**: 
+
+> "ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ (dom(Σ.C) ∪ dom(Σ.L)) ∩ dom(Σ.C) = dom(Σ.C), where the left factor `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)` is S3★"
+
+and again:
+
+> "S3★ supplies the standing context that `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)`"
+
+**Problem**: S3★ is a *conditional*: it routes `subspace(v) = s_C` positions into `dom(C)` and `subspace(v) = s_L` positions into `dom(L)`, but it says nothing about a V-position whose subspace is neither. To conclude `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)` you must also know that *every* V-position has subspace `s_C` or `s_L` — that is the foundation invariant **S3★-aux (SubspaceExhaustiveness)**, which the ASN does not cite here. The same gap surfaces in the parallel phrasing "the witness `a ∈ ran(Σ.M(d))` must come from a content-subspace V-position": ruling out `s_L` (via S3★ + L14) leaves "content-subspace" only if exhaustiveness forecloses a third subspace.
+
+The source side (`iaddrs(Q)(Σ) ⊆ dom(Σ.C)`) is unaffected — there confinement is proven directly from PC, so `subspace(v) = s_C` is established positively. The defect is specific to the *target* side, where the range is taken over all of `dom(M(d))`.
+
+**Required**: Cite S3★ ∧ S3★-aux (SubspaceExhaustiveness, ASN-0047) wherever `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)` is asserted, and correspondingly state the subset-claim/F-find proofs as gated on Σ satisfying the routing invariants, not on `wp-defined` alone.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Connecting `find`'s current result to provenance `R` across a contracting transition
+The ASN's last open question asks for the invariant relating `find` before/after a K.μ⁻ contraction. This is a transition-level coupling, not a property of the query itself — properly a future ASN.
+
+VERDICT: REVISE
