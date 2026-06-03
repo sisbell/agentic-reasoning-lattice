@@ -23,11 +23,11 @@ We take from the foundation:
 - **Subspace convention** `s_C = 1, s_L = 2` (ASN-0047, SubspaceConventionAxiom).
 - **Link subspace ownership** (CL-OWN, ASN-0047): link-subspace V-positions of `d` map only to link I-addresses with `origin = d`.
 
-We restrict attention to the content subspace throughout. The justification appears in §D-SUBSP.
+We restrict attention to the content subspace throughout: by CL-OWN, link-subspace material is per-document, so cross-document deletion comparison is structurally meaningful only for content (established as D-SUBSP).
 
 ## The Three States of Content
 
-We classify each pair `(a, d)` with `a ∈ dom(C)`, `subspace_I(a) = s_C`, and `d ∈ E_doc` into one of three states:
+We classify each pair `(a, d)` with `a ∈ dom(C)` and `d ∈ E_doc` into one of three states. Every `a ∈ dom(C)` already has `subspace_I(a) = s_C` (ASN-0047, ContentAllocationSubspacePrecondition; equivalently by L0), so we do not carry that conjunct in the predicates and sets below.
 
 ```
 CURRENT(a, d)         ≡  a ∈ ran(M(d))
@@ -37,9 +37,9 @@ NEVER_INCLUDED(a, d)  ≡  (a, d) ∉ R
 
 We must show these are exhaustive and mutually exclusive — otherwise the operation's outputs would have undefined classifications.
 
-**Lemma D-EXH (Three-State Exhaustion).** Let `Σ` be a state reachable from `Σ_0` by a finite sequence of valid composite transitions (equivalently, `Σ` is a composite boundary). For every `(a, d)` with `a ∈ dom(Σ.C)`, `subspace_I(a) = s_C`, and `d ∈ Σ.E_doc`, exactly one of `CURRENT(a, d)`, `DELETED(a, d)`, `NEVER_INCLUDED(a, d)` holds.
+**Lemma D-EXH (Three-State Exhaustion).** Let `Σ` be a state reachable from `Σ_0` by a finite sequence of valid composite transitions (equivalently, `Σ` is a composite boundary). For every `(a, d)` with `a ∈ dom(Σ.C)` and `d ∈ Σ.E_doc`, exactly one of `CURRENT(a, d)`, `DELETED(a, d)`, `NEVER_INCLUDED(a, d)` holds.
 
-The reachability hypothesis is load-bearing for the proof: it activates `P4★` (`Contains_C(Σ) ⊆ R`), which ASN-0047 establishes as a composite-boundary property — not as a per-state invariant preserved by every elementary transition. At intermediate states inside a composite, `P4★` may fail, so the lemma's universal claim applies only to states observed at composite boundaries. The hypothesis is discharged structurally at every SHOWDELETIONS invocation by D-BOUND below, which makes composite-boundary state part of the operation's contract rather than a caller obligation.
+The reachability hypothesis is load-bearing for the proof: it activates `P4★` (`Contains_C(Σ) ⊆ R`), which ASN-0047 establishes as a composite-boundary property — not as a per-state invariant preserved by every elementary transition. At intermediate states inside a composite, `P4★` may fail, so the lemma's universal claim applies only to states observed at composite boundaries.
 
 *Proof.* The three predicates correspond to three of the four cases of the cross-product `(a ∈ ran(M(d))) × ((a, d) ∈ R)`:
 
@@ -68,7 +68,7 @@ We now show that the four foundation state components `(C, L, E, M)` together ar
 
 *Argument.* We exhibit two reachable states `Σ_1` and `Σ_2` for which `(Σ.C, Σ.L, Σ.E, Σ.M)` agree across every document but `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` disagree.
 
-*Notational convention.* In the histories below, each `→*` arrow denotes one valid composite under ValidComposite★ (ASN-0047); line breaks are visual aids only, and composite groupings are determined by the coupling requirements of the elementary steps. In particular, K.α must be bundled with a subsequent K.μ⁺/K.ρ pair within the same composite, because K.α's frame leaves `M` unchanged — a standalone-K.α composite would produce `a ∈ dom(C') \ dom(C)` without placing `a` in any arrangement, violating J0 (AllocationPlacementCoupling, ASN-0047). J0 is a composite-boundary coupling evaluated only between the initial and final states of a composite, so the K.μ⁺ need not immediately succeed K.α within the composite — other elementary steps may intervene — but it must lie in the same composite for J0 to be discharged at the boundary. The bundling pattern is exhibited in Histories 1 and 2 below.
+*Notational convention.* In the histories below, each `→*` arrow denotes one valid composite under ValidComposite★ (ASN-0047); line breaks are visual aids only. K.α must be bundled with a K.μ⁺/K.ρ pair in the same composite: K.α's frame leaves `M` unchanged, so a standalone-K.α composite would produce `a ∈ dom(C') \ dom(C)` without placing `a` in any arrangement, violating J0 (AllocationPlacementCoupling, ASN-0047). The bundling pattern is exhibited in Histories 1 and 2 below.
 
 A second bundling concerns document creation. K.δ case (ii) with `k = 2` (descent) requires `t ∈ E ∧ zeros(t) ≤ 1`. From `Σ_0` (where the only entity is the bootstrap node `n_0` with `zeros(n_0) = 0`), a single elementary K.δ step produces at most an account (`zeros = 1`). Producing a document (`zeros = 2`) requires a precursor account-creation step. We therefore use `K.δ(d)` as shorthand for a composite containing whatever precursor K.δ steps are needed to satisfy the entity-hierarchy preconditions — for example, the composite `K.δ(A); K.δ(d)` where `A = inc(n_0, 2)` is the account and `d = inc(A, 2)` is the document. The composite is valid by ValidComposite★: each elementary step satisfies its precondition at its intermediate state, and J0/J1★/J1'★ are vacuous because no K.α, K.μ⁺, or K.ρ steps appear. The same convention applies to `K.δ(d_A)` and `K.δ(d_B)` in the worked example below.
 
@@ -123,14 +123,12 @@ Let `d_A, d_B ∈ E_doc`. The operation takes two documents and observes the sta
 ```
 DeletedFromAWithB(d_A, d_B)
    =  {a ∈ dom(C) :
-         subspace_I(a) = s_C
-       ∧ DELETED(a, d_A)
+         DELETED(a, d_A)
        ∧ CURRENT(a, d_B)}
 
 DeletedFromBWithA(d_A, d_B)
    =  {a ∈ dom(C) :
-         subspace_I(a) = s_C
-       ∧ DELETED(a, d_B)
+         DELETED(a, d_B)
        ∧ CURRENT(a, d_A)}
 ```
 
@@ -145,7 +143,7 @@ SHOWDELETIONS(d_A, d_B)
 
 The two halves are necessarily disjoint, and the disjointness is unconditional — it needs neither D-EXH nor any composite-boundary hypothesis. Membership in `DeletedFromAWithB` requires `CURRENT(a, d_B)`, i.e. `a ∈ ran(M(d_B))`; membership in `DeletedFromBWithA` requires `DELETED(a, d_B)`, whose second conjunct is `a ∉ ran(M(d_B))`. The two range-membership conditions on `M(d_B)` are directly contradictory, so no `a` can belong to both halves.
 
-**Observational-discipline axiom (D-BOUND).** SHOWDELETIONS is an observational operation invoked between composites: the pre-state `Σ` is a *composite-boundary state* — reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047). This is a system-level discipline that mirrors Nelson's command-level statelessness, where each protocol command (state-modifying or observational) is the unit of caller interaction; state-modifying commands realise one composite, and observational commands like SHOWDELETIONS read the state between completed composites. The axiom is part of the operation's contract: D-EXH's composite-boundary hypothesis is discharged at every invocation by D-BOUND, not by run-time verification or by appeal to informal "operational scope."
+**Observational-discipline axiom (D-BOUND).** SHOWDELETIONS is invoked at a composite boundary: the pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047). This discharges D-EXH's composite-boundary hypothesis at every invocation — `P4★` (`Contains_C(Σ) ⊆ R`), a composite-boundary property of ASN-0047, holds at every such `Σ`, so the three-state classification is total.
 
 The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state`, with the boundary conjunct supplied structurally by D-BOUND. Its postcondition characterises the result set-theoretically. We capture this in wp form. Let `q` abbreviate the predicate:
 
@@ -155,7 +153,7 @@ Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
 
 Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds.
 
-Because SHOWDELETIONS is observational (D-OBS below), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
+SHOWDELETIONS reads state and returns a result without modifying any component (its observational frame is formalised as D-OBS), so wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
 *Non-emptiness of one report half.* Let `Q1` abbreviate `DeletedFromAWithB(d_A, d_B) ≠ ∅`. Unpacking the definition of `DeletedFromAWithB`:
 
@@ -163,28 +161,27 @@ Because SHOWDELETIONS is observational (D-OBS below), wp computations for state-
 wp(SHOWDELETIONS(d_A, d_B), Q1)
    =  d_A ∈ E_doc  ∧  d_B ∈ E_doc
     ∧  Σ is a composite-boundary state
-    ∧  (E a ∈ dom(C) :  subspace_I(a) = s_C
-                       ∧ (a, d_A) ∈ R
+    ∧  (E a ∈ dom(C) :  (a, d_A) ∈ R
                        ∧ a ∉ ran(M(d_A))
                        ∧ a ∈ ran(M(d_B)))
 ```
 
-So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement. The fourth conjunct (presence in `d_B`) is what makes the report *recoverable* in the sense of D-IDENT below — every reported deletion has a concrete witness in the partner document. This is not an additional postcondition; it is implicit in the definition of `DeletedFromAWithB`.
+So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement. The last conjunct (presence in `d_B`) is what makes the report *recoverable* in the sense of D-IDENT — every reported deletion has a concrete witness in the partner document. This is not an additional postcondition; it is implicit in the definition of `DeletedFromAWithB`.
 
-*Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. Since SHOWDELETIONS is observational (D-OBS) and `Q0` depends only on `Σ`'s components `M`, `R`, `dom(C)`, `subspace_I` — each evaluable at any state `Σ` — the wp formula is the precondition conjoined with `Q0` unpacked at the pre-state:
+*Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. Since SHOWDELETIONS only reads state (D-OBS) and `Q0` depends only on `Σ`'s components `M`, `R`, `dom(C)` — each evaluable at any state `Σ` — the wp formula is the precondition conjoined with `Q0` unpacked at the pre-state:
 
 ```
 wp(SHOWDELETIONS(d_A, d_B), Q0)
    =  d_A ∈ E_doc  ∧  d_B ∈ E_doc
     ∧  Σ is a composite-boundary state
-    ∧  (A a ∈ dom(C) :  subspace_I(a) = s_C :
+    ∧  (A a ∈ dom(C) :
             ¬(DELETED(a, d_A)  ∧  CURRENT(a, d_B))
           ∧ ¬(DELETED(a, d_B)  ∧  CURRENT(a, d_A)))
 ```
 
 The joint report is empty exactly when no content has been deleted from one document while remaining current in the other.
 
-*Supplementary lemma (R-disjointness implies Q0 at composite-boundary states).* Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. The boundary hypothesis is load-bearing because the argument invokes P4★, which ASN-0047 establishes as a composite-boundary property rather than a per-state invariant. By D-BOUND, every SHOWDELETIONS invocation observes a composite-boundary pre-state, so the lemma's hypothesis is automatically discharged at every invocation. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
+*Supplementary lemma (R-disjointness implies Q0 at composite-boundary states).* Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. The boundary hypothesis is load-bearing because the argument invokes P4★ (a composite-boundary property); D-BOUND supplies it at every invocation. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
 
 *Group 1: `(a, d_A) ∈ R`.* Disjointness gives `(a, d_B) ∉ R`. For conjunct 1, `CURRENT(a, d_B)` requires `a ∈ ran(M(d_B))`; by the same L14 + S3★-aux + S3★-contrapositive chain unpacked in the proof of D-EXH above — `a ∈ dom(C)` (from the outer quantifier) gives `a ∉ dom(L)` via L14; the witness `v ∈ dom(M(d_B))` for `a ∈ ran(M(d_B))` must satisfy `subspace(v) = s_C` (else S3★'s link clause would force `a ∈ dom(L)`); so `(a, d_B) ∈ Contains_C(Σ)`, which by P4★ — activated by the boundary hypothesis — forces `(a, d_B) ∈ R`, contradicting `(a, d_B) ∉ R`. So `CURRENT(a, d_B)` fails and conjunct 1 is falsified. Conjunct 2 is falsified more directly: `DELETED(a, d_B)` has first conjunct `(a, d_B) ∈ R`, which `(a, d_B) ∉ R` negates outright — no P4★ chain needed.
 
@@ -268,7 +265,7 @@ The same set-theoretic difference computed without `R` would mislabel additions 
 
 ## Restriction to the Content Subspace
 
-The condition `subspace_I(a) = s_C` is essential.
+Confining the operation to the content subspace — which the restriction to `dom(C)` already enforces, since every `a ∈ dom(C)` has `subspace_I(a) = s_C` — is essential rather than incidental.
 
 **Claim D-SUBSP.** SHOWDELETIONS operates only over the content subspace (`s_C`).
 
@@ -338,7 +335,7 @@ The content-level guarantee — the union of both halves as a set of I-addresses
 
 *Justification.* Each output element is an I-address in `dom(C)`, carrying determinate origin (D-ORIG) and preserved identity (D-IDENT). Any operation whose input type accepts I-addresses (or spans thereof) can consume the output directly. The output is *not* wrapped in V-position structure — wrapping it that way would require either fictitious positions (deleted content has no V-position in the queried document) or borrowed positions from the witness (which would have to be coordinated with the recovery target's address space, an entanglement the abstract output cannot impose). The output is *not* wrapped in content values — wrapping it that way would require copying values into new identities, breaking D-IDENT.
 
-The abstract specification fixes only the set of I-addresses. Because each address retains its identity and self-identifies its origin, an implementation may package the output more compactly — for instance grouping contiguous same-origin runs into spans — without changing what is specified. Any such packaging is a representation choice, not part of the operation's contract; the run-decomposition it would rely on — mapping blocks and their unique maximally-merged canonical form (ASN-0058, M11 CanonicalExistence, M12 CanonicalUniqueness), with contiguous same-origin grouping licensed by ASN-0058 (M16 CrossOriginMergeImpossibility) — and the span representation of each resulting run (ASN-0053, σ.denotation) are material for a span/bundle-algebra treatment, not for this operation spec.
+The abstract specification fixes only the set of I-addresses. Because each address retains its identity and self-identifies its origin, an implementation may package the output more compactly — for instance grouping contiguous same-origin runs into spans — without changing what is specified. Any such packaging is a representation choice, not part of the operation's contract.
 
 ## Observational Frame
 
@@ -383,9 +380,9 @@ This is what makes the operation an honest function of state. The user need not 
 | CURRENT | `CURRENT(a, d) ≡ a ∈ ran(M(d))` | introduced |
 | DELETED | `DELETED(a, d) ≡ (a, d) ∈ R ∧ a ∉ ran(M(d))` | introduced |
 | NEVER_INCLUDED | `NEVER_INCLUDED(a, d) ≡ (a, d) ∉ R` | introduced |
-| D-EXH | For every composite-boundary state Σ (reachable by valid composite transitions) and every `(a, d)` with `a ∈ dom(Σ.C)`, `subspace_I(a) = s_C`, `d ∈ Σ.E_doc`, exactly one of CURRENT, DELETED, NEVER_INCLUDED holds | introduced |
+| D-EXH | For every composite-boundary state Σ (reachable by valid composite transitions) and every `(a, d)` with `a ∈ dom(Σ.C)`, `d ∈ Σ.E_doc`, exactly one of CURRENT, DELETED, NEVER_INCLUDED holds | introduced |
 | D-DISCR | No function of `(C, L, E, M)` alone can distinguish DELETED from NEVER_INCLUDED; any system supporting SHOWDELETIONS must maintain state components `C*` beyond the four foundation components such that consulting `(C, L, E, M, C*)` at every reachable Σ determines whether each `(a, d)` is DELETED or NEVER_INCLUDED | introduced |
-| DeletedFromAWithB | `{a ∈ dom(C) : subspace_I(a) = s_C ∧ DELETED(a, d_A) ∧ CURRENT(a, d_B)}` | introduced |
+| DeletedFromAWithB | `{a ∈ dom(C) : DELETED(a, d_A) ∧ CURRENT(a, d_B)}` | introduced |
 | DeletedFromBWithA | Symmetric counterpart of DeletedFromAWithB | introduced |
 | SHOWDELETIONS | Observational operation `SHOWDELETIONS(d_A, d_B) = (DeletedFromAWithB(d_A, d_B), DeletedFromBWithA(d_A, d_B))` | introduced |
 | D-BOUND | SHOWDELETIONS is invoked at composite-boundary states; the boundary condition is part of the operation's contract and discharges D-EXH's hypothesis structurally | introduced |
