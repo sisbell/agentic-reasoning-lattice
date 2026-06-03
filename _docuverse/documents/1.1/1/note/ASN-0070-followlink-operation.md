@@ -24,7 +24,7 @@ Within each subspace `S` of document `d`, V-positions share a common depth, writ
 - For `S = s_L`: `m_{s_L}(d) ≥ 2`, fixed when `V_{s_L}(d) ≠ ∅` (S8-depth, ASN-0036; `m_L(d)`, ASN-0047), pinned by the first link insertion (`ValidFirstLinkPosition` of K.μ⁺_L, for any chosen `m ≥ 2`) and held thereafter.
 - For `S = s_C`: `m_{s_C}(d) ≥ 2` is defined when `V_{s_C}(d) ≠ ∅` (S8-depth, ASN-0036), pinned by the first content insertion (ValidFirstInsertionPosition) and held thereafter.
 
-For either subspace, when `V_S(d) = ∅` the depth `m_S(d)` is undefined and `S` is vacuous in `d`; the next insertion re-pins it from scratch at any value `≥ 2`. A vacuous subspace `S` has `R(d, e)|_S = ∅`, and the only admissible V-span-set is the empty sequence `Σ_V^S = ⟨⟩` (V-Restricted Denotation, below). The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide.
+For either subspace, when `V_S(d) = ∅` the depth `m_S(d)` is undefined and `S` is vacuous in `d`; the next insertion re-pins it from scratch at any value `≥ 2`. The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide.
 
 What lies in `dom(Σ.C) ∪ dom(Σ.L)` but not in `ran(M(d))` is content or link material stored in the system but not arranged in `d`. By the permanence invariants (P0, P1, L12 of ASN-0047), the stored material persists; only the arrangement varies. The arrangement is the variable; storage is the constant.
 
@@ -392,17 +392,16 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 
 **Postcondition.** For two evaluations of `follow(ℓ, d, i)` against the same state `Σ`, returning `(d, Σ_V)` and `(d, Σ_V')`: `⟦Σ_V^S⟧_V = ⟦Σ_V'^S⟧_V` for each subspace `S`. The V-restricted denotation is uniquely determined by `Σ`, `ℓ`, `d`, `i`. The representations `Σ_V` and `Σ_V'` may differ; after canonical-form derivation, they coincide.
 
-**Depends.** S2 (ArrangementFunctionality, ASN-0036); S3★-aux (SubspaceExhaustiveness, ASN-0047); S8 (NormalizationExistence, ASN-0053); S9 (NormalizationUniqueness, ASN-0053); F-canonical (derived above).
+**Depends.** F0 (InverseImageRelation, this ASN — its Well-definedness clause, which itself rests on S2 ArrangementFunctionality, ASN-0036); S3★-aux (SubspaceExhaustiveness, ASN-0047); S8 (NormalizationExistence, ASN-0053); S9 (NormalizationUniqueness, ASN-0053); F-canonical (derived above).
 
 **Frame.** No state modification.
 
 **Derivation.** For fixed `Σ`:
 
-1. By S2 (ArrangementFunctionality), `M(d)` is a partial function, so its inverse image on any fixed subset of `T` is a single, uniquely determined set. Applied to `coverage(L(ℓ).eᵢ)`: `M(d)⁻¹(coverage(L(ℓ).eᵢ))` is uniquely determined.
-2. By the definition of `R` (F0), `R(d, L(ℓ).eᵢ) = M(d)⁻¹(coverage(L(ℓ).eᵢ))`, hence `R(d, L(ℓ).eᵢ)` is uniquely determined by `Σ`, `d`, and `L(ℓ).eᵢ` — all of which are fixed.
-3. By S3★-aux (SubspaceExhaustiveness), every `v ∈ dom(M(d))` has `subspace(v) ∈ {s_C, s_L}`, so the partition `R(d, L(ℓ).eᵢ) = R(d, L(ℓ).eᵢ)|_{s_C} ⊎ R(d, L(ℓ).eᵢ)|_{s_L}` is exhaustive and the two components are each uniquely determined.
-4. By the postcondition of `follow`, any returned `Σ_V` satisfies `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` for each `S`. Combined with step 3, the V-restricted denotation of each subspace component is therefore uniquely determined.
-5. By F-canonical, given the fixed V-restricted denotation per subspace, a canonical form exists (Step 2a's per-run construction, whose normalised existence S8 (NormalizationExistence, ASN-0053) underwrites) and S9 (NormalizationUniqueness, ASN-0053) yields a unique normalised form per component; the fixed external ordering yields a unique family-level form. The canonical form is therefore uniquely determined. ∎
+1. F0 establishes (its Well-definedness clause) that `R(d, L(ℓ).eᵢ)` is uniquely determined by `Σ`, `d`, `i` — all of which are fixed here.
+2. By S3★-aux (SubspaceExhaustiveness), every `v ∈ dom(M(d))` has `subspace(v) ∈ {s_C, s_L}`, so the partition `R(d, L(ℓ).eᵢ) = R(d, L(ℓ).eᵢ)|_{s_C} ⊎ R(d, L(ℓ).eᵢ)|_{s_L}` is exhaustive and the two components are each uniquely determined.
+3. By the postcondition of `follow`, any returned `Σ_V` satisfies `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` for each `S`. Combined with step 2, the V-restricted denotation of each subspace component is therefore uniquely determined.
+4. By F-canonical, given the fixed V-restricted denotation per subspace, a canonical form exists (Step 2a's per-run construction, whose normalised existence S8 (NormalizationExistence, ASN-0053) underwrites) and S9 (NormalizationUniqueness, ASN-0053) yields a unique normalised form per component; the fixed external ordering yields a unique family-level form. The canonical form is therefore uniquely determined. ∎
 
 ### F-sound — Soundness (LEMMA)
 
