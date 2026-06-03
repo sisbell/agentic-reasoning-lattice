@@ -153,9 +153,9 @@ The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a com
 Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
 ```
 
-Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds. Termination is grounded in finiteness, just as output finiteness is in D-ORD: both output sets are comprehensions over `dom(C)`, finite by C-fin (ASN-0047), and each membership test `a ∈ ran(M(d_A))`, `a ∈ ran(M(d_B))` ranges over a finite arrangement by S8-fin (ASN-0036), with the `(a, d) ∈ R` test bounded by `R ⊆ dom(C) × E_doc` (P7, ASN-0047). Each comprehension thus scans finitely many addresses and performs finitely many bounded membership tests, so the operation halts.
+Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds. Termination rests on local finiteness premises: both output sets are comprehensions over `dom(C)`, finite by C-fin (ASN-0047), and each membership test `a ∈ ran(M(d_A))`, `a ∈ ran(M(d_B))` ranges over a finite arrangement by S8-fin (ASN-0036), with the `(a, d) ∈ R` test bounded by `R ⊆ dom(C) × E_doc` (P7, ASN-0047). Each comprehension thus scans finitely many addresses and performs finitely many bounded membership tests, so the operation halts. The same finiteness of `dom(C)` makes each output half a finite set.
 
-Because the operation writes no state component (D-OBS), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
+The operation's definition is a pair of set-builder comprehensions over `Σ`: it allocates nothing, rewrites no component, and invokes no transition relation, so it writes no state component. (This no-write property is recorded formally as D-OBS in the Observational Frame section below; here we rely only on the evident structure of the definition.) Consequently wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
 *Non-emptiness of one report half.* Let `Q1` abbreviate `DeletedFromAWithB(d_A, d_B) ≠ ∅`. Unpacking the definition of `DeletedFromAWithB`:
 
@@ -215,9 +215,9 @@ The content/link asymmetry is what makes cross-document deletion comparison mean
 
 The user-facing meaning: any returned address self-identifies its home document. When `d_A` and `d_B` were derived from a common ancestor `d_C`, content inherited from `d_C` and later deleted from `d_A` carries `origin(a) = d_C`. Content originally allocated by some other document and transcluded into `d_A` before deletion carries that other document's address as origin. The output need carry no extra "origin annotation" beyond the address itself — origin is derived structurally from the address.
 
-## Order Preservation
+## Order Availability
 
-**Claim D-ORD.** Each output half is a finite subset of `dom(C) ⊆ T`, and therefore inherits the total order T1 (ASN-0034) imposes on tumblers. No separate ordering structure is needed: the addresses are self-ordering, and any presentation may list them in T1 order.
+**Claim D-ORD.** Each output half is a finite subset of `dom(C) ⊆ T`, hence linearly ordered by the restriction of T1 (ASN-0034) to that subset. The operation carries no ordering of its own — it takes no input ordering to preserve and emits a set; T1-orderability is a property of the output addresses, not a structure the operation transports.
 
 *Justification.* The output sets are subsets of `dom(C)`, finite by C-fin (ASN-0047), and T1 is a strict total order on `T` (ASN-0034). The restriction of a total order to a finite subset is again a total order, so each half is linearly ordered by its own addresses with no appeal to any document's arrangement.
 
@@ -357,7 +357,7 @@ This is what makes the operation an honest function of state. The user need not 
 | D-SUBSP | The operation restricts to the content subspace `s_C`; cross-document deletion comparison is structurally meaningful only there | introduced |
 | D-IDENT | Output references are I-addresses themselves; no copies, no new identities | introduced |
 | D-ORIG | Every output element `a` has determinate `origin(a)` | introduced |
-| D-ORD | Each output half is a finite subset of T, inheriting T1's total order; no separate ordering structure is needed | introduced |
+| D-ORD | Each output half is a finite subset of T, hence linearly ordered by T1's restriction; the operation carries no ordering of its own | introduced |
 | D-SYM | `SHOWDELETIONS(d_B, d_A)` is the component-swapped pair of `SHOWDELETIONS(d_A, d_B)` | introduced |
 | D-OBS | SHOWDELETIONS modifies no state component; it is purely observational | introduced |
 | D-STORE | The output is not required to be stored as a document; it is a query result | introduced |
