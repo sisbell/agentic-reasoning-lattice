@@ -311,13 +311,11 @@ This matters operationally because it scopes recovery rights and accounting. The
 
 ## Order Preservation
 
-**Claim D-ORD.** If the output is presented as an ordered sequence, the order is consistent with the witness document's V-position ordering of the referenced addresses.
+**Claim D-ORD.** Each output half is a finite subset of `dom(C) ⊆ T`, and therefore inherits the total order T1 (ASN-0034) imposes on tumblers. No separate ordering structure is needed: the addresses are self-ordering, and any presentation may list them in T1 order.
 
-For `DeletedFromAWithB(d_A, d_B)`, define `vpos_B(a) = min{v ∈ dom(M(d_B)) : M(d_B)(v) = a}` under T1. The set `{v ∈ dom(M(d_B)) : M(d_B)(v) = a}` is finite (a subset of `dom(M(d_B))`, finite by S8-fin) and non-empty when `a ∈ ran(M(d_B))`, so the minimum exists. We use the minimum rather than asserting uniqueness because S5 (UnrestrictedSharing, ASN-0036) permits a single I-address to occupy multiple V-positions within one document — S2 establishes that `M(d_B)` is a function (each V-position maps to at most one I-address) but does *not* preclude its inverse from being multi-valued. The minimum under T1 is a canonical representative chosen deterministically from whatever multiplicity the arrangement contains. Distinct I-addresses in `DeletedFromAWithB` necessarily yield distinct minima: by S2, a single V-position `v` cannot map to two distinct I-addresses, so if `a ≠ a'` then `vpos_B(a) ≠ vpos_B(a')`. Hence `vpos_B` is injective on `DeletedFromAWithB`, and the induced relation `a < a' ⟺ vpos_B(a) < vpos_B(a')` is a strict total order on `DeletedFromAWithB` (inheriting trichotomy, transitivity, and irreflexivity from T1). The output is ordered such that for any `a, a'` with `vpos_B(a) < vpos_B(a')` under T1 (ASN-0034), `a` precedes `a'` in the presentation. Symmetrically for `DeletedFromBWithA` using `vpos_A(a) = min{v ∈ dom(M(d_A)) : M(d_A)(v) = a}`.
+*Justification.* The output sets are subsets of `dom(C)`, finite by C-fin (ASN-0047), and T1 is a strict total order on `T` (ASN-0034). The restriction of a total order to a finite subset is again a total order, so each half is linearly ordered by its own addresses with no appeal to any document's arrangement.
 
-*Justification.* Deleted content has no V-position in the document from which it was deleted: V-position information is local to a current arrangement and is not preserved by `R`. So the deleted document's "original ordering" of the content is not observable in the current state — it was a property of an arrangement no longer present. The only observable V-ordering is the witness document's. Choosing the witness order for presentation is the only choice that uses observable data.
-
-We note explicitly what is *not* claimed: the order in which `a` appeared in `d_A` before deletion is *not* recoverable. A user who needs to act on the content reads it in the witness's order — which is convenient, because that is also the order in which it appears when accessed through the witness.
+We note explicitly what is *not* recoverable: the V-position order in which a deleted address appeared in the document from which it was removed. V-position information is local to a current arrangement and is not preserved by `R`, so the deleted document's "original ordering" is a property of an arrangement no longer present. The witness document's arrangement does impose a V-order on the still-current addresses, but that order is observable only through the witness and is not part of the abstract output.
 
 ## Symmetry
 
@@ -338,36 +336,9 @@ The content-level guarantee — the union of both halves as a set of I-addresses
 
 **Claim D-ACT.** The output is in a form usable as input to any operation that consumes I-addresses to produce arrangement extensions.
 
-*Justification.* Each output element is an I-address in `dom(C)`. Any operation whose input type accepts I-addresses (or spans thereof) can consume the output directly. The output is *not* wrapped in V-position structure — wrapping it that way would require either fictitious positions (deleted content has no V-position in the queried document) or borrowed positions from the witness (which would have to be coordinated with the recovery target's address space, an entanglement the abstract output cannot impose). The output is *not* wrapped in content values — wrapping it that way would require copying values into new identities, breaking D-IDENT.
+*Justification.* Each output element is an I-address in `dom(C)`, carrying determinate origin (D-ORIG) and preserved identity (D-IDENT). Any operation whose input type accepts I-addresses (or spans thereof) can consume the output directly. The output is *not* wrapped in V-position structure — wrapping it that way would require either fictitious positions (deleted content has no V-position in the queried document) or borrowed positions from the witness (which would have to be coordinated with the recovery target's address space, an entanglement the abstract output cannot impose). The output is *not* wrapped in content values — wrapping it that way would require copying values into new identities, breaking D-IDENT.
 
-The natural compact form is therefore a set of I-spans, each tagged with the originating document so that contiguous runs sharing the same origin can be grouped. Formally, drawing on the span and bundle algebras:
-
-A *deletion witness run* is a triple `(i_start, ℓ, origin)` with `ℓ ≥ 1` such that, using the OrdinalShift of ASN-0034:
-
-Throughout this section, *the deletion set* refers to either `DeletedFromAWithB(d_A, d_B)` or `DeletedFromBWithA(d_A, d_B)` individually; the witness-run decomposition is applied to each half of the SHOWDELETIONS output independently, never to their union. The per-half scope is load-bearing: an address `[d.0.s_C.k]` in `DeletedFromAWithB` and `[d.0.s_C.k+1]` in `DeletedFromBWithA` are I-adjacent under the same origin `d`, so a union-level decomposition would merge them into a single length-2 run and silently conflate two semantically distinct deletions, losing the deleted-from-which-document distinction that the asymmetric output is designed to preserve.
-
-- *Coverage.* Every address in `{i_start, shift(i_start, 1), …, shift(i_start, ℓ − 1)}` (which is `{i_start}` when `ℓ = 1`) belongs to the deletion set;
-- *Origin uniformity.* Every such address satisfies `origin(·) = origin`;
-- *Right-maximality.* `shift(i_start, ℓ)` is not in the deletion set;
-- *Left-maximality.* Either `i_start` is the first emission `[origin.0.s_C.1]` of `A_C(origin)` (which has no predecessor in the allocator's enumeration), or — writing `i_start = [origin.0.s_C.k]` with `k ≥ 2` — the unique predecessor `i_pred = [origin.0.s_C.k − 1]` (equivalently, the address satisfying `shift(i_pred, 1) = i_start`) is not in the deletion set.
-
-The decomposition into maximal witness runs is uniquely determined by the deletion set itself. The deletion set is finite (a subset of `dom(C)`, finite by C-fin, ASN-0047) and totally ordered under T1 (ASN-0034). Define adjacency on the deletion set: two addresses `a, a'` are *I-adjacent* iff (`a' = shift(a, 1)` or `a = shift(a', 1)`) and `origin(a) = origin(a')`. I-adjacency is symmetric by construction; its reflexive-transitive closure is therefore an equivalence relation, which partitions the deletion set into equivalence classes. Each class is a maximal `T1`-contiguous run of addresses sharing one origin — a witness run. Each equivalence class `C` corresponds to a unique witness run `(i_start_C, ℓ_C, origin_C)` where `i_start_C` is the T1-minimum of `C` (well-defined: `C` is finite and non-empty, and T1 is a strict total order, so the minimum exists and is unique), `ℓ_C = |C|`, and `origin_C` is the shared origin of `C`'s members (well-defined: I-adjacency requires equal origin, so every member of `C` shares one origin value). This assignment is a bijection between equivalence classes and witness runs: distinct classes have distinct minima (classes are disjoint, so their minima cannot coincide), and the inverse — given a witness run `(i_start, ℓ, origin)`, recover the class `{i_start, shift(i_start, 1), …, shift(i_start, ℓ − 1)}` — is determinate by the same shift function. The inverse-then-forward composition returns the original class exactly. We argue this from the structure of I-adjacency directly, without appeal to T1-consecutiveness in `dom(C)`. Let `C` be an equivalence class. By I-adjacency's same-origin requirement, every member of `C` shares one origin `d`; by SubAllocatorBundle (cross-subspace disjointness delta, ASN-0047), `A_C(d)` is the unique content allocator whose outputs satisfy `origin(·) = d` — distinct documents have disjoint content sub-allocator domains (`d ≠ d' ⟹ dom(A_C(d)) ∩ dom(A_C(d')) = ∅`), so no allocator other than `A_C(d)` produces content addresses with origin `d` — and therefore `C ⊆ dom(A_C(d))`. Index each member of `dom(A_C(d))` by enumeration position: address `[d.0.s_C.j]` has index `j`, where `j = 1` is the first emission and each `inc(·, 0)` step advances the index by 1. For a valid address `t = [d.0.s_C.j]`, `sig(t) = #t` (TA5-SigValid, ASN-0034), so `inc(t, 0)` adds 1 to the last component (TA5(c)); the shift `shift(t, 1) = t ⊕ δ(1, #t)` has action point at the last position and also adds 1 there (TumblerAdd) — so `shift(·, 1)` and `inc(·, 0)` agree on emissions of `A_C(d)`, and `shift(·, 1)` increments the enumeration index by exactly 1. Write `I_C = {j : [d.0.s_C.j] ∈ C}` for the set of enumeration indices of `C`'s members.
-
-*`I_C` is a contiguous range of ℕ.* The I-adjacency graph restricted to `C` is a subgraph of the linear chain `[d.0.s_C.1] — [d.0.s_C.2] — [d.0.s_C.3] — …`, where each edge connects two members whose enumeration indices differ by exactly 1 (I-adjacency requires `shift(·, 1)` or its inverse, and shift-1 changes the index by ±1 as just established). Suppose for contradiction `I_C` has a gap: there exist `j₁ < j₂` in `I_C` and some `j₁ < j' < j₂` with `j' ∉ I_C`. Since `[d.0.s_C.j₁]` and `[d.0.s_C.j₂]` belong to the same equivalence class, the I-adjacency graph on `C` connects them by some path. Each path edge changes the index by ±1, so the set of indices visited by the path is contiguous (intermediate-value property of discrete walks); since the path's index set contains both `j₁` and `j₂`, it contains `[j₁, j₂]` entire — in particular `j'`. But every node in the restricted graph is a member of `C`, so `[d.0.s_C.j']` would belong to `C`, contradicting `j' ∉ I_C`. Therefore `I_C = {j_min, j_min + 1, …, j_min + |C| − 1}` where `j_min = min(I_C)`.
-
-*T1-minimum coincides with index-minimum.* By T9 (ForwardAllocation, ASN-0034), within `A_C(d)`'s enumeration `same_allocator(a, b) ∧ allocated_before(a, b) ⟹ a < b` under T1 — equivalently, the enumeration is T1-increasing (TA5(a) supplies the strict per-step increase; T1 transitivity lifts to all index gaps). The index-minimum and T1-minimum of `C` therefore coincide: `min(C) = [d.0.s_C.j_min]`. So `C = {min(C), shift(min(C), 1), …, shift(min(C), |C| − 1)}` (which is `{min(C)}` when `|C| = 1`) — exactly the address set the inverse reconstructs from the witness run `(min(C), |C|, d)`. The address-set correspondence discharges the witness-run definition's *Coverage* condition, and *Origin uniformity* follows from `C ⊆ dom(A_C(d))` established above. The remaining two conditions require independent verification.
-
-*Right-maximality of the triple `(min(C), |C|, d)`.* The address `shift(min(C), |C|) = [d.0.s_C.j_min + |C|]` has enumeration index `j_min + |C|`. Since `I_C = {j_min, …, j_min + |C| − 1}`, the index `j_min + |C|` is not in `I_C`, so this address is not in `C`. We must show it is not in the deletion set at all. Suppose it were; then it would be I-adjacent to `[d.0.s_C.j_min + |C| − 1] ∈ C` — one shift-1 step apart by construction, and same origin `d` since both lie in `dom(A_C(d))`. Equivalence classes are closed under I-adjacency, so it would belong to `C`, contradicting `j_min + |C| ∉ I_C`. Hence `shift(min(C), |C|)` is not in the deletion set.
-
-*Left-maximality of the triple `(min(C), |C|, d)`.* If `j_min = 1`, then `min(C) = [d.0.s_C.1]` is the first emission of `A_C(d)`, and the Left-maximality clause is satisfied by its first-emission disjunct vacuously. Otherwise `j_min ≥ 2`; the predecessor `i_pred = [d.0.s_C.j_min − 1]` has enumeration index `j_min − 1 ∉ I_C`, so `i_pred ∉ C`. Suppose `i_pred` were in the deletion set; then it would be I-adjacent to `min(C) ∈ C` — since `shift(i_pred, 1) = min(C)` by the shift–index correspondence, and both share origin `d`. Closure under I-adjacency would force `i_pred ∈ C`, contradicting `j_min − 1 ∉ I_C`. Hence `i_pred` is not in the deletion set.
-
-The triple `(min(C), |C|, d)` therefore satisfies all four witness-run conditions, and the bijection between equivalence classes and witness runs is verified.
-
-T1-consecutiveness in `dom(C)` between successive emissions of `A_C(d)` follows from T10a/T10 properties (ASN-0034); we omit it here as no claim in this ASN depends on it.
-
-The partition is unique because I-adjacency is determinate: `shift(·, 1)` is a function (OrdinalShift, ASN-0034) and `origin` is a function on `dom(C)` (S7, ASN-0036), so for any pair `(a, a')` in the deletion set the adjacency predicate evaluates to a fixed truth value. The partition is finite because the deletion set is finite. We emphasise that this decomposition is on the deletion set viewed as an I-set — it is not the V→I block decomposition of any document's arrangement (ASN-0058, M11–M12); two I-adjacent same-origin addresses may be non-V-adjacent in any particular witness's arrangement, and V-adjacent positions in a witness's arrangement may map to non-I-adjacent or different-origin addresses, so the two notions of "run" do not coincide. From the witness-run collection, the deletion set is recoverable as the union, over each run `(i_start, ℓ, origin)`, of `{i_start, shift(i_start, 1), …, shift(i_start, ℓ − 1)}` — a set of cardinality `ℓ` determined by the run's components alone via OrdinalShift. The `ℓ` listed addresses are pairwise distinct: `i_start < shift(i_start, j)` for `j ≥ 1` by TA-strict (StrictIncrease, ASN-0034) applied to `shift(i_start, j) = i_start ⊕ δ(j, #i_start)`, and `shift(i_start, j_1) < shift(i_start, j_2)` for `1 ≤ j_1 < j_2 < ℓ` by TS5 (ShiftAmountMonotonicity, ASN-0034); T1 irreflexivity converts each strict inequality to distinctness, so all `ℓ` addresses are distinct elements of the set. The union equals the deletion set because every deletion address lies in exactly one I-adjacency class (partition uniqueness above), and each class is exactly the address set generated by its representative run. So the witness-run collection and the deletion set carry the same information; conversion in either direction is determinate.
-
-We emphasise: this presentation is a *form*, not a *fundamental commitment*. The abstract specification fixes only the set of I-addresses. The run-grouping presentation is a useful packaging that preserves identity (every position is its original I-address) and origin (every address shares the named origin), making the output efficient to transmit while remaining compositional.
+The abstract specification fixes only the set of I-addresses. Because each address retains its identity and self-identifies its origin, an implementation may package the output more compactly — for instance grouping contiguous same-origin runs into spans — without changing what is specified. Any such packaging is a representation choice, not part of the operation's contract; the I-set run-decomposition it would rely on is material for a span/bundle-algebra treatment, not for this operation spec.
 
 ## Observational Frame
 
@@ -385,17 +356,7 @@ Formally, for state `Σ = (C, L, E, M, R)` and the state `Σ'` obtaining after t
 
 The operation reads `M(d_A)`, `M(d_B)`, and `R`; it computes the output sets; it returns them. No transition relation is invoked.
 
-Consequences: SHOWDELETIONS is repeatable on the same state (yields identical results); it commutes with other observational queries; and a later invocation after intervening state changes correctly reflects the new state.
-
-## Output Need Not Be Stored
-
-**Claim D-STORE.** The output is not required to be stored as a document or otherwise integrated into the persistent content store.
-
-*Justification (negative claim).* SHOWDELETIONS is observational (D-OBS); its result is delivered to the caller. The caller may inspect, transform, retain, or discard the result. The system does not, of its own accord, create a new document or other persistent artefact to hold the result.
-
-If a user wishes to capture a particular SHOWDELETIONS result for sharing or future reference, they have separate mechanisms for doing so: they may compose a new document whose arrangement transcludes the recovered I-spans (using D-IDENT's identity preservation), or they may establish correspondence assertions between the two compared documents. These captures are user actions, not built-in obligations of SHOWDELETIONS.
-
-The justification for keeping the operation observational rather than constructive: SHOWDELETIONS is a function of state (D-RECONS below). Functions can be recomputed from their inputs whenever needed. Storing the result would buy persistence at the cost of staleness — any subsequent state change makes a stored result potentially out of date. The system is more flexible with observation than with creation.
+Consequences: SHOWDELETIONS is repeatable on the same state (yields identical results); it commutes with other observational queries; and a later invocation after intervening state changes correctly reflects the new state. Because the operation is observational, its result is merely delivered to the caller and is not stored as a document or otherwise integrated into the persistent store (**D-STORE**); the system creates no persistent artefact of its own accord.
 
 ## State-Functional Independence
 
@@ -407,19 +368,13 @@ This is what makes the operation an honest function of state. The user need not 
 
 ## Edge Cases
 
-*Documents with no shared content.* The condition that for every `a ∈ dom(C)`, `¬((a, d_A) ∈ R ∧ a ∈ ran(M(d_B)))` and `¬((a, d_B) ∈ R ∧ a ∈ ran(M(d_A)))` is *sufficient* — though not characterizing — for both output halves to be empty: it captures the stronger notion that the two documents have no shared content trace at all (no address ever attested in one's `R`-projection currently sits in the other's arrangement). Under this stronger condition, the deletion conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` both fail for every `a`, since each requires `(a, d_A) ∈ R ∧ a ∈ ran(M(d_B))` (or the symmetric form), which the condition negates. The weaker condition that exactly matches the definition of `DeletedFromAWithB` would replace each clause with `¬((a, d_A) ∈ R ∧ a ∉ ran(M(d_A)) ∧ a ∈ ran(M(d_B)))` (and the symmetric form). Both conditions yield empty output halves; the stronger form is the natural reading of "no shared content history."
+*Documents with no shared content.* Both output halves are empty exactly when, for every `a ∈ dom(C)`, `¬(DELETED(a, d_A) ∧ CURRENT(a, d_B))` and `¬(DELETED(a, d_B) ∧ CURRENT(a, d_A))` — equivalently `¬((a, d_A) ∈ R ∧ a ∉ ran(M(d_A)) ∧ a ∈ ran(M(d_B)))` and the symmetric form. This is the condition the definitions of the output sets directly negate.
 
 *Both arrangements empty.* If `dom(M(d_A)) = dom(M(d_B)) = ∅`, then `ran(M(d_A)) = ran(M(d_B)) = ∅`, so `CURRENT` fails for every `a` on both sides. Both halves are empty.
 
 *Same document compared against itself.* If `d_A = d_B`, then for each `a`, `DELETED(a, d_A) ∧ CURRENT(a, d_A)` is contradictory (by D-EXH). Both halves are empty. The operation is well-defined and trivially yields the empty pair.
 
 *Asymmetric population.* If `d_A` has rich history (large `R`-projection) but its current arrangement is empty, while `d_B`'s arrangement currently holds many of the addresses `d_A` historically held, then `DeletedFromAWithB` may be large and `DeletedFromBWithA` may be empty. The asymmetry of the two halves directly mirrors the asymmetry of the editing histories.
-
-## Composability with Restoration
-
-While we do not specify any restoration operation here, we note that the output's form makes restoration *possible*. The output is a set of I-addresses in `dom(C)`, each carrying determinate origin (D-ORIG) and preserving identity (D-IDENT). A restoration operation consuming a subset of these addresses can extend a target document's arrangement to include them at fresh V-positions, with `origin` and link-resolvability preserved because no new identities are introduced.
-
-The user-facing meaning: a "show deletions" query feeds naturally into a "bring back this part" follow-up, with no loss of identity in the round trip. That is what makes the operation more than diagnostic.
 
 ## Claims Introduced
 
@@ -437,13 +392,12 @@ The user-facing meaning: a "show deletions" query feeds naturally into a "bring 
 | D-SUBSP | The operation restricts to the content subspace `s_C`; cross-document deletion comparison is structurally meaningful only there | introduced |
 | D-IDENT | Output references are I-addresses themselves; no copies, no new identities | introduced |
 | D-ORIG | Every output element `a` has determinate `origin(a)` | introduced |
-| D-ORD | Output presentation, when ordered, is consistent with the witness document's V-position ordering | introduced |
+| D-ORD | Each output half is a finite subset of T, inheriting T1's total order; no separate ordering structure is needed | introduced |
 | D-SYM | `SHOWDELETIONS(d_B, d_A)` is the component-swapped pair of `SHOWDELETIONS(d_A, d_B)` | introduced |
-| D-ACT | Output is in a form consumable by I-address-based operations; deletion witness runs `(i_start, ℓ, origin)` are the natural compact form | introduced |
+| D-ACT | Output is a set of I-addresses in `dom(C)`, directly consumable by any I-address-based operation | introduced |
 | D-OBS | SHOWDELETIONS modifies no state component; it is purely observational | introduced |
 | D-STORE | The output is not required to be stored as a document; it is a query result | introduced |
 | D-RECONS | The output depends only on the current state, not on transition history | introduced |
-| DeletionWitnessRun | Triple `(i_start, ℓ, origin)` denoting a maximal contiguous I-address run in the deletion set sharing one originating document | introduced |
 
 ## Open Questions
 
@@ -462,3 +416,5 @@ Under what conditions on the witness arrangement does the deletion set admit a f
 What guarantees must the witness's V-order satisfy to ensure that presentation-ordered output of SHOWDELETIONS corresponds to a user-meaningful reading sequence rather than a structural accident?
 
 Should the system distinguish content "deleted with a witness in a prior arrangement of the same document" from "deleted with a witness in a sibling document," and what additional structure would that distinction require?
+
+What must a restoration operation guarantee so that consuming a subset of a SHOWDELETIONS output reintroduces deleted content into a target arrangement while preserving origin and link-resolvability?
