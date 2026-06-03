@@ -63,7 +63,7 @@ Two consequences follow without further machinery.
 
 ## Sharing, Not Duplication
 
-The K.μ⁺ phase populates `M'(d_new)`. The question is what V-to-I mappings it installs, and J4's clause (ii) settles it: the fork inherits content by reference, fixing `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})` so that no K.α step runs and the new arrangement points at the source's own I-addresses. Duplication — minting fresh I-addresses for the same bytes — is not an admissible instantiation of J4 at all. This is Nelson's *inclusion*: content is shared, not copied. Every property that depends on I-address identity — origin attribution (S7, ASN-0036), link discoverability via shared addresses, royalty distribution, version intercomparison — is therefore automatic, and the content store grows by nothing.
+The K.μ⁺ phase populates `M'(d_new)`. The question is what V-to-I mappings it installs, and J4's clause (ii) settles it: the fork inherits content by reference, fixing `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})` so that no K.α step runs and the new arrangement points at the source's own I-addresses. Duplication — minting fresh I-addresses for the same bytes — is not an admissible instantiation of J4 at all. This is Nelson's *inclusion*: content is shared, not copied. The load-bearing consequence is that the content store grows by nothing — `C' = C`, which V3 formalizes below.
 
 J4's defining clause makes the discipline explicit:
 
@@ -158,8 +158,6 @@ We therefore commit to producing an empty fork as the normative behavior:
 > **V7** (*empty-source behavior*): A fork of `d_src` with `V_{s_C}(d_op) = ∅` reduces to K.δ alone, producing a new entity `d_new ∈ E'_doc` with `M'(d_new) = ∅` and `R' = R`. The operation succeeds; the fork is itself an empty document, eligible for subsequent insertion or further forking.
 
 V0 dispatches on whether `V_{s_C}(d_op)` is empty: when non-empty, the K.δ + K.μ⁺ + K.ρ composite of J4 (ASN-0047); when empty, V7's K.δ-alone composite, which vacates J4's clauses (ii) and (iii) since K.μ⁺ does not fire and `ran(M'(d_new))` is empty.
-
-The properties whose quantifiers range over `V_{s_C}(d_op)` — V4, V8, V9, and V12(d) — hold vacuously in this case.
 
 ## Structural Correspondence
 
