@@ -391,6 +391,46 @@ The V-restricted denotation is `⟦Σ_V^{s_C}⟧_V = {[1, 2], [1, 3]}` at conten
 
 This configuration confirms that the offset `j` and clipped width `c` are recorded faithfully: the result V-span starts at `v + j = [1, 2]`, not at the block start `v = [1, 1]`, and spans only the `c = 2` clipped positions rather than the block's full width `n = 3`.
 
+**Sixth configuration — vacuous link subspace, second slot, second document (F-empty's vacuous branch, F-slot, F-multidoc).** Configurations 1–5 keep both subspaces of `d` populated (`β_L` is present throughout), so `m_{s_L}(d)` is always defined and every empty `s_L`-component there arises from *missed coverage* against a populated subspace — never from a *vacuous* subspace. We now exercise the Vacuous-subspace convention directly, and with it the slot-uniformity (F-slot) and document-independence (F-multidoc) properties.
+
+Introduce a second document `d'` holding content but **no links** — so `V_{s_L}(d') = ∅` and `m_L(d')` is undefined:
+
+```
+M(d'):
+  V-position  → I-address
+  [1, 1]      → a₀          (content subspace; γ below)
+  [1, 2]      → a₀ + 1      (content subspace; γ)
+```
+
+with a single mapping block `γ = ([1, 1], a₀, 2)` in `s_C`. The content addresses `a₀, a₀ + 1 ∈ dom(C)` are the same I-addresses arranged in `d` (Configuration 1) — `d'` transcludes them. There is no link-subspace V-position: `V_{s_L}(d') = ∅`, so `m_L(d')` is undefined.
+
+Take a link `ℓ` with the standard three endsets (L3, ASN-0043), of which we follow two distinct slots:
+
+```
+L(ℓ).e₁ = {(a₀,     δ(1, m_a))}      (from-endset, reaches a₀)
+L(ℓ).e₃ = {(a₀ + 1, δ(1, m_a))}      (type-endset, reaches a₀ + 1; e₃ ≠ ∅ per L3)
+```
+
+By L1a (ASN-0047) `home(ℓ) ∈ dom(M)`, but the followed document need not be `home(ℓ)`; here we follow `ℓ` against `d'`.
+
+*Following slot 1 against `d'`.* `coverage(L(ℓ).e₁) = subtree(a₀)` (PrefixSpanCoverage, ASN-0043), depth-`m_a` member `{a₀}`. Process `γ`: `I(γ) = {a₀, a₀ + 1}`; intersection with `{a₀}` is `{a₀}` at index 0 — offset `j = 0`, width `c = 1`. V-run `[1, 1]`, recorded as `([1, 1], δ(1, 2))`.
+
+```
+follow(ℓ, d', 1) = (d', (⟨([1, 1], δ(1, 2))⟩, ⟨⟩))
+```
+
+- *Vacuous-subspace convention.* `R(d', L(ℓ).e₁)|_{s_L} = ∅` holds *unconditionally* — no `v ∈ dom(M(d'))` has `subspace(v) = s_L`, because the link subspace of `d'` is vacuous, not because coverage missed populated link material. With `m_{s_L}(d')` undefined there is no depth-`m_{s_L}(d')` predicate to restrict against, so the Vacuous-subspace convention forces `Σ_V^{s_L} = ⟨⟩` as the unique span-set with `⟦⟨⟩⟧_V = ∅ = R(d', L(ℓ).e₁)|_{s_L}`, preserving canonical-form uniqueness. This is distinct from Configuration 1's `Σ_V^{s_L} = ⟨⟩`, which arose from a *populated* link subspace (`β_L` present) that coverage simply failed to reach. ✓
+
+*Following slot 3 against `d'`.* Same document, same mechanism, different endset. `coverage(L(ℓ).e₃) = subtree(a₀ + 1)`, depth-`m_a` member `{a₀ + 1}`. Process `γ`: `I(γ) = {a₀, a₀ + 1}`; intersection with `{a₀ + 1}` is `{a₀ + 1}` at index 1 — offset `j = 1`, width `c = 1`. V-run `[1, 2]`, recorded as `([1, 2], δ(1, 2))`.
+
+```
+follow(ℓ, d', 3) = (d', (⟨([1, 2], δ(1, 2))⟩, ⟨⟩))
+```
+
+- *F-slot.* Slots 1 and 3 route through the identical inverse-image mechanism `R(d', L(ℓ).eᵢ)|_S`; the differing results (`[1, 1]` vs `[1, 2]`) trace entirely to the differing endsets (`e₁` reaches `a₀`, `e₃` reaches `a₀ + 1`), not to differing routing. The type endset `e₃` resolves by the same definition as the from-endset `e₁`. ✓
+
+*F-multidoc.* Follow the *same* `ℓ` and slot 1 against `d` (Configuration 1's arrangement). Coverage `subtree(a₀)` meets `β₂` and `β₃` — both holding `a₀` in their I-extent — at index 0, and misses `β₁` (P-alloc) and `β_L` (L14): `follow(ℓ, d, 1) = (d, (⟨([1, 1], δ(1, 2)), ([1, 6], δ(1, 2))⟩, ⟨⟩))`. Against `d'` the same link and slot give `follow(ℓ, d', 1) = (d', (⟨([1, 1], δ(1, 2))⟩, ⟨⟩))`. One link resolved against two distinct documents `d ≠ d'` by one mechanism, each result paired with its own document; `home(ℓ)` — in general neither `d` nor `d'` — plays no privileged role, since resolution reads only the respective `M(d)`/`M(d')` and `coverage(L(ℓ).e₁)`. The two empty `s_L`-components arise differently: in `d` from a populated link subspace coverage misses, in `d'` from a vacuous one by convention. ✓
+
 ## Derived Properties
 
 Each of the following is a consequence of the inverse-image definition combined with the foundations. We catalogue them as F-det, F-sound, etc., and present each with explicit preconditions, postconditions, dependencies, and frame.
@@ -405,7 +445,7 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 
 **Postcondition.** For two evaluations of `follow(ℓ, d, i)` against the same state `Σ`, returning `(d, Σ_V)` and `(d, Σ_V')`: `⟦Σ_V^S⟧_V = ⟦Σ_V'^S⟧_V` for each subspace `S`. The V-restricted denotation `⟦Σ_V^S⟧_V` is uniquely determined by `Σ`, `ℓ`, `d`, `i`.
 
-**Depends.** F0 (InverseImageRelation, this ASN — its Well-definedness clause, which itself rests on S2 ArrangementFunctionality, ASN-0036); S3★-aux (SubspaceExhaustiveness, ASN-0047); S8 (NormalizationExistence, ASN-0053); S9 (NormalizationUniqueness, ASN-0053); F-canonical (derived above).
+**Depends.** F0 (InverseImageRelation, this ASN — its Well-definedness clause); S3★-aux (SubspaceExhaustiveness, ASN-0047); S8 (NormalizationExistence, ASN-0053); S9 (NormalizationUniqueness, ASN-0053); F-canonical (derived above).
 
 **Derivation.** For fixed `Σ`:
 
@@ -476,7 +516,7 @@ The operation does not deduplicate, does not select a "canonical" V-position, do
 
 **Depends.** Slot accessor L6 (SlotDistinction, ASN-0043) — slots are uniformly indexed. L3's asymmetric well-formedness (`e₃ ≠ ∅` required, others may be empty) constrains link construction, not resolution.
 
-Uniformity makes the operation composable: `followAll(ℓ, d) = (follow(ℓ, d, 1), ..., follow(ℓ, d, |L(ℓ)|))` is the positionally-aligned tuple of per-slot resolutions, with the type endset `e₃` resolving by the same mechanism as any other slot. The outcome `R(d, eᵢ) = ∅` is uniformly admissible whether the cause is `eᵢ = ∅` (vacuous coverage) or coverage that misses the arrangement; the result form does not distinguish them.
+The resolution mechanism is slot-independent: the type endset `e₃` resolves by the same inverse-image definition as any other slot, and differing results across slots reflect differing endsets, not differing routing. The outcome `R(d, eᵢ) = ∅` is uniformly admissible whether the cause is `eᵢ = ∅` (vacuous coverage) or coverage that misses the arrangement; the result form does not distinguish them.
 
 ### F-contig — Contiguity (LEMMA)
 
