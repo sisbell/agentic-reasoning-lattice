@@ -179,7 +179,7 @@ The coarse shallow anchor — naming a single depth-2 coordinate over a depth-3 
 
   `⟦σ_F⟧ ∩ dom(M(d_A)) = ∅`,   hence   `iaddrs_one(d_A, σ_F)(Σ) = ∅`
 
-and `iaddrs(Q_F)(Σ) = ∅`, so `find(Q_F)(Σ) = ∅` by F-EMPTY's mechanism — the intersection `ran(M(d)) ∩ ∅` is empty at every `d`. A vspec that looks well-formed resolves to nothing: an anchor finer than the source's arrangement names a coordinate below where any content was placed. (The empty-source case `V_{s_C}(d_s) = ∅` lands the same way for a more basic reason — a document with no content-subspace position has `dom(M(d_s))` carrying nothing for `⟦σ⟧` to intersect.)
+and `iaddrs(Q_F)(Σ) = ∅`, so `find(Q_F)(Σ) = ∅` by F-EMPTY's mechanism — the intersection `ran(M(d)) ∩ ∅` is empty at every `d`. A vspec that looks well-formed resolves to nothing: an anchor finer than the source's arrangement names a coordinate below where any content was placed.
 
 ## Partial overlap suffices
 
@@ -219,7 +219,7 @@ This is worth stating because `iaddrs(Q)` may name content that is widely transc
 
 The returned set has presentation and policy properties we have left unspecified. These are not entailed by the abstract operation, and an implementation may add them without conflicting with the specification, provided the unfiltered semantics remain available.
 
-(i) *Order.* `find(Q)(Σ)` is a set. Some implementations may return its elements in a deterministic order (such as ascending tumbler order on document ISA, naturally arising from a sorted index); others may not. Order is a presentation choice. Two implementations both meeting the specification may return the same elements in different orders, and neither violates the specification by virtue of order alone.
+(i) *Order.* `find(Q)(Σ)` is a set. Some implementations may return its elements in a deterministic order (such as ascending tumbler order on document ISA, naturally arising from a sorted index); others may not. Order is a presentation choice, not a conformance criterion — it is left entirely unspecified.
 
 (ii) *Replica freshness.* We specify `find` against a single state `Σ`; replica-divergent views in a distributed deployment are out of scope.
 
