@@ -58,8 +58,9 @@ For K.μ⁺_L at the intermediate state `Σ_mid` after K.λ:
   origin(ℓ) = d                [established by K.λ]
   ℓ ∉ ran(M(d))                [derived below]
   subspace(v_ℓ) = s_L          [by construction: (v_ℓ)₁ = s_L]
-  #v_ℓ = m_L(d)              [when V_{s_L}(d) = ∅, MAKELINK fixes m_L(d) = 2 via M-DepthConv / ValidFirstLinkPosition(d, v_ℓ, 2); otherwise #v_ℓ = m_L(d), the existing link-subspace depth (S8-depth, ASN-0047)]
-  v_ℓ at the next link-subspace position per D-MIN★ / D-CTG★ at depth m_L(d)
+  #v_ℓ = 2                    [when V_{s_L}(d) = ∅: m_L(d) is undefined at Σ, so MAKELINK fixes the depth at 2 via M-DepthConv / ValidFirstLinkPosition(d, v_ℓ, 2)]
+  #v_ℓ = m_L(d)              [when V_{s_L}(d) ≠ ∅: m_L(d) is the existing link-subspace depth (S8-depth, ASN-0047)]
+  v_ℓ at the next link-subspace position per D-MIN★ / D-CTG★ (at depth 2 when V_{s_L}(d) = ∅, else at depth m_L(d))
 
 The condition `ℓ ∉ ran(Σ_mid.M(d))` requires more than `ℓ ∉ dom(Σ.L)`; it must be derived through the S3★ + S3★-aux + L14 chain. K.λ's frame preserves `M`, so `Σ_mid.M(d) = Σ.M(d)` and `ran(Σ_mid.M(d)) = ran(Σ.M(d))`. By S3★-aux (ASN-0047), every `v ∈ dom(Σ.M(d))` has `subspace(v) ∈ {s_C, s_L}`. By S3★:
 
@@ -355,15 +356,16 @@ For S8★: per ASN-0047's S8★, the link-subspace projected arrangement `M'(d)|
 
 For state components unchanged by MAKELINK (`C`, `E`, `R`) and for the document-set `dom(M)`, the remaining per-state invariants are preserved:
 
-- M0 (DocumentTumblerWellFormed, ASN-0093): vacuous since `dom(Σ'.M) = dom(Σ.M)` (MAKELINK allocates no new document); every `d ∈ dom(Σ'.M)` satisfies M0 by inheritance from `Σ`.
-- S4 (origin-based identity for content addresses, ASN-0036): vacuous since `Σ'.C = Σ.C`; the lemma quantifies over `dom(C)` allocation events, of which MAKELINK introduces none.
+- M0 (DocumentTumblerWellFormed, ASN-0093): preserved because the document set is unchanged — `dom(Σ'.M) = dom(Σ.M)` (MAKELINK allocates no new document, only a new V-position within an already-allocated document); every `d ∈ dom(Σ'.M)` satisfies M0 by inheritance from `Σ`. This is *not* a content-frame argument: M0 quantifies over `dom(M)`, not `dom(C)`.
+- S4 (origin-based identity for content addresses, ASN-0036): preserved by inheritance (no new `dom(C)` entries) since `Σ'.C = Σ.C`; the lemma's content is fixed by the existing content-allocation events, and MAKELINK introduces none. (The "no new content *allocation events*" clause is the genuinely vacuous part.)
 - L11a (link uniqueness, ASN-0043): the new allocation event for `ℓ` is distinct from every prior link allocation event (by ChainEnumerationInjectivity, DisjointSubAllocatorChains, and Cross-doc disjointness — see "Freshness of the Allocation"), so L11a's distinctness conclusion holds at `Σ'`.
-- S7a, S7b, S7d (origin and structural attribution for content addresses): vacuous since `Σ'.C = Σ.C`; the predicates quantify over `dom(C)`, which is unchanged.
-- C1b (content element-field depth), C1c (content allocator conformance): vacuous since `Σ'.C = Σ.C`; both quantify over `dom(C)`, which is unchanged, so MAKELINK introduces no content address against which to verify them.
-- C-fin (content store finiteness): vacuous since `dom(Σ'.C) = dom(Σ.C)` is finite at `Σ`.
-- P6 (existential coherence), P7 (provenance grounding): vacuous since `dom(C)`, `dom(M)`, and `R` are unchanged in the relevant respects (`dom(M)` grows only by new V-positions within an already-allocated document, not by new documents; `R` is unchanged).
-- P8 (entity hierarchy): vacuous since `E` is unchanged.
-- NodeLineage (descent from bootstrap), ActivatedEmission (every non-node entity emitted by an activated sub-allocator): vacuous since `Σ'.E = Σ.E`; both quantify over `E`, which MAKELINK leaves unchanged.
+- S7a, S7b (origin and structural attribution for content addresses): preserved by inheritance (no new `dom(C)` entries) since `Σ'.C = Σ.C`; the predicates quantify over `dom(C)`, which is unchanged, so every existing content address retains its attribution and no new content address arises to verify.
+- S7d (DocumentAllocationDiscipline, ASN-0036): preserved because the document set is unchanged. S7d quantifies over *document tumblers* (each `d` has `zeros(d) = 2`, arises from a distinct allocation event, and distinct documents have distinct tumblers) — *not* over `dom(C)`. MAKELINK registers no new document (`dom(Σ'.M) = dom(Σ.M)` under K.λ and K.μ⁺_L), so the predicate carries over from `Σ` unchanged. Its preservation has nothing to do with the content frame `Σ'.C = Σ.C`.
+- C1b (content element-field depth), C1c (content allocator conformance): preserved by inheritance (no new `dom(C)` entries) since `Σ'.C = Σ.C`; both quantify over `dom(C)`, which is unchanged, so MAKELINK introduces no content address against which to verify them.
+- C-fin (content store finiteness): preserved since `dom(Σ'.C) = dom(Σ.C)` is finite at `Σ`.
+- P6 (existential coherence), P7 (provenance grounding): preserved by inheritance since `dom(C)`, `dom(M)`, and `R` are unchanged in the relevant respects (`dom(M)` grows only by new V-positions within an already-allocated document, not by new documents; `R` is unchanged), so every existing content/provenance instance is carried over and no new instance arises.
+- P8 (entity hierarchy): preserved by inheritance (no new `E` entries) since `E` is unchanged.
+- NodeLineage (descent from bootstrap), ActivatedEmission (every non-node entity emitted by an activated sub-allocator): preserved by inheritance (no new `E` entries) since `Σ'.E = Σ.E`; both quantify over `E`, which MAKELINK leaves unchanged.
 
 ### Composite-Boundary Properties
 
@@ -468,7 +470,7 @@ For clarity, we enumerate what MAKELINK does not perform:
 | M-Perm | After MAKELINK: `(A Σ' →* Σ'' :: ℓ ∈ dom(Σ''.L) ∧ Σ''.L(ℓ) = Σ'.L(ℓ))`, by LP13. | introduced |
 | M-NoIndexState | The abstract specification requires no separate index state component. Discoverability is computed from `L` and `M` via the projection function of ASN-0098. | introduced |
 | M-CompAtomicity | The composite is not atomic at the substrate level. The intermediate state `Σ_mid` between K.λ and K.μ⁺_L has the link allocated but not placed. `discoverable_from(ℓ, d_target, ·)` agrees at `Σ_mid` and `Σ'` for every `d_target ≠ d`; for `d_target = d` the two values agree unless some endset reflexively covers `ℓ`. Composite-level atomicity, if required, belongs to the protocol layer above the substrate. | introduced |
-| M-Inv-State | *Per-state invariants at `Σ'`.* The post-state satisfies: link-store invariants (L0, L1, L1a, L1b, L1c, L3, L14, L-fin); arrangement invariants (S2, S3★, S3★-aux, S8a, S8-depth, S8-fin, S8★, CL-OWN, CL-UNIQ, D-MIN★, D-CTG★, D-SEQ★); and vacuous-by-frame invariants (M0, S4, S7a, S7b, S7d, C1b, C1c, C-fin, P6, P7, P8, NodeLineage, ActivatedEmission) — the `C`-quantified ones vacuous via `Σ'.C = Σ.C`, the `E`-quantified ones via `Σ'.E = Σ.E`. | introduced |
+| M-Inv-State | *Per-state invariants at `Σ'`.* The post-state satisfies: link-store invariants (L0, L1, L1a, L1b, L1c, L3, L14, L-fin); arrangement invariants (S2, S3★, S3★-aux, S8a, S8-depth, S8-fin, S8★, CL-OWN, CL-UNIQ, D-MIN★, D-CTG★, D-SEQ★); and frame-inherited invariants over unchanged domains, grouped by which frame supplies preservation: (i) *content-frame* (`Σ'.C = Σ.C`, no new `dom(C)` entries) — S4, S7a, S7b, C1b, C1c, C-fin, P6, P7; (ii) *entity-frame* (`Σ'.E = Σ.E`, no new `E` entries) — P8, NodeLineage, ActivatedEmission; (iii) *document-set frame* (`dom(Σ'.M) = dom(Σ.M)`, no new document registered) — M0 and S7d, both quantified over document tumblers / `dom(M)` rather than over `dom(C)` or `E`. These are preserved by inheritance, not vacuously: the domains are generally nonempty, but no new instances arise and existing ones are unchanged. | introduced |
 | M-Inv-Bdry | *Composite-boundary properties at `Σ'`.* P4★, P4a, P7a hold at `Σ'` — all preserved because `R' = R`, `dom(Σ'.C) = dom(Σ.C)`, and the new V-arrangement entry is link-subspace (so it does not enter `Contains_C(Σ')`). The three coupling constraints are discharged separately: J0 by `dom(Σ'.C) ∖ dom(Σ.C) = ∅` (frame on `C`); J1★ by `subspace(v_ℓ) = s_L ≠ s_C` (structural, the new V-position fails J1★'s content-subspace filter); J1'★ by `R' ∖ R = ∅` (frame on `R`). | introduced |
 | M-Inv-Trans | *Transition invariants for `Σ → Σ'`.* M1, L12, P0, P1, P2 hold, and P3 (= P0 ∧ P1 ∧ P2 ∧ L12) holds as their conjunction. Each conjunct is discharged trivially by the frames `Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, and L12 by K.λ adding only the fresh `ℓ`. | introduced |
 
