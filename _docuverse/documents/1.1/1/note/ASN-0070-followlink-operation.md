@@ -20,7 +20,7 @@ By L4 (ASN-0043), endset spans may reference any addresses in tumbler space, inc
 
 Documents arrange I-addresses into V-positions. The arrangement of document `d` is the partial function `M(d) : T ⇀ T` from V-positions to I-addresses (ASN-0036, generalised by S3★ of ASN-0047). For any `v ∈ dom(M(d))`, `M(d)(v)` is the I-address that `d` currently places at V-position `v`. V-positions occupy two subspaces, distinguished by their first component: `subspace(v) = s_C` for content-subspace V-positions and `subspace(v) = s_L` for link-subspace V-positions.
 
-Within each subspace `S` of document `d`, when `V_S(d) ≠ ∅` all V-positions in `S` share a common depth `m_S(d) ≥ 2` (S8-depth, ASN-0036; `m_L(d)` for `S = s_L`, ASN-0047). When `V_S(d) = ∅` the depth `m_S(d)` is undefined and `S` is vacuous in `d`. The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide. `follow` reads the current `M(d)`, so only these current-state facts about `m_S(d)` are consumed below.
+Within each subspace `S` of document `d`, when `V_S(d) ≠ ∅` all V-positions in `S` share a common depth `m_S(d) ≥ 2` (S8-depth, ASN-0036; `m_L(d)` for `S = s_L`, ASN-0047). When `V_S(d) = ∅` the depth `m_S(d)` is undefined and `S` is vacuous in `d`. The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide.
 
 What lies in `dom(Σ.C) ∪ dom(Σ.L)` but not in `ran(M(d))` is content or link material stored in the system but not arranged in `d`. By the permanence invariants (P0, P1, L12 of ASN-0047), the stored material persists; only the arrangement varies.
 
@@ -290,21 +290,14 @@ follow(ℓ, d, 1) = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
 
 - *F-sound.* Both `[1, 4]` and `[1, 5]` are in `dom(M(d))`. `M(d)([1, 4]) = a₁ + 1 ∈ coverage(L(ℓ).e₁)`. `M(d)([1, 5]) = a₁ + 2 ∈ coverage(L(ℓ).e₁)`. ✓
 - *F-complete.* The only V-positions `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).e₁)` are `[1, 4]` and `[1, 5]` (the V-positions covered by `β₁`). Both are in `⟦Σ_V^{s_C}⟧_V`. ✓
-- *F-multi.* Not exercised in this example (no I-address in `coverage(L(ℓ).e₁)` appears at multiple V-positions of `d`).
+- *F-multi.* Not exercised in this example (no I-address in `coverage(L(ℓ).e₁)` appears at multiple V-positions of `d`); exercised by the cross-subspace straddle configuration below, whose content branch resolves `a₀` to the two V-positions `[1, 1]` and `[1, 6]`.
 - *Partial emptiness.* The link-subspace component is empty: `R(d, L(ℓ).e₁)|_{s_L} = ∅`, so `⟦Σ_V^{s_L}⟧_V = ∅` with `Σ_V^{s_L} = ⟨⟩`, while `Σ_V^{s_C}` is populated. ✓
 - *F-det (denotational).* The V-restricted denotation `⟦Σ_V^{s_C}⟧_V = {[1, 4], [1, 5]}` is uniquely determined.
 - *F-subspace.* `M(d)([1, 4]) = a₁ + 1 ∈ dom(C)` (P-alloc, plus S3★ since it is arranged at a content-subspace V-position), so `subspace_I(a₁ + 1) = s_C` — matching `subspace([1, 4]) = 1 = s_C`. ✓
 
-**Second configuration — multiplicity.** Modify the endset to `L(ℓ).e₁ = {(a₀, δ(1, m_a))}`, whose coverage is the half-open interval `coverage(L(ℓ).e₁) = {t ∈ T : a₀ ≤ t < a₀ ⊕ δ(1, m_a)} = subtree(a₀)` (PrefixSpanCoverage, ASN-0043) — the entire subtree of `a₀`, whose only depth-`m_a` member is `a₀`. By P-depth, the intersections are computed against the singleton `{a₀}`. Now `a₀ ∈ I(β₂)` (at offset 0) and `a₀ ∈ I(β₃)` (at offset 0). Both blocks contribute:
+**Second configuration — no reach.** Take `L(ℓ).e₁ = {(b, δ(1, m_a))}`, whose coverage is `coverage(L(ℓ).e₁) = {t ∈ T : b ≤ t < b ⊕ δ(1, m_a)} = subtree(b)` (PrefixSpanCoverage, ASN-0043). Suppose no depth-`m_a` member of `subtree(b)` lies in `ran(M(d))` (this is the load-bearing precondition; `b ∉ ran(M(d))` alone would not suffice, since deeper-depth members of the coverage could still be reached). By P-depth, each block's intersection with coverage is empty (no depth-`m_a` coverage member is reached). `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. F-empty is exercised. ✓
 
-- From `β₂`: V-span `([1, 1], δ(1, 2))`.
-- From `β₃`: V-span `([1, 6], δ(1, 2))`.
-
-`Σ_V^{s_C} = ⟨([1, 1], δ(1, 2)), ([1, 6], δ(1, 2))⟩` (two spans, in sorted order). F-multi is exercised: a single I-address `a₀` yields two V-positions `[1, 1]` and `[1, 6]`, both included. ✓
-
-**Third configuration — no reach.** Take `L(ℓ).e₁ = {(b, δ(1, m_a))}`, whose coverage is `coverage(L(ℓ).e₁) = {t ∈ T : b ≤ t < b ⊕ δ(1, m_a)} = subtree(b)` (PrefixSpanCoverage, ASN-0043). Suppose no depth-`m_a` member of `subtree(b)` lies in `ran(M(d))` (this is the load-bearing precondition; `b ∉ ran(M(d))` alone would not suffice, since deeper-depth members of the coverage could still be reached). By P-depth, each block's intersection with coverage is empty (no depth-`m_a` coverage member is reached). `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. F-empty is exercised. ✓
-
-**Fourth configuration — state-dependence.** Fix the link and vary the state. Take `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` as in Configuration 1, whose coverage is the half-open interval `{t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` with depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` (the set against which intersections are computed, by P-depth). In the pre-state `Σ`:
+**Third configuration — state-dependence.** Fix the link and vary the state. Take `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` as in Configuration 1, whose coverage is the half-open interval `{t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` with depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` (the set against which intersections are computed, by P-depth). In the pre-state `Σ`:
 
 ```
 follow(ℓ, d, 1) at Σ = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
@@ -337,7 +330,7 @@ follow(ℓ, d, 1) at Σ' = (d, (⟨⟩, ⟨⟩))
 
 The same link, the same endset, the same document, but a different result. F-state is exercised: the variation traces entirely to `M(d) ≠ M'(d)`, since `L(ℓ).e₁` is L12-invariant. The link is preserved across the transition; its resolution against `d` now reflects the contracted arrangement. F-persist is also visible: `ℓ` remains in `dom(Σ'.L)` despite resolving to the empty per-subspace family. ✓
 
-**Fifth configuration — cross-subspace straddle (both result components non-empty).** A single endset's coverage straddles *both* I-subspaces — meeting `dom(C)` and `dom(L)` at once — so the result is a genuine *pair* with `Σ_V^{s_C} ≠ ⟨⟩` and `Σ_V^{s_L} ≠ ⟨⟩`.
+**Fourth configuration — cross-subspace straddle (both result components non-empty).** A single endset's coverage straddles *both* I-subspaces — meeting `dom(C)` and `dom(L)` at once — so the result is a genuine *pair* with `Σ_V^{s_C} ≠ ⟨⟩` and `Σ_V^{s_L} ≠ ⟨⟩`.
 
 Return to the pre-state arrangement `M(d)` of Configuration 1 — in which the content address `a₀` is arranged at the two content-subspace V-positions `[1, 1]` and `[1, 6]` (blocks `β₂`, `β₃`), and the link address `ℓ₀` is arranged at the link-subspace V-position `[2, 1]` (block `β_L`). By L4 (ASN-0043), a *single* endset may carry both a content span and a link span; let the followed endset reference `a₀` through a content span and `ℓ₀` through a link span:
 
@@ -364,11 +357,12 @@ The V-restricted denotations are `⟦Σ_V^{s_C}⟧_V = {[1, 1], [1, 6]}` at cont
 
 - *F-sound.* All three resolved V-positions are in `dom(M(d))`. `M(d)([1, 1]) = a₀ ∈ coverage`, `M(d)([1, 6]) = a₀ ∈ coverage`, `M(d)([2, 1]) = ℓ₀ ∈ coverage`. No spurious V-position appears in either component. ✓
 - *F-complete.* The V-positions `v ∈ dom(M(d))` with `M(d)(v) ∈ {a₀, ℓ₀}` are exactly `[1, 1] (→ a₀)`, `[1, 6] (→ a₀)`, and `[2, 1] (→ ℓ₀)`. The non-qualifying positions map outside coverage: `[1, 2] → a₀ + 1`, `[1, 3] → a₀ + 2`, `[1, 4] → a₁ + 1`, `[1, 5] → a₁ + 2`. All three qualifying positions appear in the appropriate component; none is omitted. ✓
+- *F-multi.* Exercised in the content branch: the single I-address `a₀` is arranged at two distinct V-positions `[1, 1]` and `[1, 6]`, and both appear in `Σ_V^{s_C}` — no deduplication or canonical-position selection. ✓
 - *F-subspace (content branch).* `R(d, e)|_{s_C} = M(d)⁻¹(coverage ∩ dom(C)) = M(d)⁻¹({a₀}) = {[1, 1], [1, 6]} = ⟦Σ_V^{s_C}⟧_V`. Each `M(d)([1, 1]) = M(d)([1, 6]) = a₀ ∈ dom(C)`, so `subspace_I(a₀) = s_C` (L0, ASN-0047) — matching `subspace([1, 1]) = subspace([1, 6]) = 1 = s_C`. ✓
 - *F-subspace (link branch).* `R(d, e)|_{s_L} = M(d)⁻¹(coverage ∩ dom(L)) = M(d)⁻¹({ℓ₀}) = {[2, 1]} = ⟦Σ_V^{s_L}⟧_V`. `M(d)([2, 1]) = ℓ₀ ∈ dom(L)`, so `subspace_I(ℓ₀) = s_L` — matching `subspace([2, 1]) = 2 = s_L`. The reverse direction (S3★-aux + L14) places `[2, 1]` in the `s_L`-component, not the `s_C`-component. ✓
 - *Joint-denotation disjointness.* `⟦Σ_V⟧_V = ⟦Σ_V^{s_C}⟧_V ⊎ ⟦Σ_V^{s_L}⟧_V = {[1, 1], [1, 6]} ⊎ {[2, 1]}`. With *both* parts populated, the `⊎` is non-trivially exercised: the disjointness is witnessed by the subspace clause of the V-restriction (every element of the first set has first component `1`, every element of the second has first component `2`; `s_C ≠ s_L` by SC-NEQ), so no V-position lies in both. This matches F0's own partition `R(d, e) = R(d, e)|_{s_C} ⊎ R(d, e)|_{s_L} = {[1, 1], [1, 6]} ⊎ {[2, 1]}`. ✓
 
-**Sixth configuration — interior-offset block clip (`j > 0`, `c < n`).** Every configuration so far meets each block at offset `j = 0` — coverage either spans a whole block or catches it at index 0. The `(j, c)` machinery of "Computation via Decomposition" (F-contig) is only non-trivial when coverage clips the *tail or interior* of a multi-position block, recording a V-span whose start is `v + j` for `j > 0`. We exercise that case directly.
+**Fifth configuration — interior-offset block clip (`j > 0`, `c < n`).** Every configuration so far meets each block at offset `j = 0` — coverage either spans a whole block or catches it at index 0. The `(j, c)` machinery of "Computation via Decomposition" (F-contig) is only non-trivial when coverage clips the *tail or interior* of a multi-position block, recording a V-span whose start is `v + j` for `j > 0`. We exercise that case directly.
 
 Return to the pre-state arrangement `M(d)` of Configuration 1, with block `β₂ = ([1, 1], a₀, 3)` mapping the content I-progression `{a₀, a₀ + 1, a₀ + 2}` to V-positions `[1, 1], [1, 2], [1, 3]`. Choose an endset whose single span starts at `a₀ + 1` — one position *into* `β₂`'s I-extent:
 
@@ -570,8 +564,6 @@ Empty resolution does not destroy the link.
 
 ## Open Questions
 
-When an endset's coverage spans I-addresses with multiple distinct homes, what relationship must hold between resolutions against documents that transclude from different subsets of those homes?
+When an endset's coverage spans I-addresses with multiple distinct homes, what relationship must hold between `follow(ℓ, d, i)` and `follow(ℓ, d', i)` for documents `d` and `d'` that transclude from shared or overlapping subsets of those homes?
 
 What concurrency semantics must `follow` guarantee when the queried document is being modified by another transition concurrently?
-
-What relationship must hold between `follow(ℓ, d, i)` and `follow(ℓ, d', i)` when `d` and `d'` share transclusion lineage?
