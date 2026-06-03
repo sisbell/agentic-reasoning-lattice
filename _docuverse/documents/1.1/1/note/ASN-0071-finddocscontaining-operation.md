@@ -17,7 +17,7 @@ Content can be named in two registers. By I-address — "the content at addresse
 
 We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s` is a document address naming a source document and `σ = (u, ℓ)` is a level-uniform V-span confined to the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) = #u`, `#ℓ = #u` (level-uniformity, ASN-0053 S6), and `actionPoint(ℓ) ≥ 2` (equivalently `ℓ₁ = 0`: the displacement does not perturb the subspace identifier at position 1; together with `actionPoint(ℓ) = #u` this also forces `#u ≥ 2`). Its denotation `⟦σ⟧` and reach `u ⊕ ℓ` used throughout are ASN-0053's (σ.denotation: `⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}`; σ.reach: `reach(σ) = start(σ) ⊕ width(σ)`); we apply those definitions rather than restate them below. A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
 
-A vspec is deliberately ASN-0058's `ContentReference (d_s, σ)` with two of its three well-formedness conditions dropped. ASN-0058 requires (i) `V_{u₁}(d_s) ≠ ∅` (the named subspace is non-empty), (ii) T12 on `ℓ`, and (iii) the depth-match `#ℓ = #u = m`, where `m = m_C` is the source's common content-subspace depth (S8-depth); a well-formed `ContentReference` further demands that *every* depth-`m` position in the span's range already belong to `dom(M(d_s))` (full coverage). A vspec keeps only (ii) and drops (i) and (iii) — and the coverage demand — *because search must tolerate exactly the cases those conditions forbid*. A query is posed against a source whose arrangement the requester does not control or fully know: the named subspace may be empty (the source carries no content), the anchor depth `#u` may not equal the source's depth `m_C`, and the span may name positions the source never populated.
+A vspec relaxes ASN-0058's `ContentReference (d_s, σ)`, retaining only its T12 condition on `ℓ` and dropping that definition's subspace-non-emptiness, depth-match `#ℓ = #u = m_C`, and full-coverage demands — exactly the cases search must tolerate, since a query is posed against a source whose arrangement the requester does not control.
 
 We name the claim we need *prefix confinement* (PC): every `t ∈ ⟦σ⟧` agrees with `u` on all components `1 ≤ j < #u`. This is the relaxed analogue of ASN-0058's C0a; we derive it below from the vspec preconditions `subspace(u) = s_C` and `actionPoint(ℓ) = #u ≥ 2`.
 
@@ -55,7 +55,11 @@ Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddr
 
   `v ∈ ⟦σ⟧  ⟺  (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u}`
 
-PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given that agreement, the two order comparisons reduce to position `#u`: for `u ≤ v`, T1 case (i) at `#u` gives `u ≤ v ⟺ u_{#u} ≤ v_{#u}` (when `v_{#u} = u_{#u}`, `u` is a prefix of the deeper `v`, so `u < v` by T1 case (ii) — still `u ≤ v`); for `v < r`, since `r` has depth `#u` and agrees with `v` below `#u`, T1 case (i) at `#u` gives `v < r ⟺ v_{#u} < r_{#u}` (equality `v_{#u} = r_{#u}` makes `r` a proper prefix of the deeper `v`, so `r < v`, excluded).
+PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given that agreement, the two order comparisons reduce to position `#u`. The boundary component values `v_{#u} = u_{#u}` and `v_{#u} = r_{#u}` behave differently according to whether `v` is at the anchor's depth or strictly deeper, so we split the sub-case `#v ≥ #u` into `#v = #u` and `#v > #u`. The equal-depth sub-case is the principal one: by S8-depth every content-subspace `v ∈ dom(M(d_s))` has `#v = m_C`, so whenever the anchor matches the source depth (`#u = m_C`) *every* captured position satisfies `#v = #u`.
+
+*Sub-case `#v = #u`.* Here `v`, `u`, and `r` all share depth `#u` and agree below it, so each pair differs at most at component `#u`. T1 case (i) at `#u` gives `u ≤ v ⟺ u_{#u} ≤ v_{#u}` and `v < r ⟺ v_{#u} < r_{#u}` directly. At the boundary values: `v_{#u} = u_{#u}` forces `v = u`, so `u ≤ v` holds by *equality*; `v_{#u} = r_{#u}` forces `v = r`, which is excluded because `r = reach(σ)` is an *exclusive* upper bound (`r ∉ ⟦σ⟧`) — not by any order relation between `r` and `v`.
+
+*Sub-case `#v > #u`.* Here `v` is strictly deeper than both `u` and `r`. For `u ≤ v`, T1 case (i) at `#u` gives `u ≤ v ⟺ u_{#u} ≤ v_{#u}` (when `v_{#u} = u_{#u}`, `u` is a proper prefix of the deeper `v`, so `u < v` by T1 case (ii) — still `u ≤ v`); for `v < r`, since `r` has depth `#u` and agrees with `v` below `#u`, T1 case (i) at `#u` gives `v < r ⟺ v_{#u} < r_{#u}` (equality `v_{#u} = r_{#u}` makes `r` a proper prefix of the deeper `v`, so `r < v` by T1 case (ii), excluded).
 
 *Positions of depth `#v < #u`.* Such a `v` has no component at index `#u`, so the right-hand conjunct `u_{#u} ≤ v_{#u} < r_{#u}` references an undefined component and cannot hold — `v` is excluded from the right-hand set. On the left, PC's totality clause (*The query*) established that every `t ∈ ⟦σ⟧` has `#t ≥ #u`; hence `v ∉ ⟦σ⟧`, excluding it from the left as well. Both sides drop every position shallower than the anchor, so the characterisation contributes nothing — and costs nothing — for these positions. Intersecting with `dom(M(d_s))`, the two cases combine into:
 
@@ -105,7 +109,7 @@ Start from `Σ₀`, whose only entity is the bootstrap node `n₀ = [1]` (`E₀ 
 12. K.δ creates a fourth document `d_D = inc(d_C, 0) ∈ E_doc` by case (ii) sibling (`k = 0`), operand `d_C ∈ E` with `¬Node(d_C)`. `parent(d_D) = parent(d_C) = acct ∈ E` (K.δ-ID.parent-0) discharges P8; `zeros(d_D) = 2`, so `Document(d_D)`.
 13. K.μ⁺ binds three contiguous content-subspace positions of `d_D`, all by transclusion (no new K.α): `M(d_D)(w₁) = a₁`, `M(d_D)(w₂) = a₂`, `M(d_D)(w₃) = a₁`, where `w_k = [s_C, k]` are the content-subspace V-positions of `d_D` (D-SEQ★, depth `m_C = 2`, positions `1 ≤ k ≤ 3`, so D-CTG★ and D-MIN★ hold). K.ρ records `(a₁, d_D)` and `(a₂, d_D)`. Positions `w₁` and `w₃` both reference `a₁`: distinct V-positions of a single document may share an I-address (M13, SharedContent), and the two occurrences are permanently independent arrangement entries (M14, IndependentOccurrences).
 
-*Reachability.* The thirteen steps are the standard allocate–place–record (and create-document) composites of ASN-0047 — entity creation followed by content allocation, placement, and provenance recording — so `Σ` is reachable and ASN-0047's invariants hold at `Σ`.
+*Reachability.* Every step in this scenario — the thirteen here and the two added later for `Σ⁺` — is a standard allocate–place–record (and create-document) composite of ASN-0047: entity creation followed by content allocation, placement, and provenance recording. A reachable state extended by such composites remains reachable and continues to satisfy ASN-0047's invariants, so both `Σ` and its later extension `Σ⁺` are reachable.
 
 The resulting state `Σ` has:
 
@@ -161,7 +165,7 @@ Therefore `find(Q_D)(Σ) = {d_A, d_B, d_C, d_D}`. Here `d_A` (sharing only `a₁
 14. K.δ creates `d_E = inc(d_D, 0) ∈ E_doc` by case (ii) sibling (`k = 0`), operand `d_D ∈ E` with `¬Node(d_D)`. `parent(d_E) = parent(d_D) = acct ∈ E` (K.δ-ID.parent-0) discharges P8; `zeros(d_E) = 2`, so `Document(d_E)` (activates `A_C(d_E)`).
 15. K.μ⁺ binds three content-subspace positions of `d_E` at common depth `m_C = 3` — S8a fixes the depth from scratch at first insertion at any value `≥ 2`, here 3 — all by transclusion (no new K.α): `M(d_E)([s_C, 1, 1]) = a₁`, `M(d_E)([s_C, 1, 2]) = a₂`, `M(d_E)([s_C, 1, 3]) = a₁`. By D-SEQ★ at depth 3 the positions are `{[s_C, 1, k] : 1 ≤ k ≤ 3}`, contiguous (D-CTG★) with minimum `[s_C, 1, 1]` (D-MIN★). K.ρ records `(a₁, d_E)` and `(a₂, d_E)`.
 
-These two steps form another standard transcluding composite of ASN-0047, so `Σ⁺` is reachable. The extended state adds `Σ⁺.M(d_E) = {[s_C,1,1] ↦ a₁, [s_C,1,2] ↦ a₂, [s_C,1,3] ↦ a₁}`, leaving every other arrangement as in `Σ`.
+By the *Reachability* remark above, `Σ⁺` is reachable. The extended state adds `Σ⁺.M(d_E) = {[s_C,1,1] ↦ a₁, [s_C,1,2] ↦ a₂, [s_C,1,3] ↦ a₁}`, leaving every other arrangement as in `Σ`.
 
 Now submit the *shallow* vspec `Q_E = {(d_E, σ_E)}` with `σ_E = ([s_C, 1], δ(1, 2))`, so `u = [s_C, 1]` has `#u = 2 < m_C = 3` — the cross-depth case.
 
@@ -221,13 +225,9 @@ This is worth stating because `iaddrs(Q)` may name content that is widely transc
 
 ## What we do not specify
 
-The returned set has presentation and policy properties we have left unspecified. These are not entailed by the abstract operation, and an implementation may add them without conflicting with the specification, provided the unfiltered semantics remain available.
+The returned set has a presentation property we leave unspecified. It is not entailed by the abstract operation, and an implementation may add it without conflicting with the specification.
 
-(i) *Order.* `find(Q)(Σ)` is a set. Some implementations may return its elements in a deterministic order (such as ascending tumbler order on document ISA, naturally arising from a sorted index); others may not. Order is a presentation choice, not a conformance criterion — it is left entirely unspecified.
-
-(ii) *Replica freshness.* We specify `find` against a single state `Σ`; replica-divergent views in a distributed deployment are out of scope.
-
-(iii) *Access-control filtering.* The `find` we specified returns ALL containing documents, unfiltered by requester visibility; the visibility policy that would filter results by requester (LM 2/59) is a separate layer, and layering it over the unfiltered basis is out of scope.
+*Order.* `find(Q)(Σ)` is a set. Some implementations may return its elements in a deterministic order (such as ascending tumbler order on document ISA, naturally arising from a sorted index); others may not. Order is a presentation choice, not a conformance criterion — it is left entirely unspecified.
 
 ## Claims Introduced
 
