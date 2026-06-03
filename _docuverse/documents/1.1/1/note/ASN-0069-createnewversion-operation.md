@@ -133,7 +133,7 @@ The source-fork instance is immediate.
 
 > **V5** (*source isolation*): For every fork composite `Σ →* Σ'`: `M'(d_src) = M(d_src)`. V5 is V5a at `d* = d_src`: `d_src ∈ Σ.E_doc` by V0's precondition, and the fork composite has no step M-targeted at `d_src` (its only K.μ⁺ step targets `d_new ≠ d_src`).
 
-V5 is foundational to the source-fork relationship. It establishes that the source owner's arrangement is unaffected by anyone else's forking activity. They cannot prevent forking (per Nelson's permissionless publishing contract, when applicable), but they incur no observable side effect. The frame is bidirectional: after the fork, subsequent modifications to `M(d_src)` by `d_src`'s owner do not propagate to `M'(d_new)`, and modifications to `M(d_new)` do not propagate to `M(d_src)` — each is V5a instantiated at the other document.
+The frame is bidirectional: after the fork, subsequent modifications to `M(d_src)` by `d_src`'s owner do not propagate to `M'(d_new)`, and modifications to `M(d_new)` do not propagate to `M(d_src)` — each is V5a instantiated at the other document.
 
 ## Subspace Selectivity
 
@@ -262,11 +262,7 @@ By SequentialTransitionAxiom (ASN-0047), state transitions are sequentially atom
 
 ## Composability: Fork of a Fork
 
-The structural account treats `d_src` as any element of `E_doc`. A fork creates `d_new ∈ E_doc`, which is itself eligible to be the source of a subsequent fork. We trace what happens.
-
-Suppose `Σ →* Σ¹` forks `d_src` to `d¹_new`, then `Σ¹ →* Σ²` forks `d¹_new` to `d²_new`, where each step is the *first* fork of its immediate source — so each step's J4 content source operand `d_op` coincides with that immediate source (step 1's `d_op = d_src`, step 2's `d_op = d¹_new`). By V1 at each fork: `d¹_new = inc(d_src, 1)` and `d²_new = inc(d¹_new, 1)`. By V2 at each fork: `d_src ≼ d¹_new ≼ d²_new`. Ancestry composes.
-
-By V4 at each fork (with `d_op` the immediate source): `M¹(d¹_new) = M(d_src)|_{V_{s_C}(d_src)}` (in the sense that for each content-subspace V-position of the source, the same V-position with the same I-address appears in the fork). Then `M²(d²_new) = M¹(d¹_new)|_{V_{s_C}(d¹_new)}`. Composing: the I-addresses in `M²(d²_new)` are the same I-addresses as in `M(d_src)` over the V-positions present in all three arrangements.
+The structural account treats `d_src` as any element of `E_doc`. A fork creates `d_new ∈ E_doc`, which is itself eligible to be the source of a subsequent fork. The general result follows by induction.
 
 > **V11** (*transitive identity along unedited fork chains*): Let `Σ` denote the pre-state of the first fork — the chain's initial state. For every chain length `k ≥ 1` and every chain of forks `d_src → d¹_new → d²_new → ... → d^k_new` starting from `Σ` (with `d⁰_new := d_src`) satisfying two premises —
 >
