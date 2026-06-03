@@ -56,8 +56,6 @@ The partition is disjoint (subspace is single-valued per the first-component pro
 
 The definition is *abstract*. It does not depend on how `M(d)` is stored, decomposed, or accessed. It does not depend on the order or structure of spans within `e`. Two endsets with the same coverage produce the same `R(d, e)`. Resolution is a function of coverage and arrangement — nothing more. The intersection `coverage(e) ∩ ran(M(d))` may be any subset of `ran(M(d))`, including `∅`; `R(d, e)` is defined uniformly regardless.
 
-Within each subspace component, V-positions share common depth (S8-depth of ASN-0036; `m_L(d)` of ASN-0047 for the link subspace), so each component is level-uniform and amenable to span-set representation.
-
 ### F-subspace — IOSubspaceCorrespondence (LEMMA)
 
 The V-subspace of a V-position determines the I-subspace of its image.
@@ -79,7 +77,7 @@ R(d, e)|_{s_C} = M(d)⁻¹(coverage(e) ∩ dom(C))
 R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))
 ```
 
-*Derivation.* Reusing the postcondition equality `subspace(v) = subspace_I(M(d)(v))` for `v ∈ dom(M(d))`, it suffices to read off `subspace_I(M(d)(v))` against the store membership of the image. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`, so via the equality `subspace_I(M(d)(v)) ∈ {s_C, s_L}`, and S3★ places the image accordingly in `dom(C) ∪ dom(L)`. Applying L0 and L14 to the image: L0 gives `M(d)(v) ∈ dom(C) ⟹ subspace_I(M(d)(v)) = s_C` and `M(d)(v) ∈ dom(L) ⟹ subspace_I(M(d)(v)) = s_L`, while L14 (`dom(C) ∩ dom(L) = ∅`) makes the two stores mutually exclusive. Hence `subspace_I(M(d)(v)) = s_C ⟺ M(d)(v) ∈ dom(C)`, and composing with the postcondition equality, `subspace(v) = s_C ⟺ M(d)(v) ∈ dom(C)`.
+*Derivation.* The postcondition supplies the equality `subspace(v) = subspace_I(M(d)(v))` for `v ∈ dom(M(d))`; it remains only to lift it to a biconditional against store membership. Applying L0 and L14 to the image: L0 gives `M(d)(v) ∈ dom(C) ⟹ subspace_I(M(d)(v)) = s_C` and `M(d)(v) ∈ dom(L) ⟹ subspace_I(M(d)(v)) = s_L`, while L14 (`dom(C) ∩ dom(L) = ∅`) makes the two stores mutually exclusive. Hence `subspace_I(M(d)(v)) = s_C ⟺ M(d)(v) ∈ dom(C)`, and composing with the postcondition equality, `subspace(v) = s_C ⟺ M(d)(v) ∈ dom(C)`.
 
 Therefore `v ∈ R(d, e)|_{s_C}` iff `M(d)(v) ∈ coverage(e) ∧ subspace(v) = s_C` iff `M(d)(v) ∈ coverage(e) ∩ dom(C)` iff `v ∈ M(d)⁻¹(coverage(e) ∩ dom(C))`. The `s_L` case is symmetric, with the roles of `dom(C)` and `dom(L)` swapped.
 
@@ -141,7 +139,7 @@ The postcondition fixes the *V-restricted denotation* of each component but not 
 
 **Definition (F-canon-form — CanonicalForm).** The canonical form of `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` is the per-subspace family in which:
 
-(i) Each component span in each `Σ_V^S` has start `s` with `#s = m_S(d)`, `subspace(s) = S`, and `(A i : 1 ≤ i ≤ m_S(d) : s_i ≥ 1)` (so `s` is an admissible V-position by S8a), and width of the form `δ(c, m_S(d)) = [0, ..., 0, c]` — an *ordinal displacement* of depth `m_S(d)` (justified in Step 1 below).
+(i) Each component span in each `Σ_V^S` has start `s` with `#s = m_S(d)`, `subspace(s) = S`, and `(A i : 1 ≤ i ≤ m_S(d) : s_i ≥ 1)` (so `s` is an admissible V-position by S8a), and width of the form `δ(c, m_S(d)) = [0, ..., 0, c]` — an *ordinal displacement* of depth `m_S(d)`.
 
 (ii) Each component `Σ_V^S` is in the unique normalised form guaranteed by S9 (NormalizationUniqueness, ASN-0053) — sorted by V-start under T1, with no overlapping or adjacent spans.
 
@@ -149,7 +147,7 @@ The postcondition fixes the *V-restricted denotation* of each component but not 
 
 In the vacuous case (`V_S(d) = ∅`), `Σ_V^S = ⟨⟩` (V-Restricted Denotation).
 
-**Theorem (F-canonical — CanonicalUniqueness).** Given `R(d, e)`, there exists exactly one per-subspace family satisfying the canonical-form shape of F-canon-form. Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`. We show each subspace component admits exactly one canonical representation.
+**Theorem (F-canonical — CanonicalExistenceAndUniqueness).** Given `R(d, e)`, there exists exactly one per-subspace family satisfying the canonical-form shape of F-canon-form. Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`. We show each subspace component admits exactly one canonical representation: Step 2 develops the shared contiguity infrastructure, Step 3 exhibits a canonical form (existence), and Step 4 shows it is unique.
 
 *Step 1 — Level-uniformity and ordinal-displacement widths.* By S8-depth (ASN-0036), and `m_L(d)` (ASN-0047) for the link subspace, all V-positions in `R(d, e)|_S` share the common depth `m_S(d)` (well-defined here since the subspace is non-empty). We must restrict component widths to ordinal displacements `δ(c, m_S(d))`. The restriction is forced by the finiteness and subspace-confinement requirements on `⟦σ⟧_V` for each component `σ = (s, ℓ)` with `#s = #ℓ = m_S(d)`, `subspace(s) = S`, and `s` positive in every component (clause (i) of CanonicalForm), by case analysis on `k = actionPoint(ℓ)`. Since `actionPoint(ℓ) ∈ [1, #ℓ]` (ActionPoint postcondition, ASN-0034) and `#ℓ = m_S(d)`, the cases `1 ≤ k < m_S(d)` and `k = m_S(d)` are jointly exhaustive, and `k > m_S(d)` cannot arise.
 
@@ -165,11 +163,7 @@ By mutual inclusion, `⟦σ⟧_V = E`. The elements of `E` are pairwise distinct
 
 Only `k = m_S(d)` produces a component span suitable for the canonical form. Hence component widths are ordinal displacements `δ(c, m_S(d))` with `c ≥ 1`. The components are then level-uniform at length `m_S(d)` — the hypothesis of S6 (LevelConstraint, ASN-0053) — and mutually level-compatible.
 
-*Step 2 — Per-subspace uniqueness via the V-restricted ↔ full bridge.* S9 (NormalizationUniqueness, ASN-0053) governs equality under the full denotation `⟦·⟧`, not the V-restricted denotation `⟦·⟧_V`. We bridge: under Step 1's restrictions, `⟦·⟧_V` determines `⟦·⟧`, so S9 lifts to V-restricted equivalence.
-
-*Bridge.* For a single component span `σ = (s, δ(c, m_S(d)))`: by T12(b) (SpanWellDefinedness postcondition (b), ASN-0034), `s ∈ ⟦σ⟧`; since `#s = m_S(d)`, `subspace(s) = S`, and `s` has positive components (clause (i)'s canonical-form convention), also `s ∈ ⟦σ⟧_V`, and `s = min(⟦σ⟧_V)` (every element of `⟦σ⟧_V` is `≥ s`). The cardinality `|⟦σ⟧_V| = c` was established in Step 1. So `(s, c)` is recoverable from `⟦σ⟧_V`, hence the full denotation `⟦σ⟧ = [s, s ⊕ δ(c, m_S(d)))` is determined by `⟦σ⟧_V`.
-
-For a normalised span-set `Σ̂` with components `σ_j = (s_j, δ(c_j, m_S(d)))`, uniqueness of the decomposition requires a precise notion of contiguity on depth-`m_S(d)` subspace-`S` tumblers.
+*Step 2 — Contiguity infrastructure.* Both the existence construction (Step 3) and the uniqueness argument (Step 4) rest on a precise notion of contiguity on depth-`m_S(d)` subspace-`S` tumblers; we develop it once here.
 
 *Definition (consecutive tumblers).* For depth-`m_S(d)` subspace-`S` tumblers `t < t'`, we say `t, t'` are *consecutive* iff no depth-`m_S(d)` subspace-`S` tumbler `t''` satisfies `t < t'' < t'` under T1. A *maximal run* in a set `X` of such tumblers is a maximal subset of `X` that forms a chain under the consecutivity relation — i.e. its elements can be ordered `t_0 < t_1 < ... < t_{c-1}` with each `t_i` consecutive to its successor `t_{i+1}` (not pairwise consecutive: in such a chain `(t_0, t_2)` are *not* consecutive, since `t_1` lies strictly between them). Equivalently, a maximal run is a connected component of the consecutivity successor-relation restricted to `X`.
 
@@ -177,9 +171,13 @@ For a normalised span-set `Σ̂` with components `σ_j = (s_j, δ(c_j, m_S(d)))`
 
 *Characterisation.* For depth-`m_S(d)` subspace-`S` tumblers `t < t'`, consecutivity holds iff `t_i = t'_i` for `1 ≤ i < m_S(d)` and `t'_m = t_m + 1`. *Forward.* By T1 case (i), `t < t'` has a divergence position `p ≤ m_S(d)` with `t_p < t'_p` and `t_i = t'_i` for `i < p`. If `p < m_S(d)`, the tumbler `t'' = [t_1, ..., t_{m-1}, t_m + 1]` is depth-`m_S(d)` and subspace `S` (`t''_1 = t_1 = S`); it satisfies `t < t''` (divergence at position `m_S(d)`) and `t'' < t'` (at position `p`, `t''_p = t_p < t'_p`) — contradicting consecutivity. Hence `p = m_S(d)`. If `t'_m > t_m + 1`, the same tumbler `t'' = [t_1, ..., t_{m-1}, t_m + 1]` satisfies `t < t'' < t'` (divergences at position `m_S(d)`) — contradicting consecutivity. Hence `t'_m = t_m + 1`. *Reverse.* Given the conditions (`t_i = t'_i` for `1 ≤ i < m_S(d)` and `t'_m = t_m + 1`), suppose for contradiction that some depth-`m_S(d)` subspace-`S` `t''` satisfies `t < t'' < t'`. We prove by induction on `p ∈ {1, ..., m_S(d) - 1}` that `t''_p = t_p = t'_p`. *Inductive hypothesis IH(p).* `t''_i = t_i = t'_i` for `1 ≤ i < p` (vacuous at `p = 1`). *Inductive step at `p`.* Under IH(p), the first divergence `q` of `(t, t'')` satisfies `q ≥ p` (since `t` and `t''` agree on positions `1, ..., p - 1`); similarly the first divergence `q'` of `(t'', t')` satisfies `q' ≥ p`. T1 case (i) applied to `t < t''` gives `t''_q > t_q` and `t''_i = t_i` for `i < q`; hence `t''_p = t_p` when `q > p` and `t''_p > t_p` strictly when `q = p`. Symmetrically, `t''_p = t'_p` when `q' > p` and `t''_p < t'_p` when `q' = p`. Combining with `t_p = t'_p` (forward condition at `p < m_S(d)`): the case `q > p ∧ q' = p` gives `t_p = t''_p < t'_p`, contradicting `t_p = t'_p`; the case `q = p ∧ q' > p` gives `t'_p = t''_p > t_p`, contradicting `t_p = t'_p`; the case `q = p ∧ q' = p` gives `t_p < t''_p < t'_p = t_p`, contradicting T0's NAT-order irreflexivity on ℕ (the chain `t_p < t_p` is between natural-number components, not tumblers). Only `q > p ∧ q' > p` survives, yielding `t''_p = t_p`, which extends IH(p) to IH(p+1) and completes the induction. *At position `m_S(d)`.* By the inductive conclusion, `t''_i = t_i = t'_i` for `1 ≤ i < m_S(d)`. The first divergence of `(t, t'')` therefore falls at position `m_S(d)` (earlier positions agree), and T1 case (i) gives `t''_m > t_m`. Symmetrically, the first divergence of `(t'', t')` falls at position `m_S(d)`, giving `t''_m < t'_m = t_m + 1`. Combining: `t_m < t''_m < t_m + 1`. T0's discreteness axiom (`α ≤ β < α + 1 ⟹ β = α` for `α, β ∈ ℕ`, instantiated at `α = t_m, β = t''_m`, using `t_m ≤ t''_m` from `t_m < t''_m`) forces `t''_m = t_m`, contradicting `t_m < t''_m`. No such `t''` exists.
 
-*Step 2a — Existence of the canonical form.* The argument so far constrains the *shape* any canonical form must take; we now exhibit one, discharging the existence half of the theorem. Fix a non-empty subspace `S`, write `m := m_S(d)`, and set `X := R(d, e)|_S` — a finite set (by S8-fin, ASN-0036) of depth-`m`, subspace-`S`, positive-component tumblers. Partition `X` into its maximal runs of consecutive tumblers (a partition by the Definition above; every element of `X` lies in exactly one maximal run). Each maximal run is a chain `t_0 < t_1 < ... < t_{c-1}` with each `t_i` consecutive to its successor `t_{i+1}`, so by the Characterisation each `t_{i+1}` agrees with `t_i` on positions `1..m − 1` and increments the last component by 1; writing `t_0 = [w_1, ..., w_{m-1}, b]` (with `b ≥ 1` by positivity of `t_0 ∈ X`), the run is exactly `{[w_1, ..., w_{m-1}, b + i] : 0 ≤ i < c}`. Map each maximal run to the span `σ := (t_0, δ(c, m))` with `t_0 = min(run)`. Its start has `#t_0 = m`, `subspace(t_0) = S`, and positive components — clause (i)'s start conditions — and its width `δ(c, m)` is an ordinal displacement, clause (i)'s width condition. By Step 1's case `k = m_S(d)` (both inclusions proved there), `⟦σ⟧_V = {[w_1, ..., w_{m-1}, b + i] : 0 ≤ i < c} = run`. Let `Σ_0` be the span-set of these per-run spans, sorted by start under T1; then `⟦Σ_0⟧_V = ⋃ {run : run a maximal run of X} = X`.
+*Step 3 — Existence of the canonical form.* Steps 1 and 2 constrain the *shape* any canonical form must take and supply the contiguity notion; we now exhibit one, discharging the existence half of the theorem. Fix a non-empty subspace `S`, write `m := m_S(d)`, and set `X := R(d, e)|_S` — a finite set (by S8-fin, ASN-0036) of depth-`m`, subspace-`S`, positive-component tumblers. Partition `X` into its maximal runs of consecutive tumblers (a partition by the Definition above; every element of `X` lies in exactly one maximal run). Each maximal run is a chain `t_0 < t_1 < ... < t_{c-1}` with each `t_i` consecutive to its successor `t_{i+1}`, so by the Characterisation each `t_{i+1}` agrees with `t_i` on positions `1..m − 1` and increments the last component by 1; writing `t_0 = [w_1, ..., w_{m-1}, b]` (with `b ≥ 1` by positivity of `t_0 ∈ X`), the run is exactly `{[w_1, ..., w_{m-1}, b + i] : 0 ≤ i < c}`. Map each maximal run to the span `σ := (t_0, δ(c, m))` with `t_0 = min(run)`. Its start has `#t_0 = m`, `subspace(t_0) = S`, and positive components — clause (i)'s start conditions — and its width `δ(c, m)` is an ordinal displacement, clause (i)'s width condition. By Step 1's case `k = m_S(d)` (both inclusions proved there), `⟦σ⟧_V = {[w_1, ..., w_{m-1}, b + i] : 0 ≤ i < c} = run`. Let `Σ_0` be the span-set of these per-run spans, sorted by start under T1; then `⟦Σ_0⟧_V = ⋃ {run : run a maximal run of X} = X`.
 
-It remains to confirm `Σ_0` is normalised, so that it is the normalised equivalent whose existence S8 (NormalizationExistence, ASN-0053) guarantees for any level-uniform, mutually level-compatible span-set — its components are level-uniform at length `m` (Step 1) and mutually level-compatible. N1 (sorted starts) holds by construction. For N2 (strict separation), take adjacent components in the sort, arising from distinct maximal runs `R_j, R_k` with `max(R_j) < min(R_k)`. By the Characterisation, `reach(σ_j) = [w_1, ..., w_{m-1}, b + c]` is the consecutive successor of `max(R_j)`. Were `reach(σ_j) = start(σ_k) = min(R_k)`, then `max(R_j)` and `min(R_k)` would be consecutive, so `R_j ∪ R_k` would be a single chain under the consecutivity relation (each element consecutive to its successor) in `X` — contradicting the maximality of `R_j`. Were `reach(σ_j) > min(R_k)`, then `min(R_k) ∈ X = ⟦Σ_0⟧_V` would satisfy `start(σ_j) ≤ min(R_k) < reach(σ_j)`, placing it in `⟦σ_j⟧_V = R_j` and contradicting run-disjointness (`min(R_k) ∈ R_k`, `R_j ∩ R_k = ∅`). Hence `reach(σ_j) < start(σ_k)`, which is N2. So `Σ_0` is a normalised level-uniform span-set with `⟦Σ_0⟧_V = X`, satisfying every clause of F-canon-form. A canonical form for `R(d, e)|_S` therefore exists; uniqueness follows below.
+It remains to confirm `Σ_0` is normalised, so that it is the normalised equivalent whose existence S8 (NormalizationExistence, ASN-0053) guarantees for any level-uniform, mutually level-compatible span-set — its components are level-uniform at length `m` (Step 1) and mutually level-compatible. N1 (sorted starts) holds by construction. For N2 (strict separation), take adjacent components in the sort, arising from distinct maximal runs `R_j, R_k` with `max(R_j) < min(R_k)`. By the Characterisation, `reach(σ_j) = [w_1, ..., w_{m-1}, b + c]` is the consecutive successor of `max(R_j)`. Were `reach(σ_j) = start(σ_k) = min(R_k)`, then `max(R_j)` and `min(R_k)` would be consecutive, so `R_j ∪ R_k` would be a single chain under the consecutivity relation (each element consecutive to its successor) in `X` — contradicting the maximality of `R_j`. Were `reach(σ_j) > min(R_k)`, then `min(R_k) ∈ X = ⟦Σ_0⟧_V` would satisfy `start(σ_j) ≤ min(R_k) < reach(σ_j)`, placing it in `⟦σ_j⟧_V = R_j` and contradicting run-disjointness (`min(R_k) ∈ R_k`, `R_j ∩ R_k = ∅`). Hence `reach(σ_j) < start(σ_k)`, which is N2. So `Σ_0` is a normalised level-uniform span-set with `⟦Σ_0⟧_V = X`, satisfying every clause of F-canon-form. A canonical form for `R(d, e)|_S` therefore exists; uniqueness follows.
+
+*Step 4 — Per-subspace uniqueness via the V-restricted ↔ full bridge.* S9 (NormalizationUniqueness, ASN-0053) governs equality under the full denotation `⟦·⟧`, not the V-restricted denotation `⟦·⟧_V`. We bridge: under Step 1's restrictions, `⟦·⟧_V` determines `⟦·⟧`, so S9 lifts to V-restricted equivalence.
+
+*Bridge.* For a single component span `σ = (s, δ(c, m_S(d)))`: by T12(b) (SpanWellDefinedness postcondition (b), ASN-0034), `s ∈ ⟦σ⟧`; since `#s = m_S(d)`, `subspace(s) = S`, and `s` has positive components (clause (i)'s canonical-form convention), also `s ∈ ⟦σ⟧_V`, and `s = min(⟦σ⟧_V)` (every element of `⟦σ⟧_V` is `≥ s`). The cardinality `|⟦σ⟧_V| = c` was established in Step 1. So `(s, c)` is recoverable from `⟦σ⟧_V`, hence the full denotation `⟦σ⟧ = [s, s ⊕ δ(c, m_S(d)))` is determined by `⟦σ⟧_V`. For a normalised span-set `Σ̂` with components `σ_j = (s_j, δ(c_j, m_S(d)))`, uniqueness of the decomposition follows by recovering each component from the maximal runs of `⟦Σ̂⟧_V` (the contiguity infrastructure of Step 2).
 
 *Internal contiguity of `⟦σ_j⟧_V`.* From Step 1's case `k = m_S(d)`, `⟦σ_j⟧_V = {[s_j.1, ..., s_j.{m-1}, s_j.m + i] : 0 ≤ i < c_j}`. Adjacent elements (with index increments `i, i+1`) agree on positions `1..m_S(d) - 1` and have last components `s_j.m + i, s_j.m + i + 1` differing by 1, so they are consecutive under the characterisation. Hence `⟦σ_j⟧_V` is a chain of `c_j` tumblers, each consecutive to its successor, with `min(⟦σ_j⟧_V) = s_j` and `max(⟦σ_j⟧_V) = [s_j.1, ..., s_j.{m-1}, s_j.m + c_j - 1]`.
 
@@ -189,7 +187,7 @@ It remains to confirm `Σ_0` is normalised, so that it is the normalised equival
 
 *Unique reconstruction.* `⟦Σ̂⟧_V` decomposes into exactly `|Σ̂|` maximal runs of consecutive depth-`m_S(d)` subspace-`S` tumblers, one per component `σ_j`. From each maximal run, `s_j = min(run)` and `c_j = |run|`, so the pair `(s_j, c_j)` is recoverable from `⟦σ_j⟧_V` alone. Two Step 1-restricted normalised span-sets with the same `⟦·⟧_V` therefore have the same component pairs `(s_j, c_j)`, hence the same components. Applied to each `R(d, e)|_S`, this yields exactly one normalised `Σ_V^S`.
 
-*Step 3 — Family-level ordering.* The fixed external convention (`s_C`-component first, then `s_L`-component) removes the remaining ambiguity at the family level: there is one pair `(Σ_V^{s_C}, Σ_V^{s_L})` consistent with this ordering.
+*Step 5 — Family-level ordering.* The fixed external convention (`s_C`-component first, then `s_L`-component) removes the remaining ambiguity at the family level: there is one pair `(Σ_V^{s_C}, Σ_V^{s_L})` consistent with this ordering.
 
 Therefore, given `R(d, e)`, the canonical form is uniquely determined.
 
@@ -411,6 +409,8 @@ Each of the following is a consequence of the inverse-image definition combined 
 
 Among these, F-sound and F-complete are the two halves of the postcondition's set equality `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S`: F-sound is the `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S` inclusion; F-complete is the reverse inclusion.
 
+**Design grounding (Nelson).** Several of these lemmas are the structural form of design commitments Nelson states informally. F-det realises "a given part of a given version at a given time" yielding the same answer — without determinism, citation would be impossible. F-origin realises "non-native bytes are as much a logical part of a document as native bytes": native and transcluded content are indistinguishable to resolution. F-state realises that brokenness is state-relative — an empty resolution against one arrangement leaves the link intact and possibly non-empty against another document or state. F-multidoc realises "a link to one version is a link to all versions": the link's reach is fixed by where its endsets' content is currently arranged, extending into every document on the same terms.
+
 ### F-det — DenotationalDeterminism (LEMMA)
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
@@ -426,9 +426,7 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 1. F0 establishes (its Well-definedness clause) that `R(d, L(ℓ).eᵢ)` is uniquely determined by `Σ`, `d`, `i` — all of which are fixed here.
 2. By S3★-aux (SubspaceExhaustiveness), every `v ∈ dom(M(d))` has `subspace(v) ∈ {s_C, s_L}`, so the partition `R(d, L(ℓ).eᵢ) = R(d, L(ℓ).eᵢ)|_{s_C} ⊎ R(d, L(ℓ).eᵢ)|_{s_L}` is exhaustive and the two components are each uniquely determined.
 3. By the postcondition of `follow`, any returned `Σ_V` satisfies `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` for each `S`. Combined with step 2, the V-restricted denotation of each subspace component is therefore uniquely determined.
-4. By F-canonical, given the fixed V-restricted denotation per subspace, a canonical form exists (Step 2a's per-run construction, whose normalised existence S8 (NormalizationExistence, ASN-0053) underwrites) and S9 (NormalizationUniqueness, ASN-0053) yields a unique normalised form per component; the fixed external ordering yields a unique family-level form. The canonical form is therefore uniquely determined. ∎
-
-**System reading.** This is the structural form of Nelson's "a given part of a given version at a given time" yielding the same answer; without it, citation would be impossible.
+4. By F-canonical, given the fixed V-restricted denotation per subspace, a canonical form exists (Step 3's per-run construction, whose normalised existence S8 (NormalizationExistence, ASN-0053) underwrites) and S9 (NormalizationUniqueness, ASN-0053) yields a unique normalised form per component; the fixed external ordering yields a unique family-level form. The canonical form is therefore uniquely determined. ∎
 
 ### F-sound — Soundness (LEMMA)
 
@@ -540,8 +538,6 @@ Uniformity makes the operation composable: `followAll(ℓ, d) = (follow(ℓ, d, 
 
 Downstream callers may project to home from each `M(d)(v)` using the appropriate ASN-0036 or ASN-0043 projection, but the resolution mechanism does not.
 
-**System reading.** Native and transcluded content are indistinguishable to resolution — the structural form of Nelson's claim that non-native bytes are as much a logical part of a document as native bytes.
-
 ### F-persist — LinkPersistence (LEMMA)
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)` at state `Σ`; `Σ → Σ'` is a valid transition.
@@ -564,8 +560,6 @@ Empty resolution does not destroy the link.
 
 **Frame.** No state modification.
 
-**System reading.** Brokenness is state-relative: an empty resolution against one arrangement leaves the link intact and possibly non-empty against another document or at another state. The link persists (F-persist); only the arrangement varies.
-
 ### F-multidoc — NoPreferredDocument (LEMMA)
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d, d' ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
@@ -576,8 +570,6 @@ Empty resolution does not destroy the link.
 
 **Frame.** No state modification.
 
-**System reading.** This is the structural form of Nelson's "a link to one version is a link to all versions": the link's reach is determined by where its endsets' content is currently arranged, and it extends into every document on the same terms.
-
 ## Claims Introduced
 
 | Label | Statement | Kind | Status |
@@ -586,7 +578,7 @@ Empty resolution does not destroy the link.
 | F1 | `follow : (ℓ, d, i) → (d, (Σ_V^{s_C}, Σ_V^{s_L}))` with `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` per subspace; `Σ' = Σ`. V-restricted denotation: `⟦Σ_V^S⟧_V := {t ∈ ⟦Σ_V^S⟧ : subspace(t) = S ∧ #t = m_S(d) ∧ (A i : 1 ≤ i ≤ m_S(d) : t_i ≥ 1)}` | DEF | introduced |
 | F-subspace | IOSubspaceCorrespondence — for `v ∈ dom(M(d))`, `subspace(v) = subspace_I(M(d)(v))`; hence `R(d, e)|_{s_C} = M(d)⁻¹(coverage(e) ∩ dom(C))` and `R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))` | LEMMA | introduced |
 | F-canon-form | The canonical-form *shape*: each component width is an ordinal displacement `δ(c, m_S(d))` with positive-component start, each `Σ_V^S` is normalised per S9, and the family is ordered (`s_C`, then `s_L`). When `m_S(d)` is undefined, `Σ_V^S = ⟨⟩` by V-restricted convention. | DEF | introduced |
-| F-canonical | CanonicalUniqueness — a given `R(d, e)` admits *exactly one* canonical form of the F-canon-form shape | THM | introduced |
+| F-canonical | CanonicalExistenceAndUniqueness — a given `R(d, e)` admits *exactly one* canonical form of the F-canon-form shape | THM | introduced |
 | F-det | DenotationalDeterminism — same `Σ` produces the same `R(d, e)|_S` per subspace, hence the same canonical form | LEMMA | introduced |
 | F-sound | Soundness — `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S`: every `v ∈ ⟦Σ_V^S⟧_V` satisfies `v ∈ dom(M(d))` and `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`; ⊆ half of the postcondition's set equality | LEMMA | introduced |
 | F-complete | Completeness — `R(d, L(ℓ).eᵢ)|_S ⊆ ⟦Σ_V^S⟧_V`: every qualifying `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` is in `⟦Σ_V^S⟧_V` for `S = subspace(v)`; ⊇ half of the postcondition's set equality | LEMMA | introduced |
