@@ -130,7 +130,7 @@ The fork must not modify `d_src`. This is Nelson's most emphatically stated comm
 
 > "Thus users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate — without damaging the originals." [LM 2/45]
 
-The fork must not modify `d_src` — and, more generally, each arrangement-modifying transition of ASN-0047 names a single target document and frames every other document's arrangement. The K.μ⁺ / K.μ⁻ / K.μ~ / K.μ⁺_L transitions modify exactly one document's arrangement per invocation, and the same per-target frame discipline applies symmetrically to *any* pair of distinct documents, not only the source-fork pair. We state this general property first and read off source isolation as its instance.
+More generally, each arrangement-modifying transition of ASN-0047 names a single target document and frames every other document's arrangement. The K.μ⁺ / K.μ⁻ / K.μ~ / K.μ⁺_L transitions modify exactly one document's arrangement per invocation, and the same per-target frame discipline applies symmetrically to *any* pair of distinct documents, not only the source-fork pair. We state this general property first and read off source isolation as its instance.
 
 > **V5a** (*per-document arrangement independence*): Each arrangement-modifying transition of ASN-0047 (K.μ⁺, K.μ⁻, K.μ⁺_L, and the K.μ~ composite) names a single *target document* in its preconditions; we call a step *M-targeted at `d*`* iff its target is `d*`. For any sequence of valid composite transitions `Σ →* Σ'` and any document `d* ∈ Σ.E_doc` (in the initial state): if no step of the sequence is M-targeted at `d*`, then `M'(d*) = M(d*)`.
 >
