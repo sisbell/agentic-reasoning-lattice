@@ -23,8 +23,6 @@ We take from the foundation:
 - **Subspace convention** `s_C = 1, s_L = 2` (ASN-0047, SubspaceConventionAxiom).
 - **Link subspace ownership** (CL-OWN, ASN-0047): link-subspace V-positions of `d` map only to link I-addresses with `origin = d`.
 
-We restrict attention to the content subspace throughout; the next section establishes why the restriction to `dom(C)` suffices to confine the operation to `s_C`.
-
 ## The Three States of Content
 
 We classify each pair `(a, d)` with `a ∈ dom(C)` and `d ∈ E_doc` into one of three states. Every `a ∈ dom(C)` already has `subspace_I(a) = s_C` (ASN-0047, ContentAllocationSubspacePrecondition; equivalently by L0), so we do not carry that conjunct in the predicates and sets below.
@@ -122,7 +120,7 @@ Any function `f(C, L, E, M)` returns the same value at both states. But the clas
 
 **Corollary D-NEED (Auxiliary State Necessity).** Any system supporting SHOWDELETIONS must maintain at least one state component beyond `(C, L, E, M)` whose value disambiguates `DELETED(a, d)` from `NEVER_INCLUDED(a, d)` at every reachable state.
 
-*Argument.* The discrimination obligation follows from D-DISCR in one step. SHOWDELETIONS' definition requires the DELETED/NEVER_INCLUDED distinction (its output sets are built from these predicates); D-DISCR shows the four foundation components `(C, L, E, M)` cannot supply it. Hence any state that implements SHOWDELETIONS must carry at least one component beyond the four — call it `C*` — whose value disambiguates the two predicates at every reachable `Σ`. The provenance relation `R` is exhibited as one such witness: `DELETED(a, d)` requires `(a, d) ∈ R` while `NEVER_INCLUDED(a, d)` requires `(a, d) ∉ R`, so the two are contradictory on `R`-membership and testing `(a, d) ∈ R` discriminates them outright. Thus `C* = R` suffices. Because `DELETED` and `NEVER_INCLUDED` differ on `R`-membership by definition, this discrimination holds at every reachable state, not merely at composite boundaries.
+*Argument.* D-DISCR shows that the four foundation components `(C, L, E, M)` cannot distinguish DELETED from NEVER_INCLUDED, which SHOWDELETIONS' output sets require; hence a conforming system must carry at least one further component `C*`. The increment over D-DISCR is the *scope* of the discrimination. `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` differ on `R`-membership by their very definitions, and that difference does not depend on `Σ` being a composite boundary. So `R` disambiguates the two predicates at every reachable state, not merely at the composite boundaries where D-WIT and D-EXH operate — `C* = R` suffices throughout.
 
 ## The SHOWDELETIONS Operation
 
@@ -161,7 +159,7 @@ Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
 
 Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds.
 
-The definition is a pair of set-builder comprehensions over `Σ`'s components `M`, `R`, `dom(C)`. By D-OBS the operation modifies no state component, so wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
+The definition is a pair of set-builder comprehensions over `Σ`'s components `M`, `R`, `dom(C)` — it allocates nothing and invokes no transition relation, so it reads state and writes none. Consequently wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
 *Non-emptiness of one report half.* Let `Q1` abbreviate `DeletedFromAWithB(d_A, d_B) ≠ ∅`. Unpacking the definition of `DeletedFromAWithB`:
 
@@ -270,8 +268,6 @@ A naive set-difference of current ranges — `ran(M(d_B)) \ ran(M(d_A))` — wou
 Our definition forces the disambiguation by requiring `(a, d_A) ∈ R` for content reported as deleted-from-A. This says: `a` must have been in `d_A`'s arrangement at some point. Content that was only ever in `d_B`'s arrangement satisfies `NEVER_INCLUDED(a, d_A)` rather than `DELETED(a, d_A)`, and is correctly excluded from the deletion report.
 
 ## Restriction to the Content Subspace
-
-Confining the operation to the content subspace is enforced by the restriction to `dom(C)`, as established in *The Three States of Content*.
 
 **Claim D-SUBSP.** SHOWDELETIONS operates only over the content subspace (`s_C`).
 
