@@ -443,14 +443,14 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 
 **Postcondition.** For two evaluations of `follow(ℓ, d, i)` against the same state `Σ`, returning `(d, Σ_V)` and `(d, Σ_V')`: `⟦Σ_V^S⟧_V = ⟦Σ_V'^S⟧_V` for each subspace `S`. The V-restricted denotation `⟦Σ_V^S⟧_V` is uniquely determined by `Σ`, `ℓ`, `d`, `i`.
 
-**Depends.** F0 (InverseImageRelation, this ASN — its Well-definedness clause); S3★-aux (SubspaceExhaustiveness, ASN-0047); S8 (NormalizationExistence, ASN-0053); S9 (NormalizationUniqueness, ASN-0053); F-canonical (derived above).
+**Depends.** F0 (InverseImageRelation, this ASN — its Well-definedness clause); S3★-aux (SubspaceExhaustiveness, ASN-0047); F-canonical (derived above).
 
 **Derivation.** For fixed `Σ`:
 
 1. F0 establishes (its Well-definedness clause) that `R(d, L(ℓ).eᵢ)` is uniquely determined by `Σ`, `d`, `i` — all of which are fixed here.
 2. By S3★-aux (SubspaceExhaustiveness), every `v ∈ dom(M(d))` has `subspace(v) ∈ {s_C, s_L}`, so the partition `R(d, L(ℓ).eᵢ) = R(d, L(ℓ).eᵢ)|_{s_C} ⊎ R(d, L(ℓ).eᵢ)|_{s_L}` is exhaustive and the two components are each uniquely determined.
 3. By the postcondition of `follow`, any returned `Σ_V` satisfies `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` for each `S`. Combined with step 2, the V-restricted denotation of each subspace component is therefore uniquely determined.
-4. By F-canonical, given the fixed V-restricted denotation per subspace, a canonical form exists (Step 3's per-run construction, whose normalised existence S8 (NormalizationExistence, ASN-0053) underwrites) and is unique. Uniqueness from the *V-restricted* denotation is exactly what F-canonical's Step 4 bridge supplies: it recovers each component `(s_j, c_j)` from the maximal runs of `⟦Σ̂^S⟧_V` (the contiguity infrastructure of Step 2), so that V-restricted equality `⟦Σ̂^S⟧_V = ⟦Σ̂'^S⟧_V` forces the same per-run decomposition and hence the same components. S9 (NormalizationUniqueness, ASN-0053) governs equality of normalised span-sets under *full* denotation `⟦·⟧`; it applies here only after the bridge converts V-restricted equivalence to full-denotation equivalence (each component's full `⟦σ_j⟧` is determined by its recovered `(s_j, c_j)`). The fixed external ordering then yields a unique family-level form. The canonical form is therefore uniquely determined. ∎
+4. F-canonical establishes that a given `R(d, e)` admits exactly one canonical form, with uniqueness drawn precisely from the V-restricted denotation per subspace. Step 3 fixes that denotation, so F-canonical yields the unique canonical form directly. ∎
 
 ### F-sound — Soundness (LEMMA)
 
@@ -488,7 +488,7 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 4. *Project per subspace.* `R(d, L(ℓ).eᵢ)|_S = R(d, L(ℓ).eᵢ) ∩ {v : subspace(v) = S} = ∅` for each `S ∈ {s_C, s_L}`.
 5. *Apply F1.* By the postcondition of `follow`, `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S = ∅` for each `S`.
 
-This establishes the V-restricted denotational conclusion unconditionally. The representational conclusion `Σ_V^S = ⟨⟩` is then immediate from F-canonical, dispatched by subspace status. *Vacuous subspace (`V_S(d) = ∅`, `m_S(d)` undefined).* This is exactly F-canonical's Step 0 base case: `R(d, e)|_S = ∅` unconditionally, and `⟨⟩` is the unique canonical representative by the V-restricted convention `⟦⟨⟩⟧_V := ∅`. *Populated subspace (`V_S(d) ≠ ∅`, `m_S(d)` defined, but `R(d, e)|_S = ∅` by step 4).* Here `m_S(d)` is defined, so F-canonical's existence construction (Step 3) applies: it partitions `X := R(d, e)|_S` into maximal runs and emits one span per run, so the empty target `X = ∅` yields zero maximal runs and hence the empty span-set `Σ_0 = ⟨⟩`; F-canonical's uniqueness clause makes `⟨⟩` the *only* canonical representative of `R(d, e)|_S = ∅`. In both cases `Σ_V^S = ⟨⟩`. ∎
+This establishes the V-restricted denotational conclusion unconditionally. With `R(d, e)|_S = ∅` fixed (step 4), F-canonical's uniqueness clause gives `⟨⟩` as the sole canonical representative of `∅`, so `Σ_V^S = ⟨⟩` for each `S`. (An empty component can arise two ways — a vacuous subspace where `m_S(d)` is undefined, or a populated subspace whose coverage missed all link material — but F-canonical's uniqueness covers both alike.) ∎
 
 ### F-multi — MultiplicityPreservation (LEMMA)
 
