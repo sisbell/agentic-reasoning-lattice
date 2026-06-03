@@ -1,15 +1,9 @@
-# Channel Assignment — ASN-0051 review-67
+# Channel Assignment — ASN-0098 review-67
 
-**Date:** 2026-05-17 19:12
+**Date:** 2026-06-03 06:18
 
-## Issue 1: (m=1, p≥3) attainment not witnessed
-Reason: The fix is derivable from the ASN's own block-decomposition machinery (C1a, S5) and span definitions. Either trimming the claim to match witnessed scope or constructing the witness uses only existing definitions; no design intent or implementation evidence is needed.
+## Issue 1: LP-Fin Corollary cites sub-case labels that do not exist in the proof
+Reason: The fix is internal — the LP-Fin proof's actual structure (the single `#d ≤ #d_0` contradiction, sub-case A killing `z_2 < #d < #d_0`, and T3 collapsing `#d = #d_0` to `d = d_0`) is fully present in the ASN; only the citation label needs correcting to match it.
 
-## Issue 2: SV13 synthesis scope under-specified
-Reason: All four omitted properties (SV7/SV9/SV10/SV14) are already established in the ASN; the fix is editorial — either extending SV13 with a system-level clause or scoping SV13 as per-link with a pointer. No external input required.
-
-## Issue 3: SV5 "multiset" wording
-Reason: The fix is a pure terminology correction internal to the proof. S2 (ArrangementFunctionality) already establishes that M(d) is a function, so ran(M(d)) is a set; replacing "multiset" with "set" is mechanical.
-
-## Issue 4: Worked Example "two-span variant" obscures the W(2,2) lift base
-Reason: The fix is editorial cross-referencing between the Worked Example's two-span scenario and the W(m,p) lift family naming convention already established in SV11. No external input needed.
+## Issue 2: Worked-trace admissibility check is skippable verification that does not advance the displacement reasoning
+Reason: The fix is internal — the required compression restates facts already in the ASN (K.μ~-FIX fixes the V-position set, the shape invariants depend only on V-positions, S3★ holds by content-subspace targeting, `π ≠ id`); no design intent or implementation evidence is required to shorten the paragraph.
