@@ -43,6 +43,8 @@ We collect the complete precondition under which `COPY(R, d, v)` is defined at `
 
 COPY is a *single elementary transition*: we add it to the system's transition vocabulary — the operation set `𝒦` (ASN-0047), whose members are the `K`-prefixed operations `K.α, K.δ, …` — as its own operation, with the complete frame stated below. (We reserve the symbol `Σ` throughout this note for a system *state* `Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)`, never for the operation set, so that the vocabulary to which COPY is added cannot be mistaken for the state on which COPY acts.) It is deliberately *not* an instance of K.μ⁺ (ArrangementExtension, ASN-0047), which requires `M'(d)(v) = M(d)(v)` on every pre-existing V-position; COPY *relabels* the content-subspace positions at or after `v` by the forward shift `· + W`, so no extension transition describes it. Declaring COPY elementary — one indivisible event, precondition read against `Σ` and effect committed to `Σ'` in a single step under SequentialTransitionAxiom (ASN-0047/0093) — is what underwrites both the atomicity guarantee (X15) and the pre-state resolution that makes self-transclusion well-defined (X10). Because the standing state carries five components, `Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)`, the contract must pin all five.
 
+**Amendment to `ValidComposite★`.** Adding COPY to `𝒦` does not, by itself, bring COPY under the coupling discipline of `ValidComposite★` (ASN-0047), whose clause-1 admits only steps drawn from a *closed* atomic enumeration — `K.α` (amended), `K.δ`, `K.λ`, `K.μ⁺` (amended), `K.μ⁺_L`, `K.μ⁻` (amended), `K.ρ`. We therefore amend that enumeration to admit **COPY (added)** as a further atomic transition kind, paralleling the foundation's own `(amended)` tags. With COPY in the enumeration, a one-step sequence `Σ → Σ'` whose single step is a COPY is a *valid composite* in the sense of `ValidComposite★`: its clause-1 transition precondition is COPY's own precondition P1–P4 (read at `Σ`), and its clause-2 coupling obligations J0/J1★/J1'★ are evaluated between `Σ` and `Σ'`. Consequently COPY's pre-state `Σ` and post-state `Σ'` are recognised **composite boundaries**, at which the composite-boundary properties of ASN-0047 — in particular P4★ (`Contains_C(Σ) ⊆ R`) — hold. This is exactly what grounds the X14 Old-branch appeal to P4★ at COPY's pre-state: `Σ` is a composite boundary because COPY's own application is a valid composite ending there, so P4★ is available as a hypothesis at `Σ`, not merely assumed. The "length-1 composite" reading invoked in X14 is thus licensed by this amendment, not by an implicit widening of the foundation's fixed list.
+
 The operation `COPY(R, d, v)` carries `Σ → Σ'` as follows.
 
 **Content store — untouched.**
@@ -171,7 +173,7 @@ Neither boundary is privileged: each may absorb, both may, or neither, and the c
 
 **X13 (Multiplicity).** After COPY the placed addresses are referenced from at least two V-positions — their source appearance and their target appearance — and the model imposes no bound on such multiplicity (ASN-0036, S5, UnrestrictedSharing). A single I-address may be referenced from arbitrarily many documents and positions; COPY is the operation that increases this multiplicity without increasing the content store.
 
-**X14 (ContainmentRecording and coupling discharge).** At completion, `d` contains each copied address: `(A j, i : 0 ≤ i < n_j : a_j + i ∈ ran(Σ'.M(d)))`, so the *derived* content-containment relation records `Contains_C(Σ') ⊇ {(a_j + i, d)}`. Containment is read off `Σ'.M` and is therefore automatic; the *provenance* relation `Σ.R` is a separate state component, which COPY's effect populates explicitly (Definition): `Σ'.R = Σ.R ∪ {(a_j + i, d)}`. We must show this post-state is well-formed against the coupling invariants of ValidComposite★ (ASN-0047). Treating COPY as the length-1 composite it is, each is discharged:
+**X14 (ContainmentRecording and coupling discharge).** At completion, `d` contains each copied address: `(A j, i : 0 ≤ i < n_j : a_j + i ∈ ran(Σ'.M(d)))`, so the *derived* content-containment relation records `Contains_C(Σ') ⊇ {(a_j + i, d)}`. Containment is read off `Σ'.M` and is therefore automatic; the *provenance* relation `Σ.R` is a separate state component, which COPY's effect populates explicitly (Definition): `Σ'.R = Σ.R ∪ {(a_j + i, d)}`. We must show this post-state is well-formed against the coupling invariants of ValidComposite★ (ASN-0047). Because the Definition amends `ValidComposite★`'s atomic enumeration to admit COPY, a one-step COPY is itself a valid composite, and its pre- and post-states `Σ`, `Σ'` are composite boundaries; the coupling clauses J0/J1★/J1'★ are evaluated between them, and the composite-boundary property P4★ holds at `Σ`. Treating COPY as this length-1 composite, each clause is discharged:
 
 - *J0 (AllocationRequiresPlacement).* Vacuous: by X1, `dom(Σ'.C) = dom(Σ.C)`, so the antecedent `a ∈ dom(Σ'.C) ∖ dom(Σ.C)` is never satisfied — COPY allocates no content.
 
@@ -254,6 +256,42 @@ COPY's effect still writes `Σ'.R = Σ.R ∪ {(x_1, d), (x_1+1, d)}`. Trace the 
 - **J1'★ (vacuous on `Old`)** is the branch this scenario is built to exercise. The pairs `(x_1, d)` and `(x_1+1, d)` that COPY adds were *already present in `R`* at the pre-state: `x_1` and `x_1+1` are referenced by `d` at content-subspace positions `[1,1], [1,2]` before COPY, so `(x_1, d), (x_1+1, d) ∈ Contains_C(Σ)`, and by P4★ (`Contains_C(Σ) ⊆ R`) both lie in `Σ.R`. Hence `Σ'.R = Σ.R` (the union adds nothing already absent), so `R' ∖ R = ∅` and J1'★'s antecedent is false for every pair — vacuously satisfied without any appeal to range growth.
 
 So under self-transclusion the recorded pairs back no new range extension yet violate nothing: J1'★ is discharged by their pre-state presence in `R` (P4★), exactly the `Old`-branch reasoning of X14. The reference multiplicity rises (X13): `x_1` is now referenced from `[1,1]` *and* `[1,3]`, `x_1+1` from `[1,2]` *and* `[1,4]` — yet `dom(Σ'.C) = dom(Σ.C)` (X1) and `R' = R`, so neither store grows.
+
+### The empty-subspace first insertion (`n_S = 0`, `p = 1`)
+
+Both scenarios above are *interior* — a non-empty subspace with `1 < p ≤ n_S`, inheriting a pre-state D-SEQ run. The genuinely different configuration is the first insertion into an *empty* content subspace, where there is no pre-state common depth to inherit: the operation must *choose* a depth `m` and pin it (P4, ValidFirstInsertionPosition), `New = A` with `Old = ∅`, and there are neither unmoved nor displaced positions.
+
+Fix `s_C = 1`. Let `d` be freshly registered with `V_{s_C}(d) = ∅`, so `n_S = 0`. The source is a single same-origin reference of width `W = 2`: `R = ⟨(d_1, σ)⟩` with `resolve_Σ(R) = ⟨(a_1, 2)⟩`, `origin(a_1) = d_1`, and `a_1, a_1+1 ∈ dom(Σ.C)`. By P4 the operation chooses depth `m = 2` and takes `v = [1,1]` of depth 2 (ValidFirstInsertionPosition), so `p = 1`, `k = 1`, `c_1 = 0`, `B_copy = {([1,1], a_1, 2)}`. The choice fixes `m = 2` as `d`'s content-subspace depth for all future positions.
+
+The post-state arrangement `Σ'.M(d)`:
+
+| `c` | post-state position | image | class |
+|----|----|----|----|
+| 1 | `[1,1]` | `a_1` | copied (blk 1) |
+| 2 | `[1,2]` | `a_1+1` | copied (blk 1) |
+
+Now check the boundary-specific claims:
+
+- **X1** — `dom(Σ'.C) = dom(Σ.C)`: `a_1, a_1+1` were already allocated; the empty subspace gains references, not content.
+- **X16 (density, min)** — both the unmoved range (`p = 1`, empty) and the displaced range (no `u ≥ v`, since `V_{s_C}(d) = ∅`) are empty, so the tiling degenerates to the single copied range `[p, p+W) = [1, 3)`. Post-state `V_{s_C}(d) = {[1,c] : 1 ≤ c ≤ 2}` at the chosen depth `m = 2` — contiguous with `n_S + W = 0 + 2 = 2`, minimum `[1,1]` (the first copied position, not an unmoved one), discharged here by ValidFirstInsertionPosition rather than by an inherited D-SEQ. S8a holds for both copied positions: each `[1, 1+c]` (`0 ≤ c < 2`) has `zeros = 0`, depth `2 ≥ 2`, all components positive.
+- **X14 (coupling split, `New = A`, `Old = ∅`)** — the copied address set is `A = {a_1, a_1+1}`. The pre-state content-subspace range is empty, so `New = A ∖ ran(Σ.M(d)) = A` and `Old = A ∩ ran(Σ.M(d)) = ∅`. This is the converse of the self-transclusion split: **J1★** fires on *every* copied address (each is a genuine range extension recorded by COPY's effect as `(a_1, d), (a_1+1, d) ∈ Σ'.R`), and **J1'★** is discharged entirely on its `(a)`-branch — each added pair backs an `a ∈ New` newly in `ran(Σ'.M(d)) ∖ ran(Σ.M(d))` at a content-subspace position. The `Old`-branch (and its P4★ appeal) is vacuous here. J0 is vacuous by X1.
+
+### The append boundary (`p = n_S + 1`, trailing boundary absent)
+
+A second boundary configuration the interior examples do not exercise is the *append*: inserting at `p = n_S + 1`, past the last occupied position. No content is displaced (there is no `u ∈ V_{s_C}(d)` with `u ≥ v`), so the trailing boundary of X12 is *absent* and only the leading boundary is a merge candidate.
+
+Fix `s_C = 1`, `m = 2`, `n_S = 3`, so `V_{s_C}(d) = {[1,1], [1,2], [1,3]}` with bindings `x_1, x_2, x_3 ∈ dom(Σ.C)`. We copy at `v = [1,4]`, so `p = 4 = n_S + 1`. The source is a single same-origin reference of width `W = 2`: `resolve_Σ(R) = ⟨(a_1, 2)⟩`, `B_copy = {([1,4], a_1, 2)}`.
+
+| `c` | post-state position | image | class |
+|----|----|----|----|
+| 1 | `[1,1]` | `x_1` | unmoved |
+| 2 | `[1,2]` | `x_2` | unmoved |
+| 3 | `[1,3]` | `x_3` | unmoved |
+| 4 | `[1,4]` | `a_1` | copied (blk 1) |
+| 5 | `[1,5]` | `a_1+1` | copied (blk 1) |
+
+- **X16 (density)** — the displaced range is empty (`p = 4 > n_S = 3`), so the tiling is unmoved `[1, p) = [1, 4)` followed by copied `[p, p+W) = [4, 6)`, with no displaced tail. Post-state `V_{s_C}(d) = {[1,c] : 1 ≤ c ≤ 5}`, contiguous, `n_S + W = 5`, minimum `[1,1]` (unmoved).
+- **X12 (trailing boundary absent)** — the leading boundary is present (`p = 4 ≥ 2`): the unmoved predecessor at `[1,3]` holds `x_3`, absorbing block 1 iff `x_3`'s I-reach is `a_1` (i.e. `x_3 = a_1 - 1` with `origin(x_3) = d_1`). The trailing boundary is *absent*: the condition `p ≤ n_S` fails (`4 ≤ 3` is false), there is no first displaced block, so no trailing merge candidate exists.
 
 ---
 
