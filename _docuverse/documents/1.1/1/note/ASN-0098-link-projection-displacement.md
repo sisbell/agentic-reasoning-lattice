@@ -17,13 +17,15 @@ The first two are static once the link is created. The third is a live computati
 
 ## State Components
 
-We work over the state structure inherited from the foundations. Three components matter here.
+We operate over ASN-0047's extended state `Σ = (C, L, E, M, R)` — content store, link store, entity set, arrangement family, and provenance relation. Three components carry the projection machinery directly (`Σ.C`, `Σ.M`, `Σ.L`); the remaining two enter through the transition vocabulary that drives the arrangement, and we ground them here so that later appeals to `K.δ`, `K.ρ`, `S3★`, and `S3★-aux` rest on a stated model.
 
-The content store `Σ.C : T ⇀ Val` is append-only with immutable values (S0, S1 of ASN-0036). Once an I-address `a` is bound, `Σ.C(a)` cannot be removed or rewritten. The set `dom(Σ.C)` only grows.
+The content store `Σ.C : T ⇀ Val` is append-only with immutable values (P0 of ASN-0047, which subsumes S0, S1 of ASN-0036). Once an I-address `a` is bound, `Σ.C(a)` cannot be removed or rewritten. The set `dom(Σ.C)` only grows.
 
-For each document `d ∈ dom(Σ.M)`, the arrangement `Σ.M(d) : T ⇀ T` is a partial function from V-positions to I-addresses. The arrangement is mutable: the operations K.μ⁺ (content-subspace extension), K.μ⁺_L (link-subspace extension), K.μ⁻ (contraction), and K.μ~ (reordering) of ASN-0047 modify it. The set of allocated documents `dom(Σ.M)` is non-decreasing (M1 of ASN-0093).
+For each document `d ∈ dom(Σ.M)`, the arrangement `Σ.M(d) : T ⇀ T` is a partial function from V-positions to I-addresses. The arrangement is mutable: the operations K.μ⁺ (content-subspace extension), K.μ⁺_L (link-subspace extension), K.μ⁻ (contraction), and K.μ~ (reordering) of ASN-0047 modify it. The set of allocated documents `dom(Σ.M) = E_doc` is non-decreasing (M1 of ASN-0047).
 
 The link store `Σ.L : T ⇀ Link` binds link addresses to link values (ASN-0043). A link value is a sequence of endsets `Σ.L(a) = (e₁, e₂, …, eₙ)` with `N ≥ 3` and a non-empty type endset at slot 3 (L3). Each endset `eᵢ ∈ Endset` is a finite set of well-formed spans. The link store is immutable: by L12, `(A Σ → Σ', a ∈ dom(Σ.L) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))`.
+
+The entity set `Σ.E ⊆ T` holds the allocated organisational addresses — nodes, accounts, and documents — with `E_doc` its document-level stratum. Entities enter only by `K.δ` (entity creation), and in the `Document(e)` case `K.δ` registers a fresh document, growing `dom(Σ.M) = E_doc`; `Σ.E` is permanent under P1 of ASN-0047. The provenance relation `Σ.R ⊆ T_elem × E_doc` records document-content associations: a pair `(a, d)` enters only by `K.ρ` (provenance recording) and persists under P2 of ASN-0047. These two components are otherwise held in frame by the arrangement-editing operations above.
 
 ## The Coverage of an Endset
 
@@ -364,7 +366,7 @@ An endset `e` is *tight at state `Σ_e`* iff every span `(s, ℓ) ∈ e` is *can
 s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)  ∧  (A t ∈ F : s ≤ t < s ⊕ ℓ : t ∈ dom(Σ_e.C) ∪ dom(Σ_e.L))
 ```
 
-Tightness is a construction discipline, not a structural invariant the system enforces. The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. The first conjunct gives `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)`, whence `s ∈ F` by LP-Sub; together with the canonical shape `ℓ = δ(n, #s)` this discharges LP-Fin's hypotheses, so LP-Fin confines the universal quantifier to the finite set `F ∩ [s, s ⊕ ℓ)` and the predicate is decidable at every state from `s`, `ℓ`, and the structural form of `F`-candidates without enumerating `F`.
+Tightness is a construction discipline, not a structural invariant the system enforces. The first conjunct gives `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)`, whence `s ∈ F` by LP-Sub; together with the canonical shape `ℓ = δ(n, #s)` this discharges LP-Fin's hypotheses, so LP-Fin confines the universal quantifier to the finite set `F ∩ [s, s ⊕ ℓ)` and the predicate is decidable at every state from `s`, `ℓ`, and the structural form of `F`-candidates without enumerating `F`.
 
 *Achievability.* Choose `ℓ = δ(n, #s)` with `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` where `X ∈ {C, L}` is the span's subspace and `m` is `A_X(d_0)`'s currently-allocated chain-index maximum at `Σ_e`. By LP-Fin Corollary, `F ∩ [s, s ⊕ ℓ) = {[d_0, 0, X, k] : k_s ≤ k < k_s + n}`, so every F-candidate in the span's reach lies on `A_X(d_0)` — no other chain, same-document cross-subspace or cross-document, contributes. The emission-frontier constraint `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` confines those candidates to chain index `≤ m`. By ChainMembershipForOrigin (ASN-0093), the allocated addresses of origin `d_0` form a *contiguous initial segment* of `A_X(d_0)`'s chain; since `m` is the allocated maximum, indices `1..m` are all allocated, so the candidate indices `k_s, …, k_s + n − 1 ⊆ {1, …, m}` are all resident in `dom(Σ_e.C) ∪ dom(Σ_e.L)` at `Σ_e` — discharging tightness.
 
