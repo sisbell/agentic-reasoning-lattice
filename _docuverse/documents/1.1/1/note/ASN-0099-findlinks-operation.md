@@ -274,8 +274,9 @@ A1 (LinkStoreInertOfNonAllocatingOperations):
    Equivalently, K.λ is the unique operation of V that modifies the
    link store.
 
-   A1 is the union of:
-   - A1a (published-frame preservation, covering {K.σ, K.α, K.δ, K.μ~,
+   A1 ranges over the atomic operations of V ∖ {K.λ}. It is the
+   union of:
+   - A1a (published-frame preservation, covering {K.σ, K.α, K.δ,
      K.μ⁺_L}): conclusion immediate from the substrate's published
      `L' = L` frame clause. No interpretive commitment.
    - A1b (closed-world preservation, covering {K.μ⁺, K.μ⁻, K.ρ}):
@@ -286,45 +287,81 @@ A1 (LinkStoreInertOfNonAllocatingOperations):
      formally axiomatise it. Downstream citations at K.μ⁺, K.μ⁻, or
      K.ρ inherit this convention-grounded commitment.
 
+   K.μ~ is excluded from A1a and A1b alike, because ASN-0047 fixes it
+   as a non-atomic named composite — shorthand for a K.μ⁻ + K.μ⁺
+   decomposition, not a single arrow Σ → Σ'. Its ASN-0047 frame clause
+   `L' = L` is labelled "(derived)" precisely because it is obtained by
+   composing the frames of those two atomic steps, both of which fall
+   under A1b. We therefore do not treat K.μ~'s `L' = L` as a published,
+   convention-free fact; A1 reaches a K.μ~ invocation only through its
+   two atomic constituents (each discharged by A1b), and any link-store
+   inertness across the composite is the transitive composition of A1b
+   at K.μ⁻ and A1b at K.μ⁺ — inheriting A1b's convention-grounded
+   commitment at both steps.
+
    Vocabulary scope: V = {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L,
-   K.ρ} as published in ASN-0047 and ASN-0093. Downstream ASNs
-   consuming A1 against an evolved vocabulary must restate the claim.
+   K.ρ} as published in ASN-0047 and ASN-0093, with K.μ~ the sole
+   non-atomic member. Downstream ASNs consuming A1 against an evolved
+   vocabulary must restate the claim.
 ```
 
 For grounding of the closed-world reading and its alternatives, see the [design note appendix](#appendix-grounding-of-the-closed-world-reading) below.
 
 ```
 F9 (LinkSurvivabilityUnderEdits):
-   For any single-step transition Σ → Σ' produced by a K.μ-family
-   operation (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L) and any I ⊆ T:
+   For any single-step transition Σ → Σ' produced by an atomic
+   K.μ-family operation (K.μ⁺, K.μ⁻, K.μ⁺_L) and any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
    F9 follows from F8 via ComprehensionInvariantUnderΣL once
-   Σ.L = Σ'.L is discharged: by A1a at K.μ~ and K.μ⁺_L, by A1b at
-   K.μ⁺ and K.μ⁻. F9 inherits A1b's commitment at the latter two
-   sub-cases.
+   Σ.L = Σ'.L is discharged: by A1a at K.μ⁺_L, by A1b at K.μ⁺ and
+   K.μ⁻. F9 inherits A1b's commitment at the latter two sub-cases.
+
+   K.μ~ is deliberately absent from the single-step quantifier: it is
+   the non-atomic composite K.μ⁻ + K.μ⁺ (ASN-0047), so an invocation is
+   two atomic transitions Σ → Σ_mid → Σ', not one arrow. Its
+   invariance is the F9★ composition (below) over its two atomic steps
+   — F9 at K.μ⁻ followed by F9 at K.μ⁺, chained by transitivity of
+   equality — inheriting A1b's commitment at both. We record this as a
+   corollary:
+
+F9~ (ReorderingSurvivability):
+   For any K.μ~ invocation Σ → Σ_mid → Σ' (its K.μ⁻ + K.μ⁺
+   decomposition) and any I ⊆ T:
+       findlinks(I, Σ) = findlinks(I, Σ').
+   Proof: F9 at the K.μ⁻ step gives findlinks(I, Σ) = findlinks(I, Σ_mid);
+   F9 at the K.μ⁺ step gives findlinks(I, Σ_mid) = findlinks(I, Σ');
+   compose by transitivity. Both steps discharge under A1b, so F9~
+   inherits A1b's convention-grounded commitment.
 ```
 
 ```
 F9-cor (NonAllocatingPreservation):
-   For every single-step transition Σ → Σ' produced by an operation
-   in V ∖ {K.λ} and any I ⊆ T:
+   For every single-step transition Σ → Σ' produced by an atomic
+   operation in V ∖ {K.λ} — i.e. any member of V ∖ {K.λ, K.μ~} — and
+   any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
    F9-cor inherits A1b's commitment at the K.μ⁺, K.μ⁻, K.ρ sub-cases;
-   the other five operations discharge from A1a. K.δ has three
-   sub-cases; the IsDocument sub-case modifies M(d_new) but K.δ's
-   published frame includes L' = L uniformly, so F9-cor's I-side
-   conclusion holds for all three.
+   the remaining four atomic operations (K.σ, K.α, K.δ, K.μ⁺_L)
+   discharge from A1a. K.δ has three sub-cases; the IsDocument
+   sub-case modifies M(d_new) but K.δ's published frame includes
+   L' = L uniformly, so F9-cor's I-side conclusion holds for all three.
+   The lone non-atomic member K.μ~ is excluded from this single-step
+   quantifier and reached only through F9★ over its K.μ⁻ + K.μ⁺
+   decomposition (equivalently, F9~).
 ```
 
 ```
 F9★ (NonAllocatingMultiStepPreservation):
-   For any reachable transition sequence Σ →* Σ' in which every step
-   is in V ∖ {K.λ} and any I ⊆ T:
+   For any reachable transition sequence Σ →* Σ' in which every
+   atomic step is in V ∖ {K.λ} and any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   The per-step F9-cor chained by transitivity of equality.
+   The per-step F9-cor chained by transitivity of equality. A K.μ~
+   invocation appearing in the sequence contributes its two atomic
+   steps K.μ⁻ and K.μ⁺ (both in V ∖ {K.λ}), so F9★ covers it without
+   special-casing; F9~ is the two-step instance.
 ```
 
 (The K.μ-only specialization of F9★ is the one-line corollary: every K.μ-family step is in V ∖ {K.λ}, so any K.μ-only sequence is one for which F9★ applies; we do not name it separately.)
@@ -436,11 +473,11 @@ The determinism and survivability properties extend uniformly to the filtered an
 ```
 F15 (FilteredDeterminism):  findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ') when Σ.L = Σ'.L.
 F16 (ScopedDeterminism):    findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ') when Σ.L = Σ'.L.
-F17 (FilteredSurvivability): findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ') across a K.μ-family step.
-F18 (ScopedSurvivability):   findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ') across a K.μ-family step.
+F17 (FilteredSurvivability): findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ') across an atomic K.μ-family step.
+F18 (ScopedSurvivability):   findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ') across an atomic K.μ-family step.
 ```
 
-F15 follows from ComprehensionInvariantUnderΣL applied to the filtered universal. F16 follows from F8 + intersection-preservation with the query-supplied `S`. F17 follows from F9 (K.μ-family preserves Σ.L) + F15. F18 follows from F9 + intersection-preservation. F17 and F18 inherit A1b's commitment at the K.μ⁺ and K.μ⁻ sub-cases.
+F15 follows from ComprehensionInvariantUnderΣL applied to the filtered universal. F16 follows from F8 + intersection-preservation with the query-supplied `S`. F17 follows from F9 (atomic K.μ-family steps preserve Σ.L) + F15. F18 follows from F9 + intersection-preservation. F17 and F18 inherit A1b's commitment at the K.μ⁺ and K.μ⁻ sub-cases. Across a K.μ~ invocation, F17 and F18 compose over its K.μ⁻ + K.μ⁺ decomposition (the F9~ route), inheriting A1b's commitment at both atomic steps.
 
 ## Result Ordering
 
@@ -534,7 +571,7 @@ LP13 (UnconditionalLinkPersistence, ASN-0098) supplies the multi-step per-link g
 
 *Distinction from ASN-0098's V-side discoverability.* F11 is an *I-side* persistence claim — the parameter `I ⊆ T` is a fixed query I-set, and persistence is preserved by L12 + LP13 + PerLinkInvarianceUnderValuePreservation, all of which operate at the link store level without consulting `Σ.M`. ASN-0098 defines a distinct *V-side* notion `discoverable_from(a, d, Σ) ≡ matches(a, ran(Σ.M(d)), Σ)`, parameterised by a *document* rather than an I-set. The two notions coincide instantaneously — `discoverable_from(a, d, Σ) = matches(a, ran(Σ.M(d)), Σ)` — but their persistence properties diverge across editing:
 
-- *I-side (F11): persistent.* For fixed `I ⊆ T`, `matches(a, I, ·)` is invariant under any K.μ-family edit (F9), and monotonically preserved across any reachable `Σ →* Σ'` (above).
+- *I-side (F11): persistent.* For fixed `I ⊆ T`, `matches(a, I, ·)` is invariant under any atomic K.μ-family edit (F9) — and across a K.μ~ invocation by composing over its K.μ⁻ + K.μ⁺ decomposition (F9~) — and monotonically preserved across any reachable `Σ →* Σ'` (above).
 - *V-side (ASN-0098): not persistent.* `discoverable_from(a, d, ·)` depends on `ran(Σ.M(d))`, which K.μ⁻ can shrink. A link that is V-side discoverable from `d` at `Σ` may cease to be V-side discoverable from `d` at `Σ'` if the contraction drops every V-position whose image lies in the link's coverage.
 
 The worked example below illustrates exactly this divergence. Query 5 exhibits a five-step transition sequence `Σ →* Σ_5` ending with a K.μ⁻ contraction of `d_a`'s arrangement to `{v_a^1 ↦ α₁}`. The I-side query `findlinks({α₂}, ·)` returns `{ℓ}` at both `Σ` and `Σ_5` — F11's I-side persistence. The V-side query `findlinks_V({v_a^2}, d_a, ·)` returns `{ℓ}` at `Σ` but `∅` at `Σ_5`, because the K.μ⁻ step removes `v_a^2` from `dom(Σ_5.M(d_a))` and the silent projection in `image` absorbs it. V-side persistence is *not* a theorem of this ASN, and could not be — Nelson's non-destructive-editing principle (LM 2/45) holds at the I-side, not the V-side.
@@ -652,9 +689,9 @@ Both are *convergent* with A1b's conclusion but not constitutive; the methodolog
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
 | PerLinkInvarianceUnderValuePreservation | Per-link primitive: match and filtered per-link universal evaluate identically when `Σ'.L(a) = Σ.L(a)` at a specific `a` | introduced (sub-lemma) |
 | ChainIndexEqualsAllocationOrder | Within a home document, T1 rank = chain index = K.λ event count | introduced (sub-lemma) |
-| A1a | PublishedFramePreservation: {K.σ, K.α, K.δ, K.μ~, K.μ⁺_L} preserve `Σ.L` from published frames | introduced (structural lemma) |
-| A1b | ClosedWorldPreservation: {K.μ⁺, K.μ⁻, K.ρ} preserve `Σ.L` under closed-world reading of substrate effect-clause convention; convention-grounded | introduced (convention-grounded lemma) |
-| A1 | LinkStoreInertOfNonAllocatingOperations: composite of A1a and A1b; K.λ unique L-modifying operation in V | introduced (composite lemma) |
+| A1a | PublishedFramePreservation: atomic {K.σ, K.α, K.δ, K.μ⁺_L} preserve `Σ.L` from published frames | introduced (structural lemma) |
+| A1b | ClosedWorldPreservation: atomic {K.μ⁺, K.μ⁻, K.ρ} preserve `Σ.L` under closed-world reading of substrate effect-clause convention; convention-grounded | introduced (convention-grounded lemma) |
+| A1 | LinkStoreInertOfNonAllocatingOperations: composite of A1a and A1b over the atomic ops of V ∖ {K.λ}; K.μ~ reached only via its K.μ⁻ + K.μ⁺ decomposition (A1b at both); K.λ unique L-modifying operation in V | introduced (composite lemma) |
 | F1 | MatchPredicate definition | definition |
 | F2 | Completeness: `findlinks(I, Σ) ⊆ result(I, Σ)` | introduced |
 | F3 | Soundness: `result(I, Σ) ⊆ findlinks(I, Σ)` | introduced |
@@ -666,9 +703,10 @@ Both are *convergent* with A1b's conclusion but not constitutive; the methodolog
 | F6 | Transclusion transparency | introduced |
 | F7 | Endset symmetry (slot equality + filter conjunction) | introduced |
 | F8 | Determinism: `findlinks(I, ·)` is a function of `(Σ.L, I)` | introduced |
-| F9 | Link survivability under K.μ-family edits | introduced |
-| F9-cor | Non-allocating preservation across single-step V ∖ {K.λ} | introduced |
-| F9★ | Multi-step closure of F9-cor across V ∖ {K.λ} sequences | introduced |
+| F9 | Link survivability under single-step atomic K.μ-family edits (K.μ⁺, K.μ⁻, K.μ⁺_L) | introduced |
+| F9~ | ReorderingSurvivability: findlinks invariance across a K.μ~ invocation, by composing F9 over its K.μ⁻ + K.μ⁺ decomposition | introduced |
+| F9-cor | Non-allocating preservation across single-step atomic V ∖ {K.λ, K.μ~} | introduced |
+| F9★ | Multi-step closure of F9-cor across V ∖ {K.λ} sequences (K.μ~ enters as its two atomic steps) | introduced |
 | F9-λ | KλInducedIncrement: characterises the K.λ-induced delta to findlinks(I, ·) as disjoint union with a singleton or ∅ depending on whether ℓ_new matches | introduced |
 | F10 | Ordered result: canonical T1-sorted presentation | introduced |
 | F10-filt, F10-sco | Filtered and scoped ordered presentations | introduced |
