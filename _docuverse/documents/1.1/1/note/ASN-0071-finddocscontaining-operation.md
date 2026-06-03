@@ -160,8 +160,6 @@ Now submit the *shallow* vspec `Q_E = {(d_E, σ_E)}` with `σ_E = ([s_C, 1], δ(
 
 The coarse shallow anchor — naming a single depth-2 coordinate over a depth-3 source — discovered the full transclusion community of the subtree's content, confirming the subtree-capture intent against a concrete result set rather than stopping at the abstract `⟦σ⟧ ∩ dom = n positions`.
 
-**Interior action point, rejected against an arrangement.** With `d_E` at depth 3, the over-collection that the `actionPoint(ℓ) = #u` precondition forecloses — collecting content positions the user never named — can be exhibited against a live arrangement. The coarse span `σ' = ([s_C, 1, 2], [0, 1, 0])` has action point 2, *interior* to `#u = 3`; its reach is `[s_C, 1, 2] ⊕ [0, 1, 0] = [s_C, 2, 2]`, so `⟦σ'⟧ ∩ dom(M(d_E)) = {[s_C,1,2], [s_C,1,3]}` — positions 2 *and* 3, though the user named position 2 alone. This is the breadth-wise sibling sweep: the displacement acts on the prefix component the anchor fixes, dragging in a sibling the anchor's prefix does not name. The `actionPoint(ℓ) = #u` precondition rejects `σ'` outright (`2 ≠ 3`). The well-formed alternative `σ'' = ([s_C, 1, 2], δ(1, 3))` has action point `3 = #u`, reach `[s_C, 1, 3]`, and `⟦σ''⟧ ∩ dom(M(d_E)) = {[s_C, 1, 2]}` — exactly the named position. The contrast with `σ_E` is the discrimination the precondition is for: `σ_E` descends *depth-wise* into the subtree of the coordinate it names (permitted), while `σ'` sweeps *breadth-wise* across a sibling of a fixed prefix component (forbidden).
-
 ## Completeness and soundness
 
 The membership criterion is a biconditional — the definition of `find(Q)(Σ)`:
@@ -259,11 +257,5 @@ The returned set has presentation and policy properties we have left unspecified
 What relationship between FINDDOCSCONTAINING's current-state result and the historical containment relation `R` must the system guarantee?
 
 Under what conditions must the system reject unresolvable vspec positions rather than silently filter them?
-
-What completeness must FINDDOCSCONTAINING guarantee when the docuverse state is distributed across replicas with possibly divergent views?
-
-What abstract operation must filter FINDDOCSCONTAINING's result by requester visibility?
-
-What completeness must visibility-filtering preserve over the visible subset of documents accessible to the requester?
 
 What invariant must connect FINDDOCSCONTAINING's result immediately before and after a transition that contracts an arrangement?
