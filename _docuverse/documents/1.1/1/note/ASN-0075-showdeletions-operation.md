@@ -116,6 +116,8 @@ Any function `f(C, L, E, M)` returns the same value at both states. But the clas
 
 This is the abstract justification for the provenance relation. The negative result is sharp in its full strength: the witnesses pin every component of `(C, L, E, M)` identically across `Σ_1` and `Σ_2`, so no projection or joint consultation of the four foundation components suffices to discriminate.
 
+The discrimination obligation follows in one step. SHOWDELETIONS' definition requires the DELETED/NEVER_INCLUDED distinction (its output sets are built from these predicates); D-DISCR shows the four foundation components `(C, L, E, M)` cannot supply it. Hence any state that implements SHOWDELETIONS must carry at least one component beyond the four — call it `C*` — whose value disambiguates the two predicates at every reachable `Σ`. The provenance relation `R` is exhibited as one such witness: `DELETED(a, d)` requires `(a, d) ∈ R` while `NEVER_INCLUDED(a, d)` requires `(a, d) ∉ R`, so the two are contradictory on `R`-membership and testing `(a, d) ∈ R` discriminates them outright. Thus `C* = R` suffices. This step consults `R`-membership only; it does not invoke `P4★`, so the discrimination holds at every reachable state, not merely at composite boundaries.
+
 ## The SHOWDELETIONS Operation
 
 Let `d_A, d_B ∈ E_doc`. The operation takes two documents and observes the state. We define the asymmetric output sets:
@@ -333,9 +335,7 @@ The content-level guarantee — the union of both halves as a set of I-addresses
 
 **Claim D-ACT.** The output is in a form usable as input to any operation that consumes I-addresses to produce arrangement extensions.
 
-*Justification.* Each output element is an I-address in `dom(C)`, carrying determinate origin (D-ORIG) and preserved identity (D-IDENT). Any operation whose input type accepts I-addresses (or spans thereof) can consume the output directly. The output is *not* wrapped in V-position structure — wrapping it that way would require either fictitious positions (deleted content has no V-position in the queried document) or borrowed positions from the witness (which would have to be coordinated with the recovery target's address space, an entanglement the abstract output cannot impose). The output is *not* wrapped in content values — wrapping it that way would require copying values into new identities, breaking D-IDENT.
-
-The abstract specification fixes only the set of I-addresses. Because each address retains its identity and self-identifies its origin, an implementation may package the output more compactly — for instance grouping contiguous same-origin runs into spans — without changing what is specified. Any such packaging is a representation choice, not part of the operation's contract.
+*Justification.* Each output element is an I-address in `dom(C)` (D-IDENT). Any operation whose input type accepts I-addresses (or spans thereof) can consume the output directly. The abstract specification fixes only the set of I-addresses; because each address retains its identity (D-IDENT), an implementation may package the output more compactly — for instance grouping contiguous same-origin runs into spans — without changing what is specified. Any such packaging is a representation choice, not part of the operation's contract.
 
 ## Observational Frame
 
@@ -365,7 +365,7 @@ This is what makes the operation an honest function of state. The user need not 
 
 ## Edge Cases
 
-*Documents with no shared content.* Both output halves are empty exactly when, for every `a ∈ dom(C)`, `¬(DELETED(a, d_A) ∧ CURRENT(a, d_B))` and `¬(DELETED(a, d_B) ∧ CURRENT(a, d_A))` — equivalently `¬((a, d_A) ∈ R ∧ a ∉ ran(M(d_A)) ∧ a ∈ ran(M(d_B)))` and the symmetric form. This is the condition the definitions of the output sets directly negate.
+*Documents with no shared content.* The condition under which both halves are empty is exactly `Q0`, derived above as `wp(SHOWDELETIONS, Q0)`; see "Vacuity of both report halves."
 
 *Both arrangements empty.* If `dom(M(d_A)) = dom(M(d_B)) = ∅`, then `ran(M(d_A)) = ran(M(d_B)) = ∅`, so `CURRENT` fails for every `a` on both sides. Both halves are empty.
 
