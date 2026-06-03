@@ -33,9 +33,7 @@ DELETED(a, d)         ≡  (a, d) ∈ R  ∧  a ∉ ran(M(d))
 NEVER_INCLUDED(a, d)  ≡  (a, d) ∉ R
 ```
 
-**Classification is at I-address-set granularity.** Each predicate reads only the *set* membership condition `a ∈ ran(M(d))`, never the number of V-positions at which `a` occurs. The foundation permits a single I-address to occupy multiple V-positions within one document: ASN-0036 (S5, M13) and ASN-0058 (M14) establish `(E d, a :: |{v : M(d)(v) = a}| > 1)` — transclusion may map the same content at several V-positions. The consequence is explicit and intended: if `d` references `a` at two V-positions and one is removed, `a ∈ ran(M(d))` still holds, so `CURRENT(a, d)` holds and `DELETED(a, d)` does not. A per-occurrence removal within `d` is therefore *invisible* to this classification while any occurrence of `a` survives in `d` — `a` becomes DELETED against `d` only when the *last* V-occurrence is removed.
-
-Per-occurrence removal — distinguishing which of several V-positions holding the same I-address went away — is a V-position (Vstream) concern that our I-address-set predicates do not address, and we scope it out of this operation.
+**Classification is at I-address-set granularity.** Each predicate reads only the *set* membership condition `a ∈ ran(M(d))`, never the number of V-positions at which `a` occurs. The foundation permits a single I-address to occupy multiple V-positions within one document: ASN-0036 (S5, M13) and ASN-0058 (M14) establish `(E d, a :: |{v : M(d)(v) = a}| > 1)` — transclusion may map the same content at several V-positions. The consequence is explicit and intended: if `d` references `a` at two V-positions and one is removed, `a ∈ ran(M(d))` still holds, so `CURRENT(a, d)` holds and `DELETED(a, d)` does not. A per-occurrence removal — distinguishing which of several V-positions holding the same I-address went away — is therefore *invisible* to this classification while any occurrence of `a` survives in `d` (`a` becomes DELETED against `d` only when the *last* V-occurrence is removed), and as a Vstream concern that our I-address-set predicates do not address, we scope it out of this operation.
 
 **Lemma D-WIT (Content Witness Forces Provenance).** Let `Σ` be a composite-boundary state. For every `a ∈ dom(Σ.C)` and `d ∈ Σ.E_doc`, if `a ∈ ran(M(d))` then `(a, d) ∈ R`.
 
@@ -193,7 +191,7 @@ The joint report is empty exactly when no content has been deleted from one docu
 
 *Group 3: neither `(a, d_A) ∈ R` nor `(a, d_B) ∈ R`.* The address is classified `NEVER_INCLUDED` against both documents; `DELETED(a, d_A)` and `DELETED(a, d_B)` both fail on their first conjuncts, so both conjuncts are falsified trivially.
 
-The three groups are exhaustive (disjointness rules out membership in both `R`-projections, so no fourth group arises). Every `a ∈ dom(C)` falsifies both conjuncts, and `Q0` holds. The argument covers the special case of one or both `R`-projections being empty without separate handling. ∎
+The three groups are exhaustive (disjointness rules out membership in both `R`-projections, so no fourth group arises). Every `a ∈ dom(C)` falsifies both conjuncts, and `Q0` holds. ∎
 
 ## A Worked Example
 
@@ -271,12 +269,7 @@ The content/link asymmetry is what makes cross-document deletion comparison mean
 
 **Claim D-IDENT.** For every `a` in either output set, the returned reference is precisely the I-address `a` — not a copy with new identity.
 
-*Justification.* The output sets are defined as subsets of `dom(C)`. Each element is an existing I-address. We return addresses, not values.
-
-An operation that recovers content using these references dereferences existing entries in `C`; it does not allocate new ones. Two guarantees that depend on persistent I-address identity therefore survive recovery:
-
-- *Link survival.* By L3 (NEndsetStructure, ASN-0047), every link in `dom(L)` references content via endsets. By P3 (ArrangementMutabilityOnly) and L12 (LinkImmutability, ASN-0047), `L` is preserved across all arrangement transitions — `L' = L` for every K.μ⁺/K.μ⁻/K.μ~ — so every link referencing `a` continues to reference the same `a`.
-- *Transclusion integrity.* By S2 (ArrangementFunctionality, ASN-0036) and the content clause of S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)` — arrangements reference I-addresses by tumbler identity: each content-subspace V-position maps to a determinate `a ∈ dom(C)`. If another document's content-subspace arrangement maps a V-position to `a`, that mapping continues to reference the same `a` because P0 (ContentPermanence, ASN-0047, subsuming S0 of ASN-0036) preserves both `dom(C)` and the value at every existing entry across all transitions; no aliasing or shadow copy is introduced.
+*Justification.* The output sets are defined as subsets of `dom(C)`. Each element is an existing I-address. We return addresses, not values. Since the output is a set of existing I-addresses, any other reference to `a` — a link endset or another document's arrangement entry — names the same `a`, with no aliasing or shadow copy introduced by the operation.
 
 ## Origin Traceability
 
