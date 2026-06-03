@@ -57,7 +57,7 @@ The definition reads from two inputs:
 - The endset, fixed once and for all by the link's creation (and immune to subsequent transitions, by L12).
 - The arrangement `Σ.M(d)`, mutable and reflecting whatever edits `d` has undergone.
 
-Every guarantee in this ASN follows from one observation: of the two inputs, only the arrangement varies. The endset stands still — and the definition consults neither `Σ.C` nor `Σ.L` separately. Therefore every change in projection must be attributable to a change in `Σ.M(d)` — and we can characterise the change by examining what each editing operation does to `Σ.M(d)`.
+Every guarantee in this ASN follows from one observation: of the two inputs, only the arrangement varies. The endset stands still — and the definition consults neither `Σ.C` nor `Σ.L` separately. We therefore characterise projection displacement by examining what each editing operation does to `Σ.M(d)`; LP4 below carries the formal claim that this is the only source of displacement.
 
 Three degenerate configurations follow directly from the definition and require no separate treatment in subsequent claims. The projection of the empty endset is uniformly empty: `project(∅, d, Σ) = ∅` for every `d ∈ dom(Σ.M), Σ` (i.e., wherever `project` is defined), since `coverage(∅)` is the empty union over an empty index set. The projection through an empty arrangement is uniformly empty: `project(e, d, Σ) = ∅` for every `d ∈ dom(Σ.M), Σ` with `dom(Σ.M(d)) = ∅`, since the set comprehension ranges over the empty domain. A link with empty from/to endsets but a non-empty type endset (admitted by L3 of ASN-0043, which requires only the type slot to be non-empty) has empty projections at slots 1 and 2 regardless of any document's state; only the type slot's projection can be non-empty.
 
@@ -111,7 +111,7 @@ Schema (★) of LP2★ applied to the single-step monotonicity guarantees C0 of 
 Σ'.M(d) = Σ.M(d) ⟹ project(e, d, Σ') = project(e, d, Σ)
 ```
 
-The projection function depends on exactly two inputs: `coverage(e)` and `Σ.M(d)`. The first is a pure function of the endset `e`, which appears unchanged on both sides of the equality — `coverage(e)` is therefore identical between the two projections. The second is the arrangement, equal by hypothesis. Both inputs agree pointwise, so the set comprehension produces identical results. The projection cannot displace without `Σ.M(d)` displacing.
+The projection function depends on exactly two inputs: `coverage(e)` and `Σ.M(d)`. The first is a pure function of the endset `e`, which appears unchanged on both sides of the equality — `coverage(e)` is therefore identical between the two projections. The second is the arrangement, equal by hypothesis. Both inputs agree pointwise, so the set comprehension produces identical results.
 
 **LP5 — Cross-Document Independence**: Every operation in the K.μ family (K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~) has frame `(A d' : d' ≠ d : M'(d') = M(d'))` — it modifies at most one document's arrangement per transition. By LP4 applied to each unmodified document:
 ```
@@ -266,7 +266,7 @@ The phrase "anything is left at each end" can now be stated formally: discoverab
 a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)
 ```
 
-LP2★ gives `a ∈ dom(Σ'.L)` and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` for every slot `i ∈ {1, …, |Σ.L(a)|}`, and fixes the arity `|Σ'.L(a)| = |Σ.L(a)|` (value preservation under L12 forces equal-length sequences). Slot-wise equality at every position of a common arity is full value equality, so `Σ'.L(a) = Σ.L(a)`. The conclusion holds independently of `Σ.M`, `Σ'.M`, `dom(Σ.M)`, `dom(Σ'.M)`, and any document's range; the hypothesis `a ∈ dom(Σ.L)` is the only requirement, and the conclusion never consults whether `a` is discoverable from any document. A holder can therefore rely on the stored object permanently, but not on discoverability from any particular document without further conditions on that document's arrangement (LP9–LP11 govern how those conditions evolve).
+LP2★ gives `a ∈ dom(Σ'.L)` and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` for every slot `i ∈ {1, …, |Σ.L(a)|}`, and fixes the arity `|Σ'.L(a)| = |Σ.L(a)|` (value preservation under L12 forces equal-length sequences). Slot-wise equality at every position of a common arity is full value equality, so `Σ'.L(a) = Σ.L(a)`. Persistence requires only `a ∈ dom(Σ.L)` and is independent of arrangement state, whereas discoverability is arrangement-conditional (LP9–LP11). A holder can therefore rely on the stored object permanently, but not on discoverability from any particular document without further conditions on that document's arrangement.
 
 ## Discovery Independence of Origin
 
