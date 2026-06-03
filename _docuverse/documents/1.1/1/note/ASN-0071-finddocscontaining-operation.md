@@ -44,13 +44,15 @@ When a vspec `(d_s, σ)` is also a well-formed ContentReference, `iaddrs_one(d_s
 
 The left side is the set-flattening of `resolve`. Set-flattening absorbs duplicate I-addresses: two distinct blocks may carry shared content (ASN-0058 M14), and the same `a` then appears in both — the set union dedupes it, matching `iaddrs_one`'s set codomain. The equality is conditional on well-formedness, which the vspec preconditions relax along two independent axes. *First*, `⟦σ⟧` may contain positions outside `dom(M(d_s))`: ContentReference's well-formedness clause requires every span position to lie in the source's arrangement and so treats such a span as ill-formed, while vspec silently drops the missing positions — the intersection `⟦σ⟧ ∩ dom(Σ.M(d_s))` contributes nothing for them (F-FILT). *Second*, the equivalence requires `#u = m_C` — the source's common content depth — which ContentReference condition (iii) (`#ℓ = #u = m`) imposes but the vspec preconditions do not. Where both axes are clear — `#u = m_C` and every span position present — vspec resolution and well-formed-ContentReference resolution coincide exactly.
 
-The resolution of `Q` is the union of independent per-source resolutions, each `iaddrs_one(d_s, σ)(Σ)` depending only on `Σ.M(d_s)` (F-LOC).
+The resolution of `Q` is the union of independent per-source resolutions, each `iaddrs_one(d_s, σ)(Σ)` depending only on `Σ.M(d_s)`.
 
 ## The operation
 
 Given resolved I-addresses, FINDDOCSCONTAINING returns the documents whose arrangements currently reference any of them:
 
   `find(Q)(Σ) := { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }`
+
+This biconditional is its own completeness and soundness statement: its (⟸) direction — every `d ∈ Σ.E_doc` satisfying the predicate is returned — is recorded as **F-COMP**, and its (⟹) direction — every returned `d` satisfies the predicate — as **F-SOUND**. Neither is a result beyond the definition; the labels name the halves of the iff for downstream reference. The `P(E_doc)` codomain likewise makes `find(Q)(Σ)` a set, so each document appears at most once (**F-DIST**) — a document transcluding ten queried passages is reported once, not ten times. The result enumerates documents, not occurrences.
 
 *Well-definedness precondition.* The type signature presents `Q` and `Σ` as independent arguments, but `iaddrs(Q)(Σ)` consults `Σ.M(d_s)` for each source `(d_s, σ) ∈ Q`, and `dom(Σ.M) = Σ.E_doc` (M1, ASN-0047). The expression `⟦σ⟧ ∩ dom(Σ.M(d_s))` is therefore meaningful only when `d_s ∈ Σ.E_doc`. We make this explicit as the domain of the partial function `find`:
 
@@ -150,7 +152,7 @@ Now submit the *shallow* vspec `Q_E = {(d_E, σ_E)}` with `σ_E = ([s_C, 1], δ(
 
   `⟦σ_E⟧ ∩ dom(M(d_E)) = {[s_C,1,1], [s_C,1,2], [s_C,1,3]}`
 
-— the *entire* depth-3 subtree hanging under the depth-2 anchor `[s_C, 1]`, captured by a span the user anchored at a single coarse coordinate. These positions *are* current arrangement entries, so F-FILT offers no defense; collecting them is the intended semantics. FINDDOCSCONTAINING is specified to return *"any portion of the material specified ... regardless of where the native copies are located"* (LM 4/63): the user who names the coarse coordinate names its whole subtree — the *"prefix names subtree"* semantics, here made concrete. Resolving:
+— the *entire* depth-3 subtree hanging under the depth-2 anchor `[s_C, 1]`, captured by a span the user anchored at a single coarse coordinate. These positions *are* current arrangement entries, so F-FILT offers no defense; collecting them is the intended semantics. This is the *width-1* instance of cross-depth capture (PC-RANGE, derived below): the span has `#u = 2 < m_C = 3` and unit width `ℓ_{#u} = 1` at its action point, so its denotation reaches every deeper arrangement position whose first two components are `[s_C, 1]` — exactly one sibling subtree. The behaviour is a property of span addressing, not of this operation: naming a coarse coordinate reaches everything beneath it, which Nelson builds into the address convention — *"A digit of 'one' may be used to designate all of a given version, all versions of a given document, all works of a given author ... or the entire docuverse"* (LM 4/38). The width dependence is essential: a width-2 span (`δ(2, 2)`) at the same anchor would denote `v_{#u} ∈ {1, 2}`, capturing *two* sibling subtrees, not "the" subtree. PC-RANGE makes the dependence explicit. Resolving:
 
   `iaddrs(Q_E)(Σ⁺) = { M(d_E)(v) : v ∈ {[s_C,1,1], [s_C,1,2], [s_C,1,3]} } = {a₁, a₂}`
 
@@ -160,16 +162,15 @@ Now submit the *shallow* vspec `Q_E = {(d_E, σ_E)}` with `σ_E = ([s_C, 1], δ(
 
 The coarse shallow anchor — naming a single depth-2 coordinate over a depth-3 source — discovered the full transclusion community of the subtree's content.
 
-## Completeness and soundness
+*Cross-depth capture, in general.* The width-1 subtree capture witnessed above is the unit case of a general fact about what a shallow vspec denotes against a deeper arrangement. Fix a vspec `(d_s, σ)` with `σ = (u, ℓ)`, action point `#u`, and reach `r = u ⊕ ℓ`; since `actionPoint(ℓ) = #u`, TumblerAdd copies `r_j = u_j` for `j < #u` and sums `r_{#u} = u_{#u} + ℓ_{#u}` at the action point. We claim, for any `v ∈ dom(M(d_s))` (depth `#v ≥ #u`):
 
-The membership criterion is a biconditional — the definition of `find(Q)(Σ)`:
+  `v ∈ ⟦σ⟧  ⟺  (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u}`
 
-  `d ∈ find(Q)(Σ)  ⟺  d ∈ Σ.E_doc ∧ ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅`
+PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given that agreement, the two order comparisons reduce to position `#u`: for `u ≤ v`, T1 case (i) at `#u` gives `u ≤ v ⟺ u_{#u} ≤ v_{#u}` (when `v_{#u} = u_{#u}`, `u` is a prefix of the deeper `v`, so `u < v` by T1 case (ii) — still `u ≤ v`); for `v < r`, since `r` has depth `#u` and agrees with `v` below `#u`, T1 case (i) at `#u` gives `v < r ⟺ v_{#u} < r_{#u}` (equality `v_{#u} = r_{#u}` makes `r` a proper prefix of the deeper `v`, so `r < v`, excluded). Intersecting with `dom(M(d_s))`:
 
-The biconditional decomposes into two directions:
+  `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }`
 
-  (⟸) **F-COMP** (completeness): every `d` satisfying the predicate is in `find(Q)(Σ)`.
-  (⟹) **F-SOUND** (soundness): every `d ∈ find(Q)(Σ)` satisfies the predicate.
+We name this **PC-RANGE**. The captured set is parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it is the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}` and so captures the single subtree under the prefix `u` — the case made concrete above. There is no blanket "prefix names subtree" guarantee: the subtree reading is exactly the width-1 specialisation of PC-RANGE.
 
 ## Partial overlap suffices
 
@@ -179,15 +180,7 @@ The predicate uses `≠ ∅`. A single shared I-address — one `a ∈ ran(Σ.M(
 
 The result does not require `d` to reference all of `iaddrs(Q)`; it does not require `d`'s reference to be of any particular extent. A document that transcludes a single sentence from a chapter-length query passage qualifies, alongside documents that transclude the whole.
 
-This is the operative reading of Nelson's "any portion": completeness is over the existence of non-empty intersection, not over inclusion of the whole. The asymmetry matters — a query about a large passage may discover documents that each reference only a tiny fragment of it. The result set has no inherent measure of "how much" each returned document contains; to recover an extent measure, the requester must compute `|ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)|` for each returned `d` separately.
-
-## Set semantics
-
-`find(Q)(Σ)` is a set. Each document appears at most once regardless of how many I-addresses it shares with `iaddrs(Q)`:
-
-  for every `d_* ∈ Σ.E_doc`:   `|{ x ∈ find(Q)(Σ) : x = d_* }| ≤ 1`
-
-A document that transcludes ten distinct passages from a queried chapter is reported once, not ten times. The result enumerates documents, not occurrences.
+This is the operative reading of Nelson's promise to *"retrieve any portion of the material specified ... regardless of where the native copies are located"* (LM 4/63). The clause carries two distinct commitments, each discharged here. *"Any portion"* governs result granularity: completeness is over the existence of a non-empty intersection, not over inclusion of the whole — a document that holds only a fragment of the queried material still qualifies. *"Regardless of where the native copies are located"* governs location transparency: a document qualifies whether it holds the material natively or windows to it from elsewhere by transclusion, the search following content identity across the docuverse rather than physical native location (F-CONTENT). The asymmetry matters — a query about a large passage may discover documents that each reference only a tiny fragment of it. The result set has no inherent measure of "how much" each returned document contains; to recover an extent measure, the requester must compute `|ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)|` for each returned `d` separately.
 
 ## Home versus transcluding documents
 
@@ -236,6 +229,7 @@ The returned set has presentation and policy properties we have left unspecified
 | F-iaddrs | `iaddrs : VSpecSet × Σ ⇀ P(T)` with `iaddrs(Q)(Σ) = ⋃_{(d_s, σ) ∈ Q} { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }`, defined under `wp-defined: (A (d_s, σ) ∈ Q :: d_s ∈ Σ.E_doc)`; subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` whenever `wp-defined` holds | definition; subset claim proven in *Resolution* (subspace confinement of `⟦σ⟧` + S3★), gated on `wp-defined` | introduced |
 | F-find | `find : VSpecSet × Σ ⇀ P(E_doc)` with `find(Q)(Σ) = { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }`, defined under the precondition `(A (d_s, σ) ∈ Q :: d_s ∈ Σ.E_doc)` | definition; precondition couples each vspec source to the evaluation state (M1, P1 of ASN-0047) | introduced |
 | PC | Prefix confinement: for a vspec `(d_s, σ)` with `σ = (u, ℓ)` and `actionPoint(ℓ) = #u`, every `t ∈ ⟦σ⟧` satisfies `t_j = u_j` for `1 ≤ j < #u` | derived locally from TumblerAdd prefix-copy + T1 case (i) + NAT-order trichotomy (T0) for the per-position case split + well-ordering of positions for the universal closure | introduced |
+| PC-RANGE | Cross-depth capture: for a vspec `(d_s, σ)` with `σ = (u, ℓ)`, `actionPoint(ℓ) = #u`, reach `r = u ⊕ ℓ`, `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }` — the union of the `ℓ_{#u}` sibling subtrees under prefix-component range `[u_{#u}, u_{#u} + ℓ_{#u})`; the single-subtree ("prefix names subtree") case is the width-1 specialisation `ℓ_{#u} = 1` | derived locally from PC + T1 case (i)/(ii) at position `#u` | introduced |
 | F-COMP | Completeness: every `d ∈ Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` is in `find(Q)(Σ)` | direct from F-find (⟸ direction of the defining iff) | introduced |
 | F-SOUND | Soundness: every `d ∈ find(Q)(Σ)` is in `Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` | direct from F-find (⟹ direction of the defining iff) | introduced |
 | F-PART | Partial overlap suffices: `d ∈ find(Q)(Σ) ⟺ d ∈ Σ.E_doc ∧ (E a : a ∈ ran(Σ.M(d)) : a ∈ iaddrs(Q)(Σ))` | direct from F-find (unfolding `≠ ∅` of a binary intersection) | introduced |
@@ -244,7 +238,6 @@ The returned set has presentation and policy properties we have left unspecified
 | F-CONTENT | Matches occur only via shared content addresses: `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)` | derived from S3★ ∧ S3★-aux (ASN-0047) ∧ L14 ∧ the `iaddrs ⊆ dom(C)` subset claim | introduced |
 | F-CUR | State dependence: `(Σ.E_doc = Σ'.E_doc) ∧ (A d ∈ Σ.E_doc : Σ.M(d) = Σ'.M(d)) ⟹ find(Q)(Σ) = find(Q)(Σ')` | derived from F-find + F-iaddrs (the operation reads only `E_doc` and `M`, both of which are identical at Σ and Σ' by hypothesis) | introduced |
 | F-FILT | Silent resolution filtering: positions in `⟦σ⟧ \ dom(Σ.M(d_s))` contribute no I-addresses to `iaddrs(Q)(Σ)` | direct from F-iaddrs (the intersection `⟦σ⟧ ∩ dom(Σ.M(d_s))` excludes such positions) | introduced |
-| F-LOC | Source locality: `Σ.M(d_s) = Σ'.M(d_s) ⟹ iaddrs_one(d_s, σ)(Σ) = iaddrs_one(d_s, σ)(Σ')` | direct from F-iaddrs (iaddrs_one references state Σ only via `Σ.M(d_s)`) | introduced |
 | F-EMPTY | `find(∅)(Σ) = ∅` | direct from F-find (union over empty index set is empty; intersection with ∅ is empty) | introduced |
 | F-FIN | `|find(Q)(Σ)| < ∞` at every reachable state | derived from F-find + ASN-0047 (`Σ₀.E_doc = ∅`; K.δ adds ≤ 1; reachable states have finite transition count) | introduced |
 
