@@ -75,8 +75,6 @@ A pair `(v_a, v_b)` lies in the relation when each V-position is inside its resp
 
 > **CV-PROV-FORGOTTEN** (*provenance forgotten*): When `(v_a, v_b) ∈ corr_{a,b}` with shared I-address `a := M(d_a)(v_a) = M(d_b)(v_b)`, the relation provides no information about how `a` came to be referenced by both documents. By S7 (ASN-0036) postcondition (b) — `origin(a)` is the tumbler of the document that allocated `a`, single-valued in `a` — combined with postcondition (c) — distinct documents have distinct allocation origins — `a` was allocated by exactly one document `origin(a)`. This may be `d_a` (in which case `d_b` transcluded `a`); it may be `d_b` (the converse); it may be neither (both transcluded from a third source). The relation reports correspondence without explaining lineage.
 
-The pair `(d_a, d_b)` may stand in any relationship — siblings forked from a common ancestor, ancestor and descendant, or wholly independent documents that happen to transclude common material.
-
 ## The Result
 
 A *correspondence run* between `(d_a, R_a)` and `(d_b, R_b)` is a triple `(v_a, v_b, n)` with `v_a, v_b ∈ T` and `n ≥ 1` such that:
@@ -370,12 +368,10 @@ Under what conditions must `compareversions` return identical results across rep
 
 What must remain true about a maximal correspondence run when its underlying I-addresses span a sub-allocator boundary — i.e., when consecutive V-offsets are mapped to I-addresses with different `origin`?
 
-Under what conditions can shared content between two documents be bounded in size — relative to either input's restriction — without exhaustive enumeration?
+Under what conditions can the result be bounded in size — relative to either input's restriction, e.g. as a set of span-pairs whose total V-width is bounded by the smaller of the two restrictions — without exhaustive enumeration?
 
 What invariants must hold over a sequence of comparisons that walk a version history pairwise, given that each invocation is independent and pairwise?
 
 Under what conditions can multiple `compareversions` results be composed into a coherent multi-document correspondence — and what abstract structure must such a composition preserve?
 
 What must remain true about a correspondence run when one or both of its V-positions hold content that is itself transcluded from a third document?
-
-Under what conditions can the result be presented as a set of span-pairs whose total V-width is bounded by the smaller of the two input restrictions?
