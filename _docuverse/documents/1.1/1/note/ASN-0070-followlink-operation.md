@@ -477,8 +477,6 @@ The operation does not deduplicate, does not select a "canonical" V-position, do
 
 **Frame.** The frame condition itself.
 
-The operation requires no write-locking and no exclusive access. Concurrent queries are admissible insofar as the underlying arrangement is accessible.
-
 ### F-slot — SlotUniformity (LEMMA)
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d ∈ E_doc`; `i, i' ∈ {1, ..., |L(ℓ)|}`.
