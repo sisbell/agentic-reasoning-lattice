@@ -215,8 +215,9 @@ while true; do
         done
         for i in "${!WORKER_PIDS[@]}"; do
             pid="${WORKER_PIDS[$i]}"
-            if ! wait "$pid"; then
-                rc=$?
+            wait "$pid"
+            rc=$?
+            if [ "$rc" -ne 0 ]; then
                 echo "" >&2
                 echo "  ╔════════════════════════════════════════════════════════════════╗" >&2
                 echo "  ║  WORKER $i CRASHED — exit code $rc" >&2
@@ -230,5 +231,15 @@ while true; do
     stop_pusher
     git push 2>&1 | grep -v '^$' || true
     echo "  [LOOP] sleeping 30s before next pass..."
-    sleep 30
+    # Interruptible sleep — exit immediately if the shutdown sentinel
+    # appears mid-sleep, instead of finishing the 30s and looping back
+    # to the top-of-loop check.
+    for _ in $(seq 30); do
+        if [ -f "_workspace/runner.shutdown" ]; then
+            echo "  [run-notes-continuous] shutdown sentinel detected" \
+                 "during inter-cycle sleep — exiting without respawn" >&2
+            exit 0
+        fi
+        sleep 1
+    done
 done

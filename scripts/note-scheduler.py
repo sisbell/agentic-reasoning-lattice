@@ -39,6 +39,7 @@ from lib import triggers as triggers_module
 from lib.runner import (
     Scope, Trigger, compute_active_ready_partition, run_until_quiescent,
 )
+from lib.runner.run import shutdown_requested
 
 
 NOTE_CYCLE_TRIGGER_NAMES = (
@@ -366,7 +367,31 @@ def main() -> int:
                     f"(empty-wait #{empty_waits})",
                     file=sys.stderr,
                 )
-                time.sleep(args.empty_partition_wait)
+                # Sentinel-aware sleep — check before sleeping, then
+                # chunk the sleep so a sentinel placed mid-sleep is
+                # noticed within 5s instead of waiting the full
+                # empty-partition-wait. Without this an empty-waiting
+                # worker reparented to init after the wrapper exits
+                # keeps polling indefinitely.
+                if shutdown_requested():
+                    print(
+                        f"  [NOTE-SCHED] shutdown sentinel detected "
+                        f"during empty-wait — exiting",
+                        file=sys.stderr,
+                    )
+                    return 0 if not total_errors else 1
+                sleep_remaining = args.empty_partition_wait
+                while sleep_remaining > 0:
+                    chunk = min(5, sleep_remaining)
+                    time.sleep(chunk)
+                    sleep_remaining -= chunk
+                    if shutdown_requested():
+                        print(
+                            f"  [NOTE-SCHED] shutdown sentinel detected "
+                            f"during empty-wait sleep — exiting",
+                            file=sys.stderr,
+                        )
+                        return 0 if not total_errors else 1
                 continue
 
         outer_pass += 1
