@@ -55,13 +55,11 @@ The definition reads from two inputs:
 - The endset, fixed once and for all by the link's creation (and immune to subsequent transitions, by L12).
 - The arrangement `Σ.M(d)`, mutable and reflecting whatever edits `d` has undergone.
 
-Of these two inputs, `coverage(e)` is endset-fixed (immune to transitions, by L12) and only `Σ.M(d)` varies; we therefore characterise projection displacement by examining what each editing operation does to `Σ.M(d)`.
-
 Three degenerate configurations follow directly from the definition. The projection of the empty endset is uniformly empty: `project(∅, d, Σ) = ∅` for every `d ∈ dom(Σ.M), Σ` (i.e., wherever `project` is defined), since `coverage(∅)` is the empty union over an empty index set. The projection through an empty arrangement is uniformly empty: `project(e, d, Σ) = ∅` for every `d ∈ dom(Σ.M), Σ` with `dom(Σ.M(d)) = ∅`, since the set comprehension ranges over the empty domain. A link with empty from/to endsets but a non-empty type endset (admitted by L3 of ASN-0043, which requires only the type slot to be non-empty) has empty projections at slots 1 and 2 regardless of any document's state.
 
 ## Immutability of the Stored Link
 
-Before we can reason about how projection displaces, we must pin down what does *not* move. The link's stored content — its address, its sequence of endsets, the spans within each endset — is structurally immutable by L12 (ASN-0043), stated above. Two consequences specialise L12 to the slot- and coverage-level reasoning this ASN requires.
+The link's stored content — its address, its sequence of endsets, the spans within each endset — is structurally immutable by L12 (ASN-0043), stated above. Two consequences specialise L12 to the slot- and coverage-level reasoning this ASN requires.
 
 **LP2 — SlotInvariance**: For every transition `Σ → Σ'`, every link `a ∈ dom(Σ.L)`, and every slot index `i ∈ {1, …, |Σ.L(a)|}`:
 ```
@@ -86,7 +84,7 @@ LP2★ is schema (★) applied to LP2, with `P(Σ, Σ') ≡ a ∈ dom(Σ'.L) ∧
 a ∈ dom(Σ'.L) ∧ coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)
 ```
 
-LP2 supplies both conjuncts: `a ∈ dom(Σ'.L)` directly (so the slot accessor on the left-hand side of the coverage equation is well-defined), and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` from which the coverage equation follows by applying `coverage` to both sides. The set of I-addresses the link refers to is computed from its endsets; if the endsets are byte-identical between states, the coverage is identical between states.
+LP2 supplies both conjuncts: `a ∈ dom(Σ'.L)` directly (so the slot accessor on the left-hand side of the coverage equation is well-defined), and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` from which the coverage equation follows by applying `coverage` to both sides.
 
 **LP3★ — MultiStepCoverageInvariance**: For every reachable state sequence `Σ →* Σ'`, every `a ∈ dom(Σ.L)`, and every slot `i`:
 ```
@@ -402,7 +400,7 @@ v_new ∉ project(e, d, Σ_{n+1})
 
 The K.α (or K.λ) step that allocated `a_new` lies on the prefix `Σ_e →* Σ_n`, so LP19a applied at that step yields `a_new ∉ coverage(e)`. Since `coverage(e)` is a deterministic function of `e`'s spans (per the coverage definition of ASN-0043) and `e` is a fixed endset value across the entire sequence — `coverage` consults no state component — the membership `a_new ∉ coverage(e)` carries through unchanged to `Σ_{n+1}`. The K.μ⁺ (or K.μ⁺_L) transition `Σ_n → Σ_{n+1}` adds the mapping at `v_new`, giving `v_new ∈ dom(Σ_{n+1}.M(d))` and `Σ_{n+1}.M(d)(v_new) = a_new ∉ coverage(e)`. The projection definition then excludes `v_new` from `project(e, d, Σ_{n+1})`.
 
-Tightness is a construction discipline, not a structural invariant the system enforces. The system permits endsets whose spans extend past the relevant sub-allocator's current emission frontier; such endsets are not tight, and an `a_new` allocated within their forward extent (a substrate-emittable address inside `[s, s ⊕ ℓ)`) would in fact enter the coverage — LP9's growth behaviour then applies. The canonical construction — selecting span endpoints among I-addresses resident at construction time, with reach at or before the chain's next emission point — produces tight endsets, and tight endsets are immune to absorbing addresses produced by subsequent K.α or K.λ. Boundary insertion as a composite (K.α + K.μ⁺) cannot enlarge a tight link's reach.
+Tightness is a construction discipline, not a structural invariant the system enforces. The canonical construction — selecting span endpoints among I-addresses resident at construction time, with reach at or before the chain's next emission point — produces tight endsets, and tight endsets are immune to absorbing addresses produced by subsequent K.α or K.λ. Boundary insertion as a composite (K.α + K.μ⁺) cannot enlarge a tight link's reach.
 
 **LP20 — RangeConfinement**: For every endset `e`, document `d`, state `Σ`:
 ```
