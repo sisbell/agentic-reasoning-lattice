@@ -68,7 +68,7 @@ The V-subspace of a V-position determines the I-subspace of its image.
 - `subspace(v) = s_C ⟹ subspace_I(M(d)(v)) = s_C`
 - `subspace(v) = s_L ⟹ subspace_I(M(d)(v)) = s_L`
 
-**Depends.** S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`, and `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)`. L0 (SubspacePartition, ASN-0047) — `a ∈ dom(C) ⟹ subspace_I(a) = s_C`, and `a ∈ dom(L) ⟹ subspace_I(a) = s_L`. Composing the two implications yields the claim.
+**Depends.** S3★-aux (SubspaceExhaustiveness, ASN-0047) — `subspace(v) ∈ {s_C, s_L}` for every `v ∈ dom(M(d))`. S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`, and `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)`. L0 (SubspacePartition, ASN-0047) — `a ∈ dom(C) ⟹ subspace_I(a) = s_C`, and `a ∈ dom(L) ⟹ subspace_I(a) = s_L`. The equality is not delivered by composing S3★ and L0 alone, since both S3★ clauses are conditional on `subspace(v)`'s value and need not fire for an arbitrary natural `subspace(v) = v₁`; S3★-aux supplies the exhaustiveness that makes the case split total. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`. In the `s_C` case, S3★ gives `M(d)(v) ∈ dom(C)` and L0 gives `subspace_I(M(d)(v)) = s_C = subspace(v)`; in the `s_L` case, S3★ gives `M(d)(v) ∈ dom(L)` and L0 gives `subspace_I(M(d)(v)) = s_L = subspace(v)`. Either case yields `subspace_I(M(d)(v)) = subspace(v)`.
 
 **Frame.** State-pure.
 
