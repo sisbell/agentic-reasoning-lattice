@@ -157,7 +157,7 @@ Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
 
 Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds.
 
-The definition is a pair of set-builder comprehensions over `Σ`'s components `M`, `R`, `dom(C)` — it allocates nothing and invokes no transition relation, so it reads state and writes none. Consequently wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
+Because the operation reads state and writes none (D-OBS, below), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
 *Non-emptiness of one report half.* Let `Q1` abbreviate `DeletedFromAWithB(d_A, d_B) ≠ ∅`. Unpacking the definition of `DeletedFromAWithB`:
 
@@ -269,7 +269,7 @@ Our definition forces the disambiguation by requiring `(a, d_A) ∈ R` for conte
 
 **Claim D-SUBSP.** SHOWDELETIONS operates only over the content subspace (`s_C`).
 
-*Justification.* Both output sets are subsets of `dom(C)`. Every `a ∈ dom(C)` has `subspace_I(a) = s_C` (ContentAllocationSubspacePrecondition; equivalently L0), and `dom(C) ∩ dom(L) = ∅` by L14, so no link address can ever appear in an output. The restriction to the content subspace is thus immediate from `output ⊆ dom(C)`.
+*Justification.* Both output sets are subsets of `dom(C)`. Every `a ∈ dom(C)` has `subspace_I(a) = s_C` (established in "The Three States of Content"), and `dom(C) ∩ dom(L) = ∅` by L14, so no link address can ever appear in an output. The restriction to the content subspace is thus immediate from `output ⊆ dom(C)`.
 
 The content/link asymmetry is what makes cross-document deletion comparison meaningful only over `s_C`. Content-subspace addresses can be shared between documents, so one document can serve as the still-current witness for another's deletion. Link material cannot — by CL-OWN (ASN-0047), `subspace(v) = s_L ∧ M(d)(v) = a` forces `origin(a) = d`, so a document's link-subspace V-positions reference only its own link addresses and no comparison document ever holds another's link as witness.
 
@@ -371,7 +371,7 @@ This is what makes the operation an honest function of state. The user need not 
 | DeletedFromAWithB | `{a ∈ dom(C) : DELETED(a, d_A) ∧ CURRENT(a, d_B)}` | introduced |
 | DeletedFromBWithA | Symmetric counterpart of DeletedFromAWithB | introduced |
 | SHOWDELETIONS | Observational operation `SHOWDELETIONS(d_A, d_B) = (DeletedFromAWithB(d_A, d_B), DeletedFromBWithA(d_A, d_B))` | introduced |
-| D-BOUND | SHOWDELETIONS' boundary precondition: it is invoked at composite-boundary states, supplying the composite-boundary hypothesis that D-WIT and D-EXH carry | introduced |
+| D-BOUND | SHOWDELETIONS is invoked at composite-boundary states | introduced |
 | D-DISJ | At a composite-boundary state, documents with disjoint content-subspace `R`-projections satisfy `Q0` (both report halves empty) | introduced |
 | D-SUBSP | The operation restricts to the content subspace `s_C`; cross-document deletion comparison is structurally meaningful only there | introduced |
 | D-IDENT | Output references are I-addresses themselves; no copies, no new identities | introduced |
