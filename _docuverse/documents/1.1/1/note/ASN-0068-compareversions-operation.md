@@ -26,7 +26,7 @@ For the operation to be well-defined we require:
 >
 > If a single span literal lies in `R_a ∩ R_b` and both depths are defined with `m_a ≠ m_b`, both clauses constrain the same `σ` at incompatible depths and admissibility fails.
 
-The action-point clause `actionPoint(width(σ)) = m_σ` is load-bearing. Level-uniformity (S6) alone requires only `#start(σ) = #width(σ)`; it does not constrain the action point of the width. We rule out any weaker constraint `actionPoint(width(σ)) < m_σ` by a unified V-position-capture argument. Suppose `actionPoint(width(σ)) = k` with `1 ≤ k < m_σ`. By TumblerAdd (ASN-0034), `reach(σ)` agrees with `start(σ)` at positions `i < k`, satisfies `reach(σ)_k = start(σ)_k + width(σ)_k ≥ start(σ)_k + 1` (since `width(σ)_k ≥ 1` by the action-point definition), and has `reach(σ)_i = width(σ)_i` for `i > k`. By D-SEQ★ (ASN-0047), every V-position in `V_S(d)` has the form `[S, 1, ..., 1, j]` of depth `m_σ` with `j ≥ 1`, and `start(σ) ∈ V_S(d)` (CV-IN) takes this form with last component `s_m := start(σ)_{m_σ} ≥ 1`. Consider any `t = [S, 1, ..., 1, j] ∈ V_S(d)` with `j ≥ s_m`. At positions `i < k`, `t` matches `reach(σ)`: both `t` and `start(σ)` agree at positions `i < m_σ` by D-SEQ★ — first component `S`, inner components `1` — and `reach(σ)` copies `start(σ)` at positions `i < k` by TumblerAdd's prefix-copy region. At position `k`, `t_k = start(σ)_k ∈ {S, 1}` (the value `S` when `k = 1`, the value `1` when `k ≥ 2`), while `reach(σ)_k ≥ start(σ)_k + 1 > t_k`. By T1 (ASN-0034) case (i) at divergence position `k`, `t < reach(σ)`. Combined with `start(σ) ≤ t` (T1 case (i) at position `m_σ` when `j > s_m`, equality when `j = s_m`), `t ∈ ⟦σ⟧`. Therefore `⟦σ⟧ ∩ V_S(d)` captures every depth-`m_σ` V-position from `start(σ)` onward in V-order — unbounded by any structural feature of the span itself, and unbounded uniformly across the full range `1 ≤ k < m_σ`. (Whether `⟦σ⟧` also contains tumblers outside subspace `S` depends on `width(σ)_1`; for V-position capture within `V_S(d)`, that question is independent of the failure.) The exact constraint `actionPoint(width(σ)) = m_σ` rules out this unbounded capture by forcing `reach(σ)` to agree with `start(σ)` at all positions `1 ≤ i < m_σ` and differ only at position `m_σ`. The span's V-extent at depth `m_σ` therefore contains exactly `n_σ` consecutive depth-`m_σ` tumblers starting at `start(σ)` — a property of the span alone, independent of any arrangement. The intersection with the arrangement, `⟦σ⟧ ∩ V_S(d)`, contains exactly `min(n_σ, n_S(d) − s_m + 1)` consecutive depth-`m_σ` V-positions, where `n_S(d) := |V_S(d)|` (D-SEQ★, ASN-0047); the intersection equals the full `n_σ` precisely when the span fits within the arrangement (`s_m + n_σ − 1 ≤ n_S(d)`) and is truncated otherwise. CV-IN does not require the span to fit; the operation accommodates either case via the run conditions on `dom(M(d))` membership. This matches the well-formedness condition for content references (ASN-0058 C0) and produces the bounded ordinal-displacement restriction semantics the operation contracts on. The depth-`m_σ` projection itself arises from intersection with `dom(M(d))`, since `dom(M(d))` contains only depth-`m_σ` V-positions in subspace `S` (S8-depth, ASN-0036); without this intersection, `⟦σ⟧` would also contain higher-depth tumblers extending `start(σ)` as a proper prefix (T1 case (ii), ASN-0034).
+The action-point clause `actionPoint(width(σ)) = m_σ` is load-bearing. Level-uniformity (S6) alone requires only `#start(σ) = #width(σ)`; it does not constrain the action point of the width. We rule out any weaker constraint `actionPoint(width(σ)) < m_σ` by a unified V-position-capture argument. Suppose `actionPoint(width(σ)) = k` with `1 ≤ k < m_σ`. By TumblerAdd (ASN-0034), `reach(σ)` agrees with `start(σ)` at positions `i < k`, satisfies `reach(σ)_k = start(σ)_k + width(σ)_k ≥ start(σ)_k + 1` (since `width(σ)_k ≥ 1` by the action-point definition), and has `reach(σ)_i = width(σ)_i` for `i > k`. By D-SEQ★ (ASN-0047), every V-position in `V_S(d)` has the form `[S, 1, ..., 1, j]` of depth `m_σ` with `j ≥ 1`, and `start(σ) ∈ V_S(d)` (CV-IN) takes this form with last component `s_m := start(σ)_{m_σ} ≥ 1`. Consider any `t = [S, 1, ..., 1, j] ∈ V_S(d)` with `j ≥ s_m`. At positions `i < k`, `t` matches `reach(σ)`: both `t` and `start(σ)` agree at positions `i < m_σ` by D-SEQ★ — first component `S`, inner components `1` — and `reach(σ)` copies `start(σ)` at positions `i < k` by TumblerAdd's prefix-copy region. At position `k`, `t_k = start(σ)_k ∈ {S, 1}` (the value `S` when `k = 1`, the value `1` when `k ≥ 2`), while `reach(σ)_k ≥ start(σ)_k + 1 > t_k`. By T1 (ASN-0034) case (i) at divergence position `k`, `t < reach(σ)`. Combined with `start(σ) ≤ t` (T1 case (i) at position `m_σ` when `j > s_m`, equality when `j = s_m`), `t ∈ ⟦σ⟧`. Therefore `⟦σ⟧ ∩ V_S(d)` captures every depth-`m_σ` V-position from `start(σ)` onward in V-order — unbounded by any structural feature of the span itself, and unbounded uniformly across the full range `1 ≤ k < m_σ`. The exact constraint `actionPoint(width(σ)) = m_σ` rules out this unbounded capture by forcing `reach(σ)` to agree with `start(σ)` at all positions `1 ≤ i < m_σ` and differ only at position `m_σ`. The span's V-extent at depth `m_σ` therefore contains exactly `n_σ` consecutive depth-`m_σ` tumblers starting at `start(σ)` — a property of the span alone, independent of any arrangement. The intersection with the arrangement, `⟦σ⟧ ∩ V_S(d)`, contains exactly `min(n_σ, n_S(d) − s_m + 1)` consecutive depth-`m_σ` V-positions, where `n_S(d) := |V_S(d)|` (D-SEQ★, ASN-0047); the intersection equals the full `n_σ` precisely when the span fits within the arrangement (`s_m + n_σ − 1 ≤ n_S(d)`) and is truncated otherwise. CV-IN does not require the span to fit; the operation accommodates either case via the run conditions on `dom(M(d))` membership. This matches the well-formedness condition for content references (ASN-0058 C0) and produces the bounded ordinal-displacement restriction semantics the operation contracts on.
 
 The common-subspace restriction is not optional. Were `R_a` to range over content positions (subspace `s_C`) while `R_b` ranged over link positions (subspace `s_L`), the I-addresses on the two sides would inhabit disjoint storage subspaces — `dom(C)` and `dom(L)` respectively, by L14 (ASN-0047) — and no I-address could coincide. The relation would be empty, but more importantly, its very meaning would be confused: comparison is a per-subspace operation. We require this invariant up front.
 
@@ -42,7 +42,7 @@ The typical setting is `S = s_C`. The development that follows applies uniformly
 
 We do *not* require `m_a = m_b`. Two documents may carry V-positions at different depths in the same subspace, and the comparison must accommodate this. The depths affect only how V-positions are represented within each document; the I-addresses they point to are sub-allocator outputs whose comparison is depth-independent.
 
-*Self-comparison is admissible.* CV-IN does not exclude `d_a = d_b`. We verify each CV-IN clause under `d_a = d_b = d`. The entity-membership clause `d_a, d_b ∈ E_doc` reduces to the single requirement `d ∈ E_doc`. The common subspace `S` is shared by both sides by assumption, so the subspace-coincidence requirement is satisfied trivially. The depths collapse: when `V_S(d) ≠ ∅`, S8-depth supplies a single common depth `m_d := m_{d, S}` with `m_a = m_b = m_d`, and when `V_S(d) = ∅`, admissibility on each side independently requires `R_a = ⟨⟩` and `R_b = ⟨⟩`, with `m_a` and `m_b` both undefined and not consulted. The per-side per-span clauses — `start(σ) ∈ V_S(d_a)`, level-uniformity at `m_a`, and `actionPoint(width(σ)) = m_a` for `σ ∈ R_a`, and the symmetric clauses for `R_b` — become two independent constraints against the same target arrangement `M(d)` and the same depth `m_d`; each side is checked separately, with no cross-side interaction. The "single span literal lies in `R_a ∩ R_b` with `m_a ≠ m_b`" inadmissibility caveat is vacuous since `m_a = m_b = m_d`, so any shared span literal automatically meets both per-side clauses identically. Self-comparison admissibility therefore reduces to per-side admissibility against `d`, with no additional structural obligation. When invoked with both operands referring to the same document `d` — Nelson's framing of intercomparison centers on distinct versions, but the operation's signature treats spec-sets symmetrically and the relation is computed by structural identity — `corr_{a,a}` contains every pair `(v¹, v²) ∈ (⟦R_a⟧ ∩ dom(M(d))) × (⟦R_b⟧ ∩ dom(M(d)))` with `M(d)(v¹) = M(d)(v²)`.
+*Self-comparison is admissible.* CV-IN does not exclude `d_a = d_b`; under `d_a = d_b = d` the per-side clauses apply independently against the same arrangement `M(d)` at the common depth `m_d := m_{d, S}` (when `V_S(d) ≠ ∅`; otherwise both sides require the empty restriction).
 
 > **CV-SELF** (*content-subspace self-comparison structure*): When `S = s_C` and `d_a = d_b = d`, the correspondence relation decomposes as
 >
@@ -55,9 +55,7 @@ We do *not* require `m_a = m_b`. Two documents may carry V-positions at differen
 >
 > The two sets are disjoint (by the `v¹ = v²` discriminator) and exhaustive (every pair either has `v¹ = v²` or `v¹ ≠ v²`, by trichotomy of equality). When `R_a = R_b`, `D = {(v, v) : v ∈ ⟦R_a⟧ ∩ V_{s_C}(d)}` is the full diagonal over the restricted V-positions; when `R_a ≠ R_b`, `D` is the diagonal restricted to the intersection `⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)`, and `X` records the self-transclusion pairs asymmetrically detectable from the two restrictions.
 
-*Justification.* With `d_a = d_b = d`, the defining equation of `corr_{a,b}` becomes `M(d)(v¹) = M(d)(v²)`. Functionality of `M(d)` (S2, ASN-0036) ensures `v¹ = v² ⟹ M(d)(v¹) = M(d)(v²)`, so every pair `(v, v)` with `v ∈ ⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)` lies in the relation — this is `D`. The remaining case `v¹ ≠ v²` admits pairs only when `M(d)(v¹) = M(d)(v²)` while `v¹ ≠ v²`, i.e., self-transclusion is exhibited in `M(d)` — this is `X`. The discriminator is trichotomous, so `corr_{a,a} = D ∪ X` is exhaustive.
-
-Under CV-MAX (established below), the diagonal portion `D` aggregates into runs reflecting the contiguous structure of `⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)` — consecutive offsets on the diagonal remain correspondent under the identity map. The off-diagonal portion `X` typically resolves to width-1 runs (CV-ATOM), since extending an off-diagonal pair `(v¹, v²)` to `(v¹ + 1, v² + 1)` requires self-transclusion at the adjacent offset — a pattern the arrangement may or may not exhibit. Example 3 below illustrates both components concretely.
+*Justification.* With `d_a = d_b = d`, the defining equation of `corr_{a,b}` becomes `M(d)(v¹) = M(d)(v²)`. Functionality of `M(d)` (S2, ASN-0036) ensures `v¹ = v² ⟹ M(d)(v¹) = M(d)(v²)`, so every pair `(v, v)` with `v ∈ ⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)` lies in the relation — this is `D`. The remaining case `v¹ ≠ v²` admits pairs only when `M(d)(v¹) = M(d)(v²)` while `v¹ ≠ v²`, i.e., self-transclusion is exhibited in `M(d)` — this is `X`. The discriminator is trichotomous, so `corr_{a,a} = D ∪ X` is exhaustive. Example 3 illustrates both components concretely.
 
 ## The Correspondence Relation
 
@@ -78,14 +76,6 @@ A pair `(v_a, v_b)` lies in the relation when each V-position is inside its resp
 > **CV-PROV-FORGOTTEN** (*provenance forgotten*): When `(v_a, v_b) ∈ corr_{a,b}` with shared I-address `a := M(d_a)(v_a) = M(d_b)(v_b)`, the relation provides no information about how `a` came to be referenced by both documents. By S7 (ASN-0036) postcondition (b) — `origin(a)` is the tumbler of the document that allocated `a`, single-valued in `a` — combined with postcondition (c) — distinct documents have distinct allocation origins — `a` was allocated by exactly one document `origin(a)`. This may be `d_a` (in which case `d_b` transcluded `a`); it may be `d_b` (the converse); it may be neither (both transcluded from a third source). The relation reports correspondence without explaining lineage.
 
 CV-PROV-FORGOTTEN is necessary for the operation to be definable on any pair of documents regardless of their derivation history. The pair `(d_a, d_b)` may be unrelated to each other — siblings forked from a common ancestor, ancestor and descendant, or wholly independent documents that happen to transclude common material. The operation reports the present-state overlap; it does not reconstruct the history.
-
-## Why I-Address Identity Suffices
-
-A reasonable question: why is I-address identity the right criterion for "shared content," when one might want to ask about value equivalence, derivation, or counterpart correspondence?
-
-Identity captures *what the storage model says is shared*. By design, transclusion shares I-addresses, copying does not. Two documents that genuinely share a fragment do so by transclusion, which preserves the I-address. Two documents that coincidentally contain identical text have different I-addresses, because the bytes were allocated by different sub-allocators. The system uses I-address identity for the same reason it uses identity for attribution: it tracks *which bytes* were referenced, not what they happened to spell.
-
-Counterpart correspondence — the relation between translations, paraphrases, or independently-typed renderings of the same idea — is a *user-asserted* relation. Nelson's mechanism for it is the counterpart link, an explicit declaration in `dom(L)`. The comparison operation cannot derive counterpart correspondence, because counterparts are not byte-shared, and the system does not run heuristic textual analysis. The two notions — shared by inclusion vs. asserted equivalent — are kept rigorously separate.
 
 ## The Result
 
@@ -230,33 +220,9 @@ The result is therefore:
 
 > `MaxRuns = { ([1,1], [1,1], 2),  ([1,1], [1,2], 1),  ([1,2], [1,1], 1) }`
 
-The identity diagonal aggregates into a single width-2 run (because consecutive offsets share I-addresses pointwise under the identity map), while the off-diagonal self-transclusion correspondences each remain as their own width-1 run (because adjacent offsets do not preserve the off-diagonal alignment — extending an off-diagonal width-1 run would require the next a-side and b-side V-positions to also share an I-address at the same cross-side offset, which would require additional self-transclusion structure that this `M(d)` does not exhibit). CV-MAX's unique-witness property is observable concretely: the four pairs in `corr_{a,a}` are partitioned across the three runs as (2, 1, 1), each pair witnessed at exactly one offset of exactly one run. The CV-ATOM byte-granular admissibility shows up directly: the off-diagonal width-1 runs are preserved, not absorbed into the wider diagonal run.
+The identity diagonal aggregates into a single width-2 run (because consecutive offsets share I-addresses pointwise under the identity map), while the off-diagonal self-transclusion correspondences each remain as their own width-1 run (because adjacent offsets do not preserve the off-diagonal alignment — extending an off-diagonal width-1 run would require the next a-side and b-side V-positions to also share an I-address at the same cross-side offset, which would require additional self-transclusion structure that this `M(d)` does not exhibit). CV-MAX's unique-witness property is observable concretely: the four pairs in `corr_{a,a}` are partitioned across the three runs as (2, 1, 1), each pair witnessed at exactly one offset of exactly one run.
 
-*Example 4 (differing depths).* Let `d_a` have V-position depth `m_a = 2` and `d_b` have V-position depth `m_b = 3` in the content subspace `S = s_C`. Let `a₁, a₂` be distinct I-addresses in `dom(C)`. Suppose
-
-> `M(d_a):  [1,1] ↦ a₁,  [1,2] ↦ a₂`
->
-> `M(d_b):  [1,1,1] ↦ a₁,  [1,1,2] ↦ a₂`
-
-Take `R_a` and `R_b` to span the full arrangement of each document. The correspondence relation is:
-
-> `corr_{a,b} = { ([1,1], [1,1,1]),  ([1,2], [1,1,2]) }`
-
-CV-IN admits this input even though `m_a ≠ m_b`, because each side independently satisfies its level-uniformity and action-point constraints at its home depth; the constraint `m_a = m_b` is *not* required (the introductory text in this ASN flags this as a design commitment). The walks operate per-side at each document's own depth: shifting `v_a` advances at depth `m_a = 2`, and shifting `v_b` advances at depth `m_b = 3`.
-
-Walking right from `([1,1], [1,1,1])`: offset 1 gives `(v_a + 1, v_b + 1) = ([1,1] + 1, [1,1,1] + 1)`. By OrdinalShift (ASN-0034) at each side's own depth, `[1,1] + 1 = [1,1] ⊕ δ(1, 2) = [1,1] ⊕ [0,1] = [1,2]` and `[1,1,1] + 1 = [1,1,1] ⊕ δ(1, 3) = [1,1,1] ⊕ [0,0,1] = [1,1,2]`. The pair `([1,2], [1,1,2])` maps to `(a₂, a₂)` ✓. Offset 2 gives `([1,3], [1,1,3])` with `[1,3] ∉ dom(M(d_a))` ✗. Right-maximal at width 2. Left walk: `[1,0]` is invalid on the a-side (D-MIN★ gives `[1,1]` as the minimum at depth 2). Left-maximal. The result is a single maximal run:
-
-> `MaxRuns = { ([1,1], [1,1,1], 2) }`
-
-Under CV-SPAN-VIEW with `(m_a, m_b) = (2, 3)`, the projection produces:
-
-> `σ_a = ([1,1], δ(2, 2)) = ([1,1], [0, 2])` with `reach(σ_a) = [1,1] ⊕ [0,2] = [1,3]`
->
-> `σ_b = ([1,1,1], δ(2, 3)) = ([1,1,1], [0, 0, 2])` with `reach(σ_b) = [1,1,1] ⊕ [0,0,2] = [1,1,3]`
-
-The widths in tumbler form differ — `[0, 2]` at depth 2 versus `[0, 0, 2]` at depth 3 — but both express the same ordinal count `n = 2`. The walks proceed in lockstep on per-side offsets despite the depth mismatch; what CV-MAX coordinates is the *shared ordinal index* `k`, not a common tumbler. Each side advances at its own depth, and the maximal-run width counts ordinal steps, not address-space displacement. This is the abstract form of "documents at structurally different depths can still share content": correspondence is determined by I-address equality at matched ordinal offsets, not by depth-aligned tumbler equality.
-
-The span projection used in Example 4 is the natural presentational view of a correspondence run, which we now promote to a labeled corollary.
+The set of maximal correspondence runs admits a natural presentational view as a pair of V-spans per run, which we record as a labeled corollary before the example that exercises it.
 
 > **CV-SPAN-VIEW** (*span-pair projection*): For admissible input `(d_a, R_a, d_b, R_b)` with `V_S(d_a) ≠ ∅` and `V_S(d_b) ≠ ∅` (so `m_a, m_b` are supplied by S8-depth, ASN-0036), the per-run projection
 >
@@ -287,6 +253,30 @@ The span projection used in Example 4 is the natural presentational view of a co
 The span-pair view is the natural form for a user-facing rendering: a client can highlight `σ_a` in `d_a` and `σ_b` in `d_b` synchronously, knowing that the underlying I-addresses correspond pointwise. The widths `δ(n, m_a)` and `δ(n, m_b)` denote the same ordinal count `n` expressed at each document's V-position depth; when `m_a = m_b`, the two widths coincide as tumblers, and when `m_a ≠ m_b`, they differ in tumbler form but carry the same ordinal magnitude (Example 4 below illustrates this concretely).
 
 The set of maximal correspondence runs equivalently presents as a set of span-pairs `π_{m_a, m_b}(MaxRuns)`. The triple form and the span-pair form carry the same information for fixed depths; the choice of representation is presentational, not semantic.
+
+*Example 4 (differing depths).* Let `d_a` have V-position depth `m_a = 2` and `d_b` have V-position depth `m_b = 3` in the content subspace `S = s_C`. Let `a₁, a₂` be distinct I-addresses in `dom(C)`. Suppose
+
+> `M(d_a):  [1,1] ↦ a₁,  [1,2] ↦ a₂`
+>
+> `M(d_b):  [1,1,1] ↦ a₁,  [1,1,2] ↦ a₂`
+
+Take `R_a` and `R_b` to span the full arrangement of each document. The correspondence relation is:
+
+> `corr_{a,b} = { ([1,1], [1,1,1]),  ([1,2], [1,1,2]) }`
+
+CV-IN admits this input even though `m_a ≠ m_b`, because each side independently satisfies its level-uniformity and action-point constraints at its home depth; the constraint `m_a = m_b` is *not* required (the introductory text in this ASN flags this as a design commitment). The walks operate per-side at each document's own depth: shifting `v_a` advances at depth `m_a = 2`, and shifting `v_b` advances at depth `m_b = 3`.
+
+Walking right from `([1,1], [1,1,1])`: offset 1 gives `(v_a + 1, v_b + 1) = ([1,1] + 1, [1,1,1] + 1)`. By OrdinalShift (ASN-0034) at each side's own depth, `[1,1] + 1 = [1,1] ⊕ δ(1, 2) = [1,1] ⊕ [0,1] = [1,2]` and `[1,1,1] + 1 = [1,1,1] ⊕ δ(1, 3) = [1,1,1] ⊕ [0,0,1] = [1,1,2]`. The pair `([1,2], [1,1,2])` maps to `(a₂, a₂)` ✓. Offset 2 gives `([1,3], [1,1,3])` with `[1,3] ∉ dom(M(d_a))` ✗. Right-maximal at width 2. Left walk: `[1,0]` is invalid on the a-side (D-MIN★ gives `[1,1]` as the minimum at depth 2). Left-maximal. The result is a single maximal run:
+
+> `MaxRuns = { ([1,1], [1,1,1], 2) }`
+
+Under CV-SPAN-VIEW with `(m_a, m_b) = (2, 3)`, the projection produces:
+
+> `σ_a = ([1,1], δ(2, 2)) = ([1,1], [0, 2])` with `reach(σ_a) = [1,1] ⊕ [0,2] = [1,3]`
+>
+> `σ_b = ([1,1,1], δ(2, 3)) = ([1,1,1], [0, 0, 2])` with `reach(σ_b) = [1,1,1] ⊕ [0,0,2] = [1,1,3]`
+
+The widths in tumbler form differ — `[0, 2]` at depth 2 versus `[0, 0, 2]` at depth 3 — but both express the same ordinal count `n = 2`. The walks proceed in lockstep on per-side offsets despite the depth mismatch; what CV-MAX coordinates is the *shared ordinal index* `k`, not a common tumbler. Each side advances at its own depth, and the maximal-run width counts ordinal steps, not address-space displacement. This is the abstract form of "documents at structurally different depths can still share content": correspondence is determined by I-address equality at matched ordinal offsets, not by depth-aligned tumbler equality.
 
 ## Atomicity and Granularity
 
@@ -356,7 +346,7 @@ By construction, the operation cannot:
 
 (ii) *Witness counterpart correspondence*. Independent textual matches without I-address identity are invisible. The user-asserted counterpart link is Nelson's mechanism for declaring such correspondences; it lives in `dom(L)` and is a distinct structural artifact.
 
-(iii) *Witness derivation lineage*. Whether `d_a` transcluded from `d_b`, or the converse, or both from a third document, is not visible in the result. The operation reports correspondence; it does not explain it.
+(iii) *Witness derivation lineage*. Per CV-PROV-FORGOTTEN, the result reports correspondence without explaining how the shared I-address came to be referenced by both documents.
 
 These omissions are not deficiencies of the operation; they are consequences of grounding correspondence in I-address identity. The same grounding is what makes attribution, royalty flow, and link survival work uniformly across the docuverse. Every operation that consumes I-addresses inherits exactness from the addressing scheme. The comparison operation is no exception — and the things it cannot express are precisely the things that would require a different grounding.
 
