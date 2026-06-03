@@ -37,7 +37,7 @@ For an endset `e ⊆ Span`, the *coverage* `coverage(e)` is the set of I-address
 coverage(e) = (∪ (s, ℓ) : (s, ℓ) ∈ e : {t ∈ T : s ≤ t < s ⊕ ℓ})
 ```
 
-Each span `(s, ℓ)` denotes `{t ∈ T : s ≤ t < s ⊕ ℓ}` by T12 of ASN-0034, where `s ⊕ ℓ ∈ T` exists by TA0 because `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s` are well-formedness conditions of the span. Coverage is a set of I-addresses in `T`. Some of these I-addresses may be in `dom(Σ.C)` at the time the endset was constructed; some may not. Crucially, coverage is a *purely combinatorial* property of the endset's span representation — it does not consult any state component. Coverage depends on the spans; nothing else.
+Each span `(s, ℓ)` denotes `{t ∈ T : s ≤ t < s ⊕ ℓ}` by T12 of ASN-0034, where `s ⊕ ℓ ∈ T` exists by TA0 because `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s` are well-formedness conditions of the span. Coverage is a set of I-addresses in `T`. Some of these I-addresses may be in `dom(Σ.C)` at the time the endset was constructed; some may not. Crucially, coverage is a *purely combinatorial* property of the endset's span representation — it does not consult any state component.
 
 By L5 (EndsetSetSemantics, ASN-0043), an endset is an unordered set. Two endsets with the same set of spans have the same coverage. The lossy projection `Endset → 2^T` defined by `coverage` is not injective: distinct span decompositions can have identical coverage (for instance, splitting a single span at an interior point produces two spans whose coverage equals the original).
 
@@ -120,7 +120,7 @@ The projection function depends on exactly two inputs: `coverage(e)` and `Σ.M(d
 
 A link's projection through one document is unaffected by editing operations on a different document. Projections are *per-document* facts. The link itself is a single global object, but the V-positions it reaches in any given document depend only on that document's local state.
 
-**Projection invariance under arrangement-fixing transitions.** Any transition whose frame fixes every `M(d)` and preserves `dom(Σ.M)` leaves every projection fixed: it gives `dom(Σ.M) = dom(Σ'.M)` and `Σ'.M(d) = Σ.M(d)` for every `d`, so by LP4 applied to each such `d`, `project(e, d, Σ') = project(e, d, Σ)` for every endset `e`. Three operations instantiate this template directly — **LP6 (Content-Allocation Invariance)** at K.α (which modifies only `Σ.C`; ASN-0093), **LP7 (Link-Allocation Invariance)** at K.λ (which modifies only `Σ.L`), and **LP14 (ProvenanceRecording Invariance)** at K.ρ (which only adds a pair to `Σ.R`; ASN-0047). K.δ in the `Node(e)` and `Account(e)` cases instantiates it as well: both carry frame `M' = M` (ASN-0047) and register no document, so `dom(Σ.M)` is preserved and every `M(d)` is fixed — projection is invariant under node and account creation by the same template (the `Document(e)` case, which does register a document, is treated separately as LP8). Hence none of content allocation, link allocation, provenance recording, or node/account creation can displace any projection.
+**Projection invariance under arrangement-fixing transitions.** Any transition whose frame fixes every `M(d)` and preserves `dom(Σ.M)` leaves every projection fixed: it gives `dom(Σ.M) = dom(Σ'.M)` and `Σ'.M(d) = Σ.M(d)` for every `d`, so by LP4 applied to each such `d`, `project(e, d, Σ') = project(e, d, Σ)` for every endset `e`. Three operations instantiate this template directly — **LP6 (Content-Allocation Invariance)** at K.α (which modifies only `Σ.C`; ASN-0093), **LP7 (Link-Allocation Invariance)** at K.λ (which modifies only `Σ.L`), and **LP14 (ProvenanceRecording Invariance)** at K.ρ (which only adds a pair to `Σ.R`; ASN-0047). K.δ in the `Node(e)` and `Account(e)` cases instantiates it as well: both carry frame `M' = M` (ASN-0047) and register no document, so `dom(Σ.M)` is preserved and every `M(d)` is fixed — projection is invariant under node and account creation by the same template (the `Document(e)` case, which does register a document, is treated separately as LP8).
 
 Newly allocated I-addresses are invisible to projection until some subsequent K.μ⁺ adds an arrangement entry referencing them: a fresh address is not yet in any `ran(Σ.M(d))`, so it lies in no projection. Insertion as a composite (allocate + arrange) splits into a K.α step, which displaces nothing (LP6), and a K.μ⁺ step, which may add a V-position to the projection if the new V-position's I-address is in `coverage(e)` (LP9).
 
@@ -272,8 +272,6 @@ LP2★ gives `a ∈ dom(Σ'.L)` and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` for every slo
 
 LP12's right-hand side references only `coverage(Σ.L(a).eᵢ)` and `ran(Σ.M(d))`, so discoverability of a link from `d` is independent of the link's home document `home(a)` and of the origin documents of the coverage I-addresses — it turns solely on the I-address content of `d`'s arrangement.
 
-The transclusion mechanism is the architectural lever that activates this provenance-indifference.
-
 **LP16 — TransclusionDiscoverability**: For any link `a ∈ dom(Σ.L)`, slot `i ∈ {1, …, |Σ.L(a)|}`, and documents `d_src, d_new ∈ dom(Σ.M)` at state `Σ`:
 ```
 coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d_src)) ∩ ran(Σ.M(d_new)) ≠ ∅
@@ -303,7 +301,7 @@ The transition sequence may include document registration (K.δ in the `Document
 
 Because the link's stored state is permanent (L12, LP3★) while its projection is recomputed live against the current arrangement, the architecture admits arbitrarily many cycles of orphanage and resurrection.
 
-*Nelson correspondence.* Two of Nelson's informal survivability claims are now formal results. "A link to one version is a link to all versions" is the transclusion-discoverability mechanism of LP16 — discovery turns on I-address intersection alone, and transclusion shares I-addresses by definition. "Reaching back through to a superseding version" is the resurrection mechanism of LP18 — permanent stored state against a live-recomputed projection admits unbounded orphanage/resurrection cycles. The third claim, "links survive if anything is left at each end," is the discoverability characterisation made precise at LP12a above.
+*Nelson correspondence.* Three of Nelson's informal survivability claims are formalised above: "a link to one version is a link to all versions" by LP16, "reaching back through to a superseding version" by LP18, and "links survive if anything is left at each end" by LP12a.
 
 ## Boundary and Width Behaviour
 
