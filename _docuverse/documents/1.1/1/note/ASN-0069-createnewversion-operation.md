@@ -120,10 +120,6 @@ The fork installs the content source's content-subspace V-positions and their I-
 
 V4 makes two distinct claims. First, the *V-positions are inherited literally* — the same tumblers `[s_C, 1, ..., 1, k]` appear in both arrangements, not rebased relative to `d_new` (J4's `φ` is the identity). Second, the *I-addresses at each position are inherited literally* — every `M'(d_new)(v)` equals `M(d_op)(v)`, the same I-address the content source holds.
 
-V4 *strengthens* J4's clause (ii). J4 constrains the *range* — `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})` — and the *pairing up to an order-preserving bijection* `φ : V_{s_C}(d_op) → V_{s_C}(d_new)`, but does not require `φ` to be the identity: an implementation satisfying J4 alone could populate `M'(d_new)` at rebased (order-preserving) V-positions `φ(v) ≠ v`, so long as the correspondence is order-preserving and every I-address is drawn from the content source's content-subspace range.
-
-V4 commits to *full literal inheritance*: the same V-positions as `d_op`, the identity pairing, the entire content-subspace domain. This is a design commitment of this ASN — not derivable from J4 alone — adopted because it is the cheapest discipline supporting V8's structural correspondence and matches Nelson's "with the contents of" [LM 4/66].
-
 The literal-inheritance form has two structural justifications.
 
 *Why V-positions are not rebased.* V-positions live in the V-coordinate space of a document. They are tumblers in `T`, structured by S8a (zero-count zero, all components positive) and S8-depth (common depth within a subspace). They do not encode the owning document; the owning document is implicit in `M(d)(v)`'s second argument. Rebasing `[s_C, 1, ..., 1, k]` to anything else would (a) require selecting a target depth/subspace identifier scheme for `d_new` that is no longer comparable to `d_op`, and (b) destroy the structural correspondence that V8 below requires.
@@ -180,7 +176,7 @@ The link subspace of any document is governed by CL-OWN (ASN-0047):
 
 For every V-position in `d`'s arrangement that lies in the link subspace, the I-address at that position has `origin = d`. Links in a document's arrangement are *home-document links* — they are owned by the document whose arrangement holds them.
 
-Suppose, for contradiction, that a fork transferred the content source `d_op`'s link-subspace V-positions to `d_new` under transclusion. Then for some `v ∈ V_{s_L}(d_op)` with `ℓ := M(d_op)(v) ∈ dom(L)` and `origin(ℓ) = d_op` (by CL-OWN at `d_op`), the post-fork state would have `v ∈ V_{s_L}(d_new)` with `M'(d_new)(v) = ℓ` and `origin(ℓ) = d_op ≠ d_new`. This violates CL-OWN at `d_new`: the link-subspace V-position's image must have `origin = d_new`, but its origin is `d_op`. The contradiction forces link-subspace exclusion.
+The content-subspace restriction is therefore principled, not arbitrary: CL-OWN requires every link-subspace V-position's image to have `origin = d_new`, so transcluding `d_op`'s links — whose origin is `d_op ≠ d_new` — would violate it, which is why only the content subspace may be inherited.
 
 > **V6** (*subspace selectivity*): A fork transfers only the source's content-subspace arrangement. The new document's link subspace is empty in the post-fork state:
 >
@@ -195,8 +191,6 @@ To make this precise, we introduce three local definitions that the lemma below 
 - *Coverage:* `coverage(e) := ⋃_{(s, ℓ) ∈ e} span(s, ℓ) ⊆ T` — the set of I-addresses spanned by `e`.
 - *Projection:* `project(a, i, d, Σ) := {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(Σ.L(a).eᵢ)}` — the V-positions of `d` at state `Σ` whose images at slot `i` of link `a`'s endset structure (per L3, ASN-0047) fall inside the slot's coverage.
 - *Discoverability:* `discoverable_from(a, d, Σ) := (E i : 1 ≤ i ≤ |Σ.L(a)| : project(a, i, d, Σ) ≠ ∅)` — link `a` is discoverable from `d` at `Σ` iff some slot of `a` projects to at least one V-position of `d`.
-
-These three definitions are local constructs over the foundation vocabulary; no further foundation ASN is consumed.
 
 We record the consequence as a structural lemma:
 
@@ -234,7 +228,7 @@ We arrive at the deepest claim — the one that distinguishes a *version* from a
 
 > **V8** (*positional correspondence — corollary of V4 + source frame*): For every `v ∈ V_{s_C}(d_op)`: `v ∈ dom(M'(d_new))` and `M'(d_op)(v) = M'(d_new)(v)`. This is V4 re-expressed in post-state coordinates: the per-document frame gives `M'(d_op) = M(d_op)` (the K.μ⁺ phase targets only `d_new`, and `d_op ≠ d_new`; on the first fork `d_op = d_src`, exactly V5), and V4 gives `v ∈ dom(M'(d_new))` with `M'(d_new)(v) = M(d_op)(v)`, so `M'(d_op)(v) = M(d_op)(v) = M'(d_new)(v)`.
 
-V8 says: immediately after forking, every content-subspace V-position of the content source `d_op` corresponds to the same V-position in `d_new`, with the same I-address. On the first fork `d_op = d_src`, so this is full correspondence between the named source and the fork; on a subsequent fork it is correspondence between the prior version `d_op` and the fork. V8 alone establishes correspondence between `d_op` and `d_new`; the transitive `d_src ↔ d_new` correspondence for the subsequent-fork case (where `d_op ≠ d_src`) requires an unedited-source premise carrying agreement across the `d_src → d_op → d_new` hops, and is stated and discharged in V11 rather than asserted here. The correspondence is *exact, structural, and computable from the I-address equality alone*. No history is consulted; no derivation lineage is traversed.
+V8 says: immediately after forking, every content-subspace V-position of the content source `d_op` corresponds to the same V-position in `d_new`, with the same I-address. On the first fork `d_op = d_src`, so this is full correspondence between the named source and the fork; on a subsequent fork it is correspondence between the prior version `d_op` and the fork. V8 alone establishes correspondence between `d_op` and `d_new`. The transitive `d_src ↔ d_new` correspondence for the subsequent-fork case (where `d_op ≠ d_src`, so `d_op = d_prev`) is *not* a first-fork deepening chain and therefore lies outside V11's scope: by V11a, every V11 step is the first fork — `inc(·, 1)` — of its immediate source, with strictly increasing length `#dⁱ_new = #d_src + i`, whereas a subsequent fork places `d_new = inc(d_prev, 0)` in `A_v(d_src)`'s sibling stream, where `d_prev` and `d_new` are equal-length (`#d_src + 1`) siblings of the *same* source `d_src` rather than a parent and its first child. The transitive correspondence in that configuration is instead obtained by composing V8 at the current fork (`d_prev ↔ d_new`) with the correspondence recorded at `d_prev`'s own earlier fork (`d_src ↔ d_prev` — V8 at that fork, when `d_prev` was the first fork of `d_src`), under the premise that `d_src` and `d_prev` are unedited across the intervening gap; the §"Subsequent fork of `d_src`" vignette of the worked example carries out exactly this composition. We do not promote it to a named claim. The correspondence is *exact, structural, and computable from the I-address equality alone*. No history is consulted; no derivation lineage is traversed.
 
 This is what underlies Nelson's intercomparison promise:
 
