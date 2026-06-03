@@ -181,8 +181,6 @@ V8 is proved only at the post-fork state, yet the intercomparison promise Nelson
 >
 > *Derivation.* V5a at `d* = d_op` gives `M''(d_op) = M'(d_op)`, since no step on `Σ' →* Σ''` is M-targeted at `d_op`; V5a at `d* = d_new` gives `M''(d_new) = M'(d_new)` likewise. V8 at `Σ'` gives `M'(d_op)(v) = M'(d_new)(v)`. Composing, `M''(d_op)(v) = M'(d_op)(v) = M'(d_new)(v) = M''(d_new)(v)`. The premise that carries this is per-document position retention (V5a); the word-for-word equality test is therefore meaningful and stable across every such `Σ''`.
 
-Store-persistence of the shared content is unconditional (V12(b)/P0) and independent of V8d's non-targeting hypothesis.
-
 ## Provenance Recording
 
 The third elementary step of J4 is K.ρ, recording provenance for every I-address now in `d_new`'s arrangement.
