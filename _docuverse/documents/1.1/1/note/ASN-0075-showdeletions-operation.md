@@ -147,6 +147,8 @@ The two halves are necessarily disjoint, and the disjointness is unconditional �
 
 **Observational-discipline axiom (D-BOUND).** SHOWDELETIONS is invoked at a composite boundary: the pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047).
 
+D-BOUND earns its place in the operation's contract for two reasons, not one. The first is D-EXH's clean three-state partition, which activates P4★ to exclude the impossible `a ∈ ran(M(d)) ∧ (a, d) ∉ R` row. The second — the more substantive — is that `DELETED(a, d)` carries its intended *meaning* only at a boundary: P4a, the historical-fidelity guarantee that backs the reading "`a` was once in `d`'s arrangement," is itself composite-boundary-scoped (see D-RECONS). At an intermediate state inside a composite, `(a, d) ∈ R` need not witness any prior inclusion, so `DELETED(a, d)` could fire for content that was never included. D-BOUND is what licenses P4a at every invocation, and hence what makes the operation's `DELETED` reports honest.
+
 The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state`, with the boundary conjunct supplied structurally by D-BOUND. Its postcondition characterises the result set-theoretically. We capture this in wp form. Let `q` abbreviate the predicate:
 
 ```
@@ -183,7 +185,7 @@ wp(SHOWDELETIONS(d_A, d_B), Q0)
 
 The joint report is empty exactly when no content has been deleted from one document while remaining current in the other.
 
-*Supplementary lemma (R-disjointness implies Q0 at composite-boundary states).* Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. The boundary hypothesis is load-bearing because the argument invokes P4★ (a composite-boundary property); D-BOUND supplies it at every invocation. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
+*Supplementary lemma (R-disjointness implies Q0 at composite-boundary states).* Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. The boundary hypothesis is load-bearing for the same reason as in D-EXH — the argument invokes P4★ — and D-BOUND supplies it. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
 
 *Group 1: `(a, d_A) ∈ R`.* Disjointness gives `(a, d_B) ∉ R`. For conjunct 1, `CURRENT(a, d_B)` requires `a ∈ ran(M(d_B))`; by the same L14 + S3★-aux + S3★-contrapositive chain unpacked in the proof of D-EXH above — `a ∈ dom(C)` (from the outer quantifier) gives `a ∉ dom(L)` via L14; the witness `v ∈ dom(M(d_B))` for `a ∈ ran(M(d_B))` must satisfy `subspace(v) = s_C` (else S3★'s link clause would force `a ∈ dom(L)`); so `(a, d_B) ∈ Contains_C(Σ)`, which by P4★ — activated by the boundary hypothesis — forces `(a, d_B) ∈ R`, contradicting `(a, d_B) ∉ R`. So `CURRENT(a, d_B)` fails and conjunct 1 is falsified. Conjunct 2 is falsified more directly: `DELETED(a, d_B)` has first conjunct `(a, d_B) ∈ R`, which `(a, d_B) ∉ R` negates outright — no P4★ chain needed.
 
@@ -361,7 +363,7 @@ Consequences: SHOWDELETIONS is repeatable on the same state (yields identical re
 
 *Justification.* Each predicate `CURRENT`, `DELETED`, `NEVER_INCLUDED` is defined in terms of components of `Σ` only (`M`, `R`, `dom(C)`, `subspace_I`). The output sets are characterised entirely by these projections. Two distinct transition histories yielding the same `Σ` therefore yield identical SHOWDELETIONS outputs.
 
-This is what makes the operation an honest function of state. The user need not know how the system arrived at its current configuration; consulting the current configuration suffices. P4a (historical fidelity, ASN-0047) ensures that whenever the operation reports `DELETED(a, d)`, there really was a past state where `a` was in `d`'s arrangement — but the *route* to that past state is irrelevant to the report itself.
+This is what makes the operation an honest function of state. The user need not know how the system arrived at its current configuration; consulting the current configuration suffices. P4a (historical fidelity, ASN-0047) ensures that whenever the operation reports `DELETED(a, d)`, there really was a past state where `a` was in `d`'s arrangement — but the *route* to that past state is irrelevant to the report itself. We note that P4a, like P4★, is a composite-boundary property of ASN-0047 (it appears among the boundary properties of `ExtendedReachableStateInvariants`, not among the per-state invariants): at an intermediate state inside a composite, `(a, d) ∈ R` need not witness any prior arrangement. The historical-fidelity reading of `DELETED` therefore holds only at composite-boundary states — exactly the states D-BOUND restricts SHOWDELETIONS to.
 
 ## Edge Cases
 
@@ -369,7 +371,7 @@ This is what makes the operation an honest function of state. The user need not 
 
 *Both arrangements empty.* If `dom(M(d_A)) = dom(M(d_B)) = ∅`, then `ran(M(d_A)) = ran(M(d_B)) = ∅`, so `CURRENT` fails for every `a` on both sides. Both halves are empty.
 
-*Same document compared against itself.* If `d_A = d_B`, then for each `a`, `DELETED(a, d_A) ∧ CURRENT(a, d_A)` is contradictory (by D-EXH). Both halves are empty. The operation is well-defined and trivially yields the empty pair.
+*Same document compared against itself.* If `d_A = d_B`, then for each `a`, `DELETED(a, d_A) ∧ CURRENT(a, d_A)` is contradictory directly: `DELETED(a, d_A)` requires `a ∉ ran(M(d_A))` while `CURRENT(a, d_A)` requires `a ∈ ran(M(d_A))`, and these two range-membership conditions cannot both hold. This is the unconditional disjointness argument of the SHOWDELETIONS definition specialised to a single document; it needs neither D-EXH nor the composite-boundary hypothesis. Both halves are empty. The operation is well-defined and trivially yields the empty pair.
 
 *Asymmetric population.* If `d_A` has rich history (large `R`-projection) but its current arrangement is empty, while `d_B`'s arrangement currently holds many of the addresses `d_A` historically held, then `DeletedFromAWithB` may be large and `DeletedFromBWithA` may be empty. The asymmetry of the two halves directly mirrors the asymmetry of the editing histories.
 
