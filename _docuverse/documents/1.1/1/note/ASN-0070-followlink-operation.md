@@ -115,13 +115,15 @@ Concretely, the operation FOLLOWLINK has the following form:
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
 
-**Postcondition.** `follow(ℓ, d, i) = (d, (Σ_V^{s_C}, Σ_V^{s_L}))` where each `Σ_V^S` is a finite V-span-set whose components are spans in subspace `S` of depth `m_S(d)` (well-defined when `V_S(d) ≠ ∅`). The empty component `Σ_V^S = ⟨⟩` is admissible from two distinct sources: (a) when `V_S(d) = ∅`, the subspace is vacuous and `⟨⟩` is forced by the Vacuous-subspace convention (V-Restricted Denotation); (b) when `V_S(d) ≠ ∅` but `R(d, L(ℓ).eᵢ)|_S = ∅` — the coverage misses `d`'s arrangement in subspace `S` — `⟨⟩` is admissible as the empty (vacuous-union) span-set under the main denotation, satisfying `⟦⟨⟩⟧_V = ∅`. So `Σ_V^S = ⟨⟩` does not imply the subspace is vacuous. In all cases:
+**Postcondition.** `follow(ℓ, d, i) = (d, (Σ_V^{s_C}, Σ_V^{s_L}))` where each `Σ_V^S` is a finite V-span-set whose components are spans in subspace `S` of depth `m_S(d)` (well-defined when `V_S(d) ≠ ∅`), and the empty component `Σ_V^S = ⟨⟩` is admissible, satisfying:
 
 ```
 ⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S    for each S ∈ {s_C, s_L}
 ```
 
 **Frame.** `Σ' = Σ`. No component of state is modified.
+
+*Remark.* `Σ_V^S = ⟨⟩` arises from two distinct sources: (a) `V_S(d) = ∅`, where `⟨⟩` is forced by the Vacuous-subspace convention; or (b) `V_S(d) ≠ ∅` but `R(d, L(ℓ).eᵢ)|_S = ∅`, where `⟨⟩` is the empty (vacuous-union) span-set. Source (b) shows `Σ_V^S = ⟨⟩` does not imply the subspace is vacuous.
 
 The preconditions are weak: only that the link exists, the document is allocated, and the endset index is in range.
 
@@ -289,7 +291,7 @@ follow(ℓ, d, 1) = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
 - *F-sound.* Both `[1, 4]` and `[1, 5]` are in `dom(M(d))`. `M(d)([1, 4]) = a₁ + 1 ∈ coverage(L(ℓ).e₁)`. `M(d)([1, 5]) = a₁ + 2 ∈ coverage(L(ℓ).e₁)`. ✓
 - *F-complete.* The only V-positions `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).e₁)` are `[1, 4]` and `[1, 5]` (the V-positions covered by `β₁`). Both are in `⟦Σ_V^{s_C}⟧_V`. ✓
 - *F-multi.* Not exercised in this example (no I-address in `coverage(L(ℓ).e₁)` appears at multiple V-positions of `d`).
-- *Partial emptiness (not F-empty).* The link-subspace component `Σ_V^{s_L}` is empty — `⟦Σ_V^{s_L}⟧_V = ∅` — while `Σ_V^{s_C}` is populated. Note the link subspace here is *not* vacuous: `M(d)` maps `[2, 1] → ℓ₀` (block `β_L`), so `V_{s_L}(d) = {[2, 1]} ≠ ∅` and `m_{s_L}(d) = 2` is defined. The empty component is therefore source (b) of the F1 postcondition — a populated subspace whose coverage misses the arrangement (`R(d, L(ℓ).e₁)|_{s_L} = ∅`) — so `⟨⟩` is admissible as the empty span-set under the *main* V-restricted denotation (`⟦⟨⟩⟧_V = ∅ = R(d, L(ℓ).e₁)|_{s_L}`), not via the Vacuous-subspace convention (which requires `V_{s_L}(d) = ∅`). It is *not* a verification of F-empty, whose hypothesis `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅` fails here (`coverage(L(ℓ).e₁) ∩ ran(M(d)) ⊇ {a₁ + 1, a₁ + 2} ≠ ∅`) and whose conjunctive postcondition `⟦Σ_V^{s_C}⟧_V = ∅ ∧ ⟦Σ_V^{s_L}⟧_V = ∅` does not hold. F-empty is exercised in Configuration 3, where global emptiness holds.
+- *Partial emptiness.* The link-subspace component is empty: `R(d, L(ℓ).e₁)|_{s_L} = ∅`, so `⟦Σ_V^{s_L}⟧_V = ∅` with `Σ_V^{s_L} = ⟨⟩`, while `Σ_V^{s_C}` is populated. ✓
 - *F-det (denotational).* The V-restricted denotation `⟦Σ_V^{s_C}⟧_V = {[1, 4], [1, 5]}` is uniquely determined.
 - *F-subspace.* `M(d)([1, 4]) = a₁ + 1 ∈ dom(C)` (P-alloc, plus S3★ since it is arranged at a content-subspace V-position), so `subspace_I(a₁ + 1) = s_C` — matching `subspace([1, 4]) = 1 = s_C`. ✓
 
@@ -444,7 +446,7 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 
 **Preconditions.** As `follow`; additionally `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅` in `Σ`.
 
-**Postcondition.** `⟦Σ_V^{s_C}⟧_V = ∅` and `⟦Σ_V^{s_L}⟧_V = ∅`. Under canonical form, both components are the empty span-set: `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. The operation succeeds and returns `(d, (Σ_V^{s_C}, Σ_V^{s_L}))` with both V-restricted denotations empty.
+**Postcondition.** `⟦Σ_V^{s_C}⟧_V = ∅` and `⟦Σ_V^{s_L}⟧_V = ∅`. Under canonical form, both components are the empty span-set: `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. The operation succeeds and returns `(d, (Σ_V^{s_C}, Σ_V^{s_L}))` with both V-restricted denotations empty — empty resolution is a normal result, not an error.
 
 **Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1). For the representational conclusion under canonical form: F-canonical and S9 (NormalizationUniqueness, ASN-0053).
 
@@ -458,8 +460,6 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 
 This establishes the V-restricted denotational conclusion unconditionally. The representational conclusion `Σ_V^S = ⟨⟩` requires canonical form: by F-canonical, the canonical form is the unique normalised span-set whose V-restricted denotation equals the target set. For the empty target set, the unique canonical representative is the empty sequence `⟨⟩`. We argue that no non-empty canonical-form span-set has empty V-restricted denotation: by F-canonical, every component span `σ = (s, δ(c, m_S(d)))` of a canonical-form span-set has start `s` with `#s = m_S(d)`, `subspace(s) = S`, and (per clause (i)'s canonical-form positivity convention) every component of `s` positive. By T12(b) (SpanWellDefinedness postcondition (b), ASN-0034), `s ∈ ⟦σ⟧` (the start is always in its own span's denotation). Since `s` is a depth-`m_S(d)` subspace-`S` tumbler with positive components in `⟦σ⟧`, `s ∈ ⟦σ⟧_V`, so `⟦σ⟧_V` is non-empty. The full `⟦Σ_V^S⟧_V = ⋃_j ⟦σ_j⟧_V` is therefore non-empty whenever any component exists. By contrapositive, empty V-restricted denotation forces the empty span-set as the only canonical representative. ∎
 
-There is no exception, no error, no fallback. The empty per-subspace family (V-restricted) is a regular outcome of the operation.
-
 ### F-multi — MultiplicityPreservation (LEMMA)
 
 **Preconditions.** As `follow`; additionally `v₁, v₂ ∈ dom(M(d))` with `v₁ ≠ v₂` and `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)`.
@@ -472,7 +472,7 @@ There is no exception, no error, no fallback. The empty per-subspace family (V-r
 
 *Implication (from hypothesis to conclusion).* The hypothesis directly supplies the membership condition for `R`. For `v₁`: `v₁ ∈ dom(M(d))` and `M(d)(v₁) = a ∈ coverage(L(ℓ).eᵢ)`, so by the definition of `R` (F0), `v₁ ∈ R(d, L(ℓ).eᵢ)`. By F-subspace, `subspace(v₁) = subspace_I(M(d)(v₁)) = subspace_I(a)`. Writing `S := subspace_I(a)`, the subspace projection (well-defined by S3★-aux) places `v₁ ∈ R(d, L(ℓ).eᵢ)|_S`. By the postcondition of `follow`, `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S`, hence `v₁ ∈ ⟦Σ_V^S⟧_V`. The argument for `v₂` is identical: F-subspace gives `subspace(v₂) = subspace_I(M(d)(v₂)) = subspace_I(a) = S`, so the same chain places `v₂ ∈ ⟦Σ_V^S⟧_V`. Both V-positions therefore land in the same subspace component, indexed by `S = subspace_I(a)`. ∎
 
-*Structural admissibility (the hypothesis is realisable).* The implication above derives the conclusion from the hypothesis without further assumption. What ensures the hypothesis is not vacuously satisfied is that ASN-0047's content-subspace arrangement extension K.μ⁺ imposes no injectivity constraint: unlike the link subspace, where CL-UNIQ (LinkSubspacePositionUniqueness, ASN-0047) forces the restriction of `M(d)` to `dom_L` to be injective, no analogous constraint binds the content subspace. Two successive K.μ⁺ steps from `Σ₀` may therefore map distinct V-positions `v₁ → a` and `v₂ → a` of a single document to the same I-address, so a state satisfying `v₁ ≠ v₂` with `M(d)(v₁) = M(d)(v₂) = a` is reachable.
+*Remark (realisability).* ASN-0047's content-subspace arrangement extension K.μ⁺ imposes no injectivity constraint — unlike the link subspace, where CL-UNIQ (LinkSubspacePositionUniqueness, ASN-0047) forces the restriction of `M(d)` to `dom_L` to be injective. So `M(d)(v₁) = M(d)(v₂) = a` with `v₁ ≠ v₂` is reachable (e.g., two K.μ⁺ steps from `Σ₀` mapping distinct V-positions of a single document to the same I-address).
 
 The operation does not deduplicate, does not select a "canonical" V-position, does not collapse multiplicity in any way. Each `v` with `M(d)(v) ∈ coverage(e)` is in the result, regardless of whether other V-positions of `d` also map to the same `M(d)(v)`.
 
