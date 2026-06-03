@@ -293,7 +293,7 @@ follow(ℓ, d, 1) = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
 - *F-sound.* Both `[1, 4]` and `[1, 5]` are in `dom(M(d))`. `M(d)([1, 4]) = a₁ + 1 ∈ coverage(L(ℓ).e₁)`. `M(d)([1, 5]) = a₁ + 2 ∈ coverage(L(ℓ).e₁)`. ✓
 - *F-complete.* The only V-positions `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).e₁)` are `[1, 4]` and `[1, 5]` (the V-positions covered by `β₁`). Both are in `⟦Σ_V^{s_C}⟧_V`. ✓
 - *F-multi.* Not exercised in this example (no I-address in `coverage(L(ℓ).e₁)` appears at multiple V-positions of `d`).
-- *F-empty.* The link-subspace component `Σ_V^{s_L}` is empty — `⟦Σ_V^{s_L}⟧_V = ∅`, a regular outcome. ✓
+- *Partial emptiness (not F-empty).* The link-subspace component `Σ_V^{s_L}` is empty — `⟦Σ_V^{s_L}⟧_V = ∅` — while `Σ_V^{s_C}` is populated. This is an individual subspace component being empty, admissible by the V-Restricted Denotation convention; it is *not* a verification of F-empty, whose hypothesis `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅` fails here (`coverage(L(ℓ).e₁) ∩ ran(M(d)) ⊇ {a₁ + 1, a₁ + 2} ≠ ∅`) and whose conjunctive postcondition `⟦Σ_V^{s_C}⟧_V = ∅ ∧ ⟦Σ_V^{s_L}⟧_V = ∅` does not hold. F-empty is exercised in Configuration 3, where global emptiness holds.
 - *F-det (denotational).* The V-restricted denotation `⟦Σ_V^{s_C}⟧_V = {[1, 4], [1, 5]}` is uniquely determined.
 - *F-subspace.* `M(d)([1, 4]) = a₁ + 1 ∈ dom(C)` (P-alloc, plus S3★ since it is arranged at a content-subspace V-position), so `subspace_I(a₁ + 1) = s_C` — matching `subspace([1, 4]) = 1 = s_C`. ✓
 
