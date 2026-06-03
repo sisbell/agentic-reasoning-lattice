@@ -23,7 +23,7 @@ We take from the foundation:
 - **Subspace convention** `s_C = 1, s_L = 2` (ASN-0047, SubspaceConventionAxiom).
 - **Link subspace ownership** (CL-OWN, ASN-0047): link-subspace V-positions of `d` map only to link I-addresses with `origin = d`.
 
-We restrict attention to the content subspace throughout: the restriction to `dom(C)` confines the operation to `s_C`, since every `a ∈ dom(C)` has `subspace_I(a) = s_C`.
+We restrict attention to the content subspace throughout; the next section establishes why the restriction to `dom(C)` suffices to confine the operation to `s_C`.
 
 ## The Three States of Content
 
@@ -271,7 +271,7 @@ Our definition forces the disambiguation by requiring `(a, d_A) ∈ R` for conte
 
 ## Restriction to the Content Subspace
 
-Confining the operation to the content subspace — which the restriction to `dom(C)` already enforces, since every `a ∈ dom(C)` has `subspace_I(a) = s_C` — is essential rather than incidental.
+Confining the operation to the content subspace — which the restriction to `dom(C)` already enforces, as established in *The Three States of Content* — is essential rather than incidental.
 
 **Claim D-SUBSP.** SHOWDELETIONS operates only over the content subspace (`s_C`).
 
