@@ -490,7 +490,7 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 4. *Project per subspace.* `R(d, L(ℓ).eᵢ)|_S = R(d, L(ℓ).eᵢ) ∩ {v : subspace(v) = S} = ∅` for each `S ∈ {s_C, s_L}`.
 5. *Apply F1.* By the postcondition of `follow`, `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S = ∅` for each `S`.
 
-This establishes the V-restricted denotational conclusion unconditionally. The representational conclusion `Σ_V^S = ⟨⟩` requires canonical form: by F-canonical, the canonical form is the unique normalised span-set whose V-restricted denotation equals the target set. For the empty target set, the unique canonical representative is the empty sequence `⟨⟩`. We argue that no non-empty canonical-form span-set has empty V-restricted denotation: by F-canonical, every component span `σ = (s, δ(c, m_S(d)))` of a canonical-form span-set has start `s` with `#s = m_S(d)`, `subspace(s) = S`, and (per clause (i)'s canonical-form positivity convention) every component of `s` positive. By T12(b) (SpanWellDefinedness postcondition (b), ASN-0034), `s ∈ ⟦σ⟧` (the start is always in its own span's denotation). Since `s` is a depth-`m_S(d)` subspace-`S` tumbler with positive components in `⟦σ⟧`, `s ∈ ⟦σ⟧_V`, so `⟦σ⟧_V` is non-empty. The full `⟦Σ_V^S⟧_V = ⋃_j ⟦σ_j⟧_V` is therefore non-empty whenever any component exists. By contrapositive, empty V-restricted denotation forces the empty span-set as the only canonical representative. ∎
+This establishes the V-restricted denotational conclusion unconditionally. The representational conclusion `Σ_V^S = ⟨⟩` is then immediate from F-canonical, with no further argument needed: F-canonical's existence construction (Step 3) partitions `X := R(d, e)|_S` into maximal runs and emits one span per run, so the empty target `X = ∅` yields zero maximal runs and hence the empty span-set `Σ_0 = ⟨⟩`; F-canonical's uniqueness clause makes `⟨⟩` the *only* canonical representative of `R(d, e)|_S = ∅`. ∎
 
 ### F-multi — MultiplicityPreservation (LEMMA)
 
@@ -546,7 +546,7 @@ This is the structural form of Nelson's commitment that "non-native bytes are as
 
 **Depends.** L12 (LinkImmutability, ASN-0043) — the link store is monotonic and value-preserving. L12a (LinkStoreMonotonicity, ASN-0043).
 
-**Frame.** No state modification by `follow` itself; the persistence is a property of `Σ.L` across transitions, observed via `follow`.
+**Frame.** The persistence is a property of `Σ.L` across transitions, observed via `follow`.
 
 Empty resolution does not destroy the link.
 
@@ -558,7 +558,7 @@ Empty resolution does not destroy the link.
 
 **Depends.** L12 (link state-invariance); the transition semantics of ASN-0047 (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L) that admit `M(d)` — the only state component `R` reads — to vary across transitions.
 
-**Frame.** `follow` itself modifies nothing; the variation observed here is in `M(d)` across the transition `Σ → Σ'`, not in any component `follow` writes.
+**Frame.** The variation observed here is in `M(d)` across the transition `Σ → Σ'`.
 
 ### F-multidoc — NoPreferredDocument (LEMMA)
 
@@ -582,7 +582,6 @@ Empty resolution does not destroy the link.
 | F-complete | Completeness — `R(d, L(ℓ).eᵢ)|_S ⊆ ⟦Σ_V^S⟧_V`: every qualifying `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` is in `⟦Σ_V^S⟧_V` for `S = subspace(v)`; ⊇ half of the postcondition's set equality | LEMMA | introduced |
 | F-empty | EmptyAdmissibility — `⟦Σ_V^{s_C}⟧_V = ∅` and `⟦Σ_V^{s_L}⟧_V = ∅` when `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅`; under canonical form, both components are `⟨⟩` | LEMMA | introduced |
 | F-multi | MultiplicityPreservation — when `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)` with `v₁ ≠ v₂`, both `v₁, v₂ ∈ ⟦Σ_V^S⟧_V` for `S = subspace_I(a)` | LEMMA | introduced |
-| F-frame | `follow` reads `Σ` and modifies no state component — the frame clause `Σ' = Σ` of F1 | INV | introduced |
 | F-slot | SlotUniformity — all slots resolve by the same `R` mechanism; L3's asymmetric well-formedness constrains construction, not resolution | LEMMA | introduced |
 | F-origin | OriginSymmetry — `R` does not filter by `origin`/`home`; native and transcluded V-positions are treated identically | LEMMA | introduced |
 | F-persist | LinkPersistence — `ℓ` remains in `dom(Σ.L)` regardless of reach (by L12) | LEMMA | introduced |
