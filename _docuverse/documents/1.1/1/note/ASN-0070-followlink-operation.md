@@ -91,8 +91,6 @@ Combining: `v ∈ R(d, e)|_{s_C}` iff `M(d)(v) ∈ coverage(e) ∩ dom(C)` iff `
 
 The `s_C`-component of the result picks out the content-subspace portion of coverage; the `s_L`-component picks out the link-subspace portion. An endset whose coverage straddles both I-subspaces (admissible by L4, ASN-0043) contributes to both result components; an endset confined to one I-subspace contributes only to that component.
 
-**Derived guarantee (lookup totality).** For every `v ∈ R(d, e)|_{s_C}`, `M(d)(v) ∈ dom(C)`, by S3★ (GeneralizedReferentialIntegrity, ASN-0047). For every `v ∈ R(d, e)|_{s_L}`, `M(d)(v) ∈ dom(L)`, disjoint from `dom(C)` by L14 (StoreDisjointness, ASN-0047).
-
 ## Result Form and the Operation
 
 `R(d, e)` is a set of V-positions. For transmission, storage, and presentation we require a finite representation. The natural representation is a per-subspace family of span-sets in V-space (ASN-0053).
@@ -227,7 +225,7 @@ The preconditions are therefore minimal.
 
 The mapping-block decomposition view of `M(d)` makes the computation of `follow` concrete.
 
-Each block `β = (v, a, n)` describes a contiguous mapping run: V-positions `v, v+1, ..., v+n−1` map to I-addresses `a, a+1, ..., a+n−1` (ASN-0058). The I-extent `I(β) = {a + k : 0 ≤ k < n}` is the contribution of this block to `ran(M(d))`. The V-extent is `V(β) = {v + k : 0 ≤ k < n}`, and by B3 (Consistency, ASN-0058) every `v + k ∈ V(β)` lies in `dom(M(d))`. M-int (TumblerIntervalCharacterization, ASN-0058) requires *both* of its operands in `dom(M(d))`; we therefore apply it not to arbitrary interval points but to each `y = v + k ∈ V(β)` — which the B3 step has placed in `dom(M(d))` — paired with the block start `v ∈ dom(M(d))` (the `k = 0` case of the same step). M-int's subspace-agreement postcondition then gives `subspace(v + k) = subspace(v)` for every `0 ≤ k < n`, so every V-position of `β` shares the V-subspace of `v` and each block lives in exactly one V-subspace; the block decomposition therefore partitions cleanly by subspace.
+Each block `β = (v, a, n)` describes a contiguous mapping run: V-positions `v, v+1, ..., v+n−1` map to I-addresses `a, a+1, ..., a+n−1` (ASN-0058). The I-extent `I(β) = {a + k : 0 ≤ k < n}` is the contribution of this block to `ran(M(d))`. The V-extent is `V(β) = {v + k : 0 ≤ k < n}`. By B3 (Consistency, ASN-0058), every `v + k ∈ V(β)` lies in `dom(M(d))`; M-int (TumblerIntervalCharacterization, ASN-0058) then gives `subspace(v + k) = subspace(v)`, so each block lives in one V-subspace and the decomposition partitions cleanly by subspace.
 
 For each endset I-span `σ = (s, ℓ_σ)` with coverage `⟦σ⟧`:
 
