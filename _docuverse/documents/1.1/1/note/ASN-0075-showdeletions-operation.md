@@ -74,7 +74,9 @@ We now show that the four foundation state components `(C, L, E, M)` together ar
 
 *Notational convention.* In the histories below, each `→*` arrow denotes one valid composite under ValidComposite★ (ASN-0047); line breaks are visual aids only.
 
-A second bundling concerns document creation. K.δ case (ii) with `k = 2` (descent) requires `t ∈ E ∧ zeros(t) ≤ 1`. From `Σ_0` (where the only entity is the bootstrap node `n_0` with `zeros(n_0) = 0`), a single elementary K.δ step produces at most an account (`zeros = 1`); producing a document (`zeros = 2`) requires a precursor account-creation step. We therefore write `K.δ(d) ≡ K.δ(A); K.δ(d)` as shorthand, where `A = inc(n_0, 2)` is the account and `d = inc(A, 2)` is the document. The same convention applies to `K.δ(d_A)` and `K.δ(d_B)` in the worked example below.
+A second bundling concerns document creation. K.δ case (ii) with `k = 2` (descent) requires `t ∈ E ∧ zeros(t) ≤ 1`. From `Σ_0` (where the only entity is the bootstrap node `n_0` with `zeros(n_0) = 0`), a single elementary K.δ step produces at most an account (`zeros = 1`); producing the *first* document (`zeros = 2`) requires a precursor account-creation step. We therefore write `K.δ(d) ≡ K.δ(A); K.δ(d)` as shorthand *for that first document only*, where `A = inc(n_0, 2)` is the account and `d = inc(A, 2)` is the document. The *second* document is not minted through a fresh account: re-running `K.δ(A)` would re-mint an account already in `E`, violating K.δ freshness (`e ∉ E`). Instead the second document `d'` is a version fork `d' = inc(d, 1)` (K.δ case (ii), `k = 1`), which requires only `d ∈ E_doc` and needs no account precursor. The same holds in the worked example below: only `K.δ(d_A)` uses the account-precursor convention, while `d_B = inc(d_A, 1)` is a version fork.
+
+Throughout both histories, each content-introduction composite follows a fixed *bundle pattern*: K.α allocates `a` into `dom(C')`, discharging the freshness obligation; K.μ⁺ places `a` into some document's arrangement, discharging J0; and because K.μ⁺'s frame leaves `R` unchanged on its own, the bundled K.ρ is what records the provenance pair, discharging J1★ and J1'★. We cite "the bundle pattern" at each composite below rather than re-deriving this discharge at every step.
 
 Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix `K.δ(d); K.δ(d')` — creating two documents `d, d'`. Both then invoke K.α(a, d) to allocate one content address. By K.α's first-emission rule (`{a' ∈ dom(C) : origin(a') = d} = ∅` initially), the allocated address is determinately `a = [d.0.s_C.1]` — a value fixed by `d` alone. Both histories pass the same `d` to the first-emission predicate, so both yield the same allocated address `a`. We further stipulate that both histories pass the *same* `v ∈ Val` argument to K.α — call it `v_a` — so that `C_1(a) = C_2(a) = v_a` and the content-store agreement in the table below holds at the value level. K.α's content-value parameter is a free choice by the caller, and synchronising it across the two histories is the only way to make the `(C, L, E, M)` agreement total. We fix the content-subspace V-position depth at `m_C = 2` throughout both histories — admissible because ValidFirstInsertionPosition (ASN-0036) treats `m` as operational input with `m ≥ 2`, and we choose the minimum so both histories operate with the same depth — giving `v = [s_C, 1] = [1, 1]` in `M(d)` and `v' = [s_C, 1] = [1, 1]` in `M(d')` as the canonical D-MIN★ first positions for each document's initially-empty content subspace. The histories then differ in where `a` is placed and which provenance pairs are recorded.
 
@@ -82,25 +84,25 @@ Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix
 
 ```
 Σ_0  →* K.δ(d)
-     →* K.δ(d')
+     →* K.δ(d')                          [d' = inc(d, 1), version fork]
      →* K.α(a, d);   K.μ⁺(d,  v  ↦ a);  K.ρ(a, d)
      →* K.μ⁺(d', v' ↦ a);  K.ρ(a, d')
      →* K.μ⁻(d)              [retain n'_{s_C} = 0]
      =   Σ_1
 ```
 
-The third composite bundles K.α with K.μ⁺(d, v ↦ a) and K.ρ(a, d): K.α produces `a ∈ dom(C')`, K.μ⁺ places `a` in `M(d)` (discharging J0), and K.ρ records `(a, d) ∈ R'` (discharging J1★, since K.μ⁺'s frame leaves `R` unchanged on its own). The fourth composite extends `M(d')` with the same `a` at `v' = [s_C, 1]` and pairs it with K.ρ(a, d') so the composite discharges J1★ end-to-end. The K.μ⁻ step on `d` retains zero content-subspace V-positions (`n'_{s_C} = 0`), removing `v ↦ a` from `M(d)`; by P2 (`R ⊆ R'`), `(a, d) ∈ R_1` persists. Final state: `dom(C_1) = {a}`, `M_1(d) = ∅`, `M_1(d') = {v' ↦ a}`, `(a, d) ∈ R_1`. So `DELETED(a, d)` holds at `Σ_1`.
+The third composite follows the bundle pattern, placing `a` in `M(d)` and recording `(a, d) ∈ R'`. The fourth composite, by the same pattern, extends `M(d')` with the same `a` at `v' = [s_C, 1]` and records `(a, d')`. The K.μ⁻ step on `d` retains zero content-subspace V-positions (`n'_{s_C} = 0`), removing `v ↦ a` from `M(d)`; by P2 (`R ⊆ R'`), `(a, d) ∈ R_1` persists. Final state: `dom(C_1) = {a}`, `M_1(d) = ∅`, `M_1(d') = {v' ↦ a}`, `(a, d) ∈ R_1`. So `DELETED(a, d)` holds at `Σ_1`.
 
 *History 2 (yields NEVER_INCLUDED).*
 
 ```
 Σ_0  →* K.δ(d)
-     →* K.δ(d')
+     →* K.δ(d')                          [d' = inc(d, 1), version fork]
      →* K.α(a, d);   K.μ⁺(d', v' ↦ a);  K.ρ(a, d')
      =   Σ_2
 ```
 
-The third composite bundles K.α with K.μ⁺(d', v' ↦ a) and K.ρ(a, d'): K.α produces `a ∈ dom(C')`, K.μ⁺ places `a` in `M(d')` (discharging J0 — J0 requires placement in *some* document's arrangement, not specifically in the origin's), and K.ρ records `(a, d') ∈ R'` (discharging J1★). The composite records `(a, d') ∈ R_2`, but `d` is never extended with `a`, so `(a, d) ∉ R_2`. Final state: `dom(C_2) = {a}`, `M_2(d) = ∅`, `M_2(d') = {v' ↦ a}`, `(a, d) ∉ R_2`. So `NEVER_INCLUDED(a, d)` holds at `Σ_2`.
+The third composite follows the bundle pattern, placing `a` in `M(d')` (J0 requires placement in *some* document's arrangement, not specifically the origin's) and recording `(a, d') ∈ R_2`; `d` is never extended with `a`, so `(a, d) ∉ R_2`. Final state: `dom(C_2) = {a}`, `M_2(d) = ∅`, `M_2(d') = {v' ↦ a}`, `(a, d) ∉ R_2`. So `NEVER_INCLUDED(a, d)` holds at `Σ_2`.
 
 *Agreement on (C, L, E, M).* Comparing the components of `Σ_1` and `Σ_2`:
 
@@ -138,7 +140,7 @@ DeletedFromBWithA(d_A, d_B)
        ∧ CURRENT(a, d_A)}
 ```
 
-Each asymmetric set captures content deleted from one document and still arranged in the other. The presence of the "witness" document (where the content remains current) is what makes the deletion observable as recoverable: every `a` in `DeletedFromAWithB` is reachable through `d_B`'s current view, and the reverse holds symmetrically.
+Each asymmetric set captures content deleted from one document and still arranged in the other — the still-current copy in the partner document is the *witness* that makes the deletion observable as recoverable.
 
 **Definition (SHOWDELETIONS).** The operation is the ordered pair:
 
@@ -216,7 +218,7 @@ We illustrate SHOWDELETIONS on the canonical scenario: a document is forked, and
      =   Σ
 ```
 
-The first four lines create `d_A` with three content addresses `a, b, c` (all with `origin = d_A` by S7), arranged at `[1,1], [1,2], [1,3]`; the per-line K.ρ steps record the corresponding provenance, with each `K.μ⁺; K.ρ` bundle satisfying J1★ end-to-end (K.μ⁺'s frame leaves `R` unchanged on its own, so K.ρ is what supplies the provenance update the coupling demands). Line 5 forks `d_A` to `d_B = inc(d_A, 1)` (K.δ case (ii), `k = 1`); line 6 populates `d_B` by transclusion — the *same* I-addresses `a, b, c` are referenced from `d_B`'s V-positions — and records the three accompanying provenance pairs in one composite. The resulting provenance relation contains `R ⊇ {(a, d_A), (b, d_A), (c, d_A), (a, d_B), (b, d_B), (c, d_B)}`.
+The first four lines create `d_A` with three content addresses `a, b, c` (all with `origin = d_A` by S7), arranged at `[1,1], [1,2], [1,3]`; the per-line K.ρ steps record the corresponding provenance, with each `K.μ⁺; K.ρ` bundle following the bundle pattern stated above. Line 5 forks `d_A` to `d_B = inc(d_A, 1)` (K.δ case (ii), `k = 1`); line 6 populates `d_B` by transclusion — the *same* I-addresses `a, b, c` are referenced from `d_B`'s V-positions — and records the three accompanying provenance pairs in one composite. The resulting provenance relation contains `R ⊇ {(a, d_A), (b, d_A), (c, d_A), (a, d_B), (b, d_B), (c, d_B)}`.
 
 The last three lines effect a divergent edit. Lines 7–8 reorder `M(d_A)` to put `b` at the trailing position `[1,3]` and then truncate, removing `b` from `d_A`'s arrangement. Line 9 removes `c` from `d_B`'s arrangement directly — no prior rearrangement is needed because `c` is already at the trailing position `[1,3]`, so K.μ⁻ retaining the first two content positions drops exactly `c`. By P2, the deletions leave `R` unchanged.
 
