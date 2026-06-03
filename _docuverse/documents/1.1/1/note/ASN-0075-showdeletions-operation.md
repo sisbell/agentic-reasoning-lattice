@@ -13,7 +13,7 @@ We take from the foundation:
 - **Content store** `Σ.C : T ⇀ Val` (ASN-0036, S0): a partial function from tumblers to content values, append-only with immutable values across transitions.
 - **Arrangement** `Σ.M(d) : T ⇀ T` (ASN-0036, S2, S3, S8a, S8-depth): a per-document partial function from V-positions to I-addresses.
 - **Entity set** `Σ.E ⊆ T` and its document partition `Σ.E_doc` (ASN-0047).
-- **Provenance relation** `Σ.R ⊆ T_elem × E_doc` (ASN-0047), where `T_elem = {a ∈ T : Element(a)} ⊆ T` uses the foundation's element predicate `Element(·)` (ASN-0047): `(a, d) ∈ R` iff document `d` has, at some point in the system's history, contained I-address `a` in its content-subspace arrangement.
+- **Provenance relation** `Σ.R ⊆ T_elem × E_doc` (ASN-0047), where `T_elem = {a ∈ T : Element(a)} ⊆ T` uses the foundation's element predicate `Element(·)` (ASN-0047). Its historical reading is supplied by P4★ and P4a (recapped below), not stipulated here.
 - **Provenance permanence** `R ⊆ R'` across transitions (P2, ASN-0047): once `(a, d) ∈ R`, it remains so.
 - **Provenance bounds** `Contains_C(Σ) ⊆ R` (P4★, ASN-0047): if `a` is currently in `d`'s content-subspace arrangement, then `(a, d) ∈ R`.
 - **Historical fidelity** (P4a, ASN-0047): if `(a, d) ∈ R`, some prior reachable state had `a` in `d`'s content-subspace arrangement.
@@ -330,7 +330,7 @@ Consequences: SHOWDELETIONS is repeatable on the same state (yields identical re
 
 *Justification.* Each predicate `CURRENT`, `DELETED`, `NEVER_INCLUDED` is defined in terms of components of `Σ` only (`M`, `R`, `dom(C)`, `subspace_I`). The output sets are characterised entirely by these projections. Two distinct transition histories yielding the same `Σ` therefore yield identical SHOWDELETIONS outputs.
 
-This is what makes the operation an honest function of state. The user need not know how the system arrived at its current configuration; consulting the current configuration suffices. P4a (historical fidelity, ASN-0047) ensures that whenever the operation reports `DELETED(a, d)`, there really was a past state where `a` was in `d`'s arrangement — but the *route* to that past state is irrelevant to the report itself.
+P4a (historical fidelity, ASN-0047) ensures that whenever the operation reports `DELETED(a, d)`, there really was a past state where `a` was in `d`'s arrangement — but the *route* to that past state is irrelevant to the report itself.
 
 ## Edge Cases
 
