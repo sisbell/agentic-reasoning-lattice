@@ -311,14 +311,14 @@ follow(ℓ, d, 1) = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
 - *F-det (denotational).* The V-restricted denotation `⟦Σ_V^{s_C}⟧_V = {[1, 4], [1, 5]}` is uniquely determined.
 - *F-subspace.* `M(d)([1, 4]) = a₁ + 1 ∈ dom(C)` (P-alloc, plus S3★ since it is arranged at a content-subspace V-position), so `subspace_I(a₁ + 1) = s_C` — matching `subspace([1, 4]) = 1 = s_C`. ✓
 
-**Second configuration — multiplicity.** Modify the endset to `L(ℓ).e₁ = {(a₀, δ(1, m_a))}`, so `coverage = {a₀}`. Now `a₀ ∈ I(β₂)` (at offset 0) and `a₀ ∈ I(β₃)` (at offset 0). Both blocks contribute:
+**Second configuration — multiplicity.** Modify the endset to `L(ℓ).e₁ = {(a₀, δ(1, m_a))}`, whose coverage is the half-open interval `coverage(L(ℓ).e₁) = {t ∈ T : a₀ ≤ t < a₀ ⊕ δ(1, m_a)} = subtree(a₀)` (PrefixSpanCoverage, ASN-0043) — the entire subtree of `a₀`, whose only depth-`m_a` member is `a₀`. Since the block I-extents are themselves depth-`m_a`, the only coverage member ever met by an intersection is `a₀`; we write that singleton where the intersections are computed. Now `a₀ ∈ I(β₂)` (at offset 0) and `a₀ ∈ I(β₃)` (at offset 0). Both blocks contribute:
 
 - From `β₂`: V-span `([1, 1], δ(1, 2))`.
 - From `β₃`: V-span `([1, 6], δ(1, 2))`.
 
 `Σ_V^{s_C} = ⟨([1, 1], δ(1, 2)), ([1, 6], δ(1, 2))⟩` (two spans, in sorted order). F-multi is exercised: a single I-address `a₀` yields two V-positions `[1, 1]` and `[1, 6]`, both included. ✓
 
-**Third configuration — no reach.** With `L(ℓ).e₁ = {(b, δ(1, m_a))}` where `b ∉ ran(M(d))`, every block's intersection with `{b}` is empty. `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. F-empty is exercised. ✓
+**Third configuration — no reach.** Take `L(ℓ).e₁ = {(b, δ(1, m_a))}`, whose coverage is `coverage(L(ℓ).e₁) = {t ∈ T : b ≤ t < b ⊕ δ(1, m_a)} = subtree(b)` (PrefixSpanCoverage, ASN-0043). Suppose no depth-`m_a` member of `subtree(b)` lies in `ran(M(d))` (this is the load-bearing precondition; `b ∉ ran(M(d))` alone would not suffice, since deeper-depth members of the coverage could still be reached). Every block's I-extent is itself depth-`m_a`, so each is disjoint from coverage and every block's intersection with coverage is empty. `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. F-empty is exercised. ✓
 
 **Fourth configuration — state-dependence.** Fix the link and vary the state. Take `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` as in Configuration 1, whose coverage is the half-open interval `{t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` with depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` (the only members met by the depth-`m_a` block I-extents). In the pre-state `Σ`:
 
@@ -361,7 +361,7 @@ Return to the pre-state arrangement `M(d)` of Configuration 1 — in which the c
 L(ℓ).e₁ = {(a₀, δ(1, m_a)), (ℓ₀, δ(1, m_a))}
 ```
 
-so that `coverage(L(ℓ).e₁) = {a₀} ∪ {ℓ₀} = {a₀, ℓ₀}`, with `a₀ ∈ dom(C)` and `ℓ₀ ∈ dom(L)` (the cross-subspace endset admitted by L4(c), ASN-0043). The two-way split of coverage is `coverage ∩ dom(C) = {a₀}` and `coverage ∩ dom(L) = {ℓ₀}` (disjoint by L14, StoreDisjointness, ASN-0047) — both non-empty, which is exactly what forces both result components.
+so that `coverage(L(ℓ).e₁) = {t : a₀ ≤ t < a₀ ⊕ δ(1, m_a)} ∪ {t : ℓ₀ ≤ t < ℓ₀ ⊕ δ(1, m_a)} = subtree(a₀) ∪ subtree(ℓ₀)` (PrefixSpanCoverage, ASN-0043), with `a₀ ∈ dom(C)` and `ℓ₀ ∈ dom(L)` (the cross-subspace endset admitted by L4(c), ASN-0043). The only depth-`m_a` members of this coverage are `a₀` and `ℓ₀`; since the block I-extents are depth-`m_a`, the intersections meet coverage only at `{a₀, ℓ₀}`, and we write that finite set where the intersections are computed. The two-way split of coverage by store is `coverage ∩ dom(C) ⊇ {a₀}` and `coverage ∩ dom(L) ⊇ {ℓ₀}` (disjoint by L14, StoreDisjointness, ASN-0047), reducing at depth `m_a` to `{a₀}` and `{ℓ₀}` respectively — both non-empty, which is exactly what forces both result components.
 
 Process each block against the endset:
 
@@ -595,5 +595,3 @@ When an endset's coverage spans I-addresses with multiple distinct homes, what r
 What concurrency semantics must `follow` guarantee when the queried document is being modified by another transition concurrently?
 
 What relationship must hold between `follow(ℓ, d, i)` and `follow(ℓ, d', i)` when `d` and `d'` share transclusion lineage?
-
-Where must responsibility for canonicalisation lie — must a downstream consumer mandate canonical form, or may any finite representation be admissible with callers deriving canonical form independently?
