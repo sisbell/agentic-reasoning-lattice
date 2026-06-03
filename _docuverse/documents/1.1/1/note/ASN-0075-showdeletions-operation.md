@@ -74,7 +74,7 @@ We now show that the four foundation state components `(C, L, E, M)` together ar
 
 *Notational convention.* In the histories below, each `→*` arrow denotes one valid composite under ValidComposite★ (ASN-0047); line breaks are visual aids only.
 
-A second bundling concerns document creation. K.δ case (ii) with `k = 2` (descent) requires `t ∈ E ∧ zeros(t) ≤ 1`. From `Σ_0` (where the only entity is the bootstrap node `n_0` with `zeros(n_0) = 0`), a single elementary K.δ step produces at most an account (`zeros = 1`); producing the *first* document (`zeros = 2`) requires a precursor account-creation step. We therefore write `K.δ(d) ≡ K.δ(A); K.δ(d)` as shorthand *for that first document only*, where `A = inc(n_0, 2)` is the account and `d = inc(A, 2)` is the document. The *second* document is not minted through a fresh account: re-running `K.δ(A)` would re-mint an account already in `E`, violating K.δ freshness (`e ∉ E`). Instead the second document `d'` is a version fork `d' = inc(d, 1)` (K.δ case (ii), `k = 1`), which requires only `d ∈ E_doc` and needs no account precursor. The same holds in the worked example below: only `K.δ(d_A)` uses the account-precursor convention, while `d_B = inc(d_A, 1)` is a version fork.
+A second bundling concerns document creation. K.δ case (ii) with `k = 2` (descent) requires `t ∈ E ∧ zeros(t) ≤ 1`. From `Σ_0` (where the only entity is the bootstrap node `n_0` with `zeros(n_0) = 0`), a single elementary K.δ step produces at most an account (`zeros = 1`); producing the *first* document (`zeros = 2`) requires a precursor account-creation step. We therefore write `K.δ(d) ≡ K.δ(A); K.δ(d)` as shorthand *for that first document only*, where `A = inc(n_0, 2)` is the account and `d = inc(A, 2)` is the document. The *second* document `d'` is a version fork `d' = inc(d, 1)` (K.δ case (ii), `k = 1`), which requires only `d ∈ E_doc`.
 
 Throughout both histories, each content-introduction composite follows a fixed *bundle pattern*: K.α allocates `a` into `dom(C')`, discharging the freshness obligation; K.μ⁺ places `a` into some document's arrangement, discharging J0; and because K.μ⁺'s frame leaves `R` unchanged on its own, the bundled K.ρ is what records the provenance pair, discharging J1★ and J1'★. We cite "the bundle pattern" at each composite below rather than re-deriving this discharge at every step.
 
@@ -122,7 +122,7 @@ Any function `f(C, L, E, M)` returns the same value at both states. But the clas
 
 **Corollary D-NEED (Auxiliary State Necessity).** Any system supporting SHOWDELETIONS must maintain at least one state component beyond `(C, L, E, M)` whose value disambiguates `DELETED(a, d)` from `NEVER_INCLUDED(a, d)` at every reachable state.
 
-*Argument.* The discrimination obligation follows from D-DISCR in one step. SHOWDELETIONS' definition requires the DELETED/NEVER_INCLUDED distinction (its output sets are built from these predicates); D-DISCR shows the four foundation components `(C, L, E, M)` cannot supply it. Hence any state that implements SHOWDELETIONS must carry at least one component beyond the four — call it `C*` — whose value disambiguates the two predicates at every reachable `Σ`. The provenance relation `R` is exhibited as one such witness: `DELETED(a, d)` requires `(a, d) ∈ R` while `NEVER_INCLUDED(a, d)` requires `(a, d) ∉ R`, so the two are contradictory on `R`-membership and testing `(a, d) ∈ R` discriminates them outright. Thus `C* = R` suffices. This step consults `R`-membership only; it does not invoke `P4★`, so the discrimination holds at every reachable state, not merely at composite boundaries.
+*Argument.* The discrimination obligation follows from D-DISCR in one step. SHOWDELETIONS' definition requires the DELETED/NEVER_INCLUDED distinction (its output sets are built from these predicates); D-DISCR shows the four foundation components `(C, L, E, M)` cannot supply it. Hence any state that implements SHOWDELETIONS must carry at least one component beyond the four — call it `C*` — whose value disambiguates the two predicates at every reachable `Σ`. The provenance relation `R` is exhibited as one such witness: `DELETED(a, d)` requires `(a, d) ∈ R` while `NEVER_INCLUDED(a, d)` requires `(a, d) ∉ R`, so the two are contradictory on `R`-membership and testing `(a, d) ∈ R` discriminates them outright. Thus `C* = R` suffices. Because `DELETED` and `NEVER_INCLUDED` differ on `R`-membership by definition, this discrimination holds at every reachable state, not merely at composite boundaries.
 
 ## The SHOWDELETIONS Operation
 
@@ -189,7 +189,7 @@ wp(SHOWDELETIONS(d_A, d_B), Q0)
 
 The joint report is empty exactly when no content has been deleted from one document while remaining current in the other.
 
-*Supplementary lemma (R-disjointness implies Q0 at composite-boundary states).* Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. The argument invokes `P4★`, available by D-BOUND. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
+**Lemma D-DISJ (Disjoint Provenance Empties the Report).** Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. This is a sufficient condition for vacuity not given by the `wp(SHOWDELETIONS, Q0)` formula above, which characterises emptiness through the current arrangements `M`; D-DISJ characterises it through `R` alone. The argument invokes `P4★`, available by D-BOUND. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
 
 *Group 1: `(a, d_A) ∈ R`.* Disjointness gives `(a, d_B) ∉ R`. For conjunct 1, `CURRENT(a, d_B)` requires `a ∈ ran(M(d_B))`; D-WIT would then give `(a, d_B) ∈ R`, contradicting `(a, d_B) ∉ R`. So `CURRENT(a, d_B)` fails and conjunct 1 is falsified. Conjunct 2 is falsified more directly: `DELETED(a, d_B)` has first conjunct `(a, d_B) ∈ R`, which `(a, d_B) ∉ R` negates outright.
 
@@ -362,7 +362,7 @@ This is what makes the operation an honest function of state. The user need not 
 
 ## Edge Cases
 
-*Documents with no shared content.* The condition under which both halves are empty is exactly `Q0`, derived above as `wp(SHOWDELETIONS, Q0)`; see "Vacuity of both report halves."
+*Documents with no shared content.* Disjoint content-subspace `R`-projections is the case of "no shared content"; it yields `Q0` (both halves empty) by D-DISJ. See "Vacuity of both report halves," where the general `wp(SHOWDELETIONS, Q0)` condition and the D-DISJ sufficient condition are both established.
 
 *Both arrangements empty.* If `dom(M(d_A)) = dom(M(d_B)) = ∅`, then `ran(M(d_A)) = ran(M(d_B)) = ∅`, so `CURRENT` fails for every `a` on both sides. Both halves are empty.
 
@@ -385,6 +385,7 @@ This is what makes the operation an honest function of state. The user need not 
 | DeletedFromBWithA | Symmetric counterpart of DeletedFromAWithB | introduced |
 | SHOWDELETIONS | Observational operation `SHOWDELETIONS(d_A, d_B) = (DeletedFromAWithB(d_A, d_B), DeletedFromBWithA(d_A, d_B))` | introduced |
 | D-BOUND | SHOWDELETIONS is invoked at composite-boundary states; the boundary condition is part of the operation's contract and discharges D-EXH's hypothesis structurally | introduced |
+| D-DISJ | At a composite-boundary state, documents with disjoint content-subspace `R`-projections satisfy `Q0` (both report halves empty) | introduced |
 | D-SUBSP | The operation restricts to the content subspace `s_C`; cross-document deletion comparison is structurally meaningful only there | introduced |
 | D-IDENT | Output references are I-addresses themselves; no copies, no new identities | introduced |
 | D-ORIG | Every output element `a` has determinate `origin(a)` | introduced |
