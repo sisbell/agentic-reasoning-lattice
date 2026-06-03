@@ -133,7 +133,7 @@ The source-fork instance is immediate.
 
 > **V5** (*source isolation*): For every fork composite `Σ →* Σ'`: `M'(d_src) = M(d_src)`. V5 is V5a at `d* = d_src`: `d_src ∈ Σ.E_doc` by V0's precondition, and the fork composite has no step M-targeted at `d_src` (its only K.μ⁺ step targets `d_new ≠ d_src`).
 
-The frame is bidirectional: after the fork, subsequent modifications to `M(d_src)` by `d_src`'s owner do not propagate to `M'(d_new)`, and modifications to `M(d_new)` do not propagate to `M(d_src)` — each is V5a instantiated at the other document.
+V5a applies equally in both directions after the fork; V10(b) and V12 carry the two context-specific instantiations.
 
 ## Subspace Selectivity
 
@@ -143,8 +143,6 @@ The link subspace of any document is governed by CL-OWN (ASN-0047):
 
 > `(A d, v : v ∈ dom(M(d)) ∧ subspace(v) = s_L : origin(M(d)(v)) = d)`
 
-For every V-position in `d`'s arrangement that lies in the link subspace, the I-address at that position has `origin = d`. Links in a document's arrangement are *home-document links* — they are owned by the document whose arrangement holds them.
-
 CL-OWN requires every link-subspace V-position's image to have `origin = d_new`, so transcluding `d_op`'s links — whose origin is `d_op ≠ d_new` — would violate it, which is why only the content subspace may be inherited.
 
 > **V6** (*subspace selectivity*): A fork transfers only the source's content-subspace arrangement. The new document's link subspace is empty in the post-fork state:
@@ -153,25 +151,13 @@ CL-OWN requires every link-subspace V-position's image to have `origin = d_new`,
 >
 > *Derivation.* K.δ's effect on the newly created document is `M'(d_new) = ∅`. K.μ⁺ in J4's clause (ii) extends `M'(d_new)` only with positions drawn from `V_{s_C}(d_op)`, all of which have `subspace(v) = s_C` by the definition of `V_{s_C}(d_op) := {v ∈ dom(M(d_op)) : subspace(v) = s_C}` (ASN-0047). No link-subspace V-position is added. K.ρ does not modify arrangements. ∎
 
-V6 has an immediate consequence: links in `d_op` are not present in `d_new`'s arrangement. But this does not mean they are inaccessible from `d_new`. A link's endsets reference I-addresses (`Endset` per ASN-0047), and the I-addresses in `d_new`'s arrangement are *the same I-addresses* as in the content source `d_op`'s arrangement at every inherited V-position (V4). The post-fork state inherits both the link store and the content source's projections, and the fork's content-subspace V-positions project under any endset whose coverage hits the shared range.
-
-To make this precise, we introduce three local definitions that the lemma below uses. An *endset* `e` (per ASN-0047's `Endset`) is a finite set of spans; each span `(s, ℓ) ∈ e` is a (start tumbler, length tumbler) pair denoting the address range `span(s, ℓ) = {t ∈ T : s ≤ t < s ⊕ ℓ}` from T12 (ASN-0034). Define:
-
-- *Coverage:* `coverage(e) := ⋃_{(s, ℓ) ∈ e} span(s, ℓ) ⊆ T` — the set of I-addresses spanned by `e`.
-- *Projection:* `project(a, i, d, Σ) := {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(Σ.L(a).eᵢ)}` — the V-positions of `d` at state `Σ` whose images at slot `i` of link `a`'s endset structure (per L3, ASN-0047) fall inside the slot's coverage.
-- *Discoverability:* `discoverable_from(a, d, Σ) := (E i : 1 ≤ i ≤ |Σ.L(a)| : project(a, i, d, Σ) ≠ ∅)` — link `a` is discoverable from `d` at `Σ` iff some slot of `a` projects to at least one V-position of `d`.
+V6 has an immediate consequence: links in `d_op` are not present in `d_new`'s arrangement. But this does not sever the links from the inherited content. A link's endsets reference I-addresses (`Endset` per ASN-0047), and the I-addresses in `d_new`'s arrangement are *the same I-addresses* as in the content source `d_op`'s arrangement at every inherited V-position (V4). Since the fork leaves the link store untouched, any link referencing inherited content still references it.
 
 We record the consequence as a structural lemma:
 
-> **V6a** (*link discoverability inheritance*): For every link `a ∈ dom(Σ.L)`, after the fork composite `Σ →* Σ'`:
+> **V6a** (*link store and shared addresses persist*): For every link `a ∈ dom(Σ.L)`, after the fork composite `Σ →* Σ'`, `Σ'.L(a) = Σ.L(a)` — the link store is unchanged. *Derivation.* The fork composite decomposes into K.δ + K.μ⁺ + K.ρ × n (or K.δ alone in the empty-source case per V7), and each elementary transition frames `L' = L` by its frame clause (ASN-0047): K.δ's frame is `C' = C; L' = L; R' = R`; K.μ⁺'s frame is `C' = C; L' = L; E' = E; …; R' = R`; K.ρ's frame is `C' = C; L' = L; E' = E; (A d :: M'(d) = M(d))`, whose `L' = L` conjunct leaves `L` unchanged directly. Composing across the constituent steps: `Σ'.L = Σ.L`, hence `Σ'.L(a) = Σ.L(a)` for every `a ∈ dom(Σ.L)`.
 >
-> (i) `Σ'.L(a) = Σ.L(a)` — the link's endsets persist across the composite. *Derivation.* The fork composite decomposes into K.δ + K.μ⁺ + K.ρ × n (or K.δ alone in the empty-source case per V7), and each elementary transition frames `L' = L` by its frame clause (ASN-0047): K.δ's frame is `C' = C; L' = L; R' = R`; K.μ⁺'s frame is `C' = C; L' = L; E' = E; …; R' = R`; K.ρ's frame is `C' = C; L' = L; E' = E; (A d :: M'(d) = M(d))` (ASN-0047), whose `L' = L` conjunct leaves `L` unchanged directly. Composing across the constituent steps: `Σ'.L = Σ.L`, hence `Σ'.L(a) = Σ.L(a)` for every `a ∈ dom(Σ.L)`, and in particular `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` for every slot `i`.
->
-> (ii) `project(a, i, d_src, Σ') = project(a, i, d_src, Σ)` for every slot `i` — the source's projection is unchanged. *Derivation.* Unfolding the definition: `project(a, i, d_src, Σ') = {v ∈ dom(Σ'.M(d_src)) : Σ'.M(d_src)(v) ∈ coverage(Σ'.L(a).eᵢ)}`. By V5, `Σ'.M(d_src) = Σ.M(d_src)` (so `dom` and pointwise values coincide); by (i), `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`. Substituting both equalities into the set-builder: `project(a, i, d_src, Σ') = {v ∈ dom(Σ.M(d_src)) : Σ.M(d_src)(v) ∈ coverage(Σ.L(a).eᵢ)} = project(a, i, d_src, Σ)`.
->
-> (iii) `project(a, i, d_op, Σ) ∩ V_{s_C}(d_op) = project(a, i, d_new, Σ')` for every slot `i` — the fork's projection equals the content source `d_op`'s content-subspace-restricted projection (on a first fork `d_op = d_src`). *Derivation.* We show both inclusions. *(⊆)* For every `v ∈ project(a, i, d_op, Σ) ∩ V_{s_C}(d_op)`: by V4, `v ∈ dom(M'(d_new))` and `M'(d_new)(v) = M(d_op)(v)` (V4's universal supplies both conjuncts directly given `v ∈ V_{s_C}(d_op)` in the premise). By the definition of `project(a, i, d_op, Σ)`, `M(d_op)(v) ∈ coverage(Σ.L(a).eᵢ)`. By (i), `coverage(Σ.L(a).eᵢ) = coverage(Σ'.L(a).eᵢ)`. Composing: `M'(d_new)(v) ∈ coverage(Σ'.L(a).eᵢ)`, so `v ∈ project(a, i, d_new, Σ')`. *(⊇)* For every `v ∈ project(a, i, d_new, Σ')`: by the definition of `project`, `v ∈ dom(M'(d_new))` and `M'(d_new)(v) ∈ coverage(Σ'.L(a).eᵢ)`. By V4b's exact equality `dom(M'(d_new)) = V_{s_C}(d_op)`, `v ∈ V_{s_C}(d_op)` (which is `⊆ dom(M(d_op))` by `V_{s_C}(d_op) := {v ∈ dom(M(d_op)) : subspace(v) = s_C}`, so `v ∈ dom(M(d_op))`). By V4, `M'(d_new)(v) = M(d_op)(v)`; by (i), `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`. Composing: `M(d_op)(v) ∈ coverage(Σ.L(a).eᵢ)`, so `v ∈ project(a, i, d_op, Σ)`, and combined with `v ∈ V_{s_C}(d_op)`, `v ∈ project(a, i, d_op, Σ) ∩ V_{s_C}(d_op)`.
->
-> The link store is unchanged, the named source `d_src`'s discoverability is preserved (ii), and the fork inherits the content source `d_op`'s content-subspace projection witnesses (iii).
+> The consequence for the fork is immediate. By V4 the inherited V-positions of `d_new` carry exactly the I-addresses they carried in the content source `d_op`; combined with `Σ'.L = Σ.L`, any link whose endsets reference an inherited I-address still references content that `d_new`'s arrangement now holds, exactly as it does for `d_op`. A general theory of which links *project* to which V-positions — the formal endset-coverage query apparatus — belongs to a future link-operations ASN; here we need only that the link store and the shared I-addresses survive the fork.
 
 The implementation observation is that Gregory's `docreatenewversion` excludes the link subspace through a structural V-space layout — text starts at `1.x` and links at `2.x`, with the kluged `retrievedocumentpartofvspanpm` extracting only the text-subspace V-span. We note this is one of several ways to achieve V6: an alternative implementation could check `subspace(v) = s_C` explicitly per position, or could compute the V-span of the content subspace by a different mechanism entirely. The abstract claim — V6 — is what every conforming implementation must satisfy.
 
@@ -225,7 +211,7 @@ K.ρ adds `(a, d_new)` to `R` for each `a ∈ ran(M'(d_new))`. By J1★ (Extensi
 
 V9 has the consequence that, after the fork, querying R for "documents containing I-address `a`" returns `d_new` for every `a ∈ ran(M'(d_new))`, since the fork records `(a, d_new)`. Membership of `d_src` in the query result is *not* unconditional: it holds on a first fork (where `d_op = d_src`) or where `a` independently passed through `d_src`'s content subspace, but not on a subsequent fork whose operand is the prior version `d_prev ≠ d_src`. On such a fork an inherited `a` whose `origin` is the prior version need never have appeared in `d_src`'s arrangement, so `(a, d_src) ∉ R`. The fork makes `d_new` discoverable as a container of each inherited I-address.
 
-> **V9a** (*provenance does not record derivation path*): For every `(a, d_new) ∈ R'` recorded by a fork, the relation does not distinguish whether `d_new` acquired `a` via fork from `d_src` or via transclusion from a third document also containing `a` — the acquisition path, the chain of custody by which a document obtained a given I-address (e.g. "A transcluded to B, B forked to C"), is neither stored in R nor reconstructable. The indistinguishability ranges over the fork and transclusion paths, not direct allocation — see V9b.
+> **V9a** (*provenance records containment, not derivation edges*): The provenance relation `R ⊆ T × E_doc` (ASN-0047) holds only containment pairs `(a, d)` — that document `d` referenced I-address `a` — and carries no inter-document derivation edge linking one document's acquisition of `a` to another. A fork's K.ρ phase adds pairs `(a, d_new)` of exactly this containment form; it records that `d_new` came to contain `a`, but no edge connecting that acquisition to `d_src`, to a prior version, or to any third document that also contained `a`. The structure of `R` is therefore silent on *whether* `d_new` obtained `a` by fork or by transclusion. What the I-address *does* fix — that `origin(a) ≠ d_new` for any forked-in address — is recorded separately in V9b.
 
 > **V9b** (*fresh forks inherit only externally-allocated I-addresses*): For every `(a, d_new) ∈ R'` recorded by a fork, `origin(a) ≠ d_new`. *Derivation.* By V3, `C' = C`, so the I-addresses inherited by `d_new` are exactly those already present in `dom(C)` at the pre-fork state. Pre-fork, `d_new ∉ E_doc`, so by SubAllocatorBundle (ASN-0047) the content sub-allocator `A_C(d_new)` had not been activated and had emitted nothing into `dom(C)`. By S7 (StructuralAttribution, ASN-0036), every `a ∈ dom(C)` has a unique `origin(a) ∈ E_doc` fixed by the I-address itself, and no inherited I-address can have `origin(a) = d_new` because `A_C(d_new)` produced no element of `dom(C)` prior to the fork. ∎
 
@@ -309,7 +295,7 @@ We collect the permanence guarantees that hold across both documents after the f
 >
 > (a) `d_src ∈ E'_doc ∧ d_new ∈ E'_doc` (T8, P1): both documents remain in `E_doc` for all subsequent reachable states; neither can be removed.
 >
-> (b) `(A a : a ∈ ran(M'(d_new)) : a ∈ dom(C''))` for every subsequent state `Σ''` (P0, S0/S1): every inherited I-address persists in `dom(C)` with unchanged value, regardless of how either document's arrangement evolves.
+> (b) `(A a : a ∈ ran(M'(d_new)) : a ∈ dom(C''))` for every subsequent state `Σ''` (P0): every inherited I-address persists in `dom(C)` with unchanged value, regardless of how either document's arrangement evolves.
 >
 > (c) `(A a ∈ ran(M'(d_new)) :: (a, d_new) ∈ R'')` for every subsequent state `Σ''` (P2, V9): the provenance records added by V9 persist in `R` forever. Even if `d_new`'s owner later deletes `a` from its arrangement (via K.μ⁻), the historical fact `(a, d_new) ∈ R` records that `d_new` once contained `a`.
 >
@@ -419,7 +405,7 @@ The link subspace of `d_new` is empty: `V_{s_L}(d_new) = ∅`. The link `ℓ` re
 
 *Correspondence (V8).* At each `v ∈ {[s_C, 1], [s_C, 2], [s_C, 3]}`, `M'(d_src)(v) = M'(d_new)(v)` — the inherited I-address at each shared content-subspace V-position is equal in source and fork. Reading this equality pointwise across the three positions yields the intercomparison alignment `(v_src, v_new, length) = ([s_C, 1], [s_C, 1], 3)` — source V-position equal to fork V-position over a run of three pointwise-corresponding positions — directly from I-address equality (V8), with no comparison operation required of the storage layer.
 
-*Link discoverability (V6a).* By V6a(i), `Σ'.L(ℓ) = Σ.L(ℓ)` across the fork composite, so `ℓ`'s endset structure persists. Querying "which links reference `a₁`?" returns `ℓ` (assuming `a₁ ∈ coverage(Σ.L(ℓ).eᵢ)` for some slot `i`, hypothetically), and this answer is the same whether we ask from `d_src`'s vantage or `d_new`'s vantage. From `d_src`'s vantage: by V6a(ii), `project(ℓ, i, d_src, Σ') = project(ℓ, i, d_src, Σ)`, so any pre-fork witness in `d_src` (e.g., the V-position `[s_C, 1]` whose image `a₁` lies in coverage) remains a post-fork witness, and `discoverable_from(ℓ, d_src, Σ')` holds. From `d_new`'s vantage: by V6a(iii), every `v ∈ project(ℓ, i, d_src, Σ) ∩ V_{s_C}(d_src)` also lies in `project(ℓ, i, d_new, Σ')` — in particular, `[s_C, 1] ∈ project(ℓ, i, d_new, Σ')` if the hypothetical pre-fork witness applied, so `discoverable_from(ℓ, d_new, Σ')` holds.
+*Link discoverability (V6a).* By V6a, `Σ'.L(ℓ) = Σ.L(ℓ)` across the fork composite, so `ℓ`'s endset structure persists. Querying "which links reference `a₁`?" returns `ℓ` (assuming `a₁` lies in some endset slot of `ℓ`), and the answer is the same whether asked of `d_src` or `d_new`: `d_src`'s arrangement is unchanged by V5, and by V4 the fork's inherited position `[s_C, 1]` carries the same I-address `a₁`, so the unchanged link references content held by both documents.
 
 *Subsequent edits.* Suppose `d_src`'s owner later deletes `[s_C, 3]` from `d_src`'s arrangement via a K.μ⁻ contraction with `n'_{s_C} = 2` — retaining the suffix-prefix `{[s_C, 1], [s_C, 2]}`, as required by K.μ⁻'s per-subspace retention semantics (ASN-0047) and D-CTG★. A middle-only deletion such as removing `[s_C, 2]` while keeping `[s_C, 3]` is not expressible as a K.μ⁻ at all. By V5a at `d* = d_new` applied to a single-step sequence consisting of this K.μ⁻ (M-targeted at `d_src ≠ d_new`), `M(d_new)` is unaffected — `a₃` remains in `d_new`'s arrangement. By V12(c), `(a₃, d_new) ∈ R` persists; by V12(b), `a₃ ∈ dom(C)` persists. Symmetrically, if `d_new`'s owner deletes from `d_new`'s arrangement, V5a at `d* = d_src` gives that `d_src` is unaffected.
 
@@ -445,12 +431,12 @@ V10(a) gives that the two siblings are distinct addresses; we exhibit this concr
 | V5 | `M'(d_src) = M(d_src)` — source arrangement isolated from fork | introduced |
 | V5a | Per-document arrangement independence: a sequence with no step M-targeted at `d*` preserves `M(d*)`, by composition of ASN-0047's per-transition frame conditions | introduced |
 | V6 | `V_{s_L}(d_new) = ∅` in the post-fork state — link subspace not inherited (forced by CL-OWN) | introduced |
-| V6a | Link discoverability inheritance: the link store, the source's projection, and the fork's content-subspace-restricted projection are all preserved across the fork composite | introduced |
+| V6a | Link store persists across the fork (`Σ'.L = Σ.L`); with V4's shared I-addresses, any link referencing inherited content still references it | introduced |
 | V7 | Empty-source behavior: fork of `d_src` with `V_{s_C}(d_op) = ∅` reduces to K.δ alone, succeeding with `M'(d_new) = ∅` and `R' = R` | introduced |
 | V8 | `(A v ∈ V_{s_C}(d_op) :: M'(d_op)(v) = M'(d_new)(v))` — structural correspondence at fork-time between the content source `d_op` and the fork | introduced |
 | V8c | Correspondence is symmetric and document-type-untyped | introduced |
 | V9 | `(A a : a ∈ ran(M'(d_new)) : (a, d_new) ∈ R')` — provenance recorded for every inherited I-address | introduced |
-| V9a | Provenance records containment, not derivation path — content origin and fork-tree lineage are reconstructable from I-addresses and prefix structure, but the per-address acquisition path is neither stored nor reconstructable | introduced |
+| V9a | Provenance relation `R` records only containment pairs `(a, d)`, carrying no inter-document derivation edges; a fork's K.ρ records that `d_new` contains `a`, not how it acquired `a` | introduced |
 | V9b | Fresh forks inherit only externally-allocated I-addresses: for every `(a, d_new) ∈ R'` recorded by a fork, `origin(a) ≠ d_new` | introduced |
 | V10 | Sibling forks of the same source are independent in identity, arrangement, and provenance | introduced |
 | V10a | Each fork derives from `M(d_op)` of its content source operand *at the moment of forking* — time-sensitivity | introduced |
