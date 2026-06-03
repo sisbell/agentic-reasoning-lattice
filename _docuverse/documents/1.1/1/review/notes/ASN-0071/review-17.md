@@ -1,0 +1,31 @@
+# Review of ASN-0071
+
+## REVISE
+
+### Issue 1: The `actionPoint(ℓ) ≤ #u` precondition admits coarse spans that over-collect content
+
+**ASN-0071, "The query" / "Resolution"**: vspec preconditions are `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) ≤ #u`, `#ℓ = #u`, `actionPoint(ℓ) ≥ 2`.
+
+**Problem**: The lower bound `actionPoint(ℓ) ≥ 2` was added for subspace confinement; the upper bound `actionPoint(ℓ) ≤ #u` is inherited from T12 span well-formedness. Together they admit the band `2 ≤ actionPoint(ℓ) < #u`, which is non-empty whenever `#u ≥ 3`. In that band the displacement acts at an *interior* component, so `⟦σ⟧` ranges across the prefix structure and resolution collects content positions the user never named.
+
+The ASN sells a vspec as "the content of document `d` at positions `σ`" and claims the only relaxation effect is charitable silent-filtering of *unresolvable* positions (F-FILT). But silent-filtering drops missing positions; it does nothing about *extra resolvable* positions admitted by a coarse span. Concretely, take `d_s` with depth `m = 3` content positions `V_{s_C}(d_s) = {[1,1,k] : 1 ≤ k ≤ n}` (D-SEQ★). The vspec `σ' = ([1,1,2], [0,1,0])` satisfies every precondition: `actionPoint([0,1,0]) = 2 ≥ 2`, `≤ #u = 3`, `#ℓ = 3 = #u`, `Pos`. Its reach is `[1,1,2] ⊕ [0,1,0] = [1,2,2]`, so
+
+`⟦σ'⟧ ∩ dom(M(d_s)) = {[1,1,2], [1,1,3], ..., [1,1,n]}`
+
+— positions 2 through `n`, not the single intended position. C0 (ASN-0058) requires `actionPoint = m` precisely to prevent this; the vspec drops both `#u = m` and the `= m` tightness, retaining only confinement. Both worked examples use `#u = 2` (where `actionPoint ∈ {2} = #u` is forced), so the defect is never exercised.
+
+**Required**: Either tighten the precondition to `actionPoint(ℓ) = #u` (the displacement acts at the span's deepest component, matching C0's `actionPoint = m`), or explicitly characterize what an `actionPoint(ℓ) < #u` vspec denotes and resolves to and justify that the content-range prose ("content at positions σ") still holds for it. A worked example with `#u ≥ 3` should exercise whichever relaxations remain.
+
+### Issue 2: Misstated reach in the confinement counterexample
+
+**ASN-0071, "The query"**: "for example, `u = [1, 5]` with `ℓ = [2, 0]` ... so the span `⟦σ⟧` extends to `[3, 0)` and contains `[2, 1]`".
+
+**Problem**: With `u = [1,5]`, `ℓ = [2,0]` (action point 1), the reach is `u ⊕ ℓ = [3, 5]`, not `[3, 0)`. The stated upper-bound tumbler `[3,0]` is wrong and obscures the half-open interval. The conclusion (the interval contains the link-subspace position `[2,1]`) is correct, but the bound as written is not.
+
+**Required**: State the reach as `[3,5]` (or write the interval as `[1,5] ≤ t < [3,5]`).
+
+## OUT_OF_SCOPE
+
+The six Open Questions (history/`R` reconciliation, rejection-vs-filter policy, distributed replica completeness, visibility filtering, the post-contraction transition invariant) are correctly deferred; they introduce new operations or consistency models rather than gaps in this query's definition. The "What we do not specify" omissions (order, replica freshness, access-control) are likewise properly separated.
+
+VERDICT: REVISE
