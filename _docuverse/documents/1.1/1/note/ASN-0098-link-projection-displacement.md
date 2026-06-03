@@ -88,7 +88,7 @@ LP2★ is schema (★) applied to LP2, with `P(Σ, Σ') ≡ a ∈ dom(Σ'.L) ∧
 a ∈ dom(Σ'.L) ∧ coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)
 ```
 
-LP2 supplies both conjuncts: `a ∈ dom(Σ'.L)` directly (so the slot accessor on the left-hand side of the coverage equation is well-defined), and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` from which the coverage equation follows by applying `coverage` to both sides. The set of I-addresses the link refers to is computed from its endsets; if the endsets are byte-identical between states, the coverage is identical between states. Combining L12 with LP2 and LP3: the link, the slot, and the I-addresses it reaches are all permanent. What can vary is only which of those I-addresses are currently arranged in any given document.
+LP2 supplies both conjuncts: `a ∈ dom(Σ'.L)` directly (so the slot accessor on the left-hand side of the coverage equation is well-defined), and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` from which the coverage equation follows by applying `coverage` to both sides. The set of I-addresses the link refers to is computed from its endsets; if the endsets are byte-identical between states, the coverage is identical between states.
 
 **LP3★ — MultiStepCoverageInvariance**: For every reachable state sequence `Σ →* Σ'`, every `a ∈ dom(Σ.L)`, and every slot `i`:
 ```
@@ -103,8 +103,6 @@ dom(Σ.C) ⊆ dom(Σ'.C)  ∧  dom(Σ.L) ⊆ dom(Σ'.L)
 ```
 
 Schema (★) of LP2★ applied to the single-step monotonicity guarantees C0 of ASN-0093 (content) and L12 of ASN-0093 (links, in its membership-persistence consequence), with `P(Σ, Σ') ≡ dom(Σ.C) ⊆ dom(Σ'.C) ∧ dom(Σ.L) ⊆ dom(Σ'.L)` (the containment clauses are the set-valued instance of the schema's membership-persistence form).
-
-These invariants pin down what a link holder owns. Subsequent operations by any party — even the holder, even the original creator — cannot rewrite the endsets. The link is, in this strict sense, a permanent record.
 
 ## Frame Conditions: When Projection Does Not Move
 
@@ -126,13 +124,13 @@ A link's projection through one document is unaffected by editing operations on 
 
 Newly allocated I-addresses are invisible to projection until some subsequent K.μ⁺ adds an arrangement entry referencing them. This is the precise sense in which "insertion at the boundary of a linked passage" cannot extend the link's reach: insertion as a composite (allocate + arrange) splits into a K.α step (no projection effect) and a K.μ⁺ step. The K.μ⁺ step might add a V-position to the projection, but only if the new V-position's I-address is in `coverage(e)`. By T10a (AllocatorDiscipline, ASN-0034), each new K.α-allocated I-address is structurally distinct from all prior allocations.
 
-**LP8 — Document-Registration Invariance**: For any document-registration transition `Σ → Σ'` — K.δ in the IsDocument case (ASN-0047), the working frame's document-creation operation — registering a fresh document `d_new` (with `d_new ∉ dom(Σ.M)`, `dom(Σ'.M) = dom(Σ.M) ∪ {d_new}`, `Σ'.M(d_new) = ∅`, and `Σ'.M(d) = Σ.M(d)` for every `d ∈ dom(Σ.M)`) and any endset `e`, both:
+**LP8 — Document-Registration Invariance**: For any document-registration transition `Σ → Σ'` — K.δ in the `Document(e)` case (ASN-0047), the working frame's document-creation operation — registering a fresh document `d_new` (with `d_new ∉ dom(Σ.M)`, `dom(Σ'.M) = dom(Σ.M) ∪ {d_new}`, `Σ'.M(d_new) = ∅`, and `Σ'.M(d) = Σ.M(d)` for every `d ∈ dom(Σ.M)`) and any endset `e`, both:
 
 (a) Pre-state preservation: `(A d ∈ dom(Σ.M) :: project(e, d, Σ') = project(e, d, Σ))`.
 
 (b) Newly-registered emptiness: `project(e, d_new, Σ') = ∅`.
 
-K.δ-IsDocument (ASN-0047) satisfies the document-registration form named in the hypothesis: it extends `dom(M)` by one fresh document, initialises the new document's arrangement to `∅`, and preserves every pre-existing arrangement pointwise.
+K.δ in the `Document(e)` case (ASN-0047) satisfies the document-registration form named in the hypothesis: it extends `dom(M)` by one fresh document, initialises the new document's arrangement to `∅`, and preserves every pre-existing arrangement pointwise.
 
 Postcondition (a) follows by LP4 applied to each `d ∈ dom(Σ.M)`: the document-registration frame holds `Σ'.M(d) = Σ.M(d)` for every such `d`. Postcondition (b) follows from the definition of `project`: with `d_new ∈ dom(Σ'.M)` (so the projection is defined) and `dom(Σ'.M(d_new)) = ∅`, the set comprehension `{v ∈ dom(Σ'.M(d_new)) : Σ'.M(d_new)(v) ∈ coverage(e)}` ranges over the empty domain and is empty.
 
@@ -202,11 +200,9 @@ The forward inclusion `π(project(e, d, Σ)) ⊆ project(e, d, Σ')` follows dir
 
 So the projection's V-positions move *with* the content they reach: `project(e, d, Σ') = π(project(e, d, Σ))`. The cardinality is preserved: `|project(e, d, Σ')| = |project(e, d, Σ)|`. The set of I-addresses reached by the projection is preserved exactly: `{Σ'.M(d)(v') : v' ∈ project(e, d, Σ')} = {Σ.M(d)(v) : v ∈ project(e, d, Σ)} = coverage(e) ∩ ran(Σ.M(d))`.
 
-The second postcondition `ran(Σ'.M(d)) = ran(Σ.M(d))` is K.μ~-RANGE (range-invariance) of ASN-0047, cited directly. The projection-specific consequence is `project(e, d, Σ') = π(project(e, d, Σ))`, established by the biconditional above.
+The second postcondition `ran(Σ'.M(d)) = ran(Σ.M(d))` follows inline from the bijection equation. By K.μ~-FIX, `dom(Σ'.M(d)) = dom(Σ.M(d))`, and π is a bijection on this domain, so reindexing the range by π gives `ran(Σ'.M(d)) = {Σ'.M(d)(v') : v' ∈ dom(Σ'.M(d))} = {Σ'.M(d)(π(v)) : v ∈ dom(Σ.M(d))} = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))} = ran(Σ.M(d))`, the third equality by the bijection equation `Σ'.M(d)(π(v)) = Σ.M(d)(v)`. The projection-specific consequence is `project(e, d, Σ') = π(project(e, d, Σ))`, established by the biconditional above.
 
 The displacement under K.μ~ is therefore a *rebinding*: same I-addresses, same number of V-positions, but at new locations in V-space. A projection that was contiguous in V-order before the reordering may become fragmented after; conversely, a fragmented projection may become contiguous. The shape of the projection is a property of the current arrangement, not of the link.
-
-The atomic per-step lemmas LP4–LP10 and LP14 cover every *atomic* operation kind of the working frame; K.δ's node and account cases have frame `M' = M` and so fall under LP4, while its document case is LP8. Since reachable sequences `Σ →* Σ'` decompose into finite chains of atomic transitions (SequentialTransitionAxiom of ASN-0093), any multi-step argument is analysed step-by-step, each atomic step governed by one of these lemmas. LP11 is composite-level (K.μ~ = K.μ⁻ + K.μ⁺ per ASN-0047); the atomic decomposition is governed by LP10 then LP9, and LP11 supplies the net effect `project' = π(project)`.
 
 ## Discoverability and Survival
 
@@ -310,11 +306,9 @@ Then by LP12, `project(a, i, d, Σ) = ∅` for every `d, i`. The link is *orphan
 
 **LP18 — Resurrection**: If `a` is orphaned at `Σ` and a subsequent transition sequence `Σ →* Σ'` introduces an arrangement entry `Σ'.M(d)(v) = a*` for some `d, v, a*` with `a* ∈ coverage(Σ.L(a).eᵢ)`, then `a` is discoverable from `d` at `Σ'`.
 
-The transition sequence may include document registration (K.δ in the IsDocument case of ASN-0047, governed by LP8), K.μ⁺ or K.μ⁺_L (extending an existing arrangement, possibly via fork), or any other combination of operations that preserves the link store. The orphan premise supplies `a ∈ dom(Σ.L)`. Store Monotonicity★ applied to `Σ →* Σ'` lifts this to `a ∈ dom(Σ'.L)`, making the slot accessor `Σ'.L(a).eᵢ` well-defined at the post-state. Because LP3★ keeps the link's coverage fixed across the entire sequence, `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`, so the membership `a* ∈ coverage(Σ.L(a).eᵢ)` carries through to `a* ∈ coverage(Σ'.L(a).eᵢ)`. By the definition of `project`, `v ∈ project(a, i, d, Σ')` since `v ∈ dom(Σ'.M(d))` and `Σ'.M(d)(v) = a* ∈ coverage(Σ'.L(a).eᵢ)`. The link is resurrected.
+The transition sequence may include document registration (K.δ in the `Document(e)` case of ASN-0047, governed by LP8), K.μ⁺ or K.μ⁺_L (extending an existing arrangement, possibly via fork), or any other combination of operations that preserves the link store. The orphan premise supplies `a ∈ dom(Σ.L)`. Store Monotonicity★ applied to `Σ →* Σ'` lifts this to `a ∈ dom(Σ'.L)`, making the slot accessor `Σ'.L(a).eᵢ` well-defined at the post-state. Because LP3★ keeps the link's coverage fixed across the entire sequence, `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`, so the membership `a* ∈ coverage(Σ.L(a).eᵢ)` carries through to `a* ∈ coverage(Σ'.L(a).eᵢ)`. By the definition of `project`, `v ∈ project(a, i, d, Σ')` since `v ∈ dom(Σ'.M(d))` and `Σ'.M(d)(v) = a* ∈ coverage(Σ'.L(a).eᵢ)`. The link is resurrected.
 
-This is the formal expression of Nelson's "reaching back through to a superseding version" mechanism. The system architecture admits resurrection because (i) the link's stored state is permanent (L12 of ASN-0043), (ii) the I-addresses it references are permanent (S0), (iii) the projection is a live computation that consults the current arrangement at the moment of query, and (iv) discovery is purely I-address-based, indifferent to provenance (LP12 references only coverage and range).
-
-A link can pass through arbitrarily many states of orphanage and resurrection without any modification to its stored data. The link does not "know" that the content has been removed and re-introduced; it does not need to.
+This is the formal expression of Nelson's "reaching back through to a superseding version" mechanism. The system architecture admits arbitrarily many cycles of orphanage and resurrection because (i) the link's stored state is permanent (L12 of ASN-0043), (ii) the I-addresses it references are permanent (S0), (iii) the projection is a live computation that consults the current arrangement at the moment of query, and (iv) discovery is purely I-address-based, indifferent to provenance (LP12 references only coverage and range). The link does not "know" that the content has been removed and re-introduced; it does not need to.
 
 ## Boundary and Width Behaviour
 
@@ -484,7 +478,7 @@ project(a, 1, d₁, Σ_1) = {v₁, v₂, v₃}
 
 The projection has shrunk by `{v₄}` (per LP10's exact characterisation), and the retained set `{v₁, v₂, v₃}` is the D-SEQ★-admissible prefix permitted by K.μ⁻. The I-address `i₄` is still in `dom(Σ.C)` by S0, but no longer in `ran(Σ_1.M(d₁))`. The link's coverage is unchanged — still the half-open interval `{t ∈ T : i₁ ≤ t < shift(i₁, 5)}`, of which `{i₁, i₂, i₃, i₄}` remain the traced members.
 
-Now suppose another document `d₂` is registered and transcludes `i₄` via K.δ-IsDocument followed by K.μ⁺ (the accompanying K.ρ step required by ValidComposite★'s J1★ coupling, which records `(i₄, d₂) ∈ R`, is elided from the displayed arrangement since projection does not consult `R`), producing state `Σ_2`:
+Now suppose another document `d₂` is registered and transcludes `i₄` via K.δ in the `Document(e)` case followed by K.μ⁺ (the accompanying K.ρ step required by ValidComposite★'s J1★ coupling, which records `(i₄, d₂) ∈ R`, is elided from the displayed arrangement since projection does not consult `R`), producing state `Σ_2`:
 ```
 Σ_2.M(d₂) = {w₁ ↦ i₄}
 project(a, 1, d₂, Σ_2) = {w₁}
@@ -530,7 +524,7 @@ At no point during either branch of this trace did the link itself change. The l
 | LP5 | Cross-document independence: projection through `d` unaffected by edits to `d' ≠ d` (frames over K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~) | introduced |
 | LP6 | K.α (content allocation) does not displace any projection | introduced |
 | LP7 | K.λ (link allocation) does not displace existing projections | introduced |
-| LP8 | Document-registration invariance (K.δ-IsDocument of ASN-0047): (a) `(A d ∈ dom(Σ.M) : project(e, d, Σ') = project(e, d, Σ))`; (b) `project(e, d_new, Σ') = ∅` | introduced |
+| LP8 | Document-registration invariance (K.δ in the `Document(e)` case of ASN-0047): (a) `(A d ∈ dom(Σ.M) : project(e, d, Σ') = project(e, d, Σ))`; (b) `project(e, d_new, Σ') = ∅` | introduced |
 | LP14 | K.ρ (provenance recording) does not displace any projection | introduced |
 | LP9 | K.μ⁺ and K.μ⁺_L can only enlarge projection; new V-positions come from new arrangement entries | introduced |
 | LP10 | K.μ⁻ can only shrink projection; lost V-positions come from removed arrangement entries | introduced |
