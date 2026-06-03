@@ -39,7 +39,7 @@ We must show these are exhaustive and mutually exclusive — otherwise the opera
 
 **Lemma D-EXH (Three-State Exhaustion).** Let `Σ` be a state reachable from `Σ_0` by a finite sequence of valid composite transitions (equivalently, `Σ` is a composite boundary). For every `(a, d)` with `a ∈ dom(Σ.C)` and `d ∈ Σ.E_doc`, exactly one of `CURRENT(a, d)`, `DELETED(a, d)`, `NEVER_INCLUDED(a, d)` holds.
 
-The reachability hypothesis is load-bearing for the proof: it activates `P4★` (`Contains_C(Σ) ⊆ R`), which ASN-0047 establishes as a composite-boundary property — not as a per-state invariant preserved by every elementary transition. At intermediate states inside a composite, `P4★` may fail, so the lemma's universal claim applies only to states observed at composite boundaries.
+The reachability hypothesis is load-bearing for the proof: it activates `P4★` (`Contains_C(Σ) ⊆ R`), which the proof below invokes to exclude the impossible row. The hypothesis is discharged structurally by D-BOUND, where the composite-boundary nature of `P4★` is established.
 
 *Proof.* The three predicates correspond to three of the four cases of the cross-product `(a ∈ ran(M(d))) × ((a, d) ∈ R)`:
 
@@ -145,7 +145,7 @@ The two halves are necessarily disjoint, and the disjointness is unconditional �
 
 **Observational-discipline axiom (D-BOUND).** SHOWDELETIONS is invoked at a composite boundary: the pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047).
 
-Both `P4★` (`Contains_C(Σ) ⊆ R`) and `P4a` (historical fidelity) are composite-boundary properties of ASN-0047, not per-state invariants preserved by every elementary transition: at an intermediate state inside a composite, `P4★` may fail and `(a, d) ∈ R` need not witness any prior inclusion. The boundary axiom discharges both at every invocation. It supplies D-EXH's `P4★` hypothesis (excluding the impossible `a ∈ ran(M(d)) ∧ (a, d) ∉ R` row), and it licenses P4a's reading of `DELETED(a, d)` as "`a` was once in `d`'s arrangement" — without it, `DELETED` could fire for content that was never included.
+The per-state invariants preserved by every elementary transition (S2, S3★, …) do not entail `P4★` (`Contains_C(Σ) ⊆ R`): both `P4★` and `P4a` (historical fidelity) are composite-boundary properties of ASN-0047, and at an intermediate state inside a composite `P4★` may fail — `(a, d) ∈ R` need not witness any prior inclusion. Restricting invocation to composite boundaries is what makes `P4★` and `P4a` available wherever the proofs in this note invoke them.
 
 The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state`, with the boundary conjunct supplied structurally by D-BOUND. Its postcondition characterises the result set-theoretically. We capture this in wp form. Let `q` abbreviate the predicate:
 
@@ -361,7 +361,7 @@ Consequences: SHOWDELETIONS is repeatable on the same state (yields identical re
 
 *Justification.* Each predicate `CURRENT`, `DELETED`, `NEVER_INCLUDED` is defined in terms of components of `Σ` only (`M`, `R`, `dom(C)`, `subspace_I`). The output sets are characterised entirely by these projections. Two distinct transition histories yielding the same `Σ` therefore yield identical SHOWDELETIONS outputs.
 
-This is what makes the operation an honest function of state. The user need not know how the system arrived at its current configuration; consulting the current configuration suffices. P4a (historical fidelity, ASN-0047) ensures that whenever the operation reports `DELETED(a, d)`, there really was a past state where `a` was in `d`'s arrangement — but the *route* to that past state is irrelevant to the report itself. P4a holds only at composite-boundary states, which is exactly where D-BOUND restricts SHOWDELETIONS to be invoked.
+This is what makes the operation an honest function of state. The user need not know how the system arrived at its current configuration; consulting the current configuration suffices. P4a (historical fidelity, ASN-0047; available at this invocation by D-BOUND) ensures that whenever the operation reports `DELETED(a, d)`, there really was a past state where `a` was in `d`'s arrangement — but the *route* to that past state is irrelevant to the report itself.
 
 ## Edge Cases
 
