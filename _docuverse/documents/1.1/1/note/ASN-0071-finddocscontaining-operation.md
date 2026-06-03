@@ -65,7 +65,7 @@ PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given t
 
 where the depth guard `#v ≥ #u` is what makes the remaining conjuncts well-typed.
 
-We name this **PC-RANGE**. The captured set is `⟦σ⟧ ∩ dom(M(d_s))`, parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it *lies within* the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. Actual membership is determined by the intersection `∩ dom(M(d_s))`, and within each such subtree by D-SEQ★, which pins the intermediate components `2 ≤ j < #v` of every arrangement position to `1`: most of those geometric subtrees hold no arrangement positions, and if some `u_j ≠ 1` for `2 ≤ j < #u` the intersection is empty even when `#u ≤ m_C`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}`, confining the capture to the single subtree under the prefix `u`.
+We name this **PC-RANGE**. The captured set is `⟦σ⟧ ∩ dom(M(d_s))`, parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}`, confining the capture to the single subtree under the prefix `u`.
 
 The depth `m_C` (S8-depth) is well-defined only when `V_{s_C}(d_s) ≠ ∅`, so we split. If `V_{s_C}(d_s) = ∅` the source carries no content-subspace position; since every `v ∈ ⟦σ⟧ ∩ dom(M(d_s))` is content-subspace (PC's position-1 instance gives `subspace(v) = s_C`), the intersection is empty and `iaddrs_one(d_s, σ)(Σ) = ∅` trivially. If `V_{s_C}(d_s) ≠ ∅` then `m_C` is defined, and when additionally `#u > m_C` the anchor is finer than every content-subspace arrangement position: by S8-depth every content-subspace `v ∈ dom(M(d_s))` has `#v = m_C < #u`, so the depth-`#v < #u` case of the characterisation excludes each such `v` from `⟦σ⟧`; the intersection is empty and `iaddrs_one(d_s, σ)(Σ) = ∅`. We record the latter as **F-DEEP**: `V_{s_C}(d_s) ≠ ∅ ∧ #u > m_C ⟹ iaddrs_one(d_s, σ)(Σ) = ∅` — a vspec whose anchor is deeper than the source's content-subspace arrangement depth resolves to nothing.
 
@@ -77,13 +77,13 @@ Given resolved I-addresses, FINDDOCSCONTAINING returns the documents whose arran
 
   `find(Q)(Σ) := { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }`
 
-The definition is extensional — `find(Q)(Σ)` is *exactly* the set of documents satisfying the membership predicate — so it is sound and complete by construction: a `d ∈ Σ.E_doc` is returned iff it satisfies the predicate, with no further proof obligation. The `P(E_doc)` codomain likewise makes `find(Q)(Σ)` a set, so each document appears at most once (**F-DIST**) — a document transcluding ten queried passages is reported once, not ten times. The result enumerates documents, not occurrences.
+The definition is extensional — `find(Q)(Σ)` is *exactly* the set of documents satisfying the membership predicate. The `P(E_doc)` codomain likewise makes `find(Q)(Σ)` a set, so each document appears at most once (**F-DIST**) — a document transcluding ten queried passages is reported once, not ten times. The result enumerates documents, not occurrences.
 
 *Well-definedness precondition.* `find` inherits `wp-defined` (named in *Resolution*) as its domain: `find(Q)(Σ)` is defined exactly when `wp-defined` holds at the evaluation state `Σ`, since `find` invokes `iaddrs(Q)(Σ)`, whose definedness `wp-defined` already establishes. When it holds, every `Σ.M(d_s)` named in `iaddrs(Q)(Σ)` is a defined arrangement and the resolution of the previous section applies unchanged.
 
 *Only content sharing can satisfy the predicate.* Every witness of a match lies in `iaddrs(Q)(Σ)`, and *Resolution* already established `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`, so `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)` (**F-CONTENT**). A document is returned because it shares *byte content*, never because it shares a *link* address.
 
-*Source self-inclusion.* Whenever a source resolves any I-address at all, the source document is itself among the results — querying a document's own passage must return at least that document, the formal bridge between the read-direction (what `d_s` contains) and the search-direction (who contains it). Suppose `iaddrs_one(d_s, σ)(Σ) ≠ ∅`. Then some `a = Σ.M(d_s)(v)` with `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))`, so `a ∈ ran(Σ.M(d_s))` and `a ∈ iaddrs_one(d_s, σ)(Σ) ⊆ iaddrs(Q)(Σ)`; hence `ran(Σ.M(d_s)) ∩ iaddrs(Q)(Σ) ≠ ∅`. With `d_s ∈ Σ.E_doc` by `wp-defined`, the membership predicate holds, so `d_s ∈ find(Q)(Σ)`. We record this as **F-SELF**: `iaddrs_one(d_s, σ)(Σ) ≠ ∅ ⟹ d_s ∈ find(Q)(Σ)` for every `(d_s, σ) ∈ Q`.
+*Source self-inclusion.* Whenever a source resolves any I-address at all, the source document is itself among the results — querying a document's own passage must return at least that document. Suppose `iaddrs_one(d_s, σ)(Σ) ≠ ∅`. Then some `a = Σ.M(d_s)(v)` with `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))`, so `a ∈ ran(Σ.M(d_s))` and `a ∈ iaddrs_one(d_s, σ)(Σ) ⊆ iaddrs(Q)(Σ)`; hence `ran(Σ.M(d_s)) ∩ iaddrs(Q)(Σ) ≠ ∅`. With `d_s ∈ Σ.E_doc` by `wp-defined`, the membership predicate holds, so `d_s ∈ find(Q)(Σ)`. We record this as **F-SELF**: `iaddrs_one(d_s, σ)(Σ) ≠ ∅ ⟹ d_s ∈ find(Q)(Σ)` for every `(d_s, σ) ∈ Q`.
 
 The empty query is the boundary case. When `Q = ∅`, the union `iaddrs(∅)(Σ) = ⋃_{(d_s, σ) ∈ ∅} ...` is the empty set, so for every `d ∈ Σ.E_doc` the intersection `ran(Σ.M(d)) ∩ ∅ = ∅` is empty. Therefore `find(∅)(Σ) = ∅`. The operation is total on the empty input — no special case is needed in the definition.
 
@@ -219,7 +219,7 @@ Because `origin(a)` is a function of `a`'s tumbler alone, grounded in `E_doc` by
 
   `(Σ.E_doc = Σ'.E_doc) ∧ (A d ∈ Σ.E_doc : Σ.M(d) = Σ'.M(d))  ⟹  find(Q)(Σ) = find(Q)(Σ')`
 
-This is what Nelson's "containing" (present participle) commits to. The predicate is evaluated at the moment of query, not over the lifetime of the docuverse. A document whose arrangement once referenced `a` but has since been contracted (via K.μ⁻ from ASN-0047) is not in `find(Q)` even if it once was. The operation reports current containment, full stop. `find` does not consult ASN-0047's provenance relation `R`, which records `(a, d)` permanently (P2); the extensional result is therefore over the *currently-containing* set.
+This is what Nelson's "containing" (present participle) commits to: the predicate is evaluated against the current `M`, not over the lifetime of the docuverse. A document whose arrangement once referenced `a` but has since been contracted (via K.μ⁻ from ASN-0047) is not in `find(Q)` even if it once was. `find` does not consult ASN-0047's provenance relation `R`, which records `(a, d)` permanently (P2).
 
 ## Finiteness
 
