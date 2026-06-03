@@ -265,7 +265,7 @@ F8 is the comprehension-level instance for F1's existential; F15 is the comprehe
 
 ## Arrangement Independence
 
-The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. The operationally salient frame condition exercised by editing operations rests on a structural lemma of the substrate: that operations other than K.λ preserve `Σ.L`. Five of the eight non-allocating operations list `L' = L` in their published frames; three (K.μ⁺, K.μ⁻, K.ρ) omit `L` from the published frame. We package the preservation lemma:
+The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. The operationally salient frame condition exercised by editing operations rests on a structural lemma of the substrate: that operations other than K.λ preserve `Σ.L`. Five of the eight non-allocating operations list `L' = L` in their published frames ({K.σ, K.α, K.δ, K.μ⁺_L, K.ρ}); two atomic operations (K.μ⁺, K.μ⁻) omit `L` from the published frame. The eighth, K.μ~, is the non-atomic composite, reached only through its K.μ⁻ + K.μ⁺ decomposition (below). We package the preservation lemma:
 
 ```
 A1 (LinkStoreInertOfNonAllocatingOperations):
@@ -277,15 +277,15 @@ A1 (LinkStoreInertOfNonAllocatingOperations):
    A1 ranges over the atomic operations of V ∖ {K.λ}. It is the
    union of:
    - A1a (published-frame preservation, covering {K.σ, K.α, K.δ,
-     K.μ⁺_L}): conclusion immediate from the substrate's published
+     K.μ⁺_L, K.ρ}): conclusion immediate from the substrate's published
      `L' = L` frame clause. No interpretive commitment.
-   - A1b (closed-world preservation, covering {K.μ⁺, K.μ⁻, K.ρ}):
+   - A1b (closed-world preservation, covering {K.μ⁺, K.μ⁻}):
      conclusion derived from the substrate's effect-clause convention
      under the closed-world reading — components absent from both
      effect and frame are unchanged. The reading is adopted
      methodologically by this ASN; the substrate spec does not
-     formally axiomatise it. Downstream citations at K.μ⁺, K.μ⁻, or
-     K.ρ inherit this convention-grounded commitment.
+     formally axiomatise it. Downstream citations at K.μ⁺ or K.μ⁻
+     inherit this convention-grounded commitment.
 
    K.μ~ is excluded from A1a and A1b alike, because ASN-0047 fixes it
    as a non-atomic named composite — shorthand for a K.μ⁻ + K.μ⁺
@@ -342,8 +342,8 @@ F9-cor (NonAllocatingPreservation):
    any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   F9-cor inherits A1b's commitment at the K.μ⁺, K.μ⁻, K.ρ sub-cases;
-   the remaining four atomic operations (K.σ, K.α, K.δ, K.μ⁺_L)
+   F9-cor inherits A1b's commitment at the K.μ⁺, K.μ⁻ sub-cases;
+   the remaining five atomic operations (K.σ, K.α, K.δ, K.μ⁺_L, K.ρ)
    discharge from A1a. K.δ has three sub-cases; the IsDocument
    sub-case modifies M(d_new) but K.δ's published frame includes
    L' = L uniformly, so F9-cor's I-side conclusion holds for all three.
@@ -623,7 +623,7 @@ By PrefixSpanCoverage, each canonical span's coverage is a prefix subtree. The t
 
   (iii) K.μ⁺ extends `Σ_2.M(d_c)` with `v_c^1 ↦ α_c`. K.μ⁺'s frame omits `L`; by A1b, `Σ_3.L = Σ_2.L`.
 
-  (iv) K.ρ records `(α_c, d_c) ∈ R`. K.ρ's frame omits `L`; by A1b, `Σ_4.L = Σ_3.L`.
+  (iv) K.ρ records `(α_c, d_c) ∈ R`. K.ρ's published frame names `L' = L` (A1a): `Σ_4.L = Σ_3.L`.
 
   (v) K.μ⁻ contracts `Σ_4.M(d_a)` to `{v_a^1 ↦ α₁}`. K.μ⁻'s frame omits `L`; by A1b, `Σ_5.L = Σ_4.L`.
 
@@ -671,11 +671,11 @@ A1b adopts the closed-world reading of the substrate's effect-clause convention:
 
 (i) Nelson's design intent in *Literary Machines* requires operations to preserve state they do not explicitly modify: the Istream is append-only ("user makes changes, the changes difflessly into the storage system, filed, as it were, chronologically" at 2/14), edits are non-destructive ("users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate—without damaging the originals" at 2/45), and modification is restricted to the owner ("Only the owner has a right to withdraw a document or change it" at 2/29).
 
-(ii) Gregory's udanax-green implementation leaves the link store unmodified across operations corresponding to K.μ⁺ (INSERT), K.μ⁻ (DELETE / `dodeletevspan`), and K.ρ (DOCISPAN insertion via `docopy`).
+(ii) Gregory's udanax-green implementation leaves the link store unmodified across the operations corresponding to K.μ⁺ (INSERT) and K.μ⁻ (DELETE / `dodeletevspan`).
 
 Both are *convergent* with A1b's conclusion but not constitutive; the methodological commitment remains primary because the substrate spec does not formally axiomatise the convention.
 
-*Why not a substrate revision.* Publishing `L' = L` explicitly in the three silent frames of ASN-0047, or axiomatising the closed-world convention as a substrate-level meta-axiom, would discharge A1b directly. We prefer the local methodological commitment in ASN-0099 for two reasons: (1) *scope* — revising ASN-0047 is a substrate-level amendment whose impact extends to every consumer of the operation vocabulary, and ASN-0099 should not unilaterally commit the substrate to a convention other downstream ASNs may not need; (2) *separability* — tagging A1b with convention status keeps the interpretive commitment surfaced at the citation site of every claim depending on it, so a future substrate revision can replace A1b's convention-grounded reading with an axiomatised one cleanly. Readers who reject the closed-world reading must restate A1b against an alternative interpretation or weaken its conclusion at K.μ⁺, K.μ⁻, K.ρ.
+*Why not a substrate revision.* Publishing `L' = L` explicitly in the two silent frames of ASN-0047 (K.μ⁺, K.μ⁻), or axiomatising the closed-world convention as a substrate-level meta-axiom, would discharge A1b directly. We prefer the local methodological commitment in ASN-0099 for two reasons: (1) *scope* — revising ASN-0047 is a substrate-level amendment whose impact extends to every consumer of the operation vocabulary, and ASN-0099 should not unilaterally commit the substrate to a convention other downstream ASNs may not need; (2) *separability* — tagging A1b with convention status keeps the interpretive commitment surfaced at the citation site of every claim depending on it, so a future substrate revision can replace A1b's convention-grounded reading with an axiomatised one cleanly. Readers who reject the closed-world reading must restate A1b against an alternative interpretation or weaken its conclusion at K.μ⁺, K.μ⁻.
 
 ## Claims Introduced
 
@@ -689,8 +689,8 @@ Both are *convergent* with A1b's conclusion but not constitutive; the methodolog
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
 | PerLinkInvarianceUnderValuePreservation | Per-link primitive: match and filtered per-link universal evaluate identically when `Σ'.L(a) = Σ.L(a)` at a specific `a` | introduced (sub-lemma) |
 | ChainIndexEqualsAllocationOrder | Within a home document, T1 rank = chain index = K.λ event count | introduced (sub-lemma) |
-| A1a | PublishedFramePreservation: atomic {K.σ, K.α, K.δ, K.μ⁺_L} preserve `Σ.L` from published frames | introduced (structural lemma) |
-| A1b | ClosedWorldPreservation: atomic {K.μ⁺, K.μ⁻, K.ρ} preserve `Σ.L` under closed-world reading of substrate effect-clause convention; convention-grounded | introduced (convention-grounded lemma) |
+| A1a | PublishedFramePreservation: atomic {K.σ, K.α, K.δ, K.μ⁺_L, K.ρ} preserve `Σ.L` from published frames | introduced (structural lemma) |
+| A1b | ClosedWorldPreservation: atomic {K.μ⁺, K.μ⁻} preserve `Σ.L` under closed-world reading of substrate effect-clause convention; convention-grounded | introduced (convention-grounded lemma) |
 | A1 | LinkStoreInertOfNonAllocatingOperations: composite of A1a and A1b over the atomic ops of V ∖ {K.λ}; K.μ~ reached only via its K.μ⁻ + K.μ⁺ decomposition (A1b at both); K.λ unique L-modifying operation in V | introduced (composite lemma) |
 | F1 | MatchPredicate definition | definition |
 | F2 | Completeness: `findlinks(I, Σ) ⊆ result(I, Σ)` | introduced |
