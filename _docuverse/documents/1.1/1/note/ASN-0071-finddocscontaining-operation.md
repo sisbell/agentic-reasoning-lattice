@@ -3,7 +3,7 @@
 
 A reader of a document can ask: *what is in this document?* The answer comes from walking the document's arrangement and resolving each V-position to the content at its I-address — the read-direction.
 
-The same reader can ask the inverse: *what documents contain this content?* This is the search-direction. A scholar tracing a quotation, a system computing royalty for transcluded reuse, a writer enumerating who has cited a passage — each needs to enumerate documents whose arrangements reference some specified material.
+The same reader can ask the inverse: *what documents contain this content?* This is the search-direction. A scholar tracing where a quotation has been reused, a system computing royalty for transcluded reuse, a writer finding every document that transcludes a passage — each needs to enumerate documents whose arrangements reference some specified material.
 
 We specify what such an operation must do. Following Nelson we call it **FINDDOCSCONTAINING**. The question this ASN answers is: what is its result set? What determines membership, what guarantees govern completeness, and what does the operation deliberately not promise about currency in a permanent address space?
 
@@ -15,11 +15,11 @@ We work within the strand model as extended by ASN-0047. State `Σ` carries the 
 
 Content can be named in two registers. By I-address — "the content at addresses `A`" — purely structural. By V-position with source — "the content of document `d` at positions `σ`" — referenced from where the user encountered it.
 
-We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s` is a document address naming a source document and `σ = (u, ℓ)` is a level-uniform V-span confined to the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) = #u`, `#ℓ = #u` (level-uniformity, ASN-0053 S6), and `actionPoint(ℓ) ≥ 2` (equivalently `ℓ₁ = 0`: the displacement does not perturb the subspace identifier at position 1; together with `actionPoint(ℓ) = #u` this also forces `#u ≥ 2`). Its denotation `⟦σ⟧` and reach `u ⊕ ℓ` used throughout are ASN-0053's (σ.denotation: `⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}`; σ.reach: `reach(σ) = start(σ) ⊕ width(σ)`); we apply those definitions rather than restate them below. A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
+We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s` is a document address naming a source document and `σ = (u, ℓ)` is a level-uniform V-span confined to the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) = #u`, `#ℓ = #u` (level-uniformity, ASN-0053 S6), and `actionPoint(ℓ) ≥ 2` (equivalently `ℓ₁ = 0`: the displacement does not perturb the subspace identifier at position 1; together with `actionPoint(ℓ) = #u` this also forces `#u ≥ 2`). A vspec is exactly ASN-0058's ContentReference `(d_s, σ)` minus two of its clauses: we drop well-formedness (the requirement that every depth-`m` position in the span's range belong to `dom(M(d_s))`) and the depth-pinning clause (iii) `#ℓ = #u = m`, which fixes the span depth to the source's content-subspace depth `m_C`. Relaxing depth-pinning is precisely what admits the cross-depth cases (F-DEEP and the shallow-anchor capture of Q_E below), in which `#u ≠ m_C`. Its denotation `⟦σ⟧` and reach `u ⊕ ℓ` used throughout are ASN-0053's (σ.denotation: `⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}`; σ.reach: `reach(σ) = start(σ) ⊕ width(σ)`); we apply those definitions rather than restate them below. A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
 
 We name the claim we need *prefix confinement* (PC): every `t ∈ ⟦σ⟧` agrees with `u` on all components `1 ≤ j < #u`. This is the relaxed analogue of ASN-0058's C0a; we derive it below from the vspec preconditions `subspace(u) = s_C` and `actionPoint(ℓ) = #u ≥ 2`.
 
-*Componentwise fact.* For any position `p` with `1 ≤ p < #u` *at which `t_p` exists*, `t` cannot first disagree with `u` at `p`. Since `p < #u = actionPoint(ℓ)`, TumblerAdd's prefix-copy gives `u_p = (u ⊕ ℓ)_p`; were `t_p ≠ u_p`, NAT-order trichotomy (T0) splits the disagreement at `p` into `t_p < u_p` or `t_p > u_p`, and T1 case (i) at `p` would then force either `t < u` (if `t_p < u_p`) or `t > u ⊕ ℓ` (if `t_p > u_p`), each contradicting `u ≤ t < u ⊕ ℓ`. T0 thus excludes `p` as a *first* point of disagreement, but settling every position needs one further step. Were the disagreement set `{p : 1 ≤ p < #u ∧ t_p exists ∧ t_p ≠ u_p}` non-empty, well-ordering of the positions would furnish it a least element — a first disagreement — which the contradiction just excluded; the set is therefore empty, and `t_p = u_p` wherever `t_p` exists with `p < #u`.
+*Componentwise fact.* For any position `p` with `1 ≤ p < #u` *at which `t_p` exists*, `t` cannot first disagree with `u` at `p`. Since `p < #u = actionPoint(ℓ)`, TumblerAdd's prefix-copy gives `u_p = (u ⊕ ℓ)_p`; were `t_p ≠ u_p`, NAT-order trichotomy (T0) splits the disagreement at `p` into `t_p < u_p` or `t_p > u_p`, and T1 case (i) at `p` would then force either `t < u` (if `t_p < u_p`) or `t > u ⊕ ℓ` (if `t_p > u_p`), each contradicting `u ≤ t < u ⊕ ℓ`. T0 thus excludes `p` as a *first* point of disagreement. Were the disagreement set `{p : 1 ≤ p < #u ∧ t_p exists ∧ t_p ≠ u_p}` non-empty, well-ordering of the positions would furnish it a least element — a first disagreement — which the contradiction just excluded; the set is therefore empty, and `t_p = u_p` wherever `t_p` exists with `p < #u`.
 
 *Totality.* Every `t ∈ ⟦σ⟧` has depth `#t ≥ #u`, so each `t_j` (`1 ≤ j < #u`) exists. Were `#t < #u`, then either `t` agrees with `u` on its whole length — making `t` a proper prefix of `u`, hence `t < u` by T1 case (ii), contradicting `u ≤ t` — or `t` first disagrees with `u` at some position `p ≤ #t < #u`, where `t_p` exists, contradicting the componentwise fact; either way `#t < #u` is impossible.
 
@@ -39,9 +39,9 @@ For a vspec-set `Q`:
 
   `iaddrs(Q)(Σ) := ⋃_{(d_s, σ) ∈ Q} iaddrs_one(d_s, σ)(Σ)`
 
-`iaddrs_one(d_s, σ)(Σ)` is the set of I-addresses `d_s`'s arrangement assigns to span positions, deduplicated, with any span position absent from `dom(M(d_s))` quietly omitted (F-FILT).
+`iaddrs_one(d_s, σ)(Σ)` is the set of I-addresses `d_s`'s arrangement assigns to span positions, deduplicated, with any span position absent from `dom(M(d_s))` quietly omitted (F-FILT). It is the set-image counterpart of ASN-0058's `resolve(d_s, σ)`, which returns an ordered, width-annotated sequence of I-address runs; we take the bare set of I-addresses because membership in `find` is order- and multiplicity-insensitive. We reprove its integrity (`iaddrs(Q)(Σ) ⊆ dom(Σ.C)`, below) rather than cite ASN-0058's C1, because dropping well-formedness places vspecs outside C1's hypothesis.
 
-Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. With each `d_s ∈ Σ.E_doc` (by `wp-defined`), every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(Σ.C)` rather than `dom(Σ.L)`. We show subspace confinement first, then apply S3★.
+Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. With each `d_s ∈ Σ.E_doc` (by `wp-defined`), every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(Σ.C)` rather than `dom(Σ.L)`.
 
 *Subspace confinement.* Every `t ∈ ⟦σ⟧` has `subspace(t) = s_C` — PC's position-1 instance (*The query*).
 
@@ -172,7 +172,7 @@ This is cross-source deduplication: two independent per-source resolutions both 
 
   `find(Q_G)(Σ) = {d_A, d_B, d_D}`
 
-Each document is reported exactly once (F-DIST). `d_D` references `a₁` at two non-adjacent positions (`w₁`, `w₃`) and is named by neither vspec of `Q_G`, yet appears a single time; `d_A` and `d_B` are each simultaneously a query *source* and a *result*, again listed once. Both layers of deduplication act here: the cross-source union folds the doubly-resolved `a₁`, and the `P(E_doc)` codomain folds the multiply-referencing document.
+Each document is reported exactly once (F-DIST). `d_D` references `a₁` at two non-adjacent positions (`w₁`, `w₃`) and is named by neither vspec of `Q_G`, yet appears a single time; `d_A` and `d_B` are each simultaneously a query *source* and a *result*, again listed once.
 
 **A cross-depth query.** We extend the construction with one depth-3 document, reaching a state `Σ⁺` that adds `d_E` to `Σ`:
 
