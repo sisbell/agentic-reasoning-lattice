@@ -74,7 +74,7 @@ We now show that the four foundation state components `(C, L, E, M)` together ar
 
 *Notational convention.* In the histories below, each `→*` arrow denotes one valid composite under ValidComposite★ (ASN-0047); line breaks are visual aids only. K.α must be bundled with a K.μ⁺/K.ρ pair in the same composite: K.α's frame leaves `M` unchanged, so a standalone-K.α composite would produce `a ∈ dom(C') \ dom(C)` without placing `a` in any arrangement, violating J0 (AllocationPlacementCoupling, ASN-0047). The bundling pattern is exhibited in Histories 1 and 2 below.
 
-A second bundling concerns document creation. K.δ case (ii) with `k = 2` (descent) requires `t ∈ E ∧ zeros(t) ≤ 1`. From `Σ_0` (where the only entity is the bootstrap node `n_0` with `zeros(n_0) = 0`), a single elementary K.δ step produces at most an account (`zeros = 1`). Producing a document (`zeros = 2`) requires a precursor account-creation step. We therefore use `K.δ(d)` as shorthand for a composite containing whatever precursor K.δ steps are needed to satisfy the entity-hierarchy preconditions — for example, the composite `K.δ(A); K.δ(d)` where `A = inc(n_0, 2)` is the account and `d = inc(A, 2)` is the document. The composite is valid by ValidComposite★: each elementary step satisfies its precondition at its intermediate state, and J0/J1★/J1'★ are vacuous because no K.α, K.μ⁺, or K.ρ steps appear. The same convention applies to `K.δ(d_A)` and `K.δ(d_B)` in the worked example below.
+A second bundling concerns document creation. K.δ case (ii) with `k = 2` (descent) requires `t ∈ E ∧ zeros(t) ≤ 1`. From `Σ_0` (where the only entity is the bootstrap node `n_0` with `zeros(n_0) = 0`), a single elementary K.δ step produces at most an account (`zeros = 1`); producing a document (`zeros = 2`) requires a precursor account-creation step. We therefore write `K.δ(d) ≡ K.δ(A); K.δ(d)` as shorthand, where `A = inc(n_0, 2)` is the account and `d = inc(A, 2)` is the document. The same convention applies to `K.δ(d_A)` and `K.δ(d_B)` in the worked example below.
 
 Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix `K.δ(d); K.δ(d')` — creating two documents `d, d'`. Both then invoke K.α(a, d) to allocate one content address. By K.α's first-emission rule (`{a' ∈ dom(C) : origin(a') = d} = ∅` initially), the allocated address is determinately `a = [d.0.s_C.1]` — a value fixed by `d` alone. Both histories pass the same `d` to the first-emission predicate, so both yield the same allocated address `a`. We further stipulate that both histories pass the *same* `v ∈ Val` argument to K.α — call it `v_a` — so that `C_1(a) = C_2(a) = v_a` and the content-store agreement in the table below holds at the value level. K.α's content-value parameter is a free choice by the caller, and synchronising it across the two histories is the only way to make the `(C, L, E, M)` agreement total. We fix the content-subspace V-position depth at `m_C = 2` throughout both histories — admissible because ValidFirstInsertionPosition (ASN-0036) treats `m` as operational input with `m ≥ 2`, and we choose the minimum so both histories operate with the same depth — giving `v = [s_C, 1] = [1, 1]` in `M(d)` and `v' = [s_C, 1] = [1, 1]` in `M(d')` as the canonical D-MIN★ first positions for each document's initially-empty content subspace. The histories then differ in where `a` is placed and which provenance pairs are recorded.
 
@@ -195,7 +195,7 @@ The joint report is empty exactly when no content has been deleted from one docu
 
 *Group 3: neither `(a, d_A) ∈ R` nor `(a, d_B) ∈ R`.* The address is classified `NEVER_INCLUDED` against both documents; `DELETED(a, d_A)` and `DELETED(a, d_B)` both fail on their first conjuncts, so both conjuncts are falsified trivially.
 
-The three groups are exhaustive (disjointness rules out membership in both `R`-projections, so no fourth group arises). Every `a ∈ dom(C)` falsifies both conjuncts, and `Q0` holds. The argument covers the special case of one or both `R`-projections being empty without separate handling. Documents with synchronised edits (each deletion mirrored in the partner) satisfy `Q0` non-vacuously: for shared content, removal from one is matched by removal from the other.
+The three groups are exhaustive (disjointness rules out membership in both `R`-projections, so no fourth group arises). Every `a ∈ dom(C)` falsifies both conjuncts, and `Q0` holds. The argument covers the special case of one or both `R`-projections being empty without separate handling. ∎
 
 ## A Worked Example
 
@@ -292,7 +292,7 @@ Both subspaces are excluded, so `ℓ ∉ ran(M(d_B))`. No comparison document ot
 
 *Justification.* The output sets are defined as subsets of `dom(C)`. Each element is an existing I-address. We return addresses, not values.
 
-The architectural significance is foundational. An operation that recovers content using these references dereferences existing entries in `C`; it does not allocate new ones. Three guarantees that depend on persistent I-address identity therefore survive recovery:
+An operation that recovers content using these references dereferences existing entries in `C`; it does not allocate new ones. Two guarantees that depend on persistent I-address identity therefore survive recovery:
 
 - *Link survival.* By L3 (NEndsetStructure, ASN-0047), every link in `dom(L)` references content via endsets. By P3 (ArrangementMutabilityOnly) and L12 (LinkImmutability, ASN-0047), `L` is preserved across all arrangement transitions — `L' = L` for every K.μ⁺/K.μ⁻/K.μ~ — so every link referencing `a` continues to reference the same `a`.
 - *Transclusion integrity.* By S2 (ArrangementFunctionality, ASN-0036) and the content clause of S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)` — arrangements reference I-addresses by tumbler identity: each content-subspace V-position maps to a determinate `a ∈ dom(C)`. If another document's content-subspace arrangement maps a V-position to `a`, that mapping continues to reference the same `a` because P0 (ContentPermanence, ASN-0047, subsuming S0 of ASN-0036) preserves both `dom(C)` and the value at every existing entry across all transitions; no aliasing or shadow copy is introduced.
@@ -304,8 +304,6 @@ The architectural significance is foundational. An operation that recovers conte
 *Justification.* By S7 (ASN-0036), `origin(a)` is defined for every `a ∈ dom(C)` and is invariant across all states in which `a ∈ dom(C)`. The output sets are subsets of `dom(C)`, so `origin` is well-defined on every output element.
 
 The user-facing meaning: any returned address self-identifies its home document. When `d_A` and `d_B` were derived from a common ancestor `d_C`, content inherited from `d_C` and later deleted from `d_A` carries `origin(a) = d_C`. Content originally allocated by some other document and transcluded into `d_A` before deletion carries that other document's address as origin. The output need carry no extra "origin annotation" beyond the address itself — origin is derived structurally from the address.
-
-This matters operationally because it scopes recovery rights and accounting. The originating document is recoverable from the address; recovery operations can verify permissions against `origin`; royalty or attribution mechanisms have the data they need.
 
 ## Order Preservation
 
@@ -328,7 +326,7 @@ where `X = DeletedFromAWithB(d_A, d_B)` and `Y = DeletedFromBWithA(d_A, d_B)`.
 
 *Justification.* By name-substitution in the definitions: `DeletedFromAWithB(d_B, d_A)` reads as "addresses with `DELETED(a, d_B) ∧ CURRENT(a, d_A)`," which is exactly `DeletedFromBWithA(d_A, d_B)`. Likewise the other half.
 
-The content-level guarantee — the union of both halves as a set of I-addresses — is therefore symmetric in the operands. The presentation labelling (which half is "from A" vs. "from B") swaps accordingly. This matches the design intent that correspondence between documents is a structural fact about shared content and not an asymmetric query over arguments.
+The content-level guarantee — the union of both halves as a set of I-addresses — is therefore symmetric in the operands. The presentation labelling (which half is "from A" vs. "from B") swaps accordingly.
 
 ## Actionability
 
