@@ -1,13 +1,12 @@
-# Revision Categorization — ASN-0067 review-14
+# Channel Assignment — ASN-0102 review-14
 
-**Date:** 2026-03-22 23:16
+**Date:** 2026-06-03 14:44
 
+## Issue 1: The symbol `p` is overloaded with two distinct meanings
+Reason: Pure notational disambiguation — renaming the reference count vs. insertion-position component and auditing every occurrence is entirely internal to the ASN; no design intent or implementation evidence bears on a symbol choice.
 
+## Issue 2: X10's name and table summary overstate the guarantee for the self-source case
+Reason: The body already states the correctly scoped claim (`d' ≠ d` non-interference plus snapshot resolution for `d_s = d`); aligning the name and table entry to the body is internal bookkeeping requiring no external channel.
 
-## Issue 1: Missing source-subspace restriction on content references
-Category: INTERNAL
-Reason: The fix is derivable from existing definitions — S3★ already distinguishes content-subspace from link-subspace mappings, and the resolution chain (C1 → S3) already assumes content-subspace positions. Adding P.4a or annotating the S3 verification requires only the definitions already present in ASN-0058 and ASN-0047.
-
-## Issue 2: Incorrect T7 citation for V-position subspace disjointness
-Category: INTERNAL
-Reason: The correct citation (T3/CanonicalRepresentation) is already present in ASN-0034. The argument — different first components imply distinct tumblers — follows directly from T3 without needing any external evidence about design intent or implementation behavior.
+## Issue 3: `wp(COPY, S3★)` is called a "biconditional" but is a universal membership condition
+Reason: The displayed formula and surrounding proof are already correct; only the descriptive word is wrong, so the fix is a self-contained wording correction derivable from the ASN's own reasoning.
