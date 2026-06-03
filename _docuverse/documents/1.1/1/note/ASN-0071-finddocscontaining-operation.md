@@ -41,15 +41,21 @@ Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddr
 
 *Routing.* Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`. The subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` is read with `Σ` explicit on both sides — the right-hand side is the input state's content store, not a fixed set.
 
-*Which positions resolve — cross-depth capture in general.* PC fixes the prefix `⟦σ⟧` shares with `u`; we now characterise exactly which arrangement positions the intersection `⟦σ⟧ ∩ dom(M(d_s))` retains, including those deeper than `#u`. Fix a vspec `(d_s, σ)` with `σ = (u, ℓ)`, action point `#u`, and reach `r = u ⊕ ℓ`; since `actionPoint(ℓ) = #u`, TumblerAdd copies `r_j = u_j` for `j < #u` and sums `r_{#u} = u_{#u} + ℓ_{#u}` at the action point. We claim, for any `v ∈ dom(M(d_s))` (depth `#v ≥ #u`):
+*Which positions resolve — cross-depth capture in general.* PC fixes the prefix `⟦σ⟧` shares with `u`; we now characterise exactly which arrangement positions the intersection `⟦σ⟧ ∩ dom(M(d_s))` retains, including those deeper than `#u`. Fix a vspec `(d_s, σ)` with `σ = (u, ℓ)`, action point `#u`, and reach `r = u ⊕ ℓ`; since `actionPoint(ℓ) = #u`, TumblerAdd copies `r_j = u_j` for `j < #u` and sums `r_{#u} = u_{#u} + ℓ_{#u}` at the action point. The vspec preconditions place no relation between `#u` and the source's content-subspace depth `m_C` (S8-depth), so a position `v ∈ dom(M(d_s))` may be shallower than, equal to, or deeper than the anchor. We split on this, since the component `v_{#u}` named below exists only when `#v ≥ #u`.
+
+*Positions of depth `#v ≥ #u`.* Here `v_{#u}` is defined, and we claim:
 
   `v ∈ ⟦σ⟧  ⟺  (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u}`
 
-PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given that agreement, the two order comparisons reduce to position `#u`: for `u ≤ v`, T1 case (i) at `#u` gives `u ≤ v ⟺ u_{#u} ≤ v_{#u}` (when `v_{#u} = u_{#u}`, `u` is a prefix of the deeper `v`, so `u < v` by T1 case (ii) — still `u ≤ v`); for `v < r`, since `r` has depth `#u` and agrees with `v` below `#u`, T1 case (i) at `#u` gives `v < r ⟺ v_{#u} < r_{#u}` (equality `v_{#u} = r_{#u}` makes `r` a proper prefix of the deeper `v`, so `r < v`, excluded). Intersecting with `dom(M(d_s))`:
+PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given that agreement, the two order comparisons reduce to position `#u`: for `u ≤ v`, T1 case (i) at `#u` gives `u ≤ v ⟺ u_{#u} ≤ v_{#u}` (when `v_{#u} = u_{#u}`, `u` is a prefix of the deeper `v`, so `u < v` by T1 case (ii) — still `u ≤ v`); for `v < r`, since `r` has depth `#u` and agrees with `v` below `#u`, T1 case (i) at `#u` gives `v < r ⟺ v_{#u} < r_{#u}` (equality `v_{#u} = r_{#u}` makes `r` a proper prefix of the deeper `v`, so `r < v`, excluded).
 
-  `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }`
+*Positions of depth `#v < #u`.* Such a `v` has no component at index `#u`, so the right-hand conjunct `u_{#u} ≤ v_{#u} < r_{#u}` references an undefined component and cannot hold — `v` is excluded from the right-hand set. On the left, PC's totality clause (*The query*) established that every `t ∈ ⟦σ⟧` has `#t ≥ #u`; hence `v ∉ ⟦σ⟧`, excluding it from the left as well. Both sides drop every position shallower than the anchor, so the characterisation contributes nothing — and costs nothing — for these positions. Intersecting with `dom(M(d_s))`, the two cases combine into:
 
-We name this **PC-RANGE**. The captured set is parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it is the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}` and captures the single subtree under the prefix `u`. Where `#u < m_C` (the arrangement's content-subspace depth), a shallow vspec thereby reaches every deeper arrangement position beneath the named coarse coordinate — the coarse-coordinate reach Nelson's address convention promises.
+  `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : #v ≥ #u ∧ (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }`
+
+where the depth guard `#v ≥ #u` is what makes the remaining conjuncts well-typed.
+
+We name this **PC-RANGE**. The captured set is parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it is the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}` and captures the single subtree under the prefix `u`. Three depth regimes follow, each governed by how the anchor depth `#u` compares to the arrangement's content-subspace depth `m_C` (S8-depth): when `#u = m_C` the captured positions are exactly the named depth-`m_C` positions; when `#u < m_C` a shallow vspec reaches every deeper arrangement position beneath the named coarse coordinate — the coarse-coordinate reach Nelson's address convention names (LM 4/38); and when `#u > m_C` the anchor is finer than every arrangement position, so by the depth-`#v < #u` case no position resolves and `iaddrs_one(d_s, σ)(Σ) = ∅` — the dual boundary, a vspec naming a coordinate deeper than anything the source arranges.
 
 The resolution of `Q` is the union of independent per-source resolutions, each `iaddrs_one(d_s, σ)(Σ)` depending only on `Σ.M(d_s)`.
 
@@ -69,7 +75,7 @@ This biconditional is its own completeness and soundness statement: its (⟸) di
 
 *Only content sharing can satisfy the predicate.* The range `ran(Σ.M(d))` carries both content-subspace and link-subspace images: by S3★, a content-subspace V-position routes into `dom(Σ.C)` and a link-subspace V-position into `dom(Σ.L)`. By S3★ ∧ S3★-aux (SubspaceExhaustiveness, ASN-0047), `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)`. The link-subspace portion can never contribute a match. We discharged the source side already — `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` by subspace confinement — and the target side is its dual: the link-subspace images lie in `dom(Σ.L)`, which is disjoint from `dom(Σ.C)` (ASN-0047 L14, StoreDisjointness: `dom(C) ∩ dom(L) = ∅`). Therefore `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ (dom(Σ.C) ∪ dom(Σ.L)) ∩ dom(Σ.C) = dom(Σ.C)`, where the left factor `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)` is S3★ ∧ S3★-aux and the right factor `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` is the subspace-confinement subset claim above; the product set evaluates to `dom(Σ.C)` since `dom(Σ.C) ⊆ dom(Σ.C) ∪ dom(Σ.L)`. We record this as **F-CONTENT**: every shared address witnessing a match lies in `dom(Σ.C)` — `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. A document is returned because it shares *byte content*, never because it shares a *link* address. This is what justifies calling the operation content-transclusion discovery.
 
-*Source self-inclusion.* Whenever a source resolves any I-address at all, the source document is itself among the results — querying a document's own passage must return at least that document, the formal bridge between the read-direction (what `d_s` contains) and the search-direction (who contains it) promised in the introduction. Suppose `iaddrs_one(d_s, σ)(Σ) ≠ ∅`. Then some `a = Σ.M(d_s)(v)` with `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))`, so `a ∈ ran(Σ.M(d_s))` and `a ∈ iaddrs_one(d_s, σ)(Σ) ⊆ iaddrs(Q)(Σ)`; hence `ran(Σ.M(d_s)) ∩ iaddrs(Q)(Σ) ≠ ∅`. With `d_s ∈ Σ.E_doc` by `wp-defined`, the membership predicate holds, so `d_s ∈ find(Q)(Σ)`. We record this as **F-SELF**: `iaddrs_one(d_s, σ)(Σ) ≠ ∅ ⟹ d_s ∈ find(Q)(Σ)` for every `(d_s, σ) ∈ Q`.
+*Source self-inclusion.* Whenever a source resolves any I-address at all, the source document is itself among the results — querying a document's own passage must return at least that document, the formal bridge between the read-direction (what `d_s` contains) and the search-direction (who contains it). Suppose `iaddrs_one(d_s, σ)(Σ) ≠ ∅`. Then some `a = Σ.M(d_s)(v)` with `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))`, so `a ∈ ran(Σ.M(d_s))` and `a ∈ iaddrs_one(d_s, σ)(Σ) ⊆ iaddrs(Q)(Σ)`; hence `ran(Σ.M(d_s)) ∩ iaddrs(Q)(Σ) ≠ ∅`. With `d_s ∈ Σ.E_doc` by `wp-defined`, the membership predicate holds, so `d_s ∈ find(Q)(Σ)`. We record this as **F-SELF**: `iaddrs_one(d_s, σ)(Σ) ≠ ∅ ⟹ d_s ∈ find(Q)(Σ)` for every `(d_s, σ) ∈ Q`.
 
 The empty query is the boundary case. When `Q = ∅`, the union `iaddrs(∅)(Σ) = ⋃_{(d_s, σ) ∈ ∅} ...` is the empty set, so for every `d ∈ Σ.E_doc` the intersection `ran(Σ.M(d)) ∩ ∅ = ∅` is empty. Therefore `find(∅)(Σ) = ∅`. The operation is total on the empty input — no special case is needed in the definition.
 
@@ -157,7 +163,7 @@ Now submit the *shallow* vspec `Q_E = {(d_E, σ_E)}` with `σ_E = ([s_C, 1], δ(
 
   `⟦σ_E⟧ ∩ dom(M(d_E)) = {[s_C,1,1], [s_C,1,2], [s_C,1,3]}`
 
-— the *entire* depth-3 subtree hanging under the depth-2 anchor `[s_C, 1]`, captured by a span the user anchored at a single coarse coordinate. These positions *are* current arrangement entries, so F-FILT offers no defense; collecting them is the intended semantics. The span has `#u = 2 < m_C = 3` and unit width at its action point, so its denotation reaches every deeper arrangement position whose first two components are `[s_C, 1]` — exactly one sibling subtree. Resolving:
+— the *entire* depth-3 subtree hanging under the depth-2 anchor `[s_C, 1]`, captured by a span the user anchored at a single coarse coordinate. These positions *are* current arrangement entries, so F-FILT offers no defense; collecting them is the intended semantics. Resolving:
 
   `iaddrs(Q_E)(Σ⁺) = { M(d_E)(v) : v ∈ {[s_C,1,1], [s_C,1,2], [s_C,1,3]} } = {a₁, a₂}`
 
@@ -165,19 +171,13 @@ Now submit the *shallow* vspec `Q_E = {(d_E, σ_E)}` with `σ_E = ([s_C, 1], δ(
 
   `find(Q_E)(Σ⁺) = {d_A, d_B, d_C, d_D, d_E}`
 
-The coarse shallow anchor — naming a single depth-2 coordinate over a depth-3 source — discovered the full transclusion community of the subtree's content.
-
-*Cross-depth capture, in general.* This width-1 subtree capture is the unit case of PC-RANGE (established in *Resolution*): the shallow vspec `σ_E` has action-point width `ℓ_{#u} = 1`, so PC-RANGE pins `v_{#u} = u_{#u} = 1` and the captured set is the single subtree under prefix `[s_C, 1]` — here `{[s_C,1,1], [s_C,1,2], [s_C,1,3]}`, exactly the intersection computed above.
+The coarse shallow anchor — naming a single depth-2 coordinate over a depth-3 source — discovered the full transclusion community of the subtree's content. This is the width-1 (`ℓ_{#u} = 1`) instance of PC-RANGE at `u = [s_C, 1]`, with `#u = 2 < m_C = 3`.
 
 ## Partial overlap suffices
 
-The predicate uses `≠ ∅`. A single shared I-address — one `a ∈ ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)` — is sufficient for `d`'s inclusion:
+The predicate uses `≠ ∅`, so a single shared I-address suffices for `d`'s inclusion (F-PART): the result does not require `d` to reference all of `iaddrs(Q)`, nor its reference to be of any particular extent. A document that transcludes a single sentence from a chapter-length query passage qualifies, alongside documents that transclude the whole.
 
-  `d ∈ find(Q)(Σ)  ⟺  d ∈ Σ.E_doc ∧ (E a : a ∈ ran(Σ.M(d)) : a ∈ iaddrs(Q)(Σ))`
-
-The result does not require `d` to reference all of `iaddrs(Q)`; it does not require `d`'s reference to be of any particular extent. A document that transcludes a single sentence from a chapter-length query passage qualifies, alongside documents that transclude the whole.
-
-F-PART (fragment suffices) and F-CONTENT (native or transcluded alike) together discharge the retrieval promise framed in the introduction. The asymmetry matters — a query about a large passage may discover documents that each reference only a tiny fragment of it. The result set has no inherent measure of "how much" each returned document contains; to recover an extent measure, the requester must compute `|ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)|` for each returned `d` separately.
+The result set therefore carries no inherent measure of "how much" each returned document contains. To recover an extent measure, the requester must compute `|ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)|` for each returned `d` separately.
 
 ## Home versus transcluding documents
 
@@ -224,7 +224,7 @@ The returned set has presentation and policy properties we have left unspecified
 | F-iaddrs | `iaddrs : VSpecSet × Σ ⇀ P(T)` with `iaddrs(Q)(Σ) = ⋃_{(d_s, σ) ∈ Q} { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }`, defined under `wp-defined: (A (d_s, σ) ∈ Q :: d_s ∈ Σ.E_doc)`; subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` whenever `wp-defined` holds | definition; subset claim proven in *Resolution* (subspace confinement of `⟦σ⟧` + S3★), gated on `wp-defined` | introduced |
 | F-find | `find : VSpecSet × Σ ⇀ P(E_doc)` with `find(Q)(Σ) = { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }`, defined under the precondition `(A (d_s, σ) ∈ Q :: d_s ∈ Σ.E_doc)` | definition; precondition couples each vspec source to the evaluation state (M1, P1 of ASN-0047) | introduced |
 | PC | Prefix confinement: for a vspec `(d_s, σ)` with `σ = (u, ℓ)` and `actionPoint(ℓ) = #u`, every `t ∈ ⟦σ⟧` satisfies `t_j = u_j` for `1 ≤ j < #u` | derived locally from TumblerAdd prefix-copy + T1 case (i) + NAT-order trichotomy (T0) for the per-position case split + well-ordering of positions for the universal closure | introduced |
-| PC-RANGE | Cross-depth capture: for a vspec `(d_s, σ)` with `σ = (u, ℓ)`, `actionPoint(ℓ) = #u`, reach `r = u ⊕ ℓ`, `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }` — the union of the `ℓ_{#u}` sibling subtrees under prefix-component range `[u_{#u}, u_{#u} + ℓ_{#u})`; the single-subtree ("prefix names subtree") case is the width-1 specialisation `ℓ_{#u} = 1` | derived locally from PC + T1 case (i)/(ii) at position `#u` | introduced |
+| PC-RANGE | Cross-depth capture: for a vspec `(d_s, σ)` with `σ = (u, ℓ)`, `actionPoint(ℓ) = #u`, reach `r = u ⊕ ℓ`, `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : #v ≥ #u ∧ (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }` — the union of the `ℓ_{#u}` sibling subtrees under prefix-component range `[u_{#u}, u_{#u} + ℓ_{#u})`; the single-subtree ("prefix names subtree") case is the width-1 specialisation `ℓ_{#u} = 1`. The depth guard `#v ≥ #u` is load-bearing: positions with `#v < #u` (which arise whenever `#u > m_C`) are excluded from both sides by PC totality, so a vspec anchored deeper than the source arrangement resolves empty | derived locally from PC + T1 case (i)/(ii) at position `#u` for `#v ≥ #u`; PC totality excludes `#v < #u` from both sides | introduced |
 | F-COMP | Completeness: every `d ∈ Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` is in `find(Q)(Σ)` | direct from F-find (⟸ direction of the defining iff) | introduced |
 | F-SOUND | Soundness: every `d ∈ find(Q)(Σ)` is in `Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` | direct from F-find (⟹ direction of the defining iff) | introduced |
 | F-PART | Partial overlap suffices: `d ∈ find(Q)(Σ) ⟺ d ∈ Σ.E_doc ∧ (E a : a ∈ ran(Σ.M(d)) : a ∈ iaddrs(Q)(Σ))` | direct from F-find (unfolding `≠ ∅` of a binary intersection) | introduced |
