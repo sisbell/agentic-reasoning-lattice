@@ -78,7 +78,7 @@ A second bundling concerns document creation. K.δ case (ii) with `k = 2` (desce
 
 Throughout both histories, each content-introduction composite follows a fixed *bundle pattern*: K.α allocates `a` into `dom(C')`, discharging the freshness obligation; K.μ⁺ places `a` into some document's arrangement, discharging J0; and because K.μ⁺'s frame leaves `R` unchanged on its own, the bundled K.ρ is what records the provenance pair, discharging J1★ and J1'★.
 
-Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix `K.δ(d); K.δ(d')` — creating two documents `d, d'`. Both then invoke K.α(a, d) to allocate one content address. By K.α's first-emission rule (`{a' ∈ dom(C) : origin(a') = d} = ∅` initially), the allocated address is determinately `a = [d.0.s_C.1]` — a value fixed by `d` alone. Both histories pass the same `d` to the first-emission predicate, so both yield the same allocated address `a`. We further stipulate that both histories pass the *same* `v ∈ Val` argument to K.α — call it `v_a` — so that `C_1(a) = C_2(a) = v_a` and the content-store agreement in the table below holds at the value level. K.α's content-value parameter is a free choice by the caller, and synchronising it across the two histories is the only way to make the `(C, L, E, M)` agreement total. We fix the content-subspace V-position depth at `m_C = 2` throughout both histories — admissible because ValidFirstInsertionPosition (ASN-0036) treats `m` as operational input with `m ≥ 2`, and we choose the minimum so both histories operate with the same depth — giving `v = [s_C, 1] = [1, 1]` in `M(d)` and `v' = [s_C, 1] = [1, 1]` in `M(d')` as the canonical D-MIN★ first positions for each document's initially-empty content subspace. The histories then differ in where `a` is placed and which provenance pairs are recorded.
+Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix `K.δ(d); K.δ(d')` — creating two documents `d, d'`. Both then invoke K.α(a, d) to allocate one content address. By K.α's first-emission rule (`{a' ∈ dom(C) : origin(a') = d} = ∅` initially), the allocated address is determinately `a = [d.0.s_C.1]` — a value fixed by `d` alone. Both histories pass the same `d` to the first-emission predicate, so both yield the same allocated address `a`. We further stipulate that both histories pass the *same* `v ∈ Val` argument to K.α — call it `v_a` — so that `C_1(a) = C_2(a) = v_a` and the content-store agreement in the table below holds at the value level. We fix the content-subspace V-position depth at `m_C = 2` throughout both histories — admissible because ValidFirstInsertionPosition (ASN-0036) treats `m` as operational input with `m ≥ 2` — giving `v = [s_C, 1] = [1, 1]` in `M(d)` and `v' = [s_C, 1] = [1, 1]` in `M(d')` as the canonical D-MIN★ first positions for each document's initially-empty content subspace. The histories then differ in where `a` is placed and which provenance pairs are recorded.
 
 *History 1 (yields DELETED).*
 
@@ -91,7 +91,7 @@ Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix
      =   Σ_1
 ```
 
-The third composite follows the bundle pattern, placing `a` in `M(d)` and recording `(a, d) ∈ R'`. The fourth composite, by the same pattern, extends `M(d')` with the same `a` at `v' = [s_C, 1]` and records `(a, d')`. The K.μ⁻ step on `d` retains zero content-subspace V-positions (`n'_{s_C} = 0`), removing `v ↦ a` from `M(d)`; by P2 (`R ⊆ R'`), `(a, d) ∈ R_1` persists. Final state: `dom(C_1) = {a}`, `M_1(d) = ∅`, `M_1(d') = {v' ↦ a}`, `(a, d) ∈ R_1`. So `DELETED(a, d)` holds at `Σ_1`.
+The third composite places `a` in `M(d)` and records `(a, d) ∈ R'`. The fourth composite extends `M(d')` with the same `a` at `v' = [s_C, 1]` and records `(a, d')`. The K.μ⁻ step on `d` retains zero content-subspace V-positions (`n'_{s_C} = 0`), removing `v ↦ a` from `M(d)`; by P2 (`R ⊆ R'`), `(a, d) ∈ R_1` persists. Final state: `dom(C_1) = {a}`, `M_1(d) = ∅`, `M_1(d') = {v' ↦ a}`, `(a, d) ∈ R_1`. So `DELETED(a, d)` holds at `Σ_1`.
 
 *History 2 (yields NEVER_INCLUDED).*
 
@@ -102,7 +102,7 @@ The third composite follows the bundle pattern, placing `a` in `M(d)` and record
      =   Σ_2
 ```
 
-The third composite follows the bundle pattern, placing `a` in `M(d')` (J0 requires placement in *some* document's arrangement, not specifically the origin's) and recording `(a, d') ∈ R_2`; `d` is never extended with `a`, so `(a, d) ∉ R_2`. Final state: `dom(C_2) = {a}`, `M_2(d) = ∅`, `M_2(d') = {v' ↦ a}`, `(a, d) ∉ R_2`. So `NEVER_INCLUDED(a, d)` holds at `Σ_2`.
+The third composite places `a` in `M(d')` (J0 requires placement in *some* document's arrangement, not specifically the origin's) and records `(a, d') ∈ R_2`; `d` is never extended with `a`, so `(a, d) ∉ R_2`. Final state: `dom(C_2) = {a}`, `M_2(d) = ∅`, `M_2(d') = {v' ↦ a}`, `(a, d) ∉ R_2`. So `NEVER_INCLUDED(a, d)` holds at `Σ_2`.
 
 *Agreement on (C, L, E, M).* Comparing the components of `Σ_1` and `Σ_2`:
 
@@ -151,9 +151,9 @@ SHOWDELETIONS(d_A, d_B)
 
 The two halves are necessarily disjoint. Membership in `DeletedFromAWithB` requires `CURRENT(a, d_B)`, i.e. `a ∈ ran(M(d_B))`; membership in `DeletedFromBWithA` requires `DELETED(a, d_B)`, whose second conjunct is `a ∉ ran(M(d_B))`. The two range-membership conditions on `M(d_B)` are directly contradictory, so no `a` can belong to both halves.
 
-**Observational-discipline axiom (D-BOUND).** SHOWDELETIONS is invoked at a composite boundary: the pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047).
+**Boundary precondition (D-BOUND).** SHOWDELETIONS is invoked at a composite boundary: the pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047). D-WIT and D-EXH carry this composite-boundary condition as an explicit hypothesis; D-BOUND is the operation precondition that supplies it.
 
-The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state`, with the boundary conjunct supplied structurally by D-BOUND. Its postcondition characterises the result set-theoretically. We capture this in wp form. Let `q` abbreviate the predicate:
+The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state`, the last conjunct being D-BOUND. Its postcondition characterises the result set-theoretically. We capture this in wp form. Let `q` abbreviate the predicate:
 
 ```
 Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
@@ -203,10 +203,10 @@ The three groups are exhaustive (disjointness rules out membership in both `R`-p
 
 We illustrate SHOWDELETIONS on the canonical scenario: a document is forked, and the two siblings diverge by each deleting different content. The claims D-EXH, D-IDENT, D-ORIG, and D-SYM can be checked concretely against the resulting state.
 
-*Setup.* Begin at `Σ_0` (the initial state of ASN-0047) and apply the composite
+*Setup.* Begin at `Σ_0` (the initial state of ASN-0047), where the only entity is the bootstrap node `n_0` with `zeros(n_0) = 0`. As in D-DISCR, the first document cannot be minted by a single elementary K.δ from `Σ_0` — that produces at most an account (`zeros = 1`). We therefore write `K.δ(d_A)` as shorthand for the precursor bundle `K.δ(A); K.δ(d_A)`, where `A = inc(n_0, 2)` is the account and `d_A = inc(A, 2)` is the document. Apply the composite
 
 ```
-Σ_0  →* K.δ(d_A)
+Σ_0  →* K.δ(d_A)                                             [precursor: K.δ(A); K.δ(d_A)]
      →* K.α(a, d_A);  K.μ⁺(d_A, [1,1] ↦ a);  K.ρ(a, d_A)
      →* K.α(b, d_A);  K.μ⁺(d_A, [1,2] ↦ b);  K.ρ(b, d_A)
      →* K.α(c, d_A);  K.μ⁺(d_A, [1,3] ↦ c);  K.ρ(c, d_A)
@@ -275,16 +275,9 @@ Confining the operation to the content subspace — which the restriction to `do
 
 **Claim D-SUBSP.** SHOWDELETIONS operates only over the content subspace (`s_C`).
 
-*Justification.* Content-subspace addresses can be shared between documents because the system permits one document's content arrangement to map V-positions to I-addresses allocated by another document — content identity transcends document boundaries within the content subspace.
+*Justification.* Both output sets are subsets of `dom(C)`. Every `a ∈ dom(C)` has `subspace_I(a) = s_C` (ContentAllocationSubspacePrecondition; equivalently L0), and `dom(C) ∩ dom(L) = ∅` by L14, so no link address can ever appear in an output. The restriction to the content subspace is thus immediate from `output ⊆ dom(C)`.
 
-The link subspace differs structurally. By CL-OWN (ASN-0047), if `subspace(v) = s_L` and `M(d)(v) = a`, then `origin(a) = d`: a document's link-subspace V-positions reference only its own link addresses. There is no inheritance of link content across documents in the way that there is for content. So "cross-document deletion of link material" is not a well-formed comparison — each document's link-subspace material is its own, and no comparison document holds it as witness.
-
-We make the witness-impossibility explicit. Let `ℓ` be a link address with `origin(ℓ) = d_A`, and let `d_B ≠ d_A` be any candidate witness document. We show `ℓ ∉ ran(M(d_B))`. First, by L0 (SubspacePartition, ASN-0047), `subspace_I(ℓ) = s_L`, so `ℓ ∈ dom(L)` (every link address lives in the link store). Suppose for contradiction `ℓ ∈ ran(M(d_B))`: some `v ∈ dom(M(d_B))` has `M(d_B)(v) = ℓ`, and by S3★-aux `subspace(v) ∈ {s_C, s_L}`. We exclude both:
-
-- *Content V-position (`subspace(v) = s_C`).* The content clause of S3★ would force `M(d_B)(v) = ℓ ∈ dom(C)`. But `ℓ ∈ dom(L)`, and L14 (`dom(C) ∩ dom(L) = ∅`) gives `ℓ ∉ dom(C)` — contradiction.
-- *Link V-position (`subspace(v) = s_L`).* CL-OWN would force `origin(M(d_B)(v)) = origin(ℓ) = d_B`. But `origin(ℓ) = d_A ≠ d_B` — contradiction.
-
-Both subspaces are excluded, so `ℓ ∉ ran(M(d_B))`. No comparison document other than `d_A` can hold `ℓ` in its arrangement, so the `CURRENT(ℓ, d_B)` witness condition that SHOWDELETIONS requires can never be satisfied across documents for link material. The link subspace requires a separate (and per-document, not cross-document) analysis.
+This restriction is not incidental: the content/link asymmetry is what makes cross-document deletion comparison meaningful only over `s_C`. Content-subspace addresses can be shared between documents, so one document can serve as the still-current witness for another's deletion. Link material cannot — by CL-OWN (ASN-0047), `subspace(v) = s_L ∧ M(d)(v) = a` forces `origin(a) = d`, so a document's link-subspace V-positions reference only its own link addresses and no comparison document ever holds another's link as witness.
 
 ## Identity Preservation
 
@@ -384,7 +377,7 @@ This is what makes the operation an honest function of state. The user need not 
 | DeletedFromAWithB | `{a ∈ dom(C) : DELETED(a, d_A) ∧ CURRENT(a, d_B)}` | introduced |
 | DeletedFromBWithA | Symmetric counterpart of DeletedFromAWithB | introduced |
 | SHOWDELETIONS | Observational operation `SHOWDELETIONS(d_A, d_B) = (DeletedFromAWithB(d_A, d_B), DeletedFromBWithA(d_A, d_B))` | introduced |
-| D-BOUND | SHOWDELETIONS is invoked at composite-boundary states; the boundary condition is part of the operation's contract and discharges D-EXH's hypothesis structurally | introduced |
+| D-BOUND | SHOWDELETIONS' boundary precondition: it is invoked at composite-boundary states, supplying the composite-boundary hypothesis that D-WIT and D-EXH carry | introduced |
 | D-DISJ | At a composite-boundary state, documents with disjoint content-subspace `R`-projections satisfy `Q0` (both report halves empty) | introduced |
 | D-SUBSP | The operation restricts to the content subspace `s_C`; cross-document deletion comparison is structurally meaningful only there | introduced |
 | D-IDENT | Output references are I-addresses themselves; no copies, no new identities | introduced |
