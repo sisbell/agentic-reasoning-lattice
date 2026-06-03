@@ -62,7 +62,7 @@ J4 also fixes the *content source operand* of the fork, which it writes `d_op`: 
 
 Two consequences follow without further machinery.
 
-*Structural ancestry.* We derive `d_src ≼ d_new` by induction on `A_v(d_src)`'s emission count.
+*Structural ancestry.* J4 (ASN-0047) already supplies `d_src ≼ d_new` directly as a derived consequence in both sub-cases, so the prefix relation is available by citation alone. We nonetheless re-derive it by induction on `A_v(d_src)`'s emission count, because the length identity `#d_new = #d_src + 1` produced en route is reused by V11a's recovery argument; the induction is retained for that by-product, not to re-establish the prefix relation J4 already gives.
 
 *Base case (first fork).* `d_new = inc(d_src, 1)`. By TA5(b) at `k = 1 > 0`, every component of `d_src` is preserved: `(A i : 1 ≤ i ≤ #d_src : (d_new)_i = (d_src)_i)`. By TA5(d), `#d_new = #d_src + 1`, so `#d_src ≤ #d_new`. By the Prefix definition (ASN-0034), `d_src ≼ d_new`.
 
@@ -585,11 +585,9 @@ V10(a) holds concretely: both `d_new = inc(d_src, 1)` and `d_new² = inc(d_new, 
 
 ## Dependency Audit
 
-The inquiry declares `depends: [34, 36, 40, 47]`. We audit the body against that set, claim by claim, and find it consumes claims from three of the four declared ASNs; the fourth (ASN-0040) has no use site and is treated below. Each declared dependency that is used is cited at its use site by ASN number and claim name, and no foundation claim is redeveloped in the body where a citation would serve.
+The inquiry declares `depends: [34, 36, 40, 47]`. ASN-0034 (Tumbler Algebra), ASN-0036 (Strand Model), and ASN-0047 (Transition Model) are each consumed, and every consumed claim is cited at its use site by ASN number and claim name; the per-claim citation map is the body itself, not re-tabulated here. No foundation claim is redeveloped where a citation would serve. The one local re-derivation — `d_src ≼ d_new` in the structural-ancestry argument, which J4 (ASN-0047) also supplies directly — is cited to J4 at its use site and retained only because its length-identity by-product feeds V11a. V6a's `coverage`, `project`, and `discoverable_from` are local constructs over T12 (span) and the substrate's L-component; they introduce no undeclared dependency.
 
-ASN-0034 (Tumbler Algebra) supplies T0, T1, T3, T8, T12, TA5, TA5(b), TA5(c), TA5(d), TA5-SigValid, T10a, T10a.4, T10a.6, T10a.7, Prefix, and ASN-0034's NAT-order transitivity. ASN-0036 (Strand Model) supplies S2, S7, S8a, S8-fin, S8-depth, and the V-position / I-address vocabulary. ASN-0047 (Transition Model) supplies K.δ (cases (ii) at `k = 0` and `k = 1`), K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ, K.α, K.λ, J0, J1★, J1'★, J4, L3, P0, P1, P2, P4★, S3★, D-CTG★, D-MIN★, D-SEQ★, CL-OWN, `Endset`, K.δ-ID.zeros-0/1, K.δ-ID.parent-0/1, ContentSubspaceRestriction (the K.μ⁺ amendment consumed in V4b's domain-equality derivation), SubAllocatorBundle, SequentialTransitionAxiom, SubspaceConventionAxiom, ValidComposite★, the Allocator hierarchy, P8 (EntityHierarchy), and the `Σ = (C, L, E, M, R)` substrate. V6a's `coverage`, `project`, and `discoverable_from` are local constructs defined over T12 (span) and the L-component of the substrate; no further foundation ASN is consumed.
-
-ASN-0040 (Tumbler Baptism), declared in the inquiry's `depends:` set, has no use site in this ASN's body. The baptism vocabulary (`Σ.B`, `next`, `hwm`, `baptize`, B0–B10) does not appear: the fork operation works entirely in ASN-0047's K.δ + Allocator hierarchy + SubAllocatorBundle + SequentialTransitionAxiom vocabulary for entity allocation and frontier advancement, with ASN-0034's T10a (allocator discipline), T10a.6 (DomainDisjointness), T10a.7 (EnumerationInjectivity), and T10a.4 (T4PreservationUnderDiscipline) supplying the underlying tumbler-arithmetic guarantees. ASN-0040 is flagged for removal from this inquiry's `depends:` set.
+ASN-0040 (Tumbler Baptism) has no use site. The baptism vocabulary (`Σ.B`, `next`, `hwm`, `baptize`, B0–B10) does not appear: entity allocation and frontier advancement run entirely through ASN-0047's K.δ, Allocator hierarchy, SubAllocatorBundle, and SequentialTransitionAxiom, over ASN-0034's T10a family (T10a, T10a.4, T10a.6, T10a.7) for the underlying tumbler guarantees. ASN-0040 is flagged for removal from this inquiry's `depends:` set.
 
 ## Open Questions
 
