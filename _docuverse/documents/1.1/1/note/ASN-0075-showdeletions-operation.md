@@ -37,10 +37,6 @@ NEVER_INCLUDED(a, d)  ≡  (a, d) ∉ R
 
 Per-occurrence removal — distinguishing which of several V-positions holding the same I-address went away — is a V-position (Vstream) concern that our I-address-set predicates do not address, and we scope it out of this operation.
 
-We must show these are exhaustive and mutually exclusive — otherwise the operation's outputs would have undefined classifications.
-
-We isolate the inference that recurs throughout this note: a content-store address found in a document's current arrangement must have a provenance record.
-
 **Lemma D-WIT (Content Witness Forces Provenance).** Let `Σ` be a composite-boundary state. For every `a ∈ dom(Σ.C)` and `d ∈ Σ.E_doc`, if `a ∈ ran(M(d))` then `(a, d) ∈ R`.
 
 *Proof.* From `a ∈ ran(M(d))`, fix `v ∈ dom(M(d))` with `M(d)(v) = a`. From `a ∈ dom(Σ.C)`, L14 (`dom(C) ∩ dom(L) = ∅`) gives `a ∉ dom(L)`. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`. The contrapositive of S3★'s link clause — `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)` — together with `M(d)(v) = a ∉ dom(L)` forces `subspace(v) ≠ s_L`, so `subspace(v) = s_C`. Then `v` witnesses `v ∈ dom(M(d)) ∧ subspace(v) = s_C ∧ M(d)(v) = a`, so `(a, d) ∈ Contains_C(Σ)` by definition, and `Contains_C(Σ) ⊆ R` (P4★, ASN-0047). Hence `(a, d) ∈ R`. ∎
@@ -151,6 +147,8 @@ SHOWDELETIONS(d_A, d_B)
 
 The two halves are necessarily disjoint. Membership in `DeletedFromAWithB` requires `CURRENT(a, d_B)`, i.e. `a ∈ ran(M(d_B))`; membership in `DeletedFromBWithA` requires `DELETED(a, d_B)`, whose second conjunct is `a ∉ ran(M(d_B))`. The two range-membership conditions on `M(d_B)` are directly contradictory, so no `a` can belong to both halves.
 
+**The operation writes no state component.** The definition is a pair of set-builder comprehensions over `Σ`: the operation allocates nothing, rewrites nothing, and invokes no transition relation. Hence for the post-state `Σ'`, every component agrees with `Σ` — `Σ'.C = Σ.C`, `Σ'.L = Σ.L`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, and `(A d ∈ E_doc :: Σ'.M(d) = Σ.M(d))`. We use this no-write fact in the wp reasoning that follows; it is restated as claim D-OBS, with its full consequences, in the Observational Frame section.
+
 **Boundary precondition (D-BOUND).** The pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047), so SHOWDELETIONS is invoked at a composite boundary.
 
 The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state`. Its postcondition characterises the result set-theoretically. We capture this in wp form. Let `q` abbreviate the predicate:
@@ -161,7 +159,7 @@ Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
 
 Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds.
 
-Because the operation reads state and writes none (D-OBS, below), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
+Because the operation reads state and writes none (the no-write fact established above, restated as D-OBS), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
 *Non-emptiness of one report half.* Let `Q1` abbreviate `DeletedFromAWithB(d_A, d_B) ≠ ∅`. Unpacking the definition of `DeletedFromAWithB`:
 
