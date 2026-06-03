@@ -52,8 +52,6 @@ The partition is disjoint (subspace is single-valued per the first-component pro
 
 **Well-definedness.** By S2 (ArrangementFunctionality, ASN-0036), `M(d)` is a partial function — every V-position in its domain has exactly one image. The inverse image of `coverage(e)` is therefore a uniquely determined subset of `dom(M(d))`.
 
-**Frame.** State-pure: `R` reads `M(d)` and `coverage(e)`; modifies nothing.
-
 The definition is *abstract*. It does not depend on how `M(d)` is stored, decomposed, or accessed. It does not depend on the order or structure of spans within `e`. Two endsets with the same coverage produce the same `R(d, e)`. Resolution is a function of coverage and arrangement — nothing more. The intersection `coverage(e) ∩ ran(M(d))` may be any subset of `ran(M(d))`, including `∅`; `R(d, e)` is defined uniformly regardless.
 
 ### F-subspace — IOSubspaceCorrespondence (LEMMA)
@@ -67,8 +65,6 @@ The V-subspace of a V-position determines the I-subspace of its image.
 - `subspace(v) = s_L ⟹ subspace_I(M(d)(v)) = s_L`
 
 **Depends.** S3★-aux (SubspaceExhaustiveness, ASN-0047) — `subspace(v) ∈ {s_C, s_L}` for every `v ∈ dom(M(d))`. S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`, and `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)`. L0 (SubspacePartition, ASN-0047) — `a ∈ dom(C) ⟹ subspace_I(a) = s_C`, and `a ∈ dom(L) ⟹ subspace_I(a) = s_L`. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`. In the `s_C` case, S3★ gives `M(d)(v) ∈ dom(C)` and L0 gives `subspace_I(M(d)(v)) = s_C = subspace(v)`; in the `s_L` case, S3★ gives `M(d)(v) ∈ dom(L)` and L0 gives `subspace_I(M(d)(v)) = s_L = subspace(v)`. Either case yields `subspace_I(M(d)(v)) = subspace(v)`.
-
-**Frame.** State-pure.
 
 **Consequence.** The subspace projection of `R` decomposes by I-subspace:
 
@@ -409,7 +405,7 @@ Each of the following is a consequence of the inverse-image definition combined 
 
 Among these, F-sound and F-complete are the two halves of the postcondition's set equality `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S`: F-sound is the `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S` inclusion; F-complete is the reverse inclusion.
 
-**Design grounding (Nelson).** Several of these lemmas are the structural form of design commitments Nelson states informally. F-det realises "a given part of a given version at a given time" yielding the same answer — without determinism, citation would be impossible. F-origin realises "non-native bytes are as much a logical part of a document as native bytes": native and transcluded content are indistinguishable to resolution. F-state realises that brokenness is state-relative — an empty resolution against one arrangement leaves the link intact and possibly non-empty against another document or state. F-multidoc realises "a link to one version is a link to all versions": the link's reach is fixed by where its endsets' content is currently arranged, extending into every document on the same terms.
+All derived properties below inherit F-frame's state-purity: `follow` reads `Σ` and modifies nothing, so each consequence is established against a fixed state. We do not restate this per lemma. The exceptions are F-persist and F-state, whose postconditions observe how resolution behaves *across* a transition `Σ → Σ'`; there the distinction between "`follow` modifies nothing" and "the observed state component varies" carries content, so their Frame slots are retained.
 
 ### F-det — DenotationalDeterminism (LEMMA)
 
@@ -418,8 +414,6 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 **Postcondition.** For two evaluations of `follow(ℓ, d, i)` against the same state `Σ`, returning `(d, Σ_V)` and `(d, Σ_V')`: `⟦Σ_V^S⟧_V = ⟦Σ_V'^S⟧_V` for each subspace `S`. The V-restricted denotation `⟦Σ_V^S⟧_V` is uniquely determined by `Σ`, `ℓ`, `d`, `i`.
 
 **Depends.** F0 (InverseImageRelation, this ASN — its Well-definedness clause, which itself rests on S2 ArrangementFunctionality, ASN-0036); S3★-aux (SubspaceExhaustiveness, ASN-0047); S8 (NormalizationExistence, ASN-0053); S9 (NormalizationUniqueness, ASN-0053); F-canonical (derived above).
-
-**Frame.** No state modification.
 
 **Derivation.** For fixed `Σ`:
 
@@ -436,8 +430,6 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 
 **Depends.** The postcondition of `follow` (F1); the definition of `R(d, e)` (F0).
 
-**Frame.** No state modification.
-
 **Derivation.** By the postcondition of `follow`, `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S`. For any `v ∈ R(d, L(ℓ).eᵢ)|_S`, the definition of `R` (F0) gives `v ∈ dom(M(d))` and `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`. The set equality transports this directly to every `v ∈ ⟦Σ_V^S⟧_V`. ∎
 
 ### F-complete — Completeness (LEMMA)
@@ -448,8 +440,6 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 
 **Depends.** The postcondition of `follow` (F1); the definition of `R(d, e)` (F0).
 
-**Frame.** No state modification.
-
 **Derivation.** Given `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`, the definition of `R` (F0) gives `v ∈ R(d, L(ℓ).eᵢ)`. The subspace projection at `S = subspace(v)` is well-defined (S3★-aux) and gives `v ∈ R(d, L(ℓ).eᵢ)|_S`. By the postcondition of `follow`, `R(d, L(ℓ).eᵢ)|_S = ⟦Σ_V^S⟧_V`, so `v ∈ ⟦Σ_V^S⟧_V`. ∎
 
 ### F-empty — EmptyAdmissibility (LEMMA)
@@ -459,8 +449,6 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 **Postcondition.** `⟦Σ_V^{s_C}⟧_V = ∅` and `⟦Σ_V^{s_L}⟧_V = ∅`. Under canonical form, both components are the empty span-set: `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. The operation succeeds and returns `(d, (Σ_V^{s_C}, Σ_V^{s_L}))` with both V-restricted denotations empty.
 
 **Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1). For the representational conclusion under canonical form: F-canonical and S9 (NormalizationUniqueness, ASN-0053).
-
-**Frame.** No state modification.
 
 **Derivation.** Chain the implications from the hypothesis:
 
@@ -481,8 +469,6 @@ There is no exception, no error, no fallback. The empty per-subspace family (V-r
 **Postcondition.** By F-subspace, `subspace(v₁) = subspace_I(M(d)(v₁)) = subspace_I(a)` and `subspace(v₂) = subspace_I(M(d)(v₂)) = subspace_I(a)`, so `subspace(v₁) = subspace(v₂) = subspace_I(a)` — both V-positions inhabit the same subspace. Writing `S := subspace_I(a)`, both `v₁ ∈ ⟦Σ_V^S⟧_V` and `v₂ ∈ ⟦Σ_V^S⟧_V`.
 
 **Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-subspace (this ASN); S3★-aux (SubspaceExhaustiveness, ASN-0047).
-
-**Frame.** No state modification.
 
 **Derivation.** Two arguments, kept separate.
 
@@ -510,8 +496,6 @@ The operation does not deduplicate, does not select a "canonical" V-position, do
 
 **Depends.** Slot accessor L6 (SlotDistinction, ASN-0043) — slots are uniformly indexed. L3's asymmetric well-formedness (`e₃ ≠ ∅` required, others may be empty) constrains link construction, not resolution.
 
-**Frame.** No state modification.
-
 Uniformity makes the operation composable: `followAll(ℓ, d) = (follow(ℓ, d, 1), ..., follow(ℓ, d, |L(ℓ)|))` is the positionally-aligned tuple of per-slot resolutions, with the type endset `e₃` resolving by the same mechanism as any other slot. The outcome `R(d, eᵢ) = ∅` is uniformly admissible whether the cause is `eᵢ = ∅` (vacuous coverage) or coverage that misses the arrangement; the result form does not distinguish them.
 
 ### F-contig — Contiguity (LEMMA)
@@ -521,8 +505,6 @@ Uniformity makes the operation composable: `followAll(ℓ, d) = (follow(ℓ, d, 
 **Postcondition.** `I(β) ∩ ⟦σ⟧` is either empty or a contiguous sub-progression `{a + j + k : 0 ≤ k < c}` of `I(β)`, for some offset `j` and width `c`; the corresponding V-positions `v + j, ..., v + j + c − 1` form a single contiguous V-run within `β`.
 
 **Depends.** M1 (OrderPreservation, ASN-0058) — strict monotonicity of the I-extent map `k ↦ a + k`; T12 (SpanWellDefinedness, ASN-0034) — order-convexity of `⟦σ⟧` under T1 (postcondition (c)).
-
-**Frame.** No state modification.
 
 **Derivation.** Proved inline in "Computation via Decomposition" above (the Contiguity claim): strict monotonicity of `k ↦ a + k` (M1) places any index between two qualifying indices into an order-interval whose endpoints lie in `⟦σ⟧`, and T12's order-convexity then places that index in `⟦σ⟧`; the intersection therefore contains every index between its minimum and maximum. ∎
 
@@ -534,9 +516,7 @@ Uniformity makes the operation composable: `followAll(ℓ, d) = (follow(ℓ, d, 
 
 **Depends.** Definition of `R(d, e)`.
 
-**Frame.** No state modification.
-
-Downstream callers may project to home from each `M(d)(v)` using the appropriate ASN-0036 or ASN-0043 projection, but the resolution mechanism does not.
+This is the structural form of Nelson's commitment that "non-native bytes are as much a logical part of a document as native bytes": native and transcluded content are indistinguishable to resolution, because membership in `R` turns on coverage alone and never on the home of `M(d)(v)`. Downstream callers may project to home from each `M(d)(v)` using the appropriate ASN-0036 or ASN-0043 projection, but the resolution mechanism does not.
 
 ### F-persist — LinkPersistence (LEMMA)
 
@@ -558,7 +538,7 @@ Empty resolution does not destroy the link.
 
 **Depends.** L12 (link state-invariance); the transition semantics of ASN-0047 (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L) that admit `M(d)` — the only state component `R` reads — to vary across transitions.
 
-**Frame.** No state modification.
+**Frame.** `follow` itself modifies nothing; the variation observed here is in `M(d)` across the transition `Σ → Σ'`, not in any component `follow` writes.
 
 ### F-multidoc — NoPreferredDocument (LEMMA)
 
@@ -567,8 +547,6 @@ Empty resolution does not destroy the link.
 **Postcondition.** `follow(ℓ, d, i)` and `follow(ℓ, d', i)` are well-defined and computed by the same mechanism. The home document `home(ℓ)` (Definition Home, ASN-0043) — the allocator of `ℓ`'s address, which need not be where the endset's content lives nor where the link is encountered — plays no privileged role.
 
 **Depends.** No precondition of `follow` references `home(ℓ)`.
-
-**Frame.** No state modification.
 
 ## Claims Introduced
 
