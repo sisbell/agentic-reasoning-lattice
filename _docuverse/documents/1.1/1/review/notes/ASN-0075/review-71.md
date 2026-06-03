@@ -1,0 +1,27 @@
+# Review of ASN-0075
+
+## REVISE
+
+### Issue 1: Observational frame stated three times with cross-section forward-reference scaffolding
+
+**ASN-0075, SHOWDELETIONS Definition / wp analysis / Observational Frame (D-OBS)**:
+
+The fact "SHOWDELETIONS reads `M(d_A)`, `M(d_B)`, `R`; allocates nothing, rewrites nothing, invokes no transition relation" is stated in full three times, bound together by forward-reference bookkeeping:
+
+- Definition section: *"The definition is a pair of set-builder comprehensions over `Σ`: it reads `M(d_A)`, `M(d_B)`, and `R`, allocates nothing, rewrites nothing, and invokes no transition relation. ... We record this as the observational frame and use it immediately in the wp analysis below; the formal frame condition is catalogued as D-OBS in the Observational Frame section."*
+- wp section: *"Because SHOWDELETIONS writes no state component (established above; formalized as D-OBS in the Observational Frame section), ..."*
+- D-OBS: *"It allocates nothing, rewrites nothing, and invokes no transition relation — observationality is immediate from the definition, which is a pair of set-builder comprehensions over `Σ`."*
+
+**Problem**: This is the forward-reference accretion pattern the anti-bloat classifier targets. The Definition section and D-OBS say the same thing in near-verbatim prose ("allocates nothing, rewrites nothing, and invokes no transition relation ... set-builder comprehensions over Σ"), and two separate sections defer to the same downstream location ("catalogued as D-OBS ... below," "formalized as D-OBS ... section"). The deferral bookkeeping advances no reasoning — the reader must skip past it to follow the wp claim.
+
+**Required**: State the observational fact once. Let D-OBS be the single catalog entry for the frame. In the Definition and wp sections, use the fact directly without the "catalogued as D-OBS below" / "formalized as D-OBS in the Observational Frame section" pointers and without re-deriving "comprehensions over Σ, allocates nothing, rewrites nothing." The wp section need only cite D-OBS by label.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Per-occurrence (multiset) deletion detection
+The note explicitly scopes out distinguishing which of several V-positions holding the same I-address was removed, treating it as a Vstream concern. This is correctly deferred — a future ASN on V-position-granular operations, not an error here.
+
+### Topic 2: Multi-document (>2) deletion families and span-presentation of deletion sets
+Raised in Open Questions (witness-structure for >2 documents, finite span presentation, restoration). These are genuine future territory, not gaps in this ASN.
+
+VERDICT: REVISE
