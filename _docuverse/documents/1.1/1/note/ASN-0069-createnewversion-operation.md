@@ -63,8 +63,6 @@ Two consequences follow without further machinery.
 
 *Address uniqueness.* The B8 (Uniqueness, ASN-0040) transfer established above (item iii) already guarantees that no two forks, of `d_src` or any other document, share a tumbler. Two further facts make that distinct address *permanent*: the K.δ precondition `e ∉ E` (uniformly required for all sub-cases) forces `d_new` to be a fresh tumbler, and T8 (AllocationPermanence, ASN-0034) keeps `d_new` in `E` for all subsequent reachable states once it enters. The identity is permanent.
 
-The identity argument is structurally independent of content inheritance, correspondence, and isolation. K.δ creates an empty-arrangement document; the fork's arrangement starts empty (the `Document(e)` effect clause of K.δ sets `M'(d_new) = ∅`). K.δ alone is exactly the empty fork (V7); §"Sharing, Not Duplication" derives the content-inheritance phase that turns the empty entity into a *version of* `d_src`.
-
 ## Sharing, Not Duplication
 
 The K.μ⁺ phase populates `M'(d_new)`. The question is what V-to-I mappings it installs. There are two candidate disciplines:
@@ -193,7 +191,7 @@ We record an immediate corollary.
 
 > **V8c** (*correspondence is symmetric and untyped*): The corresponding-position set `{v ∈ T : v ∈ dom(M'(d_op)) ∩ dom(M'(d_new)) ∧ M'(d_op)(v) = M'(d_new)(v)}` is defined by `∩` and `=`, both symmetric, so it is invariant under swap of `d_op` and `d_new`. V8 records a relationship between two documents in `E_doc`; it does not distinguish "source" from "fork."
 
-The intercomparison guarantee is *perpetual*: V8 holds in the post-fork state, and its consequences propagate to every subsequent state in which neither side has overwritten the relevant V-positions. The permanence facts that underwrite this propagation are collected once in V12.
+The intercomparison guarantee is *perpetual*: V8 holds in the post-fork state, and its consequences propagate to every subsequent state in which neither side has overwritten the relevant V-positions.
 
 ## Provenance Recording
 
