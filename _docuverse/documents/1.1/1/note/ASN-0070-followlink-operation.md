@@ -123,8 +123,6 @@ Concretely, the operation FOLLOWLINK has the following form:
 
 **Frame.** `Σ' = Σ`. No component of state is modified.
 
-*Remark.* `Σ_V^S = ⟨⟩` arises from two distinct sources: (a) `V_S(d) = ∅`, where `⟨⟩` is forced by the Vacuous-subspace convention; or (b) `V_S(d) ≠ ∅` but `R(d, L(ℓ).eᵢ)|_S = ∅`, where `⟨⟩` is the empty (vacuous-union) span-set. Source (b) shows `Σ_V^S = ⟨⟩` does not imply the subspace is vacuous.
-
 The preconditions are weak: only that the link exists, the document is allocated, and the endset index is in range.
 
 The result is a *pair* `(d, Σ_V)`. The document `d` accompanies the per-subspace family because V-positions only have meaning relative to a document's arrangement: the same V-position structure in `d`'s V-space and in `d'`'s V-space denote unrelated arrangements. Pairing with `d` preserves the resolution's context.
@@ -440,7 +438,7 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 
 **Preconditions.** As `follow`; additionally `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅` in `Σ`.
 
-**Postcondition.** `⟦Σ_V^{s_C}⟧_V = ∅` and `⟦Σ_V^{s_L}⟧_V = ∅`. Under canonical form, both components are the empty span-set: `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. The operation succeeds and returns `(d, (Σ_V^{s_C}, Σ_V^{s_L}))` with both V-restricted denotations empty — empty resolution is a normal result, not an error.
+**Postcondition.** `⟦Σ_V^{s_C}⟧_V = ∅` and `⟦Σ_V^{s_L}⟧_V = ∅`. Under canonical form, both components are the empty span-set: `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. The operation succeeds and returns `(d, (Σ_V^{s_C}, Σ_V^{s_L}))` with both V-restricted denotations empty — empty resolution is a normal result, not an error. (A `⟨⟩` component here means coverage misses a populated subspace; this is distinct from a vacuous subspace `V_S(d) = ∅`, where `⟨⟩` is forced by the Vacuous-subspace convention.)
 
 **Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1). For the representational conclusion under canonical form: F-canonical and S9 (NormalizationUniqueness, ASN-0053).
 
@@ -469,16 +467,6 @@ This establishes the V-restricted denotational conclusion unconditionally. The r
 *Remark (realisability).* ASN-0047's content-subspace arrangement extension K.μ⁺ imposes no injectivity constraint — unlike the link subspace, where CL-UNIQ (LinkSubspacePositionUniqueness, ASN-0047) forces the restriction of `M(d)` to `dom_L` to be injective. So `M(d)(v₁) = M(d)(v₂) = a` with `v₁ ≠ v₂` is reachable (e.g., two K.μ⁺ steps from `Σ₀` mapping distinct V-positions of a single document to the same I-address).
 
 The operation does not deduplicate, does not select a "canonical" V-position, does not collapse multiplicity in any way. Each `v` with `M(d)(v) ∈ coverage(e)` is in the result, regardless of whether other V-positions of `d` also map to the same `M(d)(v)`.
-
-### F-frame — Frame (INV)
-
-**Preconditions.** As `follow`.
-
-**Postcondition.** `Σ' = Σ`. Specifically: `C' = C`, `M' = M`, `L' = L`, `E' = E`, `R' = R`.
-
-**Depends.** Definition of `follow` as a query (no effect clause).
-
-**Frame.** The frame condition itself.
 
 ### F-slot — SlotUniformity (LEMMA)
 
@@ -554,7 +542,7 @@ Empty resolution does not destroy the link.
 | F-complete | Completeness — `R(d, L(ℓ).eᵢ)|_S ⊆ ⟦Σ_V^S⟧_V`: every qualifying `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` is in `⟦Σ_V^S⟧_V` for `S = subspace(v)`; ⊇ half of the postcondition's set equality | LEMMA | introduced |
 | F-empty | EmptyAdmissibility — `⟦Σ_V^{s_C}⟧_V = ∅` and `⟦Σ_V^{s_L}⟧_V = ∅` when `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅`; under canonical form, both components are `⟨⟩` | LEMMA | introduced |
 | F-multi | MultiplicityPreservation — when `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)` with `v₁ ≠ v₂`, both `v₁, v₂ ∈ ⟦Σ_V^S⟧_V` for `S = subspace_I(a)` | LEMMA | introduced |
-| F-frame | `follow` reads `Σ` and modifies no state component | INV | introduced |
+| F-frame | `follow` reads `Σ` and modifies no state component — the frame clause `Σ' = Σ` of F1 (named handle for downstream citation) | INV | introduced |
 | F-slot | SlotUniformity — all slots resolve by the same `R` mechanism; L3's asymmetric well-formedness constrains construction, not resolution | LEMMA | introduced |
 | F-origin | OriginSymmetry — `R` does not filter by `origin`/`home`; native and transcluded V-positions are treated identically | LEMMA | introduced |
 | F-persist | LinkPersistence — `ℓ` remains in `dom(Σ.L)` regardless of reach (by L12) | LEMMA | introduced |
