@@ -53,13 +53,13 @@ Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddr
 
   `v ∈ ⟦σ⟧  ⟺  (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u}`
 
-PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given that agreement, the two order comparisons reduce to position `#u`. The boundary component values `v_{#u} = u_{#u}` and `v_{#u} = r_{#u}` behave differently according to whether `v` is at the anchor's depth or strictly deeper, so we split the sub-case `#v ≥ #u` into `#v = #u` and `#v > #u`. The equal-depth sub-case is the principal one: by S8-depth every content-subspace `v ∈ dom(M(d_s))` has `#v = m_C`, so whenever the anchor matches the source depth (`#u = m_C`) *every* captured position satisfies `#v = #u`.
+PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given that agreement, the two order comparisons reduce to position `#u`. The boundary component values `v_{#u} = u_{#u}` and `v_{#u} = r_{#u}` behave differently according to whether `v` is at the anchor's depth or strictly deeper, so we split the sub-case `#v ≥ #u` into `#v = #u` and `#v > #u`. By S8-depth every content-subspace `v ∈ dom(M(d_s))` has `#v = m_C`, so whenever the anchor matches the source depth (`#u = m_C`) *every* captured position satisfies `#v = #u`.
 
 *Sub-case `#v = #u`.* Here `v`, `u`, and `r` all share depth `#u` and agree below it, so each pair differs at most at component `#u`. T1 case (i) at `#u` gives `u ≤ v ⟺ u_{#u} ≤ v_{#u}` and `v < r ⟺ v_{#u} < r_{#u}` directly. At the boundary values: `v_{#u} = u_{#u}` forces `v = u`, so `u ≤ v` holds by *equality*; `v_{#u} = r_{#u}` forces `v = r`, which is excluded because `r = reach(σ)` is an *exclusive* upper bound (`r ∉ ⟦σ⟧`) — not by any order relation between `r` and `v`.
 
 *Sub-case `#v > #u`.* Here `v` is strictly deeper than both `u` and `r`. For `u ≤ v`, T1 case (i) at `#u` gives `u ≤ v ⟺ u_{#u} ≤ v_{#u}` (when `v_{#u} = u_{#u}`, `u` is a proper prefix of the deeper `v`, so `u < v` by T1 case (ii) — still `u ≤ v`); for `v < r`, since `r` has depth `#u` and agrees with `v` below `#u`, T1 case (i) at `#u` gives `v < r ⟺ v_{#u} < r_{#u}` (equality `v_{#u} = r_{#u}` makes `r` a proper prefix of the deeper `v`, so `r < v` by T1 case (ii), excluded).
 
-*Positions of depth `#v < #u`.* Such a `v` has no component at index `#u`, so the right-hand conjunct `u_{#u} ≤ v_{#u} < r_{#u}` references an undefined component and cannot hold — `v` is excluded from the right-hand set. On the left, PC's totality clause (*The query*) established that every `t ∈ ⟦σ⟧` has `#t ≥ #u`; hence `v ∉ ⟦σ⟧`, excluding it from the left as well. Both sides drop every position shallower than the anchor, so the characterisation contributes nothing — and costs nothing — for these positions. Intersecting with `dom(M(d_s))`, the two cases combine into:
+*Positions of depth `#v < #u`.* Such a `v` has no component at index `#u`, so the right-hand conjunct `u_{#u} ≤ v_{#u} < r_{#u}` references an undefined component and cannot hold — `v` is excluded from the right-hand set. On the left, PC's totality clause (*The query*) established that every `t ∈ ⟦σ⟧` has `#t ≥ #u`; hence `v ∉ ⟦σ⟧`, excluding it from the left as well. Both sides drop every position shallower than the anchor. Intersecting with `dom(M(d_s))`, the two cases combine into:
 
   `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : #v ≥ #u ∧ (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }`
 
@@ -79,7 +79,7 @@ Given resolved I-addresses, FINDDOCSCONTAINING returns the documents whose arran
 
 The definition is extensional — `find(Q)(Σ)` is *exactly* the set of documents satisfying the membership predicate. The `P(E_doc)` codomain likewise makes `find(Q)(Σ)` a set, so each document appears at most once (**F-DIST**) — a document transcluding ten queried passages is reported once, not ten times. The result enumerates documents, not occurrences.
 
-*Well-definedness precondition.* `find` inherits `wp-defined` (named in *Resolution*) as its domain: `find(Q)(Σ)` is defined exactly when `wp-defined` holds at the evaluation state `Σ`, since `find` invokes `iaddrs(Q)(Σ)`, whose definedness `wp-defined` already establishes. When it holds, every `Σ.M(d_s)` named in `iaddrs(Q)(Σ)` is a defined arrangement and the resolution of the previous section applies unchanged.
+*Well-definedness precondition.* `find` inherits `wp-defined` (named in *Resolution*) as its domain: `find(Q)(Σ)` is defined exactly when `wp-defined` holds at the evaluation state `Σ`, since `find` invokes `iaddrs(Q)(Σ)`, whose definedness `wp-defined` already establishes.
 
 *Only content sharing can satisfy the predicate.* Every witness of a match lies in `iaddrs(Q)(Σ)`, and *Resolution* already established `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`, so `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)` (**F-CONTENT**). A document is returned because it shares *byte content*, never because it shares a *link* address.
 
