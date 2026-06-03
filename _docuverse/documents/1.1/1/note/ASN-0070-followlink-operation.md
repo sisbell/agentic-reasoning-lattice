@@ -20,11 +20,7 @@ By L4 (ASN-0043), endset spans may reference any addresses in tumbler space, inc
 
 Documents arrange I-addresses into V-positions. The arrangement of document `d` is the partial function `M(d) : T ⇀ T` from V-positions to I-addresses (ASN-0036, generalised by S3★ of ASN-0047). For any `v ∈ dom(M(d))`, `M(d)(v)` is the I-address that `d` currently places at V-position `v`. V-positions occupy two subspaces, distinguished by their first component: `subspace(v) = s_C` for content-subspace V-positions and `subspace(v) = s_L` for link-subspace V-positions.
 
-Within each subspace `S` of document `d`, V-positions share a common depth, written `m_S(d)`:
-- For `S = s_L`: `m_{s_L}(d) ≥ 2`, fixed when `V_{s_L}(d) ≠ ∅` (S8-depth, ASN-0036; `m_L(d)`, ASN-0047), pinned by the first link insertion (`ValidFirstLinkPosition` of K.μ⁺_L, for any chosen `m ≥ 2`) and held thereafter.
-- For `S = s_C`: `m_{s_C}(d) ≥ 2` is defined when `V_{s_C}(d) ≠ ∅` (S8-depth, ASN-0036), pinned by the first content insertion (ValidFirstInsertionPosition) and held thereafter.
-
-For either subspace, when `V_S(d) = ∅` the depth `m_S(d)` is undefined and `S` is vacuous in `d`; the next insertion re-pins it from scratch at any value `≥ 2`. The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide.
+Within each subspace `S` of document `d`, when `V_S(d) ≠ ∅` all V-positions in `S` share a common depth `m_S(d) ≥ 2` (S8-depth, ASN-0036; `m_L(d)` for `S = s_L`, ASN-0047). When `V_S(d) = ∅` the depth `m_S(d)` is undefined and `S` is vacuous in `d`. The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide. `follow` reads the current `M(d)`, so only these current-state facts about `m_S(d)` are consumed below.
 
 What lies in `dom(Σ.C) ∪ dom(Σ.L)` but not in `ran(M(d))` is content or link material stored in the system but not arranged in `d`. By the permanence invariants (P0, P1, L12 of ASN-0047), the stored material persists; only the arrangement varies.
 
@@ -119,7 +115,7 @@ Concretely, the operation FOLLOWLINK has the following form:
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
 
-**Postcondition.** `follow(ℓ, d, i) = (d, (Σ_V^{s_C}, Σ_V^{s_L}))` where each `Σ_V^S` is a finite V-span-set whose components are spans in subspace `S` of depth `m_S(d)` when `V_S(d) ≠ ∅`, and `Σ_V^S = ⟨⟩` in the vacuous case (V-Restricted Denotation). In either case:
+**Postcondition.** `follow(ℓ, d, i) = (d, (Σ_V^{s_C}, Σ_V^{s_L}))` where each `Σ_V^S` is a finite V-span-set whose components are spans in subspace `S` of depth `m_S(d)` (well-defined when `V_S(d) ≠ ∅`). The empty component `Σ_V^S = ⟨⟩` is admissible from two distinct sources: (a) when `V_S(d) = ∅`, the subspace is vacuous and `⟨⟩` is forced by the Vacuous-subspace convention (V-Restricted Denotation); (b) when `V_S(d) ≠ ∅` but `R(d, L(ℓ).eᵢ)|_S = ∅` — the coverage misses `d`'s arrangement in subspace `S` — `⟨⟩` is admissible as the empty (vacuous-union) span-set under the main denotation, satisfying `⟦⟨⟩⟧_V = ∅`. So `Σ_V^S = ⟨⟩` does not imply the subspace is vacuous. In all cases:
 
 ```
 ⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S    for each S ∈ {s_C, s_L}
@@ -293,7 +289,7 @@ follow(ℓ, d, 1) = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
 - *F-sound.* Both `[1, 4]` and `[1, 5]` are in `dom(M(d))`. `M(d)([1, 4]) = a₁ + 1 ∈ coverage(L(ℓ).e₁)`. `M(d)([1, 5]) = a₁ + 2 ∈ coverage(L(ℓ).e₁)`. ✓
 - *F-complete.* The only V-positions `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).e₁)` are `[1, 4]` and `[1, 5]` (the V-positions covered by `β₁`). Both are in `⟦Σ_V^{s_C}⟧_V`. ✓
 - *F-multi.* Not exercised in this example (no I-address in `coverage(L(ℓ).e₁)` appears at multiple V-positions of `d`).
-- *Partial emptiness (not F-empty).* The link-subspace component `Σ_V^{s_L}` is empty — `⟦Σ_V^{s_L}⟧_V = ∅` — while `Σ_V^{s_C}` is populated. This is an individual subspace component being empty, admissible by the V-Restricted Denotation convention; it is *not* a verification of F-empty, whose hypothesis `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅` fails here (`coverage(L(ℓ).e₁) ∩ ran(M(d)) ⊇ {a₁ + 1, a₁ + 2} ≠ ∅`) and whose conjunctive postcondition `⟦Σ_V^{s_C}⟧_V = ∅ ∧ ⟦Σ_V^{s_L}⟧_V = ∅` does not hold. F-empty is exercised in Configuration 3, where global emptiness holds.
+- *Partial emptiness (not F-empty).* The link-subspace component `Σ_V^{s_L}` is empty — `⟦Σ_V^{s_L}⟧_V = ∅` — while `Σ_V^{s_C}` is populated. Note the link subspace here is *not* vacuous: `M(d)` maps `[2, 1] → ℓ₀` (block `β_L`), so `V_{s_L}(d) = {[2, 1]} ≠ ∅` and `m_{s_L}(d) = 2` is defined. The empty component is therefore source (b) of the F1 postcondition — a populated subspace whose coverage misses the arrangement (`R(d, L(ℓ).e₁)|_{s_L} = ∅`) — so `⟨⟩` is admissible as the empty span-set under the *main* V-restricted denotation (`⟦⟨⟩⟧_V = ∅ = R(d, L(ℓ).e₁)|_{s_L}`), not via the Vacuous-subspace convention (which requires `V_{s_L}(d) = ∅`). It is *not* a verification of F-empty, whose hypothesis `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅` fails here (`coverage(L(ℓ).e₁) ∩ ran(M(d)) ⊇ {a₁ + 1, a₁ + 2} ≠ ∅`) and whose conjunctive postcondition `⟦Σ_V^{s_C}⟧_V = ∅ ∧ ⟦Σ_V^{s_L}⟧_V = ∅` does not hold. F-empty is exercised in Configuration 3, where global emptiness holds.
 - *F-det (denotational).* The V-restricted denotation `⟦Σ_V^{s_C}⟧_V = {[1, 4], [1, 5]}` is uniquely determined.
 - *F-subspace.* `M(d)([1, 4]) = a₁ + 1 ∈ dom(C)` (P-alloc, plus S3★ since it is arranged at a content-subspace V-position), so `subspace_I(a₁ + 1) = s_C` — matching `subspace([1, 4]) = 1 = s_C`. ✓
 
