@@ -309,7 +309,7 @@ Conversely, every allocated address belongs to `F`:
 
 **LP-Sub — SubstrateContainment**: At every reachable state `Σ`, `dom(Σ.C) ∪ dom(Σ.L) ⊆ F`. Every `a ∈ dom(Σ.C) ∪ dom(Σ.L)` inhabits a sub-allocator chain `A_C(d)` or `A_L(d)` of its origin `d = origin(a)` (ChainMembershipForOrigin, ASN-0093), whose elements FirstEmission and ChainDiscipline (ASN-0093) fix in the structural form `[d, 0, s, k]` with `s ∈ {s_C, s_L}` and `k ≥ 1`; the origin `d` is a T4-valid document tumbler with `zeros(d) = 2` (M0, ASN-0093). These are exactly `F`'s membership conjuncts, so `a ∈ F`.
 
-**LP-Fin — IntervalFinitude for Canonical Spans**: For every canonical span `(s, ℓ)` — `ℓ = δ(n, #s)` for some `n ≥ 1` (the displacement-shape condition shared with the tight definition below) — whose start lies in `F` — `s ∈ F`, so `s = [d_0, 0, s', k_s]` for some T4-valid `d_0` with `zeros(d_0) = 2`, subspace `s' ∈ {s_C, s_L}`, chain index `k_s ≥ 1` — the set `F ∩ [s, s ⊕ ℓ)` is finite.
+**LP-Fin — IntervalFinitude for Canonical Spans**: For every canonical span `(s, ℓ)` — `ℓ = δ(n, #s)` for some `n ≥ 1` — whose start lies in `F` — `s ∈ F`, so `s = [d_0, 0, s', k_s]` for some T4-valid `d_0` with `zeros(d_0) = 2`, subspace `s' ∈ {s_C, s_L}`, chain index `k_s ≥ 1` — the set `F ∩ [s, s ⊕ ℓ)` is finite.
 
 Compute `s ⊕ ℓ` first. By OrdinalDisplacement (ASN-0034), `actionPoint(ℓ) = #s = #d_0 + 3`. By TumblerAdd's piecewise rule (ASN-0034), positions `1..#s - 1` of `s ⊕ ℓ` are prefix-copied from `s` and position `#s` becomes `s_{#s} + ℓ_{#s} = k_s + n`. Hence `s ⊕ ℓ = [d_0, 0, s', k_s + n]` with `#(s ⊕ ℓ) = #s = #d_0 + 3`.
 
@@ -513,14 +513,14 @@ Throughout both branches the link itself stays byte-identical (LP13, LP2); only 
 | discoverable_from | `discoverable_from(a, d, Σ) ≡ (E i : project(a, i, d, Σ) ≠ ∅)` (defined when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`) | introduced |
 | LP12 | `discoverable_from(a, d, Σ) ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)` | introduced |
 | LP12a | Contraction discoverability wp: `wp(K.μ⁻[d, R], discoverable_from(a, d, ·)) ≡ enabled(K.μ⁻[d, R]) ∧ (E i : project(a, i, d, Σ) ∩ R ≠ ∅)`, where `R` is the K.μ⁻ retention set; reduces to `false` at `R = ∅` | introduced |
-| LP12b | Discharges LP12a's content-canonical-link-subspace boundary case: for `a ∈ dom(Σ.L)` whose every span is canonical with `s = [d_s, 0, s_C, k_s]`, and any K.μ⁻ retention parameters `n'_{s_C} = 0, n'_{s_L} > 0`, the wp evaluates to `false` — derived via LP-Fin Corollary applied at `X = s_C` to give `coverage(Σ.L(a).eᵢ) ∩ dom(Σ.L) = ∅`. | introduced |
+| LP12b | For `a ∈ dom(Σ.L)` whose every span is canonical with `s = [d_s, 0, s_C, k_s]`, and any K.μ⁻ retention parameters `n'_{s_C} = 0, n'_{s_L} > 0`, LP12a's wp evaluates to `false` | introduced |
 | LP13 | Unconditional link persistence: `Σ →* Σ' ∧ a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)` — independent of any discoverability | introduced |
 | LP16 | Transclusion confers discoverability: shared I-addresses transfer discoverability across documents | introduced |
 | LP17 | Ghost projection: orphaned links persist in `dom(Σ.L)` with empty projections everywhere | introduced |
 | LP18 | Resurrection: re-introducing a coverage I-address via K.μ⁺ or K.μ⁺_L restores discoverability | introduced |
 | tight | `tight(e, Σ_e)` ≡ every span `(s, ℓ) ∈ e` is canonical (`ℓ = δ(n, #s)` for some `n ≥ 1`), `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)`, and every substrate-emittable address in `[s, s ⊕ ℓ)` is allocated at `Σ_e`. Non-canonical spans are unconditionally non-tight at every state. | introduced |
 | LP-Sub | Substrate containment: `dom(Σ.C) ∪ dom(Σ.L) ⊆ F` at every reachable state — every allocated address is a sub-allocator chain element of structural form `[d, 0, s, k]`, hence in `F`. | introduced |
-| LP-Fin | Interval finitude (canonical): `(A s, ℓ : s ∈ F ∧ ℓ = δ(n, #s) for some n ≥ 1 : |F ∩ [s, s ⊕ ℓ)| < ∞)` — only finitely many `F`-candidates fall within any canonical span's reach. Covers only the canonical case (the tightness domain, per the tight definition's canonical-form requirement). | introduced |
+| LP-Fin | Interval finitude (canonical): `(A s, ℓ : s ∈ F ∧ ℓ = δ(n, #s) for some n ≥ 1 : |F ∩ [s, s ⊕ ℓ)| < ∞)` — only finitely many `F`-candidates fall within any canonical span's reach | introduced |
 | LP-Fin Corollary | Canonical interval characterisation: for canonical `(s, ℓ)` with `s = [d_0, 0, X, k_s]` and `ℓ = δ(n, #s)`, `F ∩ [s, s ⊕ ℓ) = {[d_0, 0, X, k] : k_s ≤ k < k_s + n}` — every F-candidate in the interval inherits the span's subspace identifier `X` and origin `d_0`. | introduced |
 | LP19a | Tight freshness: under tight construction, K.α/K.λ-allocated addresses fall outside `coverage(e)` | introduced |
 | LP19 | Tight endset boundary exclusion: K.μ⁺/K.μ⁺_L mapping to such an address cannot grow `project(e, d, ·)` | introduced |
