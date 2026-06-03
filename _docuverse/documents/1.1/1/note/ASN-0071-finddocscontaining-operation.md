@@ -7,6 +7,8 @@ The same reader can ask the inverse: *what documents contain this content?* This
 
 We specify what such an operation must do. Following Nelson we call it **FINDDOCSCONTAINING**. The question this ASN answers is: what is its result set? What determines membership, what guarantees govern completeness, and what does the operation deliberately not promise about currency in a permanent address space?
 
+Nelson frames the search-direction as a retrieval promise: the system should *"retrieve any portion of the material specified ... regardless of where the native copies are located"* (LM 4/63), so a query about a passage finds documents referencing even a fragment of it, native copy or transclusion alike. The address convention reinforces the reach — *"A digit of 'one' may be used to designate all of a given version, all versions of a given document, all works of a given author ... or the entire docuverse"* (LM 4/38) — so a coarse coordinate names everything beneath it. The visibility policy that would filter results by requester (LM 2/59) is a separate layer we leave out of scope.
+
 We work within the strand model as extended by ASN-0047. State `Σ` carries the content store `Σ.C : T ⇀ Val`, the link store `Σ.L`, document entities `Σ.E_doc ⊆ Σ.E`, and arrangements `Σ.M(d) : T ⇀ T` for each `d ∈ Σ.E_doc` — partial functions from V-positions to I-addresses satisfying functionality (S2), generalized referential integrity (S3★), and content permanence (P0, which subsumes S0 and S1). Sharing is unrestricted: distinct `(d, v)` pairs may map to the same I-address (ASN-0058 M13, SharedContent), and such co-occurrences are permanently independent arrangement entries (ASN-0058 M14, IndependentOccurrences). The extended state admits two V-subspaces — content (`s_C`) and link (`s_L`) — and S3★ routes each V-position to its appropriate store: `M(d)(v) ∈ dom(C)` when `subspace(v) = s_C`, and `M(d)(v) ∈ dom(L)` when `subspace(v) = s_L`. We assume content has been allocated and arranged through the standard transitions of ASN-0047; we specify only the query, not the operations that produce its inputs.
 
 ## The query
@@ -38,8 +40,6 @@ Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddr
 *Subspace confinement.* For every `t ∈ ⟦σ⟧`, PC's position-1 instance (proven in *The query*) gives `t₁ = u₁ = s_C`, hence `subspace(t) = s_C`.
 
 *Routing.* Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`. The subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` is read with `Σ` explicit on both sides — the right-hand side is the input state's content store, not a fixed set.
-
-When the span is a well-formed ContentReference (`#u = m_C` and every span position present), this image coincides with the set-flattening of ASN-0058's `resolve(d_s, σ)`; the operation's guarantees never invoke that run algebra, so we do not develop the bridge further.
 
 The resolution of `Q` is the union of independent per-source resolutions, each `iaddrs_one(d_s, σ)(Σ)` depending only on `Σ.M(d_s)`.
 
@@ -145,7 +145,7 @@ Now submit the *shallow* vspec `Q_E = {(d_E, σ_E)}` with `σ_E = ([s_C, 1], δ(
 
   `⟦σ_E⟧ ∩ dom(M(d_E)) = {[s_C,1,1], [s_C,1,2], [s_C,1,3]}`
 
-— the *entire* depth-3 subtree hanging under the depth-2 anchor `[s_C, 1]`, captured by a span the user anchored at a single coarse coordinate. These positions *are* current arrangement entries, so F-FILT offers no defense; collecting them is the intended semantics. The span has `#u = 2 < m_C = 3` and unit width at its action point, so its denotation reaches every deeper arrangement position whose first two components are `[s_C, 1]` — exactly one sibling subtree. The behaviour is a property of span addressing, not of this operation: naming a coarse coordinate reaches everything beneath it, which Nelson builds into the address convention — *"A digit of 'one' may be used to designate all of a given version, all versions of a given document, all works of a given author ... or the entire docuverse"* (LM 4/38). Resolving:
+— the *entire* depth-3 subtree hanging under the depth-2 anchor `[s_C, 1]`, captured by a span the user anchored at a single coarse coordinate. These positions *are* current arrangement entries, so F-FILT offers no defense; collecting them is the intended semantics. The span has `#u = 2 < m_C = 3` and unit width at its action point, so its denotation reaches every deeper arrangement position whose first two components are `[s_C, 1]` — exactly one sibling subtree. Resolving:
 
   `iaddrs(Q_E)(Σ⁺) = { M(d_E)(v) : v ∈ {[s_C,1,1], [s_C,1,2], [s_C,1,3]} } = {a₁, a₂}`
 
@@ -163,7 +163,7 @@ PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given t
 
   `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }`
 
-We name this **PC-RANGE**. The captured set is parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it is the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. The width dependence is essential: the width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}` and captures the single subtree under the prefix `u` — the case made concrete above — whereas a width-2 span (`δ(2, 2)`) at the same anchor would denote `v_{#u} ∈ {1, 2}`, capturing *two* sibling subtrees. There is no blanket "prefix names subtree" guarantee: the subtree reading is exactly the width-1 specialisation of PC-RANGE.
+We name this **PC-RANGE**. The captured set is parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it is the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}` and captures the single subtree under the prefix `u` — the case made concrete above.
 
 ## Partial overlap suffices
 
@@ -173,11 +173,11 @@ The predicate uses `≠ ∅`. A single shared I-address — one `a ∈ ran(Σ.M(
 
 The result does not require `d` to reference all of `iaddrs(Q)`; it does not require `d`'s reference to be of any particular extent. A document that transcludes a single sentence from a chapter-length query passage qualifies, alongside documents that transclude the whole.
 
-This is the operative reading of Nelson's promise to *"retrieve any portion of the material specified ... regardless of where the native copies are located"* (LM 4/63) — discharged by F-PART (fragment suffices) and F-CONTENT (native or transcluded alike). The asymmetry matters — a query about a large passage may discover documents that each reference only a tiny fragment of it. The result set has no inherent measure of "how much" each returned document contains; to recover an extent measure, the requester must compute `|ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)|` for each returned `d` separately.
+F-PART (fragment suffices) and F-CONTENT (native or transcluded alike) together discharge the retrieval promise framed in the introduction. The asymmetry matters — a query about a large passage may discover documents that each reference only a tiny fragment of it. The result set has no inherent measure of "how much" each returned document contains; to recover an extent measure, the requester must compute `|ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)|` for each returned `d` separately.
 
 ## Home versus transcluding documents
 
-Partial overlap (F-PART) already makes a single shared `a ∈ ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)` sufficient for `d`'s inclusion, so a query resolving to `a` discovers every document referencing `a` at once: `a`'s home document `origin(a)` (a function of `a`'s tumbler alone, grounded in `E_doc` by ASN-0047 P6) — if it itself still references `a` — and every transcluding document, all reported as equally-qualifying members of the result. Because `origin(a)` is a function of the tumbler (P6), the home/transcluding distinction is recoverable from `origin(a)` (F-ORIGIN), so `find` need not tag its results.
+Because `origin(a)` is a function of `a`'s tumbler alone, grounded in `E_doc` by ASN-0047 P6, a caller can separate `a`'s home reference (`d = origin(a)`) from transcluding references (`d ≠ origin(a)`) without `find` tagging its results (F-ORIGIN).
 
 ## Currency: state dependence
 
@@ -211,7 +211,7 @@ The returned set has presentation and policy properties we have left unspecified
 
 (ii) *Replica freshness.* We specify `find` against a single state `Σ`; replica-divergent views in a distributed deployment are out of scope.
 
-(iii) *Access-control filtering.* The `find` we specified returns ALL containing documents, unfiltered by requester visibility; layering Nelson's visibility policy (LM 2/59) over the unfiltered basis is out of scope.
+(iii) *Access-control filtering.* The `find` we specified returns ALL containing documents, unfiltered by requester visibility; layering the visibility policy noted in the introduction over the unfiltered basis is out of scope.
 
 ## Claims Introduced
 
@@ -225,7 +225,7 @@ The returned set has presentation and policy properties we have left unspecified
 | F-SOUND | Soundness: every `d ∈ find(Q)(Σ)` is in `Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` | direct from F-find (⟹ direction of the defining iff) | introduced |
 | F-PART | Partial overlap suffices: `d ∈ find(Q)(Σ) ⟺ d ∈ Σ.E_doc ∧ (E a : a ∈ ran(Σ.M(d)) : a ∈ iaddrs(Q)(Σ))` | direct from F-find (unfolding `≠ ∅` of a binary intersection) | introduced |
 | F-DIST | `find(Q)(Σ)` is a set; each `d ∈ E_doc` appears at most once | direct from F-find (codomain is `P(E_doc)`) | introduced |
-| F-ORIGIN | Home/transcluding recovery: for `a ∈ iaddrs(Q)(Σ)`, each `d ∈ find(Q)(Σ)` referencing `a` is `a`'s home (`d = origin(a)`) or a transcluder (`d ≠ origin(a)`); the distinction is recoverable from `origin(a)` without `find` tagging its results | derived from F-PART + P0 (content identity) + P6 (`origin(a)` grounded in `E_doc`) | introduced |
+| F-ORIGIN | Home/transcluding recovery: for `a ∈ iaddrs(Q)(Σ)`, a caller separates `a`'s home reference (`d = origin(a)`) from transcluding references (`d ≠ origin(a)`) using `origin(a)`, without `find` tagging its results | derived from P6 (`origin(a)` grounded in `E_doc`) | introduced |
 | F-CONTENT | Matches occur only via shared content addresses: `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)` | derived from S3★ ∧ S3★-aux (ASN-0047) ∧ L14 ∧ the `iaddrs ⊆ dom(C)` subset claim | introduced |
 | F-CUR | State dependence: `(Σ.E_doc = Σ'.E_doc) ∧ (A d ∈ Σ.E_doc : Σ.M(d) = Σ'.M(d)) ⟹ find(Q)(Σ) = find(Q)(Σ')` | derived from F-find + F-iaddrs (the operation reads only `E_doc` and `M`, both of which are identical at Σ and Σ' by hypothesis) | introduced |
 | F-FILT | Silent resolution filtering: positions in `⟦σ⟧ \ dom(Σ.M(d_s))` contribute no I-addresses to `iaddrs(Q)(Σ)` | direct from F-iaddrs (the intersection `⟦σ⟧ ∩ dom(Σ.M(d_s))` excludes such positions) | introduced |
