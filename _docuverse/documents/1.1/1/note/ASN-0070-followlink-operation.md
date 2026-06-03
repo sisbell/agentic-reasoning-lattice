@@ -24,7 +24,7 @@ Within each subspace `S` of document `d`, V-positions share a common depth, writ
 - For `S = s_L`: `m_{s_L}(d) ≥ 2`, fixed when `V_{s_L}(d) ≠ ∅` (S8-depth, ASN-0036; `m_L(d)`, ASN-0047), pinned by the first link insertion (`ValidFirstLinkPosition` of K.μ⁺_L, for any chosen `m ≥ 2`) and held thereafter. When `V_{s_L}(d) = ∅`, `m_{s_L}(d)` is undefined and the link subspace of `d` is vacuous; the next insertion re-pins it from scratch at any value `≥ 2`.
 - For `S = s_C`: `m_{s_C}(d) ≥ 2` is defined when `V_{s_C}(d) ≠ ∅` (S8-depth, ASN-0036), pinned by the first content insertion (ValidFirstInsertionPosition) and held thereafter. When `V_{s_C}(d) = ∅`, `m_{s_C}(d)` is undefined and the content subspace of `d` is vacuous.
 
-The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide. Neither is a fixed constant: each is `≥ 2`, pinned per document while its subspace is non-empty and undefined otherwise.
+The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide.
 
 What lies in `dom(Σ.C) ∪ dom(Σ.L)` but not in `ran(M(d))` is content or link material stored in the system but not arranged in `d`. By the permanence invariants (P0, P1, L12 of ASN-0047), the stored material persists; only the arrangement varies. The arrangement is the variable; storage is the constant.
 
@@ -153,7 +153,7 @@ The result is a *pair* `(d, Σ_V)`. The document `d` accompanies the per-subspac
 
 The postcondition fixes the *V-restricted denotation* of each component but not its representation. Distinct representations satisfying the postcondition exist whenever the underlying point-set admits multiple span-set decompositions. To make the result representationally unique for downstream comparison, we define the *canonical form*.
 
-**Definition (CanonicalForm).** The canonical form of `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` is the per-subspace family in which:
+**Definition (F-canon-form — CanonicalForm).** The canonical form of `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` is the per-subspace family in which:
 
 (i) Each component span in each `Σ_V^S` has start `s` with `#s = m_S(d)`, `subspace(s) = S`, and `(A i : 1 ≤ i ≤ m_S(d) : s_i ≥ 1)` (so `s` is an admissible V-position by S8a), and width of the form `δ(c, m_S(d)) = [0, ..., 0, c]` — an *ordinal displacement* of depth `m_S(d)` (justified in Step 1 below).
 
@@ -478,7 +478,7 @@ There is no exception, no error, no fallback. The empty per-subspace family (V-r
 
 *Implication (from hypothesis to conclusion).* The hypothesis directly supplies the membership condition for `R`. For `v₁`: `v₁ ∈ dom(M(d))` and `M(d)(v₁) = a ∈ coverage(L(ℓ).eᵢ)`, so by the definition of `R` (F0), `v₁ ∈ R(d, L(ℓ).eᵢ)`. By F-subspace, `subspace(v₁) = subspace_I(M(d)(v₁)) = subspace_I(a)`. Writing `S := subspace_I(a)`, the subspace projection (well-defined by S3★-aux) places `v₁ ∈ R(d, L(ℓ).eᵢ)|_S`. By the postcondition of `follow`, `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S`, hence `v₁ ∈ ⟦Σ_V^S⟧_V`. The argument for `v₂` is identical: F-subspace gives `subspace(v₂) = subspace_I(M(d)(v₂)) = subspace_I(a) = S`, so the same chain places `v₂ ∈ ⟦Σ_V^S⟧_V`. Both V-positions therefore land in the same subspace component, indexed by `S = subspace_I(a)`. ∎
 
-*Structural admissibility (the hypothesis is realisable).* The implication above derives the conclusion from the hypothesis without further assumption. What ensures the hypothesis is not vacuously satisfied is that ASN-0047's content-subspace arrangement extension K.μ⁺ imposes no injectivity constraint: unlike the link subspace, where CL-UNIQ (LinkSubspacePositionUniqueness, ASN-0047) forces the restriction of `M(d)` to `dom_L` to be injective, no analogous constraint binds the content subspace. Two successive K.μ⁺ steps from `Σ₀` may therefore map distinct V-positions `v₁ → a` and `v₂ → a` of a single document to the same I-address, so a state satisfying `v₁ ≠ v₂` with `M(d)(v₁) = M(d)(v₂) = a` is reachable. At the abstract-cardinality level, S5 (UnrestrictedSharing, ASN-0036) separately exhibits a model of S0–S3 in which the within-document multiplicity at a single `a` exceeds any `N ∈ ℕ`; S5 is a model-existence claim about arbitrary cardinality, not a reachability claim in ASN-0047's transition system, and the reachability of the binary hypothesis here rests on K.μ⁺'s non-injectivity rather than on S5.
+*Structural admissibility (the hypothesis is realisable).* The implication above derives the conclusion from the hypothesis without further assumption. What ensures the hypothesis is not vacuously satisfied is that ASN-0047's content-subspace arrangement extension K.μ⁺ imposes no injectivity constraint: unlike the link subspace, where CL-UNIQ (LinkSubspacePositionUniqueness, ASN-0047) forces the restriction of `M(d)` to `dom_L` to be injective, no analogous constraint binds the content subspace. Two successive K.μ⁺ steps from `Σ₀` may therefore map distinct V-positions `v₁ → a` and `v₂ → a` of a single document to the same I-address, so a state satisfying `v₁ ≠ v₂` with `M(d)(v₁) = M(d)(v₂) = a` is reachable.
 
 The operation does not deduplicate, does not select a "canonical" V-position, does not collapse multiplicity in any way. Each `v` with `M(d)(v) ∈ coverage(e)` is in the result, regardless of whether other V-positions of `d` also map to the same `M(d)(v)`.
 
