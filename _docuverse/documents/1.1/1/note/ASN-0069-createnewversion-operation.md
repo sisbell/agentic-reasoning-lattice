@@ -65,9 +65,7 @@ Two consequences follow without further machinery.
 
 The K.μ⁺ phase populates `M'(d_new)`. The question is what V-to-I mappings it installs, and J4's clause (ii) settles it: the fork inherits content by reference, fixing `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})` so that no K.α step runs and the new arrangement points at the source's own I-addresses. Duplication — minting fresh I-addresses for the same bytes — is not an admissible instantiation of J4 at all. This is Nelson's *inclusion*: content is shared, not copied. The load-bearing consequence is that the content store grows by nothing — `C' = C`, which V3 formalizes below.
 
-J4's defining clause makes the discipline explicit:
-
-> "(ii) K.μ⁺ populating `M'(d_new)` via the unique order-preserving bijection `φ : V_{s_C}(d_op) → V_{s_C}(d_new)`: `(A v ∈ V_{s_C}(d_op) :: M'(d_new)(φ(v)) = M(d_op)(v))`. Derived consequence: `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})` — no new content addresses are introduced, every target lies in the pre-existing content store." [ASN-0047 J4]
+J4's defining clause fixes the content-sharing consequence V3 needs: "no new content addresses are introduced, every target lies in the pre-existing content store" [ASN-0047 J4]. No K.α step runs; `d_new`'s arrangement points at the source's own I-addresses. (The bijection `φ` that installs those addresses is developed in §"The Arrangement Layer," where it is load-bearing for V4; here only the by-reference sharing matters.)
 
 We promote the content-sharing consequence to a named property:
 
@@ -87,7 +85,7 @@ We now characterize `M'(d_new)`. The fork populates it from `d_op`'s content-sub
 
 Let `V_{s_C}(d) = {v ∈ dom(M(d)) : subspace(v) = s_C}` denote the content-subspace V-positions of `d` (ASN-0047). By D-SEQ★ (ASN-0047), when `V_{s_C}(d_op) ≠ ∅`, `V_{s_C}(d_op) = {[s_C, 1, ..., 1, k] : 1 ≤ k ≤ n_{s_C}}` for some `n_{s_C} ≥ 1`, with all positions sharing a common depth `m_{s_C}` (S8-depth, ASN-0036).
 
-The fork installs the content source's content-subspace V-positions and their I-addresses into `M'(d_new)`. The discipline we commit to here — *literal inheritance*: the same V-positions and the same I-addresses appear in `M'(d_new)` as in `M(d_op)|_{V_{s_C}(d_op)}` — is a design commitment of this ASN, strengthening J4's clause (ii). J4's clause (ii) installs content via the order-preserving bijection `φ : V_{s_C}(d_op) → V_{s_C}(d_new)`, constraining the *range* of `M'(d_new)` to `ran(M(d_op)|_{V_{s_C}(d_op)})`. Because both `V_{s_C}(d_op)` and `V_{s_C}(d_new)` are canonical sequential blocks (D-SEQ★) of equal cardinality, the order-preserving bijection between them is unique — the k-th position maps to the k-th — so `φ` is forced once the *target set* `V_{s_C}(d_new)` is chosen. The freedom lies in selecting that target set, specifically its depth `m'_{s_C}`. Literal inheritance fixes the target depth to the source depth, `m'_{s_C} = m_{s_C}(d_op)`, whence `V_{s_C}(d_new) = V_{s_C}(d_op)` and the unique `φ` is the identity on V-positions. We name the commitment as V4 and then derive what follows from it.
+The fork installs the content source's content-subspace V-positions and their I-addresses into `M'(d_new)`. The discipline we commit to here — *literal inheritance*: the same V-positions and the same I-addresses appear in `M'(d_new)` as in `M(d_op)|_{V_{s_C}(d_op)}` — is a design commitment of this ASN, strengthening J4's clause (ii). J4's clause (ii) installs content via the order-preserving bijection `φ : V_{s_C}(d_op) → V_{s_C}(d_new)`, constraining the *range* of `M'(d_new)` to `ran(M(d_op)|_{V_{s_C}(d_op)})`. Because both `V_{s_C}(d_op)` and `V_{s_C}(d_new)` are canonical sequential blocks (D-SEQ★) of equal cardinality, the order-preserving bijection between them is unique — the k-th position maps to the k-th — so `φ` is forced once the *target set* `V_{s_C}(d_new)` is chosen. The freedom lies in selecting that target set, specifically its depth `m'_{s_C}`. Literal inheritance fixes the target depth to the source depth, `m'_{s_C} = m_{s_C}(d_op)`, whence `V_{s_C}(d_new) = V_{s_C}(d_op)` and the unique `φ` is the identity on V-positions.
 
 > **V4** (*arrangement inheritance — design commitment*): After any fork of `d_src`, the new document's content-subspace arrangement inherits literally from the content source operand `d_op`:
 >
@@ -121,7 +119,7 @@ The source-fork instance is immediate.
 
 ## Subspace Selectivity
 
-J4's clause (ii) restricts the inherited arrangement to the *content subspace*: `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})`, where `d_op` is the content source operand. The link subspace is excluded. We derive why this must be so abstractly.
+J4's clause (ii) restricts the inherited arrangement to the *content subspace*: `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})`, where `d_op` is the content source operand. The link subspace is excluded.
 
 The link subspace of any document is governed by CL-OWN (ASN-0047):
 
