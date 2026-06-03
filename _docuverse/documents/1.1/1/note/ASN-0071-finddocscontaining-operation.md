@@ -39,10 +39,7 @@ Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddr
 
 *Routing.* Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`. The subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` is read with `Σ` explicit on both sides — the right-hand side is the input state's content store, not a fixed set.
 
-When a vspec `(d_s, σ)` is also a well-formed ContentReference, `iaddrs_one(d_s, σ)(Σ)` equals the set-flattening of ASN-0058's `resolve(d_s, σ)` — concretely, `{ a + k : (a, n) ∈ resolve(d_s, σ) ∧ 0 ≤ k < n }`. We derive the equality in one step. By C1a, `resolve(d_s, σ)` is read off the unique maximally merged block decomposition `⟨β₁, ..., β_K⟩` of the restriction `f = M(d_s)|⟦σ⟧`, with `β_j = (v_j, a_j, n_j)` and `resolve(d_s, σ) = ⟨(a₁, n₁), ..., (a_K, n_K)⟩`. The decomposition covers `dom(f)` exactly (B1, Coverage): `dom(f) = ⟦σ⟧ ∩ dom(M(d_s))` — precisely the index set of `iaddrs_one`. For each block, B3 (Consistency) gives `a_j + k = M(d_s)(v_j + k)` for `0 ≤ k < n_j`, and the `v_j + k` range over `V(β_j)`; by coverage the union of all `V(β_j)` is `dom(f)`. So
-> `{ a_j + k : 1 ≤ j ≤ K ∧ 0 ≤ k < n_j } = { M(d_s)(v) : v ∈ dom(f) } = iaddrs_one(d_s, σ)(Σ)`.
-
-The left side is the set-flattening of `resolve`. Set-flattening absorbs duplicate I-addresses: two distinct blocks may carry shared content (ASN-0058 M14), and the same `a` then appears in both — the set union dedupes it, matching `iaddrs_one`'s set codomain. The equality is conditional on well-formedness, which the vspec preconditions relax along two independent axes. *First*, `⟦σ⟧` may contain positions outside `dom(M(d_s))`: ContentReference's well-formedness clause requires every span position to lie in the source's arrangement and so treats such a span as ill-formed, while vspec silently drops the missing positions — the intersection `⟦σ⟧ ∩ dom(Σ.M(d_s))` contributes nothing for them (F-FILT). *Second*, the equivalence requires `#u = m_C` — the source's common content depth — which ContentReference condition (iii) (`#ℓ = #u = m`) imposes but the vspec preconditions do not. Where both axes are clear — `#u = m_C` and every span position present — vspec resolution and well-formed-ContentReference resolution coincide exactly.
+When the span is a well-formed ContentReference (`#u = m_C` and every span position present), this image coincides with the set-flattening of ASN-0058's `resolve(d_s, σ)`; the operation's guarantees never invoke that run algebra, so we do not develop the bridge further.
 
 The resolution of `Q` is the union of independent per-source resolutions, each `iaddrs_one(d_s, σ)(Σ)` depending only on `Σ.M(d_s)`.
 
@@ -120,15 +117,11 @@ Therefore `find(Q)(Σ) = {d_A, d_B, d_D}` — `d_C` excluded.
 
   `⟦σ_D⟧ ∩ dom(M(d_D)) = {[s_C,1], [s_C,2], [s_C,3]} = {w₁, w₂, w₃}`
 
-*Multi-block resolution.* The restriction `f = M(d_D)|⟦σ_D⟧` maps `w₁ ↦ a₁`, `w₂ ↦ a₂`, `w₃ ↦ a₁`. No two consecutive positions are I-adjacent: `a₂ ≠ shift(a₁, 1)` and `a₁ ≠ shift(a₂, 1)`, because `origin(a₁) = d_A ≠ d_C = origin(a₂)` forbids cross-origin I-adjacency (M16, CrossOriginMergeImpossibility). So the unique maximally merged decomposition (C1a) splits into three width-1 blocks `β₁ = (w₁, a₁, 1)`, `β₂ = (w₂, a₂, 1)`, `β₃ = (w₃, a₁, 1)`, and
+*Resolution.* The restriction `f = M(d_D)|⟦σ_D⟧` maps `w₁ ↦ a₁`, `w₂ ↦ a₂`, `w₃ ↦ a₁`, so the image collects all three I-addresses and dedupes the repeated `a₁`:
 
-  `resolve(d_D, σ_D) = ⟨(a₁, 1), (a₂, 1), (a₁, 1)⟩`   (K = 3 blocks, not the degenerate K = 1)
+  `iaddrs_one(d_D, σ_D)(Σ) = { M(d_D)(v) : v ∈ {w₁, w₂, w₃} } = {a₁, a₂, a₁} = {a₁, a₂}`
 
-The set-flattening absorbs the duplicate `a₁` carried by *both* `β₁` and `β₃`:
-
-  `{ a + k : (a, n) ∈ resolve(d_D, σ_D) ∧ 0 ≤ k < n } = {a₁, a₂, a₁} = {a₁, a₂}`
-
-which equals `iaddrs_one(d_D, σ_D)(Σ) = { M(d_D)(v) : v ∈ {w₁, w₂, w₃} } = {a₁, a₂}` computed directly. Hence `iaddrs(Q_D)(Σ) = {a₁, a₂}`.
+Hence `iaddrs(Q_D)(Σ) = {a₁, a₂}`.
 
 *Find with proper-subset references.* Evaluate the predicate at each document:
 
@@ -180,11 +173,11 @@ The predicate uses `≠ ∅`. A single shared I-address — one `a ∈ ran(Σ.M(
 
 The result does not require `d` to reference all of `iaddrs(Q)`; it does not require `d`'s reference to be of any particular extent. A document that transcludes a single sentence from a chapter-length query passage qualifies, alongside documents that transclude the whole.
 
-This is the operative reading of Nelson's promise to *"retrieve any portion of the material specified ... regardless of where the native copies are located"* (LM 4/63). The clause carries two distinct commitments, each discharged here. *"Any portion"* governs result granularity: completeness is over the existence of a non-empty intersection, not over inclusion of the whole — a document that holds only a fragment of the queried material still qualifies. *"Regardless of where the native copies are located"* governs location transparency: a document qualifies whether it holds the material natively or windows to it from elsewhere by transclusion, the search following content identity across the docuverse rather than physical native location (F-CONTENT). The asymmetry matters — a query about a large passage may discover documents that each reference only a tiny fragment of it. The result set has no inherent measure of "how much" each returned document contains; to recover an extent measure, the requester must compute `|ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)|` for each returned `d` separately.
+This is the operative reading of Nelson's promise to *"retrieve any portion of the material specified ... regardless of where the native copies are located"* (LM 4/63) — discharged by F-PART (fragment suffices) and F-CONTENT (native or transcluded alike). The asymmetry matters — a query about a large passage may discover documents that each reference only a tiny fragment of it. The result set has no inherent measure of "how much" each returned document contains; to recover an extent measure, the requester must compute `|ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)|` for each returned `d` separately.
 
 ## Home versus transcluding documents
 
-Partial overlap (F-PART) already makes a single shared `a ∈ ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)` sufficient for `d`'s inclusion, so a query resolving to `a` discovers every document referencing `a` at once: `a`'s home document `origin(a)` (a function of `a`'s tumbler alone, grounded in `E_doc` by ASN-0047 P6) — if it itself still references `a` — and every transcluding document, all reported as equally-qualifying members of the result. The mechanism is structural — the I-address `a` is the same `a` everywhere it appears, because content has permanent identity (P0); sharing of content corresponds to identity of I-address, and identity of I-address is what `find` tests for. The home/transcluding distinction is recoverable from `origin(a)` (F-ORIGIN), so `find` need not tag its results.
+Partial overlap (F-PART) already makes a single shared `a ∈ ran(Σ.M(d)) ∩ iaddrs(Q)(Σ)` sufficient for `d`'s inclusion, so a query resolving to `a` discovers every document referencing `a` at once: `a`'s home document `origin(a)` (a function of `a`'s tumbler alone, grounded in `E_doc` by ASN-0047 P6) — if it itself still references `a` — and every transcluding document, all reported as equally-qualifying members of the result. Because `origin(a)` is a function of the tumbler (P6), the home/transcluding distinction is recoverable from `origin(a)` (F-ORIGIN), so `find` need not tag its results.
 
 ## Currency: state dependence
 
