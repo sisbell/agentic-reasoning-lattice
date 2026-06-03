@@ -26,7 +26,7 @@ For the operation to be well-defined we require:
 >
 > If a single span literal lies in `R_a ∩ R_b` and both depths are defined with `m_a ≠ m_b`, both clauses constrain the same `σ` at incompatible depths and admissibility fails.
 
-Level-uniformity (S6) alone requires only `#start(σ) = #width(σ)`; it does not constrain the action point of the width. The precondition `actionPoint(width(σ)) = m_σ` is not an arbitrary strengthening — it is necessary, and we record the necessity as a labeled result parallel to the foundation's T10a-N.
+Level-uniformity (S6) requires only `#start(σ) = #width(σ)` and does not bound the action point of the width, so the precondition `actionPoint(width(σ)) = m_σ` is necessary.
 
 > **CV-IN-N** (*necessity of the action-point constraint*): Relaxing the precondition to `actionPoint(width(σ)) < m_σ` admits spans whose V-extent at depth `m_σ` is unbounded by any structural feature of the span. Specifically, if `actionPoint(width(σ)) = k` with `1 ≤ k < m_σ`, then `⟦σ⟧ ∩ V_S(d)` captures every depth-`m_σ` V-position from `start(σ)` onward in V-order.
 
@@ -202,7 +202,7 @@ The result has two distinct maximal runs:
 
 > `MaxRuns = { ([1,1], [1,1], 1),  ([1,3], [1,1], 1) }`
 
-The two runs cannot be merged because they have different cross-side offsets `v_b − v_a` at their starting pairs (`0` for the first run, `−2` for the second, using the same signed convention as Example 1). For width-1 runs at distinct starting pairs to amalgamate, both sides would have to advance in lockstep — i.e., the per-side last-component offset `j_a − j_b` would have to agree between the runs — but here the per-side offsets differ. Each is its own maximal extension. (This cross-side offset between sides of a single pair is a different quantity from the cross-run offset `δ = j²_a − j¹_a = j²_b − j¹_b` of the CV-MAX uniqueness proof, which constrains two runs that witness the *same* pair; here we have two runs witnessing two *different* pairs.) This is the M14 (ASN-0058) phenomenon at the cross-document level: shared I-address at multiple V-positions produces independent correspondence-run entries.
+The two runs cannot be merged because they have different cross-side offsets `v_b − v_a` at their starting pairs (`0` for the first run, `−2` for the second, using the same signed convention as Example 1). For width-1 runs at distinct starting pairs to amalgamate, both sides would have to advance in lockstep — i.e., the per-side last-component offset `j_a − j_b` would have to agree between the runs — but here the per-side offsets differ. Each is its own maximal extension. This is the M14 (ASN-0058) phenomenon at the cross-document level: shared I-address at multiple V-positions produces independent correspondence-run entries.
 
 *Example 3 (self-comparison with self-transclusion).* Let `d` be a single document at depth 2 with self-transclusion: the same I-address `a` appears at two distinct V-positions:
 
@@ -292,7 +292,7 @@ CV-MAX establishes that the result is the unique maximal decomposition. A separa
 
 (a) *Width-1 admissibility.* The run definition admits any `n ≥ 1`, so width-1 triples are structurally permitted. A triple `(v_a, v_b, 1)` is a correspondence run iff conditions (i)–(iii) hold at `k = 0`, which is exactly `(v_a, v_b) ∈ corr_{a,b}`. By CV-MAX, every pair in `corr_{a,b}` is witnessed by exactly one maximal run; consider any pair `(v_a, v_b)` whose left and right neighbors fail the run conditions — i.e., one of `(v_a − 1, v_b − 1)` does not exist or fails correspondence, and similarly for `(v_a + 1, v_b + 1)`. The unique maximal run witnessing such a pair has both endpoints already at maximality and width `n = 1`. CV-MAX's existence clause therefore *produces* a width-1 run in the result whenever a correspondent pair has non-correspondent neighbors; uniqueness ensures the width-1 form is the only representation.
 
-(b) *Aggregation by maximality.* When consecutive pairs `(v_a + k, v_b + k)` lie in `corr_{a,b}` for `0 ≤ k < n`, no interior pair admits a width-1 *maximal* witness. A width-1 run at an interior pair `(v_a + k, v_b + k)` with `0 ≤ k < n − 1` is right-extendable — the next pair `(v_a + (k+1), v_b + (k+1))` also lies in `corr_{a,b}`, so it satisfies the run conditions (i)–(iii) at offset 1 — hence the width-1 run fails right-maximality and is excluded from `MaxRuns`. The supposition that these consecutive pairs are witnessed by `n` separate width-1 runs is therefore already false by non-maximality, not by any uniqueness conflict: the disqualifying fact is the same maximality failure that part (a) invokes. Consecutive correspondent pairs thus cannot lie in distinct maximal runs, and by CV-MAX's existence clause the single maximal run witnessing each is the full width-`n` extension that reaches maximality at both ends. CV-MAX's uniqueness then merely pins this extension as the *sole* representation in `MaxRuns`; it is maximality, not uniqueness, that forces the aggregation.
+(b) *Aggregation by maximality.* When consecutive pairs `(v_a + k, v_b + k)` lie in `corr_{a,b}` for `0 ≤ k < n`, no interior pair admits a width-1 *maximal* witness. A width-1 run at an interior pair `(v_a + k, v_b + k)` with `0 ≤ k < n − 1` is right-extendable — the next pair `(v_a + (k+1), v_b + (k+1))` also lies in `corr_{a,b}`, so it satisfies the run conditions (i)–(iii) at offset 1 — hence the width-1 run fails right-maximality and is excluded from `MaxRuns`. By CV-MAX's existence clause the single maximal run witnessing each consecutive pair is therefore the full width-`n` extension that reaches maximality at both ends.
 
 Both behaviors flow from a single source: CV-MAX guarantees existence and uniqueness of the maximal run witnessing each pair in `corr_{a,b}`. The operation does not consult a width threshold, merge window, or block-alignment offset because no clause of the run definition, the maximality conditions, or CV-MAX references such a quantity; the granularity of the result is determined entirely by the granularity of the underlying address space.
 
@@ -351,8 +351,6 @@ By construction, the operation cannot:
 (ii) *Witness counterpart correspondence*. Independent textual matches without I-address identity are invisible. The user-asserted counterpart link is Nelson's mechanism for declaring such correspondences; it lives in `dom(L)` and is a distinct structural artifact.
 
 (iii) *Witness derivation lineage* (CV-PROV-FORGOTTEN).
-
-These omissions are not deficiencies of the operation; they are consequences of grounding correspondence in I-address identity. Every operation that consumes I-addresses inherits exactness from the addressing scheme. The comparison operation is no exception — and the things it cannot express are precisely the things that would require a different grounding.
 
 ## Claims Introduced
 
