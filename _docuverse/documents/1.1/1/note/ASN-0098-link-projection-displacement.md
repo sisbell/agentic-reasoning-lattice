@@ -17,7 +17,7 @@ The first two are static once the link is created. The third is a live computati
 
 ## State Components
 
-We operate over ASN-0047's extended state `Σ = (C, L, E, M, R)` — content store, link store, entity set, arrangement family, and provenance relation. Three components carry the projection machinery directly (`Σ.C`, `Σ.M`, `Σ.L`); the remaining two enter through the transition vocabulary that drives the arrangement, and we ground them here so that later appeals to `K.δ`, `K.ρ`, `S3★`, and `S3★-aux` rest on a stated model.
+We operate over ASN-0047's extended state `Σ = (C, L, E, M, R)` — content store, link store, entity set, arrangement family, and provenance relation. Three components carry the projection machinery directly (`Σ.C`, `Σ.M`, `Σ.L`); the remaining two enter through the transition vocabulary that drives the arrangement.
 
 The content store `Σ.C : T ⇀ Val` is append-only with immutable values (P0 of ASN-0047, which subsumes S0, S1 of ASN-0036). Once an I-address `a` is bound, `Σ.C(a)` cannot be removed or rewritten. The set `dom(Σ.C)` only grows.
 
@@ -59,7 +59,7 @@ Three degenerate configurations follow directly from the definition. The project
 
 ## Immutability of the Stored Link
 
-The link's stored content — its address, its sequence of endsets, the spans within each endset — is structurally immutable by L12 (ASN-0043), stated above. Two consequences specialise L12 to the slot- and coverage-level reasoning this ASN requires.
+The link's stored content — its address, its sequence of endsets, the spans within each endset — is structurally immutable by L12 (ASN-0043), stated above. Two consequences specialise L12 to the slot and coverage level.
 
 **LP2 — SlotInvariance**: For every transition `Σ → Σ'`, every link `a ∈ dom(Σ.L)`, and every slot index `i ∈ {1, …, |Σ.L(a)|}`:
 ```
