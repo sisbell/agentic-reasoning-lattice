@@ -265,7 +265,7 @@ F8 is the comprehension-level instance for F1's existential; F15 is the comprehe
 
 ## Arrangement Independence
 
-The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. The operationally salient frame condition exercised by editing operations rests on a structural lemma of the substrate: that operations other than K.λ preserve `Σ.L`. All seven atomic non-allocating operations list `L' = L` in their published frames. For five of them ({K.σ, K.α, K.δ, K.μ⁺_L, K.ρ}) this is immediate. The remaining two (K.μ⁺, K.μ⁻) operate in this ASN's extended state `Σ = (C, L, M, E, R, …)`, so their operative definitions are ASN-0047's *amended* versions — K.μ⁺ amendment (ContentSubspaceRestriction) and K.μ⁻ per-subspace scope (PerSubspaceContractionScope) — both of whose extended-state frames publish `L' = L` explicitly (the K.μ⁻ amendment notes "the link-store frame clause `L' = L` is added"). The eighth operation, K.μ~, is the non-atomic composite, reached only through its K.μ⁻ + K.μ⁺ decomposition (below). We package the preservation lemma:
+The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. The operationally salient frame condition exercised by editing operations rests on a structural lemma of the substrate: that operations other than K.λ preserve `Σ.L`. This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, M, E, R)`, so the operative vocabulary is ASN-0047's extended-state vocabulary (ValidComposite★) — document registration in this model is performed by K.δ (Document case), which adds the document to both `dom(M)` and `E_doc` and records the K.δ-ID bookkeeping, keeping `dom(M) = E_doc` (M1) and `parent(d) ∈ E` (P8). ASN-0093's substrate operation K.σ is *not* in this vocabulary: it registers a document into `dom(M)` without touching `E`, so applied here it would produce a document in `dom(M)` but not in `E_doc`, violating M1 and P8; it belongs to the un-extended substrate `(C, L, M)` and is unreachable in this model. All six atomic non-allocating operations list `L' = L` in their published frames. For four of them ({K.α, K.δ, K.μ⁺_L, K.ρ}) this is immediate. The remaining two (K.μ⁺, K.μ⁻) operate in this ASN's extended state, so their operative definitions are ASN-0047's *amended* versions — K.μ⁺ amendment (ContentSubspaceRestriction) and K.μ⁻ per-subspace scope (PerSubspaceContractionScope) — both of whose extended-state frames publish `L' = L` explicitly (the K.μ⁻ amendment notes "the link-store frame clause `L' = L` is added"). The seventh operation, K.μ~, is the non-atomic composite, reached only through its K.μ⁻ + K.μ⁺ decomposition (below). We package the preservation lemma:
 
 ```
 A1 (LinkStoreInertOfNonAllocatingOperations):
@@ -275,10 +275,10 @@ A1 (LinkStoreInertOfNonAllocatingOperations):
    link store.
 
    A1 ranges over the atomic operations of V ∖ {K.λ}. Every one of
-   them — {K.σ, K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} — publishes
+   them — {K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} — publishes
    `L' = L` in its operative frame, so A1 is discharged uniformly by
    A1a (published-frame preservation) with no interpretive commitment:
-   - For {K.σ, K.α, K.δ, K.μ⁺_L, K.ρ}, the published frame names
+   - For {K.α, K.δ, K.μ⁺_L, K.ρ}, the published frame names
      `L' = L` directly.
    - For {K.μ⁺, K.μ⁻}, the operative definitions in this ASN's
      extended state `Σ = (C, L, M, E, R, …)` are ASN-0047's amended
@@ -298,10 +298,13 @@ A1 (LinkStoreInertOfNonAllocatingOperations):
    discharged by A1a, so link-store inertness across the composite is
    the transitive composition of A1a at K.μ⁻ and A1a at K.μ⁺.
 
-   Vocabulary scope: V = {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L,
-   K.ρ} as published in ASN-0047 and ASN-0093, with K.μ~ the sole
-   non-atomic member. Downstream ASNs consuming A1 against an evolved
-   vocabulary must restate the claim.
+   Vocabulary scope: V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L,
+   K.ρ} — ASN-0047's extended-state vocabulary (ValidComposite★), with
+   K.μ~ the sole non-atomic member and document registration performed
+   by K.δ (Document case), not by ASN-0093's substrate K.σ (which is
+   unreachable in the (C, L, M, E, R) model — see above). Downstream
+   ASNs consuming A1 against an evolved vocabulary must restate the
+   claim.
 ```
 
 ```
@@ -337,8 +340,8 @@ F9-cor (NonAllocatingPreservation):
    any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   F9-cor discharges from A1a at all seven atomic operations
-   (K.σ, K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ), each publishing
+   F9-cor discharges from A1a at all six atomic operations
+   (K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ), each publishing
    `L' = L` in its operative frame. K.δ has three sub-cases; the IsDocument
    sub-case modifies M(d_new) but K.δ's published frame includes
    L' = L uniformly, so F9-cor's I-side conclusion holds for all three.
@@ -668,7 +671,7 @@ The specification is spare because of design choices established for other reaso
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
 | PerLinkInvarianceUnderValuePreservation | Per-link primitive: match and filtered per-link universal evaluate identically when `Σ'.L(a) = Σ.L(a)` at a specific `a` | introduced (sub-lemma) |
 | ChainIndexEqualsAllocationOrder | Within a home document, T1 rank = chain index = K.λ event count | introduced (sub-lemma) |
-| A1a | PublishedFramePreservation: every atomic op of V ∖ {K.λ} — {K.σ, K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} — preserves `Σ.L` from its published frame (K.μ⁺, K.μ⁻ via ASN-0047's amended extended-state frames, both publishing `L' = L`) | introduced (structural lemma) |
+| A1a | PublishedFramePreservation: every atomic op of V ∖ {K.λ} — {K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} — preserves `Σ.L` from its published frame (K.μ⁺, K.μ⁻ via ASN-0047's amended extended-state frames, both publishing `L' = L`) | introduced (structural lemma) |
 | A1 | LinkStoreInertOfNonAllocatingOperations: A1a over the atomic ops of V ∖ {K.λ}; K.μ~ reached only via its K.μ⁻ + K.μ⁺ decomposition (A1a at both); K.λ unique L-modifying operation in V | introduced (composite lemma) |
 | F1 | MatchPredicate definition | definition |
 | F2 | Completeness: `findlinks(I, Σ) ⊆ result(I, Σ)` | introduced |
