@@ -147,7 +147,7 @@ SHOWDELETIONS(d_A, d_B)
    =  (DeletedFromAWithB(d_A, d_B), DeletedFromBWithA(d_A, d_B))
 ```
 
-The two halves are necessarily disjoint, and the disjointness is unconditional — it needs neither D-EXH nor any composite-boundary hypothesis. Membership in `DeletedFromAWithB` requires `CURRENT(a, d_B)`, i.e. `a ∈ ran(M(d_B))`; membership in `DeletedFromBWithA` requires `DELETED(a, d_B)`, whose second conjunct is `a ∉ ran(M(d_B))`. The two range-membership conditions on `M(d_B)` are directly contradictory, so no `a` can belong to both halves.
+The two halves are necessarily disjoint. Membership in `DeletedFromAWithB` requires `CURRENT(a, d_B)`, i.e. `a ∈ ran(M(d_B))`; membership in `DeletedFromBWithA` requires `DELETED(a, d_B)`, whose second conjunct is `a ∉ ran(M(d_B))`. The two range-membership conditions on `M(d_B)` are directly contradictory, so no `a` can belong to both halves.
 
 **Observational-discipline axiom (D-BOUND).** SHOWDELETIONS is invoked at a composite boundary: the pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047).
 
@@ -159,7 +159,7 @@ Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
 
 Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds.
 
-SHOWDELETIONS reads state and returns a result without modifying any component (its observational frame is formalised as D-OBS), so wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
+The definition reads state and returns a result without modifying any component: `SHOWDELETIONS(d_A, d_B)` is a pair of set-builder comprehensions over `Σ`'s components `M`, `R`, `dom(C)` — it allocates nothing, rewrites nothing, and invokes no transition relation. Observationality is therefore immediate from the definition (the full frame is recorded as D-OBS). Consequently wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
 *Non-emptiness of one report half.* Let `Q1` abbreviate `DeletedFromAWithB(d_A, d_B) ≠ ∅`. Unpacking the definition of `DeletedFromAWithB`:
 
@@ -172,9 +172,9 @@ wp(SHOWDELETIONS(d_A, d_B), Q1)
                        ∧ a ∈ ran(M(d_B)))
 ```
 
-So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement. The last conjunct (presence in `d_B`) is what makes the report *recoverable* in the sense of D-IDENT — every reported deletion has a concrete witness in the partner document. This is not an additional postcondition; it is implicit in the definition of `DeletedFromAWithB`.
+So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement. The last conjunct (presence in `d_B`) is what makes the report *recoverable* in the sense of D-IDENT — every reported deletion has a concrete witness in the partner document.
 
-*Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. Since SHOWDELETIONS only reads state (D-OBS) and `Q0` depends only on `Σ`'s components `M`, `R`, `dom(C)` — each evaluable at any state `Σ` — the wp formula is the precondition conjoined with `Q0` unpacked at the pre-state:
+*Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. Since SHOWDELETIONS only reads state (established above) and `Q0` depends only on `Σ`'s components `M`, `R`, `dom(C)` — each evaluable at any state `Σ` — the wp formula is the precondition conjoined with `Q0` unpacked at the pre-state:
 
 ```
 wp(SHOWDELETIONS(d_A, d_B), Q0)
