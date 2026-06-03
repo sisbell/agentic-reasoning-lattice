@@ -1,15 +1,18 @@
-# Channel Assignment — ASN-0051 review-64
+# Channel Assignment — ASN-0098 review-64
 
-**Date:** 2026-05-17 17:57
+**Date:** 2026-06-03 05:59
 
-## Issue 1: K.μ~ composite admissibility not addressed in "After reordering" subsection
-Reason: Fix is derivable from the ASN — the parallel admissibility treatment already appears in the later "Reordering that changes locate" subsection and can be mirrored (or cross-referenced) without external input.
+## Issue 1: LP2 proof restates slot semantics it does not use
+Reason: Pure deletion of a recapitulated sentence; the proof's sufficiency ("equal sequences have equal entries at every position") is already established within the ASN. No external channel needed.
 
-## Issue 2: Construction-pattern generalisations lack at least one explicit higher-(m, p) witness
-Reason: Fix is derivable from the ASN — the mechanical construction recipe (nested re-mappings with `min_k n_k ≥ 2m − 1`, single-element spans at odd offsets) is already described; instantiating it at (m=4, p=3) is a routine application requiring no design intent or implementation evidence.
+## Issue 2: "Discovery Independence of Origin" builds a three-document inventory the section then discards in one line
+Reason: The fix collapses prose to the single inspection corollary of LP12, which is already proven in the ASN. Derivable internally.
 
-## Issue 3: Consumer note conflicts with SV13(h)'s use of BilateralVitality
-Reason: Pure editorial reconciliation between two passages within this ASN; the resolution (reword the Consumer note to acknowledge SV13(h) as the internal site) is determined by the ASN's own content.
+## Issue 3: The "tight construction is immune to fresh allocation" takeaway is stated three times
+Reason: Deduplication of an editorial restatement; LP19a + LP19 already prove the immunity within the ASN. Choosing the canonical home and deleting two copies needs no external input.
 
-## Issue 4: Architectural remark's per-transition check doesn't explicitly cover K.μ~ as composite
-Reason: Fix is derivable from the ASN — the K.μ~ composite structure (K.μ⁻ + K.μ⁺, both M-only) and the inheritance argument are already established elsewhere in the note; the parenthetical merely makes the inheritance explicit at the point of use.
+## Issue 4: Recurring Nelson interpretive closers are essay content in proof slots
+Reason: The Nelson quotes ("if anything is left at each end," "a link to one version is a link to all versions," "reaching back through to a superseding version") are already present in the ASN; the fix is consolidating existing correspondences into one discussion, not establishing new design intent. Internal editorial restructuring.
+
+## Issue 5: Degenerate-configuration paragraph carries defensive exhaustiveness framing
+Reason: Dropping the "require no separate treatment" framing clause while keeping the three concrete facts is a self-contained edit. No external channel needed.
