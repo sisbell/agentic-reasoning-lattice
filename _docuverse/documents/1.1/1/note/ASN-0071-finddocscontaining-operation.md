@@ -19,7 +19,7 @@ The restriction `subspace(u) = s_C` is load-bearing. FINDDOCSCONTAINING tracks t
 
 The companion restriction `actionPoint(ℓ) ≥ 2` enforces *subspace confinement* of the entire span. Without it, the vspec preconditions admit displacements that perturb position 1 — for example, `u = [1, 5]` with `ℓ = [2, 0]` satisfies `Pos(ℓ)`, `actionPoint(ℓ) = 1 ≤ #u`, and `#ℓ = #u`, so the span `⟦σ⟧` extends to `[3, 0)` and contains `[2, 1]` whose subspace identifier is `2 = s_L`. Such a span would straddle the content and link subspaces in `d_s`'s V-space, conflating two transclusion regimes that the operation deliberately separates. Requiring `actionPoint(ℓ) ≥ 2` places `ℓ`'s first nonzero component at position 2 or beyond, so by TumblerAdd's prefix-copy region position 1 of every `t ∈ ⟦σ⟧` equals `u₁ = s_C` — the entire span lives in the content subspace. We rely on this property in the codomain argument below.
 
-A vspec is structurally a relaxation of ASN-0058's `ContentReference`. ContentReference additionally requires well-formedness — every depth-`m` position in `⟦σ⟧` belongs to `dom(M(d_s))` — together with `V_{u₁}(d_s) ≠ ∅` and `#u = m` (the common depth of `d_s`'s text-subspace V-positions per S8-depth). The vspec drops all three: it admits spans whose positions may not all be currently arranged, whose source subspace may be empty in `d_s`, and whose depth may differ from `d_s`'s common depth. The relaxation makes the query total over well-typed inputs; resolution silently filters anything that does not match a current arrangement entry (justified below). What the vspec retains from ContentReference is subspace confinement — well-formedness implies `actionPoint(ℓ) = m ≥ 2` via C0, and we lift this consequence into an explicit precondition since the well-formedness that C0 derived it from is no longer available.
+A vspec is structurally a relaxation of ASN-0058's `ContentReference`. ContentReference additionally requires well-formedness — every depth-`m` position in `⟦σ⟧` belongs to `dom(M(d_s))` — together with `V_{u₁}(d_s) ≠ ∅` and `#u = m` (the common depth of `d_s`'s text-subspace V-positions per S8-depth). The vspec drops all three: it admits spans whose positions may not all be currently arranged, whose source subspace may be empty in `d_s`, and whose depth may differ from `d_s`'s common depth. The relaxation makes the query total over well-typed inputs; resolution silently filters anything that does not match a current arrangement entry (justified below). What the vspec retains from ContentReference is subspace confinement — well-formedness implies `actionPoint(ℓ) = m` via C0 (the action point equals the common subspace depth), and `m ≥ 2` via the S8a lower bound on subspace depth (the same bound C0a names as a precondition, S8-depth fixing the common depth). C0 establishes only the equality `actionPoint(ℓ) = m`; the `≥ 2` half is the depth bound, not a consequence of C0. We lift both consequences into an explicit precondition since the well-formedness they were derived from is no longer available.
 
 Why vspecs and not direct I-addresses? Because users name content from where they encounter it. The reader sees document `d` at position `v`; what they want to find is content equivalent to "what `d` puts at `v`". The I-address is structural, typically unknown to the user, and reachable only by consulting `M(d_s)`. The operation accepts the user's name; resolution to I-addresses is its first task.
 
@@ -70,7 +70,7 @@ The empty query is the boundary case. When `Q = ∅`, the union `iaddrs(∅)(Σ)
 
 ## A worked scenario
 
-We exhibit a minimal state in which two documents share a single content I-address through transclusion, and trace what FINDDOCSCONTAINING returns.
+We exhibit a state in which several documents share content through transclusion — including one document that references two distinct I-addresses, with one of them repeated at two non-adjacent positions — and trace what FINDDOCSCONTAINING returns for both a single-address query and a multi-address query.
 
 Start from `Σ₀`, whose only entity is the bootstrap node `n₀ = [1]` (`E₀ = {n₀}`, `Node(n₀)`, so `(E₀)_doc = (E₀)_account = ∅`). No document can be created directly at `Σ₀`: a document `d` has `zeros(d) = 2`, and EntityHierarchy (P8, ASN-0047) demands `parent(d) ∈ E` — its account prefix — which does not yet exist. So we first mint the node-descendant → account → document scaffold, discharging `parent ∈ E` at each entity creation, then apply the content transitions. Each precondition is discharged by the prior state; we narrate the result:
 
@@ -85,10 +85,12 @@ Start from `Σ₀`, whose only entity is the bootstrap node `n₀ = [1]` (`E₀ 
 9. K.δ creates a third document `d_C = inc(d_B, 0) ∈ E_doc` by case (ii) sibling (`k = 0`), operand `d_B ∈ E` with `¬Node(d_B)`. `parent(d_C) = parent(d_B) = acct ∈ E` (K.δ-ID.parent-0) discharges P8; `zeros(d_C) = 2`, so `Document(d_C)` (activates `A_C(d_C)`).
 10. K.α emits one content I-address `a₂` under `d_C`: `a₂ = [d_C.0.s_C.1]`, `Σ.C(a₂) = val_C` for some value `val_C ∈ Val`, `origin(a₂) = d_C`. Since `a₂` is allocated under `d_C`'s own sub-allocator while `a₁` is allocated under `d_A`'s, the two are distinct I-addresses: `a₂ ≠ a₁` (their tumbler prefixes differ at the document field).
 11. K.μ⁺ binds `M(d_C)(v_C) = a₂`, where `v_C = [s_C, 1]` is the minimum content-subspace V-position of `d_C`. K.ρ records `(a₂, d_C) ∈ R`. Document `d_C` references only its own native content `a₂`; it does not transclude `a₁`.
+12. K.δ creates a fourth document `d_D = inc(d_C, 0) ∈ E_doc` by case (ii) sibling (`k = 0`), operand `d_C ∈ E` with `¬Node(d_C)`. `parent(d_D) = parent(d_C) = acct ∈ E` (K.δ-ID.parent-0) discharges P8; `zeros(d_D) = 2`, so `Document(d_D)`.
+13. K.μ⁺ binds three contiguous content-subspace positions of `d_D`, all by transclusion (no new K.α): `M(d_D)(w₁) = a₁`, `M(d_D)(w₂) = a₂`, `M(d_D)(w₃) = a₁`, where `w_k = [s_C, k]` are the content-subspace V-positions of `d_D` (D-SEQ★, depth `m_C = 2`, positions `1 ≤ k ≤ 3`, so D-CTG★ and D-MIN★ hold). K.ρ records `(a₁, d_D)` and `(a₂, d_D)`. Positions `w₁` and `w₃` both reference `a₁`: distinct V-positions of a single document may share an I-address (M13, SharedContent), and the two occurrences are permanently independent arrangement entries (M14, IndependentOccurrences).
 
 The resulting state `Σ` has:
 
-  `Σ.E_doc ⊇ {d_A, d_B, d_C}`,   `Σ.C ⊇ {a₁ ↦ val_A, a₂ ↦ val_C}`,   `Σ.M(d_A) = {v_A ↦ a₁}`,   `Σ.M(d_B) = {v_B ↦ a₁}`,   `Σ.M(d_C) = {v_C ↦ a₂}`,   `origin(a₁) = d_A`,   `origin(a₂) = d_C`
+  `Σ.E_doc ⊇ {d_A, d_B, d_C, d_D}`,   `Σ.C ⊇ {a₁ ↦ val_A, a₂ ↦ val_C}`,   `Σ.M(d_A) = {v_A ↦ a₁}`,   `Σ.M(d_B) = {v_B ↦ a₁}`,   `Σ.M(d_C) = {v_C ↦ a₂}`,   `Σ.M(d_D) = {[s_C,1] ↦ a₁, [s_C,2] ↦ a₂, [s_C,3] ↦ a₁}`,   `origin(a₁) = d_A`,   `origin(a₂) = d_C`
 
 Construct the query `Q = {(d_A, σ_A)}` with `σ_A = (v_A, δ(1, 2))` — a single-position level-uniform span starting at `v_A` with width 1 in the content subspace.
 
@@ -111,18 +113,43 @@ Positions in `⟦σ_A⟧ \ dom(M(d_A))` are silently dropped (F-FILT). Hence:
   `d = d_A`: `ran(M(d_A)) ∩ {a₁} = {a₁} ∩ {a₁} = {a₁} ≠ ∅`, so `d_A ∈ find(Q)(Σ)`.
   `d = d_B`: `ran(M(d_B)) ∩ {a₁} = {a₁} ∩ {a₁} = {a₁} ≠ ∅`, so `d_B ∈ find(Q)(Σ)`.
   `d = d_C`: `ran(M(d_C)) ∩ {a₁} = {a₂} ∩ {a₁} = ∅` (since `a₂ ≠ a₁`), so `d_C ∉ find(Q)(Σ)`. This is the exclusion direction against a concrete non-containing document: `d_C` is a present member of `E_doc` with a non-empty arrangement, yet its range shares no I-address with `iaddrs(Q)(Σ)`, so the membership predicate evaluates to *false*.
+  `d = d_D`: `ran(M(d_D)) ∩ {a₁} = {a₁, a₂} ∩ {a₁} = {a₁} ≠ ∅`, so `d_D ∈ find(Q)(Σ)`. `d_D` transcludes `a₁` (at two positions) alongside `a₂`; one shared address suffices.
   All other `d ∈ E_doc`: `a₁ ∉ ran(M(d))` (those documents reference no I-addresses), so `d ∉ find(Q)(Σ)`.
 
-Therefore `find(Q)(Σ) = {d_A, d_B}` — `d_C` excluded.
+Therefore `find(Q)(Σ) = {d_A, d_B, d_D}` — `d_C` excluded.
+
+**A multi-address query.** The singleton query `Q` resolves to one I-address, so it cannot exercise partial overlap: with `|iaddrs(Q)(Σ)| = 1`, any non-empty intersection *is* the whole resolved set, and "references a proper portion" and "references the whole" are indistinguishable. We construct a second query whose resolution carries two I-addresses and whose source decomposes into more than one block. Take `Q_D = {(d_D, σ_D)}` with `σ_D = (w₁, δ(3, 2))` — a width-3 content-subspace span from `w₁ = [s_C, 1]`. Its reach is `w₁ ⊕ δ(3, 2) = [s_C, 4]` (position 1 below the action point is copied; position 2 sums to `1 + 3 = 4`), so
+
+  `⟦σ_D⟧ ∩ dom(M(d_D)) = {[s_C,1], [s_C,2], [s_C,3]} = {w₁, w₂, w₃}`
+
+*Multi-block resolution.* The restriction `f = M(d_D)|⟦σ_D⟧` maps `w₁ ↦ a₁`, `w₂ ↦ a₂`, `w₃ ↦ a₁`. No two consecutive positions are I-adjacent: `a₂ ≠ shift(a₁, 1)` and `a₁ ≠ shift(a₂, 1)`, because `origin(a₁) = d_A ≠ d_C = origin(a₂)` forbids cross-origin I-adjacency (M16, CrossOriginMergeImpossibility). So the unique maximally merged decomposition (C1a) splits into three width-1 blocks `β₁ = (w₁, a₁, 1)`, `β₂ = (w₂, a₂, 1)`, `β₃ = (w₃, a₁, 1)`, and
+
+  `resolve(d_D, σ_D) = ⟨(a₁, 1), (a₂, 1), (a₁, 1)⟩`   (K = 3 blocks, not the degenerate K = 1)
+
+The set-flattening absorbs the duplicate `a₁` carried by *both* `β₁` and `β₃` — the dedup step that the singleton query left untested:
+
+  `{ a + k : (a, n) ∈ resolve(d_D, σ_D) ∧ 0 ≤ k < n } = {a₁, a₂, a₁} = {a₁, a₂}`
+
+which equals `iaddrs_one(d_D, σ_D)(Σ) = { M(d_D)(v) : v ∈ {w₁, w₂, w₃} } = {a₁, a₂}` computed directly. The resolve-equivalence of the Resolution section is thus checked against a concrete multi-block arrangement with a shared I-address across blocks, not merely asserted. Hence `iaddrs(Q_D)(Σ) = {a₁, a₂}`.
+
+*Find with proper-subset references.* Evaluate the predicate at each document:
+
+  `d = d_A`: `ran(M(d_A)) ∩ {a₁, a₂} = {a₁} ∩ {a₁, a₂} = {a₁} ≠ ∅`, so `d_A ∈ find(Q_D)(Σ)`. `d_A` references only `a₁` — a *proper subset* of the two-address query.
+  `d = d_B`: `{a₁} ∩ {a₁, a₂} = {a₁} ≠ ∅`, so `d_B ∈ find(Q_D)(Σ)`. Proper subset again.
+  `d = d_C`: `{a₂} ∩ {a₁, a₂} = {a₂} ≠ ∅`, so `d_C ∈ find(Q_D)(Σ)`. `d_C` references only `a₂` — the *other* address of the query, disjoint from `d_A`'s and `d_B`'s share.
+  `d = d_D`: `{a₁, a₂} ∩ {a₁, a₂} = {a₁, a₂} ≠ ∅`, so `d_D ∈ find(Q_D)(Σ)`. The whole resolved set.
+
+Therefore `find(Q_D)(Σ) = {d_A, d_B, d_C, d_D}`. Here `d_A` (sharing only `a₁`) and `d_C` (sharing only `a₂`) each qualify on one address out of two, sharing *disjoint* fragments of the query — the empty/non-empty intersection distinction is genuinely tested, since neither references what the other does, yet both belong.
 
 **What this verifies.**
 
-- *F-SHARE.* Both `d_A` and `d_B` are discovered by the same query, demonstrating cross-document discovery through shared I-address. The query named `(d_A, σ_A)` — `d_B` was not mentioned — yet `d_B` appears in the result because its arrangement references the resolved I-address.
-- *F-DIST.* Each document appears exactly once in `find(Q)(Σ) = {d_A, d_B}`, despite both satisfying the predicate. The result is a set; `d_A` is not duplicated even though it is both the source-document of `Q` and a member of the result.
-- *F-PART.* A single shared I-address (`a₁`) is sufficient for inclusion. The result does not require a document to reference any particular portion of the queried span.
+- *F-SHARE.* `d_A`, `d_B`, and `d_D` are all discovered by the same query `Q`, demonstrating cross-document discovery through a shared I-address. The query named only `(d_A, σ_A)` — `d_B` and `d_D` were not mentioned — yet both appear because their arrangements reference the resolved I-address `a₁`.
+- *F-DIST.* Each document appears exactly once in `find(Q)(Σ) = {d_A, d_B, d_D}`, despite all three satisfying the predicate. The result is a set; `d_A` is not duplicated even though it is both the source-document of `Q` and a member of the result, and `d_D` is not duplicated even though it references `a₁` at two distinct positions `w₁` and `w₃`.
+- *F-PART.* Demonstrated against the two-address query `Q_D` with `iaddrs(Q_D)(Σ) = {a₁, a₂}`. Both `d_A` (referencing only `a₁`) and `d_C` (referencing only `a₂`) are included — each shares a *proper subset* of the resolved set, and their shares are disjoint. A single shared I-address suffices; the operation does not require a document to reference all of `iaddrs(Q_D)`, nor any particular portion of the queried span. The singleton query `Q` cannot exhibit this, since with one resolved address every non-empty intersection is the whole set.
+- *Resolve-equivalence (multi-block).* For `Q_D`, the source `d_D` decomposes into three maximal-run blocks `⟨β₁, β₂, β₃⟩`, with `β₁` and `β₃` carrying the same I-address `a₁`. The set-flattening of `resolve(d_D, σ_D) = ⟨(a₁,1),(a₂,1),(a₁,1)⟩` dedupes the repeated `a₁` to `{a₁, a₂}`, matching `iaddrs_one(d_D, σ_D)(Σ)`. The multi-block, shared-I-address case of the Resolution section is thereby verified concretely rather than only asserted.
 - *F-SOUND (exclusion).* `d_C` references content (`a₂`) but shares no I-address with `iaddrs(Q)(Σ) = {a₁}`, so the membership predicate evaluates to *false* and `d_C ∉ find(Q)(Σ)`. The biconditional is exercised in its harder, negative direction against a concrete non-containing document — membership is not merely an absence of mention but a tested empty intersection.
 - *F-FILT.* The span `⟦σ_A⟧` is an infinite subset of `T`, but the intersection with `dom(M(d_A)) = {v_A}` reduces it to a single position. The operation does not reject `σ_A` for naming positions outside `d_A`'s arrangement — unresolvable positions contribute nothing and the query reads charitably over what is currently bound.
-- *F-CUR.* The result depends only on `Σ.M(d_A)` and `Σ.M(d_B)`. Were a later K.μ⁻ to contract `M(d_B)` to remove `v_B`, the query would return `{d_A}` only — `d_B` would no longer be currently containing, even though `(a₁, d_B) ∈ R` would persist (P2).
+- *F-CUR.* The result depends only on the current arrangements `Σ.M(d)`. Were a later K.μ⁻ to contract `M(d_B)` to remove `v_B`, the query `Q` would return `{d_A, d_D}` — `d_B` would no longer be currently containing, even though `(a₁, d_B) ∈ R` would persist (P2).
 - *Home/transcluding recovery.* `origin(a₁) = d_A`, the home document of the content I-address `a₁` (grounded in `E_doc` by ASN-0047 P6, ExistentialCoherence), so the requester can distinguish: `d_A` is the home document of `a₁`, and `d_B` transcludes it. The operation itself does not tag the result; the tagging is a function the requester computes from each `a ∈ iaddrs(Q)` and each `d ∈ find(Q)`.
 
 ## Completeness and soundness
