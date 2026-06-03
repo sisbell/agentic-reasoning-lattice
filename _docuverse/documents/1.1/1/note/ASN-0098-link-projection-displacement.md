@@ -130,7 +130,7 @@ Newly allocated I-addresses are invisible to projection until some subsequent K.
 
 (b) Newly-registered emptiness: `project(e, d_new, Σ') = ∅`.
 
-K.δ in the `Document(e)` case (ASN-0047) satisfies the document-registration form named in the hypothesis: it extends `dom(M)` by one fresh document, initialises the new document's arrangement to `∅`, and preserves every pre-existing arrangement pointwise.
+K.δ's `Document(e)` effect clause (ASN-0047) discharges the document-registration hypothesis form.
 
 Postcondition (a) follows by LP4 applied to each `d ∈ dom(Σ.M)`: the document-registration frame holds `Σ'.M(d) = Σ.M(d)` for every such `d`. Postcondition (b) follows from the definition of `project`: with `d_new ∈ dom(Σ'.M)` (so the projection is defined) and `dom(Σ'.M(d_new)) = ∅`, the set comprehension `{v ∈ dom(Σ'.M(d_new)) : Σ'.M(d_new)(v) ∈ coverage(e)}` ranges over the empty domain and is empty.
 
@@ -381,7 +381,7 @@ An endset `e` is *tight at state `Σ_e`* iff every span `(s, ℓ) ∈ e` is *can
 s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)  ∧  (A t ∈ F : s ≤ t < s ⊕ ℓ : t ∈ dom(Σ_e.C) ∪ dom(Σ_e.L))
 ```
 
-The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. The canonical-span requirement is *definitional*: a non-canonical span is fixed at false before any quantifier evaluation, so no state can render it tight. The first conjunct gives `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)`, whence `s ∈ F` by LP-Sub; together with the canonical shape `ℓ = δ(n, #s)` this discharges LP-Fin's hypotheses, so LP-Fin confines the universal quantifier to the finite set `F ∩ [s, s ⊕ ℓ)` and the predicate is decidable at every state from `s`, `ℓ`, and the structural form of `F`-candidates without enumerating `F`. Tightness is a state-relative predicate; in the canonical use case `Σ_e` is the state at which `e` was incorporated into a link, but the predicate is well-defined at any state.
+The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. The first conjunct gives `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)`, whence `s ∈ F` by LP-Sub; together with the canonical shape `ℓ = δ(n, #s)` this discharges LP-Fin's hypotheses, so LP-Fin confines the universal quantifier to the finite set `F ∩ [s, s ⊕ ℓ)` and the predicate is decidable at every state from `s`, `ℓ`, and the structural form of `F`-candidates without enumerating `F`.
 
 *Achievability.* Choose `ℓ = δ(n, #s)` with `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` where `X ∈ {C, L}` is the span's subspace and `m` is `A_X(d_0)`'s currently-allocated chain-index maximum at `Σ_e`. By LP-Fin Corollary, `F ∩ [s, s ⊕ ℓ) = {[d_0, 0, X, k] : k_s ≤ k < k_s + n}`, so every F-candidate in the span's reach lies on `A_X(d_0)` — no other chain, same-document cross-subspace or cross-document, contributes. The emission-frontier constraint `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` confines those candidates to chain index `≤ m`. By ChainMembershipForOrigin (ASN-0093), the allocated addresses of origin `d_0` form a *contiguous initial segment* of `A_X(d_0)`'s chain; since `m` is the allocated maximum, indices `1..m` are all allocated, so the candidate indices `k_s, …, k_s + n − 1 ⊆ {1, …, m}` are all resident in `dom(Σ_e.C) ∪ dom(Σ_e.L)` at `Σ_e` — discharging tightness.
 
