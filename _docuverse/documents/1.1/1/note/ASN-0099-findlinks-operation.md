@@ -18,7 +18,7 @@ image(R, d, Σ)
   ≡             {Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}
 ```
 
-The single precondition `d ∈ dom(Σ.M)` is load-bearing so that `Σ.M(d)` is defined. V-positions in `R` that are absent from the arrangement contribute nothing to the image — silent projection is the only treatment that is total over `R ⊆ T` for a fixed allocated document *without fabricating I-addresses absent from the arrangement*. Other totalisations exist (mapping an absent V-position to a sentinel or default I-address also yields a total operation), but each one injects an output not witnessed by `Σ.M(d)`; silent projection is the unique total treatment whose every image is an actual arrangement image.
+The single precondition `d ∈ dom(Σ.M)` is load-bearing so that `Σ.M(d)` is defined. V-positions in `R` that are absent from the arrangement contribute nothing to the image — silent projection is a design-justified total treatment that fabricates no I-addresses absent from the arrangement. To state precisely what pins it down, consider a *treatment* to be any function `g(R, d, Σ)` total over `R ⊆ T` (for fixed allocated `d`). Silent projection is the unique treatment satisfying both: (i) *no fabrication* — every emitted address is an actual arrangement image, `g(R, d, Σ) ⊆ ran(Σ.M(d))`; and (ii) *faithfulness on present positions* — `g` agrees with `Σ.M(d)` on every V-position of `R` that the arrangement maps, `{Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))} ⊆ g(R, d, Σ)`. Condition (i) alone is not enough: the constant-`∅` treatment is total and vacuously emits only actual images (it emits none), yet it is not silent projection — it drops present V-positions, violating (ii). Other totalisations that map an absent V-position to a sentinel or default I-address satisfy (ii) but violate (i), injecting an output not witnessed by `Σ.M(d)`. Only silent projection meets both conjuncts, fixing its image as exactly `{Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}`.
 
 **Phase 2 (I→Link).** Given a set of I-addresses `I ⊆ T`, produce the set of links whose endsets intersect `I`:
 
@@ -436,7 +436,18 @@ F13 (SetAdditive):
    findlinks(I₁ ∪ I₂, Σ) = findlinks(I₁, Σ) ∪ findlinks(I₂, Σ).
 ```
 
-By distributivity of intersection over union, `coverage(e) ∩ (I₁ ∪ I₂) = (coverage(e) ∩ I₁) ∪ (coverage(e) ∩ I₂)`, non-empty iff at least one disjunct is non-empty.
+Fix `a ∈ dom(Σ.L)` and write `eᵢ = Σ.L(a).eᵢ`, `Pᵢ ≡ coverage(eᵢ) ∩ I₁ ≠ ∅`, `Qᵢ ≡ coverage(eᵢ) ∩ I₂ ≠ ∅`. By distributivity of intersection over union, `coverage(eᵢ) ∩ (I₁ ∪ I₂) = (coverage(eᵢ) ∩ I₁) ∪ (coverage(eᵢ) ∩ I₂)`, and a union of two sets is non-empty iff at least one is, so the per-slot equivalence `coverage(eᵢ) ∩ (I₁ ∪ I₂) ≠ ∅ ⟺ Pᵢ ∨ Qᵢ` holds. This per-slot fact must now be lifted to the comprehension level, whose membership predicate is the slot-existential. Membership of `a` in the left-hand set unfolds and lifts as:
+
+```
+a ∈ findlinks(I₁ ∪ I₂, Σ)
+  ⟺ (E i : coverage(eᵢ) ∩ (I₁ ∪ I₂) ≠ ∅)     -- definition of findlinks
+  ⟺ (E i : Pᵢ ∨ Qᵢ)                            -- per-slot equivalence above
+  ⟺ (E i : Pᵢ) ∨ (E i : Qᵢ)                    -- ∃ distributes over ∨
+  ⟺ a ∈ findlinks(I₁, Σ) ∨ a ∈ findlinks(I₂, Σ) -- definition of findlinks, twice
+  ⟺ a ∈ findlinks(I₁, Σ) ∪ findlinks(I₂, Σ)     -- definition of ∪
+```
+
+The load-bearing third step is the distribution of the existential over disjunction, `(E i : Pᵢ ∨ Qᵢ) ⟺ (E i : Pᵢ) ∨ (E i : Qᵢ)`, which carries the per-slot result up to the set equality. Since the chain holds for every `a ∈ dom(Σ.L)`, the two comprehensions are equal.
 
 ```
 F20 (ImageSetAdditive):
@@ -444,7 +455,25 @@ F20 (ImageSetAdditive):
        image(R₁ ∪ R₂, d, Σ) = image(R₁, d, Σ) ∪ image(R₂, d, Σ).
 ```
 
-The standard image-of-union identity for the partial function `Σ.M(d)`. V-side additivity for `findlinks_V` then follows from F12 + F20 + F13 directly.
+The standard image-of-union identity for the partial function `Σ.M(d)`: `image(R, d, Σ) = {Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}`, and intersection distributes over union — `(R₁ ∪ R₂) ∩ dom(Σ.M(d)) = (R₁ ∩ dom(Σ.M(d))) ∪ (R₂ ∩ dom(Σ.M(d)))` — so the image of the union is the union of the images.
+
+```
+F20a (VSideAdditive) — consequence of F12 + F20 + F13:
+   For d ∈ dom(Σ.M) and R₁, R₂ ⊆ T:
+       findlinks_V(R₁ ∪ R₂, d, Σ) = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ).
+```
+
+The derivation chains the three named identities:
+
+```
+findlinks_V(R₁ ∪ R₂, d, Σ)
+  = findlinks(image(R₁ ∪ R₂, d, Σ), Σ)                       -- F12 unfold
+  = findlinks(image(R₁, d, Σ) ∪ image(R₂, d, Σ), Σ)          -- F20 image-of-union
+  = findlinks(image(R₁, d, Σ), Σ) ∪ findlinks(image(R₂, d, Σ), Σ) -- F13 set-additive
+  = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)            -- F12 refold (twice)
+```
+
+Each step is licensed by exactly one prior identity; the middle step's `findlinks` arguments are I-sets, so F13 applies to them unchanged.
 
 ## The Empty Query
 
@@ -701,6 +730,7 @@ The specification is spare because of design choices established for other reaso
 | F19 | Result-set monotonicity across reachable sequences | introduced |
 | F19-filt, F19-sco | Filtered and scoped monotonicity | introduced |
 | F20 | Image set-additive | introduced |
+| F20a | V-side additive: `findlinks_V(R₁ ∪ R₂, d, Σ) = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)` | introduced |
 
 ## Open Questions
 
