@@ -26,7 +26,7 @@ The first is supplied by entity creation; the second by arrangement extension; t
 
 The composite is J4 of ASN-0047, named *ForkComposite*. We adopt it as the structural skeleton and derive from first principles what it guarantees, what it forbids, and what it leaves to the source-fork relationship.
 
-J4 distinguishes two operands. The *identity source* is `d_src` — the document being forked, fixed by V0's precondition. The *content source operand* `d_op` is the document whose content-subspace arrangement is transcribed into `d_new`; J4's operand-tracking rule fixes it by sub-case. On a *first fork* of `d_src` (when `A_v(d_src)` has emitted no prior version) the two operands coincide, `d_op = d_src`. On a *subsequent fork* (when `A_v(d_src)` already has a frontier) they diverge: `d_op = max(dom(A_v(d_src)))` is the prior version, not the original source. The distinction that matters here is identity-source versus content-source. J4's precondition for the non-empty branch is `d_src ∈ E_doc ∧ d_op ∈ E_doc ∧ V_{s_C}(d_op) ≠ ∅`.
+J4 distinguishes two operands. The *identity source* is `d_src` — the document being forked, fixed by V0's precondition. The *content source operand* `d_op` is the document whose content-subspace arrangement is transcribed into `d_new`; J4's operand-tracking rule fixes it by sub-case, formally stated in V1 below. The distinction that matters here is identity-source versus content-source. J4's precondition for the non-empty branch is `d_src ∈ E_doc ∧ d_op ∈ E_doc ∧ V_{s_C}(d_op) ≠ ∅`.
 
 ## Identity by Sub-Allocation
 
@@ -121,7 +121,7 @@ V4 and V4b together are the structural basis of correspondence.
 
 ## Frame: Source Isolation
 
-The fork must not modify `d_src`. This is Nelson's most emphatically stated commitment — the "without damaging the originals" clause [LM 2/45] quoted at the outset is precisely the source-isolation requirement, and V5 below is what discharges it.
+The fork must not modify `d_src`.
 
 More generally, each arrangement-modifying transition of ASN-0047 names a single target document and frames every other document's arrangement. The K.μ⁺ / K.μ⁻ / K.μ~ / K.μ⁺_L transitions modify exactly one document's arrangement per invocation, and the same per-target frame discipline applies symmetrically to *any* pair of distinct documents, not only the source-fork pair. We state this general property first and read off source isolation as its instance.
 
@@ -132,8 +132,6 @@ More generally, each arrangement-modifying transition of ASN-0047 names a single
 The source-fork instance is immediate.
 
 > **V5** (*source isolation*): For every fork composite `Σ →* Σ'`: `M'(d_src) = M(d_src)`. V5 is V5a at `d* = d_src`: `d_src ∈ Σ.E_doc` by V0's precondition, and the fork composite has no step M-targeted at `d_src` (its only K.μ⁺ step targets `d_new ≠ d_src`).
-
-V5a applies equally in both directions after the fork; V10(b) and V12 carry the two context-specific instantiations.
 
 ## Subspace Selectivity
 
@@ -195,7 +193,7 @@ We record an immediate corollary.
 
 > **V8c** (*correspondence is symmetric and untyped*): The corresponding-position set `{v ∈ T : v ∈ dom(M'(d_op)) ∩ dom(M'(d_new)) ∧ M'(d_op)(v) = M'(d_new)(v)}` is defined by `∩` and `=`, both symmetric, so it is invariant under swap of `d_op` and `d_new`. V8 records a relationship between two documents in `E_doc`; it does not distinguish "source" from "fork."
 
-The intercomparison guarantee is *perpetual*. By T8 (AllocationPermanence, ASN-0034), `d_src` and `d_new` remain in `E_doc` forever; by P0/S0, their I-addresses persist in `dom(C)` forever; by the per-document arrangement frame discipline, neither side's arrangement modifies the other's. V8 holds in the post-fork state, and its consequences propagate to every subsequent state in which neither side has overwritten the relevant V-positions.
+The intercomparison guarantee is *perpetual*: V8 holds in the post-fork state, and its consequences propagate to every subsequent state in which neither side has overwritten the relevant V-positions. The permanence facts that underwrite this propagation are collected once in V12.
 
 ## Provenance Recording
 
@@ -309,7 +307,7 @@ We assemble the formal definition.
 
 > **V0** (*fork operation*): A *fork* of `d_src` is a composite state transition `Σ →* Σ'`.
 >
-> *Composite structure.* The composite is the *uninterrupted* sequence of elementary transitions K.δ + K.μ⁺ + K.ρ × n (where `n = |ran(M'(d_new))|`), or K.δ alone in the empty-source case per V7's extension of J4. No other elementary transitions fire between the constituent steps — in particular, no intervening K.μ⁻, K.μ~, or K.μ⁺ on `d_op` disturbs the content source between steps.
+> *Composite structure.* The composite is the contiguous K.δ + K.μ⁺ + K.ρ × n sequence of J4 (where `n = |ran(M'(d_new))|`), or K.δ alone in the empty-source case per V7's extension of J4.
 >
 > *Precondition.* `d_src ∈ E_doc`. No content-existence precondition is imposed; the empty-source case is normative per V7.
 >
