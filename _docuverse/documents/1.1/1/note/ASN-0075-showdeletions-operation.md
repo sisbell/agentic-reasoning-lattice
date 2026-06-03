@@ -145,7 +145,7 @@ SHOWDELETIONS(d_A, d_B)
 
 The two halves are necessarily disjoint. Membership in `DeletedFromAWithB` requires `CURRENT(a, d_B)`, i.e. `a ∈ ran(M(d_B))`; membership in `DeletedFromBWithA` requires `DELETED(a, d_B)`, whose second conjunct is `a ∉ ran(M(d_B))`. The two range-membership conditions on `M(d_B)` are directly contradictory, so no `a` can belong to both halves.
 
-The definition reads `M(d_A)`, `M(d_B)`, and `R` to compute the two output sets and returns them; it writes no state component (D-OBS).
+The definition reads `M(d_A)`, `M(d_B)`, and `R` to compute the two output sets and returns them.
 
 **Boundary precondition (D-BOUND).** The pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047), so SHOWDELETIONS is invoked at a composite boundary.
 
@@ -161,7 +161,7 @@ The predicate `q` is pure set equality: the operation returns the two comprehens
 wp(SHOWDELETIONS(d_A, d_B), q)  =  d_A ∈ E_doc  ∧  d_B ∈ E_doc
 ```
 
-The operation always terminates with `q` true when this holds, since each output set is a comprehension over the finite `dom(C)` (C-fin, ASN-0047) whose membership tests are bounded by the finite arrangements (S8-fin, ASN-0036) and the finite relation `R ⊆ dom(C) × E_doc` (P7, ASN-0047); D-ORD records the finiteness of each output half where it is consumed.
+The operation always terminates with `q` true when this holds, since each output set is a comprehension over the finite `dom(C)` (C-fin, ASN-0047) whose membership tests are bounded by the finite arrangements (S8-fin, ASN-0036) and the finite relation `R ⊆ dom(C) × E_doc` (P7, ASN-0047).
 
 The operation's *stated* precondition (D-BOUND) is strictly stronger than `wp(op, q)`: it adds the composite-boundary conjunct, which is not needed to compute `q` but is load-bearing for the report's *meaning* — D-WIT and D-EXH hold only at composite boundaries (resting on P4★, which couples `Contains_C` into `R` only across complete composites), so the boundary requirement is what licenses the three-state exhaustion underwriting `DELETED`.
 
