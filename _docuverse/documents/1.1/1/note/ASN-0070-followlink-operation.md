@@ -197,9 +197,7 @@ It remains to confirm `Σ_0` is normalised, so that it is the normalised equival
 
 *Inter-component gap (left-closure).* We must also show that the maximal run containing `min(⟦σ_j⟧_V) = s_j` cannot extend backward into a different component's chain. We consider the candidate consecutive predecessor of `s_j`. By the characterisation, the depth-`m_S(d)` subspace-`S` tumbler consecutive to `s_j` from below (if any) is `p_j := [s_j.1, ..., s_j.{m-1}, s_j.m − 1]`. Two sub-cases by `s_j.m`. *Sub-case `s_j.m = 1`.* Then `p_j` has last component `0`, so `p_j` fails the positivity clause of the V-restricted denotation; `p_j ∉ ⟦Σ̂⟧_V` automatically. *Sub-case `s_j.m ≥ 2`.* Then `p_j` is a depth-`m_S(d)` subspace-`S` tumbler with positive components — a candidate V-position. We show `p_j ∉ ⟦σ_k⟧_V` for every `k`. *For `k = j`*: `p_j < s_j = start(σ_j)`, so `p_j ∉ [start(σ_j), reach(σ_j)) = ⟦σ_j⟧_V`. *For `k > j`*: N1 gives `start(σ_k) > start(σ_j) = s_j > p_j`, so `p_j < start(σ_k)`, hence `p_j ∉ ⟦σ_k⟧_V`. *For `k < j`*: N2 chained with N1 gives `reach(σ_k) ≤ reach(σ_{j-1}) < start(σ_j) = s_j`. The tumbler `reach(σ_k) = [s_k.1, ..., s_k.{m-1}, s_k.m + c_k]` is itself a depth-`m_S(d)` subspace-`S` tumbler strictly less than `s_j`. Since `p_j` and `s_j` are consecutive — by the characterisation, no depth-`m_S(d)` subspace-`S` tumbler lies strictly between them — and `reach(σ_k) < s_j`, we must have `reach(σ_k) ≤ p_j`. The half-open denotation `⟦σ_k⟧_V ⊆ [start(σ_k), reach(σ_k))` excludes `p_j ≥ reach(σ_k)`, so `p_j ∉ ⟦σ_k⟧_V`. (The case `j = 1` is vacuous: no `k < 1` exists, so the *for `k < j`* clause has nothing to verify.) Hence `p_j ∉ ⟦Σ̂⟧_V` in either sub-case. The maximal run of consecutive tumblers in `⟦Σ̂⟧_V` containing `s_j` cannot extend backward past `s_j` — its unique consecutive predecessor `p_j` (when it exists) is excluded, and when it does not exist no further extension is possible.
 
-*Unique reconstruction.* `⟦Σ̂⟧_V` decomposes into exactly `|Σ̂|` maximal runs of consecutive depth-`m_S(d)` subspace-`S` tumblers, one per component `σ_j`. From each maximal run, `s_j = min(run)` and `c_j = |run|`, so the pair `(s_j, c_j)` is recoverable from `⟦σ_j⟧_V` alone. Two Step 1-restricted normalised span-sets with the same `⟦·⟧_V` therefore have the same component pairs `(s_j, c_j)`, hence the same components, hence the same `⟦·⟧`.
-
-*S9 application.* With the bridge established (same `⟦·⟧_V` ⟹ same `⟦·⟧`), S9 applied to the equivalence class of normalised level-uniform span-sets sharing a common `⟦·⟧` gives a single representative. Combined with the bridge, normalised span-sets sharing a common `⟦·⟧_V` collapse to a single representative. Applied to each `R(d, e)|_S`, this yields exactly one normalised `Σ_V^S`.
+*Unique reconstruction.* `⟦Σ̂⟧_V` decomposes into exactly `|Σ̂|` maximal runs of consecutive depth-`m_S(d)` subspace-`S` tumblers, one per component `σ_j`. From each maximal run, `s_j = min(run)` and `c_j = |run|`, so the pair `(s_j, c_j)` is recoverable from `⟦σ_j⟧_V` alone. Two Step 1-restricted normalised span-sets with the same `⟦·⟧_V` therefore have the same component pairs `(s_j, c_j)`, hence the same components. Applied to each `R(d, e)|_S`, this yields exactly one normalised `Σ_V^S`.
 
 *Step 3 — Family-level ordering.* The fixed external convention (`s_C`-component first, then `s_L`-component) removes the remaining ambiguity at the family level: there is one pair `(Σ_V^{s_C}, Σ_V^{s_L})` consistent with this ordering.
 
@@ -207,7 +205,7 @@ Therefore, given `R(d, e)`, the canonical form is uniquely determined.
 
 We do not commit the operation's postcondition to canonical form: the abstract specification fixes only `⟦Σ_V^S⟧_V = R(d, e)|_S`. An implementation may return any representationally equivalent form. The canonical form is the derivation that callers apply when representational identity matters.
 
-(Implementation evidence: udanax-green's follow-equivalent operation does not normalise — it returns whatever decomposition the enfilade traversal produces, and may even emit duplicate spans in some configurations. The denotation is determined; the representation is not. Implementations seeking representational identity must canonicalise downstream.)
+(Implementation evidence: udanax-green's follow-equivalent operation does not normalise — it returns whatever decomposition the enfilade traversal produces, and may even emit duplicate spans in some configurations.)
 
 ## Weakest Precondition Analysis
 
@@ -283,7 +281,7 @@ The mapping-block decomposition is:
 
 Note that `β₂` and `β₃` both contain `a₀` in their I-extent, witnessing within-document sharing (S5).
 
-**Setup premise (P-alloc).** Throughout this section, `a₀` and `a₁` are content I-addresses — both in `dom(C)` — allocated by distinct sub-allocators, so by GlobalUniqueness (ASN-0034) their depth-`m_a` progressions are disjoint: `{a₀, a₀ + 1, a₀ + 2} ∩ {a₁, a₁ + 1, a₁ + 2} = ∅`. The link I-address `ℓ₀ ∈ dom(L)`. Configurations 1, 4, and 5 below all rest on P-alloc; the per-block intersection steps reference it rather than re-stating it.
+**Setup premise (P-alloc).** Throughout this section, `a₀` and `a₁` are content I-addresses — both in `dom(C)` — allocated by distinct sub-allocators, so by GlobalUniqueness (ASN-0034) their depth-`m_a` progressions are disjoint: `{a₀, a₀ + 1, a₀ + 2} ∩ {a₁, a₁ + 1, a₁ + 2} = ∅`. The link I-address `ℓ₀ ∈ dom(L)`.
 
 **Link.** Consider link `ℓ` with `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` — an endset whose single span starts at `a₁` and has width 3 in depth `m_a` (the I-address depth). The coverage is the half-open lexicographic interval `coverage(L(ℓ).e₁) = {t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` (T12, ASN-0034), which contains the three depth-`m_a` addresses `a₁, a₁ + 1, a₁ + 2` together with deeper-depth tumblers of the interval (e.g. `a₁.x`, `(a₁ + 1).y`). The block I-extents below are themselves depth-`m_a`, so only the three depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` of the coverage are ever met by an intersection; we write that finite set where the intersections are computed.
 
@@ -406,9 +404,7 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 2. By the definition of `R` (F0), `R(d, L(ℓ).eᵢ) = M(d)⁻¹(coverage(L(ℓ).eᵢ))`, hence `R(d, L(ℓ).eᵢ)` is uniquely determined by `Σ`, `d`, and `L(ℓ).eᵢ` — all of which are fixed.
 3. By S3★-aux (SubspaceExhaustiveness), every `v ∈ dom(M(d))` has `subspace(v) ∈ {s_C, s_L}`, so the partition `R(d, L(ℓ).eᵢ) = R(d, L(ℓ).eᵢ)|_{s_C} ⊎ R(d, L(ℓ).eᵢ)|_{s_L}` is exhaustive and the two components are each uniquely determined.
 4. By the postcondition of `follow`, any returned `Σ_V` satisfies `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` for each `S`. Combined with step 3, the V-restricted denotation of each subspace component is therefore uniquely determined.
-5. By F-canonical, given the fixed V-restricted denotation per subspace, a canonical form exists (Step 2a's per-run construction, whose normalised existence S8 (NormalizationExistence, ASN-0053) underwrites) and S9 (NormalizationUniqueness, ASN-0053) yields a unique normalised form per component; the fixed external ordering yields a unique family-level form. The canonical form is therefore uniquely determined.
-
-The representations `Σ_V` and `Σ_V'` may differ at the representational level (e.g., non-canonical decompositions of the same V-restricted point set), but their V-restricted denotations coincide. ∎
+5. By F-canonical, given the fixed V-restricted denotation per subspace, a canonical form exists (Step 2a's per-run construction, whose normalised existence S8 (NormalizationExistence, ASN-0053) underwrites) and S9 (NormalizationUniqueness, ASN-0053) yields a unique normalised form per component; the fixed external ordering yields a unique family-level form. The canonical form is therefore uniquely determined. ∎
 
 ### F-sound — Soundness (LEMMA)
 
@@ -462,7 +458,7 @@ There is no exception, no error, no fallback. The empty per-subspace family (V-r
 
 **Postcondition.** By F-subspace, `subspace(v₁) = subspace_I(M(d)(v₁)) = subspace_I(a)` and `subspace(v₂) = subspace_I(M(d)(v₂)) = subspace_I(a)`, so `subspace(v₁) = subspace(v₂) = subspace_I(a)` — both V-positions inhabit the same subspace. Writing `S := subspace_I(a)`, both `v₁ ∈ ⟦Σ_V^S⟧_V` and `v₂ ∈ ⟦Σ_V^S⟧_V`.
 
-**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-subspace (this ASN); S3★-aux (SubspaceExhaustiveness, ASN-0047); K.μ⁺ (ArrangementExtension, ASN-0047) — its lack of content-side injectivity makes the shared-I-address hypothesis reachable; S5 (UnrestrictedSharing, ASN-0036) — supplies the abstract-cardinality witness.
+**Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-subspace (this ASN); S3★-aux (SubspaceExhaustiveness, ASN-0047).
 
 **Frame.** No state modification.
 
