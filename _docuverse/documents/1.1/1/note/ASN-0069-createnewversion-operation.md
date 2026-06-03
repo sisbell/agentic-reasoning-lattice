@@ -24,7 +24,7 @@ The fork operation produces a new document `d_new` from a source document `d_src
 
 The first is supplied by entity creation; the second by arrangement extension; the third by provenance recording. The vocabulary of ASN-0047 names these K.δ (case (ii) with `k = 1` for the first fork of `d_src`, `k = 0` for subsequent forks — both consistent with `A_v(d_src)`'s chain-advancement convention), K.μ⁺ (arrangement extension), and K.ρ (provenance recording — invoked once per inherited I-address). The fork composite is exactly the sequencing of these elementary steps.
 
-The composite is J4 of ASN-0047, named *ForkComposite*. We adopt it as the structural skeleton and derive from first principles what it guarantees, what it forbids, and what it leaves to the source-fork relationship.
+The composite is J4 of ASN-0047, named *ForkComposite*.
 
 J4 distinguishes two operands. The *identity source* is `d_src` — the document being forked, fixed by V0's precondition. The *content source operand* `d_op` is the document whose content-subspace arrangement is transcribed into `d_new`; J4's operand-tracking rule fixes it by sub-case. J4's precondition for the non-empty branch is `d_src ∈ E_doc ∧ d_op ∈ E_doc ∧ V_{s_C}(d_op) ≠ ∅`.
 
@@ -105,11 +105,9 @@ The fork installs the content source's content-subspace V-positions and their I-
 >
 > The universal is vacuous on V0's empty-source branch (`V_{s_C}(d_op) = ∅`); on the non-empty branch K.μ⁺ populates `M'(d_new)` from `V_{s_C}(d_op)` per J4's clause (ii).
 
-V4 makes two distinct claims. First, the *V-positions are inherited literally* — the same tumblers `[s_C, 1, ..., 1, k]` appear in both arrangements, not rebased relative to `d_new` (J4's `φ` is the identity). Second, the *I-addresses at each position are inherited literally* — every `M'(d_new)(v)` equals `M(d_op)(v)`, the same I-address the content source holds.
+V4 makes two distinct claims. First, the *V-positions are inherited literally* — the same tumblers `[s_C, 1, ..., 1, k]` appear in both arrangements, not rebased relative to `d_new` (J4's `φ` is the identity). Second, the *I-addresses at each position are inherited literally* — for every `v ∈ V_{s_C}(d_op)`, `M(d_op)(v)` is defined (since `v ∈ V_{s_C}(d_op) ⊆ dom(M(d_op))`) and `M'(d_new)(v)` equals it, the same I-address the content source holds.
 
 Both halves of the form rest on forward-independent facts. V-positions are tumblers in `T`, structured by S8a (zero-count zero, all components positive) and S8-depth (common depth within a subspace); they do not encode the owning document — the owning document is the parameter `d` selecting the arrangement `M(d)`, not anything carried by the tumbler `v` itself — so the same V-position tumbler may serve as a key in `M(d_op)` and `M(d_new)` independently, and nothing about a V-position needs to change when it appears in `d_new`'s arrangement. I-addresses are permanent: by S7 (StructuralAttribution, ASN-0036) every `a ∈ dom(C)` has a unique `origin(a) ∈ E_doc` extractable from its tumbler, and by P0/S0 the address itself cannot be altered.
-
-For every `v ∈ V_{s_C}(d_op)`, `M(d_op)(v)` is defined (since `v ∈ V_{s_C}(d_op) ⊆ dom(M(d_op))`), and by V4 `M'(d_new)(v)` is defined and equal to it: the same V-position tumbler carries the same I-address in both arrangements.
 
 V4 gives the one-way containment `V_{s_C}(d_op) ⊆ dom(M'(d_new))`. The converse — *no other* V-position enters `dom(M'(d_new))` — follows from the fork composite's elementary decomposition: K.δ initialises `M'(d_new) = ∅` (its effect clause when `Document(e)`); the subsequent K.μ⁺ invocation populates `M'(d_new)` with exactly the positions of `V_{s_C}(d_op)`; K.ρ does not modify arrangements. By the K.μ⁺ amendment (ContentSubspaceRestriction, ASN-0047) — which requires `subspace(v) = s_C` for every new V-position added by K.μ⁺ — together with K.δ's initialisation `dom(M'(d_new)) = ∅` and K.ρ's arrangement-preservation, every position in `dom(M'(d_new))` lies in the content subspace, so:
 
