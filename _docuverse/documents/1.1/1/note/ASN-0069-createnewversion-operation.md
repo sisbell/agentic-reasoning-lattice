@@ -56,9 +56,7 @@ We make explicit:
 >
 > In either case `d_new ∈ E'_doc`, `d_new ∉ E_doc` (pre-fork), `Document(d_new)` (by the Document induction above on `A_v(d_src)`'s emission count, which combines K.δ-ID.zeros-0/1's zero-preservation at `k = 0` and `k = 1` with P1-supplied membership `d_prev ∈ E_doc` at every inductive step), and `parent(d_new) = parent(d_src)` (by the parent-equality induction above on `A_v(d_src)`'s emission count, which combines K.δ-ID.parent-0/1's per-step preservation at `k ∈ {0, 1}` with the inductive hypothesis `parent(d_prev) = parent(d_src)` at every subsequent-emission step). The new entity inherits the source's account-level prefix while extending into a fresh sub-tumbler.
 
-Both of V1's cases match J4 of ASN-0047 as written. J4's *allocation-and-operand-tracking rule* explicitly enumerates the two sub-cases: the `k = 1` sub-case fires when `A_v(d_src)` has no prior emission, giving `d_new = inc(d_src, 1)`; the `k = 0` sub-case fires when `A_v(d_src)` already has a frontier, giving `d_new = inc(prev_version, 0)` with `prev_version = max(dom(A_v(d_src)))`. The *first-fork sub-case* — `d_new = inc(d_src, 1)`, K.δ case (ii) with `k = 1`, `t = d_src` — is the `k = 1` branch; the *subsequent-fork sub-case* — `d_new = inc(d_prev, 0)`, K.δ case (ii) with `k = 0`, `t = d_prev` — is the `k = 0` branch, with this ASN's `d_prev` denoting J4's `prev_version`. The subsequent-fork *identity* shape is therefore J4 clause (i) plus J4's allocation rule, **not** an extension of it; J4's clauses (ii) and (iii) (the K.μ⁺ and K.ρ phases) apply to both sub-cases.
-
-J4 also fixes the *content source operand* of the fork, which it writes `d_op`: on the first fork `d_op = d_src`, and on a subsequent fork `d_op = d_prev = prev_version`. The arrangement phase (K.μ⁺) inherits content from `M(d_op)`, **not** from `M(d_src)` — these coincide only when `d_prev` has not been edited since it was itself forked. Content-inheritance and correspondence claims are stated against `d_op`; identity, ancestry, and source-isolation claims against `d_src`, the document the operator named. The one place where this ASN genuinely *deviates* from J4 is the arrangement discipline — the literal-inheritance deviation is developed at V4.
+V1 instantiates J4's allocation-and-operand-tracking rule directly — the `k = 1` branch on a first fork, the `k = 0` branch on a subsequent fork; the one deviation, literal inheritance, is V4.
 
 Two consequences follow without further machinery.
 
@@ -124,7 +122,7 @@ V4 makes two distinct claims. First, the *V-positions are inherited literally* �
 
 V4 *strengthens* J4's clause (ii). J4 constrains the *range* — `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})` — and the *pairing up to an order-preserving bijection* `φ : V_{s_C}(d_op) → V_{s_C}(d_new)`, but does not require `φ` to be the identity: an implementation satisfying J4 alone could populate `M'(d_new)` at rebased (order-preserving) V-positions `φ(v) ≠ v`, so long as the correspondence is order-preserving and every I-address is drawn from the content source's content-subspace range.
 
-V4 commits to *full literal inheritance*: the same V-positions as `d_op`, the identity pairing, the entire content-subspace domain. This is a design commitment of this ASN — not derivable from J4 alone. The motivation is twofold. First, V8's structural correspondence (below) requires the same V-positions in both arrangements; without literal V-position inheritance, V8 would collapse into a more elaborate correspondence machinery requiring explicit mapping between source and fork V-spaces. Literal inheritance is the cheapest discipline that supports V8 directly. Second, it matches the natural reading of Nelson's "with the contents of" [LM 4/66] at the moment of forking, and it matches the discipline of every reference implementation we have evidence for.
+V4 commits to *full literal inheritance*: the same V-positions as `d_op`, the identity pairing, the entire content-subspace domain. This is a design commitment of this ASN — not derivable from J4 alone — adopted because it is the cheapest discipline supporting V8's structural correspondence and matches Nelson's "with the contents of" [LM 4/66].
 
 The literal-inheritance form has two structural justifications.
 
@@ -136,9 +134,9 @@ We register the consequence:
 
 > **V4a** (*positional identity*): For every V-position `v ∈ V_{s_C}(d_op)`, both `M(d_op)(v)` and `M'(d_new)(v)` are defined, and both equal the same I-address `a ∈ dom(C)`. The V-position `v` is *the same tumbler* in both arrangements. (On the first fork `d_op = d_src`, so this is positional identity between the named source and the fork.)
 
-V4 gives the one-way containment `V_{s_C}(d_op) ⊆ dom(M'(d_new))`. We now commit to the converse — *no other* V-position enters `dom(M'(d_new))` — as an independent design commitment of this ASN, parallel to V4's. The commitment is not derivable from J4 alone (J4's clause (ii) fixes the *range* `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})` and the pairing only up to an order-preserving bijection, leaving the V-position identity unspecified) and is not derivable from V4 alone (V4's universal quantifier supplies only the one-way containment). It is structurally supported by the fork composite's elementary decomposition: K.δ initialises `M'(d_new) = ∅` (its effect clause when `Document(e)`); the subsequent K.μ⁺ invocation populates `M'(d_new)` with exactly the positions of `V_{s_C}(d_op)` (the design commitment, reified in V0's Effects table below); K.ρ does not modify arrangements. By the K.μ⁺ amendment (ContentSubspaceRestriction, ASN-0047) — which requires `subspace(v) = s_C` for every new V-position added by K.μ⁺ — together with K.δ's initialisation `dom(M'(d_new)) = ∅` and K.ρ's arrangement-preservation, every position in `dom(M'(d_new))` lies in the content subspace, so:
+V4 gives the one-way containment `V_{s_C}(d_op) ⊆ dom(M'(d_new))`. The converse — *no other* V-position enters `dom(M'(d_new))` — follows from the fork composite's elementary decomposition: K.δ initialises `M'(d_new) = ∅` (its effect clause when `Document(e)`); the subsequent K.μ⁺ invocation populates `M'(d_new)` with exactly the positions of `V_{s_C}(d_op)`; K.ρ does not modify arrangements. By the K.μ⁺ amendment (ContentSubspaceRestriction, ASN-0047) — which requires `subspace(v) = s_C` for every new V-position added by K.μ⁺ — together with K.δ's initialisation `dom(M'(d_new)) = ∅` and K.ρ's arrangement-preservation, every position in `dom(M'(d_new))` lies in the content subspace, so:
 
-> **V4b** (*domain equality*): In the post-fork state, `dom(M'(d_new)) = V_{s_C}(d_op)` and `V_{s_C}(d_new) = V_{s_C}(d_op)`. The fork's V-position domain is *exactly* the content source's content-subspace V-position set — not merely a superset. V4b is a design commitment of this ASN; V0's Effects table below carries the commitment forward as the primary positional characterisation of `M'(d_new)`, with V4b as the named restatement.
+> **V4b** (*domain equality*): In the post-fork state, `dom(M'(d_new)) = V_{s_C}(d_op)` and `V_{s_C}(d_new) = V_{s_C}(d_op)`. The fork's V-position domain is *exactly* the content source's content-subspace V-position set — not merely a superset.
 
 V4a and V4b together are the structural basis of correspondence. We expand their consequences in §"Structural Correspondence" below.
 
@@ -266,7 +264,7 @@ We record two immediate corollaries.
 >
 > (ii) *Initial coverage.* At the post-fork state itself, `Π_{Σ'} = F`. V8 supplies `F ⊆ Corr_{Σ'}`, so `Π_{Σ'} = F ∩ Corr_{Σ'} = F`.
 >
-> *Non-monotonicity.* (Throughout, `d_op` plays the role the first-fork case assigns to `d_src`; the frame conditions invoked hold identically for `d_op`, which — like `d_src` — lies in `E` at every state from `Σ'` onward by P1.) `Π_g` need not decay monotonically: subsequent K.μ⁻ on either side may move `v` out of `dom(M_g(d_op)) ∩ dom(M_g(d_new))` and subsequent K.μ⁺ may re-install a binding (subject to D-CTG★/D-MIN★ contiguity and the operator's choice of target I-address); K.μ~ may remap an image. Only K.μ⁻ or K.μ⁺ steps — whether standalone or arising as the two constituents of a K.μ~ composite — targeting `d_op` or `d_new` can move `Π_g`; every other elementary kind frames `M` at both `d_op` and `d_new` and so fixes `Corr_g` restricted to `F`, hence `Π_g`. The operational mechanics of removal, re-installation, and remapping are properties of those elementary transition kinds (and the K.μ~ composite built from them) as defined in ASN-0047, not of the fork operation.
+> *Non-monotonicity.* `Π_g` is not monotone — later arrangement edits (K.μ⁻, K.μ⁺, or K.μ~) M-targeted at `d_op` or `d_new` may remove or restore witnesses; every other elementary kind frames `M` at both and so fixes `Π_g`.
 >
 > *Derivation.* (i) is immediate from set-theoretic intersection: `Π_g = F ∩ Corr_g ⊆ F`. (ii) follows from V8 applied at `Σ'`: V4 together with the `M'(d_op) = M(d_op)` frame (V5 when `d_op = d_src`) give `M'(d_op)(v) = M'(d_new)(v)` for every `v ∈ F = V_{s_C}(d_op)|_{Σ'}`, so `F ⊆ Corr_{Σ'}`, and the intersection collapses to `F`. ∎
 
@@ -284,7 +282,7 @@ K.ρ adds `(a, d_new)` to `R` for each `a ∈ ran(M'(d_new))`. By J1★ (Extensi
 >
 > `(A a : a ∈ ran(M'(d_new)) : (a, d_new) ∈ R')`
 >
-> *Derivation.* The fork composite's K.ρ × n phase records one pair `(aⱼ, d_new)` per `aⱼ ∈ ran(M'(d_new))`, with cumulative effect `R' = R ∪ {(a, d_new) : a ∈ ran(M'(d_new))}` (verified step-by-step in "The Fork Composite" below). Hence every `a ∈ ran(M'(d_new))` satisfies `(a, d_new) ∈ R'`. This is precisely what *discharges* J1★ (ExtensionRecordsProvenance) for the composite: the coupling obligation is satisfied by V9's records, not a premise from which they are derived. ∎
+> *Derivation.* The fork composite's K.ρ × n phase records one pair `(aⱼ, d_new)` per `aⱼ ∈ ran(M'(d_new))`, with cumulative effect `R' = R ∪ {(a, d_new) : a ∈ ran(M'(d_new))}`. Hence every `a ∈ ran(M'(d_new))` satisfies `(a, d_new) ∈ R'`. This is precisely what *discharges* J1★ (ExtensionRecordsProvenance) for the composite: the coupling obligation is satisfied by V9's records, not a premise from which they are derived. ∎
 
 V9 has the consequence that, after the fork, querying R for "documents containing I-address `a`" returns at least `{d_src, d_new}` for every `a ∈ ran(M'(d_new))` (and possibly more, if `a` was also transcluded elsewhere). The fork makes `d_new` discoverable as a container of each inherited I-address.
 
@@ -418,7 +416,7 @@ We assemble the formal definition.
 > M'(d_new)(v) = M(d_op)(v)   for v ∈ V_{s_C}(d_op)   (V4)
 > M'(d_new)(v) undefined       for v ∉ V_{s_C}(d_op) (V4b; V6 as corollary for link-subspace V-positions)
 > (A d' : d' ≠ d_new : M'(d') = M(d'))                (V5 for d' = d_src; K.δ + K.μ⁺ + K.ρ frame conditions for d' ≠ d_src ∧ d' ≠ d_new — in particular M'(d_op) = M(d_op))
-> R' = R ∪ {(a, d_new) : a ∈ ran(M'(d_new))}          (V9; set equality verified in the composite verification below)
+> R' = R ∪ {(a, d_new) : a ∈ ran(M'(d_new))}          (V9)
 > ```
 >
 > *State of `V_{s_C}(d_op)` in the Effects above.* The set `V_{s_C}(d_op)` (and `M(d_op)(v)` for `v` in it) is evaluated at the pre-state `Σ`. The per-document frame guarantee `M'(d_op) = M(d_op)` (V5 when `d_op = d_src`; the K.μ⁺/K.δ/K.ρ frame at `d_op ≠ d_new` otherwise) makes the choice immaterial: `V_{s_C}(d_op)` denotes the same set and `M(d_op)(v)` denotes the same value in `Σ` and `Σ'`. Either reading produces the same Effects.
@@ -427,7 +425,7 @@ We assemble the formal definition.
 >
 > The R' line is a set equality, not the inclusion `R' ⊇ R ∪ {(a, d_new) : a ∈ ran(M'(d_new))}` that V9 alone supplies; the equality is verified by the elementary decomposition in "The Fork Composite" verification below.
 >
-> The K.ρ phase is `n` elementary K.ρ invocations (one per `a ∈ ran(M'(d_new))`), each recording a single `(a, d_new)` pair per K.ρ's definition (ASN-0047). The set-builder `{(a, d_new) : a ∈ ran(M'(d_new))}` denotes the cumulative effect of all `n` invocations on `R`; the elementary multiplicity is verified per step in "The Fork Composite" verification below.
+> The K.ρ phase is `n` elementary K.ρ invocations (one per `a ∈ ran(M'(d_new))`), each recording a single `(a, d_new)` pair per K.ρ's definition (ASN-0047). The set-builder `{(a, d_new) : a ∈ ran(M'(d_new))}` denotes the cumulative effect of all `n` invocations on `R`.
 >
 > When `V_{s_C}(d_op) = ∅` (the composite is K.δ alone, per V7's extension of J4): `C' = C`, `L' = L`, `E' = E ∪ {d_new}` (where `d_new` is `A_v(d_src)`'s next emission, formula as above), `M'(d_new) = ∅`, `M'(d') = M(d')` for `d' ≠ d_new`, `R' = R`. The operation succeeds.
 
@@ -478,16 +476,6 @@ Cumulative effect across the `n` K.ρ steps: `R^{(2+n)} = R^{(2)} ∪ {(aⱼ, d_
 The composite is a valid composite under ValidComposite★. ∎
 
 *K.δ-alone composite verification (empty-source case, V7's extension).* When `V_{s_C}(d_op) = ∅`, V7 reduces V0 to a single elementary K.δ step — no K.μ⁺ phase, no K.ρ phase — and the composite is `Σ → Σ^{(1)}`. We verify ValidComposite★ for this shape directly. The K.δ precondition is the same as in the non-empty case (sub-case A for first fork, sub-case B for subsequent fork), and the discharge above is independent of `V_{s_C}(d_op)`'s emptiness — `d_src ∈ E_doc` and the T10a/P1/P8/K.δ-ID.parent-0/1/K.δ-ID.zeros-0/1/T10a.4/T10a.6/T10a.7 arguments all carry through unchanged. So K.δ's elementary precondition holds at `Σ`. *Coupling at (Σ, Σ^{(1)}).* J0 holds vacuously: K.δ's frame gives `C^{(1)} = C`, so `dom(C^{(1)}) \ dom(C) = ∅` and J0's antecedent is unsatisfiable. J1★ holds vacuously: K.δ's effect sets `M^{(1)}(d_new) = ∅`, so for `d = d_new` no `v ∈ dom(M^{(1)}(d_new))` exists, and the existential antecedent of J1★ is unsatisfiable for `d_new`; for every `d ≠ d_new`, K.δ's frame gives `M^{(1)}(d) = M(d)`, so no `a` is in `ran(M^{(1)}(d)) \ ran(M(d))`, and the antecedent is again unsatisfiable. J1'★ holds vacuously: K.δ's frame gives `R^{(1)} = R`, so `R^{(1)} \ R = ∅` and J1'★'s antecedent is empty. All three coupling constraints are satisfied vacuously at `(Σ, Σ^{(1)})`. The K.δ-alone composite is therefore a valid composite under ValidComposite★. ∎
-
-## Why I-Address Identity Suffices for the Relationship
-
-We have built the source-fork relationship entirely from I-address equality. We pause to record what this gives us and what it does not.
-
-What I-address identity captures: structural correspondence (V8), shared content discoverability (V9), link discoverability via shared addresses (V6a, derived locally from K.δ/K.μ⁺/K.ρ frame conditions on `L`, V5's source-arrangement isolation, and V4/V4b's arrangement inheritance), automatic attribution (origin invariance through V4a and S7 of ASN-0036), transitive identity through fork chains (V11). All of these arise from the single design commitment that I-addresses are permanent and unique.
-
-What I-address identity does not capture: counterpart correspondence (independently typed but textually identical content has different I-addresses), derivation lineage at the I-address level (an I-address does not record which forking event placed it where), semantic equivalence (two distinct I-addresses with equal byte values are not the same content). These would require additional structure — explicitly asserted counterpart links, an explicit derivation graph, or value-based comparison machinery — none of which is part of the abstract specification of the fork operation itself.
-
-The minimalism is by design. The fork operation creates a new document that *structurally inherits* from the source via shared I-addresses. The structural inheritance is what makes intercomparison, attribution, and link survival automatic. Anything beyond the structural inheritance is a separate concern, handled by separate operations.
 
 ## Worked Example
 
@@ -595,3 +583,7 @@ What must the system guarantee about correspondence under the special case where
 Under what conditions does the V-stream depth of the fork's arrangement match the source's, and what must hold when they differ — for instance, if the fork operation is allowed to renumber inherited V-positions for compactness?
 
 What invariants must hold when a fork is followed immediately by deletion of content from the source — must the fork's inherited arrangement remain referentially valid, and through what mechanism?
+
+What additional structure must the system provide to relate independently-typed but textually identical content across documents — counterpart correspondence that I-address identity alone, which assigns such content distinct addresses, cannot express?
+
+What must distinguish two distinct I-addresses holding equal byte values, if the specification is to treat them as non-identical content rather than collapse them by value?
