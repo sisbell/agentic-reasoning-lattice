@@ -15,13 +15,13 @@ Content can be named in two registers. By I-address — "the content at addresse
 
 We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s ∈ Σ.E_doc` names a source document and `σ = (u, ℓ)` is a level-uniform V-span confined to the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) = #u`, `#ℓ = #u` (level-uniformity, ASN-0053 S6), and `actionPoint(ℓ) ≥ 2` (equivalently `ℓ₁ = 0`: the displacement does not perturb the subspace identifier at position 1; together with `actionPoint(ℓ) = #u` this also forces `#u ≥ 2`). Its denotation `⟦σ⟧` and reach `u ⊕ ℓ` used throughout are ASN-0053's (σ.denotation: `⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}`; σ.reach: `reach(σ) = start(σ) ⊕ width(σ)`); we apply those definitions rather than restate them below. A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
 
-Two preconditions confine the span to the content subspace. `subspace(u) = s_C` places the anchor there: FINDDOCSCONTAINING tracks transclusion of byte content — Nelson's "regardless of where the native copies are located" — and only the content subspace participates in transclusion. A link-subspace span would name nothing the operation is for, since a link address has a unique home document recoverable directly from its tumbler via `origin` (ASN-0047 L1a, LinkScopedAllocation: `origin(a) ∈ E_doc` for every link address); we exclude such queries by construction. The companion floor `actionPoint(ℓ) = #u ≥ 2` places the action point at position 2 or beyond. Both preconditions feed the *prefix confinement* argument below; its position-1 instance is subspace confinement, `subspace(t) = s_C` for every `t ∈ ⟦σ⟧`.
+The two content-subspace preconditions `subspace(u) = s_C` and `actionPoint(ℓ) = #u ≥ 2` are what the *prefix confinement* argument below consumes; its position-1 instance is subspace confinement, `subspace(t) = s_C` for every `t ∈ ⟦σ⟧`.
 
 Subspace confinement is recoverable from `actionPoint(ℓ) = #u` and `#u ≥ 2`. The claim we need — call it *prefix confinement* — is that every `t ∈ ⟦σ⟧` agrees with `u` on all components `1 ≤ j < #u`. This is the relaxed analogue of ASN-0058's C0a (which assumes well-formedness), proven here directly from the vspec preconditions. The argument runs at every prefix position `1 ≤ j < #u`: for any `j` with `1 ≤ j < #u = actionPoint(ℓ)`, position `j` lies strictly below the action point, so TumblerAdd's prefix-copy gives `(u ⊕ ℓ)_j = u_j` — `u` and `u ⊕ ℓ` share the whole prefix `1 ≤ j < #u`. We first establish the componentwise fact that drives both halves of the argument: for any position `p` with `1 ≤ p < #u` *at which `t_p` exists*, `t` cannot first disagree with `u` at `p`. Since `p < #u = actionPoint(ℓ)`, TumblerAdd's prefix-copy gives `u_p = (u ⊕ ℓ)_p`; were `t_p ≠ u_p`, T1 case (i) at `p` would force either `t < u` (if `t_p < u_p`) or `t > u ⊕ ℓ` (if `t_p > u_p`), each contradicting `u ≤ t < u ⊕ ℓ`. By NAT-order trichotomy (T0), `t_p = u_p` wherever `t_p` exists with `p < #u`. This fact discharges *totality* — that every `t ∈ ⟦σ⟧` has depth `#t ≥ #u`, so each `t_j` exists, the T1 *case (ii)* exclusion. Were `#t < #u`, then either `t` agrees with `u` on its whole length — making `t` a proper prefix of `u`, hence `t < u` by T1 case (ii), contradicting `u ≤ t` — or `t` first disagrees with `u` at some position `p ≤ #t < #u`, where `t_p` exists, contradicting the componentwise fact just established; either way `#t < #u` is impossible, so `#t ≥ #u` and `t_j` is defined for all `1 ≤ j < #u`. With totality in hand the componentwise fact applies at every `1 ≤ j < #u`, so `t_j = u_j` throughout. We name this *prefix confinement* (PC); it holds with no appeal to well-formedness. Its position-1 instance `t₁ = u₁` is subspace confinement. By PC, `⟦σ⟧` varies only at component `#u` and deeper, so resolution reads exactly the prefix the user named.
 
 ## Resolution
 
-For a single vspec `(d_s, σ)`, the resolved I-addresses are those that `d_s`'s current arrangement assigns to positions within the span:
+For a single vspec `(d_s, σ)`, the resolved I-addresses are those that `d_s`'s current arrangement assigns to positions within the span. For `Σ.M(d_s)` to be a defined arrangement — `dom(Σ.M) = Σ.E_doc` (M1, ASN-0047) — we require `d_s ∈ Σ.E_doc`; under that condition:
 
   `iaddrs_one(d_s, σ)(Σ) := { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }`
 
@@ -29,7 +29,7 @@ For a vspec-set `Q`:
 
   `iaddrs(Q)(Σ) := ⋃_{(d_s, σ) ∈ Q} iaddrs_one(d_s, σ)(Σ)`
 
-Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`, gated on the `wp-defined` precondition of *The operation* below (which ensures every `Σ.M(d_s)` consulted is a defined arrangement). Under that gate the argument is that every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(Σ.C)` rather than `dom(Σ.L)`. We show subspace confinement first, then apply S3★.
+Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. With each `d_s ∈ Σ.E_doc` (the gating condition under which `iaddrs_one` is defined above), every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(Σ.C)` rather than `dom(Σ.L)`. We show subspace confinement first, then apply S3★.
 
 *Subspace confinement.* For every `t ∈ ⟦σ⟧`, PC's position-1 instance (proven in *The query*) gives `t₁ = u₁ = s_C`, hence `subspace(t) = s_C`.
 
@@ -144,16 +144,16 @@ which equals `iaddrs_one(d_D, σ_D)(Σ) = { M(d_D)(v) : v ∈ {w₁, w₂, w₃}
 
 Therefore `find(Q_D)(Σ) = {d_A, d_B, d_C, d_D}`. Here `d_A` (sharing only `a₁`) and `d_C` (sharing only `a₂`) each qualify on one address out of two, sharing *disjoint* fragments of the query — the empty/non-empty intersection distinction is genuinely tested, since neither references what the other does, yet both belong.
 
-**What this verifies.**
+**What this verifies.** Each named property is established by the trace line cited; the labels bind property to evidence without re-deriving.
 
-- *F-SHARE.* `d_A`, `d_B`, and `d_D` are all discovered by the same query `Q`, demonstrating cross-document discovery through a shared I-address. The query named only `(d_A, σ_A)` — `d_B` and `d_D` were not mentioned — yet both appear because their arrangements reference the resolved I-address `a₁`.
-- *F-DIST.* Each document appears exactly once in `find(Q)(Σ) = {d_A, d_B, d_D}`, despite all three satisfying the predicate. The result is a set; `d_A` is not duplicated even though it is both the source-document of `Q` and a member of the result, and `d_D` is not duplicated even though it references `a₁` at two distinct positions `w₁` and `w₃`.
-- *F-PART.* Demonstrated against the two-address query `Q_D` with `iaddrs(Q_D)(Σ) = {a₁, a₂}`. Both `d_A` (referencing only `a₁`) and `d_C` (referencing only `a₂`) are included — each shares a *proper subset* of the resolved set, and their shares are disjoint. A single shared I-address suffices; the operation does not require a document to reference all of `iaddrs(Q_D)`, nor any particular portion of the queried span. The singleton query `Q` cannot exhibit this, since with one resolved address every non-empty intersection is the whole set.
-- *Resolve-equivalence (multi-block).* For `Q_D`, the source `d_D` decomposes into three maximal-run blocks `⟨β₁, β₂, β₃⟩`, with `β₁` and `β₃` carrying the same I-address `a₁`. The set-flattening of `resolve(d_D, σ_D) = ⟨(a₁,1),(a₂,1),(a₁,1)⟩` dedupes the repeated `a₁` to `{a₁, a₂}`, matching `iaddrs_one(d_D, σ_D)(Σ)`. The multi-block, shared-I-address case of the Resolution section is thereby verified concretely rather than only asserted.
-- *F-SOUND (exclusion).* `d_C` references content (`a₂`) but shares no I-address with `iaddrs(Q)(Σ) = {a₁}`, so the membership predicate evaluates to *false* and `d_C ∉ find(Q)(Σ)`. The biconditional is exercised in its harder, negative direction against a concrete non-containing document — membership is not merely an absence of mention but a tested empty intersection.
-- *F-FILT.* The span `⟦σ_A⟧` is an infinite subset of `T`, but the intersection with `dom(M(d_A)) = {v_A}` reduces it to a single position. The operation does not reject `σ_A` for naming positions outside `d_A`'s arrangement — unresolvable positions contribute nothing and the query reads charitably over what is currently bound.
-- *F-CUR.* The result depends only on the current arrangements `Σ.M(d)`. Were a later K.μ⁻ to contract `M(d_B)` to remove `v_B`, the query `Q` would return `{d_A, d_D}` — `d_B` would no longer be currently containing, even though `(a₁, d_B) ∈ R` would persist (P2).
-- *Home/transcluding recovery.* `origin(a₁) = d_A`, so among the discovered documents `d_A` is `a₁`'s home while `d_B` and `d_D` transclude it.
+- *F-SHARE* — cross-document discovery through a shared I-address: the **Find** step for `Q` (`d_A`, `d_B`, `d_D` discovered from a query naming only `(d_A, σ_A)`).
+- *F-DIST* — set semantics: `find(Q)(Σ) = {d_A, d_B, d_D}`, with `d_D` listed once despite referencing `a₁` at both `w₁` and `w₃`.
+- *F-PART* — partial overlap suffices: the *Find with proper-subset references* step for `Q_D`, where `d_A` (only `a₁`) and `d_C` (only `a₂`) each qualify on a disjoint proper subset of `iaddrs(Q_D)(Σ) = {a₁, a₂}`.
+- *Resolve-equivalence (multi-block)* — the *Multi-block resolution* step: `resolve(d_D, σ_D) = ⟨(a₁,1),(a₂,1),(a₁,1)⟩` set-flattens to `iaddrs_one(d_D, σ_D)(Σ) = {a₁, a₂}` across three blocks sharing `a₁`.
+- *F-SOUND (exclusion)* — the `d = d_C` line of `Q`'s **Find** step: empty intersection `{a₂} ∩ {a₁} = ∅` yields `d_C ∉ find(Q)(Σ)`.
+- *F-FILT* — the **Resolution** of `Q`: the infinite `⟦σ_A⟧` intersects `dom(M(d_A)) = {v_A}` down to one position, unresolvable positions silently dropped.
+- *F-CUR* — state dependence: a later K.μ⁻ removing `v_B` would drop `d_B` from `find(Q)`, even as `(a₁, d_B) ∈ R` persists (P2).
+- *Home/transcluding recovery* — `origin(a₁) = d_A`, so among the discovered documents `d_A` is `a₁`'s home and `d_B`, `d_D` transclude it.
 
 **A cross-depth query.** Every document above has common content depth `m_C = 2`, so neither the cross-depth subtree capture (`#u < m`) nor the interior-action-point rejection (`#u ≥ 3`) can be exercised against an actual arrangement — both require a deeper source. We extend the construction with one depth-3 document, reaching a state `Σ⁺` that adds `d_E` to `Σ`:
 
@@ -209,8 +209,6 @@ This is the operative reading of Nelson's "any portion": completeness is over th
 
 A document that transcludes ten distinct passages from a queried chapter is reported once, not ten times. The result enumerates documents, not occurrences.
 
-Set semantics must be stated explicitly because the natural implementation — iterating over each queried I-address and collecting source documents — produces duplicates by default. The specification requires deduplication; an implementation that returns a multiset of `(d, a)` pairs satisfies neither the type signature nor the intent.
-
 ## Discovery through sharing
 
 The most architecturally significant consequence concerns transclusion. If I-address `a` is referenced by multiple documents — `a ∈ ran(Σ.M(d))` for several `d` — then a query that resolves to `a` discovers all of them:
@@ -251,7 +249,7 @@ The argument is three-step:
 
 Combining: step (b) bounds the per-elementary-transition growth of `|E_doc|` by one, and step (c) bounds the number of elementary transitions by `n_elem`, so `|Σ.E_doc| ≤ n_elem < ∞` at any reachable `Σ`. (The bound is stated against the elementary count, not the composite count — a single composite may fire several K.δ steps, e.g. node → account → document creation, so `|E_doc|` can exceed the number of composites.) Since `find(Q)(Σ) ⊆ Σ.E_doc`, finiteness follows.
 
-This is worth stating because `iaddrs(Q)` may name content that is widely transcluded — a single popular passage could appear in many documents. The result is bounded only by `E_doc` itself. The operation does not promise a small result, only a finite one. Implementations that must materialize the entire result before returning it should be designed expecting that the result can grow with the docuverse.
+This is worth stating because `iaddrs(Q)` may name content that is widely transcluded — a single popular passage could appear in many documents. The result is bounded only by `E_doc` itself.
 
 ## What we do not specify
 
