@@ -286,9 +286,7 @@ The orphan premise supplies `a ∈ dom(Σ.L)`. Store Monotonicity★ applied to 
 
 Because the link's stored state is permanent (L12, LP3★) while its projection is recomputed live against the current arrangement, the architecture admits arbitrarily many cycles of orphanage and resurrection.
 
-## Boundary and Width Behaviour
-
-We address two further questions about the structural behaviour of projection under specific operation patterns.
+## Substrate Structure and Projection Behaviour
 
 By ASN-0093, every K.α/K.λ-allocated address is a chain element of some sub-allocator `A_C(d)` or `A_L(d)`, with structural form `[d, 0, s_C, k]` (resp. `[d, 0, s_L, k]`) for some T4-valid document tumbler `d` (i.e., `d ∈ T` with `zeros(d) = 2`) and some `k ≥ 1`. The set `F` of *substrate-emittable addresses* is the union of all such chain elements across all T4-valid document tumblers and both subspaces, excluding the T4-invalid zero-extensions `s.0`, `s.0.0`, … that a raw span includes but no allocator chain can emit (T10a.4, ASN-0034). Formally:
 ```
