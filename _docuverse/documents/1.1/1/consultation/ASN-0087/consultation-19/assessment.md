@@ -1,13 +1,15 @@
-# Revision Categorization — ASN-0063 review-19
+# Channel Assignment — ASN-0087 review-19
 
-**Date:** 2026-03-22 01:01
+**Date:** 2026-06-03 14:32
 
+## Issue 1: S7d is misclassified as content-quantified
+Reason: The ASN already states what S7d concerns (document allocation discipline over `dom(M)`) and that `dom(Σ'.M) = dom(Σ.M)`; reclassifying S7d under document-set preservation is derivable from the ASN's own body, which justifies M0 the same way.
 
+## Issue 2: M-Inv-State table miscategorizes M0 and S7d, contradicting the body
+Reason: This is an internal reconciliation between the summary table and the body, which already correctly justifies M0 via unchanged `dom(M)`; adding an M-frame category requires no external evidence or design intent.
 
-## Issue 1: J4 (Fork) compatibility with D-CTG/D-MIN amendment is not verified
-Category: INTERNAL
-Reason: The fix is fully derivable from existing definitions — J4's K.μ⁺ operates on a fresh document (M(d_new) = ∅ after K.δ), so constructing V-positions contiguously from the minimum satisfies D-CTG/D-MIN by definition. No external evidence needed.
+## Issue 3: "Vacuous" misused for invariants preserved by inheritance over nonempty domains
+Reason: Purely a terminology correction (vacuous vs. preserved-by-inheritance) resolvable from the ASN's own frame reasoning; no design intent or implementation evidence is needed.
 
-## Issue 2: K.μ~ decomposition validity under D-CTG/D-MIN amendment is not established
-Category: INTERNAL
-Reason: The fix requires an explicit existence argument for the K.μ⁻/K.μ⁺ decomposition, but all ingredients are present in the ASN — link-subspace fixity (r = 0), D-SEQ at the input, and the observation that removing all content-subspace positions then re-adding is always valid. No design intent or implementation evidence is needed.
+## Issue 4: `m_L(d)` referenced where it is undefined in the K.μ⁺_L precondition
+Reason: The ASN itself states `m_L(d)` is well-defined only while `V_{s_L}(d) ≠ ∅` and that M-DepthConv fixes the empty-subspace depth at 2; restating the branch as `#v_ℓ = 2` is internally derivable.
