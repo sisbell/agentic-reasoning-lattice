@@ -118,8 +118,6 @@ A link's projection through one document is unaffected by editing operations on 
 
 **Projection invariance under arrangement-fixing transitions.** Any transition whose frame fixes every `M(d)` and preserves `dom(Σ.M)` leaves every projection fixed: it gives `dom(Σ.M) = dom(Σ'.M)` and `Σ'.M(d) = Σ.M(d)` for every `d`, so by LP4 applied to each such `d`, `project(e, d, Σ') = project(e, d, Σ)` for every endset `e`. Three operations instantiate this template directly — **LP6 (Content-Allocation Invariance)** at K.α (which modifies only `Σ.C`; ASN-0093), **LP7 (Link-Allocation Invariance)** at K.λ (which modifies only `Σ.L`), and **LP14 (ProvenanceRecording Invariance)** at K.ρ (which only adds a pair to `Σ.R`; ASN-0047). K.δ in the `Node(e)` and `Account(e)` cases instantiates it as well: both carry frame `M' = M` (ASN-0047) and register no document, so `dom(Σ.M)` is preserved and every `M(d)` is fixed — projection is invariant under node and account creation by the same template (the `Document(e)` case, which does register a document, is treated separately as LP8).
 
-Newly allocated I-addresses are invisible to projection until some subsequent K.μ⁺ adds an arrangement entry referencing them: a fresh address is not yet in any `ran(Σ.M(d))`, so it lies in no projection. Insertion as a composite (allocate + arrange) splits into a K.α step, which displaces nothing (LP6), and a K.μ⁺ step, which may add a V-position to the projection if the new V-position's I-address is in `coverage(e)` (LP9).
-
 **LP8 — Document-Registration Invariance**: For any document-registration transition `Σ → Σ'` — K.δ in the `Document(e)` case (ASN-0047) — registering a fresh document `d_new` (with `d_new ∉ dom(Σ.M)`, `dom(Σ'.M) = dom(Σ.M) ∪ {d_new}`, `Σ'.M(d_new) = ∅`, and `Σ'.M(d) = Σ.M(d)` for every `d ∈ dom(Σ.M)`) and any endset `e`, both:
 
 (a) Pre-state preservation: `(A d ∈ dom(Σ.M) :: project(e, d, Σ') = project(e, d, Σ))`.
@@ -152,7 +150,7 @@ project(e, d, Σ') ∖ project(e, d, Σ) = {v ∈ dom(Σ'.M(d)) ∖ dom(Σ.M(d))
 
 The forward inclusion (⊆): suppose `v ∈ project(e, d, Σ') ∖ project(e, d, Σ)`. Then `v ∈ dom(Σ'.M(d))` and `Σ'.M(d)(v) ∈ coverage(e)` by the first conjunct. For the second, either `v ∉ dom(Σ.M(d))` or `Σ.M(d)(v) ∉ coverage(e)`. The second alternative is excluded: if `v ∈ dom(Σ.M(d))`, the agreement clause gives `Σ.M(d)(v) = Σ'.M(d)(v) ∈ coverage(e)`, contradicting `v ∉ project(e, d, Σ)`. So `v ∉ dom(Σ.M(d))`, placing `v ∈ dom(Σ'.M(d)) ∖ dom(Σ.M(d))`. The reverse inclusion (⊇): if `v ∈ dom(Σ'.M(d)) ∖ dom(Σ.M(d))` with `Σ'.M(d)(v) ∈ coverage(e)`, then `v ∈ project(e, d, Σ')` directly; and `v ∉ project(e, d, Σ)` since `v ∉ dom(Σ.M(d))`.
 
-By the exact-difference formula, a new V-position enters the projection exactly when its I-address lies in `coverage(e)`: growth is conditional on coverage membership alone. When K.μ⁺ adds entries mapping V-positions to *existing* I-addresses (the transclusion case), the projection grows by precisely those new V-positions whose mappings fall in coverage. This is the mechanism by which a link "comes into view" in a document that newly transcludes its target content. K.μ⁺_L exhibits the same growth behaviour for link-subspace V-positions when an existing link address is admitted into a home-document arrangement.
+By the exact-difference formula, a new V-position enters the projection exactly when its I-address lies in `coverage(e)`: growth is conditional on coverage membership alone. When K.μ⁺ adds entries mapping V-positions to *existing* I-addresses (the transclusion case), the projection grows by precisely those new V-positions whose mappings fall in coverage. This is the mechanism by which a link "comes into view" in a document that newly transcludes its target content. Insertion as a composite (allocate + arrange) decomposes the same way: the K.α step displaces nothing (LP6), since a fresh I-address is not yet in any `ran(Σ.M(d))`, and the subsequent K.μ⁺ step adds the new V-position to the projection exactly when its I-address falls in `coverage(e)`. K.μ⁺_L exhibits the same growth behaviour for link-subspace V-positions when an existing link address is admitted into a home-document arrangement.
 
 **LP10 — Contraction under K.μ⁻**: For every K.μ⁻ transition `Σ → Σ'` operating on `d`, and every endset `e`:
 ```
@@ -231,7 +229,7 @@ denote the resulting retention set — determined by the parameters and the per-
 wp(K.μ⁻[d, R], discoverable_from(a, d, ·))
   ≡ enabled(K.μ⁻[d, R]) ∧ (E i : 1 ≤ i ≤ |Σ.L(a)| : project(a, i, d, Σ) ∩ R ≠ ∅)
 ```
-where `enabled(K.μ⁻[d, R])` is K.μ⁻'s applicability predicate (ASN-0047), under which the post-state `Σ' = K.μ⁻[d, R](Σ)` exists. The derivation below establishes the pullback conjunct under the standing assumption that K.μ⁻ is enabled at `Σ`.
+where `enabled(K.μ⁻[d, R])` is K.μ⁻'s applicability predicate (ASN-0047), under which the post-state `Σ' = K.μ⁻[d, R](Σ)` exists.
 
 Derivation. We work backward from the postcondition. By the discoverable_from definition applied at `Σ'`, using LP2 for `a ∈ dom(Σ'.L)` and the per-slot equality `Σ'.L(a).eᵢ = Σ.L(a).eᵢ`, and L12's full value equality `Σ'.L(a) = Σ.L(a)` for the arity invariance `|Σ'.L(a)| = |Σ.L(a)|` that keeps the slot index range stable:
 ```
@@ -426,7 +424,7 @@ Furthermore, the two per-subspace inclusions *partition* the projection's full r
 {Σ.M(d)(v) : v ∈ project(e, d, Σ)} = {Σ.M(d)(v) : v ∈ project(e, d, Σ) ∧ subspace(v) = s_C}
                                    ∪ {Σ.M(d)(v) : v ∈ project(e, d, Σ) ∧ subspace(v) = s_L}
 ```
-The union is exhaustive by S3★-aux; the two summands are jointly the full projection range. The two summands are also disjoint — making this a genuine partition rather than a mere exhaustive union — because their containing stores are disjoint: the content-subspace component lies in `dom(Σ.C)`, the link-subspace component in `dom(Σ.L)`, and `dom(Σ.C) ∩ dom(Σ.L) = ∅` (SD, ASN-0093; equivalently L14, ASN-0047). Together with the per-subspace inclusions above, this gives a complete characterisation of `{Σ.M(d)(v) : v ∈ project(e, d, Σ)}` as a partition into a content-subspace component (contained in `coverage(e) ∩ dom(Σ.C)`) and a link-subspace component (contained in `coverage(e) ∩ dom(Σ.L)`), with no other contributions.
+The union is exhaustive by S3★-aux; the two summands are jointly the full projection range. The two summands are also disjoint — making this a genuine partition rather than a mere exhaustive union — because their containing stores are disjoint: the content-subspace component lies in `dom(Σ.C)`, the link-subspace component in `dom(Σ.L)`, and `dom(Σ.C) ∩ dom(Σ.L) = ∅` (SD, ASN-0093; equivalently L14, ASN-0047).
 
 The V-positions in the projection always correspond to I-addresses that have been allocated: the projection cannot "see" hypothetical future addresses. The equality is the precise statement of what is reached, and the per-subspace inclusion records what store the reached addresses inhabit.
 
