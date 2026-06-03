@@ -91,7 +91,7 @@ Combining: `v ∈ R(d, e)|_{s_C}` iff `M(d)(v) ∈ coverage(e) ∩ dom(C)` iff `
 
 The `s_C`-component of the result picks out the content-subspace portion of coverage; the `s_L`-component picks out the link-subspace portion. An endset whose coverage straddles both I-subspaces (admissible by L4, ASN-0043) contributes to both result components; an endset confined to one I-subspace contributes only to that component.
 
-**Derived guarantee (lookup totality).** Resolution never yields a V-position whose subsequent store access fails. For every `v ∈ R(d, e)|_{s_C}`, the content lookup `M(d)(v) ∈ dom(C)` always succeeds, by S3★ (GeneralizedReferentialIntegrity, ASN-0047). For every `v ∈ R(d, e)|_{s_L}`, the image `M(d)(v) ∈ dom(L)`, disjoint from `dom(C)` by L14 (StoreDisjointness, ASN-0047), so a `C`-lookup does not apply by design — the appropriate access is the link store. Both branches are determined by the foundations; there is no resolution outcome that references absent content.
+**Derived guarantee (lookup totality).** For every `v ∈ R(d, e)|_{s_C}`, `M(d)(v) ∈ dom(C)`, by S3★ (GeneralizedReferentialIntegrity, ASN-0047). For every `v ∈ R(d, e)|_{s_L}`, `M(d)(v) ∈ dom(L)`, disjoint from `dom(C)` by L14 (StoreDisjointness, ASN-0047).
 
 ## Result Form and the Operation
 
@@ -250,7 +250,7 @@ Aggregating across all blocks and all endset spans, partitioning by V-subspace, 
 
 This is *one* admissible computation (the postcondition fixes denotation, not decomposition strategy — see Canonical Form). The decomposition view confirms the computation is finite and well-structured: linear in the number of (block, endset-span) pairs whose I-extents intersect.
 
-The decomposition also clarifies why fragmentation appears naturally. If a single endset I-span `σ` intersects two non-adjacent mapping blocks of `d` in the same subspace, it produces two non-adjacent V-runs in the result — exactly because the blocks themselves are non-adjacent in V-space. No special logic handles fragmentation; the decomposition delivers it automatically. The same observation explains multiplicity: if multiple blocks each have the same `a` as their I-start with the same width, each block independently contributes a V-run, and the result contains all of them.
+Fragmentation and multiplicity are the per-block image of the decomposition. If a single endset I-span `σ` intersects two non-adjacent mapping blocks of `d` in the same subspace, it produces two non-adjacent V-runs in the result — the V-image of blocks that are non-adjacent in V-space. Multiplicity is the shared-I-extent case: if multiple blocks have the same I-start `a` and width, each contributes its own V-run.
 
 ## A Worked Example
 
@@ -403,6 +403,8 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 3. By the postcondition of `follow`, any returned `Σ_V` satisfies `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` for each `S`. Combined with step 2, the V-restricted denotation of each subspace component is therefore uniquely determined.
 4. By F-canonical, given the fixed V-restricted denotation per subspace, a canonical form exists (Step 2a's per-run construction, whose normalised existence S8 (NormalizationExistence, ASN-0053) underwrites) and S9 (NormalizationUniqueness, ASN-0053) yields a unique normalised form per component; the fixed external ordering yields a unique family-level form. The canonical form is therefore uniquely determined. ∎
 
+**System reading.** This is the structural form of Nelson's "a given part of a given version at a given time" yielding the same answer; without it, citation would be impossible.
+
 ### F-sound — Soundness (LEMMA)
 
 **Preconditions.** As `follow`.
@@ -513,6 +515,8 @@ Uniformity makes the operation composable: `followAll(ℓ, d) = (follow(ℓ, d, 
 
 Downstream callers may project to home from each `M(d)(v)` using the appropriate ASN-0036 or ASN-0043 projection, but the resolution mechanism does not.
 
+**System reading.** Native and transcluded content are indistinguishable to resolution — the structural form of Nelson's claim that non-native bytes are as much a logical part of a document as native bytes.
+
 ### F-persist — LinkPersistence (LEMMA)
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)` at state `Σ`; `Σ → Σ'` is a valid transition.
@@ -535,6 +539,8 @@ Empty resolution does not destroy the link.
 
 **Frame.** No state modification.
 
+**System reading.** Brokenness is state-relative: an empty resolution against one arrangement leaves the link intact and possibly non-empty against another document or at another state. The link persists (F-persist); only the arrangement varies.
+
 ### F-multidoc — NoPreferredDocument (LEMMA)
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d, d' ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
@@ -545,17 +551,7 @@ Empty resolution does not destroy the link.
 
 **Frame.** No state modification.
 
-## Discussion: System Guarantees
-
-Each derived property above carries a system-level reading in Nelson's terms.
-
-*Determinism (F-det).* Nelson's commitment — "a given part of a given version at a given time" yields the same answer — is the structural consequence of working with functions and a canonical normal form. Without it, citation would be impossible.
-
-*Origin symmetry (F-origin).* From the resolution function's perspective, native and transcluded content are indistinguishable. This is the structural form of Nelson's claim that non-native bytes are as much a logical part of a document as native bytes.
-
-*State dependence (F-state).* Two consequences. A link is not a function of its result: its identity rests on address and endsets (L11b, NonInjectivity), not on what it currently resolves to. And brokenness is state-relative — an empty resolution against one arrangement leaves the link intact and possibly non-empty against another document or at another state; the link persists, only the arrangement varies.
-
-*No preferred document (F-multidoc).* This is the structural reading of Nelson's "a link to one version is a link to all versions": the link's reach is determined by where its endsets' content is currently arranged, and it extends into every document on the same terms.
+**System reading.** This is the structural form of Nelson's "a link to one version is a link to all versions": the link's reach is determined by where its endsets' content is currently arranged, and it extends into every document on the same terms.
 
 ## Claims Introduced
 
