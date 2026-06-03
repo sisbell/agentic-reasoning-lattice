@@ -26,7 +26,7 @@ The first is supplied by entity creation; the second by arrangement extension; t
 
 The composite is J4 of ASN-0047, named *ForkComposite*. We adopt it as the structural skeleton and derive from first principles what it guarantees, what it forbids, and what it leaves to the source-fork relationship.
 
-J4 distinguishes two operands. The *identity source* is `d_src` — the document being forked, fixed by V0's precondition. The *content source operand* `d_op` is the document whose content-subspace arrangement is transcribed into `d_new`; J4's operand-tracking rule fixes it by sub-case. On a *first fork* of `d_src` (when `A_v(d_src)` has emitted no prior version) the two operands coincide, `d_op = d_src`. On a *subsequent fork* (when `A_v(d_src)` already has a frontier) they diverge: `d_op = max(dom(A_v(d_src)))` is the prior version, not the original source. The distinction that matters here is identity-source versus content-source; the corresponding `d_new` allocation formulas are deferred to V1. J4's precondition for the non-empty branch is `d_src ∈ E_doc ∧ d_op ∈ E_doc ∧ V_{s_C}(d_op) ≠ ∅`.
+J4 distinguishes two operands. The *identity source* is `d_src` — the document being forked, fixed by V0's precondition. The *content source operand* `d_op` is the document whose content-subspace arrangement is transcribed into `d_new`; J4's operand-tracking rule fixes it by sub-case. On a *first fork* of `d_src` (when `A_v(d_src)` has emitted no prior version) the two operands coincide, `d_op = d_src`. On a *subsequent fork* (when `A_v(d_src)` already has a frontier) they diverge: `d_op = max(dom(A_v(d_src)))` is the prior version, not the original source. The distinction that matters here is identity-source versus content-source. J4's precondition for the non-empty branch is `d_src ∈ E_doc ∧ d_op ∈ E_doc ∧ V_{s_C}(d_op) ≠ ∅`.
 
 ## Identity by Sub-Allocation
 
@@ -482,11 +482,11 @@ Under what conditions can the size of a fork's arrangement be bounded relative t
 
 What invariants must hold over the set of all forks ever produced from a single source, if the version space is to be presented as a coherent collection rather than as independent siblings?
 
-What must the system guarantee about correspondence under the special case where the fork operation is applied with the source equal to its own previous fork — i.e., forks of forks within a single editorial session?
+What must the system guarantee about correspondence along a fork chain when an intermediate version is *edited* between forks — the case V11's transitive-identity premise explicitly excludes?
 
 Under what conditions does the V-stream depth of the fork's arrangement match the source's, and what must hold when they differ — for instance, if the fork operation is allowed to renumber inherited V-positions for compactness?
 
-What invariants must hold when a fork is followed immediately by deletion of content from the source — must the fork's inherited arrangement remain referentially valid, and through what mechanism?
+What must hold when a fork and a source deletion are interleaved across a *multi-step* boundary, beyond the single-step atomic ordering the worked example treats — for instance, when deletion is itself decomposed into several arrangement contractions straddling the fork?
 
 What additional structure must the system provide to relate independently-typed but textually identical content across documents — counterpart correspondence that I-address identity alone, which assigns such content distinct addresses, cannot express?
 
