@@ -33,7 +33,7 @@ DELETED(a, d)         ≡  (a, d) ∈ R  ∧  a ∉ ran(M(d))
 NEVER_INCLUDED(a, d)  ≡  (a, d) ∉ R
 ```
 
-**Classification is at I-address-set granularity.** Each predicate reads only the *set* membership condition `a ∈ ran(M(d))`, never the number of V-positions at which `a` occurs. The foundation permits a single I-address to occupy multiple V-positions within one document: ASN-0036 (S5, M13) and ASN-0058 (M14) establish `(E d, a :: |{v : M(d)(v) = a}| > 1)` — transclusion may map the same content at several V-positions. The consequence is explicit and intended: if `d` references `a` at two V-positions and one is removed, `a ∈ ran(M(d))` still holds, so `CURRENT(a, d)` holds and `DELETED(a, d)` does not. A per-occurrence removal — distinguishing which of several V-positions holding the same I-address went away — is therefore *invisible* to this classification while any occurrence of `a` survives in `d` (`a` becomes DELETED against `d` only when the *last* V-occurrence is removed), and as a Vstream concern that our I-address-set predicates do not address, we scope it out of this operation.
+**Classification is at I-address-set granularity.** Each predicate reads only the *set* membership condition `a ∈ ran(M(d))`, never the number of V-positions at which `a` occurs. The foundation permits a single I-address to occupy multiple V-positions within one document: ASN-0036 (S5, M13) and ASN-0058 (M14) establish `(E d, a :: |{v : M(d)(v) = a}| > 1)` — transclusion may map the same content at several V-positions. The consequence is explicit and intended: if `d` references `a` at two V-positions and one is removed, `a ∈ ran(M(d))` still holds, so `CURRENT(a, d)` holds and `DELETED(a, d)` does not. A per-occurrence removal — distinguishing which of several V-positions holding the same I-address went away — is therefore *invisible* to this classification while any occurrence of `a` survives in `d`, and as a Vstream concern that our I-address-set predicates do not address, we scope it out of this operation.
 
 **Lemma D-WIT (Content Witness Forces Provenance).** Let `Σ` be a composite-boundary state. For every `a ∈ dom(Σ.C)` and `d ∈ Σ.E_doc`, if `a ∈ ran(M(d))` then `(a, d) ∈ R`.
 
@@ -62,7 +62,7 @@ The four-row table is total over the two binary conditions, row 2 is excluded by
 
 ## Why the Provenance Relation Is Load-Bearing
 
-We now show that the four foundation state components `(C, L, E, M)` together are insufficient to support SHOWDELETIONS — any conforming implementation must maintain auxiliary state components beyond `(C, L, E, M)` that suffice to disambiguate the predicates `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` at every reachable state.
+We now show that the four foundation state components `(C, L, E, M)` are insufficient to support SHOWDELETIONS. The argument proceeds in two steps: a discrimination lemma (D-DISCR) exhibiting two states indistinguishable on `(C, L, E, M)` yet differently classified, and the necessity corollary (D-NEED) it yields.
 
 **Lemma D-DISCR (Discrimination Requires Provenance).** No function computable from `(Σ.C, Σ.L, Σ.E, Σ.M)` alone can distinguish `DELETED(a, d)` from `NEVER_INCLUDED(a, d)` for arbitrary `(a, d)`.
 
@@ -155,7 +155,15 @@ The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a com
 Result = (DeletedFromAWithB(d_A, d_B), DeletedFromBWithA(d_A, d_B))
 ```
 
-Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds. Termination rests on local finiteness premises: both output sets are comprehensions over `dom(C)`, finite by C-fin (ASN-0047), and each membership test `a ∈ ran(M(d_A))`, `a ∈ ran(M(d_B))` ranges over a finite arrangement by S8-fin (ASN-0036), with the `(a, d) ∈ R` test bounded by `R ⊆ dom(C) × E_doc` (P7, ASN-0047). Each comprehension thus scans finitely many addresses and performs finitely many bounded membership tests, so the operation halts. The same finiteness of `dom(C)` makes each output half a finite set.
+The predicate `q` is pure set equality: the operation returns the two comprehensions by definition, so establishing `q` requires only that they are computable — `d_A, d_B ∈ E_doc` and the finiteness of `dom(C)` and the arrangements. That finiteness (C-fin, S8-fin) holds at *every* reachable state, not only at composite boundaries. Hence the genuine weakest precondition for `q` carries no boundary conjunct:
+
+```
+wp(SHOWDELETIONS(d_A, d_B), q)  =  d_A ∈ E_doc  ∧  d_B ∈ E_doc
+```
+
+The operation always terminates with `q` true when this holds. Termination rests on the same finiteness premises: both output sets are comprehensions over `dom(C)`, finite by C-fin (ASN-0047), and each membership test `a ∈ ran(M(d_A))`, `a ∈ ran(M(d_B))` ranges over a finite arrangement by S8-fin (ASN-0036), with the `(a, d) ∈ R` test bounded by `R ⊆ dom(C) × E_doc` (P7, ASN-0047). Each comprehension thus scans finitely many addresses and performs finitely many bounded membership tests, so the operation halts. The same finiteness of `dom(C)` makes each output half a finite set.
+
+The operation's *stated* precondition (D-BOUND) is strictly stronger than `wp(op, q)`: it adds the composite-boundary conjunct `Σ is a composite-boundary state`. That conjunct is not needed to compute `q`; it is load-bearing for the report's *meaning* rather than its bare production. D-WIT and D-EXH hold only at composite boundaries (they rest on P4★, which couples `Contains_C` into `R` only across complete composites), so the boundary requirement is what licenses the three-state exhaustion underwriting `DELETED` — and hence the guarantee that an address reported as deleted-with-witness was genuinely once present rather than merely transiently mid-composite. We retain the boundary conjunct in the operation's precondition for this semantic guarantee, while noting it is not part of the weakest precondition for `q`.
 
 Because SHOWDELETIONS writes no state component (D-OBS), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
