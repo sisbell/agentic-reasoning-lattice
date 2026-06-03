@@ -95,17 +95,7 @@ From this single relation, the entire specification of FOLLOWLINK follows.
 
 ## Reachability
 
-Whether a given I-address `a ∈ coverage(e)` contributes V-positions to `R(d, e)` is determined entirely by whether `a ∈ ran(M(d))`. We observe three regimes:
-
-**Total reach.** `coverage(e) ⊆ ran(M(d))`. Every I-address in the endset's coverage is mapped somewhere in `d`. `R(d, e)` is the full pre-image, possibly with multiplicity if S5 (UnrestrictedSharing, ASN-0036) is realised — that is, if some `a` is arranged at multiple V-positions of `d`.
-
-**Partial reach.** `coverage(e) ∩ ran(M(d)) ≠ ∅` but `coverage(e) ⊄ ran(M(d))`. Some I-addresses are reached; others are not. `R(d, e)` is non-empty but contains only the V-positions for the reached subset.
-
-**No reach.** `coverage(e) ∩ ran(M(d)) = ∅`. None of the endset's I-addresses appears in `d`'s arrangement. `R(d, e) = ∅`.
-
-The system must accept all three regimes uniformly. There is no error condition for an unreached I-address; the empty set is a regular outcome. Whether the unreached portion can be observed elsewhere — in another document, in a past or future state, in any arrangement at all — is irrelevant to the resolution against `d` in the current state.
-
-In particular, the link `ℓ` itself remains in `dom(Σ.L)` regardless of any reach condition. By L12, `L(ℓ)` and its endsets are state-invariant. A "broken" link, in the sense of one that resolves to `∅` everywhere, is not destroyed: it is simply a link whose referenced content is not currently arranged. The link is preserved; what varies is whether any arrangement reflects it.
+Whether a given I-address `a ∈ coverage(e)` contributes V-positions to `R(d, e)` depends entirely on whether `a ∈ ran(M(d))`. Coverage may reach the arrangement fully (`coverage(e) ⊆ ran(M(d))`, full pre-image, possibly with multiplicity per S5), partially (`R(d, e)` holds only the reached subset's V-positions), or not at all (`R(d, e) = ∅`). All three are uniform outcomes with no error condition — the empty set is regular (formalised as F-empty). Whether an unreached portion is observable elsewhere — another document, another state — is irrelevant to resolution against `d` in the current state.
 
 ## Result Form and the Operation
 
@@ -332,9 +322,7 @@ follow(ℓ, d, 1) = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
 
 **Third configuration — no reach.** With `L(ℓ).e₁ = {(b, δ(1, m_a))}` where `b ∉ ran(M(d))`, every block's intersection with `{b}` is empty. `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. F-empty is exercised. ✓
 
-**Fourth configuration — state-dependence (F-state).** The previous three configurations vary the endset to exercise F0's dependence on coverage. This configuration fixes the link and varies the state to exercise F-state's claim that resolution differs across states even though `L(ℓ)` is fixed.
-
-Take `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` as in Configuration 1, whose coverage is the half-open interval `{t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` with depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` (the only members met by the depth-`m_a` block I-extents). In the pre-state `Σ`:
+**Fourth configuration — state-dependence.** Fix the link and vary the state. Take `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` as in Configuration 1, whose coverage is the half-open interval `{t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` with depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` (the only members met by the depth-`m_a` block I-extents). In the pre-state `Σ`:
 
 ```
 follow(ℓ, d, 1) at Σ = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
@@ -367,84 +355,7 @@ follow(ℓ, d, 1) at Σ' = (d, (⟨⟩, ⟨⟩))
 
 The same link, the same endset, the same document, but a different result. F-state is exercised: the variation traces entirely to `M(d) ≠ M'(d)`, since `L(ℓ).e₁` is L12-invariant. The link is preserved across the transition; its resolution against `d` now reflects the contracted arrangement. F-persist is also visible: `ℓ` remains in `dom(Σ'.L)` despite resolving to the empty per-subspace family. ✓
 
-**Fifth configuration — link-subspace resolution (non-empty `Σ_V^{s_L}`).** This configuration exercises the link-subspace branch of the postcondition `⟦Σ_V^{s_L}⟧_V = R(d, L(ℓ).eᵢ)|_{s_L}`, which rests on the reverse direction of F-subspace (S3★-aux + L14 ruling out `subspace(v) = s_C` when `M(d)(v) ∈ dom(L)`). By L4 (ASN-0043), an endset's spans may reference link I-addresses, so let the followed link `ℓ` carry an endset whose coverage is a *link* address that `d` arranges in its link subspace. Return to the pre-state arrangement `M(d)` of Configuration 1 — in which `[2, 1] → ℓ₀` with block `β_L = ([2, 1], ℓ₀, 1)` in `s_L` — and modify the endset to
-
-```
-L(ℓ).e₁ = {(ℓ₀, δ(1, m_a))}
-```
-
-so that `coverage(L(ℓ).e₁) = {ℓ₀} ⊂ dom(L)` (`ℓ₀` is a distinct link I-address, not `ℓ` itself; this is the cross-subspace endset admitted by L4(c) of ASN-0043).
-
-Process each block against the endset span:
-
-- `β₁ = ([1, 4], a₁ + 1, 2)`, `β₂ = ([1, 1], a₀, 3)`, `β₃ = ([1, 6], a₀, 1)`: each has `I(β) ⊂ dom(C)`, disjoint from `coverage(L(ℓ).e₁) = {ℓ₀} ⊂ dom(L)` by L14 (StoreDisjointness, ASN-0047). No contribution.
-- `β_L = ([2, 1], ℓ₀, 1)`: `I(β_L) = {ℓ₀}`. Intersection with `{ℓ₀}` is `{ℓ₀}` — the full I-extent. Offset `j = 0`, width `c = 1`. V-run: `[2, 1]`, recorded as the link-subspace V-span `([2, 1], δ(1, 2))`.
-
-**Result.** `Σ_V^{s_C} = ⟨⟩` (empty); `Σ_V^{s_L} = ⟨([2, 1], δ(1, 2))⟩` (one span). So:
-
-```
-follow(ℓ, d, 1) = (d, (⟨⟩, ⟨([2, 1], δ(1, 2))⟩))
-```
-
-The V-restricted denotation of `Σ_V^{s_L} = ⟨([2, 1], δ(1, 2))⟩` at link-subspace depth `m_L = 2` is `⟦Σ_V^{s_L}⟧_V = {[2, 1]}`.
-
-- *F-sound.* `[2, 1] ∈ dom(M(d))`, and `M(d)([2, 1]) = ℓ₀ ∈ coverage(L(ℓ).e₁)`. ✓
-- *F-complete.* The only `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).e₁) = {ℓ₀}` is `[2, 1]` (the content blocks map into `dom(C)`, which is disjoint from `{ℓ₀}`). It is in `⟦Σ_V^{s_L}⟧_V`. ✓
-- *F-subspace (link branch).* `M(d)([2, 1]) = ℓ₀ ∈ dom(L)`, so `subspace_I(ℓ₀) = s_L` (L0, ASN-0047) — matching `subspace([2, 1]) = 2 = s_L`. The reverse direction of F-subspace is what places `[2, 1]` in the `s_L`-component rather than the `s_C`-component: `M(d)([2, 1]) ∈ dom(L)`, so S3★-aux + L14 exclude `subspace([2, 1]) = s_C`. ✓
-
-This configuration confirms the link-subspace branch end-to-end: a link address covered by the followed endset, arranged at a link-subspace V-position, resolves to a non-empty `Σ_V^{s_L}` while `Σ_V^{s_C}` stays empty.
-
-**Sixth configuration — fragmentation (one I-span, two non-adjacent V-runs).** This configuration exercises F-contig's offset machinery: one endset I-span intersects two non-adjacent same-subspace mapping blocks, with at least one block hit at a non-zero offset, instantiating the contiguous sub-progression `{a + j + k : 0 ≤ k < c}` with `j > 0` or `c < n`.
-
-Consider a document `d_f` (content-subspace depth `m_{s_C} = 2`) whose content subspace arranges six consecutive I-addresses `a, a+1, ..., a+5` (one content allocation run, hence a single origin and a contiguous progression under OrdinalShift) interleaved with two I-addresses `b, b+1` of a *different* origin (`origin(b) ≠ origin(a)`, so `b ∉ {a, ..., a+5}` and the two progressions are I-disjoint by GlobalUniqueness):
-
-```
-M(d_f):
-  V-position  → I-address
-  [1, 1]      → a            (β_P below)
-  [1, 2]      → a + 1        (β_P)
-  [1, 3]      → a + 2        (β_P)
-  [1, 4]      → b            (β_Q, unrelated origin)
-  [1, 5]      → b + 1        (β_Q)
-  [1, 6]      → a + 3        (β_R)
-  [1, 7]      → a + 4        (β_R)
-  [1, 8]      → a + 5        (β_R)
-```
-
-The content V-positions `[1,1]..[1,8]` are contiguous with `min = [1,1]` — D-CTG, D-MIN, D-SEQ (ASN-0036) all hold. The mapping-block decomposition is:
-
-- `β_P = ([1, 1], a, 3)` — `I(β_P) = {a, a+1, a+2}`
-- `β_Q = ([1, 4], b, 2)` — `I(β_Q) = {b, b+1}`, intervening block of unrelated origin
-- `β_R = ([1, 6], a+3, 3)` — `I(β_R) = {a+3, a+4, a+5}`
-
-`β_P` and `β_R` are *non-adjacent in V-space*: the V-positions `[1,4], [1,5]` of `β_Q` separate them. The lockstep break at `[1,4]` is forced because `origin(b) ≠ origin(a+2)` blocks any merge of `β_P` with what follows (M16, CrossOriginMergeImpossibility, ASN-0058), and again at `[1,6]` by the same reasoning.
-
-**Link.** Take `L(ℓ).e₁ = {(a+1, δ(4, m_a))}` — a single I-span of width 4 starting at `a+1`, whose coverage `{t ∈ T : a+1 ≤ t < (a+1) ⊕ δ(4, m_a)}` has depth-`m_a` members `{a+1, a+2, a+3, a+4}` (the only members met by the depth-`m_a` block I-extents). This I-coverage is *contiguous* in I-space, yet it straddles the two non-adjacent blocks `β_P` and `β_R` while skipping the intervening `β_Q` (whose I-extent `{b, b+1}` is disjoint from the coverage).
-
-**Computing `follow(ℓ, d_f, 1)`.** Process each block against the endset span `σ = (a+1, δ(4, m_a))`:
-
-- `β_P = ([1, 1], a, 3)`: `I(β_P) ∩ ⟦σ⟧ = {a, a+1, a+2} ∩ {a+1, a+2, a+3, a+4} = {a+1, a+2}`. The minimum qualifying index is `a+1`, which is index 1 of `β_P` (since `β_P` starts at `a`); the maximum is `a+2` at index 2. Offset `j = 1`, width `c = 2`. **This block is hit at a non-zero offset (`j = 1 > 0`), and `c = 2 < n = 3`** — a strict partial intersection that omits both the block's first I-address `a` (below the coverage) and trailing index 3 (the block has only indices 0–2). V-run: `v + j = [1,1] + 1 = [1,2]`, through `[1,3]`, recorded as the V-span `([1, 2], δ(2, 2))`.
-- `β_Q = ([1, 4], b, 2)`: `I(β_Q) ∩ ⟦σ⟧ = {b, b+1} ∩ {a+1, a+2, a+3, a+4} = ∅` (distinct origins, I-disjoint). No contribution.
-- `β_R = ([1, 6], a+3, 3)`: `I(β_R) ∩ ⟦σ⟧ = {a+3, a+4, a+5} ∩ {a+1, a+2, a+3, a+4} = {a+3, a+4}`. The minimum qualifying index is `a+3` at index 0 of `β_R`; the maximum is `a+4` at index 1. Offset `j = 0`, width `c = 2` — again `c = 2 < n = 3`, a strict partial intersection (the block's trailing I-address `a+5` lies above the coverage). V-run: `[1,6]` through `[1,7]`, recorded as the V-span `([1, 6], δ(2, 2))`.
-
-**Result.** `Σ_V^{s_C} = ⟨([1, 2], δ(2, 2)), ([1, 6], δ(2, 2))⟩` (two spans, in sorted order); `Σ_V^{s_L} = ⟨⟩` (empty). So:
-
-```
-follow(ℓ, d_f, 1) = (d_f, (⟨([1, 2], δ(2, 2)), ([1, 6], δ(2, 2))⟩, ⟨⟩))
-```
-
-The two component spans are *disjoint and non-adjacent*: `reach(([1,2], δ(2,2))) = [1,2] ⊕ δ(2,2) = [1,4]`, while `start(([1,6], δ(2,2))) = [1,6]`, so `reach(σ₁) = [1,4] < [1,6] = start(σ₂)` — strict separation (N2, ASN-0053), confirming the two V-runs are non-adjacent. A single contiguous I-coverage `{a+1, a+2, a+3, a+4}` has fragmented into two non-adjacent V-runs, delivered automatically by the per-block intersection with no fragmentation-specific logic; the fragmentation traces entirely to the intervening `β_Q` separating `β_P` from `β_R` in V-space.
-
-The V-restricted denotation is `⟦Σ_V^{s_C}⟧_V = {[1,2], [1,3], [1,6], [1,7]}` at content-subspace depth 2.
-
-- *F-sound.* Each of `[1,2], [1,3], [1,6], [1,7]` is in `dom(M(d_f))`, and `M(d_f)([1,2]) = a+1`, `M(d_f)([1,3]) = a+2`, `M(d_f)([1,6]) = a+3`, `M(d_f)([1,7]) = a+4`, all in `coverage(L(ℓ).e₁) = {a+1, a+2, a+3, a+4}`. No spurious V-position is present. ✓
-- *F-complete.* The V-positions `v ∈ dom(M(d_f))` with `M(d_f)(v) ∈ {a+1, a+2, a+3, a+4}` are exactly `[1,2] (→a+1), [1,3] (→a+2), [1,6] (→a+3), [1,7] (→a+4)`. The non-qualifying positions map outside the coverage: `[1,1] → a`, `[1,4] → b`, `[1,5] → b+1`, `[1,8] → a+5`. All four qualifying positions appear in `⟦Σ_V^{s_C}⟧_V`; none is omitted — including the two split across the fragment boundary. ✓
-- *F-contig (β_P, non-zero offset).* `I(β_P) ∩ ⟦σ⟧ = {a + 1 + k : 0 ≤ k < 2}`, the contiguous sub-progression with offset `j = 1` and width `c = 2`. The V-run start is `v + j = [1,1] + 1 = [1,2]` and the run is `[1,2], [1,3]` — a single contiguous V-run of width `c = 2 < n = 3` within `β_P`, exactly as F-contig predicts at non-zero offset. ✓
-- *F-contig (β_R, right-partial).* `I(β_R) ∩ ⟦σ⟧ = {(a+3) + k : 0 ≤ k < 2}`, the contiguous sub-progression with offset `j = 0` and width `c = 2`. The V-run start is `v + j = [1,6]` and the run is `[1,6], [1,7]` — width `c = 2 < n = 3`, partial on the right. ✓
-
-This configuration exercises fragmentation end-to-end: one contiguous endset I-span resolving to two disjoint, non-adjacent V-spans, with F-contig's offset machinery instantiated at `j > 0, c < n` on `β_P` and again at `j = 0, c < n` on `β_R`. No fragmentation-specific logic is invoked; the two-run result is a direct consequence of the per-block decomposition meeting a coverage that skips the intervening block `β_Q`.
-
-**Seventh configuration — cross-subspace straddle (both result components non-empty).** This configuration exercises the case in which a single endset's coverage straddles *both* I-subspaces — meeting `dom(C)` and `dom(L)` at once — so that the result is a genuine *pair* with `Σ_V^{s_C} ≠ ⟨⟩` *and* `Σ_V^{s_L} ≠ ⟨⟩`, non-trivially exercising F0's `⊎` partition, F-subspace's two-way decomposition (`R|_{s_C} = M(d)⁻¹(coverage ∩ dom(C))`, `R|_{s_L} = M(d)⁻¹(coverage ∩ dom(L))`), and the joint-denotation disjointness `⟦Σ_V⟧_V := ⟦Σ_V^{s_C}⟧_V ⊎ ⟦Σ_V^{s_L}⟧_V` with both parts populated. We construct it here.
+**Fifth configuration — cross-subspace straddle (both result components non-empty).** A single endset's coverage straddles *both* I-subspaces — meeting `dom(C)` and `dom(L)` at once — so the result is a genuine *pair* with `Σ_V^{s_C} ≠ ⟨⟩` and `Σ_V^{s_L} ≠ ⟨⟩`.
 
 Return to the pre-state arrangement `M(d)` of Configuration 1 — in which the content address `a₀` is arranged at the two content-subspace V-positions `[1, 1]` and `[1, 6]` (blocks `β₂`, `β₃`), and the link address `ℓ₀` is arranged at the link-subspace V-position `[2, 1]` (block `β_L`). By L4 (ASN-0043), a *single* endset may carry both a content span and a link span; let the followed endset reference `a₀` through a content span and `ℓ₀` through a link span:
 
@@ -474,74 +385,6 @@ The V-restricted denotations are `⟦Σ_V^{s_C}⟧_V = {[1, 1], [1, 6]}` at cont
 - *F-subspace (content branch).* `R(d, e)|_{s_C} = M(d)⁻¹(coverage ∩ dom(C)) = M(d)⁻¹({a₀}) = {[1, 1], [1, 6]} = ⟦Σ_V^{s_C}⟧_V`. Each `M(d)([1, 1]) = M(d)([1, 6]) = a₀ ∈ dom(C)`, so `subspace_I(a₀) = s_C` (L0, ASN-0047) — matching `subspace([1, 1]) = subspace([1, 6]) = 1 = s_C`. ✓
 - *F-subspace (link branch).* `R(d, e)|_{s_L} = M(d)⁻¹(coverage ∩ dom(L)) = M(d)⁻¹({ℓ₀}) = {[2, 1]} = ⟦Σ_V^{s_L}⟧_V`. `M(d)([2, 1]) = ℓ₀ ∈ dom(L)`, so `subspace_I(ℓ₀) = s_L` — matching `subspace([2, 1]) = 2 = s_L`. The reverse direction (S3★-aux + L14) places `[2, 1]` in the `s_L`-component, not the `s_C`-component. ✓
 - *Joint-denotation disjointness.* `⟦Σ_V⟧_V = ⟦Σ_V^{s_C}⟧_V ⊎ ⟦Σ_V^{s_L}⟧_V = {[1, 1], [1, 6]} ⊎ {[2, 1]}`. With *both* parts populated, the `⊎` is non-trivially exercised: the disjointness is witnessed by the subspace clause of the V-restriction (every element of the first set has first component `1`, every element of the second has first component `2`; `s_C ≠ s_L` by SC-NEQ), so no V-position lies in both. This matches F0's own partition `R(d, e) = R(d, e)|_{s_C} ⊎ R(d, e)|_{s_L} = {[1, 1], [1, 6]} ⊎ {[2, 1]}`. ✓
-- *F-multi.* Also exercised on the content branch: the single I-address `a₀` resolves to the two distinct V-positions `[1, 1]` and `[1, 6]`, both included. ✓
-
-This configuration confirms the central novelty of the per-subspace family: a single endset straddling both I-subspaces resolves to a pair whose two components are simultaneously non-empty, with F0's `⊎`, F-subspace's two-way decomposition, and the joint-denotation disjointness all acting together with both parts populated — none of which the single-component configurations 1 and 5 establish jointly.
-
-## Slot Uniformity
-
-A link `L(ℓ) = (e₁, ..., eₙ)` has multiple endset slots, including the designated type endset `e₃` (StandardTriple convention, ASN-0043). The operation `follow` treats every slot identically. For any `i ∈ {1, ..., |L(ℓ)|}`:
-
-```
-follow(ℓ, d, i) = (d, Σ_V) with ⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S for each subspace S
-```
-
-The from-endset, the to-endset, and the type endset resolve by the same mechanism. There is no special routing for the type slot, no privileged path for the source, no different handling for any role. Whatever semantics slots carry — directionality, type-as-classifier, additional roles in extended links — they are imposed by interpretation, not by resolution.
-
-L3 (ASN-0043) imposes asymmetric well-formedness on link slots: `e₃ ≠ ∅` is required, while other endsets may be empty. This asymmetry is a constraint on link *construction*, not on link *resolution*. Resolution applies the inverse-image function uniformly:
-
-- For slots `i ≠ 3` where `eᵢ = ∅`: `coverage(eᵢ) = ∅`, hence `R(d, eᵢ) = ∅`. The result is `(d, (⟨⟩, ⟨⟩))`.
-- For slot 3 where `e₃ ≠ ∅`: `coverage(e₃)` is some non-empty set, and `R(d, e₃)` is non-empty iff the coverage intersects `ran(M(d))`.
-
-The outcome `R(d, eᵢ) = ∅` is uniformly admissible regardless of whether the cause is `eᵢ = ∅` (vacuous coverage) or `eᵢ ≠ ∅ ∧ coverage(eᵢ) ∩ ran(M(d)) = ∅` (coverage that misses the arrangement). The operation does not distinguish these cases in its result form.
-
-This uniformity is what makes the operation composable. Resolving all endsets is exactly resolving each endset:
-
-```
-followAll(ℓ, d) = ( follow(ℓ, d, 1), follow(ℓ, d, 2), ..., follow(ℓ, d, |L(ℓ)|) )
-```
-
-The all-endsets variant is a tuple of single-endset resolutions, positionally aligned with the link's slots. Each component is independent; the type endset's resolution is a per-subspace V-span family in `d`'s V-space, just like any other endset's.
-
-The type endset's *contents* refer to type tumblers (typically allocated in a bootstrap type namespace). Whether `d`'s arrangement includes those tumblers determines whether `R(d, e₃)` is non-empty. If `d` does not arrange any type addresses, `R(d, e₃) = ∅` — the type endset resolves to nothing in `d`, exactly as any unreached endset would. The link's *type identity* is preserved in `L(ℓ).e₃` regardless of whether it resolves in any particular document.
-
-## Origin Symmetry
-
-By L4 (ASN-0043), endset spans may reference any addresses in tumbler space — including addresses whose home is not `d`. The resolution mechanism is symmetric with respect to home:
-
-```
-v ∈ R(d, e) ⟺ v ∈ dom(M(d)) ∧ M(d)(v) ∈ coverage(e)
-```
-
-The condition tests `M(d)(v) ∈ coverage(e)`. It does not test the home of `M(d)(v)`. A V-position that holds native content and a V-position that holds transcluded content qualify for inclusion in `R(d, e)` on the same basis: whether the I-address falls in the endset's coverage.
-
-This is the structural form of Nelson's claim that non-native bytes are as much a logical part of a document as native bytes. From the resolution function's perspective, they are indistinguishable.
-
-The home distinction does become observable downstream. For any `v ∈ ⟦Σ_V^S⟧_V`, the address `M(d)(v)` is recoverable by consulting the state. From that address, the home document is computable by the structural projection `N(a).0.U(a).0.D(a)`. This projection is named `origin(a)` for content addresses (S7 of ASN-0036) and `home(a)` for link addresses (Definition Home of ASN-0043) — two ASNs' names for the same structural quantity. A reader examining the result can ascertain the home of any V-position they look at, by applying the appropriate projection to the I-address according to its subspace. But the resolution itself does not filter by home, and the operation makes no architectural distinction between native and transcluded V-positions.
-
-## State-Dependence
-
-The link `L(ℓ)` is state-invariant (L12). The coverage `coverage(L(ℓ).eᵢ)` is fixed at creation. But the arrangement `M(d)` varies with state.
-
-Consequently, `follow(ℓ, d, i)` evaluated at state `Σ` and at state `Σ'` (with `Σ'` reachable from `Σ`) may produce different denotations. This is not a violation of denotational determinism. Denotational determinism is "same state, same denotation." Across different states, the result reflects the different arrangements.
-
-F-state follows because `L(ℓ)` is L12-invariant while `M(d)` — the only state component `R` reads — varies across transitions per the transition semantics of ASN-0047 (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L).
-
-Two observations follow.
-
-First, the link is not a function of its result. A link's identity is determined by its address and its endsets (L11b, NonInjectivity), not by what its endsets currently resolve to. Two links with identical endsets are distinct links. A single link resolves differently in different documents, and differently in the same document at different states.
-
-Second, brokenness is a state-relative notion. A link whose resolution is empty in `d` at state `Σ` may resolve non-emptily in `d'` at `Σ`, or in `d` at `Σ'`. The link itself is unbroken; its resolution against a specific arrangement may yield the empty per-subspace family. The link persists; what varies is whether arrangements happen to reflect it.
-
-## Multi-Document Reach
-
-For a fixed link `ℓ`, the family `{ follow(ℓ, d, i) : d ∈ E_doc, 1 ≤ i ≤ |L(ℓ)| }` characterises `ℓ`'s reach across the docuverse. The link is one object; its resolutions are many — one per (document, endset) pair.
-
-No document holds special status for resolution. The link's home document `home(ℓ)` — the document under whose tumbler prefix `ℓ` was allocated (L1a, L2 of ASN-0043) — is the allocator of `ℓ`'s address. It need not be the document where the endset's content lives; it need not be the document where readers will encounter the link; it need not be the document being viewed. Resolution against `home(ℓ)` is no different from resolution against any other document. The same link reaches whatever bytes it points to, wherever those bytes are currently arranged.
-
-This is the structural reading of Nelson's "a link to one version is a link to all versions." The link's reach is determined by where its endsets' content is arranged. The universe of arrangements is the universe of documents. The link extends into each on the same terms.
-
-A particular consequence: when a document `d'` is derived from `d` by some derivation that preserves content references (i.e., when `ran(M(d'))` intersects `ran(M(d))` significantly), then links that resolved against `d` will resolve, possibly with different V-position structure, against `d'`. The resolution follows the content, not the document.
 
 ## Derived Properties
 
@@ -661,6 +504,8 @@ The operation requires no write-locking and no exclusive access. Concurrent quer
 
 **Frame.** No state modification.
 
+Uniformity makes the operation composable: `followAll(ℓ, d) = (follow(ℓ, d, 1), ..., follow(ℓ, d, |L(ℓ)|))` is the positionally-aligned tuple of per-slot resolutions, with the type endset `e₃` resolving by the same mechanism as any other slot. The outcome `R(d, eᵢ) = ∅` is uniformly admissible whether the cause is `eᵢ = ∅` (vacuous coverage) or coverage that misses the arrangement; the result form does not distinguish them.
+
 ### F-contig — Contiguity (LEMMA)
 
 **Preconditions.** A mapping block `β = (v, a, n)` of `M(d)` (ASN-0058) and an endset I-span `σ = (s, ℓ_σ)` satisfying T12 (SpanWellDefinedness, ASN-0034).
@@ -683,7 +528,7 @@ The operation requires no write-locking and no exclusive access. Concurrent quer
 
 **Frame.** No state modification.
 
-Downstream callers may project to home from each `M(d)(v)` using the appropriate ASN-0036 or ASN-0043 projection, but the resolution mechanism does not.
+Downstream callers may project to home from each `M(d)(v)` using the appropriate ASN-0036 or ASN-0043 projection, but the resolution mechanism does not. This is the structural form of Nelson's claim that non-native bytes are as much a logical part of a document as native bytes: from the resolution function's perspective, native and transcluded content are indistinguishable.
 
 ### F-persist — LinkPersistence (LEMMA)
 
@@ -703,21 +548,23 @@ Empty resolution does not destroy the link.
 
 **Postcondition.** `R_Σ(d, L(ℓ).eᵢ)` and `R_{Σ'}(d, L(ℓ).eᵢ)` may differ even though `L_Σ(ℓ) = L_{Σ'}(ℓ)` (by L12). The difference, when present, originates entirely in `M_Σ(d) ≠ M_{Σ'}(d)`.
 
-**Depends.** L12 (link state-invariance); the transition semantics of ASN-0047 that admit `M(d)` to vary across transitions.
+**Depends.** L12 (link state-invariance); the transition semantics of ASN-0047 (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L) that admit `M(d)` — the only state component `R` reads — to vary across transitions.
 
 **Frame.** No state modification.
 
-The composition of L12 (link invariance) with the absence of any state component beyond `M(d)` in `R(d, e)`'s definition is developed in the State-Dependence section above.
+Two consequences. A link is not a function of its result: its identity rests on address and endsets (L11b, NonInjectivity), not on what it currently resolves to. And brokenness is state-relative — an empty resolution against one arrangement leaves the link intact and possibly non-empty against another document or at another state; the link persists, only the arrangement varies.
 
 ### F-multidoc — NoPreferredDocument (LEMMA)
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d, d' ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
 
-**Postcondition.** `follow(ℓ, d, i)` and `follow(ℓ, d', i)` are well-defined and computed by the same mechanism. The home document `home(ℓ)` (Definition Home, ASN-0043) plays no privileged role.
+**Postcondition.** `follow(ℓ, d, i)` and `follow(ℓ, d', i)` are well-defined and computed by the same mechanism. The home document `home(ℓ)` (Definition Home, ASN-0043) — the allocator of `ℓ`'s address, which need not be where the endset's content lives nor where the link is encountered — plays no privileged role.
 
 **Depends.** No precondition of `follow` references `home(ℓ)`.
 
 **Frame.** No state modification.
+
+This is the structural reading of Nelson's "a link to one version is a link to all versions": the link's reach is determined by where its endsets' content is currently arranged, and it extends into every document on the same terms.
 
 These properties are not independent axioms requiring separate verification. They are readings of the same definition: `R(d, e) = M(d)⁻¹(coverage(e))` partitioned by subspace, with the canonical form available as a derived projection.
 
@@ -729,7 +576,7 @@ These properties are not independent axioms requiring separate verification. The
 | F1 | `follow : (ℓ, d, i) → (d, (Σ_V^{s_C}, Σ_V^{s_L}))` with `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` per subspace; `Σ' = Σ`. V-restricted denotation: `⟦Σ_V^S⟧_V := {t ∈ ⟦Σ_V^S⟧ : subspace(t) = S ∧ #t = m_S(d) ∧ (A i : 1 ≤ i ≤ m_S(d) : t_i ≥ 1)}` | DEF | introduced |
 | F-subspace | IOSubspaceCorrespondence — for `v ∈ dom(M(d))`, `subspace(v) = subspace_I(M(d)(v))` (via S3★ + L0); hence `R(d, e)|_{s_C} = M(d)⁻¹(coverage(e) ∩ dom(C))` and `R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))`, where the biconditional `subspace(v) = S ⟺ M(d)(v) ∈ dom(·)` is proved by case analysis (forward: S3★; reverse: S3★-aux + L14) | LEMMA | introduced |
 | F-canon-form | The canonical-form *shape*: each component width is an ordinal displacement `δ(c, m_S(d))` with positive-component start, each `Σ_V^S` is normalised per S9, and the family is ordered (`s_C`, then `s_L`). When `m_S(d)` is undefined, `Σ_V^S = ⟨⟩` by V-restricted convention. | DEF | introduced |
-| F-canonical | CanonicalUniqueness — a given `R(d, e)` admits *exactly one* canonical form of the F-canon-form shape. Existence: each subspace component is built by partitioning `R(d, e)\|_S` into maximal runs of consecutive tumblers and mapping each run to an ordinal-displacement span, the normalised existence of which S8 (NormalizationExistence, ASN-0053) underwrites. Uniqueness: ordinal-displacement widths forced by finite V-restricted denotation + subspace confinement; bridge from `⟦·⟧_V` to `⟦·⟧` lifts S9 to V-restricted equivalence; fixed external ordering pins down family form. Supplies the representational-existence-and-uniqueness result that F-det and F-empty depend on. | THM | introduced |
+| F-canonical | CanonicalUniqueness — a given `R(d, e)` admits *exactly one* canonical form of the F-canon-form shape. Existence: each subspace component is built by partitioning `R(d, e)\|_S` into maximal runs of consecutive tumblers and mapping each run to an ordinal-displacement span, the normalised existence of which S8 (NormalizationExistence, ASN-0053) underwrites. Uniqueness: ordinal-displacement widths forced by finite V-restricted denotation + subspace confinement; bridge from `⟦·⟧_V` to `⟦·⟧` lifts S9 to V-restricted equivalence; fixed external ordering pins down family form. | THM | introduced |
 | F-det | DenotationalDeterminism — same `Σ` produces the same `R(d, e)|_S` per subspace, hence the same canonical form; chain S2 → unique inverse image → unique partition (S3★-aux) → unique V-restricted denotation → unique canonical form (F-canonical/S9) | LEMMA | introduced |
 | F-sound | Soundness — `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S`: every `v ∈ ⟦Σ_V^S⟧_V` satisfies `v ∈ dom(M(d))` and `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`; ⊆ half of the postcondition's set equality | LEMMA | introduced |
 | F-complete | Completeness — `R(d, L(ℓ).eᵢ)|_S ⊆ ⟦Σ_V^S⟧_V`: every qualifying `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` is in `⟦Σ_V^S⟧_V` for `S = subspace(v)`; ⊇ half of the postcondition's set equality | LEMMA | introduced |
@@ -745,14 +592,12 @@ These properties are not independent axioms requiring separate verification. The
 
 ## Open Questions
 
-What must the system guarantee about how partial reach is reported to the reader — must the result form preserve information about which I-addresses in the coverage failed to resolve, or only what did resolve?
+When an endset's coverage spans I-addresses with multiple distinct homes, what relationship must hold between resolutions against documents that transclude from different subsets of those homes?
 
-When an endset's coverage spans I-addresses with multiple distinct homes, what relationship — if any — must hold between resolutions against documents that transclude from different subsets of those homes?
+What concurrency semantics must `follow` guarantee when the queried document is being modified by another transition concurrently?
 
-What concurrency semantics, if any, must `follow` guarantee when the document being queried is being modified by another transition concurrently?
+What relationship must hold between `follow(ℓ, d, i)` and `follow(ℓ, d', i)` when `d` and `d'` share transclusion lineage?
 
-Under what conditions, if any, must the result of `follow(ℓ, d, i)` and `follow(ℓ, d', i)` be related when `d` and `d'` share transclusion lineage — that is, when significant portions of their arrangements reference the same I-addresses?
+Where must responsibility for canonicalisation lie — must a downstream consumer mandate canonical form, or may any finite representation be admissible with callers deriving canonical form independently?
 
-Where must responsibility for canonicalisation lie — must a downstream contract that consumes a `follow` result (a citation, a stable archival reference, or a compact representation of an unbounded-cardinality coverage) mandate canonical form and expose a canonicalisation procedure so the same query yields a bit-identical externally-quotable artifact, or may any finite representation be admissible with callers required to derive canonical form independently?
-
-What must the system guarantee about the relationship between resolution and content retrieval — must `R(d, e)` always yield V-positions whose subsequent content lookup via `M(d)` and `C` succeeds, or may resolution succeed where content access would fail?
+Must `R(d, e)` always yield V-positions whose subsequent content lookup via `M(d)` and `C` succeeds, or may resolution succeed where content access would fail?
