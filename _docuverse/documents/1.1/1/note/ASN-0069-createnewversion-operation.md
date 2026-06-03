@@ -171,7 +171,7 @@ We therefore commit to producing an empty fork as the normative behavior:
 
 V0 dispatches on whether `V_{s_C}(d_op)` is empty: when non-empty, the K.δ + K.μ⁺ + K.ρ composite of J4 (ASN-0047); when empty, V7's K.δ-alone composite, which vacates J4's clauses (ii) and (iii) since K.μ⁺ does not fire and `ran(M'(d_new))` is empty.
 
-The single organising principle is quantifier domain: the *structural* properties — V1 (identity), V2 (prefix-encoded ancestry), V3 (no content allocated), and V12(a) (joint entity permanence of `d_src` and `d_new`) — hold substantively, since they assert facts about the entities and the content store rather than about content-subspace V-positions, while *every* property whose universal quantifier ranges over `V_{s_C}(d_op)` or `V_{s_C}(d_src)` holds vacuously, because that domain is empty (on a first fork `d_op = d_src` and `V_{s_C}(d_src) = ∅`; on a subsequent fork `d_op = d_prev` with `V_{s_C}(d_prev) = ∅`). V6 reduces to `V_{s_L}(d_new) = ∅`, which K.δ establishes directly by initialising `M'(d_new) = ∅`. A fork of an empty fork produces a third empty entity, each with prefix-encoded ancestry via V2 but no shared I-addresses (because there were none to share); the fork chain remains structurally coherent.
+Each Vn whose quantifier ranges over `V_{s_C}(d_op)` holds vacuously in this case; see each property's own clause.
 
 ## Structural Correspondence
 
