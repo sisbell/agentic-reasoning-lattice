@@ -136,7 +136,7 @@ DeletedFromBWithA(d_A, d_B)
        ∧ CURRENT(a, d_A)}
 ```
 
-Each asymmetric set captures content deleted from one document and still arranged in the other — the still-current copy in the partner document is the *witness* that makes the deletion observable as recoverable.
+Each asymmetric set captures content deleted from one document and still arranged in the other — the still-current copy in the partner document is the *witness* that makes the deletion observable as recoverable. The `DELETED` conjunct — specifically its provenance requirement `(a, d_A) ∈ R` — is what keeps the report from conflating deletion with addition. A naive set-difference of current ranges, `ran(M(d_B)) \ ran(M(d_A))`, would mix content that `d_A` once held and deleted with content that `d_B` merely acquired and `d_A` never received; requiring `(a, d_A) ∈ R` excludes the latter, since never-included content satisfies `NEVER_INCLUDED(a, d_A)` rather than `DELETED(a, d_A)`.
 
 **Definition (SHOWDELETIONS).** The operation is the ordered pair:
 
@@ -146,8 +146,6 @@ SHOWDELETIONS(d_A, d_B)
 ```
 
 The two halves are necessarily disjoint. Membership in `DeletedFromAWithB` requires `CURRENT(a, d_B)`, i.e. `a ∈ ran(M(d_B))`; membership in `DeletedFromBWithA` requires `DELETED(a, d_B)`, whose second conjunct is `a ∉ ran(M(d_B))`. The two range-membership conditions on `M(d_B)` are directly contradictory, so no `a` can belong to both halves.
-
-**The operation writes no state component.** The definition is a pair of set-builder comprehensions over `Σ`: the operation allocates nothing, rewrites nothing, and invokes no transition relation. Hence for the post-state `Σ'`, every component agrees with `Σ` — `Σ'.C = Σ.C`, `Σ'.L = Σ.L`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, and `(A d ∈ E_doc :: Σ'.M(d) = Σ.M(d))`. We use this no-write fact in the wp reasoning that follows; it is restated as claim D-OBS, with its full consequences, in the Observational Frame section.
 
 **Boundary precondition (D-BOUND).** The pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047), so SHOWDELETIONS is invoked at a composite boundary.
 
@@ -159,7 +157,7 @@ Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
 
 Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds.
 
-Because the operation reads state and writes none (the no-write fact established above, restated as D-OBS), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
+Because the operation writes no state component (D-OBS), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
 *Non-emptiness of one report half.* Let `Q1` abbreviate `DeletedFromAWithB(d_A, d_B) ≠ ∅`. Unpacking the definition of `DeletedFromAWithB`:
 
@@ -261,12 +259,6 @@ Only `b` is deleted from `d_A` while remaining in `d_B`; only `c` is deleted fro
 
 The example also illustrates the structural significance of the witness: `b` is reported as deleted from `d_A` only because `d_B` still holds it; if `d_B` had also deleted `b`, the pair `(b, d_A)` would still be DELETED, but `b` would not appear in `DeletedFromAWithB` because the witness condition `CURRENT(b, d_B)` would fail. Cross-document SHOWDELETIONS exposes exactly the asymmetric losses — deletions that one document made and the other did not.
 
-## Distinguishing Deletions from Additions
-
-A naive set-difference of current ranges — `ran(M(d_B)) \ ran(M(d_A))` — would conflate two distinct phenomena: content that `d_A` once held and deleted (still current in `d_B`), and content that `d_B` acquired (e.g., through insertion or transclusion) that `d_A` never received. The "show deletions" name and intent target only the former.
-
-Our definition forces the disambiguation by requiring `(a, d_A) ∈ R` for content reported as deleted-from-A. This says: `a` must have been in `d_A`'s arrangement at some point. Content that was only ever in `d_B`'s arrangement satisfies `NEVER_INCLUDED(a, d_A)` rather than `DELETED(a, d_A)`, and is correctly excluded from the deletion report.
-
 ## Restriction to the Content Subspace
 
 **Claim D-SUBSP.** SHOWDELETIONS operates only over the content subspace (`s_C`).
@@ -316,12 +308,6 @@ where `X = DeletedFromAWithB(d_A, d_B)` and `Y = DeletedFromBWithA(d_A, d_B)`.
 *Justification.* By name-substitution in the definitions: `DeletedFromAWithB(d_B, d_A)` reads as "addresses with `DELETED(a, d_B) ∧ CURRENT(a, d_A)`," which is exactly `DeletedFromBWithA(d_A, d_B)`. Likewise the other half.
 
 The content-level guarantee — the union of both halves as a set of I-addresses — is therefore symmetric in the operands. The presentation labelling (which half is "from A" vs. "from B") swaps accordingly.
-
-## Actionability
-
-**Claim D-ACT.** The output is in a form usable as input to any operation that consumes I-addresses to produce arrangement extensions.
-
-*Justification.* Each output element is an I-address in `dom(C)` retaining its identity (D-IDENT), hence directly consumable by any I-address-based operation.
 
 ## Observational Frame
 
@@ -380,7 +366,6 @@ This is what makes the operation an honest function of state. The user need not 
 | D-ORIG | Every output element `a` has determinate `origin(a)` | introduced |
 | D-ORD | Each output half is a finite subset of T, inheriting T1's total order; no separate ordering structure is needed | introduced |
 | D-SYM | `SHOWDELETIONS(d_B, d_A)` is the component-swapped pair of `SHOWDELETIONS(d_A, d_B)` | introduced |
-| D-ACT | Output is a set of I-addresses in `dom(C)`, directly consumable by any I-address-based operation | introduced |
 | D-OBS | SHOWDELETIONS modifies no state component; it is purely observational | introduced |
 | D-STORE | The output is not required to be stored as a document; it is a query result | introduced |
 | D-RECONS | The output depends only on the current state, not on transition history | introduced |
