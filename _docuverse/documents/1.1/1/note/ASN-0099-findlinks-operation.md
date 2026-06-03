@@ -265,7 +265,7 @@ F8 is the comprehension-level instance for F1's existential; F15 is the comprehe
 
 ## Arrangement Independence
 
-The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. The operationally salient frame condition exercised by editing operations rests on a structural lemma of the substrate: that operations other than K.λ preserve `Σ.L`. Five of the eight non-allocating operations list `L' = L` in their published frames ({K.σ, K.α, K.δ, K.μ⁺_L, K.ρ}); two atomic operations (K.μ⁺, K.μ⁻) omit `L` from the published frame. The eighth, K.μ~, is the non-atomic composite, reached only through its K.μ⁻ + K.μ⁺ decomposition (below). We package the preservation lemma:
+The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. The operationally salient frame condition exercised by editing operations rests on a structural lemma of the substrate: that operations other than K.λ preserve `Σ.L`. All seven atomic non-allocating operations list `L' = L` in their published frames. For five of them ({K.σ, K.α, K.δ, K.μ⁺_L, K.ρ}) this is immediate. The remaining two (K.μ⁺, K.μ⁻) operate in this ASN's extended state `Σ = (C, L, M, E, R, …)`, so their operative definitions are ASN-0047's *amended* versions — K.μ⁺ amendment (ContentSubspaceRestriction) and K.μ⁻ per-subspace scope (PerSubspaceContractionScope) — both of whose extended-state frames publish `L' = L` explicitly (the K.μ⁻ amendment notes "the link-store frame clause `L' = L` is added"). The eighth operation, K.μ~, is the non-atomic composite, reached only through its K.μ⁻ + K.μ⁺ decomposition (below). We package the preservation lemma:
 
 ```
 A1 (LinkStoreInertOfNonAllocatingOperations):
@@ -274,38 +274,35 @@ A1 (LinkStoreInertOfNonAllocatingOperations):
    Equivalently, K.λ is the unique operation of V that modifies the
    link store.
 
-   A1 ranges over the atomic operations of V ∖ {K.λ}. It is the
-   union of:
-   - A1a (published-frame preservation, covering {K.σ, K.α, K.δ,
-     K.μ⁺_L, K.ρ}): conclusion immediate from the substrate's published
-     `L' = L` frame clause. No interpretive commitment.
-   - A1b (closed-world preservation, covering {K.μ⁺, K.μ⁻}):
-     conclusion derived from the substrate's effect-clause convention
-     under the closed-world reading — components absent from both
-     effect and frame are unchanged. The reading is adopted
-     methodologically by this ASN; the substrate spec does not
-     formally axiomatise it. Downstream citations at K.μ⁺ or K.μ⁻
-     inherit this convention-grounded commitment.
+   A1 ranges over the atomic operations of V ∖ {K.λ}. Every one of
+   them — {K.σ, K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} — publishes
+   `L' = L` in its operative frame, so A1 is discharged uniformly by
+   A1a (published-frame preservation) with no interpretive commitment:
+   - For {K.σ, K.α, K.δ, K.μ⁺_L, K.ρ}, the published frame names
+     `L' = L` directly.
+   - For {K.μ⁺, K.μ⁻}, the operative definitions in this ASN's
+     extended state `Σ = (C, L, M, E, R, …)` are ASN-0047's amended
+     versions (K.μ⁺ amendment ContentSubspaceRestriction; K.μ⁻
+     per-subspace scope PerSubspaceContractionScope), each of whose
+     extended-state frame publishes `L' = L` explicitly. (The
+     pre-link-subspace originals omit `L`, but they are not the
+     operative vocabulary here — ASN-0047's ValidComposite★ lists
+     "K.μ⁺ (amended)" and "K.μ⁻ (amended)" as the atomic vocabulary.)
 
-   K.μ~ is excluded from A1a and A1b alike, because ASN-0047 fixes it
-   as a non-atomic named composite — shorthand for a K.μ⁻ + K.μ⁺
+   K.μ~ is excluded from A1a, because ASN-0047 fixes it as a
+   non-atomic named composite — shorthand for a K.μ⁻ + K.μ⁺
    decomposition, not a single arrow Σ → Σ'. Its ASN-0047 frame clause
    `L' = L` is labelled "(derived)" precisely because it is obtained by
-   composing the frames of those two atomic steps, both of which fall
-   under A1b. We therefore do not treat K.μ~'s `L' = L` as a published,
-   convention-free fact; A1 reaches a K.μ~ invocation only through its
-   two atomic constituents (each discharged by A1b), and any link-store
-   inertness across the composite is the transitive composition of A1b
-   at K.μ⁻ and A1b at K.μ⁺ — inheriting A1b's convention-grounded
-   commitment at both steps.
+   composing the frames of those two atomic steps. A1 reaches a K.μ~
+   invocation only through its two atomic constituents, each
+   discharged by A1a, so link-store inertness across the composite is
+   the transitive composition of A1a at K.μ⁻ and A1a at K.μ⁺.
 
    Vocabulary scope: V = {K.σ, K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L,
    K.ρ} as published in ASN-0047 and ASN-0093, with K.μ~ the sole
    non-atomic member. Downstream ASNs consuming A1 against an evolved
    vocabulary must restate the claim.
 ```
-
-For grounding of the closed-world reading and its alternatives, see the [design note appendix](#appendix-grounding-of-the-closed-world-reading) below.
 
 ```
 F9 (LinkSurvivabilityUnderEdits):
@@ -314,16 +311,15 @@ F9 (LinkSurvivabilityUnderEdits):
        findlinks(I, Σ) = findlinks(I, Σ').
 
    F9 follows from F8 via ComprehensionInvariantUnderΣL once
-   Σ.L = Σ'.L is discharged: by A1a at K.μ⁺_L, by A1b at K.μ⁺ and
-   K.μ⁻. F9 inherits A1b's commitment at the latter two sub-cases.
+   Σ.L = Σ'.L is discharged: by A1a at all three of K.μ⁺_L, K.μ⁺,
+   and K.μ⁻ (each publishes `L' = L` in its operative frame).
 
    K.μ~ is deliberately absent from the single-step quantifier: it is
    the non-atomic composite K.μ⁻ + K.μ⁺ (ASN-0047), so an invocation is
    two atomic transitions Σ → Σ_mid → Σ', not one arrow. Its
    invariance is the F9★ composition (below) over its two atomic steps
    — F9 at K.μ⁻ followed by F9 at K.μ⁺, chained by transitivity of
-   equality — inheriting A1b's commitment at both. We record this as a
-   corollary:
+   equality. We record this as a corollary:
 
 F9~ (ReorderingSurvivability):
    For any K.μ~ invocation Σ → Σ_mid → Σ' (its K.μ⁻ + K.μ⁺
@@ -331,8 +327,7 @@ F9~ (ReorderingSurvivability):
        findlinks(I, Σ) = findlinks(I, Σ').
    Proof: F9 at the K.μ⁻ step gives findlinks(I, Σ) = findlinks(I, Σ_mid);
    F9 at the K.μ⁺ step gives findlinks(I, Σ_mid) = findlinks(I, Σ');
-   compose by transitivity. Both steps discharge under A1b, so F9~
-   inherits A1b's convention-grounded commitment.
+   compose by transitivity. Both steps discharge under A1a.
 ```
 
 ```
@@ -342,9 +337,9 @@ F9-cor (NonAllocatingPreservation):
    any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   F9-cor inherits A1b's commitment at the K.μ⁺, K.μ⁻ sub-cases;
-   the remaining five atomic operations (K.σ, K.α, K.δ, K.μ⁺_L, K.ρ)
-   discharge from A1a. K.δ has three sub-cases; the IsDocument
+   F9-cor discharges from A1a at all seven atomic operations
+   (K.σ, K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ), each publishing
+   `L' = L` in its operative frame. K.δ has three sub-cases; the IsDocument
    sub-case modifies M(d_new) but K.δ's published frame includes
    L' = L uniformly, so F9-cor's I-side conclusion holds for all three.
    The lone non-atomic member K.μ~ is excluded from this single-step
@@ -477,7 +472,7 @@ F17 (FilteredSurvivability): findlinks_filtered(C, Σ) = findlinks_filtered(C, �
 F18 (ScopedSurvivability):   findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ') across an atomic K.μ-family step.
 ```
 
-F15 follows from ComprehensionInvariantUnderΣL applied to the filtered universal. F16 follows from F8 + intersection-preservation with the query-supplied `S`. F17 follows from F9 (atomic K.μ-family steps preserve Σ.L) + F15. F18 follows from F9 + intersection-preservation. F17 and F18 inherit A1b's commitment at the K.μ⁺ and K.μ⁻ sub-cases. Across a K.μ~ invocation, F17 and F18 compose over its K.μ⁻ + K.μ⁺ decomposition (the F9~ route), inheriting A1b's commitment at both atomic steps.
+F15 follows from ComprehensionInvariantUnderΣL applied to the filtered universal. F16 follows from F8 + intersection-preservation with the query-supplied `S`. F17 follows from F9 (atomic K.μ-family steps preserve Σ.L) + F15. F18 follows from F9 + intersection-preservation. F17 and F18 discharge from A1a at the K.μ⁺ and K.μ⁻ sub-cases (both publish `L' = L` in their amended extended-state frames). Across a K.μ~ invocation, F17 and F18 compose over its K.μ⁻ + K.μ⁺ decomposition (the F9~ route), discharging from A1a at both atomic steps.
 
 ## Result Ordering
 
@@ -621,11 +616,11 @@ By PrefixSpanCoverage, each canonical span's coverage is a prefix subtree. The t
 
   (ii) K.α allocates `α_c = [d_c.0.s_C.1]` with value `v_c`. K.α's published frame (A1a): `Σ_2.L = Σ_1.L`.
 
-  (iii) K.μ⁺ extends `Σ_2.M(d_c)` with `v_c^1 ↦ α_c`. K.μ⁺'s frame omits `L`; by A1b, `Σ_3.L = Σ_2.L`.
+  (iii) K.μ⁺ extends `Σ_2.M(d_c)` with `v_c^1 ↦ α_c`. K.μ⁺'s amended extended-state frame names `L' = L` (A1a): `Σ_3.L = Σ_2.L`.
 
   (iv) K.ρ records `(α_c, d_c) ∈ R`. K.ρ's published frame names `L' = L` (A1a): `Σ_4.L = Σ_3.L`.
 
-  (v) K.μ⁻ contracts `Σ_4.M(d_a)` to `{v_a^1 ↦ α₁}`. K.μ⁻'s frame omits `L`; by A1b, `Σ_5.L = Σ_4.L`.
+  (v) K.μ⁻ contracts `Σ_4.M(d_a)` to `{v_a^1 ↦ α₁}`. K.μ⁻'s amended extended-state frame names `L' = L` (A1a): `Σ_5.L = Σ_4.L`.
 
 Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, Σ_5)` for every `I ⊆ T`. At `I = {α₂}`: `findlinks({α₂}, Σ) = {ℓ}` (Query 1) and `findlinks({α₂}, Σ_5) = {ℓ}` by direct evaluation (link values preserved by L12; the slot-1 test at `ℓ` still meets `{α₂}`). The V-side answer at `v_a^2` in `d_a` does change across the chain (the K.μ⁻ step contracts `v_a^2` out of `dom(M(d_a))`, so `findlinks_V({v_a^2}, d_a, Σ_5) = findlinks(∅, Σ_5) = ∅`); the I-side answer at the fixed I-set `{α₂}` does not. F9★ holds across the chain.
 
@@ -661,22 +656,6 @@ The discovery operation reduces to a single set comprehension: take the I-set th
 
 The specification is spare because of design choices established for other reasons. Because links attach to bytes (L13), discovery is by address overlap. Because bytes carry permanent identity (S0, C0), the overlap is well-defined and stable. Because arrangement is separated from identity (S9), discovery is arrangement-independent. Because the address space is globally unique (T10), identity-based queries cannot collide across owners. Because the link store is monotonic (L12), discovery is monotone. None of these were established for discovery; discovery falls out of them.
 
-## Appendix: Grounding of the Closed-World Reading
-
-This appendix records design-rationale for A1b — methodological, not normative.
-
-A1b adopts the closed-world reading of the substrate's effect-clause convention: components absent from both effect and frame are preserved across the transition. ASN-0047 does not formally axiomatise this convention; A1b adopts it as the methodological default for this ASN's evaluation of silent frames.
-
-*Convergent grounding (non-constitutive).* Two outside-the-foundation sources converge with — but do not constitute — the closed-world reading.
-
-(i) Nelson's design intent in *Literary Machines* requires operations to preserve state they do not explicitly modify: the Istream is append-only ("user makes changes, the changes difflessly into the storage system, filed, as it were, chronologically" at 2/14), edits are non-destructive ("users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate—without damaging the originals" at 2/45), and modification is restricted to the owner ("Only the owner has a right to withdraw a document or change it" at 2/29).
-
-(ii) Gregory's udanax-green implementation leaves the link store unmodified across the operations corresponding to K.μ⁺ (INSERT) and K.μ⁻ (DELETE / `dodeletevspan`).
-
-Both are *convergent* with A1b's conclusion but not constitutive; the methodological commitment remains primary because the substrate spec does not formally axiomatise the convention.
-
-*Why not a substrate revision.* Publishing `L' = L` explicitly in the two silent frames of ASN-0047 (K.μ⁺, K.μ⁻), or axiomatising the closed-world convention as a substrate-level meta-axiom, would discharge A1b directly. We prefer the local methodological commitment in ASN-0099 for two reasons: (1) *scope* — revising ASN-0047 is a substrate-level amendment whose impact extends to every consumer of the operation vocabulary, and ASN-0099 should not unilaterally commit the substrate to a convention other downstream ASNs may not need; (2) *separability* — tagging A1b with convention status keeps the interpretive commitment surfaced at the citation site of every claim depending on it, so a future substrate revision can replace A1b's convention-grounded reading with an axiomatised one cleanly. Readers who reject the closed-world reading must restate A1b against an alternative interpretation or weaken its conclusion at K.μ⁺, K.μ⁻.
-
 ## Claims Introduced
 
 | Label | Statement | Status |
@@ -689,9 +668,8 @@ Both are *convergent* with A1b's conclusion but not constitutive; the methodolog
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
 | PerLinkInvarianceUnderValuePreservation | Per-link primitive: match and filtered per-link universal evaluate identically when `Σ'.L(a) = Σ.L(a)` at a specific `a` | introduced (sub-lemma) |
 | ChainIndexEqualsAllocationOrder | Within a home document, T1 rank = chain index = K.λ event count | introduced (sub-lemma) |
-| A1a | PublishedFramePreservation: atomic {K.σ, K.α, K.δ, K.μ⁺_L, K.ρ} preserve `Σ.L` from published frames | introduced (structural lemma) |
-| A1b | ClosedWorldPreservation: atomic {K.μ⁺, K.μ⁻} preserve `Σ.L` under closed-world reading of substrate effect-clause convention; convention-grounded | introduced (convention-grounded lemma) |
-| A1 | LinkStoreInertOfNonAllocatingOperations: composite of A1a and A1b over the atomic ops of V ∖ {K.λ}; K.μ~ reached only via its K.μ⁻ + K.μ⁺ decomposition (A1b at both); K.λ unique L-modifying operation in V | introduced (composite lemma) |
+| A1a | PublishedFramePreservation: every atomic op of V ∖ {K.λ} — {K.σ, K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} — preserves `Σ.L` from its published frame (K.μ⁺, K.μ⁻ via ASN-0047's amended extended-state frames, both publishing `L' = L`) | introduced (structural lemma) |
+| A1 | LinkStoreInertOfNonAllocatingOperations: A1a over the atomic ops of V ∖ {K.λ}; K.μ~ reached only via its K.μ⁻ + K.μ⁺ decomposition (A1a at both); K.λ unique L-modifying operation in V | introduced (composite lemma) |
 | F1 | MatchPredicate definition | definition |
 | F2 | Completeness: `findlinks(I, Σ) ⊆ result(I, Σ)` | introduced |
 | F3 | Soundness: `result(I, Σ) ⊆ findlinks(I, Σ)` | introduced |
