@@ -31,7 +31,7 @@ For a single vspec `(d_s, σ)`, the resolved I-addresses are those that `d_s`'s 
 
   `wp-defined:  (A (d_s, σ) ∈ Q :: d_s ∈ Σ.E_doc)`
 
-and evaluate throughout this section at a state `Σ` satisfying it (*The operation* shows it is exactly the domain of the partial function `find`):
+and evaluate throughout this section at a state `Σ` satisfying it:
 
   `iaddrs_one(d_s, σ)(Σ) := { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }`
 
@@ -43,7 +43,7 @@ Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddr
 
 *Subspace confinement.* For every `t ∈ ⟦σ⟧`, PC's position-1 instance (proven in *The query*) gives `t₁ = u₁ = s_C`, hence `subspace(t) = s_C`.
 
-*Routing.* Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`. The subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` is read with `Σ` explicit on both sides — the right-hand side is the input state's content store, not a fixed set.
+*Routing.* Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`.
 
 *Which positions resolve — cross-depth capture in general.* PC fixes the prefix `⟦σ⟧` shares with `u`; we now characterise exactly which arrangement positions the intersection `⟦σ⟧ ∩ dom(M(d_s))` retains, including those deeper than `#u`. Fix a vspec `(d_s, σ)` with `σ = (u, ℓ)`, action point `#u`, and reach `r = u ⊕ ℓ`; since `actionPoint(ℓ) = #u`, TumblerAdd copies `r_j = u_j` for `j < #u` and sums `r_{#u} = u_{#u} + ℓ_{#u}` at the action point. The vspec preconditions place no relation between `#u` and the source's content-subspace depth `m_C` (S8-depth), so a position `v ∈ dom(M(d_s))` may be shallower than, equal to, or deeper than the anchor. We split on this, since the component `v_{#u}` named below exists only when `#v ≥ #u`.
 
@@ -61,7 +61,7 @@ where the depth guard `#v ≥ #u` is what makes the remaining conjuncts well-typ
 
 We name this **PC-RANGE**. The captured set is `⟦σ⟧ ∩ dom(M(d_s))`, parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it *lies within* the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. Actual membership is determined by the intersection `∩ dom(M(d_s))`, and within each such subtree by D-SEQ★, which pins the intermediate components `2 ≤ j < #v` of every arrangement position to `1`: most of those geometric subtrees hold no arrangement positions, and if some `u_j ≠ 1` for `2 ≤ j < #u` the intersection is empty even when `#u ≤ m_C`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}`, confining the capture to the single subtree under the prefix `u`. PC-RANGE's range condition at component `#u` couples to the arrangement's content-subspace depth `m_C` (S8-depth, which fixes `#v = m_C` for every `v ∈ dom(M(d_s))`): the comparison `u_{#u} ≤ v_{#u} < r_{#u}` is well-typed exactly when `#u ≤ m_C`.
 
-When `#u > m_C` the anchor is finer than every arrangement position. By S8-depth every `v ∈ dom(M(d_s))` has `#v = m_C < #u`, so the depth-`#v < #u` case of the characterisation excludes each such `v` from `⟦σ⟧`; the intersection is empty and `iaddrs_one(d_s, σ)(Σ) = ∅`. We record this as **F-DEEP**: `#u > m_C ⟹ iaddrs_one(d_s, σ)(Σ) = ∅` — a vspec whose anchor is deeper than the source's arrangement depth resolves to nothing.
+The depth `m_C` (S8-depth) is well-defined only when `V_{s_C}(d_s) ≠ ∅`, so we split. If `V_{s_C}(d_s) = ∅` the source carries no content-subspace position; since every `v ∈ ⟦σ⟧ ∩ dom(M(d_s))` is content-subspace (PC's position-1 instance gives `subspace(v) = s_C`), the intersection is empty and `iaddrs_one(d_s, σ)(Σ) = ∅` trivially. If `V_{s_C}(d_s) ≠ ∅` then `m_C` is defined, and when additionally `#u > m_C` the anchor is finer than every content-subspace arrangement position: by S8-depth every content-subspace `v ∈ dom(M(d_s))` has `#v = m_C < #u`, so the depth-`#v < #u` case of the characterisation excludes each such `v` from `⟦σ⟧`; the intersection is empty and `iaddrs_one(d_s, σ)(Σ) = ∅`. We record the latter as **F-DEEP**: `V_{s_C}(d_s) ≠ ∅ ∧ #u > m_C ⟹ iaddrs_one(d_s, σ)(Σ) = ∅` — a vspec whose anchor is deeper than the source's content-subspace arrangement depth resolves to nothing.
 
 The resolution of `Q` is the union of independent per-source resolutions, each `iaddrs_one(d_s, σ)(Σ)` depending only on `Σ.M(d_s)`.
 
@@ -191,7 +191,7 @@ Because `origin(a)` is a function of `a`'s tumbler alone, grounded in `E_doc` by
 
   `(Σ.E_doc = Σ'.E_doc) ∧ (A d ∈ Σ.E_doc : Σ.M(d) = Σ'.M(d))  ⟹  find(Q)(Σ) = find(Q)(Σ')`
 
-This is what Nelson's "containing" (present participle) commits to. The predicate is evaluated at the moment of query, not over the lifetime of the docuverse. A document whose arrangement once referenced `a` but has since been contracted (via K.μ⁻ from ASN-0047) is not in `find(Q)` even if it once was. The operation reports current containment, full stop. `find` does not consult ASN-0047's provenance relation `R`, which records `(a, d)` permanently (P2): the current-containment result versus the ever-containing relation `R` is deferred (Open Questions). F-COMP must be read in this light — completeness is over the *currently-containing* set: an implementation that misses a currently-containing document violates F-COMP; one that omits a historically-containing-but-no-longer-current document does not.
+This is what Nelson's "containing" (present participle) commits to. The predicate is evaluated at the moment of query, not over the lifetime of the docuverse. A document whose arrangement once referenced `a` but has since been contracted (via K.μ⁻ from ASN-0047) is not in `find(Q)` even if it once was. The operation reports current containment, full stop. `find` does not consult ASN-0047's provenance relation `R`, which records `(a, d)` permanently (P2); completeness (F-COMP) is therefore over the *currently-containing* set, and the relationship between this current result and the ever-containing relation `R` is deferred (Open Questions).
 
 ## Finiteness
 
@@ -227,7 +227,7 @@ The returned set has presentation and policy properties we have left unspecified
 | F-find | `find : VSpecSet × Σ ⇀ P(E_doc)` with `find(Q)(Σ) = { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }`, defined under the precondition `(A (d_s, σ) ∈ Q :: d_s ∈ Σ.E_doc)` | definition; precondition couples each vspec source to the evaluation state (M1, P1 of ASN-0047) | introduced |
 | PC | Prefix confinement: for a vspec `(d_s, σ)` with `σ = (u, ℓ)` and `actionPoint(ℓ) = #u`, every `t ∈ ⟦σ⟧` satisfies `t_j = u_j` for `1 ≤ j < #u` | derived locally from TumblerAdd prefix-copy + T1 case (i) + NAT-order trichotomy (T0) for the per-position case split + well-ordering of positions for the universal closure | introduced |
 | PC-RANGE | Cross-depth capture: for a vspec `(d_s, σ)` with `σ = (u, ℓ)`, `actionPoint(ℓ) = #u`, reach `r = u ⊕ ℓ`, `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : #v ≥ #u ∧ (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }` — the union of the `ℓ_{#u}` sibling subtrees under prefix-component range `[u_{#u}, u_{#u} + ℓ_{#u})`; the single-subtree case is the width-1 specialisation `ℓ_{#u} = 1` | PC + T1 case (i)/(ii) at position `#u` for `#v ≥ #u`; PC totality for the depth guard, excluding `#v < #u` from both sides | introduced |
-| F-DEEP | Deep-anchor empty resolution: for a vspec `(d_s, σ)` with `σ = (u, ℓ)` and `#u > m_C` (the source's content-subspace depth, S8-depth), `iaddrs_one(d_s, σ)(Σ) = ∅` | PC-RANGE depth guard + S8-depth (`#v = m_C < #u` for every `v ∈ dom(M(d_s))`) excludes every position via the `#v < #u` case | introduced |
+| F-DEEP | Deep-anchor empty resolution: for a vspec `(d_s, σ)` with `σ = (u, ℓ)`, `V_{s_C}(d_s) ≠ ∅ ∧ #u > m_C` (the source's content-subspace depth, S8-depth) `⟹ iaddrs_one(d_s, σ)(Σ) = ∅`; the companion empty-source case `V_{s_C}(d_s) = ∅ ⟹ iaddrs_one(d_s, σ)(Σ) = ∅` holds trivially | PC-RANGE depth guard + S8-depth (`#v = m_C < #u` for every content-subspace `v ∈ dom(M(d_s))`) excludes every position via the `#v < #u` case; empty case from content-subspace confinement of `⟦σ⟧` | introduced |
 | F-COMP | Completeness: every `d ∈ Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` is in `find(Q)(Σ)` | direct from F-find (⟸ direction of the defining iff) | introduced |
 | F-SOUND | Soundness: every `d ∈ find(Q)(Σ)` is in `Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` | direct from F-find (⟹ direction of the defining iff) | introduced |
 | F-PART | Partial overlap suffices: `d ∈ find(Q)(Σ) ⟺ d ∈ Σ.E_doc ∧ (E a : a ∈ ran(Σ.M(d)) : a ∈ iaddrs(Q)(Σ))` | direct from F-find (unfolding `≠ ∅` of a binary intersection) | introduced |
