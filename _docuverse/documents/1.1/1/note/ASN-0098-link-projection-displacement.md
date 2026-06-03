@@ -305,7 +305,7 @@ By ASN-0093, every K.α/K.λ-allocated address is a chain element of some sub-al
 ```
 F = {a ∈ T : (E d ∈ T, s ∈ {s_C, s_L}, k ≥ 1 :: zeros(d) = 2 ∧ d satisfies T4 ∧ a = [d, 0, s, k])}
 ```
-Every `a ∈ F` has `#a = #d + 3`, `zeros(a) = 3`, and `#E(a) = 2` by direct inspection of the structural form. An address outside `F` cannot be the target of any K.α/K.λ emission. In particular, the sub-allocator anchors `b_C(d) = [d, 0, s_C]` and `b_L(d) = [d, 0, s_L]` of ASN-0093 have `#E = 1` and so lie outside `F`; they are anchors of chains, not chain elements.
+Every `a ∈ F` has `#a = #d + 3`, `zeros(a) = 3`, and `#E(a) = 2` by direct inspection of the structural form. An address outside `F` cannot be the target of any K.α/K.λ emission. In particular, the sub-allocator anchors `b_C(d) = [d, 0, s_C]` and `b_L(d) = [d, 0, s_L]` of ASN-0093 have `#E = 1` and so lie outside `F`.
 
 Conversely, every allocated address belongs to `F`:
 
@@ -393,7 +393,7 @@ The K.α step emits `a_new` from sub-allocator `A_C(d_alloc)` for some `d_alloc 
 
 Suppose for contradiction `a_new ∈ coverage(e)`. Then `a_new ∈ [s, s ⊕ ℓ)` for some span `(s, ℓ) ∈ e`. The tightness condition at `Σ_e`, applied with the substrate-emittable `a_new ∈ F` lying in `[s, s ⊕ ℓ)`, yields `a_new ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)` — contradicting the freshness conclusion. Therefore `a_new ∉ coverage(e)`.
 
-**LP19 — TightEndsetBoundaryExclusion**: Let `e` be an endset tight at `Σ_e`, and let `Σ_e →* Σ_n → Σ_{n+1}` be a reachable transition sequence whose final step is a K.μ⁺ (or K.μ⁺_L) transition operating on document `d`. K.μ⁺ may add multiple V-positions `dom(Σ_{n+1}.M(d)) ∖ dom(Σ_n.M(d))` in a single step, each carrying its own I-address image; LP19's hypothesis selects, *per V-position*, only those whose image was freshly K.α/K.λ-allocated on the prefix. Formally, for every `v_new ∈ dom(Σ_{n+1}.M(d)) ∖ dom(Σ_n.M(d))`, letting `a_new := Σ_{n+1}.M(d)(v_new)`, if `a_new` was freshly allocated by a K.α (or K.λ) step on the prefix `Σ_e →* Σ_n`:
+**LP19 — TightEndsetBoundaryExclusion**: Let `e` be an endset tight at `Σ_e`, and let `Σ_e →* Σ_n → Σ_{n+1}` be a reachable transition sequence whose final step is a K.μ⁺ (or K.μ⁺_L) transition operating on document `d`. For every `v_new ∈ dom(Σ_{n+1}.M(d)) ∖ dom(Σ_n.M(d))`, letting `a_new := Σ_{n+1}.M(d)(v_new)`, if `a_new` was freshly allocated by a K.α (or K.λ) step on the prefix `Σ_e →* Σ_n`:
 ```
 v_new ∉ project(e, d, Σ_{n+1})
 ```
