@@ -68,7 +68,7 @@ The V-subspace of a V-position determines the I-subspace of its image.
 - `subspace(v) = s_C ⟹ subspace_I(M(d)(v)) = s_C`
 - `subspace(v) = s_L ⟹ subspace_I(M(d)(v)) = s_L`
 
-**Depends.** S3★-aux (SubspaceExhaustiveness, ASN-0047) — `subspace(v) ∈ {s_C, s_L}` for every `v ∈ dom(M(d))`. S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`, and `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)`. L0 (SubspacePartition, ASN-0047) — `a ∈ dom(C) ⟹ subspace_I(a) = s_C`, and `a ∈ dom(L) ⟹ subspace_I(a) = s_L`. The equality is not delivered by composing S3★ and L0 alone, since both S3★ clauses are conditional on `subspace(v)`'s value and need not fire for an arbitrary natural `subspace(v) = v₁`; S3★-aux supplies the exhaustiveness that makes the case split total. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`. In the `s_C` case, S3★ gives `M(d)(v) ∈ dom(C)` and L0 gives `subspace_I(M(d)(v)) = s_C = subspace(v)`; in the `s_L` case, S3★ gives `M(d)(v) ∈ dom(L)` and L0 gives `subspace_I(M(d)(v)) = s_L = subspace(v)`. Either case yields `subspace_I(M(d)(v)) = subspace(v)`.
+**Depends.** S3★-aux (SubspaceExhaustiveness, ASN-0047) — `subspace(v) ∈ {s_C, s_L}` for every `v ∈ dom(M(d))`. S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`, and `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)`. L0 (SubspacePartition, ASN-0047) — `a ∈ dom(C) ⟹ subspace_I(a) = s_C`, and `a ∈ dom(L) ⟹ subspace_I(a) = s_L`. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`. In the `s_C` case, S3★ gives `M(d)(v) ∈ dom(C)` and L0 gives `subspace_I(M(d)(v)) = s_C = subspace(v)`; in the `s_L` case, S3★ gives `M(d)(v) ∈ dom(L)` and L0 gives `subspace_I(M(d)(v)) = s_L = subspace(v)`. Either case yields `subspace_I(M(d)(v)) = subspace(v)`.
 
 **Frame.** State-pure.
 
@@ -79,13 +79,9 @@ R(d, e)|_{s_C} = M(d)⁻¹(coverage(e) ∩ dom(C))
 R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))
 ```
 
-*Derivation.* For the `s_C` case: `v ∈ R(d, e)|_{s_C}` iff `v ∈ R(d, e) ∧ subspace(v) = s_C` iff `M(d)(v) ∈ coverage(e) ∧ subspace(v) = s_C`. We establish the biconditional `subspace(v) = s_C ⟺ M(d)(v) ∈ dom(C)` for `v ∈ dom(M(d))` by case analysis on the two directions:
+*Derivation.* Reusing the postcondition equality `subspace(v) = subspace_I(M(d)(v))` for `v ∈ dom(M(d))`, it suffices to read off `subspace_I(M(d)(v))` against the store membership of the image. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`, so via the equality `subspace_I(M(d)(v)) ∈ {s_C, s_L}`, and S3★ places the image accordingly in `dom(C) ∪ dom(L)`. Applying L0 and L14 to the image: L0 gives `M(d)(v) ∈ dom(C) ⟹ subspace_I(M(d)(v)) = s_C` and `M(d)(v) ∈ dom(L) ⟹ subspace_I(M(d)(v)) = s_L`, while L14 (`dom(C) ∩ dom(L) = ∅`) makes the two stores mutually exclusive. Hence `subspace_I(M(d)(v)) = s_C ⟺ M(d)(v) ∈ dom(C)`, and composing with the postcondition equality, `subspace(v) = s_C ⟺ M(d)(v) ∈ dom(C)`.
 
-— *Forward* (`subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`): direct from S3★ (GeneralizedReferentialIntegrity, ASN-0047), whose first clause states exactly this implication.
-
-— *Reverse* (`M(d)(v) ∈ dom(C) ⟹ subspace(v) = s_C`): by S3★-aux (SubspaceExhaustiveness, ASN-0047), `subspace(v) ∈ {s_C, s_L}` for every `v ∈ dom(M(d))`. Suppose for contradiction that `subspace(v) = s_L`. Then by S3★'s second clause, `M(d)(v) ∈ dom(L)`. By L14 (StoreDisjointness, ASN-0047), `dom(C) ∩ dom(L) = ∅`, contradicting the hypothesis `M(d)(v) ∈ dom(C)`. Hence `subspace(v) = s_C`.
-
-Combining: `v ∈ R(d, e)|_{s_C}` iff `M(d)(v) ∈ coverage(e) ∩ dom(C)` iff `v ∈ M(d)⁻¹(coverage(e) ∩ dom(C))`. The `s_L` case is symmetric: forward via S3★'s second clause; reverse via S3★-aux + L14 ruling out `subspace(v) = s_C`.
+Therefore `v ∈ R(d, e)|_{s_C}` iff `M(d)(v) ∈ coverage(e) ∧ subspace(v) = s_C` iff `M(d)(v) ∈ coverage(e) ∩ dom(C)` iff `v ∈ M(d)⁻¹(coverage(e) ∩ dom(C))`. The `s_L` case is symmetric, with the roles of `dom(C)` and `dom(L)` swapped.
 
 The `s_C`-component of the result picks out the content-subspace portion of coverage; the `s_L`-component picks out the link-subspace portion. An endset whose coverage straddles both I-subspaces (admissible by L4, ASN-0043) contributes to both result components; an endset confined to one I-subspace contributes only to that component.
 
@@ -127,7 +123,7 @@ Concretely, the operation FOLLOWLINK has the following form:
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
 
-**Postcondition.** `follow(ℓ, d, i) = (d, (Σ_V^{s_C}, Σ_V^{s_L}))` where each `Σ_V^S` is a finite V-span-set whose components are spans in subspace `S` of depth `m_S(d)` when `V_S(d) ≠ ∅`; when `V_S(d) = ∅` (so `m_S(d)` is undefined), `Σ_V^S = ⟨⟩` by the vacuous-subspace convention (V-Restricted Denotation). In either case:
+**Postcondition.** `follow(ℓ, d, i) = (d, (Σ_V^{s_C}, Σ_V^{s_L}))` where each `Σ_V^S` is a finite V-span-set whose components are spans in subspace `S` of depth `m_S(d)` when `V_S(d) ≠ ∅`, and `Σ_V^S = ⟨⟩` in the vacuous case (V-Restricted Denotation). In either case:
 
 ```
 ⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S    for each S ∈ {s_C, s_L}
@@ -151,7 +147,7 @@ The postcondition fixes the *V-restricted denotation* of each component but not 
 
 (iii) The two components are presented in a fixed external order: `s_C`-component first, `s_L`-component second.
 
-When `m_S(d)` is undefined (either subspace `S ∈ {s_C, s_L}` with `V_S(d) = ∅`), the canonical form is `Σ_V^S = ⟨⟩` by the vacuous-subspace convention (V-Restricted Denotation).
+In the vacuous case (`V_S(d) = ∅`), `Σ_V^S = ⟨⟩` (V-Restricted Denotation).
 
 **Theorem (F-canonical — CanonicalUniqueness).** Given `R(d, e)`, there exists exactly one per-subspace family satisfying the canonical-form shape of F-canon-form. Given `R(d, e)`, project per subspace to obtain `R(d, e)|_{s_C}` and `R(d, e)|_{s_L}`. We show each subspace component admits exactly one canonical representation.
 
