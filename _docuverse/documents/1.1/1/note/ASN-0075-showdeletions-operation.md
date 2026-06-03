@@ -168,7 +168,7 @@ wp(SHOWDELETIONS(d_A, d_B), Q1)
                        ∧ a ∈ ran(M(d_B)))
 ```
 
-So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement. The last conjunct (presence in `d_B`) is what makes the report *recoverable* — every reported deletion has a concrete witness in the partner document.
+So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement.
 
 *Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. `Q0` is a state-level predicate over `M`, `R`, `dom(C)`, so by the general rule above the wp formula is the precondition conjoined with `Q0` unpacked at the pre-state:
 
@@ -318,7 +318,7 @@ Formally, for state `Σ = (C, L, E, M, R)` and the state `Σ'` obtaining after t
 
 The operation reads `M(d_A)`, `M(d_B)`, and `R`; it computes the output sets; it returns them. It allocates nothing, rewrites nothing, and invokes no transition relation — observationality is immediate from the definition, which is a pair of set-builder comprehensions over `Σ`.
 
-Consequences: SHOWDELETIONS is repeatable on the same state (yields identical results); it commutes with other observational queries; and a later invocation after intervening state changes correctly reflects the new state. Because the operation is observational, its result is merely delivered to the caller and is not stored as a document or otherwise integrated into the persistent store (**D-STORE**); the system creates no persistent artefact of its own accord.
+Consequences: SHOWDELETIONS is repeatable on the same state (yields identical results); and it commutes with other observational queries. Because the operation is observational, its result is merely delivered to the caller and is not stored as a document or otherwise integrated into the persistent store (**D-STORE**); the system creates no persistent artefact of its own accord.
 
 ## State-Functional Independence
 
