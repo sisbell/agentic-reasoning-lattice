@@ -227,7 +227,7 @@ The preconditions are therefore minimal.
 
 The mapping-block decomposition view of `M(d)` makes the computation of `follow` concrete.
 
-Each block `β = (v, a, n)` describes a contiguous mapping run: V-positions `v, v+1, ..., v+n−1` map to I-addresses `a, a+1, ..., a+n−1` (ASN-0058). The I-extent `I(β) = {a + k : 0 ≤ k < n}` is the contribution of this block to `ran(M(d))`. By M-int (TumblerIntervalCharacterization, ASN-0058), whose subspace-agreement postcondition gives `subspace(y) = subspace(v)` for every `y` with `v ≤ y < v + n`, every V-position of `β` shares the V-subspace of `v`, so each block lives in exactly one V-subspace; the block decomposition therefore partitions cleanly by subspace.
+Each block `β = (v, a, n)` describes a contiguous mapping run: V-positions `v, v+1, ..., v+n−1` map to I-addresses `a, a+1, ..., a+n−1` (ASN-0058). The I-extent `I(β) = {a + k : 0 ≤ k < n}` is the contribution of this block to `ran(M(d))`. The V-extent is `V(β) = {v + k : 0 ≤ k < n}`, and by B3 (Consistency, ASN-0058) every `v + k ∈ V(β)` lies in `dom(M(d))`. M-int (TumblerIntervalCharacterization, ASN-0058) requires *both* of its operands in `dom(M(d))`; we therefore apply it not to arbitrary interval points but to each `y = v + k ∈ V(β)` — which the B3 step has placed in `dom(M(d))` — paired with the block start `v ∈ dom(M(d))` (the `k = 0` case of the same step). M-int's subspace-agreement postcondition then gives `subspace(v + k) = subspace(v)` for every `0 ≤ k < n`, so every V-position of `β` shares the V-subspace of `v` and each block lives in exactly one V-subspace; the block decomposition therefore partitions cleanly by subspace.
 
 For each endset I-span `σ = (s, ℓ_σ)` with coverage `⟦σ⟧`:
 
@@ -281,7 +281,9 @@ Note that `β₂` and `β₃` both contain `a₀` in their I-extent, witnessing 
 
 **Setup premise (P-alloc).** Throughout this section, `a₀` and `a₁` are content I-addresses — both in `dom(C)` — allocated by distinct sub-allocators, so by GlobalUniqueness (ASN-0034) their depth-`m_a` progressions are disjoint: `{a₀, a₀ + 1, a₀ + 2} ∩ {a₁, a₁ + 1, a₁ + 2} = ∅`. The link I-address `ℓ₀ ∈ dom(L)`.
 
-**Link.** Consider link `ℓ` with `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` — an endset whose single span starts at `a₁` and has width 3 in depth `m_a` (the I-address depth). The coverage is the half-open lexicographic interval `coverage(L(ℓ).e₁) = {t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` (T12, ASN-0034), which contains the three depth-`m_a` addresses `a₁, a₁ + 1, a₁ + 2` together with deeper-depth tumblers of the interval (e.g. `a₁.x`, `(a₁ + 1).y`). The block I-extents below are themselves depth-`m_a`, so only the three depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` of the coverage are ever met by an intersection; we write that finite set where the intersections are computed.
+**Depth reduction (P-depth).** Every endset I-span coverage in this section is a half-open lexicographic interval (T12, ASN-0034) containing not only its depth-`m_a` members but also deeper-depth tumblers of the interval (e.g. `a₁.x`, `(a₁ + 1).y`). The mapping-block I-extents are all depth-`m_a`, so an intersection `I(β) ∩ coverage` can meet coverage only at its depth-`m_a` members. Throughout the configurations below we therefore write the finite set of depth-`m_a` coverage members where the intersections are computed, suppressing the deeper-depth points that no intersection can reach.
+
+**Link.** Consider link `ℓ` with `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` — an endset whose single span starts at `a₁` and has width 3 in depth `m_a` (the I-address depth). The coverage is the half-open lexicographic interval `coverage(L(ℓ).e₁) = {t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` (T12, ASN-0034), whose depth-`m_a` members are `{a₁, a₁ + 1, a₁ + 2}`. By P-depth, the intersections are computed against this finite set.
 
 **Computing `follow(ℓ, d, 1)`.**
 
@@ -307,16 +309,16 @@ follow(ℓ, d, 1) = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
 - *F-det (denotational).* The V-restricted denotation `⟦Σ_V^{s_C}⟧_V = {[1, 4], [1, 5]}` is uniquely determined.
 - *F-subspace.* `M(d)([1, 4]) = a₁ + 1 ∈ dom(C)` (P-alloc, plus S3★ since it is arranged at a content-subspace V-position), so `subspace_I(a₁ + 1) = s_C` — matching `subspace([1, 4]) = 1 = s_C`. ✓
 
-**Second configuration — multiplicity.** Modify the endset to `L(ℓ).e₁ = {(a₀, δ(1, m_a))}`, whose coverage is the half-open interval `coverage(L(ℓ).e₁) = {t ∈ T : a₀ ≤ t < a₀ ⊕ δ(1, m_a)} = subtree(a₀)` (PrefixSpanCoverage, ASN-0043) — the entire subtree of `a₀`, whose only depth-`m_a` member is `a₀`. Since the block I-extents are themselves depth-`m_a`, the only coverage member ever met by an intersection is `a₀`; we write that singleton where the intersections are computed. Now `a₀ ∈ I(β₂)` (at offset 0) and `a₀ ∈ I(β₃)` (at offset 0). Both blocks contribute:
+**Second configuration — multiplicity.** Modify the endset to `L(ℓ).e₁ = {(a₀, δ(1, m_a))}`, whose coverage is the half-open interval `coverage(L(ℓ).e₁) = {t ∈ T : a₀ ≤ t < a₀ ⊕ δ(1, m_a)} = subtree(a₀)` (PrefixSpanCoverage, ASN-0043) — the entire subtree of `a₀`, whose only depth-`m_a` member is `a₀`. By P-depth, the intersections are computed against the singleton `{a₀}`. Now `a₀ ∈ I(β₂)` (at offset 0) and `a₀ ∈ I(β₃)` (at offset 0). Both blocks contribute:
 
 - From `β₂`: V-span `([1, 1], δ(1, 2))`.
 - From `β₃`: V-span `([1, 6], δ(1, 2))`.
 
 `Σ_V^{s_C} = ⟨([1, 1], δ(1, 2)), ([1, 6], δ(1, 2))⟩` (two spans, in sorted order). F-multi is exercised: a single I-address `a₀` yields two V-positions `[1, 1]` and `[1, 6]`, both included. ✓
 
-**Third configuration — no reach.** Take `L(ℓ).e₁ = {(b, δ(1, m_a))}`, whose coverage is `coverage(L(ℓ).e₁) = {t ∈ T : b ≤ t < b ⊕ δ(1, m_a)} = subtree(b)` (PrefixSpanCoverage, ASN-0043). Suppose no depth-`m_a` member of `subtree(b)` lies in `ran(M(d))` (this is the load-bearing precondition; `b ∉ ran(M(d))` alone would not suffice, since deeper-depth members of the coverage could still be reached). Every block's I-extent is itself depth-`m_a`, so each is disjoint from coverage and every block's intersection with coverage is empty. `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. F-empty is exercised. ✓
+**Third configuration — no reach.** Take `L(ℓ).e₁ = {(b, δ(1, m_a))}`, whose coverage is `coverage(L(ℓ).e₁) = {t ∈ T : b ≤ t < b ⊕ δ(1, m_a)} = subtree(b)` (PrefixSpanCoverage, ASN-0043). Suppose no depth-`m_a` member of `subtree(b)` lies in `ran(M(d))` (this is the load-bearing precondition; `b ∉ ran(M(d))` alone would not suffice, since deeper-depth members of the coverage could still be reached). By P-depth, each block's intersection with coverage is empty (no depth-`m_a` coverage member is reached). `Σ_V^{s_C} = ⟨⟩` and `Σ_V^{s_L} = ⟨⟩`. F-empty is exercised. ✓
 
-**Fourth configuration — state-dependence.** Fix the link and vary the state. Take `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` as in Configuration 1, whose coverage is the half-open interval `{t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` with depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` (the only members met by the depth-`m_a` block I-extents). In the pre-state `Σ`:
+**Fourth configuration — state-dependence.** Fix the link and vary the state. Take `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` as in Configuration 1, whose coverage is the half-open interval `{t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` with depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` (the set against which intersections are computed, by P-depth). In the pre-state `Σ`:
 
 ```
 follow(ℓ, d, 1) at Σ = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
@@ -357,7 +359,7 @@ Return to the pre-state arrangement `M(d)` of Configuration 1 — in which the c
 L(ℓ).e₁ = {(a₀, δ(1, m_a)), (ℓ₀, δ(1, m_a))}
 ```
 
-so that `coverage(L(ℓ).e₁) = {t : a₀ ≤ t < a₀ ⊕ δ(1, m_a)} ∪ {t : ℓ₀ ≤ t < ℓ₀ ⊕ δ(1, m_a)} = subtree(a₀) ∪ subtree(ℓ₀)` (PrefixSpanCoverage, ASN-0043), with `a₀ ∈ dom(C)` and `ℓ₀ ∈ dom(L)` (the cross-subspace endset admitted by L4(c), ASN-0043). The only depth-`m_a` members of this coverage are `a₀` and `ℓ₀`; since the block I-extents are depth-`m_a`, the intersections meet coverage only at `{a₀, ℓ₀}`, and we write that finite set where the intersections are computed. The two-way split of coverage by store is `coverage ∩ dom(C) ⊇ {a₀}` and `coverage ∩ dom(L) ⊇ {ℓ₀}` (disjoint by L14, StoreDisjointness, ASN-0047), reducing at depth `m_a` to `{a₀}` and `{ℓ₀}` respectively — both non-empty, which is exactly what forces both result components.
+so that `coverage(L(ℓ).e₁) = {t : a₀ ≤ t < a₀ ⊕ δ(1, m_a)} ∪ {t : ℓ₀ ≤ t < ℓ₀ ⊕ δ(1, m_a)} = subtree(a₀) ∪ subtree(ℓ₀)` (PrefixSpanCoverage, ASN-0043), with `a₀ ∈ dom(C)` and `ℓ₀ ∈ dom(L)` (the cross-subspace endset admitted by L4(c), ASN-0043). The only depth-`m_a` members of this coverage are `a₀` and `ℓ₀`; by P-depth, the intersections are computed against `{a₀, ℓ₀}`. The two-way split of coverage by store is `coverage ∩ dom(C) ⊇ {a₀}` and `coverage ∩ dom(L) ⊇ {ℓ₀}` (disjoint by L14, StoreDisjointness, ASN-0047), reducing at depth `m_a` to `{a₀}` and `{ℓ₀}` respectively — both non-empty, which is exactly what forces both result components.
 
 Process each block against the endset:
 
