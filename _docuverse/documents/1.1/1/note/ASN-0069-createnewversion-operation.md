@@ -173,7 +173,7 @@ We record an immediate corollary.
 
 > **V8c** (*correspondence is symmetric and untyped*): The corresponding-position set `{v ∈ T : v ∈ dom(M'(d_op)) ∩ dom(M'(d_new)) ∧ M'(d_op)(v) = M'(d_new)(v)}` is defined by `∩` and `=`, both symmetric, so it is invariant under swap of `d_op` and `d_new`. V8 records a relationship between two documents in `E_doc`; it does not distinguish "source" from "fork."
 
-V8 is proved only at the post-fork state, yet the intercomparison promise Nelson describes is one that must hold *forever*, not merely at fork-time. We therefore do not leave the forward-time claim as an assertion; we name it and derive it from the premises that carry it.
+V8 is proved only at the post-fork state, yet the intercomparison promise Nelson describes is one that must hold *forever*, not merely at fork-time. The next property establishes that this equality persists forward in time:
 
 > **V8d** (*perpetuity of correspondence*): Let `Σ →* Σ'` be a fork and let `Σ''` be any state reachable from the post-fork state `Σ'` such that no step on the path `Σ' →* Σ''` is M-targeted at `d_op` and none is M-targeted at `d_new`. Then for every `v ∈ V_{s_C}(d_op)` (evaluated at `Σ`):
 > >
