@@ -26,9 +26,7 @@ Within each subspace `S` of document `d`, V-positions share a common depth, writ
 
 For either subspace, when `V_S(d) = ∅` the depth `m_S(d)` is undefined and `S` is vacuous in `d`; the next insertion re-pins it from scratch at any value `≥ 2`. The two subspace depths `m_{s_C}(d)` and `m_{s_L}(d)` need not coincide.
 
-What lies in `dom(Σ.C) ∪ dom(Σ.L)` but not in `ran(M(d))` is content or link material stored in the system but not arranged in `d`. By the permanence invariants (P0, P1, L12 of ASN-0047), the stored material persists; only the arrangement varies. The arrangement is the variable; storage is the constant.
-
-Resolution is the inverse problem: given I-addresses (from an endset), find the V-positions in `d` that currently hold them.
+What lies in `dom(Σ.C) ∪ dom(Σ.L)` but not in `ran(M(d))` is content or link material stored in the system but not arranged in `d`. By the permanence invariants (P0, P1, L12 of ASN-0047), the stored material persists; only the arrangement varies.
 
 ## The Inverse-Image Relation
 
@@ -246,7 +244,7 @@ Therefore the intersection, when non-empty, contains every index between its min
 
 Aggregating across all blocks and all endset spans, partitioning by V-subspace, then normalising each subspace component via S8, yields `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` in canonical form.
 
-This is *one* admissible computation (the postcondition fixes denotation, not decomposition strategy — see Canonical Form). The decomposition view confirms the computation is finite and well-structured: linear in the number of (block, endset-span) pairs whose I-extents intersect.
+This is *one* admissible computation. The decomposition view confirms the computation is finite and well-structured: linear in the number of (block, endset-span) pairs whose I-extents intersect.
 
 Fragmentation and multiplicity are the per-block image of the decomposition. If a single endset I-span `σ` intersects two non-adjacent mapping blocks of `d` in the same subspace, it produces two non-adjacent V-runs in the result — the V-image of blocks that are non-adjacent in V-space. Multiplicity is the shared-I-extent case: if multiple blocks have the same I-start `a` and width, each contributes its own V-run.
 
@@ -421,7 +419,7 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 
 **Preconditions.** `ℓ ∈ dom(Σ.L)`; `d ∈ E_doc`; `1 ≤ i ≤ |L(ℓ)|`.
 
-**Postcondition.** For two evaluations of `follow(ℓ, d, i)` against the same state `Σ`, returning `(d, Σ_V)` and `(d, Σ_V')`: `⟦Σ_V^S⟧_V = ⟦Σ_V'^S⟧_V` for each subspace `S`. The V-restricted denotation is uniquely determined by `Σ`, `ℓ`, `d`, `i`. The representations `Σ_V` and `Σ_V'` may differ; after canonical-form derivation, they coincide.
+**Postcondition.** For two evaluations of `follow(ℓ, d, i)` against the same state `Σ`, returning `(d, Σ_V)` and `(d, Σ_V')`: `⟦Σ_V^S⟧_V = ⟦Σ_V'^S⟧_V` for each subspace `S`. The V-restricted denotation `⟦Σ_V^S⟧_V` is uniquely determined by `Σ`, `ℓ`, `d`, `i`.
 
 **Depends.** F0 (InverseImageRelation, this ASN — its Well-definedness clause, which itself rests on S2 ArrangementFunctionality, ASN-0036); S3★-aux (SubspaceExhaustiveness, ASN-0047); S8 (NormalizationExistence, ASN-0053); S9 (NormalizationUniqueness, ASN-0053); F-canonical (derived above).
 
