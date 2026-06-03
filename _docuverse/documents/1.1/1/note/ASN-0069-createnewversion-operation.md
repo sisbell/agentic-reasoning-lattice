@@ -214,7 +214,7 @@ The single organising principle is quantifier domain: the *structural* propertie
 
 We arrive at the deepest claim — the one that distinguishes a *version* from an arbitrary new document. Two documents are *versions of each other* when their arrangements share I-addresses derived from a common forking event. The structural test of this relationship is automatic: it inheres in the I-addresses themselves.
 
-> **V8** (*positional correspondence — corollary of V4 + source frame*): For every `v ∈ V_{s_C}(d_op)`: `v ∈ dom(M'(d_new))` and `M'(d_op)(v) = M'(d_new)(v)`. This is V4 re-expressed in post-state coordinates: the per-document frame gives `M'(d_op) = M(d_op)` (the K.μ⁺ phase targets only `d_new`, and `d_op ≠ d_new`), and V4 gives `v ∈ dom(M'(d_new))` with `M'(d_new)(v) = M(d_op)(v)`, so `M'(d_op)(v) = M(d_op)(v) = M'(d_new)(v)`.
+> **V8** (*positional correspondence — corollary of V4 + content-source operand frame*): For every `v ∈ V_{s_C}(d_op)`: `v ∈ dom(M'(d_new))` and `M'(d_op)(v) = M'(d_new)(v)`. This is V4 re-expressed in post-state coordinates: the per-document frame gives `M'(d_op) = M(d_op)` (the K.μ⁺ phase targets only `d_new`, and `d_op ≠ d_new`), and V4 gives `v ∈ dom(M'(d_new))` with `M'(d_new)(v) = M(d_op)(v)`, so `M'(d_op)(v) = M(d_op)(v) = M'(d_new)(v)`.
 
 V8 says: immediately after forking, every content-subspace V-position of the content source `d_op` corresponds to the same V-position in `d_new`, with the same I-address. On the first fork `d_op = d_src`, so this is full correspondence between the named source and the fork; on a subsequent fork it is correspondence between the prior version `d_op` and the fork. The general transitive correspondence across a fork chain — `d_src ↔ d^k_new` for any `k` — is V11 below. The correspondence is *exact, structural, and computable from the I-address equality alone*. No history is consulted; no derivation lineage is traversed.
 
@@ -226,7 +226,7 @@ The "word for word" comparison is the I-address equality test: at each shared V-
 
 We record an immediate corollary.
 
-> **V8c** (*correspondence is symmetric and untyped*): The corresponding-position set `{v ∈ T : v ∈ dom(M'(d_src)) ∩ dom(M'(d_new)) ∧ M'(d_src)(v) = M'(d_new)(v)}` is defined by `∩` and `=`, both symmetric, so it is invariant under swap of `d_src` and `d_new`. V8 records a relationship between two documents in `E_doc`; it does not distinguish "source" from "fork."
+> **V8c** (*correspondence is symmetric and untyped*): The corresponding-position set `{v ∈ T : v ∈ dom(M'(d_op)) ∩ dom(M'(d_new)) ∧ M'(d_op)(v) = M'(d_new)(v)}` is defined by `∩` and `=`, both symmetric, so it is invariant under swap of `d_op` and `d_new`. The set is taken over `(d_op, d_new)` to match V8's domain — the content source operand `d_op`, which equals `d_src` only on a first fork; on a subsequent fork `d_op = d_prev` and the displayed set is the first-fork specialization. V8 records a relationship between two documents in `E_doc`; it does not distinguish "source" from "fork."
 
 The intercomparison guarantee is *perpetual*. By T8 (AllocationPermanence, ASN-0034), `d_src` and `d_new` remain in `E_doc` forever; by P0/S0, their I-addresses persist in `dom(C)` forever; by the per-document arrangement frame discipline, neither side's arrangement modifies the other's. V8 holds in the post-fork state, and its consequences propagate to every subsequent state in which neither side has overwritten the relevant V-positions.
 
@@ -326,23 +326,15 @@ We note what V11 does *not* claim. It does not claim the I-addresses are *visibl
 
 ## Permanence Across Source and Fork
 
-We collect the permanence guarantees that hold across both documents after the fork.
-
-By T8 (AllocationPermanence, ASN-0034) and P1 (EntityPermanence, ASN-0047): both `d_src` and `d_new` remain in `E_doc` for all subsequent reachable states. Neither can be removed.
-
-By P0 (ContentPermanence, ASN-0047) and S0/S1 (ASN-0036): every I-address in `dom(C)` at fork-time remains in `dom(C')` for all subsequent states, with unchanged value. In particular, every I-address in `ran(M'(d_new))` persists in `dom(C)` forever, regardless of how either document's arrangement evolves.
-
-By P2 (ProvenancePermanence, ASN-0047): the provenance records `(a, d_new)` added by V9 persist in `R` forever, regardless of subsequent arrangement modifications. Even if `d_new`'s owner later deletes `a` from `d_new`'s arrangement (via K.μ⁻), the historical fact `(a, d_new) ∈ R` records that `d_new` once contained `a`.
-
-We name the combined consequence.
+We collect the permanence guarantees that hold across both documents after the fork into a single named consequence.
 
 > **V12** (*joint permanence*): After a fork, both `d_src` and `d_new` and all their inherited I-addresses are permanent. For every reachable state subsequent to the fork:
 >
-> (a) `d_src ∈ E'_doc ∧ d_new ∈ E'_doc` (P1)
+> (a) `d_src ∈ E'_doc ∧ d_new ∈ E'_doc` (T8, P1): both documents remain in `E_doc` for all subsequent reachable states; neither can be removed.
 >
-> (b) `(A a ∈ ran(M'(d_new)) :: a ∈ dom(C'')` for every subsequent state `Σ''` (P0)
+> (b) `(A a ∈ ran(M'(d_new)) :: a ∈ dom(C'')` for every subsequent state `Σ''` (P0, S0/S1): every inherited I-address persists in `dom(C)` with unchanged value, regardless of how either document's arrangement evolves.
 >
-> (c) `(A a ∈ ran(M'(d_new)) :: (a, d_new) ∈ R'')` for every subsequent state `Σ''` (P2 applied to the post-fork records of V9)
+> (c) `(A a ∈ ran(M'(d_new)) :: (a, d_new) ∈ R'')` for every subsequent state `Σ''` (P2, V9): the provenance records added by V9 persist in `R` forever. Even if `d_new`'s owner later deletes `a` from its arrangement (via K.μ⁻), the historical fact `(a, d_new) ∈ R` records that `d_new` once contained `a`.
 >
 > (d) `(A a ∈ ran(M'(d_new)) :: (a, d_op) ∈ R'')` — provenance records for the *content source operand* `d_op` are also permanent. *Derivation.* V4 + V4b give range equality `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})`, so every inherited `a` is content-subspace-referenced in `M(d_op)` at the pre-fork boundary `Σ` with `d_op ∈ E_doc`; hence `(a, d_op) ∈ Contains_C(Σ) ⊆ R` by P4★ at `Σ`, and P2 carries the pair into every subsequent `Σ''`.
 
