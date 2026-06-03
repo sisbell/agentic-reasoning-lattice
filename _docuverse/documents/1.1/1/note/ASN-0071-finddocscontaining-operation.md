@@ -15,9 +15,9 @@ Content can be named in two registers. By I-address — "the content at addresse
 
 We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s ∈ Σ.E_doc` names a source document and `σ = (u, ℓ)` is a level-uniform V-span confined to the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) = #u`, `#ℓ = #u` (level-uniformity, ASN-0053 S6), and `actionPoint(ℓ) ≥ 2` (equivalently `ℓ₁ = 0`: the displacement does not perturb the subspace identifier at position 1; together with `actionPoint(ℓ) = #u` this also forces `#u ≥ 2`). Its denotation `⟦σ⟧` and reach `u ⊕ ℓ` used throughout are ASN-0053's (σ.denotation: `⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}`; σ.reach: `reach(σ) = start(σ) ⊕ width(σ)`); we apply those definitions rather than restate them below. A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
 
-We name the claim we need *prefix confinement* (PC): every `t ∈ ⟦σ⟧` agrees with `u` on all components `1 ≤ j < #u`. This is the relaxed analogue of ASN-0058's C0a (which assumes well-formedness), proven here directly from the vspec preconditions `subspace(u) = s_C` and `actionPoint(ℓ) = #u ≥ 2`, with no appeal to well-formedness. The proof is a forward chain through a componentwise fact, totality, and prefix agreement.
+We name the claim we need *prefix confinement* (PC): every `t ∈ ⟦σ⟧` agrees with `u` on all components `1 ≤ j < #u`. This is the relaxed analogue of ASN-0058's C0a (which assumes well-formedness), proven here directly from the vspec preconditions `subspace(u) = s_C` and `actionPoint(ℓ) = #u ≥ 2`, with no appeal to well-formedness.
 
-*Componentwise fact.* For any position `p` with `1 ≤ p < #u` *at which `t_p` exists*, `t` cannot first disagree with `u` at `p`. Since `p < #u = actionPoint(ℓ)`, TumblerAdd's prefix-copy gives `u_p = (u ⊕ ℓ)_p`; were `t_p ≠ u_p`, T1 case (i) at `p` would force either `t < u` (if `t_p < u_p`) or `t > u ⊕ ℓ` (if `t_p > u_p`), each contradicting `u ≤ t < u ⊕ ℓ`. By NAT-order trichotomy (T0), `t_p = u_p` wherever `t_p` exists with `p < #u`.
+*Componentwise fact.* For any position `p` with `1 ≤ p < #u` *at which `t_p` exists*, `t` cannot first disagree with `u` at `p`. Since `p < #u = actionPoint(ℓ)`, TumblerAdd's prefix-copy gives `u_p = (u ⊕ ℓ)_p`; were `t_p ≠ u_p`, NAT-order trichotomy (T0) splits the disagreement at `p` into `t_p < u_p` or `t_p > u_p`, and T1 case (i) at `p` would then force either `t < u` (if `t_p < u_p`) or `t > u ⊕ ℓ` (if `t_p > u_p`), each contradicting `u ≤ t < u ⊕ ℓ`. T0 thus excludes `p` as a *first* point of disagreement, but settling every position needs one further step. Were the disagreement set `{p : 1 ≤ p < #u ∧ t_p exists ∧ t_p ≠ u_p}` non-empty, well-ordering of the positions would furnish it a least element — a first disagreement — which the contradiction just excluded; the set is therefore empty, and `t_p = u_p` wherever `t_p` exists with `p < #u`.
 
 *Totality.* Every `t ∈ ⟦σ⟧` has depth `#t ≥ #u`, so each `t_j` (`1 ≤ j < #u`) exists. Were `#t < #u`, then either `t` agrees with `u` on its whole length — making `t` a proper prefix of `u`, hence `t < u` by T1 case (ii), contradicting `u ≤ t` — or `t` first disagrees with `u` at some position `p ≤ #t < #u`, where `t_p` exists, contradicting the componentwise fact; either way `#t < #u` is impossible.
 
@@ -215,7 +215,7 @@ A document that transcludes ten distinct passages from a queried chapter is repo
 
 ## Discovery through sharing
 
-The most architecturally significant consequence concerns transclusion. If I-address `a` is referenced by multiple documents — `a ∈ ran(Σ.M(d))` for several `d` — then a query that resolves to `a` discovers all of them:
+A query discovers every document that shares its resolved content. If I-address `a` is referenced by multiple documents — `a ∈ ran(Σ.M(d))` for several `d` — then a query that resolves to `a` discovers all of them:
 
   `a ∈ iaddrs(Q)(Σ) ∧ a ∈ ran(Σ.M(d)) ∧ d ∈ Σ.E_doc  ⟹  d ∈ find(Q)(Σ)`
 
@@ -227,11 +227,9 @@ This makes `find` the structural dual of the read-direction. Reading goes from a
 
 ## Currency: state dependence
 
-`find(Q)(Σ)` is a function of `Σ`. It depends only on the current state — specifically on `Σ.E_doc` and `Σ.M`. It reads neither `dom(Σ.C)` nor any content value: `iaddrs(Q)(Σ)` is computed purely as images of `Σ.M(d_s)`, and the membership predicate intersects those images against `ran(Σ.M(d))`. So `find` reads only `Σ.E_doc` and `Σ.M`.
+`find(Q)(Σ)` reads only `Σ.E_doc` and `Σ.M`: `iaddrs(Q)(Σ)` is computed purely as images of `Σ.M(d_s)`, and the membership predicate intersects those images against `ran(Σ.M(d))` — neither `dom(Σ.C)`, nor a content value, nor any past state enters.
 
   `(Σ.E_doc = Σ'.E_doc) ∧ (A d ∈ Σ.E_doc : Σ.M(d) = Σ'.M(d))  ⟹  find(Q)(Σ) = find(Q)(Σ')`
-
-History does not enter the definition. The operation does not consult past states, past arrangements, or past transitions. It is a pure function of the present.
 
 This is what Nelson's "containing" (present participle) commits to. The predicate is evaluated at the moment of query, not over the lifetime of the docuverse. A document whose arrangement once referenced `a` but has since been contracted (via K.μ⁻ from ASN-0047) is not in `find(Q)` even if it once was. The operation reports current containment, full stop. `find` does not consult ASN-0047's provenance relation `R`, which records `(a, d)` permanently (P2): `find` returns currently-containing documents, an `R`-based query returns ever-containing ones, and they coincide only when no arrangement contraction has touched a queried I-address. F-COMP must be read in this light — completeness is over the *currently-containing* set: an implementation that misses a currently-containing document violates F-COMP; one that omits a historically-containing-but-no-longer-current document does not.
 
@@ -257,9 +255,9 @@ The returned set has presentation and policy properties we have left unspecified
 
 (i) *Order.* `find(Q)(Σ)` is a set. Some implementations may return its elements in a deterministic order (such as ascending tumbler order on document ISA, naturally arising from a sorted index); others may not. Order is a presentation choice. Two implementations both meeting the specification may return the same elements in different orders, and neither violates the specification by virtue of order alone.
 
-(ii) *Replica freshness.* We specify `find` against a single state `Σ`; replica-divergent views in a distributed deployment are out of scope — see the corresponding open question.
+(ii) *Replica freshness.* We specify `find` against a single state `Σ`; replica-divergent views in a distributed deployment are out of scope.
 
-(iii) *Access-control filtering.* The `find` we specified returns ALL containing documents, unfiltered by requester visibility; layering Nelson's visibility policy (LM 2/59) over the unfiltered basis is out of scope — see the corresponding open questions.
+(iii) *Access-control filtering.* The `find` we specified returns ALL containing documents, unfiltered by requester visibility; layering Nelson's visibility policy (LM 2/59) over the unfiltered basis is out of scope.
 
 ## Claims Introduced
 
@@ -269,7 +267,7 @@ The Basis column records how each claim relates to the definitions F-iaddrs and 
 |-------|-----------|-------|--------|
 | F-iaddrs | `iaddrs : VSpecSet × Σ ⇀ P(T)` with `iaddrs(Q)(Σ) = ⋃_{(d_s, σ) ∈ Q} { Σ.M(d_s)(v) : v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s)) }`, defined under `wp-defined: (A (d_s, σ) ∈ Q :: d_s ∈ Σ.E_doc)`; subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` whenever `wp-defined` holds | definition; subset claim proven in *Resolution* (subspace confinement of `⟦σ⟧` + S3★), gated on `wp-defined` | introduced |
 | F-find | `find : VSpecSet × Σ ⇀ P(E_doc)` with `find(Q)(Σ) = { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }`, defined under the precondition `(A (d_s, σ) ∈ Q :: d_s ∈ Σ.E_doc)` | definition; precondition couples each vspec source to the evaluation state (M1, P1 of ASN-0047) | introduced |
-| PC | Prefix confinement: for a vspec `(d_s, σ)` with `σ = (u, ℓ)` and `actionPoint(ℓ) = #u`, every `t ∈ ⟦σ⟧` satisfies `t_j = u_j` for `1 ≤ j < #u` | derived locally from TumblerAdd prefix-copy + T1 case (i) + NAT-order trichotomy (T0) | introduced |
+| PC | Prefix confinement: for a vspec `(d_s, σ)` with `σ = (u, ℓ)` and `actionPoint(ℓ) = #u`, every `t ∈ ⟦σ⟧` satisfies `t_j = u_j` for `1 ≤ j < #u` | derived locally from TumblerAdd prefix-copy + T1 case (i) + NAT-order trichotomy (T0) for the per-position case split + well-ordering of positions for the universal closure | introduced |
 | F-COMP | Completeness: every `d ∈ Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` is in `find(Q)(Σ)` | direct from F-find (⟸ direction of the defining iff) | introduced |
 | F-SOUND | Soundness: every `d ∈ find(Q)(Σ)` is in `Σ.E_doc` with `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅` | direct from F-find (⟹ direction of the defining iff) | introduced |
 | F-PART | Partial overlap suffices: `d ∈ find(Q)(Σ) ⟺ d ∈ Σ.E_doc ∧ (E a : a ∈ ran(Σ.M(d)) : a ∈ iaddrs(Q)(Σ))` | direct from F-find (unfolding `≠ ∅` of a binary intersection) | introduced |
