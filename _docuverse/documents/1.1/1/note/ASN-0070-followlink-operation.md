@@ -382,6 +382,37 @@ The V-restricted denotations are `⟦Σ_V^{s_C}⟧_V = {[1, 1], [1, 6]}` at cont
 - *F-subspace (link branch).* `R(d, e)|_{s_L} = M(d)⁻¹(coverage ∩ dom(L)) = M(d)⁻¹({ℓ₀}) = {[2, 1]} = ⟦Σ_V^{s_L}⟧_V`. `M(d)([2, 1]) = ℓ₀ ∈ dom(L)`, so `subspace_I(ℓ₀) = s_L` — matching `subspace([2, 1]) = 2 = s_L`. The reverse direction (S3★-aux + L14) places `[2, 1]` in the `s_L`-component, not the `s_C`-component. ✓
 - *Joint-denotation disjointness.* `⟦Σ_V⟧_V = ⟦Σ_V^{s_C}⟧_V ⊎ ⟦Σ_V^{s_L}⟧_V = {[1, 1], [1, 6]} ⊎ {[2, 1]}`. With *both* parts populated, the `⊎` is non-trivially exercised: the disjointness is witnessed by the subspace clause of the V-restriction (every element of the first set has first component `1`, every element of the second has first component `2`; `s_C ≠ s_L` by SC-NEQ), so no V-position lies in both. This matches F0's own partition `R(d, e) = R(d, e)|_{s_C} ⊎ R(d, e)|_{s_L} = {[1, 1], [1, 6]} ⊎ {[2, 1]}`. ✓
 
+**Sixth configuration — interior-offset block clip (`j > 0`, `c < n`).** Every configuration so far meets each block at offset `j = 0` — coverage either spans a whole block or catches it at index 0. The `(j, c)` machinery of "Computation via Decomposition" (F-contig) is only non-trivial when coverage clips the *tail or interior* of a multi-position block, recording a V-span whose start is `v + j` for `j > 0`. We exercise that case directly.
+
+Return to the pre-state arrangement `M(d)` of Configuration 1, with block `β₂ = ([1, 1], a₀, 3)` mapping the content I-progression `{a₀, a₀ + 1, a₀ + 2}` to V-positions `[1, 1], [1, 2], [1, 3]`. Choose an endset whose single span starts at `a₀ + 1` — one position *into* `β₂`'s I-extent:
+
+```
+L(ℓ).e₁ = {(a₀ + 1, δ(2, m_a))}
+```
+
+so that `coverage(L(ℓ).e₁) = {t ∈ T : a₀ + 1 ≤ t < (a₀ + 1) ⊕ δ(2, m_a)}` (T12, ASN-0034), whose depth-`m_a` members are `{a₀ + 1, a₀ + 2}`. Note `a₀` itself is *not* in coverage — the span begins above it. By P-depth, the intersections are computed against `{a₀ + 1, a₀ + 2}`.
+
+Process each block against the endset span:
+
+- `β₁ = ([1, 4], a₁ + 1, 2)`: `I(β₁) = {a₁ + 1, a₁ + 2}`, disjoint from `{a₀ + 1, a₀ + 2}` by P-alloc. No contribution.
+- `β₂ = ([1, 1], a₀, 3)`: `I(β₂) = {a₀, a₀ + 1, a₀ + 2}`. Intersection with `{a₀ + 1, a₀ + 2}` is `{a₀ + 1, a₀ + 2}` — these sit at *indices 1 and 2* of `β₂` (with `a₀ + 0 = a₀ ∉ coverage`). Offset `j = 1`, width `c = 2`; both strictly interior to the block's index range (`j > 0` and `j + c = 3 = n`, so the clip omits `β₂`'s leading position). V-run: `[1, 2], [1, 3]` — the V-positions `v + j, v + j + 1` for `v = [1, 1]`, `j = 1` — recorded as the content-subspace V-span `([1, 2], δ(2, 2))`.
+- `β₃ = ([1, 6], a₀, 1)`: `I(β₃) = {a₀}`, disjoint from `{a₀ + 1, a₀ + 2}` (the transclusion singleton holds only `a₀`, which is below coverage). No contribution.
+- `β_L = ([2, 1], ℓ₀, 1)`: `I(β_L) = {ℓ₀} ⊂ dom(L)`, disjoint from `coverage(L(ℓ).e₁) ⊂ dom(C)` by L14 (StoreDisjointness, ASN-0047). No contribution.
+
+**Result.** `Σ_V^{s_C} = ⟨([1, 2], δ(2, 2))⟩` (one span, starting at `[1, 2]`, not at the block start `[1, 1]`); `Σ_V^{s_L} = ⟨⟩` (empty):
+
+```
+follow(ℓ, d, 1) = (d, (⟨([1, 2], δ(2, 2))⟩, ⟨⟩))
+```
+
+The V-restricted denotation is `⟦Σ_V^{s_C}⟧_V = {[1, 2], [1, 3]}` at content-subspace depth 2.
+
+- *F-contig.* `I(β₂) ∩ ⟦σ⟧ = {a₀ + 1, a₀ + 2} = {a₀ + 1 + k : 0 ≤ k < 2}` is a contiguous sub-progression of `I(β₂)` at offset `j = 1` and width `c = 2 < n = 3` — the interior case the contiguity claim names but no earlier configuration exercised. The corresponding V-positions `v + j, v + j + 1 = [1, 2], [1, 3]` form a single contiguous V-run strictly within `β₂` (the block's leading position `[1, 1]` is excluded), recorded as the single V-span `([1, 2], δ(2, 2))` with start `v + 1`. ✓
+- *F-sound.* Both `[1, 2]` and `[1, 3]` are in `dom(M(d))`. `M(d)([1, 2]) = a₀ + 1 ∈ coverage(L(ℓ).e₁)` and `M(d)([1, 3]) = a₀ + 2 ∈ coverage(L(ℓ).e₁)`. No spurious V-position appears; in particular `[1, 1] → a₀ ∉ coverage` is correctly omitted. ✓
+- *F-complete.* The V-positions `v ∈ dom(M(d))` with `M(d)(v) ∈ {a₀ + 1, a₀ + 2}` are exactly `[1, 2] (→ a₀ + 1)` and `[1, 3] (→ a₀ + 2)`. The positions mapping to `a₀` itself — `[1, 1]` and `[1, 6]` (β₃) — are *not* qualifying, since `a₀ ∉ coverage`, and both are correctly absent from the result. Both qualifying positions appear in `⟦Σ_V^{s_C}⟧_V`. ✓
+
+This configuration confirms that the offset `j` and clipped width `c` are recorded faithfully: the result V-span starts at `v + j = [1, 2]`, not at the block start `v = [1, 1]`, and spans only the `c = 2` clipped positions rather than the block's full width `n = 3`.
+
 ## Derived Properties
 
 Each of the following is a consequence of the inverse-image definition combined with the foundations. We catalogue them as F-det, F-sound, etc., and present each with explicit preconditions, postconditions, dependencies, and frame.
