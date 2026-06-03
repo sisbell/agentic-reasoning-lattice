@@ -86,14 +86,7 @@ Start from `Σ₀`, whose only entity is the bootstrap node `n₀ = [1]` (`E₀ 
 12. K.δ creates a fourth document `d_D = inc(d_C, 0) ∈ E_doc` by case (ii) sibling (`k = 0`), operand `d_C ∈ E` with `¬Node(d_C)`. `parent(d_D) = parent(d_C) = acct ∈ E` (K.δ-ID.parent-0) discharges P8; `zeros(d_D) = 2`, so `Document(d_D)`.
 13. K.μ⁺ binds three contiguous content-subspace positions of `d_D`, all by transclusion (no new K.α): `M(d_D)(w₁) = a₁`, `M(d_D)(w₂) = a₂`, `M(d_D)(w₃) = a₁`, where `w_k = [s_C, k]` are the content-subspace V-positions of `d_D` (D-SEQ★, depth `m_C = 2`, positions `1 ≤ k ≤ 3`, so D-CTG★ and D-MIN★ hold). K.ρ records `(a₁, d_D)` and `(a₂, d_D)`. Positions `w₁` and `w₃` both reference `a₁`: distinct V-positions of a single document may share an I-address (M13, SharedContent), and the two occurrences are permanently independent arrangement entries (M14, IndependentOccurrences).
 
-*Composite structure.* ValidCompositeAmended (ASN-0047) evaluates the coupling constraints J0, J1★, and J1'★ *only between the initial and final state of each composite*, so reachability is not established step-by-step but at composite boundaries. The thirteen steps group into four valid composites — the allocate–place–record triples are the natural grouping — and we confirm the coupling at each boundary:
-
-- **Composite 1 (steps 1–5):** the `n₀ → acct → d_A` scaffold, then `a₁`'s allocation (K.α), placement (K.μ⁺), and provenance (K.ρ). At the boundary `a₁` is the sole freshly-allocated I-address and it appears in `M(d_A)(v_A)`, discharging J0; `a₁` is range-new to `M(d_A)`'s content subspace, so J1★ forces `(a₁, d_A) ∈ R'` (recorded at step 5), and J1'★ holds since that lone new provenance entry corresponds to the range-new `a₁`.
-- **Composite 2 (steps 6–8):** `d_B`'s creation (K.δ) and its transclusion of `a₁` (K.μ⁺, K.ρ). This is the canonical *transcluding discharge*, which every later transcluding composite repeats verbatim: no I-address is freshly allocated — the transcluded addresses are already in `dom(C)` — so J0 is vacuous; each transcluded address that is range-new to the document's content subspace forces a provenance entry under J1★, and J1'★ holds symmetrically since each new provenance entry corresponds to one such range-new address. Here `a₁ ∈ dom(C)` already, `a₁` is range-new to `M(d_B)`'s content subspace, so J1★ forces `(a₁, d_B) ∈ R'`.
-- **Composite 3 (steps 9–11):** `d_C`'s creation (K.δ) and its native `a₂` (K.α, K.μ⁺, K.ρ). `a₂` is freshly allocated and appears in `M(d_C)(v_C)`, discharging J0; J1★ and J1'★ couple `(a₂, d_C)` to the range-new `a₂`.
-- **Composite 4 (steps 12–13):** `d_D`'s creation (K.δ) and its three transcluding binds (K.μ⁺, K.ρ). The range-new addresses are `a₁` and `a₂`, so the transcluding discharge of Composite 2 applies, forcing `(a₁, d_D), (a₂, d_D) ∈ R'`. The repeated bind of `a₁` at `w₃` adds no further range-new content, so it triggers no additional provenance obligation.
-
-Each composite also satisfies clause (1) of ValidCompositeAmended — every atomic step's elementary precondition holds at the intermediate state, as narrated above. The state `Σ` is therefore reached by a finite sequence of valid composites, hence reachable, so ASN-0047's invariants hold at `Σ`.
+*Reachability.* The thirteen steps are the standard allocate–place–record (and create-document) composites of ASN-0047 — entity creation followed by content allocation, placement, and provenance recording — so `Σ` is reachable and ASN-0047's invariants hold at `Σ`.
 
 The resulting state `Σ` has:
 
@@ -148,14 +141,8 @@ which equals `iaddrs_one(d_D, σ_D)(Σ) = { M(d_D)(v) : v ∈ {w₁, w₂, w₃}
 
 Therefore `find(Q_D)(Σ) = {d_A, d_B, d_C, d_D}`. Here `d_A` (sharing only `a₁`) and `d_C` (sharing only `a₂`) each qualify on one address out of two, sharing *disjoint* fragments of the query — the empty/non-empty intersection distinction is genuinely tested, since neither references what the other does, yet both belong.
 
-**What this verifies.** Each named property is established by the trace line cited; the labels bind property to evidence without re-deriving.
+**What this verifies.** Two properties not visible at the trace site:
 
-- *F-SHARE* — cross-document discovery through a shared I-address: the **Find** step for `Q` (`d_A`, `d_B`, `d_D` discovered from a query naming only `(d_A, σ_A)`).
-- *F-DIST* — set semantics: `find(Q)(Σ) = {d_A, d_B, d_D}`, with `d_D` listed once despite referencing `a₁` at both `w₁` and `w₃`.
-- *F-PART* — partial overlap suffices: the *Find with proper-subset references* step for `Q_D`, where `d_A` (only `a₁`) and `d_C` (only `a₂`) each qualify on a disjoint proper subset of `iaddrs(Q_D)(Σ) = {a₁, a₂}`.
-- *Resolve-equivalence (multi-block)* — the *Multi-block resolution* step: `resolve(d_D, σ_D) = ⟨(a₁,1),(a₂,1),(a₁,1)⟩` set-flattens to `iaddrs_one(d_D, σ_D)(Σ) = {a₁, a₂}` across three blocks sharing `a₁`.
-- *F-SOUND (exclusion)* — the `d = d_C` line of `Q`'s **Find** step: empty intersection `{a₂} ∩ {a₁} = ∅` yields `d_C ∉ find(Q)(Σ)`.
-- *F-FILT* — the **Resolution** of `Q`: the infinite `⟦σ_A⟧` intersects `dom(M(d_A)) = {v_A}` down to one position, unresolvable positions silently dropped.
 - *F-CUR* — state dependence: a later K.μ⁻ removing `v_B` would drop `d_B` from `find(Q)`, even as `(a₁, d_B) ∈ R` persists (P2).
 - *Home/transcluding recovery* — `origin(a₁) = d_A`, so among the discovered documents `d_A` is `a₁`'s home and `d_B`, `d_D` transclude it.
 
@@ -164,7 +151,7 @@ Therefore `find(Q_D)(Σ) = {d_A, d_B, d_C, d_D}`. Here `d_A` (sharing only `a₁
 14. K.δ creates `d_E = inc(d_D, 0) ∈ E_doc` by case (ii) sibling (`k = 0`), operand `d_D ∈ E` with `¬Node(d_D)`. `parent(d_E) = parent(d_D) = acct ∈ E` (K.δ-ID.parent-0) discharges P8; `zeros(d_E) = 2`, so `Document(d_E)` (activates `A_C(d_E)`).
 15. K.μ⁺ binds three content-subspace positions of `d_E` at common depth `m_C = 3` — S8a fixes the depth from scratch at first insertion at any value `≥ 2`, here 3 — all by transclusion (no new K.α): `M(d_E)([s_C, 1, 1]) = a₁`, `M(d_E)([s_C, 1, 2]) = a₂`, `M(d_E)([s_C, 1, 3]) = a₁`. By D-SEQ★ at depth 3 the positions are `{[s_C, 1, k] : 1 ≤ k ≤ 3}`, contiguous (D-CTG★) with minimum `[s_C, 1, 1]` (D-MIN★). K.ρ records `(a₁, d_E)` and `(a₂, d_E)`.
 
-These two steps form a fifth valid composite: the range-new addresses are `a₁` and `a₂`, so the transcluding discharge of Composite 2 applies, forcing `(a₁, d_E), (a₂, d_E) ∈ R'`. The extended state adds `Σ⁺.M(d_E) = {[s_C,1,1] ↦ a₁, [s_C,1,2] ↦ a₂, [s_C,1,3] ↦ a₁}`, leaving every other arrangement as in `Σ`.
+These two steps form another standard transcluding composite of ASN-0047, so `Σ⁺` is reachable. The extended state adds `Σ⁺.M(d_E) = {[s_C,1,1] ↦ a₁, [s_C,1,2] ↦ a₂, [s_C,1,3] ↦ a₁}`, leaving every other arrangement as in `Σ`.
 
 Now submit the *shallow* vspec `Q_E = {(d_E, σ_E)}` with `σ_E = ([s_C, 1], δ(1, 2))`, so `u = [s_C, 1]` has `#u = 2 < m_C = 3` — the cross-depth case.
 
@@ -260,8 +247,6 @@ The returned set has presentation and policy properties we have left unspecified
 (iii) *Access-control filtering.* The `find` we specified returns ALL containing documents, unfiltered by requester visibility; layering Nelson's visibility policy (LM 2/59) over the unfiltered basis is out of scope.
 
 ## Claims Introduced
-
-The Basis column records how each claim relates to the definitions F-iaddrs and F-find. *Definition* indicates a top-level definition; *direct from F-X* indicates that the claim is a definitional consequence — one direction of the defining iff, a type signature unfolded, or a substitution into the definition. *Derived* indicates that further reasoning is required (auxiliary lemmas, induction over reachable states, or composition with foundation invariants).
 
 | Label | Statement | Basis | Status |
 |-------|-----------|-------|--------|
