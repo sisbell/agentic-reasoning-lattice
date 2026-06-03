@@ -288,7 +288,7 @@ follow(ℓ, d, 1) = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
 
 - *F-sound.* Both `[1, 4]` and `[1, 5]` are in `dom(M(d))`. `M(d)([1, 4]) = a₁ + 1 ∈ coverage(L(ℓ).e₁)`. `M(d)([1, 5]) = a₁ + 2 ∈ coverage(L(ℓ).e₁)`. ✓
 - *F-complete.* The only V-positions `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).e₁)` are `[1, 4]` and `[1, 5]` (the V-positions covered by `β₁`). Both are in `⟦Σ_V^{s_C}⟧_V`. ✓
-- *F-multi.* Not exercised in this example (no I-address in `coverage(L(ℓ).e₁)` appears at multiple V-positions of `d`); exercised by the cross-subspace straddle configuration below, whose content branch resolves `a₀` to the two V-positions `[1, 1]` and `[1, 6]`.
+- *F-multi.* Not exercised here (no I-address in `coverage(L(ℓ).e₁)` appears at multiple V-positions of `d`).
 - *Partial emptiness.* The link-subspace component is empty: `R(d, L(ℓ).e₁)|_{s_L} = ∅`, so `⟦Σ_V^{s_L}⟧_V = ∅` with `Σ_V^{s_L} = ⟨⟩`, while `Σ_V^{s_C}` is populated. ✓
 - *F-det (denotational).* The V-restricted denotation `⟦Σ_V^{s_C}⟧_V = {[1, 4], [1, 5]}` is uniquely determined.
 - *F-subspace.* `M(d)([1, 4]) = a₁ + 1 ∈ dom(C)` (P-alloc, plus S3★ since it is arranged at a content-subspace V-position), so `subspace_I(a₁ + 1) = s_C` — matching `subspace([1, 4]) = 1 = s_C`. ✓
@@ -594,4 +594,4 @@ Empty resolution does not destroy the link.
 
 When an endset's coverage spans I-addresses with multiple distinct homes, what relationship must hold between `follow(ℓ, d, i)` and `follow(ℓ, d', i)` for documents `d` and `d'` that transclude from shared or overlapping subsets of those homes?
 
-What concurrency semantics must `follow` guarantee when the queried document is being modified by another transition concurrently?
+SequentialTransitionAxiom (ASN-0047) makes transitions atomic and totally ordered, so within this model `follow` is a pure query against a single serialized state and no concurrency obligation arises; what consistency guarantees must a future replication/multi-server (BEBE) model impose on link traversal when documents are mutated across servers?
