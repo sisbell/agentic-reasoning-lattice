@@ -1,0 +1,18 @@
+# Review of ASN-0087
+
+## REVISE
+
+### Issue 1: Precondition discharge rests on a "standing assumption" that a foundation already establishes
+
+**ASN-0087, Inputs ("Notation convention — `dom(M)` and `E_doc`")**: "Reconciling these two foundations — establishing the bidirectional coupling `d ∈ dom(M) ⟺ d ∈ E_doc` ... is a framework-level concern ... This ASN does not undertake that reconciliation; its analysis is *modulo* a not-yet-written substrate-reconciliation ASN. ... discharge ASN-0047 preconditions stated against `E_doc` (notably K.μ⁺_L's `d ∈ E_doc`) by membership in `dom(M)` under the standing assumption that the combined substrate maintains the coupling."
+
+**Problem**: K.μ⁺_L's precondition `d ∈ E_doc` is load-bearing for MAKELINK's validity, and the ASN discharges it from `d ∈ dom(M)` by an explicitly *assumed* coupling, deferred to a hypothetical future ASN. But ASN-0047's M1 (ArrangementMonotonicity) — a foundation — already states the identification verbatim: "Constrains the document set `dom(M) = E_doc` (the allocated documents, which only grow via K.δ)." Since MAKELINK operates in ASN-0047's combined state (it composes ASN-0047's K.λ and K.μ⁺_L and references `Σ.E`, `Σ.R`), the equality `dom(M) = E_doc` holds by M1, and the registration discipline by K.δ's `Document(e)` case. The ASN's own precondition analysis is otherwise discharged from foundations clause-by-clause; this single discharge is left resting on an "assumption" when the foundation supplies it directly. Per the standard (preconditions must be completely discharged; use the foundation rather than an assumption), a foundation-provided equality should not be downgraded to a deferred conjecture.
+
+**Required**: Replace the "standing assumption" / "not-yet-written substrate-reconciliation ASN" framing with a citation to ASN-0047 M1 (`dom(M) = E_doc`), completing the discharge of K.μ⁺_L's `d ∈ E_doc` from `d ∈ dom(M)`. If the author believes M1 does *not* fully establish the coupling in the combined model, that residual gap must be stated precisely and the precondition discharge marked as conditional on it — not waved at a future ASN.
+
+## OUT_OF_SCOPE
+
+### Topic 1: V-position serial reuse after link-subspace contraction
+A K.μ⁻ contraction of the link subspace followed by a fresh MAKELINK can rebind a previously-vacated link V-position `[s_L,…,n'_L+1]` to a new link address (the new link's chain index and the V-position serial diverge once a prior link was orphaned by contraction). The operation as specified is *correct* under this scenario — `v_ℓ` is computed from `|V_{s_L}(d)|` via D-SEQ★, which holds on the contracted prefix, and freshness/CL-UNIQ are preserved — so this is not an error. The interaction of MAKELINK with K.μ⁻'s arrangement contraction is a distinct topic that belongs with the contraction operation's treatment, not here.
+
+VERDICT: REVISE
