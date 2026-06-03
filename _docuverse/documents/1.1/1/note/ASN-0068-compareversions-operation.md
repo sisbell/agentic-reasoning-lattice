@@ -166,7 +166,7 @@ Both cases combined: `δ = 0` and `n¹ = n²`, so `R¹ = R²`. *Offset uniquenes
 
 ## Worked Examples
 
-We verify the definitions and CV-MAX against three concrete configurations: a cross-document contiguous-transclusion case (Example 1), a cross-document self-transclusion case where merging is blocked (Example 2), and a self-comparison case exhibiting both diagonal aggregation and off-diagonal width-1 runs (Example 3).
+We verify the definitions and CV-MAX against concrete configurations: a cross-document contiguous-transclusion case (Example 1), a cross-document self-transclusion case where merging is blocked (Example 2), a self-comparison case exhibiting both diagonal aggregation and off-diagonal width-1 runs (Example 3), a differing-depths case (Example 4, after CV-SPAN-VIEW), and a proper-restriction case where a span-set gap fragments an I-contiguous region (Example 5).
 
 *Example 1 (contiguous transclusion).* Let `d_a` and `d_b` be documents in subspace `S = s_C` with common depth `m_a = m_b = 2`. Let `a₁, a₂, a₃, b₁, b₂` be five distinct I-addresses in `dom(C)`. Suppose
 
@@ -246,15 +246,15 @@ The set of maximal correspondence runs admits a natural presentational view as a
 >
 > (b) *Injectivity.* `π_{m_a, m_b}` is injective on `MaxRuns` — distinct runs project to distinct span-pairs. The set-level lift `π*_{m_a, m_b}` is correspondingly injective on `Result`, so `π*_{m_a, m_b}` is a bijection between `Result` and its image `π*_{m_a, m_b}(Result) ⊆ P(Span × Span)`.
 >
-> (c) *Input parameterization.* `π_{m_a, m_b}` (and hence `π*_{m_a, m_b}`) depends on the input `(d_a, R_a, d_b, R_b)` only through the induced depths `(m_a, m_b)`. For fixed depths, the bijection between `MaxRuns` and `π_{m_a, m_b}(MaxRuns)` is determinate. This is an *input-dependent* presentational equivalence; the same triple `(v_a, v_b, n)` projects to different span-pairs at different depth pairs, so neither `π` nor `π*` is a universal isomorphism on `Result`.
+> (c) *Input parameterization.* `π_{m_a, m_b}` (and hence `π*_{m_a, m_b}`) depends on the input `(d_a, R_a, d_b, R_b)` only through the induced depths `(m_a, m_b)`. For fixed depths, the bijection between `MaxRuns` and `π_{m_a, m_b}(MaxRuns)` is determinate. This is an *input-dependent* presentational equivalence: the same triple `(v_a, v_b, n)` projects to different span-pairs at different depth pairs.
 
 *Verification.* (a) By OrdinalDisplacement (ASN-0034), `δ(n, m_a) ∈ T`, `Pos(δ(n, m_a))` (since `n ≥ 1`), and `actionPoint(δ(n, m_a)) = m_a`. By S8-depth (ASN-0036), `v_a` (a V-position in subspace `S` of `d_a`) has length `#v_a = m_a`, so `actionPoint(δ(n, m_a)) = m_a ≤ #v_a` discharges the T12 precondition for span well-formedness of `σ_a`. Level-uniformity (S6, ASN-0053) follows from `#δ(n, m_a) = m_a = #v_a`. The same chain with `m_b` in place of `m_a` establishes well-formedness and level-uniformity of `σ_b`.
 
-(b) Suppose `π_{m_a, m_b}(v¹_a, v¹_b, n¹) = π_{m_a, m_b}(v²_a, v²_b, n²)`. Equality of pairs gives `v¹_a = v²_a`, `v¹_b = v²_b`, `δ(n¹, m_a) = δ(n², m_a)`, and `δ(n¹, m_b) = δ(n², m_b)`. By OrdinalDisplacement's defining form `δ(n, m) = [0, ..., 0, n]` and T3 (ASN-0034), the third equation forces `n¹ = n²`. Therefore `(v¹_a, v¹_b, n¹) = (v²_a, v²_b, n²)` — `π_{m_a, m_b}` is injective. Set-level injectivity of `π*_{m_a, m_b}` follows by the standard image-construction lift: if `π*_{m_a, m_b}(M¹) = π*_{m_a, m_b}(M²)`, then for each `r¹ ∈ M¹` there is some `r² ∈ M²` with `π_{m_a, m_b}(r¹) = π_{m_a, m_b}(r²)`, whence `r¹ = r²` by per-run injectivity and `M¹ ⊆ M²`; the symmetric argument gives `M² ⊆ M¹`, so `M¹ = M²`.
+(b) Suppose `π_{m_a, m_b}(v¹_a, v¹_b, n¹) = π_{m_a, m_b}(v²_a, v²_b, n²)`. Equality of pairs gives `v¹_a = v²_a`, `v¹_b = v²_b`, `δ(n¹, m_a) = δ(n², m_a)`, and `δ(n¹, m_b) = δ(n², m_b)`. By OrdinalDisplacement's defining form `δ(n, m) = [0, ..., 0, n]` and T3 (ASN-0034), the third equation forces `n¹ = n²`. Therefore `(v¹_a, v¹_b, n¹) = (v²_a, v²_b, n²)` — `π_{m_a, m_b}` is injective. The set-level lift `π*_{m_a, m_b}` inherits injectivity, since an injection induces an injection on the powerset.
 
 (c) Immediate from the definition: `π_{m_a, m_b}` consults `(m_a, m_b)` and the run components, but no other features of the inputs.
 
-The span-pair view is the natural form for a user-facing rendering: a client can highlight `σ_a` in `d_a` and `σ_b` in `d_b` synchronously, knowing that the underlying I-addresses correspond pointwise. The widths `δ(n, m_a)` and `δ(n, m_b)` denote the same ordinal count `n` expressed at each document's V-position depth; when `m_a = m_b`, the two widths coincide as tumblers, and when `m_a ≠ m_b`, they differ in tumbler form but carry the same ordinal magnitude (Example 4 below illustrates this concretely).
+The widths `δ(n, m_a)` and `δ(n, m_b)` denote the same ordinal count `n` expressed at each document's V-position depth; when `m_a = m_b`, the two widths coincide as tumblers, and when `m_a ≠ m_b`, they differ in tumbler form but carry the same ordinal magnitude (Example 4 below illustrates this concretely).
 
 The set of maximal correspondence runs equivalently presents as a set of span-pairs `π_{m_a, m_b}(MaxRuns)`. The triple form and the span-pair form carry the same information for fixed depths; the choice of representation is presentational, not semantic.
 
@@ -281,6 +281,26 @@ Under CV-SPAN-VIEW with `(m_a, m_b) = (2, 3)`, the projection produces:
 > `σ_b = ([1,1,1], δ(2, 3)) = ([1,1,1], [0, 0, 2])` with `reach(σ_b) = [1,1,1] ⊕ [0,0,2] = [1,1,3]`
 
 The widths in tumbler form differ — `[0, 2]` at depth 2 versus `[0, 0, 2]` at depth 3 — but both express the same ordinal count `n = 2`. The walks proceed in lockstep on per-side offsets despite the depth mismatch; what CV-MAX coordinates is the *shared ordinal index* `k`, not a common tumbler. Each side advances at its own depth, and the maximal-run width counts ordinal steps, not address-space displacement. This is the abstract form of "documents at structurally different depths can still share content": correspondence is determined by I-address equality at matched ordinal offsets, not by depth-aligned tumbler equality.
+
+*Example 5 (proper restriction fragments an I-contiguous region).* The preceding examples take `R_a, R_b` to span each full arrangement, so the restriction conjuncts `v + k ∈ ⟦R_a⟧` never bind beyond the domain conjuncts. This example exercises a restriction that strictly narrows the comparison and exhibits a gap, demonstrating that run boundaries are imposed by the restriction independently of underlying I-address contiguity. Let `d_a`, `d_b` be documents in subspace `S = s_C` at common depth `m_a = m_b = 2`, holding the *same* four I-addresses in the *same* order — a full identity transclusion:
+
+> `M(d_a):  [1,1] ↦ a₁,  [1,2] ↦ a₂,  [1,3] ↦ a₃,  [1,4] ↦ a₄`
+>
+> `M(d_b):  [1,1] ↦ a₁,  [1,2] ↦ a₂,  [1,3] ↦ a₃,  [1,4] ↦ a₄`
+
+Against full restrictions, `corr_{a,b}` is the identity diagonal over all four positions and the result is a single width-4 run `([1,1], [1,1], 4)` — the four I-addresses are contiguous in `dom(M(d_a))` and matched pointwise. We now restrict the a-side to a two-span span-set with a gap at `[1,2]`, leaving `R_b` full:
+
+> `R_a = ⟨ ([1,1], δ(1,2)), ([1,3], δ(2,2)) ⟩ = ⟨ ([1,1], [0,1]), ([1,3], [0,2]) ⟩`
+
+The first span has `reach = [1,1] ⊕ [0,1] = [1,2]`, denoting `{[1,1]}`; the second has `reach = [1,3] ⊕ [0,2] = [1,5]`, denoting `{[1,3], [1,4]}`. Normalization (N2, ASN-0053) holds: `reach(σ₁) = [1,2] < [1,3] = start(σ₂)`. So `⟦R_a⟧ ∩ V_S(d_a) = {[1,1], [1,3], [1,4]}` — position `[1,2]` is excluded by the gap. With `R_b` full, the correspondence relation is
+
+> `corr_{a,b} = { ([1,1], [1,1]),  ([1,3], [1,3]),  ([1,4], [1,4]) }`
+
+— the pair `([1,2], [1,2])` is absent because `[1,2] ∉ ⟦R_a⟧`, even though `M(d_a)([1,2]) = a₂ = M(d_b)([1,2])` holds and `a₂` is I-contiguous with both neighbours. Walking right from `([1,1], [1,1])`: offset 1 gives `([1,2], [1,2])`, and `[1,2] ∉ ⟦R_a⟧ ∩ dom(M(d_a))` ✗ — right-maximality fires at the *restriction* boundary via `v_a + n ∉ ⟦R_a⟧`, not at a domain boundary or a content mismatch. The run terminates at width 1: `([1,1], [1,1], 1)`. Walking right from `([1,3], [1,3])`: offset 1 gives `([1,4], [1,4])` with `[1,4] ∈ ⟦R_a⟧` and `M(d_a)([1,4]) = a₄ = M(d_b)([1,4])` ✓; offset 2 gives `([1,5], [1,5])` with `[1,5] ∉ dom(M(d_a))` ✗. The run reaches width 2: `([1,3], [1,3], 2)`. Its left predecessor `([1,2], [1,2])` lies in the gap (`[1,2] ∉ ⟦R_a⟧`), so left-maximality holds. The result is
+
+> `MaxRuns = { ([1,1], [1,1], 1),  ([1,3], [1,3], 2) }`
+
+The single I-contiguous region that aggregates to one width-4 run under full restriction is fragmented into two runs by `R_a`'s gap — the split at `[1,2]` is forced by `v_a + n ∉ ⟦R_a⟧` while `M(d_a)([1,2])` remains contiguous in `dom(M(d_a))`. This is the run-splitting behaviour the restriction conjuncts (i), (ii) of the run definition exist to produce: the restriction is not a post-hoc filter on a depth-independent diff but a constituent of what the maximal runs *are*.
 
 ## Atomicity and Granularity
 
@@ -373,13 +393,9 @@ Under what conditions must `compareversions` return identical results across rep
 
 What must remain true about a maximal correspondence run when its underlying I-addresses span a sub-allocator boundary — i.e., when consecutive V-offsets are mapped to I-addresses with different `origin`?
 
-What must the system guarantee about the result's representation when V-position depths differ between the two compared documents?
-
 Under what conditions can shared content between two documents be bounded in size — relative to either input's restriction — without exhaustive enumeration?
 
 What invariants must hold over a sequence of comparisons that walk a version history pairwise, given that each invocation is independent and pairwise?
-
-What guarantees must the operation make when restrictions overlap V-positions that have been contracted from the arrangement but are still referenced in the provenance relation `R`?
 
 Under what conditions can multiple `compareversions` results be composed into a coherent multi-document correspondence — and what abstract structure must such a composition preserve?
 
