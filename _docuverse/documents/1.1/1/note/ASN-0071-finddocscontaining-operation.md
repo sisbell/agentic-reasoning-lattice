@@ -7,7 +7,7 @@ The same reader can ask the inverse: *what documents contain this content?* This
 
 We specify what such an operation must do. Following Nelson we call it **FINDDOCSCONTAINING**. The question this ASN answers is: what is its result set? What determines membership, what guarantees govern completeness, and what does the operation deliberately not promise about currency in a permanent address space?
 
-Nelson frames the search-direction as a retrieval promise: the system should *"retrieve any portion of the material specified ... regardless of where the native copies are located"* (LM 4/63), so a query about a passage finds documents referencing even a fragment of it, native copy or transclusion alike. The address convention reinforces the reach — *"A digit of 'one' may be used to designate all of a given version, all versions of a given document, all works of a given author ... or the entire docuverse"* (LM 4/38) — so a coarse coordinate names everything beneath it. The visibility policy that would filter results by requester (LM 2/59) is a separate layer we leave out of scope.
+Nelson frames the search-direction as a retrieval promise: the system should *"retrieve any portion of the material specified ... regardless of where the native copies are located"* (LM 4/63), so a query about a passage finds documents referencing even a fragment of it, native copy or transclusion alike. The address convention reinforces the reach — *"A digit of 'one' may be used to designate all of a given version, all versions of a given document, all works of a given author ... or the entire docuverse"* (LM 4/38) — so a coarse coordinate names everything beneath it.
 
 We work within the strand model as extended by ASN-0047. State `Σ` carries the content store `Σ.C : T ⇀ Val`, the link store `Σ.L`, document entities `Σ.E_doc ⊆ Σ.E`, and arrangements `Σ.M(d) : T ⇀ T` for each `d ∈ Σ.E_doc` — partial functions from V-positions to I-addresses satisfying functionality (S2), generalized referential integrity (S3★), and content permanence (P0, which subsumes S0 and S1). Sharing is unrestricted: distinct `(d, v)` pairs may map to the same I-address (ASN-0058 M13, SharedContent), and such co-occurrences are permanently independent arrangement entries (ASN-0058 M14, IndependentOccurrences). The extended state admits two V-subspaces — content (`s_C`) and link (`s_L`) — and S3★ routes each V-position to its appropriate store: `M(d)(v) ∈ dom(C)` when `subspace(v) = s_C`, and `M(d)(v) ∈ dom(L)` when `subspace(v) = s_L`. We assume content has been allocated and arranged through the standard transitions of ASN-0047; we specify only the query, not the operations that produce its inputs.
 
@@ -41,6 +41,16 @@ Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddr
 
 *Routing.* Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`. The subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` is read with `Σ` explicit on both sides — the right-hand side is the input state's content store, not a fixed set.
 
+*Which positions resolve — cross-depth capture in general.* PC fixes the prefix `⟦σ⟧` shares with `u`; we now characterise exactly which arrangement positions the intersection `⟦σ⟧ ∩ dom(M(d_s))` retains, including those deeper than `#u`. Fix a vspec `(d_s, σ)` with `σ = (u, ℓ)`, action point `#u`, and reach `r = u ⊕ ℓ`; since `actionPoint(ℓ) = #u`, TumblerAdd copies `r_j = u_j` for `j < #u` and sums `r_{#u} = u_{#u} + ℓ_{#u}` at the action point. We claim, for any `v ∈ dom(M(d_s))` (depth `#v ≥ #u`):
+
+  `v ∈ ⟦σ⟧  ⟺  (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u}`
+
+PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given that agreement, the two order comparisons reduce to position `#u`: for `u ≤ v`, T1 case (i) at `#u` gives `u ≤ v ⟺ u_{#u} ≤ v_{#u}` (when `v_{#u} = u_{#u}`, `u` is a prefix of the deeper `v`, so `u < v` by T1 case (ii) — still `u ≤ v`); for `v < r`, since `r` has depth `#u` and agrees with `v` below `#u`, T1 case (i) at `#u` gives `v < r ⟺ v_{#u} < r_{#u}` (equality `v_{#u} = r_{#u}` makes `r` a proper prefix of the deeper `v`, so `r < v`, excluded). Intersecting with `dom(M(d_s))`:
+
+  `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }`
+
+We name this **PC-RANGE**. The captured set is parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it is the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}` and captures the single subtree under the prefix `u`. Where `#u < m_C` (the arrangement's content-subspace depth), a shallow vspec thereby reaches every deeper arrangement position beneath the named coarse coordinate — the coarse-coordinate reach Nelson's address convention promises.
+
 The resolution of `Q` is the union of independent per-source resolutions, each `iaddrs_one(d_s, σ)(Σ)` depending only on `Σ.M(d_s)`.
 
 ## The operation
@@ -58,6 +68,8 @@ This biconditional is its own completeness and soundness statement: its (⟸) di
 `find(Q)(Σ)` is defined exactly when `wp-defined` holds at the evaluation state `Σ`. When it holds, every `Σ.M(d_s)` named in `iaddrs(Q)(Σ)` is a defined arrangement and the resolution of the previous section applies unchanged.
 
 *Only content sharing can satisfy the predicate.* The range `ran(Σ.M(d))` carries both content-subspace and link-subspace images: by S3★, a content-subspace V-position routes into `dom(Σ.C)` and a link-subspace V-position into `dom(Σ.L)`. By S3★ ∧ S3★-aux (SubspaceExhaustiveness, ASN-0047), `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)`. The link-subspace portion can never contribute a match. We discharged the source side already — `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` by subspace confinement — and the target side is its dual: the link-subspace images lie in `dom(Σ.L)`, which is disjoint from `dom(Σ.C)` (ASN-0047 L14, StoreDisjointness: `dom(C) ∩ dom(L) = ∅`). Therefore `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ (dom(Σ.C) ∪ dom(Σ.L)) ∩ dom(Σ.C) = dom(Σ.C)`, where the left factor `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)` is S3★ ∧ S3★-aux and the right factor `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` is the subspace-confinement subset claim above; the product set evaluates to `dom(Σ.C)` since `dom(Σ.C) ⊆ dom(Σ.C) ∪ dom(Σ.L)`. We record this as **F-CONTENT**: every shared address witnessing a match lies in `dom(Σ.C)` — `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. A document is returned because it shares *byte content*, never because it shares a *link* address. This is what justifies calling the operation content-transclusion discovery.
+
+*Source self-inclusion.* Whenever a source resolves any I-address at all, the source document is itself among the results — querying a document's own passage must return at least that document, the formal bridge between the read-direction (what `d_s` contains) and the search-direction (who contains it) promised in the introduction. Suppose `iaddrs_one(d_s, σ)(Σ) ≠ ∅`. Then some `a = Σ.M(d_s)(v)` with `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))`, so `a ∈ ran(Σ.M(d_s))` and `a ∈ iaddrs_one(d_s, σ)(Σ) ⊆ iaddrs(Q)(Σ)`; hence `ran(Σ.M(d_s)) ∩ iaddrs(Q)(Σ) ≠ ∅`. With `d_s ∈ Σ.E_doc` by `wp-defined`, the membership predicate holds, so `d_s ∈ find(Q)(Σ)`. We record this as **F-SELF**: `iaddrs_one(d_s, σ)(Σ) ≠ ∅ ⟹ d_s ∈ find(Q)(Σ)` for every `(d_s, σ) ∈ Q`.
 
 The empty query is the boundary case. When `Q = ∅`, the union `iaddrs(∅)(Σ) = ⋃_{(d_s, σ) ∈ ∅} ...` is the empty set, so for every `d ∈ Σ.E_doc` the intersection `ran(Σ.M(d)) ∩ ∅ = ∅` is empty. Therefore `find(∅)(Σ) = ∅`. The operation is total on the empty input — no special case is needed in the definition.
 
@@ -155,15 +167,7 @@ Now submit the *shallow* vspec `Q_E = {(d_E, σ_E)}` with `σ_E = ([s_C, 1], δ(
 
 The coarse shallow anchor — naming a single depth-2 coordinate over a depth-3 source — discovered the full transclusion community of the subtree's content.
 
-*Cross-depth capture, in general.* The width-1 subtree capture witnessed above is the unit case of a general fact about what a shallow vspec denotes against a deeper arrangement. Fix a vspec `(d_s, σ)` with `σ = (u, ℓ)`, action point `#u`, and reach `r = u ⊕ ℓ`; since `actionPoint(ℓ) = #u`, TumblerAdd copies `r_j = u_j` for `j < #u` and sums `r_{#u} = u_{#u} + ℓ_{#u}` at the action point. We claim, for any `v ∈ dom(M(d_s))` (depth `#v ≥ #u`):
-
-  `v ∈ ⟦σ⟧  ⟺  (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u}`
-
-PC already gives the prefix-agreement conjunct for any `v ∈ ⟦σ⟧`. Given that agreement, the two order comparisons reduce to position `#u`: for `u ≤ v`, T1 case (i) at `#u` gives `u ≤ v ⟺ u_{#u} ≤ v_{#u}` (when `v_{#u} = u_{#u}`, `u` is a prefix of the deeper `v`, so `u < v` by T1 case (ii) — still `u ≤ v`); for `v < r`, since `r` has depth `#u` and agrees with `v` below `#u`, T1 case (i) at `#u` gives `v < r ⟺ v_{#u} < r_{#u}` (equality `v_{#u} = r_{#u}` makes `r` a proper prefix of the deeper `v`, so `r < v`, excluded). Intersecting with `dom(M(d_s))`:
-
-  `⟦σ⟧ ∩ dom(M(d_s)) = { v ∈ dom(M(d_s)) : (A j : 1 ≤ j < #u : v_j = u_j) ∧ u_{#u} ≤ v_{#u} < r_{#u} }`
-
-We name this **PC-RANGE**. The captured set is parameterised by the action-point width `ℓ_{#u} = r_{#u} − u_{#u}`: it is the union of `ℓ_{#u}` sibling subtrees, those whose component `#u` ranges over `[u_{#u}, u_{#u} + ℓ_{#u})`. The width-1 case `ℓ_{#u} = 1` pins `v_{#u} = u_{#u}` and captures the single subtree under the prefix `u` — the case made concrete above.
+*Cross-depth capture, in general.* This width-1 subtree capture is the unit case of PC-RANGE (established in *Resolution*): the shallow vspec `σ_E` has action-point width `ℓ_{#u} = 1`, so PC-RANGE pins `v_{#u} = u_{#u} = 1` and the captured set is the single subtree under prefix `[s_C, 1]` — here `{[s_C,1,1], [s_C,1,2], [s_C,1,3]}`, exactly the intersection computed above.
 
 ## Partial overlap suffices
 
@@ -197,7 +201,7 @@ The argument is three-step:
 
 (b) Each elementary transition adds at most one entity to `E_doc`. Among ASN-0047's *elementary* transitions, only K.δ modifies `E` (its effect is `E' = E ∪ {e}` for a single `e`); the other elementary transitions (K.α, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ) leave `E` unchanged by their frame clauses. K.δ adds `e` to `E_doc` only when `Document(e)`, otherwise to `E_node` or `E_account`. Either way, `|E_doc|` grows by at most one per transition.
 
-(c) A reachable state is reached by finitely many *elementary* transitions. ASN-0047's ExtendedReachableStateInvariants characterises every reachable state as "reachable from `Σ₀` by a finite sequence of valid composite transitions" — finite ancestry is by definition of reachability, not a consequence of any single axiom. Each composite is itself, by ValidCompositeAmended, a finite sequence of atomic transitions; a finite concatenation of finite sequences is finite, so the total count `n_elem` of elementary transitions producing any reachable `Σ` is a finite natural number.
+(c) A reachable state is reached by finitely many *elementary* transitions. ASN-0047's ExtendedReachableStateInvariants characterises every reachable state as "reachable from `Σ₀` by a finite sequence of valid composite transitions". Each composite is itself, by ValidCompositeAmended, a finite sequence of atomic transitions; a finite concatenation of finite sequences is finite, so the total count `n_elem` of elementary transitions producing any reachable `Σ` is a finite natural number.
 
 Combining: step (b) bounds the per-elementary-transition growth of `|E_doc|` by one, and step (c) bounds the number of elementary transitions by `n_elem`, so `|Σ.E_doc| ≤ n_elem < ∞` at any reachable `Σ`. (The bound is stated against the elementary count, not the composite count — a single composite may fire several K.δ steps, e.g. node → account → document creation, so `|E_doc|` can exceed the number of composites.) Since `find(Q)(Σ) ⊆ Σ.E_doc`, finiteness follows.
 
@@ -211,7 +215,7 @@ The returned set has presentation and policy properties we have left unspecified
 
 (ii) *Replica freshness.* We specify `find` against a single state `Σ`; replica-divergent views in a distributed deployment are out of scope.
 
-(iii) *Access-control filtering.* The `find` we specified returns ALL containing documents, unfiltered by requester visibility; layering the visibility policy noted in the introduction over the unfiltered basis is out of scope.
+(iii) *Access-control filtering.* The `find` we specified returns ALL containing documents, unfiltered by requester visibility; the visibility policy that would filter results by requester (LM 2/59) is a separate layer, and layering it over the unfiltered basis is out of scope.
 
 ## Claims Introduced
 
@@ -227,6 +231,7 @@ The returned set has presentation and policy properties we have left unspecified
 | F-DIST | `find(Q)(Σ)` is a set; each `d ∈ E_doc` appears at most once | direct from F-find (codomain is `P(E_doc)`) | introduced |
 | F-ORIGIN | Home/transcluding recovery: for `a ∈ iaddrs(Q)(Σ)`, a caller separates `a`'s home reference (`d = origin(a)`) from transcluding references (`d ≠ origin(a)`) using `origin(a)`, without `find` tagging its results | derived from P6 (`origin(a)` grounded in `E_doc`) | introduced |
 | F-CONTENT | Matches occur only via shared content addresses: `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)` | derived from S3★ ∧ S3★-aux (ASN-0047) ∧ L14 ∧ the `iaddrs ⊆ dom(C)` subset claim | introduced |
+| F-SELF | Source self-inclusion: `iaddrs_one(d_s, σ)(Σ) ≠ ∅ ⟹ d_s ∈ find(Q)(Σ)` for every `(d_s, σ) ∈ Q` | derived from F-find + F-iaddrs + `wp-defined` (a resolved address lies in both `ran(Σ.M(d_s))` and `iaddrs(Q)(Σ)`) | introduced |
 | F-CUR | State dependence: `(Σ.E_doc = Σ'.E_doc) ∧ (A d ∈ Σ.E_doc : Σ.M(d) = Σ'.M(d)) ⟹ find(Q)(Σ) = find(Q)(Σ')` | derived from F-find + F-iaddrs (the operation reads only `E_doc` and `M`, both of which are identical at Σ and Σ' by hypothesis) | introduced |
 | F-FILT | Silent resolution filtering: positions in `⟦σ⟧ \ dom(Σ.M(d_s))` contribute no I-addresses to `iaddrs(Q)(Σ)` | direct from F-iaddrs (the intersection `⟦σ⟧ ∩ dom(Σ.M(d_s))` excludes such positions) | introduced |
 | F-EMPTY | `find(∅)(Σ) = ∅` | direct from F-find (union over empty index set is empty; intersection with ∅ is empty) | introduced |
