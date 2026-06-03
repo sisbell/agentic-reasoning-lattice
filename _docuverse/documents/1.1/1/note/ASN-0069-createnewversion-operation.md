@@ -63,9 +63,7 @@ Two consequences follow without further machinery.
 
 ## Sharing, Not Duplication
 
-The K.μ⁺ phase populates `M'(d_new)`. The question is what V-to-I mappings it installs, and J4's clause (ii) settles it: the fork inherits content by reference, fixing `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})` so that no K.α step runs and the new arrangement points at the source's own I-addresses. Duplication — minting fresh I-addresses for the same bytes — is not an admissible instantiation of J4 at all. This is Nelson's *inclusion*: content is shared, not copied. The load-bearing consequence is that the content store grows by nothing — `C' = C`, which V3 formalizes below.
-
-J4's defining clause fixes the content-sharing consequence V3 needs: "no new content addresses are introduced, every target lies in the pre-existing content store" [ASN-0047 J4]. No K.α step runs; `d_new`'s arrangement points at the source's own I-addresses. (The bijection `φ` that installs those addresses is developed in §"The Arrangement Layer," where it is load-bearing for V4; here only the by-reference sharing matters.)
+The K.μ⁺ phase populates `M'(d_new)`. The question is what V-to-I mappings it installs, and J4's clause (ii) settles it: the fork inherits content by reference, fixing `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})` so that no K.α step runs and the new arrangement points at the source's own I-addresses. Duplication — minting fresh I-addresses for the same bytes — is not an admissible instantiation of J4 at all. This is Nelson's *inclusion*: content is shared, not copied. The load-bearing consequence is that the content store grows by nothing — `C' = C`, which V3 formalizes below. (The bijection `φ` that installs those addresses is developed in §"The Arrangement Layer," where it is load-bearing for V4; here only the by-reference sharing matters.)
 
 We promote the content-sharing consequence to a named property:
 
