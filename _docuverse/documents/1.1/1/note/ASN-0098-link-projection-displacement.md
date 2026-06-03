@@ -27,8 +27,6 @@ The link store `Σ.L : T ⇀ Link` binds link addresses to link values (ASN-0043
 
 The two address spaces communicate through the `Σ.M(d)` mappings: V-positions in V-space resolve to I-addresses in I-space. Links inhabit a third role — stored at link-subspace I-addresses but referencing content-subspace I-addresses through their endsets — but for the projection question this role-distinction is immaterial. What matters is that endsets reference I-addresses, and arrangements map V-positions to I-addresses, and the bridge between them is computed live.
 
-*Working reference frame.* This ASN operates in the ASN-0047 transition-model frame layered over the ASN-0093 allocation substrate.
-
 ## The Coverage of an Endset
 
 For an endset `e ⊆ Span`, the *coverage* `coverage(e)` is the set of I-addresses denoted by `e`'s spans, defined in ASN-0043 as
@@ -235,9 +233,9 @@ denote the resulting retention set — determined by the parameters and the per-
 wp(K.μ⁻[d, R], discoverable_from(a, d, ·))
   ≡ enabled(K.μ⁻[d, R]) ∧ (E i : 1 ≤ i ≤ |Σ.L(a)| : project(a, i, d, Σ) ∩ R ≠ ∅)
 ```
-where `enabled(K.μ⁻[d, R])` is K.μ⁻'s applicability predicate — `d ∈ E_doc`, `dom(Σ.M(d)) ≠ ∅`, the strict-shrink admissibility `(E S :: n'_S < n_S)`, and `R` a valid D-SEQ★ prefix set — under which the post-state `Σ' = K.μ⁻[d, R](Σ)` exists. The derivation below establishes the pullback conjunct under the standing assumption that K.μ⁻ is enabled at `Σ`.
+where `enabled(K.μ⁻[d, R])` is K.μ⁻'s applicability predicate (ASN-0047), under which the post-state `Σ' = K.μ⁻[d, R](Σ)` exists. The derivation below establishes the pullback conjunct under the standing assumption that K.μ⁻ is enabled at `Σ`.
 
-Derivation. We work backward from the postcondition. By the discoverable_from definition applied at `Σ'`, and using LP2 (which fixes both `a ∈ dom(Σ'.L)` and `|Σ'.L(a)| = |Σ.L(a)|`) to keep the slot index range stable:
+Derivation. We work backward from the postcondition. By the discoverable_from definition applied at `Σ'`, using LP2 for `a ∈ dom(Σ'.L)` and the per-slot equality `Σ'.L(a).eᵢ = Σ.L(a).eᵢ`, and L12's full value equality `Σ'.L(a) = Σ.L(a)` for the arity invariance `|Σ'.L(a)| = |Σ.L(a)|` that keeps the slot index range stable:
 ```
 discoverable_from(a, d, Σ')
   ⟺ (E i : 1 ≤ i ≤ |Σ.L(a)| : project(a, i, d, Σ') ≠ ∅)
@@ -300,8 +298,6 @@ Then by LP12, `project(a, i, d, Σ) = ∅` for every `d, i`. The link is *orphan
 The transition sequence may include document registration (K.δ in the `Document(e)` case of ASN-0047, governed by LP8), K.μ⁺ or K.μ⁺_L (extending an existing arrangement, possibly via fork), or any other combination of operations that preserves the link store. The orphan premise supplies `a ∈ dom(Σ.L)`. Store Monotonicity★ applied to `Σ →* Σ'` lifts this to `a ∈ dom(Σ'.L)`, making the slot accessor `Σ'.L(a).eᵢ` well-defined at the post-state. Because LP3★ keeps the link's coverage fixed across the entire sequence, `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`, so the membership `a* ∈ coverage(Σ.L(a).eᵢ)` carries through to `a* ∈ coverage(Σ'.L(a).eᵢ)`. By the definition of `project`, `v ∈ project(a, i, d, Σ')` since `v ∈ dom(Σ'.M(d))` and `Σ'.M(d)(v) = a* ∈ coverage(Σ'.L(a).eᵢ)`. The link is resurrected.
 
 Because the link's stored state is permanent (L12, LP3★) while its projection is recomputed live against the current arrangement, the architecture admits arbitrarily many cycles of orphanage and resurrection.
-
-*Nelson correspondence.* Three of Nelson's informal survivability claims are formalised above: "a link to one version is a link to all versions" by LP16, "reaching back through to a superseding version" by LP18, and "links survive if anything is left at each end" by LP12a.
 
 ## Boundary and Width Behaviour
 
@@ -406,7 +402,7 @@ v_new ∉ project(e, d, Σ_{n+1})
 
 The K.α (or K.λ) step that allocated `a_new` lies on the prefix `Σ_e →* Σ_n`, so LP19a applied at that step yields `a_new ∉ coverage(e)`. Since `coverage(e)` is a deterministic function of `e`'s spans (per the coverage definition of ASN-0043) and `e` is a fixed endset value across the entire sequence — `coverage` consults no state component — the membership `a_new ∉ coverage(e)` carries through unchanged to `Σ_{n+1}`. The K.μ⁺ (or K.μ⁺_L) transition `Σ_n → Σ_{n+1}` adds the mapping at `v_new`, giving `v_new ∈ dom(Σ_{n+1}.M(d))` and `Σ_{n+1}.M(d)(v_new) = a_new ∉ coverage(e)`. The projection definition then excludes `v_new` from `project(e, d, Σ_{n+1})`.
 
-Tightness is a construction discipline, not a structural invariant the system enforces. The system permits endsets whose spans extend past the relevant sub-allocator's current emission frontier; such endsets are not tight, and an `a_new` allocated within their forward extent (a substrate-emittable address inside `[s, s ⊕ ℓ)`) would in fact enter the coverage — LP9's growth behaviour then applies. The architectural significance of LP19 is that the canonical construction — selecting span endpoints among I-addresses resident at construction time, with reach at or before the chain's next emission point — produces tight endsets, and tight endsets are immune to absorbing addresses produced by subsequent K.α or K.λ. Boundary insertion as a composite (K.α + K.μ⁺) cannot enlarge a tight link's reach.
+Tightness is a construction discipline, not a structural invariant the system enforces. The system permits endsets whose spans extend past the relevant sub-allocator's current emission frontier; such endsets are not tight, and an `a_new` allocated within their forward extent (a substrate-emittable address inside `[s, s ⊕ ℓ)`) would in fact enter the coverage — LP9's growth behaviour then applies. The canonical construction — selecting span endpoints among I-addresses resident at construction time, with reach at or before the chain's next emission point — produces tight endsets, and tight endsets are immune to absorbing addresses produced by subsequent K.α or K.λ. Boundary insertion as a composite (K.α + K.μ⁺) cannot enlarge a tight link's reach.
 
 **LP20 — RangeConfinement**: For every endset `e`, document `d`, state `Σ`:
 ```
