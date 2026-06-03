@@ -26,7 +26,7 @@ The first is supplied by entity creation; the second by arrangement extension; t
 
 The composite is J4 of ASN-0047, named *ForkComposite*. We adopt it as the structural skeleton and derive from first principles what it guarantees, what it forbids, and what it leaves to the source-fork relationship.
 
-J4 distinguishes two operands. The *identity source* is `d_src` — the document being forked, fixed by V0's precondition. The *content source operand* `d_op` is the document whose content-subspace arrangement is transcribed into `d_new`; J4's operand-tracking rule fixes it by sub-case, formally stated in V1 below. The distinction that matters here is identity-source versus content-source. J4's precondition for the non-empty branch is `d_src ∈ E_doc ∧ d_op ∈ E_doc ∧ V_{s_C}(d_op) ≠ ∅`.
+J4 distinguishes two operands. The *identity source* is `d_src` — the document being forked, fixed by V0's precondition. The *content source operand* `d_op` is the document whose content-subspace arrangement is transcribed into `d_new`; J4's operand-tracking rule fixes it by sub-case. J4's precondition for the non-empty branch is `d_src ∈ E_doc ∧ d_op ∈ E_doc ∧ V_{s_C}(d_op) ≠ ∅`.
 
 ## Identity by Sub-Allocation
 
@@ -40,7 +40,7 @@ The *level* and *parent* of each emission — that every `d_new` satisfies `Docu
 
 *Inductive step (subsequent fork).* The induction hypothesis is that `A_v(d_src)`'s most recent prior emission `d_prev` satisfies `Document(d_prev)`, so `zeros(d_prev) = 2`. `d_prev ∈ E_doc` is preserved across all intermediate states by P1 (entity permanence, ASN-0047) applied to its prior K.δ event, so `d_prev ∈ E_doc` at the state of the current fork. K.δ-ID.zeros-0/1 at `k = 0` then gives `zeros(d_new) = zeros(d_prev) = 2`, hence `Document(d_new)`. ∎
 
-We establish `parent(d_new) = parent(d_src)` by the same form of induction on `A_v(d_src)`'s emission count. K.δ-ID.parent-0/1 (ASN-0047) supplies the per-step relation `parent(inc(t, k)) = parent(t)` for `k ∈ {0, 1}`; the induction chains this per-step preservation across `A_v(d_src)`'s emission count to recover `parent(d_src)` from any emission. The first-emission step uses `k = 1` and reaches `parent(d_src)` directly; each subsequent sibling-stream step uses `k = 0` and reaches `parent(d_prev)`, which the inductive hypothesis identifies with `parent(d_src)`.
+We establish `parent(d_new) = parent(d_src)` by the same form of induction on `A_v(d_src)`'s emission count. K.δ-ID.parent-0/1 (ASN-0047) supplies the per-step relation `parent(inc(t, k)) = parent(t)` for `k ∈ {0, 1}`; the induction chains this per-step preservation across `A_v(d_src)`'s emission count to recover `parent(d_src)` from any emission.
 
 *Base case (first fork).* `d_new = inc(d_src, 1)`. K.δ-ID.parent-0/1 at `k = 1` gives `parent(d_new) = parent(d_src)` directly.
 
@@ -171,7 +171,7 @@ We therefore commit to producing an empty fork as the normative behavior:
 
 V0 dispatches on whether `V_{s_C}(d_op)` is empty: when non-empty, the K.δ + K.μ⁺ + K.ρ composite of J4 (ASN-0047); when empty, V7's K.δ-alone composite, which vacates J4's clauses (ii) and (iii) since K.μ⁺ does not fire and `ran(M'(d_new))` is empty.
 
-Each Vn whose quantifier ranges over `V_{s_C}(d_op)` holds vacuously in this case; see each property's own clause.
+The properties whose quantifiers range over `V_{s_C}(d_op)` — V4, V8, V9, and V12(d) — hold vacuously in this case.
 
 ## Structural Correspondence
 
