@@ -91,6 +91,8 @@ Combining: `v ∈ R(d, e)|_{s_C}` iff `M(d)(v) ∈ coverage(e) ∩ dom(C)` iff `
 
 The `s_C`-component of the result picks out the content-subspace portion of coverage; the `s_L`-component picks out the link-subspace portion. An endset whose coverage straddles both I-subspaces (admissible by L4, ASN-0043) contributes to both result components; an endset confined to one I-subspace contributes only to that component.
 
+**Derived guarantee (lookup totality).** Resolution never yields a V-position whose subsequent store access fails. For every `v ∈ R(d, e)|_{s_C}`, the content lookup `M(d)(v) ∈ dom(C)` always succeeds, by S3★ (GeneralizedReferentialIntegrity, ASN-0047). For every `v ∈ R(d, e)|_{s_L}`, the image `M(d)(v) ∈ dom(L)`, disjoint from `dom(C)` by L14 (StoreDisjointness, ASN-0047), so a `C`-lookup does not apply by design — the appropriate access is the link store. Both branches are determined by the foundations; there is no resolution outcome that references absent content.
+
 From this single relation, the entire specification of FOLLOWLINK follows.
 
 ## Result Form and the Operation
@@ -281,6 +283,8 @@ The mapping-block decomposition is:
 
 Note that `β₂` and `β₃` both contain `a₀` in their I-extent, witnessing within-document sharing (S5).
 
+**Setup premise (P-alloc).** Throughout this section, `a₀` and `a₁` are content I-addresses — both in `dom(C)` — allocated by distinct sub-allocators, so by GlobalUniqueness (ASN-0034) their depth-`m_a` progressions are disjoint: `{a₀, a₀ + 1, a₀ + 2} ∩ {a₁, a₁ + 1, a₁ + 2} = ∅`. The link I-address `ℓ₀ ∈ dom(L)`. Configurations 1, 4, and 5 below all rest on P-alloc; the per-block intersection steps reference it rather than re-stating it.
+
 **Link.** Consider link `ℓ` with `L(ℓ).e₁ = {(a₁, δ(3, m_a))}` — an endset whose single span starts at `a₁` and has width 3 in depth `m_a` (the I-address depth). The coverage is the half-open lexicographic interval `coverage(L(ℓ).e₁) = {t ∈ T : a₁ ≤ t < a₁ ⊕ δ(3, m_a)}` (T12, ASN-0034), which contains the three depth-`m_a` addresses `a₁, a₁ + 1, a₁ + 2` together with deeper-depth tumblers of the interval (e.g. `a₁.x`, `(a₁ + 1).y`). The block I-extents below are themselves depth-`m_a`, so only the three depth-`m_a` members `{a₁, a₁ + 1, a₁ + 2}` of the coverage are ever met by an intersection; we write that finite set where the intersections are computed.
 
 **Computing `follow(ℓ, d, 1)`.**
@@ -288,8 +292,8 @@ Note that `β₂` and `β₃` both contain `a₀` in their I-extent, witnessing 
 Process each block against the endset span:
 
 - `β₁ = ([1, 4], a₁ + 1, 2)`: `I(β₁) = {a₁ + 1, a₁ + 2}`. Intersection with `{a₁, a₁ + 1, a₁ + 2}` is `{a₁ + 1, a₁ + 2}` — the full I-extent. Offset `j = 0`, width `c = 2`. V-run: `[1, 4], [1, 5]`, recorded as V-span `([1, 4], δ(2, 2))`.
-- `β₂ = ([1, 1], a₀, 3)`: `I(β₂) = {a₀, a₀ + 1, a₀ + 2}`. Assuming `a₀, a₀ + 1, a₀ + 2` are disjoint from `{a₁, a₁ + 1, a₁ + 2}` (allocations from distinct sub-allocators per GlobalUniqueness), the intersection is empty. No contribution.
-- `β₃ = ([1, 6], a₀, 1)`: empty intersection by the same reasoning. No contribution.
+- `β₂ = ([1, 1], a₀, 3)`: `I(β₂) = {a₀, a₀ + 1, a₀ + 2}`, disjoint from `{a₁, a₁ + 1, a₁ + 2}` by P-alloc. The intersection is empty. No contribution.
+- `β₃ = ([1, 6], a₀, 1)`: `I(β₃) = {a₀}`, disjoint from `{a₁, a₁ + 1, a₁ + 2}` by P-alloc. No contribution.
 - `β_L = ([2, 1], ℓ₀, 1)`: `I(β_L) = {ℓ₀} ⊂ dom(L)`. Disjoint from `coverage(L(ℓ).e₁) ⊂ dom(C)` by L14 (StoreDisjointness, ASN-0047). No contribution.
 
 **Result.** `Σ_V^{s_C} = ⟨([1, 4], δ(2, 2))⟩` (one span); `Σ_V^{s_L} = ⟨⟩` (empty). So:
@@ -305,7 +309,7 @@ follow(ℓ, d, 1) = (d, (⟨([1, 4], δ(2, 2))⟩, ⟨⟩))
 - *F-multi.* Not exercised in this example (no I-address in `coverage(L(ℓ).e₁)` appears at multiple V-positions of `d`).
 - *F-empty.* The link-subspace component `Σ_V^{s_L}` is empty — `⟦Σ_V^{s_L}⟧_V = ∅`, a regular outcome. ✓
 - *F-det (denotational).* The V-restricted denotation `⟦Σ_V^{s_C}⟧_V = {[1, 4], [1, 5]}` is uniquely determined.
-- *F-subspace.* `M(d)([1, 4]) = a₁ + 1`, presumably in `dom(C)`, so `subspace_I(a₁ + 1) = s_C` — matching `subspace([1, 4]) = 1 = s_C`. ✓
+- *F-subspace.* `M(d)([1, 4]) = a₁ + 1 ∈ dom(C)` (P-alloc, plus S3★ since it is arranged at a content-subspace V-position), so `subspace_I(a₁ + 1) = s_C` — matching `subspace([1, 4]) = 1 = s_C`. ✓
 
 **Second configuration — multiplicity.** Modify the endset to `L(ℓ).e₁ = {(a₀, δ(1, m_a))}`, so `coverage = {a₀}`. Now `a₀ ∈ I(β₂)` (at offset 0) and `a₀ ∈ I(β₃)` (at offset 0). Both blocks contribute:
 
@@ -340,7 +344,7 @@ V-positions `[1, 4]`, `[1, 5]`, `[1, 6]` — including the two that previously m
 The post-state mapping-block decomposition collapses to two blocks: `β₂' = ([1, 1], a₀, 3)` in `s_C` and `β_L' = ([2, 1], ℓ₀, 1)` in `s_L`.
 
 Computing `follow(ℓ, d, 1)` against `Σ'`:
-- `β₂'`: `I(β₂') = {a₀, a₀ + 1, a₀ + 2}`, disjoint from `coverage(L(ℓ).e₁) = {a₁, a₁ + 1, a₁ + 2}` by allocator distinctness. No contribution.
+- `β₂'`: `I(β₂') = {a₀, a₀ + 1, a₀ + 2}`, disjoint from `coverage(L(ℓ).e₁) = {a₁, a₁ + 1, a₁ + 2}` by P-alloc. No contribution.
 - `β_L'`: `I(β_L') = {ℓ₀} ⊂ dom(L)`, disjoint from `coverage(L(ℓ).e₁) ⊂ dom(C)` by L14. No contribution.
 
 ```
@@ -361,7 +365,7 @@ so that `coverage(L(ℓ).e₁) = {a₀} ∪ {ℓ₀} = {a₀, ℓ₀}`, with `a�
 
 Process each block against the endset:
 
-- `β₁ = ([1, 4], a₁ + 1, 2)`: `I(β₁) = {a₁ + 1, a₁ + 2}`, disjoint from `{a₀, ℓ₀}` (distinct allocators per GlobalUniqueness; `dom(C)`/`dom(L)` separation by L14). No contribution.
+- `β₁ = ([1, 4], a₁ + 1, 2)`: `I(β₁) = {a₁ + 1, a₁ + 2}`, disjoint from `{a₀, ℓ₀}` (from `a₀` by P-alloc; from `ℓ₀` by `dom(C)`/`dom(L)` separation, L14). No contribution.
 - `β₂ = ([1, 1], a₀, 3)`: `I(β₂) = {a₀, a₀ + 1, a₀ + 2}`. Intersection with `{a₀, ℓ₀}` is `{a₀}` — index 0 of `β₂`. Offset `j = 0`, width `c = 1`. V-run: `[1, 1]`, recorded as the content-subspace V-span `([1, 1], δ(1, 2))`.
 - `β₃ = ([1, 6], a₀, 1)`: `I(β₃) = {a₀}`. Intersection with `{a₀, ℓ₀}` is `{a₀}` — index 0. Offset `j = 0`, width `c = 1`. V-run: `[1, 6]`, recorded as the content-subspace V-span `([1, 6], δ(1, 2))`.
 - `β_L = ([2, 1], ℓ₀, 1)`: `I(β_L) = {ℓ₀}`. Intersection with `{a₀, ℓ₀}` is `{ℓ₀}` — index 0. Offset `j = 0`, width `c = 1`. V-run: `[2, 1]`, recorded as the link-subspace V-span `([2, 1], δ(1, 2))`.
@@ -593,5 +597,3 @@ What concurrency semantics must `follow` guarantee when the queried document is 
 What relationship must hold between `follow(ℓ, d, i)` and `follow(ℓ, d', i)` when `d` and `d'` share transclusion lineage?
 
 Where must responsibility for canonicalisation lie — must a downstream consumer mandate canonical form, or may any finite representation be admissible with callers deriving canonical form independently?
-
-Must `R(d, e)` always yield V-positions whose subsequent content lookup via `M(d)` and `C` succeeds, or may resolution succeed where content access would fail?
