@@ -118,7 +118,9 @@ Neither history invokes K.λ, so `L_1 = L_2 = ∅`. Both histories execute the s
 
 Any function `f(C, L, E, M)` returns the same value at both states. But the classifications differ — `DELETED(a, d)` at `Σ_1`, `NEVER_INCLUDED(a, d)` at `Σ_2` — so `f` cannot be a discriminating predicate. ∎
 
-The discrimination obligation follows in one step. SHOWDELETIONS' definition requires the DELETED/NEVER_INCLUDED distinction (its output sets are built from these predicates); D-DISCR shows the four foundation components `(C, L, E, M)` cannot supply it. Hence any state that implements SHOWDELETIONS must carry at least one component beyond the four — call it `C*` — whose value disambiguates the two predicates at every reachable `Σ`. The provenance relation `R` is exhibited as one such witness: `DELETED(a, d)` requires `(a, d) ∈ R` while `NEVER_INCLUDED(a, d)` requires `(a, d) ∉ R`, so the two are contradictory on `R`-membership and testing `(a, d) ∈ R` discriminates them outright. Thus `C* = R` suffices. This step consults `R`-membership only; it does not invoke `P4★`, so the discrimination holds at every reachable state, not merely at composite boundaries.
+**Corollary D-NEED (Auxiliary State Necessity).** Any system supporting SHOWDELETIONS must maintain at least one state component beyond `(C, L, E, M)` whose value disambiguates `DELETED(a, d)` from `NEVER_INCLUDED(a, d)` at every reachable state.
+
+*Argument.* The discrimination obligation follows from D-DISCR in one step. SHOWDELETIONS' definition requires the DELETED/NEVER_INCLUDED distinction (its output sets are built from these predicates); D-DISCR shows the four foundation components `(C, L, E, M)` cannot supply it. Hence any state that implements SHOWDELETIONS must carry at least one component beyond the four — call it `C*` — whose value disambiguates the two predicates at every reachable `Σ`. The provenance relation `R` is exhibited as one such witness: `DELETED(a, d)` requires `(a, d) ∈ R` while `NEVER_INCLUDED(a, d)` requires `(a, d) ∉ R`, so the two are contradictory on `R`-membership and testing `(a, d) ∈ R` discriminates them outright. Thus `C* = R` suffices. This step consults `R`-membership only; it does not invoke `P4★`, so the discrimination holds at every reachable state, not merely at composite boundaries.
 
 ## The SHOWDELETIONS Operation
 
@@ -293,8 +295,7 @@ Both subspaces are excluded, so `ℓ ∉ ran(M(d_B))`. No comparison document ot
 The architectural significance is foundational. An operation that recovers content using these references dereferences existing entries in `C`; it does not allocate new ones. Three guarantees that depend on persistent I-address identity therefore survive recovery:
 
 - *Link survival.* By L3 (NEndsetStructure, ASN-0047), every link in `dom(L)` references content via endsets. By P3 (ArrangementMutabilityOnly) and L12 (LinkImmutability, ASN-0047), `L` is preserved across all arrangement transitions — `L' = L` for every K.μ⁺/K.μ⁻/K.μ~ — so every link referencing `a` continues to reference the same `a`.
-- *Transclusion integrity.* By S2 (ArrangementFunctionality, ASN-0036) and the content clause of S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)` — arrangements reference I-addresses by tumbler identity: each content-subspace V-position maps to a determinate `a ∈ dom(C)`. The link clause of S3★ targets `dom(L)` rather than `dom(C)` and is not invoked here; SHOWDELETIONS is restricted to the content subspace (D-SUBSP), so only the content clause is load-bearing for transclusion integrity. If another document's content-subspace arrangement maps a V-position to `a`, that mapping continues to reference the same `a` because P0 (ContentPermanence, ASN-0047, subsuming S0 of ASN-0036) preserves both `dom(C)` and the value at every existing entry across all transitions; no aliasing or shadow copy is introduced.
-- *Origin attribution.* Origin survives recovery — the chain of provenance is not severed (origin determinacy and invariance via S7 are established in D-ORIG).
+- *Transclusion integrity.* By S2 (ArrangementFunctionality, ASN-0036) and the content clause of S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)` — arrangements reference I-addresses by tumbler identity: each content-subspace V-position maps to a determinate `a ∈ dom(C)`. If another document's content-subspace arrangement maps a V-position to `a`, that mapping continues to reference the same `a` because P0 (ContentPermanence, ASN-0047, subsuming S0 of ASN-0036) preserves both `dom(C)` and the value at every existing entry across all transitions; no aliasing or shadow copy is introduced.
 
 ## Origin Traceability
 
@@ -367,7 +368,7 @@ This is what makes the operation an honest function of state. The user need not 
 
 *Both arrangements empty.* If `dom(M(d_A)) = dom(M(d_B)) = ∅`, then `ran(M(d_A)) = ran(M(d_B)) = ∅`, so `CURRENT` fails for every `a` on both sides. Both halves are empty.
 
-*Same document compared against itself.* If `d_A = d_B`, then for each `a`, `DELETED(a, d_A) ∧ CURRENT(a, d_A)` is contradictory directly: `DELETED(a, d_A)` requires `a ∉ ran(M(d_A))` while `CURRENT(a, d_A)` requires `a ∈ ran(M(d_A))`, and these two range-membership conditions cannot both hold. This is the unconditional disjointness argument of the SHOWDELETIONS definition specialised to a single document; it needs neither D-EXH nor the composite-boundary hypothesis. Both halves are empty. The operation is well-defined and trivially yields the empty pair.
+*Same document compared against itself.* If `d_A = d_B`, then for each `a`, `DELETED(a, d_A) ∧ CURRENT(a, d_A)` is contradictory directly: `DELETED(a, d_A)` requires `a ∉ ran(M(d_A))` while `CURRENT(a, d_A)` requires `a ∈ ran(M(d_A))`, and these two range-membership conditions cannot both hold. This is the unconditional disjointness argument of the SHOWDELETIONS definition specialised to a single document. Both halves are empty. The operation is well-defined and trivially yields the empty pair.
 
 *Asymmetric population.* If `d_A` has rich history (large `R`-projection) but its current arrangement is empty, while `d_B`'s arrangement currently holds many of the addresses `d_A` historically held, then `DeletedFromAWithB` may be large and `DeletedFromBWithA` may be empty. The asymmetry of the two halves directly mirrors the asymmetry of the editing histories.
 
@@ -380,7 +381,8 @@ This is what makes the operation an honest function of state. The user need not 
 | NEVER_INCLUDED | `NEVER_INCLUDED(a, d) ≡ (a, d) ∉ R` | introduced |
 | D-WIT | At a composite-boundary state, `a ∈ dom(C) ∧ a ∈ ran(M(d)) ⟹ (a, d) ∈ R` | introduced |
 | D-EXH | For every composite-boundary state Σ (reachable by valid composite transitions) and every `(a, d)` with `a ∈ dom(Σ.C)`, `d ∈ Σ.E_doc`, exactly one of CURRENT, DELETED, NEVER_INCLUDED holds | introduced |
-| D-DISCR | No function of `(C, L, E, M)` alone can distinguish DELETED from NEVER_INCLUDED; any system supporting SHOWDELETIONS must maintain state components `C*` beyond the four foundation components such that consulting `(C, L, E, M, C*)` at every reachable Σ determines whether each `(a, d)` is DELETED or NEVER_INCLUDED | introduced |
+| D-DISCR | No function of `(C, L, E, M)` alone can distinguish DELETED from NEVER_INCLUDED for arbitrary `(a, d)` | introduced |
+| D-NEED | Any system supporting SHOWDELETIONS must maintain at least one state component `C*` beyond `(C, L, E, M)` whose value disambiguates DELETED from NEVER_INCLUDED at every reachable Σ; `C* = R` suffices | introduced |
 | DeletedFromAWithB | `{a ∈ dom(C) : DELETED(a, d_A) ∧ CURRENT(a, d_B)}` | introduced |
 | DeletedFromBWithA | Symmetric counterpart of DeletedFromAWithB | introduced |
 | SHOWDELETIONS | Observational operation `SHOWDELETIONS(d_A, d_B) = (DeletedFromAWithB(d_A, d_B), DeletedFromBWithA(d_A, d_B))` | introduced |
