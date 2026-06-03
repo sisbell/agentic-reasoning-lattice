@@ -73,7 +73,7 @@ R(d, e)|_{s_C} = M(d)⁻¹(coverage(e) ∩ dom(C))
 R(d, e)|_{s_L} = M(d)⁻¹(coverage(e) ∩ dom(L))
 ```
 
-*Derivation.* The postcondition supplies the equality `subspace(v) = subspace_I(M(d)(v))` for `v ∈ dom(M(d))`; it remains only to lift it to a biconditional against store membership. Applying L0 and L14 to the image: L0 gives `M(d)(v) ∈ dom(C) ⟹ subspace_I(M(d)(v)) = s_C` and `M(d)(v) ∈ dom(L) ⟹ subspace_I(M(d)(v)) = s_L`, while L14 (`dom(C) ∩ dom(L) = ∅`) makes the two stores mutually exclusive. Hence `subspace_I(M(d)(v)) = s_C ⟺ M(d)(v) ∈ dom(C)`, and composing with the postcondition equality, `subspace(v) = s_C ⟺ M(d)(v) ∈ dom(C)`.
+*Derivation.* We establish the biconditional `subspace(v) = s_C ⟺ M(d)(v) ∈ dom(C)` for `v ∈ dom(M(d))`. The forward direction is S3★ directly: `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`. For the reverse, L0 gives `M(d)(v) ∈ dom(C) ⟹ subspace_I(M(d)(v)) = s_C`, and the postcondition equality `subspace(v) = subspace_I(M(d)(v))` then yields `subspace(v) = s_C`.
 
 Therefore `v ∈ R(d, e)|_{s_C}` iff `M(d)(v) ∈ coverage(e) ∧ subspace(v) = s_C` iff `M(d)(v) ∈ coverage(e) ∩ dom(C)` iff `v ∈ M(d)⁻¹(coverage(e) ∩ dom(C))`. The `s_L` case is symmetric, with the roles of `dom(C)` and `dom(L)` swapped.
 
@@ -405,7 +405,7 @@ Each of the following is a consequence of the inverse-image definition combined 
 
 Among these, F-sound and F-complete are the two halves of the postcondition's set equality `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S`: F-sound is the `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S` inclusion; F-complete is the reverse inclusion.
 
-All derived properties below inherit F-frame's state-purity: `follow` reads `Σ` and modifies nothing, so each consequence is established against a fixed state. We do not restate this per lemma. The exceptions are F-persist and F-state, whose postconditions observe how resolution behaves *across* a transition `Σ → Σ'`; there the distinction between "`follow` modifies nothing" and "the observed state component varies" carries content, so their Frame slots are retained.
+`follow` is a query; per-lemma Frame slots are omitted unless an across-transition observation is involved.
 
 ### F-det — DenotationalDeterminism (LEMMA)
 
