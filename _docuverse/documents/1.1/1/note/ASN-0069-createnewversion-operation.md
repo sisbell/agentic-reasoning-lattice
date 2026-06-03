@@ -458,7 +458,7 @@ V10(a) gives that the two siblings are distinct addresses; we exhibit this concr
 | V9b | Fresh forks inherit only externally-allocated I-addresses: for every `(a, d_new) ∈ R'` recorded by a fork, `origin(a) ≠ d_new` | introduced |
 | V10 | Sibling forks of the same source are independent in identity, arrangement, and provenance | introduced |
 | V10a | Each fork derives from `M(d_op)` of its content source operand *at the moment of forking* — time-sensitivity | introduced |
-| V11 | Transitive identity along unedited fork chains: for every fork chain `d_src → d¹_new → ... → d^k_new` starting from initial state `Σ`, where each step is the first fork of its immediate source (so step `i`'s content operand `d_op = d^{i-1}_new`) and each step's source has its content-subspace arrangement (set and pointwise values) unchanged between the prior step's post-state and the current step's pre-state, `v ∈ dom(M^k(d^k_new))` at post-step-k and `M^k(d^k_new)(v)` at post-step-k equals `M(d_src)(v)` at `Σ`, for every `v ∈ V_{s_C}(d_src)` evaluated at `Σ` | introduced |
+| V11 | Transitive identity along unedited first-fork chains: `d^k_new` inherits `d_src`'s I-addresses at every shared content-subspace V-position | introduced |
 | V11a | Prefix relation chains: `d_src ≼ d¹_new ≼ ... ≼ d^k_new` — ancestry composition recoverable from tumbler structure | introduced |
 | V12 | Joint permanence of source, fork, inherited I-addresses, and provenance records across all subsequent states | introduced |
 
@@ -488,6 +488,4 @@ Under what conditions does the V-stream depth of the fork's arrangement match th
 
 What must hold when a fork and a source deletion are interleaved across a *multi-step* boundary, beyond the single-step atomic ordering the worked example treats — for instance, when deletion is itself decomposed into several arrangement contractions straddling the fork?
 
-What additional structure must the system provide to relate independently-typed but textually identical content across documents — counterpart correspondence that I-address identity alone, which assigns such content distinct addresses, cannot express?
-
-What must distinguish two distinct I-addresses holding equal byte values, if the specification is to treat them as non-identical content rather than collapse them by value?
+What additional structure must the system provide to relate byte-equal but address-distinct content across documents — correspondence that I-address identity alone, which assigns such content distinct addresses and treats them as non-identical rather than collapsing them by value, cannot express?
