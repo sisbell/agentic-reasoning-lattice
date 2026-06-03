@@ -177,7 +177,17 @@ We record an immediate corollary.
 
 > **V8c** (*correspondence is symmetric and untyped*): The corresponding-position set `{v ∈ T : v ∈ dom(M'(d_op)) ∩ dom(M'(d_new)) ∧ M'(d_op)(v) = M'(d_new)(v)}` is defined by `∩` and `=`, both symmetric, so it is invariant under swap of `d_op` and `d_new`. V8 records a relationship between two documents in `E_doc`; it does not distinguish "source" from "fork."
 
-The intercomparison guarantee is *perpetual*: V8 holds in the post-fork state, and its consequences propagate to every subsequent state in which neither side has overwritten the relevant V-positions.
+V8 is proved only at the post-fork state, yet the intercomparison promise Nelson describes is one that must hold *forever*, not merely at fork-time. We therefore do not leave the forward-time claim as an assertion; we name it and derive it from the premises that carry it.
+
+> **V8d** (*perpetuity of correspondence*): Let `Σ →* Σ'` be a fork and let `Σ''` be any state reachable from the post-fork state `Σ'` such that no step on the path `Σ' →* Σ''` is M-targeted at `d_op` and none is M-targeted at `d_new`. Then for every `v ∈ V_{s_C}(d_op)` (evaluated at `Σ`):
+> >
+> > (a) `M''(d_op)(v) = M''(d_new)(v)` — the corresponding V-positions still carry equal I-addresses; and
+> >
+> > (b) writing `a = M''(d_op)(v)`, `a ∈ dom(C'')` with `C''(a) = C(a)` — that shared I-address still resolves to the same, unchanged content.
+>
+> *Derivation.* V5a at `d* = d_op` gives `M''(d_op) = M'(d_op)`, since no step on `Σ' →* Σ''` is M-targeted at `d_op`; V5a at `d* = d_new` gives `M''(d_new) = M'(d_new)` likewise. V8 at `Σ'` gives `M'(d_op)(v) = M'(d_new)(v)`. Composing, `M''(d_op)(v) = M'(d_op)(v) = M'(d_new)(v) = M''(d_new)(v)`, which is (a). For (b): `a = M'(d_op)(v) = M(d_op)(v)` is content-subspace-referenced at `Σ`, so `a ∈ dom(C)` by S3★ (referential integrity, ASN-0047); P0 (ContentPermanence) then carries `a` into `dom(C'')` with `C''(a) = C(a)`, which is (b). The two premises are exactly (i) per-document position retention (V5a) and (ii) address/value persistence (P0); the word-for-word equality test `M''(d_op)(v) = M''(d_new)(v)` is therefore meaningful and stable across every such `Σ''`.
+
+The whole-document non-targeting hypothesis is the cleanest condition V5a supports. A finer claim — that an individual position `v` survives even when *other* positions of `d_op` or `d_new` are edited — is available under K.μ⁻'s retention semantics (a contraction to retention count `n' ≥ k` preserves position `[s_C, 1, ..., 1, k]`), but it requires the per-position frame rather than the whole-document one, so we do not fold it into V8d.
 
 ## Provenance Recording
 
@@ -417,6 +427,7 @@ V10(a) gives that the two siblings are distinct addresses; we exhibit this concr
 | V7 | Empty-source behavior: fork of `d_src` with `V_{s_C}(d_op) = ∅` reduces to K.δ alone, succeeding with `M'(d_new) = ∅` and `R' = R` | introduced |
 | V8 | `(A v ∈ V_{s_C}(d_op) :: M'(d_op)(v) = M'(d_new)(v))` — structural correspondence at fork-time between the content source `d_op` and the fork | introduced |
 | V8c | Correspondence is symmetric and document-type-untyped | introduced |
+| V8d | Perpetuity of correspondence: while neither `d_op` nor `d_new` is M-targeted, V8's equality persists (V5a) and the shared I-addresses retain unchanged content (S3★ + P0) | introduced |
 | V9 | `(A a : a ∈ ran(M'(d_new)) : (a, d_new) ∈ R')` — provenance recorded for every inherited I-address | introduced |
 | V9a | Provenance relation `R` records only containment pairs `(a, d)`, carrying no inter-document derivation edges; a fork's K.ρ records that `d_new` contains `a`, not how it acquired `a` | introduced |
 | V9b | Fresh forks inherit only externally-allocated I-addresses: for every `(a, d_new) ∈ R'` recorded by a fork, `origin(a) ≠ d_new` | introduced |
