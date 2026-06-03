@@ -1,0 +1,20 @@
+# Review of ASN-0075
+
+## REVISE
+
+### Issue 1: Link-survival justification (D-IDENT) restricts to span start tumblers and omits interior references
+**ASN-0075, "Identity Preservation," link-survival bullet**: "What matters here is the spans that do anchor at the content address `a`: such a span references `a`, and `a`, as the start tumbler of some span in some endset, is what those links reference. By P3 ..., `L` is preserved ... so a link whose endset contains a span anchored at `a` continues to reference the same `a`."
+
+**Problem**: A link references content address `a` whenever `a ∈ ⟦span⟧` for some endset span, i.e. `start ≤ a < reach` (Span/T12, ASN-0034). The justification only covers spans *anchored at* `a` (those with `start = a`). Links that reference `a` as an *interior* address of a span — `start(σ) < a < reach(σ)` — are exactly the links the guarantee should also protect, and they are not addressed. The stated argument therefore establishes survival for a proper subset of the links that reference `a`, not all of them. The over-narrow "start tumbler" characterization is also unnecessary: the actual guarantee (every referencing link survives) follows from P3 preserving `L` in its entirety, independent of *how* a given link reaches `a`.
+
+**Required**: Either (a) drop the start-tumbler characterization and rest the guarantee on P3 alone — "`L` is preserved across all transitions, so every link referencing `a`, by any endset span containing `a`, continues to reference the same `a`"; or (b) broaden "spans anchored at `a`" to "spans whose range contains `a`." As written, the case where `a` is an interior point of a referencing span is missing.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Reporting content deleted from both documents but current in a third
+**Why out of scope**: This is the binary-to-family generalization the Open Questions already flag; the witness-structure for >2 documents is new territory, not an error in the binary operation specified here.
+
+### Topic 2: Finite span-presentation of the deletion set
+**Why out of scope**: D-ACT correctly defers run-decomposition of the I-address output to span/bundle-algebra treatment (ASN-0053/0058); the abstract output here is the I-address set, which is sufficient for this operation's contract.
+
+VERDICT: REVISE
