@@ -181,9 +181,7 @@ V8 is proved only at the post-fork state, yet the intercomparison promise Nelson
 >
 > *Derivation.* V5a at `d* = d_op` gives `M''(d_op) = M'(d_op)`, since no step on `Σ' →* Σ''` is M-targeted at `d_op`; V5a at `d* = d_new` gives `M''(d_new) = M'(d_new)` likewise. V8 at `Σ'` gives `M'(d_op)(v) = M'(d_new)(v)`. Composing, `M''(d_op)(v) = M'(d_op)(v) = M'(d_new)(v) = M''(d_new)(v)`. The premise that carries this is per-document position retention (V5a); the word-for-word equality test is therefore meaningful and stable across every such `Σ''`.
 
-V8d concerns the *correspondence* — that the equality of I-addresses across the two arrangements survives, which is precisely what the non-targeting hypothesis (via V5a) secures. The *store-persistence* of the shared content is a separate, unconditional matter, and we do not fold it into V8d. Writing `a = M''(d_op)(v)` — an identification that uses the non-targeting hypothesis only to *name* `a` through the current arrangement `M''(d_op)` — the address `a` itself persists in `dom(C'')` with `C''(a) = C(a)` by P0 across every transition, with non-targeting playing no role. That store-persistence is exactly V12(b) below; we let V12(b)/P0 carry it rather than restate it under V8d's hypothesis, where it would falsely appear contingent on non-targeting.
-
-The whole-document non-targeting hypothesis is the cleanest condition V5a supports. A finer claim — that an individual position `v` survives even when *other* positions of `d_op` or `d_new` are edited — is available under K.μ⁻'s retention semantics (a contraction to retention count `n' ≥ k` preserves position `[s_C, 1, ..., 1, k]`), but it requires the per-position frame rather than the whole-document one, so we do not fold it into V8d.
+Store-persistence of the shared content is unconditional (V12(b)/P0) and independent of V8d's non-targeting hypothesis.
 
 ## Provenance Recording
 
@@ -423,7 +421,7 @@ V10(a) gives that the two siblings are distinct addresses; we exhibit this concr
 | V7 | Empty-source behavior: fork of `d_src` with `V_{s_C}(d_op) = ∅` reduces to K.δ alone, succeeding with `M'(d_new) = ∅` and `R' = R` | introduced |
 | V8 | `(A v ∈ V_{s_C}(d_op) :: M'(d_op)(v) = M'(d_new)(v))` — structural correspondence at fork-time between the content source `d_op` and the fork | introduced |
 | V8c | Correspondence is symmetric and document-type-untyped | introduced |
-| V8d | Perpetuity of correspondence: while neither `d_op` nor `d_new` is M-targeted, V8's equality `M''(d_op)(v) = M''(d_new)(v)` persists (V5a) — store-persistence of the shared content is V12(b)/P0, not part of V8d | introduced |
+| V8d | Perpetuity of correspondence: while neither `d_op` nor `d_new` is M-targeted, V8's equality `M''(d_op)(v) = M''(d_new)(v)` persists (V5a) | introduced |
 | V9 | `(A a : a ∈ ran(M'(d_new)) : (a, d_new) ∈ R')` — provenance recorded for every inherited I-address | introduced |
 | V9a | Provenance relation `R` records only containment pairs `(a, d)`, carrying no inter-document derivation edges; a fork's K.ρ records that `d_new` contains `a`, not how it acquired `a` | introduced |
 | V9b | Fresh forks inherit only externally-allocated I-addresses: for every `(a, d_new) ∈ R'` recorded by a fork, `origin(a) ≠ d_new` | introduced |
