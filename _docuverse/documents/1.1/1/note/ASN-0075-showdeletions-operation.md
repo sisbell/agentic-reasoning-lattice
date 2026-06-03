@@ -145,7 +145,7 @@ SHOWDELETIONS(d_A, d_B)
 
 The two halves are necessarily disjoint. Membership in `DeletedFromAWithB` requires `CURRENT(a, d_B)`, i.e. `a ∈ ran(M(d_B))`; membership in `DeletedFromBWithA` requires `DELETED(a, d_B)`, whose second conjunct is `a ∉ ran(M(d_B))`. The two range-membership conditions on `M(d_B)` are directly contradictory, so no `a` can belong to both halves.
 
-The definition is a pair of set-builder comprehensions over `Σ`: it reads `M(d_A)`, `M(d_B)`, and `R`, allocates nothing, rewrites nothing, and invokes no transition relation. SHOWDELETIONS therefore writes no state component. We record this as the observational frame and use it immediately in the wp analysis below; the formal frame condition is catalogued as D-OBS in the Observational Frame section.
+The definition reads `M(d_A)`, `M(d_B)`, and `R` to compute the two output sets and returns them; it writes no state component (D-OBS).
 
 **Boundary precondition (D-BOUND).** The pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047), so SHOWDELETIONS is invoked at a composite boundary.
 
@@ -157,7 +157,7 @@ Result = (DeletedFromAWithB(d_A, d_B), DeletedFromBWithA(d_A, d_B))
 
 Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds. Termination rests on local finiteness premises: both output sets are comprehensions over `dom(C)`, finite by C-fin (ASN-0047), and each membership test `a ∈ ran(M(d_A))`, `a ∈ ran(M(d_B))` ranges over a finite arrangement by S8-fin (ASN-0036), with the `(a, d) ∈ R` test bounded by `R ⊆ dom(C) × E_doc` (P7, ASN-0047). Each comprehension thus scans finitely many addresses and performs finitely many bounded membership tests, so the operation halts. The same finiteness of `dom(C)` makes each output half a finite set.
 
-Because SHOWDELETIONS writes no state component (established above; formalized as D-OBS in the Observational Frame section), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
+Because SHOWDELETIONS writes no state component (D-OBS), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
 *Non-emptiness of one report half.* Let `Q1` abbreviate `DeletedFromAWithB(d_A, d_B) ≠ ∅`. Unpacking the definition of `DeletedFromAWithB`:
 
