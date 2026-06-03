@@ -39,7 +39,7 @@ We isolate the inference that recurs throughout this note: a content-store addre
 
 **Lemma D-WIT (Content Witness Forces Provenance).** Let `Σ` be a composite-boundary state. For every `a ∈ dom(Σ.C)` and `d ∈ Σ.E_doc`, if `a ∈ ran(M(d))` then `(a, d) ∈ R`.
 
-*Proof.* From `a ∈ ran(M(d))`, fix `v ∈ dom(M(d))` with `M(d)(v) = a`. From `a ∈ dom(Σ.C)`, L14 (`dom(C) ∩ dom(L) = ∅`) gives `a ∉ dom(L)`. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`. The contrapositive of S3★'s link clause — `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)` — together with `M(d)(v) = a ∉ dom(L)` forces `subspace(v) ≠ s_L`, so `subspace(v) = s_C`. Then `v` witnesses `v ∈ dom(M(d)) ∧ subspace(v) = s_C ∧ M(d)(v) = a`, so `(a, d) ∈ Contains_C(Σ)` by definition, and `Contains_C(Σ) ⊆ R` by P4★ — a composite-boundary property of ASN-0047, available here by the composite-boundary hypothesis. Hence `(a, d) ∈ R`. ∎
+*Proof.* From `a ∈ ran(M(d))`, fix `v ∈ dom(M(d))` with `M(d)(v) = a`. From `a ∈ dom(Σ.C)`, L14 (`dom(C) ∩ dom(L) = ∅`) gives `a ∉ dom(L)`. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`. The contrapositive of S3★'s link clause — `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)` — together with `M(d)(v) = a ∉ dom(L)` forces `subspace(v) ≠ s_L`, so `subspace(v) = s_C`. Then `v` witnesses `v ∈ dom(M(d)) ∧ subspace(v) = s_C ∧ M(d)(v) = a`, so `(a, d) ∈ Contains_C(Σ)` by definition, and `Contains_C(Σ) ⊆ R` (P4★, ASN-0047). Hence `(a, d) ∈ R`. ∎
 
 **Lemma D-EXH (Three-State Exhaustion).** Let `Σ` be a state reachable from `Σ_0` by a finite sequence of valid composite transitions (equivalently, `Σ` is a composite boundary). For every `(a, d)` with `a ∈ dom(Σ.C)` and `d ∈ Σ.E_doc`, exactly one of `CURRENT(a, d)`, `DELETED(a, d)`, `NEVER_INCLUDED(a, d)` holds.
 
@@ -118,7 +118,7 @@ Any function `f(C, L, E, M)` returns the same value at both states. But the clas
 
 **Corollary D-NEED (Auxiliary State Necessity).** Any system supporting SHOWDELETIONS must maintain at least one state component beyond `(C, L, E, M)` whose value disambiguates `DELETED(a, d)` from `NEVER_INCLUDED(a, d)` at every reachable state.
 
-*Argument.* D-DISCR shows that the four foundation components `(C, L, E, M)` cannot distinguish DELETED from NEVER_INCLUDED, which SHOWDELETIONS' output sets require; hence a conforming system must carry at least one further component `C*`. The increment over D-DISCR is the *scope* of the discrimination. `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` differ on `R`-membership by their very definitions, and that difference does not depend on `Σ` being a composite boundary. So `R` disambiguates the two predicates at every reachable state, not merely at the composite boundaries where D-WIT and D-EXH operate — `C* = R` suffices throughout.
+*Argument.* D-DISCR shows that the four foundation components `(C, L, E, M)` cannot distinguish DELETED from NEVER_INCLUDED, which SHOWDELETIONS' output sets require; hence a conforming system must carry at least one further component `C*`. `DELETED(a, d)` and `NEVER_INCLUDED(a, d)` differ on `R`-membership by their very definitions, and that difference does not depend on `Σ` being a composite boundary. So `R` disambiguates the two predicates at every reachable state, not merely at the composite boundaries where D-WIT and D-EXH operate — `C* = R` suffices throughout.
 
 ## The SHOWDELETIONS Operation
 
@@ -185,7 +185,7 @@ wp(SHOWDELETIONS(d_A, d_B), Q0)
 
 The joint report is empty exactly when no content has been deleted from one document while remaining current in the other.
 
-**Lemma D-DISJ (Disjoint Provenance Empties the Report).** Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. The argument invokes `P4★`, available by D-BOUND. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
+**Lemma D-DISJ (Disjoint Provenance Empties the Report).** Documents with disjoint `R`-projections — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
 
 *Group 1: `(a, d_A) ∈ R`.* Disjointness gives `(a, d_B) ∉ R`. For conjunct 1, `CURRENT(a, d_B)` requires `a ∈ ran(M(d_B))`; D-WIT would then give `(a, d_B) ∈ R`, contradicting `(a, d_B) ∉ R`. So `CURRENT(a, d_B)` fails and conjunct 1 is falsified. Conjunct 2 is falsified more directly: `DELETED(a, d_B)` has first conjunct `(a, d_B) ∈ R`, which `(a, d_B) ∉ R` negates outright.
 
@@ -345,11 +345,11 @@ Consequences: SHOWDELETIONS is repeatable on the same state (yields identical re
 
 *Justification.* Each predicate `CURRENT`, `DELETED`, `NEVER_INCLUDED` is defined in terms of components of `Σ` only (`M`, `R`, `dom(C)`, `subspace_I`). The output sets are characterised entirely by these projections. Two distinct transition histories yielding the same `Σ` therefore yield identical SHOWDELETIONS outputs.
 
-This is what makes the operation an honest function of state. The user need not know how the system arrived at its current configuration; consulting the current configuration suffices. P4a (historical fidelity, ASN-0047; available by D-BOUND) ensures that whenever the operation reports `DELETED(a, d)`, there really was a past state where `a` was in `d`'s arrangement — but the *route* to that past state is irrelevant to the report itself.
+This is what makes the operation an honest function of state. The user need not know how the system arrived at its current configuration; consulting the current configuration suffices. P4a (historical fidelity, ASN-0047) ensures that whenever the operation reports `DELETED(a, d)`, there really was a past state where `a` was in `d`'s arrangement — but the *route* to that past state is irrelevant to the report itself.
 
 ## Edge Cases
 
-*Documents with no shared content.* Disjoint content-subspace `R`-projections is the case of "no shared content"; it yields `Q0` (both halves empty) by D-DISJ. See "Vacuity of both report halves," where the general `wp(SHOWDELETIONS, Q0)` condition and the D-DISJ sufficient condition are both established.
+*Documents with no shared content.* Disjoint `R`-projections yield `Q0` (both halves empty) by D-DISJ.
 
 *Both arrangements empty.* If `dom(M(d_A)) = dom(M(d_B)) = ∅`, then `ran(M(d_A)) = ran(M(d_B)) = ∅`, so `CURRENT` fails for every `a` on both sides. Both halves are empty.
 
