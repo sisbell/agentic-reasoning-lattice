@@ -91,7 +91,7 @@ The notation `v + k` denotes shift at the V-position depth of each document, fol
 
 The maximality conditions reference *valid V-predecessors* `v_a − 1` and `v_b − 1`, which we lift to iterated form as a separate labeled definition before stating maximality.
 
-> **CV-PRED** (*iterated V-predecessor*): For a V-position `v ∈ V_S(d)` (so by D-SEQ★, ASN-0047, `v = [S, 1, ..., 1, v_m]` of depth `m` with `v_m ≥ 1`) and `j ≥ 0`, the *j-th iterated V-predecessor* `v − j` is the unique V-position `v'` of depth `m` satisfying `v' + j = v` under the OrdinalShiftBase convention of ASN-0058. The scope `v ∈ V_S(d)` is essential — the candidate-form computation `[S, 1, ..., 1, v_m − j]` used in the existence clause below depends on `v`'s D-SEQ★ structure, and a general depth-`m` positive-component tumbler in subspace `S` (with components freely chosen, e.g., `[S, 3, 7, 2, ...]`) would have a different predecessor expression. The notation extends OrdinalShiftBase to negative offsets, with five clauses:
+> **CV-PRED** (*iterated V-predecessor*): For a V-position `v ∈ V_S(d)` (so by D-SEQ★, ASN-0047, `v = [S, 1, ..., 1, v_m]` of depth `m` with `v_m ≥ 1`) and `j ≥ 0`, the *j-th iterated V-predecessor* `v − j` is the unique V-position `v'` of depth `m` satisfying `v' + j = v` under the OrdinalShiftBase convention of ASN-0058. The notation extends OrdinalShiftBase to negative offsets, with five clauses:
 >
 > *Convention.* `v − 0 := v` (parallel to `v + 0 := v`).
 >
@@ -154,7 +154,7 @@ Both cases combined: `δ = 0` and `n¹ = n²`, so `R¹ = R²`. *Offset uniquenes
 
 *Justification.* The definition of `corr_{a,b}` requires `v_a ∈ ⟦R_a⟧ ∩ dom(M(d_a))` and `v_b ∈ ⟦R_b⟧ ∩ dom(M(d_b))`. When either set is empty, no pair `(v_a, v_b)` satisfies the membership conjuncts, so `corr_{a,b} = ∅`. By CV-MAX, every maximal run witnesses at least one pair in `corr_{a,b}` (at offset `k = 0`, the pair `(v_a, v_b) ∈ corr_{a,b}`), so an empty relation forces an empty set of maximal runs.
 
-This boundary covers two practical situations on the a-side (and symmetrically the b-side). The caller may explicitly pass `R_a = ⟨⟩` (the empty restriction), comparing nothing on the a-side; the result is `∅` by direct application. Alternatively, when the subspace is empty in `d_a` — a fresh fork (whose target document's arrangement is empty per K.δ's effect on M, so `V_S(d_a) = ∅`) or a subspace `d_a` has never populated — CV-IN forces `R_a = ⟨⟩` (since no `σ` could satisfy `start(σ) ∈ V_S(d_a) = ∅`), so admissibility itself produces the empty input and the result is `∅`. In either situation, `⟦R_a⟧ = ∅`, the relation is empty, and the operation returns `∅` directly from the definitions.
+The empty input arises either by an explicit `R_a = ⟨⟩` from the caller or by CV-IN's empty-subspace clause forcing `R_a = ⟨⟩` when `V_S(d_a) = ∅` (and symmetrically on the b-side); in both cases `⟦R_a⟧ = ∅` and the first paragraph applies directly.
 
 > **CV-FIN** (*finite result*): For admissible input, the result is finite, with `|MaxRuns(d_a, R_a, d_b, R_b)| ≤ |corr_{a,b}| ≤ |dom(M(d_a))| · |dom(M(d_b))| < ∞`.
 
@@ -264,7 +264,7 @@ Take `R_a` and `R_b` to span the full arrangement of each document. The correspo
 
 > `corr_{a,b} = { ([1,1], [1,1,1]),  ([1,2], [1,1,2]) }`
 
-CV-IN admits this input even though `m_a ≠ m_b`, because each side independently satisfies its level-uniformity and action-point constraints at its home depth; the constraint `m_a = m_b` is *not* required (the introductory text in this ASN flags this as a design commitment). The walks operate per-side at each document's own depth: shifting `v_a` advances at depth `m_a = 2`, and shifting `v_b` advances at depth `m_b = 3`.
+CV-IN admits this input even though `m_a ≠ m_b`. The walks operate per-side at each document's own depth: shifting `v_a` advances at depth `m_a = 2`, and shifting `v_b` advances at depth `m_b = 3`.
 
 Walking right from `([1,1], [1,1,1])`: offset 1 gives `(v_a + 1, v_b + 1) = ([1,1] + 1, [1,1,1] + 1)`. By OrdinalShift (ASN-0034) at each side's own depth, `[1,1] + 1 = [1,1] ⊕ δ(1, 2) = [1,1] ⊕ [0,1] = [1,2]` and `[1,1,1] + 1 = [1,1,1] ⊕ δ(1, 3) = [1,1,1] ⊕ [0,0,1] = [1,1,2]`. The pair `([1,2], [1,1,2])` maps to `(a₂, a₂)` ✓. Offset 2 gives `([1,3], [1,1,3])` with `[1,3] ∉ dom(M(d_a))` ✗. Right-maximal at width 2. Left walk: `[1,0]` is invalid on the a-side (D-MIN★ gives `[1,1]` as the minimum at depth 2). Left-maximal. The result is a single maximal run:
 
@@ -316,7 +316,7 @@ The operation is *read-only*. Neither `M(d_a)` nor `M(d_b)` is modified; the con
 
 > **CV-RO** (*read-only*): For any state `Σ` and any admissible input, the invocation `compareversions(d_a, R_a, d_b, R_b)` evaluated at `Σ` produces a value of type `Result` without producing a state transition. In particular, `compareversions` is *not* an element of the transition vocabulary Σ-of-ASN-0034 (NoDeallocation) nor of the elementary transition kinds K.α, K.δ, K.μ, K.λ, K.ρ (ASN-0047).
 
-*Derivation.* The operation's specification has the form `compareversions(d_a, R_a, d_b, R_b) = MaxRuns(d_a, R_a, d_b, R_b)`. Every clause defining `MaxRuns` references state via consultation only — `dom(M(d_a))`, `dom(M(d_b))`, and the equation `M(d_a)(v_a) = M(d_b)(v_b)`. No clause names `Σ'`, names an elementary transition kind, or asserts equality with a post-state component. The operation's signature returns a `Result`; there is no post-state in its codomain. Since the transition vocabulary of ASN-0034 (NoDeallocation) is closed and its elements are partial functions `Σ ⇀ Σ`, an operation whose codomain is `Result` (not `Σ`) cannot be in that vocabulary. Each elementary transition kind of ASN-0047 (K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.λ, K.ρ, K.μ⁺_L) names at least one component of `Σ` it modifies; `compareversions` names none.
+*Derivation.* The operation's specification has the form `compareversions(d_a, R_a, d_b, R_b) = MaxRuns(d_a, R_a, d_b, R_b)`. Every clause defining `MaxRuns` references state via consultation only — `dom(M(d_a))`, `dom(M(d_b))`, and the equation `M(d_a)(v_a) = M(d_b)(v_b)`. No clause names `Σ'`, names an elementary transition kind, or asserts equality with a post-state component. The operation's signature returns a `Result`; there is no post-state in its codomain. Since the transition vocabulary of ASN-0034 (NoDeallocation) is closed and its elements are partial functions `Σ ⇀ Σ`, an operation whose codomain is `Result` (not `Σ`) cannot be in that vocabulary. Each elementary transition kind of ASN-0047 (K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.λ, K.ρ, K.μ⁺_L) names at least one component of `Σ` it modifies; `compareversions` names none. *Composability consequence:* because the invocation produces no transition, it may be interleaved at any point in any valid transition sequence without altering that sequence's reachable states — `compareversions` composes with the transition system of ASN-0047 as a non-mutating observer.
 
 If a user wishes to record observations from a comparison — say, to annotate that two corresponding passages have a particular relationship — they must do so by creating new content or new links in *their own* document. That is a separate operation, governed by separate transition kinds (K.α, K.μ⁺, or K.λ + K.μ⁺_L), not part of the comparison itself.
 
@@ -349,14 +349,6 @@ By construction, the operation cannot:
 (iii) *Witness derivation lineage*. Per CV-PROV-FORGOTTEN, the result reports correspondence without explaining how the shared I-address came to be referenced by both documents.
 
 These omissions are not deficiencies of the operation; they are consequences of grounding correspondence in I-address identity. The same grounding is what makes attribution, royalty flow, and link survival work uniformly across the docuverse. Every operation that consumes I-addresses inherits exactness from the addressing scheme. The comparison operation is no exception — and the things it cannot express are precisely the things that would require a different grounding.
-
-## Closure Properties
-
-The operation composes cleanly with the state-transition system of ASN-0047. Because it is read-only (CV-RO), it satisfies the frame conditions of every transition kind trivially — it modifies nothing. It can be invoked freely without interfering with concurrent or subsequent transitions; it neither adds to `dom(C)` (so does not interact with allocation invariants), nor modifies any arrangement (so does not interact with arrangement invariants), nor records provenance (so does not affect coupling constraints).
-
-Because it is deterministic (CV-DETERM), the result is robust under stable state: the same comparison invoked at multiple points in time yields the same answer, provided neither `M(d_a)` nor `M(d_b)` (nor the restrictions) change. The result is therefore a pure derived value — extractable from state, but not a part of state.
-
-These two properties together — read-only and deterministic — make `compareversions` a *pure observation* of state. It extracts a derived value (the set of maximal correspondence runs) without affecting the state from which it is derived. This pure-observation status is what allows the operation to be safely invoked under any conditions, at any time, with no risk of corrupting the documents being examined.
 
 ## Claims Introduced
 
