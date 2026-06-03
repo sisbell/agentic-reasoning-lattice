@@ -261,7 +261,7 @@ PerLinkInvarianceUnderValuePreservation — sub-lemma:
 
 ComprehensionInvariantUnderΣL is the comprehension-level composition of PerLinkInvarianceUnderValuePreservation: full `Σ.L = Σ'.L` contributes domain equality (closing the comprehension over a shared index set) and licenses PerLinkInvarianceUnderValuePreservation at every `a` in that shared domain.
 
-F8 is the comprehension-level instance for F1's existential; F15 is the comprehension-level instance for the filtered universal; F17 and F19 invoke ComprehensionInvariantUnderΣL against the substitution `Σ' = post-state of a transition preserving Σ.L`. F11 and F19-filt instead invoke the per-link primitive, since their hypotheses supply only per-link value preservation rather than full `Σ.L = Σ'.L`.
+F8 is the comprehension-level instance for F1's existential; F15 is the comprehension-level instance for the filtered universal; F17 and F18 invoke ComprehensionInvariantUnderΣL against the substitution `Σ' = post-state of an atomic K.μ-family step preserving Σ.L`. F11, F19, and F19-filt instead invoke the per-link primitive, since their hypotheses supply only per-link value preservation rather than full `Σ.L = Σ'.L` — F19 and F19-filt quantify over reachable sequences `Σ →* Σ'`, along which K.λ may grow `dom(Σ.L)`, so only LP13's per-link `Σ'.L(a) = Σ.L(a)` is available (consistent with F19's "Direct from F11" derivation).
 
 ## Arrangement Independence
 
