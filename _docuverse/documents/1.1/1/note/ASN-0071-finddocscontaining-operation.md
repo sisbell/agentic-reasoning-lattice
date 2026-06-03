@@ -7,7 +7,7 @@ The same reader can ask the inverse: *what documents contain this content?* This
 
 We specify what such an operation must do. Following Nelson we call it **FINDDOCSCONTAINING**. The question this ASN answers is: what is its result set? What determines membership, what guarantees govern completeness, and what does the operation deliberately not promise about currency in a permanent address space?
 
-We work within the strand model as extended by ASN-0047. State `Σ` carries the content store `Σ.C : T ⇀ Val`, the link store `Σ.L`, document entities `Σ.E_doc ⊆ Σ.E`, and arrangements `Σ.M(d) : T ⇀ T` for each `d ∈ Σ.E_doc` — partial functions from V-positions to I-addresses satisfying functionality (S2), generalized referential integrity (S3★), and content permanence (P0, which subsumes S0 and S1). Sharing is unrestricted: distinct `(d, v)` pairs may map to the same I-address (S5). The extended state admits two V-subspaces — content (`s_C`) and link (`s_L`) — and S3★ routes each V-position to its appropriate store: `M(d)(v) ∈ dom(C)` when `subspace(v) = s_C`, and `M(d)(v) ∈ dom(L)` when `subspace(v) = s_L`. We assume content has been allocated and arranged through the standard transitions of ASN-0047; we specify only the query, not the operations that produce its inputs.
+We work within the strand model as extended by ASN-0047. State `Σ` carries the content store `Σ.C : T ⇀ Val`, the link store `Σ.L`, document entities `Σ.E_doc ⊆ Σ.E`, and arrangements `Σ.M(d) : T ⇀ T` for each `d ∈ Σ.E_doc` — partial functions from V-positions to I-addresses satisfying functionality (S2), generalized referential integrity (S3★), and content permanence (P0, which subsumes S0 and S1). Sharing is unrestricted: distinct `(d, v)` pairs may map to the same I-address (ASN-0058 M13, SharedContent), and such co-occurrences are permanently independent arrangement entries (ASN-0058 M14, IndependentOccurrences). The extended state admits two V-subspaces — content (`s_C`) and link (`s_L`) — and S3★ routes each V-position to its appropriate store: `M(d)(v) ∈ dom(C)` when `subspace(v) = s_C`, and `M(d)(v) ∈ dom(L)` when `subspace(v) = s_L`. We assume content has been allocated and arranged through the standard transitions of ASN-0047; we specify only the query, not the operations that produce its inputs.
 
 ## The query
 
@@ -15,7 +15,7 @@ Content can be named in two registers. By I-address — "the content at addresse
 
 We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s ∈ Σ.E_doc` names a source document and `σ = (u, ℓ)` is a level-uniform V-span confined to the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) ≤ #u`, `#ℓ = #u` (in the sense of ASN-0053), and `actionPoint(ℓ) ≥ 2` (equivalently `ℓ₁ = 0`: the displacement does not perturb the subspace identifier at position 1). A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
 
-The restriction `subspace(u) = s_C` is load-bearing. FINDDOCSCONTAINING tracks transclusion of byte content — Nelson's "regardless of where the native copies are located" — and only the content subspace participates in transclusion. Link addresses have unique home documents recoverable directly from the tumbler via `origin` (S7), so a query naming a link-subspace span would degenerate to "the link's home document," derivable without the operation. We exclude such queries by construction.
+The restriction `subspace(u) = s_C` is load-bearing. FINDDOCSCONTAINING tracks transclusion of byte content — Nelson's "regardless of where the native copies are located" — and only the content subspace participates in transclusion. Link addresses have unique home documents recoverable directly from the tumbler via `origin` (ASN-0047 L1a, LinkScopedAllocation: `origin(a) ∈ E_doc` for every link address), so a query naming a link-subspace span would degenerate to "the link's home document," derivable without the operation. We exclude such queries by construction.
 
 The companion restriction `actionPoint(ℓ) ≥ 2` enforces *subspace confinement* of the entire span. Without it, the vspec preconditions admit displacements that perturb position 1 — for example, `u = [1, 5]` with `ℓ = [2, 0]` satisfies `Pos(ℓ)`, `actionPoint(ℓ) = 1 ≤ #u`, and `#ℓ = #u`, so the span `⟦σ⟧` extends to `[3, 0)` and contains `[2, 1]` whose subspace identifier is `2 = s_L`. Such a span would straddle the content and link subspaces in `d_s`'s V-space, conflating two transclusion regimes that the operation deliberately separates. Requiring `actionPoint(ℓ) ≥ 2` places `ℓ`'s first nonzero component at position 2 or beyond, so by TumblerAdd's prefix-copy region position 1 of every `t ∈ ⟦σ⟧` equals `u₁ = s_C` — the entire span lives in the content subspace. We rely on this property in the codomain argument below.
 
@@ -69,7 +69,7 @@ Start from `Σ₀` and apply the following transitions of ASN-0047 (each precond
 4. K.ρ records provenance: `(a₁, d_A) ∈ R`.
 5. K.δ creates document `d_B ∈ E_doc`.
 6. K.μ⁺ binds `M(d_B)(v_B) = a₁`, where `v_B = [s_C, 1]` is the minimum content-subspace V-position of `d_B`. This is transclusion: the I-address `a₁` allocated under `d_A` is now also referenced from `d_B`'s arrangement, *without* a new K.α emission. The bind is licensed by S3★ since `a₁ ∈ dom(C)`.
-7. K.ρ records provenance: `(a₁, d_B) ∈ R`. The composite (steps 5–7) discharges J1's coupling constraint: a content-subspace position newly mapped to `a₁` must have its provenance recorded.
+7. K.ρ records provenance: `(a₁, d_B) ∈ R`. The composite (steps 5–7) discharges J1★ (ASN-0047): the content-subspace range of `M(d_B)` gains a new entry `a₁`, which forces `(a₁, d_B) ∈ R'`. The converse coupling J1'★ holds symmetrically — the new provenance entry corresponds to a range-new I-address.
 
 The resulting state `Σ` has:
 
@@ -106,7 +106,7 @@ Therefore `find(Q)(Σ) = {d_A, d_B}`.
 - *F-PART.* A single shared I-address (`a₁`) is sufficient for inclusion. The result does not require a document to reference any particular portion of the queried span.
 - *F-FILT.* The span `⟦σ_A⟧` is an infinite subset of `T`, but the intersection with `dom(M(d_A)) = {v_A}` reduces it to a single position. The operation does not reject `σ_A` for naming positions outside `d_A`'s arrangement — unresolvable positions contribute nothing and the query reads charitably over what is currently bound.
 - *F-CUR.* The result depends only on `Σ.M(d_A)` and `Σ.M(d_B)`. Were a later K.μ⁻ to contract `M(d_B)` to remove `v_B`, the query would return `{d_A}` only — `d_B` would no longer be currently containing, even though `(a₁, d_B) ∈ R` would persist (P2).
-- *Home/transcluding recovery.* `origin(a₁) = d_A` (S7), so the requester can distinguish: `d_A` is the home document of `a₁`, and `d_B` transcludes it. The operation itself does not tag the result; the tagging is a function the requester computes from each `a ∈ iaddrs(Q)` and each `d ∈ find(Q)`.
+- *Home/transcluding recovery.* `origin(a₁) = d_A`, the home document of the content I-address `a₁` (grounded in `E_doc` by ASN-0047 P6, ExistentialCoherence), so the requester can distinguish: `d_A` is the home document of `a₁`, and `d_B` transcludes it. The operation itself does not tag the result; the tagging is a function the requester computes from each `a ∈ iaddrs(Q)` and each `d ∈ find(Q)`.
 
 ## Completeness and soundness
 
@@ -153,13 +153,13 @@ The most architecturally significant consequence concerns transclusion. If I-add
 
   `a ∈ iaddrs(Q)(Σ) ∧ a ∈ ran(Σ.M(d)) ∧ d ∈ Σ.E_doc  ⟹  d ∈ find(Q)(Σ)`
 
-In particular: `a`'s home document (`origin(a)`, per S7 — if it itself still references `a`) and every transcluding document are discovered by the same query and reported as equally-qualifying members of the result.
+In particular: `a`'s home document (`origin(a)`, grounded in `E_doc` by ASN-0047 P6 — if it itself still references `a`) and every transcluding document are discovered by the same query and reported as equally-qualifying members of the result.
 
 The find operation does not distinguish home from transcluding document. Both reference `a`; both satisfy the predicate. The mechanism is structural — the I-address `a` is the same `a` everywhere it appears, because content has permanent identity (P0). Sharing of content corresponds to identity of I-address; identity of I-address is what `find` tests for.
 
 This makes `find` the structural dual of the read-direction. Reading goes from arrangement to content: given `d`, `M(d)` tells which I-addresses `d` references. Finding goes from content to arrangement: given resolved I-addresses, `find` tells which documents reference them. The two operations are duals over the same `M : E_doc → (T ⇀ T)` structure.
 
-The result does not, on its own, distinguish *how* each reported document references the content — native authorship versus transclusion. This distinction is recoverable from the address structure already returned. For each `a ∈ iaddrs(Q)`, `origin(a)` (a function of `a`'s tumbler alone — S7) names `a`'s home document. Comparing `origin(a)` against each `d ∈ find(Q)` recovers the relationship: `d = origin(a)` means `d` authored `a`; `d ≠ origin(a)` means `d` transcludes `a`. The `find` operation does not need to tag its results because tagging is a function the requester can compute from the data.
+The result does not, on its own, distinguish *how* each reported document references the content — native authorship versus transclusion. This distinction is recoverable from the address structure already returned. For each `a ∈ iaddrs(Q)`, `origin(a)` (a function of `a`'s tumbler alone, grounded in `E_doc` by ASN-0047 P6) names `a`'s home document. Comparing `origin(a)` against each `d ∈ find(Q)` recovers the relationship: `d = origin(a)` means `d` authored `a`; `d ≠ origin(a)` means `d` transcludes `a`. The `find` operation does not need to tag its results because tagging is a function the requester can compute from the data.
 
 ## Currency: state dependence
 
@@ -197,7 +197,7 @@ The argument is three-step:
 
 (a) The initial state has `|Σ₀.E_doc| = 0`. ASN-0047 gives `E₀ = {n₀}` with `IsNode(n₀)`, so `n₀ ∉ E_doc` and `(E₀)_doc = ∅`.
 
-(b) Each elementary transition adds at most one entity to `E_doc`. Among ASN-0047's transitions, only K.δ modifies `E` (its effect is `E' = E ∪ {e}` for a single `e`); the others (K.α, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ) leave `E` unchanged by their frame clauses. K.δ adds `e` to `E_doc` only when `IsDocument(e)`, otherwise to `E_node` or `E_account`. Either way, `|E_doc|` grows by at most one per transition.
+(b) Each elementary transition adds at most one entity to `E_doc`. Among ASN-0047's *elementary* transitions, only K.δ modifies `E` (its effect is `E' = E ∪ {e}` for a single `e`); the other elementary transitions (K.α, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ) leave `E` unchanged by their frame clauses. The named composite K.μ~ is not atomic; it decomposes into K.μ⁻ + K.μ⁺ (ValidCompositeAmended), both of which appear in the elementary list and fix `E`, so the induction over elementary steps need not enumerate it separately. K.δ adds `e` to `E_doc` only when `IsDocument(e)`, otherwise to `E_node` or `E_account`. Either way, `|E_doc|` grows by at most one per transition.
 
 (c) A reachable state is reached by finitely many transitions. ASN-0047's ExtendedReachableStateInvariants characterises every reachable state as "reachable from `Σ₀` by a finite sequence of valid composite transitions" — finite ancestry is by definition of reachability, not a consequence of any single axiom. SequentialTransitionAxiom (ASN-0047) supplies the orthogonal property that each transition is atomic, uninterruptible, and totally ordered, which makes individual transitions countable within such a sequence. So the count `n` of transitions producing any reachable `Σ` is a finite natural number.
 
