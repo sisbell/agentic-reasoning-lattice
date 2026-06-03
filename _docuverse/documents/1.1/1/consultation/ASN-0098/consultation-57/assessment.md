@@ -1,15 +1,18 @@
-# Channel Assignment — ASN-0051 review-57
+# Channel Assignment — ASN-0098 review-57
 
-**Date:** 2026-05-16 08:23
+**Date:** 2026-06-03 05:28
 
-## Issue 1: SV10 prose conflates "resolution" with "projection"
-Reason: The terminology distinction is already drawn explicitly in the ASN's Definitions section (resolution = locate, projection = π). The fix is a consistency edit using terms the ASN itself defines — no external evidence or design intent required.
+## Issue 1: Overstated "cannot extend the link's reach" claim, contradicted in its own paragraph
+Reason: Internal. The correction restricts the claim to the K.α half (LP6) and defers the boundary-exclusion claim to LP19's tightness regime — both already present in the ASN, so the fix is a matter of aligning prose with claims already proved.
 
-## Issue 2: SV11 attainment witnesses do not cover p ≥ 3
-Reason: The mathematical machinery needed is already in the ASN — the suffix-coalescence argument from the disjoint-extent non-attainment case can be applied per-pair, and the existing p=2 multi-block overlap witness construction generalises to p=3 by adding a third overlapping block under S5. The fix is derivable from the ASN's own structural reasoning.
+## Issue 2: Orphan decorative reference
+Reason: Internal. Removing or relocating the unused T10a citation is purely editorial; the freshness argument that actually consumes structural distinctness (LP19a) is already in the ASN.
 
-## Issue 3: SV11 fragment-count analysis omits one strictness mechanism in the worked example
-Reason: Purely editorial clarification of what the existing analysis says — the 4 → 2 gap is entirely mechanism (b) within-block coalescence, and the ASN already establishes that non-injective sharing inflates only the width sum. The fix restates content the ASN already contains.
+## Issue 3: Essay framing around a forward reference in the projection definition
+Reason: Internal. Trimming anticipatory meta-prose to the mechanical content (projection reads `coverage(e)` and `Σ.M(d)`) restates only what the definition and LP4 already establish.
 
-## Issue 4: Sub-claim (i) proof obligation about t_j defined
-Reason: Proof-presentation restructuring to make a load-bearing inference (proper-prefix → T1(ii) → t < s) explicit. The substance is already present in the ASN; only the ordering of clauses needs adjustment.
+## Issue 4: Methodological forward-pointer preceding the definitions it describes
+Reason: Internal. The substantive decidability/finiteness content is already carried by LP-Fin and the `tight` definition; folding and deleting the scaffolding requires no external input.
+
+## Issue 5: Redundant restatement in Discovery Independence
+Reason: Internal. Collapsing four restatements to a single derivation from LP12 draws only on LP12's already-stated right-hand side.
