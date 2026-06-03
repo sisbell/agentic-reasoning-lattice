@@ -1,15 +1,15 @@
 # Channel Assignment — ASN-0071 review-63
 
-**Date:** 2026-06-03 11:39
+**Date:** 2026-06-03 11:40
 
 ## Issue 1: The central multi-vspec union is never exercised by a concrete example
-Reason: Internal. Adding a two-source worked query that exercises the union and cross-source dedup is a mechanical application of the existing `iaddrs`/`find` definitions against the already-constructed state — no design intent or implementation evidence is needed.
+Reason: The fix adds a worked example using the existing scenario state and the ASN's own `iaddrs` union definition; both `find` and dedup behavior are already specified. No design intent or implementation evidence is required.
 
 ## Issue 2: Imprecise characterization of the relaxation of ASN-0058's ContentReference
-Reason: Internal. Correcting which ContentReference conjuncts are kept, strengthened, retained, or dropped is a comparison against ASN-0058's and ASN-0053's definitions already cited in this ASN; the facts are fully determined by those texts.
+Reason: The correction is a precise restatement of which `ContentReference` conjuncts are kept/strengthened/dropped, fully determined by ASN-0058's definition and the vspec preconditions already present in this ASN. Internal.
 
 ## Issue 3: Unproven coincidence claim with `resolve`
-Reason: Internal. Whether to derive or delete the `resolve` coincidence rests on ASN-0058's `resolve`/decomposition definitions and this ASN's `iaddrs_one`; the one-line coverage argument (or its removal) is derivable from definitions already in scope.
+Reason: Either supply the one-line derivation (run I-addresses are `M(d_s)(v)` for covered `v`, with exact decomposition coverage) or delete the sentence — both resolvable from ASN-0058's `resolve` definition and this ASN's `iaddrs_one`. Internal.
 
-## Issue 4 (anti-bloat): Subspace confinement stated twice
-Reason: Internal. Replacing the re-derivation in *Resolution* with a citation of the corollary proven in *The query* is a purely editorial dedup within this ASN.
+## Issue 4: Subspace confinement stated twice
+Reason: Pure editorial deduplication — cite the named corollary from *The query* and apply S3★ rather than re-deriving. Internal.
