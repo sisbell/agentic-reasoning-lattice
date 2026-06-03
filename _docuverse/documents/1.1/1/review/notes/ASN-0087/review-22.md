@@ -1,0 +1,15 @@
+# Review of ASN-0087
+
+## REVISE
+
+### Issue 1: M-DepthConv's universal claim is derived from a scope-limited premise
+
+**ASN-0087, "Effect" section (The depth is universally 2) and M-DepthConv claim**: "Consequently `m_L(d) = 2` holds for *every* document whose link subspace is non-empty: the universal claim of M-DepthConv is exact, not merely typical. We therefore drop the earlier 'regardless of its value' hedge; the depth is always 2..."
+
+**Problem**: The derivation chains: (P1) `m_L(d)` is the depth of `d`'s first link V-position (S8-depth); (P2) only K.μ⁺_L writes a link-subspace V-position; (P3) "within this ASN K.μ⁺_L is invoked only as the second half of MAKELINK"; (P4) MAKELINK fixes `m = 2`. The conclusion quantifies over **every document in any system execution**, but premise P3 is explicitly scoped to *this ASN*. K.μ⁺_L is a standalone substrate primitive (ASN-0047) that admits *any* `m ≥ 2` via `ValidFirstLinkPosition(d, v_ℓ, m)` and is invokable independently of MAKELINK. Nothing in this self-contained ASN — nor in the cited foundations — establishes that no other operation (in another ASN, or a direct substrate invocation) ever seeds a first link V-position at depth `m ≠ 2`. Showing MAKELINK is the only caller *within this ASN* does not license "every document." The leap from a within-ASN scoping fact to a system-wide universal is the exact "by similar reasoning" gap the standard forbids — the universal is asserted, not proved.
+
+Note the internal tension this creates: the effect formula, the K.μ⁺_L preconditions, and the S8-depth invariant verification all continue to write the depth generally as `m_L(d)`. That general formulation is sound and self-consistent; only the strengthened universal ("always 2") exceeds its premises.
+
+**Required**: Either (a) weaken the claim to what the premises support — MAKELINK fixes depth 2 for the links *it* places, hence any document all of whose links are placed by MAKELINK has `m_L(d) = 2` — and restore the general `m_L(d)` reading downstream; or (b) add and discharge an explicit system-level premise that every link-subspace V-position in any execution is placed by MAKELINK (i.e., that no other operation invokes K.μ⁺_L), and show that premise follows from the foundations rather than from "within this ASN."
+
+VERDICT: REVISE
