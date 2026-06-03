@@ -81,7 +81,7 @@ A pair `(v_a, v_b)` lies in the relation when each V-position is inside its resp
 
 > **CV-PROV-FORGOTTEN** (*provenance forgotten*): When `(v_a, v_b) ∈ corr_{a,b}` with shared I-address `a := M(d_a)(v_a) = M(d_b)(v_b)`, the relation provides no information about how `a` came to be referenced by both documents. By S7 (ASN-0036) postcondition (b) — `origin(a)` is the tumbler of the document that allocated `a`, single-valued in `a` — combined with postcondition (c) — distinct documents have distinct allocation origins — `a` was allocated by exactly one document `origin(a)`. This may be `d_a` (in which case `d_b` transcluded `a`); it may be `d_b` (the converse); it may be neither (both transcluded from a third source). The relation reports correspondence without explaining lineage.
 
-The pair `(d_a, d_b)` may be unrelated to each other — siblings forked from a common ancestor, ancestor and descendant, or wholly independent documents that happen to transclude common material. The operation reports the present-state overlap; it does not reconstruct the history.
+The pair `(d_a, d_b)` may stand in any relationship — siblings forked from a common ancestor, ancestor and descendant, or wholly independent documents that happen to transclude common material.
 
 ## The Result
 
@@ -296,11 +296,9 @@ CV-MAX establishes that the result is the unique maximal decomposition. A separa
 
 Both behaviors flow from a single source: CV-MAX guarantees existence and uniqueness of the maximal run witnessing each pair in `corr_{a,b}`. The operation does not consult a width threshold, merge window, or block-alignment offset because no clause of the run definition, the maximality conditions, or CV-MAX references such a quantity; the granularity of the result is determined entirely by the granularity of the underlying address space.
 
-This is a non-trivial claim about the operation's character. Conventional textual-diff algorithms typically impose width thresholds (matches below `k` bytes are noise) or block-alignment constraints (matches must begin at line boundaries, word boundaries, etc.). CV-ATOM rules these out by construction. The granularity is determined by the addressing scheme — every byte has its own I-address; correspondence is decided per-address — and no aggregation policy is layered on top.
+Conventional textual-diff algorithms typically impose width thresholds (matches below `k` bytes are noise) or block-alignment constraints (matches must begin at line boundaries, word boundaries, etc.). The granularity here is instead determined by the addressing scheme — every byte has its own I-address; correspondence is decided per-address — and no aggregation policy is layered on top.
 
 Nelson framed intercomparison as showing "word for word, what parts of two versions are the same" (LM 2/20). CV-ATOM is the abstract form of that commitment: correspondence is *structural*, looked up by I-address equality, not *inferred* by a heuristic that might suppress fine-grained matches.
-
-A subtle consequence of CV-ATOM in the presence of self-transclusion: the same I-address `a` may produce multiple width-1 runs that cannot be merged. If `a` appears at V-positions `v¹_a, v²_a` in `d_a` and at `u_b` in `d_b`, the result contains two runs `(v¹_a, u_b, 1)` and `(v²_a, u_b, 1)`. Each is its own maximal extension, and the operation reports both faithfully (M14, ASN-0058, supplies the structural analogue: multiple V-positions sharing one I-address are independent mapping-block entries). Example 2 above exhibits this phenomenon concretely.
 
 ## Symmetry
 
@@ -332,7 +330,7 @@ The result depends only on the present state.
 
 *Derivation.* CV-MAX establishes that `MaxRuns(d_a, R_a, d_b, R_b)` is uniquely determined. We trace the determination chain from inputs and state: the arrangements `M(d_a)` and `M(d_b)` are projections of `Σ` (a single value `Σ.M`); the restrictions `R_a, R_b` are inputs; `⟦R_a⟧` and `⟦R_b⟧` are fixed by the span-set semantics of ASN-0053 from `R_a, R_b`; the relation `corr_{a,b}` is fixed by `M(d_a), M(d_b), ⟦R_a⟧, ⟦R_b⟧` via its defining equation; `MaxRuns` is fixed by `corr_{a,b}` and the run conditions (i)–(iii) via CV-MAX uniqueness. Every link in the chain is a single-valued function. Two invocations against the same `Σ` with the same `(d_a, R_a, d_b, R_b)` therefore yield the same value.
 
-By contrast, the result *does* depend on state. If `Σ → Σ'` is an arrangement transition affecting either `M(d_a)` or `M(d_b)` — for instance, a K.μ⁻ contraction removing some V-positions, a K.μ⁺ extension adding new ones, or a K.μ~ reordering — the relation `corr_{a,b}` may change, and `compareversions` evaluated at `Σ'` may yield different maximal runs. The operation is a snapshot, not a continuous binding. Caller-side caching is safe only as long as the relevant arrangements remain stable.
+By contrast, the result *does* depend on state. If `Σ → Σ'` is an arrangement transition affecting either `M(d_a)` or `M(d_b)` — for instance, a K.μ⁻ contraction removing some V-positions, a K.μ⁺ extension adding new ones, or a K.μ~ reordering — the relation `corr_{a,b}` may change, and `compareversions` evaluated at `Σ'` may yield different maximal runs. The dependence is on `M` alone, never on the provenance relation `R` (ASN-0047): a K.μ⁻ contraction that removes a V-position eliminates the corresponding pair even though `R` retains the historical fact `(a, d_a) ∈ R` (P4a, ASN-0047), so stale provenance can never generate a phantom correspondence. The operation is a snapshot, not a continuous binding. Caller-side caching is safe only as long as the relevant arrangements remain stable.
 
 ## Pairwise Scope
 
@@ -341,16 +339,6 @@ The operation compares two specified arrangements. It does not traverse version 
 If `d_a` and `d_b` are two versions of the same document — i.e., one was forked from the other by K.δ at `k = 1` (ASN-0047), or both descend from a common ancestor in the version graph — the comparison operates on `M(d_a)` and `M(d_b)` directly. Whether intermediate versions exist in the fork graph between them is irrelevant: only the present arrangements of `d_a` and `d_b` participate.
 
 This is a separation of concerns. The version-graph structure makes any historical state of any document a valid version entity in `E_doc`. The user who wishes to traverse a history asks for individual pairwise comparisons; the system does not aggregate them into a multi-version operation. The full history remains *accessible* (every version is in `E_doc`); it is not *implicit* in any single invocation.
-
-## What the Result Cannot Express
-
-By construction, the operation cannot:
-
-(i) *Witness historical sharing that no longer holds*. If content was once in `M(d_a)` and was later deleted (K.μ⁻), the I-address is no longer in `dom(M(d_a))` and contributes no correspondence. The provenance relation `R` (ASN-0047) retains the historical fact `(a, d_a) ∈ R` (P4a), but `compareversions` consults `M`, not `R`. Stale references in `R` cannot generate phantom correspondences.
-
-(ii) *Witness counterpart correspondence*. Independent textual matches without I-address identity are invisible. The user-asserted counterpart link is Nelson's mechanism for declaring such correspondences; it lives in `dom(L)` and is a distinct structural artifact.
-
-(iii) *Witness derivation lineage* (CV-PROV-FORGOTTEN).
 
 ## Claims Introduced
 
