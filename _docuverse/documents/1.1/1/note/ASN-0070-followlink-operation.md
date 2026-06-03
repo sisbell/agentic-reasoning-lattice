@@ -431,7 +431,7 @@ follow(ℓ, d', 3) = (d', (⟨([1, 2], δ(1, 2))⟩, ⟨⟩))
 
 ## Derived Properties
 
-Each of the following is a consequence of the inverse-image definition combined with the foundations. We catalogue them as F-det, F-sound, etc., and present each with explicit preconditions, postconditions, dependencies, and frame.
+Each of the following is a consequence of the inverse-image definition combined with the foundations.
 
 Among these, F-sound and F-complete are the two halves of the postcondition's set equality `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S`: F-sound is the `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S` inclusion; F-complete is the reverse inclusion.
 
