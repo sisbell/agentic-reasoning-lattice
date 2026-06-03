@@ -262,7 +262,7 @@ The phrase "anything is left at each end" can now be stated formally: discoverab
 a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)
 ```
 
-LP2★ gives `a ∈ dom(Σ'.L)` and `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` for every slot `i ∈ {1, …, |Σ.L(a)|}`, and fixes the arity `|Σ'.L(a)| = |Σ.L(a)|` (value preservation under L12 forces equal-length sequences). Slot-wise equality at every position of a common arity is full value equality, so `Σ'.L(a) = Σ.L(a)`. Persistence requires only `a ∈ dom(Σ.L)` and is independent of arrangement state, whereas discoverability is arrangement-conditional (LP9–LP11). A holder can therefore rely on the stored object permanently, but not on discoverability from any particular document without further conditions on that document's arrangement.
+L12 (ASN-0043) is the single-step guarantee `Σ → Σ' ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)` — full value equality of the stored link object, arity included, with no recourse to slot decomposition. This is a membership-persistence clause together with a value-preservation clause on the accessor `f(Σ) = Σ.L(a)`, so schema (★) applies with `P(Σ, Σ') ≡ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`, yielding the multi-step closure `Σ →* Σ' ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`. Persistence requires only `a ∈ dom(Σ.L)` and is independent of arrangement state, whereas discoverability is arrangement-conditional (LP9–LP11). A holder can therefore rely on the stored object permanently, but not on discoverability from any particular document without further conditions on that document's arrangement.
 
 ## Discovery Independence of Origin
 
@@ -366,7 +366,7 @@ An endset `e` is *tight at state `Σ_e`* iff every span `(s, ℓ) ∈ e` is *can
 s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)  ∧  (A t ∈ F : s ≤ t < s ⊕ ℓ : t ∈ dom(Σ_e.C) ∪ dom(Σ_e.L))
 ```
 
-The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. The first conjunct gives `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)`, whence `s ∈ F` by LP-Sub; together with the canonical shape `ℓ = δ(n, #s)` this discharges LP-Fin's hypotheses, so LP-Fin confines the universal quantifier to the finite set `F ∩ [s, s ⊕ ℓ)` and the predicate is decidable at every state from `s`, `ℓ`, and the structural form of `F`-candidates without enumerating `F`.
+Tightness is a construction discipline, not a structural invariant the system enforces. The first conjunct says the span starts at an allocated address; the second says every substrate-emittable address in the span's reach is already allocated. The first conjunct gives `s ∈ dom(Σ_e.C) ∪ dom(Σ_e.L)`, whence `s ∈ F` by LP-Sub; together with the canonical shape `ℓ = δ(n, #s)` this discharges LP-Fin's hypotheses, so LP-Fin confines the universal quantifier to the finite set `F ∩ [s, s ⊕ ℓ)` and the predicate is decidable at every state from `s`, `ℓ`, and the structural form of `F`-candidates without enumerating `F`.
 
 *Achievability.* Choose `ℓ = δ(n, #s)` with `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` where `X ∈ {C, L}` is the span's subspace and `m` is `A_X(d_0)`'s currently-allocated chain-index maximum at `Σ_e`. By LP-Fin Corollary, `F ∩ [s, s ⊕ ℓ) = {[d_0, 0, X, k] : k_s ≤ k < k_s + n}`, so every F-candidate in the span's reach lies on `A_X(d_0)` — no other chain, same-document cross-subspace or cross-document, contributes. The emission-frontier constraint `s ⊕ ℓ ≤ inc(t_m^X(d_0), 0)` confines those candidates to chain index `≤ m`. By ChainMembershipForOrigin (ASN-0093), the allocated addresses of origin `d_0` form a *contiguous initial segment* of `A_X(d_0)`'s chain; since `m` is the allocated maximum, indices `1..m` are all allocated, so the candidate indices `k_s, …, k_s + n − 1 ⊆ {1, …, m}` are all resident in `dom(Σ_e.C) ∪ dom(Σ_e.L)` at `Σ_e` — discharging tightness.
 
@@ -395,8 +395,6 @@ v_new ∉ project(e, d, Σ_{n+1})
 ```
 
 The K.α (or K.λ) step that allocated `a_new` lies on the prefix `Σ_e →* Σ_n`, so LP19a applied at that step yields `a_new ∉ coverage(e)`. Since `coverage(e)` is a deterministic function of `e`'s spans (per the coverage definition of ASN-0043) and `e` is a fixed endset value across the entire sequence — `coverage` consults no state component — the membership `a_new ∉ coverage(e)` carries through unchanged to `Σ_{n+1}`. The K.μ⁺ (or K.μ⁺_L) transition `Σ_n → Σ_{n+1}` adds the mapping at `v_new`, giving `v_new ∈ dom(Σ_{n+1}.M(d))` and `Σ_{n+1}.M(d)(v_new) = a_new ∉ coverage(e)`. The projection definition then excludes `v_new` from `project(e, d, Σ_{n+1})`.
-
-Tightness is a construction discipline, not a structural invariant the system enforces. The canonical construction — selecting span endpoints among I-addresses resident at construction time, with reach at or before the chain's next emission point — produces tight endsets.
 
 **LP20 — RangeConfinement**: For every endset `e`, document `d`, state `Σ`:
 ```
