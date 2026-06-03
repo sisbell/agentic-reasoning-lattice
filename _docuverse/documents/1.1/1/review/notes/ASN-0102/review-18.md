@@ -1,0 +1,23 @@
+# Review of ASN-0102
+
+## REVISE
+
+### Issue 1: Invariant-discharge enumeration in X14 omits C1b and C1c
+
+**ASN-0102, X14 (ContainmentRecording and coupling discharge)**: X14 explicitly claims to discharge ExtendedReachableStateInvariants (ASN-0047) and enumerates, clause by clause, which conjunct is handled by what — e.g. "S7a–S7d/S8-fin/S8-depth/C-fin (content store and depths unchanged by X1)", and the link/entity/content lists (L0…CL-UNIQ, P6, P7, P8, NodeLineage, ActivatedEmission, S4, S8★, etc.).
+
+**Problem**: The theorem's conjunction is `S2 ∧ S3★ ∧ S3★-aux ∧ S4 ∧ S7a ∧ S7b ∧ C1b ∧ C1c ∧ S7d ∧ …`. The two content-store conjuncts **C1b** (ContentElementFieldDepth, `#E(a) ≥ 2`) and **C1c** (ContentAllocatorConformance) appear nowhere in X14's enumeration. "S7a–S7d" covers S7a/S7b/S7d, and "C-fin" is the finiteness clause, but neither names C1b nor C1c. Since X14 commits to discharging every conjunct, two named conjuncts are left unaddressed in the proof's own case list. By the standard "every invariant conjunct addressed," an enumerated discharge that silently drops two clauses is incomplete on its face.
+
+**Required**: Add C1b and C1c to the enumeration with their (trivial) justification: both quantify only over `dom(Σ.C)` and the tumbler structure of its members, which X1 freezes (`dom(Σ'.C) = dom(Σ.C)`, values fixed), so the element-field depth and the allocator-conformance chain of every content address carry forward to `Σ'` unchanged. One clause suffices, but it must be present.
+
+## OUT_OF_SCOPE
+
+### Topic 1: COPY's effect on link discoverability / projection
+COPY changes `Σ.M(d)` (relabels `s_C` positions and grows `ran(Σ.M(d))` by the copied addresses `A`), which monotonically affects `project(e, d, ·)` for links whose coverage meets `A` or the displaced addresses (ASN-0098 LP9/LP11). The note does not derive this.
+**Why out of scope**: Link semantics (and hence link discoverability) are explicitly excluded by the scope list; this belongs to a projection-under-COPY ASN, not here.
+
+### Topic 2: Re-displacement, downstream re-referencing, and unreachable-allocator identity
+These are precisely the Open Questions the note poses.
+**Why out of scope**: Each names new territory (subsequent-operation interaction, inter-document re-reference chains, allocator reachability) rather than a defect in COPY's contract as specified here.
+
+VERDICT: REVISE
