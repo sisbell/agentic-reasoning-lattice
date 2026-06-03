@@ -23,8 +23,6 @@ For the operation to be well-defined we require:
 > For every `σ ∈ R_a`: `start(σ) ∈ V_S(d_a)`; `σ` is level-uniform (S6, ASN-0053) at depth `m_a`; and `actionPoint(width(σ)) = m_a` — equivalently, `width(σ) = δ(n_σ, m_a)` is an ordinal displacement at depth `m_a` for some `n_σ ≥ 1` (OrdinalDisplacement, ASN-0034; ASN-0058 C0). When `V_S(d_a) = ∅`, `m_a` is undefined and no `σ` can satisfy these clauses (since `start(σ) ∈ V_S(d_a) = ∅` is unsatisfiable); admissibility then requires `R_a = ⟨⟩`, the empty span-set, in which case all per-span clauses are vacuously satisfied and `m_a` is not consulted.
 >
 > For every `σ ∈ R_b`: `start(σ) ∈ V_S(d_b)`; `σ` is level-uniform at depth `m_b`; and `actionPoint(width(σ)) = m_b` — equivalently, `width(σ) = δ(n_σ, m_b)` for some `n_σ ≥ 1`. When `V_S(d_b) = ∅`, `m_b` is undefined and admissibility requires `R_b = ⟨⟩` by the same vacuous-satisfaction argument.
->
-> If a single span literal lies in `R_a ∩ R_b` and both depths are defined with `m_a ≠ m_b`, both clauses constrain the same `σ` at incompatible depths and admissibility fails.
 
 Level-uniformity (S6) requires only `#start(σ) = #width(σ)` and does not bound the action point of the width, so the precondition `actionPoint(width(σ)) = m_σ` is necessary.
 
@@ -40,7 +38,7 @@ The typical setting is `S = s_C`. The development that follows applies uniformly
 
 > **CV-LINK-DEGEN** (*link-subspace cross-document emptiness*): When `S = s_L` and `d_a ≠ d_b`, the result is necessarily empty.
 
-*Justification.* By CL-OWN (ASN-0047), every V-position in `s_L` of document `d`'s arrangement maps to a link `ℓ ∈ dom(L)` with `origin(ℓ) = d`. So for any `v_a ∈ ⟦R_a⟧ ∩ dom(M(d_a))` with `subspace(v_a) = s_L`, `origin(M(d_a)(v_a)) = d_a`; symmetrically `origin(M(d_b)(v_b)) = d_b`. If the I-addresses coincided, `origin` (a function: each I-address has exactly one allocating document, S7, ASN-0036) would return both `d_a` and `d_b`, contradicting `d_a ≠ d_b`. The correspondence relation `corr_{a,b}` restricted to `s_L` is therefore empty, and the operation returns `∅`. Nelson's "word for word" intercomparison (LM 2/20) was conceived as a content-subspace operation; structurally, the operation specializes to `s_C` in practice.
+*Justification.* By CL-OWN (ASN-0047), every V-position in `s_L` of document `d`'s arrangement maps to a link `ℓ ∈ dom(L)` with `origin(ℓ) = d`. So for any `v_a ∈ ⟦R_a⟧ ∩ dom(M(d_a))` with `subspace(v_a) = s_L`, `origin(M(d_a)(v_a)) = d_a`; symmetrically `origin(M(d_b)(v_b)) = d_b`. If the I-addresses coincided, `origin` (a function: each I-address has exactly one allocating document, S7, ASN-0036) would return both `d_a` and `d_b`, contradicting `d_a ≠ d_b`. The correspondence relation `corr_{a,b}` restricted to `s_L` is therefore empty, and the operation returns `∅`.
 
 > **CV-LINK-SELF** (*link-subspace self-comparison diagonal*): When `S = s_L` and `d_a = d_b = d`, the correspondence relation in `s_L` collapses to the identity diagonal: `corr_{a,a} ∩ (V_{s_L}(d) × V_{s_L}(d)) = {(v, v) : v ∈ ⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_L}(d)}`.
 
@@ -61,7 +59,7 @@ We do *not* require `m_a = m_b`. Two documents may carry V-positions at differen
 >
 > The two sets are disjoint (by the `v¹ = v²` discriminator) and exhaustive (every pair either has `v¹ = v²` or `v¹ ≠ v²`, by trichotomy of equality). When `R_a = R_b`, `D = {(v, v) : v ∈ ⟦R_a⟧ ∩ V_{s_C}(d)}` is the full diagonal over the restricted V-positions; when `R_a ≠ R_b`, `D` is the diagonal restricted to the intersection `⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)`, and `X` records the self-transclusion pairs asymmetrically detectable from the two restrictions.
 
-*Justification.* With `d_a = d_b = d`, the defining equation of `corr_{a,b}` becomes `M(d)(v¹) = M(d)(v²)`. Functionality of `M(d)` (S2, ASN-0036) ensures `v¹ = v² ⟹ M(d)(v¹) = M(d)(v²)`, so every pair `(v, v)` with `v ∈ ⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)` lies in the relation — this is `D`. The remaining case `v¹ ≠ v²` admits pairs only when `M(d)(v¹) = M(d)(v²)` while `v¹ ≠ v²`, i.e., self-transclusion is exhibited in `M(d)` — this is `X`. The discriminator is trichotomous, so `corr_{a,a} = D ∪ X` is exhaustive. Example 3 illustrates both components concretely.
+*Justification.* With `d_a = d_b = d`, the defining equation of `corr_{a,b}` becomes `M(d)(v¹) = M(d)(v²)`. Functionality of `M(d)` (S2, ASN-0036) ensures `v¹ = v² ⟹ M(d)(v¹) = M(d)(v²)`, so every pair `(v, v)` with `v ∈ ⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)` lies in the relation — this is `D`. The remaining case `v¹ ≠ v²` admits pairs only when `M(d)(v¹) = M(d)(v²)` while `v¹ ≠ v²`, i.e., self-transclusion is exhibited in `M(d)` — this is `X`. The discriminator is trichotomous, so `corr_{a,a} = D ∪ X` is exhaustive.
 
 ## The Correspondence Relation
 
@@ -253,10 +251,6 @@ The set of maximal correspondence runs admits a natural presentational view as a
 (b) Suppose `π_{m_a, m_b}(v¹_a, v¹_b, n¹) = π_{m_a, m_b}(v²_a, v²_b, n²)`. Equality of pairs gives `v¹_a = v²_a`, `v¹_b = v²_b`, `δ(n¹, m_a) = δ(n², m_a)`, and `δ(n¹, m_b) = δ(n², m_b)`. By OrdinalDisplacement's defining form `δ(n, m) = [0, ..., 0, n]` and T3 (ASN-0034), the third equation forces `n¹ = n²`. Therefore `(v¹_a, v¹_b, n¹) = (v²_a, v²_b, n²)` — `π_{m_a, m_b}` is injective. The set-level lift `π*_{m_a, m_b}` inherits injectivity, since an injection induces an injection on the powerset.
 
 (c) Immediate from the definition: `π_{m_a, m_b}` consults `(m_a, m_b)` and the run components, but no other features of the inputs.
-
-The widths `δ(n, m_a)` and `δ(n, m_b)` denote the same ordinal count `n` expressed at each document's V-position depth; when `m_a = m_b`, the two widths coincide as tumblers, and when `m_a ≠ m_b`, they differ in tumbler form but carry the same ordinal magnitude (Example 4 below illustrates this concretely).
-
-The set of maximal correspondence runs equivalently presents as a set of span-pairs `π_{m_a, m_b}(MaxRuns)`. The triple form and the span-pair form carry the same information for fixed depths; the choice of representation is presentational, not semantic.
 
 *Example 4 (differing depths).* Let `d_a` have V-position depth `m_a = 2` and `d_b` have V-position depth `m_b = 3` in the content subspace `S = s_C`. Let `a₁, a₂` be distinct I-addresses in `dom(C)`. Suppose
 
