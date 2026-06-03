@@ -39,7 +39,7 @@ We must show these are exhaustive and mutually exclusive — otherwise the opera
 
 **Lemma D-EXH (Three-State Exhaustion).** Let `Σ` be a state reachable from `Σ_0` by a finite sequence of valid composite transitions (equivalently, `Σ` is a composite boundary). For every `(a, d)` with `a ∈ dom(Σ.C)` and `d ∈ Σ.E_doc`, exactly one of `CURRENT(a, d)`, `DELETED(a, d)`, `NEVER_INCLUDED(a, d)` holds.
 
-The reachability hypothesis is load-bearing for the proof: it activates `P4★` (`Contains_C(Σ) ⊆ R`), which the proof below invokes to exclude the impossible row. The hypothesis is discharged structurally by D-BOUND, where the composite-boundary nature of `P4★` is established.
+The proof invokes `P4★` (`Contains_C(Σ) ⊆ R`) to exclude the impossible row; `P4★` is available at the composite boundary by D-BOUND.
 
 *Proof.* The three predicates correspond to three of the four cases of the cross-product `(a ∈ ran(M(d))) × ((a, d) ∈ R)`:
 
@@ -183,7 +183,7 @@ wp(SHOWDELETIONS(d_A, d_B), Q0)
 
 The joint report is empty exactly when no content has been deleted from one document while remaining current in the other.
 
-*Supplementary lemma (R-disjointness implies Q0 at composite-boundary states).* Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. The boundary hypothesis is load-bearing for the same reason as in D-EXH — the argument invokes P4★ — and D-BOUND supplies it. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
+*Supplementary lemma (R-disjointness implies Q0 at composite-boundary states).* Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. The argument invokes `P4★`, available by D-BOUND. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
 
 *Group 1: `(a, d_A) ∈ R`.* Disjointness gives `(a, d_B) ∉ R`. For conjunct 1, `CURRENT(a, d_B)` requires `a ∈ ran(M(d_B))`; by the same L14 + S3★-aux + S3★-contrapositive chain unpacked in the proof of D-EXH above — `a ∈ dom(C)` (from the outer quantifier) gives `a ∉ dom(L)` via L14; the witness `v ∈ dom(M(d_B))` for `a ∈ ran(M(d_B))` must satisfy `subspace(v) = s_C` (else S3★'s link clause would force `a ∈ dom(L)`); so `(a, d_B) ∈ Contains_C(Σ)`, which by P4★ — activated by the boundary hypothesis — forces `(a, d_B) ∈ R`, contradicting `(a, d_B) ∉ R`. So `CURRENT(a, d_B)` fails and conjunct 1 is falsified. Conjunct 2 is falsified more directly: `DELETED(a, d_B)` has first conjunct `(a, d_B) ∈ R`, which `(a, d_B) ∉ R` negates outright — no P4★ chain needed.
 
@@ -263,7 +263,7 @@ A naive set-difference of current ranges — `ran(M(d_A)) \ ran(M(d_B))` — wou
 
 Our definition forces the disambiguation by requiring `(a, d_A) ∈ R` for content reported as deleted-from-A. This says: `a` must have been in `d_A`'s arrangement at some point. Content that was only ever in `d_B`'s arrangement satisfies `NEVER_INCLUDED(a, d_A)` rather than `DELETED(a, d_A)`, and is correctly excluded from the deletion report.
 
-The same set-theoretic difference computed without `R` would mislabel additions as deletions. The provenance-aware definition above is therefore not optional — it is what makes the operation deliver on its name.
+The same set-theoretic difference computed without `R` would mislabel additions as deletions.
 
 ## Restriction to the Content Subspace
 
@@ -280,9 +280,7 @@ We make the witness-impossibility explicit, mirroring the chain unpacked in D-EX
 - *Content V-position (`subspace(v) = s_C`).* The content clause of S3★ would force `M(d_B)(v) = ℓ ∈ dom(C)`. But `ℓ ∈ dom(L)`, and L14 (`dom(C) ∩ dom(L) = ∅`) gives `ℓ ∉ dom(C)` — contradiction.
 - *Link V-position (`subspace(v) = s_L`).* CL-OWN would force `origin(M(d_B)(v)) = origin(ℓ) = d_B`. But `origin(ℓ) = d_A ≠ d_B` — contradiction.
 
-Both subspaces are excluded, so `ℓ ∉ ran(M(d_B))`. No comparison document other than `d_A` can hold `ℓ` in its arrangement, so the `CURRENT(ℓ, d_B)` witness condition that SHOWDELETIONS requires can never be satisfied across documents for link material.
-
-Restricting SHOWDELETIONS to the content subspace is therefore not an implementation simplification but a structural necessity — derived from L0, L14, S3★, and CL-OWN, not merely asserted. The link subspace requires a separate (and per-document, not cross-document) analysis.
+Both subspaces are excluded, so `ℓ ∉ ran(M(d_B))`. No comparison document other than `d_A` can hold `ℓ` in its arrangement, so the `CURRENT(ℓ, d_B)` witness condition that SHOWDELETIONS requires can never be satisfied across documents for link material. The link subspace requires a separate (and per-document, not cross-document) analysis.
 
 ## Identity Preservation
 
@@ -295,8 +293,6 @@ The architectural significance is foundational. An operation that recovers conte
 - *Link survival.* By L3 (NEndsetStructure, ASN-0047), every link in `dom(L)` references content via endsets. By P3 (ArrangementMutabilityOnly) and L12 (LinkImmutability, ASN-0047), `L` is preserved across all arrangement transitions — `L' = L` for every K.μ⁺/K.μ⁻/K.μ~ — so every link referencing `a` continues to reference the same `a`.
 - *Transclusion integrity.* By S2 (ArrangementFunctionality, ASN-0036) and the content clause of S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)` — arrangements reference I-addresses by tumbler identity: each content-subspace V-position maps to a determinate `a ∈ dom(C)`. The link clause of S3★ targets `dom(L)` rather than `dom(C)` and is not invoked here; SHOWDELETIONS is restricted to the content subspace (D-SUBSP), so only the content clause is load-bearing for transclusion integrity. If another document's content-subspace arrangement maps a V-position to `a`, that mapping continues to reference the same `a` because P0 (ContentPermanence, ASN-0047, subsuming S0 of ASN-0036) preserves both `dom(C)` and the value at every existing entry across all transitions; no aliasing or shadow copy is introduced.
 - *Origin attribution.* Origin survives recovery — the chain of provenance is not severed (origin determinacy and invariance via S7 are established in D-ORIG).
-
-If SHOWDELETIONS returned new identities — fresh I-addresses with the same byte values — all three guarantees would collapse. The recovered content would be unaddressable by existing links, would not match existing transclusions, and would have spurious new origin. Returning addresses is therefore not a presentation choice; it is a correctness requirement.
 
 ## Origin Traceability
 
@@ -361,7 +357,7 @@ Consequences: SHOWDELETIONS is repeatable on the same state (yields identical re
 
 *Justification.* Each predicate `CURRENT`, `DELETED`, `NEVER_INCLUDED` is defined in terms of components of `Σ` only (`M`, `R`, `dom(C)`, `subspace_I`). The output sets are characterised entirely by these projections. Two distinct transition histories yielding the same `Σ` therefore yield identical SHOWDELETIONS outputs.
 
-This is what makes the operation an honest function of state. The user need not know how the system arrived at its current configuration; consulting the current configuration suffices. P4a (historical fidelity, ASN-0047; available at this invocation by D-BOUND) ensures that whenever the operation reports `DELETED(a, d)`, there really was a past state where `a` was in `d`'s arrangement — but the *route* to that past state is irrelevant to the report itself.
+This is what makes the operation an honest function of state. The user need not know how the system arrived at its current configuration; consulting the current configuration suffices. P4a (historical fidelity, ASN-0047; available by D-BOUND) ensures that whenever the operation reports `DELETED(a, d)`, there really was a past state where `a` was in `d`'s arrangement — but the *route* to that past state is irrelevant to the report itself.
 
 ## Edge Cases
 
