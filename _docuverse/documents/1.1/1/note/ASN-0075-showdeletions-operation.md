@@ -37,9 +37,13 @@ NEVER_INCLUDED(a, d)  ≡  (a, d) ∉ R
 
 We must show these are exhaustive and mutually exclusive — otherwise the operation's outputs would have undefined classifications.
 
-**Lemma D-EXH (Three-State Exhaustion).** Let `Σ` be a state reachable from `Σ_0` by a finite sequence of valid composite transitions (equivalently, `Σ` is a composite boundary). For every `(a, d)` with `a ∈ dom(Σ.C)` and `d ∈ Σ.E_doc`, exactly one of `CURRENT(a, d)`, `DELETED(a, d)`, `NEVER_INCLUDED(a, d)` holds.
+We isolate the inference that recurs throughout this note: a content-store address found in a document's current arrangement must have a provenance record.
 
-The proof invokes `P4★` (`Contains_C(Σ) ⊆ R`) to exclude the impossible row; `P4★` is available at the composite boundary by D-BOUND.
+**Lemma D-WIT (Content Witness Forces Provenance).** Let `Σ` be a composite-boundary state. For every `a ∈ dom(Σ.C)` and `d ∈ Σ.E_doc`, if `a ∈ ran(M(d))` then `(a, d) ∈ R`.
+
+*Proof.* From `a ∈ ran(M(d))`, fix `v ∈ dom(M(d))` with `M(d)(v) = a`. From `a ∈ dom(Σ.C)`, L14 (`dom(C) ∩ dom(L) = ∅`) gives `a ∉ dom(L)`. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`. The contrapositive of S3★'s link clause — `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)` — together with `M(d)(v) = a ∉ dom(L)` forces `subspace(v) ≠ s_L`, so `subspace(v) = s_C`. Then `v` witnesses `v ∈ dom(M(d)) ∧ subspace(v) = s_C ∧ M(d)(v) = a`, so `(a, d) ∈ Contains_C(Σ)` by definition, and `Contains_C(Σ) ⊆ R` by P4★ — a composite-boundary property of ASN-0047, available here by the composite-boundary hypothesis. Hence `(a, d) ∈ R`. ∎
+
+**Lemma D-EXH (Three-State Exhaustion).** Let `Σ` be a state reachable from `Σ_0` by a finite sequence of valid composite transitions (equivalently, `Σ` is a composite boundary). For every `(a, d)` with `a ∈ dom(Σ.C)` and `d ∈ Σ.E_doc`, exactly one of `CURRENT(a, d)`, `DELETED(a, d)`, `NEVER_INCLUDED(a, d)` holds.
 
 *Proof.* The three predicates correspond to three of the four cases of the cross-product `(a ∈ ran(M(d))) × ((a, d) ∈ R)`:
 
@@ -50,7 +54,7 @@ The proof invokes `P4★` (`Contains_C(Σ) ⊆ R`) to exclude the impossible row
 | No  | Yes | DELETED |
 | No  | No  | NEVER_INCLUDED |
 
-The "impossible" row is excluded by the following chain. From `a ∈ ran(M(d))` we obtain some `v ∈ dom(M(d))` with `M(d)(v) = a`. From the lemma's hypothesis `a ∈ dom(Σ.C)`, L14 (`dom(C) ∩ dom(L) = ∅`) gives `a ∉ dom(L)`. By S3★-aux, `subspace(v) ∈ {s_C, s_L}`. The contrapositive of S3★'s link clause — `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)` — together with `M(d)(v) = a ∉ dom(L)` forces `subspace(v) ≠ s_L`, so `subspace(v) = s_C`. With `v` witnessing `v ∈ dom(M(d)) ∧ subspace(v) = s_C ∧ M(d)(v) = a`, the pair `(a, d)` belongs to `Contains_C(Σ)` by definition, and `Contains_C(Σ) ⊆ R` by P4★. So `(a, d) ∈ R`, contradicting `(a, d) ∉ R`.
+The "impossible" row is excluded by D-WIT: from `a ∈ ran(M(d))` and the lemma's hypothesis `a ∈ dom(Σ.C)`, D-WIT gives `(a, d) ∈ R`, contradicting the row's `(a, d) ∉ R`.
 
 For each remaining row, label assignment is direct from the predicate definitions:
 
@@ -145,8 +149,6 @@ The two halves are necessarily disjoint, and the disjointness is unconditional �
 
 **Observational-discipline axiom (D-BOUND).** SHOWDELETIONS is invoked at a composite boundary: the pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047).
 
-The per-state invariants preserved by every elementary transition (S2, S3★, …) do not entail `P4★` (`Contains_C(Σ) ⊆ R`): both `P4★` and `P4a` (historical fidelity) are composite-boundary properties of ASN-0047, and at an intermediate state inside a composite `P4★` may fail — `(a, d) ∈ R` need not witness any prior inclusion. Restricting invocation to composite boundaries is what makes `P4★` and `P4a` available wherever the proofs in this note invoke them.
-
 The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state`, with the boundary conjunct supplied structurally by D-BOUND. Its postcondition characterises the result set-theoretically. We capture this in wp form. Let `q` abbreviate the predicate:
 
 ```
@@ -185,9 +187,9 @@ The joint report is empty exactly when no content has been deleted from one docu
 
 *Supplementary lemma (R-disjointness implies Q0 at composite-boundary states).* Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. The argument invokes `P4★`, available by D-BOUND. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
 
-*Group 1: `(a, d_A) ∈ R`.* Disjointness gives `(a, d_B) ∉ R`. For conjunct 1, `CURRENT(a, d_B)` requires `a ∈ ran(M(d_B))`; by the same L14 + S3★-aux + S3★-contrapositive chain unpacked in the proof of D-EXH above — `a ∈ dom(C)` (from the outer quantifier) gives `a ∉ dom(L)` via L14; the witness `v ∈ dom(M(d_B))` for `a ∈ ran(M(d_B))` must satisfy `subspace(v) = s_C` (else S3★'s link clause would force `a ∈ dom(L)`); so `(a, d_B) ∈ Contains_C(Σ)`, which by P4★ — activated by the boundary hypothesis — forces `(a, d_B) ∈ R`, contradicting `(a, d_B) ∉ R`. So `CURRENT(a, d_B)` fails and conjunct 1 is falsified. Conjunct 2 is falsified more directly: `DELETED(a, d_B)` has first conjunct `(a, d_B) ∈ R`, which `(a, d_B) ∉ R` negates outright — no P4★ chain needed.
+*Group 1: `(a, d_A) ∈ R`.* Disjointness gives `(a, d_B) ∉ R`. For conjunct 1, `CURRENT(a, d_B)` requires `a ∈ ran(M(d_B))`; D-WIT would then give `(a, d_B) ∈ R`, contradicting `(a, d_B) ∉ R`. So `CURRENT(a, d_B)` fails and conjunct 1 is falsified. Conjunct 2 is falsified more directly: `DELETED(a, d_B)` has first conjunct `(a, d_B) ∈ R`, which `(a, d_B) ∉ R` negates outright.
 
-*Group 2: `(a, d_B) ∈ R`.* By the symmetric argument, disjointness gives `(a, d_A) ∉ R`. Conjunct 2's `CURRENT(a, d_A)` is excluded by the same L14 + S3★ + P4★ chain applied to `d_A`, falsifying conjunct 2; and conjunct 1's `DELETED(a, d_A)` fails directly because its first conjunct `(a, d_A) ∈ R` is negated by `(a, d_A) ∉ R`.
+*Group 2: `(a, d_B) ∈ R`.* By the symmetric argument, disjointness gives `(a, d_A) ∉ R`. Conjunct 2's `CURRENT(a, d_A)` is excluded by D-WIT applied to `d_A` (it would force `(a, d_A) ∈ R`), falsifying conjunct 2; and conjunct 1's `DELETED(a, d_A)` fails directly because its first conjunct `(a, d_A) ∈ R` is negated by `(a, d_A) ∉ R`.
 
 *Group 3: neither `(a, d_A) ∈ R` nor `(a, d_B) ∈ R`.* The address is classified `NEVER_INCLUDED` against both documents; `DELETED(a, d_A)` and `DELETED(a, d_B)` both fail on their first conjuncts, so both conjuncts are falsified trivially.
 
@@ -275,7 +277,7 @@ Confining the operation to the content subspace — which the restriction to `do
 
 The link subspace differs structurally. By CL-OWN (ASN-0047), if `subspace(v) = s_L` and `M(d)(v) = a`, then `origin(a) = d`: a document's link-subspace V-positions reference only its own link addresses. There is no inheritance of link content across documents in the way that there is for content. So "cross-document deletion of link material" is not a well-formed comparison — each document's link-subspace material is its own, and no comparison document holds it as witness.
 
-We make the witness-impossibility explicit, mirroring the chain unpacked in D-EXH. Let `ℓ` be a link address with `origin(ℓ) = d_A`, and let `d_B ≠ d_A` be any candidate witness document. We show `ℓ ∉ ran(M(d_B))`. First, by L0 (SubspacePartition, ASN-0047), `subspace_I(ℓ) = s_L`, so `ℓ ∈ dom(L)` (every link address lives in the link store). Suppose for contradiction `ℓ ∈ ran(M(d_B))`: some `v ∈ dom(M(d_B))` has `M(d_B)(v) = ℓ`, and by S3★-aux `subspace(v) ∈ {s_C, s_L}`. We exclude both:
+We make the witness-impossibility explicit. Let `ℓ` be a link address with `origin(ℓ) = d_A`, and let `d_B ≠ d_A` be any candidate witness document. We show `ℓ ∉ ran(M(d_B))`. First, by L0 (SubspacePartition, ASN-0047), `subspace_I(ℓ) = s_L`, so `ℓ ∈ dom(L)` (every link address lives in the link store). Suppose for contradiction `ℓ ∈ ran(M(d_B))`: some `v ∈ dom(M(d_B))` has `M(d_B)(v) = ℓ`, and by S3★-aux `subspace(v) ∈ {s_C, s_L}`. We exclude both:
 
 - *Content V-position (`subspace(v) = s_C`).* The content clause of S3★ would force `M(d_B)(v) = ℓ ∈ dom(C)`. But `ℓ ∈ dom(L)`, and L14 (`dom(C) ∩ dom(L) = ∅`) gives `ℓ ∉ dom(C)` — contradiction.
 - *Link V-position (`subspace(v) = s_L`).* CL-OWN would force `origin(M(d_B)(v)) = origin(ℓ) = d_B`. But `origin(ℓ) = d_A ≠ d_B` — contradiction.
@@ -376,6 +378,7 @@ This is what makes the operation an honest function of state. The user need not 
 | CURRENT | `CURRENT(a, d) ≡ a ∈ ran(M(d))` | introduced |
 | DELETED | `DELETED(a, d) ≡ (a, d) ∈ R ∧ a ∉ ran(M(d))` | introduced |
 | NEVER_INCLUDED | `NEVER_INCLUDED(a, d) ≡ (a, d) ∉ R` | introduced |
+| D-WIT | At a composite-boundary state, `a ∈ dom(C) ∧ a ∈ ran(M(d)) ⟹ (a, d) ∈ R` | introduced |
 | D-EXH | For every composite-boundary state Σ (reachable by valid composite transitions) and every `(a, d)` with `a ∈ dom(Σ.C)`, `d ∈ Σ.E_doc`, exactly one of CURRENT, DELETED, NEVER_INCLUDED holds | introduced |
 | D-DISCR | No function of `(C, L, E, M)` alone can distinguish DELETED from NEVER_INCLUDED; any system supporting SHOWDELETIONS must maintain state components `C*` beyond the four foundation components such that consulting `(C, L, E, M, C*)` at every reachable Σ determines whether each `(a, d)` is DELETED or NEVER_INCLUDED | introduced |
 | DeletedFromAWithB | `{a ∈ dom(C) : DELETED(a, d_A) ∧ CURRENT(a, d_B)}` | introduced |
