@@ -1,18 +1,12 @@
-# Channel Assignment — ASN-0051 review-71
+# Channel Assignment — ASN-0098 review-71
 
-**Date:** 2026-05-17 21:05
+**Date:** 2026-06-03 06:31
 
-## Issue 1: SV5b/SV13(e) — reordering proof under K.μ~ stage-level vs endpoint reading
-Reason: The fix is an editorial framing choice — both readings of K.μ~ (composite endpoints vs. distinguished K.μ⁻+K.μ⁺ composite) come from ASN-0047, which is already in scope. The required single sentence picks one framing and forward-points to the composite-level scope discussion already present.
+## Issue 1: Restating aphorism closes the LP16 discussion
+Reason: Pure editorial deletion of a redundant trailing sentence that restates the preceding text. No design intent or implementation evidence is required — the redundancy is verifiable from the ASN's own prose.
 
-## Issue 2: Lift schema verifications — "same per-step structural verification" is too compressed
-Reason: The induction structure is fully determined by the explicit base witnesses (W(3,2), W(2,3)) and the verified single-step lifts (α_2, β_2) already in the ASN; making the induction explicit is a one-paragraph editorial addition requiring no new content.
+## Issue 2: Forward roadmap pointer inside the "anything is left" formalisation
+Reason: Pure editorial deletion of a forward-pointer clause. The section ordering and LP13's own statement already supply the contrast; the fix is internal to the ASN.
 
-## Issue 3: SV6 sub-claim labelling collides with later schema labels
-Reason: Pure relabelling to disambiguate Greek letters used in two distinct sections of the same ASN. No external information needed.
-
-## Issue 4: Worked Example K.μ~ admissibility silent on J1★ across the composite
-Reason: The required sentence appeals to P2 (R-monotonicity) and J1★ as stated in ASN-0047, both already cited in this ASN. The compositional argument (R-entries persist across K.μ⁻, so K.μ⁺ stage finds J1★-required entries already in R) is derivable from foundation properties already in scope.
-
-## Issue 5: SV11 attainment witness coverage — presentation could be more digestible
-Reason: The summary table compresses content already established in the attainment section; it is a presentation reorganisation, not a content change.
+## Issue 3: Roadmap tail on the LP12→LP12a transition
+Reason: Pure editorial deletion of a roadmap sentence whose content is announced by the LP12a block that follows. Derivable from the ASN alone.
