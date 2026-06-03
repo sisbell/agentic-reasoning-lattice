@@ -23,7 +23,7 @@ We take from the foundation:
 - **Subspace convention** `s_C = 1, s_L = 2` (ASN-0047, SubspaceConventionAxiom).
 - **Link subspace ownership** (CL-OWN, ASN-0047): link-subspace V-positions of `d` map only to link I-addresses with `origin = d`.
 
-We restrict attention to the content subspace throughout (the operation is confined to `s_C`; see D-SUBSP).
+We restrict attention to the content subspace throughout: the restriction to `dom(C)` confines the operation to `s_C`, since every `a ∈ dom(C)` has `subspace_I(a) = s_C`.
 
 ## The Three States of Content
 
@@ -76,7 +76,7 @@ We now show that the four foundation state components `(C, L, E, M)` together ar
 
 A second bundling concerns document creation. K.δ case (ii) with `k = 2` (descent) requires `t ∈ E ∧ zeros(t) ≤ 1`. From `Σ_0` (where the only entity is the bootstrap node `n_0` with `zeros(n_0) = 0`), a single elementary K.δ step produces at most an account (`zeros = 1`); producing the *first* document (`zeros = 2`) requires a precursor account-creation step. We therefore write `K.δ(d) ≡ K.δ(A); K.δ(d)` as shorthand *for that first document only*, where `A = inc(n_0, 2)` is the account and `d = inc(A, 2)` is the document. The *second* document `d'` is a version fork `d' = inc(d, 1)` (K.δ case (ii), `k = 1`), which requires only `d ∈ E_doc`.
 
-Throughout both histories, each content-introduction composite follows a fixed *bundle pattern*: K.α allocates `a` into `dom(C')`, discharging the freshness obligation; K.μ⁺ places `a` into some document's arrangement, discharging J0; and because K.μ⁺'s frame leaves `R` unchanged on its own, the bundled K.ρ is what records the provenance pair, discharging J1★ and J1'★. We cite "the bundle pattern" at each composite below rather than re-deriving this discharge at every step.
+Throughout both histories, each content-introduction composite follows a fixed *bundle pattern*: K.α allocates `a` into `dom(C')`, discharging the freshness obligation; K.μ⁺ places `a` into some document's arrangement, discharging J0; and because K.μ⁺'s frame leaves `R` unchanged on its own, the bundled K.ρ is what records the provenance pair, discharging J1★ and J1'★.
 
 Both histories begin at the initial state `Σ_0` (ASN-0047) and share the prefix `K.δ(d); K.δ(d')` — creating two documents `d, d'`. Both then invoke K.α(a, d) to allocate one content address. By K.α's first-emission rule (`{a' ∈ dom(C) : origin(a') = d} = ∅` initially), the allocated address is determinately `a = [d.0.s_C.1]` — a value fixed by `d` alone. Both histories pass the same `d` to the first-emission predicate, so both yield the same allocated address `a`. We further stipulate that both histories pass the *same* `v ∈ Val` argument to K.α — call it `v_a` — so that `C_1(a) = C_2(a) = v_a` and the content-store agreement in the table below holds at the value level. K.α's content-value parameter is a free choice by the caller, and synchronising it across the two histories is the only way to make the `(C, L, E, M)` agreement total. We fix the content-subspace V-position depth at `m_C = 2` throughout both histories — admissible because ValidFirstInsertionPosition (ASN-0036) treats `m` as operational input with `m ≥ 2`, and we choose the minimum so both histories operate with the same depth — giving `v = [s_C, 1] = [1, 1]` in `M(d)` and `v' = [s_C, 1] = [1, 1]` in `M(d')` as the canonical D-MIN★ first positions for each document's initially-empty content subspace. The histories then differ in where `a` is placed and which provenance pairs are recorded.
 
@@ -161,7 +161,7 @@ Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
 
 Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds.
 
-The definition reads state and returns a result without modifying any component: `SHOWDELETIONS(d_A, d_B)` is a pair of set-builder comprehensions over `Σ`'s components `M`, `R`, `dom(C)` — it allocates nothing, rewrites nothing, and invokes no transition relation. Observationality is therefore immediate from the definition (the full frame is recorded as D-OBS). Consequently wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
+The definition is a pair of set-builder comprehensions over `Σ`'s components `M`, `R`, `dom(C)`. By D-OBS the operation modifies no state component, so wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
 *Non-emptiness of one report half.* Let `Q1` abbreviate `DeletedFromAWithB(d_A, d_B) ≠ ∅`. Unpacking the definition of `DeletedFromAWithB`:
 
@@ -176,7 +176,7 @@ wp(SHOWDELETIONS(d_A, d_B), Q1)
 
 So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement. The last conjunct (presence in `d_B`) is what makes the report *recoverable* — every reported deletion has a concrete witness in the partner document.
 
-*Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. Since SHOWDELETIONS only reads state (established above) and `Q0` depends only on `Σ`'s components `M`, `R`, `dom(C)` — each evaluable at any state `Σ` — the wp formula is the precondition conjoined with `Q0` unpacked at the pre-state:
+*Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. Since SHOWDELETIONS modifies no state component (D-OBS) and `Q0` depends only on `Σ`'s components `M`, `R`, `dom(C)` — each evaluable at any state `Σ` — the wp formula is the precondition conjoined with `Q0` unpacked at the pre-state:
 
 ```
 wp(SHOWDELETIONS(d_A, d_B), Q0)
@@ -189,7 +189,7 @@ wp(SHOWDELETIONS(d_A, d_B), Q0)
 
 The joint report is empty exactly when no content has been deleted from one document while remaining current in the other.
 
-**Lemma D-DISJ (Disjoint Provenance Empties the Report).** Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. This is a sufficient condition for vacuity not given by the `wp(SHOWDELETIONS, Q0)` formula above, which characterises emptiness through the current arrangements `M`; D-DISJ characterises it through `R` alone. The argument invokes `P4★`, available by D-BOUND. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
+**Lemma D-DISJ (Disjoint Provenance Empties the Report).** Documents with disjoint `R`-projections on the content subspace — `{a : (a, d_A) ∈ R} ∩ {a : (a, d_B) ∈ R} = ∅` — satisfy `Q0` at any composite-boundary state `Σ`. The argument invokes `P4★`, available by D-BOUND. *Proof.* `Q0` requires every `a ∈ dom(C)` to falsify *both* conjuncts `DELETED(a, d_A) ∧ CURRENT(a, d_B)` (conjunct 1) and `DELETED(a, d_B) ∧ CURRENT(a, d_A)` (conjunct 2). Partition `dom(C)` into three groups by `R`-projection membership, and show each group falsifies both conjuncts.
 
 *Group 1: `(a, d_A) ∈ R`.* Disjointness gives `(a, d_B) ∉ R`. For conjunct 1, `CURRENT(a, d_B)` requires `a ∈ ran(M(d_B))`; D-WIT would then give `(a, d_B) ∈ R`, contradicting `(a, d_B) ∉ R`. So `CURRENT(a, d_B)` fails and conjunct 1 is falsified. Conjunct 2 is falsified more directly: `DELETED(a, d_B)` has first conjunct `(a, d_B) ∈ R`, which `(a, d_B) ∉ R` negates outright.
 
@@ -348,7 +348,7 @@ Formally, for state `Σ = (C, L, E, M, R)` and the state `Σ'` obtaining after t
 (A d ∈ E_doc ::  Σ'.M(d) = Σ.M(d))
 ```
 
-The operation reads `M(d_A)`, `M(d_B)`, and `R`; it computes the output sets; it returns them. No transition relation is invoked.
+The operation reads `M(d_A)`, `M(d_B)`, and `R`; it computes the output sets; it returns them. It allocates nothing, rewrites nothing, and invokes no transition relation — observationality is immediate from the definition, which is a pair of set-builder comprehensions over `Σ`.
 
 Consequences: SHOWDELETIONS is repeatable on the same state (yields identical results); it commutes with other observational queries; and a later invocation after intervening state changes correctly reflects the new state. Because the operation is observational, its result is merely delivered to the caller and is not stored as a document or otherwise integrated into the persistent store (**D-STORE**); the system creates no persistent artefact of its own accord.
 
