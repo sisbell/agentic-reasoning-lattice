@@ -62,7 +62,7 @@ The four-row table is total over the two binary conditions, row 2 is excluded by
 
 ## Why the Provenance Relation Is Load-Bearing
 
-We now show that the four foundation state components `(C, L, E, M)` are insufficient to support SHOWDELETIONS. The argument proceeds in two steps: a discrimination lemma (D-DISCR) exhibiting two states indistinguishable on `(C, L, E, M)` yet differently classified, and the necessity corollary (D-NEED) it yields.
+We now show that the four foundation state components `(C, L, E, M)` are insufficient to support SHOWDELETIONS.
 
 **Lemma D-DISCR (Discrimination Requires Provenance).** No function computable from `(Σ.C, Σ.L, Σ.E, Σ.M)` alone can distinguish `DELETED(a, d)` from `NEVER_INCLUDED(a, d)` for arbitrary `(a, d)`.
 
@@ -165,14 +165,13 @@ The operation always terminates with `q` true when this holds. Termination rests
 
 The operation's *stated* precondition (D-BOUND) is strictly stronger than `wp(op, q)`: it adds the composite-boundary conjunct `Σ is a composite-boundary state`. That conjunct is not needed to compute `q`; it is load-bearing for the report's *meaning* rather than its bare production. D-WIT and D-EXH hold only at composite boundaries (they rest on P4★, which couples `Contains_C` into `R` only across complete composites), so the boundary requirement is what licenses the three-state exhaustion underwriting `DELETED` — and hence the guarantee that an address reported as deleted-with-witness was genuinely once present rather than merely transiently mid-composite. We retain the boundary conjunct in the operation's precondition for this semantic guarantee, while noting it is not part of the weakest precondition for `q`.
 
-Because SHOWDELETIONS writes no state component (D-OBS), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
+Because SHOWDELETIONS writes no state component (D-OBS), wp computations for state-level predicates pass through unchanged from the pre-state. As with `q`, the well-definedness condition is `d_A ∈ E_doc ∧ d_B ∈ E_doc` — the boundary conjunct of the *stated* precondition is no part of the weakest precondition — so for any `P` depending only on `Σ`, `wp(SHOWDELETIONS, P) = d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ P(Σ)`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
 *Non-emptiness of one report half.* Let `Q1` abbreviate `DeletedFromAWithB(d_A, d_B) ≠ ∅`. Unpacking the definition of `DeletedFromAWithB`:
 
 ```
 wp(SHOWDELETIONS(d_A, d_B), Q1)
    =  d_A ∈ E_doc  ∧  d_B ∈ E_doc
-    ∧  Σ is a composite-boundary state
     ∧  (E a ∈ dom(C) :  (a, d_A) ∈ R
                        ∧ a ∉ ran(M(d_A))
                        ∧ a ∈ ran(M(d_B)))
@@ -180,12 +179,11 @@ wp(SHOWDELETIONS(d_A, d_B), Q1)
 
 So `DeletedFromAWithB` is non-empty exactly when some content address inhabits `d_A`'s history through `R`, has been removed from `d_A`'s current arrangement, and remains in `d_B`'s current arrangement.
 
-*Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. `Q0` is a state-level predicate over `M`, `R`, `dom(C)`, so by the general rule above the wp formula is the precondition conjoined with `Q0` unpacked at the pre-state:
+*Vacuity of both report halves.* Let `Q0` abbreviate `DeletedFromAWithB(d_A, d_B) = ∅ ∧ DeletedFromBWithA(d_A, d_B) = ∅`. `Q0` is a state-level predicate over `M`, `R`, `dom(C)`, so by the general rule above the wp formula is the well-definedness condition conjoined with `Q0` unpacked at the pre-state:
 
 ```
 wp(SHOWDELETIONS(d_A, d_B), Q0)
    =  d_A ∈ E_doc  ∧  d_B ∈ E_doc
-    ∧  Σ is a composite-boundary state
     ∧  (A a ∈ dom(C) :
             ¬(DELETED(a, d_A)  ∧  CURRENT(a, d_B))
           ∧ ¬(DELETED(a, d_B)  ∧  CURRENT(a, d_A)))
@@ -250,7 +248,7 @@ The content-level guarantee — the union of both halves as a set of I-addresses
 
 ## A Worked Example
 
-We illustrate SHOWDELETIONS on the canonical scenario: a document is forked, and the two siblings diverge by each deleting different content. Having now stated the claims D-EXH, D-IDENT, D-ORIG, and D-SYM, we check each concretely against the resulting state.
+We illustrate SHOWDELETIONS on the canonical scenario: a document is forked, and the two siblings diverge by each deleting different content.
 
 *Setup.* Begin at `Σ_0` (the initial state of ASN-0047). Using the first-document shorthand `K.δ(d_A) ≡ K.δ(A); K.δ(d_A)` established in D-DISCR (with `A = inc(n_0, 2)` and `d_A = inc(A, 2)`), apply the composite
 
