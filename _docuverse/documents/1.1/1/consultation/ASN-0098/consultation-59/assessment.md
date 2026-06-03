@@ -1,18 +1,16 @@
-# Channel Assignment — ASN-0051 review-59
+# Channel Assignment — ASN-0098 review-59
 
-**Date:** 2026-05-16 09:08
+**Date:** 2026-06-03 05:39
 
-## Issue 1: SV6 sub-claim (ii)(b) — implicit case for `t ≠ s` with proper-prefix relationship
-Reason: The fix is a proof case-split using T1's trichotomy already in scope (T1(i) component-wise divergence vs T1(ii) proper-prefix relationship) and T12's `actionPoint(ℓ) ≤ #s`. All required machinery is internal to the ASN's cited foundations.
+## Issue 1: Repeated forward-deferral to the tightness/LP19 discussion
+Reason: Purely editorial. The conditional-growth fact is already proven locally in LP9's exact-difference formula; the fix only removes redundant "depends on construction discipline … established as LP19" pointers. No external evidence needed.
 
-## Issue 2: SV11 attainment for (m ≥ 2, p ≥ 3) marked conjectural
-Reason: Resolving attainment at (m ≥ 2, p ≥ 3) requires constructing a witness (or proving non-attainment) using ASN-0058's M7/M12 block-merging discipline and ASN-0053's span algebra — purely formal machinery within the ASN's foundations. No design intent or implementation evidence is required to settle the math.
+## Issue 2: Placement-rationale prose in the LP12 introduction
+Reason: Internal. The substantive premise (only K.μ⁻ can shrink a projection to empty) is already established by LP9/LP10/LP11 within the ASN; removing the "natural site" document-structure justification requires no external input.
 
-## Issue 3: SV11 attainment biconditional — disjoint-pair argument relies on undefended geometric claim
-Reason: The fix is either scoping the disjoint-pair argument to p = 2 or extending it with a T-betweenness lemma using S0 convexity and ASN-0058's block-ordering properties. All machinery is internal.
+## Issue 3: Recap restatement in LP18's closing
+Reason: Internal. The four recapped facts (L12, S0, live projection, I-address-based discovery) are all proven elsewhere in the note; compressing or dropping the enumeration is a self-contained edit.
 
-## Issue 4: π versus locate terminology drift in SV10 discussion
-Reason: The mismatch is between the property name chosen by the ASN author and the formal statement also authored within this ASN; resolving it is a naming/formalisation choice using the projection and resolution definitions already introduced. Internal editorial decision.
-
-## Issue 5: SV13(e) reordering clause overloads "preserves π exactly"
-Reason: The fix is to align SV13(e)'s synthesis prose with SV5's existing composite-endpoint scope note — purely an editorial qualifier drawn from material already present in the ASN.
+## Issue 4: Operation enumeration omits K.δ Node/Account cases
+Reason: The fix needs the actual frame of K.δ in the Node(e) and Account(e) cases — whether they truly leave every M(d) fixed and add no document. This is the operational definition in ASN-0047, an implementation/semantics fact best confirmed against the code rather than assumed from the reviewer's assertion.
+Gregory question: In the udanax-green K.δ operation, do the Node and Account creation cases leave every document arrangement M(d) unchanged and add no entry to dom(M), so that ran/dom of every arrangement is untouched?
