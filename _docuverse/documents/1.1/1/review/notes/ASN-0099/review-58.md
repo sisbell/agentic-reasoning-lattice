@@ -1,0 +1,21 @@
+# Review of ASN-0099
+
+## REVISE
+
+### Issue 1: Silent-projection uniqueness characterization is false as stated
+
+**ASN-0099, "A Two-Phase Factoring" (Phase 1, the *treatment* characterization)**: "Silent projection is the unique treatment satisfying both: (i) *no fabrication* — every emitted address is an actual arrangement image, `g(R, d, Σ) ⊆ ran(Σ.M(d))`; and (ii) *faithfulness on present positions* — `{Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))} ⊆ g(R, d, Σ)`. ... Only silent projection meets both conjuncts."
+
+**Problem**: Conditions (i)+(ii) do **not** pin down silent projection. Take the treatment `g(R, d, Σ) = ran(Σ.M(d))` (constant in `R` — emit every I-address `d` references, regardless of `R`). It satisfies (i) trivially (`ran ⊆ ran`) and (ii) trivially (`image ⊆ ran` always holds), yet `g ≠ image` whenever `R` fails to cover `dom(Σ.M(d))`.
+
+Concretely from the worked example: `dom(Σ.M(d_a)) = {v_a^1, v_a^2, v_a^3} → {α₁, α₂, α₃}`, take `R = {v_a^1}`. Silent projection gives `{α₁}`. The constant-`ran` treatment gives `{α₁, α₂, α₃}`, which satisfies (i) (`⊆ {α₁,α₂,α₃} = ran`) and (ii) (`{α₁} ⊆ {α₁,α₂,α₃}`) — but is not silent projection. The ASN's own alternative-treatment discussion considers only the `∅`-treatment (violates (ii)) and sentinel/default treatments mapping absent positions to addresses *outside* `ran` (violate (i)); it never considers a treatment that emits genuine arrangement images of V-positions *outside* `R`. Those addresses are in `ran(Σ.M(d))`, so (i) does not exclude them.
+
+The defect is that (i) "no fabrication" as formalized (`g ⊆ ran(Σ.M(d))`) is the wrong upper bound: it permits images witnessed by V-positions not in `R`.
+
+**Required**: Strengthen (i) to bound `g` by the image of `R` rather than the whole range — e.g. `g(R, d, Σ) ⊆ {Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}` (equivalently: every emitted address has a witnessing V-position *in `R`*). With that bound, (i)+(ii) become mutual inclusions forcing `g = image`, and the uniqueness claim holds. Then update the discriminating discussion to dispatch the constant-`ran` (and "any superset within `ran`") treatments explicitly, since they are the cases the current text misses.
+
+## OUT_OF_SCOPE
+
+None.
+
+VERDICT: REVISE
