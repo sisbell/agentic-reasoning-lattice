@@ -131,7 +131,7 @@ The postcondition fixes the *V-restricted denotation* of each component but not 
 
 **Definition (F-canon-form — CanonicalForm).** The canonical form of `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` is the per-subspace family in which:
 
-(i) Each component span in each `Σ_V^S` is a level-uniform span `σ = (s, δ(c, m_S(d)))` whose start `s` is a depth-`m_S(d)` tumbler satisfying `subspace(s) = S` and `(A i : 1 ≤ i ≤ m_S(d) : s_i ≥ 1)` (so `s` is an admissible V-position by S8a), and whose width is an ordinal displacement `δ(c, m_S(d)) = [0, ..., 0, c]` of depth `m_S(d)` with `c ≥ 1`. (F-canonical Step 1 shows no other level-uniform span has a finite, subspace-confined `⟦σ⟧_V` matching a component of `R(d, e)|_S`.)
+(i) Each component span in each `Σ_V^S` is a level-uniform span `σ = (s, δ(c, m_S(d)))` whose start `s` is a depth-`m_S(d)` tumbler satisfying `subspace(s) = S` and `(A i : 1 ≤ i ≤ m_S(d) : s_i ≥ 1)` (so `s` is an admissible V-position by S8a), and whose width is an ordinal displacement `δ(c, m_S(d)) = [0, ..., 0, c]` of depth `m_S(d)` with `c ≥ 1`.
 
 (ii) Each component `Σ_V^S` is in the unique normalised form guaranteed by S9 (NormalizationUniqueness, ASN-0053) — sorted by V-start under T1, with no overlapping or adjacent spans.
 
@@ -450,7 +450,7 @@ Among these, F-sound and F-complete are the two halves of the postcondition's se
 1. F0 establishes (its Well-definedness clause) that `R(d, L(ℓ).eᵢ)` is uniquely determined by `Σ`, `d`, `i` — all of which are fixed here.
 2. By S3★-aux (SubspaceExhaustiveness), every `v ∈ dom(M(d))` has `subspace(v) ∈ {s_C, s_L}`, so the partition `R(d, L(ℓ).eᵢ) = R(d, L(ℓ).eᵢ)|_{s_C} ⊎ R(d, L(ℓ).eᵢ)|_{s_L}` is exhaustive and the two components are each uniquely determined.
 3. By the postcondition of `follow`, any returned `Σ_V` satisfies `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S` for each `S`. Combined with step 2, the V-restricted denotation of each subspace component is therefore uniquely determined.
-4. By F-canonical, given the fixed V-restricted denotation per subspace, a canonical form exists (Step 3's per-run construction, whose normalised existence S8 (NormalizationExistence, ASN-0053) underwrites) and S9 (NormalizationUniqueness, ASN-0053) yields a unique normalised form per component; the fixed external ordering yields a unique family-level form. The canonical form is therefore uniquely determined. ∎
+4. By F-canonical, given the fixed V-restricted denotation per subspace, a canonical form exists (Step 3's per-run construction, whose normalised existence S8 (NormalizationExistence, ASN-0053) underwrites) and is unique. Uniqueness from the *V-restricted* denotation is exactly what F-canonical's Step 4 bridge supplies: it recovers each component `(s_j, c_j)` from the maximal runs of `⟦Σ̂^S⟧_V` (the contiguity infrastructure of Step 2), so that V-restricted equality `⟦Σ̂^S⟧_V = ⟦Σ̂'^S⟧_V` forces the same per-run decomposition and hence the same components. S9 (NormalizationUniqueness, ASN-0053) governs equality of normalised span-sets under *full* denotation `⟦·⟧`; it applies here only after the bridge converts V-restricted equivalence to full-denotation equivalence (each component's full `⟦σ_j⟧` is determined by its recovered `(s_j, c_j)`). The fixed external ordering then yields a unique family-level form. The canonical form is therefore uniquely determined. ∎
 
 ### F-sound — Soundness (LEMMA)
 
