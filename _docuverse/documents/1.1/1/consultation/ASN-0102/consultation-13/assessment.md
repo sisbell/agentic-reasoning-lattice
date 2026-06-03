@@ -1,21 +1,9 @@
-# Revision Categorization — ASN-0067 review-13
+# Channel Assignment — ASN-0102 review-13
 
-**Date:** 2026-03-22 22:52
+**Date:** 2026-06-03 14:38
 
+## Issue 1: The "uniqueness" characterization of COPY is false
+Reason: Internal fix. The note already states K.μ⁺'s semantics (frame `C'=C`, precondition `a ∈ dom(C)`) in its own "Definition of COPY" section, so the corrected taxonomy and the displacement-based essence are derivable from the ASN's own content plus the already-cited ASN-0047. No design-intent or implementation evidence is at stake — the false claim is a formal over-statement, not a question about what the system meant or does.
 
-
-## Issue 1: Elementary decomposition (Case 1) misapplies K.μ~ and violates D-CTG
-Category: INTERNAL
-Reason: The fix requires restructuring the elementary decomposition to use valid transition sequences from ASN-0047's own definitions. All necessary information — K.μ⁻ and K.μ⁺ preconditions, D-CTG requirements, ValidCompositeExtended — is already present in the referenced ASNs.
-
-## Issue 2: P.7 is too weak to restrict COPY to the content subspace
-Category: INTERNAL
-Reason: ASN-0047 already defines SubspaceIdentifiers with s_C and s_L both satisfying ≥ 1, and the K.μ⁺ amendment already requires subspace(v) = s_C. The fix is a direct substitution using definitions already present in the foundation.
-
-## Issue 3: Link subspace identifier stated as 0
-Category: INTERNAL
-Reason: ASN-0047 derives s_L ≥ 1 and ASN-0036 S8a requires v₁ ≥ 1. The parenthetical contradicts established definitions within the spec itself.
-
-## Issue 4: C3 omits extended-state invariants
-Category: INTERNAL
-Reason: The extended invariants (S3★, P4★, CL-OWN, etc.) are defined in ASN-0047 and their preservation follows directly from L being in the frame and C' = C. No external evidence is needed — the derivation uses only existing ASN-0047 definitions.
+## Issue 2: "k = number of maximal contiguous I-runs the source occupies" is imprecise for multi-reference sequences
+Reason: Internal fix. The precise picture already lives in X8 (canonical count `≤ k`, equality iff no inter-reference boundary is I-adjacent), and resolution-as-concatenation is ASN-0058 machinery the note already invokes; reconciling the early sentence with X8 is pure self-consistency. No channel needed.
