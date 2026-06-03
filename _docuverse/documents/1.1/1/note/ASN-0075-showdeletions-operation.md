@@ -153,7 +153,7 @@ The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a com
 Result = (DeletedFromAWithB(Σ, d_A, d_B), DeletedFromBWithA(Σ, d_A, d_B))
 ```
 
-Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds.
+Then `wp(SHOWDELETIONS(d_A, d_B), q) = (d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state)`. The operation always terminates with `q` true when its precondition holds. Termination is grounded in finiteness, just as output finiteness is in D-ORD: both output sets are comprehensions over `dom(C)`, finite by C-fin (ASN-0047), and each membership test `a ∈ ran(M(d_A))`, `a ∈ ran(M(d_B))` ranges over a finite arrangement by S8-fin (ASN-0036), with the `(a, d) ∈ R` test bounded by `R ⊆ dom(C) × E_doc` (P7, ASN-0047). Each comprehension thus scans finitely many addresses and performs finitely many bounded membership tests, so the operation halts.
 
 Because the operation writes no state component (D-OBS), wp computations for state-level predicates pass through unchanged from the pre-state: `wp(SHOWDELETIONS, P) = (precondition) ∧ P(Σ)` whenever `P` depends only on `Σ`. Two state-level postconditions are worth deriving explicitly, since they characterise *when* the operation surfaces structurally meaningful facts.
 
@@ -193,9 +193,54 @@ The joint report is empty exactly when no content has been deleted from one docu
 
 The three groups are exhaustive (disjointness rules out membership in both `R`-projections, so no fourth group arises). Every `a ∈ dom(C)` falsifies both conjuncts, and `Q0` holds. ∎
 
+## Restriction to the Content Subspace
+
+**Claim D-SUBSP.** SHOWDELETIONS operates only over the content subspace (`s_C`).
+
+*Justification.* Both output sets are subsets of `dom(C)`. Every `a ∈ dom(C)` has `subspace_I(a) = s_C` (established in "The Three States of Content"), and `dom(C) ∩ dom(L) = ∅` by L14, so no link address can ever appear in an output. The restriction to the content subspace is thus immediate from `output ⊆ dom(C)`.
+
+The content/link asymmetry is what makes cross-document deletion comparison meaningful only over `s_C`. Content-subspace addresses can be shared between documents, so one document can serve as the still-current witness for another's deletion. Link material cannot — by CL-OWN (ASN-0047), `subspace(v) = s_L ∧ M(d)(v) = a` forces `origin(a) = d`, so a document's link-subspace V-positions reference only its own link addresses and no comparison document ever holds another's link as witness.
+
+## Identity Preservation
+
+**Claim D-IDENT.** For every `a` in either output set, the returned reference is precisely the I-address `a` — not a copy with new identity.
+
+*Justification.* The output sets are defined as subsets of `dom(C)`. Each element is an existing I-address. We return addresses, not values. Since the output is a set of existing I-addresses, any other reference to `a` — a link endset or another document's arrangement entry — names the same `a`, with no aliasing or shadow copy introduced by the operation.
+
+## Origin Traceability
+
+**Claim D-ORIG.** For every `a` in either output set, `origin(a)` is determined and identifies a unique document — the originating allocator of `a`.
+
+*Justification.* By S7 (ASN-0036), `origin(a)` is defined for every `a ∈ dom(C)` and is invariant across all states in which `a ∈ dom(C)`. The output sets are subsets of `dom(C)`, so `origin` is well-defined on every output element.
+
+The user-facing meaning: any returned address self-identifies its home document. When `d_A` and `d_B` were derived from a common ancestor `d_C`, content inherited from `d_C` and later deleted from `d_A` carries `origin(a) = d_C`. Content originally allocated by some other document and transcluded into `d_A` before deletion carries that other document's address as origin. The output need carry no extra "origin annotation" beyond the address itself — origin is derived structurally from the address.
+
+## Order Preservation
+
+**Claim D-ORD.** Each output half is a finite subset of `dom(C) ⊆ T`, and therefore inherits the total order T1 (ASN-0034) imposes on tumblers. No separate ordering structure is needed: the addresses are self-ordering, and any presentation may list them in T1 order.
+
+*Justification.* The output sets are subsets of `dom(C)`, finite by C-fin (ASN-0047), and T1 is a strict total order on `T` (ASN-0034). The restriction of a total order to a finite subset is again a total order, so each half is linearly ordered by its own addresses with no appeal to any document's arrangement.
+
+We note explicitly what is *not* recoverable: the V-position order in which a deleted address appeared in the document from which it was removed. V-position information is local to a current arrangement and is not preserved by `R`, so the deleted document's "original ordering" is a property of an arrangement no longer present. The witness document's arrangement does impose a V-order on the still-current addresses, but that order is observable only through the witness and is not part of the abstract output.
+
+## Symmetry
+
+**Claim D-SYM.** Argument swap maps each output half into the other:
+
+```
+SHOWDELETIONS(d_A, d_B)  =  (X, Y)
+SHOWDELETIONS(d_B, d_A)  =  (Y, X)
+```
+
+where `X = DeletedFromAWithB(d_A, d_B)` and `Y = DeletedFromBWithA(d_A, d_B)`.
+
+*Justification.* By name-substitution in the definitions: `DeletedFromAWithB(d_B, d_A)` reads as "addresses with `DELETED(a, d_B) ∧ CURRENT(a, d_A)`," which is exactly `DeletedFromBWithA(d_A, d_B)`. Likewise the other half.
+
+The content-level guarantee — the union of both halves as a set of I-addresses — is therefore symmetric in the operands. The presentation labelling (which half is "from A" vs. "from B") swaps accordingly.
+
 ## A Worked Example
 
-We illustrate SHOWDELETIONS on the canonical scenario: a document is forked, and the two siblings diverge by each deleting different content. The claims D-EXH, D-IDENT, D-ORIG, and D-SYM can be checked concretely against the resulting state.
+We illustrate SHOWDELETIONS on the canonical scenario: a document is forked, and the two siblings diverge by each deleting different content. Having now stated the claims D-EXH, D-IDENT, D-ORIG, and D-SYM, we check each concretely against the resulting state.
 
 *Setup.* Begin at `Σ_0` (the initial state of ASN-0047). Using the first-document shorthand `K.δ(d_A) ≡ K.δ(A); K.δ(d_A)` established in D-DISCR (with `A = inc(n_0, 2)` and `d_A = inc(A, 2)`), apply the composite
 
@@ -257,51 +302,6 @@ Only `b` is deleted from `d_A` while remaining in `d_B`; only `c` is deleted fro
 
 The example also illustrates the structural significance of the witness: `b` is reported as deleted from `d_A` only because `d_B` still holds it; if `d_B` had also deleted `b`, the pair `(b, d_A)` would still be DELETED, but `b` would not appear in `DeletedFromAWithB` because the witness condition `CURRENT(b, d_B)` would fail. Cross-document SHOWDELETIONS exposes exactly the asymmetric losses — deletions that one document made and the other did not.
 
-## Restriction to the Content Subspace
-
-**Claim D-SUBSP.** SHOWDELETIONS operates only over the content subspace (`s_C`).
-
-*Justification.* Both output sets are subsets of `dom(C)`. Every `a ∈ dom(C)` has `subspace_I(a) = s_C` (established in "The Three States of Content"), and `dom(C) ∩ dom(L) = ∅` by L14, so no link address can ever appear in an output. The restriction to the content subspace is thus immediate from `output ⊆ dom(C)`.
-
-The content/link asymmetry is what makes cross-document deletion comparison meaningful only over `s_C`. Content-subspace addresses can be shared between documents, so one document can serve as the still-current witness for another's deletion. Link material cannot — by CL-OWN (ASN-0047), `subspace(v) = s_L ∧ M(d)(v) = a` forces `origin(a) = d`, so a document's link-subspace V-positions reference only its own link addresses and no comparison document ever holds another's link as witness.
-
-## Identity Preservation
-
-**Claim D-IDENT.** For every `a` in either output set, the returned reference is precisely the I-address `a` — not a copy with new identity.
-
-*Justification.* The output sets are defined as subsets of `dom(C)`. Each element is an existing I-address. We return addresses, not values. Since the output is a set of existing I-addresses, any other reference to `a` — a link endset or another document's arrangement entry — names the same `a`, with no aliasing or shadow copy introduced by the operation.
-
-## Origin Traceability
-
-**Claim D-ORIG.** For every `a` in either output set, `origin(a)` is determined and identifies a unique document — the originating allocator of `a`.
-
-*Justification.* By S7 (ASN-0036), `origin(a)` is defined for every `a ∈ dom(C)` and is invariant across all states in which `a ∈ dom(C)`. The output sets are subsets of `dom(C)`, so `origin` is well-defined on every output element.
-
-The user-facing meaning: any returned address self-identifies its home document. When `d_A` and `d_B` were derived from a common ancestor `d_C`, content inherited from `d_C` and later deleted from `d_A` carries `origin(a) = d_C`. Content originally allocated by some other document and transcluded into `d_A` before deletion carries that other document's address as origin. The output need carry no extra "origin annotation" beyond the address itself — origin is derived structurally from the address.
-
-## Order Preservation
-
-**Claim D-ORD.** Each output half is a finite subset of `dom(C) ⊆ T`, and therefore inherits the total order T1 (ASN-0034) imposes on tumblers. No separate ordering structure is needed: the addresses are self-ordering, and any presentation may list them in T1 order.
-
-*Justification.* The output sets are subsets of `dom(C)`, finite by C-fin (ASN-0047), and T1 is a strict total order on `T` (ASN-0034). The restriction of a total order to a finite subset is again a total order, so each half is linearly ordered by its own addresses with no appeal to any document's arrangement.
-
-We note explicitly what is *not* recoverable: the V-position order in which a deleted address appeared in the document from which it was removed. V-position information is local to a current arrangement and is not preserved by `R`, so the deleted document's "original ordering" is a property of an arrangement no longer present. The witness document's arrangement does impose a V-order on the still-current addresses, but that order is observable only through the witness and is not part of the abstract output.
-
-## Symmetry
-
-**Claim D-SYM.** Argument swap maps each output half into the other:
-
-```
-SHOWDELETIONS(d_A, d_B)  =  (X, Y)
-SHOWDELETIONS(d_B, d_A)  =  (Y, X)
-```
-
-where `X = DeletedFromAWithB(d_A, d_B)` and `Y = DeletedFromBWithA(d_A, d_B)`.
-
-*Justification.* By name-substitution in the definitions: `DeletedFromAWithB(d_B, d_A)` reads as "addresses with `DELETED(a, d_B) ∧ CURRENT(a, d_A)`," which is exactly `DeletedFromBWithA(d_A, d_B)`. Likewise the other half.
-
-The content-level guarantee — the union of both halves as a set of I-addresses — is therefore symmetric in the operands. The presentation labelling (which half is "from A" vs. "from B") swaps accordingly.
-
 ## Observational Frame
 
 **Claim D-OBS.** SHOWDELETIONS does not modify any state component.
@@ -318,7 +318,7 @@ Formally, for state `Σ = (C, L, E, M, R)` and the state `Σ'` obtaining after t
 
 The operation reads `M(d_A)`, `M(d_B)`, and `R`; it computes the output sets; it returns them. It allocates nothing, rewrites nothing, and invokes no transition relation — observationality is immediate from the definition, which is a pair of set-builder comprehensions over `Σ`.
 
-Consequences: SHOWDELETIONS is repeatable on the same state (yields identical results); and it commutes with other observational queries. Because the operation is observational, its result is merely delivered to the caller and is not stored as a document or otherwise integrated into the persistent store (**D-STORE**); the system creates no persistent artefact of its own accord.
+Consequences: SHOWDELETIONS is repeatable on the same state (yields identical results). Because the operation is observational, its result is merely delivered to the caller and is not stored as a document or otherwise integrated into the persistent store (**D-STORE**); the system creates no persistent artefact of its own accord.
 
 ## State-Functional Independence
 
