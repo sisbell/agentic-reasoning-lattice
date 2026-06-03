@@ -4,7 +4,7 @@
 
 We are looking for the abstract structure of an operation that, given two documents, surfaces the content they share. The starting fact is the storage model. Every byte in the docuverse occupies exactly one I-address; a document `d`'s *arrangement* `Σ.M(d) : T ⇀ T` is a partial map from V-positions to I-addresses. The same I-address may be referenced by many V-positions across many documents — that is what transclusion produces, and what attribution preserves. *Two documents share content* when their arrangements reference one or more of the same I-addresses.
 
-Before deriving the operation, we must rule out one natural-sounding alternative. Consider two documents `d_a` and `d_b` whose owners independently typed the string `"the cat sat on the mat"`. The bytes were allocated by `d_a`'s and `d_b`'s respective content sub-allocators, producing distinct I-addresses by GlobalUniqueness (ASN-0034). The two documents hold textually identical content at structurally different identities. *They share nothing*. Inversely, two documents holding distinct value sequences at a common transcluded I-address *do* share, though no value-level comparison would detect the relationship. The operation we are constructing exposes I-address overlap, not textual equivalence. The test for correspondence is exact and it is structural; it inherits from the addressing scheme the same atomic, identity-grounded discipline that underwrites attribution, royalty flow, and link survival.
+Before deriving the operation, we must rule out one natural-sounding alternative. Consider two documents `d_a` and `d_b` whose owners independently typed the string `"the cat sat on the mat"`. The bytes were allocated by `d_a`'s and `d_b`'s respective content sub-allocators, producing distinct I-addresses by GlobalUniqueness (ASN-0034). The two documents hold textually identical content at structurally different identities. *They share nothing*. Inversely, two documents holding distinct value sequences at a common transcluded I-address *do* share, though no value-level comparison would detect the relationship. The operation we are constructing exposes I-address overlap, not textual equivalence. The test for correspondence is exact and it is structural: it is grounded in I-address identity.
 
 ## The Input
 
@@ -18,7 +18,7 @@ written `compareversions(d_a, R_a, d_b, R_b)`. The restricting span-sets `R_a, R
 
 For the operation to be well-defined we require:
 
-> **CV-IN**: `d_a, d_b ∈ E_doc`. `R_a, R_b` are normalized V-span-sets (ASN-0053). A common subspace identifier `S ∈ {s_C, s_L}` governs both restrictions — common because cross-subspace I-addresses are disjoint (`dom(C)` vs. `dom(L)`, L14, ASN-0047), so a mixed input could never yield a coincident I-address. The depths `m_a := m_{d_a, S}` and `m_b := m_{d_b, S}` are supplied by S8-depth (ASN-0036) precisely when `V_S(d_a) ≠ ∅` and `V_S(d_b) ≠ ∅` respectively; when defined, both are bounded below by `m_a, m_b ≥ 2` (S8a, ASN-0036). When σ's side membership is unambiguous, we write `m_σ` for the corresponding depth — `m_a` if `σ ∈ R_a`, `m_b` if `σ ∈ R_b`.
+> **CV-IN**: `d_a, d_b ∈ E_doc`. `R_a, R_b` are normalized V-span-sets (ASN-0053). A common subspace identifier `S ∈ {s_C, s_L}` governs both restrictions. The depths `m_a := m_{d_a, S}` and `m_b := m_{d_b, S}` are supplied by S8-depth (ASN-0036) precisely when `V_S(d_a) ≠ ∅` and `V_S(d_b) ≠ ∅` respectively; when defined, both are bounded below by `m_a, m_b ≥ 2` (S8a, ASN-0036). When σ's side membership is unambiguous, we write `m_σ` for the corresponding depth — `m_a` if `σ ∈ R_a`, `m_b` if `σ ∈ R_b`.
 >
 > For every `σ ∈ R_a`: `start(σ) ∈ V_S(d_a)`; `σ` is level-uniform (S6, ASN-0053) at depth `m_a`; and `actionPoint(width(σ)) = m_a` — equivalently, `width(σ) = δ(n_σ, m_a)` is an ordinal displacement at depth `m_a` for some `n_σ ≥ 1` (OrdinalDisplacement, ASN-0034; ASN-0058 C0). When `V_S(d_a) = ∅`, `m_a` is undefined and no `σ` can satisfy these clauses (since `start(σ) ∈ V_S(d_a) = ∅` is unsatisfiable); admissibility then requires `R_a = ⟨⟩`, the empty span-set, in which case all per-span clauses are vacuously satisfied and `m_a` is not consulted.
 >
@@ -69,9 +69,13 @@ A pair `(v_a, v_b)` lies in the relation when each V-position is inside its resp
 
 *The relation is not in general injective on either side*. A document `d_a` may self-transclude: the same I-address `a` may appear at multiple V-positions `v¹_a, v²_a ∈ dom(M(d_a))`. If `a ∈ ran(M(d_b))` at position `u_b`, then both `(v¹_a, u_b)` and `(v²_a, u_b)` lie in the relation. The relation is many-to-many in the general case, and the operation must report this faithfully.
 
-*The relation is determined entirely by current state*. The expression depends only on `M(d_a)`, `M(d_b)`, and the restrictions; no history is consulted, no derivation lineage is traversed. We name two consequences.
+*The relation is determined entirely by current state*. The expression depends only on `M(d_a)`, `M(d_b)`, and the restrictions; no history is consulted, no derivation lineage is traversed.
+
+The defining equation `M(d_a)(v_a) = M(d_b)(v_b)` ranges over I-addresses, not stored values. This yields the first consequence.
 
 > **CV-IDENT** (*identity test*): Membership of `(v_a, v_b)` in `corr_{a,b}` depends only on the tumbler equation `M(d_a)(v_a) = M(d_b)(v_b)`. The stored values `C(M(d_a)(v_a))` and `C(M(d_b)(v_b))` play no role. Two V-positions whose stored values coincide but whose I-addresses differ do not correspond. Two V-positions whose I-addresses coincide do correspond, regardless of any property of the stored bytes.
+
+The state-determination of the relation yields the second consequence.
 
 > **CV-PROV-FORGOTTEN** (*provenance forgotten*): When `(v_a, v_b) ∈ corr_{a,b}` with shared I-address `a := M(d_a)(v_a) = M(d_b)(v_b)`, the relation provides no information about how `a` came to be referenced by both documents. By S7 (ASN-0036) postcondition (b) — `origin(a)` is the tumbler of the document that allocated `a`, single-valued in `a` — combined with postcondition (c) — distinct documents have distinct allocation origins — `a` was allocated by exactly one document `origin(a)`. This may be `d_a` (in which case `d_b` transcluded `a`); it may be `d_b` (the converse); it may be neither (both transcluded from a third source). The relation reports correspondence without explaining lineage.
 
