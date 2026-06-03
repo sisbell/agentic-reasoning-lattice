@@ -39,7 +39,7 @@ For a vspec-set `Q`:
 
   `iaddrs(Q)(Σ) := ⋃_{(d_s, σ) ∈ Q} iaddrs_one(d_s, σ)(Σ)`
 
-`iaddrs_one(d_s, σ)(Σ)` is the set of I-addresses `d_s`'s arrangement assigns to span positions, deduplicated, with any span position absent from `dom(M(d_s))` quietly omitted (F-FILT). Since `find` is set-valued, order and multiplicity are discarded.
+Any span position absent from `dom(M(d_s))` is quietly omitted (F-FILT).
 
 Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. With each `d_s ∈ Σ.E_doc` (by `wp-defined`), every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(Σ.C)` rather than `dom(Σ.L)`.
 
@@ -77,7 +77,7 @@ Given resolved I-addresses, FINDDOCSCONTAINING returns the documents whose arran
 
   `find(Q)(Σ) := { d ∈ Σ.E_doc : ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ≠ ∅ }`
 
-The definition is extensional — `find(Q)(Σ)` is *exactly* the set of documents satisfying the membership predicate. The `P(E_doc)` codomain likewise makes `find(Q)(Σ)` a set, so each document appears at most once (**F-DIST**) — a document transcluding ten queried passages is reported once, not ten times. The result enumerates documents, not occurrences.
+The definition is extensional — `find(Q)(Σ)` is *exactly* the set of documents satisfying the membership predicate. Since `find` is set-valued, order and multiplicity are discarded. The `P(E_doc)` codomain likewise makes `find(Q)(Σ)` a set, so each document appears at most once (**F-DIST**) — a document transcluding ten queried passages is reported once, not ten times. The result enumerates documents, not occurrences.
 
 *Well-definedness precondition.* `find` inherits `wp-defined` (named in *Resolution*) as its domain: `find(Q)(Σ)` is defined exactly when `wp-defined` holds at the evaluation state `Σ`, since `find` invokes `iaddrs(Q)(Σ)`, whose definedness `wp-defined` already establishes.
 
@@ -91,7 +91,7 @@ The empty query is the boundary case. When `Q = ∅`, the union `iaddrs(∅)(Σ)
 
 We exhibit a state in which several documents share content through transclusion — including one document that references two distinct I-addresses, with one of them repeated at two non-adjacent positions — and trace what FINDDOCSCONTAINING returns for both a single-address query and a multi-address query.
 
-Start from `Σ₀`, whose only entity is the bootstrap node `n₀ = [1]` (`E₀ = {n₀}`, `Node(n₀)`, so `(E₀)_doc = (E₀)_account = ∅`). No document can be created directly at `Σ₀`: a document `d` has `zeros(d) = 2`, and EntityHierarchy (P8, ASN-0047) demands `parent(d) ∈ E` — its account prefix — which does not yet exist. So we first mint the node-descendant → account → document scaffold, discharging `parent ∈ E` at each entity creation, then apply the content transitions. Each precondition is discharged by the prior state; we narrate the result:
+Start from `Σ₀`, whose only entity is the bootstrap node `n₀ = [1]` (`E₀ = {n₀}`, `Node(n₀)`, so `(E₀)_doc = (E₀)_account = ∅`). No document can be created directly at `Σ₀`: a document `d` has `zeros(d) = 2`, and EntityHierarchy (P8, ASN-0047) demands `parent(d) ∈ E` — its account prefix — which does not yet exist. So we first mint the node-descendant → account → document scaffold, discharging `parent ∈ E` at each entity creation, then apply the content transitions. We narrate the result:
 
 1. K.δ creates account `acct = inc(n₀, 2) ∈ E_account` by case (ii) descent (`k = 2`), operand `n₀ ∈ E₀` with `zeros(n₀) = 0 ≤ 1`. `parent(acct) = n₀ ∈ E` discharges P8; `zeros(acct) = 1` (K.δ-ID.zeros-2).
 2. K.δ creates document `d_A = inc(acct, 2) ∈ E_doc` by case (ii) descent (`k = 2`), operand `acct ∈ E` with `zeros(acct) = 1 ≤ 1`. `parent(d_A) = acct ∈ E` discharges P8; `zeros(d_A) = 2`, so `Document(d_A)` (activates `A_C(d_A)` and `A_L(d_A)`).
