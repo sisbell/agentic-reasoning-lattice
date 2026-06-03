@@ -23,7 +23,7 @@ We take from the foundation:
 - **Subspace convention** `s_C = 1, s_L = 2` (ASN-0047, SubspaceConventionAxiom).
 - **Link subspace ownership** (CL-OWN, ASN-0047): link-subspace V-positions of `d` map only to link I-addresses with `origin = d`.
 
-We restrict attention to the content subspace throughout: by CL-OWN, link-subspace material is per-document, so cross-document deletion comparison is structurally meaningful only for content (established as D-SUBSP).
+We restrict attention to the content subspace throughout (the operation is confined to `s_C`; see D-SUBSP).
 
 ## The Three States of Content
 
@@ -114,7 +114,7 @@ Neither history invokes K.λ, so `L_1 = L_2 = ∅`. Both histories execute the s
 
 Any function `f(C, L, E, M)` returns the same value at both states. But the classifications differ — `DELETED(a, d)` at `Σ_1`, `NEVER_INCLUDED(a, d)` at `Σ_2` — so `f` cannot be a discriminating predicate. ∎
 
-This is the abstract justification for the provenance relation. The negative result is sharp in its full strength: the witnesses pin every component of `(C, L, E, M)` identically across `Σ_1` and `Σ_2`, so no projection or joint consultation of the four foundation components suffices to discriminate. Any system supporting SHOWDELETIONS must therefore maintain state components `C*` *beyond* `(C, L, E, M)`. For every reachable state `Σ` and every pair `(a, d)` with `a ∈ dom(C)` and `d ∈ E_doc`, consulting `(C, L, E, M, C*)` at `Σ` must determine whether `(a, d)` is `DELETED` or `NEVER_INCLUDED`. `R` as defined in ASN-0047 is one such `C*`; the necessity claim is that *some* `C*` adequate to discharge this disambiguation must be present, regardless of its specific representation.
+This is the abstract justification for the provenance relation. The negative result is sharp in its full strength: the witnesses pin every component of `(C, L, E, M)` identically across `Σ_1` and `Σ_2`, so no projection or joint consultation of the four foundation components suffices to discriminate.
 
 ## The SHOWDELETIONS Operation
 
@@ -143,7 +143,7 @@ SHOWDELETIONS(d_A, d_B)
 
 The two halves are necessarily disjoint, and the disjointness is unconditional — it needs neither D-EXH nor any composite-boundary hypothesis. Membership in `DeletedFromAWithB` requires `CURRENT(a, d_B)`, i.e. `a ∈ ran(M(d_B))`; membership in `DeletedFromBWithA` requires `DELETED(a, d_B)`, whose second conjunct is `a ∉ ran(M(d_B))`. The two range-membership conditions on `M(d_B)` are directly contradictory, so no `a` can belong to both halves.
 
-**Observational-discipline axiom (D-BOUND).** SHOWDELETIONS is invoked at a composite boundary: the pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047). This discharges D-EXH's composite-boundary hypothesis at every invocation — `P4★` (`Contains_C(Σ) ⊆ R`), a composite-boundary property of ASN-0047, holds at every such `Σ`, so the three-state classification is total.
+**Observational-discipline axiom (D-BOUND).** SHOWDELETIONS is invoked at a composite boundary: the pre-state `Σ` is reachable from `Σ_0` by a finite sequence of valid composite transitions under ValidComposite★ (ASN-0047).
 
 The operation's precondition is `d_A ∈ E_doc ∧ d_B ∈ E_doc ∧ Σ is a composite-boundary state`, with the boundary conjunct supplied structurally by D-BOUND. Its postcondition characterises the result set-theoretically. We capture this in wp form. Let `q` abbreviate the predicate:
 
@@ -290,7 +290,7 @@ Restricting SHOWDELETIONS to the content subspace is therefore not an implementa
 
 The architectural significance is foundational. An operation that recovers content using these references dereferences existing entries in `C`; it does not allocate new ones. Three guarantees that depend on persistent I-address identity therefore survive recovery:
 
-- *Link survival.* By L3 (NEndsetStructure, ASN-0047), the link store `L` is a partial function from tumblers to N-tuples of endsets, so every link in `dom(L)` references content via endsets — each endset is a set of spans (Shared Vocabulary). A span's denotation `⟦σ⟧` and the interior/boundary classification of its positions are fixed by ASN-0053 (σ.denotation, InteriorPoint); a link references the content address `a` whenever `a ∈ ⟦σ⟧` for some span `σ` in one of its endsets, and that membership condition holds uniformly whether `a` is the span's start or an interior point. By P3 (ArrangementMutabilityOnly, ASN-0047), `L` is preserved across all transitions — `L' = L` for every K.μ⁺/K.μ⁻/K.μ~ — so every link referencing `a`, by any endset span containing `a`, continues to reference the same `a` regardless of which arrangements currently expose it.
+- *Link survival.* By L3 (NEndsetStructure, ASN-0047), every link in `dom(L)` references content via endsets. By P3 (ArrangementMutabilityOnly) and L12 (LinkImmutability, ASN-0047), `L` is preserved across all arrangement transitions — `L' = L` for every K.μ⁺/K.μ⁻/K.μ~ — so every link referencing `a` continues to reference the same `a`.
 - *Transclusion integrity.* By S2 (ArrangementFunctionality, ASN-0036) and the content clause of S3★ (GeneralizedReferentialIntegrity, ASN-0047) — `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)` — arrangements reference I-addresses by tumbler identity: each content-subspace V-position maps to a determinate `a ∈ dom(C)`. The link clause of S3★ targets `dom(L)` rather than `dom(C)` and is not invoked here; SHOWDELETIONS is restricted to the content subspace (D-SUBSP), so only the content clause is load-bearing for transclusion integrity. If another document's content-subspace arrangement maps a V-position to `a`, that mapping continues to reference the same `a` because P0 (ContentPermanence, ASN-0047, subsuming S0 of ASN-0036) preserves both `dom(C)` and the value at every existing entry across all transitions; no aliasing or shadow copy is introduced.
 - *Origin attribution.* By S7 (StructuralAttribution, ASN-0036), `origin(a)` is derivable from `a`'s tumbler alone and is invariant across all states in which `a ∈ dom(C)`. The chain of provenance is not severed by recovery.
 
