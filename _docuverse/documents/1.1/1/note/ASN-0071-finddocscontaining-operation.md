@@ -17,8 +17,6 @@ Content can be named in two registers. By I-address — "the content at addresse
 
 We accept the latter. A **vspec** is a pair `(d_s, σ)` where `d_s` is a document address naming a source document and `σ = (u, ℓ)` is a level-uniform V-span confined to the content subspace — `subspace(u) = s_C`, `Pos(ℓ)`, `actionPoint(ℓ) = #u`, `#ℓ = #u` (level-uniformity, ASN-0053 S6), and `actionPoint(ℓ) ≥ 2` (equivalently `ℓ₁ = 0`: the displacement does not perturb the subspace identifier at position 1; together with `actionPoint(ℓ) = #u` this also forces `#u ≥ 2`). Its denotation `⟦σ⟧` and reach `u ⊕ ℓ` used throughout are ASN-0053's (σ.denotation: `⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}`; σ.reach: `reach(σ) = start(σ) ⊕ width(σ)`); we apply those definitions rather than restate them below. A **vspec-set** is a finite set `Q = {q₁, q₂, ..., q_k}` of vspecs, possibly drawn from multiple source documents.
 
-A vspec relaxes ASN-0058's `ContentReference (d_s, σ)` by dropping the demands that presume control over the queried source: subspace-non-emptiness `V_{u₁}(d_s) ≠ ∅` (clause i), the depth-match `#u = m_C` (the `= m_C` half of clause iii), and the full-coverage well-formedness requirement. Search must tolerate all three, since a query is posed against a source whose arrangement the requester does not control.
-
 We name the claim we need *prefix confinement* (PC): every `t ∈ ⟦σ⟧` agrees with `u` on all components `1 ≤ j < #u`. This is the relaxed analogue of ASN-0058's C0a; we derive it below from the vspec preconditions `subspace(u) = s_C` and `actionPoint(ℓ) = #u ≥ 2`.
 
 *Componentwise fact.* For any position `p` with `1 ≤ p < #u` *at which `t_p` exists*, `t` cannot first disagree with `u` at `p`. Since `p < #u = actionPoint(ℓ)`, TumblerAdd's prefix-copy gives `u_p = (u ⊕ ℓ)_p`; were `t_p ≠ u_p`, NAT-order trichotomy (T0) splits the disagreement at `p` into `t_p < u_p` or `t_p > u_p`, and T1 case (i) at `p` would then force either `t < u` (if `t_p < u_p`) or `t > u ⊕ ℓ` (if `t_p > u_p`), each contradicting `u ≤ t < u ⊕ ℓ`. T0 thus excludes `p` as a *first* point of disagreement, but settling every position needs one further step. Were the disagreement set `{p : 1 ≤ p < #u ∧ t_p exists ∧ t_p ≠ u_p}` non-empty, well-ordering of the positions would furnish it a least element — a first disagreement — which the contradiction just excluded; the set is therefore empty, and `t_p = u_p` wherever `t_p` exists with `p < #u`.
@@ -41,11 +39,11 @@ For a vspec-set `Q`:
 
   `iaddrs(Q)(Σ) := ⋃_{(d_s, σ) ∈ Q} iaddrs_one(d_s, σ)(Σ)`
 
-`iaddrs_one` is the set-valued, deduplicating, coverage-tolerant counterpart of ASN-0058's `resolve(d_s, σ)`. Where `resolve` presumes the well-formed `ContentReference` of that foundation and yields an *ordered* sequence of run/width pairs `⟨(a₁, n₁), ..., (a_k, n_k)⟩` covering the whole span, `iaddrs_one` discards V-order and run structure, deduplicates, and quietly omits any span position absent from `dom(M(d_s))` (F-FILT).
+`iaddrs_one(d_s, σ)(Σ)` is the set of I-addresses `d_s`'s arrangement assigns to span positions, deduplicated, with any span position absent from `dom(M(d_s))` quietly omitted (F-FILT).
 
 Every element of `iaddrs(Q)(Σ)` lies in `dom(Σ.C)` — the subset claim `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. With each `d_s ∈ Σ.E_doc` (by `wp-defined`), every position consulted by `iaddrs_one` is in the content subspace, so S3★ routes the image into `dom(Σ.C)` rather than `dom(Σ.L)`. We show subspace confinement first, then apply S3★.
 
-*Subspace confinement.* Every `t ∈ ⟦σ⟧` has `subspace(t) = s_C` — the subspace-confinement corollary already established in *The query* as PC's position-1 instance. We reuse that result rather than re-derive it.
+*Subspace confinement.* Every `t ∈ ⟦σ⟧` has `subspace(t) = s_C` — PC's position-1 instance (*The query*).
 
 *Routing.* Therefore every `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))` is a content-subspace V-position, and S3★ (ASN-0047) routes it: `Σ.M(d_s)(v) ∈ dom(Σ.C)`.
 
@@ -83,7 +81,7 @@ This biconditional is its own completeness and soundness statement: its (⟸) di
 
 *Well-definedness precondition.* `find` inherits `wp-defined` (named in *Resolution*) as its domain: `find(Q)(Σ)` is defined exactly when `wp-defined` holds at the evaluation state `Σ`, since `find` invokes `iaddrs(Q)(Σ)`, whose definedness `wp-defined` already establishes. When it holds, every `Σ.M(d_s)` named in `iaddrs(Q)(Σ)` is a defined arrangement and the resolution of the previous section applies unchanged.
 
-*Only content sharing can satisfy the predicate.* The range `ran(Σ.M(d))` carries both content-subspace and link-subspace images: by S3★, a content-subspace V-position routes into `dom(Σ.C)` and a link-subspace V-position into `dom(Σ.L)`. By S3★ ∧ S3★-aux (SubspaceExhaustiveness, ASN-0047), `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)`. The link-subspace portion can never contribute a match. We discharged the source side already — `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` by subspace confinement — and the target side is its dual: the link-subspace images lie in `dom(Σ.L)`, which is disjoint from `dom(Σ.C)` (ASN-0047 L14, StoreDisjointness: `dom(C) ∩ dom(L) = ∅`). From `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)` (S3★ ∧ S3★-aux) and `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` (the subspace-confinement subset claim above), `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ (dom(Σ.C) ∪ dom(Σ.L)) ∩ dom(Σ.C) = dom(Σ.C)`. We record this as **F-CONTENT**: every shared address witnessing a match lies in `dom(Σ.C)` — `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. A document is returned because it shares *byte content*, never because it shares a *link* address.
+*Only content sharing can satisfy the predicate.* Every witness of a match lies in `iaddrs(Q)(Σ)`, and *Resolution* already established `iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. So `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ iaddrs(Q)(Σ) ⊆ dom(Σ.C)` — the intersection makes the target range irrelevant. We record this as **F-CONTENT**: every shared address witnessing a match lies in `dom(Σ.C)` — `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)`. A document is returned because it shares *byte content*, never because it shares a *link* address.
 
 *Source self-inclusion.* Whenever a source resolves any I-address at all, the source document is itself among the results — querying a document's own passage must return at least that document, the formal bridge between the read-direction (what `d_s` contains) and the search-direction (who contains it). Suppose `iaddrs_one(d_s, σ)(Σ) ≠ ∅`. Then some `a = Σ.M(d_s)(v)` with `v ∈ ⟦σ⟧ ∩ dom(Σ.M(d_s))`, so `a ∈ ran(Σ.M(d_s))` and `a ∈ iaddrs_one(d_s, σ)(Σ) ⊆ iaddrs(Q)(Σ)`; hence `ran(Σ.M(d_s)) ∩ iaddrs(Q)(Σ) ≠ ∅`. With `d_s ∈ Σ.E_doc` by `wp-defined`, the membership predicate holds, so `d_s ∈ find(Q)(Σ)`. We record this as **F-SELF**: `iaddrs_one(d_s, σ)(Σ) ≠ ∅ ⟹ d_s ∈ find(Q)(Σ)` for every `(d_s, σ) ∈ Q`.
 
@@ -160,7 +158,7 @@ Hence `iaddrs(Q_D)(Σ) = {a₁, a₂}`.
 
 Therefore `find(Q_D)(Σ) = {d_A, d_B, d_C, d_D}`. Here `d_A` (sharing only `a₁`) and `d_C` (sharing only `a₂`) each qualify on one address out of two, sharing *disjoint* fragments of the query, yet both belong.
 
-**A multi-source query — cross-source deduplication.** Every query so far has been a singleton vspec-set, so `iaddrs`'s defining feature — the union *over several vspecs*, including dedup of an address resolved by more than one source — has not yet been traced. Take `Q_G = {(d_A, σ_A), (d_B, σ_B)}` with `σ_A = (v_A, δ(1, 2))` as before and `σ_B = (v_B, δ(1, 2))`, `v_B = [s_C, 1]`. The two vspecs name *distinct* source documents `d_A ≠ d_B`, yet both resolve the transcluded `a₁`:
+**A multi-source query — cross-source deduplication.** Take `Q_G = {(d_A, σ_A), (d_B, σ_B)}` with `σ_A = (v_A, δ(1, 2))` as before and `σ_B = (v_B, δ(1, 2))`, `v_B = [s_C, 1]`. The two vspecs name *distinct* source documents `d_A ≠ d_B`, yet both resolve the transcluded `a₁`:
 
   `iaddrs_one(d_A, σ_A)(Σ) = {a₁}`,   `iaddrs_one(d_B, σ_B)(Σ) = {M(d_B)(v_B)} = {a₁}`
 
@@ -259,7 +257,7 @@ The returned set has a presentation property we leave unspecified. It is not ent
 | F-PART | Partial overlap suffices: `d ∈ find(Q)(Σ) ⟺ d ∈ Σ.E_doc ∧ (E a : a ∈ ran(Σ.M(d)) : a ∈ iaddrs(Q)(Σ))` | direct from F-find (unfolding `≠ ∅` of a binary intersection) | introduced |
 | F-DIST | `find(Q)(Σ)` is a set; each `d ∈ E_doc` appears at most once | direct from F-find (codomain is `P(E_doc)`) | introduced |
 | F-ORIGIN | Home/transcluding recovery: for `a ∈ iaddrs(Q)(Σ)`, a caller separates `a`'s home reference (`d = origin(a)`) from transcluding references (`d ≠ origin(a)`) using `origin(a)`, without `find` tagging its results | derived from P6 (`origin(a)` grounded in `E_doc`) | introduced |
-| F-CONTENT | Matches occur only via shared content addresses: `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)` | derived from S3★ ∧ S3★-aux (ASN-0047) ∧ L14 ∧ the `iaddrs ⊆ dom(C)` subset claim | introduced |
+| F-CONTENT | Matches occur only via shared content addresses: `ran(Σ.M(d)) ∩ iaddrs(Q)(Σ) ⊆ dom(Σ.C)` | direct from the `iaddrs(Q)(Σ) ⊆ dom(Σ.C)` subset claim (`A ∩ B ⊆ B`) | introduced |
 | F-SELF | Source self-inclusion: `iaddrs_one(d_s, σ)(Σ) ≠ ∅ ⟹ d_s ∈ find(Q)(Σ)` for every `(d_s, σ) ∈ Q` | derived from F-find + F-iaddrs + `wp-defined` (a resolved address lies in both `ran(Σ.M(d_s))` and `iaddrs(Q)(Σ)`) | introduced |
 | F-CUR | State dependence: `(Σ.E_doc = Σ'.E_doc) ∧ (A d ∈ Σ.E_doc : Σ.M(d) = Σ'.M(d)) ⟹ find(Q)(Σ) = find(Q)(Σ')` | derived from F-find + F-iaddrs (the operation reads only `E_doc` and `M`, both of which are identical at Σ and Σ' by hypothesis) | introduced |
 | F-FILT | Silent resolution filtering: positions in `⟦σ⟧ \ dom(Σ.M(d_s))` contribute no I-addresses to `iaddrs(Q)(Σ)` | direct from F-iaddrs (the intersection `⟦σ⟧ ∩ dom(Σ.M(d_s))` excludes such positions) | introduced |
