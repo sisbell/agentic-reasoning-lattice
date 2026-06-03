@@ -1,9 +1,9 @@
-# Revision Categorization — ASN-0063 review-18
+# Channel Assignment — ASN-0087 review-18
 
-**Date:** 2026-03-22 00:39
+**Date:** 2026-06-03 10:37
 
+## Issue 1: m_L(d) = 2 asserted as universal, not derived
+Reason: Fully internal. The justification depends only on the substrate operation set (ASN-0047/0093) and M-DepthConv — the review itself supplies the missing argument (J4/ForkComposite copies only the content subspace, so MAKELINK is the sole link-placement path) plus an induction over document history. No design intent or implementation evidence is needed.
 
-
-## Issue 1: K.α needs a content-subspace amendment for the extended state
-Category: INTERNAL
-Reason: The fix is entirely derivable from existing definitions. L0 clause 2 already requires content addresses to have subspace s_C, and K.λ already demonstrates the parallel pattern with its `fields(ℓ).E₁ = s_L` precondition. Adding `fields(a).E₁ = s_C` to K.α and verifying L0/L14 in the proof follows mechanically from the stated invariants.
+## Issue 2: v_ℓ freshness justified only within-subspace at point of claim
+Reason: Fully internal. The cross-subspace exclusion (SC-NEQ at position 1) is already proven in this ASN's own S2 verification; the fix is to complete the argument inline or forward-reference S2.
