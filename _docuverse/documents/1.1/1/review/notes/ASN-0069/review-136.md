@@ -1,0 +1,16 @@
+# Review of ASN-0069
+
+I read the note and checked the proofs of V1–V12, the V5a frame lemma, the V11/V11a inductions, and both branches of the ValidComposite★ verification (non-empty K.δ+K.μ⁺+K.ρ×n and the empty-source K.δ-alone case). The identity/parent induction, the φ-identity argument for literal inheritance, the freshness discharges via ChildSpawnFreshness/FrontierEquivalence, and the J0/J1★/J1'★ coupling checks all hold. Edge cases (empty source, subsequent-fork dispatch, fork-of-fork, sibling forks, deletion interaction, shared-image `n = |ran|` counting) are covered. No cross-ASN references beyond the four declared foundations.
+
+One anti-bloat item remains.
+
+## REVISE
+
+### Issue 1: V8d's closing sentence is a forward-reference aside that pre-states V12(b)
+**ASN-0069, §"Structural Correspondence", after V8d's derivation**: "Store-persistence of the shared content is unconditional (V12(b)/P0) and independent of V8d's non-targeting hypothesis."
+
+**Problem**: This sentence carries the `review-mode.anti-bloat` forward-reference pattern: a single aside that defers downstream and pre-states content owned by a later claim. V12(b) already asserts in full — "every inherited I-address persists in `dom(C)` with unchanged value, regardless of how either document's arrangement evolves." The V8d aside duplicates that guarantee as a forward pointer purely to disambiguate V8d's hypothesis scope, but V8d's own statement (correspondence equality under non-targeting) is self-contained without it. The store-persistence/correspondence distinction belongs at V12, which is its home, not as an accreted pointer in V8d.
+
+**Required**: Delete the sentence. V12(b) is the canonical site for unconditional store-persistence; V8d should end at its derivation (`M''(d_op)(v) = M''(d_new)(v)`).
+
+VERDICT: REVISE
