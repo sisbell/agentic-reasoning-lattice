@@ -48,7 +48,7 @@ The partition is disjoint (subspace is single-valued per the first-component pro
 
 **Well-definedness.** By S2 (ArrangementFunctionality, ASN-0036), `M(d)` is a partial function — every V-position in its domain has exactly one image. The inverse image of `coverage(e)` is therefore a uniquely determined subset of `dom(M(d))`.
 
-The definition is *abstract*. It does not depend on how `M(d)` is stored, decomposed, or accessed. It does not depend on the order or structure of spans within `e`. Two endsets with the same coverage produce the same `R(d, e)`. Resolution is a function of coverage and arrangement — nothing more. The intersection `coverage(e) ∩ ran(M(d))` may be any subset of `ran(M(d))`, including `∅`; `R(d, e)` is defined uniformly regardless.
+The definition is *abstract*: `R(d, e)` is a function of coverage and arrangement alone, so two endsets with the same coverage produce the same `R(d, e)` regardless of how `M(d)` is stored or how spans within `e` are structured.
 
 ### F-subspace — IOSubspaceCorrespondence (LEMMA)
 
@@ -494,17 +494,17 @@ This establishes the V-restricted denotational conclusion unconditionally. The r
 
 ### F-multi — MultiplicityPreservation (LEMMA)
 
-**Preconditions.** As `follow`; additionally `v₁, v₂ ∈ dom(M(d))` with `v₁ ≠ v₂` and `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)`.
+**Preconditions.** As `follow`; additionally `a ∈ dom(Σ.C)` (a content I-address, so `subspace_I(a) = s_C` by K.α, ASN-0047), and `v₁, v₂ ∈ dom(M(d))` with `v₁ ≠ v₂` and `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)`.
 
-**Postcondition.** Writing `S := subspace_I(a)`, both `v₁ ∈ ⟦Σ_V^S⟧_V` and `v₂ ∈ ⟦Σ_V^S⟧_V` — the two distinct V-positions inhabit the same subspace component `S` and both appear in the result.
+**Postcondition.** With `S = s_C`, both `v₁ ∈ ⟦Σ_V^{s_C}⟧_V` and `v₂ ∈ ⟦Σ_V^{s_C}⟧_V` — the two distinct V-positions inhabit the content subspace and both appear in the result.
 
 **Depends.** Definition of `R(d, e)` (F0); postcondition of `follow` (F1); F-subspace (this ASN); S3★-aux (SubspaceExhaustiveness, ASN-0047).
 
 **Derivation.**
 
-*Implication (from hypothesis to conclusion).* The hypothesis directly supplies the membership condition for `R`. For `v₁`: `v₁ ∈ dom(M(d))` and `M(d)(v₁) = a ∈ coverage(L(ℓ).eᵢ)`, so by the definition of `R` (F0), `v₁ ∈ R(d, L(ℓ).eᵢ)`. By F-subspace, `subspace(v₁) = subspace_I(M(d)(v₁)) = subspace_I(a)`. Writing `S := subspace_I(a)`, the subspace projection (well-defined by S3★-aux) places `v₁ ∈ R(d, L(ℓ).eᵢ)|_S`. By the postcondition of `follow`, `⟦Σ_V^S⟧_V = R(d, L(ℓ).eᵢ)|_S`, hence `v₁ ∈ ⟦Σ_V^S⟧_V`. The argument for `v₂` is identical: F-subspace gives `subspace(v₂) = subspace_I(M(d)(v₂)) = subspace_I(a) = S`, so the same chain places `v₂ ∈ ⟦Σ_V^S⟧_V`. Both V-positions therefore land in the same subspace component, indexed by `S = subspace_I(a)`. ∎
+*Implication (from hypothesis to conclusion).* The hypothesis directly supplies the membership condition for `R`. For `v₁`: `v₁ ∈ dom(M(d))` and `M(d)(v₁) = a ∈ coverage(L(ℓ).eᵢ)`, so by the definition of `R` (F0), `v₁ ∈ R(d, L(ℓ).eᵢ)`. By F-subspace, `subspace(v₁) = subspace_I(M(d)(v₁)) = subspace_I(a) = s_C`. The subspace projection (well-defined by S3★-aux) places `v₁ ∈ R(d, L(ℓ).eᵢ)|_{s_C}`. By the postcondition of `follow`, `⟦Σ_V^{s_C}⟧_V = R(d, L(ℓ).eᵢ)|_{s_C}`, hence `v₁ ∈ ⟦Σ_V^{s_C}⟧_V`. The argument for `v₂` is identical: F-subspace gives `subspace(v₂) = subspace_I(M(d)(v₂)) = subspace_I(a) = s_C`, so the same chain places `v₂ ∈ ⟦Σ_V^{s_C}⟧_V`. Both V-positions therefore land in the content subspace. ∎
 
-*Remark (realisability).* ASN-0047's content-subspace arrangement extension K.μ⁺ imposes no injectivity constraint — unlike the link subspace, where CL-UNIQ (LinkSubspacePositionUniqueness, ASN-0047) forces the restriction of `M(d)` to `dom_L` to be injective. So `M(d)(v₁) = M(d)(v₂) = a` with `v₁ ≠ v₂` is reachable (e.g., two K.μ⁺ steps from `Σ₀` mapping distinct V-positions of a single document to the same I-address).
+*Remark (realisability).* ASN-0047's content-subspace arrangement extension K.μ⁺ imposes no injectivity constraint, so `M(d)(v₁) = M(d)(v₂) = a` with `v₁ ≠ v₂` is reachable (e.g., two K.μ⁺ steps from `Σ₀` mapping distinct V-positions of a single document to the same content I-address).
 
 The operation does not deduplicate, does not select a "canonical" V-position, does not collapse multiplicity in any way. Each `v` with `M(d)(v) ∈ coverage(e)` is in the result, regardless of whether other V-positions of `d` also map to the same `M(d)(v)`.
 
@@ -581,7 +581,7 @@ Empty resolution does not destroy the link.
 | F-sound | Soundness — `⟦Σ_V^S⟧_V ⊆ R(d, L(ℓ).eᵢ)|_S`: every `v ∈ ⟦Σ_V^S⟧_V` satisfies `v ∈ dom(M(d))` and `M(d)(v) ∈ coverage(L(ℓ).eᵢ)`; ⊆ half of the postcondition's set equality | LEMMA | introduced |
 | F-complete | Completeness — `R(d, L(ℓ).eᵢ)|_S ⊆ ⟦Σ_V^S⟧_V`: every qualifying `v ∈ dom(M(d))` with `M(d)(v) ∈ coverage(L(ℓ).eᵢ)` is in `⟦Σ_V^S⟧_V` for `S = subspace(v)`; ⊇ half of the postcondition's set equality | LEMMA | introduced |
 | F-empty | EmptyAdmissibility — `⟦Σ_V^{s_C}⟧_V = ∅` and `⟦Σ_V^{s_L}⟧_V = ∅` when `coverage(L(ℓ).eᵢ) ∩ ran(M(d)) = ∅`; under canonical form, both components are `⟨⟩` | LEMMA | introduced |
-| F-multi | MultiplicityPreservation — when `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)` with `v₁ ≠ v₂`, both `v₁, v₂ ∈ ⟦Σ_V^S⟧_V` for `S = subspace_I(a)` | LEMMA | introduced |
+| F-multi | MultiplicityPreservation — when `a ∈ dom(Σ.C)` and `M(d)(v₁) = M(d)(v₂) = a ∈ coverage(L(ℓ).eᵢ)` with `v₁ ≠ v₂`, both `v₁, v₂ ∈ ⟦Σ_V^{s_C}⟧_V` | LEMMA | introduced |
 | F-slot | SlotUniformity — all slots resolve by the same `R` mechanism; L3's asymmetric well-formedness constrains construction, not resolution | LEMMA | introduced |
 | F-origin | OriginSymmetry — `R` does not filter by `origin`/`home`; native and transcluded V-positions are treated identically | LEMMA | introduced |
 | F-persist | LinkPersistence — `ℓ` remains in `dom(Σ.L)` regardless of reach (by L12) | LEMMA | introduced |
