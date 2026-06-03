@@ -121,8 +121,6 @@ Concretely, the operation FOLLOWLINK has the following form:
 
 **Frame.** `Σ' = Σ`. No component of state is modified.
 
-The preconditions are weak: only that the link exists, the document is allocated, and the endset index is in range.
-
 The result is a *pair* `(d, Σ_V)`. The document `d` accompanies the per-subspace family because V-positions only have meaning relative to a document's arrangement: the same V-position structure in `d`'s V-space and in `d'`'s V-space denote unrelated arrangements. Pairing with `d` preserves the resolution's context.
 
 ### Canonical Form
@@ -222,7 +220,7 @@ For each endset I-span `σ = (s, ℓ_σ)` with coverage `⟦σ⟧`:
 
 The I-extent `I(β) = {a + k : 0 ≤ k < n}` is an arithmetic progression under OrdinalShift (ASN-0034), interpreted via the OrdinalShiftBase convention (ASN-0058): `a + k = shift(a, k)` for `k ≥ 1`, and `a + 0 = a` by definition.
 
-The index-to-tumbler map `k ↦ a + k` is strictly monotone over `0 ≤ k < n`. Since `β = (v, a, n)` is a mapping block, this is exactly the I-component of M1 (OrderPreservation, ASN-0058): `a + k₁ < a + k₂` for all `0 ≤ k₁ < k₂ < n`. We cite M1 directly rather than re-deriving the monotonicity from the underlying shift lemmas.
+The index-to-tumbler map `k ↦ a + k` is strictly monotone over `0 ≤ k < n`. Since `β = (v, a, n)` is a mapping block, this is exactly the I-component of M1 (OrderPreservation, ASN-0058): `a + k₁ < a + k₂` for all `0 ≤ k₁ < k₂ < n`.
 
 The span coverage `⟦σ⟧ = {t : s ≤ t < s ⊕ ℓ_σ}` is convex under T1 by T12 (SpanWellDefinedness, ASN-0034) — its order-convexity postcondition (c) states that for any `t₁, t₂ ∈ ⟦σ⟧` and `t₁ ≤ t' ≤ t₂`, we have `t' ∈ ⟦σ⟧`.
 
@@ -232,7 +230,7 @@ Therefore the intersection, when non-empty, contains every index between its min
 
 Aggregating across all blocks and all endset spans, partitioning by V-subspace, then normalising each subspace component via S8, yields `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` in canonical form.
 
-This is *one* admissible computation. The decomposition view confirms the computation is finite and well-structured: linear in the number of (block, endset-span) pairs whose I-extents intersect.
+This is *one* admissible computation. The decomposition view confirms the computation is finite.
 
 Fragmentation and multiplicity are the per-block image of the decomposition. If a single endset I-span `σ` intersects two non-adjacent mapping blocks of `d` in the same subspace, it produces two non-adjacent V-runs in the result — the V-image of blocks that are non-adjacent in V-space. Multiplicity is the shared-I-extent case: if multiple blocks have the same I-start `a` and width, each contributes its own V-run.
 
