@@ -4,7 +4,7 @@
 
 We are looking for the operation that, given a link and a document, identifies where in the document the link's endsets reach — what V-positions in that document's arrangement currently hold the bytes the link points to. The operation is a pure query; it modifies no state. What it must compute, what regularity it must exhibit, and what shape its result must take are the questions of this note.
 
-The argument begins with a single mathematical relation: an inverse image. Every property of the operation — denotation-determinism, multiplicity, partial reach, empty admissibility, slot uniformity, origin symmetry — follows from that relation combined with the foundations. We shall develop it once and then read off consequences.
+The content of the operation is a single mathematical relation: the inverse image of an endset's coverage under the document's arrangement.
 
 ## The Setting
 
@@ -101,7 +101,7 @@ Whether a given I-address `a ∈ coverage(e)` contributes V-positions to `R(d, e
 
 `R(d, e)` is a set of V-positions. For transmission, storage, and presentation we require a finite representation. The natural representation is a per-subspace family of span-sets in V-space (ASN-0053).
 
-The per-subspace decomposition is structurally required, not a stylistic choice. Within a single V-subspace `S` of `d`, all V-positions share a common depth (S8-depth, ASN-0036; `m_L(d)`, ASN-0047, for the link subspace), so the level-uniformity required by S6 (ASN-0053) for normalisation is structurally available within each subspace. Across subspaces the depths may differ, so no single level-uniform span-set can hold a multi-subspace `R(d, e)`. The result must be indexed by subspace.
+Within a single V-subspace `S` of `d`, all V-positions share a common depth (S8-depth, ASN-0036; `m_L(d)`, ASN-0047, for the link subspace), so the level-uniformity required by S6 (ASN-0053) for normalisation is structurally available within each subspace. Across subspaces the depths may differ, so no single level-uniform span-set can hold a multi-subspace `R(d, e)`. The result must be indexed by subspace.
 
 A span-set suffices because the per-subspace decomposition of `M(d)` (S8★, ASN-0047) and the finite mapping-block decompositions (M2, ASN-0058) make `M(d)⁻¹(X)`, for any finite union of I-spans `X`, a finite collection of contiguous V-runs — exactly what a span-set encodes.
 
@@ -155,7 +155,7 @@ The postcondition fixes the *V-restricted denotation* of each component but not 
 
 **Definition (CanonicalForm).** The canonical form of `Σ_V = (Σ_V^{s_C}, Σ_V^{s_L})` is the per-subspace family in which:
 
-(i) Each component span in each `Σ_V^S` has start `s` with `#s = m_S(d)`, `subspace(s) = S`, and `(A i : 1 ≤ i ≤ m_S(d) : s_i ≥ 1)` (so `s` is an admissible V-position by S8a), and width of the form `δ(c, m_S(d)) = [0, ..., 0, c]` — an *ordinal displacement* of depth `m_S(d)` (justified in Step 1 below). The start positivity is a *canonical-form convention*: the postcondition `⟦Σ_V^S⟧_V = R(d, e)|_S` alone admits multiple `(s, ℓ)` representations of the same V-restricted point set. At depth 2 in subspace 1, the non-canonical `σ = ([1, 0], δ(3, 2))` is T12-well-formed (action point 2 ≤ `#s` = 2) and has raw `⟦σ⟧` containing the depth-2 tumblers `[1, 0], [1, 1], [1, 2]` (alongside deeper-depth tumblers from the lexicographic interval); the V-restriction filters `[1, 0]` by the positivity clause, leaving `⟦σ⟧_V = {[1, 1], [1, 2]}` — identical to the V-restricted denotation of the canonical `σ' = ([1, 1], δ(2, 2))`. The convention's role is to pin `(s, c)` uniquely from `⟦σ⟧_V` for the Step 2 reconstruction: with `s` positive, T12(b) gives `s ∈ ⟦σ⟧`, and the positivity convention promotes this to `s ∈ ⟦σ⟧_V` (`s` clears the depth, subspace, and positivity gates of the V-restriction); Step 1's case `k = m_S(d)` then establishes `s = min(⟦σ⟧_V)`, so the minimum of each maximal run identifies the start. Without the convention, distinct `(s, ℓ)` pairs would witness the same V-restricted point set and Step 2's `(s_j, c_j) = (min(run_j), |run_j|)` reconstruction would not be single-valued.
+(i) Each component span in each `Σ_V^S` has start `s` with `#s = m_S(d)`, `subspace(s) = S`, and `(A i : 1 ≤ i ≤ m_S(d) : s_i ≥ 1)` (so `s` is an admissible V-position by S8a), and width of the form `δ(c, m_S(d)) = [0, ..., 0, c]` — an *ordinal displacement* of depth `m_S(d)` (justified in Step 1 below).
 
 (ii) Each component `Σ_V^S` is in the unique normalised form guaranteed by S9 (NormalizationUniqueness, ASN-0053) — sorted by V-start under T1, with no overlapping or adjacent spans.
 
@@ -565,8 +565,6 @@ Two consequences. A link is not a function of its result: its identity rests on 
 **Frame.** No state modification.
 
 This is the structural reading of Nelson's "a link to one version is a link to all versions": the link's reach is determined by where its endsets' content is currently arranged, and it extends into every document on the same terms.
-
-These properties are not independent axioms requiring separate verification. They are readings of the same definition: `R(d, e) = M(d)⁻¹(coverage(e))` partitioned by subspace, with the canonical form available as a derived projection.
 
 ## Claims Introduced
 
