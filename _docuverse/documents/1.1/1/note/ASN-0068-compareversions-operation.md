@@ -53,9 +53,9 @@ We do *not* require `m_a = m_b`. Two documents may carry V-positions at differen
 > - `D = {(v, v) : v ∈ ⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)}` — the *identity diagonal*, contributed by every V-position lying in both restrictions;
 > - `X = {(v¹, v²) : v¹ ∈ ⟦R_a⟧ ∩ V_{s_C}(d), v² ∈ ⟦R_b⟧ ∩ V_{s_C}(d), v¹ ≠ v², M(d)(v¹) = M(d)(v²)}` — the *self-transclusion off-diagonal*, contributed by every pair of distinct V-positions in `d` sharing an I-address.
 >
-> The two sets are disjoint (by the `v¹ = v²` discriminator) and exhaustive (every pair either has `v¹ = v²` or `v¹ ≠ v²`, by trichotomy of equality). When `R_a = R_b`, `D = {(v, v) : v ∈ ⟦R_a⟧ ∩ V_{s_C}(d)}` is the full diagonal over the restricted V-positions; when `R_a ≠ R_b`, `D` is the diagonal restricted to the intersection `⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)`, and `X` records the self-transclusion pairs asymmetrically detectable from the two restrictions.
+> The `v¹ = v²` discriminator splits `corr_{a,a}` into the disjoint cases `D` (where `v¹ = v²`) and `X` (where `v¹ ≠ v²`). When `R_a = R_b`, `D = {(v, v) : v ∈ ⟦R_a⟧ ∩ V_{s_C}(d)}` is the full diagonal over the restricted V-positions; when `R_a ≠ R_b`, `D` is the diagonal restricted to the intersection `⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)`, and `X` records the self-transclusion pairs asymmetrically detectable from the two restrictions.
 
-*Justification.* With `d_a = d_b = d`, the defining equation of `corr_{a,b}` becomes `M(d)(v¹) = M(d)(v²)`. Functionality of `M(d)` (S2, ASN-0036) ensures `v¹ = v² ⟹ M(d)(v¹) = M(d)(v²)`, so every pair `(v, v)` with `v ∈ ⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)` lies in the relation — this is `D`. The remaining case `v¹ ≠ v²` admits pairs only when `M(d)(v¹) = M(d)(v²)` while `v¹ ≠ v²`, i.e., self-transclusion is exhibited in `M(d)` — this is `X`. The discriminator is trichotomous, so `corr_{a,a} = D ∪ X` is exhaustive.
+*Justification.* With `d_a = d_b = d`, the defining equation of `corr_{a,b}` becomes `M(d)(v¹) = M(d)(v²)`. Functionality of `M(d)` (S2, ASN-0036) ensures `v¹ = v² ⟹ M(d)(v¹) = M(d)(v²)`, so every pair `(v, v)` with `v ∈ ⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)` lies in the relation — this is `D`. The remaining case `v¹ ≠ v²` admits pairs only when `M(d)(v¹) = M(d)(v²)` while `v¹ ≠ v²`, i.e., self-transclusion is exhibited in `M(d)` — this is `X`.
 
 ## The Correspondence Relation
 
@@ -93,7 +93,7 @@ The notation `v + k` denotes shift at the V-position depth of each document, fol
 
 The maximality conditions reference *valid V-predecessors* `v_a − 1` and `v_b − 1` in iterated form.
 
-> **CV-PRED** (*iterated V-predecessor*): For a V-position `v ∈ V_S(d)` (so by D-SEQ★, ASN-0047, `v = [S, 1, ..., 1, v_m]` of depth `m` with `v_m ≥ 1`) and `j ≥ 0`, the *j-th iterated V-predecessor* `v − j` is the unique V-position `v'` of depth `m` satisfying `v' + j = v` under the OrdinalShiftBase convention of ASN-0058. The notation extends OrdinalShiftBase to negative offsets, with five clauses:
+> **CV-PRED** (*iterated V-predecessor*): For a V-position `v ∈ V_S(d)` (so by D-SEQ★, ASN-0047, `v = [S, 1, ..., 1, v_m]` of depth `m` with `v_m ≥ 1`) and `j ≥ 0`, the *j-th iterated V-predecessor* `v − j` is the unique V-position `v'` of depth `m` satisfying `v' + j = v` under the OrdinalShiftBase convention of ASN-0058. The notation extends OrdinalShiftBase to negative offsets, with four clauses:
 >
 > *Convention.* `v − 0 := v` (parallel to `v + 0 := v`).
 >
@@ -102,10 +102,6 @@ The maximality conditions reference *valid V-predecessors* `v_a − 1` and `v_b 
 > *Uniqueness.* When `v − j` exists, it is unique. For `j ≥ 1`, suppose `v'_1 + j = v = v'_2 + j` with `#v'_1 = #v'_2 = m`. By OrdinalShift's defining equation `v' + j = v' ⊕ δ(j, m)` (ASN-0034), this rewrites to `v'_1 ⊕ δ(j, m) = v'_2 ⊕ δ(j, m)`. TS2 (ShiftInjectivity, ASN-0034) — instantiated at common shift amount `j` and common depth `m` — yields `v'_1 = v'_2`. For `j = 0`, uniqueness follows from the convention.
 >
 > *Inverse property.* When `v − j` exists: `(v − j) + j = v`. This is immediate from the defining equation `v' + j = v` with `v' = v − j` (existence and uniqueness having pinned down `v'`).
->
-> *Dual inverse.* For every `j ≥ 0`: `(v + j) − j = v`. The tumbler `v + j` is always a valid V-position of depth `m` (its last component is `v_m + j ≥ 1`, so S8a is preserved), and by the existence clause `(v + j) − j` exists iff `v_m + j ≥ j + 1`, equivalently `v_m ≥ 1`, which is unconditional. The uniqueness clause, applied to the equation `v + j = v + j` (read as `v' + j = v + j` with `v' = v`), forces `(v + j) − j = v`.
->
-> We adopt the convention that left-maximality of a run starting at `v_a` is automatic when `v_a − 1` does not exist (i.e., `(v_a)_m = 1`), and symmetrically on the b-side.
 
 With CV-PRED in hand, the maximality conditions read uniformly: `v_a − k` and `v_b − k` denote the `k`-th iterated V-predecessors on each side, and existence is the first conjunct of the disjunction below.
 
@@ -352,7 +348,7 @@ This is a separation of concerns. The version-graph structure makes any historic
 | CV-LINK-DEGEN | When `S = s_L` and `d_a ≠ d_b`, the result is necessarily empty (CL-OWN + S7 force I-address origins to disagree) | introduced |
 | CV-LINK-SELF | When `S = s_L` and `d_a = d_b = d`, the correspondence relation in `s_L` collapses to the identity diagonal (CL-UNIQ forces equal I-addresses to come from equal V-positions) | introduced |
 | CV-SELF | When `S = s_C` and `d_a = d_b = d`, `corr_{a,a}` decomposes as `D ∪ X`: the identity diagonal over `⟦R_a⟧ ∩ ⟦R_b⟧ ∩ V_{s_C}(d)` plus self-transclusion off-diagonal pairs | introduced |
-| CV-PRED | Iterated V-predecessor `v − j`: existence iff `v_m ≥ j + 1` (D-SEQ★, S8a); uniqueness via TS2; inverse properties `(v − j) + j = v` and `(v + j) − j = v`; convention `v − 0 := v` | introduced |
+| CV-PRED | Iterated V-predecessor `v − j`: existence iff `v_m ≥ j + 1` (D-SEQ★, S8a); uniqueness via TS2; inverse property `(v − j) + j = v`; convention `v − 0 := v` | introduced |
 | Correspondence run | A triple `(v_a, v_b, n)` with `n ≥ 1` and pointwise correspondence at all offsets `0 ≤ k < n`, both endpoints lying in their restrictions | introduced |
 | Maximal correspondence run | A correspondence run that cannot be extended left or right without leaving a restriction or breaking pointwise correspondence | introduced |
 | CV-MAX | `MaxRuns(d_a, R_a, d_b, R_b)` is uniquely determined; every pair in `corr_{a,b}` is witnessed by exactly one maximal run | introduced |
