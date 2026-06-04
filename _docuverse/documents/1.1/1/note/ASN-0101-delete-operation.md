@@ -86,9 +86,7 @@ This is the natural generalisation of ASN-0082's D-BJ (which discharges the same
 
 Gregory's implementation realises this through a two-phase protocol on the tree of POOM crums that materialises `M(d)`. Phase 1 establishes "knives" at the boundaries `s` and `r`, splitting any crum interior to either knife into a pair of crums boundary-aligned with the knife. Phase 2 walks the affected children of the spanning node and applies one of three actions per crum: untouched (the crum lies before `s`), freed (the crum lies in `[s, r)`), or shifted (the crum lies at or after `r`, and its V-displacement is reduced by `width(σ)`). After the walk, a width-recomputation pass propagates the changes upward.
 
-The abstract specification is silent on the tree structure but does require *some* such mechanism — the operation must be able, in finite work proportional to the affected region, to produce a post-state arrangement satisfying D0's domain and value conditions. The two-knife structure is an implementation choice that realises this in a particularly direct way. Two observations sharpen the abstract picture:
-
-- *Boundary alignment is necessary, not incidental.* Any implementation that represents the arrangement compactly (as runs, or as B-tree nodes) must arrange for the deletion boundaries `s` and `r` to coincide with representation boundaries before the per-region action can be applied uniformly. Without such alignment, individual cells of the representation would span the boundary and require special-case handling. The two-knife pattern (cut at both endpoints, then classify) generalises beyond tree representations to any compact arrangement.
+The abstract specification is silent on the tree structure but does require *some* such mechanism — the operation must be able, in finite work proportional to the affected region, to produce a post-state arrangement satisfying D0's domain and value conditions. The two-knife structure is an implementation choice that realises this in a particularly direct way. One observation sharpens the abstract picture:
 
 - *No reconciliation across the gap.* After the shift, two runs that were previously separated by the deleted region become V-adjacent. Whether their I-extents are now I-adjacent — and could therefore be merged into a single run under the bundle-algebra rules — is in general indeterminate. The abstract specification does not require a reconciliation pass, and Gregory confirms that none is performed: formerly non-adjacent crums whose V-positions become contiguous remain separate. This is consistent with the principle that DELETE preserves arrangement information without re-canonicalising; merging would conflate the boundaries of two independently inserted runs with the boundaries of a single uninterrupted run.
 
@@ -464,7 +462,7 @@ The well-formedness preservation is what closes the loop: DELETE is not just a l
 
 ## Link discoverability: the projection picture
 
-The conjunction of D2, D3, D5, and D6 establishes that DELETE is, from the link store's viewpoint, an arrangement-only operation: link values are unchanged, coverage is unchanged, only the projection into the affected document's affected subspace is altered. We can characterise the alteration precisely, and extract it as an abstract characterisation. Let `ℓ ∈ dom(L)` and let `Σ → Σ'` be a DEL[d, σ] transition with `σ = (s, ℓ_σ)`, removing span `(s, ℓ_σ)` from subspace `S` of `d`.
+We characterise precisely how DELETE alters a link's projection, and extract it as an abstract characterisation. Let `ℓ ∈ dom(L)` and let `Σ → Σ'` be a DEL[d, σ] transition with `σ = (s, ℓ_σ)`, removing span `(s, ℓ_σ)` from subspace `S` of `d`.
 
 **D9 — Link projection under DELETE.** For every link `ℓ ∈ dom(L)`, every slot `i`, every DEL[d, σ] transition `Σ → Σ'`, and every document `d'' ∈ dom(M)`:
 
@@ -557,15 +555,7 @@ Nelson's design intent goes beyond "DELETE doesn't destroy" to the stronger clai
 
 ## Boundaries the abstract specification does not cross
 
-Three concerns lie outside the abstract specification's scope. We name them to make clear it does not adopt them as features:
-
-- **Auxiliary indices.** The specification includes no global "documents containing I-address" index. D2 + D5 supply the underlying truth (`a ∈ dom(C')`, and `M'(d') = M(d')` for unaffected documents), from which a correct index can be derived; implementations may, but need not, maintain one.
-
-- **Representation.** The specification has no notion of "tree" or "tree height"; the post-state arrangement is fully characterised by `M'(d)` as a partial function. Implementations are free to choose any representation that supports the operation's effect and frame.
-
-- **Enumeration of orphaned I-addresses.** The specification provides no operation to enumerate I-addresses currently absent from every arrangement. D2 establishes that orphaned I-addresses persist in `dom(C')`; discovering them is a downstream concern, and orphaned I-addresses are treated as a feature (content survives independent of arrangement), not a defect.
-
-These observations clarify scope: DELETE's preservation guarantees concern the state components named in the operation specification. Auxiliary indices, representation choices, and discovery operations are downstream concerns.
+DELETE's guarantees concern only the state components named in D0's frame; auxiliary indices, representation choices, and enumeration of orphaned I-addresses are downstream concerns.
 
 ## Claims Introduced
 
