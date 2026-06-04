@@ -76,9 +76,7 @@ Foundation ASN-0058 supplies the machinery in subspace-agnostic form. Let `f = M
 
 > `{β₁, ..., βₖ} = {(v₁, a₁, n₁), ..., (vₖ, aₖ, nₖ)}`,
 
-where each block `βⱼ` denotes the V→I correspondence `vⱼ + i ↦ aⱼ + i` for `0 ≤ i < nⱼ` (B3, ASN-0058), and the blocks partition `dom(f)` (B1, ASN-0058). C1a's preconditions — functionality (S2), finite domain (S8-fin), and common depth `m ≥ 2` (S8-depth combined with S8a, ASN-0036) — are subspace-agnostic; the decomposition is well-defined whether the V-positions of `dom(f)` lie in the content subspace (so I-addresses lie in `dom(C)` by S3★) or the link subspace (so I-addresses lie in `dom(L)` by S3★).
-
-ASN-0058's `resolve` cannot serve here: its C1 (ResolutionIntegrity) asserts `aⱼ + i ∈ dom(C)`, whereas SHOWORIGIN_V admits link-subspace V-spans whose I-targets lie in `dom(L)`; C1a's decomposition covers both subspaces.
+where each block `βⱼ` denotes the V→I correspondence `vⱼ + i ↦ aⱼ + i` for `0 ≤ i < nⱼ` (B3, ASN-0058), and the blocks partition `dom(f)` (B1, ASN-0058). We use C1a rather than `resolve` because C1a's decomposition covers both subspaces, whereas `resolve` confines I-targets to `dom(C)` (C1). C1a's preconditions — functionality (S2), finite domain (S8-fin), and common depth `m ≥ 2` (S8-depth combined with S8a, ASN-0036) — are subspace-agnostic; the decomposition is well-defined whether the V-positions of `dom(f)` lie in the content subspace (so I-addresses lie in `dom(C)` by S3★) or the link subspace (so I-addresses lie in `dom(L)` by S3★).
 
 We work with three equivalent expressions for `origins_V(Σ, d, σ)`. The reader-facing form — the form that the operation specification will use — is:
 
@@ -108,7 +106,7 @@ We adopt (F1) as the definition and derive (F2) and (F3) as equivalent forms; th
 
 Like its I-span counterpart, `origins_V(Σ, d, σ)` is a finite set of document-level tumblers — finite because `⟦σ⟧ ∩ dom(M(d)) ⊆ dom(M(d))` is finite by S8-fin (FiniteArrangement, ASN-0036), and the image of a finite set under `origin` (form (F1)) is finite. The set may be smaller than `k` if multiple blocks share an origin — for instance, two separately-transcluded passages drawn from the same source document, or transcluded content interleaved with native content of `d` where the native portions and `d` itself share an origin (`d` itself, for native).
 
-A level-uniform V-span lies in a single subspace. Mixed V-spans (crossing both subspaces) are excluded by the conjunction of C0 (OrdinalDisplacementNecessity, ASN-0058) and C0a (PrefixConfinement, ASN-0058) — not by S8-depth, which permits distinct subspaces to share a common depth (a link-subspace depth `m_L(d)` may coincide with a content-subspace depth `m_C(d)`, where a depth coincidence does not force subspace coincidence). C0 forces the displacement's action point to coincide with the common depth `m ≥ 2`, so `ℓ₁ = 0`; TumblerAdd's prefix-copy rule then gives `reach(σ)_1 = u_1`. C0a delivers `t_j = u_j` for every `1 ≤ j < m` and every `t ∈ ⟦σ⟧`; in particular `t_1 = u_1 = subspace(u)`. Every position in `⟦σ⟧` therefore shares `u`'s subspace identifier, so a level-uniform V-span lies in a single subspace. (The link-subspace case `u₁ = s_L`, where the result reduces to `{d}`, is treated as an edge case below.)
+A level-uniform V-span lies in a single subspace. Mixed V-spans (crossing both subspaces) are excluded by the conjunction of C0 (OrdinalDisplacementNecessity, ASN-0058) and C0a (PrefixConfinement, ASN-0058). C0 forces the displacement's action point to coincide with the common depth `m ≥ 2`, so `ℓ₁ = 0`; TumblerAdd's prefix-copy rule then gives `reach(σ)_1 = u_1`. C0a delivers `t_j = u_j` for every `1 ≤ j < m` and every `t ∈ ⟦σ⟧`; in particular `t_1 = u_1 = subspace(u)`. Every position in `⟦σ⟧` therefore shares `u`'s subspace identifier, so a level-uniform V-span lies in a single subspace. (The link-subspace case `u₁ = s_L`, where the result reduces to `{d}`, is treated as an edge case below.)
 
 ## Structural derivation
 
@@ -130,7 +128,7 @@ This is what Nelson means when he insists attribution is *unstrippable within th
 
 Suppose content was allocated in document `d₁`. Document `d₂` transcludes it; `d₃` transcludes from `d₂`; this continues to `dₙ`. A reader of `dₙ` asks SHOWORIGIN. What does it return?
 
-Because each transclusion is by reference rather than copy, the I-address recorded in every intermediate document's arrangement is the *same* — it points to the bytes baptised by `d₁`. The mechanism is foundation: K.μ⁺ (ArrangementExtension, ASN-0047) admits any allocated I-address `a ∈ dom(C)` as a transclusion target — including foreign ones allocated by another document — and J4 (ForkComposite, ASN-0047) propagates I-address ranges through forks by the range-equality guarantee `ran(M'(d_new)) = ran(M(d_op)|_{V_{s_C}(d_op)})`, where `d_op` is the fork's content-source operand (`d_op = d_src` in J4's `k = 1` sub-case, `d_op = max(dom(A_v(d_src)))` in the `k = 0` sub-case); together they realize O4's hypothesis along any chain of transclusion operations, since each intermediate document's K.μ⁺ extension or fork records exactly the original I-address `a` rather than a copy. Each intermediate document `d₂, d₃, ..., d_{n-1}` therefore holds an arrangement entry mapping its own V-positions to this single I-address, but the address does not change as it propagates. Each intermediate document's arrangement independently records the same `a`, so any of these arrangements can be queried with the same result:
+Because each transclusion is by reference rather than copy, every intermediate document's arrangement records the *same* I-address `a` — the bytes baptised by `d₁` — rather than a copy (K.μ⁺ and J4 of ASN-0047 propagate the original I-address unchanged). So any of these arrangements can be queried with the same result:
 
 **Claim O4 (Parallel witnesses to a single origin).** *Suppose `a ∈ dom(Σ.C)` with `origin(a) = d₁`, and suppose `d₂, d₃, ..., dₙ` are distinct documents each holding a V-position `vᵢ ∈ dom(M(dᵢ))` with `M(dᵢ)(vᵢ) = a` (for `2 ≤ i ≤ n`). Then for every `i ∈ {2, ..., n}`:*
 
@@ -140,7 +138,7 @@ Because each transclusion is by reference rather than copy, the I-address record
 
 *Derivation.* Fix `i ∈ {2, ..., n}`. By hypothesis, `M(dᵢ)(vᵢ) = a`. The pure projection `origin` (defined on `dom(C)`, by S7 of ASN-0036) takes `M(dᵢ)(vᵢ)` to `origin(M(dᵢ)(vᵢ)) = origin(a)`. By hypothesis `origin(a) = d₁`. This argument uses only `dᵢ`'s entry at `vᵢ` and the projection; it never names or reads `dⱼ` for any `j ≠ i`. ∎
 
-This is what Nelson means by *at once* [Q10]: the resolution mechanism walks no chain. Each intermediate `dᵢ` independently registered, via its own K.μ⁺ extension or fork (ASN-0047), an entry mapping one of its V-positions to the I-address `a`. The shared identity of `a` across all intermediate arrangements is what makes the chain depth irrelevant — not a property of the answer, but of the recorded data. By O3, the answer is computable from `a` alone; by O4, every intermediate document holds the same `a` and is interchangeable as a query target. The intermediate documents are *parallel witnesses*, not a chain to be traversed.
+This is what Nelson means by *at once* [Q10]: the resolution mechanism walks no chain. By O3, the answer is computable from `a` alone; by O4, each intermediate document is an independent witness, interchangeable as a query target. The intermediate documents are *parallel witnesses*, not a chain to be traversed.
 
 ## Permanence
 
