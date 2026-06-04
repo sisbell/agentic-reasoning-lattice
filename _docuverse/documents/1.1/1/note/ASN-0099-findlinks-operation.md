@@ -51,7 +51,7 @@ F1 (MatchPredicate):
    matches(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅).
 ```
 
-F1 generalizes ASN-0098's `discoverable_from`. ASN-0098 defines that predicate in *project* form — `discoverable_from(a, d, Σ) ≡ (E i : project(a, i, d, Σ) ≠ ∅)` — whereas F1's `matches` is in *coverage* form. The two coincide by LP12 (DiscoverabilityCharacterisation, ASN-0098), whose per-slot biconditional `project(a, i, d, Σ) ≠ ∅ ⟺ coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅` gives `discoverable_from(a, d, Σ) = matches(a, ran(Σ.M(d)), Σ)`. The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to. The choice of intersection over either containment direction is individuated by F4 below (Strengthening 1 and Strengthening 2), with explicit witnesses.
+F1 generalizes ASN-0098's `discoverable_from`. ASN-0098 defines that predicate in *project* form — `discoverable_from(a, d, Σ) ≡ (E i : project(a, i, d, Σ) ≠ ∅)` — whereas F1's `matches` is in *coverage* form. The two coincide by LP12 (DiscoverabilityCharacterisation, ASN-0098), whose per-slot biconditional `project(a, i, d, Σ) ≠ ∅ ⟺ coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅` gives `discoverable_from(a, d, Σ) = matches(a, ran(Σ.M(d)), Σ)`. The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to.
 
 F1's match is **per-endset overlap**: within each endset, satisfaction is existential over spans, and the per-span test is overlap (`coverage(eᵢ) ∩ I ≠ ∅` unfolds to `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`, with an identifiable witness span).
 
@@ -76,11 +76,11 @@ F4 (MatchIndividuation):
 
 *Weakening 2 — Slot-disjunctive ignoring I (`P_∃-slot(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ≠ ∅)`).* Witness: the same `(a, I)` as Weakening 1. `Σ.L(a).e₃ = {(τ, δ(1, #τ))}` is non-empty (mandated by L3), so `coverage(Σ.L(a).e₃) ≠ ∅` and `P_∃-slot` admits `a` regardless of `I`. F1 rejects (no slot's coverage meets `I`). The weakening collapses the I-dependence of the match entirely — every link in `dom(Σ.L)` matches every query, violating the relevance principle.
 
-**Empty endsets at non-type slots.** L3 requires only slot 3 to be non-empty; other slots may carry `∅`. Then `coverage(∅) = ∅` and the slot is never a witness — but other non-empty slots may witness the existential. In the filtered form (below), a filter constraint `(i, J)` is unsatisfiable at `a` when `i > |Σ.L(a)|` (the slot is absent) or `Σ.L(a).eᵢ = ∅` (the slot carries no spans).
+**Empty endsets at non-type slots.** L3 requires only slot 3 to be non-empty; other slots may carry `∅`. Then `coverage(∅) = ∅` and the slot is never a witness — but other non-empty slots may witness the existential.
 
 ## Endset Filtering
 
-A *slot constraint* is a pair `(i, J)` with `i ∈ ℕ⁺`, `J ⊆ T`. A link satisfies the constraint iff its slot `i` exists and the coverage at that slot meets `J`. The positional accessor is undefined for `i > |Σ.L(a)|` (L6), so we fold the out-of-range case into an explicit guard:
+A *slot constraint* is a pair `(i, J)` with `i ∈ ℕ⁺`, `J ⊆ T`. A link satisfies the constraint iff its slot `i` exists and the coverage at that slot meets `J`. The positional accessor is undefined for `i > |Σ.L(a)|` (L6), so we fold the out-of-range case into an explicit guard. A filter constraint `(i, J)` is unsatisfiable at `a` when `i > |Σ.L(a)|` (the slot is absent) or `Σ.L(a).eᵢ = ∅` (the slot carries no spans, so `coverage(∅) = ∅` meets no `J`):
 
 ```
 findlinks_filtered(C, Σ)
@@ -95,7 +95,7 @@ findlinks(I, Σ) = ⋃_{i = 1}^{N} findlinks_filtered({(i, I)}, Σ)
          N = 0                              when dom(Σ.L) = ∅  (empty union = ∅)
 ```
 
-`L-fin` gives `|dom(Σ.L)| < ∞` so the max is well-defined when the link store is non-empty.
+`L-fin` gives `|dom(Σ.L)| < ∞` so the max is well-defined when the link store is non-empty. The identity holds per link: fix `a ∈ dom(Σ.L)`. The single-slot filter `findlinks_filtered({(i, I)}, Σ)` carries the guard `i ≤ |Σ.L(a)|`, so `a` appears in the `i`-th union term iff `i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅`. Membership of `a` in the union over `1..N` is therefore `(E i : 1 ≤ i ≤ N : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)`, and the guard `i ≤ |Σ.L(a)|` collapses the range `1..N` to `1..|Σ.L(a)|` (terms with `i > |Σ.L(a)|` are unsatisfiable, and `|Σ.L(a)| ≤ N` by the definition of `N` ensures none below the per-link arity is dropped). That existential is exactly F1's `matches(a, I, Σ)`, so `a` is in the union iff `a ∈ findlinks(I, Σ)`. Set extensionality over `a` closes the identity.
 
 ```
 F7 (EndsetSymmetry):
