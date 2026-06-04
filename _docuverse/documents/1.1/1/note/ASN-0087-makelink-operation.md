@@ -18,8 +18,6 @@ What must the caller supply?
 
 The caller does *not* specify the link's address or its V-position in the home document — neither is an operation *parameter*. The address `ℓ` is *derived* by the system from the current state (the next emission of `A_L(d)`); the V-position `v_ℓ` is derived from the current state together with the canonical-depth convention M-DepthConv below — its serial component fixed by the link subspace's current cardinality, its depth fixed per M-DepthConv.
 
-*Address predictability.* Although `ℓ` is not a parameter, it is deterministically derivable from `Σ`: a caller may *predict* `ℓ` by evaluating `A_L(d)`'s emission rule against the state it observes — first emission `[d, 0, s_L, 1]` when `d` has no prior links, else `inc(ℓ_prev, 0)`. This predictability is what makes reflexive authoring possible (see *Weakest Precondition for Discoverability*, Case 2).
-
 *Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`. MAKELINK commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined. This is a scoped, normative commitment — for any document `d` whose every link V-position was placed by MAKELINK, `m_L(d) = 2` — not a system-wide invariant.
 
 We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047).
@@ -89,8 +87,8 @@ Whenever MAKELINK is the placing operation the caller never supplies `v_ℓ`: in
 Other components are unchanged:
 
   Σ'.C  =  Σ.C
-  Σ'.E  =  Σ.E                                          [no entity allocation]
-  Σ'.R  =  Σ.R                                          [provenance applies to content subspace only]
+  Σ'.E  =  Σ.E                                          [K.λ, K.μ⁺_L hold E fixed]
+  Σ'.R  =  Σ.R                                          [K.λ, K.μ⁺_L hold R fixed]
   (A ℓ' ∈ dom(Σ.L) :: Σ'.L(ℓ') = Σ.L(ℓ'))               [L12]
   (A d' ∈ dom(Σ.M), d' ≠ d :: Σ'.M(d') = Σ.M(d'))
 
@@ -126,7 +124,7 @@ The function is *computed* from `Σ'.L(ℓ)` and `Σ'.M(d)` — no separate stat
 
   discoverable_from(ℓ, d, Σ')  ⟺  (E i : coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
 
-After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)` (M-DiscSymmetry). LP12's definition treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric: `ℓ` is discoverable from every document whose arrangement reaches into any of its endset coverages, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content. (A second, reflexive route is available to the home document alone; it is derived in *Weakest Precondition for Discoverability*, Case 2.)
+After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)` (M-DiscSymmetry). LP12's definition treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric: `ℓ` is discoverable from every document whose arrangement reaches into any of its endset coverages, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content.
 
 Discoverability is therefore a derived function of `L` and `M`, so the abstract specification requires no separate index state component (M-NoIndexState).
 
@@ -166,7 +164,7 @@ Discoverability checks via LP12:
 
 The type-endset coverage `coverage(e₃) = {t : τ ≼ t}` does not contribute to discoverability from either `d` or `d'` in this state: by the setup's constraint that `τ ⋠ x` for every `x ∈ {a₁, a₂, a₃, ℓ}`, prefix-testing each element of `ran(Σ'.M(d)) = {a₁, a₂, ℓ}` and `ran(Σ'.M(d')) = {a₃}` against `τ` yields no matches. Hence `coverage(e₃) ∩ ran(Σ'.M(d)) = ∅` and `coverage(e₃) ∩ ran(Σ'.M(d')) = ∅`. This is consistent with the type endset's role: it carries the link's classification, not its content connections.
 
-*Reflexive variant.* We instantiate M-Reflexive concretely. Replace `e₁` with `e₁' = {(ℓ, δ(1, #ℓ))}`, keeping `e₂` and `e₃` (the caller must *predict* `ℓ = [d, 0, 2, 1]` from `Σ` via `A_L(d)`'s deterministic first-emission rule — see *Address predictability* in *Inputs*). By PrefixSpanCoverage (ASN-0043), `coverage(e₁') = {t ∈ T : ℓ ≼ t}`, which contains `ℓ`. The M-Reflexive hypothesis `ℓ ∈ coverage(e₁')` is thus met, so wp Case 2's reflexive disjunct fires: `discoverable_from(ℓ, d, Σ')` holds with witness `v_ℓ ∈ project(ℓ, 1, d, Σ')`, regardless of `d`'s prior arrangement.
+*Reflexive variant.* We instantiate M-Reflexive concretely. Replace `e₁` with `e₁' = {(ℓ, δ(1, #ℓ))}`, keeping `e₂` and `e₃` (the caller predicts `ℓ = [d, 0, 2, 1]` from `Σ` via `A_L(d)`'s deterministic first-emission rule). By PrefixSpanCoverage (ASN-0043), `coverage(e₁') = {t ∈ T : ℓ ≼ t}`, which contains `ℓ`. The M-Reflexive hypothesis `ℓ ∈ coverage(e₁')` is thus met, so wp Case 2's reflexive disjunct fires: `discoverable_from(ℓ, d, Σ')` holds with witness `v_ℓ ∈ project(ℓ, 1, d, Σ')`, regardless of `d`'s prior arrangement.
 
 ## Weakest Precondition for Discoverability
 
@@ -202,7 +200,7 @@ The disjunction isolates two routes to home-document discoverability:
 - (i) *Arrangement-reach route:* some endset's coverage intersects `d`'s pre-existing arrangement range.
 - (ii) *Reflexive route:* some endset's coverage contains `ℓ` itself.
 
-L13 (ReflexiveAddressing, ASN-0043) permits a link's endsets to cover link addresses, including the link's own address, so route (ii) is admissible. When its disjunct holds it is forced by the post-state witness `v_ℓ ↦ ℓ`: if `ℓ ∈ coverage(eᵢ)` for some `i`, then since `Σ'.L(ℓ).eᵢ = eᵢ` (K.λ's effect, K.μ⁺_L's frame on `L`) and `Σ'.M(d)(v_ℓ) = ℓ`, we have `v_ℓ ∈ project(ℓ, i, d, Σ')`, so `discoverable_from(ℓ, d, Σ')` holds regardless of `Σ.M(d)`'s pre-existing arrangement (M-Reflexive). Because `ℓ` enters only `d`'s arrangement, this route is available to the home document alone — Case 1 already shows other documents gain nothing from the allocation of `ℓ`.
+L13 (ReflexiveAddressing, ASN-0043) permits a link's endsets to cover link addresses, including the link's own address, so route (ii) is admissible. For a caller to author an endset covering `ℓ`, the address must be known before allocation; it is. Although `ℓ` is not a parameter, it is deterministically derivable from `Σ`: a caller predicts `ℓ` by evaluating `A_L(d)`'s emission rule against the observed state — first emission `[d, 0, s_L, 1]` when `d` has no prior links, else `inc(ℓ_prev, 0)`. This predictability is what makes the reflexive route authorable. When its disjunct holds it is forced by the post-state witness `v_ℓ ↦ ℓ`: if `ℓ ∈ coverage(eᵢ)` for some `i`, then since `Σ'.L(ℓ).eᵢ = eᵢ` (K.λ's effect, K.μ⁺_L's frame on `L`) and `Σ'.M(d)(v_ℓ) = ℓ`, we have `v_ℓ ∈ project(ℓ, i, d, Σ')`, so `discoverable_from(ℓ, d, Σ')` holds regardless of `Σ.M(d)`'s pre-existing arrangement (M-Reflexive). Because `ℓ` enters only `d`'s arrangement, this route is available to the home document alone — Case 1 already shows other documents gain nothing from the allocation of `ℓ`.
 
 As a wp (the membership clause subsumed by `enabled(MAKELINK)` here, since `d_target = d`):
 
@@ -220,9 +218,7 @@ As a wp (the membership clause subsumed by `enabled(MAKELINK)` here, since `d_ta
 
 The frame `Σ'.C = Σ.C` is total: every `a ∈ dom(Σ.C)` satisfies `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The referenced content is byte-identical before and after MAKELINK.
 
-This is not a separate guarantee. It is a direct consequence of the composite's structure: K.λ modifies only `L`, and K.μ⁺_L modifies only `M(d)`. Neither operation touches `C`. The link's endsets *reference* I-addresses in `dom(C)`, but referencing is read-only — the endset stores spans (start, length pairs), not the bytes at those addresses. The bytes remain where they were.
-
-That creating a link has zero effect on referenced content — Nelson's phenomenology — is structural, not behavioral: the link's storage lies in the home document's element subspace, which by construction cannot modify content at I-addresses elsewhere.
+This is not a separate guarantee. It is a direct consequence of the composite's structure: K.λ modifies only `L`, and K.μ⁺_L modifies only `M(d)`. Neither operation touches `C`. The link's endsets *reference* I-addresses in `dom(C)`, but referencing is read-only — the endset stores spans (start, length pairs), not the bytes at those addresses. The bytes remain where they were. That creating a link has zero effect on referenced content is Nelson's phenomenology, here realized structurally.
 
 ## Side Effects on Prior Links' Discoverability
 
