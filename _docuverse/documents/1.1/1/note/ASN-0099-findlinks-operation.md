@@ -92,7 +92,7 @@ findlinks(I, Σ) = ⋃_{i = 1}^{N} findlinks_filtered({(i, I)}, Σ)
 
 ## Completeness
 
-The defining obligation is *completeness*: every link in `dom(Σ.L)` satisfying the match predicate must appear in an implementation's output. Let `result : 𝒫(T) × 𝒮 → 𝒫(T)` denote a conforming implementation's output function, where `𝒮` is the Xanadu system state space (states of the form `Σ = (C, L, M, E, R, …)` from ASN-0036, ASN-0043, ASN-0047, ASN-0093). The signature commits the implementation to functionality (equal arguments yield equal outputs).
+The defining obligation is *completeness*: every link in `dom(Σ.L)` satisfying the match predicate must appear in an implementation's output. Let `result : 𝒫(T) × 𝒮 → 𝒫(T)` denote a conforming implementation's output function, where `𝒮` is the Xanadu system state space (states of the form `Σ = (C, L, M, E, R, …)` from ASN-0036, ASN-0043, ASN-0047, ASN-0093; by SequentialTransitionAxiom of ASN-0093 each transition is atomic, so `Σ` is a well-defined single state at every query point). The signature commits the implementation to functionality (equal arguments yield equal outputs).
 
 ```
 F2 (Completeness):  findlinks(I, Σ) ⊆ result(I, Σ).
@@ -393,10 +393,6 @@ Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, 
 *I-side persistence of the `{α₂}` query (F11 across K.λ).* At `Σ_5`, `findlinks({α₂}, Σ_5) = {ℓ}`. At `Σ_6`: `ℓ ∈ dom(Σ_5.L) ⊆ dom(Σ_6.L)` with `Σ_6.L(ℓ) = Σ_5.L(ℓ)` by L12, so PerLinkInvarianceUnderValuePreservation at `ℓ` gives `matches(ℓ, {α₂}, Σ_6) = true`. For the freshly allocated `ℓ_new`: `coverage(ℓ_new.e₁) = {t : α_c ≼ t}` and `coverage(ℓ_new.e₃) = {t : τ_meta ≼ t}`, both disjoint from `{α₂}` (sibling content-address non-nesting between `α_c` and `α₂` under distinct documents `d_c ≠ d_a`; cross-document non-nesting between `τ_meta` and `α₂` by setup). So `matches(ℓ_new, {α₂}, Σ_6) = false`. By F9-λ: `findlinks({α₂}, Σ_6) = findlinks({α₂}, Σ_5) ⊎ ∅ = {ℓ}`. F11's persistence holds across the K.λ step: `ℓ` remains `{α₂}`-discoverable even as `dom(Σ.L)` grows. The load-bearing step is PerLinkInvarianceUnderValuePreservation at `ℓ` specifically.
 
 *I-side growth for a query covering `ℓ_new` (F19 monotonicity at K.λ).* Take `I' = {α_c}`. At `Σ_5`: `α_c ∈ dom(Σ_5.C)` (allocated in Query 5 step (ii)), but no link in `dom(Σ_5.L) = {ℓ, ℓ', ℓ_meta}` mentions `α_c` in any endset coverage (each prior link's slots cover prefix-subtrees over `α₁, α₂, α₃, τ_·, ℓ`, all non-nesting with `α_c` under `d_c`). So `findlinks({α_c}, Σ_5) = ∅`. At `Σ_6`: `matches(ℓ_new, {α_c}, Σ_6) = true` (slot 1's coverage `{t : α_c ≼ t}` contains `α_c` reflexively); the prior-key links remain non-matching by PerLinkInvarianceUnderValuePreservation. By F9-λ: `findlinks({α_c}, Σ_6) = ∅ ⊎ {ℓ_new} = {ℓ_new}`. F19 monotonicity is exhibited: `findlinks({α_c}, Σ_5) = ∅ ⊆ {ℓ_new} = findlinks({α_c}, Σ_6)`. F11 and F19 compose: a query covering the freshly allocated link grows, while every prior matching link remains matched.
-
-## Local Atomicity and the Single-State Setting
-
-By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and uninterruptible, so `Σ` is well-defined at every query point — the single-state reading every claim in this ASN assumes.
 
 ## What We Have Not Specified
 
