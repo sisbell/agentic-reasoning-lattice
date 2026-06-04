@@ -18,17 +18,17 @@ What must the caller supply?
 
 The caller does *not* — and cannot — specify the link's address or its V-position in the home document. The address `ℓ` is determined by the system from the current state (the next emission of `A_L(d)`). The V-position `v_ℓ` is determined from the current state together with the canonical-depth convention M-DepthConv below — its serial component fixed by the link subspace's current cardinality, its depth fixed per M-DepthConv. We make the convention explicit precisely because the depth is *not* recoverable from `Σ` in the boundary case where the link subspace is empty.
 
-*Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`; the state `Σ` does not determine `m` (`m_L(d)`, ASN-0047, is well-defined only while `V_{s_L}(d) ≠ ∅`). MAKELINK therefore commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined. As a scoped universal: for any document `d` whose every link V-position was placed by MAKELINK, `m_L(d) = 2`. This is MAKELINK's normative commitment, not a system-wide invariant.
+*Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`; the state `Σ` does not determine `m` (`m_L(d)`, ASN-0047, is well-defined only while `V_{s_L}(d) ≠ ∅`). MAKELINK therefore commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined. This is a scoped, normative commitment — for any document `d` whose every link V-position was placed by MAKELINK, `m_L(d) = 2` — not a system-wide invariant.
 
 We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047; ASN-0047 states some preconditions against `E_doc`).
 
-*Endsets and emptiness.* L3 (ASN-0043) requires the third slot `e₃` to be non-empty but imposes no non-emptiness constraint on the other slots. The empty endset `eᵢ = ∅` is a permitted boundary case for `i ≠ 3`: by the coverage definition, `coverage(∅) = ⋃_{(s,ℓ) ∈ ∅} … = ∅`, so an empty slot contributes nothing to any `project(ℓ, i, ·, ·)` and nothing to any LP12-based discoverability disjunct. The analysis below covers this case implicitly through the existential `(E i :: …)` in LP12: empty slots simply fail to witness, leaving the disjunction's truth value determined by the non-empty slots.
+*Endsets and emptiness.* L3 (ASN-0043) requires the third slot `e₃` to be non-empty but imposes no non-emptiness constraint on the other slots. The empty endset `eᵢ = ∅` is a permitted boundary case for `i ≠ 3`: by the coverage definition, `coverage(∅) = ⋃_{(s,ℓ) ∈ ∅} … = ∅`, so an empty slot contributes nothing to any `project(ℓ, i, ·, ·)` and nothing to any LP12-based discoverability disjunct.
 
 *Standard authoring.* We name the discipline under which several later reductions hold. An endset `e` is *standardly authored at state `Σ`* iff every span in `e` references addresses already in the substrate:
 
   StandardAuthoring(e, Σ)  ≡  coverage(e) ⊆ dom(Σ.C) ∪ dom(Σ.L)
 
-A link's input endset sequence `(e₁, ..., eₙ)` is standardly authored at `Σ` iff `StandardAuthoring(eᵢ, Σ)` holds for every `i ∈ {1, ..., N}`. This is a *structural* constraint on the endset value at the time MAKELINK is invoked — it is not an epistemic constraint on the caller's knowledge. The discipline rules out forward-reaching endsets that pre-emptively cover not-yet-allocated addresses.
+A link's input endset sequence `(e₁, ..., eₙ)` is standardly authored at `Σ` iff `StandardAuthoring(eᵢ, Σ)` holds for every `i ∈ {1, ..., N}`. The discipline rules out forward-reaching endsets that pre-emptively cover not-yet-allocated addresses.
 
 ## Decomposition
 
@@ -66,7 +66,7 @@ The condition `ℓ ∉ ran(Σ_mid.M(d))` requires more than `ℓ ∉ dom(Σ.L)`;
 - If `subspace(v) = s_C`, then `Σ.M(d)(v) ∈ dom(Σ.C)`.
 - If `subspace(v) = s_L`, then `Σ.M(d)(v) ∈ dom(Σ.L)`.
 
-K.λ's freshness precondition gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. In either subspace case, `Σ.M(d)(v) ∈ dom(Σ.C) ∪ dom(Σ.L)`, so `Σ.M(d)(v) ≠ ℓ`. Hence `ℓ ∉ ran(Σ.M(d)) = ran(Σ_mid.M(d))`. L14 (StoreDisjointness, ASN-0093) confirms internal consistency at `Σ_mid`: `dom(Σ_mid.L) = dom(Σ.L) ∪ {ℓ}` and `dom(Σ_mid.C) = dom(Σ.C)`, so `ℓ ∈ dom(Σ_mid.L)` combined with `dom(Σ_mid.C) ∩ dom(Σ_mid.L) = ∅` gives `ℓ ∉ dom(Σ_mid.C)` — so no `s_C`-subspace V-position at `Σ_mid` can image to `ℓ` either, matching the conclusion derived above.
+K.λ's freshness precondition gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. In either subspace case, `Σ.M(d)(v) ∈ dom(Σ.C) ∪ dom(Σ.L)`, so `Σ.M(d)(v) ≠ ℓ`. Hence `ℓ ∉ ran(Σ.M(d)) = ran(Σ_mid.M(d))`. SD (StoreDisjointness, ASN-0093) confirms internal consistency at `Σ_mid`: `dom(Σ_mid.L) = dom(Σ.L) ∪ {ℓ}` and `dom(Σ_mid.C) = dom(Σ.C)`, so `ℓ ∈ dom(Σ_mid.L)` combined with `dom(Σ_mid.C) ∩ dom(Σ_mid.L) = ∅` gives `ℓ ∉ dom(Σ_mid.C)` — so no `s_C`-subspace V-position at `Σ_mid` can image to `ℓ` either, matching the conclusion derived above.
 
 The intermediate-state conditions for K.μ⁺_L reduce to original-state conditions, so the caller-visible precondition for MAKELINK is just K.λ's precondition, with `ℓ` supplied by `A_L(d)`'s next emission and `v_ℓ` determined by the link subspace's current cardinality (serial component `n_L + 1`, where `n_L = |V_{s_L}(d)|`) together with its depth per M-DepthConv.
 
@@ -182,11 +182,11 @@ The type-endset coverage `coverage(e₃) = {t : τ ≼ t}` does not contribute t
 
 We compute `wp(MAKELINK, discoverable_from(ℓ, d_target, ·))` — the predicate on the pre-state `Σ` (parametrized by the input endsets `(e₁, ..., eₙ)` and the choice of `d_target`) that ensures the post-state satisfies `discoverable_from(ℓ, d_target, Σ')`.
 
-*Operation enabledness.* We follow the foundation's wp convention (LP12a, ASN-0098), which writes wp as `enabled(op) ∧ …` — conjoining the operation's applicability predicate so that the result is the weakest precondition for *total* correctness (a post-state must exist for the postcondition to be assertable). For MAKELINK the applicability predicate is exactly the caller-visible precondition M-Pre, namely the conjunction of home-document allocation and endset validity:
+*Operation enabledness.* Following the foundation's wp convention (LP12a, ASN-0098), wp is written `enabled(op) ∧ …` for total correctness. For MAKELINK the applicability predicate is the caller-visible precondition M-Pre:
 
   enabled(MAKELINK)  ≡  d ∈ dom(Σ.M)  ∧  N ≥ 3  ∧  (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset)  ∧  e₃ ≠ ∅
 
-Unless `enabled(MAKELINK)` holds at `Σ`, no post-state `Σ'` exists (K.λ's precondition fails), and `discoverable_from(ℓ, d_target, Σ')` is not assertable. The predicate concerns the *home* document `d` and the endset inputs, and is logically independent of the target document `d_target`.
+The predicate concerns the *home* document `d` and the endset inputs, and is logically independent of the target document `d_target`.
 
 *Membership precondition.* `discoverable_from(a, d, Σ)` is defined in ASN-0098 only when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`. At the post-state, `ℓ ∈ dom(Σ'.L)` by K.λ's effect, so the left conjunct is automatic. The right conjunct `d_target ∈ dom(Σ'.M)` requires that the target document was already registered at the pre-state. M1 (ASN-0093) supplies only the inclusion `dom(Σ.M) ⊆ dom(Σ'.M)`; equality `dom(Σ'.M) = dom(Σ.M)` at MAKELINK comes from the K.λ frame and K.μ⁺_L's effect, neither of which extends `dom(M)` (K.λ's frame holds `M` entirely fixed; K.μ⁺_L extends `dom(M(d))` for an already-registered `d` without adding any new document). Combining the M1 inclusion with these two frame consequences gives the equality, so `d_target ∈ dom(Σ'.M) ⟺ d_target ∈ dom(Σ.M)`. This membership clause keeps `discoverable_from` *defined* at the post-state; it is distinct from `enabled(MAKELINK)`, which keeps the post-state from existing at all. For `d_target = d` the membership clause is subsumed by `enabled(MAKELINK)`'s `d ∈ dom(Σ.M)` conjunct; for `d_target ≠ d` it is an independent obligation.
 
@@ -214,27 +214,19 @@ The disjunction isolates two routes to home-document discoverability:
 - (i) *Arrangement-reach route:* some endset's coverage intersects `d`'s pre-existing arrangement range.
 - (ii) *Reflexive route:* some endset's coverage contains `ℓ` itself.
 
+L13 (ReflexiveAddressing, ASN-0043) permits a link's endsets to cover link addresses, including the link's own address, so route (ii) is admissible. When its disjunct holds it is forced by the post-state witness `v_ℓ ↦ ℓ`: if `ℓ ∈ coverage(eᵢ)` for some `i`, then since `Σ'.L(ℓ).eᵢ = eᵢ` (K.λ's effect, K.μ⁺_L's frame on `L`) and `Σ'.M(d)(v_ℓ) = ℓ`, we have `v_ℓ ∈ project(ℓ, i, d, Σ')`, so `discoverable_from(ℓ, d, Σ')` holds regardless of `Σ.M(d)`'s pre-existing arrangement (M-Reflexive). Because `ℓ` enters only `d`'s arrangement, this route is available to the home document alone — Case 1 already shows other documents gain nothing from the allocation of `ℓ`.
+
 As a wp (the membership clause subsumed by `enabled(MAKELINK)` here, since `d_target = d`):
 
   wp(MAKELINK, discoverable_from(ℓ, d, ·))
     ≡  enabled(MAKELINK)  ∧  [(E i :: coverage(eᵢ) ∩ ran(Σ.M(d)) ≠ ∅) ∨ (E i :: ℓ ∈ coverage(eᵢ))]
 
-*Reduction under standard authoring.* When every input endset satisfies `StandardAuthoring(eᵢ, Σ)`, the reflexive route's disjunct `(E i :: ℓ ∈ coverage(eᵢ))` is unreachable (M-Reflexive). The wp collapses:
+*Reduction under standard authoring.* When every input endset satisfies `StandardAuthoring(eᵢ, Σ)`, K.λ's freshness gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` while standard authoring confines every `coverage(eᵢ)` to `dom(Σ.C) ∪ dom(Σ.L)`, so `ℓ ∉ coverage(eᵢ)` for every `i` — the reflexive route's disjunct `(E i :: ℓ ∈ coverage(eᵢ))` is unreachable (M-Reflexive). The wp collapses:
 
   wp(MAKELINK, discoverable_from(ℓ, d, ·))
     ≡  enabled(MAKELINK)  ∧  (E i :: coverage(eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)
 
 — the same shape as Case 1 (with `d_target := d`; the two enabledness-and-membership conjuncts coincide there into `enabled(MAKELINK)`, since the home and target documents are one). Under standard authoring, home-document discoverability requires `d`'s arrangement to reach into some endset's coverage; there is no automatic "self-discovery" of `ℓ` from `d` (M-DiscSymmetry).
-
-## Reflexive Endsets
-
-L13 (ReflexiveAddressing, ASN-0043) permits link addresses as valid endset targets — a link's endsets may cover other link addresses, or even cover the link's own address. We consider the case where one of MAKELINK's input endsets has coverage containing `ℓ` itself.
-
-*Reflexive coverage is structurally excluded under standard authoring.* When every input endset satisfies `StandardAuthoring(eᵢ, Σ)`, K.λ's freshness gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`, and standard authoring confines every `coverage(eᵢ)` to `dom(Σ.C) ∪ dom(Σ.L)`, so `ℓ ∉ coverage(eᵢ)` for every `i`. Standard authoring is a construction discipline, not an architectural barrier: `ℓ` is state-determined (Inputs), so a client could deliberately author reflexive coverage, and the structural exclusion above is the only substrate-level guarantee.
-
-*A reflexive endset yields guaranteed home-document discovery at the post-state.* Suppose `ℓ ∈ coverage(eᵢ)` for some `i ∈ {1, ..., N}`. After MAKELINK, `Σ'.M(d)(v_ℓ) = ℓ ∈ coverage(Σ'.L(ℓ).eᵢ)` (by K.λ's effect `Σ_mid.L(ℓ) = (e₁, ..., eₙ)` and K.μ⁺_L's frame `Σ'.L = Σ_mid.L`, so `Σ'.L(ℓ).eᵢ = eᵢ` and `coverage(Σ'.L(ℓ).eᵢ) = coverage(eᵢ)`). Hence `v_ℓ ∈ project(ℓ, i, d, Σ')`, giving `discoverable_from(ℓ, d, Σ')`. The home document's reflexive discovery is forced regardless of `Σ.M(d)`'s pre-existing arrangement.
-
-*No reflexive discovery from other documents.* For `d_target ≠ d`, K.μ⁺_L's frame leaves `Σ.M(d_target)` unchanged: `ran(Σ'.M(d_target)) = ran(Σ.M(d_target))`. The address `ℓ` enters only `d`'s arrangement, so only `d`'s `discoverable_from` query benefits from the reflexive endset. Other documents must rely on their own arrangement-reach into `coverage(eᵢ)` to discover `ℓ`. LP12 covers the reflexive case uniformly via the witness `v_ℓ ↦ ℓ ∈ ran(Σ'.M(d))`, with no special-case rule (M-DiscSymmetry).
 
 ## What Does Not Change
 
@@ -322,12 +314,12 @@ Every invariant quantifying solely over `C`, `E`, `R`, or the document set `dom(
 
 ASN-0047 classifies P4★, P4a, and P7a as Class (b) — properties discharged at composite boundaries by the coupling constraints J0, J1★, J1'★. MAKELINK introduces a single link-subspace V-arrangement entry. The three coupling constraints are vacuously satisfied — but for *structurally distinct* reasons, which we discharge separately:
 
-- *J0 (AllocationRequiresPlacement):* J0 quantifies over `dom(Σ'.C) ∖ dom(Σ.C)` — content addresses freshly allocated across the composite. MAKELINK's frame `Σ'.C = Σ.C` gives `dom(Σ'.C) ∖ dom(Σ.C) = ∅`. J0 holds by emptiness of the quantification universe.
-- *J1★ (ExtensionRecordsProvenanceContentSubspace):* J1★ quantifies over content-subspace V-positions whose image changes across the composite. The only new V-position is `v_ℓ` with `subspace(v_ℓ) = s_L`, and `s_L ≠ s_C` (SC-NEQ, ASN-0093). For every `v ∈ dom(Σ.M(d))`, `Σ'.M(d)(v) = Σ.M(d)(v)` by K.μ⁺_L's effect, so no prior V-position's image changed. The quantification `(E v ∈ dom(Σ'.M(d)) : subspace(v) = s_C ∧ Σ'.M(d)(v) = a) ∧ ¬(E v ∈ dom(Σ.M(d)) : subspace(v) = s_C ∧ Σ.M(d)(v) = a)` requires a *new* content-subspace witness; none exists, since `v_ℓ`'s subspace is `s_L`. J1★ holds by absence of content-subspace witnesses.
-- *J1'★ (ProvenanceRequiresExtensionContentSubspace):* J1'★ quantifies over `R' ∖ R`. MAKELINK's frame `Σ'.R = Σ.R` gives `R' ∖ R = ∅`. J1'★ holds by emptiness of the quantification universe.
+- *J0 (AllocationPlacementCoupling):* J0 quantifies over `dom(Σ'.C) ∖ dom(Σ.C)` — content addresses freshly allocated across the composite. MAKELINK's frame `Σ'.C = Σ.C` gives `dom(Σ'.C) ∖ dom(Σ.C) = ∅`. J0 holds by emptiness of the quantification universe.
+- *J1★ (ExtensionRecordsProvenance):* J1★ quantifies over content-subspace V-positions whose image changes across the composite. The only new V-position is `v_ℓ` with `subspace(v_ℓ) = s_L`, and `s_L ≠ s_C` (SC-NEQ, ASN-0093). For every `v ∈ dom(Σ.M(d))`, `Σ'.M(d)(v) = Σ.M(d)(v)` by K.μ⁺_L's effect, so no prior V-position's image changed. The quantification `(E v ∈ dom(Σ'.M(d)) : subspace(v) = s_C ∧ Σ'.M(d)(v) = a) ∧ ¬(E v ∈ dom(Σ.M(d)) : subspace(v) = s_C ∧ Σ.M(d)(v) = a)` requires a *new* content-subspace witness; none exists, since `v_ℓ`'s subspace is `s_L`. J1★ holds by absence of content-subspace witnesses.
+- *J1'★ (ProvenanceRequiresExtension):* J1'★ quantifies over `R' ∖ R`. MAKELINK's frame `Σ'.R = Σ.R` gives `R' ∖ R = ∅`. J1'★ holds by emptiness of the quantification universe.
 
-- P4★ (ProvenanceBoundsContentSubspace): `Contains_C(Σ') ⊆ R'`. The new V-arrangement entry `v_ℓ ↦ ℓ` has `subspace(v_ℓ) = s_L`, so it does not contribute to `Contains_C(Σ')`. Hence `Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`.
-- P4a (HistoricalFidelity): for every `(a, d') ∈ R'`, some prior state `Σ_k` in the transition history had `M_k(d')(v) = a` with `subspace(v) = s_C`. Since `R' = R`, the obligation is identical to P4a at `Σ`, which holds by the reachability hypothesis on `Σ`.
+- P4★ (ProvenanceBounds): `Contains_C(Σ') ⊆ R'`. The new V-arrangement entry `v_ℓ ↦ ℓ` has `subspace(v_ℓ) = s_L`, so it does not contribute to `Contains_C(Σ')`. Hence `Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`.
+- P4a (TraceWitnessing): for every `(a, d') ∈ R'`, some prior state `Σ_k` in the transition history had `M_k(d')(v) = a` with `subspace(v) = s_C`. Since `R' = R`, the obligation is identical to P4a at `Σ`, which holds by the reachability hypothesis on `Σ`.
 - P7a (ProvenanceCoverage): for every `a ∈ dom(Σ'.C)`, some `d'` satisfies `(a, d') ∈ R'`. Since `dom(Σ'.C) = dom(Σ.C)` and `R' = R`, the obligation is identical to P7a at `Σ`, which holds by reachability.
 
 ### Transition Invariants for Σ → Σ'
@@ -377,7 +369,7 @@ Beyond the frame established in *What Does Not Change* (no content allocation or
 | Label | Statement | Status |
 |-------|-----------|--------|
 | M-Comp | MAKELINK is the composite `K.λ ; K.μ⁺_L` — K.λ followed by K.μ⁺_L — applied to the same home document `d`. The semicolon denotes sequential composition, distinct from the tumbler addition `⊕` of ASN-0034. | introduced |
-| M-DepthConv | MAKELINK fixes the V-position depth of every first link it places at the canonical minimal `m = 2` (`Σ` leaves `m` free, since K.μ⁺_L admits any `m ≥ 2`); thereafter S8-depth pins `m_L(d) = 2`. Scoped universal: for any `d` whose every link V-position was placed by MAKELINK, `m_L(d) = 2`. Not a system-wide invariant. | introduced |
+| M-DepthConv | MAKELINK fixes every first link's V-position depth at the canonical minimal `m = 2`; thereafter S8-depth pins `m_L(d) = 2`. Stated and scoped in *Inputs*. | introduced |
 | M-Pre | Caller-visible precondition: `d ∈ dom(M)`, `N ≥ 3`, `(A i : eᵢ ∈ Endset)`, `e₃ ≠ ∅`. System-supplied parameters: `ℓ` from `A_L(d)`'s next emission; `v_ℓ` from K.μ⁺_L's positioning rule, serial component `n_L + 1` computed from `Σ`, depth per M-DepthConv. | introduced |
 | M-Alloc | MAKELINK allocates a fresh `ℓ ∈ T \ (dom(Σ.L) ∪ dom(Σ.C))` and a fresh `v_ℓ ∈ T \ dom(Σ.M(d))` with `subspace(v_ℓ) = s_L` and `#v_ℓ` per M-DepthConv. | introduced |
 | M-Effect | `Σ'.L = Σ.L ∪ {ℓ ↦ (e₁, ..., eₙ)}`; `Σ'.M(d) = Σ.M(d) ∪ {v_ℓ ↦ ℓ}` where `v_ℓ = [s_L, 1]` if `V_{s_L}(d) = ∅` at `Σ`, else `v_ℓ = shift(max(V_{s_L}(d)), 1)` (with `n_L = |V_{s_L}(d)|`); depth per M-DepthConv. | introduced |
@@ -385,8 +377,8 @@ Beyond the frame established in *What Does Not Change* (no content allocation or
 | M-NoContentEffect | For every `a ∈ dom(Σ.C)`: `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The referenced content is byte-identical before and after MAKELINK. | introduced |
 | M-DiscSymmetry | Discoverability of `ℓ` is symmetric across all documents whose arrangements reach into any endset coverage; the home document has no privileged role in LP12's definition. Any asymmetry of outcome reflects asymmetry of arrangement-reach, not a privileged status. | introduced |
 | StandardAuthoring | `StandardAuthoring(e, Σ) ≡ coverage(e) ⊆ dom(Σ.C) ∪ dom(Σ.L)` — a structural predicate on endset values at a state. A link's endset sequence is standardly authored at `Σ` iff every constituent endset satisfies the predicate. This is the named discipline cited by M-Reflexive, M-WP, and the cascade-vacuity discussion. | introduced |
-| M-Reflexive | If `ℓ ∈ coverage(eᵢ)` for some `i` (the reflexive endset case), then `v_ℓ ∈ project(ℓ, i, d, Σ')` and `discoverable_from(ℓ, d, Σ')` is forced true regardless of `Σ.M(d)`'s pre-existing arrangement. Under `(A i : StandardAuthoring(eᵢ, Σ))` the reflexive case is structurally excluded (derivation in *Reflexive Endsets*). | introduced |
-| M-PriorLinkDisc | For every prior link `ℓ' ∈ dom(Σ.L)`: from the home document `d`, `discoverable_from(ℓ', d, Σ') ⟺ discoverable_from(ℓ', d, Σ) ∨ (E i :: ℓ ∈ coverage(Σ.L(ℓ').eᵢ))` — newly discoverable precisely when some endset of `ℓ'` covers `ℓ`; from any `d_target ≠ d`, `discoverable_from(ℓ', d_target, Σ') = discoverable_from(ℓ', d_target, Σ)`. The side-effect window is confined to the home document. Composition across MAKELINK sequences preserves all per-state invariants (LP9, LP13, L12). | introduced |
+| M-Reflexive | If `ℓ ∈ coverage(eᵢ)` for some `i` (the reflexive endset case), then `v_ℓ ∈ project(ℓ, i, d, Σ')` and `discoverable_from(ℓ, d, Σ')` is forced true regardless of `Σ.M(d)`'s pre-existing arrangement. Under `(A i : StandardAuthoring(eᵢ, Σ))` the reflexive case is structurally excluded (derivation in *Weakest Precondition for Discoverability*, Case 2). | introduced |
+| M-PriorLinkDisc | For every prior link `ℓ' ∈ dom(Σ.L)`: from the home document `d`, `discoverable_from(ℓ', d, Σ') ⟺ discoverable_from(ℓ', d, Σ) ∨ (E i :: ℓ ∈ coverage(Σ.L(ℓ').eᵢ))` — newly discoverable precisely when some endset of `ℓ'` covers `ℓ`; from any `d_target ≠ d`, `discoverable_from(ℓ', d_target, Σ') = discoverable_from(ℓ', d_target, Σ)`. The side-effect window is confined to the home document. | introduced |
 | M-WP | Post-MAKELINK discoverability has explicit weakest preconditions (total correctness): for `d_target ≠ d`, `wp ≡ enabled(MAKELINK) ∧ d_target ∈ dom(Σ.M) ∧ (E i :: coverage(eᵢ) ∩ ran(Σ.M(d_target)) ≠ ∅)`; for `d_target = d`, `wp ≡ enabled(MAKELINK) ∧ [(E i :: coverage(eᵢ) ∩ ran(Σ.M(d)) ≠ ∅) ∨ (E i :: ℓ ∈ coverage(eᵢ))]`. Under `(A i : StandardAuthoring(eᵢ, Σ))` the reflexive disjunct collapses and the two shapes coincide. | introduced |
 | M-Perm | After MAKELINK: `(A Σ' →* Σ'' :: ℓ ∈ dom(Σ''.L) ∧ Σ''.L(ℓ) = Σ'.L(ℓ))`, by LP13. | introduced |
 | M-NoIndexState | The abstract specification requires no separate index state component. Discoverability is computed from `L` and `M` via the projection function of ASN-0098. | introduced |
@@ -399,15 +391,11 @@ Beyond the frame established in *What Does Not Change* (no content allocation or
 
 What well-formedness constraints, beyond `e₃ ≠ ∅`, must endsets satisfy when their spans reference I-addresses not currently in `dom(C)` or `dom(L)`?
 
-At what abstraction layer is MAKELINK's composite-level atomicity guaranteed, and what mechanism enforces it?
-
 Must MAKELINK distinguish between two invocations producing links with identical endset values, beyond the necessary distinctness of their I-addresses?
 
 Must MAKELINK's discoverability guarantee hold at the precise post-state of the operation, or is a deferred-consistency model admissible?
 
 When MAKELINK's endsets reference content in documents not yet allocated, what discoverability properties become available once that content is later created?
-
-Under what conditions may a link's V-position move within the home document's link subspace by subsequent operations, and what discoverability properties does such movement preserve?
 
 What abstract guarantee distinguishes a "properly created" link visible in its home document's arrangement from a link allocated but not placed?
 
