@@ -51,7 +51,7 @@ F1 (MatchPredicate):
    matches(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅).
 ```
 
-F1 generalizes ASN-0098's `discoverable_from`. ASN-0098 defines that predicate in *project* form — `discoverable_from(a, d, Σ) ≡ (E i : project(a, i, d, Σ) ≠ ∅)` — whereas F1's `matches` is in *coverage* form. The two coincide by LP12 (DiscoverabilityCharacterisation, ASN-0098), whose per-slot biconditional `project(a, i, d, Σ) ≠ ∅ ⟺ coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅` gives `discoverable_from(a, d, Σ) = matches(a, ran(Σ.M(d)), Σ)`. The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to.
+F1's `matches` is the coverage-form generalization of ASN-0098's `discoverable_from` (defined there in project form). The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to.
 
 F1's match is **per-endset overlap**: within each endset, satisfaction is existential over spans, and the per-span test is overlap (`coverage(eᵢ) ∩ I ≠ ∅` unfolds to `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`, with an identifiable witness span).
 
@@ -86,7 +86,7 @@ findlinks_filtered(C, Σ)
   = {a ∈ dom(Σ.L) : (A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)}
 ```
 
-The from-to query is `{(1, I_from), (2, I_to)}`; the three-endset query adds `(3, I_type)`; a type-only restriction is `{(3, I_type)}`. The filtered form is *not* a strict generalization: the unfiltered match is an existential over slots, the filtered match a universal over constraints. The unfiltered form is recovered as a finite union over single-slot filters:
+The universal `(A (i, J) ∈ C : …)` is a *conjunction* over constraints — a link must satisfy every constraint to appear — dual to F1's slot-existential, which consults all slots uniformly and admits a link on the first witness. The from-to query is `{(1, I_from), (2, I_to)}`; the three-endset query adds `(3, I_type)`; a type-only restriction is `{(3, I_type)}`. The filtered form is *not* a strict generalization: the unfiltered match is an existential over slots, the filtered match a universal over constraints. The unfiltered form is recovered as a finite union over single-slot filters:
 
 ```
 findlinks(I, Σ) = ⋃_{i = 1}^{N} findlinks_filtered({(i, I)}, Σ)
@@ -95,15 +95,6 @@ findlinks(I, Σ) = ⋃_{i = 1}^{N} findlinks_filtered({(i, I)}, Σ)
 ```
 
 `L-fin` gives `|dom(Σ.L)| < ∞` so the max is well-defined when the link store is non-empty. The identity holds per link: fix `a ∈ dom(Σ.L)`. The single-slot filter `findlinks_filtered({(i, I)}, Σ)` carries the guard `i ≤ |Σ.L(a)|`, so `a` appears in the `i`-th union term iff `i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅`. Membership of `a` in the union over `1..N` is therefore `(E i : 1 ≤ i ≤ N : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)`, and the guard `i ≤ |Σ.L(a)|` collapses the range `1..N` to `1..|Σ.L(a)|` (terms with `i > |Σ.L(a)|` are unsatisfiable, and `|Σ.L(a)| ≤ N` by the definition of `N` ensures none below the per-link arity is dropped). That existential is exactly F1's `matches(a, I, Σ)`, so `a` is in the union iff `a ∈ findlinks(I, Σ)`. Set extensionality over `a` closes the identity.
-
-```
-F7 (EndsetSymmetry):
-   (a) Slot symmetry: matches(a, I, Σ) consults all slots uniformly.
-   (b) Filter conjunction: findlinks_filtered(C, Σ) intersects per-slot
-       constraints — a link must satisfy every constraint to appear.
-```
-
-Both halves follow from the quantifier structure of the definitions: existential ⇒ slot-symmetric; universal ⇒ conjunctive.
 
 ## Completeness
 
@@ -124,8 +115,6 @@ F2★ ∧ F3★ (ConformanceParametric):
 ```
 
 F2★ ∧ F3★ at the V form is the **primary obligation on `result_V`**: any implementation exposing the V-side surface must satisfy it. When the implementation also exposes the I-side surface satisfying F2 ∧ F3, the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2★ ∧ F3★ (V form) + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly.
-
-Completeness must hold *unconditionally* with respect to `dom(Σ.L)`: any implementation whose `result(I, Σ)` differs from the comprehension is non-conforming.
 
 ## Determinism and Comprehension Invariance
 
@@ -393,11 +382,11 @@ We fix a small instance. State `Σ` has two documents in `dom(Σ.M)`:
 
 By PrefixSpanCoverage, each canonical span's coverage is a prefix subtree. The three subtrees over `α₁, α₂, α₃` are pairwise disjoint (siblings with disagreeing final components); the subtrees over `τ_·` are pairwise disjoint and disjoint from content addresses (cross-document non-nesting); `{t : ℓ ≼ t}` is disjoint from any `{t : αᵢ ≼ t}` by subspace separation (`ℓ` has `s_L` at position `#d_a + 2`; each `αᵢ` has `s_C` there). Under T1, `ℓ < ℓ' < ℓ_meta` (across home documents by document-tumbler order, `d_a < d_b`; within `d_b` by `inc(·, 0)` chain order).
 
-**Query 1 (basic match): `findlinks_V({v_a^2}, d_a, Σ)`.** Phase 1: `image({v_a^2}, d_a, Σ) = {α₂}`. Phase 2: at `ℓ`, slot 1's coverage `{t : α₂ ≼ t}` meets `{α₂}` in `{α₂}` (reflexivity of `≼`), so `matches(ℓ, {α₂}, Σ) = true`. At `ℓ'`, no slot's coverage meets `{α₂}` (sibling content-address mismatches; type τ-disjoint). At `ℓ_meta`, slot 1 covers `{t : ℓ ≼ t}` (subspace-disjoint from `{α₂}`), slot 2 is empty, slot 3 is τ-disjoint. Result: `{ℓ}`. This exercises F1's singleton-overlap reading (slot 1 alone witnesses; no strengthening of the intersection condition would let `ℓ` qualify against a singleton `I`) and F7(a)'s slot symmetry.
+**Query 1 (basic match): `findlinks_V({v_a^2}, d_a, Σ)`.** Phase 1: `image({v_a^2}, d_a, Σ) = {α₂}`. Phase 2: at `ℓ`, slot 1's coverage `{t : α₂ ≼ t}` meets `{α₂}` in `{α₂}` (reflexivity of `≼`), so `matches(ℓ, {α₂}, Σ) = true`. At `ℓ'`, no slot's coverage meets `{α₂}` (sibling content-address mismatches; type τ-disjoint). At `ℓ_meta`, slot 1 covers `{t : ℓ ≼ t}` (subspace-disjoint from `{α₂}`), slot 2 is empty, slot 3 is τ-disjoint. Result: `{ℓ}`. This exercises F1's singleton-overlap reading (slot 1 alone witnesses; no strengthening of the intersection condition would let `ℓ` qualify against a singleton `I`) and F1's uniform slot consultation.
 
 **Query 2 (F6, transclusion transparency): `findlinks_V({v_b^1}, d_b, Σ)`.** `image({v_b^1}, d_b, Σ) = {α₂}` — the same image as Query 1, because `d_b`'s transclusion of `α₂` produces the same I-address. Phase 2 is identical. Result: `{ℓ}`. The reader querying `d_b`'s view of `α₂` discovers the same link as via `d_a`'s native arrangement: identity travels with the I-address.
 
-**Query 3 (F7, filtered conjunction): `findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ)`.** "Links from `α₂` to `α₃`". At `ℓ`: slot 1 meets `{α₂}`, slot 2 meets `{α₃}`; both constraints hold. At `ℓ'`: slot 1 covers `{t : α₃ ≼ t}`, intersected with `{α₂}` is `∅` (since `α₃ ⋠ α₂`); the slot-1 constraint fails, the universal fails, `ℓ'` excluded — even though `ℓ'`'s slot 1 *does* meet `{α₃}` (which would have satisfied a slot-1 constraint had we named the to-set under slot 1). At `ℓ_meta`: slot 1 is subspace-disjoint from `{α₂}`; the slot-1 constraint fails. Result: `{ℓ}`. Contrast with the union-form unfiltered query `findlinks({α₂} ∪ {α₃}, Σ) = {ℓ, ℓ'}` — the filtered form is strictly stricter, exercising F7(b)'s filter conjunction.
+**Query 3 (filtered conjunction): `findlinks_filtered({(1, {α₂}), (2, {α₃})}, Σ)`.** "Links from `α₂` to `α₃`". At `ℓ`: slot 1 meets `{α₂}`, slot 2 meets `{α₃}`; both constraints hold. At `ℓ'`: slot 1 covers `{t : α₃ ≼ t}`, intersected with `{α₂}` is `∅` (since `α₃ ⋠ α₂`); the slot-1 constraint fails, the universal fails, `ℓ'` excluded — even though `ℓ'`'s slot 1 *does* meet `{α₃}` (which would have satisfied a slot-1 constraint had we named the to-set under slot 1). At `ℓ_meta`: slot 1 is subspace-disjoint from `{α₂}`; the slot-1 constraint fails. Result: `{ℓ}`. Contrast with the union-form unfiltered query `findlinks({α₂} ∪ {α₃}, Σ) = {ℓ, ℓ'}` — the filtered form is strictly stricter, exercising the filtered form's constraint conjunction.
 
 **Query 4 (cross-subspace, F12 with link-image): `findlinks_V({v_a^L}, d_a, Σ_L)`.** First, perform a K.μ⁺_L transition on `d_a` extending its arrangement with `v_a^L := [s_L, 1]` mapping to `ℓ` (the K.μ⁺_L preconditions are satisfied: `ℓ ∈ dom(Σ.L)`, `origin(ℓ) = d_a`, `ℓ ∉ ran(Σ.M(d_a))`, `v_a^L` is the canonical depth-2 minimum). Call the post-state `Σ_L`; `Σ_L.L = Σ.L` by A1a. Phase 1 at `v_a^L`: `image({v_a^L}, d_a, Σ_L) = {ℓ}` — the image is the *link address* `ℓ`, a member of `dom(Σ_L.L)`. Phase 2: at `ℓ_meta`, slot 1's coverage `{t : ℓ ≼ t}` meets `{ℓ}` in `{ℓ}` (reflexivity), so `matches(ℓ_meta, {ℓ}, Σ_L) = true`. At `ℓ` and `ℓ'`, no slot's coverage extends `ℓ` (subspace/τ-disjointness). Result: `{ℓ_meta}`. The reader selecting a V-position in the link subspace discovers the meta-link annotating `ℓ`. The match predicate is address-agnostic: it consults coverage and overlap, indifferent to whether the image's elements inhabit `dom(C)` or `dom(L)`. S3★'s cross-subspace routing of V-positions to `dom(L)` (ASN-0047) feeds naturally into F1.
 
@@ -454,7 +443,6 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 | F4 | MatchIndividuation: witnesses individuate F1's per-endset overlap test against coverage-containment (either direction), cardinality threshold, and I-independent slot tests | introduced |
 | F5 | Identity, not value: match consults coverage, not content | introduced |
 | F6 | Transclusion transparency | introduced |
-| F7 | Endset symmetry (slot equality + filter conjunction) | introduced |
 | F8 | Determinism: `findlinks(I, ·)` is a function of `(Σ.L, I)` | introduced |
 | F9 | LinkStoreInertPreservation: findlinks invariant across every V ∖ {K.λ} transition, single-step or multi-step | introduced |
 | F9-λ | KλInducedIncrement: characterises the K.λ-induced delta to findlinks(I, ·) as disjoint union with a singleton or ∅ depending on whether ℓ_new matches | introduced |
