@@ -99,7 +99,7 @@ Other components are unchanged:
 The address `ℓ` is genuinely new — `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` at `Σ` — so K.λ's freshness precondition is met by construction. By FirstEmissionFreshness and SubsequentEmissionFreshness (ASN-0093), every emission of `A_L(d)` is fresh against `dom(Σ.C) ∪ dom(Σ.L)`:
 
 - *First-emission case* (`{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = ∅`): FirstEmissionFreshness (ASN-0093) gives `ℓ = [d, 0, s_L, 1] ∉ dom(Σ.L) ∪ dom(Σ.C)`.
-- *Subsequent-emission case* (`ℓ = inc(ℓ_prev, 0)`): SubsequentEmissionFreshness (ASN-0093) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. That lemma's own three-way split discharges within-document freshness (via ChainEnumerationInjectivity), cross-subspace freshness (via DisjointSubAllocatorChains and SC-NEQ), and cross-document freshness (via Cross-doc disjointness composed with T10, PartitionIndependence, ASN-0034).
+- *Subsequent-emission case* (`ℓ = inc(ℓ_prev, 0)`): SubsequentEmissionFreshness (ASN-0093) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`.
 
 The freshness of the V-position `v_ℓ` in `dom(M(d))` is established where it is consumed, in the S2 verification of the post-state invariants.
 
@@ -111,7 +111,7 @@ The endset sequence `Σ'.L(ℓ) = (e₁, ..., eₙ)` is permanently fixed. We as
 - By LP13 (ASN-0098), for every reachable state sequence `Σ' →* Σ''`: `ℓ ∈ dom(Σ''.L) ∧ Σ''.L(ℓ) = Σ'.L(ℓ)`, hence in particular `Σ''.L(ℓ).eᵢ = Σ'.L(ℓ).eᵢ` for every slot `i`.
 - By LP3★ (ASN-0098), for every such sequence and every slot: `coverage(Σ''.L(ℓ).eᵢ) = coverage(Σ'.L(ℓ).eᵢ)`.
 
-The implication is that once recorded, the endsets' *addressing intent* is permanent. The link forever names the same set of I-addresses — even as those I-addresses' V-arrangements change, even if all V-arrangements lose them entirely, even if new documents transclude content sharing those I-addresses (in which case LP18 makes the link rediscoverable from those new documents).
+The implication is that once recorded, the endsets' *addressing intent* is permanent: each coverage `coverage(Σ'.L(ℓ).eᵢ)` is fixed across every reachable state, so the link names the same set of I-addresses for all time.
 
 ## What Is Indexed?
 
@@ -126,7 +126,7 @@ The function is *computed* from `Σ'.L(ℓ)` and `Σ'.M(d)` — no separate stat
 
   discoverable_from(ℓ, d, Σ')  ⟺  (E i : coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
 
-After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)`. We state the resulting symmetry property once here (M-DiscSymmetry). LP12's definition treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric: `ℓ` is discoverable from every document whose arrangement reaches into any of its endset coverages, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content. (The home document alone gains an additional, arrangement-independent reflexive route; we derive it once, in *Weakest Precondition for Discoverability*, Case 2.)
+After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)` (M-DiscSymmetry). LP12's definition treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric: `ℓ` is discoverable from every document whose arrangement reaches into any of its endset coverages, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content. The home document alone gains an additional, arrangement-independent *reflexive route*, derived as route (ii) of *Weakest Precondition for Discoverability*, Case 2.
 
 The abstract specification requires no auxiliary index state (M-NoIndexState). An implementation may maintain an auxiliary structure — a reverse lookup from I-addresses to link addresses, the *spanfilade* in Gregory's implementation — for efficient computation. Such structures are caches: any state where they are consistent with `L` and `M` produces the same `project` and `discoverable_from` results. The abstract claim is the discovery *property*; the index is a performance choice.
 
@@ -224,8 +224,6 @@ The frame `Σ'.C = Σ.C` is total: every `a ∈ dom(Σ.C)` satisfies `a ∈ dom(
 
 This is not a separate guarantee. It is a direct consequence of the composite's structure: K.λ modifies only `L`, and K.μ⁺_L modifies only `M(d)`. Neither operation touches `C`. The link's endsets *reference* I-addresses in `dom(C)`, but referencing is read-only — the endset stores spans (start, length pairs), not the bytes at those addresses. The bytes remain where they were.
 
-By the same reasoning, no prior link in `dom(L)` is modified (L12), no other document's arrangement is modified (frame on `M`), no entity is allocated, no provenance pair is recorded.
-
 That creating a link has zero effect on referenced content — Nelson's phenomenology — is structural, not behavioral: the link's storage lies in the home document's element subspace, which by construction cannot modify content at I-addresses elsewhere.
 
 ## Side Effects on Prior Links' Discoverability
@@ -298,7 +296,7 @@ For S8★: per ASN-0047's S8★, the link-subspace projected arrangement `M'(d)|
 Every invariant quantifying solely over `C`, `E`, `R`, or the document set `dom(M)` — all frame-fixed at MAKELINK (`Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, `dom(Σ'.M) = dom(Σ.M)`, since MAKELINK allocates no new document and only adds a V-position within an already-allocated one) — is preserved by inheritance: S4, S7a, S7b, C1b, C1c, C-fin, P6, P7, P8, M0, NodeLineage, ActivatedEmission.
 
 - S7d (DocumentAllocationDiscipline, ASN-0036): document set unchanged (`dom(Σ'.M) = dom(Σ.M)`); preserved by inheritance.
-- L11a (link uniqueness, ASN-0043): the new allocation event for `ℓ` is distinct from every prior link allocation event (by ChainEnumerationInjectivity, DisjointSubAllocatorChains, and Cross-doc disjointness — see "Freshness of the Allocation"), so L11a's distinctness conclusion holds at `Σ'`.
+- L11a (link uniqueness, ASN-0043): `ℓ` is fresh against `dom(Σ.L)` (Freshness of the Allocation), so its allocation event is distinct from every prior link allocation event, and L11a's distinctness conclusion holds at `Σ'`.
 
 ### Composite-Boundary Properties
 
@@ -358,9 +356,9 @@ MAKELINK performs *no permission check on referenced content*. It does not verif
 | M-Effect | `Σ'.L = Σ.L ∪ {ℓ ↦ (e₁, ..., eₙ)}`; `Σ'.M(d) = Σ.M(d) ∪ {v_ℓ ↦ ℓ}` where `v_ℓ = [s_L, 1]` if `V_{s_L}(d) = ∅` at `Σ`, else `v_ℓ = shift(max(V_{s_L}(d)), 1)` (with `n_L = |V_{s_L}(d)|`); depth per M-DepthConv. | introduced |
 | M-Frame | `Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`; existing entries in `L` and in `M(d')` for `d' ≠ d` are unchanged. | introduced |
 | M-NoContentEffect | For every `a ∈ dom(Σ.C)`: `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The referenced content is byte-identical before and after MAKELINK. | introduced |
-| M-DiscSymmetry | For the standard content-reach route, discoverability of `ℓ` is symmetric across all documents whose arrangements reach into an endset coverage — LP12 grants the home document no privileged status. The reflexive route is the home document's alone, since MAKELINK places `ℓ` into its arrangement and no other. Stated and reconciled in *What Is Indexed?*. | introduced |
+| M-DiscSymmetry | For the standard content-reach route, discoverability of `ℓ` is symmetric across all documents whose arrangements reach into an endset coverage — LP12 grants the home document no privileged status. The reflexive route is the home document's alone, since MAKELINK places `ℓ` into its arrangement and no other. | introduced |
 | StandardAuthoring | `StandardAuthoring(e, Σ) ≡ coverage(e) ⊆ dom(Σ.C) ∪ dom(Σ.L)` — a structural predicate on endset values at a state. A link's endset sequence is standardly authored at `Σ` iff every constituent endset satisfies the predicate. | introduced |
-| M-Reflexive | If `ℓ ∈ coverage(eᵢ)` for some `i` (the reflexive endset case), then `v_ℓ ∈ project(ℓ, i, d, Σ')` and `discoverable_from(ℓ, d, Σ')` is forced true regardless of `Σ.M(d)`'s pre-existing arrangement. Under `(A i : StandardAuthoring(eᵢ, Σ))` the reflexive case is structurally excluded (derivation in *Weakest Precondition for Discoverability*, Case 2). | introduced |
+| M-Reflexive | If `ℓ ∈ coverage(eᵢ)` for some `i` (the reflexive endset case), then `v_ℓ ∈ project(ℓ, i, d, Σ')` and `discoverable_from(ℓ, d, Σ')` is forced true regardless of `Σ.M(d)`'s pre-existing arrangement. Under `(A i : StandardAuthoring(eᵢ, Σ))` the reflexive case is structurally excluded. | introduced |
 | M-PriorLinkDisc | For every prior link `ℓ' ∈ dom(Σ.L)`: from the home document `d`, `discoverable_from(ℓ', d, Σ') ⟺ discoverable_from(ℓ', d, Σ) ∨ (E i :: ℓ ∈ coverage(Σ.L(ℓ').eᵢ))` — newly discoverable precisely when some endset of `ℓ'` covers `ℓ`; from any `d_target ≠ d`, `discoverable_from(ℓ', d_target, Σ') = discoverable_from(ℓ', d_target, Σ)`. The side-effect window is confined to the home document. | introduced |
 | M-WP | Post-MAKELINK discoverability has explicit weakest preconditions (total correctness): for `d_target ≠ d`, `wp ≡ enabled(MAKELINK) ∧ d_target ∈ dom(Σ.M) ∧ (E i :: coverage(eᵢ) ∩ ran(Σ.M(d_target)) ≠ ∅)`; for `d_target = d`, `wp ≡ enabled(MAKELINK) ∧ [(E i :: coverage(eᵢ) ∩ ran(Σ.M(d)) ≠ ∅) ∨ (E i :: ℓ ∈ coverage(eᵢ))]`. Under `(A i : StandardAuthoring(eᵢ, Σ))` the reflexive disjunct collapses and the two shapes coincide. | introduced |
 | M-Perm | After MAKELINK: `(A Σ' →* Σ'' :: ℓ ∈ dom(Σ''.L) ∧ Σ''.L(ℓ) = Σ'.L(ℓ))`, by LP13. | introduced |
