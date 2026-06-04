@@ -46,6 +46,19 @@ ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047
 
 *Net-effect split.* REARRANGE_K's cut-sequence construction makes π non-identity automatically: by CS2 the cuts satisfy `c₀ < c₁ < ...`, so the region widths `w_α`, `w_β` (and `w_μ` for 4-cut) are each `≥ 1`, giving `π(c₀) > c₀` (R-PPERM for 3-cut, R-SPERM for 4-cut). But `π ≠ id` as a permutation of V-positions is strictly weaker than ASN-0047's K.μ~ admissibility clause (ii), the non-trivial *net effect* `M'(d) ≠ M(d)`. The two come apart precisely under shared I-addresses: when π fixes the I-address at every affected position — `M(d)(π(v)) = M(d)(v)` for all affected `v` — R-P1/R-P2 yield `M'(d) = M(d)` although π is the non-identity rotation. Such an arrangement is permitted by the *shared-image licence*: S2 (ArrangementFunctionality) imposes *only* functionality on `M(d)` — at most one image per V-position — and never a single-image (injectivity) constraint, while S5 (UnrestrictedSharing) explicitly admits a single I-address at several V-positions; a permutation that maps each shared-image V-position to another V-position carrying the same image leaves the map pointwise unchanged. The realisation therefore splits on net effect, with a realiser in each case. In the *non-trivial case* (`M'(d) ≠ M(d)`) the realiser is the named composite K.μ~. In the *collapse case* (`M'(d) = M(d)` with π ≠ id) the transition is the identity `Σ' = Σ`, so RA-adm holds and every RE-* claim below is an identity of `Σ` with itself.
 
+*Pointwise-fixity frames.* Two classes of V-position are not merely kept within their subspace but left wholly unpermuted (`π(v) = v`) — a stronger guarantee than K.μ~ clause (iv), which only requires subspace preservation. For each class, ASN-0084's R-PPERM and R-SPERM define π directly as the identity on that position set, and the corresponding arrangement-preservation clause records `Σ'.M(d)(v) = Σ.M(d)(v)` for the same positions; together these supply the named fact in full pointwise form. These frames derive directly from R-PPERM/R-SPERM and R-FRAME-P/S(a), so they stand independent of the clause discharges below and are available to them.
+
+- **RE-sub** — V-positions in subspaces *other than* the cut subspace S (arrangement preservation from R-FRAME-P/S(a)):
+```
+(A v : v ∈ dom(Σ.M(d)) ∧ subspace(v) ≠ S :: π(v) = v ∧ Σ'.M(d)(v) = Σ.M(d)(v))           (RE-sub)
+```
+- **RE-ext** — V-positions *within* the cut subspace S that lie *outside* the affected range `[c₀, c_{n−1})` (arrangement preservation from R-EXT):
+```
+(A v : v ∈ V_S(d) ∧ (v < c₀ ∨ v ≥ c_{n−1}) :: π(v) = v ∧ Σ'.M(d)(v) = Σ.M(d)(v))    (RE-ext)
+```
+
+Since REARRANGE_K's cuts are always content-subspace (CS3 fixes `S = s_C`), RE-sub leaves the link subspace wholly preserved — its set of populated V-positions, its V→I mapping, *and* the pointwise behaviour of π on those V-positions — so content rearrangement neither perturbs the link arrangement nor relabels any link-subspace V-position. RE-ext pins the content-subspace positions outside the affected range that the abstract class alone would permit a bijection to move.
+
 *K.μ~ admissibility clause (i)–(v) ← discharge.*
 
 | Clause | Discharge |
@@ -54,7 +67,7 @@ ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047
 | (ii) non-trivial net effect `M'(d) ≠ M(d)` | holds by hypothesis in the non-trivial case of the net-effect split established above |
 | (iii) length-preserving `#π(v) = #v` | from the construction: each affected source position `v = cᵢ + j` and its image are ordinal shifts of a depth-2 cut, so by CS4 (`#cᵢ = 2`) and ASN-0034's OrdinalShift length identity `#shift(t, n) = #t`, `#π(v) = #v = 2`; exterior and non-S positions are fixed pointwise by R-PPERM/R-SPERM |
 | (iv) subspace-preserving `subspace(π(v)) = subspace(v)` | Directly from the R-PPERM/R-SPERM branch structure: non-S and in-S-exterior positions are fixed (`π(v) = v`), so subspace is trivially preserved; every affected-range position `v` lies in `V_S(d)` (by R-PRE(iv), the regions α, μ, β are subsets of `V_S(d)` per RegionPartition), so `subspace(v) = S` by definition of `V_S(d)`, and R-PPERM/R-SPERM map it to a position of the form `c₀ + (offset)`, which shares c₀'s subspace S, so `subspace(π(v)) = S = subspace(v)` (ASN-0036's OrdShiftHom(a)). Discharged from the cut-sequence construction alone |
-| (v) link-subspace fixing `π(v) = v` on the link subspace | discharged by RE-sub (Pointwise-Fixity Frames, below): RE-sub fixes `π(v) = v` on every non-cut-subspace V-position, and CS3 fixes the cut subspace at `S = s_C`, so the link subspace `s_L` is non-cut and clause (v) follows |
+| (v) link-subspace fixing `π(v) = v` on the link subspace | discharged by RE-sub (established above): RE-sub fixes `π(v) = v` on every non-cut-subspace V-position, and CS3 fixes the cut subspace at `S = s_C`, so the link subspace `s_L` is non-cut and clause (v) follows |
 
 *RA-frame discharge.* K.μ~'s ASN-0047 frame `C' = C; E' = E; R' = R; L' = L; M'(d') = M(d')` for `d' ≠ d` matches each conjunct of RA-frame explicitly, save `dom(Σ'.M) = dom(Σ.M)`. That last conjunct follows structurally: neither K.μ⁻ nor K.μ⁺ — the elementary decomposition of K.μ~ — touches the document registry, registration being the exclusive province of K.σ and the K.δ Document case. So no REARRANGE_K step adds or removes a document, and `dom(Σ'.M) = dom(Σ.M)` holds.
 
@@ -249,21 +262,6 @@ The claim ranges over every (a, d_view) pair with `a ∈ ran(Σ.M(d_view))` and 
 
 Even when REARRANGE fragments d_view's view of the transcluded span (RE-frag), each piece independently carries its foreign origin: every I-address in the fragmented view retains its `origin(·)` (RE-origin), so splitting at a cut point does not change where any byte came from. The transcluding document still finds its borrowed content; the home document is undisturbed; and the function answering "where did this byte come from?" is invariant. Whether the two fragments *jointly reconstitute* the original source span — as opposed to merely each carrying the right origin — is not established here.
 
-## Pointwise-Fixity Frames (REARRANGE_K-specific)
-
-Two classes of V-position are not merely kept within their subspace but left wholly unpermuted (`π(v) = v`) — a stronger guarantee than K.μ~ clause (iv), which only requires subspace preservation. For each class, ASN-0084's R-PPERM and R-SPERM define π directly as the identity on that position set, and the corresponding arrangement-preservation clause records `Σ'.M(d)(v) = Σ.M(d)(v)` for the same positions; together these supply the named fact in full pointwise form. The two classes differ only in their position-set predicate and their arrangement-preservation source:
-
-- **RE-sub** — V-positions in subspaces *other than* the cut subspace S (arrangement preservation from R-FRAME-P/S(a)):
-```
-(A v : v ∈ dom(Σ.M(d)) ∧ subspace(v) ≠ S :: π(v) = v ∧ Σ'.M(d)(v) = Σ.M(d)(v))           (RE-sub)
-```
-- **RE-ext** — V-positions *within* the cut subspace S that lie *outside* the affected range `[c₀, c_{n−1})` (arrangement preservation from R-EXT):
-```
-(A v : v ∈ V_S(d) ∧ (v < c₀ ∨ v ≥ c_{n−1}) :: π(v) = v ∧ Σ'.M(d)(v) = Σ.M(d)(v))    (RE-ext)
-```
-
-Since REARRANGE_K's cuts are always content-subspace (CS3 fixes `S = s_C`), RE-sub leaves the link subspace wholly preserved — its set of populated V-positions, its V→I mapping, *and* the pointwise behaviour of π on those V-positions — so content rearrangement neither perturbs the link arrangement nor relabels any link-subspace V-position. RE-ext pins the content-subspace positions outside the affected range that the abstract class alone would permit a bijection to move.
-
 ## Origin and Provenance Invariance
 
 The function `origin(a) = N(a).0.U(a).0.D(a)` (S7 of ASN-0036) projects an I-address to the document-level prefix encoding its allocator. Origin consults only the address `a`. It is a structural projection on T, independent of any state component. Therefore origin is invariant across every state transition, including REARRANGE:
@@ -291,7 +289,6 @@ ASN-0047's **ExtendedReachableStateInvariants** then delivers **P4★ ∧ P4a �
 ```
 (A valid trace Σ₀ →* … →* Σ_n = Σ' :: (A (a, d) ∈ Σ'.R :: (E Σ_k ∈ {Σ₀, …, Σ_n} : (E v ∈ dom(M_k(d)) : subspace(v) = s_C ∧ M_k(d)(v) = a))))
 ```
-The earlier route — exhibiting a single trace (trace-to-Σ then the REARRANGE step) and arguing that `Σ'.R = Σ.R` adds no provenance pair — would establish only the existential "for some trace," which is strictly weaker than P4a's universal and does not discharge it. The boundary citation discharges the universal directly.
 
 ## Worked Example
 
@@ -328,7 +325,7 @@ The link-subspace entry `[2, 1] ↦ a_link` is well-typed under S3★: a link-su
 - **RE-sub.** The link-subspace position `[2, 1] ∈ dom(Σ.M(d))` has `subspace([2, 1]) = 2 ≠ s_C = S`. R-PPERM's non-S branch gives `π([2, 1]) = [2, 1]` (the π-fixity conjunct), and R-FRAME-P(a) gives `Σ'.M(d)([2, 1]) = Σ.M(d)([2, 1]) = a_link` (the arrangement-preservation conjunct), matching the post-state arrangement exhibited above. The cut-subspace restriction is exercised concretely: REARRANGE_K's content-subspace cuts leave the link-subspace entry verbatim and the link-subspace V-position unpermuted, despite the bijection π acting non-trivially on content-subspace V-positions.
 - **RE-origin.** `origin(a₁) = origin(a₂) = d'` (extracted from positions 1–5 of `a₁` and `a₂`); `origin(b₁) = d` (extracted from positions 1–5 of `b₁`). Origin is a structural projection on the address; it does not depend on state and is unchanged.
 - **RE-R.** `Σ'.R = Σ.R` by RA-frame directly.
-- **Composite-boundary properties (P4★, P4a, P7a).** These are not per-state invariants and so fall outside RA-adm. Taking the pre-state Σ to be a composite boundary (RA-bndy), the K.μ~ realiser carries Σ to a post-state Σ' that is again a reachable composite boundary, so ASN-0047's ExtendedReachableStateInvariants delivers **P4★ ∧ P4a ∧ P7a** at Σ' in one citation — including P4a's full universal-over-traces form. Concretely one may read off the witnesses the theorem guarantees: `Contains_C(Σ') = {(a₂, d), (b₁, d), (a₁, d)} = Contains_C(Σ) ⊆ Σ.R = Σ'.R` for P4★, and `(b₁, d), (a₁, d'), (a₂, d') ∈ Σ'.R` covering the three displayed content addresses for P7a — but these are illustrations of the cited theorem, not an independent re-derivation.
+- **Composite-boundary properties (P4★, P4a, P7a).** These are not per-state invariants and so fall outside RA-adm. Taking the pre-state Σ to be a composite boundary (RA-bndy), the K.μ~ realiser carries Σ to a post-state Σ' that is again a reachable composite boundary, so ASN-0047's ExtendedReachableStateInvariants delivers **P4★ ∧ P4a ∧ P7a** at Σ' in one citation — including P4a's full universal-over-traces form. Concretely one may read off the witnesses the theorem guarantees: `Contains_C(Σ') = {(a₂, d), (b₁, d), (a₁, d)} = Contains_C(Σ) ⊆ Σ.R = Σ'.R` for P4★, and `(b₁, d), (a₁, d'), (a₂, d') ∈ Σ'.R` covering the three displayed content addresses for P7a.
 
 Every derived claim holds at the concrete level; no two derived claims conflict at any point of the trace.
 
