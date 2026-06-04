@@ -7,40 +7,38 @@ Our starting commitment is the separation of two streams. The content store `Σ.
 
 ## REARRANGE as Vstream-Only Operation
 
-Let us define the class of transitions REARRANGE belongs to. A transition `Σ → Σ'` is *Vstream-only on `d`* when the target document is registered at the pre-state
-```
-d ∈ dom(Σ.M)                                                                            (RA-reg)
-```
-and additionally
+Let us define the class of transitions REARRANGE belongs to. Its structural core is supplied by the foundation: ASN-0084's **ArrangementRearrangement** is a transition `Σ → Σ'` on a document `d` for which `dom(Σ'.M(d)) = dom(Σ.M(d))`, `Σ'.C = Σ.C`, `Σ'.M(d') = Σ.M(d')` for every `d' ≠ d`, and there exists a bijection `π : dom(Σ.M(d)) → dom(Σ'.M(d))` satisfying `Σ'.M(d)(π(v)) = Σ.M(d)(v)` for every `v ∈ dom(Σ.M(d))`. We adopt this definition rather than reprove it, and extend it.
+
+A transition `Σ → Σ'` is *Vstream-only on `d`* when it is an ArrangementRearrangement on `d` (ASN-0084) — additionally registered, framed on the components ASN-0084 leaves unconstrained, and admissible. The ArrangementRearrangement core supplies the domain clause
 ```
 dom(Σ'.M(d)) = dom(Σ.M(d))                                                              (RA-dom)
 ```
-and there exists a bijection
-```
-π : dom(Σ.M(d)) → dom(Σ'.M(d))
-```
-between the pre- and post-state V-position domains, satisfying
+the rearrangement equation under the bijection `π : dom(Σ.M(d)) → dom(Σ'.M(d))`
 ```
 (A v : v ∈ dom(Σ.M(d)) : Σ'.M(d)(π(v)) = Σ.M(d)(v))                                    (RA-π)
 ```
-together with the frame conditions
+and the content and other-document frame conjuncts `Σ'.C = Σ.C` and `Σ'.M(d') = Σ.M(d')` for `d' ≠ d`. The Vstream-only class adds the registration precondition
+```
+d ∈ dom(Σ.M)                                                                            (RA-reg)
+```
+the genuinely new frame conjuncts — fixing the link store `L`, the entity set `E`, the provenance relation `R`, and the document registry, components on which ASN-0084 imposes nothing — collected with the inherited conjuncts into the full frame
 ```
 Σ'.C = Σ.C  ∧  Σ'.L = Σ.L  ∧  Σ'.E = Σ.E  ∧  Σ'.R = Σ.R                                 (RA-frame)
   ∧  dom(Σ'.M) = dom(Σ.M)
   ∧  (A d' ∈ dom(Σ.M) : d' ≠ d : Σ'.M(d') = Σ.M(d'))
 ```
-and the admissibility constraint
+(of which `Σ'.C = Σ.C` and the other-document clause `Σ'.M(d') = Σ.M(d')` are inherited from ASN-0084's ArrangementRearrangement, while `Σ'.L = Σ.L`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, and `dom(Σ'.M) = dom(Σ.M)` are the new clauses this ASN introduces), and the admissibility constraint
 ```
 every per-state foundation invariant satisfied by Σ is satisfied by Σ'                  (RA-adm)
 ```
 
-The bijection π is the *rearrangement permutation*. RA-frame's `dom(Σ'.M) = dom(Σ.M)` propagates registration to Σ' (`d ∈ dom(Σ'.M)`). RA-dom pins the two domains equal, making π a permutation of a single finite set. The defining equation RA-π then says that for every V-position `v` populated in `Σ.M(d)`, the same I-address `Σ.M(d)(v)` lives in `Σ'.M(d)` — but at the V-position `π(v)`. The (V, I) pairs are permuted; no pair is created, destroyed, or modified. RA-frame fixes every state component apart from `Σ.M(d)` itself — the content store `C`, link store `L`, entity set `E`, and provenance relation `R` are all preserved, the document registry `dom(M)` is preserved, and the arrangements of every other registered document are preserved. RA-adm requires Σ' to satisfy each per-state foundation invariant — those state predicates evaluable at a single state. It thereby rules out any bijection whose post-state arrangement would violate a per-state invariant, including content↔link subspace crossings (excluded by RE-subpres). The abstract class is genuinely "Vstream-only on d." The bijection π is not in general unique: when `Σ.M(d)` has shared I-addresses (allowed by foundation S5/UnrestrictedSharing), any witness π must biject each I-address's pre-state pre-image set onto its post-state pre-image set, but the assignment within each such block is free, so distinct bijections can witness a single transition `Σ → Σ'`. Every RE-* claim derived from RA-π below is parameterised by the specific π witnessing the transition; RE-proj in particular states `project(e, d, Σ') = π(project(e, d, Σ))` for whichever π witnesses Σ → Σ', not for an arbitrary bijection.
+The bijection π is the *rearrangement permutation*. RA-frame's `dom(Σ'.M) = dom(Σ.M)` propagates registration to Σ' (`d ∈ dom(Σ'.M)`). RA-dom pins the two domains equal, making π a permutation of a single finite set. The defining equation RA-π then says that for every V-position `v` populated in `Σ.M(d)`, the same I-address `Σ.M(d)(v)` lives in `Σ'.M(d)` — but at the V-position `π(v)`. The (V, I) pairs are permuted; no pair is created, destroyed, or modified. RA-frame fixes every state component apart from `Σ.M(d)` itself — the content store `C`, link store `L`, entity set `E`, and provenance relation `R` are all preserved, the document registry `dom(M)` is preserved, and the arrangements of every other registered document are preserved. RA-adm requires Σ' to satisfy each per-state foundation invariant — those state predicates evaluable at a single state. It thereby rules out any bijection whose post-state arrangement would violate a per-state invariant, including content↔link subspace crossings (excluded by RE-subpres). The abstract class is genuinely "Vstream-only on d." The bijection π is not in general unique: when `Σ.M(d)` has shared I-addresses (allowed by foundation S5/UnrestrictedSharing), any witness π must biject each I-address's pre-state pre-image set onto its post-state pre-image set, but the assignment within each such block is free, so distinct bijections can witness a single transition `Σ → Σ'`.
 
 The abstract class admits two degenerate cases. The *empty case* `dom(Σ.M(d)) = ∅` is admitted: π is the empty bijection, RA-π is vacuously satisfied, RA-dom holds trivially (`∅ = ∅`), RA-frame is unaffected, and every RE-* claim holds vacuously (ranges, projections, and multiplicities are all over the empty set); REARRANGE_K rules this out for the concrete operation via R-PRE(iv) (the affected range `{v : c₀ ≤ v < c_{n−1}}` must lie in `V_S(d)`) together with CS2's strict cut ordering (which forces at least two depth-2 positions inside the affected range), so `V_S(d) ≠ ∅` is a precondition of every REARRANGE_K invocation. The *identity case* π = id is admitted, with `Σ' = Σ` derived in two steps: first, RA-π under π = id reads `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ dom(Σ.M(d))`, and combined with RA-dom (`dom(Σ'.M(d)) = dom(Σ.M(d))`) this gives `Σ'.M(d) = Σ.M(d)` as partial functions; second, RA-frame preserves every other state component verbatim — `Σ'.C = Σ.C`, `Σ'.L = Σ.L`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, `dom(Σ'.M) = dom(Σ.M)`, and `Σ'.M(d') = Σ.M(d')` for every `d' ≠ d` — so the only component left to pin is `Σ.M(d)` itself, which step one supplies. Together these force `Σ' = Σ`, after which RA-adm is trivially satisfied. Every claim derived below holds uniformly across the identity and non-identity cases — under π = id all RE-* claims reduce to identities of Σ with itself. REARRANGE_K's cut-sequence construction makes π non-identity automatically: by CS2 the cuts satisfy `c₀ < c₁ < ...`, so the region widths `w_α`, `w_β` (and `w_μ` for 4-cut) are each `≥ 1`; consequently `π(c₀) = c₀ + w_β > c₀` (under R-PPERM for 3-cut, mapping the α-region first position; analogously `π(c₀) = c₀ + w_β + w_μ > c₀` under R-SPERM for 4-cut), so π displaces at least one V-position. This makes π non-identity *as a permutation of V-positions*, but that is strictly weaker than ASN-0047's K.μ~ admissibility clause (ii), which is `M'(d) ≠ M(d)` — a non-trivial *net effect* on the arrangement function, not `π ≠ id`. The two come apart whenever the affected-range value sequence is *invariant under the cut-induced block permutation*.
 
 That the two come apart is witnessed concretely: foundation S5 (UnrestrictedSharing) admits a 3-cut pivot with `w_α = w_β = 2`, cuts `([1, 1], [1, 3], [1, 5])`, and pre-state `{[1, 1] ↦ a, [1, 2] ↦ b, [1, 3] ↦ a, [1, 4] ↦ b}` (`a ≠ b`), where R-P1/R-P2 yield `M'(d) = M(d)` although π is the non-identity rotation. We therefore split the realisation by whether the cut-driven π produces a net change `M'(d) ≠ M(d)`. In the *non-trivial case* (`M'(d) ≠ M(d)`) the realiser is K.μ~: its admissibility clause (ii) and its own precondition (`M(d)|_{dom_C}` takes at least two distinct values) both hold, and the realisation proceeds clause-by-clause below. In the *collapse case* (`M'(d) = M(d)` with π ≠ id) the transition is already `Σ' = Σ` — `M'(d) = M(d)` is `Σ'.M(d) = Σ.M(d)` and RA-frame fixes every other component — so no realiser is needed (it is the reflexive case `Σ' = Σ` of ASN-0093's SequentialTransitionAxiom) and every RE-* claim below holds trivially as an identity. REARRANGE_K carries no non-triviality precondition: it remains defined wherever R-PRE holds, collapsing to the identity precisely on affected ranges fixed by the cut-induced permutation.
 
-*S2 derivation at the abstract level.* The post-state arrangement `Σ'.M(d)` is a partial function — foundation invariant S2 — derived directly from RA-π. Since π is a bijection (RA-π), each `v' ∈ dom(Σ'.M(d)) = dom(Σ.M(d))` (RA-dom) is the image of a unique `v = π⁻¹(v') ∈ dom(Σ.M(d))` — π's surjectivity supplies the existence of `v` and its injectivity supplies the uniqueness; the inverse `π⁻¹` is itself well-defined only because π is a bijection. RA-π then assigns `Σ'.M(d)(v') = Σ.M(d)(v)`; the right-hand side `Σ.M(d)(v)` is itself uniquely determined by `v` because `Σ.M(d)` is a partial function at Σ (pre-state S2), so `Σ'.M(d)(v')` is uniquely determined by `v'`. So `Σ'.M(d)` is a partial function. The derivation is abstract — it relies only on RA-dom, RA-π (bijection), and pre-state S2 at Σ (used pointwise at each `v` to license "function value" on the right-hand side). An abstract-tagged claim, here and throughout, is one derived from the RA-* clauses alone, so it holds for every concrete realisation of the class.
+*S2 derivation at the abstract level.* The post-state arrangement `Σ'.M(d)` is a partial function — foundation invariant S2 — derived directly from RA-π. Since π is a bijection (RA-π), each `v' ∈ dom(Σ'.M(d)) = dom(Σ.M(d))` (RA-dom) is the image of a unique `v = π⁻¹(v') ∈ dom(Σ.M(d))` — π's surjectivity supplies the existence of `v` and its injectivity supplies the uniqueness; the inverse `π⁻¹` is itself well-defined only because π is a bijection. RA-π then assigns `Σ'.M(d)(v') = Σ.M(d)(v)`; the right-hand side `Σ.M(d)(v)` is itself uniquely determined by `v` because `Σ.M(d)` is a partial function at Σ (pre-state S2), so `Σ'.M(d)(v')` is uniquely determined by `v'`. So `Σ'.M(d)` is a partial function. The derivation is abstract — it relies only on RA-dom, RA-π (bijection), and pre-state S2 at Σ (used pointwise at each `v` to license "function value" on the right-hand side).
 
 *Subspace preservation at the abstract level.* The bijection π preserves the subspace identity of every V-position:
 ```
@@ -56,7 +54,7 @@ REARRANGE_K (the cut-sequence operation of ASN-0084) is one concrete realisation
 
 ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047's M1 (ArrangementMonotonicity) records the identification `dom(M) = E_doc`, so `d ∈ E_doc ⟺ d ∈ dom(M)` and RA-reg holds at the pre-state.
 
-With RA-reg discharged above, the abstract class's defining clauses map to their REARRANGE_K sources, and K.μ~'s own admissibility clauses (i)–(v) of ASN-0047 map to their discharge. The substantive RA-adm work follows in the per-invariant layers.
+With RA-reg discharged above, the abstract class's defining clauses map to their REARRANGE_K sources, and K.μ~'s own admissibility clauses (i)–(v) of ASN-0047 map to their discharge.
 
 *Abstract class clause ← REARRANGE_K source.*
 
@@ -75,7 +73,7 @@ With RA-reg discharged above, the abstract class's defining clauses map to their
 | (i) induced post-state satisfies the shape package (S8a, S8-depth, D-CTG★, D-MIN★) | the shape-package layer below, from RA-dom alone |
 | (ii) non-trivial net effect `M'(d) ≠ M(d)` | the defining condition of the non-trivial case; fails in the collapse case, where K.μ~ is not the realiser |
 | (iii) length-preserving `#π(v) = #v` | from the construction: each affected source position `v = cᵢ + j` and its image are ordinal shifts of a depth-2 cut, so by CS4 (`#cᵢ = 2`) and ASN-0034's OrdinalShift length identity `#shift(t, n) = #t`, `#π(v) = #v = 2`; exterior and non-S positions are fixed pointwise by R-PPERM/R-SPERM |
-| (iv) subspace-preserving `subspace(π(v)) = subspace(v)` | RE-subpres (abstract), strengthened by R-PPERM/R-SPERM confining each branch of π to one subspace |
+| (iv) subspace-preserving `subspace(π(v)) = subspace(v)` | Directly from the R-PPERM/R-SPERM branch structure, independent of RA-adm: non-S and in-S-exterior positions are fixed (`π(v) = v`), so subspace is trivially preserved; every affected-range position `v` has the cut subspace S (by CS3), and R-PPERM/R-SPERM map it to a position of the form `c₀ + (offset)`, which shares c₀'s subspace S, so `subspace(π(v)) = S = subspace(v)` (ASN-0036's OrdShiftHom(a) confirms each in-region ordinal displacement preserves the subspace identifier). This rests on the cut-sequence construction alone — no appeal to RA-adm or post-state S3★/S3★-aux. RE-subpres is the abstract counterpart of this clause, a downstream *consequence* of RA-adm (Layer 3 below) and hence not a premise of clause (iv)'s discharge; routing clause (iv) through RE-subpres would be circular, since the Layer-3 discharge of RA-adm itself presupposes clauses (i)–(v) |
 | (v) link-subspace fixing `π(v) = v` on the link subspace | RE-sub: by CS3 the cut subspace is `S = s_C`, so R-FRAME-P/S(a) fixes every `subspace(v) = s_L` V-position pointwise |
 
 The cut sequence further restricts the bijection beyond what the abstract class requires — π acts as identity on V-positions outside the affected range `[c₀, c_{n−1})` and on V-positions in subspaces other than the cut subspace S, supplying RE-sub (subspace frame) and RE-ext (in-subspace exterior frame) below. The abstract class alone — via RA-adm + RE-subpres — would permit a bijection that non-trivially permuted within each subspace; RE-sub and RE-ext together pin REARRANGE_K to permute only the affected range within the cut subspace.
@@ -546,7 +544,7 @@ The two-step trace therefore concretely realises the per-step arbitrariness asse
 
 ## Claims Introduced
 
-The *Provenance* column records which premises a claim depends on: **abstract** = derivable from RA-dom, RA-π, RA-frame, and RA-adm alone (the abstract Vstream-only class with admissibility); **REARRANGE_K** = requires the cut-sequence specifics supplied by ASN-0084's R-FRAME-P/S; **structural** = state-independent (holds without reference to any state transition).
+The *Provenance* column records which premises a claim depends on: **abstract** = derivable from RA-dom, RA-π, RA-frame, and RA-adm alone (the abstract Vstream-only class with admissibility) — an abstract-tagged claim, here and throughout, is one derived from the RA-* clauses alone, so it holds for every concrete realisation of the class; **REARRANGE_K** = requires the cut-sequence specifics supplied by ASN-0084's R-FRAME-P/S; **structural** = state-independent (holds without reference to any state transition).
 
 | Label | Statement | Provenance | Status |
 |-------|-----------|-----------|--------|
