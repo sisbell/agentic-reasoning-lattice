@@ -57,10 +57,11 @@ F1's match is **per-endset overlap**: within each endset, satisfaction is existe
 
 ```
 F4 (MatchIndividuation):
-   Any predicate disagreeing with F1 on a realizable (a, I) pair
-   defines a different operation, not an alternative implementation
-   of FINDLINKS. The witnesses below exhibit this for three
-   strengthenings and two weakenings of F1's per-endset overlap test.
+   The natural alternative match designs — coverage-containment in
+   either direction, a cardinality threshold, and the I-independent
+   slot tests — each yield an operation distinct from FINDLINKS. The
+   witnesses below exhibit, for each such design, a realizable (a, I)
+   pair on which it disagrees with F1's per-endset overlap test.
 ```
 
 *Realizability.* Each witness is realizable: the I-set is a query parameter and endsets are freely chosen at K.λ (L4 places no constraint on span addresses), so every `(a, I)` pair below arises by a K.λ allocation under any document.
@@ -140,7 +141,7 @@ F8 (Determinism):
 
 F8 is a property of the abstract operation; the implementation-side consequence `result(I, Σ) = result(I, Σ')` follows from F8 by F2 ∧ F3.
 
-F8 is one instance of a structural pattern that recurs throughout this ASN: every claim of the form "the comprehension is unchanged when `Σ.L = Σ'.L`" rests on the same derivation chain. We name it once as a discrete step.
+Every claim of the form "the comprehension is unchanged when `Σ.L = Σ'.L`" rests on the same derivation chain, which we state once as a discrete step.
 
 ```
 ComprehensionInvariantUnderΣL — meta-lemma:
@@ -243,8 +244,6 @@ F9-λ (KλInducedIncrement):
    contributes the singleton {ℓ_new} when matches(ℓ_new, I, Σ')
    holds, and ∅ otherwise.
 ```
-
-F9 and F9-λ together exhaust V's single-step impact on `findlinks(I, ·)`: F9's invariance across V ∖ {K.λ} and F9-λ's controlled increment at K.λ. F19 below confirms the multi-step closure is monotone.
 
 ## Transclusion Transparency
 
@@ -479,7 +478,7 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 | F2-filt, F3-filt | Filtered conformance pair | introduced |
 | F2-sco, F3-sco | Scoped conformance pair | introduced |
 | F2-V, F3-V | V-side conformance pair (primary obligation on `result_V`) | introduced |
-| F4 | MatchIndividuation: any predicate disagreeing with F1 on a realizable `(a, I)` pair is a different operation; witnessed by three strengthenings and two weakenings | introduced |
+| F4 | MatchIndividuation: natural alternative match designs (coverage-containment either direction, cardinality threshold, I-independent slot tests) each yield an operation distinct from FINDLINKS, with realizable disagreeing witnesses | introduced |
 | F5 | Identity, not value: match consults coverage, not content | introduced |
 | F6 | Transclusion transparency | introduced |
 | F7 | Endset symmetry (slot equality + filter conjunction) | introduced |
