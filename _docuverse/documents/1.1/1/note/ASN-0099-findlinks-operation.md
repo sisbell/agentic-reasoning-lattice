@@ -52,7 +52,7 @@ The two phases consult components with different stability properties — the mu
 
 ## The Match Predicate
 
-F1's `matches` (introduced at the Phase 2 definition site above) is the coverage-form generalization of ASN-0098's `discoverable_from` (defined there in project form). The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to.
+F1's `matches` is the coverage-form of ASN-0098's `discoverable_from`. The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to.
 
 ```
 F4 (MatchIndividuation):
@@ -110,7 +110,7 @@ F2★ ∧ F3★ (ConformanceParametric):
    over (R, d, Σ) with d ∈ dom(Σ.M).
 ```
 
-F2★ ∧ F3★ at the V form is the **primary obligation on `result_V`**: any implementation exposing the V-side surface must satisfy it. When the implementation also exposes the I-side surface satisfying F2 ∧ F3, the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2★ ∧ F3★ (V form) + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly.
+When an implementation exposes both the V-side surface (satisfying F2★ ∧ F3★ at the V form) and the I-side surface (satisfying F2 ∧ F3), the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2★ ∧ F3★ (V form) + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly.
 
 ## Determinism and Comprehension Invariance
 
@@ -334,7 +334,7 @@ F10 (OrderedResult):
    and a₁ < a₂ < ... < aₙ under T1.
 ```
 
-Finiteness: F3 gives `result(I, Σ) ⊆ dom(Σ.L)`; L-fin gives `|dom(Σ.L)| < ∞`. T1 is a strict total order on `T` and so restricts to one on any subset. Every finite totally-ordered set admits a unique enumeration by finite induction; the empty result (`n = 0`) is the degenerate case, presented as the empty sequence `⟨⟩`, which is vacuously strictly increasing and trivially unique. The same finiteness + total-order argument gives `findlinks_filtered(C, Σ)` and `findlinks_scoped(I, S, Σ)` each a unique strictly T1-increasing presentation, since both are subsets of the finite, T1-ordered `dom(Σ.L)`.
+Finiteness: `findlinks(I, Σ) ⊆ dom(Σ.L)` by definition (the comprehension ranges over `dom(Σ.L)`); L-fin gives `|dom(Σ.L)| < ∞`. T1 is a strict total order on `T` and so restricts to one on any subset. Every finite totally-ordered set admits a unique enumeration by finite induction; the empty result (`n = 0`) is the degenerate case, presented as the empty sequence `⟨⟩`, which is vacuously strictly increasing and trivially unique. The same finiteness + total-order argument gives `findlinks_filtered(C, Σ)` and `findlinks_scoped(I, S, Σ)` each a unique strictly T1-increasing presentation, since both are subsets of the finite, T1-ordered `dom(Σ.L)`.
 
 ## Persistent Discoverability (I-Side)
 
@@ -419,8 +419,6 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 - A combined filtered-and-scoped operation `findlinks_filtered_scoped(C, S, Σ)`.
 
 ## Claims Introduced
-
-The labels F7, F16, F17, and F18 are deliberately retired — claims removed across revisions — so the F-sequence is a set of stable identifiers, not a contiguous range; no claim in this ASN references a retired label.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
