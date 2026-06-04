@@ -110,8 +110,6 @@ We must observe the adjacency of the two steps. By SequentialTransitionAxiom (AS
 
 ## E1 — Original Preservation
 
-The center of the construction is what does *not* happen.
-
 **E1 (OriginalPreservation).** For any state transition `Σ →* Σ'` realizing EDITLINK applied to `ℓ_old`:
 
 ```
@@ -158,11 +156,9 @@ We now examine the second link in the composite — the one we call a *supersess
 
 *Proof.* We discharge the three memberships in turn. Let `Σ_1` be the intermediate state after the successor step and `Σ_2` the state after the supersession step. By K.λ's effect clause applied to the supersession step, `Σ_2.L = Σ_1.L ∪ {ℓ_sup ↦ (E_from, E_to, E_type)}`, so `Σ_2.L(ℓ_sup) = (E_from, E_to, E_type)`. By E0's adjacency conclusion — the composite is the contiguous sequence `Σ → Σ_1 → Σ'` — we have `Σ' = Σ_2`, hence `Σ'.L(ℓ_sup) = (E_from, E_to, E_type)`. By L6 (SlotDistinction, ASN-0043), the slot accessor `Σ'.L(ℓ_sup).e_i` returns the `i`-th component of the tuple stored at `ℓ_sup`, so `Σ'.L(ℓ_sup).e_1 = E_from = {(ℓ_old, δ(1, #ℓ_old))}`. Since `(ℓ_old, δ(1, #ℓ_old)) ∈ E_from` by the construction of the singleton, `(ℓ_old, δ(1, #ℓ_old)) ∈ Σ'.L(ℓ_sup).e_1`. The same chain — K.λ effect → composite equality `Σ' = Σ_2` → L6 slot accessor → singleton membership — discharges `(ℓ_new, δ(1, #ℓ_new)) ∈ Σ'.L(ℓ_sup).e_2` via `E_to` and `(τ_sup, δ(1, #τ_sup)) ∈ Σ'.L(ℓ_sup).e_3` via `E_type`.
 
-*Interpretation.* The three spans just shown to be present are not arbitrary tumblers in endset slots; by L13, the spans `(ℓ_old, δ(1, #ℓ_old))` and `(ℓ_new, δ(1, #ℓ_new))` are canonical unit-depth references to the link entities at those addresses, and by L4 endset spans may target any tumblers, including link I-addresses. By PrefixSpanCoverage, the canonical unit-depth span at `x` has coverage `{t : x ≼ t}`, which contains `x` itself and any addresses that may later be allocated as extensions of `x`. The supersession link therefore stands in a permanent structural relationship to the two link entities it relates.
+The coverage these spans induce — and hence the structural relationship the supersession link bears to the entities at `ℓ_old` and `ℓ_new` — is carried by E7 below.
 
 ## E5 — Divergent Successors
-
-The asymmetry between immutable link entities and mutable supersession assertions reveals a property absent from in-place edit models.
 
 **E5 (DivergentSuccessors).** For any reachable state `Σ` of ASN-0047's extended reachable state — that is, any state derivable from the system's initial state by a finite sequence of valid composite transitions — any `ℓ_old ∈ dom(Σ.L)`, and any natural number `k`, there exists a sequence of transitions `Σ →* Σ_k` — a chain of `k` consecutive EDITLINK composites — such that `Σ_k` contains `k` distinct supersession links each naming `ℓ_old` in its from-endset, with `k` distinct successor links in their respective to-endsets.
 
@@ -224,8 +220,6 @@ The supersession claim is therefore *additive* with respect to resolution: it ad
 
 ## E9 — Lineage Permanence
 
-The same argument that protects the original protects the supersession assertion.
-
 **E9 (LineagePermanence).** Once created, the supersession link persists across all subsequent state transitions:
 
 ```
@@ -237,8 +231,6 @@ The same argument that protects the original protects the supersession assertion
 The implication is that *the historical record of editing is itself immutable*. A user who later wishes to "retract" the supersession cannot do so by mutating `ℓ_sup`.
 
 ## E10 — No Implicit Notification
-
-The transition frame of K.λ tells us what EDITLINK does *not* do.
 
 **E10 (NoImplicitNotification).** EDITLINK modifies neither any arrangement nor the provenance record of any document:
 
