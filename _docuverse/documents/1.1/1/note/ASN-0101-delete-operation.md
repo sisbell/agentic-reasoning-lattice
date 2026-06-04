@@ -26,7 +26,7 @@ For each document `d ∈ dom(M)` and each subspace `S ∈ {s_C, s_L}`, write
 
 `V_S(d) := {v ∈ dom(M(d)) : subspace(v) = S}`
 
-— the set of V-positions in subspace `S`. By S8-depth, all V-positions in `V_S(d)` share a common depth `m_S ≥ 2`. By D-SEQ★, when non-empty `V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S}` for some `n_S ≥ 1`. We write `δ(n, m)` for the ordinal displacement of ASN-0034 — the tumbler `[0, ..., 0, n]` of length `m` — and `shift(v, n)` for `v ⊕ δ(n, #v)`, the OrdinalShift advancing `v`'s last component by `n`.
+— the set of V-positions in subspace `S`. We overload this notation to apply to an arrangement directly: for any arrangement `N : T ⇀ T`, write `V_S(N) := {v ∈ dom(N) : subspace(v) = S}`, so that `V_S(d) = V_S(M(d))` and the post-state form `V_S(M'(d))` denotes `{v ∈ dom(M'(d)) : subspace(v) = S}`. By S8-depth, all V-positions in `V_S(d)` share a common depth `m_S ≥ 2`. By D-SEQ★, when non-empty `V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S}` for some `n_S ≥ 1`. We write `δ(n, m)` for the ordinal displacement of ASN-0034 — the tumbler `[0, ..., 0, n]` of length `m` — and `shift(v, n)` for `v ⊕ δ(n, #v)`, the OrdinalShift advancing `v`'s last component by `n`.
 
 ## The operation
 
@@ -350,7 +350,7 @@ The architectural significance is precisely the contrast with destructive replac
 
 - **No I-address space is reclaimed.** The architectural commitment to permanent addresses, expressed by `dom(C) ⊆ dom(C')` in P0, is strengthened by D2 to `dom(C) = dom(C')` for DELETE specifically. Reclamation would require a separate operation; DELETE itself does not provide one, and the design intent is that no such operation exists.
 
-The cardinality consequence is that `|dom(C)|` is non-decreasing across all DELETE transitions. Combined with the cardinality non-decrease across allocation (K.α), the content store is monotonically non-decreasing across the entire transition vocabulary. The implication for resource accounting is intentional: storage is consumed at allocation and is never freed by deletion.
+The cardinality consequence is that `|dom(C)|` is unchanged across every DELETE transition. The implication for resource accounting is intentional: DELETE frees no storage.
 
 ### Link store: the link graph is untouched
 
@@ -362,9 +362,7 @@ The cardinality consequence is that `|dom(C)|` is non-decreasing across all DELE
 
 D3 is the structural basis for what Nelson called *link survivability*. The architectural fact that supports it is the form of an endset, fixed by ASN-0043: an endset is a finite set of well-formed spans (`Endset = 𝒫_fin(Span)`, the Endset definition of ASN-0043), each span given by a *start I-address* and an *ordinal length*, and a link is a sequence of at least three such endsets (the Link definition of ASN-0043). By ASN-0043's L4 (EndsetGenerality) the endset's spans reference addresses in the tumbler space — content identity, not arrangement position — so the endset has no V-stream coordinates anywhere in its structure. A link does not say "from position 47 of document A to position 92 of document B"; it says "from I-address range `[a, a ⊕ ℓ_a)` to I-address range `[b, b ⊕ ℓ_b)`", where `ℓ_a` and `ℓ_b` are the ordinal widths of the two endset spans. When `M(d)` changes, the link is unaware.
 
-We can be sharper about what D3 entails. Consider a link `ℓ ∈ dom(L)` and a slot `i`. The coverage `coverage(L(ℓ).eᵢ)` is the set of I-addresses that the slot references — the `coverage(e)` projection of ASN-0043, defined by the spans in the endset and evaluated via the span semantics of ASN-0053. Coverage is a function of the endset alone; it depends on no part of state except `L(ℓ).eᵢ` itself. Under D3, `L'(ℓ).eᵢ = L(ℓ).eᵢ`, so `coverage(L'(ℓ).eᵢ) = coverage(L(ℓ).eᵢ)`. Whatever I-addresses the link referenced before DELETE, it references after.
-
-DELETE establishes a pattern of *structural persistence with conditional visibility*: the link value and its coverage persist (D3), while the link's discoverability into a document's arrangement is conditional on that arrangement — characterised precisely in D9 below. It is the same pattern by which content survives deletion: the bytes persist in `C`, even if no `M(d)(v)` currently references them. The link case is the natural extension of the content case to the second store.
+We can be sharper about what D3 entails. Consider a link `ℓ ∈ dom(L)` and a slot `i`. The coverage `coverage(L(ℓ).eᵢ)` is the set of I-addresses that the slot references — the `coverage(e)` projection of ASN-0043, defined by the spans in the endset and evaluated via the span semantics of ASN-0053. Coverage is a function of the endset alone; it depends on no part of state except `L(ℓ).eᵢ` itself. Under D3, `L'(ℓ).eᵢ = L(ℓ).eᵢ`, so `coverage(L'(ℓ).eᵢ) = coverage(L(ℓ).eᵢ)`. Whatever I-addresses the link referenced before DELETE, it references after. The link value and its coverage persist (D3), while the link's discoverability into a document's arrangement is conditional on that arrangement — characterised precisely in D9 below.
 
 ### Document identity: the document is not destroyed
 
@@ -474,15 +472,7 @@ The well-formedness preservation is what closes the loop: DELETE is not just a l
 
 ## Link discoverability: the projection picture
 
-The conjunction of D2, D3, D5, and D6 establishes that DELETE is, from the link store's viewpoint, an arrangement-only operation: link values are unchanged, coverage is unchanged, only the projection into the affected document's affected subspace is altered. We can characterise the alteration precisely. Let `ℓ ∈ dom(L)` and let `Σ → Σ'` be a DEL[d, σ] transition with `σ = (s, ℓ_σ)`, removing span `(s, ℓ_σ)` from subspace `S` of `d`. For each slot `i` of `ℓ`:
-
-- *Projection into `d`'s shifted subspace.* The post-state projection in subspace `S` of `d` is composed of two contributions: the unshifted contribution from `Λ` (positions before the deleted region whose mapped I-address is in the coverage) and the shifted contribution from `Π` (positions after the deleted region, renamed by `σ_d`). The positions in `X` (within the deleted region) that referenced coverage I-addresses are removed from the projection.
-
-- *Projection into `d`'s other subspace.* Unchanged, by D6.
-
-- *Projection into any other document `d'`.* Unchanged, by D5.
-
-We extract this as an abstract characterisation:
+The conjunction of D2, D3, D5, and D6 establishes that DELETE is, from the link store's viewpoint, an arrangement-only operation: link values are unchanged, coverage is unchanged, only the projection into the affected document's affected subspace is altered. We can characterise the alteration precisely, and extract it as an abstract characterisation. Let `ℓ ∈ dom(L)` and let `Σ → Σ'` be a DEL[d, σ] transition with `σ = (s, ℓ_σ)`, removing span `(s, ℓ_σ)` from subspace `S` of `d`.
 
 **D9 — Link projection under DELETE.** For every link `ℓ ∈ dom(L)`, every slot `i`, every DEL[d, σ] transition `Σ → Σ'`, and every document `d'' ∈ dom(M)`:
 
