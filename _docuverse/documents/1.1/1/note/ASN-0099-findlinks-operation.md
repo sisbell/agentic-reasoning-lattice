@@ -57,14 +57,15 @@ F1's match is **per-endset overlap**: within each endset, satisfaction is existe
 
 ```
 F4 (MatchIndividuation):
-   The natural alternative match designs — coverage-containment in
-   either direction, a cardinality threshold, and the I-independent
-   slot tests — each yield an operation distinct from FINDLINKS. The
-   witnesses below exhibit, for each such design, a realizable (a, I)
-   pair on which it disagrees with F1's per-endset overlap test.
+   The witnesses below individuate F1's per-endset overlap test: each
+   exhibits an (a, I) pair on which an alternative match design —
+   coverage-containment in either direction, a cardinality threshold,
+   or an I-independent slot test — disagrees with F1. The endset shapes
+   are L3-admissible (slot 3 a non-empty type endset, non-type slots
+   possibly empty, with coverage(∅) = ∅) and each I-set is a query
+   parameter (L4 places no constraint on span addresses), so every
+   witness arises by a K.λ allocation under any document.
 ```
-
-*Realizability.* Each witness is realizable: the I-set is a query parameter and endsets are freely chosen at K.λ (L4 places no constraint on span addresses), so every `(a, I)` pair below arises by a K.λ allocation under any document. The endset shapes used below are L3-admissible: slot 3 carries the mandatory non-empty type endset, and non-type slots may be empty (`coverage(∅) = ∅`, so an empty slot is never a witness).
 
 *Strengthening 1 — Containment from coverage to query (`coverage ⊆ I`).* Witness link `a`: arity 3 with slot 1 `(β, δ(1, #β))`, slot 2 `(γ, δ(1, #γ))`, slot 3 `(α, δ(1, #α))`, where β and γ are same-length siblings of `α` differing at position `#α` (so β ⋠ α, α ⋠ β, γ ⋠ α, α ⋠ γ). Query `I = {α}`. F1 admits via slot 3: `coverage(L(a).e₃) ∩ I = {α} ≠ ∅`. The link-level strengthening predicate is the slot-existential `(E i : coverage(L(a).eᵢ) ⊆ I)`; we check every slot: slot 1's coverage `{t : β ≼ t}` is non-empty (contains β) and disjoint from `{α}` (since β ⋠ α), so `coverage(e₁) ⊄ I`; slot 2 likewise; slot 3's coverage `{t : α ≼ t}` (by PrefixSpanCoverage, ASN-0043) contains `α.0 ∉ I` (any tumbler extending α belongs by T0's allowance of trailing zeros). No slot satisfies `coverage ⊆ I`; strengthening excludes `a`.
 
@@ -113,16 +114,16 @@ F2 (Completeness):  findlinks(I, Σ) ⊆ result(I, Σ).
 F3 (Soundness):     result(I, Σ) ⊆ findlinks(I, Σ).
 ```
 
-Together F2 ∧ F3 force `result(I, Σ) = findlinks(I, Σ)`. The same conformance contract transfers to the filtered, scoped, and V-side forms, each with its own `result_*` function functional in its arguments and pinned to the corresponding abstract specification:
+Together F2 ∧ F3 force `result(I, Σ) = findlinks(I, Σ)`. The same conjunction-forces-equality contract transfers parametrically to every operation form, each with its own `result_*` function functional in its arguments and pinned to the corresponding abstract specification:
 
 ```
-F2-filt ∧ F3-filt:  result_filtered(C, Σ)    = findlinks_filtered(C, Σ).
-F2-sco  ∧ F3-sco:   result_scoped(I, S, Σ)   = findlinks_scoped(I, S, Σ).
-F2-V    ∧ F3-V:     result_V(R, d, Σ)        = findlinks_V(R, d, Σ),
-                    for every (R, d, Σ) with d ∈ dom(Σ.M).
+F2★ ∧ F3★ (ConformanceParametric):
+   result_*(args, Σ) = findlinks_*(args, Σ)
+   for each form * ∈ {filtered, scoped, V}, the V form ranging only
+   over (R, d, Σ) with d ∈ dom(Σ.M).
 ```
 
-The same conjunction-forces-equality argument applies per form, with the predicate adjusted to the operation. F2-V ∧ F3-V is the **primary obligation on `result_V`**: any implementation exposing the V-side surface must satisfy it. When the implementation also exposes the I-side surface satisfying F2 ∧ F3, the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2-V ∧ F3-V + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly.
+F2★ ∧ F3★ at the V form is the **primary obligation on `result_V`**: any implementation exposing the V-side surface must satisfy it. When the implementation also exposes the I-side surface satisfying F2 ∧ F3, the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2★ ∧ F3★ (V form) + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly.
 
 Completeness must hold *unconditionally* with respect to `dom(Σ.L)`: any implementation whose `result(I, Σ)` differs from the comprehension is non-conforming.
 
@@ -180,9 +181,9 @@ PerLinkInvarianceUnderValuePreservation — sub-lemma:
    identically at the two states.
 ```
 
-## Arrangement Independence
+## Link-Store-Inert Preservation
 
-The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, M, E, R)`, so the operative vocabulary is ASN-0047's extended-state vocabulary (ValidComposite★, `V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ}`), with document registration performed by K.δ (Document case). Throughout this ASN we call an operation *link-store-inert* when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}`. We package the preservation lemma:
+This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, M, E, R)`, so the operative vocabulary is ASN-0047's extended-state vocabulary (ValidComposite★, `V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ}`), with document registration performed by K.δ (Document case). Throughout this ASN we call an operation *link-store-inert* when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}`. We package the preservation lemma:
 
 ```
 A1a (PublishedFramePreservation):
@@ -335,16 +336,17 @@ F14 (ScopeFilter):
 
 Natural choices for `S`: "all links in document `d`" (`{a : home(a) = d}`), "all links by user `u`", or any access-control narrowing.
 
-The determinism and survivability properties extend uniformly to the filtered and scoped forms:
+Determinism, survivability, and monotonicity transfer to both the filtered and scoped forms by a single argument: their membership predicates consult only `Σ.L` and query-data (so ComprehensionInvariantUnderΣL applies), and they are closed under intersection with the query-supplied `S` (so the scoped form inherits whatever equality or inclusion the base findlinks enjoys):
 
 ```
-F15 (FilteredDeterminism):  findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ') when Σ.L = Σ'.L.
-F16 (ScopedDeterminism):    findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ') when Σ.L = Σ'.L.
-F17 (FilteredSurvivability): findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ') across a K.μ-family step.
-F18 (ScopedSurvivability):   findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ') across a K.μ-family step.
+F15 (FilteredScopedTransfer):
+   For both F ∈ {findlinks_filtered(C, ·), findlinks_scoped(I, S, ·)}:
+   (a) Determinism:    F(Σ) = F(Σ')  whenever Σ.L = Σ'.L.
+   (b) Survivability:  F(Σ) = F(Σ')  across any V ∖ {K.λ} step.
+   (c) Monotonicity:   F(Σ) ⊆ F(Σ')  for every reachable Σ →* Σ'.
 ```
 
-F15 follows from ComprehensionInvariantUnderΣL applied to the filtered universal. F16 follows from F8 + intersection-preservation with the query-supplied `S`. F17 follows from F9 (V ∖ {K.λ} steps preserve Σ.L, K.μ~ included) + F15. F18 follows from F9 + intersection-preservation.
+(a) Determinism: the filtered universal consults only `Σ.L` and query-data, so ComprehensionInvariantUnderΣL gives the filtered equality; the scoped form is `findlinks(I, ·) ∩ S` (F14), and F8's base equality is preserved under intersection with the fixed `S`. (b) Survivability: A1a gives `Σ.L = Σ'.L` across every V ∖ {K.λ} step (K.μ~ included), so (b) reduces to (a). (c) Monotonicity: LP13 + PerLinkInvarianceUnderValuePreservation transport the filtered per-link universal unchanged for every surviving link (as in F19), and intersection with the fixed `S` preserves the inclusion for the scoped form.
 
 ## Result Ordering
 
@@ -357,12 +359,7 @@ F10 (OrderedResult):
    and a₁ < a₂ < ... < aₙ under T1.
 ```
 
-Finiteness: F3 gives `result(I, Σ) ⊆ dom(Σ.L)`; L-fin gives `|dom(Σ.L)| < ∞`. T1 is a strict total order on `T` and so restricts to one on any subset. Every finite totally-ordered set admits a unique enumeration by finite induction; the empty result (`n = 0`) is the degenerate case, presented as the empty sequence `⟨⟩`, which is vacuously strictly increasing and trivially unique. The canonical filtered and scoped presentations follow by the same finiteness + total-order argument:
-
-```
-F10-filt:  findlinks_filtered(C, Σ) admits a unique strictly T1-increasing sequence.
-F10-sco:   findlinks_scoped(I, S, Σ) admits a unique strictly T1-increasing sequence.
-```
+Finiteness: F3 gives `result(I, Σ) ⊆ dom(Σ.L)`; L-fin gives `|dom(Σ.L)| < ∞`. T1 is a strict total order on `T` and so restricts to one on any subset. Every finite totally-ordered set admits a unique enumeration by finite induction; the empty result (`n = 0`) is the degenerate case, presented as the empty sequence `⟨⟩`, which is vacuously strictly increasing and trivially unique. The same finiteness + total-order argument gives `findlinks_filtered(C, Σ)` and `findlinks_scoped(I, S, Σ)` each a unique strictly T1-increasing presentation, since both are subsets of the finite, T1-ordered `dom(Σ.L)`.
 
 ## Persistent Discoverability (I-Side)
 
@@ -381,16 +378,9 @@ F19 (ResultSetMonotonicity):
    findlinks(I, Σ) ⊆ findlinks(I, Σ') for every reachable Σ →* Σ'.
 ```
 
-Direct from F11 + the definition of `findlinks`. The V-side asymmetry noted at F11 applies equally here. Monotonicity propagates to the filtered and scoped forms:
+Direct from F11 + the definition of `findlinks`. The V-side asymmetry noted at F11 applies equally here. Monotonicity propagates to the filtered and scoped forms as clause (c) of F15.
 
-```
-F19-filt: findlinks_filtered(C, Σ) ⊆ findlinks_filtered(C, Σ').
-F19-sco:  findlinks_scoped(I, S, Σ) ⊆ findlinks_scoped(I, S, Σ').
-```
-
-F19-filt follows from LP13 + PerLinkInvarianceUnderValuePreservation applied per link: for every `a ∈ findlinks_filtered(C, Σ)`, LP13 gives `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)`, and PerLinkInvarianceUnderValuePreservation transports the filtered per-link universal unchanged to `Σ'`, so `a ∈ findlinks_filtered(C, Σ')`. F19-sco follows from F19 + intersection-preservation with the query-supplied `S`.
-
-F19 (and its filtered/scoped variants) is the load-bearing consequence behind any indexed implementation's promise: an index that mirrors `findlinks` is never required to remove entries as the state evolves, only to add them.
+F19 (and its filtered/scoped instances under F15(c)) is the load-bearing consequence behind any indexed implementation's promise: an index that mirrors `findlinks` is never required to remove entries as the state evolves, only to add them.
 
 ## A Worked Example
 
@@ -442,7 +432,7 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 - Caching.
 - Access control beyond noting it as an orthogonal scope filter.
 - The inverse direction (resolving result endsets back to V-positions) — that is FOLLOWLINK/RETRIEVEENDSETS.
-- The *interpretation* a reader should attach to a query with I-addresses outside `dom(Σ.C) ∪ dom(Σ.L)`. The semantics are already pinned by the comprehension — such a query returns exactly the links whose coverage meets `I`, possibly ghost-covering links (LP17, ASN-0098) — but what such a result *means* to the reader is left open.
+- The reader-facing meaning of a query over I-addresses outside `dom(Σ.C) ∪ dom(Σ.L)`.
 - A combined filtered-and-scoped operation `findlinks_filtered_scoped(C, S, Σ)`.
 
 ## Claims Introduced
@@ -460,26 +450,21 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 | F1 | MatchPredicate definition | definition |
 | F2 | Completeness: `findlinks(I, Σ) ⊆ result(I, Σ)` | introduced |
 | F3 | Soundness: `result(I, Σ) ⊆ findlinks(I, Σ)` | introduced |
-| F2-filt, F3-filt | Filtered conformance pair | introduced |
-| F2-sco, F3-sco | Scoped conformance pair | introduced |
-| F2-V, F3-V | V-side conformance pair (primary obligation on `result_V`) | introduced |
-| F4 | MatchIndividuation: natural alternative match designs (coverage-containment either direction, cardinality threshold, I-independent slot tests) each yield an operation distinct from FINDLINKS, with realizable disagreeing witnesses | introduced |
+| F2★, F3★ | ConformanceParametric: `result_*(args, Σ) = findlinks_*(args, Σ)` for `* ∈ {filtered, scoped, V}`; the V form is the primary obligation on `result_V` | introduced |
+| F4 | MatchIndividuation: witnesses individuate F1's per-endset overlap test against coverage-containment (either direction), cardinality threshold, and I-independent slot tests | introduced |
 | F5 | Identity, not value: match consults coverage, not content | introduced |
 | F6 | Transclusion transparency | introduced |
 | F7 | Endset symmetry (slot equality + filter conjunction) | introduced |
 | F8 | Determinism: `findlinks(I, ·)` is a function of `(Σ.L, I)` | introduced |
 | F9 | LinkStoreInertPreservation: findlinks invariant across every V ∖ {K.λ} transition, single-step or multi-step | introduced |
 | F9-λ | KλInducedIncrement: characterises the K.λ-induced delta to findlinks(I, ·) as disjoint union with a singleton or ∅ depending on whether ℓ_new matches | introduced |
-| F10 | Ordered result: canonical T1-sorted presentation | introduced |
-| F10-filt, F10-sco | Filtered and scoped ordered presentations | introduced |
+| F10 | Ordered result: canonical T1-sorted presentation (filtered and scoped forms inherit the same finiteness + total-order argument) | introduced |
 | F11 | PersistentDiscoverabilityI: I-side match against fixed I preserved across reachable sequences (distinct from ASN-0098's V-side discoverable_from, which is not persistent) | introduced |
 | F12 | TwoPhaseFactoring: `findlinks_V(R, d, Σ) ≡ findlinks(image(R, d, Σ), Σ)` | definition |
 | F13 | Set-additive in the I-input | introduced |
 | F14 | Scope filter is intersection | introduced |
-| F15, F16 | Filtered and scoped determinism | introduced |
-| F17, F18 | Filtered and scoped survivability under K.μ-family | introduced |
-| F19 | Result-set monotonicity across reachable sequences | introduced |
-| F19-filt, F19-sco | Filtered and scoped monotonicity | introduced |
+| F15 | FilteredScopedTransfer: determinism, survivability, and monotonicity transfer to the filtered and scoped forms (predicates consult only `Σ.L`/query-data and are closed under intersection with `S`) | introduced |
+| F19 | Result-set monotonicity across reachable sequences (filtered/scoped instances under F15(c)) | introduced |
 | F20 | Image set-additive | introduced |
 | F20a | V-side additive: `findlinks_V(R₁ ∪ R₂, d, Σ) = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)` | introduced |
 
