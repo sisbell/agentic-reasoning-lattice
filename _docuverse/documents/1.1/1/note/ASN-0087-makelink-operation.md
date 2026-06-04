@@ -20,7 +20,7 @@ The caller does *not* specify the link's address or its V-position in the home d
 
 *Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`. MAKELINK commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined.
 
-We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047). M1 is stated identically — as the inclusion `dom(Σ.M) ⊆ dom(Σ'.M)` — in both ASN-0047 and ASN-0093; the two coincide on that inclusion clause, and only ASN-0047's statement additionally carries the `dom(M) = E_doc` identity (ASN-0093 has no entity layer). Uses below that need only the inclusion cite "M1" without re-attributing; the `E_doc` identity, used here, is the ASN-0047-specific clause.
+We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047; the inclusion clause `dom(Σ.M) ⊆ dom(Σ'.M)` is the part M1 shares with ASN-0093).
 
 *Endsets and emptiness.* L3 (ASN-0043) requires the third slot `e₃` to be non-empty but imposes no non-emptiness constraint on the other slots. The empty endset `eᵢ = ∅` is a permitted boundary case for `i ≠ 3`: by the coverage definition, `coverage(∅) = ⋃_{(s,ℓ) ∈ ∅} … = ∅`, so an empty slot contributes nothing to any `project(ℓ, i, ·, ·)` and nothing to any LP12-based discoverability disjunct.
 
@@ -172,7 +172,7 @@ We compute `wp(MAKELINK, discoverable_from(ℓ, d_target, ·))` — the predicat
 
 The predicate concerns the *home* document `d` and the endset inputs, and is logically independent of the target document `d_target`.
 
-*Membership precondition.* `discoverable_from(a, d, Σ)` is defined in ASN-0098 only when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`. At the post-state, `ℓ ∈ dom(Σ'.L)` by K.λ's effect, so the left conjunct is automatic. The right conjunct `d_target ∈ dom(Σ'.M)` requires that the target document was already registered at the pre-state. M1 (the inclusion clause, common to ASN-0047 and ASN-0093 per *Inputs*) supplies only the inclusion `dom(Σ.M) ⊆ dom(Σ'.M)`; equality `dom(Σ'.M) = dom(Σ.M)` at MAKELINK comes from the K.λ frame and K.μ⁺_L's effect, neither of which extends `dom(M)` (K.λ's frame holds `M` entirely fixed; K.μ⁺_L extends `dom(M(d))` for an already-registered `d` without adding any new document). Combining the M1 inclusion with these two frame consequences gives the equality, so `d_target ∈ dom(Σ'.M) ⟺ d_target ∈ dom(Σ.M)`. For `d_target = d` the membership clause is subsumed by `enabled(MAKELINK)`'s `d ∈ dom(Σ.M)` conjunct; for `d_target ≠ d` it is an independent obligation.
+*Membership precondition.* `discoverable_from(a, d, Σ)` is defined in ASN-0098 only when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`. At the post-state, `ℓ ∈ dom(Σ'.L)` by K.λ's effect, so the left conjunct is automatic. The right conjunct `d_target ∈ dom(Σ'.M)` requires that the target document was already registered at the pre-state. M1 supplies only the inclusion `dom(Σ.M) ⊆ dom(Σ'.M)`; equality `dom(Σ'.M) = dom(Σ.M)` at MAKELINK comes from the K.λ frame and K.μ⁺_L's effect, neither of which extends `dom(M)` (K.λ's frame holds `M` entirely fixed; K.μ⁺_L extends `dom(M(d))` for an already-registered `d` without adding any new document). Combining the M1 inclusion with these two frame consequences gives the equality, so `d_target ∈ dom(Σ'.M) ⟺ d_target ∈ dom(Σ.M)`. For `d_target = d` the membership clause is subsumed by `enabled(MAKELINK)`'s `d ∈ dom(Σ.M)` conjunct; for `d_target ≠ d` it is an independent obligation.
 
 *Case 1: d_target ≠ d.* K.μ⁺_L's frame gives `Σ'.M(d_target) = Σ.M(d_target)` for every `d_target ≠ d` in `dom(Σ'.M)`. By LP12 at `Σ'`:
 
@@ -250,7 +250,7 @@ For the link itself:
   L14:   store disjointness                    ℓ ∉ dom(C) from derived freshness
   L-fin: link store finiteness                 |dom(L')| = |dom(L)| + 1
 
-L1c (structural inc-chain conformance) requires an inc-chain from `origin(ℓ) = d` to `ℓ`. K.λ's precondition supplies it directly: `ℓ` is produced by `A_L(d)`, so by ChainDiscipline (ASN-0093) `ℓ` lies on `d`'s link sub-allocator chain `A_L(d) = S(b_L(d), 1)`, whose elements are exactly the inc-chain emissions; ChainElementT4Validity carries T4-validity along it, and the `k₁ = 2`, `#tᵢ > #origin(ℓ)` clauses are part of ASN-0093's L1c statement. ✓
+L1c (structural inc-chain conformance) requires a T10a-conforming inc-chain seeded at `origin(ℓ) = d` with `k₁ = 2` and `#tᵢ > #origin(ℓ)` at every step. We do not identify this `d`-seeded chain with the sibling stream `A_L(d) = S(b_L(d), 1)`: the chain from `d` first runs `d →[inc(·, 2)]→ b_C(d) →[inc(·, 0)]→ b_L(d) →[inc(·, 1)]→ [d, 0, s_L, 1] →[inc(·, 0)]*→ ℓ`, traversing the anchors `b_C(d)`, `b_L(d)` (each with `#E = 1`) that `A_L(d)`'s elements (all with `#E = 2`) exclude. We discharge L1c the clean way instead: `ℓ` enters `dom(L)` solely via K.λ, and ASN-0093 establishes L1c as an invariant maintained over all of `dom(L)` under K.λ allocation. Hence L1c holds at `ℓ` in `Σ'`. ✓
 
 For the V-arrangement entry `v_ℓ ↦ ℓ`:
 
@@ -305,7 +305,7 @@ ASN-0047 classifies P4★, P4a, and P7a as Class (b) — properties discharged a
 
 ### Transition Invariants for Σ → Σ'
 
-- M1 (ArrangementMonotonicity; the inclusion clause common to ASN-0047 and ASN-0093 per *Inputs*): `dom(Σ.M) ⊆ dom(Σ'.M)`. Trivially holds with equality — MAKELINK does not extend `dom(M)`.
+- M1 (ArrangementMonotonicity, inclusion clause): `dom(Σ.M) ⊆ dom(Σ'.M)`. Trivially holds with equality — MAKELINK does not extend `dom(M)`.
 - L12 (LinkImmutability): `(A ℓ' ∈ dom(Σ.L) :: ℓ' ∈ dom(Σ'.L) ∧ Σ'.L(ℓ') = Σ.L(ℓ'))`. K.λ adds only the fresh `ℓ`; no prior entry is modified.
 - P0 (ContentPermanence): trivially via the frame `Σ'.C = Σ.C`.
 - P1 (EntityPermanence): trivially via the frame `Σ'.E = Σ.E`.
