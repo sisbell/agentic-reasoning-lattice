@@ -256,7 +256,7 @@ For the V-arrangement entry `v_ℓ ↦ ℓ`:
   D-CTG★:   extension is contiguous                               discharged below: the post-state set is an initial segment of the depth-m_L^{Σ'}(d), subspace-s_L slice, contiguous at every depth m ≥ 2
   D-SEQ★:   V_{s_L}^{Σ'}(d) is contiguous initial segment           see below
 
-*Scope of the arrangement-indexed obligations.* The invariants S2, S8a, D-CTG★, D-MIN★, and D-SEQ★ are universally quantified over documents (and, for the D-invariants, over subspaces `S` with `V_S(d') ≠ ∅`, ASN-0047), so each is a conjunction of per-document/per-subspace conjuncts. Every conjunct at a document `d' ≠ d` is preserved by frame: `M'(d') = M(d')` leaves `dom(M'(d'))`, `V_{s_C}(d')`, and `V_{s_L}(d')` all unchanged. At the home document `d` the content-subspace conjunct is likewise frame-preserved: K.μ⁺_L touches only the link subspace, so `V_{s_C}^{Σ'}(d) = V_{s_C}(d)` and `M'(d)|_{V_{s_C}(d)}` is unchanged (S3★-aux, K.μ⁺_L effect). Only the link-subspace conjunct at `d` — carrying the newly entered V-position `v_ℓ ∈ V_{s_L}(d)` — requires argument; the discharges below address exactly that conjunct.
+For the arrangement-indexed invariants (S2, S8a, D-CTG★, D-MIN★, D-SEQ★), since K.μ⁺_L frames every document `d' ≠ d` and `d`'s content subspace (`V_{s_C}^{Σ'}(d) = V_{s_C}(d)` by S3★-aux), only the link-subspace conjunct at `d` — carrying the newly entered `v_ℓ ∈ V_{s_L}(d)` — requires argument; the discharges below address exactly that conjunct.
 
 For S2: we must show `v_ℓ ∉ dom(Σ.M(d))`, not merely `v_ℓ ∉ V_{s_L}(d)`. By S3★-aux at `Σ`, `dom(Σ.M(d)) = V_{s_C}(d) ∪ V_{s_L}(d)`, so the obligation splits into two exclusions:
 - *Within-subspace exclusion:* `v_ℓ ∉ V_{s_L}(d)`. By D-SEQ★ at `Σ`, `V_{s_L}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L}` at the common depth `m_L(d)`; K.μ⁺_L's positioning rule sets `v_ℓ = [s_L, 1, ..., 1, n_L + 1]` (or, when `n_L = 0`, the chosen first position `[s_L, 1, ..., 1]`), which lies outside this set by the strict inequality `n_L + 1 > n_L` (resp. by the emptiness of the set when `n_L = 0`).
@@ -311,7 +311,7 @@ In the intermediate state `Σ_mid` between K.λ and K.μ⁺_L:
 
 By SequentialTransitionAxiom (ASN-0093), K.λ commits to `Σ_mid` before K.μ⁺_L's precondition is evaluated. K.λ is an atomic substrate operation that ASN-0093/ASN-0047 establish to preserve the per-state invariants on reachable states, so `Σ_mid` inherits them.
 
-Because K.λ's frame fixes `M`, `Σ_mid.M = Σ.M`, so the discoverability difference between `Σ_mid` and `Σ'` is exactly the `Σ → Σ'` delta already computed: it agrees for every `d_target ≠ d` (M-WP, Case 1), and for `d_target = d` the two values agree unless some endset reflexively covers `ℓ` (M-Reflexive).
+Because K.λ's frame fixes `M` (`Σ_mid.M = Σ.M`), the discoverability change across MAKELINK occurs entirely at the K.μ⁺_L step — K.λ contributes none. The `Σ_mid → Σ'` delta thus coincides with the `Σ → Σ'` delta already computed in *Weakest Precondition for Discoverability*.
 
 ## Permanence of the Binding
 
@@ -347,14 +347,10 @@ MAKELINK performs *no permission check on referenced content*. It does not verif
 
 ## Open Questions
 
-What well-formedness constraints, beyond `e₃ ≠ ∅`, must endsets satisfy when their spans reference I-addresses not currently in `dom(C)` or `dom(L)`?
+What well-formedness constraints, beyond `e₃ ≠ ∅`, must endsets satisfy when their spans reference addresses outside `dom(C) ∪ dom(L)`, spanning both the not-yet-allocated and the never-allocated cases?
 
 Must MAKELINK distinguish between two invocations producing links with identical endset values, beyond the necessary distinctness of their I-addresses?
 
 Must MAKELINK's discoverability guarantee hold at the precise post-state of the operation, or is a deferred-consistency model admissible?
 
-When MAKELINK's endsets reference content in documents not yet allocated, what discoverability properties become available once that content is later created?
-
 What protocol-level guarantee should bound the visibility of the intermediate state `Σ_mid`, in which a link is allocated but not yet placed?
-
-What invariants must hold for a link whose type endset references content at an address that will never be allocated, and what does discoverability mean in that limiting case?
