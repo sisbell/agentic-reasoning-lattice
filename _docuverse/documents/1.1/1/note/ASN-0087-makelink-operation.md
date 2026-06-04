@@ -221,7 +221,7 @@ As a wp (the membership clause subsumed by `enabled(MAKELINK)` here, since `d_ta
 
 ## What Does Not Change
 
-The frame `Σ'.C = Σ.C` holds (Effect; M-Frame, M-NoContentEffect): the referenced content is byte-identical before and after MAKELINK. The substantive point is that the link's endsets *reference* I-addresses in `dom(C)`, but referencing is read-only — the endset stores spans (start, length pairs), not the bytes at those addresses, so link creation cannot perturb content.
+The frame `Σ'.C = Σ.C` holds (Effect; M-Frame): the referenced content is byte-identical before and after MAKELINK. The substantive point is that the link's endsets *reference* I-addresses in `dom(C)`, but referencing is read-only — the endset stores spans (start, length pairs), not the bytes at those addresses, so link creation cannot perturb content.
 
 ## Side Effects on Prior Links' Discoverability
 
@@ -337,11 +337,9 @@ By SequentialTransitionAxiom (ASN-0093), K.λ commits to `Σ_mid` before K.μ⁺
 
 Because K.λ's frame fixes `M`, `Σ_mid.M = Σ.M`, so the discoverability difference between `Σ_mid` and `Σ'` is exactly the `Σ → Σ'` delta already computed: it agrees for every `d_target ≠ d` (M-WP, Case 1), and for `d_target = d` the two values agree unless some endset reflexively covers `ℓ` (M-Reflexive).
 
-A reader observing `Σ_mid` would see the link in `dom(L)` but not in `M(d)`.
-
 ## Permanence
 
-*Permanence of the Recording* established that the link's identity and value are permanent. What remains to characterize is the V-position binding `v_ℓ ↦ ℓ` in the home document, which is less permanent — but the *only* mutation available to it is removal. K.μ~ (reordering) cannot rebind it: by K.μ~'s admissibility clause (v), *link-subspace fixing* (ASN-0047), the witnessing bijection satisfies `π(v) = v` for every link-subspace V-position `v ∈ dom_L(M(d))`. Since `v_ℓ` is a link V-position, `π(v_ℓ) = v_ℓ`, and the bijection equation gives `M'(d)(v_ℓ) = M(d)(v_ℓ) = ℓ`; the binding `v_ℓ ↦ ℓ` is therefore *invariant* under every K.μ~ transition. The link subspace is fixed pointwise by reordering. The sole operation that can alter the binding is K.μ⁻ (contraction), which may drop `v_ℓ` from `dom(M(d))` entirely. Thus what is permanent is the link's I-address and value; what is mutable — and only by removal, never by re-binding — is whether `v_ℓ ↦ ℓ` remains present in the home document's link-subspace arrangement.
+*Permanence of the Recording* established that the link's identity and value are permanent (M-Perm). Taking that as given, what remains to characterize is the V-position binding `v_ℓ ↦ ℓ` in the home document, which is less permanent — but the *only* mutation available to it is removal. K.μ~ (reordering) cannot rebind it: by K.μ~'s admissibility clause (v), *link-subspace fixing* (ASN-0047), the witnessing bijection satisfies `π(v) = v` for every link-subspace V-position `v ∈ dom_L(M(d))`. Since `v_ℓ` is a link V-position, `π(v_ℓ) = v_ℓ`, and the bijection equation gives `M'(d)(v_ℓ) = M(d)(v_ℓ) = ℓ`; the binding `v_ℓ ↦ ℓ` is therefore *invariant* under every K.μ~ transition. The link subspace is fixed pointwise by reordering. The sole operation that can alter the binding is K.μ⁻ (contraction), which may drop `v_ℓ` from `dom(M(d))` entirely. Thus the binding is mutable only by removal, never by re-binding: whether `v_ℓ ↦ ℓ` remains present in the home document's link-subspace arrangement is the one impermanent aspect of the recording.
 
 Even if `v_ℓ` is later removed from `dom(M(d))`, the link is still in `dom(L)` and still discoverable when conditions warrant. By LP17 (ASN-0098), a link orphaned from all V-arrangements remains in the store; by LP18, it becomes discoverable again when any document later transcludes content covered by its endsets.
 
@@ -358,8 +356,7 @@ MAKELINK performs *no permission check on referenced content*. It does not verif
 | M-Pre | Caller-visible precondition: `d ∈ dom(M)`, `N ≥ 3`, `(A i : eᵢ ∈ Endset)`, `e₃ ≠ ∅`. System-supplied parameters: `ℓ` from `A_L(d)`'s next emission; `v_ℓ` from K.μ⁺_L's positioning rule, serial component `n_L + 1` computed from `Σ`, depth per M-DepthConv. | introduced |
 | M-Alloc | MAKELINK allocates a fresh `ℓ ∈ T \ (dom(Σ.L) ∪ dom(Σ.C))` and a fresh `v_ℓ ∈ T \ dom(Σ.M(d))` with `subspace(v_ℓ) = s_L` and `#v_ℓ` per M-DepthConv. | introduced |
 | M-Effect | `Σ'.L = Σ.L ∪ {ℓ ↦ (e₁, ..., eₙ)}`; `Σ'.M(d) = Σ.M(d) ∪ {v_ℓ ↦ ℓ}` where `v_ℓ = [s_L, 1]` at depth `m = 2` (per M-DepthConv) if `V_{s_L}(d) = ∅` at `Σ`, else `v_ℓ = shift(max(V_{s_L}(d)), 1)` (with `n_L = |V_{s_L}(d)|`) at the existing link-subspace depth `m_L(d)` read from `Σ`. | introduced |
-| M-Frame | `Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`; existing entries in `L` and in `M(d')` for `d' ≠ d` are unchanged. | introduced |
-| M-NoContentEffect | For every `a ∈ dom(Σ.C)`: `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The referenced content is byte-identical before and after MAKELINK. | introduced |
+| M-Frame | `Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`; existing entries in `L` and in `M(d')` for `d' ≠ d` are unchanged. Content is byte-identical before and after MAKELINK (referencing is read-only). | introduced |
 | M-DiscSymmetry | For the standard content-reach route, discoverability of `ℓ` is symmetric across all documents whose arrangements reach into an endset coverage — LP12 grants the home document no privileged status. The reflexive route is the home document's alone, since MAKELINK places `ℓ` into its arrangement and no other. | introduced |
 | StandardAuthoring | `StandardAuthoring(e, Σ) ≡ coverage(e) ∩ F ⊆ dom(Σ.C) ∪ dom(Σ.L)`, where `F` is ASN-0098's set of substrate-emittable addresses. A link's endset sequence is standardly authored at `Σ` iff every constituent endset satisfies the predicate. | introduced |
 | M-Reflexive | If `ℓ ∈ coverage(eᵢ)` for some `i` (the reflexive endset case), then `v_ℓ ∈ project(ℓ, i, d, Σ')` and `discoverable_from(ℓ, d, Σ')` is forced true regardless of `Σ.M(d)`'s pre-existing arrangement. Under `(A i : StandardAuthoring(eᵢ, Σ))` the reflexive case is structurally excluded. | introduced |
