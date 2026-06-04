@@ -35,9 +35,9 @@ F12 (TwoPhaseFactoring) — DEFINITION of findlinks_V:
      ≡             findlinks(image(R, d, Σ), Σ).
 ```
 
-For `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined* — no silent fallback. For V-positions in `R` outside `dom(Σ.M(d))`, the silent projection in `image` absorbs them; the caller has no pre-validation obligation beyond establishing `d ∈ dom(Σ.M)`.
+For `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined* — no silent fallback. For V-positions in `R` outside `dom(Σ.M(d))`, the silent projection in `image` absorbs them.
 
-The factoring matters because the two phases have different stability properties. `Σ.M` is mutable (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L all modify it); `Σ.L` is monotonic (K.λ adds, L12 forbids modification of existing entries). Phase 1 consults the mutable component; phase 2 consults the monotonic component.
+The two phases consult components with different stability properties — the mutable `Σ.M` and the monotonic `Σ.L` — a distinction F9 and F11 turn on.
 
 ## The Image Set
 
@@ -64,17 +64,17 @@ F4 (MatchIndividuation):
    pair on which it disagrees with F1's per-endset overlap test.
 ```
 
-*Realizability.* Each witness is realizable: the I-set is a query parameter and endsets are freely chosen at K.λ (L4 places no constraint on span addresses), so every `(a, I)` pair below arises by a K.λ allocation under any document.
+*Realizability.* Each witness is realizable: the I-set is a query parameter and endsets are freely chosen at K.λ (L4 places no constraint on span addresses), so every `(a, I)` pair below arises by a K.λ allocation under any document. The endset shapes used below are L3-admissible: slot 3 carries the mandatory non-empty type endset, and non-type slots may be empty (`coverage(∅) = ∅`, so an empty slot is never a witness).
 
 *Strengthening 1 — Containment from coverage to query (`coverage ⊆ I`).* Witness link `a`: arity 3 with slot 1 `(β, δ(1, #β))`, slot 2 `(γ, δ(1, #γ))`, slot 3 `(α, δ(1, #α))`, where β and γ are same-length siblings of `α` differing at position `#α` (so β ⋠ α, α ⋠ β, γ ⋠ α, α ⋠ γ). Query `I = {α}`. F1 admits via slot 3: `coverage(L(a).e₃) ∩ I = {α} ≠ ∅`. The link-level strengthening predicate is the slot-existential `(E i : coverage(L(a).eᵢ) ⊆ I)`; we check every slot: slot 1's coverage `{t : β ≼ t}` is non-empty (contains β) and disjoint from `{α}` (since β ⋠ α), so `coverage(e₁) ⊄ I`; slot 2 likewise; slot 3's coverage `{t : α ≼ t}` (by PrefixSpanCoverage, ASN-0043) contains `α.0 ∉ I` (any tumbler extending α belongs by T0's allowance of trailing zeros). No slot satisfies `coverage ⊆ I`; strengthening excludes `a`.
 
-*Strengthening 2 — Containment from query to coverage (`I ⊆ coverage`).* Witness: link `a` with one canonical span `(α, δ(1, #α))` at slot 3 (the mandatory non-empty type-endset slot per L3), and slots 1 and 2 empty (permitted by L3 for non-type slots). Query `I = {α, γ}` for any `γ ∈ T` with `α ⋠ γ` (e.g., a same-length sibling differing at position `#α`). F1 admits via slot 3: `coverage(L(a).e₃) ∩ I = {α} ≠ ∅`. The link-level strengthening predicate is the slot-existential `(E i : I ⊆ coverage(eᵢ))`; we check every slot: at slot 3, `coverage(e₃) = {t : α ≼ t}` (by PrefixSpanCoverage, ASN-0043) contains `α` reflexively but not `γ` (since `α ⋠ γ`), so `I ⊄ coverage(e₃)`; at slots 1 and 2 (empty), `coverage(∅) = ∅` cannot contain non-empty `I = {α, γ}`. Strengthening excludes `a`.
+*Strengthening 2 — Containment from query to coverage (`I ⊆ coverage`).* Witness: link `a` with one canonical span `(α, δ(1, #α))` at slot 3, and slots 1 and 2 empty. Query `I = {α, γ}` for any `γ ∈ T` with `α ⋠ γ` (e.g., a same-length sibling differing at position `#α`). F1 admits via slot 3: `coverage(L(a).e₃) ∩ I = {α} ≠ ∅`. The link-level strengthening predicate is the slot-existential `(E i : I ⊆ coverage(eᵢ))`; we check every slot: at slot 3, `coverage(e₃) = {t : α ≼ t}` (by PrefixSpanCoverage, ASN-0043) contains `α` reflexively but not `γ` (since `α ⋠ γ`), so `I ⊄ coverage(e₃)`; at slots 1 and 2 (empty), `coverage(∅) = ∅` cannot contain non-empty `I = {α, γ}`. Strengthening excludes `a`.
 
-*Strengthening 3 — Cardinality threshold (`|coverage ∩ I| ≥ k` for `k > 1`).* Witness: link `a` with one canonical span `(α, δ(1, #α))` at slot 3 (the mandatory non-empty type-endset slot per L3), and slots 1 and 2 empty (permitted by L3 for non-type slots). Query `I = {α}`. The link-level strengthening predicate is the slot-existential `(E i : |coverage(eᵢ) ∩ I| ≥ k)` for `k > 1`; we check every slot: at slot 3, `|coverage(e₃) ∩ I| = |{t : α ≼ t} ∩ {α}| = 1 < k`; at slots 1 and 2 (empty), `|coverage(∅) ∩ I| = |∅ ∩ {α}| = 0 < k`. No slot satisfies the threshold; strengthening excludes `a`. F1 admits via slot 3's singleton overlap.
+*Strengthening 3 — Cardinality threshold (`|coverage ∩ I| ≥ k` for `k > 1`).* Witness: link `a` with one canonical span `(α, δ(1, #α))` at slot 3, and slots 1 and 2 empty. Query `I = {α}`. The link-level strengthening predicate is the slot-existential `(E i : |coverage(eᵢ) ∩ I| ≥ k)` for `k > 1`; we check every slot: at slot 3, `|coverage(e₃) ∩ I| = |{t : α ≼ t} ∩ {α}| = 1 < k`; at slots 1 and 2 (empty), `|coverage(∅) ∩ I| = |∅ ∩ {α}| = 0 < k`. No slot satisfies the threshold; strengthening excludes `a`. F1 admits via slot 3's singleton overlap.
 
-*Weakening 1 — Slot-vacuous match (`P_⊤(a, I, Σ) ≡ a ∈ dom(Σ.L)`).* Witness: any link `a ∈ dom(Σ.L)` with all `coverage(Σ.L(a).eᵢ)` disjoint from `I`. Concrete instance: `Σ.L(a)` with `(τ, δ(1, #τ))` at slot 3 (the mandatory non-empty type endset), `∅` at slots 1 and 2, and `I = {α}` with `τ ⋠ α` and `α ⋠ τ` (cross-document non-nesting τ). Then `coverage(Σ.L(a).e₃) ∩ I = ∅` and the other slots are coverage-empty, so F1 rejects `a`. `P_⊤` admits `a`. The weakening returns links with no overlap to the query I-set — non-conforming with F1's relevance principle (the OR-across-slots existential over the per-endset overlap test): some span in some endset must witness a non-empty intersection with the request.
+*Weakening 1 — Slot-vacuous match (`P_⊤(a, I, Σ) ≡ a ∈ dom(Σ.L)`).* Witness: any link `a ∈ dom(Σ.L)` with all `coverage(Σ.L(a).eᵢ)` disjoint from `I`. Concrete instance: `Σ.L(a)` with `(τ, δ(1, #τ))` at slot 3, `∅` at slots 1 and 2, and `I = {α}` with `τ ⋠ α` and `α ⋠ τ` (cross-document non-nesting τ). Then `coverage(Σ.L(a).e₃) ∩ I = ∅` and the other slots are coverage-empty, so F1 rejects `a`. `P_⊤` admits `a`. The weakening returns links with no overlap to the query I-set — non-conforming with F1's relevance principle (the OR-across-slots existential over the per-endset overlap test): some span in some endset must witness a non-empty intersection with the request.
 
-*Weakening 2 — Slot-disjunctive ignoring I (`P_∃-slot(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ≠ ∅)`).* Witness: the same `(a, I)` as Weakening 1. `Σ.L(a).e₃ = {(τ, δ(1, #τ))}` is non-empty (mandated by L3), so `coverage(Σ.L(a).e₃) ≠ ∅` and `P_∃-slot` admits `a` regardless of `I`. F1 rejects (no slot's coverage meets `I`). The weakening collapses the I-dependence of the match entirely — every link in `dom(Σ.L)` matches every query, violating the relevance principle.
+*Weakening 2 — Slot-disjunctive ignoring I (`P_∃-slot(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ≠ ∅)`).* Witness: the same `(a, I)` as Weakening 1. `Σ.L(a).e₃ = {(τ, δ(1, #τ))}` is non-empty, so `coverage(Σ.L(a).e₃) ≠ ∅` and `P_∃-slot` admits `a` regardless of `I`. F1 rejects (no slot's coverage meets `I`). The weakening collapses the I-dependence of the match entirely — every link in `dom(Σ.L)` matches every query, violating the relevance principle.
 
 **Empty endsets at non-type slots.** L3 requires only slot 3 to be non-empty; other slots may carry `∅`. Then `coverage(∅) = ∅` and the slot is never a witness — but other non-empty slots may witness the existential.
 
@@ -184,25 +184,18 @@ PerLinkInvarianceUnderValuePreservation — sub-lemma:
 
 ## Arrangement Independence
 
-The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. The operationally salient frame condition exercised by editing operations rests on a structural lemma of the substrate: that operations other than K.λ preserve `Σ.L`. This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, M, E, R)`, so the operative vocabulary is ASN-0047's extended-state vocabulary (ValidComposite★), with document registration performed by K.δ (Document case). Throughout this ASN we call an operation *link-store-inert* when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}`. We package the preservation lemma:
+The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, M, E, R)`, so the operative vocabulary is ASN-0047's extended-state vocabulary (ValidComposite★, `V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ}`), with document registration performed by K.δ (Document case). Throughout this ASN we call an operation *link-store-inert* when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}`. We package the preservation lemma:
 
 ```
 A1a (PublishedFramePreservation):
-   Every atomic operation of V ∖ {K.λ} — {K.α, K.δ, K.μ⁺, K.μ⁻,
-   K.μ⁺_L, K.ρ} — publishes `L' = L` in its operative frame (K.μ⁺ and
-   K.μ⁻ via ASN-0047's amended extended-state versions), hence
-   preserves the link store across its transition Σ → Σ':
+   Every operation of V ∖ {K.λ} preserves the link store across its
+   transition Σ → Σ':
        dom(Σ'.L) = dom(Σ.L) ∧ (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a)).
-```
-
-```
-A1 (KλUniqueLinkStoreModifier) — corollary of A1a:
-   The composite K.μ~ (the non-atomic K.μ⁻ + K.μ⁺ composite) preserves
-   the link store by transitive composition of A1a at its two
-   constituents. With A1a covering the atomic operations, K.λ is
-   therefore the unique operation of V that modifies the link store.
-   (V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ} — ASN-0047's
-   extended-state vocabulary, ValidComposite★.)
+   The atomic operations — {K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} —
+   publish `L' = L` in their operative frame (K.μ⁺ and K.μ⁻ via
+   ASN-0047's amended extended-state versions). The composite K.μ~
+   (the non-atomic K.μ⁻ + K.μ⁺ composite) preserves Σ.L by transitive
+   composition of A1a at its two constituents.
 ```
 
 ```
@@ -211,7 +204,7 @@ F9 (LinkStoreInertPreservation):
    and any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   A1 gives Σ.L = Σ'.L across every V ∖ {K.λ} operation. F8 via
+   A1a gives Σ.L = Σ'.L across every V ∖ {K.λ} operation. F8 via
    ComprehensionInvariantUnderΣL then forces the equality. For a
    reachable sequence Σ →* Σ' whose every atomic step lies in
    V ∖ {K.λ}, the per-step equalities chain by transitivity.
@@ -434,7 +427,7 @@ By PrefixSpanCoverage, each canonical span's coverage is a prefix subtree. The t
 
 Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, Σ_5)` for every `I ⊆ T`. At `I = {α₂}`: `findlinks({α₂}, Σ) = {ℓ}` (Query 1) and `findlinks({α₂}, Σ_5) = {ℓ}` by direct evaluation (link values preserved by L12; the slot-1 test at `ℓ` still meets `{α₂}`). The V-side answer at `v_a^2` in `d_a` does change across the chain (the K.μ⁻ step contracts `v_a^2` out of `dom(M(d_a))`, so `findlinks_V({v_a^2}, d_a, Σ_5) = findlinks(∅, Σ_5) = ∅`); the I-side answer at the fixed I-set `{α₂}` does not. F9 holds across the chain.
 
-**Query 6 (F11 + F9-λ, persistence and growth across K.λ).** Query 5's chain stays in V ∖ {K.λ}, so it cannot exercise F11's load-bearing case — the case where `dom(Σ.L)` grows under the persistence claim. We extend `Σ_5` with one K.λ step to surface that case explicitly. From `Σ_5`, apply K.λ allocating `ℓ_new ∈ A_L(d_c)` (the first emission of `d_c`'s link sub-allocator, since no K.λ under `d_c` has fired in the prior chain) with endsets: slot 1 `(α_c, δ(1, #α_c))`, slot 2 `∅`, slot 3 `(τ_meta, δ(1, #τ_meta))` (reusing `τ_meta` from `Σ`'s setup, persisted into `Σ_5` by L12). The freshness precondition discharges because `ℓ_new = [d_c.0.s_L.1]` and `{ℓ' ∈ dom(Σ_5.L) : origin(ℓ') = d_c} = ∅`. Call the post-state `Σ_6`. K.λ's published frame names `L'` as the only modified component; M, C, E, R are unchanged.
+**Query 6 (F11 + F9-λ, persistence and growth across K.λ).** From `Σ_5`, apply K.λ allocating `ℓ_new ∈ A_L(d_c)` (the first emission of `d_c`'s link sub-allocator, since no K.λ under `d_c` has fired in the prior chain) with endsets: slot 1 `(α_c, δ(1, #α_c))`, slot 2 `∅`, slot 3 `(τ_meta, δ(1, #τ_meta))` (reusing `τ_meta` from `Σ`'s setup, persisted into `Σ_5` by L12). The freshness precondition discharges because `ℓ_new = [d_c.0.s_L.1]` and `{ℓ' ∈ dom(Σ_5.L) : origin(ℓ') = d_c} = ∅`. Call the post-state `Σ_6`. K.λ's published frame names `L'` as the only modified component; M, C, E, R are unchanged.
 
 *I-side persistence of the `{α₂}` query (F11 across K.λ).* At `Σ_5`, `findlinks({α₂}, Σ_5) = {ℓ}`. At `Σ_6`: `ℓ ∈ dom(Σ_5.L) ⊆ dom(Σ_6.L)` with `Σ_6.L(ℓ) = Σ_5.L(ℓ)` by L12, so PerLinkInvarianceUnderValuePreservation at `ℓ` gives `matches(ℓ, {α₂}, Σ_6) = true`. For the freshly allocated `ℓ_new`: `coverage(ℓ_new.e₁) = {t : α_c ≼ t}` and `coverage(ℓ_new.e₃) = {t : τ_meta ≼ t}`, both disjoint from `{α₂}` (sibling content-address non-nesting between `α_c` and `α₂` under distinct documents `d_c ≠ d_a`; cross-document non-nesting between `τ_meta` and `α₂` by setup). So `matches(ℓ_new, {α₂}, Σ_6) = false`. By F9-λ: `findlinks({α₂}, Σ_6) = findlinks({α₂}, Σ_5) ⊎ ∅ = {ℓ}`. F11's persistence holds across the K.λ step: `ℓ` remains `{α₂}`-discoverable even as `dom(Σ.L)` grows. The load-bearing step is PerLinkInvarianceUnderValuePreservation at `ℓ` specifically.
 
@@ -442,7 +435,7 @@ Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, 
 
 ## Local Atomicity and the Single-State Setting
 
-By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and uninterruptible; `Σ` is well-defined at every query point. A K.λ commits `a` to `dom(Σ.L)` atomically: by the time the K.λ committing `a` returns, `a` is in `dom(Σ.L)` and the next query at any state succeeding the K.λ must include `a` if `a` matches.
+By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and uninterruptible, so `Σ` is well-defined at every query point — the single-state reading every claim in this ASN assumes.
 
 ## What We Have Not Specified
 
@@ -465,8 +458,7 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 | `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | definition |
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
 | PerLinkInvarianceUnderValuePreservation | Per-link primitive: match and filtered per-link universal evaluate identically when `Σ'.L(a) = Σ.L(a)` at a specific `a` | introduced (sub-lemma) |
-| A1a | PublishedFramePreservation: every atomic op of V ∖ {K.λ} — {K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} — preserves `Σ.L` from its published frame (K.μ⁺, K.μ⁻ via ASN-0047's amended extended-state frames, both publishing `L' = L`) | introduced (structural lemma) |
-| A1 | KλUniqueLinkStoreModifier: K.λ is the unique operation of V that modifies the link store | introduced (composite lemma) |
+| A1a | PublishedFramePreservation: every op of V ∖ {K.λ} preserves `Σ.L` — atomic ops publish `L' = L` (K.μ⁺, K.μ⁻ via ASN-0047's amended extended-state frames), and K.μ~ by transitive composition | introduced (structural lemma) |
 | F1 | MatchPredicate definition | definition |
 | F2 | Completeness: `findlinks(I, Σ) ⊆ result(I, Σ)` | introduced |
 | F3 | Soundness: `result(I, Σ) ⊆ findlinks(I, Σ)` | introduced |
