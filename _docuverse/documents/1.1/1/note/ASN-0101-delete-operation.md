@@ -336,8 +336,6 @@ The architectural significance is precisely the contrast with destructive replac
 
 - **The deleted content remains addressable.** Any I-address `a` that appeared in `ran(M(d))` before DELETE remains in `dom(C')`. A consumer that holds `a` — a link's endset, an external record, another document's arrangement — can still retrieve `C'(a) = C(a)`.
 
-- **Prior versions of `d` can be reconstructed.** Reconstructing the pre-DELETE arrangement requires only `M(d)` (which the system retains as a prior version, when versioning is in effect) and `C` (which is unchanged). The bytes needed for reconstruction are all still present.
-
 - **No I-address space is reclaimed.** The architectural commitment to permanent addresses, expressed by `dom(C) ⊆ dom(C')` in P0, is strengthened by D2 to `dom(C) = dom(C')` for DELETE specifically, so `|dom(C)|` is unchanged across every DELETE transition: DELETE frees no storage. Reclamation would require a separate operation; DELETE itself does not provide one, and the design intent is that no such operation exists.
 
 ### Link store: the link graph is untouched
@@ -472,7 +470,7 @@ The two contributions cover disjoint V-position sets (one in `V_{S'}(M'(d)) = V_
 
 D9 makes precise what *can* and *cannot* happen to a link's discoverability under DELETE. Discoverability from any document other than `d` is invariant. Discoverability from `d`'s other subspace is invariant. Discoverability from `d`'s affected subspace can shrink (when V-positions in the deleted span referenced the link's coverage) or rename (when V-positions in the shifted region referenced the link's coverage). The latter is invisible from outside — the projection has the same cardinality, just relocated.
 
-The cardinality can shrink to zero. A link whose coverage was referenced only by V-positions in the deleted span becomes — temporarily — not discoverable from `d`. This is the "orphan" or "ghost" condition of LP17 (GhostProjection, ASN-0098): when no document's arrangement reaches any I-address in the link's coverage, every projection is empty and the link is discoverable from nowhere. The orphan condition is reversible, and this is exactly LP18 (Resurrection, ASN-0098) with DEL as the orphaning step: a subsequent operation that adds a V-position `v` in `d` mapping to an I-address `a* ∈ coverage(L(ℓ).eᵢ)` restores discoverability from `d`. LP18's dispatch holds under DEL because its two structural premises survive the deletion — `ℓ ∈ dom(L')` by D3 (the link store is untouched), and `coverage` is preserved across the intervening sequence by LP3★ (whose DEL extension follows from D3, per the LP-family extension paragraph below). The link itself is never lost; that paragraph confirms LP17 and LP18 carry to the DEL-extended vocabulary.
+The cardinality can shrink to zero. A link whose coverage was referenced only by V-positions in the deleted span becomes not discoverable from `d` in the post-state — its projection from `d` is empty, even though the link value and its coverage persist by D3. This is D9's sharpest consequence: DELETE can sever a document's discovery of a link without touching the link itself.
 
 ## Weakest precondition for discoverability preservation
 
@@ -557,7 +555,7 @@ The final DEL step enters this derivation only through its neutrality: it adds n
 
 ## A note on recoverability and historical reconstruction
 
-Nelson's design intent goes beyond "DELETE doesn't destroy" to the stronger claim that any prior arrangement of `d` should remain reconstructible [LM 2/15]. This concerns the *system as a whole*, not DELETE in isolation. D2 (every I-address in `ran(M(d))` persists in `dom(C')`) and D5 (a version `d_v` forked from `d` before the DELETE has its arrangement `M(d_v)` left untouched) make such reconstruction structurally *possible*. But DEL alone is not sufficient: it does not preserve `M(d)`, and recovering the pre-state arrangement from `M'(d)` alone is impossible — DELETE is information-destroying with respect to `d`'s current arrangement. The full versioning mechanism that would close this gap is out of scope here; Open Question 1 carries the rest.
+DEL does not preserve `M(d)`: it overwrites the affected subspace's arrangement, and the pre-state arrangement cannot be recovered from `M'(d)` alone — DELETE is information-destroying with respect to `d`'s current arrangement. Reconstruction of a prior arrangement is a versioning concern, not a property of DEL; the mechanism is out of scope here. Open Question 1 carries the rest.
 
 ## Claims Introduced
 
