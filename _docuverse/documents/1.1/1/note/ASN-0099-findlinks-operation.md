@@ -82,10 +82,6 @@ F4 (MatchFormulaDesignJustification):
    slot-symmetric existential is the natural surface answer; AND
    discrimination is preserved through `findlinks_filtered`, not by
    altering F1.
-
-   Any P diverging from F1's overlap test produces a result(I, Σ)
-   that disagrees with findlinks(I, Σ) on at least one realizable
-   (a, I) pair, hence non-conformance with F2 ∧ F3 as written.
 ```
 
 *Realizability discharge.* Any predicate `P` disagreeing with F1 on some pair `(a, I)` defines a different operation provided the disagreement is realizable. It always is: K.λ admits, at any state with `dom(Σ.M) ≠ ∅`, a link of arity `N ≥ 3` whose endsets are freely chosen subject only to well-formedness (`eᵢ ∈ Endset`, `e₃ ≠ ∅`; L4 places no constraint on span addresses), and the query I-set `I ⊆ T` is a query parameter rather than state — so every F1-admitted `(endset configuration, I)` pair is realizable by a K.λ allocation under any document. The witnesses below — three strengthenings and two weakenings — are concrete instances.
@@ -100,7 +96,7 @@ F4 (MatchFormulaDesignJustification):
 
 *Weakening 2 — Slot-disjunctive ignoring I (`P_∃-slot(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ≠ ∅)`).* Witness: the same `(a, I)` as Weakening 1. `Σ.L(a).e₃ = {(τ, δ(1, #τ))}` is non-empty (mandated by L3), so `coverage(Σ.L(a).e₃) ≠ ∅` and `P_∃-slot` admits `a` regardless of `I`. F1 rejects (no slot's coverage meets `I`). The weakening collapses the I-dependence of the match entirely — every link in `dom(Σ.L)` matches every query, violating the relevance principle.
 
-Each of the five witnesses is realizable by a single K.λ step from any `Σ` with `dom(Σ.M) ≠ ∅`; the predicates differ from F1 on the witness; therefore wiring F2 ∧ F3 with any of them produces an operation different from `findlinks`. The reader's promise — backlinks returnable without appreciable delay and with overlap-anchored relevance — rests on singleton overlap as F1 states it. Alternative match formulas — whether (a)-alternatives to F1's overlap test or the (b) AND form (whose direct LM 4/58 realization is `findlinks_filtered`) — are alternative operations, not alternative implementations of FINDLINKS.
+The reader's promise — backlinks returnable without appreciable delay and with overlap-anchored relevance — rests on singleton overlap as F1 states it. Alternative match formulas — whether (a)-alternatives to F1's overlap test or the (b) AND form (whose direct LM 4/58 realization is `findlinks_filtered`) — are alternative operations, not alternative implementations of FINDLINKS.
 
 **Empty endsets at non-type slots.** L3 requires only slot 3 to be non-empty; other slots may carry `∅`. Then `coverage(∅) = ∅` and the slot is never a witness — but other non-empty slots may witness the existential. The filtered form (below) behaves differently: a filter constraint `(i, J)` is unsatisfiable at a link with `Σ.L(a).eᵢ = ∅`. Two distinct short-circuits for an unsatisfied per-constraint conjunct: when `i > |Σ.L(a)|` the slot is structurally absent; when `i ≤ |Σ.L(a)| ∧ Σ.L(a).eᵢ = ∅` the slot exists but its endset carries no spans. Both routes exclude the link; abstract conformance is indifferent to which fires.
 
@@ -150,7 +146,7 @@ F2-V    ∧ F3-V:     result_V(R, d, Σ)        = findlinks_V(R, d, Σ),
                     for every (R, d, Σ) with d ∈ dom(Σ.M).
 ```
 
-Each labeled pair `F2-X ∧ F3-X` denotes the conjunction of two individual containments analogous to F2 and F3: F2-X is the completeness containment `findlinks_*(args) ⊆ result_*(args)` and F3-X is the soundness containment `result_*(args) ⊆ findlinks_*(args)`; the conjunction forces the equality stated above. The two halves remain independently citable, so a non-conforming implementation that violates one direction (e.g., a filtered/scoped implementation with a deferred-index obligation that breaks F3-filt while satisfying F2-filt) can be pinned to the specific half at fault. Each pair carries the same structure as F2 ∧ F3, with the predicate adjusted to the operation: the universal `(A (i, J) ∈ C : …)` for the filtered form, the intersection `dom(Σ.L) ∩ S` for the scoped form, and the I-image `image(R, d, Σ)` for the V-side form. F2-V ∧ F3-V is the **primary obligation on `result_V`**: any implementation exposing the V-side surface must satisfy it. When the implementation also exposes the I-side surface satisfying F2 ∧ F3, the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2-V ∧ F3-V + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly; the two surfaces are then coherently linked through F12's definitional unfolding. An implementation may compute the V-side result by routing through `result` internally or by a direct procedure — but the conformance contract is fixed at F2-V ∧ F3-V.
+Each labeled pair `F2-X ∧ F3-X` conjoins the completeness containment `findlinks_*(args) ⊆ result_*(args)` with the soundness containment `result_*(args) ⊆ findlinks_*(args)`, the predicate adjusted to the operation: the universal `(A (i, J) ∈ C : …)` for the filtered form, the intersection `dom(Σ.L) ∩ S` for the scoped form, and the I-image `image(R, d, Σ)` for the V-side form. The conjunction forces the equality stated above. F2-V ∧ F3-V is the **primary obligation on `result_V`**: any implementation exposing the V-side surface must satisfy it. When the implementation also exposes the I-side surface satisfying F2 ∧ F3, the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2-V ∧ F3-V + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly.
 
 *Predicate domain.* `matches(a, I, Σ)` is defined only for `a ∈ dom(Σ.L)`. The scoped form's `a ∈ dom(Σ.L) ∩ S` clauses (in F2-sco's universal and F3-sco's conclusion) keep every invocation inside the domain; F2-V and F3-V respect the convention by quantifying over `a ∈ dom(Σ.L)`. The boundary case `a ∈ S ∖ dom(Σ.L)` is operationally excluded by F3-sco.
 
@@ -186,7 +182,7 @@ ComprehensionInvariantUnderΣL — meta-lemma:
    the two states. Set extensionality closes the equality.
 ```
 
-We also factor out the per-link primitive that grounds the chain above. It applies under a strictly weaker hypothesis than ComprehensionInvariantUnderΣL: per-link value preservation `Σ'.L(a) = Σ.L(a)` at a specific `a ∈ dom(Σ.L)`, without full `Σ.L = Σ'.L`. This is the load-bearing tool precisely when `dom(Σ'.L)` has grown via K.λ along a reachable sequence — the comprehension-level meta-lemma is unavailable there, since its derivation needs domain equality `dom(Σ.L) = dom(Σ'.L)` to close the comprehension over a shared index set, and that equality fails the moment K.λ adds a key. Citing claims invoke the per-link primitive directly. The per-link substep stands on its own:
+We also factor out the per-link primitive that grounds the chain above. It applies under a strictly weaker hypothesis than ComprehensionInvariantUnderΣL: per-link value preservation `Σ'.L(a) = Σ.L(a)` at a specific `a ∈ dom(Σ.L)`, without full `Σ.L = Σ'.L`. ComprehensionInvariantUnderΣL is its comprehension-level composition — full `Σ.L = Σ'.L` contributes domain equality, closing the comprehension over a shared index set, and licenses the per-link primitive at every `a` in that shared domain. The per-link substep stands on its own:
 
 ```
 PerLinkInvarianceUnderValuePreservation — sub-lemma:
@@ -208,8 +204,6 @@ PerLinkInvarianceUnderValuePreservation — sub-lemma:
    per-link conjunct each consult only |Σ.L(a)| and per-slot
    coverage, so both evaluate identically at the two states.
 ```
-
-ComprehensionInvariantUnderΣL is the comprehension-level composition of PerLinkInvarianceUnderValuePreservation: full `Σ.L = Σ'.L` contributes domain equality (closing the comprehension over a shared index set) and licenses PerLinkInvarianceUnderValuePreservation at every `a` in that shared domain.
 
 ## Arrangement Independence
 
@@ -494,7 +488,7 @@ The spec's demand is exactly F2 ∧ F3: `result(I, Σ) = findlinks(I, Σ)`. The 
 
 By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and uninterruptible; `Σ` is well-defined at every query point. A K.λ commits `a` to `dom(Σ.L)` atomically: by the time the K.λ committing `a` returns, `a` is in `dom(Σ.L)` and the next query at any state succeeding the K.λ must include `a` if `a` matches. There is no intermediate state in which `a` exists in `dom(Σ.L)` but is undiscoverable.
 
-Implementations that defer index maintenance to a background process create a window in which the index lags the link store; during that window, results from the index would violate F2. The abstract specification permits no such window. Nelson's design intent at LM 2/46 — backlinks returnable "without appreciable delay" — is the reader-experience commitment behind this; no foundation invariant of this ASN formalises a timing bound beyond "next query after K.λ commitment reflects the link".
+Nelson's design intent at LM 2/46 — backlinks returnable "without appreciable delay" — is the reader-experience commitment behind this atomicity; no foundation invariant of this ASN formalises a timing bound beyond "next query after K.λ commitment reflects the link".
 
 ## What We Have Not Specified
 
