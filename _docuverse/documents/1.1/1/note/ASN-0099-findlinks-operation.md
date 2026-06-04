@@ -53,7 +53,7 @@ F1 (MatchPredicate):
 
 F1 generalizes ASN-0098's `discoverable_from`. ASN-0098 defines that predicate in *project* form — `discoverable_from(a, d, Σ) ≡ (E i : project(a, i, d, Σ) ≠ ∅)` — whereas F1's `matches` is in *coverage* form. The two coincide by LP12 (DiscoverabilityCharacterisation, ASN-0098), whose per-slot biconditional `project(a, i, d, Σ) ≠ ∅ ⟺ coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅` gives `discoverable_from(a, d, Σ) = matches(a, ran(Σ.M(d)), Σ)`. The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to. Intersection (rather than containment) is forced by symmetry: a link is about every byte its endsets cover (L13), one shared byte suffices, and to require containment in either direction would impose a circular precondition (the reader would need to know each link's extent to know whether to include it in the query).
 
-F1's match is **per-endset overlap**: within each endset, satisfaction is existential over spans, and the per-span test is overlap (`coverage(eᵢ) ∩ I ≠ ∅` unfolds to `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`, with an identifiable witness span). The realizability witnesses below carry the load: each exhibits a realizable `(a, I)` pair on which an alternative predicate differs from F1.
+F1's match is **per-endset overlap**: within each endset, satisfaction is existential over spans, and the per-span test is overlap (`coverage(eᵢ) ∩ I ≠ ∅` unfolds to `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`, with an identifiable witness span).
 
 ```
 F4 (MatchIndividuation):
@@ -63,7 +63,7 @@ F4 (MatchIndividuation):
    strengthenings and two weakenings of F1's per-endset overlap test.
 ```
 
-*Realizability discharge.* The disagreement is always realizable: K.λ admits, at any state with `dom(Σ.M) ≠ ∅`, a link of arity `N ≥ 3` whose endsets are freely chosen subject only to well-formedness (`eᵢ ∈ Endset`, `e₃ ≠ ∅`; L4 places no constraint on span addresses), and the query I-set `I ⊆ T` is a query parameter rather than state — so every F1-admitted `(endset configuration, I)` pair is realizable by a K.λ allocation under any document. The witnesses below are concrete instances.
+*Realizability.* Each witness is realizable: the I-set is a query parameter and endsets are freely chosen at K.λ (L4 places no constraint on span addresses), so every `(a, I)` pair below arises by a K.λ allocation under any document.
 
 *Strengthening 1 — Containment from coverage to query (`coverage ⊆ I`).* Witness link `a`: arity 3 with slot 1 `(β, δ(1, #β))`, slot 2 `(γ, δ(1, #γ))`, slot 3 `(α, δ(1, #α))`, where β and γ are same-length siblings of `α` differing at position `#α` (so β ⋠ α, α ⋠ β, γ ⋠ α, α ⋠ γ). Query `I = {α}`. F1 admits via slot 3: `coverage(L(a).e₃) ∩ I = {α} ≠ ∅`. The link-level strengthening predicate is the slot-existential `(E i : coverage(L(a).eᵢ) ⊆ I)`; we check every slot: slot 1's coverage `{t : β ≼ t}` is non-empty (contains β) and disjoint from `{α}` (since β ⋠ α), so `coverage(e₁) ⊄ I`; slot 2 likewise; slot 3's coverage `{t : α ≼ t}` (by PrefixSpanCoverage, ASN-0043) contains `α.0 ∉ I` (any tumbler extending α belongs by T0's allowance of trailing zeros). No slot satisfies `coverage ⊆ I`; strengthening excludes `a`.
 
@@ -396,7 +396,7 @@ F19 (ResultSetMonotonicity):
    findlinks(I, Σ) ⊆ findlinks(I, Σ') for every reachable Σ →* Σ'.
 ```
 
-Direct from F11 + the definition of `findlinks`. Monotonicity is an I-side phenomenon: F19 fixes an I-set and quantifies across the reachable sequence, resting on F11's I-side persistence; the V-side analogue would fix `(R, d)` and quantify across edits, which K.μ⁻ invalidates. Monotonicity propagates to the filtered and scoped forms:
+Direct from F11 + the definition of `findlinks`. Monotonicity is an I-side phenomenon: F19 fixes an I-set and quantifies across the reachable sequence, resting on F11's I-side persistence; the V-side asymmetry noted at F11 applies equally here. Monotonicity propagates to the filtered and scoped forms:
 
 ```
 F19-filt: findlinks_filtered(C, Σ) ⊆ findlinks_filtered(C, Σ').
@@ -454,8 +454,6 @@ The spec's demand is exactly F2 ∧ F3: `result(I, Σ) = findlinks(I, Σ)`. The 
 
 By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and uninterruptible; `Σ` is well-defined at every query point. A K.λ commits `a` to `dom(Σ.L)` atomically: by the time the K.λ committing `a` returns, `a` is in `dom(Σ.L)` and the next query at any state succeeding the K.λ must include `a` if `a` matches. There is no intermediate state in which `a` exists in `dom(Σ.L)` but is undiscoverable.
 
-Nelson's design intent at LM 2/46 — backlinks returnable "without appreciable delay" — is the reader-experience commitment behind this atomicity.
-
 ## What We Have Not Specified
 
 - The procedure by which the operation is computed.
@@ -469,8 +467,6 @@ Nelson's design intent at LM 2/46 — backlinks returnable "without appreciable 
 ## Reflection
 
 The discovery operation reduces to a single set comprehension: take the I-set the user named, test each link's endset coverage for overlap, return the matches. Complexity in real systems lies in implementation — index maintenance, server propagation, access control, large-endset storage. The abstract specification is just the comprehension.
-
-The specification is spare because of design choices established for other reasons. Because links attach to bytes (L13), discovery is by address overlap. Because bytes carry permanent identity (S0, C0), the overlap is well-defined and stable. Because arrangement (`Σ.M`) is separated from content identity (`Σ.C`) (ASN-0036), discovery is arrangement-independent. Because the address space is globally unique (T10), identity-based queries cannot collide across owners. Because the link store is monotonic (L12), discovery is monotone. None of these were established for discovery; discovery falls out of them.
 
 ## Claims Introduced
 
