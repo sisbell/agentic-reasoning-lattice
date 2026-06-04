@@ -144,7 +144,7 @@ This is what "edit" means abstractly. The user-facing operation is not parameter
 
 ## The Supersession Relationship
 
-We now examine the second link in the composite — the one we call a *supersession link*. E4 states precisely what the link model establishes: the spans are present in the endsets and recoverable by any discovery operation.
+We now examine the second link in the composite — the one we call a *supersession link*. E4 states precisely what the link model establishes: the spans are present in the endsets and recoverable by inverse link-store lookup; discoverability is arrangement-conditional, settled in E11.
 
 **E4 (SupersessionLink).** Following EDITLINK, the state `Σ'` contains a link `ℓ_sup ∈ dom(Σ'.L)` with:
 
@@ -155,8 +155,6 @@ We now examine the second link in the composite — the one we call a *supersess
 ```
 
 *Proof.* We discharge the three memberships in turn. Let `Σ_1` be the intermediate state after the successor step and `Σ_2` the state after the supersession step. By K.λ's effect clause applied to the supersession step, `Σ_2.L = Σ_1.L ∪ {ℓ_sup ↦ (E_from, E_to, E_type)}`, so `Σ_2.L(ℓ_sup) = (E_from, E_to, E_type)`. By E0's adjacency conclusion — the composite is the contiguous sequence `Σ → Σ_1 → Σ'` — we have `Σ' = Σ_2`, hence `Σ'.L(ℓ_sup) = (E_from, E_to, E_type)`. By L6 (SlotDistinction, ASN-0043), the slot accessor `Σ'.L(ℓ_sup).e_i` returns the `i`-th component of the tuple stored at `ℓ_sup`, so `Σ'.L(ℓ_sup).e_1 = E_from = {(ℓ_old, δ(1, #ℓ_old))}`. Since `(ℓ_old, δ(1, #ℓ_old)) ∈ E_from` by the construction of the singleton, `(ℓ_old, δ(1, #ℓ_old)) ∈ Σ'.L(ℓ_sup).e_1`. The same chain — K.λ effect → composite equality `Σ' = Σ_2` → L6 slot accessor → singleton membership — discharges `(ℓ_new, δ(1, #ℓ_new)) ∈ Σ'.L(ℓ_sup).e_2` via `E_to` and `(τ_sup, δ(1, #τ_sup)) ∈ Σ'.L(ℓ_sup).e_3` via `E_type`.
-
-The coverage these spans induce — and hence the structural relationship the supersession link bears to the entities at `ℓ_old` and `ℓ_new` — is carried by E7 below.
 
 ## E5 — Divergent Successors
 
