@@ -1,7 +1,6 @@
-# Revision Categorization — ASN-0063 review-25
+# Channel Assignment — ASN-0087 review-25
 
-**Date:** 2026-03-22 03:46
+**Date:** 2026-06-03 20:30
 
-## Issue 1: CL0 statement overclaims exactness scope
-Category: INTERNAL
-Reason: The proof already establishes the correct claim (depth-#a_β members); the fix is purely notational — replacing "element-level" with "depth-#a_β" in the lemma statement and label, derivable entirely from the ASN's own content.
+## Issue 1: Body-dependency integration audit
+Reason: This is an internal anti-bloat editorial pass targeting forward-reference accretion (e.g., the repeated "hypothetical future ASN" disclaimers, the redundant M-DepthConv depth-2 restatements across Inputs/Effect/Claims, the parenthetical implementation asides). Deciding what is load-bearing versus accreted hedging is a judgment about the ASN's own structure — the substantive claims it touches are already cited and grounded, so no external channel is needed to consolidate them.
