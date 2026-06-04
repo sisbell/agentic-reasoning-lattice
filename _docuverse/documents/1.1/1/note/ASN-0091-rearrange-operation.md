@@ -32,7 +32,7 @@ and the admissibility constraint
 every per-state foundation invariant satisfied by Σ is satisfied by Σ'                  (RA-adm)
 ```
 
-The bijection π is the *rearrangement permutation*. It is not in general unique: when `Σ.M(d)` has shared I-addresses (allowed by foundation S2/S5, the *shared-image licence*), any witness π must biject each I-address's pre-state pre-image set onto its post-state pre-image set, but the assignment within each such block is free, so distinct bijections can witness a single transition `Σ → Σ'`.
+The bijection π is the *rearrangement permutation*; it carries each pre-state pair `(v, Σ.M(d)(v))` to the post-state pair `(π(v), Σ.M(d)(v))`, holding the I-address fixed while moving the V-position, so π is the entire content of the rearrangement. It is not in general unique: when `Σ.M(d)` has shared I-addresses (allowed by foundation S2/S5, the *shared-image licence*), any witness π must biject each I-address's pre-state pre-image set onto its post-state pre-image set, but the assignment within each such block is free, so distinct bijections can witness a single transition `Σ → Σ'`.
 
 The abstract class admits two degenerate cases. The *empty case* `dom(Σ.M(d)) = ∅` is admitted: π is the empty bijection and every claim holds vacuously. REARRANGE_K excludes it via R-PRE(ii) (ASN-0084), which states `V_S(d) ≠ ∅` outright as a precondition of every REARRANGE_K invocation. The *identity case* π = id is admitted: RA-π under π = id together with RA-dom gives `Σ'.M(d) = Σ.M(d)`, and RA-frame fixes all other components, so `Σ' = Σ` and RA-adm is trivially satisfied.
 
@@ -129,14 +129,6 @@ For every other registered document `d' ∈ dom(Σ.M)` with `d' ≠ d`, RA-frame
 ```
 
 Together, RE-ran and RE-μ are the formal content of Nelson's "the document afterward contains exactly the same set of content as before — no additions, no losses, no duplications." Range invariance says the set is identical. Multiplicity invariance says each I-address appears the same number of times. The arrangement is a permutation, not a transformation.
-
-## Where Position Lives After Rearrangement
-
-Every (V, I) pair in the pre-state has an image (V, I) pair in the post-state: the pre-state pair `(v, M(d)(v))` corresponds to the post-state pair `(π(v), M(d)(v))`. The I-address is the same; the V-position has moved. This is the precise sense in which "every byte retains its identity": the byte associated with I-address `M(d)(v)` is still in d, now at V-position `π(v)`.
-
-Conversely, for each post-state V-position `v'`, the pre-image `π⁻¹(v')` is the V-position that previously held the I-address now at `v'`. The map π⁻¹ recovers, for each post-state V-position, the V-position it migrated from.
-
-What changed is not which I-addresses are in d, nor which V-positions are populated, but which V-position holds which I-address. Any valid bijection π witnessing the transition is the entire content of the rearrangement.
 
 ## Links Persist; Their Coverage Cannot Move
 
