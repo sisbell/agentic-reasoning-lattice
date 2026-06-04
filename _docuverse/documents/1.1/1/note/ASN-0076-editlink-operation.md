@@ -196,9 +196,7 @@ By E0 (EditLinkComposite), EDITLINK applied at `Σ_{k-1}` is a ValidComposite★
 
 The state `Σ_k` therefore exhibits the required structure: `k` distinct supersession links `{ℓ_sup,1, ..., ℓ_sup,k}` each naming `ℓ_old` in its from-endset, paired with `k` distinct successor links `{ℓ_new,1, ..., ℓ_new,k}` in their respective to-endsets.
 
-The system imposes no exclusivity. Two independent EDITLINK composites against the same `ℓ_old`, occurring in either order in the transition sequence, yield a state containing both supersession claims as distinct facts; no transition ordering produces a conflict. Both claims persist; both are discoverable; no claim is privileged over any other within the link model itself. What it means to "resolve" the ambiguity — which successor is the authoritative one, which lineage to follow — is a reader-side policy decision, outside the scope of the link model.
-
-This stands in sharp contrast to an in-place edit model, in which "the" successor is a singular state component and successive edits must be reconciled into a single result. Such reconciliation either forces consensus (centralizing the system) or discards information (losing edits). The append-only construction admits both edits as first-class facts and defers the resolution policy to the reader.
+The construction therefore imposes no exclusivity among supersession claims; which successor is authoritative is a reader-side policy decision, outside the scope of the link model.
 
 ## E6 — Supersession Ownership Freedom
 
@@ -238,7 +236,7 @@ This property is what makes the supersession link operative as a record of editi
 
 *Proof.* By E1, `Σ'.L(ℓ_old) = Σ.L(ℓ_old)`. Resolution operations on `ℓ_old` consult `Σ'.L(ℓ_old)` and obtain the unchanged value. No state component intermediating this lookup is altered by EDITLINK (the frame of K.λ preserves `C`, `M`, `E`, `R`; and EDITLINK only extends `L`, never modifies).
 
-This is the formal counterpart of Nelson's permanence guarantee. A reader who held a reference to `ℓ_old` before EDITLINK still holds a valid reference after; the link's endsets are still readable; the link's content is identically what it was. The supersession claim is *additive* — it adds information about a relationship, without subtracting any information from the original. A reader is free to ignore the supersession entirely and continue to follow `ℓ_old` as if no edit had occurred.
+The supersession claim is therefore *additive* with respect to resolution: it adds information about a relationship without altering what any resolution of `ℓ_old` returns. A reader is free to ignore the supersession entirely and continue to resolve `ℓ_old` as if no edit had occurred.
 
 ## E9 — Lineage Permanence
 
@@ -252,7 +250,7 @@ The same argument that protects the original protects the supersession assertion
 
 *Proof.* The supersession link is a link, and L12 (ASN-0043) applies uniformly to all entries in `dom(L)` at every atomic step; LP13 (ASN-0098) gives the same conclusion across any reachable sequence.
 
-The implication is that *the historical record of editing is itself immutable*. A user who later wishes to "retract" the supersession cannot do so by mutating `ℓ_sup`. They can, however, allocate a *counter-claim* — a new link asserting that the supersession is not in force, or that a different supersession should take precedence. The counter-claim is, structurally, just another link; it is itself permanent; and it joins the supersession in the discoverable web of assertions about `ℓ_old`. The system accumulates the full history of claims and counter-claims, leaving the resolution policy to the reader.
+The implication is that *the historical record of editing is itself immutable*. A user who later wishes to "retract" the supersession cannot do so by mutating `ℓ_sup`.
 
 ## E10 — No Implicit Notification
 
