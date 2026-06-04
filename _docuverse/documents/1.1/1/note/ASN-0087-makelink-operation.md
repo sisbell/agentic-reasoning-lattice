@@ -16,9 +16,9 @@ What must the caller supply?
 - A *home document* `d ∈ dom(Σ.M)` — the document under whose authority the link is allocated. (By L1a, ASN-0043, every link's home document must be allocated.)
 - A *sequence of endsets* `(e₁, ..., eₙ)` with `N ≥ 3`, each `eᵢ ∈ Endset`, and `e₃ ≠ ∅`. (By L3, ASN-0043.)
 
-The caller does *not* — and cannot — specify the link's address or its V-position in the home document. The address `ℓ` is determined by the system from the current state (the next emission of `A_L(d)`). The V-position `v_ℓ` is determined from the current state together with the canonical-depth convention M-DepthConv below — its serial component fixed by the link subspace's current cardinality, its depth fixed per M-DepthConv. We make the convention explicit precisely because the depth is *not* recoverable from `Σ` in the boundary case where the link subspace is empty.
+The caller does *not* — and cannot — specify the link's address or its V-position in the home document. The address `ℓ` is determined by the system from the current state (the next emission of `A_L(d)`). The V-position `v_ℓ` is determined from the current state together with the canonical-depth convention M-DepthConv below — its serial component fixed by the link subspace's current cardinality, its depth fixed per M-DepthConv.
 
-*Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`; the state `Σ` does not determine `m` (`m_L(d)`, ASN-0047, is well-defined only while `V_{s_L}(d) ≠ ∅`). MAKELINK therefore commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined. This is a scoped, normative commitment — for any document `d` whose every link V-position was placed by MAKELINK, `m_L(d) = 2` — not a system-wide invariant.
+*Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`. MAKELINK commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined. This is a scoped, normative commitment — for any document `d` whose every link V-position was placed by MAKELINK, `m_L(d) = 2` — not a system-wide invariant.
 
 We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047).
 
@@ -124,15 +124,11 @@ The function is *computed* from `Σ'.L(ℓ)` and `Σ'.M(d)` — no separate stat
 
   discoverable_from(ℓ, d, Σ')  ⟺  (E i : coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
 
-After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)`. The link is discoverable from every document whose arrangement reaches into any of its endset coverages.
+After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)`. The link is discoverable from every document whose arrangement reaches into any of its endset coverages — the home document has no privileged position, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content.
 
 The abstract specification requires no auxiliary index state. The implementation may maintain an auxiliary structure — a reverse lookup from I-addresses to link addresses, the *spanfilade* in Gregory's implementation — for efficient computation. Such structures are caches: any state where they are consistent with `L` and `M` produces the same `project` and `discoverable_from` results. The abstract claim is the discovery *property*; the index is a performance choice.
 
 This is the abstract content of what Nelson calls the system's "inter-indexing mechanisms": the mechanisms exist for performance; the discoverability is mathematical.
-
-## Discoverability Is Symmetric
-
-A consequence worth recording: the home document has no privileged position in discovery. By LP12, any document whose arrangement reaches `coverage(eᵢ)` for any `i` becomes a source from which `ℓ` is discoverable — the home document is one such document only if its own arrangement happens to reach into the endsets' coverages. This realizes Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content.
 
 ## A Worked Example
 
@@ -335,9 +331,9 @@ In the intermediate state `Σ_mid` between K.λ and K.μ⁺_L:
 - `ℓ ∉ ran(Σ_mid.M(d))` — the link is not yet visible in any V-arrangement (derived in Preconditions).
 - `discoverable_from(ℓ, d_target, Σ_mid)` is well-defined for every `d_target ∈ dom(Σ_mid.M) = dom(Σ.M)` since `ℓ ∈ dom(Σ_mid.L)` and `Σ_mid.L(ℓ) = (e₁, ..., eₙ)`.
 
-`Σ_mid` is a fully reachable state, not a transitional artifact: by SequentialTransitionAxiom (ASN-0093), K.λ commits before K.μ⁺_L begins, so K.λ on `Σ` yields a complete state `Σ_mid` against which K.μ⁺_L's precondition is evaluated. K.λ is an atomic substrate operation that ASN-0093/ASN-0047 establish to preserve the per-state invariants on reachable states, so `Σ_mid` inherits them — the link exists in `dom(L)` with its endsets recorded but is unplaced in `M(d)`. The only content new at `Σ_mid` relative to `Σ` is this unplaced link.
+`Σ_mid` is a fully reachable state, not a transitional artifact: by SequentialTransitionAxiom (ASN-0093), K.λ commits before K.μ⁺_L begins, so K.λ on `Σ` yields a complete state `Σ_mid` against which K.μ⁺_L's precondition is evaluated. K.λ is an atomic substrate operation that ASN-0093/ASN-0047 establish to preserve the per-state invariants on reachable states, so `Σ_mid` inherits them.
 
-The substrate-observable fact specific to atomicity is the intermediate state itself: at `Σ_mid` the link satisfies `ℓ ∈ dom(L)` yet `ℓ ∉ ran(M(d))` — allocated but unplaced. Because K.λ's frame fixes `M`, `Σ_mid.M = Σ.M`, so the discoverability difference between `Σ_mid` and `Σ'` is exactly the `Σ → Σ'` delta already computed: it agrees for every `d_target ≠ d` (M-WP, Case 1), and for `d_target = d` the two values agree unless some endset reflexively covers `ℓ` (M-Reflexive).
+Because K.λ's frame fixes `M`, `Σ_mid.M = Σ.M`, so the discoverability difference between `Σ_mid` and `Σ'` is exactly the `Σ → Σ'` delta already computed: it agrees for every `d_target ≠ d` (M-WP, Case 1), and for `d_target = d` the two values agree unless some endset reflexively covers `ℓ` (M-Reflexive).
 
 The substrate provides no composite-level atomicity. A reader observing `Σ_mid` would see the link in `dom(L)` but not in `M(d)`. If this intermediate visibility is undesirable — if MAKELINK must appear as a single event — the protocol layer above must enforce it, typically by sequencing both atomic transitions within a single request-response cycle.
 
