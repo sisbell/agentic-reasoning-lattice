@@ -20,11 +20,11 @@ The caller does *not* — and cannot — specify the link's address or its V-pos
 
 *Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`; the state `Σ` does not determine `m` (`m_L(d)`, ASN-0047, is well-defined only while `V_{s_L}(d) ≠ ∅`). MAKELINK therefore commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined. This is a scoped, normative commitment — for any document `d` whose every link V-position was placed by MAKELINK, `m_L(d) = 2` — not a system-wide invariant.
 
-We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047; ASN-0047 states some preconditions against `E_doc`).
+We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047).
 
 *Endsets and emptiness.* L3 (ASN-0043) requires the third slot `e₃` to be non-empty but imposes no non-emptiness constraint on the other slots. The empty endset `eᵢ = ∅` is a permitted boundary case for `i ≠ 3`: by the coverage definition, `coverage(∅) = ⋃_{(s,ℓ) ∈ ∅} … = ∅`, so an empty slot contributes nothing to any `project(ℓ, i, ·, ·)` and nothing to any LP12-based discoverability disjunct.
 
-*Standard authoring.* We name the discipline under which several later reductions hold. An endset `e` is *standardly authored at state `Σ`* iff every span in `e` references addresses already in the substrate:
+*Standard authoring.* An endset `e` is *standardly authored at state `Σ`* iff every span in `e` references addresses already in the substrate:
 
   StandardAuthoring(e, Σ)  ≡  coverage(e) ⊆ dom(Σ.C) ∪ dom(Σ.L)
 
@@ -35,11 +35,9 @@ A link's input endset sequence `(e₁, ..., eₙ)` is standardly authored at `Σ
 We observe that link creation must accomplish two distinct effects: (i) introduce the link into `dom(L)` with its value recorded, and (ii) make the link visible in the home document's arrangement. The substrate (ASN-0093, ASN-0047) provides exactly two atomic operations matching this division:
 
 - `K.λ` allocates the link in `dom(L)`, binding it to the given endsets.
-- `K.μ⁺_L` extends `M(d)` in the link subspace, mapping a fresh V-position to the link.
+- `K.μ⁺_L` extends `M(d)` in the link subspace — where links live in V-space (L14a's supersession, ASN-0047) — mapping a fresh V-position to the link.
 
 We therefore identify MAKELINK as the composite `K.λ ; K.μ⁺_L` — K.λ followed by K.μ⁺_L — applied to the same home document. The semicolon denotes sequential composition of atomic transitions, distinct from the tumbler addition operator `⊕` of ASN-0034. The order is forced: K.μ⁺_L's precondition requires `ℓ ∈ dom(L)`, so K.λ must precede it.
-
-MAKELINK includes K.μ⁺_L so the link is visible in its home document's arrangement: K.μ⁺_L places the link in the link subspace of `M(d)`, where links live in V-space (L14a's supersession, ASN-0047). Without it, the link would be allocated but invisible to any retrieval framed against `M(d)`.
 
 ## Preconditions
 
@@ -101,7 +99,7 @@ The address `ℓ` is genuinely new — `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` at `Σ`
 - *First-emission case* (`{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = ∅`): FirstEmissionFreshness (ASN-0093) gives `ℓ = [d, 0, s_L, 1] ∉ dom(Σ.L) ∪ dom(Σ.C)`.
 - *Subsequent-emission case* (`ℓ = inc(ℓ_prev, 0)`): SubsequentEmissionFreshness (ASN-0093) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. That lemma's own three-way split discharges within-document freshness (via ChainEnumerationInjectivity), cross-subspace freshness (via DisjointSubAllocatorChains and SC-NEQ), and cross-document freshness (via Cross-doc disjointness composed with T10, PartitionIndependence, ASN-0034).
 
-The V-position `v_ℓ` is fresh in `dom(M(d))` — `v_ℓ ∉ dom(Σ.M(d))` — discharged in full by the two-part (within-subspace, cross-subspace) argument in the S2 verification of the post-state invariants below.
+The freshness of the V-position `v_ℓ` in `dom(M(d))` is established where it is consumed, in the S2 verification of the post-state invariants.
 
 ## Permanence of the Recording
 
@@ -353,7 +351,7 @@ Even if `v_ℓ` is later removed from `dom(M(d))`, the link is still in `dom(L)`
 
 ## No Permission Check
 
-Beyond the frame established in *What Does Not Change* (no content allocation or modification, no modification of prior links or other documents' arrangements, no entity allocation, no provenance recording), one further omission deserves explicit mention: MAKELINK performs *no permission check on referenced content*. Per Nelson's publication contract, publication grants linking rights to all parties; MAKELINK does not verify ownership of the documents whose content the endsets reach. The substrate has no such mechanism, and the design intent rules it out.
+MAKELINK performs *no permission check on referenced content*. Per Nelson's publication contract, publication grants linking rights to all parties; MAKELINK does not verify ownership of the documents whose content the endsets reach. The substrate has no such mechanism, and the design intent rules it out.
 
 ## Claims Introduced
 
