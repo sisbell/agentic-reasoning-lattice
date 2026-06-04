@@ -7,8 +7,6 @@ We are looking for the precise meaning of *creating a link*. The system already 
 
 A link, in this design, is a stored connective unit — a first-class entity binding together fragments of content. By L3 (ASN-0043) every link has at least three endsets, the third designated as type, the type slot non-empty. Beyond this, link creation must produce three things unconditionally: an *identity* (the link's address), a *value* (the endsets), and a *home* (the document under whose authority the link is allocated). It must also establish the *discoverability property* — the LP12 (ASN-0098) mechanism by which a query of the content reached by the link's endsets can surface the link.
 
-The discoverability *mechanism* and *actual* discoverability are distinct. MAKELINK establishes the LP12 mechanism unconditionally, but whether the link is actually discoverable from a given document is arrangement-conditional.
-
 ## Inputs
 
 What must the caller supply?
@@ -105,18 +103,11 @@ The endset sequence `Σ'.L(ℓ) = (e₁, ..., eₙ)` is permanently fixed. By LP
 
 ## What Is Indexed?
 
-We are looking for the discovery guarantee — the property that a future query "what links touch this content?" surfaces `ℓ` whenever the query's content lies in any of `ℓ`'s endset coverages.
-
-The discovery function `discoverable_from(ℓ, d, Σ')` is defined in ASN-0098:
-
-  project(ℓ, i, d, Σ')  =  {v ∈ dom(Σ'.M(d)) : Σ'.M(d)(v) ∈ coverage(Σ'.L(ℓ).eᵢ)}
-  discoverable_from(ℓ, d, Σ')  ≡  (E i :: project(ℓ, i, d, Σ') ≠ ∅)
-
-By LP12 (ASN-0098):
+We are looking for the discovery guarantee — the property that a future query "what links touch this content?" surfaces `ℓ` whenever the query's content lies in any of `ℓ`'s endset coverages. The query is answered by ASN-0098's `project(ℓ, i, d, Σ')` and `discoverable_from(ℓ, d, Σ')`, which we apply here at the post-state `Σ'`. By LP12 (ASN-0098):
 
   discoverable_from(ℓ, d, Σ')  ⟺  (E i : coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
 
-LP12 computes discoverability from `Σ'.L(ℓ)` and `Σ'.M(d)` alone — no separate state component participates. Discoverability is therefore a derived function of `L` and `M`, so the abstract specification requires no separate index state component (M-NoIndexState).
+LP12 computes discoverability from `Σ'.L(ℓ)` and `Σ'.M(d)` alone — no separate state component participates. Discoverability is therefore a derived function of `L` and `M`, so the abstract specification requires no separate index state component (M-NoIndexState). The discoverability *mechanism* and *actual* discoverability are thus distinct: MAKELINK establishes the LP12 mechanism unconditionally, but whether `ℓ` is actually discoverable from a given document is arrangement-conditional — it turns on whether that document's arrangement reaches into an endset coverage.
 
 ## A Worked Example
 
@@ -264,6 +255,8 @@ For the V-arrangement entry `v_ℓ ↦ ℓ`:
   D-MIN★:   min(V_{s_L}^{Σ'}(d)) = [s_L, 1, ..., 1]               both cases below
   D-CTG★:   extension is contiguous                               discharged below: the post-state set is an initial segment of the depth-m_L^{Σ'}(d), subspace-s_L slice, contiguous at every depth m ≥ 2
   D-SEQ★:   V_{s_L}^{Σ'}(d) is contiguous initial segment           see below
+
+*Scope of the arrangement-indexed obligations.* The invariants S2, S8a, D-CTG★, D-MIN★, and D-SEQ★ are universally quantified over documents (and, for the D-invariants, over subspaces `S` with `V_S(d') ≠ ∅`, ASN-0047), so each is a conjunction of per-document/per-subspace conjuncts. Every conjunct at a document `d' ≠ d` is preserved by frame: `M'(d') = M(d')` leaves `dom(M'(d'))`, `V_{s_C}(d')`, and `V_{s_L}(d')` all unchanged. At the home document `d` the content-subspace conjunct is likewise frame-preserved: K.μ⁺_L touches only the link subspace, so `V_{s_C}^{Σ'}(d) = V_{s_C}(d)` and `M'(d)|_{V_{s_C}(d)}` is unchanged (S3★-aux, K.μ⁺_L effect). Only the link-subspace conjunct at `d` — carrying the newly entered V-position `v_ℓ ∈ V_{s_L}(d)` — requires argument; the discharges below address exactly that conjunct.
 
 For S2: we must show `v_ℓ ∉ dom(Σ.M(d))`, not merely `v_ℓ ∉ V_{s_L}(d)`. By S3★-aux at `Σ`, `dom(Σ.M(d)) = V_{s_C}(d) ∪ V_{s_L}(d)`, so the obligation splits into two exclusions:
 - *Within-subspace exclusion:* `v_ℓ ∉ V_{s_L}(d)`. By D-SEQ★ at `Σ`, `V_{s_L}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L}` at the common depth `m_L(d)`; K.μ⁺_L's positioning rule sets `v_ℓ = [s_L, 1, ..., 1, n_L + 1]` (or, when `n_L = 0`, the chosen first position `[s_L, 1, ..., 1]`), which lies outside this set by the strict inequality `n_L + 1 > n_L` (resp. by the emptiness of the set when `n_L = 0`).
