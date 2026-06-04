@@ -74,23 +74,15 @@ Foundation ASN-0058 supplies the machinery in subspace-agnostic form. Let `f = M
 
 where each block `βⱼ` denotes the V→I correspondence `vⱼ + i ↦ aⱼ + i` for `0 ≤ i < nⱼ` (B3, ASN-0058), and the blocks partition `dom(f)` (B1, ASN-0058). We use C1a rather than `resolve` because C1a's decomposition covers both subspaces, whereas `resolve` confines I-targets to `dom(C)` (C1). C1a's preconditions — functionality (S2), finite domain (S8-fin), and common depth `m ≥ 2` (S8-depth combined with S8a, ASN-0036) — are subspace-agnostic; the decomposition is well-defined whether the V-positions of `dom(f)` lie in the content subspace (so I-addresses lie in `dom(C)` by S3★) or the link subspace (so I-addresses lie in `dom(L)` by S3★).
 
-We work with two equivalent expressions for `origins_V(Σ, d, σ)`. The reader-facing form — the form that the operation specification will use — is:
+The reader-facing form — the form that the operation specification will use — is:
 
 > *(F1)* `origins_V(Σ, d, σ) = { origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d)) }`.
 
-The block-collapsed form, which reads through the C1a block decomposition and collects one origin per block:
-
-> *(F3)* `origins_V(Σ, d, σ) = { origin(aⱼ) : 1 ≤ j ≤ k }`.
+The C1a block decomposition is not needed to define `origins_V`, but it is the bridge to ASN-0058's block algebra that the worked example uses to narrate a transcluded span block by block. The following claim is what licenses that narration: within a single block, the origin is constant, so one origin per block suffices.
 
 **Claim O2 (Block uniformity).** *For each mapping block `(vⱼ, aⱼ, nⱼ)` arising in a decomposition of `f = M(d) ↾ ⟦σ⟧`, every I-address in `I(βⱼ)` shares `origin(aⱼ)`.*
 
 *Derivation.* Fix `0 ≤ i < nⱼ`. B3 (Consistency, ASN-0058) gives `f(vⱼ + i) = aⱼ + i`; since `f` is a restriction of `M(d)`, also `M(d)(vⱼ + i) = aⱼ + i`. B1 (Coverage, ASN-0058) gives `vⱼ + i ∈ V(βⱼ) ⊆ dom(f) ⊆ dom(M(d))`. In either subspace case we first discharge the subspace identification at `vⱼ + i`, since S3★ (ASN-0047) — which we will invoke to place `aⱼ + i` in the appropriate I-domain — requires the antecedent `subspace(vⱼ + i) = s_C` (resp. `s_L`). The bridge is uniform: M-int (TumblerIntervalCharacterization, ASN-0058) applies at `x = vⱼ`, `y = vⱼ + i`, `n = nⱼ` — its precondition `vⱼ, vⱼ + i ∈ dom(M(d))` (by B1) with `vⱼ ≤ vⱼ + i < vⱼ + nⱼ` is met — and yields `subspace(vⱼ + i) = subspace(vⱼ)` for every `0 ≤ i < nⱼ`. Two cases by subspace of `vⱼ`, exhaustive by S3★-aux (SubspaceExhaustiveness, ASN-0047) applied to `vⱼ ∈ dom(M(d))`: `subspace(vⱼ) ∈ {s_C, s_L}`. *Content block* (`subspace(vⱼ) = s_C`): M-int gives `subspace(vⱼ + i) = s_C`; with this antecedent discharged, S3★ (ASN-0047) at `vⱼ + i ∈ dom(M(d))` gives `aⱼ + i ∈ dom(C)`. M16a (OriginInvarianceUnderShift, ASN-0058) requires *both* conjuncts `aⱼ ∈ dom(C)` and `aⱼ + i ∈ dom(C)`: the latter is the instance just derived, and the former is the same derivation at `i = 0` (which gives `aⱼ + 0 = aⱼ ∈ dom(C)`). With both conjuncts of M16a's precondition discharged at `(aⱼ, i)`, M16a delivers `origin(aⱼ + i) = origin(aⱼ)`. *Link block* (`subspace(vⱼ) = s_L`): M-int gives `subspace(vⱼ + i) = s_L`; with this antecedent discharged, S3★ at `vⱼ + i ∈ dom(M(d))` gives `aⱼ + i ∈ dom(L)`. With both CL-OWN preconditions — `vⱼ + i ∈ dom(M(d))` and `subspace(vⱼ + i) = s_L` — discharged at `vⱼ + i` and (by `i = 0`) at `vⱼ`, CL-OWN (ASN-0047) gives `origin(M(d)(vⱼ)) = d` (so `origin(aⱼ) = d`) and `origin(M(d)(vⱼ + i)) = d` (so `origin(aⱼ + i) = d`). Hence `origin(aⱼ + i) = d = origin(aⱼ)`. In both cases `origin(aⱼ + i) = origin(aⱼ)`. ∎
-
-**Equivalence chain (F1) ≡ (F3).**
-
-*(F1) ⊆ (F3):* Fix `v ∈ ⟦σ⟧ ∩ dom(M(d))`. Since `v ∈ ⟦σ⟧ ∩ dom(M(d))` is exactly `v ∈ dom(M(d) ↾ ⟦σ⟧) = dom(f)`, B1 (Coverage, ASN-0058) applied to the decomposition of `f` gives a unique `j` with `v ∈ V(βⱼ)`, so `v = vⱼ + i` for some `0 ≤ i < nⱼ`. By B3, `f(v) = aⱼ + i`, and since `f` is the restriction, `M(d)(v) = aⱼ + i`. By O2, `origin(M(d)(v)) = origin(aⱼ + i) = origin(aⱼ)`, an element of (F3).
-
-*(F3) ⊆ (F1):* Fix `j ∈ {1, ..., k}`. Since `nⱼ ≥ 1`, the block is non-empty: `vⱼ ∈ V(βⱼ) ⊆ dom(f) ⊆ dom(M(d))`, and `vⱼ ∈ ⟦σ⟧` because `dom(f) ⊆ ⟦σ⟧`. B3 gives `M(d)(vⱼ) = aⱼ`, so `origin(aⱼ) = origin(M(d)(vⱼ))`, an element of (F1). ∎
 
 Like its I-span counterpart, `origins_V(Σ, d, σ)` is a finite set of document-level tumblers — finite because `⟦σ⟧ ∩ dom(M(d)) ⊆ dom(M(d))` is finite by S8-fin (FiniteArrangement, ASN-0036), and the image of a finite set under `origin` (form (F1)) is finite. The set may be smaller than `k` if multiple blocks share an origin — for instance, two separately-transcluded passages drawn from the same source document, or transcluded content interleaved with native content of `d` where the native portions and `d` itself share an origin (`d` itself, for native).
 
@@ -138,7 +130,7 @@ We turn to the question raised at the start: does the answer change?
 
 **Claim O5★ (Multi-step origin permanence).** *For any `a ∈ dom(Σ.C) ∪ dom(Σ.L)` and any reachable state sequence `Σ →* Σ'`: `a ∈ dom(Σ'.C) ∪ dom(Σ'.L)` and `origin'(a) = origin(a)`.*
 
-*Derivation.* We do not re-run the per-step induction: ASN-0098 already abstracts it. `origin` is well-defined on each store separately (`dom(C)` and `dom(L)`), so we pair each value-preservation clause with the membership clause that makes its accessor well-defined and take as the single-step guarantee the finite conjunction of four per-store clauses: `c₁ ≡ [a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C)]`, `c₂ ≡ [a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L)]`, `c₃_C ≡ [a ∈ dom(Σ.C) ⟹ origin'(a) = origin(a)]`, and `c₃_L ≡ [a ∈ dom(Σ.L) ⟹ origin'(a) = origin(a)]`. O5 establishes each single-step: under `a ∈ dom(Σ.C)`, `c₁` gives `a ∈ dom(Σ'.C)` (so `origin'` is well-defined at `a` and `c₃_C` follows), and symmetrically `c₂`, `c₃_L` under `a ∈ dom(Σ.L)`. The Closure schema (★) (ClosureSchema, ASN-0098) lifts the conjunction `c₁ ∧ c₂ ∧ c₃_C ∧ c₃_L` to its transitive closure `Σ →* Σ'`. The disjunctive conclusion follows by case split on the disjunctive hypothesis: if `a ∈ dom(Σ.C)`, the closed `c₁` gives `a ∈ dom(Σ'.C)` and the closed `c₃_C` gives `origin'(a) = origin(a)`; if `a ∈ dom(Σ.L)`, the closed `c₂` and `c₃_L` give the same pair symmetrically. Either way both conjuncts of the claim hold. ∎
+*Derivation.* `origin` is well-defined on each store separately (`dom(C)` and `dom(L)`), so we pair each value-preservation clause with the membership clause that makes its accessor well-defined and take as the single-step guarantee the finite conjunction of four per-store clauses: `c₁ ≡ [a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C)]`, `c₂ ≡ [a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L)]`, `c₃_C ≡ [a ∈ dom(Σ.C) ⟹ origin'(a) = origin(a)]`, and `c₃_L ≡ [a ∈ dom(Σ.L) ⟹ origin'(a) = origin(a)]`. O5 establishes each single-step: under `a ∈ dom(Σ.C)`, `c₁` gives `a ∈ dom(Σ'.C)` (so `origin'` is well-defined at `a` and `c₃_C` follows), and symmetrically `c₂`, `c₃_L` under `a ∈ dom(Σ.L)`. The Closure schema (★) (ClosureSchema, ASN-0098) lifts the conjunction `c₁ ∧ c₂ ∧ c₃_C ∧ c₃_L` to its transitive closure `Σ →* Σ'`. The disjunctive conclusion follows by case split on the disjunctive hypothesis: if `a ∈ dom(Σ.C)`, the closed `c₁` gives `a ∈ dom(Σ'.C)` and the closed `c₃_C` gives `origin'(a) = origin(a)`; if `a ∈ dom(Σ.L)`, the closed `c₂` and `c₃_L` give the same pair symmetrically. Either way both conjuncts of the claim hold. ∎
 
 For the I-span lift, permanence has a directional character.
 
@@ -238,8 +230,6 @@ Both O11 and O11' assume σ well-formed at the pre-state Σ. To chain these sing
 
 Composing with the inductive hypothesis by transitivity of equality, `origins_V(Σ, d, σ) = origins_V(Σ_n, d, σ)`. ∎
 
-The pure-K.μ⁺ and pure-K.μ⁺_L chains are the obvious specializations of O11★★ (sub-case (ii), respectively sub-case (i), never fires).
-
 O11, O11', and O11★★ together cover every arrangement-extending transition. The non-extension transitions K.μ⁻ and K.μ~ behave differently. We record the failure modes as labeled negative claims.
 
 **Claim O13 (K.μ⁻ admissibility loss).** *There exist Σ, a V-span σ over `d` with `WF_V(Σ, d, σ)`, and a reachable K.μ⁻ transition `Σ → Σ'` on `d` such that `WF_V(Σ', d, σ)` fails at conjunct (vi) — equivalently, `{v ∈ T : u ≤ v < reach(σ) ∧ #v = m} ⊄ dom(M'(d))`. Consequently, no K.μ⁻ analogue of O11 / O11' / O11★★ holds — the V-span operation is no longer admissible at the post-state on the original input, so preservation of `origins_V` is not even formulable.*
@@ -294,7 +284,7 @@ We can now specify SHOWORIGIN as a non-state-modifying operation in two arities.
 
 **SHOWORIGIN over a content reference.**
 - *Preconditions*: `WF_V(Σ, d, σ)` (the V-span well-formedness predicate defined above, conjuncts (i)–(vi)). The subspace identifier `u₁` may be either `s_C` (content) or `s_L` (link); `origin` is total on `dom(C) ∪ dom(L)`. The postcondition is well-formed in either case because each indexed value lands in that domain: for every `v ∈ ⟦σ⟧ ∩ dom(M(d))`, S3★-aux (SubspaceExhaustiveness, ASN-0047) gives `subspace(v) ∈ {s_C, s_L}`, and with this antecedent discharged S3★ (GeneralizedReferentialIntegrity, ASN-0047) places `M(d)(v) ∈ dom(C) ∪ dom(L)`, so `origin(M(d)(v))` is defined (with the link case trivializing to `{d}` by CL-OWN).
-- *Postcondition*: the result is `origins_V(Σ, d, σ) = { origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d)) }` (form (F1); equal to (F3) by the equivalence chain derived above).
+- *Postcondition*: the result is `origins_V(Σ, d, σ) = { origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d)) }` (form (F1)).
 - *Frame*: `Σ' = Σ`.
 
 **Claim O10 (Read-only frame; idempotence).** *Let `op` be either SHOWORIGIN_I or SHOWORIGIN_V. Then for any Σ in which the precondition holds: (a) `op(Σ) = (Σ', result)` with `Σ' = Σ`; (b) two consecutive applications at the same state yield identical results.*
@@ -455,11 +445,10 @@ Any implementation of Xanadu that claims to support SHOWORIGIN must satisfy O0�
 | O11 | V-span preservation under K.μ⁺: for `WF_V(Σ, d, σ)` (in particular conjunct (vi)), content-subspace arrangement extensions exactly preserve `origins_V` — equality, not merely inclusion | introduced |
 | O11' | V-span preservation under K.μ⁺_L: for `WF_V(Σ, d, σ)`, link-subspace arrangement extensions exactly preserve `origins_V` (parallel to O11; freshness of `v_ℓ` discharged by K.μ⁺_L's strict containment) | introduced |
 | O11.1 | Well-formedness preservation under arrangement extension: `WF_V(Σ, d, σ)` + K.μ⁺ / K.μ⁺_L on `d` ⇒ `WF_V(Σ', d, σ)` (corollary discharging the post-state admissibility that O11★★ relies on) | introduced |
-| O11★★ | Multi-step V-span preservation under mixed K.μ⁺/K.μ⁺_L chain: for `WF_V(Σ, d, σ)`, any reachable chain whose `M(d)`-modifying steps are each K.μ⁺ or K.μ⁺_L on `d` preserves `origins_V` exactly; proved by induction using O11, O11', and O7 with well-formedness lifted by Corollary O11.1 (pure-K.μ⁺ and pure-K.μ⁺_L chains are the obvious specializations) | introduced |
+| O11★★ | Multi-step V-span preservation under mixed K.μ⁺/K.μ⁺_L chain: for `WF_V(Σ, d, σ)`, any reachable chain whose `M(d)`-modifying steps are each K.μ⁺ or K.μ⁺_L on `d` preserves `origins_V` exactly; proved by induction using O11, O11', and O7 with well-formedness lifted by Corollary O11.1 | introduced |
 | O12 | V-span containment monotonicity: `⟦σ₁⟧ ⊆ ⟦σ₂⟧` ⇒ `origins_V(Σ, d, σ₁) ⊆ origins_V(Σ, d, σ₂)` | introduced |
 | O13 | K.μ⁻ admissibility loss (negative claim): there exist Σ, σ with `WF_V(Σ, d, σ)`, and a K.μ⁻ transition `Σ → Σ'` on `d` such that `WF_V(Σ', d, σ)` fails at conjunct (vi); no K.μ⁻ analogue of O11/O11'/O11★★ holds because preservation is not even formulable once admissibility is lost | introduced |
 | O14 | K.μ~ non-preservation (negative claim): there exist Σ, a K.μ~ transition `Σ → Σ'` on `d`, and σ well-formed at both Σ and Σ' such that `origins_V(Σ, d, σ)` and `origins_V(Σ', d, σ)` are incomparable under set inclusion; no monotonicity claim parallel to O11/O11'/O11★★ holds for K.μ~ | introduced |
-| `F1 ≡ F3` | Equivalence for `origins_V`: reader-form `{origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d))}` ≡ block-collapsed-form `{origin(aⱼ) : 1 ≤ j ≤ k}` (via O2) | introduced |
 | wp(SHOWORIGIN_I, \|result\| = 1) | `(⟦σ⟧ ∩ dom(C) ≠ ∅) ∧ (A a, b ∈ ⟦σ⟧ ∩ dom(C) : origin(a) = origin(b))` — characterisation of single-origin I-spans | introduced |
 | wp(SHOWORIGIN_V, d_q ∈ result) | `(E v : v ∈ ⟦σ⟧ ∩ dom(M(d)) : origin(M(d)(v)) = d_q)` — characterisation of when a queried document appears in the V-span result | introduced |
 | SHOWORIGIN (I-span) | Operation over a well-formed I-span (T12 conjuncts (i)–(iv)) returning `origins_I(Σ, σ)` with `Σ' = Σ` | introduced |
