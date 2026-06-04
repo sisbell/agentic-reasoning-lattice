@@ -39,7 +39,7 @@ We observe that link creation must accomplish two distinct effects: (i) introduc
 
 We therefore identify MAKELINK as the composite `K.λ ; K.μ⁺_L` — K.λ followed by K.μ⁺_L — applied to the same home document. The semicolon denotes sequential composition of atomic transitions, distinct from the tumbler addition operator `⊕` of ASN-0034. The order is forced: K.μ⁺_L's precondition requires `ℓ ∈ dom(L)`, so K.λ must precede it.
 
-Why must MAKELINK include K.μ⁺_L? The substrate's coupling constraints (J0, J1★, J1'★ from ASN-0047) do not require it — they apply only to content-subspace allocations. But Nelson's design is explicit that a document "consists of its contents and its out-links" — retrieval of the home document's arrangement must yield the link. By L14a's supersession (ASN-0047), the link subspace of the home document's arrangement is where links live in V-space; K.μ⁺_L is what places them there. Without K.μ⁺_L, the link would be allocated but invisible to any retrieval framed against its home document's arrangement.
+MAKELINK includes K.μ⁺_L so the link is visible in its home document's arrangement: K.μ⁺_L places the link in the link subspace of `M(d)`, where links live in V-space (L14a's supersession, ASN-0047). Without it, the link would be allocated but invisible to any retrieval framed against `M(d)`.
 
 ## Preconditions
 
@@ -230,7 +230,7 @@ As a wp (the membership clause subsumed by `enabled(MAKELINK)` here, since `d_ta
 
 L13 (ReflexiveAddressing, ASN-0043) permits link addresses as valid endset targets — a link's endsets may cover other link addresses, or even cover the link's own address. We consider the case where one of MAKELINK's input endsets has coverage containing `ℓ` itself.
 
-*Reflexive coverage is structurally excluded under standard authoring.* When every input endset satisfies `StandardAuthoring(eᵢ, Σ)`, K.λ's freshness gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`, and standard authoring confines every `coverage(eᵢ)` to `dom(Σ.C) ∪ dom(Σ.L)`, so `ℓ ∉ coverage(eᵢ)` for every `i`. The exclusion is structural, not epistemic (see StandardAuthoring): `A_L(d)`'s next emission is fully deterministic from the current state (`[d, 0, s_L, 1]` for the first emission, `inc(max{ℓ' : origin(ℓ') = d}, 0)` otherwise), so a client with state access can compute `ℓ` in advance, and the substrate provides no architectural barrier against deliberately constructed reflexive coverage. The structural defense above is the only substrate-level guarantee.
+*Reflexive coverage is structurally excluded under standard authoring.* When every input endset satisfies `StandardAuthoring(eᵢ, Σ)`, K.λ's freshness gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`, and standard authoring confines every `coverage(eᵢ)` to `dom(Σ.C) ∪ dom(Σ.L)`, so `ℓ ∉ coverage(eᵢ)` for every `i`. Standard authoring is a construction discipline, not an architectural barrier: `ℓ` is state-determined (Inputs), so a client could deliberately author reflexive coverage, and the structural exclusion above is the only substrate-level guarantee.
 
 *A reflexive endset yields guaranteed home-document discovery at the post-state.* Suppose `ℓ ∈ coverage(eᵢ)` for some `i ∈ {1, ..., N}`. After MAKELINK, `Σ'.M(d)(v_ℓ) = ℓ ∈ coverage(Σ'.L(ℓ).eᵢ)` (by K.λ's effect `Σ_mid.L(ℓ) = (e₁, ..., eₙ)` and K.μ⁺_L's frame `Σ'.L = Σ_mid.L`, so `Σ'.L(ℓ).eᵢ = eᵢ` and `coverage(Σ'.L(ℓ).eᵢ) = coverage(eᵢ)`). Hence `v_ℓ ∈ project(ℓ, i, d, Σ')`, giving `discoverable_from(ℓ, d, Σ')`. The home document's reflexive discovery is forced regardless of `Σ.M(d)`'s pre-existing arrangement.
 
@@ -364,21 +364,13 @@ Nelson's "canonical operating condition" language suggests external atomicity is
 
 ## Permanence
 
-The link's identity and value are permanent (L12, LP13, LP3★) — established in *Permanence of the Recording*. What remains to characterize is the V-position binding `v_ℓ ↦ ℓ` in the home document, which is less permanent — but the *only* mutation available to it is removal. K.μ~ (reordering) cannot rebind it: by K.μ~'s admissibility clause (v), *link-subspace fixing* (ASN-0047), the witnessing bijection satisfies `π(v) = v` for every link-subspace V-position `v ∈ dom_L(M(d))`. Since `v_ℓ` is a link V-position, `π(v_ℓ) = v_ℓ`, and the bijection equation gives `M'(d)(v_ℓ) = M(d)(v_ℓ) = ℓ`; the binding `v_ℓ ↦ ℓ` is therefore *invariant* under every K.μ~ transition. The link subspace is fixed pointwise by reordering. The sole operation that can alter the binding is K.μ⁻ (contraction), which may drop `v_ℓ` from `dom(M(d))` entirely. Thus what is permanent is the link's I-address and value; what is mutable — and only by removal, never by re-binding — is whether `v_ℓ ↦ ℓ` remains present in the home document's link-subspace arrangement. This separation of permanent I-stream content (the link's identity and value, L12) from mutable V-stream arrangement (the placement of `v_ℓ`, which only K.μ⁻ can withdraw) is the content/arrangement split that P3 (ArrangementMutabilityOnly, ASN-0047) names: arrangement `M` is the only state component that can lose information, while `L` is immutable.
+*Permanence of the Recording* established that the link's identity and value are permanent. What remains to characterize is the V-position binding `v_ℓ ↦ ℓ` in the home document, which is less permanent — but the *only* mutation available to it is removal. K.μ~ (reordering) cannot rebind it: by K.μ~'s admissibility clause (v), *link-subspace fixing* (ASN-0047), the witnessing bijection satisfies `π(v) = v` for every link-subspace V-position `v ∈ dom_L(M(d))`. Since `v_ℓ` is a link V-position, `π(v_ℓ) = v_ℓ`, and the bijection equation gives `M'(d)(v_ℓ) = M(d)(v_ℓ) = ℓ`; the binding `v_ℓ ↦ ℓ` is therefore *invariant* under every K.μ~ transition. The link subspace is fixed pointwise by reordering. The sole operation that can alter the binding is K.μ⁻ (contraction), which may drop `v_ℓ` from `dom(M(d))` entirely. Thus what is permanent is the link's I-address and value; what is mutable — and only by removal, never by re-binding — is whether `v_ℓ ↦ ℓ` remains present in the home document's link-subspace arrangement. This separation of permanent I-stream content (the link's identity and value, L12) from mutable V-stream arrangement (the placement of `v_ℓ`, which only K.μ⁻ can withdraw) is the content/arrangement split that P3 (ArrangementMutabilityOnly, ASN-0047) names: arrangement `M` is the only state component that can lose information, while `L` is immutable.
 
 Even if `v_ℓ` is later removed from `dom(M(d))`, the link is still in `dom(L)` and still discoverable when conditions warrant. By LP17 (ASN-0098), a link orphaned from all V-arrangements remains in the store; by LP18, it becomes discoverable again when any document later transcludes content covered by its endsets. The two-stream architecture makes link permanence cleanly separable from link visibility.
 
-## What MAKELINK Does Not Do
+## No Permission Check
 
-For clarity, we enumerate what MAKELINK does not perform:
-
-- *No content allocation.* `dom(Σ'.C) = dom(Σ.C)`. The link's endsets may reference I-addresses not currently in `dom(C)`; this is permitted by the endset definition and does not trigger any content allocation.
-- *No content modification.* `Σ'.C = Σ.C`, including at I-addresses referenced by the endsets.
-- *No modification of prior links.* L12.
-- *No modification of other documents' arrangements.* `(A d' ≠ d :: Σ'.M(d') = Σ.M(d'))`.
-- *No entity allocation.* `Σ'.E = Σ.E`.
-- *No provenance recording.* `Σ'.R = Σ.R`. Provenance, per P2/P4★, tracks content-subspace arrangement history; link placement in the link subspace is outside its scope.
-- *No permission check on referenced content.* Per Nelson's publication contract, publication grants linking rights to all parties; MAKELINK does not verify ownership of the documents whose content the endsets reach. The substrate has no such mechanism, and the design intent rules it out.
+Beyond the frame established in *What Does Not Change* (no content allocation or modification, no modification of prior links or other documents' arrangements, no entity allocation, no provenance recording), one further omission deserves explicit mention: MAKELINK performs *no permission check on referenced content*. Per Nelson's publication contract, publication grants linking rights to all parties; MAKELINK does not verify ownership of the documents whose content the endsets reach. The substrate has no such mechanism, and the design intent rules it out.
 
 ## Claims Introduced
 
