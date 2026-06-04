@@ -21,7 +21,7 @@ and the content and other-document frame conjuncts `Σ'.C = Σ.C` and `Σ'.M(d')
 ```
 d ∈ dom(Σ.M)                                                                            (RA-reg)
 ```
-the genuinely new frame conjuncts — fixing the link store `L`, the entity set `E`, the provenance relation `R`, and the document registry, components on which ASN-0084 imposes nothing — collected with the inherited conjuncts into the full frame
+and the full frame, fixing the content store `C`, the link store `L`, the entity set `E`, the provenance relation `R`, the document registry, and every other document's arrangement
 ```
 Σ'.C = Σ.C  ∧  Σ'.L = Σ.L  ∧  Σ'.E = Σ.E  ∧  Σ'.R = Σ.R                                 (RA-frame)
   ∧  dom(Σ'.M) = dom(Σ.M)
@@ -42,7 +42,7 @@ REARRANGE_K (the cut-sequence operation of ASN-0084) is one concrete realisation
 
 ### Clause Correspondences and Per-Invariant Discharges
 
-ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047's M1 (ArrangementMonotonicity) records the identification `dom(M) = E_doc`, so `d ∈ E_doc ⟺ d ∈ dom(M)` and RA-reg holds at the pre-state. The REARRANGE_K realisation sources for the remaining abstract clauses (RA-π, RA-dom, RA-frame, RA-adm) are recorded in the Provenance column of the Claims Introduced table.
+ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047's M1 (ArrangementMonotonicity) records the identification `dom(M) = E_doc`, so `d ∈ E_doc ⟺ d ∈ dom(M)` and RA-reg holds at the pre-state.
 
 *Net-effect split.* REARRANGE_K's cut-sequence construction makes π non-identity automatically: by CS2 the cuts satisfy `c₀ < c₁ < ...`, so the region widths `w_α`, `w_β` (and `w_μ` for 4-cut) are each `≥ 1`, giving `π(c₀) > c₀` (R-PPERM for 3-cut, R-SPERM for 4-cut). But `π ≠ id` as a permutation of V-positions is strictly weaker than ASN-0047's K.μ~ admissibility clause (ii), the non-trivial *net effect* `M'(d) ≠ M(d)`. The two come apart precisely under shared I-addresses: when the affected range carries a repeating I-address pattern whose period matches the permutation's displacement, foundation S5 (UnrestrictedSharing) admits an arrangement on which R-P1/R-P2 yield `M'(d) = M(d)` although π is the non-identity rotation. The realisation therefore splits on net effect, with a realiser in each case. In the *non-trivial case* (`M'(d) ≠ M(d)`) the realiser is the named composite K.μ~. In the *collapse case* (`M'(d) = M(d)` with π ≠ id) the transition is the identity `Σ' = Σ`, so RA-adm holds and every RE-* claim below is an identity of `Σ` with itself.
 
@@ -55,8 +55,6 @@ ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047
 | (iii) length-preserving `#π(v) = #v` | from the construction: each affected source position `v = cᵢ + j` and its image are ordinal shifts of a depth-2 cut, so by CS4 (`#cᵢ = 2`) and ASN-0034's OrdinalShift length identity `#shift(t, n) = #t`, `#π(v) = #v = 2`; exterior and non-S positions are fixed pointwise by R-PPERM/R-SPERM |
 | (iv) subspace-preserving `subspace(π(v)) = subspace(v)` | Directly from the R-PPERM/R-SPERM branch structure: non-S and in-S-exterior positions are fixed (`π(v) = v`), so subspace is trivially preserved; every affected-range position `v` has the cut subspace S (by CS3), and R-PPERM/R-SPERM map it to a position of the form `c₀ + (offset)`, which shares c₀'s subspace S, so `subspace(π(v)) = S = subspace(v)` (ASN-0036's OrdShiftHom(a)). Discharged from the cut-sequence construction alone |
 | (v) link-subspace fixing `π(v) = v` on the link subspace | RE-sub: by CS3 the cut subspace is `S = s_C`, so every `subspace(v) = s_L` V-position lies on R-PPERM/R-SPERM's non-S branch, which sets `π(v) = v` pointwise |
-
-The cut sequence further restricts the bijection beyond what the abstract class requires — π acts as identity on V-positions outside the affected range `[c₀, c_{n−1})` and on V-positions in subspaces other than the cut subspace S, supplying RE-sub (subspace frame) and RE-ext (in-subspace exterior frame) below.
 
 RA-adm requires that every per-state foundation invariant holding at Σ hold at Σ'. A per-state invariant holds at every reachable state — ASN-0047's ExtendedReachableStateInvariants gives the per-state foundation invariants at any reachable state — so it suffices to establish Σ' reachable, which we now do.
 
@@ -406,7 +404,7 @@ Each RE-* claim is a single-step property of `Σ → Σ'`. Write `Σ →_R Σ'` 
 
 **Document-parameterised chaining lemma.** Let `X(Σ, d)` be any quantity that is a function of `Σ.M(d)` alone (a domain, range, multiset, or subspace frame at `d`), and suppose each REARRANGE step targeting `d` preserves `X(·, d)`. Then `X(Σ_n, d) = X(Σ_0, d)`: at each step `Σᵢ₋₁ →_R Σᵢ` targeting `dᵢ`, either `dᵢ = d` (the per-step claim preserves `X`) or `dᵢ ≠ d` (RE-other gives `Σᵢ.M(d) = Σᵢ₋₁.M(d)`, so any function of `Σ.M(d)` is preserved).
 
-The lemma's hypothesis — `X(·, d)` a function of `Σ.M(d)` alone, preserved per step — is met by the M(d)-function bare-equality claims **RE-dom★, RE-ran★, RE-μ★, and RE-sub★**, which follow by induction. The component-global and state-independent claims (RE-C★, RE-L★, RE-R★, RE-cov★, RE-origin★) chain by the trivial induction that RA-frame fixes their underlying component at every step (RE-origin★ by state-independence); RE-disc★ and RE-proj★ chain through their per-step provenance — RE-cov★ + RE-ran★ via LP12 for the biconditional, and composition of the per-step RE-proj transports for the projection. The ★ table's *Provenance* and *Composition Conditions* columns carry these bare-equality cases; we do not restate each here. Four ★ forms are not bare equalities and need separate treatment: three carry substantive side conditions, and one is an existence claim.
+The lemma's hypothesis — `X(·, d)` a function of `Σ.M(d)` alone, preserved per step — is met by the M(d)-function bare-equality claims **RE-dom★, RE-ran★, RE-μ★, and RE-sub★**, which follow by induction. The component-global and state-independent claims (RE-C★, RE-L★, RE-R★, RE-cov★, RE-origin★) chain by the trivial induction that RA-frame fixes their underlying component at every step (RE-origin★ by state-independence); RE-disc★ and RE-proj★ chain through their per-step provenance — RE-cov★ + RE-ran★ via LP12 for the biconditional, and composition of the per-step RE-proj transports for the projection. Four ★ forms are not bare equalities and need separate treatment: three carry substantive side conditions, and one is an existence claim.
 
 **RE-other★ (fixed `d'`).** Holds only when no step targets `d'`. Then every step has `dᵢ ≠ d'`, RE-other applies at each, and the equality chains to `Σ_n.M(d') = Σ₀.M(d')`. A step targeting `d'` changes `Σ.M(d')` by construction, breaking the chain.
 
