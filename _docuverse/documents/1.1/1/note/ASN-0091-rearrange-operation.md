@@ -278,7 +278,7 @@ The composite-boundary claims carry an extra precondition:
 ```
 RA-bndy scopes the three composite-boundary claims **P4★ ∧ P4a ∧ P7a**, which ExtendedReachableStateInvariants (ASN-0047) delivers only at composite boundaries.
 
-Under RA-bndy, Σ' is again a reachable composite boundary. A REARRANGE is itself a composite — the named composite K.μ~ for the REARRANGE_K realiser (valid by the clause (i)–(v) and J3 discharge of the "REARRANGE_K Realises the Abstract Class" section above), the empty composite in the collapse case `Σ' = Σ`. Appending that composite to a trace of valid composites witnessing Σ yields a trace of valid composites whose final state is Σ', so ASN-0047's **ExtendedReachableStateInvariants** delivers **P4★ ∧ P4a ∧ P7a** at Σ'. In particular P4a (TraceWitnessing) is obtained in its full form — *universally* quantified over valid traces to Σ':
+The RA-adm discharge of the "REARRANGE_K Realises the Abstract Class" section above already establishes that appending the realising composite (the named composite K.μ~, or the empty composite when `Σ' = Σ`) to a trace witnessing Σ yields a trace witnessing reachability of Σ'; under RA-bndy that witnessing trace is one of *valid composites*, so Σ' is itself a composite boundary and ASN-0047's **ExtendedReachableStateInvariants** delivers **P4★ ∧ P4a ∧ P7a** at Σ'. In particular P4a (TraceWitnessing) is obtained in its full form — *universally* quantified over valid traces to Σ':
 ```
 (A valid trace Σ₀ →* … →* Σ_n = Σ' :: (A (a, d) ∈ Σ'.R :: (E Σ_k ∈ {Σ₀, …, Σ_n} : (E v ∈ dom(M_k(d)) : subspace(v) = s_C ∧ M_k(d)(v) = a))))
 ```
