@@ -46,7 +46,7 @@ ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047
 
 *Net-effect split.* REARRANGE_K's cut-sequence construction makes π non-identity automatically: by CS2 the cuts satisfy `c₀ < c₁ < ...`, so the region widths `w_α`, `w_β` (and `w_μ` for 4-cut) are each `≥ 1`, giving `π(c₀) > c₀` (R-PPERM for 3-cut, R-SPERM for 4-cut). But `π ≠ id` as a permutation of V-positions is strictly weaker than ASN-0047's K.μ~ admissibility clause (ii), the non-trivial *net effect* `M'(d) ≠ M(d)`. The two come apart precisely under shared I-addresses: when π fixes the I-address at every affected position — `M(d)(π(v)) = M(d)(v)` for all affected `v` — R-P1/R-P2 yield `M'(d) = M(d)` although π is the non-identity rotation. Such an arrangement is permitted by the *shared-image licence*: S2 (ArrangementFunctionality) imposes *only* functionality on `M(d)` — at most one image per V-position — and never a single-image (injectivity) constraint, while S5 (UnrestrictedSharing) explicitly admits a single I-address at several V-positions; a permutation that maps each shared-image V-position to another V-position carrying the same image leaves the map pointwise unchanged. The realisation therefore splits on net effect, with a realiser in each case. In the *non-trivial case* (`M'(d) ≠ M(d)`) the realiser is the named composite K.μ~. In the *collapse case* (`M'(d) = M(d)` with π ≠ id) the transition is the identity `Σ' = Σ`, so RA-adm holds and every RE-* claim below is an identity of `Σ` with itself.
 
-*Pointwise-fixity frames.* Two classes of V-position are not merely kept within their subspace but left wholly unpermuted (`π(v) = v`) — a stronger guarantee than K.μ~ clause (iv), which only requires subspace preservation. For each class, ASN-0084's R-PPERM and R-SPERM define π directly as the identity on that position set, and the corresponding arrangement-preservation clause records `Σ'.M(d)(v) = Σ.M(d)(v)` for the same positions; together these supply the named fact in full pointwise form. These frames derive directly from R-PPERM/R-SPERM and R-FRAME-P/S(a), so they stand independent of the clause discharges below and are available to them.
+*Pointwise-fixity frames.* Two classes of V-position are not merely kept within their subspace but left wholly unpermuted (`π(v) = v`) — a stronger guarantee than K.μ~ clause (iv), which only requires subspace preservation. For each class, ASN-0084's R-PPERM and R-SPERM define π directly as the identity on that position set, and the corresponding arrangement-preservation clause records `Σ'.M(d)(v) = Σ.M(d)(v)` for the same positions; together these supply the named fact in full pointwise form. These frames derive directly from R-PPERM/R-SPERM and R-FRAME-P/S(a).
 
 - **RE-sub** — V-positions in subspaces *other than* the cut subspace S (arrangement preservation from R-FRAME-P/S(a)):
 ```
@@ -331,7 +331,7 @@ Every derived claim holds at the concrete level; no two derived claims conflict 
 
 ## Worked Example — 4-cut Swap (μ-region delta)
 
-The 4-cut swap differs from the 3-cut pivot in exactly one structural respect: it has a middle region μ that undergoes a non-zero net displacement when `w_α ≠ w_β`. We exhibit only that delta, with R-SPERM in place of R-PPERM.
+This trace exhibits the 4-cut swap's middle region μ undergoing a non-zero net displacement when `w_α ≠ w_β`, with R-SPERM in place of R-PPERM.
 
 Reuse `d = [1, 0, 1, 0, 1]` and `d' = [1, 0, 1, 0, 2]`, with `a₁, a₂, a₃, a₄` the first four emissions of `A_C(d')` (so `a_{i+1} = a_i + 1`) and `a_link := [d.0.2.1]`. Pre-state `Σ.M(d) = { [1, 1] ↦ a₁, [1, 2] ↦ a₂, [1, 3] ↦ a₃, [1, 4] ↦ a₄, [2, 1] ↦ a_link }`. Apply REARRANGE_K with 4-cut sequence `([1, 1], [1, 2], [1, 3], [1, 5])`: cut subspace s_C, `w_α = 1`, `w_μ = 1`, `w_β = 2`, so `w_α ≠ w_β`. By R-S1/R-S2/R-S3 (ASN-0084) the post-state is `Σ'.M(d) = { [1, 1] ↦ a₃, [1, 2] ↦ a₄, [1, 3] ↦ a₂, [1, 4] ↦ a₁, [2, 1] ↦ a_link }`.
 
@@ -339,7 +339,7 @@ The distinguishing fact is the μ-region displacement. R-S2 maps `c₁ + j ↦ c
 
 ## Worked Example — Interior Cuts (R-EXT on a non-empty exterior)
 
-The first two traces place `c₀ = min(V_S(d))` and `c_{n−1}` just past `max(V_S(d))`, so the affected range covers all of `V_S(d)` and R-EXT fires on the empty set. This trace exhibits R-EXT firing on a *non-empty* in-subspace exterior — the pointwise fixity of content-subspace V-positions outside the affected range, which the abstract class alone would permit a bijection to move.
+This trace exhibits R-EXT firing on a *non-empty* in-subspace exterior — the pointwise fixity of content-subspace V-positions outside the affected range, which the abstract class alone would permit a bijection to move.
 
 Reuse `d`, `d'`. Let `b₁, b₂` be the first two emissions of `A_C(d)` (so `b₂ = b₁ + 1`) and `a₁, a₂, a₃` the first three of `A_C(d')`; `bᵢ` and `aⱼ` are non-chain-adjacent by Lemma L-chain (ChainDisjointAdjacency). Pre-state `Σ.M(d) = { [1, 1] ↦ b₁, [1, 2] ↦ a₁, [1, 3] ↦ a₂, [1, 4] ↦ a₃, [1, 5] ↦ b₂ }` — own content at the extremes, a contiguous transclusion from `d'` in the middle. Apply REARRANGE_K with cut sequence `([1, 2], [1, 3], [1, 5])`: `w_α = 1`, `w_β = 2`, affected range `{[1, 2], [1, 3], [1, 4]}` strictly interior to `V_S(d)`, leaving left exterior `{[1, 1]}` and right exterior `{[1, 5]}` non-empty. The post-state is `Σ'.M(d) = { [1, 1] ↦ b₁, [1, 2] ↦ a₂, [1, 3] ↦ a₃, [1, 4] ↦ a₁, [1, 5] ↦ b₂ }`.
 
@@ -347,7 +347,7 @@ The delta: `[1, 1] < c₀` and `[1, 5] ≥ c_{n−1}` are both *in* the cut subs
 
 ## Worked Example — Bijection Non-Uniqueness Under Shared I-Addresses
 
-The three preceding traces exercise RE-proj with distinct I-addresses at every V-position, so the bijection π is uniquely determined by the transition — RA-π pins each `π(v)` to the single V-position `v'` with `Σ'.M(d)(v') = Σ.M(d)(v)`. When `Σ.M(d)` instead shares I-addresses across V-positions (allowed by foundation S5/UnrestrictedSharing of ASN-0036), the abstract class admits multiple bijections satisfying RA-π for a single transition `Σ → Σ'`. A fourth trace exhibits two distinct valid witnesses for the same REARRANGE_K transition and verifies that RE-proj's set image is uniform across both — the abstract uniformity claim made in the "REARRANGE as Vstream-Only Operation" section concretely realised.
+When `Σ.M(d)` shares I-addresses across V-positions (allowed by foundation S5/UnrestrictedSharing of ASN-0036), the abstract class admits multiple bijections satisfying RA-π for a single transition `Σ → Σ'`. This trace exhibits two distinct valid witnesses for the same REARRANGE_K transition and verifies that RE-proj's set image is uniform across both — concretely realising the abstract uniformity claim of the "REARRANGE as Vstream-Only Operation" section.
 
 *Setup.* Reuse `d = [1, 0, 1, 0, 1]` and `d' = [1, 0, 1, 0, 2]`. Let `a := [d'.0.1.1]` be the first emission of `A_C(d')` and let `b := [d.0.1.1]` be the first emission of `A_C(d)`. By Lemma L-chain (ChainDisjointAdjacency, above) applied with `(d', s_C) ≠ (d, s_C)`, neither `a + 1 = b` nor `b + 1 = a` holds.
 
@@ -398,11 +398,9 @@ Both set images equal `project(e_a, d, Σ') = {[1, 2], [1, 3]}`. RE-proj's equat
 
 The phenomenon is general: every endset `e` whose coverage intersects only the shared-block I-address `a` yields a projection `project(e, d, Σ)` that is the entire shared block, and the set image under either witness is the entire shared post-state block — the within-block freedom acts trivially at the set level. When coverage instead distinguishes V-positions within the shared block (impossible here, since the block's members all map to the same I-address and coverage is keyed to I-addresses, not V-positions), the bijection's freedom would be confined to the V-positions outside the block. This trace concretely realises the abstract argument that RE-proj is well-defined across witnesses.
 
-Beyond exhibiting bijection non-uniqueness, this trace is also a richer RE-eq witness than the two-singleton case in "Run Decomposition Is Not Invariant": both states decompose into three singleton runs — no two adjacent V-positions are chain-adjacent (`a` repeats at `[1, 1], [1, 2]`, and `b ≠ a + 1` by Lemma L-chain (ChainDisjointAdjacency)) — so run cardinality is preserved at 3 even though π is non-trivial under either witness and shared I-addresses make it non-unique. RE-eq thus does not require a sparse arrangement; it persists under S5/UnrestrictedSharing.
-
 ## Worked Example — Net-Effect Collapse (non-identity π, `Σ' = Σ`)
 
-The net-effect split of "REARRANGE_K Realises the Abstract Class" distinguishes one branch the preceding traces never instantiate: an arrangement on which the non-identity pivot π yields `M'(d) = M(d)`, so the realiser is not the K.μ~ composite but the *empty* sequence with `Σ' = Σ`. This trace exhibits a non-identity pivot π whose R-P1/R-P2 reassignment collapses to `M'(d) = M(d)`.
+The net-effect split of "REARRANGE_K Realises the Abstract Class" admits a branch in which the non-identity pivot π yields `M'(d) = M(d)`, so the realiser is not the K.μ~ composite but the *empty* sequence with `Σ' = Σ`. This trace exhibits a non-identity pivot π whose R-P1/R-P2 reassignment collapses to `M'(d) = M(d)`.
 
 *Setup.* Reuse `d = [1, 0, 1, 0, 1]` and `d' = [1, 0, 1, 0, 2]`, both T4-valid with `zeros(·) = 2`. Let `a := [d'.0.1.1]` be the first emission of `A_C(d')`, a single transcluded content address. The collapse mechanism needs only that one I-address repeat across the affected range; no second address and no chain-adjacency fact is required.
 
