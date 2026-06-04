@@ -49,18 +49,16 @@ We therefore identify MAKELINK as the composite `K.λ ; K.μ⁺_L` — K.λ foll
 
 ## Preconditions
 
-The composite is valid when its component preconditions hold. We must be careful to state K.λ's *genuine* preconditions, distinguishing them from facts that hold *as consequences* of those preconditions. ASN-0093's K.λ has exactly the following binding precondition at `Σ`:
+The composite is valid when its component preconditions hold. ASN-0093's K.λ has exactly the following binding precondition at `Σ`:
 
   d ∈ dom(M)
   ℓ is produced by A_L(d) (first emission if d has no prior links; otherwise inc(ℓ_prev, 0))
   N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅
 
-The emission clause `ℓ is produced by A_L(d)` is the genuine caller-discharged obligation on `ℓ`. The freshness and structural shape of `ℓ` are *not* additional preconditions — they are lemmas of ASN-0093 that hold automatically for *any* `A_L(d)` emission:
+The emission clause `ℓ is produced by A_L(d)` is the caller-discharged obligation on `ℓ`. The freshness and structural shape of `ℓ` are derived — ASN-0093 facts that hold automatically for any `A_L(d)` emission:
 
-  ℓ ∉ dom(C) ∪ dom(L)                                   [FirstEmissionFreshness, SubsequentEmissionFreshness]
+  ℓ ∉ dom(C) ∪ dom(L)                                   [*Freshness of the Allocation*, below]
   zeros(ℓ) = 3 ∧ E(ℓ)₁ = s_L ∧ #E(ℓ) ≥ 2 ∧ origin(ℓ) = d   [FirstEmission, ChainDiscipline]
-
-We invoke these as *derived* facts wherever the K.μ⁺_L derivation and the invariant arguments below need them — never as caller obligations.
 
 For K.μ⁺_L at the intermediate state `Σ_mid` after K.λ:
 
@@ -77,7 +75,7 @@ The condition `ℓ ∉ ran(Σ_mid.M(d))` requires more than `ℓ ∉ dom(Σ.L)`;
 - If `subspace(v) = s_C`, then `Σ.M(d)(v) ∈ dom(Σ.C)`.
 - If `subspace(v) = s_L`, then `Σ.M(d)(v) ∈ dom(Σ.L)`.
 
-The derived freshness of `ℓ` (FirstEmissionFreshness / SubsequentEmissionFreshness, ASN-0093) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. In either subspace case, `Σ.M(d)(v) ∈ dom(Σ.C) ∪ dom(Σ.L)`, so `Σ.M(d)(v) ≠ ℓ`. Hence `ℓ ∉ ran(Σ.M(d)) = ran(Σ_mid.M(d))`.
+The derived freshness of `ℓ` (*Freshness of the Allocation*, below) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. In either subspace case, `Σ.M(d)(v) ∈ dom(Σ.C) ∪ dom(Σ.L)`, so `Σ.M(d)(v) ≠ ℓ`. Hence `ℓ ∉ ran(Σ.M(d)) = ran(Σ_mid.M(d))`.
 
 The intermediate-state conditions for K.μ⁺_L reduce to original-state conditions, so the caller-visible precondition for MAKELINK is just K.λ's precondition, with `ℓ` supplied by `A_L(d)`'s next emission and `v_ℓ` determined by the link subspace's current cardinality (serial component `n_L + 1`, where `n_L = |V_{s_L}(d)|`) together with its depth per M-DepthConv.
 
@@ -281,7 +279,7 @@ For the V-arrangement entry `v_ℓ ↦ ℓ`:
   CL-OWN:   origin(M'(d)(v_ℓ)) = origin(ℓ) = d                   origin(ℓ) = d derived from A_L(d) emission
   CL-UNIQ:  partial injection preserved                           K.μ⁺_L first-arrangement guard ℓ ∉ ran(M_mid(d))
   D-MIN★:   min(V_{s_L}^{Σ'}(d)) = [s_L, 1, ..., 1]               both cases below
-  D-CTG★:   extension is contiguous                               K.μ⁺_L positioning rule
+  D-CTG★:   extension is contiguous                               discharged directly by the D-SEQ★ set computation below, which exhibits a contiguous initial segment
   D-SEQ★:   V_{s_L}^{Σ'}(d) is contiguous initial segment           see below
 
 For S2: we must show `v_ℓ ∉ dom(Σ.M(d))`, not merely `v_ℓ ∉ V_{s_L}(d)`. By S3★-aux at `Σ`, `dom(Σ.M(d)) = V_{s_C}(d) ∪ V_{s_L}(d)`, so the obligation splits into two exclusions:
@@ -294,7 +292,7 @@ For D-MIN★: we must show `min(V_{s_L}^{Σ'}(d)) = [s_L, 1, ..., 1]`. We argue 
 - *Empty case* (`V_{s_L}(d) = ∅`): K.μ⁺_L's positioning rule places `v_ℓ = [s_L, 1]` at depth 2 (M-DepthConv), so `V_{s_L}^{Σ'}(d) = {v_ℓ}` and `min(V_{s_L}^{Σ'}(d)) = v_ℓ = [s_L, 1]`, the singleton minimum.
 - *Non-empty case* (`V_{s_L}(d) ≠ ∅`): the pre-state minimum is `[s_L, 1, ..., 1]` by D-MIN★ at `Σ`. K.μ⁺_L adds `v_ℓ = [s_L, 1, ..., 1, n_L + 1]` *above* the existing positions: since `n_L ≥ 1`, the last component `n_L + 1 > 1` makes `v_ℓ` strictly exceed `[s_L, 1, ..., 1]` under T1, so `v_ℓ` does not undercut the existing minimum. The minimum is retained: `min(V_{s_L}^{Σ'}(d)) = min(V_{s_L}(d)) = [s_L, 1, ..., 1]`. ✓
 
-For D-SEQ★: by D-SEQ★ at `Σ`, `V_{s_L}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L}` of common depth `m_L(d)` for some `n_L ≥ 0` (with `n_L = 0` meaning the link subspace at `d` is empty). If `n_L = 0`, MAKELINK commits the minimal depth per M-DepthConv: the K.μ⁺_L positioning rule gives `v_ℓ = [s_L, 1]` at depth 2, so `V_{s_L}^{Σ'}(d) = {v_ℓ}` — a contiguous initial segment of cardinality 1, fixing `m_L^{Σ'}(d) = 2`. If `n_L ≥ 1`, the rule gives `v_ℓ = shift(max(V_{s_L}(d)), 1) = [s_L, 1, ..., 1, n_L + 1]` at depth `m_L(d)`, so `V_{s_L}^{Σ'}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L + 1}` — a contiguous initial segment of cardinality `n_L + 1`. Either way, the post-state set conforms to D-SEQ★. ✓
+For D-SEQ★: by D-SEQ★ at `Σ`, `V_{s_L}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L}` of common depth `m_L(d)` for some `n_L ≥ 0` (with `n_L = 0` meaning the link subspace at `d` is empty). If `n_L = 0`, MAKELINK commits the minimal depth per M-DepthConv: the K.μ⁺_L positioning rule gives `v_ℓ = [s_L, 1]` at depth 2, so `V_{s_L}^{Σ'}(d) = {v_ℓ}` — a contiguous initial segment of cardinality 1, fixing `m_L^{Σ'}(d) = 2`. If `n_L ≥ 1`, the rule gives `v_ℓ = shift(max(V_{s_L}(d)), 1) = [s_L, 1, ..., 1, n_L + 1]` at depth `m_L(d)`, so `V_{s_L}^{Σ'}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L + 1}` — a contiguous initial segment of cardinality `n_L + 1`. Either way, the post-state set conforms to D-SEQ★. The same explicit set discharges D-CTG★ directly: the exhibited set is a contiguous segment under T1 at the fixed depth, which is exactly the D-CTG★ contiguity conjunct — read off the set itself, not derived from D-SEQ★ (whose ASN-0047 derivation runs *from* D-CTG★, so the reverse appeal would be circular). ✓
 
 For S8★: per ASN-0047's S8★, the link-subspace projected arrangement `M'(d)|_{V_{s_L}^{Σ'}(d)} : V_{s_L}^{Σ'}(d) → dom(L')` admits the trivial length-1 decomposition `{(v, M'(d)(v), 1) : v ∈ V_{s_L}^{Σ'}(d)}`. The new entry `(v_ℓ, ℓ, 1)` joins this decomposition; S8's conditions (a) and (b) hold trivially at length 1. ✓
 
