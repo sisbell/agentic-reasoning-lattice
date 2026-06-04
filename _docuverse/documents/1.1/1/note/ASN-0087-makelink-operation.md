@@ -61,7 +61,7 @@ For K.μ⁺_L at the intermediate state `Σ_mid` after K.λ:
   #v_ℓ per M-DepthConv        [depth fixed per M-DepthConv: m = 2 when V_{s_L}(d) = ∅, else the existing m_L(d)]
   v_ℓ at the next link-subspace position per D-MIN★ / D-CTG★
 
-The condition `ℓ ∉ ran(Σ_mid.M(d))` requires more than `ℓ ∉ dom(Σ.L)`; it must be derived through the S3★ + S3★-aux + L14 chain. K.λ's frame preserves `M`, so `Σ_mid.M(d) = Σ.M(d)` and `ran(Σ_mid.M(d)) = ran(Σ.M(d))`. By S3★-aux (ASN-0047), every `v ∈ dom(Σ.M(d))` has `subspace(v) ∈ {s_C, s_L}`. By S3★:
+The condition `ℓ ∉ ran(Σ_mid.M(d))` requires more than `ℓ ∉ dom(Σ.L)`; it must be derived through the S3★ + S3★-aux + K.λ freshness chain. K.λ's frame preserves `M`, so `Σ_mid.M(d) = Σ.M(d)` and `ran(Σ_mid.M(d)) = ran(Σ.M(d))`. By S3★-aux (ASN-0047), every `v ∈ dom(Σ.M(d))` has `subspace(v) ∈ {s_C, s_L}`. By S3★:
 
 - If `subspace(v) = s_C`, then `Σ.M(d)(v) ∈ dom(Σ.C)`.
 - If `subspace(v) = s_L`, then `Σ.M(d)(v) ∈ dom(Σ.L)`.
@@ -128,7 +128,7 @@ The function is *computed* from `Σ'.L(ℓ)` and `Σ'.M(d)` — no separate stat
 
 After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)`. We state the resulting symmetry property once here (M-DiscSymmetry). LP12's definition treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric: `ℓ` is discoverable from every document whose arrangement reaches into any of its endset coverages, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content.
 
-The symmetry is qualified in one respect. Because MAKELINK places `v_ℓ ↦ ℓ` into the home document's arrangement and no other, the home document alone gains a *reflexive route*: a link whose coverage contains `ℓ` is discoverable from its home regardless of prior arrangement (M-Reflexive, derived in *Weakest Precondition for Discoverability*, Case 2), a capability no `d_target ≠ d` can have. The content-reach route remains symmetric across all documents.
+The symmetry is qualified in one respect: the home document additionally gains a *reflexive route* (M-Reflexive) by which a link covering `ℓ` is discoverable from its home regardless of prior arrangement. The content-reach route remains symmetric across all documents.
 
 The abstract specification requires no auxiliary index state (M-NoIndexState). An implementation may maintain an auxiliary structure — a reverse lookup from I-addresses to link addresses, the *spanfilade* in Gregory's implementation — for efficient computation. Such structures are caches: any state where they are consistent with `L` and `M` produces the same `project` and `discoverable_from` results. The abstract claim is the discovery *property*; the index is a performance choice.
 
