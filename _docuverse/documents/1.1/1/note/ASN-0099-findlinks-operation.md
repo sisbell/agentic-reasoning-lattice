@@ -53,8 +53,6 @@ F1 (MatchPredicate):
 
 F1's `matches` is the coverage-form generalization of ASN-0098's `discoverable_from` (defined there in project form). The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to.
 
-F1's match is **per-endset overlap**: within each endset, satisfaction is existential over spans, and the per-span test is overlap (`coverage(eᵢ) ∩ I ≠ ∅` unfolds to `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`, with an identifiable witness span).
-
 ```
 F4 (MatchIndividuation):
    The witnesses below individuate F1's per-endset overlap test: each
@@ -360,14 +358,14 @@ F11 (PersistentDiscoverabilityI):
 
 LP13 (UnconditionalLinkPersistence, ASN-0098) supplies the multi-step per-link guarantee `a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`. PerLinkInvarianceUnderValuePreservation applied at this `a` then gives `matches(a, I, Σ) ⟺ matches(a, I, Σ')` — the witness slot found at Σ remains a witness at Σ'.
 
-F11 is an *I-side* persistence claim against a fixed query I-set; the V-side analogue — fixing `(R, d)` and quantifying across edits — is not a theorem of this ASN and could not be, since K.μ⁻ can shrink `ran(Σ.M(d))` (Query 5 below exhibits the divergence concretely).
+F11 is an *I-side* persistence claim against a fixed query I-set. The corresponding V-side claim — fixing `(R, d)` and quantifying across edits — is a theorem of neither F11's persistence nor F19's monotonicity below, and could not be: K.μ⁻ can shrink `ran(Σ.M(d))`, so a V-position discoverable at `Σ` may be contracted out of the arrangement at `Σ'`.
 
 ```
 F19 (ResultSetMonotonicity):
    findlinks(I, Σ) ⊆ findlinks(I, Σ') for every reachable Σ →* Σ'.
 ```
 
-Direct from F11 + the definition of `findlinks`. The V-side asymmetry noted at F11 applies equally here. Monotonicity propagates to the filtered and scoped forms as clause (c) of F15.
+Direct from F11 + the definition of `findlinks`. Monotonicity propagates to the filtered and scoped forms as clause (c) of F15.
 
 F19 (and its filtered/scoped instances under F15(c)) is the load-bearing consequence behind any indexed implementation's promise: an index that mirrors `findlinks` is never required to remove entries as the state evolves, only to add them.
 
@@ -435,19 +433,19 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 | `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | definition |
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
 | PerLinkInvarianceUnderValuePreservation | Per-link primitive: match and filtered per-link universal evaluate identically when `Σ'.L(a) = Σ.L(a)` at a specific `a` | introduced (sub-lemma) |
-| A1a | PublishedFramePreservation: every op of V ∖ {K.λ} preserves `Σ.L` — atomic ops publish `L' = L` (K.μ⁺, K.μ⁻ via ASN-0047's amended extended-state frames), and K.μ~ by transitive composition | introduced (structural lemma) |
+| A1a | PublishedFramePreservation: every op of V ∖ {K.λ} preserves `Σ.L` | introduced (structural lemma) |
 | F1 | MatchPredicate definition | definition |
 | F2 | Completeness: `findlinks(I, Σ) ⊆ result(I, Σ)` | introduced |
 | F3 | Soundness: `result(I, Σ) ⊆ findlinks(I, Σ)` | introduced |
-| F2★, F3★ | ConformanceParametric: `result_*(args, Σ) = findlinks_*(args, Σ)` for `* ∈ {filtered, scoped, V}`; the V form is the primary obligation on `result_V` | introduced |
+| F2★, F3★ | ConformanceParametric: `result_*(args, Σ) = findlinks_*(args, Σ)` for `* ∈ {filtered, scoped, V}` | introduced |
 | F4 | MatchIndividuation: witnesses individuate F1's per-endset overlap test against coverage-containment (either direction), cardinality threshold, and I-independent slot tests | introduced |
 | F5 | Identity, not value: match consults coverage, not content | introduced |
 | F6 | Transclusion transparency | introduced |
 | F8 | Determinism: `findlinks(I, ·)` is a function of `(Σ.L, I)` | introduced |
-| F9 | LinkStoreInertPreservation: findlinks invariant across every V ∖ {K.λ} transition, single-step or multi-step | introduced |
+| F9 | LinkStoreInertPreservation: findlinks invariant across every V ∖ {K.λ} transition | introduced |
 | F9-λ | KλInducedIncrement: characterises the K.λ-induced delta to findlinks(I, ·) as disjoint union with a singleton or ∅ depending on whether ℓ_new matches | introduced |
 | F10 | Ordered result: canonical T1-sorted presentation (filtered and scoped forms inherit the same finiteness + total-order argument) | introduced |
-| F11 | PersistentDiscoverabilityI: I-side match against fixed I preserved across reachable sequences (distinct from ASN-0098's V-side discoverable_from, which is not persistent) | introduced |
+| F11 | PersistentDiscoverabilityI: I-side match against fixed I preserved across reachable sequences | introduced |
 | F12 | TwoPhaseFactoring: `findlinks_V(R, d, Σ) ≡ findlinks(image(R, d, Σ), Σ)` | definition |
 | F13 | Set-additive in the I-input | introduced |
 | F14 | Scope filter is intersection | introduced |
