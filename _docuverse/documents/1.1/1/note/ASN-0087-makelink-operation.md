@@ -7,7 +7,7 @@ We are looking for the precise meaning of *creating a link*. The system already 
 
 A link, in this design, is a stored connective unit — a first-class entity binding together fragments of content. By L3 (ASN-0043) every link has at least three endsets, the third designated as type, the type slot non-empty. Beyond this, link creation must produce three things unconditionally: an *identity* (the link's address), a *value* (the endsets), and a *home* (the document under whose authority the link is allocated). It must also establish the *discoverability property* — the LP12 (ASN-0098) mechanism by which a query of the content reached by the link's endsets can surface the link.
 
-We are careful to distinguish the property from its realization. MAKELINK brings identity, value, and home into being unconditionally, and it establishes the LP12 mechanism. But *actual* discoverability from a given document is conditional: by the body's M-WP and LP17, the link is discoverable from a document only when some endset's coverage meets that document's arrangement range. If every endset coverage misses every arrangement range — content unarranged, or spans reaching into not-yet-allocated addresses — the link is *born orphaned*: present in `dom(L)`, fully valued, yet discoverable from no document until some later arrangement (M-WP route) or transclusion (LP18) makes a coverage meet a range. We ask: what is allocated, what is recorded, what discoverability mechanism is established, and what remains untouched?
+We are careful to distinguish the property from its realization. MAKELINK brings identity, value, and home into being unconditionally, and it establishes the LP12 discoverability mechanism. Whether the link is *actually* discoverable from a given document is a separate, arrangement-conditional matter that the body characterizes. We ask: what is allocated, what is recorded, what discoverability mechanism is established, and what remains untouched?
 
 ## Inputs
 
@@ -39,7 +39,7 @@ We observe that link creation must accomplish two distinct effects: (i) introduc
 - `K.λ` allocates the link in `dom(L)`, binding it to the given endsets.
 - `K.μ⁺_L` extends `M(d)` in the link subspace — where links live in V-space (L14a's supersession, ASN-0047) — mapping a fresh V-position to the link.
 
-We therefore identify MAKELINK as the composite `K.λ ; K.μ⁺_L` — K.λ followed by K.μ⁺_L — applied to the same home document. The semicolon denotes sequential composition of atomic transitions, distinct from the tumbler addition operator `⊕` of ASN-0034. The order is forced: K.μ⁺_L's precondition requires `ℓ ∈ dom(L)`, so K.λ must precede it.
+We therefore identify MAKELINK as the composite `K.λ ; K.μ⁺_L` — K.λ followed by K.μ⁺_L — applied to the same home document. The semicolon denotes sequential composition of atomic transitions. The order is forced: K.μ⁺_L's precondition requires `ℓ ∈ dom(L)`, so K.λ must precede it.
 
 ## Preconditions
 
@@ -126,9 +126,7 @@ The function is *computed* from `Σ'.L(ℓ)` and `Σ'.M(d)` — no separate stat
 
   discoverable_from(ℓ, d, Σ')  ⟺  (E i : coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
 
-After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)`. We state the resulting symmetry property once here (M-DiscSymmetry). LP12's definition treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric: `ℓ` is discoverable from every document whose arrangement reaches into any of its endset coverages, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content.
-
-The symmetry is qualified in one respect: the home document additionally gains a *reflexive route* (M-Reflexive) by which a link covering `ℓ` is discoverable from its home regardless of prior arrangement. The content-reach route remains symmetric across all documents.
+After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)`. We state the resulting symmetry property once here (M-DiscSymmetry). LP12's definition treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric: `ℓ` is discoverable from every document whose arrangement reaches into any of its endset coverages, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content. (The home document alone gains an additional, arrangement-independent reflexive route; we derive it once, in *Weakest Precondition for Discoverability*, Case 2.)
 
 The abstract specification requires no auxiliary index state (M-NoIndexState). An implementation may maintain an auxiliary structure — a reverse lookup from I-addresses to link addresses, the *spanfilade* in Gregory's implementation — for efficient computation. Such structures are caches: any state where they are consistent with `L` and `M` produces the same `project` and `discoverable_from` results. The abstract claim is the discovery *property*; the index is a performance choice.
 
@@ -270,7 +268,7 @@ For the link itself:
   L14:   store disjointness                    ℓ ∉ dom(C) from K.λ freshness
   L-fin: link store finiteness                 |dom(L')| = |dom(L)| + 1
 
-L1c (structural inc-chain conformance) requires an inc-chain from `origin(ℓ) = d` to `ℓ`. By ChainMembershipForOrigin and ChainDiscipline (ASN-0093), `ℓ` lies on `d`'s link sub-allocator chain `A_L(d) = S(b_L(d), 1)`; ChainElementT4Validity carries T4-validity along it, and the `k₁ = 2`, `#tᵢ > #origin(ℓ)` clauses are part of ASN-0093's L1c statement. ✓
+L1c (structural inc-chain conformance) requires an inc-chain from `origin(ℓ) = d` to `ℓ`. K.λ's precondition supplies it directly: `ℓ` is produced by `A_L(d)`, so by ChainDiscipline (ASN-0093) `ℓ` lies on `d`'s link sub-allocator chain `A_L(d) = S(b_L(d), 1)`, whose elements are exactly the inc-chain emissions; ChainElementT4Validity carries T4-validity along it, and the `k₁ = 2`, `#tᵢ > #origin(ℓ)` clauses are part of ASN-0093's L1c statement. ✓
 
 For the V-arrangement entry `v_ℓ ↦ ℓ`:
 
@@ -353,7 +351,7 @@ MAKELINK performs *no permission check on referenced content*. It does not verif
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| M-Comp | MAKELINK is the composite `K.λ ; K.μ⁺_L` — K.λ followed by K.μ⁺_L — applied to the same home document `d`. The semicolon denotes sequential composition, distinct from the tumbler addition `⊕` of ASN-0034. | introduced |
+| M-Comp | MAKELINK is the composite `K.λ ; K.μ⁺_L` — K.λ followed by K.μ⁺_L — applied to the same home document `d`. The semicolon denotes sequential composition of atomic transitions. | introduced |
 | M-DepthConv | MAKELINK fixes every first link's V-position depth at the canonical minimal `m = 2`; thereafter S8-depth pins `m_L(d) = 2`. Stated and scoped in *Inputs*. | introduced |
 | M-Pre | Caller-visible precondition: `d ∈ dom(M)`, `N ≥ 3`, `(A i : eᵢ ∈ Endset)`, `e₃ ≠ ∅`. System-supplied parameters: `ℓ` from `A_L(d)`'s next emission; `v_ℓ` from K.μ⁺_L's positioning rule, serial component `n_L + 1` computed from `Σ`, depth per M-DepthConv. | introduced |
 | M-Alloc | MAKELINK allocates a fresh `ℓ ∈ T \ (dom(Σ.L) ∪ dom(Σ.C))` and a fresh `v_ℓ ∈ T \ dom(Σ.M(d))` with `subspace(v_ℓ) = s_L` and `#v_ℓ` per M-DepthConv. | introduced |
