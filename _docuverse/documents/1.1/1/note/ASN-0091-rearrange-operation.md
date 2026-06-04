@@ -38,7 +38,7 @@ The abstract class admits two degenerate cases. The *empty case* `dom(Σ.M(d)) =
 
 ## REARRANGE_K Realises the Abstract Class
 
-REARRANGE_K (the cut-sequence operation of ASN-0084) is one concrete realisation of the abstract Vstream-only class. The clause-by-clause argument below establishes that its π is an admissible K.μ~ bijection.
+REARRANGE_K (the cut-sequence operation of ASN-0084) is one concrete realisation of the abstract Vstream-only class on every Σ reachable from Σ₀ by a finite sequence of elementary transitions drawn from valid composites. The clause-by-clause argument below establishes that its π is an admissible K.μ~ bijection.
 
 ### Clause Correspondences and Per-Invariant Discharges
 
@@ -57,8 +57,6 @@ ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047
 | (v) link-subspace fixing `π(v) = v` on the link subspace | discharged by RE-sub (Pointwise-Fixity Frames, below): RE-sub fixes `π(v) = v` on every non-cut-subspace V-position, and CS3 fixes the cut subspace at `S = s_C`, so the link subspace `s_L` is non-cut and clause (v) follows |
 
 *RA-frame discharge.* K.μ~'s ASN-0047 frame `C' = C; E' = E; R' = R; L' = L; M'(d') = M(d')` for `d' ≠ d` matches each conjunct of RA-frame explicitly, save `dom(Σ'.M) = dom(Σ.M)`. That last conjunct follows structurally: neither K.μ⁻ nor K.μ⁺ — the elementary decomposition of K.μ~ — touches the document registry, registration being the exclusive province of K.σ and the K.δ Document case. So no REARRANGE_K step adds or removes a document, and `dom(Σ'.M) = dom(Σ.M)` holds.
-
-*Reachability scope of the realisation.* The discharge of RA-adm below establishes it only for a *reachable* pre-state Σ, so we scope the realisation theorem accordingly — REARRANGE_K realises the abstract Vstream-only class on every Σ reachable from Σ₀ by a finite sequence of elementary transitions drawn from valid composites.
 
 Given Σ reachable, the per-state foundation invariants hold at every reachable state (ASN-0047's ExtendedReachableStateInvariants), so RA-adm reduces to establishing that Σ' is reachable.
 
@@ -162,26 +160,26 @@ The set of links that can be found from d is exactly the same before and after r
 
 ## Projection Transports Along π
 
-Where a link's coverage strikes the arrangement is the set `project(e, d, Σ) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e)}`. We derive its transport across REARRANGE in two cases: at the rearrangement target `d_tgt`, where the bijection π acts non-trivially; and at any non-target document `d ≠ d_tgt`, where RA-frame's other-document clause forces stability directly. The two cases combine under a uniform formulation below.
+Where a link's coverage strikes the arrangement is the set `project(e, b, Σ) = {v ∈ dom(M(b)) : M(b)(v) ∈ coverage(e)}`, taken at an arbitrary document `b ∈ dom(Σ.M)`. We derive its transport across a REARRANGE on target `d` in two cases: at the target itself, `b = d`, where the bijection π acts non-trivially; and at any non-target document `b ≠ d`, where RA-frame's other-document clause forces stability directly. The two cases combine under a uniform formulation below.
 
-*Target case.* For `d = d_tgt`, the bijection π carries the projection set faithfully to the post-state:
+*Target case.* For `b = d`, the bijection π carries the projection set faithfully to the post-state:
 ```
-project(e, d_tgt, Σ') = π(project(e, d_tgt, Σ))
+project(e, d, Σ') = π(project(e, d, Σ))
 ```
-We prove this abstractly, from RA-π and the state-independence of coverage alone. For any `v ∈ dom(Σ.M(d_tgt))`:
+We prove this abstractly, from RA-π and the state-independence of coverage alone. For any `v ∈ dom(Σ.M(d))`:
 ```
-v ∈ project(e, d_tgt, Σ)
-  ⟺ Σ.M(d_tgt)(v) ∈ coverage(e)              [definition of project]
-  ⟺ Σ'.M(d_tgt)(π(v)) ∈ coverage(e)          [RA-π: Σ'.M(d_tgt)(π(v)) = Σ.M(d_tgt)(v)]
-  ⟺ π(v) ∈ project(e, d_tgt, Σ')             [definition; π(v) ∈ dom(Σ'.M(d_tgt)) by RA-π's codomain]
+v ∈ project(e, d, Σ)
+  ⟺ Σ.M(d)(v) ∈ coverage(e)              [definition of project]
+  ⟺ Σ'.M(d)(π(v)) ∈ coverage(e)          [RA-π: Σ'.M(d)(π(v)) = Σ.M(d)(v)]
+  ⟺ π(v) ∈ project(e, d, Σ')             [definition; π(v) ∈ dom(Σ'.M(d)) by RA-π's codomain]
 ```
-The middle step uses that `coverage(e)` is a fixed function of the endset's spans, identical at Σ and Σ', so the membership test consults the same set on both lines. Since π bijects `dom(Σ.M(d_tgt))` onto `dom(Σ'.M(d_tgt))` (RA-π), this pointwise biconditional lifts to the set equality. The derivation rests only on RA-π and coverage state-independence. For the REARRANGE_K realiser specifically, this set equality is exactly ASN-0098's LP11 (ReorderingBijection) instantiated at `Σ' = K.μ~(Σ)`.
+The middle step uses that `coverage(e)` is a fixed function of the endset's spans, identical at Σ and Σ', so the membership test consults the same set on both lines. Since π bijects `dom(Σ.M(d))` onto `dom(Σ'.M(d))` (RA-π), this pointwise biconditional lifts to the set equality. The derivation rests only on RA-π and coverage state-independence. For the REARRANGE_K realiser specifically, this set equality is exactly ASN-0098's LP11 (ReorderingBijection) instantiated at `Σ' = K.μ~(Σ)`.
 
-*Non-target case.* For any `d ≠ d_tgt`, RE-other gives `Σ'.M(d) = Σ.M(d)` entirely, so the projection is identical at both states: `project(e, d, Σ') = project(e, d, Σ)`. The bijection π (which acts on `dom(Σ.M(d_tgt))`, not on `dom(Σ.M(d))`) plays no role.
+*Non-target case.* For any `b ≠ d`, RE-other gives `Σ'.M(b) = Σ.M(b)` entirely, so the projection is identical at both states: `project(e, b, Σ') = project(e, b, Σ)`. The bijection π (which acts on `dom(Σ.M(d))`, not on `dom(Σ.M(b))`) plays no role.
 
-*Uniform formulation.* Define the *projection transport* `π̂_d`: `π̂_d := π` when `d = d_tgt` and `π̂_d := id_{dom(Σ.M(d))}` when `d ≠ d_tgt`. The identity case is well-typed because RE-other forces `dom(Σ'.M(d)) = dom(Σ.M(d))` for `d ≠ d_tgt`, so `π̂_d` is in every case a bijection between `dom(Σ.M(d))` and `dom(Σ'.M(d))`. The two cases combine as
+*Uniform formulation.* Define the *projection transport* `π̂_b`: `π̂_b := π` when `b = d` and `π̂_b := id_{dom(Σ.M(b))}` when `b ≠ d`. The identity case is well-typed because RE-other forces `dom(Σ'.M(b)) = dom(Σ.M(b))` for `b ≠ d`, so `π̂_b` is in every case a bijection between `dom(Σ.M(b))` and `dom(Σ'.M(b))`. The two cases combine as
 ```
-project(e, d, Σ') = π̂_d(project(e, d, Σ))      for every d ∈ dom(Σ.M)                  (RE-proj)
+project(e, b, Σ') = π̂_b(project(e, b, Σ))      for every b ∈ dom(Σ.M)                  (RE-proj)
 ```
 
 A reader who follows the link arrives at the same I-address it always identified — but its V-position in d's current arrangement may have changed. The link follows content identity, not arrangement.
@@ -469,7 +467,7 @@ The *Provenance* column records each claim's premises — abstract, REARRANGE_K,
 | RE-L | Link store invariance: dom(Σ'.L) = dom(Σ.L) and Σ'.L(a) = Σ.L(a) for every a ∈ dom(Σ.L) | abstract (from RA-frame) |
 | RE-cov | Coverage invariance: coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ) for every link a and slot i | abstract (from RE-L) |
 | RE-disc | Discoverability invariance: discoverable_from(a, d, Σ') ⟺ discoverable_from(a, d, Σ) for every link a and document d | abstract (from RE-cov + RE-ran via LP12) |
-| RE-proj | Projection transport: project(e, d, Σ') = π̂_d(project(e, d, Σ)) for every endset e and every d ∈ dom(Σ.M), where π̂_d := π at the rearrangement target d_tgt and π̂_d := id_{dom(Σ.M(d))} for d ≠ d_tgt. Equivalently at d_tgt: project(e, d_tgt, Σ') = π(project(e, d_tgt, Σ)) | abstract (target case from RA-π + coverage state-independence (ASN-0098); non-target case from RE-other) |
+| RE-proj | Projection transport: project(e, b, Σ') = π̂_b(project(e, b, Σ)) for every endset e and every b ∈ dom(Σ.M), where π̂_b := π at the rearrangement target d and π̂_b := id_{dom(Σ.M(b))} for b ≠ d. Equivalently at the target: project(e, d, Σ') = π(project(e, d, Σ)) | abstract (target case from RA-π + coverage state-independence (ASN-0098); non-target case from RE-other) |
 | RE-frag | Fragmentation possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) strictly increases | abstract (existential; witnesses are REARRANGE_K) |
 | RE-coal | Coalescence possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) strictly decreases | abstract (existential; witnesses are REARRANGE_K) |
 | RE-eq | Cardinality invariance possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) is exactly preserved | abstract (existential; witnesses are REARRANGE_K) |
