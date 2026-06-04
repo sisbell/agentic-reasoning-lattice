@@ -99,15 +99,10 @@ Other components are unchanged:
 
 ## Freshness of the Allocation
 
-The address `ℓ` is genuinely new. The argument proceeds in three layers.
+The address `ℓ` is genuinely new — `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` at `Σ` — so K.λ's freshness precondition is met by construction rather than by faith. We do not re-derive this from the underlying chain lemmas; ASN-0093 already packages the guarantee for every emission of `A_L(d)`, and MAKELINK introduces no allocation step beyond the K.λ it composes, so the result transfers verbatim:
 
-*Within d's link chain.* By ChainMembershipForOrigin (ASN-0093), the set `dom(Σ.L) ∩ {ℓ' : origin(ℓ') = d}` is a contiguous initial segment `{s_1, …, s_{n_d}}` of `A_L(d)`'s enumeration, where `n_d` is the current count of links with `origin(·) = d`. Hence `max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = s_{n_d}` (when `n_d ≥ 1`). K.λ's subsequent-emission rule selects `ℓ = inc(s_{n_d}, 0) = s_{n_d + 1}`. By ChainEnumerationInjectivity (ASN-0093), the chain `A_L(d) = (t_1, t_2, …)` is strictly monotone under T1, so `s_{n_d + 1} ≠ s_k` for every `k ≤ n_d` — i.e., `ℓ ∉ {s_1, …, s_{n_d}} = dom(Σ.L) ∩ {ℓ' : origin(ℓ') = d}`. In the first-emission case (`n_d = 0`), `ℓ = s_1` is the first chain element and `dom(Σ.L) ∩ {ℓ' : origin(ℓ') = d} = ∅`, so the conclusion holds trivially.
-
-*Cross-subspace, within d.* By DisjointSubAllocatorChains (ASN-0093), `A_C(d)` and `A_L(d)` are disjoint — outputs differ in their element-field subspace identifier (`s_C` vs `s_L`), forced apart by SC-NEQ.
-
-*Cross-document.* By Cross-doc disjointness (ASN-0093), for `d ≠ d'` the link-anchor prefixes `b_L(d)` and `b_L(d')` are non-nesting; T10 (PartitionIndependence, ASN-0034) then guarantees that every address extending `b_L(d)` differs from every address extending `b_L(d')`.
-
-Hence `ℓ ∉ dom(C) ∪ dom(L)` at `Σ`, satisfying K.λ's freshness precondition by construction rather than by faith.
+- *First-emission case* (`{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = ∅`): FirstEmissionFreshness (ASN-0093) gives `ℓ = [d, 0, s_L, 1] ∉ dom(Σ.L) ∪ dom(Σ.C)`.
+- *Subsequent-emission case* (`ℓ = inc(ℓ_prev, 0)`): SubsequentEmissionFreshness (ASN-0093) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. That lemma's own three-way split discharges within-document freshness (via ChainEnumerationInjectivity), cross-subspace freshness (via DisjointSubAllocatorChains and SC-NEQ), and cross-document freshness (via Cross-doc disjointness composed with T10, PartitionIndependence, ASN-0034) — so the layered argument lives in the foundation, not here.
 
 The V-position `v_ℓ` is fresh in `dom(M(d))`. K.μ⁺_L's positioning rule combined with D-SEQ★ (ASN-0047) supplies the within-subspace half: the link subspace V-positions form a contiguous sequence `{[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L}`, and `v_ℓ` extends it by one, so `v_ℓ ∉ V_{s_L}(d)`. But `dom(M(d)) = V_{s_C}(d) ∪ V_{s_L}(d)` (S3★-aux, ASN-0047), so full freshness additionally requires the cross-subspace exclusion `v_ℓ ∉ V_{s_C}(d)`, which holds at position 1: `(v_ℓ)₁ = s_L`, while every `v ∈ V_{s_C}(d)` has `(v)₁ = s_C` (S8a), and `s_L ≠ s_C` (SC-NEQ, ASN-0093). Both halves are discharged in full in the S2 verification of the post-state invariants below.
 
