@@ -44,7 +44,7 @@ REARRANGE_K (the cut-sequence operation of ASN-0084) is one concrete realisation
 
 ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047's M1 (ArrangementMonotonicity) records the identification `dom(M) = E_doc`, so `d ∈ E_doc ⟺ d ∈ dom(M)` and RA-reg holds at the pre-state.
 
-*Net-effect split.* REARRANGE_K's cut-sequence construction makes π non-identity automatically: by CS2 the cuts satisfy `c₀ < c₁ < ...`, so the region widths `w_α`, `w_β` (and `w_μ` for 4-cut) are each `≥ 1`, giving `π(c₀) > c₀` (R-PPERM for 3-cut, R-SPERM for 4-cut). But `π ≠ id` as a permutation of V-positions is strictly weaker than ASN-0047's K.μ~ admissibility clause (ii), the non-trivial *net effect* `M'(d) ≠ M(d)`. The two come apart precisely under shared I-addresses: when the affected range carries a repeating I-address pattern whose period matches the permutation's displacement, foundation S5 (UnrestrictedSharing) admits an arrangement on which R-P1/R-P2 yield `M'(d) = M(d)` although π is the non-identity rotation. The realisation therefore splits on net effect, with a realiser in each case. In the *non-trivial case* (`M'(d) ≠ M(d)`) the realiser is the named composite K.μ~. In the *collapse case* (`M'(d) = M(d)` with π ≠ id) the transition is the identity `Σ' = Σ`, so RA-adm holds and every RE-* claim below is an identity of `Σ` with itself.
+*Net-effect split.* REARRANGE_K's cut-sequence construction makes π non-identity automatically: by CS2 the cuts satisfy `c₀ < c₁ < ...`, so the region widths `w_α`, `w_β` (and `w_μ` for 4-cut) are each `≥ 1`, giving `π(c₀) > c₀` (R-PPERM for 3-cut, R-SPERM for 4-cut). But `π ≠ id` as a permutation of V-positions is strictly weaker than ASN-0047's K.μ~ admissibility clause (ii), the non-trivial *net effect* `M'(d) ≠ M(d)`. The two come apart precisely under shared I-addresses: when the affected range carries a repeating I-address pattern whose period matches the permutation's displacement, R-P1/R-P2 may yield `M'(d) = M(d)` although π is the non-identity rotation. Such an arrangement is permitted because S2 (ArrangementFunctionality) imposes *only* functionality on `M(d)` — at most one image per V-position — and never a single-image (injectivity) constraint, so the same I-address may sit at several V-positions; a permutation that maps each shared-image V-position to another V-position carrying the same image leaves the map pointwise unchanged. The realisation therefore splits on net effect, with a realiser in each case. In the *non-trivial case* (`M'(d) ≠ M(d)`) the realiser is the named composite K.μ~. In the *collapse case* (`M'(d) = M(d)` with π ≠ id) the transition is the identity `Σ' = Σ`, so RA-adm holds and every RE-* claim below is an identity of `Σ` with itself.
 
 *K.μ~ admissibility clause (i)–(v) ← discharge.*
 
@@ -66,7 +66,7 @@ In the non-trivial case, K.μ~'s admissibility clauses (i)–(v) are closed abov
 
 The binary transition invariants — those of the form `(A Σ → Σ' :: …)`, relations on the *pair* of states rather than per-state predicates, and so outside the per-state foundation list RA-adm discharges above — are discharged by **transition-satisfaction**: the REARRANGE transition `Σ → Σ'` satisfies each because the components it constrains are pinned by RA-frame, making every conjunct trivially true. This class comprises ASN-0036's S0 (ContentImmutability) and S1 (StoreMonotonicity) — both satisfied by `Σ'.C = Σ.C`, which simultaneously gives `dom(C) ⊆ dom(C')` and value preservation — ASN-0093's M1 (ArrangementMonotonicity, `dom(M) ⊆ dom(M')` from `dom(Σ'.M) = dom(Σ.M)`), the permanence invariants P0, P1, P2, P3 (each a `component(Σ) ⊆ component(Σ')` plus value-preservation conjunction, satisfied by the matching frame clause: P0 by `Σ'.C = Σ.C`, P1 by `Σ'.E = Σ.E`, P2 by `Σ'.R = Σ.R`, and P3 — the synthesis P0 ∧ P1 ∧ P2 ∧ L12 — by all four together), L12 (LinkImmutability, by `Σ'.L = Σ.L`), and ASN-0093's C0 (ContentImmutability, by `Σ'.C = Σ.C`).
 
-(S5/UnrestrictedSharing holds at Σ' as a state-independent theorem of the model class.)
+(S5/UnrestrictedSharing is an existential theorem over the model class, not a per-state invariant, so RA-adm does not range over it.)
 
 ## What the Content Store Sees: Nothing
 
@@ -397,6 +397,39 @@ The phenomenon is general: every endset `e` whose coverage intersects only the s
 *Admissibility (RA-adm).* The only distinction from the first Worked Example's RA-adm sweep is the shared I-address `a` at `[1, 2]` and `[1, 3]`: this is admitted by S5 (UnrestrictedSharing) while S2 (functionality) still holds, since each of `[1, 1], [1, 2], [1, 3]` appears once on the left of the map (distinct V-positions may share an image). Every other clause discharges by the first Worked Example's pattern.
 
 Beyond exhibiting bijection non-uniqueness, this trace is also a richer RE-eq witness than the two-singleton case in "Run Decomposition Is Not Invariant": both states decompose into three singleton runs — no two adjacent V-positions are chain-adjacent (`a` repeats at `[1, 1], [1, 2]`, and `b ≠ a + 1` by ChainDisjointAdjacency) — so run cardinality is preserved at 3 even though π is non-trivial under either witness and shared I-addresses make it non-unique. RE-eq thus does not require a sparse arrangement; it persists under S5/UnrestrictedSharing.
+
+## Worked Example — Net-Effect Collapse (non-identity π, `Σ' = Σ`)
+
+The net-effect split of "REARRANGE_K Realises the Abstract Class" distinguishes one branch the preceding traces never instantiate: an arrangement on which the non-identity pivot π yields `M'(d) = M(d)`, so the realiser is not the K.μ~ composite but the *empty* sequence with `Σ' = Σ`. Because this branch determines which realiser discharges RA-adm, we exhibit it concretely.
+
+*Setup.* Reuse `d = [1, 0, 1, 0, 1]` and `d' = [1, 0, 1, 0, 2]`, both T4-valid with `zeros(·) = 2`. Let `a := [d'.0.1.1]` be the first emission of `A_C(d')`, a single transcluded content address. The collapse mechanism needs only that one I-address repeat across the affected range; no second address and no chain-adjacency fact is required.
+
+*Pre-state.* `Σ.C` contains `a` (and possibly more); other state components are immaterial here (any specific contents preserved by RA-frame). `Σ.M(d)` populates three content-subspace V-positions, all carrying the shared I-address `a`:
+```
+Σ.M(d) = { [1, 1] ↦ a,    [1, 2] ↦ a,    [1, 3] ↦ a }
+```
+The shared image is permitted because S2 (ArrangementFunctionality) imposes only functionality — each of `[1, 1], [1, 2], [1, 3]` appears once on the left of the map — and never single-image injectivity; the pre-image set `Σ.M(d)⁻¹(a) = {[1, 1], [1, 2], [1, 3]}` is therefore admissible.
+
+*Operation.* Apply REARRANGE_K to `d` with cut sequence `(c₀, c₁, c₂) = ([1, 1], [1, 2], [1, 4])`, a 3-cut pivot with cut subspace S = s_C, `w_α = ord(c₁) − ord(c₀) = 1`, `w_β = ord(c₂) − ord(c₁) = 2`. R-PRE is met: CS1–CS5 hold (n = 3; `[1,1] < [1,2] < [1,4]`; subspace 1; depth 2; positive ordinals), and R-PRE(iv) holds because every depth-2 position `v` with `[1, 1] ≤ v < [1, 4]` — namely `[1, 1], [1, 2], [1, 3]` — lies in `V_S(d)`.
+
+The permutation π (R-PPERM, ASN-0084) is the non-identity 3-cycle: on the α-region `c₀ + j ↦ c₀ + w_β + j` (`0 ≤ j < w_α = 1`) gives `π([1, 1]) = c₀ + 2 = [1, 3]`; on the β-region `c₁ + j ↦ c₀ + j` (`0 ≤ j < w_β = 2`) gives `π([1, 2]) = c₀ = [1, 1]` (j = 0) and `π([1, 3]) = c₀ + 1 = [1, 2]` (j = 1). So π = `([1, 1] ↦ [1, 3], [1, 3] ↦ [1, 2], [1, 2] ↦ [1, 1])`, manifestly `≠ id` (e.g. `π([1, 1]) = [1, 3] ≠ [1, 1]`).
+
+*R-P1/R-P2 reproduce `M(d)`.* By R-P1 (`Σ'.M(d)(c₀ + j) = Σ.M(d)(c₁ + j)` for `0 ≤ j < w_β = 2`):
+- j = 0: `Σ'.M(d)([1, 1]) = Σ.M(d)([1, 2]) = a`
+- j = 1: `Σ'.M(d)([1, 2]) = Σ.M(d)([1, 3]) = a`
+
+By R-P2 (`Σ'.M(d)(c₀ + w_β + j) = Σ.M(d)(c₀ + j)` for `0 ≤ j < w_α = 1`):
+- j = 0: `Σ'.M(d)([1, 3]) = Σ.M(d)([1, 1]) = a`
+
+Every right-hand side is `a` because `Σ.M(d)` is constant `= a` on the affected range. Hence
+```
+Σ'.M(d) = { [1, 1] ↦ a,    [1, 2] ↦ a,    [1, 3] ↦ a } = Σ.M(d)
+```
+This is the collapse: π is the non-identity pivot, yet R-P1/R-P2 leave the arrangement pointwise unchanged. K.μ~ admissibility clause (ii) — non-trivial net effect `M'(d) ≠ M(d)` — fails, so the named composite K.μ~ is unavailable and none is owed.
+
+*Empty-sequence realiser delivers `Σ' = Σ`.* With `Σ'.M(d) = Σ.M(d)` and RA-frame fixing every other component (`Σ'.C = Σ.C`, `Σ'.L = Σ.L`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, and `Σ'.M(d') = Σ.M(d')` for `d' ≠ d`), the REARRANGE_K transition is the identity `Σ' = Σ`. The realiser is the empty sequence of elementary transitions — admitted by ASN-0047's SequentialTransitionAxiom, whose `Σ →* Σ'` ranges over finite, possibly empty, sequences — which satisfies every elementary precondition vacuously and carries `Σ' = Σ`. Reachability of Σ' is then immediate from reachability of Σ.
+
+*Admissibility (RA-adm).* Since `Σ' = Σ`, every per-state foundation invariant that holds at the reachable pre-state Σ holds at Σ' trivially: *S2* holds as exhibited (each V-position appears once on the left, sharing notwithstanding); *S8a*, *S8-depth*, *D-CTG★*, *D-MIN★*, *S3★*, and the remaining per-state invariants hold at Σ' because they held at Σ and Σ' is the same state. Every RE-* claim of this trace is an identity of Σ with itself — `project(e, d, Σ') = project(e, d, Σ)`, `ran(Σ'.M(d)) = ran(Σ.M(d))`, run cardinality unchanged (no run extends, since a run from `[1, 1]` would need `Σ.M(d)([1, 2]) = a + 1` but `Σ.M(d)([1, 2]) = a ≠ a + 1`, so each of the three positions is its own length-1 run — three runs at both states). The collapse branch is thus a witnessed instance, not an unexhibited appeal.
 
 ## Composition Across Multi-Step REARRANGE Sequences
 
