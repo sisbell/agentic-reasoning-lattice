@@ -53,7 +53,7 @@ F1 (MatchPredicate):
 
 F1 generalizes ASN-0098's `discoverable_from`. ASN-0098 defines that predicate in *project* form — `discoverable_from(a, d, Σ) ≡ (E i : project(a, i, d, Σ) ≠ ∅)` — whereas F1's `matches` is in *coverage* form. The two coincide by LP12 (DiscoverabilityCharacterisation, ASN-0098), whose per-slot biconditional `project(a, i, d, Σ) ≠ ∅ ⟺ coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅` gives `discoverable_from(a, d, Σ) = matches(a, ran(Σ.M(d)), Σ)`. The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to. Intersection (rather than containment) is forced by symmetry: a link is about every byte its endsets cover (L13), one shared byte suffices, and to require containment in either direction would impose a circular precondition (the reader would need to know each link's extent to know whether to include it in the query).
 
-F1's match is **per-endset overlap**: within each endset, satisfaction is existential over spans, and the per-span test is overlap (`coverage(eᵢ) ∩ I ≠ ∅` unfolds to `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`, with an identifiable witness span). The realizability witnesses below — three strengthenings and two weakenings — carry the load: each exhibits a realizable `(a, I)` pair on which an alternative predicate differs from F1.
+F1's match is **per-endset overlap**: within each endset, satisfaction is existential over spans, and the per-span test is overlap (`coverage(eᵢ) ∩ I ≠ ∅` unfolds to `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`, with an identifiable witness span). The realizability witnesses below carry the load: each exhibits a realizable `(a, I)` pair on which an alternative predicate differs from F1.
 
 ```
 F4 (MatchIndividuation):
@@ -63,7 +63,7 @@ F4 (MatchIndividuation):
    strengthenings and two weakenings of F1's per-endset overlap test.
 ```
 
-*Realizability discharge.* The disagreement is always realizable: K.λ admits, at any state with `dom(Σ.M) ≠ ∅`, a link of arity `N ≥ 3` whose endsets are freely chosen subject only to well-formedness (`eᵢ ∈ Endset`, `e₃ ≠ ∅`; L4 places no constraint on span addresses), and the query I-set `I ⊆ T` is a query parameter rather than state — so every F1-admitted `(endset configuration, I)` pair is realizable by a K.λ allocation under any document. The witnesses below — three strengthenings and two weakenings — are concrete instances.
+*Realizability discharge.* The disagreement is always realizable: K.λ admits, at any state with `dom(Σ.M) ≠ ∅`, a link of arity `N ≥ 3` whose endsets are freely chosen subject only to well-formedness (`eᵢ ∈ Endset`, `e₃ ≠ ∅`; L4 places no constraint on span addresses), and the query I-set `I ⊆ T` is a query parameter rather than state — so every F1-admitted `(endset configuration, I)` pair is realizable by a K.λ allocation under any document. The witnesses below are concrete instances.
 
 *Strengthening 1 — Containment from coverage to query (`coverage ⊆ I`).* Witness link `a`: arity 3 with slot 1 `(β, δ(1, #β))`, slot 2 `(γ, δ(1, #γ))`, slot 3 `(α, δ(1, #α))`, where β and γ are same-length siblings of `α` differing at position `#α` (so β ⋠ α, α ⋠ β, γ ⋠ α, α ⋠ γ). Query `I = {α}`. F1 admits via slot 3: `coverage(L(a).e₃) ∩ I = {α} ≠ ∅`. The link-level strengthening predicate is the slot-existential `(E i : coverage(L(a).eᵢ) ⊆ I)`; we check every slot: slot 1's coverage `{t : β ≼ t}` is non-empty (contains β) and disjoint from `{α}` (since β ⋠ α), so `coverage(e₁) ⊄ I`; slot 2 likewise; slot 3's coverage `{t : α ≼ t}` (by PrefixSpanCoverage, ASN-0043) contains `α.0 ∉ I` (any tumbler extending α belongs by T0's allowance of trailing zeros). No slot satisfies `coverage ⊆ I`; strengthening excludes `a`.
 
@@ -159,7 +159,7 @@ ComprehensionInvariantUnderΣL — meta-lemma:
    the two states. Set extensionality closes the equality.
 ```
 
-The per-link case of ComprehensionInvariantUnderΣL stands on its own, under the weaker hypothesis of per-link value preservation `Σ'.L(a) = Σ.L(a)` at a specific `a ∈ dom(Σ.L)`:
+A per-link primitive follows under the weaker hypothesis of per-link value preservation `Σ'.L(a) = Σ.L(a)` at a specific `a ∈ dom(Σ.L)`:
 
 ```
 PerLinkInvarianceUnderValuePreservation — sub-lemma:
@@ -173,13 +173,14 @@ PerLinkInvarianceUnderValuePreservation — sub-lemma:
      universal `(A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧
      coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)` evaluates identically at Σ and Σ'.
 
-   Proof: Σ'.L(a) = Σ.L(a) gives, by L6's component-wise tuple
-   equality on Link values, |Σ'.L(a)| = |Σ.L(a)| and per-slot endset
-   equality Σ'.L(a).eᵢ = Σ.L(a).eᵢ for every i ∈ {1, …, |Σ.L(a)|}.
-   Coverage is a deterministic function of its endset argument, so
-   per-slot coverage agrees. F1's existential and the filtered
-   per-link conjunct each consult only |Σ.L(a)| and per-slot
-   coverage, so both evaluate identically at the two states.
+   Proof: the per-link steps of ComprehensionInvariantUnderΣL —
+   L6's component-wise tuple equality giving |Σ'.L(a)| = |Σ.L(a)|
+   and per-slot endset equality Σ'.L(a).eᵢ = Σ.L(a).eᵢ, hence
+   per-slot coverage agreement — apply unchanged at the weaker
+   hypothesis Σ'.L(a) = Σ.L(a) (a single key rather than the whole
+   store). F1's existential and the filtered per-link conjunct each
+   consult only |Σ.L(a)| and per-slot coverage, so both evaluate
+   identically at the two states.
 ```
 
 ## Arrangement Independence
@@ -210,8 +211,7 @@ F9 (NonAllocatingPreservation):
    and any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   A1 gives Σ.L = Σ'.L across every V ∖ {K.λ} operation — atomic ops
-   directly, K.μ~ through its two atomic constituents. F8 via
+   A1 gives Σ.L = Σ'.L across every V ∖ {K.λ} operation. F8 via
    ComprehensionInvariantUnderΣL then forces the equality. For a
    reachable sequence Σ →* Σ' whose every atomic step lies in
    V ∖ {K.λ}, the per-step equalities chain by transitivity.
@@ -389,16 +389,14 @@ F11 (PersistentDiscoverabilityI):
 
 LP13 (UnconditionalLinkPersistence, ASN-0098) supplies the multi-step per-link guarantee `a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`. PerLinkInvarianceUnderValuePreservation applied at this `a` then gives `matches(a, I, Σ) ⟺ matches(a, I, Σ')` — the witness slot found at Σ remains a witness at Σ'.
 
-*Distinction from ASN-0098's V-side discoverability.* F11 is an *I-side* persistence claim against a fixed query I-set; ASN-0098's `discoverable_from(a, d, Σ) ≡ (E i : project(a, i, d, Σ) ≠ ∅)` is a *V-side* notion parameterised by a document. The two coincide instantaneously — by LP12 (DiscoverabilityCharacterisation, ASN-0098), `discoverable_from(a, d, Σ) = matches(a, ran(Σ.M(d)), Σ)` — but I-side persistence holds while V-side persistence does not: V-side discoverability depends on `ran(Σ.M(d))`, which K.μ⁻ can shrink. Query 5 below exhibits the divergence concretely — the I-side query `findlinks({α₂}, ·)` returns `{ℓ}` at both `Σ` and `Σ_5`, while the V-side query `findlinks_V({v_a^2}, d_a, ·)` returns `{ℓ}` at `Σ` but `∅` at `Σ_5`. V-side persistence is *not* a theorem of this ASN, and could not be — Nelson's non-destructive-editing principle (LM 2/45) holds at the I-side, not the V-side.
-
-I-side persistence is exactly what permits F19's monotonicity. F19 quantifies over a fixed I-set across the reachable sequence; the V-side analogue would need to fix `(R, d)` and quantify across edits, and is invalidated by K.μ⁻ as Query 5 demonstrates.
+F11 is an *I-side* persistence claim against a fixed query I-set; the V-side analogue — fixing `(R, d)` and quantifying across edits — is not a theorem of this ASN and could not be, since K.μ⁻ can shrink `ran(Σ.M(d))` (Query 5 below exhibits the divergence concretely).
 
 ```
 F19 (ResultSetMonotonicity):
    findlinks(I, Σ) ⊆ findlinks(I, Σ') for every reachable Σ →* Σ'.
 ```
 
-Direct from F11 + the definition of `findlinks`. Monotonicity propagates to the filtered and scoped forms:
+Direct from F11 + the definition of `findlinks`. Monotonicity is an I-side phenomenon: F19 fixes an I-set and quantifies across the reachable sequence, resting on F11's I-side persistence; the V-side analogue would fix `(R, d)` and quantify across edits, which K.μ⁻ invalidates. Monotonicity propagates to the filtered and scoped forms:
 
 ```
 F19-filt: findlinks_filtered(C, Σ) ⊆ findlinks_filtered(C, Σ').
@@ -486,7 +484,7 @@ The specification is spare because of design choices established for other reaso
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
 | PerLinkInvarianceUnderValuePreservation | Per-link primitive: match and filtered per-link universal evaluate identically when `Σ'.L(a) = Σ.L(a)` at a specific `a` | introduced (sub-lemma) |
 | A1a | PublishedFramePreservation: every atomic op of V ∖ {K.λ} — {K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} — preserves `Σ.L` from its published frame (K.μ⁺, K.μ⁻ via ASN-0047's amended extended-state frames, both publishing `L' = L`) | introduced (structural lemma) |
-| A1 | LinkStoreInertOfNonAllocatingOperations: A1a over the atomic ops of V ∖ {K.λ}; K.μ~ reached only via its K.μ⁻ + K.μ⁺ decomposition (A1a at both); K.λ unique L-modifying operation in V | introduced (composite lemma) |
+| A1 | LinkStoreInertOfNonAllocatingOperations: K.λ is the unique operation of V that modifies the link store | introduced (composite lemma) |
 | F1 | MatchPredicate definition | definition |
 | F2 | Completeness: `findlinks(I, Σ) ⊆ result(I, Σ)` | introduced |
 | F3 | Soundness: `result(I, Σ) ⊆ findlinks(I, Σ)` | introduced |
@@ -498,7 +496,7 @@ The specification is spare because of design choices established for other reaso
 | F6 | Transclusion transparency | introduced |
 | F7 | Endset symmetry (slot equality + filter conjunction) | introduced |
 | F8 | Determinism: `findlinks(I, ·)` is a function of `(Σ.L, I)` | introduced |
-| F9 | NonAllocatingPreservation: findlinks invariant across every V ∖ {K.λ} transition — each atomic op (via A1a + F8), the K.μ~ composite, and any multi-step V ∖ {K.λ} sequence by transitivity | introduced |
+| F9 | NonAllocatingPreservation: findlinks invariant across every V ∖ {K.λ} transition, single-step or multi-step | introduced |
 | F9-λ | KλInducedIncrement: characterises the K.λ-induced delta to findlinks(I, ·) as disjoint union with a singleton or ∅ depending on whether ℓ_new matches | introduced |
 | F10 | Ordered result: canonical T1-sorted presentation | introduced |
 | F10-filt, F10-sco | Filtered and scoped ordered presentations | introduced |
@@ -515,18 +513,10 @@ The specification is spare because of design choices established for other reaso
 
 ## Open Questions
 
-What semantics should the operation have when the query I-set includes addresses outside `dom(Σ.C) ∪ dom(Σ.L)`?
-
-What completeness guarantees must hold when the link store is logically partitioned across multiple physical instances that may be temporarily disconnected?
-
-What consistency model must FINDLINKS observe with respect to K.λ operations that may be concurrent with or interleaved with the query at a higher protocol layer?
-
-How does access-control filtering compose with the completeness obligation — is completeness restated relative to the authorized scope, and what invariants must the access-control layer preserve to make the composition coherent?
-
 What must an implementation maintain to make the completeness obligation auditable — is there a recoverable witness for every reachable state demonstrating that the index agrees with the link store?
 
 Should the abstract specification require any bound on the time between K.λ commitment and the link's appearance in subsequent FINDLINKS results, or is "next query after K.λ" the only abstract handle available?
 
-What is the relationship between FINDLINKS and the inverse direction (resolving the result's endsets back to V-positions in some target document), and what additional guarantees does the inverse direction require that FINDLINKS does not?
-
 What is the minimum structural commitment any conforming substrate must make to the non-allocating fragment of its operation vocabulary in order to support link-discovery invariance under those operations?
+
+The scope exclusions listed under *What We Have Not Specified* — out-of-store query semantics, partition tolerance, the consistency model, access-control composition, and the inverse direction — each remain open research questions; they are not restated here.
