@@ -103,9 +103,7 @@ Other components are unchanged:
 
 ## Permanence of the Recording
 
-The endset sequence `Σ'.L(ℓ) = (e₁, ..., eₙ)` is permanently fixed. By LP13 (ASN-0098), for every reachable state sequence `Σ' →* Σ''`: `ℓ ∈ dom(Σ''.L) ∧ Σ''.L(ℓ) = Σ'.L(ℓ)`, hence in particular `Σ''.L(ℓ).eᵢ = Σ'.L(ℓ).eᵢ` for every slot `i`. Coverage equality is then immediate, since `coverage` is a deterministic function of the endset: `coverage(Σ''.L(ℓ).eᵢ) = coverage(Σ'.L(ℓ).eᵢ)`.
-
-The implication is that once recorded, the endsets' *addressing intent* is permanent: each coverage `coverage(Σ'.L(ℓ).eᵢ)` is fixed across every reachable state, so the link names the same set of I-addresses for all time.
+The endset sequence `Σ'.L(ℓ) = (e₁, ..., eₙ)` is permanently fixed. By LP13 (ASN-0098), for every reachable state sequence `Σ' →* Σ''`: `ℓ ∈ dom(Σ''.L) ∧ Σ''.L(ℓ) = Σ'.L(ℓ)`, hence in particular `Σ''.L(ℓ).eᵢ = Σ'.L(ℓ).eᵢ` for every slot `i`. Coverage equality is then immediate, since `coverage` is a deterministic function of the endset: `coverage(Σ''.L(ℓ).eᵢ) = coverage(Σ'.L(ℓ).eᵢ)` — the link names the same set of I-addresses across every reachable state.
 
 ## What Is Indexed?
 
@@ -158,7 +156,7 @@ Discoverability checks via LP12:
 
 The type-endset coverage `coverage(e₃) = {t : τ ≼ t}` does not contribute to discoverability from either `d` or `d'` in this state: by the setup's constraint that `τ ⋠ x` for every `x ∈ {a₁, a₂, a₃, ℓ}`, prefix-testing each element of `ran(Σ'.M(d)) = {a₁, a₂, ℓ}` and `ran(Σ'.M(d')) = {a₃}` against `τ` yields no matches. Hence `coverage(e₃) ∩ ran(Σ'.M(d)) = ∅` and `coverage(e₃) ∩ ran(Σ'.M(d')) = ∅`. This is consistent with the type endset's role: it carries the link's classification, not its content connections.
 
-*Reflexive variant.* We instantiate M-Reflexive concretely. Replace `e₁` with `e₁' = {(ℓ, δ(1, #ℓ))}`, keeping `e₂` and `e₃` (the caller predicts `ℓ = [d, 0, 2, 1]` per the predictability principle of wp Case 2). By PrefixSpanCoverage (ASN-0043), `coverage(e₁') = {t ∈ T : ℓ ≼ t}`, which contains `ℓ`. The M-Reflexive hypothesis `ℓ ∈ coverage(e₁')` is thus met, so wp Case 2's reflexive disjunct fires: `discoverable_from(ℓ, d, Σ')` holds with witness `v_ℓ ∈ project(ℓ, 1, d, Σ')`, regardless of `d`'s prior arrangement. Note that `e₁'` is *not* standardly authored at `Σ`: it pre-emptively covers the fresh `ℓ` (`ℓ ∈ F` but `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`), so `coverage(e₁') ∩ F ⊄ dom(Σ.C) ∪ dom(Σ.L)`. This variant is precisely the boundary M-FreshExcl / M-Reflexive isolate — the reflexive route is reachable only by violating standard authoring, which is why the standardly-authored discipline structurally excludes it.
+*Reflexive variant.* We instantiate M-Reflexive concretely. Replace `e₁` with `e₁' = {(ℓ, δ(1, #ℓ))}`, keeping `e₂` and `e₃` (the caller predicts `ℓ = [d, 0, 2, 1]` per the predictability principle of wp Case 2). By PrefixSpanCoverage (ASN-0043), `coverage(e₁') = {t ∈ T : ℓ ≼ t}`, which contains `ℓ`. The M-Reflexive hypothesis `ℓ ∈ coverage(e₁')` is thus met, so wp Case 2's reflexive disjunct fires: `discoverable_from(ℓ, d, Σ')` holds with witness `v_ℓ ∈ project(ℓ, 1, d, Σ')`, regardless of `d`'s prior arrangement. Note that `e₁'` is *not* standardly authored at `Σ`: it pre-emptively covers the fresh `ℓ` (`ℓ ∈ F` but `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`), so `coverage(e₁') ∩ F ⊄ dom(Σ.C) ∪ dom(Σ.L)`.
 
 ## Weakest Precondition for Discoverability
 
