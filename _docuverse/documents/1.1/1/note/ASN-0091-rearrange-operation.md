@@ -32,7 +32,7 @@ and the admissibility constraint
 every per-state foundation invariant satisfied by Σ is satisfied by Σ'                  (RA-adm)
 ```
 
-The bijection π is the *rearrangement permutation*. It is not in general unique: when `Σ.M(d)` has shared I-addresses (allowed by foundation S2/S5, the *shared-image licence*), any witness π must biject each I-address's pre-state pre-image set onto its post-state pre-image set, but the assignment within each such block is free, so distinct bijections can witness a single transition `Σ → Σ'`. This is the canonical statement of the licence; later sections invoke it by name.
+The bijection π is the *rearrangement permutation*. It is not in general unique: when `Σ.M(d)` has shared I-addresses (allowed by foundation S2/S5, the *shared-image licence*), any witness π must biject each I-address's pre-state pre-image set onto its post-state pre-image set, but the assignment within each such block is free, so distinct bijections can witness a single transition `Σ → Σ'`.
 
 The abstract class admits two degenerate cases. The *empty case* `dom(Σ.M(d)) = ∅` is admitted: π is the empty bijection and every claim holds vacuously. REARRANGE_K excludes it via R-PRE(ii) (ASN-0084), which states `V_S(d) ≠ ∅` outright as a precondition of every REARRANGE_K invocation. The *identity case* π = id is admitted: RA-π under π = id together with RA-dom gives `Σ'.M(d) = Σ.M(d)`, and RA-frame fixes all other components, so `Σ' = Σ` and RA-adm is trivially satisfied.
 
@@ -79,7 +79,7 @@ In the non-trivial case, K.μ~'s admissibility clauses (i)–(v) are closed abov
 
 ### State-Component-Only Invariants
 
-The binary transition invariants — those of the form `(A Σ → Σ' :: …)`, relations on the *pair* of states rather than per-state predicates, and so outside the per-state foundation list RA-adm discharges above — are discharged by a single **transition-satisfaction** principle: every such invariant constrains one state component (C, L, E, R, or dom(M)) by a monotonicity or value-preservation clause, and RA-frame fixes each of those components *with equality*, under which such a clause is trivially true. The class — ASN-0036's S0, S1; ASN-0047's P0, P1, P2, P3 (P3 the synthesis of P0 ∧ P1 ∧ P2 ∧ L12); L12; ASN-0093's M1, C0 — is therefore discharged uniformly by RA-frame, with no per-invariant argument required.
+The binary transition invariants — those of the form `(A Σ → Σ' :: …)`, relations on the *pair* of states rather than per-state predicates, and so outside the per-state foundation list RA-adm discharges above — are discharged by a single **transition-satisfaction** principle: every such invariant constrains one state component (C, L, E, R, or dom(M)) by a monotonicity or value-preservation clause, and RA-frame fixes each of those components *with equality*, under which such a clause is trivially true. The class — ASN-0036's S0, S1; ASN-0047's P0, P1, P2, L12; ASN-0093's M1, C0 — is therefore discharged uniformly by RA-frame, with no per-invariant argument required.
 
 ## What the Content Store Sees: Nothing
 
