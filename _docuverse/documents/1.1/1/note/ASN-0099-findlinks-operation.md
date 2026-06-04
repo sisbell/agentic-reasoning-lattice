@@ -92,23 +92,14 @@ findlinks(I, Σ) = ⋃_{i = 1}^{N} findlinks_filtered({(i, I)}, Σ)
 
 ## Completeness
 
-The defining obligation is *completeness*: every link in `dom(Σ.L)` satisfying the match predicate must appear in an implementation's output. Let `result : 𝒫(T) × 𝒮 → 𝒫(T)` denote a conforming implementation's output function, where `𝒮` is the Xanadu system state space (states of the form `Σ = (C, L, M, E, R, …)` from ASN-0036, ASN-0043, ASN-0047, ASN-0093; by SequentialTransitionAxiom of ASN-0093 each transition is atomic, so `Σ` is a well-defined single state at every query point). The signature commits the implementation to functionality (equal arguments yield equal outputs).
+The defining obligation is *completeness*: every link in `dom(Σ.L)` satisfying the match predicate must appear in an implementation's output. Let `result : 𝒫(T) × 𝒮 → 𝒫(T)` denote a conforming implementation's output function, where `𝒮` is the Xanadu system state space (states of the form `Σ = (C, L, M, E, R, …)` from ASN-0036, ASN-0043, ASN-0047, ASN-0093). The signature commits the implementation to functionality (equal arguments yield equal outputs).
 
 ```
 F2 (Completeness):  findlinks(I, Σ) ⊆ result(I, Σ).
 F3 (Soundness):     result(I, Σ) ⊆ findlinks(I, Σ).
 ```
 
-Together F2 ∧ F3 force `result(I, Σ) = findlinks(I, Σ)`. The same conjunction-forces-equality contract transfers parametrically to every operation form, each with its own `result_*` function functional in its arguments and pinned to the corresponding abstract specification:
-
-```
-F2★ ∧ F3★ (ConformanceParametric):
-   result_*(args, Σ) = findlinks_*(args, Σ)
-   for each form * ∈ {filtered, scoped, V}, the V form ranging only
-   over (R, d, Σ) with d ∈ dom(Σ.M).
-```
-
-When an implementation exposes both the V-side surface (satisfying F2★ ∧ F3★ at the V form) and the I-side surface (satisfying F2 ∧ F3), the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2★ ∧ F3★ (V form) + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly.
+Together F2 ∧ F3 force `result(I, Σ) = findlinks(I, Σ)`. Each defined form — `findlinks_filtered`, `findlinks_scoped`, `findlinks_V` — carries the analogous F2 ∧ F3 obligation, pinning a conforming implementation of that form to its abstract specification.
 
 ## Determinism and Comprehension Invariance
 
@@ -419,7 +410,6 @@ Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, 
 | F1 | MatchPredicate definition | definition |
 | F2 | Completeness: `findlinks(I, Σ) ⊆ result(I, Σ)` | introduced |
 | F3 | Soundness: `result(I, Σ) ⊆ findlinks(I, Σ)` | introduced |
-| F2★, F3★ | ConformanceParametric: `result_*(args, Σ) = findlinks_*(args, Σ)` for `* ∈ {filtered, scoped, V}` | introduced |
 | F4 | MatchIndividuation: witnesses individuate F1's per-endset overlap test against coverage-containment (either direction), cardinality threshold, and I-independent slot tests | introduced |
 | F5 | Identity, not value: match consults coverage, not content | introduced |
 | F6 | Transclusion transparency | introduced |
