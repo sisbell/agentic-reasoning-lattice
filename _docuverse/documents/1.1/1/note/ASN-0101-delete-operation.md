@@ -285,8 +285,6 @@ The verification exercises three claims jointly. D2: `a_1, a_2 ∈ dom(C')` afte
 
 By D11's cross-document remark, both wps from `d'` reduce to their pre-state predicates conjoined with `enabled(DEL[d, σ])` — the wp form of D5's bytewise-isolation guarantee — and the post-state evaluations above (`project(L'(ℓ_0).e_1, d', Σ') = {[1, 1, 1], [1, 1, 2]}`, cardinality 2) confirm it.
 
-In the example, the paragraph's bytes remain in `dom(C')`, the reference from `d'` survives, and the link `ℓ_0` becomes discoverable from `d` with reduced cardinality (1 instead of 2) while remaining discoverable from `d'` at full cardinality — the per-document autonomy established in the D5 section.
-
 ## Boundary cases
 
 We enumerate configurations that stress different parts of the specification, verifying that D0 and D8 hold uniformly.
@@ -525,8 +523,6 @@ The opposite direction is also informative. Suppose we wish to ensure that DEL[d
 
 ## ValidComposite★ extension under DELETE
 
-DEL must take its place as a first-class member of the foundation's elementary transition vocabulary if downstream specifications are to invoke "DEL in a ValidComposite★ chain" without further apparatus. We record the extension as a named claim.
-
 **D10 — ValidComposite★ extension under DELETE.** ASN-0047's ValidComposite★ is extended to admit DEL as an elementary transition. A composite transition `Σ →* Σ'` is *valid* iff it is a finite sequence of atomic transitions
 
 `Σ = Σ₀ → Σ₁ → ... → Σₙ = Σ'`
@@ -569,10 +565,6 @@ The final DEL step enters this derivation only through its neutrality: it adds n
 
 Nelson's design intent goes beyond "DELETE doesn't destroy" to the stronger claim that any prior arrangement of `d` should remain reconstructible [LM 2/15]. This concerns the *system as a whole*, not DELETE in isolation. D2 (every I-address in `ran(M(d))` persists in `dom(C')`) and D5 (a version `d_v` forked from `d` before the DELETE has its arrangement `M(d_v)` left untouched) make such reconstruction structurally *possible*. But DEL alone is not sufficient: it does not preserve `M(d)`, and recovering the pre-state arrangement from `M'(d)` alone is impossible — DELETE is information-destroying with respect to `d`'s current arrangement. The full versioning mechanism that would close this gap is out of scope here; Open Question 1 carries the rest.
 
-## Boundaries the abstract specification does not cross
-
-DELETE's guarantees concern only the state components named in D0's frame; auxiliary indices, representation choices, and enumeration of orphaned I-addresses are downstream concerns.
-
 ## Claims Introduced
 
 | Label | Statement | Status |
@@ -598,7 +590,7 @@ DELETE's guarantees concern only the state components named in D0's frame; auxil
 
 - What invariant must hold across an empty-arrangement state to ensure that subsequent insertion operations behave identically to insertion into a never-populated arrangement, given that DELETE can reduce a document's V-positions in a subspace to the empty set?
 
-- When DELETE removes a span whose contents include I-addresses referenced by no link and by no other document's arrangement, what abstract obligation (if any) does the system have to make those I-addresses rediscoverable?
+- When DELETE removes a span whose contents include I-addresses referenced by no link and by no other document's arrangement, what abstract obligation (if any) does the system have to make those I-addresses rediscoverable, and by what downstream mechanism are such orphaned I-addresses enumerated — given that DELETE's own guarantees concern only the state components named in D0's frame?
 
 - What guarantee must the operation provide regarding *causal ordering* between DELETE on one document and DELETE on another transcluding document, given that D5 makes the two operations structurally independent but downstream observers may need to relate them?
 
