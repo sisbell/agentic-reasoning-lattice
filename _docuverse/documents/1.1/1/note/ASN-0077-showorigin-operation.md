@@ -82,7 +82,7 @@ The block-collapsed form, which reads through the C1a block decomposition and co
 
 > *(F3)* `origins_V(Σ, d, σ) = { origin(aⱼ) : 1 ≤ j ≤ k }`.
 
-We adopt (F1) as the definition and derive (F3) as its equivalent block-collapsed form — the only auxiliary the downstream claims (O7, O11, O12, the worked example) consume. (The labels (F1) and (F3) are retained for continuity with those downstream references; there is no intervening (F2).)
+(F1) is the definition; (F3) is the equivalent block-collapsed form derived below via O2.
 
 **Claim O2 (Block uniformity).** *For each mapping block `(vⱼ, aⱼ, nⱼ)` arising in a decomposition of `f = M(d) ↾ ⟦σ⟧`, every I-address in `I(βⱼ)` shares `origin(aⱼ)`.*
 
@@ -160,7 +160,7 @@ The V-span lift is more nuanced. `origins_V(Σ, d, σ)` depends on the arrangeme
 
 *Derivation.* By (F1), `origins_V(Σ, d, σ) = { origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d)) }`. (1) The frame condition `M'(d) ↾ ⟦σ⟧ = M(d) ↾ ⟦σ⟧` gives `dom(M'(d) ↾ ⟦σ⟧) = dom(M(d) ↾ ⟦σ⟧)`; that is, `⟦σ⟧ ∩ dom(M'(d)) = ⟦σ⟧ ∩ dom(M(d))`. The two indexing sets are identical. (2) For each `v` in the common indexing set, the function values agree: `M'(d)(v) = M(d)(v)`. (3) Let `a = M(d)(v) = M'(d)(v)`. Since `v ∈ dom(M(d))`, S3★-aux (SubspaceExhaustiveness, ASN-0047) gives `subspace(v) ∈ {s_C, s_L}`; with this antecedent discharged, S3★ (GeneralizedReferentialIntegrity, ASN-0047) gives `a ∈ dom(Σ.C) ∪ dom(Σ.L)` (the `s_C` clause placing `a ∈ dom(C)`, the `s_L` clause placing `a ∈ dom(L)`). (4) P3 (ArrangementMutabilityOnly, ASN-0047) — `dom(C) ⊆ dom(C')` and `dom(L) ⊆ dom(L')` — gives `a ∈ dom(Σ'.C) ∪ dom(Σ'.L)`. (5) By O5, `origin'(a) = origin(a)`. (6) Hence `origin'(M'(d)(v)) = origin(M(d)(v))` for every `v` in the common indexing set. (7) The two sets `origins_V(Σ', d, σ)` and `origins_V(Σ, d, σ)` are constructed by applying the same operation to the same data, and therefore coincide. ∎
 
-The preservation and admissibility claims that follow all turn on the same six well-formedness conditions for a V-span query. We name them once, here, so the claims can reference the predicate rather than re-enumerating the conjuncts and re-naming them by ordinal.
+The preservation and admissibility claims that follow all turn on the same six well-formedness conditions for a V-span query.
 
 **Definition (WF_V — V-span well-formedness).** *For a state Σ, document `d`, and V-span `σ = (u, ℓ)`, the predicate `WF_V(Σ, d, σ)` is the conjunction:*
 
