@@ -46,7 +46,7 @@ ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047
 
 *Net-effect split.* REARRANGE_K's cut-sequence construction makes π non-identity automatically: by CS2 the cuts satisfy `c₀ < c₁ < ...`, so the region widths `w_α`, `w_β` (and `w_μ` for 4-cut) are each `≥ 1`, giving `π(c₀) > c₀` (R-PPERM for 3-cut, R-SPERM for 4-cut). But `π ≠ id` as a permutation of V-positions is strictly weaker than ASN-0047's K.μ~ admissibility clause (ii), the non-trivial *net effect* `M'(d) ≠ M(d)`. The two come apart precisely under shared I-addresses: when π fixes the I-address at every affected position — `M(d)(π(v)) = M(d)(v)` for all affected `v` — R-P1/R-P2 yield `M'(d) = M(d)` although π is the non-identity rotation. Such an arrangement is permitted by the *shared-image licence*: S2 (ArrangementFunctionality) imposes *only* functionality on `M(d)` — at most one image per V-position — and never a single-image (injectivity) constraint, while S5 (UnrestrictedSharing) explicitly admits a single I-address at several V-positions; a permutation that maps each shared-image V-position to another V-position carrying the same image leaves the map pointwise unchanged. The realisation therefore splits on net effect, with a realiser in each case. In the *non-trivial case* (`M'(d) ≠ M(d)`) the realiser is the named composite K.μ~. In the *collapse case* (`M'(d) = M(d)` with π ≠ id) the transition is the identity `Σ' = Σ`, so RA-adm holds and every RE-* claim below is an identity of `Σ` with itself.
 
-*Pointwise-fixity frames.* Two classes of V-position are not merely kept within their subspace but left wholly unpermuted (`π(v) = v`) — a stronger guarantee than K.μ~ clause (iv), which only requires subspace preservation. For each class, ASN-0084's R-PPERM and R-SPERM define π directly as the identity on that position set, and the corresponding arrangement-preservation clause records `Σ'.M(d)(v) = Σ.M(d)(v)` for the same positions; together these supply the named fact in full pointwise form. These frames derive directly from R-PPERM/R-SPERM and R-FRAME-P/S(a).
+*Pointwise-fixity frames.* Two classes of V-position are not merely kept within their subspace but left wholly unpermuted (`π(v) = v`) — a stronger guarantee than K.μ~ clause (iv), which only requires subspace preservation. For each class, ASN-0084's R-PPERM and R-SPERM define π directly as the identity on that position set, and the corresponding arrangement-preservation clause records `Σ'.M(d)(v) = Σ.M(d)(v)` for the same positions; together these supply the named fact in full pointwise form.
 
 - **RE-sub** — V-positions in subspaces *other than* the cut subspace S (arrangement preservation from R-FRAME-P/S(a)):
 ```
@@ -147,7 +147,7 @@ dom(Σ'.L) = dom(Σ.L)  ∧  (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a))          
 
 Every link persists across rearrangement with its full endset sequence intact. No link is added, removed, or modified.
 
-Coverage of an endset is a function of the endset's span representation alone (ASN-0098). Since RE-L preserves every endset verbatim, coverage is preserved — RE-cov is ASN-0098's LP3 (CoverageInvariance) instantiated at a REARRANGE step:
+Coverage of an endset is a function of the endset's span representation alone (ASN-0098). Since RE-L preserves every endset verbatim, coverage is preserved:
 ```
 (A a ∈ dom(Σ.L), i : 1 ≤ i ≤ |Σ.L(a)| :: coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ))   (RE-cov)
 ```
@@ -285,7 +285,7 @@ The per-state foundation invariants discharged by RA-adm hold at *every* state r
 
 Under RA-bndy, Σ' is again a reachable composite boundary. A REARRANGE is itself a composite — the named composite K.μ~ for the REARRANGE_K realiser (valid by the clause (i)–(v) and J3 discharge of the "REARRANGE_K Realises the Abstract Class" section above), the empty composite in the collapse case `Σ' = Σ`. Appending that composite to a trace of valid composites witnessing Σ yields a trace of valid composites whose final state is Σ', so Σ' too is the final state of a trace of valid composites — a reachable composite boundary by construction.
 
-ASN-0047's **ExtendedReachableStateInvariants** then delivers **P4★ ∧ P4a ∧ P7a** at Σ' in a single citation; no hand re-derivation of the three is required, since the foundation theorem already owns them at every reachable composite boundary and Σ' is one. In particular P4a (TraceWitnessing) is obtained in its full form — *universally* quantified over valid traces to Σ', not merely for the one trace ending in this REARRANGE step:
+Σ' is a reachable composite boundary, so ASN-0047's **ExtendedReachableStateInvariants** delivers **P4★ ∧ P4a ∧ P7a** at Σ'. In particular P4a (TraceWitnessing) is obtained in its full form — *universally* quantified over valid traces to Σ':
 ```
 (A valid trace Σ₀ →* … →* Σ_n = Σ' :: (A (a, d) ∈ Σ'.R :: (E Σ_k ∈ {Σ₀, …, Σ_n} : (E v ∈ dom(M_k(d)) : subspace(v) = s_C ∧ M_k(d)(v) = a))))
 ```
