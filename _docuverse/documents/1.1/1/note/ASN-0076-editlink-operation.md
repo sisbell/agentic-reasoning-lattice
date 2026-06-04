@@ -132,8 +132,6 @@ This is the central architectural claim. The original link's I-address remains v
 
 *Proof.* The result is foundational. By SequentialTransitionAxiom (ASN-0047), each K.λ firing is an atomic, totally-ordered transition, so the three K.λ events producing `ℓ_old`, `ℓ_new`, and `ℓ_sup` occur at three distinct time points and are therefore pairwise distinct as events. The two events of EDITLINK proper — those producing `ℓ_new` and `ℓ_sup` — emit via a T10a-conforming sub-allocator by SubAllocatorBundle (ASN-0047). The event producing `ℓ_old` is not a step of EDITLINK; we certify its conformance separately. Since `ℓ_old ∈ dom(Σ.L)` by hypothesis, and K.λ is the only transition in ASN-0047's vocabulary that adds an entry to `dom(L)`, `ℓ_old` was placed into the link store by some prior K.λ event; by L1c (LinkAllocatorConformance, ASN-0047), every `ℓ ∈ dom(Σ.L)` is the terminus of a T10a-conforming allocation chain, so that prior event is itself T10a-conforming. With all three producing events now established as T10a-conforming, L11a (LinkUniqueness, ASN-0043) — distinct T10a-conforming allocation events produce distinct link addresses — applies to each pair, giving `ℓ_new ≠ ℓ_old`, `ℓ_sup ≠ ℓ_old`, and `ℓ_sup ≠ ℓ_new`. The conclusion does not depend on any property of EDITLINK beyond its consisting of two K.λ steps.
 
-The implication is that no operation, applied to no input, can produce two links with the same I-address. A "fresh edit" of `ℓ_old` is necessarily a *new entity* in `dom(L)`, indistinguishable in kind from any other newly-allocated link, and the supersession claim is itself a third distinct entity.
-
 ## E3 — Endset Freedom
 
 **E3 (SuccessorEndsetFreedom).** The successor's endset sequence `(e'_1, ..., e'_N)` may differ arbitrarily from `Σ.L(ℓ_old)`, subject only to the structural constraints of L3: `N ≥ 3`, each `e'_i ∈ Endset`, and `e'_3 ≠ ∅`.
@@ -208,27 +206,15 @@ The construction therefore imposes no exclusivity among supersession claims; whi
 
 ## E7 — Lineage Witness
 
-**E7 (LineageWitness).** The supersession link's endsets structurally contain `ℓ_old` and `ℓ_new` as covering witnesses — a property of `Σ'.L` alone. Formally, define for each `a ∈ T` the *covering set*
+**E7 (LineageWitness).** The supersession link's endsets structurally contain `ℓ_old` and `ℓ_new` as covering witnesses — a property of `Σ'.L` alone:
 
 ```
-covers(Σ, a) ≡ {ℓ ∈ dom(Σ.L) : (E i, (s, w) : 1 ≤ i ≤ |Σ.L(ℓ)| ∧ (s, w) ∈ Σ.L(ℓ).e_i : a ∈ coverage({(s, w)}))}
+ℓ_old ∈ coverage(Σ'.L(ℓ_sup).e₁)  ∧  ℓ_new ∈ coverage(Σ'.L(ℓ_sup).e₂)
 ```
 
-— the set of links whose endsets reference `a` through at least one span. Then in the post-state `Σ'`:
+*Proof.* By E4, `Σ'.L(ℓ_sup).e_1 = E_from = {(ℓ_old, δ(1, #ℓ_old))}`. By PrefixSpanCoverage (ASN-0043), `coverage({(ℓ_old, δ(1, #ℓ_old))}) ⊇ {ℓ_old}`, so `ℓ_old ∈ coverage(Σ'.L(ℓ_sup).e_1)`. Symmetrically, E4 gives `Σ'.L(ℓ_sup).e_2 = E_to = {(ℓ_new, δ(1, #ℓ_new))}`, so `ℓ_new ∈ coverage(Σ'.L(ℓ_sup).e_2)`.
 
-```
-ℓ_sup ∈ covers(Σ', ℓ_old)  ∧  ℓ_sup ∈ covers(Σ', ℓ_new)
-```
-
-*Proof.* By E4, `Σ'.L(ℓ_sup).e_1 = E_from = {(ℓ_old, δ(1, #ℓ_old))}`. By PrefixSpanCoverage (ASN-0043), `coverage({(ℓ_old, δ(1, #ℓ_old))}) ⊇ {ℓ_old}`, so `ℓ_old ∈ coverage(Σ'.L(ℓ_sup).e_1)`. Hence `ℓ_sup ∈ covers(Σ', ℓ_old)`. Symmetrically, E4 gives `Σ'.L(ℓ_sup).e_2 = E_to = {(ℓ_new, δ(1, #ℓ_new))}`, so `ℓ_new ∈ coverage(Σ'.L(ℓ_sup).e_2)` and `ℓ_sup ∈ covers(Σ', ℓ_new)`.
-
-The claim is structural: it concerns the relationship between `Σ'.L(ℓ_sup)`'s endsets and the addresses `ℓ_old`, `ℓ_new`, evaluated in the post-state link store. Any lookup operation that returns `covers(Σ, ·)` — or any superset of it that respects endset coverage — will surface `ℓ_sup` when queried with `ℓ_old` or `ℓ_new`. The formalization of such operations is the proper subject of the link-search specification; E7 establishes only that the structural witness is present.
-
-**Reconciliation with ASN-0098's discoverability.** The `covers` predicate above must not be confused with ASN-0098's `discoverable_from` (Definition — DiscoverableFrom and Definition — Project, ASN-0098). The two run in opposite directions and rest on different state components. ASN-0098's `discoverable_from` is *arrangement-conditional*: by LP12 (DiscoverabilityCharacterisation, ASN-0098) a link `a` is discoverable from `d` exactly when some slot's coverage meets `ran(Σ.M(d))` — only when an arrangement entry of `d` lands on an I-address its coverage covers. Our `covers(Σ, a)` is instead the *inverse* lookup — it ranges over the link store `dom(Σ.L)` and collects links whose endset spans cover the queried address `a`, consulting no arrangement. It is therefore a property of `Σ.L` alone, not of any `Σ.M(d)`.
-
-The distinction is load-bearing because EDITLINK never arranges its outputs: E10 establishes that the composite performs no K.μ⁺_L step. Absent independent arrangement of the referents `ℓ_old`, `ℓ_new` in some document, `ℓ_sup` is *orphaned* (LP17, GhostProjection, ASN-0098) — present in `dom(Σ'.L)` but `discoverable_from` no document — and becomes discoverable once a subsequent transition arranges an I-address in its coverage (LP18, Resurrection, ASN-0098). E7's structural witness — the spans present in `Σ'.L(ℓ_sup)` — is precisely the precondition LP18 needs; it does *not* assert ASN-0098 discoverability.
-
-This property is what makes the supersession link operative as a record of editing. It is not enough to *create* the supersession link; the structural relationship must be present in the link store so that any conforming discovery operation can recover the lineage. Without this structural witness, an "edit" would be a write-only act with no path to recover the lineage.
+The membership is an inverse link-store lookup evaluated over `Σ'.L` alone, independent of any arrangement (coverage is combinatorial; Definition — Coverage, ASN-0098), so absent independent arrangement of `ℓ_old` or `ℓ_new` in some document, `ℓ_sup` is orphaned (LP17, ASN-0098) and becomes discoverable once a later transition arranges an I-address in its coverage (LP18, ASN-0098).
 
 ## E8 — Original Resolution Unaffected
 
@@ -264,7 +250,7 @@ The transition frame of K.λ tells us what EDITLINK does *not* do.
 
 *Proof.* Each K.λ step in the composite has frame `(A d :: M'(d) = M(d)) ∧ R' = R`. The composition of two such steps preserves the same frame. In particular, K.λ on `d_new` does not even touch `M(d_new)` — placement of the new link in an arrangement, if desired, is a separate K.μ⁺_L step, not part of EDITLINK.
 
-The implication is that `home(ℓ_old)`'s arrangement is not extended with any notification of the edit; the original link's owner receives no automatic push. If the original owner is to *learn* of the edit, it is by issuing a discovery query — the pull model.
+The original owner receives no automatic push; to learn of the edit, it must issue a discovery query — the pull model.
 
 ## A Worked Example
 
@@ -307,7 +293,7 @@ We check the claims against this state.
 
 **E6.** `home(ℓ_sup) = d_bob = [4.0.2.0.3] ≠ [3.0.5.0.7] = d_alice = home(ℓ_old)`. K.λ's precondition `d_new ∈ E_doc` was satisfied by `d_bob` alone; nothing in the composite required `d_bob = home(ℓ_old)`. Bob's claim is published in his own namespace, attributable to him, without Alice's participation. ✓
 
-**E7.** `ℓ_sup ∈ covers(Σ', ℓ_old)`: take `i = 1`, `(s, w) = (ℓ_old, δ(1, 8))`; `ℓ_old ∈ coverage({(ℓ_old, δ(1, 8))})` by PrefixSpanCoverage and reflexivity. Symmetrically `ℓ_sup ∈ covers(Σ', ℓ_new)`. ✓
+**E7.** `ℓ_old ∈ coverage(Σ'.L(ℓ_sup).e₁)`: with `Σ'.L(ℓ_sup).e₁ = {(ℓ_old, δ(1, 8))}`, `ℓ_old ∈ coverage({(ℓ_old, δ(1, 8))})` by PrefixSpanCoverage and reflexivity. Symmetrically `ℓ_new ∈ coverage(Σ'.L(ℓ_sup).e₂)`. ✓
 
 **E8.** Any operation that reads `Σ'.L(ℓ_old)` obtains `(F_old, G_old, Θ_old)` — identical to what `Σ.L(ℓ_old)` would have returned. The claim reduces to E1, which gives `Σ'.L(ℓ_old) = Σ.L(ℓ_old)`. ✓
 
@@ -339,7 +325,7 @@ The example exhibits the asymmetry recorded in E6: Alice retains full control of
 | E4 | The post-state contains a link `ℓ_sup` whose first endset references `ℓ_old`, whose second endset references `ℓ_new`, and whose third endset references `τ_sup` via canonical unit-depth spans (a structural witness; semantic identification as a supersession requires an external `τ_sup` convention) | introduced |
 | E5 | For any reachable state Σ, any `ℓ_old ∈ dom(Σ.L)`, and any natural number k, a chain of k consecutive EDITLINK composites yields a state containing k distinct supersession links naming `ℓ_old`, each with a distinct successor link | introduced |
 | E6 | The supersession link's home document need not coincide with the original link's home document; the only formal constraint EDITLINK places on `d_new` is `d_new ∈ E_doc` | introduced |
-| E7 | The supersession link's endsets structurally contain `ℓ_old` and `ℓ_new` as covering witnesses (an inverse-lookup `covers` property of `Σ.L`; absent arrangement of the referents, `ℓ_sup` is orphaned per LP17) | introduced |
+| E7 | The supersession link's endsets structurally contain `ℓ_old` and `ℓ_new` as covering witnesses (`ℓ_old ∈ coverage(Σ'.L(ℓ_sup).e₁)`, `ℓ_new ∈ coverage(Σ'.L(ℓ_sup).e₂)`; absent arrangement of the referents, `ℓ_sup` is orphaned per LP17) | introduced |
 | E8 | Any resolution of `ℓ_old`'s endsets after EDITLINK obtains the same value as before EDITLINK | introduced |
 | E9 | The supersession link itself is permanent (L12, ASN-0043; LP13, ASN-0098) across all subsequent state transitions | introduced |
 | E10 | EDITLINK modifies no arrangement and does not extend `R`; no notification reaches the original owner | introduced |
