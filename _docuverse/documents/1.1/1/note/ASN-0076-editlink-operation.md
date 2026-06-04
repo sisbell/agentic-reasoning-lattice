@@ -130,7 +130,7 @@ This is the central architectural claim. The original link's I-address remains v
 ℓ_new ≠ ℓ_old  ∧  ℓ_sup ≠ ℓ_old  ∧  ℓ_sup ≠ ℓ_new
 ```
 
-*Proof.* The three inequalities follow directly from the freshness and membership facts E0 already discharges; no appeal to L11a is required. E0's successor step establishes `ℓ_new ∉ dom(Σ.L) ∪ dom(Σ.C)` at the pre-state `Σ`, while the composite precondition gives `ℓ_old ∈ dom(Σ.L)`. A member of `dom(Σ.L)` cannot equal a non-member, so `ℓ_new ≠ ℓ_old`. E0's supersession step establishes `ℓ_sup ∉ dom(Σ_1.L)` at the intermediate state `Σ_1`, where `dom(Σ_1.L) = dom(Σ.L) ∪ {ℓ_new}`. Hence both `ℓ_old ∈ dom(Σ_1.L)` (since `dom(Σ.L) ⊆ dom(Σ_1.L)`) and `ℓ_new ∈ dom(Σ_1.L)`, while `ℓ_sup` lies outside `dom(Σ_1.L)`; the same member/non-member argument gives `ℓ_sup ≠ ℓ_old` and `ℓ_sup ≠ ℓ_new`. Freshness against the link store is strictly weaker than L11a's allocation-event distinctness and is already on hand from E0, so neither SequentialTransitionAxiom's event-ordering apparatus nor a separate L1c-conformance certification of `ℓ_old` is needed.
+*Proof.* The three inequalities follow directly from the freshness and membership facts E0 already discharges. E0's successor step establishes `ℓ_new ∉ dom(Σ.L) ∪ dom(Σ.C)` at the pre-state `Σ`, while the composite precondition gives `ℓ_old ∈ dom(Σ.L)`. A member of `dom(Σ.L)` cannot equal a non-member, so `ℓ_new ≠ ℓ_old`. E0's supersession step establishes `ℓ_sup ∉ dom(Σ_1.L)` at the intermediate state `Σ_1`, where `dom(Σ_1.L) = dom(Σ.L) ∪ {ℓ_new}`. Hence both `ℓ_old ∈ dom(Σ_1.L)` (since `dom(Σ.L) ⊆ dom(Σ_1.L)`) and `ℓ_new ∈ dom(Σ_1.L)`, while `ℓ_sup` lies outside `dom(Σ_1.L)`; the same member/non-member argument gives `ℓ_sup ≠ ℓ_old` and `ℓ_sup ≠ ℓ_new`.
 
 ## E3 — Endset Freedom
 
@@ -216,46 +216,6 @@ The construction therefore imposes no exclusivity among supersession claims; whi
 
 The membership is an inverse link-store lookup evaluated over `Σ'.L` alone, independent of any arrangement. Whether `ℓ_sup` is *discoverable* from a document is therefore a separate question: discoverability is arrangement-governed, made precise in E11 below.
 
-## E11 — Discoverability Precondition
-
-E7 settles the supersession link's referents as a property of `Σ'.L` alone. The question a reader actually asks — *can I discover `ℓ_sup` from document `d`?* — we make precise by computing the weakest precondition under which discovery succeeds.
-
-**E11 (DiscoverabilityPrecondition).** For any document `d ∈ dom(Σ.M)`, the weakest precondition under which the supersession link is discoverable from `d` after EDITLINK is a condition on the *pre-state* arrangement of `d`:
-
-```
-wp(EDITLINK, discoverable_from(ℓ_sup, d, ·))
-  ≡  pre(EDITLINK)
-     ∧ ( {t : ℓ_old ≼ t} ∩ ran(Σ.M(d)) ≠ ∅
-       ∨ {t : ℓ_new ≼ t} ∩ ran(Σ.M(d)) ≠ ∅
-       ∨ {t : τ_sup ≼ t} ∩ ran(Σ.M(d)) ≠ ∅ )
-```
-
-where `pre(EDITLINK)` is the composite precondition of E0.
-
-*Proof.* EDITLINK is deterministic in its inputs: K.λ's allocator rule fixes `ℓ_new` and `ℓ_sup` from the pre-state (E0). For a deterministic transition the weakest precondition is the conjunction of admissibility — `pre(EDITLINK)` — with the pullback of the postcondition along the transition; we compute that pullback.
-
-At the post-state `Σ'`, E0/E4 give `ℓ_sup ∈ dom(Σ'.L)` with `Σ'.L(ℓ_sup) = (E_from, E_to, E_type)`, and `d ∈ dom(Σ'.M)` since the document set only grows (M1, ASN-0047). Discoverability is thus well-defined, and LP12 (DiscoverabilityCharacterisation, ASN-0098) evaluates it slot-by-slot:
-
-```
-discoverable_from(ℓ_sup, d, Σ')
-  ⟺ coverage(E_from) ∩ ran(Σ'.M(d)) ≠ ∅
-   ∨ coverage(E_to)   ∩ ran(Σ'.M(d)) ≠ ∅
-   ∨ coverage(E_type) ∩ ran(Σ'.M(d)) ≠ ∅
-```
-
-Two substitutions reduce this to a pre-state condition. The **frame pullback**: by E10, `Σ'.M(d) = Σ.M(d)` for every `d ∈ E_doc`, so `ran(Σ'.M(d)) = ran(Σ.M(d))` — the post-state range is the pre-state range untouched. The **coverages**: by L13 and PrefixSpanCoverage (ASN-0043), `coverage(E_from) = {t : ℓ_old ≼ t}`, `coverage(E_to) = {t : ℓ_new ≼ t}`, and `coverage(E_type) = {t : τ_sup ≼ t}`. Substituting both yields the three-disjunct condition above, evaluated entirely at `Σ`. ∎
-
-*The collapse.* The wp contains no clause crediting the mere existence of `ℓ_sup ∈ dom(Σ'.L)` toward discoverability: allocating the supersession link does nothing, by itself, to make it findable. Discoverability turns solely on whether `d` *already* arranges an I-address in the prefix-closure of one of the three referents. The middle disjunct, moreover, is vacuous at the pre-state. `ℓ_new` is freshly allocated by EDITLINK, so `ℓ_new ∉ dom(Σ.C) ∪ dom(Σ.L)` (E0); any proper extension `t ≻ ℓ_new` shares `ℓ_new`'s element-field start `s_L`, so `subspace_I(t) = s_L ≠ s_C` excludes it from `dom(Σ.C)`, while as an as-yet-unspawned allocator frontier `ℓ_new` seeds no descendant allocator and so has no extension in `dom(Σ.L)` either. Since `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)` (S3★, ASN-0047), `{t : ℓ_new ≼ t} ∩ ran(Σ.M(d)) = ∅`. The precondition therefore reduces to prior arrangement of `ℓ_old` or `τ_sup`:
-
-```
-wp(EDITLINK, discoverable_from(ℓ_sup, d, ·))
-  ≡  pre(EDITLINK)
-     ∧ ( {t : ℓ_old ≼ t} ∩ ran(Σ.M(d)) ≠ ∅
-       ∨ {t : τ_sup ≼ t} ∩ ran(Σ.M(d)) ≠ ∅ )
-```
-
-This is the formal content of E7's closing remark. When neither `ℓ_old` nor `τ_sup` is arranged in `d`, the antecedent fails: `ℓ_sup` is orphaned in `Σ'` (LP17, ASN-0098), and only a *later* transition arranging an I-address in its coverage can resurrect it (LP18, ASN-0098). EDITLINK alone never closes the gap — discovery is a pull, deferred to the reader's arrangement state.
-
 ## E8 — Original Resolution Unaffected
 
 **E8 (OriginalResolutionUnaffected).** Any operation that resolves an endset reference to `ℓ_old` and reads `Σ.L(ℓ_old)` obtains the same value before and after EDITLINK.
@@ -291,6 +251,46 @@ The transition frame of K.λ tells us what EDITLINK does *not* do.
 *Proof.* Each K.λ step in the composite has frame `(A d :: M'(d) = M(d)) ∧ R' = R`. The composition of two such steps preserves the same frame. In particular, K.λ on `d_new` does not even touch `M(d_new)` — placement of the new link in an arrangement, if desired, is a separate K.μ⁺_L step, not part of EDITLINK.
 
 The original owner receives no automatic push; to learn of the edit, it must issue a discovery query — the pull model.
+
+## E11 — Discoverability Precondition
+
+E7 settles the supersession link's referents as a property of `Σ'.L` alone. The question a reader actually asks — *can I discover `ℓ_sup` from document `d`?* — we make precise by computing the weakest precondition under which discovery succeeds.
+
+**E11 (DiscoverabilityPrecondition).** For any document `d ∈ dom(Σ.M)`, the weakest precondition under which the supersession link is discoverable from `d` after EDITLINK is a condition on the *pre-state* arrangement of `d`:
+
+```
+wp(EDITLINK, discoverable_from(ℓ_sup, d, ·))
+  ≡  pre(EDITLINK)
+     ∧ ( {t : ℓ_old ≼ t} ∩ ran(Σ.M(d)) ≠ ∅
+       ∨ {t : ℓ_new ≼ t} ∩ ran(Σ.M(d)) ≠ ∅
+       ∨ {t : τ_sup ≼ t} ∩ ran(Σ.M(d)) ≠ ∅ )
+```
+
+where `pre(EDITLINK)` is the composite precondition of E0.
+
+*Proof.* EDITLINK is deterministic in its inputs: K.λ's allocator rule fixes `ℓ_new` and `ℓ_sup` from the pre-state (E0). For a deterministic transition the weakest precondition is the conjunction of admissibility — `pre(EDITLINK)` — with the pullback of the postcondition along the transition; we compute that pullback.
+
+At the post-state `Σ'`, E0/E4 give `ℓ_sup ∈ dom(Σ'.L)` with `Σ'.L(ℓ_sup) = (E_from, E_to, E_type)`, and `d ∈ dom(Σ'.M)` since the document set only grows (M1, ASN-0047). Discoverability is thus well-defined, and LP12 (DiscoverabilityCharacterisation, ASN-0098) evaluates it slot-by-slot:
+
+```
+discoverable_from(ℓ_sup, d, Σ')
+  ⟺ coverage(E_from) ∩ ran(Σ'.M(d)) ≠ ∅
+   ∨ coverage(E_to)   ∩ ran(Σ'.M(d)) ≠ ∅
+   ∨ coverage(E_type) ∩ ran(Σ'.M(d)) ≠ ∅
+```
+
+Two substitutions reduce this to a pre-state condition. The **frame pullback**: by E10, `Σ'.M(d) = Σ.M(d)` for every `d ∈ E_doc`, so `ran(Σ'.M(d)) = ran(Σ.M(d))` — the post-state range is the pre-state range untouched. The **coverages**: by L13 and PrefixSpanCoverage (ASN-0043), `coverage(E_from) = {t : ℓ_old ≼ t}`, `coverage(E_to) = {t : ℓ_new ≼ t}`, and `coverage(E_type) = {t : τ_sup ≼ t}`. Substituting both yields the three-disjunct condition above, evaluated entirely at `Σ`. ∎
+
+*The collapse.* The wp contains no clause crediting the mere existence of `ℓ_sup ∈ dom(Σ'.L)` toward discoverability: allocating the supersession link does nothing, by itself, to make it findable. Discoverability turns solely on whether `d` *already* arranges an I-address in the prefix-closure of one of the three referents. The middle disjunct, moreover, is vacuous at the pre-state. `ℓ_new` is freshly allocated by EDITLINK, so `ℓ_new ∉ dom(Σ.C) ∪ dom(Σ.L)` (E0); any proper extension `t ≻ ℓ_new` shares `ℓ_new`'s element-field start `s_L`, so `subspace_I(t) = s_L ≠ s_C` excludes it from `dom(Σ.C)`. No element of `dom(Σ.L)` properly extends `ℓ_new` either, and this we derive rather than assert. Every link address lies in `F` (LP-Sub, ASN-0098) and is an emission of some `A_L` sub-allocator with element-field depth exactly `#E = 2` (SubAllocatorBundle, ASN-0047); `dom(Σ.L)` is precisely the union of these `A_L`-emissions, so every `link ∈ dom(Σ.L)` carries `zeros = 3` with its third zero seating the element-field boundary one position after its document prefix. The freshly produced `ℓ_new = [d_new.0.s_L.1]` likewise has `#E(ℓ_new) = 2` (E0) with third zero at position `#d_new + 1`. Suppose `t ∈ dom(Σ.L)` with `ℓ_new ≼ t`: then `t` agrees with `ℓ_new` on all `#ℓ_new` positions, so `t`'s third zero coincides with `ℓ_new`'s at position `#d_new + 1`; but `#E(t) = 2` forces `t`'s third zero to sit one position after `t`'s own document prefix, fixing `#t = #d_new + 3 = #ℓ_new` and hence `t = ℓ_new` (T3, ASN-0034). Thus `{t : ℓ_new ≼ t} ∩ dom(Σ.L) ⊆ {ℓ_new}`, and `ℓ_new ∉ dom(Σ.L)` (E0) empties it. Since `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)` (S3★, ASN-0047), `{t : ℓ_new ≼ t} ∩ ran(Σ.M(d)) = ∅`. The precondition therefore reduces to prior arrangement of `ℓ_old` or `τ_sup`:
+
+```
+wp(EDITLINK, discoverable_from(ℓ_sup, d, ·))
+  ≡  pre(EDITLINK)
+     ∧ ( {t : ℓ_old ≼ t} ∩ ran(Σ.M(d)) ≠ ∅
+       ∨ {t : τ_sup ≼ t} ∩ ran(Σ.M(d)) ≠ ∅ )
+```
+
+This is the formal content of E7's closing remark. When neither `ℓ_old` nor `τ_sup` is arranged in `d`, the antecedent fails: `ℓ_sup` is orphaned in `Σ'` (LP17, ASN-0098), and only a *later* transition arranging an I-address in its coverage can resurrect it (LP18, ASN-0098). EDITLINK alone never closes the gap — discovery is a pull, deferred to the reader's arrangement state.
 
 ## A Worked Example
 
