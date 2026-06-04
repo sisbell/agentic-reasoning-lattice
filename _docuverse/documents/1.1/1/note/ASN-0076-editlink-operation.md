@@ -70,8 +70,6 @@ E_type = { (τ_sup, δ(1, #τ_sup))  }
 
 By L13 and PrefixSpanCoverage, `coverage(E_from) = {t ∈ T : ℓ_old ≼ t}`. In particular `ℓ_old ∈ coverage(E_from)`. Similarly for `E_to` and `E_type`. The supersession link has arity 3, satisfies L3 (`e_3 ≠ ∅`), and references the two link entities via canonical unit-depth spans.
 
-The composite is a named pattern of two existing primitive applications, no different in kind from any other sequence of transitions a user might issue.
-
 ## E0 — EditLink as Composite
 
 We claim:
@@ -144,7 +142,7 @@ This is what "edit" means abstractly. The user-facing operation is not parameter
 
 ## The Supersession Relationship
 
-We now examine the second link in the composite — the one we call a *supersession link*. E4 states precisely what the link model establishes: the spans are present in the endsets and recoverable by inverse link-store lookup; discoverability is arrangement-conditional, settled in E11.
+We now examine the second link in the composite — the one we call a *supersession link*. E4 states precisely what the link model establishes: the spans are present in the endsets and recoverable by inverse link-store lookup.
 
 **E4 (SupersessionLink).** Following EDITLINK, the state `Σ'` contains a link `ℓ_sup ∈ dom(Σ'.L)` with:
 
@@ -205,8 +203,6 @@ The construction therefore imposes no exclusivity among supersession claims; whi
 ```
 
 *Proof.* By E4, `Σ'.L(ℓ_sup).e_1 = E_from = {(ℓ_old, δ(1, #ℓ_old))}`. By PrefixSpanCoverage (ASN-0043), `coverage({(ℓ_old, δ(1, #ℓ_old))}) ⊇ {ℓ_old}`, so `ℓ_old ∈ coverage(Σ'.L(ℓ_sup).e_1)`. Symmetrically, E4 gives `Σ'.L(ℓ_sup).e_2 = E_to = {(ℓ_new, δ(1, #ℓ_new))}`, so `ℓ_new ∈ coverage(Σ'.L(ℓ_sup).e_2)`.
-
-The membership is an inverse link-store lookup evaluated over `Σ'.L` alone, independent of any arrangement. Whether `ℓ_sup` is *discoverable* from a document is therefore a separate question: discoverability is arrangement-governed, made precise in E11 below.
 
 ## E8 — Original Resolution Unaffected
 
@@ -278,7 +274,7 @@ wp(EDITLINK, discoverable_from(ℓ_sup, d, ·))
        ∨ {t : τ_sup ≼ t} ∩ ran(Σ.M(d)) ≠ ∅ )
 ```
 
-This is the formal content of E7's closing remark. When neither `ℓ_old` nor `τ_sup` is arranged in `d`, the antecedent fails: `ℓ_sup` is orphaned in `Σ'` (LP17, ASN-0098), and only a *later* transition arranging an I-address in its coverage can resurrect it (LP18, ASN-0098). EDITLINK alone never closes the gap — discovery is a pull, deferred to the reader's arrangement state.
+When neither `ℓ_old` nor `τ_sup` is arranged in `d`, the antecedent fails: `ℓ_sup` is orphaned in `Σ'` (LP17, ASN-0098), and only a *later* transition arranging an I-address in its coverage can resurrect it (LP18, ASN-0098). EDITLINK alone never closes the gap — discovery is a pull, deferred to the reader's arrangement state.
 
 ## A Worked Example
 
