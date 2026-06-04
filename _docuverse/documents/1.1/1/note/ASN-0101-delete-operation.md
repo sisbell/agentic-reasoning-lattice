@@ -320,7 +320,7 @@ The unaffected subspace `S' ≠ S` inherits its Group (i) clauses via D6 as befo
 
 ## What is preserved
 
-We turn to the structural commitments that distinguish DELETE from destructive replacement. Each appears as a frame condition in D0; each deserves an explicit statement because each was load-bearing for Nelson's design intent.
+We turn to the structural commitments that distinguish DELETE from destructive replacement — the frame conditions of D0 (`C' = C`, `L' = L`, `dom(M') = dom(M)`, and the cross-document and cross-subspace isolation clauses), unpacked below as D2–D7.
 
 ### Content store: the Istream is untouched
 
@@ -414,7 +414,7 @@ We should be careful what D7 does *not* claim. It does not claim that the delete
 
 ### Well-formedness preservation
 
-**D8 — Arrangement well-formedness preservation under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ], the post-state satisfies every foundation *per-state* invariant that the pre-state was required to satisfy. The per-state invariants fall into three groups: Group (i), the arrangement invariants on the modified document `d`, preserved by a source-correspondence argument; and Groups (ii)–(iii), the allocation, store, transition, and remaining per-state invariants, all preserved because they predicate only over components D0's frame leaves pointwise fixed. The composite-boundary properties of ASN-0047 (P4★, P4a, P7a) are not per-state invariants; DEL is an elementary transition that may occur at a non-boundary pre-state where they need not hold, so DEL's effect on them is established at the composite boundary in D10, not here.
+**D8 — Arrangement well-formedness preservation under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ], the post-state satisfies every foundation *per-state* invariant that the pre-state was required to satisfy. The per-state invariants fall into three groups: Group (i), the arrangement invariants (S2, S8-fin, S8a, S8-depth, S3★, D-CTG★, D-MIN★, D-SEQ★, S8★, S3★-aux, CL-OWN, CL-UNIQ), each universally quantified over every `d ∈ dom(M)` — for the modified document `d` they are preserved by a source-correspondence argument, and for every unmodified document `d' ≠ d` they are inherited pointwise from the pre-state by D5 (`M'(d') = M(d')`), so the post-state arrangement of each such `d'` is identical to its pre-state arrangement and satisfies the same invariants verbatim; and Groups (ii)–(iii), the allocation, store, transition, and remaining per-state invariants, all preserved because they predicate only over components D0's frame leaves pointwise fixed. The composite-boundary properties of ASN-0047 (P4★, P4a, P7a) are not per-state invariants; DEL is an elementary transition that may occur at a non-boundary pre-state where they need not hold, so DEL's effect on them is established at the composite boundary in D10, not here.
 
 *Group (i): Arrangement invariants on the modified document `d`.* The post-state arrangement `M'(d)` satisfies:
 
@@ -553,10 +553,6 @@ The final DEL step enters this derivation only through its neutrality: it adds n
 
 *LP-family extension under DELETE.* ASN-0098's projection lemmas close over the DEL-extended vocabulary because DEL fixes both stores (`C' = C` by D2, `L' = L` by D3), so coverage and every store-relative projection premise are pointwise unchanged; DEL frames every non-`d` arrangement and the unaffected subspace of `d` (D5, D6), so cross-document and cross-subspace projections are invariant; and D9 and D11 supply the only DEL-specific projection facts — the affected document's per-step projection behaviour and the DEL-specific wp. No new LP-family lemma is required.
 
-## A note on recoverability and historical reconstruction
-
-DEL does not preserve `M(d)`: it overwrites the affected subspace's arrangement, and the pre-state arrangement cannot be recovered from `M'(d)` alone — DELETE is information-destroying with respect to `d`'s current arrangement. Reconstruction of a prior arrangement is a versioning concern, not a property of DEL; the mechanism is out of scope here. Open Question 1 carries the rest.
-
 ## Claims Introduced
 
 | Label | Statement | Status |
@@ -575,6 +571,8 @@ DEL does not preserve `M(d)`: it overwrites the affected subspace's arrangement,
 | D11 | Weakest preconditions for projection postconditions, each conjoining the enabledness guard `enabled(DEL[d, σ]) = wp(DEL[d, σ], true)` (DEL's preconditions) with the postcondition's pullback, as LP12a does: `wp(DEL[d, σ], discoverable_from(ℓ, d, ·)) ≡ enabled(DEL[d, σ]) ∧ (E i : project(L(ℓ).eᵢ, d, Σ) ⊄ X)`; cross-document discoverability wp conjoins enabledness with the pre-state predicate; `wp(DEL[d, σ], |project(·)| = k) ≡ enabled(DEL[d, σ]) ∧ |project(L(ℓ).eᵢ, d, Σ)| − |project(L(ℓ).eᵢ, d, Σ) ∩ X| = k`; cardinality is preserved iff DEL is enabled and `project(L(ℓ).eᵢ, d, Σ) ∩ X = ∅`; cross-document cardinality wp `wp(DEL[d, σ], |project(L(ℓ).eᵢ, d'', ·)| = k) ≡ enabled(DEL[d, σ]) ∧ |project(L(ℓ).eᵢ, d'', Σ)| = k` for `d'' ≠ d` conjoins enabledness with the pre-state cardinality predicate. Four wps in total — discoverability and cardinality, each from `d` and from `d'' ≠ d`. | introduced |
 
 ## Open Questions
+
+DEL is information-destroying with respect to `d`'s current arrangement: it overwrites the affected subspace, and the pre-state arrangement cannot be recovered from `M'(d)` alone. Reconstruction of a prior arrangement is a versioning concern, not a property of DEL, and is out of scope here. The questions below mark the abstract obligations that any such downstream mechanism would have to satisfy.
 
 - What additional preservation guarantees, beyond D2 and D5, must the broader transition vocabulary supply so that any pre-DELETE arrangement of a document remains reconstructible from the post-DELETE state plus a versioning mechanism?
 
