@@ -58,7 +58,7 @@ ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047
 
 *RA-frame discharge.* K.μ~'s ASN-0047 frame `C' = C; E' = E; R' = R; L' = L; M'(d') = M(d')` for `d' ≠ d` matches each conjunct of RA-frame explicitly, save `dom(Σ'.M) = dom(Σ.M)`. That last conjunct follows structurally: neither K.μ⁻ nor K.μ⁺ — the elementary decomposition of K.μ~ — touches the document registry, registration being the exclusive province of K.σ and the K.δ Document case. So no REARRANGE_K step adds or removes a document, and `dom(Σ'.M) = dom(Σ.M)` holds.
 
-*Reachability scope of the realisation.* The discharge of RA-adm for the REARRANGE_K realiser below routes through reachability: it shows Σ' reachable and reads off the per-state foundation invariants from ASN-0047's ExtendedReachableStateInvariants. This argument therefore establishes RA-adm only for a *reachable* pre-state Σ, and we scope the realisation theorem accordingly — REARRANGE_K realises the abstract Vstream-only class on every Σ reachable from Σ₀ by a finite sequence of elementary transitions drawn from valid composites.
+*Reachability scope of the realisation.* The discharge of RA-adm below establishes it only for a *reachable* pre-state Σ, so we scope the realisation theorem accordingly — REARRANGE_K realises the abstract Vstream-only class on every Σ reachable from Σ₀ by a finite sequence of elementary transitions drawn from valid composites.
 
 Given Σ reachable, the per-state foundation invariants hold at every reachable state (ASN-0047's ExtendedReachableStateInvariants), so RA-adm reduces to establishing that Σ' is reachable.
 
@@ -175,7 +175,7 @@ v ∈ project(e, d_tgt, Σ)
   ⟺ Σ'.M(d_tgt)(π(v)) ∈ coverage(e)          [RA-π: Σ'.M(d_tgt)(π(v)) = Σ.M(d_tgt)(v)]
   ⟺ π(v) ∈ project(e, d_tgt, Σ')             [definition; π(v) ∈ dom(Σ'.M(d_tgt)) by RA-π's codomain]
 ```
-The middle step uses that `coverage(e)` is a fixed function of the endset's spans, identical at Σ and Σ', so the membership test consults the same set on both lines. Since π bijects `dom(Σ.M(d_tgt))` onto `dom(Σ'.M(d_tgt))` (RA-π), this pointwise biconditional lifts to the set equality. The derivation rests only on RA-π and coverage state-independence, so it holds for every Vstream-only realiser. For the REARRANGE_K realiser specifically, this set equality is exactly ASN-0098's LP11 (ReorderingBijection) instantiated at `Σ' = K.μ~(Σ)`.
+The middle step uses that `coverage(e)` is a fixed function of the endset's spans, identical at Σ and Σ', so the membership test consults the same set on both lines. Since π bijects `dom(Σ.M(d_tgt))` onto `dom(Σ'.M(d_tgt))` (RA-π), this pointwise biconditional lifts to the set equality. The derivation rests only on RA-π and coverage state-independence. For the REARRANGE_K realiser specifically, this set equality is exactly ASN-0098's LP11 (ReorderingBijection) instantiated at `Σ' = K.μ~(Σ)`.
 
 *Non-target case.* For any `d ≠ d_tgt`, RE-other gives `Σ'.M(d) = Σ.M(d)` entirely, so the projection is identical at both states: `project(e, d, Σ') = project(e, d, Σ)`. The bijection π (which acts on `dom(Σ.M(d_tgt))`, not on `dom(Σ.M(d))`) plays no role.
 
@@ -290,8 +290,6 @@ A REARRANGE is itself a composite (K.μ~ for the REARRANGE_K realiser, the empty
 
 **P4a (TraceWitnessing).** P4a asserts that along some valid trace to Σ' every `(a, d) ∈ Σ'.R` is witnessed by a content-subspace arrangement entry at some trace state. Σ' is reachable (the RA-adm discharge above), so it sits at a composite boundary of a valid trace; since `Σ'.R = Σ.R` (RE-R) adds no provenance pair, every pair in `Σ'.R` is already witnessed along the trace to Σ, and appending the REARRANGE composite — which records no new provenance — preserves the witnessing. P4a thus holds at Σ' by inheritance from the reachable pre-state.
 
-These three derivations use only RE-C, RE-R, and RE-ran, all of which hold for every Vstream-only realiser; the composite-boundary preservation is therefore abstract, not specific to REARRANGE_K.
-
 ## Worked Example
 
 We trace a small concrete state through a single REARRANGE_K invocation and verify each RE-* claim at the level of actual values.
@@ -327,7 +325,6 @@ The link-subspace entry `[2, 1] ↦ a_link` is well-typed under S3★: a link-su
 - **RE-sub.** The link-subspace position `[2, 1] ∈ dom(Σ.M(d))` has `subspace([2, 1]) = 2 ≠ s_C = S`. R-PPERM's non-S branch gives `π([2, 1]) = [2, 1]` (the π-fixity conjunct), and R-FRAME-P(a) gives `Σ'.M(d)([2, 1]) = Σ.M(d)([2, 1]) = a_link` (the arrangement-preservation conjunct), matching the post-state arrangement exhibited above. The cut-subspace restriction is exercised concretely: REARRANGE_K's content-subspace cuts leave the link-subspace entry verbatim and the link-subspace V-position unpermuted, despite the bijection π acting non-trivially on content-subspace V-positions.
 - **RE-origin.** `origin(a₁) = origin(a₂) = d'` (extracted from positions 1–5 of `a₁` and `a₂`); `origin(b₁) = d` (extracted from positions 1–5 of `b₁`). Origin is a structural projection on the address; it does not depend on state and is unchanged.
 - **RE-R.** `Σ'.R = Σ.R` by RA-frame directly.
-- **Admissibility (RA-adm).** RA-adm is discharged once, abstractly, for every reachable Σ ("REARRANGE_K Realises the Abstract Class"); Σ' here is reachable, so the per-state foundation invariants hold at Σ' without per-invariant re-verification, and the binary transition invariants discharge by RA-frame's verbatim preservation of Σ.C, Σ.L, Σ.E, Σ.R, and dom(Σ.M) ("State-Component-Only Invariants").
 - **Composite-boundary properties (P4★, P4a, P7a).** These are not per-state invariants and so fall outside RA-adm; they are discharged by the abstract "Composite-Boundary Properties" arguments above, here at the concrete level. *P4★:* `Contains_C(Σ') = {(a₂, d), (b₁, d), (a₁, d)} = {(a₁, d), (a₂, d), (b₁, d)} = Contains_C(Σ)` as a set of pairs (π restricted to `V_{s_C}(d)` preserves the content-subspace range, so the set of (a, d) pairs Contains_C is preserved), and `Σ'.R = Σ.R` (RE-R) preserves the right-hand side, so the pre-state inclusion `Contains_C(Σ) ⊆ Σ.R` carries over to `Contains_C(Σ') ⊆ Σ'.R`. *P7a:* `dom(Σ'.C) = dom(Σ.C) = {b₁, a₁, a₂, …}` (RE-C) and `Σ'.R = Σ.R` (RE-R), so every content address still has a provenance witness — `(b₁, d), (a₁, d'), (a₂, d') ∈ Σ.R = Σ'.R` cover the three displayed addresses, inherited unchanged from the reachable pre-state. *P4a* (TraceWitnessing) is delivered at the K.μ~ composite boundary by ASN-0047's ExtendedReachableStateInvariants.
 
 Every derived claim holds at the concrete level; no two derived claims conflict at any point of the trace.
@@ -400,8 +397,6 @@ Apply RE-proj under each witness:
 Both set images equal `project(e_a, d, Σ') = {[1, 2], [1, 3]}`. RE-proj's equation holds under either choice of witness — the set image is invariant under the within-block freedom, even though the individual pointwise assignments disagree. The state-determined RHS `project(e_a, d, Σ')` is the same regardless of which valid π is used to compute the LHS, which is exactly the uniformity property: the set image `π(project(e_a, d, Σ))` is a state-determined object, not a witness-dependent one.
 
 The phenomenon is general: every endset `e` whose coverage intersects only the shared-block I-address `a` yields a projection `project(e, d, Σ)` that is the entire shared block, and the set image under either witness is the entire shared post-state block — the within-block freedom acts trivially at the set level. When coverage instead distinguishes V-positions within the shared block (impossible here, since the block's members all map to the same I-address and coverage is keyed to I-addresses, not V-positions), the bijection's freedom would be confined to the V-positions outside the block. This trace concretely realises the abstract argument that RE-proj is well-defined across witnesses.
-
-*Admissibility (RA-adm).* RA-adm holds for the reachable Σ' by the abstract discharge; the only feature beyond the preceding traces is the shared I-address `a` at `[1, 2]` and `[1, 3]`, admitted by the shared-image licence (net-effect split, above).
 
 Beyond exhibiting bijection non-uniqueness, this trace is also a richer RE-eq witness than the two-singleton case in "Run Decomposition Is Not Invariant": both states decompose into three singleton runs — no two adjacent V-positions are chain-adjacent (`a` repeats at `[1, 1], [1, 2]`, and `b ≠ a + 1` by Lemma L-chain (ChainDisjointAdjacency)) — so run cardinality is preserved at 3 even though π is non-trivial under either witness and shared I-addresses make it non-unique. RE-eq thus does not require a sparse arrangement; it persists under S5/UnrestrictedSharing.
 
