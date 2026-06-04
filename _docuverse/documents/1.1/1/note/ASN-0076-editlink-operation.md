@@ -36,11 +36,12 @@ Three values will be needed, of which the first two are produced by allocation a
 
 - `ℓ_new` — the I-address of the *successor link*, freshly allocated under `d_new`'s link sub-allocator;
 - `ℓ_sup` — the I-address of the *supersession link*, freshly allocated under `d_new`'s link sub-allocator;
-- `τ_sup` — a tumbler supplied by the caller as the address designating the supersession relationship. EDITLINK requires only that `τ_sup ∈ T`, so that the unit-depth span `(τ_sup, δ(1, #τ_sup))` is well-formed under T12 (the length condition `#τ_sup ≥ 1` is automatic, since T0 guarantees `#t ≥ 1` for every `t ∈ T`). Whether `τ_sup` lies in `dom(C)`, `dom(L)`, or neither — whether it is element-level, document-level, or in some dedicated subspace — is not constrained by the link model. EDITLINK simply records the caller's chosen address. The convention by which a reader recognizes `τ_sup` as designating supersession — and hence reads `ℓ_sup` as a supersession assertion rather than an arbitrary arity-3 link — is external to the link model and deferred to a future ASN on type-endset conventions (Open Questions).
+- `τ_sup` — a tumbler supplied by the caller as the address designating the supersession relationship. EDITLINK requires only that `τ_sup ∈ T`, so that the unit-depth span `(τ_sup, δ(1, #τ_sup))` is well-formed under T12 (the length condition `#τ_sup ≥ 1` is automatic, since T0 guarantees `#t ≥ 1` for every `t ∈ T`).
 
 **Precondition (composite, evaluated at the pre-state `Σ`):**
 
 ```
+Σ is a reachable state of ASN-0047's extended reachable state
 ℓ_old ∈ dom(Σ.L)
 d_new ∈ E_doc
 N ≥ 3
@@ -48,6 +49,8 @@ N ≥ 3
 e'_3 ≠ ∅
 τ_sup ∈ T
 ```
+
+The reachability conjunct — `Σ` derivable from `Σ₀` by a finite sequence of valid composites — is the outer hypothesis E5 carries explicitly. It is required twice over: the K.λ precondition discharges below lean on per-state facts at `Σ` (SubAllocatorBundle presumes the entity-allocation event that activated `A_L(d_new)` actually occurred; L0, used to derive `ℓ_new ∉ dom(Σ.C)`, is a per-state invariant), and the invariant-inheritance conclusion below requires `Σ` reachable so that `Σ'` is reachable.
 
 We define:
 
@@ -101,11 +104,11 @@ L3 requires arity at least 3 (satisfied by arity 3), every endset in `Endset`, a
 
 Each of the three supersession spans therefore lies in `Span`, each singleton endset lies in `Endset`, and L3 holds for `(E_from, E_to, E_type)`. Clause (iv) of K.λ is discharged at the supersession step.
 
-We must observe two things about the order. First, the composite definition fixes the successor step first; the chosen ordering makes the canonical unit-depth span `(ℓ_new, δ(1, #ℓ_new))` in `E_to` denote an *existing* link entity at the moment the supersession link is allocated, yielding a coherent reference rather than a forward declaration. Second, by SequentialTransitionAxiom (ASN-0047) each K.λ step is atomic, and EDITLINK as a ValidComposite★ is by definition a contiguous sub-sequence `Σ → Σ_1 → Σ'` of the transition history: no atomic transition intervenes between the two K.λ steps. The discharges above — the identification `ℓ_sup = inc(ℓ_new, 0)` from `Σ_1` and the fact that `ℓ_new` is the maximum of `{ℓ' ∈ dom(Σ_1.L) : origin(ℓ') = d_new}` — depend on this adjacency.
+We must observe the adjacency of the two steps. By SequentialTransitionAxiom (ASN-0047) each K.λ step is atomic, and EDITLINK as a ValidComposite★ is by definition a contiguous sub-sequence `Σ → Σ_1 → Σ'` of the transition history: no atomic transition intervenes between the two K.λ steps. The discharges above — the identification `ℓ_sup = inc(ℓ_new, 0)` from `Σ_1` and the fact that `ℓ_new` is the maximum of `{ℓ' ∈ dom(Σ_1.L) : origin(ℓ') = d_new}` — depend on this adjacency.
 
 **ValidComposite★ discharge.** With K.λ's elementary preconditions discharged at both steps above, clause (i) of ValidComposite★ (ASN-0047) holds; it remains to verify the coupling constraints (clause (ii)). J0 (AllocationPlacementCoupling) is vacuously satisfied: K.λ's frame preserves `C`, so `dom(Σ'.C) = dom(Σ.C)` across the composite and the antecedent `a ∈ dom(C') \ dom(C)` is empty. J1★ (ExtensionRecordsProvenance) and J1'★ (ProvenanceRequiresExtension) are vacuously satisfied: K.λ's frame preserves all arrangements `M(d)`, so the range differences `ran(M'(d)) \ ran(M(d))` are empty and the antecedent of each coupling is empty. Therefore EDITLINK satisfies ValidComposite★.
 
-**Invariant inheritance.** Since EDITLINK is a ValidComposite★ (discharged just above), by ExtendedReachableStateInvariants (ASN-0047) every per-state invariant of the extended reachable state continues to hold at the post-state — in particular L0, L1, L1a, L1b, L1c, L3, L14, L-fin, C-fin, CL-OWN, CL-UNIQ, and the per-state S-invariants S2, S3★, S3★-aux, S4, S7a–d, S8a, S8-fin, S8-depth, S8★, D-CTG★, D-MIN★, D-SEQ★, P6, P7, P8, NodeLineage. The composite-boundary properties P4★, P4a, P7a hold at the post-state because EDITLINK satisfies J0, J1★, and J1'★ (discharged just above). The transition invariants P0, P1, P2, and L12 (jointly P3) hold across the composite by ExtendedTransitionInvariants (ASN-0047); ASN-0036's S0 and S1 are subsumed by P0 and discharged with it. EDITLINK therefore preserves the full invariant suite of ASN-0047's extended reachable state without introducing any new invariants of its own.
+**Invariant inheritance.** Since `Σ` is reachable (composite precondition) and EDITLINK is a ValidComposite★ (discharged just above), `Σ'` is itself reachable — the path from `Σ₀` to `Σ` extended by EDITLINK is a finite sequence of valid composites. Hence by ExtendedReachableStateInvariants (ASN-0047) every per-state invariant of the extended reachable state continues to hold at the post-state — in particular L0, L1, L1a, L1b, L1c, L3, L14, L-fin, C-fin, CL-OWN, CL-UNIQ, and the per-state S-invariants S2, S3★, S3★-aux, S4, S7a–d, S8a, S8-fin, S8-depth, S8★, D-CTG★, D-MIN★, D-SEQ★, P6, P7, P8, NodeLineage. The composite-boundary properties P4★, P4a, P7a hold at the post-state because EDITLINK satisfies J0, J1★, and J1'★ (discharged just above). The transition invariants P0, P1, P2, and L12 (jointly P3) hold across the composite by ExtendedTransitionInvariants (ASN-0047); ASN-0036's S0 and S1 are subsumed by P0 and discharged with it. EDITLINK therefore preserves the full invariant suite of ASN-0047's extended reachable state without introducing any new invariants of its own.
 
 ## E1 — Original Preservation
 
@@ -209,7 +212,7 @@ This stands in sharp contrast to an in-place edit model, in which "the" successo
 
 ## E7 — Lineage Witness
 
-**E7 (LineageWitness).** The supersession link's endsets structurally contain `ℓ_old` and `ℓ_new` as covering witnesses. This is a structural-witness claim about the contents of `Σ'.L`, *not* a claim of discoverability in the sense of ASN-0098 (which is arrangement-conditional; see the reconciliation below). Formally, define for each `a ∈ T` the *covering set*
+**E7 (LineageWitness).** The supersession link's endsets structurally contain `ℓ_old` and `ℓ_new` as covering witnesses — a property of `Σ'.L` alone. Formally, define for each `a ∈ T` the *covering set*
 
 ```
 covers(Σ, a) ≡ {ℓ ∈ dom(Σ.L) : (E i, (s, w) : 1 ≤ i ≤ |Σ.L(ℓ)| ∧ (s, w) ∈ Σ.L(ℓ).e_i : a ∈ coverage({(s, w)}))}
@@ -340,7 +343,7 @@ The example exhibits the asymmetry recorded in E6: Alice retains full control of
 | E4 | The post-state contains a link `ℓ_sup` whose first endset references `ℓ_old`, whose second endset references `ℓ_new`, and whose third endset references `τ_sup` via canonical unit-depth spans (a structural witness; semantic identification as a supersession requires an external `τ_sup` convention) | introduced |
 | E5 | For any reachable state Σ, any `ℓ_old ∈ dom(Σ.L)`, and any natural number k, a chain of k consecutive EDITLINK composites yields a state containing k distinct supersession links naming `ℓ_old`, each with a distinct successor link | introduced |
 | E6 | The supersession link's home document need not coincide with the original link's home document; the only formal constraint EDITLINK places on `d_new` is `d_new ∈ E_doc` | introduced |
-| E7 | The supersession link's endsets structurally contain `ℓ_old` and `ℓ_new` as covering witnesses (an inverse-lookup `covers` property of `Σ.L`, distinct from and weaker than ASN-0098's arrangement-conditional `discoverable_from`; absent arrangement of the referents, `ℓ_sup` is orphaned per LP17) | introduced |
+| E7 | The supersession link's endsets structurally contain `ℓ_old` and `ℓ_new` as covering witnesses (an inverse-lookup `covers` property of `Σ.L`; absent arrangement of the referents, `ℓ_sup` is orphaned per LP17) | introduced |
 | E8 | Any resolution of `ℓ_old`'s endsets after EDITLINK obtains the same value as before EDITLINK | introduced |
 | E9 | The supersession link itself is permanent under L12 (single-step, ASN-0043) — equivalently LP13 (multi-step, ASN-0098) — across all subsequent state transitions | introduced |
 | E10 | EDITLINK modifies no arrangement and does not extend `R`; no notification reaches the original owner | introduced |
