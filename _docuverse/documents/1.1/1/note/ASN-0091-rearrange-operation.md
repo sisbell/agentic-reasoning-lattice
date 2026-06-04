@@ -79,7 +79,7 @@ In the non-trivial case, K.μ~'s admissibility clauses (i)–(v) are closed abov
 
 ### State-Component-Only Invariants
 
-The binary transition invariants — those of the form `(A Σ → Σ' :: …)`, relations on the *pair* of states rather than per-state predicates, and so outside the per-state foundation list RA-adm discharges above — are discharged by a single **transition-satisfaction** principle: every such invariant constrains one or more state components (C, L, E, R, or dom(M)) by monotonicity or value-preservation clauses, and RA-frame fixes each of those components *with equality*, under which such clauses are trivially true. The class — ASN-0036's S0, S1; ASN-0047's P0, P1, P2, L12, P3; ASN-0093's M1, C0 — is therefore discharged uniformly by RA-frame, with no per-invariant argument required.
+RA-frame fixes C, L, E, R, and dom(M) with equality, so every monotonicity or value-preservation invariant over those components holds trivially. This discharges each member of the following enumeration: ASN-0036's S0, S1; ASN-0047's P0, P1, P2, L12, P3; ASN-0093's M1, C0.
 
 ## What the Content Store Sees: Nothing
 
