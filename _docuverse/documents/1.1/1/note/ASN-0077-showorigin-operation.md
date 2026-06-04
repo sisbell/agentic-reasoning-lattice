@@ -36,7 +36,7 @@ The same structural projection extends uniformly to link addresses.
 
 Membership preservation for `dom(L)` is supplied directly by P3 (ArrangementMutabilityOnly, ASN-0047) — `(A Σ → Σ' :: dom(L) ⊆ dom(L'))` and `(A ℓ ∈ dom(L) :: L'(ℓ) = L(ℓ))` — and by LP13 (UnconditionalLinkPersistence, ASN-0098), which closes link permanence to multi-step `Σ →* Σ'`.
 
-CL-OWN (ASN-0047) records a related consequence at the arrangement level: every link *arranged* at a link-subspace V-position of document `d` satisfies `origin(M(d)(v)) = d`. This is downstream of (b) — CL-OWN governs *which document arranges* a link, while K.λ governs *which document allocates* it. The two coincide for the home-document case (`d` arranging its own link), which O2 below relies on. The extension is faithful to Nelson's design intent that origin reporting applies uniformly to all addressed material in tumbler-space, not only to content: links are first-class citizens with home documents, and the same structural lookup that names the home of a byte also names the home of a link.
+CL-OWN (ASN-0047) records a related consequence at the arrangement level: every link *arranged* at a link-subspace V-position of document `d` satisfies `origin(M(d)(v)) = d`. This is downstream of (b) — CL-OWN governs *which document arranges* a link, while K.λ governs *which document allocates* it. The two coincide for the home-document case (`d` arranging its own link).
 
 What we do not yet have is an operation that takes a *span* — not just one address — and reports the documents present. That is what we now construct.
 
@@ -244,7 +244,7 @@ The single-step claims O11 and O11' lift to a multi-step version by induction on
 
 (ii) The step is K.μ⁺_L on `d`. By O11' applied at `Σ_{n-1} → Σ_n` (with σ well-formed at `Σ_{n-1}`), `origins_V(Σ_{n-1}, d, σ) = origins_V(Σ_n, d, σ)`.
 
-(iii) The step does not modify `M(d)`. This is the complement of sub-cases (i) and (ii) — together the three sub-cases exhaust every transition by the binary modifies-`M(d)`/leaves-`M(d)`-fixed partition, with no appeal to a complete transition-kind enumeration. In every instance of this class `M(d)|_{Σ_n} = M(d)|_{Σ_{n-1}}`, so the restriction `M(d) ↾ ⟦σ⟧` is unchanged; O7 (V-span stability under fixed arrangement) at `Σ_{n-1} → Σ_n` gives `origins_V(Σ_{n-1}, d, σ) = origins_V(Σ_n, d, σ)`.
+(iii) The step does not modify `M(d)`. This is the complement of sub-cases (i) and (ii) — the sub-cases partition every transition by whether it modifies `M(d)`. In every instance of this class `M(d)|_{Σ_n} = M(d)|_{Σ_{n-1}}`, so the restriction `M(d) ↾ ⟦σ⟧` is unchanged; O7 (V-span stability under fixed arrangement) at `Σ_{n-1} → Σ_n` gives `origins_V(Σ_{n-1}, d, σ) = origins_V(Σ_n, d, σ)`.
 
 Composing with the inductive hypothesis by transitivity of equality, `origins_V(Σ, d, σ) = origins_V(Σ_n, d, σ)`. ∎
 
@@ -478,7 +478,7 @@ The `d_q = d₂` falsifying evaluation is the operational confirmation of O4 (pa
 
 The abstract specification of SHOWORIGIN reduces to three primitives:
 
-(1) The pointwise projection `origin : dom(C) ∪ dom(L) → E_doc` (established in S7 of foundation ASN-0036 for `dom(C)` and extended to `dom(L)` by O0, grounded structurally in L1 (LinkElementLevel) of ASN-0047 and semantically in L1c (LinkAllocatorConformance) composed with the Allocator hierarchy definition and SubAllocatorBundle of ASN-0047), which is structural, total, and permanent.
+(1) The pointwise projection `origin : dom(C) ∪ dom(L) → E_doc`, which is structural, total, and permanent.
 
 (2) The lift to I-spans, `origins_I(Σ, σ) = origin(⟦σ⟧ ∩ dom(C))`, computable from the span and `dom(C)` alone. (The I-span lift restricts to content by definitional choice; the link-subspace case is left as Open Question 1.)
 
@@ -492,7 +492,7 @@ Any implementation of Xanadu that claims to support SHOWORIGIN must satisfy O0�
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| O0 | Origin extended to `dom(L)`: `origin : dom(C) ∪ dom(L) → E_doc` defined by uniform structural projection, with (a) structural well-definedness via S7b (dom(C)) / L1 + L1b (dom(L)), (b) semantic correspondence via S7 (for dom(C)) and L1c + Allocator hierarchy + SubAllocatorBundle (for dom(L)), (c) totality via P6 (dom(C)) / L1a (dom(L)), and single-valuedness | introduced |
+| O0 | Origin extended to a total, single-valued, document-level projection on `dom(C) ∪ dom(L)`: `origin : dom(C) ∪ dom(L) → E_doc` | introduced |
 | `origins_I(Σ, σ)` | `origins_I(Σ, σ) = { origin(a) : a ∈ ⟦σ⟧ ∩ dom(Σ.C) }` — I-span lift of origin | introduced |
 | `origins_V(Σ, d, σ)` | `origins_V(Σ, d, σ) = { origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d)) }` — V-span lift via arrangement | introduced |
 | O1 | Origin partitions allocated content: `~_o` is an equivalence on `⟦σ⟧ ∩ dom(C)` whose quotient is in bijection with `origins_I(Σ, σ)`; each class corresponds to one document's allocations | introduced |
