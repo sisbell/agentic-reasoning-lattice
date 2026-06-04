@@ -58,11 +58,8 @@ F4 (MatchIndividuation):
    The witnesses below individuate F1's per-endset overlap test: each
    exhibits an (a, I) pair on which an alternative match design —
    coverage-containment in either direction, a cardinality threshold,
-   or an I-independent slot test — disagrees with F1. The endset shapes
-   are L3-admissible (slot 3 a non-empty type endset, non-type slots
-   possibly empty, with coverage(∅) = ∅) and each I-set is a query
-   parameter (L4 places no constraint on span addresses), so every
-   witness arises by a K.λ allocation under any document.
+   or an I-independent slot test — disagrees with F1. The witnesses are
+   L3-admissible states.
 ```
 
 *Strengthening 1 — Containment from coverage to query (`coverage ⊆ I`).* Witness link `a`: arity 3 with slot 1 `(β, δ(1, #β))`, slot 2 `(γ, δ(1, #γ))`, slot 3 `(α, δ(1, #α))`, where β and γ are same-length siblings of `α` differing at position `#α` (so β ⋠ α, α ⋠ β, γ ⋠ α, α ⋠ γ). Query `I = {α}`. F1 admits via slot 3: `coverage(L(a).e₃) ∩ I = {α} ≠ ∅`. The link-level strengthening predicate is the slot-existential `(E i : coverage(L(a).eᵢ) ⊆ I)`; we check every slot: slot 1's coverage `{t : β ≼ t}` is non-empty (contains β) and disjoint from `{α}` (since β ⋠ α), so `coverage(e₁) ⊄ I`; slot 2 likewise; slot 3's coverage `{t : α ≼ t}` (by PrefixSpanCoverage, ASN-0043) contains `α.0 ∉ I` (any tumbler extending α belongs by T0's allowance of trailing zeros). No slot satisfies `coverage ⊆ I`; strengthening excludes `a`.
@@ -367,8 +364,6 @@ F19 (ResultSetMonotonicity):
 
 Direct from F11 + the definition of `findlinks`. Monotonicity propagates to the filtered and scoped forms as clause (c) of F15.
 
-F19 (and its filtered/scoped instances under F15(c)) is the load-bearing consequence behind any indexed implementation's promise: an index that mirrors `findlinks` is never required to remove entries as the state evolves, only to add them.
-
 ## A Worked Example
 
 We fix a small instance. State `Σ` has two documents in `dom(Σ.M)`:
@@ -459,5 +454,3 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 What must an implementation maintain to make the completeness obligation auditable — is there a recoverable witness for every reachable state demonstrating that the index agrees with the link store?
 
 Should the abstract specification require any bound on the time between K.λ commitment and the link's appearance in subsequent FINDLINKS results, or is "next query after K.λ" the only abstract handle available?
-
-What is the minimum structural commitment any conforming substrate must make to the link-store-inert fragment of its operation vocabulary in order to support link-discovery invariance under those operations?
