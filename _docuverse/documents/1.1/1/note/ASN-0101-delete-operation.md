@@ -459,7 +459,7 @@ We should be careful what D7 does *not* claim. It does not claim that the delete
 
 ### Well-formedness preservation
 
-**D8 — Arrangement well-formedness preservation under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ], the post-state satisfies every foundation invariant that the pre-state was required to satisfy. The invariants partition into three groups by the mechanism that preserves them.
+**D8 — Arrangement well-formedness preservation under DELETE.** For every transition `Σ → Σ'` arising from DEL[d, σ], the post-state satisfies every foundation *per-state* invariant that the pre-state was required to satisfy, and DEL cannot break any *composite-boundary* property. The per-state invariants partition into three groups by the mechanism that preserves them. The three composite-boundary properties of ASN-0047 (P4★, P4a, P7a) are not per-state invariants and are treated separately at the end of Group (iii); their discharge at a DEL-terminated composite boundary is deferred to D10.
 
 *Group (i): Arrangement invariants on the modified document `d`.* The post-state arrangement `M'(d)` satisfies:
 
