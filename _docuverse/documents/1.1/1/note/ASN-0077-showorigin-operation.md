@@ -88,7 +88,7 @@ The block-collapsed form, which collects one origin per block:
 
 > *(F3)* `origins_V(Σ, d, σ) = { origin(aⱼ) : 1 ≤ j ≤ k }`.
 
-We adopt (F1) as the definition and derive (F2) and (F3) as equivalent forms; this matches the operation specification below.
+We adopt (F1) as the definition and derive (F2) and (F3) as equivalent forms.
 
 **Claim O2 (Block uniformity).** *For each mapping block `(vⱼ, aⱼ, nⱼ)` arising in a decomposition of `f = M(d) ↾ ⟦σ⟧`, every I-address in `I(βⱼ)` shares `origin(aⱼ)`.*
 
@@ -148,7 +148,7 @@ We turn to the question raised at the start: does the answer change?
 
 **Claim O5★ (Multi-step origin permanence).** *For any `a ∈ dom(Σ.C) ∪ dom(Σ.L)` and any reachable state sequence `Σ →* Σ'`: `a ∈ dom(Σ'.C) ∪ dom(Σ'.L)` and `origin'(a) = origin(a)`.*
 
-*Derivation.* We do not re-run the per-step induction: ASN-0098 already abstracts it. O5 establishes the single-step guarantee `P(Σ, Σ') ≡ [a ∈ dom(Σ'.C) ∪ dom(Σ'.L) ∧ origin'(a) = origin(a)]`, a conjunction of a membership-persistence clause (`a ∈ dom(·.C) ∪ dom(·.L)` carried forward) and a value-preservation clause at the accessor `origin`. The Closure schema (★) (ClosureSchema, ASN-0098) lifts any such single-step guarantee — a finite conjunction of membership-persistence and value-preservation clauses — to its transitive closure `Σ →* Σ'`, yielding both conjuncts of the claim directly. (Equivalently, the membership half is read off Store Monotonicity★ (ASN-0098), `dom(Σ.C) ⊆ dom(Σ'.C) ∧ dom(Σ.L) ⊆ dom(Σ'.L)` across `Σ →* Σ'` — strengthened on the link store to `Σ'.L(a) = Σ.L(a)` by LP13 (UnconditionalLinkPersistence, ASN-0098) — and the value half from O3's purity of `origin`.) ∎
+*Derivation.* We do not re-run the per-step induction: ASN-0098 already abstracts it. O5 establishes the single-step guarantee `P(Σ, Σ') ≡ [a ∈ dom(Σ'.C) ∪ dom(Σ'.L) ∧ origin'(a) = origin(a)]`, a conjunction of a membership-persistence clause (`a ∈ dom(·.C) ∪ dom(·.L)` carried forward) and a value-preservation clause at the accessor `origin`. The Closure schema (★) (ClosureSchema, ASN-0098) lifts any such single-step guarantee — a finite conjunction of membership-persistence and value-preservation clauses — to its transitive closure `Σ →* Σ'`, yielding both conjuncts of the claim directly. ∎
 
 For the I-span lift, permanence has a directional character.
 
@@ -158,7 +158,7 @@ For the I-span lift, permanence has a directional character.
 
 **Claim O6★ (Multi-step monotonic growth).** *For any reachable state sequence `Σ →* Σ'` and any I-span `σ`: `origins_I(Σ, σ) ⊆ origins_I(Σ', σ)`.*
 
-*Derivation.* The single-step argument of O6 lifts to the transitive closure directly, by substituting its two foundation inputs with their multi-step companions — no separate chain induction is required. Fix any `o ∈ origins_I(Σ, σ)`; there is `a ∈ ⟦σ⟧ ∩ dom(Σ.C)` with `origin(a) = o`. (1) Store Monotonicity★ (ASN-0098) gives `dom(Σ.C) ⊆ dom(Σ'.C)` across `Σ →* Σ'` (the multi-step companion of the single-step P0 invoked in O6), so `a ∈ dom(Σ'.C)`. (2) Since `⟦σ⟧` is a state-independent function of σ alone (ASN-0053), `a ∈ ⟦σ⟧ ∩ dom(Σ'.C)`. (3) By O5★, `origin'(a) = origin(a) = o`. (4) Hence `o ∈ origins_I(Σ', σ)`. Since `o` was arbitrary, `origins_I(Σ, σ) ⊆ origins_I(Σ', σ)`. ∎
+*Derivation.* Fix any `o ∈ origins_I(Σ, σ)`; there is `a ∈ ⟦σ⟧ ∩ dom(Σ.C)` with `origin(a) = o`. (1) Store Monotonicity★ (ASN-0098) gives `dom(Σ.C) ⊆ dom(Σ'.C)` across `Σ →* Σ'` (the multi-step companion of the single-step P0 invoked in O6), so `a ∈ dom(Σ'.C)`. (2) Since `⟦σ⟧` is a state-independent function of σ alone (ASN-0053), `a ∈ ⟦σ⟧ ∩ dom(Σ'.C)`. (3) By O5★, `origin'(a) = origin(a) = o`. (4) Hence `o ∈ origins_I(Σ', σ)`. Since `o` was arbitrary, `origins_I(Σ, σ) ⊆ origins_I(Σ', σ)`. ∎
 
 New allocations within σ may introduce new origins, but existing origins cannot be reassigned or removed.
 
@@ -224,7 +224,7 @@ Both O11 and O11' assume σ well-formed at the pre-state Σ. To chain these sing
 
 The range at Σ' coincides with the range at Σ. At Σ, the range is contained in `dom(M(d))`; by `dom(M(d)) ⊆ dom(M'(d))`, the same range is contained in `dom(M'(d))` at Σ'. Hence precondition (vi) holds at Σ'. ∎
 
-The single-step claims O11 and O11' lift to a multi-step version by induction on chain length. Unlike O5★ and O6★ — which discharge their multi-step forms by citing ASN-0098's closure lemmas directly — the V-span preservation here carries per-step well-formedness side conditions (Corollary O11.1) that no foundation closure schema absorbs, so an explicit induction is genuinely required. The arrangement extensions on `d` (K.μ⁺, K.μ⁺_L) are handled by O11/O11'; every transition outside this class leaves `M(d)` unchanged and is absorbed by O7 (V-span stability under fixed arrangement). Corollary O11.1 supplies per-step well-formedness preservation at each arrangement-extension sub-case of the induction. We prove the general mixed-chain lemma directly and obtain the pure-K.μ⁺ and pure-K.μ⁺_L chains as one-line specializations.
+The single-step claims O11 and O11' lift to a multi-step version by induction on chain length. The arrangement extensions on `d` (K.μ⁺, K.μ⁺_L) are handled by O11/O11'; every transition outside this class leaves `M(d)` unchanged and is absorbed by O7 (V-span stability under fixed arrangement). Corollary O11.1 supplies per-step well-formedness preservation at each arrangement-extension sub-case of the induction. We prove the general mixed-chain lemma directly and obtain the pure-K.μ⁺ and pure-K.μ⁺_L chains as one-line specializations.
 
 **Claim O11★★ (Multi-step V-span preservation under mixed K.μ⁺/K.μ⁺_L chain).** *For any reachable state sequence `Σ →* Σ'` in which every `M(d)`-modifying step is either K.μ⁺ on `d` or K.μ⁺_L on `d` (i.e., no K.μ⁻ on `d` and no K.μ~ on `d` along the chain), and any V-span `σ` over `d` satisfying the SHOWORIGIN_V well-formedness preconditions at Σ: `origins_V(Σ, d, σ) = origins_V(Σ', d, σ)`.*
 
