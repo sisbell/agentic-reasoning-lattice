@@ -49,13 +49,18 @@ We therefore identify MAKELINK as the composite `K.λ ; K.μ⁺_L` — K.λ foll
 
 ## Preconditions
 
-The composite is valid when its component preconditions hold. For K.λ at `Σ`:
+The composite is valid when its component preconditions hold. We must be careful to state K.λ's *genuine* preconditions, distinguishing them from facts that hold *as consequences* of those preconditions. ASN-0093's K.λ has exactly the following binding precondition at `Σ`:
 
   d ∈ dom(M)
-  ℓ ∉ dom(C) ∪ dom(L)
-  zeros(ℓ) = 3 ∧ E(ℓ)₁ = s_L ∧ #E(ℓ) ≥ 2 ∧ origin(ℓ) = d
   ℓ is produced by A_L(d) (first emission if d has no prior links; otherwise inc(ℓ_prev, 0))
   N ≥ 3 ∧ (A i : 1 ≤ i ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅
+
+The emission clause `ℓ is produced by A_L(d)` is the genuine caller-discharged obligation on `ℓ`. The freshness and structural shape of `ℓ` are *not* additional preconditions — they are lemmas of ASN-0093 that hold automatically for *any* `A_L(d)` emission:
+
+  ℓ ∉ dom(C) ∪ dom(L)                                   [FirstEmissionFreshness, SubsequentEmissionFreshness]
+  zeros(ℓ) = 3 ∧ E(ℓ)₁ = s_L ∧ #E(ℓ) ≥ 2 ∧ origin(ℓ) = d   [FirstEmission, ChainDiscipline]
+
+We invoke these as *derived* facts wherever the K.μ⁺_L derivation and the invariant arguments below need them — never as caller obligations.
 
 For K.μ⁺_L at the intermediate state `Σ_mid` after K.λ:
 
@@ -72,7 +77,7 @@ The condition `ℓ ∉ ran(Σ_mid.M(d))` requires more than `ℓ ∉ dom(Σ.L)`;
 - If `subspace(v) = s_C`, then `Σ.M(d)(v) ∈ dom(Σ.C)`.
 - If `subspace(v) = s_L`, then `Σ.M(d)(v) ∈ dom(Σ.L)`.
 
-K.λ's freshness precondition gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. In either subspace case, `Σ.M(d)(v) ∈ dom(Σ.C) ∪ dom(Σ.L)`, so `Σ.M(d)(v) ≠ ℓ`. Hence `ℓ ∉ ran(Σ.M(d)) = ran(Σ_mid.M(d))`.
+The derived freshness of `ℓ` (FirstEmissionFreshness / SubsequentEmissionFreshness, ASN-0093) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. In either subspace case, `Σ.M(d)(v) ∈ dom(Σ.C) ∪ dom(Σ.L)`, so `Σ.M(d)(v) ≠ ℓ`. Hence `ℓ ∉ ran(Σ.M(d)) = ran(Σ_mid.M(d))`.
 
 The intermediate-state conditions for K.μ⁺_L reduce to original-state conditions, so the caller-visible precondition for MAKELINK is just K.λ's precondition, with `ℓ` supplied by `A_L(d)`'s next emission and `v_ℓ` determined by the link subspace's current cardinality (serial component `n_L + 1`, where `n_L = |V_{s_L}(d)|`) together with its depth per M-DepthConv.
 
@@ -253,13 +258,13 @@ We verify the substrate invariants in three classes, following ASN-0047's strati
 
 For the link itself:
 
-  L0:    E(ℓ)₁ = s_L                          from K.λ precondition
-  L1:    zeros(ℓ) = 3                          from K.λ precondition
-  L1a:   origin(ℓ) = d ∈ dom(Σ'.M)             from K.λ precondition and M1
-  L1b:   #E(ℓ) ≥ 2                             from K.λ precondition
+  L0:    E(ℓ)₁ = s_L                          derived from A_L(d) emission (FirstEmission, ChainDiscipline)
+  L1:    zeros(ℓ) = 3                          derived from A_L(d) emission (FirstEmission, ChainDiscipline)
+  L1a:   origin(ℓ) = d ∈ dom(Σ'.M)             derived from A_L(d) emission and M1
+  L1b:   #E(ℓ) ≥ 2                             derived from A_L(d) emission (FirstEmission, ChainDiscipline)
   L3:    N ≥ 3 ∧ e₃ ≠ ∅                       from K.λ precondition
   L12:   immutability                          new entry only; no modification of prior
-  L14:   store disjointness                    ℓ ∉ dom(C) from K.λ freshness
+  L14:   store disjointness                    ℓ ∉ dom(C) from derived freshness
   L-fin: link store finiteness                 |dom(L')| = |dom(L)| + 1
 
 L1c (structural inc-chain conformance) requires an inc-chain from `origin(ℓ) = d` to `ℓ`. K.λ's precondition supplies it directly: `ℓ` is produced by `A_L(d)`, so by ChainDiscipline (ASN-0093) `ℓ` lies on `d`'s link sub-allocator chain `A_L(d) = S(b_L(d), 1)`, whose elements are exactly the inc-chain emissions; ChainElementT4Validity carries T4-validity along it, and the `k₁ = 2`, `#tᵢ > #origin(ℓ)` clauses are part of ASN-0093's L1c statement. ✓
@@ -273,9 +278,9 @@ For the V-arrangement entry `v_ℓ ↦ ℓ`:
   S8-depth: depth uniformity in subspace s_L at d                 common depth m_L(d) for all V-positions in V_{s_L}(d); v_ℓ's depth per M-DepthConv
   S8-fin:   |dom(M'(d))| = |dom(M(d))| + 1                       S8-fin at Σ gives finiteness of the predecessor
   S8★:      per-subspace span decomposition                       link subspace admits trivial length-1 decomposition (see below)
-  CL-OWN:   origin(M'(d)(v_ℓ)) = origin(ℓ) = d                   direct from K.λ precondition
+  CL-OWN:   origin(M'(d)(v_ℓ)) = origin(ℓ) = d                   origin(ℓ) = d derived from A_L(d) emission
   CL-UNIQ:  partial injection preserved                           K.μ⁺_L first-arrangement guard ℓ ∉ ran(M_mid(d))
-  D-MIN★:   v_ℓ at minimum if empty                               K.μ⁺_L positioning rule (depth m_L(d))
+  D-MIN★:   min(V_{s_L}^{Σ'}(d)) = [s_L, 1, ..., 1]               both cases below
   D-CTG★:   extension is contiguous                               K.μ⁺_L positioning rule
   D-SEQ★:   V_{s_L}^{Σ'}(d) is contiguous initial segment           see below
 
@@ -284,6 +289,10 @@ For S2: we must show `v_ℓ ∉ dom(Σ.M(d))`, not merely `v_ℓ ∉ V_{s_L}(d)`
 - *Cross-subspace exclusion:* `v_ℓ ∉ V_{s_C}(d)`. By construction `(v_ℓ)₁ = s_L`, while by S8a every `v ∈ V_{s_C}(d)` has `(v)₁ = s_C`. By SC-NEQ (ASN-0093), `s_L ≠ s_C`, so `v_ℓ ≠ v` for every `v ∈ V_{s_C}(d)`.
 
 Combining the two exclusions, `v_ℓ ∉ V_{s_C}(d) ∪ V_{s_L}(d) = dom(Σ.M(d))`, discharging S2. ✓
+
+For D-MIN★: we must show `min(V_{s_L}^{Σ'}(d)) = [s_L, 1, ..., 1]`. We argue this directly — not via D-SEQ★, since ASN-0047 derives D-SEQ★ *from* D-MIN★ and the reverse appeal would be circular. Two cases on whether the link subspace was empty at `Σ`:
+- *Empty case* (`V_{s_L}(d) = ∅`): K.μ⁺_L's positioning rule places `v_ℓ = [s_L, 1]` at depth 2 (M-DepthConv), so `V_{s_L}^{Σ'}(d) = {v_ℓ}` and `min(V_{s_L}^{Σ'}(d)) = v_ℓ = [s_L, 1]`, the singleton minimum.
+- *Non-empty case* (`V_{s_L}(d) ≠ ∅`): the pre-state minimum is `[s_L, 1, ..., 1]` by D-MIN★ at `Σ`. K.μ⁺_L adds `v_ℓ = [s_L, 1, ..., 1, n_L + 1]` *above* the existing positions: since `n_L ≥ 1`, the last component `n_L + 1 > 1` makes `v_ℓ` strictly exceed `[s_L, 1, ..., 1]` under T1, so `v_ℓ` does not undercut the existing minimum. The minimum is retained: `min(V_{s_L}^{Σ'}(d)) = min(V_{s_L}(d)) = [s_L, 1, ..., 1]`. ✓
 
 For D-SEQ★: by D-SEQ★ at `Σ`, `V_{s_L}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L}` of common depth `m_L(d)` for some `n_L ≥ 0` (with `n_L = 0` meaning the link subspace at `d` is empty). If `n_L = 0`, MAKELINK commits the minimal depth per M-DepthConv: the K.μ⁺_L positioning rule gives `v_ℓ = [s_L, 1]` at depth 2, so `V_{s_L}^{Σ'}(d) = {v_ℓ}` — a contiguous initial segment of cardinality 1, fixing `m_L^{Σ'}(d) = 2`. If `n_L ≥ 1`, the rule gives `v_ℓ = shift(max(V_{s_L}(d)), 1) = [s_L, 1, ..., 1, n_L + 1]` at depth `m_L(d)`, so `V_{s_L}^{Σ'}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L + 1}` — a contiguous initial segment of cardinality `n_L + 1`. Either way, the post-state set conforms to D-SEQ★. ✓
 
