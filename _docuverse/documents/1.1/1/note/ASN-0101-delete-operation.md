@@ -364,15 +364,7 @@ D3 is the structural basis for what Nelson called *link survivability*. The arch
 
 We can be sharper about what D3 entails. Consider a link `ℓ ∈ dom(L)` and a slot `i`. The coverage `coverage(L(ℓ).eᵢ)` is the set of I-addresses that the slot references — the `coverage(e)` projection of ASN-0043, defined by the spans in the endset and evaluated via the span semantics of ASN-0053. Coverage is a function of the endset alone; it depends on no part of state except `L(ℓ).eᵢ` itself. Under D3, `L'(ℓ).eᵢ = L(ℓ).eᵢ`, so `coverage(L'(ℓ).eᵢ) = coverage(L(ℓ).eᵢ)`. Whatever I-addresses the link referenced before DELETE, it references after.
 
-What changes is *discoverability* — the property of being projectable into a document's current arrangement. The projection
-
-`project(L(ℓ).eᵢ, d, Σ) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(L(ℓ).eᵢ)}`
-
-depends on `M(d)`. After DELETE, the projection can lose elements: V-positions in `X` (the deleted span) that referenced I-addresses in the coverage are removed from `dom(M'(d))`, and so removed from the projection. V-positions in `Π` are renamed by `σ_d` and reappear in the projection at their new V-positions. V-positions in `Λ` are unchanged.
-
-The link itself is intact. Its discoverability from `d` may shrink. Its discoverability from other documents `d' ≠ d` is unchanged (by the frame condition on other arrangements; see D5). And — crucially — its discoverability can be *restored* by a subsequent operation that reintroduces a V-position mapping to an I-address in the coverage. The link is not erased; it is, at worst, temporarily without a witnessing arrangement entry.
-
-This pattern of "structural persistence with conditional visibility" is the architectural pattern that DELETE establishes. It is the same pattern by which content survives deletion: the bytes persist in `C`, even if no `M(d)(v)` currently references them. The link case is the natural extension of the content case to the second store.
+DELETE establishes a pattern of *structural persistence with conditional visibility*: the link value and its coverage persist (D3), while the link's discoverability into a document's arrangement is conditional on that arrangement — characterised precisely in D9 below. It is the same pattern by which content survives deletion: the bytes persist in `C`, even if no `M(d)(v)` currently references them. The link case is the natural extension of the content case to the second store.
 
 ### Document identity: the document is not destroyed
 
@@ -508,7 +500,7 @@ project(L'(ℓ).eᵢ, d, Σ')
 ```
 The two contributions cover disjoint V-position sets (one in `V_{S'}(M'(d)) = V_{S'}(d)`, the other in `V_S(M'(d)) = Λ ∪ Q`), so the union is well-defined and complete.
 
-*Frame note.* The outer quantification ranges over `d'' ∈ dom(M)` because ASN-0098's `project(e, d, Σ)` is defined only when `d ∈ dom(Σ.M)`; D4 supplies `dom(M') = dom(M)`, so the same membership condition makes `project(L'(ℓ).eᵢ, d'', Σ')` well-defined on the post-state side of every clause as well. The first bullet's appeal to D5 (`M'(d'') = M(d'')`) is itself conditioned on `d'' ∈ dom(M)` in D5's statement, so the membership restriction is the natural scope of the lemma.
+*Frame note.* The outer quantification ranges over `d'' ∈ dom(M)` because ASN-0098's `project(e, d, Σ)` is defined only when `d ∈ dom(Σ.M)`; D4 supplies `dom(M') = dom(M)`, so the same membership condition makes `project(L'(ℓ).eᵢ, d'', Σ')` well-defined on the post-state side of every clause as well.
 
 *Justification.* For `d'' ≠ d`: `M'(d'') = M(d'')` by D5 and `coverage(L'(ℓ).eᵢ) = coverage(L(ℓ).eᵢ)` by D3, so the projection's defining set is unchanged. For `d'' = d` in subspace `S' ≠ S`: `M'(d)` agrees with `M(d)` on `V_{S'}(d)` by D6 (with the same domain and values), and `coverage(L'(ℓ).eᵢ) = coverage(L(ℓ).eᵢ)` by D3, so the projection's defining set is unchanged. For `d'' = d` restricted to subspace `S`: the post-state V-positions in subspace `S` partition as `Λ ⊎ Q`, with `Q = σ_d(Π)`. The post-state projection in subspace `S` contains a position `v ∈ Λ` iff `M'(d)(v) = M(d)(v) ∈ coverage(L'(ℓ).eᵢ) = coverage(L(ℓ).eᵢ)` (the latter equality by D3); these positions are exactly `project(L(ℓ).eᵢ, d, Σ) ∩ Λ`. The post-state projection in subspace `S` contains a position `σ_d(v)` for `v ∈ Π` iff `M'(d)(σ_d(v)) = M(d)(v) ∈ coverage(L(ℓ).eᵢ)`; these positions are exactly `{σ_d(v) : v ∈ project(L(ℓ).eᵢ, d, Σ) ∩ Π}`. The pre-state projection's intersections with `Λ` and with `Π` are well-defined: although `project(L(ℓ).eᵢ, d, Σ)` ranges over all of `dom(M(d))`, intersecting with `Λ ⊆ V_S(d)` or `Π ⊆ V_S(d)` automatically restricts to subspace `S`. ∎
 
