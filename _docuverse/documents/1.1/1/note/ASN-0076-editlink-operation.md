@@ -30,7 +30,7 @@ We take from the foundation:
 
 ## The Composite
 
-We name an existing link `ℓ_old ∈ dom(Σ.L)` whose semantic content is to be revised, and we name an endset sequence `(e'_1, ..., e'_N)` with `N ≥ 3` and `e'_3 ≠ ∅` — the new endsets, satisfying L3's structural constraints. We name a document `d_new ∈ E_doc` under which the new links will be allocated. The link model places no formal constraint on `d_new` beyond `d_new ∈ E_doc`; in particular `d_new` need not coincide with `home(ℓ_old)`, and any further constraint on who may select `d_new` belongs to an authorization layer not formalized in this ASN (see E6).
+We name an existing link `ℓ_old ∈ dom(Σ.L)` whose semantic content is to be revised, and we name an endset sequence `(e'_1, ..., e'_N)` with `N ≥ 3` and `e'_3 ≠ ∅` — the new endsets, satisfying L3's structural constraints. We name a document `d_new ∈ E_doc` under which the new links will be allocated. The link model places no formal constraint on `d_new` beyond `d_new ∈ E_doc`; in particular `d_new` need not coincide with `home(ℓ_old)`.
 
 Three values will be needed, of which the first two are produced by allocation and the third is supplied as an external input:
 
@@ -49,8 +49,6 @@ N ≥ 3
 e'_3 ≠ ∅
 τ_sup ∈ T
 ```
-
-The reachability conjunct — `Σ` derivable from `Σ₀` by a finite sequence of valid composites — is the outer hypothesis E5 carries explicitly. It is required twice over: the K.λ precondition discharges below lean on per-state facts at `Σ` (SubAllocatorBundle presumes the entity-allocation event that activated `A_L(d_new)` actually occurred; L0, used to derive `ℓ_new ∉ dom(Σ.C)`, is a per-state invariant), and the invariant-inheritance conclusion below requires `Σ` reachable so that `Σ'` is reachable.
 
 We define:
 
@@ -104,7 +102,7 @@ L3 requires arity at least 3 (satisfied by arity 3), every endset in `Endset`, a
 
 Each of the three supersession spans therefore lies in `Span`, each singleton endset lies in `Endset`, and L3 holds for `(E_from, E_to, E_type)`. Clause (iv) of K.λ is discharged at the supersession step.
 
-We must observe the adjacency of the two steps. By SequentialTransitionAxiom (ASN-0047) each K.λ step is atomic, and EDITLINK as a ValidComposite★ is by definition a contiguous sub-sequence `Σ → Σ_1 → Σ'` of the transition history: no atomic transition intervenes between the two K.λ steps. The discharges above — the identification `ℓ_sup = inc(ℓ_new, 0)` from `Σ_1` and the fact that `ℓ_new` is the maximum of `{ℓ' ∈ dom(Σ_1.L) : origin(ℓ') = d_new}` — depend on this adjacency.
+We must observe the adjacency of the two steps. By SequentialTransitionAxiom (ASN-0047) each K.λ step is atomic, and EDITLINK as a ValidComposite★ is by definition a contiguous sub-sequence `Σ → Σ_1 → Σ'` of the transition history: no atomic transition intervenes between the two K.λ steps.
 
 **ValidComposite★ discharge.** With K.λ's elementary preconditions discharged at both steps above, clause (i) of ValidComposite★ (ASN-0047) holds; it remains to verify the coupling constraints (clause (ii)). J0 (AllocationPlacementCoupling) is vacuously satisfied: K.λ's frame preserves `C`, so `dom(Σ'.C) = dom(Σ.C)` across the composite and the antecedent `a ∈ dom(C') \ dom(C)` is empty. J1★ (ExtensionRecordsProvenance) and J1'★ (ProvenanceRequiresExtension) are vacuously satisfied: K.λ's frame preserves all arrangements `M(d)`, so the range differences `ran(M'(d)) \ ran(M(d))` are empty and the antecedent of each coupling is empty. Therefore EDITLINK satisfies ValidComposite★.
 
@@ -252,7 +250,7 @@ The same argument that protects the original protects the supersession assertion
 ℓ_sup ∈ dom(Σ.L)  ⟹  (A Σ → Σ' :: ℓ_sup ∈ dom(Σ'.L) ∧ Σ'.L(ℓ_sup) = Σ.L(ℓ_sup))
 ```
 
-*Proof.* The supersession link is a link, and L12 applies uniformly to all entries in `dom(L)` at every atomic step. The multi-step extension reading — that `ℓ_sup` persists across any reachable sequence rather than just one transition — is LP13 (UnconditionalLinkPersistence, ASN-0098).
+*Proof.* The supersession link is a link, and L12 (ASN-0043) applies uniformly to all entries in `dom(L)` at every atomic step; LP13 (ASN-0098) gives the same conclusion across any reachable sequence.
 
 The implication is that *the historical record of editing is itself immutable*. A user who later wishes to "retract" the supersession cannot do so by mutating `ℓ_sup`. They can, however, allocate a *counter-claim* — a new link asserting that the supersession is not in force, or that a different supersession should take precedence. The counter-claim is, structurally, just another link; it is itself permanent; and it joins the supersession in the discoverable web of assertions about `ℓ_old`. The system accumulates the full history of claims and counter-claims, leaving the resolution policy to the reader.
 
@@ -345,5 +343,5 @@ The example exhibits the asymmetry recorded in E6: Alice retains full control of
 | E6 | The supersession link's home document need not coincide with the original link's home document; the only formal constraint EDITLINK places on `d_new` is `d_new ∈ E_doc` | introduced |
 | E7 | The supersession link's endsets structurally contain `ℓ_old` and `ℓ_new` as covering witnesses (an inverse-lookup `covers` property of `Σ.L`; absent arrangement of the referents, `ℓ_sup` is orphaned per LP17) | introduced |
 | E8 | Any resolution of `ℓ_old`'s endsets after EDITLINK obtains the same value as before EDITLINK | introduced |
-| E9 | The supersession link itself is permanent under L12 (single-step, ASN-0043) — equivalently LP13 (multi-step, ASN-0098) — across all subsequent state transitions | introduced |
+| E9 | The supersession link itself is permanent (L12, ASN-0043; LP13, ASN-0098) across all subsequent state transitions | introduced |
 | E10 | EDITLINK modifies no arrangement and does not extend `R`; no notification reaches the original owner | introduced |
