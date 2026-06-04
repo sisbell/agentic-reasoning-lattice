@@ -20,7 +20,7 @@ The caller does *not* specify the link's address or its V-position in the home d
 
 *Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`. MAKELINK commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined.
 
-We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047; the inclusion clause `dom(Σ.M) ⊆ dom(Σ'.M)` is the part M1 shares with ASN-0093).
+We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047).
 
 *Endsets and emptiness.* L3 (ASN-0043) requires the third slot `e₃` to be non-empty but imposes no non-emptiness constraint on the other slots. The empty endset `eᵢ = ∅` is a permitted boundary case for `i ≠ 3`: by the coverage definition, `coverage(∅) = ⋃_{(s,ℓ) ∈ ∅} … = ∅`, so an empty slot contributes nothing to any `project(ℓ, i, ·, ·)` and nothing to any LP12-based discoverability disjunct.
 
@@ -168,7 +168,11 @@ We compute `wp(MAKELINK, discoverable_from(ℓ, d_target, ·))` — the predicat
 
 The predicate concerns the *home* document `d` and the endset inputs, and is logically independent of the target document `d_target`.
 
-*Membership precondition.* `discoverable_from(a, d, Σ)` is defined in ASN-0098 only when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`. At the post-state, `ℓ ∈ dom(Σ'.L)` by K.λ's effect, so the left conjunct is automatic. The right conjunct `d_target ∈ dom(Σ'.M)` requires that the target document was already registered at the pre-state. M1 supplies only the inclusion `dom(Σ.M) ⊆ dom(Σ'.M)`; equality `dom(Σ'.M) = dom(Σ.M)` at MAKELINK comes from the K.λ frame and K.μ⁺_L's effect, neither of which extends `dom(M)` (K.λ's frame holds `M` entirely fixed; K.μ⁺_L extends `dom(M(d))` for an already-registered `d` without adding any new document). Combining the M1 inclusion with these two frame consequences gives the equality, so `d_target ∈ dom(Σ'.M) ⟺ d_target ∈ dom(Σ.M)`. For `d_target = d` the membership clause is subsumed by `enabled(MAKELINK)`'s `d ∈ dom(Σ.M)` conjunct; for `d_target ≠ d` it is an independent obligation.
+*Membership precondition.* `discoverable_from(a, d, Σ)` is defined in ASN-0098 only when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`. At the post-state, `ℓ ∈ dom(Σ'.L)` by K.λ's effect, so the left conjunct is automatic. The right conjunct `d_target ∈ dom(Σ'.M)` requires that the target document was already registered at the pre-state. We establish here, once, the document-set fixity that the rest of the ASN cites:
+
+  dom(Σ'.M) = dom(Σ.M)                                    (M-DocFixity)
+
+M1 supplies only the inclusion `dom(Σ.M) ⊆ dom(Σ'.M)`; the reverse inclusion at MAKELINK comes from the K.λ frame and K.μ⁺_L's effect, neither of which extends `dom(M)` (K.λ's frame holds `M` entirely fixed; K.μ⁺_L extends `dom(M(d))` for an already-registered `d` without adding any new document). Combining the M1 inclusion with these two frame consequences gives M-DocFixity, so `d_target ∈ dom(Σ'.M) ⟺ d_target ∈ dom(Σ.M)`. For `d_target = d` the membership clause is subsumed by `enabled(MAKELINK)`'s `d ∈ dom(Σ.M)` conjunct; for `d_target ≠ d` it is an independent obligation.
 
 *Case 1: d_target ≠ d.* K.μ⁺_L's frame gives `Σ'.M(d_target) = Σ.M(d_target)` for every `d_target ≠ d` in `dom(Σ'.M)`. By LP12 at `Σ'`:
 
@@ -282,9 +286,9 @@ For S8★: ASN-0047's S8★ is a conjunction over both subspaces `S ∈ {s_C, s_
 - *Content subspace.* K.μ⁺_L touches only the link subspace: by its effect `dom(Σ'.M(d)) = dom(Σ.M(d)) ∪ {v_ℓ}` with `subspace(v_ℓ) = s_L`, and by S3★-aux the content-subspace V-positions are unchanged, so `V_{s_C}^{Σ'}(d) = V_{s_C}(d)` and `M'(d)|_{V_{s_C}^{Σ'}(d)} = M(d)|_{V_{s_C}(d)}` is frame-fixed. The pre-state content-subspace decomposition — including its uniqueness condition (c) — holds at `Σ` by the reachability hypothesis and carries to `Σ'` unchanged by inheritance.
 - *Link subspace.* Per ASN-0047's S8★, the link-subspace projected arrangement `M'(d)|_{V_{s_L}^{Σ'}(d)} : V_{s_L}^{Σ'}(d) → dom(L')` admits the trivial length-1 decomposition `{(v, M'(d)(v), 1) : v ∈ V_{s_L}^{Σ'}(d)}`. The new entry `(v_ℓ, ℓ, 1)` joins this decomposition; S8's conditions (a) and (b) hold trivially at length 1. ✓
 
-Every invariant quantifying solely over `C`, `E`, `R`, or the document set `dom(M)` — all frame-fixed at MAKELINK (`Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, `dom(Σ'.M) = dom(Σ.M)`, since MAKELINK allocates no new document and only adds a V-position within an already-allocated one) — is preserved by inheritance: S4, S7a, S7b, C1b, C1c, C-fin, P6, P7, P8, M0, NodeLineage, ActivatedEmission.
+Every invariant quantifying solely over `C`, `E`, `R`, or the document set `dom(M)` — all frame-fixed at MAKELINK (`Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, and `dom(Σ'.M) = dom(Σ.M)` by M-DocFixity) — is preserved by inheritance: S4, S7a, S7b, C1b, C1c, C-fin, P6, P7, P8, M0, NodeLineage, ActivatedEmission.
 
-- S7d (DocumentAllocationDiscipline, ASN-0036): document set unchanged (`dom(Σ'.M) = dom(Σ.M)`); preserved by inheritance.
+- S7d (DocumentAllocationDiscipline, ASN-0036): document set unchanged by M-DocFixity; preserved by inheritance.
 - L11a (link uniqueness, ASN-0043): `ℓ` is fresh against `dom(Σ.L)` (FirstEmissionFreshness, SubsequentEmissionFreshness, ASN-0093), so its allocation event is distinct from every prior link allocation event, and L11a's distinctness conclusion holds at `Σ'`.
 
 ### Composite-Boundary Properties
@@ -301,7 +305,7 @@ ASN-0047 classifies P4★, P4a, and P7a as Class (b) — properties discharged a
 
 ### Transition Invariants for Σ → Σ'
 
-- M1 (ArrangementMonotonicity, inclusion clause): `dom(Σ.M) ⊆ dom(Σ'.M)`. Trivially holds with equality — MAKELINK does not extend `dom(M)`.
+- M1 (ArrangementMonotonicity, inclusion clause): `dom(Σ.M) ⊆ dom(Σ'.M)`. Holds with equality by M-DocFixity.
 - L12 (LinkImmutability): `(A ℓ' ∈ dom(Σ.L) :: ℓ' ∈ dom(Σ'.L) ∧ Σ'.L(ℓ') = Σ.L(ℓ'))`. K.λ adds only the fresh `ℓ`; no prior entry is modified.
 - P0 (ContentPermanence): trivially via the frame `Σ'.C = Σ.C`.
 - P1 (EntityPermanence): trivially via the frame `Σ'.E = Σ.E`.
