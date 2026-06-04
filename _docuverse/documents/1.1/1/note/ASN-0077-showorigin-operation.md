@@ -161,7 +161,7 @@ The V-span lift is more nuanced. `origins_V(Σ, d, σ)` depends on the arrangeme
 
 `WF_V(Σ, d, σ)` collects the conditions under which the V-span origin set (F1) is well-defined: a level-uniform span confined to a single non-empty subspace whose denoted positions are all present in `d`'s arrangement.
 
-Several of the preservation arguments below turn on a single fact about how an arrangement *extension* affects the per-subspace depth that S8-depth fixes. We extract it once.
+An arrangement *extension* on `d` preserves the per-subspace common depth that S8-depth fixes: a subspace non-empty before the extension retains the same depth after it.
 
 **Lemma SDP (Subspace-depth preservation under arrangement extension).** *Let `Σ → Σ'` be a reachable arrangement-extension transition on `d` — K.μ⁺ on `d` or K.μ⁺_L on `d` — and let `S ∈ {s_C, s_L}` be a subspace with `V_S(d)|_Σ ≠ ∅`. Then `V_S(d)|_Σ ⊆ V_S(d)|_{Σ'}`, and the common depth that S8-depth (ASN-0036) fixes on `V_S(d)` is the same at both states: writing `m` for the depth at Σ and `m'` for the depth at Σ', `m' = m`.*
 
@@ -207,7 +207,7 @@ The link-subspace extension K.μ⁺_L is a formally distinct transition with its
 
 Both sub-cases contradict, so case (ii) is impossible. Combined with case (i), `origins_V(Σ', d, σ) ⊆ origins_V(Σ, d, σ)`; with (⊆) we have equality. ∎
 
-Both O11 and O11' assume σ well-formed at the pre-state Σ. To chain these single-step claims into multi-step lemmas, we extract the post-state preservation of well-formedness as a stand-alone corollary.
+Well-formedness of σ is itself preserved across an arrangement extension: if `WF_V` holds at the pre-state, it holds again at the post-state.
 
 **Corollary O11.1 (Well-formedness preservation under arrangement extension).** *Let σ be a V-span over `d` with `WF_V(Σ, d, σ)`. For any reachable arrangement-extension transition `Σ → Σ'` — K.μ⁺ on `d` or K.μ⁺_L on `d` — `WF_V(Σ', d, σ)` holds.*
 
@@ -417,9 +417,9 @@ The abstract specification of SHOWORIGIN reduces to three primitives:
 
 (3) The lift to V-spans, `origins_V(Σ, d, σ) = origin(ran(M(d) ↾ ⟦σ⟧))`, computable from the span, the arrangement, and `dom(C) ∪ dom(L)` alone. Uniform across subspaces: content-subspace V-spans report origins of their resolved content; link-subspace V-spans report `{d}` (the home document) trivially via CL-OWN.
 
-Every other property — span containment monotonicity (both I-span and V-span variants), transclusion-depth invariance, permanence under state, preservation under arrangement extension (equality under K.μ⁺ and K.μ⁺_L for σ well-formed at the pre-state), immunity to source-document unreachability — follows from these three. The operation derives no new knowledge; it presents existing structural facts about the address space.
+Every other property in this note derives from these three. The operation derives no new knowledge; it presents existing structural facts about the address space.
 
-Any implementation of Xanadu that claims to support SHOWORIGIN must satisfy O0–O14 (with the O1 corollaries O1.1, O1.2, the well-formedness corollary O11.1, and the multi-step companions O5★, O6★, O11★★). The operation may be realised through different mechanisms — direct tumbler-prefix decomposition, spanfilade lookup, granfilade traversal, or per-block `homedoc` records [Q12, Q13] — and these mechanisms may have different operational characteristics. But the abstract guarantees they deliver must coincide: every byte names its home, every span reveals its sources, and the pointwise origin of any byte never changes once given (O5/O5★), while span-level answers move with state: an I-span's reported set grows monotonically under content allocation (O6/O6★) and is stable only under fixed or extended arrangements (O7, O11/O11′), and a V-span's answer is arrangement-dependent and can shift to an incomparable set under reordering (O14).
+Any implementation of Xanadu that claims to support SHOWORIGIN must satisfy O0–O14 (with the O1 corollaries O1.1, O1.2, the well-formedness corollary O11.1, and the multi-step companions O5★, O6★, O11★★). The operation may be realised through different mechanisms — direct tumbler-prefix decomposition, spanfilade lookup, granfilade traversal, or per-block `homedoc` records [Q12, Q13] — and these mechanisms may have different operational characteristics. But the abstract guarantees they deliver must coincide: every byte names its home, and every span reveals its sources.
 
 ## Claims Introduced
 
@@ -434,20 +434,20 @@ Any implementation of Xanadu that claims to support SHOWORIGIN must satisfy O0�
 | O2 | Block uniformity: every I-address within a single mapping block shares one origin | introduced |
 | O3 | Structural derivation: `origin(a)` and both lifts consult only the address (and, for V-span, the arrangement restricted to the span) | introduced |
 | O4 | Parallel witnesses to a single origin: each intermediate document `d_i` (`2 ≤ i ≤ n`) independently records the same I-address `a`, and any can be queried with identical result `origin(a)` | introduced |
-| O5 | Origin permanence: `origin'(a) = origin(a)` under every reachable transition `Σ → Σ'`, for any `a ∈ dom(Σ.C) ∪ dom(Σ.L)` (membership preservation discharged by P3) | introduced |
-| O5★ | Multi-step origin permanence: `origin'(a) = origin(a)` and `a ∈ dom(Σ'.C) ∪ dom(Σ'.L)` for every reachable `Σ →* Σ'`; proved by induction on chain length from O5 | introduced |
+| O5 | Origin permanence: `origin'(a) = origin(a)` under every reachable transition `Σ → Σ'`, for any `a ∈ dom(Σ.C) ∪ dom(Σ.L)` | introduced |
+| O5★ | Multi-step origin permanence: `origin'(a) = origin(a)` and `a ∈ dom(Σ'.C) ∪ dom(Σ'.L)` for every reachable `Σ →* Σ'` | introduced |
 | O6 | Monotonic growth under state: `origins_I` is non-decreasing as content is added | introduced |
-| O6★ | Multi-step monotonic growth: `origins_I(Σ, σ) ⊆ origins_I(Σ', σ)` for every reachable `Σ →* Σ'`; proved by induction on chain length from O6 | introduced |
+| O6★ | Multi-step monotonic growth: `origins_I(Σ, σ) ⊆ origins_I(Σ', σ)` for every reachable `Σ →* Σ'` | introduced |
 | O7 | V-span stability under fixed arrangement: `origins_V` is unchanged when the arrangement restricted to the span is unchanged | introduced |
 | O8 | I-span containment monotonicity: `⟦σ₁⟧ ⊆ ⟦σ₂⟧` ⇒ `origins_I(Σ, σ₁) ⊆ origins_I(Σ, σ₂)` | introduced |
 | O9 | Origin tracks creation, not content: two addresses allocated under distinct documents have distinct origins, regardless of content values | introduced |
 | O10 | Read-only frame; idempotence: SHOWORIGIN preserves the state; consecutive applications at the same state yield identical results | introduced |
-| WF_V | V-span well-formedness predicate `WF_V(Σ, d, σ)`: the six conjuncts (i)–(vi) shared by the SHOWORIGIN_V precondition and the O11-series / O13 references | introduced |
-| SDP | Subspace-depth preservation under arrangement extension: for K.μ⁺ / K.μ⁺_L on `d` and a subspace `S` non-empty at Σ, `V_S(d)|_Σ ⊆ V_S(d)|_{Σ'}` and the S8-depth common depth is unchanged (`m' = m`); cited by O11, O11', O11.1 | introduced |
-| O11 | V-span preservation under K.μ⁺: for `WF_V(Σ, d, σ)` (in particular conjunct (vi)), content-subspace arrangement extensions exactly preserve `origins_V` — equality, not merely inclusion | introduced |
-| O11' | V-span preservation under K.μ⁺_L: for `WF_V(Σ, d, σ)`, link-subspace arrangement extensions exactly preserve `origins_V` (parallel to O11; freshness of `v_ℓ` discharged by K.μ⁺_L's strict containment) | introduced |
-| O11.1 | Well-formedness preservation under arrangement extension: `WF_V(Σ, d, σ)` + K.μ⁺ / K.μ⁺_L on `d` ⇒ `WF_V(Σ', d, σ)` (corollary discharging the post-state admissibility that O11★★ relies on) | introduced |
-| O11★★ | Multi-step V-span preservation under mixed K.μ⁺/K.μ⁺_L chain: for `WF_V(Σ, d, σ)`, any reachable chain whose `M(d)`-modifying steps are each K.μ⁺ or K.μ⁺_L on `d` preserves `origins_V` exactly; proved by induction using O11, O11', and O7 with well-formedness lifted by Corollary O11.1 | introduced |
+| WF_V | V-span well-formedness predicate `WF_V(Σ, d, σ)`: the conjunction of conjuncts (i)–(vi) under which the V-span origin set is well-defined | introduced |
+| SDP | Subspace-depth preservation under arrangement extension: for K.μ⁺ / K.μ⁺_L on `d` and a subspace `S` non-empty at Σ, `V_S(d)|_Σ ⊆ V_S(d)|_{Σ'}` and the S8-depth common depth is unchanged (`m' = m`) | introduced |
+| O11 | V-span preservation under K.μ⁺: for `WF_V(Σ, d, σ)`, content-subspace arrangement extensions exactly preserve `origins_V` — equality, not merely inclusion | introduced |
+| O11' | V-span preservation under K.μ⁺_L: for `WF_V(Σ, d, σ)`, link-subspace arrangement extensions exactly preserve `origins_V` | introduced |
+| O11.1 | Well-formedness preservation under arrangement extension: `WF_V(Σ, d, σ)` + K.μ⁺ / K.μ⁺_L on `d` ⇒ `WF_V(Σ', d, σ)` | introduced |
+| O11★★ | Multi-step V-span preservation under mixed K.μ⁺/K.μ⁺_L chain: for `WF_V(Σ, d, σ)`, any reachable chain whose `M(d)`-modifying steps are each K.μ⁺ or K.μ⁺_L on `d` preserves `origins_V` exactly | introduced |
 | O12 | V-span containment monotonicity: `⟦σ₁⟧ ⊆ ⟦σ₂⟧` ⇒ `origins_V(Σ, d, σ₁) ⊆ origins_V(Σ, d, σ₂)` | introduced |
 | O13 | K.μ⁻ admissibility loss (negative claim): there exist Σ, σ with `WF_V(Σ, d, σ)`, and a K.μ⁻ transition `Σ → Σ'` on `d` such that `WF_V(Σ', d, σ)` fails at conjunct (vi); no K.μ⁻ analogue of O11/O11'/O11★★ holds because preservation is not even formulable once admissibility is lost | introduced |
 | O14 | K.μ~ non-preservation (negative claim): there exist Σ, a K.μ~ transition `Σ → Σ'` on `d`, and σ well-formed at both Σ and Σ' such that `origins_V(Σ, d, σ)` and `origins_V(Σ', d, σ)` are incomparable under set inclusion; no monotonicity claim parallel to O11/O11'/O11★★ holds for K.μ~ | introduced |
