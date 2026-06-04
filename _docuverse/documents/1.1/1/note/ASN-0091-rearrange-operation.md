@@ -34,7 +34,7 @@ every per-state foundation invariant satisfied by Σ is satisfied by Σ'        
 
 The bijection π is the *rearrangement permutation*. It is not in general unique: when `Σ.M(d)` has shared I-addresses (allowed by foundation S5/UnrestrictedSharing), any witness π must biject each I-address's pre-state pre-image set onto its post-state pre-image set, but the assignment within each such block is free, so distinct bijections can witness a single transition `Σ → Σ'`.
 
-The abstract class admits two degenerate cases. The *empty case* `dom(Σ.M(d)) = ∅` is admitted: π is the empty bijection and every claim holds vacuously. REARRANGE_K excludes it via R-PRE(iv) (the affected range `{v : c₀ ≤ v < c_{n−1}}` must lie in `V_S(d)`) together with CS2's strict cut ordering, so `V_S(d) ≠ ∅` is a precondition of every REARRANGE_K invocation. The *identity case* π = id is admitted, with `Σ' = Σ` derived in two steps: first, RA-π under π = id reads `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ dom(Σ.M(d))`, and combined with RA-dom (`dom(Σ'.M(d)) = dom(Σ.M(d))`) this gives `Σ'.M(d) = Σ.M(d)` as partial functions; second, RA-frame preserves every other state component verbatim — `Σ'.C = Σ.C`, `Σ'.L = Σ.L`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, `dom(Σ'.M) = dom(Σ.M)`, and `Σ'.M(d') = Σ.M(d')` for every `d' ≠ d` — so the only component left to pin is `Σ.M(d)` itself, which step one supplies. Together these force `Σ' = Σ`, after which RA-adm is trivially satisfied.
+The abstract class admits two degenerate cases. The *empty case* `dom(Σ.M(d)) = ∅` is admitted: π is the empty bijection and every claim holds vacuously. REARRANGE_K excludes it via R-PRE(ii) (ASN-0084), which states `V_S(d) ≠ ∅` outright as a precondition of every REARRANGE_K invocation. The *identity case* π = id is admitted, with `Σ' = Σ` derived in two steps: first, RA-π under π = id reads `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ dom(Σ.M(d))`, and combined with RA-dom (`dom(Σ'.M(d)) = dom(Σ.M(d))`) this gives `Σ'.M(d) = Σ.M(d)` as partial functions; second, RA-frame preserves every other state component verbatim — `Σ'.C = Σ.C`, `Σ'.L = Σ.L`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, `dom(Σ'.M) = dom(Σ.M)`, and `Σ'.M(d') = Σ.M(d')` for every `d' ≠ d` — so the only component left to pin is `Σ.M(d)` itself, which step one supplies. Together these force `Σ' = Σ`, after which RA-adm is trivially satisfied.
 
 ## REARRANGE_K Realises the Abstract Class
 
@@ -44,7 +44,7 @@ REARRANGE_K (the cut-sequence operation of ASN-0084) is one concrete realisation
 
 ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047's M1 (ArrangementMonotonicity) records the identification `dom(M) = E_doc`, so `d ∈ E_doc ⟺ d ∈ dom(M)` and RA-reg holds at the pre-state.
 
-*Net-effect split.* REARRANGE_K's cut-sequence construction makes π non-identity automatically: by CS2 the cuts satisfy `c₀ < c₁ < ...`, so the region widths `w_α`, `w_β` (and `w_μ` for 4-cut) are each `≥ 1`, giving `π(c₀) > c₀` (R-PPERM for 3-cut, R-SPERM for 4-cut). But `π ≠ id` as a permutation of V-positions is strictly weaker than ASN-0047's K.μ~ admissibility clause (ii), the non-trivial *net effect* `M'(d) ≠ M(d)`. The two come apart precisely under shared I-addresses: when the affected range carries a repeating I-address pattern whose period matches the permutation's displacement, R-P1/R-P2 may yield `M'(d) = M(d)` although π is the non-identity rotation. Such an arrangement is permitted because S2 (ArrangementFunctionality) imposes *only* functionality on `M(d)` — at most one image per V-position — and never a single-image (injectivity) constraint, so the same I-address may sit at several V-positions; a permutation that maps each shared-image V-position to another V-position carrying the same image leaves the map pointwise unchanged. The realisation therefore splits on net effect, with a realiser in each case. In the *non-trivial case* (`M'(d) ≠ M(d)`) the realiser is the named composite K.μ~. In the *collapse case* (`M'(d) = M(d)` with π ≠ id) the transition is the identity `Σ' = Σ`, so RA-adm holds and every RE-* claim below is an identity of `Σ` with itself.
+*Net-effect split.* REARRANGE_K's cut-sequence construction makes π non-identity automatically: by CS2 the cuts satisfy `c₀ < c₁ < ...`, so the region widths `w_α`, `w_β` (and `w_μ` for 4-cut) are each `≥ 1`, giving `π(c₀) > c₀` (R-PPERM for 3-cut, R-SPERM for 4-cut). But `π ≠ id` as a permutation of V-positions is strictly weaker than ASN-0047's K.μ~ admissibility clause (ii), the non-trivial *net effect* `M'(d) ≠ M(d)`. The two come apart precisely under shared I-addresses: when the affected range carries a repeating I-address pattern whose period matches the permutation's displacement, R-P1/R-P2 may yield `M'(d) = M(d)` although π is the non-identity rotation. Such an arrangement is permitted by the *shared-image licence*: S2 (ArrangementFunctionality) imposes *only* functionality on `M(d)` — at most one image per V-position — and never a single-image (injectivity) constraint, while S5 (UnrestrictedSharing) explicitly admits a single I-address at several V-positions; a permutation that maps each shared-image V-position to another V-position carrying the same image leaves the map pointwise unchanged. The realisation therefore splits on net effect, with a realiser in each case. In the *non-trivial case* (`M'(d) ≠ M(d)`) the realiser is the named composite K.μ~. In the *collapse case* (`M'(d) = M(d)` with π ≠ id) the transition is the identity `Σ' = Σ`, so RA-adm holds and every RE-* claim below is an identity of `Σ` with itself.
 
 *K.μ~ admissibility clause (i)–(v) ← discharge.*
 
@@ -200,7 +200,7 @@ Symmetrically, rearrangement can coalesce runs. Take two singleton runs `([v₁]
 
 > **Cardinality Invariance Possibility.** There exist rearrangements `Σ → Σ'` such that the cardinality of the canonical maximal-run decomposition of `Σ'.M(d)` equals that of `Σ.M(d)`. (RE-eq)
 
-Together, RE-frag, RE-coal, and RE-eq record that the maximal-run-decomposition cardinality is *neither monotonically non-decreasing nor monotonically non-increasing nor invariant* under REARRANGE — every relation between pre- and post-state cardinality (strict increase, strict decrease, equality) is realizable.
+Together, RE-frag, RE-coal, and RE-eq record that the maximal-run-decomposition cardinality is *neither monotonically non-decreasing nor monotonically non-increasing nor invariant* under REARRANGE — every relation between pre- and post-state cardinality (strict increase, strict decrease, equality) is realizable. It tracks the *visible structure* of the arrangement, which is exactly what rearrangement reshapes.
 
 **Direct witness (fragmentation).** Take pre-state `Σ.M(d)` populated only on the content subspace with V-positions `[1, 1], [1, 2], [1, 3]` mapping to a single maximal run `([1, 1], a, 3)` — that is, `Σ.M(d)([1, k]) = a + (k − 1)` for `k ∈ {1, 2, 3}` — and with the link subspace empty (`V_{s_L}(d) = ∅`). The total canonical maximal-run cardinality therefore equals the content-subspace cardinality. Pre-state total run cardinality: 1.
 
@@ -226,8 +226,6 @@ Apply REARRANGE_K with cut sequence `([1, 1], [1, 2], [1, 3])`, a 3-cut pivot wi
 
 Post-state arrangement: `[1, 1] ↦ c`, `[1, 2] ↦ a`. The maximal runs are `([1, 1], c, 1)` and `([1, 2], a, 1)` — again two singletons, since `c + 1 ≠ a` (the structural fact `c + 1 ≠ a` established above is state-independent — a property of `c` and `a` as chain elements — and carries directly into the post-state context). Post-state run cardinality: 2 — equal to the pre-state. The bijection π swaps the two V-positions (`π([1, 1]) = [1, 2]`, `π([1, 2]) = [1, 1]`), so π is non-identity, yet the run-decomposition cardinality is preserved exactly.
 
-Run-decomposition cardinality is neither monotone nor invariant under rearrangement — it tracks the *visible structure* of the arrangement, which is exactly what rearrangement reshapes.
-
 ## Cross-Document Independence
 
 Among d's siblings, nothing happens. RA-frame guarantees `Σ'.M(d') = Σ.M(d')` for every `d' ≠ d`:
@@ -251,7 +249,7 @@ Even when REARRANGE fragments d's view of the transcluded span (RE-frag), each p
 
 ## Subspace Frame (REARRANGE_K-specific)
 
-REARRANGE_K's cut-sequence structure delivers strict pointwise fixity on the complement of the cut subspace S: non-S V-positions are not permuted at all (`π(v) = v`), not merely kept within their subspace. This is RE-sub, derived directly from the R-PPERM/R-SPERM construction below.
+Non-S V-positions are not permuted at all (`π(v) = v`), not merely kept within their subspace — a stronger guarantee than K.μ~ clause (iv), which only requires subspace preservation. This is RE-sub, derived directly from the R-PPERM/R-SPERM construction below.
 
 ASN-0084's R-PPERM and R-SPERM define π directly as the identity on non-S V-positions: both constructions list a non-S branch that writes `π(v) = v` for every `v ∈ dom(Σ.M(d))` with `subspace(v) ≠ S`. ASN-0084's R-FRAME-P/S(a) records the resulting arrangement preservation `Σ'.M(d)(v) = Σ.M(d)(v)` for the same V-positions. Together these supply RE-sub in its full pointwise form — both clauses:
 ```
@@ -262,7 +260,7 @@ REARRANGE_K's cuts are always content-subspace (CS3 fixes `S = s_C`), so the lin
 
 ## In-Subspace Exterior Frame (REARRANGE_K-specific)
 
-A second pointwise-fixity property complements RE-sub on the cut subspace itself. RE-sub covers V-positions in subspaces other than the cut subspace; RE-ext (below) covers V-positions *within* the cut subspace S that lie *outside* the affected range `[c₀, c_{n−1})`. REARRANGE_K's cut-sequence structure delivers strict pointwise fixity for in-subspace V-positions outside the affected range.
+A second pointwise-fixity property complements RE-sub on the cut subspace itself. RE-sub covers V-positions in subspaces other than the cut subspace; RE-ext (below) covers V-positions *within* the cut subspace S that lie *outside* the affected range `[c₀, c_{n−1})`.
 
 ASN-0084's R-PPERM and R-SPERM construct π as the identity on V-positions in the cut subspace S that lie outside the affected range: both constructions list exterior branches that write `π(v) = v` for every `v ∈ V_S(d)` with `v < c₀` or `v ≥ c_{n−1}`. ASN-0084's R-EXT records the resulting arrangement preservation `Σ'.M(d)(v) = Σ.M(d)(v)` for the same V-positions. Together these supply RE-ext in its full pointwise form:
 ```
@@ -349,7 +347,7 @@ The three preceding traces exercise RE-proj with distinct I-addresses at every V
 ```
 Σ.M(d) = { [1, 1] ↦ a,    [1, 2] ↦ a,    [1, 3] ↦ b }
 ```
-The pre-state pre-image sets are `Σ.M(d)⁻¹(a) = {[1, 1], [1, 2]}` and `Σ.M(d)⁻¹(b) = {[1, 3]}` — the multiset shape is `(a → 2, b → 1)`. Sharing is permitted by S5 (UnrestrictedSharing): the same I-address may sit at multiple V-positions within a single arrangement.
+The pre-state pre-image sets are `Σ.M(d)⁻¹(a) = {[1, 1], [1, 2]}` and `Σ.M(d)⁻¹(b) = {[1, 3]}` — the multiset shape is `(a → 2, b → 1)`. Sharing is permitted by the shared-image licence (net-effect split, above).
 
 *Operation.* Apply REARRANGE_K to `d` with cut sequence `(c₀, c₁, c₂) = ([1, 1], [1, 3], [1, 4])`, a 3-cut pivot with cut subspace S = s_C, `w_α = ord(c₁) − ord(c₀) = 2`, `w_β = ord(c₂) − ord(c₁) = 1`. R-PRE(iv) is discharged because every depth-2 position `v` with `[1, 1] ≤ v < [1, 4]` — namely `[1, 1], [1, 2], [1, 3]` — lies in `V_S(d)`. By R-P1 (`Σ'.M(d)(c₀ + j) = Σ.M(d)(c₁ + j)` for `0 ≤ j < w_β`): `Σ'.M(d)([1, 1]) = Σ.M(d)([1, 3]) = b`. By R-P2 (`Σ'.M(d)(c₀ + w_β + j) = Σ.M(d)(c₀ + j)` for `0 ≤ j < w_α`): `Σ'.M(d)([1, 2]) = Σ.M(d)([1, 1]) = a` and `Σ'.M(d)([1, 3]) = Σ.M(d)([1, 2]) = a`.
 
@@ -392,7 +390,7 @@ Both set images equal `project(e_a, d, Σ') = {[1, 2], [1, 3]}`. RE-proj's equat
 
 The phenomenon is general: every endset `e` whose coverage intersects only the shared-block I-address `a` yields a projection `project(e, d, Σ)` that is the entire shared block, and the set image under either witness is the entire shared post-state block — the within-block freedom acts trivially at the set level. When coverage instead distinguishes V-positions within the shared block (impossible here, since the block's members all map to the same I-address and coverage is keyed to I-addresses, not V-positions), the bijection's freedom would be confined to the V-positions outside the block. This trace concretely realises the abstract argument that RE-proj is well-defined across witnesses.
 
-*Admissibility (RA-adm).* The only distinction from the first Worked Example's RA-adm sweep is the shared I-address `a` at `[1, 2]` and `[1, 3]`: this is admitted by S5 (UnrestrictedSharing) while S2 (functionality) still holds, since each of `[1, 1], [1, 2], [1, 3]` appears once on the left of the map (distinct V-positions may share an image). Every other clause discharges by the first Worked Example's pattern.
+*Admissibility (RA-adm).* The only distinction from the first Worked Example's RA-adm sweep is the shared I-address `a` at `[1, 2]` and `[1, 3]`: this is admitted by the shared-image licence (net-effect split, above). Every other clause discharges by the first Worked Example's pattern.
 
 Beyond exhibiting bijection non-uniqueness, this trace is also a richer RE-eq witness than the two-singleton case in "Run Decomposition Is Not Invariant": both states decompose into three singleton runs — no two adjacent V-positions are chain-adjacent (`a` repeats at `[1, 1], [1, 2]`, and `b ≠ a + 1` by ChainDisjointAdjacency) — so run cardinality is preserved at 3 even though π is non-trivial under either witness and shared I-addresses make it non-unique. RE-eq thus does not require a sparse arrangement; it persists under S5/UnrestrictedSharing.
 
@@ -406,7 +404,7 @@ The net-effect split of "REARRANGE_K Realises the Abstract Class" distinguishes 
 ```
 Σ.M(d) = { [1, 1] ↦ a,    [1, 2] ↦ a,    [1, 3] ↦ a }
 ```
-The shared image is permitted because S2 (ArrangementFunctionality) imposes only functionality — each of `[1, 1], [1, 2], [1, 3]` appears once on the left of the map — and never single-image injectivity; the pre-image set `Σ.M(d)⁻¹(a) = {[1, 1], [1, 2], [1, 3]}` is therefore admissible.
+The shared image is permitted by the shared-image licence (net-effect split, above); the pre-image set `Σ.M(d)⁻¹(a) = {[1, 1], [1, 2], [1, 3]}` is therefore admissible.
 
 *Operation.* Apply REARRANGE_K to `d` with cut sequence `(c₀, c₁, c₂) = ([1, 1], [1, 2], [1, 4])`, a 3-cut pivot with cut subspace S = s_C, `w_α = ord(c₁) − ord(c₀) = 1`, `w_β = ord(c₂) − ord(c₁) = 2`. R-PRE is met: CS1–CS5 hold (n = 3; `[1,1] < [1,2] < [1,4]`; subspace 1; depth 2; positive ordinals), and R-PRE(iv) holds because every depth-2 position `v` with `[1, 1] ≤ v < [1, 4]` — namely `[1, 1], [1, 2], [1, 3]` — lies in `V_S(d)`.
 
