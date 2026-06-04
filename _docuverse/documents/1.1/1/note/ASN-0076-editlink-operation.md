@@ -8,7 +8,7 @@ We will resolve the tension by observing that "editing" need not — and, we wil
 
 The consultation evidence supports this reading directly. Nelson is explicit that FEBE supplies `MAKELINK` but no `EDITLINK` or `MODIFYLINK`; the seventeen commands of XU.87.1 admit no link-modification operation. Gregory's analysis of udanax-green confirms the same absence at the implementation level: link orgls carry no "supersedes" field, the spanfilade is append-only with no `deletespanf`, link I-addresses are monotonic and never reused, and the granfilade retains every link orgl forever once allocated. Both authorities arrive independently at the same architectural commitment: there is no operation that mutates an existing link.
 
-What there *is*, however, is the means to express edit semantics as a composite of two link-allocation events. We formalize this composite as EDITLINK and demonstrate that the resulting structure realizes every property a user would expect of an "edit" — the new endsets are reachable, the supersession relationship is discoverable, the history is traceable — while leaving the original link entirely undisturbed.
+We formalize this composite as EDITLINK and demonstrate that the resulting structure realizes every property a user would expect of an "edit" — the new endsets are reachable, the supersession relationship is discoverable, the history is traceable — while leaving the original link entirely undisturbed.
 
 ## Foundation Recap
 
@@ -198,7 +198,7 @@ The construction therefore imposes no exclusivity among supersession claims; whi
 
 ## E6 — Supersession Ownership Freedom
 
-**E6 (SupersessionOwnershipFreedom).** The supersession link's home document `d_new` is not constrained by the link model to equal `home(ℓ_old)`. Formally: for any state `Σ` satisfying all invariants, any `ℓ_old ∈ dom(Σ.L)`, and any `d_new ∈ Σ.E_doc` (not required to equal `home(ℓ_old)`), the composite EDITLINK is admissible at `Σ`.
+**E6 (SupersessionOwnershipFreedom).** The supersession link's home document `d_new` is not constrained by the link model to equal `home(ℓ_old)`. Formally: EDITLINK places no constraint coupling `d_new` to `home(ℓ_old)`; for any state `Σ` satisfying all invariants and otherwise-valid inputs, every pair `(ℓ_old, d_new)` with `ℓ_old ∈ dom(Σ.L)` and `d_new ∈ Σ.E_doc` is admitted.
 
 *Proof.* K.λ's preconditions (ASN-0047) constrain the target document only by `d_new ∈ E_doc`. L1a constrains the allocation site of the new link to lie under `d_new`'s tumbler prefix, which is a constraint on the produced address relative to the chosen target — but imposes no constraint on the choice of `d_new` relative to `home(ℓ_old)`. EDITLINK's composite-level preconditions add `ℓ_old ∈ dom(Σ.L)`, which is independent of `d_new`. So the conjunction `ℓ_old ∈ dom(Σ.L) ∧ d_new ∈ Σ.E_doc` is the entirety of the constraint EDITLINK places on the pair `(ℓ_old, d_new)`; the model admits every such pair.
 
@@ -214,11 +214,11 @@ The construction therefore imposes no exclusivity among supersession claims; whi
 
 *Proof.* By E4, `Σ'.L(ℓ_sup).e_1 = E_from = {(ℓ_old, δ(1, #ℓ_old))}`. By PrefixSpanCoverage (ASN-0043), `coverage({(ℓ_old, δ(1, #ℓ_old))}) ⊇ {ℓ_old}`, so `ℓ_old ∈ coverage(Σ'.L(ℓ_sup).e_1)`. Symmetrically, E4 gives `Σ'.L(ℓ_sup).e_2 = E_to = {(ℓ_new, δ(1, #ℓ_new))}`, so `ℓ_new ∈ coverage(Σ'.L(ℓ_sup).e_2)`.
 
-The membership is an inverse link-store lookup evaluated over `Σ'.L` alone, independent of any arrangement. Whether `ℓ_sup` is *discoverable* from a document is therefore a separate question, governed by that document's arrangement rather than by `Σ'.L`. We make this precise in E11 below as a weakest-precondition computation, of which the informal reading is: absent independent arrangement of the referents in some document, `ℓ_sup` is orphaned (LP17, ASN-0098) and becomes discoverable only once a later transition arranges an I-address in its coverage (LP18, ASN-0098).
+The membership is an inverse link-store lookup evaluated over `Σ'.L` alone, independent of any arrangement. Whether `ℓ_sup` is *discoverable* from a document is therefore a separate question: discoverability is arrangement-governed, made precise in E11 below.
 
 ## E11 — Discoverability Precondition
 
-E7 settles the supersession link's referents as a property of `Σ'.L` alone. The question a reader actually asks — *can I discover `ℓ_sup` from document `d`?* — is governed instead by `d`'s arrangement, and is one EDITLINK is, by E10, powerless to settle on its own. We make this precise by computing the weakest precondition under which discovery succeeds.
+E7 settles the supersession link's referents as a property of `Σ'.L` alone. The question a reader actually asks — *can I discover `ℓ_sup` from document `d`?* — we make precise by computing the weakest precondition under which discovery succeeds.
 
 **E11 (DiscoverabilityPrecondition).** For any document `d ∈ dom(Σ.M)`, the weakest precondition under which the supersession link is discoverable from `d` after EDITLINK is a condition on the *pre-state* arrangement of `d`:
 
