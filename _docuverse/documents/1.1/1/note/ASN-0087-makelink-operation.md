@@ -120,9 +120,7 @@ The function is *computed* from `Σ'.L(ℓ)` and `Σ'.M(d)` — no separate stat
 
   discoverable_from(ℓ, d, Σ')  ⟺  (E i : coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
 
-LP12 treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric (M-DiscSymmetry): `ℓ` is discoverable from every document whose arrangement range meets some endset coverage.
-
-Discoverability is therefore a derived function of `L` and `M`, so the abstract specification requires no separate index state component (M-NoIndexState).
+LP12 computes discoverability from `Σ'.L(ℓ)` and `Σ'.M(d)` alone — no separate state component participates. Discoverability is therefore a derived function of `L` and `M`, so the abstract specification requires no separate index state component (M-NoIndexState). The discovery function treats every document by the same rule; whether that uniformity yields symmetric discoverability — and where the home document's allocation of `ℓ` breaks it — is settled by the wp analysis below (M-DiscSymmetry, M-Reflexive).
 
 ## A Worked Example
 
@@ -250,7 +248,7 @@ For the link itself:
   L14:   store disjointness                    ℓ ∉ dom(C) from derived freshness
   L-fin: link store finiteness                 |dom(L')| = |dom(L)| + 1
 
-L1c (structural inc-chain conformance) requires a T10a-conforming inc-chain seeded at `origin(ℓ) = d` with `k₁ = 2` and `#tᵢ > #origin(ℓ)` at every step. We do not identify this `d`-seeded chain with the sibling stream `A_L(d) = S(b_L(d), 1)`: the chain from `d` first runs `d →[inc(·, 2)]→ b_C(d) →[inc(·, 0)]→ b_L(d) →[inc(·, 1)]→ [d, 0, s_L, 1] →[inc(·, 0)]*→ ℓ`, traversing the anchors `b_C(d)`, `b_L(d)` (each with `#E = 1`) that `A_L(d)`'s elements (all with `#E = 2`) exclude. We discharge L1c the clean way instead: `ℓ` enters `dom(L)` solely via K.λ, and ASN-0093 establishes L1c as an invariant maintained over all of `dom(L)` under K.λ allocation. Hence L1c holds at `ℓ` in `Σ'`. ✓
+L1c (structural inc-chain conformance) requires a T10a-conforming inc-chain seeded at `origin(ℓ) = d` with `k₁ = 2` and `#tᵢ > #origin(ℓ)` at every step. We discharge L1c directly: `ℓ` enters `dom(L)` solely via K.λ, and ASN-0093 establishes L1c as an invariant maintained over all of `dom(L)` under K.λ allocation. Hence L1c holds at `ℓ` in `Σ'`. ✓
 
 For the V-arrangement entry `v_ℓ ↦ ℓ`:
 
