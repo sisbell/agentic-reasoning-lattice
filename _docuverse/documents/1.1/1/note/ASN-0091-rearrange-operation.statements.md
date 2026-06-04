@@ -1,150 +1,130 @@
 # ASN-0091 Claim Statements
 
-*Source: ASN-0091-rearrange-operation.md (revised 2026-05-26) — Extracted: 2026-06-03*
+*Source: ASN-0091-rearrange-operation.md (revised 2026-05-26) — Extracted: 2026-06-04*
 
 ## Definition — PerAddressMultiplicity
 
-For each I-address `a` and registered document `d'`:
-```
-μ_a(M(d')) = |{v : v ∈ dom(M(d')) ∧ M(d')(v) = a}|
-```
-
-## Definition — DiscoverableFrom
-
-A link `a` is *discoverable from* document `d` at state `Σ` when:
-```
-discoverable_from(a, d, Σ) ⟺ (E i :: coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)
-```
-(characterisation supplied by foundation lemma LP12 of ASN-0098)
+For each I-address `a` and each registered document `d'`, define `μ_a(M(d')) = |{v : v ∈ dom(M(d')) ∧ M(d')(v) = a}|`.
 
 ## Definition — ProjectionSet
 
-```
-project(e, d, Σ) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e)}
-```
+`project(e, b, Σ) = {v ∈ dom(M(b)) : M(b)(v) ∈ coverage(e)}`, taken at an arbitrary document `b ∈ dom(Σ.M)`.
 
-## Definition — ProjectionTransportMap
+## Definition — ProjectionTransportBijection
 
-Define the *projection transport* `π̂_d`:
-```
-π̂_d := π                       when d = d_tgt
-π̂_d := id_{dom(Σ.M(d))}        when d ≠ d_tgt
-```
-`π̂_d` is in every case a bijection between `dom(Σ.M(d))` and `dom(Σ'.M(d))`.
+Define the *projection transport* `π̂_b`: `π̂_b := π` when `b = d` and `π̂_b := id_{dom(Σ.M(b))}` when `b ≠ d`. The identity case is well-typed because RE-other forces `dom(Σ'.M(b)) = dom(Σ.M(b))` for `b ≠ d`, so `π̂_b` is in every case a bijection between `dom(Σ.M(b))` and `dom(Σ'.M(b))`.
 
-## Definition — VstreamOnly
+## Definition — DiscoverableFrom
 
-A transition `Σ → Σ'` is *Vstream-only on `d`* when:
+A link is *discoverable from* document `d` at state `Σ` when some endset's coverage intersects the document's I-address range — when there exists a slot `i` with `coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅` (the characterisation supplied by foundation lemma LP12 of ASN-0098).
+
+---
+
+## RA-reg — RearrangementRegistrationPrecond (PRE, requires)
 
 ```
 d ∈ dom(Σ.M)                                                                            (RA-reg)
 ```
-and
+
+## RA-dom — RearrangementDomainClause (DEF, clause)
+
 ```
 dom(Σ'.M(d)) = dom(Σ.M(d))                                                              (RA-dom)
 ```
-and there exists a bijection
-```
-π : dom(Σ.M(d)) → dom(Σ'.M(d))
-```
-satisfying
+
+## RA-π — RearrangementEquation (DEF, clause)
+
 ```
 (A v : v ∈ dom(Σ.M(d)) : Σ'.M(d)(π(v)) = Σ.M(d)(v))                                    (RA-π)
 ```
-together with
+
+Where `π : dom(Σ.M(d)) → dom(Σ'.M(d))` is a bijection (the *rearrangement permutation*) carrying each pre-state pair `(v, Σ.M(d)(v))` to the post-state pair `(π(v), Σ.M(d)(v))`, holding the I-address fixed while moving the V-position.
+
+## RA-frame — RearrangementFrame (DEF, clause)
+
 ```
 Σ'.C = Σ.C  ∧  Σ'.L = Σ.L  ∧  Σ'.E = Σ.E  ∧  Σ'.R = Σ.R                                 (RA-frame)
   ∧  dom(Σ'.M) = dom(Σ.M)
   ∧  (A d' ∈ dom(Σ.M) : d' ≠ d : Σ'.M(d') = Σ.M(d'))
 ```
-and
+
+## RA-adm — RearrangementAdmissibility (DEF, clause)
+
 ```
 every per-state foundation invariant satisfied by Σ is satisfied by Σ'                  (RA-adm)
 ```
 
----
+## RA-bndy — CompositeBoundaryPrecond (PRE, requires)
 
-## RA-reg — RearrangeReg (PRE, precondition)
-
-```
-d ∈ dom(Σ.M)
-```
-
-## RA-dom — RearrangeDom (DEF, definition)
+Scopes the composite-boundary properties P4★ ∧ P4a ∧ P7a only:
 
 ```
-dom(Σ'.M(d)) = dom(Σ.M(d))
+Σ is the final state of a trace of valid composites Σ₀ →* Σ                             (RA-bndy)
 ```
-
-## RA-π — RearrangePi (DEF, definition)
-
-```
-π : dom(Σ.M(d)) → dom(Σ'.M(d)) is a bijection with
-(A v : v ∈ dom(Σ.M(d)) : Σ'.M(d)(π(v)) = Σ.M(d)(v))
-```
-
-## RA-frame — RearrangeFrame (DEF, definition)
-
-```
-Σ'.C = Σ.C  ∧  Σ'.L = Σ.L  ∧  Σ'.E = Σ.E  ∧  Σ'.R = Σ.R
-  ∧  dom(Σ'.M) = dom(Σ.M)
-  ∧  (A d' ∈ dom(Σ.M) : d' ≠ d : Σ'.M(d') = Σ.M(d'))
-```
-
-## RA-adm — RearrangeAdm (DEF, definition)
-
-```
-every per-state foundation invariant satisfied by Σ is satisfied by Σ'
-```
-Composite-boundary properties P4★/P4a/P7a and state-independent theorems S5, T0(a/b) lie outside its scope, discharged by their own arguments.
 
 ---
 
-## RE-C — ContentStoreInvariance (LEMMA, lemma)
+## RE-C — ContentStoreInvariance (INV, predicate)
 
 ```
-Σ'.C = Σ.C
+Σ'.C = Σ.C                                                                              (RE-C)
 ```
 
-## RE-dom — DomainStability (LEMMA, lemma)
+RA-frame fixes the content store with equality, so no content is allocated, freed, or modified by rearrangement.
+
+## RE-dom — DomainStability (INV, predicate)
 
 ```
-dom(Σ'.M(d)) = dom(Σ.M(d))
+dom(Σ'.M(d)) = dom(Σ.M(d))                                                              (RE-dom)
 ```
+
+Every V-position that was populated in d remains populated; every V-position that was unpopulated remains unpopulated.
 
 ## RE-ran — RangeInvariance (LEMMA, lemma)
 
 ```
-(A d' ∈ dom(Σ.M) :: ran(Σ'.M(d')) = ran(Σ.M(d')))
+(A d' ∈ dom(Σ.M) :: ran(Σ'.M(d')) = ran(Σ.M(d')))                                      (RE-ran)
 ```
 
-## RE-μ — MultiplicityInvariance (LEMMA, lemma)
+Derived via two-case argument: for target `d`, via the π-bijection; for `d' ≠ d`, via RA-frame's other-document clause `Σ'.M(d') = Σ.M(d')`.
+
+## RE-μ — PerAddressMultiplicityInvariance (LEMMA, lemma)
 
 ```
-(A a ∈ T, d' ∈ dom(Σ.M) :: μ_a(Σ'.M(d')) = μ_a(Σ.M(d')))
+(A a ∈ T, d' ∈ dom(Σ.M) :: μ_a(Σ'.M(d')) = μ_a(Σ.M(d')))                              (RE-μ)
 ```
 
-where `μ_a(M(d')) = |{v : v ∈ dom(M(d')) ∧ M(d')(v) = a}|`.
+Where `μ_a(M(d')) = |{v : v ∈ dom(M(d')) ∧ M(d')(v) = a}|`. For the target document `d`:
+```
+μ_a(Σ'.M(d)) = |{v' : v' ∈ dom(Σ'.M(d)) ∧ Σ'.M(d)(v') = a}|
+             = |{π(v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|       [substitute v' = π(v)]
+             = |{v : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|           [π injective]
+             = μ_a(Σ.M(d))
+```
 
-## RE-L — LinkStoreInvariance (LEMMA, lemma)
+## RE-L — LinkStoreInvariance (INV, predicate)
 
 ```
-dom(Σ'.L) = dom(Σ.L)  ∧  (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a))
+dom(Σ'.L) = dom(Σ.L)  ∧  (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a))                          (RE-L)
 ```
+
+Every link persists across rearrangement with its full endset sequence intact. No link is added, removed, or modified.
 
 ## RE-cov — CoverageInvariance (LEMMA, lemma)
 
 ```
-(A a ∈ dom(Σ.L), i : 1 ≤ i ≤ |Σ.L(a)| :: coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ))
+(A a ∈ dom(Σ.L), i : 1 ≤ i ≤ |Σ.L(a)| :: coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ))   (RE-cov)
 ```
+
+Coverage of an endset is a function of the endset's span representation alone (ASN-0098). RE-L preserves every endset verbatim, so coverage is preserved.
 
 ## RE-disc — DiscoverabilityInvariance (LEMMA, lemma)
 
 ```
-(A a ∈ dom(Σ.L), d ∈ dom(Σ.M) :: discoverable_from(a, d, Σ') ⟺ discoverable_from(a, d, Σ))
+(A a ∈ dom(Σ.L), d ∈ dom(Σ.M) :: discoverable_from(a, d, Σ') ⟺ discoverable_from(a, d, Σ))    (RE-disc)
 ```
 
-Expanded:
+Derivation:
 ```
 discoverable_from(a, d, Σ')
   ⟺ (E i :: coverage(Σ'.L(a).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
@@ -155,222 +135,221 @@ discoverable_from(a, d, Σ')
 ## RE-proj — ProjectionTransport (LEMMA, lemma)
 
 ```
-project(e, d, Σ') = π̂_d(project(e, d, Σ))      for every d ∈ dom(Σ.M)
+project(e, b, Σ') = π̂_b(project(e, b, Σ))      for every b ∈ dom(Σ.M)                  (RE-proj)
 ```
 
-where `π̂_d := π` when `d = d_tgt` and `π̂_d := id_{dom(Σ.M(d))}` for `d ≠ d_tgt`.
+Where `π̂_b := π` when `b = d` and `π̂_b := id_{dom(Σ.M(b))}` when `b ≠ d`.
 
-Equivalently at `d_tgt`:
+Equivalently at the target: `project(e, d, Σ') = π(project(e, d, Σ))`.
+
+Target case derivation: for any `v ∈ dom(Σ.M(d))`:
 ```
-project(e, d_tgt, Σ') = π(project(e, d_tgt, Σ))
+v ∈ project(e, d, Σ)
+  ⟺ Σ.M(d)(v) ∈ coverage(e)              [definition of project]
+  ⟺ Σ'.M(d)(π(v)) ∈ coverage(e)          [RA-π: Σ'.M(d)(π(v)) = Σ.M(d)(v)]
+  ⟺ π(v) ∈ project(e, d, Σ')             [definition; π(v) ∈ dom(Σ'.M(d)) by RA-π's codomain]
 ```
 
-## RE-frag — FragmentationPossibility (LEMMA, lemma)
+## RE-frag — FragmentationPossibility (EXISTENCE, lemma)
 
-There exist rearrangements `Σ → Σ'` such that the cardinality of the canonical maximal-run decomposition of `Σ'.M(d)` is strictly greater than that of `Σ.M(d)`.
+> **Fragmentation Possibility.** There exist rearrangements `Σ → Σ'` such that the cardinality of the canonical maximal-run decomposition of `Σ'.M(d)` is strictly greater than that of `Σ.M(d)`. (RE-frag)
 
-## RE-coal — CoalescencePossibility (LEMMA, lemma)
+## RE-coal — CoalescencePossibility (EXISTENCE, lemma)
 
-There exist rearrangements `Σ → Σ'` such that the cardinality of the canonical maximal-run decomposition of `Σ'.M(d)` is strictly less than that of `Σ.M(d)`.
+> **Coalescence Possibility.** There exist rearrangements `Σ → Σ'` such that the cardinality of the canonical maximal-run decomposition of `Σ'.M(d)` is strictly less than that of `Σ.M(d)`. (RE-coal)
 
-## RE-eq — CardinalityInvariancePossibility (LEMMA, lemma)
+## RE-eq — CardinalityInvariancePossibility (EXISTENCE, lemma)
 
-There exist rearrangements `Σ → Σ'` such that the cardinality of the canonical maximal-run decomposition of `Σ'.M(d)` equals that of `Σ.M(d)`.
+> **Cardinality Invariance Possibility.** There exist rearrangements `Σ → Σ'` such that the cardinality of the canonical maximal-run decomposition of `Σ'.M(d)` equals that of `Σ.M(d)`. (RE-eq)
 
-## RE-other — OtherDocumentInvariance (LEMMA, lemma)
+Together, RE-frag, RE-coal, and RE-eq record that the maximal-run-decomposition cardinality is *neither monotonically non-decreasing nor monotonically non-increasing nor invariant* under REARRANGE.
+
+## RE-other — OtherDocumentInvariance (INV, predicate)
 
 ```
-(A d' ∈ dom(Σ.M) : d' ≠ d :: Σ'.M(d') = Σ.M(d'))
+(A d' ∈ dom(Σ.M) : d' ≠ d :: Σ'.M(d') = Σ.M(d'))                                       (RE-other)
 ```
 
 ## RE-trans — TransclusionPreservation (LEMMA, lemma)
 
-For every transclusion relationship at Σ — every pair `(a, d)` with `a ∈ ran(Σ.M(d))` and `origin(a) ≠ d`:
+> **Transclusion Preservation.** For every transclusion relationship at Σ — every pair (a, d_view) with `a ∈ ran(Σ.M(d_view))` and `origin(a) ≠ d_view` — the foreign relationship at d_view is preserved:
+> - (i) `a ∈ ran(Σ'.M(d_view))` — unconditional in `d_view`
+> - (ii) the multiplicity of `a` at d_view is unchanged — unconditional in `d_view`
+> - (iii) `origin(a)`'s arrangement is unchanged when `origin(a) ≠ d` (the rearrangement target)
+>
+> (RE-trans)
 
-- (i) `a ∈ ran(Σ'.M(d))` — unconditional in `d`
-- (ii) the multiplicity of `a` at `d` is unchanged (`μ_a(Σ'.M(d)) = μ_a(Σ.M(d))`) — unconditional in `d`
-- (iii) `Σ'.M(origin(a)) = Σ.M(origin(a))` — conditional on `origin(a) ≠ d_tgt` (the rearrangement target)
-
-## RE-subpres — SubspacePreservation (LEMMA, lemma)
-
-```
-(A v : v ∈ dom(Σ.M(d)) :: subspace(π(v)) = subspace(v))
-```
-
-No V-position crosses from the content subspace to the link subspace or vice versa under any admissible `π`.
+Precondition for (iii): `origin(a) ≠ d`. Conclusions (i) and (ii) at `d_view` remain intact regardless of whether `origin(a) = d`.
 
 ## RE-sub — SubspaceFrame (LEMMA, lemma)
 
 ```
-(A v : v ∈ dom(Σ.M(d)) ∧ subspace(v) ≠ S :: π(v) = v ∧ Σ'.M(d)(v) = Σ.M(d)(v))
+(A v : v ∈ dom(Σ.M(d)) ∧ subspace(v) ≠ S :: π(v) = v ∧ Σ'.M(d)(v) = Σ.M(d)(v))           (RE-sub)
 ```
+
+Where `S` is the cut subspace. V-positions in subspaces *other than* the cut subspace S are left wholly unpermuted. π-fixity from R-PPERM/R-SPERM non-S branch; arrangement preservation from R-FRAME-P/S(a).
 
 ## RE-ext — InSubspaceExteriorFrame (LEMMA, lemma)
 
 ```
-(A v : v ∈ V_S(d) ∧ (v < c₀ ∨ v ≥ c_{n−1}) :: π(v) = v ∧ Σ'.M(d)(v) = Σ.M(d)(v))
+(A v : v ∈ V_S(d) ∧ (v < c₀ ∨ v ≥ c_{n−1}) :: π(v) = v ∧ Σ'.M(d)(v) = Σ.M(d)(v))    (RE-ext)
 ```
 
-## RE-origin — OriginInvariance (LEMMA, lemma)
+V-positions *within* the cut subspace S that lie *outside* the affected range `[c₀, c_{n−1})`. π-fixity from R-PPERM/R-SPERM exterior branch; arrangement preservation from R-EXT.
+
+## L-chain — ChainDisjointAdjacency (LEMMA, lemma)
+
+> **Lemma L-chain (ChainDisjointAdjacency).** For chain elements `x ∈ A_{s_X}(d_X)` and `y ∈ A_{s_Y}(d_Y)` with `(d_X, s_X) ≠ (d_Y, s_Y)` — i.e., the two sub-allocator chains differ in either their home document or their subspace — neither `x + 1 = y` nor `y + 1 = x` can hold.
+
+*Precondition fixing the successor identification.* Sub-allocator chain elements are T4-valid (ChainElementT4Validity, ASN-0093), so for every chain element `x` we have `sig(x) = #x` (TA5-SigValid, ASN-0034), and hence the ordinal successor `x + 1 = shift(x, 1)` (OrdinalShiftBase, ASN-0058) coincides with `inc(x, 0)`.
+
+*Justification.* The chain-adjacency successor `x + 1 = inc(x, 0)` preserves sub-allocator chain membership, since each sub-allocator chain is closed under `inc(·, 0)` by the SiblingStream recurrence `t_{n+1} = inc(t_n, 0)` (ChainDiscipline, ASN-0093) — so `x + 1 ∈ dom(A_{s_X}(d_X))`; symmetrically `y + 1 ∈ dom(A_{s_Y}(d_Y))`. Distinct sub-allocator chains have disjoint domains — cross-subspace by ASN-0093's DisjointSubAllocatorChains and cross-document by its CrossDocumentDisjointness, both instances of T10a.6 (DomainDisjointness, ASN-0034). Hence `x + 1 ∈ dom(A_{s_X}(d_X))` and `y ∈ dom(A_{s_Y}(d_Y))` lie in disjoint domains, forcing `x + 1 ≠ y`; the symmetric placement of `y + 1` and `x` forces `y + 1 ≠ x`.
+
+## RE-origin — OriginInvariance (INV, predicate)
 
 ```
-(A a ∈ T :: origin(a) at Σ' = origin(a) at Σ)
+(A a ∈ T :: origin(a) at Σ' = origin(a) at Σ)                                           (RE-origin)
 ```
 
-origin is a function on tumblers, not state; it has no temporal dimension.
+The function `origin(a) = N(a).0.U(a).0.D(a)` (S7 of ASN-0036) projects an I-address to the document-level prefix encoding its allocator. Origin consults only the address `a` — it is a structural projection on T, independent of any state component.
 
-## RE-R — ProvenanceInvariance (LEMMA, lemma)
+## RE-R — ProvenanceInvariance (INV, predicate)
 
 ```
-Σ'.R = Σ.R
+Σ'.R = Σ.R                                                                              (RE-R)
 ```
 
 ---
 
-## RE-C★ — ContentStoreInvarianceMulti (LEMMA, lemma)
+## RE-C★ — ContentStoreInvarianceMultiStep (LEMMA, lemma)
 
-For a finite sequence `Σ_0 →_R Σ_1 →_R ⋯ →_R Σ_n`:
+For a finite sequence `Σ₀ →_R Σ₁ →_R ⋯ →_R Σ_n` of REARRANGE-only transitions:
+
 ```
 Σ_n.C = Σ_0.C
 ```
-Composition conditions: none.
 
-## RE-L★ — LinkStoreInvarianceMulti (LEMMA, lemma)
+Composition condition: none.
+
+## RE-L★ — LinkStoreInvarianceMultiStep (LEMMA, lemma)
 
 ```
 dom(Σ_n.L) = dom(Σ_0.L)  ∧  (A a ∈ dom(Σ_0.L) :: Σ_n.L(a) = Σ_0.L(a))
 ```
-Composition conditions: none.
 
-## RE-R★ — ProvenanceInvarianceMulti (LEMMA, lemma)
+Composition condition: none.
+
+## RE-R★ — ProvenanceInvarianceMultiStep (LEMMA, lemma)
 
 ```
 Σ_n.R = Σ_0.R
 ```
-Composition conditions: none.
 
-## RE-dom★ — DomainStabilityMulti (LEMMA, lemma)
+Composition condition: none.
 
-For fixed `d`:
+## RE-dom★ — DomainStabilityMultiStep (LEMMA, lemma)
+
+At fixed `d`:
+
 ```
 dom(Σ_n.M(d)) = dom(Σ_0.M(d))
 ```
-Composition conditions: none.
 
-## RE-ran★ — RangeInvarianceMulti (LEMMA, lemma)
+Composition condition: none. At each step `Σᵢ₋₁ →_R Σᵢ` targeting `dᵢ`, either `dᵢ = d` (per-step RE-dom preserves) or `dᵢ ≠ d` (RE-other gives `Σᵢ.M(d) = Σᵢ₋₁.M(d)`).
 
-For fixed `d`:
+## RE-ran★ — RangeInvarianceMultiStep (LEMMA, lemma)
+
+At fixed `d`:
+
 ```
 ran(Σ_n.M(d)) = ran(Σ_0.M(d))
 ```
-Composition conditions: none.
 
-## RE-μ★ — MultiplicityInvarianceMulti (LEMMA, lemma)
+Composition condition: none.
+
+## RE-μ★ — PerAddressMultiplicityInvarianceMultiStep (LEMMA, lemma)
 
 ```
 (A a ∈ T, d ∈ dom(Σ_0.M) :: μ_a(Σ_n.M(d)) = μ_a(Σ_0.M(d)))
 ```
-Composition conditions: none.
 
-## RE-cov★ — CoverageInvarianceMulti (LEMMA, lemma)
+Composition condition: none.
+
+## RE-cov★ — CoverageInvarianceMultiStep (LEMMA, lemma)
 
 ```
 (A a ∈ dom(Σ_0.L), i :: coverage(Σ_n.L(a).eᵢ) = coverage(Σ_0.L(a).eᵢ))
 ```
-Composition conditions: none.
 
-## RE-disc★ — DiscoverabilityInvarianceMulti (LEMMA, lemma)
+Composition condition: none.
+
+## RE-disc★ — DiscoverabilityInvarianceMultiStep (LEMMA, lemma)
 
 ```
 (A a ∈ dom(Σ_0.L), d ∈ dom(Σ_0.M) :: discoverable_from(a, d, Σ_n) ⟺ discoverable_from(a, d, Σ_0))
 ```
-Composition conditions: none.
 
-## RE-proj★ — ProjectionTransportMulti (LEMMA, lemma)
+Composition condition: none.
+
+## RE-proj★ — ProjectionTransportMultiStep (LEMMA, lemma)
 
 ```
 project(e, d, Σ_n) = (π̂_n ∘ ⋯ ∘ π̂_1)(project(e, d, Σ_0))
 ```
 
-where for each step `Σ_{i−1} →_R Σ_i` targeting document `dᵢ` with rearrangement permutation `π_i` on `dom(Σ_{i−1}.M(dᵢ))`:
-```
-π̂_i := π_i                             when dᵢ = d
-π̂_i := id_{dom(Σ_{i−1}.M(d))}          otherwise
-```
+Where `π̂_i = π_i` on steps targeting `d` and `π̂_i = id` otherwise.
 
-For sequences in which every step targets the same document `d`:
-```
-project(e, d, Σ_n) = (π_n ∘ ⋯ ∘ π_1)(project(e, d, Σ_0))
-```
-Composition conditions: none.
+Composition condition: none.
 
-## RE-other★ — OtherDocumentInvarianceMulti (LEMMA, lemma)
+## RE-other★ — OtherDocumentInvarianceMultiStep (LEMMA, lemma)
 
-For fixed `d'`:
+At fixed `d'`:
+
 ```
 Σ_n.M(d') = Σ_0.M(d')
 ```
-Composition conditions: no step in the sequence targets `d'`.
 
-## RE-sub★ — SubspaceFrameMulti (LEMMA, lemma)
+Composition condition: no step in the sequence targets `d'`.
 
-For fixed `d`: for every `v ∈ dom(Σ_0.M(d))` with `subspace(v) ≠ S`, the V-position remains pointwise fixed and its image is preserved across all steps targeting `d`:
+## RE-sub★ — SubspaceFrameMultiStep (LEMMA, lemma)
+
+At fixed `d`: for every `v ∈ dom(Σ_0.M(d))` with `subspace(v) ≠ S`, the V-position remains pointwise fixed and its image is preserved across all steps targeting `d`.
+
+Composition condition: none (per-step RE-sub chains through identity on non-targeting steps).
+
+## RE-ext★ — InSubspaceExteriorFrameMultiStep (LEMMA, lemma)
+
+At fixed `d`: for every `v` that lies in the in-S exterior of every targeted step — i.e., for every step `Σᵢ₋₁ →_R Σᵢ` targeting `d` with cut sequence `Kᵢ` and cut subspace `Sᵢ`:
 ```
-(A i : step Σ_{i−1} →_R Σ_i targets d :: π_i(v) = v ∧ Σ_i.M(d)(v) = Σ_{i−1}.M(d)(v))
+v ∈ V_{Sᵢ}(Σᵢ₋₁.M(d)) ∧ (v < c₀,ᵢ ∨ v ≥ c_{n−1},ᵢ)
 ```
-Composition conditions: none (per-step RE-sub chains through identity on non-targeting steps).
+or the step does not target `d` — the V-position remains pointwise fixed and its image is preserved across all such steps.
 
-## RE-ext★ — InSubspaceExteriorFrameMulti (LEMMA, lemma)
+Composition condition: the `v` in question must lie in the in-S exterior of every step in the sequence that targets `d`; for steps not targeting `d`, RE-other applies and `v` is fixed unconditionally.
 
-For fixed `d` and V-position `v`: for every step `Σ_{i−1} →_R Σ_i` targeting `d` with cut sequence `Kᵢ` of cut subspace `Sᵢ`, if
-```
-(v ∈ V_{Sᵢ}(Σ_{i−1}.M(d)) ∧ (v < c₀,ᵢ ∨ v ≥ c_{n−1},ᵢ))  ∨  dᵢ ≠ d
-```
-holds at every step, then:
-```
-π_n(...π_1(v)...) = v  ∧  Σ_n.M(d)(v) = Σ_0.M(d)(v)
-```
-Composition conditions: `v` must lie in the in-S exterior of every step in the sequence that targets `d`.
+## RE-trans★ — TransclusionPreservationMultiStep (LEMMA, lemma)
 
-## RE-trans★ — TransclusionPreservationMulti (LEMMA, lemma)
+For every `(a, d_view)` with `a ∈ ran(Σ_0.M(d_view))` and `origin(a) ≠ d_view`:
 
-For a finite sequence `Σ_0 →_R Σ_1 →_R ⋯ →_R Σ_n`, for every `(a, d)` with `a ∈ ran(Σ_0.M(d))` and `origin(a) ≠ d`:
+- (i) `a ∈ ran(Σ_n.M(d_view))` — unconditional
+- (ii) multiplicity of `a` at `d_view` is preserved across `Σ_0` to `Σ_n` — unconditional
+- (iii) `origin(a)`'s arrangement is unchanged across the sequence
 
-- (i) `a ∈ ran(Σ_n.M(d))` — unconditional
-- (ii) `μ_a(Σ_n.M(d)) = μ_a(Σ_0.M(d))` — unconditional
-- (iii) `Σ_n.M(origin(a)) = Σ_0.M(origin(a))` — conditional on no step in the sequence targeting `origin(a)`
+Composition condition: (i)+(ii) require no restriction; (iii) requires no step in the sequence targets `origin(a)`.
 
-Composition conditions: (iii) requires no step targets `origin(a)`; (i)+(ii) require no restriction.
+## RE-frag★ / RE-coal★ / RE-eq★ — ArbitraryPerStepDirection (EXISTENCE, lemma)
 
-## RE-frag★/RE-coal★/RE-eq★ — ArbitraryDirectionMulti (LEMMA, lemma)
+For every `n ≥ 1` and every finite direction sequence `(s_1, …, s_n) ∈ {+, −, =}^n`, there exists a multi-step REARRANGE sequence `Σ_0 →_R ⋯ →_R Σ_n` targeting a single document `d` such that step `i` realises direction `s_i`:
+- `+` = strict increase in maximal-run-decomposition cardinality of `M(d)`
+- `−` = strict decrease in maximal-run-decomposition cardinality of `M(d)`
+- `=` = exact preservation of maximal-run-decomposition cardinality of `M(d)`
 
-For every `n ≥ 1` and every finite direction sequence `(s_1, ..., s_n) ∈ {+, −, =}^n`, there exists a multi-step REARRANGE sequence `Σ_0 →_R Σ_1 →_R ⋯ →_R Σ_n` targeting a single document `d` such that step `i` (`Σ_{i−1} →_R Σ_i`) realises direction `s_i`, where:
-```
-+ : |runs(Σ_i.M(d))| > |runs(Σ_{i−1}.M(d))|   (strict increase)
-− : |runs(Σ_i.M(d))| < |runs(Σ_{i−1}.M(d))|   (strict decrease)
-= : |runs(Σ_i.M(d))| = |runs(Σ_{i−1}.M(d))|   (exact preservation)
-```
+No uniform per-step monotonicity, and no claim about net cardinality change, is asserted.
 
-Composition conditions: none (existential; concatenation construction via spatial partitioning with RE-ext bridging between steps).
-
-## RE-origin★ — OriginInvarianceMulti (LEMMA, lemma)
+## RE-origin★ — OriginInvarianceMultiStep (INV, predicate)
 
 ```
 (A a ∈ T :: origin(a) is unchanged across Σ_0 →_R ⋯ →_R Σ_n)
 ```
-Composition conditions: none (state-independent).
 
----
-
-## Definition — ChainDisjointAdjacency
-
-**Inline lemma.** For chain elements `x ∈ A_{s_X}(d_X)` and `y ∈ A_{s_Y}(d_Y)` with `(d_X, s_X) ≠ (d_Y, s_Y)`:
-```
-¬(x + 1 = y)  ∧  ¬(y + 1 = x)
-```
-
-Justification: each chain element of `A_{s_X}(d_X)` has the structural form `[d_X, 0, s_X, k]` for some `k ≥ 1`; the chain-adjacency operator `inc(·, 0)` from TA5(c) preserves length and modifies only the rightmost position, so:
-```
-x + 1 = [d_X, 0, s_X, k_x + 1]
-```
-For `x + 1 = y` to hold, T3 (CanonicalRepresentation) requires component-wise equality `(d_X, s_X, k_x + 1) = (d_Y, s_Y, k_y)`, which forces `d_X = d_Y` and `s_X = s_Y`, contradicting `(d_X, s_X) ≠ (d_Y, s_Y)`. Symmetric argument applies to `y + 1 = x`.
+Composition condition: none (state-independent).
