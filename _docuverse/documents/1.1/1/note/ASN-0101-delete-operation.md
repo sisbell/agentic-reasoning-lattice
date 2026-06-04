@@ -72,7 +72,7 @@ The form of the effect makes explicit a structural fact that is easy to miss: DE
 
 ## What shifts: closing the gap
 
-The ASN-0034 algebra fixes the shift mechanism precisely. Let `v ∈ Π` with `v = [S, 1, ..., 1, k]` and `k ≥ p + n`. The shift function `σ_d(v)` is the unique tumbler `u` with `shift(u, n) = v`. Because OrdinalShift advances only the last component of its argument by `n` while leaving earlier components fixed (shift(v, n)ᵢ = vᵢ for i < m; shift(v, n)ₘ = vₘ + n), the inverse simply decrements the last component: `u = [S, 1, ..., 1, k − n]`. Verification: `shift([S, 1, ..., 1, k − n], n) = [S, 1, ..., 1, k − n] ⊕ δ(n, m_S) = [S, 1, ..., 1, (k − n) + n] = [S, 1, ..., 1, k] = v` ✓. When `Π ≠ ∅` (equivalently, `p + n ≤ n_S`), its smallest element is `r = [S, 1, ..., 1, p + n]`, and `σ_d(r) = [S, 1, ..., 1, p] = s` — the first shifted position lands exactly where the deletion began, closing the gap precisely. When `Π = ∅` (deletion at the end, `p + n = n_S + 1`), no shift occurs and `r ∉ V_S(d)`, so `σ_d(r)` is not invoked.
+The ASN-0034 algebra fixes the shift mechanism precisely. The D0 effect already establishes the structural form of the inverse: for each `v = [S, 1, ..., 1, k] ∈ Π` with `k ≥ p + n`, `σ_d(v) = [S, 1, ..., 1, k − n]` — the unique length-`m_S` tumbler whose shift by `n` recovers `v`, since OrdinalShift advances only the last component while leaving earlier components fixed. What that derivation does not record is the gap-closing consequence at the boundary. When `Π ≠ ∅` (equivalently, `p + n ≤ n_S`), its smallest element is `r = [S, 1, ..., 1, p + n]`, and `σ_d(r) = [S, 1, ..., 1, p] = s` — the first shifted position lands exactly where the deletion began, closing the gap precisely. When `Π = ∅` (deletion at the end, `p + n = n_S + 1`), no shift occurs and `r ∉ V_S(d)`, so `σ_d(r)` is not invoked.
 
 That the operation actually closes the gap, rather than leaving it open with placeholders, is Nelson's explicit design choice. We extract it from the dense-sequence convention: the V-stream is defined to be a contiguous ordering with no notion of "empty positions" between consecutive members. There is nothing in the abstract specification of the V-stream to denote — and nothing for a reader to observe — at a vacated position. The closure of the gap follows from the choice of representation, not from a separate gap-closing pass.
 
@@ -89,201 +89,6 @@ Gregory's implementation realises this through a two-phase protocol on the tree 
 The abstract specification is silent on the tree structure but does require *some* such mechanism — the operation must be able, in finite work proportional to the affected region, to produce a post-state arrangement satisfying D0's domain and value conditions. The two-knife structure is an implementation choice that realises this in a particularly direct way. One observation sharpens the abstract picture:
 
 - *No reconciliation across the gap.* After the shift, two runs that were previously separated by the deleted region become V-adjacent. Whether their I-extents are now I-adjacent — and could therefore be merged into a single run under the bundle-algebra rules — is in general indeterminate. The abstract specification does not require a reconciliation pass, and Gregory confirms that none is performed: formerly non-adjacent crums whose V-positions become contiguous remain separate. This is consistent with the principle that DELETE preserves arrangement information without re-canonicalising; merging would conflate the boundaries of two independently inserted runs with the boundaries of a single uninterrupted run.
-
-## A worked example
-
-We instantiate the operation on a concrete arrangement to verify the postconditions. Consider a document `d` with content-subspace arrangement (`S = s_C = 1`, depth `m_S = 3`):
-
-```
-V_1(d) = {[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 1, 4]}
-M(d)(v) = a_v  where a_1, a_2, a_3, a_4 are the first four emissions of d's
-                content sub-allocator A_C(d): a_k = [d, 0, 1, k] for k ∈ {1, 2, 3, 4},
-                with #a_k = #d + 3
-```
-
-so `n_S = 4`. We apply `DEL[d, σ]` with `s = [1, 1, 2]` and `ℓ_σ = δ(2, 3) = [0, 0, 2]`. Then `r = s ⊕ ℓ_σ = [1, 1, 4]`, `p = 2`, `n = 2`.
-
-*Region computation.*
-
-- `Λ = {v ∈ V_1(d) : v < [1, 1, 2]} = {[1, 1, 1]}`.
-- `X = {v ∈ V_1(d) : [1, 1, 2] ≤ v < [1, 1, 4]} = {[1, 1, 2], [1, 1, 3]}`.
-- `Π = {v ∈ V_1(d) : v ≥ [1, 1, 4]} = {[1, 1, 4]}`.
-
-*Shift function.* For the single element of `Π`, `σ_d([1, 1, 4])` is the unique tumbler `u` with `shift(u, 2) = [1, 1, 4]`. Setting `u = [1, 1, 2]`:
-
-```
-shift([1, 1, 2], 2) = [1, 1, 2] ⊕ δ(2, 3) = [1, 1, 2] ⊕ [0, 0, 2] = [1, 1, 4]    ✓
-```
-
-So `σ_d([1, 1, 4]) = [1, 1, 2]` and `Q = {[1, 1, 2]}`.
-
-*Post-state.*
-
-- *Domain:* `V_1(M'(d)) = Λ ∪ Q = {[1, 1, 1], [1, 1, 2]}`, of cardinality `n_S − n = 4 − 2 = 2`.
-- *Values:* `M'(d)([1, 1, 1]) = a_1` (from `Λ`); `M'(d)([1, 1, 2]) = M(d)(σ_d^{-1}([1, 1, 2])) = M(d)([1, 1, 4]) = a_4` (from the shifted `Π`).
-- *Stores:* `dom(C') = dom(C)`, with `a_1, a_2, a_3, a_4` all still in `dom(C')` (D2). The originals `a_2` and `a_3` are now orphaned with respect to `M'(d)` but remain addressable from `C'`.
-
-*Verification of D1.* The post-state `V_1(M'(d)) = {[1, 1, 1], [1, 1, 2]}` is `{[1, 1, k] : 1 ≤ k ≤ 2}` (depth-3 form with `S = 1`, one middle component fixed at `1`, last component varying over `1..n_S − n`), matching D1's predicted form `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}`. The shift `σ_d` is a bijection from `Π = {[1, 1, 4]}` to `Q = {[1, 1, 2]}` — trivially so on a singleton.
-
-*Verification of D8* — D8 (stated in *What is preserved* below) requires every foundation per-state invariant holding at the pre-state to hold at the post-state. S8a holds on every post-state V-position (zeros = 0, depth = 3, components positive). S8-depth holds (both surviving positions have depth 3). S8-fin holds: `|V_1(M'(d))| = 2 < ∞`. S2 holds (the domain is two distinct keys, each with a single value). S3★ holds: `a_1, a_4 ∈ dom(C') = dom(C)` by D2. S3★-aux holds: both post-state V-positions have subspace `1 ∈ {s_C, s_L}`. D-CTG★, D-MIN★, D-SEQ★ hold: the post-state is the contiguous prefix of depth-3 positions in subspace 1 starting at `[1, 1, 1]`, with maximum `[1, 1, 2]`. S8★ holds via the singleton decomposition `{([1, 1, 1], a_1, 1), ([1, 1, 2], a_4, 1)}` satisfying S8's conditions (a) and (b) with run width 1 (at `k = 0`, `OrdinalShiftBase` reduces `shift(t, 0) = t`). Because the example operates in the content subspace (`S = s_C = 1`), S8★ additionally requires condition (c) — uniqueness of the maximal-run decomposition. We discharge (c) by showing this singleton decomposition is the maximal one: its two runs are V-adjacent (`shift([1, 1, 1], 1) = [1, 1, 2]`) but not I-adjacent, since `shift(a_1, 1) = [d, 0, 1, 2] ≠ a_4 = [d, 0, 1, 4]`. With I-adjacency failing, the two length-1 runs cannot merge (ASN-0058's M7 merge condition requires both V- and I-adjacency), so each is a maximal run; by M12 (CanonicalUniqueness) the maximally merged decomposition is unique, and condition (c) holds.
-
-*Verification of D9 (link projection)* — D9 (stated in *Link discoverability* below) characterises, per document and subspace, how a link's post-state projection relates to its pre-state projection. We extend the example with a concrete link. Let `ℓ_0 ∈ dom(L)` be any link, and consider slot 1 with endset `L(ℓ_0).e_1 = {(a_1, δ(4, #a_1))}` — a single span anchored at `a_1` of ordinal width 4. (Slots 2 and 3 carry whatever other-endset and type-endset data the link bears; D9 quantifies over each slot independently, so the local computation depends only on the slot under examination.) By the ASN-0053 denotation, `coverage(L(ℓ_0).e_1) = {t ∈ T : a_1 ≤ t < a_1 ⊕ δ(4, #a_1)}`. Computing the upper bound: `a_1 = [d, 0, 1, 1]` and `δ(4, #a_1) = [0, ..., 0, 4]` of length `#a_1`, so by TumblerAdd's componentwise rule `a_1 ⊕ δ(4, #a_1) = [d, 0, 1, 5]`. Hence `coverage(L(ℓ_0).e_1) = {t ∈ T : [d, 0, 1, 1] ≤ t < [d, 0, 1, 5]} ⊇ {a_1, a_2, a_3, a_4}` (each `a_k = [d, 0, 1, k]` with `1 ≤ k ≤ 4` lies in this half-open interval).
-
-*Pre-state projection.* `project(L(ℓ_0).e_1, d, Σ) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(L(ℓ_0).e_1)}`. Element by element:
-- `v = [1, 1, 1]` → `M(d)(v) = a_1`: in coverage ✓
-- `v = [1, 1, 2]` → `M(d)(v) = a_2`: in coverage ✓
-- `v = [1, 1, 3]` → `M(d)(v) = a_3`: in coverage ✓
-- `v = [1, 1, 4]` → `M(d)(v) = a_4`: in coverage ✓
-
-(Any link-subspace positions of `d` map to I-addresses with `subspace_I = s_L = 2` (by S3★'s `dom(L)` clause and L0), which fall outside the content-subspace coverage anchored at `a_1` with `subspace_I(a_1) = s_C = 1` (T1 trichotomy gives every t with `t_2 = 2` strictly greater than every t' with `t'_2 = 1` extending the same document prefix), and so do not enter the projection. If `V_2(d) = ∅` the consideration is vacuous; the projection result depends on neither possibility.) So `project(L(ℓ_0).e_1, d, Σ) = V_1(d) = {[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 1, 4]}`.
-
-*Post-state projection.* By D3, `L'(ℓ_0).e_1 = L(ℓ_0).e_1`, so `coverage(L'(ℓ_0).e_1) = coverage(L(ℓ_0).e_1)`. Then `project(L'(ℓ_0).e_1, d, Σ') = {v ∈ dom(M'(d)) : M'(d)(v) ∈ coverage(L(ℓ_0).e_1)}`. Element by element over the post-state domain restricted to subspace 1:
-- `v = [1, 1, 1]` → `M'(d)(v) = a_1`: in coverage ✓
-- `v = [1, 1, 2]` → `M'(d)(v) = a_4`: in coverage ✓
-
-So `project(L'(ℓ_0).e_1, d, Σ') ∩ V_1(M'(d)) = {[1, 1, 1], [1, 1, 2]}`.
-
-*Verification of D9's third bullet.* The equation requires
-```
-project(L'(ℓ_0).e_1, d, Σ') ∩ V_1(M'(d))
-  = (project(L(ℓ_0).e_1, d, Σ) ∩ Λ) ∪ {σ_d(v) : v ∈ project(L(ℓ_0).e_1, d, Σ) ∩ Π}
-```
-LHS, from the post-state computation above: `{[1, 1, 1], [1, 1, 2]}`. RHS, computed directly:
-- `project(L(ℓ_0).e_1, d, Σ) ∩ Λ = V_1(d) ∩ {[1, 1, 1]} = {[1, 1, 1]}`
-- `project(L(ℓ_0).e_1, d, Σ) ∩ Π = V_1(d) ∩ {[1, 1, 4]} = {[1, 1, 4]}`, so `{σ_d([1, 1, 4])} = {[1, 1, 2]}`
-- Union: `{[1, 1, 1]} ∪ {[1, 1, 2]} = {[1, 1, 1], [1, 1, 2]}`
-
-LHS = RHS = `{[1, 1, 1], [1, 1, 2]}` ✓. The verification exercises both contributions: the unshifted summand from `Λ` (carrying `[1, 1, 1] → a_1`) and the shifted summand from `Π` (carrying `[1, 1, 4] → a_4`, renamed to `[1, 1, 2]` by `σ_d`).
-
-*Verification of D11 (discoverability and cardinality wps)* — D11 (stated in *Weakest precondition for discoverability preservation* below) gives the weakest preconditions for post-DELETE discoverability and projection-cardinality. The deleted region in this example is `X = {[1, 1, 2], [1, 1, 3]}`. We evaluate each of D11's three wps against the concrete pre-state. DEL is applicable at this pre-state — `σ = ([1, 1, 2], δ(2, 3))` is a well-formed span over the contiguous text arrangement of `d` — so `enabled(DEL[d, σ]) = true`, discharging the enabledness conjunct that each D11 wp carries; the residual equivalences exhibited below are therefore the pullback factor only.
-
-- *Discoverability wp from `d`.* `wp(DEL[d, σ], Q_disc(ℓ_0, d)) ≡ enabled(DEL[d, σ]) ∧ (E i : project(L(ℓ_0).eᵢ, d, Σ) ⊄ X)`; the pullback factor is `(E i : project(L(ℓ_0).eᵢ, d, Σ) ⊄ X)`. At slot `i = 1`: `project(L(ℓ_0).e_1, d, Σ) = {[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 1, 4]}`; intersecting with `X` gives `{[1, 1, 2], [1, 1, 3]} ⊊ project`, witnessed by `[1, 1, 1] ∈ project ∖ X` (or equivalently `[1, 1, 4] ∈ project ∖ X`). So `project ⊄ X` at slot 1, and the existential is satisfied. The wp evaluates to `true` — predicting that `ℓ_0` remains discoverable from `d` post-DELETE. Cross-check against the post-state: `project(L'(ℓ_0).e_1, d, Σ') = {[1, 1, 1], [1, 1, 2]} ≠ ∅`, so `discoverable_from(ℓ_0, d, Σ') = true`. ✓
-
-- *Cardinality wp.* `wp(DEL[d, σ], Q_card(ℓ_0, 1, d, k)) ≡ enabled(DEL[d, σ]) ∧ |project(L(ℓ_0).e_1, d, Σ)| − |project(L(ℓ_0).e_1, d, Σ) ∩ X| = k`; the pullback factor is `|project(L(ℓ_0).e_1, d, Σ)| − |project(L(ℓ_0).e_1, d, Σ) ∩ X| = k`. Computing: `|project| = 4` and `|project ∩ X| = |{[1, 1, 2], [1, 1, 3]}| = 2`, so the wp predicts the post-state cardinality `k = 4 − 2 = 2`. Cross-check against the post-state: `|project(L'(ℓ_0).e_1, d, Σ')| = |{[1, 1, 1], [1, 1, 2]}| = 2`. ✓
-
-- *Cardinality-preservation specialisation.* `wp(DEL[d, σ], |project(·)| = |project(L(ℓ_0).e_1, d, Σ)|) ≡ enabled(DEL[d, σ]) ∧ project(L(ℓ_0).e_1, d, Σ) ∩ X = ∅`; the pullback factor is `project(L(ℓ_0).e_1, d, Σ) ∩ X = ∅`. Here `project ∩ X = {[1, 1, 2], [1, 1, 3]} ≠ ∅`, so the wp evaluates to `false` — predicting that cardinality is *not* preserved. Cross-check: the post-state cardinality `2` differs from the pre-state cardinality `4`, confirming the non-preservation predicted by the wp. ✓
-
-The link `ℓ_0` itself remains in `dom(L')` with `L'(ℓ_0) = L(ℓ_0)` by D3. Its discoverability from `d` has shrunk from 4 positions to 2 positions; the I-addresses `a_2` and `a_3` that were referenced by the deleted V-positions `[1, 1, 2]` and `[1, 1, 3]` are still in `coverage(L'(ℓ_0).e_1)` but no longer projected from `d`. They remain in `dom(C')` by D2 and could be re-projected by a subsequent insertion mapping a V-position in `d` to either of them.
-
-### A link-subspace example
-
-The content-subspace example above does not exercise CL-OWN, CL-UNIQ, or the `dom(L)` clause of D9 — these are non-trivial only when the deleted positions reach into the link subspace. We supply a second example, with the same document `d` now carrying a link-subspace arrangement (`S = s_L = 2`, with link-subspace depth `m_L = 2` chosen for this example — S8a permits any `m_L ≥ 2` and S8-depth fixes a single common value within the subspace, which we take to be 2 here):
-
-```
-V_2(d) = {[2, 1], [2, 2], [2, 3]}
-M(d)([2, k]) = ℓ_k  where ℓ_1, ℓ_2, ℓ_3 are the first three emissions of d's
-                     link sub-allocator A_L(d): ℓ_k = [d, 0, 2, k] for k ∈ {1, 2, 3},
-                     with #ℓ_k = #d + 3
-```
-
-so `n_L = 3`. Pre-state invariants hold: `subspace_I(ℓ_k) = 2 = s_L` for each `k` (L0); `origin(ℓ_k) = d` for each `k`, so CL-OWN holds on `V_2(d)`; the three V-positions map to three distinct link addresses, so CL-UNIQ holds.
-
-We apply `DEL[d, σ]` with `s = [2, 2]` and `ℓ_σ = δ(1, 2) = [0, 1]`. Then `r = s ⊕ ℓ_σ = [2, 3]`, `p = 2`, `n = 1` — a singleton interior deletion in the link subspace.
-
-*Region computation.*
-
-- `Λ = {v ∈ V_2(d) : v < [2, 2]} = {[2, 1]}`.
-- `X = {v ∈ V_2(d) : [2, 2] ≤ v < [2, 3]} = {[2, 2]}`.
-- `Π = {v ∈ V_2(d) : v ≥ [2, 3]} = {[2, 3]}`.
-
-*Shift function.* For `[2, 3] ∈ Π`, `σ_d([2, 3])` is the unique `u` with `shift(u, 1) = [2, 3]`. Setting `u = [2, 2]`: `shift([2, 2], 1) = [2, 2] ⊕ δ(1, 2) = [2, 2] ⊕ [0, 1] = [2, 3]` ✓. So `σ_d([2, 3]) = [2, 2]` and `Q = {[2, 2]}`.
-
-*Post-state.*
-
-- *Domain:* `V_2(M'(d)) = Λ ∪ Q = {[2, 1], [2, 2]}`, of cardinality `n_L − n = 2`.
-- *Values:* `M'(d)([2, 1]) = ℓ_1` (from `Λ`); `M'(d)([2, 2]) = M(d)(σ_d^{-1}([2, 2])) = M(d)([2, 3]) = ℓ_3` (from the shifted `Π`).
-- *Stores:* `dom(L') = dom(L)`, with `ℓ_1, ℓ_2, ℓ_3` all still in `dom(L')` (D3). The original `ℓ_2` is now orphaned with respect to `M'(d)` but remains addressable in `L'`.
-
-*Verification of CL-OWN.* The post-state link-subspace restriction `M'(d)|_{V_2(M'(d))}` carries V-position `[2, 1]` to `ℓ_1` and `[2, 2]` to `ℓ_3`. Both target addresses satisfy `origin(ℓ_1) = origin(ℓ_3) = d`, inherited from pre-state CL-OWN on `V_2(d) = Λ ⊎ {[2, 2]} ⊎ Π`. The re-mapping at the post-state `[2, 2]` (which now carries `ℓ_3` rather than the pre-state `ℓ_2`) does not break CL-OWN: the new image is itself a pre-state link with `origin = d`. CL-OWN holds at the post-state.
-
-*Verification of CL-UNIQ.* The post-state restriction `M'(d)|_{V_2(M'(d))}` has two distinct keys `[2, 1] ≠ [2, 2]` mapping to two distinct values `ℓ_1 ≠ ℓ_3` (distinct by pre-state CL-UNIQ on the original V-positions `[2, 1]` and `[2, 3]`, whose images must be distinct). Injectivity holds. The argument exercises D8's CL-UNIQ source-correspondence: `M'(d)(Λ) = M(d)(Λ) = {ℓ_1}` and `M'(d)(Q) = M(d)(Π) = {ℓ_3}` are disjoint, so the post-state restriction is injective with image `{ℓ_1, ℓ_3}`.
-
-*Verification of D9's third bullet under the `dom(L)` clause of S3★.* Consider another link `ℓ_0 ∈ dom(L)` (not one of `ℓ_1, ℓ_2, ℓ_3`) with slot-1 endset `L(ℓ_0).e_1 = {(ℓ_1, δ(3, #ℓ_1))}` — a single span anchored at `ℓ_1` of ordinal width 3. By the span semantics of ASN-0053 and the TumblerAdd componentwise rule, `coverage(L(ℓ_0).e_1) = {t ∈ T : [d, 0, 2, 1] ≤ t < [d, 0, 2, 4]} ⊇ {ℓ_1, ℓ_2, ℓ_3}`. Pre-state projection:
-- `v = [2, 1]` → `ℓ_1`: in coverage ✓
-- `v = [2, 2]` → `ℓ_2`: in coverage ✓
-- `v = [2, 3]` → `ℓ_3`: in coverage ✓
-
-(Any content-subspace positions of `d` map to I-addresses with `subspace_I = s_C = 1`, which fall outside the link-subspace coverage and so do not enter the projection.) So `project(L(ℓ_0).e_1, d, Σ) ∩ V_2(d) = {[2, 1], [2, 2], [2, 3]}`.
-
-Post-state projection over `V_2(M'(d))`:
-- `v = [2, 1]` → `ℓ_1`: in coverage ✓
-- `v = [2, 2]` → `ℓ_3`: in coverage ✓
-
-So `project(L'(ℓ_0).e_1, d, Σ') ∩ V_2(M'(d)) = {[2, 1], [2, 2]}`.
-
-D9's third bullet, with `Λ = {[2, 1]}` and `Π = {[2, 3]}`:
-- `project(L(ℓ_0).e_1, d, Σ) ∩ Λ = {[2, 1]}`
-- `project(L(ℓ_0).e_1, d, Σ) ∩ Π = {[2, 3]}`, so `{σ_d([2, 3])} = {[2, 2]}`
-- Union: `{[2, 1]} ∪ {[2, 2]} = {[2, 1], [2, 2]}`
-
-LHS = RHS = `{[2, 1], [2, 2]}` ✓. The verification exercises both contributions in the link subspace: the unshifted summand from `Λ` (carrying `[2, 1] → ℓ_1`) and the shifted summand from `Π` (carrying `[2, 3] → ℓ_3`, renamed to `[2, 2]` by `σ_d`). The deleted link reference `[2, 2] → ℓ_2` is gone from the post-state projection, while `ℓ_2` itself remains in `dom(L')`.
-
-*Verification of D7.* For each I-address in `ran(M(d)|_{V_2(d)}) = {ℓ_1, ℓ_2, ℓ_3}`: `ℓ_1, ℓ_3 ∈ dom(L')` by D3 (the surviving link references); `ℓ_2 ∈ dom(L')` by D3 (the deleted link reference's target still exists). All three `origin(·) = d` projections are unchanged because `origin` is a structural projection of the I-address's tumbler, depending on no state component. D7 holds in the link-subspace classification: `ℓ_k ∈ dom(L')` for every `k`, and `origin` is preserved.
-
-The two examples — content-subspace (depth 3) and link-subspace (depth 2) — together cover the cases that exercise D8's source-correspondence argument: the content example tests S3★'s `dom(C)` clause and shows the shift mechanism at depth ≥ 3, while the link example tests CL-OWN, CL-UNIQ, and D9 under the `dom(L)` clause of S3★ at depth 2. No constraint of D0 is specialised to a particular depth or subspace; both examples follow the same formulas.
-
-### A cross-document transclusion example
-
-The two examples above operate on a single document. They do not exercise D5 (cross-document isolation), the cross-document `d'' ≠ d` clause of D9, or the cross-document cardinality clause of D11's discoverability wp. We supply a third example with two documents `d` and `d'`, where `d'` shares I-addresses with `d` via transclusion, and verify that DELETE on `d` leaves `d'`'s arrangement, content references, and link discoverability fully intact.
-
-Consider documents `d` and `d'` (both `∈ dom(M)`) with content-subspace depth `m_S = 3` and `S = s_C = 1`. The pre-state arrangement of `d`:
-
-```
-V_1(d) = {[1, 1, 1], [1, 1, 2]}
-M(d)([1, 1, 1]) = a_1, M(d)([1, 1, 2]) = a_2
-                       where a_k = [d, 0, 1, k] for k ∈ {1, 2}
-                       (first two emissions of A_C(d))
-```
-
-And `d'` (transcluding `d`'s content — for example, obtained by the J4 ForkComposite, which populates `M(d')` from `ran(M(d)|_{V_{s_C}(d)})` under transclusion without introducing new content addresses):
-
-```
-V_1(d') = {[1, 1, 1], [1, 1, 2]}
-M(d')([1, 1, 1]) = a_1, M(d')([1, 1, 2]) = a_2
-                            same I-addresses as in M(d) — shared content
-```
-
-A single link `ℓ_0 ∈ dom(L)` with slot-1 endset `L(ℓ_0).e_1 = {(a_1, δ(2, #a_1))}`, whose coverage is `{t ∈ T : [d, 0, 1, 1] ≤ t < [d, 0, 1, 3]} ⊇ {a_1, a_2}`.
-
-*Pre-state projections.*
-
-- `project(L(ℓ_0).e_1, d, Σ) = {[1, 1, 1], [1, 1, 2]}` (both map to a_1, a_2 in coverage).
-- `project(L(ℓ_0).e_1, d', Σ) = {[1, 1, 1], [1, 1, 2]}` (same reasoning).
-- `discoverable_from(ℓ_0, d, Σ) = true`, `discoverable_from(ℓ_0, d', Σ) = true`.
-
-*Operation.* Apply `DEL[d, σ]` with `s = [1, 1, 1]`, `ℓ_σ = δ(1, 3)`. Then `r = [1, 1, 2]`, `p = 1`, `n = 1`. Regions on `V_1(d)`:
-
-- `Λ = ∅`
-- `X = {[1, 1, 1]}`
-- `Π = {[1, 1, 2]}`
-
-The shift function maps `[1, 1, 2] ↦ [1, 1, 1]` (decrement last component by `n = 1`). `Q = {[1, 1, 1]}`.
-
-*Post-state on `d`.*
-
-- `V_1(M'(d)) = Λ ∪ Q = {[1, 1, 1]}`.
-- `M'(d)([1, 1, 1]) = M(d)([1, 1, 2]) = a_2` (shifted Π-witness).
-- `a_1 ∉ ran(M'(d))` — the deleted V-position's I-address is no longer referenced from `d`.
-
-*Post-state on `d'`.* By D5 (`M'(d'') = M(d'')` for every `d'' ≠ d`):
-
-- `V_1(M'(d')) = V_1(d') = {[1, 1, 1], [1, 1, 2]}` — unchanged.
-- `M'(d')([1, 1, 1]) = a_1`, `M'(d')([1, 1, 2]) = a_2` — unchanged.
-
-*Post-state on the content store.* By D2:
-
-- `dom(C') = dom(C)`, with `a_1 ∈ dom(C')` and `a_2 ∈ dom(C')`.
-- `a_1` is *orphaned with respect to `M'(d)`* but *not* with respect to `M'(d')`: it is still in `ran(M'(d'))` via `M'(d')([1, 1, 1]) = a_1`.
-
-*Verification of cross-document discoverability (D9's first bullet, D11's cross-document remark).*
-
-- `project(L'(ℓ_0).e_1, d, Σ') = {[1, 1, 1]}` (post-state on `d`: `M'(d)([1, 1, 1]) = a_2 ∈ coverage`). Set-theoretically, the projection has shrunk from `{[1, 1, 1], [1, 1, 2]}` to `{[1, 1, 1]}` — losing tumbler `[1, 1, 2]`. The mechanism: pre-state V-position `[1, 1, 1]` (image `a_1`) was deleted, and pre-state `[1, 1, 2]` (image `a_2`) was renamed by `σ_d` to post-state `[1, 1, 1]` (still mapping to `a_2`). The tumbler `[1, 1, 1]` survives as a projection witness, but with a different image.
-- `project(L'(ℓ_0).e_1, d', Σ') = {[1, 1, 1], [1, 1, 2]}` (post-state on `d'`: both V-positions still map to `a_1, a_2` in coverage). The projection is *byte-identical* to the pre-state projection from `d'`.
-- `discoverable_from(ℓ_0, d, Σ') = true` (one position survives); `discoverable_from(ℓ_0, d', Σ') = true` (unchanged).
-
-The verification exercises three claims jointly. D2: `a_1, a_2 ∈ dom(C')` after the operation — the shared content survives. D5: `M'(d') = M(d')` — `d'`'s arrangement is byte-identical. D9 first bullet: `project(L'(ℓ_0).e_1, d', Σ') = project(L(ℓ_0).e_1, d', Σ)` — the cross-document projection is invariant.
-
-By D11's cross-document remark, both wps from `d'` reduce to their pre-state predicates conjoined with `enabled(DEL[d, σ])` — the wp form of D5's bytewise-isolation guarantee — and the post-state evaluations above (`project(L'(ℓ_0).e_1, d', Σ') = {[1, 1, 1], [1, 1, 2]}`, cardinality 2) confirm it.
 
 ## Boundary cases
 
@@ -314,7 +119,7 @@ The unaffected subspace `S' ≠ S` inherits its Group (i) clauses via D6 as befo
 
 *Singleton interior deletion (`n = 1`, `1 < p < n_S`).* The most arithmetically subtle of the small cases. `Λ = {[S, 1, ..., 1, k] : 1 ≤ k ≤ p − 1}` (non-empty), `X = {[S, 1, ..., 1, p]}` (singleton), `Π = {[S, 1, ..., 1, k] : p + 1 ≤ k ≤ n_S}` (non-empty). Every position in `Π` is shifted by 1: `σ_d([S, 1, ..., 1, k]) = [S, 1, ..., 1, k − 1]`. The post-state is `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − 1}` — the contiguous prefix of length `n_S − 1`.
 
-*Non-singleton interior deletion (`n ≥ 2`, `1 < p`, `p + n − 1 < n_S`).* The general case in which both `Λ` and `Q` are non-empty and `σ_d` has non-trivial domain. `Λ = {[S, 1, ..., 1, k] : 1 ≤ k ≤ p − 1}`, `X = {[S, 1, ..., 1, k] : p ≤ k ≤ p + n − 1}`, `Π = {[S, 1, ..., 1, k] : p + n ≤ k ≤ n_S}`. The shift function maps each `[S, 1, ..., 1, k] ∈ Π` to `[S, 1, ..., 1, k − n]`, and the post-state is `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}` — the contiguous prefix of length `n_S − n`. The worked example (`n_S = 4`, `n = 2`, `p = 2`) instantiates this case at `Λ = {[1, 1, 1]}` (cardinality `p − 1 = 1`), `Q = {[1, 1, 2]}` (cardinality `n_S − n − (p − 1) = 1`), tracing every clause of D8 explicitly: S8a, S8-depth, S8-fin via the post-state's structural form; S3★ via source correspondence (`a_1 ∈ dom(C')` for `Λ`, `a_4 ∈ dom(C')` for `Q`); D-CTG★, D-MIN★, D-SEQ★ via D1's characterisation. D8's discharge routes the two summands through distinct mechanisms (inheritance for `Λ`, `σ_d`-image construction for `Q`) which then combine without conflict because `Λ` and `Q` are disjoint by last-component range (`Λ` has last component `≤ p − 1`, `Q` has last component `≥ p`). When `|Λ|` or `|Q|` exceeds 1 (e.g. `n_S = 6, n = 2, p = 3` giving `Λ = {[1,1], [1,2]}`, `Q = {[1,3], [1,4]}`), the same discharge applies pointwise to each element of either region.
+*Non-singleton interior deletion (`n ≥ 2`, `1 < p`, `p + n − 1 < n_S`).* The general case in which both `Λ` and `Q` are non-empty and `σ_d` has non-trivial domain. `Λ = {[S, 1, ..., 1, k] : 1 ≤ k ≤ p − 1}`, `X = {[S, 1, ..., 1, k] : p ≤ k ≤ p + n − 1}`, `Π = {[S, 1, ..., 1, k] : p + n ≤ k ≤ n_S}`. The shift function maps each `[S, 1, ..., 1, k] ∈ Π` to `[S, 1, ..., 1, k − n]`, and the post-state is `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}` — the contiguous prefix of length `n_S − n`. The worked example below (`n_S = 4`, `n = 2`, `p = 2`) instantiates this case at `Λ = {[1, 1, 1]}` (cardinality `p − 1 = 1`), `Q = {[1, 1, 2]}` (cardinality `n_S − n − (p − 1) = 1`), tracing every clause of D8 explicitly: S8a, S8-depth, S8-fin via the post-state's structural form; S3★ via source correspondence (`a_1 ∈ dom(C')` for `Λ`, `a_4 ∈ dom(C')` for `Q`); D-CTG★, D-MIN★, D-SEQ★ via D1's characterisation. D8's discharge routes the two summands through distinct mechanisms (inheritance for `Λ`, `σ_d`-image construction for `Q`) which then combine without conflict because `Λ` and `Q` are disjoint by last-component range (`Λ` has last component `≤ p − 1`, `Q` has last component `≥ p`). When `|Λ|` or `|Q|` exceeds 1 (e.g. `n_S = 6, n = 2, p = 3` giving `Λ = {[1,1], [1,2]}`, `Q = {[1,3], [1,4]}`), the same discharge applies pointwise to each element of either region.
 
 *Cross-subspace independence.* For each boundary case above, D6 ensures the other subspace's arrangement is preserved bytewise. A document with both content and link subspaces populated, on which DEL affects only the content subspace, leaves CL-OWN and CL-UNIQ trivially intact for the link subspace because no link-subspace V-position is altered.
 
@@ -507,6 +312,201 @@ Then:
 
 D11's discoverability wp gives a sharp test for whether a planned DELETE will orphan a given link from a given document: enumerate the link's slot-projections from `d`, and check whether every one is a subset of the to-be-deleted span. If so, the post-state will be an orphan condition for `ℓ` at `d`; if not, at least one slot retains a non-empty projection and the link remains discoverable. The cardinality wp gives a sharper diagnostic: it identifies exactly how many projection elements will be lost (the pre-state count of `project ∩ X`), separating "deletion that incidentally clips this link's projection" from "deletion that targets this link's projection specifically".
 
+## A worked example
+
+We instantiate the operation on a concrete arrangement to verify the postconditions. Consider a document `d` with content-subspace arrangement (`S = s_C = 1`, depth `m_S = 3`):
+
+```
+V_1(d) = {[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 1, 4]}
+M(d)(v) = a_v  where a_1, a_2, a_3, a_4 are the first four emissions of d's
+                content sub-allocator A_C(d): a_k = [d, 0, 1, k] for k ∈ {1, 2, 3, 4},
+                with #a_k = #d + 3
+```
+
+so `n_S = 4`. We apply `DEL[d, σ]` with `s = [1, 1, 2]` and `ℓ_σ = δ(2, 3) = [0, 0, 2]`. Then `r = s ⊕ ℓ_σ = [1, 1, 4]`, `p = 2`, `n = 2`.
+
+*Region computation.*
+
+- `Λ = {v ∈ V_1(d) : v < [1, 1, 2]} = {[1, 1, 1]}`.
+- `X = {v ∈ V_1(d) : [1, 1, 2] ≤ v < [1, 1, 4]} = {[1, 1, 2], [1, 1, 3]}`.
+- `Π = {v ∈ V_1(d) : v ≥ [1, 1, 4]} = {[1, 1, 4]}`.
+
+*Shift function.* For the single element of `Π`, `σ_d([1, 1, 4])` is the unique tumbler `u` with `shift(u, 2) = [1, 1, 4]`. Setting `u = [1, 1, 2]`:
+
+```
+shift([1, 1, 2], 2) = [1, 1, 2] ⊕ δ(2, 3) = [1, 1, 2] ⊕ [0, 0, 2] = [1, 1, 4]    ✓
+```
+
+So `σ_d([1, 1, 4]) = [1, 1, 2]` and `Q = {[1, 1, 2]}`.
+
+*Post-state.*
+
+- *Domain:* `V_1(M'(d)) = Λ ∪ Q = {[1, 1, 1], [1, 1, 2]}`, of cardinality `n_S − n = 4 − 2 = 2`.
+- *Values:* `M'(d)([1, 1, 1]) = a_1` (from `Λ`); `M'(d)([1, 1, 2]) = M(d)(σ_d^{-1}([1, 1, 2])) = M(d)([1, 1, 4]) = a_4` (from the shifted `Π`).
+- *Stores:* `dom(C') = dom(C)`, with `a_1, a_2, a_3, a_4` all still in `dom(C')` (D2). The originals `a_2` and `a_3` are now orphaned with respect to `M'(d)` but remain addressable from `C'`.
+
+*Verification of D1.* The post-state `V_1(M'(d)) = {[1, 1, 1], [1, 1, 2]}` is `{[1, 1, k] : 1 ≤ k ≤ 2}` (depth-3 form with `S = 1`, one middle component fixed at `1`, last component varying over `1..n_S − n`), matching D1's predicted form `{[S, 1, ..., 1, k] : 1 ≤ k ≤ n_S − n}`. The shift `σ_d` is a bijection from `Π = {[1, 1, 4]}` to `Q = {[1, 1, 2]}` — trivially so on a singleton.
+
+*Verification of D8* — D8 (stated in *What is preserved* above) requires every foundation per-state invariant holding at the pre-state to hold at the post-state. S8a holds on every post-state V-position (zeros = 0, depth = 3, components positive). S8-depth holds (both surviving positions have depth 3). S8-fin holds: `|V_1(M'(d))| = 2 < ∞`. S2 holds (the domain is two distinct keys, each with a single value). S3★ holds: `a_1, a_4 ∈ dom(C') = dom(C)` by D2. S3★-aux holds: both post-state V-positions have subspace `1 ∈ {s_C, s_L}`. D-CTG★, D-MIN★, D-SEQ★ hold: the post-state is the contiguous prefix of depth-3 positions in subspace 1 starting at `[1, 1, 1]`, with maximum `[1, 1, 2]`. S8★ holds via the singleton decomposition `{([1, 1, 1], a_1, 1), ([1, 1, 2], a_4, 1)}` satisfying S8's conditions (a) and (b) with run width 1 (at `k = 0`, `OrdinalShiftBase` reduces `shift(t, 0) = t`). Because the example operates in the content subspace (`S = s_C = 1`), S8★ additionally requires condition (c) — uniqueness of the maximal-run decomposition. We discharge (c) by showing this singleton decomposition is the maximal one: its two runs are V-adjacent (`shift([1, 1, 1], 1) = [1, 1, 2]`) but not I-adjacent, since `shift(a_1, 1) = [d, 0, 1, 2] ≠ a_4 = [d, 0, 1, 4]`. With I-adjacency failing, the two length-1 runs cannot merge (ASN-0058's M7 merge condition requires both V- and I-adjacency), so each is a maximal run; by M12 (CanonicalUniqueness) the maximally merged decomposition is unique, and condition (c) holds.
+
+*Verification of D9 (link projection)* — D9 (stated in *Link discoverability* above) characterises, per document and subspace, how a link's post-state projection relates to its pre-state projection. We extend the example with a concrete link. Let `ℓ_0 ∈ dom(L)` be any link, and consider slot 1 with endset `L(ℓ_0).e_1 = {(a_1, δ(4, #a_1))}` — a single span anchored at `a_1` of ordinal width 4. (Slots 2 and 3 carry whatever other-endset and type-endset data the link bears; D9 quantifies over each slot independently, so the local computation depends only on the slot under examination.) By the ASN-0053 denotation, `coverage(L(ℓ_0).e_1) = {t ∈ T : a_1 ≤ t < a_1 ⊕ δ(4, #a_1)}`. Computing the upper bound: `a_1 = [d, 0, 1, 1]` and `δ(4, #a_1) = [0, ..., 0, 4]` of length `#a_1`, so by TumblerAdd's componentwise rule `a_1 ⊕ δ(4, #a_1) = [d, 0, 1, 5]`. Hence `coverage(L(ℓ_0).e_1) = {t ∈ T : [d, 0, 1, 1] ≤ t < [d, 0, 1, 5]} ⊇ {a_1, a_2, a_3, a_4}` (each `a_k = [d, 0, 1, k]` with `1 ≤ k ≤ 4` lies in this half-open interval).
+
+*Pre-state projection.* `project(L(ℓ_0).e_1, d, Σ) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(L(ℓ_0).e_1)}`. Element by element:
+- `v = [1, 1, 1]` → `M(d)(v) = a_1`: in coverage ✓
+- `v = [1, 1, 2]` → `M(d)(v) = a_2`: in coverage ✓
+- `v = [1, 1, 3]` → `M(d)(v) = a_3`: in coverage ✓
+- `v = [1, 1, 4]` → `M(d)(v) = a_4`: in coverage ✓
+
+(Any link-subspace positions of `d` map to I-addresses with `subspace_I = s_L = 2` (by S3★'s `dom(L)` clause and L0), which fall outside the content-subspace coverage anchored at `a_1` with `subspace_I(a_1) = s_C = 1` (T1 trichotomy gives every t with `t_2 = 2` strictly greater than every t' with `t'_2 = 1` extending the same document prefix), and so do not enter the projection. If `V_2(d) = ∅` the consideration is vacuous; the projection result depends on neither possibility.) So `project(L(ℓ_0).e_1, d, Σ) = V_1(d) = {[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 1, 4]}`.
+
+*Post-state projection.* By D3, `L'(ℓ_0).e_1 = L(ℓ_0).e_1`, so `coverage(L'(ℓ_0).e_1) = coverage(L(ℓ_0).e_1)`. Then `project(L'(ℓ_0).e_1, d, Σ') = {v ∈ dom(M'(d)) : M'(d)(v) ∈ coverage(L(ℓ_0).e_1)}`. Element by element over the post-state domain restricted to subspace 1:
+- `v = [1, 1, 1]` → `M'(d)(v) = a_1`: in coverage ✓
+- `v = [1, 1, 2]` → `M'(d)(v) = a_4`: in coverage ✓
+
+So `project(L'(ℓ_0).e_1, d, Σ') ∩ V_1(M'(d)) = {[1, 1, 1], [1, 1, 2]}`.
+
+*Verification of D9's third bullet.* The equation requires
+```
+project(L'(ℓ_0).e_1, d, Σ') ∩ V_1(M'(d))
+  = (project(L(ℓ_0).e_1, d, Σ) ∩ Λ) ∪ {σ_d(v) : v ∈ project(L(ℓ_0).e_1, d, Σ) ∩ Π}
+```
+LHS, from the post-state computation above: `{[1, 1, 1], [1, 1, 2]}`. RHS, computed directly:
+- `project(L(ℓ_0).e_1, d, Σ) ∩ Λ = V_1(d) ∩ {[1, 1, 1]} = {[1, 1, 1]}`
+- `project(L(ℓ_0).e_1, d, Σ) ∩ Π = V_1(d) ∩ {[1, 1, 4]} = {[1, 1, 4]}`, so `{σ_d([1, 1, 4])} = {[1, 1, 2]}`
+- Union: `{[1, 1, 1]} ∪ {[1, 1, 2]} = {[1, 1, 1], [1, 1, 2]}`
+
+LHS = RHS = `{[1, 1, 1], [1, 1, 2]}` ✓. The verification exercises both contributions: the unshifted summand from `Λ` (carrying `[1, 1, 1] → a_1`) and the shifted summand from `Π` (carrying `[1, 1, 4] → a_4`, renamed to `[1, 1, 2]` by `σ_d`).
+
+*Verification of D11 (discoverability and cardinality wps)* — D11 (stated in *Weakest precondition for discoverability preservation* above) gives the weakest preconditions for post-DELETE discoverability and projection-cardinality. The deleted region in this example is `X = {[1, 1, 2], [1, 1, 3]}`. We evaluate each of D11's three wps against the concrete pre-state. DEL is applicable at this pre-state — `σ = ([1, 1, 2], δ(2, 3))` is a well-formed span over the contiguous text arrangement of `d` — so `enabled(DEL[d, σ]) = true`, discharging the enabledness conjunct that each D11 wp carries; the residual equivalences exhibited below are therefore the pullback factor only.
+
+- *Discoverability wp from `d`.* `wp(DEL[d, σ], Q_disc(ℓ_0, d)) ≡ enabled(DEL[d, σ]) ∧ (E i : project(L(ℓ_0).eᵢ, d, Σ) ⊄ X)`; the pullback factor is `(E i : project(L(ℓ_0).eᵢ, d, Σ) ⊄ X)`. At slot `i = 1`: `project(L(ℓ_0).e_1, d, Σ) = {[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 1, 4]}`; intersecting with `X` gives `{[1, 1, 2], [1, 1, 3]} ⊊ project`, witnessed by `[1, 1, 1] ∈ project ∖ X` (or equivalently `[1, 1, 4] ∈ project ∖ X`). So `project ⊄ X` at slot 1, and the existential is satisfied. The wp evaluates to `true` — predicting that `ℓ_0` remains discoverable from `d` post-DELETE. Cross-check against the post-state: `project(L'(ℓ_0).e_1, d, Σ') = {[1, 1, 1], [1, 1, 2]} ≠ ∅`, so `discoverable_from(ℓ_0, d, Σ') = true`. ✓
+
+- *Cardinality wp.* `wp(DEL[d, σ], Q_card(ℓ_0, 1, d, k)) ≡ enabled(DEL[d, σ]) ∧ |project(L(ℓ_0).e_1, d, Σ)| − |project(L(ℓ_0).e_1, d, Σ) ∩ X| = k`; the pullback factor is `|project(L(ℓ_0).e_1, d, Σ)| − |project(L(ℓ_0).e_1, d, Σ) ∩ X| = k`. Computing: `|project| = 4` and `|project ∩ X| = |{[1, 1, 2], [1, 1, 3]}| = 2`, so the wp predicts the post-state cardinality `k = 4 − 2 = 2`. Cross-check against the post-state: `|project(L'(ℓ_0).e_1, d, Σ')| = |{[1, 1, 1], [1, 1, 2]}| = 2`. ✓
+
+- *Cardinality-preservation specialisation.* `wp(DEL[d, σ], |project(·)| = |project(L(ℓ_0).e_1, d, Σ)|) ≡ enabled(DEL[d, σ]) ∧ project(L(ℓ_0).e_1, d, Σ) ∩ X = ∅`; the pullback factor is `project(L(ℓ_0).e_1, d, Σ) ∩ X = ∅`. Here `project ∩ X = {[1, 1, 2], [1, 1, 3]} ≠ ∅`, so the wp evaluates to `false` — predicting that cardinality is *not* preserved. Cross-check: the post-state cardinality `2` differs from the pre-state cardinality `4`, confirming the non-preservation predicted by the wp. ✓
+
+The link `ℓ_0` itself remains in `dom(L')` with `L'(ℓ_0) = L(ℓ_0)` by D3. Its discoverability from `d` has shrunk from 4 positions to 2 positions; the I-addresses `a_2` and `a_3` that were referenced by the deleted V-positions `[1, 1, 2]` and `[1, 1, 3]` are still in `coverage(L'(ℓ_0).e_1)` but no longer projected from `d`. They remain in `dom(C')` by D2 and could be re-projected by a subsequent insertion mapping a V-position in `d` to either of them.
+
+### A link-subspace example
+
+The content-subspace example above does not exercise CL-OWN, CL-UNIQ, or the `dom(L)` clause of D9 — these are non-trivial only when the deleted positions reach into the link subspace. We supply a second example, with the same document `d` now carrying a link-subspace arrangement (`S = s_L = 2`, with link-subspace depth `m_L = 2` chosen for this example — S8a permits any `m_L ≥ 2` and S8-depth fixes a single common value within the subspace, which we take to be 2 here):
+
+```
+V_2(d) = {[2, 1], [2, 2], [2, 3]}
+M(d)([2, k]) = ℓ_k  where ℓ_1, ℓ_2, ℓ_3 are the first three emissions of d's
+                     link sub-allocator A_L(d): ℓ_k = [d, 0, 2, k] for k ∈ {1, 2, 3},
+                     with #ℓ_k = #d + 3
+```
+
+so `n_L = 3`. Pre-state invariants hold: `subspace_I(ℓ_k) = 2 = s_L` for each `k` (L0); `origin(ℓ_k) = d` for each `k`, so CL-OWN holds on `V_2(d)`; the three V-positions map to three distinct link addresses, so CL-UNIQ holds.
+
+We apply `DEL[d, σ]` with `s = [2, 2]` and `ℓ_σ = δ(1, 2) = [0, 1]`. Then `r = s ⊕ ℓ_σ = [2, 3]`, `p = 2`, `n = 1` — a singleton interior deletion in the link subspace.
+
+*Region computation.*
+
+- `Λ = {v ∈ V_2(d) : v < [2, 2]} = {[2, 1]}`.
+- `X = {v ∈ V_2(d) : [2, 2] ≤ v < [2, 3]} = {[2, 2]}`.
+- `Π = {v ∈ V_2(d) : v ≥ [2, 3]} = {[2, 3]}`.
+
+*Shift function.* For `[2, 3] ∈ Π`, `σ_d([2, 3])` is the unique `u` with `shift(u, 1) = [2, 3]`. Setting `u = [2, 2]`: `shift([2, 2], 1) = [2, 2] ⊕ δ(1, 2) = [2, 2] ⊕ [0, 1] = [2, 3]` ✓. So `σ_d([2, 3]) = [2, 2]` and `Q = {[2, 2]}`.
+
+*Post-state.*
+
+- *Domain:* `V_2(M'(d)) = Λ ∪ Q = {[2, 1], [2, 2]}`, of cardinality `n_L − n = 2`.
+- *Values:* `M'(d)([2, 1]) = ℓ_1` (from `Λ`); `M'(d)([2, 2]) = M(d)(σ_d^{-1}([2, 2])) = M(d)([2, 3]) = ℓ_3` (from the shifted `Π`).
+- *Stores:* `dom(L') = dom(L)`, with `ℓ_1, ℓ_2, ℓ_3` all still in `dom(L')` (D3). The original `ℓ_2` is now orphaned with respect to `M'(d)` but remains addressable in `L'`.
+
+*Verification of CL-OWN.* The post-state link-subspace restriction `M'(d)|_{V_2(M'(d))}` carries V-position `[2, 1]` to `ℓ_1` and `[2, 2]` to `ℓ_3`. Both target addresses satisfy `origin(ℓ_1) = origin(ℓ_3) = d`, inherited from pre-state CL-OWN on `V_2(d) = Λ ⊎ {[2, 2]} ⊎ Π`. The re-mapping at the post-state `[2, 2]` (which now carries `ℓ_3` rather than the pre-state `ℓ_2`) does not break CL-OWN: the new image is itself a pre-state link with `origin = d`. CL-OWN holds at the post-state.
+
+*Verification of CL-UNIQ.* The post-state restriction `M'(d)|_{V_2(M'(d))}` has two distinct keys `[2, 1] ≠ [2, 2]` mapping to two distinct values `ℓ_1 ≠ ℓ_3` (distinct by pre-state CL-UNIQ on the original V-positions `[2, 1]` and `[2, 3]`, whose images must be distinct). Injectivity holds. The argument exercises D8's CL-UNIQ source-correspondence: `M'(d)(Λ) = M(d)(Λ) = {ℓ_1}` and `M'(d)(Q) = M(d)(Π) = {ℓ_3}` are disjoint, so the post-state restriction is injective with image `{ℓ_1, ℓ_3}`.
+
+*Verification of D9's third bullet under the `dom(L)` clause of S3★.* Consider another link `ℓ_0 ∈ dom(L)` (not one of `ℓ_1, ℓ_2, ℓ_3`) with slot-1 endset `L(ℓ_0).e_1 = {(ℓ_1, δ(3, #ℓ_1))}` — a single span anchored at `ℓ_1` of ordinal width 3. By the span semantics of ASN-0053 and the TumblerAdd componentwise rule, `coverage(L(ℓ_0).e_1) = {t ∈ T : [d, 0, 2, 1] ≤ t < [d, 0, 2, 4]} ⊇ {ℓ_1, ℓ_2, ℓ_3}`. Pre-state projection:
+- `v = [2, 1]` → `ℓ_1`: in coverage ✓
+- `v = [2, 2]` → `ℓ_2`: in coverage ✓
+- `v = [2, 3]` → `ℓ_3`: in coverage ✓
+
+(Any content-subspace positions of `d` map to I-addresses with `subspace_I = s_C = 1`, which fall outside the link-subspace coverage and so do not enter the projection.) So `project(L(ℓ_0).e_1, d, Σ) ∩ V_2(d) = {[2, 1], [2, 2], [2, 3]}`.
+
+Post-state projection over `V_2(M'(d))`:
+- `v = [2, 1]` → `ℓ_1`: in coverage ✓
+- `v = [2, 2]` → `ℓ_3`: in coverage ✓
+
+So `project(L'(ℓ_0).e_1, d, Σ') ∩ V_2(M'(d)) = {[2, 1], [2, 2]}`.
+
+D9's third bullet, with `Λ = {[2, 1]}` and `Π = {[2, 3]}`:
+- `project(L(ℓ_0).e_1, d, Σ) ∩ Λ = {[2, 1]}`
+- `project(L(ℓ_0).e_1, d, Σ) ∩ Π = {[2, 3]}`, so `{σ_d([2, 3])} = {[2, 2]}`
+- Union: `{[2, 1]} ∪ {[2, 2]} = {[2, 1], [2, 2]}`
+
+LHS = RHS = `{[2, 1], [2, 2]}` ✓. The verification exercises both contributions in the link subspace: the unshifted summand from `Λ` (carrying `[2, 1] → ℓ_1`) and the shifted summand from `Π` (carrying `[2, 3] → ℓ_3`, renamed to `[2, 2]` by `σ_d`). The deleted link reference `[2, 2] → ℓ_2` is gone from the post-state projection, while `ℓ_2` itself remains in `dom(L')`.
+
+*Verification of D7.* For each I-address in `ran(M(d)|_{V_2(d)}) = {ℓ_1, ℓ_2, ℓ_3}`: `ℓ_1, ℓ_3 ∈ dom(L')` by D3 (the surviving link references); `ℓ_2 ∈ dom(L')` by D3 (the deleted link reference's target still exists). All three `origin(·) = d` projections are unchanged because `origin` is a structural projection of the I-address's tumbler, depending on no state component. D7 holds in the link-subspace classification: `ℓ_k ∈ dom(L')` for every `k`, and `origin` is preserved.
+
+The two examples — content-subspace (depth 3) and link-subspace (depth 2) — together cover the cases that exercise D8's source-correspondence argument: the content example tests S3★'s `dom(C)` clause and shows the shift mechanism at depth ≥ 3, while the link example tests CL-OWN, CL-UNIQ, and D9 under the `dom(L)` clause of S3★ at depth 2. No constraint of D0 is specialised to a particular depth or subspace; both examples follow the same formulas.
+
+### A cross-document transclusion example
+
+The two examples above operate on a single document. They do not exercise D5 (cross-document isolation), the cross-document `d'' ≠ d` clause of D9, or the cross-document cardinality clause of D11's discoverability wp. We supply a third example with two documents `d` and `d'`, where `d'` shares I-addresses with `d` via transclusion, and verify that DELETE on `d` leaves `d'`'s arrangement, content references, and link discoverability fully intact.
+
+Consider documents `d` and `d'` (both `∈ dom(M)`) with content-subspace depth `m_S = 3` and `S = s_C = 1`. The pre-state arrangement of `d`:
+
+```
+V_1(d) = {[1, 1, 1], [1, 1, 2]}
+M(d)([1, 1, 1]) = a_1, M(d)([1, 1, 2]) = a_2
+                       where a_k = [d, 0, 1, k] for k ∈ {1, 2}
+                       (first two emissions of A_C(d))
+```
+
+And `d'` (transcluding `d`'s content — for example, obtained by the J4 ForkComposite, which populates `M(d')` from `ran(M(d)|_{V_{s_C}(d)})` under transclusion without introducing new content addresses):
+
+```
+V_1(d') = {[1, 1, 1], [1, 1, 2]}
+M(d')([1, 1, 1]) = a_1, M(d')([1, 1, 2]) = a_2
+                            same I-addresses as in M(d) — shared content
+```
+
+A single link `ℓ_0 ∈ dom(L)` with slot-1 endset `L(ℓ_0).e_1 = {(a_1, δ(2, #a_1))}`, whose coverage is `{t ∈ T : [d, 0, 1, 1] ≤ t < [d, 0, 1, 3]} ⊇ {a_1, a_2}`.
+
+*Pre-state projections.*
+
+- `project(L(ℓ_0).e_1, d, Σ) = {[1, 1, 1], [1, 1, 2]}` (both map to a_1, a_2 in coverage).
+- `project(L(ℓ_0).e_1, d', Σ) = {[1, 1, 1], [1, 1, 2]}` (same reasoning).
+- `discoverable_from(ℓ_0, d, Σ) = true`, `discoverable_from(ℓ_0, d', Σ) = true`.
+
+*Operation.* Apply `DEL[d, σ]` with `s = [1, 1, 1]`, `ℓ_σ = δ(1, 3)`. Then `r = [1, 1, 2]`, `p = 1`, `n = 1`. Regions on `V_1(d)`:
+
+- `Λ = ∅`
+- `X = {[1, 1, 1]}`
+- `Π = {[1, 1, 2]}`
+
+The shift function maps `[1, 1, 2] ↦ [1, 1, 1]` (decrement last component by `n = 1`). `Q = {[1, 1, 1]}`.
+
+*Post-state on `d`.*
+
+- `V_1(M'(d)) = Λ ∪ Q = {[1, 1, 1]}`.
+- `M'(d)([1, 1, 1]) = M(d)([1, 1, 2]) = a_2` (shifted Π-witness).
+- `a_1 ∉ ran(M'(d))` — the deleted V-position's I-address is no longer referenced from `d`.
+
+*Post-state on `d'`.* By D5 (`M'(d'') = M(d'')` for every `d'' ≠ d`):
+
+- `V_1(M'(d')) = V_1(d') = {[1, 1, 1], [1, 1, 2]}` — unchanged.
+- `M'(d')([1, 1, 1]) = a_1`, `M'(d')([1, 1, 2]) = a_2` — unchanged.
+
+*Post-state on the content store.* By D2:
+
+- `dom(C') = dom(C)`, with `a_1 ∈ dom(C')` and `a_2 ∈ dom(C')`.
+- `a_1` is *orphaned with respect to `M'(d)`* but *not* with respect to `M'(d')`: it is still in `ran(M'(d'))` via `M'(d')([1, 1, 1]) = a_1`.
+
+*Verification of cross-document discoverability (D9's first bullet, D11's cross-document remark).*
+
+- `project(L'(ℓ_0).e_1, d, Σ') = {[1, 1, 1]}` (post-state on `d`: `M'(d)([1, 1, 1]) = a_2 ∈ coverage`). Set-theoretically, the projection has shrunk from `{[1, 1, 1], [1, 1, 2]}` to `{[1, 1, 1]}` — losing tumbler `[1, 1, 2]`. The mechanism: pre-state V-position `[1, 1, 1]` (image `a_1`) was deleted, and pre-state `[1, 1, 2]` (image `a_2`) was renamed by `σ_d` to post-state `[1, 1, 1]` (still mapping to `a_2`). The tumbler `[1, 1, 1]` survives as a projection witness, but with a different image.
+- `project(L'(ℓ_0).e_1, d', Σ') = {[1, 1, 1], [1, 1, 2]}` (post-state on `d'`: both V-positions still map to `a_1, a_2` in coverage). The projection is *byte-identical* to the pre-state projection from `d'`.
+- `discoverable_from(ℓ_0, d, Σ') = true` (one position survives); `discoverable_from(ℓ_0, d', Σ') = true` (unchanged).
+
+The verification exercises three claims jointly. D2: `a_1, a_2 ∈ dom(C')` after the operation — the shared content survives. D5: `M'(d') = M(d')` — `d'`'s arrangement is byte-identical. D9 first bullet: `project(L'(ℓ_0).e_1, d', Σ') = project(L(ℓ_0).e_1, d', Σ)` — the cross-document projection is invariant.
+
+By D11's cross-document remark, both wps from `d'` reduce to their pre-state predicates conjoined with `enabled(DEL[d, σ])` — the wp form of D5's bytewise-isolation guarantee — and the post-state evaluations above (`project(L'(ℓ_0).e_1, d', Σ') = {[1, 1, 1], [1, 1, 2]}`, cardinality 2) confirm it.
+
 ## ValidComposite★ extension under DELETE
 
 **D10 — ValidComposite★ extension under DELETE.** ASN-0047's ValidComposite★ is extended to admit DEL as an elementary transition. A composite transition `Σ →* Σ'` is *valid* iff it is a finite sequence of atomic transitions
@@ -525,13 +525,9 @@ A single DEL transition viewed as a one-step composite `Σ → Σ'` satisfies J0
 - *J1★ (ExtensionRecordsProvenanceContentSubspace)* quantifies over pairs `(a, d)` for which some `v ∈ dom(M'(d))` has `subspace(v) = s_C` and `M'(d)(v) = a`, while no such `v` existed in `dom(M(d))`. By D0's effect, every post-state content-subspace V-position `v ∈ V_{s_C}(M'(d))` falls into one of three exhaustive cases that depend on `S`. **Case S = s_C (content-subspace deletion), `v ∈ Λ`:** `M'(d)(v) = M(d)(v)`, and the pre-state V-position `v` itself (with `v ∈ Λ ⊆ V_{s_C}(d)`) witnesses the same I-address. **Case S = s_C, `v ∈ Q`:** `v = σ_d(u)` for some `u ∈ Π ⊆ V_{s_C}(d)`, so `M'(d)(σ_d(u)) = M(d)(u)`, and the pre-state V-position `u` witnesses the same I-address. **Case S = s_L (link-subspace deletion):** `v ∈ V_{s_C}(M'(d)) = V_{s_C}(d)` by D6 (the content subspace is the unaffected subspace), with `M'(d)(v) = M(d)(v)`, so the pre-state V-position `v` itself witnesses the same I-address. In every case, the antecedent — "no `v ∈ dom(M(d))` with subspace `s_C` mapped to `a`" — is false for every `(a, d)` pair. The implication is vacuous.
 - *J1'★ (ProvenanceRequiresExtensionContentSubspace)* quantifies over `(a, d) ∈ R' \ R`. By D0's frame, `R' = R`, so `R' \ R = ∅` and the implication is vacuous.
 
-*DEL-neutrality facts.* The boundary derivation below relies on three facts about how a single DEL step moves the composite-boundary properties P4★, P4a, and P7a. Each states that DEL introduces no new violation of its property; we establish them once here and cite them by name (N1, N2, N3) in the induction.
-
-- *N1 (P4★, `Contains_C(Σ) ⊆ R`).* DEL is content-subspace-monotone-shrinking: `Contains_C(Σ') ⊆ Contains_C(Σ)`. To see this, let `(a, d'') ∈ Contains_C(Σ')`, so there is `v ∈ dom(M'(d''))` with `subspace(v) = s_C` and `M'(d'')(v) = a`; we lift `v` to a pre-state witness. When `d'' ≠ d`, D5 gives `M'(d'') = M(d'')`, so `v ∈ dom(M(d''))` with `M(d'')(v) = a` and `(a, d'') ∈ Contains_C(Σ)`. When `d'' = d`, D0's effect partitions `v ∈ dom(M'(d))` into `Λ ⊎ Q ⊎ V_{S'}(d)`, where `S' = {s_C, s_L} \ {S}` is the unaffected subspace (the deletion is in subspace `S`, which may itself be either `s_C` or `s_L`); restricting to `subspace(v) = s_C` and tracing the source correspondence, either `v ∈ Λ` (so `M'(d)(v) = M(d)(v) = a` and `v` itself witnesses the pre-state pair) or `v ∈ Q` (so `v = σ_d(u)` for the unique `u ∈ Π ⊆ V_S(d)` with `M(d)(u) = a` and `u` witnesses the pre-state pair) or `v ∈ V_{S'}(d)` with `S' = s_C` and `S = s_L` (so `v ∈ V_{s_C}(d)` is unchanged with `M'(d)(v) = M(d)(v) = a`). In every case a pre-state witness exists, so `(a, d'') ∈ Contains_C(Σ)`, establishing `Contains_C(Σ') ⊆ Contains_C(Σ)`. Combined with `R' = R` (D0's frame on the provenance relation), DEL adds no member to `Contains_C` and fixes `R`, so it introduces no new P4★ violation.
+*DEL-neutrality fact.* The boundary derivation below relies on one fact about how a single DEL step moves the composite-boundary property P4a; we establish it here and cite it by name (N2) in the induction. DEL's effect on the other two composite-boundary properties, P4★ and P7a, needs no separate fact: the step-agnostic derivation below closes both from the induction hypothesis and the coupling constraints (J0, J1★) alone, whether or not the composite's final step is DEL.
 
 - *N2 (P4a, trace-witnessing).* `R' = R`, and any pair `(a, d) ∈ R` witnessed at some `Σ_k` in the pre-state history remains witnessed at that same `Σ_k` in the (longer) post-state history; DEL records no new provenance pair, so it raises no new witnessing obligation. DEL cannot break P4a.
-
-- *N3 (P7a, provenance coverage: every `a ∈ dom(C)` has some `(a, d) ∈ R`).* `dom(C') = dom(C)` (D2) and `R' = R` (D0's frame), so both the content-address set and the provenance relation are pointwise unchanged; DEL therefore neither creates an unrecorded content address nor removes a provenance record, and its truth value for P7a is identical at `Σ` and `Σ'`. DEL cannot break P7a.
 
 *Boundary derivation.* P4★, P4a, and P7a are composite-boundary properties, not per-state invariants — ASN-0047's ExtendedReachableStateInvariants theorem lists them separately from the per-state invariants and guarantees them only at composite boundaries, and only over the pre-DEL vocabulary. Admitting DEL means a boundary may now be reached by a DEL-containing composite, which that theorem does not cover, so we must re-establish these properties at every such boundary. We prove the boundary obligations by induction over the sequence of composite boundaries in a *DEL-extended trace* `Σ₀ →* B₁ →* B₂ →* ... →* B_N`, where each `B_j →* B_{j+1}` is a valid composite drawn from the DEL-extended vocabulary. The induction hypothesis is that every boundary `B_j` satisfies P4★ and P7a.
 
@@ -549,7 +545,7 @@ A single DEL transition viewed as a one-step composite `Σ → Σ'` satisfies J0
   - `a ∈ dom(C') \ dom(C)`: an earlier K.α step allocated it, so J0 between `Σ` and `Σ'` supplies a content-subspace placement `M'(d)(v) = a` for some `d, v`, whence `(a, d) ∈ Contains_C(Σ')`; the P4★ conclusion just established gives `(a, d) ∈ R'`.
   Either way `a` carries a record in `R'`.
 
-When the composite's final step is DEL, facts N1 and N3 confirm it adds no obligation the derivation must absorb: by N1 it does not enlarge `Contains_C` beyond `R`, and by N3 it removes no content address or provenance record. The step-agnostic derivation above already closes using only the induction hypothesis and the coupling constraints (J0, J1★), so it needs nothing further. With the base case `Σ₀` and this single inductive step, the induction closes: every composite boundary in a DEL-extended trace satisfies P4★ and P7a. P4a at `Σ'` holds by N2.
+The step-agnostic derivation above closes using only the induction hypothesis and the coupling constraints (J0, J1★), so it needs nothing further when the composite's final step is DEL. With the base case `Σ₀` and this single inductive step, the induction closes: every composite boundary in a DEL-extended trace satisfies P4★ and P7a. P4a at `Σ'` holds by N2.
 
 *DEL can break composite-level J0.* The boundary derivation assumes the composite *is* valid — that J0 and J1★ hold between `Σ` and `Σ'`. The single-DEL vacuity above shows DEL contributes no coupling obligation of its own, but it does *not* show that a multi-step composite containing DEL automatically satisfies the composite-level constraints. ValidComposite★ (ASN-0047) evaluates J0/J1★/J1'★ between the composite's initial and final states, not step-by-step, and a DEL step can break composite-level J0 by removing a witness an earlier allocation requires. Concretely, the three-step composite `Σ → Σ_1 → Σ_2 → Σ_3` consisting of (i) K.α emitting `a` into `dom(C)`, (ii) K.μ⁺ placing the mapping `v ↦ a` into `M(d)`, and (iii) `DEL[d, σ]` with `v ∈ X` satisfies each step's elementary precondition but fails composite-level J0: `a ∈ dom(C_3) \ dom(C_0)` (K.α added it, D2 preserves it), yet no content-subspace `v' ∈ dom(M_3(d))` satisfies `M_3(d)(v') = a` (DEL removed the only witness). The failure surfaces at the composite endpoint, not at any single step — so composites combining DEL with allocation-and-placement steps must be checked at their endpoints.
 
