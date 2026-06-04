@@ -18,7 +18,7 @@ image(R, d, Σ)
   ≡             {Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}
 ```
 
-The single precondition `d ∈ dom(Σ.M)` is load-bearing so that `Σ.M(d)` is defined. V-positions in `R` that are absent from the arrangement contribute nothing to the image — silent projection is a design-justified total treatment that fabricates no I-addresses absent from the arrangement. To state precisely what pins it down, consider a *treatment* to be any function `g(R, d, Σ)` total over `R ⊆ T` (for fixed allocated `d`). Write `img(R, d, Σ) = {Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}` for the silent-projection image. Silent projection is the unique treatment satisfying both: (i) *no fabrication* — every emitted address is witnessed by a V-position *of `R`* that the arrangement maps, `g(R, d, Σ) ⊆ img(R, d, Σ)`; and (ii) *faithfulness on present positions* — `g` reproduces every such image, `img(R, d, Σ) ⊆ g(R, d, Σ)`. The two conjuncts are mutual inclusions, so together they force `g(R, d, Σ) = img(R, d, Σ)` — silent projection exactly. The bound in (i) is the image of `R`, not the whole range `ran(Σ.M(d))`; this is the load-bearing strengthening. A weaker "no fabrication" reading bounding `g` by `ran(Σ.M(d))` fails to pin the treatment down: it admits any treatment that emits genuine arrangement images of V-positions *outside* `R`, since those addresses lie in `ran(Σ.M(d))` without being witnessed by any V-position in `R`. Three families of alternative show the conjuncts are jointly necessary. The constant-`∅` treatment is total and vacuously satisfies (i) (it emits nothing), yet it is not silent projection — it drops present V-positions, violating (ii). Totalisations that map an absent V-position to a sentinel or default I-address satisfy (ii) but violate (i), injecting an output not witnessed by `Σ.M(d)` at all. The constant-`ran` treatment `g(R, d, Σ) = ran(Σ.M(d))` — and more generally any treatment emitting a superset of `img(R, d, Σ)` drawn from `ran(Σ.M(d))` — satisfies (ii) and the weak `⊆ ran` bound, but violates the strengthened (i) whenever `R` fails to cover `dom(Σ.M(d))`: it emits images of V-positions outside `R`, which have no witness in `R`. For instance, with `dom(Σ.M(d)) = {v¹, v², v³} → {α₁, α₂, α₃}` and `R = {v¹}`, silent projection gives `{α₁}` while the constant-`ran` treatment gives `{α₁, α₂, α₃}` — the latter emits `α₂, α₃`, witnessed only by `v², v³ ∉ R`, so it fails (i) as strengthened. Only silent projection meets both conjuncts, fixing its image as exactly `img(R, d, Σ)`.
+The single precondition `d ∈ dom(Σ.M)` is load-bearing so that `Σ.M(d)` is defined. V-positions in `R` that are absent from the arrangement contribute nothing to the image — silent projection is a design-justified total treatment that fabricates no I-addresses absent from the arrangement. Writing `img(R, d, Σ) = {Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}`, a treatment `g(R, d, Σ)` total over `R ⊆ T` (for fixed allocated `d`) is silent projection iff it satisfies both (i) *no fabrication* `g(R, d, Σ) ⊆ img(R, d, Σ)` — every emitted address is witnessed by a V-position *of `R`* that the arrangement maps — and (ii) *faithfulness* `img(R, d, Σ) ⊆ g(R, d, Σ)`. These are mutual inclusions, so by extensionality they force `g(R, d, Σ) = img(R, d, Σ)` — silent projection exactly. The bound in (i) is the image of `R`, not the whole range `ran(Σ.M(d))`; this is the load-bearing strengthening. The constant-`ran` treatment `g(R, d, Σ) = ran(Σ.M(d))` satisfies (ii) and the weak `⊆ ran` bound but violates the strengthened (i) whenever `R` fails to cover `dom(Σ.M(d))`: with `dom(Σ.M(d)) = {v¹, v², v³} → {α₁, α₂, α₃}` and `R = {v¹}`, it emits `α₂, α₃`, witnessed only by `v², v³ ∉ R`, whereas silent projection gives `{α₁}`.
 
 **Phase 2 (I→Link).** Given a set of I-addresses `I ⊆ T`, produce the set of links whose endsets intersect `I`:
 
@@ -35,7 +35,7 @@ F12 (TwoPhaseFactoring) — DEFINITION of findlinks_V:
      ≡             findlinks(image(R, d, Σ), Σ).
 ```
 
-F12 carries two complementary roles under one block: it *defines* the operation `findlinks_V` (the name and signature) and *names the unfolding identity* `findlinks_V(R, d, Σ) ≡ findlinks(image(R, d, Σ), Σ)`. Downstream citations of "F12" invoke the unfolding identity (e.g., Query 1's "By F12, both V-side queries unfold to findlinks({α}, Σ)"); downstream citations of `findlinks_V` invoke the operation itself. The Claims Introduced table lists `findlinks_V` and F12 as separate rows for these two citation purposes — both refer to the same artifact. For `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined* — no silent fallback. For V-positions in `R` outside `dom(Σ.M(d))`, the silent projection in `image` absorbs them; the caller has no pre-validation obligation beyond establishing `d ∈ dom(Σ.M)`.
+For `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined* — no silent fallback. For V-positions in `R` outside `dom(Σ.M(d))`, the silent projection in `image` absorbs them; the caller has no pre-validation obligation beyond establishing `d ∈ dom(Σ.M)`.
 
 The factoring matters because the two phases have different stability properties. `Σ.M` is mutable (K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L all modify it); `Σ.L` is monotonic (K.λ adds, L12 forbids modification of existing entries). Phase 1 consults the mutable component; phase 2 consults the monotonic component.
 
@@ -59,7 +59,7 @@ F4 below is a *design justification*, not a uniqueness theorem. The shape of the
 
 *Layer 2 — the structural family (LM 4/58).* "A link satisfies a search request if one span of each endset satisfies a corresponding part of the request" prescribes an AND-of-ORs structure: ∧ across endsets (every endset participates with a witnessing span), OR over spans within each endset (one span witnesses). The phrase "corresponding part" decomposes the request per-endset, so LM 4/58 directly describes a *filtered* query — its literal realization is `findlinks_filtered` (formally defined below in "Endset Filtering"; in brief, `findlinks_filtered(C, Σ) = {a ∈ dom(Σ.L) : (A (i, J) ∈ C : i ≤ |Σ.L(a)| ∧ coverage(Σ.L(a).eᵢ) ∩ J ≠ ∅)}` — a constraint-set comprehension binding each constraint to a fixed slot index) with one constraint per slot (e.g., `findlinks_filtered({(1, I_from), (2, I_to), (3, I_type)}, Σ)`), AND across constraints with per-slot overlap as the existential. F1's unfiltered `findlinks` is *not* a member of this AND family; it is the OR-across-slots aggregation obtained by applying a single I against all endsets and reporting a hit when any endset overlaps: `findlinks(I, Σ) = ⋃_{i=1}^{N} findlinks_filtered({(i, I)}, Σ)` (the union form is derived below). What F1 carries forward from LM 4/58 is the *per-endset* structure — the overlap existential over spans within a single endset; the across-endsets quantifier is a separate, reader-facing surface choice. F4 below treats these two layers as separable design decisions.
 
-*Structural consequence of Layer 2 — spans-monotonicity within an endset.* Layer 2's per-endset clause — "one span ... satisfies a corresponding part of the request" — places satisfaction at the per-span level as an existential. This existential has a structural consequence we surface here because F4 (a) operationalises it: adding a non-witnessing span to an endset that already has a witnessing span cannot suppress the existing witness — the existential survives. F1 honors this because its endset-level overlap unfolds to a span-level existential: `coverage(eᵢ) ∩ I ≠ ∅` iff `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`. Among the natural alternatives that fold an endset's spans into a single constraint, only *containment* `coverage(eᵢ) ⊆ I` *breaks* spans-monotonicity: adding a non-conforming span (whose coverage falls outside `I`) violates the per-span universal and so suppresses an existing satisfying state. *Reverse containment* `I ⊆ coverage(eᵢ)` and *cardinality thresholds* `|coverage(eᵢ) ∩ I| ≥ k` are themselves spans-monotone — adding a span enlarges `coverage(eᵢ)` (so any existing `I ⊆ coverage`-satisfaction survives) and can only weakly grow `|coverage(eᵢ) ∩ I|` (so any existing threshold-satisfaction survives). What distinguishes F1 from these two aggregates is therefore *not* spans-monotonicity but the *per-span witness structure*: F1's match is anchored at a single witnessing span `(s, ℓ) ∈ eᵢ` with `{t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅`, while reverse containment and cardinality fold every span's contribution into a global condition with no individual span identifiable as the reason for the match. F1 is robust to adversarial junk-span insertion at the existential level on two counts: spans-monotonicity preserves any prior witness across span addition, and the per-span witness structure keeps that surviving witness locatable. LM 4/60's across-link robustness principle ("THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS") is *convergent* with this within-endset choice but is not its direct anchor — LM 4/60 governs the cross-link case (filtering across distinct link objects), while spans-monotonicity within a single endset is grounded in Layer 2's existential structure itself.
+*Structural consequence of Layer 2 — spans-monotonicity within an endset.* Layer 2's per-endset clause — "one span ... satisfies a corresponding part of the request" — places satisfaction at the per-span level as an existential, and F1 honors it because its endset-level overlap unfolds to a span-level existential: `coverage(eᵢ) ∩ I ≠ ∅` iff `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`. The structural consequence — that adding a non-witnessing span cannot suppress an existing witness, and how this separates F1 from the fold-into-one-constraint alternatives — is carried by F4 (a) below; the illustration that follows exhibits it concretely.
 
 *Spans-monotonicity, illustrated.* Take link L₀ with slot 1 holding the single span `(α, δ(1, #α))`, and query `I = {t : α ≼ t}` (the prefix-subtree of α). Then `coverage(L₀.e₁) = I` exactly, so both F1's overlap predicate and an endset-level containment predicate `coverage(eᵢ) ⊆ I` admit L₀. Now extend L₀ to L₁ by adding a span `(β, δ(1, #β))` at the same slot, with β non-nesting with α (β ⋠ α and α ⋠ β; e.g., β a same-length sibling differing from α at position `#α`). Under F1: L₁ still matches — `coverage(L₁.e₁) ∩ I ⊇ {α} ≠ ∅`, the α-span witness survives. Under endset-level containment: L₁ fails — `coverage(L₁.e₁) = {t : α ≼ t} ∪ {t : β ≼ t}`, and `β ∈ coverage(L₁.e₁)` with `β ∉ I` (since β ⋠ α), so the containment relation breaks. Adding a non-witnessing span to L₀'s slot 1 suppresses L₀'s containment-match while preserving F1's overlap-match. This is the spans-monotonicity LM 4/58's existential structure entails, and it is what the realizability witnesses below (Strengthenings 1–3) operationally distinguish under F2 ∧ F3.
 
@@ -274,20 +274,11 @@ A1 (LinkStoreInertOfNonAllocatingOperations):
    Equivalently, K.λ is the unique operation of V that modifies the
    link store.
 
-   A1 ranges over the atomic operations of V ∖ {K.λ}. Every one of
-   them — {K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} — publishes
-   `L' = L` in its operative frame, so A1 is discharged uniformly by
-   A1a (published-frame preservation) with no interpretive commitment:
-   - For {K.α, K.δ, K.μ⁺_L, K.ρ}, the published frame names
-     `L' = L` directly.
-   - For {K.μ⁺, K.μ⁻}, the operative definitions in this ASN's
-     extended state `Σ = (C, L, M, E, R, …)` are ASN-0047's amended
-     versions (K.μ⁺ amendment ContentSubspaceRestriction; K.μ⁻
-     per-subspace scope PerSubspaceContractionScope), each of whose
-     extended-state frame publishes `L' = L` explicitly. (The
-     pre-link-subspace originals omit `L`, but they are not the
-     operative vocabulary here — ASN-0047's ValidComposite★ lists
-     "K.μ⁺ (amended)" and "K.μ⁻ (amended)" as the atomic vocabulary.)
+   A1 ranges over the atomic operations of V ∖ {K.λ}. Each one —
+   {K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} — publishes `L' = L` in its
+   operative frame (the per-operation discharge laid out in the
+   preceding paragraph), so A1 is discharged uniformly by A1a
+   (published-frame preservation) with no interpretive commitment.
 
    K.μ~ is excluded from A1a, because ASN-0047 fixes it as a
    non-atomic named composite — shorthand for a K.μ⁻ + K.μ⁺
@@ -301,10 +292,8 @@ A1 (LinkStoreInertOfNonAllocatingOperations):
    Vocabulary scope: V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L,
    K.ρ} — ASN-0047's extended-state vocabulary (ValidComposite★), with
    K.μ~ the sole non-atomic member and document registration performed
-   by K.δ (Document case), not by ASN-0093's substrate K.σ (which is
-   unreachable in the (C, L, M, E, R) model — see above). Downstream
-   ASNs consuming A1 against an evolved vocabulary must restate the
-   claim.
+   by K.δ (Document case). Downstream ASNs consuming A1 against an
+   evolved vocabulary must restate the claim.
 ```
 
 ```
@@ -524,7 +513,9 @@ F10-filt:  findlinks_filtered(C, Σ) admits a unique strictly T1-increasing sequ
 F10-sco:   findlinks_scoped(I, S, Σ) admits a unique strictly T1-increasing sequence.
 ```
 
-The presentation order recovers a creation-order property within each home document. We surface the equivalence as a sub-lemma so F10's derivation can cite it cleanly:
+F10's existence and uniqueness are complete at this point: T1 is a total order on the finite subset `dom(Σ.L)`, and a finite totally-ordered set has exactly one increasing enumeration. No anchor-lifting or chain-index machinery is consulted. The two lemmas that follow — ChainIndexEqualsAllocationOrder and F10a — are *interpretive*: they explain what the T1 presentation order means chronologically (the "Chronological reading" remark below), and play no role in establishing F10's ordering claim.
+
+The presentation order recovers a creation-order property within each home document:
 
 ```
 ChainIndexEqualsAllocationOrder — sub-lemma:
@@ -544,7 +535,7 @@ ChainIndexEqualsAllocationOrder — sub-lemma:
    within A_L(d) — agree.
 ```
 
-For the cross-document part of F10's ordering:
+Across home documents, the T1 presentation order tracks the document tumblers rather than K.λ event history:
 
 ```
 F10a (AnchorLiftingOfDocumentOrdering):
@@ -694,7 +685,7 @@ The specification is spare because of design choices established for other reaso
 |-------|-----------|--------|
 | `image(R, d, Σ)` | I-image of a V-region with silent projection | definition |
 | `findlinks(I, Σ)` | Discovery operation comprehension | definition |
-| `findlinks_V(R, d, Σ)` | Two-phase composite (operation name; the F12 row below is the same artifact under its citation-handle label) | definition |
+| `findlinks_V(R, d, Σ)` | Two-phase composite `findlinks(image(R, d, Σ), Σ)` (operation, defined by F12) | definition |
 | `findlinks_filtered(C, Σ)` | Filtered form with slot constraints | definition |
 | `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | definition |
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
@@ -722,7 +713,7 @@ The specification is spare because of design choices established for other reaso
 | F10-filt, F10-sco | Filtered and scoped ordered presentations | introduced |
 | F10a | AnchorLiftingOfDocumentOrdering | introduced |
 | F11 | PersistentDiscoverabilityI: I-side match against fixed I preserved across reachable sequences (distinct from ASN-0098's V-side discoverable_from, which is not persistent) | introduced |
-| F12 | TwoPhaseFactoring: citation handle for `findlinks_V`'s definitional unfolding `findlinks_V(R, d, Σ) ≡ findlinks(image(R, d, Σ), Σ)` (cite F12 to invoke the unfolding identity; cite `findlinks_V` to invoke the operation itself — same artifact, two labels for two citation purposes) | definition |
+| F12 | TwoPhaseFactoring: `findlinks_V(R, d, Σ) ≡ findlinks(image(R, d, Σ), Σ)` | definition |
 | F13 | Set-additive in the I-input | introduced |
 | F14 | Scope filter is intersection | introduced |
 | F15, F16 | Filtered and scoped determinism | introduced |
