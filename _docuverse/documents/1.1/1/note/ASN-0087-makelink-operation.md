@@ -16,7 +16,7 @@ What must the caller supply?
 - A *home document* `d ∈ dom(Σ.M)` — the document under whose authority the link is allocated. (By L1a, ASN-0043, every link's home document must be allocated.)
 - A *sequence of endsets* `(e₁, ..., eₙ)` with `N ≥ 3`, each `eᵢ ∈ Endset`, and `e₃ ≠ ∅`. (By L3, ASN-0043.)
 
-The caller does *not* specify the link's address or its V-position in the home document — neither is an operation *parameter*. The address `ℓ` is *derived* by the system from the current state (the next emission of `A_L(d)`); the V-position `v_ℓ` is likewise system-derived, not a parameter — its positioning rule stated once in *Effect*, its depth fixed per the M-DepthConv convention below.
+The caller does *not* specify the link's address or its V-position in the home document — neither is an operation *parameter*. The address `ℓ` is *derived* by the system from the current state (the next emission of `A_L(d)`); the V-position `v_ℓ` is likewise system-derived, not a parameter.
 
 *Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`. MAKELINK commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document.
 
@@ -77,7 +77,7 @@ The condition `ℓ ∉ ran(Σ_mid.M(d))` requires more than `ℓ ∉ dom(Σ.L)`;
 
 The derived freshness of `ℓ` (FirstEmissionFreshness, SubsequentEmissionFreshness, ASN-0093) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. In either subspace case, `Σ.M(d)(v) ∈ dom(Σ.C) ∪ dom(Σ.L)`, so `Σ.M(d)(v) ≠ ℓ`. Hence `ℓ ∉ ran(Σ.M(d)) = ran(Σ_mid.M(d))`.
 
-The intermediate-state conditions for K.μ⁺_L reduce to original-state conditions, so the caller-visible precondition for MAKELINK is just K.λ's precondition, with `ℓ` supplied by `A_L(d)`'s next emission and `v_ℓ` system-derived (see *Effect*).
+The intermediate-state conditions for K.μ⁺_L reduce to original-state conditions, so the caller-visible precondition for MAKELINK is just K.λ's precondition, with `ℓ` supplied by `A_L(d)`'s next emission and `v_ℓ` system-derived.
 
 ## Effect
 
@@ -168,7 +168,7 @@ We compute `wp(MAKELINK, discoverable_from(ℓ, d_target, ·))` — the predicat
 
 The predicate concerns the *home* document `d` and the endset inputs, and is logically independent of the target document `d_target`.
 
-*Membership precondition.* `discoverable_from(a, d, Σ)` is defined in ASN-0098 only when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`. At the post-state, `ℓ ∈ dom(Σ'.L)` by K.λ's effect, so the left conjunct is automatic. The right conjunct `d_target ∈ dom(Σ'.M)` requires that the target document was already registered at the pre-state. We establish here, once, the document-set fixity that the rest of the ASN cites:
+*Membership precondition.* `discoverable_from(a, d, Σ)` is defined in ASN-0098 only when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`. At the post-state, `ℓ ∈ dom(Σ'.L)` by K.λ's effect, so the left conjunct is automatic. The right conjunct `d_target ∈ dom(Σ'.M)` requires that the target document was already registered at the pre-state. MAKELINK leaves the document set fixed:
 
   dom(Σ'.M) = dom(Σ.M)                                    (M-DocFixity)
 
