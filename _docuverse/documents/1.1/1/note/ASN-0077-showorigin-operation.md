@@ -154,12 +154,12 @@ The V-span lift is more nuanced. `origins_V(Σ, d, σ)` depends on the arrangeme
 
 > *(i) `d ∈ Σ.E_doc` — the source document is allocated (ASN-0047);*
 > *(ii) σ is level-uniform: `#u = #ℓ` (S6, ASN-0053);*
-> *(iii) `V_{u₁}(d) ≠ ∅` — the subspace identified by `u₁` is non-empty in `d`'s arrangement;*
+> *(iii) `V_{u₁}(d) ≠ ∅` — the subspace identified by `u₁` is non-empty in `d`'s arrangement (a **derived convenience conjunct**, not an independent well-formedness condition: it follows from (v) and (vi), since by TA-strict `u ∈ ⟦σ⟧` with `#u = m` by (v), and the range condition (vi) then forces `u ∈ dom(M(d))`, whence `u ∈ V_{u₁}(d)` — see the "Empty-restriction within a non-empty document" edge case; it is named here only so that non-emptiness can be cited directly where convenient);*
 > *(iv) T12 holds for `(u, ℓ)`: `Pos(ℓ)` and `actionPoint(ℓ) ≤ #u` (ASN-0034);*
 > *(v) `#ℓ = #u = m`, where `m` is the common V-position depth in subspace `u₁` of `d` (S8-depth, ASN-0036);*
 > *(vi) the range condition `{v ∈ T : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d))`.*
 
-`WF_V(Σ, d, σ)` collects the conditions under which the V-span origin set (F1) is well-defined: a level-uniform span confined to a single non-empty subspace whose denoted positions are all present in `d`'s arrangement.
+`WF_V(Σ, d, σ)` collects the conditions under which the V-span origin set (F1) is well-defined: a level-uniform span confined to a single subspace whose denoted positions are all present in `d`'s arrangement. The independent content is carried by (i), (ii), (iv), (v), and (vi); conjunct (iii) is a derived consequence of (v)+(vi) retained only as a directly citable handle on non-emptiness.
 
 An arrangement *extension* on `d` preserves the per-subspace common depth that S8-depth fixes: a subspace non-empty before the extension retains the same depth after it.
 
@@ -363,11 +363,11 @@ That is, the precondition that some block of the C1a decomposition of `(d, σ)` 
 
 The claims above bound what SHOWORIGIN guarantees. Three exclusions deserve explicit statement.
 
-*Not historical containment.* SHOWORIGIN reports origin, not the set of documents that *have ever contained* the queried content. A document that once transcluded the content and then contracted its arrangement (`K.μ⁻`) is no longer represented by `M(d)` and does not appear in `origins_V`. Gregory's investigation of the spanfilade [Q17] confirms that the implementation's `find_documents_containing` mixes these two notions and returns a superset of currently-containing documents — a behaviour distinct from SHOWORIGIN. Whether a complementary operation over `Σ.R` is required is taken up in the Open Questions.
+*Not historical containment.* SHOWORIGIN reports origin, not the set of documents that *have ever contained* the queried content. A document that once transcluded the content and then contracted its arrangement (`K.μ⁻`) is no longer represented by `M(d)` and does not appear in `origins_V`. Gregory's investigation of the spanfilade [Q17] confirms that the implementation's `find_documents_containing` mixes these two notions and returns a superset of currently-containing documents — a behaviour distinct from SHOWORIGIN.
 
 *Not human authorship.* As Nelson notes [Q2], the User field of the tumbler identifies an owning *account*, not necessarily a known human. *John Doe publication* is permitted: anonymous and pseudonymous content has well-defined origin without revealing identity. SHOWORIGIN reports what the address structure encodes, and no more.
 
-*Not transitive provenance.* The result names `d₁` (the original allocator), not the transclusion chain `d₁ → d₂ → ... → dₙ`. Whether an operation surfacing the intermediate chain is required is taken up in the Open Questions [Q10].
+*Not transitive provenance.* The result names `d₁` (the original allocator), not the transclusion chain `d₁ → d₂ → ... → dₙ`.
 
 ## A worked example
 
