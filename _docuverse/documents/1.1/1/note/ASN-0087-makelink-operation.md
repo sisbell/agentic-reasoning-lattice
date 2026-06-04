@@ -20,7 +20,7 @@ The caller does *not* specify the link's address or its V-position in the home d
 
 *Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`. MAKELINK commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined.
 
-We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047).
+We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047). M1 is stated identically — as the inclusion `dom(Σ.M) ⊆ dom(Σ'.M)` — in both ASN-0047 and ASN-0093; the two coincide on that inclusion clause, and only ASN-0047's statement additionally carries the `dom(M) = E_doc` identity (ASN-0093 has no entity layer). Uses below that need only the inclusion cite "M1" without re-attributing; the `E_doc` identity, used here, is the ASN-0047-specific clause.
 
 *Endsets and emptiness.* L3 (ASN-0043) requires the third slot `e₃` to be non-empty but imposes no non-emptiness constraint on the other slots. The empty endset `eᵢ = ∅` is a permitted boundary case for `i ≠ 3`: by the coverage definition, `coverage(∅) = ⋃_{(s,ℓ) ∈ ∅} … = ∅`, so an empty slot contributes nothing to any `project(ℓ, i, ·, ·)` and nothing to any LP12-based discoverability disjunct.
 
@@ -160,7 +160,7 @@ Discoverability checks via LP12:
 
 The type-endset coverage `coverage(e₃) = {t : τ ≼ t}` does not contribute to discoverability from either `d` or `d'` in this state: by the setup's constraint that `τ ⋠ x` for every `x ∈ {a₁, a₂, a₃, ℓ}`, prefix-testing each element of `ran(Σ'.M(d)) = {a₁, a₂, ℓ}` and `ran(Σ'.M(d')) = {a₃}` against `τ` yields no matches. Hence `coverage(e₃) ∩ ran(Σ'.M(d)) = ∅` and `coverage(e₃) ∩ ran(Σ'.M(d')) = ∅`. This is consistent with the type endset's role: it carries the link's classification, not its content connections.
 
-*Reflexive variant.* We instantiate M-Reflexive concretely. Replace `e₁` with `e₁' = {(ℓ, δ(1, #ℓ))}`, keeping `e₂` and `e₃` (the caller predicts `ℓ = [d, 0, 2, 1]` per the predictability principle of wp Case 2). By PrefixSpanCoverage (ASN-0043), `coverage(e₁') = {t ∈ T : ℓ ≼ t}`, which contains `ℓ`. The M-Reflexive hypothesis `ℓ ∈ coverage(e₁')` is thus met, so wp Case 2's reflexive disjunct fires: `discoverable_from(ℓ, d, Σ')` holds with witness `v_ℓ ∈ project(ℓ, 1, d, Σ')`, regardless of `d`'s prior arrangement.
+*Reflexive variant.* We instantiate M-Reflexive concretely. Replace `e₁` with `e₁' = {(ℓ, δ(1, #ℓ))}`, keeping `e₂` and `e₃` (the caller predicts `ℓ = [d, 0, 2, 1]` per the predictability principle of wp Case 2). By PrefixSpanCoverage (ASN-0043), `coverage(e₁') = {t ∈ T : ℓ ≼ t}`, which contains `ℓ`. The M-Reflexive hypothesis `ℓ ∈ coverage(e₁')` is thus met, so wp Case 2's reflexive disjunct fires: `discoverable_from(ℓ, d, Σ')` holds with witness `v_ℓ ∈ project(ℓ, 1, d, Σ')`, regardless of `d`'s prior arrangement. Note that `e₁'` is *not* standardly authored at `Σ`: it pre-emptively covers the fresh `ℓ` (`ℓ ∈ F` but `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`), so `coverage(e₁') ∩ F ⊄ dom(Σ.C) ∪ dom(Σ.L)`. This variant is precisely the boundary M-FreshExcl / M-Reflexive isolate — the reflexive route is reachable only by violating standard authoring, which is why the standardly-authored discipline structurally excludes it.
 
 ## Weakest Precondition for Discoverability
 
@@ -172,7 +172,7 @@ We compute `wp(MAKELINK, discoverable_from(ℓ, d_target, ·))` — the predicat
 
 The predicate concerns the *home* document `d` and the endset inputs, and is logically independent of the target document `d_target`.
 
-*Membership precondition.* `discoverable_from(a, d, Σ)` is defined in ASN-0098 only when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`. At the post-state, `ℓ ∈ dom(Σ'.L)` by K.λ's effect, so the left conjunct is automatic. The right conjunct `d_target ∈ dom(Σ'.M)` requires that the target document was already registered at the pre-state. M1 (ASN-0093) supplies only the inclusion `dom(Σ.M) ⊆ dom(Σ'.M)`; equality `dom(Σ'.M) = dom(Σ.M)` at MAKELINK comes from the K.λ frame and K.μ⁺_L's effect, neither of which extends `dom(M)` (K.λ's frame holds `M` entirely fixed; K.μ⁺_L extends `dom(M(d))` for an already-registered `d` without adding any new document). Combining the M1 inclusion with these two frame consequences gives the equality, so `d_target ∈ dom(Σ'.M) ⟺ d_target ∈ dom(Σ.M)`. For `d_target = d` the membership clause is subsumed by `enabled(MAKELINK)`'s `d ∈ dom(Σ.M)` conjunct; for `d_target ≠ d` it is an independent obligation.
+*Membership precondition.* `discoverable_from(a, d, Σ)` is defined in ASN-0098 only when `a ∈ dom(Σ.L) ∧ d ∈ dom(Σ.M)`. At the post-state, `ℓ ∈ dom(Σ'.L)` by K.λ's effect, so the left conjunct is automatic. The right conjunct `d_target ∈ dom(Σ'.M)` requires that the target document was already registered at the pre-state. M1 (the inclusion clause, common to ASN-0047 and ASN-0093 per *Inputs*) supplies only the inclusion `dom(Σ.M) ⊆ dom(Σ'.M)`; equality `dom(Σ'.M) = dom(Σ.M)` at MAKELINK comes from the K.λ frame and K.μ⁺_L's effect, neither of which extends `dom(M)` (K.λ's frame holds `M` entirely fixed; K.μ⁺_L extends `dom(M(d))` for an already-registered `d` without adding any new document). Combining the M1 inclusion with these two frame consequences gives the equality, so `d_target ∈ dom(Σ'.M) ⟺ d_target ∈ dom(Σ.M)`. For `d_target = d` the membership clause is subsumed by `enabled(MAKELINK)`'s `d ∈ dom(Σ.M)` conjunct; for `d_target ≠ d` it is an independent obligation.
 
 *Case 1: d_target ≠ d.* K.μ⁺_L's frame gives `Σ'.M(d_target) = Σ.M(d_target)` for every `d_target ≠ d` in `dom(Σ'.M)`. By LP12 at `Σ'`:
 
@@ -305,7 +305,7 @@ ASN-0047 classifies P4★, P4a, and P7a as Class (b) — properties discharged a
 
 ### Transition Invariants for Σ → Σ'
 
-- M1 (ArrangementMonotonicity, ASN-0093): `dom(Σ.M) ⊆ dom(Σ'.M)`. Trivially holds with equality — MAKELINK does not extend `dom(M)`.
+- M1 (ArrangementMonotonicity; the inclusion clause common to ASN-0047 and ASN-0093 per *Inputs*): `dom(Σ.M) ⊆ dom(Σ'.M)`. Trivially holds with equality — MAKELINK does not extend `dom(M)`.
 - L12 (LinkImmutability): `(A ℓ' ∈ dom(Σ.L) :: ℓ' ∈ dom(Σ'.L) ∧ Σ'.L(ℓ') = Σ.L(ℓ'))`. K.λ adds only the fresh `ℓ`; no prior entry is modified.
 - P0 (ContentPermanence): trivially via the frame `Σ'.C = Σ.C`.
 - P1 (EntityPermanence): trivially via the frame `Σ'.E = Σ.E`.
@@ -344,7 +344,7 @@ MAKELINK performs *no permission check on referenced content*. It does not verif
 | M-DepthConv | MAKELINK fixes every first link's V-position depth at the canonical minimal `m = 2`; thereafter S8-depth pins `m_L(d) = 2`. Stated and scoped in *Inputs*. | introduced |
 | M-Pre | Caller-visible precondition: `d ∈ dom(M)`, `N ≥ 3`, `(A i : eᵢ ∈ Endset)`, `e₃ ≠ ∅`. System-supplied parameters: `ℓ` from `A_L(d)`'s next emission; `v_ℓ` from K.μ⁺_L's positioning rule, serial component `n_L + 1` computed from `Σ`, depth per M-DepthConv. | introduced |
 | M-Alloc | MAKELINK allocates a fresh `ℓ ∈ T \ (dom(Σ.L) ∪ dom(Σ.C))` and a fresh `v_ℓ ∈ T \ dom(Σ.M(d))` with `subspace(v_ℓ) = s_L` and `#v_ℓ` per M-DepthConv. | introduced |
-| M-Effect | `Σ'.L = Σ.L ∪ {ℓ ↦ (e₁, ..., eₙ)}`; `Σ'.M(d) = Σ.M(d) ∪ {v_ℓ ↦ ℓ}` where `v_ℓ = [s_L, 1]` at depth `m = 2` (per M-DepthConv) if `V_{s_L}(d) = ∅` at `Σ`, else `v_ℓ = shift(max(V_{s_L}(d)), 1)` (with `n_L = |V_{s_L}(d)|`) at the existing link-subspace depth `m_L(d)` read from `Σ`. | introduced |
+| M-Effect | `Σ'.L = Σ.L ∪ {ℓ ↦ (e₁, ..., eₙ)}`; `Σ'.M(d) = Σ.M(d) ∪ {v_ℓ ↦ ℓ}`, with `v_ℓ` placed by K.μ⁺_L's positioning rule (the empty/non-empty case split stated once in *Effect*). | introduced |
 | M-Frame | `Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`; existing entries in `L` and in `M(d')` for `d' ≠ d` are unchanged. Content is byte-identical before and after MAKELINK (referencing is read-only). | introduced |
 | M-DiscSymmetry | For the standard content-reach route, discoverability of `ℓ` is symmetric across all documents whose arrangements reach into an endset coverage — LP12 grants the home document no privileged status. The reflexive route is the home document's alone, since MAKELINK places `ℓ` into its arrangement and no other. | introduced |
 | StandardAuthoring | `StandardAuthoring(e, Σ) ≡ coverage(e) ∩ F ⊆ dom(Σ.C) ∪ dom(Σ.L)`, where `F` is ASN-0098's set of substrate-emittable addresses. A link's endset sequence is standardly authored at `Σ` iff every constituent endset satisfies the predicate. | introduced |
