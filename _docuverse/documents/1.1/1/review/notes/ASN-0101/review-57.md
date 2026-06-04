@@ -1,0 +1,25 @@
+# Review of ASN-0101
+
+## REVISE
+
+### Issue 1: D10 misattributes the composite-boundary obligations (P4★, P7a) to D8, contradicting D10's own multi-step analysis
+
+**ASN-0101, D10 "Composite-boundary obligations"**: "A valid composite that ends in a DEL step has `Σ'` as a composite boundary, so beyond the coupling constraints `Σ'` must satisfy ASN-0047's composite-boundary properties P4★, P4a, and P7a; **these hold at `Σ'` by D8.**"
+
+**Problem**: D8 does *not* prove that P4★ and P7a hold — it proves only that DEL *cannot break* them. D8 is explicit about this: its P4★ bullet concludes "Either way DEL cannot break P4★ — it is the monotone-shrinking-and-`R`-fixing direction that matters, **not a (false) per-state assumption at the DEL pre-state**," and its P7a bullet shows only that DEL's truth value for P7a is "identical at `Σ` and `Σ'`."
+
+For a multi-step composite ending in DEL, the DEL pre-state `Σ_{n-1}` is *not* a composite boundary, so P4★/P7a need not hold there. D8's neutrality then gives only: if a violation already exists at `Σ_{n-1}`, DEL carries it to `Σ'`. Concretely, take a composite `Σ → Σ_1 → Σ_2 → Σ_3` where K.α emits `a`, K.ρ is omitted, and DEL is the final step: at `Σ_3` we have `a ∈ dom(C')` (D2) but no `(a, ·) ∈ R'` (D0 frame `R' = R`), so **P7a fails at `Σ'`** despite D8 holding. The same construction breaks P4★. What actually establishes P4★/P7a at the boundary of a *valid* composite is the coupling constraints J0/J1★ (which force provenance recording), jointly with DEL's neutrality — not D8 alone.
+
+This directly contradicts D10's very next paragraph ("Vacuity does not extend to multi-step composites"), which constructs essentially this counterexample and concludes "composite validity is the joint responsibility of both classes of step." The "Composite-boundary obligations" paragraph and the "Vacuity does not extend" paragraph make opposite claims about whether D8 suffices.
+
+**Required**: Restate the discharge so that P4★ and P7a at `Σ'` are attributed to the composite's coupling constraints (J0, J1★, J1'★) *together with* DEL's neutrality (D8), not to D8 alone. For the single-step composite case the attribution "by D8" is correct (since `Σ` is then a boundary where the property holds and DEL preserves it); the paragraph should distinguish the one-step case from the multi-step case rather than asserting "hold at `Σ'` by D8" unconditionally. (P4a is more defensible — witnessing states persist in the extended trace — but the blanket "by D8" should still be made precise for it.)
+
+## OUT_OF_SCOPE
+
+### Topic 1: Recoverability of the pre-DELETE arrangement via versioning
+**Why out of scope**: The "note on recoverability" correctly defers the full versioning mechanism to Open Question 1; reconstructing `M(d)` from post-state plus versioning is genuinely future territory, not a gap in this ASN. D2 and D5 establish the structural necessary conditions, which is the appropriate boundary here.
+
+### Topic 2: Enumeration / rediscovery of orphaned I-addresses
+**Why out of scope**: The orphan/ghost condition is characterised (D9, via LP17/LP18), and the obligation to make orphaned I-addresses rediscoverable is correctly listed as an Open Question. Indexing and enumeration of orphans are downstream representation concerns the ASN rightly excludes.
+
+VERDICT: REVISE
