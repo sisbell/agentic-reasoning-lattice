@@ -133,7 +133,7 @@ Each intermediate state in this sequence satisfies the per-state invariants (Cla
 - `n ≥ 1`
 - `v_k ∈ Val` for each `0 ≤ k < n`
 
-**Composite atomicity.** Composite-level atomicity is definitional under ValidComposite★ (the argument is given once in §Atomicity). Its consequence here is determinacy of Σ': because the chain index `m_d` consulted by K.α cannot advance via a foreign K.α mid-composite, and the text subspace `V_{s_C}(d)` cannot be modified mid-composite, the freshness and placement arguments above determine Σ' from the pre-state. An implementation that realizes the sequential transition model (for instance, multiple threads serialised onto the abstract total order) inherits this determinacy; the concurrency-control mechanism it uses is below this ASN's abstraction level.
+**Composite atomicity.** Composite-level atomicity is definitional under ValidComposite★ (§Atomicity). Its consequence here is determinacy of Σ': because the chain index `m_d` consulted by K.α cannot advance via a foreign K.α mid-composite, and the text subspace `V_{s_C}(d)` cannot be modified mid-composite, the freshness and placement arguments above determine Σ' from the pre-state. An implementation that realizes the sequential transition model (for instance, multiple threads serialised onto the abstract total order) inherits this determinacy; the concurrency-control mechanism it uses is below this ASN's abstraction level.
 
 **Effect — Content Store:**
 Let `a_0, a_1, …, a_{n−1}` denote the `n` successive emissions of `A_C(d)` produced by the K.α firings of step 1. Then:
@@ -153,7 +153,7 @@ Three disjoint regions:
 
   *Exhaustiveness* (INS.M-exhaustive) — `(A v : v ∈ dom(M'(d)) ∧ subspace(v) = s_C :: v ∈ Left ∪ Insertion ∪ Shifted-right)`, where Left, Insertion, and Shifted-right denote the three V-position sets defined by the per-region clauses above. Equivalently, `V_{s_C}(d') =` Left positions ∪ Insertion positions ∪ Shifted-right positions, with no additional `s_C` positions in the post-state.
 
-The exhaustiveness clause is a property of the post-state `V_{s_C}(d')`, and it follows directly from the composite construction. Steps 1 and 4 (the K.α and K.ρ firings) frame `M` (`M' = M`; ASN-0047), so they introduce no `s_C` position. Step 2's K.μ⁻ (when fired) only *removes* positions. Step 3's K.μ⁺ adds *exactly* the Insertion positions `{shift(p, k) : 0 ≤ k < n}` and the Shifted-right positions `{shift(v, n) : v ∈ V_{s_C}(d) ∧ v ≥ p}` (its specified effect). Hence every `s_C` position in `dom(M'(d))` is either a surviving pre-state position with `v < p` (Left), an Insertion position, or a Shifted-right position — no fourth region exists. The S2 functionality argument (§Arrangement functionality) cites this clause.
+The exhaustiveness clause is a property of the post-state `V_{s_C}(d')`, and it follows directly from the composite construction. Steps 1 and 4 (the K.α and K.ρ firings) frame `M` (`M' = M`; ASN-0047), so they introduce no `s_C` position. Step 2's K.μ⁻ (when fired) only *removes* positions. Step 3's K.μ⁺ adds *exactly* the Insertion positions `{shift(p, k) : 0 ≤ k < n}` and the Shifted-right positions `{shift(v, n) : v ∈ V_{s_C}(d) ∧ v ≥ p}` (its specified effect). Hence every `s_C` position in `dom(M'(d))` is either a surviving pre-state position with `v < p` (Left), an Insertion position, or a Shifted-right position — no fourth region exists.
 
 **Effect — Provenance:**
 
@@ -254,7 +254,7 @@ The frame `(A d' : d' ≠ d : M'(d') = M(d'))` directly enforces independence: n
 
 The two documents may share I-addresses through transclusion, but the cross-document frame and content preservation together ensure that the shared I-addresses' values and the *other* document's mappings are unaffected.
 
-The cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, the projection from `d'` is unchanged, `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)`. Since INSERT is a `2n+1`/`2n+2`-step composite and LP4/LP5 (ASN-0098) are single-step lemmas, this requires chaining them across each elementary step rather than a one-shot citation; the derivation is given in §Coverage and link discoverability (the `d' ≠ d` case).
+The cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, the projection from `d'` is unchanged, `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)`. The projection `project(ℓ, i, d', ·)` depends only on `M(d')` and on `coverage(Σ.L(ℓ).e_i)`. Every elementary step of INSERT's substrate decomposition (every K.α, the optional K.μ⁻, K.μ⁺, every K.ρ) carries the cross-document frame `(A d'' : d'' ≠ d : M'(d'') = M(d''))`, so `M(d')` is unmodified across the composite; and `L' = L` holds every link value fixed, so coverage is composite-invariant (LP3★, ASN-0098). Both determinants are unchanged, so the projection is unchanged.
 
 ### Arrangement functionality (S2)
 
@@ -462,7 +462,7 @@ INSERT does *not* allocate new documents (`dom(M') = dom(M)`), does *not* alloca
 
 Nelson requires that after INSERT, the system is in "canonical order" — every structural invariant holds simultaneously. INSERT is a substrate composite governed by ValidComposite★ (ASN-0047), and its atomicity is the *composite-boundary* form: per-state invariants (Class (a) of ASN-0047 — S2, S3★, S8-depth, S8a, D-CTG★, D-MIN★, D-SEQ★, L0, L12, L14, …) hold at *every* state including each intermediate within the composite; composite-boundary properties (Class (b) — P4★, P4a, P7a) and the coupling constraints (J0, J1★, J1'★) hold at the boundary between Σ and Σ'.
 
-Composite-level atomicity is *definitional* — not an extra property the substrate must separately supply. By ValidComposite★, INSERT's elementary transitions form a *contiguous* finite sequence `Σ = Σ₀ → Σ₁ → … → Σₙ = Σ'`; transitions are totally ordered (SequentialTransitionAxiom; ASN-0093), so no foreign elementary transition interleaves between INSERT's steps, and Σ' is determined by the contract. This is the single prose statement of the definitional-atomicity claim; the Formal Contract refers here, and INS.atomicity catalogs it.
+Composite-level atomicity is *definitional* — not an extra property the substrate must separately supply. By ValidComposite★, INSERT's elementary transitions form a *contiguous* finite sequence `Σ = Σ₀ → Σ₁ → … → Σₙ = Σ'`; transitions are totally ordered (SequentialTransitionAxiom; ASN-0093), so no foreign elementary transition interleaves between INSERT's steps, and Σ' is determined by the contract.
 
 We verify that each intermediate state in INSERT's substrate decomposition satisfies the per-state invariants.
 
@@ -628,7 +628,7 @@ What the specification *does* cover is the precise per-state effect of one INSER
 | Label | Statement | Status |
 |-------|-----------|--------|
 | INS.def | INSERT(d, p, ⟨v_0, …, v_{n−1}⟩) is a substrate composite Σ →* Σ' under ValidComposite★ (ASN-0047), realised as n K.α + (optional K.μ⁻) + K.μ⁺ + n K.ρ | introduced |
-| INS.pre | INSERT preconditions: d ∈ dom(M); p valid in text subspace of d (binary predicate ValidInsertionPosition for non-empty case, ternary predicate ValidFirstInsertionPosition(d, p, m) with caller-chosen m ≥ 2 for empty case); n ≥ 1; v_k ∈ Val. (Composite-level atomicity is not a precondition; see INS.atomicity) | introduced |
+| INS.pre | INSERT preconditions: d ∈ dom(M); p valid in text subspace of d (binary predicate ValidInsertionPosition for non-empty case, ternary predicate ValidFirstInsertionPosition(d, p, m) with caller-chosen m ≥ 2 for empty case); n ≥ 1; v_k ∈ Val | introduced |
 | INS.alloc | INSERT allocates exactly n fresh I-addresses from d's content sub-allocator A_C(d); each a_k satisfies origin(a_k) = d; each K.α firing satisfies its freshness precondition against its own intermediate state by ChainEnumerationInjectivity and FirstEmissionFreshness (ASN-0093) | introduced |
 | INS.chain-shift | For contiguous emissions of A_C(d), a_{i+j} = shift(a_i, j); in particular a_k = shift(a_0, k). Each inc(·,0) step equals shift(·,1) because chain elements are T4-valid (ChainElementT4Validity, ASN-0093), so sig = # (TA5-SigValid) and inc(·,0) bumps only the last component (TA5); the identification iterates under T4 preservation (TA5a) and uniform length under `inc(·, 0)` (TA5(c), ASN-0034) and composes by TS3 (ShiftComposition) | introduced |
 | INS.C | dom(C') = dom(C) ∪ {a_0, …, a_{n−1}}; C'(a_k) = v_k; ∀a ∈ dom(C): C'(a) = C(a) | introduced |
