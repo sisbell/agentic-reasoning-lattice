@@ -1,0 +1,21 @@
+# Review of ASN-0091
+
+## REVISE
+
+### Issue 1: `d` denotes two different documents — overloaded in the Transclusion section and the claims catalog
+
+**ASN-0091, "Cross-Document Transclusion Preserved" / RE-trans, and the Claims Introduced table**: "For every transclusion relationship at Σ — every pair (a, d) with `a ∈ ran(Σ.M(d))` and `origin(a) ≠ d` … origin(a)'s arrangement is unchanged when `origin(a) ≠ d_tgt` (the rearrangement target)."
+
+**Problem**: Throughout the ASN — every RA-* clause, RE-other (`Σ'.M(d') = Σ.M(d')` for `d' ≠ d`), RE-sub, RE-ext, RE-dom, RE-ran — the symbol `d` is fixed to mean *the document REARRANGE acts on*. In RE-trans alone, `d` is silently rebound to *the transclusion target*, which "can be the rearrangement target `d_tgt` or any other registered document." This forces the section to insert a distinguishing paragraph ("We must distinguish `d` (the transclusion target) from `d_tgt` … since `origin(a) ≠ d` does not imply `origin(a) ≠ d_tgt`") — explanatory accretion that exists only to repair the overload. The defect is worst in the single "Claims Introduced" table: the RE-trans row reads `d` as the transclusion target while every adjacent row (RE-other, RE-sub, RE-ext, RA-frame) reads `d` as the rearrangement target. One symbol carries two referents in one catalog.
+
+**Required**: Give the transclusion target its own symbol (e.g. `d_view`) in RE-trans and the table, reserving `d` for the rearrangement target as in the rest of the ASN. Conclusions (i)/(ii) then hold for every `d_view`, (iii) when `d_view`'s borrowed content has `origin(a) ≠ d` (the rearrangement target). The distinguishing paragraph collapses to a one-line note once the symbols are disjoint.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Link-subspace rearrangement semantics
+**Why out of scope**: The ASN correctly confines REARRANGE_K's cuts to the content subspace (CS3) and preserves the link subspace pointwise (RE-sub); a rearrangement operation *on* the link subspace is new territory, already captured in the Open Questions, not a defect here.
+
+### Topic 2: Whether two fragments of a same-source transclusion jointly reconstitute the original span
+**Why out of scope**: RE-trans establishes per-fragment origin (RE-origin) and explicitly leaves joint reconstitution unestablished; this is correctly routed to Open Question 1, a future ASN, not an error in this one.
+
+VERDICT: REVISE
