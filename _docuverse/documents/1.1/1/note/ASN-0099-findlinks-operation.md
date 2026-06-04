@@ -56,35 +56,14 @@ F1 generalizes ASN-0098's `discoverable_from`. ASN-0098 defines that predicate i
 F1's match is **per-endset overlap**: within each endset, satisfaction is existential over spans, and the per-span test is overlap (`coverage(eᵢ) ∩ I ≠ ∅` unfolds to `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`, with an identifiable witness span). The realizability witnesses below — three strengthenings and two weakenings — carry the load: each exhibits a realizable `(a, I)` pair on which an alternative predicate differs from F1.
 
 ```
-F4 (MatchFormulaDesignJustification):
-   F1's design factors into two separable choices.
-
-   (a) *Per-endset structure (LM 4/58).* Within each endset,
-   satisfaction is existential over spans; the per-span test is
-   overlap, anchored at a single identifiable witness span. This
-   separates F1 from three alternatives, each distinguished by a
-   realizable witness below: *containment* `coverage(eᵢ) ⊆ I`
-   breaks spans-monotonicity (adding a non-conforming span
-   suppresses an existing match); *reverse containment*
-   `I ⊆ coverage(eᵢ)` and *cardinality thresholds*
-   `|coverage(eᵢ) ∩ I| ≥ k` remain spans-monotone but fold every
-   span's contribution into a global condition with no individual
-   span identifiable as the reason for the match.
-
-   (b) *Across-endsets quantifier (reader-facing surface choice).*
-   F1 chooses OR-across-slots — the link-level slot-existential
-   `(E i : …)`. LM 4/58's literal AND-across-endsets reading is the
-   filtered query `findlinks_filtered` with per-slot constraints,
-   against which F1 is the strict OR-relaxation
-   `findlinks(I, Σ) = ⋃_i findlinks_filtered({(i, I)}, Σ)`. The
-   reader's question "what connects here?" does not privilege any
-   slot (L7 leaves directional significance to the link type), so a
-   slot-symmetric existential is the natural surface answer; AND
-   discrimination is preserved through `findlinks_filtered`, not by
-   altering F1.
+F4 (MatchIndividuation):
+   Any predicate disagreeing with F1 on a realizable (a, I) pair
+   defines a different operation, not an alternative implementation
+   of FINDLINKS. The witnesses below exhibit this for three
+   strengthenings and two weakenings of F1's per-endset overlap test.
 ```
 
-*Realizability discharge.* Any predicate `P` disagreeing with F1 on some pair `(a, I)` defines a different operation provided the disagreement is realizable. It always is: K.λ admits, at any state with `dom(Σ.M) ≠ ∅`, a link of arity `N ≥ 3` whose endsets are freely chosen subject only to well-formedness (`eᵢ ∈ Endset`, `e₃ ≠ ∅`; L4 places no constraint on span addresses), and the query I-set `I ⊆ T` is a query parameter rather than state — so every F1-admitted `(endset configuration, I)` pair is realizable by a K.λ allocation under any document. The witnesses below — three strengthenings and two weakenings — are concrete instances.
+*Realizability discharge.* The disagreement is always realizable: K.λ admits, at any state with `dom(Σ.M) ≠ ∅`, a link of arity `N ≥ 3` whose endsets are freely chosen subject only to well-formedness (`eᵢ ∈ Endset`, `e₃ ≠ ∅`; L4 places no constraint on span addresses), and the query I-set `I ⊆ T` is a query parameter rather than state — so every F1-admitted `(endset configuration, I)` pair is realizable by a K.λ allocation under any document. The witnesses below — three strengthenings and two weakenings — are concrete instances.
 
 *Strengthening 1 — Containment from coverage to query (`coverage ⊆ I`).* Witness link `a`: arity 3 with slot 1 `(β, δ(1, #β))`, slot 2 `(γ, δ(1, #γ))`, slot 3 `(α, δ(1, #α))`, where β and γ are same-length siblings of `α` differing at position `#α` (so β ⋠ α, α ⋠ β, γ ⋠ α, α ⋠ γ). Query `I = {α}`. F1 admits via slot 3: `coverage(L(a).e₃) ∩ I = {α} ≠ ∅`. The link-level strengthening predicate is the slot-existential `(E i : coverage(L(a).eᵢ) ⊆ I)`; we check every slot: slot 1's coverage `{t : β ≼ t}` is non-empty (contains β) and disjoint from `{α}` (since β ⋠ α), so `coverage(e₁) ⊄ I`; slot 2 likewise; slot 3's coverage `{t : α ≼ t}` (by PrefixSpanCoverage, ASN-0043) contains `α.0 ∉ I` (any tumbler extending α belongs by T0's allowance of trailing zeros). No slot satisfies `coverage ⊆ I`; strengthening excludes `a`.
 
@@ -96,9 +75,7 @@ F4 (MatchFormulaDesignJustification):
 
 *Weakening 2 — Slot-disjunctive ignoring I (`P_∃-slot(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ≠ ∅)`).* Witness: the same `(a, I)` as Weakening 1. `Σ.L(a).e₃ = {(τ, δ(1, #τ))}` is non-empty (mandated by L3), so `coverage(Σ.L(a).e₃) ≠ ∅` and `P_∃-slot` admits `a` regardless of `I`. F1 rejects (no slot's coverage meets `I`). The weakening collapses the I-dependence of the match entirely — every link in `dom(Σ.L)` matches every query, violating the relevance principle.
 
-The reader's promise — backlinks returnable without appreciable delay and with overlap-anchored relevance — rests on singleton overlap as F1 states it. Alternative match formulas — whether (a)-alternatives to F1's overlap test or the (b) AND form (whose direct LM 4/58 realization is `findlinks_filtered`) — are alternative operations, not alternative implementations of FINDLINKS.
-
-**Empty endsets at non-type slots.** L3 requires only slot 3 to be non-empty; other slots may carry `∅`. Then `coverage(∅) = ∅` and the slot is never a witness — but other non-empty slots may witness the existential. The filtered form (below) behaves differently: a filter constraint `(i, J)` is unsatisfiable at a link with `Σ.L(a).eᵢ = ∅`. Two distinct short-circuits for an unsatisfied per-constraint conjunct: when `i > |Σ.L(a)|` the slot is structurally absent; when `i ≤ |Σ.L(a)| ∧ Σ.L(a).eᵢ = ∅` the slot exists but its endset carries no spans. Both routes exclude the link; abstract conformance is indifferent to which fires.
+**Empty endsets at non-type slots.** L3 requires only slot 3 to be non-empty; other slots may carry `∅`. Then `coverage(∅) = ∅` and the slot is never a witness — but other non-empty slots may witness the existential. In the filtered form (below), a filter constraint `(i, J)` is unsatisfiable at `a` when `i > |Σ.L(a)|` (the slot is absent) or `Σ.L(a).eᵢ = ∅` (the slot carries no spans).
 
 ## Endset Filtering
 
@@ -182,7 +159,7 @@ ComprehensionInvariantUnderΣL — meta-lemma:
    the two states. Set extensionality closes the equality.
 ```
 
-We also factor out the per-link primitive that grounds the chain above. It applies under a strictly weaker hypothesis than ComprehensionInvariantUnderΣL: per-link value preservation `Σ'.L(a) = Σ.L(a)` at a specific `a ∈ dom(Σ.L)`, without full `Σ.L = Σ'.L`. ComprehensionInvariantUnderΣL is its comprehension-level composition — full `Σ.L = Σ'.L` contributes domain equality, closing the comprehension over a shared index set, and licenses the per-link primitive at every `a` in that shared domain. The per-link substep stands on its own:
+The per-link case of ComprehensionInvariantUnderΣL stands on its own, under the weaker hypothesis of per-link value preservation `Σ'.L(a) = Σ.L(a)` at a specific `a ∈ dom(Σ.L)`:
 
 ```
 PerLinkInvarianceUnderValuePreservation — sub-lemma:
@@ -233,20 +210,11 @@ F9 (NonAllocatingPreservation):
    and any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   Atomic steps. Each atomic operation {K.α, K.δ, K.μ⁺, K.μ⁻,
-   K.μ⁺_L, K.ρ} publishes `L' = L` (A1a), so Σ.L = Σ'.L; F8 via
-   ComprehensionInvariantUnderΣL forces the equality. (K.δ's
-   IsDocument sub-case modifies M(d_new), but its published frame
-   includes `L' = L` uniformly, so the conclusion holds for all
-   three K.δ sub-cases.)
-
-   K.μ~ and multi-step. K.μ~ is the non-atomic composite K.μ⁻ + K.μ⁺
-   (ASN-0047): an invocation is two atomic transitions, both in
-   V ∖ {K.λ}, so its invariance is the transitive composition of the
-   two atomic equalities. More generally, any reachable sequence
-   Σ →* Σ' whose every atomic step lies in V ∖ {K.λ} chains the
-   per-step equalities by transitivity — K.μ~ enters as its two
-   atomic steps with no special-casing.
+   A1 gives Σ.L = Σ'.L across every V ∖ {K.λ} operation — atomic ops
+   directly, K.μ~ through its two atomic constituents. F8 via
+   ComprehensionInvariantUnderΣL then forces the equality. For a
+   reachable sequence Σ →* Σ' whose every atomic step lies in
+   V ∖ {K.λ}, the per-step equalities chain by transitivity.
 ```
 
 The remaining single-step case — K.λ itself — is the unique operation of V that can change `findlinks(I, ·)` across one step, and the change is fully characterized:
@@ -488,7 +456,7 @@ The spec's demand is exactly F2 ∧ F3: `result(I, Σ) = findlinks(I, Σ)`. The 
 
 By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and uninterruptible; `Σ` is well-defined at every query point. A K.λ commits `a` to `dom(Σ.L)` atomically: by the time the K.λ committing `a` returns, `a` is in `dom(Σ.L)` and the next query at any state succeeding the K.λ must include `a` if `a` matches. There is no intermediate state in which `a` exists in `dom(Σ.L)` but is undiscoverable.
 
-Nelson's design intent at LM 2/46 — backlinks returnable "without appreciable delay" — is the reader-experience commitment behind this atomicity; no foundation invariant of this ASN formalises a timing bound beyond "next query after K.λ commitment reflects the link".
+Nelson's design intent at LM 2/46 — backlinks returnable "without appreciable delay" — is the reader-experience commitment behind this atomicity.
 
 ## What We Have Not Specified
 
@@ -525,7 +493,7 @@ The specification is spare because of design choices established for other reaso
 | F2-filt, F3-filt | Filtered conformance pair | introduced |
 | F2-sco, F3-sco | Scoped conformance pair | introduced |
 | F2-V, F3-V | V-side conformance pair (primary obligation on `result_V`) | introduced |
-| F4 | MatchFormulaDesignJustification: F1's design factors into (a) per-endset overlap test (LM 4/58) and (b) OR-across-slots quantifier (reader-facing surface choice; OR-relaxation of LM 4/58's literal AND-across-endsets, whose direct realization is findlinks_filtered); operationally distinguishable from (a)-alternative wirings under F2 ∧ F3 | introduced |
+| F4 | MatchIndividuation: any predicate disagreeing with F1 on a realizable `(a, I)` pair is a different operation; witnessed by three strengthenings and two weakenings | introduced |
 | F5 | Identity, not value: match consults coverage, not content | introduced |
 | F6 | Transclusion transparency | introduced |
 | F7 | Endset symmetry (slot equality + filter conjunction) | introduced |
