@@ -7,7 +7,7 @@ We are looking for the precise meaning of *creating a link*. The system already 
 
 A link, in this design, is a stored connective unit — a first-class entity binding together fragments of content. By L3 (ASN-0043) every link has at least three endsets, the third designated as type, the type slot non-empty. Beyond this, link creation must produce three things unconditionally: an *identity* (the link's address), a *value* (the endsets), and a *home* (the document under whose authority the link is allocated). It must also establish the *discoverability property* — the LP12 (ASN-0098) mechanism by which a query of the content reached by the link's endsets can surface the link.
 
-We are careful to distinguish the property from its realization. MAKELINK brings identity, value, and home into being unconditionally, and it establishes the LP12 discoverability mechanism. Whether the link is *actually* discoverable from a given document is a separate, arrangement-conditional matter that the body characterizes. We ask: what is allocated, what is recorded, what discoverability mechanism is established, and what remains untouched?
+The discoverability *mechanism* and *actual* discoverability are distinct. MAKELINK establishes the LP12 mechanism unconditionally, but whether the link is actually discoverable from a given document is arrangement-conditional.
 
 ## Inputs
 
