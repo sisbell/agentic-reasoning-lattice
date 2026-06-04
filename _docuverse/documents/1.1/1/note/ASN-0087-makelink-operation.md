@@ -18,7 +18,7 @@ What must the caller supply?
 
 The caller does *not* — and cannot — specify the link's address or its V-position in the home document. The address `ℓ` is determined by the system from the current state (the next emission of `A_L(d)`). The V-position `v_ℓ` is determined from the current state together with the canonical-depth convention M-DepthConv below — its serial component fixed by the link subspace's current cardinality, its depth fixed per M-DepthConv. We make the convention explicit precisely because the depth is *not* recoverable from `Σ` in the boundary case where the link subspace is empty.
 
-*Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`; the state `Σ` does not determine `m` (`m_L(d)`, ASN-0047, is well-defined only while `V_{s_L}(d) ≠ ∅`). MAKELINK therefore commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined. As a scoped universal: for any document `d` whose every link V-position was placed by MAKELINK, `m_L(d) = 2`. This is MAKELINK's normative commitment, not a system-wide invariant; the general `m_L(d)` reading is retained downstream, since K.μ⁺_L is a standalone substrate primitive that may be invoked outside MAKELINK.
+*Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`; the state `Σ` does not determine `m` (`m_L(d)`, ASN-0047, is well-defined only while `V_{s_L}(d) ≠ ∅`). MAKELINK therefore commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined. As a scoped universal: for any document `d` whose every link V-position was placed by MAKELINK, `m_L(d) = 2`. This is MAKELINK's normative commitment, not a system-wide invariant.
 
 We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047; ASN-0047 states some preconditions against `E_doc`).
 
@@ -96,12 +96,12 @@ Other components are unchanged:
 
 ## Freshness of the Allocation
 
-The address `ℓ` is genuinely new — `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` at `Σ` — so K.λ's freshness precondition is met by construction rather than by faith. We do not re-derive this from the underlying chain lemmas; ASN-0093 already packages the guarantee for every emission of `A_L(d)`, and MAKELINK introduces no allocation step beyond the K.λ it composes, so the result transfers verbatim:
+The address `ℓ` is genuinely new — `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` at `Σ` — so K.λ's freshness precondition is met by construction. By FirstEmissionFreshness and SubsequentEmissionFreshness (ASN-0093), every emission of `A_L(d)` is fresh against `dom(Σ.C) ∪ dom(Σ.L)`:
 
 - *First-emission case* (`{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = ∅`): FirstEmissionFreshness (ASN-0093) gives `ℓ = [d, 0, s_L, 1] ∉ dom(Σ.L) ∪ dom(Σ.C)`.
-- *Subsequent-emission case* (`ℓ = inc(ℓ_prev, 0)`): SubsequentEmissionFreshness (ASN-0093) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. That lemma's own three-way split discharges within-document freshness (via ChainEnumerationInjectivity), cross-subspace freshness (via DisjointSubAllocatorChains and SC-NEQ), and cross-document freshness (via Cross-doc disjointness composed with T10, PartitionIndependence, ASN-0034) — so the layered argument lives in the foundation, not here.
+- *Subsequent-emission case* (`ℓ = inc(ℓ_prev, 0)`): SubsequentEmissionFreshness (ASN-0093) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. That lemma's own three-way split discharges within-document freshness (via ChainEnumerationInjectivity), cross-subspace freshness (via DisjointSubAllocatorChains and SC-NEQ), and cross-document freshness (via Cross-doc disjointness composed with T10, PartitionIndependence, ASN-0034).
 
-The V-position `v_ℓ` is fresh in `dom(M(d))`. K.μ⁺_L's positioning rule combined with D-SEQ★ (ASN-0047) supplies the within-subspace half: the link subspace V-positions form a contiguous sequence `{[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L}`, and `v_ℓ` extends it by one, so `v_ℓ ∉ V_{s_L}(d)`. But `dom(M(d)) = V_{s_C}(d) ∪ V_{s_L}(d)` (S3★-aux, ASN-0047), so full freshness additionally requires the cross-subspace exclusion `v_ℓ ∉ V_{s_C}(d)`, which holds at position 1: `(v_ℓ)₁ = s_L`, while every `v ∈ V_{s_C}(d)` has `(v)₁ = s_C` (S8a), and `s_L ≠ s_C` (SC-NEQ, ASN-0093). Both halves are discharged in full in the S2 verification of the post-state invariants below.
+The V-position `v_ℓ` is fresh in `dom(M(d))` — `v_ℓ ∉ dom(Σ.M(d))` — discharged in full by the two-part (within-subspace, cross-subspace) argument in the S2 verification of the post-state invariants below.
 
 ## Permanence of the Recording
 
@@ -286,7 +286,7 @@ For the link itself:
   L14:   store disjointness                    ℓ ∉ dom(C) from K.λ freshness
   L-fin: link store finiteness                 |dom(L')| = |dom(L)| + 1
 
-L1c (structural inc-chain conformance) requires an inc-chain from `origin(ℓ) = d` to `ℓ`. We discharge it by the same transfer discipline used for freshness above, and for the same reason: ASN-0093 already establishes a T10a-conforming chain for *every* emission of `A_L(d)` (ChainMembershipForOrigin and ChainDiscipline place `ℓ` on `d`'s link sub-allocator chain `A_L(d) = S(b_L(d), 1)`, ChainElementT4Validity carries T4-validity along it, and the `k₁ = 2`, `#tᵢ > #origin(ℓ)` clauses are part of ASN-0093's own L1c statement). MAKELINK introduces no allocation step beyond the K.λ it composes, so the conformance result transfers verbatim — no re-derivation of the chain is needed. ✓
+L1c (structural inc-chain conformance) requires an inc-chain from `origin(ℓ) = d` to `ℓ`. By ChainMembershipForOrigin and ChainDiscipline (ASN-0093), `ℓ` lies on `d`'s link sub-allocator chain `A_L(d) = S(b_L(d), 1)`; ChainElementT4Validity carries T4-validity along it, and the `k₁ = 2`, `#tᵢ > #origin(ℓ)` clauses are part of ASN-0093's L1c statement. ✓
 
 For the V-arrangement entry `v_ℓ ↦ ℓ`:
 
@@ -313,18 +313,10 @@ For D-SEQ★: by D-SEQ★ at `Σ`, `V_{s_L}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k 
 
 For S8★: per ASN-0047's S8★, the link-subspace projected arrangement `M'(d)|_{V_{s_L}(d')} : V_{s_L}(d') → dom(L')` admits the trivial length-1 decomposition `{(v, M'(d)(v), 1) : v ∈ V_{s_L}(d')}`. The new entry `(v_ℓ, ℓ, 1)` joins this decomposition; S8's conditions (a) and (b) hold trivially at length 1. ✓
 
-For state components unchanged by MAKELINK (`C`, `E`, `R`) and for the document-set `dom(M)`, the remaining per-state invariants are preserved:
+Every invariant quantifying solely over `C`, `E`, `R`, or the document set `dom(M)` — all frame-fixed at MAKELINK (`Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, `dom(Σ'.M) = dom(Σ.M)`, since MAKELINK allocates no new document and only adds a V-position within an already-allocated one) — is preserved by inheritance: S4, S7a, S7b, C1b, C1c, C-fin, P6, P7, P8, M0, NodeLineage, ActivatedEmission.
 
-- M0 (DocumentTumblerWellFormed, ASN-0093): preserved because the document set is unchanged — `dom(Σ'.M) = dom(Σ.M)` (MAKELINK allocates no new document, only a new V-position within an already-allocated document); every `d ∈ dom(Σ'.M)` satisfies M0 by inheritance from `Σ`.
-- S4 (origin-based identity for content addresses, ASN-0036): preserved by inheritance (no new `dom(C)` entries) since `Σ'.C = Σ.C`; the lemma's content is fixed by the existing content-allocation events, and MAKELINK introduces none.
+- S7d (DocumentAllocationDiscipline, ASN-0036): document set unchanged (`dom(Σ'.M) = dom(Σ.M)`); preserved by inheritance.
 - L11a (link uniqueness, ASN-0043): the new allocation event for `ℓ` is distinct from every prior link allocation event (by ChainEnumerationInjectivity, DisjointSubAllocatorChains, and Cross-doc disjointness — see "Freshness of the Allocation"), so L11a's distinctness conclusion holds at `Σ'`.
-- S7a, S7b (origin and structural attribution for content addresses): preserved by inheritance (no new `dom(C)` entries) since `Σ'.C = Σ.C`; the predicates quantify over `dom(C)`, which is unchanged, so every existing content address retains its attribution and no new content address arises to verify.
-- S7d (DocumentAllocationDiscipline, ASN-0036): preserved because the document set is unchanged. S7d quantifies over *document tumblers* (each `d` has `zeros(d) = 2`, arises from a distinct allocation event, and distinct documents have distinct tumblers) — *not* over `dom(C)`. MAKELINK registers no new document (`dom(Σ'.M) = dom(Σ.M)` under K.λ and K.μ⁺_L), so the predicate carries over from `Σ` unchanged.
-- C1b (content element-field depth), C1c (content allocator conformance): preserved by inheritance (no new `dom(C)` entries) since `Σ'.C = Σ.C`; both quantify over `dom(C)`, which is unchanged, so MAKELINK introduces no content address against which to verify them.
-- C-fin (content store finiteness): preserved since `dom(Σ'.C) = dom(Σ.C)` is finite at `Σ`.
-- P6 (existential coherence), P7 (provenance grounding): preserved by inheritance since `dom(C)`, `dom(M)`, and `R` are unchanged in the relevant respects (`dom(M)` grows only by new V-positions within an already-allocated document, not by new documents; `R` is unchanged), so every existing content/provenance instance is carried over and no new instance arises.
-- P8 (entity hierarchy): preserved by inheritance (no new `E` entries) since `E` is unchanged.
-- NodeLineage (descent from bootstrap), ActivatedEmission (every non-node entity emitted by an activated sub-allocator): preserved by inheritance (no new `E` entries) since `Σ'.E = Σ.E`; both quantify over `E`, which MAKELINK leaves unchanged.
 
 ### Composite-Boundary Properties
 
