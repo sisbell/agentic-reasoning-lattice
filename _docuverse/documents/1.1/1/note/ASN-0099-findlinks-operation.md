@@ -20,10 +20,17 @@ image(R, d, Σ)
 
 The single precondition `d ∈ dom(Σ.M)` is load-bearing so that `Σ.M(d)` is defined. V-positions in `R` that are absent from the arrangement contribute nothing to the image — the comprehension restricts to `R ∩ dom(Σ.M(d))`, so it fabricates no I-address absent from the arrangement.
 
-**Phase 2 (I→Link).** Given a set of I-addresses `I ⊆ T`, produce the set of links whose endsets intersect `I`:
+**Phase 2 (I→Link).** Given a set of I-addresses `I ⊆ T`, we first name the per-link relevance test, then collect every link that passes it. For `a ∈ dom(Σ.L)`, `I ⊆ T`, `Σ ∈ 𝒮`:
 
 ```
-findlinks(I, Σ) = {a ∈ dom(Σ.L) : (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)}
+F1 (MatchPredicate):
+   matches(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅).
+```
+
+The discovery operation collects exactly the matching links:
+
+```
+findlinks(I, Σ) = {a ∈ dom(Σ.L) : matches(a, I, Σ)}
 ```
 
 The two phases compose into the reader-facing operation:
@@ -45,13 +52,7 @@ The two phases consult components with different stability properties — the mu
 
 ## The Match Predicate
 
-```
-F1 (MatchPredicate):
-   For a ∈ dom(Σ.L), I ⊆ T, Σ ∈ 𝒮:
-   matches(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅).
-```
-
-F1's `matches` is the coverage-form generalization of ASN-0098's `discoverable_from` (defined there in project form). The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to.
+F1's `matches` (introduced at the Phase 2 definition site above) is the coverage-form generalization of ASN-0098's `discoverable_from` (defined there in project form). The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to.
 
 ```
 F4 (MatchIndividuation):
@@ -218,19 +219,6 @@ F9-λ (KλInducedIncrement):
    holds, and ∅ otherwise.
 ```
 
-## Transclusion Transparency
-
-```
-F6 (TransclusionTransparency):
-   For documents d₁, d₂ ∈ dom(Σ.M) and V-positions v₁ ∈ dom(Σ.M(d₁)),
-   v₂ ∈ dom(Σ.M(d₂)) with Σ.M(d₁)(v₁) = Σ.M(d₂)(v₂) = α:
-       findlinks_V({v₁}, d₁, Σ) = findlinks_V({v₂}, d₂, Σ).
-```
-
-`image({v₁}, d₁, Σ) = {α} = image({v₂}, d₂, Σ)` (the silent projection survives the singleton on both sides since both V-positions are in their respective arrangement domains). By F12, both V-side queries unfold to `findlinks({α}, Σ)`, which by functional determinism is one set. The match consulted only the I-image and the link store; the document of origin vanished from the computation.
-
-A link created against `α`'s native location is found via any document that transcludes `α`. The link belongs to its home document by L1a, but its *findability* is at the I-address.
-
 ## Identity, Not Value
 
 ```
@@ -253,6 +241,19 @@ F5 (IdentityNotValue):
 ```
 
 If two users write the same string at different I-addresses, links to one are not links to the other. Identity comes from origin (GlobalUniqueness, ASN-0034) and is preserved through every operation touching the content store (P0, ASN-0047); discovery builds on this foundation, not on content equivalence.
+
+## Transclusion Transparency
+
+```
+F6 (TransclusionTransparency):
+   For documents d₁, d₂ ∈ dom(Σ.M) and V-positions v₁ ∈ dom(Σ.M(d₁)),
+   v₂ ∈ dom(Σ.M(d₂)) with Σ.M(d₁)(v₁) = Σ.M(d₂)(v₂) = α:
+       findlinks_V({v₁}, d₁, Σ) = findlinks_V({v₂}, d₂, Σ).
+```
+
+`image({v₁}, d₁, Σ) = {α} = image({v₂}, d₂, Σ)` (the silent projection survives the singleton on both sides since both V-positions are in their respective arrangement domains). By F12, both V-side queries unfold to `findlinks({α}, Σ)`, which by functional determinism is one set. The match consulted only the I-image and the link store; the document of origin vanished from the computation.
+
+A link created against `α`'s native location is found via any document that transcludes `α`. The link belongs to its home document by L1a, but its *findability* is at the I-address.
 
 ## Composite Queries
 
@@ -299,16 +300,6 @@ findlinks_V(R₁ ∪ R₂, d, Σ)
 ```
 
 Each step is licensed by exactly one prior identity; the middle step's `findlinks` arguments are I-sets, so F13 applies to them unchanged.
-
-## The Empty Query
-
-For `I = ∅`: every `coverage(e) ∩ ∅ = ∅`, so the slot-existential never witnesses; `findlinks(∅, Σ) = ∅`. Symmetrically `image(∅, d, Σ) = ∅`, and a V-region `R` entirely disjoint from `dom(Σ.M(d))` gives `findlinks_V(R, d, Σ) = ∅`.
-
-When `dom(Σ.L) = ∅` (the initial state, before the first K.λ), every query produces `∅`. F2, F3, F10, F11, F19 all hold vacuously.
-
-For `findlinks_filtered`: the empty constraint set `C = ∅` makes the universal vacuously true at every link, so `findlinks_filtered(∅, Σ) = dom(Σ.L)`. The empty constraint target — any `(i, J) ∈ C` with `J = ∅` — makes that per-constraint conjunct false everywhere, so the filtered result is `∅`.
-
-For `findlinks_scoped(I, ∅, Σ) = findlinks(I, Σ) ∩ ∅ = ∅` by F14.
 
 ## Scope
 
@@ -364,6 +355,16 @@ F19 (ResultSetMonotonicity):
 
 Direct from F11 + the definition of `findlinks`. Monotonicity propagates to the filtered and scoped forms as clause (c) of F15.
 
+## The Empty Query
+
+For `I = ∅`: every `coverage(e) ∩ ∅ = ∅`, so the slot-existential never witnesses; `findlinks(∅, Σ) = ∅`. Symmetrically `image(∅, d, Σ) = ∅`, and a V-region `R` entirely disjoint from `dom(Σ.M(d))` gives `findlinks_V(R, d, Σ) = ∅`.
+
+When `dom(Σ.L) = ∅` (the initial state, before the first K.λ), every query produces `∅`. F2 and F3 hold vacuously, and so do the ordering (F10), persistence (F11), and monotonicity (F19) claims above.
+
+For `findlinks_filtered`: the empty constraint set `C = ∅` makes the universal vacuously true at every link, so `findlinks_filtered(∅, Σ) = dom(Σ.L)`. The empty constraint target — any `(i, J) ∈ C` with `J = ∅` — makes that per-constraint conjunct false everywhere, so the filtered result is `∅`.
+
+For `findlinks_scoped(I, ∅, Σ) = findlinks(I, Σ) ∩ ∅ = ∅` by F14.
+
 ## A Worked Example
 
 We fix a small instance. State `Σ` has two documents in `dom(Σ.M)`:
@@ -418,6 +419,8 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 - A combined filtered-and-scoped operation `findlinks_filtered_scoped(C, S, Σ)`.
 
 ## Claims Introduced
+
+The labels F7, F16, F17, and F18 are deliberately retired — claims removed across revisions — so the F-sequence is a set of stable identifiers, not a contiguous range; no claim in this ASN references a retired label.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
