@@ -582,9 +582,7 @@ DEL must take its place as a first-class member of the foundation's elementary t
 
 `Σ = Σ₀ → Σ₁ → ... → Σₙ = Σ'`
 
-drawn from the extended vocabulary `{K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ, K.σ, DEL}`, satisfying the conditions (1) and (2) below.
-
-*Vocabulary note.* ASN-0047's ValidComposite★ originally enumerates eight transitions, `{K.α (amended), K.δ, K.λ, K.μ⁺ (amended), K.μ⁺_L, K.μ⁻ (amended), K.μ~, K.ρ}`. The extension claimed by D10 is the admission of DEL. K.σ (DocumentRegistration, ASN-0093) is listed in the vocabulary above for substrate completeness — it was introduced by ASN-0093 after ASN-0047 was fixed, and downstream specifications that invoke "ValidComposite★ chains" should range over the full substrate vocabulary — but its admission to ValidComposite★ is ASN-0093 substrate housekeeping, not ASN-0101's burden of proof. The remainder of this section concerns only DEL.
+drawn from the extended vocabulary `{K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ, K.σ, DEL}`, satisfying the conditions (1) and (2) below. DEL is the only addition this ASN claims; K.σ is inherited from ASN-0093.
 
 (1) *Transition preconditions.* Each step `Σᵢ → Σᵢ₊₁` satisfies the elementary precondition of its transition kind, evaluated at `Σᵢ`. For a DEL step, this is D0's precondition.
 
