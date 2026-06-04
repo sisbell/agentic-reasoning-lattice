@@ -107,7 +107,7 @@ We are looking for the discovery guarantee — the property that a future query 
 
   discoverable_from(ℓ, d, Σ')  ⟺  (E i : coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
 
-LP12 computes discoverability from `Σ'.L(ℓ)` and `Σ'.M(d)` alone — no separate state component participates. Discoverability is therefore a derived function of `L` and `M`, so the abstract specification requires no separate index state component (M-NoIndexState). The discoverability *mechanism* and *actual* discoverability are thus distinct: MAKELINK establishes the LP12 mechanism unconditionally, but whether `ℓ` is actually discoverable from a given document is arrangement-conditional — it turns on whether that document's arrangement reaches into an endset coverage.
+LP12 computes discoverability from `Σ'.L(ℓ)` and `Σ'.M(d)` alone — no separate state component participates. Discoverability is therefore a derived function of `L` and `M`, so the abstract specification requires no separate index state component (M-NoIndexState).
 
 ## A Worked Example
 
@@ -321,7 +321,7 @@ Even if `v_ℓ` is later removed from `dom(M(d))`, the link is still in `dom(L)`
 
 ## No Permission Check
 
-MAKELINK performs *no permission check on referenced content*. It does not verify ownership of the documents whose content the endsets reach; no precondition consults any ownership or permission state, and the substrate exposes no such state to consult.
+MAKELINK has no permission or ownership precondition on referenced content, because the substrate exposes no such state to consult.
 
 ## Claims Introduced
 
