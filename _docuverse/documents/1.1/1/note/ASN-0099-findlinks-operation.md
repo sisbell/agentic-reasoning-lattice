@@ -92,7 +92,7 @@ findlinks(I, Σ) = ⋃_{i = 1}^{N} findlinks_filtered({(i, I)}, Σ)
 
 ## Completeness
 
-The defining obligation is *completeness*: every link in `dom(Σ.L)` satisfying the match predicate must appear in an implementation's output. Let `result : 𝒫(T) × 𝒮 → 𝒫(T)` denote a conforming implementation's output function, where `𝒮` is the Xanadu system state space (states of the form `Σ = (C, L, M, E, R, …)` from ASN-0036, ASN-0043, ASN-0047, ASN-0093). The signature commits the implementation to functionality (equal arguments yield equal outputs).
+The defining obligation is *completeness*: every link in `dom(Σ.L)` satisfying the match predicate must appear in an implementation's output. Let `result : 𝒫(T) × 𝒮 → 𝒫(T)` denote a conforming implementation's output function, where `𝒮` is the Xanadu system state space (states of the form `Σ = (C, L, E, M, R)` from ASN-0036, ASN-0043, ASN-0047, ASN-0093). The signature commits the implementation to functionality (equal arguments yield equal outputs).
 
 ```
 F2 (Completeness):  findlinks(I, Σ) ⊆ result(I, Σ).
@@ -157,7 +157,7 @@ PerLinkInvarianceUnderValuePreservation — sub-lemma:
 
 ## Link-Store-Inert Preservation
 
-This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, M, E, R)`, so the operative vocabulary is ASN-0047's extended-state vocabulary (ValidComposite★, `V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ}`), with document registration performed by K.δ (Document case). Throughout this ASN we call an operation *link-store-inert* when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}`. We package the preservation lemma:
+This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, E, M, R)`, so the operative vocabulary is ASN-0047's extended-state vocabulary (ValidComposite★, `V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ}`), with document registration performed by K.δ (Document case). Throughout this ASN we call an operation *link-store-inert* when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}`. We package the preservation lemma:
 
 ```
 A1a (PublishedFramePreservation):
@@ -327,7 +327,40 @@ F11 (PersistentDiscoverabilityI):
 
 LP13 (UnconditionalLinkPersistence, ASN-0098) supplies the multi-step per-link guarantee `a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`. PerLinkInvarianceUnderValuePreservation applied at this `a` then gives `matches(a, I, Σ) ⟺ matches(a, I, Σ')` — the witness slot found at Σ remains a witness at Σ'.
 
-F11 is an *I-side* persistence claim against a fixed query I-set. The corresponding V-side claim — fixing `(R, d)` and quantifying across edits — is a theorem of neither F11's persistence nor F19's monotonicity below, and could not be: K.μ⁻ can shrink `ran(Σ.M(d))`, so a V-position discoverable at `Σ` may be contracted out of the arrangement at `Σ'`.
+F11 is an *I-side* persistence claim against a fixed query I-set. The corresponding V-side claim — fixing `(R, d)` and quantifying across edits — is a theorem of neither F11's persistence nor F19's monotonicity below, and could not be: K.μ⁻ can shrink `ran(Σ.M(d))`, so a V-position discoverable at `Σ` may be contracted out of the arrangement at `Σ'`. The right framing for V-side discoverability under a contracting edit is therefore not a persistence theorem but a *weakest precondition*: which pre-states `Σ` guarantee that a fixed link `a` is still V-side discoverable from `d` after the edit? We answer this by composing `image` with ASN-0098's LP12a.
+
+Fix `a ∈ dom(Σ.L)` and a document `d ∈ dom(Σ.M)`. Let `K.μ⁻[d, ℛ]` denote the contraction of `d`'s arrangement that retains exactly the V-position subset `ℛ ⊆ dom(Σ.M(d))` (ASN-0047's K.μ⁻; we write the retained domain as `ℛ` to free the symbol `R` for the query region). The post-state `Σ'` satisfies `dom(Σ'.M(d)) = ℛ` with `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ ℛ`, and `Σ'.L = Σ.L` by A1a. Recall ASN-0098's `project(a, i, d, Σ) = {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(Σ.L(a).eᵢ)}`.
+
+```
+F21 (VSideContractionWP):
+   For a query region R ⊆ T,
+       wp(K.μ⁻[d, ℛ], a ∈ findlinks_V(R, d, ·))
+         ≡ enabled(K.μ⁻[d, ℛ])
+           ∧ (E i : 1 ≤ i ≤ |Σ.L(a)| : project(a, i, d, Σ) ∩ R ∩ ℛ ≠ ∅).
+   where enabled(K.μ⁻[d, ℛ]) is K.μ⁻'s applicability predicate (ASN-0047).
+```
+
+Derivation. Evaluate the postcondition at `Σ'`. Since K.μ⁻ retains exactly `ℛ` and agrees with `Σ` there, the image collapses to the retained, query-restricted slice:
+
+```
+image(R, d, Σ') = {Σ'.M(d)(v) : v ∈ R ∩ dom(Σ'.M(d))} = {Σ.M(d)(v) : v ∈ R ∩ ℛ}.
+```
+
+Then, using `Σ'.L = Σ.L` (A1a) to move the match predicate's link-side data back to `Σ`:
+
+```
+a ∈ findlinks_V(R, d, Σ')
+  ⟺ matches(a, image(R, d, Σ'), Σ')              -- F12 unfold
+  ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ {Σ.M(d)(v) : v ∈ R ∩ ℛ} ≠ ∅)   -- F1, A1a
+  ⟺ (E i : (E v ∈ R ∩ ℛ : Σ.M(d)(v) ∈ coverage(Σ.L(a).eᵢ)))
+  ⟺ (E i : project(a, i, d, Σ) ∩ R ∩ ℛ ≠ ∅)      -- unfold project, push membership
+```
+
+Conjoining the applicability guard `enabled(K.μ⁻[d, ℛ])` (so that `Σ'` exists) yields F21.
+
+Two specializations close the loop. *(i) Full-document query.* For `R = T`, `project(a, i, d, Σ) ⊆ dom(Σ.M(d)) ⊇ ℛ` makes `∩ T` a no-op, so the condition reduces to `(E i : project(a, i, d, Σ) ∩ ℛ ≠ ∅)` — exactly LP12a (ASN-0098), since `a ∈ findlinks_V(T, d, Σ) ⟺ discoverable_from(a, d, Σ)` (image(T, d, Σ) = ran(Σ.M(d)), and LP12 of ASN-0098 equates per-slot coverage-meets-range with `project ≠ ∅`). F21 is thus the V-side lift of LP12a through `image`. *(ii) Boundary `ℛ = ∅`.* Total clearance gives `project(a, i, d, Σ) ∩ R ∩ ∅ = ∅` for every slot, so the wp is `false` — no pre-state leaves `a` discoverable from a fully cleared document, matching LP12a's `R = ∅` boundary.
+
+The contraction-then-extension composite is handled by wp composition, `wp(K.μ⁻ ; K.μ⁺, Q) = wp(K.μ⁻, wp(K.μ⁺, Q))`. For the range-preserving reordering K.μ~ (the `K.μ⁻ + K.μ⁺` composite that restores the same range), J3/K.μ~-RANGE (ASN-0047) gives `ran(Σ'.M(d)) = ran(Σ.M(d))`, so full-document V-side discoverability is *invariant* across K.μ~ and the wp degenerates to `enabled ∧ (a ∈ findlinks_V(T, d, Σ))`. For a general `K.μ⁻[d, ℛ]` followed by an extension `K.μ⁺` that adds I-addresses to `d`'s range, LP9 (ASN-0098) makes the extension's effect on discoverability monotone non-decreasing, so the composite wp is *weaker* than F21's contraction wp: an extension can only restore or create discoverability that the contraction removed, never destroy more of it.
 
 ```
 F19 (ResultSetMonotonicity):
@@ -425,6 +458,7 @@ Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, 
 | F19 | Result-set monotonicity across reachable sequences (filtered/scoped instances under F15(c)) | introduced |
 | F20 | Image set-additive | introduced |
 | F20a | V-side additive: `findlinks_V(R₁ ∪ R₂, d, Σ) = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)` | introduced |
+| F21 | VSideContractionWP: weakest precondition for V-side discoverability of a fixed link under K.μ⁻, composing `image` with ASN-0098's LP12a | introduced |
 
 ## Open Questions
 
