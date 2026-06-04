@@ -118,7 +118,7 @@ Because each transclusion is by reference rather than copy, every intermediate d
 
 *Derivation.* Fix `i ∈ {2, ..., n}`. By hypothesis, `M(dᵢ)(vᵢ) = a`. The pure projection `origin` (defined on `dom(C)`, by S7 of ASN-0036) takes `M(dᵢ)(vᵢ)` to `origin(M(dᵢ)(vᵢ)) = origin(a)`. By hypothesis `origin(a) = d₁`. This argument uses only `dᵢ`'s entry at `vᵢ` and the projection; it never names or reads `dⱼ` for any `j ≠ i`. ∎
 
-This is what Nelson means by *at once* [Q10]: the resolution mechanism walks no chain. By O3, the answer is computable from `a` alone; by O4, each intermediate document is an independent witness, interchangeable as a query target. The intermediate documents are *parallel witnesses*, not a chain to be traversed.
+This is what Nelson means by *at once* [Q10]: O4 makes each intermediate document an independent witness to `d₁`, so the origin is reported from any one of them directly.
 
 ## Permanence
 
@@ -250,13 +250,13 @@ O11, O11', and O11★★ together cover every arrangement-extending transition. 
 
 ## Span containment monotonicity
 
-Nelson is explicit that the system must distinguish no scale below *any specific word or character*: the mechanism that names the home of a million-character chapter must name the home of a single character [Q8]. *Uniformity of mechanism* is captured by O3 (Structural derivation): a single pointwise projection performs the work, with no procedural case distinction on size. What remains to record is the corresponding *set-inclusion* property: enlarging the span never loses an origin.
+Nelson is explicit that the system must distinguish no scale below *any specific word or character*: the mechanism that names the home of a million-character chapter must name the home of a single character [Q8]. Because the pointwise projection O3 performs the work uniformly, with no procedural case distinction on size, attribution at the paragraph level reduces to attribution at the character level — and O8 records the elementary set-inclusion consequence: enlarging the span never loses an origin.
 
 **Claim O8 (I-span containment monotonicity).** *For I-spans `σ₁, σ₂` with `⟦σ₁⟧ ⊆ ⟦σ₂⟧`: `origins_I(Σ, σ₁) ⊆ origins_I(Σ, σ₂)`.*
 
 *Derivation.* Fix `o ∈ origins_I(Σ, σ₁)`. By definition, there exists `a ∈ ⟦σ₁⟧ ∩ dom(Σ.C)` with `origin(a) = o`. By hypothesis `⟦σ₁⟧ ⊆ ⟦σ₂⟧`, so `a ∈ ⟦σ₂⟧`. Since `a ∈ dom(Σ.C)` is unchanged, `a ∈ ⟦σ₂⟧ ∩ dom(Σ.C)`, and `origin(a) = o ∈ origins_I(Σ, σ₂)`. ∎
 
-The smallest case is the singleton: for any `a ∈ dom(C)`, the singleton span (containing only `a`) yields `origins_I = {origin(a)}`. The largest case is unbounded — by T0(b) of ASN-0034, there is no maximum tumbler length, so spans can be arbitrarily wide. The pointwise projection (O3) is what makes attribution at the paragraph level reducible to attribution at the character level; O8 records the elementary set-inclusion consequence.
+The smallest case is the singleton: for any `a ∈ dom(C)`, the singleton span (containing only `a`) yields `origins_I = {origin(a)}`. The largest case is unbounded — by T0(b) of ASN-0034, there is no maximum tumbler length, so spans can be arbitrarily wide.
 
 The V-span counterpart follows by the same set-inclusion argument, routed through (F1) instead of the definition of `origins_I`. The hypothesis is denotational containment of the spans; the arrangement `M(d)` is held fixed.
 
@@ -367,7 +367,7 @@ The claims above bound what SHOWORIGIN guarantees. Three exclusions deserve expl
 
 *Not human authorship.* As Nelson notes [Q2], the User field of the tumbler identifies an owning *account*, not necessarily a known human. *John Doe publication* is permitted: anonymous and pseudonymous content has well-defined origin without revealing identity. SHOWORIGIN reports what the address structure encodes, and no more.
 
-*Not transitive provenance.* SHOWORIGIN follows no chain. When `dₙ` transcludes from `d_{n-1}` which transcluded from `d_{n-2}`, etc., the result names `d₁` (the original allocator), not the chain `d₁ → d₂ → ... → dₙ`. Users who wish to see the chain of intermediate documents must perform a different operation — for instance, step pane-by-pane through each layer's arrangement [Q10]. SHOWORIGIN gives them the direct answer only.
+*Not transitive provenance.* The result names `d₁` (the original allocator), not the transclusion chain `d₁ → d₂ → ... → dₙ`. Recovering the chain of intermediate documents is a different operation's concern — for instance, stepping pane-by-pane through each layer's arrangement [Q10].
 
 ## A worked example
 
@@ -403,9 +403,9 @@ At Σ₁, `origins_V(Σ₁, d₃, σ_{1..7}) = {d₁, d₃}` is well-formed — 
 
 - *Satisfying configuration for d_q = d₁.* V-position `[1,1,1]` lies in `⟦σ_{1..7}⟧ ∩ dom(M(d₃))` and satisfies `origin(M(d₃)([1,1,1])) = origin([d₁.0.1.1]) = d₁` — the existential witness exists. Hence the wp evaluates to *true*, and indeed `d₁ ∈ origins_V(Σ₁, d₃, σ_{1..7}) = {d₁, d₃}`.
 - *Satisfying configuration for d_q = d₃.* V-position `[1,1,6]` lies in `⟦σ_{1..7}⟧ ∩ dom(M(d₃))` and satisfies `origin(M(d₃)([1,1,6])) = origin([d₃.0.1.1]) = d₃` — the existential witness exists. Hence the wp evaluates to *true*, and indeed `d₃ ∈ origins_V(Σ₁, d₃, σ_{1..7})`.
-- *Falsifying configuration for d_q = d₂.* Although `d₂` is an intermediate transcluding document in our chain (`d₃` transcludes `d₂`, which transcludes `d₁`), no V-position `v ∈ ⟦σ_{1..7}⟧ ∩ dom(M(d₃))` maps to an I-address with origin `d₂`. The seven V-positions of `d₃`'s arrangement in this range map either to `[d₁.0.1.k]` (transcluded content, origin `d₁` — recorded directly from `d₂`'s arrangement of `d₁`'s I-addresses, since transclusion records the original I-address rather than a copy) or to `[d₃.0.1.k]` (native content, origin `d₃`). None map to any I-address of the form `[d₂.0.1.k]`, because `d₂` itself never allocated content for this passage — it only transcluded `d₁`'s allocation. The existential witness does not exist, so the wp evaluates to *false*, and indeed `d₂ ∉ origins_V(Σ₁, d₃, σ_{1..7})`.
+- *Falsifying configuration for d_q = d₂.* Although `d₂` is an intermediate transcluding document in our chain (`d₃` transcludes `d₂`, which transcludes `d₁`), no V-position `v ∈ ⟦σ_{1..7}⟧ ∩ dom(M(d₃))` maps to an I-address with origin `d₂`. The seven V-positions of `d₃`'s arrangement in this range map either to `[d₁.0.1.k]` (transcluded content, origin `d₁`) or to `[d₃.0.1.k]` (native content, origin `d₃`). None map to any I-address of the form `[d₂.0.1.k]`, because `d₂` itself never allocated content for this passage — it only transcluded `d₁`'s allocation. The existential witness does not exist, so the wp evaluates to *false*, and indeed `d₂ ∉ origins_V(Σ₁, d₃, σ_{1..7})`.
 
-The `d_q = d₂` falsifying evaluation is the operational confirmation of O4 (parallel witnesses): an intermediate transcluding document does *not* appear in the direct origin set of a downstream reader, even though that intermediate document independently transcluded the same content. SHOWORIGIN walks no chain; it reports `d₁` directly because each intermediate document recorded `d₁`'s I-address, not its own.
+The `d_q = d₂` falsifying evaluation is the operational confirmation of O4 (parallel witnesses): an intermediate transcluding document does *not* appear in the direct origin set of a downstream reader, even though that intermediate document independently transcluded the same content.
 
 ## Summary
 
