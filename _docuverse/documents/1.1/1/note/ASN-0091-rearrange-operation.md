@@ -44,7 +44,7 @@ REARRANGE_K (the cut-sequence operation of ASN-0084) is one concrete realisation
 
 ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047's M1 (ArrangementMonotonicity) records the identification `dom(M) = E_doc`, so `d ∈ E_doc ⟺ d ∈ dom(M)` and RA-reg holds at the pre-state.
 
-*Net-effect split.* REARRANGE_K's cut-sequence construction makes π non-identity automatically: by CS2 the cuts satisfy `c₀ < c₁ < ...`, so the region widths `w_α`, `w_β` (and `w_μ` for 4-cut) are each `≥ 1`, giving `π(c₀) > c₀` (R-PPERM for 3-cut, R-SPERM for 4-cut). But `π ≠ id` as a permutation of V-positions is strictly weaker than ASN-0047's K.μ~ admissibility clause (ii), the non-trivial *net effect* `M'(d) ≠ M(d)`. The two come apart precisely under shared I-addresses: when π fixes the I-address at every affected position — `M(d)(π(v)) = M(d)(v)` for all affected `v` — R-P1/R-P2 yield `M'(d) = M(d)` although π is the non-identity rotation. Such an arrangement is permitted by the *shared-image licence*: S2 (ArrangementFunctionality) imposes *only* functionality on `M(d)` — at most one image per V-position — and never a single-image (injectivity) constraint, while S5 (UnrestrictedSharing) explicitly admits a single I-address at several V-positions; a permutation that maps each shared-image V-position to another V-position carrying the same image leaves the map pointwise unchanged. The realisation therefore splits on net effect, with a realiser in each case. In the *non-trivial case* (`M'(d) ≠ M(d)`) the realiser is the named composite K.μ~. In the *collapse case* (`M'(d) = M(d)` with π ≠ id) the transition is the identity `Σ' = Σ`, so RA-adm holds and every RE-* claim below is an identity of `Σ` with itself.
+*Net-effect split.* REARRANGE_K's cut-sequence construction makes π non-identity automatically: by CS2 the cuts satisfy `c₀ < c₁ < ...`, so the region widths `w_α`, `w_β` (and `w_μ` for 4-cut) are each `≥ 1`, giving `π(c₀) > c₀` (R-PPERM for 3-cut, R-SPERM for 4-cut). But `π ≠ id` as a permutation of V-positions is strictly weaker than ASN-0047's K.μ~ admissibility clause (ii), the non-trivial *net effect* `M'(d) ≠ M(d)`. The two come apart precisely under shared I-addresses: when π fixes the I-address at every affected position — `M(d)(π(v)) = M(d)(v)` for all affected `v` — R-P1/R-P2 yield `M'(d) = M(d)` although π is the non-identity rotation. Such an arrangement is permitted by the *shared-image licence* (non-singleton pre-image blocks are admissible, S2, S5): a permutation that maps each shared-image V-position to another V-position carrying the same image leaves the map pointwise unchanged. The realisation therefore splits on net effect, with a realiser in each case. In the *non-trivial case* (`M'(d) ≠ M(d)`) the realiser is the named composite K.μ~. In the *collapse case* (`M'(d) = M(d)` with π ≠ id) the transition is the identity `Σ' = Σ`, so RA-adm holds and every RE-* claim below is an identity of `Σ` with itself.
 
 *Pointwise-fixity frames.* Two classes of V-position are not merely kept within their subspace but left wholly unpermuted (`π(v) = v`) — a stronger guarantee than K.μ~ clause (iv), which only requires subspace preservation. For each class, ASN-0084's R-PPERM and R-SPERM define π directly as the identity on that position set, and the corresponding arrangement-preservation clause records `Σ'.M(d)(v) = Σ.M(d)(v)` for the same positions; together these supply the named fact in full pointwise form.
 
@@ -64,7 +64,7 @@ Since REARRANGE_K's cuts are always content-subspace (CS3 fixes `S = s_C`), RE-s
 | Clause | Discharge |
 |--------|-----------|
 | (i) induced post-state satisfies the shape package (S8a, S8-depth, D-CTG★, D-MIN★) | RA-dom fixes the populated V-position set (`dom(Σ'.M(d)) = dom(Σ.M(d))`, hence `V_S(Σ'.M(d)) = V_S(Σ.M(d))` for every S since `subspace(v)` is a function of `v` alone), so both the per-position predicate S8a and the set-level predicates S8-depth, D-CTG★, D-MIN★ transfer from Σ to Σ' verbatim; π reshuffles images but leaves that set fixed |
-| (ii) non-trivial net effect `M'(d) ≠ M(d)` | holds by hypothesis in the non-trivial case of the net-effect split established above |
+| (ii) non-trivial net effect `M'(d) ≠ M(d)` | holds by hypothesis in the non-trivial case of the net-effect split |
 | (iii) length-preserving `#π(v) = #v` | from the construction: each affected source position `v = cᵢ + j` and its image are ordinal shifts of a depth-2 cut, so by CS4 (`#cᵢ = 2`) and ASN-0034's OrdinalShift length identity `#shift(t, n) = #t`, `#π(v) = #v = 2`; exterior and non-S positions are fixed pointwise by R-PPERM/R-SPERM |
 | (iv) subspace-preserving `subspace(π(v)) = subspace(v)` | Directly from the R-PPERM/R-SPERM branch structure: non-S and in-S-exterior positions are fixed (`π(v) = v`), so subspace is trivially preserved; every affected-range position `v` lies in `V_S(d)` (by R-PRE(iv), the regions α, μ, β are subsets of `V_S(d)` per RegionPartition), so `subspace(v) = S` by definition of `V_S(d)`, and R-PPERM/R-SPERM map it to a position of the form `c₀ + (offset)`, which shares c₀'s subspace S, so `subspace(π(v)) = S = subspace(v)` (ASN-0036's OrdShiftHom(a)). Discharged from the cut-sequence construction alone |
 | (v) link-subspace fixing `π(v) = v` on the link subspace | discharged by RE-sub (established above): RE-sub fixes `π(v) = v` on every non-cut-subspace V-position, and CS3 fixes the cut subspace at `S = s_C`, so the link subspace `s_L` is non-cut and clause (v) follows |
@@ -355,7 +355,7 @@ When `Σ.M(d)` shares I-addresses across V-positions (allowed by foundation S5/U
 ```
 Σ.M(d) = { [1, 1] ↦ a,    [1, 2] ↦ a,    [1, 3] ↦ b }
 ```
-The pre-state pre-image sets are `Σ.M(d)⁻¹(a) = {[1, 1], [1, 2]}` and `Σ.M(d)⁻¹(b) = {[1, 3]}` — the multiset shape is `(a → 2, b → 1)`. Sharing is permitted by the shared-image licence (net-effect split, above).
+The pre-state pre-image sets are `Σ.M(d)⁻¹(a) = {[1, 1], [1, 2]}` and `Σ.M(d)⁻¹(b) = {[1, 3]}` — the multiset shape is `(a → 2, b → 1)`. Sharing is permitted by the shared-image licence.
 
 *Operation.* Apply REARRANGE_K to `d` with cut sequence `(c₀, c₁, c₂) = ([1, 1], [1, 3], [1, 4])`, a 3-cut pivot with cut subspace S = s_C, `w_α = ord(c₁) − ord(c₀) = 2`, `w_β = ord(c₂) − ord(c₁) = 1`. R-PRE(iv) is discharged because every depth-2 position `v` with `[1, 1] ≤ v < [1, 4]` — namely `[1, 1], [1, 2], [1, 3]` — lies in `V_S(d)`. By R-P1 (`Σ'.M(d)(c₀ + j) = Σ.M(d)(c₁ + j)` for `0 ≤ j < w_β`): `Σ'.M(d)([1, 1]) = Σ.M(d)([1, 3]) = b`. By R-P2 (`Σ'.M(d)(c₀ + w_β + j) = Σ.M(d)(c₀ + j)` for `0 ≤ j < w_α`): `Σ'.M(d)([1, 2]) = Σ.M(d)([1, 1]) = a` and `Σ'.M(d)([1, 3]) = Σ.M(d)([1, 2]) = a`.
 
@@ -398,7 +398,7 @@ Both set images equal `project(e_a, d, Σ') = {[1, 2], [1, 3]}`. RE-proj's equat
 
 ## Worked Example — Net-Effect Collapse (non-identity π, `Σ' = Σ`)
 
-The net-effect split of "REARRANGE_K Realises the Abstract Class" admits a branch in which the non-identity pivot π yields `M'(d) = M(d)`, so the realiser is not the K.μ~ composite but the *empty* sequence with `Σ' = Σ`. This trace exhibits a non-identity pivot π whose R-P1/R-P2 reassignment collapses to `M'(d) = M(d)`.
+The net-effect split admits a branch in which the non-identity pivot π yields `M'(d) = M(d)`, so the realiser is not the K.μ~ composite but the *empty* sequence with `Σ' = Σ`. This trace exhibits a non-identity pivot π whose R-P1/R-P2 reassignment collapses to `M'(d) = M(d)`.
 
 *Setup.* Reuse `d = [1, 0, 1, 0, 1]` and `d' = [1, 0, 1, 0, 2]`, both T4-valid with `zeros(·) = 2`. Let `a := [d'.0.1.1]` be the first emission of `A_C(d')`, a single transcluded content address. The collapse mechanism needs only that one I-address repeat across the affected range; no second address and no chain-adjacency fact is required.
 
@@ -406,7 +406,7 @@ The net-effect split of "REARRANGE_K Realises the Abstract Class" admits a branc
 ```
 Σ.M(d) = { [1, 1] ↦ a,    [1, 2] ↦ a,    [1, 3] ↦ a }
 ```
-The shared image is permitted by the shared-image licence (net-effect split, above); the pre-image set `Σ.M(d)⁻¹(a) = {[1, 1], [1, 2], [1, 3]}` is therefore admissible.
+The shared image is permitted by the shared-image licence; the pre-image set `Σ.M(d)⁻¹(a) = {[1, 1], [1, 2], [1, 3]}` is therefore admissible.
 
 *Operation.* Apply REARRANGE_K to `d` with cut sequence `(c₀, c₁, c₂) = ([1, 1], [1, 2], [1, 4])`, a 3-cut pivot with cut subspace S = s_C, `w_α = ord(c₁) − ord(c₀) = 1`, `w_β = ord(c₂) − ord(c₁) = 2`. R-PRE is met: CS1–CS5 hold (n = 3; `[1,1] < [1,2] < [1,4]`; subspace 1; depth 2; positive ordinals), and R-PRE(iv) holds because every depth-2 position `v` with `[1, 1] ≤ v < [1, 4]` — namely `[1, 1], [1, 2], [1, 3]` — lies in `V_S(d)`.
 
@@ -458,7 +458,7 @@ The *Provenance* column records each claim's premises — abstract, REARRANGE_K,
 | RA-π | Rearrangement equation: π : dom(Σ.M(d)) → dom(Σ'.M(d)) is a bijection with Σ'.M(d)(π(v)) = Σ.M(d)(v) for every v ∈ dom(Σ.M(d)) | abstract (definition); REARRANGE_K realiser: ASN-0084 R-PPERM (3-cut) / R-SPERM (4-cut) |
 | RA-frame | Rearrangement frame: Σ'.C = Σ.C, Σ'.L = Σ.L, Σ'.E = Σ.E, Σ'.R = Σ.R, dom(Σ'.M) = dom(Σ.M), and Σ'.M(d') = Σ.M(d') for every d' ∈ dom(Σ.M) with d' ≠ d | abstract (definition); REARRANGE_K realiser, RA-frame discharge paragraph |
 | RA-adm | Rearrangement admissibility: every per-state foundation invariant satisfied by Σ is satisfied by Σ' | abstract (definition); REARRANGE_K realiser, reachable Σ |
-| RA-bndy | Composite-boundary precondition (scopes the composite-boundary properties only): Σ is the final state of a trace of valid composites Σ₀ →* Σ | abstract (definition); required because ASN-0047's P4★ ∧ P4a ∧ P7a hold only at composite boundaries, not at composite-interior states |
+| RA-bndy | Composite-boundary precondition (scopes the composite-boundary properties only): Σ is the final state of a trace of valid composites Σ₀ →* Σ | abstract (definition); rationale in the "Composite-Boundary Properties" section |
 | RE-C | Content-store invariance: Σ'.C = Σ.C under REARRANGE | abstract (from RA-frame) |
 | RE-dom | Domain stability: dom(Σ'.M(d)) = dom(Σ.M(d)) | abstract (from RA-dom) |
 | RE-ran | Range invariance: ran(Σ'.M(d')) = ran(Σ.M(d')) for every d' ∈ dom(Σ.M) | abstract (target case from RA-π; non-target case from RA-frame's other-document clause) |
