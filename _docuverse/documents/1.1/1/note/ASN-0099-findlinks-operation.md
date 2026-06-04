@@ -51,7 +51,7 @@ F1 (MatchPredicate):
    matches(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅).
 ```
 
-F1 generalizes ASN-0098's `discoverable_from`. ASN-0098 defines that predicate in *project* form — `discoverable_from(a, d, Σ) ≡ (E i : project(a, i, d, Σ) ≠ ∅)` — whereas F1's `matches` is in *coverage* form. The two coincide by LP12 (DiscoverabilityCharacterisation, ASN-0098), whose per-slot biconditional `project(a, i, d, Σ) ≠ ∅ ⟺ coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅` gives `discoverable_from(a, d, Σ) = matches(a, ran(Σ.M(d)), Σ)`. The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to. Intersection (rather than containment) is forced by symmetry: a link is about every byte its endsets cover (L13), one shared byte suffices, and to require containment in either direction would impose a circular precondition (the reader would need to know each link's extent to know whether to include it in the query).
+F1 generalizes ASN-0098's `discoverable_from`. ASN-0098 defines that predicate in *project* form — `discoverable_from(a, d, Σ) ≡ (E i : project(a, i, d, Σ) ≠ ∅)` — whereas F1's `matches` is in *coverage* form. The two coincide by LP12 (DiscoverabilityCharacterisation, ASN-0098), whose per-slot biconditional `project(a, i, d, Σ) ≠ ∅ ⟺ coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅` gives `discoverable_from(a, d, Σ) = matches(a, ran(Σ.M(d)), Σ)`. The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to. The choice of intersection over either containment direction is individuated by F4 below (Strengthening 1 and Strengthening 2), with explicit witnesses.
 
 F1's match is **per-endset overlap**: within each endset, satisfaction is existential over spans, and the per-span test is overlap (`coverage(eᵢ) ∩ I ≠ ∅` unfolds to `(E (s, ℓ) ∈ eᵢ : {t : s ≤ t < s ⊕ ℓ} ∩ I ≠ ∅)`, with an identifiable witness span).
 
@@ -127,7 +127,7 @@ Each labeled pair `F2-X ∧ F3-X` conjoins the completeness containment `findlin
 
 *Predicate domain.* `matches(a, I, Σ)` is defined only for `a ∈ dom(Σ.L)`. The scoped form's `a ∈ dom(Σ.L) ∩ S` clauses (in F2-sco's universal and F3-sco's conclusion) keep every invocation inside the domain; F2-V and F3-V respect the convention by quantifying over `a ∈ dom(Σ.L)`. The boundary case `a ∈ S ∖ dom(Σ.L)` is operationally excluded by F3-sco.
 
-Completeness must hold *unconditionally* with respect to `dom(Σ.L)`. No early termination, sampling, or remote-latency exclusion. Soundness's dual force: no false positives from stale indexes. A conforming implementation's index, if any, remains in lockstep with the link store.
+Completeness must hold *unconditionally* with respect to `dom(Σ.L)`. No early termination, sampling, or remote-latency exclusion. Soundness's dual force: no false positives from stale indexes. A conforming implementation's index, if any, remains in lockstep with the link store. The mechanism is unspecified: any implementation whose `result(I, Σ)` differs from the comprehension is non-conforming, regardless of cause.
 
 ## Determinism and Comprehension Invariance
 
@@ -370,7 +370,7 @@ F10 (OrderedResult):
    and a₁ < a₂ < ... < aₙ under T1.
 ```
 
-Finiteness: F3 gives `result(I, Σ) ⊆ dom(Σ.L)`; L-fin gives `|dom(Σ.L)| < ∞`. T1 is a strict total order on `T` and so restricts to one on any subset. Any non-empty finite totally-ordered set admits a unique enumeration by finite induction. The canonical filtered and scoped presentations follow by the same finiteness + total-order argument:
+Finiteness: F3 gives `result(I, Σ) ⊆ dom(Σ.L)`; L-fin gives `|dom(Σ.L)| < ∞`. T1 is a strict total order on `T` and so restricts to one on any subset. Every finite totally-ordered set admits a unique enumeration by finite induction; the empty result (`n = 0`) is the degenerate case, presented as the empty sequence `⟨⟩`, which is vacuously strictly increasing and trivially unique. This covers the mandatory empty-result boundary: `findlinks(I, Σ) = ∅` whenever no link matches — including `I = ∅`, a V-region disjoint from `dom(Σ.M(d))`, or a non-empty link store in which no endset overlaps `I` (Query 5's `findlinks_V({v_a^2}, d_a, Σ_5) = ∅`). The canonical filtered and scoped presentations follow by the same finiteness + total-order argument:
 
 ```
 F10-filt:  findlinks_filtered(C, Σ) admits a unique strictly T1-increasing sequence.
@@ -446,10 +446,6 @@ Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, 
 
 *I-side growth for a query covering `ℓ_new` (F19 monotonicity at K.λ).* Take `I' = {α_c}`. At `Σ_5`: `α_c ∈ dom(Σ_5.C)` (allocated in Query 5 step (ii)), but no link in `dom(Σ_5.L) = {ℓ, ℓ', ℓ_meta}` mentions `α_c` in any endset coverage (each prior link's slots cover prefix-subtrees over `α₁, α₂, α₃, τ_·, ℓ`, all non-nesting with `α_c` under `d_c`). So `findlinks({α_c}, Σ_5) = ∅`. At `Σ_6`: `matches(ℓ_new, {α_c}, Σ_6) = true` (slot 1's coverage `{t : α_c ≼ t}` contains `α_c` reflexively); the prior-key links remain non-matching by PerLinkInvarianceUnderValuePreservation. By F9-λ: `findlinks({α_c}, Σ_6) = ∅ ⊎ {ℓ_new} = {ℓ_new}`. F19 monotonicity is exhibited: `findlinks({α_c}, Σ_5) = ∅ ⊆ {ℓ_new} = findlinks({α_c}, Σ_6)`. F11 and F19 compose: a query covering the freshly allocated link grows, while every prior matching link remains matched.
 
-## What Completeness Demands of Implementations
-
-The spec's demand is exactly F2 ∧ F3: `result(I, Σ) = findlinks(I, Σ)`. The mechanism is unspecified. Any implementation whose `result(I, Σ)` differs from the set comprehension is non-conforming, regardless of cause.
-
 ## Local Atomicity and the Single-State Setting
 
 By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and uninterruptible; `Σ` is well-defined at every query point. A K.λ commits `a` to `dom(Σ.L)` atomically: by the time the K.λ committing `a` returns, `a` is in `dom(Σ.L)` and the next query at any state succeeding the K.λ must include `a` if `a` matches.
@@ -463,10 +459,6 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 - The inverse direction (resolving result endsets back to V-positions) — that is FOLLOWLINK/RETRIEVEENDSETS.
 - The semantics of querying with I-addresses outside `dom(Σ.C) ∪ dom(Σ.L)`.
 - A combined filtered-and-scoped operation `findlinks_filtered_scoped(C, S, Σ)`. The intended composition is naive intersection `findlinks_filtered(C, Σ) ∩ S`; determinism, survivability, and monotonicity propagate pointwise from the per-component claims.
-
-## Reflection
-
-The discovery operation reduces to a single set comprehension: take the I-set the user named, test each link's endset coverage for overlap, return the matches. Complexity in real systems lies in implementation — index maintenance, server propagation, access control, large-endset storage. The abstract specification is just the comprehension.
 
 ## Claims Introduced
 
@@ -514,5 +506,3 @@ What must an implementation maintain to make the completeness obligation auditab
 Should the abstract specification require any bound on the time between K.λ commitment and the link's appearance in subsequent FINDLINKS results, or is "next query after K.λ" the only abstract handle available?
 
 What is the minimum structural commitment any conforming substrate must make to the non-allocating fragment of its operation vocabulary in order to support link-discovery invariance under those operations?
-
-The scope exclusions listed under *What We Have Not Specified* — out-of-store query semantics, partition tolerance, the consistency model, access-control composition, and the inverse direction — each remain open research questions; they are not restated here.
