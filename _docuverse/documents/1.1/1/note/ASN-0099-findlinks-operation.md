@@ -686,7 +686,7 @@ Implementations that defer index maintenance to a background process create a wi
 
 The discovery operation reduces to a single set comprehension: take the I-set the user named, test each link's endset coverage for overlap, return the matches. Complexity in real systems lies in implementation — index maintenance, server propagation, access control, large-endset storage. The abstract specification is just the comprehension.
 
-The specification is spare because of design choices established for other reasons. Because links attach to bytes (L13), discovery is by address overlap. Because bytes carry permanent identity (S0, C0), the overlap is well-defined and stable. Because arrangement is separated from identity (S9), discovery is arrangement-independent. Because the address space is globally unique (T10), identity-based queries cannot collide across owners. Because the link store is monotonic (L12), discovery is monotone. None of these were established for discovery; discovery falls out of them.
+The specification is spare because of design choices established for other reasons. Because links attach to bytes (L13), discovery is by address overlap. Because bytes carry permanent identity (S0, C0), the overlap is well-defined and stable. Because arrangement (`Σ.M`) is separated from content identity (`Σ.C`) (ASN-0036), discovery is arrangement-independent. Because the address space is globally unique (T10), identity-based queries cannot collide across owners. Because the link store is monotonic (L12), discovery is monotone. None of these were established for discovery; discovery falls out of them.
 
 ## Claims Introduced
 
