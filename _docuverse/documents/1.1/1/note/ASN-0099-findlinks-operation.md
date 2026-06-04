@@ -124,11 +124,9 @@ F2-V    ∧ F3-V:     result_V(R, d, Σ)        = findlinks_V(R, d, Σ),
                     for every (R, d, Σ) with d ∈ dom(Σ.M).
 ```
 
-Each labeled pair `F2-X ∧ F3-X` conjoins the completeness containment `findlinks_*(args) ⊆ result_*(args)` with the soundness containment `result_*(args) ⊆ findlinks_*(args)`, the predicate adjusted to the operation: the universal `(A (i, J) ∈ C : …)` for the filtered form, the intersection `dom(Σ.L) ∩ S` for the scoped form, and the I-image `image(R, d, Σ)` for the V-side form. The conjunction forces the equality stated above. F2-V ∧ F3-V is the **primary obligation on `result_V`**: any implementation exposing the V-side surface must satisfy it. When the implementation also exposes the I-side surface satisfying F2 ∧ F3, the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2-V ∧ F3-V + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly.
+The same conjunction-forces-equality argument applies per form, with the predicate adjusted to the operation. F2-V ∧ F3-V is the **primary obligation on `result_V`**: any implementation exposing the V-side surface must satisfy it. When the implementation also exposes the I-side surface satisfying F2 ∧ F3, the factoring equation `result_V(R, d, Σ) = result(image(R, d, Σ), Σ)` follows by F2 ∧ F3 + F2-V ∧ F3-V + F12, since both sides equal `findlinks_V(R, d, Σ)` exactly.
 
-*Predicate domain.* `matches(a, I, Σ)` is defined only for `a ∈ dom(Σ.L)`. The scoped form's `a ∈ dom(Σ.L) ∩ S` clauses (in F2-sco's universal and F3-sco's conclusion) keep every invocation inside the domain; F2-V and F3-V respect the convention by quantifying over `a ∈ dom(Σ.L)`. The boundary case `a ∈ S ∖ dom(Σ.L)` is operationally excluded by F3-sco.
-
-Completeness must hold *unconditionally* with respect to `dom(Σ.L)`. No early termination, sampling, or remote-latency exclusion. Soundness's dual force: no false positives from stale indexes. A conforming implementation's index, if any, remains in lockstep with the link store. The mechanism is unspecified: any implementation whose `result(I, Σ)` differs from the comprehension is non-conforming, regardless of cause.
+Completeness must hold *unconditionally* with respect to `dom(Σ.L)`: any implementation whose `result(I, Σ)` differs from the comprehension is non-conforming.
 
 ## Determinism and Comprehension Invariance
 
