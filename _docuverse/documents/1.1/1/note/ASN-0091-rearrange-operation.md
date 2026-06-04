@@ -59,15 +59,17 @@ ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047
 
 Since REARRANGE_K's cuts are always content-subspace (CS3 fixes `S = s_C`), RE-sub leaves the link subspace wholly preserved — its set of populated V-positions, its V→I mapping, *and* the pointwise behaviour of π on those V-positions — so content rearrangement neither perturbs the link arrangement nor relabels any link-subspace V-position. RE-ext pins the content-subspace positions outside the affected range that the abstract class alone would permit a bijection to move.
 
-*K.μ~ admissibility clause (i)–(v) ← discharge.*
+*K.μ~ admissibility clauses (i)–(v).* We discharge each in turn.
 
-| Clause | Discharge |
-|--------|-----------|
-| (i) induced post-state satisfies the shape package (S8a, S8-depth, D-CTG★, D-MIN★) | RA-dom fixes the populated V-position set (`dom(Σ'.M(d)) = dom(Σ.M(d))`, hence `V_S(Σ'.M(d)) = V_S(Σ.M(d))` for every S since `subspace(v)` is a function of `v` alone), so both the per-position predicate S8a and the set-level predicates S8-depth, D-CTG★, D-MIN★ transfer from Σ to Σ' verbatim; π reshuffles images but leaves that set fixed |
-| (ii) non-trivial net effect `M'(d) ≠ M(d)` | holds by hypothesis in the non-trivial case of the net-effect split |
-| (iii) length-preserving `#π(v) = #v` | from the construction: each affected source position `v = cᵢ + j` and its image are ordinal shifts of a depth-2 cut, so by CS4 (`#cᵢ = 2`) and ASN-0034's OrdinalShift length identity `#shift(t, n) = #t`, `#π(v) = #v = 2`; exterior and non-S positions are fixed pointwise by R-PPERM/R-SPERM |
-| (iv) subspace-preserving `subspace(π(v)) = subspace(v)` | Directly from the R-PPERM/R-SPERM branch structure: non-S and in-S-exterior positions are fixed (`π(v) = v`), so subspace is trivially preserved; every affected-range position `v` lies in `V_S(d)` (by R-PRE(iv), the regions α, μ, β are subsets of `V_S(d)` per RegionPartition), so `subspace(v) = S` by definition of `V_S(d)`, and R-PPERM/R-SPERM map it to a position of the form `c₀ + (offset)`, which shares c₀'s subspace S, so `subspace(π(v)) = S = subspace(v)` (ASN-0036's OrdShiftHom(a)). Discharged from the cut-sequence construction alone |
-| (v) link-subspace fixing `π(v) = v` on the link subspace | discharged by RE-sub (established above): RE-sub fixes `π(v) = v` on every non-cut-subspace V-position, and CS3 fixes the cut subspace at `S = s_C`, so the link subspace `s_L` is non-cut and clause (v) follows |
+Clause (i) — *the induced post-state satisfies the shape package* (S8a, S8-depth, D-CTG★, D-MIN★). RA-dom fixes the populated V-position set: `dom(Σ'.M(d)) = dom(Σ.M(d))`, hence `V_S(Σ'.M(d)) = V_S(Σ.M(d))` for every S since `subspace(v)` is a function of `v` alone. Both the per-position predicate S8a and the set-level predicates S8-depth, D-CTG★, D-MIN★ therefore transfer from Σ to Σ' verbatim; π reshuffles images but leaves that set fixed.
+
+Clause (ii) — *non-trivial net effect* `M'(d) ≠ M(d)` — holds by hypothesis in the non-trivial case of the net-effect split.
+
+Clause (iii) — *length-preservation* `#π(v) = #v`. Each affected source position `v = cᵢ + j` and its image are ordinal shifts of a depth-2 cut, so by CS4 (`#cᵢ = 2`) and ASN-0034's OrdinalShift length identity `#shift(t, n) = #t`, `#π(v) = #v = 2`. Exterior and non-S positions are fixed pointwise by R-PPERM/R-SPERM, hence trivially length-preserving.
+
+Clause (iv) — *subspace-preservation* `subspace(π(v)) = subspace(v)`. Non-S and in-S-exterior positions are fixed (`π(v) = v`), so subspace is trivially preserved. Every affected-range position `v` lies in `V_S(d)` (by R-PRE(iv), the regions α, μ, β are subsets of `V_S(d)` per RegionPartition), so `subspace(v) = S`; R-PPERM/R-SPERM map it to a position of the form `c₀ + (offset)`, which shares c₀'s subspace S, so `subspace(π(v)) = S = subspace(v)` (ASN-0036's OrdShiftHom(a)). The clause is discharged from the cut-sequence construction alone.
+
+Clause (v) — *link-subspace fixing* `π(v) = v` on the link subspace — is discharged by RE-sub (established above): RE-sub fixes `π(v) = v` on every non-cut-subspace V-position, and CS3 fixes the cut subspace at `S = s_C`, so the link subspace `s_L` is non-cut and clause (v) follows.
 
 *RA-frame discharge.* K.μ~'s ASN-0047 frame `C' = C; E' = E; R' = R; L' = L; M'(d') = M(d')` for `d' ≠ d` matches each conjunct of RA-frame explicitly, save `dom(Σ'.M) = dom(Σ.M)`. That last conjunct follows structurally: neither K.μ⁻ nor K.μ⁺ — the elementary decomposition of K.μ~ — touches the document registry, registration being the exclusive province of K.σ and the K.δ Document case. So no REARRANGE_K step adds or removes a document, and `dom(Σ'.M) = dom(Σ.M)` holds.
 
@@ -278,10 +280,11 @@ The historical record is intact across rearrangement. The bytes that have ever l
 
 ## Composite-Boundary Properties
 
-The per-state foundation invariants discharged by RA-adm hold at *every* state reachable by elementary transitions. ASN-0047's three composite-boundary properties **P4★ ∧ P4a ∧ P7a** are not of this kind: ExtendedReachableStateInvariants splits its conclusion, establishing these three *only* at composite boundaries — not at states interior to a composite still in progress. The REARRANGE domain stated above (every Σ reachable from Σ₀ by elementary transitions drawn from valid composites) includes such interior states, at which P4★/P4a/P7a need not hold. We therefore impose, as a precondition of the composite-boundary claims, that the pre-state itself sits at a composite boundary:
+The composite-boundary claims carry an extra precondition:
 ```
 Σ is the final state of a trace of valid composites Σ₀ →* Σ                             (RA-bndy)
 ```
+Interior composite states need not satisfy ASN-0047's three composite-boundary properties **P4★ ∧ P4a ∧ P7a** — ExtendedReachableStateInvariants establishes them only at composite boundaries, not at the interior states the REARRANGE domain otherwise admits — so the boundary claims require the pre-state to sit at a boundary.
 
 Under RA-bndy, Σ' is again a reachable composite boundary. A REARRANGE is itself a composite — the named composite K.μ~ for the REARRANGE_K realiser (valid by the clause (i)–(v) and J3 discharge of the "REARRANGE_K Realises the Abstract Class" section above), the empty composite in the collapse case `Σ' = Σ`. Appending that composite to a trace of valid composites witnessing Σ yields a trace of valid composites whose final state is Σ', so Σ' too is the final state of a trace of valid composites — a reachable composite boundary by construction.
 
@@ -461,12 +464,12 @@ The *Provenance* column records each claim's premises — abstract, REARRANGE_K,
 | RA-bndy | Composite-boundary precondition (scopes the composite-boundary properties only): Σ is the final state of a trace of valid composites Σ₀ →* Σ | abstract (definition); rationale in the "Composite-Boundary Properties" section |
 | RE-C | Content-store invariance: Σ'.C = Σ.C under REARRANGE | abstract (from RA-frame) |
 | RE-dom | Domain stability: dom(Σ'.M(d)) = dom(Σ.M(d)) | abstract (from RA-dom) |
-| RE-ran | Range invariance: ran(Σ'.M(d')) = ran(Σ.M(d')) for every d' ∈ dom(Σ.M) | abstract (target case from RA-π; non-target case from RA-frame's other-document clause) |
-| RE-μ | Per-address multiplicity invariance: μ_a(Σ'.M(d')) = μ_a(Σ.M(d')) for every I-address a and every d' ∈ dom(Σ.M) | abstract (target case from RA-π; non-target case from RA-frame's other-document clause) |
+| RE-ran | Range invariance: ran(Σ'.M(d')) = ran(Σ.M(d')) for every d' ∈ dom(Σ.M) | abstract (RA-π; RA-frame) |
+| RE-μ | Per-address multiplicity invariance: μ_a(Σ'.M(d')) = μ_a(Σ.M(d')) for every I-address a and every d' ∈ dom(Σ.M) | abstract (RA-π; RA-frame) |
 | RE-L | Link store invariance: dom(Σ'.L) = dom(Σ.L) and Σ'.L(a) = Σ.L(a) for every a ∈ dom(Σ.L) | abstract (from RA-frame) |
 | RE-cov | Coverage invariance: coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ) for every link a and slot i | abstract (from RE-L) |
-| RE-disc | Discoverability invariance: discoverable_from(a, d, Σ') ⟺ discoverable_from(a, d, Σ) for every link a and document d | abstract (from RE-cov + RE-ran via LP12) |
-| RE-proj | Projection transport: project(e, b, Σ') = π̂_b(project(e, b, Σ)) for every endset e and every b ∈ dom(Σ.M), where π̂_b := π at the rearrangement target d and π̂_b := id_{dom(Σ.M(b))} for b ≠ d. Equivalently at the target: project(e, d, Σ') = π(project(e, d, Σ)) | abstract (target case from RA-π + coverage state-independence (ASN-0098); non-target case from RE-other) |
+| RE-disc | Discoverability invariance: discoverable_from(a, d, Σ') ⟺ discoverable_from(a, d, Σ) for every link a and document d | abstract (RE-cov; RE-ran; LP12, ASN-0098) |
+| RE-proj | Projection transport: project(e, b, Σ') = π̂_b(project(e, b, Σ)) for every endset e and every b ∈ dom(Σ.M), where π̂_b := π at the rearrangement target d and π̂_b := id_{dom(Σ.M(b))} for b ≠ d. Equivalently at the target: project(e, d, Σ') = π(project(e, d, Σ)) | abstract (RA-π; coverage state-independence, ASN-0098; RE-other) |
 | RE-frag | Fragmentation possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) strictly increases | abstract (existential; witnesses are REARRANGE_K) |
 | RE-coal | Coalescence possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) strictly decreases | abstract (existential; witnesses are REARRANGE_K) |
 | RE-eq | Cardinality invariance possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) is exactly preserved | abstract (existential; witnesses are REARRANGE_K) |
