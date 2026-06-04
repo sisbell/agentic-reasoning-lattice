@@ -44,8 +44,6 @@ F12 (TwoPhaseFactoring) — DEFINITION of findlinks_V:
 
 For `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined*.
 
-The two phases consult components with different stability properties — the mutable `Σ.M` and the monotonic `Σ.L`.
-
 ## The Image Set
 
 `R` is unconstrained beyond `R ⊆ T` — single position, contiguous V-span, or any subset. When `R` is a contiguous V-span in subspace `s_C`, ASN-0058's mapping-block decomposition gives the image as a union of disjoint I-runs, one per maximal correspondence run. When `v ∈ R` has `subspace(v) = s_L`, S3★ (ASN-0047) routes `Σ.M(d)(v) ∈ dom(Σ.L)` and the image picks up a link address. The match predicate accepts this without modification: endsets may reference any addresses in `T` (L4, ASN-0043), so the link subspace is admissible as a coverage target.
@@ -225,19 +223,11 @@ F9-λ (KλInducedIncrement):
 F5 (IdentityNotValue):
    matches(a, I, Σ) consults dom(Σ.L), Σ.L, and coverage(·), never
    Σ.C(·). For distinct α ≠ β, matches(a, {α}, Σ) and
-   matches(a, {β}, Σ) are computed independently — each decided by
-   address-level membership in coverage(Σ.L(a).eᵢ), with no reference
-   to content values.
-
-   Derivation. By inspection of F1's RHS, the existential
-   `(E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅)` consults
-   only |Σ.L(a)|, per-slot endsets Σ.L(a).eᵢ, the coverage function
-   on endsets, and the I-set — Σ.C does not appear among the consulted
-   components. For distinct α ≠ β, the queries matches(a, {α}, Σ) and
-   matches(a, {β}, Σ) reduce per slot to the address-level set-
-   membership tests `α ∈ coverage(Σ.L(a).eᵢ)` and
-   `β ∈ coverage(Σ.L(a).eᵢ)`; these are independent membership
-   predicates over coverage sets, with no shared content lookup.
+   matches(a, {β}, Σ) are computed independently — each reducing per
+   slot to the address-level membership test `α ∈ coverage(Σ.L(a).eᵢ)`
+   (resp. `β ∈ coverage(Σ.L(a).eᵢ)`), an independent predicate over
+   coverage sets with no reference to content values and no shared
+   content lookup.
 ```
 
 If two users write the same string at different I-addresses, links to one are not links to the other. Identity comes from origin (GlobalUniqueness, ASN-0034) and is preserved through every operation touching the content store (P0, ASN-0047); discovery builds on this foundation, not on content equivalence.
