@@ -24,11 +24,11 @@ We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc
 
 *Endsets and emptiness.* L3 (ASN-0043) requires the third slot `e₃` to be non-empty but imposes no non-emptiness constraint on the other slots. The empty endset `eᵢ = ∅` is a permitted boundary case for `i ≠ 3`: by the coverage definition, `coverage(∅) = ⋃_{(s,ℓ) ∈ ∅} … = ∅`, so an empty slot contributes nothing to any `project(ℓ, i, ·, ·)` and nothing to any LP12-based discoverability disjunct.
 
-*Standard authoring.* An endset `e` is *standardly authored at state `Σ`* iff every span in `e` references addresses already in the substrate:
+*Standard authoring.* An endset `e` is *standardly authored at state `Σ`* iff every *substrate-emittable* address it covers already resides in the substrate. The restriction to substrate-emittable addresses is essential, not a convenience: `coverage(e)` is a union of half-open T1-intervals `{t : s ≤ t < s ⊕ ℓ}` (ASN-0043, ASN-0098), each infinite by T0(a)/T0(b) — e.g. a canonical span `(s, δ(1, #s))` covers the entire subtree `{t : s ≼ t}` — whereas the stores are finite (C-fin, L-fin). An unrestricted `coverage(e) ⊆ dom(Σ.C) ∪ dom(Σ.L)` (infinite ⊆ finite) would hold for *no* endset containing a span, making the predicate vacuous. We instead intersect coverage with `F`, ASN-0098's set of substrate-emittable addresses — the only addresses K.α and K.λ can ever allocate, with `dom(Σ.C) ∪ dom(Σ.L) ⊆ F` by LP-Sub:
 
-  StandardAuthoring(e, Σ)  ≡  coverage(e) ⊆ dom(Σ.C) ∪ dom(Σ.L)
+  StandardAuthoring(e, Σ)  ≡  coverage(e) ∩ F  ⊆  dom(Σ.C) ∪ dom(Σ.L)
 
-A link's input endset sequence `(e₁, ..., eₙ)` is standardly authored at `Σ` iff `StandardAuthoring(eᵢ, Σ)` holds for every `i ∈ {1, ..., N}`. The discipline rules out forward-reaching endsets that pre-emptively cover not-yet-allocated addresses.
+A link's input endset sequence `(e₁, ..., eₙ)` is standardly authored at `Σ` iff `StandardAuthoring(eᵢ, Σ)` holds for every `i ∈ {1, ..., N}`. The discipline rules out forward-reaching endsets that pre-emptively cover not-yet-allocated substrate addresses. Because every allocable address lies in `F` — in particular the fresh link address `ℓ ∈ F` (it is an `A_L(d)` emission of the form `[d, 0, s_L, k]`, LP-Sub) — the discipline still delivers the inference it exists for: if `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` then `ℓ ∈ coverage(eᵢ)` would force `ℓ ∈ coverage(eᵢ) ∩ F ⊆ dom(Σ.C) ∪ dom(Σ.L)`, a contradiction, so `ℓ ∉ coverage(eᵢ)` for every standardly authored `eᵢ`.
 
 ## Decomposition
 
@@ -101,11 +101,7 @@ The address `ℓ` is genuinely new — `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` at `Σ`
 
 ## Permanence of the Recording
 
-The endset sequence `Σ'.L(ℓ) = (e₁, ..., eₙ)` is permanently fixed. We assemble three guarantees:
-
-- By L12 (ASN-0093/ASN-0043), no transition modifies `L(ℓ)` once set.
-- By LP13 (ASN-0098), for every reachable state sequence `Σ' →* Σ''`: `ℓ ∈ dom(Σ''.L) ∧ Σ''.L(ℓ) = Σ'.L(ℓ)`, hence in particular `Σ''.L(ℓ).eᵢ = Σ'.L(ℓ).eᵢ` for every slot `i`.
-- By LP3★ (ASN-0098), for every such sequence and every slot: `coverage(Σ''.L(ℓ).eᵢ) = coverage(Σ'.L(ℓ).eᵢ)`.
+The endset sequence `Σ'.L(ℓ) = (e₁, ..., eₙ)` is permanently fixed. By LP13 (ASN-0098), for every reachable state sequence `Σ' →* Σ''`: `ℓ ∈ dom(Σ''.L) ∧ Σ''.L(ℓ) = Σ'.L(ℓ)`, hence in particular `Σ''.L(ℓ).eᵢ = Σ'.L(ℓ).eᵢ` for every slot `i`. Coverage equality is then immediate, since `coverage` is a deterministic function of the endset: `coverage(Σ''.L(ℓ).eᵢ) = coverage(Σ'.L(ℓ).eᵢ)`.
 
 The implication is that once recorded, the endsets' *addressing intent* is permanent: each coverage `coverage(Σ'.L(ℓ).eᵢ)` is fixed across every reachable state, so the link names the same set of I-addresses for all time.
 
@@ -205,7 +201,7 @@ As a wp (the membership clause subsumed by `enabled(MAKELINK)` here, since `d_ta
   wp(MAKELINK, discoverable_from(ℓ, d, ·))
     ≡  enabled(MAKELINK)  ∧  [(E i :: coverage(eᵢ) ∩ ran(Σ.M(d)) ≠ ∅) ∨ (E i :: ℓ ∈ coverage(eᵢ))]
 
-*Reduction under standard authoring.* When every input endset satisfies `StandardAuthoring(eᵢ, Σ)`, K.λ's freshness gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` while standard authoring confines every `coverage(eᵢ)` to `dom(Σ.C) ∪ dom(Σ.L)`, so `ℓ ∉ coverage(eᵢ)` for every `i` — the reflexive route's disjunct `(E i :: ℓ ∈ coverage(eᵢ))` is unreachable (M-Reflexive). The wp collapses:
+*Reduction under standard authoring.* When every input endset satisfies `StandardAuthoring(eᵢ, Σ)`, K.λ's freshness gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. Since `ℓ ∈ F` (LP-Sub), were `ℓ ∈ coverage(eᵢ)` for some `i` we would have `ℓ ∈ coverage(eᵢ) ∩ F ⊆ dom(Σ.C) ∪ dom(Σ.L)`, contradicting freshness; hence `ℓ ∉ coverage(eᵢ)` for every `i` — the reflexive route's disjunct `(E i :: ℓ ∈ coverage(eᵢ))` is unreachable (M-Reflexive). The wp collapses:
 
   wp(MAKELINK, discoverable_from(ℓ, d, ·))
     ≡  enabled(MAKELINK)  ∧  (E i :: coverage(eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)
@@ -237,7 +233,7 @@ Hence `ℓ'` is *newly* discoverable from `d` (discoverable at `Σ'` but not at 
 
 This is the LP9 (ExtensionMonotonicity, ASN-0098) growth characterization specialized to MAKELINK's single new V-position `v_ℓ ↦ ℓ`: the set of new projection witnesses is `{v_ℓ}` if `ℓ ∈ coverage(Σ.L(ℓ').eᵢ)`, otherwise `∅`. When `ℓ'` was orphaned at `Σ` (`¬discoverable_from(ℓ', d', Σ)` for every `d'`), this is exactly the LP18 (Resurrection, ASN-0098) pattern with `a* = ℓ` and `d` as the resurrection target.
 
-The side effect can only occur when `ℓ'` was authored with an endset whose span coverage extends to addresses not yet allocated at authoring time. Such forward-reaching endsets are permitted by L4 (EndsetGenerality, ASN-0043) — endset spans may reference any addresses in the tumbler space, including those not currently in `dom(C) ∪ dom(L)`. MAKELINK's allocation of `ℓ` "fills in" a previously-uncovered region of the address space, retroactively activating any prior endset that had pre-emptively claimed it. When `ℓ'` was authored under standard authoring at its own authoring state — `StandardAuthoring(Σ.L(ℓ').eᵢ, Σ_{ℓ'})` holds at the state `Σ_{ℓ'}` at which `ℓ'` was incorporated, so `coverage(Σ.L(ℓ').eᵢ) ⊆ dom(Σ_{ℓ'}.C) ∪ dom(Σ_{ℓ'}.L)` — no such endset can cover the future fresh `ℓ`, and the side effect is vacuous. The transfer of `ℓ`'s freshness backward from the K.λ allocation state `Σ_ℓ` to the authoring state `Σ_{ℓ'}` (where `Σ_{ℓ'} →* Σ_ℓ`) uses Store Monotonicity★ (ASN-0098): `dom(Σ_{ℓ'}.C) ∪ dom(Σ_{ℓ'}.L) ⊆ dom(Σ_ℓ.C) ∪ dom(Σ_ℓ.L)`, so K.λ's freshness `ℓ ∉ dom(Σ_ℓ.C) ∪ dom(Σ_ℓ.L)` yields `ℓ ∉ dom(Σ_{ℓ'}.C) ∪ dom(Σ_{ℓ'}.L)`; chaining with the standard-authoring inclusion at `Σ_{ℓ'}` gives `ℓ ∉ coverage(Σ.L(ℓ').eᵢ)`.
+The side effect can only occur when `ℓ'` was authored with an endset whose span coverage extends to addresses not yet allocated at authoring time. Such forward-reaching endsets are permitted by L4 (EndsetGenerality, ASN-0043) — endset spans may reference any addresses in the tumbler space, including those not currently in `dom(C) ∪ dom(L)`. MAKELINK's allocation of `ℓ` "fills in" a previously-uncovered region of the address space, retroactively activating any prior endset that had pre-emptively claimed it. When `ℓ'` was authored under standard authoring at its own authoring state — `StandardAuthoring(Σ.L(ℓ').eᵢ, Σ_{ℓ'})` holds at the state `Σ_{ℓ'}` at which `ℓ'` was incorporated, so `coverage(Σ.L(ℓ').eᵢ) ∩ F ⊆ dom(Σ_{ℓ'}.C) ∪ dom(Σ_{ℓ'}.L)` — no such endset can cover the future fresh `ℓ`, and the side effect is vacuous. The transfer of `ℓ`'s freshness backward from the K.λ allocation state `Σ_ℓ` to the authoring state `Σ_{ℓ'}` (where `Σ_{ℓ'} →* Σ_ℓ`) uses Store Monotonicity★ (ASN-0098): `dom(Σ_{ℓ'}.C) ∪ dom(Σ_{ℓ'}.L) ⊆ dom(Σ_ℓ.C) ∪ dom(Σ_ℓ.L)`, so K.λ's freshness `ℓ ∉ dom(Σ_ℓ.C) ∪ dom(Σ_ℓ.L)` yields `ℓ ∉ dom(Σ_{ℓ'}.C) ∪ dom(Σ_{ℓ'}.L)`. Since `ℓ ∈ F` (LP-Sub), were `ℓ ∈ coverage(Σ.L(ℓ').eᵢ)` we would have `ℓ ∈ coverage(Σ.L(ℓ').eᵢ) ∩ F ⊆ dom(Σ_{ℓ'}.C) ∪ dom(Σ_{ℓ'}.L)`, contradicting the freshness just transferred; hence `ℓ ∉ coverage(Σ.L(ℓ').eᵢ)`.
 
 For `d_target ≠ d`, `Σ'.M(d_target) = Σ.M(d_target)`, so prior-link discoverability is unchanged; the side-effect window is the home document `d` (M-PriorLinkDisc).
 
@@ -349,7 +345,7 @@ MAKELINK performs *no permission check on referenced content*. It does not verif
 | M-Frame | `Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`; existing entries in `L` and in `M(d')` for `d' ≠ d` are unchanged. | introduced |
 | M-NoContentEffect | For every `a ∈ dom(Σ.C)`: `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The referenced content is byte-identical before and after MAKELINK. | introduced |
 | M-DiscSymmetry | For the standard content-reach route, discoverability of `ℓ` is symmetric across all documents whose arrangements reach into an endset coverage — LP12 grants the home document no privileged status. The reflexive route is the home document's alone, since MAKELINK places `ℓ` into its arrangement and no other. | introduced |
-| StandardAuthoring | `StandardAuthoring(e, Σ) ≡ coverage(e) ⊆ dom(Σ.C) ∪ dom(Σ.L)` — a structural predicate on endset values at a state. A link's endset sequence is standardly authored at `Σ` iff every constituent endset satisfies the predicate. | introduced |
+| StandardAuthoring | `StandardAuthoring(e, Σ) ≡ coverage(e) ∩ F ⊆ dom(Σ.C) ∪ dom(Σ.L)`, where `F` is ASN-0098's set of substrate-emittable addresses — a structural predicate on endset values at a state. The intersection with `F` is essential: unrestricted coverage is infinite (T0(a)/T0(b)), hence never contained in the finite stores. A link's endset sequence is standardly authored at `Σ` iff every constituent endset satisfies the predicate. | introduced |
 | M-Reflexive | If `ℓ ∈ coverage(eᵢ)` for some `i` (the reflexive endset case), then `v_ℓ ∈ project(ℓ, i, d, Σ')` and `discoverable_from(ℓ, d, Σ')` is forced true regardless of `Σ.M(d)`'s pre-existing arrangement. Under `(A i : StandardAuthoring(eᵢ, Σ))` the reflexive case is structurally excluded. | introduced |
 | M-PriorLinkDisc | For every prior link `ℓ' ∈ dom(Σ.L)`: from the home document `d`, `discoverable_from(ℓ', d, Σ') ⟺ discoverable_from(ℓ', d, Σ) ∨ (E i :: ℓ ∈ coverage(Σ.L(ℓ').eᵢ))` — newly discoverable precisely when some endset of `ℓ'` covers `ℓ`; from any `d_target ≠ d`, `discoverable_from(ℓ', d_target, Σ') = discoverable_from(ℓ', d_target, Σ)`. The side-effect window is confined to the home document. | introduced |
 | M-WP | Post-MAKELINK discoverability has explicit weakest preconditions (total correctness): for `d_target ≠ d`, `wp ≡ enabled(MAKELINK) ∧ d_target ∈ dom(Σ.M) ∧ (E i :: coverage(eᵢ) ∩ ran(Σ.M(d_target)) ≠ ∅)`; for `d_target = d`, `wp ≡ enabled(MAKELINK) ∧ [(E i :: coverage(eᵢ) ∩ ran(Σ.M(d)) ≠ ∅) ∨ (E i :: ℓ ∈ coverage(eᵢ))]`. Under `(A i : StandardAuthoring(eᵢ, Σ))` the reflexive disjunct collapses and the two shapes coincide. | introduced |
