@@ -24,7 +24,7 @@ We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc
 
 *Endsets and emptiness.* L3 (ASN-0043) requires the third slot `e₃` to be non-empty but imposes no non-emptiness constraint on the other slots. The empty endset `eᵢ = ∅` is a permitted boundary case for `i ≠ 3`: by the coverage definition, `coverage(∅) = ⋃_{(s,ℓ) ∈ ∅} … = ∅`, so an empty slot contributes nothing to any `project(ℓ, i, ·, ·)` and nothing to any LP12-based discoverability disjunct.
 
-*Standard authoring.* An endset `e` is *standardly authored at state `Σ`* iff every *substrate-emittable* address it covers already resides in the substrate — coverage intersected with `F`, ASN-0098's set of substrate-emittable addresses (the only set K.α and K.λ allocate from, with `dom(Σ.C) ∪ dom(Σ.L) ⊆ F` by LP-Sub; intersecting with `F` keeps the condition non-vacuous against the finite stores C-fin, L-fin):
+*Standard authoring.* An endset `e` is *standardly authored at state `Σ`* iff every *substrate-emittable* address it covers already resides in the substrate — coverage intersected with `F`, ASN-0098's set of substrate-emittable addresses (the only set K.α and K.λ allocate from, with `dom(Σ.C) ∪ dom(Σ.L) ⊆ F` by LP-Sub):
 
   StandardAuthoring(e, Σ)  ≡  coverage(e) ∩ F  ⊆  dom(Σ.C) ∪ dom(Σ.L)
 
@@ -329,7 +329,7 @@ By SequentialTransitionAxiom (ASN-0093), K.λ commits to `Σ_mid` before K.μ⁺
 
 Because K.λ's frame fixes `M`, `Σ_mid.M = Σ.M`, so the discoverability difference between `Σ_mid` and `Σ'` is exactly the `Σ → Σ'` delta already computed: it agrees for every `d_target ≠ d` (M-WP, Case 1), and for `d_target = d` the two values agree unless some endset reflexively covers `ℓ` (M-Reflexive).
 
-The substrate provides no composite-level atomicity. A reader observing `Σ_mid` would see the link in `dom(L)` but not in `M(d)`. Composite-level atomicity is not a substrate guarantee.
+A reader observing `Σ_mid` would see the link in `dom(L)` but not in `M(d)`.
 
 ## Permanence
 
