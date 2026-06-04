@@ -24,19 +24,19 @@ We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc
 
 *Endsets and emptiness.* L3 (ASN-0043) requires the third slot `e₃` to be non-empty but imposes no non-emptiness constraint on the other slots. The empty endset `eᵢ = ∅` is a permitted boundary case for `i ≠ 3`: by the coverage definition, `coverage(∅) = ⋃_{(s,ℓ) ∈ ∅} … = ∅`, so an empty slot contributes nothing to any `project(ℓ, i, ·, ·)` and nothing to any LP12-based discoverability disjunct.
 
-*Standard authoring.* An endset `e` is *standardly authored at state `Σ`* iff every *substrate-emittable* address it covers already resides in the substrate. We intersect coverage with `F` — ASN-0098's set of substrate-emittable addresses — because `coverage(e)` is infinite while the stores are finite (C-fin, L-fin), so unrestricted `coverage(e) ⊆ dom(Σ.C) ∪ dom(Σ.L)` would be vacuous; `F` is the only set K.α and K.λ allocate from, with `dom(Σ.C) ∪ dom(Σ.L) ⊆ F` by LP-Sub:
+*Standard authoring.* An endset `e` is *standardly authored at state `Σ`* iff every *substrate-emittable* address it covers already resides in the substrate — coverage intersected with `F`, ASN-0098's set of substrate-emittable addresses (the only set K.α and K.λ allocate from, with `dom(Σ.C) ∪ dom(Σ.L) ⊆ F` by LP-Sub; intersecting with `F` keeps the condition non-vacuous against the finite stores C-fin, L-fin):
 
   StandardAuthoring(e, Σ)  ≡  coverage(e) ∩ F  ⊆  dom(Σ.C) ∪ dom(Σ.L)
 
 A link's input endset sequence `(e₁, ..., eₙ)` is standardly authored at `Σ` iff `StandardAuthoring(eᵢ, Σ)` holds for every `i ∈ {1, ..., N}`. The discipline rules out forward-reaching endsets that pre-emptively cover not-yet-allocated substrate addresses.
 
-*Fresh-address exclusion (M-FreshExcl).* We state the exclusion generically, so that both the home-link use here and the prior-link reuse in *Side Effects on Prior Links' Discoverability* are instances of one stated form. For any `x ∈ F` with `x ∉ dom(Σ.C) ∪ dom(Σ.L)` and any endset `e` satisfying `StandardAuthoring(e, Σ)`:
+*Fresh-address exclusion (M-FreshExcl).* For any `x ∈ F` with `x ∉ dom(Σ.C) ∪ dom(Σ.L)` and any endset `e` satisfying `StandardAuthoring(e, Σ)`:
 
   x ∉ coverage(e)
 
-The derivation is immediate — were `x ∈ coverage(e)`, then `x ∈ coverage(e) ∩ F ⊆ dom(Σ.C) ∪ dom(Σ.L)` by standard authoring, contradicting `x ∉ dom(Σ.C) ∪ dom(Σ.L)`. We cite this derivation downstream as M-FreshExcl.
+The derivation is immediate — were `x ∈ coverage(e)`, then `x ∈ coverage(e) ∩ F ⊆ dom(Σ.C) ∪ dom(Σ.L)` by standard authoring, contradicting `x ∉ dom(Σ.C) ∪ dom(Σ.L)`.
 
-The home-link application instantiates M-FreshExcl at `x = ℓ`, the fresh link address. To do so we must establish `ℓ ∈ F` — and *not* by LP-Sub, whose inclusion `dom(Σ.C) ∪ dom(Σ.L) ⊆ F` (ASN-0098) ranges only over already-stored addresses and so says nothing about the fresh `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. Instead: `ℓ` is an `A_L(d)` emission, so FirstEmission and ChainDiscipline (ASN-0093) fix its form `[d, 0, s_L, k]` with `k ≥ 1`; `origin(ℓ) = d` with `d` T4-valid and `zeros(d) = 2` by M0 (ASN-0093); F's definition then yields `ℓ ∈ F`. When `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`, M-FreshExcl at `x = ℓ` gives `ℓ ∉ coverage(eᵢ)` for every standardly authored `eᵢ`.
+The home-link application instantiates M-FreshExcl at `x = ℓ`, the fresh link address. We establish `ℓ ∈ F` structurally: `ℓ` is an `A_L(d)` emission, so FirstEmission and ChainDiscipline (ASN-0093) fix its form `[d, 0, s_L, k]` with `k ≥ 1`; `origin(ℓ) = d` with `d` T4-valid and `zeros(d) = 2` by M0 (ASN-0093); F's definition then yields `ℓ ∈ F`. When `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`, M-FreshExcl at `x = ℓ` gives `ℓ ∉ coverage(eᵢ)` for every standardly authored `eᵢ`.
 
 ## Decomposition
 
@@ -325,11 +325,11 @@ In the intermediate state `Σ_mid` between K.λ and K.μ⁺_L:
 - `ℓ ∉ ran(Σ_mid.M(d))` — the link is not yet visible in any V-arrangement (derived in Preconditions).
 - `discoverable_from(ℓ, d_target, Σ_mid)` is well-defined for every `d_target ∈ dom(Σ_mid.M) = dom(Σ.M)` since `ℓ ∈ dom(Σ_mid.L)` and `Σ_mid.L(ℓ) = (e₁, ..., eₙ)`.
 
-`Σ_mid` is a fully reachable state, not a transitional artifact: by SequentialTransitionAxiom (ASN-0093), K.λ commits before K.μ⁺_L begins, so K.λ on `Σ` yields a complete state `Σ_mid` against which K.μ⁺_L's precondition is evaluated. K.λ is an atomic substrate operation that ASN-0093/ASN-0047 establish to preserve the per-state invariants on reachable states, so `Σ_mid` inherits them.
+By SequentialTransitionAxiom (ASN-0093), K.λ commits to `Σ_mid` before K.μ⁺_L's precondition is evaluated. K.λ is an atomic substrate operation that ASN-0093/ASN-0047 establish to preserve the per-state invariants on reachable states, so `Σ_mid` inherits them.
 
 Because K.λ's frame fixes `M`, `Σ_mid.M = Σ.M`, so the discoverability difference between `Σ_mid` and `Σ'` is exactly the `Σ → Σ'` delta already computed: it agrees for every `d_target ≠ d` (M-WP, Case 1), and for `d_target = d` the two values agree unless some endset reflexively covers `ℓ` (M-Reflexive).
 
-The substrate provides no composite-level atomicity. A reader observing `Σ_mid` would see the link in `dom(L)` but not in `M(d)`. If this intermediate visibility is undesirable — if MAKELINK must appear as a single event — the protocol layer above must enforce it, typically by sequencing both atomic transitions within a single request-response cycle. Composite-level atomicity is thus a protocol-layer guarantee, not a substrate-level one.
+The substrate provides no composite-level atomicity. A reader observing `Σ_mid` would see the link in `dom(L)` but not in `M(d)`. Composite-level atomicity is not a substrate guarantee.
 
 ## Permanence
 
