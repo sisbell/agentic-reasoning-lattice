@@ -18,7 +18,7 @@ What must the caller supply?
 
 The caller does *not* specify the link's address or its V-position in the home document — neither is an operation *parameter*. The address `ℓ` is *derived* by the system from the current state (the next emission of `A_L(d)`); the V-position `v_ℓ` is derived from the current state together with the canonical-depth convention M-DepthConv below — its serial component fixed by the link subspace's current cardinality, its depth fixed per M-DepthConv.
 
-*Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`. MAKELINK commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined. For any document `d` whose link V-positions were all placed by MAKELINK, `m_L(d) = 2`.
+*Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`. MAKELINK commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined.
 
 We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc` by M1, ArrangementMonotonicity, ASN-0047).
 
@@ -219,10 +219,6 @@ As a wp (the membership clause subsumed by `enabled(MAKELINK)` here, since `d_ta
 
 — the same shape as Case 1 (with `d_target := d`; the two enabledness-and-membership conjuncts coincide there into `enabled(MAKELINK)`, since the home and target documents are one). Under standard authoring, home-document discoverability requires `d`'s arrangement to reach into some endset's coverage; there is no automatic "self-discovery" of `ℓ` from `d` (M-DiscSymmetry).
 
-## What Does Not Change
-
-The frame `Σ'.C = Σ.C` holds (Effect; M-Frame): the referenced content is byte-identical before and after MAKELINK. The substantive point is that the link's endsets *reference* I-addresses in `dom(C)`, but referencing is read-only — the endset stores spans (start, length pairs), not the bytes at those addresses, so link creation cannot perturb content.
-
 ## Side Effects on Prior Links' Discoverability
 
 Although the frame `(A ℓ' ∈ dom(Σ.L) :: Σ'.L(ℓ') = Σ.L(ℓ'))` preserves every prior link's value, `ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {ℓ}` gains the new address. Discoverability is a derived property of `(L, M)`, not a state component the frame can directly assert about — so the frame does not, by itself, exclude a change in `discoverable_from(ℓ', ·, ·)` for prior links `ℓ'`.
@@ -337,9 +333,9 @@ By SequentialTransitionAxiom (ASN-0093), K.λ commits to `Σ_mid` before K.μ⁺
 
 Because K.λ's frame fixes `M`, `Σ_mid.M = Σ.M`, so the discoverability difference between `Σ_mid` and `Σ'` is exactly the `Σ → Σ'` delta already computed: it agrees for every `d_target ≠ d` (M-WP, Case 1), and for `d_target = d` the two values agree unless some endset reflexively covers `ℓ` (M-Reflexive).
 
-## Permanence
+## Permanence of the Binding
 
-*Permanence of the Recording* established that the link's identity and value are permanent (M-Perm). Taking that as given, what remains to characterize is the V-position binding `v_ℓ ↦ ℓ` in the home document, which is less permanent — but the *only* mutation available to it is removal. K.μ~ (reordering) cannot rebind it: by K.μ~'s admissibility clause (v), *link-subspace fixing* (ASN-0047), the witnessing bijection satisfies `π(v) = v` for every link-subspace V-position `v ∈ dom_L(M(d))`. Since `v_ℓ` is a link V-position, `π(v_ℓ) = v_ℓ`, and the bijection equation gives `M'(d)(v_ℓ) = M(d)(v_ℓ) = ℓ`; the binding `v_ℓ ↦ ℓ` is therefore *invariant* under every K.μ~ transition. The link subspace is fixed pointwise by reordering. The sole operation that can alter the binding is K.μ⁻ (contraction), which may drop `v_ℓ` from `dom(M(d))` entirely. Thus the binding is mutable only by removal, never by re-binding: whether `v_ℓ ↦ ℓ` remains present in the home document's link-subspace arrangement is the one impermanent aspect of the recording.
+The V-position binding `v_ℓ ↦ ℓ` in the home document is less permanent than the link's identity and value — but the *only* mutation available to it is removal. K.μ~ (reordering) cannot rebind it: by K.μ~'s admissibility clause (v), *link-subspace fixing* (ASN-0047), the witnessing bijection satisfies `π(v) = v` for every link-subspace V-position `v ∈ dom_L(M(d))`. Since `v_ℓ` is a link V-position, `π(v_ℓ) = v_ℓ`, and the bijection equation gives `M'(d)(v_ℓ) = M(d)(v_ℓ) = ℓ`; the binding `v_ℓ ↦ ℓ` is therefore *invariant* under every K.μ~ transition. The link subspace is fixed pointwise by reordering. The sole operation that can alter the binding is K.μ⁻ (contraction), which may drop `v_ℓ` from `dom(M(d))` entirely. Thus the binding is mutable only by removal, never by re-binding: whether `v_ℓ ↦ ℓ` remains present in the home document's link-subspace arrangement is the one impermanent aspect of the recording.
 
 Even if `v_ℓ` is later removed from `dom(M(d))`, the link is still in `dom(L)` and still discoverable when conditions warrant. By LP17 (ASN-0098), a link orphaned from all V-arrangements remains in the store; by LP18, it becomes discoverable again when any document later transcludes content covered by its endsets.
 
