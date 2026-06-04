@@ -53,8 +53,10 @@ ASN-0047's K.μ~ precondition `d ∈ E_doc` discharges RA-reg directly: ASN-0047
 | (i) induced post-state satisfies the shape package (S8a, S8-depth, D-CTG★, D-MIN★) | split by predicate kind. (a) S8a (`zeros(v) = 0`, `#v ≥ 2`, positive components) is a *per-position* predicate: by RA-dom the domain is unchanged (`dom(Σ'.M(d)) = dom(Σ.M(d))`), so each surviving position satisfies S8a at Σ' exactly as it did at Σ. (b) D-CTG★, D-MIN★, and S8-depth are *set-level* predicates of `V_S(d)`; since `subspace(v)` is a function of `v` alone, RA-dom forces `V_S(Σ'.M(d)) = V_S(Σ.M(d))` for every subspace S, so each set-level predicate carries over verbatim. The bijection π reshuffles images but leaves the populated V-position set fixed, so it is irrelevant to (b) |
 | (ii) non-trivial net effect `M'(d) ≠ M(d)` | holds by hypothesis in the non-trivial case of the net-effect split established above |
 | (iii) length-preserving `#π(v) = #v` | from the construction: each affected source position `v = cᵢ + j` and its image are ordinal shifts of a depth-2 cut, so by CS4 (`#cᵢ = 2`) and ASN-0034's OrdinalShift length identity `#shift(t, n) = #t`, `#π(v) = #v = 2`; exterior and non-S positions are fixed pointwise by R-PPERM/R-SPERM |
-| (iv) subspace-preserving `subspace(π(v)) = subspace(v)` | Directly from the R-PPERM/R-SPERM branch structure: non-S and in-S-exterior positions are fixed (`π(v) = v`), so subspace is trivially preserved; every affected-range position `v` has the cut subspace S (by CS3), and R-PPERM/R-SPERM map it to a position of the form `c₀ + (offset)`, which shares c₀'s subspace S, so `subspace(π(v)) = S = subspace(v)` (ASN-0036's OrdShiftHom(a)). Discharged from the cut-sequence construction alone |
+| (iv) subspace-preserving `subspace(π(v)) = subspace(v)` | Directly from the R-PPERM/R-SPERM branch structure: non-S and in-S-exterior positions are fixed (`π(v) = v`), so subspace is trivially preserved; every affected-range position `v` lies in `V_S(d)` (by R-PRE(iv), the regions α, μ, β are subsets of `V_S(d)` per RegionPartition), so `subspace(v) = S` by definition of `V_S(d)`, and R-PPERM/R-SPERM map it to a position of the form `c₀ + (offset)`, which shares c₀'s subspace S, so `subspace(π(v)) = S = subspace(v)` (ASN-0036's OrdShiftHom(a)). Discharged from the cut-sequence construction alone |
 | (v) link-subspace fixing `π(v) = v` on the link subspace | RE-sub: by CS3 the cut subspace is `S = s_C`, so every `subspace(v) = s_L` V-position lies on R-PPERM/R-SPERM's non-S branch, which sets `π(v) = v` pointwise |
+
+*RA-frame discharge.* K.μ~'s ASN-0047 frame `C' = C; E' = E; R' = R; L' = L; M'(d') = M(d')` for `d' ≠ d` matches each conjunct of RA-frame explicitly, save `dom(Σ'.M) = dom(Σ.M)`. That last conjunct follows structurally: neither K.μ⁻ nor K.μ⁺ — the elementary decomposition of K.μ~ — touches the document registry, registration being the exclusive province of K.σ and the K.δ Document case. So no REARRANGE_K step adds or removes a document, and `dom(Σ'.M) = dom(Σ.M)` holds.
 
 RA-adm requires that every per-state foundation invariant holding at Σ hold at Σ'. A per-state invariant holds at every reachable state — ASN-0047's ExtendedReachableStateInvariants gives the per-state foundation invariants at any reachable state — so it suffices to establish Σ' reachable, which we now do.
 
@@ -260,7 +262,7 @@ ASN-0084's R-PPERM and R-SPERM define π directly as the identity on non-S V-pos
 (A v : v ∈ dom(Σ.M(d)) ∧ subspace(v) ≠ S :: π(v) = v ∧ Σ'.M(d)(v) = Σ.M(d)(v))           (RE-sub)
 ```
 
-When the cut subspace is the content subspace, the link subspace is wholly preserved — both its set of populated V-positions, its V→I mapping, *and* the pointwise behaviour of π on those V-positions. Rearrangement of content does not perturb the link arrangement and does not relabel any link-subspace V-position.
+REARRANGE_K's cuts are always content-subspace (CS3 fixes `S = s_C`), so the link subspace is wholly preserved — both its set of populated V-positions, its V→I mapping, *and* the pointwise behaviour of π on those V-positions. Rearrangement of content does not perturb the link arrangement and does not relabel any link-subspace V-position.
 
 ## In-Subspace Exterior Frame (REARRANGE_K-specific)
 
@@ -453,50 +455,50 @@ For mixed sequences interleaving REARRANGE with other transitions, each non-REAR
 
 The *Provenance* column records each claim's premises — abstract, REARRANGE_K, or structural.
 
-| Label | Statement | Provenance | Status |
-|-------|-----------|-----------|--------|
-| RA-reg | Rearrangement registration precondition: d ∈ dom(Σ.M) | abstract (definition) | introduced |
-| RA-dom | Rearrangement domain stability: dom(Σ'.M(d)) = dom(Σ.M(d)) | abstract (definition); REARRANGE_K realisation: ASN-0084's PivotPostcondition / SwapPostcondition domain clause dom(M'(d)) = dom(M(d)) | introduced |
-| RA-π | Rearrangement equation: π : dom(Σ.M(d)) → dom(Σ'.M(d)) is a bijection with Σ'.M(d)(π(v)) = Σ.M(d)(v) for every v ∈ dom(Σ.M(d)) | abstract (definition); REARRANGE_K realisation: ASN-0084's R-PPERM (3-cut) / R-SPERM (4-cut), each a bijection of dom(Σ.M(d)) onto dom(Σ'.M(d)) with Σ'.M(d)(π(v)) = Σ.M(d)(v) | introduced |
-| RA-frame | Rearrangement frame: Σ'.C = Σ.C, Σ'.L = Σ.L, Σ'.E = Σ.E, Σ'.R = Σ.R, dom(Σ'.M) = dom(Σ.M), and Σ'.M(d') = Σ.M(d') for every d' ∈ dom(Σ.M) with d' ≠ d | abstract (definition); REARRANGE_K realisation: K.μ~'s ASN-0047 frame (C' = C; E' = E; R' = R; L' = L; M'(d') = M(d') for d' ≠ d) matches each conjunct explicitly except dom(Σ'.M) = dom(Σ.M), which follows structurally since neither K.μ⁻ nor K.μ⁺ touches the document registry (registration is the exclusive province of K.σ and K.δ Document case) | introduced |
-| RA-adm | Rearrangement admissibility: every per-state foundation invariant satisfied by Σ is satisfied by Σ' | abstract (definition); REARRANGE_K realisation: the K.μ~-validity / empty-composite argument makes Σ' reachable, whence the per-state foundation invariants follow at Σ' | introduced |
-| RE-C | Content-store invariance: Σ'.C = Σ.C under REARRANGE | abstract (from RA-frame) | introduced |
-| RE-dom | Domain stability: dom(Σ'.M(d)) = dom(Σ.M(d)) | abstract (from RA-dom) | introduced |
-| RE-ran | Range invariance: ran(Σ'.M(d')) = ran(Σ.M(d')) for every d' ∈ dom(Σ.M) | abstract (target case from RA-π; non-target case from RA-frame's other-document clause) | introduced |
-| RE-μ | Per-address multiplicity invariance: μ_a(Σ'.M(d')) = μ_a(Σ.M(d')) for every I-address a and every d' ∈ dom(Σ.M) | abstract (target case from RA-π; non-target case from RA-frame's other-document clause) | introduced |
-| RE-L | Link store invariance: dom(Σ'.L) = dom(Σ.L) and Σ'.L(a) = Σ.L(a) for every a ∈ dom(Σ.L) | abstract (from RA-frame) | introduced |
-| RE-cov | Coverage invariance: coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ) for every link a and slot i | abstract (from RE-L) | introduced |
-| RE-disc | Discoverability invariance: discoverable_from(a, d, Σ') ⟺ discoverable_from(a, d, Σ) for every link a and document d | abstract (from RE-cov + RE-ran via LP12) | introduced |
-| RE-proj | Projection transport: project(e, d, Σ') = π̂_d(project(e, d, Σ)) for every endset e and every d ∈ dom(Σ.M), where π̂_d := π at the rearrangement target d_tgt and π̂_d := id_{dom(Σ.M(d))} for d ≠ d_tgt. Equivalently at d_tgt: project(e, d_tgt, Σ') = π(project(e, d_tgt, Σ)) | abstract (target case from RA-π + coverage state-independence (ASN-0098); non-target case from RE-other) | introduced |
-| RE-frag | Fragmentation possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) strictly increases | abstract (existential; witnesses are REARRANGE_K) | introduced |
-| RE-coal | Coalescence possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) strictly decreases | abstract (existential; witnesses are REARRANGE_K) | introduced |
-| RE-eq | Cardinality invariance possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) is exactly preserved | abstract (existential; witnesses are REARRANGE_K) | introduced |
-| RE-other | Other-document invariance: Σ'.M(d') = Σ.M(d') for every d' ≠ d | abstract (from RA-frame) | introduced |
-| RE-trans | Transclusion preservation: for every (a, d) with a ∈ ran(Σ.M(d)) and origin(a) ≠ d, (i) a ∈ ran(Σ'.M(d)) and (ii) the multiplicity of a at d is preserved — both unconditional in d; (iii) origin(a)'s arrangement is unchanged when origin(a) ≠ d_tgt (the rearrangement target) | abstract: (i)+(ii) from RE-ran + RE-μ; (iii) from RE-other applied at d' = origin(a), requiring origin(a) ≠ d_tgt | introduced |
-| RE-sub | Subspace frame: for every v ∈ dom(M(d)) with subspace(v) ≠ S, π(v) = v and Σ'.M(d)(v) = Σ.M(d)(v) | REARRANGE_K (π-fixity from R-PPERM/R-SPERM non-S branch; arrangement preservation from R-FRAME-P/S(a)) | introduced |
-| RE-ext | In-subspace exterior frame: for every v ∈ V_S(d) with v < c₀ or v ≥ c_{n−1}, π(v) = v and Σ'.M(d)(v) = Σ.M(d)(v) | REARRANGE_K (π-fixity from R-PPERM/R-SPERM exterior branch; arrangement preservation from R-EXT) | introduced |
-| RE-origin | Origin invariance: origin(a) is unchanged across REARRANGE for every a | structural (state-independent) | introduced |
-| RE-R | Provenance invariance: Σ'.R = Σ.R under REARRANGE | abstract (from RA-frame; equivalently, J3 for REARRANGE_K) | introduced |
+| Label | Statement | Provenance |
+|-------|-----------|-----------|
+| RA-reg | Rearrangement registration precondition: d ∈ dom(Σ.M) | abstract (definition) |
+| RA-dom | Rearrangement domain stability: dom(Σ'.M(d)) = dom(Σ.M(d)) | abstract (definition); REARRANGE_K realisation: ASN-0084's PivotPostcondition / SwapPostcondition domain clause dom(M'(d)) = dom(M(d)) |
+| RA-π | Rearrangement equation: π : dom(Σ.M(d)) → dom(Σ'.M(d)) is a bijection with Σ'.M(d)(π(v)) = Σ.M(d)(v) for every v ∈ dom(Σ.M(d)) | abstract (definition); REARRANGE_K realisation: ASN-0084's R-PPERM (3-cut) / R-SPERM (4-cut), each a bijection of dom(Σ.M(d)) onto dom(Σ'.M(d)) with Σ'.M(d)(π(v)) = Σ.M(d)(v) |
+| RA-frame | Rearrangement frame: Σ'.C = Σ.C, Σ'.L = Σ.L, Σ'.E = Σ.E, Σ'.R = Σ.R, dom(Σ'.M) = dom(Σ.M), and Σ'.M(d') = Σ.M(d') for every d' ∈ dom(Σ.M) with d' ≠ d | abstract (definition); REARRANGE_K realisation discharged in the "RA-frame discharge" paragraph above |
+| RA-adm | Rearrangement admissibility: every per-state foundation invariant satisfied by Σ is satisfied by Σ' | abstract (definition); REARRANGE_K realisation: the K.μ~-validity / empty-composite argument makes Σ' reachable, whence the per-state foundation invariants follow at Σ' |
+| RE-C | Content-store invariance: Σ'.C = Σ.C under REARRANGE | abstract (from RA-frame) |
+| RE-dom | Domain stability: dom(Σ'.M(d)) = dom(Σ.M(d)) | abstract (from RA-dom) |
+| RE-ran | Range invariance: ran(Σ'.M(d')) = ran(Σ.M(d')) for every d' ∈ dom(Σ.M) | abstract (target case from RA-π; non-target case from RA-frame's other-document clause) |
+| RE-μ | Per-address multiplicity invariance: μ_a(Σ'.M(d')) = μ_a(Σ.M(d')) for every I-address a and every d' ∈ dom(Σ.M) | abstract (target case from RA-π; non-target case from RA-frame's other-document clause) |
+| RE-L | Link store invariance: dom(Σ'.L) = dom(Σ.L) and Σ'.L(a) = Σ.L(a) for every a ∈ dom(Σ.L) | abstract (from RA-frame) |
+| RE-cov | Coverage invariance: coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ) for every link a and slot i | abstract (from RE-L) |
+| RE-disc | Discoverability invariance: discoverable_from(a, d, Σ') ⟺ discoverable_from(a, d, Σ) for every link a and document d | abstract (from RE-cov + RE-ran via LP12) |
+| RE-proj | Projection transport: project(e, d, Σ') = π̂_d(project(e, d, Σ)) for every endset e and every d ∈ dom(Σ.M), where π̂_d := π at the rearrangement target d_tgt and π̂_d := id_{dom(Σ.M(d))} for d ≠ d_tgt. Equivalently at d_tgt: project(e, d_tgt, Σ') = π(project(e, d_tgt, Σ)) | abstract (target case from RA-π + coverage state-independence (ASN-0098); non-target case from RE-other) |
+| RE-frag | Fragmentation possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) strictly increases | abstract (existential; witnesses are REARRANGE_K) |
+| RE-coal | Coalescence possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) strictly decreases | abstract (existential; witnesses are REARRANGE_K) |
+| RE-eq | Cardinality invariance possibility: there exist REARRANGE instances where the maximal-run-decomposition cardinality of M(d) is exactly preserved | abstract (existential; witnesses are REARRANGE_K) |
+| RE-other | Other-document invariance: Σ'.M(d') = Σ.M(d') for every d' ≠ d | abstract (from RA-frame) |
+| RE-trans | Transclusion preservation: for every (a, d) with a ∈ ran(Σ.M(d)) and origin(a) ≠ d, (i) a ∈ ran(Σ'.M(d)) and (ii) the multiplicity of a at d is preserved — both unconditional in d; (iii) origin(a)'s arrangement is unchanged when origin(a) ≠ d_tgt (the rearrangement target) | abstract: (i)+(ii) from RE-ran + RE-μ; (iii) from RE-other applied at d' = origin(a), requiring origin(a) ≠ d_tgt |
+| RE-sub | Subspace frame: for every v ∈ dom(M(d)) with subspace(v) ≠ S, π(v) = v and Σ'.M(d)(v) = Σ.M(d)(v) | REARRANGE_K (π-fixity from R-PPERM/R-SPERM non-S branch; arrangement preservation from R-FRAME-P/S(a)) |
+| RE-ext | In-subspace exterior frame: for every v ∈ V_S(d) with v < c₀ or v ≥ c_{n−1}, π(v) = v and Σ'.M(d)(v) = Σ.M(d)(v) | REARRANGE_K (π-fixity from R-PPERM/R-SPERM exterior branch; arrangement preservation from R-EXT) |
+| RE-origin | Origin invariance: origin(a) is unchanged across REARRANGE for every a | structural (state-independent) |
+| RE-R | Provenance invariance: Σ'.R = Σ.R under REARRANGE | abstract (from RA-frame; equivalently, J3 for REARRANGE_K) |
 
 The ★ forms catalog the multi-step composed claims derived in the "Composition Across Multi-Step REARRANGE Sequences" section, for a finite sequence of REARRANGE-only transitions `Σ_0 →_R Σ_1 →_R ⋯ →_R Σ_n`. The *Composition Conditions* column records the restriction (if any) under which each ★ form holds.
 
-| Label | Statement | Composition Conditions | Provenance | Status |
-|-------|-----------|------------------------|-----------|--------|
-| RE-C★ | Multi-step content-store invariance: Σ_n.C = Σ_0.C | none | abstract (from RE-C) | introduced |
-| RE-L★ | Multi-step link-store invariance: dom(Σ_n.L) = dom(Σ_0.L) and Σ_n.L(a) = Σ_0.L(a) for every a ∈ dom(Σ_0.L) | none | abstract (from RE-L) | introduced |
-| RE-R★ | Multi-step provenance invariance: Σ_n.R = Σ_0.R | none | abstract (from RE-R) | introduced |
-| RE-dom★ | Multi-step domain stability at fixed d: dom(Σ_n.M(d)) = dom(Σ_0.M(d)) | none | abstract (from RE-dom + RE-other case split) | introduced |
-| RE-ran★ | Multi-step range invariance at fixed d: ran(Σ_n.M(d)) = ran(Σ_0.M(d)) | none | abstract (from RE-ran + RE-other case split) | introduced |
-| RE-μ★ | Multi-step per-address multiplicity invariance: μ_a(Σ_n.M(d)) = μ_a(Σ_0.M(d)) for every I-address a and document d | none | abstract (from RE-μ + RE-other case split) | introduced |
-| RE-cov★ | Multi-step coverage invariance: coverage(Σ_n.L(a).eᵢ) = coverage(Σ_0.L(a).eᵢ) for every link a and slot i | none | abstract (from RE-cov) | introduced |
-| RE-disc★ | Multi-step discoverability invariance: discoverable_from(a, d, Σ_n) ⟺ discoverable_from(a, d, Σ_0) for every link a and document d | none | abstract (from RE-disc) | introduced |
-| RE-proj★ | Multi-step projection transport: project(e, d, Σ_n) = (π̂_n ∘ ⋯ ∘ π̂_1)(project(e, d, Σ_0)), where π̂_i = π_i on steps targeting d and π̂_i = id otherwise | none | abstract (from RE-proj + RE-other) | introduced |
-| RE-other★ | Multi-step other-document invariance at fixed d': Σ_n.M(d') = Σ_0.M(d') | no step in the sequence targets d' | abstract (from RE-other) | introduced |
-| RE-sub★ | Multi-step subspace frame at fixed d: for every v ∈ dom(Σ_0.M(d)) with subspace(v) ≠ S, the V-position remains pointwise fixed and its image is preserved across all steps targeting d | none (per-step RE-sub chains through identity on non-targeting steps) | REARRANGE_K (inherits RE-sub's pointwise-fixity premise) | introduced |
-| RE-ext★ | Multi-step in-subspace exterior frame at fixed d: for every v that lies in the in-S exterior of every targeted step (i.e., for every step `Σᵢ₋₁ →_R Σᵢ` targeting d with cut sequence Kᵢ and cut subspace Sᵢ, v ∈ V_{Sᵢ}(Σᵢ₋₁.M(d)) ∧ (v < c₀,ᵢ ∨ v ≥ c_{n−1},ᵢ), or the step does not target d), the V-position remains pointwise fixed and its image is preserved across all such steps | the v in question must lie in the in-S exterior of every step in the sequence that targets d; for steps not targeting d, RE-other applies and v is fixed unconditionally | REARRANGE_K (inherits RE-ext's pointwise-fixity premise) | introduced |
-| RE-trans★ | Multi-step transclusion preservation: (i) (a, d) transclusion persists and (ii) multiplicity is preserved unconditionally; (iii) origin(a)'s arrangement is unchanged | (iii) requires no step in the sequence targets origin(a); (i)+(ii) require no restriction | abstract (from RE-trans + RE-other case split) | introduced |
-| RE-frag★ / RE-coal★ / RE-eq★ | Arbitrary per-step direction: for every n ≥ 1 and every finite direction sequence (s_1, ..., s_n) ∈ {+, −, =}^n, there exists a multi-step REARRANGE sequence Σ_0 →_R ⋯ →_R Σ_n targeting a single document d such that step i realises direction s_i (+ = strict increase, − = strict decrease, = = exact preservation of run-decomposition cardinality); no uniform per-step monotonicity is asserted, and the concatenation construction (spatial partitioning into disjoint sub-ranges with RE-ext bridging between steps) supplies the per-step realisability | none (existential; concatenation construction proves it) | abstract (from RE-frag/coal/eq single-step witnesses + RE-ext for sub-range pointwise preservation across non-targeting steps) | introduced |
-| RE-origin★ | Multi-step origin invariance: origin(a) is unchanged across the sequence for every I-address a | none | structural (state-independent) | introduced |
+| Label | Statement | Composition Conditions | Provenance |
+|-------|-----------|------------------------|-----------|
+| RE-C★ | Multi-step content-store invariance: Σ_n.C = Σ_0.C | none | abstract (from RE-C) |
+| RE-L★ | Multi-step link-store invariance: dom(Σ_n.L) = dom(Σ_0.L) and Σ_n.L(a) = Σ_0.L(a) for every a ∈ dom(Σ_0.L) | none | abstract (from RE-L) |
+| RE-R★ | Multi-step provenance invariance: Σ_n.R = Σ_0.R | none | abstract (from RE-R) |
+| RE-dom★ | Multi-step domain stability at fixed d: dom(Σ_n.M(d)) = dom(Σ_0.M(d)) | none | abstract (from RE-dom + RE-other case split) |
+| RE-ran★ | Multi-step range invariance at fixed d: ran(Σ_n.M(d)) = ran(Σ_0.M(d)) | none | abstract (from RE-ran + RE-other case split) |
+| RE-μ★ | Multi-step per-address multiplicity invariance: μ_a(Σ_n.M(d)) = μ_a(Σ_0.M(d)) for every I-address a and document d | none | abstract (from RE-μ + RE-other case split) |
+| RE-cov★ | Multi-step coverage invariance: coverage(Σ_n.L(a).eᵢ) = coverage(Σ_0.L(a).eᵢ) for every link a and slot i | none | abstract (from RE-cov) |
+| RE-disc★ | Multi-step discoverability invariance: discoverable_from(a, d, Σ_n) ⟺ discoverable_from(a, d, Σ_0) for every link a and document d | none | abstract (from RE-disc) |
+| RE-proj★ | Multi-step projection transport: project(e, d, Σ_n) = (π̂_n ∘ ⋯ ∘ π̂_1)(project(e, d, Σ_0)), where π̂_i = π_i on steps targeting d and π̂_i = id otherwise | none | abstract (from RE-proj + RE-other) |
+| RE-other★ | Multi-step other-document invariance at fixed d': Σ_n.M(d') = Σ_0.M(d') | no step in the sequence targets d' | abstract (from RE-other) |
+| RE-sub★ | Multi-step subspace frame at fixed d: for every v ∈ dom(Σ_0.M(d)) with subspace(v) ≠ S, the V-position remains pointwise fixed and its image is preserved across all steps targeting d | none (per-step RE-sub chains through identity on non-targeting steps) | REARRANGE_K (inherits RE-sub's pointwise-fixity premise) |
+| RE-ext★ | Multi-step in-subspace exterior frame at fixed d: for every v that lies in the in-S exterior of every targeted step (i.e., for every step `Σᵢ₋₁ →_R Σᵢ` targeting d with cut sequence Kᵢ and cut subspace Sᵢ, v ∈ V_{Sᵢ}(Σᵢ₋₁.M(d)) ∧ (v < c₀,ᵢ ∨ v ≥ c_{n−1},ᵢ), or the step does not target d), the V-position remains pointwise fixed and its image is preserved across all such steps | the v in question must lie in the in-S exterior of every step in the sequence that targets d; for steps not targeting d, RE-other applies and v is fixed unconditionally | REARRANGE_K (inherits RE-ext's pointwise-fixity premise) |
+| RE-trans★ | Multi-step transclusion preservation: (i) (a, d) transclusion persists and (ii) multiplicity is preserved unconditionally; (iii) origin(a)'s arrangement is unchanged | (iii) requires no step in the sequence targets origin(a); (i)+(ii) require no restriction | abstract (from RE-trans + RE-other case split) |
+| RE-frag★ / RE-coal★ / RE-eq★ | Arbitrary per-step direction: for every n ≥ 1 and every finite direction sequence (s_1, ..., s_n) ∈ {+, −, =}^n, there exists a multi-step REARRANGE sequence Σ_0 →_R ⋯ →_R Σ_n targeting a single document d such that step i realises direction s_i (+ = strict increase, − = strict decrease, = = exact preservation of run-decomposition cardinality); no uniform per-step monotonicity is asserted, and the concatenation construction (spatial partitioning into disjoint sub-ranges with RE-ext bridging between steps) supplies the per-step realisability | none (existential; concatenation construction proves it) | abstract (from RE-frag/coal/eq single-step witnesses + RE-ext for sub-range pointwise preservation across non-targeting steps) |
+| RE-origin★ | Multi-step origin invariance: origin(a) is unchanged across the sequence for every I-address a | none | structural (state-independent) |
 
 ## Open Questions
 
