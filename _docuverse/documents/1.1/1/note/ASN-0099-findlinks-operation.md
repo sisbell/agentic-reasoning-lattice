@@ -186,7 +186,7 @@ PerLinkInvarianceUnderValuePreservation — sub-lemma:
 
 ## Arrangement Independence
 
-The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. The operationally salient frame condition exercised by editing operations rests on a structural lemma of the substrate: that operations other than K.λ preserve `Σ.L`. This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, M, E, R)`, so the operative vocabulary is ASN-0047's extended-state vocabulary (ValidComposite★), with document registration performed by K.δ (Document case). Throughout this ASN we call an operation *non-allocating* (equivalently *link-store-inert*) when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}`. The term names link-store inertness specifically and does *not* exclude content allocation: K.α (ContentAllocation) is non-allocating in this sense because it extends `dom(C)`, never `dom(L)`. We package the preservation lemma:
+The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. The operationally salient frame condition exercised by editing operations rests on a structural lemma of the substrate: that operations other than K.λ preserve `Σ.L`. This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, M, E, R)`, so the operative vocabulary is ASN-0047's extended-state vocabulary (ValidComposite★), with document registration performed by K.δ (Document case). Throughout this ASN we call an operation *link-store-inert* when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}`. We package the preservation lemma:
 
 ```
 A1a (PublishedFramePreservation):
@@ -198,18 +198,17 @@ A1a (PublishedFramePreservation):
 ```
 
 ```
-A1 (LinkStoreInertOfNonAllocatingOperations) — corollary of A1a:
-   For every transition Σ → Σ' produced by an operation in V ∖ {K.λ}
-   the link store is preserved (A1a for the atomic operations; K.μ~,
-   the non-atomic K.μ⁻ + K.μ⁺ composite, by transitive composition of
-   A1a at its two constituents). Equivalently, K.λ is the unique
-   operation of V that modifies the link store.
+A1 (KλUniqueLinkStoreModifier) — corollary of A1a:
+   The composite K.μ~ (the non-atomic K.μ⁻ + K.μ⁺ composite) preserves
+   the link store by transitive composition of A1a at its two
+   constituents. With A1a covering the atomic operations, K.λ is
+   therefore the unique operation of V that modifies the link store.
    (V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ} — ASN-0047's
    extended-state vocabulary, ValidComposite★.)
 ```
 
 ```
-F9 (NonAllocatingPreservation):
+F9 (LinkStoreInertPreservation):
    For every transition Σ → Σ' produced by an operation in V ∖ {K.λ}
    and any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
@@ -352,8 +351,8 @@ The determinism and survivability properties extend uniformly to the filtered an
 ```
 F15 (FilteredDeterminism):  findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ') when Σ.L = Σ'.L.
 F16 (ScopedDeterminism):    findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ') when Σ.L = Σ'.L.
-F17 (FilteredSurvivability): findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ') across an atomic K.μ-family step.
-F18 (ScopedSurvivability):   findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ') across an atomic K.μ-family step.
+F17 (FilteredSurvivability): findlinks_filtered(C, Σ) = findlinks_filtered(C, Σ') across a K.μ-family step.
+F18 (ScopedSurvivability):   findlinks_scoped(I, S, Σ) = findlinks_scoped(I, S, Σ') across a K.μ-family step.
 ```
 
 F15 follows from ComprehensionInvariantUnderΣL applied to the filtered universal. F16 follows from F8 + intersection-preservation with the query-supplied `S`. F17 follows from F9 (V ∖ {K.λ} steps preserve Σ.L, K.μ~ included) + F15. F18 follows from F9 + intersection-preservation.
@@ -375,8 +374,6 @@ Finiteness: F3 gives `result(I, Σ) ⊆ dom(Σ.L)`; L-fin gives `|dom(Σ.L)| < �
 F10-filt:  findlinks_filtered(C, Σ) admits a unique strictly T1-increasing sequence.
 F10-sco:   findlinks_scoped(I, S, Σ) admits a unique strictly T1-increasing sequence.
 ```
-
-*Chronological reading (interpretive).* The T1 presentation order carries a chronological reading within each home document — link addresses sharing a home are produced by repeated `inc(·, 0)` on that document's link sub-allocator (ChainMembershipForOrigin, ASN-0093), so T1 rank there tracks K.λ allocation order — but across home documents T1 sorts by document tumbler, not by K.λ event history. This interpretation plays no role in F10's ordering claim.
 
 ## Persistent Discoverability (I-Side)
 
@@ -425,7 +422,7 @@ By PrefixSpanCoverage, each canonical span's coverage is a prefix subtree. The t
 
 **Query 4 (cross-subspace, F12 with link-image): `findlinks_V({v_a^L}, d_a, Σ_L)`.** First, perform a K.μ⁺_L transition on `d_a` extending its arrangement with `v_a^L := [s_L, 1]` mapping to `ℓ` (the K.μ⁺_L preconditions are satisfied: `ℓ ∈ dom(Σ.L)`, `origin(ℓ) = d_a`, `ℓ ∉ ran(Σ.M(d_a))`, `v_a^L` is the canonical depth-2 minimum). Call the post-state `Σ_L`; `Σ_L.L = Σ.L` by A1a. Phase 1 at `v_a^L`: `image({v_a^L}, d_a, Σ_L) = {ℓ}` — the image is the *link address* `ℓ`, a member of `dom(Σ_L.L)`. Phase 2: at `ℓ_meta`, slot 1's coverage `{t : ℓ ≼ t}` meets `{ℓ}` in `{ℓ}` (reflexivity), so `matches(ℓ_meta, {ℓ}, Σ_L) = true`. At `ℓ` and `ℓ'`, no slot's coverage extends `ℓ` (subspace/τ-disjointness). Result: `{ℓ_meta}`. The reader selecting a V-position in the link subspace discovers the meta-link annotating `ℓ`. The match predicate is address-agnostic: it consults coverage and overlap, indifferent to whether the image's elements inhabit `dom(C)` or `dom(L)`. S3★'s cross-subspace routing of V-positions to `dom(L)` (ASN-0047) feeds naturally into F1.
 
-**Query 5 (F9, multi-step preservation across V ∖ {K.λ}).** From `Σ`, apply a five-step sequence touching `M`, `C`, `R`, and arrangement contraction — every state component the substrate non-allocating fragment can modify:
+**Query 5 (F9, multi-step preservation across V ∖ {K.λ}).** From `Σ`, apply a five-step sequence touching `M`, `C`, `R`, and arrangement contraction — every state component the substrate link-store-inert fragment can modify:
 
   (i) K.δ case (ii) at `k = 0` from `d_b` creates `d_c = inc(d_b, 0)` (K.δ-ID.zeros-0/1: `zeros(d_c) = 2`, so `IsDocument(d_c)`; K.δ effect places `d_c ∈ Σ_1.E_doc` and `Σ_1.M(d_c) = ∅`). K.δ's published frame names `L' = L` (A1a): `Σ_1.L = Σ.L`.
 
@@ -456,7 +453,7 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 - Caching.
 - Access control beyond noting it as an orthogonal scope filter.
 - The inverse direction (resolving result endsets back to V-positions) — that is FOLLOWLINK/RETRIEVEENDSETS.
-- The semantics of querying with I-addresses outside `dom(Σ.C) ∪ dom(Σ.L)`.
+- The *interpretation* a reader should attach to a query with I-addresses outside `dom(Σ.C) ∪ dom(Σ.L)`. The semantics are already pinned by the comprehension — such a query returns exactly the links whose coverage meets `I`, possibly ghost-covering links (LP17, ASN-0098) — but what such a result *means* to the reader is left open.
 - A combined filtered-and-scoped operation `findlinks_filtered_scoped(C, S, Σ)`. The intended composition is naive intersection `findlinks_filtered(C, Σ) ∩ S`; determinism, survivability, and monotonicity propagate pointwise from the per-component claims.
 
 ## Claims Introduced
@@ -471,7 +468,7 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
 | PerLinkInvarianceUnderValuePreservation | Per-link primitive: match and filtered per-link universal evaluate identically when `Σ'.L(a) = Σ.L(a)` at a specific `a` | introduced (sub-lemma) |
 | A1a | PublishedFramePreservation: every atomic op of V ∖ {K.λ} — {K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} — preserves `Σ.L` from its published frame (K.μ⁺, K.μ⁻ via ASN-0047's amended extended-state frames, both publishing `L' = L`) | introduced (structural lemma) |
-| A1 | LinkStoreInertOfNonAllocatingOperations: K.λ is the unique operation of V that modifies the link store | introduced (composite lemma) |
+| A1 | KλUniqueLinkStoreModifier: K.λ is the unique operation of V that modifies the link store | introduced (composite lemma) |
 | F1 | MatchPredicate definition | definition |
 | F2 | Completeness: `findlinks(I, Σ) ⊆ result(I, Σ)` | introduced |
 | F3 | Soundness: `result(I, Σ) ⊆ findlinks(I, Σ)` | introduced |
@@ -483,7 +480,7 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 | F6 | Transclusion transparency | introduced |
 | F7 | Endset symmetry (slot equality + filter conjunction) | introduced |
 | F8 | Determinism: `findlinks(I, ·)` is a function of `(Σ.L, I)` | introduced |
-| F9 | NonAllocatingPreservation: findlinks invariant across every V ∖ {K.λ} transition, single-step or multi-step | introduced |
+| F9 | LinkStoreInertPreservation: findlinks invariant across every V ∖ {K.λ} transition, single-step or multi-step | introduced |
 | F9-λ | KλInducedIncrement: characterises the K.λ-induced delta to findlinks(I, ·) as disjoint union with a singleton or ∅ depending on whether ℓ_new matches | introduced |
 | F10 | Ordered result: canonical T1-sorted presentation | introduced |
 | F10-filt, F10-sco | Filtered and scoped ordered presentations | introduced |
@@ -504,4 +501,4 @@ What must an implementation maintain to make the completeness obligation auditab
 
 Should the abstract specification require any bound on the time between K.λ commitment and the link's appearance in subsequent FINDLINKS results, or is "next query after K.λ" the only abstract handle available?
 
-What is the minimum structural commitment any conforming substrate must make to the non-allocating fragment of its operation vocabulary in order to support link-discovery invariance under those operations?
+What is the minimum structural commitment any conforming substrate must make to the link-store-inert fragment of its operation vocabulary in order to support link-discovery invariance under those operations?
