@@ -164,11 +164,13 @@ while true; do
     _load_runtime_config
     echo "  [run-notes-continuous] cycle: WORKERS=$WORKERS CLAUDE_CONFIG_DIRS=${CLAUDE_CONFIG_DIRS:-(unset)} MAX_REVIEWS=${MAX_REVIEWS:-(unset)}" >&2
 
-    # Surface orphan holdings before spawning workers. Silent when
-    # clean; loud banner + retract commands when stuck. Threshold
-    # default (135m) is safely above the 120m subprocess timeout, so
-    # a healthy slow revise does not trigger.
-    python scripts/diagnostics/stale_holdings.py --quiet || true
+    # Auto-retract orphan holdings before spawning workers. Threshold
+    # default (135m) is safely above the 120m subprocess timeout, so a
+    # healthy slow revise does not trigger. Without this the per-cycle
+    # check would only warn — stuck holdings would block triggers
+    # indefinitely (workers exit with active-set empty), and only a
+    # wrapper restart would invoke the startup --retract-all.
+    python scripts/diagnostics/stale_holdings.py --retract-all || true
 
     start_pusher
 
