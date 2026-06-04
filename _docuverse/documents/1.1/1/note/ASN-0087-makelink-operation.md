@@ -5,9 +5,9 @@
 
 We are looking for the precise meaning of *creating a link*. The system already maintains a content store, a family of arrangements, and a link store with prior entries. Some event introduces a new link. What does that event do?
 
-A link, in this design, is a stored connective unit — a first-class entity binding together fragments of content. By L3 (ASN-0043) every link has at least three endsets, the third designated as type, the type slot non-empty. Beyond this, link creation must produce four things: an *identity* (the link's address), a *value* (the endsets), a *home* (the document under whose authority the link is allocated), and *discoverability* (the property that a query of the content reached by the link's endsets surfaces the link).
+A link, in this design, is a stored connective unit — a first-class entity binding together fragments of content. By L3 (ASN-0043) every link has at least three endsets, the third designated as type, the type slot non-empty. Beyond this, link creation must produce three things unconditionally: an *identity* (the link's address), a *value* (the endsets), and a *home* (the document under whose authority the link is allocated). It must also establish the *discoverability property* — the LP12 (ASN-0098) mechanism by which a query of the content reached by the link's endsets can surface the link.
 
-The MAKELINK operation is the event by which all four come into being. We ask: what is allocated, what is recorded, what is rendered discoverable, and what remains untouched?
+We are careful to distinguish the property from its realization. MAKELINK brings identity, value, and home into being unconditionally, and it establishes the LP12 mechanism. But *actual* discoverability from a given document is conditional: by the body's M-WP and LP17, the link is discoverable from a document only when some endset's coverage meets that document's arrangement range. If every endset coverage misses every arrangement range — content unarranged, or spans reaching into not-yet-allocated addresses — the link is *born orphaned*: present in `dom(L)`, fully valued, yet discoverable from no document until some later arrangement (M-WP route) or transclusion (LP18) makes a coverage meet a range. We ask: what is allocated, what is recorded, what discoverability mechanism is established, and what remains untouched?
 
 ## Inputs
 
@@ -16,7 +16,9 @@ What must the caller supply?
 - A *home document* `d ∈ dom(Σ.M)` — the document under whose authority the link is allocated. (By L1a, ASN-0043, every link's home document must be allocated.)
 - A *sequence of endsets* `(e₁, ..., eₙ)` with `N ≥ 3`, each `eᵢ ∈ Endset`, and `e₃ ≠ ∅`. (By L3, ASN-0043.)
 
-The caller does *not* — and cannot — specify the link's address or its V-position in the home document. The address `ℓ` is determined by the system from the current state (the next emission of `A_L(d)`). The V-position `v_ℓ` is determined from the current state together with the canonical-depth convention M-DepthConv below — its serial component fixed by the link subspace's current cardinality, its depth fixed per M-DepthConv.
+The caller does *not* specify the link's address or its V-position in the home document — neither is an operation *parameter*. The address `ℓ` is *derived* by the system from the current state (the next emission of `A_L(d)`); the V-position `v_ℓ` is derived from the current state together with the canonical-depth convention M-DepthConv below — its serial component fixed by the link subspace's current cardinality, its depth fixed per M-DepthConv.
+
+*Reflexive authoring and prediction.* "Not a parameter" is weaker than "unknowable." Because the emission rule is deterministic in `Σ`, a caller authoring a *reflexive* endset (one whose coverage is to contain `ℓ` itself, per L13 and M-Reflexive) may *predict* `ℓ` by evaluating `A_L(d)`'s emission rule against the state it observes — first emission `[d, 0, s_L, 1]` when `d` has no prior links, else `inc(ℓ_prev, 0)`. The prediction is *sound* only when no intervening `A_L(d)` emission occurs between the authoring observation and MAKELINK's execution: any intervening K.λ on `d` advances the frontier, so the predicted `ℓ` would no longer be the emission MAKELINK commits, and the reflexive span would miss the actual address. Establishing this no-intervening-emission condition — by serializing author-and-execute, or by re-validating the prediction at execution — is a protocol-layer obligation; the substrate operation derives `ℓ` from whatever state it runs against and makes no guarantee that an earlier prediction still holds. Reflexive authoring is therefore a protocol-layer capability built atop the substrate's deterministic derivation, not a substrate parameter.
 
 *Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`. MAKELINK commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined. This is a scoped, normative commitment — for any document `d` whose every link V-position was placed by MAKELINK, `m_L(d) = 2` — not a system-wide invariant.
 
@@ -126,9 +128,7 @@ The function is *computed* from `Σ'.L(ℓ)` and `Σ'.M(d)` — no separate stat
 
 After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)`. The link is discoverable from every document whose arrangement reaches into any of its endset coverages — the home document has no privileged position, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content.
 
-The abstract specification requires no auxiliary index state. The implementation may maintain an auxiliary structure — a reverse lookup from I-addresses to link addresses, the *spanfilade* in Gregory's implementation — for efficient computation. Such structures are caches: any state where they are consistent with `L` and `M` produces the same `project` and `discoverable_from` results. The abstract claim is the discovery *property*; the index is a performance choice.
-
-This is the abstract content of what Nelson calls the system's "inter-indexing mechanisms": the mechanisms exist for performance; the discoverability is mathematical.
+The abstract specification requires no auxiliary index state (M-NoIndexState). An implementation may maintain an auxiliary structure — a reverse lookup from I-addresses to link addresses, the *spanfilade* in Gregory's implementation — for efficient computation. Such structures are caches: any state where they are consistent with `L` and `M` produces the same `project` and `discoverable_from` results. The abstract claim is the discovery *property*; the index is a performance choice.
 
 ## A Worked Example
 
@@ -166,7 +166,7 @@ Discoverability checks via LP12:
 
 The type-endset coverage `coverage(e₃) = {t : τ ≼ t}` does not contribute to discoverability from either `d` or `d'` in this state: by the setup's constraint that `τ ⋠ x` for every `x ∈ {a₁, a₂, a₃, ℓ}`, prefix-testing each element of `ran(Σ'.M(d)) = {a₁, a₂, ℓ}` and `ran(Σ'.M(d')) = {a₃}` against `τ` yields no matches. Hence `coverage(e₃) ∩ ran(Σ'.M(d)) = ∅` and `coverage(e₃) ∩ ran(Σ'.M(d')) = ∅`. This is consistent with the type endset's role: it carries the link's classification, not its content connections.
 
-*Reflexive variant.* We exhibit M-Reflexive concretely. Replace `e₁` with `e₁' = {(ℓ, δ(1, #ℓ))}`, keeping `e₂` and `e₃` (the caller computes `ℓ = [d, 0, 2, 1]` from `Σ` via `A_L(d)`'s deterministic first-emission rule). By PrefixSpanCoverage (ASN-0043), `coverage(e₁') = {t ∈ T : ℓ ≼ t}`, which contains `ℓ`. After MAKELINK, `Σ'.M(d) = {[1, 1] ↦ a₁, [1, 2] ↦ a₂, [2, 1] ↦ ℓ}` and `Σ'.L(ℓ).e₁ = e₁'`. Prefix-testing each image of `dom(Σ'.M(d))` against `ℓ`: `ℓ ⋠ a₁` and `ℓ ⋠ a₂` (different position-7 component), `ℓ ≼ ℓ` trivially. Hence `project(ℓ, 1, d, Σ') = {v_ℓ}` and `discoverable_from(ℓ, d, Σ')` holds (M-Reflexive).
+*Reflexive variant.* We instantiate M-Reflexive concretely — the general derivation that `ℓ ∈ coverage(eᵢ)` forces `discoverable_from(ℓ, d, Σ')` is given once, in *Weakest Precondition for Discoverability*, Case 2; here we only check that the hypothesis holds for a specific endset. Replace `e₁` with `e₁' = {(ℓ, δ(1, #ℓ))}`, keeping `e₂` and `e₃` (the caller must *predict* `ℓ = [d, 0, 2, 1]` from `Σ` via `A_L(d)`'s deterministic first-emission rule — see the note on reflexive authoring in *Inputs*). By PrefixSpanCoverage (ASN-0043), `coverage(e₁') = {t ∈ T : ℓ ≼ t}`, which contains `ℓ`. The M-Reflexive hypothesis `ℓ ∈ coverage(e₁')` is thus met, so wp Case 2's reflexive disjunct fires: `discoverable_from(ℓ, d, Σ')` holds with witness `v_ℓ ∈ project(ℓ, 1, d, Σ')`, regardless of `d`'s prior arrangement.
 
 ## Weakest Precondition for Discoverability
 
@@ -335,9 +335,7 @@ In the intermediate state `Σ_mid` between K.λ and K.μ⁺_L:
 
 Because K.λ's frame fixes `M`, `Σ_mid.M = Σ.M`, so the discoverability difference between `Σ_mid` and `Σ'` is exactly the `Σ → Σ'` delta already computed: it agrees for every `d_target ≠ d` (M-WP, Case 1), and for `d_target = d` the two values agree unless some endset reflexively covers `ℓ` (M-Reflexive).
 
-The substrate provides no composite-level atomicity. A reader observing `Σ_mid` would see the link in `dom(L)` but not in `M(d)`. If this intermediate visibility is undesirable — if MAKELINK must appear as a single event — the protocol layer above must enforce it, typically by sequencing both atomic transitions within a single request-response cycle.
-
-Nelson's "canonical operating condition" language suggests external atomicity is expected: MAKELINK is presented to the client as one event, and the system must be canonical at the response. This is a *protocol-level* guarantee, not a substrate-level one. The strand model does not, by itself, supply it.
+The substrate provides no composite-level atomicity. A reader observing `Σ_mid` would see the link in `dom(L)` but not in `M(d)`. If this intermediate visibility is undesirable — if MAKELINK must appear as a single event — the protocol layer above must enforce it, typically by sequencing both atomic transitions within a single request-response cycle. Composite-level atomicity is thus a protocol-layer guarantee, not a substrate-level one.
 
 ## Permanence
 
@@ -347,7 +345,7 @@ Even if `v_ℓ` is later removed from `dom(M(d))`, the link is still in `dom(L)`
 
 ## No Permission Check
 
-MAKELINK performs *no permission check on referenced content*. Per Nelson's publication contract, publication grants linking rights to all parties; MAKELINK does not verify ownership of the documents whose content the endsets reach. The substrate has no such mechanism, and the design intent rules it out.
+MAKELINK performs *no permission check on referenced content*. It does not verify ownership of the documents whose content the endsets reach; no precondition consults any ownership or permission state, and the substrate exposes no such state to consult.
 
 ## Claims Introduced
 
