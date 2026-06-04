@@ -18,7 +18,7 @@ What must the caller supply?
 
 The caller does *not* specify the link's address or its V-position in the home document — neither is an operation *parameter*. The address `ℓ` is *derived* by the system from the current state (the next emission of `A_L(d)`); the V-position `v_ℓ` is derived from the current state together with the canonical-depth convention M-DepthConv below — its serial component fixed by the link subspace's current cardinality, its depth fixed per M-DepthConv.
 
-*Reflexive authoring and prediction.* Although `ℓ` is not a parameter, it is deterministically derivable from `Σ`: a caller authoring a *reflexive* endset (one whose coverage is to contain `ℓ` itself, per L13 and M-Reflexive) may *predict* `ℓ` by evaluating `A_L(d)`'s emission rule against the state it observes — first emission `[d, 0, s_L, 1]` when `d` has no prior links, else `inc(ℓ_prev, 0)`.
+*Address predictability.* Although `ℓ` is not a parameter, it is deterministically derivable from `Σ`: a caller may *predict* `ℓ` by evaluating `A_L(d)`'s emission rule against the state it observes — first emission `[d, 0, s_L, 1]` when `d` has no prior links, else `inc(ℓ_prev, 0)`. This predictability is what makes reflexive authoring possible (see *Weakest Precondition for Discoverability*, Case 2).
 
 *Canonical link-subspace depth (M-DepthConv).* When `V_{s_L}(d) = ∅`, the substrate operation K.μ⁺_L (ASN-0047) admits *any* `m ≥ 2` for the first link's V-position via `ValidFirstLinkPosition(d, v_ℓ, m)`. MAKELINK commits to the *minimal admissible* depth `m = 2` for every first link *it* places. Once it has done so, S8-depth (ASN-0047) pins `m_L(d) = 2` for all later link V-positions of that document, so every subsequent `v_ℓ` MAKELINK places *is* fully state-determined. This is a scoped, normative commitment — for any document `d` whose every link V-position was placed by MAKELINK, `m_L(d) = 2` — not a system-wide invariant.
 
@@ -126,9 +126,9 @@ The function is *computed* from `Σ'.L(ℓ)` and `Σ'.M(d)` — no separate stat
 
   discoverable_from(ℓ, d, Σ')  ⟺  (E i : coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
 
-After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)` (M-DiscSymmetry). LP12's definition treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric: `ℓ` is discoverable from every document whose arrangement reaches into any of its endset coverages, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content. The home document alone gains an additional, arrangement-independent *reflexive route*, derived as route (ii) of *Weakest Precondition for Discoverability*, Case 2.
+After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)` (M-DiscSymmetry). LP12's definition treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric: `ℓ` is discoverable from every document whose arrangement reaches into any of its endset coverages, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content. (A second, reflexive route is available to the home document alone; it is derived in *Weakest Precondition for Discoverability*, Case 2.)
 
-The abstract specification requires no auxiliary index state (M-NoIndexState). An implementation may maintain an auxiliary structure — a reverse lookup from I-addresses to link addresses, the *spanfilade* in Gregory's implementation — for efficient computation. Such structures are caches: any state where they are consistent with `L` and `M` produces the same `project` and `discoverable_from` results. The abstract claim is the discovery *property*; the index is a performance choice.
+Discoverability is therefore a derived function of `L` and `M`, so the abstract specification requires no separate index state component (M-NoIndexState).
 
 ## A Worked Example
 
@@ -166,7 +166,7 @@ Discoverability checks via LP12:
 
 The type-endset coverage `coverage(e₃) = {t : τ ≼ t}` does not contribute to discoverability from either `d` or `d'` in this state: by the setup's constraint that `τ ⋠ x` for every `x ∈ {a₁, a₂, a₃, ℓ}`, prefix-testing each element of `ran(Σ'.M(d)) = {a₁, a₂, ℓ}` and `ran(Σ'.M(d')) = {a₃}` against `τ` yields no matches. Hence `coverage(e₃) ∩ ran(Σ'.M(d)) = ∅` and `coverage(e₃) ∩ ran(Σ'.M(d')) = ∅`. This is consistent with the type endset's role: it carries the link's classification, not its content connections.
 
-*Reflexive variant.* We instantiate M-Reflexive concretely. Replace `e₁` with `e₁' = {(ℓ, δ(1, #ℓ))}`, keeping `e₂` and `e₃` (the caller must *predict* `ℓ = [d, 0, 2, 1]` from `Σ` via `A_L(d)`'s deterministic first-emission rule — see the note on reflexive authoring in *Inputs*). By PrefixSpanCoverage (ASN-0043), `coverage(e₁') = {t ∈ T : ℓ ≼ t}`, which contains `ℓ`. The M-Reflexive hypothesis `ℓ ∈ coverage(e₁')` is thus met, so wp Case 2's reflexive disjunct fires: `discoverable_from(ℓ, d, Σ')` holds with witness `v_ℓ ∈ project(ℓ, 1, d, Σ')`, regardless of `d`'s prior arrangement.
+*Reflexive variant.* We instantiate M-Reflexive concretely. Replace `e₁` with `e₁' = {(ℓ, δ(1, #ℓ))}`, keeping `e₂` and `e₃` (the caller must *predict* `ℓ = [d, 0, 2, 1]` from `Σ` via `A_L(d)`'s deterministic first-emission rule — see *Address predictability* in *Inputs*). By PrefixSpanCoverage (ASN-0043), `coverage(e₁') = {t ∈ T : ℓ ≼ t}`, which contains `ℓ`. The M-Reflexive hypothesis `ℓ ∈ coverage(e₁')` is thus met, so wp Case 2's reflexive disjunct fires: `discoverable_from(ℓ, d, Σ')` holds with witness `v_ℓ ∈ project(ℓ, 1, d, Σ')`, regardless of `d`'s prior arrangement.
 
 ## Weakest Precondition for Discoverability
 
@@ -190,8 +190,6 @@ The wp reduces to a predicate on the pre-state alone, conjoined with MAKELINK's 
 
   wp(MAKELINK, discoverable_from(ℓ, d_target, ·))
     ≡  enabled(MAKELINK)  ∧  d_target ∈ dom(Σ.M)  ∧  (E i :: coverage(eᵢ) ∩ ran(Σ.M(d_target)) ≠ ∅)
-
-The allocation of `ℓ` contributes nothing to discoverability from documents other than `d`; the predicate this case adds is the independent membership obligation `d_target ∈ dom(Σ.M)` that keeps `discoverable_from` defined at the post-state.
 
 *Case 2: d_target = d.* The post-state arrangement gains `ℓ`: `ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {ℓ}`. By LP12:
 
