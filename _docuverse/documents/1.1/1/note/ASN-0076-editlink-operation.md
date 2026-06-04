@@ -129,13 +129,7 @@ This is the central architectural claim. The original link's I-address remains v
 ℓ_new ≠ ℓ_old  ∧  ℓ_sup ≠ ℓ_old  ∧  ℓ_sup ≠ ℓ_new
 ```
 
-*Proof.* The result is foundational. By SequentialTransitionAxiom (ASN-0047), each K.λ firing is an atomic, totally-ordered transition, so the three K.λ events producing `ℓ_old`, `ℓ_new`, and `ℓ_sup` occur at three distinct time points and are therefore pairwise distinct as events. By SubAllocatorBundle (ASN-0047), each K.λ step emits via a T10a-conforming sub-allocator. By L11a (LinkUniqueness, ASN-0043), distinct T10a-conforming allocation events produce distinct link addresses, so the three outputs are pairwise distinct: `ℓ_new ≠ ℓ_old`, `ℓ_sup ≠ ℓ_old`, and `ℓ_sup ≠ ℓ_new`. The conclusion does not depend on any property of EDITLINK beyond its consisting of two K.λ steps.
-
-As a per-step confirmation that K.λ's freshness precondition `ℓ ∉ dom(L) ∪ dom(C)` enforces the same conclusion at each allocation site, we discharge the two steps separately:
-
-- *Step 1* — K.λ allocating `ℓ_new` fires directly from the pre-state `Σ`; no intermediate states intervene. K.λ's precondition `ℓ_new ∉ dom(Σ.L)`, evaluated at `Σ`, combined with `ℓ_old ∈ dom(Σ.L)` from EDITLINK's precondition, gives `ℓ_new ≠ ℓ_old`.
-
-- *Step 2* — K.λ allocating `ℓ_sup` fires from the intermediate state `Σ_1` produced by Step 1. By L12 applied to Step 1, `ℓ_old ∈ dom(Σ.L) ⟹ ℓ_old ∈ dom(Σ_1.L)`; by the effect clause of K.λ on Step 1, `ℓ_new ∈ dom(Σ_1.L)`. K.λ's precondition `ℓ_sup ∉ dom(Σ_1.L)`, evaluated at `Σ_1`, then gives `ℓ_sup ≠ ℓ_old` and `ℓ_sup ≠ ℓ_new`.
+*Proof.* The result is foundational. By SequentialTransitionAxiom (ASN-0047), each K.λ firing is an atomic, totally-ordered transition, so the three K.λ events producing `ℓ_old`, `ℓ_new`, and `ℓ_sup` occur at three distinct time points and are therefore pairwise distinct as events. By SubAllocatorBundle (ASN-0047), each K.λ step emits via a T10a-conforming sub-allocator. By L11a (LinkUniqueness, ASN-0043), distinct T10a-conforming allocation events produce distinct link addresses, so the three outputs are pairwise distinct: `ℓ_new ≠ ℓ_old`, `ℓ_sup ≠ ℓ_old`, and `ℓ_sup ≠ ℓ_new`. The conclusion does not depend on any property of EDITLINK beyond its consisting of two K.λ steps. (K.λ's freshness precondition `ℓ ∉ dom(L) ∪ dom(C)`, enforced at each allocation site — `Σ` for `ℓ_new`, `Σ_1` for `ℓ_sup` — independently guarantees the same distinctness at each step.)
 
 The implication is that no operation, applied to no input, can produce two links with the same I-address. A "fresh edit" of `ℓ_old` is necessarily a *new entity* in `dom(L)`, indistinguishable in kind from any other newly-allocated link, and the supersession claim is itself a third distinct entity.
 
@@ -213,11 +207,7 @@ This stands in sharp contrast to an in-place edit model, in which "the" successo
 
 *Proof.* K.λ's preconditions (ASN-0047) constrain the target document only by `d_new ∈ E_doc`. L1a constrains the allocation site of the new link to lie under `d_new`'s tumbler prefix, which is a constraint on the produced address relative to the chosen target — but imposes no constraint on the choice of `d_new` relative to `home(ℓ_old)`. EDITLINK's composite-level preconditions add `ℓ_old ∈ dom(Σ.L)`, which is independent of `d_new`. So the conjunction `ℓ_old ∈ dom(Σ.L) ∧ d_new ∈ Σ.E_doc` is the entirety of the constraint EDITLINK places on the pair `(ℓ_old, d_new)`; the model admits every such pair.
 
-*Informal motivation.* The remainder of this section discusses what E6 means at the application layer, where notions of "ownership" and "authorization" determine who is permitted to fire K.λ on which document. Neither notion is formalized in this ASN or in any ASN cited by it: the abstract specification's K.λ has no executor field, and nothing in the formalism distinguishes a K.λ firing on `home(ℓ_old)` by `home(ℓ_old)`'s owner from a K.λ firing on a different document by a different party. The discussion below presumes an unstated authorization model in which document ownership confers exclusive right to invoke K.λ on that document, and uses informal names ("Alice", "Bob", "Carol") to indicate distinct authorized parties. This authorization model is not part of the abstract specification and is deferred to a future ASN on authorization and capabilities.
-
-Under such an authorization model, E6 has the following consequence: anyone authorized to fire K.λ on some `d_new ∈ E_doc` — not just the party authorized for `home(ℓ_old)` — may publish a supersession claim against `ℓ_old`. The system formally treats such claims as facts of equal structural weight (no formal privilege attaches to claims whose `d_new = home(ℓ_old)`). At the application layer, parties may apply trust models that weight claims by their `home(·)` attribution, but no such weighting is intrinsic to the link store.
-
-This is consistent with Nelson's broader posture: claims are visible and attributable. The supersession link's home address indicates which document's allocator emitted the claim; readers may use this as part of their resolution policy, but the link model itself imposes no resolution policy.
+*Application-layer note.* The link model has no executor field and so cannot distinguish who fires K.λ on which document; selection and authorization of `d_new` — including whether a party other than `home(ℓ_old)`'s owner may publish a supersession against `ℓ_old` — is an application-layer concern deferred to a future ASN on authorization and capabilities.
 
 ## E7 — Lineage Witness
 
@@ -279,8 +269,6 @@ The transition frame of K.λ tells us what EDITLINK does *not* do.
 
 The implication is that `home(ℓ_old)`'s arrangement is not extended with any notification of the edit; the original link's owner receives no automatic push. If the original owner is to *learn* of the edit, it is by issuing a discovery query — the pull model. Nelson endorses this posture explicitly when he describes the docuverse as "what connects here from other documents" being a question the reader (or owner) asks, not a fact pushed at them.
 
-The non-notification property is structural: K.λ's frame does not admit modifications to `home(ℓ_old)`'s arrangement, so EDITLINK performs no notification of the original owner.
-
 ## A Worked Example
 
 We make the construction concrete by tracing EDITLINK through specific tumbler values.
@@ -316,7 +304,7 @@ We check the claims against this state.
 
 **E3.** Bob is free to make `(e'_1, e'_2, e'_3)` bear no resemblance whatsoever to `(F_old, G_old, Θ_old)`: any from-endset, any to-endset, any type-endset designator. The composite imposes no coupling between the new sequence and Alice's original; the only constraints are L3's structural ones (`N = 3 ≥ 3`, each `e'_i ∈ Endset`, `e'_3 ≠ ∅`), which the precondition supplies. ✓
 
-**E4.** The post-state contains `ℓ_sup` with the expected endset structure. By K.λ's effect clause on Step 2, `Σ'.L(ℓ_sup) = (E_from, E_to, E_type)` (with `Σ' = Σ_2`, the composite being exactly two steps); by L6 (SlotDistinction, ASN-0043) the slot accessor gives `Σ'.L(ℓ_sup).e_1 = E_from = {(ℓ_old, δ(1, 8))}`. Since `(ℓ_old, δ(1, 8)) ∈ E_from` by construction of the singleton, `(ℓ_old, δ(1, 8)) ∈ Σ'.L(ℓ_sup).e_1`, witnessing the structural reference to `ℓ_old` in the first endset; symmetrically for `e_2` (via `E_to`) and `e_3` (via `E_type`). (We do not — and cannot, within the link model — claim from this that `ℓ_sup` is *the* supersession of `ℓ_old`; that designation requires the external `τ_sup` convention.) ✓
+**E4.** The post-state contains `ℓ_sup` with the expected endset structure. By K.λ's effect clause on Step 2, `Σ'.L(ℓ_sup) = (E_from, E_to, E_type)` (with `Σ' = Σ_2`, the composite being exactly two steps); by L6 (SlotDistinction, ASN-0043) the slot accessor gives `Σ'.L(ℓ_sup).e_1 = E_from = {(ℓ_old, δ(1, 8))}`. Since `(ℓ_old, δ(1, 8)) ∈ E_from` by construction of the singleton, `(ℓ_old, δ(1, 8)) ∈ Σ'.L(ℓ_sup).e_1`, witnessing the structural reference to `ℓ_old` in the first endset; symmetrically for `e_2` (via `E_to`) and `e_3` (via `E_type`). (This is the structural witness only; identifying `ℓ_sup` as *the* supersession requires the external `τ_sup` convention deferred in The Supersession Relationship.) ✓
 
 **E5.** Suppose Carol owns `d_carol = [5.0.1.0.4]` and, from the post-state `Σ'`, independently runs `EDITLINK(ℓ_old, (e''_1, e''_2, e''_3), d_carol, τ_sup)`. By LP13 (ASN-0098) applied to the reachable sequence from `Σ'` to Carol's pre-state, Bob's `ℓ_new = [4.0.2.0.3.0.2.1]` and `ℓ_sup = [4.0.2.0.3.0.2.2]` persist with unchanged values. Carol's `A_L(d_carol)` has emitted no prior links, so the first-emission rule fixes her successor at `ℓ_new,carol = [5.0.1.0.4.0.2.1]`; the subsequent-emission rule then fixes her supersession at `ℓ_sup,carol = [5.0.1.0.4.0.2.2]`. By L11a, all four addresses are pairwise distinct. The resulting state contains two distinct links whose first endsets reference `ℓ_old`. The argument generalizes by induction on the number of independent edits. ✓
 
@@ -334,30 +322,11 @@ The example exhibits the asymmetry recorded in E6: Alice retains full control of
 
 ## Why Editing Cannot Be Otherwise
 
-We pause to consider the alternative — an in-place EDITLINK that mutates `Σ.L(ℓ_old)` to a new endset sequence — and to show that it is incompatible with the invariants we already have.
-
-Suppose for contradiction that there exists a transition `Σ → Σ'` and a link `ℓ ∈ dom(Σ.L)` such that `Σ'.L(ℓ) ≠ Σ.L(ℓ)`. Then by definition the transition violates L12, since L12 quantifies over all transitions and asserts equality for every entry in `dom(Σ.L)`. So no such transition is legal in the current model.
-
-Could we weaken L12 to permit mutation? We could — but at the cost of everything L12 provides. Consider what L12 guarantees:
-
-- An endset reference to `ℓ` made today resolves to the same value tomorrow.
-- A supersession link created against `ℓ` continues to assert the relationship to the value of `ℓ` it was created against.
-- A reader who held `ℓ`'s endsets at time `t_1` and revisits at `t_2` obtains the same answer.
-- A discovery query that returns `ℓ` as a result is making a claim about `ℓ`'s endsets that remains valid at the time the reader follows the result.
-
-Without L12, none of these holds. Every reader must inspect timestamps, every reference must carry version metadata, every assertion must be qualified by "as of when," every cached result is suspect. The web of permanent references — which is the architectural commitment that makes the docuverse the docuverse — collapses into the same time-conditioned reference web that the design was created to escape.
-
-The dilemma is stark: if links are mutable, references are unreliable; if references are reliable, links are immutable. There is no third path. The composite construction we have defined is the only way to provide user-facing edit semantics without giving up the reliability of references.
+Suppose for contradiction that there exists a transition `Σ → Σ'` and a link `ℓ ∈ dom(Σ.L)` such that `Σ'.L(ℓ) ≠ Σ.L(ℓ)`. Then the transition violates L12, which quantifies over all transitions and asserts endset equality for every entry in `dom(Σ.L)`. So no in-place mutation of a link is legal in the current model; user-facing edit semantics must be expressed as the additive composite EDITLINK defines, leaving every existing reference to `ℓ` resolvable to its original value.
 
 ## On Identity
 
-We are now in a position to answer a question that has appeared throughout: when a link is "edited," is the result *the same link* or *a different link*?
-
-The address identity is unambiguous: `ℓ_old ≠ ℓ_new` by E2. They are distinct tumblers, the outputs of distinct allocation events, distinct entries in `dom(L)`. Operations that depend on link identity — searching, citing, owning — treat them as separate entities.
-
-The *semantic* relationship is not a property of either link in isolation. It is recorded in a third object, the supersession link `ℓ_sup`, which makes the claim explicit. The claim is in the assertion, not in either of the things asserted about. This is significant: it means the system can accommodate *retractable assertions* without retracting any underlying link. A counter-claim against `ℓ_sup` does not require modifying `ℓ_sup` (it cannot, by L12); it requires only allocating another link asserting the negation.
-
-The architectural slogan: *links are immutable; relationships between links are claims; claims are themselves links.* The whole edifice is built from one primitive (the link) and one structural rule (L12). Edit semantics, supersession, version lineage, counter-claims, retractions — all of these are patterns of link allocation, not new mechanisms.
+When a link is "edited," the address identity is settled by E2: `ℓ_old ≠ ℓ_new`, distinct tumblers from distinct allocation events, distinct entries in `dom(L)`. The semantic relationship between them is a property of neither link in isolation; it is recorded in the third object `ℓ_sup`. Because the claim lives in the assertion rather than in either link asserted about, a counter-claim against `ℓ_sup` requires only allocating another link asserting the negation — it cannot, and need not, mutate `ℓ_sup` (L12).
 
 ## Appendix: An Illustrative Reader Procedure
 
@@ -365,7 +334,7 @@ The architectural slogan: *links are immutable; relationships between links are 
 
 Several specific gaps stand out and are deferred to future ASNs:
 
-- *Step 2 — the supersession-type designation.* No convention in this ASN or any cited foundation pins a particular tumbler as "the" supersession-type address; the `τ_sup` argument is caller-supplied without semantic interpretation by the link model (see E4 and the Open Questions). A reader's filter has no model-provided test to apply.
+- *Step 2 — the supersession-type designation.* Per the `τ_sup`-convention deferral (The Supersession Relationship), a reader's filter has no model-provided test for which type address designates supersession.
 - *Step 3 — successor extraction.* No convention fixes the slot semantics of a supersession link's to-endset for the purpose of identifying "the" successor; a supersession link may legitimately have any number of spans in any endset (L4, L5), and which span(s) the reader should treat as the successor reference is unspecified.
 - *Step 4 — recursion.* The recursion has no known termination story. E5 admits arbitrary fan-out — a single `ℓ_old` may have any number of independent supersessions, each producing its own subtree of further supersessions. The Open Questions admit the possibility that supersession structure may contain cycles, in which case naive recursion does not terminate at all. The link model imposes no acyclicity invariant on the supersession relation.
 - *Overall well-definedness.* Even setting termination aside, the procedure's output is policy-dependent (E5: multiple successors may exist; the reader chooses among them) and the choice policy is itself unspecified.
