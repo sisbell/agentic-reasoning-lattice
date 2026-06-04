@@ -35,9 +35,9 @@ F12 (TwoPhaseFactoring) — DEFINITION of findlinks_V:
      ≡             findlinks(image(R, d, Σ), Σ).
 ```
 
-For `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined* — no silent fallback. For V-positions in `R` outside `dom(Σ.M(d))`, the silent projection in `image` absorbs them.
+For `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined*.
 
-The two phases consult components with different stability properties — the mutable `Σ.M` and the monotonic `Σ.L` — a distinction F9 and F11 turn on.
+The two phases consult components with different stability properties — the mutable `Σ.M` and the monotonic `Σ.L`.
 
 ## The Image Set
 
@@ -75,8 +75,6 @@ F4 (MatchIndividuation):
 *Weakening 1 — Slot-vacuous match (`P_⊤(a, I, Σ) ≡ a ∈ dom(Σ.L)`).* Witness: any link `a ∈ dom(Σ.L)` with all `coverage(Σ.L(a).eᵢ)` disjoint from `I`. Concrete instance: `Σ.L(a)` with `(τ, δ(1, #τ))` at slot 3, `∅` at slots 1 and 2, and `I = {α}` with `τ ⋠ α` and `α ⋠ τ` (cross-document non-nesting τ). Then `coverage(Σ.L(a).e₃) ∩ I = ∅` and the other slots are coverage-empty, so F1 rejects `a`. `P_⊤` admits `a`. The weakening returns links with no overlap to the query I-set — non-conforming with F1's relevance principle (the OR-across-slots existential over the per-endset overlap test): some span in some endset must witness a non-empty intersection with the request.
 
 *Weakening 2 — Slot-disjunctive ignoring I (`P_∃-slot(a, I, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ≠ ∅)`).* Witness: the same `(a, I)` as Weakening 1. `Σ.L(a).e₃ = {(τ, δ(1, #τ))}` is non-empty, so `coverage(Σ.L(a).e₃) ≠ ∅` and `P_∃-slot` admits `a` regardless of `I`. F1 rejects (no slot's coverage meets `I`). The weakening collapses the I-dependence of the match entirely — every link in `dom(Σ.L)` matches every query, violating the relevance principle.
-
-**Empty endsets at non-type slots.** L3 requires only slot 3 to be non-empty; other slots may carry `∅`. Then `coverage(∅) = ∅` and the slot is never a witness — but other non-empty slots may witness the existential.
 
 ## Endset Filtering
 
