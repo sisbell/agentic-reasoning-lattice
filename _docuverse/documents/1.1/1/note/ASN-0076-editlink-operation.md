@@ -8,7 +8,7 @@ We will resolve the tension by observing that "editing" need not — and, we wil
 
 The consultation evidence supports this reading directly. Nelson is explicit that FEBE supplies `MAKELINK` but no `EDITLINK` or `MODIFYLINK`; the seventeen commands of XU.87.1 admit no link-modification operation. Gregory's analysis of udanax-green confirms the same absence at the implementation level: link orgls carry no "supersedes" field, the spanfilade is append-only with no `deletespanf`, link I-addresses are monotonic and never reused, and the granfilade retains every link orgl forever once allocated.
 
-We formalize this composite as EDITLINK and demonstrate that the resulting structure realizes every property a user would expect of an "edit" — the new endsets are reachable, the supersession relationship is discoverable, the history is traceable — while leaving the original link entirely undisturbed.
+We formalize this composite as EDITLINK and demonstrate that the resulting structure realizes every property a user would expect of an "edit" — the new endsets are reachable, the supersession relationship is discoverable, the history is traceable.
 
 ## Foundation Recap
 
@@ -192,7 +192,7 @@ The construction therefore imposes no exclusivity among supersession claims; whi
 
 *Proof.* K.λ's preconditions (ASN-0047) constrain the target document only by `d_new ∈ E_doc`. L1a constrains the allocation site of the new link to lie under `d_new`'s tumbler prefix, which is a constraint on the produced address relative to the chosen target — but imposes no constraint on the choice of `d_new` relative to `home(ℓ_old)`. EDITLINK's composite-level preconditions add `ℓ_old ∈ dom(Σ.L)`, which is independent of `d_new`. So the conjunction `ℓ_old ∈ dom(Σ.L) ∧ d_new ∈ Σ.E_doc` is the entirety of the constraint EDITLINK places on the pair `(ℓ_old, d_new)`; the model admits every such pair.
 
-*Application-layer note.* The link model has no executor field and so cannot distinguish who fires K.λ on which document; selection and authorization of `d_new` — including whether a party other than `home(ℓ_old)`'s owner may publish a supersession against `ℓ_old` — is an application-layer concern deferred to a future ASN on authorization and capabilities.
+*Application-layer note.* The link model has no executor field and so cannot distinguish who fires K.λ on which document; selection and authorization of `d_new` is therefore not expressible in the model.
 
 ## E7 — Lineage Witness
 
