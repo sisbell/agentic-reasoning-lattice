@@ -72,13 +72,13 @@ Foundation ASN-0058 supplies the machinery in subspace-agnostic form. Let `f = M
 
 > `{β₁, ..., βₖ} = {(v₁, a₁, n₁), ..., (vₖ, aₖ, nₖ)}`,
 
-where each block `βⱼ` denotes the V→I correspondence `vⱼ + i ↦ aⱼ + i` for `0 ≤ i < nⱼ` (B3, ASN-0058), and the blocks partition `dom(f)` (B1, ASN-0058). We use C1a rather than `resolve` because C1a's decomposition covers both subspaces, whereas `resolve` confines I-targets to `dom(C)` (C1). C1a's preconditions — functionality (S2), finite domain (S8-fin), and common depth `m ≥ 2` (S8-depth combined with S8a, ASN-0036) — are subspace-agnostic; the decomposition is well-defined whether the V-positions of `dom(f)` lie in the content subspace (so I-addresses lie in `dom(C)` by S3★) or the link subspace (so I-addresses lie in `dom(L)` by S3★).
+where each block `βⱼ` denotes the V→I correspondence `vⱼ + i ↦ aⱼ + i` for `0 ≤ i < nⱼ` (B3, ASN-0058), and the blocks partition `dom(f)` (B1, ASN-0058). C1a's preconditions — functionality (S2), finite domain (S8-fin), and common depth `m ≥ 2` (S8-depth combined with S8a, ASN-0036) — are subspace-agnostic; the decomposition is well-defined whether the V-positions of `dom(f)` lie in the content subspace (so I-addresses lie in `dom(C)` by S3★) or the link subspace (so I-addresses lie in `dom(L)` by S3★). (C1a covers both subspaces, where `resolve` would confine I-targets to `dom(C)` by C1.)
 
-The reader-facing form — the form that the operation specification will use — is:
+The V-span origin set is defined directly as the image of the arrangement under `origin`:
 
 > *(F1)* `origins_V(Σ, d, σ) = { origin(M(d)(v)) : v ∈ ⟦σ⟧ ∩ dom(M(d)) }`.
 
-The C1a block decomposition is not needed to define `origins_V`, but it is the bridge to ASN-0058's block algebra that the worked example uses to narrate a transcluded span block by block. The following claim is what licenses that narration: within a single block, the origin is constant, so one origin per block suffices.
+Within a single mapping block the origin is constant: a block maps a contiguous run of V-positions to a contiguous run of I-addresses, and those I-addresses all share one origin. One origin per block therefore suffices to account for the block's entire content.
 
 **Claim O2 (Block uniformity).** *For each mapping block `(vⱼ, aⱼ, nⱼ)` arising in a decomposition of `f = M(d) ↾ ⟦σ⟧`, every I-address in `I(βⱼ)` shares `origin(aⱼ)`.*
 
@@ -159,7 +159,7 @@ The V-span lift is more nuanced. `origins_V(Σ, d, σ)` depends on the arrangeme
 > *(v) `#ℓ = #u = m`, where `m` is the common V-position depth in subspace `u₁` of `d` (S8-depth, ASN-0036);*
 > *(vi) the range condition `{v ∈ T : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d))`.*
 
-These are exactly the well-formedness conjuncts of the SHOWORIGIN_V operation specified below; the operation's precondition is `WF_V(Σ, d, σ)`.
+`WF_V(Σ, d, σ)` collects the conditions under which the V-span origin set (F1) is well-defined: a level-uniform span confined to a single non-empty subspace whose denoted positions are all present in `d`'s arrangement.
 
 The complementary case yields a parallel *preservation* result for arrangement *extensions*: when `M(d)` grows by K.μ⁺ and the V-span σ is well-formed at the pre-state, the reported origins are exactly preserved — not merely non-decreasing.
 
