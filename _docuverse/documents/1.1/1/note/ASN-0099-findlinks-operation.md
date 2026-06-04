@@ -188,21 +188,23 @@ PerLinkInvarianceUnderValuePreservation — sub-lemma:
 The I→Link phase consults `Σ.L` and `I` alone. F8 already encodes this. The operationally salient frame condition exercised by editing operations rests on a structural lemma of the substrate: that operations other than K.λ preserve `Σ.L`. This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, M, E, R)`, so the operative vocabulary is ASN-0047's extended-state vocabulary (ValidComposite★), with document registration performed by K.δ (Document case). Throughout this ASN we call an operation *non-allocating* (equivalently *link-store-inert*) when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}`. The term names link-store inertness specifically and does *not* exclude content allocation: K.α (ContentAllocation) is non-allocating in this sense because it extends `dom(C)`, never `dom(L)`. We package the preservation lemma:
 
 ```
-A1 (LinkStoreInertOfNonAllocatingOperations):
-   For every transition Σ → Σ' produced by an operation in V ∖ {K.λ}:
-       dom(Σ'.L) = dom(Σ.L) ∧ (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a)).
-   Equivalently, K.λ is the unique operation of V that modifies the
-   link store. (V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ} —
-   ASN-0047's extended-state vocabulary, ValidComposite★.)
-
-   Each atomic operation of V ∖ {K.λ} — {K.α, K.δ, K.μ⁺, K.μ⁻,
+A1a (PublishedFramePreservation):
+   Every atomic operation of V ∖ {K.λ} — {K.α, K.δ, K.μ⁺, K.μ⁻,
    K.μ⁺_L, K.ρ} — publishes `L' = L` in its operative frame (K.μ⁺ and
-   K.μ⁻ via ASN-0047's amended extended-state versions, which add
-   `L' = L` explicitly); A1a (published-frame preservation) discharges
-   each. K.μ~ is the non-atomic K.μ⁻ + K.μ⁺ composite, so A1 reaches it
-   through its two atomic constituents — link-store inertness across
-   the composite is the transitive composition of A1a at K.μ⁻ and A1a
-   at K.μ⁺.
+   K.μ⁻ via ASN-0047's amended extended-state versions), hence
+   preserves the link store across its transition Σ → Σ':
+       dom(Σ'.L) = dom(Σ.L) ∧ (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a)).
+```
+
+```
+A1 (LinkStoreInertOfNonAllocatingOperations) — corollary of A1a:
+   For every transition Σ → Σ' produced by an operation in V ∖ {K.λ}
+   the link store is preserved (A1a for the atomic operations; K.μ~,
+   the non-atomic K.μ⁻ + K.μ⁺ composite, by transitive composition of
+   A1a at its two constituents). Equivalently, K.λ is the unique
+   operation of V that modifies the link store.
+   (V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ} — ASN-0047's
+   extended-state vocabulary, ValidComposite★.)
 ```
 
 ```
@@ -375,8 +377,6 @@ F10-filt:  findlinks_filtered(C, Σ) admits a unique strictly T1-increasing sequ
 F10-sco:   findlinks_scoped(I, S, Σ) admits a unique strictly T1-increasing sequence.
 ```
 
-F10's existence and uniqueness are complete at this point: T1 is a total order on the finite subset `dom(Σ.L)`, and a finite totally-ordered set has exactly one increasing enumeration.
-
 *Chronological reading (interpretive).* The T1 presentation order carries a chronological reading within each home document — link addresses sharing a home are produced by repeated `inc(·, 0)` on that document's link sub-allocator (ChainMembershipForOrigin, ASN-0093), so T1 rank there tracks K.λ allocation order — but across home documents T1 sorts by document tumbler, not by K.λ event history. This interpretation plays no role in F10's ordering claim.
 
 ## Persistent Discoverability (I-Side)
@@ -396,7 +396,7 @@ F19 (ResultSetMonotonicity):
    findlinks(I, Σ) ⊆ findlinks(I, Σ') for every reachable Σ →* Σ'.
 ```
 
-Direct from F11 + the definition of `findlinks`. Monotonicity is an I-side phenomenon: F19 fixes an I-set and quantifies across the reachable sequence, resting on F11's I-side persistence; the V-side asymmetry noted at F11 applies equally here. Monotonicity propagates to the filtered and scoped forms:
+Direct from F11 + the definition of `findlinks`. The V-side asymmetry noted at F11 applies equally here. Monotonicity propagates to the filtered and scoped forms:
 
 ```
 F19-filt: findlinks_filtered(C, Σ) ⊆ findlinks_filtered(C, Σ').
@@ -452,7 +452,7 @@ The spec's demand is exactly F2 ∧ F3: `result(I, Σ) = findlinks(I, Σ)`. The 
 
 ## Local Atomicity and the Single-State Setting
 
-By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and uninterruptible; `Σ` is well-defined at every query point. A K.λ commits `a` to `dom(Σ.L)` atomically: by the time the K.λ committing `a` returns, `a` is in `dom(Σ.L)` and the next query at any state succeeding the K.λ must include `a` if `a` matches. There is no intermediate state in which `a` exists in `dom(Σ.L)` but is undiscoverable.
+By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and uninterruptible; `Σ` is well-defined at every query point. A K.λ commits `a` to `dom(Σ.L)` atomically: by the time the K.λ committing `a` returns, `a` is in `dom(Σ.L)` and the next query at any state succeeding the K.λ must include `a` if `a` matches.
 
 ## What We Have Not Specified
 
