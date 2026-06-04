@@ -28,7 +28,7 @@ We write `dom(M)` throughout for the set of allocated documents (`dom(M) = E_doc
 
   StandardAuthoring(e, Σ)  ≡  coverage(e) ∩ F  ⊆  dom(Σ.C) ∪ dom(Σ.L)
 
-A link's input endset sequence `(e₁, ..., eₙ)` is standardly authored at `Σ` iff `StandardAuthoring(eᵢ, Σ)` holds for every `i ∈ {1, ..., N}`. The discipline rules out forward-reaching endsets that pre-emptively cover not-yet-allocated substrate addresses. Because every allocable address lies in `F` — in particular the fresh link address `ℓ ∈ F` (it is an `A_L(d)` emission of the form `[d, 0, s_L, k]`, LP-Sub) — the discipline still delivers the inference it exists for: if `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` then `ℓ ∈ coverage(eᵢ)` would force `ℓ ∈ coverage(eᵢ) ∩ F ⊆ dom(Σ.C) ∪ dom(Σ.L)`, a contradiction, so `ℓ ∉ coverage(eᵢ)` for every standardly authored `eᵢ`.
+A link's input endset sequence `(e₁, ..., eₙ)` is standardly authored at `Σ` iff `StandardAuthoring(eᵢ, Σ)` holds for every `i ∈ {1, ..., N}`. The discipline rules out forward-reaching endsets that pre-emptively cover not-yet-allocated substrate addresses. Because every allocable address lies in `F` — in particular the fresh link address `ℓ ∈ F` (it is an `A_L(d)` emission of the form `[d, 0, s_L, k]`, LP-Sub) — standard authoring yields `ℓ ∉ coverage(eᵢ)`: if `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` then `ℓ ∈ coverage(eᵢ)` would force `ℓ ∈ coverage(eᵢ) ∩ F ⊆ dom(Σ.C) ∪ dom(Σ.L)`, a contradiction, so `ℓ ∉ coverage(eᵢ)` for every standardly authored `eᵢ`.
 
 ## Decomposition
 
@@ -118,7 +118,7 @@ The function is *computed* from `Σ'.L(ℓ)` and `Σ'.M(d)` — no separate stat
 
   discoverable_from(ℓ, d, Σ')  ⟺  (E i : coverage(Σ'.L(ℓ).eᵢ) ∩ ran(Σ'.M(d)) ≠ ∅)
 
-After MAKELINK, this biconditional holds at the post-state for every `d ∈ dom(Σ'.M)` (M-DiscSymmetry). LP12's definition treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric: `ℓ` is discoverable from every document whose arrangement reaches into any of its endset coverages, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content.
+LP12 treats every document uniformly — the home document has no privileged status *in the discovery function itself*. For the *standard content-reach route* (an endset coverage meeting a document's arrangement range), discoverability is therefore symmetric (M-DiscSymmetry): `ℓ` is discoverable from every document whose arrangement range meets some endset coverage, realizing Nelson's intent that all parties reaching a link's endpoints discover it by querying their own content.
 
 Discoverability is therefore a derived function of `L` and `M`, so the abstract specification requires no separate index state component (M-NoIndexState).
 
@@ -261,7 +261,7 @@ For the V-arrangement entry `v_ℓ ↦ ℓ`:
   S2:       M'(d) remains a partial function                      v_ℓ ∉ dom(Σ.M(d)) by the two-part argument below; v_ℓ enters dom(M'(d)) fresh, preserving functionality of M'(d)
   S3★:      image of v_ℓ is ℓ ∈ dom(L'), subspace(v_ℓ) = s_L     direct from the effect
   S3★-aux:  subspace(v_ℓ) = s_L ∈ {s_C, s_L}                      direct from the effect
-  S8a:      zeros(v_ℓ) = 0, #v_ℓ = m_L(d) ≥ 2, components all > 0  v_ℓ = [s_L, 1, ..., 1, k] with s_L = 2 > 0, all components ≥ 1
+  S8a:      zeros(v_ℓ) = 0, #v_ℓ = m_L(d') ≥ 2, components all > 0  v_ℓ = [s_L, 1, ..., 1, k]; post-state depth m_L(d') = 2 when V_{s_L}(d) = ∅ (pinned by M-DepthConv), else m_L(d') = m_L(d) (existing depth); s_L = 2 > 0, all components ≥ 1
   S8-depth: depth uniformity in subspace s_L at d                 common depth m_L(d) for all V-positions in V_{s_L}(d); v_ℓ's depth per M-DepthConv
   S8-fin:   |dom(M'(d))| = |dom(M(d))| + 1                       S8-fin at Σ gives finiteness of the predecessor
   S8★:      per-subspace span decomposition                       link subspace admits trivial length-1 decomposition (see below)
@@ -345,7 +345,7 @@ MAKELINK performs *no permission check on referenced content*. It does not verif
 | M-Frame | `Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`; existing entries in `L` and in `M(d')` for `d' ≠ d` are unchanged. | introduced |
 | M-NoContentEffect | For every `a ∈ dom(Σ.C)`: `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The referenced content is byte-identical before and after MAKELINK. | introduced |
 | M-DiscSymmetry | For the standard content-reach route, discoverability of `ℓ` is symmetric across all documents whose arrangements reach into an endset coverage — LP12 grants the home document no privileged status. The reflexive route is the home document's alone, since MAKELINK places `ℓ` into its arrangement and no other. | introduced |
-| StandardAuthoring | `StandardAuthoring(e, Σ) ≡ coverage(e) ∩ F ⊆ dom(Σ.C) ∪ dom(Σ.L)`, where `F` is ASN-0098's set of substrate-emittable addresses — a structural predicate on endset values at a state. The intersection with `F` is essential: unrestricted coverage is infinite (T0(a)/T0(b)), hence never contained in the finite stores. A link's endset sequence is standardly authored at `Σ` iff every constituent endset satisfies the predicate. | introduced |
+| StandardAuthoring | `StandardAuthoring(e, Σ) ≡ coverage(e) ∩ F ⊆ dom(Σ.C) ∪ dom(Σ.L)`, where `F` is ASN-0098's set of substrate-emittable addresses. A link's endset sequence is standardly authored at `Σ` iff every constituent endset satisfies the predicate. | introduced |
 | M-Reflexive | If `ℓ ∈ coverage(eᵢ)` for some `i` (the reflexive endset case), then `v_ℓ ∈ project(ℓ, i, d, Σ')` and `discoverable_from(ℓ, d, Σ')` is forced true regardless of `Σ.M(d)`'s pre-existing arrangement. Under `(A i : StandardAuthoring(eᵢ, Σ))` the reflexive case is structurally excluded. | introduced |
 | M-PriorLinkDisc | For every prior link `ℓ' ∈ dom(Σ.L)`: from the home document `d`, `discoverable_from(ℓ', d, Σ') ⟺ discoverable_from(ℓ', d, Σ) ∨ (E i :: ℓ ∈ coverage(Σ.L(ℓ').eᵢ))` — newly discoverable precisely when some endset of `ℓ'` covers `ℓ`; from any `d_target ≠ d`, `discoverable_from(ℓ', d_target, Σ') = discoverable_from(ℓ', d_target, Σ)`. The side-effect window is confined to the home document. | introduced |
 | M-WP | Post-MAKELINK discoverability has explicit weakest preconditions (total correctness): for `d_target ≠ d`, `wp ≡ enabled(MAKELINK) ∧ d_target ∈ dom(Σ.M) ∧ (E i :: coverage(eᵢ) ∩ ran(Σ.M(d_target)) ≠ ∅)`; for `d_target = d`, `wp ≡ enabled(MAKELINK) ∧ [(E i :: coverage(eᵢ) ∩ ran(Σ.M(d)) ≠ ∅) ∨ (E i :: ℓ ∈ coverage(eᵢ))]`. Under `(A i : StandardAuthoring(eᵢ, Σ))` the reflexive disjunct collapses and the two shapes coincide. | introduced |
