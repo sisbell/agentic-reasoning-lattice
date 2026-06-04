@@ -57,7 +57,7 @@ The composite is valid when its component preconditions hold. ASN-0093's K.λ ha
 
 The emission clause `ℓ is produced by A_L(d)` is the caller-discharged obligation on `ℓ`. The freshness and structural shape of `ℓ` are derived — ASN-0093 facts that hold automatically for any `A_L(d)` emission:
 
-  ℓ ∉ dom(C) ∪ dom(L)                                   [*Freshness of the Allocation*, below]
+  ℓ ∉ dom(C) ∪ dom(L)                                   [FirstEmissionFreshness, SubsequentEmissionFreshness, ASN-0093: every A_L(d) emission is fresh against dom(C) ∪ dom(L)]
   zeros(ℓ) = 3 ∧ E(ℓ)₁ = s_L ∧ #E(ℓ) ≥ 2 ∧ origin(ℓ) = d   [FirstEmission, ChainDiscipline]
 
 For K.μ⁺_L at the intermediate state `Σ_mid` after K.λ:
@@ -75,7 +75,7 @@ The condition `ℓ ∉ ran(Σ_mid.M(d))` requires more than `ℓ ∉ dom(Σ.L)`;
 - If `subspace(v) = s_C`, then `Σ.M(d)(v) ∈ dom(Σ.C)`.
 - If `subspace(v) = s_L`, then `Σ.M(d)(v) ∈ dom(Σ.L)`.
 
-The derived freshness of `ℓ` (*Freshness of the Allocation*, below) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. In either subspace case, `Σ.M(d)(v) ∈ dom(Σ.C) ∪ dom(Σ.L)`, so `Σ.M(d)(v) ≠ ℓ`. Hence `ℓ ∉ ran(Σ.M(d)) = ran(Σ_mid.M(d))`.
+The derived freshness of `ℓ` (FirstEmissionFreshness, SubsequentEmissionFreshness, ASN-0093) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`. In either subspace case, `Σ.M(d)(v) ∈ dom(Σ.C) ∪ dom(Σ.L)`, so `Σ.M(d)(v) ≠ ℓ`. Hence `ℓ ∉ ran(Σ.M(d)) = ran(Σ_mid.M(d))`.
 
 The intermediate-state conditions for K.μ⁺_L reduce to original-state conditions, so the caller-visible precondition for MAKELINK is just K.λ's precondition, with `ℓ` supplied by `A_L(d)`'s next emission and `v_ℓ` determined by the link subspace's current cardinality (serial component `n_L + 1`, where `n_L = |V_{s_L}(d)|`) together with its depth per M-DepthConv.
 
@@ -100,13 +100,6 @@ Other components are unchanged:
   Σ'.R  =  Σ.R                                          [K.λ, K.μ⁺_L hold R fixed]
   (A ℓ' ∈ dom(Σ.L) :: Σ'.L(ℓ') = Σ.L(ℓ'))               [L12]
   (A d' ∈ dom(Σ.M), d' ≠ d :: Σ'.M(d') = Σ.M(d'))
-
-## Freshness of the Allocation
-
-The address `ℓ` is genuinely new — `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)` at `Σ` — so K.λ's freshness precondition is met by construction. By FirstEmissionFreshness and SubsequentEmissionFreshness (ASN-0093), every emission of `A_L(d)` is fresh against `dom(Σ.C) ∪ dom(Σ.L)`:
-
-- *First-emission case* (`{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d} = ∅`): FirstEmissionFreshness (ASN-0093) gives `ℓ = [d, 0, s_L, 1] ∉ dom(Σ.L) ∪ dom(Σ.C)`.
-- *Subsequent-emission case* (`ℓ = inc(ℓ_prev, 0)`): SubsequentEmissionFreshness (ASN-0093) gives `ℓ ∉ dom(Σ.C) ∪ dom(Σ.L)`.
 
 ## Permanence of the Recording
 
@@ -236,7 +229,7 @@ Hence `ℓ'` is *newly* discoverable from `d` (discoverable at `Σ'` but not at 
 
 This is the LP9 (ExtensionMonotonicity, ASN-0098) growth characterization specialized to MAKELINK's single new V-position `v_ℓ ↦ ℓ`: the set of new projection witnesses is `{v_ℓ}` if `ℓ ∈ coverage(Σ.L(ℓ').eᵢ)`, otherwise `∅`. When `ℓ'` was orphaned at `Σ` (`¬discoverable_from(ℓ', d', Σ)` for every `d'`), this is exactly the LP18 (Resurrection, ASN-0098) pattern with `a* = ℓ` and `d` as the resurrection target.
 
-The side effect can only occur when `ℓ'` was authored with an endset whose span coverage extends to addresses not yet allocated at authoring time. Such forward-reaching endsets are permitted by L4 (EndsetGenerality, ASN-0043) — endset spans may reference any addresses in the tumbler space, including those not currently in `dom(C) ∪ dom(L)`. MAKELINK's allocation of `ℓ` "fills in" a previously-uncovered region of the address space, retroactively activating any prior endset that had pre-emptively claimed it. When `ℓ'` was authored under standard authoring at its own authoring state — `StandardAuthoring(Σ.L(ℓ').eᵢ, Σ_{ℓ'})` holds at the state `Σ_{ℓ'}` at which `ℓ'` was incorporated — no such endset can cover the future fresh `ℓ`, and the side effect is vacuous. The new step here is the backward transfer of `ℓ`'s freshness from the K.λ allocation state `Σ_ℓ` to the earlier authoring state `Σ_{ℓ'}` (where `Σ_{ℓ'} →* Σ_ℓ`): by Store Monotonicity★ (ASN-0098), `dom(Σ_{ℓ'}.C) ∪ dom(Σ_{ℓ'}.L) ⊆ dom(Σ_ℓ.C) ∪ dom(Σ_ℓ.L)`, so K.λ's freshness `ℓ ∉ dom(Σ_ℓ.C) ∪ dom(Σ_ℓ.L)` yields `ℓ ∉ dom(Σ_{ℓ'}.C) ∪ dom(Σ_{ℓ'}.L)`. M-FreshExcl (*Inputs*) — instantiated at `x = ℓ` (with `ℓ ∈ F` already established in *Inputs*) and `e = Σ.L(ℓ').eᵢ` at state `Σ_{ℓ'}`, using this transferred freshness — then gives `ℓ ∉ coverage(Σ.L(ℓ').eᵢ)`.
+The side effect can only occur when `ℓ'` was authored with an endset whose span coverage extends to addresses not yet allocated at authoring time. Such forward-reaching endsets are permitted by L4 (EndsetGenerality, ASN-0043) — endset spans may reference any addresses in the tumbler space, including those not currently in `dom(C) ∪ dom(L)`. MAKELINK's allocation of `ℓ` "fills in" a previously-uncovered region of the address space, retroactively activating any prior endset that had pre-emptively claimed it. When `ℓ'` was authored under standard authoring at its own authoring state — `StandardAuthoring(Σ.L(ℓ').eᵢ, Σ_{ℓ'})` holds at the state `Σ_{ℓ'}` at which `ℓ'` was incorporated — no such endset can cover the future fresh `ℓ`, and the side effect is vacuous. The freshness of `ℓ` transfers backward from the K.λ allocation state `Σ_ℓ` to the earlier authoring state `Σ_{ℓ'}` (where `Σ_{ℓ'} →* Σ_ℓ`): by Store Monotonicity★ (ASN-0098), `dom(Σ_{ℓ'}.C) ∪ dom(Σ_{ℓ'}.L) ⊆ dom(Σ_ℓ.C) ∪ dom(Σ_ℓ.L)`, so K.λ's freshness `ℓ ∉ dom(Σ_ℓ.C) ∪ dom(Σ_ℓ.L)` yields `ℓ ∉ dom(Σ_{ℓ'}.C) ∪ dom(Σ_{ℓ'}.L)`. M-FreshExcl (*Inputs*) — instantiated at `x = ℓ` (with `ℓ ∈ F` already established in *Inputs*) and `e = Σ.L(ℓ').eᵢ` at state `Σ_{ℓ'}`, using this transferred freshness — then gives `ℓ ∉ coverage(Σ.L(ℓ').eᵢ)`.
 
 For `d_target ≠ d`, `Σ'.M(d_target) = Σ.M(d_target)`, so prior-link discoverability is unchanged; the side-effect window is the home document `d` (M-PriorLinkDisc).
 
@@ -271,7 +264,7 @@ For the V-arrangement entry `v_ℓ ↦ ℓ`:
   CL-OWN:   origin(M'(d)(v_ℓ)) = origin(ℓ) = d                   origin(ℓ) = d derived from A_L(d) emission
   CL-UNIQ:  partial injection preserved                           K.μ⁺_L first-arrangement guard ℓ ∉ ran(M_mid(d))
   D-MIN★:   min(V_{s_L}^{Σ'}(d)) = [s_L, 1, ..., 1]               both cases below
-  D-CTG★:   extension is contiguous                               discharged below: MAKELINK pins m_L(d) = 2, so the slice has no interior positions and contiguity reduces to last-component containment of an initial segment
+  D-CTG★:   extension is contiguous                               discharged below: the post-state set is an initial segment of the depth-m_L^{Σ'}(d), subspace-s_L slice, contiguous at every depth m ≥ 2
   D-SEQ★:   V_{s_L}^{Σ'}(d) is contiguous initial segment           see below
 
 For S2: we must show `v_ℓ ∉ dom(Σ.M(d))`, not merely `v_ℓ ∉ V_{s_L}(d)`. By S3★-aux at `Σ`, `dom(Σ.M(d)) = V_{s_C}(d) ∪ V_{s_L}(d)`, so the obligation splits into two exclusions:
@@ -286,7 +279,7 @@ For D-MIN★: we must show `min(V_{s_L}^{Σ'}(d)) = [s_L, 1, ..., 1]`. Two cases
 
 For D-SEQ★: by D-SEQ★ at `Σ`, `V_{s_L}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L}` of common depth `m_L(d)` for some `n_L ≥ 0` (with `n_L = 0` meaning the link subspace at `d` is empty). If `n_L = 0`, MAKELINK commits the minimal depth per M-DepthConv: the K.μ⁺_L positioning rule gives `v_ℓ = [s_L, 1]` at depth 2, so `V_{s_L}^{Σ'}(d) = {v_ℓ}` — a contiguous initial segment of cardinality 1, fixing `m_L^{Σ'}(d) = 2`. If `n_L ≥ 1`, the rule gives `v_ℓ = shift(max(V_{s_L}(d)), 1) = [s_L, 1, ..., 1, n_L + 1]` at depth `m_L(d)`, so `V_{s_L}^{Σ'}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k ≤ n_L + 1}` — a contiguous initial segment of cardinality `n_L + 1`. Either way, the post-state set conforms to D-SEQ★. ✓
 
-For D-CTG★: D-CTG★ (ASN-0047) quantifies over the *full* depth-`m_L^{Σ'}(d)`, subspace-`s_L` slice — every positive-component tuple `z` with `v_lo ≤ z ≤ v_hi` (extremes drawn from `V_{s_L}^{Σ'}(d)`) must be a member. MAKELINK is the sole producer of link-subspace V-positions (M-Comp): it commits the canonical depth `m_L^{Σ'}(d) = 2` for every first link it places (M-DepthConv), and S8-depth then pins `m_L(d) = 2` for all later link V-positions of `d`. Hence `m_L(d) > 2` is never reachable, and the slice is the depth-2, subspace-`s_L` slice `{[s_L, k] : k > 0}` — a slice with *no* interior positions. The post-state set is `V_{s_L}^{Σ'}(d) = {[s_L, k] : 1 ≤ k ≤ K}` with `K = 1` (empty case) or `K = n_L + 1` (non-empty case), an initial segment of that slice with extremes `v_lo = [s_L, 1]` and `v_hi = [s_L, K]`. Contiguity is then immediate: any slice tuple `z = [s_L, k]` (with `k > 0`) satisfying `v_lo ≤ z ≤ v_hi` has `1 ≤ k ≤ K` by T1 on the sole varying (last) component, so `z ∈ V_{s_L}^{Σ'}(d)`. This discharges the D-CTG★ contiguity conjunct over the full slice. ✓
+For D-CTG★: D-CTG★ (ASN-0047) quantifies over the *full* depth-`m_L^{Σ'}(d)`, subspace-`s_L` slice — every positive-component tuple `z` with `v_lo ≤ z ≤ v_hi` (extremes drawn from `V_{s_L}^{Σ'}(d)`) must be a member. We prove this directly at the arbitrary post-state depth `m := m_L^{Σ'}(d) ≥ 2`, without assuming `m = 2`. By D-SEQ★ (discharged above), the post-state set is the initial segment `V_{s_L}^{Σ'}(d) = {[s_L, 1, ..., 1, k] : 1 ≤ k ≤ K}` of length-`m` tuples, with `K = 1` (empty case) or `K = n_L + 1` (non-empty case); its extremes are `v_lo = [s_L, 1, ..., 1]` and `v_hi = [s_L, 1, ..., 1, K]`. Let `z = [s_L, z_2, ..., z_m]` be any slice tuple (depth `m`, first component `s_L`, all components `≥ 1`) with `v_lo ≤ z ≤ v_hi` under T1. From `z ≤ v_hi`: were `z_j > 1` at any interior position `2 ≤ j ≤ m − 1`, then at the least such `j` the tuples `z` and `v_hi` agree on positions `1..j−1` (component `s_L` at position 1, component `1` at positions `2..j−1`) while `z_j > 1 = (v_hi)_j`, giving `z > v_hi` by T1 case (i) — contradicting `z ≤ v_hi`. Hence `z_j = 1` for every `2 ≤ j ≤ m − 1`, so `z = [s_L, 1, ..., 1, z_m]`. Then `v_lo ≤ z` forces `z_m ≥ 1` and `z ≤ v_hi` forces `z_m ≤ K`, so `z = [s_L, 1, ..., 1, k]` with `1 ≤ k ≤ K`, i.e. `z ∈ V_{s_L}^{Σ'}(d)`. The extension-by-one-at-the-top of a D-SEQ★ initial segment is thus contiguous at every depth `m ≥ 2`, discharging the D-CTG★ contiguity conjunct over the full slice. ✓
 
 For S8★: ASN-0047's S8★ is a conjunction over both subspaces `S ∈ {s_C, s_L}`, retaining S8's conditions (a), (b) on each and the uniqueness condition (c) on the content subspace. We discharge both halves at the home document `d`.
 
@@ -296,7 +289,7 @@ For S8★: ASN-0047's S8★ is a conjunction over both subspaces `S ∈ {s_C, s_
 Every invariant quantifying solely over `C`, `E`, `R`, or the document set `dom(M)` — all frame-fixed at MAKELINK (`Σ'.C = Σ.C`, `Σ'.E = Σ.E`, `Σ'.R = Σ.R`, `dom(Σ'.M) = dom(Σ.M)`, since MAKELINK allocates no new document and only adds a V-position within an already-allocated one) — is preserved by inheritance: S4, S7a, S7b, C1b, C1c, C-fin, P6, P7, P8, M0, NodeLineage, ActivatedEmission.
 
 - S7d (DocumentAllocationDiscipline, ASN-0036): document set unchanged (`dom(Σ'.M) = dom(Σ.M)`); preserved by inheritance.
-- L11a (link uniqueness, ASN-0043): `ℓ` is fresh against `dom(Σ.L)` (Freshness of the Allocation), so its allocation event is distinct from every prior link allocation event, and L11a's distinctness conclusion holds at `Σ'`.
+- L11a (link uniqueness, ASN-0043): `ℓ` is fresh against `dom(Σ.L)` (FirstEmissionFreshness, SubsequentEmissionFreshness, ASN-0093), so its allocation event is distinct from every prior link allocation event, and L11a's distinctness conclusion holds at `Σ'`.
 
 ### Composite-Boundary Properties
 
@@ -347,7 +340,7 @@ MAKELINK performs *no permission check on referenced content*. It does not verif
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| M-Comp | MAKELINK is the composite `K.λ ; K.μ⁺_L` — K.λ followed by K.μ⁺_L — applied to the same home document `d`. The semicolon denotes sequential composition of atomic transitions. | introduced |
+| M-Comp | MAKELINK is the composite `K.λ ; K.μ⁺_L` — K.λ followed by K.μ⁺_L — applied to the same home document `d`. | introduced |
 | M-DepthConv | MAKELINK fixes every first link's V-position depth at the canonical minimal `m = 2`; thereafter S8-depth pins `m_L(d) = 2`. Stated and scoped in *Inputs*. | introduced |
 | M-Pre | Caller-visible precondition: `d ∈ dom(M)`, `N ≥ 3`, `(A i : eᵢ ∈ Endset)`, `e₃ ≠ ∅`. System-supplied parameters: `ℓ` from `A_L(d)`'s next emission; `v_ℓ` from K.μ⁺_L's positioning rule, serial component `n_L + 1` computed from `Σ`, depth per M-DepthConv. | introduced |
 | M-Alloc | MAKELINK allocates a fresh `ℓ ∈ T \ (dom(Σ.L) ∪ dom(Σ.C))` and a fresh `v_ℓ ∈ T \ dom(Σ.M(d))` with `subspace(v_ℓ) = s_L` and `#v_ℓ` per M-DepthConv. | introduced |
