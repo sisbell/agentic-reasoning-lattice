@@ -60,9 +60,6 @@ body redevelops claims, lemmas, or proofs that the foundation already
 establishes. Where redevelopment is found, replace it with explicit
 citation to the foundation (cite by ASN number and claim name).
 
-If a declared dep has no use site in the body after auditing, document
-why it is retained or flag for removal from `depends:`.
-
 Reason for this audit: {reason}
 """
 
