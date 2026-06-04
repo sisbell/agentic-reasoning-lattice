@@ -36,7 +36,7 @@ Three values will be needed, of which the first two are produced by allocation a
 
 - `ℓ_new` — the I-address of the *successor link*, freshly allocated under `d_new`'s link sub-allocator;
 - `ℓ_sup` — the I-address of the *supersession link*, freshly allocated under `d_new`'s link sub-allocator;
-- `τ_sup` — a tumbler supplied by the caller as the address designating the supersession relationship. EDITLINK requires only that `τ_sup ∈ T ∧ #τ_sup ≥ 1`, so that the unit-depth span `(τ_sup, δ(1, #τ_sup))` is well-formed under T12. Whether `τ_sup` lies in `dom(C)`, `dom(L)`, or neither — whether it is element-level, document-level, or in some dedicated subspace — is not constrained by the link model. EDITLINK simply records the caller's chosen address. Foundation evidence supports this open-endedness: L4 (EndsetGenerality, ASN-0043) explicitly permits endset spans to reference any addresses, and L9 (TypeGhostPermission, ASN-0043) explicitly permits type-endset addresses that lie outside `dom(C) ∪ dom(L)`. The convention by which a reader recognizes `τ_sup` as designating supersession — and hence reads `ℓ_sup` as a supersession assertion rather than an arbitrary arity-3 link — is external to the link model and deferred to a future ASN on type-endset conventions (Open Questions). Subsequent claims invoke `τ_sup` only as a structural witness and do not re-open this deferral.
+- `τ_sup` — a tumbler supplied by the caller as the address designating the supersession relationship. EDITLINK requires only that `τ_sup ∈ T ∧ #τ_sup ≥ 1`, so that the unit-depth span `(τ_sup, δ(1, #τ_sup))` is well-formed under T12. Whether `τ_sup` lies in `dom(C)`, `dom(L)`, or neither — whether it is element-level, document-level, or in some dedicated subspace — is not constrained by the link model. EDITLINK simply records the caller's chosen address. The convention by which a reader recognizes `τ_sup` as designating supersession — and hence reads `ℓ_sup` as a supersession assertion rather than an arbitrary arity-3 link — is external to the link model and deferred to a future ASN on type-endset conventions (Open Questions).
 
 **Precondition (composite, evaluated at the pre-state `Σ`):**
 
@@ -149,7 +149,7 @@ This is what "edit" means abstractly. The user-facing operation is not parameter
 
 We now examine the second link in the composite — the link that we will call a *supersession link* by convention, while keeping the conventional designation carefully separated from the structural witness the link model can actually establish.
 
-What we will call a supersession link, in our construction, has the structural form of a link of arity 3 whose endsets reference `ℓ_old`, `ℓ_new`, and `τ_sup` via canonical unit-depth spans, as specified in the composite definition. The link model alone cannot *identify* such a link as a supersession: it admits arity-3 links whose first endset references one link, whose second endset references another link, and whose third endset references some third address for any number of reasons, with no syntactic mark distinguishing those whose author meant to assert supersession from those whose author did not. Identification depends on the external convention that designates `τ_sup` as the supersession-type address (deferred at `τ_sup`'s definition, §The Composite). The claim that follows is therefore structural: it establishes that the spans are present in the endsets and recoverable by any discovery operation, not that the link is identifiable as a supersession without an external designation of `τ_sup`.
+What we will call a supersession link, in our construction, has the structural form of a link of arity 3 whose endsets reference `ℓ_old`, `ℓ_new`, and `τ_sup` via canonical unit-depth spans, as specified in the composite definition. The link model alone cannot *identify* such a link as a supersession: it admits arity-3 links whose first endset references one link, whose second endset references another link, and whose third endset references some third address for any number of reasons, with no syntactic mark distinguishing those whose author meant to assert supersession from those whose author did not. Identification rests on the external `τ_sup` convention fixed at its definition (§The Composite). The claim that follows is therefore structural: it establishes that the spans are present in the endsets and recoverable by any discovery operation, not that the link is identifiable as a supersession.
 
 **E4 (SupersessionLink).** Following EDITLINK, the state `Σ'` contains a link `ℓ_sup ∈ dom(Σ'.L)` with:
 
@@ -163,7 +163,7 @@ What we will call a supersession link, in our construction, has the structural f
 
 *Interpretation.* The three spans just shown to be present are not arbitrary tumblers in endset slots; by L13, the spans `(ℓ_old, δ(1, #ℓ_old))` and `(ℓ_new, δ(1, #ℓ_new))` are canonical unit-depth references to the link entities at those addresses, and by L4 endset spans may target any tumblers, including link I-addresses. By PrefixSpanCoverage, the canonical unit-depth span at `x` has coverage `{t : x ≼ t}`, which contains `x` itself and any addresses that may later be allocated as extensions of `x`. The supersession link therefore stands in a permanent structural relationship to the two link entities it relates.
 
-We observe that the supersession link is not privileged by the link model. It is a link like any other — same allocation discipline, same immutability, same discoverability. What makes it a *supersession* link is the convention of `τ_sup` in its type-endset; readers and writers of the system agree, by convention external to the link store, that this type address designates the supersession relationship.
+We observe that the supersession link is not privileged by the link model. It is a link like any other — same allocation discipline, same immutability, same discoverability. What makes it a *supersession* link is the external `τ_sup` convention in its type-endset (§The Composite), not any structural mark.
 
 ## E5 — Divergent Successors
 
@@ -319,10 +319,6 @@ We check the claims against this state.
 **E10.** No K.λ step modifies any arrangement or `R`. `Σ'.M(d_alice) = Σ.M(d_alice)`; `Σ'.M(d_bob) = Σ.M(d_bob)`; and for every other `d ∈ E_doc`, `Σ'.M(d) = Σ.M(d)`. `Σ'.R = Σ.R`. In particular, Alice's arrangement is unchanged — she receives no notification of Bob's claim. ✓
 
 The example exhibits the asymmetry recorded in E6: Alice retains full control of `d_alice`; Bob retains full control of `d_bob`; the supersession claim itself lives in `d_bob`, attributable to Bob, discoverable from either endpoint via E7.
-
-## Appendix: Intended Use of the Structural Witness
-
-E7's `covers(Σ', ·)` witness is the intended substrate for a future link-search ASN: a reader holding a reference to `ℓ_old` could query `covers` to recover the supersession links published against it. The conventions, policies, and termination guarantees such a procedure would require are not established here; they are enumerated in the Open Questions below.
 
 ## Open Questions
 
