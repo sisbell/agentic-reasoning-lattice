@@ -366,7 +366,7 @@ F10 (OrderedResult):
    and a₁ < a₂ < ... < aₙ under T1.
 ```
 
-Finiteness: F3 gives `result(I, Σ) ⊆ dom(Σ.L)`; L-fin gives `|dom(Σ.L)| < ∞`. T1 is a strict total order on `T` and so restricts to one on any subset. Every finite totally-ordered set admits a unique enumeration by finite induction; the empty result (`n = 0`) is the degenerate case, presented as the empty sequence `⟨⟩`, which is vacuously strictly increasing and trivially unique. This covers the mandatory empty-result boundary: `findlinks(I, Σ) = ∅` whenever no link matches — including `I = ∅`, a V-region disjoint from `dom(Σ.M(d))`, or a non-empty link store in which no endset overlaps `I` (Query 5's `findlinks_V({v_a^2}, d_a, Σ_5) = ∅`). The canonical filtered and scoped presentations follow by the same finiteness + total-order argument:
+Finiteness: F3 gives `result(I, Σ) ⊆ dom(Σ.L)`; L-fin gives `|dom(Σ.L)| < ∞`. T1 is a strict total order on `T` and so restricts to one on any subset. Every finite totally-ordered set admits a unique enumeration by finite induction; the empty result (`n = 0`) is the degenerate case, presented as the empty sequence `⟨⟩`, which is vacuously strictly increasing and trivially unique. The canonical filtered and scoped presentations follow by the same finiteness + total-order argument:
 
 ```
 F10-filt:  findlinks_filtered(C, Σ) admits a unique strictly T1-increasing sequence.
@@ -452,7 +452,7 @@ By SequentialTransitionAxiom (ASN-0093), every state transition is atomic and un
 - Access control beyond noting it as an orthogonal scope filter.
 - The inverse direction (resolving result endsets back to V-positions) — that is FOLLOWLINK/RETRIEVEENDSETS.
 - The *interpretation* a reader should attach to a query with I-addresses outside `dom(Σ.C) ∪ dom(Σ.L)`. The semantics are already pinned by the comprehension — such a query returns exactly the links whose coverage meets `I`, possibly ghost-covering links (LP17, ASN-0098) — but what such a result *means* to the reader is left open.
-- A combined filtered-and-scoped operation `findlinks_filtered_scoped(C, S, Σ)`. The intended composition is naive intersection `findlinks_filtered(C, Σ) ∩ S`; determinism, survivability, and monotonicity propagate pointwise from the per-component claims.
+- A combined filtered-and-scoped operation `findlinks_filtered_scoped(C, S, Σ)`.
 
 ## Claims Introduced
 
