@@ -1,0 +1,23 @@
+# Review of ASN-0103
+
+## REVISE
+
+### Issue 1: The load-bearing inclusion `D_A ⊆ S(A,2)` is used but never proved; only the unused reverse inclusion is established
+
+**ASN-0103, Effect One**: "which collects exactly the entities of E carrying the document chain's structural signature beneath A. Every A_doc(A) emission present in E has this signature, so `E ∩ S(A, 2) ⊆ D_A`." and "in both cases `d` lies on `A_doc(A) = S(A, 2)`."
+
+**Problem**: The text proves `E ∩ S(A,2) ⊆ D_A`. But every load-bearing use requires the *opposite* direction — that every member of `D_A` has the canonical stream form `[A,0,j]` (equivalently `D_A ⊆ S(A,2)`):
+
+- The claim "`d` lies on `A_doc(A) = S(A,2)`" in the subsequent case (`d = inc(max(D_A), 0)`) holds only if `max(D_A) ∈ S(A,2)`. With merely `E ∩ S(A,2) ⊆ D_A`, nothing rules out `max(D_A)` being a document under `A` of length `#A+2` that is *not* `[A,0,j]`, in which case `inc(max(D_A),0)` need not land on the stream, need not have `sig = #A+2`, and the document-level / monotonicity reasoning collapses.
+- The version-dominance step writes "Write `d = [A,0,p]`" and "a version `v` extends some document `d_i = [A,0,i] ∈ D_A`," treating `D_A` members as `[A,0,i]`. That canonical form is exactly the unproven `D_A ⊆ S(A,2)` direction.
+
+So the proof establishes the inclusion it does not use, and silently assumes the inclusion it does use.
+
+**Required**: Prove `D_A ⊆ S(A,2)` (i.e. every `e ∈ D_A` has form `[A,0,j]`). This is a one-line T4b argument: `Document(e) ∧ parent(e) = A` forces the parse `e = N(e).0.U(e).0.D(e)` with `N(e).0.U(e) = A`; then `#e = #A + 2` forces `#D(e) = 1`, so `e = [A,0,D(e)₁]`, which is exactly the form of `S(A,2)` elements. With both inclusions, `D_A = E ∩ S(A,2)`, and `max(D_A) ∈ S(A,2)`, `inc(max(D_A),0) ∈ S(A,2)`, and the `[A,0,i]` form of version ancestors all follow. State this explicitly where `d_prev = max(D_A)` is first used.
+
+## OUT_OF_SCOPE
+
+### Topic 1: `E`↔`B` coupling for the effective-owner (`ω`) reading of ownership
+**Why out of scope**: The ASN deliberately and correctly defers `ω_{Σ'}(d) = ω_Σ(A)` to a registry-carrying ASN, with a full justification of why ASN-0047's state `(C,L,E,M,R)` cannot support it. This is new territory (a registry-coupled state model), not an error here; the structural ownership `pfx(π) ≼ d` it does assert is properly derived.
+
+VERDICT: REVISE
