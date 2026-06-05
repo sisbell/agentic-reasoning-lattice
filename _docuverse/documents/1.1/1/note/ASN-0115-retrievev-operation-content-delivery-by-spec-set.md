@@ -108,9 +108,11 @@ For a V-spec `ρ = (d, σ)` we define its *active positions* at state `Σ`:
 
 — the V-positions the span names that the document's arrangement actually binds.
 Silent filtering is built into this definition: a named position that the
-arrangement does not bind simply is not in `act`. Because `act(ρ, Σ)` is a finite
-subset of the totally ordered carrier `T` (ASN-0034, T1), it has a unique
-ascending enumeration `v₁ < v₂ < … < v_{k}` where `k = |act(ρ, Σ)|`.
+arrangement does not bind simply is not in `act`. The set `act(ρ, Σ)` is finite
+because it is a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin); it is
+totally ordered because it is a subset of the totally ordered carrier `T`
+(ASN-0034, T1). Finiteness and total order together give it a unique ascending
+enumeration `v₁ < v₂ < … < v_{k}` where `k = |act(ρ, Σ)|`.
 
 Each active position is resolved through the arrangement to a single address
 `a = Σ.M(d)(v)` (well-defined and single-valued by S2), and the *delivery item*
@@ -293,10 +295,11 @@ positions within a consultable arrangement are unbound.
 If the same spec-set is asked again, against unchanged arrangements, must the
 delivered material be identical?
 
-> **R7 (Repeatability).** Let `Σ`, `Σ'` be two states of one evolving docuverse —
-> both reachable from a common initial state along the sequential transition order
-> (ASN-0047, SequentialTransitionAxiom) — for which the consulted arrangement
-> restrictions agree, `Σ.M(dⱼ)|⟦σⱼ⟧ = Σ'.M(dⱼ)|⟦σⱼ⟧` for every `j`. Then
+> **R7 (Repeatability).** Let `Σ`, `Σ'` be two states of one evolving docuverse
+> with one a reachability descendant of the other along the sequential transition
+> order — without loss of generality `Σ →* Σ'` (ASN-0047,
+> SequentialTransitionAxiom) — for which the consulted arrangement restrictions
+> agree, `Σ.M(dⱼ)|⟦σⱼ⟧ = Σ'.M(dⱼ)|⟦σⱼ⟧` for every `j`. Then
 > `deliver(R, Σ) = deliver(R, Σ')`.
 
 The proof is short and exposes which input is the variable one. `deliver` is a
@@ -305,14 +308,15 @@ the resolved values are drawn from. The restrictions are equal by hypothesis, so
 `act` and the resolved addresses agree position-for-position. Fix any resolved
 address `a`. Because the consulted restriction binds `a` at both states, S3★
 places `a` in the appropriate store at each: `a ∈ dom(Σ.C) ∩ dom(Σ'.C)` for a
-content position, `a ∈ dom(Σ.L) ∩ dom(Σ'.L)` for a link position. Because both
-states lie on a common trace from the shared initial state, the sequential
-transition order (ASN-0047, SequentialTransitionAxiom) makes them comparable, so
-without loss of generality `Σ` precedes `Σ'`; over the intervening transitions
-content immutability (S0) and link immutability (L12) hold the stored entry fixed,
-giving `Σ.C(a) = Σ'.C(a)` (resp. `Σ.L(a) = Σ'.L(a)`). The choice of direction is
-immaterial — value-equality is symmetric — so the symmetric hypothesis is
-discharged. Hence for every resolved address the delivered value or reference is
+content position, `a ∈ dom(Σ.L) ∩ dom(Σ'.L)` for a link position. The hypothesis
+gives `Σ →* Σ'` directly: the two states are comparable under the sequential
+transition order, not merely reachable from a shared ancestor — divergent branches
+of the reachability relation would not be comparable, and across them a freshly
+allocated address could carry different values, so comparability is required, not
+derived. Over the intervening transitions `Σ →* Σ'`, content immutability (S0) and
+link immutability (L12) hold the stored entry fixed, giving `Σ.C(a) = Σ'.C(a)`
+(resp. `Σ.L(a) = Σ'.L(a)`). The labelling of the two states is immaterial —
+value-equality is symmetric — so naming the descendant `Σ'` costs no generality. Hence for every resolved address the delivered value or reference is
 the same at both states, and the two deliveries are identical. The only mutable input to a
 content delivery is the arrangement; this is exactly why repeatability is
 conditioned on "unchanged arrangements" and on nothing else. Editing produces a
