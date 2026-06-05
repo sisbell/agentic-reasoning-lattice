@@ -1,0 +1,302 @@
+# ASN-0111: READLINK — Reading a Link's Structure by Its Own Address
+
+*2026-06-04*
+
+## The problem
+
+A Xanadu link is not markup buried in content; it is a first-class object with its own
+permanent address in the link subspace. Because it is addressable, we can name it
+directly and ask the system a question that has nothing to do with where the link points:
+*what relationship does this object record?* This note specifies the operation that answers
+that question — the direct read of a link by its own identity. We call it `readlink`.
+
+We must be careful to separate `readlink` from three neighbouring operations that are out
+of scope here. *Following* a link takes one of its endsets and resolves it against a chosen
+document's arrangement to obtain current positions. *Searching* for a link supplies content
+regions and asks which links touch them. *Counting* asks how many do. All three consult
+something beyond the link object — an arrangement, or a query's spec-set. `readlink` consults
+nothing beyond the link itself. It is the operation by which the link discloses, in full and
+unconditionally, the relationship it was built to hold.
+
+The reasoning below proceeds by asking, repeatedly, *what must be true for the read to deliver
+the recorded relationship?* — and refining the specification each time the answer forces a new
+commitment.
+
+## The link as a readable object
+
+We take from the foundations the shape of a stored link. The *link store* `Σ.L : T ⇀ Link`
+(ASN-0043) maps addresses to link values, where a link value is a finite sequence of endsets
+
+> `Link = {(e₁, e₂, ..., eₙ) : N ≥ 3, each eᵢ ∈ Endset}`,  `Endset = 𝒫_fin(Span)`
+
+with the standard-triple convention assigning slot 1 the *from*-endset, slot 2 the *to*-endset,
+and slot 3 the *type*-endset. Each endset is a finite set of spans over the tumbler line; each
+span `(s, ℓ)` denotes a contiguous region `{t : s ≤ t < s ⊕ ℓ}` (T12, ASN-0034). The relationship
+a link records is therefore not a pair of points but a triple of *span-sets*, each reaching —
+possibly discontiguously — anywhere in the docuverse. The address-set a span-set denotes is its
+`coverage` (ASN-0043):
+
+> `coverage(e) = (∪ (s, ℓ) : (s, ℓ) ∈ e : {t ∈ T : s ≤ t < s ⊕ ℓ})`.
+
+Every link address is, by the substrate invariants, an element-level, T4-valid tumbler in the
+link subspace: `zeros(a) = 3`, `subspace_I(a) = s_L`, `#E(a) ≥ 2` (L0, L1, L1b, L0b of ASN-0043).
+These facts are what make a link nameable in the same address space as content, and they are
+what `readlink` will exploit.
+
+## Deriving the read
+
+We are looking for an operation that, given an address, returns the relationship recorded there.
+The minimal honest specification is a lookup in the link store. For a state `Σ` and address `a`:
+
+> `readlink(a, Σ)`
+>   *defined when*  `a ∈ dom(Σ.L)`
+>   `≡  Σ.L(a) = (e₁, e₂, ..., eₙ)`.
+
+It is a pure read: its frame condition is that it changes nothing, `Σ' = Σ`. The whole interest
+of the operation lies not in this one line but in what the one line *commits us to* — the
+properties the returned value must have, and what those properties let a reader learn.
+
+The first commitment is on the domain. The read is defined exactly on allocated link addresses.
+
+**RL0 (Definedness).** `readlink(a, Σ)` is defined iff `a ∈ dom(Σ.L)`. Reasoning backward from
+the postcondition "the result is the recorded relationship at `a`," the weakest precondition is
+precisely membership:
+
+> `wp(readlink request at a, result = Σ.L(a)) ≡ a ∈ dom(Σ.L)`.
+
+A reader holding a candidate tumbler can test the *necessary* structural conditions from the
+address alone — `zeros(a) = 3 ∧ subspace_I(a) = s_L` — by T4 parsing and the subspace projection
+(ASN-0034). These conditions are necessary but not sufficient: an address may have link-shaped
+structure yet name no allocated link. Definedness is a fact about `dom(Σ.L)`, not about the
+address's syntax, so the read either delivers the whole relationship or reports that no link
+lives at `a`. There is no partial-success middle state at the level of *whether* a link is there.
+
+## Completeness: the read returns the whole relationship
+
+The defining contrast between reading a link and finding one is *what counts as an answer*.
+A search is satisfied by a witness: a link is returned when *one* span of each endset meets the
+request, so a search confirms relevance without delivering the endset. A direct read has no
+request to satisfy and therefore no notion of a satisfying fragment. It must return the endsets
+*entire*.
+
+**RL1 (Completeness).** For each slot `i` and each span, the read omits nothing:
+
+> `(A i, (s, ℓ) : 1 ≤ i ≤ |Σ.L(a)| ∧ (s, ℓ) ∈ Σ.L(a).eᵢ : (s, ℓ) ∈ readlink(a, Σ).eᵢ)`,
+
+and conversely the read introduces no span not recorded. Equivalently `readlink(a, Σ) = Σ.L(a)`
+componentwise. The justification is immediate from the definition, but the *content* of the
+claim is the rejection of the satisfaction model: an alternative implementation that returned
+only the spans matching some implicit predicate would not be reading the link — it would be
+searching it. Reading is exhaustive by construction; satisfaction is irrelevant because there is
+no query against which to be satisfied.
+
+This is why the read recovers the arbitrary, broken collections that endsets are permitted to be.
+An endset may scatter spans across many documents and across discontiguous regions within one;
+the read returns every piece, because completeness is over the recorded structure, not over any
+region a caller happened to name.
+
+## The structure the read must preserve
+
+Completeness says no span is lost. It does not yet say the spans arrive *organised*. The link's
+meaning lives in its organisation: a span in the from-set asserts something different from the
+same span in the to-set or the type-set. So the read carries an obligation beyond returning a
+bag of spans.
+
+**RL2 (Role preservation).** The read delivers each endset under its slot index, preserving the
+three-way grouping:
+
+> `(A i : 1 ≤ i ≤ |Σ.L(a)| : readlink(a, Σ).eᵢ = Σ.L(a).eᵢ)`.
+
+The from / to / type distinction is a primitive of the returned value, not a label a reader must
+reconstruct. By the slot-distinction property (L6, ASN-0043), the positional accessor `eᵢ` is a
+model primitive and link equality is componentwise; a read that collapsed the three endsets into
+one pool, or that swapped two differing slots, would return a *different* relationship. The read
+must keep the directional from/to pair and the separate type endset aligned with their roles —
+this is exactly the alignment that any role-respecting use of the link depends upon.
+
+Within a single endset, however, no further order is owed.
+
+**RL3 (Intra-endset set semantics).** The spans inside `readlink(a, Σ).eᵢ` carry no positional
+meaning. The read exposes membership, not sequence: there is no operator selecting "the j-th
+span" of an endset (L5, ASN-0043). An endset is an arbitrary collection of spans, and each span's
+denotation is fixed by its own boundaries, independent of any position in a list. Two reads that
+present the same endset's spans in different incidental orders have returned the same endset.
+
+We can summarise RL1–RL3 in one sentence: the read returns the *complete* relationship,
+*grouped by role*, *unordered within each role*.
+
+## What the read reveals that the endpoints do not
+
+We now ask the question that motivates direct read at all. Suppose a reader could instead arrive
+at the content the link connects — stand at a from-span and at a to-span and read the bytes there.
+What would still be missing?
+
+Everything that makes the relationship a relationship. The bytes at the two ends announce neither
+why they are connected nor by whom. Four things are recoverable only from the link object, and
+the direct read is what delivers them.
+
+*The type.* The kind of connection — citation, refutation, comment — is the third endset, not a
+property of either endpoint. Two links whose endpoints are byte-for-byte identical may be a
+citation and a refutation; only `readlink(a, Σ).e₃` tells them apart. Because the read returns the
+type endset alongside from and to (RL2), the reader learns the nature of the connection, not just
+its termini.
+
+*The direction.* Standing at an endpoint, one cannot tell whether one is at the source or the
+target of the assertion. The read encodes the asymmetry: slot 1 is "from," slot 2 is "to."
+
+*The ownership.* A relationship is a *claim*, and a claim has an author. The link's home document
+records who owns it, and it is derivable from the link's own address without consulting any endset.
+
+**RL4 (Home disclosure).** `home(a) = N(a).0.U(a).0.D(a)` is determined by the read key `a` alone,
+by T4 field projection, and is independent of the returned endsets (L2, ASN-0043). Because the read
+is keyed by the address and the address encodes the home, the read reveals ownership for free, even
+of a link that points nowhere near its home document — the home indicates *who owns* the link, not
+*what it points to*.
+
+*The whole at once.* Arriving at an endpoint gives one location. The read gives both ends and the
+type simultaneously, as a single structure. The reader sees the relationship whole, which is what
+permits any judgement about it — whether a supersession claim comes from the original author or a
+third party, for instance — to be made at all.
+
+## Type is interpreted by address, not by content
+
+The type endset deserves separate treatment, because it is the one part of the structure whose
+spans need not reference anything that exists.
+
+**RL5 (Type-by-address).** The relationship the type records is fixed by `coverage(e₃)` — the set
+of addresses the type-set names — and not by whatever is, or is not, stored at those addresses.
+Two links share a type exactly when their type endsets have equal coverage (L8, ASN-0043), a
+relation on address sets, decided without dereferencing a single one. The read therefore delivers
+a fully interpretable type even when the type address holds nothing at all: ghost types are
+permitted (L9, ASN-0043), and the read of a ghost-typed link is no less complete than any other.
+
+This is a genuine asymmetry within the returned structure, and an honest specification must state
+it. The from- and to-endsets name regions whose addresses, when present, reference real stored
+entities; the type-endset names addresses that serve as *labels by location*. The invariant that
+endset spans correspond to existing content is a property of the connective (from/to) endsets, not
+of the categorising (type) endset. The read returns all three faithfully; only for from/to does
+the reader have any expectation that the named addresses host content.
+
+## Faithful disclosure of nesting
+
+Because links live in the same address space as content, an endset may name another link. The
+to-set of a link can carry a span of width one over a link's own address (the canonical reflexive
+span of L13, ASN-0043), making the link's target itself a link. Compound and faceted structures
+are built this way.
+
+**RL6 (Nesting fidelity).** If `a' ∈ dom(Σ.L)` and `a' ∈ coverage(readlink(a, Σ).eᵢ)`, the read
+discloses `a'` as the tumbler address it is — it does not flatten the reference into the content,
+if any, that further reading of `a'` might yield. The read is address-faithful: a target address is
+returned as an address, whether it names content or another link. One direct read returns one
+link's structure; the addresses it contains may themselves be read, but the read does not silently
+recurse, nor does it hide that a returned address is a link rather than content. Whether and how a
+reader chooses to follow the nesting by issuing further reads is the reader's affair; the read's
+obligation is fidelity at the level it returns.
+
+## Determinacy and the immutability of the recorded relationship
+
+A read is only as trustworthy as the stability of what it reads. The link store is append-only and
+its values are frozen: once allocated, a link's address persists and its value never changes
+(L12, L12a of ASN-0043). The read inherits this stability.
+
+**RL7 (Determinacy).** `readlink` is a pure function of `(a, Σ.L)`: two reads of the same address
+in the same link store return identical values. Moreover, because the value is immutable across
+every reachable transition, the read is stable across the whole future:
+
+> `(A Σ, Σ' : Σ →* Σ' ∧ a ∈ dom(Σ.L) : readlink(a, Σ') = readlink(a, Σ))`.
+
+A reader who has once read a link may rely on that reading permanently. This is the counterpart, at
+the read interface, of the design commitment that to record a *different* relationship one must
+make a *different* link: there is no operation that re-types or re-aims an existing link in place,
+so the structure the read returns today is the structure it will return forever.
+
+## Recorded relationship versus resolved position
+
+We can now state the deepest distinction the operation embodies, the one that separates `readlink`
+from following or searching. A link records its endsets as spans over the *permanent* address space.
+Resolving those spans against a particular document's arrangement — mapping them to current
+positions — is a separate act, the business of traversal and projection, and it is conditional on
+the arrangement. The direct read performs no such resolution. It returns the recorded spans as they
+stand.
+
+**RL8 (Recorded, not resolved).** `readlink(a, Σ)` depends only on `Σ.L`; it is independent of every
+document arrangement. Consequently the read succeeds and returns the complete structure even for an
+*orphaned* link — one whose endpoint content is currently arranged in no document, so that resolving
+its endsets would yield nothing (cf. the ghost-projection situation, ASN-0098). The link's structure
+persists unconditionally (L12; LP13 of ASN-0098), and the read surfaces it unconditionally. The
+relationship the link records is therefore the more durable object: it outlives the arrangement of
+its endpoints, and the direct read is the only operation that exposes it without first passing
+through an arrangement that may no longer reach the connected content.
+
+This is precisely what direct read reveals that following or searching cannot. A follow that found
+no current position, or a search whose spec-set the orphaned content no longer occupies, would
+report emptiness — not because the relationship has ceased to exist, but because no arrangement
+currently witnesses it. The read distinguishes *the relationship is gone* from *the relationship is
+unwitnessed*, and answers, for an allocated link, always the latter at worst: the structure is
+there, complete, and the read returns it.
+
+## Invariants governing the returned structure
+
+Finally we collect the invariants that constrain *what* a well-formed read may return — the
+guarantees a reader may assume of any value `readlink` produces. These are not new obligations but
+the foundation invariants viewed through the read interface; an alternative implementation's read
+must honour them because the stored values do.
+
+**RL-WF (Well-formedness).** Each returned endset is a finite set of T12-well-formed spans
+(`Endset = 𝒫_fin(Span)`). Every span `(s, ℓ)` in the result satisfies `Pos(ℓ) ∧ actionPoint(ℓ) ≤ #s`,
+so each denotes a non-empty contiguous region (ASN-0034). The read can never return a malformed or
+empty span.
+
+**RL-ARITY (Triple-or-more, typed).** The returned value has arity at least three, and its type slot
+is non-empty:
+
+> `|readlink(a, Σ)| ≥ 3  ∧  readlink(a, Σ).e₃ ≠ ∅`   (from L3, ASN-0043).
+
+A conforming link always carries a classifying type; the read therefore always returns a usable
+type endset. The from- and to-endsets, by contrast, may individually be empty — `∅` is a valid
+endset — so the read may legitimately return an empty connective slot while never returning an empty
+type slot. This is the read-side image of the structural rule that a link's type is mandatory and
+its directional reach is permissive.
+
+**RL-GEN (Endset generality).** The spans the read returns may point anywhere: across documents,
+within the link's own home document, or into the link subspace at other links (L4, ASN-0043). The
+read imposes no confinement on coverage beyond well-formedness; whatever the link recorded, the read
+returns.
+
+**RL-REP (Representation independence of meaning).** The relationship the read conveys is the
+*coverage* of each endset, not the particular span decomposition. Two recorded endsets with equal
+coverage record the same relationship and are interchangeable for every coverage-based use (the
+type relation of L8; projection independence, LP21 of ASN-0098). A reader interpreting the result
+should read it as a triple of address-sets-with-roles; the exact spans are one representation of
+those sets.
+
+## Claims Introduced
+
+| Label | Statement | Status |
+|-------|-----------|--------|
+| `readlink` | `readlink(a, Σ) ≡ Σ.L(a)`, defined when `a ∈ dom(Σ.L)`; pure read, frame `Σ' = Σ` | introduced |
+| RL0 | The read is defined iff `a ∈ dom(Σ.L)`; `wp = a ∈ dom(Σ.L)`; link-shape of the address is necessary but not sufficient | introduced |
+| RL1 | Completeness — the read returns every recorded span of every endset and no other; `readlink(a, Σ) = Σ.L(a)` (rejects the satisfaction model) | introduced |
+| RL2 | Role preservation — each endset is returned under its slot index; from/to/type grouping delivered intact and distinguishable | introduced |
+| RL3 | Intra-endset set semantics — spans within a returned endset are unordered; membership, not sequence, is exposed | introduced |
+| RL4 | Home disclosure — `home(a)` is determined by the read key alone, independent of endsets; the read reveals ownership | introduced |
+| RL5 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
+| RL6 | Nesting fidelity — link addresses in an endset's coverage are returned as addresses, unflattened and unrecursed | introduced |
+| RL7 | Determinacy — `readlink` is a pure function of `(a, Σ.L)` and stable across all `Σ →* Σ'` by link immutability | introduced |
+| RL8 | Recorded, not resolved — the read depends only on `Σ.L`, succeeds for orphaned links, and returns the complete structure independent of any arrangement | introduced |
+| RL-WF | Each returned endset is a finite set of T12-well-formed spans | introduced |
+| RL-ARITY | The returned value has arity ≥ 3 with non-empty type slot; connective slots may be empty | introduced |
+| RL-GEN | Returned spans may reference any address (cross-document, intra-home, link-subspace) | introduced |
+| RL-REP | The conveyed relationship is each endset's coverage; equal-coverage endsets are interchangeable in meaning | introduced |
+
+## Open Questions
+
+What must the system guarantee a reader can conclude about a relationship's continued validity from a direct read alone, given that the read does not consult any arrangement?
+
+What invariant relates the completeness of a directly-read structure to the completeness any future read of the same link must yield, across unbounded system evolution?
+
+Under what conditions, if any, may the address-set a read discloses for an endset differ in denotation from the address-set recorded at the link's creation?
+
+What must a read guarantee about the distinguishability of a connective endset that is legitimately empty from one whose spans reference only currently-unwitnessed content?
+
+What guarantee must hold so that reading two distinct links with identical recorded structure always yields results distinguishable by the reader, given that addresses, not values, carry link identity?
