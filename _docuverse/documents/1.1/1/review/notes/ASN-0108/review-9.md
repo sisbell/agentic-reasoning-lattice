@@ -1,0 +1,13 @@
+# Review of ASN-0108
+
+## REVISE
+
+### Issue 1: W6a's "regardless of key" universal is justified by an address-key-specific argument
+
+**ASN-0108, W6a (CreationDoesNotDisturbSeenLinks)**: "Regardless of key, the *creation* of `a_new` does not alter the key or the relative order of any already-enumerated link: addresses are not reused, so no existing key changes (W5)."
+
+**Problem**: The claim quantifies over *all* keys ("regardless of key"), but the supplied justification — "addresses are not reused" — establishes key-stability only for the **address-based key** `κ(a) = a`, where the key *is* the address. For the **content-position key**, the key is the position of the matched endpoint content, not the address; "addresses are not reused" does not, by itself, entail that a content-derived key is unchanged. The conclusion happens to hold for the content-position key too, but for a *different* reason the ASN never states: link creation is a `K.λ` operation (ASN-0093) that frames the arrangement family `M` and the content store `C`, so no existing link's matched-content position moves. The universal claim is therefore asserted with a justification valid for only one of the two keys the ASN tracks throughout — exactly the kind of "by the same reasoning" gap that differs by case.
+
+**Required**: Discharge the universal with the frame argument that covers both keys: link creation (`K.λ`) leaves `M` and `C` unchanged, so neither any link's address nor any link's matched-content position is altered; hence under *any* key that is a function of `(address, matched-content-position)`, every already-enumerated link retains its key and relative order. State this frame fact explicitly rather than leaning on "addresses are not reused," which only reaches the address key.
+
+VERDICT: REVISE
