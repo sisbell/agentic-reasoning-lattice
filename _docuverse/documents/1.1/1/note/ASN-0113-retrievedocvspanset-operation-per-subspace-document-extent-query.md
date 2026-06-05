@@ -312,16 +312,21 @@ The existential is a reachability claim: for arbitrary `(c, k) ∈ ℕ × ℕ` a
 profile `(c, k)` must be constructible. We discharge it by exhibiting a transition sequence
 over the ASN-0047 vocabulary that drives `(n_{s_C}, n_{s_L})` to any target. Starting from a
 state in which `d ∈ E_doc` (allocated by K.δ, NodeBaptism then the document sub-allocator),
-the two subspaces are populated by *disjoint* transition kinds: `c` applications of the
-content-restricted arrangement extension K.μ⁺ — each adding one text V-position, with the new
-positions forming the dense run `{[s_C,1,…,1,j] : 1 ≤ j ≤ c}` by D-SEQ★ — drive
-`n_{s_C}(d) = c`; and `k` applications of the link-subspace extension K.μ⁺_L — each adding one
-link V-position, forming `{[s_L,1,…,1,j] : 1 ≤ j ≤ k}` by D-SEQ★ — drive `n_{s_L}(d) = k`.
-The amended K.μ⁺ confines its new V-positions to `subspace(v) = s_C` and K.μ⁺_L to
-`subspace(v) = s_L`, so the two counts are set by independent transition streams (this is the
-mechanism behind W15, Independence, below); neither stream constrains the other, so every
-`(c, k) ∈ ℕ × ℕ` is reachable (the empty subspace, count `0`, by performing zero extensions
-of that kind). To witness W12, fix `c, k₁, k₂ ∈ ℕ` with `k₁ ≠ k₂`: build `d₁` with profile
+the two subspaces are populated by *disjoint* coupled transition kinds. A text position
+cannot be added by K.μ⁺ alone: K.μ⁺ requires that each new mapping `M'(d)(v) = a` reference
+an already-allocated `a ∈ dom(C)`, and a valid composite must satisfy the J0 coupling
+(every freshly allocated I-address appears in some arrangement). So each text position is a
+*coupled K.α + K.μ⁺ pair* — a K.α step allocating a fresh content address `a ∈ dom(C)` (its
+existence guaranteed by T0(a)/T0(b), content being unboundedly allocatable) followed by a
+content-restricted K.μ⁺ step mapping a new text V-position to that `a`, the pair satisfying
+J0. Performing `c` such pairs adds the dense run `{[s_C,1,…,1,j] : 1 ≤ j ≤ c}` by D-SEQ★ and
+drives `n_{s_C}(d) = c`; performing `k` link-subspace extensions K.μ⁺_L — each mapping a new
+link V-position to a link address allocated by the document's link sub-allocator — adds
+`{[s_L,1,…,1,j] : 1 ≤ j ≤ k}` by D-SEQ★ and drives `n_{s_L}(d) = k`. The content-restricted
+K.μ⁺ confines its new V-positions to `subspace(v) = s_C` and K.μ⁺_L to `subspace(v) = s_L`,
+so the two counts are set by independent transition streams (this is the mechanism behind
+W15, Independence, below); neither stream constrains the other, so every `(c, k) ∈ ℕ × ℕ` is
+reachable (the empty subspace, count `0`, by performing zero extensions of that kind). To witness W12, fix `c, k₁, k₂ ∈ ℕ` with `k₁ ≠ k₂`: build `d₁` with profile
 `(c, k₁)` and `d₂` with profile `(c, k₂)` by the construction above; both share text extent
 `c` yet differ in link extent, so `n_{s_C}` does not determine `n_{s_L}`. The symmetric
 witness (fix the link extent, vary the text extent) is identical with the roles exchanged.
@@ -454,12 +459,16 @@ properties of the *present* arrangement, not permanent attributes of the identit
 `Σ` (by W8), so any two queries against the *same* `Σ` return identical span-sets, and any
 query against a *changed* `Σ` may legitimately differ.
 
-Permanence is therefore *inherited, not primitive*. If document identity is pinned to a
-fixed version — an immutable arrangement, since editing forks a new version rather than
-mutating an existing one — then `V_S(d)` is fixed, hence each `n_S` is a deterministic
-function of fixed data, hence the report cannot change. We record **W19** (VersionStability):
-for a document identity bound to a fixed version, repeated queries return identical
-span-sets; a later report contradicts an earlier one only if the document changed. The link
+Permanence is therefore *inherited, not primitive* — it descends from the stability of the
+state, not from any property the operation contributes. If no transition occurs between two
+queries, `M(d)` is unchanged, so `V_{s_C}(d)` and `V_{s_L}(d)` are fixed, hence each `n_S` is
+a deterministic function of fixed data, hence the report cannot change. (We make no claim
+that arrangements are immutable in general: the foundation's vocabulary includes in-place
+arrangement mutations — K.μ⁻ contracts and K.μ~ reorders an existing `M(d)`, ASN-0047 — so a
+document's extents *can* change under editing. What the report cannot do is change while the
+state it views stands still.) We record **W19** (StateStability): against an unchanged state
+`Σ`, repeated queries return identical span-sets; a later report contradicts an earlier one
+only if `M(d)` changed in between. The link
 count is specifically the count of *home* links — links the document owns (CL-OWN) — so a
 third party linking *into* the document, owning its link at another address, cannot perturb
 the document's reported link extent. The stability the report enjoys is exactly the stability
@@ -490,7 +499,7 @@ of the arrangement it views; the operation adds none of its own and needs none.
 | W16 | Partition — the members disjointly cover exactly the counted active V-positions; no orphan, no phantom | introduced |
 | W17 | ExtentDeterminesPopulation — active positions of `S` are exactly the V-slice tumblers within `ext(d, S)`, each carrying content | introduced |
 | W18 | DerivedReport — the result is a pure function of current state `Σ` | introduced |
-| W19 | VersionStability — for a fixed version the report is permanent; it changes only if the document changes; the link extent counts home links only | introduced |
+| W19 | StateStability — against an unchanged state the report is permanent; it changes only if `M(d)` changes; the link extent counts home links only | introduced |
 
 ---
 
@@ -498,7 +507,7 @@ of the arrangement it views; the operation adds none of its own and needs none.
 
 When a subspace's active positions are non-contiguous, must the per-subspace report fragment into one span per contiguous cluster, or may it return a single bounding span that overshoots interior gaps?
 
-Must an empty subspace be reported as a zero-extent span or may it be omitted entirely, and which choice preserves comparability across all documents?
+Given that the operation omits an empty subspace entirely (W7) and comparison treats an absent subspace as the value zero (W14), how must a *consumer* interpret an omitted member when comparing reports across documents of differing vintages — under what conditions is "subspace absent" safely read as "extent zero" rather than "subspace not yet supported"?
 
 What permanence must the per-subspace extent report carry across a version fork that shares content with its ancestor?
 
