@@ -18,9 +18,7 @@ The foundation distinguishes two address spaces. The content store `C : T ⇀ Va
 
 INSERT acts on both, but asymmetrically. It *grows* `C` by appending fresh entries; it never alters existing entries, never reassigns I-addresses, never identifies one I-address with another. It *grows and rearranges* `M(d)`; it never alters the underlying I-addresses, only the V-positions at which they are observed.
 
-This asymmetry is the architectural pivot. Existing content keeps its permanent I-address across INSERT. Its V-position within `d` may shift, but the I-address — and the value stored there — is invariant. Since links attach to I-addresses (not V-positions), insertion cannot break them. The I-address is the *identity* of a piece of content; the V-position is the *current location* of that identity within an arrangement.
-
-We shall see that every constraint on INSERT — what may shift, what must be preserved, what counts as atomic — flows from this single asymmetry.
+Existing content keeps its permanent I-address across INSERT. Its V-position within `d` may shift, but the I-address — and the value stored there — is invariant. Since links attach to I-addresses (not V-positions), insertion cannot break them. The I-address is the *identity* of a piece of content; the V-position is the *current location* of that identity within an arrangement.
 
 ## The Operation's Inputs
 
@@ -72,7 +70,7 @@ Consequently the Insertion region `{(shift(p, k), a_k) : 0 ≤ k < n}` coincides
 
 The post-state content store is stated formally by the content-store effect in §The Operation: Formal Contract (INS.C): the store grows by the fresh addresses `a_0, …, a_{n−1}` carrying the new values `v_0, …, v_{n−1}`, while every pre-existing binding is preserved unchanged.
 
-That last guarantee is the most important. The pre-existing content is *not touched*: its values are preserved bit-for-bit, and its addresses persist in the post-state. This is the foundational permanence guarantee S0.
+The pre-existing content is *not touched*: its values are preserved bit-for-bit, and its addresses persist in the post-state. This is the foundational permanence guarantee S0.
 
 ### Effect Two: Placement
 
@@ -432,7 +430,7 @@ Every pre-state V-position contributing to projection is mapped (by π or identi
 
 The provenance relation `R ⊆ T_elem × E_doc` (ASN-0047) records which documents have ever contained which I-addresses. INSERT's effect on R is `R' = R ∪ {(a_k, d) : 0 ≤ k < n}`, realised by `n` K.ρ firings in step 4 of the substrate composite.
 
-The composite-boundary coupling J1★ (ExtensionRecordsProvenanceContentSubspace; ASN-0047) requires every newly-arranged content-subspace I-address with no pre-state arrangement under `d` to have its provenance pair in `R'`. For Insertion positions, the freshly allocated `a_k` was not in any `ran(M(d))` pre-state. At the moment of `a_k`'s K.α firing, the freshness precondition `a_k ∉ dom(Σ_k.C) ∪ dom(Σ_k.L)` holds by SubsequentEmissionFreshness (ASN-0093), with FirstEmissionFreshness covering the boundary case `m_d = 0`; by P0 (ContentPermanence; ASN-0047) applied along `Σ →* Σ_k`, this lifts to `a_k ∉ dom(Σ.C)`; and by pre-state S3★ (GeneralizedReferentialIntegrity; ASN-0047), `ran(M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)`, whence `a_k ∉ ran(M(d))`. So J1★ requires `(a_k, d) ∈ R'` — discharged by step 4. For Shifted-right positions, `M(d)(v) = a` was already arranged at some content-subspace V-position `v ∈ dom(M(d))`, so J1★'s requirement of "not previously arranged in d's content subspace" is false, and no new R entry is required for these. The pair `(a, d)` was already in R via the historical state (preserved by P2, ProvenancePermanence; ASN-0047).
+The composite-boundary coupling J1★ (ExtensionRecordsProvenanceContentSubspace; ASN-0047) requires every newly-arranged content-subspace I-address with no pre-state arrangement under `d` to have its provenance pair in `R'`. For Insertion positions, the freshly allocated `a_k` was not in any `ran(M(d))` pre-state. At the moment of `a_k`'s K.α firing, the freshness precondition `a_k ∉ dom(Σ_k.C) ∪ dom(Σ_k.L)` holds by SubsequentEmissionFreshness (ASN-0093), with FirstEmissionFreshness covering the boundary case `m_d = 0`; by P0 (ContentPermanence; ASN-0047) applied along `Σ →* Σ_k`, this lifts to `a_k ∉ dom(Σ.C)`; and by pre-state S3★ (GeneralizedReferentialIntegrity; ASN-0047), `ran(M(d)) ⊆ dom(Σ.C) ∪ dom(Σ.L)`, whence `a_k ∉ ran(M(d))`. So J1★ requires `(a_k, d) ∈ R'` — discharged by step 4. For Shifted-right positions, `M(d)(v) = a` was already arranged at some content-subspace V-position `v ∈ dom(M(d))`, so J1★'s requirement of "not previously arranged in d's content subspace" is false, and no new R entry is required for these. The pair `(a, d)` is in R already: for a Shifted-right address, `a` was in `d`'s content-subspace range at the pre-state composite boundary Σ, so `(a, d) ∈ Contains_C(Σ) ⊆ R` by pre-state P4★ (ProvenanceBoundsContentSubspace; ASN-0047), and P2 (ProvenancePermanence; ASN-0047) preserves it to R'.
 
 J1'★ (ProvenanceRequiresExtensionContentSubspace; ASN-0047) requires every new R' entry to correspond to a newly-arranged content-subspace I-address. Each `(a_k, d)` added in step 4 corresponds to the placement `shift(p, k) ↦ a_k` introduced by step 3's K.μ⁺ — satisfied.
 
@@ -585,7 +583,7 @@ INSERT allocates *fresh* I-addresses for new content. The defining clause of the
 
 Two independent users who INSERT the word "the" into their respective documents produce two distinct addresses, two distinct origins; neither is a copy or transclusion of the other. The system tracks identity by allocation event, not by value. If their bytes happen to coincide — both authors wrote "the" — the system observes this as two unrelated allocations, not one shared content.
 
-COPY (out of scope here) creates V→I mappings to *existing* I-addresses without allocating new content. The original document remains the home of the bytes; attribution stays with the original author. The Vstream effect can be made indistinguishable from an INSERT — the same V-positions populated with the same visible content — but the underlying Istream identity is fundamentally different.
+By contrast, COPY (out of scope here) creates V→I mappings to *existing* I-addresses without allocating new content — the defining structural difference being that INSERT allocates fresh I-addresses while COPY does not.
 
 ### Derived corollaries of INS.identity
 
