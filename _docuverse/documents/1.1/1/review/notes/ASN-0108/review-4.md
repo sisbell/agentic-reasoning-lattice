@@ -1,0 +1,17 @@
+# Review of ASN-0108
+
+## REVISE
+
+### Issue 1: W9a's termination condition is imprecise and, under its natural reading, insufficient
+
+**ASN-0108, W9a (TerminationGuaranteed)**: "Over a *mutating* matching set the loop still terminates whenever the reachable tail *ahead of the cursor* — the matching links with key `> κ(c)`, the only region the loop consumes — does not grow without bound."
+
+**Problem**: The parenthetical defines the tail as the *instantaneous* set `{a ∈ Match : κ(c) <_K κ(a)}`, so "does not grow without bound" naturally reads as "the tail's cardinality stays bounded." That condition does not imply termination. Counterexample (allocation-monotone address key, `N = 1`): suppose each call consumes the one link in the tail, and between every two calls exactly one fresh matching link is created ahead of the cursor (W6 places it at the tail). The instantaneous tail is always size 1 — bounded, never growing without bound — yet every window is full (`= N`), the reader never sees a short window (W9), and the loop runs forever. Bounded instantaneous tail size is compatible with unbounded *cumulative* replenishment, which is what actually defeats termination. The fixed-set bound-function argument (`t_i = m − iN` strictly decreasing) does not transfer, because under replenishment `|After(c_{i+1})|` need not fall below `|After(c_i)| − N`.
+
+**Required**: State the genuinely sufficient condition — e.g. "only finitely many matching links are ever added ahead of the cursor across the entire run" (finite total tail *inflow*), or equivalently "tail replenishment eventually ceases" — rather than instantaneous boundedness. If the intended reading was the cumulative union of all tail sets over the run, say so explicitly and reconcile it with the parenthetical, which currently describes the instantaneous set.
+
+## OUT_OF_SCOPE
+
+(none — the multi-document key, eventual-delivery-of-new-links, cross-state completeness, cursor-invalidation-vs-exhaustion, and progress/delivery-order correspondence questions are all appropriately deferred to the Open Questions rather than claimed here.)
+
+VERDICT: REVISE
