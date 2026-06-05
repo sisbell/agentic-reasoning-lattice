@@ -178,12 +178,14 @@ V-positions are drawn (S8a). We record **W4** (ExactCoverage):
 
 The derivation is direct. `⟦ext(d, S)⟧ = {t : start_S ≤ t < [S,1,…,1,1+n_S]}`. Take any
 `t ∈ VSlice(S, m_S)`. Such a `t` has the form `[S, t_2, …, t_{m_S}]` with all components
-positive. By T1, `start_S = [S,1,…,1] ≤ t` forces each leading component to meet its floor;
-combined with `t < [S,1,…,1,1+n_S]`, the only freedom is in the last component, which ranges
-over `1 ≤ t_{m_S} ≤ n_S` while the prefix stays `[S,1,…,1]`. (Formally: T5,
-ContiguousSubtrees, applied to the common prefix `[S,1,…,1]` of length `m_S − 1` shared by
-`start_S` and `reach`, confines every interior tumbler to that prefix; the last component is
-then pinned to `1..n_S` by the half-open bounds.) These are exactly the elements
+positive. The bounds `start_S = [S,1,…,1]` and `reach = [S,1,…,1,1+n_S]` share the common
+prefix `[S,1,…,1]` of length `m_S − 1`, so by T5 (ContiguousSubtrees), applied with
+`start_S ≤ t < reach`, every interior `t` extends that prefix — its first `m_S − 1`
+components are pinned to `[S,1,…,1]`. (The lower bound `start_S ≤ t` alone does *not* force
+this: lexicographic order is not componentwise order, e.g. `[S,2,1] ≥ [S,1,1]` despite its
+off-prefix second component; the confinement is the joint effect of both bounds via T5.) The
+only remaining freedom is in the last component, which the half-open bounds then pin to
+`1 ≤ t_{m_S} ≤ n_S`. These are exactly the elements
 `[S,1,…,1,k]` with `1 ≤ k ≤ n_S` — which is `V_S(d)` by D-SEQ★. So the span omits no active
 position (completeness) and includes no inactive V-slice tumbler (exclusivity). The relation
 the member span bears to its subspace is therefore *definitional, not approximate*: its
@@ -363,9 +365,7 @@ new provenance entry corresponds to such a range-new I-address). So each text po
 `a ∈ dom(C)` (its existence guaranteed by T0(a)/T0(b), content being unboundedly
 allocatable), a content-restricted K.μ⁺ step mapping a new text V-position to that `a`
 (discharging J0), and a K.ρ step recording `(a, d) ∈ R'` (discharging J1★ and J1'★) — leaving
-the composite valid. Equivalently, one may invoke ASN-0047's J4 (ForkComposite), which already
-bundles the K.δ/K.μ⁺/K.ρ steps into a single valid composite; we spell out the per-position
-composite here because the construction varies one subspace at a time. Performing `c` such
+the composite valid. Performing `c` such
 composites adds the dense run `{[s_C,1,…,1,j] : 1 ≤ j ≤ c}` by D-SEQ★ and drives
 `n_{s_C}(d) = c`; each link position is a *coupled K.λ + K.μ⁺_L composite* — a K.λ step
 allocating a fresh link address `ℓ` on the document's link sub-allocator `A_L(d)` (so that
