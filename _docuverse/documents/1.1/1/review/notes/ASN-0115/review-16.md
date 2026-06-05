@@ -1,0 +1,13 @@
+# Review of ASN-0115
+
+## REVISE
+
+### Issue 1: Σ is never scoped to reachable states, yet every invariant citation requires it
+
+**ASN-0115, "The substrate we build on" / V-spec definition / R0**: The V-spec and `deliver(R, Σ)` are defined over an unrestricted "state Σ," with `item`, `act`, and R1–R11 quantifying over "state Σ" with no reachability constraint.
+
+**Problem**: Nearly every proof in the ASN cites invariants that hold *only at reachable states* — S3★ and S3★-aux (item well-definedness and totality), S8-depth and D-SEQ★ (R6's terminal-overrun / no-interior-hole argument), CL-OWN and CL-UNIQ (R8's link-vacuity argument), S8a/S8-fin (finiteness and enumeration of `act`). These are precisely ASN-0047's `ExtendedReachableStateInvariants`. The ASN itself acknowledges this in R8 — "Both are per-state invariants of every reachable state (ASN-0047, ExtendedReachableStateInvariants)" — which makes the gap explicit: it knows these are reachable-state invariants but applies them to an unrestricted Σ. If Σ is not reachable, S3★-aux may fail and a position could carry a subspace other than `s_C`/`s_L`, leaving `item` undefined; D-SEQ★ may fail, defeating R6's no-hole claim; CL-OWN/CL-UNIQ may fail, defeating R8's link vacuity. The project's own foundation ASNs scope this explicitly (ASN-0086: "Σ ranges over the →*-reachable states"; ASN-0098: "every reachable state Σ"); ASN-0115 does not.
+
+**Required**: State, as a standing precondition on the V-spec/`deliver` definitions (or in "The substrate we build on"), that Σ ranges over states reachable from Σ₀ under the sequential transition order, so that the per-state invariant citations are licensed. R7 already gestures at this ("two states of one evolving docuverse") but the base definitions need it too.
+
+VERDICT: REVISE
