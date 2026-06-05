@@ -526,8 +526,6 @@ Under what conditions, if any, may a content-delivery operation be permitted to 
 
 What invariant must govern delivery when a spec-set's resolved references include an address with no entity bound in either store?
 
-What must be guaranteed about the relative ordering of two items drawn from the same address via distinct positions when those positions fall in different specs?
-
 What faithfulness, if any, may be required of the delivery channel itself, given that the storage-layer faithfulness invariant does not extend to transmission?
 
 What must delivery guarantee when a single span's denotation straddles the subspace boundary, so that one contiguous named range yields both content items and link-reference items?
