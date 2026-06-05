@@ -232,8 +232,6 @@ The consequence Nelson emphasises (Q5): a reader holding any pre-state I-address
 
 The frame `(A d' : d' ≠ d : M'(d') = M(d'))` directly enforces independence: no document other than `d` has its arrangement altered. Coupled with `L' = L` and content-store preservation, this means that any document `d'` that transcludes content from `d` continues to map the same V-positions to the same I-addresses, and those I-addresses continue to resolve to the same values.
 
-The two documents may share I-addresses through transclusion, but the cross-document frame and content preservation together ensure that the shared I-addresses' values and the *other* document's mappings are unaffected.
-
 Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, every elementary step of the decomposition carries the cross-document frame `M'(d'') = M(d'')` for `d'' ≠ d`, so `M(d')` is never modified and the projection from `d'` is unchanged, `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)` (LP4, ArrangementSpecificity, composed stepwise; ASN-0098).
 
 ### Arrangement functionality (S2)
@@ -324,9 +322,7 @@ S8★ is preserved.
 
 ### Cross-subspace isolation
 
-The frame `(A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ s_C : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))` directly preserves all subspaces of `d` other than the text subspace. In particular, `V_{s_L}(d') = V_{s_L}(d)`, and link-subspace mappings are unchanged.
-
-INSERT's shift is scoped strictly to `s_C`; non-text positions are never in the shift's carrier. The frame `INS.frame.subspace` (`V_{s_L}(d') = V_{s_L}(d)` with mappings unchanged) establishes the isolation directly.
+INSERT's shift is scoped strictly to `s_C`; non-text positions are never in the shift's carrier. The frame `(A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ s_C : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))` (`INS.frame.subspace`) directly preserves all subspaces of `d` other than the text subspace. In particular, `V_{s_L}(d') = V_{s_L}(d)`, and link-subspace mappings are unchanged.
 
 Gregory's implementation realises this isolation via a two-blade "knife" whose blades bracket the text subspace; link-subspace crums are classified as outside the shift region and are uniformly left untouched. The structural property is what we verify abstractly; the knife is one (efficient) implementation.
 
